@@ -1,0 +1,16 @@
+To install:
+
+1)  Customise lspf.h  Make sure paths ZSPROF, ZUPROF, MLIB etc exist.
+2)  Compile and run setup.cpp to create the default ISPSPROF profile member, ISPCMDS and USRCMDS command tables.
+3)  Compile lspf.cpp
+4)  Compile applications
+5)  Copy directories mlib, plib and tlib to the paths defined in MLIB, PLIB and TLIB in lspf.h if different.
+
+Boost and ncurses required to compile lspf.cpp
+OOREXX required for POREXX1.cpp but this is not necessary and really doesn't do much.
+file required for PBRO01A.cpp as it is linked with -lmagic
+
+You can use comp1 to compile lspf.cpp, compsetup to compile setup.cpp and compappls for all applications in directory Appls
+
+
+Run lspf in a terminal
