@@ -58,17 +58,17 @@ using namespace boost::posix_time;
 // ZMAXWAIT - Max wait time in ms to terminate the application if it has not gone into a wait-for-user-response (application may be looping)
 //
 
-#define HOME            "/home/daniel"
+#define HOME      "/home/daniel"
 #define ZSPROF		HOME "/.lspf"
 #define ZUPROF		HOME "/.lspf"
 #define ZSYSPATH	HOME "/lspf"
-#define ZLDPATH		"/tmp/path1:" ZSYSPATH "/Appls:" ZSYSPATH "/Appls2:/tmp/path2:/tmp/path3:/tmp/path4"
-#define MLIB		ZUPROF "/mlib:" ZSYSPATH "/mlib"
-#define PLIB		ZUPROF "/plib:" ZSYSPATH "/plib"
-#define TLIB		ZUPROF "/tlib:" ZSYSPATH "/tlib"
+#define ZLDPATH		ZSYSPATH "/Appls:" ZSYSPATH "/Appls2"
+#define MLIB		  ZUPROF "/mlib:" ZSYSPATH "/mlib"
+#define PLIB		  ZUPROF "/plib:" ZSYSPATH "/plib"
+#define TLIB		  ZUPROF "/tlib:" ZSYSPATH "/tlib"
 #define ZREXPATH	HOME "/rexx:" ZSYSPATH "/rexx"
-#define SLOG		"/tmp/syslog"
-#define ALOG		"/tmp/appllog"
+#define SLOG		  "/tmp/syslog"
+#define ALOG		  "/tmp/appllog"
 #define ZMAINPGM 	"PMAIN0A"
 #define ZPANLPGM 	"PDPANLA"
 #define ZEDITPGM 	"PEDIT01"
@@ -79,8 +79,8 @@ using namespace boost::posix_time;
 #define ZOREXPGM	"POREXX1"
 #define ZSHELP		"HPSPF01"
 #define ZMAXSCRN	8
-#define ZWAIT           5
-#define ZMAXWAIT        1000
+#define ZWAIT     5
+#define ZMAXWAIT  1000
 // ***************************************** End custom values *********************************************************
 
 // ***************************************** CUA defaults **************************************************************
@@ -123,44 +123,44 @@ using namespace boost::posix_time;
 
 
 #define BLACK		COLOR_PAIR(0)
-#define RED		COLOR_PAIR(1)
+#define RED		  COLOR_PAIR(1)
 #define GREEN		COLOR_PAIR(2)
-#define YELLOW		COLOR_PAIR(3)
+#define YELLOW	COLOR_PAIR(3)
 #define BLUE		COLOR_PAIR(4)
-#define MAGENTA 	COLOR_PAIR(5)
+#define MAGENTA COLOR_PAIR(5)
 #define TURQ		COLOR_PAIR(6)
 #define WHITE		COLOR_PAIR(7)
 
 #define N_BLACK		0
-#define N_RED		1
+#define N_RED		  1
 #define N_GREEN		2
 #define N_YELLOW	3
 #define N_BLUE		4
 #define N_MAGENTA	5
 #define N_TURQ		6
 #define N_WHITE		7
-#define B_RED		8
+#define B_RED		  8
 #define B_GREEN		9
 #define B_YELLOW	10
 #define B_BLUE		11
 #define B_MAGENTA	12
 #define B_TURQ		13
 #define B_WHITE		14
-#define R_RED		15
+#define R_RED		  15
 #define R_GREEN		16
 #define R_YELLOW	17
 #define R_BLUE		18
 #define R_MAGENTA	19
 #define R_TURQ		20
 #define R_WHITE		21
-#define U_RED		22
+#define U_RED     22
 #define U_GREEN		23
 #define U_YELLOW	24
 #define U_BLUE		25
 #define U_MAGENTA	26
 #define U_TURQ		27
 #define U_WHITE		28
-#define P_RED		29
+#define P_RED		  29
 #define P_GREEN		30
 #define P_YELLOW	31
 #define P_BLUE		32
