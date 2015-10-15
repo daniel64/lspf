@@ -1185,78 +1185,8 @@ ASSGN::ASSGN( string s )
 	as_upper  = false ;
 	as_words  = false ;
 	
-	/*  Tokens */
-
 	oQuote = false ;
-/*
-	typedef boost::tokenizer<boost::char_separator<char> >  Tokenizer;
-        string str = s ;
-	boost::char_separator<char> sep("", "(=)'");
-	Tokenizer tok( s, sep ) ;
 
-	for (Tokenizer::iterator it( tok.begin() ), end( tok.end() ) ; it != end ; ++it)
-	{
-		debug1( "dje >>" << *it << "<<" << endl  );
-	}
-	
-	t = 1 ;
-	for (Tokenizer::iterator it( tok.begin() ), end( tok.end() ) ; it != end ; ++it)
-	{
-		if ( strip( *it ) == "" ) continue ;
-		switch( t )
-		{
-			case 1:
-				as_lhs = strip( *it ) ;
-				if ( wordpos( as_lhs, ".HELP .MSG .CURSOR" ) > 0 ) break ;
-				if ( as_lhs[ 0 ] == '&' )
-				{
-					as_lhs.erase( 0, 1 ) ;
-					if ( isvalidName( as_lhs ) ) break ;
-					as_RC = 20 ; return ;
-				}
-				break ;
-			case 2:
-				if ( *it != "=" ) { as_RC = 20 ; return ; }
-				break ;
-			case 3: 
-				as_rhs = strip( *it ) ;
-				if ( *it == "'" )      { oQuote    = true ; break ; }
-				if ( *it == "UPPER" )  { as_upper  = true ; break ; }
-				if ( *it == "LENGTH" ) { as_retlen = true ; break ; }
-				as_rhs = *it ;
-				if ( wordpos( as_lhs, ".HELP .MSG .CURSOR .TRAIL" ) > 0 ) break ;
-				if ( as_rhs[ 0 ] == '&' )
-				{
-					as_rhs.erase( 0, 1 ) ;
-					if ( isvalidName( as_rhs ) ) break ;
-					as_RC = 20 ; return ;
-				}
-				if ( as_rhs[ 0 ] == '.' ) { as_RC = 20 ; return ; }
-				break ;
-			case 4:
-				if ( (as_upper || as_retlen) && *it == "(" ) { break ; }
-				if ( oQuote ) { as_rhs = *it ; break ; }
-				as_RC = 20 ; return ;
-			case 5:
-				if ( oQuote && *it != "'" ) { as_RC = 20 ; return ; }
-				if ( as_upper || as_retlen )
-				{
-					as_rhs = *it ;
-					if ( isvalidName( as_rhs ) ) break ;
-				}
-				as_RC = 20 ; return ;
-			case 6:
-				if ( (as_upper || as_retlen) && *it == ")" ) { break ; }
-				as_RC = 20 ; return ;
-			case 7:
-				as_RC = 20 ; return ;
-		}
-		t++ ;
-	}
-	debug1( " dje final result lhs " << as_lhs << endl ) ;
-	debug1( " dje final result rhs " << as_rhs << endl ) ;
-	return ;
-	*/
 	p = s.find( '=' ) ;
 	if ( p == string::npos ) { as_RC = 20 ; return ; }
 	as_lhs = upper( strip( s.substr( 0, p ) ) ) ;
