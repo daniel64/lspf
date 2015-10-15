@@ -1,3 +1,22 @@
+/*
+  Copyright (c) 2015 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
 #include <string>
 #include <stack>
 #include <iostream>
@@ -33,8 +52,6 @@ using namespace std;
 using namespace boost::posix_time;
 
 
-// ***************************************** Start custom values **************************************************************************
-//
 // Customisable values below.  Also included in the setup.cpp program for the ISPS profile pool.  Recompile setup.cpp and run after changes
 // HOME     - Home directory of the user
 // ZSPROF   - Where the user's ISPS profile is found.  Needs to be fully qualified.  All other variables are contained in this member
@@ -54,11 +71,10 @@ using namespace boost::posix_time;
 // ZOREXPGM - Name of the oorexx interpreter call program to invoke
 // ZSHELP   - Name of the system help member (ZPLIB/help concatenatin searched for this)
 // ZMAXSCRN - Maximum number of split screens allowed (Greater than 8 and the screen will not be displayed in the Screen[] status area.)
-// ZWAIT    - Wait time is ms to check if the application has gone into a wait-for-user-response (normally a few ms)
-// ZMAXWAIT - Max wait time in ms to terminate the application if it has not gone into a wait-for-user-response (application may be looping)
-//
+// ZWAIT    - Wait time to check if the application has gone into a wait-for-user-response (normally a few ms)
+// ZMAXWAIT - Max wait time to terminate the application if it has not gone into a wait-for-user-response (application may be looping)
 
-#define HOME		"/home/daniel"
+#define HOME            "/home/daniel"
 #define ZSPROF		HOME "/.lspf"
 #define ZUPROF		HOME "/.lspf"
 #define ZSYSPATH	HOME "/lspf"
@@ -67,8 +83,8 @@ using namespace boost::posix_time;
 #define PLIB		ZUPROF "/plib:" ZSYSPATH "/plib"
 #define TLIB		ZUPROF "/tlib:" ZSYSPATH "/tlib"
 #define ZREXPATH	HOME "/rexx:" ZSYSPATH "/rexx"
-#define SLOG		"/tmp/syslog"
-#define ALOG		"/tmp/appllog"
+#define SLOG		HOME "/.lspf/lspflog"
+#define ALOG		HOME "/.lspf/appllog"
 #define ZMAINPGM 	"PMAIN0A"
 #define ZPANLPGM 	"PDPANLA"
 #define ZEDITPGM 	"PEDIT01"
@@ -79,11 +95,11 @@ using namespace boost::posix_time;
 #define ZOREXPGM	"POREXX1"
 #define ZSHELP		"HPSPF01"
 #define ZMAXSCRN	8
-#define ZWAIT		5
-#define ZMAXWAIT	1000
-// ***************************************** End custom values *********************************************************
+#define ZWAIT           5
+#define ZMAXWAIT        1000
+// ***************************************** End custom values **************************************
 
-// ***************************************** CUA defaults **************************************************************
+// ***************************************** CUA defaults *******************************************
 #define KAB     "YLN"
 #define KAB     "YLN"
 #define KABSL   "BLN"
