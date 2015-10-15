@@ -1,0 +1,47 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel for application and system log viewer
+)ENDCOMMENT
+)BODY
+Home         ZCMD    
+CMD     ZCMD    
+PanelTitle   "System/Application Log Viewer"
+scrollOn
+
+literal   4    2   FP    "COMMAND ===> "    
+field     4   15   MAX-17  NEF  NONE  ZCMD    
+
+literal   4  MAX-15    FP  "SCROLL ===> "     
+field     4  MAX-3    4   NEF  NONE  ZSCROLL    
+
+literal   6    2    FP  "Current log:"    
+field     6   15    11  VOI   NONE  LOGTYPE    
+
+literal   7    2    FP  "Log file location:"    
+field     7   21    MAX  VOI   NONE  LOGLOC    
+
+literal   3   MAX-37      FP  "COL"
+field     3   MAX-33    7 VOI  NONE ZCOL1
+
+literal   3   MAX-25        FP  "LINE "     
+field     3   MAX-20    8   VOI   NONE  ZROW1    
+
+literal   3   MAX-11    FP  "OF"     
+field     3   MAX-8     8   VOI   NONE  ZROW2 
+
+--literal   7   1   FP  "----+----1----+----2----+----3----+----4----+----5----+----6----+----7----+----8----+"     
+--literal 7 1 FP "TIME           MODULE     LVL          MESSAGE"
+
+field     8   2  MAX   FP  NONE  HEADER    
+
+dynArea  9  2  MAX MAX ZAREA ZSHADOW
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+
+)PROC
+VPUT ZSCROLL PROFILE
+-- VER (&ZCMD,LIST,ONLY::1,EXCLUSE::2,X,FIND::1,RESET::3,REFRESH::3,SHOW,HIDE,MSG=PPSP011)
+)ENDPROC 

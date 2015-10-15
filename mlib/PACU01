@@ -1,0 +1,25 @@
+PACU011 "Package Not Found"
+"Package not found in any pacman repository searched"
+
+PACU012 "Log Cannot Be Opened"
+"Pacman log file cannot be opened.  Check file name"
+
+PACU013 "Log Empty"
+"Pacman log file is empty"
+
+PACU014 "Invalid Date Format"
+"Enter DATE DD-MM-YYYY to filter on log date"
+
+PACU015 "Package Not Installed"
+"Package must be installed before a file list can be created"
+
+PACU016 "Internal Error"
+"libalpm has returned an error.  See log"
+
+PACU017 "Invalid Parameter Passed"
+"PACU01 has been invoked with an invalid parameter of '&ZZSTR1'"
+
+PACU018 "File Cannot Be Opened Or Not Found"
+"File cannot be opened.  Check file exists and its permissions or file type"
+
+

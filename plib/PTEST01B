@@ -1,0 +1,147 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+Format for fields, literals, etc
+
+literal row column cuaFieldType display_literal
+field   row column length cuaFieldType name
+dynArea row column width depth name shadow_name
+tbmodel row depth
+tbfield column length cuaFieldType name
+pdc     abc_name pdc_name command
+box     row column width depth colour title
+
+
+)ENDCOMMENT
+
+)BODY
+Home    ZCMD
+CMD     ZCMD      
+
+PanelTitle "Test Table Display Functions"  
+
+literal   4    2          FP  "COMMAND ===> "    
+field     4   15  MAX-17  NEF     CAPS(ON)  ZCMD    
+
+literal   4   MAX-15       FP  "SCROLL ===> "    
+field     4   MAX-3    4   NEF     CAPS(ON)  ZSCROLL    
+
+literal   6   MAX-36         FP  "TIME: "     
+field     6   MAX-30    8    VOI   NONE  ZTIME    
+
+literal   6   MAX-20         FP  "DATE: "     
+field     6   MAX-14    8    VOI   NONE  ZDATE    
+
+literal   6   2          FP  "ZTDTOP: "     
+field     6   11    8    VOI   NONE  ZTDTOP    
+
+literal   6   21         FP  "ZTDSELS: "     
+field     6   31    8    VOI   NONE  ZTDSELS    
+
+literal   6   41         FP  "ZTDDEPTH: "     
+field     6   51    8    VOI   NONE  ZTDDEPTH    
+
+literal   7   21         FP  "ZTDVROWS: "     
+field     7   31    8    VOI   NONE  ZTDVROWS    
+
+literal   7   2          FP  "ZTDROWS: "     
+field     7   11    8    VOI   NONE  ZTDROWS    
+
+literal   8   2          FP  "Non-keyed Table.  Max RC from last operation is:"     
+field     8   51    8    VOI   NONE  TRC    
+
+literal   10  2          FP  "Last 5 operations:"     
+field     10  21    8    VOI   NONE  TOPR1    
+field     11   21    8    VOI   NONE  TOPR2    
+field     12  21    8    VOI   NONE  TOPR3    
+field     13  21    8    VOI   NONE  TOPR4    
+field     14  21    8    VOI   NONE  TOPR5    
+
+literal   10  31        FP  "RC="     
+literal   11  31        FP  "RC="     
+literal   12  31        FP  "RC="     
+literal   13  31        FP  "RC="     
+literal   14  31        FP  "RC="     
+field     10  34   8    VOI   NONE  TRC1    
+field     11  34   8    VOI   NONE  TRC2
+field     12  34   8    VOI   NONE  TRC3    
+field     13  34   8    VOI   NONE  TRC4    
+field     14  34   8    VOI   NONE  TRC5    
+
+literal   10  43        FP  "CRP of selected row :"     
+literal   11  43        FP  "URID of selected row:"     
+field     10  66    8    VOI   NONE  CRP    
+field     11  66    8    VOI   NONE  ROWID    
+
+literal 16 2 CH  " Sel     Field1                     Field2           Field3          Field4         URID(hidden)"
+literal 17 2 CH EXPAND "-"
+
+tbmodel 18 11
+tbfield 3  4  NEF CAPS(ON),PAD('_'),JUST(LEFT) SEL
+tbfield 11 25 VOI  NONE              FLD1
+tbfield 38 15 VOI  NONE              FLD2
+tbfield 55 8  VOI  NONE              FLD3
+tbfield 71 8  VOI  NONE              FLD4
+tbfield 86 8  VOI  NONE              ZURID
+
+literal 29 2 VOI EXPAND "="
+literal   30  2        FP  "Field 1 of selected row:"     
+field     30  27    8    VOI   NONE  YFLD1    
+literal   31  2        FP  "Field 2 of selected row:"     
+field     31  27    8    VOI   NONE  YFLD2    
+literal   32  2        FP  "Field 3 of selected row:"     
+field     32  27    8    VOI   NONE  YFLD3    
+literal   33  2        FP  "Field 4 of selected row:"     
+field     33  27    8    VOI   NONE  YFLD4    
+literal   34  2        FP  "UROW ID of selected row:"     
+field     34  27    8    VOI   NONE  YROWID    
+
+literal   30  41        FP  "TBQUERY results: Key Fields. . . . . . . . :"     
+field     30  86    30   VOI   NONE  TBQ1    
+literal   31  41        FP  "                 Non-key Fields. . . . . . :"     
+field     31  86    30   VOI   NONE  TBQ2    
+literal   32  41        FP  "                 Number of Rows. . . . . . :"     
+field     32  86    10   VOI   NONE  TBQ3    
+literal   33  41        FP  "                 Number of Keys. . . . . . :"     
+field     33  86    10   VOI   NONE  TBQ4
+literal   34  41        FP  "                 Number of Fields. . . . . :"     
+field     34  86    10   VOI   NONE  TBQ5
+literal   35  41        FP  "                 Current Row Position. . . :"     
+field     35  86    8    VOI   NONE  TBQ6
+literal   36  41        FP  "                 Sort Information Record . :"     
+field     36  86    30   VOI   NONE  TBQ7
+literal   37  41        FP  "                 TBSARG Arglist. . . . . . :"     
+field     37  86    30   VOI   NONE  TBQ8
+literal   38  41        FP  "                 TBSARG Cond Pairs . . . . :"     
+field     38  86    30   VOI   NONE  TBQ9
+literal   39  41        FP  "                 TBSARG Search Direction . :"     
+field     39  86    10   VOI   NONE  TBQ10
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+
+
+)INIT
+VGET ZSCROLL PROFILE
+.ATTR(FLD1) = 'COLOUR(WHITE)'
+.AUTOSEL = NO
+)ENDINIT
+
+)REINIT
+.AUTOSEL =YES
+)ENDREINIT
+
+)PROC
+VPUT ZSCROLL PROFILE
+
+--VER (&SEL,LIST,D,R,RO,G)
+
+IF (&SEL NE &Z)
+   IF (&SEL NE D,R,RO,G)
+      .ATTR(SEL) = 'COLOUR(RED) INTENSE(HIGH)'
+      .CURSOR    = SEL
+      .MSG       = PSYS01C
+      EXIT
+)ENDPROC

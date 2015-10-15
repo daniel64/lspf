@@ -1,0 +1,66 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Browse entry panel
+)ENDCOMMENT
+)BODY
+PanelTitle "Rename File"
+
+Home    ZCMD   
+CMD     ZCMD   
+
+literal  4   2       FP    "COMMAND ===> "  
+field    4  15   MAX NEF CAPS(ON) ZCMD  
+
+literal  6   2   FP    "Pathname . . . . . . ."
+field    6   25  MAX VOI  NONE ENTRY
+
+literal  7   2   FP    "Type . . . . . . . . ."
+field    7   25  20  VOI  NONE TYPE
+
+literal  8   2   FP    "Last Modified Date . ."
+field    8   25  20  VOI  NONE MODDATE
+
+literal  10   2  CH "Enter new name below"
+
+literal  12   2   FP    "Newpath Name . . . . ."
+field    12   25  MAX  NEF NONE NEWENTRY
+
+literal 15 2  CH "Instructions"
+literal 16 2  NT "Press"
+literal 16 8  ET "Enter"
+literal 16 14 NT "to confirm rename"
+
+literal 18 2  NT "Press"
+literal 18 8  ET "Cancel"
+literal 18 15 NT "or"
+literal 18 18 ET "END"
+literal 18 22 NT "to cancel rename"
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+
+)INIT
+
+.CURSOR = NEWENTRY
+
+)ENDINIT
+
+)PROC
+
+IF (&NEWENTRY EQ '.' )
+  &NEWENTRY = &ENTRY
+  .CURSOR   = NEWENTRY
+  .MSG      = FLST012
+  EXIT
+
+IF (&NEWENTRY EQ &ENTRY )
+  .CURSOR = NEWENTRY
+  .MSG    = FLST013
+  EXIT
+
+VER (&NEWENTRY NB)
+VER (&ZCMD LIST CAN CANCEL)
+
+)ENDPROC

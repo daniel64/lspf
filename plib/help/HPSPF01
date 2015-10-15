@@ -1,0 +1,31 @@
+This is the default SYSTEM help member
+
+Primary Commands:
+
+Builtin:
+ACTION   Move cursor to the action bar, or the next entry if already on the action bar
+DISCARD  Discard the screen updates and refresh from the previous output
+INFO     Display current application information to the Application Log
+SHELL    Suspends NCURSES and invokes the shell specified in the SHELL environment variable
+SNAP     Snap SHARED and PROFILE pool variables for the current application to the 
+         Application Log
+STATS    Display table and pool statistics for the current application to the Application Log
+SPLIT    Split the screen
+SWAP     Swap to the next logical screen
+
+
+Command Table Entries:
+
+SYSTEM
+CMDS   List of commands (USER, APPLICATION and SYSTEM command tables)
+LOG    Display the Application Log
+SYSLOG Display the SYSTEM Log
+
+USER
+FLIST  Display saved file names and execute line command
+MODS   List loaded modules (Dynamically Loaded Classes)
+PATHS  Display scrollable list of Path Searches and LIBDEF status
+REXX   Execute OOREXX EXEC from the command line
+TODO   Display a simple TODO list
+VARS   List of SHARED and PROFILE pool variables
+

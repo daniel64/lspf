@@ -1,0 +1,47 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+Panel for displaying variables from various pools.  Used in Dialogue Test option
+
+Format for fields, literals, etc
+
+literal row column cuaFieldType (EXPAND) display_literal
+field   row column length cuaFieldType name
+dynArea row column width depth name shadow_name
+tbmodel row depth
+tbfield column length cuaFieldType name
+pdc     abc_name pdc_name command
+box     row column width depth colour title
+
+)ENDCOMMENT
+)BODY
+Home    ZCMD
+CMD     ZCMD      
+PanelTitle "Display Dialogue Variables"  
+
+literal   4    2    FP  "COMMAND ===> "    
+field     4   15   MAX  NEF     CAPS(ON)  ZCMD    
+
+literal   6   MAX-36    FP  "TIME: "     
+field     6   MAX-30    8    VOI   NONE  ZTIME    
+
+literal   6   MAX-20    FP  "DATE: "     
+field     6   MAX-14    8    VOI   NONE  ZDATE    
+
+literal   8    2    FP  "VAR NAME. . .:"    
+field     8   17   90   NEF     CAPS(ON)  FLD1    
+
+literal   10  2     CT     "FUNNCTION POOL VARIABLES:"     
+
+literal   11   2     FP     "ZCURFLD:"     
+field     11   11    10     VOI   NONE  ZCURFLD
+
+literal   12   2     FP     "ZCURPOS:"     
+field     12   11    10     VOI   NONE  ZCURPOS
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+)INIT
+VGET FLD1
+)ENDINIT

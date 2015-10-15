@@ -1,0 +1,89 @@
+PSYS011 "Up is not active" .HELP=PSHELP01 .TYPE=N
+"Scrolling not active on this panel" 
+
+PSYS012 "Down is not active" .TYPE=N .HELP=PSHELP02
+"Scrolling not active on this panel"
+
+PSYS013 "Right is not active" .TYPE=N
+"Scrolling not active on this panel"
+
+PSYS014 "Left is not active" .TYPE=N
+"Scrolling not active on this panel"
+
+PSYS015 "Function not yet implemented"
+"Function has not yet been implemented."
+
+PSYS016 "Invalid option"
+"Invalid option entered on selection panel or no command defined for selection"
+
+PSYS017 "Invalid command in panel"
+"Invalid command has been detected in panel )COMMAND section"
+
+PSYS018 "Invalid primary command"
+"Invalid primary command has been entered.  See help for valid commands for this panel"
+
+PSYS019 "Enter required field"
+"Enter required field at cursor position"
+
+PSYS01A "Field must be numeric"
+"Enter only numeric data in field at the cursor position"
+
+PSYS01B "Enter one of the listed values"
+"Enter one of the listed values for this field"
+
+PSYS01C "Invalid primary command"
+"There are no valid primary commands for this panel"
+
+PSYS01D "Invalid line command"
+"Invalid line command has been entered.  See help for valid commands for this panel"
+
+PSYS01E "Open failed"
+"Open of the requested file failed.  Check permissions"
+
+PSYS01F "Invalid octal number"
+"Number entered is not a valid octal number"
+
+PSYS01G "Non-integer data entered"
+"Field is an integer via the function pool definition, but non-integer data has been entered.  Change ignored"
+
+PSYS01H "Field must be valid hex"
+"Enter only hex data in the field at the cursor position"
+
+PSYS01I "Invalid Scroll Amount"
+"Invalid entry.  Valid scroll values are H(half), P(page), C(cursor), D(data) or a maximum numeric value of 6 digits"
+
+PSYS01J "Help Member Not Found"
+"Help member &ZZSTR1 was not found in the ZPLIB search"
+
+PSYS01K "Error In Command"
+"Error in PDC or table command entry.  See system log for details"
+
+PSYS01L "SPLIT Command Disabled"
+"SPLIT command has been disabled via the application-issued CONTROL SPLIT DISABLE service"
+
+PSYS01M "NON-ZERO RETURN CODE"
+"REXX program has returned a non-zero return code.  See application log for more messages"
+
+PSYS01N "Invalid data entered"
+"Data entered must be of length &ZZSTR1 in the form '&ZZSTR2'"
+
+PSYS01O "Invalid command parameter"
+"Command contains an invalid or missing parameter"
+
+PSYS01P "File Empty"
+"File '&ZZSTR1' is empty"
+
+PSYS01Q "Cannot Open File"
+"Open failure for file '&ZZSTR1'"
+
+PSYS01R "Not a Regular File"
+"File '&ZZSTR1' is not a regular file"
+
+PSYS01S "File Does Not Exist"
+"File '&ZZSTR1' does not exist"
+
+PSYS01T "Permisison Denied"
+"You do not have read access to file '&ZZSTR1'"
+
+PSYS01U "Unknown Error Occured"
+"Unknown error occured opening file '&ZZSTR1'"

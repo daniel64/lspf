@@ -1,0 +1,17 @@
+Help member for SYSTEM and Application Log viewer
+
+Primary commands:
+
+EX      Same as X command
+
+F ABC   Un-exclude all lines containing ABC (Case sensitive).  Use EX or X to exclude lines.
+
+O A     Where A is any letter.  Display only type A log messages
+
+REF     Refresh display by re-reading the log file.
+RESET   Reset display (Also RES is accepted)
+
+X A     Exlude all type A log messages
+X ALL   Exlude all log messages
+X ON    Do not display log messages of type I, D and - (Only show unusual messages)
+

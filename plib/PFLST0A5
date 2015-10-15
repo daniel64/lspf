@@ -1,0 +1,77 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Browse entry panel
+)ENDCOMMENT
+)BODY
+PanelTitle "Copy File"
+
+Home    ZCMD   
+CMD     ZCMD   
+
+literal  4   2        FP    "COMMAND ===> "  
+field    4  15   MAX  NEF CAPS(ON) ZCMD  
+
+literal  6   2   FP   "Pathname . . . . . . ."
+field    6   25  MAX  VOI  NONE ENTRY
+
+literal  7   2   FP    "Type . . . . . . . . ."
+field    7   25  20   VOI  NONE TYPE
+
+literal  8   2   FP    "Last Modified Date . ."
+field    8   25  20  VOI  NONE MODDATE
+
+literal  10  2    CH  "Enter file name below"
+
+literal  12   2   FP   "New File Name. . . . ."
+field    12   25  MAX  NEF NONE NEWENTRY
+
+literal  14 2 PIN "Enter / to select option"
+
+field    15   2   1   CEF PAD('_') FREPL
+literal  15   4       SAC    "Replace like-named pathname"  
+
+field    16   2   1   CEF PAD('_') DIRREC
+literal  16   4       SAC    "Recursively copy sub-directories"  
+
+literal 18 2  CH "Instructions"
+
+literal 19 2  NT "Press"
+literal 19 8  ET "Enter"
+literal 19 14 NT "to confirm copy"
+
+literal 21 2  NT "Press"
+literal 21 8  ET "Cancel"
+literal 21 15 NT "or"
+literal 21 18 ET "END"
+literal 21 22 NT "to cancel copy"
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+
+)PROC
+
+IF (&NEWENTRY EQ '.' )
+  &NEWENTRY = &ENTRY
+  .CURSOR   = NEWENTRY
+  .MSG      = FLST012
+  EXIT
+ELSE
+  IF (&NEWENTRY EQ '..' )
+    &NEWENTRY = &ZPATH
+    .CURSOR   = NEWENTRY
+    .MSG      = FLST012
+    EXIT
+
+IF (&NEWENTRY EQ &ENTRY )
+  .CURSOR = NEWENTRY
+  .MSG    = FLST013
+  EXIT
+
+VER (&FREPL  LIST /)
+VER (&DIRREC LIST /)
+VER (&NEWENTRY NB)
+VER (&ZCMD LIST CAN CANCEL)
+
+)ENDPROC

@@ -1,0 +1,99 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+Format for fields, literals, etc
+
+literal row column cuaFieldType display_literal
+field   row column length cuaFieldType name
+dynArea row column width depth name shadow_name
+tbmodel row depth
+tbfield column length cuaFieldType name
+pdc     abc_name pdc_name command
+box     row column width depth colour title
+
+This is the selection panel for the USER MENU
+
+)ENDCOMMENT
+
+)BODY
+Home    ZCMD
+CMD     ZCMD      
+PanelTitle "User Menu"  
+
+literal  4    2  FP   "COMMAND ===> "    
+field    4   15  MAX   NEF     CAPS(ON)  ZCMD    
+
+literal  6   2    FP  "ZUSER   : "     
+field    6  12    8    VOI     NONE  ZUSER    
+
+literal  7    2    FP  "ZAPPLID : "      
+field    7   12    4    VOI     NONE  ZAPPLID    
+
+literal  7  20    FP  "ZTIME: "     
+field    7  27    8    VOI     NONE  ZTIME    
+
+literal  6  20    FP  "ZDATE: "     
+field    6  27    8    VOI     NONE  ZDATE    
+
+literal  6  41    FP  "ZSYSNAME: "     
+field    6  51   10    VOI     NONE  ZSYSNAME    
+
+literal  7  41    FP  "ZOSREL: "     
+field    7  51   15    VOI     NONE  ZOSREL    
+
+literal  10 27    SAC  "0"
+literal  10 30    PS   "MySQL Server"    
+literal  10 45    NT   "Connect to and query MySQL server"    
+
+literal  11  27    SAC  "1"
+literal  11  30    PS   "Stock Analysis"    
+literal  11  45    NT   "Analysis of stock deals"
+
+literal  12  27    SAC  "2"
+literal  12  30    PS   "Pacman Log"    
+literal  12  45    NT   "View pacman log"
+
+literal  13  27    SAC  "3"
+literal  13  30    PS   "List Packages"    
+literal  13  45    NT   "List PACMAN Packages"
+
+literal  14  27    SAC  "4"
+literal  14  30    PS   "List Groups"    
+literal  14  45    NT   "List PACMAN Groups"
+
+literal  18  27    SAC  "T"
+literal  18  30    PS   "Tutorial"    
+literal  18  45    NT   "Start Tutorial"
+
+literal  19  27    SAC  "X"
+literal  19  30    PS   "Terminate"    
+literal  19  45    NT   "Terminate Session"
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+
+)COMMAND
+0 "SELECT PGM(PSQLAPL1) NEWPOOL"
+1 "SELECT PGM(PSTOCKS1) NEWAPPL(STCK) NEWPOOL"
+2 "SELECT PGM(PACU01) PARM(LOG)    NEWPOOL"
+3 "SELECT PGM(PACU01) PARM(PKGS)   NEWPOOL"
+4 "SELECT PGM(PACU01) PARM(GROUPS) NEWPOOL"
+T "ACTION TUTORIAL"
+X "ACTION END"
+)ENDCOMMAND
+
+)PROC
+VER (&ZCMD LIST,0,1,2,3,4,T,X)
+)ENDPROC
+
+)PNTS
+FIELD( ZPS01001 ) VAR(ZCMD)  VAL(0)   
+FIELD( ZPS01002 ) VAR(ZCMD)  VAL(1)   
+FIELD( ZPS01003 ) VAR(ZCMD)  VAL(2)   
+FIELD( ZPS01004 ) VAR(ZCMD)  VAL(3)   
+FIELD( ZPS01005 ) VAR(ZCMD)  VAL(T)   
+FIELD( ZPS01006 ) VAR(ZCMD)  VAL(X)   
+)ENDPNTS
+

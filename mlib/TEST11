@@ -1,0 +1,11 @@
+TEST111 "Invalid value"
+"Value entered was not valid"
+
+TEST112 "Command Invalid"
+"Enter a valid command.  Valid values are A B C and D"
+
+TEST113 "Scroll amount invalid"
+"Valid scroll amounts are HALF, PAGE, DATA and CURSOR"
+
+TEST114 "Line command invalid"
+"Enter valid line command.  Valid commands are R, C, D and M"

@@ -1,0 +1,50 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel to display/delete pool variables
+)ENDCOMMENT
+)BODY
+PanelTitle "Task Display"
+Home    ZCMD   
+CMD     ZCMD   
+scrollOn
+
+literal  4   2         FP    "COMMAND ===> "  
+field    4  15  MAX-17 NEF CAPS(ON) ZCMD  
+
+literal  4  MAX-15  FP "SCROLL ===> "
+field    4  MAX-3   4  NEF  NONE ZSCROLL
+
+literal  7 2 CH "SEL  USER      PID       %CPU  %MEM  CMD"
+literal  8 2 CH EXPAND "-"  
+
+tbmodel  9   MAX
+tbfield  2    1   NEF CAPS(ON),PAD('_'),JUST(LEFT) SEL
+tbfield  7    8   VOI NONE USER
+tbfield  17   8   VOI NONE PID
+tbfield  27   5   VOI NONE CPU
+tbfield  33   5   VOI NONE MEM
+tbfield  39   50   VOI NONE CMD
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+
+)INIT
+VGET ZSCROLL PROFILE
+.ATTR(USER) = 'COLOUR(YELLOW)'
+.ATTR(PID) = 'COLOUR(WHITE)'
+.ATTR(CPU) = 'COLOUR(RED)'
+.ATTR(MEM) = 'COLOUR(WHITE)'
+)ENDINIT
+
+)PROC
+VPUT ZSCROLL PROFILE
+VER (&SEL,LIST,K)
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS01C
+   .CURSOR = ZCMD
+   EXIT
+
+.HELP=HPSP01A
+)ENDPROC

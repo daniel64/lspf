@@ -1,0 +1,35 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel to display TODO list
+)ENDCOMMENT
+)BODY
+ CMD  ZCMD
+ Home ZCMD
+ PanelTitle "TODO List" 
+ literal   4   2   FP "COMMAND ===> "   
+ field    4  15  20  NEF CAPS(ON) ZCMD   
+ 
+ literal  6   2      FP  "PROFILE:"    
+ field    6  11   4  VOI  NONE ZAPPLID   
+
+ field    11  3  MAX-2      NEF NONE TODO1
+ field    12  3  MAX-2      NEF NONE TODO2
+ field    13  3  MAX-2      NEF NONE TODO3
+ field    14  3  MAX-2      NEF NONE TODO4
+ field    15  3  MAX-2      NEF NONE TODO5
+ field    16  3  MAX-2      NEF NONE TODO6
+ field    17  3  MAX-2      NEF NONE TODO7
+ field    18  3  MAX-2      NEF NONE TODO8
+ field    19  3  MAX-2      NEF NONE TODO9
+ field    20  3  MAX-2      NEF NONE TODO10
+ field    21  3  MAX-2      NEF NONE TODO11
+ field    22  3  MAX-2      NEF NONE TODO12
+ field    23  3  MAX-2      NEF NONE TODO13
+
+box  10 2 82 15 B_YELLOW "TO DO List"
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+

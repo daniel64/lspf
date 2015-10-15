@@ -1,0 +1,39 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel to display/delete pool variables
+)ENDCOMMENT
+)BODY
+PanelTitle "Display Loaded Modules (Dynamically Loaded Classes)"
+Home    ZCMD   
+CMD     ZCMD   
+scrollOn
+
+literal  4   2          FP    "COMMAND ===> "  
+field    4  15  MAX-17  NEF CAPS(ON) ZCMD  
+
+literal  4  MAX-15  FP "SCROLL ===> "
+field    4  MAX-3  4 NEF  NONE ZSCROLL
+
+literal  6 2 CH "Application  Module           Loaded From "  
+literal  7 2 CH EXPAND "-"  
+
+tbmodel  8   MAX
+tbfield  2    8    VOI NONE APPL
+tbfield  15   20   VOI NONE MOD
+tbfield  32   50   VOI NONE MODPATH  
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+
+)INIT
+VGET ZSCROLL PROFILE
+.ATTR(MOD)     = 'COLOUR(YELLOW)'
+.ATTR(MODPATH) = 'COLOUR(WHITE)'
+)ENDINIT
+
+)PROC
+VPUT ZSCROLL PROFILE
+.HELP=HPSP01A
+)ENDPROC

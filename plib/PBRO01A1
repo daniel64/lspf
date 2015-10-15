@@ -1,0 +1,62 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+Panel for ...
+)ENDCOMMENT
+)BODY
+Home         ZCMD     
+CMD     ZCMD  
+scrollOn
+--PanelTitle "Browse File"
+
+literal  3   2    FP "BROWSE"
+field    3  12   70 NEF  NONE ZDSN
+
+literal  4   2         FP  "COMMAND ===> "
+field    4  15 MAX-17  NEF PAD('_') ZCMD 
+
+literal  4 MAX-15     FP  "SCROLL ===> "  
+field    4 MAX-3   4  NEF NONE ZSCROLL
+
+--literal  5   1    FP  "File Name:" 
+--field    5  12   70 NEF  NONE ZDSN
+
+literal   3   MAX-37     FP  "COL"
+field     3   MAX-33  7  VOI  NONE ZCOL1
+
+literal   3   MAX-25     FP  "LINE"
+literal   3   MAX-11     FP  "OF"
+field     3   MAX-20  8  VOI  NONE ZROW1
+field     3   MAX-8   8  VOI  NONE ZROW2
+
+dynArea  5  2  MAX  MAX  ZAREA  ZSHADOW 
+
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+
+)PROC
+
+IF (&ZCMD = &Z)
+   EXIT
+
+&ZU  = UPPER(ZCMD)           /* Upper case      */
+&CMD = TRUNC(&ZU,' ')        /* Get first word  */
+&ZUS = .TRAIL                /*                 */
+&ZU2 = TRUNC(&ZUS,' ')       /* Get second word */
+&ZUS = .TRAIL                /* and the rest    */
+
+IF (&CMD EQ HILITE )
+  IF (&ZUS NE &Z )           /* No third parameter */
+    .MSG    = PBRO013
+    .CURSOR = ZCMD
+    EXIT
+  ELSE
+    IF (&ZU2 NE REXX,C++,CPP,PANEL,OFF,&Z)
+       .MSG    = PSYS01O
+       .CURSOR = ZCMD
+       EXIT
+
+)ENDPROC
+

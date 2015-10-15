@@ -1,0 +1,44 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+Format for fields, literals, etc
+
+literal row column cuaFieldType display_literal
+field   row column length cuaFieldType name
+dynArea row column width depth name shadow_name
+tbmodel row depth
+tbfield column length cuaFieldType name
+pdc     abc_name pdc_name command
+box     row column width depth colour title
+
+)ENDCOMMENT
+)BODY
+Home    ZCMD
+CMD     ZCMD      
+PanelTitle "Test pattern matching routine"  
+
+literal   4    2    FP  "COMMAND ===> "    
+field     4   15   MAX  NEF     CAPS(ON)  ZCMD    
+
+literal   6   MAX-36    FP  "TIME: "     
+field     6   MAX-30    8    VOI   NONE  ZTIME    
+
+literal   6   MAX-20    FP  "DATE: "     
+field     6   MAX-14    8    VOI   NONE  ZDATE    
+
+literal   9   21    FP     "String 1 containing pattern . . . . . . ."     
+field     9   61    MAX    NEF   NONE  STR1
+
+literal   10  21    FP     "String 2 to match with string 1 . . . . ."     
+field     10  61    MAX    NEF   NONE  STR2    
+
+literal   12  21    FP     "Result of match . . . . . . . . . . . . ."     
+field     12  61    30     RP   NONE  RESLT    
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+)PROC
+VER (&STR1 NB MSG=PSYS019)
+VER (&STR2 NB MSG=PSYS019)
+)ENDPROC

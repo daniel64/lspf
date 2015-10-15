@@ -1,0 +1,32 @@
+PPSP011 "Invalid Command Entered"
+"Enter ONLY (O) plus one char to show that line type, or EX (X) plus one char to exclude that line type"
+
+PPSP012 "Invalid option on ONLY command"
+"Enter one exta letter (D, E, I) to show only that line type"
+
+PPSP013 "Invalid option on EX command"
+"Enter one exta letter (D, E, I) to exclude that line type"
+
+PPSP014 "Open Failed for Command Table"
+"Open failed for new command table.  Command table entered may be incorrect.  Change ignored"
+
+PPSP015 "Invalid Command Entered"
+"Enter CANCEL to discard changes or DEFAULTS to restore defaults"
+
+PPSP016 "Invalid Colour Entered"
+"Enter R, G, Y, B, M, T, W or blank for the default colour"
+
+PPSP017 "Invalid Intensity Entered"
+"Enter H, L or blank for the default intensity"
+
+PPSP018 "Invalid Hilight Entered"
+"Enter N, B, R, U or blank for the default hilight"
+
+PPSP019 "No saved cua list"
+"Use command SAVE to save the cua colours before trying to use RESTORE"
+
+PPSP01A "Colours saved" .TYPE=N
+"CUA colours have been saved to the current profile"
+
+PPSP01B "Colours retored" .TYPE=N
+"CUA colours have been restored from the list in the current profile"
