@@ -1,0 +1,70 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel for viewing and changing various utility programs
+)ENDCOMMENT
+)BODY
+ CMD  ZCMD
+ Home ZCMD
+ PanelTitle "Utility Program Definitions"
+ 
+ literal  4   2    FP "COMMAND ===> "
+ field    4  15    MAX NEF CAPS(ON) ZCMD
+
+ literal  6   2    FP "Current Profile:"
+ field    6  19    4   VOI  NONE ZAPPLID
+
+ literal  8   2       FP "ZMAINPGM. . ."
+ field    8   16   8  NEF CAPS(ON) ZMAINPGM
+ literal  8   26      FP "Initial program to run"
+
+ literal  9   2       FP "ZPANLPGM. . ."
+ field    9   16   8  NEF CAPS(ON) ZPANLPGM
+ literal  9   26      FP "Program to run on SELECT PANEL command"
+
+ literal  10  2       FP "ZEDITPGM. . ."
+ field    10  16   8  NEF CAPS(ON) ZEDITPGM
+ literal  10  26      FP "Editor program"
+
+ literal  11  2       FP "ZBRPGM. . . ."
+ field    11  16   8  NEF CAPS(ON) ZBRPGM
+ literal  11  26      FP "Browse program"
+
+ literal  12  2       FP "ZVIEWPGM. . ."
+ field    12  16   8  NEF CAPS(ON) ZVIEWPGM
+ literal  12  26      FP "View program"
+
+ literal  13  2       FP "ZFLSTPGM. . ."
+ field    13  16   8  NEF CAPS(ON) ZFLSTPGM
+ literal  13  26      FP "File list program"
+
+ literal  14  2       FP "ZHELPPGM. . ."
+ field    14  16   8  NEF CAPS(ON) ZHELPPGM
+ literal  14  26      FP "Program to run on selecting HELP"
+
+ literal  15  2       FP "ZOREXPGM. . ."
+ field    15  16   8  NEF CAPS(ON) ZOREXPGM
+ literal  15  26      FP "REXX interpreter stub"
+
+ literal  18  2     PIN "Enter"
+ literal  18  8     PS "Defaults"
+ literal  18  16    PIN ","
+ literal  18  18    PS "Save"
+ literal  18  23    PIN "or"
+ literal  18  26    PS "Cancel"
+ 
+ literal  20  2     PIN "Defaults are those defined in the lspf.h #define values for these variable names"
+ 
+ literal  23  2     CT  "Warning"
+ literal  24  2     CT  "Incorrect values can render lspf unusable.  Rerun setup program to recreate ISPSPROF in this case"
+
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+
+)PROC
+
+VER (&ZCMD LIST CANCEL::3 DEFAULTS::3 SAVE::3 )
+
+)ENDPROC

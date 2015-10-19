@@ -1,0 +1,68 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Panel for PFKEY settings
+)ENDCOMMENT
+
+)BODY
+ CMD  ZCMD
+ Home ZCMD
+ PanelTitle "Saved File List" 
+ literal   4   2   FP "COMMAND ===> "   
+ field     4  15  MAX NEF CAPS(ON) ZCMD   
+
+ literal   6   2   FP "PROFILE:"    
+ field     6  11   4  VOI NONE ZAPPLID   
+
+ field     8   2  4       NEF CAPS(ON),PAD('_')  SEL1
+ field     8   9  60      NEF CAPS(OFF),PAD('_')  ZFILE1
+
+ field     9   2  4       NEF CAPS(ON),PAD('_')  SEL2
+ field     9   9  60      NEF CAPS(OFF),PAD('_')  ZFILE2
+
+ field     10  2  4       NEF CAPS(ON),PAD('_')  SEL3
+ field     10  9  60      NEF CAPS(OFF),PAD('_')  ZFILE3
+
+ field     11  2  4       NEF CAPS(ON),PAD('_')  SEL4
+ field     11  9  60      NEF CAPS(OFF),PAD('_')  ZFILE4
+
+ field     12  2  4       NEF CAPS(ON),PAD('_')  SEL5
+ field     12  9  60      NEF CAPS(OFF),PAD('_')  ZFILE5
+
+ field     13  2  4       NEF CAPS(ON),PAD('_')  SEL6
+ field     13  9  60      NEF CAPS(OFF),PAD('_')  ZFILE6
+
+ field     14  2  4       NEF CAPS(ON),PAD('_')  SEL7
+ field     14  9  60      NEF CAPS(OFF),PAD('_')  ZFILE7
+
+ field     15  2  4       NEF CAPS(ON),PAD('_')  SEL8
+ field     15  9  60      NEF CAPS(OFF),PAD('_')  ZFILE8
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+
+)INIT
+VGET (ZFILE1 ZFILE2 ZFILE3 ZFILE4 ZFILE5 ZFILE6 ZFILE7 ZFILE8) PROFILE
+)ENDINIT
+
+
+)PROC
+
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS01C
+   .CURSOR = ZCMD
+   EXIT
+
+VER (&SEL1,LIST,S,B,E)
+VER (&SEL2,LIST,S,B,E)
+VER (&SEL3,LIST,S,B,E)
+VER (&SEL4,LIST,S,B,E)
+VER (&SEL5,LIST,S,B,E)
+VER (&SEL6,LIST,S,B,E)
+VER (&SEL7,LIST,S,B,E)
+VER (&SEL8,LIST,S,B,E)
+
+VPUT (ZFILE1 ZFILE2 ZFILE3 ZFILE4 ZFILE5 ZFILE6 ZFILE7 ZFILE8) PROFILE
+)ENDPROC

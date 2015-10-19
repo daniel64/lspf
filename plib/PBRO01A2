@@ -1,0 +1,12 @@
+)COMMENT
+)ENDCOMMENT
+Home    ZCMD     
+scrollOn
+
+field 5  16 20   NEF CAPS(ON) ZCMD 
+literal  5 MAX-20    FP  "SCROLL ===> "  
+literal  8   3    FP  "Hilighting file type. . . . . .:" 
+literal  10  38   FP  "(Y/N)"" 
+
+)INCLUDE HLP_PDC
+)ENDBODY

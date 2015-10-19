@@ -1,0 +1,219 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT 
+Format for fields, literals, proc, etc
+
+LITERAL row column cuaFieldType display_literal
+FIELD   row column length cuaFieldType name
+DYNAREA row column width depth name shadow_name DATAIN(xx) DATAOUT(xx) USERMOD(xx) DATAMOD(xx)
+TBMODEL row depth
+TBFIELD column length cuaFieldType name
+PDC     abc_name pdc_name command
+BOX     row column width depth colour title
+
+PROC :
+     VER FLDA NB | NONBLANK MSG=MSGID
+     VER FLDA (NB) NUM MSG=MSGID
+     VER FLDA (NB) LIST VAL1 VAL2 VAL3 MSG=MSGID
+     (NB and MSG= are optional)
+
+     .HELP   = ABC123  (panel help member)
+     .MSG    = ABC123  (set the message)
+     .CURSOR = ZCMD    (set cursor position)
+     &CURS   = .CURSOR (get cursor position)
+     &A      = HELLO
+     &B      = &A
+     &B      = 'World'
+     &C      = UPPER(B)
+     &L      = LENGTH(ZCMD)
+     IF ( &ZCMD = &A ) can also have a word or quoted ( CANCEL | 'Bye' )
+     EXIT
+     &ZCMD = TRUNC( &CMD, 3 )
+     &ZCMD = TRUNC( &CMD, '.' )
+     &REST = .TRAIL
+     &ZCMD = TRANS( &ZCMD Y,YES N,NO )
+     &ZCMD = TRANS( &ZCMD Y,YES N,NO *.* )
+
+INIT | REINIT :
+    VGET VAR1 PROFILE | SHARED
+    VGET (VAR1 VAR2 VAR3) PROFILE | SHARED
+
+    VPUT VAR1 PROFILE | SHARED
+    VPUT (VAR1 VAR2 VAR3) PROFILE | SHARED
+
+    Assignment statements as for PROC (except for .TRAIL)
+
+    
+)ENDCOMMENT
+
+)BODY
+HOME    ZCMD
+cmd     ZCMD 
+
+PrimaryMenu
+
+PanelTitle "PRIMARY MENU PANEL"  
+
+LITERAL   4    2    FP  "COMMAND ===> "    
+FIELD     4   15   MAX   NEF   CAPS(On),pad('_'),just(left),numeric(off),skip(on) ZCMD    
+
+Literal  6    2    FP  "ZUSER   :"     
+Field    6  12    8    VOI     NONE  ZUSER    
+
+literal   7    2    FP  "ZAPPLID :"      
+field    7   12    4    VOI     NONE  ZAPPLID    
+
+literal   9    2    FP  "ZSCRMAXD:"     
+field    9    12    8    VOI     NONE  ZSCRMAXD    
+literal   10   2    FP  "ZSCRMAXW:"     
+field    10   12    8    VOI     NONE  ZSCRMAXW    
+
+literal   6    20    FP  "ZDATE:"     
+field    6  27    8    VOI     NONE  ZDATE    
+
+literal   7    20    FP  "ZTIME:"     
+field    7  27    8    VOI     NONE  ZTIME    
+
+literal   6    38    FP  "ZNODNAME:"     
+field    6  48    8    VOI     NONE  ZNODNAME    
+
+literal   7    38    FP  "ZMACHINE:"     
+field    7  48    8    VOI     NONE  ZMACHINE    
+
+literal   6    57    FP  "ZENVIR:"     
+field    6  67    15   VOI     NONE  ZENVIR   
+
+literal   7    57    FP  "ZSYSNAME:"     
+field    7  67   10    VOI     NONE  ZSYSNAME    
+
+literal   7    83    FP  "ZOSREL:"     
+field    7  91   15    VOI    NONE  ZOSREL    
+
+literal   6    83    FP  "ZHOME:"     
+field    6  91   20    VOI     NONE  ZHOME    
+
+
+literal  11  21    SAC  "0"
+literal  11  24    PS   "Settings"    
+literal  11  35    NT   "Display and alter user settings"    
+
+literal  12  21    SAC  "1"
+literal  12  24    PS   "Browse"    
+literal  12  35    NT   "Browse files"    
+
+literal  13  21    SAC  "2"
+literal  13  24    PS   "Edit"    
+literal  13  35    NT   "Edit files"    
+
+literal  14  21    SAC  "3"
+literal  14  24    PS   "Utilities"    
+literal  14  35    NT   "File Utilities"    
+
+literal  15  21    SAC  "4"
+literal  15  24    PS   "Testing"    
+literal  15  35    NT   "Invoke Testing Program"    
+
+literal  16  21    SAC  "5"
+literal  16  24    PS   "Tasks"    
+literal  16  35    NT   "Display Tasks and System Resource Usage"    
+
+literal  17  21    SAC  "6"
+literal  17  24    PS   "Command"    
+literal  17  35    NT   "Enter Commands"    
+
+literal  18  21    SAC  "7"
+literal  18  24    PS   "Dialogue"    
+literal  18  35    NT   "Dialogue Testing"    
+
+literal  19  21    SAC  "8"
+literal  19  24    PS   "Lspf Log"    
+literal  19  35    NT   "Browse Lspf Log"    
+
+literal  20  21    SAC  "9"
+literal  20  24    PS   "Appl Log"    
+literal  20  35    NT   "Browse Application Log"    
+
+literal  22  21    SAC  "D"
+literal  22  24    PS   "MySQL"    
+literal  22  35    NT   "MySQL Database Actions"    
+
+literal  23  21    SAC  "U"
+literal  23  24    PS   "User Menu"    
+literal  23  35    NT   "User Actions"    
+
+literal  24  21    SAC  "S"
+literal  24  24    PS   "System"    
+literal  24  35    NT   "System Utilities"    
+
+literal  25  21    SAC  "T"
+literal  25  24    PS   "TUTORIAL"    
+literal  25  35    NT   "Start Tutorial"    
+
+literal  26  21    SAC  "X"
+literal  26  24    PS   "Terminate"    
+literal  26  35    NT   "Termiante Session"    
+
+dynArea        11 84  21   11  ZAREA  ZSHADOW
+
+literal   28    2    FP     "Enter"     
+literal   28    8    VOI    "HELP"     
+literal   28    13   FP     "to display basic information, or"     
+literal   28    46   VOI    "X"     
+literal   28    48   FP     "to exit"     
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+
+)COMMAND
+0 "SELECT PANEL(PPSET0A) NEWAPPL  PASSLIB"
+1 "SELECT PGM(&ZFLSTPGM) PARM("") NEWAPPL(ISR) PASSLIB "
+2 "SELECT PGM(&ZFLSTPGM) PARM("") NEWAPPL(ISR) PASSLIB "
+--2 "SELECT PGM(&ZEDITPGM) NEWAPPL(ISR)"
+3 "SELECT PGM(PUTLS0A) NEWAPPL(UTL)"
+4 "SELECT PANEL(PPTEST01) NEWAPPL(TEST)"
+5 "SELECT PGM(PPSP01A) NEWAPPL(TASK) PARM(TASKS)"
+6 "SELECT PGM(PCMD0A)"
+7 "SELECT PANEL(PDLGTST1)"
+8 "SELECT PGM(PPSP01A) PARM(SL) NEWAPPL(TEST)"
+9 "SELECT PGM(PPSP01A) PARM(AL) NEWAPPL"
+D "SELECT PGM(PSQLAPL1) NEWAPPL(SQL)"
+U "SELECT PANEL(PUSER0A) NEWAPPL(USR)"
+S "SELECT PGM(PSYST0A) PARM(SL) NEWAPPL(SYSA)"
+T "SELECT PGM(&ZHELPPGM)"
+X "END"
+)ENDCOMMAND
+
+)PROC
+
+   &Z   =   'Hello World'
+   &Z='Hello World'
+
+&ZCMD  = TRUNC(&ZCMD,'.')
+&ZREST = .TRAIL
+
+VER (&ZCMD LIST 0 1 2 3 4 5 6 7 8 9 D U S T X)
+
+)ENDPROC
+
+)PNTS
+FIELD( ZPS01001 ) VAR(ZCMD)  VAL(0)   
+FIELD( ZPS01002 ) VAR(ZCMD)  VAL(1)   
+FIELD( ZPS01003 ) VAR(ZCMD)  VAL(2)   
+FIELD( ZPS01004 ) VAR(ZCMD)  VAL(3)   
+FIELD( ZPS01005 ) VAR(ZCMD)  VAL(4)   
+FIELD( ZPS01006 ) VAR(ZCMD)  VAL(5)   
+FIELD( ZPS01007 ) VAR(ZCMD)  VAL(6)   
+FIELD( ZPS01008 ) VAR(ZCMD)  VAL(7)   
+FIELD( ZPS01009 ) VAR(ZCMD)  VAL(8)   
+FIELD( ZPS01010 ) VAR(ZCMD)  VAL(9)   
+FIELD( ZPS01011 ) VAR(ZCMD)  VAL(D)   
+FIELD( ZPS01012 ) VAR(ZCMD)  VAL(U)   
+FIELD( ZPS01013 ) VAR(ZCMD)  VAL(S)   
+FIELD( ZPS01014 ) VAR(ZCMD)  VAL(T)   
+FIELD( ZPS01015 ) VAR(ZCMD)  VAL(X)   
+)ENDPNTS
+
+)HELP
+)ENDHELP

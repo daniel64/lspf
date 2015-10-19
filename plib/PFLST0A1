@@ -1,0 +1,52 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ File and Directory list panel
+)ENDCOMMENT
+
+)BODY
+PanelTitle "File/Directory List"
+Home    ZCMD   
+CMD     ZCMD   
+scrollOn
+
+literal  4   2           FP    "COMMAND ===> "  
+field    4  15   MAX-17  NEF NONE ZCMD  
+
+literal  4  MAX-15  FP "SCROLL ===>"
+field    4  MAX-3   4  NEF  NONE ZSCROLL
+
+literal  6   2       FP  "Path Name . . ."  
+field    6  18  MAX  NEF NONE ZPATH  
+
+literal  8  2 CH  "CMD  Entry name                               Message          Type     Permission    Size        Modified  "  
+literal  9  2 CH  EXPAND  "-"  
+
+tbmodel  10   MAX
+tbfield  2    4   NEF  CAPS(ON),PAD('_'),JUST(LEFT) SEL  
+tbfield  7    38  VOI   NONE ENTRY
+tbfield  48   15  VOI   NONE MESSAGE 
+tbfield  65   8   VOI   NONE TYPE 
+tbfield  74   10  VOI   NONE PERMISS 
+tbfield  88   10  VOI   NONE SIZE 
+tbfield  100  19  VOI   NONE MODDATE 
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+
+)INIT
+VGET ZSCROLL PROFILE
+.ATTR(MESSAGE) = 'COLOUR(YELLOW) INTENSE(HIGH)' 
+.ATTR(TYPE)    = 'COLOUR(WHITE)' 
+.ATTR(PERMISS) = 'COLOUR(YELLOW)' 
+.ATTR(SIZE)    = 'COLOUR(WHITE)' 
+
+.HELP = HFLST01
+)ENDINIT
+
+)PROC
+VER (&SEL LIST,=,B,C,D,E,EX,FMT,I,L,M,NANO,R,S,T,VI,X,MSG=PSYS01D)
+VPUT (ZSCROLL ZPATH) PROFILE
+)ENDPROC

@@ -1,0 +1,109 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+
+   Error panel displayed on RC >= 12 from any DM service when CONROL ERRORS CANCEL is in effect
+   ZERR1 and ZERR2 are shown on the panel
+
+)ENDCOMMENT
+
+)BODY
+Home    ZCMD
+CMD     ZCMD      
+
+PanelTitle "Dialogue Error"  
+
+literal 4   2      FP  "COMMAND ===> "    
+field   4  15 MAX  NEF  CAPS(ON)  ZCMD    
+
+literal 7     2 FP EXPAND "*"
+
+literal 8       2 FP "*"
+literal 8  MAX-1 FP "*"
+
+literal 9       2 FP "*"
+literal 9  MAX-1 FP "*"
+
+literal 10      2 FP "*"
+literal 10 MAX-1 FP "*"
+
+literal 11       2 FP "*"
+literal 11  MAX-1 FP "*"
+
+literal 12       2 FP "*"
+literal 12  MAX-1 FP "*"
+
+literal 13       2 FP "*"
+literal 13  MAX-1 FP "*"
+
+literal 14       2 FP "*"
+literal 14  MAX-1 FP "*"
+
+literal 15       2 FP "*"
+literal 15  MAX-1 FP "*"
+
+literal 16       2 FP "*"
+literal 16  MAX-1 FP "*"
+
+literal 17       2 FP "*"
+literal 17  MAX-1 FP "*"
+
+literal 18       2 FP "*"
+literal 18  MAX-1 FP "*"
+
+literal 19       2 FP "*"
+literal 19  MAX-1 FP "*"
+
+literal 20       2 FP "*"
+literal 20  MAX-1 FP "*"
+
+literal 21       2 FP "*"
+literal 21  MAX-1 FP "*"
+
+literal 22       2 FP "*"
+literal 22  MAX-1 FP "*"
+
+literal 23       2 FP "*"
+literal 23  MAX-1 FP "*"
+
+literal 24       2 FP "*"
+literal 24  MAX-1 FP "*"
+
+literal 25       2 FP "*"
+literal 25  MAX-1 FP "*"
+
+literal 26       2 FP "*"
+literal 26  MAX-1 FP "*"
+
+literal 27       2 FP "*"
+literal 27  MAX-1 FP "*"
+
+literal 28       2 FP "*"
+literal 28  MAX-1 FP "*"
+
+literal 29      2 FP EXPAND "*"
+
+literal 9 8   NT "Error in dialogue"
+field   9 26  20 ET NONE ZAPPNAME
+
+literal 11 8   NT "Message is"
+field   11 19  70 ET NONE ZERR1
+field   12 19  70 ET NONE ZERR2
+
+literal 15 8   NT "See application and lspf logs for more messages"
+
+literal 25 8   NT "Press"
+literal 25 14  ET "ENTER"
+literal 25 20  NT "to terminate dialogue"
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+
+)INIT
+.CURSOR = ZCMD
+)ENDINIT
+
+)PROC
+)ENDPROC

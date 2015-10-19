@@ -1,0 +1,53 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Browse entry panel
+)ENDCOMMENT
+)BODY
+PanelTitle "Confirm Delete of File"
+
+Home    ZCMD   
+CMD     ZCMD   
+
+literal  4   2       FP  "COMMAND ===> "  
+field    4  15   MAX NEF CAPS(ON)  ZCMD  
+
+literal  6   2   FP      "Pathname . . . . . . ."
+field    6   25  MAX  VOI  NONE ENTRY
+
+literal  7   2   FP      "Type . . . . . . . . ."
+field    7   25  20   VOI  NONE TYPE
+
+literal  8   2   FP      "Last Modified Date . ."
+field    8   25  20  VOI  NONE MODDATE
+
+literal  10 2 PIN  "Enter / to select option"
+
+field    11   2   1   CEF PAD('_') NEMPTOK
+literal  11   4       SAC    "Allow delete of non-empty directories"  
+
+field    12   2   1   CEF PAD('_') CONDOFF
+literal  12   4       SAC    "Set file delete confirmation off"  
+
+literal 14 2  CH "Instructions"
+literal 15 2  NT "Press"
+literal 15 8  ET "Enter"
+literal 15 14 NT "to confirm delete"
+
+literal 17 2  NT "Press"
+literal 17 8  ET "Cancel"
+literal 17 15 NT "or"
+literal 17 18 ET "END"
+literal 17 22 NT "to cancel delete."
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+
+)PROC
+
+VER (&NEMPTOK LIST /)
+VER (&CONDOFF LIST /)
+VER (&ZCMD LIST CANCEL::3)
+
+)ENDPROC

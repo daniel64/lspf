@@ -1,0 +1,117 @@
+Function pools are automatically created with entries for:
+	string ZCURFLD
+	int    ZCURPOS
+	string ZTDMARK
+	int    ZTDDEPTH (not in IBM's ISPF)
+	int    ZTDROWS
+	int    ZTDSELS
+	int    ZTDTOP 
+	int    ZTDVROWS
+	string ZERR1
+	string ZERR2
+	stirng ZAPPNAME
+
+
+Variables defined in Applications but not automatically in the function pool:
+	string ZAPPLID  ;
+	int    ZCURINX  ;
+	string ZCMD     ;
+	string ZEDLMSG  ;
+	string ZEDSMSG  ;
+	string ZHELP    ;
+	string ZHOME    ;
+	string ZPFKEY   ;
+	string ZSEL     ;
+	string ZSELPARM ;
+	string ZSCREEN  ;
+	string ZSCROLL  ;
+	int    ZSCRMAXD ;
+	int    ZSCRMAXW ;
+	int    ZSCROLLN ;
+	string ZSCROLLA ;
+	string ZSMSG    ;
+	string ZLMSG    ;
+	string ZUSER    ;
+	string ZVERB    ;
+	string ZMUSR    ;
+	string ZPUSR    ;
+	string ZTUSR    ; 
+
+Variables pre-set when the application starts:
+ZAPPNAME
+ZZAPPLID
+ZMLIB
+ZPLIB
+ZTLIB
+ZORXPATH
+ZTDMARK
+
+Variables put into the SHARED pool by lspf:
+ZAPPLID
+ZSCREEN
+ZVERB
+ZPFKEY
+ZSCRMAXD (system)
+ZSCRMAXW (system)
+ZUSER (system)
+ZENVIR (default)
+ZDATEF (default)
+ZDATEFL (default)
+ZTIMEL (default updated)
+ZTIME (default updated)
+ZDATE (default updated)
+ZDAY (default updated)
+ZDAYOFWK (default updated)
+ZDATEL (default updated)
+
+Variables put into the PROFILE pool by lspf:
+ZKLUSE
+ZHOME (default)
+ZSYSNAME  (default)
+ZNODNAME (default)
+ZOSREL (default)
+ZOSVER (default)
+ZMACHINE (default)
+all ISPS variables placed in the system PROFILE.
+
+Variables put into the SHARED pool by the application:
+ZPANELID (pApplication)
+ZSCROLLA (pPanel)
+ZSCROLLN (pPanel)
+
+Variables put into the application PROFILE pool by the application:
+ZSCROLL (pPanel)
+
+ISPS system profile (updated by the setup program).  RO and not saved.
+ZSPROF
+ZUPROF
+ZSYSPATH
+ZLDPATH1
+ZLDPATH2
+ZSLOG
+ZALOG
+ZMLIB
+ZPLIB
+ZTLIB
+ZEDITPGM
+ZBRPGM
+ZVIEWPGM
+ZMAINPGM
+ZSHELP
+ZWAIT
+ISPS RW variables:
+ZC + cua name for default cua field attributes
+
+Table Display Variables;
+ZTDMARK  function pool
+ZTDDEPTH function pool
+ZTDROWS  function pool
+ZTDSELS  function pool
+ZTDTOP   function pool
+ZTDVROWS function pool
+Unlike IBM's ISPF, these variables are save/restored on the CONTROL DISPLAY SAVE/RESTORE call as well as
+other status information necessary when calling a TBDISPL service from another TBDISPL service.
+
+int ZRC        }
+int ZRSN       } used to pass back information from a SELECT PGM request to the calling program
+string ZRESULT }

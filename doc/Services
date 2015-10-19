@@ -1,0 +1,82 @@
+See IBM's ISPF Services Guide and ISPF Reference Summary for a more complete description of ISPF services.
+Detailed ISPF programming information can be found in IBM's Dialog Developer's Guide And Reference.
+
+Application programs running under lspf need to be implemented as a class inheriting from pApplication and
+implement pure virtual function application().  Control is given to this function after initialisation is complete 
+and routine cleanup() must be called before returning from this function to indicate to lspf the application is
+terminating.
+
+Application modules must reside in ZLDPATH defined in lspf.h
+
+C++ lspf service function prototypes:
+
+	void   control( string, string )
+	void   libdef( string, string = "" )
+	void   display( string p_name, string p_msg = "", string p_cursor = "", int p_curpos = 0 )
+	void   pquery( string p_name, string a_name, string t = "", string w = "", string d = "", string r = "", string c = "" )
+	void   select( string )
+	void   select( string pgm, string parm, string newappl, bool newpool, bool passlib )
+	void   attr( string, string )
+
+	void   vcopy( string, string &, vcMODE=LOCATE )
+	void   vdefine( string, string *, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL )
+	void   vdefine( string, int *, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL )
+	void   vdelete( string ) ;
+	void   verase( string var, poolType =ASIS )
+	void   vget( string var, poolType =ASIS )
+	string vlist( poolType pType, int lvl ) 
+	void   vput( string var, poolType =ASIS ) 
+	void   vreplace( string, string )
+	void   vreplace( string, int )
+	void   vreset() ;
+
+	void   tbadd( string tb_name, string tb_namelst="", string tb_order="", int tb_num_of_rows=0 )
+	void   tbbottom( string tb_name )
+	void   tbclose( string tb_name, string new_name="", string path="" )
+	void   tbcreate( string tb_name, string keys, string names, tbSAVE a=NOWRITE, tbREP b=NOREPLACE, string path="", tbDISP c=EXCLUSIVE )
+	void   tbdelete( string tb_name )
+	void   tbdispl( string tb_name, string p_name="", string p_msg="", string p_cursor="", int p_csrrow=0, int p_csrpos=1, string p_autosel="YES", string p_crp_name="", string p_rowid_nm="" )
+	void   tbend( string tb_name )
+	void   tberase( string tb_name, string tb_path="" )
+	void   tbexist( string tb_name )
+	void   tbget( string tb_name, string tb_savenm="", string tb_rowid_vn="", string tb_noread="", string tb_crp_name="" )
+	void   tbmod( string tb_name, string tb_namelst="", string tb_order="" )
+	void   tbopen( string tb_name, tbSAVE WRITE, string path="", tbDISP c=EXCLUSIVE )
+	void   tbput( string tb_name, string tb_namelst="", string tb_order="" )
+	void   tbquery( string tb_name, string tb_keyn="", string tb_varn="", string tb_rownn="", string tb_keynn="", string tb_namenn="",string tb_crpn="", string tb_sirn="", string tb_lstn="", string tb_condn="", string tb_dirn="" )
+	void   tbsarg( string tb_name, string tb_namelst="", string tb_dir="NEXT", string tb_cond_pairs="" )
+	void   tbsave( string tb_name, string new_name="", string path="")
+	void   tbscan( string tb_name, string tb_namelst="", string tb_savenm="", string tb_rowid_vn="", string tb_dir="NEXT", string tb_read="", string tb_crp_name="", string tb_condlst="" )
+	void   tbskip( string tb_name, int num, string tb_savenm="", string tb_rowid_vn="", string tb_rowid="", string tb_noread="", string tb_crp_name=""  )
+	void   tbsort( string tb_name, string tb_fields )
+	void   tbtop( string tb_name )
+	void   tbvclear( string tb_name )
+	
+	void   browse( string m_file, string m_panel="" )
+	void   edit( string m_file, string m_panel=""   )
+	void   view( string m_file, string m_panel=""   )
+	void   setmsg( string msg, msgSET sType=UNCOND  )
+
+Functions set return code in variable RC
+
+The following services are implemented:
+
+Variable handling:
+vdefine including definition stacking.  Only STRING and INT supported.
+vdelete
+vcopy (only MOVE option currently supported)
+vreplace
+verase 
+vget
+vput
+vreset
+
+vlist (extension to return a list of variables in a pool)
+
+
+Table handling:
+Not well tested and only one key on keyed tables, currently supported.
+tbsort only supports up to two sort fields.
+
+
+

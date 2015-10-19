@@ -1,0 +1,49 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel for Issuing command
+)ENDCOMMENT
+
+)BODY
+
+ CMD  ZCMD
+ Home ZCMD
+
+ PanelTitle "Execute Command" 
+ 
+ literal   4   2       FP "COMMAND ===> "   
+ field     4  15  MAX  NEF CAPS(ON) ZCMD   
+
+ literal   6  2    FP "EXECUTE ===> "   
+ field     6  15  20  NEF CAPS(OFF) ZCOMMAND   
+ field     7  1   20  FP  CAPS(OFF) A   
+ field     8  1   20  FP  CAPS(OFF) B   
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+
+)INIT
+ .cursor = zcommand
+ &A = 'Hello World'
+.ATTR(A) = 'COLOUR(RED)'
+
+)ENDINIT
+
+
+)REINIT
+)ENDREINIT
+
+)PROC
+
+IF ( &ZCMD = 'BLUE' )
+     &B = ABCD
+     .ATTR(A) = 'COLOUR(TURQ)'
+     .MSG = PSYS011
+     EXIT
+                                
+IF ( &ZCOMMAND EQ &Z )  
+  .CURSOR = ZCOMMAND   
+  EXIT
+
+)ENDPROC

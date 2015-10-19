@@ -1,0 +1,41 @@
+
+===========================================================
+Primary and line commands for file list application PFLST01
+===========================================================
+
+
+Line commands:
+--------------
+CD /xxx  Change to directory /xxx
+CD xxx   Change to directory xxx under the current directory listing
+BACK or S Go back one directory level
+S xxx    Select file or directory xxx from the current list
+L xxx    FIRST|LAST|PREV to scroll the list to entry xxx (NEXT is the default)
+O        Filter list
+REF      Refresh directory list
+MKDIR    Make a directory (under current or specify full path)
+TOUCH    Make a file (under current or specify full path)
+
+
+Primary Commands:
+-----------------
+Line Commands:
+B  - Browse file or list directory
+E  - Edit file
+EX - Execute file as OOREXX
+C  - Copy file/directory/
+D  - Delete file/directory
+I  - Information on the entry
+L  - List directory
+M  - Modify file/directory attributes
+R  - Rename file/directory
+S  - Select file/directory
+T  - Display tree structure of files and directories
+X  - List link directory
+=  - Repeat the last entered line command
+
+FMT  - Format a variable or table file (requires OOREXX installed)
+nano - Invoke nano editor on the file
+vi   - Invoke vi editor on the file
+
+

@@ -1,0 +1,52 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel to display path search order
+)ENDCOMMENT
+)BODY
+PanelTitle "Path Searches"
+Home    ZCMD   
+CMD     ZCMD   
+scrollOn
+
+literal  4   2         FP    "COMMAND ===> "  
+field    4  15  MAX-17 NEF CAPS(ON) ZCMD  
+
+literal  4  MAX-15  FP "SCROLL ===> "
+field    4  MAX-3   4 NEF  NONE ZSCROLL
+
+literal  6  2      FP    "Profile:"  
+field    6  11    8  VOI  NONE ZAPPLID
+field    8  2     50 VOI  NONE LIBDEFM
+field    9  2     50 VOI  NONE LIBDEFP
+field    10 2     50 VOI  NONE LIBDEFT
+
+literal  12 2 CH  "C Name     Path                                              Message         Description"  
+literal  13 2 CH  EXPAND "-"  
+
+tbmodel  14   MAX
+tbfield  2    1    NEF  CAPS(ON),PAD('_'),JUST(LEFT) SEL  
+tbfield  4    8    VOI  NONE PVAR
+tbfield  13   50   VOI  NONE PATH
+tbfield  63   15   VOI  NONE MESSAGE
+tbfield  79   MAX  VOI  NONE DESCRIPT
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+ 
+)INIT
+VGET ZSCROLL PROFILE
+.ATTR(PATH)    = 'COLOUR(YELLOW)'
+.ATTR(MESSAGE) = 'COLOUR(YELLOW) INTENSE(HIGH)'
+)ENDINIT
+
+)PROC
+
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS01C
+   .CURSOR = ZCMD
+   EXIT
+
+VPUT ZSCROLL PROFILE
+)ENDPROC

@@ -1,0 +1,11 @@
+g++ -O0 -shared -fPIC -std=c++11 -Wl,-soname,libPEDIT01.so -lboost_regex -o libPEDIT01.so PEDIT01.cpp
+g++ -O0 -shared -fPIC -std=c++11 -Wl,-soname,libPBRO01A.so -lmagic -lboost_regex -o libPBRO01A.so PBRO01A.cpp
+g++ -O0 -shared -fPIC -std=c++11 -Wl,-soname,libPDLGTST.so -o libPDLGTST.so PDLGTST.cpp
+g++ -O0 -shared -fPIC -std=c++11 -Wl,-soname,libPFLST0A.so -o libPFLST0A.so PFLST0A.cpp 
+g++ -O0 -shared -fPIC -std=c++11 -Wl,-soname,libPMAIN0A.so -o libPMAIN0A.so PMAIN0A.cpp
+g++ -O0 -shared -fPIC -std=c++11 -Wl,-soname,libPPSP01A.so -o libPPSP01A.so PPSP01A.cpp
+g++ -O0 -shared -fPIC -std=c++11 -Wl,-soname,libPTEST01.so -o libPTEST01.so PTEST01.cpp
+g++ -O0 -shared -fPIC -std=c++11 -Wl,-soname,libPDPANLA.so -o libPDPANLA.so PDPANLA.cpp
+g++ -O0 -shared -fPIC -std=c++11 -Wl,-soname,libPTUTORA.so -o libPTUTORA.so PTUTORA.cpp
+g++ -shared -fPIC -std=c++11 -Wl,-soname,libPOREXX1.so -lrexx -lrexxapi -o libPOREXX1.so POREXX1.cpp 
+g++ -shared -fPIC -std=c++11 -Wl,-soname,libPCMD0A.so -o libPCMD0A.so PCMD0A.cpp

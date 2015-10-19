@@ -1,0 +1,77 @@
+PEDT011 "Invalid Command Parameter"
+"Primary command contains an invalid parameter"
+
+PEDT012 "Invalid Line Command"
+"Line command not valid"
+
+PEDT013 "Line Command Invalid Here"
+"Line command entered is not valid on this line"
+
+PEDT014 "Label Invalid"
+"Label cannot contain just one dot"
+
+PEDT015 "Label Already Exists"
+"Duplicate line labels are not allowed.  Please make the label unique"
+
+PEDT016 "Label missing or invalid"
+"Enter both labels to delimit command.  Both labels must already exist"
+
+PEDT017 "No More UNDO's"
+"All changes in the UNDO stack have been undone"
+
+PEDT018 "No REDO's available"
+"All changes in the REDO stack have been redone or data has been changed since last undo"
+
+PEDT019 "Too many columns specified"
+"There appears to be more than two column delimiters specified.  Put string in quotes"
+
+PEDT01A "Too many labels specified"
+"There appears to be more than two row label delimiters specified.  Put string in quotes"
+
+PEDT01B "Extraeneous Data"
+"Extaeneous data specified on find or change command"
+
+PEDT01C "No Previous Find Command"
+"No previous find command specified.  Cannot use * for the find string"
+
+PEDT01D "No Find or Change string"
+"No find or change string found in the command.  Put string in quotes"
+
+PEDT01E "No End Label Specified"
+"Enter an end label if a start label was specified"
+
+PEDT01F "Label Does Not Exist"
+"Label does not Exist.  Please enter a valid line label"
+
+PEDT01G "Labels Are The Same"
+"Start label cannot be the same as the end label."
+
+PEDT01H "No End Quote"
+"Start quote but no end quote specified"
+
+PEDT01I "Invalid Quoted String"
+"Valid types of quoted string are T, C, X and P"
+
+PEDT01J "Column Out Of Range"
+"Entered column value cannot be less that 1 or greater than 65,535"
+
+PEDT01K "Invalid Hex String"
+"Entered only valid hex characters 0-9, A-F with no spaces"
+
+PEDT01L "&ZLINES Line(s) Excluded"
+"Occurence has been found on &ZLINES line(s)"
+
+PEDT01M "&ZLINES Line(s) Deleted"
+"&ZLINES lines have been deleted"
+
+PEDT01N "Invalid Regex"
+"Regular expression entered is not valid"
+
+PEDT01O "File Changed"
+"File has changed and no SAVE has been performed (AUTOSAVE is OFF)"
+
+PEDT01P "File Saved"
+"File has been successfully saved"
+
+PEDT01Q "File Not Saved"
+"An error has occured saving the file.  Check file permissions for access rights"

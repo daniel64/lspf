@@ -1,0 +1,210 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+)ENDCOMMENT
+)BODY
+CMD  ZCMD
+Home ZCMD
+PanelTitle "CUA Colour Attributes" 
+
+literal   4   2   FP "COMMAND ===> "   
+field    4  15  MAX  NEF CAPS(ON) ZCMD   
+
+literal  7   2   CH "Panel Element                Colour Intensity Hilite   Panel Element                Colour Intensity Hilite"    
+
+literal  9   2   FP  "AB Selected Choice . . . . ."
+field    9   31  6  NEF CAPS(ON) COLOUR01
+field    9   38  4  NEF CAPS(ON) INTENS01
+field    9   48  7  NEF CAPS(ON) HILITE01
+
+literal  10  2   FP  "AB Separator Line. . . . . ."    
+field    10  31  6  NEF CAPS(ON) COLOUR02
+field    10  38  4  NEF CAPS(ON) INTENS02
+field    10  48  7  NEF CAPS(ON) HILITE02
+
+literal  11   2   FP "AB Unselected Choice . . . ."    
+field    11   31  6  NEF CAPS(ON) COLOUR03
+field    11   38  4  NEF CAPS(ON) INTENS03
+field    11   48  7  NEF CAPS(ON) HILITE03
+
+literal  12   2   FP "Action Message Text. . . . ."    
+field    12   31  6  NEF CAPS(ON) COLOUR04
+field    12   38  4  NEF CAPS(ON) INTENS04
+field    12   48  7  NEF CAPS(ON) HILITE04
+
+literal  13   2   FP "Active Window Frame. . . . ."    
+field    13   31  6  NEF CAPS(ON) COLOUR05
+field    13   38  4  NEF CAPS(ON) INTENS05
+field    13   48  7  NEF CAPS(ON) HILITE05
+
+literal  14   2   FP "Caution Text . . . . . . . ."    
+field    14   31  6  NEF CAPS(ON) COLOUR06
+field    14   38  4  NEF CAPS(ON) INTENS06
+field    14   48  7  NEF CAPS(ON) HILITE06
+
+literal  15   2   FP "Choice Entry Field . . . . ."    
+field    15   31  6  NEF CAPS(ON) COLOUR07
+field    15   38  4  NEF CAPS(ON) INTENS07
+field    15   48  7  NEF CAPS(ON) HILITE07
+
+literal  16   2   FP "Column Heading . . . . . . ."    
+field    16   31  6  NEF CAPS(ON) COLOUR08
+field    16   38  4  NEF CAPS(ON) INTENS08
+field    16   48  7  NEF CAPS(ON) HILITE08
+
+literal  17   2   FP "Descriptive Text . . . . . ."    
+field    17   31  6  NEF CAPS(ON) COLOUR09
+field    17   38  4  NEF CAPS(ON) INTENS09
+field    17   48  7  NEF CAPS(ON) HILITE09
+
+literal  18   2   FP "Emphasized Text. . . . . . ."
+field    18   31  6  NEF CAPS(ON) COLOUR10
+field    18   38  4  NEF CAPS(ON) INTENS10
+field    18   48  7  NEF CAPS(ON) HILITE10
+
+literal  19   2   FP "Error Emphasis . . . . . . ."
+field    19   31  6  NEF CAPS(ON) COLOUR11
+field    19   38  4  NEF CAPS(ON) INTENS11
+field    19   48  7  NEF CAPS(ON) HILITE11
+
+literal  20   2   FP "Field Prompt . . . . . . . ."
+field    20   31  6  NEF CAPS(ON) COLOUR12
+field    20   38  4  NEF CAPS(ON) INTENS12
+field    20   48  7  NEF CAPS(ON) HILITE12
+
+literal  21   2   FP "Function Keys. . . . . . . ."
+field    21   31  6  NEF CAPS(ON) COLOUR13
+field    21   38  4  NEF CAPS(ON) INTENS13
+field    21   48  7  NEF CAPS(ON) HILITE13
+
+literal  22   2   FP "Informational Message Text ."
+field    22   31  6  NEF CAPS(ON) COLOUR14
+field    22   38  4  NEF CAPS(ON) INTENS14
+field    22   48  7  NEF CAPS(ON) HILITE14
+
+literal  23   2   FP "List Entry Field . . . . . ."
+field    23   31  6  NEF CAPS(ON) COLOUR15
+field    23   38  4  NEF CAPS(ON) INTENS15
+field    23   48  7  NEF CAPS(ON) HILITE15
+
+literal  24   2   FP "List Item Description. . . ."
+field    24   31  6  NEF CAPS(ON) COLOUR16
+field    24   38  4  NEF CAPS(ON) INTENS16
+field    24   48  7  NEF CAPS(ON) HILITE16
+
+literal  25   2   FP "List Items . . . . . . . . ."
+field    25   31  6  NEF CAPS(ON) COLOUR17
+field    25   38  4  NEF CAPS(ON) INTENS17
+field    25   48  7  NEF CAPS(ON) HILITE17
+
+
+
+
+literal  9   57   FP "Normal Entry Field . . . . ."
+field    9   86   6  NEF CAPS(ON) COLOUR18
+field    9   93   4  NEF CAPS(ON) INTENS18
+field    9   103  7  NEF CAPS(ON) HILITE18
+
+literal  10  57   FP "Normal Text. . . . . . . . ."
+field    10  86   6  NEF CAPS(ON) COLOUR19
+field    10  93   4  NEF CAPS(ON) INTENS19
+field    10  103  7  NEF CAPS(ON) HILITE19
+
+literal  11   57  FP "Panel ID . . . . . . . . . ."
+field    11   86  6  NEF CAPS(ON) COLOUR20
+field    11   93  4  NEF CAPS(ON) INTENS20
+field    11   103 7  NEF CAPS(ON) HILITE20
+
+literal  12   57   FP "Panel Instruction. . . . . ."
+field    12   86   6  NEF CAPS(ON) COLOUR21
+field    12   93   4  NEF CAPS(ON) INTENS21
+field    12  103  7  NEF CAPS(ON) HILITE21
+
+literal  13   57   FP "Panel Title. . . . . . . . ."
+field    13   86   6  NEF CAPS(ON) COLOUR22
+field    13   93   4  NEF CAPS(ON) INTENS22
+field    13   103  7  NEF CAPS(ON) HILITE22
+
+literal  14   57   FP "Point-and-Shoot. . . . . . ."
+field    14   86   6  NEF CAPS(ON) COLOUR23
+field    14   93   4  NEF CAPS(ON) INTENS23
+field    14   103  7  NEF CAPS(ON) HILITE23
+
+literal  15   57   FP "PD Available Choices . . . ."
+field    15   86   6  NEF CAPS(ON) COLOUR24
+field    15   93   4  NEF CAPS(ON) INTENS24
+field    15   103  7  NEF CAPS(ON) HILITE24
+
+literal  16   57   FP "PD Unavailable Choices . . ."
+field    16   86   6  NEF CAPS(ON) COLOUR25
+field    16   93   4  NEF CAPS(ON) INTENS25
+field    16   103  7  NEF CAPS(ON) HILITE25
+
+literal  17   57   FP "Reference Phrase . . . . . ."
+field    17   86   6  NEF CAPS(ON) COLOUR26
+field    17   93   4  NEF CAPS(ON) INTENS26
+field    17   103  7  NEF CAPS(ON) HILITE26
+
+literal  18   57   FP "Scroll Information . . . . ."
+field    18   86   6  NEF CAPS(ON) COLOUR27
+field    18   93   4  NEF CAPS(ON) INTENS27
+field    18   103  7  NEF CAPS(ON) HILITE27
+
+literal  19   57   FP "Sel. Available Choices . . ."
+field    19   86   6  NEF CAPS(ON) COLOUR28
+field    19   93   4  NEF CAPS(ON) INTENS28
+field    19   103  7  NEF CAPS(ON) HILITE28
+
+literal  20   57   FP "Sel. Unavailable Choices . ."
+field    20   86   6  NEF CAPS(ON) COLOUR29
+field    20   93   4  NEF CAPS(ON) INTENS29
+field    20   103  7  NEF CAPS(ON) HILITE29
+
+literal  21   57   FP "Variable FP Info . . . . . ."
+field    21   86   6  NEF CAPS(ON) COLOUR30
+field    21   93   4  NEF CAPS(ON) INTENS30
+field    21   103  7  NEF CAPS(ON) HILITE30
+
+literal  22   57   FP "Warning Message Text . . . ."
+field    22   86   6  NEF CAPS(ON) COLOUR31
+field    22   93   4  NEF CAPS(ON) INTENS31
+field    22   103  7  NEF CAPS(ON) HILITE31
+
+literal  23   57   FP "Warning Text . . . . . . . ."
+field    23   86   6  NEF CAPS(ON) COLOUR32
+field    23   93   4  NEF CAPS(ON) INTENS32
+field    23   103  7  NEF CAPS(ON) HILITE32
+
+literal  24   57   FP "Work Area Separator Line . ."
+field    24   86   6  NEF CAPS(ON) COLOUR33
+field    24   93   4  NEF CAPS(ON) INTENS33
+field    24   103  7  NEF CAPS(ON) HILITE33
+
+literal  27  2    CH "Instructions"   
+
+literal  29  2     PIN "Enter"   
+literal  29  8     PS "Defaults"    
+literal  29  17    PIN "or"   
+literal  29  20    PS "Cancel"
+
+literal  31  2     PIN "Use"   
+literal  31  6     PS "SAVE"    
+literal  31  11    PIN "and"   
+literal  31  15    PS "RESTORE"
+literal  31  23    PIN "to save/restore a copy of these variables to the current profile"   
+
+literal  33   2   CT "These variables are saved to the ISPS system profile.  Re-running the setup"   
+literal  34   2   CT "program will overwrite these variables"   
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+
+)PROC
+VER (&ZCMD,LIST,CANCEL::3,DEFAULTS::3,RESTORE::3,SAVE::3,MSG=PPSP015)
+)ENDPROC
+
+)PNTS
+FIELD(ZPS01001) VAR(ZCMD) VAL(DEFAULTS)
+FIELD(ZPS01002) VAR(ZCMD) VAL(CANCEL)
+)ENDPNTS

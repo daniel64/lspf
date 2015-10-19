@@ -1,0 +1,41 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+Format for fields, literals, etc
+
+literal row column cuaFieldType display_literal
+field   row column length cuaFieldType name
+dynArea row column width depth name shadow_name
+tbmodel row depth
+tbfield column length cuaFieldType name
+pdc     abc_name pdc_name command
+box     row column width depth colour title
+
+)ENDCOMMENT
+)BODY
+Home    ZCMD
+CMD     ZCMD      
+PanelTitle "PRIMARY MENU PANEL"  
+
+literal   4    2    FP  "COMMAND ===> "    
+field     4   15   MAX  NEF     CAPS(ON)  ZCMD    
+
+literal   6   MAX-36         FP  "TIME: "     
+field     6   MAX-30    8    VOI   NONE  ZTIME    
+
+literal   6   MAX-20         FP  "DATE: "     
+field     6   MAX-14    8    VOI  NONE  ZDATE    
+
+literal   8   21    FP  "Panel name. . . ."     
+field     8   39    8    NEF   CAPS(ON),JUST(LEFT),PAD(_)  NAME    
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+
+)PROC
+IF (&NAME = &Z)
+   .MSG    = PSYS019
+   .CURSOR = NAME
+   EXIT
+)ENDPROC
