@@ -1,0 +1,3 @@
+Panels are loaded from ZPLIB.  This can be changed using the libdef() service.
+
+They support a subset of the ISPF Panel language

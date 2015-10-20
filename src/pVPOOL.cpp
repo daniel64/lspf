@@ -514,6 +514,9 @@ void pVPOOL::save( int & RC, string currAPPLID )
 
 poolMGR::poolMGR()
 {
+	// Create pools @DEFSHAR, @DEFPROF and @ROXPROF
+	// @DEFSHAR and @ROXPROF (Read Only Extention PROFILE) not currently used
+
 	log( "I", "Constructor Creating SYSTEM and DEFAULT pools " << endl ) ;
 
 	pVPOOL pool ;
@@ -527,6 +530,8 @@ poolMGR::poolMGR()
 
 void poolMGR::setPOOLsreadOnly( int & RC )
 {
+	//  Neither of these are currently used
+
 	RC = 0    ;
 
 	POOLs_profile[ "@ROXPROF" ].setreadOnly() ;
@@ -905,8 +910,8 @@ void poolMGR::put( int & RC, string name, string value, poolType pType, vTYPE vt
 	// RC = 0  variable put okay
 	// RC = 12 variable not put as in read-only status
 	// RC = 20 severe error
-	// If poolType is PROFILE, remove variable from the SHARED pool even if it is not found in the PROFILE pool
-	// Don't propergate back this return code from the SHARED pool erase try
+
+	// for put PROFILE, delete the variable from the SHARED pool
 
 	int RC2 ;
 
@@ -956,7 +961,6 @@ void poolMGR::put( int & RC, string name, string value, poolType pType, vTYPE vt
 		RC = 20 ;
 		return  ;
 	}
-	debug2( "....PUT end RC/Appl/Shr/name/value " << RC << " " << currAPPLID << " " << shrdPool << " " << name << " " << value << endl ) ;
 }
 
 
@@ -967,10 +971,13 @@ string poolMGR::get( int & RC, string name, poolType pType )
 	// RC = 8  variable not found
 	// RC = 20 severe error
 
-	map<string, pVPOOL>::iterator p_it  ;
-	RC = 0 ;
+	// for get PROFILE, delete the variable from the SHARED pool even if not found in the PROFILE pool
 
-	debug2( "....GET function APPL/name/pType/ " << currAPPLID << " " << name << " " << pType << endl ) ;
+	int RC2 ;
+
+	map<string, pVPOOL>::iterator p_it  ;
+	RC  = 0 ;
+	RC2 = 0 ;
 
         if ( !isvalidName( name ) ) { RC = 20 ; return "" ; }
 
@@ -986,6 +993,8 @@ string poolMGR::get( int & RC, string name, poolType pType )
 		}
 		break ;
 	case PROFILE:
+		locateSubPool( RC2, p_it, name, SHARED ) ;
+		if ( RC2 == 0 ) { p_it->second.erase( RC2, name ) ; }
 		locateSubPool( RC, p_it, name, PROFILE ) ;
 		if ( RC == 0 ) { return p_it->second.get( RC, name ) ; }
 		break ;
@@ -1061,11 +1070,11 @@ void poolMGR::erase( int & RC, string name, poolType pType )
 void poolMGR::locateSubPool( int & RC, map<string, pVPOOL>::iterator & p_it, string name, poolType pType )
 {
 	// Locate the sub-pool for variable name.
-	// RC=0 variable found.  Pool iterator, p_it, will be valid on return
-	// RC=8 if variable not found
+	// RC = 0 variable found.  Pool iterator, p_it, will be valid on return
+	// RC = 8 if variable not found
 
 	// Sub-Pool search order
-	// SHARED: CURRENT @DEFSHAR
+	// SHARED:  CURRENT @DEFSHAR
 	// PROFILE: APPLID, @ROXPROF @DEFPROF ISPS
 
 	map<string, pVAR>::iterator v_it ;

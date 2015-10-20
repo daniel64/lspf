@@ -8,7 +8,7 @@ pdc  Display  Quit                      ACTION RUN(END)
 pdc  Settings  PFKeys   ACTION RUN(KEYS)
 pdc  Settings  Colours  ACTION RUN(CUA)
 
-pdc  Utilities  "Application Log" ACTION RUN(LOG)
+pdc  Utilities  "Application Log" ACTION RUN(ALOG)
 pdc  Utilities  "lspf Log"        ACTION RUN(ISRROUTE) PARM("SELECT PGM(PPSP01A) PARM(SL)")
 pdc  Utilities  File              ACTION RUN(BROWSE)
 pdc  Utilities  Directory         ACTION RUN(BROWSE)
