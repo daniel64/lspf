@@ -67,6 +67,7 @@ class pVPOOL
 			refCount = 0     ;
 			readOnly = false ;
 			changed  = false ;
+			sysPROF  = false ;
 			path     = ""    ;
 		}
 
@@ -76,6 +77,7 @@ class pVPOOL
 		int    refCount ;
 		bool   readOnly ;
 		bool   changed  ;
+		bool   sysPROF  ;
 		string path     ;
 
 		void   put( int &, string, string, vTYPE =USER ) ;

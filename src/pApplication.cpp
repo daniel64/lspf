@@ -749,10 +749,13 @@ void pApplication::control( string parm1, string parm2 )
 {
 	// CONTROL ERRORS CANCEL - abend for RC >= 12
 	// CONTROL ERRORS RETURN - return to application for any RC
+
 	// CONTROL DISPLAY SAVE/RESTORE - SAVE/RESTORE status for a TBDISPL
 	//         SAVE/RESTORE saves/restores the six ZTD* variables in the function pool as well
 	//         as the currtbPanel pointer for retrieving other model sets via tbdispl with no panel specified
 	//         Only necessary if a tbdispl invokes another tbdispl in the same task
+
+	// CONTROL SPLIT DISABLE - RC=8 if screen already split
 
 	RC = 0 ;
 
@@ -819,7 +822,14 @@ void pApplication::control( string parm1, string parm2 )
 		}
 		else if ( parm2 == "DISABLE" )
 		{
-			ControlSplitEnable = false ;
+			if ( p_poolMGR->get( RC, "ZSPLIT", SHARED ) == "YES" )
+			{
+				RC = 8 ;
+			}
+			else
+			{
+				ControlSplitEnable = false ;
+			}
 		}
 		else { RC = 20 ; }
 	}

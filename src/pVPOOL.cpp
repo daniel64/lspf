@@ -279,6 +279,11 @@ void fPOOL::reset()
 
 void pVPOOL::put( int & RC, string name, string value, vTYPE vtype )
 {
+	// RC =  0 Normal completion
+	// RC = 12 Variable in read-only
+	// RC = 16 Truncation occured
+	// RC = 20 Severe error
+
 	pVAR val ;
 	map<string, pVAR>::iterator it ;
 
@@ -306,6 +311,10 @@ void pVPOOL::put( int & RC, string name, string value, vTYPE vtype )
 
 string pVPOOL::get( int & RC, string name )
 {
+	// RC =  0 Normal completion
+	// RC =  8 Variable not found
+	// RC = 20 Severe error
+
 	map<string, pVAR>::iterator it ;
 
 	RC = 0 ;
@@ -321,23 +330,34 @@ string pVPOOL::get( int & RC, string name )
 
 void pVPOOL::erase( int & RC, string name )
 {
+	// RC =  0 Normal completion
+	// RC =  8 Variable not found
+	// RC = 12 Variable read-only or SYSTEM variable
+	// RC = 16 Variable in the SYSTEM PROFILE pool (ISPS)
+	// RC = 20 Severe error
+
 	map<string, pVAR>::iterator it;
 
 	RC = 0 ;
 
 	if ( !isvalidName( name ) ) { RC = 20 ; return  ; }
 	if ( readOnly )             { RC = 12 ; return  ; }
+	if ( sysPROF  )             { RC = 16 ; return  ; }
 
 	it = POOL.find( name ) ;
 	if ( it == POOL.end() ) { RC = 8 ; return ; }
 
-	if ( it->second.pVAR_system ) { RC = 20 ;                           }
+	if ( it->second.pVAR_system ) { RC = 12 ;                           }
 	else                          { POOL.erase( it ) ; changed = true ; }
 }
 
 
 bool pVPOOL::isSystem( int & RC, string name )
 {
+	// RC =  0 Normal completion
+	// RC =  8 Variable not found
+	// RC = 20 Severe error
+
 	map<string, pVAR>::iterator it ;
 
 	RC = 0 ;
@@ -353,6 +373,9 @@ bool pVPOOL::isSystem( int & RC, string name )
 
 void pVPOOL::load( int & RC, string currAPPLID, string path )
 {
+	// RC = 0  Normal completion
+	// RC = 20 Severe error
+
 	string s     ;
 	string hdr   ;
 	string var   ;
@@ -446,6 +469,10 @@ void pVPOOL::load( int & RC, string currAPPLID, string path )
 
 void pVPOOL::save( int & RC, string currAPPLID )
 {
+	// RC = 0  Normal completion
+	// RC = 4  Save not performed.  Pool in read-only or no changes made to pool
+	// RC = 20 Severe error
+
 	string s ;
 	int    i ;
 
@@ -515,7 +542,7 @@ void pVPOOL::save( int & RC, string currAPPLID )
 poolMGR::poolMGR()
 {
 	// Create pools @DEFSHAR, @DEFPROF and @ROXPROF
-	// @DEFSHAR and @ROXPROF (Read Only Extention PROFILE) not currently used
+	// @DEFPROF and @ROXPROF (Read Only Extention PROFILE) not currently used
 
 	log( "I", "Constructor Creating SYSTEM and DEFAULT pools " << endl ) ;
 
@@ -612,6 +639,7 @@ void poolMGR::createPool( int & RC, poolType pType, string path )
 					POOLs_profile[ currAPPLID ].refCount = 1 ;
 					log( "I", "Pool " << currAPPLID << " created okay.  Reading saved variables from profile dataset" << endl ) ;
 					POOLs_profile[ currAPPLID ].load(  RC, currAPPLID, path ) ;
+					if ( currAPPLID == "ISPS" ) { POOLs_profile[ "ISPS" ].sysPROF = true ; }
 				}
 			}
 			else
@@ -1015,7 +1043,8 @@ void poolMGR::erase( int & RC, string name, poolType pType )
 	// Pool search order: ASIS - SHARED then PROFILE
 	// RC = 0  variable found and erased
 	// RC = 8  variable not found
-	// RC = 12 variable not erased as in read-only status
+	// RC = 12 variable not erased as pool in read-only status, or system variable
+	// RC = 16 variable not erased as in the ISPS SYSTEM profile pool
 	// RC = 20 severe error
 
 	map<string, pVPOOL>::iterator sp_it ;

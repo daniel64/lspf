@@ -131,7 +131,7 @@ map<string, void *>  dlibs        ;
 map<string, void *>  maker_ep     ;
 map<string, void *>  destroyer_ep ;
 
-boost::circular_buffer<string>    retrieveBuffer(25) ;
+boost::circular_buffer<string> retrieveBuffer(25) ;
 
 int    maxtaskID = 0 ;
 int    screenNum = 0 ;
@@ -572,6 +572,7 @@ void MainLoop()
 						screenNum  = screenList.size() ;
 						p_pLScreen = new pLScreen      ;
 						screenList.push_back ( p_pLScreen ) ;
+						updateDefaultVars()            ;
 						startApplication( ZMAINPGM, "", "ISP", true, false ) ;
 						break ;
 					}
@@ -642,6 +643,7 @@ void MainLoop()
 					}
 					if ( SEL )
 					{
+						updateDefaultVars()                   ;
 						currAppl->currPanel->abActive = false ;
 						startApplication( SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB ) ;
 					}
@@ -796,7 +798,7 @@ void processAction( uint row, uint col, int c, bool &  passthru )
 	{
 		if ( retrieveBuffer.size() > 0 )
 		{
-			if ( ZCOMMAND != retrieveBuffer[ retPos ] )
+			if ( ZCOMMAND != retrieveBuffer[ 0 ] )
 			{
 				retrieveBuffer.push_front( ZCOMMAND ) ;
 			}
@@ -847,7 +849,6 @@ void processAction( uint row, uint col, int c, bool &  passthru )
 
 	CMDVerb = upper( word( ZCOMMAND, 1 ) ) ;
 	CMDRest = subword( ZCOMMAND, 2 ) ;
-	if ( CMDVerb == "" ) return ;
 
 	if ( CMDVerb == "RETRIEVE" )
 	{
@@ -862,6 +863,9 @@ void processAction( uint row, uint col, int c, bool &  passthru )
 		if ( ++retPos >= retrieveBuffer.size() ) retPos = 0 ;
 		return ;
 	}
+	retPos = 0 ;
+
+	if ( CMDVerb == "" ) { return ; }
 
 	if ( CMDVerb == "HELP")
 	{
@@ -953,7 +957,7 @@ void processAction( uint row, uint col, int c, bool &  passthru )
 		}
 	}
 
-	if ( (findword( CMDVerb, BuiltInCommands )) | (dlibs.find( CMDVerb ) != dlibs.end()) )
+	if ( (findword( CMDVerb, BuiltInCommands )) || (dlibs.find( CMDVerb ) != dlibs.end()) )
 	{
 		passthru = false   ;
 		ZCOMMAND = CMDVerb ;
@@ -985,6 +989,7 @@ void processSELECT()
 
 	if ( dlibs.find( currAppl->SEL_PGM ) != dlibs.end() )
 	{
+		updateDefaultVars() ;
 		startApplication( currAppl->SEL_PGM, currAppl->SEL_PARM, currAppl->SEL_NEWAPPL, currAppl->SEL_NEWPOOL, currAppl->SEL_PASSLIB ) ;
 	}
 	else
@@ -1587,6 +1592,7 @@ void loadDefaultPools()
 	p_poolMGR->defaultVARs( RC , "ZDATEF", "DD/MM/YY", SHARED )       ;
 	p_poolMGR->defaultVARs( RC , "ZDATEFL", "DD/MM/YYYY", SHARED )    ;
 	p_poolMGR->defaultVARs( RC , "ZSCALE", "OFF", SHARED )            ;
+	p_poolMGR->defaultVARs( RC , "ZSPLIT", "NO", SHARED )             ;
 
 	p_poolMGR->setPOOLsreadOnly( RC ) ;
 }
@@ -1692,6 +1698,15 @@ void updateDefaultVars()
 	strftime( buf, sizeof(buf), "%d/%m/%Y  ", time_info ) ; buf[ 10 ] = 0x00 ; p_poolMGR->defaultVARs( RC , "ZDATEL", buf, SHARED )   ;
 	strftime( buf, sizeof(buf), "%y.%j ", time_info )     ; buf[ 6 ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "ZJDATE", buf, SHARED )   ;
 	strftime( buf, sizeof(buf), "%Y.%j   ", time_info )   ; buf[ 8 ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "Z4JDATE", buf, SHARED )  ;
+	if ( pLScreen::screensTotal > 1 )
+	{
+		p_poolMGR->defaultVARs( RC , "ZSPLIT", "YES", SHARED ) ;
+	}
+	else
+	{
+		p_poolMGR->defaultVARs( RC , "ZSPLIT", "NO", SHARED ) ;
+	}
+		
 }
 
 
@@ -1791,6 +1806,7 @@ void loadDynamicClasses()
 			log( "E", "Error is " << dlerror() << endl ) ;
 			log( "E", "Module " << mod << " will be ignored" << endl ) ;
 			p_poolMGR->defaultVARs( RC , "ZDLP" + right( d2ds( i ), 4, '0'), e1, SHARED ) ;
+			continue ;
 		}
 		dlerror() ;
 		mkr       = dlsym( dlib, "maker" ) ;
