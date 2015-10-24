@@ -1,1 +1,54 @@
-Variable Pool structure
+Variable Pool structure.
+
+SHARED pools have 2 subpools that are searched to satisfy a request.  PROFILE pools have 4 subpools that are searched.
+
+
+SHARED                                                                PROFILE
++--------------------------------+--------------+--------------+     +--------------------------------+--------------+--------------+
+| #nnnnnnn (UP)                  | #nnnnnnn     | #nnnnnnn     |     | aaaaPROF (UP)                  | bbbbPROF     | ccccPROF     |
+| Application created variables  |              |              |     | Application created variables  |              |              |
+|                                |              |              |     | ZPFnn                          |              |              |
+| ZAPPLID     ZSCROLLA           |              |              |     | ZSCROLL                        |              |              |
+| ZPANELID    ZSCROLLN           |              |              |     | ZKLUSE                         |              |              |
+| ZPFKEY                         |              |              |     +--------------------------------+--------------+--------------+
+| ZSCREEN                        |              |              |     | @ROXPROF (RO) (common)                                       |
+| ZVERB                          |              |              |     | Loaded from ZPROFAPP (not used at present)                   | 
++--------------------------------+--------------+--------------+     |                                                              | 
+| @DEFSHAR (common)                                            |     +--------------------------------------------------------------+
+| Initial load by defaultVARS() method.  Not updatable by      |     | @DEFPROF (RO) (common)                                       | 
+| applications                                                 |     | Loaded by defaultVARS()(not used at present)                 | 
+|Z4JDATE                                                       |     |                                                              | 
+|ZDATE                                                         |     +--------------------------------------------------------------+
+|ZDATEF                                                        |     | ISPSPROF (UP) (common)                                       |
+|ZDATEFL                                                       |     | Loaded from ISPSPROF                                         |
+|ZDATEL                                                        |     | Updatable by applications but not deletable                  |
+|ZDAY                                                          |     +--------------------------------------------------------------+
+|ZDAYOFWK                                                      |
+|ZDLCnnnn (loaded class name)                                  |
+|ZDLMnnnn (loaded class module)                                |
+|ZDLPnnnn (module path or error msg)                           |
+|ZENVIR                                                        |
+|ZHOME                                                         |
+|ZJDATE                                                        |
+|ZMACHINE                                                      |
+|ZNODENAME                                                     |
+|ZOSREL                                                        |
+|ZOSVER                                                        |
+|ZSCALE                                                        |
+|ZSCRMAXD                                                      |
+|ZSCRMAXW                                                      |
+|ZSHELL                                                        |
+|ZSPLIT                                                        |
+|ZSYSNAME                                                      |
+|ZTIME                                                         |
+|ZTIMEL                                                        |
+|ZUSER                                                         |
++--------------------------------------------------------------+
+
+Variables are updated in the subpool they reside if the subpool is RW and they are not system variables (ZTIME, etc).
+New variables VPUT by applications will go into the top-level subpool for both SHARED and PROFILE variables.
+
+ISPS variables are updatable but cannot be erased.
+
+
+
