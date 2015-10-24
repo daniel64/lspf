@@ -169,6 +169,7 @@ literal   28    48   FP     "to exit"
 )COMMAND
 0 "SELECT PANEL(PPSET0A) NEWAPPL  PASSLIB"
 1 "SELECT PGM(&ZFLSTPGM) PARM("") NEWAPPL(ISR) PASSLIB "
+--1 "SELECT PGM(&ZBRPGM) NEWAPPL(ISR)"
 2 "SELECT PGM(&ZFLSTPGM) PARM("") NEWAPPL(ISR) PASSLIB "
 --2 "SELECT PGM(&ZEDITPGM) NEWAPPL(ISR)"
 3 "SELECT PGM(PUTLS0A) NEWAPPL(UTL)"
@@ -187,8 +188,28 @@ X "END"
 
 )PROC
 
-   &Z   =   'Hello World'
-   &Z='Hello World'
+&W1  = TRUNC(&ZCMD,' ')
+&W2  = .TRAIL
+&W2S = WORDS(W2)
+&W2L = LENGTH(W2)
+
+IF (&W1 = 'DATE')
+   IF (&W2S NE 1)
+      .MSG    = PSYS01O
+      .CURSOR = ZCMD
+      EXIT
+   IF (&W2L NE 7)
+      .MSG    = PSYS01O
+      .CURSOR = ZCMD
+      EXIT
+   &MM   = TRUNC(&W2,2)
+   &T    = .TRAIL
+   &SEP  = TRUNC(&T,1)
+   &YYYY = .TRAIL
+   IF (&SEP NE '-','/')
+      .MSG    = PSYS01O
+      .CURSOR = ZCMD
+   EXIT
 
 &ZCMD  = TRUNC(&ZCMD,'.')
 &ZREST = .TRAIL

@@ -119,7 +119,6 @@ class poolMGR
 		bool   ifexists( int &, string ) ;
 
 	private:
-		int RC            ;
 		string currAPPLID ;
 		string shrdPool   ;
 		int    shrdPooln  ;

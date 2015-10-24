@@ -780,12 +780,12 @@ void poolMGR::statistics()
 
 void poolMGR::snap()
 {
+	int RC ;
+
 	map<string, pVPOOL>::iterator sp_it ;
 	map<string, pVPOOL>::iterator pp_it ;
 	map<string, pVAR>::iterator v_it    ;
 	string vtype ;
-
-	RC = 0 ;
 
 	log( "-", "POOL VARIABLES:" << endl ) ;
 	log( "-", "         Shared pool details:" << endl ) ;
