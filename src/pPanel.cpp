@@ -95,7 +95,6 @@ int pPanel::loadPanel( string p_name, string paths )
 	int pVersion         ;
 	int pFormat          ;
 	int tbfield_col      ;
-	int tbfield_ss       ;
 	int tbfield_sz       ;
 
 	string s, w, w1, w2  ;
@@ -213,7 +212,6 @@ int pPanel::loadPanel( string p_name, string paths )
 	panel.close() ;
 
 	tbfield_col = 0  ;
-	tbfield_ss  = 2  ;
 	tbfield_sz  = 0  ;
 
 	for ( it = pSource.begin() ; it != pSource.end() ; it++ )
@@ -659,18 +657,16 @@ int pPanel::loadPanel( string p_name, string paths )
 			int tlen ;
 			int tcol ;
 			w3 = word( line2, 3 ) ;
-			if ( upper( w2 ) == "SEPSIZE" )
+			if ( w2[ 0 ] == '+' )
 			{
-				tbfield_ss = ds2d( w3 ) ;
-				continue ;
-			}
-			else if ( w2 == "+" )
-			{
-				tcol = tbfield_col + tbfield_sz + tbfield_ss ;
-			}
-			else if ( w2[ 0 ] == '+' )
-			{
-				tcol = tbfield_col + ds2d( substr( w2, 2 ) ) ;
+				if ( w2[ 1 ] == '+' )
+				{
+					tcol = tbfield_col + tbfield_sz + ds2d( substr( w2, 3 ) ) ;
+				}
+				else
+				{
+					tcol = tbfield_col + ds2d( substr( w2, 2 ) ) ;
+				}
 			}
 			else
 			{

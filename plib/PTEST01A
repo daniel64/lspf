@@ -1,4 +1,4 @@
-)PANEL VERSION=1 FORMAT=1
+#)PANEL VERSION=1 FORMAT=1
 )COMMENT
 
 **************************************************************************
@@ -7,15 +7,6 @@
 **************************************************************************
 **************************************************************************
 
-Format for fields, literals, etc
-
-literal row column cuaFieldType display_literal
-field   row column length cuaFieldType name
-dynArea row column width depth name shadow_name
-tbmodel row depth
-tbfield column length cuaFieldType name
-pdc     abc_name pdc_name command
-box     row column width depth colour title
 
 .ATTR is a permanent change when in the )INIT section and
       temporary (one redisplay only) in the )REINIT and )PROC sections
@@ -43,14 +34,27 @@ literal   9   6     FP  "FIELD FLD2: "
 literal   9   30    FP  "VER FLD2 NB NUM"     
 field     9   18    10    NEF   NONE  FLD2    
 
+literal   9   66    FP  "FIELD FLD11:"     
+field     9   79    3    NEF   NONE  FLD11    
+literal   9   84    FP  "TRANS Y,YES N,NO *.*"     
 
 literal   10  6     FP  "FIELD FLD3: "     
 literal   10  30    FP  "VER FLD3 LIST AAA BBB CCC DDD EEE"     
-field     10  18    10    NEF   NONE  FLD3    
+field     10  18    10   NEF   NONE  FLD3    
+
+literal   10  66    FP  "FIELD FLD21:"     
+field     10  79    3    NEF   NONE  FLD21    
+literal   10  84    FP  "TRANS Y,YES N,NO *.?"     
+
 
 literal   11   6    FP  "PASSWORD  : "     
 literal   11   30    FP  "Password Field (Type is PWD)"     
 field     11   18    10    PWD   NONE  FLD4    
+
+literal   11  66    FP  "FIELD FLD31:"     
+field     11  79    3    NEF   NONE  FLD31    
+literal   11  84    FP  "TRANS Y,YES N,NO"     
+
 
 literal   12   6    FP  "FIELD FLD5: "     
 literal   12   30    FP  "VER NB HEX"     
@@ -123,6 +127,17 @@ VER (  &FLD3 LIST AAA BBB CCC DDD EEE   )
 VER (&FLD5      HEX)     
 VER ( &FLD6   NB OCT    )     
 VER (  &FLD7,NB,PICT,CAN9OX/\=B,MSG=PSYS01N  )    
+
+-- Truncate field to 1 char before using TRANS
+&FLD111 = TRUNC(&FLD11,1)
+&FLD11 = TRANS(&FLD111 Y,YES N,NO *,*)
+
+&FLD211 = TRUNC(&FLD21,1)
+&FLD21 = TRANS(&FLD211 Y,YES N,NO *,?)
+
+&FLD311 = TRUNC(&FLD31,1)
+&FLD31 = TRANS(&FLD311 Y,YES N,NO)
+-- --------------------------------------------
 
 IF (&FLD8 EQ &Z)                    /*  NEF Change to hilight+NEF if error */
    .ATTR(FLD8) = ' INTENSE(HIGH)'   /*  then back to NEF when okay         */

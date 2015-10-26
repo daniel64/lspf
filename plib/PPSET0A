@@ -1,15 +1,6 @@
 )PANEL VERSION=1 FORMAT=1
 
 )COMMENT
-Format for fields, literals, etc
-
-literal row column cuaFieldType display_literal
-field   row column length cuaFieldType name
-dynArea row column width depth name shadow_name
-tbmodel row depth
-tbfield column length cuaFieldType name
-pdc     abc_name pdc_name command
-box     row column width depth colour title
 
 This is the selection panel for the SETTINGS MENU
 
@@ -107,6 +98,7 @@ FIELD( ZPS01003 ) VAR(ZCMD)  VAL(2)
 FIELD( ZPS01004 ) VAR(ZCMD)  VAL(3)   
 FIELD( ZPS01005 ) VAR(ZCMD)  VAL(4)   
 FIELD( ZPS01006 ) VAR(ZCMD)  VAL(5)   
-FIELD( ZPS01007 ) VAR(ZCMD)  VAL(T)
-FIELD( ZPS01008 ) VAR(ZCMD)  VAL(X)   
+FIELD( ZPS01007 ) VAR(ZCMD)  VAL(6)   
+FIELD( ZPS01008 ) VAR(ZCMD)  VAL(T)
+FIELD( ZPS01009 ) VAR(ZCMD)  VAL(X)   
 )ENDPNTS

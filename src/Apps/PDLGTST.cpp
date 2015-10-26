@@ -25,7 +25,7 @@
 /* Display panel                                                            */
 /* Display SYSTEM variables                                                 */
 /* Check pattern matching algorithm                                         */
-/* Display/check/preprocess panels                                          */
+/* Display/check/preprocess panels (not yet implemented)                    */
 
 
 #include <iostream>
@@ -53,10 +53,10 @@ void PDLGTST::application()
 
 	vdefine( "ZCMD", &ZCMD ) ;
 
-	if ( PARM == "0"  ) displayPanel() ;
-	if ( PARM == "1"  ) displaySystemVars() ;
-	if ( PARM == "2"  ) checkAlgo() ;
-	if ( PARM == "3"  ) prepPanels() ;
+	if      ( PARM == "0"  ) { displayPanel() ; }
+	else if ( PARM == "1"  ) { displaySystemVars() ; }
+	else if ( PARM == "2"  ) { checkAlgo()  ; }
+	else if ( PARM == "3"  ) { prepPanels() ; }
 
 	cleanup() ;
 	return    ;
@@ -110,16 +110,16 @@ void PDLGTST::displayPanel()
 void PDLGTST::displaySystemVars()
 {
 	string MSG ;
-  
+
 	ZCMD = "" ;
 	MSG  = "" ;
-	
+
 	while ( true )
 	{
 		display( "PDLGTST3", MSG, "ZCMD" );
 		if ( RC  > 8 ) { abend() ; return ; }
 		if ( RC == 8 ) { return  ; }
-		
+
 		MSG  = "" ;
 		if ( ZCMD != "" ) { MSG = "DLGT011" ; continue ; }
 	}
@@ -151,7 +151,7 @@ void PDLGTST::checkAlgo()
 		if ( ZCMD != "" ) { MSG = "DLGT011" ; continue ; }
 		if ( STR1 == "" ) continue ;
 		if ( STR2 == "" ) continue ;
-		
+
 		if ( matchpattern( STR1, STR2 ) )
 		{
 			RESLT = "*PATTERN MATCHES*" ;
@@ -160,7 +160,7 @@ void PDLGTST::checkAlgo()
 		{
 			RESLT = "*PATTERN DOES NOT MATCH*" ;
 		}
-		
+
 	}
 
 }

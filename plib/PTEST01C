@@ -1,15 +1,5 @@
 )PANEL VERSION=1 FORMAT=1
 )COMMENT
-Format for fields, literals, etc
-
-literal row column cuaFieldType display_literal
-field   row column length cuaFieldType name
-dynArea row column width depth name shadow_name
-tbmodel row depth
-tbfield column length cuaFieldType name
-pdc     abc_name pdc_name command
-box     row column width depth colour title
-
 
 )ENDCOMMENT
 

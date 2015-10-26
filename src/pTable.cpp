@@ -320,19 +320,25 @@ void Table::tbdelete( int & RC, fPOOL & funcPOOL )
 	string key ;
 
 	vector< vector<string> >::iterator it ;
+	vector<string> keys ;
 
 	RC  = 0 ;
 	if ( num_keys > 0 )
 	{
+		keys.clear() ;
+		for ( i = 1 ; i <= num_keys ; i++ )
+		{
+			key = funcPOOL.get( RC, 0, word( tab_keys, i ) ) ;
+			if ( RC > 0 ) { RC = 20 ; return ; }
+			keys.push_back( key ) ;
+		}
 		found = false ;
 		j     = 1     ;
 		for ( it = table.begin() ; it != table.end() ; it++ )
 		{
 			for ( i = 1 ; i <= num_keys ; i++ )
 			{
-				key = funcPOOL.get( RC, 0, word( tab_keys, i ) ) ;
-				if ( RC > 0 ) { RC = 20 ; return ; }
-				if ( (*it).at( i ) != key ) { break  ; }
+				if ( (*it).at( i ) != keys.at( i-1 ) ) { break  ; }
 			}
 			if ( i > num_keys ) { found = true ; break ; }
 			j++ ;
@@ -372,11 +378,20 @@ void Table::tbexist( int & RC, fPOOL & funcPOOL )
 	string key   ;
 
 	vector< vector<string> >::iterator it ;
+	vector<string> keys ;
 
 	RC  = 0 ;
 	CRP = 0 ;
 
 	if ( num_keys == 0 ) { RC = 8 ; return ; }
+
+	keys.clear() ;
+	for ( i = 1 ; i <= num_keys ; i++ )
+	{
+		key = funcPOOL.get( RC, 0, word( tab_keys, i ) ) ;
+		if ( RC > 0 ) { RC = 20 ; return ; }
+		keys.push_back( key ) ;
+	}
 
 	found = false ;
 	j     = 1     ;
@@ -384,9 +399,7 @@ void Table::tbexist( int & RC, fPOOL & funcPOOL )
 	{
 		for ( i = 1 ; i <= num_keys ; i++ )
 		{
-			key = funcPOOL.get( RC, 0, word( tab_keys, i ) ) ;
-			if ( RC > 0 ) { RC = 20 ; return ; }
-			if ( (*it).at( i ) != key ) { break  ; }
+			if ( (*it).at( i ) != keys.at( i-1 ) ) { break  ; }
 		}
 		if ( i > num_keys ) { found = true ; break ; }
 		j++ ;
@@ -454,6 +467,7 @@ void Table::tbget( int & RC, fPOOL & funcPOOL, string tb_savenm, string tb_rowid
 	string val    ;
 
 	vector< vector<string> >::iterator it ;
+	vector<string> keys ;
 
 	RC = 0 ;
 	tb_savenm   = upper( tb_savenm )   ;
@@ -470,15 +484,20 @@ void Table::tbget( int & RC, fPOOL & funcPOOL, string tb_savenm, string tb_rowid
 
 	if ( num_keys > 0 )
 	{
+		keys.clear() ;
+		for ( i = 1 ; i <= num_keys ; i++ )
+		{
+			key = funcPOOL.get( RC, 0, word( tab_keys, i ) ) ;
+			if ( RC > 0 ) { RC = 20 ; return ; }
+			keys.push_back( key ) ;
+		}
 		found = false ;
 		CRP   = 1     ;
 		for ( it = table.begin() ; it != table.end() ; it++ )
 		{
 			for ( i = 1 ; i <= num_keys ; i++ )
 			{
-				key = funcPOOL.get( RC, 0, word( tab_keys, i ) ) ;
-				if ( RC > 0 ) { RC = 20 ; return ; }
-				if ( (*it).at( i ) != key )  { break ; }
+				if ( (*it).at( i ) != keys.at( i-1 ) )  { break ; }
 			}
 			if ( i > num_keys ) { found = true ; break ; }
 			CRP++ ;
@@ -542,6 +561,7 @@ void Table::tbmod( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	string URID ;
 
 	vector< string > flds ;
+	vector< string > keys ;
 	vector< vector<string> >::iterator it ;
 	vector< string >::iterator it2 ;
 
@@ -553,13 +573,19 @@ void Table::tbmod( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 
 	j     = 0     ;
 	found = false ;
+
+	keys.clear()  ;
+	for ( i = 1 ; i <= num_keys ; i++ )
+	{
+		key = funcPOOL.get( RC, 0, word( tab_keys, i ) ) ;
+		if ( RC > 0 ) { RC = 20 ; return ; }
+		keys.push_back( key ) ;
+	}
 	for ( it = table.begin() ; it != table.end() ; it++ )
 	{
 		for ( i = 1 ; i <= num_keys ; i++ )
 		{
-			key = funcPOOL.get( RC, 0, word( tab_keys, i ) ) ;
-			if ( RC > 0 ) { RC = 20 ; return ; }
-			if ( (*it).at( i ) != key )  { break ; }
+			if ( (*it).at( i ) != keys.at( i-1 ) )  { break ; }
 		}
 		if ( i > num_keys ) { found = true ; break ; }
 		j++ ;
@@ -1141,7 +1167,7 @@ void Table::tbskip( int & RC, fPOOL & funcPOOL, int num, string tb_savenm, strin
 void Table::tbsort( int & RC, fPOOL & funcPOOL, string tb_fields )
 {
 	// FIELD
-	// FIELD,CF
+	// FIELD,C
 	// FIELD,C,A,FIELD2
 	// FIELD,C,A,FIELD2,N
 	// FIELD,C,A,FIELD2,N,D

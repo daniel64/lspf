@@ -9,7 +9,7 @@
 Home    ZCMD
 CMD     ZCMD      
 
-PanelTitle "Test Non-Keyed Table and TB Functions"  
+PanelTitle "Test Keyed Table and TB Functions"  
 
 literal   4    2          FP  "COMMAND ===> "    
 field     4   15  MAX-17  NEF     CAPS(ON)  ZCMD    
@@ -38,12 +38,12 @@ field     7   31    8    VOI   NONE  ZTDVROWS
 literal   7   2          FP  "ZTDROWS: "     
 field     7   11    8    VOI   NONE  ZTDROWS    
 
-literal   8   2          FP  "Non-keyed Table.  Max RC from last operation is:"     
+literal   8   2          FP  "Keyed Table (1 key).  Max RC from last operation is:"     
 field     8   51    8    VOI   NONE  TRC    
 
 literal   10  2          FP  "Last 5 operations:"     
 field     10  21    8    VOI   NONE  TOPR1    
-field     11   21    8    VOI   NONE  TOPR2    
+field     11  21    8    VOI   NONE  TOPR2    
 field     12  21    8    VOI   NONE  TOPR3    
 field     13  21    8    VOI   NONE  TOPR4    
 field     14  21    8    VOI   NONE  TOPR5    
@@ -64,28 +64,31 @@ literal   11  43        FP  "URID of selected row:"
 field     10  66    8    VOI   NONE  CRP    
 field     11  66    8    VOI   NONE  ROWID    
 
-literal 16 2 CH  "Sel  Field1      Field2      Field3    Field4    URID(hidden)"
+literal 16 2 CH  "Sel  Key1        Field1      Field2      Field3    Field4    URID(hidden)"
 literal 17 2 CH EXPAND "-"
 
 tbmodel 18 11
-tbfield 2  4  NEF CAPS(ON),PAD('_'),JUST(LEFT) SEL
-tbfield ++1 10 VOI  NONE              FLD1
+tbfield 2   4  NEF CAPS(ON),PAD('_'),JUST(LEFT) SEL
+tbfield ++1 10 VOI  NONE              KEY1
+tbfield ++2 10 VOI  NONE              FLD1
 tbfield ++2 10 VOI  NONE              FLD2
 tbfield ++2 8  VOI  NONE              FLD3
 tbfield ++2 8  VOI  NONE              FLD4
 tbfield ++2 8  VOI  NONE              ZURID
 
 literal 29 2 VOI EXPAND "="
-literal   30  2        FP  "Field 1 of selected row:"     
-field     30  27    8    VOI   NONE  YFLD1    
-literal   31  2        FP  "Field 2 of selected row:"     
-field     31  27    8    VOI   NONE  YFLD2    
-literal   32  2        FP  "Field 3 of selected row:"     
-field     32  27    8    VOI   NONE  YFLD3    
-literal   33  2        FP  "Field 4 of selected row:"     
-field     33  27    8    VOI   NONE  YFLD4    
-literal   34  2        FP  "UROW ID of selected row:"     
-field     34  27    8    VOI   NONE  YROWID    
+literal   30  2        FP  "Key 1 of selected row. :"     
+field     30  27    8    VOI   NONE  YKEY1    
+literal   31  2        FP  "Field 1 of selected row:"     
+field     31  27    8    VOI   NONE  YFLD1    
+literal   32  2        FP  "Field 2 of selected row:"     
+field     32  27    8    VOI   NONE  YFLD2    
+literal   33  2        FP  "Field 3 of selected row:"     
+field     33  27    8    VOI   NONE  YFLD3    
+literal   34  2        FP  "Field 4 of selected row:"     
+field     34  27    8    VOI   NONE  YFLD4    
+literal   35  2        FP  "UROW ID of selected row:"     
+field     35  27    8    VOI   NONE  YROWID    
 
 literal   30  41        FP  "TBQUERY results: Key Fields. . . . . . . . :"     
 field     30  86    30   VOI   NONE  TBQ1    
@@ -136,3 +139,4 @@ IF (&SEL NE &Z)
       .MSG       = PSYS01C
       EXIT
 )ENDPROC
+

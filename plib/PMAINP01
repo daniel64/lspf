@@ -6,9 +6,13 @@ Format for fields, literals, proc, etc
 LITERAL row column cuaFieldType display_literal
 FIELD   row column length cuaFieldType name
 DYNAREA row column width depth name shadow_name DATAIN(xx) DATAOUT(xx) USERMOD(xx) DATAMOD(xx)
+
 TBMODEL row depth
 TBFIELD column length cuaFieldType name
-PDC     abc_name pdc_name command
+        (column of '+n'  is n relative to the start of the previous field)
+        (column of '++n' is n relative to the end of the previous field)
+
+PDC     abc_name pdc_name ACTION RUN(command)
 BOX     row column width depth colour title
 
 PROC :
@@ -26,13 +30,20 @@ PROC :
      &B      = 'World'
      &C      = UPPER(B)
      &L      = LENGTH(ZCMD)
-     IF ( &ZCMD = &A ) can also have a word or quoted ( CANCEL | 'Bye' )
+     &WS     = WORDS(ZCMD)
+
+     IF...ELSE statements are indentation sensitive
+     IF ( &ZCMD = &A ) can also have a word or quoted (CANCEL,'Bye')
+     IF (&Z EQ A,B,C,D) true if var Z is any of the list
+     IF (&Z NE A,B,C,D) true if var Z is non of the list
+     ELSE
      EXIT
      &ZCMD = TRUNC( &CMD, 3 )
      &ZCMD = TRUNC( &CMD, '.' )
      &REST = .TRAIL
      &ZCMD = TRANS( &ZCMD Y,YES N,NO )
      &ZCMD = TRANS( &ZCMD Y,YES N,NO *.* )
+     &ZCMD = TRANS( &ZCMD Y,YES N,NO *.? )
 
 INIT | REINIT :
     VGET VAR1 PROFILE | SHARED

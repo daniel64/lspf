@@ -134,16 +134,6 @@ void PTEST01::opt1()
 
 	MSG  = "" ;
 
-//	for ( ; ; )
-//      {
-//		ZCMD = "" ;
-//		display( "PTEST01B", MSG, "ZCMD" );
-//		if ( RC >  8 ) { abend()   ; return ; }
-//		if ( RC == 8 ) { cleanup() ; break ; }
-//		MSG  = "" ;
-//		vget( "ZVERB" ) ;
-//	}
-
 //	tbopen( "TABK", WRITE, "/home/daniel/.lspf/" ) ;
 	tbopen( "TABK", WRITE ) ;
 	log( "A", "TBOPEN TABK WRITE no file name RC=" << RC << endl ) ;
@@ -565,6 +555,177 @@ void PTEST01::opt2()
 void PTEST01::opt3()
 {
 	// opt3 - Test Table Display for keyed table
+
+	int i ;
+	int j ;
+	int TRC     ;
+	int YTDSELS ;
+	int CRP     ;
+	int CSRROW  ;
+
+	string YKEY1, YFLD1, YFLD2, YFLD3, YFLD4, YROWID ;
+
+	string w1 ;
+	string w2 ;
+	string w3 ;
+	string w4 ;
+	string w5 ;
+	string w6 ;
+
+	string TBQ1, TBQ2  ;
+	int    TBQ3, TBQ4, TBQ5, TBQ6 ;
+	string TBQ7, TBQ8, TBQ9, TBQ10 ;
+
+	vdefine( "TBQ1 TBQ2",  &TBQ1, &TBQ2 ) ;
+	vdefine( "TBQ3 TBQ4 TBQ5 TBQ6",  &TBQ3, &TBQ4, &TBQ5, &TBQ6  ) ;
+	vdefine( "TBQ7 TBQ8 TBQ9 TBQ10", &TBQ7, &TBQ8, &TBQ9, &TBQ10 ) ;
+
+	string MSG, SEL, KEY1, FLD1, FLD2, FLD3, FLD4, ROWID ;
+	string TOPR1, TRC1, TOPR2, TRC2, TOPR3, TRC3, TOPR4, TRC4, TOPR5, TRC5 ;
+
+	vdefine( "SEL KEY1 FLD1 FLD2 FLD3 FLD4", &SEL, &KEY1, &FLD1, &FLD2, &FLD3, &FLD4 ) ;
+	vdefine( "YKEY1 YFLD1 YFLD2 YFLD3 YFLD4", &YKEY1, &YFLD1, &YFLD2, &YFLD3, &YFLD4 ) ;
+	vdefine( "TOPR1 TRC1 TOPR2 TRC2 TOPR3 TRC3 TOPR4 TRC4", &TOPR1, &TRC1, &TOPR2, &TRC2, &TOPR3, &TRC3, &TOPR4, &TRC4 ) ;
+	vdefine( "TOPR5 TRC5", &TOPR5, &TRC5 ) ;
+
+	vdefine( "ROWID YROWID", &ROWID, &YROWID ) ;
+	vdefine( "TRC YTDSELS CRP", &TRC, &YTDSELS, &CRP ) ;
+
+	MSG     = "" ;
+	YTDSELS = 0  ;
+	TRC     = 0  ;
+	vector< string >ops ;
+
+	tbcreate( "TABKD", "KEY1", "SEL FLD1 FLD2 FLD3 FLD4", NOWRITE ) ;
+	log( "A", "TBCREATE TABN RC=" << RC << endl ) ;
+	ops.push_back( "TBCREATE " + d2ds(RC) ) ;
+	if ( RC > TRC ) { TRC = RC ; }
+
+	SEL = "" ; KEY1 = "AAAA" ; FLD1 = "LN1"   ; FLD2 = "FLD2 LN1 " ; FLD3 = "FLD3 LN1" ; FLD4 = "FLD4 LN1" ;
+	tbadd( "TABKD" ) ;
+	ops.push_back( "TBADD " + d2ds(RC) ) ;
+	if ( RC > TRC ) { TRC = RC ; }
+
+	SEL = "" ; KEY1 = "BBBB" ; FLD1 = "LN2"   ; FLD2 = "FLD2 LN2 " ; FLD3 = "FLD3 LN2" ; FLD4 = "FLD4 LN2" ;
+	tbadd( "TABKD" ) ;
+	ops.push_back( "TBADD " + d2ds(RC) ) ;
+	if ( RC > TRC ) { TRC = RC ; }
+
+	SEL = "" ; KEY1 = "CCCC" ; FLD1 = "LN3"   ; FLD2 = "FLD2 LN3 " ; FLD3 = "FLD3 LN3" ; FLD4 = "FLD4 LN3" ;
+	tbadd( "TABKD" ) ;
+	ops.push_back( "TBADD " + d2ds(RC) ) ;
+	if ( RC > TRC ) { TRC = RC ; }
+
+	tbtop( "TABKD" ) ;
+	ops.push_back( "TBTOP " + d2ds(RC) ) ;
+	if ( RC > TRC ) { TRC = RC ; }
+
+	tbvclear( "TABKD" ) ;
+	log( "A", "TBVCLEAR TABN RC=" << RC << endl ) ;
+	CRP    = 0  ;
+	CSRROW = 0  ;
+	ROWID  = "" ;
+	ZTDTOP = 1  ;
+
+	while ( true )
+	{
+		TOPR1 = "" ; TRC1 = "" ; TOPR2 = "" ; TRC2 = "" ; TOPR3 = "" ; TRC3 = "" ; TOPR4 = "" ; TRC4 = "" ; TOPR5 = "" ; TRC5 = "" ;
+		ZCMD  = "" ;
+		i = ops.size() - 1 ;
+		if ( i >= 0 ) { TOPR1 = word( ops[i], 1 ) ; TRC1 = word( ops[i], 2 ) ; i-- ; }
+		if ( i >= 0 ) { TOPR2 = word( ops[i], 1 ) ; TRC2 = word( ops[i], 2 ) ; i-- ; }
+		if ( i >= 0 ) { TOPR3 = word( ops[i], 1 ) ; TRC3 = word( ops[i], 2 ) ; i-- ; }
+		if ( i >= 0 ) { TOPR4 = word( ops[i], 1 ) ; TRC4 = word( ops[i], 2 ) ; i-- ; }
+		if ( i >= 0 ) { TOPR5 = word( ops[i], 1 ) ; TRC5 = word( ops[i], 2 ) ; i-- ; }
+		tbtop( "TABKD" ) ;
+		tbskip( "TABKD", ZTDTOP ) ;
+		tbquery( "TABKD", "TBQ1","TBQ2", "TBQ3", "TBQ4", "TBQ5", "TBQ6", "TBQ7", "TBQ8", "TBQ9", "TBQ10" ) ;
+		tbdispl( "TABKD", "PTEST01D", MSG, "ZCMD", CSRROW, 0, "NO", "CRP", "ROWID" ) ;
+		if ( RC >  8 )  { abend()   ; break ; }
+		if ( RC == 8 )  { cleanup() ; break ; }
+		TRC   = 0  ;
+		if ( RC > TRC ) { TRC = RC ; }
+		YTDSELS = ZTDSELS ;
+		YFLD1   = FLD1    ;
+		YFLD2   = FLD2    ;
+		YFLD3   = FLD3    ;
+		YFLD4   = FLD4    ;
+		YROWID  = ""      ;
+		MSG  = "" ;
+		vget( "ZVERB" ) ;
+		w1 = upper( word( ZCMD, 1 ) ) ;
+		w2 = word( ZCMD, 2 ) ;
+		w3 = word( ZCMD, 3 ) ;
+		w4 = word( ZCMD, 4 ) ;
+		w5 = word( ZCMD, 5 ) ;
+		if ( w1 == "SORT" )
+		{
+			control( "ERRORS", "RETURN" ) ;
+			tbsort( "TABKD", upper( w2 ) ) ;
+			ops.push_back( "TBSORT " + d2ds(RC) ) ;
+			if ( RC > TRC ) { TRC = RC ; }
+			control( "ERRORS", "CANCEL" ) ;
+		}
+		else if ( w1 == "ADD" )
+		{
+			SEL = "" ; KEY1 = w2 ; FLD1 = w3 ; FLD2 = w4 ; FLD3 = w5 ; FLD4 = w6 ;
+			tbadd( "TABKD" ) ;
+			ops.push_back( "TBADD " + d2ds(RC) ) ;
+			if ( RC > TRC ) { TRC = RC ; }
+		}
+		else if ( w1 == "ADDO" )
+		{
+			SEL = "" ; KEY1 = w2 ; FLD1 = w3 ; FLD2 = w4 ; FLD3 = w5 ; FLD4 = w6 ;
+			tbadd( "TABKD", "", "ORDER" ) ;
+			ops.push_back( "TBADD " + d2ds(RC) ) ;
+			if ( RC > TRC ) { TRC = RC ; }
+		}
+		i = ZTDTOP ;
+		while ( ZTDSELS > 0 )
+		{
+			if ( SEL == "D" )
+			{
+				tbdelete( "TABKD" ) ;
+				ops.push_back( "TBDELETE " + d2ds(RC) ) ;
+				if ( RC > TRC ) { TRC = RC ; }
+			}
+			else if ( SEL == "R" )
+			{
+				SEL = "" ;
+				tbadd( "TABKD" ) ;
+				ops.push_back( "TBADD " + d2ds(RC) ) ;
+				if ( RC > TRC ) { TRC = RC ; }
+			}
+			else if ( SEL == "RO" )
+			{
+				SEL = "" ;
+				tbadd( "TABKD", "", "ORDER" ) ;
+				ops.push_back( "TBADD " + d2ds(RC) ) ;
+				if ( RC > TRC ) { TRC = RC ; }
+			}
+			else if ( SEL == "G" )
+			{
+				SEL = "" ;
+				tbget( "TABKD", "", "YROWID" ) ;
+				ops.push_back( "TBGET " + d2ds(RC) ) ;
+				if ( RC > TRC ) { TRC = RC ; }
+				YKEY1   = KEY1    ;
+				YFLD1   = FLD1    ;
+				YFLD2   = FLD2    ;
+				YFLD3   = FLD3    ;
+				YFLD4   = FLD4    ;
+			}
+			if ( ZTDSELS > 1 )
+			{
+				tbdispl( "TABKD" ) ;
+				if ( RC > TRC ) { TRC = RC ; }
+				if ( RC > 4 ) break ;
+			}
+			else { ZTDSELS = 0 ; }
+		}
+	}
+	tbend( "TABKD" ) ;
+
 }
 
 
@@ -635,6 +796,7 @@ void PTEST01::opt4()
 	ops.push_back( "TBTOP " + d2ds(RC) ) ;
 	if ( RC > TRC ) { TRC = RC ; }
 
+	tbvclear( "TABND" ) ;
 	log( "A", "TBVCLEAR TABN RC=" << RC << endl ) ;
 
 	CRP    = 0  ;
@@ -674,9 +836,11 @@ void PTEST01::opt4()
 		w5 = word( ZCMD, 5 ) ;
 		if ( w1 == "SORT" )
 		{
+			control( "ERRORS", "RETURN" ) ;
 			tbsort( "TABND", upper( w2 ) ) ;
 			ops.push_back( "TBSORT " + d2ds(RC) ) ;
 			if ( RC > TRC ) { TRC = RC ; }
+			control( "ERRORS", "CANCEL" ) ;
 		}
 		else if ( w1 == "ADD" )
 		{

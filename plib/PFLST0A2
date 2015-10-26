@@ -1,7 +1,9 @@
 )PANEL VERSION=1 FORMAT=1
+
 )COMMENT
  Browse entry panel
 )ENDCOMMENT
+
 )BODY
 PanelTitle "File Information"
 
