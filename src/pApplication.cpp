@@ -745,6 +745,70 @@ string pApplication::vlist( poolType pType, int lvl )
 }
 
 
+void pApplication::addpop( string a_fld, int a_row, int a_col )
+{
+	//  Create pop-up window and set row/col for the next panel display
+
+	//  RC = 0  Normal completion
+	//  RC = 12 No panel displayed before addpop() service
+	//  RC = 20 Severe error
+
+	int p_row ;
+	int p_col ;
+
+	if ( a_fld != "" )
+	{
+		if ( panelList.size() == 0 )
+		{
+			RC = 12 ; 
+			checkRCode( "No prior DISPLAY PANEL before ADDPOP service" ) ;
+			return ;
+		}
+		if ( !currPanel->field_get_row_col( a_fld, p_row, p_col ) )
+		{
+			RC = 20 ;
+			checkRCode( "Field " + a_fld + " not found or invalid on ADDPOP service" ) ;
+			return ;
+		}
+		a_row = a_row + p_row ;
+		a_col = a_col + p_col ;
+	}
+	addpop_stk.push( a_row ) ;
+	addpop_stk.push( a_col ) ;
+
+	log( "N", "ADDPOP service not yet implemented" << endl ) ;
+}
+
+
+void pApplication::rempop( string r_all )
+{
+	//  Remove pop-up window
+
+	//  RC = 0  Normal completion
+	//  RC = 16 No pop-up window exists at this level
+	//  RC = 20 Severe error
+
+	if ( addpop_stk.empty() ) { RC = 16 ; checkRCode( "No pop-up window exists at this level" ) ; return ; }
+
+	if ( r_all == "" )
+	{
+		addpop_stk.pop() ;
+		addpop_stk.pop() ;
+	}
+	else if ( r_all == "ALL" )
+	{
+		while ( !addpop_stk.empty() )
+		{
+			addpop_stk.pop() ;
+		}
+	}
+	else { RC = 20 ; checkRCode( "Invalid parameter on REMPOP service.  Must be ALL or blank" ) ; }
+
+	log( "N", "REMPOP service not yet implemented" << endl ) ;
+}
+
+
+
 void pApplication::control( string parm1, string parm2 )
 {
 	// CONTROL ERRORS CANCEL - abend for RC >= 12
@@ -756,6 +820,10 @@ void pApplication::control( string parm1, string parm2 )
 	//         Only necessary if a tbdispl invokes another tbdispl in the same task
 
 	// CONTROL SPLIT DISABLE - RC=8 if screen already split
+
+	// LSPF extensions:
+	// CONTROL TIMEOUT ENABLE  - Enable application timeouts after ZWAITMAX ms (default).
+	// CONTROL TIMEOUT DISABLE - Disable forced abend of applications if ZWAITMAX exceeded.
 
 	RC = 0 ;
 
@@ -830,6 +898,18 @@ void pApplication::control( string parm1, string parm2 )
 			{
 				ControlSplitEnable = false ;
 			}
+		}
+		else { RC = 20 ; }
+	}
+	else if ( parm1 == "TIMEOUT" )
+	{
+		if ( parm2 == "ENABLE" )
+		{
+			noTimeOut = false ;
+		}
+		else if ( parm2 == "DISABLE" )
+		{
+			noTimeOut = true ;
 		}
 		else { RC = 20 ; }
 	}
@@ -1029,7 +1109,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 		p_poolMGR->put( RC, "ZVERB", "",  SHARED ) ;
 		if ( p_msg == "" && currtbPanel->tb_lineChanged( ln, URID ) )
 		{
-			currtbPanel->clear_URID_tb_lineChanged( RC, URID ) ;
+			currtbPanel->remove_tb_lineChanged( RC ) ;
 			if ( RC > 0 ) { ZERR2 = currtbPanel->PERR ; checkRCode( "Panel >>" + currtbPanel->PANELID + "<< error during TBDISPL" ) ; return ; }
 		}
 		else
@@ -1935,3 +2015,4 @@ void pApplication::closeLog()
 	log( "I", "Closing application log" << endl ) ; 
 	aplog.close() ;
 }
+

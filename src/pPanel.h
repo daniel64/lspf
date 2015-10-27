@@ -76,9 +76,8 @@ class pPanel
 
 		void   set_tb_linesChanged() ;
 		bool   tb_lineChanged( int &, string & ) ;
-	//	void   apply_tb_linesChanged() ;
 		void   clear_tb_linesChanged( int & ) ;
-		void   clear_URID_tb_lineChanged( int &, string ) ;
+		void   remove_tb_lineChanged( int & ) ;
 
 		void   cursor_to_field( int & RC, string name="", int pos = 1 ) ;
 		void   cursor_eof( uint & row, uint & col )  ;
@@ -100,12 +99,13 @@ class pPanel
 		void   cmd_setvalue( string value ) ;
 
 		string field_getname( int row, int col ) ;
+		bool   field_get_row_col( string fld, int & row, int & col ) ;
 		string get_field_help( string fld ) ;
 
 		void   set_msg( string, string, cuaType, bool ) ;
 		void   clear_msg() ;
 
-		string return_command( string )    ;
+		string return_command( string ) ;
 
 		vector<string>attrList ;
 		void   resetAttrs()    ;

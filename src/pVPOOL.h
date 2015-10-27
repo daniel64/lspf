@@ -42,7 +42,6 @@ class fPOOL
 		string   get( int &, int, string, nameCHCK check=CHECK ) ;
 		int      get( int &, int, dataType, string ) ;
 		void     dlete( int &, string, nameCHCK check=CHECK ) ;
-		void     dlete_gen( int &, string ) ;
 		void     reset() ;
 
 	private:

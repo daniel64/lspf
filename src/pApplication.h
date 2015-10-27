@@ -136,6 +136,9 @@ class pApplication
 		void   view( string m_file, string m_panel=""   ) ;
 		void   setmsg( string msg, msgSET sType=UNCOND  ) ;
 
+		void   addpop( string, int =0, int =0 ) ;
+		void   rempop( string ) ;
+
 		void   wait_event() ;
 
 		void   checkRCode( string ="" ) ;
@@ -208,5 +211,6 @@ class pApplication
 		bool  ControlErrorsReturn   ;
 		stack<string> stk_str       ;
 		stack<int> stk_int          ;
+		stack<int> addpop_stk       ;
 		void read_Message( string ) ;
 } ;

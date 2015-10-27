@@ -2085,6 +2085,21 @@ string pPanel::field_getname( int row, int col )
 }
 
 
+bool pPanel::field_get_row_col( string fld, int & row, int & col )
+{
+	// If field found on panel, return true and its position, else return false
+
+	map<string, field *>::iterator it ;
+
+	it = fieldList.find( fld ) ;
+	if ( it == fieldList.end() ) { return false ; }
+
+	row = it->second->field_row ;
+	col = it->second->field_col ;
+	return  true ;
+}
+
+
 void pPanel::field_clear( string f_name )
 {
         fieldList[ f_name ]->field_clear() ;
@@ -2287,9 +2302,7 @@ string pPanel::get_field_help( string fld )
 void pPanel::set_tb_linesChanged()
 {
 	//  Store changed lines for processing by the application if requested via tbdispl with no panel name
-	//  Format is a list of line-number/URID pairs where changed field data is stored as tb_FIELDNAME-URID in the function pool
-
-	int p  ;
+	//  Format is a list of line-number/URID pairs
 
 	string URID ;
 
@@ -2300,8 +2313,6 @@ void pPanel::set_tb_linesChanged()
 		if ( (it->second->field_tb) && it->second->field_changed )
 		{
 			URID = p_funcPOOL->get( RC, 0, "ZURID." + d2ds( it->second->field_row - tb_row ), NOCHECK ) ;
-			p = it->first.find( '.' ) ;
-			p_funcPOOL->put( RC, 0, it->first.substr( 0, p ) + "-" + URID, it->second->field_value, NOCHECK ) ;
 			tb_linesChanged[ it->second->field_row - tb_row ] = URID ;
 		}
 	}
@@ -2333,42 +2344,23 @@ bool pPanel::tb_lineChanged( int & ln, string & URID )
 
 void pPanel::clear_tb_linesChanged( int & RC )
 {
-	//  Clear all stored changed lines on a tbdispl with panel name and remove the changed field data from the
-	//  function pool (generic delete on tb_FIELDNAME-)
+	//  Clear all stored changed lines on a tbdispl with panel name and set ZTDSELS to zero
 
-	int ws ;
-	int i  ;
+	RC = 0 ;
 
 	tb_linesChanged.clear() ;
-
-	ws  = words( tb_fields ) ;
-	for ( i = 1 ; i <= ws ; i++ )
-	{
-		p_funcPOOL->dlete_gen( RC, word( tb_fields, i ) + "-" ) ;
-		if ( RC > 8 ) { RC = 20 ; PERR = "Internal error occured clearing generic URID data" ; return ; }
-	}
 	p_funcPOOL->put( RC, 0, "ZTDSELS", 0 ) ;
-	RC = 0 ;
 }
 
 
-void pPanel::clear_URID_tb_lineChanged( int & RC, string URID )
+void pPanel::remove_tb_lineChanged( int & RC )
 {
-	//  Remove the processed line from the list of changed lines and remove the updated field data from the
-	//  function pool (stored under name tb_FIELDNAME-URID)
-
-	int ws ;
-	int i  ;
+	//  Remove the processed line from the list of changed lines
 
 	map< int, string >::iterator it ;
 
-	ws  = words( tb_fields ) ;
-	for ( i = 1 ; i <= ws ; i++ )
-	{
-		p_funcPOOL->dlete( RC, word( tb_fields, i ) + "-" + URID, NOCHECK ) ;
-		if ( RC > 8 ) { RC = 20 ; PERR = "Internal error occured deleting data for URID=" + URID ; return ; }
-	}
 	RC = 0 ;
+
 	it = tb_linesChanged.begin() ;
 	tb_linesChanged.erase( it ) ;
 }

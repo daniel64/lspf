@@ -231,40 +231,6 @@ void fPOOL::dlete( int & RC, string name, nameCHCK check )
 }
 
 
-void fPOOL::dlete_gen( int & RC, string name )
-{
-	// After an erase, the iterator is invalidated.  Set to previous position or begin() if 
-	// the first element has been erased.
-	// RC = 0  Normal completion with at least one variable deleted
-	// RC = 8  No variables found to delete
-	// RC = 12 No variable name passed.  Length must be at least 1 character
-
-	bool fst ;
-
-	map<string, stack< fVAR> >::iterator it1 ;
-	map<string, stack< fVAR> >::iterator it2 ;
-
-	if ( name == "" ) { RC = 12 ; return ; }
-
-	RC  = 8    ;
-	fst = true ;
-
-	for ( it1 = POOL.begin() ; it1 != POOL.end() ; )
-	{
-		if ( it1->first[0] < name[0] ) { it2 = it1 ; it1++ ; fst = false ; continue ; }
-		if ( it1->first[0] > name[0] ) { break ; }
-		if ( abbrev( it1->first, name ) ) 
-		{
-			POOL.erase( it1 ) ;
-			RC = 0 ;
-			if ( fst ) { it1 = POOL.begin() ; }
-			else       { it1 = it2 ; it1++  ; }
-		}
-		else { it2 = it1 ; it1++ ; fst = false ; }
-	}
-}
-
-
 void fPOOL::reset()
 {
 	int RC ;

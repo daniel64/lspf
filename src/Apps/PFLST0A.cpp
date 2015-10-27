@@ -56,8 +56,8 @@
 
 /* nano - invoke nano editor on the file                                                                    */
 /* vi   - invoke vi editor on the file                                                                      */
-/*        noTimeOut set for nano and vi or lspf will chop the application after ZMAXWAIT as it does not     */
-/*        return until reset_prog_mode                                                                      */ 
+/*        CONTROL TIMEOUT DISABLE for nano and vi or lspf will chop the application after ZMAXWAIT          */
+/*        as it does not return until reset_prog_mode                                                       */ 
 /*                                                                                                          */
 /*                                                                                                          */
 /* ZRC/ZRSN/ZRESULT codes                                                                                   */
@@ -533,13 +533,13 @@ void PFLST0A::application()
 			else if ( is_regular_file( entry ) && (SEL == "NANO" ) )
 			{
 				t = "nano " + entry ;
-				noTimeOut = true    ;
+				control( "TIMEOUT", "DISABLE" ) ;
 				def_prog_mode()     ;
 				endwin()            ;
 				system( t.c_str() ) ;
 				reset_prog_mode()   ;
 				refresh()           ;
-				noTimeOut = false   ;
+				control( "TIMEOUT", "ENABLE" ) ;
 				SEL     = ""        ;
 				MESSAGE = "nano"    ;
 				tbput( DSLIST )     ;
@@ -547,13 +547,13 @@ void PFLST0A::application()
 			else if ( is_regular_file( entry ) && (SEL == "VI" ) )
 			{
 				t = "vi " + entry   ;
-				noTimeOut = true    ;
+				control( "TIMEOUT", "DISABLE" ) ;
 				def_prog_mode()     ;
 				endwin()            ;
 				system( t.c_str() ) ;
 				reset_prog_mode()   ;
 				refresh()           ;
-				noTimeOut = false   ;
+				control( "TIMEOUT", "ENABLE" ) ;
 				SEL     = ""        ;
 				MESSAGE = "vi"      ;
 				tbput( DSLIST )     ;
