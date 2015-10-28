@@ -5,9 +5,6 @@
 )BODY
 PanelTitle "Confirm Delete of File"
 
-Home    ZCMD   
-CMD     ZCMD   
-
 literal  4   2       FP  "COMMAND ===> "  
 field    4  15   MAX NEF CAPS(ON)  ZCMD  
 

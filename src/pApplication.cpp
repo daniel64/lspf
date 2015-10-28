@@ -37,6 +37,7 @@ pApplication::pApplication()
 	ControlErrorsReturn    = false  ;
 	ControlSplitEnable     = true   ;
         errPanelissued         = false  ;
+	addpop_active          = false  ;
 	noTimeOut              = false  ;
 	busyAppl               = false  ;
 	terminateAppl          = false  ;
@@ -212,6 +213,8 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
         PANELID           = p_name   ;
 	currPanel->CURFLD = p_cursor ;
 	currPanel->CURPOS = p_csrpos ;
+	if ( addpop_active ) { currPanel->set_popup( addpop_row, addpop_col ) ; }
+	else                 { currPanel->remove_popup()                      ; }
 	
 	p_poolMGR->put( RC, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 	currPanel->display_panel_init( RC ) ;
@@ -747,14 +750,14 @@ string pApplication::vlist( poolType pType, int lvl )
 
 void pApplication::addpop( string a_fld, int a_row, int a_col )
 {
-	//  Create pop-up window and set row/col for the next panel display
+	//  Create pop-up window and set row/col for the next panel display.  If addpop() is already active, store old values for next rempop()
 
 	//  RC = 0  Normal completion
-	//  RC = 12 No panel displayed before addpop() service
+	//  RC = 12 No panel displayed before addpop() service when using field parameter
 	//  RC = 20 Severe error
 
-	int p_row ;
-	int p_col ;
+	int p_row( 0 ) ;
+	int p_col( 0 ) ;
 
 	if ( a_fld != "" )
 	{
@@ -773,8 +776,14 @@ void pApplication::addpop( string a_fld, int a_row, int a_col )
 		a_row = a_row + p_row ;
 		a_col = a_col + p_col ;
 	}
-	addpop_stk.push( a_row ) ;
-	addpop_stk.push( a_col ) ;
+	if ( addpop_active )
+	{
+		addpop_stk.push( addpop_row ) ;
+		addpop_stk.push( addpop_col ) ;
+	}
+	addpop_row    = a_row ;
+	addpop_col    = a_col ;
+	addpop_active = true  ;
 
 	log( "N", "ADDPOP service not yet implemented" << endl ) ;
 }
@@ -782,18 +791,28 @@ void pApplication::addpop( string a_fld, int a_row, int a_col )
 
 void pApplication::rempop( string r_all )
 {
-	//  Remove pop-up window
+	//  Remove pop-up window.  Restore previous rempop() if there is one (push order row,col).
+	//  Let the current panel know the new row/col or that popups are no longer active
 
 	//  RC = 0  Normal completion
 	//  RC = 16 No pop-up window exists at this level
 	//  RC = 20 Severe error
 
-	if ( addpop_stk.empty() ) { RC = 16 ; checkRCode( "No pop-up window exists at this level" ) ; return ; }
+	if ( !addpop_active ) { RC = 16 ; checkRCode( "No pop-up window exists at this level" ) ; return ; }
 
 	if ( r_all == "" )
 	{
-		addpop_stk.pop() ;
-		addpop_stk.pop() ;
+		if ( !addpop_stk.empty() )
+		{
+			addpop_col = addpop_stk.top() ;
+			addpop_stk.pop() ;
+			addpop_row = addpop_stk.top() ;
+			addpop_stk.pop() ;
+		}
+		else
+		{
+			addpop_active = false ;
+		}
 	}
 	else if ( r_all == "ALL" )
 	{
@@ -801,6 +820,7 @@ void pApplication::rempop( string r_all )
 		{
 			addpop_stk.pop() ;
 		}
+		addpop_active = false ;
 	}
 	else { RC = 20 ; checkRCode( "Invalid parameter on REMPOP service.  Must be ALL or blank" ) ; }
 
@@ -1144,6 +1164,8 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 	}
 	setMSG = false ;
 	if ( p_cursor == "" ) { p_cursor = currtbPanel->Home ; }
+	if ( addpop_active )  { currtbPanel->set_popup( addpop_row, addpop_col ) ; }
+	else                  { currtbPanel->remove_popup()                      ; }
 
 	currtbPanel->display_panel_init( RC ) ;
 	if ( RC > 0 ) { ZERR2 = currtbPanel->PERR ; checkRCode( "Error processing )INIT section of panel " + p_name ) ; return ; }

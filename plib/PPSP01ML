@@ -4,8 +4,7 @@
 )ENDCOMMENT
 )BODY
 PanelTitle "Display Loaded Modules (Dynamically Loaded Classes)"
-Home    ZCMD   
-CMD     ZCMD   
+
 scrollOn
 
 literal  4   2          FP    "COMMAND ===> "  

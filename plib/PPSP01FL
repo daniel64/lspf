@@ -5,38 +5,46 @@
 )ENDCOMMENT
 
 )BODY
- CMD  ZCMD
- Home ZCMD
+
  PanelTitle "Saved File List" 
  literal   4   2   FP "COMMAND ===> "   
  field     4  15  MAX NEF CAPS(ON) ZCMD   
 
- literal   6   2   FP "PROFILE:"    
+ literal   6   2   FP "Profile:"    
  field     6  11   4  VOI NONE ZAPPLID   
 
- field     8   2  4       NEF CAPS(ON),PAD('_')  SEL1
- field     8   9  60      NEF CAPS(OFF),PAD('_')  ZFILE1
+ literal   8   2   FP "File name. . .:"    
+ field     8  18   MAX  NEF NONE ZFILE   
 
- field     9   2  4       NEF CAPS(ON),PAD('_')  SEL2
- field     9   9  60      NEF CAPS(OFF),PAD('_')  ZFILE2
+ literal   9   2   FP "Directory. . .:"    
+ field     9  18   MAX  NEF NONE ZDIR   
 
- field     10  2  4       NEF CAPS(ON),PAD('_')  SEL3
- field     10  9  60      NEF CAPS(OFF),PAD('_')  ZFILE3
+ literal  10   2   FP "Current. . . .:"    
+ field    10  18   MAX  VOI NONE ZCURR   
 
- field     11  2  4       NEF CAPS(ON),PAD('_')  SEL4
- field     11  9  60      NEF CAPS(OFF),PAD('_')  ZFILE4
+ field    12   2  4       NEF CAPS(ON),PAD('_')  SEL1
+ field    12   9  60      NEF CAPS(OFF),PAD('_')  ZFILE1 EXEC('SELECT PGM(PFLST01A)')
 
- field     12  2  4       NEF CAPS(ON),PAD('_')  SEL5
- field     12  9  60      NEF CAPS(OFF),PAD('_')  ZFILE5
+ field    13   2  4       NEF CAPS(ON),PAD('_')  SEL2
+ field    13   9  60      NEF CAPS(OFF),PAD('_')  ZFILE2
 
- field     13  2  4       NEF CAPS(ON),PAD('_')  SEL6
- field     13  9  60      NEF CAPS(OFF),PAD('_')  ZFILE6
+ field     14  2  4       NEF CAPS(ON),PAD('_')  SEL3
+ field     14  9  60      NEF CAPS(OFF),PAD('_')  ZFILE3
 
- field     14  2  4       NEF CAPS(ON),PAD('_')  SEL7
- field     14  9  60      NEF CAPS(OFF),PAD('_')  ZFILE7
+ field     15  2  4       NEF CAPS(ON),PAD('_')  SEL4
+ field     15  9  60      NEF CAPS(OFF),PAD('_')  ZFILE4
 
- field     15  2  4       NEF CAPS(ON),PAD('_')  SEL8
- field     15  9  60      NEF CAPS(OFF),PAD('_')  ZFILE8
+ field     16  2  4       NEF CAPS(ON),PAD('_')  SEL5
+ field     16  9  60      NEF CAPS(OFF),PAD('_')  ZFILE5
+
+ field     17  2  4       NEF CAPS(ON),PAD('_')  SEL6
+ field     17  9  60      NEF CAPS(OFF),PAD('_')  ZFILE6
+
+ field     18  2  4       NEF CAPS(ON),PAD('_')  SEL7
+ field     18  9  60      NEF CAPS(OFF),PAD('_')  ZFILE7
+
+ field     19  2  4       NEF CAPS(ON),PAD('_')  SEL8
+ field     19  9  60      NEF CAPS(OFF),PAD('_')  ZFILE8
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
@@ -44,6 +52,7 @@
 )ENDBODY
 
 )INIT
+VGET (ZCURR) PROFILE
 VGET (ZFILE1 ZFILE2 ZFILE3 ZFILE4 ZFILE5 ZFILE6 ZFILE7 ZFILE8) PROFILE
 )ENDINIT
 
@@ -55,14 +64,40 @@ IF (&ZCMD NE &Z)
    .CURSOR = ZCMD
    EXIT
 
-VER (&SEL1,LIST,S,B,E)
-VER (&SEL2,LIST,S,B,E)
-VER (&SEL3,LIST,S,B,E)
-VER (&SEL4,LIST,S,B,E)
-VER (&SEL5,LIST,S,B,E)
-VER (&SEL6,LIST,S,B,E)
-VER (&SEL7,LIST,S,B,E)
-VER (&SEL8,LIST,S,B,E)
+VER (&SEL1,LIST,S,B,C,E)
+VER (&SEL2,LIST,S,B,C,E)
+VER (&SEL3,LIST,S,B,C,E)
+VER (&SEL4,LIST,S,B,C,E)
+VER (&SEL5,LIST,S,B,C,E)
+VER (&SEL6,LIST,S,B,C,E)
+VER (&SEL7,LIST,S,B,C,E)
+VER (&SEL8,LIST,S,B,C,E)
 
+IF (&SEL1 EQ C)
+   &ZCURR = &ZFILE1
+ELSE
+   IF (&SEL2 EQ C)
+      &ZCURR = &ZFILE2
+   ELSE
+      IF (&SEL3 EQ C)
+         &ZCURR = &ZFILE3
+      ELSE
+         IF (&SEL4 EQ C)
+            &ZCURR = &ZFILE4
+         ELSE
+            IF (&SEL5 EQ C)
+               &ZCURR = &ZFILE5
+            ELSE
+               IF (&SEL6 EQ C)
+                  &ZCURR = &ZFILE6
+               ELSE
+                  IF (&SEL7 EQ C)
+                     &ZCURR = &ZFILE7
+                  ELSE
+                     IF (&SEL8 EQ C)
+                        &ZCURR = &ZFILE8
+
+
+VPUT (ZCURR) PROFILE
 VPUT (ZFILE1 ZFILE2 ZFILE3 ZFILE4 ZFILE5 ZFILE6 ZFILE7 ZFILE8) PROFILE
 )ENDPROC

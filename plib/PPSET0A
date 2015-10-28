@@ -7,8 +7,7 @@ This is the selection panel for the SETTINGS MENU
 )ENDCOMMENT
 
 )BODY
-Home    ZCMD
-CMD     ZCMD      
+
 PanelTitle "Settings/Information Panel"  
 
 literal   4    2       FP  "COMMAND ===> "    

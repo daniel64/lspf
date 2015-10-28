@@ -2,8 +2,7 @@
 )COMMENT
 )ENDCOMMENT
 )BODY
-CMD  ZCMD
-Home ZCMD
+
 PanelTitle "CUA Colour Attributes" 
 
 literal   4   2   FP "COMMAND ===> "   

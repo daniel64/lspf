@@ -3,9 +3,9 @@
  Browse entry panel
 )ENDCOMMENT
 )BODY
+
 PanelTitle "Display Command Tables"
-Home    ZCMD   
-CMD     ZCMD   
+
 scrollOn
 
 literal  4   2         FP    "COMMAND ===> "  

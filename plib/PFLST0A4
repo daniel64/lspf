@@ -1,12 +1,14 @@
 )PANEL VERSION=1 FORMAT=1
+
 )COMMENT
  Browse entry panel
+ WINDOW(width,depth) on body statement for pop-up window testing
 )ENDCOMMENT
-)BODY
-PanelTitle "Rename File"
 
-Home    ZCMD   
-CMD     ZCMD   
+
+)BODY WINDOW(45,20) CMD(ZCMD) HOME(ZCMD)
+
+PanelTitle "Rename File"
 
 literal  4   2       FP    "COMMAND ===> "  
 field    4  15   MAX NEF CAPS(ON) ZCMD  

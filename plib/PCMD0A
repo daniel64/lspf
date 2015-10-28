@@ -5,9 +5,6 @@
 
 )BODY
 
- CMD  ZCMD
- Home ZCMD
-
  PanelTitle "Execute Command" 
  
  literal   4   2       FP "COMMAND ===> "   

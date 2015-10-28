@@ -3,8 +3,6 @@
 
 )ENDCOMMENT
 )BODY
-Home    ZCMD
-CMD     ZCMD      
 PanelTitle "PRIMARY MENU PANEL"  
 
 literal   4    2    FP  "COMMAND ===> "    

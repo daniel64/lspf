@@ -4,8 +4,7 @@
 )ENDCOMMENT
 )BODY
 PanelTitle "Path Searches"
-Home    ZCMD   
-CMD     ZCMD   
+
 scrollOn
 
 literal  4   2         FP    "COMMAND ===> "  

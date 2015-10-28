@@ -73,7 +73,8 @@ string usrAttrNames = "N_RED N_GREEN N_YELLOW N_BLUE N_MAGENTA N_TURQ N_WHITE " 
 #include "pTable.cpp"
 
 #include "pPanel.h"
-#include "pPanel.cpp"
+#include "pPanel1.cpp"
+#include "pPanel2.cpp"
 
 #include "pApplication.h"
 #include "pApplication.cpp"

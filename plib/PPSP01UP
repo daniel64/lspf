@@ -3,8 +3,7 @@
  Panel for viewing and changing various utility programs
 )ENDCOMMENT
 )BODY
- CMD  ZCMD
- Home ZCMD
+
  PanelTitle "Utility Program Definitions"
  
  literal  4   2    FP "COMMAND ===> "

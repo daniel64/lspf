@@ -3,8 +3,7 @@
 
 )ENDCOMMENT
 )BODY
-Home    ZCMD
-CMD     ZCMD      
+
 PanelTitle "Test pattern matching routine"  
 
 literal   4    2    FP  "COMMAND ===> "    

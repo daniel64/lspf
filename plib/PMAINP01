@@ -1,6 +1,9 @@
 )PANEL VERSION=1 FORMAT=1
 
 )COMMENT 
+
+Defaults for HOME() and CMD() on the BODY statement are ZCMD
+
 Format for fields, literals, proc, etc
 
 LITERAL row column cuaFieldType display_literal
@@ -57,9 +60,7 @@ INIT | REINIT :
     
 )ENDCOMMENT
 
-)BODY
-HOME    ZCMD
-cmd     ZCMD 
+)BODY CMD(ZCMD) HOME(ZCMD)
 
 PrimaryMenu
 

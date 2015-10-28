@@ -937,11 +937,11 @@ pdc abc::retrieve_pdc( uint row, uint col )
 }
 
 
-int Box::Box_init( int MAXW, int MAXD, string line )
+int Box::box_init( int MAXW, int MAXD, string line )
 {
-	// Format of Box entry in panels (FORMAT 1 VERSION 1 )
+	// Format of BOX entry in panels (FORMAT 1 VERSION 1 )
 	// BOX  row col width depth cuaAttr  B-title
-	// w1   w3  w4  w5    w6    w7       w8->
+	// w1   w2  w3  w4    w5    w6       w8
 	// BOX  7   7   41    22    N_WHITE  "Test Dynamic Area 1"
 
 	int row    ;
@@ -983,37 +983,44 @@ int Box::Box_init( int MAXW, int MAXD, string line )
 	colour = wordpos( w6, usrAttrNames ) ;
 	if ( colour == 0 ) colour = B_GREEN  ;
 
-	Box_row    = row - 1 ;
-	Box_col    = col - 1 ;
-	Box_width  = width   ;
-	Box_depth  = depth   ;
-	Box_colour = usrAttr[ colour ] ;
+	box_row    = row - 1 ;
+	box_col    = col - 1 ;
+	box_width  = width   ;
+	box_depth  = depth   ;
+	box_colour = usrAttr[ colour ] ;
 
 	if ( title.size() > ( width - 4) ) title = substr( title, 1, ( width - 4 ) ) ;
-	Box_title        = " " + title + " "  ;
-	Box_title_offset = ( Box_width - Box_title.size() ) / 2 ;
+	box_title        = " " + title + " "  ;
+	box_title_offset = ( box_width - box_title.size() ) / 2 ;
+}
+
+
+void Box::move_box( int row, int col )
+{
+	box_row    = row - 1 ;
+	box_col    = col - 1 ;
 }
 
 
 void Box::display_box()
 {
-	attrset( Box_colour ) ;
+	attrset( box_colour ) ;
 
-	mvaddch( Box_row, Box_col, ACS_ULCORNER ) ;
-	mvaddch( Box_row, Box_col + Box_width - 1, ACS_URCORNER ) ;
+	mvaddch( box_row, box_col, ACS_ULCORNER ) ;
+	mvaddch( box_row, box_col + box_width - 1, ACS_URCORNER ) ;
 
-	mvaddch( Box_row + Box_depth - 1, Box_col, ACS_LLCORNER ) ;
-	mvaddch( Box_row + Box_depth - 1, Box_col + Box_width - 1, ACS_LRCORNER ) ;
+	mvaddch( box_row + box_depth - 1, box_col, ACS_LLCORNER ) ;
+	mvaddch( box_row + box_depth - 1, box_col + box_width - 1, ACS_LRCORNER ) ;
 
-	mvhline( Box_row, (Box_col + 1), ACS_HLINE, (Box_width - 2) ) ;
-	mvhline( (Box_row + Box_depth - 1), (Box_col + 1), ACS_HLINE, (Box_width - 2) ) ;
+	mvhline( box_row, (box_col + 1), ACS_HLINE, (box_width - 2) ) ;
+	mvhline( (box_row + box_depth - 1), (box_col + 1), ACS_HLINE, (box_width - 2) ) ;
 
-	mvvline( (Box_row + 1), Box_col, ACS_VLINE, (Box_depth - 2) ) ;
-	mvvline( (Box_row + 1), (Box_col + Box_width - 1 ), ACS_VLINE, (Box_depth - 2) ) ;
+	mvvline( (box_row + 1), box_col, ACS_VLINE, (box_depth - 2) ) ;
+	mvvline( (box_row + 1), (box_col + box_width - 1 ), ACS_VLINE, (box_depth - 2) ) ;
 
-	mvaddstr( Box_row, (Box_col + Box_title_offset), Box_title.c_str() ) ;
+	mvaddstr( box_row, (box_col + box_title_offset), box_title.c_str() ) ;
 
-	attroff( Box_colour ) ;
+	attroff( box_colour ) ;
 }
 
 

@@ -3,8 +3,7 @@
  Panel to display TODO list
 )ENDCOMMENT
 )BODY
- CMD  ZCMD
- Home ZCMD
+
  PanelTitle "TODO List" 
  literal   4   2   FP "COMMAND ===> "   
  field    4  15  20  NEF CAPS(ON) ZCMD   

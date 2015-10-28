@@ -4,8 +4,6 @@
 )ENDCOMMENT
 
 )BODY
-Home    ZCMD
-CMD     ZCMD      
 
 PanelTitle "Test Dynamic Area (Input & Output)"  
 

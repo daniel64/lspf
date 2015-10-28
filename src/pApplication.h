@@ -136,8 +136,8 @@ class pApplication
 		void   view( string m_file, string m_panel=""   ) ;
 		void   setmsg( string msg, msgSET sType=UNCOND  ) ;
 
-		void   addpop( string, int =0, int =0 ) ;
-		void   rempop( string ) ;
+		void   addpop( string ="", int =0, int =0 ) ;
+		void   rempop( string ="" ) ;
 
 		void   wait_event() ;
 
@@ -208,9 +208,15 @@ class pApplication
 	private:
 		boost::mutex mutex ;
 
+		int   addpop_row            ;
+		int   addpop_col            ;
+		bool  addpop_active         ;
+
 		bool  ControlErrorsReturn   ;
+
 		stack<string> stk_str       ;
 		stack<int> stk_int          ;
 		stack<int> addpop_stk       ;
+
 		void read_Message( string ) ;
 } ;

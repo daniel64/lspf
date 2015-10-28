@@ -202,17 +202,18 @@ class abc
 class Box
 {
 	public:
-		int  Box_init( int MAXW, int MAXD, string line ) ;
+		int  box_init( int MAXW, int MAXD, string line ) ;
+		void move_box( int row, int col ) ;
 		void display_box()  ;
 
 	private:
-		int      Box_row    ;
-		int      Box_col    ;
-		int      Box_width  ;
-		int      Box_depth  ;
-		uint     Box_colour ;
-		string   Box_title  ;
-		int      Box_title_offset ;
+		int      box_row    ;
+		int      box_col    ;
+		int      box_width  ;
+		int      box_depth  ;
+		uint     box_colour ;
+		string   box_title  ;
+		int      box_title_offset ;
 } ;
 
 class tbsearch

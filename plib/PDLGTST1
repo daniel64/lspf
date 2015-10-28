@@ -5,8 +5,6 @@
 )ENDCOMMENT
 
 )BODY
-Home    ZCMD
-CMD     ZCMD      
 
 PanelTitle "Dialogue Services Selection Menu"  
 

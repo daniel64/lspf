@@ -4,8 +4,7 @@
 )ENDCOMMENT
 )BODY
 PanelTitle "Shared and Profile Variables"
-Home    ZCMD   
-CMD     ZCMD   
+
 scrollOn
 
 literal  4   2         FP    "COMMAND ===> "  

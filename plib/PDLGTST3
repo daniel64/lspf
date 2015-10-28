@@ -7,8 +7,7 @@ Panel for displaying variables from various pools.  Used in Dialogue Test option
 
 
 )BODY
-Home    ZCMD
-CMD     ZCMD      
+
 PanelTitle "Display System Variables from Pools"  
 
 literal   4    2    FP  "COMMAND ===> "    

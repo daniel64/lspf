@@ -1,6 +1,6 @@
 )COMMENT
 )ENDCOMMENT
-Home    ZCMD     
+
 scrollOn
 
 field 5  16 20   NEF CAPS(ON) ZCMD 

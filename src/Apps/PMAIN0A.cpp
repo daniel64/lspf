@@ -138,7 +138,7 @@ void PMAIN0A::application()
 			{
 				pmonth = ds2d( substr( ws, 1, 2 ) ) ;
 				pyear  = ds2d( substr( ws, 4, 4 ) ) ;
-				if ( pmonth < 1 | pmonth > 12 | pyear < 1900 | pyear > 9999 )
+				if ( pmonth < 1 || pmonth > 12 || pyear < 1900 || pyear > 9999 )
 				{
 					MSG = "MAIN015" ;
 					continue ;

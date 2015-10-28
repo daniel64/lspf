@@ -7,9 +7,6 @@
 )BODY
 PanelTitle "File Information"
 
-Home    ZCMD   
-CMD     ZCMD   
-
 literal  4   2        FP    "COMMAND ===> "  
 field    4  15   MAX  NEF NONE ZCMD  
 

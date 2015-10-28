@@ -58,6 +58,8 @@ class pPanel
 		void   display_panel_reinit( int & RC, int ln ) ;
 		void   display_panel_proc( int & RC, int ln )   ;
 		void   display_MSG() ;
+		void   set_popup( int, int ) ;
+		void   remove_popup()        ;
 
 		void   update_field_values( int & RC ) ;
 
@@ -123,6 +125,12 @@ class pPanel
 		uint   p_row       ;
 		uint   p_col       ;
 		bool   tb_model    ;
+		bool   win_popup   ;
+		int    win_width   ;
+		int    win_depth   ;
+		int    win_row     ;
+		int    win_col     ;
+		Box    win_box     ;
 
 		string getDialogueVar( string ) ;
 		void   putDialogueVar( string, string ) ;
@@ -139,7 +147,7 @@ class pPanel
 		map<string, field   *> fieldList ;
 		map<string, dynArea *> dynAreaList ;
 		vector<abc > ab ;
-		vector<Box *> Boxes ;
+		vector<Box *> boxes ;
 		map<string, string > commandTable ;
 		map<string, pnts > pntsTable      ;
 		map<string, string> fieldHList    ;

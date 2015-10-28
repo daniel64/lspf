@@ -1,7 +1,6 @@
 )PANEL VERSION=1 FORMAT=1
 )BODY
-Home         ZCMD   
-CMD     ZCMD
+
 scrollOn
 
 literal  4   2      FP "COMMAND ===> " 

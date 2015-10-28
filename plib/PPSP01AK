@@ -5,8 +5,7 @@
 )ENDCOMMENT
 
 )BODY
- CMD  ZCMD
- Home ZCMD
+
  PanelTitle "PFKEY Settings" 
  literal  4   2    FP "COMMAND ===> "   
  field    4  15    MAX NEF CAPS(ON) ZCMD   
