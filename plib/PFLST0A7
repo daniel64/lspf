@@ -1,0 +1,90 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ File and Directory list panel
+)ENDCOMMENT
+
+)BODY
+PanelTitle "File/Directory Selection List"
+
+scrollOn
+
+literal  4   2           FP    "COMMAND ===> "  
+field    4  15   MAX-17  NEF NONE ZCMD  
+
+literal  4  MAX-15  FP "SCROLL ===>"
+field    4  MAX-3   4  NEF  NONE ZSCROLL
+
+literal  6   2       FP  "Path Name . . ."  
+field    6  18  MAX  NEF NONE ZPATH  
+
+field    8   2   1   CEF PAD('_') FLDIRS
+literal  8   4       SAC    "Show directory entries only"  
+
+literal  10  2 CH  "S  Entry                                  Type"  
+literal  11  2 CH  EXPAND  "-"  
+
+tbmodel  12    MAX
+tbfield  2     1   NEF  CAPS(ON),PAD('_'),JUST(LEFT) SEL  
+tbfield  ++2   38  VOI   NONE ENTRY
+tbfield  ++1   8   VOI   NONE TYPE 
+
+--literal MAX-4 2  CH "Instructions"
+--literal MAX-3 2  NT "Enter"
+--literal MAX-3 8  ET "S"
+--literal MAX-3 14 NT "to navigate directory list"
+
+--literal MAX-1 2  NT "Enter"
+--literal MAX-1 8  ET "C"
+--literal MAX-1 15 NT "to copy entry to the field"
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+
+)INIT
+VGET (ZSCROLL FLDIRS) PROFILE
+.ATTR(TYPE)    = 'COLOUR(WHITE)' 
+.HELP = HFLST01
+)ENDINIT
+
+)PROC
+
+&ZCMDU = UPPER( ZCMD )
+
+IF ( &ZCMDU EQ 'REF' )
+    &ZCMD = 'REFRESH'
+ELSE
+   IF ( &ZCMDU EQ 'RES' )
+       &ZCMD = 'REFRESH'
+   ELSE
+       IF ( &ZCMDU EQ 'BACK' )
+          &ZCMD = 'S'
+
+&W1    = TRUNC(&ZCMD,' ')
+&W1    = UPPER( W1 )
+&WDS   = WORDS(ZCMD)
+
+IF (&W1 NE &Z,REFRESH,S,O,CD)
+   .CURSOR = ZCMD
+   .MSG    = PSYS01C
+   EXIT
+
+IF (&W1 EQ REFRESH,S)
+   IF (&WDS NE 1)
+      .CURSOR = ZCMD
+      .MSG    = PSYS01C
+      EXIT
+
+IF (&W1 EQ O)
+   IF (&WDS NE 2)
+      .CURSOR = ZCMD
+      .MSG    = PSYS01C
+      EXIT
+
+VER (&SEL LIST S,C,MSG=PSYS01D)
+VER (&FLDIRS LIST /)
+VPUT (ZSCROLL ZPATH FLDIRS) PROFILE
+
+)ENDPROC

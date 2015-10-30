@@ -1453,8 +1453,13 @@ void PPSP01A::showSavedFileList()
 	int i ;
 	string SEL   ;
 	string ZFILE ;
+	string ZFILN ;
+	string ZCURR ;
+	string ZDIR  ;
 	string PGM   ;
 	string MSG   ;
+
+	vdefine( "ZCURR ZFILE ZDIR", &ZCURR, &ZFILE, &ZDIR ) ;
 
 	MSG = "" ;
 	while ( true )
@@ -1463,33 +1468,55 @@ void PPSP01A::showSavedFileList()
 		if ( RC >  8 ) { abend() ; }
 		if ( RC == 8 ) { return  ; }
 	
+		if ( ZFILE != "" )
+		{
+			if ( ZDIR != "" )
+			{
+				ZFILN = ZDIR + "/" + ZFILE ;
+			}
+			else if ( ZCURR != "" )
+			{
+				ZFILN = ZCURR + "/" + ZFILE ;
+			}
+			else { continue ; }
+			if ( is_directory( ZFILN ) )
+			{
+				vcopy( "ZFLSTPGM", PGM, MOVE ) ;
+				select( "PGM(" + PGM + ") PARM(" + ZFILN + ")" ) ;
+			}
+			else if ( is_regular_file( ZFILN ) )
+			{
+				browse( ZFILN ) ;
+			}
+			continue ;
+		}
 		for ( i = 1 ; i < 9 ; i++ )
 		{
 			vcopy( "SEL" + d2ds(i), SEL, MOVE ) ;
 			if ( SEL == "" || RC == 8 ) { continue ; }
 			vreplace( "SEL" + d2ds(i), "" ) ;
-			vcopy( "ZFILE" + d2ds(i), ZFILE, MOVE ) ;
-			if ( ZFILE == "" || RC == 8 ) { continue ; }
+			vcopy( "ZFILE" + d2ds(i), ZFILN, MOVE ) ;
+			if ( ZFILN == "" || RC == 8 ) { continue ; }
 			if ( (SEL == "S") || (SEL == "L") )
 			{
-				if ( is_directory( ZFILE ) )
+				if ( is_directory( ZFILN ) )
 				{
 					vcopy( "ZFLSTPGM", PGM, MOVE ) ;
-					select( "PGM(" + PGM + ") PARM(" + ZFILE + ")" ) ;
+					select( "PGM(" + PGM + ") PARM(" + ZFILN + ")" ) ;
 				}
 			}
 			else if ( (SEL == "B") )
 			{
-				if ( is_regular_file( ZFILE ) )
+				if ( is_regular_file( ZFILN ) )
 				{
-					browse( ZFILE ) ;
+					browse( ZFILN ) ;
 				}
 			}
 			else if ( (SEL == "E") )
 			{
-				if ( is_regular_file( ZFILE ) )
+				if ( is_regular_file( ZFILN ) )
 				{
-					edit( ZFILE ) ;
+					edit( ZFILN ) ;
 				}
 			}
 		}

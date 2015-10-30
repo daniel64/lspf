@@ -27,6 +27,7 @@ class field
 		unsigned int field_col          ;
 		unsigned int field_length       ;
 		string       field_value        ;
+		string       field_exec         ;
 		bool         field_pwd          ;
 		bool         field_changed      ;
 		bool         field_active       ;
@@ -55,6 +56,7 @@ class field
 		string       field_shadow_value ;
 
 		field() {
+				field_exec         = ""       ;
 				field_pwd          = false    ;
 				field_changed      = false    ;
 				field_active       = true     ;

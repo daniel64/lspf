@@ -95,13 +95,14 @@ class pPanel
 		void   field_tab_next( uint & row, uint & col ) ;
         	void   field_clear( string field )    ;
         	string field_getvalue( string field ) ;
+		string field_getexec( uint row, uint col ) ;
 		void   field_setvalue( string field, string value ) ;
 
 		string cmd_getvalue() ;
 		void   cmd_setvalue( string value ) ;
 
-		string field_getname( int row, int col ) ;
-		bool   field_get_row_col( string fld, int & row, int & col ) ;
+		string field_getname( uint row, uint col ) ;
+		bool   field_get_row_col( string fld, uint & row, uint & col ) ;
 		string get_field_help( string fld ) ;
 
 		void   set_msg( string, string, cuaType, bool ) ;

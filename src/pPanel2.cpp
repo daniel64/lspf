@@ -49,6 +49,7 @@ int pPanel::loadPanel( string p_name, string paths )
 	bool proc(false)     ;
 	bool help(false)     ;
 	bool ispnts(false)   ;
+	bool isfield(false)  ;
 	bool found           ;
 
 	char line1[ 256 ]    ;
@@ -236,6 +237,9 @@ int pPanel::loadPanel( string p_name, string paths )
 		if ( w1 == ")PNTS" )	   { ispnts = true  ; continue ; }
 		if ( w1 == ")ENDPNTS" )    { ispnts = false ; continue ; }
 
+		if ( w1 == ")FIELD" )	   { isfield = true  ; continue ; }
+		if ( w1 == ")ENDFIELD" )   { isfield = false ; continue ; }
+		
 		if ( command )
 		{
 			w2 = strip( subword( line2, 2 ), 'B', '"' ) ;
@@ -460,6 +464,44 @@ int pPanel::loadPanel( string p_name, string paths )
 			else
 			{
 				PERR = "Error parsing point-and-shoot line " + line2 ;
+				return 20 ;
+			}
+			continue ;
+		}
+
+		if ( isfield )
+		{
+			i = pos( "FIELD(", line2 ) ;
+			if ( i > 0 )
+			{
+				j = pos( ")", line2, i ) ;
+				if ( j > 0 )
+				{
+					t1 = strip( substr( line2, i+6, j-i-6 ) ) ;
+					if ( fieldList.find( t1 ) == fieldList.end() )
+					{
+						PERR = "Field " + t1 + " not found on panel" ; return 20 ;
+					}
+				}
+			}
+			if ( i == 0 || j == 0 )
+			{
+				PERR = "Invalid format of FIELD() definition. " + line2 ;
+				return 20 ;
+			}
+			i = pos( "EXEC('", line2 ) ;
+			if ( i > 0 )
+			{
+				j = pos( "')", line2, i ) ;
+				if ( j > 0 )
+				{
+					t2 = strip( substr( line2, i+6, j-i-6 ) ) ;
+					fieldList[ t1 ]->field_exec = t2          ;
+				}
+			}
+			if ( i == 0 || j == 0 )
+			{
+				PERR = "Invalid format of EXEC() definition. " + line2 ;
 				return 20 ;
 			}
 			continue ;

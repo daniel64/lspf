@@ -162,7 +162,7 @@ string ZHOME  ;
 string ZUSER  ;
 string ZSHELL ;
 
-static string BuiltInCommands = "ABEND ACTION DISCARD INFO KEYLIST NOP PANELID REFRESH SCALE SNAP SHELL SPLIT STATS SWAP TASKS TEST TDOWN" ;
+static string BuiltInCommands = "ABEND ACTION DISCARD FIELDEXC INFO KEYLIST NOP PANELID REFRESH SCALE SNAP SHELL SPLIT STATS SWAP TASKS TEST TDOWN" ;
 
 ofstream splog(SLOG) ;
 
@@ -281,13 +281,20 @@ void MainLoop()
 	int pos     ;
 	int t       ;
 	int c       ;
+
+	string field_exec ;
+
 	char ch     ;
 	char Isrt   ;
+
 	uint row    ;
 	uint col    ;
+
 	MEVENT event  ;
+
 	bool passthru ;
 	bool showLock ;
+
 	vector<pLScreen * >::iterator it ;
 	string respTime ;
 
@@ -510,6 +517,29 @@ void MainLoop()
 					{
 						currAppl->currPanel->display_panel( RC ) ;
 					}
+					else if ( ZCOMMAND == "FIELDEXC" )
+					{
+						field_exec = currAppl->currPanel->field_getexec( row, col ) ;
+						if ( field_exec != "" )
+						{
+							selectParse( RC, subword( field_exec, 2 ), SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB) ;
+							if ( RC > 0 )
+							{
+								log( "E", "Error in FIELD SELECT command " << field_exec << endl ) ;
+								currAppl->setmsg( "PSYS01K" ) ;
+								break ;
+							}
+							SEL_PARM = SEL_PARM + " " + currAppl->currPanel->field_getvalue( currAppl->currPanel->field_getname( row, col ) ) ;
+							if ( dlibs.find( SEL_PGM ) == dlibs.end() )
+							{
+								log( "E", "Application " << SEL_PGM << " not found" << endl ) ;
+								break ;
+							}
+							currAppl->field_name = currAppl->currPanel->field_getname( row, col )        ;
+							startApplication( SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB ) ;
+							break ;
+						}
+					}
 					else if ( ZCOMMAND == "INFO" )
 					{
 						currAppl->info() ;
@@ -678,7 +708,7 @@ void initialSetup()
 
 void processAction( uint row, uint col, int c, bool &  passthru )
 {
-	// perform lspf.high-level functions - pfkey -> command
+	// perform lspf high-level functions - pfkey -> command
 	// application/user/system command table entry?
 	// BUILTIN command
 	// RETRIEVE
@@ -1061,9 +1091,10 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 		ldp = currAppl->libdef_puser ;
 		ldt = currAppl->libdef_tuser ;
 	}
-	pLScreen::currScreen->clear();
+	pLScreen::currScreen->clear() ;
 
-	currAppl = ((pApplication*(*)())( maker_ep[ Application ]))();
+	currAppl = ((pApplication*(*)())( maker_ep[ Application ]))() ;
+
 	currScrn->application_add( currAppl ) ;
 	currAppl->ZAPPNAME   = Application ;
 	currAppl->taskID     = ++maxtaskID ;
@@ -1247,6 +1278,22 @@ void terminateApplication()
 	if ( RC > 0 ) { log( "C", "ERROR setting shared pool for pool manager.  RC=" << RC << endl ) ; }
 
 	p_poolMGR->put( RC, "ZPANELID", currAppl->PANELID, SHARED, SYSTEM )  ;
+
+	if ( currAppl->field_name != "" )
+	{
+		if ( tRC == 0 )
+		{
+			currAppl->currPanel->field_setvalue( currAppl->field_name, tRESULT ) ;
+			currAppl->currPanel->field_get_row_col( currAppl->field_name, row, col ) ;
+			currAppl->currPanel->cursor_eof( row, col ) ;
+			currAppl->currPanel->set_cursor( row, col ) ;
+		}
+		else if ( tRC == 8 )
+		{
+			beep() ;
+		}
+		currAppl->field_name = "" ;
+	}
 
 	loadpfkeyTable() ;
 

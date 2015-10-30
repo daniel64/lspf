@@ -1,4 +1,4 @@
-/* Compile with ::                                                                                          */
+// /* Compile with ::                                                                                          */
 /* g++ -shared -fPIC -std=c++11 -Wl,-soname,libPFLST0A.so -o libPFLST0A.so PFLST0A.cpp                      */
 
 /*
@@ -28,6 +28,7 @@
 /* If invoked with a PARM of EDIT file, edit file                                                           */
 /* If invoked with a PARM of path, list path                                                                */
 /* If invoked with a PARM of INFO, list info for entry                                                      */
+/* If invoked with a PARM of EXPAND, will expaned the passed directory name to the next level               */
 
 /* CD /xxx to change to directory /xxx                                                                      */
 /* CD xxx to change to directory xxx under the current directory listing                                    */
@@ -169,13 +170,18 @@ void PFLST0A::application()
 			cleanup() ;
 			return    ;
 		}
+		else if ( w1 == "EXPAND" )
+		{
+			ZRESULT = expandDir( subword( PARM, 2 ) ) ;
+			cleanup() ;
+			return    ;
+		}
 		else { ZPATH = PARM ; }
 		if( !is_directory( ZPATH ) ) ZPATH = ZHOME ;
 	}
 
 	if ( !is_directory( ZPATH ) ) ZPATH = ZHOME ;
 
-	OPATH  = ZPATH ;
 	OSEL   = ""    ;
 	DSLIST = "DSLST" + right( d2ds( taskid() ), 3, '0' ) ;
 	MSG    = ""  ;
@@ -184,7 +190,7 @@ void PFLST0A::application()
 	i        = 1 ;
 	ZTDVROWS = 1 ;
 
-	createFileList() ;
+	createFileList1() ;
 	if ( RC > 0 ) { setmsg( "FLST01F" ) ; cleanup() ; return ; }
 
 	while ( true )
@@ -200,6 +206,7 @@ void PFLST0A::application()
 			tbskip( DSLIST, - (ZTDDEPTH-2) ) ;
 			if ( RC > 0 ) { tbtop( DSLIST ) ; }
 		}
+		OPATH  = ZPATH ;
 		if ( MSG == "" ) { ZCMD  = "" ; }
 		tbdispl( DSLIST, "PFLST0A1", MSG, "ZCMD" ) ;
 		if ( RC  > 8 ) { abend() ; }
@@ -208,8 +215,8 @@ void PFLST0A::application()
 		w1  = upper( word( ZCMD, 1 ) ) ;
 		w2  = word( ZCMD, 2 ) ;
 		w3  = word( ZCMD, 3 ) ;
-		if ( w1 == "REF" && w2 == "" )           { tbend( DSLIST ) ; createFileList()     ; continue ; }
-		if ( w1 == "O" && w2 != "" && w3 == "" ) { tbend( DSLIST ) ; createFileList( w2 ) ; continue ; }
+		if ( w1 == "REF" && w2 == "" )           { tbend( DSLIST ) ; createFileList1()     ; continue ; }
+		if ( w1 == "O" && w2 != "" && w3 == "" ) { tbend( DSLIST ) ; createFileList1( w2 ) ; continue ; }
 		i = ZTDTOP ;
 		vget( "ZVERB", SHARED ) ;
 		CRP    = 0  ;
@@ -227,9 +234,8 @@ void PFLST0A::application()
 			else
 			{
 				tbend( DSLIST )  ;
-				createFileList() ;
+				createFileList1() ;
 				i     = 1        ;
-				OPATH = ZPATH    ;
 			}
 			continue ;
 		}
@@ -619,7 +625,7 @@ void PFLST0A::application()
 }
 
 
-void PFLST0A::createFileList( string filter )
+void PFLST0A::createFileList1( string filter )
 {
 	int i    ;
 	string p ;
@@ -692,7 +698,6 @@ void PFLST0A::createFileList( string filter )
 	}
 	tbtop( DSLIST ) ;
 }
-
 
 
 void PFLST0A::showInfo( string p )
@@ -1255,6 +1260,239 @@ void PFLST0A::modifyAttrs( string p )
 	}
 	vdelete( "IENTRY ITYPE  IPERMISS IOWNER IGROUP IOWNERN IGROUPN ISETUID ISETGID ISTICKY" ) ;
 }
+
+
+string PFLST0A::expandDir( string dir )
+{
+	int i        ;
+	string dir1  ;
+	string entry ;
+
+	ZRC = 8 ;
+
+	typedef vector< path > vec ;
+	vec v ;
+
+	i    = lastpos( "/", dir ) ;
+	dir1 = substr( dir, 1, i ) ;
+
+	if ( dir == "" )
+	{
+		dir = ZHOME ;
+	}
+	else if ( dir[ 0 ] == '?' )
+	{
+		if ( dir.size() > 1 )
+		{
+			ZPATH = dir ;
+			ZPATH.replace( 0, 1, 1, '/' ) ;
+		}
+		else
+		{
+			ZPATH = ZHOME ;
+		}
+		return showListing() ;
+	}
+
+	try
+	{
+		copy( directory_iterator( dir1 ), directory_iterator(), back_inserter( v ) ) ;
+	}
+	catch ( const filesystem_error& ex )
+	{
+		ZRESULT = "List Error" ;
+		RC      = 16 ;
+		log( "E", "Error listing directory " << ex.what() << endl ) ;
+		return "" ;
+	}
+	sort( v.begin(), v.end() ) ;
+
+	for ( vec::const_iterator it (v.begin()) ; it != v.end() ; ++it )
+	{
+		entry = (*it).string() ;
+		if ( !abbrev( entry, dir ) ) { continue ; }
+		ZRC = 0 ;
+		break ;
+	}
+	return entry ;
+}
+
+
+string PFLST0A::showListing()
+{
+	int i ;
+
+	string w1      ;
+	string w2      ;
+	string w3      ;
+	string ws      ;
+	string OPATH   ;
+	string FLDIRS  ;
+	string OFLDIRS ;
+
+	vdefine( "SEL ENTRY TYPE FLDIRS", &SEL, &ENTRY, &TYPE, &FLDIRS ) ; 
+	vget( "FLDIRS", PROFILE ) ;
+
+	DSLIST = "DSLST" + right( d2ds( taskid() ), 3, '0' ) ;
+	createFileList2( FLDIRS ) ;
+
+	RC       = 0 ;
+	i        = 1 ;
+	ZTDVROWS = 1 ;
+	ZRC      = 0 ;
+
+	while ( true )
+	{
+		if ( ZTDVROWS > 0 )
+		{
+			tbtop( DSLIST )     ;
+			tbskip( DSLIST, i ) ;
+		}
+		else
+		{
+			tbbottom( DSLIST ) ;
+			tbskip( DSLIST, - (ZTDDEPTH-2) ) ;
+			if ( RC > 0 ) { tbtop( DSLIST ) ; }
+		}
+		OPATH    = ZPATH  ;
+		OFLDIRS  = FLDIRS ;
+		if ( MSG == "" ) { ZCMD  = "" ; }
+		tbdispl( DSLIST, "PFLST0A7", MSG, "ZCMD" ) ;
+		if ( RC  > 8 ) { abend() ; }
+		if ( RC == 8 ) { ZRC = 8 ; break ; }
+		MSG = "" ;
+		w1  = upper( word( ZCMD, 1 ) ) ;
+		w2  = word( ZCMD, 2 )    ;
+		w3  = word( ZCMD, 3 )    ;
+		ws  = subword( ZCMD, 2 ) ;
+		if ( w1 == "REFRESH" ) { tbend( DSLIST ) ; createFileList2( FLDIRS )     ; continue ; }
+		if ( w1 == "O" )       { tbend( DSLIST ) ; createFileList2( FLDIRS, w2 ) ; continue ; }
+		if ( w1 == "S" && ZPATH != "/" )
+		{
+			if ( ZPATH.back() == '/' ) { ZPATH = ZPATH.substr( 0, ZPATH.size()-1) ; }
+			ZPATH = substr( ZPATH, 1, lastpos( "/", ZPATH)-1 ) ;
+			tbend( DSLIST )   ;
+			createFileList2( FLDIRS ) ;
+			continue ;
+		}
+		if ( w1 == "CD" )
+		{
+			if ( ws == "" ) { ws = ZHOME ; }
+			if ( ZPATH.back() == '/' ) { ZPATH = ZPATH.substr( 0, ZPATH.size()-1) ; }
+			if ( substr( ws, 1, 1 ) != "/" ) { ZPATH = ZPATH + "/" + ws ; }
+			else                             { ZPATH = ws               ; }
+			tbend( DSLIST ) ; createFileList2( FLDIRS ) ; continue ;
+		}
+		i = ZTDTOP ;
+		vget( "ZVERB", SHARED ) ;
+		CRP    = 0  ;
+		if ( OFLDIRS != FLDIRS )
+		{
+			tbend( DSLIST ) ;
+			createFileList2( FLDIRS ) ;
+			i = 1 ;
+			continue ;
+		}
+		if ( OPATH != ZPATH )
+		{
+			if ( ( !exists( ZPATH ) || !is_directory( ZPATH ) ) )
+			{
+				MSG = "BRENT012" ;
+			}
+			else
+			{
+				tbend( DSLIST ) ;
+				createFileList2( FLDIRS ) ;
+				i = 1 ;
+			}
+			continue ;
+		}
+		while ( ZTDSELS > 0 )
+		{
+			if ( SEL == ""  ) {}
+			else if ( SEL == "S" )
+			{
+				if ( ZPATH.back() == '/' ) { ZPATH = ZPATH + ENTRY       ; }
+				else                       { ZPATH = ZPATH + "/" + ENTRY ; }
+				tbend( DSLIST )   ;
+				createFileList2( FLDIRS ) ;
+			}
+			else if ( SEL == "C" )
+			{
+				if ( ZPATH.back() == '/' ) { ZPATH = ZPATH + ENTRY       ; }
+				else                       { ZPATH = ZPATH + "/" + ENTRY ; }
+				tbend( DSLIST ) ;
+				return ZPATH    ;
+			}
+			if ( ZTDSELS > 1 )
+			{
+				tbdispl( DSLIST ) ;
+				if ( RC > 4 ) break ;
+			}
+			else { ZTDSELS = 0 ; }
+		}
+	}
+	tbend( DSLIST ) ;
+	return ""       ;
+}
+
+
+void PFLST0A::createFileList2( string FLDIRS, string filter )
+{
+	int i    ;
+
+	string p ;
+	struct stat results   ;
+	struct tm * time_info ;
+
+	typedef vector< path > vec ;
+
+	tbcreate( DSLIST, "", "SEL ENTRY TYPE", NOWRITE ) ;
+
+	SEL     = ""    ;
+	ENTRY   = "."   ;
+
+	vec v;
+	
+	if ( ZPATH == "" ) { ZPATH = "/" ; }
+
+	try
+	{
+		copy( directory_iterator( ZPATH ), directory_iterator(), back_inserter( v ) ) ;
+	}
+	catch ( const filesystem_error& ex )
+	{
+		ZRESULT = "List Error" ;
+		RC      = 16 ;
+		log( "E", "Error listing directory " << ex.what() << endl ) ;
+		return ;
+	}
+	sort( v.begin(), v.end() ) ;
+
+	for ( vec::const_iterator it (v.begin()) ; it != v.end() ; ++it )
+	{
+		ENTRY   = (*it).string() ;
+		p       = ENTRY          ;
+		i       = lastpos( "/", ENTRY ) + 1 ;
+		ENTRY   = substr( ENTRY, i ) ;
+		if ( filter != "" && !abbrev( ENTRY, filter ) ) { continue ; }
+		lstat( p.c_str(), &results ) ;
+		if ( S_ISDIR( results.st_mode ) )       TYPE = "Dir"     ;
+		else if ( S_ISREG( results.st_mode ) )  TYPE = "File"    ;
+		else if ( S_ISCHR( results.st_mode ) )  TYPE = "Char"    ;
+		else if ( S_ISBLK( results.st_mode ) )  TYPE = "Block"   ;
+		else if ( S_ISFIFO( results.st_mode ) ) TYPE = "Fifo"    ;
+		else if ( S_ISSOCK( results.st_mode ) ) TYPE = "Socket"  ;
+		else if ( S_ISLNK(results.st_mode ) )   TYPE = "Syml"    ;
+		else                                    TYPE = "Unknown" ;
+		SEL       = ""  ;
+		if ( FLDIRS == "/" && TYPE != "Dir" ) { continue ; }
+		tbadd( DSLIST ) ;
+	}
+	tbtop( DSLIST ) ;
+}
+
+
 
 // ============================================================================================ //
 

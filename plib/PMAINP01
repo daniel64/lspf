@@ -3,6 +3,7 @@
 )COMMENT 
 
 Defaults for HOME() and CMD() on the BODY statement are ZCMD
+             WINDOW(w,d)
 
 Format for fields, literals, proc, etc
 
@@ -57,10 +58,18 @@ INIT | REINIT :
 
     Assignment statements as for PROC (except for .TRAIL)
 
+FIELD :
+    FIELD(ABCD) EXEC('SELECT PGM(XYZ) PARM(P1)')
+    Invoke program XYZ when primary command FIELDEXC is entered and the cursor is on the field ABCD.
+    The field value will be added to the end of the PARM value on invoking program XYZ.
+    The field value will be replaced with ZRESULT of program XYZ (if ZRC = 0) when the program terminates
+    (Intended use is for file/directory name expansion but a general implementation)
+    ZRC = 8 will sound a beep and not replace the field
+
     
 )ENDCOMMENT
 
-)BODY CMD(ZCMD) HOME(ZCMD)
+)BODY CMD(ZCMD) HOME(ZCMD) WINDOW(25,20)
 
 PrimaryMenu
 

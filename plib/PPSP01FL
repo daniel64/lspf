@@ -1,12 +1,14 @@
 )PANEL VERSION=1 FORMAT=1
 
 )COMMENT
- Panel for PFKEY settings
+ A simple saved file list dialogue.  Simple file/directory name expansion supported
+ via program PFLST0A 
 )ENDCOMMENT
 
 )BODY
 
  PanelTitle "Saved File List" 
+
  literal   4   2   FP "COMMAND ===> "   
  field     4  15  MAX NEF CAPS(ON) ZCMD   
 
@@ -22,29 +24,29 @@
  literal  10   2   FP "Current. . . .:"    
  field    10  18   MAX  VOI NONE ZCURR   
 
- field    12   2  4       NEF CAPS(ON),PAD('_')  SEL1
- field    12   9  60      NEF CAPS(OFF),PAD('_')  ZFILE1 EXEC('SELECT PGM(PFLST01A)')
+ field    12   2  4   NEF CAPS(ON),PAD('_')  SEL1
+ field    12   9  60  NEF CAPS(OFF),PAD('_')  ZFILE1
 
- field    13   2  4       NEF CAPS(ON),PAD('_')  SEL2
- field    13   9  60      NEF CAPS(OFF),PAD('_')  ZFILE2
+ field    13   2  4   NEF CAPS(ON),PAD('_')  SEL2
+ field    13   9  60  NEF CAPS(OFF),PAD('_')  ZFILE2
 
- field     14  2  4       NEF CAPS(ON),PAD('_')  SEL3
- field     14  9  60      NEF CAPS(OFF),PAD('_')  ZFILE3
+ field     14  2  4   NEF CAPS(ON),PAD('_')  SEL3
+ field     14  9  60  NEF CAPS(OFF),PAD('_')  ZFILE3
 
- field     15  2  4       NEF CAPS(ON),PAD('_')  SEL4
- field     15  9  60      NEF CAPS(OFF),PAD('_')  ZFILE4
+ field     15  2  4   NEF CAPS(ON),PAD('_')  SEL4
+ field     15  9  60  NEF CAPS(OFF),PAD('_')  ZFILE4
 
- field     16  2  4       NEF CAPS(ON),PAD('_')  SEL5
- field     16  9  60      NEF CAPS(OFF),PAD('_')  ZFILE5
+ field     16  2  4   NEF CAPS(ON),PAD('_')  SEL5
+ field     16  9  60  NEF CAPS(OFF),PAD('_')  ZFILE5
 
- field     17  2  4       NEF CAPS(ON),PAD('_')  SEL6
- field     17  9  60      NEF CAPS(OFF),PAD('_')  ZFILE6
+ field     17  2  4   NEF CAPS(ON),PAD('_')  SEL6
+ field     17  9  60  NEF CAPS(OFF),PAD('_')  ZFILE6
 
- field     18  2  4       NEF CAPS(ON),PAD('_')  SEL7
- field     18  9  60      NEF CAPS(OFF),PAD('_')  ZFILE7
+ field     18  2  4   NEF CAPS(ON),PAD('_')  SEL7
+ field     18  9  60  NEF CAPS(OFF),PAD('_')  ZFILE7
 
- field     19  2  4       NEF CAPS(ON),PAD('_')  SEL8
- field     19  9  60      NEF CAPS(OFF),PAD('_')  ZFILE8
+ field     19  2  4   NEF CAPS(ON),PAD('_')  SEL8
+ field     19  9  60  NEF CAPS(OFF),PAD('_')  ZFILE8
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
@@ -52,13 +54,13 @@
 )ENDBODY
 
 )INIT
+&ZFILE = &Z
 VGET (ZCURR) PROFILE
 VGET (ZFILE1 ZFILE2 ZFILE3 ZFILE4 ZFILE5 ZFILE6 ZFILE7 ZFILE8) PROFILE
 )ENDINIT
 
 
 )PROC
-
 IF (&ZCMD NE &Z)
    .MSG    = PSYS01C
    .CURSOR = ZCMD
@@ -75,29 +77,57 @@ VER (&SEL8,LIST,S,B,C,E)
 
 IF (&SEL1 EQ C)
    &ZCURR = &ZFILE1
+   VPUT (ZCURR) PROFILE
+   EXIT
 ELSE
    IF (&SEL2 EQ C)
       &ZCURR = &ZFILE2
+      VPUT (ZCURR) PROFILE
+      EXIT
    ELSE
       IF (&SEL3 EQ C)
          &ZCURR = &ZFILE3
+         VPUT (ZCURR) PROFILE
+         EXIT
       ELSE
          IF (&SEL4 EQ C)
             &ZCURR = &ZFILE4
+            VPUT (ZCURR) PROFILE
+            EXIT
          ELSE
             IF (&SEL5 EQ C)
                &ZCURR = &ZFILE5
+               VPUT (ZCURR) PROFILE
+               EXIT
             ELSE
                IF (&SEL6 EQ C)
                   &ZCURR = &ZFILE6
+                  VPUT (ZCURR) PROFILE
+                  EXIT
                ELSE
                   IF (&SEL7 EQ C)
                      &ZCURR = &ZFILE7
+                     VPUT (ZCURR) PROFILE
+                     EXIT
                   ELSE
                      IF (&SEL8 EQ C)
+                        VPUT (ZCURR) PROFILE
+                        EXIT
                         &ZCURR = &ZFILE8
-
 
 VPUT (ZCURR) PROFILE
 VPUT (ZFILE1 ZFILE2 ZFILE3 ZFILE4 ZFILE5 ZFILE6 ZFILE7 ZFILE8) PROFILE
+
 )ENDPROC
+
+)FIELD
+ FIELD(ZDIR)   EXEC('SELECT PGM(PFLST0A) PARM(EXPAND)')
+ FIELD(ZFILE1) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND)')
+ FIELD(ZFILE2) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND)')
+ FIELD(ZFILE3) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND)')
+ FIELD(ZFILE4) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND)')
+ FIELD(ZFILE5) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND)')
+ FIELD(ZFILE6) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND)')
+ FIELD(ZFILE7) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND)')
+ FIELD(ZFILE8) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND)')
+)ENDFIELD

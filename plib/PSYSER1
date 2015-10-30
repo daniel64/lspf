@@ -82,11 +82,11 @@ literal 28  MAX-1 FP "*"
 literal 29      2 FP EXPAND "*"
 
 literal 9 8   NT "Error in dialogue"
-field   9 26  20 ET NONE ZAPPNAME
+field   9 26  MAX-2 ET NONE ZAPPNAME
 
 literal 11 8   NT "Message is"
-field   11 19  70 ET NONE ZERR1
-field   12 19  70 ET NONE ZERR2
+field   11 19  MAX-2 ET NONE ZERR1
+field   12 19  MAX-2 ET NONE ZERR2
 
 literal 15 8   NT "See application and lspf logs for more messages"
 

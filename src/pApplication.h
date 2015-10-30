@@ -52,6 +52,7 @@ class pApplication
 		string SEL_NEWAPPL        ;
 		bool   SEL_NEWPOOL        ;
 		bool   SEL_PASSLIB        ;
+		string field_name         ;
 		bool   NEWPOOL            ;
 		bool   PASSLIB            ;
 		bool   setMSG             ;

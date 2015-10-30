@@ -51,6 +51,7 @@ pApplication::pApplication()
 	libdef_tuser           = false  ;
 	SEL                    = false  ;
 	setMSG                 = false  ;
+	field_name             = ""     ;
 	PPANELID               = ""     ;
 	ZHELP                  = ""     ;
 	ZAHELP                 = ""     ;
@@ -756,8 +757,8 @@ void pApplication::addpop( string a_fld, int a_row, int a_col )
 	//  RC = 12 No panel displayed before addpop() service when using field parameter
 	//  RC = 20 Severe error
 
-	int p_row( 0 ) ;
-	int p_col( 0 ) ;
+	uint p_row( 0 ) ;
+	uint p_col( 0 ) ;
 
 	if ( a_fld != "" )
 	{

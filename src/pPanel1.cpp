@@ -1470,7 +1470,7 @@ void pPanel::cmd_setvalue( string f_value )
 }
 
 
-string pPanel::field_getname( int row, int col )
+string pPanel::field_getname( uint row, uint col )
 {
 	map<string, field *>::iterator it ;
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
@@ -1481,11 +1481,11 @@ string pPanel::field_getname( int row, int col )
 			return it->first ;
 		}
 	}
-	return  "" ;
+	return "" ;
 }
 
 
-bool pPanel::field_get_row_col( string fld, int & row, int & col )
+bool pPanel::field_get_row_col( string fld, uint & row, uint & col )
 {
 	// If field found on panel, return true and its position, else return false
 
@@ -1494,9 +1494,29 @@ bool pPanel::field_get_row_col( string fld, int & row, int & col )
 	it = fieldList.find( fld ) ;
 	if ( it == fieldList.end() ) { return false ; }
 
+	if ( !it->second->field_active ) return false ;
+
 	row = it->second->field_row ;
 	col = it->second->field_col ;
 	return  true ;
+}
+
+
+string pPanel::field_getexec( uint row, uint col )
+{
+	// If field at row,col, return the command for that field as defined in )FIELD panel section.
+
+	map<string, field *>::iterator it ;
+
+	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
+	{
+		if ( (it->second->field_row == row) && (col >=it->second->field_col) && (col < (it->second->field_col + it->second->field_length )) )
+		{
+			if ( !it->second->field_active ) return "" ;
+			return it->second->field_exec ;
+		}
+	}
+	return "" ;
 }
 
 
@@ -1597,6 +1617,7 @@ void pPanel::field_erase_eof( uint row, uint col, bool & prot )
 void pPanel::cursor_eof( uint & row, uint & col )
 {
 	map<string, field *>::iterator it;
+
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
 		if ( (it->second->field_row == row) && (col >=it->second->field_col) &&  (col < (it->second->field_col + it->second->field_length )) )

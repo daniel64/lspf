@@ -4,9 +4,12 @@ These commands are valid on any panel.
 
 Primary Commands:
 -----------------
+
 Builtin:
+********
 ACTION   Move cursor to the action bar, or the next entry if already on the action bar
 DISCARD  Discard the screen updates and refresh from the previous output
+FIELDEXC Execute the file-level command (if the cursor is on the field) defined in the panel )FIELD section
 INFO     Display current application information to the Application Log
 SHELL    Suspends NCURSES and invokes the shell specified in the SHELL environment variable
 SNAP     Snap SHARED and PROFILE pool variables for the current application to the 
