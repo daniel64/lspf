@@ -53,15 +53,15 @@ field    21   44   10  NEF NONE IGROUP
 
 literal 23 2  CH "Instructions"
 
-literal 25 2  NT "Press"
-literal 25 8  ET "Enter"
-literal 25 14 NT "to confirm changes"
+literal 24 2  NT "Press"
+literal 24 8  ET "Enter"
+literal 24 14 NT "to confirm changes"
 
-literal 27 2  NT "Press"
-literal 27 8  ET "Cancel"
-literal 27 15 NT "or"
-literal 27 18 ET "END"
-literal 27 22 NT "to cancel changes"
+literal 26 2  NT "Press"
+literal 26 8  ET "Cancel"
+literal 26 15 NT "or"
+literal 26 18 ET "END"
+literal 26 22 NT "to cancel changes"
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC

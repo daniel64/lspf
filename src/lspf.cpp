@@ -530,11 +530,6 @@ void MainLoop()
 								break ;
 							}
 							SEL_PARM = SEL_PARM + " " + currAppl->currPanel->field_getvalue( currAppl->currPanel->field_getname( row, col ) ) ;
-							if ( dlibs.find( SEL_PGM ) == dlibs.end() )
-							{
-								log( "E", "Application " << SEL_PGM << " not found" << endl ) ;
-								break ;
-							}
 							currAppl->field_name = currAppl->currPanel->field_getname( row, col )        ;
 							startApplication( SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB ) ;
 							break ;
@@ -1055,8 +1050,8 @@ void processSELECT()
 			debug1( "Calling application " << currAppl->ZAPPNAME << " also ending" << endl ) ;
 			terminateApplication() ;
 		}
-		currAppl->get_cursor( row, col ) ;
-		currScrn->set_row_col( row, col )         ;
+		currAppl->get_cursor( row, col )  ;
+		currScrn->set_row_col( row, col ) ;
 		currScrn->clear()   ;
 		currAppl->refresh() ;
 	}
@@ -1079,6 +1074,16 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 	bool ldt    ;
 
 	boost::thread * pThread ;
+
+	if ( dlibs.find( Application ) == dlibs.end() )
+	{
+		errorScreen( 1, "Application " + Application + " not found" ) ;
+		currAppl->get_cursor( row, col )  ;
+		currScrn->set_row_col( row, col ) ;
+		currScrn->clear()   ;
+		currAppl->refresh() ;
+		return ;
+	}
 
 	log( "I", "Starting new application " << Application << " with parameters '" << parm << "'" << endl ) ;
 	if ( PASSLIB || !NEWPOOL )
@@ -1766,7 +1771,7 @@ void errorScreen( int etype, string msg )
 	log( "E", msg << endl ) ;
 	currScrn->clear() ;
 	mvprintw( l++, 0, msg.c_str() ) ;
-	mvprintw( l++, 0, "See lspf and application logs for possible details of the error" ) ;
+	mvprintw( l++, 0, "See lspf and application logs for possible further details of the error" ) ;
 	if ( etype == 2 )
 	{
 		mvprintw( l++, 0, "Depending on the error, application may still be running in the background.  Recommend restarting lspf." ) ;

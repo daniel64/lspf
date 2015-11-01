@@ -782,11 +782,13 @@ int literal::literal_init( int MAXW, int MAXD, int & opt_field, string line )
 	int row   ;
 	int col   ;
 	int l     ;
+
 	string w2 ;
 	string w3 ;
 	string w4 ;
 	string w5 ;
 	string w  ;
+
 	cuaType fType   ;
 	
 	w2 = word( line, 2 ) ;
@@ -794,8 +796,11 @@ int literal::literal_init( int MAXW, int MAXD, int & opt_field, string line )
 	w4 = word( line, 4 ) ;
 	w5 = word( line, 5 ) ;
 	
-	row = ds2d( w2 ) ;
-	
+	if ( isnumeric( w2 ) )                   { row = ds2d( w2 ) ; }
+	else if ( w2 == "MAX" )                  { row = MAXD       ; }
+	else if ( substr( w2, 1, 4 ) == "MAX-" ) { row = MAXD - ds2d( substr( w2, 5 ) ) ; }
+	else 				         { return 20        ; }
+
 	if ( isnumeric( w3 ) )                   { col = ds2d( w3 ) ; }
 	else if ( w3 == "MAX" )                  { col = MAXW       ; }
 	else if ( substr( w3, 1, 4 ) == "MAX-" ) { col = MAXW - ds2d( substr( w3, 5 ) ) ; }

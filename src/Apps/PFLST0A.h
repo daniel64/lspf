@@ -28,18 +28,21 @@ class PFLST0A : public pApplication
 	private:
 		void createFileList1( string ="" ) ;
 		void createFileList2( string, string ="" ) ;
+		
 		string showListing() ;
 		void showInfo( string ) ;
 		int  processPrimCMD()   ;
 		void copyDirs( string, string, string, bool & ) ;
 		void modifyAttrs( string ) ;
 		string expandDir( string ) ;
+		void browseTree( string )  ;
 
 		int    CRP ;
 		string MSG ;
 		string RSN ;
 
 		string ZPATH  ;
+		string ZDIR   ;
 		string DSLIST ;
 		string SEL, ENTRY, MESSAGE, TYPE, PERMISS, SIZE, STCDATE, MODDATE, MODDATES ;
 		string IENTRY, ITYPE, IOWNER, IGROUP, IINODE, INLNKS, IRLNK, IPERMISS, ISIZE, ISTCDATE, IMODDATE, IACCDATE, IMAJ, IMIN, IBLKSIZE ;

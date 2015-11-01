@@ -5,12 +5,12 @@ pdc  Display  "Refresh Screen"          ACTION RUN(REFRESH)
 pdc  Display  "Discard Screen Updates"  ACTION RUN(DISCARD)
 pdc  Display  Quit                      ACTION RUN(END)
 
-pdc  Settings  PFKeys   ACTION RUN(KEYS)
-pdc  Settings  Colours  ACTION RUN(CUA)
+pdc  Settings  PFKeys    ACTION RUN(KEYS)
+pdc  Settings  Colours   ACTION RUN(CUA)
+pdc  Settings  Commands  ACTION RUN(CMDS)
 
 pdc  Utilities  "Application Log" ACTION RUN(ALOG)
 pdc  Utilities  "lspf Log"        ACTION RUN(ISRROUTE) PARM("SELECT PGM(PPSP01A) PARM(SL)")
-pdc  Utilities  File              ACTION RUN(BROWSE)
-pdc  Utilities  Directory         ACTION RUN(BROWSE)
+pdc  Utilities  File/Directory    ACTION RUN(ISRROUTE) PARM("SELECT PGM(PFLST0A) PARM()")
 pdc  Utilities  Shell             ACTION RUN(SHELL)
 

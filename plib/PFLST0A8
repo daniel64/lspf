@@ -1,0 +1,48 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ File and Directory tree
+)ENDCOMMENT
+
+)BODY
+PanelTitle "File/Directory Tree"
+
+scrollOn
+
+literal  4   2           FP    "COMMAND ===> "  
+field    4  15   MAX-17  NEF NONE ZCMD  
+
+literal  4  MAX-15  FP "SCROLL ===>"
+field    4  MAX-3   4  NEF  NONE ZSCROLL
+
+literal  6   2       FP  "Top level Directory Name . . ."  
+field    6  33  MAX  VOI NONE ZDIR
+
+literal  8  2 CH  "S Entry name"  
+literal  9  2 CH  EXPAND  "-"  
+
+tbmodel  10    MAX
+tbfield  2     1   NEF  CAPS(ON),PAD('_'),JUST(LEFT) TSEL  
+tbfield  ++1   MAX VOI  NONE  TENTRY
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+
+)INIT
+VGET ZSCROLL PROFILE
+.ATTR(TENTRY)    = 'COLOUR(WHITE)' 
+
+.HELP = HFLST01
+)ENDINIT
+
+)PROC
+IF ( &ZCMD NE &Z )
+   .CURSOR = ZCMD
+   .MSG    = PSYS01C
+   EXIT
+
+VER (&TSEL LIST,I,S,MSG=PSYS01D)
+)ENDPROC
+

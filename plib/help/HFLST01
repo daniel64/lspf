@@ -30,7 +30,8 @@ L  - List directory
 M  - Modify file/directory attributes
 R  - Rename file/directory
 S  - Select file/directory
-T  - Display tree structure of files and directories
+T  - Display tree structure of files and directories (in a selectable display)
+TT - Display tree structure of files and directories (in BROWSE)
 X  - List link directory
 =  - Repeat the last entered line command
 

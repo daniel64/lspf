@@ -24,29 +24,29 @@
  literal  10   2   FP "Current. . . .:"    
  field    10  18   MAX  VOI NONE ZCURR   
 
- field    12   2  4   NEF CAPS(ON),PAD('_')  SEL1
- field    12   9  60  NEF CAPS(OFF),PAD('_')  ZFILE1
+ field    12   2  1   NEF CAPS(ON),PAD('_')   SEL1
+ field    12   4  60  NEF CAPS(OFF),PAD('_')  ZFILE1
 
- field    13   2  4   NEF CAPS(ON),PAD('_')  SEL2
- field    13   9  60  NEF CAPS(OFF),PAD('_')  ZFILE2
+ field    13   2  1   NEF CAPS(ON),PAD('_')   SEL2
+ field    13   4  60  NEF CAPS(OFF),PAD('_')  ZFILE2
 
- field     14  2  4   NEF CAPS(ON),PAD('_')  SEL3
- field     14  9  60  NEF CAPS(OFF),PAD('_')  ZFILE3
+ field     14  2  1   NEF CAPS(ON),PAD('_')   SEL3
+ field     14  4  60  NEF CAPS(OFF),PAD('_')  ZFILE3
 
- field     15  2  4   NEF CAPS(ON),PAD('_')  SEL4
- field     15  9  60  NEF CAPS(OFF),PAD('_')  ZFILE4
+ field     15  2  1   NEF CAPS(ON),PAD('_')   SEL4
+ field     15  4  60  NEF CAPS(OFF),PAD('_')  ZFILE4
 
- field     16  2  4   NEF CAPS(ON),PAD('_')  SEL5
- field     16  9  60  NEF CAPS(OFF),PAD('_')  ZFILE5
+ field     16  2  1   NEF CAPS(ON),PAD('_')   SEL5
+ field     16  4  60  NEF CAPS(OFF),PAD('_')  ZFILE5
 
- field     17  2  4   NEF CAPS(ON),PAD('_')  SEL6
- field     17  9  60  NEF CAPS(OFF),PAD('_')  ZFILE6
+ field     17  2  1   NEF CAPS(ON),PAD('_')   SEL6
+ field     17  4  60  NEF CAPS(OFF),PAD('_')  ZFILE6
 
- field     18  2  4   NEF CAPS(ON),PAD('_')  SEL7
- field     18  9  60  NEF CAPS(OFF),PAD('_')  ZFILE7
+ field     18  2  1   NEF CAPS(ON),PAD('_')   SEL7
+ field     18  4  60  NEF CAPS(OFF),PAD('_')  ZFILE7
 
- field     19  2  4   NEF CAPS(ON),PAD('_')  SEL8
- field     19  9  60  NEF CAPS(OFF),PAD('_')  ZFILE8
+ field     19  2  1   NEF CAPS(ON),PAD('_')   SEL8
+ field     19  4  60  NEF CAPS(OFF),PAD('_')  ZFILE8
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC

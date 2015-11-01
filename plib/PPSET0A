@@ -46,7 +46,7 @@ literal  12  41    NT   "Display command tables"
 
 literal  13  27    SAC  "3"
 literal  13  30    PS   "Paths"    
-literal  13  41    NT   "Display and alter function key settings"
+literal  13  41    NT   "Display search paths and LIBDEF status"
 
 literal  14  27    SAC  "4"
 literal  14  30    PS   "Variables"    
@@ -54,7 +54,7 @@ literal  14  41    NT   "Display and delete shared and profile pool variables"
 
 literal  15  27    SAC  "5"
 literal  15  30    PS   "Modules"    
-literal  15  41    NT   "Display Loaded Dynamic Classes"
+literal  15  41    NT   "Display Loaded Modules"
 
 literal  16  27    SAC  "6"
 literal  16  30    PS   "Programs"    

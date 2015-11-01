@@ -52,6 +52,7 @@
 /* R  - Rename pathname                                                                                     */
 /* S  - Select directory or file (list or browse)                                                           */
 /* T  - Display a directory tree                                                                            */
+/* TT - Display a directory tree in BROWSE                                                                  */
 /* X  - List link directory                                                                                 */
 /* =  - repeat the last-entered line command                                                                */
 
@@ -564,9 +565,9 @@ void PFLST0A::application()
 				MESSAGE = "vi"      ;
 				tbput( DSLIST )     ;
 			}
-			else if ( SEL == "T" )
+			else if ( SEL == "T" || SEL == "TT" )
 			{
-				SEL = "" ;
+				RC = 0 ;
 				boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
 				string tname = temp.native() ;
 				of.open( tname ) ;
@@ -577,7 +578,9 @@ void PFLST0A::application()
 					MSG     = "FLST0117"   ;
 					RSN     = ec.message() ;
 					MESSAGE = ec.message() ;
+					SEL     = ""           ;
 					tbput( DSLIST )        ;
+					of.close()             ;
 					remove( tname )        ;
 					continue               ;
 				}
@@ -591,6 +594,10 @@ void PFLST0A::application()
 						{
 							of << copies( "|   ", dIt.level()) << "|-- " ;
 							of << strip( current.filename().string(), 'B', '"' ) << endl ;
+							if ( SEL == "T" )
+							{
+								of << strip( current.string(), 'B', '"' ) << endl ;
+							}
 						}
 					} 
 				}
@@ -599,10 +606,27 @@ void PFLST0A::application()
 					MSG     = "FLST0117" ;
 					RSN     = ex.what()  ;
 					MESSAGE = ex.what()  ;
+					SEL     = ""         ;
 					tbput( DSLIST )      ;
+					of.close()           ;
+					remove( tname )      ;
+					continue             ;
 				}
-				of.close() ;
-				browse( tname ) ;
+				of.close()      ;
+				if ( SEL == "T" )
+				{
+					browseTree( tname ) ;
+				}
+				else
+				{
+					browse( tname ) ;
+				}
+				if ( RC > 0 )
+				{
+					MSG     = "FLST0117"      ;
+					MESSAGE = "Unknown Error" ;
+					tbput( DSLIST )           ;
+				}
 				remove( tname ) ;
 			}
 			else
@@ -1262,8 +1286,108 @@ void PFLST0A::modifyAttrs( string p )
 }
 
 
+void PFLST0A::browseTree( string tname )
+{
+	int i ;
+
+	string TSEL   ;
+	string TFILE  ;
+	string TENTRY ;
+	string FTREE  ;
+
+	string line   ;
+	string PGM    ;
+
+	ifstream fin  ;
+	fin.open( tname.c_str() ) ;
+	if ( !fin.is_open() )
+	{
+		RC   = 16 ;
+		log( "E", "Error opening file " << tname << endl ) ;
+		return    ;
+	}
+
+	vdefine( "TSEL TFILE TENTRY ZDIR", &TSEL, &TFILE, &TENTRY, &ZDIR ) ;
+	vcopy( "ZFLSTPGM", PGM, MOVE ) ;
+	FTREE = "FTREE" + right( d2ds( taskid() ), 3, '0' ) ;
+
+	tbcreate( FTREE, "", "TSEL TFILE TENTRY", NOWRITE ) ;
+
+	TSEL = "" ;
+	i    = 1  ;
+	while ( getline( fin, line ) )
+	{
+		if ( i == 1 )
+		{
+			ZDIR = strip( line ) ;
+		}
+		else if ( i % 2 )
+		{
+			TFILE = strip( line ) ;
+			tbadd( FTREE ) ;	
+		}
+		else
+		{
+			TENTRY  = strip( line ) ;
+		}
+		i++ ;
+		
+	}
+	tbtop( FTREE ) ;
+
+	while ( true )
+	{
+		if ( ZTDVROWS > 0 )
+		{
+			tbtop( FTREE )     ;
+			tbskip( FTREE, i ) ;
+		}
+		else
+		{
+			tbbottom( FTREE ) ;
+			tbskip( FTREE, - (ZTDDEPTH-2) ) ;
+			if ( RC > 0 ) { tbtop( FTREE ) ; }
+		}
+		if ( MSG == "" ) { ZCMD  = "" ; }
+		tbdispl( FTREE, "PFLST0A8", MSG, "ZCMD" ) ;
+		if ( RC  > 8 ) { abend() ; }
+		if ( RC == 8 ) { break   ; }
+		MSG = "" ;
+		i = ZTDTOP ;
+		while ( ZTDSELS > 0 )
+		{
+			if ( TSEL == ""  ) {}
+			else if ( TSEL == "S" )
+			{
+				select( "PGM(" + PGM + ") PARM(BROWSE " + TFILE + ")" ) ;
+			}
+			else if ( TSEL == "I" )
+			{
+				select( "PGM(" + PGM + ") PARM(INFO " + TFILE + ")" ) ;
+			}
+			if ( ZTDSELS > 1 )
+			{
+				tbdispl( FTREE ) ;
+				if ( RC > 4 ) break ;
+			}
+			else { ZTDSELS = 0 ; }
+		}
+	}
+	tbend( FTREE ) ;
+	return         ;
+
+}
+
+
 string PFLST0A::expandDir( string dir )
 {
+	// If passed directory begins with '?', display listing replacing '?' with '/' and using this 
+	// as the starting point
+
+	// If passed directory matches a listing entry, return the next entry (if not end-of-list)
+
+	// If passed directory is an abbreviation of one in the listing, return the current entry
+
 	int i        ;
 	string dir1  ;
 	string entry ;
@@ -1305,13 +1429,19 @@ string PFLST0A::expandDir( string dir )
 		log( "E", "Error listing directory " << ex.what() << endl ) ;
 		return "" ;
 	}
-	sort( v.begin(), v.end() ) ;
 
+	sort( v.begin(), v.end() ) ;
 	for ( vec::const_iterator it (v.begin()) ; it != v.end() ; ++it )
 	{
 		entry = (*it).string() ;
 		if ( !abbrev( entry, dir ) ) { continue ; }
 		ZRC = 0 ;
+		if ( entry == dir )
+		{
+			it++ ;
+			if ( it != v.end() ) { return (*it).string() ; }
+			else                 { return dir            ; }
+		}
 		break ;
 	}
 	return entry ;
@@ -1324,7 +1454,6 @@ string PFLST0A::showListing()
 
 	string w1      ;
 	string w2      ;
-	string w3      ;
 	string ws      ;
 	string OPATH   ;
 	string FLDIRS  ;
@@ -1363,7 +1492,6 @@ string PFLST0A::showListing()
 		MSG = "" ;
 		w1  = upper( word( ZCMD, 1 ) ) ;
 		w2  = word( ZCMD, 2 )    ;
-		w3  = word( ZCMD, 3 )    ;
 		ws  = subword( ZCMD, 2 ) ;
 		if ( w1 == "REFRESH" ) { tbend( DSLIST ) ; createFileList2( FLDIRS )     ; continue ; }
 		if ( w1 == "O" )       { tbend( DSLIST ) ; createFileList2( FLDIRS, w2 ) ; continue ; }
@@ -1385,7 +1513,6 @@ string PFLST0A::showListing()
 		}
 		i = ZTDTOP ;
 		vget( "ZVERB", SHARED ) ;
-		CRP    = 0  ;
 		if ( OFLDIRS != FLDIRS )
 		{
 			tbend( DSLIST ) ;
@@ -1467,8 +1594,8 @@ void PFLST0A::createFileList2( string FLDIRS, string filter )
 		log( "E", "Error listing directory " << ex.what() << endl ) ;
 		return ;
 	}
-	sort( v.begin(), v.end() ) ;
 
+	sort( v.begin(), v.end() ) ;
 	for ( vec::const_iterator it (v.begin()) ; it != v.end() ; ++it )
 	{
 		ENTRY   = (*it).string() ;
