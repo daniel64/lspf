@@ -279,10 +279,11 @@ void MainLoop()
 	int RC      ;
 	int elapsed ;
 	int pos     ;
-	int t       ;
-	int c       ;
+	uint t       ;
+	uint c       ;
 
 	string field_exec ;
+	string field_name ;
 
 	char ch     ;
 	char Isrt   ;
@@ -529,8 +530,11 @@ void MainLoop()
 								currAppl->setmsg( "PSYS01K" ) ;
 								break ;
 							}
-							SEL_PARM = SEL_PARM + " " + currAppl->currPanel->field_getvalue( currAppl->currPanel->field_getname( row, col ) ) ;
-							currAppl->field_name = currAppl->currPanel->field_getname( row, col )        ;
+							field_name = currAppl->currPanel->field_getname( row, col ) ;
+							SEL_PARM = SEL_PARM + " " + currAppl->currPanel->field_getvalue( field_name ) ;
+							currAppl->field_name = field_name ;
+							currAppl->currPanel->field_get_row_col( field_name, t, c ) ;
+							p_poolMGR->put( RC, "ZFECSRP", d2ds( col-c+1 ), SHARED )   ;
 							startApplication( SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB ) ;
 							break ;
 						}

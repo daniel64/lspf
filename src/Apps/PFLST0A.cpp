@@ -1379,30 +1379,48 @@ void PFLST0A::browseTree( string tname )
 }
 
 
-string PFLST0A::expandDir( string dir )
+string PFLST0A::expandDir( string parms )
 {
 	// If passed directory begins with '?', display listing replacing '?' with '/' and using this 
 	// as the starting point
+
+	// Cursor sensitive.  Only characters before the current cursor position (if > 1) in the field (ZFECSRP) will
+	// be taken into account
 
 	// If passed directory matches a listing entry, return the next entry (if not end-of-list)
 
 	// If passed directory is an abbreviation of one in the listing, return the current entry
 
+	// If first parameter is ALL, all entries are used
+	// If first parameter is DIRONLY, filter on directories
+	// If first parameter is FILEONLY, filter on files
+
 	int i        ;
+	int pos      ;
+
+	string type  ;
 	string dir1  ;
 	string entry ;
+	string dir   ;
+	string cpos  ;
 
 	ZRC = 8 ;
 
 	typedef vector< path > vec ;
 	vec v ;
+	vec::iterator new_end ;
 
-	i    = lastpos( "/", dir ) ;
-	dir1 = substr( dir, 1, i ) ;
+	type = word( parms, 1 )    ;
+	dir  = subword( parms, 2 ) ;
+
+	vget( "ZFECSRP", SHARED ) ;
+	vcopy( "ZFECSRP", cpos, MOVE ) ;
+	pos = ds2d( cpos ) ;
 
 	if ( dir == "" )
 	{
 		dir = ZHOME ;
+		pos = ZHOME.size() ;
 	}
 	else if ( dir[ 0 ] == '?' )
 	{
@@ -1418,6 +1436,14 @@ string PFLST0A::expandDir( string dir )
 		return showListing() ;
 	}
 
+	if ( pos > 1 && pos < dir.size() )
+	{
+		dir.erase( pos-1 ) ;
+	}
+
+	i    = lastpos( "/", dir ) ;
+	dir1 = substr( dir, 1, i ) ;
+
 	try
 	{
 		copy( directory_iterator( dir1 ), directory_iterator(), back_inserter( v ) ) ;
@@ -1430,7 +1456,31 @@ string PFLST0A::expandDir( string dir )
 		return "" ;
 	}
 
+	try
+	{
+		if ( type == "ALL" ) {}
+		else if ( type == "DIRONLY" )
+		{
+			new_end = remove_if( v.begin(), v.end(), [](const path & a) { return !is_directory( a.string() ) ; } ) ;
+			v.erase( new_end, v.end() ) ;
+		}
+		else if ( type == "FILEONLY" )
+		{
+			new_end = remove_if( v.begin(), v.end(), [](const path & a) { return !is_regular_file( a.string() ) ; } ) ;
+			v.erase( new_end, v.end() ) ;
+		}
+		else { RC = 16 ; return "" ; }
+	}
+	catch ( const filesystem_error& ex )
+	{
+		ZRESULT = "List Error" ;
+		RC      = 16 ;
+		log( "E", "Error listing directory " << ex.what() << endl ) ;
+		return "" ;
+	}
+	
 	sort( v.begin(), v.end() ) ;
+
 	for ( vec::const_iterator it (v.begin()) ; it != v.end() ; ++it )
 	{
 		entry = (*it).string() ;

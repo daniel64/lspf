@@ -94,8 +94,8 @@ field     23   12    60     VOI   NONE  ZUPROF
 literal   24   2     FP     "ZSYSPATH:"     
 field     24   12    60     VOI   NONE  ZSYSPATH
 
-field     25   12    60     VOI   NONE ZLDPATH1
-literal   25   2     FP     "ZLDPATH1:"     
+field     25   12    60     VOI   NONE ZLDPATH
+literal   25   2     FP     "ZLDPATH:"     
 
 field     26   12    60     VOI   NONE ZLDPATH2
 literal   26   2     FP     "ZLDPATH2:"     

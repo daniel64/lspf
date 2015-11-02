@@ -4,6 +4,14 @@ Primary and line commands for file list application PFLST01
 ===========================================================
 
 
+Place cursor on Path Name and execute primary command FIELDEXC for directory name completion.
+(Assign FIELDEXC to a PF key to make this easier).  Partial directory names will be expanded to 
+the first match and then the next directory entry in the list will be retrieved.
+
+A '?' on the first character of the directory name (and command FIELDEXC), will give a scrollable 
+list to navigate the file system.
+
+
 Line commands:
 --------------
 CD /xxx  Change to directory /xxx

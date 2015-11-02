@@ -79,6 +79,9 @@ ZPANELID (pApplication)
 ZSCROLLA (pPanel)
 ZSCROLLN (pPanel)
 
+ZFESCRP  (system) Field cursor position on executing field-level command
+
+
 Variables put into the application PROFILE pool by the application:
 ZSCROLL (pPanel)
 
