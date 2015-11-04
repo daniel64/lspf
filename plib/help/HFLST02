@@ -4,8 +4,8 @@ Primary and line commands for file/directory list application
 =============================================================
 
 
-Line commands:
---------------
+Primary commands:
+-----------------
 CD /xxx  Change to directory /xxx
 CD xxx   Change to directory xxx under the current directory listing
 CD       Change to home directory
@@ -15,9 +15,8 @@ REF      Refresh directory list
 RES      Refresh directory list
 
 
-Primary Commands:
------------------
 Line Commands:
+--------------
 C  - Copy file/directory to the select field
 S  - Select file/directory
 

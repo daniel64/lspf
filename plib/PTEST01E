@@ -1,0 +1,45 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+
+**************************************************************************
+**************************************************************************
+* Test popups                                                            *
+**************************************************************************
+**************************************************************************
+
+)ENDCOMMENT
+)BODY
+
+PanelTitle "Test Popup Panels"
+
+literal   4    2   FP  "COMMAND ===> "    
+field     4   15  MAX   NEF     CAPS(ON)  ZCMD    
+
+literal   6   MAX-36    FP  "TIME: "     
+field     6   MAX-30    8    VOI   NONE  ZTIME    
+
+literal   6   MAX-20    FP  "DATE: "     
+field     6   MAX-14    8    VOI   NONE  ZDATE    
+
+literal   8   6     FP  "FIELD FLD1: "     
+field     8   18    10   NEF   NONE  FLD1    
+
+literal   9   6     FP  "FIELD FLD2: "     
+field     9   18    10   NEF   NONE  FLD2    
+
+literal   11  6     FP  "Press ENTER to create popup"     
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+
+)INIT
+)ENDINIT
+
+)REINIT
+)ENDREINIT
+
+)PROC
+)ENDPROC
+

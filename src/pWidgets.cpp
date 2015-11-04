@@ -214,7 +214,7 @@ int dynArea::dynArea_init( int MAXW, int MAXD, string line )
 }
 
 
-bool field::edit_field_insert( char ch, int col, bool Isrt )
+bool field::edit_field_insert( WINDOW * win, char ch, int col, bool Isrt )
 {
 	// If this is a dynamic area, we know at this point this is an input field, so field_dynDataInsp is true and there is an input attribute
 	// byte at the start of the field
@@ -308,13 +308,13 @@ bool field::edit_field_insert( char ch, int col, bool Isrt )
 		field_value.replace( pos, 1, 1, ch ) ;
 	}
 
-	display_field() ;
+	display_field( win ) ;
 	field_changed = true ;
 	return true ;
 }
 
 
-void field::edit_field_delete( int col )
+void field::edit_field_delete( WINDOW * win, int col )
 {
 	// If this is a dynamic area, we know at this point this is an input field, so field_dynDataInsp is true and there is an input attribute
 	// byte at the start of the field
@@ -362,12 +362,12 @@ void field::edit_field_delete( int col )
 	}
 
 	field_value.erase( pos, 1 ) ;
-	display_field() ;
+	display_field( win ) ;
 	field_changed = true ;
 }
 
 
-int field::edit_field_backspace( int col )
+int field::edit_field_backspace( WINDOW * win, int col )
 {
 	// If this is a dynamic area, we know at this point this is an input field, so field_dynDataInsp is true and there is an input attribute
 	// byte at the start of the field
@@ -419,29 +419,29 @@ int field::edit_field_backspace( int col )
 	}
 
 	field_value.erase( pos - 1, 1 ) ;
-	display_field() ;
+	display_field( win ) ;
 	field_changed = true ;
 
 	return --col ;
 }
 
 
-void field::field_blank()
+void field::field_blank( WINDOW * win )
 {
 	string blank( field_length, field_padchar ) ;
-	mvaddstr( field_row, field_col, blank.c_str() );
+	mvwaddstr( win, field_row, field_col, blank.c_str() ) ;
 }
 
 
-void field::field_clear()
+void field::field_clear( WINDOW * win )
 {
 	field_value = ""     ;
-	field_blank()        ;
+	field_blank( win )   ;
 	field_changed = true ;
 }
 
 
-void field::field_erase_eof( uint col )
+void field::field_erase_eof( WINDOW * win, uint col )
 {
 	// If this is a dynamic area, we know at this point this is an input field, so field_dynDataInsp is true and there is an input attribute
 	// byte at the start of the field
@@ -490,16 +490,16 @@ void field::field_erase_eof( uint col )
 	}
 	else
 	{
-		field_blank() ;
+		field_blank( win ) ;
 		field_value = field_value.substr( 0 , pos ) ;
 	}
 	
-	display_field() ;
+	display_field( win ) ;
 	field_changed = true ;
 }
 
 
-int field::end_of_field( uint col )
+int field::end_of_field( WINDOW * win, uint col )
 {
 	// If this is a dynamic area, we know at this point this is an input field, so field_dynDataInsp is true and there is an input attribute
 	// byte at the start of the field
@@ -690,7 +690,7 @@ int field::field_dyna_input_offset( uint col )
 }
 
 
-void field::display_field()
+void field::display_field( WINDOW * win )
 {
 	// For non-dynamic area fields: if an input field, truncate if value size > field size else for output fields
 	// display field size bytes and leave field value unchanged (necessary for table display fields)
@@ -704,32 +704,32 @@ void field::display_field()
 		{
 			for ( i = 0 ; i < field_value.size() ; i++ )
 			{
-				attrset( usrAttr[ field_shadow_value [ i ] ] ) ;
+				wattrset( win, usrAttr[ field_shadow_value [ i ] ] ) ;
 				if ( ( field_dynDataInsp  && field_value[ i ] == field_dynDataIn  ) || 
 				     ( field_dynDataOutsp && field_value[ i ] == field_dynDataOut ) ||
 				     ( field_dynUserModsp && field_value[ i ] == field_dynUserMod ) ||
-				     ( field_dynDataModsp && field_value[ i ] == field_dynDataMod ) ) { mvaddch( field_row, field_col+i, ' ' ) ; }
-				else if ( isprint( field_value[ i ] ) ) { mvaddch( field_row, field_col+i, field_value[ i ] ) ; }
-				else                                    { mvaddch( field_row, field_col+i, '.' ) ;              }
-				attroff( usrAttr[ field_shadow_value [ i ] ] ) ;
+				     ( field_dynDataModsp && field_value[ i ] == field_dynDataMod ) ) { mvwaddch( win, field_row, field_col+i, ' ' ) ; }
+				else if ( isprint( field_value[ i ] ) ) { mvwaddch( win, field_row, field_col+i, field_value[ i ] ) ; }
+				else                                    { mvwaddch( win, field_row, field_col+i, '.' ) ;              }
+				wattroff( win, usrAttr[ field_shadow_value [ i ] ] ) ;
 			}
 		}
 		else
 		{
 			for ( i = 0 ; i < field_value.size() ; i++ )
 			{
-				attrset( usrAttr[ field_shadow_value [ i ] ] ) ;
-				if ( isprint( field_value[ i ] ) ) { mvaddch( field_row, field_col+i, field_value[ i ] ) ; }
-				else                               { mvaddch( field_row, field_col+i, '.' ) ;              }
-				attroff( usrAttr[ field_shadow_value [ i ] ] ) ;
+				wattrset( win, usrAttr[ field_shadow_value [ i ] ] ) ;
+				if ( isprint( field_value[ i ] ) ) { mvwaddch( win, field_row, field_col+i, field_value[ i ] ) ; }
+				else                               { mvwaddch( win, field_row, field_col+i, '.' ) ;              }
+				wattroff( win, usrAttr[ field_shadow_value [ i ] ] ) ;
 			}
 		}
 	}
 	else
 	{
-		field_blank();
-		if ( field_usecua ) { attrset( cuaAttr[ field_cua ] ) ; }
-		else                { attrset( field_colour)          ; }
+		field_blank( win ) ;
+		if ( field_usecua ) { wattrset( win, cuaAttr[ field_cua ] ) ; }
+		else                { wattrset( win, field_colour)          ; }
 		if ( field_input )
 		{
 			if ( field_value.size() > field_length )
@@ -740,8 +740,8 @@ void field::display_field()
 			{
 				if ( !isprint( field_value[ i ] ) ) field_value.replace( i, 1, 1, '.' ) ;
 			}
-			if ( field_pwd ) { mvaddstr( field_row, field_col, copies( "*", field_value.size()).c_str() ) ; }
-			else		 { mvaddstr( field_row, field_col, field_value.c_str() )                      ; }
+			if ( field_pwd ) { mvwaddstr( win, field_row, field_col, copies( "*", field_value.size()).c_str() ) ; }
+			else		 { mvwaddstr( win, field_row, field_col, field_value.c_str() )                      ; }
 		}
 		else
 		{
@@ -751,20 +751,22 @@ void field::display_field()
 			{
 				if ( !isprint( t[ i ] ) ) t.replace( i, 1, 1, '.' ) ;
 			}
-			if ( field_pwd ) { mvaddstr( field_row, field_col, copies( "*", t.size()).c_str() ) ; }
-			else		 { mvaddstr( field_row, field_col, t.c_str() )                      ; }
+			if ( field_pwd ) { mvwaddstr( win, field_row, field_col, copies( "*", t.size()).c_str() ) ; }
+			else		 { mvwaddstr( win, field_row, field_col, t.c_str() )                      ; }
 		}
-		if ( field_usecua ) { attroff( cuaAttr[ field_cua ] ) ; }
-		else                { attroff( field_colour )         ; }
+		if ( field_usecua ) { wattroff( win, cuaAttr[ field_cua ] ) ; }
+		else                { wattroff( win, field_colour )         ; }
 	}
+	//wrefresh( win ) ;
 }
 
 
-void literal::literal_display()
+void literal::literal_display( WINDOW * win )
 {
-	attrset( cuaAttr[ literal_cua ] ) ;
-	mvaddnstr( literal_row, literal_col, literal_value.c_str(), literal_length ) ;
-	attroff( cuaAttr[ literal_cua ] ) ;
+	wattrset( win, cuaAttr[ literal_cua ] ) ;
+	mvwaddstr( win, literal_row, literal_col, literal_value.c_str() ) ;
+	wattroff( win, cuaAttr[ literal_cua ] ) ;
+	//wrefresh( win )  ;
 }
 
 
@@ -874,19 +876,19 @@ void abc::add_pdc( string name, string run, string parm )
 }
 
 
-void abc::display_abc_sel()
+void abc::display_abc_sel( WINDOW * win )
 {
-	attrset( cuaAttr[ AB ] ) ;
-	mvprintw( 0, abc_col, abc_name.c_str() ) ;
-	attroff( cuaAttr[ AB ] ) ;
+	wattrset( win, cuaAttr[ AB ] ) ;
+	mvwaddstr( win, 0, abc_col, abc_name.c_str() ) ;
+	wattroff( win, cuaAttr[ AB ] ) ;
 }
 
 
-void abc::display_abc_unsel()
+void abc::display_abc_unsel( WINDOW * win )
 {
-	attrset( cuaAttr[ ABU ] ) ;
-	mvprintw( 0, abc_col, abc_name.c_str() ) ;
-	attroff( cuaAttr[ ABU ] ) ;
+	wattrset( win, cuaAttr[ ABU ] ) ;
+	mvwaddstr( win, 0, abc_col, abc_name.c_str() ) ;
+	wattroff( win, cuaAttr[ ABU ] ) ;
 }
 
 
@@ -905,7 +907,7 @@ void abc::display_pd()
 		{
 			t = d2ds( i+1 ) + ". " + pdcList.at( i ).pdc_name ;
 			wattrset( win, cuaAttr[ PAC ] ) ;
-			mvwprintw( win, i + 1, 4 , t.c_str() ) ;
+			mvwaddstr( win, i + 1, 4 , t.c_str() ) ;
 			wattroff( win, cuaAttr[ PAC ] ) ;
 		}
 		wattroff( win, cuaAttr[ AB ] ) ;
@@ -1000,32 +1002,25 @@ int Box::box_init( int MAXW, int MAXD, string line )
 }
 
 
-void Box::move_box( int row, int col )
+void Box::display_box( WINDOW * win )
 {
-	box_row    = row - 1 ;
-	box_col    = col - 1 ;
-}
+	wattrset( win, box_colour ) ;
 
+	mvwaddch( win, box_row, box_col, ACS_ULCORNER ) ;
+	mvwaddch( win, box_row, box_col + box_width - 1, ACS_URCORNER ) ;
 
-void Box::display_box()
-{
-	attrset( box_colour ) ;
+	mvwaddch( win, box_row + box_depth - 1, box_col, ACS_LLCORNER ) ;
+	mvwaddch( win, box_row + box_depth - 1, box_col + box_width - 1, ACS_LRCORNER ) ;
 
-	mvaddch( box_row, box_col, ACS_ULCORNER ) ;
-	mvaddch( box_row, box_col + box_width - 1, ACS_URCORNER ) ;
+	mvwhline( win, box_row, (box_col + 1), ACS_HLINE, (box_width - 2) ) ;
+	mvwhline( win, (box_row + box_depth - 1), (box_col + 1), ACS_HLINE, (box_width - 2) ) ;
 
-	mvaddch( box_row + box_depth - 1, box_col, ACS_LLCORNER ) ;
-	mvaddch( box_row + box_depth - 1, box_col + box_width - 1, ACS_LRCORNER ) ;
+	mvwvline( win, (box_row + 1), box_col, ACS_VLINE, (box_depth - 2) ) ;
+	mvwvline( win, (box_row + 1), (box_col + box_width - 1 ), ACS_VLINE, (box_depth - 2) ) ;
 
-	mvhline( box_row, (box_col + 1), ACS_HLINE, (box_width - 2) ) ;
-	mvhline( (box_row + box_depth - 1), (box_col + 1), ACS_HLINE, (box_width - 2) ) ;
+	mvwaddstr( win, box_row, (box_col + box_title_offset), box_title.c_str() ) ;
 
-	mvvline( (box_row + 1), box_col, ACS_VLINE, (box_depth - 2) ) ;
-	mvvline( (box_row + 1), (box_col + box_width - 1 ), ACS_VLINE, (box_depth - 2) ) ;
-
-	mvaddstr( box_row, (box_col + box_title_offset), box_title.c_str() ) ;
-
-	attroff( box_colour ) ;
+	wattroff( win, box_colour ) ;
 }
 
 

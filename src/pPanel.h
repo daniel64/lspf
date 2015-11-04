@@ -57,12 +57,13 @@ class pPanel
 		void   display_panel_init( int & RC )   ;
 		void   display_panel_reinit( int & RC, int ln ) ;
 		void   display_panel_proc( int & RC, int ln )   ;
-		void   display_MSG() ;
+		void   display_MSG()  ;
 		void   set_popup( int, int ) ;
 		void   remove_popup()        ;
 
 		void   update_field_values( int & RC ) ;
 
+		int    get_abline()      { return win_row ; } ;
 		bool   display_pd( uint row, uint col ) ;
 		void   hide_pd()         ;
 		bool   is_pd_displayed() ;
@@ -84,8 +85,8 @@ class pPanel
 		void   cursor_to_field( int & RC, string name="", int pos = 1 ) ;
 		void   cursor_eof( uint & row, uint & col )  ;
 		void   cursor_to_next_field ( string name, uint & row, uint & col )  ;
-		void   get_cursor( uint & row, uint & col )	{ row   = p_row ; col   = p_col ; } ;
-		void   set_cursor( uint row, uint col )		{ p_row = row   ; p_col = col   ; } ;
+		void   get_cursor( uint & row, uint & col )	{ row   = p_row + win_row ; col   = p_col + win_col ; } ;
+		void   set_cursor( uint row, uint col )		{ p_row = row - win_row   ; p_col = col - win_col   ; } ;
 
 		void   field_edit( uint row, uint col, char ch, bool Istr, bool & prot ) ;
 		void   field_delete_char( uint row, uint col, bool & prot )   ;
@@ -123,21 +124,28 @@ class pPanel
 		int    dyn_width   ;
 		int    ZSCRMAXD    ;
 		int    ZSCRMAXW    ;
+		int    WSCRMAXD    ;
+		int    WSCRMAXW    ;
 		uint   p_row       ;
 		uint   p_col       ;
 		bool   tb_model    ;
 		bool   win_popup   ;
+		bool   win_created ;
+		bool   pan_created ;
 		int    win_width   ;
 		int    win_depth   ;
 		int    win_row     ;
 		int    win_col     ;
-		Box    win_box     ;
+		WINDOW * win       ;
+		WINDOW * bwin      ;
+		PANEL  * panel     ;
+		PANEL  * bpanel    ;
 
 		string getDialogueVar( string ) ;
 		void   putDialogueVar( string, string ) ;
 
 		void   create_tbfield( int col, int size, cuaType cuaFT, string name, string opts ) ;
-		void   create_pdc ( string, string, string, string ) ;
+		void   create_pdc( string, string, string, string ) ;
 
 		void   display_boxes() ;
 

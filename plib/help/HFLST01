@@ -5,15 +5,17 @@ Primary and line commands for file list application PFLST01
 
 
 Place cursor on Path Name and execute primary command FIELDEXC for directory name completion.
-(Assign FIELDEXC to a PF key to make this easier).  Partial directory names will be expanded to 
-the first match and then the next directory entry in the list will be retrieved.
+(Assign FIELDEXC to a PF key to make this easier).  This function cursor sensitive, so only characters
+before the cursor will be taken into account (if cursor is on the first position, all the field is used).
+Partial directory names will be expanded to the first match and then the next directory entry in
+the list will be retrieved.
 
 A '?' on the first character of the directory name (and command FIELDEXC), will give a scrollable 
 list to navigate the file system.
 
 
-Line commands:
---------------
+Primary commands:
+-----------------
 CD /xxx  Change to directory /xxx
 CD xxx   Change to directory xxx under the current directory listing
 BACK or S Go back one directory level
@@ -25,9 +27,8 @@ MKDIR    Make a directory (under current or specify full path)
 TOUCH    Make a file (under current or specify full path)
 
 
-Primary Commands:
------------------
 Line Commands:
+--------------
 B  - Browse file or list directory
 E  - Edit file
 EX - Execute file as OOREXX

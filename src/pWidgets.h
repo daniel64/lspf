@@ -85,17 +85,17 @@ class field
 			} ;
 
 		int  field_init( int MAXW, int MAXD, string line )  ;
-		void display_field() ;
-		bool edit_field_insert( char ch, int row, bool Insert ) ;
-		void edit_field_delete( int row ) ;
-		int  edit_field_backspace( int col ) ;
-		void field_blank() ;
-		void field_clear() ;
-		void field_erase_eof( unsigned int col ) ;
+		void display_field( WINDOW * ) ;
+		bool edit_field_insert( WINDOW * win, char ch, int row, bool Insert ) ;
+		void edit_field_delete( WINDOW * win, int row ) ;
+		int  edit_field_backspace( WINDOW * win, int col ) ;
+		void field_blank( WINDOW * win ) ;
+		void field_clear( WINDOW * win ) ;
+		void field_erase_eof( WINDOW * win, unsigned int col ) ;
 		bool field_dyna_input( uint col )  ;
 		int  field_dyna_input_offset( uint col )  ;
 		int  field_attr( string attrs ) ;
-		int  end_of_field( uint col )   ;
+		int  end_of_field( WINDOW * win, uint col )   ;
 } ;
 
 
@@ -115,7 +115,7 @@ class literal
 		string       literal_name   ;
 
 		int  literal_init( int MAXW, int MAXD, int & opt_field, string line ) ;
-		void literal_display() ;
+		void literal_display( WINDOW * ) ;
 } ;
 
 
@@ -187,8 +187,8 @@ class abc
 			} ;
 
 		void   add_pdc( string, string, string ) ;
-		void   display_abc_sel()   ;
-		void   display_abc_unsel() ;
+		void   display_abc_sel( WINDOW * )   ;
+		void   display_abc_unsel( WINDOW * ) ;
 		void   display_pd()        ;
 		void   hide_pd()           ;
 		pdc    retrieve_pdc( unsigned int row, unsigned int col ) ;
@@ -205,8 +205,7 @@ class Box
 {
 	public:
 		int  box_init( int MAXW, int MAXD, string line ) ;
-		void move_box( int row, int col ) ;
-		void display_box()  ;
+		void display_box( WINDOW * )      ;
 
 	private:
 		int      box_row    ;

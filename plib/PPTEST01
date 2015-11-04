@@ -46,17 +46,21 @@ literal  13  30    PS   "Utilities"
 literal  13  46    NT   "Check Utilities"    
 
 literal  14  27    SAC  "7"
-literal  14  30    PS   "Invoke OOREXX"    
-literal  14  46    NT   "Invoke OOREXX (porexx1.rex in ZORXPATH)"
+literal  14  30    PS   "POPUPS"    
+literal  14  46    NT   "Test ADDPOP/REMPOP and popup windows"    
+
+literal  15  27    SAC  "8"
+literal  15  30    PS   "Invoke OOREXX"    
+literal  15  46    NT   "Invoke OOREXX (porexx1.rex in ZORXPATH)"
 
 
-literal  16  27    SAC  "T"
-literal  16  30    PS   "Tutorial"    
-literal  16  46    NT   "Start Tutorial"    
+literal  17  27    SAC  "T"
+literal  17  30    PS   "Tutorial"    
+literal  17  46    NT   "Start Tutorial"    
 
-literal  17  27    SAC  "X"
-literal  17  30    PS   "Terminate"    
-literal  17  46    NT   "Terminate Dialogue Services"    
+literal  18  27    SAC  "X"
+literal  18  30    PS   "Terminate"    
+literal  18  46    NT   "Terminate Dialogue Services"    
 
 
 )INCLUDE STD_PDC
@@ -71,7 +75,8 @@ literal  17  46    NT   "Terminate Dialogue Services"
 4 "SELECT PGM(PTEST01) PARM(&ZPARM)"
 5 "SELECT PGM(PTEST01) PARM(&ZPARM)"
 6 "SELECT PGM(PTEST01) PARM(&ZPARM)"
-7 "SELECT CMD(porexx1.rex HELLO CALLING)"
+7 "SELECT PGM(PTEST01) PARM(&ZPARM)"
+8 "SELECT CMD(porexx1.rex HELLO CALLING)"
 A "SELECT PGM(PTEST01) PARM(ABEND)"
 T "SELECT PGM(&ZHELPPGM)  PARM(&ZPARM)"
 X "ACTION END"
@@ -90,8 +95,9 @@ FIELD( ZPS01004 ) VAR(ZCMD)  VAL(3)
 FIELD( ZPS01005 ) VAR(ZCMD)  VAL(4)   
 FIELD( ZPS01006 ) VAR(ZCMD)  VAL(5)   
 FIELD( ZPS01007 ) VAR(ZCMD)  VAL(6)   
-FIELD( ZPS01008 ) VAR(ZCMD)  VAL(7)
-FIELD( ZPS01009 ) VAR(ZCMD)  VAL(T)   
-FIELD( ZPS01010 ) VAR(ZCMD)  VAL(X)   
+FIELD( ZPS01008 ) VAR(ZCMD)  VAL(8)
+FIELD( ZPS01009 ) VAR(ZCMD)  VAL(7)
+FIELD( ZPS01010 ) VAR(ZCMD)  VAL(T)   
+FIELD( ZPS01011 ) VAR(ZCMD)  VAL(X)   
 )ENDPNTS
 

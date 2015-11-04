@@ -38,7 +38,12 @@ pPanel::pPanel()
 	tb_model    = false  ;
 	tb_depth    = 0      ;
 	tb_fields   = ""     ;
+	win         = stdscr ;
 	win_popup   = false  ;
+	win_created = false  ;
+	pan_created = false  ;
+	win_row     = 0      ;
+	win_col     = 0      ;
 	win_width   = 0      ;
 	win_depth   = 0      ;
 	dyn_depth   = 0      ;
@@ -88,6 +93,9 @@ void pPanel::init( int & RC )
 	if ( RC > 0 ) { PERR = "ZSCRMAXD poolMGR.get failed" ; log("C", PERR ) ; RC = 20 ; return ; }
 	ZSCRMAXW = ds2d( p_poolMGR->get( RC, "ZSCRMAXW", SHARED ) ) ;
 	if ( RC > 0 ) { PERR = "ZSCRMAXW poolMGR.get failed" ; log("C", PERR ) ; RC = 20 ; return ; }
+	WSCRMAXD = ZSCRMAXD ;
+	WSCRMAXW = ZSCRMAXW ;
+
 }
 
 
@@ -163,9 +171,31 @@ void pPanel::display_panel( int & RC )
 	RC = 0 ;
 	clear() ;
 
-	attrset( cuaAttr[ PT ] ) ;
-	mvprintw( 2, ( ZSCRMAXW - PanelTitle.size() ) / 2, PanelTitle.c_str() ) ;
-	attroff( cuaAttr[ PT ] ) ;
+	if ( win_popup && win_width > 0 )
+	{
+		if ( !pan_created )
+		{
+			mvwin( win, win_row, win_col )  ;
+			mvwin( bwin, win_row-1, win_col-1 )  ;
+			wattrset( bwin, cuaAttr[ AWF ] ) ;
+			box( bwin, 0, 0 ) ;
+			wattroff( bwin, cuaAttr[ AWF ] ) ;
+			panel  = new_panel( win )  ;
+			bpanel = new_panel( bwin ) ;
+			update_panels()    ;
+			pan_created = true ;
+		}
+		else
+		{
+			show_panel( panel ) ;
+			show_panel( bpanel ) ;
+			update_panels()     ;
+		}
+	}
+
+	wattrset( win, cuaAttr[ PT ] ) ;
+	mvwaddstr( win, 2, ( WSCRMAXW - PanelTitle.size() ) / 2, PanelTitle.c_str() ) ;
+	wattroff( win, cuaAttr[ PT ] ) ;
 
 	if ( tb_model )
 	{
@@ -183,11 +213,7 @@ void pPanel::display_panel( int & RC )
 	hide_pd()        ;
 	display_pd()     ;
 	display_MSG()    ;
-	if ( win_popup && win_width > 0 )
-	{
-		win_box.move_box( win_row, win_col ) ;
-		win_box.display_box() ;
-	}
+	wrefresh( win )  ;
 }
 
 
@@ -198,9 +224,15 @@ void pPanel::refresh( int & RC )
 	RC = 0  ;
 	clear() ;
 
-	attrset( cuaAttr[ PT ] ) ;
-	mvprintw( 2, ( ZSCRMAXW - PanelTitle.size() ) / 2, PanelTitle.c_str() ) ;
-	attroff( cuaAttr[ PT ] ) ;
+	if ( pan_created )
+	{
+		show_panel( panel ) ;
+		update_panels()     ;
+	}
+
+	wattrset( win, cuaAttr[ PT ] ) ;
+	mvwaddstr( win, 2, ( WSCRMAXW - PanelTitle.size() ) / 2, PanelTitle.c_str() ) ;
+	wattroff( win, cuaAttr[ PT ] ) ;
 
 	display_ab()       ;
 	display_literals() ;
@@ -208,14 +240,9 @@ void pPanel::refresh( int & RC )
 	display_boxes()    ;
 	hide_pd()          ;
 	display_MSG()      ;
-	if ( win_popup && win_width > 0 )
-	{
-		win_box.move_box( win_row, win_col ) ;
-		win_box.display_box() ;
-	}
-	display_pd() ;
-
+	display_pd()       ;
 	if ( tb_model ) { display_tb_mark_posn() ; }
+	wrefresh( win )    ;
 }
 
 
@@ -1197,9 +1224,9 @@ void pPanel::display_panel_proc( int & RC, int ln )
 void pPanel::clear()
 {
 	RC = 0 ;
-        for ( int i = 0 ; i < ZSCRMAXD ; i ++ )
+        for ( int i = 0 ; i < WSCRMAXD ; i ++ )
         {
-                move( i, 0 ) ;
+                wmove( win, i, 0 ) ;
                 clrtoeol()   ;
         }
 }
@@ -1335,7 +1362,7 @@ void pPanel::display_literals()
 
 	for ( uint i = 0 ; i < literalList.size() ; i++ )
 	{
-		literalList.at( i )->literal_display() ;
+		literalList.at( i )->literal_display( win ) ;
 	}
 }
 
@@ -1348,7 +1375,7 @@ void pPanel::display_fields()
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
 		if ( !it->second->field_active ) { continue ; }
-		it->second->display_field() ;
+		it->second->display_field( win ) ;
 	}
 }
 
@@ -1359,12 +1386,12 @@ void pPanel::display_ab()
 
 	for ( i = 0 ; i < ab.size() ; i++ )
 	{
-		ab.at( i ).display_abc_unsel() ;
+		ab.at( i ).display_abc_unsel( win ) ;
 	}
 
-        attrset( cuaAttr[ ABSL ] ) ;
-	mvhline( 1, 0, ACS_HLINE, ZSCRMAXW ) ;
-        attroff( cuaAttr[ ABSL ] ) ;
+        wattrset( win, cuaAttr[ ABSL ] ) ;
+	mvwhline( win, 1, 0, ACS_HLINE, WSCRMAXW ) ;
+        wattroff( win, cuaAttr[ ABSL ] ) ;
 }
 
 
@@ -1419,7 +1446,7 @@ void pPanel::cursor_to_field( int & RC, string f_name, int f_pos )
 		if ( f_pos > fieldList[ f_name ]->field_length ) f_pos = 1 ;
 		if ( f_pos < 1 ) f_pos = 1 ;
 		p_col = fieldList[ f_name ]->field_col + f_pos - 1 ;
-		p_row = fieldList[ f_name ]->field_row ;
+		p_row = fieldList[ f_name ]->field_row             ;
 	}
 	return ;
 }
@@ -1427,16 +1454,20 @@ void pPanel::cursor_to_field( int & RC, string f_name, int f_pos )
 
 void pPanel::get_home( uint & row, uint & col )
 {
+	// Return the physical position on the screen
+
 	if ( fieldList.find( Home ) == fieldList.end() )
 	{
-		col = 0 ;
 		row = 0 ;
+		col = 0 ;
 	}
 	else
 	{
-		col = fieldList[ Home ]->field_col ;
 		row = fieldList[ Home ]->field_row ;
+		col = fieldList[ Home ]->field_col ;
 	}
+	row = row + win_row ;
+	col = col + win_col ;
 }
 
 
@@ -1451,7 +1482,7 @@ void pPanel::field_setvalue( string f_name, string f_value )
 	if ( f_value.size() > fieldList[ f_name ]->field_length ) { f_value.substr( 0, f_value.size() - 1 ) ; }
 	fieldList[ f_name ]->field_value   = f_value ;
 	fieldList[ f_name ]->field_changed = true    ;
-	fieldList[ f_name ]->display_field()         ;
+	fieldList[ f_name ]->display_field( win )    ;
 }
 
 
@@ -1466,13 +1497,19 @@ void pPanel::cmd_setvalue( string f_value )
 	if ( f_value.size() > fieldList[ CMDfield ]->field_length ) { f_value.substr( 0, f_value.size() - 1 ) ; }
 	fieldList[ CMDfield ]->field_value   = f_value ;
 	fieldList[ CMDfield ]->field_changed = true    ;
-	fieldList[ CMDfield ]->display_field()         ;
+	fieldList[ CMDfield ]->display_field( win )    ;
 }
 
 
 string pPanel::field_getname( uint row, uint col )
 {
+	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
+
 	map<string, field *>::iterator it ;
+
+	row = row - win_row ;
+	col = col - win_col ;
+
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
 		if ( (it->second->field_row == row) && (col >=it->second->field_col) && (col < (it->second->field_col + it->second->field_length )) )
@@ -1488,6 +1525,7 @@ string pPanel::field_getname( uint row, uint col )
 bool pPanel::field_get_row_col( string fld, uint & row, uint & col )
 {
 	// If field found on panel, return true and its position, else return false
+	// Return the physical position on the screen, so add the window offsets to field_row/col
 
 	map<string, field *>::iterator it ;
 
@@ -1496,8 +1534,8 @@ bool pPanel::field_get_row_col( string fld, uint & row, uint & col )
 
 	if ( !it->second->field_active ) return false ;
 
-	row = it->second->field_row ;
-	col = it->second->field_col ;
+	row = it->second->field_row + win_row ;
+	col = it->second->field_col + win_col ;
 	return  true ;
 }
 
@@ -1505,8 +1543,12 @@ bool pPanel::field_get_row_col( string fld, uint & row, uint & col )
 string pPanel::field_getexec( uint row, uint col )
 {
 	// If field at row,col, return the command for that field as defined in )FIELD panel section.
+	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
 
 	map<string, field *>::iterator it ;
+
+	row = row - win_row ;
+	col = col - win_col ;
 
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
@@ -1522,15 +1564,20 @@ string pPanel::field_getexec( uint row, uint col )
 
 void pPanel::field_clear( string f_name )
 {
-        fieldList[ f_name ]->field_clear() ;
+        fieldList[ f_name ]->field_clear( win ) ;
 }
 
 
 void pPanel::field_edit( uint row, uint col, char ch, bool Isrt, bool & prot )
 {
+	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
+
+	map<string, field *>::iterator it;
+
+	row   = row - win_row ;
+	col   = col - win_col ;
 	p_row = row ;
 	p_col = col ;
-	map<string, field *>::iterator it;
 
 	prot = true ;
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
@@ -1541,13 +1588,14 @@ void pPanel::field_edit( uint row, uint col, char ch, bool Isrt, bool & prot )
 			if (  it->second->field_numeric && !isdigit( ch ) )   { return ; }
 			if ( !it->second->field_dynArea && !it->second->field_input ) return ;
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( col ) ) { return ; }
-			if ( !it->second->edit_field_insert( ch, col, Isrt ) ) { return ; }
+			if ( !it->second->edit_field_insert( win, ch, col, Isrt ) ) { return ; }
 			prot = false ;
 			++p_col ;
 			if ( (p_col == it->second->field_col + it->second->field_length) & (it->second->field_skip) )
 			{
 				field_tab_next( p_row, p_col ) ;
 			}
+			wrefresh( win ) ;
 			return ;
 		}
 	}
@@ -1556,18 +1604,30 @@ void pPanel::field_edit( uint row, uint col, char ch, bool Isrt, bool & prot )
 
 void pPanel::field_backspace( uint & row, uint & col, bool & prot )
 {
+	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
+	// Return physical position of the cursor in row/col
+
+	uint trow ;
+	uint tcol ;
+
 	map<string, field *>::iterator it;
+
+	trow = row - win_row ;
+	tcol = col - win_col ;
 
 	prot = true ;
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
-		if ( (it->second->field_row == row) && (col >it->second->field_col) && (col < (it->second->field_col + it->second->field_length )) )
+		if ( (it->second->field_row == trow) && (tcol >it->second->field_col) && (tcol < (it->second->field_col + it->second->field_length )) )
 		{
 			if ( !it->second->field_active ) return ;
 			if ( !it->second->field_dynArea && !it->second->field_input ) return ;
-			if (  it->second->field_dynArea && !it->second->field_dyna_input( col ) ) return ;
-			col  = fieldList[ it->first ]->edit_field_backspace( col ) ;
+			if (  it->second->field_dynArea && !it->second->field_dyna_input( tcol ) ) return ;
+			tcol = fieldList[ it->first ]->edit_field_backspace( win, tcol ) ;
 			prot = false ;
+			row  = trow + win_row ;
+			col  = tcol + win_col ;
+			wrefresh( win ) ;
 			return ;
 		}
 	}
@@ -1576,18 +1636,30 @@ void pPanel::field_backspace( uint & row, uint & col, bool & prot )
 
 void pPanel::field_delete_char( uint row, uint col, bool & prot )
 {
-	map<string, field *>::iterator it;
+	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
+	// Return physical position of the cursor in row/col
+
+	uint trow ;
+	uint tcol ;
+
+	map<string, field *>::iterator it ;
+
+	trow = row - win_row ;
+	tcol = col - win_col ;
 
 	prot = true ;
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
-		if ( (it->second->field_row == row) && (col >=it->second->field_col) && (col < (it->second->field_col + it->second->field_length )) )
+		if ( (it->second->field_row == trow) && (tcol >=it->second->field_col) && (tcol < (it->second->field_col + it->second->field_length )) )
 		{
 			if ( !it->second->field_active ) return ;
 			if ( !it->second->field_dynArea && !it->second->field_input ) return ;
-			if (  it->second->field_dynArea && !it->second->field_dyna_input( col ) ) return ;
-			fieldList[ it->first ]->edit_field_delete( col ) ;
+			if (  it->second->field_dynArea && !it->second->field_dyna_input( tcol ) ) return ;
+			fieldList[ it->first ]->edit_field_delete( win, tcol ) ;
 			prot = false ;
+			row  = trow + win_row ;
+			col  = tcol + win_col ;
+			wrefresh( win ) ;
 			return ;
 		}
 	}
@@ -1596,7 +1668,12 @@ void pPanel::field_delete_char( uint row, uint col, bool & prot )
 
 void pPanel::field_erase_eof( uint row, uint col, bool & prot )
 {
+	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
+
 	map<string, field *>::iterator it;
+
+	row = row - win_row ;
+	col = col - win_col ;
 
 	prot = true ;
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
@@ -1606,8 +1683,9 @@ void pPanel::field_erase_eof( uint row, uint col, bool & prot )
 			if ( !it->second->field_active ) return ;
 			if ( !it->second->field_dynArea && !it->second->field_input ) return ;
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( col ) ) return ;
-			fieldList[ it->first ]->field_erase_eof( col ) ;
+			fieldList[ it->first ]->field_erase_eof( win, col ) ;
 			prot = false ;
+			wrefresh( win ) ;
 			return ;
 		}
 	}
@@ -1616,16 +1694,25 @@ void pPanel::field_erase_eof( uint row, uint col, bool & prot )
 
 void pPanel::cursor_eof( uint & row, uint & col )
 {
+	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
+	// Return physical position of the cursor in row/col
+
+	uint trow ;
+	uint tcol ;
+
 	map<string, field *>::iterator it;
+
+	trow = row - win_row ;
+	tcol = col - win_col ;
 
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
-		if ( (it->second->field_row == row) && (col >=it->second->field_col) &&  (col < (it->second->field_col + it->second->field_length )) )
+		if ( (it->second->field_row == trow) && (tcol >=it->second->field_col) &&  (tcol < (it->second->field_col + it->second->field_length )) )
 		{
 			if ( !it->second->field_active ) return ;
 			if ( !it->second->field_dynArea && !it->second->field_input ) return ;
-			if (  it->second->field_dynArea && !it->second->field_dyna_input( col ) ) { return ; }
-			col = fieldList[ it->first ]->end_of_field( col ) ;
+			if (  it->second->field_dynArea && !it->second->field_dyna_input( tcol ) ) { return ; }
+			col = fieldList[ it->first ]->end_of_field( win, tcol ) + win_col ;
 			return ;
 		}
 	}
@@ -1634,18 +1721,28 @@ void pPanel::cursor_eof( uint & row, uint & col )
 
 void pPanel::field_tab_down( uint & row, uint & col )
 {
+	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
+	// Return physical position of the cursor in row/col
+	// (get_home returns physical position on the screen)
+
 	int t_offset ;
 	int m_offset ;
 	int c_offset ;
 	int d_offset ;
 	int o_row    ;
 
+	uint trow ;
+	uint tcol ;
+
+	trow = row - win_row ;
+	tcol = col - win_col ;
+
 	bool cursor_moved(false) ;
 	map<string, field *>::iterator it;
 
-	c_offset = row * ZSCRMAXW + col ;
-	m_offset = ZSCRMAXD * ZSCRMAXW  ;
-	o_row = row ;
+	c_offset = trow * WSCRMAXW + tcol ;
+	m_offset = WSCRMAXD * WSCRMAXW    ;
+	o_row    = row                    ;
 
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
@@ -1658,12 +1755,12 @@ void pPanel::field_tab_down( uint & row, uint & col )
 			d_offset = it->second->field_dyna_input_offset( 0 ) ;
 			if ( d_offset == -1 ) { continue ; }
 		}
-		t_offset = it->second->field_row * ZSCRMAXW + it->second->field_col + d_offset ;
+		t_offset = it->second->field_row * WSCRMAXW + it->second->field_col + d_offset ;
 		if ( (t_offset > c_offset) & (t_offset < m_offset) )
 		{
 			m_offset = t_offset ;
-			row      = it->second->field_row ;
-			col      = it->second->field_col + d_offset ;
+			row      = it->second->field_row + win_row ;
+			col      = it->second->field_col + d_offset +win_col ;
 			cursor_moved = true ;
 		}
 	}
@@ -1674,20 +1771,29 @@ void pPanel::field_tab_down( uint & row, uint & col )
 
 void pPanel::field_tab_next( uint & row, uint & col )
 {
-	int t_offset ;
-	int m_offset ;
-	int c_offset ;
-	int d_offset ;
-	int o_row    ;
-	int o_col    ;
+	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
+	// Return physical position of the cursor in row/col
+	// (get_home returns physical position on the screen)
+
+	uint t_offset ;
+	uint m_offset ;
+	uint c_offset ;
+	uint d_offset ;
+	uint o_row    ;
+	uint o_col    ;
+	uint trow    ;
+	uint tcol    ;
+
+	trow = row - win_row ;
+	tcol = col - win_col ;
 
 	bool cursor_moved(false) ;
 	map<string, field *>::iterator it;
 
-	c_offset = row * ZSCRMAXW + col ;
-	m_offset = ZSCRMAXD * ZSCRMAXW  ;
-	o_row    = row                  ;
-	o_col    = col                  ;
+	c_offset = trow * WSCRMAXW + tcol ;
+	m_offset = WSCRMAXD * WSCRMAXW    ;
+	o_row    = trow                   ;
+	o_col    = tcol                   ;
 
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
@@ -1700,16 +1806,16 @@ void pPanel::field_tab_next( uint & row, uint & col )
 			else                                  { d_offset = it->second->field_dyna_input_offset( 0 )     ; }
 			if ( d_offset == -1 ) { continue ; }
 		}
-		t_offset = it->second->field_row * ZSCRMAXW + it->second->field_col + d_offset ;
+		t_offset = it->second->field_row * WSCRMAXW + it->second->field_col + d_offset ;
 		if ( (t_offset > c_offset) & (t_offset < m_offset) )
 		{
 			m_offset = t_offset ;
-			row      = it->second->field_row ;
-			col      = it->second->field_col + d_offset ;
+			row      = it->second->field_row + win_row ;
+			col      = it->second->field_col + d_offset + win_col ;
 			cursor_moved = true ;
 		}
 	}
-	if ( !cursor_moved  ) { get_home( row, col ) ; }
+	if ( !cursor_moved ) { get_home( row, col ) ; }
 }
 
 
@@ -1801,11 +1907,11 @@ void pPanel::display_tb_mark_posn()
 	size = rows - top + 1 ;
 	p_funcPOOL->put( RC, 0, "ZTDVROWS", size ) ;
 
-	attrset( WHITE ) ;
+	wattrset( win, WHITE ) ;
 	if ( size < tb_depth )
 	{
 		mark = p_funcPOOL->get( RC, 0, "ZTDMARK" ) ;
-		mvaddnstr( tb_row + size, 0, mark.c_str(), mark.length() ) ;
+		mvwaddstr( win, tb_row + size, 0, mark.c_str() ) ;
 		p_funcPOOL->put( RC, 0, "ZTDVROWS", size ) ;
 	}
 	else
@@ -1818,8 +1924,8 @@ void pPanel::display_tb_mark_posn()
 	{
 		posn = "Row " + d2ds( top ) + " of " + d2ds( rows ) ; 
 	}
-	mvaddnstr( 2, ZSCRMAXW - posn.length(), posn.c_str(), posn.length() ) ;
-	attroff( WHITE ) ;
+	mvwaddstr( win, 2, WSCRMAXW - posn.length(), posn.c_str() ) ;
+	wattroff( win, WHITE ) ;
 }
 
 
@@ -1871,7 +1977,7 @@ bool pPanel::display_pd( uint row, uint col )
 			if ( (col >= ab.at(i).abc_col) && (col < (ab.at(i).abc_col + ab.at(i).abc_name.size()) ) )
 			{
 				debug1( "Found pulldown " << ab.at(i).abc_name << endl ) ;
-				ab.at(i).display_abc_sel() ;
+				ab.at(i).display_abc_sel( win ) ;
 				ab.at(i).display_pd() ;
 				abActive = true ;
 				abIndex  = i ;
@@ -1902,7 +2008,7 @@ void pPanel::display_pd_next()
 {
 	if ( !abActive ) return   ;
 	if ( ++abIndex == ab.size() ) { abIndex = 0 ; }
-	ab.at( abIndex ).display_abc_sel() ;
+	ab.at( abIndex ).display_abc_sel( win ) ;
 	ab.at( abIndex ).display_pd() ;
 	p_col = ab.at( abIndex ).abc_col + 2 ;
 	p_row = 2 ;
@@ -1913,7 +2019,7 @@ void pPanel::hide_pd()
 {
 	if ( !abActive ) return  ;
 	ab.at( abIndex ).hide_pd() ;
-	ab.at( abIndex ).display_abc_unsel() ;
+	ab.at( abIndex ).display_abc_unsel( win ) ;
 }
 
 
@@ -1923,7 +2029,7 @@ pdc pPanel::retrieve_pdc( int row, int col )
 
 	if ( !abActive ) return t_pdc ;
 	ab.at( abIndex ).hide_pd() ;
-	ab.at( abIndex ).display_abc_unsel() ;
+	ab.at( abIndex ).display_abc_unsel( win ) ;
 	abActive = false ;
 	return ab.at( abIndex ).retrieve_pdc( row, col ) ;
 }
@@ -1935,7 +2041,7 @@ void pPanel::display_boxes()
 
 	for ( it = boxes.begin() ; it != boxes.end() ; it++ )
 	{
-		(*it)->display_box() ;
+		(*it)->display_box( win ) ;
 	}
 }
 
@@ -1961,9 +2067,9 @@ void pPanel::display_MSG()
 	if ( SMSG != "" )
 	{
 		debug1( "Selecting SMSG to display " << SMSG << endl ) ;
-		attrset( cuaAttr[ MSGTYPE ] ) ;
-		mvprintw( 1, ( ZSCRMAXW - SMSG.size()), SMSG.c_str() ) ;
-		attroff( cuaAttr[ MSGTYPE ] ) ;
+		wattrset( win, cuaAttr[ MSGTYPE ] ) ;
+		mvwaddstr( win, 1, ( WSCRMAXW - SMSG.size()), SMSG.c_str() ) ;
+		wattroff( win, cuaAttr[ MSGTYPE ] ) ;
 		if ( !showLMSG && MSGALRM )
 		{
 			beep() ;
@@ -1973,9 +2079,9 @@ void pPanel::display_MSG()
 	if ( LMSG != "" && showLMSG )
 	{
 		debug1( "Selecting LMSG to display " << LMSG << endl ) ;
-		attrset( cuaAttr[ MSGTYPE ] )  ;
-		mvprintw( 4, 1, LMSG.c_str() ) ;
-		attroff( cuaAttr[ MSGTYPE ] )  ;
+		wattrset( win, cuaAttr[ MSGTYPE ] )  ;
+		mvwaddstr( win, 4, 1, LMSG.c_str() ) ;
+		wattroff( win, cuaAttr[ MSGTYPE ] )  ;
 		showLMSG = false               ;
 	}
 }

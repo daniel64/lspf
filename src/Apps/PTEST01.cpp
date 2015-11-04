@@ -28,6 +28,7 @@
 /* opt3 - Test Table Display for keyed table                                */
 /* opt4 - Test Table Display for non-keyed table                            */
 /* opt5 - Test Dynamic Areas                                                */
+/* opt6 - Test popups                                                       */
 
 #include <iostream>
 #include <string>
@@ -84,6 +85,7 @@ void PTEST01::application()
 	else	if ( PARM == "4" ) opt4() ;
 	else	if ( PARM == "5" ) opt5() ;
 	else	if ( PARM == "6" ) opt6() ;
+	else	if ( PARM == "7" ) opt7() ;
 	else    if ( PARM == "ABEND" )
 	{
 		debug1( "Abending...." << endl ) ;
@@ -1069,6 +1071,43 @@ void PTEST01::opt5()
 void PTEST01::opt6()
 {
 }
+
+
+void PTEST01::opt7()
+{
+	string MSG    ;
+	string CURFLD ;
+	int    CURPOS ;
+
+	while( true )
+	{
+		CURFLD = "ZCMD" ;
+		CURPOS = 1      ;
+		if ( MSG == "" ) { ZCMD = "" ; }
+		display( "PTEST01E", MSG, CURFLD, CURPOS ) ;
+		if ( RC >  8 ) { abend()   ; return ; }
+		if ( RC == 8 ) { break ; }
+		MSG = "" ;
+		vget( "ZVERB" ) ;
+		addpop( "", 7, 7 ) ;
+		debug1( "dje doing addpop RC="<<RC << endl);
+		while( true )
+		{
+			CURFLD = "ZCMD1" ;
+			CURPOS = 1       ;
+			if ( MSG == "" ) { ZCMD = "" ; }
+			display( "PTEST01F", MSG, CURFLD, CURPOS ) ;
+			if ( RC >  8 ) { abend()   ; return ; }
+			if ( RC == 8 ) { break ; }
+			MSG = "" ;
+			vget( "ZVERB" ) ;
+		}
+		rempop() ;
+		debug1( "dje doing rempop RC="<<RC << endl);
+	}
+	return ;
+}
+
 
 
 

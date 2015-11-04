@@ -192,7 +192,7 @@ void PFLST0A::application()
 	ZTDVROWS = 1 ;
 
 	createFileList1() ;
-	if ( RC > 0 ) { setmsg( "FLST01F" ) ; cleanup() ; return ; }
+	if ( RC > 0 ) { setmsg( "FLST01F" ) ; }
 
 	while ( true )
 	{
@@ -234,9 +234,9 @@ void PFLST0A::application()
 			}
 			else
 			{
-				tbend( DSLIST )  ;
+				tbend( DSLIST )   ;
 				createFileList1() ;
-				i     = 1        ;
+				i = 1 ;
 			}
 			continue ;
 		}
@@ -1500,8 +1500,6 @@ string PFLST0A::expandDir( string parms )
 
 string PFLST0A::showListing()
 {
-	int i ;
-
 	string w1      ;
 	string w2      ;
 	string ws      ;
@@ -1516,7 +1514,6 @@ string PFLST0A::showListing()
 	createFileList2( FLDIRS ) ;
 
 	RC       = 0 ;
-	i        = 1 ;
 	ZTDVROWS = 1 ;
 	ZRC      = 0 ;
 
@@ -1525,7 +1522,7 @@ string PFLST0A::showListing()
 		if ( ZTDVROWS > 0 )
 		{
 			tbtop( DSLIST )     ;
-			tbskip( DSLIST, i ) ;
+			tbskip( DSLIST, ZTDTOP ) ;
 		}
 		else
 		{
@@ -1561,13 +1558,11 @@ string PFLST0A::showListing()
 			else                             { ZPATH = ws               ; }
 			tbend( DSLIST ) ; createFileList2( FLDIRS ) ; continue ;
 		}
-		i = ZTDTOP ;
 		vget( "ZVERB", SHARED ) ;
 		if ( OFLDIRS != FLDIRS )
 		{
 			tbend( DSLIST ) ;
 			createFileList2( FLDIRS ) ;
-			i = 1 ;
 			continue ;
 		}
 		if ( OPATH != ZPATH )
@@ -1580,7 +1575,6 @@ string PFLST0A::showListing()
 			{
 				tbend( DSLIST ) ;
 				createFileList2( FLDIRS ) ;
-				i = 1 ;
 			}
 			continue ;
 		}

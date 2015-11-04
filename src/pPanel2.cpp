@@ -202,7 +202,11 @@ int pPanel::loadPanel( string p_name, string paths )
 				t2 = strip( ws.substr( j+1) )  ;
 				win_width = ds2d( t1 ) ;
 				win_depth = ds2d( t2 ) ;
-				win_box.box_init( ZSCRMAXW, ZSCRMAXD, "BOX 0 0 " + t1 + " " + t2 + " " + getDialogueVar("ZWINTTL")) ;
+				win  = newwin( win_depth, win_width, win_col, win_row ) ;
+				bwin = newwin( win_depth+2, win_width+2, win_col, win_row ) ;
+				win_created = true     ;
+				WSCRMAXW = win_width   ;
+				WSCRMAXD = win_depth   ;
 			}
 			j = pos( " CMD(", line2 ) ;
 			if ( j > 0 )
@@ -534,7 +538,7 @@ int pPanel::loadPanel( string p_name, string paths )
 		else if ( w1 == "LITERAL" )
 		{
 			literal * m_lit = new literal ;
-			RC = m_lit->literal_init( ZSCRMAXW, ZSCRMAXD, opt_field, line2 ) ;
+			RC = m_lit->literal_init( WSCRMAXW, WSCRMAXD, opt_field, line2 ) ;
 			if ( RC > 0 ) { PERR = "Error creating literal for panel " + p_name ; delete m_lit ; return 20 ; }
 			literalList.push_back( m_lit ) ;
 			continue ;
@@ -553,7 +557,7 @@ int pPanel::loadPanel( string p_name, string paths )
 			}
 
 			field * m_fld = new field ;
-			RC = m_fld->field_init( ZSCRMAXW, ZSCRMAXD, line2 ) ;
+			RC = m_fld->field_init( WSCRMAXW, WSCRMAXD, line2 ) ;
 			if ( RC > 0 ) { PERR = "Error creating field for panel " + p_name ; delete m_fld ; return 20 ; } ;
 			fieldList[ w7 ] = m_fld  ;
 			continue ;
@@ -568,7 +572,7 @@ int pPanel::loadPanel( string p_name, string paths )
 			}
 
 			dynArea * m_dynArea = new dynArea ;
-			RC = m_dynArea->dynArea_init( ZSCRMAXW, ZSCRMAXD, line2 ) ;
+			RC = m_dynArea->dynArea_init( WSCRMAXW, WSCRMAXD, line2 ) ;
 			if ( RC > 0 ) { PERR = "Error creating dynArea for panel " + p_name ; delete m_dynArea ; return 20 ; } ;
 
 			dyn_width = m_dynArea->dynArea_width ;
@@ -600,7 +604,7 @@ int pPanel::loadPanel( string p_name, string paths )
 			debug2( "Creating box" << endl ) ;
 			w2 = word( line2, 2 ) ;
 			Box * m_box = new Box ;
-			m_box->box_init( ZSCRMAXW, ZSCRMAXD, line2 ) ;
+			m_box->box_init( WSCRMAXW, WSCRMAXD, line2 ) ;
 			if ( RC > 0 ) { PERR = "Error creating box for panel " + p_name ; delete m_box ; return 20 ; } ;
 			boxes.push_back( m_box ) ;
 			continue ;
@@ -644,13 +648,13 @@ int pPanel::loadPanel( string p_name, string paths )
 			int start_row = ds2d( word( line2, 2 ) ) - 1;
 
 			if ( isnumeric( w3 ) )                   { tb_depth = ds2d( w3 ) ; }
-			else if ( w3 == "MAX" )                  { tb_depth = ZSCRMAXD - start_row ; }
-			else if ( substr( w3, 1, 4 ) == "MAX-" ) { tb_depth = ZSCRMAXD - ds2d( substr( w3, 5 ) ) - start_row ; }
+			else if ( w3 == "MAX" )                  { tb_depth = WSCRMAXD - start_row ; }
+			else if ( substr( w3, 1, 4 ) == "MAX-" ) { tb_depth = WSCRMAXD - ds2d( substr( w3, 5 ) ) - start_row ; }
 			else 					 { return 20        ; }
 			tb_model = true      ;
 			tb_row   = start_row ;
 			scrollOn = true      ;
-			if ( (start_row + tb_depth ) > ZSCRMAXD ) { tb_depth = (ZSCRMAXD - start_row) ; }
+			if ( (start_row + tb_depth ) > WSCRMAXD ) { tb_depth = (WSCRMAXD - start_row) ; }
 			p_funcPOOL->put( RC, 0, "ZTDDEPTH", tb_depth ) ;
 			continue ;
 		}
@@ -675,8 +679,8 @@ int pPanel::loadPanel( string p_name, string paths )
 				tcol = ds2d( w2 ) ;
 			}
 			if ( isnumeric( w3 ) )                   { tlen = ds2d( w3 ) ; }
-			else if ( w3 == "MAX" )                  { tlen = ZSCRMAXW - tcol + 1 ; }
-			else if ( substr( w3, 1, 4 ) == "MAX-" ) { tlen = ZSCRMAXW - tcol - ds2d( substr( w3, 5 ) ) + 1 ; }
+			else if ( w3 == "MAX" )                  { tlen = WSCRMAXW - tcol + 1 ; }
+			else if ( substr( w3, 1, 4 ) == "MAX-" ) { tlen = WSCRMAXW - tcol - ds2d( substr( w3, 5 ) ) + 1 ; }
 			else 				         { return 20        ; }
 			tbfield_col = tcol    ;
 			tbfield_sz  = tlen    ;
@@ -714,4 +718,5 @@ int pPanel::loadPanel( string p_name, string paths )
 	debug1( "Panel loaded and processed successfully" << endl ) ;
 	return  0 ;
 }
+
 

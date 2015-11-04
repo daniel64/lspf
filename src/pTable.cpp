@@ -425,7 +425,6 @@ void Table::fillfVARs( int & RC, fPOOL & funcPOOL, int depth, int posn )
 	size = table.size() ;
 	funcPOOL.put( RC, 0, "ZTDTOP", posn )  ;
 	funcPOOL.put( RC, 0, "ZTDROWS", size ) ;
-
 	for ( it = table.begin(), i = 1 ; i < posn ; i++ ) { it++ ; }
 	for ( j = 0 ; j < depth ; j++ )
 	{
@@ -1902,7 +1901,7 @@ int tableMGR::getCRP( int & RC, string tb_name )
 		log( "E", "Table >>" << tb_name << "<< not found for get CRP" << endl ) ;
 		return 0 ;
 	}
-	tables[ tb_name ].getCRP() ;
+	return tables[ tb_name ].getCRP() ;
 }
 
 

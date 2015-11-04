@@ -32,4 +32,5 @@ class PTEST01 : public pApplication
 		void opt4() ;
 		void opt5() ;
 		void opt6() ;
+		void opt7() ;
 };

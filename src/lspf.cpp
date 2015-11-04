@@ -331,8 +331,8 @@ void MainLoop()
 		mvprintw( pLScreen::maxrow+1, pLScreen::maxcol-18, "%c  Row %d Col %d  ", Isrt, row+1, col+1 ) ;
 		mvaddstr( pLScreen::maxrow+1, 27, respTime.c_str() ) ;
 		mvprintw( pLScreen::maxrow+1, 52, "Screen:%d-%d   ", pLScreen::currScreen->screenID, currScrn->application_stack_size() ) ;
-		mvaddnstr( pLScreen::maxrow+1, 2, "Screen[        ]", 16 ) ;
-		mvaddnstr( pLScreen::maxrow+1, 9, substr( "12345678", 1, pLScreen::screensTotal).c_str(), 8 ) ;
+		mvaddstr( pLScreen::maxrow+1, 2, "Screen[        ]" ) ;
+		mvaddstr( pLScreen::maxrow+1, 9, substr( "12345678", 1, pLScreen::screensTotal).c_str() ) ;
 		attroff( YELLOW ) ;
 		if ( screenNum < 8 )
 		{
@@ -349,7 +349,7 @@ void MainLoop()
 		if ( showLock )
 		{
 			attrset( RED ) ;
-			mvaddnstr( pLScreen::maxrow+1, 27, "|X|", 3 ) ;
+			mvaddstr( pLScreen::maxrow+1, 27, "|X|" ) ;
 			attroff( RED ) ;
 			showLock = false ;
 		}
@@ -740,7 +740,7 @@ void processAction( uint row, uint col, int c, bool &  passthru )
 
 	if ( c == KEY_ENTER )
 	{
-		if ( row == 0 )
+		if ( row == currAppl->currPanel->get_abline() )
 		{
 			if ( currAppl->currPanel->display_pd( row, col ) )
 			{
@@ -1774,13 +1774,13 @@ void errorScreen( int etype, string msg )
         if ( currAppl->errPanelissued ) { return ; }
 	log( "E", msg << endl ) ;
 	currScrn->clear() ;
-	mvprintw( l++, 0, msg.c_str() ) ;
-	mvprintw( l++, 0, "See lspf and application logs for possible further details of the error" ) ;
+	mvaddstr( l++, 0, msg.c_str() ) ;
+	mvaddstr( l++, 0, "See lspf and application logs for possible further details of the error" ) ;
 	if ( etype == 2 )
 	{
-		mvprintw( l++, 0, "Depending on the error, application may still be running in the background.  Recommend restarting lspf." ) ;
+		mvaddstr( l++, 0, "Depending on the error, application may still be running in the background.  Recommend restarting lspf." ) ;
 	}
-	mvprintw( l++, 0, "***" ) ;
+	mvaddstr( l++, 0, "***" ) ;
 	while ( true )
 	{
 		int  c  = getch() ;

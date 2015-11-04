@@ -162,7 +162,6 @@ void pApplication::get_cursor( uint & row, uint & col )
 }
 
 
-
 void pApplication::set_msg( string SMSG, string LMSG, cuaType MSGTYPE, bool MSGALRM )
 {
 	if ( panelList.size() == 0 ) { return ; }
@@ -680,6 +679,8 @@ void pApplication::vcopy( string name, string & var_name, vcMODE mode )
 
 	dataType var_type  ;
 
+	RC = 0 ;
+
 	switch ( mode )
 	{
 	case LOCATE:
@@ -752,6 +753,8 @@ string pApplication::vlist( poolType pType, int lvl )
 void pApplication::addpop( string a_fld, int a_row, int a_col )
 {
 	//  Create pop-up window and set row/col for the next panel display.  If addpop() is already active, store old values for next rempop()
+	//  Position of addpop is relative to row=1, col=3
+	//  Defaults are 0,0 giving row=1, col=3 (or 2,4 when starting at 1,1)
 
 	//  RC = 0  Normal completion
 	//  RC = 12 No panel displayed before addpop() service when using field parameter
@@ -759,6 +762,8 @@ void pApplication::addpop( string a_fld, int a_row, int a_col )
 
 	uint p_row( 0 ) ;
 	uint p_col( 0 ) ;
+
+	RC = 0 ;
 
 	if ( a_fld != "" )
 	{
@@ -782,9 +787,9 @@ void pApplication::addpop( string a_fld, int a_row, int a_col )
 		addpop_stk.push( addpop_row ) ;
 		addpop_stk.push( addpop_col ) ;
 	}
-	addpop_row    = a_row ;
-	addpop_col    = a_col ;
-	addpop_active = true  ;
+	a_row < 0  ? addpop_row = 0 : addpop_row = a_row + 1 ;
+	a_col < -1 ? addpop_col = 1 : addpop_col = a_col + 3 ;
+	addpop_active = true ;
 
 	log( "N", "ADDPOP service not yet implemented" << endl ) ;
 }
@@ -798,6 +803,8 @@ void pApplication::rempop( string r_all )
 	//  RC = 0  Normal completion
 	//  RC = 16 No pop-up window exists at this level
 	//  RC = 20 Severe error
+
+	RC = 0 ;
 
 	if ( !addpop_active ) { RC = 16 ; checkRCode( "No pop-up window exists at this level" ) ; return ; }
 

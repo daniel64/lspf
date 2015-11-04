@@ -7,5 +7,5 @@ g++ -O0 -shared -fPIC -std=c++11 -Wl,-soname,libPPSP01A.so -o libPPSP01A.so PPSP
 g++ -O0 -shared -fPIC -std=c++11 -Wl,-soname,libPTEST01.so -o libPTEST01.so PTEST01.cpp
 g++ -O0 -shared -fPIC -std=c++11 -Wl,-soname,libPDPANLA.so -o libPDPANLA.so PDPANLA.cpp
 g++ -O0 -shared -fPIC -std=c++11 -Wl,-soname,libPTUTORA.so -o libPTUTORA.so PTUTORA.cpp
-g++ -shared -fPIC -std=c++11 -Wl,-soname,libPOREXX1.so -lrexx -lrexxapi -o libPOREXX1.so POREXX1.cpp 
-g++ -shared -fPIC -std=c++11 -Wl,-soname,libPCMD0A.so -o libPCMD0A.so PCMD0A.cpp
+g++ -O0 -shared -fPIC -std=c++11 -Wl,-soname,libPOREXX1.so -lrexx -lrexxapi -o libPOREXX1.so POREXX1.cpp 
+g++ -O0 -shared -fPIC -std=c++11 -Wl,-soname,libPCMD0A.so -o libPCMD0A.so PCMD0A.cpp
