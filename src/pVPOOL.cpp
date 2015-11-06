@@ -556,8 +556,6 @@ void poolMGR::createPool( int & RC, poolType pType, string path )
 	// RC = 4  Pool created but not loaded as PROFILE file does not exist (for PROFILE pools only)
 	// RC = 20 Severe error
 
-	string value ;
-	string var   ;
 	string s     ;
 
 	map<string, pVPOOL>::iterator sp_it   ;
@@ -622,7 +620,6 @@ void poolMGR::createPool( int & RC, poolType pType, string path )
 						log( "I", "Profile " << currAPPLID + "PROF does not exist.  Creating default" <<  endl ) ;
 						pool.path = path                         ;
 						POOLs_profile[ currAPPLID ] = pool       ;
-						pp_it = POOLs_profile.find( currAPPLID ) ;
 						POOLs_profile[ currAPPLID ].refCount = 1 ;
 						log( "I", "Profile Pool " << currAPPLID << " created okay in path " << path << endl ) ;
 						RC = 4 ;
@@ -650,10 +647,8 @@ void poolMGR::createPool( int & RC, poolType pType, string path )
 void poolMGR::destroyPool( int & RC, poolType pType )
 {
 
-	string s ;
 	map<string, pVPOOL>::iterator sp_it ;
 	map<string, pVPOOL>::iterator pp_it ;
-	map<string, pVAR>::iterator v_it    ;
 
 	RC = 0   ;
 
@@ -1015,7 +1010,6 @@ void poolMGR::erase( int & RC, string name, poolType pType )
 
 	map<string, pVPOOL>::iterator sp_it ;
 	map<string, pVPOOL>::iterator p_it ;
-	map<string, pVAR>::iterator v_it   ;
 
 	RC = 0 ;
 

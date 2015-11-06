@@ -30,17 +30,17 @@ literal  15   4       SAC    "Replace like-named pathname"
 field    16   2   1   CEF PAD('_') DIRREC
 literal  16   4       SAC    "Recursively copy sub-directories"  
 
-literal 18 2  CH "Instructions"
+literal 19 2  CH "Instructions"
 
-literal 19 2  NT "Press"
-literal 19 8  ET "Enter"
-literal 19 14 NT "to confirm copy"
+literal 20 2  NT "Press"
+literal 20 8  ET "Enter"
+literal 20 14 NT "to confirm copy"
 
-literal 21 2  NT "Press"
-literal 21 8  ET "Cancel"
-literal 21 15 NT "or"
-literal 21 18 ET "END"
-literal 21 22 NT "to cancel copy"
+literal 22 2  NT "Press"
+literal 22 8  ET "Cancel"
+literal 22 15 NT "or"
+literal 22 18 ET "END"
+literal 22 22 NT "to cancel copy"
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC

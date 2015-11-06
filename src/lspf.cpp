@@ -173,7 +173,6 @@ int main(void)
 	uint row     ;
 	uint col     ;
 
-	map<string, void *>::iterator it ;
 	boost::thread * pThread          ;
 
 	startTime    = boost::posix_time::microsec_clock::universal_time() ;
@@ -279,11 +278,12 @@ void MainLoop()
 	int RC      ;
 	int elapsed ;
 	int pos     ;
-	uint t       ;
-	uint c       ;
+	int ws      ;
+	int i       ;
+	uint t      ;
+	uint c      ;
 
-	string field_exec ;
-	string field_name ;
+	fieldExc fxc ;
 
 	char ch     ;
 	char Isrt   ;
@@ -296,8 +296,9 @@ void MainLoop()
 	bool passthru ;
 	bool showLock ;
 
-	vector<pLScreen * >::iterator it ;
-	string respTime ;
+	string respTime   ;
+	string field_name ;
+	string ww         ;
 
 	pLScreen * p_pLScreen ;
 	p_pLScreen = screenList[ screenNum ] ;
@@ -520,21 +521,27 @@ void MainLoop()
 					}
 					else if ( ZCOMMAND == "FIELDEXC" )
 					{
-						field_exec = currAppl->currPanel->field_getexec( row, col ) ;
-						if ( field_exec != "" )
+						
+						field_name = currAppl->currPanel->field_getname( row, col ) ;
+						fxc = currAppl->currPanel->field_getexec( field_name )      ;
+						if ( fxc.fieldExc_command != "" )
 						{
-							selectParse( RC, subword( field_exec, 2 ), SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB) ;
+							selectParse( RC, subword( fxc.fieldExc_command, 2 ), SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB ) ;
 							if ( RC > 0 )
 							{
-								log( "E", "Error in FIELD SELECT command " << field_exec << endl ) ;
+								log( "E", "Error in FIELD SELECT command " << fxc.fieldExc_command << endl ) ;
 								currAppl->setmsg( "PSYS01K" ) ;
 								break ;
 							}
-							field_name = currAppl->currPanel->field_getname( row, col ) ;
 							SEL_PARM = SEL_PARM + " " + currAppl->currPanel->field_getvalue( field_name ) ;
 							currAppl->field_name = field_name ;
 							currAppl->currPanel->field_get_row_col( field_name, t, c ) ;
 							p_poolMGR->put( RC, "ZFECSRP", d2ds( col-c+1 ), SHARED )   ;
+							for( ws = words( fxc.fieldExc_passed ), i = 1 ; i <= ws ; i++ )
+							{
+								ww = word( fxc.fieldExc_passed, i ) ;
+								p_poolMGR->put( RC, "ZFEDATA" + d2ds( i ), currAppl->currPanel->field_getvalue( ww ) , SHARED ) ;
+							}
 							startApplication( SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB ) ;
 							break ;
 						}
@@ -1568,23 +1575,23 @@ void setColourPair( string name )
 	if ( RC == 0 )
 	{
 		c = t[ 0 ] ;
-		if      ( c == 'R' ) cuaAttr[ cuaAttrName[ name ] ] = RED     ;
-		else if ( c == 'G' ) cuaAttr[ cuaAttrName[ name ] ] = GREEN   ;
-		else if ( c == 'Y' ) cuaAttr[ cuaAttrName[ name ] ] = YELLOW  ;
-		else if ( c == 'B' ) cuaAttr[ cuaAttrName[ name ] ] = BLUE    ;
-		else if ( c == 'M' ) cuaAttr[ cuaAttrName[ name ] ] = MAGENTA ;
-		else if ( c == 'T' ) cuaAttr[ cuaAttrName[ name ] ] = TURQ    ;
-		else if ( c == 'W' ) cuaAttr[ cuaAttrName[ name ] ] = WHITE   ;
+		if      ( c == 'R' ) { cuaAttr[ cuaAttrName[ name ] ] = RED     ; }
+		else if ( c == 'G' ) { cuaAttr[ cuaAttrName[ name ] ] = GREEN   ; }
+		else if ( c == 'Y' ) { cuaAttr[ cuaAttrName[ name ] ] = YELLOW  ; }
+		else if ( c == 'B' ) { cuaAttr[ cuaAttrName[ name ] ] = BLUE    ; }
+		else if ( c == 'M' ) { cuaAttr[ cuaAttrName[ name ] ] = MAGENTA ; }
+		else if ( c == 'T' ) { cuaAttr[ cuaAttrName[ name ] ] = TURQ    ; }
+		else if ( c == 'W' ) { cuaAttr[ cuaAttrName[ name ] ] = WHITE   ; }
 		else { log( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ; RC = 20 ; }
 		c = t[ 1 ] ;
-		if      ( c == 'L' ) cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_NORMAL  ;
-		else if ( c == 'H' ) cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_BOLD    ;
+		if      ( c == 'L' ) { cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_NORMAL  ; }
+		else if ( c == 'H' ) { cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_BOLD    ; }
 		else { log( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ; RC = 20 ; }
 		c = t[ 2 ] ;
-		if      ( c == 'N' ) cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ]               ;
-		else if ( c == 'B' ) cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_BLINK     ;
-		else if ( c == 'R' ) cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_REVERSE   ;
-		else if ( c == 'U' ) cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_UNDERLINE ;
+		if      ( c == 'N' ) { }
+		else if ( c == 'B' ) { cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_BLINK     ; }
+		else if ( c == 'R' ) { cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_REVERSE   ; }
+		else if ( c == 'U' ) { cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_UNDERLINE ; }
 		else { log( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ; RC = 20 ; }
 	}
 	else { log( "E", "Variable ZC" << name << " not found in ISPS profile" << endl ) ; RC = 20 ; }
@@ -1605,11 +1612,8 @@ void loadDefaultPools()
 
 	int    RC ;
 	int    i  ;
-	string s  ;
-	string t  ;
 
 	struct utsname buf ;
-	map<string, void *>::iterator it ;
 
 	i = uname( &buf ) ;
 
@@ -1804,8 +1808,6 @@ void loadDynamicClasses()
 	string fname ;
 	string paths ;
 	string p     ;
-	string ldpath1 ;
-	string ldpath2 ;
 
 	void *dlib   ;
 	void *mkr    ;

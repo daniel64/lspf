@@ -585,7 +585,7 @@ string cs2bs( string s )
 	{
 		for ( j = 7; j >= 0; --j)
 		{
-			s[ i ] & (1 << j) ? reslt = reslt + "1" : reslt = reslt + "0" ;
+			( s[ i ] & (1 << j) ) ? reslt = reslt + "1" : reslt = reslt + "0" ;
 		}
 	}
 	return reslt ;
@@ -1214,7 +1214,6 @@ void selectParse( int & RC, string SELSTR, string & PGM, string & PARM, string &
 	
 	int p1 ;
 	int p2 ;
-	string t ;
 
 	RC      = 0     ;
 	PGM     = ""    ;

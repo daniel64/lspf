@@ -25,16 +25,16 @@ literal  11   4       SAC    "Allow delete of non-empty directories"
 field    12   2   1   CEF PAD('_') CONDOFF
 literal  12   4       SAC    "Set file delete confirmation off"  
 
-literal 14 2  CH "Instructions"
-literal 15 2  NT "Press"
-literal 15 8  ET "Enter"
-literal 15 14 NT "to confirm delete"
+literal 15 2  CH "Instructions"
+literal 16 2  NT "Press"
+literal 16 8  ET "Enter"
+literal 16 14 NT "to confirm delete"
 
-literal 17 2  NT "Press"
-literal 17 8  ET "Cancel"
-literal 17 15 NT "or"
-literal 17 18 ET "END"
-literal 17 22 NT "to cancel delete."
+literal 18 2  NT "Press"
+literal 18 8  ET "Cancel"
+literal 18 15 NT "or"
+literal 18 18 ET "END"
+literal 18 22 NT "to cancel delete."
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC

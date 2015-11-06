@@ -128,7 +128,6 @@ int dynArea::dynArea_init( int MAXW, int MAXD, string line )
 	string w3 ;
 	string w4 ;
 	string w5 ;
-	string w6 ;
 	string w7 ;
 	string t  ;
 	
@@ -136,7 +135,6 @@ int dynArea::dynArea_init( int MAXW, int MAXD, string line )
 	w3  = word( line, 3 ) ;
 	w4  = word( line, 4 ) ;
 	w5  = word( line, 5 ) ;
-	w6  = word( line, 6 ) ;
 	w7  = word( line, 7 ) ;
 	
 	row = ds2d( w2 ) ;
@@ -220,9 +218,10 @@ bool field::edit_field_insert( WINDOW * win, char ch, int col, bool Isrt )
 	// byte at the start of the field
 	//
 	uint pos ;
-	uint i   ;
-	uint j   ;
-	uint l   ;
+
+	int i   ;
+	int j   ;
+	int l   ;
 
 	pos = (col - field_col) ;
 	if ( pos > field_value.size() )
@@ -321,9 +320,10 @@ void field::edit_field_delete( WINDOW * win, int col )
 	//
 
 	uint pos ;
-	uint i   ;
-	uint j   ;
-	uint l   ;
+
+	int i   ;
+	int j   ;
+	int l   ;
 	
 	pos = col - field_col ;
 	if ( pos > field_value.size() ) return ;
@@ -374,9 +374,10 @@ int field::edit_field_backspace( WINDOW * win, int col )
 	//
 
 	uint pos ;
-	uint i   ;
-	uint j   ;
-	uint l   ;
+
+	int i   ;
+	int j   ;
+	int l   ;
 	
 	pos = col - field_col ;
 	if ( (pos > field_value.size()) ) return --col ;
@@ -789,7 +790,6 @@ int literal::literal_init( int MAXW, int MAXD, int & opt_field, string line )
 	string w3 ;
 	string w4 ;
 	string w5 ;
-	string w  ;
 
 	cuaType fType   ;
 	
@@ -1030,6 +1030,7 @@ IFSTMNT::IFSTMNT( string s )
 	// IF ( &AAA=&BBBB )
 	// IF ( &AAA = VALUE1,VALUE2 )
 	// IF ( &AAA NE 'Hello','Goodbye' )
+	// IF (.CURSOR = ZCMD)
 	// rhs value lists only for EQ and NE (EQ only one needs to be true, NE all need to be true)
 
 	int p1 ;
@@ -1085,9 +1086,13 @@ IFSTMNT::IFSTMNT( string s )
 	s    = strip( s.erase( 0, p2 ) ) ;
 
 	if ( words( if_lhs ) != 1 ) { if_RC = 20 ; return ; }
-	if ( if_lhs[0] != '&' ) { if_RC = 20 ; return ; }
-	if_lhs.erase( 0, 1 ) ;
-	if ( !isvalidName( if_lhs ) ) { if_RC = 20 ; return ; }
+	if ( if_lhs == ".CURSOR" ) {}
+	else if( if_lhs[0] != '&' ) { if_RC = 20 ; return ; }
+	else
+	{
+		if_lhs.erase( 0, 1 ) ;
+		if ( !isvalidName( if_lhs ) ) { if_RC = 20 ; return ; }
+	}
 
 	if      ( comp == "="  ) { if_eq = true ; }
 	else if ( comp == "EQ" ) { if_eq = true ; }
@@ -1180,8 +1185,6 @@ ASSGN::ASSGN( string s )
 	int p  ;
 	int p1 ;
 	
-	bool oQuote ;
-
 	as_RC     = 0     ;
 	as_lhs   = ""     ;
 	as_rhs   = ""     ;
@@ -1192,8 +1195,6 @@ ASSGN::ASSGN( string s )
 	as_upper  = false ;
 	as_words  = false ;
 	
-	oQuote = false ;
-
 	p = s.find( '=' ) ;
 	if ( p == string::npos ) { as_RC = 20 ; return ; }
 	as_lhs = upper( strip( s.substr( 0, p ) ) ) ;
@@ -1352,7 +1353,6 @@ VERIFY::VERIFY( string s )
 	string w  ;
 	string w1 ;
 	string w2 ;
-	string w3 ;
 
 	ver_RC      = 0     ;
 	ver_nblank  = false ;
@@ -1396,7 +1396,6 @@ VERIFY::VERIFY( string s )
 	if ( !isvalidName( ver_field ) ) { ver_RC = 20 ; return ; }
 	
 	w2 = word( s, 2 ) ;
-	w3 = word( s, 3 ) ;
 	
 	if ( w2 == "NB" || w2 == "NONBLANK" ) { ver_nblank = true ; i = 3 ; }
 	else                                  { i = 2 ;                     }
@@ -1501,7 +1500,6 @@ TRANS::TRANS( string s )
 	int    p2 ;
 	int    i  ;
 	int    j  ;
-	string t  ;
 	string v1 ;
 	string v2 ;
 

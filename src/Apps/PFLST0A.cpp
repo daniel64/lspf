@@ -174,6 +174,10 @@ void PFLST0A::application()
 		else if ( w1 == "EXPAND" )
 		{
 			ZRESULT = expandDir( subword( PARM, 2 ) ) ;
+			if ( word( PARM, 2 ) == "FILEONLY" && ZRC == 0 )
+			{
+				ZRESULT = substr( ZRESULT, lastpos( "/", ZRESULT)+1 ) ;
+			}
 			cleanup() ;
 			return    ;
 		}
@@ -1398,13 +1402,20 @@ string PFLST0A::expandDir( string parms )
 	int i        ;
 	int pos      ;
 
+	bool showl   ;
+
 	string type  ;
 	string dir1  ;
 	string entry ;
 	string dir   ;
 	string cpos  ;
+	string data1 ;
+	string data2 ;
 
 	ZRC = 8 ;
+	data1 = "" ;
+	data2 = "" ;
+	showl = false ;
 
 	typedef vector< path > vec ;
 	vec v ;
@@ -1416,6 +1427,40 @@ string PFLST0A::expandDir( string parms )
 	vget( "ZFECSRP", SHARED ) ;
 	vcopy( "ZFECSRP", cpos, MOVE ) ;
 	pos = ds2d( cpos ) ;
+
+	if ( type == "FILEONLY" )
+	{
+		if ( dir[ 0 ] == '?' )
+		{
+			showl = true ;
+			dir   = ""   ;
+		}
+		vget( "ZFEDATA1 ZFEDATA2", SHARED ) ;
+		vcopy( "ZFEDATA1", data1, MOVE )    ;
+		vcopy( "ZFEDATA2", data2, MOVE )    ;
+		if ( data1 == "" )
+		{
+			if ( data2 == "" )
+			{
+				RC = 8    ;
+				return "" ;
+			}
+			else
+			{
+				if ( data2.back() == '/' ) { dir = data2 + dir ; pos-- ; }
+				else                       { dir = data2 + "/" + dir   ; }
+				pos = pos + data2.size() + 1 ;
+			}
+		}
+		else
+		{
+			if ( data1.back() == '/' ) { dir = data1 + dir ; pos-- ; }
+			else                       { dir = data1 + "/" + dir   ; }
+			pos = pos + data1.size() + 1 ;
+		}
+		if ( showl ) { ZPATH = dir ; return showListing() ; }
+	}
+
 
 	if ( dir == "" )
 	{
@@ -1436,6 +1481,8 @@ string PFLST0A::expandDir( string parms )
 		return showListing() ;
 	}
 
+		
+		
 	if ( pos > 1 && pos < dir.size() )
 	{
 		dir.erase( pos-1 ) ;

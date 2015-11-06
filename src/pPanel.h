@@ -58,6 +58,7 @@ class pPanel
 		void   display_panel_reinit( int & RC, int ln ) ;
 		void   display_panel_proc( int & RC, int ln )   ;
 		void   display_MSG()  ;
+
 		void   set_popup( int, int ) ;
 		void   remove_popup()        ;
 
@@ -96,7 +97,7 @@ class pPanel
 		void   field_tab_next( uint & row, uint & col ) ;
         	void   field_clear( string field )    ;
         	string field_getvalue( string field ) ;
-		string field_getexec( uint row, uint col ) ;
+		fieldExc field_getexec( string ) ;
 		void   field_setvalue( string field, string value ) ;
 
 		string cmd_getvalue() ;
@@ -129,7 +130,7 @@ class pPanel
 		uint   p_row       ;
 		uint   p_col       ;
 		bool   tb_model    ;
-		bool   win_popup   ;
+		bool   win_addpop  ;
 		bool   win_created ;
 		bool   pan_created ;
 		int    win_width   ;
@@ -160,6 +161,8 @@ class pPanel
 		map<string, string > commandTable ;
 		map<string, pnts > pntsTable      ;
 		map<string, string> fieldHList    ;
+
+		map<string, fieldExc> fieldExcTable ;
 
 		vector<panstmnt> procstmnts ;
 		vector<panstmnt> initstmnts ;

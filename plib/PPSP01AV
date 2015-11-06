@@ -16,7 +16,7 @@ field    4  MAX-3   4  NEF  NONE ZSCROLL
 literal  6  2      FP    "Profile:"  
 field    6  11    8 VOI  NONE ZAPPLID
 
-literal  7 2 CH "C Variable  P L Message         Value"  
+literal  7 2 CH "C Variable  P S Message         Value"  
 literal  8 2 CH EXPAND "-"  
 
 tbmodel  9   MAX

@@ -27,7 +27,6 @@ class field
 		unsigned int field_col          ;
 		unsigned int field_length       ;
 		string       field_value        ;
-		string       field_exec         ;
 		bool         field_pwd          ;
 		bool         field_changed      ;
 		bool         field_active       ;
@@ -56,7 +55,6 @@ class field
 		string       field_shadow_value ;
 
 		field() {
-				field_exec         = ""       ;
 				field_pwd          = false    ;
 				field_changed      = false    ;
 				field_active       = true     ;
@@ -444,3 +442,21 @@ class TRANS
 	string trns_field1 ;
 	string trns_field2 ;
 } ;
+
+
+class fieldExc
+{
+	public:
+		fieldExc()
+		{
+			fieldExc_command = "" ;
+			fieldExc_passed  = "" ;
+		} ;
+
+	string fieldExc_command ;
+	string fieldExc_passed  ;
+
+} ;
+
+
+

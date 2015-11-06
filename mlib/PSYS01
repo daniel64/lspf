@@ -87,3 +87,6 @@ PSYS01T "Permisison Denied"
 
 PSYS01U "Unknown Error Occured"
 "Unknown error occured opening file '&ZZSTR1'"
+
+PSYS01V "Entry Retrieved" .TYPE=N
+""

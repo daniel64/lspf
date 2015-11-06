@@ -56,8 +56,16 @@ void PCMD0A::application()
 	string result    ;
 	string file      ;
 	char buffer[256] ;
+
+	ofstream of      ;
 	
-	vdefine( "ZCOMMAND", &ZCOMMAND ) ;
+	vdefine( "ZCOMMAND", &ZCOMMAND )  ;
+	vcopy( "ZUSER", ZUSER, MOVE )     ;
+	vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
+
+
+	boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
+	string tname = temp.native() ;
 	
 	while ( true )
 	{
@@ -68,16 +76,19 @@ void PCMD0A::application()
 		vget( "ZVERB", SHARED ) ;
 		if ( ZCOMMAND != "" )
 		{
-			debug1("Command entered is " << ZCOMMAND << endl ) ;
+			of.open( tname ) ;
 			FILE* pipe{popen(ZCOMMAND.c_str(), "r")};
 			while( fgets(buffer, sizeof(buffer), pipe) != nullptr )
 			{
 				file = buffer;
 				result = file.substr(0, file.size() - 1);
-				debug1("Result from command is " << result << endl ) ;
+				of << result << endl ;
 			}
-			pclose(pipe);
-			ZCOMMAND = "" ;
+			pclose( pipe )  ;
+			ZCOMMAND = ""   ;
+			of.close()      ;
+			browse( tname ) ;
+			remove( tname ) ;
 		}
 		debug1("Result from command is " << result << endl ) ;
 	}

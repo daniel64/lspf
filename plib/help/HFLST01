@@ -5,7 +5,7 @@ Primary and line commands for file list application PFLST01
 
 
 Place cursor on Path Name and execute primary command FIELDEXC for directory name completion.
-(Assign FIELDEXC to a PF key to make this easier).  This function cursor sensitive, so only characters
+(Assign FIELDEXC to a PF key to make this easier).  This function is cursor sensitive, so only characters
 before the cursor will be taken into account (if cursor is on the first position, all the field is used).
 Partial directory names will be expanded to the first match and then the next directory entry in
 the list will be retrieved.

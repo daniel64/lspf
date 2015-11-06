@@ -41,13 +41,15 @@ PROC :
      IF (&Z EQ A,B,C,D) true if var Z is any of the list
      IF (&Z NE A,B,C,D) true if var Z is non of the list
      ELSE
-     EXIT
+     EXIT  exit panel processing.
      &ZCMD = TRUNC( &CMD, 3 )
      &ZCMD = TRUNC( &CMD, '.' )
      &REST = .TRAIL
      &ZCMD = TRANS( &ZCMD Y,YES N,NO )
      &ZCMD = TRANS( &ZCMD Y,YES N,NO *.* )
      &ZCMD = TRANS( &ZCMD Y,YES N,NO *.? )
+
+     At end of the )PROC section or EXIT, if .MSG set, re-issue panel, else return to program 
 
 INIT | REINIT :
     VGET VAR1 PROFILE | SHARED

@@ -2,7 +2,7 @@
 
 )COMMENT
  A simple saved file list dialogue.  Simple file/directory name expansion supported
- via program PFLST0A 
+ via program PFLST0A.  Retrieve list is cursor sensitive.
 )ENDCOMMENT
 
 )BODY
@@ -24,28 +24,28 @@
  literal  10   2   FP "Current. . . .:"    
  field    10  18   MAX  VOI NONE ZCURR   
 
- field    12   2  1   NEF CAPS(ON),PAD('_')   SEL1
+ field    12   2  1   NEF CAPS(ON),PAD('_'),SKIP(OFF)  SEL1
  field    12   4  60  NEF CAPS(OFF),PAD('_')  ZFILE1
 
- field    13   2  1   NEF CAPS(ON),PAD('_')   SEL2
+ field    13   2  1   NEF CAPS(ON),PAD('_'),SKIP(OFF)  SEL2
  field    13   4  60  NEF CAPS(OFF),PAD('_')  ZFILE2
 
- field     14  2  1   NEF CAPS(ON),PAD('_')   SEL3
+ field     14  2  1   NEF CAPS(ON),PAD('_'),SKIP(OFF)  SEL3
  field     14  4  60  NEF CAPS(OFF),PAD('_')  ZFILE3
 
- field     15  2  1   NEF CAPS(ON),PAD('_')   SEL4
+ field     15  2  1   NEF CAPS(ON),PAD('_'),SKIP(OFF)  SEL4
  field     15  4  60  NEF CAPS(OFF),PAD('_')  ZFILE4
 
- field     16  2  1   NEF CAPS(ON),PAD('_')   SEL5
+ field     16  2  1   NEF CAPS(ON),PAD('_'),SKIP(OFF)  SEL5
  field     16  4  60  NEF CAPS(OFF),PAD('_')  ZFILE5
 
- field     17  2  1   NEF CAPS(ON),PAD('_')   SEL6
+ field     17  2  1   NEF CAPS(ON),PAD('_'),SKIP(OFF)  SEL6
  field     17  4  60  NEF CAPS(OFF),PAD('_')  ZFILE6
 
- field     18  2  1   NEF CAPS(ON),PAD('_')   SEL7
+ field     18  2  1   NEF CAPS(ON),PAD('_'),SKIP(OFF)  SEL7
  field     18  4  60  NEF CAPS(OFF),PAD('_')  ZFILE7
 
- field     19  2  1   NEF CAPS(ON),PAD('_')   SEL8
+ field     19  2  1   NEF CAPS(ON),PAD('_'),SKIP(OFF)  SEL8
  field     19  4  60  NEF CAPS(OFF),PAD('_')  ZFILE8
 
 )INCLUDE STD_PDC
@@ -61,6 +61,11 @@ VGET (ZFILE1 ZFILE2 ZFILE3 ZFILE4 ZFILE5 ZFILE6 ZFILE7 ZFILE8) PROFILE
 
 
 )PROC
+
+&ZFEDATA1 = &ZDIR
+&ZFEDATA2 = &ZCURR
+VPUT (ZFEDATA1 ZFEDATA2) SHARED
+
 IF (&ZCMD NE &Z)
    .MSG    = PSYS01C
    .CURSOR = ZCMD
@@ -78,42 +83,107 @@ VER (&SEL8,LIST,S,B,C,E)
 IF (&SEL1 EQ C)
    &ZCURR = &ZFILE1
    VPUT (ZCURR) PROFILE
+   &SEL1 = &Z
    EXIT
 ELSE
    IF (&SEL2 EQ C)
       &ZCURR = &ZFILE2
       VPUT (ZCURR) PROFILE
+      &SEL2 = &Z
       EXIT
    ELSE
       IF (&SEL3 EQ C)
          &ZCURR = &ZFILE3
          VPUT (ZCURR) PROFILE
+         &SEL3 = &Z
          EXIT
       ELSE
          IF (&SEL4 EQ C)
             &ZCURR = &ZFILE4
             VPUT (ZCURR) PROFILE
+            &SEL4 = &Z
             EXIT
          ELSE
             IF (&SEL5 EQ C)
                &ZCURR = &ZFILE5
                VPUT (ZCURR) PROFILE
+               &SEL5 = &Z
                EXIT
             ELSE
                IF (&SEL6 EQ C)
                   &ZCURR = &ZFILE6
                   VPUT (ZCURR) PROFILE
+                  &SEL6 = &Z
                   EXIT
                ELSE
                   IF (&SEL7 EQ C)
                      &ZCURR = &ZFILE7
                      VPUT (ZCURR) PROFILE
+                     &SEL7 = &Z
                      EXIT
                   ELSE
                      IF (&SEL8 EQ C)
-                        VPUT (ZCURR) PROFILE
-                        EXIT
                         &ZCURR = &ZFILE8
+                        VPUT (ZCURR) PROFILE
+                        &SEL8 = &Z
+                        EXIT
+
+IF (.CURSOR EQ ZFILE1)
+   &ZCURR = &ZFILE1
+   VPUT (ZCURR) PROFILE
+   .CURSOR = ZFILE
+   .MSG    = PSYS01V
+   EXIT
+ELSE
+   IF (.CURSOR EQ ZFILE2)
+      &ZCURR = &ZFILE2
+      VPUT (ZCURR) PROFILE
+      .CURSOR = ZFILE
+      .MSG    = PSYS01V
+      EXIT
+   ELSE
+      IF (.CURSOR EQ ZFILE3)
+         &ZCURR = &ZFILE3
+         .CURSOR = ZFILE
+         .MSG    = PSYS01V
+         VPUT (ZCURR) PROFILE
+         EXIT
+      ELSE
+         IF (.CURSOR EQ ZFILE4)
+            &ZCURR = &ZFILE4
+            VPUT (ZCURR) PROFILE
+            .CURSOR = ZFILE
+            .MSG    = PSYS01V
+            EXIT
+         ELSE
+            IF (.CURSOR EQ ZFILE5)
+               &ZCURR = &ZFILE5
+               VPUT (ZCURR) PROFILE
+               .CURSOR = ZFILE
+               .MSG    = PSYS01V
+               EXIT
+            ELSE
+               IF (.CURSOR EQ ZFILE6)
+                  &ZCURR = &ZFILE6
+                  VPUT (ZCURR) PROFILE
+                  .CURSOR = ZFILE
+                  .MSG    = PSYS01V
+                  EXIT
+               ELSE
+                  IF (.CURSOR EQ ZFILE7)
+                     &ZCURR = &ZFILE7
+                     VPUT (ZCURR) PROFILE
+                     .CURSOR = ZFILE
+                     .MSG    = PSYS01V
+                     EXIT
+                  ELSE
+                     IF (.CURSOR EQ ZFILE8)
+                        &ZCURR = &ZFILE8
+                        VPUT (ZCURR) PROFILE
+                        .CURSOR = ZFILE
+                        .MSG    = PSYS01V
+                        EXIT
+
 
 VPUT (ZCURR) PROFILE
 VPUT (ZFILE1 ZFILE2 ZFILE3 ZFILE4 ZFILE5 ZFILE6 ZFILE7 ZFILE8) PROFILE
@@ -121,6 +191,13 @@ VPUT (ZFILE1 ZFILE2 ZFILE3 ZFILE4 ZFILE5 ZFILE6 ZFILE7 ZFILE8) PROFILE
 )ENDPROC
 
 )FIELD
+
+ -- Expanding ZFILE requires directory fields ZDIR and ZCURR passing to the application.
+ -- Note that these are the field values, not the dialogue variable values which
+ -- are not updated as panel processing does not occur on field-level execution.
+ -- PASS stores field values in ZFEDATA1, ZFEDATA2, ZFEDATA3, ..etc.. in the SHARED pool
+
+ FIELD(ZFILE)  EXEC('SELECT PGM(PFLST0A) PARM(EXPAND FILEONLY)') PASS(ZDIR ZCURR)
  FIELD(ZDIR)   EXEC('SELECT PGM(PFLST0A) PARM(EXPAND DIRONLY)')
  FIELD(ZFILE1) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL)')
  FIELD(ZFILE2) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL)')
@@ -130,4 +207,5 @@ VPUT (ZFILE1 ZFILE2 ZFILE3 ZFILE4 ZFILE5 ZFILE6 ZFILE7 ZFILE8) PROFILE
  FIELD(ZFILE6) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL)')
  FIELD(ZFILE7) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL)')
  FIELD(ZFILE8) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL)')
+
 )ENDFIELD

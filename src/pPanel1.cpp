@@ -39,7 +39,7 @@ pPanel::pPanel()
 	tb_depth    = 0      ;
 	tb_fields   = ""     ;
 	win         = stdscr ;
-	win_popup   = false  ;
+	win_addpop  = false  ;
 	win_created = false  ;
 	pan_created = false  ;
 	win_row     = 0      ;
@@ -87,7 +87,7 @@ pPanel::~pPanel()
 
 void pPanel::init( int & RC )
 {
-	RC = 0  ;
+	RC = 0 ;
 
 	ZSCRMAXD = ds2d( p_poolMGR->get( RC, "ZSCRMAXD", SHARED ) ) ;
 	if ( RC > 0 ) { PERR = "ZSCRMAXD poolMGR.get failed" ; log("C", PERR ) ; RC = 20 ; return ; }
@@ -152,15 +152,17 @@ void pPanel::putDialogueVar( string var, string val )
 
 void pPanel::set_popup( int sp_row, int sp_col )
 {
-	win_popup = true   ;
-	win_row   = sp_row ;
-	win_col   = sp_col ;
+	win_addpop= true   ;
+	sp_row + win_depth + 1 < ZSCRMAXD ? win_row = sp_row : win_row = ZSCRMAXD - win_depth - 1 ;
+	sp_col + win_width + 1 < ZSCRMAXW ? win_col = sp_col : win_col = ZSCRMAXW - win_width - 1 ;
 }
 
 
 void pPanel::remove_popup()
 {
-	win_popup = false  ;
+	win_addpop = false ;
+	win_row    = 0     ;
+	win_col    = 0     ;
 }
 
 
@@ -171,25 +173,28 @@ void pPanel::display_panel( int & RC )
 	RC = 0 ;
 	clear() ;
 
-	if ( win_popup && win_width > 0 )
+	if ( win_addpop && win_width > 0 )
 	{
 		if ( !pan_created )
 		{
-			mvwin( win, win_row, win_col )  ;
-			mvwin( bwin, win_row-1, win_col-1 )  ;
+			mvwin( win, win_row, win_col )      ;
+			mvwin( bwin, win_row-1, win_col-1 ) ;
 			wattrset( bwin, cuaAttr[ AWF ] ) ;
 			box( bwin, 0, 0 ) ;
 			wattroff( bwin, cuaAttr[ AWF ] ) ;
 			panel  = new_panel( win )  ;
 			bpanel = new_panel( bwin ) ;
-			update_panels()    ;
 			pan_created = true ;
+			update_panels()    ;
+
 		}
 		else
 		{
-			show_panel( panel ) ;
+			mvwin( win, win_row, win_col )      ;
+			mvwin( bwin, win_row-1, win_col-1 ) ;
+			show_panel( panel )  ;
 			show_panel( bpanel ) ;
-			update_panels()     ;
+			update_panels()      ;
 		}
 	}
 
@@ -204,8 +209,8 @@ void pPanel::display_panel( int & RC )
 		tb_fields_active_inactive() ;
 	}
 
-	display_ab()          ;
-	display_literals()    ;
+	display_ab()       ;
+	display_literals() ;
 	update_field_values( RC ) ;
 
 	display_fields() ;
@@ -259,14 +264,9 @@ void pPanel::display_panel_update( int & RC )
 	int scrollAmt   ;
 	int p           ;
 
-	string wd       ;
-	string l        ;
 	string CMDVerb  ;
 	string CMD      ;
-	string name, t  ;
-	string val      ;
-	string vars     ;
-	string var      ;
+	string t        ;
 	string fieldNam ;
 	string msgfld   ;
 
@@ -616,7 +616,6 @@ void pPanel::display_panel_reinit( int & RC, int ln )
 	int i_assign  ;
 
 	map<string, field *>::iterator it ;
-	map< int, string >::iterator it2  ;
 
 	i_vputget = 0  ;
 	i_assign  = 0  ;
@@ -776,21 +775,17 @@ void pPanel::display_panel_proc( int & RC, int ln )
 
 	string wd       ;
 	string l        ;
-	string CMDVerb  ;
-	string CMD      ;
-	string name, t  ;
+	string t        ;
 	string val      ;
 	string vars     ;
 	string var      ;
-	string fieldNam ;
-	string msgfld   ;
 	string dTRAIL   ;
+	string fieldNam ;
 
 	bool found      ;
 	bool if_skip    ;
 
 	map<string, field *>::iterator it;
-	map< int, string >::iterator it2 ;
 
 	RC        = 0  ;
 	i_if      = 0  ;
@@ -826,7 +821,14 @@ void pPanel::display_panel_proc( int & RC, int ln )
 		{
 			if ( ifList.at( i_if ).if_eq ) { ifList.at( i_if ).if_true = false ; }
 			if ( ifList.at( i_if ).if_ne ) { ifList.at( i_if ).if_true = true  ; }
-			val = getDialogueVar( ifList.at( i_if ).if_lhs ) ;
+			if ( ifList.at( i_if ).if_lhs == ".CURSOR" )
+			{
+				val = p_funcPOOL->get( RC, 0, "ZCURFLD" ) ;
+			}
+			else
+			{
+				val = getDialogueVar( ifList.at( i_if ).if_lhs ) ;
+			}
 			for ( j = 0 ; j < ifList.at( i_if ).if_rhs.size() ; j++ )
 			{
 				if ( ifList.at( i_if ).if_isvar[ j ] )
@@ -1540,25 +1542,14 @@ bool pPanel::field_get_row_col( string fld, uint & row, uint & col )
 }
 
 
-string pPanel::field_getexec( uint row, uint col )
+fieldExc pPanel::field_getexec( string field )
 {
-	// If field at row,col, return the command for that field as defined in )FIELD panel section.
-	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
+	// If passed field is in the field execute table, return the structure fieldExc for that field as defined in )FIELD panel section.
 
-	map<string, field *>::iterator it ;
+	fieldExc t ;
 
-	row = row - win_row ;
-	col = col - win_col ;
-
-	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
-	{
-		if ( (it->second->field_row == row) && (col >=it->second->field_col) && (col < (it->second->field_col + it->second->field_length )) )
-		{
-			if ( !it->second->field_active ) return "" ;
-			return it->second->field_exec ;
-		}
-	}
-	return "" ;
+	if ( fieldExcTable.find( field ) == fieldExcTable.end() ) { return t ; }
+	return fieldExcTable[ field ] ;
 }
 
 
@@ -1742,7 +1733,7 @@ void pPanel::field_tab_down( uint & row, uint & col )
 
 	c_offset = trow * WSCRMAXW + tcol ;
 	m_offset = WSCRMAXD * WSCRMAXW    ;
-	o_row    = row                    ;
+	o_row    = trow                   ;
 
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
@@ -1760,7 +1751,7 @@ void pPanel::field_tab_down( uint & row, uint & col )
 		{
 			m_offset = t_offset ;
 			row      = it->second->field_row + win_row ;
-			col      = it->second->field_col + d_offset +win_col ;
+			col      = it->second->field_col + d_offset + win_col ;
 			cursor_moved = true ;
 		}
 	}

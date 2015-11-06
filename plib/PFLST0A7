@@ -18,7 +18,7 @@ field    4  MAX-3   4  NEF  NONE ZSCROLL
 literal  6   2       FP  "Path Name . . ."  
 field    6  18  MAX  NEF NONE ZPATH  
 
-field    8   2   1   CEF PAD('_') FLDIRS
+field    8   2   1   CEF     PAD('_') FLDIRS
 literal  8   4       SAC    "Show directory entries only"  
 
 literal 10 2   CH "Instructions"
@@ -33,7 +33,7 @@ literal  13  2 CH  "S Entry                                                     
 literal  14  2 CH  EXPAND  "-"  
 
 tbmodel  15    MAX
-tbfield  2     1   NEF  CAPS(ON),PAD('_'),JUST(LEFT) SEL  
+tbfield  2     1   NEF  SKIP(OFF),CAPS(ON),PAD('_'),JUST(LEFT) SEL  
 tbfield  ++1   60  VOI   NONE ENTRY
 tbfield  ++1   8   VOI   NONE TYPE 
 

@@ -55,7 +55,6 @@ void Table::saveTable( int & RC, string m_name, string m_path )
 	int k    ;
 	int size ;
 	ofstream otable ;
-	map< string, vector<string> >::iterator it ;
 
 	RC = 0 ;
 	if ( tab_SAVE == NOWRITE ) { RC = 12 ; return ; }
@@ -1504,7 +1503,6 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbSAVE m_SAVE, tbD
 	string hdr   ;
 	string sir   ;
 	string val   ;
-	string str   ;
 	string keys  ;
 	string flds  ;
 
@@ -1806,7 +1804,7 @@ bool tableMGR::tablexists( string tb_name, string tb_path )
 {
 	int  i ;
 	int  j ;
-	string filename, s ;
+	string filename ;
 
 	i = getpaths( tb_path ) ;
 	for ( j = 1 ; j <= i ; j++ )
@@ -2002,7 +2000,7 @@ void tableMGR::tberase( int & RC, string tb_name, string tb_path )
 {
 	int  i ;
 	int  j ;
-	string filename, s ;
+	string filename ;
 
 	RC = 0 ;
 	if ( tables.find( tb_name ) != tables.end() )

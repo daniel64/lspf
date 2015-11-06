@@ -126,7 +126,7 @@ void PTEST01::opt1()
 	string MSG, TABA1, TABA2, TABA3, TABA4, TABA5 ;
 	string TBQ1, TBQ2  ;
 	string TBQ7, TBQ8, TBQ9, TBQ10 ;
-	
+
 	int TBQ3, TBQ4, TBQ5, TBQ6 ;
 
 	vdefine( "TABA1 TABA2 TABA3 TABA4 TABA5", &TABA1, &TABA2, &TABA3, &TABA4, &TABA5 ) ;
@@ -139,13 +139,13 @@ void PTEST01::opt1()
 //	tbopen( "TABK", WRITE, "/home/daniel/.lspf/" ) ;
 	tbopen( "TABK", WRITE ) ;
 	log( "A", "TBOPEN TABK WRITE no file name RC=" << RC << endl ) ;
-	
+
 	tbsave( "TABK" ) ;
 	log( "A", "TBSAVE TABK no file name RC=" << RC << endl ) ;
 
 	tbend( "TABK" ) ;
 	log( "A", "TBEND TABK RC=" << RC << endl ) ;
-	
+
 	tberase( "TABK" ) ;
 	log( "A", "TBERASE TABK RC=" << RC << endl ) ;
 
@@ -369,7 +369,7 @@ void PTEST01::opt2()
 	log( "A", "EXTV2 >>" << EXTV2 << "<<"  << endl ) ;
 	log( "A", "EXTV3 >>" << EXTV3 << "<<"  << endl ) ;
 	log( "A", "EXTV4 >>" << EXTV4 << "<<"  << endl ) ;
-	
+
 
 	tbvclear( "TABN" ) ;
 	TABB1 = "NOTAKEY" ;
@@ -387,7 +387,7 @@ void PTEST01::opt2()
 
 	tbscan( "TABN" ) ;
 	log( "A", "TBSCAN TABN  RC=" << RC << endl ) ;
-	
+
 	tbtop( "TABN" ) ;
 	log( "A", "TBTOP TABN RC=" << RC << endl ) ;
 
@@ -403,7 +403,7 @@ void PTEST01::opt2()
 	tbget( "TABN" ) ;
 	log( "A", "TBGET TABN 1 RECORD RC=" << RC << endl ) ;
 	log( "A", "EXTV1 >>" << EXTV1 << "<<"  << endl ) ;
-	
+
 	while ( true )
 	{
 		tbskip( "TABN", 1 ) ;
@@ -532,14 +532,14 @@ void PTEST01::opt2()
 
 	tbskip( "TABN", 0, "", "", "1" ) ;
 	log( "A", "TBSKIP TABN URID=1 RECORD RC=" << RC << endl ) ;
-	
+
 	tbget( "TABN" ) ;
 	log( "A", "TBGET RC=" << RC << endl ) ;
 	log( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
-		
+
 	tbskip( "TABN", 0, "", "", "999999" ) ;
 	log( "A", "TBSKIP TABN URID=999999 RECORD RC=" << RC << endl ) ;
-	
+
 	tbget( "TABN" ) ;
 	log( "A", "TBGET RC=" << RC << endl ) ;
 	log( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
@@ -934,10 +934,10 @@ void PTEST01::opt5()
 	int    ZAREAW2  ;
 	int    ZAREAD2  ;
 	int    ZSIZE2   ;
-	
+
 	vdefine( "ZAREA1 ZSHADOW1 ZAREAT1 ZAREA2 ZSHADOW2 ZAREAT2", &ZAREA1, &ZSHADOW1, &ZAREAT1, &ZAREA2, &ZSHADOW2, &ZAREAT2 ) ;
 	vdefine( "ZAREAW1 ZAREAD1 ZAREAW2 ZAREAD2", &ZAREAW1, &ZAREAD1, &ZAREAW2, &ZAREAD2 ) ;
-	
+
 	pquery( "PTEST01C", "ZAREA1", "ZAREAT1", "ZAREAW1", "ZAREAD1" ) ;
 	if ( RC > 0 )
 	{
@@ -994,7 +994,7 @@ void PTEST01::opt5()
 	ZSHADOW1 = ZSHADOW1 + sl2 ;
 	ZSHADOW1 = ZSHADOW1 + sl1 ;
 	ZSHADOW1 = ZSHADOW1 + sl2 ;
-	
+
 	ZAREA2   = "The quick brown fox jumps of the lazy dog" ;
 	ZSHADOW2 = sl3 ;
 
@@ -1036,32 +1036,32 @@ void PTEST01::opt5()
 		if ( ZAREA1.substr( posn-1, 1 ) == usermd )      { log( "A", "ZAREA1 FLD at posn " << posn <<" has been touched by the user " << endl ; ) }
 		else if ( ZAREA1.substr( posn-1, 1 ) == datamd ) { log( "A", "ZAREA1 FLD at posn " << posn <<" has been changed by the user " << endl ; ) }
 		else                                             { log( "A", "ZAREA1 FLD at posn " << posn <<" has not been changed or touched by the user " << endl ; ) }
-		
+
 		posn = 128 ;
 		if ( ZAREA1.substr( posn-1, 1 ) == usermd )      { log( "A", "ZAREA1 FLD at posn " << posn <<" has been touched by the user " << endl ; ) }
 		else if ( ZAREA1.substr( posn-1, 1 ) == datamd ) { log( "A", "ZAREA1 FLD at posn " << posn <<" has been changed by the user " << endl ; ) }
 		else                                             { log( "A", "ZAREA1 FLD at posn " << posn <<" has not been changed or touched by the user " << endl ; ) }
-		
+
 		posn = 201 ;
 		if ( ZAREA1.substr( posn-1, 1 ) == usermd )      { log( "A", "ZAREA1 FLD at posn " << posn <<" has been touched by the user " << endl ; ) }
 		else if ( ZAREA1.substr( posn-1, 1 ) == datamd ) { log( "A", "ZAREA1 FLD at posn " << posn <<" has been changed by the user " << endl ; ) }
 		else                                             { log( "A", "ZAREA1 FLD at posn " << posn <<" has not been changed or touched by the user " << endl ; ) }
-		
+
 		posn = 281;
 		if ( ZAREA1.substr( posn-1, 1 ) == usermd )      { log( "A", "ZAREA1 FLD at posn " << posn <<" has been touched by the user " << endl ; ) }
 		else if ( ZAREA1.substr( posn-1, 1 ) == datamd ) { log( "A", "ZAREA1 FLD at posn " << posn <<" has been changed by the user " << endl ; ) }
 		else                                             { log( "A", "ZAREA1 FLD at posn " << posn <<" has not been changed or touched by the user " << endl ; ) }
-		
+
 		posn = 408 ;
 		if ( ZAREA1.substr( posn-1, 1 ) == usermd )      { log( "A", "ZAREA1 FLD at posn " << posn <<" has been touched by the user " << endl ; ) }
 		else if ( ZAREA1.substr( posn-1, 1 ) == datamd ) { log( "A", "ZAREA1 FLD at posn " << posn <<" has been changed by the user " << endl ; ) }
 		else                                             { log( "A", "ZAREA1 FLD at posn " << posn <<" has not been changed or touched by the user " << endl ; ) }
-		
+
 		posn = 430 ;
 		if ( ZAREA1.substr( posn-1, 1 ) == usermd )      { log( "A", "ZAREA1 FLD at posn " << posn <<" has been touched by the user " << endl ; ) }
 		else if ( ZAREA1.substr( posn-1, 1 ) == datamd ) { log( "A", "ZAREA1 FLD at posn " << posn <<" has been changed by the user " << endl ; ) }
 		else                                             { log( "A", "ZAREA1 FLD at posn " << posn <<" has not been changed or touched by the user " << endl ; ) }
-		
+
 
 		if ( ZCMD != "" ) { MSG = "PSYS018" ; }
 	}
@@ -1075,9 +1075,13 @@ void PTEST01::opt6()
 
 void PTEST01::opt7()
 {
+	int i ;
+
 	string MSG    ;
 	string CURFLD ;
 	int    CURPOS ;
+
+	i = 7 ;
 
 	while( true )
 	{
@@ -1089,8 +1093,7 @@ void PTEST01::opt7()
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 		vget( "ZVERB" ) ;
-		addpop( "", 7, 7 ) ;
-		debug1( "dje doing addpop RC="<<RC << endl);
+		addpop( "", i, i ) ;
 		while( true )
 		{
 			CURFLD = "ZCMD1" ;
@@ -1103,7 +1106,6 @@ void PTEST01::opt7()
 			vget( "ZVERB" ) ;
 		}
 		rempop() ;
-		debug1( "dje doing rempop RC="<<RC << endl);
 	}
 	return ;
 }

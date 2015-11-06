@@ -171,7 +171,6 @@ void pApplication::set_msg( string SMSG, string LMSG, cuaType MSGTYPE, bool MSGA
 
 void pApplication::display( string p_name, string p_msg, string p_cursor, int p_csrpos )
 {
-	string  MSG    ;
 	string  ZZVERB ;
 
 	RC = 0 ;
@@ -787,11 +786,11 @@ void pApplication::addpop( string a_fld, int a_row, int a_col )
 		addpop_stk.push( addpop_row ) ;
 		addpop_stk.push( addpop_col ) ;
 	}
-	a_row < 0  ? addpop_row = 0 : addpop_row = a_row + 1 ;
-	a_col < -1 ? addpop_col = 1 : addpop_col = a_col + 3 ;
+	a_row <  0 ? addpop_row = 1 : addpop_row = a_row + 2 ;
+	a_col < -1 ? addpop_col = 2 : addpop_col = a_col + 4 ;
 	addpop_active = true ;
 
-	log( "N", "ADDPOP service not yet implemented" << endl ) ;
+	log( "N", "WARNING: ADDPOP service not yet fully implemented" << endl ) ;
 }
 
 
@@ -832,7 +831,7 @@ void pApplication::rempop( string r_all )
 	}
 	else { RC = 20 ; checkRCode( "Invalid parameter on REMPOP service.  Must be ALL or blank" ) ; }
 
-	log( "N", "REMPOP service not yet implemented" << endl ) ;
+	log( "N", "WARNING: REMPOP service not yet fully implemented" << endl ) ;
 }
 
 
@@ -1091,7 +1090,6 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 	int posn    ;
 	int csrvrow ;
 
-	string CMD    ;
 	string ZZVERB ;
 	string URID   ;
 	string s      ;
@@ -1692,12 +1690,11 @@ void pApplication::setmsg( string msg, msgSET sType )
 string pApplication::get_help_member( int row, int col )
 {
 	string fld ;
-	string hlp ;
 	string paths ;
 
 	RC  = 0  ;
+
 	fld = currPanel->field_getname( row, col ) ;
-	if ( fld != "" ) { hlp = currPanel->get_field_help( fld ) ; }
 
 	if ( libdef_puser ) paths = mergepaths( ZPUSER, ZPLIB ) ;
 	else                paths = ZPLIB                       ;
@@ -1717,14 +1714,12 @@ void pApplication::read_Message( string p_msg )
 	int p1 ;
 	int p2 ;
 
-	string s        ;
 	string t        ;
 	string p_msg_fn ;
 	string filename ;
 	string line2    ;
 	string paths    ;
 	string w1       ;
-	string ws       ;
 	string rest     ;
 	bool found      ;
 	char line1[ 256 ] ;
@@ -1787,12 +1782,8 @@ void pApplication::read_Message( string p_msg )
 	{
 		messages.getline( line1, 256 ) ;
 		if ( messages.fail() != 0 ) break ;
-
 		line2.assign( line1, messages.gcount() - 1 ) ;
-
 		w1 = word( line2, 1 )    ;
-		ws = subword( line2, 2 ) ;
-
 		if ( found )
 		{
 			p1 = pos( "\"", line2 ) ;

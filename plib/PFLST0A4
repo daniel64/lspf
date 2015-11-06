@@ -6,7 +6,7 @@
 )ENDCOMMENT
 
 
-)BODY WINDOW(45,20) CMD(ZCMD) HOME(ZCMD)
+)BODY CMD(ZCMD) HOME(ZCMD)
 
 PanelTitle "Rename File"
 

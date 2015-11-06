@@ -1470,6 +1470,7 @@ void PPSP01A::showSavedFileList()
 	
 		if ( ZFILE != "" )
 		{
+			if ( ZFILE == "*" ) { ZFILE = "" ; }
 			if ( ZDIR != "" )
 			{
 				ZFILN = ZDIR + "/" + ZFILE ;

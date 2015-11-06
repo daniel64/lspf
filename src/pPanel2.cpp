@@ -32,13 +32,12 @@ int pPanel::loadPanel( string p_name, string paths )
 	int tbfield_col      ;
 	int tbfield_sz       ;
 
-	string s, w, w1, w2  ;
+	string ww, w1, w2    ;
 	string w3, w4, w5    ;
 	string w6, w7, ws    ;
 	string t1, t2        ;
 	string rest          ;
 	string filename, line2 ;
-	string vars          ;
 	string fld, hlp      ;
 
 	bool body(false)     ;
@@ -475,6 +474,7 @@ int pPanel::loadPanel( string p_name, string paths )
 
 		if ( isfield )
 		{
+			fieldExc t_fe ;
 			i = pos( "FIELD(", line2 ) ;
 			if ( i > 0 )
 			{
@@ -500,7 +500,7 @@ int pPanel::loadPanel( string p_name, string paths )
 				if ( j > 0 )
 				{
 					t2 = strip( substr( line2, i+6, j-i-6 ) ) ;
-					fieldList[ t1 ]->field_exec = t2          ;
+					t_fe.fieldExc_command = t2 ;
 				}
 			}
 			if ( i == 0 || j == 0 )
@@ -508,6 +508,29 @@ int pPanel::loadPanel( string p_name, string paths )
 				PERR = "Invalid format of EXEC() definition. " + line2 ;
 				return 20 ;
 			}
+			i = pos( "PASS(", line2 ) ;
+			if ( i > 0 )
+			{
+				j = pos( ")", line2, i ) ;
+				if ( j > 0 )
+				{
+					t2 = strip( substr( line2, i+5, j-i-5 ) ) ;
+					t_fe.fieldExc_passed = t2 ;
+				}
+			}
+			for ( j = words( t_fe.fieldExc_passed ), i = 1 ; i <= j ; i++ )
+			{
+				ww = word( t_fe.fieldExc_passed, i ) ;
+				if ( fieldList.find( ww ) == fieldList.end() )
+				{
+					PERR = "Field " + ww + " passed on field command for " + t1 + " is not defined in panel body" ; return 20 ;
+				}
+			}
+			if ( fieldExcTable.find( t1 ) != fieldExcTable.end() )
+			{
+				PERR = "Duplicate field command entry in )FIELD panel section for " + t1 ; return 20 ;
+			}
+			fieldExcTable[ t1 ] = t_fe ;
 			continue ;
 		}
 
