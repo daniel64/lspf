@@ -32,6 +32,7 @@ pPanel::pPanel()
 	primaryMenu = false  ;
 	scrollOn    = false  ;
 	abActive    = false  ;
+	nretriev    = false  ;
 	PanelTitle  = ""     ;
 	abIndex     = 0      ;
 	opt_field   = 0      ;
@@ -218,7 +219,6 @@ void pPanel::display_panel( int & RC )
 	hide_pd()        ;
 	display_pd()     ;
 	display_MSG()    ;
-	wrefresh( win )  ;
 }
 
 
@@ -247,7 +247,14 @@ void pPanel::refresh( int & RC )
 	display_MSG()      ;
 	display_pd()       ;
 	if ( tb_model ) { display_tb_mark_posn() ; }
-	wrefresh( win )    ;
+}
+
+
+void pPanel::nrefresh()
+{
+	//  Refresh the ncurses window for panels only (if in a popup)
+
+	if ( !pan_created ) { wrefresh( win ) ; }
 }
 
 
@@ -517,6 +524,11 @@ void pPanel::display_panel_init( int & RC )
 			{
 				ZPHELP = t ;
 			}
+			else if ( assgnListi.at( i_assign ).as_lhs == ".NRET" )
+			{
+				if ( t == "ON" ) { nretriev = true  ; }
+				else             { nretriev = false ; }
+			}
 			else if ( assgnListi.at( i_assign ).as_lhs == ".MSG" )
 			{
 				MSGID  = t ;
@@ -651,6 +663,11 @@ void pPanel::display_panel_reinit( int & RC, int ln )
 			else if ( assgnListr.at( i_assign ).as_rhs == ".MSG" )
 			{
 				t = MSGID ;
+			}
+			else if ( assgnListr.at( i_assign ).as_lhs == ".NRET" )
+			{
+				if ( t == "ON" ) { nretriev = true  ; }
+				else             { nretriev = false ; }
 			}
 			else if ( assgnListr.at( i_assign ).as_rhs == ".CURSOR" )
 			{
@@ -1034,6 +1051,11 @@ void pPanel::display_panel_proc( int & RC, int ln )
 			else if ( assgnList.at( i_assign ).as_lhs == ".HELP" )
 			{
 				ZPHELP = t ;
+			}
+			else if ( assgnList.at( i_assign ).as_lhs == ".NRET" )
+			{
+				if ( t == "ON" ) { nretriev = true  ; }
+				else             { nretriev = false ; }
 			}
 			else if ( assgnList.at( i_assign ).as_lhs == ".MSG" )
 			{
@@ -1526,7 +1548,7 @@ string pPanel::field_getname( uint row, uint col )
 
 bool pPanel::field_get_row_col( string fld, uint & row, uint & col )
 {
-	// If field found on panel, return true and its position, else return false
+	// If field found on panel (by name), return true and its position, else return false
 	// Return the physical position on the screen, so add the window offsets to field_row/col
 
 	map<string, field *>::iterator it ;

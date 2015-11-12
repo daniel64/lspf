@@ -1,0 +1,6 @@
+)COMMENT
+)ENDCOMMENT 
+pdc  RefList  "Open Referral Lists"   ACTION RUN(REFOPENF)
+pdc  RefList  "Open Active List"      ACTION RUN(REFACTF)
+pdc  RefList  "Open Reference List"   ACTION RUN(REFLISTF)
+pdc  RefList  "Personal Settings"     ACTION RUN(ISRROUTE) PARM("SELECT PGM(PLRFLST1) PARM(US1) NEWAPPL(ISP)")

@@ -89,4 +89,16 @@ PSYS01U "Unknown Error Occured"
 "Unknown error occured opening file '&ZZSTR1'"
 
 PSYS01V "Entry Retrieved" .TYPE=N
-""
+"Selected entry has been retrieved"
+
+PSYS01W "Retrieved from &ZCURTB" .TYPE=N
+"Selected entry has been retrieved from personal list &ZCURTB"
+
+PSYS01X "File retrieve not active"
+"File retrieve is not active on this panel via reflists or NRETRIEV.  Set .NRET in the panel if this is required"
+
+PSYS01Y "No ZRFFLDA variable set in panel"
+"Set variable ZRFFLDA to the field name to receive file names on NRETRIEV or reflist processing"
+
+PSYS01Z "Invalid field value in variable ZRFFLDA"
+"Variable ZRFFLDA set to incorrect value - no such field exists on the panel.  Check logs for details"

@@ -1,0 +1,22 @@
+Saved File List application.
+
+Field File name supports file name expansion using either field Directory or Current, whichever is non-blank, to 
+retrieve the list of files.
+
+Directory field supports directory name expansion and the saved list fields below Current support
+name expansion also.
+
+
+Execute primary command FIELDEXC with the cursor on the required field to activate this function.  Assign this
+command to a function key to make this simpler.
+
+
+The saved list is cursor sensitive.  To retrieve an entry, place cursor on the field and press ENTER, or select the
+line with the C command.
+
+Line commands:
+B  - Browse file
+C  - Make entry the current entry
+E  - Edit file
+L  - List directory
+S  - Select entry (list for directory, browse for file)

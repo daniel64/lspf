@@ -1,0 +1,64 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Browse entry panel
+)ENDCOMMENT
+
+)BODY CMD(ZCMD1) HOME(ZCMD1)
+
+PanelTitle "Referral List and NRETRIEV Personal Settings"
+
+literal  4   2         FP    "COMMAND ===> "  
+field    4  15  MAX-17 NEF CAPS(ON) ZCMD1
+
+field    7   2   1   CEF     PAD('_') RFURL
+literal  7   4       SAC    "Automatically update reference list"  
+
+field    8   2   1   CEF     PAD('_') RFFEX
+literal  8   4       SAC    "Verify file exists before adding to reference list"  
+
+field    10   2   1   CEF     PAD('_') RFNEX
+literal  10   4       SAC    "NRETRIEV verifies file exists"  
+
+
+literal 13  2  CH "Instructions"
+literal 14 2  NT "Press"
+literal 14 8  ET "Enter"
+literal 14 14 NT "to save Personal List options"
+
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)ENDBODY
+ 
+)INIT
+.CURSOR = ZCMD1
+)ENDINIT
+
+)PROC
+IF (&ZCMD1 NE &Z )
+   .MSG    = PSYS018
+   .CURSOR = ZCMD1
+   EXIT
+
+VER (&RFURL LIST /)
+VER (&RFFEX LIST /)
+VER (&RFNEX LIST /)
+
+IF (&RFURL = '/' )
+   &ZRFURL = 'YES'
+ELSE
+   &ZRFURL = 'NO'
+
+IF (&RFFEX = '/' )
+   &ZRFFEX = 'YES'
+ELSE
+   &ZRFFEX = 'NO'
+
+IF (&RFNEX = '/' )
+   &ZRFNEX = 'YES'
+ELSE
+   &ZRFNEX = 'NO'
+
+VPUT (ZRFURL ZRFFEX ZRFNEX) PROFILE
+)ENDPROC

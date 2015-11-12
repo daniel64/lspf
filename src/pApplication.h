@@ -33,6 +33,7 @@ class pApplication
 		string MSGID              ;
 		bool   ControlDisplayLock ;
 		bool   ControlSplitEnable ;
+		bool   ControlRefUpdate   ;
                 bool   errPanelissued     ;
 		bool   testMode           ;
 		bool   propagateEnd       ;
@@ -77,7 +78,8 @@ class pApplication
 		int    taskid()  { return taskID ; }
 		void   init() ;
 		void   info() ;
-		void   refresh() ;
+		void   refresh()  ;
+		void   nrefresh() ;
 		void   panel_create( string p_name ) ;
 
 		string get_select_cmd( string ) ;
@@ -95,8 +97,6 @@ class pApplication
 		void   vcopy( string, string &, vcMODE=LOCATE ) ;
 		void   vdefine( string, string *, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL ) ;
 		void   vdefine( string, int *, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL ) ;
-	//	void   vdefine( string, string * ...) ;
-	//	void   vdefine( string, int * ...) ;
 		void   vdelete( string ) ;
 		void   verase( string var, poolType =ASIS ) ;
 		void   vget( string var, poolType =ASIS )   ;
@@ -125,7 +125,7 @@ class pApplication
 		void   tbsarg( string tb_name, string tb_namelst="", string tb_dir="NEXT", string tb_cond_pairs="" ) ;
 		void   tbsave( string tb_name, string new_name="", string path="") ;
 		void   tbscan( string tb_name, string tb_namelst="", string tb_savenm="", string tb_rowid_vn="", string tb_dir="NEXT", string tb_read="", string tb_crp_name="", string tb_condlst="" ) ;
-		void   tbskip( string tb_name, int num, string tb_savenm="", string tb_rowid_vn="", string tb_rowid="", string tb_noread="", string tb_crp_name=""  ) ;
+		void   tbskip( string tb_name, int num=1, string tb_savenm="", string tb_rowid_vn="", string tb_rowid="", string tb_noread="", string tb_crp_name=""  ) ;
 		void   tbsort( string tb_name, string tb_fields ) ;
 		void   tbtop( string tb_name ) ;
 		void   tbvclear( string tb_name ) ;
@@ -152,6 +152,7 @@ class pApplication
 		void   get_home( uint & row, uint & col ) ;
 		void   get_cursor( uint & row, uint & col ) ;
 		void   set_msg( string, string, cuaType, bool ) ;
+		bool   nretriev_on() ;
 		void   cleanup()     ;
 		void   abend()       ;
 		void   set_forced_abend() ;

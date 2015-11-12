@@ -62,7 +62,7 @@ void Table::saveTable( int & RC, string m_name, string m_path )
 	if ( !changed )
 	{
 		RC = 4  ;
-		log( "I", "No changed to the table have been made.  Ignoring save" <<  endl ) ;
+		log( "I", "No changes to the table have been made.  Ignoring save" <<  endl ) ;
 		return  ;
 	}
 
@@ -173,8 +173,10 @@ void Table::tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 
 	if ( tb_num_of_rows > 0 ) { table.reserve( tb_num_of_rows ) ; }
 
-	if ( tb_order == "" ) { sort_ir = "" ; sorted_on_keys = false ; }
-	else if ( sort_ir == "" ) { tb_order = "" ; } 
+	if ( sort_flds == "" ) { tb_order = "" ; }
+
+	if      ( tb_order == "" ) { sort_ir = ""  ; sorted_on_keys = false ; }
+	else if ( sort_ir == ""  ) { tb_order = ""                          ; } 
 
 	flds.clear() ;
 	flds.push_back( d2ds( ++maxURID ) ) ;
@@ -234,12 +236,13 @@ void Table::tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 		{
 			table.insert( it, flds ) ;
 			CRP = j ;
+			changed = true ;
 			return  ;
 		}
 	}
 	if ( tb_order == "ORDER" )
 	{
-		sfld = funcPOOL.get( RC, 0, sort_flds ) ;  // Only one sort field supported for now (tb_order set to "" if not sorted)
+		sfld = funcPOOL.get( RC, 0, sort_flds ) ;  // Only one sort field supported for now (tb_order set to "" if not sorted).
 		if ( RC > 0 ) { RC = 20 ; return ; }
 		l    = words( sort_flds )               ;
 		CRP  = 1 ;

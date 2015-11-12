@@ -72,6 +72,7 @@ class pPanel
 
 		void   clear() ;
 		void   refresh( int & RC ) ;
+		void   nrefresh()          ;
 
 		pdc    retrieve_pdc( int row, int col ) ;
 		void   get_panel_info( int & RC, string a_name, string t = "", string w = "", string d = "", string r = "", string c = "" ) ;
@@ -106,6 +107,7 @@ class pPanel
 		string field_getname( uint row, uint col ) ;
 		bool   field_get_row_col( string fld, uint & row, uint & col ) ;
 		string get_field_help( string fld ) ;
+		bool   get_nretriev() { return nretriev ; }
 
 		void   set_msg( string, string, cuaType, bool ) ;
 		void   clear_msg() ;
@@ -120,6 +122,7 @@ class pPanel
 		int    abIndex     ;
 		int    RC          ;
 		int    tb_row      ;
+		bool   nretriev    ;
 		int    opt_field   ;
 		int    dyn_depth   ;
 		int    dyn_width   ;

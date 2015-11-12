@@ -23,9 +23,9 @@ literal  8   4       SAC    "Show directory entries only"
 
 literal 10 2   CH "Instructions"
 literal 11 2   NT "Enter"
-literal 11 8   ET "S"
+literal 11 8   ET "L"
 literal 11 10  NT "to navigate directory list and "
-literal 11 41  ET "C"
+literal 11 41  ET "S"
 literal 11 43  NT "to copy entry to the field"
 
 
@@ -46,20 +46,22 @@ tbfield  ++1   8   VOI   NONE TYPE
 VGET (ZSCROLL FLDIRS) PROFILE
 .ATTR(TYPE)    = 'COLOUR(WHITE)' 
 .HELP = HFLST02
+
+.NRET = ON           /* Enable NRETRIV and REFLIST */ 
+&ZRFFLDA = ZPATH
+VPUT ZRFFLDA SHARED
 )ENDINIT
+
 
 )PROC
 
 &ZCMDU = UPPER( ZCMD )
 
-IF ( &ZCMDU EQ 'REF' )
+IF ( &ZCMDU EQ REF,RES,RESET )
     &ZCMD = 'REFRESH'
 ELSE
-   IF ( &ZCMDU EQ 'RES' )
-       &ZCMD = 'REFRESH'
-   ELSE
-       IF ( &ZCMDU EQ 'BACK' )
-          &ZCMD = 'S'
+    IF ( &ZCMDU EQ 'BACK' )
+        &ZCMD = 'S'
 
 &W1    = TRUNC(&ZCMD,' ')
 &W1    = UPPER( W1 )
@@ -82,7 +84,7 @@ IF (&W1 EQ O)
       .MSG    = PSYS01C
       EXIT
 
-VER (&SEL LIST S,C,MSG=PSYS01D)
+VER (&SEL LIST L,S,MSG=PSYS01D)
 VER (&FLDIRS LIST /)
 VPUT (ZSCROLL ZPATH FLDIRS) PROFILE
 

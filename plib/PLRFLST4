@@ -1,0 +1,54 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Browse entry panel
+)ENDCOMMENT
+
+)BODY CMD(ZCMD1) HOME(ZCMD1)
+
+PanelTitle "Save Personal File List As"
+
+literal  4   2         FP    "COMMAND ===> "  
+field    4  15  MAX-17 NEF CAPS(ON) ZCMD1
+
+literal  6  2         FP  "New Name. . . .:"  
+field    6  19   8    NEF  CAPS(ON) NEWNAME
+
+literal  7  2         FP  "Description . .:"  
+field    7  19   MAX  NEF  CAPS(Off) NEWDESC
+
+literal 9  2  CH "Instructions"
+literal 10 2  NT "Press"
+literal 10 8  ET "Enter"
+literal 10 14 NT "to confirm or"
+literal 10 28 ET "END"
+literal 10 32 NT "to cancel operation"
+
+
+)INCLUDE STD_PDC
+pdc  Options  "Personal Settings"     ACTION RUN(ISRROUTE) PARM("SELECT PGM(PLRFLST1) PARM(US1) NEWAPPL(ISP)")
+
+)INCLUDE HLP_PDC
+
+)ENDBODY
+ 
+)INIT
+&NEWNAME = &ACURTB
+&NEWDESC = &AFLDESCP
+)ENDINIT
+
+)PROC
+IF (&ZCMD1 NE &Z )
+   .MSG    = PSYS018
+   .CURSOR = ZCMD1
+   EXIT
+
+IF (&NEWNAME = &ACURTB)
+   &ZEDSMSG = 'Invalid Entry'
+   &ZEDLMSG = 'New name cannot be the same as an existing File List'
+   .MSG     = PSYZ001
+   .CURSOR  = NEWNAME
+   EXIT
+
+VER (&NEWNAME NB)
+VER (&NEWDESC NB)
+)ENDPROC

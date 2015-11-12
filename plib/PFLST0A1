@@ -2,6 +2,14 @@
 
 )COMMENT
  File and Directory list panel
+
+ Panel changes required for reflist and NRETRIEV functions:
+   .NRET = ON  in the )INIT section
+   Reflist also needs to know which field to save
+   NRETRIEV needs to know which field to update
+     SHARED pool variable ZRFFLDA holds the field name for both of
+     these functions.  Set in the )INIT section
+
 )ENDCOMMENT
 
 )BODY
@@ -31,6 +39,7 @@ tbfield  ++1   10  VOI  NONE  SIZE
 tbfield  ++1   19  VOI  NONE  MODDATE 
 
 )INCLUDE STD_PDC
+)INCLUDE RFL_PDC
 )INCLUDE HLP_PDC
 
 )ENDBODY
@@ -42,10 +51,20 @@ VGET ZSCROLL PROFILE
 .ATTR(PERMISS) = 'COLOUR(YELLOW)' 
 .ATTR(SIZE)    = 'COLOUR(WHITE)' 
 
+.NRET = ON
+&ZRFFLDA = ZPATH
+VPUT ZRFFLDA SHARED
+
 .HELP = HFLST01
 )ENDINIT
 
+
 )PROC
+
+&A = upper(ZCMD)
+IF (&A EQ RES,RESET,REFRESH)
+   &ZCMD = REF
+
 VER (&SEL LIST,=,B,C,D,E,EX,FMT,I,L,M,NANO,R,S,T,TT,VI,X,MSG=PSYS01D)
 VPUT (ZSCROLL ZPATH) PROFILE
 )ENDPROC

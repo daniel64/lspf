@@ -36,6 +36,7 @@ pApplication::pApplication()
 	ControlDisplayLock     = false  ;
 	ControlErrorsReturn    = false  ;
 	ControlSplitEnable     = true   ;
+	ControlRefUpdate       = true   ;
         errPanelissued         = false  ;
 	addpop_active          = false  ;
 	noTimeOut              = false  ;
@@ -169,6 +170,13 @@ void pApplication::set_msg( string SMSG, string LMSG, cuaType MSGTYPE, bool MSGA
 }
 
 
+bool pApplication::nretriev_on()
+{
+	if ( panelList.size() == 0 ) { return false                     ; }
+	else                         { return currPanel->get_nretriev() ; }
+}
+
+
 void pApplication::display( string p_name, string p_msg, string p_cursor, int p_csrpos )
 {
 	string  ZZVERB ;
@@ -207,17 +215,19 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 			currPanel->showLMSG = false  ;
 		}
 	}
-
 	setMSG            = false    ;
         PANELID           = p_name   ;
 	currPanel->CURFLD = p_cursor ;
 	currPanel->CURPOS = p_csrpos ;
 	if ( addpop_active ) { currPanel->set_popup( addpop_row, addpop_col ) ; }
 	else                 { currPanel->remove_popup()                      ; }
-	
+
 	p_poolMGR->put( RC, "ZPANELID", p_name, SHARED, SYSTEM ) ;
+
 	currPanel->display_panel_init( RC ) ;
+
 	if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )INIT section of panel " + p_name ) ; return ; }
+
 	while ( true )
 	{
 		currPanel->display_panel( RC ) ;
@@ -271,6 +281,19 @@ void pApplication::refresh()
 	else
 	{
 		it->second->refresh( RC ) ;
+	}
+}
+
+
+void pApplication::nrefresh()
+{
+	RC = 0 ;
+	map<string, pPanel *>::iterator it ;
+
+	it = panelList.find( PANELID ) ;
+	if ( it != panelList.end() )
+	{
+		it->second->nrefresh() ;
 	}
 }
 
@@ -848,6 +871,9 @@ void pApplication::control( string parm1, string parm2 )
 
 	// CONTROL SPLIT DISABLE - RC=8 if screen already split
 
+	// CONTROL REFLIST UPDATE
+	// CONTROL REFLIST NOUPDATE
+
 	// LSPF extensions:
 	// CONTROL TIMEOUT ENABLE  - Enable application timeouts after ZWAITMAX ms (default).
 	// CONTROL TIMEOUT DISABLE - Disable forced abend of applications if ZWAITMAX exceeded.
@@ -906,6 +932,18 @@ void pApplication::control( string parm1, string parm2 )
 		else if ( parm2 == "CANCEL" )
 		{
 			ControlErrorsReturn = false ;
+		}
+		else { RC = 20 ; }
+	}
+	else if ( parm1 == "REFLIST" )
+	{
+		if ( parm2 == "UPDATE" )
+		{
+			ControlRefUpdate = true ;
+		}
+		else if ( parm2 == "NOUPDATE" )
+		{
+			ControlRefUpdate = false ;
 		}
 		else { RC = 20 ; }
 	}
@@ -1678,7 +1716,7 @@ void pApplication::setmsg( string msg, msgSET sType )
 {
 	RC = 0 ;
 
-	if ( ( sType == COND ) & setMSG ) return ;
+	if ( ( sType == COND ) && setMSG ) return ;
 
 	read_Message( msg ) ;
 	if ( RC > 0 ) { RC = 20 ; return ; }

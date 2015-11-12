@@ -667,11 +667,7 @@ void PFLST0A::createFileList1( string filter )
 
 	MESSAGE = ""    ;
 	SEL     = ""    ;
-	ENTRY   = "."   ;
-	TYPE    = "Dir" ;
-	tbadd( DSLIST ) ;
-	ENTRY   = ".."  ;
-	tbadd( DSLIST ) ;
+	filter  = upper( filter ) ;
 
 	vec v;
 	
@@ -694,7 +690,7 @@ void PFLST0A::createFileList1( string filter )
 		p       = ENTRY          ;
 		i       = lastpos( "/", ENTRY ) + 1 ;
 		ENTRY   = substr( ENTRY, i ) ;
-		if ( filter != "" && !abbrev( ENTRY, filter ) ) { continue ; }
+		if ( filter != "" && pos( filter, upper( ENTRY ) ) == 0 ) { continue ; }
 		MESSAGE = "";
 		lstat( p.c_str(), &results ) ;
 		if ( S_ISDIR( results.st_mode ) )       TYPE = "Dir"     ;
@@ -1628,14 +1624,14 @@ string PFLST0A::showListing()
 		while ( ZTDSELS > 0 )
 		{
 			if ( SEL == ""  ) {}
-			else if ( SEL == "S" )
+			else if ( SEL == "L" )
 			{
 				if ( ZPATH.back() == '/' ) { ZPATH = ZPATH + ENTRY       ; }
 				else                       { ZPATH = ZPATH + "/" + ENTRY ; }
 				tbend( DSLIST )   ;
 				createFileList2( FLDIRS ) ;
 			}
-			else if ( SEL == "C" )
+			else if ( SEL == "S" )
 			{
 				if ( ZPATH.back() == '/' ) { ZPATH = ZPATH + ENTRY       ; }
 				else                       { ZPATH = ZPATH + "/" + ENTRY ; }
@@ -1667,12 +1663,10 @@ void PFLST0A::createFileList2( string FLDIRS, string filter )
 
 	tbcreate( DSLIST, "", "SEL ENTRY TYPE", NOWRITE ) ;
 
-	SEL     = ""    ;
-	ENTRY   = "."   ;
-
 	vec v;
 	
 	if ( ZPATH == "" ) { ZPATH = "/" ; }
+	filter = upper( filter ) ;
 
 	try
 	{
@@ -1693,7 +1687,7 @@ void PFLST0A::createFileList2( string FLDIRS, string filter )
 		p       = ENTRY          ;
 		i       = lastpos( "/", ENTRY ) + 1 ;
 		ENTRY   = substr( ENTRY, i ) ;
-		if ( filter != "" && !abbrev( ENTRY, filter ) ) { continue ; }
+		if ( filter != "" && pos( filter, upper( ENTRY ) ) == 0 ) { continue ; }
 		lstat( p.c_str(), &results ) ;
 		if ( S_ISDIR( results.st_mode ) )       TYPE = "Dir"     ;
 		else if ( S_ISREG( results.st_mode ) )  TYPE = "File"    ;

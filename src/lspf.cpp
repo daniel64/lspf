@@ -119,6 +119,7 @@ void loadpfkeyTable()        ;
 void loadcuaTables()         ;
 void setColourPair( string ) ;
 void updateDefaultVars()     ;
+void updateReflist()         ;
 void startApplication( string, string, string, bool, bool ) ;
 void terminateApplication()  ;
 void processSELECT()         ;
@@ -358,6 +359,7 @@ void MainLoop()
 		pfkeyPressed = false ;
 		if ( commandStack == "" && !currAppl->ControlDisplayLock )
 		{
+			currAppl->nrefresh() ;
 			doupdate()  ;
 			c = getch() ;
 		}
@@ -491,6 +493,7 @@ void MainLoop()
 							processSELECT() ;
 						}
 					}
+					updateReflist() ;
 				}
 				else
 				{
@@ -1210,9 +1213,11 @@ void terminateApplication()
 	string  tRESULT  ;
 	string  SMSG     ;
 	string  LMSG     ;
+	string  fname    ;
 	cuaType MSGTYPE  ;
-	bool    MSGALRM  ;
 
+	bool MSGALRM      ;
+	bool refList      ;
 	bool propagateEnd ;
 	bool jumpEntered  ;
 
@@ -1221,7 +1226,7 @@ void terminateApplication()
 	log( "I", "Application terminating " << currAppl->ZAPPNAME << endl ) ;
 
 	ZAPPNAME = currAppl->ZAPPNAME ;
-	pLScreen * p_pLScreen       ;
+	pLScreen * p_pLScreen         ;
 	p_pLScreen = screenList[ screenNum ] ;
 
 	if ( currAppl->NEWPOOL )
@@ -1234,6 +1239,9 @@ void terminateApplication()
 	tRC     = currAppl->ZRC     ;
 	tRSN    = currAppl->ZRSN    ;
 	tRESULT = currAppl->ZRESULT ;
+
+	if ( currAppl->field_name == "#REFLIST" ) { refList = true  ; }
+	else                                      { refList = false ; }
 
 	if ( currAppl->setMSG ) { SMSG = currAppl->ZSMSG ; LMSG = currAppl->ZLMSG ; MSGTYPE = currAppl->ZMSGTYPE ; MSGALRM = currAppl->ZMSGALRM ; }
 
@@ -1295,14 +1303,44 @@ void terminateApplication()
 
 	p_poolMGR->put( RC, "ZPANELID", currAppl->PANELID, SHARED, SYSTEM )  ;
 
+	if ( refList )
+	{
+		if ( currAppl->nretriev_on() )
+		{
+			fname = p_poolMGR->get( RC, "ZRFFLDA", SHARED ) ;
+			if ( RC == 0 )
+			{
+				currAppl->field_name = fname ;
+			}
+			else
+			{
+				currAppl->setmsg( "PSYS01Y" ) ;
+				SMSG = currAppl->ZSMSG ; LMSG = currAppl->ZLMSG ; MSGTYPE = currAppl->ZMSGTYPE ; MSGALRM = currAppl->ZMSGALRM ;
+			}
+		}
+		else
+		{
+			currAppl->setmsg( "PSYS01X" ) ;
+			SMSG = currAppl->ZSMSG ; LMSG = currAppl->ZLMSG ; MSGTYPE = currAppl->ZMSGTYPE ; MSGALRM = currAppl->ZMSGALRM ;
+		}
+	}
+
 	if ( currAppl->field_name != "" )
 	{
 		if ( tRC == 0 )
 		{
-			currAppl->currPanel->field_setvalue( currAppl->field_name, tRESULT ) ;
-			currAppl->currPanel->field_get_row_col( currAppl->field_name, row, col ) ;
-			currAppl->currPanel->cursor_eof( row, col ) ;
-			currAppl->currPanel->set_cursor( row, col ) ;
+			if ( currAppl->currPanel->field_get_row_col( currAppl->field_name, row, col ) )
+			{
+				currAppl->currPanel->field_setvalue( currAppl->field_name, tRESULT ) ;
+				currAppl->currPanel->cursor_eof( row, col ) ;
+				currAppl->currPanel->set_cursor( row, col ) ;
+			}
+			else
+			{
+				log( "E", "Invalid field " << currAppl->field_name << " in variable ZRFFLDA" << endl ) ;
+				currAppl->setmsg( "PSYS01Z" ) ;
+				SMSG = currAppl->ZSMSG ; LMSG = currAppl->ZLMSG ; MSGTYPE = currAppl->ZMSGTYPE ; MSGALRM = currAppl->ZMSGALRM ;
+			}
 		}
 		else if ( tRC == 8 )
 		{
@@ -1386,6 +1424,7 @@ void terminateApplication()
 		currScrn->clear()   ;
 		currAppl->refresh() ;
 		currAppl->get_home( row, col ) ;
+		currAppl->setMSG = false       ;
 	}
 	log( "I", "Application terminatation of " << ZAPPNAME << " completed.  Current application is " << currAppl->ZAPPNAME << endl ) ;
 	currScrn->set_row_col( row, col ) ;
@@ -1687,7 +1726,7 @@ void loadApplicationCommandTable( string APPLID )
 {
 	int RC ;
 
-	if ( APPLID == "ISP" ) return ;
+	if ( APPLID == "ISP" || APPLID == "ISPS" ) return ;
 
 	if ( !p_tableMGR->isloaded( APPLID + "CMDS" ) )
 	{
@@ -1751,14 +1790,14 @@ void updateDefaultVars()
 	time( &rawtime ) ;
 	time_info = localtime( &rawtime ) ;
 
-	strftime( buf, sizeof(buf), "%H:%M:%S", time_info )   ; buf[ 8 ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "ZTIMEL", buf, SHARED )   ;
-	strftime( buf, sizeof(buf), "%H:%M", time_info )      ; buf[ 6 ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "ZTIME", buf, SHARED )    ;
-	strftime( buf, sizeof(buf), "%d/%m/%y", time_info )   ; buf[ 8 ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "ZDATE", buf, SHARED )    ;
-	strftime( buf, sizeof(buf), "%d", time_info )         ; buf[ 2 ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "ZDAY", buf, SHARED )     ;
-	strftime( buf, sizeof(buf), "%A       ", time_info )  ; buf[ 9 ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "ZDAYOFWK", buf, SHARED ) ;
-	strftime( buf, sizeof(buf), "%d/%m/%Y  ", time_info ) ; buf[ 10 ] = 0x00 ; p_poolMGR->defaultVARs( RC , "ZDATEL", buf, SHARED )   ;
-	strftime( buf, sizeof(buf), "%y.%j ", time_info )     ; buf[ 6 ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "ZJDATE", buf, SHARED )   ;
-	strftime( buf, sizeof(buf), "%Y.%j   ", time_info )   ; buf[ 8 ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "Z4JDATE", buf, SHARED )  ;
+	strftime( buf, sizeof(buf), "%H:%M:%S", time_info )   ; buf[ 8  ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "ZTIMEL", buf, SHARED )   ;
+	strftime( buf, sizeof(buf), "%H:%M", time_info )      ; buf[ 6  ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "ZTIME", buf, SHARED )    ;
+	strftime( buf, sizeof(buf), "%d/%m/%y", time_info )   ; buf[ 8  ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "ZDATE", buf, SHARED )    ;
+	strftime( buf, sizeof(buf), "%d", time_info )         ; buf[ 2  ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "ZDAY", buf, SHARED )     ;
+	strftime( buf, sizeof(buf), "%A       ", time_info )  ; buf[ 9  ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "ZDAYOFWK", buf, SHARED ) ;
+	strftime( buf, sizeof(buf), "%d/%m/%Y  ", time_info ) ; buf[ 10 ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "ZDATEL", buf, SHARED )   ;
+	strftime( buf, sizeof(buf), "%y.%j ", time_info )     ; buf[ 6  ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "ZJDATE", buf, SHARED )   ;
+	strftime( buf, sizeof(buf), "%Y.%j   ", time_info )   ; buf[ 8  ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "Z4JDATE", buf, SHARED )  ;
 	if ( pLScreen::screensTotal > 1 )
 	{
 		p_poolMGR->defaultVARs( RC , "ZSPLIT", "YES", SHARED ) ;
@@ -1768,6 +1807,35 @@ void updateDefaultVars()
 		p_poolMGR->defaultVARs( RC , "ZSPLIT", "NO", SHARED ) ;
 	}
 		
+}
+
+
+void updateReflist()
+{
+	// Check if ZRFFLDA is set in the SHARED pool (usually put in the panel definition) and if so, add file to the reflist using
+	// application PLRFLST1 parmameters PLA plus the field entry value.
+
+	// Don't update REFLIST if the application has done a CONTROL REFLIST NOUPDATE (flag ControlRefUpdate=false) or ISPS PROFILE variabe
+	// ZRFURL is not set to YES
+
+	int RC ;
+
+	uint row ;
+	uint col ;
+
+	string fname ;
+
+	if ( currAppl->ControlRefUpdate && p_poolMGR->get( RC, "ZRFURL", PROFILE ) == "YES" )
+	{
+		fname = p_poolMGR->get( RC, "ZRFFLDA", SHARED ) ;
+		if ( fname != "" )
+		{
+			if ( currAppl->currPanel->field_get_row_col( fname, row, col ) )
+			{
+				startApplication( "PLRFLST1", "PLA " + currAppl->currPanel->field_getvalue( fname ), "", false, false ) ;
+			}
+		}
+	}
 }
 
 

@@ -13,6 +13,7 @@ the list will be retrieved.
 A '?' on the first character of the directory name (and command FIELDEXC), will give a scrollable 
 list to navigate the file system.
 
+Panel supports REFLIST and NRETRIEV functions.
 
 Primary commands:
 -----------------
@@ -21,7 +22,7 @@ CD xxx   Change to directory xxx under the current directory listing
 BACK or S Go back one directory level
 S xxx    Select file or directory xxx from the current list
 L xxx    FIRST|LAST|PREV to scroll the list to entry xxx (NEXT is the default)
-O        Filter list
+O        Filter list (case insensitive, match at any position)
 REF      Refresh directory list
 MKDIR    Make a directory (under current or specify full path)
 TOUCH    Make a file (under current or specify full path)

@@ -1,0 +1,57 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Browse entry panel
+)ENDCOMMENT
+)BODY CMD(ZCMD1) HOME(ZCMD1)
+
+PanelTitle "Edit Personal File List"
+
+scrollOn
+
+literal  4   2         FP    "COMMAND ===> "  
+field    4  15  MAX-17 NEF CAPS(ON) ZCMD1
+
+literal  4  MAX-15  FP "SCROLL ===> "
+field    4  MAX-3  4 NEF  NONE ZSCROLL
+
+literal  6  2       FP  "Action: I=Insert entry R=Repeat line D=Delete entry"  
+
+literal  8  2      FP "Name     Description"
+literal  8  MAX-30 FP "Created     Referenced"
+field    9  2       8      VOI  NONE ZCURTB
+field    9  11      MAX-32 VOI  NONE FLADESCP
+field    9  MAX-30  MAX-20 VOI  NONE FLACTIME
+field    9  MAX-18  MAX    VOI  NONE FLAUTIME
+
+
+literal  11  2      CH    "S File Name"  
+literal  12  2      CH    EXPAND "-"  
+
+
+
+tbmodel  13   MAX
+tbfield  2    1       NEF   PAD('_'),CAPS(ON) BSEL
+tbfield  ++1  MAX       NEF   NONE BFILE
+
+)INCLUDE STD_PDC
+pdc  Options  "Personal Settings"     ACTION RUN(ISRROUTE) PARM("SELECT PGM(PLRFLST1) PARM(US1) NEWAPPL(ISP)")
+)INCLUDE HLP_PDC
+
+)ENDBODY
+ 
+)INIT
+VGET ZSCROLL PROFILE
+)ENDINIT
+
+)PROC
+IF (&ZCMD1 EQ 'CAN')
+   &ZCMD1 = CANCEL
+
+IF (&ZCMD1 NE &Z,CANCEL )
+   .MSG    = PSYS018
+   .CURSOR = ZCMD1
+   EXIT
+
+VER (&BSEL,LIST,D,I,R)
+VPUT ZSCROLL PROFILE
+)ENDPROC

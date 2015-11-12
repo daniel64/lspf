@@ -217,6 +217,37 @@ main()
 	ZCTDESC  = "START A NEW MAIN PROGRAM SESSION" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
+	ZCTVERB  = "REFACTF" ;
+	ZCTTRUNC = "5"       ;
+	ZCTACT   = "SELECT PGM(PLRFLST1) PARM(PL1 &ZPARM)" ;
+	ZCTDESC  = "OPEN ACTIVE REFERRAL LIST" ;
+	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	ZCTVERB  = "REFADDF" ;
+	ZCTTRUNC = "5"       ;
+	ZCTACT   = "SELECT PGM(PLRFLST1) PARM(PLA &ZPARM)" ;
+	ZCTDESC  = "ADD FILE TO REFERENCE LIST" ;
+	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	ZCTVERB  = "REFLISTF" ;
+	ZCTTRUNC = "4"        ;
+	ZCTACT   = "SELECT PGM(PLRFLST1) PARM(PL1 REFLIST &ZPARM)" ;
+	ZCTDESC  = "OPEN REFERENCE LIST" ;
+	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	ZCTVERB  = "REFOPENF" ;
+	ZCTTRUNC = "4"        ;
+	ZCTACT   = "SELECT PGM(PLRFLST1) PARM(PL2)"  ;
+	ZCTDESC  = "OPEN FILE REFERRAL LISTS" ;
+	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	ZCTVERB  = "NRETRIEV" ;
+	ZCTTRUNC = "0"        ;
+	ZCTACT   = "SELECT PGM(PLRFLST1) PARM(NR1 &ZPARM)"  ;
+	ZCTDESC  = "RETRIEVE NEXT ENTRY FROM ACTIVE REFERRAL LIST" ;
+	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+
 	// ========================= USRCMDS ======================================
 	ZCTVERB  = "EDIT" ;
 	ZCTTRUNC = "2" ;
@@ -282,7 +313,6 @@ main()
 	ZCTTRUNC = "0"   ;
 	ZCTACT   = "SELECT PGM(PPSP01A) PARM(COLOURS) NEWAPPL(ISP)"  ;
 	ZCTDESC  = "DISPLAY/CHANGE CUA COLOURS" ;
-
 	p_tableMGR->tbadd( RC, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
 	p_tableMGR->tbsort( RC, funcPOOL, "ISPCMDS", "ZCTVERB,C,A" ) ;
@@ -353,6 +383,10 @@ void createSYSPROF()
 	p_poolMGR->put( RC, "ZMAXSCRN", d2ds(ZMAXSCRN), PROFILE ) ;
 	p_poolMGR->put( RC, "ZMAXWAIT", d2ds(ZMAXWAIT), PROFILE ) ;
 	p_poolMGR->put( RC, "ZWAIT",    d2ds(ZWAIT),    PROFILE ) ;
+
+	p_poolMGR->put( RC, "ZRFURL", "YES", PROFILE ) ;
+	p_poolMGR->put( RC, "ZRFFEX", "YES", PROFILE ) ;
+	p_poolMGR->put( RC, "ZRFNEX", "YES", PROFILE ) ;
 
 	setCUAcolours( "AB",   KAB   ) ;
 	setCUAcolours( "ABSL", KABSL ) ;

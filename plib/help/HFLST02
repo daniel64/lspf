@@ -3,6 +3,7 @@
 Primary and line commands for file/directory list application
 =============================================================
 
+Panel supports REFLIST and NRETREIV functions.
 
 Primary commands:
 -----------------
@@ -10,14 +11,14 @@ CD /xxx  Change to directory /xxx
 CD xxx   Change to directory xxx under the current directory listing
 CD       Change to home directory
 BACK or S Go back one directory level
-O        Filter list
+O        Filter list (case insensitive, match at any position)
 REF      Refresh directory list
 RES      Refresh directory list
 
 
 Line Commands:
 --------------
-C  - Copy file/directory to the select field
-S  - Select file/directory
+L  - Select directory
+S  - Copy file/directory to the select field
 
 

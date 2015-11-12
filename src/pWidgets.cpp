@@ -1200,10 +1200,11 @@ ASSGN::ASSGN( string s )
 	as_lhs = upper( strip( s.substr( 0, p ) ) ) ;
 	if ( words( as_lhs ) != 1 ) { as_RC = 20 ; return ; }
 	if      ( as_lhs == ".AUTOSEL" ) {}
-	else if ( as_lhs == ".HELP" )    {}
-	else if ( as_lhs == ".MSG" )     {}
 	else if ( as_lhs == ".CURSOR" )  {}
 	else if ( as_lhs == ".CSRROW" )  {}
+	else if ( as_lhs == ".HELP" )    {}
+	else if ( as_lhs == ".MSG" )     {}
+	else if ( as_lhs == ".NRET" )    {}
 	else if ( as_lhs.substr( 0, 6 ) == ".ATTR(" )
 	{
 		p1 = as_lhs.find( ')' ) ;
