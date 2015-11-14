@@ -23,11 +23,18 @@ Command Table Entries:
 ----------------------
 SYSTEM
 ******
-CMDS   List of commands (USER, APPLICATION and SYSTEM command tables)
-CUA    View/change cua attribute settings
-KEYS   Change pfkey settings
-ALOG   Display the Application Log
-LOG    Display the lspf Log
+CMDS     List of commands (USER, APPLICATION and SYSTEM command tables)
+CUA      View/change cua attribute settings
+KEYS     Change pfkey settings
+ALOG     Display the Application Log
+LOG      Display the lspf Log
+NRETRIEV Retrieve next entry from the active (or specified) referral list
+         NRETRIEV
+         NRETRIEV pos list   eg. NRETRIEV  4 MINE   get the 4th entry from list 'MINE'
+         NRETRIEV list pos   eg. NRETRIEV  LSPF 6   get the 6th entry from list 'LSPF'
+REFACTF  List the active referral list (accepts a list as parameter)
+REFLISTF List the reference list
+REFOPENF Open a list of all referral lists
 
 USER
 ****

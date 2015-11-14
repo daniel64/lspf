@@ -74,6 +74,7 @@ class PLRFLST1 : public pApplication
 		string FLACTIME ;
 		string FLAUTIME ;
 
+		string RFLTABLE ;
 		string UPROF    ;
 		string TABFLDS  ;
 

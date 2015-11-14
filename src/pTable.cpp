@@ -23,7 +23,7 @@
 #define LOGOUT   aplog
 
 
-void Table::loadRow( int & RC, vector< string > m_flds )
+void Table::loadRow( int & RC, vector< string > & m_flds )
 {
 	vector< string >::iterator it ;
 
@@ -135,6 +135,7 @@ void Table::saveTable( int & RC, string m_name, string m_path )
 void Table::tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_order, int tb_num_of_rows )
 {
 	// Add a row to a table after the CRP (if not sorted) or in the sort position if ORDER has been specified and there has been a previous tbsort()
+
 	// RC = 0  Okay
 	// RC = 8  Keyed tables only.  Row already exists, CRP set to TOP
 	// RC = 16 Numeric conversion error
@@ -164,19 +165,10 @@ void Table::tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 		return ;
 	}
 
-	if ( tb_order != "" && tb_order != "ORDER" )
-	{
-		RC = 20 ;
-		log( "E", "Invalid ORDER parameter specified.  Must be blank or ORDER.  Specified " << tb_order <<  endl ) ;
-		return ;
-	}
-
 	if ( tb_num_of_rows > 0 ) { table.reserve( tb_num_of_rows ) ; }
 
-	if ( sort_flds == "" ) { tb_order = "" ; }
-
-	if      ( tb_order == "" ) { sort_ir = ""  ; sorted_on_keys = false ; }
-	else if ( sort_ir == ""  ) { tb_order = ""                          ; } 
+	if      ( tb_order  == "" ) { sort_flds = "" ; sort_ir  = ""  ; sorted_on_keys = false ; }
+	else if ( sort_flds == "" ) { tb_order  = "" ; }
 
 	flds.clear() ;
 	flds.push_back( d2ds( ++maxURID ) ) ;
@@ -310,7 +302,7 @@ void Table::tbdelete( int & RC, fPOOL & funcPOOL )
 {
 	// Delete a row in the table.  For keyed tables, this is the row pointed to be the current contents of the key variable
 	// For non-keyed tables, this is the row pointed to by the tb_crp_name
-	//
+
 	// RC = 0  Okay
 	// RC = 8  Keyed tables.  Row with key value does not exist.  CRP set to TOP
 	//         Non-keyed tables.  CRP was at TOP (zero)
@@ -369,6 +361,7 @@ void Table::tbdelete( int & RC, fPOOL & funcPOOL )
 void Table::tbexist( int & RC, fPOOL & funcPOOL )
 {
 	// Test for the existance of a row in a keyed table using the current value of the key variables.  CRP is positioned at this row if found else TOP
+
 	// RC = 0  Okay
 	// RC = 8  Keyed tables.  Row does not exist.  CRP is set to TOP (zero)
 	//         Non-keyed tables.  Not valid.  CRP is set to TOP (zero)
@@ -453,6 +446,7 @@ void Table::fillfVARs( int & RC, fPOOL & funcPOOL, int depth, int posn )
 void Table::tbget( int & RC, fPOOL & funcPOOL, string tb_savenm, string tb_rowid_vn, string tb_noread, string tb_crp_name )
 {
 	// Access row in the table.  For table with keys, use the current value of the key in the dialogue variable.  For non-keyed tables, use the CRP
+
 	// RC = 0  Okay
 	// RC = 8  CRP was at TOP(zero) for non-keyed tables or key not found for keyed tables
 	// RC = 20 Severe error
@@ -547,11 +541,12 @@ void Table::tbmod( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	// tbmod - update row if match found on key (keyed tables),  else perform tbadd to the bottom of the table
 	//         Non-keyed tables same as a tbadd
 	//         CRP always points to the row added/updated
+
 	// RC = 0  Okay.  Keyed tables - row updated.  Non-keyed tables new row added
 	// RC = 8  Row did not match - row added for keyed tables
 	// RC = 16 Numeric conversion error
 	// RC = 20 Severe error
-	
+
 	// Extension variables must be re-specified or they will be lost (tb_namelst)
 
 	int  i      ;
@@ -567,6 +562,9 @@ void Table::tbmod( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	vector< string >::iterator it2 ;
 
 	RC = 0 ;
+
+	if ( sort_flds == "" ) { tb_order = "" ; }
+
 	tb_namelst = upper( tb_namelst ) ;
 	tb_order   = upper( tb_order )   ;
 
@@ -627,6 +625,7 @@ void Table::tbmod( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 void Table::tbput( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_order )
 {
 	// Update the current row in a table using the CRP.  For keyed tables, key variables must match row at CRP
+
 	// RC = 0   OK
 	// RC = 8   Keyed tables - keys do not match current row.  CRP set to top (0)
 	//          Non-keyed tables - CRP was at top
@@ -642,6 +641,8 @@ void Table::tbput( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	vector< string >::iterator it ;
 
 	RC = 0 ;
+
+	if ( sort_flds == "" ) { tb_order = "" ; }
 	tb_namelst = upper( tb_namelst ) ;
 	tb_order   = upper( tb_order )   ;
 
@@ -1081,6 +1082,7 @@ void Table::tbskip( int & RC, fPOOL & funcPOOL, int num, string tb_savenm, strin
 {
 	// Move CRP to a position in the table and read the row into the dialogue variables
 	// Position using tb_rowid (URID) if specified, else use num
+
 	// RC = 0  Okay
 	// RC = 8  CRP would be outside the table
 	// RC = 12 Table not open
@@ -1165,7 +1167,7 @@ void Table::tbskip( int & RC, fPOOL & funcPOOL, int num, string tb_savenm, strin
 }
 
 
-void Table::tbsort( int & RC, fPOOL & funcPOOL, string tb_fields )
+void Table::tbsort( int & RC, string tb_fields )
 {
 	// FIELD
 	// FIELD,C
@@ -1503,6 +1505,7 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbSAVE m_SAVE, tbD
 	string filename  ;
 	string path  ;
 	string s     ;
+	string t     ;
 	string hdr   ;
 	string sir   ;
 	string val   ;
@@ -1681,6 +1684,7 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbSAVE m_SAVE, tbD
 	if ( RC > 0 )
 	{
 		log( "E", "TBCREATE failed during loadTable for " << tb_name << endl ) ;
+		table.close() ;
 		return ;
 	}
 
@@ -1688,10 +1692,19 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbSAVE m_SAVE, tbD
 	debug1( "Number of rows found in table " << num_rows << endl ) ;
 
 	tables[ tb_name ].reserveSpace( num_rows ) ;
-	tables[ tb_name ].sort_ir = sir            ;
+	if ( sir != "" )
+	{
+		tables[ tb_name ].tbsort( RC, sir ) ;
+		if ( RC > 0 )
+		{
+			RC = 20 ;
+			log( "E", "Bad return code from tbsort.  Sort Information Record found is " << sir << endl ) ;
+			table.close() ;
+			return  ;
+		}
+	}
 
 	buf2 = new char[ buf2Size ] ;
-
 	for ( l = 0 ; l < num_rows ; l++ )
 	{
 		m_flds.clear() ;
@@ -1740,7 +1753,7 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbSAVE m_SAVE, tbD
 		log( "E",  "Inconsistent number of records found with saved total.  Found=" << l << " Saved Total=" << num_rows << endl ; )
 		RC = 20 ;
 	}
-	table.close()   ;
+	table.close() ;
 	delete[] buf2 ;
 }
 
@@ -2049,6 +2062,7 @@ void tableMGR::tberase( int & RC, string tb_name, string tb_path )
 void tableMGR::tbexist( int & RC, fPOOL & funcPOOL, string tb_name )
 {
 	RC = 0 ;
+
 	if ( tables.find( tb_name ) == tables.end() )
 	{
 		RC = 12 ;
@@ -2062,6 +2076,7 @@ void tableMGR::tbexist( int & RC, fPOOL & funcPOOL, string tb_name )
 void   tableMGR::tbquery( int & RC, fPOOL & funcPOOL, string tb_name, string tb_keyn, string tb_varn, string tb_rownn, string tb_keynn, string tb_namenn, string tb_crpn, string tb_sirn, string tb_lstn, string tb_condn, string tb_dirn )
 {
 	RC = 0 ;
+
 	if ( tables.find( tb_name ) == tables.end() )
 	{
 		RC = 12 ;
@@ -2075,6 +2090,7 @@ void   tableMGR::tbquery( int & RC, fPOOL & funcPOOL, string tb_name, string tb_
 void   tableMGR::tbsarg( int & RC, fPOOL & funcPOOL, string tb_name, string tb_namelst, string tb_dir, string tb_cond_pairs )
 {
 	RC = 0 ;
+
 	if ( tables.find( tb_name ) == tables.end() )
 	{
 		RC = 12 ;
@@ -2088,6 +2104,7 @@ void   tableMGR::tbsarg( int & RC, fPOOL & funcPOOL, string tb_name, string tb_n
 void tableMGR::tbscan( int & RC, fPOOL & funcPOOL, string tb_name, string tb_namelst, string tb_savenm, string tb_rowid_vn, string tb_dir, string tb_noread, string tb_crp_name, string tb_condlst )
 {
 	RC = 0 ;
+
 	if ( tables.find( tb_name ) == tables.end() )
 	{
 		RC = 12 ;
@@ -2102,6 +2119,7 @@ void tableMGR::tbscan( int & RC, fPOOL & funcPOOL, string tb_name, string tb_nam
 void tableMGR::cmdsearch( int & RC, fPOOL & funcPOOL, string tb_name, string srch )
 {
 	RC = 0 ;
+
 	if ( tables.find( tb_name ) == tables.end() ) { RC = 8 ; return ; }
 
 	tables[ tb_name ].cmdsearch( RC, funcPOOL, srch ) ;
@@ -2111,6 +2129,7 @@ void tableMGR::cmdsearch( int & RC, fPOOL & funcPOOL, string tb_name, string src
 void tableMGR::tbskip( int & RC, fPOOL & funcPOOL, string tb_name, int num, string tb_savenm, string tb_rowid_vn, string tb_rowid, string tb_noread, string tb_crp_name )
 {
 	RC = 0 ;
+
 	if ( tables.find( tb_name ) == tables.end() )
 	{
 		RC = 12 ;
@@ -2121,22 +2140,24 @@ void tableMGR::tbskip( int & RC, fPOOL & funcPOOL, string tb_name, int num, stri
 }
 
 
-void tableMGR::tbsort( int & RC, fPOOL & funcPOOL, string tb_name, string tb_fields )
+void tableMGR::tbsort( int & RC, string tb_name, string tb_fields )
 {
 	RC = 0 ;
+
 	if ( tables.find( tb_name ) == tables.end() )
 	{
 		RC = 12 ;
 		log( "E", "Table >>" << tb_name << "<< not found for tbsort" << endl ) ;
 		return ;
 	}
-	tables[ tb_name ].tbsort( RC, funcPOOL, tb_fields ) ;
+	tables[ tb_name ].tbsort( RC, tb_fields ) ;
 }
 
 
 void tableMGR::tbtop( int & RC, string tb_name )
 {
 	RC = 0 ;
+
 	if ( tables.find( tb_name ) == tables.end() )
 	{
 		RC = 12 ;
@@ -2150,6 +2171,7 @@ void tableMGR::tbtop( int & RC, string tb_name )
 void tableMGR::tbvclear( int & RC, fPOOL & funcPOOL, string tb_name )
 {
 	RC = 0 ;
+
 	if ( tables.find( tb_name ) == tables.end() )
 	{
 		RC = 12 ;

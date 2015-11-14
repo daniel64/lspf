@@ -20,7 +20,7 @@ field    6  10  8 VOI  NONE LCURTB
 literal  7  2       FP  "Action: O=Open A=Save As D=Delete E=Edit S=Set Active"  
 
 literal  9   2      CH    "S Name     Description"  
-literal  9   MAX-30 CH    "Created     Referenced"  
+literal  9   MAX-30 CH    "Created     Updated"  
 literal  10  2      CH    EXPAND "-"  
 
 tbmodel  11   MAX

@@ -85,6 +85,7 @@ using namespace boost::posix_time;
 #define ZREXPATH	HOME "/rexx:" ZSYSPATH "/rexx"
 #define SLOG		HOME "/.lspf/lspflog"
 #define ALOG		HOME "/.lspf/appllog"
+#define ZRFLTBL 	"LSRPLIST"
 #define ZMAINPGM 	"PMAIN0A"
 #define ZPANLPGM 	"PDPANLA"
 #define ZEDITPGM 	"PEDIT01"
@@ -94,6 +95,7 @@ using namespace boost::posix_time;
 #define ZHELPPGM	"PTUTORA"
 #define ZOREXPGM	"POREXX1"
 #define ZSHELP		"HPSPF01"
+#define ZRFLPGM		"PLRFLST1"
 #define ZMAXSCRN	8
 #define ZWAIT           5
 #define ZMAXWAIT        1000

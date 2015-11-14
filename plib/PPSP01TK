@@ -13,16 +13,16 @@ field    4  15  MAX-17 NEF CAPS(ON) ZCMD
 literal  4  MAX-15  FP "SCROLL ===> "
 field    4  MAX-3   4  NEF  NONE ZSCROLL
 
-literal  7 2 CH "SEL  USER      PID       %CPU  %MEM  CMD"
+literal  7 2 CH "S USER     PID    %CPU   %MEM   CMD"
 literal  8 2 CH EXPAND "-"  
 
 tbmodel  9   MAX
-tbfield  2    1   NEF CAPS(ON),PAD('_'),JUST(LEFT) SEL
-tbfield  7    8   VOI NONE USER
-tbfield  17   8   VOI NONE PID
-tbfield  27   5   VOI NONE CPU
-tbfield  33   5   VOI NONE MEM
-tbfield  39   50   VOI NONE CMD
+tbfield  2     1   NEF CAPS(ON),PAD('_'),JUST(LEFT) SEL
+tbfield  ++1   8   VOI NONE USER
+tbfield  ++1   8   VOI NONE PID
+tbfield  ++1   5   VOI NONE CPU
+tbfield  ++1   5   VOI NONE MEM
+tbfield  ++1   MAX VOI NONE CMD
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC

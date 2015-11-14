@@ -110,6 +110,8 @@ void PFLST0A::application()
 
 	string entry    ;
 	string OPATH    ;
+	string AFHIDDEN ;
+	string OHIDDEN  ;
 	string OSEL     ;
 	string lp       ;
 	string PGM      ;
@@ -123,7 +125,7 @@ void PFLST0A::application()
 	string DIRREC   ;
 	string NEWENTRY ;
 	string FREPL    ;
-	
+
 	struct stat results ;
 	char * buffer       ;
 	size_t bufferSize = 255 ;
@@ -133,15 +135,16 @@ void PFLST0A::application()
 
 	vcopy( "ZUSER", ZUSER, MOVE ) ;
 	vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
-	
+
 	ofstream of ;
 
 	vdefine( "SEL ENTRY MESSAGE TYPE PERMISS SIZE STCDATE MODDATE", &SEL, &ENTRY, &MESSAGE, &TYPE, &PERMISS, &SIZE, &STCDATE, &MODDATE ) ; 
 	vdefine( "MODDATES ZVERB ZHOME ZCMD ZPATH CONDOFF NEWENTRY FREPL", &MODDATES, &ZVERB, &ZHOME, &ZCMD, &ZPATH, &CONDOFF, &NEWENTRY, &FREPL ) ;
-	vdefine( "RSN NEMPTOK DIRREC", &RSN, &NEMPTOK, &DIRREC ) ;
+	vdefine( "RSN NEMPTOK DIRREC AFHIDDEN", &RSN, &NEMPTOK, &DIRREC, &AFHIDDEN ) ;
 	vdefine( "CRP", &CRP ) ;
-	
+
 	vget( "ZHOME", SHARED ) ;
+	vget( "AFHIDDEN", PROFILE ) ;
 
 	if ( PARM == "" ) { vget( "ZPATH", PROFILE ) ; }
 	else
@@ -211,7 +214,8 @@ void PFLST0A::application()
 			tbskip( DSLIST, - (ZTDDEPTH-2) ) ;
 			if ( RC > 0 ) { tbtop( DSLIST ) ; }
 		}
-		OPATH  = ZPATH ;
+		OPATH   = ZPATH    ;
+		OHIDDEN = AFHIDDEN ;
 		if ( MSG == "" ) { ZCMD  = "" ; }
 		tbdispl( DSLIST, "PFLST0A1", MSG, "ZCMD" ) ;
 		if ( RC  > 8 ) { abend() ; }
@@ -230,11 +234,18 @@ void PFLST0A::application()
 		if ( CRP > 0 ) { i = CRP  ; }
 		if ( RCode == 4 ) { continue ; }
 		if ( ZPATH == "" ) ZPATH = ZHOME ;
+		if ( OHIDDEN != AFHIDDEN )
+		{
+			tbend( DSLIST )   ;
+			createFileList1() ;
+			i = 1    ;
+			continue ;
+		}
 		if ( OPATH != ZPATH )
 		{
 			if ( ( !exists( ZPATH ) || !is_directory( ZPATH ) ) )
 			{
-				MSG = "BRENT012" ;
+				MSG = "PSYS011A" ;
 			}
 			else
 			{
@@ -540,6 +551,8 @@ void PFLST0A::application()
 					else                 { MESSAGE = "Browsed" ; }
 					tbput( DSLIST )     ;
 				}
+				vcopy( "ZRFLPGM", PGM, MOVE ) ;
+				select( "PGM("+PGM+") PARM(PLA "+entry+")" ) ;
 			}
 			else if ( is_regular_file( entry ) && (SEL == "NANO" ) )
 			{
@@ -657,6 +670,8 @@ void PFLST0A::createFileList1( string filter )
 {
 	int i    ;
 	string p ;
+	string t ;
+
 	struct stat results   ;
 	struct tm * time_info ;
 	char buf[ 20 ]        ;
@@ -668,6 +683,8 @@ void PFLST0A::createFileList1( string filter )
 	MESSAGE = ""    ;
 	SEL     = ""    ;
 	filter  = upper( filter ) ;
+
+	vcopy( "AFHIDDEN", t, MOVE ) ;
 
 	vec v;
 	
@@ -690,6 +707,7 @@ void PFLST0A::createFileList1( string filter )
 		p       = ENTRY          ;
 		i       = lastpos( "/", ENTRY ) + 1 ;
 		ENTRY   = substr( ENTRY, i ) ;
+		if ( t != "/" && ENTRY[ 0 ] == '.' ) { continue ; }
 		if ( filter != "" && pos( filter, upper( ENTRY ) ) == 0 ) { continue ; }
 		MESSAGE = "";
 		lstat( p.c_str(), &results ) ;
@@ -1543,15 +1561,17 @@ string PFLST0A::expandDir( string parms )
 
 string PFLST0A::showListing()
 {
-	string w1      ;
-	string w2      ;
-	string ws      ;
-	string OPATH   ;
-	string FLDIRS  ;
-	string OFLDIRS ;
+	string w1       ;
+	string w2       ;
+	string ws       ;
+	string OPATH    ;
+	string FLDIRS   ;
+	string OFLDIRS  ;
+	string FLHIDDEN ;
+	string OHIDDEN  ;
 
-	vdefine( "SEL ENTRY TYPE FLDIRS", &SEL, &ENTRY, &TYPE, &FLDIRS ) ; 
-	vget( "FLDIRS", PROFILE ) ;
+	vdefine( "SEL ENTRY TYPE FLDIRS FLHIDDEN", &SEL, &ENTRY, &TYPE, &FLDIRS, &FLHIDDEN ) ; 
+	vget( "FLDIRS FLHIDDEN", PROFILE ) ;
 
 	DSLIST = "DSLST" + right( d2ds( taskid() ), 3, '0' ) ;
 	createFileList2( FLDIRS ) ;
@@ -1573,8 +1593,9 @@ string PFLST0A::showListing()
 			tbskip( DSLIST, - (ZTDDEPTH-2) ) ;
 			if ( RC > 0 ) { tbtop( DSLIST ) ; }
 		}
-		OPATH    = ZPATH  ;
-		OFLDIRS  = FLDIRS ;
+		OPATH   = ZPATH    ;
+		OFLDIRS = FLDIRS   ;
+		OHIDDEN = FLHIDDEN ;
 		if ( MSG == "" ) { ZCMD  = "" ; }
 		tbdispl( DSLIST, "PFLST0A7", MSG, "ZCMD" ) ;
 		if ( RC  > 8 ) { abend() ; }
@@ -1583,8 +1604,8 @@ string PFLST0A::showListing()
 		w1  = upper( word( ZCMD, 1 ) ) ;
 		w2  = word( ZCMD, 2 )    ;
 		ws  = subword( ZCMD, 2 ) ;
-		if ( w1 == "REFRESH" ) { tbend( DSLIST ) ; createFileList2( FLDIRS )     ; continue ; }
-		if ( w1 == "O" )       { tbend( DSLIST ) ; createFileList2( FLDIRS, w2 ) ; continue ; }
+		if ( w1 == "REFRESH" )     { tbend( DSLIST ) ; createFileList2( FLDIRS )     ; continue ; }
+		if ( w1 == "O" )           { tbend( DSLIST ) ; createFileList2( FLDIRS, w2 ) ; continue ; }
 		if ( w1 == "S" && ZPATH != "/" )
 		{
 			if ( ZPATH.back() == '/' ) { ZPATH = ZPATH.substr( 0, ZPATH.size()-1) ; }
@@ -1608,11 +1629,17 @@ string PFLST0A::showListing()
 			createFileList2( FLDIRS ) ;
 			continue ;
 		}
+		if ( OHIDDEN != FLHIDDEN )
+		{
+			tbend( DSLIST ) ;
+			createFileList2( FLDIRS ) ;
+			continue ;
+		}
 		if ( OPATH != ZPATH )
 		{
 			if ( ( !exists( ZPATH ) || !is_directory( ZPATH ) ) )
 			{
-				MSG = "BRENT012" ;
+				MSG = "PSYS011A" ;
 			}
 			else
 			{
@@ -1656,6 +1683,7 @@ void PFLST0A::createFileList2( string FLDIRS, string filter )
 	int i    ;
 
 	string p ;
+	string t ;
 	struct stat results   ;
 	struct tm * time_info ;
 
@@ -1667,6 +1695,8 @@ void PFLST0A::createFileList2( string FLDIRS, string filter )
 	
 	if ( ZPATH == "" ) { ZPATH = "/" ; }
 	filter = upper( filter ) ;
+
+	vcopy( "FLHIDDEN", t, MOVE ) ;
 
 	try
 	{
@@ -1687,6 +1717,7 @@ void PFLST0A::createFileList2( string FLDIRS, string filter )
 		p       = ENTRY          ;
 		i       = lastpos( "/", ENTRY ) + 1 ;
 		ENTRY   = substr( ENTRY, i ) ;
+		if ( t != "/" && ENTRY[ 0 ] == '.' ) { continue ; }
 		if ( filter != "" && pos( filter, upper( ENTRY ) ) == 0 ) { continue ; }
 		lstat( p.c_str(), &results ) ;
 		if ( S_ISDIR( results.st_mode ) )       TYPE = "Dir"     ;

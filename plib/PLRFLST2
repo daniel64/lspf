@@ -17,7 +17,7 @@ field    4  MAX-3  4 NEF  NONE ZSCROLL
 literal  6  2       FP  "Action: I=Insert entry R=Repeat line D=Delete entry"  
 
 literal  8  2      FP "Name     Description"
-literal  8  MAX-30 FP "Created     Referenced"
+literal  8  MAX-30 FP "Created     Updated"
 field    9  2       8      VOI  NONE ZCURTB
 field    9  11      MAX-32 VOI  NONE FLADESCP
 field    9  MAX-30  MAX-20 VOI  NONE FLACTIME

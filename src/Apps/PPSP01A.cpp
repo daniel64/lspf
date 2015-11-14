@@ -1467,11 +1467,15 @@ void PPSP01A::showSavedFileList()
 		display( "PPSP01FL", MSG, "ZCMD" ) ;
 		if ( RC >  8 ) { abend() ; }
 		if ( RC == 8 ) { return  ; }
-	
+
 		if ( ZFILE != "" )
 		{
 			if ( ZFILE == "*" ) { ZFILE = "" ; }
-			if ( ZDIR != "" )
+			if ( ZFILE != "" && ZFILE[ 0 ] == '/' )
+			{
+				 ZFILN = ZFILE ;
+			}
+			else if ( ZDIR != "" )
 			{
 				ZFILN = ZDIR + "/" + ZFILE ;
 			}

@@ -315,8 +315,8 @@ main()
 	ZCTDESC  = "DISPLAY/CHANGE CUA COLOURS" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
-	p_tableMGR->tbsort( RC, funcPOOL, "ISPCMDS", "ZCTVERB,C,A" ) ;
-	p_tableMGR->tbsort( RC, funcPOOL, "USRCMDS", "ZCTVERB,C,A" ) ;
+	p_tableMGR->tbsort( RC, "ISPCMDS", "ZCTVERB,C,A" ) ;
+	p_tableMGR->tbsort( RC, "USRCMDS", "ZCTVERB,C,A" ) ;
 
 	cout << endl ;
 	cout << "*******************************************************************************************" << endl ;
@@ -384,6 +384,8 @@ void createSYSPROF()
 	p_poolMGR->put( RC, "ZMAXWAIT", d2ds(ZMAXWAIT), PROFILE ) ;
 	p_poolMGR->put( RC, "ZWAIT",    d2ds(ZWAIT),    PROFILE ) ;
 
+	p_poolMGR->put( RC, "ZRFLPGM", ZRFLPGM, PROFILE ) ;
+	p_poolMGR->put( RC, "ZRFLTBL", ZRFLTBL, PROFILE ) ;
 	p_poolMGR->put( RC, "ZRFURL", "YES", PROFILE ) ;
 	p_poolMGR->put( RC, "ZRFFEX", "YES", PROFILE ) ;
 	p_poolMGR->put( RC, "ZRFNEX", "YES", PROFILE ) ;

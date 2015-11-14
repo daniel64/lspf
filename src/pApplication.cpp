@@ -301,6 +301,7 @@ void pApplication::nrefresh()
 void pApplication::libdef( string lib, string type )
 {
 	// libdef - Add/remove a list of paths to the search order for panels, messages and tables
+
 	// RC = 0   Normal completion
 	// RC = 4   Removing a libdef that was not in effect
 	// RC = 16  No paths in the corresponding ZxUSER variable
@@ -986,6 +987,7 @@ void pApplication::control( string parm1, string parm2 )
 void pApplication::tbadd( string tb_name, string tb_namelst, string tb_order, int tb_num_of_rows ) 
 {
 	// Add a row to a table
+
 	// RC = 0   Normal completion
 	// RC = 8   For keyed tables only, row already exists
 	// RC = 12  Table not open
@@ -1006,6 +1008,7 @@ void pApplication::tbadd( string tb_name, string tb_namelst, string tb_order, in
 void pApplication::tbbottom( string tb_name )
 {
 	// Move row pointer to the bottom
+
 	// RC = 0   Normal completion
 	// RC = 8   Table is empty.  CRP is set to 0
 	// RC = 12  Table not open
@@ -1023,6 +1026,7 @@ void pApplication::tbbottom( string tb_name )
 void pApplication::tbclose( string tb_name, string tb_newname, string tb_path )
 {
 	// Save and close the table (calls saveTableifWRITE and destroyTable routines).  If NOWRITE specified, just remove table from storage.
+
 	// RC = 0   Normal completion
 	// RC = 12  Table not open
 	// RC = 16  Path error
@@ -1048,6 +1052,7 @@ void pApplication::tbclose( string tb_name, string tb_newname, string tb_path )
 void pApplication::tbcreate( string tb_name, string keys, string names, tbSAVE m_SAVE, tbREP m_REP, string m_path, tbDISP m_DISP )
 {
 	// Create a new table
+
 	// RC = 0   Normal completion
 	// RC = 4   Normal completion - Table exists and REPLACE speified
 	// RC = 8   Table exists and REPLACE not specified or REPLACE specified and opend in SHARE mode or REPLACE specified and opened in EXCLUSIVE mode but not the owning task
@@ -1095,6 +1100,7 @@ void pApplication::tbcreate( string tb_name, string keys, string names, tbSAVE m
 void pApplication::tbdelete( string tb_name )
 {
 	// Delete a row in the table.  For keyed tables, the table is searched with the current key.  For non-keyed tables the current CRP is used.
+
 	// RC = 0   Normal completion
 	// RC = 8   Row does not exist for a keyed table or for non-keyed table, CRP was at TOP(zero)
 	// RC = 12  Table not open
@@ -1121,6 +1127,9 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 	
 	// Autoselect if the p_csrpos CRP is visible
 
+	// Use separate pointer currtbPanel for tb displays so that a CONTROL DISPLAY SAVE/RESTORE is only necessary when a tbdispl issues another tbdispl and not 
+	// for a display of an ordinary panel
+
 	int EXITRC  ;
 	int ws      ;
 	int i       ;
@@ -1146,10 +1155,10 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 	if ( !isTableOpen( tb_name, "TBDISPL" ) ) { return ; }
 	if ( p_autosel == "" ) { p_autosel = "YES" ; }
 
-	if ( p_cursor   != "" && !isvalidName( p_cursor   ) ) { RC = 20 ; checkRCode( "Invalid CURSOR position" ) ; return ; }
-	if ( p_autosel  != "YES" && p_autosel != "NO"     )   { RC = 20 ; checkRCode( "Invalid AUTOSEL parameter.  Must be YES or NO" ) ; return ; }
-	if ( p_crp_name != "" && !isvalidName( p_crp_name ) ) { RC = 20 ; checkRCode( "Invalid CRP variable name" )   ; return ; }
-	if ( p_rowid_nm != "" && !isvalidName( p_rowid_nm ) ) { RC = 20 ; checkRCode( "Invalid ROWID variable name" ) ; return ; }
+	if ( p_cursor   != ""    && !isvalidName( p_cursor   ) ) { RC = 20 ; checkRCode( "Invalid CURSOR position" )     ; return ; }
+	if ( p_autosel  != "YES" &&  p_autosel != "NO" )         { RC = 20 ; checkRCode( "Invalid AUTOSEL parameter.  Must be YES or NO" ) ; return ; }
+	if ( p_crp_name != ""    && !isvalidName( p_crp_name ) ) { RC = 20 ; checkRCode( "Invalid CRP variable name" )   ; return ; }
+	if ( p_rowid_nm != ""    && !isvalidName( p_rowid_nm ) ) { RC = 20 ; checkRCode( "Invalid ROWID variable name" ) ; return ; }
 
 	if ( p_name != "" )
 	{
@@ -1179,8 +1188,8 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 		else
 		{
 			p_name    = currtbPanel->PANELID ;
+			PANELID   = currtbPanel->PANELID ;
 			currPanel = currtbPanel ;
-			PANELID   = p_name      ;
 			p_poolMGR->put( RC, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 		}
 	}
@@ -1240,6 +1249,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 			currtbPanel->cursor_to_field( RC ) ;
 			if ( RC > 0 ) { checkRCode( "Cursor field >>" + currtbPanel->CURFLD + "<< not found on panel or invalid for TBDISP service" ) ; break ; }
 			wait_event() ;
+			currtbPanel->clear_msg() ;
 			currtbPanel->CURFLD = "" ;
 			currtbPanel->display_panel_update( RC ) ;
 			currtbPanel->set_tb_linesChanged() ;
@@ -1267,7 +1277,8 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 		if ( RC > 0 ) { ZERR2 = currtbPanel->PERR ; checkRCode( "Error processing )PROC section of panel " + p_name ) ; return ; }
 		t = funcPOOL.get( RC, 8, ".CSRROW", NOCHECK ) ;
 		if ( RC == 0 ) { p_csrrow = ds2d( t ) ; }
-
+		if      ( ZZVERB == "RIGHT" ) { currtbPanel->MSGID = "PSYS013" ; }
+		else if ( ZZVERB == "LEFT" )  { currtbPanel->MSGID = "PSYS014" ; }
 		if ( currtbPanel->MSGID != "" )
 		{
 			read_Message( currtbPanel->MSGID ) ;
@@ -1351,6 +1362,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 void pApplication::tbend( string tb_name )
 {
 	// Close a table without saving (calls destroyTable routine).  If opened share, use count is reduced and table deleted when use count = 0
+
 	// RC = 0   Normal completion
 	// RC = 12  Table not open
 	// RC = 20  Severe error
@@ -1370,6 +1382,7 @@ void pApplication::tbend( string tb_name )
 void pApplication::tberase( string tb_name, string tb_path )
 {
 	// Erase a table file from path
+
 	// RC = 0   Normal completion
 	// RC = 8   Table does not exist
 	// RC = 12  Table in use
@@ -1388,6 +1401,7 @@ void pApplication::tberase( string tb_name, string tb_path )
 void pApplication::tbexist( string tb_name )
 {
 	// Test for the existance of a row in a keyed table
+
 	// RC = 0   Normal completion
 	// RC = 8   Row does not exist or not a keyed table
 	// RC = 12  Table not open
@@ -1431,6 +1445,7 @@ void pApplication::tbmod( string tb_name, string tb_namelst, string tb_order )
 void pApplication::tbopen( string tb_name, tbSAVE m_SAVE, string m_paths, tbDISP m_DISP )
 {
 	// Open an existing table, reading it from a file.  If aleady opened in SHARE/NOWRITE, increment use count
+
 	// RC = 0   Normal completion
 	// RC = 8   Table does not exist in search path
 	// RC = 12  Table already open by this or another task
@@ -1464,6 +1479,7 @@ void pApplication::tbopen( string tb_name, tbSAVE m_SAVE, string m_paths, tbDISP
 void pApplication::tbput( string tb_name, string tb_namelst, string tb_order )
 {
 	// Update the current row in a table
+
 	// RC = 0   Normal completion
 	// RC = 8   Keyed tables - key does not match current row.  CRP set to top (0)
 	//          Non-keyed tables - CRP at top
@@ -1508,6 +1524,7 @@ void pApplication::tbsarg( string tb_name, string tb_namelst, string tb_dir, str
 void pApplication::tbsave( string tb_name, string tb_newname, string path )
 {
 	// Save the table to disk (calls saveTable routine).  Table remains open for processing.  Table must have the WRITE attribute
+
 	// RC = 0   Normal completion
 	// RC = 12  Table not open or not open WRITE
 	// RC = 16  Alternate name save error
@@ -1551,7 +1568,7 @@ void pApplication::tbsort( string tb_name, string tb_fields )
 
 	if ( !isTableOpen( tb_name, "TBSORT" ) ) { return ; }
 
-	p_tableMGR->tbsort( RC, funcPOOL, tb_name, tb_fields ) ;
+	p_tableMGR->tbsort( RC, tb_name, tb_fields ) ;
 	if ( RC > 8 ) { checkRCode( "TBSORT gave return code of " + d2ds( RC ) ) ; }
 }
 
@@ -1618,6 +1635,7 @@ void pApplication::select( string cmd )
 {
 	// SELECT a function or panel in keyword format for use in applications, ie PGM(abc) CMD(oorexx) PANEL(xxx) PARM(zzz) NEWAPPL PASSLIB etc.
 	// No variable substitution is done at this level.
+
 	// RC=0  Normal completion of the selection panel or function.  END was entered.
 	// RC=4  Normal completion.  RETURN was entered or EXIT specified on the selection panel
 
@@ -1649,6 +1667,7 @@ void pApplication::select( string pgm, string parm, string newappl, bool newpool
 {
 	// SELECT function - this format is for internal use only.  Use keyword format of the SELECT for application programs. 
 	// No variable substitution is done at this level.
+
 	// RC=0  Normal completion of the selection panel or function.  END was entered.
 	// RC=4  Normal completion.  RETURN was entered or EXIT specified on the selection panel
 

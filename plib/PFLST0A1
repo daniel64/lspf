@@ -26,10 +26,14 @@ field    4  MAX-3   4  NEF  NONE ZSCROLL
 literal  6   2       FP  "Path Name . . ."  
 field    6  18  MAX  NEF NONE ZPATH  
 
-literal  8  2 CH  "CMD  Entry name                             Message        Type     Permission Size       Modified"  
-literal  9  2 CH  EXPAND  "-"  
+field    8   2   1   CEF     PAD('_') AFHIDDEN
+literal  8   4       SAC    "Show hidden entries also"  
 
-tbmodel  10    MAX
+
+literal  10  2 CH  "CMD  Entry name                             Message        Type     Permission Size       Modified"  
+literal  11  2 CH  EXPAND  "-"  
+
+tbmodel  12    MAX
 tbfield  2     4   NEF  CAPS(ON),PAD('_'),JUST(LEFT) SEL  
 tbfield  ++1   38  VOI  NONE  ENTRY
 tbfield  ++1   15  VOI  NONE  MESSAGE 
@@ -45,7 +49,7 @@ tbfield  ++1   19  VOI  NONE  MODDATE
 )ENDBODY
 
 )INIT
-VGET ZSCROLL PROFILE
+VGET (ZSCROLL) PROFILE
 .ATTR(MESSAGE) = 'COLOUR(YELLOW) INTENSE(HIGH)' 
 .ATTR(TYPE)    = 'COLOUR(WHITE)' 
 .ATTR(PERMISS) = 'COLOUR(YELLOW)' 
@@ -66,7 +70,8 @@ IF (&A EQ RES,RESET,REFRESH)
    &ZCMD = REF
 
 VER (&SEL LIST,=,B,C,D,E,EX,FMT,I,L,M,NANO,R,S,T,TT,VI,X,MSG=PSYS01D)
-VPUT (ZSCROLL ZPATH) PROFILE
+VER (&AFHIDDEN LIST /)
+VPUT (AFHIDDEN ZSCROLL ZPATH) PROFILE
 )ENDPROC
 
 )FIELD

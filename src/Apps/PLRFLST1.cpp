@@ -75,7 +75,7 @@ void PLRFLST1::application()
 	if      ( P1 == "PL1" ) { OpenActiveFList( P2 ) ; }
 	else if ( P1 == "PL2" ) { PersonalFList()       ; }
 	else if ( P1 == "PLA" ) { AddReflistEntry( PF ) ; }
-	else if ( P1 == "NR1" ) { RetrieveEntry( P2 )   ; }
+	else if ( P1 == "NR1" ) { RetrieveEntry( PF )   ; }
 	else if ( P1 == "US1" ) { userSettings()        ; }
 	else                    { log( "E", "Invalid parameter passed to PLRFLST1: " << PARM << endl ) ; }
 
@@ -108,6 +108,7 @@ void PLRFLST1::setup()
 	TABFLDS = vlist1 + vlist2 + vlist3 + vlist4 + vlist5 ;
 
 	vcopy( "ZUPROF", UPROF, MOVE ) ;
+	vcopy( "ZRFLTBL", RFLTABLE, MOVE ) ;
 	ZAHELP = "HPSP01A" ;
 	ZRC    = 4         ;
 }
@@ -134,8 +135,6 @@ void PLRFLST1::PersonalFList()
 	vdefine( vlist, &ASEL, &ACURTB, &AFLDESCP, &AFLCTIME, &AFLUTIME, &NEWNAME, &NEWDESC, &LCURTB ) ;
 
 	vget( "ZCURTB", PROFILE ) ;
-	vcopy( "ZDATEL", ldate, MOVE )   ;
-	vcopy( "ZTIMEL", ltime, MOVE )   ;
 	LCURTB = ZCURTB ;
 	if ( LCURTB == "" )
 	{
@@ -150,27 +149,27 @@ void PLRFLST1::PersonalFList()
 		ZCURTB = "REFLIST" ;
 		LCURTB = "REFLIST" ;
 		vput( "ZCURTB", PROFILE ) ;
+		vcopy( "ZDATEL", ldate, MOVE )   ;
+		vcopy( "ZTIMEL", ltime, MOVE )   ;
 		FLADESCP = "Default Reference List" ;
 		FLACTIME = ldate ;
 		FLAUTIME = ldate + " " + ltime ;
-		tbcreate( "LSRPLIST", "ZCURTB", subword( TABFLDS, 2), WRITE, REPLACE, UPROF ) ;
-		tbadd( "LSRPLIST" ) ;
+		tbcreate( RFLTABLE, "ZCURTB", subword( TABFLDS, 2 ), WRITE, NOREPLACE, UPROF ) ;
+		tbsort( RFLTABLE, "ZCURTB,C,A" ) ;
+		tbadd( RFLTABLE, "", "ORDER" )   ;
 		CloseTable()  ;
 		OpenTableRO() ;
 		if ( RC > 0 ) { abend() ; }
 	}
 	else if ( RC > 0 ) { abend() ; }
 
-	FLIST1   = "FLST1" + right( d2ds( taskid() ), 3, '0' ) ;
+	FLIST1 = "FLST1" + right( d2ds( taskid() ), 3, '0' ) ;
 	tbcreate( FLIST1, "ACURTB", "ASEL AFLDESCP AFLCTIME AFLUTIME", NOWRITE ) ;
-
-	tbsort( "LSRPLIST", "ZCURTB,C,A" ) ;
 	tbsort( FLIST1, "ACURTB,C,A" ) ;
-	tbtop( "LSRPLIST" ) ;
 
 	while ( true )
 	{
-		tbskip( "LSRPLIST" ) ;
+		tbskip( RFLTABLE )  ;
 		if ( RC == 8 ) { break ; }
 		ACURTB   = ZCURTB   ;
 		ASEL     = ""       ;
@@ -196,18 +195,22 @@ void PLRFLST1::PersonalFList()
 			{
 				display( "PLRFLST4", MSG, "ZCMD1" ) ;
 				if ( RC  > 8 ) { abend() ; }
-				if ( RC == 0 && NEWNAME != "" )
+				if ( RC == 0 )
 				{
 					vcopy( "ZDATEL", ldate, MOVE ) ;
 					vcopy( "ZTIMEL", ltime, MOVE ) ;
-					ZCURTB   = NEWNAME ;
-					LCURTB   = NEWNAME ;
+					ZCURTB = ACURTB     ;
+					OpenTableRO()       ;
+					tbget( RFLTABLE )   ;
+					CloseTable()        ;
+					ZCURTB   = NEWNAME  ;
+					LCURTB   = NEWNAME  ;
 					vput( "ZCURTB", PROFILE ) ;
-					FLADESCP = NEWDESC ;
-					FLACTIME = ldate   ;
+					FLADESCP = NEWDESC  ;
+					FLACTIME = ldate    ;
 					FLAUTIME = ldate + " " + ltime   ;
 					OpenTableUP()       ;
-					tbadd( "LSRPLIST", "", "ORDER" ) ;
+					tbadd( RFLTABLE, "", "ORDER" ) ;
 					CloseTable()        ;
 					ACURTB   = ZCURTB   ;
 					ASEL     = ""       ;
@@ -231,9 +234,9 @@ void PLRFLST1::PersonalFList()
 						LCURTB = ZCURTB           ;
 						vput( "ZCURTB", PROFILE ) ;
 					}
-					ZCURTB = ACURTB ;
+					ZCURTB = ACURTB        ;
 					OpenTableUP()          ;
-					tbdelete( "LSRPLIST" ) ;
+					tbdelete( RFLTABLE )   ;
 					CloseTable()           ;
 					tbdelete( FLIST1 )     ;
 				}
@@ -256,9 +259,9 @@ void PLRFLST1::PersonalFList()
 			}
 			else if ( ASEL == "S" )
 			{
-				LCURTB = ACURTB ;
-				ZCURTB = ACURTB ;
-				vput( "ZCURTB", PROFILE )       ;
+				LCURTB = ACURTB           ;
+				ZCURTB = ACURTB           ;
+				vput( "ZCURTB", PROFILE ) ;
 			}
 			ASEL = "" ;
 			tbput( FLIST1, "", "ORDER" ) ;
@@ -278,7 +281,7 @@ void PLRFLST1::PersonalFList()
 
 void PLRFLST1::OpenActiveFList( string list )
 {
-	// Open the active referral list or the one specified in list
+	// Open the active referral list or the one specified in 'list'
 	// Make 'list' the active one unless it is the REFLIST we are opening
 
 	if ( list != "" )
@@ -304,7 +307,6 @@ void PLRFLST1::OpenActiveFList( string list )
 }
 
 
-
 void PLRFLST1::EditFileList( string curtb )
 {
 	int i ;
@@ -325,12 +327,12 @@ void PLRFLST1::EditFileList( string curtb )
 	vdefine( vlist, &BSEL, &BFILE, &ZCMD1 ) ;
 
 
-	FLIST2   = "FLST2" + right( d2ds( taskid() ), 3, '0' ) ;
+	FLIST2 = "FLST2" + right( d2ds( taskid() ), 3, '0' ) ;
 	tbcreate( FLIST2, "", "BSEL BFILE", NOWRITE ) ;
 
-	ZCURTB = curtb      ;
-	OpenTableRO()       ;
-	tbget( "LSRPLIST" ) ;
+	ZCURTB = curtb    ;
+	OpenTableRO()     ;
+	tbget( RFLTABLE ) ;
 
 	BSEL = "" ;
 	for ( i = 1 ; i <= 30 ; i++ )
@@ -388,8 +390,8 @@ void PLRFLST1::EditFileList( string curtb )
 	}
 	if ( modified )
 	{
-		OpenTableUP()       ;
-		tbget( "LSRPLIST" ) ;
+		OpenTableUP()     ;
+		tbget( RFLTABLE ) ;
 		tbtop( FLIST2 ) ;
 		for ( i = 1 ; i <= 30 ; i++ )
 		{
@@ -405,7 +407,7 @@ void PLRFLST1::EditFileList( string curtb )
 		vcopy( "ZDATEL", ldate, MOVE ) ;
 		vcopy( "ZTIMEL", ltime, MOVE ) ;
 		FLAUTIME = ldate + " " + ltime ;
-		tbmod( "LSRPLIST", "", "ORDER" ) ;
+		tbmod( RFLTABLE, "", "ORDER" ) ;
 		CloseTable() ;
 	}
 	tbend( FLIST2 )  ;
@@ -425,13 +427,13 @@ void PLRFLST1::OpenFileList( string curtb )
 	string CFILE  ;
 	string vlist  ;
 
-	FLIST3   = "FLST3" + right( d2ds( taskid() ), 3, '0' ) ;
+	FLIST3 = "FLST3" + right( d2ds( taskid() ), 3, '0' ) ;
 	tbcreate( FLIST3, "", "CSEL CFILE", NOWRITE ) ;
 
-	ZCURTB = curtb      ;
-	OpenTableRO()       ;
-	tbget( "LSRPLIST" ) ;
-	CloseTable()        ;
+	ZCURTB = curtb    ;
+	OpenTableRO()     ;
+	tbget( RFLTABLE ) ;
+	CloseTable()      ;
 
 	vlist = "CSEL CFILE ZCMD1" ;
 	vdefine( vlist, &CSEL, &CFILE, &ZCMD1 ) ;
@@ -479,31 +481,62 @@ void PLRFLST1::OpenFileList( string curtb )
 
 void PLRFLST1::RetrieveEntry( string list )
 {
-	// Retrieve entry from the active referral list or the one specified in list, at posn ZRFNPOS
+	// Retrieve entry from the active referral list or the one specified in 'list', at posn ZRFNPOS
 	// Also, make 'list' the active one so the next NRETRIEV with no parameters, is from the same list
 
 	// If ZRFNEX is YES, check file exists, else get the next entry
+	
+	// If 'list' consists a number < 31, use this as the starting position for the retrieve and not
+	// variable ZRFNPOS from the SHARED pool.  If specified, the other word in 'list' is used as the reflist
 
 	int    i   ;
 	int    p   ;
 	int    fp  ;
+	int    pos ;
+
+	string w1  ;
+	string w2  ;
 
 	bool skip  ;
 
 	string ZRFNEX  ;
 	string ZRFNPOS ;
 
+	vdefine( "ZRFNEX ZRFNPOS", &ZRFNEX, &ZRFNPOS ) ;
+	list = upper( list )   ;
+	w1   = word( list, 1 ) ;
+	w2   = word( list, 2 ) ;
+
+	if ( w1.size() > 0 && w1.size() < 3 )
+	{
+		list = w2 ;
+		if ( datatype( w1, 'W' ) ) { pos = ds2d( w1 ) - 1 ; }
+		if ( pos < 30 )
+		{
+			ZRFNPOS = d2ds( pos ) ;
+			vput( "ZRFNPOS", SHARED ) ;
+		}
+	}
+	else if ( w2.size() > 0 && w2.size() < 3 )
+	{
+		list = w1 ;
+		if ( datatype( w2, 'W' ) ) { pos = ds2d( w2 ) -1 ; }
+		if ( pos < 30 )
+		{
+			ZRFNPOS = d2ds( pos ) ;
+			vput( "ZRFNPOS", SHARED ) ;
+		}
+	}
+
 	if ( list == "" ) { vget( "ZCURTB", PROFILE ) ; }
 	else              { ZCURTB = list             ; }
 
-	OpenTableRO()       ;
-	tbget( "LSRPLIST" ) ;
+	OpenTableRO()     ;
+	tbget( RFLTABLE ) ;
 	if ( RC > 0 ) { CloseTable() ; return ; }
 	CloseTable() ;
 
 	vput( "ZCURTB", PROFILE ) ;
-
-	vdefine( "ZRFNEX ZRFNPOS", &ZRFNEX, &ZRFNPOS ) ;
 	vget( "ZRFNEX", PROFILE ) ;
 
 	vget( "ZRFNPOS", SHARED ) ;
@@ -558,7 +591,7 @@ void PLRFLST1::RetrieveEntry( string list )
 	field_name = "#REFLIST"     ;
 	ZRC        = 0              ;
 	vdelete( "ZRFNEX ZRFNPOS" ) ;
-	setmsg( "PSYS01W" ) ;
+	setmsg( "PSYS01W" )         ;
 }
 
 
@@ -592,7 +625,7 @@ void PLRFLST1::AddReflistEntry( string ent )
 	if ( RC > 0 ) { return ; }
 
 	ZCURTB = "REFLIST"  ;
-	tbget( "LSRPLIST" ) ;
+	tbget( RFLTABLE ) ;
 	if ( RC > 0 ) { CloseTable() ; return ; }
 
 	for ( i = 1 ; i < 6 ; i++ )
@@ -614,7 +647,7 @@ void PLRFLST1::AddReflistEntry( string ent )
 
 	vreplace( "FLAPET01", ent ) ; 
 	FLAUTIME = ldate + " " + ltime ;
-	tbmod( "LSRPLIST", "", "ORDER" ) ;
+	tbmod( RFLTABLE, "", "ORDER" ) ;
 	CloseTable() ;
 
 }
@@ -653,25 +686,23 @@ void PLRFLST1::userSettings()
 
 void PLRFLST1::OpenTableRO()
 {
-	tbopen( "LSRPLIST", NOWRITE, UPROF ) ;
+	tbopen( RFLTABLE, NOWRITE, UPROF ) ;
 	return ;
 }
 
 
 void PLRFLST1::OpenTableUP()
 {
-	tbopen( "LSRPLIST", WRITE, UPROF, EXCLUSIVE ) ;
+	tbopen( RFLTABLE, WRITE, UPROF, EXCLUSIVE ) ;
 	return ;
 }
 
 
 void PLRFLST1::CloseTable()
 {
-	tbclose( "LSRPLIST" ) ;
+	tbclose( RFLTABLE ) ;
 	return ;
 }
-
-
 
 
 // ============================================================================================ //

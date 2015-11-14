@@ -1226,6 +1226,7 @@ void selectParse( int & RC, string SELSTR, string & PGM, string & PARM, string &
 	if ( p1 > 0 )
 	{
 		p2     = pos( ")", SELSTR, p1 ) ;
+		if ( p2 == 0 ) { RC = 20 ; return ; }
 		PARM   = strip( substr( SELSTR, (p1 + 5), (p2 - (p1 + 5)) ) ) ;
 		PARM   = strip( PARM, 'B', '"' ) ;
 		SELSTR = delstr( SELSTR, p1, (p2 - p1 + 1) ) ;
@@ -1235,9 +1236,10 @@ void selectParse( int & RC, string SELSTR, string & PGM, string & PARM, string &
 	if ( p1 > 0 )
 	{
 		p2     = pos( ")", SELSTR, p1 ) ;
+		if ( p2 == 0 ) { RC = 20 ; return ; }
 		PGM    = strip( substr( SELSTR, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
 		SELSTR = delstr( SELSTR, p1, (p2 - p1 + 1) ) ;
-		if ( substr( PGM, 1, 1 ) == "&" )
+		if ( PGM[ 0 ] == '&' )
 		{
 			if ( !isvalidName( substr( PGM, 2 ) ) ) { RC = 20 ; return ; }
 		}
@@ -1251,6 +1253,7 @@ void selectParse( int & RC, string SELSTR, string & PGM, string & PARM, string &
 		{
 			if ( PARM != "" ) { RC = 20 ; return ; }
 			p2 = pos( ")", SELSTR, p1 ) ;
+			if ( p2 == 0 ) { RC = 20 ; return ; }
 			PARM = strip( substr( SELSTR, (p1 + 6), (p2 - (p1 + 6)) ) ) ;
 			if ( !isvalidName( PARM ) ) { RC = 20 ; return ; }
 			PGM    = "&ZPANLPGM"  ;
@@ -1263,6 +1266,7 @@ void selectParse( int & RC, string SELSTR, string & PGM, string & PARM, string &
 			{
 				if ( PARM != "" ) { RC = 20 ; return ; }
 				p2 = pos( ")", SELSTR, p1 ) ;
+				if ( p2 == 0 ) { RC = 20 ; return ; }
 				PARM = strip( substr( SELSTR, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
 				PGM    = "&ZOREXPGM"  ;
 				SELSTR = delstr( SELSTR, p1, (p2 - p1 + 1) ) ;
@@ -1274,6 +1278,7 @@ void selectParse( int & RC, string SELSTR, string & PGM, string & PARM, string &
 	if ( p1 > 0 )
 	{
 		p2      = pos( ")", SELSTR, p1 ) ;
+		if ( p2 == 0 ) { RC = 20 ; return ; }
 		NEWAPPL = strip( substr( SELSTR, (p1 + 8), (p2 - (p1 + 8)) ) ) ;
 		NEWPOOL = true ;
 		SELSTR  = delstr( SELSTR, p1, (p2 - p1 + 1) ) ;

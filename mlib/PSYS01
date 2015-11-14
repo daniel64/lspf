@@ -1,13 +1,13 @@
-PSYS011 "Up is not active" .HELP=PSHELP01 .TYPE=N
+PSYS011 "Up is not active"
 "Scrolling not active on this panel" 
 
-PSYS012 "Down is not active" .TYPE=N .HELP=PSHELP02
+PSYS012 "Down is not active"
 "Scrolling not active on this panel"
 
-PSYS013 "Right is not active" .TYPE=N
+PSYS013 "Right is not active"
 "Scrolling not active on this panel"
 
-PSYS014 "Left is not active" .TYPE=N
+PSYS014 "Left is not active"
 "Scrolling not active on this panel"
 
 PSYS015 "Function not yet implemented"
@@ -92,7 +92,7 @@ PSYS01V "Entry Retrieved" .TYPE=N
 "Selected entry has been retrieved"
 
 PSYS01W "Retrieved from &ZCURTB" .TYPE=N
-"Selected entry has been retrieved from personal list &ZCURTB"
+"Entry &ZRFNPOS has been retrieved from personal list &ZCURTB"
 
 PSYS01X "File retrieve not active"
 "File retrieve is not active on this panel via reflists or NRETRIEV.  Set .NRET in the panel if this is required"
@@ -102,3 +102,6 @@ PSYS01Y "No ZRFFLDA variable set in panel"
 
 PSYS01Z "Invalid field value in variable ZRFFLDA"
 "Variable ZRFFLDA set to incorrect value - no such field exists on the panel.  Check logs for details"
+
+PSYS011A "Invalid path specified"
+"Path specified is not valid"

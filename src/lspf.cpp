@@ -1813,9 +1813,9 @@ void updateDefaultVars()
 void updateReflist()
 {
 	// Check if ZRFFLDA is set in the SHARED pool (usually put in the panel definition) and if so, add file to the reflist using
-	// application PLRFLST1 parmameters PLA plus the field entry value.
+	// application ZRFLPGM, parmameters PLA plus the field entry value.
 
-	// Don't update REFLIST if the application has done a CONTROL REFLIST NOUPDATE (flag ControlRefUpdate=false) or ISPS PROFILE variabe
+	// Don't update REFLIST if the application has done a CONTROL REFLIST NOUPDATE (flag ControlRefUpdate=false) or ISPS PROFILE variable
 	// ZRFURL is not set to YES
 
 	int RC ;
@@ -1832,7 +1832,7 @@ void updateReflist()
 		{
 			if ( currAppl->currPanel->field_get_row_col( fname, row, col ) )
 			{
-				startApplication( "PLRFLST1", "PLA " + currAppl->currPanel->field_getvalue( fname ), "", false, false ) ;
+				startApplication( p_poolMGR->get( RC, "ZRFLPGM", PROFILE ), "PLA " + currAppl->currPanel->field_getvalue( fname ), "", false, false ) ;
 			}
 		}
 	}

@@ -1,7 +1,9 @@
 Saved File List application.
+===========================
 
 Field File name supports file name expansion using either field Directory or Current, whichever is non-blank, to 
-retrieve the list of files.
+retrieve the list of files.  This field also supports NRETRIEV.  Entries begining with a '/' will be treated asis and
+will not be prefixed with the Directory or Current fields.
 
 Directory field supports directory name expansion and the saved list fields below Current support
 name expansion also.

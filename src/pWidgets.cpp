@@ -779,9 +779,9 @@ int literal::literal_init( int MAXW, int MAXD, int & opt_field, string line )
 	// LITERAL 3   1   OUTPUT  "COMMAND ===> "
 	// OR
 	// w1      w2  w3  w4      w5     w6
-	// LITERAL 3   1   OUTPUT  EXPAND "-"    
+	// LITERAL 3   1   OUTPUT  EXPAND "-"
 	// Use EXPAND to repeat the value to end of the screen (MAXW)
-	
+
 	int row   ;
 	int col   ;
 	int l     ;
@@ -792,12 +792,12 @@ int literal::literal_init( int MAXW, int MAXD, int & opt_field, string line )
 	string w5 ;
 
 	cuaType fType   ;
-	
+
 	w2 = word( line, 2 ) ;
 	w3 = word( line, 3 ) ;
 	w4 = word( line, 4 ) ;
 	w5 = word( line, 5 ) ;
-	
+
 	if ( isnumeric( w2 ) )                   { row = ds2d( w2 ) ; }
 	else if ( w2 == "MAX" )                  { row = MAXD       ; }
 	else if ( substr( w2, 1, 4 ) == "MAX-" ) { row = MAXD - ds2d( substr( w2, 5 ) ) ; }
@@ -817,7 +817,7 @@ int literal::literal_init( int MAXW, int MAXD, int & opt_field, string line )
 		log( "E", "Unknown field CUA attribute type " << w4 << endl ; )
 		return 20 ;
 	}
-	
+
 	if ( row > MAXD )
 	{
 		log( "E", "Literal outside panel area.  row=" << row << " ZSCRMAXD=" << MAXD << endl ; )
@@ -837,7 +837,7 @@ int literal::literal_init( int MAXW, int MAXD, int & opt_field, string line )
 		literal_value  = strip( strip( subword( line, 6 ) ), 'B', '"' ) ;
 		literal_length = literal_value.size() ;
 		l = (MAXW - col) / literal_length + 1 ;
-		literal_value  = substr( copies( literal_value, l ), 1, MAXW-col ) ;
+		literal_value  = substr( copies( literal_value, l ), 1, MAXW-col+1 ) ;
 	}
 	else
 	{

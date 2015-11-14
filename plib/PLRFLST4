@@ -49,6 +49,14 @@ IF (&NEWNAME = &ACURTB)
    .CURSOR  = NEWNAME
    EXIT
 
+&L = LENGTH( NEWNAME )
+IF (&L LE 2)
+   &ZEDSMSG = 'Invalid Entry'
+   &ZEDLMSG = 'New name must be at least 3 characters'
+   .MSG     = PSYZ001
+   .CURSOR  = NEWNAME
+   EXIT
+
 VER (&NEWNAME NB)
 VER (&NEWDESC NB)
 )ENDPROC

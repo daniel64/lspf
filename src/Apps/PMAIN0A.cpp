@@ -82,14 +82,9 @@ void PMAIN0A::application()
 //	ZMUSER = "/home/daniel/.lspf/" ;
 //	libdef( "ZMUSER", "FILE" ) ;
 
-	control( "ERRORS","RETURN" ) ;
-	vput( "ZTIME", SHARED ) ;
-	debug1( "VPUT of system variable ZTIME.  RC is " << RC << endl ) ;
-	control( "ERRORS","CANCEL" ) ;
-
 	while ( true )
         {
-		display( "PMAINP01", MSG, "ZCMD" );
+		display( "PMAINP01", MSG, "ZCMD" ) ;
 		if ( RC  > 8 ) { abend() ; break   ; }
 		if ( RC == 8 ) { break   ;           }
 
