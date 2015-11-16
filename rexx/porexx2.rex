@@ -78,7 +78,7 @@ else
       end
     else
       do
-        say "File does not contain a variable profile or a lspf table"
+        say "File does not contain a variable profile or an lspf table"
         exit 0
       end
   end
@@ -181,7 +181,6 @@ offset = offset + 1
 
 datal  = length(data)
 errs   = 0
-
 name.  = ""
 n      = 1
 
@@ -220,6 +219,7 @@ do flds
    offset = offset + flen
    say "NonKey field. . . . . . . . . . .:" fld
 end
+name.0 = n-1
 say
 
 tot   = 0
@@ -227,13 +227,17 @@ val.  = ""
 row   = 1
 col   = 1
 cols  = keys+flds
+n     = 1
 
 do forever
+    if offset >= datal then leave
     l      = c2d(substr(data,offset,2))
     offset = offset + 2
     v      = substr(data,offset,l)
     offset = offset + l
-    say right(row, 4) right(col, 2) "Value :" v
+    say right(row, 4) right(col, 2) left(name.n,8) " :" v
+    n = n + 1
+    if n > name.0 then n = 1
     val.row.col = v
     if length(v) > max.col then max.col = length(v)
     col = col + 1
@@ -244,7 +248,6 @@ do forever
         say
       end
     tot = tot + 1
-    if offset >= datal then leave
 end
 
 say
@@ -263,7 +266,7 @@ l = "      "
 width = 0
 do j = 1 to cols
    l = l left( name.j, max.j )
-   width = width + max.j
+   width = width + max.j+1
 end
 say l
 say copies("=",width+10)

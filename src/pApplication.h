@@ -155,7 +155,7 @@ class pApplication
 		bool   nretriev_on() ;
 		void   cleanup()     ;
 		void   cleanup_custom() ;
-		void   (pApplication::*pcleanup)() ;
+		void   (pApplication::*pcleanup)() = &pApplication::cleanup_custom ;
 		void   abend()       ;
 		void   abendexc()    ;
 		void   set_forced_abend() ;
