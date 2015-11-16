@@ -68,6 +68,8 @@ void PEDIT01::application()
 
 	string panel("") ;
 
+	pcleanup = static_cast<void (pApplication::*)()>(&PEDIT01::cleanup_custom) ;
+
 	p1 = pos( "FILE(", PARM ) ;
 	if ( p1 == 0 )
 	{
@@ -1787,6 +1789,13 @@ bool PEDIT01::returnLabelItr(string label, vector<iline * >::iterator & it , int
 		posn++ ;
 	}
 	return false ;
+}
+
+
+void PEDIT01::cleanup_custom()
+{
+	log( "E", "Customised cleanup procedure" << endl ) ;
+
 }
 
 

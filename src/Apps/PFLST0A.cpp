@@ -551,8 +551,12 @@ void PFLST0A::application()
 					else                 { MESSAGE = "Browsed" ; }
 					tbput( DSLIST )     ;
 				}
-				vcopy( "ZRFLPGM", PGM, MOVE ) ;
-				select( "PGM("+PGM+") PARM(PLA "+entry+")" ) ;
+				vcopy( "ZRFURL", t, MOVE ) ;
+				if ( t == "YES" )
+				{
+					vcopy( "ZRFLPGM", PGM, MOVE ) ;
+					select( "PGM("+PGM+") PARM(PLA "+entry+")" ) ;
+				}
 			}
 			else if ( is_regular_file( entry ) && (SEL == "NANO" ) )
 			{

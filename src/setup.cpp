@@ -305,7 +305,7 @@ main()
 
 	ZCTVERB  = "VARS" ;
 	ZCTTRUNC = "3"    ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(VARS)"  ;
+	ZCTACT   = "SELECT PGM(PPSP01A) PARM(VARS &ZPARM)"  ;
 	ZCTDESC  = "DISPLAY SHARED & PROFILE VARIABLES" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
@@ -389,6 +389,7 @@ void createSYSPROF()
 	p_poolMGR->put( RC, "ZRFURL", "YES", PROFILE ) ;
 	p_poolMGR->put( RC, "ZRFFEX", "YES", PROFILE ) ;
 	p_poolMGR->put( RC, "ZRFNEX", "YES", PROFILE ) ;
+	p_poolMGR->put( RC, "ZRFMOD", "BEX", PROFILE ) ;
 
 	setCUAcolours( "AB",   KAB   ) ;
 	setCUAcolours( "ABSL", KABSL ) ;

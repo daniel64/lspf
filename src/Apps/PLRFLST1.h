@@ -38,6 +38,7 @@ class PLRFLST1 : public pApplication
 		void RetrieveEntry( string ) ;
 
 		void userSettings() ;
+		void setRefMode( string ) ;
 
 		string ZCURTB   ;
 		string FLADESCP ;

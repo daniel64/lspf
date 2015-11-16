@@ -38,6 +38,7 @@ pApplication::pApplication()
 	ControlSplitEnable     = true   ;
 	ControlRefUpdate       = true   ;
         errPanelissued         = false  ;
+	abending               = false  ;
 	addpop_active          = false  ;
 	noTimeOut              = false  ;
 	busyAppl               = false  ;
@@ -2057,9 +2058,15 @@ void pApplication::checkRCode( string s )
 }
 
 
+void pApplication::cleanup_custom()
+{
+	// Dummy routine.  Override in the appliction so the customised one is called on an exception condition
+}
+
+
 void pApplication::cleanup()
 {
-	log( "I", "Shutting down application." << endl ) ;
+	log( "I", "Shutting down application: " << ZAPPNAME << " Taskid: " << taskID << endl ) ;
 	terminateAppl = true  ;
 	busyAppl      = false ;
 	log( "I", "Returning to calling program." << endl ) ;
@@ -2069,18 +2076,41 @@ void pApplication::cleanup()
 
 void pApplication::abend()
 {
-	log( "W", "Shutting down application due to an abnormal condition." << endl ) ;
+	log( "E", "Shutting down application: " << ZAPPNAME << " Taskid: " << taskID << " due to an abnormal condition" << endl ) ;
 	abnormalEnd   = true  ;
 	terminateAppl = true  ;
 	busyAppl      = false ;
-	log( "W", "Application entering wait state" << endl ) ;
-	boost::this_thread::sleep(boost::posix_time::seconds(31536000)) ;
+	log( "E", "Application entering wait state" << endl ) ;
+	boost::this_thread::sleep_for(boost::chrono::seconds(31536000)) ;
+}
+
+
+void pApplication::abendexc()
+{
+	log( "E", "An unhandled exception has occured" << endl ) ;
+	if ( !abending )
+	{
+		(this->*pcleanup)() ;
+		abending = true     ;
+	}
+	else
+	{
+		log( "E", "An abend has occured during abend processing.  Cleanup will not be called" << endl ) ;
+	}
+	exception_ptr ptr = current_exception() ;
+	log( "E", "Exception: " << (ptr ? ptr.__cxa_exception_type()->name() : "Unknown" ) << endl ) ;
+	log( "E", "Shutting down application: " << ZAPPNAME << " Taskid: " << taskID << endl ) ;
+	abnormalEnd   = true  ;
+	terminateAppl = true  ;
+	busyAppl      = false ;
+	log( "E", "Application entering wait state" << endl ) ;
+	boost::this_thread::sleep_for(boost::chrono::seconds(31536000)) ;
 }
 
 
 void pApplication::set_forced_abend()
 {
-	log( "W", "Shutting down application due to a forced condition." << endl ) ;
+	log( "E", "Shutting down application: " << ZAPPNAME << " Taskid: " << taskID << " due to a forced condition" << endl ) ;
 	abnormalEnd       = true  ;
 	abnormalEndForced = true  ;
 	terminateAppl     = true  ;

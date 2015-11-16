@@ -1,5 +1,5 @@
 /*  Compile with ::                                                                    */
-/* g++ -shared -fPIC -std=c++11 -Wl,-soname,libPPSP01A.so -o libPPSP01A.so PPSP01A.cpp */
+// /* g++ -shared -fPIC -std=c++11 -Wl,-soname,libPPSP01A.so -o libPPSP01A.so PPSP01A.cpp */
 
 /*
   Copyright (c) 2015 Daniel John Erdos
@@ -72,6 +72,11 @@ void PPSP01A::application()
 	string ZALOG   ;
 	string ZSLOG   ;
 	string LOGLOC  ;
+	string w1      ;
+	string w2      ;
+
+	w1 = upper( word( PARM, 1 ) ) ;
+	w2 = upper( word( PARM, 2 ) ) ;
 
 	vdefine( "ZCMD ZVERB ZROW1 ZROW2 ZAREA ZSHADOW ZAREAT ZSCROLLA", &ZCMD, &ZVERB, &ZROW1, &ZROW2, &ZAREA, &ZSHADOW, &ZAREAT, &ZSCROLLA ) ;
 	vdefine( "ZSCROLLN ZAREAW ZAREAD", &ZSCROLLN, &ZAREAW, &ZAREAD ) ;
@@ -95,7 +100,7 @@ void PPSP01A::application()
 	else if ( PARM == "KEYS"    ) pfkeySettings()     ;
 	else if ( PARM == "COLOURS" ) colourSettings()    ;
 	else if ( PARM == "TODO"    ) todoList()          ;
-	else if ( PARM == "VARS"    ) poolVariables()     ;
+	else if ( w1   == "VARS"    ) poolVariables( w2 ) ;
 	else if ( PARM == "PATHS"   ) showPaths()         ;
 	else if ( PARM == "CMDS"    ) showCommandTables() ;
 	else if ( PARM == "MODS"    ) showLoadedClasses() ;
@@ -969,13 +974,21 @@ void PPSP01A::todoList()
 }
 
 
-void PPSP01A::poolVariables()
+void PPSP01A::poolVariables( string applid )
 {
-	int i      ;
-	int j      ;
-	string MSG ;
-	string cw  ;
-	string w2  ;
+	int i       ;
+	int j       ;
+	string MSG  ;
+	string cw   ;
+	string w2   ;
+
+	vcopy( "ZAPPLID", ZAPPLID, MOVE ) ;
+	if ( applid != "" && ZAPPLID != applid )
+	{
+		if ( !isvalidName4( applid ) ) { return ; }
+		select( "PGM(PPSP01A) PARM(VARS) NEWAPPL(" + applid + ")" ) ;
+		return ;
+	}
 
 	VARLST = "VARLST" + right( d2ds( taskid() ), 2, '0' ) ;
 

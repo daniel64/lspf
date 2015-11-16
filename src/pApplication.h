@@ -154,11 +154,14 @@ class pApplication
 		void   set_msg( string, string, cuaType, bool ) ;
 		bool   nretriev_on() ;
 		void   cleanup()     ;
+		void   cleanup_custom() ;
+		void   (pApplication::*pcleanup)() ;
 		void   abend()       ;
+		void   abendexc()    ;
 		void   set_forced_abend() ;
 		void   closeTables() ;
 		void   closeLog()    ;
-
+		
 		string ZAPPNAME   ;
 		string ZAPPDESC   ;
 		string ZMLIB      ;
@@ -215,6 +218,7 @@ class pApplication
 		bool  addpop_active         ;
 
 		bool  ControlErrorsReturn   ;
+		bool  abending              ;
 
 		stack<string> stk_str       ;
 		stack<int> stk_int          ;

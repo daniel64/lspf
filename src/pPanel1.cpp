@@ -1295,7 +1295,7 @@ void pPanel::create_tbfield( int col, int length, cuaType cuaFT, string name, st
 }
 
 
-void pPanel::create_pdc( string abc_name, string pdc_name, string pdc_run, string pdc_parm )
+void pPanel::create_pdc( string abc_name, string pdc_name, string pdc_run, string pdc_parm, string pdc_unavail )
 {
 	int i      ;
 	bool found ;
@@ -1316,7 +1316,7 @@ void pPanel::create_pdc( string abc_name, string pdc_name, string pdc_run, strin
 		ab.push_back( t_abc ) ;
 		i = ab.size()-1       ;
 	}
-	ab.at(i).add_pdc( pdc_name, pdc_run, pdc_parm ) ;
+	ab.at(i).add_pdc( pdc_name, pdc_run, pdc_parm, pdc_unavail ) ;
 }
 
 

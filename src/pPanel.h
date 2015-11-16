@@ -149,7 +149,7 @@ class pPanel
 		void   putDialogueVar( string, string ) ;
 
 		void   create_tbfield( int col, int size, cuaType cuaFT, string name, string opts ) ;
-		void   create_pdc( string, string, string, string ) ;
+		void   create_pdc( string, string, string, string, string ) ;
 
 		void   display_boxes() ;
 

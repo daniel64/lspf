@@ -51,6 +51,19 @@ class PPSP01A : public pApplication
 		string ZSHADOW ;
 		int    maxCol  ;
 
+		string VARLST  ;
+		string SEL     ;
+		string VAR     ;
+		string VAL     ;
+		string VPOOL   ;
+		string VPLVL   ;
+		string MESSAGE ;
+		
+		string MODLST  ;
+		string APPL    ;
+		string MOD     ;
+		string MODPATH ;
+
 		string filteri  ;
 		string filterx  ;
 		bool   Xon      ;
@@ -64,7 +77,7 @@ class PPSP01A : public pApplication
 		int  setScreenAttrs( string, int, string &, string &, string & ) ;
 		void setISPSVar( string, string ) ;
 		void todoList()       ;
-		void poolVariables()  ;
+		void poolVariables( string )    ;
 		void getpoolVariables( string ) ;
 		void showPaths()         ;
 		void showCommandTables() ;
@@ -73,9 +86,5 @@ class PPSP01A : public pApplication
 		void showTasks()         ;
 		void updateTasks( string ) ;
 		void utilityPrograms()   ;
-
-		string VARLST, SEL, VAR, VPOOL, VPLVL, VAL, MESSAGE ;
-		string MODLST, APPL, MOD, MODPATH;
-
 
 };

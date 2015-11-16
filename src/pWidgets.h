@@ -152,11 +152,13 @@ class pdc
 		string  pdc_name ;
 		string  pdc_run  ;
 		string  pdc_parm ;
+		string  pdc_unavail ;
 
 		pdc()	{
-				pdc_name = "" ;
-				pdc_run  = "" ;
-				pdc_parm = "" ;
+				pdc_name    = "" ;
+				pdc_run     = "" ;
+				pdc_parm    = "" ;
+				pdc_unavail = "" ;
 			} ;
 		~pdc() {} ;
 } ;
@@ -184,7 +186,7 @@ class abc
 			}
 			} ;
 
-		void   add_pdc( string, string, string ) ;
+		void   add_pdc( string, string, string, string ) ;
 		void   display_abc_sel( WINDOW * )   ;
 		void   display_abc_unsel( WINDOW * ) ;
 		void   display_pd()        ;

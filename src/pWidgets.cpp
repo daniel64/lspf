@@ -861,13 +861,14 @@ void dynArea::setsize( int row, int col, int width, int depth )
 }
 
 
-void abc::add_pdc( string name, string run, string parm )
+void abc::add_pdc( string name, string run, string parm, string unavail )
 {
 	pdc m_pdc ;
 
-	m_pdc.pdc_name = name ;
-	m_pdc.pdc_run  = run  ;
-	m_pdc.pdc_parm = parm ;
+	m_pdc.pdc_name    = name    ;
+	m_pdc.pdc_run     = run     ;
+	m_pdc.pdc_parm    = parm    ;
+	m_pdc.pdc_unavail = unavail ;
 
 	++abc_maxh ;
 	if ( abc_maxw < name.size() ) abc_maxw = name.size() ;

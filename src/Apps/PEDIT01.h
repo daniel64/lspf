@@ -118,6 +118,7 @@ class PEDIT01 : public pApplication
 		void application() ;
 
 	private:
+		void cleanup_custom()    ;
 		void initialise()        ;
 		bool termOK()            ;
 		void read_file()         ;

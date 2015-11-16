@@ -77,6 +77,8 @@ void PLRFLST1::application()
 	else if ( P1 == "PLA" ) { AddReflistEntry( PF ) ; }
 	else if ( P1 == "NR1" ) { RetrieveEntry( PF )   ; }
 	else if ( P1 == "US1" ) { userSettings()        ; }
+	else if ( P1 == "BEX" ) { setRefMode( P1 )      ; }
+	else if ( P1 == "BRT" ) { setRefMode( P1 )      ; }
 	else                    { log( "E", "Invalid parameter passed to PLRFLST1: " << PARM << endl ) ; }
 
         cleanup() ;
@@ -680,6 +682,20 @@ void PLRFLST1::userSettings()
 		if ( RC == 8 ) { break   ; }
 	}
 	vdelete( vlist ) ;
+	return ;
+}
+
+
+void PLRFLST1::setRefMode( string mode )
+{
+	string ZRFMOD ;
+
+	ZRFMOD = mode ;
+
+	vdefine( "ZRFMOD", &ZRFMOD ) ;
+	vput( "ZRFMOD", PROFILE ) ;
+	vdelete( "ZRFMOD" ) ;
+
 	return ;
 }
 

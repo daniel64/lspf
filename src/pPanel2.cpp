@@ -654,13 +654,21 @@ int pPanel::loadPanel( string p_name, string paths )
 			if ( substr( w5, 1, 4 ) != "RUN(" ) { RC = 20 ; }
 			p2   = pos( ")", w5, 5 ) ;
 			w5   = substr( w5, 5, p2-5 ) ;
+			w7   = "" ;
+			p1 = pos ( "UNAVAIL(", rest ) ;
+			if ( p1 > 0 )
+			{
+				p2 = pos( ")", rest, p1 ) ;
+				w7 = strip( substr( rest, p1+8, p2-p1-8 )) ;
+				rest = delstr( rest, p1, p2-p1+1 ) ;
+			}
 			w6 = "" ;
 			if ( substr( rest, 1, 5 ) == "PARM(" )
 			{
 				p2 = lastpos( ")", rest ) ;
 				w6 = strip( substr( rest, 6, p2-7 ), 'B', '\"' ) ;
 			}
-			if ( RC == 0 ) { create_pdc( w2, w3, w5, w6 ) ; }
+			if ( RC == 0 ) { create_pdc( w2, w3, w5, w6, w7 ) ; }
 			if ( RC > 0 ) { PERR = "Error creating pdc for panel " + p_name ; return 20 ; } ;
 			continue ;
 		}

@@ -53,6 +53,9 @@ void PTEST01::application()
 {
 	log( "I", "Application PTEST01 starting." << endl ) ;
 
+	char a ;
+	string abc ;
+
 //	verase( "ZPLIB ZMLIB ZTLIB ZHLIB" ) ;
 //	cleanup() ;
 //	return ;
@@ -65,28 +68,43 @@ void PTEST01::application()
 	if ( ZCMD == "WAIT" )
 	{
 		debug1( "Waiting forever...." << endl ) ;
-		boost::this_thread::sleep(boost::posix_time::milliseconds(1000000)) ;
+		boost::this_thread::sleep_for(boost::chrono::milliseconds(1000000)) ;
 	}
-	if ( ZCMD == "LOOP" )
+	else if ( ZCMD == "LOOP" )
 	{
 		debug1( "Looping forever...." << endl ) ;
 		while ( true ) { PARM = "99" ; }
 	}
-	if ( ZCMD == "ABEND" )
+	else if ( ZCMD == "ABEND" )
 	{
 		debug1( "Abending...." << endl ) ;
 		abend() ;
 	}
+	else if ( ZCMD == "ABORT" )
+	{
+		debug1( "Aborting...." << endl ) ;
+		abort() ;
+	}
+	else if ( ZCMD == "TERMINATE" )
+	{
+		debug1( "Terminating..." << endl ) ;
+		terminate() ;
+	}
+	else if ( ZCMD == "EXCEPTION" )
+	{
+		debug1( "Generating an exception...." << endl ) ;
+		a = abc[ 4 ] ;
+	}
 
-	if ( PARM == "0" ) opt0() ;
-	else	if ( PARM == "1" ) opt1() ;
-	else	if ( PARM == "2" ) opt2() ;
-	else	if ( PARM == "3" ) opt3() ;
-	else	if ( PARM == "4" ) opt4() ;
-	else	if ( PARM == "5" ) opt5() ;
-	else	if ( PARM == "6" ) opt6() ;
-	else	if ( PARM == "7" ) opt7() ;
-	else    if ( PARM == "ABEND" )
+	if      ( PARM == "0" ) opt0() ;
+	else if ( PARM == "1" ) opt1() ;
+	else if ( PARM == "2" ) opt2() ;
+	else if ( PARM == "3" ) opt3() ;
+	else if ( PARM == "4" ) opt4() ;
+	else if ( PARM == "5" ) opt5() ;
+	else if ( PARM == "6" ) opt6() ;
+	else if ( PARM == "7" ) opt7() ;
+	else if ( PARM == "ABEND" )
 	{
 		debug1( "Abending...." << endl ) ;
 		abend() ;

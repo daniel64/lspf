@@ -41,7 +41,6 @@
 #include <boost/thread/condition.hpp>
 #include <boost/circular_buffer.hpp>
 #include <boost/filesystem.hpp>
-
 #include <boost/tokenizer.hpp>
 
 boost::condition cond_appl ;
@@ -125,6 +124,7 @@ void terminateApplication()  ;
 void processSELECT()         ;
 void processAction( uint row, uint col, int c, bool & passthru )  ;
 void errorScreen( int, string ) ;
+void threadErrorHandler()       ;
 void MainLoop() ;
 
 vector<pLScreen *>   screenList   ;
@@ -167,6 +167,7 @@ static string BuiltInCommands = "ABEND ACTION DISCARD FIELDEXC INFO KEYLIST NOP 
 
 ofstream splog(SLOG) ;
 
+
 int main(void)
 {
 	int  RC      ;
@@ -174,7 +175,8 @@ int main(void)
 	uint row     ;
 	uint col     ;
 
-	boost::thread * pThread          ;
+	boost::thread * pThread              ;
+	set_terminate ( threadErrorHandler ) ;
 
 	startTime    = boost::posix_time::microsec_clock::universal_time() ;
 	commandStack = "" ;
@@ -228,7 +230,7 @@ int main(void)
 	while ( currAppl->busyAppl )
 	{
 		elapsed++ ;
-		boost::this_thread::sleep(boost::posix_time::milliseconds(ZWAIT)) ;
+		boost::this_thread::sleep_for(boost::chrono::milliseconds(ZWAIT)) ;
 		if ( elapsed > ZMAXWAIT ) { currAppl->set_forced_abend() ; }
 	}
 	if ( currAppl->abnormalEnd || currAppl->terminateAppl )
@@ -269,7 +271,6 @@ int main(void)
 	splog.close() ;
 	return 0 ;
 }
-
 
 
 void MainLoop()
@@ -460,7 +461,7 @@ void MainLoop()
 					while ( currAppl->busyAppl )
 					{
 						elapsed++ ;
-						boost::this_thread::sleep(boost::posix_time::milliseconds(ZWAIT)) ;
+						boost::this_thread::sleep_for(boost::chrono::milliseconds(ZWAIT)) ;
 						if ( currAppl->noTimeOut ) { elapsed = 0 ; }
 						if ( elapsed > ZMAXWAIT  ) { currAppl->set_forced_abend() ; }
 					}
@@ -1043,7 +1044,7 @@ void processSELECT()
 		while ( currAppl->busyAppl )
 		{
 			elapsed++ ;
-			boost::this_thread::sleep(boost::posix_time::milliseconds(ZWAIT)) ;
+			boost::this_thread::sleep_for(boost::chrono::milliseconds(ZWAIT)) ;
 			if ( currAppl->noTimeOut ) { elapsed = 0 ; }
 			if ( elapsed > ZMAXWAIT  ) { currAppl->set_forced_abend() ; }
 		}
@@ -1165,7 +1166,7 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 	while ( currAppl->busyAppl )
 	{
 		elapsed++ ;
-		boost::this_thread::sleep(boost::posix_time::milliseconds(ZWAIT)) ;
+		boost::this_thread::sleep_for(boost::chrono::milliseconds(ZWAIT)) ;
 		if ( currAppl->noTimeOut ) { elapsed = 0 ; }
 		if ( elapsed > ZMAXWAIT  ) { currAppl->set_forced_abend() ; }
 	}
@@ -1311,6 +1312,10 @@ void terminateApplication()
 			if ( RC == 0 )
 			{
 				currAppl->field_name = fname ;
+				if ( p_poolMGR->get( RC, "ZRFMOD", PROFILE ) == "BEX" )
+				{
+					commandStack = ";;" ;
+				}
 			}
 			else
 			{
@@ -1386,7 +1391,7 @@ void terminateApplication()
 		while ( currAppl->busyAppl )
 		{
 			elapsed++ ;
-			boost::this_thread::sleep(boost::posix_time::milliseconds(ZWAIT)) ;
+			boost::this_thread::sleep_for(boost::chrono::milliseconds(ZWAIT)) ;
 			if ( currAppl->noTimeOut ) { elapsed = 0 ; }
 			if ( elapsed > ZMAXWAIT  ) { currAppl->set_forced_abend() ; }
 		}
@@ -1410,7 +1415,7 @@ void terminateApplication()
 			while ( currAppl->busyAppl )
 			{
 				elapsed++ ;
-				boost::this_thread::sleep(boost::posix_time::milliseconds(ZWAIT)) ;
+				boost::this_thread::sleep_for(boost::chrono::milliseconds(ZWAIT)) ;
 				if ( currAppl->noTimeOut ) { elapsed = 0 ; }
 				if ( elapsed > ZMAXWAIT  ) { currAppl->set_forced_abend() ; }
 			}
@@ -1835,6 +1840,21 @@ void updateReflist()
 				startApplication( p_poolMGR->get( RC, "ZRFLPGM", PROFILE ), "PLA " + currAppl->currPanel->field_getvalue( fname ), "", false, false ) ;
 			}
 		}
+	}
+}
+
+
+void threadErrorHandler()
+{
+	log( "E", "An exception has occured in an application thread.  See application log for details.  Task ending" << endl ) ;
+	try 
+	{
+		currAppl->abendexc() ;
+	}
+	catch (...)
+	{
+		log( "E", "An abend has occured during abend processing.  Calling abend() only to terminate application" << endl ) ;
+		currAppl->abend() ;
 	}
 }
 

@@ -26,6 +26,7 @@ class PMAIN0A : public pApplication
 
 	private:
 		void create_calendar(int =0, int =0 ) ;
+		void cleanup_custom() ;
 
 		int  offset ;
 

@@ -40,6 +40,7 @@ using namespace boost::gregorian;
 #define LOGOUT aplog
 #define MOD_NAME PMAIN0A
 
+
 void PMAIN0A::application()
 {
 	log( "I", "Application PMAIN0A starting.  Displaying panel PMAINP01" << endl ) ;
@@ -76,11 +77,15 @@ void PMAIN0A::application()
 	ZSHADOW = "" ;
 	create_calendar( pmonth, pyear ) ;
 
+//	pFunc = &pApplication::cleanup_custom      ;
 //	ZPUSER = "/home/daniel/.lspf/" ;
 //	libdef( "ZPUSER", "FILE" ) ;
 //
 //	ZMUSER = "/home/daniel/.lspf/" ;
 //	libdef( "ZMUSER", "FILE" ) ;
+
+	// Set pcleanup pointer to the customised cleanup routine
+	pcleanup = static_cast<void (pApplication::*)()>(&PMAIN0A::cleanup_custom) ;
 
 	while ( true )
         {
@@ -210,6 +215,13 @@ void PMAIN0A::application()
 		if ( ZCMD != "" ) { MSG = "MAIN011" ; }
         }
 	cleanup() ;
+}
+
+
+
+void PMAIN0A::cleanup_custom()
+{
+	log( "E", "Customised cleanup procedure" << endl ) ;
 }
 
 
