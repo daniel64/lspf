@@ -1064,6 +1064,7 @@ void processSELECT()
 		{
 			debug1( "Calling application " << currAppl->ZAPPNAME << " also ending" << endl ) ;
 			terminateApplication() ;
+			if ( pLScreen::screensTotal == 0 ) return ;
 		}
 		currAppl->get_cursor( row, col )  ;
 		currScrn->set_row_col( row, col ) ;
@@ -1183,12 +1184,14 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 	{
 		errorScreen( 2, "An error has occured initialising new task for " + Application ) ;
 		terminateApplication() ;
+		if ( pLScreen::screensTotal == 0 ) return ;
 	}
 
 	while ( currAppl->terminateAppl )
 	{
 		log( "I", "Application " << currAppl->ZAPPNAME << " has immediately terminated.  Cleaning up resources" << endl ) ;
 		terminateApplication() ;
+		if ( pLScreen::screensTotal == 0 ) return ;
 		if ( currAppl->SEL && !currAppl->terminateAppl )
 		{
 			debug1( "Application " << currAppl->ZAPPNAME << " has done another SELECT without a DISPLAY (2) !!!! " << endl ) ;
@@ -1399,6 +1402,7 @@ void terminateApplication()
 		{
 			debug1( "Calling application " << currAppl->ZAPPNAME << " also ending" << endl ) ;
 			terminateApplication() ;
+			if ( pLScreen::screensTotal == 0 ) return ;
 		}
 		currAppl->get_cursor( row, col ) ;
 	}
@@ -1422,8 +1426,9 @@ void terminateApplication()
 		}
 		while ( currAppl->terminateAppl )
 		{
-			debug1( "Calling application " << currAppl->ZAPPNAME << " also ending" << endl ) ;
+			debug1( "Previous application " << currAppl->ZAPPNAME << " also ending" << endl ) ;
 			terminateApplication() ;
+			if ( pLScreen::screensTotal == 0 ) return ;
 		}
 		if ( SMSG != "" )  { currAppl->set_msg( SMSG, LMSG, MSGTYPE, MSGALRM ) ; }
 		currScrn->clear()   ;

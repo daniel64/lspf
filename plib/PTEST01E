@@ -32,14 +32,12 @@ literal   11  6     FP  "Press ENTER to create popup"
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
 
-)ENDBODY
 
 )INIT
-)ENDINIT
 
 )REINIT
-)ENDREINIT
 
 )PROC
-)ENDPROC
 
+
+)END

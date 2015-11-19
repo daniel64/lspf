@@ -275,7 +275,7 @@ main()
 
 	ZCTVERB  = "FLIST" ;
 	ZCTTRUNC = "2"     ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(SAVELST)"  ;
+	ZCTACT   = "SELECT PGM(PPSP01A) PARM(SAVELST) NEWAPPL"  ;
 	ZCTDESC  = "SHOW SAVED FILE LIST" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "USRCMDS", "", "", 0 ) ;
 

@@ -75,3 +75,6 @@ PEDT01P "File Saved"
 
 PEDT01Q "File Not Saved"
 "An error has occured saving the file.  Check file permissions for access rights"
+
+PEDT01R "File Does Not Exist"
+"File &ZFILE does not exist"

@@ -81,6 +81,30 @@ dataType fPOOL::getType( int & RC, string name, nameCHCK check )
 
 
 
+string * fPOOL::vlocate( int & RC, int maxRC, string name, nameCHCK check )
+{
+	map<string, stack< fVAR> >::iterator it ;
+
+	RC = 0 ;
+
+	if ( (check == CHECK) && !isvalidName( name ) ) { RC = 20 ; return NULL ; }
+
+        it = POOL.find( name ) ;
+	if ( it == POOL.end() ) { RC = 8 ; return NULL ; }
+	if ( it->second.top().fVAR_type != STRING )
+	{
+		RC = 20 ;
+		log( "E", "Function pool definition of " << name << " is not of type string" << endl ) ;
+		if ( RC > maxRC ) { log( "E", "Maximum return code of " << maxRC << " exceeded for fPOOL.vlocate of " << name << " RC=20" << endl ) ; }
+		return NULL ;
+	}
+
+	if ( it->second.top().fVAR_explicit ) { return  it->second.top().fVAR_string_ptr ; }
+	else                                  { return &it->second.top().fVAR_string     ; }
+}
+
+
+
 void fPOOL::put( int & RC, int maxRC, string name, string value, nameCHCK check )
 {
 	fVAR var ;
@@ -104,7 +128,7 @@ void fPOOL::put( int & RC, int maxRC, string name, string value, nameCHCK check 
 	{
 		RC = 20 ;
 		log( "E", "Function pool definition of " << name << " is not of type string" << endl ) ;
-		if ( RC > maxRC ) { RC = 20 ; log( "E", "Maximum return code of " << maxRC << " exceeded for fPOOL.put of " << name << " RC=8" << endl ) ; }
+		if ( RC > maxRC ) { log( "E", "Maximum return code of " << maxRC << " exceeded for fPOOL.put of " << name << " RC=20" << endl ) ; }
 		return ;
 	}
 
@@ -136,7 +160,7 @@ void fPOOL::put( int & RC, int maxRC, string name, int value )
 	{
 		RC = 20 ;
 		log( "E", "Function pool definition of " << name << " is not of type int" << endl ) ;
-		if ( RC > maxRC ) { RC = 20 ; log( "E", "Maximum return code of " << maxRC << " exceeded for fPOOL.put of " << name << " RC=8" << endl ) ; }
+		if ( RC > maxRC ) { log( "E", "Maximum return code of " << maxRC << " exceeded for fPOOL.put of " << name << " RC=20" << endl ) ; }
 		return ;
 
 	}
@@ -166,7 +190,7 @@ string fPOOL::get( int & RC, int maxRC, string name, nameCHCK check )
 	{
 		RC = 20 ;
 		log( "E", "Function pool definition of " << name << " is not of type string" << endl ) ;
-		if ( RC > maxRC ) { RC = 20 ; log( "E", "Maximum return code of " << maxRC << " exceeded for fPOOL.get of " << name << " RC=8" << endl ) ; }
+		if ( RC > maxRC ) { log( "E", "Maximum return code of " << maxRC << " exceeded for fPOOL.get of " << name << " RC=20" << endl ) ; }
 		return "" ;
 
 	}
@@ -196,12 +220,23 @@ int fPOOL::get( int & RC, int maxRC, dataType type, string name )
 	{
 		RC = 20 ;
 		log( "E", "Function pool definition of " << name << " is not of type int" << endl ) ;
-		if ( RC > maxRC ) { RC = 20 ; log( "E", "Maximum return code of " << maxRC << " exceeded for fPOOL.get of " << name << " RC=8" << endl ) ; }
+		if ( RC > maxRC ) { log( "E", "Maximum return code of " << maxRC << " exceeded for fPOOL.get of " << name << " RC=20" << endl ) ; }
 		return 0 ;
 
 	}
 	if ( it->second.top().fVAR_explicit ) { return *it->second.top().fVAR_int_ptr ; }
 	else                                  { return  it->second.top().fVAR_int     ; }
+}
+
+
+void fPOOL::setmask( int & RC, string name, string mask )
+{
+	RC = 0    ;
+
+	if ( !isvalidName( name ) ) { RC = 20  ; return ; }
+
+	if ( POOL.find( name ) == POOL.end() ) { RC = 8 ; return ; }
+	POOL[ name ].top().fVAR_mask = mask ;
 }
 
 
@@ -285,12 +320,31 @@ string pVPOOL::get( int & RC, string name )
 
 	RC = 0 ;
 
+	if ( !isvalidName( name ) ) { RC = 20 ; return "" ; }
+
+	it = POOL.find( name ) ;
+	if ( it == POOL.end() ) { RC = 8 ; return "" ; }
+
+	return it->second.pVAR_value ;
+}
+
+
+string * pVPOOL::vlocate( int & RC, string name )
+{
+	// RC =  0 Normal completion
+	// RC =  8 Variable not found
+	// RC = 20 Severe error
+
+	map<string, pVAR>::iterator it ;
+
+	RC = 0 ;
+
 	if ( !isvalidName( name ) ) { RC = 20 ; return NULL ; }
 
 	it = POOL.find( name ) ;
 	if ( it == POOL.end() ) { RC = 8 ; return NULL ; }
 
-	return it->second.pVAR_value ;
+	return &it->second.pVAR_value ;
 }
 
 
@@ -997,6 +1051,49 @@ string poolMGR::get( int & RC, string name, poolType pType )
 	}
 	return "" ;
 }
+
+
+
+string * poolMGR::vlocate( int & RC, string name, poolType pType )
+{
+	// Pool search order: ASIS - SHARED then PROFILE
+	// RC = 0  variable found
+	// RC = 8  variable not found
+	// RC = 20 severe error
+
+	// for get PROFILE, delete the variable from the SHARED pool even if not found in the PROFILE pool
+
+	map<string, pVPOOL>::iterator p_it  ;
+	RC  = 0 ;
+
+        if ( !isvalidName( name ) ) { RC = 20 ; return NULL ; }
+
+	switch ( pType )
+	{
+	case ASIS:
+		locateSubPool( RC, p_it, name, SHARED ) ;
+		if ( RC == 0 ) { return p_it->second.vlocate( RC, name ) ; }
+		else if ( RC == 8 )
+		{
+			locateSubPool( RC, p_it, name, PROFILE ) ;
+			if ( RC == 0 ) { return p_it->second.vlocate( RC, name ) ; }
+		}
+		break ;
+	case PROFILE:
+		locateSubPool( RC, p_it, name, PROFILE ) ;
+		if ( RC == 0 ) { return p_it->second.vlocate( RC, name ) ; }
+		break ;
+	case SHARED:
+		locateSubPool( RC, p_it, name, SHARED ) ;
+		if ( RC == 0 ) { return p_it->second.vlocate( RC, name ) ; }
+		break ;
+	default:
+		RC = 20   ;
+		log( "C", "poolMGR vlocate function passed invalid POOL TYPE." << pType <<  " Logic error" << endl ) ;
+	}
+	return NULL ;
+}
+
 
 
 void poolMGR::erase( int & RC, string name, poolType pType )

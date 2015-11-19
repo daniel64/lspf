@@ -87,6 +87,7 @@ class pApplication
 		string sub_vars( string ) ;
 
 		void   control( string, string ) ;
+		void   control( string, void (pApplication::*)() ) ;
 		void   libdef( string, string = "" ) ;
 		void   display( string p_name, string p_msg = "", string p_cursor = "", int p_curpos = 0 ) ;
 		void   pquery( string p_name, string a_name, string t = "", string w = "", string d = "", string r = "", string c = "" ) ;
@@ -94,14 +95,16 @@ class pApplication
 		void   select( string pgm, string parm, string newappl, bool newpool, bool passlib ) ;
 		void   attr( string, string ) ;
 
-		void   vcopy( string, string &, vcMODE=LOCATE ) ;
+		void   vcopy( string, string &, vcMODE=MOVE )   ;
+		void   vcopy( string, string * &, vcMODE=LOCATE ) ;
 		void   vdefine( string, string *, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL ) ;
 		void   vdefine( string, int *, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL ) ;
 		void   vdelete( string ) ;
 		void   verase( string var, poolType =ASIS ) ;
 		void   vget( string var, poolType =ASIS )   ;
-		string vlist( poolType pType, int lvl )     ;
 		void   vput( string var, poolType =ASIS )   ;
+		string vlist( poolType pType, int lvl )     ;
+		void   vmask( string var, string type, string mask ) ;
 		void   vreplace( string, string )           ;
 		void   vreplace( string, int )              ;
 		void   vreset() ;
@@ -154,8 +157,8 @@ class pApplication
 		void   set_msg( string, string, cuaType, bool ) ;
 		bool   nretriev_on() ;
 		void   cleanup()     ;
-		void   cleanup_custom() ;
-		void   (pApplication::*pcleanup)() = &pApplication::cleanup_custom ;
+		void   cleanup_default() ;
+		void   (pApplication::*pcleanup)() = &pApplication::cleanup_default ;
 		void   abend()       ;
 		void   abendexc()    ;
 		void   set_forced_abend() ;

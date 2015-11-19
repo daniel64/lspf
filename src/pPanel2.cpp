@@ -96,8 +96,8 @@ int pPanel::loadPanel( string p_name, string paths )
 		if ( line2.find_first_not_of( ' ' ) == string::npos ) continue ;
 		w1 = upper( word( line2, 1 ) ) ;
 		w2 = word( line2, 2 ) ;
-		if ( substr( w1, 1, 2 ) == "--" ) continue ;
-		if ( substr( w1, 1, 1 ) == "#" )  continue ;
+		if ( substr( w1, 1, 2 ) == "--" || w1[ 0 ] == '#' ) { continue ; }
+		if ( w1 == ")END" )        { break                      ; }
 		if ( w1 == ")COMMENT" )    { comment = true  ; continue ; }
 		if ( w1 == ")ENDCOMMENT" ) { comment = false ; continue ; }
 		if ( comment ) continue ;
@@ -135,8 +135,8 @@ int pPanel::loadPanel( string p_name, string paths )
 				line2.assign( line1, pincl.gcount() - 1 ) ;
 				if ( line2.find_first_not_of( ' ' ) == string::npos ) continue ;
 				w1 = word( line2, 1 ) ;
-				if ( substr( w1, 1, 2 ) == "--" ) continue ;
-				if ( substr( w1, 1, 1 ) == "#" )  continue ;
+				if ( substr( w1, 1, 2 ) == "--" || w1[ 0 ] == '#' ) { continue ; }
+				if ( w1 == ")END" )        { break                      ; }
 				if ( w1 == ")COMMENT" )    { comment = true  ; continue ; }
 				if ( w1 == ")ENDCOMMENT" ) { comment = false ; continue ; }
 				if ( comment ) continue ;
@@ -167,6 +167,18 @@ int pPanel::loadPanel( string p_name, string paths )
 			return 20 ;
 		}
 		w1 = upper( word( line2, 1 ) ) ;
+		if ( w1[ 0 ] == ')' )
+		{
+			body    = false ;
+			comment = false ;
+			command = false ;
+			init    = false ;
+			reinit  = false ;
+			proc    = false ;
+			help    = false ;
+			ispnts  = false ;
+			isfield = false ;
+		}
 		w2 = word( line2, 2 ) ;
 		if ( w1 == ")PANEL" )
 		{
@@ -181,12 +193,6 @@ int pPanel::loadPanel( string p_name, string paths )
 			log( "I", "Panel format " << pFormat << " Panel version " << pVersion << endl ) ;
 			continue ;
 		}
-		if ( w1 == ")INIT" )	   { init = true  ; continue ; }
-		if ( w1 == ")ENDINIT" )    { init = false ; continue ; }
-
-		if ( w1 == ")REINIT" )	   { reinit = true  ; continue ; }
-		if ( w1 == ")ENDREINIT")   { reinit = false ; continue ; }
-
 		if ( w1 == ")BODY" )
 		{
 			j = pos( " WINDOW(", line2 ) ;
@@ -226,22 +232,13 @@ int pPanel::loadPanel( string p_name, string paths )
 			body = true  ;
 			continue ;
 		}
-		if ( w1 == ")ENDBODY" )	   { body = false ; continue ; }
-
-		if ( w1 == ")PROC" )	   { proc = true  ; continue ; }
-		if ( w1 == ")ENDPROC" )    { proc = false ; continue ; }
-
-		if ( w1 == ")COMMAND" )	   { command = true  ; continue ; }
-		if ( w1 == ")ENDCOMMAND" ) { command = false ; continue ; }
-
-		if ( w1 == ")HELP" )	   { help = true  ; continue ; }
-		if ( w1 == ")ENDHELP" )    { help = false ; continue ; }
-
-		if ( w1 == ")PNTS" )	   { ispnts = true  ; continue ; }
-		if ( w1 == ")ENDPNTS" )    { ispnts = false ; continue ; }
-
-		if ( w1 == ")FIELD" )	   { isfield = true  ; continue ; }
-		if ( w1 == ")ENDFIELD" )   { isfield = false ; continue ; }
+		else if ( w1 == ")PROC" )	{ proc = true    ; continue ; }
+		else if ( w1 == ")INIT" )	{ init = true    ; continue ; }
+		else if ( w1 == ")REINIT" )	{ reinit = true  ; continue ; }
+		else if ( w1 == ")COMMAND" )	{ command = true ; continue ; }
+		else if ( w1 == ")HELP" )	{ help = true    ; continue ; }
+		else if ( w1 == ")PNTS" )	{ ispnts = true  ; continue ; }
+		else if ( w1 == ")FIELD" )	{ isfield = true ; continue ; }
 		
 		if ( command )
 		{

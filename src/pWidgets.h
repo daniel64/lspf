@@ -340,25 +340,31 @@ class ASSGN
 		ASSGN( string ) ;
 		ASSGN()
 		{
-			as_RC     = 0     ;
-			as_lhs    = ""    ;
-			as_rhs    = ""    ;
-			as_isvar  = false ;
-			as_isattr = false ;
-			as_istb   = false ;
-			as_retlen = false ;
-			as_upper  = false ;
-			as_words  = false ;
+			as_RC      = 0     ;
+			as_lhs     = ""    ;
+			as_rhs     = ""    ;
+			as_isvar   = false ;
+			as_isattr  = false ;
+			as_istb    = false ;
+			as_retlen  = false ;
+			as_upper   = false ;
+			as_words   = false ;
+			as_chkexst = false ;
+			as_chkfile = false ;
+			as_chkdir  = false ;
 		}
-	int    as_RC     ;
-	string as_lhs    ;
-	string as_rhs    ;
-	bool   as_isvar  ;
-	bool   as_isattr ;
-	bool   as_istb   ;
-	bool   as_retlen ;
-	bool   as_upper  ;
-	bool   as_words  ;
+	int    as_RC      ;
+	string as_lhs     ;
+	string as_rhs     ;
+	bool   as_isvar   ;
+	bool   as_isattr  ;
+	bool   as_istb    ;
+	bool   as_retlen  ;
+	bool   as_upper   ;
+	bool   as_words   ;
+	bool   as_chkexst ;
+	bool   as_chkfile ;
+	bool   as_chkdir  ;
 } ;
 
 

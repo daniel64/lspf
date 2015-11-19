@@ -97,11 +97,10 @@ literal 25 20  NT "to terminate dialogue"
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
 
-)ENDBODY
 
 )INIT
 .CURSOR = ZCMD
-)ENDINIT
 
 )PROC
-)ENDPROC
+
+)END

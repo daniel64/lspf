@@ -651,7 +651,6 @@ void PLRFLST1::AddReflistEntry( string ent )
 	FLAUTIME = ldate + " " + ltime ;
 	tbmod( RFLTABLE, "", "ORDER" ) ;
 	CloseTable() ;
-
 }
 
 

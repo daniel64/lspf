@@ -1014,9 +1014,12 @@ void pPanel::display_panel_proc( int & RC, int ln )
 				else
 				{
 					t = getDialogueVar( assgnList.at( i_assign ).as_rhs ) ;
-					if ( assgnList.at( i_assign ).as_retlen )     { t = d2ds( t.size() )   ; }
-					else if ( assgnList.at( i_assign ).as_upper ) { t = upper( t )         ; }
-					else if ( assgnList.at( i_assign ).as_words ) { t = d2ds( words( t ) ) ; }
+					if      ( assgnList.at( i_assign ).as_retlen  ) { t = d2ds( t.size() )   ; }
+					else if ( assgnList.at( i_assign ).as_upper   ) { t = upper( t )         ; }
+					else if ( assgnList.at( i_assign ).as_words   ) { t = d2ds( words( t ) ) ; }
+					else if ( assgnList.at( i_assign ).as_chkexst ) { t = exists( t ) ? "1" : "0"          ; }
+					else if ( assgnList.at( i_assign ).as_chkfile ) { t = is_regular_file( t ) ? "1" : "0" ; }
+					else if ( assgnList.at( i_assign ).as_chkdir  ) { t = is_directory( t )    ? "1" : "0" ; }
 				}
 			}
 			else if ( assgnList.at( i_assign ).as_rhs == ".CURSOR" )
@@ -1328,11 +1331,12 @@ void pPanel::update_field_values( int & RC )
 	//     JUST(LEFT)  strip off leading and trailing spaces
 	//     JUST(RIGHT) strip off trailing spaces only and pad to the left with spaces to size field_length
 	//     JUST(ASIS) no change
-	// Treat dynamic areas differently - they must reside in the function pool.
+	// Treat dynamic areas differently - they must reside in the function pool.  Use vlocate to get the dynamic area variables 
+	// via their addresses to avoid large string copies
 
-	string t1     ;
-	string sname  ;
-	string shadow ;
+	string sname    ;
+	string * darea  ;
+	string * shadow ;
 
 	map<string, field   *>::iterator it1 ;
 	map<string, dynArea *>::iterator it2 ;
@@ -1359,21 +1363,23 @@ void pPanel::update_field_values( int & RC )
 
 	for ( it2 = dynAreaList.begin() ; it2 != dynAreaList.end() ; it2++ )
 	{
-		t1     = p_funcPOOL->get( RC, 0, it2->first )           ;
+		darea  = p_funcPOOL->vlocate( RC, 0, it2->first, NOCHECK ) ;
+		if ( RC > 0 ) { PERR = "Error:  Dynamic area variable has not been defined in the function pool" ; return  ; }
 		sname  = dynAreaList[ it2->first ]->dynArea_shadow_name ;
-		shadow = p_funcPOOL->get( RC, 0, sname )                ;
-		if ( t1.size() > shadow.size() )
+		shadow = p_funcPOOL->vlocate( RC, 0, sname, NOCHECK )   ;
+		if ( RC > 0 ) { PERR = "Error:  Dynamic area shadow variable has not been defined in the function pool" ; return  ; }
+		if ( (*darea).size() > (*shadow).size() )
 		{
 			log( "W", "Shadow variable " << sname << " size is smaller than the data variable " << it2->first << " size.  Results may be unpredictable" << endl ) ;
-			log( "W", "Data variable size   = " << t1.size() << endl ) ;
-			log( "W", "Shadow variable size = " << shadow.size() << endl ) ;
+			log( "W", "Data variable size   = " << (*darea).size() << endl ) ;
+			log( "W", "Shadow variable size = " << (*shadow).size() << endl ) ;
 		}
-		t1.resize( it2->second->dynArea_width * it2->second->dynArea_depth, ' ' )     ;
-		shadow.resize( it2->second->dynArea_width * it2->second->dynArea_depth, ' ' ) ;
+		(*darea).resize( it2->second->dynArea_width * it2->second->dynArea_depth, ' ' )  ;
+		(*shadow).resize( it2->second->dynArea_width * it2->second->dynArea_depth, ' ' ) ;
 	        for ( int i = 0 ; i < it2->second->dynArea_depth ; i++ )
 	        {
-			fieldList[ it2->first + "." + d2ds( i )]->field_value        = t1.substr( i * it2->second->dynArea_width, it2->second->dynArea_width ) ;
-			fieldList[ it2->first + "." + d2ds( i )]->field_shadow_value = shadow.substr( i * it2->second->dynArea_width, it2->second->dynArea_width ) ;
+			fieldList[ it2->first + "." + d2ds( i )]->field_value        = (*darea).substr( i * it2->second->dynArea_width, it2->second->dynArea_width )  ;
+			fieldList[ it2->first + "." + d2ds( i )]->field_shadow_value = (*shadow).substr( i * it2->second->dynArea_width, it2->second->dynArea_width ) ;
 	        }
 	}
 }

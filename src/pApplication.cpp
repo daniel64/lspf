@@ -109,6 +109,7 @@ void pApplication::wait_event()
 	busyAppl = false ;
 	while ( true )
 	{
+		if ( terminateAppl ) { RC = 20 ; log( "E", "Application terminating.  Cancelling wait_event" << endl ) ; abend() ; }
 		if ( !busyAppl )
 		{
 			boost::mutex::scoped_lock lk(mutex) ;
@@ -551,6 +552,46 @@ void pApplication::vdelete( string names )
 }
 
 
+void pApplication::vmask( string name, string type, string mask )
+{
+	// Set a mask for a function pool variable (must be vdefined first)
+	// Partial implementation as no VEDIT panel statement yet so this is never used
+
+	// RC = 0  Normal completion
+	// RC = 8  Variable not found
+	// RC = 20 Severe error
+	// (funcPOOL.setmask returns 0, 8 or 20)
+
+	int i ;
+	const string fmask = "IDATE STDDATE ITIME STDTIME JDATE JSTD" ;
+
+	if ( type == "FORMAT" )
+	{
+		if ( wordpos( mask, fmask ) == 0 ) { RC = 20 ; }
+	}
+	else if ( type == "USER" )
+	{
+		if ( mask.size() > 20 ) { RC = 20 ; }
+		else
+		{
+			for ( i = 0 ; i < mask.size() ; i++ )
+			{
+				if ( mask[i] != 'A' && mask[i] != 'B' && mask[i] != '9' &&
+				     mask[i] != 'H' && mask[i] != 'N' && mask[i] != 'V' &&
+				     mask[i] != 'S' && mask[i] != 'X' && mask[i] != '(' &&
+				     mask[i] != ')' && mask[i] != '-' && mask[i] != '/' &&
+				     mask[i] != ',' && mask[i] != '.' ) { RC = 20 ; break ; }
+			}
+		}
+	}
+	else { RC = 20 ; }
+	if ( RC > 0 ) { checkRCode( "VMASK invalid format for " + name + ".  Mask: " + mask ) ; return ; }
+
+	funcPOOL.setmask( RC, name, mask ) ;
+	if ( RC > 8 ) { checkRCode( "VMASK failed for " + name ) ; }
+}
+
+
 void pApplication::vreset()
 {
 	// RC = 0  Normal completion
@@ -594,12 +635,12 @@ void pApplication::vget( string names, poolType pType )
 	// (funcPOOL.getType returns 0, 8 or 20.  For RC = 8 create implicit function pool variable)
 	// (poolMGR.get return 0, 8 or 20)
 
-	string val        ;
-	string name       ;
+	string val  ;
+	string name ;
 
-	int maxRC         ;
-	int ws            ;
-	int i             ;
+	int maxRC   ;
+	int ws      ;
+	int i       ;
 
 	dataType var_type ;
 
@@ -691,6 +732,9 @@ void pApplication::vput( string names, poolType pType )
 
 void pApplication::vcopy( string name, string & var_name, vcMODE mode )
 {
+	// Retrieve a copy of a dialogue variable (via the normal search order)
+	// This routine is only be valid for vcMODE=MOVE
+
 	// RC = 0  Normal completion
 	// RC = 8  Variable not found
 	// RC = 16 Truncation occured
@@ -698,8 +742,6 @@ void pApplication::vcopy( string name, string & var_name, vcMODE mode )
 	// (funcPOOL.get returns 0, 8 or 20)
 	// (funcPOOL.getType returns 0, 8 or 20)
 	// (poolMGR.get return 0, 8 or 20)
-
-	string s_val ;
 
 	dataType var_type  ;
 
@@ -709,7 +751,7 @@ void pApplication::vcopy( string name, string & var_name, vcMODE mode )
 	{
 	case LOCATE:
 		RC = 20 ;
-		log( "N", "LOCATE mode for VCOPY not yet implemented" << endl ) ;
+		log( "E", "LOCATE invalid.  Pointer parameter required" << endl ) ;
 		break ;
 	case MOVE:
 		var_type = funcPOOL.getType( RC, name ) ;
@@ -719,20 +761,67 @@ void pApplication::vcopy( string name, string & var_name, vcMODE mode )
 			switch ( var_type )
 			{
 			case INTEGER:
-				s_val = d2ds( funcPOOL.get( RC, 0, var_type, name ) ) ;
+				var_name = d2ds( funcPOOL.get( RC, 0, var_type, name ) ) ;
 				break ;
 			case STRING:
-				s_val = funcPOOL.get( RC, 0, name ) ;
+				var_name = funcPOOL.get( RC, 0, name ) ;
 			}
 			if ( RC  > 0 ) checkRCode( "Function pool get failed for " + name ) ;
-			if ( RC == 0 ) { var_name = s_val ; }
 		}
 		else if ( RC == 8 )
 		{
-			s_val = p_poolMGR->get( RC, name, ASIS ) ;
-			if ( RC  > 8 ) { checkRCode( "Pool failed for " + name) ; }
-			if ( RC == 0 ) { var_name = s_val                       ; }
+			var_name = p_poolMGR->get( RC, name, ASIS ) ;
+			if ( RC  > 8 ) { checkRCode( "Pool get failed for " + name) ; }
 		}
+	}
+}
+
+
+void pApplication::vcopy( string name, string * & var_name_addr, vcMODE mode )
+{
+	// Return the address of a dialogue variable (via the normal search order)
+	// This routine is only be valid for vcMODE=LOCATE
+	// MODE=LOCATE not valid for integer pointers as these may be in the variable pools as strings
+
+	// RC = 0  Normal completion
+	// RC = 8  Variable not found
+	// RC = 16 Truncation occured
+	// RC = 20 Severe error
+	// (funcPOOL.get returns 0, 8 or 20)
+	// (funcPOOL.getType returns 0, 8 or 20)
+	// (poolMGR.get return 0, 8 or 20)
+
+	dataType var_type  ;
+
+	RC = 0 ;
+
+	switch ( mode )
+	{
+	case LOCATE:
+		var_type = funcPOOL.getType( RC, name ) ;
+		if ( RC  > 8 ) checkRCode( "Function pool getType failed for " + name ) ;
+		if ( RC == 0 )
+		{
+			switch ( var_type )
+			{
+			case INTEGER:
+				RC = 20 ;
+				log( "E", "LOCATE option invalid for integer values" << endl ) ;
+				break ;
+			case STRING:
+				var_name_addr = funcPOOL.vlocate( RC, 0, name, CHECK ) ;
+			}
+			if ( RC  > 0 ) { checkRCode( "Function pool vlocate failed for " + name ) ; }
+		}
+		else if ( RC == 8 )
+		{
+			var_name_addr = p_poolMGR->vlocate( RC, name, ASIS ) ;
+			if ( RC  > 8 ) { checkRCode( "Pool vlocate failed for " + name) ; }
+		}
+		break ;
+	case MOVE:
+		RC = 20 ;
+		log( "E", "MOVE invalid.  String parameter required, pointer passed" << endl ) ;
 	}
 }
 
@@ -877,8 +966,9 @@ void pApplication::control( string parm1, string parm2 )
 	// CONTROL REFLIST NOUPDATE
 
 	// LSPF extensions:
-	// CONTROL TIMEOUT ENABLE  - Enable application timeouts after ZWAITMAX ms (default).
-	// CONTROL TIMEOUT DISABLE - Disable forced abend of applications if ZWAITMAX exceeded.
+	// CONTROL TIMEOUT  ENABLE  - Enable application timeouts after ZWAITMAX ms (default).
+	// CONTROL TIMEOUT  DISABLE - Disable forced abend of applications if ZWAITMAX exceeded.
+	// CONTROL ABENDRTN DEFAULT - Reset abend routine to the default, pApplication::cleanup_default
 
 	RC = 0 ;
 
@@ -980,6 +1070,30 @@ void pApplication::control( string parm1, string parm2 )
 		}
 		else { RC = 20 ; }
 	}
+	else if ( parm1 == "ABENDRTN" )
+	{
+		if ( parm2 == "DEFAULT" )
+		{
+			pcleanup = &pApplication::cleanup_default ;
+		}
+		else { RC = 20 ; }
+	}	
+	else { RC = 20 ; }
+	if ( RC > 0 ) checkRCode( "Error in control service" ) ;
+}
+
+
+void pApplication::control( string parm1, void (pApplication::*pFunc)() )
+{
+	// LSPF extensions:
+	// CONTROL ABENDRTN ptr_to_routine - Set the routine to get control during an abend
+
+	RC = 0 ;
+
+	if ( parm1 == "ABENDRTN" )
+	{
+		pcleanup = pFunc ;
+	}
 	else { RC = 20 ; }
 	if ( RC > 0 ) checkRCode( "Error in control service" ) ;
 }
@@ -1027,6 +1141,7 @@ void pApplication::tbbottom( string tb_name )
 void pApplication::tbclose( string tb_name, string tb_newname, string tb_path )
 {
 	// Save and close the table (calls saveTableifWRITE and destroyTable routines).  If NOWRITE specified, just remove table from storage.
+	// saveTableifWRITE RC=4 if no updates have been performed on the table as no save is performed, so reset RC to 0
 
 	// RC = 0   Normal completion
 	// RC = 12  Table not open
@@ -1038,6 +1153,7 @@ void pApplication::tbclose( string tb_name, string tb_newname, string tb_path )
 	if ( !isTableOpen( tb_name, "TBCLOSE" ) ) { return ; }
 
 	p_tableMGR->saveTableifWRITE( RC, taskid(), tb_name, tb_newname, tb_path ) ;
+	if ( RC == 4 ) { RC = 0 ; }
 	if ( RC == 0 )
 	{
 		p_tableMGR->destroyTable( RC, taskid(), tb_name ) ;
@@ -2058,9 +2174,10 @@ void pApplication::checkRCode( string s )
 }
 
 
-void pApplication::cleanup_custom()
+void pApplication::cleanup_default()
 {
-	// Dummy routine.  Override in the appliction so the customised one is called on an exception condition
+	// Dummy routine.  Override in the application so the customised one is called on an exception condition.
+	// Use CONTROL ABENDRTN ptr_to_routine
 }
 
 
@@ -2087,7 +2204,7 @@ void pApplication::abend()
 
 void pApplication::abendexc()
 {
-	log( "E", "An unhandled exception has occured" << endl ) ;
+	log( "E", "An unhandled exception has occured in application: " << ZAPPNAME << " Taskid: " << taskID << endl ) ;
 	if ( !abending )
 	{
 		(this->*pcleanup)() ;

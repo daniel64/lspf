@@ -16,16 +16,13 @@
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
 
-)ENDBODY
 
 )INIT
  .cursor = zcommand
 
-)ENDINIT
 
 
 )REINIT
-)ENDREINIT
 
 )PROC
 
@@ -33,4 +30,5 @@ IF ( &ZCOMMAND EQ &Z )
   .CURSOR = ZCOMMAND   
   EXIT
 
-)ENDPROC
+
+)END

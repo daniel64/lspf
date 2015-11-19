@@ -32,8 +32,6 @@ dynArea  5  2  MAX  MAX  ZAREA  ZSHADOW
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
 
-)ENDBODY
-
 )PROC
 
 IF (&ZCMD = &Z)
@@ -56,5 +54,5 @@ IF (&CMD EQ HILITE )
        .CURSOR = ZCMD
        EXIT
 
-)ENDPROC
 
+)END

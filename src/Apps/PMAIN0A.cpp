@@ -65,6 +65,9 @@ void PMAIN0A::application()
 
 	ZAHELP = "HPMAIN1" ;
 
+	// Set the customised cleanup routine instead of the dummy entry in pApplication
+	control( "ABENDRTN", static_cast<void (pApplication::*)()>(&PMAIN0A::cleanup_custom) ) ;
+	control( "ABENDRTN", "DEFAULT" ) ;
 	vdefine( "ZCMD ZDATEL ZJDATE ZTIME", &ZCMD, &ZDATEL, &ZJDATE, &ZTIME ) ;
 	vdefine( "ZAREA ZSHADOW", &ZAREA, &ZSHADOW ) ;
 
@@ -83,9 +86,6 @@ void PMAIN0A::application()
 //
 //	ZMUSER = "/home/daniel/.lspf/" ;
 //	libdef( "ZMUSER", "FILE" ) ;
-
-	// Set pcleanup pointer to the customised cleanup routine
-	pcleanup = static_cast<void (pApplication::*)()>(&PMAIN0A::cleanup_custom) ;
 
 	while ( true )
         {

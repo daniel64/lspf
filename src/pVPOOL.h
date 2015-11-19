@@ -23,6 +23,7 @@ class fVAR
 		string * fVAR_string_ptr ;
 		int    * fVAR_int_ptr    ;
 		string   fVAR_string     ;
+		string   fVAR_mask       ;
 		int      fVAR_int        ;
 		dataType fVAR_type       ;
 		bool     fVAR_explicit   ;
@@ -36,11 +37,13 @@ class fPOOL
 		void     define( int &, string, string *, nameCHCK check=CHECK ) ;
 		void     define( int &, string, int *    ) ;
 		bool     ifexists( int &, string, nameCHCK check=CHECK ) ;
-		dataType getType( int &, string, nameCHCK check=CHECK ) ;
+		dataType getType( int &, string, nameCHCK check=CHECK )  ;
+		string * vlocate( int &, int, string, nameCHCK check=CHECK )  ;
 		void     put( int &, int, string, string, nameCHCK check=CHECK ) ;
 		void     put( int &, int, string, int    ) ;
 		string   get( int &, int, string, nameCHCK check=CHECK ) ;
 		int      get( int &, int, dataType, string ) ;
+		void     setmask( int &, string, string ) ;
 		void     dlete( int &, string, nameCHCK check=CHECK ) ;
 		void     reset() ;
 
@@ -81,6 +84,7 @@ class pVPOOL
 
 		void   put( int &, string, string, vTYPE =USER ) ;
 		string get( int &, string )      ;
+		string * vlocate( int &, string ) ;
 		void   load( int &, string , string ) ;
 		void   save( int &, string )     ;
 
@@ -112,7 +116,8 @@ class poolMGR
 		void   snap() ;
 
 		void   put( int &, string, string, poolType = ASIS, vTYPE =USER ) ;
-		string get( int &, string, poolType = ASIS ) ;
+		string get( int &, string, poolType=ASIS ) ;
+		string * vlocate( int &, string, poolType=ASIS ) ;
 		void   locateSubPool( int &, map<string, pVPOOL>::iterator &, string, poolType = ASIS ) ;
 		void   erase( int &, string, poolType = ASIS ) ;
 		bool   ifexists( int &, string ) ;

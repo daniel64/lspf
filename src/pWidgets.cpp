@@ -1032,7 +1032,10 @@ IFSTMNT::IFSTMNT( string s )
 	// IF ( &AAA = VALUE1,VALUE2 )
 	// IF ( &AAA NE 'Hello','Goodbye' )
 	// IF (.CURSOR = ZCMD)
+	// IF ( &Z EQ .TRUE )
+	// IF ( &Z EQ .FALSE ) .TRUE = "1" and .FALSE = "0"
 	// rhs value lists only for EQ and NE (EQ only one needs to be true, NE all need to be true)
+
 
 	int p1 ;
 	int p2 ;
@@ -1149,6 +1152,22 @@ IFSTMNT::IFSTMNT( string s )
 			}
 			if_isvar.push_back( false ) ;
 		}
+		else if ( s[ 0 ]  == '.' )
+		{
+			s.erase( 0, 1 ) ;
+			p1 = s.find( ',' ) ;
+			if ( p1 == string::npos )
+			{
+				p1 = s.find( ')' ) ;
+				if ( p1 == string::npos ) { if_RC = 20 ; return ; }
+				f_end = true ;
+			}
+			t = upper( strip( s.substr( 0, p1 ) ) ) ;
+			if      ( t == "TRUE" )  { t = "1" ; }
+			else if ( t == "FALSE" ) { t = "0" ; }
+			else    { if_RC = 20 ; return ; }
+			if_isvar.push_back( false ) ;
+		}
 		else
 		{
 			p1 = s.find( ',' ) ;
@@ -1182,19 +1201,26 @@ ASSGN::ASSGN( string s )
 	// .HELP | .MSG | .CURSOR = &BBB | VALUE | 'Quoted Value'
 	// &AAA = UPPER( ABC )
 	// &AAA = LENGTH( ABC )
+	// &AAA = WORDS( ABC )  Number of words in the value of ABC
+	// &A   = EXISTS( ABC ) True if file/directory in variable ABC exists
+	// &A   = FILE( ABC )   True if file in variable ABC exists
+	// &A   = DIR( ABC )    True if directory in variable ABC exists
 
 	int p  ;
 	int p1 ;
 	
-	as_RC     = 0     ;
-	as_lhs   = ""     ;
-	as_rhs   = ""     ;
-	as_isvar  = false ;
-	as_isattr = false ;
-	as_istb   = false ;
-	as_retlen = false ;
-	as_upper  = false ;
-	as_words  = false ;
+	as_RC      = 0     ;
+	as_lhs     = ""    ;
+	as_rhs     = ""    ;
+	as_isvar   = false ;
+	as_isattr  = false ;
+	as_istb    = false ;
+	as_retlen  = false ;
+	as_upper   = false ;
+	as_words   = false ;
+	as_chkexst = false ;
+	as_chkdir  = false ;
+	as_chkfile = false ;
 	
 	p = s.find( '=' ) ;
 	if ( p == string::npos ) { as_RC = 20 ; return ; }
@@ -1240,18 +1266,44 @@ ASSGN::ASSGN( string s )
 		s = strip( s.erase( 0, p+1 ) ) ;
 		if ( s != "" )  { as_RC = 20 ; return ; }
 	}
-	else if ( upper( s.substr( 0, 6 ) ) == "UPPER(" )
+	else if ( upper( s.substr( 0, 4 ) ) == "DIR(" )
 	{
 		s = upper( s )  ;
-		s = strip( s.erase( 0, 6 ) ) ;
+		s = strip( s.erase( 0, 4 ) ) ;
 		p = s.find( ')' ) ;
 		if ( p == string::npos ) { as_RC = 20 ; return ; }
 		as_rhs = strip( s.substr( 0, p ) ) ;
 		if ( !isvalidName( as_rhs ) ) { as_RC = 20 ; return ; }
 		s = strip( s.erase( 0, p+1 ) ) ;
 		if ( s != "" )  { as_RC = 20 ; return ; }
-		as_isvar = true ;
-		as_upper = true ;
+		as_isvar  = true ;
+		as_chkdir = true ;
+	}
+	else if ( upper( s.substr( 0, 7 ) ) == "EXISTS(" )
+	{
+		s = upper( s )  ;
+		s = strip( s.erase( 0, 7 ) ) ;
+		p = s.find( ')' ) ;
+		if ( p == string::npos ) { as_RC = 20 ; return ; }
+		as_rhs = strip( s.substr( 0, p ) ) ;
+		if ( !isvalidName( as_rhs ) ) { as_RC = 20 ; return ; }
+		s = strip( s.erase( 0, p+1 ) ) ;
+		if ( s != "" )  { as_RC = 20 ; return ; }
+		as_isvar   = true ;
+		as_chkexst = true ;
+	}
+	else if ( upper( s.substr( 0, 5 ) ) == "FILE(" )
+	{
+		s = upper( s )  ;
+		s = strip( s.erase( 0, 5 ) ) ;
+		p = s.find( ')' ) ;
+		if ( p == string::npos ) { as_RC = 20 ; return ; }
+		as_rhs = strip( s.substr( 0, p ) ) ;
+		if ( !isvalidName( as_rhs ) ) { as_RC = 20 ; return ; }
+		s = strip( s.erase( 0, p+1 ) ) ;
+		if ( s != "" )  { as_RC = 20 ; return ; }
+		as_isvar   = true ;
+		as_chkfile = true ;
 	}
 	else if ( upper( s.substr( 0, 7 ) ) == "LENGTH(" )
 	{
@@ -1278,6 +1330,19 @@ ASSGN::ASSGN( string s )
 		if ( s != "" )  { as_RC = 20 ; return ; }
 		as_isvar = true ;
 		as_words = true ;
+	}
+	else if ( upper( s.substr( 0, 6 ) ) == "UPPER(" )
+	{
+		s = upper( s )  ;
+		s = strip( s.erase( 0, 6 ) ) ;
+		p = s.find( ')' ) ;
+		if ( p == string::npos ) { as_RC = 20 ; return ; }
+		as_rhs = strip( s.substr( 0, p ) ) ;
+		if ( !isvalidName( as_rhs ) ) { as_RC = 20 ; return ; }
+		s = strip( s.erase( 0, p+1 ) ) ;
+		if ( s != "" )  { as_RC = 20 ; return ; }
+		as_isvar = true ;
+		as_upper = true ;
 	}
 	else
 	{

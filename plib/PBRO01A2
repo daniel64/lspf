@@ -9,4 +9,5 @@ literal  8   3    FP  "Hilighting file type. . . . . .:"
 literal  10  38   FP  "(Y/N)"" 
 
 )INCLUDE HLP_PDC
-)ENDBODY
+
+)END

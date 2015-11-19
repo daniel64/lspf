@@ -533,6 +533,16 @@ void PFLST0A::application()
 				if ( ZRC == 0 ) { browse( "/tmp/porexx2.say" ) ; }
 				tbput( DSLIST ) ;
 			}
+			else if ( is_regular_file( entry ) && (SEL == "CONV") )
+			{
+				vcopy( "ZOREXPGM", PGM, MOVE ) ;
+				select( "PGM(" + PGM + ") PARM(porexx4.rex " + entry + ")" ) ;
+				SEL = "" ;
+				if ( ZRESULT != "" ) { MESSAGE = ZRESULT    ; MSG = "FLST01M" ; }
+				else                 { MESSAGE = "Executed" ;                   }
+				if ( ZRC == 0 ) { browse( "/tmp/porexx4.say" ) ; }
+				tbput( DSLIST ) ;
+			}
 			else if ( is_regular_file( entry ) && (SEL == "S" || SEL == "B" || SEL == "E" || SEL == "L" ) )
 			{
 				if ( SEL == "E" )

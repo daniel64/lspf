@@ -143,4 +143,5 @@ literal   35   22     FP     "ZFLSTPGM:"
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
 
-)ENDBODY
+
+)END
