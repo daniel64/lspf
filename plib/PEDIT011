@@ -8,33 +8,75 @@ Panel for editor PEDIT01
 
 PanelTitle "Edit Entry Panel"
 
-literal  3   2   FP  "EDIT"
+literal  4    2      FP  "COMMAND ===> "
+field 4  15   MAX    NEF PAD('_') ZCMD1 
 
-literal  4   2      FP "COMMAND ===> "
-field 4  15 MAX-17  NEF PAD('_') ZCMD1 
+literal  7    2       FP  "File Name. . .:" 
+field    7   18      MAX   NEF  NONE ZFILE
 
-literal  6   2       FP  "File Name. . . :" 
-field    6  19      MAX   NEF  NONE ZFILE
+field    10   2   1   CEF     PAD('_') EEDIRLST
+literal  10   4       SAC    "Show directory list if valid directory entered"
+
+field    12   2   1   CEF     PAD('_') EESTSPC
+literal  12   4       SAC    "Strip trailing spaces and tabs on file save"
+
+field    13   2   1   CEF     PAD('_') EETABSS
+literal  13   4       SAC    "Convert tabs to spaces on EDIT entry"
+field    14   2   1   CEF     PAD('_') EETABCC
+literal  14   4       SAC    "Convert spaces back to tabs on file save"
+
+literal 17 2  CH "Instructions"
+literal 18 2  NT "Enter file name and press"
+literal 18 28 ET "ENTER"
+literal 18 34 NT "to edit file"
+
 
 )INCLUDE STD_PDC
+)INCLUDE RFL_PDC
 )INCLUDE HLP_PDC
 
 
 )INIT
+
 .NRET  = ON
 &ZFILE = &Z
 &ZRFFLDA = ZFILE
 VPUT ZRFFLDA SHARED
+VGET (ZFILE EETABCC EETABSS EESTSPC EEDIRLST) PROFILE
 
 )PROC
-&A =  FILE( ZFILE )
-IF ( &A EQ 0 )
-   .CURSOR = ZFILE
-   .MSG    = PEDT01R
-   EXIT
+VER (&ZFILE NB)
+VER (&EETABSS  LIST /)
+VER (&EETABCC  LIST /)
+VER (&EESTSPC  LIST /)
+VER (&EEDIRLST LIST /)
+
+&SHOWDIR = NO
+
+&ISFILE = FILE( ZFILE )
+&ISDIR  = DIR( ZFILE )
+
+IF ( &EEDIRLST NE '/' )
+  IF ( &ISDIR EQ .TRUE )
+     .CURSOR = ZFILE
+     .MSG    = PEDT01T
+     EXIT
+  IF ( &ISFILE EQ .FALSE )
+     .CURSOR = ZFILE
+     .MSG    = PEDT01R
+     EXIT
+ELSE
+  IF ( &ISFILE EQ .FALSE )
+     IF ( &ISDIR EQ .FALSE )
+        .CURSOR = ZFILE
+        .MSG    = PEDT01S
+        EXIT
+     ELSE
+        &SHOWDIR = YES
+ 
+VPUT (ZFILE EETABCC EETABSS EESTSPC EEDIRLST) PROFILE
 
 )FIELD
 FIELD(ZFILE) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL)')
-
 
 )END

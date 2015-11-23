@@ -77,4 +77,13 @@ PEDT01Q "File Not Saved"
 "An error has occured saving the file.  Check file permissions for access rights"
 
 PEDT01R "File Does Not Exist"
-"File &ZFILE does not exist"
+"File '&ZFILE' does not exist"
+
+PEDT01S "File/Directory Does Not Exist"
+"'&ZFILE' is neither a valid file, nor a valid directory"
+
+PEDT01T "Entry Is A Directory"
+"'&ZFILE' is a directory entry"
+
+PEDT01U "RECOVER Is Set OFF"
+"RECOVER option is set to OFF.  UNDO/REDO is not available"

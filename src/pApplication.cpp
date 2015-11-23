@@ -375,7 +375,7 @@ void pApplication::vdefine( string names, int * i_ad1, int * i_ad2, int * i_ad3,
 	int w ;
 
 	string name ;
-	
+
 	string e1( "Too many variables on VDEFINE statement" ) ;
 	string e2( "Address is null on VDEFINE statement" )    ;
 	string e3( "Error in function pool define for " )      ;
@@ -733,7 +733,7 @@ void pApplication::vput( string names, poolType pType )
 void pApplication::vcopy( string name, string & var_name, vcMODE mode )
 {
 	// Retrieve a copy of a dialogue variable (via the normal search order)
-	// This routine is only be valid for vcMODE=MOVE
+	// This routine is only valid for MODE=MOVE
 
 	// RC = 0  Normal completion
 	// RC = 8  Variable not found
@@ -780,7 +780,7 @@ void pApplication::vcopy( string name, string & var_name, vcMODE mode )
 void pApplication::vcopy( string name, string * & var_name_addr, vcMODE mode )
 {
 	// Return the address of a dialogue variable (via the normal search order)
-	// This routine is only be valid for vcMODE=LOCATE
+	// This routine is only valid for MODE=LOCATE
 	// MODE=LOCATE not valid for integer pointers as these may be in the variable pools as strings
 
 	// RC = 0  Normal completion
@@ -1077,7 +1077,7 @@ void pApplication::control( string parm1, string parm2 )
 			pcleanup = &pApplication::cleanup_default ;
 		}
 		else { RC = 20 ; }
-	}	
+	}
 	else { RC = 20 ; }
 	if ( RC > 0 ) checkRCode( "Error in control service" ) ;
 }
@@ -1237,11 +1237,11 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 	// tbdispl with panel, message    - rebuild scrollable area and display panel and message
 	// tbdispl no panel, no message   - retrieve next pending line.  If none, display panel
 	// tbdispl no panel, message      - display panel with message.  No rebuilding of the scrollable area
-	
+
 	// Set CRP to first changed line, autoselected line, or tbtop if there are no selected lines
 
 	// If .AUTOSEL and .CSRROW set in panel, override the parameters p_autosel and p_csrrow
-	
+
 	// Autoselect if the p_csrpos CRP is visible
 
 	// Use separate pointer currtbPanel for tb displays so that a CONTROL DISPLAY SAVE/RESTORE is only necessary when a tbdispl issues another tbdispl and not 
@@ -1371,7 +1371,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 			currtbPanel->display_panel_update( RC ) ;
 			currtbPanel->set_tb_linesChanged() ;
 		}
- 
+
 		ZZVERB = p_poolMGR->get( RC, "ZVERB" ) ;
                 if ( RC > 0 ) { RC = 20 ; checkRCode( "PoolMGR get of ZVERB failed" ) ; }
 		if ( ZZVERB == "RETURN" ) { propagateEnd = true  ; }
@@ -2237,7 +2237,7 @@ void pApplication::set_forced_abend()
 
 void pApplication::closeLog()
 {
-	log( "I", "Closing application log" << endl ) ; 
+	log( "I", "Closing application log" << endl ) ;
 	aplog.close() ;
 }
 

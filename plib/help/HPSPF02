@@ -8,13 +8,13 @@ will not be prefixed with the Directory or Current fields.
 Directory field supports directory name expansion and the saved list fields below Current support
 name expansion also.
 
-
 Execute primary command FIELDEXC with the cursor on the required field to activate this function.  Assign this
 command to a function key to make this simpler.
 
-
 The saved list is cursor sensitive.  To retrieve an entry, place cursor on the field and press ENTER, or select the
 line with the C command.
+
+An '*' in the File Name field will give a listing of the Directory or Current fields
 
 Line commands:
 B  - Browse file

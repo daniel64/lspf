@@ -41,6 +41,7 @@ tbfield  3    8    VOI   NONE ZCTVERB
 tbfield  13   1    VOI   NONE ZCTTRUNC
 tbfield  19   50   VOI   NONE ZCTACT
 tbfield  70   MAX  VOI   NONE ZCTDESC
+)ENDCOMMENT
 
 tbmodel  13   MAX
 tbfield  3    8    VOI   NONE ZCTVERB

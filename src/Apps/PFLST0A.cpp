@@ -1,4 +1,4 @@
-// /* Compile with ::                                                                                          */
+// /* Compile with ::                                                                                       */
 /* g++ -shared -fPIC -std=c++11 -Wl,-soname,libPFLST0A.so -o libPFLST0A.so PFLST0A.cpp                      */
 
 /*
@@ -28,13 +28,17 @@
 /* If invoked with a PARM of EDIT file, edit file                                                           */
 /* If invoked with a PARM of path, list path                                                                */
 /* If invoked with a PARM of INFO, list info for entry                                                      */
-/* If invoked with a PARM of EXPAND, will expaned the passed directory name to the next level               */
+/* If invoked with a PARM of EXPAND, will expand the passed directory name to the next level                */
+/*                SUBPARM of ALL - return all types (fully qualified)                                       */
+/*                SUBPARM of DO1 - return only directories                                                  */
+/*                SUBPARM of FO1 - return only fully qualified files                                        */
+/*                SUBPARM of FO2 - return only the file names (without the directory name)                  */
 
 /* CD /xxx to change to directory /xxx                                                                      */
 /* CD xxx to change to directory xxx under the current directory listing                                    */
 /* BACK or S to go back one directory level                                                                 */
 /* S xxx to select file or directory xxx from the current list                                              */
-/* L xxx FIRST|LAST|PREV to scroll the list to entry xxx (NEXT is the default)                              */ 
+/* L xxx FIRST|LAST|PREV to scroll the list to entry xxx (NEXT is the default)                              */
 /* O  - filter list                                                                                         */
 /* REF - refresh directory list                                                                             */
 /* MKDIR - Make a directory (under current or specify full path)                                            */
@@ -168,7 +172,7 @@ void PFLST0A::application()
 				return    ;
 			}
 		}
-		else if ( w1 == "INFO" ) 
+		else if ( w1 == "INFO" )
 		{
 			showInfo( subword( PARM, 2 ) ) ;
 			cleanup() ;
@@ -177,7 +181,7 @@ void PFLST0A::application()
 		else if ( w1 == "EXPAND" )
 		{
 			ZRESULT = expandDir( subword( PARM, 2 ) ) ;
-			if ( word( PARM, 2 ) == "FILEONLY" && ZRC == 0 )
+			if ( word( PARM, 2 ) == "FO2" && ZRC == 0 )
 			{
 				ZRESULT = substr( ZRESULT, lastpos( "/", ZRESULT)+1 ) ;
 			}
@@ -452,7 +456,7 @@ void PFLST0A::application()
 					{
 						remove( entry.c_str( ), ec ) ;
 						if ( ec.value() == boost::system::errc::success )
-						{ 
+						{
 							MSG     = "FLST01N"         ;
 							RSN     = "1 entry deleted" ;
 							MESSAGE = "Deleted"         ;
@@ -618,7 +622,7 @@ void PFLST0A::application()
 				of << substr( entry, lastpos( "/", entry )+1 ) << endl ;
 				try
 				{
-					for( ; dIt != eIt ; ++dIt ) 
+					for( ; dIt != eIt ; ++dIt )
 					{
 						path current( (*dIt) ) ;
 						if ( is_regular_file( current ) || is_directory( current ) )
@@ -630,7 +634,7 @@ void PFLST0A::application()
 								of << strip( current.string(), 'B', '"' ) << endl ;
 							}
 						}
-					} 
+					}
 				}
 				catch ( const filesystem_error& ex )
 				{
@@ -701,7 +705,7 @@ void PFLST0A::createFileList1( string filter )
 	vcopy( "AFHIDDEN", t, MOVE ) ;
 
 	vec v;
-	
+
 	try
 	{
 		copy( directory_iterator( ZPATH ), directory_iterator(), back_inserter( v ) ) ;
@@ -766,7 +770,7 @@ void PFLST0A::showInfo( string p )
 	char * buffer   ;
 	size_t bufferSize = 255 ;
 	size_t rc               ;
-	
+
 	try
 	{
 		if ( !exists( p ) )
@@ -850,7 +854,7 @@ void PFLST0A::showInfo( string p )
 	time_info = gmtime( &(results.st_atime) ) ;
 	strftime( buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", time_info )  ; buf[ 19 ]  = 0x00 ; IACCDATE = buf ;
 
-	
+
 	IRLNK = "" ;
 	if ( S_ISLNK(results.st_mode ) ) 
 	{
@@ -1113,22 +1117,22 @@ void PFLST0A::modifyAttrs( string p )
 	string OGROUP   ;
 	string OOWNERN  ;
 	string OGROUPN  ;
-	
+
 	mode_t t  ;
 	uid_t uid ;
 	gid_t gid ;
-	
+
 	struct stat results   ;
 	struct tm * time_info ;
 	char buf [ 20 ] ;
 	char * buffer   ;
 	size_t bufferSize = 255 ;
 	size_t rc               ;
-	
+
 	vdefine( "IENTRY ITYPE  IPERMISS ", &IENTRY, &ITYPE, &IPERMISS ) ;
 	vdefine( "IOWNER IGROUP ISETUID", &IOWNER, &IGROUP, &ISETUID  ) ; 
 	vdefine( "ISETGID ISTICKY IOWNERN IGROUPN", &ISETGID, &ISTICKY, &IOWNERN, &IGROUPN ) ; 
-	
+
 	lstat( p.c_str(), &results ) ;
 
 	IENTRY = p ;
@@ -1356,14 +1360,14 @@ void PFLST0A::browseTree( string tname )
 		else if ( i % 2 )
 		{
 			TFILE = strip( line ) ;
-			tbadd( FTREE ) ;	
+			tbadd( FTREE ) ;
 		}
 		else
 		{
 			TENTRY  = strip( line ) ;
 		}
 		i++ ;
-		
+
 	}
 	tbtop( FTREE ) ;
 
@@ -1413,7 +1417,7 @@ void PFLST0A::browseTree( string tname )
 
 string PFLST0A::expandDir( string parms )
 {
-	// If passed directory begins with '?', display listing replacing '?' with '/' and using this 
+	// If passed directory begins with '?', display listing replacing '?' with '/' and using this
 	// as the starting point
 
 	// Cursor sensitive.  Only characters before the current cursor position (if > 1) in the field (ZFECSRP) will
@@ -1424,8 +1428,8 @@ string PFLST0A::expandDir( string parms )
 	// If passed directory is an abbreviation of one in the listing, return the current entry
 
 	// If first parameter is ALL, all entries are used
-	// If first parameter is DIRONLY, filter on directories
-	// If first parameter is FILEONLY, filter on files
+	// If first parameter is DO1, filter on directories
+	// If first parameter is FO2, filter on files
 
 	int i        ;
 	int pos      ;
@@ -1456,7 +1460,7 @@ string PFLST0A::expandDir( string parms )
 	vcopy( "ZFECSRP", cpos, MOVE ) ;
 	pos = ds2d( cpos ) ;
 
-	if ( type == "FILEONLY" )
+	if ( type == "FO2" )
 	{
 		if ( dir[ 0 ] == '?' )
 		{
@@ -1509,8 +1513,6 @@ string PFLST0A::expandDir( string parms )
 		return showListing() ;
 	}
 
-		
-		
 	if ( pos > 1 && pos < dir.size() )
 	{
 		dir.erase( pos-1 ) ;
@@ -1534,12 +1536,12 @@ string PFLST0A::expandDir( string parms )
 	try
 	{
 		if ( type == "ALL" ) {}
-		else if ( type == "DIRONLY" )
+		else if ( type == "DO1" )
 		{
 			new_end = remove_if( v.begin(), v.end(), [](const path & a) { return !is_directory( a.string() ) ; } ) ;
 			v.erase( new_end, v.end() ) ;
 		}
-		else if ( type == "FILEONLY" )
+		else if ( type == "FO1" || type == "FO2" )
 		{
 			new_end = remove_if( v.begin(), v.end(), [](const path & a) { return !is_regular_file( a.string() ) ; } ) ;
 			v.erase( new_end, v.end() ) ;
@@ -1553,7 +1555,7 @@ string PFLST0A::expandDir( string parms )
 		log( "E", "Error listing directory " << ex.what() << endl ) ;
 		return "" ;
 	}
-	
+
 	sort( v.begin(), v.end() ) ;
 
 	for ( vec::const_iterator it (v.begin()) ; it != v.end() ; ++it )
@@ -1706,7 +1708,7 @@ void PFLST0A::createFileList2( string FLDIRS, string filter )
 	tbcreate( DSLIST, "", "SEL ENTRY TYPE", NOWRITE ) ;
 
 	vec v;
-	
+
 	if ( ZPATH == "" ) { ZPATH = "/" ; }
 	filter = upper( filter ) ;
 

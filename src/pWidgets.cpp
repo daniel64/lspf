@@ -1032,6 +1032,7 @@ IFSTMNT::IFSTMNT( string s )
 	// IF ( &AAA = VALUE1,VALUE2 )
 	// IF ( &AAA NE 'Hello','Goodbye' )
 	// IF (.CURSOR = ZCMD)
+	// IF (.MSG    = PSYS011)
 	// IF ( &Z EQ .TRUE )
 	// IF ( &Z EQ .FALSE ) .TRUE = "1" and .FALSE = "0"
 	// rhs value lists only for EQ and NE (EQ only one needs to be true, NE all need to be true)
@@ -1090,8 +1091,9 @@ IFSTMNT::IFSTMNT( string s )
 	s    = strip( s.erase( 0, p2 ) ) ;
 
 	if ( words( if_lhs ) != 1 ) { if_RC = 20 ; return ; }
-	if ( if_lhs == ".CURSOR" ) {}
-	else if( if_lhs[0] != '&' ) { if_RC = 20 ; return ; }
+	if      ( if_lhs    == ".CURSOR" ) {}
+	else if ( if_lhs    == ".MSG"    ) {}
+	else if ( if_lhs[0] != '&' ) { if_RC = 20 ; return ; }
 	else
 	{
 		if_lhs.erase( 0, 1 ) ;

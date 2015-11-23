@@ -493,9 +493,13 @@ void pPanel::display_panel_init( int & RC )
 				else
 				{
 					t = getDialogueVar( assgnListi.at( i_assign ).as_rhs ) ;
-					if ( assgnListi.at( i_assign ).as_retlen )     { t = d2ds( t.size() )   ; }
-					else if ( assgnListi.at( i_assign ).as_upper ) { t = upper( t )         ; }
-					else if ( assgnListi.at( i_assign ).as_words ) { t = d2ds( words( t ) ) ; }
+					if ( assgnListi.at( i_assign ).as_retlen )       { t = d2ds( t.size() )   ; }
+					else if ( assgnListi.at( i_assign ).as_upper )   { t = upper( t )         ; }
+					else if ( assgnListi.at( i_assign ).as_words )   { t = d2ds( words( t ) ) ; }
+					else if ( assgnListi.at( i_assign ).as_chkexst ) { t = exists( t ) ? "1" : "0"          ; }
+					else if ( assgnListi.at( i_assign ).as_chkfile ) { t = is_regular_file( t ) ? "1" : "0" ; }
+					else if ( assgnListi.at( i_assign ).as_chkdir  ) { t = is_directory( t )    ? "1" : "0" ; }
+
 				}
 			}
 			else if ( assgnListi.at( i_assign ).as_rhs == ".HELP" )
@@ -651,9 +655,12 @@ void pPanel::display_panel_reinit( int & RC, int ln )
 				else
 				{
 					t = getDialogueVar( assgnListr.at( i_assign ).as_rhs ) ;
-					if ( assgnListr.at( i_assign ).as_retlen )     { t = d2ds( t.size() )   ; }
-					else if ( assgnListr.at( i_assign ).as_upper ) { t = upper( t )         ; }
-					else if ( assgnListr.at( i_assign ).as_words ) { t = d2ds( words( t ) ) ; }
+					if ( assgnListr.at( i_assign ).as_retlen )       { t = d2ds( t.size() )   ; }
+					else if ( assgnListr.at( i_assign ).as_upper )   { t = upper( t )         ; }
+					else if ( assgnListr.at( i_assign ).as_words )   { t = d2ds( words( t ) ) ; }
+					else if ( assgnListr.at( i_assign ).as_chkexst ) { t = exists( t ) ? "1" : "0"          ; }
+					else if ( assgnListr.at( i_assign ).as_chkfile ) { t = is_regular_file( t ) ? "1" : "0" ; }
+					else if ( assgnListr.at( i_assign ).as_chkdir  ) { t = is_directory( t )    ? "1" : "0" ; }
 				}
 			}
 			else if ( assgnListr.at( i_assign ).as_rhs == ".HELP" )
@@ -841,6 +848,10 @@ void pPanel::display_panel_proc( int & RC, int ln )
 			if ( ifList.at( i_if ).if_lhs == ".CURSOR" )
 			{
 				val = p_funcPOOL->get( RC, 0, "ZCURFLD" ) ;
+			}
+			else if ( ifList.at( i_if ).if_lhs == ".MSG" )
+			{
+				val = MSGID ;
 			}
 			else
 			{
