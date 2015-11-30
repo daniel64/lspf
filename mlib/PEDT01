@@ -87,3 +87,54 @@ PEDT01T "Entry Is A Directory"
 
 PEDT01U "RECOVER Is Set OFF"
 "RECOVER option is set to OFF.  UNDO/REDO is not available"
+
+PEDT01V "Invalid A/B line command"
+"A/B line command found without matching block command"
+
+PEDT01W "Incomplete block command"
+"Block command is incomplete before another block command is started"
+
+PEDT01X "Invalid A/B line command"
+"A/B line command found within a block command"
+
+PEDT01Y "Command Conflict"
+"Line command conflict"
+
+PEDT01Z "Incomplete Command"
+"Line command is incomplete"
+
+PEDT011A "Number Not Allowed"
+"A number is not allowed with this command.  Please blank it out"
+
+PEDT011B "Number Conflict"
+"If entered twice, the numbers on a block command must match"
+
+PEDT011C "Mismatched Overlay Size"
+"More copy lines than overlay lines.  Extra lines will be ignored"
+
+PEDT011D "Lines not deleted"
+"Data lines not deleted as not all data overlayed"
+
+PEDT011E "SPARE"
+"SPARE"
+
+PEDT011F "SPARE"
+"SPARE"
+
+PEDT011G "SPARE"
+"SPARE"
+
+PEDT011H "Recovery Data Removed"
+"Recovery is OFF and all recovery data has been deleted.  UNDO/REDO not available"
+
+PEDT012A "Invalid PASTE parameter"
+"PASTE DEFAULT|name KEEP|DELETE"
+
+PEDT012B "Invalid CUT parameter"
+"CUT DEFAULT|name APPEND|REPLACE"
+
+PEDT012C "&ZCPLINES lines cut" .TYPE=N
+"&ZCPLINES lines cut to the clipboard"
+
+PEDT012D "&ZCPLINES lines pasted" .TYPE=N
+"&ZCPLINES lines pasted from the clipboard"

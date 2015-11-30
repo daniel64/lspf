@@ -186,7 +186,7 @@ string delword( string s, unsigned int w, unsigned int n )
 		k = s.find_first_not_of( ' ', j ) ;
 		if ( k == string::npos ) return s.erase( i ) ;
 		j = s.find_first_of( ' ', k ) ;
-		if ( j == string::npos ) return s.erase( i ) ;
+		if ( j == string::npos ) return s.erase( i, k-i ) ;
 	}
 	return s.erase( i, k-i ) ;
 }

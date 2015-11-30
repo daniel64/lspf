@@ -729,8 +729,19 @@ void Table::tbsarg( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_dir
 	RC = 0 ;
 	tb_namelst    = upper( tb_namelst ) ;
 	tb_dir        = upper( tb_dir )     ;
-	tb_cond_pairs = upper( tb_cond_pairs ) ;
+	tb_cond_pairs = upper( strip( tb_cond_pairs ) ) ;
 
+	if ( tb_cond_pairs != "" )
+	{
+		if ( tb_cond_pairs[ 0 ] != '(' || tb_cond_pairs.back() != ')' )
+		{
+			log( "E", "Invalid COND PAIRS specified. " << tb_cond_pairs << endl ) ;
+			RC = 20 ;
+			return ;
+		}
+		tb_cond_pairs = tb_cond_pairs.substr( 1, tb_cond_pairs.size()-2 ) ;
+	}
+	
 	sarg.clear() ;
 
 	if ( tb_dir == "" ) { tb_dir = "NEXT" ; }
@@ -918,8 +929,6 @@ void Table::tbscan( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_sav
 		s_dir = tb_dir ;
 	}
 
-	if ( CRP == 0 ) CRP = 1 ;
-
 	found   = false ;
 	s_match = 0     ;
 	s_next  = ( s_dir == "NEXT" ) ;
@@ -992,7 +1001,13 @@ void Table::tbscan( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_sav
 		}
 		if ( s_match == scan.size() ) { found = true ; break ; }
 	}
-	if ( !found ) { CRP = 0 ; RC = 8 ; return ; }
+	if ( !found )
+	{ 
+		CRP = 0 ;
+		if ( tb_crp_name != "" ) { funcPOOL.put( RC, 0, tb_crp_name, CRP ) ; }
+		RC = 8  ;
+		return  ;
+	}
 
 	if ( tb_savenm != "" )
 	{

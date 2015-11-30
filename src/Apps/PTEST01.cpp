@@ -293,7 +293,7 @@ void PTEST01::opt1()
 	log( "A", "TBPUT TABK KEY IS KEY2 (should be okay) RC=" << RC << endl ) ;
 
 	tbsort( "TABK", "TABA2,C,D" ) ;
-	tbsarg( "TABK", "", "NEXT", "TABA5,EQ" ) ;
+	tbsarg( "TABK", "", "NEXT", "(TABA5,EQ)" ) ;
 
 
 	tbquery( "TABK", "TBQ1","TBQ2", "TBQ3", "TBQ4", "TBQ5", "TBQ6", "TBQ7", "TBQ8", "TBQ9", "TBQ10" ) ;

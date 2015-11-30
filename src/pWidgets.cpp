@@ -104,8 +104,8 @@ int dynArea::dynArea_init( int MAXW, int MAXD, string line )
 {
 	// Format of OPTION entry in panels (FORMAT 1 VERSION 1 )
 	// DYNAREA row col width depth  A-name S-name  DATAIN() DATAOUT() USERMOD() DATAMOD()
-	// w1      w2  w3  w4    w5     w6     w7      <------------keywords---------------->
-	// DYNAREA 6   1   MAX   MAX-6  ZAREA  ZSHADOW DATAIN(01) DATAOUT(02) USERMOD(03) DATAMOD(04)
+	// w1      w2         w3  w4    w5     w6     w7      <------------keywords---------------->
+	// DYNAREA MAX-10 MAX-20  1   MAX   MAX-6  ZAREA  ZSHADOW DATAIN(01) DATAOUT(02) USERMOD(03) DATAMOD(04)
 
 	// if width=MAX  width=MAXW-col+1
 	// if depth=MAX  depth=MAXD-row+1
@@ -139,6 +139,16 @@ int dynArea::dynArea_init( int MAXW, int MAXD, string line )
 	
 	row = ds2d( w2 ) ;
 	col = ds2d( w3 ) ;
+
+	if ( isnumeric( w2 ) )                   { row = ds2d( w2  ) ; }
+	else if ( w4 == "MAX" )                  { row = MAXD        ; }
+	else if ( substr( w4, 1, 4 ) == "MAX-" ) { row = MAXD - ds2d( substr( w2, 5 ) ) ; }
+	else 				         { return 20         ; }
+
+	if ( isnumeric( w3 ) )                   { col = ds2d( w3 )  ; }
+	else if ( w3 == "MAX" )                  { col = MAXW        ; }
+	else if ( substr( w3, 1, 4 ) == "MAX-" ) { col = MAXW - ds2d( substr( w3, 5 ) ) ; }
+	else 				         { return 20         ; }
 
 	if ( isnumeric( w4 ) )                   { width = ds2d( w4  )    ; }
 	else if ( w4 == "MAX" )                  { width = MAXW - col + 1 ; }

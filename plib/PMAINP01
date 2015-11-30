@@ -75,114 +75,116 @@ FIELD :
 
 PrimaryMenu
 
-PanelTitle "PRIMARY MENU PANEL"  
+PanelTitle "Primary Menu Panel"  
 
-LITERAL   4    2    FP  "COMMAND ===> "    
+LITERAL   4    2    FP  "Options ===> "    
 FIELD     4   15   MAX   NEF   CAPS(On),pad('_'),just(left),numeric(off),skip(on) ZCMD    
 
-Literal  6    2    FP  "ZUSER   :"     
-Field    6  12    8    VOI     NONE  ZUSER    
+literal  6  2    SAC  "0"
+literal  6  5    PS   "Settings"    
+literal  6  16   NT   "Display and alter user settings"    
 
-literal   7    2    FP  "ZAPPLID :"      
-field    7   12    4    VOI     NONE  ZAPPLID    
+literal  7  2    SAC  "1"
+literal  7  5    PS   "Browse"    
+literal  7  16    NT   "Browse files"    
 
+literal  8  2    SAC  "2"
+literal  8  5    PS   "Edit"    
+literal  8  16    NT   "Edit files"    
+
+literal  9  2    SAC  "3"
+literal  9  5    PS   "Utilities"    
+literal  9  16    NT   "File Utilities"    
+
+literal  10  2    SAC  "4"
+literal  10  5    PS   "Testing"    
+literal  10  16    NT   "Invoke Testing Program"    
+
+literal  11  2    SAC  "5"
+literal  11  5    PS   "Tasks"    
+literal  11  16    NT   "Display Tasks and System Resource Usage"    
+
+literal  12  2    SAC  "6"
+literal  12  5    PS   "Command"    
+literal  12  16    NT   "Enter Commands"    
+
+literal  13  2    SAC  "7"
+literal  13  5    PS   "Dialogue"    
+literal  13  16    NT   "Dialogue Testing"    
+
+literal  14  2    SAC  "8"
+literal  14  5    PS   "Lspf Log"    
+literal  14  16    NT   "Browse Lspf Log"    
+
+literal  15  2    SAC  "9"
+literal  15  5    PS   "Appl Log"    
+literal  15  16    NT   "Browse Application Log"    
+
+literal  17  2    SAC  "D"
+literal  17  5    PS   "MySQL"    
+literal  17  16    NT   "MySQL Database Actions"    
+
+literal  18  2    SAC  "U"
+literal  18  5    PS   "User Menu"    
+literal  18  16    NT   "User Actions"    
+
+literal  19  2    SAC  "S"
+literal  19  5    PS   "System"    
+literal  19  16    NT   "System Utilities"    
+
+literal  21  2    SAC  "T"
+literal  21  5    PS   "TUTORIAL"    
+literal  21  16    NT   "Start Tutorial"    
+
+literal  22  2    SAC  "X"
+literal  22  5    PS   "Terminate"    
+literal  22  16    NT   "Termiante Session"    
+
+dynArea        7 MAX-60  21   11  ZAREA  ZSHADOW
+
+Literal  7  MAX-35    FP    "User       :"     
+Field    7  MAX-22    8    VOI     NONE  ZUSER    
+
+literal  8  MAX-35    FP    "Home       :"     
+field    8  MAX-22    15    VOI     NONE  ZHOME    
+
+literal  9    MAX-35    FP "Node Name  :"     
+field    9    MAX-22    10   VOI     NONE  ZNODNAME    
+
+literal  10  MAX-35    FP  "Machine    :"     
+field    10  MAX-22    8    VOI     NONE  ZMACHINE    
+
+literal  11  MAX-35    FP  "Environment:"     
+field    11   MAX-22    15   VOI     NONE  ZENVIR   
+
+literal  12  MAX-35    FP  "System Name:"     
+field    12   MAX-22   10    VOI     NONE  ZSYSNAME    
+
+literal  13   MAX-35    FP "OS Release :"     
+field    13   MAX-22   15    VOI    NONE  ZOSREL    
+
+literal  15   MAX-35   FP  "Date       :"     
+field    15   MAX-22   8    VOI     NONE  ZDATE    
+
+literal  16   MAX-35   FP  "Time       :"     
+field    16   MAX-22   8    VOI     NONE  ZTIMEL    
+
+)COMMENT
 literal   9    2    FP  "ZSCRMAXD:"     
 field    9    12    8    VOI     NONE  ZSCRMAXD    
 literal   10   2    FP  "ZSCRMAXW:"     
 field    10   12    8    VOI     NONE  ZSCRMAXW    
 
-literal   6    20    FP  "ZDATE:"     
-field    6  27    8    VOI     NONE  ZDATE    
-
-literal   7    20    FP  "ZTIME:"     
-field    7  27    8    VOI     NONE  ZTIME    
-
-literal   6    38    FP  "ZNODNAME:"     
-field    6  48    8    VOI     NONE  ZNODNAME    
-
-literal   7    38    FP  "ZMACHINE:"     
-field    7  48    8    VOI     NONE  ZMACHINE    
-
-literal   6    57    FP  "ZENVIR:"     
-field    6  67    15   VOI     NONE  ZENVIR   
-
-literal   7    57    FP  "ZSYSNAME:"     
-field    7  67   10    VOI     NONE  ZSYSNAME    
-
-literal   7    83    FP  "ZOSREL:"     
-field    7  91   15    VOI    NONE  ZOSREL    
-
-literal   6    83    FP  "ZHOME:"     
-field    6  91   20    VOI     NONE  ZHOME    
 
 
-literal  11  21    SAC  "0"
-literal  11  24    PS   "Settings"    
-literal  11  35    NT   "Display and alter user settings"    
+)ENDCOMMENT
 
-literal  12  21    SAC  "1"
-literal  12  24    PS   "Browse"    
-literal  12  35    NT   "Browse files"    
 
-literal  13  21    SAC  "2"
-literal  13  24    PS   "Edit"    
-literal  13  35    NT   "Edit files"    
-
-literal  14  21    SAC  "3"
-literal  14  24    PS   "Utilities"    
-literal  14  35    NT   "File Utilities"    
-
-literal  15  21    SAC  "4"
-literal  15  24    PS   "Testing"    
-literal  15  35    NT   "Invoke Testing Program"    
-
-literal  16  21    SAC  "5"
-literal  16  24    PS   "Tasks"    
-literal  16  35    NT   "Display Tasks and System Resource Usage"    
-
-literal  17  21    SAC  "6"
-literal  17  24    PS   "Command"    
-literal  17  35    NT   "Enter Commands"    
-
-literal  18  21    SAC  "7"
-literal  18  24    PS   "Dialogue"    
-literal  18  35    NT   "Dialogue Testing"    
-
-literal  19  21    SAC  "8"
-literal  19  24    PS   "Lspf Log"    
-literal  19  35    NT   "Browse Lspf Log"    
-
-literal  20  21    SAC  "9"
-literal  20  24    PS   "Appl Log"    
-literal  20  35    NT   "Browse Application Log"    
-
-literal  22  21    SAC  "D"
-literal  22  24    PS   "MySQL"    
-literal  22  35    NT   "MySQL Database Actions"    
-
-literal  23  21    SAC  "U"
-literal  23  24    PS   "User Menu"    
-literal  23  35    NT   "User Actions"    
-
-literal  24  21    SAC  "S"
-literal  24  24    PS   "System"    
-literal  24  35    NT   "System Utilities"    
-
-literal  25  21    SAC  "T"
-literal  25  24    PS   "TUTORIAL"    
-literal  25  35    NT   "Start Tutorial"    
-
-literal  26  21    SAC  "X"
-literal  26  24    PS   "Terminate"    
-literal  26  35    NT   "Termiante Session"    
-
-dynArea        11 84  21   11  ZAREA  ZSHADOW
-
-literal   28    2    FP     "Enter"     
-literal   28    8    VOI    "HELP"     
-literal   28    13   FP     "to display basic information, or"     
-literal   28    46   VOI    "X"     
-literal   28    48   FP     "to exit"     
+literal   25    2    FP     "Enter"     
+literal   25    8    VOI    "HELP"     
+literal   25    13   FP     "to display basic information, or"     
+literal   25    46   VOI    "X"     
+literal   25    48   FP     "to exit"     
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC

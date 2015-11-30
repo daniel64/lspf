@@ -963,14 +963,14 @@ int PFLST0A::processPrimCMD()
 		if ( ENTRY.back() != '*' ) { ENTRY.push_back( '*' ) ; }
 		if ( w3 == "PREV" )
 		{
-			tbsarg( DSLIST, "", "PREVIOUS", "ENTRY,LE" ) ;
+			tbsarg( DSLIST, "", "PREVIOUS", "(ENTRY,LE)" ) ;
 			tbscan( DSLIST, "", "", "", "", "", "CRP"  ) ;
 		}
 		else
 		{
 			if ( w3 == "FIRST" )
 			{
-				tbsarg( DSLIST, "", "NEXT", "ENTRY,GE" ) ;
+				tbsarg( DSLIST, "", "NEXT", "(ENTRY,GE)" ) ;
 				tbtop( DSLIST )  ;
 				tbscan( DSLIST, "", "", "", "", "", "CRP" ) ;
 			}
@@ -978,13 +978,13 @@ int PFLST0A::processPrimCMD()
 			{
 				if ( w3 == "LAST" )
 				{
-					tbsarg( DSLIST, "", "PREVIOUS", "ENTRY,LE" ) ;
+					tbsarg( DSLIST, "", "PREVIOUS", "(ENTRY,LE)" ) ;
 					tbbottom( DSLIST ) ;
 					tbscan( DSLIST, "", "", "", "", "", "CRP"  ) ;
 				}
 				else
 				{
-					tbsarg( DSLIST, "", "NEXT", "ENTRY,GE" ) ;
+					tbsarg( DSLIST, "", "NEXT", "(ENTRY,GE)" ) ;
 					tbscan( DSLIST, "", "", "", "", "", "CRP" ) ;
 				}
 			}
