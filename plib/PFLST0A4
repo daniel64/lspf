@@ -10,7 +10,7 @@
 
 PanelTitle "Rename File"
 
-literal  4   2       FP    "COMMAND ===> "  
+literal  4   2       FP    "Command ===> "  
 field    4  15   MAX NEF CAPS(ON) ZCMD  
 
 literal  6   2   FP    "Pathname . . . . . . ."

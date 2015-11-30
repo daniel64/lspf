@@ -6,7 +6,7 @@
 
 PanelTitle "Display Dialogue Variables"  
 
-literal   4    2    FP  "COMMAND ===> "    
+literal   4    2    FP  "Command ===> "    
 field     4   15   MAX  NEF     CAPS(ON)  ZCMD    
 
 literal   6   MAX-36    FP  "TIME: "     

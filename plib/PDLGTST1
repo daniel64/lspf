@@ -8,42 +8,42 @@
 
 PanelTitle "Dialogue Services Selection Menu"  
 
-literal   4    2        FP   "COMMAND ===> "    
+literal   4    2        FP   "Command ===> "    
 field     4   15   MAX  NEF     CAPS(ON)  ZCMD    
 
-literal   6   MAX-36         FP  "TIME: "     
-field     6   MAX-30    8    VOI   NONE  ZTIME    
-
-literal   6   MAX-20        FP  "DATE: "     
+literal   6   MAX-20        FP  "Date: "     
 field     6   MAX-14    8   VOI   NONE  ZDATE    
 
-literal  8  27    SAC  "0"
-literal  8  30    PS   "Display Panel"    
-literal  8  44    NT   "Display Panel"    
+literal   7   MAX-20         FP  "Time: "     
+field     7   MAX-14    8    VOI   NONE  ZTIME    
 
-literal  9  27    SAC  "1"
-literal  9  30    PS   "Variables"    
-literal  9  44    NT   "Display system variables"
+literal  6  2    SAC  "0"
+literal  6  5    PS   "Display Panel"    
+literal  6  20   NT   "Display Panel"    
 
-literal  10 27    SAC  "2"
-literal  10 30    PS   "Check Pattern"    
-literal  10 44    NT   "Check pattern matching algorithm"
+literal  7  2    SAC  "1"
+literal  7  5    PS   "Variables"    
+literal  7  20   NT   "Display system variables"
 
-literal  11  27    SAC  "3"
-literal  11  30    PS   "Check Panel"    
-literal  11  44    NT   "Check and Preprocess Panel Source"    
+literal  8 2    SAC  "2"
+literal  8 5    PS   "Check Pattern"    
+literal  8 20   NT   "Check pattern matching algorithm"
 
-literal  12  27    SAC  "4"
-literal  12  30    PS   "Variables"
-literal  12  44    NT   "Display Dialogue Variables"
+literal  9  2    SAC  "3"
+literal  9  5    PS   "Check Panel"    
+literal  9  20   NT   "Check and Preprocess Panel Source"    
 
-literal  15 27    SAC  "T"
-literal  15 30    PS   "Tutorial"    
-literal  15 44    NT   "Start Tutorial"    
+literal  10  2    SAC  "4"
+literal  10  5    PS   "Variables"
+literal  10  20   NT   "Display Dialogue Variables"
 
-literal  16  27    SAC  "X"
-literal  16  30    PS   "Terminate"    
-literal  16  44    NT   "Terminate Dialogue Services"
+literal  12 2    SAC  "T"
+literal  12 5    PS   "Tutorial"    
+literal  12 20   NT   "Start Tutorial"    
+
+literal  13  2    SAC  "X"
+literal  13  5    PS   "Terminate"    
+literal  13  20   NT   "Terminate Dialogue Services"
 
 
 

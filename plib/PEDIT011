@@ -8,7 +8,7 @@ Panel for editor PEDIT01
 
 PanelTitle "Edit Entry Panel"
 
-literal  4    2      FP  "COMMAND ===> "
+literal  4    2      FP  "Command ===> "
 field 4  15   MAX    NEF PAD('_') ZCMD1 
 
 literal  7    2       FP  "File Name. . .:" 

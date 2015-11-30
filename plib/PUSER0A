@@ -9,54 +9,42 @@ This is the selection panel for the USER MENU
 )BODY
 PanelTitle "User Menu"  
 
-literal  4    2  FP   "COMMAND ===> "    
+literal  4    2  FP   "Command ===> "    
 field    4   15  MAX   NEF     CAPS(ON)  ZCMD    
 
-literal  6   2    FP  "ZUSER   : "     
-field    6  12    8    VOI     NONE  ZUSER    
+literal  6  MAX-20    FP  "Date: "     
+field    6  MAX-14    8    VOI     NONE  ZDATE    
 
-literal  7    2    FP  "ZAPPLID : "      
-field    7   12    4    VOI     NONE  ZAPPLID    
+literal  7  MAX-20    FP  "Time: "     
+field    7  MAX-14    8    VOI     NONE  ZTIME    
 
-literal  7  20    FP  "ZTIME: "     
-field    7  27    8    VOI     NONE  ZTIME    
+literal  6 2    SAC  "0"
+literal  6 5    PS   "MySQL Server"    
+literal  6 20    NT   "Connect to and query MySQL server"    
 
-literal  6  20    FP  "ZDATE: "     
-field    6  27    8    VOI     NONE  ZDATE    
+literal  7  2    SAC  "1"
+literal  7  5    PS   "Stock Analysis"    
+literal  7  20    NT   "Analysis of stock deals"
 
-literal  6  41    FP  "ZSYSNAME: "     
-field    6  51   10    VOI     NONE  ZSYSNAME    
+literal  8  2    SAC  "2"
+literal  8  5    PS   "Pacman Log"    
+literal  8  20   NT   "View pacman log"
 
-literal  7  41    FP  "ZOSREL: "     
-field    7  51   15    VOI     NONE  ZOSREL    
+literal  9  2    SAC  "3"
+literal  9  5    PS   "List Packages"    
+literal  9  20   NT   "List PACMAN Packages"
 
-literal  10 27    SAC  "0"
-literal  10 30    PS   "MySQL Server"    
-literal  10 45    NT   "Connect to and query MySQL server"    
+literal  10  2    SAC  "4"
+literal  10  5    PS   "List Groups"    
+literal  10  20    NT   "List PACMAN Groups"
 
-literal  11  27    SAC  "1"
-literal  11  30    PS   "Stock Analysis"    
-literal  11  45    NT   "Analysis of stock deals"
+literal  12  2    SAC  "T"
+literal  12  5    PS   "Tutorial"    
+literal  12  20   NT   "Start Tutorial"
 
-literal  12  27    SAC  "2"
-literal  12  30    PS   "Pacman Log"    
-literal  12  45    NT   "View pacman log"
-
-literal  13  27    SAC  "3"
-literal  13  30    PS   "List Packages"    
-literal  13  45    NT   "List PACMAN Packages"
-
-literal  14  27    SAC  "4"
-literal  14  30    PS   "List Groups"    
-literal  14  45    NT   "List PACMAN Groups"
-
-literal  18  27    SAC  "T"
-literal  18  30    PS   "Tutorial"    
-literal  18  45    NT   "Start Tutorial"
-
-literal  19  27    SAC  "X"
-literal  19  30    PS   "Terminate"    
-literal  19  45    NT   "Terminate Session"
+literal  13  2    SAC  "X"
+literal  13  5    PS   "Terminate"    
+literal  13  20    NT   "Terminate Session"
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC

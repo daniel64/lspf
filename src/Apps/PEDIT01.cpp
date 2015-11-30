@@ -998,7 +998,7 @@ void PEDIT01::actionPCMD()
 		}
 		else if ( w2.size() < 7 && datatype( w2, 'W' ) )
 		{
-			if ( w2 == "0" ) { topLine = getDataLine( 1 ) ; }
+			if ( w2 == "0" ) { topLine = getDataLine( 1 ) ; rebuildZAREA = true ; }
 			else
 			{
 				p1 = ds2d( w2 ) ;

@@ -8,59 +8,59 @@
 
 PanelTitle "Testing Services Selection Menu"  
 
-literal   4    2    FP  "COMMAND ===> "    
+literal   4    2    FP  "Command ===> "    
 field     4   15   MAX  NEF     CAPS(ON)  ZCMD    
 
-literal   6   MAX-36    FP  "TIME: "     
-field     6   MAX-30    8    VOI   NONE  ZTIME    
-
-literal   6   MAX-20    FP  "DATE: "     
+literal   6   MAX-20    FP  "Date: "     
 field     6   MAX-14    8    VOI   NONE  ZDATE    
 
-literal  7  27    SAC  "0"
-literal  7  30    PS   "Panel"    
-literal  7  46    NT   "Check Panel Functions"    
+literal   7   MAX-20    FP  "Time: "     
+field     7   MAX-14    8    VOI   NONE  ZTIME    
 
-literal  8  27    SAC  "1"
-literal  8  30    PS   "Keyed Table"    
-literal  8  46    NT   "Check tables with keys"    
+literal  6  2    SAC  "0"
+literal  6  5    PS   "Panel"    
+literal  6  22   NT   "Check Panel Functions"    
 
-literal  9  27    SAC  "2"
-literal  9  30    PS   "Non-Keyed Table"    
-literal  9  46    NT   "Check tables without keys"        
+literal  7  2    SAC  "1"
+literal  7  5    PS   "Keyed Table"    
+literal  7  22   NT   "Check tables with keys"    
 
-literal  10 27    SAC  "3"
-literal  10 30    PS   "Table Display"
-literal  10 46    NT   "Keyed"    
+literal  8  2    SAC  "2"
+literal  8  5    PS   "Non-Keyed Table"    
+literal  8  22   NT   "Check tables without keys"        
 
-literal  11  27    SAC  "4"
-literal  11  30    PS   "Table Display"    
-literal  11  46    NT   "Non-keyed"    
+literal  9  2    SAC  "3"
+literal  9  5    PS   "Table Display"
+literal  9  22   NT   "Keyed"    
 
-literal  12  27    SAC  "5"
-literal  12  30    PS   "Dynamic Areas"    
-literal  12  46    NT   "Check Functioning of Dynamic Areas"    
+literal  10  2    SAC  "4"
+literal  10  5    PS   "Table Display"    
+literal  10  22    NT   "Non-keyed"    
 
-literal  13  27    SAC  "6"
-literal  13  30    PS   "Utilities"    
-literal  13  46    NT   "Check Utilities"    
+literal  11  2    SAC  "5"
+literal  11  5    PS   "Dynamic Areas"    
+literal  11  22   NT   "Check Functioning of Dynamic Areas"    
 
-literal  14  27    SAC  "7"
-literal  14  30    PS   "POPUPS"    
-literal  14  46    NT   "Test ADDPOP/REMPOP and popup windows"    
+literal  12  2    SAC  "6"
+literal  12  5    PS   "Utilities"    
+literal  12  22   NT   "Check Utilities"    
 
-literal  15  27    SAC  "8"
-literal  15  30    PS   "Invoke OOREXX"    
-literal  15  46    NT   "Invoke OOREXX (porexx1.rex in ZORXPATH)"
+literal  13  2    SAC  "7"
+literal  13  5    PS   "POPUPS"    
+literal  13  22   NT   "Test ADDPOP/REMPOP and popup windows"    
+
+literal  14  2    SAC  "8"
+literal  14  5    PS   "Invoke OOREXX"    
+literal  14  22   NT   "Invoke OOREXX (porexx1.rex in ZORXPATH)"
 
 
-literal  17  27    SAC  "T"
-literal  17  30    PS   "Tutorial"    
-literal  17  46    NT   "Start Tutorial"    
+literal  16  2    SAC  "T"
+literal  16  5    PS   "Tutorial"    
+literal  16  22    NT   "Start Tutorial"    
 
-literal  18  27    SAC  "X"
-literal  18  30    PS   "Terminate"    
-literal  18  46    NT   "Terminate Dialogue Services"    
+literal  17  2    SAC  "X"
+literal  17  5    PS   "Terminate"    
+literal  17  22    NT   "Terminate Dialogue Services"    
 
 
 )INCLUDE STD_PDC

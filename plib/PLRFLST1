@@ -8,7 +8,7 @@ PanelTitle "Personal File List"
 
 scrollOn
 
-literal  4   2         FP    "COMMAND ===> "  
+literal  4   2         FP    "Command ===> "  
 field    4  15  MAX-17 NEF CAPS(ON) ZCMD  
 
 literal  4  MAX-15  FP "SCROLL ===> "

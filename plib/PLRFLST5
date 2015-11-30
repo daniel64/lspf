@@ -7,7 +7,7 @@
 
 PanelTitle "Referral List and NRETRIEV Personal Settings"
 
-literal  4   2         FP    "COMMAND ===> "  
+literal  4   2         FP    "Command ===> "  
 field    4  15  MAX-17 NEF CAPS(ON) ZCMD1
 
 field    7   2   1   CEF     PAD('_') RFURL

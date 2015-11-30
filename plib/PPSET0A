@@ -10,63 +10,50 @@ This is the selection panel for the SETTINGS MENU
 
 PanelTitle "Settings/Information Panel"  
 
-literal   4    2       FP  "COMMAND ===> "    
+literal  4    2       FP  "Command ===> "    
 field    4   15   MAX  NEF     CAPS(ON)  ZCMD    
 
-literal  6    2    FP  "ZUSER   : "     
-field    6  12     8    VOI     NONE  ZUSER    
+literal  6   MAX-20        FP  "Date: "     
+field    6   MAX-14    8   VOI   NONE  ZDATE    
 
-literal   7    2   FP  "ZAPPLID : "      
-field    7   12    4    VOI     NONE  ZAPPLID    
+literal  7   MAX-20         FP  "Time: "     
+field    7   MAX-14    8    VOI   NONE  ZTIME    
 
-literal  7  20    FP  "ZTIME: "     
-field    7  27    8    VOI     NONE  ZTIME    
+literal  6  2    SAC  "0"
+literal  6  5    PS   "PF Keys"    
+literal  6  15    NT   "Display and alter function key settings"
 
-literal  6  20    FP  "ZDATE: "     
-field    6  27    8    VOI     NONE  ZDATE    
+literal  7  2    SAC  "1"
+literal  7  5    PS   "Colours"    
+literal  7  15   NT   "Display and alter screen colours"
 
-literal  6  41    FP  "ZSYSNAME: "     
-field    6  51   10    VOI     NONE  ZSYSNAME    
+literal  8  2    SAC  "2"
+literal  8  5    PS   "Commands"    
+literal  8  15   NT   "Display command tables"
 
-literal  7  41    FP  "ZOSREL: "     
-field    7  51   15    VOI     NONE  ZOSREL    
+literal  9  2    SAC  "3"
+literal  9  5    PS   "Paths"    
+literal  9  15   NT   "Display search paths and LIBDEF status"
 
+literal  10  2    SAC  "4"
+literal  10  5    PS   "Variables"    
+literal  10  15   NT   "Display and delete shared and profile pool variables"
 
-literal  10 27    SAC  "0"
-literal  10 30    PS   "PF Keys"    
-literal  10 41    NT   "Display and alter function key settings"
+literal  11  2    SAC  "5"
+literal  11  5    PS   "Modules"    
+literal  11  15   NT   "Display Loaded Modules"
 
-literal  11  27    SAC  "1"
-literal  11  30    PS   "Colours"    
-literal  11  41    NT   "Display and alter screen colours"
+literal  12  2    SAC  "6"
+literal  12  5    PS   "Programs"    
+literal  12  15   NT   "View/change utility programs"
 
-literal  12  27    SAC  "2"
-literal  12  30    PS   "Commands"    
-literal  12  41    NT   "Display command tables"
+literal  14  2    SAC  "T"
+literal  14  5    PS   "Tutorial"    
+literal  14  15   NT   "Start Tutorial"
 
-literal  13  27    SAC  "3"
-literal  13  30    PS   "Paths"    
-literal  13  41    NT   "Display search paths and LIBDEF status"
-
-literal  14  27    SAC  "4"
-literal  14  30    PS   "Variables"    
-literal  14  41    NT   "Display and delete shared and profile pool variables"
-
-literal  15  27    SAC  "5"
-literal  15  30    PS   "Modules"    
-literal  15  41    NT   "Display Loaded Modules"
-
-literal  16  27    SAC  "6"
-literal  16  30    PS   "Programs"    
-literal  16  41    NT   "View/change utility programs"
-
-literal  18  27    SAC  "T"
-literal  18  30    PS   "Tutorial"    
-literal  18  41    NT   "Start Tutorial"
-
-literal  19  27    SAC  "X"
-literal  19  30    PS   "Terminate"    
-literal  19  41    NT   "Terminate Settings"
+literal  15  2    SAC  "X"
+literal  15  5    PS   "Terminate"    
+literal  15  15   NT   "Terminate Settings"
 
 
 )INCLUDE STD_PDC

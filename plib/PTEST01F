@@ -12,7 +12,7 @@
 
 PanelTitle "Test Popup Panels - POPUP 1"
 
-literal   4    2   FP  "COMMAND ===> "    
+literal   4    2   FP  "Command ===> "    
 field     4   15  MAX   NEF     CAPS(ON)  ZCMD1
 
 literal   6   40    FP  "TIME: "     
