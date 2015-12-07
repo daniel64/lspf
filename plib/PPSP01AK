@@ -85,11 +85,16 @@
  literal  19   45   FP "PF24:"    
  field    19   51   20      NEF NONE ZPF24   
 
+ field    21   2    MAX VOI NONE ZZMSG
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
 
 
 )PROC
+
+VGET (ZKLUSE) PROFILE
+IF ( &ZKLUSE EQ Y )
+  &ZZMSG = 'Warning.  Keylist active.  Some function keys may be overwridden'
 
 VER (&ZCMD LIST CANCEL::3 DELETE::3 SAVE::3 )
 

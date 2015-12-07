@@ -1,5 +1,5 @@
 /*  Compile with ::                                                                               */
-/* g++ -shared -fPIC -Wl,-soname,libPBRO01A.so -lmagic -lboost_regex -o libPBRO01A.so PBRO01A.cpp */
+/* g++ -shared -fPIC -std=c++11 -Wl,-soname,libPBRO01A.so -lmagic -lboost_regex -o libPBRO01A.so PBRO01A.cpp */
 
 /*
   Copyright (c) 2015 Daniel John Erdos
@@ -240,7 +240,7 @@ void PBRO01A::application()
 		{
 			if ( setFind() > 0 ) { continue ; }
 			ZCMD = ""  ;
-			if ( ZCURFLD == "ZAREA" ) { offset = ZCURPOS ; }
+			if ( ZCURFLD == "ZAREA" ) { offset = ZCURPOS ; if ( ( offset % ZAREAW ) == 1  ) { offset++ ; } }
 			else                      { offset = 0       ; }
 			actionFind( firstLine, offset ) ;
 			if ( find_parms.f_line > 0 )
@@ -334,7 +334,7 @@ void PBRO01A::application()
 		{
 			if ( find_parms.f_fset )
 			{
-				if ( ZCURFLD == "ZAREA" ) { offset = ZCURPOS ; }
+				if ( ZCURFLD == "ZAREA" ) { offset = ZCURPOS ; if ( ( offset % ZAREAW ) == 1  ) { offset++ ; } }
 				else                      { offset = 0       ; }
 				actionFind( firstLine, offset ) ;
 				if ( find_parms.f_line > 0 )

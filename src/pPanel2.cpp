@@ -37,7 +37,8 @@ int pPanel::loadPanel( string p_name, string paths )
 	string w6, w7, ws    ;
 	string t1, t2        ;
 	string rest          ;
-	string filename, line2 ;
+	string filename      ;
+	string line2         ;
 	string fld, hlp      ;
 
 	bool body(false)     ;
@@ -191,6 +192,22 @@ int pPanel::loadPanel( string p_name, string paths )
 			pVersion = ds2d( word( substr( line2, i+9 ), 1 ) ) ;
 			pFormat  = ds2d( word( substr( line2, j+8 ), 1 ) ) ;
 			log( "I", "Panel format " << pFormat << " Panel version " << pVersion << endl ) ;
+			i = pos( " KEYLIST(", line2 ) ;
+			if ( i > 0 )
+			{
+				j = pos( ",", line2, i ) ;
+				k = pos( ")", line2, i ) ;
+				if ( j == 0 || k == 0 || j > k )
+				{
+					PERR = "Invalid )PANEL statement in panel " + p_name ; return 20 ;
+				}
+				KEYLISTN = strip( line2.substr( i+8, j-i-9 ) ) ;
+				KEYAPPL  = strip( line2.substr( j, k-j-1 ) )   ;
+				if ( !isvalidName( KEYLISTN ) || !isvalidName4( KEYAPPL ) )
+				{
+					PERR = "Invalid Keylist parameters on )PANEL statement in panel " + p_name ; return 20 ;
+				}
+			}
 			continue ;
 		}
 		if ( w1 == ")BODY" )

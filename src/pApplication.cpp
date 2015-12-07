@@ -32,7 +32,6 @@ pApplication::pApplication()
 	propagateEnd           = false  ;
 	jumpEntered            = false  ;
 	resumeTime             = boost::posix_time::second_clock::universal_time() ;
-	Insert                 = false  ;
 	ControlDisplayLock     = false  ;
 	ControlErrorsReturn    = false  ;
 	ControlSplitEnable     = true   ;
@@ -139,8 +138,17 @@ void pApplication::panel_create( string p_name )
 
 	RC = p_panel->loadPanel( p_name, paths ) ;
 
-	if ( RC == 0 ) { panelList[ p_name ] = p_panel          ; }
-	else           { ZERR2 = p_panel->PERR ; delete p_panel ; }
+	if ( RC == 0 )
+	{
+		panelList[ p_name ] = p_panel ;
+		load_keylist( p_panel )       ;
+		
+	}
+	else
+	{
+		ZERR2 = p_panel->PERR ;
+		delete p_panel        ;
+	}
 }
 
 
@@ -1113,7 +1121,7 @@ void pApplication::tbadd( string tb_name, string tb_namelst, string tb_order, in
 	if ( tb_order  != "" && tb_order != "ORDER" )       { RC = 20 ; checkRCode( "Invalid ORDER parameter specified on TBADD" )          ; return ; }
 	if ( tb_num_of_rows < 0 || tb_num_of_rows > 65535 ) { RC = 20 ; checkRCode( "Invalid number-of-rows parameter specified on TBADD" ) ; return ; }
 
-	if ( !isTableOpen( tb_name, "TBADD" ) ) { return ; }
+	if ( !isTableUpdate( tb_name, "TBADD" ) ) { return ; }
 
 	p_tableMGR->tbadd( RC, funcPOOL, tb_name, tb_namelst, tb_order, tb_num_of_rows ) ;
 	if ( RC > 8 ) { checkRCode( "TBADD gave return code of " + d2ds( RC ) ) ; }
@@ -1140,8 +1148,11 @@ void pApplication::tbbottom( string tb_name )
 
 void pApplication::tbclose( string tb_name, string tb_newname, string tb_path )
 {
-	// Save and close the table (calls saveTableifWRITE and destroyTable routines).  If NOWRITE specified, just remove table from storage.
-	// saveTableifWRITE RC=4 if no updates have been performed on the table as no save is performed, so reset RC to 0
+	// Save and close the table (calls saveTable and destroyTable routines).
+	// Do not report error on tbclose() of a temporary table (pass false as last parm, to saveTable() in this case)
+	// Error occurs only on tbsave() in this case
+
+	// saveTable() returns RC4 if a table has not been changed (and so no save is performed).  Ignore in this case
 
 	// RC = 0   Normal completion
 	// RC = 12  Table not open
@@ -1152,15 +1163,19 @@ void pApplication::tbclose( string tb_name, string tb_newname, string tb_path )
 
 	if ( !isTableOpen( tb_name, "TBCLOSE" ) ) { return ; }
 
-	p_tableMGR->saveTableifWRITE( RC, taskid(), tb_name, tb_newname, tb_path ) ;
-	if ( RC == 4 ) { RC = 0 ; }
+	if ( tablesUpdate.find( tb_name ) != tablesUpdate.end() )
+	{
+		p_tableMGR->saveTable( RC, taskid(), tb_name, tb_newname, tb_path, false ) ;
+		if ( RC == 4 ) { RC = 0 ; }
+	}
 	if ( RC == 0 )
 	{
 		p_tableMGR->destroyTable( RC, taskid(), tb_name ) ;
 		if ( RC == 0 )
 		{
 			tablesOpen.erase( tb_name ) ;
-		}
+			tablesUpdate.erase( tb_name ) ;
+		}		
 	}
 	if ( RC > 8 ) { checkRCode( "TBCLOSE gave return code of " + d2ds( RC ) ) ; }
 }
@@ -1178,10 +1193,12 @@ void pApplication::tbcreate( string tb_name, string keys, string names, tbSAVE m
 	// RC = 20  Severe error
 
 	int ws ;
+	bool temp ;
 
 	string w ;
 
-	RC = 0 ;
+	RC   = 0    ;
+	temp = true ;
 
 	if ( !isvalidName( tb_name ) ) { RC = 20 ; checkRCode( "Invalid table name on TBCREATE >>" + tb_name + "<<" ) ; return ; }
 	if ( ( tablesOpen.find( tb_name ) != tablesOpen.end() ) && m_REP != REPLACE )
@@ -1191,7 +1208,11 @@ void pApplication::tbcreate( string tb_name, string keys, string names, tbSAVE m
 		return  ;
 	}
 
-	if ( (m_SAVE == WRITE) & (m_path == "") ) { m_path = ZTLIB ; }
+	if ( m_SAVE == WRITE )
+	{
+		temp = false ;
+		if ( m_path == "" ) { m_path = ZTLIB ; }
+	}
 
 	ws = words( keys ) ;
 	for ( int i = 1 ; i <= ws ; i++ )
@@ -1207,10 +1228,14 @@ void pApplication::tbcreate( string tb_name, string keys, string names, tbSAVE m
 		if ( !isvalidName( w ) ) { RC = 20 ; checkRCode( "Invalid field name >>" + w + "<<" ) ; return ; }
 	}
 
-	p_tableMGR->createTable( RC, taskid(), tb_name, keys, names, m_SAVE, m_REP, m_path, m_DISP ) ;
+	p_tableMGR->createTable( RC, taskid(), tb_name, keys, names, temp, m_REP, m_path, m_DISP ) ;
 	if ( RC > 8 ) { checkRCode( "TBCREATE gave return code of " + d2ds( RC ) ) ; }
 
-	if ( RC < 8 ) tablesOpen[ tb_name ] = true ;
+	if ( RC < 8 )
+	{
+		tablesOpen[ tb_name ]   = true ;
+		tablesUpdate[ tb_name ] = true ;
+	}
 }
 
 
@@ -1224,7 +1249,7 @@ void pApplication::tbdelete( string tb_name )
 	// RC = 20  Severe error
 
 	RC = 0 ;
-	if ( !isTableOpen( tb_name, "TBDELETE" ) ) { return ; }
+	if ( !isTableUpdate( tb_name, "TBDELETE" ) ) { return ; }
 
 	p_tableMGR->tbdelete( RC, funcPOOL, tb_name ) ;
 	if ( RC > 8 ) { checkRCode( "TBDELETE gave return code of " + d2ds( RC ) ) ; }
@@ -1491,6 +1516,7 @@ void pApplication::tbend( string tb_name )
 	if ( RC == 0 )
 	{
 		tablesOpen.erase( tb_name ) ;
+		tablesUpdate.erase( tb_name ) ;
 	}
 	if ( RC > 8 ) { checkRCode( "TBEND gave return code of " + d2ds( RC ) ) ; }
 }
@@ -1552,7 +1578,7 @@ void pApplication::tbmod( string tb_name, string tb_namelst, string tb_order )
 	if ( tb_namelst != "" )                             { RC = 20 ; checkRCode( "Name list not yet implemented for TBMOD" ) ; return ; }
 	if ( tb_order  != "" && tb_order != "ORDER" )       { RC = 20 ; checkRCode( "Invalid ORDER parameter specified on TBMOD" ) ; return ; }
 
-	if ( !isTableOpen( tb_name, "TBMOD" ) ) { return ; }
+	if ( !isTableUpdate( tb_name, "TBMOD" ) ) { return ; }
 
 	p_tableMGR->tbmod( RC, funcPOOL, tb_name, tb_namelst, tb_order ) ;
 	if ( RC > 8 ) { checkRCode( "TBMOD gave return code of " + d2ds( RC ) ) ; }
@@ -1585,11 +1611,18 @@ void pApplication::tbopen( string tb_name, tbSAVE m_SAVE, string m_paths, tbDISP
 	  	if ( libdef_tuser ) m_paths = mergepaths( ZTUSER, ZTLIB ) ;
 		else                m_paths = ZTLIB                       ;
 	}
-	if( m_SAVE == NOWRITE ) { m_DISP = SHARE  ; }
-	p_tableMGR->loadTable( RC, taskid(), tb_name, m_SAVE, m_DISP, m_paths ) ;
+
+	p_tableMGR->loadTable( RC, taskid(), tb_name, m_DISP, m_paths ) ;
 
 	if ( RC > 8 ) { checkRCode( "TBOPEN gave return code of " + d2ds( RC ) ) ; }
-	if ( RC < 8 ) tablesOpen[ tb_name ] = true ;
+	if ( RC < 8 )
+	{
+		tablesOpen[ tb_name ] = true ;
+		if ( m_SAVE == WRITE )
+		{
+			tablesUpdate[ tb_name ] = true ;
+		}
+	}
 }
 
 
@@ -1609,7 +1642,7 @@ void pApplication::tbput( string tb_name, string tb_namelst, string tb_order )
 	if ( tb_namelst != "" )                             { RC = 20 ; checkRCode( "Name list not yet implemented for TBPUT"  ) ; return ; }
 	if ( tb_order  != "" && tb_order != "ORDER" )       { RC = 20 ; checkRCode( "Invalid ORDER parameter specified on TBPUT" ) ; return ; }
 
-	if ( !isTableOpen( tb_name, "TBPUT" ) ) { return ; }
+	if ( !isTableUpdate( tb_name, "TBPUT" ) ) { return ; }
 
 	p_tableMGR->tbput( RC, funcPOOL, tb_name, tb_namelst, tb_order ) ;
 	if ( RC > 8 ) { checkRCode( "TBPUT gave return code of " + d2ds( RC ) ) ; }
@@ -1641,6 +1674,7 @@ void pApplication::tbsarg( string tb_name, string tb_namelst, string tb_dir, str
 void pApplication::tbsave( string tb_name, string tb_newname, string path )
 {
 	// Save the table to disk (calls saveTable routine).  Table remains open for processing.  Table must have the WRITE attribute
+	// saveTable() returns RC4 if a table has not been changed (and so no save is performed).  Ignore in this case
 
 	// RC = 0   Normal completion
 	// RC = 12  Table not open or not open WRITE
@@ -1649,9 +1683,10 @@ void pApplication::tbsave( string tb_name, string tb_newname, string path )
 
 	RC = 0 ;
 
-	if ( !isTableOpen( tb_name, "TBSAVE" ) ) { return ; }
+	if ( !isTableUpdate( tb_name, "TBSAVE" ) ) { return ; }
 
 	p_tableMGR->saveTable( RC, taskid(), tb_name, tb_newname, path ) ;
+	if ( RC == 4 ) { RC = 0 ; }
 	if ( RC > 8 ) { checkRCode( "TBSAVE gave return code of " + d2ds( RC ) ) ; }
 }
 
@@ -1683,7 +1718,7 @@ void pApplication::tbsort( string tb_name, string tb_fields )
 {
 	RC = 0 ;
 
-	if ( !isTableOpen( tb_name, "TBSORT" ) ) { return ; }
+	if ( !isTableUpdate( tb_name, "TBSORT" ) ) { return ; }
 
 	p_tableMGR->tbsort( RC, tb_name, tb_fields ) ;
 	if ( RC > 8 ) { checkRCode( "TBSORT gave return code of " + d2ds( RC ) ) ; }
@@ -1727,6 +1762,29 @@ bool pApplication::isTableOpen( string tb_name, string func )
 	}
 	return true ;
 }
+
+
+bool pApplication::isTableUpdate( string tb_name, string func )
+{
+
+	RC = 0 ;
+
+	if ( !isvalidName( tb_name ) ) { RC = 20 ; checkRCode( "Invalid table name on " + func + " " + tb_name ) ; return false ; }
+	if ( tablesOpen.find( tb_name ) == tablesOpen.end() )
+	{
+		RC = 12      ;
+		checkRCode( "Table " + tb_name + " not open on " + func ) ;
+		return false ;
+	}
+	if ( tablesUpdate.find( tb_name ) == tablesUpdate.end() )
+	{
+		RC = 12      ;
+		checkRCode( "Table " + tb_name + " open in read-only mode on " + func ) ;
+		return false ;
+	}
+	return true ;
+}
+
 
 
 
@@ -1845,6 +1903,61 @@ void pApplication::attr( string field, string attrs )
 		return  ;
 	}
 	panelList[ PANELID ]->attr( RC, field, attrs ) ;
+}
+
+
+void pApplication::load_keylist( pPanel * p )
+{
+	string tabName  ;
+	string tabField ;
+	string UPROF    ;
+	string KEYAPPL  ;
+	string KEYLISTN ;
+
+	KEYLISTN = p->KEYLISTN ;
+
+	if ( KEYLISTN != "" )
+	{
+		KEYAPPL  = p->KEYAPPL ;
+		tabName  = KEYAPPL+"KTAB" ;
+		vcopy( "ZUPROF", UPROF, MOVE ) ;
+		tbopen( tabName, NOWRITE, UPROF, SHARE ) ;
+		if ( RC  > 0 )
+		{
+			RC = 20 ;
+			checkRCode( "Open of keylist table " + tabName + " failed" ) ;
+		}
+		tbvclear( tabName ) ;
+		vreplace( "KEYLISTN", KEYLISTN ) ;
+		tbsarg( tabName ) ;
+		if ( RC  > 0 )
+		{
+			tbend( tabName ) ;
+			RC = 20 ;
+			checkRCode( "TBSARG error setting search for " + KEYLISTN + ", table " + tabName ) ;
+		}
+		tbscan( tabName ) ;
+		if ( RC  > 0 )
+		{
+			tbend( tabName ) ;
+			RC = 20 ;
+			checkRCode( "Keylist " + KEYLISTN + " not found in keylist table " + tabName ) ;
+		}
+		vcopy( "KEY1DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(1),  tabField ) ;
+		vcopy( "KEY2DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(2),  tabField ) ;
+		vcopy( "KEY3DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(3),  tabField ) ;
+		vcopy( "KEY4DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(4),  tabField ) ;
+		vcopy( "KEY5DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(5),  tabField ) ;
+		vcopy( "KEY6DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(6),  tabField ) ;
+		vcopy( "KEY7DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(7),  tabField ) ;
+		vcopy( "KEY8DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(8),  tabField ) ;
+		vcopy( "KEY9DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(9),  tabField ) ;
+		vcopy( "KEY10DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(10), tabField ) ;
+		vcopy( "KEY11DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(11), tabField ) ;
+		vcopy( "KEY12DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(12), tabField ) ;
+		tbend( tabName ) ;
+	}
+
 }
 
 

@@ -26,6 +26,7 @@ class Table
 			CRP            = 0     ;
 			maxURID        = 0     ;
 			changed        = false ;
+			tab_temporary  = false ;
 			tab_path       = ""    ;
 			sa_namelst     = ""    ;
 			sa_cond_pairs  = ""    ;
@@ -66,6 +67,7 @@ class Table
 		map< string, tbsearch > sarg ;
 
 		int    ownerTask      ;
+		bool   tab_temporary  ;
 		string tab_keys       ;
 		string tab_flds       ;
 		string tab_all        ;
@@ -85,7 +87,6 @@ class Table
 		string sa_namelst     ;
 		string sa_cond_pairs  ;
 		string sa_dir         ;
-		tbSAVE tab_SAVE       ;
 		tbDISP tab_DISP       ;
 
 
@@ -102,11 +103,10 @@ class tableMGR
 		int    getCRP( int & RC, string tb_name ) ;
 		void   cmdsearch( int & RC, fPOOL & funcPOOL, string tb_name, string srch ) ;
 
-		void   createTable( int & RC, int task, string tb_name, string keys, string flds, tbSAVE m_SAVE, tbREP m_REP, string m_path, tbDISP m_DISP ) ;
+		void   createTable( int & RC, int task, string tb_name, string keys, string flds, bool m_temporary, tbREP m_REP, string m_path, tbDISP m_DISP ) ;
 		void   destroyTable( int & RC, int task, string tb_name ) ;
-		void   loadTable( int & RC, int task, string tb_name, tbSAVE=WRITE, tbDISP=EXCLUSIVE, string src="" ) ;
-		void   saveTable( int & RC, int task, string tb_name, string m_newname, string m_path ) ;
-		void   saveTableifWRITE( int & RC, int task, string tb_name, string m_newname, string m_path ) ;
+		void   loadTable( int & RC, int task, string tb_name, tbDISP=EXCLUSIVE, string src="" ) ;
+		void   saveTable( int & RC, int task, string tb_name, string m_newname, string m_path, bool m_err=true ) ;
 		bool   isloaded( string tb_name ) ;
 		bool   tablexists( string tb_name, string tb_path ) ;
 

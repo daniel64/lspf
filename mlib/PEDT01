@@ -58,11 +58,11 @@ PEDT01J "Column Out Of Range"
 PEDT01K "Invalid Hex String"
 "Entered only valid hex characters 0-9, A-F with no spaces"
 
-PEDT01L "&ZLINES Line(s) Excluded"
+PEDT01L "&ZLINES Line(s) Excluded" .TYPE=N
 "Occurence has been found on &ZLINES line(s)"
 
-PEDT01M "&ZLINES Line(s) Deleted"
-"&ZLINES lines have been deleted"
+PEDT01M "&ZLINES Line(s) Deleted" .TYPE=N
+"&ZLINES line(s) have been deleted"
 
 PEDT01N "Invalid Regex"
 "Regular expression entered is not valid"
@@ -70,7 +70,7 @@ PEDT01N "Invalid Regex"
 PEDT01O "File Changed"
 "File has changed and no SAVE has been performed (AUTOSAVE is OFF)"
 
-PEDT01P "File Saved"
+PEDT01P "File Saved" .TYPE=N
 "File has been successfully saved"
 
 PEDT01Q "File Not Saved"
@@ -133,8 +133,8 @@ PEDT012A "Invalid PASTE parameter"
 PEDT012B "Invalid CUT parameter"
 "CUT DEFAULT|name APPEND|REPLACE"
 
-PEDT012C "&ZCPLINES lines cut" .TYPE=N
-"&ZCPLINES lines cut to the clipboard"
+PEDT012C "&ZEDLNES lines cut to &CLIPNAME" .TYPE=N
+"&ZEDLNES lines cut to clipboard &CLIPNAME"
 
-PEDT012D "&ZCPLINES lines pasted" .TYPE=N
-"&ZCPLINES lines pasted from the clipboard"
+PEDT012D "&ZEDLNES lines pasted from &CLIPNAME" .TYPE=N
+"&ZEDLNES lines pasted from clipboard &CLIPNAME"

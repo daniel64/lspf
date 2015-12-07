@@ -8,6 +8,8 @@ pdc  Display  Quit                      ACTION RUN(END)
 pdc  Settings  PFKeys    ACTION RUN(KEYS)
 pdc  Settings  Colours   ACTION RUN(CUA)
 pdc  Settings  Commands  ACTION RUN(CMDS)
+pdc  Settings  "Turn Off Keylists"  ACTION RUN(ISRROUTE) PARM("SELECT PGM(PPSP01A) PARM(KLOFF)")
+pdc  Settings  "Turn On Keylists"  ACTION RUN(ISRROUTE) PARM("SELECT PGM(PPSP01A) PARM(KLON)")
 
 pdc  Utilities  "Application Log"   ACTION RUN(ALOG)
 pdc  Utilities  "lspf Log"          ACTION RUN(ISRROUTE) PARM("SELECT PGM(PPSP01A) PARM(SL)")

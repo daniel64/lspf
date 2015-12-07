@@ -33,6 +33,8 @@ pPanel::pPanel()
 	scrollOn    = false  ;
 	abActive    = false  ;
 	nretriev    = false  ;
+	KEYLISTN    = ""     ;
+	KEYAPPL     = ""     ;
 	PanelTitle  = ""     ;
 	abIndex     = 0      ;
 	opt_field   = 0      ;
@@ -2089,6 +2091,19 @@ void pPanel::clear_msg()
 {
 	SMSG = "" ;
 	LMSG = "" ;
+}
+
+
+void pPanel::put_keylist( int entry, string keyv )
+{
+	Keylistl[ entry ] = keyv ;
+}
+
+
+string pPanel::get_keylist( int entry )
+{
+	if ( KEYLISTN == ""  || Keylistl.find( entry ) == Keylistl.end() ) { return "" ; }
+	return Keylistl[ entry ] ;	
 }
 
 

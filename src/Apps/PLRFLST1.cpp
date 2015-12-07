@@ -158,7 +158,7 @@ void PLRFLST1::PersonalFList()
 		FLAUTIME = ldate + " " + ltime ;
 		tbcreate( RFLTABLE, "ZCURTB", subword( TABFLDS, 2 ), WRITE, NOREPLACE, UPROF ) ;
 		tbsort( RFLTABLE, "ZCURTB,C,A" ) ;
-		tbadd( RFLTABLE, "", "ORDER" )   ;
+// 		tbadd( RFLTABLE, "", "ORDER" )   ;
 		CloseTable()  ;
 		OpenTableRO() ;
 		if ( RC > 0 ) { abend() ; }
@@ -708,7 +708,7 @@ void PLRFLST1::OpenTableRO()
 
 void PLRFLST1::OpenTableUP()
 {
-	tbopen( RFLTABLE, WRITE, UPROF, EXCLUSIVE ) ;
+	tbopen( RFLTABLE, WRITE, UPROF ) ;
 	return ;
 }
 

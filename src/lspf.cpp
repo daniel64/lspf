@@ -163,7 +163,7 @@ string ZHOME  ;
 string ZUSER  ;
 string ZSHELL ;
 
-static string BuiltInCommands = "ABEND ACTION DISCARD FIELDEXC INFO KEYLIST NOP PANELID REFRESH SCALE SNAP SHELL SPLIT STATS SWAP TASKS TEST TDOWN" ;
+static string BuiltInCommands = "ABEND ACTION DISCARD FIELDEXC INFO NOP PANELID REFRESH SCALE SNAP SHELL SPLIT STATS SWAP TASKS TEST TDOWN" ;
 
 ofstream splog(SLOG) ;
 
@@ -288,7 +288,7 @@ void MainLoop()
 	fieldExc fxc ;
 
 	char ch     ;
-	char Isrt   ;
+	string Isrt   ;
 
 	uint row    ;
 	uint col    ;
@@ -297,6 +297,7 @@ void MainLoop()
 
 	bool passthru ;
 	bool showLock ;
+	bool Insert   ;
 
 	string respTime   ;
 	string field_name ;
@@ -307,14 +308,15 @@ void MainLoop()
 
 	mousemask( ALL_MOUSE_EVENTS, NULL ) ;
 	showLock = false ;
+	Insert   = false ;
 
 	while ( true )
 	{
 		if ( pLScreen::screensTotal == 0 ) return ;
 
 		currScrn->busy_clear() ;
-		if ( currAppl->insert_get() ) { Isrt = 'I' ; }
-		else                          { Isrt = ' ' ; }
+		if ( Insert ) { Isrt = "Insert" ; curs_set(2) ; }
+		else          { Isrt = "      " ; curs_set(1) ; }
 
 		row = currScrn->get_row() ;
 		col = currScrn->get_col() ;
@@ -331,7 +333,8 @@ void MainLoop()
 			attroff( cuaAttr[ PI ] ) ;
 		}
 		attrset( YELLOW ) ;
-		mvprintw( pLScreen::maxrow+1, pLScreen::maxcol-18, "%c  Row %d Col %d  ", Isrt, row+1, col+1 ) ;
+		mvaddstr( pLScreen::maxrow+1, pLScreen::maxcol-23, Isrt.c_str() ) ;
+		mvprintw( pLScreen::maxrow+1, pLScreen::maxcol-14, "Row %d Col %d  ", row+1, col+1 ) ;
 		mvaddstr( pLScreen::maxrow+1, 27, respTime.c_str() ) ;
 		mvprintw( pLScreen::maxrow+1, 52, "Screen:%d-%d   ", pLScreen::currScreen->screenID, currScrn->application_stack_size() ) ;
 		mvaddstr( pLScreen::maxrow+1, 2, "Screen[        ]" ) ;
@@ -343,7 +346,7 @@ void MainLoop()
 			mvaddch( pLScreen::maxrow+1, 9+screenNum, d2ds( screenNum+1 )[0] ) ;
 			attroff( RED | A_REVERSE ) ;
 		}
-		if ( altScreen < 8 && altScreen !=screenNum )
+		if ( altScreen < 8 && altScreen != screenNum )
 		{
 			attrset( YELLOW | A_BOLD | A_UNDERLINE ) ;
 			mvaddch( pLScreen::maxrow+1, 9+altScreen, d2ds( altScreen+1 )[0] ) ;
@@ -378,7 +381,7 @@ void MainLoop()
 			if ( isprint( c ) )
 			{
 				if ( currAppl->currPanel->is_pd_displayed() ) { currScrn->busy_show() ; continue ; }
-				currAppl->currPanel->field_edit( row, col, ch , currAppl->insert_get(), showLock ) ;
+				currAppl->currPanel->field_edit( row, col, ch , Insert, showLock ) ;
 				currAppl->currPanel->get_cursor( row, col ) ;
 				currScrn->set_row_col( row, col ) ;
 				continue ;
@@ -414,7 +417,7 @@ void MainLoop()
 				break ;
 
 			case KEY_IC:
-				currAppl->insert_toggle() ;
+				Insert = !Insert ;
 				break ;
 
 			case KEY_HOME:
@@ -449,6 +452,7 @@ void MainLoop()
 			case KEY_PPAGE:
 			case KEY_ENTER:
 				debug1( "Action key pressed.  Processing" << endl ) ;
+				Insert = false ;
 				if ( commandStack == "" ) { currScrn->busy_show() ; }
 				updateDefaultVars() ;
 				processAction( row, col, c, passthru ) ;
@@ -553,17 +557,6 @@ void MainLoop()
 					else if ( ZCOMMAND == "INFO" )
 					{
 						currAppl->info() ;
-					}
-					else if ( ZCOMMAND == "KEYLIST" )
-					{
-						if ( ZPARM == "OFF" )
-						{
-							p_poolMGR->put( RC, "ZKLUSE", "N", PROFILE ) ;
-						}
-						else
-						{
-							p_poolMGR->put( RC, "ZKLUSE", "Y", PROFILE ) ;
-						}
 					}
 					else if ( ZCOMMAND == "NOP" )
 					{
@@ -817,7 +810,8 @@ void processAction( uint row, uint col, int c, bool &  passthru )
 	{
 		if ( p_poolMGR->get( RC, "ZKLUSE", PROFILE ) == "Y" )
 		{
-			log( "N", "KEYLIST function not implemented yet.  Turn off with KEYLIST OFF to continue using PF keys normally" << endl ) ;
+			PFCMD = currAppl->currPanel->get_keylist( c ) ;
+			if ( PFCMD == "" ) { PFCMD = strip( pfkeyTable[ c ] ) ; }
 		}
 		else
 		{
@@ -1712,7 +1706,7 @@ void loadCommandTable()
 {
 	int RC ;
 
-	p_tableMGR->loadTable( RC, 0, "ISPCMDS", NOWRITE, SHARE, ZTLIB ) ;
+	p_tableMGR->loadTable( RC, 0, "ISPCMDS", SHARE, ZTLIB ) ;
 	if ( RC == 0 )
 	{
 		log( "I", "Loaded system command table ISPCMDS" << endl ) ;
@@ -1727,7 +1721,7 @@ void loadCommandTable()
 		abort() ;
 	}
 
-	p_tableMGR->loadTable( RC, 0, "USRCMDS", NOWRITE, SHARE, ZTLIB ) ;
+	p_tableMGR->loadTable( RC, 0, "USRCMDS", SHARE, ZTLIB ) ;
 	debug1( "Loading user command table.  RC=" << RC << endl ) ;
 }
 
@@ -1742,7 +1736,7 @@ void loadApplicationCommandTable( string APPLID )
 	{
 		if ( p_tableMGR->tablexists( APPLID + "CMDS", ZTLIB ) )
 		{
-			p_tableMGR->loadTable( RC, 0, APPLID + "CMDS", NOWRITE, SHARE, ZTLIB ) ;
+			p_tableMGR->loadTable( RC, 0, APPLID + "CMDS", SHARE, ZTLIB ) ;
 			debug1( "Loading application command table " << APPLID << "CMDS.  RC=" << RC << endl ) ;
 		}
 		else

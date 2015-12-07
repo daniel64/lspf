@@ -63,7 +63,6 @@ class pApplication
 		boost::posix_time::ptime resumeTime ;
 		boost::thread            * pThread  ;
 
-		bool   Insert ;
 		string PARM   ;
 
 		fPOOL      funcPOOL   ;
@@ -109,7 +108,8 @@ class pApplication
 		void   vreplace( string, int )              ;
 		void   vreset() ;
 
-		map<string,  bool> tablesOpen  ;
+		map<string,  bool> tablesOpen   ;
+		map<string,  bool> tablesUpdate ;
 
 		void   tbadd( string tb_name, string tb_namelst="", string tb_order="", int tb_num_of_rows=0 ) ;
 		void   tbbottom( string tb_name ) ;
@@ -134,6 +134,7 @@ class pApplication
 		void   tbvclear( string tb_name ) ;
 		
 		bool   isTableOpen( string tb_name, string func ) ;
+		bool   isTableUpdate( string tb_name, string func ) ;
 
 		void   browse( string m_file, string m_panel="" ) ;
 		void   edit( string m_file, string m_panel=""   ) ;
@@ -148,8 +149,6 @@ class pApplication
 		void   checkRCode( string ="" ) ;
 
 		void   set_cursor( int row, int col ) ;
-		void   insert_toggle()		{ Insert = !Insert ; }
-		bool   insert_get()		{ return Insert    ; }
 
 		bool   isprimMenu()  ;
 		void   get_home( uint & row, uint & col ) ;
@@ -228,4 +227,5 @@ class pApplication
 		stack<int> addpop_stk       ;
 
 		void read_Message( string ) ;
+		void load_keylist( pPanel * ) ;
 } ;

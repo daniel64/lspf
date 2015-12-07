@@ -29,6 +29,8 @@ class pPanel
 		string SMSG        ;
 		string LMSG        ;
 		string PERR        ;
+		string KEYLISTN    ;
+		string KEYAPPL     ;
 		cuaType MSGTYPE    ;
 		bool   MSGALRM     ;
 		string ZPHELP      ;
@@ -61,6 +63,9 @@ class pPanel
 
 		void   set_popup( int, int ) ;
 		void   remove_popup()        ;
+
+		void   put_keylist( int, string ) ;
+		string get_keylist( int )         ;
 
 		void   update_field_values( int & RC ) ;
 
@@ -164,6 +169,7 @@ class pPanel
 		map<string, string > commandTable ;
 		map<string, pnts > pntsTable      ;
 		map<string, string> fieldHList    ;
+		map<int, string> Keylistl         ;
 
 		map<string, fieldExc> fieldExcTable ;
 

@@ -351,21 +351,21 @@ void createSYSPROF()
 
 	string p ;
 
-        p_poolMGR->setAPPLID( RC, "ISPS" )  ;
-        p_poolMGR->createPool( RC, SHARED ) ;
-        p_poolMGR->createPool( RC, PROFILE, ZSPROF ) ;
+	p_poolMGR->setAPPLID( RC, "ISPS" )  ;
+	p_poolMGR->createPool( RC, SHARED ) ;
+	p_poolMGR->createPool( RC, PROFILE, ZSPROF ) ;
 
-        p_poolMGR->put( RC, "ZSPROF", ZSPROF, PROFILE ) ;
-        p_poolMGR->put( RC, "ZUPROF", ZUPROF, PROFILE ) ;
-        p_poolMGR->put( RC, "ZSYSPATH", ZSYSPATH, PROFILE ) ;
-        p_poolMGR->put( RC, "ZORXPATH", ZREXPATH, PROFILE ) ;
+	p_poolMGR->put( RC, "ZSPROF", ZSPROF, PROFILE ) ;
+	p_poolMGR->put( RC, "ZUPROF", ZUPROF, PROFILE ) ;
+	p_poolMGR->put( RC, "ZSYSPATH", ZSYSPATH, PROFILE ) ;
+	p_poolMGR->put( RC, "ZORXPATH", ZREXPATH, PROFILE ) ;
 
 	p_poolMGR->put( RC, "ZLDPATH", ZLDPATH, PROFILE ) ;
 
 	p_poolMGR->put( RC, "ZSLOG", SLOG, PROFILE ) ;
-        p_poolMGR->put( RC, "ZALOG", ALOG, PROFILE ) ;
+	p_poolMGR->put( RC, "ZALOG", ALOG, PROFILE ) ;
 
-        p_poolMGR->put( RC, "ZPADC", "N", PROFILE ) ;
+	p_poolMGR->put( RC, "ZPADC", "N", PROFILE ) ;
 
 	p_poolMGR->put( RC, "ZMLIB", MLIB, PROFILE ) ;
 	p_poolMGR->put( RC, "ZPLIB", PLIB, PROFILE ) ;
@@ -474,3 +474,4 @@ void setCUAcolours( string var, string val )
 
 	p_poolMGR->put( RC, var1, val, PROFILE )   ;
 }
+
