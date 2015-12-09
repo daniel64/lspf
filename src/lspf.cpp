@@ -214,7 +214,6 @@ int main(void)
 	currAppl->p_tableMGR = p_tableMGR     ;
 	currAppl->ZZAPPLID   =  "ISP"         ;
 	currAppl->NEWPOOL    = true           ;
-	p_poolMGR->createPool( RC, SHARED )   ;
 
 	p_poolMGR->put( RC, "ZSCREEN", string( 1, ZSCREEN[ screenNum ] ), SHARED, SYSTEM ) ;
 	p_poolMGR->put( RC, "ZAPPLID", "ISP", SHARED, SYSTEM ) ;
@@ -1679,6 +1678,8 @@ void loadDefaultPools()
 		splog.close() ;
 		abort() ;
 	}
+
+	p_poolMGR->createPool( RC, SHARED )   ;
 
 	ZTLIB = p_poolMGR->get( RC, "ZTLIB", PROFILE ) ;
 

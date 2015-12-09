@@ -473,6 +473,12 @@ void PTEST01::opt2()
 		log( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
 	}
 
+	tbend( "TABN" ) ;
+	log( "A", "TBEND TABN RC=" << RC << endl ) ;
+
+	tbopen( "TABN", WRITE, "/home/daniel/.lspf/" ) ;
+	log( "A", "TBOPEN TABN with WRITE RC=" << RC << endl ) ;
+
 	tbsort( "TABN", "TABB1" ) ;
 	log( "A", "TBSORT TABN RC=" << RC << endl ) ;
 	tbtop( "TABN" ) ;

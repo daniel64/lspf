@@ -280,8 +280,8 @@ void Table::tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 		}
 		else
 		{
-			for ( it = table.begin(), i = 1 ; i != CRP ; i++ ) { it++ ; }
-			it++ ;
+			it = table.begin() ;
+			advance( it, CRP ) ;
 			table.insert( it, flds ) ;
 			CRP++ ;
 		}
@@ -348,7 +348,8 @@ void Table::tbdelete( int & RC, fPOOL & funcPOOL )
 		}
 		else
 		{
-			for ( it = table.begin(), i = 1 ; i < CRP ; i++ ) { it++ ; }
+			it = table.begin() ;
+			advance( it, CRP-1 ) ;
 			table.erase( it ) ;
 			CRP-- ;
 		}
@@ -1511,6 +1512,8 @@ void tableMGR::createTable( int & RC, int m_task, string tb_name, string keys, s
 
 void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, string m_path )
 {
+	// If table already loaded, EXCLUSIVE can be changed to SHARE by the same task.  Any other combination is not valid
+
 	char x, y     ;
 	int  i, j     ;
 	int  k, l     ;
@@ -1541,14 +1544,7 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 
 	if ( tables.find( tb_name ) != tables.end() )
 	{
-
-		if ( (tables[ tb_name ].tab_DISP == EXCLUSIVE) & (m_DISP == SHARE) )
-		{
-			RC = 20 ;
-			log( "E", "Table " << tb_name << " is already open in EXCLUSIVE mode.  SHARE requested" << endl ) ;
-			return ;
-		}
-		if ( (tables[ tb_name ].tab_DISP == SHARE) & (m_DISP == EXCLUSIVE) )
+		if ( (tables[ tb_name ].tab_DISP == SHARE) && (m_DISP == EXCLUSIVE) )
 		{
 			RC = 20 ;
 			log( "E", "Table " << tb_name << " is already open in SHARE mode.  EXCLUSIVE requested" << endl ) ;
@@ -1561,6 +1557,7 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 			return ;
 		}
 		tables[ tb_name ].refCount++ ;
+		tables[ tb_name ].tab_DISP = m_DISP ;
 		return ;
 	}
 
@@ -1829,9 +1826,13 @@ bool tableMGR::tablexists( string tb_name, string tb_path )
 {
 	int  i ;
 	int  j ;
+
+	bool found ;
+
 	string filename ;
 
-	i = getpaths( tb_path ) ;
+	i     = getpaths( tb_path ) ;
+	found = false ;
 	for ( j = 1 ; j <= i ; j++ )
 	{
 		filename = getpath( tb_path, j ) + tb_name ;
@@ -1844,12 +1845,12 @@ bool tableMGR::tablexists( string tb_name, string tb_path )
 			}
 			else
 			{
-				j = 999 ;
-				break   ;
+				found = true ;
+				break ;
 			}
 		}
 	}
-	if ( j != 999 )
+	if ( !found )
 	{
 		log( "I", "Table file not found in path search for " << tb_name << endl ) ;
 		return  false ;
@@ -1870,7 +1871,11 @@ void tableMGR::statistics()
 	{
 		log( "-", "" << endl ) ;
 		log( "-", "                  Table: " << it->first << endl ) ;
-		if ( tables[ it->first ].changed )
+		if ( tables[ it->first ].tab_temporary )
+		{
+			log( "-", "                 Status: " << "Temporary table" << endl ) ;
+		}
+		else if ( tables[ it->first ].changed )
 		{
 			log( "-", "                 Status: " << "Modified since load or last save" << endl ) ;
 		}
@@ -2025,6 +2030,9 @@ void tableMGR::tberase( int & RC, string tb_name, string tb_path )
 {
 	int  i ;
 	int  j ;
+
+	bool found ;
+
 	string filename ;
 
 	RC = 0 ;
@@ -2036,6 +2044,7 @@ void tableMGR::tberase( int & RC, string tb_name, string tb_path )
 	}
 
 	i = getpaths( tb_path ) ;
+	found = false ;
 	for ( j = 1 ; j <= i ; j++ )
 	{
 		filename = getpath( tb_path, j ) + tb_name ;
@@ -2049,12 +2058,12 @@ void tableMGR::tberase( int & RC, string tb_name, string tb_path )
 			}
 			else
 			{
-				j = 999 ;
-				break   ;
+				found = true ;
+				break ;
 			}
 		}
 	}
-	if ( j != 999 )
+	if ( !found )
 	{
 		RC = 8 ;
 		log( "W", "Table file for " << tb_name << " not found in path search"  << endl ) ;
