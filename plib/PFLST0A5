@@ -1,12 +1,12 @@
 )PANEL VERSION=1 FORMAT=1
 )COMMENT
- Browse entry panel
+ Copy file
 )ENDCOMMENT
 )BODY
 PanelTitle "Copy File"
 
-literal  4   2        FP    "Command ===> "  
-field    4  15   MAX  NEF CAPS(ON) ZCMD  
+literal  4   2        FP    "Command ===> "
+field    4  15   MAX  NEF CAPS(ON) ZCMD
 
 literal  6   2   FP   "Pathname . . . . . . ."
 field    6   25  MAX  VOI  NONE ENTRY
@@ -25,10 +25,10 @@ field    12   25  MAX  NEF NONE NEWENTRY
 literal  14 2 PIN "Enter / to select option"
 
 field    15   2   1   CEF PAD('_') FREPL
-literal  15   4       SAC    "Replace like-named pathname"  
+literal  15   4       SAC    "Replace like-named pathname"
 
 field    16   2   1   CEF PAD('_') DIRREC
-literal  16   4       SAC    "Recursively copy sub-directories"  
+literal  16   4       SAC    "Recursively copy sub-directories"
 
 literal 19 2  CH "Instructions"
 
@@ -45,19 +45,17 @@ literal 22 22 NT "to cancel copy"
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
 
+)INIT
+  &NEWENTRY = &ENTRY
+  .CURSOR   = NEWENTRY
+
 )PROC
 
 IF (&NEWENTRY EQ '.' )
-  &NEWENTRY = &ENTRY
+  &NEWENTRY = &ZPATH
   .CURSOR   = NEWENTRY
   .MSG      = FLST012
   EXIT
-ELSE
-  IF (&NEWENTRY EQ '..' )
-    &NEWENTRY = &ZPATH
-    .CURSOR   = NEWENTRY
-    .MSG      = FLST012
-    EXIT
 
 IF (&NEWENTRY EQ &ENTRY )
   .CURSOR = NEWENTRY

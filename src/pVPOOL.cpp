@@ -72,7 +72,7 @@ dataType fPOOL::getType( int & RC, string name, nameCHCK check )
 {
 	RC = 0    ;
 
-        if ( (check == CHECK) && !isvalidName( name ) ) { RC = 20 ; return ERROR ; }
+	if ( (check == CHECK) && !isvalidName( name ) ) { RC = 20 ; return ERROR ; }
 
 	if ( POOL.find( name ) == POOL.end() ) { RC = 8 ; return ERROR ; }
 
@@ -89,7 +89,7 @@ string * fPOOL::vlocate( int & RC, int maxRC, string name, nameCHCK check )
 
 	if ( (check == CHECK) && !isvalidName( name ) ) { RC = 20 ; return NULL ; }
 
-        it = POOL.find( name ) ;
+	it = POOL.find( name ) ;
 	if ( it == POOL.end() ) { RC = 8 ; return NULL ; }
 	if ( it->second.top().fVAR_type != STRING )
 	{
@@ -144,7 +144,7 @@ void fPOOL::put( int & RC, int maxRC, string name, int value )
 
 	RC = 0 ;
 
-        if ( !isvalidName( name ) ) { RC = 20 ; return  ; }
+	if ( !isvalidName( name ) ) { RC = 20 ; return  ; }
 
 	it = POOL.find( name ) ;
 	if ( it == POOL.end() )
@@ -305,7 +305,7 @@ void pVPOOL::put( int & RC, string name, string value, vTYPE vtype )
 	else
 	{
 		if ( it->second.pVAR_system && vtype != SYSTEM ) { RC = 20 ;                                        }
-		else						 { it->second.pVAR_value = value ; changed = true ; }
+		else                                             { it->second.pVAR_value = value ; changed = true ; }
 	}
 }
 
@@ -437,16 +437,16 @@ void pVPOOL::load( int & RC, string currAPPLID, string path )
 	}
 
 	profile.get( x ) ;
-      	i = static_cast< int >( x ) ;
+	i = static_cast< int >( x ) ;
 	if ( i < 0 ) { i = 256 + i ; }
-       	profile.read (buf1 , i);
+	profile.read (buf1 , i);
 	hdr.assign( buf1, i ) ;
-        debug1(" PROFILE Header " << hdr << endl ) ;
+	debug1(" PROFILE Header " << hdr << endl ) ;
 
 	while ( true )
 	{
 		profile.get( x ) ;
-		if ( profile.fail() != 0 ) { break ; } ; 
+		if ( profile.fail() != 0 ) { break ; } ;
 		i = static_cast< int >( x ) ;
 		if ( i < 0 ) { i = 256 + i ; }
 		profile.read (buf1 , i) ;
@@ -532,7 +532,7 @@ void pVPOOL::save( int & RC, string currAPPLID )
 	ofstream profile ;
 	profile.open( s.c_str(), ios::binary | ios::out ) ;
 	profile << (char)00  ;  //
-	profile << (char)132 ;  // x084 denotes a profile 
+	profile << (char)132 ;  // x084 denotes a profile
 	profile << (char)1   ;  // PROFILE format version 1
 	profile << (char)44  ;  // Header length
 	profile << "HDR                                         " ;
@@ -777,8 +777,8 @@ void poolMGR::statistics()
 	{
 		if ( sp_it->second.readOnly ) { Mode = "RO" ; }
 		else                          { Mode = "UP" ; }
-		log( "-", "            Pool " << setw(8) << sp_it->first << "  use count: " << setw(4) << POOLs_shared[ sp_it->first ].refCount <<
-		          "  " << Mode << "  entries: " << setw(5) << sp_it->second.POOL.size() << endl ) ;
+		log( "-", "            Pool " << setw(8) << sp_it->first << "  use count: " << setw(4) << sp_it->second.refCount <<
+			  "  " << Mode << "  entries: " << setw(5) << sp_it->second.POOL.size() << endl ) ;
 	}
 	log( "-", "" << endl ) ;
 	log( "-", "         PROFILE pool details:" << endl ) ;
@@ -786,8 +786,8 @@ void poolMGR::statistics()
 	{
 		if ( pp_it->second.readOnly ) { Mode = "RO" ; }
 		else                          { Mode = "UP" ; }
-		log( "-", "            Pool " << setw(8) << pp_it->first << "  use count: " << setw(4) << POOLs_profile[ pp_it->first ].refCount <<
-		          "  " << Mode << "  entries: " << setw(5) << pp_it->second.POOL.size() << "  path: " << POOLs_profile[ pp_it->first ].path << endl ) ;
+		log( "-", "            Pool " << setw(8) << pp_it->first << "  use count: " << setw(4) << pp_it->second.refCount <<
+			  "  " << Mode << "  entries: " << setw(5) << pp_it->second.POOL.size() << "  path: " << pp_it->second.path << endl ) ;
 	}
 	log( "-", "*************************************************************************************************************" << endl ) ;
 }
@@ -806,8 +806,8 @@ void poolMGR::snap()
 	log( "-", "         Shared pool details:" << endl ) ;
 	for ( sp_it = POOLs_shared.begin() ; sp_it != POOLs_shared.end() ; sp_it++ )
 	{
-		log( "-", "         Pool " << setw(8) << sp_it->first << " use count:" << setw(3) << POOLs_shared[ sp_it->first ].refCount <<
-		          " entries: " << sp_it->second.POOL.size() << endl ) ;
+		log( "-", "         Pool " << setw(8) << sp_it->first << " use count:" << setw(3) << sp_it->second.refCount <<
+			  " entries: " << sp_it->second.POOL.size() << endl ) ;
 		for ( v_it = sp_it->second.POOL.begin() ; v_it != sp_it->second.POOL.end() ; v_it++ )
 		{
 			if ( sp_it->second.isSystem( RC, v_it->first ) ) { vtype = "S" ; }
@@ -819,12 +819,12 @@ void poolMGR::snap()
 	log( "-", "         PROFILE pool details:" << endl ) ;
 	for ( pp_it = POOLs_profile.begin() ; pp_it != POOLs_profile.end() ; pp_it++ )
 	{
-		log( "-", "         Pool " << setw(8) << pp_it->first << " use count: " << setw(3) << POOLs_profile[ pp_it->first ].refCount <<
-		          " entries: " << pp_it->second.POOL.size() << endl ) ;
-		log( "-", "                            path: " << setw(3) << POOLs_profile[ pp_it->first ].path << endl ) ;
+		log( "-", "         Pool " << setw(8) << pp_it->first << " use count: " << setw(3) << pp_it->second.refCount <<
+			  " entries: " << pp_it->second.POOL.size() << endl ) ;
+		log( "-", "                            path: " << setw(3) << pp_it->second.path << endl ) ;
 		for ( v_it = pp_it->second.POOL.begin() ; v_it != pp_it->second.POOL.end() ; v_it++ )
 		{
-			if ( sp_it->second.isSystem( RC, v_it->first ) ) { vtype = "S" ; }
+			if ( pp_it->second.isSystem( RC, v_it->first ) ) { vtype = "S" ; }
 			else                                             { vtype = "N" ; }
 			log( "-", setw(8) << v_it->first << " :" << vtype << ": " << pp_it->second.get( RC, v_it->first ) << "<< " << endl ) ;
 		}
@@ -837,7 +837,7 @@ void poolMGR::setAPPLID( int & RC, string m_APPLID )
 {
 	RC = 0 ;
 
-        if ( !isvalidName4( m_APPLID ) )
+	if ( !isvalidName4( m_APPLID ) )
 	{
 		RC = 20 ;
 		log( "C", "Invalid APPLID name format passed to pool manager >>" << m_APPLID << "<<" << endl ) ;
@@ -933,7 +933,7 @@ bool poolMGR::ifexists( int & RC, string name )
 	map<string, pVPOOL>::iterator p_it  ;
 	RC = 0 ;
 
-        if ( !isvalidName( name ) ) { RC = 20 ; return false ; }
+	if ( !isvalidName( name ) ) { RC = 20 ; return false ; }
 
 	locateSubPool( RC, p_it, name, SHARED ) ;
 	if ( RC == 0 ) { return true ; }
@@ -965,7 +965,7 @@ void poolMGR::put( int & RC, string name, string value, poolType pType, vTYPE vt
 	RC  = 0 ;
 	RC2 = 0 ;
 
-        if ( !isvalidName( name ) ) { RC = 20 ; return ; }
+	if ( !isvalidName( name ) ) { RC = 20 ; return ; }
 
 	sp_it = POOLs_shared.find( shrdPool ) ;
 	if ( sp_it == POOLs_shared.end() )
@@ -1022,7 +1022,7 @@ string poolMGR::get( int & RC, string name, poolType pType )
 	RC  = 0 ;
 	RC2 = 0 ;
 
-        if ( !isvalidName( name ) ) { RC = 20 ; return "" ; }
+	if ( !isvalidName( name ) ) { RC = 20 ; return "" ; }
 
 	switch ( pType )
 	{
@@ -1066,7 +1066,7 @@ string * poolMGR::vlocate( int & RC, string name, poolType pType )
 	map<string, pVPOOL>::iterator p_it  ;
 	RC  = 0 ;
 
-        if ( !isvalidName( name ) ) { RC = 20 ; return NULL ; }
+	if ( !isvalidName( name ) ) { RC = 20 ; return NULL ; }
 
 	switch ( pType )
 	{

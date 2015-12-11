@@ -251,8 +251,9 @@ main()
 	// ========================= USRCMDS ======================================
 	ZCTVERB  = "EDIT" ;
 	ZCTTRUNC = "2" ;
-	ZCTACT   = "SELECT PGM(&ZFLSTPGM) NEWAPPL(ISR) PARM(EDIT &ZPARM)"   ;
-	ZCTDESC  = "INVOKE EDIT" ;
+//      ZCTACT   = "SELECT PGM(&ZFLSTPGM) NEWAPPL(ISR) PARM(EDIT &ZPARM)"   ;
+	ZCTACT   = "SELECT PGM(&ZEDITPGM) NEWAPPL(ISR) PARM(ENTRYPNL)"   ;
+	ZCTDESC  = "INVOKE EDIT ENTRY PANEL" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
 	ZCTVERB  = "BROWSE" ;

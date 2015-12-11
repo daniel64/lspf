@@ -1,7 +1,7 @@
 )PANEL VERSION=1 FORMAT=1
 
 )COMMENT
- Browse entry panel
+ Rename file
  WINDOW(width,depth) on body statement for pop-up window testing
 )ENDCOMMENT
 
@@ -10,8 +10,8 @@
 
 PanelTitle "Rename File"
 
-literal  4   2       FP    "Command ===> "  
-field    4  15   MAX NEF CAPS(ON) ZCMD  
+literal  4   2       FP    "Command ===> "
+field    4  15   MAX NEF CAPS(ON) ZCMD
 
 literal  6   2   FP    "Pathname . . . . . . ."
 field    6   25  MAX VOI  NONE ENTRY
@@ -44,16 +44,11 @@ literal 18 22 NT "to cancel rename"
 
 )INIT
 
-.CURSOR = NEWENTRY
+.CURSOR    = NEWENTRY
+ &NEWENTRY = &ENTRY
 
 
 )PROC
-
-IF (&NEWENTRY EQ '.' )
-  &NEWENTRY = &ENTRY
-  .CURSOR   = NEWENTRY
-  .MSG      = FLST012
-  EXIT
 
 IF (&NEWENTRY EQ &ENTRY )
   .CURSOR = NEWENTRY
@@ -62,7 +57,6 @@ IF (&NEWENTRY EQ &ENTRY )
 
 VER (&NEWENTRY NB)
 VER (&ZCMD LIST CAN CANCEL)
-
 
 )FIELD
  FIELD(NEWENTRY) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL)')
