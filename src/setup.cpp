@@ -127,6 +127,12 @@ main()
 	ZCTDESC  = "BUILTIN ISPCMDS ENTRY" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
+	ZCTVERB  = "RCHANGE" ;
+	ZCTTRUNC = "0"       ;
+	ZCTACT   = "SETVERB" ;
+	ZCTDESC  = "BUILTIN ISPCMDS ENTRY" ;
+	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
 	ZCTVERB  = "END"    ;
 	ZCTTRUNC = "0"      ;
 	ZCTACT   = "SETVERB" ;

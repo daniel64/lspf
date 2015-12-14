@@ -1,7 +1,7 @@
 )PANEL VERSION=1 FORMAT=1
 
 )COMMENT
- File and Directory list panel
+ File and Directory Selection list panel
 )ENDCOMMENT
 
 )BODY
@@ -9,20 +9,20 @@ PanelTitle "File/Directory Selection List"
 
 scrollOn
 
-literal  4   2           FP    "Command ===> "  
-field    4  15   MAX-17  NEF NONE ZCMD  
+literal  4   2           FP    "Command ===> "
+field    4  15   MAX-17  NEF NONE ZCMD
 
 literal  4  MAX-15  FP "SCROLL ===>"
 field    4  MAX-3   4  NEF  NONE ZSCROLL
 
-literal  6   2       FP  "Path Name . . ."  
-field    6  18  MAX  NEF NONE ZPATH  
+literal  6   2       FP  "Path Name . . ."
+field    6  18  MAX  NEF NONE ZPATH
 
 field    8   2   1   CEF     PAD('_') FLDIRS
-literal  8   4       SAC    "Show directory entries only"  
+literal  8   4       SAC    "Show directory entries only"
 
 field    9   2   1   CEF     PAD('_') FLHIDDEN
-literal  9   4       SAC    "Show hidden entries also"  
+literal  9   4       SAC    "Show hidden entries also"
 
 literal 11 2   CH "Instructions"
 literal 12 2   NT "Enter"
@@ -32,13 +32,13 @@ literal 12 41  ET "S"
 literal 12 43  NT "to copy entry to the field"
 
 
-literal  14  2 CH  "S Entry                                                        Type"  
-literal  15  2 CH  EXPAND  "-"  
+literal  14  2 CH  "S Entry                                                        Type"
+literal  15  2 CH  EXPAND  "-"
 
 tbmodel  16    MAX
-tbfield  2     1   NEF  SKIP(OFF),CAPS(ON),PAD('_'),JUST(LEFT) SEL  
+tbfield  2     1   NEF  SKIP(OFF),CAPS(ON),PAD('_'),JUST(LEFT) SEL
 tbfield  ++1   60  VOI   NONE ENTRY
-tbfield  ++1   8   VOI   NONE TYPE 
+tbfield  ++1   8   VOI   NONE TYPE
 
 )INCLUDE STD_PDC
 )INCLUDE RFL_PDC
@@ -47,10 +47,10 @@ tbfield  ++1   8   VOI   NONE TYPE
 
 )INIT
 VGET (ZSCROLL FLDIRS) PROFILE
-.ATTR(TYPE)    = 'COLOUR(WHITE)' 
+.ATTR(TYPE)    = 'COLOUR(WHITE)'
 .HELP = HFLST02
 
-.NRET = ON           /* Enable NRETRIV and REFLIST */ 
+.NRET = ON           /* Enable NRETRIV and REFLIST */
 &ZRFFLDA = ZPATH
 VPUT ZRFFLDA SHARED
 

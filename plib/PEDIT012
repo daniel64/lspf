@@ -10,15 +10,15 @@ scrollOn
 --PanelTitle "Edit File"
 
 literal  3   2   FP  "EDIT"
-field    3  12   70   VOI  NONE ZFILE
+field    3  12   70   VOI  NONE ZFILENM
 
 literal  4   2      FP "Command ===> "
-field 4  15 MAX-17  NEF PAD('_') ZCMD 
+field 4  15 MAX-17  NEF PAD('_') ZCMD
 
-literal  4 MAX-15    FP  "SCROLL ===> "  
+literal  4 MAX-15    FP  "SCROLL ===> "
 field    4 MAX-3   4  NEF  NONE  ZSCROLL
 
---literal  5   1       FP  "File Name:" 
+--literal  5   1       FP  "File Name:"
 --field    5  12      70   VOI  NONE ZFILE
 
 literal   3   MAX-37    FP  "COL"

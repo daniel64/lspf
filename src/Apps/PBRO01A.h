@@ -95,6 +95,7 @@ class PBRO01A : public pApplication
 		string ZCOL1   ;
 		string ZAREA   ;
 		string ZSHADOW ;
+		string CSHADOW ;
 		string ZAREAT  ;
 		int    ZAREAW  ;
 		int    ZAREAD  ;

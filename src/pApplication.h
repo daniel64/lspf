@@ -34,7 +34,7 @@ class pApplication
 		bool   ControlDisplayLock ;
 		bool   ControlSplitEnable ;
 		bool   ControlRefUpdate   ;
-                bool   errPanelissued     ;
+		bool   errPanelissued     ;
 		bool   testMode           ;
 		bool   propagateEnd       ;
 		bool   jumpEntered        ;
@@ -71,7 +71,7 @@ class pApplication
 
 		pPanel * currPanel   ;
 		pPanel * currtbPanel ;
-		map<string,  pPanel *>	panelList ;
+		map<string,  pPanel *>  panelList ;
 		stack<pPanel *> SRpanelStack      ;
 
 		int    taskid()  { return taskID ; }
@@ -132,7 +132,7 @@ class pApplication
 		void   tbsort( string tb_name, string tb_fields ) ;
 		void   tbtop( string tb_name ) ;
 		void   tbvclear( string tb_name ) ;
-		
+
 		bool   isTableOpen( string tb_name, string func ) ;
 		bool   isTableUpdate( string tb_name, string func ) ;
 
@@ -163,7 +163,7 @@ class pApplication
 		void   set_forced_abend() ;
 		void   closeTables() ;
 		void   closeLog()    ;
-		
+
 		string ZAPPNAME   ;
 		string ZAPPDESC   ;
 		string ZMLIB      ;
@@ -171,7 +171,7 @@ class pApplication
 		string ZTLIB      ;
 		string ZZAPPLID   ;
 		string ZCURFLD    ;
-		int    ZCURPOS	  ;
+		int    ZCURPOS    ;
 		string ZTDMARK    ;
 		int    ZTDDEPTH   ;
 		int    ZTDROWS    ;

@@ -36,7 +36,7 @@ pApplication::pApplication()
 	ControlErrorsReturn    = false  ;
 	ControlSplitEnable     = true   ;
 	ControlRefUpdate       = true   ;
-        errPanelissued         = false  ;
+	errPanelissued         = false  ;
 	abending               = false  ;
 	addpop_active          = false  ;
 	noTimeOut              = false  ;
@@ -142,7 +142,7 @@ void pApplication::panel_create( string p_name )
 	{
 		panelList[ p_name ] = p_panel ;
 		load_keylist( p_panel )       ;
-		
+
 	}
 	else
 	{
@@ -226,7 +226,7 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 		}
 	}
 	setMSG            = false    ;
-        PANELID           = p_name   ;
+	PANELID           = p_name   ;
 	currPanel->CURFLD = p_cursor ;
 	currPanel->CURPOS = p_csrpos ;
 	if ( addpop_active ) { currPanel->set_popup( addpop_row, addpop_col ) ; }
@@ -317,7 +317,7 @@ void pApplication::libdef( string lib, string type )
 	// RC = 16  No paths in the corresponding ZxUSER variable
 	// RC = 20  Severe error
 
-	if ( wordpos ( lib, "ZMUSER ZPUSER ZTUSER" ) == 0 ) { RC = 20 ; checkRCode( "Invalid variable name on libdef" ) ; return ; }  
+	if ( wordpos ( lib, "ZMUSER ZPUSER ZTUSER" ) == 0 ) { RC = 20 ; checkRCode( "Invalid variable name on libdef" ) ; return ; }
 	if ( type == "" )
 	{
 		if ( lib == "ZMUSER" )
@@ -890,7 +890,7 @@ void pApplication::addpop( string a_fld, int a_row, int a_col )
 	{
 		if ( panelList.size() == 0 )
 		{
-			RC = 12 ; 
+			RC = 12 ;
 			checkRCode( "No prior DISPLAY PANEL before ADDPOP service" ) ;
 			return ;
 		}
@@ -1107,7 +1107,7 @@ void pApplication::control( string parm1, void (pApplication::*pFunc)() )
 }
 
 
-void pApplication::tbadd( string tb_name, string tb_namelst, string tb_order, int tb_num_of_rows ) 
+void pApplication::tbadd( string tb_name, string tb_namelst, string tb_order, int tb_num_of_rows )
 {
 	// Add a row to a table
 
@@ -1175,7 +1175,7 @@ void pApplication::tbclose( string tb_name, string tb_newname, string tb_path )
 		{
 			tablesOpen.erase( tb_name ) ;
 			tablesUpdate.erase( tb_name ) ;
-		}		
+		}
 	}
 	if ( RC > 8 ) { checkRCode( "TBCLOSE gave return code of " + d2ds( RC ) ) ; }
 }
@@ -1269,7 +1269,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 
 	// Autoselect if the p_csrpos CRP is visible
 
-	// Use separate pointer currtbPanel for tb displays so that a CONTROL DISPLAY SAVE/RESTORE is only necessary when a tbdispl issues another tbdispl and not 
+	// Use separate pointer currtbPanel for tb displays so that a CONTROL DISPLAY SAVE/RESTORE is only necessary when a tbdispl issues another tbdispl and not
 	// for a display of an ordinary panel
 
 	int EXITRC  ;
@@ -1398,7 +1398,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 		}
 
 		ZZVERB = p_poolMGR->get( RC, "ZVERB" ) ;
-                if ( RC > 0 ) { RC = 20 ; checkRCode( "PoolMGR get of ZVERB failed" ) ; }
+		if ( RC > 0 ) { RC = 20 ; checkRCode( "PoolMGR get of ZVERB failed" ) ; }
 		if ( ZZVERB == "RETURN" ) { propagateEnd = true  ; }
 		if ( ZZVERB == "END" || ZZVERB == "EXIT" || ZZVERB == "RETURN" ) { RC = 8 ; return ; }
 
@@ -1608,7 +1608,7 @@ void pApplication::tbopen( string tb_name, tbSAVE m_SAVE, string m_paths, tbDISP
 
 	if ( m_paths == "" )
 	{
-	  	if ( libdef_tuser ) m_paths = mergepaths( ZTUSER, ZTLIB ) ;
+		if ( libdef_tuser ) m_paths = mergepaths( ZTUSER, ZTLIB ) ;
 		else                m_paths = ZTLIB                       ;
 	}
 
@@ -1818,7 +1818,7 @@ void pApplication::select( string cmd )
 
 	if ( RC > 0 )
 	{
-		checkRCode( "Error in SELECT commmand format.  RC=" + d2ds( RC ) + "  Command passed was " + cmd ) ; 
+		checkRCode( "Error in SELECT commmand format.  RC=" + d2ds( RC ) + "  Command passed was " + cmd ) ;
 		return ;
 	}
 	SEL         = true  ;
@@ -1840,7 +1840,7 @@ void pApplication::select( string cmd )
 
 void pApplication::select( string pgm, string parm, string newappl, bool newpool, bool passlib )
 {
-	// SELECT function - this format is for internal use only.  Use keyword format of the SELECT for application programs. 
+	// SELECT function - this format is for internal use only.  Use keyword format of the SELECT for application programs.
 	// No variable substitution is done at this level.
 
 	// RC=0  Normal completion of the selection panel or function.  END was entered.
@@ -1915,48 +1915,59 @@ void pApplication::load_keylist( pPanel * p )
 	string KEYLISTN ;
 
 	KEYLISTN = p->KEYLISTN ;
+	if ( KEYLISTN == "" ) { return ; }
 
-	if ( KEYLISTN != "" )
+	KEYAPPL = p->KEYAPPL ;
+	tabName = KEYAPPL+"KTAB" ;
+
+	vcopy( "ZUPROF", UPROF, MOVE ) ;
+	tbopen( tabName, NOWRITE, UPROF, SHARE ) ;
+	if ( RC  > 0 )
 	{
-		KEYAPPL  = p->KEYAPPL ;
-		tabName  = KEYAPPL+"KTAB" ;
-		vcopy( "ZUPROF", UPROF, MOVE ) ;
-		tbopen( tabName, NOWRITE, UPROF, SHARE ) ;
-		if ( RC  > 0 )
-		{
-			RC = 20 ;
-			checkRCode( "Open of keylist table " + tabName + " failed" ) ;
-		}
-		tbvclear( tabName ) ;
-		vreplace( "KEYLISTN", KEYLISTN ) ;
-		tbsarg( tabName ) ;
-		if ( RC  > 0 )
-		{
-			tbend( tabName ) ;
-			RC = 20 ;
-			checkRCode( "TBSARG error setting search for " + KEYLISTN + ", table " + tabName ) ;
-		}
-		tbscan( tabName ) ;
-		if ( RC  > 0 )
-		{
-			tbend( tabName ) ;
-			RC = 20 ;
-			checkRCode( "Keylist " + KEYLISTN + " not found in keylist table " + tabName ) ;
-		}
-		vcopy( "KEY1DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(1),  tabField ) ;
-		vcopy( "KEY2DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(2),  tabField ) ;
-		vcopy( "KEY3DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(3),  tabField ) ;
-		vcopy( "KEY4DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(4),  tabField ) ;
-		vcopy( "KEY5DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(5),  tabField ) ;
-		vcopy( "KEY6DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(6),  tabField ) ;
-		vcopy( "KEY7DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(7),  tabField ) ;
-		vcopy( "KEY8DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(8),  tabField ) ;
-		vcopy( "KEY9DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(9),  tabField ) ;
-		vcopy( "KEY10DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(10), tabField ) ;
-		vcopy( "KEY11DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(11), tabField ) ;
-		vcopy( "KEY12DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(12), tabField ) ;
-		tbend( tabName ) ;
+		RC = 20 ;
+		checkRCode( "Open of keylist table " + tabName + " failed" ) ;
 	}
+	tbvclear( tabName ) ;
+	vreplace( "KEYLISTN", KEYLISTN ) ;
+	tbsarg( tabName ) ;
+	if ( RC  > 0 )
+	{
+		tbend( tabName ) ;
+		RC = 20 ;
+		checkRCode( "TBSARG error setting search for " + KEYLISTN + ", table " + tabName ) ;
+	}
+	tbscan( tabName ) ;
+	if ( RC  > 0 )
+	{
+		tbend( tabName ) ;
+		RC = 20 ;
+		checkRCode( "Keylist " + KEYLISTN + " not found in keylist table " + tabName ) ;
+	}
+	vcopy( "KEY1DEF",  tabField, MOVE ) ; p->put_keylist( KEY_F(1),  tabField ) ;
+	vcopy( "KEY2DEF",  tabField, MOVE ) ; p->put_keylist( KEY_F(2),  tabField ) ;
+	vcopy( "KEY3DEF",  tabField, MOVE ) ; p->put_keylist( KEY_F(3),  tabField ) ;
+	vcopy( "KEY4DEF",  tabField, MOVE ) ; p->put_keylist( KEY_F(4),  tabField ) ;
+	vcopy( "KEY5DEF",  tabField, MOVE ) ; p->put_keylist( KEY_F(5),  tabField ) ;
+	vcopy( "KEY6DEF",  tabField, MOVE ) ; p->put_keylist( KEY_F(6),  tabField ) ;
+	vcopy( "KEY7DEF",  tabField, MOVE ) ; p->put_keylist( KEY_F(7),  tabField ) ;
+	vcopy( "KEY8DEF",  tabField, MOVE ) ; p->put_keylist( KEY_F(8),  tabField ) ;
+	vcopy( "KEY9DEF",  tabField, MOVE ) ; p->put_keylist( KEY_F(9),  tabField ) ;
+	vcopy( "KEY10DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(10), tabField ) ;
+	vcopy( "KEY11DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(11), tabField ) ;
+	vcopy( "KEY12DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(12), tabField ) ;
+	vcopy( "KEY13DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(13), tabField ) ;
+	vcopy( "KEY14DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(14), tabField ) ;
+	vcopy( "KEY15DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(15), tabField ) ;
+	vcopy( "KEY16DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(16), tabField ) ;
+	vcopy( "KEY17DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(17), tabField ) ;
+	vcopy( "KEY18DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(18), tabField ) ;
+	vcopy( "KEY19DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(19), tabField ) ;
+	vcopy( "KEY20DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(20), tabField ) ;
+	vcopy( "KEY21DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(21), tabField ) ;
+	vcopy( "KEY22DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(22), tabField ) ;
+	vcopy( "KEY23DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(23), tabField ) ;
+	vcopy( "KEY24DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(24), tabField ) ;
+	tbend( tabName ) ;
 
 }
 

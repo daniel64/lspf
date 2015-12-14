@@ -34,7 +34,7 @@
 /*  BIN/BINARY                                                                            */
 /*      Open file as binary                                                               */
 /*  HEX ON | OFF                                                                          */
-/*      Display data as hex                                                               */ 
+/*      Display data as hex                                                               */
 /*  COLS ON  | OFF                                                                        */
 /*      Display columns on top line of data                                               */
 /*  F/FIND                                                                                */
@@ -161,8 +161,9 @@ void PBRO01A::application()
 	ZASIZE = ZAREAW*ZAREAD ;
 
 	while ( true )
-        {
-		if ( rebuildZAREA ) fill_dynamic_area() ;
+	{
+		if ( rebuildZAREA ) { fill_dynamic_area() ; }
+		else                { ZSHADOW = CSHADOW   ; }
 		if ( CURFLD == "ZAREA" )
 		{
 			for ( i = CURPOS-1 ; i < ZASIZE ; i++ )
@@ -362,9 +363,9 @@ void PBRO01A::application()
 		else  { MSG = "PBRO011" ; continue ; }
 
 		if ( firstLine < 0 ) firstLine = 0 ;
-        }
+	}
 	vput( "ZSCROLL", PROFILE ) ;
-        return ;
+	return ;
 }
 
 
@@ -382,7 +383,7 @@ void PBRO01A::read_file( string file )
 
 	firstLine = 0 ;
 	ifstream fin  ;
-	
+
 	try
 	{
 		if ( !exists( file ) )
@@ -426,12 +427,12 @@ void PBRO01A::read_file( string file )
 
 	magic_t cookie = magic_open(MAGIC_CONTINUE|MAGIC_ERROR|MAGIC_MIME);
 	magic_load( cookie, NULL ) ;
-	
+
 	fileType = magic_file( cookie, file.c_str() ) ;
 	p1 = fileType.find( ';' ) ;
 	if ( p1 != string::npos ) { fileType = fileType.substr( 0, p1 ) ; }
 	magic_close( cookie ) ;
-	
+
 	if ( fileType == "text/plain" )
 	{
 		p1 = lastpos( ".", file ) ;
@@ -455,7 +456,7 @@ void PBRO01A::read_file( string file )
 		while ( true )
 		{
 			fin.get( x ) ;
-			if ( fin.fail() != 0 ) { break ; } ; 
+			if ( fin.fail() != 0 ) { break ; } ;
 			inLine.replace( i, 1, 1, x ) ;
 			i++ ;
 			if ( i == ZAREAW )
@@ -561,11 +562,11 @@ void PBRO01A::fill_dynamic_area()
 			t4 = string( ZAREAW, ' ' ) ;
 			if ( k >  0 & k < data.size()-1 )
 			{
-				ln = data[ k ].size() - startCol + 1 ;
+				ln = data.at( k ).size() - startCol + 1 ;
 				if ( ln > ZAREAW ) ln = ZAREAW       ;
-				t1 = substr( data[ k ] , startCol, ZAREAW ) ;
+				t1 = substr( data.at( k ), startCol, ZAREAW ) ;
 				t2 = cs2xs( t1 ) ;
-				if ( ln > 0 ) 
+				if ( ln > 0 )
 				{
 					i = 0 ;
 					for ( l = 0 ; l < (ln * 2) ; l++ )
@@ -581,7 +582,7 @@ void PBRO01A::fill_dynamic_area()
 			}
 			else
 			{
-				ZAREA   = ZAREA   + substr( data[ k ], 1, ZAREAW ) ;
+				ZAREA   = ZAREA   + substr( data.at( k ), 1, ZAREAW ) ;
 				ZSHADOW = ZSHADOW + s1g ;
 			}
 			if ( ZAREA.size() >= ZASIZE ) { break ; }
@@ -592,18 +593,20 @@ void PBRO01A::fill_dynamic_area()
 	{
 		for( int k = firstLine ; k < (firstLine + ZAREAD) ; k++ )
 		{
-			if ( k >  0 & k < data.size()-1 )  t1 = substr( data[ k ] , startCol, ZAREAW ) ;
-			else                               t1 = substr( data[ k ] , 1, ZAREAW ) ;
+			if ( k >  0 & k < data.size()-1 )  t1 = substr( data.at( k ), startCol, ZAREAW ) ;
+			else                               t1 = substr( data.at( k ), 1, ZAREAW ) ;
 			ZAREA   = ZAREA   + t1 ;
 			if ( ZAREA.size() >= ZASIZE ) { break ; }
 			if ( k == data.size() - 1 )   { break ; }
 		}
-	//	addHilight( data, fileType, firstLine, startCol, ZAREAW, ZAREAD, ZSHADOW ) ;
+	//      addHilight( data, fileType, firstLine, startCol, ZAREAW, ZAREAD, ZSHADOW ) ;
 		ZAREA.resize( ZASIZE, ' ' ) ;
 		ZSHADOW.resize( ZASIZE, N_GREEN ) ;
 
 	}
+	CSHADOW = ZSHADOW ;
 }
+
 
 int PBRO01A::setFind()
 {
@@ -731,7 +734,7 @@ int PBRO01A::setFind()
 			t.f_mtch   = 'S'  ;
 			t.f_regreq = true ;
 			p1   = wordindex( ucmd, p1 ) ;
- 			ucmd = delstr( ucmd, p1, 3 ) ;
+			ucmd = delstr( ucmd, p1, 3 ) ;
 		}
 		else if ( p1 = wordpos( "SUFFIX", ucmd ) )
 		{
@@ -787,7 +790,7 @@ int PBRO01A::setFind()
 	}
 
 	if ( t.f_scol>0 && t.f_ecol>0 && ((t.f_ecol - t.f_scol) < t.f_estring.size()) ) { MSG = "PBRO014" ; return 20 ; }
-	
+
 	if ( t.f_scol>0 && t.f_ecol==0 ) { t.f_oncol = true ; }
 
 	if ( t.f_hex )
@@ -907,7 +910,7 @@ void PBRO01A::actionFind( int spos, int offset )
 	if ( offset > 0 ) { oX = (offset % ZAREAW)-1 ; oY = offset / ZAREAW ; }
 	else              { oX = 0        ; oY = 0 ; }
 	if ( oX == -1 )   { oX = ZAREAW-1 ; oY--   ; }
-	
+
 	try
 	{
 		if ( find_parms.f_regreq )
@@ -934,24 +937,24 @@ void PBRO01A::actionFind( int spos, int offset )
 	if      ( find_parms.f_dir == 'F' ) { dl = 1             ; }
 	else if ( find_parms.f_dir == 'A' ) { dl = 1             ; }
 	else if ( find_parms.f_dir == 'L' ) { dl = data.size()-2 ; }
- 	else                                { dl = spos + oY     ; }
- 	
- 	if ( dl > data.size() - 2 ) { dl = spos ; }
- 	if ( dl == 0 ) { dl = 1 ; }
+	else                                { dl = spos + oY     ; }
+
+	if ( dl > data.size() - 2 ) { dl = spos ; }
+	if ( dl == 0 ) { dl = 1 ; }
 
 	while ( true )
 	{
-		
+
 		skip = false ;
 		c1   = 0 ;
-		c2   = data[ dl ].size() -1 ;
+		c2   = data.at( dl ).size() -1 ;
 
 		if ( find_parms.f_scol > 0 ) { c1 = find_parms.f_scol - 1 ; }
 		if ( find_parms.f_ecol > 0 && c2 > find_parms.f_ecol-1 ) { c2 = find_parms.f_ecol - 1 ; }
 
 		if ( oX > 0 )
 		{
-			if ( oX > data[ dl ].size()-1 ) { oX = data[ dl ].size()-1 ; }
+			if ( oX > data.at( dl ).size()-1 ) { oX = data.at( dl ).size()-1 ; }
 			if ( find_parms.f_dir == 'P' || find_parms.f_dir == 'L' )
 			{
 				if ( oX < c1 )        { skip = true ; }
@@ -972,19 +975,21 @@ void PBRO01A::actionFind( int spos, int offset )
 			continue ;
 		}
 
-		if ( c1 > data[ dl ].size() -1 ) abend() ;
-		if ( c2 > data[ dl ].size() -1 ) abend() ;
+		if ( c1 > data.at( dl ).size() -1 ) abend() ;
+		if ( c2 > data.at( dl ).size() -1 ) abend() ;
 		if ( c1 < 0 ) abend() ;
 		if ( c2 < 0 ) abend() ;
 		if ( c1 > c2  ) abend() ;
 		//
-		
+
 		if ( find_parms.f_regreq )
 		{
 			found1 = true  ;
 			found  = false ;
-			for ( itss = data[ dl ].begin(), i = 0 ; i < c1 ; i++ ) { itss++ ; }
-			for ( itse = data[ dl ].begin(), i = 0 ; i < c2 ; i++ ) { itse++ ; }
+			itss   = data.at( dl ).begin() ;
+			advance( itss, c1 ) ;
+			itse   = itss    ;
+			advance( itse, c2-c1+1 ) ;
 			if ( find_parms.f_oncol )
 			{
 				if ( regex_search( itss, itse, results, regexp ) )
@@ -1027,14 +1032,14 @@ void PBRO01A::actionFind( int spos, int offset )
 				found  = false ;
 				if ( find_parms.f_dir == 'P' || find_parms.f_dir == 'L' )
 				{
-					if ( find_parms.f_asis ) { p1 = data[ dl ].rfind( find_parms.f_string, c2 )          ; }
-					else                     { p1 = upper( data[ dl ] ).rfind( find_parms.f_string, c2 ) ; }
+					if ( find_parms.f_asis ) { p1 = data.at( dl ).rfind( find_parms.f_string, c2 )       ; }
+					else                     { p1 = upper( data.at( dl ) ).rfind( find_parms.f_string, c2 ) ; }
 					c2 = p1 - 1 ;
 				}
 				else
 				{
-					if ( find_parms.f_asis ) { p1 = data[ dl ].find( find_parms.f_string, c1 )          ; }
-					else                     { p1 = upper( data[ dl ] ).find( find_parms.f_string, c1 ) ; }
+					if ( find_parms.f_asis ) { p1 = data.at( dl ).find( find_parms.f_string, c1 )          ; }
+					else                     { p1 = upper( data.at( dl ) ).find( find_parms.f_string, c1 ) ; }
 					c1 = p1 + 1 ;
 				}
 				if ( p1 != string::npos )

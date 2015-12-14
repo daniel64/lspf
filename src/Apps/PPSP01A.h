@@ -58,7 +58,7 @@ class PPSP01A : public pApplication
 		string VPOOL   ;
 		string VPLVL   ;
 		string MESSAGE ;
-		
+
 		string MODLST  ;
 		string APPL    ;
 		string MOD     ;
@@ -86,5 +86,6 @@ class PPSP01A : public pApplication
 		void showTasks()         ;
 		void updateTasks( string ) ;
 		void utilityPrograms()   ;
+		void keylistTables()     ;
 
 };

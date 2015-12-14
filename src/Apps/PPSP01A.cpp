@@ -72,6 +72,7 @@ void PPSP01A::application()
 	string ZALOG   ;
 	string ZSLOG   ;
 	string LOGLOC  ;
+	string ZKLUSE  ;
 	string w1      ;
 	string w2      ;
 
@@ -97,20 +98,35 @@ void PPSP01A::application()
 		LOGLOC  = ZSLOG   ;
 		show_log( ZSLOG ) ;
 	}
-	else if ( PARM == "KEYS"    ) pfkeySettings()     ;
-	else if ( PARM == "COLOURS" ) colourSettings()    ;
-	else if ( PARM == "TODO"    ) todoList()          ;
-	else if ( w1   == "VARS"    ) poolVariables( w2 ) ;
-	else if ( PARM == "PATHS"   ) showPaths()         ;
-	else if ( PARM == "CMDS"    ) showCommandTables() ;
-	else if ( PARM == "MODS"    ) showLoadedClasses() ;
-	else if ( PARM == "SAVELST" ) showSavedFileList() ;
-	else if ( PARM == "TASKS"   ) showTasks()         ;
-	else if ( PARM == "UTPGMS"  ) utilityPrograms()   ;
+	else if ( PARM == "KEYS"    ) { pfkeySettings()     ; }
+	else if ( PARM == "COLOURS" ) { colourSettings()    ; }
+	else if ( PARM == "TODO"    ) { todoList()          ; }
+	else if ( w1   == "VARS"    ) { poolVariables( w2 ) ; }
+	else if ( PARM == "PATHS"   ) { showPaths()         ; }
+	else if ( PARM == "CMDS"    ) { showCommandTables() ; }
+	else if ( PARM == "MODS"    ) { showLoadedClasses() ; }
+	else if ( PARM == "SAVELST" ) { showSavedFileList() ; }
+	else if ( PARM == "TASKS"   ) { showTasks()         ; }
+	else if ( PARM == "KLOFF"   )
+	{
+		vdefine( "ZKLUSE", &ZKLUSE ) ;
+		ZKLUSE = "N" ;
+		vput( "ZKLUSE", PROFILE ) ;
+		vdelete( "ZKLUSE" )       ;
+	}
+	else if ( PARM == "KLON"   )
+	{
+		vdefine( "ZKLUSE", &ZKLUSE ) ;
+		ZKLUSE = "Y" ;
+		vput( "ZKLUSE", PROFILE ) ;
+		vdelete( "ZKLUSE" )       ;
+	}
+	else if ( PARM == "UTPGMS"  ) { utilityPrograms() ; }
+	else if ( PARM == "KLISTS"  ) { keylistTables()   ; }
 	else { log( "E", "Invalid parameter passed to PPSP01A: " << PARM << endl ) ; }
 
-        cleanup() ;
-        return    ;
+	cleanup() ;
+	return    ;
 }
 
 
@@ -251,7 +267,7 @@ void PPSP01A::show_log( string fileName )
 			else if ( w2 == "ALL"  ) { showDate = false ; showTime = false ; showMod = false ; showTask = false ; }
 			rebuildZAREA = true ;
 		}
-		else 
+		else
 		{
 			MSG = "PPSP011" ;
 			continue        ;
@@ -995,7 +1011,7 @@ void PPSP01A::poolVariables( string applid )
 	vdefine( "SEL VAR VPOOL VPLVL VAL MESSAGE", &SEL, &VAR, &VPOOL, &VPLVL, &VAL, &MESSAGE ) ;
 
 	getpoolVariables( "" ) ;
-	
+
 	MSG = "" ;
 	i   = 1  ;
 	while ( true )
@@ -1085,6 +1101,7 @@ void PPSP01A::getpoolVariables( string pattern )
 	ws    = words( varlist ) ;
 	for ( i = 1 ; i <= ws ; i++ )
 	{
+
 		VAR = word( varlist, i ) ;
 		if ( (pattern != "") && (pos( pattern, VAR ) == 0) ) { continue ; }
 		vcopy( VAR, VAL, MOVE ) ;
@@ -1316,7 +1333,7 @@ void PPSP01A::showPaths()
 		}
 
 	}
-	tbend( PATHLST ) ;
+	tbclose( PATHLST ) ;
 }
 
 
@@ -1381,7 +1398,7 @@ void PPSP01A::showCommandTables()
 			tbopen( CMDTAB, NOWRITE, "", SHARE ) ;
 			if ( RC == 0 )
 			{
-				tbend( OCMDTAB ) ; 
+				tbend( OCMDTAB ) ;
 				OCMDTAB = CMDTAB ;
 			}
 			else
@@ -1617,7 +1634,7 @@ void PPSP01A::updateTasks( string table )
 
 	vcopy( "ZUSER", ZUSER, MOVE ) ;
 	vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
-	
+
 	boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
 	string tname = temp.native() ;
 	string cname = "ps aux > " + tname ;
@@ -1712,6 +1729,64 @@ void PPSP01A::utilityPrograms()
 	vdelete( v_list ) ;
 }
 
+void PPSP01A::keylistTables()
+{
+	string UPROF ;
+	vcopy( "ZUPROF", UPROF, MOVE ) ;
+	string KEYLISTN ;
+	string flds =  "KEYLISTN "
+		       "KEY1DEF  KEY1LAB  KEY1ATR "
+		       "KEY2DEF  KEY2LAB  KEY2ATR "
+		       "KEY3DEF  KEY3LAB  KEY3ATR "
+		       "KEY4DEF  KEY4LAB  KEY4ATR "
+		       "KEY5DEF  KEY5LAB  KEY5ATR "
+		       "KEY6DEF  KEY6LAB  KEY6ATR "
+		       "KEY7DEF  KEY7LAB  KEY7ATR "
+		       "KEY8DEF  KEY8LAB  KEY8ATR "
+		       "KEY9DEF  KEY9LAB  KEY9ATR "
+		       "KEY10DEF KEY10LAB KEY10ATR "
+		       "KEY11DEF KEY11LAB KEY11ATR "
+		       "KEY12DEF KEY12LAB KEY12ATR "
+		       "KEY13DEF KEY13LAB KEY13ATR "
+		       "KEY14DEF KEY14LAB KEY14ATR "
+		       "KEY15DEF KEY15LAB KEY15ATR "
+		       "KEY16DEF KEY16LAB KEY16ATR "
+		       "KEY17DEF KEY17LAB KEY17ATR "
+		       "KEY18DEF KEY18LAB KEY18ATR "
+		       "KEY19DEF KEY19LAB KEY19ATR "
+		       "KEY20DEF KEY20LAB KEY20ATR "
+		       "KEY21DEF KEY21LAB KEY21ATR "
+		       "KEY22DEF KEY22LAB KEY22ATR "
+		       "KEY23DEF KEY23LAB KEY23ATR "
+		       "KEY24DEF KEY24LAB KEY24ATR " ;
+
+	tbopen( "ISRKTAB", WRITE, UPROF ) ;
+	if ( RC  > 8 ) { return ; }
+	if ( RC == 8 )
+	{
+		tbcreate( "ISRKTAB", "KEYLISTN", subword( flds, 2 ), WRITE, NOREPLACE, UPROF ) ;
+		if ( RC > 0 ) { return ; }
+	}
+
+	tbvclear( "ISRKTAB" ) ;
+
+	KEYLISTN = "ISRSAB"   ;
+	vdefine( "KEYLISTN", &KEYLISTN ) ;
+
+	tbtop( "ISRKTAB" ) ;
+	tbsarg( "ISRKTAB" ) ;
+
+	tbscan( "ISRKTAB" , "", "", "", "", "NOREAD" ) ;
+	if ( RC  > 0 )
+	{
+		vreplace( "KEY1DEF", "HELP" ) ;
+		vreplace( "KEY5DEF", "RFIND" ) ;
+		vreplace( "KEY6DEF", "RCHANGE" ) ;
+		tbadd( "ISRKTAB" ) ;
+	}
+	tbclose( "ISRKTAB" ) ;
+	vdelete( "KEYLISTN" ) ;
+}
 
 // ============================================================================================ //
 

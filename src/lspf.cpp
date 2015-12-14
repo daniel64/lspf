@@ -152,12 +152,12 @@ string ZCTVERB, ZCTTRUNC, ZCTACT, ZCTDESC ;
 
 const char ZSCREEN[] = { '1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W' } ;
 
-bool	SEL         ;
-string	SEL_PGM     ;
-string	SEL_PARM    ;
-string	SEL_NEWAPPL ;
-bool	SEL_NEWPOOL ;
-bool	SEL_PASSLIB ;
+bool    SEL         ;
+string  SEL_PGM     ;
+string  SEL_PARM    ;
+string  SEL_NEWAPPL ;
+bool    SEL_NEWPOOL ;
+bool    SEL_PASSLIB ;
 
 string ZHOME  ;
 string ZUSER  ;
@@ -258,13 +258,13 @@ int main(void)
 	delete p_poolMGR  ;
 	delete p_tableMGR ;
 
-//	for ( it = dlibs.begin() ; it != dlibs.end() ; it++ )
-//	{
-//		dlerror() ;
-//		log( "I", "dlclose of " << it->first << " at " << it->second << endl ) ;
-//		dlclose( it->second ) ;
-//		debug1( "dlerror " << dlerror() << endl ) ;
-//	}
+//      for ( it = dlibs.begin() ; it != dlibs.end() ; it++ )
+//      {
+//              dlerror() ;
+//              log( "I", "dlclose of " << it->first << " at " << it->second << endl ) ;
+//              dlclose( it->second ) ;
+//              debug1( "dlerror " << dlerror() << endl ) ;
+//      }
 
 	log( "I", "lspf and LOG terminating" <<endl ) ;
 	splog.close() ;
@@ -406,7 +406,7 @@ void MainLoop()
 		}
 		switch( c )
 		{
-			case KEY_LEFT:	col = currScrn->cursor_left()  ; break ;
+			case KEY_LEFT:  col = currScrn->cursor_left()  ; break ;
 			case KEY_RIGHT: col = currScrn->cursor_right() ; break ;
 			case KEY_UP:    row = currScrn->cursor_up()    ; break ;
 			case KEY_DOWN:  row = currScrn->cursor_down()  ; break ;
@@ -528,7 +528,7 @@ void MainLoop()
 					}
 					else if ( ZCOMMAND == "FIELDEXC" )
 					{
-						
+
 						field_name = currAppl->currPanel->field_getname( row, col ) ;
 						fxc = currAppl->currPanel->field_getexec( field_name )      ;
 						if ( fxc.fieldExc_command != "" )
@@ -632,13 +632,13 @@ void MainLoop()
 						{
 							++screenNum ;
 							screenNum = (screenNum == pLScreen::screensTotal ? 0 : screenNum) ;
-							if ( altScreen == screenNum ) altScreen = (altScreen == 0 ? (pLScreen::screensTotal - 1) : (altScreen - 1) ) ;  
+							if ( altScreen == screenNum ) altScreen = (altScreen == 0 ? (pLScreen::screensTotal - 1) : (altScreen - 1) ) ;
 						}
 						else if ( ZPARM == "PREV" )
 						{
 							--screenNum ;
 							screenNum = (screenNum < 0 ? (pLScreen::screensTotal - 1) : screenNum) ;
-							if ( altScreen == screenNum ) altScreen = ((altScreen == pLScreen::screensTotal - 1) ? 0 : (altScreen + 1) )  ;  
+							if ( altScreen == screenNum ) altScreen = ((altScreen == pLScreen::screensTotal - 1) ? 0 : (altScreen + 1) )  ;
 						}
 						else if ( datatype( ZPARM, 'W' ) )
 						{
@@ -949,7 +949,7 @@ void processAction( uint row, uint col, int c, bool &  passthru )
 
 	if ( RC == 0 )
 	{
-  		if ( word( ZCTACT, 1 ) == "NOP" )
+		if ( word( ZCTACT, 1 ) == "NOP" )
 		{
 			passthru = false ;
 			return ;
@@ -1285,7 +1285,7 @@ void terminateApplication()
 		if ( screenNum < 0 ) screenNum = pLScreen::screensTotal - 1 ;
 		if ( pLScreen::screensTotal > 1 )
 		{
-			if ( altScreen == screenNum ) altScreen = ((altScreen == pLScreen::screensTotal - 1) ? 0 : (altScreen + 1) )  ;  
+			if ( altScreen == screenNum ) altScreen = ((altScreen == pLScreen::screensTotal - 1) ? 0 : (altScreen + 1) )  ;
 		}
 		p_pLScreen = screenList[ screenNum ] ;
 		pLScreen::currScreen = p_pLScreen ;
@@ -1590,13 +1590,13 @@ void loadcuaTables()
 	cuaAttrProt[ OUTPUT ] = true  ;
 	cuaAttrProt[ TEXT   ] = true  ;
 
-	usrAttr[ N_RED     ] = RED     ;	usrAttr[ B_RED     ] = RED     | A_BOLD ;	usrAttr[ R_RED     ] = RED     | A_REVERSE ;	usrAttr[ U_RED     ] = RED     | A_UNDERLINE ;
-	usrAttr[ N_GREEN   ] = GREEN   ;	usrAttr[ B_GREEN   ] = GREEN   | A_BOLD ;	usrAttr[ R_GREEN   ] = GREEN   | A_REVERSE ;	usrAttr[ U_GREEN   ] = GREEN   | A_UNDERLINE ;
-	usrAttr[ N_YELLOW  ] = YELLOW  ;	usrAttr[ B_YELLOW  ] = YELLOW  | A_BOLD ;	usrAttr[ R_YELLOW  ] = YELLOW  | A_REVERSE ;	usrAttr[ U_YELLOW  ] = YELLOW  | A_UNDERLINE ;
-	usrAttr[ N_BLUE    ] = BLUE    ;	usrAttr[ B_BLUE    ] = BLUE    | A_BOLD ;	usrAttr[ R_BLUE    ] = BLUE    | A_REVERSE ;	usrAttr[ U_BLUE    ] = BLUE    | A_UNDERLINE ;
-	usrAttr[ N_MAGENTA ] = MAGENTA ;	usrAttr[ B_MAGENTA ] = MAGENTA | A_BOLD ;	usrAttr[ R_MAGENTA ] = MAGENTA | A_REVERSE ;	usrAttr[ U_MAGENTA ] = MAGENTA | A_UNDERLINE ;
-	usrAttr[ N_TURQ    ] = TURQ    ;	usrAttr[ B_TURQ    ] = TURQ    | A_BOLD ;	usrAttr[ R_TURQ    ] = TURQ    | A_REVERSE ;	usrAttr[ U_TURQ    ] = TURQ    | A_UNDERLINE ;
-	usrAttr[ N_WHITE   ] = WHITE   ;	usrAttr[ B_WHITE   ] = WHITE   | A_BOLD ;	usrAttr[ R_WHITE   ] = WHITE   | A_REVERSE ;	usrAttr[ U_WHITE   ] = WHITE   | A_UNDERLINE ;
+	usrAttr[ N_RED     ] = RED     ;        usrAttr[ B_RED     ] = RED     | A_BOLD ;       usrAttr[ R_RED     ] = RED     | A_REVERSE ;    usrAttr[ U_RED     ] = RED     | A_UNDERLINE ;
+	usrAttr[ N_GREEN   ] = GREEN   ;        usrAttr[ B_GREEN   ] = GREEN   | A_BOLD ;       usrAttr[ R_GREEN   ] = GREEN   | A_REVERSE ;    usrAttr[ U_GREEN   ] = GREEN   | A_UNDERLINE ;
+	usrAttr[ N_YELLOW  ] = YELLOW  ;        usrAttr[ B_YELLOW  ] = YELLOW  | A_BOLD ;       usrAttr[ R_YELLOW  ] = YELLOW  | A_REVERSE ;    usrAttr[ U_YELLOW  ] = YELLOW  | A_UNDERLINE ;
+	usrAttr[ N_BLUE    ] = BLUE    ;        usrAttr[ B_BLUE    ] = BLUE    | A_BOLD ;       usrAttr[ R_BLUE    ] = BLUE    | A_REVERSE ;    usrAttr[ U_BLUE    ] = BLUE    | A_UNDERLINE ;
+	usrAttr[ N_MAGENTA ] = MAGENTA ;        usrAttr[ B_MAGENTA ] = MAGENTA | A_BOLD ;       usrAttr[ R_MAGENTA ] = MAGENTA | A_REVERSE ;    usrAttr[ U_MAGENTA ] = MAGENTA | A_UNDERLINE ;
+	usrAttr[ N_TURQ    ] = TURQ    ;        usrAttr[ B_TURQ    ] = TURQ    | A_BOLD ;       usrAttr[ R_TURQ    ] = TURQ    | A_REVERSE ;    usrAttr[ U_TURQ    ] = TURQ    | A_UNDERLINE ;
+	usrAttr[ N_WHITE   ] = WHITE   ;        usrAttr[ B_WHITE   ] = WHITE   | A_BOLD ;       usrAttr[ R_WHITE   ] = WHITE   | A_REVERSE ;    usrAttr[ U_WHITE   ] = WHITE   | A_UNDERLINE ;
 
 	usrAttr[ P_RED     ] = RED     | A_PROTECT ;
 	usrAttr[ P_GREEN   ] = GREEN   | A_PROTECT ;
@@ -1811,7 +1811,7 @@ void updateDefaultVars()
 	{
 		p_poolMGR->defaultVARs( RC , "ZSPLIT", "NO", SHARED ) ;
 	}
-		
+
 }
 
 
@@ -1847,7 +1847,7 @@ void updateReflist()
 void threadErrorHandler()
 {
 	log( "E", "An exception has occured in an application thread.  See application log for details.  Task ending" << endl ) ;
-	try 
+	try
 	{
 		currAppl->abendexc() ;
 	}
@@ -1863,7 +1863,7 @@ void errorScreen( int etype, string msg )
 {
 	int l(0) ;
 
-        if ( currAppl->errPanelissued ) { return ; }
+	if ( currAppl->errPanelissued ) { return ; }
 	log( "E", msg << endl ) ;
 	currScrn->clear() ;
 	mvaddstr( l++, 0, msg.c_str() ) ;

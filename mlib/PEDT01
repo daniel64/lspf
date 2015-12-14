@@ -115,14 +115,14 @@ PEDT011C "Mismatched Overlay Size"
 PEDT011D "Lines not deleted"
 "Data lines not deleted as not all data overlayed"
 
-PEDT011E "SPARE"
-"SPARE"
+PEDT011E "Logic Error"
+"A logic error has occured.  See application log for messages"
 
-PEDT011F "SPARE"
-"SPARE"
+PEDT011F "Backup Failed"
+"Backup of file to be edited has failed.  Check BACKUP PATH and permissions"
 
-PEDT011G "SPARE"
-"SPARE"
+PEDT011G "Recursive EDIT detected"
+"Recursive EDIT has been detected.  Not currently supported and can corrupt files"
 
 PEDT011H "Recovery Data Removed"
 "Recovery is OFF and all recovery data has been deleted.  UNDO/REDO not available"
@@ -138,3 +138,23 @@ PEDT012C "&ZEDLNES lines cut to &CLIPNAME" .TYPE=N
 
 PEDT012D "&ZEDLNES lines pasted from &CLIPNAME" .TYPE=N
 "&ZEDLNES lines pasted from clipboard &CLIPNAME"
+
+PEDT012E "Cut Pending"
+"Cut is pending.  Select lines with the copy/move line commands"
+
+PEDT012F "Paste Pending"
+"Paste is pending.  Select position to paste lines with the A/B line commands"
+
+PEDT012G "&TYPE '&STR' found" .TYPE=N
+"Search for &TYPE '&STR' was successful"
+
+PEDT012H "&TYPE '&STR' not found"
+"Search for &TYPE '&STR' was not successful"
+
+PEDT012I "&TYPE '&STR' found &OCC time(s)" .TYPE=N
+"Search for &TYPE '&STR' was successful.  Found &OCC time(s) on &LINES line(s)"
+
+
+PEDT013A "File in use"
+"File '&ZFILE' is currently being edited in another session"
+

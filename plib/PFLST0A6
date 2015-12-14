@@ -1,55 +1,57 @@
 )PANEL VERSION=1 FORMAT=1
+
 )COMMENT
- Browse entry panel
+ Modify attributes
 )ENDCOMMENT
+
 )BODY
 PanelTitle "Modify File Attributes"
 
-literal  4   2       FP    "Command ===> "  
-field    4  15  MAX  NEF CAPS(ON) ZCMD  
+literal  4   2       FP    "Command ===> "
+field    4  15  MAX  NEF CAPS(ON) ZCMD
 
-literal  6   2       FP    "Entry Name . . :"  
+literal  6   2       FP    "Entry Name . . :"
 field    6  19  MAX  VOI NONE IENTRY
 
-literal  7    2       FP   "File Type. . . :"  
-field    7   19   16  VOI NONE ITYPE  
+literal  7    2       FP   "File Type. . . :"
+field    7   19   16  VOI NONE ITYPE
 
---literal  8   1       FP    "Userid . . . . :"  
+--literal  8   1       FP    "Userid . . . . :"
 --field    8  18   12  NEF NONE IUUID
 
---literal  9   1       FP    "Password . . . :"  
+--literal  9   1       FP    "Password . . . :"
 --field    9  18   8  PWD NONE IUPWD
 
-literal  9   2       FP    "Permissions"  
+literal  9   2       FP    "Permissions"
 field    9  14       3  NEF NONE IPERMISS
-literal  9  18       FP    "(Octal)"  
+literal  9  18       FP    "(Octal)"
 
 
-literal  11   2        ET    "Mode Fields"  
+literal  11   2        ET    "Mode Fields"
 literal  13 2 PIN "Enter / to select option"
 
 field    14   2   1   CEF PAD('_') ISETUID
-literal  14   4       SAC    "Set UID bit"  
+literal  14   4       SAC    "Set UID bit"
 
 field    15   2   1   CEF PAD('_') ISETGID
-literal  15   4       SAC    "Set GID bit"  
+literal  15   4       SAC    "Set GID bit"
 
 field    16   2   1   CEF PAD('_') ISTICKY
-literal  16   4       SAC    "Set sticky bit"  
+literal  16   4       SAC    "Set sticky bit"
 
-literal  18   2       ET    "Owner"  
+literal  18   2       ET    "Owner"
 
-literal  20   2        FP   "UID Number. . . :"  
-field    20  20    10  NEF NONE IOWNERN  
+literal  20   2        FP   "UID Number. . . :"
+field    20  20    10  NEF NONE IOWNERN
 
-literal  20  32        FP   "File. . . :"  
-field    20  44    10  NEF NONE IOWNER  
+literal  20  32        FP   "File. . . :"
+field    20  44    10  NEF NONE IOWNER
 
-literal  21   2        FP   "GID Number. . . :"  
-field    21  20    10  NEF NONE IGROUPN  
+literal  21   2        FP   "GID Number. . . :"
+field    21  20    10  NEF NONE IGROUPN
 
-literal  21   32       FP  "Group . . :"  
-field    21   44   10  NEF NONE IGROUP  
+literal  21   32       FP  "Group . . :"
+field    21   44   10  NEF NONE IGROUP
 
 literal 24 2  CH "Instructions"
 
