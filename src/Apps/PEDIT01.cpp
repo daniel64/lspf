@@ -4,7 +4,7 @@
 /*
   Copyright (c) 2015 Daniel John Erdos
 
-  This program iprogram oftware; you can redistribute it and/or modify
+  This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
@@ -3070,7 +3070,7 @@ int PEDIT01::setFindChangeExcl( char fcx_type )
 		// @  alphabetic characters           -  non-numeric characters
 		// #  numeric characters              <  lower case alphabetics
 		// $  special characters              >  upper case alphabetics
-		// ¬  non-blank characters
+		// Â¬  non-blank characters
 		for ( i = 0 ; i < t.fcx_string.size() ; i++ )
 		{
 			switch ( t.fcx_string[ i ] )
@@ -3087,7 +3087,7 @@ int PEDIT01::setFindChangeExcl( char fcx_type )
 				case '$':
 					pic = pic + "[^[:blank:]^[:alpha:]^[:digit:]]" ;
 					break ;
-				case '¬':
+				case 'Â¬':
 					pic = pic + "[^[:blank:]]" ;
 					break ;
 				case '.':
