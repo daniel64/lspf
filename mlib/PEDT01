@@ -154,6 +154,14 @@ PEDT012H "&TYPE '&STR' not found"
 PEDT012I "&TYPE '&STR' found &OCC time(s)" .TYPE=N
 "Search for &TYPE '&STR' was successful.  Found &OCC time(s) on &LINES line(s)"
 
+PEDT012J "Duplicate/Inconsistent parameter"
+"Duplicate or inconsistent parameter entered on find or change command"
+
+PEDT012K "&TYPE '&STR' changed &OCC times(s)" .TYPE=N
+"Change was successful.  &TYPE '&STR' changed &OCC times(s)"
+
+PEDT012L "&TYPE '&STR' changed" .TYPE=N
+"Change for &TYPE '&STR' was successful"
 
 PEDT013A "File in use"
 "File '&ZFILE' is currently being edited in another session"

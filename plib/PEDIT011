@@ -8,11 +8,11 @@ Panel for editor PEDIT01
 
 PanelTitle "Edit Entry Panel"
 
-literal  4    2      FP  "Command ===> "
-field 4  15   MAX    NEF PAD('_') ZCMD1 
+literal  4    2       FP     "Command ===> "
+field 4  15   MAX     NEF     PAD('_') ZCMD1
 
-literal  7    2       FP  "File Name. . .:" 
-field    7   18      MAX   NEF  NONE ZFILE
+literal  7    2       FP     "File Name. . .:"
+field    7   18       MAX     NEF  NONE ZFILE
 
 field    10   2   1   CEF     PAD('_') EEDIRLST
 literal  10   4       SAC    "Show directory list if valid directory entered"
@@ -25,6 +25,7 @@ literal  13   4       SAC    "Convert tabs to spaces on EDIT entry"
 field    14   2   1   CEF     PAD('_') EETABCC
 literal  14   4       SAC    "Convert spaces back to tabs on file save"
 
+
 literal 17 2  CH "Instructions"
 literal 18 2  NT "Enter file name and press"
 literal 18 28 ET "ENTER"
@@ -35,7 +36,6 @@ literal 18 34 NT "to edit file"
 )INCLUDE RFL_PDC
 )INCLUDE HLP_PDC
 
-
 )INIT
 
 .NRET  = ON
@@ -45,6 +45,11 @@ VPUT ZRFFLDA SHARED
 VGET (ZFILE EETABCC EETABSS EESTSPC EEDIRLST) PROFILE
 
 )PROC
+if ( &ZCMD1 NE &Z)
+  .MSG    = PSYS018
+  .CURSOR = ZCMD1
+  EXIT
+
 VER (&ZFILE NB)
 VER (&EETABSS  LIST /)
 VER (&EETABCC  LIST /)
@@ -73,7 +78,7 @@ ELSE
         EXIT
      ELSE
         &SHOWDIR = YES
- 
+
 VPUT (ZFILE EETABCC EETABSS EESTSPC EEDIRLST) PROFILE
 
 )FIELD

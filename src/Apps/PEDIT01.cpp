@@ -4,7 +4,7 @@
 /*
   Copyright (c) 2015 Daniel John Erdos
 
-  This program iprogram oftware; you can redistribute it and/or modify
+  This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
@@ -152,6 +152,7 @@ void PEDIT01::initialise()
 	typList[ 'P' ] = "PREFIX" ;
 	typList[ 'S' ] = "SUFFIX" ;
 	typList[ 'W' ] = "WORD"   ;
+	typList[ 'R' ] = "REGEX"  ;
 
 	getEditProfile( ZEDPROF ) ;
 
@@ -332,6 +333,8 @@ void PEDIT01::Edit()
 	int p ;
 	int t ;
 
+	string w1 ;
+
 	uint row ;
 
 	RC = 0 ;
@@ -480,7 +483,18 @@ void PEDIT01::Edit()
 		}
 		else if ( ZVERB == "RF" || ZVERB == "RFIND" )
 		{
-			if ( !find_parms.fcx_fset ) { MSG = "PEDT01C" ; continue ; }
+			if ( !find_parms.fcx_fset )
+			{
+				w1 = upper( word( ZCMD, 1 ) ) ;
+				if ( w1 == "C" || "CHANGE" )
+				{
+					if ( setFindChangeExcl( 'C' ) > 0 ) { continue ; }
+				}
+				else
+				{
+					if ( setFindChangeExcl( 'F' ) > 0 ) { continue ; }
+				}
+			}
 			actionFind() ;
 			if ( find_parms.fcx_success )
 			{
@@ -508,7 +522,45 @@ void PEDIT01::Edit()
 		else if ( ZVERB == "RCHANGE" )
 		{
 			if ( !find_parms.fcx_cset ) { MSG = "PEDT01D" ; continue ; }
-			actionChange()      ;
+			// check cursor is on the found string, if not actionFind() else change
+			debug1( " dje aCol+startCol " <<aCol+startCol<<endl);
+			debug1( " dje fcx_offset    " <<find_parms.fcx_offset<<endl);
+			if ( aURID == find_parms.fcx_URID && find_parms.fcx_offset == aCol + startCol - CLINESZ - 2 &&
+				      find_parms.fcx_success )
+			{
+				debug1( " dje actioning change without a find"<<endl);
+				actionChange() ;
+			}
+			else
+			{
+				debug1( " dje doing find before change"<<endl);
+				actionFind() ;
+				if ( find_parms.fcx_success )
+				{
+					actionChange() ;
+				}
+			}
+			if ( find_parms.fcx_success )
+			{
+				find_parms.fcx_success = false ;
+				placeCursor( find_parms.fcx_URID, 4, find_parms.fcx_offset+CLINESZ-startCol+2 ) ;
+				if ( !URIDonScreen( find_parms.fcx_URID ) )
+				{
+					topLine = getLine( find_parms.fcx_URID ) ;
+					topLine = getPrevDataLine( topLine ) ;
+				}
+				MSG  = "PEDT012L" ;
+				TYPE = typList[ find_parms.fcx_mtch ] ;
+				if ( find_parms.fcx_rstring != "" ) { STR = find_parms.fcx_rstring ; }
+				else                                { STR = find_parms.fcx_estring ; }
+			}
+			else
+			{
+				TYPE = typList[ find_parms.fcx_mtch ] ;
+				if ( find_parms.fcx_rstring != "" ) { STR = find_parms.fcx_rstring ; }
+				else                                { STR = find_parms.fcx_estring ; }
+				MSG  = "PEDT012H" ;
+			}
 			ZCMD = ""           ;
 			rebuildZAREA = true ;
 		}
@@ -1217,6 +1269,8 @@ void PEDIT01::actionPCMD()
 
 	iline * p_iline ;
 
+	if ( ZVERB == "RFIND" || ZVERB == "RCHANGE" ) { return ; }
+
 	vector<iline * >::iterator it  ;
 	vector<iline * >::iterator itt ;
 	vector<iline * >::iterator its ;
@@ -1273,8 +1327,28 @@ void PEDIT01::actionPCMD()
 	}
 	else if ( w1 == "C" || w1 == "CHANGE" )
 	{
-		if ( setFindChangeExcl( 'C' ) > 0 ) { MSG = "PEDT018" ; return ; }
-		actionChange()      ;
+		i = 0 ;
+		if ( setFindChangeExcl( 'C' ) > 0 ) { return ; }
+		while ( true )
+		{
+			actionFind()   ;
+			if ( !find_parms.fcx_success ) { break ; }
+			i++            ;
+			actionChange() ;
+			if ( !find_parms.fcx_chngall ) { break ; }
+			{
+				MSG  = "PEDT012L" ;
+			}
+		}
+		if ( i > 0 )
+			if ( find_parms.fcx_chngall ) { MSG = "PEDT012K" ; }
+			else                          { MSG = "PEDT012L" ; }
+		else                                  { MSG = "PEDT012H" ; }
+		find_parms.fcx_success = false ;
+		TYPE = typList[ find_parms.fcx_mtch ] ;
+		if ( find_parms.fcx_rstring != "" ) { STR = find_parms.fcx_rstring ; }
+		else                                { STR = find_parms.fcx_estring ; }
+		OCC  = d2ds( i )    ;
 		ZCMD = ""           ;
 		rebuildZAREA = true ;
 	}
@@ -1627,6 +1701,20 @@ void PEDIT01::actionPCMD()
 		log( "A", " Global UNDO stack size: " << (*it)->get_Global_Undo_Size() << endl  ; )
 		log( "A", " Global REDO stack size: " << (*it)->get_Global_Redo_Size() << endl  ; )
 		vector<icmd>::iterator itc         ;
+		debug1( " dje icmds vector size = "<<icmds.size()<<endl);
+		for ( itc = icmds.begin() ; itc != icmds.end() ; itc++ )
+		{
+			debug1( " dje itc->icmd_COMMAND " << itc->icmd_COMMAND << endl);
+			debug1( " dje itc->icmd_ABO " << itc->icmd_ABO << endl);
+			debug1( " dje itc->icmd_Rpt " << itc->icmd_Rpt << endl);
+			debug1( " dje itc->icmd_OSize " << itc->icmd_OSize << endl);
+			debug1( " dje itc->icmd_overlay " << itc->icmd_overlay << endl);
+			debug1( " dje itc->icmd_cutpaste " << itc->icmd_cutpaste << endl);
+			debug1( " dje itc->icmd_sURID " << itc->icmd_sURID << endl);
+			debug1( " dje itc->icmd_eURID " << itc->icmd_eURID << endl);
+			debug1( " dje itc->icmd_dURID " << itc->icmd_dURID << endl);
+			debug1( " dje itc->icmd_oURID " << itc->icmd_oURID << endl);
+		}
 		ZCMD = ""    ;
 	}
 	else if ( w1 == "SHOWALL" )
@@ -1735,6 +1823,19 @@ void PEDIT01::actionLineCommands()
 
 	for ( itc = icmds.begin() ; itc != icmds.end() ; itc++ )
 	{
+		 if ( testMode )
+		 {
+		      debug1( " dje itc->icmd_COMMAND " << itc->icmd_COMMAND << endl);
+		      debug1( " dje itc->icmd_ABO " << itc->icmd_ABO << endl);
+		      debug1( " dje itc->icmd_Rpt " << itc->icmd_Rpt << endl);
+		      debug1( " dje itc->icmd_OSize " << itc->icmd_OSize << endl);
+		      debug1( " dje itc->icmd_overlay " << itc->icmd_overlay << endl);
+		      debug1( " dje itc->icmd_cutpaste " << itc->icmd_cutpaste << endl);
+		      debug1( " dje itc->icmd_sURID " << itc->icmd_sURID << endl);
+		      debug1( " dje itc->icmd_eURID " << itc->icmd_eURID << endl);
+		      debug1( " dje itc->icmd_dURID " << itc->icmd_dURID << endl);
+		      debug1( " dje itc->icmd_oURID " << itc->icmd_oURID << endl);
+		}
 		if ( itc->icmd_Rpt == -1 ) { itc->icmd_Rpt = 1 ; }
 		if ( itc->icmd_COMMAND == "BNDS" )
 		{
@@ -2805,8 +2906,16 @@ int PEDIT01::setFindChangeExcl( char fcx_type )
 	int p1       ;
 	int p2       ;
 	int ws       ;
+
 	char c1      ;
 	char c2      ;
+
+	bool f_dir   ;
+	bool f_excl  ;
+	bool f_mtch  ;
+	bool f_str1  ;
+	bool f_str2  ;
+
 	string delim ;
 	string cmd   ;
 	string ucmd  ;
@@ -2814,196 +2923,138 @@ int PEDIT01::setFindChangeExcl( char fcx_type )
 	string pic   ;
 	e_find t     ;
 
+	string f_keywdir  = "NEXT PREV FIRST LAST ALL" ;
+	string f_keywexcl = "X NX" ;
+	string f_keywmtch = "CHARS PRE PREFIX SUF SUFFIX WORD" ;
+
+	f_dir  = false ;
+	f_excl = false ;
+	f_mtch = false ;
+	f_str1 = false ;
+	f_str2 = false ;
+
 	vector<iline * >::iterator it  ;
 
 	static char quote('\"')  ;
 	static char apost('\'')  ;
 
 	MSG  = ""                 ;
-	cmd  = " " + subword( ZCMD, 2 ) + " " ;
+	cmd  = subword( ZCMD, 2 ) + " " ;
 
-	p1 = cmd.find( quote ) ;
-	p2 = cmd.find( apost ) ;
-
-	if      ( p1 == string::npos ) { delim = string( 1, apost ) ; }
-	else if ( p2 == string::npos ) { delim = string( 1, quote ) ; }
-	else if ( p1 < p2 )            { delim = string( 1, quote ) ; }
-	else                           { delim = string( 1, apost ) ; }
-
-	if ( p1 = pos( delim, cmd  ) )
+	while ( true )
 	{
-		p2  = pos( delim, cmd,  p1+1 ) ;
-		if ( p2 == 0 ) { MSG = "PEDT01H" ; return 20 ; }
-		c1 = toupper( cmd[ p1-2 ] ) ;
-		c2 = toupper( cmd[ p2   ] ) ;
-		if ( c1 == ' ' && c2 == ' ' ) { t.fcx_text = true ; }
-		else if ( c1 == 'T' && c2 == ' ' ) { t.fcx_text   = true ; }
-		else if ( c1 == 'C' && c2 == ' ' ) { t.fcx_asis   = true ; }
-		else if ( c1 == 'X' && c2 == ' ' ) { t.fcx_hex    = true ; }
-		else if ( c1 == 'P' && c2 == ' ' ) { t.fcx_pic    = true ; }
-		else if ( c1 == 'R' && c2 == ' ' ) { t.fcx_rreg   = true ; }
-		else if ( c2 == 'T' && c1 == ' ' ) { t.fcx_text   = true ; }
-		else if ( c2 == 'C' && c1 == ' ' ) { t.fcx_asis   = true ; }
-		else if ( c2 == 'X' && c1 == ' ' ) { t.fcx_hex    = true ; }
-		else if ( c2 == 'P' && c1 == ' ' ) { t.fcx_pic    = true ; }
-		else if ( c2 == 'R' && c1 == ' ' ) { t.fcx_rreg   = true ; }
-		else                               { MSG = "PEDT01I" ; return 20 ; }
-		if ( t.fcx_text )
+		if ( cmd.size() == 0 ) { break ; }
+		c1 = cmd[ 0 ] ;
+		if ( c1 == ' ' ) { cmd.erase( 0, 1 ) ; continue ; }
+		if ( cmd.size() > 1 ) { c2 = cmd.at( 1 ) ; }
+		else                  { c2 = ' '         ; }
+		if ( c1 == quote || c2 == quote || c1 == apost || c2 == apost )
 		{
-			t.fcx_string = upper( substr( cmd, (p1+1), (p2-p1-1) ) ) ;
-		}
-		else
-		{
-			t.fcx_string = substr( cmd, (p1+1), (p2-p1-1) ) ;
-			t.fcx_asis   = true ;
-		}
-		cmd = delstr( cmd, (p1-1), (p2-p1+3) ) ;
-	}
-	else
-	{
-		t.fcx_text   = true ;
-		t.fcx_string = upper( word( cmd, 1 ) ) ;
-		cmd          = subword( cmd, 2 ) ;
-	}
-
-	t.fcx_estring = t.fcx_string ;
-
-	if ( fcx_type == 'C' )
-	{
-		if ( p1 = pos( delim, cmd ) )
-		{
-			p2  = pos( delim, cmd, p1) ;
-			if ( p2 == 0 ) { MSG = "PEDT01H" ; return 20 ; }
-			c1 = toupper( cmd[ p1-2 ] ) ;
-			c2 = toupper( cmd[ p2   ] ) ;
-			if ( c1 == ' ' && c2 == ' ' ) { t.fcx_text = true ; }
-			else if ( c1 == 'T' && c2 == ' ' ) { t.fcx_text   = true ; }
-			else if ( c1 == 'C' && c2 == ' ' ) { t.fcx_asis   = true ; }
-			else if ( c1 == 'X' && c2 == ' ' ) { t.fcx_hex    = true ; }
-			else if ( c1 == 'P' && c2 == ' ' ) { t.fcx_pic    = true ; }
-			else if ( c1 == 'R' && c2 == ' ' ) { t.fcx_rreg   = true ; }
-			else if ( c2 == 'T' && c1 == ' ' ) { t.fcx_text   = true ; }
-			else if ( c2 == 'C' && c1 == ' ' ) { t.fcx_asis   = true ; }
-			else if ( c2 == 'X' && c1 == ' ' ) { t.fcx_hex    = true ; }
-			else if ( c2 == 'P' && c1 == ' ' ) { t.fcx_pic    = true ; }
-			else if ( c2 == 'R' && c1 == ' ' ) { t.fcx_rreg   = true ; }
-			else                               { MSG = "PEDT01I" ; return 20 ; }
-			if ( t.fcx_text )
+			if ( c1 != quote && c1 != apost ) { delim = c2 ; c1 = cmd[ 0 ] ; p1 = 2 ; }
+			else                              { delim = c1 ; c1 = ' '      ; p1 = 1 ; }
+			if ( !f_str1 )
 			{
-				t.fcx_cstring = substr( cmd, (p1+1), (p2-p1-1) ) ;
+				f_str1 = true ;
+				p2  = pos( delim, cmd, p1+1 ) ;
+				if ( p2 == 0 ) { MSG = "PEDT01H" ; return 20 ; }
+				c1 = toupper( c1 )          ;
+				if ( p2 >= cmd.size() ) { c2 = ' ' ; }
+				else                    { c2 = toupper( cmd.at( p2 ) ) ; }
+				if      ( c1 == ' ' && c2 == ' ' ) { t.fcx_text   = true ; }
+				else if ( c1 == 'T' && c2 == ' ' ) { t.fcx_text   = true ; }
+				else if ( c1 == 'C' && c2 == ' ' ) { t.fcx_asis   = true ; }
+				else if ( c1 == 'X' && c2 == ' ' ) { t.fcx_hex    = true ; }
+				else if ( c1 == 'P' && c2 == ' ' ) { t.fcx_pic    = true ; }
+				else if ( c1 == 'R' && c2 == ' ' ) { t.fcx_rreg   = true ; }
+				else if ( c2 == 'T' && c1 == ' ' ) { t.fcx_text   = true ; }
+				else if ( c2 == 'C' && c1 == ' ' ) { t.fcx_asis   = true ; }
+				else if ( c2 == 'X' && c1 == ' ' ) { t.fcx_hex    = true ; }
+				else if ( c2 == 'P' && c1 == ' ' ) { t.fcx_pic    = true ; }
+				else if ( c2 == 'R' && c1 == ' ' ) { t.fcx_rreg   = true ; }
+				else                               { MSG = "PEDT01I" ; return 20 ; }
+				if ( cmd.size() > p2+1 && cmd.at ( p2 ) != ' ' && cmd.at( p2+1 ) != ' ' )
+				{
+					MSG = "PEDT01I" ; return 20 ;
+				}
+				if ( t.fcx_text )
+				{
+					t.fcx_string = upper( substr( cmd, (p1+1), (p2-p1-1) ) ) ;
+				}
+				else
+				{
+					t.fcx_string = substr( cmd, (p1+1), (p2-p1-1) ) ;
+					t.fcx_asis   = true ;
+				}
+				cmd = substr( cmd, p2+2 ) ;
 			}
-			else
+			else if ( !f_str2 )
 			{
-				t.fcx_string = substr( cmd, (p1+1), (p2-p1-1) ) ;
-				t.fcx_asis   = true ;
+				if ( fcx_type != 'C' ) { MSG = "PEDT01B" ; return 20 ; }
+				f_str2 = true ;
+				p2  = pos( delim, cmd, p1+1 ) ;
+				if ( p2 == 0 ) { MSG = "PEDT01H" ; return 20 ; }
+				c1 = toupper( c1 )          ;
+				if ( p2 >= cmd.size() ) { c2 = ' ' ; }
+				else                    { c2 = toupper( cmd.at( p2 ) ) ; }
+				if ( c1 == ' ' && c2 == ' ' )      { t.fcx_ctext   = true ; }
+				else if ( c1 == 'T' && c2 == ' ' ) { t.fcx_ctext   = true ; }
+				else if ( c1 == 'C' && c2 == ' ' ) { t.fcx_casis   = true ; }
+				else if ( c1 == 'X' && c2 == ' ' ) { t.fcx_chex    = true ; }
+				else if ( c1 == 'P' && c2 == ' ' ) { t.fcx_cpic    = true ; }
+				else if ( c2 == 'T' && c1 == ' ' ) { t.fcx_ctext   = true ; }
+				else if ( c2 == 'C' && c1 == ' ' ) { t.fcx_casis   = true ; }
+				else if ( c2 == 'X' && c1 == ' ' ) { t.fcx_chex    = true ; }
+				else if ( c2 == 'P' && c1 == ' ' ) { t.fcx_cpic    = true ; }
+				else                               { MSG = "PEDT01I" ; return 20 ; }
+				if ( cmd.size() > p2+1 && cmd.at ( p2 ) != ' ' && cmd.at( p2+1 ) != ' ' )
+				{
+					MSG = "PEDT01I" ; return 20 ;
+				}
+				if ( profCaps && t.fcx_ctext )
+				{
+					t.fcx_cstring = upper( substr( cmd, (p1+1), (p2-p1-1) ) ) ;
+				}
+				else
+				{
+					t.fcx_cstring = substr( cmd, (p1+1), (p2-p1-1) ) ;
+					t.fcx_asis    = true ;
+				}
+				cmd = substr( cmd, p2+2 ) ;
 			}
-			cmd = delstr( cmd, (p1-1), (p2-p1+3) ) ;
+			else  { MSG = "PEDT011" ; return 20 ; }
+			continue ;
 		}
-	}
-
-	if ( t.fcx_rreg ) { t.fcx_regreq = true ; }
-
-	ucmd = upper( cmd ) ;
-	if ( p1 = wordpos( "NEXT", ucmd ) )
-	{
-		t.fcx_dir = 'N' ;
-		p1   = wordindex( ucmd, p1 ) ;
-		ucmd = delstr( ucmd, p1, 4 ) ;
-	}
-	else if ( p1 = wordpos( "PREV", ucmd ) )
-	{
-		t.fcx_dir = 'P' ;
-		p1   = wordindex( ucmd, p1 ) ;
-		ucmd = delstr( ucmd, p1, 4 ) ;
-	}
-	else if ( p1 = wordpos( "FIRST", ucmd ) )
-	{
-		t.fcx_dir = 'F' ;
-		p1   = wordindex( ucmd, p1 ) ;
-		ucmd = delstr( ucmd, p1, 5 ) ;
-	}
-	else if ( p1 = wordpos( "LAST", ucmd ) )
-	{
-		t.fcx_dir = 'L' ;
-		p1   = wordindex( ucmd, p1 ) ;
-		ucmd = delstr( ucmd, p1, 4 ) ;
-	}
-	else if ( p1 = wordpos( "ALL", ucmd ) )
-	{
-		t.fcx_dir = 'A' ;
-		p1   = wordindex( ucmd, p1 ) ;
-		ucmd = delstr( ucmd, p1, 3 ) ;
-	}
-
-	if ( fcx_type != 'X' )
-	{
-		if ( p1 = wordpos( "X", ucmd ) )
+		w1 = upper( word( cmd, 1 ) ) ;
+		if ( wordpos( w1, f_keywdir ) > 0 )
 		{
-			p1   = wordindex( ucmd, p1 ) ;
-			ucmd = delstr( ucmd, p1, 1 ) ;
+			if ( f_dir ) { MSG = "PEDT012J" ; return 20 ; }
+			f_dir = true ;
+			if      ( w1 == "NEXT"  ) { t.fcx_dir = 'N' ; }
+			else if ( w1 == "PREV"  ) { t.fcx_dir = 'P' ; }
+			else if ( w1 == "FIRST" ) { t.fcx_dir = 'F' ; }
+			else if ( w1 == "LAST"  ) { t.fcx_dir = 'L' ; }
+			else                      { t.fcx_dir = 'A' ; }
 		}
-		else if ( p1 = wordpos( "EX", ucmd ) )
+		else if ( wordpos( w1, f_keywexcl ) > 0 )
 		{
-			p1   = wordindex( ucmd, p1 ) ;
-			ucmd = delstr( ucmd, p1, 2 ) ;
+			if ( fcx_type == 'X' ) { MSG = "PEDT012J" ; return 20 ; }
+			if ( f_excl )          { MSG = "PEDT012J" ; return 20 ; }
+			f_excl = true ;
+			if ( w1 == "X" ) { t.fcx_excl = 'X' ; }
+			else             { t.fcx_excl = 'N' ; }
 		}
-		else if ( p1 = wordpos( "NX", ucmd ) )
+		else if ( wordpos( w1, f_keywmtch ) > 0 )
 		{
-			p1   = wordindex( ucmd, p1 ) ;
-			ucmd = delstr( ucmd, p1, 2 ) ;
+			if ( f_mtch ) { MSG = "PEDT012J" ; return 20 ; }
+			f_mtch = true ;
+			if      ( w1 == "CHARS"  ) { t.fcx_mtch = 'C' ; }
+			else if ( w1 == "PRE"    ) { t.fcx_mtch = 'P' ; }
+			else if ( w1 == "PREFIX" ) { t.fcx_mtch = 'P' ; }
+			else if ( w1 == "SUF"    ) { t.fcx_mtch = 'S' ; }
+			else if ( w1 == "SUFFIX" ) { t.fcx_mtch = 'S' ; }
+			else                       { t.fcx_mtch = 'W' ; }
 		}
-	}
-
-	if ( !t.fcx_rreg )
-	{
-		if ( p1 = wordpos( "CHARS", ucmd ) )
-		{
-			t.fcx_mtch  = 'C'  ;
-			p1   = wordindex( ucmd, p1 ) ;
-			ucmd = delstr( ucmd, p1, 5 ) ;
-		}
-		else if ( p1 = wordpos( "PRE", ucmd ) )
-		{
-			t.fcx_mtch   = 'P'  ;
-			t.fcx_regreq = true ;
-			p1   = wordindex( ucmd, p1 ) ;
-			ucmd = delstr( ucmd, p1, 3 ) ;
-		}
-		else if ( p1 = wordpos( "PREFIX", ucmd ) )
-		{
-			t.fcx_mtch   = 'P'  ;
-			t.fcx_regreq = true ;
-			p1   = wordindex( ucmd, p1 ) ;
-			ucmd = delstr( ucmd, p1, 6 ) ;
-		}
-		else if ( p1 = wordpos( "SUF", ucmd ) )
-		{
-			t.fcx_mtch   = 'S'  ;
-			t.fcx_regreq = true ;
-			p1   = wordindex( ucmd, p1 ) ;
-			ucmd = delstr( ucmd, p1, 3 ) ;
-		}
-		else if ( p1 = wordpos( "SUFFIX", ucmd ) )
-		{
-			t.fcx_mtch   = 'S'  ;
-			t.fcx_regreq = true ;
-			p1   = wordindex( ucmd, p1 ) ;
-			ucmd = delstr( ucmd, p1, 6 ) ;
-		}
-		else if ( p1 = wordpos( "WORD", ucmd ) )
-		{
-			t.fcx_mtch   = 'W'  ;
-			t.fcx_regreq = true ;
-			p1   = wordindex( ucmd, p1 ) ;
-			ucmd = delstr( ucmd, p1, 4 ) ;
-		}
-	}
-
-	ws = words( ucmd ) ;
-	for ( i = 1 ; i <= ws ; i++ )
-	{
-		w1 = word( ucmd, i ) ;
-		if ( datatype( w1, 'W' ) )
+		else if ( datatype( w1, 'W' ) )
 		{
 			if ( t.fcx_scol != 0 && t.fcx_ecol != 0 ) { MSG = "PEDT019" ; return 20 ; }
 			j = ds2d( w1 ) ;
@@ -3019,16 +3070,46 @@ int PEDIT01::setFindChangeExcl( char fcx_type )
 		}
 		else
 		{
-			if ( t.fcx_string != "" && fcx_type != 'C' ) { MSG = "PEDT01B" ; return 20 ; }
-			if ( w1 == "*" )
+			if ( !f_str1 )
 			{
-				if ( find_parms.fcx_string == "" ) { MSG = "PEDT01C" ; return 20 ; }
-				else                               { w1  = find_parms.fcx_string ; }
+				f_str1 = true ;
+				if ( w1 == "*" )
+				{
+					if ( find_parms.fcx_string == "" ) { MSG = "PEDT01C" ; return 20 ; }
+					t.fcx_string = find_parms.fcx_string ;
+					t.fcx_text   = find_parms.fcx_text   ;
+					t.fcx_asis   = find_parms.fcx_asis   ;
+					t.fcx_hex    = find_parms.fcx_hex    ;
+					t.fcx_pic    = find_parms.fcx_pic    ;
+				}
+				else
+				{
+					t.fcx_text   = true ;
+					t.fcx_string = w1   ;
+				}
 			}
-			if ( t.fcx_string != "" ) { t.fcx_cstring = w1 ; }
-			else                      { t.fcx_string  = w1 ; }
+			else if ( !f_str2 )
+			{
+				if ( fcx_type != 'C' ) { MSG = "PEDT01B" ; return 20 ; }
+				if ( profCaps )
+				{
+					t.fcx_cstring = w1 ;
+				}
+				else
+				{
+					t.fcx_cstring = word( cmd, 1 ) ;
+				}
+				t.fcx_ctext = true ;
+				f_str2      = true ;
+			}
+			else  { MSG = "PEDT012J" ; return 20 ; }
 		}
+		cmd = subword( cmd, 2 ) ;
 	}
+
+	t.fcx_estring = t.fcx_string ;
+
+	if ( t.fcx_rreg ) { t.fcx_regreq = true ; }
 
 	if ( t.fcx_scol != 0 && t.fcx_ecol == 0 ) { t.fcx_ecol = t.fcx_scol ; }
 	if ( t.fcx_scol > t.fcx_ecol )
@@ -3059,7 +3140,7 @@ int PEDIT01::setFindChangeExcl( char fcx_type )
 	{
 		if ( !isvalidHex( t.fcx_string ) )  { MSG = "PEDT01K" ; return 20 ; }
 		t.fcx_string = xs2cs( t.fcx_string ) ;
-		t.fcx_asis   = true                ;
+		t.fcx_asis   = true                  ;
 	}
 
 	if ( t.fcx_pic )
@@ -3128,7 +3209,15 @@ int PEDIT01::setFindChangeExcl( char fcx_type )
 	}
 
 	t.fcx_fset = true ;
-	if ( fcx_type == 'C') { t.fcx_cset = true ; }
+	if ( fcx_type == 'C')
+	{
+		t.fcx_cset = true ;
+		if ( t.fcx_dir == 'A' )
+		{
+			t.fcx_dir     = 'F'  ;
+			t.fcx_chngall = true ;
+		}
+	}
 	find_parms = t ;
 	return 0 ;
 }
@@ -3221,12 +3310,18 @@ void PEDIT01::actionFind()
 
 	if ( dl == 0 ) { dl = 1 ; }
 
-	dl   = getValidDataLine( dl ) ;
+	dl = getValidDataLine( dl ) ;
 	while ( true )
 	{
 		skip = false ;
 		c1   = 0     ;
 		c2   = data[ dl ]->get_idata().size() - 1 ;
+
+		if ( (find_parms.fcx_excl == 'X' && !data[ dl ]->il_excl) ||
+		     (find_parms.fcx_excl == 'N' &&  data[ dl ]->il_excl) )
+		{
+			skip = true ;
+		}
 
 		if ( find_parms.fcx_scol > 0 )                               { c1 = find_parms.fcx_scol - 1 ; }
 		if ( find_parms.fcx_ecol > 0 && c2 > find_parms.fcx_ecol-1 ) { c2 = find_parms.fcx_ecol - 1 ; }
@@ -3269,6 +3364,11 @@ void PEDIT01::actionFind()
 		if ( c2 < 0  ) { abend() ; }
 		if ( c1 > c2 ) { abend() ; }
 
+//              debug1( " dje dl="<<dl<<endl);
+  //            debug1( " dje c1="<<c1<<endl);
+    //          debug1( " dje c2="<<c2<<endl);
+      //        debug1( " dje data="<<data[ dl ]->get_idata()<<endl);
+
 		if ( find_parms.fcx_regreq )
 		{
 			found1 = true  ;
@@ -3285,7 +3385,8 @@ void PEDIT01::actionFind()
 					if ( itss == results[0].first )
 					{
 						found = true ;
-						p1 = find_parms.fcx_scol-1 ;
+						p1    = find_parms.fcx_scol-1  ;
+						data.at( dl )->il_excl = false ;
 					}
 				}
 			}
@@ -3296,6 +3397,7 @@ void PEDIT01::actionFind()
 					while ( regex_search( itss, itse, results, regexp ) )
 					{
 						found = true ;
+						data.at( dl )->il_excl = false ;
 						find_parms.fcx_rstring = results[ 0 ] ;
 						for ( p1 = c1 ; itss != results[0].first ; itss++ ) { p1++ ; }
 						c1 = p1 + 1 ;
@@ -3314,7 +3416,13 @@ void PEDIT01::actionFind()
 				{
 					if ( regex_search( itss, itse, results, regexp ) )
 					{
+						debug1( " dje regex_search " << endl);
+						for ( int ii = 0 ; ii < results.size() ; ii++ )
+						{
+							debug1( " dje what[] " <<results[ii]<< endl);
+						}
 						found = true ;
+						data.at( dl )->il_excl = false ;
 						find_parms.fcx_rstring = results[ 0 ] ;
 						for ( p1 = c1 ; itss != results[0].first ; itss++ ) { p1++ ; }
 					}
@@ -3328,6 +3436,7 @@ void PEDIT01::actionFind()
 		}
 		else
 		{
+		   //   debug1( " dje no regex"<<endl);
 			found1 = true ;
 			while ( true )
 			{
@@ -3340,6 +3449,7 @@ void PEDIT01::actionFind()
 				}
 				else
 				{
+			//              debug1( " dje finding next"<<endl);
 					if ( find_parms.fcx_asis ) { p1 = data[ dl ]->get_idata().find( find_parms.fcx_string, c1 )         ; }
 					else                       { p1 = upper( data[ dl ]->get_idata()).find( find_parms.fcx_string, c1 ) ; }
 					c1 = p1 + 1 ;
@@ -3364,6 +3474,7 @@ void PEDIT01::actionFind()
 					find_parms.fcx_URID   = data.at( dl )->il_URID ;
 					find_parms.fcx_offset = p1 ;
 				}
+				if ( found ) { data.at( dl )->il_excl = false ; }
 				if ( find_parms.fcx_dir != 'A' || !found ) { break ; }
 				find_parms.fcx_occurs++ ;
 				if ( found1 ) { found1 = false ; find_parms.fcx_lines++ ; }
@@ -3382,6 +3493,15 @@ void PEDIT01::actionFind()
 
 void PEDIT01::actionChange()
 {
+	int l       ;
+	string temp ;
+
+	Level++ ;
+	l    = getLine( find_parms.fcx_URID ) ;
+	temp = data.at( l )->get_idata() ;
+	temp.replace( find_parms.fcx_offset, find_parms.fcx_string.size(), find_parms.fcx_cstring ) ;
+	data.at( l )->put_idata( temp, Level ) ;
+	placeCursor( find_parms.fcx_URID, 4, find_parms.fcx_offset+CLINESZ+1 ) ;
 }
 
 

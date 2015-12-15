@@ -355,11 +355,16 @@ class e_find
 		int    fcx_URID    ;
 		int    fcx_lines   ;
 		int    fcx_offset  ;
+		char   fcx_excl    ;
 		bool   fcx_regreq  ;
 		bool   fcx_text    ;
 		bool   fcx_asis    ;
 		bool   fcx_hex     ;
 		bool   fcx_pic     ;
+		bool   fcx_ctext   ;
+		bool   fcx_casis   ;
+		bool   fcx_chex    ;
+		bool   fcx_cpic    ;
 		bool   fcx_rreg    ;
 		string fcx_slab    ;
 		string fcx_elab    ;
@@ -370,6 +375,7 @@ class e_find
 		bool   fcx_fset    ;
 		bool   fcx_cset    ;
 		char   fcx_dir     ;
+		bool   fcx_chngall ;
 		char   fcx_mtch    ;
 		char   fcx_prevcmd ;
 	e_find()
@@ -383,11 +389,16 @@ class e_find
 		fcx_URID    = 0     ;
 		fcx_lines   = 0     ;
 		fcx_offset  = 0     ;
+		fcx_excl    = 'A'   ;
 		fcx_regreq  = false ;
 		fcx_text    = false ;
 		fcx_asis    = false ;
 		fcx_hex     = false ;
 		fcx_pic     = false ;
+		fcx_ctext   = false ;
+		fcx_casis   = false ;
+		fcx_chex    = false ;
+		fcx_cpic    = false ;
 		fcx_rreg    = false ;
 		fcx_slab    = ""    ;
 		fcx_elab    = ""    ;
@@ -397,6 +408,7 @@ class e_find
 		fcx_fset    = false ;
 		fcx_cset    = false ;
 		fcx_dir     = 'N'   ;
+		fcx_chngall = false ;
 		fcx_mtch    = 'C'   ;
 		fcx_prevcmd = ' '   ;
 	}

@@ -1,4 +1,4 @@
 )COMMENT
-)ENDCOMMENT 
+)ENDCOMMENT
 pdc  Help  "Main Help"  ACTION RUN(HELP)
-pdc  Help  Tutorial   ACTION RUN(HELP)
+pdc  Help   Tutorial    ACTION RUN(HELP)

@@ -5,31 +5,26 @@ Panel for editor PEDIT01
 )ENDCOMMENT
 
 )BODY
-
 scrollOn
---PanelTitle "Edit File"
 
-literal  3   2   FP  "EDIT"
-field    3  12   70   VOI  NONE ZFILENM
+literal   3   2          FP  "EDIT"
+field     3   12         70   VOI  NONE ZFILENM
 
-literal  4   2      FP "Command ===> "
-field 4  15 MAX-17  NEF PAD('_') ZCMD
+literal   4   2          FP "Command ===> "
+field 4   15  MAX-17     NEF PAD('_') ZCMD
 
-literal  4 MAX-15    FP  "SCROLL ===> "
-field    4 MAX-3   4  NEF  NONE  ZSCROLL
+literal   4   MAX-15     FP  "SCROLL ===> "
+field     4   MAX-3   4  NEF  NONE  ZSCROLL
 
---literal  5   1       FP  "File Name:"
---field    5  12      70   VOI  NONE ZFILE
+literal   3   MAX-37     FP  "COL"
+field     3   MAX-33  7  VOI  NONE ZCOL1
 
-literal   3   MAX-37    FP  "COL"
-field     3   MAX-33  7 VOI  NONE ZCOL1
+literal   3   MAX-25     FP  "LINE"
+literal   3   MAX-11     FP  "OF"
+field     3   MAX-20  8  VOI  NONE ZROW1
+field     3   MAX-8   8  VOI  NONE ZROW2
 
-literal   3   MAX-25    FP  "LINE"
-literal   3   MAX-11    FP  "OF"
-field     3   MAX-20 8 VOI  NONE ZROW1
-field     3   MAX-8  8 VOI  NONE ZROW2
-
-dynArea  5  1  MAX  MAX  ZAREA  ZSHADOW DATAIN(01) DATAOUT(02) USERMOD(03) DATAMOD(04)
+dynArea   5 1 MAX MAX ZAREA ZSHADOW DATAIN(01) DATAOUT(02) USERMOD(03) DATAMOD(04)
 
 pdc File "Save"    ACTION RUN(SAVE)
 pdc File "Save As" ACTION RUN(SAVEAS)
@@ -41,6 +36,5 @@ pdc File "Exit"    ACTION RUN(END)
 
 
 )PROC
-
 
 )END
