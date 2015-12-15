@@ -3151,7 +3151,7 @@ int PEDIT01::setFindChangeExcl( char fcx_type )
 		// @  alphabetic characters           -  non-numeric characters
 		// #  numeric characters              <  lower case alphabetics
 		// $  special characters              >  upper case alphabetics
-		// ¬  non-blank characters
+		// Â¬  non-blank characters
 		for ( i = 0 ; i < t.fcx_string.size() ; i++ )
 		{
 			switch ( t.fcx_string[ i ] )
@@ -3168,7 +3168,7 @@ int PEDIT01::setFindChangeExcl( char fcx_type )
 				case '$':
 					pic = pic + "[^[:blank:]^[:alpha:]^[:digit:]]" ;
 					break ;
-				case '¬':
+				case 'Â¬':
 					pic = pic + "[^[:blank:]]" ;
 					break ;
 				case '.':
