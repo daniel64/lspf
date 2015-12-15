@@ -522,18 +522,13 @@ void PEDIT01::Edit()
 		else if ( ZVERB == "RCHANGE" )
 		{
 			if ( !find_parms.fcx_cset ) { MSG = "PEDT01D" ; continue ; }
-			// check cursor is on the found string, if not actionFind() else change
-			debug1( " dje aCol+startCol " <<aCol+startCol<<endl);
-			debug1( " dje fcx_offset    " <<find_parms.fcx_offset<<endl);
 			if ( aURID == find_parms.fcx_URID && find_parms.fcx_offset == aCol + startCol - CLINESZ - 2 &&
 				      find_parms.fcx_success )
 			{
-				debug1( " dje actioning change without a find"<<endl);
 				actionChange() ;
 			}
 			else
 			{
-				debug1( " dje doing find before change"<<endl);
 				actionFind() ;
 				if ( find_parms.fcx_success )
 				{
@@ -3151,7 +3146,7 @@ int PEDIT01::setFindChangeExcl( char fcx_type )
 		// @  alphabetic characters           -  non-numeric characters
 		// #  numeric characters              <  lower case alphabetics
 		// $  special characters              >  upper case alphabetics
-		// Â¬  non-blank characters
+		// ¬  non-blank characters
 		for ( i = 0 ; i < t.fcx_string.size() ; i++ )
 		{
 			switch ( t.fcx_string[ i ] )
@@ -3168,7 +3163,7 @@ int PEDIT01::setFindChangeExcl( char fcx_type )
 				case '$':
 					pic = pic + "[^[:blank:]^[:alpha:]^[:digit:]]" ;
 					break ;
-				case 'Â¬':
+				case '¬':
 					pic = pic + "[^[:blank:]]" ;
 					break ;
 				case '.':
