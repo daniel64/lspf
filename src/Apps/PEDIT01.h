@@ -19,7 +19,6 @@
 
 using namespace std;
 
-
 class icmd
 {
 	private:
@@ -95,7 +94,6 @@ class iposition
 } ;
 
 
-
 class ichange
 {
 	private:
@@ -117,26 +115,36 @@ class ichange
 class ipline
 {
 	private:
-		bool   ip_file ;
-		bool   ip_note ;
-		bool   ip_prof ;
-		bool   ip_col  ;
-		bool   ip_bnds ;
-		bool   ip_mask ;
-		bool   ip_excl ;
-		bool   ip_hex  ;
-		string ip_data ;
+		bool   ip_file  ;
+		bool   ip_note  ;
+		bool   ip_prof  ;
+		bool   ip_col   ;
+		bool   ip_bnds  ;
+		bool   ip_mask  ;
+		bool   ip_tabs  ;
+		bool   ip_excl  ;
+		bool   ip_hex   ;
+		bool   ip_chg   ;
+		bool   ip_error ;
+		bool   ip_msg   ;
+		bool   ip_info  ;
+		string ip_data  ;
 		ipline()
 		{
-			ip_file = false ;
-			ip_note = false ;
-			ip_prof = false ;
-			ip_col  = false ;
-			ip_bnds = false ;
-			ip_mask = false ;
-			ip_excl = false ;
-			ip_hex  = false ;
-			ip_data = ""    ;
+			ip_file  = false ;
+			ip_note  = false ;
+			ip_prof  = false ;
+			ip_col   = false ;
+			ip_bnds  = false ;
+			ip_mask  = false ;
+			ip_tabs  = false ;
+			ip_excl  = false ;
+			ip_hex   = false ;
+			ip_chg   = false ;
+			ip_error = false ;
+			ip_msg   = false ;
+			ip_info  = false ;
+			ip_data  = ""    ;
 		}
 
 	friend class PEDIT01 ;
@@ -164,6 +172,8 @@ class iline
 		bool   il_hex     ;
 		bool   il_chg     ;
 		bool   il_error   ;
+		bool   il_msg     ;
+		bool   il_info    ;
 		bool   il_deleted ;
 		bool   il_newisrt ;
 		string il_label   ;
@@ -178,18 +188,20 @@ class iline
 		iline( int taskid )
 		{
 			il_file    = false  ;
+			il_tod     = false  ;
+			il_bod     = false  ;
 			il_note    = false  ;
 			il_prof    = false  ;
 			il_col     = false  ;
 			il_bnds    = false  ;
 			il_mask    = false  ;
 			il_tabs    = false  ;
+			il_info    = false  ;
 			il_excl    = false  ;
-			il_tod     = false  ;
-			il_bod     = false  ;
 			il_hex     = false  ;
 			il_chg     = false  ;
 			il_error   = false  ;
+			il_msg     = false  ;
 			il_deleted = false  ;
 			il_newisrt = false  ;
 			il_label   = ""     ;
@@ -199,6 +211,24 @@ class iline
 			il_taskid  = taskid ;
 			maxURID[ taskid ] = maxURID[ taskid ] + 1 ;
 			il_URID    = maxURID[ taskid ] ;
+		}
+		void resetFilePrefix()
+		{
+			il_excl    = false  ;
+			il_hex     = false  ;
+			il_chg     = false  ;
+			il_error   = false  ;
+			il_msg     = false  ;
+		}
+		void resetSpecialPrefix()
+		{
+			il_note    = false  ;
+			il_prof    = false  ;
+			il_col     = false  ;
+			il_bnds    = false  ;
+			il_mask    = false  ;
+			il_tabs    = false  ;
+			il_info    = false  ;
 		}
 		void clearLc12()
 		{
@@ -343,6 +373,32 @@ class iline
 	friend class PEDIT01 ;
 } ;
 
+
+class c_range
+{
+	private:
+		string c_slab  ;
+		string c_elab  ;
+		int    c_scol  ;
+		int    c_ecol  ;
+	c_range()
+	{
+		c_slab = "" ;
+		c_elab = "" ;
+		c_scol = 0  ;
+		c_ecol = 0  ;
+	}
+	void c_range_clear()
+	{
+		c_slab = "" ;
+		c_elab = "" ;
+		c_scol = 0  ;
+		c_ecol = 0  ;
+	}
+	friend class PEDIT01 ;
+} ;
+
+
 class e_find
 {
 	private:
@@ -351,6 +407,8 @@ class e_find
 		string fcx_cstring ;
 		string fcx_rstring ;
 		bool   fcx_success ;
+		char   fcx_dir     ;
+		char   fcx_mtch    ;
 		int    fcx_occurs  ;
 		int    fcx_URID    ;
 		int    fcx_lines   ;
@@ -371,13 +429,9 @@ class e_find
 		int    fcx_scol    ;
 		int    fcx_ecol    ;
 		int    fcx_oncol   ;
-		bool   fcx_change  ;
 		bool   fcx_fset    ;
 		bool   fcx_cset    ;
-		char   fcx_dir     ;
 		bool   fcx_chngall ;
-		char   fcx_mtch    ;
-		char   fcx_prevcmd ;
 	e_find()
 	{
 		fcx_string  = ""    ;
@@ -385,6 +439,8 @@ class e_find
 		fcx_cstring = ""    ;
 		fcx_rstring = ""    ;
 		fcx_success = true  ;
+		fcx_dir     = 'N'   ;
+		fcx_mtch    = 'C'   ;
 		fcx_occurs  = 0     ;
 		fcx_URID    = 0     ;
 		fcx_lines   = 0     ;
@@ -407,10 +463,7 @@ class e_find
 		fcx_oncol   = 0     ;
 		fcx_fset    = false ;
 		fcx_cset    = false ;
-		fcx_dir     = 'N'   ;
 		fcx_chngall = false ;
-		fcx_mtch    = 'C'   ;
-		fcx_prevcmd = ' '   ;
 	}
 	friend class PEDIT01 ;
 } ;
@@ -431,7 +484,7 @@ class PEDIT01 : public pApplication
 		void cleanup_custom()     ;
 		void initialise()         ;
 		bool termOK()             ;
-		void read_file()          ;
+		void readFile()           ;
 		bool saveFile()           ;
 		void fill_dynamic_area()  ;
 		void getZAREAchanges()    ;
@@ -450,13 +503,18 @@ class PEDIT01 : public pApplication
 		void removeRecoveryData() ;
 
 		int  getLine( int )       ;
-		int  getLastEX( int )     ;
 		int  getFirstEX( int )    ;
+		int  getLastEX( int )     ;
 		int  getEXBlock( int )    ;
 		int  getDataBlock( int )  ;
 
 		int  getFileLine( int )   ;
 		int  getDataLine( int )   ;
+		void cleanupData()        ;
+		void removeProfLines()    ;
+		void removeSpecialLines() ;
+
+		string removeTabs( string ) ;
 
 		vector<iline * >::iterator getValidDataLine( vector<iline * >::iterator ) ;
 		uint getValidDataLine( uint ) ;
@@ -472,26 +530,33 @@ class PEDIT01 : public pApplication
 		bool URIDonScreen( int ) ;
 
 		string overlay( string, string, bool & ) ;
-		bool xformLineCmd( string, string &, int & ) ;
+		bool formLineCmd( string, string &, int & ) ;
 
 		void copyToClipboard( vector<ipline> & vip ) ;
-		void clearClipboard( string )  ;
 		void getClipboard( vector<ipline> & vip ) ;
+		void clearClipboard( string )  ;
 
-		void clearCursor()       ;
+		void clearCursor()    ;
 		void storeCursor(  int, int, int=0 ) ;
 		void placeCursor(  int, int, int=0 ) ;
 		void placeCursor( uint, int, int=0 ) ;
-		void positionCursor()    ;
+		void positionCursor() ;
 
-		vector<iline * >::iterator getLineItr( int ) ;
+		vector<iline * >::iterator getLineItr( int )       ;
 		vector<iline * >::iterator getLineBeforeItr( int ) ;
 
 		int  setFindChangeExcl( char ) ;
+		bool setCommandRange( string, c_range & ) ;
 		int  getNextSpecial( int ) ;
 		bool returnLabelItr( string, vector<iline * >::iterator & , int & ) ;
 
 		bool getTabLocation( int & ) ;
+		void copyPrefix( ipline &, iline * & ) ;
+		void copyPrefix( iline * &,ipline & )  ;
+		void addSpecial( char, int, vector<string> & ) ;
+		void addSpecial( char, int, string & ) ;
+
+		void compareFiles( string ) ;
 
 		uint topLine             ;
 		int  startCol            ;
@@ -626,7 +691,6 @@ class PEDIT01 : public pApplication
 		const string ReptOK    = "C M D HX I MD X O R UC LC RR (( )) ( ) F L" ;
 		const string CutCmds   = "C CC M MM" ;
 		const string PasteCmds = "A B" ;
-
 } ;
 
 

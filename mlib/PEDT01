@@ -34,7 +34,7 @@ PEDT01B "Extraeneous Data"
 PEDT01C "No Previous Find Command"
 "No previous find command specified.  Cannot use * for the find string"
 
-PEDT01D "No Find or Change string"
+PEDT01D "Put string in quotes"
 "No find or change string found in the command.  Put string in quotes"
 
 PEDT01E "No End Label Specified"
@@ -162,6 +162,18 @@ PEDT012K "&TYPE '&STR' changed &OCC times(s)" .TYPE=N
 
 PEDT012L "&TYPE '&STR' changed" .TYPE=N
 "Change for &TYPE '&STR' was successful"
+
+PEDT012M "Enter a FIND command"
+"Enter a FIND command before using RFIND, or put a FIND command on the command line"
+
+PEDT012N "Enter a CHANGE command"
+"Enter a CHANGE command before using RCHANGE, or put a CHANGE command on the command line"
+
+PEDT012O "Compare File Does Not Exist"
+"File '&CFILE' does not exist"
+
+PEDT012P "Files are the same"
+"There are no differences between the files"
 
 PEDT013A "File in use"
 "File '&ZFILE' is currently being edited in another session"

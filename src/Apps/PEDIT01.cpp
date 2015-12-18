@@ -20,15 +20,12 @@
 
 */
 
-
-
-/* PDF-like editor program                                                                   */
 /*                                                                                           */
 /* Current status:                                                                           */
 /* Edit file                                                                                 */
 /*                                                                                           */
 /*                                                                                           */
-/* RC/RSN codes returned                                                                     */
+/* RC/RdN codes returned                                                                     */
 /*  0/0   Okay - No saves made                                                               */
 /*  0/4   Okay - Data saved                                                                  */
 /*  0/8   Okay - Data saved to an alternate name due to an abnormal termination              */
@@ -197,7 +194,7 @@ void PEDIT01::initialise()
 void PEDIT01::getEditProfile( string prof )
 {
 	// ZEDFLAG :
-	//      [0]: Profile locked if '1'                                    [8]: Hilight On if true
+	//      [0]: Profile locked if '1'                                    [8]: Hilight On if '1'
 	//      [1]: Autosave On if '1'
 	//      [2]: Nulls if '1'
 	//      [3]: Caps On if '1'
@@ -340,7 +337,7 @@ void PEDIT01::Edit()
 	RC = 0 ;
 
 	MSG = "" ;
-	read_file() ;
+	readFile() ;
 	if ( RC > 0 )
 	{
 		if ( MSG == "" ) { MSG = "PSYS01E" ; }
@@ -481,19 +478,22 @@ void PEDIT01::Edit()
 					startCol = startCol + ZSCROLLN ;
 			}
 		}
-		else if ( ZVERB == "RF" || ZVERB == "RFIND" )
+		else if ( ZVERB == "RFIND" )
 		{
-			if ( !find_parms.fcx_fset )
+			if ( !find_parms.fcx_fset && ZCMD == "" ) { MSG = "PEDT012M"; continue ; }
+			w1 = upper( word( ZCMD, 1 ) ) ;
+			if ( w1 == "C" || w1 == "CHANGE" || w1 == "CHA" || w1 == "CHG" )
 			{
-				w1 = upper( word( ZCMD, 1 ) ) ;
-				if ( w1 == "C" || "CHANGE" )
-				{
-					if ( setFindChangeExcl( 'C' ) > 0 ) { continue ; }
-				}
-				else
-				{
-					if ( setFindChangeExcl( 'F' ) > 0 ) { continue ; }
-				}
+				if ( setFindChangeExcl( 'C' ) > 0 ) { continue ; }
+			}
+			else if ( w1 == "F" || w1 == "FIND" )
+			{
+				if ( setFindChangeExcl( 'F' ) > 0 ) { continue ; }
+			}
+			else if ( w1 != "" )
+			{
+				ZCMD = "FIND " + ZCMD ;
+				if ( setFindChangeExcl( 'F' ) > 0 ) { continue ; }
 			}
 			actionFind() ;
 			if ( find_parms.fcx_success )
@@ -521,9 +521,15 @@ void PEDIT01::Edit()
 		}
 		else if ( ZVERB == "RCHANGE" )
 		{
-			if ( !find_parms.fcx_cset ) { MSG = "PEDT01D" ; continue ; }
-			if ( aURID == find_parms.fcx_URID && find_parms.fcx_offset == aCol + startCol - CLINESZ - 2 &&
-				      find_parms.fcx_success )
+			if ( !find_parms.fcx_cset && ZCMD == "" ) { MSG = "PEDT012N"; continue ; }
+			w1 = upper( word( ZCMD, 1 ) ) ;
+			if ( w1 == "C" || w1 == "CHANGE" || w1 == "CHA" || w1 == "CHG" )
+			{
+				if ( setFindChangeExcl( 'C' ) > 0 ) { continue ; }
+			}
+			if ( aURID == find_parms.fcx_URID    &&
+				      find_parms.fcx_success &&
+				      find_parms.fcx_offset == (aCol + startCol - CLINESZ - 2) )
 			{
 				actionChange() ;
 			}
@@ -587,7 +593,6 @@ void PEDIT01::Edit()
 	}
 	vput( "ZSCROLL", PROFILE ) ;
 
-	vector<iline * >::iterator it ;
 	for_each( data.begin(), data.end(), [](iline * & a) { delete a ; } ) ;
 	data.clear() ;
 	saveEditProfile( ZEDPROF ) ;
@@ -618,7 +623,7 @@ bool PEDIT01::termOK()
 }
 
 
-void PEDIT01::read_file()
+void PEDIT01::readFile()
 {
 	int p   ;
 	int j   ;
@@ -628,13 +633,13 @@ void PEDIT01::read_file()
 	string ZTIMEL ;
 	string inLine ;
 
+	vector<string> Notes ;
+
 	idata t ;
 
 	boost::system::error_code ec ;
 
 	iline * p_iline ;
-	vector<iline * >::iterator it ;
-
 	ifstream fin( ZFILE.c_str() ) ;
 
 	if ( EditList.find( ZFILE ) != EditList.end() )
@@ -701,28 +706,14 @@ void PEDIT01::read_file()
 	p_iline->clear_Global_Undo() ;
 	fin.close() ;
 
-	it = data.begin() ;
-	it++ ;
-	p_iline          = new iline( taskid() ) ;
-	p_iline->il_note = true      ;
-	p_iline->put_idata( " WARNING!!!  EDITOR UNDER CONSTRUCTION.  SAVE FILES AT YOUR OWN RISK !!!!", 0 ) ;
-	it = data.insert( it, p_iline ) ;
-	it++ ;
+	Notes.push_back( " WARNING!!!  EDITOR UNDER CONSTRUCTION.  SAVE FILES AT YOUR OWN RISK !!!!" ) ;
 
 	EditList[ ZFILE ] = true ;
 
 	if ( tabsOnRead && !profTabs )
 	{
-		p_iline          = new iline( taskid() ) ;
-		p_iline->il_note = true      ;
-		p_iline->put_idata( " WARNING!!!  TABS HAVE BEEN DETECTED AND CONVERTED TO SPACES", 0 ) ;
-		it = data.insert( it, p_iline ) ;
-		it++ ;
-		p_iline          = new iline( taskid() ) ;
-		p_iline->il_note = true      ;
-		p_iline->put_idata( " WARNING!!!  BUT PROFILE OPTION IS NOT TO CONVERT SPACES TO TABS ON SAVE !!!!", 0 ) ;
-		it = data.insert( it, p_iline ) ;
-		it++ ;
+		Notes.push_back( " WARNING!!!  TABS HAVE BEEN DETECTED AND CONVERTED TO SPACES" ) ;
+		Notes.push_back( " WARNING!!!  BUT PROFILE OPTION IS NOT TO CONVERT SPACES TO TABS ON SAVE !!!!" )       ;
 	}
 
 	if ( profBackup )
@@ -736,6 +727,7 @@ void PEDIT01::read_file()
 			MSG = "PEDT011F" ;
 		}
 	}
+	addSpecial( 'N', topLine, Notes ) ;
 }
 
 
@@ -746,7 +738,7 @@ bool PEDIT01::saveFile()
 	string t2 ;
 	string f  ;
 
-	f = ZFILE  ;
+	f = ZFILE ;
 	vector<iline * >::iterator it ;
 	ofstream fout( f.c_str() ) ;
 
@@ -761,8 +753,7 @@ bool PEDIT01::saveFile()
 
 	for ( it = data.begin() ; it != data.end() ; it++ )
 	{
-		if ( !(*it)->il_file     ) { continue ; }
-		if (  (*it)->il_deleted  ) { continue ; }
+		if ( !(*it)->il_file || (*it)->il_deleted ) { continue ; }
 		t1 = (*it)->get_idata() ;
 		t1 = strip( t1, 'T', ' ' ) ;
 		if ( profTabs )
@@ -792,7 +783,8 @@ bool PEDIT01::saveFile()
 	}
 	fileChanged = false ;
 	fout.close() ;
-  //    if ( error saving file ) { MSG = "PEDT01Q" ; ZRC = 8 ; ZRSN = 8 ; return false ; }
+	if ( fout.fail() ) { MSG = "PEDT01Q" ; ZRC = 8 ; ZRSN = 8 ; return false ; }
+	MSG  = "PEDT01P" ;
 	ZRC  = 0 ;
 	ZRSN = 4 ;
 	return true ;
@@ -871,21 +863,23 @@ void PEDIT01::fill_dynamic_area()
 		{
 			if ( data.at( dl )->il_label == "" )
 			{
-				if ( data.at( dl )->il_newisrt )     { lcc = "''''''" ; ZSHADOW = ZSHADOW + slr ; }
-				else if ( data.at( dl )->il_error )  { lcc = "==ERR>" ; ZSHADOW = ZSHADOW + slr ; }
+				if      ( data.at( dl )->il_newisrt ) { lcc = "''''''" ; ZSHADOW = ZSHADOW + slr ; }
+				else if ( data.at( dl )->il_note  )   { lcc = "=NOTE=" ; ZSHADOW = ZSHADOW + slr ; }
+				else if ( data.at( dl )->il_prof  )   { lcc = "=PROF>" ; ZSHADOW = ZSHADOW + slr ; }
+				else if ( data.at( dl )->il_col   )   { lcc = "=COLS>" ; ZSHADOW = ZSHADOW + slr ; }
+				else if ( data.at( dl )->il_bnds  )   { lcc = "=BNDS>" ; ZSHADOW = ZSHADOW + slr ; }
+				else if ( data.at( dl )->il_mask  )   { lcc = "=MASK>" ; ZSHADOW = ZSHADOW + slr ; }
+				else if ( data.at( dl )->il_tabs  )   { lcc = "=TABS>" ; ZSHADOW = ZSHADOW + slr ; }
+				else if ( data.at( dl )->il_chg   )   { lcc = "==CHG>" ; ZSHADOW = ZSHADOW + slr ; }
+				else if ( data.at( dl )->il_msg   )   { lcc = "==MSG>" ; ZSHADOW = ZSHADOW + slr ; }
+				else if ( data.at( dl )->il_error )   { lcc = "==ERR>" ; ZSHADOW = ZSHADOW + slr ; }
+				else if ( data.at( dl )->il_info  )   { lcc = "======" ; ZSHADOW = ZSHADOW + slr ; }
 				else if ( data.at( dl )->il_file  )
 				{
 					lcc = right( d2ds( fl ), 6, '0' ) ;
 					ZSHADOW = ZSHADOW + slg ;
 				}
-				else if ( data.at( dl )->il_note  )  { lcc = "=NOTE>" ; ZSHADOW = ZSHADOW + slr ; }
-				else if ( data.at( dl )->il_col   )  { lcc = "=COLS>" ; ZSHADOW = ZSHADOW + slr ; }
-				else if ( data.at( dl )->il_bnds  )  { lcc = "=BNDS>" ; ZSHADOW = ZSHADOW + slr ; }
-				else if ( data.at( dl )->il_mask  )  { lcc = "=MASK>" ; ZSHADOW = ZSHADOW + slr ; }
-				else if ( data.at( dl )->il_prof  )  { lcc = "=PROF>" ; ZSHADOW = ZSHADOW + slr ; }
-				else if ( data.at( dl )->il_tabs  )  { lcc = "=TABS>" ; ZSHADOW = ZSHADOW + slr ; }
-				else if ( data.at( dl )->il_chg   )  { lcc = "==CHG>" ; ZSHADOW = ZSHADOW + slr ; }
-				else                                 { lcc = "******" ; ZSHADOW = ZSHADOW + slr ; }
+				else { lcc = "******" ; ZSHADOW = ZSHADOW + slr ; }
 			}
 			else
 			{
@@ -956,14 +950,14 @@ void PEDIT01::fill_dynamic_area()
 					tmp = tmp + d2ds( t%10 ) + "----+----" ;
 					t++ ;
 				}
-				ZAREA = ZAREA + din + lcc + dout + substr( tmp, 1, ZDATAW ) ;
+				ZAREA   = ZAREA + din + lcc + dout + substr( tmp, 1, ZDATAW ) ;
 				ZSHADOW = ZSHADOW + sdw ;
 			}
 			else if ( data.at( dl )->il_bnds )
 			{
 				tmp = copies( " ", LeftBnd-1 ) + "<" ;
 				if ( RightBnd > 0 ) { tmp = tmp + copies( " ", RightBnd-tmp.size()-1 ) + ">" ; }
-				ZAREA = ZAREA + din + lcc + din + substr( tmp, startCol, ZDATAW ) ;
+				ZAREA   = ZAREA + din + lcc + din + substr( tmp, startCol, ZDATAW ) ;
 				ZSHADOW = ZSHADOW + sdw ;
 			}
 			else if ( data.at( dl )->il_mask )
@@ -1091,7 +1085,6 @@ void PEDIT01::getZAREAchanges()
 		}
 		else if ( ZAREA[ off + 7 ] == ddataMod )
 		{
-			data.at( dl )->il_chg = true ;
 			sChanged[ i ]         = true ;
 			rebuildZAREA          = true ;
 		}
@@ -1254,7 +1247,6 @@ void PEDIT01::actionPCMD()
 	int j  ;
 	int ws ;
 	int p1 ;
-	int topURID ;
 
 	string w1   ;
 	string w2   ;
@@ -1262,18 +1254,19 @@ void PEDIT01::actionPCMD()
 	string w4   ;
 	string wall ;
 
-	iline * p_iline ;
+	vector<string> Prof ;
+	vector<string> Info ;
 
 	if ( ZVERB == "RFIND" || ZVERB == "RCHANGE" ) { return ; }
 
 	vector<iline * >::iterator it  ;
-	vector<iline * >::iterator itt ;
 	vector<iline * >::iterator its ;
 	vector<iline * >::iterator ite ;
 
 	ws = words( ZCMD )            ;
 	w1 = upper( word( ZCMD, 1 ) ) ;
 	if ( w1 == "" ) { return ; }
+
 	w2 = upper( word( ZCMD, 2 ) ) ;
 	w3 = upper( word( ZCMD, 3 ) ) ;
 	w4 = upper( word( ZCMD, 4 ) ) ;
@@ -1320,7 +1313,7 @@ void PEDIT01::actionPCMD()
 		else { MSG = "PEDT011" ; }
 		ZCMD = "" ;
 	}
-	else if ( w1 == "C" || w1 == "CHANGE" )
+	else if ( w1 == "C" || w1 == "CHANGE" || w1 == "CHA" || w1 == "CHG" )
 	{
 		i = 0 ;
 		if ( setFindChangeExcl( 'C' ) > 0 ) { return ; }
@@ -1331,9 +1324,6 @@ void PEDIT01::actionPCMD()
 			i++            ;
 			actionChange() ;
 			if ( !find_parms.fcx_chngall ) { break ; }
-			{
-				MSG  = "PEDT012L" ;
-			}
 		}
 		if ( i > 0 )
 			if ( find_parms.fcx_chngall ) { MSG = "PEDT012K" ; }
@@ -1346,6 +1336,11 @@ void PEDIT01::actionPCMD()
 		OCC  = d2ds( i )    ;
 		ZCMD = ""           ;
 		rebuildZAREA = true ;
+	}
+	else if ( w1 == "COMP" || w1 == "COMPARE" )
+	{
+		compareFiles( subword( ZCMD, 2 ) ) ;
+		ZCMD = "" ;
 	}
 	else if ( w1 == "CUT" )
 	{
@@ -1370,10 +1365,24 @@ void PEDIT01::actionPCMD()
 			else                      { MSG = "PEDT012A"          ; }
 		}
 	}
+	else if ( w1 == "DIAG" )
+	{
+		it = data.begin() ;
+		Info.push_back( " Editor Diagnostic Information:" ) ;
+		Info.push_back( " Global UNDO stack size: " + d2ds( (*it)->get_Global_Undo_Size() ) ) ;
+		Info.push_back( " Global REDO stack size: " + d2ds( (*it)->get_Global_Redo_Size() ) ) ;
+		Info.push_back( " Update Level. . . . . : " + d2ds( Level ) ) ;
+		if ( fileChanged )
+		{
+			Info.push_back( " Data changed since last SAVE" ) ;
+		}
+		Info.push_back( " -End-" ) ;
+		addSpecial( 'I', topLine, Info ) ;
+		rebuildZAREA = true ;
+	}
 	else if ( w1 == "DEL" || w1 == "DELETE" )
 	{
 		if ( ws != 3 ) { MSG = "PEDT011" ; return ; }
-		topURID = data.at( topLine )->il_URID ;
 		if ( w2 == "X" || w2 == "EX" || w2 == "EXCLUDED" )
 		{
 			if ( w3 != "ALL" ) { MSG = "PEDT011" ; return ; }
@@ -1508,7 +1517,7 @@ void PEDIT01::actionPCMD()
 		{
 			if ( w2 == "0" )
 			{
-				topLine      = getDataLine( 1 ) ;
+				topLine      = 0    ;
 				rebuildZAREA = true ;
 			}
 			else
@@ -1518,6 +1527,7 @@ void PEDIT01::actionPCMD()
 				rebuildZAREA = true ;
 			}
 		}
+		ZCMD = "" ;
 	}
 	else if ( w1 == "PASTE" )
 	{
@@ -1547,46 +1557,12 @@ void PEDIT01::actionPCMD()
 	{
 		if ( ws == 1 )
 		{
-			for ( it = data.begin() ; it != data.end() ; it++ )
-			{
-				if ( (*it)->il_prof )
-				{
-					delete *it  ;
-					itt = it    ;
-					itt--       ;
-					data.erase( it ) ;
-					it = itt    ;
-				}
-			}
-			rebuildZAREA = true  ;
-
-			dl = topLine ;
-			for ( it = data.begin(), i = 0 ; i <= dl ; i++ ) { it++ ; }
-
-			p_iline  = new iline( taskid() ) ;
-			p_iline->il_prof = true ;
-			p_iline->put_idata( left( "...." + ZEDPTYPE + "....RECOVERY " + OnOff[ profRecov ] + "....AUTOSAVE "+OnOff[ profSave ]+"....NUM OFF....CAPS "+OnOff[ profCaps ], ZDATAW, '.' ), Level ) ;
-			it = data.insert( it, p_iline ) ;
-			it++ ;
-
-			p_iline  = new iline( taskid() ) ;
-			p_iline->il_prof = true ;
-			p_iline->put_idata( left( "....CONVERT SPACES TO TABS " + OnOff[ profTabs ] + "....TABSIZE "+d2ds( profTabz )+"....HEX "+OnOff[ profHex ]+"....NULLS "+OnOff[ profNulls ], ZDATAW, '.' ), Level ) ;
-			it = data.insert( it, p_iline ) ;
-			it++ ;
-
-			p_iline  = new iline( taskid() ) ;
-			p_iline->il_prof = true ;
-			p_iline->put_idata( left( "....BACKUP "+OnOff[ profBackup ]+"....BACKUP LOCATION " + backupLoc, ZDATAW, '.' ), Level ) ;
-			it = data.insert( it, p_iline ) ;
-			it++ ;
-
-			p_iline  = new iline( taskid() ) ;
-			p_iline->il_prof = true ;
-			p_iline->put_idata( left( "....HILIGHT "+OnOff[ profHilight ]+" CPP....PROFILE LOCK "+OnOff[ profLock ], ZDATAW, '.' ), Level ) ;
-			it = data.insert( it, p_iline ) ;
-			it++ ;
-
+			removeProfLines() ;
+			Prof.push_back( left( "...." + ZEDPTYPE + "....RECOVERY " + OnOff[ profRecov ] + "....AUTOSAVE "+OnOff[ profSave ]+"....NUM OFF....CAPS "+OnOff[ profCaps ], ZDATAW, '.' ) ) ;
+			Prof.push_back( left( "....CONVERT SPACES TO TABS " + OnOff[ profTabs ] + "....TABSIZE "+d2ds( profTabz )+"....HEX "+OnOff[ profHex ]+"....NULLS "+OnOff[ profNulls ], ZDATAW, '.' ) ) ;
+			Prof.push_back( left( "....BACKUP "+OnOff[ profBackup ]+"....BACKUP LOCATION " + backupLoc, ZDATAW, '.' ) ) ;
+			Prof.push_back( left( "....HILIGHT "+OnOff[ profHilight ]+" CPP....PROFILE LOCK "+OnOff[ profLock ], ZDATAW, '.' ) ) ;
+			addSpecial( 'P', topLine, Prof ) ;
 			rebuildZAREA = true  ;
 		}
 		else if ( ws != 2 )         { MSG = "PEDT011" ; return ; }
@@ -1616,26 +1592,16 @@ void PEDIT01::actionPCMD()
 	{
 		if ( w2 == "" )
 		{
-			Level++ ;
-			topURID = data.at( topLine )->il_URID ;
+			removeSpecialLines() ;
 			for ( it = data.begin() ; it != data.end() ; it++ )
 			{
-				if ( (*it)->il_note || (*it)->il_col  || (*it)->il_prof ||
-				     (*it)->il_bnds || (*it)->il_mask || (*it)->il_tabs )
-				{
-					(*it)->put_idata( "", Level ) ;
-					(*it)->set_il_deleted() ;
-					rebuildZAREA = true     ;
-				}
-				(*it)->il_excl  = false ;
-				(*it)->il_hex   = false ;
-				(*it)->il_chg   = false ;
-				(*it)->il_error = false ;
+				(*it)->resetFilePrefix() ;
 				(*it)->clearLc12() ;
 			}
 			icmds.clear() ;
-			topLine      = getLine( topURID ) ;
-			rebuildZAREA = true  ;
+			icmds.clear() ;
+			cleanupData() ;
+			rebuildZAREA = true ;
 		}
 		else if ( (w2 == "CMD") || (w2 == "COMMAND") )
 		{
@@ -1806,8 +1772,6 @@ void PEDIT01::actionLineCommands()
 	vector<ipline>::iterator new_end   ;
 	vector<icmd>::iterator itc         ;
 
-	map<int, bool>uridl                  ; //testing only
-
 	if ( !checkLineCommands() ) { return ; }
 
 	for ( ita = data.begin() ; ita != data.end() ; ita++ )
@@ -1834,21 +1798,19 @@ void PEDIT01::actionLineCommands()
 		if ( itc->icmd_Rpt == -1 ) { itc->icmd_Rpt = 1 ; }
 		if ( itc->icmd_COMMAND == "BNDS" )
 		{
-			Level++;
 			il_itr = getLineItr( itc->icmd_sURID ) ;
 			p_iline          = new iline( taskid() ) ;
-			p_iline->il_bnds = true      ;
-			p_iline->put_idata( "", Level )  ;
+			p_iline->il_bnds = true  ;
+			p_iline->put_idata( "" ) ;
 			il_itr = data.insert( il_itr, p_iline ) ;
 			rebuildZAREA = true ;
 		}
 		else if ( itc->icmd_COMMAND == "COL" || itc->icmd_COMMAND == "COLS" )
 		{
-			Level++;
 			il_itr = getLineItr( itc->icmd_sURID ) ;
 			p_iline          = new iline( taskid() ) ;
-			p_iline->il_col  = true      ;
-			p_iline->put_idata( "", Level )  ;
+			p_iline->il_col  = true  ;
+			p_iline->put_idata( "" ) ;
 			il_itr = data.insert( il_itr, p_iline ) ;
 			rebuildZAREA = true ;
 		}
@@ -1861,14 +1823,7 @@ void PEDIT01::actionLineCommands()
 			{
 				if ( (*il_itr)->il_bod )     { break                     ; }
 				if ( (*il_itr)->il_deleted ) { j-- ; il_itr++ ; continue ; }
-				ip.ip_file = (*il_itr)->il_file ;
-				ip.ip_note = (*il_itr)->il_note ;
-				ip.ip_prof = (*il_itr)->il_prof ;
-				ip.ip_col  = (*il_itr)->il_col  ;
-				ip.ip_bnds = (*il_itr)->il_bnds ;
-				ip.ip_mask = (*il_itr)->il_mask ;
-				ip.ip_excl = (*il_itr)->il_excl ;
-				ip.ip_hex  = (*il_itr)->il_hex  ;
+				copyPrefix( ip, (*il_itr) ) ;
 				ip.ip_data = (*il_itr)->get_idata() ;
 				vip.push_back( ip ) ;
 				il_itr++ ;
@@ -1910,19 +1865,13 @@ void PEDIT01::actionLineCommands()
 					for ( j = 0 ; j < vip.size() ; j++ )
 					{
 						p_iline  = new iline( taskid() ) ;
-						p_iline->il_file = vip[ j ].ip_file ;
-						p_iline->il_note = vip[ j ].ip_note ;
-						p_iline->il_prof = vip[ j ].ip_prof ;
-						p_iline->il_col  = vip[ j ].ip_col  ;
-						p_iline->il_bnds = vip[ j ].ip_bnds ;
-						p_iline->il_mask = vip[ j ].ip_mask ;
-						p_iline->il_excl = vip[ j ].ip_excl ;
-						p_iline->il_hex  = vip[ j ].ip_hex  ;
+						copyPrefix( p_iline, vip[ j ]  ) ;
 						p_iline->put_idata( vip[ j ].ip_data, Level ) ;
 						il_ite++ ;
 						il_ite = data.insert( il_ite, p_iline ) ;
 					}
 				}
+				fileChanged  = true ;
 			}
 			if ( itc->icmd_COMMAND == "M" && overlayOK )
 			{
@@ -1935,10 +1884,10 @@ void PEDIT01::actionLineCommands()
 					(*il_itr)->set_il_deleted()       ;
 					il_itr++ ;
 				}
+				fileChanged  = true ;
 			}
 			if ( !overlayOK && itc->icmd_COMMAND[ 0 ] == 'M' ) { MSG = "PEDT011D" ; }
 			rebuildZAREA = true ;
-			fileChanged  = true ;
 		}
 		else if ( itc->icmd_COMMAND == "CC" || itc->icmd_COMMAND == "MM" )
 		{
@@ -1950,14 +1899,7 @@ void PEDIT01::actionLineCommands()
 			for ( ; il_itr != il_ite ; il_itr++ )
 			{
 				if ( (*il_itr)->il_bod ) { break ; }
-				ip.ip_file = (*il_itr)->il_file ;
-				ip.ip_note = (*il_itr)->il_note ;
-				ip.ip_prof = (*il_itr)->il_prof ;
-				ip.ip_col  = (*il_itr)->il_col  ;
-				ip.ip_bnds = (*il_itr)->il_bnds ;
-				ip.ip_mask = (*il_itr)->il_mask ;
-				ip.ip_excl = (*il_itr)->il_excl ;
-				ip.ip_hex  = (*il_itr)->il_hex  ;
+				copyPrefix( ip, (*il_itr) ) ;
 				ip.ip_data = (*il_itr)->get_idata() ;
 				vip.push_back( ip ) ;
 			}
@@ -1977,10 +1919,6 @@ void PEDIT01::actionLineCommands()
 					size = truncateSize( itc->icmd_dURID ) ;
 					itc->icmd_OSize = (size > itc->icmd_OSize ) ? itc->icmd_OSize : size ;
 					if ( itc->icmd_OSize < vip.size() ) { MSG = "PEDT011C" ; }
-					if ( itc->icmd_oURID > 0 )
-					{
-						ita = getLineItr( itc->icmd_oURID ) ;
-					}
 					k = 0 ;
 					while ( true )
 					{
@@ -2002,19 +1940,13 @@ void PEDIT01::actionLineCommands()
 					for ( j = 0 ; j < vip.size() ; j++ )
 					{
 						p_iline  = new iline( taskid() ) ;
-						p_iline->il_file = vip[ j ].ip_file ;
-						p_iline->il_note = vip[ j ].ip_note ;
-						p_iline->il_prof = vip[ j ].ip_prof ;
-						p_iline->il_col  = vip[ j ].ip_col  ;
-						p_iline->il_bnds = vip[ j ].ip_bnds ;
-						p_iline->il_mask = vip[ j ].ip_mask ;
-						p_iline->il_excl = vip[ j ].ip_excl ;
-						p_iline->il_hex  = vip[ j ].ip_hex  ;
+						copyPrefix( p_iline, vip[ j ]  ) ;
 						p_iline->put_idata( vip[ j ].ip_data, Level ) ;
 						il_ite++ ;
 						il_ite = data.insert( il_ite, p_iline ) ;
 					}
 				}
+				fileChanged  = true ;
 			}
 			if ( itc->icmd_COMMAND == "MM" && overlayOK )
 			{
@@ -2027,10 +1959,10 @@ void PEDIT01::actionLineCommands()
 					(*il_itr)->put_idata( "", Level ) ;
 					(*il_itr)->set_il_deleted()       ;
 				}
+				fileChanged  = true ;
 			}
 			if ( !overlayOK && itc->icmd_COMMAND[ 0 ] == 'M' ) { MSG = "PEDT011D" ; }
 			rebuildZAREA = true ;
-			fileChanged  = true ;
 		}
 		else if ( itc->icmd_COMMAND == "D" )
 		{
@@ -2069,7 +2001,6 @@ void PEDIT01::actionLineCommands()
 		}
 		else if ( itc->icmd_COMMAND == "F" )
 		{
-			Level++ ;
 			il_itr = getLineItr( itc->icmd_sURID ) ;
 			for ( j = 0 ; j < itc->icmd_Rpt ; j++ )
 			{
@@ -2133,7 +2064,6 @@ void PEDIT01::actionLineCommands()
 		}
 		else if ( itc->icmd_COMMAND == "L" )
 		{
-			Level++ ;
 			il_itr = getLineItr( itc->icmd_sURID ) ;
 			for ( j = 0 ; j < itc->icmd_Rpt ; j++ )
 			{
@@ -2182,7 +2112,7 @@ void PEDIT01::actionLineCommands()
 		{
 			il_itr = getLineItr( itc->icmd_sURID ) ;
 			p_iline          = new iline( taskid() ) ;
-			p_iline->il_mask = true      ;
+			p_iline->il_mask = true ;
 			p_iline->put_idata( maskLine ) ;
 			il_itr = data.insert( il_itr, p_iline ) ;
 			il_itr = getValidDataLine( il_itr ) ;
@@ -2231,6 +2161,7 @@ void PEDIT01::actionLineCommands()
 				il_itr = data.insert( il_itr, p_iline ) ;
 				il_ite = getLineItr( itc->icmd_eURID )  ;
 				il_ite++ ;
+				if ( il_itr == il_ite ) { break ; }
 			}
 			il_itr = getValidDataLine( il_itr ) ;
 			placeCursor( (*il_itr)->il_URID, 2 ) ;
@@ -2242,25 +2173,11 @@ void PEDIT01::actionLineCommands()
 			Level++ ;
 			il_itr  = getLineItr( itc->icmd_sURID ) ;
 			tmp     = (*il_itr)->get_idata() ;
-			ip.ip_file = (*il_itr)->il_file ;
-			ip.ip_note = (*il_itr)->il_note ;
-			ip.ip_prof = (*il_itr)->il_prof ;
-			ip.ip_col  = (*il_itr)->il_col  ;
-			ip.ip_bnds = (*il_itr)->il_bnds ;
-			ip.ip_mask = (*il_itr)->il_mask ;
-			ip.ip_excl = (*il_itr)->il_excl ;
-			ip.ip_hex  = (*il_itr)->il_hex  ;
+			copyPrefix( ip, (*il_itr ) ) ;
 			for ( j = 0 ; j < itc->icmd_Rpt ; j++ )
 			{
 				p_iline          = new iline( taskid() )  ;
-				p_iline->il_file = ip.ip_file ;
-				p_iline->il_note = ip.ip_note ;
-				p_iline->il_prof = ip.ip_prof ;
-				p_iline->il_col  = ip.ip_col  ;
-				p_iline->il_bnds = ip.ip_bnds ;
-				p_iline->il_mask = ip.ip_mask ;
-				p_iline->il_excl = ip.ip_excl ;
-				p_iline->il_hex  = ip.ip_hex  ;
+				copyPrefix( p_iline, ip ) ;
 				p_iline->put_idata( tmp, Level ) ;
 				il_itr++ ;
 				il_itr = data.insert( il_itr, p_iline ) ;
@@ -2278,14 +2195,7 @@ void PEDIT01::actionLineCommands()
 			for ( ; ; il_itr++ )
 			{
 				if ( (*il_itr)->il_deleted ) { continue ; }
-				ip.ip_file = (*il_itr)->il_file ;
-				ip.ip_note = (*il_itr)->il_note ;
-				ip.ip_prof = (*il_itr)->il_prof ;
-				ip.ip_col  = (*il_itr)->il_col  ;
-				ip.ip_bnds = (*il_itr)->il_bnds ;
-				ip.ip_mask = (*il_itr)->il_mask ;
-				ip.ip_excl = (*il_itr)->il_excl ;
-				ip.ip_hex  = (*il_itr)->il_hex  ;
+				copyPrefix( ip, (*il_itr ) ) ;
 				ip.ip_data = (*il_itr)->get_idata() ;
 				vip.push_back( ip ) ;
 				if ( il_itr == il_ite ) { break ; }
@@ -2295,15 +2205,8 @@ void PEDIT01::actionLineCommands()
 				il_ite = getLineItr( itc->icmd_eURID ) ;
 				for ( k = 0 ; k < vip.size() ; k++ )
 				{
-					p_iline          = new iline( taskid() )        ;
-					p_iline->il_file = vip[ k ].ip_file ;
-					p_iline->il_note = vip[ k ].ip_note ;
-					p_iline->il_prof = vip[ k ].ip_prof ;
-					p_iline->il_col  = vip[ k ].ip_col  ;
-					p_iline->il_bnds = vip[ k ].ip_bnds ;
-					p_iline->il_mask = vip[ k ].ip_mask ;
-					p_iline->il_excl = vip[ k ].ip_excl ;
-					p_iline->il_hex  = vip[ k ].ip_hex  ;
+					p_iline = new iline( taskid() ) ;
+					copyPrefix( p_iline, vip[ k ] ) ;
 					p_iline->put_idata( vip[ k ].ip_data, Level ) ;
 					il_ite++ ;
 					il_ite = data.insert( il_ite, p_iline ) ;
@@ -2318,7 +2221,7 @@ void PEDIT01::actionLineCommands()
 		{
 			il_itr = getLineItr( itc->icmd_sURID ) ;
 			p_iline          = new iline( taskid() ) ;
-			p_iline->il_tabs = true      ;
+			p_iline->il_tabs = true        ;
 			p_iline->put_idata( tabsLine ) ;
 			il_itr = data.insert( il_itr, p_iline ) ;
 			il_itr = getValidDataLine( il_itr ) ;
@@ -2351,7 +2254,7 @@ void PEDIT01::actionLineCommands()
 			}
 			else
 			{
-				p_iline = new iline( taskid() )        ;
+				p_iline = new iline( taskid() ) ;
 				p_iline->il_file    = true ;
 				p_iline->il_newisrt = true ;
 				p_iline->put_idata( maskLine, Level ) ;
@@ -2401,7 +2304,7 @@ void PEDIT01::actionLineCommands()
 			il_itr = getLineItr( itc->icmd_sURID ) ;
 			for ( j = 0 ; j < itc->icmd_Rpt ; j++ )
 			{
-				if ( (*il_itr)->il_bod )    { break                     ; }
+				if ( (*il_itr)->il_bod )     { break                     ; }
 				if ( (*il_itr)->il_deleted ) { j-- ; il_itr++ ; continue ; }
 				(*il_itr)->il_excl = true ;
 				il_itr++ ;
@@ -2552,7 +2455,7 @@ bool PEDIT01::checkLineCommands()
 			rebuildZAREA = true  ;
 			continue             ;
 		}
-		if ( !xformLineCmd( (*it)->il_lc1, lc2, rept ) )
+		if ( !formLineCmd( (*it)->il_lc1, lc2, rept ) )
 		{
 			if ( MSG == "" ) { MSG = "PEDT01Y" ; }
 			break ;
@@ -2897,10 +2800,8 @@ void PEDIT01::actionREDO()
 int PEDIT01::setFindChangeExcl( char fcx_type )
 {
 	int i        ;
-	int j        ;
 	int p1       ;
 	int p2       ;
-	int ws       ;
 
 	char c1      ;
 	char c2      ;
@@ -2913,14 +2814,15 @@ int PEDIT01::setFindChangeExcl( char fcx_type )
 
 	string delim ;
 	string cmd   ;
-	string ucmd  ;
+	string rcmd  ;
 	string w1    ;
 	string pic   ;
 	e_find t     ;
+	c_range r    ;
 
-	string f_keywdir  = "NEXT PREV FIRST LAST ALL" ;
-	string f_keywexcl = "X NX" ;
-	string f_keywmtch = "CHARS PRE PREFIX SUF SUFFIX WORD" ;
+	const string f_keywdir  = "NEXT PREV FIRST LAST ALL" ;
+	const string f_keywexcl = "X NX" ;
+	const string f_keywmtch = "CHARS PRE PREFIX SUF SUFFIX WORD" ;
 
 	f_dir  = false ;
 	f_excl = false ;
@@ -2928,13 +2830,12 @@ int PEDIT01::setFindChangeExcl( char fcx_type )
 	f_str1 = false ;
 	f_str2 = false ;
 
-	vector<iline * >::iterator it  ;
-
 	static char quote('\"')  ;
 	static char apost('\'')  ;
 
-	MSG  = ""                 ;
+	MSG  = "" ;
 	cmd  = subword( ZCMD, 2 ) + " " ;
+	rcmd = "" ;
 
 	while ( true )
 	{
@@ -2952,7 +2853,7 @@ int PEDIT01::setFindChangeExcl( char fcx_type )
 				f_str1 = true ;
 				p2  = pos( delim, cmd, p1+1 ) ;
 				if ( p2 == 0 ) { MSG = "PEDT01H" ; return 20 ; }
-				c1 = toupper( c1 )          ;
+				c1 = toupper( c1 )            ;
 				if ( p2 >= cmd.size() ) { c2 = ' ' ; }
 				else                    { c2 = toupper( cmd.at( p2 ) ) ; }
 				if      ( c1 == ' ' && c2 == ' ' ) { t.fcx_text   = true ; }
@@ -2988,7 +2889,7 @@ int PEDIT01::setFindChangeExcl( char fcx_type )
 				f_str2 = true ;
 				p2  = pos( delim, cmd, p1+1 ) ;
 				if ( p2 == 0 ) { MSG = "PEDT01H" ; return 20 ; }
-				c1 = toupper( c1 )          ;
+				c1 = toupper( c1 )            ;
 				if ( p2 >= cmd.size() ) { c2 = ' ' ; }
 				else                    { c2 = toupper( cmd.at( p2 ) ) ; }
 				if ( c1 == ' ' && c2 == ' ' )      { t.fcx_ctext   = true ; }
@@ -3023,45 +2924,24 @@ int PEDIT01::setFindChangeExcl( char fcx_type )
 		if ( wordpos( w1, f_keywdir ) > 0 )
 		{
 			if ( f_dir ) { MSG = "PEDT012J" ; return 20 ; }
-			f_dir = true ;
-			if      ( w1 == "NEXT"  ) { t.fcx_dir = 'N' ; }
-			else if ( w1 == "PREV"  ) { t.fcx_dir = 'P' ; }
-			else if ( w1 == "FIRST" ) { t.fcx_dir = 'F' ; }
-			else if ( w1 == "LAST"  ) { t.fcx_dir = 'L' ; }
-			else                      { t.fcx_dir = 'A' ; }
+			f_dir     = true    ;
+			t.fcx_dir = w1[ 0 ] ;
 		}
 		else if ( wordpos( w1, f_keywexcl ) > 0 )
 		{
-			if ( fcx_type == 'X' ) { MSG = "PEDT012J" ; return 20 ; }
-			if ( f_excl )          { MSG = "PEDT012J" ; return 20 ; }
-			f_excl = true ;
-			if ( w1 == "X" ) { t.fcx_excl = 'X' ; }
-			else             { t.fcx_excl = 'N' ; }
+			if ( f_excl || fcx_type == 'X' ) { MSG = "PEDT012J" ; return 20 ; }
+			f_excl     = true    ;
+			t.fcx_excl = w1[ 0 ] ;
 		}
 		else if ( wordpos( w1, f_keywmtch ) > 0 )
 		{
 			if ( f_mtch ) { MSG = "PEDT012J" ; return 20 ; }
-			f_mtch = true ;
-			if      ( w1 == "CHARS"  ) { t.fcx_mtch = 'C' ; }
-			else if ( w1 == "PRE"    ) { t.fcx_mtch = 'P' ; }
-			else if ( w1 == "PREFIX" ) { t.fcx_mtch = 'P' ; }
-			else if ( w1 == "SUF"    ) { t.fcx_mtch = 'S' ; }
-			else if ( w1 == "SUFFIX" ) { t.fcx_mtch = 'S' ; }
-			else                       { t.fcx_mtch = 'W' ; }
+			f_mtch     = true    ;
+			t.fcx_mtch = w1[ 0 ] ;
 		}
-		else if ( datatype( w1, 'W' ) )
+		else if ( datatype( w1, 'W' ) || w1[ 0 ] == '.' )
 		{
-			if ( t.fcx_scol != 0 && t.fcx_ecol != 0 ) { MSG = "PEDT019" ; return 20 ; }
-			j = ds2d( w1 ) ;
-			if ( j < 1 || j > 65535 ) { MSG = "PEDT01J" ; return 20 ; }
-			if ( t.fcx_scol == 0 ) { t.fcx_scol = j ; }
-			else                   { t.fcx_ecol = j ; }
-		}
-		else if ( w1[ 0 ] == '.' )
-		{
-			if ( t.fcx_slab != "" && t.fcx_elab != "" ) { MSG = "PEDT01A" ; return 20 ; }
-			if ( t.fcx_slab == "" ) { t.fcx_slab = w1 ; }
-			else                    { t.fcx_elab = w1 ; }
+			rcmd = rcmd + " " + w1 ;
 		}
 		else
 		{
@@ -3106,30 +2986,11 @@ int PEDIT01::setFindChangeExcl( char fcx_type )
 
 	if ( t.fcx_rreg ) { t.fcx_regreq = true ; }
 
-	if ( t.fcx_scol != 0 && t.fcx_ecol == 0 ) { t.fcx_ecol = t.fcx_scol ; }
-	if ( t.fcx_scol > t.fcx_ecol )
-	{
-		i          = t.fcx_scol ;
-		t.fcx_scol = t.fcx_ecol ;
-		t.fcx_ecol = i ;
-	}
-	if ( t.fcx_scol == 0 ) { t.fcx_scol = 1 ; }
-
-	if ( t.fcx_string == "" || ( fcx_type == 'C' && t.fcx_cstring == "" ) ) { MSG = "PEDT01D" ; return 20 ; }
-
-	if ( t.fcx_slab != "" &&  t.fcx_elab == "" )          { MSG = "PEDT01E" ; return 20 ; }
-	if ( t.fcx_slab != "" && (t.fcx_slab == t.fcx_elab) ) { MSG = "PEDT01G" ; return 20 ; }
-	if ( t.fcx_slab != "" )
-	{
-		if ( !returnLabelItr( t.fcx_slab, it, i ) ) { MSG = "PEDT01F" ; return 20 ; }
-		if ( !returnLabelItr( t.fcx_elab, it, j ) ) { MSG = "PEDT01F" ; return 20 ; }
-		if ( i > j )
-		{
-			w1         = t.fcx_slab ;
-			t.fcx_slab = t.fcx_elab ;
-			t.fcx_elab = w1 ;
-		}
-	}
+	if ( !setCommandRange( rcmd, r ) ) { return 20 ; }
+	t.fcx_slab = r.c_slab ;
+	t.fcx_elab = r.c_elab ;
+	t.fcx_scol = r.c_scol ;
+	t.fcx_ecol = r.c_ecol ;
 
 	if ( t.fcx_hex )
 	{
@@ -3141,7 +3002,6 @@ int PEDIT01::setFindChangeExcl( char fcx_type )
 	if ( t.fcx_pic )
 	{
 		pic = "" ;
-		j   = 0  ;
 		// =  any character                   .  invalid characters
 		// @  alphabetic characters           -  non-numeric characters
 		// #  numeric characters              <  lower case alphabetics
@@ -3187,20 +3047,19 @@ int PEDIT01::setFindChangeExcl( char fcx_type )
 		t.fcx_regreq = true ;
 	}
 
-	if ( t.fcx_regreq && !t.fcx_rreg )
+	switch ( t.fcx_mtch )
 	{
-		switch ( t.fcx_mtch )
-		{
-			case 'P':
-				t.fcx_string = "[\\b|^](" + t.fcx_string + ")" ;
-				break ;
-			case 'S':
-				t.fcx_string = "(" + t.fcx_string + ")\\b" ;
-				break ;
-			case 'W':
-				t.fcx_string = "\\b(" + t.fcx_string + ")\\b" ;
-				break ;
-		}
+		case 'P':
+			t.fcx_string = "[\\b|^](" + t.fcx_string + ")" ;
+			t.fcx_regreq = true ;
+			break ;
+		case 'S':
+			t.fcx_string = "(" + t.fcx_string + ")\\b" ;
+			t.fcx_regreq = true ;
+			break ;
+		case 'W':
+			t.fcx_string = "\\b(" + t.fcx_string + ")\\b" ;
+			t.fcx_regreq = true ;
 	}
 
 	t.fcx_fset = true ;
@@ -3218,6 +3077,65 @@ int PEDIT01::setFindChangeExcl( char fcx_type )
 }
 
 
+bool PEDIT01::setCommandRange( string s, c_range & t )
+{
+	// Extract the command range ( start/end labels and start/end columns ) from a command
+	// and return data in t
+
+	int j ;
+	int k ;
+
+	string w  ;
+
+	vector<iline * >::iterator it  ;
+
+	t.c_range_clear() ;
+
+	while ( true )
+	{
+		w = word( s, 1 ) ;
+		if ( w == "" ) { break ; }
+		if ( datatype( w, 'W' ) )
+		{
+			if ( t.c_scol != 0 && t.c_ecol != 0 ) { MSG = "PEDT019" ; return false ; }
+			j = ds2d( w ) ;
+			if ( j < 1 || j > 65535 ) { MSG = "PEDT01J" ; return false ; }
+			t.c_scol == 0 ? t.c_scol = j : t.c_ecol = j ;
+		}
+		else if ( w[ 0 ] == '.' )
+		{
+			if ( t.c_slab != "" && t.c_elab != "" )  { MSG = "PEDT01A" ; return false ; }
+			t.c_slab == "" ? t.c_slab = w : t.c_elab = w ;
+		}
+		else { MSG = "PEDT011" ; return false ; }
+		s = delword( s, 1, 1 ) ;
+	}
+	if ( t.c_scol != 0 && t.c_ecol == 0 ) { t.c_ecol = t.c_scol ; }
+	if ( t.c_scol > t.c_ecol )
+	{
+		j          = t.c_scol ;
+		t.c_scol = t.c_ecol ;
+		t.c_ecol = j ;
+	}
+	if ( t.c_scol == 0 ) { t.c_scol = 1 ; }
+
+	if ( t.c_slab != "" && (t.c_slab == t.c_elab) ) { MSG = "PEDT01G" ; return false ; }
+	if ( t.c_slab != "" &&  t.c_elab == "" )        { MSG = "PEDT01E" ; return false ; }
+	if ( t.c_slab != "" )
+	{
+		if ( !returnLabelItr( t.c_slab, it, j ) ) { MSG = "PEDT01F" ; return false ; }
+		if ( !returnLabelItr( t.c_elab, it, k ) ) { MSG = "PEDT01F" ; return false ; }
+		if ( j > k )
+		{
+			w        = t.c_slab ;
+			t.c_slab = t.c_elab ;
+			t.c_elab = w        ;
+		}
+	}
+	return true ;
+}
+
+
 void PEDIT01::actionFind()
 {
 	// dl has to be a uint so the corect getNextDataLine routine is called ( int is for URID )
@@ -3226,8 +3144,6 @@ void PEDIT01::actionFind()
 
 	int c1 ;
 	int c2 ;
-	int i  ;
-	int j  ;
 	int p1 ;
 	int oX ;
 	int oY ;
@@ -3237,18 +3153,11 @@ void PEDIT01::actionFind()
 	bool found1 ;
 	bool skip   ;
 
-	vector<string>::iterator it  ;
-	vector<string>::iterator itt ;
-	vector<string>::iterator its ;
-	vector<string>::iterator ite ;
-
 	string::const_iterator itss ;
 	string::const_iterator itse ;
 
 	regex regexp ;
 	smatch results ;
-
-	j = 0 ;
 
 	if ( !find_parms.fcx_success && find_parms.fcx_dir == 'N' )
 	{
@@ -3267,7 +3176,10 @@ void PEDIT01::actionFind()
 	find_parms.fcx_offset  = 0  ;
 
 	offset = aCol ;
-	if ( find_parms.fcx_dir == 'F' || find_parms.fcx_dir == 'A' || find_parms.fcx_dir == 'L' ) { offset = 0 ; }
+	if ( find_parms.fcx_dir == 'F' || find_parms.fcx_dir == 'A' || find_parms.fcx_dir == 'L' )
+	{
+		offset = 0 ;
+	}
 
 	if ( offset > ZAREAW ) { offset = offset - ZAREAW ; }
 	if ( offset > 0 ) { oX = (offset % ZAREAW)-1 ; oY = offset / ZAREAW ; }
@@ -3496,6 +3408,7 @@ void PEDIT01::actionChange()
 	temp = data.at( l )->get_idata() ;
 	temp.replace( find_parms.fcx_offset, find_parms.fcx_string.size(), find_parms.fcx_cstring ) ;
 	data.at( l )->put_idata( temp, Level ) ;
+	data.at( l )->il_chg = true            ;
 	placeCursor( find_parms.fcx_URID, 4, find_parms.fcx_offset+CLINESZ+1 ) ;
 }
 
@@ -3590,6 +3503,15 @@ void PEDIT01::actionExclude()
 
 void PEDIT01::clearCursor()
 {
+	// cursorPlaceUsing: 1 Use URID to place cursor(*)
+	//                   2 Use Row to place cursor
+
+	// cursorPlaceType   1 First char of the line command area
+	//                   2 First char of data area
+	//                   3 First non-blank char of data area (after startCol)
+	//                   4 Use position in cursorPlaceOff
+	// cursorPlaceOff    Offset from start of line
+
 	cursorPlaced    = false ;
 	cursorPlaceHome = false ;
 	cursorPlaceURID = 0     ;
@@ -3599,16 +3521,6 @@ void PEDIT01::clearCursor()
 
 void PEDIT01::placeCursor( int URID, int pt, int offset )
 {
-	// cursorPlaceUsing: 1 Use URID to place cursor(*)
-	//                   2 Use Row to place cursor
-
-	// cursorPlaceType   1 First char of the line command area
-	//                   2 First char of data area
-	//                   3 First non-blank char of data area (after startCol)
-	//                   4 Use position in cursorPlaceOff
-
-	// cursorPlaceOff    Offset from start of line
-
 	cursorPlaced     = true   ;
 	cursorPlaceHome  = false  ;
 	cursorPlaceUsing = 1      ;
@@ -3621,17 +3533,6 @@ void PEDIT01::placeCursor( int URID, int pt, int offset )
 
 void PEDIT01::placeCursor( uint Row, int pt, int offset )
 {
-	// cursorPlaceUsing: 1 Use URID to place cursor
-	//                   2 Use Row to place cursor(*)
-
-	// cursorPlaceType   1 First char of the line command area
-	//                   2 First char of data area
-	//                   3 First non-blank char of data area (after startCol)
-	//                   4 Use position in cursorPlaceOff
-
-	// cursorPlaceOff    Offset from start of line
-
-
 	cursorPlaced     = true   ;
 	if ( Row > ZAREAD || s2data.at( Row-1 ).ipo_URID == 0 ) { cursorPlaceHome = true ; return ; }
 	cursorPlaceHome  = false  ;
@@ -3645,15 +3546,6 @@ void PEDIT01::placeCursor( uint Row, int pt, int offset )
 
 void PEDIT01::storeCursor( int URID, int pt, int offset )
 {
-	// cursorPlaceUsing: 1 Use URID to place cursor
-
-	// cursorPlaceType   1 First char of the line command area
-	//                   2 First char of data area
-	//                   3 First non-blank char of data area (after startCol)
-	//                   4 Use position in cursorPlaceOff
-
-	// cursorPlaceOff    Offset from start of line
-
 	cursorPlaceUsing = 1      ;
 	cursorPlaceURID  = URID   ;
 	cursorPlaceRow   = 0      ;
@@ -3665,15 +3557,6 @@ void PEDIT01::storeCursor( int URID, int pt, int offset )
 
 void PEDIT01::positionCursor()
 {
-	// Position cursor as determined by placeCursor() routine
-
-	// cursorPlaceType  1 First char of the line command area
-	//                  2 First char of data area
-	//                  3 First non-blank char of data area (after startCol)
-	//                  4 Use position in cursorPlaceOff
-
-	// Hilight word on the cursor
-
 	int i  ;
 	int p  ;
 	int dl ;
@@ -3729,7 +3612,7 @@ void PEDIT01::positionCursor()
 			CURPOS = ZAREAW * screenLine + cursorPlaceOff ;
 			break ;
 	}
-	ZSHADOW.replace( ZAREAW*screenLine+1, 6, 6, B_RED ) ;
+	ZSHADOW.replace( ZAREAW*screenLine+1, slr.size(), slr ) ;
 	for ( i = CURPOS-1 ; i < ZASIZE ; i++ )
 	{
 		if ( ZAREA[ i ] == ' ' ) { break ; }
@@ -3756,7 +3639,7 @@ bool PEDIT01::returnLabelItr(string label, vector<iline * >::iterator & it , int
 }
 
 
-bool PEDIT01::xformLineCmd( string cmd, string & lc2, int & rept)
+bool PEDIT01::formLineCmd( string cmd, string & lc2, int & rept)
 {
 	// Split line command into the command (string) and repeat value (int), if allowed, and return in lc2 and retp
 	// A 'rept' of -1 means it has not been entered
@@ -4109,6 +3992,7 @@ uint PEDIT01::getValidDataLine( uint l )
 int PEDIT01::getNextSpecial( int l )
 {
 	// Return the next special data vector line after l.
+	// special is col,prof,tabs,mask,bnds,msg,info or note
 
 	int  ol    ;
 	bool found ;
@@ -4118,8 +4002,14 @@ int PEDIT01::getNextSpecial( int l )
 	for ( l++ ; l < data.size() ; l++ )
 	{
 		if ( data.at( l )->il_deleted ) { continue ; }
-		if ( data.at( l )->il_chg )     { found = true ; break ; }
-		if ( data.at( l )->il_error )   { found = true ; break ; }
+		if ( data.at( l )->il_col  ||
+		     data.at( l )->il_prof ||
+		     data.at( l )->il_tabs ||
+		     data.at( l )->il_mask ||
+		     data.at( l )->il_bnds ||
+		     data.at( l )->il_msg  ||
+		     data.at( l )->il_info ||
+		     data.at( l )->il_note ) { found = true ; break ; }
 	}
 	if ( !found ) { l = ol ; }
 	return l ;
@@ -4219,6 +4109,185 @@ string PEDIT01::overlay( string s1, string s2, bool & success )
 		else                  { s[ i ] = s1[ i ] ; }
 	}
 	return s ;
+}
+
+
+void PEDIT01::copyPrefix( ipline & d, iline * & s )
+{
+	d.ip_file  = s->il_file  ;
+	d.ip_note  = s->il_note  ;
+	d.ip_prof  = s->il_prof  ;
+	d.ip_col   = s->il_col   ;
+	d.ip_bnds  = s->il_bnds  ;
+	d.ip_mask  = s->il_mask  ;
+	d.ip_excl  = s->il_excl  ;
+	d.ip_hex   = s->il_hex   ;
+	d.ip_chg   = s->il_chg   ;
+	d.ip_error = s->il_error ;
+	d.ip_msg   = s->il_msg   ;
+	d.ip_info  = s->il_info  ;
+}
+
+
+void PEDIT01::copyPrefix( iline * & d, ipline & s )
+{
+	d->il_file  = s.ip_file  ;
+	d->il_note  = s.ip_note  ;
+	d->il_prof  = s.ip_prof  ;
+	d->il_col   = s.ip_col   ;
+	d->il_bnds  = s.ip_bnds  ;
+	d->il_mask  = s.ip_mask  ;
+	d->il_excl  = s.ip_excl  ;
+	d->il_hex   = s.ip_hex   ;
+	d->il_chg   = s.ip_chg   ;
+	d->il_error = s.ip_error ;
+	d->il_msg   = s.ip_msg   ;
+	d->il_info  = s.ip_info  ;
+}
+
+
+void PEDIT01::addSpecial( char t, int p, vector<string> & s )
+{
+	int i ;
+
+	vector<iline * >::iterator it ;
+	iline * p_iline ;
+
+	it = data.begin() ;
+	advance( it, p+1 )  ;
+	for ( i = 0 ; i < s.size() ; i++ )
+	{
+		p_iline = new iline( taskid() ) ;
+		switch (t)
+		{
+			case 'I': p_iline->il_info = true ; break ;
+			case 'N': p_iline->il_note = true ; break ;
+			case 'P': p_iline->il_prof = true ; break ;
+		}
+		p_iline->put_idata( s.at( i ), 0 ) ;
+		it = data.insert( it, p_iline )    ;
+		it++ ;
+	}
+}
+
+
+void PEDIT01::addSpecial( char t, int p, string & s )
+{
+	int i ;
+
+	vector<iline * >::iterator it ;
+	iline * p_iline ;
+
+	it = data.begin()  ;
+	advance( it, p+1 ) ;
+	p_iline = new iline( taskid() ) ;
+	switch (t)
+	{
+		case 'I': p_iline->il_info = true ; break ;
+		case 'N': p_iline->il_note = true ; break ;
+		case 'P': p_iline->il_prof = true ; break ;
+	}
+	p_iline->put_idata( s, 0 ) ;
+	it = data.insert( it, p_iline )    ;
+}
+
+
+void PEDIT01::cleanupData()
+{
+	// Delete all logically deleted lines for non-file data and remove entries from the data vector
+	// (Make a copy of the data vector using copy_if that contains only records to be deleted as iterator is invalidated after an erase() )
+
+	// Reposition topLine as lines before may have been removed or topLine itself, deleted
+
+	int topURID ;
+
+	vector<iline * >::iterator it      ;
+	vector<iline * >::iterator new_end ;
+	vector<iline * >tdata              ;
+
+	if ( data.at( topLine )->il_deleted )
+	{
+		topLine = getNextDataLine( topLine ) ;
+	}
+	topURID = data.at( topLine )->il_URID ;
+
+	copy_if( data.begin(), data.end(), back_inserter( tdata ),
+			       [](iline * & a) { return (a->il_deleted && !a->il_file) ; } ) ;
+
+	new_end = remove_if( data.begin(), data.end(),
+			       [](iline * & a) { return (a->il_deleted && !a->il_file) ; } ) ;
+	data.erase( new_end, data.end() ) ;
+
+	for ( it = tdata.begin() ; it != tdata.end() ; it++ )
+	{
+		delete (*it) ;
+	}
+	topLine = getLine( topURID ) ;
+}
+
+
+void PEDIT01::removeProfLines()
+{
+	// Delete PROFILE lines in Data
+	// Reposition topLine as lines before may have been removed or topLine itself, deleted
+
+	int topURID ;
+	vector<iline * >::iterator it      ;
+	vector<iline * >::iterator new_end ;
+	vector<iline * >tdata              ;
+
+	while ( data.at( topLine )->il_prof )
+	{
+		topLine = getNextDataLine( topLine ) ;
+	}
+	topURID = data.at( topLine )->il_URID ;
+
+	copy_if( data.begin(), data.end(), back_inserter( tdata ),
+			       [](iline * & a) { return a->il_prof ; } ) ;
+
+	new_end = remove_if( data.begin(), data.end(),
+			       [](iline * & a) { return a->il_prof ; } ) ;
+	data.erase( new_end, data.end() ) ;
+
+	for ( it = tdata.begin() ; it != tdata.end() ; it++ )
+	{
+		delete (*it) ;
+	}
+	topLine = getLine( topURID ) ;
+}
+
+
+void PEDIT01::removeSpecialLines()
+{
+	// Delete all temporary lines from the Data vector
+	// (notes,col,prof,bnds,mask,tabs,info and newisrt)
+	// Keep only file lines (including logically deleted lines), Top-of-Data and Bottom-of-Data
+
+	// Reposition topLine as lines before may have been removed or topLine itself, deleted
+
+	int topURID ;
+	vector<iline * >::iterator it      ;
+	vector<iline * >::iterator new_end ;
+	vector<iline * >tdata              ;
+
+	while ( !data.at( topLine )->il_file && !data.at( topLine )->il_tod && !data.at( topLine )->il_bod )
+	{
+		topLine = getNextDataLine( topLine ) ;
+	}
+	topURID = data.at( topLine )->il_URID ;
+
+	copy_if( data.begin(), data.end(), back_inserter( tdata ),
+	     [](iline * & a) { return ( (!a->il_file && !a->il_bod && !a->il_tod) || (a->il_newisrt) ) ; } ) ;
+
+	new_end = remove_if( data.begin(), data.end(),
+	     [](iline * & a) { return ( (!a->il_file && !a->il_bod && !a->il_tod) || (a->il_newisrt) ) ; } ) ;
+	data.erase( new_end, data.end() ) ;
+
+	for ( it = tdata.begin() ; it != tdata.end() ; it++ )
+	{
+		delete (*it) ;
+	}
+	topLine = getLine( topURID ) ;
 }
 
 
@@ -4398,6 +4467,207 @@ void PEDIT01::cleanup_custom()
 	ZRSN = 8 ;
 	EditList.erase( ZFILE ) ;
 	return   ;
+}
+
+
+void PEDIT01::compareFiles( string s )
+{
+	//  Simple compare routine using output from the diff command
+
+	//  Compare edit version of file with entered file name.  Differences displayed in browse or
+	//  with INFO lines ( .Onnnn signify lines added, INFO lines ====== are lines deleted )
+
+	int i   ;
+	int j   ;
+	int o   ;
+	int rl  ;
+	int d1  ;
+	int pos ;
+	int lab ;
+
+	string cmd ;
+	string t1  ;
+	string t2  ;
+	string dparms ;
+	string result ;
+	string file   ;
+	string v_list ;
+	string tname1 ;
+	string tname2 ;
+	string inLine ;
+
+	string CFILE   ;
+	string ECPBRDF ;
+	string ECPICAS ;
+	string ECPIREF ;
+	string ECPIBLK ;
+	string ECPITBE ;
+
+	char buffer[256] ;
+
+	vector<iline * >::iterator it ;
+	vector<string>Changes ;
+
+	path temp1 ;
+	path temp2 ;
+
+	v_list = "CFILE ECPBRDF ECPICAS ECPIREF ECPIBLK ECPITBE" ;
+
+	vcopy( "ZUSER", ZUSER, MOVE ) ;
+	vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
+
+	vdefine( v_list, &CFILE, &ECPBRDF, &ECPICAS, &ECPIREF, &ECPIBLK, &ECPITBE) ;
+	vget( v_list, PROFILE ) ;
+
+	if ( s == "" )
+	{
+		MSG    = ""      ;
+		display( "PEDIT013", MSG, "ZCMD3" ) ;
+		if ( RC  > 8 ) { abend()                    ; }
+		if ( RC == 8 ) { vdelete( v_list ) ; return ; }
+	}
+	else if ( s[ 0 ] != '/' )
+	{
+		CFILE = ZFILE.substr( 0, ZFILE.find_last_of( '/' )+1 ) + s ;
+	}
+	else
+	{
+		CFILE = s ;
+	}
+
+	if ( !is_regular_file( CFILE ) )
+	{
+		MSG = "PEDT012O"  ;
+		vdelete( v_list ) ;
+		return ;
+	}
+
+	if ( ECPBRDF == "/" ) { dparms = " -y " ;          }
+	if ( ECPICAS == "/" ) { dparms = dparms + " -i " ; }
+	if ( ECPIREF == "/" ) { dparms = dparms + " -b " ; }
+	if ( ECPIBLK == "/" ) { dparms = dparms + " -B " ; }
+	if ( ECPITBE == "/" ) { dparms = dparms + " -E " ; }
+
+	temp1  = temp_directory_path() / unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
+	tname1 = temp1.native() ;
+
+	temp2  = temp_directory_path() / unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
+	tname2 = temp2.native() ;
+
+	ofstream fout( tname1.c_str() ) ;
+	ofstream of ;
+
+	for ( it = data.begin() ; it != data.end() ; it++ )
+	{
+		if ( !(*it)->il_file || (*it)->il_deleted ) { continue ; }
+		t1 = (*it)->get_idata() ;
+		t1 = strip( t1, 'T', ' ' ) ;
+		if ( profTabs )
+		{
+			t2 = "" ;
+			for ( i = 0 ; i < t1.size() ; i++ )
+			{
+				if ( (i % 8 == 0) && t1.size() > i+7 && t1.compare( i, 8, "        " ) == 0 )
+				{
+					t2.push_back( '\t' ) ;
+					i = i + 7 ;
+				}
+				else if ( t1[ i ] != ' ' ) { break ; }
+				else                       { t2.push_back( ' ' ) ; }
+
+			}
+			if ( i < t1.size() )
+			{
+				t2 = t2 + t1.substr( i ) ;
+			}
+			fout << t2 << endl ;
+		}
+		else
+		{
+			fout << t1 << endl ;
+		}
+	}
+	fout.close() ;
+
+	cmd = "diff " + dparms + CFILE + " " + tname1 ;
+	of.open( tname2 ) ;
+	FILE* pipe{popen( cmd.c_str(), "r" ) } ;
+	while( fgets( buffer, sizeof( buffer ), pipe ) != nullptr )
+	{
+		file   = buffer ;
+		result = file.substr(0, file.size() - 1 ) ;
+		of << result << endl ;
+	}
+	pclose( pipe ) ;
+	of.close()     ;
+	remove( tname1 ) ;
+
+	if ( ECPBRDF == "/" )
+	{
+		browse( tname2 ) ;
+		if ( ZRC == 4 ) { MSG = "PEDT012P" ; }
+		remove( tname2 )  ;
+		vdelete( v_list ) ;
+		return            ;
+	}
+
+	lab = 1 ;
+	rl  = 0 ;
+	Changes.clear() ;
+	ifstream fin( tname2.c_str() ) ;
+	while ( getline( fin, inLine ) )
+	{
+		rl++ ;
+		if ( isdigit( inLine[ 0 ] ) )
+		{
+			o = 0 ;
+			if ( Changes.size() > 0 )
+			{
+				addSpecial( 'I', getDataLine( d1-1 ), Changes ) ;
+				Changes.clear() ;
+			}
+			pos = inLine.find_first_of( "acd" ) ;
+			t1  = inLine.substr( pos+1 )  ;
+			pos = t1.find_first_of( ',' ) ;
+			if ( pos == string::npos ) { d1 = ds2d( t1 ) ; }
+			else                       { d1 = ds2d( t1.substr( 0, pos ) ) ; }
+		}
+		else if ( inLine[0] == '<' )
+		{
+			Changes.push_back ( removeTabs( inLine.substr( 2 ) ) ) ;
+		}
+		else if ( inLine[0] == '>' )
+		{
+			data.at(( getDataLine( d1+o ) ))->il_label = ".O" + right( d2ds( lab ), 4, '0' ) ;
+			lab++ ;
+			o++   ;
+		}
+	}
+	fin.close() ;
+	if ( Changes.size() > 0 )
+	{
+		addSpecial( 'I', getDataLine( d1-1 ), Changes ) ;
+	}
+	if ( rl == 0 ) { MSG = "PEDT012P" ; }
+	rebuildZAREA = true ;
+	remove( tname2 ) ;
+	vdelete( v_list ) ;
+}
+
+
+string PEDIT01::removeTabs( string s )
+{
+	int j   ;
+	int pos ;
+
+	pos = s.find( '\t' ) ;
+	while ( pos != string::npos )
+	{
+		j = 8 - (pos % 8 ) ;
+		s.replace( pos, 1,  j, ' ' )  ;
+		pos = s.find( '\t', pos + 1 ) ;
+	}
+	return s ;
 }
 
 
