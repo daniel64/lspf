@@ -154,8 +154,9 @@ class pApplication
 		void   get_home( uint & row, uint & col ) ;
 		void   get_cursor( uint & row, uint & col ) ;
 		void   set_msg( string, string, cuaType, bool ) ;
-		bool   nretriev_on() ;
-		void   cleanup()     ;
+		bool   nretriev_on()   ;
+		string get_nretfield() ;
+		void   cleanup()       ;
 		void   cleanup_default() ;
 		void   (pApplication::*pcleanup)() = &pApplication::cleanup_default ;
 		void   abend()       ;

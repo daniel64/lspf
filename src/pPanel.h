@@ -92,8 +92,8 @@ class pPanel
 		void   cursor_to_field( int & RC, string name="", int pos = 1 ) ;
 		void   cursor_eof( uint & row, uint & col )  ;
 		void   cursor_to_next_field ( string name, uint & row, uint & col )  ;
-		void   get_cursor( uint & row, uint & col )	{ row   = p_row + win_row ; col   = p_col + win_col ; } ;
-		void   set_cursor( uint row, uint col )		{ p_row = row - win_row   ; p_col = col - win_col   ; } ;
+		void   get_cursor( uint & row, uint & col )     { row   = p_row + win_row ; col   = p_col + win_col ; } ;
+		void   set_cursor( uint row, uint col )         { p_row = row - win_row   ; p_col = col - win_col   ; } ;
 
 		void   field_edit( uint row, uint col, char ch, bool Istr, bool & prot ) ;
 		void   field_delete_char( uint row, uint col, bool & prot )   ;
@@ -101,8 +101,8 @@ class pPanel
 		void   field_erase_eof( uint row, uint col, bool & prot )     ;
 		void   field_tab_down( uint & row, uint & col ) ;
 		void   field_tab_next( uint & row, uint & col ) ;
-        	void   field_clear( string field )    ;
-        	string field_getvalue( string field ) ;
+		void   field_clear( string field )    ;
+		string field_getvalue( string field ) ;
 		fieldExc field_getexec( string ) ;
 		void   field_setvalue( string field, string value ) ;
 
@@ -112,7 +112,8 @@ class pPanel
 		string field_getname( uint row, uint col ) ;
 		bool   field_get_row_col( string fld, uint & row, uint & col ) ;
 		string get_field_help( string fld ) ;
-		bool   get_nretriev() { return nretriev ; }
+		bool   get_nretriev()  { return nretriev  ; }
+		string get_nretfield() { return nretfield ; }
 
 		void   set_msg( string, string, cuaType, bool ) ;
 		void   clear_msg() ;
@@ -128,6 +129,7 @@ class pPanel
 		int    RC          ;
 		int    tb_row      ;
 		bool   nretriev    ;
+		string nretfield   ;
 		int    opt_field   ;
 		int    dyn_depth   ;
 		int    dyn_width   ;
@@ -183,7 +185,7 @@ class pPanel
 		vector<TRUNC> truncList ;
 		vector<TRANS> transList ;
 		vector<ASSGN> assgnList ;
-		
+
 		vector<VPUTGET> vpgListi ;
 		vector<ASSGN> assgnListi ;
 

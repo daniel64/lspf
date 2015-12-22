@@ -51,9 +51,7 @@ VGET (ZSCROLL FLDIRS) PROFILE
 .HELP = HFLST02
 
 .NRET = ON           /* Enable NRETRIV and REFLIST */
-&ZRFFLDA = ZPATH
-VPUT ZRFFLDA SHARED
-
+.NRET = ZPATH        /* Use this field for NRETRIEV and REFLIST */
 
 )PROC
 

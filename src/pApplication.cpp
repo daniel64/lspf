@@ -187,6 +187,13 @@ bool pApplication::nretriev_on()
 }
 
 
+string pApplication::get_nretfield()
+{
+	if ( panelList.size() == 0 ) { return ""                         ; }
+	else                         { return currPanel->get_nretfield() ; }
+}
+
+
 void pApplication::display( string p_name, string p_msg, string p_cursor, int p_csrpos )
 {
 	string  ZZVERB ;

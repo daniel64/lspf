@@ -7,7 +7,7 @@
    .NRET = ON  in the )INIT section
    Reflist also needs to know which field to save
    NRETRIEV needs to know which field to update
-     SHARED pool variable ZRFFLDA holds the field name for both of
+     .NRET = field_name holds the field name for both of
      these functions.  Set in the )INIT section
 
 )ENDCOMMENT
@@ -54,8 +54,7 @@ VGET (ZSCROLL) PROFILE
 .ATTR(SIZE)    = 'COLOUR(WHITE)' 
 
 .NRET = ON
-&ZRFFLDA = ZPATH
-VPUT ZRFFLDA SHARED
+.NRET = ZPATH
 
 .HELP = HFLST01
 

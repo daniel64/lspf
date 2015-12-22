@@ -33,6 +33,7 @@ pPanel::pPanel()
 	scrollOn    = false  ;
 	abActive    = false  ;
 	nretriev    = false  ;
+	nretfield   = ""     ;
 	KEYLISTN    = ""     ;
 	KEYAPPL     = ""     ;
 	PanelTitle  = ""     ;
@@ -532,8 +533,9 @@ void pPanel::display_panel_init( int & RC )
 			}
 			else if ( assgnListi.at( i_assign ).as_lhs == ".NRET" )
 			{
-				if ( t == "ON" ) { nretriev = true  ; }
-				else             { nretriev = false ; }
+				if      ( t == "ON" )        { nretriev  = true  ; }
+				else if ( isvalidName( t ) ) { nretfield = t     ; }
+				else                         { nretriev  = false ; }
 			}
 			else if ( assgnListi.at( i_assign ).as_lhs == ".MSG" )
 			{
@@ -675,14 +677,15 @@ void pPanel::display_panel_reinit( int & RC, int ln )
 			}
 			else if ( assgnListr.at( i_assign ).as_lhs == ".NRET" )
 			{
-				if ( t == "ON" ) { nretriev = true  ; }
-				else             { nretriev = false ; }
+				if      ( t == "ON" )        { nretriev  = true  ; }
+				else if ( isvalidName( t ) ) { nretfield = t     ; }
+				else                         { nretriev  = false ; }
 			}
 			else if ( assgnListr.at( i_assign ).as_rhs == ".CURSOR" )
 			{
 				t = p_funcPOOL->get( RC, 0, "ZCURFLD" ) ;
 			}
-			else 
+			else
 			{
 				t = assgnListr.at( i_assign ).as_rhs ;
 			}
@@ -830,7 +833,7 @@ void pPanel::display_panel_proc( int & RC, int ln )
 		if ( if_skip )
 		{
 			if ( if_column < procstmnts.at( i ).ps_column )
-			{ 
+			{
 				if      ( procstmnts.at( i ).ps_if     )  { i_if++      ; }
 				else if ( procstmnts.at( i ).ps_else   )  { i_if++      ; }
 				else if ( procstmnts.at( i ).ps_assign )  { i_assign++  ; }
@@ -872,7 +875,7 @@ void pPanel::display_panel_proc( int & RC, int ln )
 						t = getDialogueVar( ifList.at( i_if ).if_rhs[ j ] ) ;
 					}
 				}
-				else 
+				else
 				{
 					t = ifList.at( i_if ).if_rhs[ j ] ;
 				}
@@ -1051,7 +1054,7 @@ void pPanel::display_panel_proc( int & RC, int ln )
 			{
 				t = dTRAIL ;
 			}
-			else 
+			else
 			{
 				t = assgnList.at( i_assign ).as_rhs ;
 			}
@@ -1070,8 +1073,9 @@ void pPanel::display_panel_proc( int & RC, int ln )
 			}
 			else if ( assgnList.at( i_assign ).as_lhs == ".NRET" )
 			{
-				if ( t == "ON" ) { nretriev = true  ; }
-				else             { nretriev = false ; }
+				if      ( t == "ON" )        { nretriev  = true  ; }
+				else if ( isvalidName( t ) ) { nretfield = t     ; }
+				else                         { nretriev  = false ; }
 			}
 			else if ( assgnList.at( i_assign ).as_lhs == ".MSG" )
 			{
@@ -1133,7 +1137,7 @@ void pPanel::display_panel_proc( int & RC, int ln )
 				}
 			}
 			if ( it->second->field_value == "" )
-			{ 
+			{
 				i_verify++ ;
 				continue   ;
 			}
@@ -1247,7 +1251,7 @@ void pPanel::display_panel_proc( int & RC, int ln )
 		{
 			fieldNam = literalList.at( i )->literal_name ;
 			if ( fieldNam == "" ) { continue ; }
-			if ( (literalList.at( i )->literal_row == p_row) && (p_col >=literalList.at( i )->literal_col) && 
+			if ( (literalList.at( i )->literal_row == p_row) && (p_col >=literalList.at( i )->literal_col) &&
 			     (p_col < (literalList.at( i )->literal_col + literalList.at( i )->literal_length )) )
 			{
 				if ( pntsTable.find( fieldNam ) != pntsTable.end() )
@@ -1264,11 +1268,11 @@ void pPanel::display_panel_proc( int & RC, int ln )
 void pPanel::clear()
 {
 	RC = 0 ;
-        for ( int i = 0 ; i < WSCRMAXD ; i ++ )
-        {
-                wmove( win, i, 0 ) ;
-                clrtoeol()   ;
-        }
+	for ( int i = 0 ; i < WSCRMAXD ; i ++ )
+	{
+		wmove( win, i, 0 ) ;
+		clrtoeol()   ;
+	}
 }
 
 
@@ -1288,10 +1292,10 @@ void pPanel::create_tbfield( int col, int length, cuaType cuaFT, string name, st
 
 	for ( int i = 0 ; i < tb_depth ; i++ )
 	{
-	        field * m_fld       = new field   ;
-        	m_fld->field_cua    = cuaFT ;
+		field * m_fld       = new field   ;
+		m_fld->field_cua    = cuaFT ;
 		m_fld->field_prot   = cuaAttrProt [ cuaFT ] ;
-        	m_fld->field_row    = tb_row + i ;
+		m_fld->field_row    = tb_row + i ;
 		m_fld->field_col    = col -1     ;
 		m_fld->field_length = length     ;
 		m_fld->field_just   = 'A'        ;
@@ -1344,7 +1348,7 @@ void pPanel::update_field_values( int & RC )
 	//     JUST(LEFT)  strip off leading and trailing spaces
 	//     JUST(RIGHT) strip off trailing spaces only and pad to the left with spaces to size field_length
 	//     JUST(ASIS) no change
-	// Treat dynamic areas differently - they must reside in the function pool.  Use vlocate to get the dynamic area variables 
+	// Treat dynamic areas differently - they must reside in the function pool.  Use vlocate to get the dynamic area variables
 	// via their addresses to avoid large string copies
 
 	string sname    ;
@@ -1389,11 +1393,11 @@ void pPanel::update_field_values( int & RC )
 		}
 		(*darea).resize( it2->second->dynArea_width * it2->second->dynArea_depth, ' ' )  ;
 		(*shadow).resize( it2->second->dynArea_width * it2->second->dynArea_depth, ' ' ) ;
-	        for ( int i = 0 ; i < it2->second->dynArea_depth ; i++ )
-	        {
+		for ( int i = 0 ; i < it2->second->dynArea_depth ; i++ )
+		{
 			fieldList[ it2->first + "." + d2ds( i )]->field_value        = (*darea).substr( i * it2->second->dynArea_width, it2->second->dynArea_width )  ;
 			fieldList[ it2->first + "." + d2ds( i )]->field_shadow_value = (*shadow).substr( i * it2->second->dynArea_width, it2->second->dynArea_width ) ;
-	        }
+		}
 	}
 }
 
@@ -1432,9 +1436,9 @@ void pPanel::display_ab()
 		ab.at( i ).display_abc_unsel( win ) ;
 	}
 
-        wattrset( win, cuaAttr[ ABSL ] ) ;
+	wattrset( win, cuaAttr[ ABSL ] ) ;
 	mvwhline( win, 1, 0, ACS_HLINE, WSCRMAXW ) ;
-        wattroff( win, cuaAttr[ ABSL ] ) ;
+	wattroff( win, cuaAttr[ ABSL ] ) ;
 }
 
 
@@ -1596,7 +1600,7 @@ fieldExc pPanel::field_getexec( string field )
 
 void pPanel::field_clear( string f_name )
 {
-        fieldList[ f_name ]->field_clear( win ) ;
+	fieldList[ f_name ]->field_clear( win ) ;
 }
 
 
@@ -1954,7 +1958,7 @@ void pPanel::display_tb_mark_posn()
 	posn  = "" ;
 	if ( top <= rows )
 	{
-		posn = "Row " + d2ds( top ) + " of " + d2ds( rows ) ; 
+		posn = "Row " + d2ds( top ) + " of " + d2ds( rows ) ;
 	}
 	mvwaddstr( win, 2, WSCRMAXW - posn.length(), posn.c_str() ) ;
 	wattroff( win, WHITE ) ;
@@ -2103,7 +2107,7 @@ void pPanel::put_keylist( int entry, string keyv )
 string pPanel::get_keylist( int entry )
 {
 	if ( KEYLISTN == ""  || Keylistl.find( entry ) == Keylistl.end() ) { return "" ; }
-	return Keylistl[ entry ] ;	
+	return Keylistl[ entry ] ;
 }
 
 

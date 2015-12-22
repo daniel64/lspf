@@ -87,8 +87,8 @@ string usrAttrNames = "N_RED N_GREEN N_YELLOW N_BLUE N_MAGENTA N_TURQ N_WHITE " 
 #define MOD_NAME lspf
 #define LOGOUT   splog
 
-#define currScrn  pLScreen::currScreen
-#define currAppl  pApplication::currApplication
+#define currScrn pLScreen::currScreen
+#define currAppl pApplication::currApplication
 
 using namespace std ;
 using namespace boost::filesystem ;
@@ -1304,7 +1304,7 @@ void terminateApplication()
 	{
 		if ( currAppl->nretriev_on() )
 		{
-			fname = p_poolMGR->get( RC, "ZRFFLDA", SHARED ) ;
+			fname = currAppl->get_nretfield() ;
 			if ( RC == 0 )
 			{
 				currAppl->field_name = fname ;
@@ -1338,7 +1338,7 @@ void terminateApplication()
 			}
 			else
 			{
-				log( "E", "Invalid field " << currAppl->field_name << " in variable ZRFFLDA" << endl ) ;
+				log( "E", "Invalid field " << currAppl->field_name << " in .NRET panel statement" << endl ) ;
 				currAppl->setmsg( "PSYS01Z" ) ;
 				SMSG = currAppl->ZSMSG ; LMSG = currAppl->ZLMSG ; MSGTYPE = currAppl->ZMSGTYPE ; MSGALRM = currAppl->ZMSGALRM ;
 			}
@@ -1817,7 +1817,7 @@ void updateDefaultVars()
 
 void updateReflist()
 {
-	// Check if ZRFFLDA is set in the SHARED pool (usually put in the panel definition) and if so, add file to the reflist using
+	// Check if .NRET is ON and has a valid field name.  If so, add file to the reflist using
 	// application ZRFLPGM, parmameters PLA plus the field entry value.
 
 	// Don't update REFLIST if the application has done a CONTROL REFLIST NOUPDATE (flag ControlRefUpdate=false) or ISPS PROFILE variable
@@ -1832,7 +1832,7 @@ void updateReflist()
 
 	if ( currAppl->ControlRefUpdate && p_poolMGR->get( RC, "ZRFURL", PROFILE ) == "YES" )
 	{
-		fname = p_poolMGR->get( RC, "ZRFFLDA", SHARED ) ;
+		fname = currAppl->get_nretfield() ;
 		if ( fname != "" )
 		{
 			if ( currAppl->currPanel->field_get_row_col( fname, row, col ) )

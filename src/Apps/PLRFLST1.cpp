@@ -24,8 +24,10 @@
 /* Personal File List application                                             */
 
 /* On exit, if field_name is set to #REFLIST and ZRC = 0                      */
-/* then ZRESULT will be placed in the field specified by the ZRFFLDA variable */
-/* in the SHARED pool                                                         */
+/* then ZRESULT will be placed in the field specified by the .NRET panel      */
+/* variable:                                                                  */
+/* .NRET = ON                                                                 */
+/* .NRET = ZFILE                                                              */
 
 
 #include <iostream>
@@ -81,8 +83,8 @@ void PLRFLST1::application()
 	else if ( P1 == "BRT" ) { setRefMode( P1 )      ; }
 	else                    { log( "E", "Invalid parameter passed to PLRFLST1: " << PARM << endl ) ; }
 
-        cleanup() ;
-        return    ;
+	cleanup() ;
+	return    ;
 }
 
 
@@ -158,7 +160,7 @@ void PLRFLST1::PersonalFList()
 		FLAUTIME = ldate + " " + ltime ;
 		tbcreate( RFLTABLE, "ZCURTB", subword( TABFLDS, 2 ), WRITE, NOREPLACE, UPROF ) ;
 		tbsort( RFLTABLE, "ZCURTB,C,A" ) ;
-// 		tbadd( RFLTABLE, "", "ORDER" )   ;
+//              tbadd( RFLTABLE, "", "ORDER" )   ;
 		CloseTable()  ;
 		OpenTableRO() ;
 		if ( RC > 0 ) { abend() ; }
@@ -339,7 +341,7 @@ void PLRFLST1::EditFileList( string curtb )
 	BSEL = "" ;
 	for ( i = 1 ; i <= 30 ; i++ )
 	{
-		vcopy( "FLAPET" + right( d2ds( i ), 2, '0' ), BFILE, MOVE ) ; 
+		vcopy( "FLAPET" + right( d2ds( i ), 2, '0' ), BFILE, MOVE ) ;
 		if ( i > 1 && BFILE == "" ) { continue ; }
 		tbadd( FLIST2 ) ;
 	}
@@ -400,11 +402,11 @@ void PLRFLST1::EditFileList( string curtb )
 			tbskip( FLIST2 ) ;
 			if ( RC > 0 ) { break ; }
 			if ( BFILE == "" ) { i-- ; continue ; }
-			vreplace( "FLAPET" + right( d2ds( i ), 2, '0' ), BFILE ) ; 
+			vreplace( "FLAPET" + right( d2ds( i ), 2, '0' ), BFILE ) ;
 		}
 		for ( ; i <= 30 ; i++ )
 		{
-			vreplace( "FLAPET" + right( d2ds( i ), 2, '0' ), "" ) ; 
+			vreplace( "FLAPET" + right( d2ds( i ), 2, '0' ), "" ) ;
 		}
 		vcopy( "ZDATEL", ldate, MOVE ) ;
 		vcopy( "ZTIMEL", ltime, MOVE ) ;
@@ -444,7 +446,7 @@ void PLRFLST1::OpenFileList( string curtb )
 
 	for ( i = 1 ; i <= 30 ; i++ )
 	{
-		vcopy( "FLAPET" + right( d2ds( i ), 2, '0' ), CFILE, MOVE ) ; 
+		vcopy( "FLAPET" + right( d2ds( i ), 2, '0' ), CFILE, MOVE ) ;
 		if ( i > 1 && CFILE == "" ) { continue ; }
 		tbadd( FLIST3 ) ;
 	}
@@ -487,7 +489,7 @@ void PLRFLST1::RetrieveEntry( string list )
 	// Also, make 'list' the active one so the next NRETRIEV with no parameters, is from the same list
 
 	// If ZRFNEX is YES, check file exists, else get the next entry
-	
+
 	// If 'list' consists a number < 31, use this as the starting position for the retrieve and not
 	// variable ZRFNPOS from the SHARED pool.  If specified, the other word in 'list' is used as the reflist
 
@@ -549,7 +551,7 @@ void PLRFLST1::RetrieveEntry( string list )
 	for ( i = 1 ; i <= 30 ; i++ )
 	{
 		if ( p > 30 ) { p = 1 ; }
-		vcopy( "FLAPET" + right( d2ds( p ), 2, '0' ), ZRESULT, MOVE ) ; 
+		vcopy( "FLAPET" + right( d2ds( p ), 2, '0' ), ZRESULT, MOVE ) ;
 		if ( ZRESULT == "" && p > 1 )
 		{
 			p = 1 ;
@@ -644,10 +646,10 @@ void PLRFLST1::AddReflistEntry( string ent )
 	{
 		vcopy( "FLAPET" + right( d2ds( i ), 2, '0' ), eent, MOVE ) ;
 		if ( eent == "" ) { continue ; }
-		vreplace( "FLAPET" + right( d2ds( i+1 ), 2, '0' ), eent ) ; 
+		vreplace( "FLAPET" + right( d2ds( i+1 ), 2, '0' ), eent ) ;
 	}
 
-	vreplace( "FLAPET01", ent ) ; 
+	vreplace( "FLAPET01", ent ) ;
 	FLAUTIME = ldate + " " + ltime ;
 	tbmod( RFLTABLE, "", "ORDER" ) ;
 	CloseTable() ;
