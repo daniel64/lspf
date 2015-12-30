@@ -1,5 +1,5 @@
 /*  Compile with ::                                                                    */
-// /* g++ -shared -fPIC -std=c++11 -Wl,-soname,libPPSP01A.so -o libPPSP01A.so PPSP01A.cpp */
+/* g++ -shared -fPIC -std=c++11 -Wl,-soname,libPPSP01A.so -o libPPSP01A.so PPSP01A.cpp */
 
 /*
   Copyright (c) 2015 Daniel John Erdos
@@ -345,7 +345,7 @@ void PPSP01A::show_log( string fileName )
 void PPSP01A::read_file( string fileName )
 {
 	string inLine ;
-	ifstream fin( fileName.c_str() ) ;
+	std::ifstream fin( fileName.c_str() ) ;
 
 	data.clear()     ;
 
@@ -1630,7 +1630,7 @@ void PPSP01A::updateTasks( string table )
 	string CMD   ;
 	string inLine ;
 
-	ifstream fin  ;
+	std::ifstream fin  ;
 
 	vcopy( "ZUSER", ZUSER, MOVE ) ;
 	vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;

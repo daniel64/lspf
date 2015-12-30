@@ -1,5 +1,5 @@
-// /* Compile with ::                                                                                       */
-/* g++ -shared -fPIC -std=c++11 -Wl,-soname,libPFLST0A.so -o libPFLST0A.so PFLST0A.cpp                      */
+/* Compile with ::                                                                          */
+/* g++ -shared -fPIC -std=c++11 -Wl,-soname,libPFLST0A.so -o libPFLST0A.so PFLST0A.cpp      */
 
 /*
   Copyright (c) 2015 Daniel John Erdos
@@ -63,7 +63,7 @@
 /* nano - invoke nano editor on the file                                                                    */
 /* vi   - invoke vi editor on the file                                                                      */
 /*        CONTROL TIMEOUT DISABLE for nano and vi or lspf will chop the application after ZMAXWAIT          */
-/*        as it does not return until reset_prog_mode                                                       */ 
+/*        as it does not return until reset_prog_mode                                                       */
 /*                                                                                                          */
 /*                                                                                                          */
 /* ZRC/ZRSN/ZRESULT codes                                                                                   */
@@ -140,9 +140,9 @@ void PFLST0A::application()
 	vcopy( "ZUSER", ZUSER, MOVE ) ;
 	vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
 
-	ofstream of ;
+	std::ofstream of ;
 
-	vdefine( "SEL ENTRY MESSAGE TYPE PERMISS SIZE STCDATE MODDATE", &SEL, &ENTRY, &MESSAGE, &TYPE, &PERMISS, &SIZE, &STCDATE, &MODDATE ) ; 
+	vdefine( "SEL ENTRY MESSAGE TYPE PERMISS SIZE STCDATE MODDATE", &SEL, &ENTRY, &MESSAGE, &TYPE, &PERMISS, &SIZE, &STCDATE, &MODDATE ) ;
 	vdefine( "MODDATES ZVERB ZHOME ZCMD ZPATH CONDOFF NEWENTRY FREPL", &MODDATES, &ZVERB, &ZHOME, &ZCMD, &ZPATH, &CONDOFF, &NEWENTRY, &FREPL ) ;
 	vdefine( "RSN NEMPTOK DIRREC AFHIDDEN", &RSN, &NEMPTOK, &DIRREC, &AFHIDDEN ) ;
 	vdefine( "CRP", &CRP ) ;
@@ -155,12 +155,12 @@ void PFLST0A::application()
 	{
 		w1 = word( PARM, 1 ) ;
 		if ( w1 == "BROWSE" || w1 == "EDIT" )
-		{ 
+		{
 			ZPATH = subword( PARM, 2 ) ;
 			try
 			{
 				if ( is_regular_file( ZPATH ) )
-				{ 
+				{
 					if ( w1 == "BROWSE" ) { browse( ZPATH ) ;  cleanup() ; return ;  }
 					else                  { edit( ZPATH )   ;  cleanup() ; return ;  }
 				}
@@ -606,7 +606,7 @@ void PFLST0A::application()
 				boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
 				string tname = temp.native() ;
 				of.open( tname ) ;
-				recursive_directory_iterator eIt ; 
+				recursive_directory_iterator eIt ;
 				recursive_directory_iterator dIt( entry, ec ) ;
 				if ( ec.value() != boost::system::errc::success )
 				{
@@ -796,8 +796,8 @@ void PFLST0A::showInfo( string p )
 	}
 
 	vdefine( "IENTRY ITYPE  IINODE INLNKS IPERMISS ISIZE    ISTCDATE IMODDATE", &IENTRY, &ITYPE,  &IINODE, &INLNKS, &IPERMISS, &ISIZE,    &ISTCDATE, &IMODDATE ) ;
-	vdefine( "IRLNK  IOWNER IGROUP IMAJ   IMIN     IBLKSIZE IACCDATE ISETUID",  &IRLNK,  &IOWNER, &IGROUP, &IMAJ,   &IMIN,     &IBLKSIZE, &IACCDATE, &ISETUID  ) ; 
-	vdefine( "ISETGID ISTICKY", &ISETGID, &ISTICKY ) ; 
+	vdefine( "IRLNK  IOWNER IGROUP IMAJ   IMIN     IBLKSIZE IACCDATE ISETUID",  &IRLNK,  &IOWNER, &IGROUP, &IMAJ,   &IMIN,     &IBLKSIZE, &IACCDATE, &ISETUID  ) ;
+	vdefine( "ISETGID ISTICKY", &ISETGID, &ISTICKY ) ;
 
 	IENTRY = p ;
 	if ( S_ISDIR( results.st_mode ) )       ITYPE = "Directory"     ;
@@ -815,7 +815,7 @@ void PFLST0A::showInfo( string p )
 	if ( pw != NULL)
 	{
 		IOWNER = pw->pw_name ;
-        }
+	}
 
 	struct group  *gr = getgrgid( results.st_gid ) ;
 	if ( gr != NULL)
@@ -856,7 +856,7 @@ void PFLST0A::showInfo( string p )
 
 
 	IRLNK = "" ;
-	if ( S_ISLNK(results.st_mode ) ) 
+	if ( S_ISLNK(results.st_mode ) )
 	{
 		while ( true )
 		{
@@ -866,7 +866,7 @@ void PFLST0A::showInfo( string p )
 			{
 				delete[] buffer ;
 				if( errno == ENAMETOOLONG ) { bufferSize += 255; }
-				else			    { break ;		 }
+				else                        { break ;            }
 			}
 			else
 			{
@@ -901,7 +901,7 @@ int PFLST0A::processPrimCMD()
 	string PGM ;
 	string p   ;
 
-	ofstream of ;
+	std::ofstream of ;
 	boost::system::error_code ec ;
 
 	cw    = upper( word( ZCMD, 1 ) ) ;
@@ -937,7 +937,7 @@ int PFLST0A::processPrimCMD()
 		else if ( is_regular_file( p ) && (cw == "S" || cw == "B" || cw == "E" || cw == "L" ) )
 		{
 			if ( cw == "E" ) { edit( p )   ; }
-			else 		 { browse( p ) ; }
+			else             { browse( p ) ; }
 			ZCMD = "" ;
 		}
 		return 0 ;
@@ -1130,8 +1130,8 @@ void PFLST0A::modifyAttrs( string p )
 	size_t rc               ;
 
 	vdefine( "IENTRY ITYPE  IPERMISS ", &IENTRY, &ITYPE, &IPERMISS ) ;
-	vdefine( "IOWNER IGROUP ISETUID", &IOWNER, &IGROUP, &ISETUID  ) ; 
-	vdefine( "ISETGID ISTICKY IOWNERN IGROUPN", &ISETGID, &ISTICKY, &IOWNERN, &IGROUPN ) ; 
+	vdefine( "IOWNER IGROUP ISETUID", &IOWNER, &IGROUP, &ISETUID  ) ;
+	vdefine( "ISETGID ISTICKY IOWNERN IGROUPN", &ISETGID, &ISTICKY, &IOWNERN, &IGROUPN ) ;
 
 	lstat( p.c_str(), &results ) ;
 
@@ -1155,9 +1155,9 @@ void PFLST0A::modifyAttrs( string p )
 	{
 		IOWNER  = pwd->pw_name ;
 		IOWNERN = d2ds( pwd->pw_uid ) ;
-        }
+	}
 
-        IGROUP  = "" ;
+	IGROUP  = "" ;
 	IGROUPN = "" ;
 	grp = getgrgid( results.st_gid ) ;
 	if ( grp != NULL)
@@ -1334,7 +1334,7 @@ void PFLST0A::browseTree( string tname )
 	string line   ;
 	string PGM    ;
 
-	ifstream fin  ;
+	std::ifstream fin ;
 	fin.open( tname.c_str() ) ;
 	if ( !fin.is_open() )
 	{
@@ -1586,7 +1586,7 @@ string PFLST0A::showListing()
 	string FLHIDDEN ;
 	string OHIDDEN  ;
 
-	vdefine( "SEL ENTRY TYPE FLDIRS FLHIDDEN", &SEL, &ENTRY, &TYPE, &FLDIRS, &FLHIDDEN ) ; 
+	vdefine( "SEL ENTRY TYPE FLDIRS FLHIDDEN", &SEL, &ENTRY, &TYPE, &FLDIRS, &FLHIDDEN ) ;
 	vget( "FLDIRS FLHIDDEN", PROFILE ) ;
 
 	DSLIST = "DSLST" + right( d2ds( taskid() ), 3, '0' ) ;

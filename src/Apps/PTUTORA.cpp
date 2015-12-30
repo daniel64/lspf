@@ -246,7 +246,7 @@ void PTUTORA::read_file( string file )
 {
 	string inLine ;
 	int pos, i, j ;
-	ifstream fin( file.c_str() ) ;
+	std::ifstream fin( file.c_str() ) ;
 
 	if ( !fin.is_open() )
 	{

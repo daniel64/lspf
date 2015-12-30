@@ -54,14 +54,14 @@ int pPanel::loadPanel( string p_name, string paths )
 
 	char line1[ 256 ]    ;
 	cuaType fType        ;
-	ifstream panel       ;
-	ifstream pincl       ;
+	std::ifstream panel  ;
+	std::ifstream pincl  ;
 
 	string e1("Error in )BODY statement for panel ") ;
 
 	vector< string > pSource      ;
 	vector< string >::iterator it ;
-	
+
 	RC = 0 ;
 	if ( !isvalidName( p_name ) ) { PERR = "Panel name " + p_name + " is invalid" ; return 20 ; }
 

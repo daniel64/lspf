@@ -54,7 +54,7 @@ void Table::saveTable( int & RC, string m_name, string m_path )
 	int j    ;
 	int k    ;
 	int size ;
-	ofstream otable ;
+	std::ofstream otable ;
 
 	RC = 0 ;
 
@@ -67,7 +67,7 @@ void Table::saveTable( int & RC, string m_name, string m_path )
 
 	m_path != "" ? s = m_path : s = tab_path ;
 	if ( s.back() != '/' ) { s = s + "/" ; }
-	
+
 	if ( exists( s ) )
 	{
 		if ( !is_directory( s ) )
@@ -1537,7 +1537,7 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 
 	size_t buf2Size = 1024  ;
 
-	ifstream table          ;
+	std::ifstream table          ;
 	vector< string > m_flds ;
 
 	RC = 0 ;

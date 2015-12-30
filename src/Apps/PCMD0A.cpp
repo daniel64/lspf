@@ -1,8 +1,6 @@
 /*  Compile with ::                                                                 */
 /* g++ -shared -fPIC -std=c++11 -Wl,-soname,libPCMD0A.so -o libPCMD0A.so PCMD0A.cpp */
 
-/*                                                                                  */
-
 /*
   Copyright (c) 2015 Daniel John Erdos
 
@@ -57,8 +55,8 @@ void PCMD0A::application()
 	string file      ;
 	char buffer[256] ;
 
-	ofstream of      ;
-	
+	std::ofstream of ;
+
 	vdefine( "ZCOMMAND", &ZCOMMAND )  ;
 	vcopy( "ZUSER", ZUSER, MOVE )     ;
 	vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
@@ -66,7 +64,7 @@ void PCMD0A::application()
 
 	boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
 	string tname = temp.native() ;
-	
+
 	while ( true )
 	{
 		if ( MSG == "" ) { ZCMD = "" ; }
@@ -94,7 +92,7 @@ void PCMD0A::application()
 	}
 
 	cleanup() ;
-        return    ;
+	return    ;
 }
 
 

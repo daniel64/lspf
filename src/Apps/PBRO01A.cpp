@@ -56,7 +56,7 @@
 #include "../pPanel.h"
 #include "../pApplication.h"
 #include <magic.h>
-// #include "uHilight.cpp"
+#include "bHilight.cpp"
 #include "PBRO01A.h"
 
 using namespace boost ;
@@ -382,7 +382,7 @@ void PBRO01A::read_file( string file )
 	char x  ;
 
 	firstLine = 0 ;
-	ifstream fin  ;
+	std::ifstream fin ;
 
 	try
 	{
@@ -599,7 +599,7 @@ void PBRO01A::fill_dynamic_area()
 			if ( ZAREA.size() >= ZASIZE ) { break ; }
 			if ( k == data.size() - 1 )   { break ; }
 		}
-	//      addHilight( data, fileType, firstLine, startCol, ZAREAW, ZAREAD, ZSHADOW ) ;
+		addHilight( data, fileType, firstLine, startCol, ZAREAW, ZAREAD, ZSHADOW ) ;
 		ZAREA.resize( ZASIZE, ' ' ) ;
 		ZSHADOW.resize( ZASIZE, N_GREEN ) ;
 

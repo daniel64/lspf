@@ -2081,7 +2081,7 @@ void pApplication::read_Message( string p_msg )
 		return  ;
 	}
 	found = false ;
-	ifstream messages ;
+	std::ifstream messages ;
 	messages.open( filename.c_str() ) ;
 	while ( true )
 	{

@@ -184,6 +184,9 @@ class iline
 		int    il_taskid  ;
 		stack <idata> il_idata      ;
 		stack <idata> il_idata_redo ;
+		string il_shadow            ;
+		bool   il_vShadow           ;
+		bool   il_wShadow           ;
 
 		iline( int taskid )
 		{
@@ -211,6 +214,9 @@ class iline
 			il_taskid  = taskid ;
 			maxURID[ taskid ] = maxURID[ taskid ] + 1 ;
 			il_URID    = maxURID[ taskid ] ;
+			il_shadow  = ""     ;
+			il_vShadow = false  ;
+			il_wShadow = false  ;
 		}
 		void resetFilePrefix()
 		{
@@ -240,6 +246,7 @@ class iline
 			idata d   ;
 			ichange t ;
 
+			il_vShadow = false  ;
 			if ( recoverOFF[ il_taskid ] )
 			{
 				d.id_data = s      ;
@@ -265,6 +272,7 @@ class iline
 			d.id_data = s ;
 			if   ( il_idata.empty() ) { il_idata.push( d ) ; }
 			else { il_idata.top().id_data = s              ; }
+			il_vShadow = false ;
 		}
 		void set_il_deleted()
 		{
@@ -277,6 +285,7 @@ class iline
 		}
 		void undo_idata()
 		{
+			il_vShadow = false ;
 			if ( recoverOFF[ il_taskid ] ) { return ; }
 			if ( !il_idata.empty() )
 			{
@@ -296,6 +305,7 @@ class iline
 		}
 		void redo_idata()
 		{
+			il_vShadow = false ;
 			if ( recoverOFF[ il_taskid ] ) { return ; }
 			if ( Global_Redo[ il_taskid ].top().iaction == 'D' )
 			{
@@ -312,17 +322,15 @@ class iline
 		}
 		void clear_Global_Undo()
 		{
-			while ( true )
+			while ( !Global_Undo[ il_taskid ].empty() )
 			{
-				if ( Global_Undo[ il_taskid ].empty() ) { break ; }
 				Global_Undo[ il_taskid ].pop() ;
 			}
 		}
 		void clear_Global_Redo()
 		{
-			while ( true )
+			while ( !Global_Redo[ il_taskid ].empty() )
 			{
-				if ( Global_Redo[ il_taskid ].empty() ) { break ; }
 				Global_Redo[ il_taskid ].pop() ;
 			}
 		}
@@ -345,14 +353,12 @@ class iline
 
 			d.id_data = il_idata.top().id_data ;
 			d.id_lvl  = il_idata.top().id_lvl  ;
-			while ( true )
+			while ( !il_idata.empty() )
 			{
-				if ( il_idata.empty() ) { break ; }
 				il_idata.pop() ;
 			}
-			while ( true )
+			while ( !il_idata_redo.empty() )
 			{
-				if ( il_idata_redo.empty() ) { break ; }
 				il_idata_redo.pop() ;
 			}
 			il_idata.push( d ) ;
@@ -377,23 +383,30 @@ class iline
 class c_range
 {
 	private:
+		bool   c_vlab  ;
+		bool   c_vcol  ;
 		string c_slab  ;
 		string c_elab  ;
 		int    c_scol  ;
 		int    c_ecol  ;
+		bool   c_ocol  ;
 	c_range()
 	{
-		c_slab = "" ;
-		c_elab = "" ;
-		c_scol = 0  ;
-		c_ecol = 0  ;
+		c_vlab = false ;
+		c_vcol = false ;
+		c_slab = ""    ;
+		c_elab = ""    ;
+		c_scol = 0     ;
+		c_ecol = 0     ;
+		c_ocol = false ;
 	}
 	void c_range_clear()
 	{
-		c_slab = "" ;
-		c_elab = "" ;
-		c_scol = 0  ;
-		c_ecol = 0  ;
+		c_slab = ""    ;
+		c_elab = ""    ;
+		c_scol = 0     ;
+		c_ecol = 0     ;
+		c_ocol = false ;
 	}
 	friend class PEDIT01 ;
 } ;
@@ -403,10 +416,12 @@ class e_find
 {
 	private:
 		string fcx_string  ;
-		string fcx_estring ;
+		string fcx_ostring ;
 		string fcx_cstring ;
 		string fcx_rstring ;
 		bool   fcx_success ;
+		bool   fcx_error   ;
+		bool   fcx_exclude ;
 		char   fcx_dir     ;
 		char   fcx_mtch    ;
 		int    fcx_occurs  ;
@@ -428,17 +443,19 @@ class e_find
 		string fcx_elab    ;
 		int    fcx_scol    ;
 		int    fcx_ecol    ;
-		int    fcx_oncol   ;
+		int    fcx_ocol    ;
 		bool   fcx_fset    ;
 		bool   fcx_cset    ;
 		bool   fcx_chngall ;
 	e_find()
 	{
 		fcx_string  = ""    ;
-		fcx_estring = ""    ;
+		fcx_ostring = ""    ;
 		fcx_cstring = ""    ;
 		fcx_rstring = ""    ;
 		fcx_success = true  ;
+		fcx_error   = false ;
+		fcx_exclude = false ;
 		fcx_dir     = 'N'   ;
 		fcx_mtch    = 'C'   ;
 		fcx_occurs  = 0     ;
@@ -460,7 +477,7 @@ class e_find
 		fcx_elab    = ""    ;
 		fcx_scol    = 0     ;
 		fcx_ecol    = 0     ;
-		fcx_oncol   = 0     ;
+		fcx_ocol    = 0     ;
 		fcx_fset    = false ;
 		fcx_cset    = false ;
 		fcx_chngall = false ;
@@ -487,16 +504,16 @@ class PEDIT01 : public pApplication
 		void readFile()           ;
 		bool saveFile()           ;
 		void fill_dynamic_area()  ;
+		void fill_hilight_shadow();
 		void getZAREAchanges()    ;
 		void updateData()         ;
 
 		void actionFind()         ;
 		void actionChange()       ;
-		void actionExclude()      ;
 
 		bool checkLineCommands()  ;
 		void actionLineCommands() ;
-		void actionPCMD()         ;
+		void actionPrimCommand()  ;
 
 		void actionUNDO()         ;
 		void actionREDO()         ;
@@ -518,11 +535,14 @@ class PEDIT01 : public pApplication
 
 		vector<iline * >::iterator getValidDataLine( vector<iline * >::iterator ) ;
 		uint getValidDataLine( uint ) ;
+		uint getValidDataLine( uint, char ) ;
 
 		int  getNextDataLine( int )  ;
 		int  getNextDataLine( uint ) ;
+		int  getNextDataLine( uint, char ) ;
 		vector<iline * >::iterator getNextDataLine( vector<iline * >::iterator ) ;
 		int  getPrevDataLine( uint ) ;
+		int  getPrevDataLine( uint, char ) ;
 
 		int  getRangeSize( int, int ) ;
 		int  truncateSize( int ) ;
@@ -540,15 +560,18 @@ class PEDIT01 : public pApplication
 		void storeCursor(  int, int, int=0 ) ;
 		void placeCursor(  int, int, int=0 ) ;
 		void placeCursor( uint, int, int=0 ) ;
-		void positionCursor() ;
+		void positionCursor()  ;
+		void moveColumn( int ) ;
 
 		vector<iline * >::iterator getLineItr( int )       ;
 		vector<iline * >::iterator getLineBeforeItr( int ) ;
 
-		int  setFindChangeExcl( char ) ;
+		bool setFindChangeExcl( char ) ;
 		bool setCommandRange( string, c_range & ) ;
 		int  getNextSpecial( int ) ;
-		bool returnLabelItr( string, vector<iline * >::iterator & , int & ) ;
+		int  getNextChanged( int ) ;
+		bool getLabelItr( string, vector<iline * >::iterator & , int & ) ;
+		int  getLabelLine( string ) ;
 
 		bool getTabLocation( int & ) ;
 		void copyPrefix( ipline &, iline * & ) ;
@@ -576,16 +599,19 @@ class PEDIT01 : public pApplication
 		int  cursorPlaceType     ;
 		int  cursorPlaceOff      ;
 
-		bool profSave            ;
-		bool profNulls           ;
-		bool profLock            ;
-		bool profCaps            ;
-		bool profHex             ;
-		bool profTabs            ;
-		int  profTabz            ;
-		bool profBackup          ;
-		bool profRecov           ;
-		bool profHilight         ;
+		bool   profSave          ;
+		bool   profNulls         ;
+		bool   profLock          ;
+		bool   profCaps          ;
+		bool   profHex           ;
+		bool   profLTabs         ;
+		bool   profHTabs         ;
+		bool   profFTabs         ;
+		int    profFTabz         ;
+		bool   profBackup        ;
+		bool   profRecov         ;
+		bool   profHilight       ;
+		string profLang          ;
 
 		bool stripST             ;
 		bool convTabs            ;
@@ -619,6 +645,8 @@ class PEDIT01 : public pApplication
 		bool rebuildShadow ;
 		bool fileChanged   ;
 
+		hilight hlight ;
+
 		string CURFLD  ;
 		int    CURPOS  ;
 		string MSG     ;
@@ -640,19 +668,19 @@ class PEDIT01 : public pApplication
 		int    ZASIZE  ;
 		string CAREA   ;
 		string CSHADOW ;
-		string ZLINES  ;
 
 		string ZEDPROF  ;
 
 		string ZEDPTYPE ;
-		string ZEDFLAG  ;
-		string ZEDMASK  ;
-		string ZEDBNDL  ;
-		string ZEDBNDR  ;
-		string ZEDTABC  ;
-		string ZEDTABS  ;
-		string ZEDTABZ  ;
-		string ZEDBKLC  ;
+		string ZEDPFLAG ;
+		string ZEDPMASK ;
+		string ZEDPBNDL ;
+		string ZEDPBNDR ;
+		string ZEDPTABC ;
+		string ZEDPTABS ;
+		string ZEDPTABZ ;
+		string ZEDPBKLC ;
+		string ZEDPHLLG ;
 
 		string fileType  ;
 		string clipboard ;

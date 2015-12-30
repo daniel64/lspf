@@ -165,7 +165,7 @@ string ZSHELL ;
 
 static string BuiltInCommands = "ABEND ACTION DISCARD FIELDEXC INFO NOP PANELID REFRESH SCALE SNAP SHELL SPLIT STATS SWAP TASKS TEST TDOWN" ;
 
-ofstream splog(SLOG) ;
+std::ofstream splog(SLOG) ;
 
 
 int main(void)

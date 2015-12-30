@@ -1,6 +1,6 @@
 /*  Compile with ::                                                                    */
 /* g++ -shared -fPIC -std=c++11 -Wl,-soname,libPDLGTST.so -o libPDLGTST.so PDLGTST.cpp */
-/*                                                                          */
+/*                                                                                     */
 
 /*
   Copyright (c) 2015 Daniel John Erdos
@@ -140,7 +140,7 @@ void PDLGTST::checkAlgo()
 		display( "PDLGTST4", MSG, "STR1" );
 
 		if ( RC  > 8 ) { abend() ; return ; }
-		if ( RC == 8 ) 
+		if ( RC == 8 )
 		{
 			vput( "STR1 STR2", PROFILE ) ;
 			return    ;

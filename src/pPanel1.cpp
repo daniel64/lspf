@@ -272,6 +272,7 @@ void pPanel::display_panel_update( int & RC )
 
 	int fieldNum    ;
 	int scrollAmt   ;
+	int curpos      ;
 	int p           ;
 
 	string CMDVerb  ;
@@ -381,6 +382,7 @@ void pPanel::display_panel_update( int & RC )
 				fieldNum = ds2d( it->first.substr( (p + 1) , string::npos ) ) ;
 				p_funcPOOL->put( RC, 0, "ZCURFLD", fieldNam ) ;
 				p_funcPOOL->put( RC, 0, "ZCURPOS", ( fieldNum * it->second->field_length + p_col - it->second->field_col + 1 ) ) ;
+				curpos   = p_col - it->second->field_col + 1 ;
 				fieldNum++ ;
 			}
 			else
@@ -395,21 +397,18 @@ void pPanel::display_panel_update( int & RC )
 	{
 		p_poolMGR->put( RC, "ZSCROLLA", "",  SHARED ) ;
 		p_poolMGR->put( RC, "ZSCROLLN", "0", SHARED ) ;
-		CMD    = fieldList[ CMDfield ]->field_value ;
-		msgfld = CMDfield ;
+		CMD      = fieldList[ CMDfield ]->field_value ;
+		msgfld   = CMDfield ;
 		if ( CMD == "" )
 		{
-			CMD = fieldList[ "ZSCROLL" ]->field_value ;
+			CMD    = fieldList[ "ZSCROLL" ]->field_value ;
 			msgfld = "ZSCROLL" ;
 		}
 		if ( findword( CMDVerb, "UP DOWN LEFT RIGHT" ) )
 		{
-			if ( tb_model ) { scrollAmt = tb_depth  ; }
-			else            { scrollAmt = dyn_depth ; }
-			if ( (CMDVerb == "LEFT") || (CMDVerb == "RIGHT") )
-			{
-				if ( !tb_model ) { scrollAmt = dyn_width ; }
-			}
+			if      ( tb_model )                          { scrollAmt = tb_depth  ; }
+			else if ( findword( CMDVerb, "LEFT RIGHT" ) ) { scrollAmt = dyn_width ; }
+			else                                          { scrollAmt = dyn_depth ; }
 			if ( isnumeric( CMD ) )
 			{
 				if ( CMD.size() > 6 )
@@ -418,6 +417,7 @@ void pPanel::display_panel_update( int & RC )
 					CURFLD = msgfld    ;
 					return             ;
 				}
+				p_poolMGR->put( RC, "ZSCROLLA", CMD, SHARED ) ;
 				p_poolMGR->put( RC, "ZSCROLLN", CMD, SHARED ) ;
 			}
 			else
@@ -432,17 +432,39 @@ void pPanel::display_panel_update( int & RC )
 					switch ( CMD[ 0 ] )
 					{
 					case 'C':
-						if ( fieldNum == 0 ) { p_poolMGR->put( RC, "ZSCROLLN", d2ds( scrollAmt ),  SHARED ) ; }
-						else                 { p_poolMGR->put( RC, "ZSCROLLN", d2ds( fieldNum-1 ), SHARED ) ; }
+						if ( fieldNum == 0 )
+						{
+							p_poolMGR->put( RC, "ZSCROLLN", d2ds( scrollAmt ),  SHARED ) ;
+						}
+						else if ( CMDVerb == "UP" )
+						{
+							p_poolMGR->put( RC, "ZSCROLLN", d2ds( dyn_depth-fieldNum ), SHARED ) ;
+						}
+						else if ( CMDVerb == "DOWN"  )
+						{
+							p_poolMGR->put( RC, "ZSCROLLN", d2ds( fieldNum-1 ), SHARED ) ;
+						}
+						else if ( CMDVerb == "LEFT"  )
+						{
+							p_poolMGR->put( RC, "ZSCROLLN", d2ds( dyn_width-curpos ), SHARED ) ;
+						}
+						else
+						{
+							p_poolMGR->put( RC, "ZSCROLLN", d2ds( curpos ), SHARED ) ;
+						}
+						p_poolMGR->put( RC, "ZSCROLLA", "CSR", SHARED ) ;
 						break ;
 					case 'D':
 						p_poolMGR->put( RC, "ZSCROLLN", d2ds( scrollAmt ), SHARED ) ;
+						p_poolMGR->put( RC, "ZSCROLLA", "DATA", SHARED ) ;
 						break ;
 					case 'H':
 						p_poolMGR->put( RC, "ZSCROLLN", d2ds( scrollAmt/2 ), SHARED ) ;
+						p_poolMGR->put( RC, "ZSCROLLA", "HALF", SHARED ) ;
 						break ;
 					case 'P':
 						p_poolMGR->put( RC, "ZSCROLLN", d2ds( scrollAmt ), SHARED ) ;
+						p_poolMGR->put( RC, "ZSCROLLA", "PAGE", SHARED ) ;
 						break ;
 					default:
 						MSGID  = "PSYS01I" ;

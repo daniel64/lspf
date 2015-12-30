@@ -37,8 +37,8 @@ PEDT01C "No Previous Find Command"
 PEDT01D "Put string in quotes"
 "No find or change string found in the command.  Put string in quotes"
 
-PEDT01E "No End Label Specified"
-"Enter an end label if a start label was specified"
+PEDT01E "Label Not Valid"
+"A label is only valid on a data line, not a special line"
 
 PEDT01F "Label Does Not Exist"
 "Label does not Exist.  Please enter a valid line label"
@@ -58,11 +58,11 @@ PEDT01J "Column Out Of Range"
 PEDT01K "Invalid Hex String"
 "Entered only valid hex characters 0-9, A-F with no spaces"
 
-PEDT01L "&ZLINES Line(s) Excluded" .TYPE=N
-"Occurence has been found on &ZLINES line(s)"
+PEDT01L "&LINES Line(s) Excluded" .TYPE=N
+"&LINES line(s) have been excluded"
 
-PEDT01M "&ZLINES Line(s) Deleted" .TYPE=N
-"&ZLINES line(s) have been deleted"
+PEDT01M "&LINES Line(s) Deleted" .TYPE=N
+"&LINES line(s) have been deleted"
 
 PEDT01N "Invalid Regex"
 "Regular expression entered is not valid"
@@ -174,6 +174,21 @@ PEDT012O "Compare File Does Not Exist"
 
 PEDT012P "Files are the same"
 "There are no differences between the files"
+
+PEDT012Q "Invalid Hilight Language"
+"Hilight language not supported."
+
+PEDT012R "Label ZLAST invalid"
+"ZLAST cannot be the only label"
+
+PEDT012S "Labels not valid"
+"Command does not support label delimiter parameters"
+
+PEDT012T "Columns not valid"
+"Command does not support column delimiter parameters"
+
+PEDT012U "Invalid FIND/CHANGE/EXCLUDE command"
+"Find, change or exclude command does not contain a search string"
 
 PEDT013A "File in use"
 "File '&ZFILE' is currently being edited in another session"

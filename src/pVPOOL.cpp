@@ -409,7 +409,7 @@ void pVPOOL::load( int & RC, string currAPPLID, string path )
 
 	s = path + currAPPLID + "PROF" ;
 
-	ifstream profile ;
+	std::ifstream profile ;
 	debug1(" profile dataset is " << s << endl ) ;
 	profile.open( s.c_str() , ios::binary ) ;
 
@@ -529,7 +529,7 @@ void pVPOOL::save( int & RC, string currAPPLID )
 	if ( path.back() != '/' ) { path = path + "/" ; }
 	s = path + currAPPLID + "PROF" ;
 
-	ofstream profile ;
+	std::ofstream profile ;
 	profile.open( s.c_str(), ios::binary | ios::out ) ;
 	profile << (char)00  ;  //
 	profile << (char)132 ;  // x084 denotes a profile
