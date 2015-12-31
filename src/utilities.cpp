@@ -579,13 +579,13 @@ string cs2bs( string s )
 {
 	int i, j ;
 	string reslt ;
-	
+
 	reslt = "" ;
 	for ( i = 0 ; i < s.size() ; i++ )
 	{
 		for ( j = 7; j >= 0; --j)
 		{
-			( s[ i ] & (1 << j) ) ? reslt = reslt + "1" : reslt = reslt + "0" ;
+			( s[ i ] && (1 << j) ) ? reslt = reslt + "1" : reslt = reslt + "0" ;
 		}
 	}
 	return reslt ;
@@ -710,17 +710,17 @@ string xs2bs( string s )
 			case '7': res = res + "0111" ; break ;
 			case '8': res = res + "1000" ; break ;
 			case '9': res = res + "1001" ; break ;
-			case 'a': 
+			case 'a':
 			case 'A': res = res + "1010" ; break ;
-			case 'b': 
+			case 'b':
 			case 'B': res = res + "1011" ; break ;
-			case 'c': 
+			case 'c':
 			case 'C': res = res + "1100" ; break ;
-			case 'd': 
+			case 'd':
 			case 'D': res = res + "1101" ; break ;
-			case 'e': 
+			case 'e':
 			case 'E': res = res + "1110" ; break ;
-			case 'f': 
+			case 'f':
 			case 'F': res = res + "1111" ; break ;
 		}
 	}
@@ -751,17 +751,17 @@ string xs2cs( string s )
 			case '7': j = 7  ; break ;
 			case '8': j = 8  ; break ;
 			case '9': j = 9  ; break ;
-			case 'a': 
+			case 'a':
 			case 'A': j = 10 ; break ;
-			case 'b': 
+			case 'b':
 			case 'B': j = 11 ; break ;
-			case 'c': 
+			case 'c':
 			case 'C': j = 12 ; break ;
-			case 'd': 
+			case 'd':
 			case 'D': j = 13 ; break ;
-			case 'e': 
+			case 'e':
 			case 'E': j = 14 ; break ;
-			case 'f': 
+			case 'f':
 			case 'F': j = 15 ; break ;
 		}
 		if ( ( i % 2 ) == 1 )  { reslt = reslt + string( 1, k*16 + j ) ; }
@@ -803,10 +803,10 @@ bool findword( string s1, string s2 )
 int countc( string s, char c )
 {
 	int i, l, n ;
-	
+
 	n = 0          ;
 	l = s.length() ;
-	
+
 	for ( i = 0 ; i < l ; i++ )
 	{
 		if ( s[ i ] == c ) n++ ;
@@ -844,9 +844,9 @@ bool matchpattern( string s1, string s2)
 		}
 		i++ ;
 		j++ ;
-		if ( (i > l1) | (j > l2) ) break ; 
+		if ( (i > l1) | (j > l2) ) break ;
 	}
-	if ( (i > l1) & (j > l2) ) return true ;
+	if ( (i > l1) && (j > l2) ) return true ;
 	return false ;
 }
 
@@ -887,7 +887,7 @@ bool isnumeric( string s )
 
 
 string d2size( int  size )
-{                   
+{
 	int div = 0 ;
 
 	float t ;
@@ -899,7 +899,7 @@ string d2size( int  size )
 	while ( t >= 1024 && div < 5 )
 	{
 		t = t / 1024 ;
-		div++ ;   
+		div++ ;
 	}
 	ss << fixed << setprecision( 2 ) << t << " " << units[ div ] ;
 	return ss.str() ;
@@ -968,7 +968,7 @@ string addCommas( string t, int prec )
 		s2 = t.substr( j+1 )  ;
 		s2 = left( s2, prec, '0' ) ;
 	}
-	
+
 	if ( t == "" ) { return "0." + s2 ; }
 
 	for ( i = s1.length() - 3 ; i > 0 ; i -= 3 )
@@ -989,7 +989,11 @@ bool isvalidName( string s )
 
 	for ( int i = 0 ; i < l ; i++ )
 	{
-		if ( (!isdigit( s[ i ] )) & (!isupper( s[ i ] )) & (s[ i ] != '#') & (s[ i ] != '$') & (s[ i ] != '@') ) return false ;
+		if ( (!isdigit( s[ i ] )) &&
+		     (!isupper( s[ i ] )) &&
+		     (s[ i ] != '#') &&
+		     (s[ i ] != '$') &&
+		     (s[ i ] != '@') ) { return false ; }
 	}
 	return true ;
 }
@@ -1002,10 +1006,14 @@ bool isvalidName4( string s )
 	if ( l > 4 ) return false ;
 	if ( l < 1 ) return false ;
 	if ( isdigit( s[ 0 ] ) ) return false ;
-	    
+
 	for ( int i = 0 ; i < l ; i++ )
 	{
-		if ( (!isdigit( s[ i ] )) & (!isupper( s[ i ] )) & (s[ i ] != '#') & (s[ i ] != '$') & (s[ i ] != '@') ) return false ;
+		if ( (!isdigit( s[ i ] )) &&
+		     (!isupper( s[ i ] )) &&
+		     (s[ i ] != '#') &&
+		     (s[ i ] != '$') &&
+		     (s[ i ] != '@') ) { return false ; }
 	}
 	return true ;
 }
@@ -1017,7 +1025,7 @@ bool isvalidHex( string s )
 
 	if ( (l % 2) != 0 ) return false ;
 	if ( l < 1 ) return false ;
-	    
+
 	for ( int i = 0 ; i < l ; i++ )
 	{
 		switch ( s[ i ] )
@@ -1089,7 +1097,7 @@ bool isoctal( string s )
 	int l = s.length() ;
 
 	if ( l < 1 ) return false ;
-	    
+
 	for ( int i = 0 ; i < l ; i++ )
 	{
 		switch ( s[ i ] )
@@ -1135,7 +1143,7 @@ bool ispict( string s, string picts )
 	// 9 - any numeric character (same as N)
 	// X - any hexadecimal character (0-9, A-F, a-f)
 	// O - any octal char
-	
+
 	int l1 = s.length()     ;
 	int l2 = picts.length() ;
 
@@ -1146,14 +1154,18 @@ bool ispict( string s, string picts )
 		switch ( picts[ i ] )
 		{
 			case 'C': break ;
-			case 'A': if ( (!isdigit( s[ i ] )) & (!isupper( s[ i ] )) & (s[ i ] != '#') & (s[ i ] != '$') & (s[ i ] != '@') ) return false ;
+			case 'A': if ((!isdigit( s[ i ] )) &&
+				      (!isupper( s[ i ] )) &&
+				      (s[ i ] != '#')      &&
+				      (s[ i ] != '$')      &&
+				      (s[ i ] != '@') ) { return false ; }
 				  break ;
-			case 'N': 
-			case '9': if ( !isdigit( s[ i ] ) ) { return false ; }
+			case 'N':
+			case '9': if ( !isdigit( s[ i ] ) )   { return false ; }
 				  break ;
-			case 'X': if ( !ishex( s[ i ] ) ) { return false ; }
-				  break ; 
-			case 'O': if ( !isoctal( s[ i ] ) ) { return false ; }
+			case 'X': if ( !ishex( s[ i ] ) )     { return false ; }
+				  break ;
+			case 'O': if ( !isoctal( s[ i ] ) )   { return false ; }
 				  break ;
 			default:  if ( picts[ i ] != s[ i ] ) { return false ; }
 		}
@@ -1179,7 +1191,7 @@ string getpath( string s, int p )
 	int p1 ;
 	int p2 ;
 	string path ;
-	
+
 	p1 = 1 ;
 
 	for ( i = 1 ; i < p ; i++ )
@@ -1211,7 +1223,7 @@ void selectParse( int & RC, string SELSTR, string & PGM, string & PARM, string &
 	// PGM(abc) PARM(xyz) NEWAPPL NEWPOOL PASSLIB
 	// CMD(abc def) - translates to PGM(&ZOREXPGM) PARM(abc def)
 	// PANEL(def)   - translates to PGM(&ZPANLPGM) PARM(def)
-	
+
 	int p1 ;
 	int p2 ;
 
@@ -1309,7 +1321,7 @@ void selectParse( int & RC, string SELSTR, string & PGM, string & PARM, string &
 		PASSLIB = true ;
 		SELSTR  = delword( SELSTR, p1, 1 ) ;
 	}
-	
+
 	if ( PGM == "" )             { RC = 20 ; }
 	if ( strip( SELSTR ) != "" ) { RC = 20 ; }
 	return ;
@@ -1318,22 +1330,22 @@ void selectParse( int & RC, string SELSTR, string & PGM, string & PARM, string &
 
 void fieldOptsParse( int & RC, string opts, bool & caps, char & just, bool & numeric, char & padchar, bool & skip )
 {
-//	CAPS(ON,OFF) 
-//	JUST(LEFT,RIGHT,ASIS)
-//	NUMERIC(ON,OFF)
-//	PAD(char,NULL,USER)
-//	SKIP(ON,OFF)
+//      CAPS(ON,OFF)
+//      JUST(LEFT,RIGHT,ASIS)
+//      NUMERIC(ON,OFF)
+//      PAD(char,NULL,USER)
+//      SKIP(ON,OFF)
 //
 	int p1 ;
 	int p2 ;
 	string t     ;
 	string uopts ;
-	
+
 	RC = 0 ;
-	
+
 	uopts = upper( opts ) ;
 	if ( uopts == "NONE" ) return ;
-	
+
 	uopts = "," + uopts ;
 	p1 = pos( ",CAPS(", uopts ) ;
 	if ( p1 > 0 )
@@ -1345,7 +1357,7 @@ void fieldOptsParse( int & RC, string opts, bool & caps, char & just, bool & num
 			else { RC = 20 ; return ; }
 		uopts = delstr( uopts, p1, (p2 - p1 + 1) ) ;
 	}
-	
+
 	p1 = pos( ",JUST(", uopts ) ;
 	if ( p1 > 0 )
 	{
@@ -1391,6 +1403,6 @@ void fieldOptsParse( int & RC, string opts, bool & caps, char & just, bool & num
 			else { RC = 20 ; return ; }
 		uopts = delstr( uopts, p1, (p2 - p1 + 1) ) ;
 	}
-	
+
 	if ( strip( uopts ) != "" ) { RC = 20 ; }
 }

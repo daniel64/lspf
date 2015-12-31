@@ -8,7 +8,7 @@ PEDT013 "Line Command Invalid Here"
 "Line command entered is not valid on this line"
 
 PEDT014 "Label Invalid"
-"Label cannot contain just one dot"
+"Label must be between 1 and 5 alphanumeric characters and not starting with a 'Z'"
 
 PEDT015 "Label Already Exists"
 "Duplicate line labels are not allowed.  Please make the label unique"

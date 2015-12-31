@@ -521,7 +521,9 @@ class PEDIT01 : public pApplication
 
 		int  getLine( int )       ;
 		int  getFirstEX( int )    ;
+		uint getFirstEX( uint )   ;
 		int  getLastEX( int )     ;
+		uint getLastEX( uint )    ;
 		int  getEXBlock( int )    ;
 		int  getDataBlock( int )  ;
 
@@ -572,6 +574,7 @@ class PEDIT01 : public pApplication
 		int  getNextChanged( int ) ;
 		bool getLabelItr( string, vector<iline * >::iterator & , int & ) ;
 		int  getLabelLine( string ) ;
+		bool checkLabel( string ) ;
 
 		bool getTabLocation( int & ) ;
 		void copyPrefix( ipline &, iline * & ) ;
@@ -604,7 +607,7 @@ class PEDIT01 : public pApplication
 		bool   profLock          ;
 		bool   profCaps          ;
 		bool   profHex           ;
-		bool   profLTabs         ;
+		bool   profSTabs         ;
 		bool   profHTabs         ;
 		bool   profFTabs         ;
 		int    profFTabz         ;
