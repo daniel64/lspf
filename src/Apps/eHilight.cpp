@@ -41,7 +41,7 @@ void addHilight( hilight & h, string line, string & shadow )
 		  h.hl_language == "text/x-c"     ) { addCppHilight( h, line, shadow ) ; }
 	else if ( h.hl_language == "text/x-rexx"  ) { }
 	else if ( h.hl_language == "text"         ) { }
-	else                                        { }
+	else                                        { addNoHilight( h, line, shadow ) ; }
 }
 
 
@@ -165,4 +165,15 @@ void addCppHilight( hilight & h, string line, string & shadow )
 	h.hl_oBrac2   = oBrac2 ;
 	h.hl_oComment = oComment ;
 }
+
+
+void addNoHilight( hilight & h, string line, string & shadow )
+{
+	int ln ;
+
+	ln = line.size() ;
+	if ( ln == 0 ) { return ; }
+	shadow = string( ln, N_GREEN ) ;
+}
+
 

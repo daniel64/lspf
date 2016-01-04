@@ -19,6 +19,22 @@
 
 using namespace std;
 
+class b_shadow
+{
+	private:
+		string bs_Shadow ;
+		bool   bs_vShadow ;
+		bool   bs_wShadow ;
+	b_shadow()
+	{
+		bs_Shadow  = ""    ;
+		bs_vShadow = false ;
+		bs_wShadow = false ;
+	}
+	friend class PBRO01A ;
+} ;
+
+
 class b_find
 {
 	private:
@@ -73,20 +89,25 @@ class PBRO01A : public pApplication
 	private:
 		void read_file( string )    ;
 		void fill_dynamic_area()    ;
+		void fill_hilight_shadow()  ;
 
 		int  setFind()              ;
 		void actionFind( int, int ) ;
 
-		int firstLine, maxLines ;
+		int topLine  ;
+		int maxLines ;
 		int startCol, maxCol    ;
 		vector<string> data     ;
+		vector<b_shadow> shadow ;
 		map< char, string > typList ;
 
-		b_find find_parms  ;
+		b_find find_parms ;
+		hilight hlight    ;
 
 		bool hexOn  ;
 		bool colsOn ;
 		bool binOn  ;
+		bool hilightOn ;
 
 		string MSG     ;
 		string CMD     ;

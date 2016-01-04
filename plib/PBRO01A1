@@ -10,12 +10,12 @@ literal  3   2    FP "BROWSE"
 field    3  12   70 NEF  NONE ZDSN
 
 literal  4   2         FP  "Command ===> "
-field    4  15 MAX-17  NEF PAD('_') ZCMD 
+field    4  15 MAX-17  NEF PAD('_') ZCMD
 
-literal  4 MAX-15     FP  "SCROLL ===> "  
+literal  4 MAX-15     FP  "SCROLL ===> "
 field    4 MAX-3   4  NEF NONE ZSCROLL
 
---literal  5   1    FP  "File Name:" 
+--literal  5   1    FP  "File Name:"
 --field    5  12   70 NEF  NONE ZDSN
 
 literal   3   MAX-37     FP  "COL"
@@ -26,7 +26,7 @@ literal   3   MAX-11     FP  "OF"
 field     3   MAX-20  8  VOI  NONE ZROW1
 field     3   MAX-8   8  VOI  NONE ZROW2
 
-dynArea  5  2  MAX  MAX  ZAREA  ZSHADOW 
+dynArea  5  2  MAX  MAX  ZAREA  ZSHADOW
 
 
 )INCLUDE STD_PDC
@@ -42,14 +42,16 @@ IF (&ZCMD = &Z)
 &ZUS = .TRAIL                /*                 */
 &ZU2 = TRUNC(&ZUS,' ')       /* Get second word */
 &ZUS = .TRAIL                /* and the rest    */
+&ZU3 = TRUNC(&ZUS,' ')       /* Get third word  */
+&ZUS = .TRAIL                /* and the rest    */
 
 IF (&CMD EQ HILITE )
-  IF (&ZUS NE &Z )           /* No third parameter */
+  IF (&ZUS NE &Z,ON,OFF )           /* No third parameter */
     .MSG    = PBRO013
     .CURSOR = ZCMD
     EXIT
   ELSE
-    IF (&ZU2 NE REXX,C++,CPP,PANEL,OFF,&Z)
+    IF (&ZU3 NE REXX,C++,CPP,PANEL,OFF,&Z)
        .MSG    = PSYS01O
        .CURSOR = ZCMD
        EXIT

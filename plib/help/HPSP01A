@@ -11,6 +11,17 @@ O A     Where A is any letter.  Display only type A log messages
 REF     Refresh display by re-reading the log file.
 RESET   Reset display (Also RES is accepted)
 
+SHOW DATE  Show date in the log record
+SHOW TIME  Show time in the log record
+SHOW MOD   Show mod  in the log record
+SHOW ALL   Show all the above in the log record
+
+HIDE DATE  Hide date in the log record
+HIDE TIME  Hide time in the log record
+HIDE MOD   Hide mod  in the log record
+HIDE ALL   Hide all the above in the log record
+
+
 X A     Exlude all type A log messages
 X ALL   Exlude all log messages
 X ON    Do not display log messages of type I, D and - (Only show unusual messages)

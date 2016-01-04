@@ -37,3 +37,5 @@ class hilight
 
 void addCppHilight( hilight &, string, string & ) ;
 
+void addNoHilight( hilight &, string, string & ) ;
+

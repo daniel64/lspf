@@ -56,7 +56,7 @@
 #include "../pPanel.h"
 #include "../pApplication.h"
 #include <magic.h>
-#include "bHilight.cpp"
+#include "eHilight.cpp"
 #include "PBRO01A.h"
 
 using namespace boost ;
@@ -118,6 +118,7 @@ void PBRO01A::application()
 	hexOn        = false ;
 	colsOn       = false ;
 	binOn        = false ;
+	hilightOn    = true  ;
 
 	typList[ 'C' ] = "CHARS"  ;
 	typList[ 'P' ] = "PREFIX" ;
@@ -178,7 +179,7 @@ void PBRO01A::application()
 			}
 		}
 
-		ZROW1 = right( d2ds( firstLine ), 8, '0' )    ;
+		ZROW1 = right( d2ds( topLine ), 8, '0' )    ;
 		ZROW2 = right( d2ds( maxLines - 2 ), 8, '0' ) ;
 		ZCOL1 = right( d2ds( startCol ), 7, '0' )     ;
 		if ( MSG == "" ) { ZCMD = "" ; }
@@ -198,7 +199,7 @@ void PBRO01A::application()
 		if ( ZCURFLD == "ZAREA" )
 		{
 			if ( (colsOn && ZCURPOS <= ZAREAW) ) { CURFLD = "ZCMD" ; CURPOS = 1 ; }
-			else if ( firstLine == 0 && ( ZCURPOS <= ZAREAW || (colsOn && ZCURPOS <= 2*ZAREAW))) { CURFLD = "ZCMD" ; CURPOS = 1 ; }
+			else if ( topLine == 0 && ( ZCURPOS <= ZAREAW || (colsOn && ZCURPOS <= 2*ZAREAW))) { CURFLD = "ZCMD" ; CURPOS = 1 ; }
 			else { CURFLD = "ZAREA" ; CURPOS = ZCURPOS ; }
 		}
 		else
@@ -222,14 +223,26 @@ void PBRO01A::application()
 			else if ( (w2 == "OFF" && w3 == "") )               { hexOn = false ; rebuildZAREA = true ; }
 			else    { MSG = "PBRO012" ; continue ; }
 		}
-		else if ( CMD == "HILITE" )
+		else if ( CMD == "HILITE" || CMD == "HILIGHT" || CMD == "HI" )
 		{
-			if ( w2 == "CPP" ) { w2 = "C++" ; }
-			if      ( w2 == "REXX"  ) { fileType = "text/x-rexx"  ; rebuildZAREA = true ; }
-			else if ( w2 == "C++"   ) { fileType = "text/x-c++"   ; rebuildZAREA = true ; }
-			else if ( w2 == "PANEL" ) { fileType = "text/x-panel" ; rebuildZAREA = true ; }
-			else if ( w2 == "OFF"   ) { fileType = "text"         ; rebuildZAREA = true ; }
+			if ( w3 == "CPP" ) { w3 = "C++" ; }
+			if      ( w3 == "REXX"  ) { fileType = "text/x-rexx"  ; rebuildZAREA = true ; }
+			else if ( w3 == "C++"   ) { fileType = "text/x-c++"   ; rebuildZAREA = true ; }
+			else if ( w3 == "PANEL" ) { fileType = "text/x-panel" ; rebuildZAREA = true ; }
+			else if ( w3 == "OFF"   ) { fileType = "text"         ; rebuildZAREA = true ; }
 			else if ( w2 == ""      ) { STR = fileType ; MSG = "PBRO01L" ; continue     ; }
+			if      ( w2 == "ON" )
+			{
+				for_each( shadow.begin(), shadow.end(),
+					  [](b_shadow & a) { a.bs_wShadow = false ; a.bs_vShadow = false ; } ) ;
+				hilightOn = true  ; rebuildZAREA = true ;
+			}
+			else if ( w2 == "OFF" )
+			{
+				for_each( shadow.begin(), shadow.end(),
+					  [](b_shadow & a) { a.bs_wShadow = false ; a.bs_vShadow = false ; } ) ;
+				hilightOn = false ; rebuildZAREA = true ;
+			}
 		}
 		else if ( CMD == "COLS" )
 		{
@@ -243,14 +256,14 @@ void PBRO01A::application()
 			ZCMD = ""  ;
 			if ( ZCURFLD == "ZAREA" ) { offset = ZCURPOS ; if ( ( offset % ZAREAW ) == 1  ) { offset++ ; } }
 			else                      { offset = 0       ; }
-			actionFind( firstLine, offset ) ;
+			actionFind( topLine, offset ) ;
 			if ( find_parms.f_line > 0 )
 			{
-				ZALINE = find_parms.f_line - firstLine ;
-				if ( ZALINE < 0 ) { firstLine = 0 ; }
-				else if ( ZALINE > ZAREAD ) { firstLine = find_parms.f_line - 1 ; }
+				ZALINE = find_parms.f_line - topLine ;
+				if ( ZALINE < 0 ) { topLine = 0 ; }
+				else if ( ZALINE > ZAREAD ) { topLine = find_parms.f_line - 1 ; }
 				CURFLD = "ZAREA" ;
-				CURPOS = ( find_parms.f_line - firstLine ) * ZAREAW + find_parms.f_offset + 1 ;
+				CURPOS = ( find_parms.f_line - topLine ) * ZAREAW + find_parms.f_offset + 1 ;
 				if ( colsOn ) { CURPOS = CURPOS + ZAREAW ; }
 				TYPE   = typList[ find_parms.f_mtch ] ;
 				STR    = find_parms.f_estring ;
@@ -285,12 +298,12 @@ void PBRO01A::application()
 			rebuildZAREA = true ;
 			if ( ZSCROLLA == "MAX" )
 			{
-				firstLine = maxLines - ZAREAD ;
+				topLine = maxLines - ZAREAD ;
 			}
 			else
 			{
-				firstLine = firstLine + ZSCROLLN  ;
-				if ( firstLine >= maxLines ) { firstLine = maxLines - 1 ; }
+				topLine = topLine + ZSCROLLN  ;
+				if ( topLine >= maxLines ) { topLine = maxLines - 1 ; }
 			}
 		}
 		else if ( ZVERB == "UP" )
@@ -298,11 +311,11 @@ void PBRO01A::application()
 			rebuildZAREA = true ;
 			if ( ZSCROLLA == "MAX" )
 			{
-				firstLine = 0 ;
+				topLine = 0 ;
 			}
 			else
 			{
-				firstLine = firstLine - ZSCROLLN  ;
+				topLine = topLine - ZSCROLLN  ;
 			}
 		}
 		else if ( ZVERB == "LEFT" )
@@ -337,14 +350,14 @@ void PBRO01A::application()
 			{
 				if ( ZCURFLD == "ZAREA" ) { offset = ZCURPOS ; if ( ( offset % ZAREAW ) == 1  ) { offset++ ; } }
 				else                      { offset = 0       ; }
-				actionFind( firstLine, offset ) ;
+				actionFind( topLine, offset ) ;
 				if ( find_parms.f_line > 0 )
 				{
-					ZALINE = find_parms.f_line - firstLine ;
-					if ( ZALINE < 0 ) { firstLine = 0 ; }
-					else if ( ZALINE > ZAREAD ) { firstLine = find_parms.f_line - 1 ; }
+					ZALINE = find_parms.f_line - topLine ;
+					if ( ZALINE < 0 ) { topLine = 0 ; }
+					else if ( ZALINE > ZAREAD ) { topLine = find_parms.f_line - 1 ; }
 					CURFLD  = "ZAREA" ;
-					CURPOS  = ( find_parms.f_line - firstLine ) * ZAREAW + find_parms.f_offset + 1 ;
+					CURPOS  = ( find_parms.f_line - topLine ) * ZAREAW + find_parms.f_offset + 1 ;
 					if ( colsOn ) { CURPOS = CURPOS + ZAREAW ; }
 					TYPE    = typList[ find_parms.f_mtch ] ;
 					STR     = find_parms.f_estring ;
@@ -362,7 +375,7 @@ void PBRO01A::application()
 		}
 		else  { MSG = "PBRO011" ; continue ; }
 
-		if ( firstLine < 0 ) firstLine = 0 ;
+		if ( topLine < 0 ) topLine = 0 ;
 	}
 	vput( "ZSCROLL", PROFILE ) ;
 	return ;
@@ -376,12 +389,14 @@ void PBRO01A::read_file( string file )
 	string ext    ;
 	string w1     ;
 
+	b_shadow t    ;
+
 	int p1 ;
 	int i   ;
 	int j   ;
 	char x  ;
 
-	firstLine = 0 ;
+	topLine = 0 ;
 	std::ifstream fin ;
 
 	try
@@ -446,8 +461,10 @@ void PBRO01A::read_file( string file )
 
 
 	maxLines = 1 ;
-	data.clear() ;
+	data.clear()   ;
+	shadow.clear() ;
 	data.push_back( centre( " TOP OF DATA ", ZAREAW, '*' ) ) ;
+	shadow.push_back( t ) ;
 	if ( binOn )
 	{
 		inLine = string( ZAREAW, ' ' ) ;
@@ -463,6 +480,7 @@ void PBRO01A::read_file( string file )
 			{
 				data.push_back( inLine )       ;
 				inLine = string( ZAREAW, ' ' ) ;
+				shadow.push_back( t ) ;
 				maxLines++ ;
 				i = 0      ;
 			}
@@ -471,6 +489,7 @@ void PBRO01A::read_file( string file )
 		{
 			inLine.resize( i )       ;
 			data.push_back( inLine ) ;
+			shadow.push_back( t ) ;
 			maxLines++ ;
 		}
 		fileType = "application/octet-stream" ;
@@ -489,6 +508,7 @@ void PBRO01A::read_file( string file )
 			}
 			if ( maxCol < inLine.size() ) maxCol = inLine.size() ;
 			data.push_back( inLine ) ;
+			shadow.push_back( t ) ;
 			maxLines++ ;
 		}
 		if ( fileType == "text/plain" )
@@ -509,6 +529,7 @@ void PBRO01A::read_file( string file )
 	maxCol++   ;
 	maxLines++ ;
 	data.push_back( centre( " BOTTOM OF DATA ", ZAREAW, '*' ) ) ;
+	shadow.push_back( t ) ;
 	fin.close() ;
 }
 
@@ -556,7 +577,7 @@ void PBRO01A::fill_dynamic_area()
 
 	if ( hexOn )
 	{
-		for( int k = firstLine ; k < (firstLine + ZAREAD) ; k++ )
+		for( int k = topLine ; k < (topLine + ZAREAD) ; k++ )
 		{
 			t3 = string( ZAREAW, ' ' ) ;
 			t4 = string( ZAREAW, ' ' ) ;
@@ -591,7 +612,7 @@ void PBRO01A::fill_dynamic_area()
 	}
 	else
 	{
-		for( int k = firstLine ; k < (firstLine + ZAREAD) ; k++ )
+		for( int k = topLine ; k < (topLine + ZAREAD) ; k++ )
 		{
 			if ( k >  0 & k < data.size()-1 )  t1 = substr( data.at( k ), startCol, ZAREAW ) ;
 			else                               t1 = substr( data.at( k ), 1, ZAREAW ) ;
@@ -599,12 +620,68 @@ void PBRO01A::fill_dynamic_area()
 			if ( ZAREA.size() >= ZASIZE ) { break ; }
 			if ( k == data.size() - 1 )   { break ; }
 		}
-		addHilight( data, fileType, firstLine, startCol, ZAREAW, ZAREAD, ZSHADOW ) ;
 		ZAREA.resize( ZASIZE, ' ' ) ;
 		ZSHADOW.resize( ZASIZE, N_GREEN ) ;
 
 	}
+	if ( hilightOn )
+	{
+		fill_hilight_shadow() ;
+	}
 	CSHADOW = ZSHADOW ;
+}
+
+
+void PBRO01A::fill_hilight_shadow()
+{
+	// Build il_shadow starting at the first invalid shadow line in bs_shadow,
+	// (backing up to the line after the position where there are no open brackets/comments)
+	// until bottom of ZAREA reached
+
+	int i  ;
+	int dl ;
+	int ll ;
+	int l  ;
+	int w  ;
+
+	string ZTEMP ;
+
+	hlight.hl_language = fileType ;
+
+	ll = data.size()-2 ;
+	if ( topLine+ZAREAD < ll ) { ll = topLine+ZAREAD ; }
+	w  = 0 ;
+	for ( dl = 1 ; dl <= ll ; dl++ )
+	{
+		if (  shadow.at( dl ).bs_wShadow ) { w = dl   ; }
+		if ( !shadow.at( dl ).bs_vShadow ) { break    ; }
+	}
+	hlight.hl_oBrac1   = 0     ;
+	hlight.hl_oBrac2   = 0     ;
+	hlight.hl_oComment = false ;
+	if ( dl != w && w < data.size()-1 ) { w++ ; }
+	for ( dl = w ; dl <= ll ; dl++ )
+	{
+		shadow.at( dl ).bs_vShadow = true ;
+		addHilight( hlight, data.at( dl ), shadow.at( dl ).bs_Shadow ) ;
+		if (  hlight.hl_oBrac1 == 0 && hlight.hl_oBrac2 == 0 && !hlight.hl_oComment )
+		{
+			shadow.at( dl ).bs_wShadow = true ;
+		}
+		else
+		{
+			shadow.at( dl ).bs_wShadow = false ;
+		}
+	}
+	for ( i = 0 ; i < ZAREAD ; i++ )
+	{
+		l = topLine + i ;
+		if ( l > data.size() - 2 ) { break ; }
+		ZTEMP = shadow.at( l ).bs_Shadow ;
+		if ( startCol > 1 ) { ZTEMP.erase( 0, startCol-1 ) ; }
+		ZTEMP.resize( ZAREAW, N_GREEN ) ;
+		ZSHADOW.replace( ZAREAW*(i), ZAREAW, ZTEMP ) ;
+	}
 }
 
 
@@ -808,11 +885,14 @@ int PBRO01A::setFind()
 		// @  alphabetic characters           -  non-numeric characters
 		// #  numeric characters              <  lower case alphabetics
 		// $  special characters              >  upper case alphabetics
-		// ?  non-blank characters
+		// ?  non-blank characters            *  any number of non-blank characters
 		for ( i = 0 ; i < t.f_string.size() ; i++ )
 		{
 			switch ( t.f_string[ i ] )
 			{
+				case '*':
+					pic = pic + "[^[:blank:]]*" ;
+					break ;
 				case '=':
 					pic = pic + "." ;
 					break ;

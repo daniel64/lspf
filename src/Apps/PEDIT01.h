@@ -68,12 +68,14 @@ class icmd
 class idata
 {
 	private:
-		int    id_lvl  ;
-		string id_data ;
+		int    id_lvl    ;
+		char   id_action ;
+		string id_data   ;
 		idata()
 		{
-			id_lvl    = 0  ;
-			id_data   = "" ;
+			id_lvl    = 0   ;
+			id_action = ' ' ;
+			id_data   = ""  ;
 		}
 	friend class iline   ;
 	friend class PEDIT01 ;
@@ -90,24 +92,6 @@ class iposition
 			ipo_line = 0 ;
 			ipo_URID = 0 ;
 		}
-	friend class PEDIT01 ;
-} ;
-
-
-class ichange
-{
-	private:
-		int    iURID   ;
-		int    ilvl    ;
-		char   iaction ;
-		ichange()
-		{
-			iURID   = 0   ;
-			ilvl    = 0   ;
-			iaction = ' ' ;
-		}
-
-	friend class iline   ;
 	friend class PEDIT01 ;
 } ;
 
@@ -154,8 +138,8 @@ class ipline
 class iline
 {
 	private:
-		static map<int, stack<ichange> >Global_Undo ;
-		static map<int, stack<ichange> >Global_Redo ;
+		static map<int, stack<int> >Global_Undo ;
+		static map<int, stack<int> >Global_Redo ;
 		static map<int, int>maxURID        ;
 		static map<int, bool>recoverOFF    ;
 
@@ -184,7 +168,7 @@ class iline
 		int    il_taskid  ;
 		stack <idata> il_idata      ;
 		stack <idata> il_idata_redo ;
-		string il_shadow            ;
+		string il_Shadow            ;
 		bool   il_vShadow           ;
 		bool   il_wShadow           ;
 
@@ -212,9 +196,8 @@ class iline
 			il_lc2     = ""     ;
 			il_rept    = 0      ;
 			il_taskid  = taskid ;
-			maxURID[ taskid ] = maxURID[ taskid ] + 1 ;
-			il_URID    = maxURID[ taskid ] ;
-			il_shadow  = ""     ;
+			il_URID    = ++maxURID[ taskid ] ;
+			il_Shadow  = ""     ;
 			il_vShadow = false  ;
 			il_wShadow = false  ;
 		}
@@ -243,33 +226,38 @@ class iline
 		}
 		void put_idata( string s, int lvl )
 		{
-			idata d   ;
-			ichange t ;
+			idata d ;
 
-			il_vShadow = false  ;
 			if ( recoverOFF[ il_taskid ] )
 			{
-				d.id_data = s      ;
+				d.id_data = s ;
 				if   ( il_idata.empty() ) { il_idata.push( d ) ; }
 				else { il_idata.top() = d ; }
 			}
 			else
 			{
-				d.id_lvl = lvl ;
-				d.id_data = s  ;
-				il_idata.push( d )    ;
-				il_deleted = false    ;
-				t.iURID = il_URID     ;
-				t.ilvl  = lvl         ;
-				Global_Undo[ il_taskid ].push( t ) ;
+				d.id_lvl  = lvl ;
+				d.id_data = s   ;
+				il_idata.push( d ) ;
+				il_deleted = false ;
+				if ( Global_Undo[ il_taskid ].empty() )
+				{
+					Global_Undo[ il_taskid ].push( lvl ) ;
+				}
+				else
+				{
+					if ( Global_Undo[ il_taskid ].top() != lvl )
+						Global_Undo[ il_taskid ].push( lvl ) ;
+				}
 			}
+			il_vShadow = false ;
 			clear_Global_Redo() ;
 		}
 		void put_idata( string s )
 		{
 			idata d ;
 
-			d.id_data = s ;
+			d.id_data  = s ;
 			if   ( il_idata.empty() ) { il_idata.push( d ) ; }
 			else { il_idata.top().id_data = s              ; }
 			il_vShadow = false ;
@@ -277,7 +265,8 @@ class iline
 		void set_il_deleted()
 		{
 			il_deleted = true ;
-			if ( !recoverOFF[ il_taskid ] ) { Global_Undo[ il_taskid ].top().iaction = 'D' ; }
+			if ( recoverOFF[ il_taskid ] ) { return ; }
+			il_idata.top().id_action = 'D' ;
 		}
 		string get_idata()
 		{
@@ -289,7 +278,7 @@ class iline
 			if ( recoverOFF[ il_taskid ] ) { return ; }
 			if ( !il_idata.empty() )
 			{
-				if ( Global_Undo[ il_taskid ].top().iaction == 'D' )
+				if ( il_idata.top().id_action == 'D' )
 				{
 					il_deleted = false ;
 				}
@@ -300,25 +289,21 @@ class iline
 					il_deleted = true ;
 				}
 			}
-			Global_Redo[ il_taskid ].push ( Global_Undo[ il_taskid ].top() ) ;
-			Global_Undo[ il_taskid ].pop() ;
 		}
 		void redo_idata()
 		{
 			il_vShadow = false ;
 			if ( recoverOFF[ il_taskid ] ) { return ; }
-			if ( Global_Redo[ il_taskid ].top().iaction == 'D' )
+			if ( il_idata_redo.top().id_action == 'D' )
 			{
 				il_deleted = true ;
 			}
 			else
 			{
-				il_deleted = false  ;
+				il_deleted = false ;
 			}
 			il_idata.push( il_idata_redo.top() ) ;
 			il_idata_redo.pop() ;
-			Global_Undo[ il_taskid ].push( Global_Redo[ il_taskid ].top() ) ;
-			Global_Redo[ il_taskid ].pop() ;
 		}
 		void clear_Global_Undo()
 		{
@@ -334,18 +319,29 @@ class iline
 				Global_Redo[ il_taskid ].pop() ;
 			}
 		}
-		ichange get_Undo_URID()
+		int get_Global_Undo_lvl()
 		{
-			ichange i ;
-			if ( recoverOFF[ il_taskid ] || Global_Undo[ il_taskid ].empty() ) { return i ; }
+			if (  recoverOFF[ il_taskid ] ||
+			     Global_Undo[ il_taskid ].empty() ) { return -1 ; }
 			return Global_Undo[ il_taskid ].top() ;
 		}
-		ichange get_Redo_URID()
+		int get_Global_Redo_lvl()
 		{
-			ichange i ;
-			if ( recoverOFF[ il_taskid ] ) { return i ; }
-			if ( Global_Redo[ il_taskid ].empty() ) { return i ; }
+			if (  recoverOFF[ il_taskid ] ||
+			     Global_Redo[ il_taskid ].empty() ) { return -1 ; }
 			return Global_Redo[ il_taskid ].top() ;
+		}
+		void move_Global_Undo2Redo()
+		{
+			if ( recoverOFF[ il_taskid ] ) { return ; }
+			Global_Redo[ il_taskid ].push ( Global_Undo[ il_taskid ].top() ) ;
+			Global_Undo[ il_taskid ].pop() ;
+		}
+		void move_Global_Redo2Undo()
+		{
+			if ( recoverOFF[ il_taskid ] ) { return ; }
+			Global_Undo[ il_taskid ].push( Global_Redo[ il_taskid ].top() ) ;
+			Global_Redo[ il_taskid ].pop() ;
 		}
 		void flatten_idata()
 		{
@@ -365,7 +361,13 @@ class iline
 		}
 		int get_idata_lvl()
 		{
+			if ( il_idata.empty() ) { return -1 ; }
 			return il_idata.top().id_lvl ;
+		}
+		int get_idata_redo_lvl()
+		{
+			if ( il_idata_redo.empty() ) { return -1 ; }
+			return il_idata_redo.top().id_lvl ;
 		}
 		int get_Global_Undo_Size()
 		{
@@ -570,8 +572,7 @@ class PEDIT01 : public pApplication
 
 		bool setFindChangeExcl( char ) ;
 		bool setCommandRange( string, c_range & ) ;
-		int  getNextSpecial( int ) ;
-		int  getNextChanged( int ) ;
+		int  getNextSpecial( char, char ) ;
 		bool getLabelItr( string, vector<iline * >::iterator & , int & ) ;
 		int  getLabelLine( string ) ;
 		bool checkLabel( string ) ;
@@ -628,6 +629,7 @@ class PEDIT01 : public pApplication
 		int  RightBnd            ;
 
 		string maskLine          ;
+		bool   colsOn            ;
 		string tabsLine          ;
 		char   tabsChar          ;
 		string backupLoc         ;

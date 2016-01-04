@@ -1652,8 +1652,8 @@ void loadDefaultPools()
 {
 	// Default vars go in @DEFPROF (RO) for PROFILE and @DEFSHAR (UP) for SHARE
 
-	int    RC ;
-	int    i  ;
+	int RC ;
+	int i  ;
 
 	struct utsname buf ;
 
