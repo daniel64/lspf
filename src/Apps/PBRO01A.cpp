@@ -260,8 +260,10 @@ void PBRO01A::application()
 			if ( find_parms.f_line > 0 )
 			{
 				ZALINE = find_parms.f_line - topLine ;
-				if ( ZALINE < 0 ) { topLine = 0 ; }
-				else if ( ZALINE > ZAREAD ) { topLine = find_parms.f_line - 1 ; }
+				if ( ZALINE < 0 || ZALINE > ZAREAD )
+				{
+					topLine = find_parms.f_line - 1 ;
+				}
 				CURFLD = "ZAREA" ;
 				CURPOS = ( find_parms.f_line - topLine ) * ZAREAW + find_parms.f_offset + 1 ;
 				if ( colsOn ) { CURPOS = CURPOS + ZAREAW ; }
@@ -272,7 +274,14 @@ void PBRO01A::application()
 				if ( find_parms.f_dir == 'A' ) { MSG = "PBRO01G" ; find_parms.f_dir = 'N' ; }
 				else                           { MSG = "PBRO01F" ;                          }
 			}
-			else { CURFLD = "ZCMD" ; CURPOS = 1 ; TYPE = typList[ find_parms.f_mtch ] ; STR = find_parms.f_estring ; MSG = "PBRO01E" ; continue ; }
+			else
+			{
+				CURFLD = "ZCMD" ;
+				CURPOS = 1 ;
+				TYPE = typList[ find_parms.f_mtch ] ;
+				STR = find_parms.f_estring ;
+				MSG = "PBRO01E" ; continue ;
+			}
 			rebuildZAREA = true ;
 			continue            ;
 		}
@@ -354,8 +363,10 @@ void PBRO01A::application()
 				if ( find_parms.f_line > 0 )
 				{
 					ZALINE = find_parms.f_line - topLine ;
-					if ( ZALINE < 0 ) { topLine = 0 ; }
-					else if ( ZALINE > ZAREAD ) { topLine = find_parms.f_line - 1 ; }
+					if ( ZALINE < 0 || ZALINE > ZAREAD )
+					{
+						topLine = find_parms.f_line - 1 ;
+					}
 					CURFLD  = "ZAREA" ;
 					CURPOS  = ( find_parms.f_line - topLine ) * ZAREAW + find_parms.f_offset + 1 ;
 					if ( colsOn ) { CURPOS = CURPOS + ZAREAW ; }
