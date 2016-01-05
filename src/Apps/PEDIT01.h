@@ -68,14 +68,14 @@ class icmd
 class idata
 {
 	private:
-		int    id_lvl    ;
-		char   id_action ;
-		string id_data   ;
+		int    id_lvl     ;
+		char   id_action  ;
+		string id_data    ;
 		idata()
 		{
-			id_lvl    = 0   ;
-			id_action = ' ' ;
-			id_data   = ""  ;
+			id_lvl     = 0     ;
+			id_action  = ' '   ;
+			id_data    = ""    ;
 		}
 	friend class iline   ;
 	friend class PEDIT01 ;
@@ -140,8 +140,8 @@ class iline
 	private:
 		static map<int, stack<int> >Global_Undo ;
 		static map<int, stack<int> >Global_Redo ;
-		static map<int, int>maxURID        ;
-		static map<int, bool>recoverOFF    ;
+		static map<int, int>maxURID   ;
+		static map<int, bool>setUNDO  ;
 
 		bool   il_file    ;
 		bool   il_note    ;
@@ -228,7 +228,7 @@ class iline
 		{
 			idata d ;
 
-			if ( recoverOFF[ il_taskid ] )
+			if ( !setUNDO[ il_taskid ] )
 			{
 				d.id_data = s ;
 				if   ( il_idata.empty() ) { il_idata.push( d ) ; }
@@ -239,15 +239,10 @@ class iline
 				d.id_lvl  = lvl ;
 				d.id_data = s   ;
 				il_idata.push( d ) ;
-				il_deleted = false ;
-				if ( Global_Undo[ il_taskid ].empty() )
+				if ( Global_Undo[ il_taskid ].empty()     ||
+				     Global_Undo[ il_taskid ].top() != lvl )
 				{
 					Global_Undo[ il_taskid ].push( lvl ) ;
-				}
-				else
-				{
-					if ( Global_Undo[ il_taskid ].top() != lvl )
-						Global_Undo[ il_taskid ].push( lvl ) ;
 				}
 			}
 			il_vShadow = false ;
@@ -257,15 +252,23 @@ class iline
 		{
 			idata d ;
 
-			d.id_data  = s ;
-			if   ( il_idata.empty() ) { il_idata.push( d ) ; }
-			else { il_idata.top().id_data = s              ; }
+			d.id_data = s ;
+			if   ( il_idata.empty() ) { il_idata.push( d )         ; }
+			else                      { il_idata.top().id_data = s ; }
 			il_vShadow = false ;
+		}
+		void set_il_datalvl( int lvl )
+		{
+			il_idata.top().id_lvl = lvl ;
+			if ( Global_Undo[ il_taskid ].empty()     ||
+			     Global_Undo[ il_taskid ].top() != lvl )
+			{
+				Global_Undo[ il_taskid ].push( lvl ) ;
+			}
 		}
 		void set_il_deleted()
 		{
 			il_deleted = true ;
-			if ( recoverOFF[ il_taskid ] ) { return ; }
 			il_idata.top().id_action = 'D' ;
 		}
 		string get_idata()
@@ -275,7 +278,7 @@ class iline
 		void undo_idata()
 		{
 			il_vShadow = false ;
-			if ( recoverOFF[ il_taskid ] ) { return ; }
+			if ( !setUNDO[ il_taskid ] ) { return ; }
 			if ( !il_idata.empty() )
 			{
 				if ( il_idata.top().id_action == 'D' )
@@ -293,7 +296,7 @@ class iline
 		void redo_idata()
 		{
 			il_vShadow = false ;
-			if ( recoverOFF[ il_taskid ] ) { return ; }
+			if ( !setUNDO[ il_taskid ] ) { return ; }
 			if ( il_idata_redo.top().id_action == 'D' )
 			{
 				il_deleted = true ;
@@ -321,34 +324,33 @@ class iline
 		}
 		int get_Global_Undo_lvl()
 		{
-			if (  recoverOFF[ il_taskid ] ||
+			if (  !setUNDO[ il_taskid ] ||
 			     Global_Undo[ il_taskid ].empty() ) { return -1 ; }
 			return Global_Undo[ il_taskid ].top() ;
 		}
 		int get_Global_Redo_lvl()
 		{
-			if (  recoverOFF[ il_taskid ] ||
+			if (  !setUNDO[ il_taskid ] ||
 			     Global_Redo[ il_taskid ].empty() ) { return -1 ; }
 			return Global_Redo[ il_taskid ].top() ;
 		}
 		void move_Global_Undo2Redo()
 		{
-			if ( recoverOFF[ il_taskid ] ) { return ; }
+			if ( !setUNDO[ il_taskid ] ) { return ; }
 			Global_Redo[ il_taskid ].push ( Global_Undo[ il_taskid ].top() ) ;
 			Global_Undo[ il_taskid ].pop() ;
 		}
 		void move_Global_Redo2Undo()
 		{
-			if ( recoverOFF[ il_taskid ] ) { return ; }
+			if ( !setUNDO[ il_taskid ] ) { return ; }
 			Global_Undo[ il_taskid ].push( Global_Redo[ il_taskid ].top() ) ;
 			Global_Redo[ il_taskid ].pop() ;
 		}
 		void flatten_idata()
 		{
-			idata  d  ;
+			idata d ;
 
-			d.id_data = il_idata.top().id_data ;
-			d.id_lvl  = il_idata.top().id_lvl  ;
+			d = il_idata.top() ;
 			while ( !il_idata.empty() )
 			{
 				il_idata.pop() ;
@@ -497,6 +499,7 @@ class PEDIT01 : public pApplication
 		static map<string,bool>EditList  ;
 
 		void showEditEntry()      ;
+		void showEditRecovery()   ;
 		void Edit()               ;
 		void getEditProfile( string )  ;
 		void saveEditProfile( string ) ;
@@ -560,7 +563,7 @@ class PEDIT01 : public pApplication
 		void getClipboard( vector<ipline> & vip ) ;
 		void clearClipboard( string )  ;
 
-		void clearCursor()    ;
+		void clearCursor() ;
 		void storeCursor(  int, int, int=0 ) ;
 		void placeCursor(  int, int, int=0 ) ;
 		void placeCursor( uint, int, int=0 ) ;
@@ -592,8 +595,10 @@ class PEDIT01 : public pApplication
 		int  aCol                ;
 		int  aURID               ;
 		int  Level               ;
+		int  saveLevel           ;
 
 		bool tabsOnRead          ;
+		bool abendRecovery       ;
 
 		bool cursorPlaced        ;
 		bool cursorPlaceHome     ;
@@ -612,8 +617,7 @@ class PEDIT01 : public pApplication
 		bool   profHTabs         ;
 		bool   profFTabs         ;
 		int    profFTabz         ;
-		bool   profBackup        ;
-		bool   profRecov         ;
+		bool   profRecover       ;
 		bool   profHilight       ;
 		string profLang          ;
 
@@ -632,7 +636,7 @@ class PEDIT01 : public pApplication
 		bool   colsOn            ;
 		string tabsLine          ;
 		char   tabsChar          ;
-		string backupLoc         ;
+		string recoverLoc        ;
 
 		vector<iline *> data     ;
 		map<int, iposition> s2data ;
@@ -660,7 +664,6 @@ class PEDIT01 : public pApplication
 		string OCMD    ;
 
 		string ZFILE   ;
-		string ZFILENM ;
 		string ZROW1   ;
 		string ZROW2   ;
 		string ZCOL1   ;
@@ -684,7 +687,7 @@ class PEDIT01 : public pApplication
 		string ZEDPTABC ;
 		string ZEDPTABS ;
 		string ZEDPTABZ ;
-		string ZEDPBKLC ;
+		string ZEDPRCLC ;
 		string ZEDPHLLG ;
 
 		string fileType  ;

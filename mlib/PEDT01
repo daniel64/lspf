@@ -85,8 +85,8 @@ PEDT01S "File/Directory Does Not Exist"
 PEDT01T "Entry Is A Directory"
 "'&ZFILE' is a directory entry"
 
-PEDT01U "RECOVER Is Set OFF"
-"RECOVER option is set to OFF.  UNDO/REDO is not available"
+PEDT01U "UNDO Is Set OFF"
+"UNDO option is set to OFF.  UNDO/REDO is not available"
 
 PEDT01V "Invalid A/B line command"
 "A/B line command found without matching block command"
@@ -124,8 +124,8 @@ PEDT011F "Backup Failed"
 PEDT011G "Recursive EDIT detected"
 "Recursive EDIT has been detected.  Not currently supported and can corrupt files"
 
-PEDT011H "Recovery Data Removed"
-"Recovery is OFF and all recovery data has been deleted.  UNDO/REDO not available"
+PEDT011H "UNDO Data Removed"
+"UNDO data has been deleted.  UNDO/REDO not available before this time"
 
 PEDT012A "Invalid PASTE parameter"
 "PASTE DEFAULT|name KEEP|DELETE"
