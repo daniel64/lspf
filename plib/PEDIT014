@@ -1,0 +1,63 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+Panel for editor PEDIT01
+)ENDCOMMENT
+
+)BODY HOME(ZCMD4) CMD(ZCMD4)
+
+PanelTitle "Edit Recovery Panel"
+
+literal  4    2       FP     "Command ===> "
+field 4  15   MAX     NEF     PAD('_'),CAPS(ON) ZCMD4
+
+literal  6   10       FP     "**********************************************"
+literal  7   10       FP     "*          EDIT AUTOMATIC RECOVERY           *"
+literal  8   10       FP     "**********************************************"
+literal  10   2       FP     "The following file was being edited when a failure occured"
+literal  12   2       FP     "File Name. . .:"
+field    12  18       MAX     VOI  NONE ZFILE
+
+field    15   2   1   CEF     PAD('_') EESTSPC
+literal  15   4       SAC    "Strip trailing spaces and tabs on file save"
+
+field    16   2   1   CEF     PAD('_') EETABSS
+literal  16   4       SAC    "Convert tabs to spaces on EDIT entry"
+field    17   2   1   CEF     PAD('_') EETABCC
+literal  17   4       SAC    "Convert spaces back to tabs on file save"
+
+
+literal 20 2  CH "Instructions"
+literal 21 2  NT "Press"
+literal 21 8  ET "ENTER"
+literal 21 14 NT "to recover file"
+literal 23 2  NT "Enter"
+literal 23 8  ET "DEFER"
+literal 23 14 NT "to defer recovery or"
+literal 23 35 ET "CANCEL"
+literal 23 42 NT "to cancel recovery of the file"
+
+
+)INCLUDE STD_PDC
+)INCLUDE RFL_PDC
+)INCLUDE HLP_PDC
+
+)INIT
+
+&ZCMD4 = &Z
+VGET (EETABCC EETABSS EESTSPC) PROFILE
+
+)PROC
+&ZCMD4 = TRANS(&ZCMD4 DEF,DEFER CAN,CANCEL *,*)
+if ( &ZCMD4 NE DEFER,CANCEL,&Z)
+  .MSG    = PSYS018
+  .CURSOR = ZCMD4
+  EXIT
+
+VER (&EETABSS  LIST /)
+VER (&EETABCC  LIST /)
+VER (&EESTSPC  LIST /)
+
+VPUT (EETABCC EETABSS EESTSPC) PROFILE
+
+)END

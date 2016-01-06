@@ -64,13 +64,13 @@ using namespace boost::filesystem ;
 #define Global_Redo iline::Global_Redo
 #define undoON      iline::setUNDO[ taskid() ]
 
-
 map<int,int> maxURID ;
 map<int, bool> iline::setUNDO    ;
 map<int, stack<int> >Global_Undo ;
 map<int, stack<int> >Global_Redo ;
 
 map<string,bool>PEDIT01::EditList ;
+
 
 void PEDIT01::application()
 {
@@ -388,6 +388,8 @@ void PEDIT01::Edit()
 				      find_parms.fcx_offset == (aCol + startCol - CLINESZ - 2) )
 			{
 				actionChange() ;
+				moveColumn( find_parms.fcx_offset ) ;
+				placeCursor( find_parms.fcx_URID, 4, find_parms.fcx_offset ) ;
 			}
 			else
 			{
@@ -396,11 +398,12 @@ void PEDIT01::Edit()
 				if ( find_parms.fcx_success )
 				{
 					actionChange() ;
+					moveColumn( find_parms.fcx_offset ) ;
+					placeCursor( find_parms.fcx_URID, 4, find_parms.fcx_offset ) ;
 				}
 			}
 			if ( find_parms.fcx_success )
 			{
-				find_parms.fcx_success = false ;
 				moveColumn( find_parms.fcx_offset ) ;
 				placeCursor( find_parms.fcx_URID, 4, find_parms.fcx_offset ) ;
 				if ( !URIDonScreen( find_parms.fcx_URID ) )
@@ -420,6 +423,7 @@ void PEDIT01::Edit()
 				else                                { STR = find_parms.fcx_ostring ; }
 				MSG  = "PEDT012H" ;
 			}
+			find_parms.fcx_URID = 0 ;
 			ZCMD = ""           ;
 			rebuildZAREA = true ;
 		}
@@ -603,10 +607,10 @@ void PEDIT01::readFile()
 		return  ;
 	}
 
-	topLine   = 0 ;
-	startCol  = 1 ;
-	maxCol    = 1 ;
-	Level     = 0 ;
+	topLine  = 0 ;
+	startCol = 1 ;
+	maxCol   = 1 ;
+	Level    = 0 ;
 
 	rebuildZAREA = true  ;
 	fileChanged  = false ;
@@ -728,13 +732,14 @@ bool PEDIT01::saveFile()
 		}
 	}
 	fileChanged = false ;
+	fout.close() ;
+	if ( fout.fail() ) { MSG = "PEDT01Q" ; ZRC = 8 ; ZRSN = 8 ; return false ; }
+
 	if ( undoON )
 	{
 		it        = data.begin() ;
 		saveLevel = (*it)->get_Global_Undo_lvl() ;
 	}
-	fout.close() ;
-	if ( fout.fail() ) { MSG = "PEDT01Q" ; ZRC = 8 ; ZRSN = 8 ; return false ; }
 	MSG  = "PEDT01P" ;
 	ZRC  = 0 ;
 	ZRSN = 4 ;
@@ -786,7 +791,7 @@ void PEDIT01::fill_dynamic_area()
 		if ( data.at( dl )->il_file )    { fl++     ; }
 		if ( data.at( dl )->il_excl )
 		{
-			elines = getEXBlock( data.at( dl )->il_URID ) ;
+			elines      = getEXBlock( data.at( dl )->il_URID ) ;
 			ip.ipo_line = dl ;
 			ip.ipo_URID = data.at( dl )->il_URID ;
 			s2data.at( sl ) = ip ;
@@ -1278,6 +1283,8 @@ void PEDIT01::actionPrimCommand()
 	int j  ;
 	int ws ;
 	int p1 ;
+	int tTop ;
+	int tCol ;
 
 	char loc_dir ;
 
@@ -1287,6 +1294,8 @@ void PEDIT01::actionPrimCommand()
 	string w4   ;
 	string wall ;
 	string ucmd ;
+
+	bool   firstc ;
 
 	vector<string> Prof ;
 	vector<string> Info ;
@@ -1344,15 +1353,35 @@ void PEDIT01::actionPrimCommand()
 		i = 0 ;
 		if ( !setFindChangeExcl( 'C' ) ) { return ; }
 		Level++ ;
+		tTop   = topLine  ;
+		tCol   = startCol ;
+		firstc = true     ;
 		while ( true )
 		{
 			actionFind()   ;
 			if ( find_parms.fcx_error )    { return ; }
 			if ( !find_parms.fcx_success ) { break  ; }
 			i++            ;
+			if ( firstc )
+			{
+				moveColumn( find_parms.fcx_offset ) ;
+				tCol = startCol                     ;
+				placeCursor( find_parms.fcx_URID, 4, find_parms.fcx_offset ) ;
+				if ( !URIDonScreen( find_parms.fcx_URID ) )
+				{
+					tTop = getLine( find_parms.fcx_URID ) ;
+					tTop = getPrevDataLine( tTop ) ;
+				}
+				firstc = false ;
+			}
 			actionChange() ;
 			if ( !find_parms.fcx_chngall ) { break  ; }
+			startCol = 1 ;
+			topLine  = getLine( find_parms.fcx_URID ) ;
+			aCol     = find_parms.fcx_offset + CLINESZ + 1 ;
 		}
+		topLine  = tTop ;
+		startCol = tCol ;
 		if ( i > 0 )
 		{
 			if ( find_parms.fcx_chngall ) { MSG = "PEDT012K" ; }
@@ -1657,6 +1686,22 @@ void PEDIT01::actionPrimCommand()
 		else { MSG = "PEDT011" ; }
 		ZCMD = "" ;
 	}
+	else if ( w1 == "NULL" || w1 == "NULLS" )
+	{
+		if ( ws > 2 ) { MSG = "PEDT011" ; return ; }
+		if ( w2 == "ON" || ws == 1 )
+		{
+			profNulls    = true ;
+			rebuildZAREA = true ;
+		}
+		else if ( w2 == "OFF" )
+		{
+			profNulls    = false ;
+			rebuildZAREA = true  ;
+		}
+		else { MSG = "PEDT011" ; }
+		ZCMD = "" ;
+	}
 	else if ( w1 == "PASTE" )
 	{
 		pasteActive = true  ;
@@ -1701,10 +1746,11 @@ void PEDIT01::actionPrimCommand()
 		else                          { MSG = "PEDT011" ; return ; }
 		ZCMD = "" ;
 	}
-	else if ( w1 == "RECOVER" )
+	else if ( w1 == "REC" || w1 == "RECOV" || w1 == "RECOVER" || w1 == "RECOVERY" )
 	{
 		if ( w2 == "PATH" )
 		{
+			if ( w3 == "" ) { MSG = "PEDT011" ; }
 			recoverLoc = subword( ZCMD, 3 ) ;
 		}
 		else if ( ws > 2 ) { MSG = "PEDT011" ; return ; }
@@ -1831,20 +1877,6 @@ void PEDIT01::actionPrimCommand()
 		log( "A", " Global UNDO stack size: " << (*it)->get_Global_Undo_Size() << endl  ; )
 		vector<icmd>::iterator itc         ;
 		log( "A", " Global REDO stack size: " << (*it)->get_Global_Redo_Size() << endl  ; )
-		debug1( " dje icmds vector size = "<<icmds.size()<<endl);
-		for ( itc = icmds.begin() ; itc != icmds.end() ; itc++ )
-		{
-			debug1( " dje itc->icmd_COMMAND " << itc->icmd_COMMAND << endl);
-			debug1( " dje itc->icmd_ABO " << itc->icmd_ABO << endl);
-			debug1( " dje itc->icmd_Rpt " << itc->icmd_Rpt << endl);
-			debug1( " dje itc->icmd_OSize " << itc->icmd_OSize << endl);
-			debug1( " dje itc->icmd_overlay " << itc->icmd_overlay << endl);
-			debug1( " dje itc->icmd_cutpaste " << itc->icmd_cutpaste << endl);
-			debug1( " dje itc->icmd_sURID " << itc->icmd_sURID << endl);
-			debug1( " dje itc->icmd_eURID " << itc->icmd_eURID << endl);
-			debug1( " dje itc->icmd_dURID " << itc->icmd_dURID << endl);
-			debug1( " dje itc->icmd_oURID " << itc->icmd_oURID << endl);
-		}
 		ZCMD = ""    ;
 	}
 	else if ( w1 == "SHOWALL" )
@@ -1982,13 +2014,12 @@ void PEDIT01::actionLineCommands()
 
 	uint dl     ;
 
-	string tmp ;
-	vector<ipline> vip   ;
+	bool overlayOK ;
 
-	idata    t ;
-	ipline  ip ;
+	string tmp  ;
 
-	bool overlayOK  ;
+	vector<ipline> vip ;
+	ipline  ip  ;
 
 	iline * p_iline  ;
 
@@ -2008,19 +2039,6 @@ void PEDIT01::actionLineCommands()
 
 	for ( itc = icmds.begin() ; itc != icmds.end() ; itc++ )
 	{
-		 if ( testMode )
-		 {
-		      debug1( " dje itc->icmd_COMMAND " << itc->icmd_COMMAND << endl);
-		      debug1( " dje itc->icmd_ABO " << itc->icmd_ABO << endl);
-		      debug1( " dje itc->icmd_Rpt " << itc->icmd_Rpt << endl);
-		      debug1( " dje itc->icmd_OSize " << itc->icmd_OSize << endl);
-		      debug1( " dje itc->icmd_overlay " << itc->icmd_overlay << endl);
-		      debug1( " dje itc->icmd_cutpaste " << itc->icmd_cutpaste << endl);
-		      debug1( " dje itc->icmd_sURID " << itc->icmd_sURID << endl);
-		      debug1( " dje itc->icmd_eURID " << itc->icmd_eURID << endl);
-		      debug1( " dje itc->icmd_dURID " << itc->icmd_dURID << endl);
-		      debug1( " dje itc->icmd_oURID " << itc->icmd_oURID << endl);
-		}
 		if ( itc->icmd_Rpt == -1 ) { itc->icmd_Rpt = 1 ; }
 		if ( itc->icmd_COMMAND == "BNDS" )
 		{
@@ -2958,12 +2976,10 @@ void PEDIT01::actionUNDO()
 
 	vector<iline * >::iterator it ;
 
-  //    if ( !setUNDO[ taskid() ] ) { MSG = "PEDT01U" ; return ; }
 	if ( !undoON ) { MSG = "PEDT01U" ; return ; }
 
 	it  = data.begin() ;
 	lvl = (*it)->get_Global_Undo_lvl() ;
-	debug1( " dje current idata level = "<<lvl<<endl);
 	if ( lvl < 1 )
 	{
 		MSG = "PEDT017" ;
@@ -3475,9 +3491,6 @@ void PEDIT01::actionFind()
 		if ( find_parms.fcx_dir == 'L' ) { dl = edl ; }
 	}
 	dl = max( sdl, dl ) ;
- //     debug1( " dje dl="<<dl<<endl);
-   //   debug1( " dje sdl="<<sdl<<endl);
-     // debug1( " dje edl="<<edl<<endl);
 	dl = getValidDataLine( dl, 'F' ) ;
 	found = false ;
 	while ( true )
@@ -3486,11 +3499,6 @@ void PEDIT01::actionFind()
 		skip = false ;
 		c1   = offset;
 		c2   = data[ dl ]->get_idata().size() - 1 ;
-  //            debug1( " dje top of loop"<<endl);
-    //          debug1( " dje dl="<<dl<<endl);
-      //        debug1( " dje c1="<<c1<<endl);
-	//      debug1( " dje c2="<<c2<<endl);
-	  //    debug1( " dje data="<<data[ dl ]->get_idata()<<endl);
 
 		if ( (find_parms.fcx_excl == 'X' && !data[ dl ]->il_excl) ||
 		     (find_parms.fcx_excl == 'N' &&  data[ dl ]->il_excl) )
@@ -3524,11 +3532,6 @@ void PEDIT01::actionFind()
 		if ( c1 < 0  ) { abend() ; }
 		if ( c2 < 0  ) { abend() ; }
 		if ( c1 > c2 ) { abend() ; }
-  //            debug1( " dje dl="<<dl<<endl);
-    //          debug1( " dje c1="<<c1<<endl);
-      //        debug1( " dje c2="<<c2<<endl);
-	//      debug1( " dje data="<<data[ dl ]->get_idata()<<endl);
-
 
 		if ( find_parms.fcx_regreq )
 		{
@@ -3576,10 +3579,6 @@ void PEDIT01::actionFind()
 				else
 				{
 					if ( boost::regex_search( itss, itse, results, regexp ) )
-						for ( int ii = 0 ; ii < results.size() ; ii++ )
-						{
-							debug1( " dje what[] " <<results[ii]<< endl);
-						}
 					{
 						found = true ;
 						data.at( dl )->il_excl = find_parms.fcx_exclude ;
@@ -3596,11 +3595,6 @@ void PEDIT01::actionFind()
 		}
 		else
 		{
-	   //           debug1( " dje no regex"<<endl);
-	     //         debug1( " dje c1="<<c1<<endl);
-	       //       debug1( " dje c2="<<c2<<endl);
-		 //     debug1( " dje offset="<<offset<<endl);
-		   //   debug1( " dje dl="<<dl<<endl);
 			fline = true ;
 			while ( true )
 			{
@@ -3619,7 +3613,6 @@ void PEDIT01::actionFind()
 				}
 				else
 				{
-			//              debug1( " dje finding next"<<endl);
 					if ( find_parms.fcx_asis )
 					{
 						p1 = data[ dl ]->get_idata().find( find_parms.fcx_string, c1 )         ;
@@ -3681,8 +3674,6 @@ void PEDIT01::actionChange()
 	temp.replace( find_parms.fcx_offset, find_parms.fcx_string.size(), find_parms.fcx_cstring ) ;
 	data.at( l )->put_idata( temp, Level ) ;
 	data.at( l )->il_chg = true         ;
-	moveColumn( find_parms.fcx_offset ) ;
-	placeCursor( find_parms.fcx_URID, 4, find_parms.fcx_offset ) ;
 }
 
 

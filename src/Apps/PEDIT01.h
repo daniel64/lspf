@@ -77,8 +77,7 @@ class idata
 			id_action  = ' '   ;
 			id_data    = ""    ;
 		}
-	friend class iline   ;
-	friend class PEDIT01 ;
+	friend class iline ;
 } ;
 
 
