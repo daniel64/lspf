@@ -190,6 +190,12 @@ PEDT012T "Columns not valid"
 PEDT012U "Invalid FIND/CHANGE/EXCLUDE command"
 "Find, change or exclude command does not contain a search string"
 
+PEDT012V "*Bottom of data reached*" .TYPE=W
+"&TYPE '&STR' not found.  Press RFIND to continue from the bottom of data"
+
+PEDT012W "*Top of data reached*" .TYPE=W
+"&TYPE '&STR' not found.  Press RFIND to continue from the top of data"
+
 PEDT013A "File in use"
 "File '&ZFILE' is currently being edited in another session"
 

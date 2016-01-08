@@ -24,42 +24,42 @@ class icmd
 	private:
 		string icmd_COMMAND  ;
 		int    icmd_sURID    ;
+		int    icmd_dURID    ;
+		int    icmd_oURID    ;
+		int    icmd_eURID    ;
 		int    icmd_Rpt      ;
 		char   icmd_ABO      ;
 		int    icmd_OSize    ;
-		int    icmd_dURID    ;
-		int    icmd_oURID    ;
 		bool   icmd_ABO_req  ;
 		bool   icmd_overlay  ;
 		bool   icmd_cutpaste ;
-		int    icmd_eURID    ;
 		icmd()
 		{
 			icmd_COMMAND  = ""    ;
 			icmd_sURID    = 0     ;
+			icmd_dURID    = 0     ;
+			icmd_oURID    = 0     ;
+			icmd_eURID    = 0     ;
 			icmd_ABO      = ' '   ;
 			icmd_OSize    = 0     ;
 			icmd_Rpt      = 0     ;
-			icmd_dURID    = 0     ;
-			icmd_oURID    = 0     ;
 			icmd_ABO_req  = false ;
 			icmd_overlay  = false ;
 			icmd_cutpaste = false ;
-			icmd_eURID    = 0     ;
 		}
 		void icmd_clear()
 		{
 			icmd_COMMAND  = ""    ;
 			icmd_sURID    = 0     ;
+			icmd_dURID    = 0     ;
+			icmd_oURID    = 0     ;
+			icmd_eURID    = 0     ;
 			icmd_ABO      = ' '   ;
 			icmd_OSize    = 0     ;
 			icmd_Rpt      = 0     ;
-			icmd_dURID    = 0     ;
-			icmd_oURID    = 0     ;
 			icmd_ABO_req  = false ;
 			icmd_overlay  = false ;
 			icmd_cutpaste = false ;
-			icmd_eURID    = 0     ;
 		}
 	friend class PEDIT01 ;
 } ;
@@ -109,6 +109,8 @@ class ipline
 		bool   ip_hex   ;
 		bool   ip_chg   ;
 		bool   ip_error ;
+		bool   ip_undo  ;
+		bool   ip_redo  ;
 		bool   ip_msg   ;
 		bool   ip_info  ;
 		string ip_data  ;
@@ -125,6 +127,8 @@ class ipline
 			ip_hex   = false ;
 			ip_chg   = false ;
 			ip_error = false ;
+			ip_undo  = false ;
+			ip_redo  = false ;
 			ip_msg   = false ;
 			ip_info  = false ;
 			ip_data  = ""    ;
@@ -155,6 +159,8 @@ class iline
 		bool   il_hex     ;
 		bool   il_chg     ;
 		bool   il_error   ;
+		bool   il_undo    ;
+		bool   il_redo    ;
 		bool   il_msg     ;
 		bool   il_info    ;
 		bool   il_deleted ;
@@ -187,6 +193,8 @@ class iline
 			il_hex     = false  ;
 			il_chg     = false  ;
 			il_error   = false  ;
+			il_undo    = false  ;
+			il_redo    = false  ;
 			il_msg     = false  ;
 			il_deleted = false  ;
 			il_newisrt = false  ;
@@ -206,6 +214,8 @@ class iline
 			il_hex     = false  ;
 			il_chg     = false  ;
 			il_error   = false  ;
+			il_undo    = false  ;
+			il_redo    = false  ;
 			il_msg     = false  ;
 		}
 		void resetSpecialPrefix()
@@ -251,9 +261,8 @@ class iline
 		{
 			idata d ;
 
-			d.id_data = s ;
-			if   ( il_idata.empty() ) { il_idata.push( d )         ; }
-			else                      { il_idata.top().id_data = s ; }
+			if ( il_idata.empty() ) { d.id_data = s ; il_idata.push( d ) ; }
+			else                    { il_idata.top().id_data = s         ; }
 			il_vShadow = false ;
 		}
 		void set_il_datalvl( int lvl )
@@ -585,6 +594,10 @@ class PEDIT01 : public pApplication
 		void addSpecial( char, int, vector<string> & ) ;
 		void addSpecial( char, int, string & ) ;
 
+		string rshiftData( int, string ) ;
+		string lshiftData( int, string ) ;
+		bool   textSplitData( string, string &, string & ) ;
+
 		void compareFiles( string ) ;
 
 		uint topLine             ;
@@ -614,8 +627,8 @@ class PEDIT01 : public pApplication
 		bool   profHex           ;
 		bool   profSTabs         ;
 		bool   profHTabs         ;
-		bool   profFTabs         ;
-		int    profFTabz         ;
+		bool   profXTabs         ;
+		int    profXTabz         ;
 		bool   profRecover       ;
 		bool   profHilight       ;
 		string profLang          ;
@@ -689,6 +702,10 @@ class PEDIT01 : public pApplication
 		string ZEDPRCLC ;
 		string ZEDPHLLG ;
 
+		string EETABCC  ;
+		string EETABSS  ;
+		string EESTSPC  ;
+
 		string fileType  ;
 		string clipboard ;
 		string CLIPTABL  ;
@@ -717,7 +734,7 @@ class PEDIT01 : public pApplication
 		string LINES;
 
 		const string blkcmds   = "CC MM DD HXX OO RR XX (( )) UCC LCC MMD" ;
-		const string sglcmds   = "A B BNDS C COL COLS D F HX I L LC M MASK MD O R S TABS TS UC X ( )" ;
+		const string sglcmds   = "A B BNDS C COL COLS D F HX I L LC M MASK MD O R S TABS TS UC X ( ) TJ" ;
 		const string spllcmds  = "COL COLS A B I C M D R CC MM DD RR" ;
 		const string todlcmds  = "COL COLS A I BNDS MASK TABS" ;
 		const string bodlcmds  = "B" ;

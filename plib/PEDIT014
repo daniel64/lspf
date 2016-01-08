@@ -18,24 +18,24 @@ literal  10   2       FP     "The following file was being edited when a failure
 literal  12   2       FP     "File Name. . .:"
 field    12  18       MAX     VOI  NONE ZFILE
 
-field    15   2   1   CEF     PAD('_') EESTSPC
-literal  15   4       SAC    "Strip trailing spaces and tabs on file save"
+field    14   2   1   CEF     PAD('_') EESTSPC
+literal  14   4       SAC    "Strip trailing spaces and tabs on file save"
 
-field    16   2   1   CEF     PAD('_') EETABSS
-literal  16   4       SAC    "Convert tabs to spaces on EDIT entry"
-field    17   2   1   CEF     PAD('_') EETABCC
-literal  17   4       SAC    "Convert spaces back to tabs on file save"
+field    15   2   1   CEF     PAD('_') EETABSS
+literal  15   4       SAC    "Convert tabs to spaces on EDIT entry"
+field    16   2   1   CEF     PAD('_') EETABCC
+literal  16   4       SAC    "Convert spaces back to tabs on file save"
 
 
-literal 20 2  CH "Instructions"
-literal 21 2  NT "Press"
-literal 21 8  ET "ENTER"
-literal 21 14 NT "to recover file"
-literal 23 2  NT "Enter"
-literal 23 8  ET "DEFER"
-literal 23 14 NT "to defer recovery or"
-literal 23 35 ET "CANCEL"
-literal 23 42 NT "to cancel recovery of the file"
+literal 19 2  CH "Instructions"
+literal 20 2  NT "Press"
+literal 20 8  ET "ENTER"
+literal 20 14 NT "to recover file"
+literal 22 2  NT "Enter"
+literal 22 8  ET "DEFER"
+literal 22 14 NT "to defer recovery or"
+literal 22 35 ET "CANCEL"
+literal 22 42 NT "to cancel recovery of the file"
 
 
 )INCLUDE STD_PDC
