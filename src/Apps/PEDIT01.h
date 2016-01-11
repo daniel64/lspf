@@ -525,8 +525,9 @@ class PEDIT01 : public pApplication
 		void actionChange()       ;
 
 		bool checkLineCommands()  ;
-		void actionLineCommands() ;
 		void actionPrimCommand()  ;
+		void actionLineCommands() ;
+		void actionZVERB()        ;
 
 		void actionUNDO()         ;
 		void actionREDO()         ;
@@ -594,8 +595,10 @@ class PEDIT01 : public pApplication
 		void addSpecial( char, int, vector<string> & ) ;
 		void addSpecial( char, int, string & ) ;
 
-		string rshiftData( int, string ) ;
-		string lshiftData( int, string ) ;
+		string rshiftCols( int, string ) ;
+		string lshiftCols( int, string ) ;
+		bool   rshiftData( int, string, string & ) ;
+		bool   lshiftData( int, string, string & ) ;
 		bool   textSplitData( string, string &, string & ) ;
 
 		void compareFiles( string ) ;
@@ -733,14 +736,14 @@ class PEDIT01 : public pApplication
 		string OCC  ;
 		string LINES;
 
-		const string blkcmds   = "CC MM DD HXX OO RR XX (( )) UCC LCC MMD" ;
-		const string sglcmds   = "A B BNDS C COL COLS D F HX I L LC M MASK MD O R S TABS TS UC X ( ) TJ" ;
+		const string blkcmds   = "CC MM DD HXX OO RR XX (( )) << >> UCC LCC MMD" ;
+		const string sglcmds   = "A B BNDS C COL COLS D F HX I L LC M MASK MD O R S TABS TS UC X ( ) < > TJ" ;
 		const string spllcmds  = "COL COLS A B I C M D R CC MM DD RR" ;
 		const string todlcmds  = "COL COLS A I BNDS MASK TABS" ;
 		const string bodlcmds  = "B" ;
 		const string ABOReq    = "CC MM C M" ;
 		const string ABOList   = "A B O" ;
-		const string ReptOK    = "C M D HX I MD X O R UC LC RR (( )) ( ) F L" ;
+		const string ReptOK    = "C M D HX I MD X O R UC LC RR (( )) ( ) << >> < > F L" ;
 		const string CutCmds   = "C CC M MM" ;
 		const string PasteCmds = "A B" ;
 } ;

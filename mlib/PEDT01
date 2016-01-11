@@ -2,7 +2,7 @@ PEDT011 "Invalid Command Parameter"
 "Primary command contains an invalid parameter"
 
 PEDT012 "Invalid Line Command"
-"Line command not valid"
+"Line command entered is not valid"
 
 PEDT013 "Line Command Invalid Here"
 "Line command entered is not valid on this line"
@@ -164,10 +164,10 @@ PEDT012L "&TYPE '&STR' changed" .TYPE=N
 "Change for &TYPE '&STR' was successful"
 
 PEDT012M "Enter a FIND command"
-"Enter a FIND command before using RFIND, or put a FIND command on the command line"
+"Enter a FIND command before using RFIND"
 
 PEDT012N "Enter a CHANGE command"
-"Enter a CHANGE command before using RCHANGE, or put a CHANGE command on the command line"
+"Enter a CHANGE command before using RCHANGE"
 
 PEDT012O "Compare File Does Not Exist"
 "File '&CFILE' does not exist"
@@ -196,6 +196,15 @@ PEDT012V "*Bottom of data reached*" .TYPE=W
 PEDT012W "*Top of data reached*" .TYPE=W
 "&TYPE '&STR' not found.  Press RFIND to continue from the top of data"
 
+PEDT012X "Line command error" .TYPE=W
+"Cursor is not placed in the data area.  Line command ignored"
+
+PEDT012Y "Line command error" .TYPE=W
+"A command is already on the line command field"
+
 PEDT013A "File in use"
 "File '&ZFILE' is currently being edited in another session"
+
+PEDT013B "Data shifting incomplete" .TYPE=W
+"Data shifting was not completed on lines marked ==ERR>"
 
