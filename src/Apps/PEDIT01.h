@@ -164,7 +164,7 @@ class iline
 		bool   il_msg     ;
 		bool   il_info    ;
 		bool   il_deleted ;
-		bool   il_newisrt ;
+		bool   il_nisrt   ;
 		string il_label   ;
 		string il_lc1     ;
 		string il_lc2     ;
@@ -197,7 +197,7 @@ class iline
 			il_redo    = false  ;
 			il_msg     = false  ;
 			il_deleted = false  ;
-			il_newisrt = false  ;
+			il_nisrt = false    ;
 			il_label   = ""     ;
 			il_lc1     = ""     ;
 			il_lc2     = ""     ;
@@ -265,7 +265,7 @@ class iline
 			else                    { il_idata.top().id_data = s         ; }
 			il_vShadow = false ;
 		}
-		void set_il_datalvl( int lvl )
+		void set_il_idatalvl( int lvl )
 		{
 			il_idata.top().id_lvl = lvl ;
 			if ( Global_Undo[ il_taskid ].empty()     ||
@@ -533,7 +533,7 @@ class PEDIT01 : public pApplication
 		void actionREDO()         ;
 		void removeRecoveryData() ;
 
-		int  getLine( int )       ;
+		uint getLine( int )       ;
 		int  getFirstEX( int )    ;
 		uint getFirstEX( uint )   ;
 		int  getLastEX( int )     ;
@@ -554,11 +554,11 @@ class PEDIT01 : public pApplication
 		uint getValidDataLine( uint, char ) ;
 
 		int  getNextDataLine( int )  ;
-		int  getNextDataLine( uint ) ;
-		int  getNextDataLine( uint, char ) ;
+		uint getNextDataLine( uint ) ;
+		uint getNextDataLine( uint, char ) ;
 		vector<iline * >::iterator getNextDataLine( vector<iline * >::iterator ) ;
-		int  getPrevDataLine( uint ) ;
-		int  getPrevDataLine( uint, char ) ;
+		uint getPrevDataLine( uint ) ;
+		uint getPrevDataLine( uint, char ) ;
 
 		int  getRangeSize( int, int ) ;
 		int  truncateSize( int ) ;
@@ -743,7 +743,7 @@ class PEDIT01 : public pApplication
 		const string bodlcmds  = "B" ;
 		const string ABOReq    = "CC MM C M" ;
 		const string ABOList   = "A B O" ;
-		const string ReptOK    = "C M D HX I MD X O R UC LC RR (( )) ( ) << >> < > F L" ;
+		const string ReptOK    = "C M D F HX I L MD X O R UC LC RR TJ (( )) ( ) << >> < >" ;
 		const string CutCmds   = "C CC M MM" ;
 		const string PasteCmds = "A B" ;
 } ;
