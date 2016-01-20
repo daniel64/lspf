@@ -143,9 +143,11 @@ void PPSP01A::show_log( string fileName )
 	string w1    ;
 	string w2    ;
 	string w3    ;
+	string ffilter ;
 
-	filteri = " "  ;
-	filterx = " "  ;
+	filteri = ' '  ;
+	filterx = ' '  ;
+	ffilter = ""   ;
 	firstLine = 0  ;
 	maxCol    = 1  ;
 
@@ -193,6 +195,7 @@ void PPSP01A::show_log( string fileName )
 		if ( file_has_changed( fileName, fsize ) )
 		{
 			read_file( fileName ) ;
+			if ( ffilter != "" ) { find_lines( ffilter ) ; }
 			rebuildZAREA = true ;
 			set_excludes() ;
 		}
@@ -202,8 +205,8 @@ void PPSP01A::show_log( string fileName )
 		{
 			if ( Rest.size() == 1 )
 			{
-				filteri  = Rest ;
-				set_excludes()  ;
+				filteri = Rest[ 0 ] ;
+				set_excludes() ;
 				rebuildZAREA = true ;
 			}
 			else { MSG = "PPSP012" ; }
@@ -217,29 +220,31 @@ void PPSP01A::show_log( string fileName )
 			}
 			else if ( Rest == "ON" )
 			{
-				Xon      = true ;
-				set_excludes()  ;
+				Xon = true     ;
+				set_excludes() ;
 				rebuildZAREA = true ;
 			}
 			else if ( Rest.size() == 1 )
 			{
-				filterx  = Rest ;
-				set_excludes()  ;
+				filterx = Rest[ 0 ] ;
+				set_excludes() ;
 				rebuildZAREA = true ;
 			}
 			else { MSG = "PPSP013" ; }
 		}
 		else if ( w1 == "F" || w1 == "FIND" )
 		{
-			  find_lines( Restu ) ;
-			  rebuildZAREA = true ;
+			  ffilter = Restu       ;
+			  find_lines( ffilter ) ;
+			  rebuildZAREA = true   ;
 		}
 		else if ( abbrev( "RESET", w1 ) )
 		{
-			filteri = " "    ;
-			filterx = " "    ;
+			filteri = ' '    ;
+			filterx = ' '    ;
+			ffilter = ""     ;
 			Xon     = false  ;
-			rebuildZAREA = true  ;
+			rebuildZAREA = true ;
 			excluded.clear() ;
 			for ( t = 0 ; t <= maxLines ; t++ ) { excluded.push_back( false ) ; }
 		}
@@ -389,9 +394,9 @@ void PPSP01A::set_excludes()
 	{
 		if ( Xon )
 		{
-			if ( data[ i ].substr( 39, 1 ) == "D" ||
-			     data[ i ].substr( 39, 1 ) == "I" ||
-			     data[ i ].substr( 39, 1 ) == "-" )
+			if ( data[ i ][ 39 ] == 'D' ||
+			     data[ i ][ 39 ] == 'I' ||
+			     data[ i ][ 39 ] == '-' )
 			{
 				excluded[ i ] = true ;
 				continue ;
@@ -399,8 +404,8 @@ void PPSP01A::set_excludes()
 		}
 		if ( data[ i ].size() > 39 )
 		{
-			if ( filteri != " " && filteri != data[ i ].substr( 39, 1 ) && data[ i ].substr( 39, 1 ) != "*" ) { excluded[ i ] = true ; continue ; }
-			if ( filterx != " " && filterx == data[ i ].substr( 39, 1 ) && data[ i ].substr( 39, 1 ) != "*" ) { excluded[ i ] = true ; continue ; }
+			if ( filteri != ' ' && filteri != data[ i ][ 39 ] && data[ i ][ 39 ] != '*' ) { excluded[ i ] = true ; continue ; }
+			if ( filterx != ' ' && filterx == data[ i ][ 39 ] && data[ i ][ 39 ] != '*' ) { excluded[ i ] = true ; continue ; }
 		}
 	}
 
@@ -417,10 +422,11 @@ void PPSP01A::exclude_all()
 void PPSP01A::find_lines( string fnd )
 {
 	int i ;
+
+	fnd = upper( fnd ) ;
 	for ( i = 1 ; i < (maxLines-1) ; i++ )
 	{
-		if ( data[ i ].find( fnd ) == string::npos ) continue ;
-		excluded[ i ] = false ;
+		if ( upper( data[ i ] ).find( fnd ) == string::npos ) { excluded[ i ] = true ; }
 	}
 }
 

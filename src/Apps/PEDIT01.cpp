@@ -688,8 +688,8 @@ void PEDIT01::fill_dynamic_area()
 			}
 			else if ( data.at( dl )->il_bnds )
 			{
-				tmp = copies( " ", LeftBnd-1 ) + "<" ;
-				if ( RightBnd > 0 ) { tmp = tmp + copies( " ", RightBnd-tmp.size()-1 ) + ">" ; }
+				tmp = string( LeftBnd-1, ' ' ) + "<" ;
+				if ( RightBnd > 0 ) { tmp = tmp + string( RightBnd-tmp.size()-1, ' ' ) + ">" ; }
 				ZAREA   = ZAREA + din + lcc + din + substr( tmp, startCol, ZDATAW ) ;
 				ZSHADOW = ZSHADOW + sdw ;
 			}
@@ -1082,6 +1082,8 @@ void PEDIT01::actionPrimCommand()
 	int ws ;
 	int p1 ;
 	int tCol ;
+	int tLb  ;
+	int tRb  ;
 
 	uint dl ;
 	uint tTop ;
@@ -1130,15 +1132,18 @@ void PEDIT01::actionPrimCommand()
 	}
 	if ( w1 == "BOUNDS" || w1 == "BOUND" )
 	{
-		if      ( w2 == "*" ) {}
-		else if ( w2 == ""  )           { LeftBnd = 1 ; RightBnd = 0 ; }
-		else if ( datatype( w2, 'W' ) ) { LeftBnd = ds2d( w2 )       ; }
-		else    { MSG = "PEDT011" ; return ; }
-		if      ( w3 == "*" ) {}
-		else if ( w3 == ""  )           { RightBnd = 0          ; }
-		else if ( datatype( w3, 'W' ) ) { RightBnd = ds2d( w3 ) ; }
-		else    { MSG = "PEDT011" ; return ; }
 		if ( ws > 3 ) { MSG = "PEDT011" ; return ; }
+		if      ( w2 == "*" )           { tLb = LeftBnd     ; }
+		else if ( w2 == ""  )           { tLb = 1 ; tRb = 0 ; }
+		else if ( datatype( w2, 'W' ) ) { tLb = ds2d( w2 )  ; }
+		else    { MSG = "PEDT011" ; return ; }
+		if      ( w3 == "*" )           { tRb = RightBnd    ; }
+		else if ( w3 == ""  )           { tRb = 0           ; }
+		else if ( datatype( w3, 'W' ) ) { tRb = ds2d( w3 )  ; }
+		else    { MSG = "PEDT011" ; return ; }
+		if ( tRb > 0 && tLb >= tRb ) { MSG = "PEDT011" ; return ; }
+		LeftBnd  = tLb ;
+		RightBnd = tRb ;
 		rebuildZAREA = true ;
 	}
 	else if ( w1 == "CAPS" )
@@ -1868,7 +1873,7 @@ void PEDIT01::actionPrimCommand()
 void PEDIT01::actionLineCommands()
 {
 	// For each line in the data vector, action the line commands
-	// For copy/move/repeat preserve flags: file, note, prof, col, excl and hex
+	// For copy/move/repeat preserve flags: file, note, prof, col, excl, hex, undo and redo
 
 	int j    ;
 	int k    ;
@@ -3176,9 +3181,7 @@ void PEDIT01::actionUNDO()
 	// If no un-done lines are visible on the screen, move the top line to the line before
 	// the first un-done change
 
-	int lvl  ;
-
-	uint i    ;
+	int  lvl  ;
 	uint tTop ;
 
 	bool moveTop ;
@@ -3210,8 +3213,7 @@ void PEDIT01::actionUNDO()
 				if ( URIDonScreen( (*it)->il_URID ) ) { moveTop = false ; }
 				else
 				{
-					i = getLine( (*it)->il_URID ) ;
-					if ( i < tTop ) { tTop = i ; }
+					tTop = min( tTop, getLine( (*it)->il_URID ) ) ;
 				}
 			}
 			rebuildZAREA = true ;
@@ -3236,9 +3238,8 @@ void PEDIT01::actionREDO()
 	// If no re-done lines are visible on the screen, move the top line to the line before
 	// the first re-done change
 
-	int i    ;
-	int lvl  ;
-	int tTop ;
+	int  lvl  ;
+	uint tTop ;
 
 	bool moveTop ;
 
@@ -3269,8 +3270,7 @@ void PEDIT01::actionREDO()
 				if ( URIDonScreen( (*it)->il_URID ) ) { moveTop = false ; }
 				else
 				{
-					i = getLine( (*it)->il_URID ) ;
-					if ( i < tTop ) { tTop = i ; }
+					tTop = min( tTop, getLine( (*it)->il_URID ) ) ;
 				}
 			}
 			rebuildZAREA = true ;
@@ -4178,50 +4178,6 @@ bool PEDIT01::formLineCmd( string cmd, string & lc2, int & rept)
 
 
 
-void PEDIT01::removeRecoveryData()
-{
-	// Delete all logically deleted lines and remove entries from the data vector
-	// Flatten all remaining data
-	// Clear the global Undo/Redo stacks
-	// (Make a copy of the data vector using copy_if that contains only records to be deleted as iterator is invalidated after an erase() )
-
-	// Reposition topLine as lines before may have been removed or topLine itself, deleted
-
-	int topURID ;
-
-	vector<iline * >::iterator it      ;
-	vector<iline * >::iterator new_end ;
-	vector<iline * >tdata              ;
-
-	if ( data.at( topLine )->il_deleted )
-	{
-		topLine = getNextDataLine( topLine ) ;
-	}
-	topURID = data.at( topLine )->il_URID ;
-
-	copy_if( data.begin(), data.end(), back_inserter( tdata ), [](iline * & a) { return a->il_deleted ; } ) ;
-
-	new_end = remove_if( data.begin(), data.end(), [](iline * & a) { return a->il_deleted ; } ) ;
-	data.erase( new_end, data.end() ) ;
-
-	for ( it = tdata.begin() ; it != tdata.end() ; it++ )
-	{
-		delete (*it) ;
-	}
-
-	for ( it = data.begin() ; it != data.end() ; it++ )
-	{
-		(*it)->flatten_idata() ;
-	}
-
-	it = data.begin()            ;
-	(*it)->clear_Global_Undo()   ;
-	(*it)->clear_Global_Redo()   ;
-	topLine = getLine( topURID ) ;
-	MSG = "PEDT011H"             ;
-}
-
-
 vector<iline * >::iterator PEDIT01::getLineItr( int URID )
 {
 	vector<iline * >::iterator it ;
@@ -4247,7 +4203,7 @@ vector<iline * >::iterator PEDIT01::getLineBeforeItr( int URID )
 int PEDIT01::getDataBlock( int URID )
 {
 	// Return the number of lines in an exluded block given any URID within that block
-	// This does included logically deleted lines
+	// This does include logically deleted lines
 
 	int bklines ;
 
@@ -4832,6 +4788,43 @@ void PEDIT01::addSpecial( char t, int p, string & s )
 }
 
 
+void PEDIT01::removeRecoveryData()
+{
+	// Delete all logically deleted lines and remove entries from the data vector
+	// Flatten all remaining data
+	// Clear the global Undo/Redo stacks
+	// (Make a copy of the data vector using copy_if that contains only records to be deleted as iterator is invalidated after an erase() )
+
+	// Reposition topLine as lines before may have been removed or topLine itself, deleted
+
+	int topURID ;
+
+	vector<iline * >::iterator it      ;
+	vector<iline * >::iterator new_end ;
+	vector<iline * >tdata              ;
+
+	if ( data.at( topLine )->il_deleted )
+	{
+		topLine = getNextDataLine( topLine ) ;
+	}
+	topURID = data.at( topLine )->il_URID ;
+
+	copy_if( data.begin(), data.end(), back_inserter( tdata ), [](iline * & a) { return a->il_deleted ; } ) ;
+
+	new_end = remove_if( data.begin(), data.end(), [](iline * & a) { return a->il_deleted ; } ) ;
+	data.erase( new_end, data.end() ) ;
+
+	for_each( tdata.begin(), tdata.end(), [](iline * & a) { delete a ; } ) ;
+	for_each(  data.begin(),  data.end(), [](iline * & a) { a->flatten_idata() ; } ) ;
+
+	it = data.begin()            ;
+	(*it)->clear_Global_Undo()   ;
+	(*it)->clear_Global_Redo()   ;
+	topLine = getLine( topURID ) ;
+	MSG = "PEDT011H"             ;
+}
+
+
 void PEDIT01::cleanupData()
 {
 	// Delete all logically deleted lines for non-file data and remove entries from the data vector
@@ -4858,10 +4851,7 @@ void PEDIT01::cleanupData()
 			       [](iline * & a) { return (a->il_deleted && !a->il_file) ; } ) ;
 	data.erase( new_end, data.end() ) ;
 
-	for ( it = tdata.begin() ; it != tdata.end() ; it++ )
-	{
-		delete (*it) ;
-	}
+	for_each( tdata.begin(), tdata.end(), [](iline * & a) { delete a ; } ) ;
 	topLine = getLine( topURID ) ;
 }
 
@@ -4889,10 +4879,7 @@ void PEDIT01::removeProfLines()
 			       [](iline * & a) { return a->il_prof ; } ) ;
 	data.erase( new_end, data.end() ) ;
 
-	for ( it = tdata.begin() ; it != tdata.end() ; it++ )
-	{
-		delete (*it) ;
-	}
+	for_each( tdata.begin(), tdata.end(), [](iline * & a) { delete a ; } ) ;
 	topLine = getLine( topURID ) ;
 }
 
@@ -4923,10 +4910,7 @@ void PEDIT01::removeSpecialLines()
 	     [](iline * & a) { return ( (!a->il_file && !a->il_bod && !a->il_tod) || (a->il_nisrt) ) ; } ) ;
 	data.erase( new_end, data.end() ) ;
 
-	for ( it = tdata.begin() ; it != tdata.end() ; it++ )
-	{
-		delete (*it) ;
-	}
+	for_each( tdata.begin(), tdata.end(), [](iline * & a) { delete a ; } ) ;
 	topLine = getLine( topURID ) ;
 }
 

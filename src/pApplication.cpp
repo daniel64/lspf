@@ -53,6 +53,7 @@ pApplication::pApplication()
 	SEL                    = false  ;
 	setMSG                 = false  ;
 	field_name             = ""     ;
+	PANELID                = ""     ;
 	PPANELID               = ""     ;
 	ZHELP                  = ""     ;
 	ZAHELP                 = ""     ;
@@ -198,7 +199,17 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 {
 	string  ZZVERB ;
 
-	RC = 0 ;
+	bool    doReinit ;
+
+	RC       = 0     ;
+	doReinit = false ;
+
+	if ( p_name == "" )
+	{
+		if ( PANELID == "" ) { RC = 20 ; checkRCode( "No panel specified" ) ; return ; }
+		p_name   = PANELID ;
+		doReinit = true    ;
+	}
 
 	panel_create( p_name ) ;
 	if ( RC > 0 ) { checkRCode( "Panel >>" + p_name + "<< not found or invalid for DISPLAY service" ) ; return ; }
@@ -241,9 +252,16 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 
 	p_poolMGR->put( RC, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 
-	currPanel->display_panel_init( RC ) ;
-
-	if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )INIT section of panel " + p_name ) ; return ; }
+	if ( doReinit )
+	{
+		currPanel->display_panel_reinit( RC, 0 ) ;
+		if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )REINIT section of panel " + p_name ) ; return ; }
+	}
+	else
+	{
+		currPanel->display_panel_init( RC ) ;
+		if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )INIT section of panel " + p_name ) ; return ; }
+	}
 
 	while ( true )
 	{
@@ -875,6 +893,18 @@ void pApplication::verase( string names, poolType pType )
 string pApplication::vlist( poolType pType, int lvl )
 {
 	return p_poolMGR->vlist( RC, pType, lvl ) ;
+}
+
+
+string pApplication::vilist()
+{
+	return funcPOOL.vilist( RC ) ;
+}
+
+
+string pApplication::vslist()
+{
+	return funcPOOL.vslist( RC ) ;
 }
 
 

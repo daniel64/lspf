@@ -674,14 +674,14 @@ void MainLoop()
 						currAppl->currPanel->field_tab_down( row, col ) ;
 						currScrn->set_row_col( row, col ) ;
 					}
+					currAppl->get_home( row, col ) ;
+					currScrn->set_row_col( row, col ) ;
 					if ( SEL )
 					{
 						updateDefaultVars()                   ;
 						currAppl->currPanel->abActive = false ;
 						startApplication( SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB ) ;
 					}
-					currAppl->get_home( row, col ) ;
-					currScrn->set_row_col( row, col ) ;
 				}
 				break ;
 			default:
@@ -715,6 +715,7 @@ void processAction( uint row, uint col, int c, bool &  passthru )
 	// BUILTIN command
 	// RETRIEVE
 	// Jump command entered
+	// %abc run as a REXX procedure
 	// Else pass event to application
 
 	int  RC ;
@@ -842,6 +843,19 @@ void processAction( uint row, uint col, int c, bool &  passthru )
 			retrieveBuffer.push_front( ZCOMMAND ) ;
 		}
 		retPos = 0 ;
+	}
+
+	if ( ZCOMMAND.size() > 2 && ZCOMMAND[ 0 ] == '%' )
+	{
+		currAppl->vcopy( "ZOREXPGM", SEL_PGM, MOVE ) ;
+		SEL_PARM    = ZCOMMAND.substr( 1 ) ;
+		SEL_NEWAPPL = ""    ;
+		SEL_NEWPOOL = true  ;
+		SEL_PASSLIB = false ;
+		SEL         = true  ;
+		passthru    = false ;
+		currAppl->currPanel->cmd_setvalue( "" ) ;
+		return ;
 	}
 
 	switch( c )

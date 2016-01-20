@@ -64,8 +64,8 @@ class PPSP01A : public pApplication
 		string MOD     ;
 		string MODPATH ;
 
-		string filteri  ;
-		string filterx  ;
+		char   filteri  ;
+		char   filterx  ;
 		bool   Xon      ;
 		bool   showDate ;
 		bool   showTime ;

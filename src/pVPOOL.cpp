@@ -68,6 +68,40 @@ bool fPOOL::ifexists( int & RC, string name, nameCHCK check )
 }
 
 
+string fPOOL::vilist( int & RC )
+{
+	string vl ;
+	map<string, stack< fVAR> >::iterator it ;
+
+	RC = 8 ;
+	for ( it = POOL.begin() ; it != POOL.end() ; it++ )
+	{
+		if ( !isvalidName( it->first ) ) { continue ; }
+		if ( it->second.top().fVAR_type != INTEGER ) { continue ; }
+		vl = vl + " " + it->first ;
+		RC = 0 ;
+	}
+	return vl ;
+}
+
+
+string fPOOL::vslist( int & RC )
+{
+	string vl ;
+	map<string, stack< fVAR> >::iterator it ;
+
+	RC = 8 ;
+	for ( it = POOL.begin() ; it != POOL.end() ; it++ )
+	{
+		if ( !isvalidName( it->first ) ) { continue ; }
+		if ( it->second.top().fVAR_type != STRING ) { continue ; }
+		vl = vl + " " + it->first ;
+		RC = 0 ;
+	}
+	return vl ;
+}
+
+
 dataType fPOOL::getType( int & RC, string name, nameCHCK check )
 {
 	RC = 0    ;

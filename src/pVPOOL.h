@@ -45,7 +45,9 @@ class fPOOL
 		int      get( int &, int, dataType, string ) ;
 		void     setmask( int &, string, string ) ;
 		void     dlete( int &, string, nameCHCK check=CHECK ) ;
-		void     reset() ;
+		void     reset()         ;
+		string   vilist( int & ) ;
+		string   vslist( int & ) ;
 
 	private:
 		map< string, stack< fVAR> > POOL ;
@@ -92,7 +94,7 @@ class pVPOOL
 		bool   isSystem( int &, string ) ;
 		void   setreadOnly()  { readOnly = true  ; }
 		void   resetChanged() { changed  = false ; }
-		
+
 	friend class poolMGR ;
 } ;
 
@@ -102,7 +104,7 @@ class poolMGR
 	public:
 		poolMGR() ;
 
-		string getAPPLID()   { return currAPPLID ; } 
+		string getAPPLID()   { return currAPPLID ; }
 		string getshrdPool() { return shrdPool   ; }
 		void   setAPPLID( int & RC, string )     ;
 		void   setshrdPool( int & RC, string )   ;

@@ -23,6 +23,5 @@ class POREXX1 : public pApplication
 {
 	public:
 		void application() ;
-
 	private:
 };

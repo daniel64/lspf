@@ -23,12 +23,13 @@ using namespace std;
 class PFLST0A : public pApplication
 {
 	public:
-		void application() ; 
+		void application() ;
 
 	private:
 		void createFileList1( string ="" ) ;
 		void createFileList2( string, string ="" ) ;
-		
+		void createSearchList( string ) ;
+
 		string showListing() ;
 		void showInfo( string ) ;
 		int  processPrimCMD()   ;
@@ -36,6 +37,9 @@ class PFLST0A : public pApplication
 		void modifyAttrs( string ) ;
 		string expandDir( string ) ;
 		void browseTree( string )  ;
+
+		vector<string> SearchList ;
+		bool   UseSearch ;
 
 		int    CRP ;
 		string MSG ;

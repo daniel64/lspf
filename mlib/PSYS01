@@ -1,5 +1,5 @@
 PSYS011 "Up is not active"
-"Scrolling not active on this panel" 
+"Scrolling not active on this panel"
 
 PSYS012 "Down is not active"
 "Scrolling not active on this panel"
@@ -105,3 +105,9 @@ PSYS01Z "Invalid field value in variable ZRFFLDA"
 
 PSYS011A "Invalid path specified"
 "Path specified is not valid"
+
+PSYS011B "OREXX procedure not valid"
+"File does not contain a valid OREXX procedure"
+
+PSYS011C "OREXX procedure not found"
+"OREXX procedure has not been found in the ZORXPATH concatination"

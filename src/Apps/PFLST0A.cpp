@@ -41,8 +41,9 @@
 /* L xxx FIRST|LAST|PREV to scroll the list to entry xxx (NEXT is the default)                              */
 /* O  - filter list                                                                                         */
 /* REF - refresh directory list                                                                             */
-/* MKDIR - Make a directory (under current or specify full path)                                            */
-/* TOUCH - Make a file (under current or specify full path)                                                 */
+/* MKDIR  - Make a directory (under current or specify full path)                                           */
+/* SEARCH - Show a list containing only files that match a search word (within the file).  Uses grep        */
+/* TOUCH  - Make a file (under current or specify full path)                                                */
 
 /* Line Commands:                                                                                           */
 /* B  - Browse file                                                                                         */
@@ -105,7 +106,6 @@ void PFLST0A::application()
 	log( "I", "Application PFLST0A starting with PARM of " << PARM << endl ) ;
 
 	int    i        ;
-	int    j        ;
 	int    RCode    ;
 	int    num      ;
 
@@ -123,6 +123,7 @@ void PFLST0A::application()
 	string w2       ;
 	string w3       ;
 	string t        ;
+	string filter   ;
 
 	string CONDOFF  ;
 	string NEMPTOK  ;
@@ -130,7 +131,6 @@ void PFLST0A::application()
 	string NEWENTRY ;
 	string FREPL    ;
 
-	struct stat results ;
 	char * buffer       ;
 	size_t bufferSize = 255 ;
 	size_t rc               ;
@@ -198,9 +198,12 @@ void PFLST0A::application()
 	DSLIST = "DSLST" + right( d2ds( taskid() ), 3, '0' ) ;
 	MSG    = ""  ;
 
-	RC       = 0 ;
-	i        = 1 ;
-	ZTDVROWS = 1 ;
+
+	RC        = 0  ;
+	i         = 1  ;
+	ZTDVROWS  = 1  ;
+	filter    = "" ;
+	UseSearch = false ;
 
 	createFileList1() ;
 	if ( RC > 0 ) { setmsg( "FLST01F" ) ; }
@@ -228,18 +231,43 @@ void PFLST0A::application()
 		w1  = upper( word( ZCMD, 1 ) ) ;
 		w2  = word( ZCMD, 2 ) ;
 		w3  = word( ZCMD, 3 ) ;
-		if ( w1 == "REF" && w2 == "" )           { tbend( DSLIST ) ; createFileList1()     ; continue ; }
-		if ( w1 == "O" && w2 != "" && w3 == "" ) { tbend( DSLIST ) ; createFileList1( w2 ) ; continue ; }
+		if ( (w1 == "REFRESH" || w1 == "RESET" ) && w2 == "" )
+		{
+			if ( w1 == "RESET" ) { filter = "" ; UseSearch = false ; }
+			if ( filter == "" ) { vreplace( "FMSG1", "" ) ; }
+			if ( !UseSearch   ) { vreplace( "FMSG2", "" ) ; }
+			tbend( DSLIST ) ;
+			createFileList1( filter ) ;
+			continue ;
+		}
+		if ( w1 == "O" && w2 != "" && w3 == "" )
+		{
+			filter = w2 ;
+			vreplace( "FMSG1", "Filtered on file name" ) ;
+			tbend( DSLIST ) ;
+			createFileList1( filter ) ;
+			continue ;
+		}
+		if ( w1 == "SEARCH" && w2 != "" && w3 == "" )
+		{
+			UseSearch = true ;
+			vreplace( "FMSG2", "Filtered on contents" ) ;
+			createSearchList( w2 ) ;
+			tbend( DSLIST ) ;
+			createFileList1( filter ) ;
+			continue ;
+		}
 		i = ZTDTOP ;
 		vget( "ZVERB", SHARED ) ;
-		CRP    = 0  ;
+		CRP    = 0 ;
 		RCode  = processPrimCMD() ;
-		if ( RCode == 8 ) { MSG = "PSYS018" ; continue ; }
-		if ( CRP > 0 ) { i = CRP  ; }
-		if ( RCode == 4 ) { continue ; }
-		if ( ZPATH == "" ) ZPATH = ZHOME ;
+		if ( RCode == 8 )  { MSG = "PSYS018" ; continue ; }
+		if ( CRP > 0 )     { i = CRP       ; }
+		if ( RCode == 4 )  { continue      ; }
+		if ( ZPATH == "" ) { ZPATH = ZHOME ; }
 		if ( OHIDDEN != AFHIDDEN )
 		{
+			filter = ""       ;
 			tbend( DSLIST )   ;
 			createFileList1() ;
 			i = 1    ;
@@ -253,6 +281,7 @@ void PFLST0A::application()
 			}
 			else
 			{
+				filter = ""       ;
 				tbend( DSLIST )   ;
 				createFileList1() ;
 				i = 1 ;
@@ -690,6 +719,8 @@ void PFLST0A::createFileList1( string filter )
 	string p ;
 	string t ;
 
+	vector<string>::iterator itv ;
+
 	struct stat results   ;
 	struct tm * time_info ;
 	char buf[ 20 ]        ;
@@ -727,6 +758,11 @@ void PFLST0A::createFileList1( string filter )
 		ENTRY   = substr( ENTRY, i ) ;
 		if ( t != "/" && ENTRY[ 0 ] == '.' ) { continue ; }
 		if ( filter != "" && pos( filter, upper( ENTRY ) ) == 0 ) { continue ; }
+		if ( UseSearch )
+		{
+			itv = find( SearchList.begin(), SearchList.end(), (*it).string() ) ;
+			if ( itv == SearchList.end() ) { continue ; }
+		}
 		MESSAGE = "";
 		lstat( p.c_str(), &results ) ;
 		if ( S_ISDIR( results.st_mode ) )       TYPE = "Dir"     ;
@@ -760,10 +796,69 @@ void PFLST0A::createFileList1( string filter )
 }
 
 
+void PFLST0A::createSearchList( string w )
+{
+	int p1 ;
+
+	string cmd ;
+	string t1  ;
+	string t2  ;
+	string dparms ;
+	string result ;
+	string file   ;
+	string v_list ;
+	string tname1 ;
+	string inLine ;
+	string t      ;
+
+	path temp1 ;
+
+	char buffer[256] ;
+	string quote( 1, '\"' ) ;
+
+	vector<string>::iterator it ;
+
+	vcopy( "ZUSER", ZUSER, MOVE ) ;
+	vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
+
+	temp1  = temp_directory_path() / unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
+	tname1 = temp1.native() ;
+
+	if ( ZPATH.back() != '/' ) { ZPATH = ZPATH + "/" ; }
+	cmd = "grep -i -s \"" + w + "\" " + ZPATH + "*" ;
+
+	std::ofstream of ;
+	of.open( tname1 ) ;
+	FILE* pipe{popen( cmd.c_str(), "r" ) } ;
+	while( fgets( buffer, sizeof( buffer ), pipe ) != nullptr )
+	{
+		file   = buffer ;
+		result = file.substr(0, file.size() - 1 ) ;
+		of << result << endl ;
+	}
+	pclose( pipe ) ;
+	of.close()     ;
+
+	SearchList.clear() ;
+	std::ifstream fin( tname1.c_str() ) ;
+	while ( getline( fin, inLine ) )
+	{
+		p1 = inLine.find( ':' ) ;
+		if ( p1 == string::npos ) { continue ; }
+		t  = inLine.substr( 0, p1 ) ;
+		it = find( SearchList.begin(), SearchList.end(), t ) ;
+		if ( it == SearchList.end() )
+		{
+			SearchList.push_back( t ) ;
+		}
+	}
+	fin.close() ;
+	remove( tname1 ) ;
+}
+
+
 void PFLST0A::showInfo( string p )
 {
-	int s ;
-
 	struct stat results   ;
 	struct tm * time_info ;
 	char buf [ 20 ] ;
@@ -1123,11 +1218,6 @@ void PFLST0A::modifyAttrs( string p )
 	gid_t gid ;
 
 	struct stat results   ;
-	struct tm * time_info ;
-	char buf [ 20 ] ;
-	char * buffer   ;
-	size_t bufferSize = 255 ;
-	size_t rc               ;
 
 	vdefine( "IENTRY ITYPE  IPERMISS ", &IENTRY, &ITYPE, &IPERMISS ) ;
 	vdefine( "IOWNER IGROUP ISETUID", &IOWNER, &IGROUP, &ISETUID  ) ;
@@ -1700,9 +1790,7 @@ void PFLST0A::createFileList2( string FLDIRS, string filter )
 
 	string p ;
 	string t ;
-	struct stat results   ;
-	struct tm * time_info ;
-
+	struct stat results ;
 	typedef vector< path > vec ;
 
 	tbcreate( DSLIST, "", "SEL ENTRY TYPE", NOWRITE ) ;

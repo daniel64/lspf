@@ -50,7 +50,7 @@ VGET (ZSCROLL FLDIRS) PROFILE
 .ATTR(TYPE)    = 'COLOUR(WHITE)'
 .HELP = HFLST02
 
-.NRET = ON           /* Enable NRETRIV and REFLIST */
+.NRET = ON           /* Enable NRETRIEV and REFLIST */
 .NRET = ZPATH        /* Use this field for NRETRIEV and REFLIST */
 
 )PROC

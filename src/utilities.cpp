@@ -1406,3 +1406,47 @@ void fieldOptsParse( int & RC, string opts, bool & caps, char & just, bool & num
 
 	if ( strip( uopts ) != "" ) { RC = 20 ; }
 }
+
+
+string parseString( bool & rlt, string & s, string p )
+{
+//      return value of keyword parameter p, or null if not entered
+//      rlt - true if all okay
+//      s   - entered string (on exit, minus the keyword parameter, p)
+//      p   - parameter to find
+//
+//      for a parameter p of (), return everything between the brackets
+//
+	int p1 ;
+	int p2 ;
+
+	string t ;
+
+	rlt = true ;
+
+	if ( p.back() != ')' ) { rlt = false ; return "" ; }
+	if ( p[ 0 ]   == '(' )
+	{
+	     if ( s[ 0 ] == '(' ) { p1 = 0 ; }
+	     else                 { p1 = s.find( " (" ) ; }
+	     if ( p1 == string::npos ) { return "" ; }
+	     p2 = s.find( ")", p1 ) ;
+	     if ( p2 == string::npos )                     { rlt = false ; return "" ; }
+	     if ( p2 < s.size()-1 && s.at( p2+1 ) != ' ' ) { rlt = false ; return "" ; }
+	     t = s.substr( p1+1, p2-p1-1 ) ;
+	     s.erase( p1, p2-p1+1 ) ;
+	     return t ;
+	}
+
+	p.pop_back() ;
+	p1 = s.find( p ) ;
+	if ( p1 == string::npos ) { return "" ; }
+
+	p2 = s.find( ")", p1 ) ;
+	if ( p2 == string::npos )                     { rlt = false ; return "" ; }
+	if ( p2 < s.size()-1 && s.at( p2+1 ) != ' ' ) { rlt = false ; return "" ; }
+
+	t = s.substr( p1+p.size(), p2-p1-p.size() ) ;
+	s.erase( p1, p2-p1+1 ) ;
+	return t ;
+}

@@ -17,30 +17,33 @@ PanelTitle "File/Directory List"
 
 scrollOn
 
-literal  4   2           FP    "Command ===> "  
-field    4  15   MAX-17  NEF NONE ZCMD  
+literal  4   2           FP    "Command ===> "
+field    4  15   MAX-17  NEF NONE ZCMD
 
 literal  4  MAX-15  FP "SCROLL ===>"
 field    4  MAX-3   4  NEF  NONE ZSCROLL
 
-literal  6   2       FP  "Path Name . . ."  
-field    6  18  MAX  NEF NONE ZPATH  
+literal  6   2         FP  "Path Name . . ."
+field    6  18    MAX  NEF NONE ZPATH
+
+field    7  MAX-20 21  SAC NONE FMSG1
+field    8  MAX-20 21  SAC NONE FMSG2
 
 field    8   2   1   CEF     PAD('_') AFHIDDEN
-literal  8   4       SAC    "Show hidden entries also"  
+literal  8   4       SAC    "Show hidden entries also"
 
 
-literal  10  2 CH  "CMD  Entry name                             Message        Type     Permission Size       Modified"  
-literal  11  2 CH  EXPAND  "-"  
+literal  10  2 CH  "CMD  Entry name                             Message         Type    Permission Size       Modified"
+literal  11  2 CH  EXPAND  "-"
 
 tbmodel  12    MAX
-tbfield  2     4   NEF  CAPS(ON),PAD('_'),JUST(LEFT) SEL  
+tbfield  2     4   NEF  CAPS(ON),PAD('_'),JUST(LEFT) SEL
 tbfield  ++1   38  VOI  NONE  ENTRY
-tbfield  ++1   15  VOI  NONE  MESSAGE 
-tbfield  ++1   7   VOI  NONE  TYPE 
-tbfield  ++1   10  VOI  NONE  PERMISS 
-tbfield  ++1   10  VOI  NONE  SIZE 
-tbfield  ++1   19  VOI  NONE  MODDATE 
+tbfield  ++1   15  VOI  NONE  MESSAGE
+tbfield  ++1   7   VOI  NONE  TYPE
+tbfield  ++1   10  VOI  NONE  PERMISS
+tbfield  ++1   10  VOI  NONE  SIZE
+tbfield  ++1   19  VOI  NONE  MODDATE
 
 )INCLUDE STD_PDC
 )INCLUDE RFL_PDC
@@ -48,10 +51,10 @@ tbfield  ++1   19  VOI  NONE  MODDATE
 
 )INIT
 VGET (ZSCROLL) PROFILE
-.ATTR(MESSAGE) = 'COLOUR(YELLOW) INTENSE(HIGH)' 
-.ATTR(TYPE)    = 'COLOUR(WHITE)' 
-.ATTR(PERMISS) = 'COLOUR(YELLOW)' 
-.ATTR(SIZE)    = 'COLOUR(WHITE)' 
+.ATTR(MESSAGE) = 'COLOUR(YELLOW) INTENSE(HIGH)'
+.ATTR(TYPE)    = 'COLOUR(WHITE)'
+.ATTR(PERMISS) = 'COLOUR(YELLOW)'
+.ATTR(SIZE)    = 'COLOUR(WHITE)'
 
 .NRET = ON
 .NRET = ZPATH
@@ -59,9 +62,13 @@ VGET (ZSCROLL) PROFILE
 .HELP = HFLST01
 
 )PROC
+
 &A = upper(ZCMD)
-IF (&A EQ RES,RESET,REFRESH)
-  &ZCMD = REF
+IF (&A EQ RES)
+  &ZCMD = RESET
+ELSE
+  IF (&A EQ REF)
+    &ZCMD = REFRESH
 
 VER (&SEL LIST,=,B,C,CONV,D,E,EX,FMT,I,L,M,NANO,R,S,T,TT,VI,X,MSG=PSYS01D)
 VER (&AFHIDDEN LIST /)
@@ -69,6 +76,5 @@ VPUT (AFHIDDEN ZSCROLL ZPATH) PROFILE
 
 )FIELD
 FIELD(ZPATH) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND DO1)')
-
 
 )END

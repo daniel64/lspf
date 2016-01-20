@@ -1,4 +1,4 @@
-/*  Compile with ::                                                                               */
+/*  Compile with ::                                                                                          */
 /* g++ -shared -fPIC -std=c++11 -Wl,-soname,libPBRO01A.so -lmagic -lboost_regex -o libPBRO01A.so PBRO01A.cpp */
 
 /*
@@ -260,7 +260,7 @@ void PBRO01A::application()
 			if ( find_parms.f_line > 0 )
 			{
 				ZALINE = find_parms.f_line - topLine ;
-				if ( ZALINE < 0 || ZALINE > ZAREAD )
+				if ( ZALINE < 0 || ZALINE > ZAREAD-1 )
 				{
 					topLine = find_parms.f_line - 1 ;
 				}
@@ -363,7 +363,7 @@ void PBRO01A::application()
 				if ( find_parms.f_line > 0 )
 				{
 					ZALINE = find_parms.f_line - topLine ;
-					if ( ZALINE < 0 || ZALINE > ZAREAD )
+					if ( ZALINE < 0 || ZALINE > ZAREAD-1 )
 					{
 						topLine = find_parms.f_line - 1 ;
 					}

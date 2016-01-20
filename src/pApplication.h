@@ -103,6 +103,8 @@ class pApplication
 		void   vget( string var, poolType =ASIS )   ;
 		void   vput( string var, poolType =ASIS )   ;
 		string vlist( poolType pType, int lvl )     ;
+		string vilist()                             ;
+		string vslist()                             ;
 		void   vmask( string var, string type, string mask ) ;
 		void   vreplace( string, string )           ;
 		void   vreplace( string, int )              ;

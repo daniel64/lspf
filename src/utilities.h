@@ -125,3 +125,4 @@ string getpath( string, int ) ;
 string mergepaths( string, string ) ;
 void   selectParse( int &, string, string &, string &, string &, bool &, bool & ) ;
 void   fieldOptsParse(int &, string, bool &, char &, bool &, char &, bool & ) ;
+string parseString( bool & rlt, string & s, string p ) ;
