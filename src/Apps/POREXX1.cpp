@@ -59,24 +59,23 @@ using namespace boost::filesystem ;
 #define LOGOUT aplog
 #define MOD_NAME POREXX1
 
-pApplication * thisAppl ;
 
 RexxObjectPtr RexxEntry lspfCommandHandler( RexxExitContext *, RexxStringObject, RexxStringObject ) ;
 
-int getRexxVariable( string, string & ) ;
+int getRexxVariable( pApplication *, string, string & ) ;
 int setRexxVariable( string, string ) ;
-int getAllRexxVariables() ;
-int setAllRexxVariables() ;
+int getAllRexxVariables( pApplication * ) ;
+int setAllRexxVariables( pApplication * ) ;
 
-void lspfSyntaxError( string ) ;
+void lspfSyntaxError( pApplication *, string ) ;
 
-int  lspfBrowse( string )   ;
-int  lspfControl( string )  ;
-int  lspfDisplay( string )  ;
-int  lspfEdit( string )     ;
-int  lspfSelect( string )   ;
-int  lspfVPUT( string )     ;
-int  lspfVGET( string )     ;
+int  lspfBrowse( pApplication *, string )   ;
+int  lspfControl( pApplication *, string )  ;
+int  lspfDisplay( pApplication *, string )  ;
+int  lspfEdit( pApplication *, string )     ;
+int  lspfSelect( pApplication *, string )   ;
+int  lspfVPUT( pApplication *, string )     ;
+int  lspfVGET( pApplication *, string )     ;
 
 
 void POREXX1::application()
@@ -87,12 +86,13 @@ void POREXX1::application()
 	int j ;
 
 	bool found ;
+	void *ptr  ;
+
+	ptr = this ;
 
 	size_t version  ;
 	string rxsource ;
 	string RexxExec ;
-
-	thisAppl = this ;
 
 	RexxInstance *instance   ;
 	RexxThreadContext *threadContext ;
@@ -102,20 +102,33 @@ void POREXX1::application()
 	RexxObjectPtr result     ;
 
 	RexxContextEnvironment environments[ 2 ] ;
-	RexxOption             options[ 2 ]      ;
+	RexxOption             options[ 3 ]      ;
 
 	environments[ 0 ].handler = lspfCommandHandler ;
 	environments[ 0 ].name    = "ISPEXEC" ;
 	environments[ 1 ].handler = NULL ;
 	environments[ 1 ].name    = ""   ;
 
-	options[ 0 ].optionName = DIRECT_ENVIRONMENTS ;
-	options[ 0 ].option     = (void *)environments ;
-	options[ 1 ].optionName = ""   ;
+	options[ 0 ].optionName = APPLICATION_DATA;
+	options[ 0 ].option     = (void *)ptr;
+	options[ 1 ].optionName = DIRECT_ENVIRONMENTS ;
+	options[ 1 ].option     = (void *)environments ;
+	options[ 2 ].optionName = ""   ;
 
 	rxsource = word( PARM, 1 )    ;
 	PARM     = subword( PARM, 2 ) ;
 	found    = false              ;
+
+	if ( rxsource.size() > 0 && rxsource[ 0 ] == '%' ) { rxsource.erase( 0, 1 ) ; }
+	if ( rxsource == "" )
+	{
+		log( "E", "POREXX1 error. No REXX passed" << endl ) ;
+		ZRC     = 16 ;
+		ZRSN    = 4  ;
+		ZRESULT = "No REXX passed" ;
+		cleanup() ;
+		return    ;
+	}
 
 	if ( rxsource[ 0 ] == '/' ) { RexxExec = rxsource ; }
 	else
@@ -128,6 +141,9 @@ void POREXX1::application()
 			if ( is_regular_file( RexxExec ) ) { found = true ; break ; }
 			log( "E", "POREXX1 error. " << rxsource << " found but is not a regular file" << endl ) ;
 			setmsg( "PSYS011B" ) ;
+			ZRC     = 16 ;
+			ZRSN    = 12 ;
+			ZRESULT = "Invalid REXX passed" ;
 			cleanup() ;
 			return    ;
 		}
@@ -135,6 +151,9 @@ void POREXX1::application()
 		{
 			log( "E", "POREXX1 error. " << rxsource << " not found in ZORXPATH concatination" << endl ) ;
 			setmsg( "PSYS011C" ) ;
+			ZRC     = 16 ;
+			ZRSN    = 8  ;
+			ZRESULT = "REXX not found" ;
 			cleanup() ;
 			return    ;
 		}
@@ -171,7 +190,6 @@ void POREXX1::application()
 			{
 				CSTRING resultString = threadContext->CString( result ) ;
 				debug1( "Data passed back from REXX is :" << resultString << endl ) ;
-				ZRESULT = resultString ;
 			}
 		}
 		instance->Terminate() ;
@@ -181,7 +199,111 @@ void POREXX1::application()
 }
 
 
-int getAllRexxVariables()
+RexxObjectPtr RexxEntry lspfCommandHandler( RexxExitContext *context,
+					    RexxStringObject address,
+					    RexxStringObject command )
+{
+	// Called on address ISPEXEC REXX statement
+	// Translate string passed to the correct lspf dialogue function/parameters and call
+
+	// On entry, update lspf function pool with the rexx variable pool values
+	// On exit, update the rexx variable pool with the lspf function pool values
+
+	int sRC ;
+	int rc  ;
+	int p1  ;
+	int p2  ;
+
+	string w1 ;
+	string w2 ;
+
+	void * vptr ;
+
+	const string InvalidServices = "VDEFINE VDELETE VCOPY VREPLACE" ;
+
+	string s1 = context->CString( address ) ;
+	string s2 = context->CString( command ) ;
+
+	w1 = word( s2, 1 ) ;
+	if ( findword( w1, InvalidServices ) )
+	{
+		log( "E", "Service " + w1 + " not valid from OOREXX"<<endl) ;
+		context->RaiseCondition( "FAILURE", command, NULLOBJECT, context->WholeNumber( -1 ) ) ;
+	}
+
+	vptr = context->GetApplicationData() ;
+	pApplication * thisAppl = static_cast<pApplication *>(vptr) ;
+
+	getAllRexxVariables( thisAppl ) ;
+	if ( w1 == "BROWSE" )
+	{
+		sRC = lspfBrowse( thisAppl, s2 ) ;
+		if ( sRC > 8 || sRC < 0 )
+		{
+			context->RaiseCondition( "ERROR", command, NULLOBJECT, context->WholeNumber( sRC ) ) ;
+		}
+	}
+	else if ( w1 == "DISPLAY" )
+	{
+		sRC = lspfDisplay( thisAppl, s2 ) ;
+		if ( sRC > 8 || sRC < 0 )
+		{
+			context->RaiseCondition( "ERROR", command, NULLOBJECT, context->WholeNumber( sRC ) ) ;
+		}
+	}
+	else if ( w1 == "CONTROL" )
+	{
+		sRC = lspfControl( thisAppl, s2 ) ;
+		if ( sRC > 8 || sRC < 0 )
+		{
+			context->RaiseCondition( "ERROR", command, NULLOBJECT, context->WholeNumber( sRC ) ) ;
+		}
+	}
+	else if ( w1 == "EDIT" )
+	{
+		sRC = lspfEdit( thisAppl, s2 ) ;
+		if ( sRC > 8 || sRC < 0 )
+		{
+			context->RaiseCondition( "ERROR", command, NULLOBJECT, context->WholeNumber( sRC ) ) ;
+		}
+	}
+	else if ( w1 == "SELECT" )
+	{
+		sRC = lspfSelect( thisAppl, s2 ) ;
+		if ( sRC > 8 || sRC < 0 )
+		{
+			context->RaiseCondition( "ERROR", command, NULLOBJECT, context->WholeNumber( sRC ) ) ;
+		}
+	}
+	else if ( w1 == "VGET" )
+	{
+		sRC = lspfVGET( thisAppl, s2 ) ;
+		if ( sRC > 8 || sRC < 0 )
+		{
+			context->RaiseCondition( "ERROR", command, NULLOBJECT, context->WholeNumber( sRC ) ) ;
+		}
+	}
+	else if ( w1 == "VPUT" )
+	{
+		sRC = lspfVPUT( thisAppl, s2 ) ;
+		if ( sRC > 8 || sRC < 0 )
+		{
+			context->RaiseCondition( "ERROR", command, NULLOBJECT, context->WholeNumber( sRC ) ) ;
+		}
+	}
+	else
+	{
+		log( "E", "Unknown service " + w1 <<endl) ;
+		context->RaiseCondition( "FAILURE", command, NULLOBJECT, context->WholeNumber( -1 ) ) ;
+		return NULLOBJECT;
+	}
+
+	setAllRexxVariables( thisAppl ) ;
+	return context->WholeNumber( sRC ) ;
+}
+
+
+int getAllRexxVariables( pApplication * thisAppl )
 {
 	// For all variables in the rexx variable pool, set the lspf function pool variable.
 	// Executed on entry to the command handler from a REXX procedure before any lspf
@@ -197,7 +319,7 @@ int getAllRexxVariables()
 
 	vl = thisAppl->vilist() ;
 
-	SHVBLOCK var ;                              /* variable pool control block*/
+	SHVBLOCK var ;
 	while ( true )
 	{
 		var.shvnext            = NULL ;
@@ -232,7 +354,7 @@ int getAllRexxVariables()
 }
 
 
-int setAllRexxVariables()
+int setAllRexxVariables( pApplication * thisAppl )
 {
 	// For all variables in the application function pool, set the rexx variable.
 	// Executed before returning to the REXX procedure after a call to the command handler
@@ -265,31 +387,32 @@ int setAllRexxVariables()
 }
 
 
-int getRexxVariable( string n, string & v )
+int getRexxVariable( pApplication * thisAppl, string n, string & v )
 {
 	// Get variable value from Rexx variable pool and update the application function pool
 
 	int rc ;
 
 	const char * name = n.c_str() ;
-	char * value      = (char *)v.c_str() ;
-	char valbuf[ 256 ] ;
 
 	SHVBLOCK var ;                       /* variable pool control block*/
 	var.shvcode = RXSHV_SYFET ;          /* do a symbolic fetch operation*/
 	var.shvret  = 0 ;                    /* clear return code field */
-	var.shvnext =(PSHVBLOCK)0 ;          /* no next block */
+	var.shvnext = NULL ;                 /* no next block */
+	var.shvvalue.strptr    = NULL ;      /* let REXX allocate the memory */
+	var.shvvalue.strlength = 0 ;
+	var.shvvaluelen        = 0 ;
 					     /* set variable name string */
 	MAKERXSTRING( var.shvname, name, n.size() ) ;
-	MAKERXSTRING( var.shvvalue, valbuf, sizeof( valbuf ) ) ;
-					     /* get value string */
-	rc = RexxVariablePool( &var ) ;      /* get the variable */
+
+	rc = RexxVariablePool( &var ) ;
 	if ( rc == 0 )
 	{
-		v = string( valbuf, var.shvvaluelen ) ;
+		v = string( var.shvvalue.strptr, var.shvvalue.strlength ) ;
 		thisAppl->vreplace( n, v ) ;
 		rc = thisAppl->RC          ;
 	}
+	RexxFreeMemory( (void *)var.shvvalue.strptr ) ;
 	return rc ;
 }
 
@@ -302,116 +425,17 @@ int setRexxVariable( string n, string v )
 	SHVBLOCK var ;                       /* variable pool control block*/
 	var.shvcode = RXSHV_SYSET  ;         /* do a symbolic set operation*/
 	var.shvret  = 0 ;                    /* clear return code field */
-	var.shvnext = (PSHVBLOCK)0 ;         /* no next block */
+	var.shvnext = NULL ;                 /* no next block */
 					     /* set variable name string */
 	MAKERXSTRING( var.shvname, name, n.size() ) ;
 					     /* set value string */
 	MAKERXSTRING( var.shvvalue, value, v.size() ) ;
-	var.shvvaluelen = strlen( value ) ;  /* set value length */
-	return RexxVariablePool( &var ) ;    /* set the variable */
+	var.shvvaluelen = v.size()      ;    /* set value length */
+	return RexxVariablePool( &var ) ;
 }
 
 
-RexxObjectPtr RexxEntry lspfCommandHandler( RexxExitContext *context,
-					    RexxStringObject address,
-					    RexxStringObject command )
-{
-	// Called on address ISPEXEC REXX statement
-	// Translate string passed to the correct lspf dialogue function/parameters and call
-
-	// On entry, update lspf function pool with the rexx variable pool values
-	// On exit, update the rexx variable pool with the lspf function pool values
-
-	int sRC ;
-	int rc  ;
-	int p1  ;
-	int p2  ;
-
-	string w1 ;
-	string w2 ;
-
-	const string InvalidServices = "VDEFINE VDELETE VCOPY VREPLACE" ;
-
-	string s1 = context->CString( address ) ;
-	string s2 = context->CString( command ) ;
-
-	w1 = word( s2, 1 ) ;
-	if ( findword( w1, InvalidServices ) )
-	{
-		log( "E", "Service " + w1 + " not valid from OOREXX"<<endl) ;
-		context->RaiseCondition( "FAILURE", command, NULLOBJECT, context->WholeNumber( -1 ) ) ;
-	}
-
-	getAllRexxVariables() ;
-	if ( w1 == "BROWSE" )
-	{
-		sRC = lspfBrowse( s2 ) ;
-		if ( sRC > 8 || sRC < 0 )
-		{
-			context->RaiseCondition( "ERROR", command, NULLOBJECT, context->WholeNumber( sRC ) ) ;
-		}
-	}
-	else if ( w1 == "DISPLAY" )
-	{
-		sRC = lspfDisplay( s2 ) ;
-		if ( sRC > 8 || sRC < 0 )
-		{
-			context->RaiseCondition( "ERROR", command, NULLOBJECT, context->WholeNumber( sRC ) ) ;
-		}
-	}
-	else if ( w1 == "CONTROL" )
-	{
-		sRC = lspfControl( s2 ) ;
-		if ( sRC > 8 || sRC < 0 )
-		{
-			context->RaiseCondition( "ERROR", command, NULLOBJECT, context->WholeNumber( sRC ) ) ;
-		}
-	}
-	else if ( w1 == "EDIT" )
-	{
-		sRC = lspfEdit( s2 ) ;
-		if ( sRC > 8 || sRC < 0 )
-		{
-			context->RaiseCondition( "ERROR", command, NULLOBJECT, context->WholeNumber( sRC ) ) ;
-		}
-	}
-	else if ( w1 == "SELECT" )
-	{
-		sRC = lspfSelect( s2 ) ;
-		if ( sRC > 8 || sRC < 0 )
-		{
-			context->RaiseCondition( "ERROR", command, NULLOBJECT, context->WholeNumber( sRC ) ) ;
-		}
-	}
-	else if ( w1 == "VGET" )
-	{
-		sRC = lspfVGET( s2 ) ;
-		if ( sRC > 8 || sRC < 0 )
-		{
-			context->RaiseCondition( "ERROR", command, NULLOBJECT, context->WholeNumber( sRC ) ) ;
-		}
-	}
-	else if ( w1 == "VPUT" )
-	{
-		sRC = lspfVPUT( s2 ) ;
-		if ( sRC > 8 || sRC < 0 )
-		{
-			context->RaiseCondition( "ERROR", command, NULLOBJECT, context->WholeNumber( sRC ) ) ;
-		}
-	}
-	else
-	{
-		log( "E", "Unknown service " + w1 <<endl) ;
-		context->RaiseCondition( "FAILURE", command, NULLOBJECT, context->WholeNumber( -1 ) ) ;
-		return NULLOBJECT;
-	}
-
-	setAllRexxVariables() ;
-	return context->WholeNumber( sRC ) ;
-}
-
-
-int lspfBrowse( string s )
+int lspfBrowse( pApplication * thisAppl, string s )
 {
 	int p1  ;
 	int p2  ;
@@ -425,28 +449,28 @@ int lspfBrowse( string s )
 	str = subword( s, 2 ) ;
 
 	fl  = parseString( rlt, str, "FILE()" ) ;
-	if ( !rlt ) { lspfSyntaxError( s ) ; return 20 ; }
+	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	pan = parseString( rlt, str, "PANEL()" ) ;
-	if ( !rlt ) { lspfSyntaxError( s ) ; return 20 ; }
+	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	if ( strip( str ) != "" ) { lspfSyntaxError( s ) ; return 20 ; }
+	if ( strip( str ) != "" ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	thisAppl->browse( fl, pan ) ;
 	return thisAppl->RC ;
 }
 
 
-int lspfControl( string s )
+int lspfControl( pApplication * thisAppl, string s )
 {
-	if ( words( s ) != 3 ) { lspfSyntaxError( s ) ; return 20 ; }
+	if ( words( s ) != 3 ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	thisAppl->control( word( s, 2 ), word( s, 3 ) ) ;
 	return thisAppl->RC ;
 }
 
 
-int lspfDisplay( string s )
+int lspfDisplay( pApplication * thisAppl, string s )
 {
 	int p1  ;
 	int p2  ;
@@ -462,18 +486,18 @@ int lspfDisplay( string s )
 	str = subword( s, 2 ) ;
 
 	pan = parseString( rlt, str, "PANEL()" ) ;
-	if ( !rlt ) { lspfSyntaxError( s ) ; return 20 ; }
+	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	msg = parseString( rlt, str, "MSG()" ) ;
-	if ( !rlt ) { lspfSyntaxError( s ) ; return 20 ; }
+	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	cursor = parseString( rlt, str, "CURSOR()" ) ;
-	if ( !rlt ) { lspfSyntaxError( s ) ; return 20 ; }
+	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	csrpos = parseString( rlt, str, "CSRPOS()" ) ;
-	if ( !rlt ) { lspfSyntaxError( s ) ; return 20 ; }
+	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	if ( strip( str ) != "" ) { lspfSyntaxError( s ) ; return 20 ; }
+	if ( strip( str ) != "" ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	if ( csrpos == "" ) { csrpos = "1" ; }
 
@@ -482,7 +506,7 @@ int lspfDisplay( string s )
 }
 
 
-int lspfEdit( string s )
+int lspfEdit( pApplication * thisAppl, string s )
 {
 	int p1  ;
 	int p2  ;
@@ -496,19 +520,19 @@ int lspfEdit( string s )
 	str = subword( s, 2 ) ;
 
 	fl  = parseString( rlt, str, "FILE()" ) ;
-	if ( !rlt ) { lspfSyntaxError( s ) ; return 20 ; }
+	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	pan = parseString( rlt, str, "PANEL()" ) ;
-	if ( !rlt ) { lspfSyntaxError( s ) ; return 20 ; }
+	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	if ( strip( str ) != "" ) { lspfSyntaxError( s ) ; return 20 ; }
+	if ( strip( str ) != "" ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	thisAppl->edit( fl, pan ) ;
 	return thisAppl->RC ;
 }
 
 
-int lspfSelect( string s )
+int lspfSelect( pApplication * thisAppl, string s )
 {
 	int p1  ;
 	int p2  ;
@@ -529,7 +553,7 @@ int lspfSelect( string s )
 	selectParse( sRC, str, SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB ) ;
 	if ( sRC > 0 )
 	{
-		lspfSyntaxError( s ) ;
+		lspfSyntaxError( thisAppl, s ) ;
 		return 20 ;
 	}
 	if ( substr( SEL_PGM, 1, 1 ) == "&" )
@@ -542,7 +566,7 @@ int lspfSelect( string s )
 }
 
 
-int lspfVPUT( string s )
+int lspfVPUT( pApplication * thisAppl, string s )
 {
 	int p1  ;
 	int p2  ;
@@ -557,7 +581,7 @@ int lspfVPUT( string s )
 	str = subword( s, 2 ) ;
 
 	vars = parseString( rlt, str, "()" ) ;
-	if ( !rlt ) { lspfSyntaxError( s ) ; return 20 ; }
+	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	if ( words( vars ) == 0 )
 	{
@@ -570,14 +594,14 @@ int lspfVPUT( string s )
 	else if ( str == "PROFILE" ) { pType = PROFILE ; }
 	else if ( str == "ASIS"    ) { pType = ASIS    ; }
 	else if ( str == ""        ) { pType = ASIS    ; }
-	else                         { lspfSyntaxError( s ) ; return 20 ; }
+	else                         { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	thisAppl->vput( vars, pType ) ;
 	return thisAppl->RC ;
 }
 
 
-int lspfVGET( string s )
+int lspfVGET( pApplication * thisAppl, string s )
 {
 	int p1  ;
 	int p2  ;
@@ -592,7 +616,7 @@ int lspfVGET( string s )
 	str = subword( s, 2 ) ;
 
 	vars = parseString( rlt, str, "()" ) ;
-	if ( !rlt ) { lspfSyntaxError( s ) ; return 20 ; }
+	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	if ( words( vars ) == 0 )
 	{
@@ -605,14 +629,14 @@ int lspfVGET( string s )
 	else if ( str == "PROFILE" ) { pType = PROFILE ; }
 	else if ( str == "ASIS"    ) { pType = ASIS    ; }
 	else if ( str == ""        ) { pType = ASIS    ; }
-	else                         { lspfSyntaxError( s ) ; return 20 ; }
+	else                         { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	thisAppl->vget( vars, pType ) ;
 	return thisAppl->RC ;
 }
 
 
-void lspfSyntaxError( string s )
+void lspfSyntaxError( pApplication * thisAppl, string s )
 {
 	thisAppl->RC = 20 ;
 	thisAppl->checkRCode( "Syntax error in service: "+s ) ;

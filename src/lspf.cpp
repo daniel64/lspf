@@ -150,7 +150,8 @@ string ZPARM    ;
 string ZTLIB    ;
 string ZCTVERB, ZCTTRUNC, ZCTACT, ZCTDESC ;
 
-const char ZSCREEN[] = { '1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W' } ;
+const char ZSCREEN[] = { '1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G',
+			 'H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W' } ;
 
 bool    SEL         ;
 string  SEL_PGM     ;
@@ -163,7 +164,8 @@ string ZHOME  ;
 string ZUSER  ;
 string ZSHELL ;
 
-static string BuiltInCommands = "ABEND ACTION DISCARD FIELDEXC INFO NOP PANELID REFRESH SCALE SNAP SHELL SPLIT STATS SWAP TASKS TEST TDOWN" ;
+static string BuiltInCommands = "ABEND ACTION DISCARD FIELDEXC INFO NOP PANELID "
+				"REFRESH SCALE SNAP SHELL SPLIT STATS SWAP TASKS TEST TDOWN" ;
 
 std::ofstream splog(SLOG) ;
 
@@ -287,7 +289,7 @@ void MainLoop()
 	fieldExc fxc ;
 
 	char ch     ;
-	string Isrt   ;
+	string Isrt ;
 
 	uint row    ;
 	uint col    ;
@@ -827,8 +829,6 @@ void processAction( uint row, uint col, int c, bool &  passthru )
 		if ( RC > 0 ) { log( "C", "VPUT for PF00 failed" << endl ) ; }
 	}
 
-	if ( PFCMD == "SWAP" ) { ZCOMMAND = "" ; }
-
 	if ( ZCOMMAND.size() > 3 && upper( ZCOMMAND ) != "RETRIEVE" && upper( PFCMD ) != "RETRIEVE" )
 	{
 		if ( retrieveBuffer.size() > 0 )
@@ -845,7 +845,31 @@ void processAction( uint row, uint col, int c, bool &  passthru )
 		retPos = 0 ;
 	}
 
-	if ( ZCOMMAND.size() > 2 && ZCOMMAND[ 0 ] == '%' )
+	switch( c )
+	{
+		case KEY_NPAGE:
+			ZCOMMAND = "DOWN " + ZCOMMAND ;
+			break ;
+		case KEY_PPAGE:
+			ZCOMMAND = "UP " + ZCOMMAND  ;
+			break ;
+	}
+
+	if ( findword( upper( PFCMD ), "SWAP SPLIT RETRIEVE" ) ) { ZCOMMAND = "" ; }
+
+	if ( PFCMD != "" ) { ZCOMMAND = PFCMD + " " + ZCOMMAND ; }
+
+	p1 = pos( ";", ZCOMMAND ) ;
+	if ( p1 > 0 )
+	{
+		commandStack = substr( ZCOMMAND, (p1+1) )    ;
+		ZCOMMAND     = substr( ZCOMMAND, 1, (p1-1) ) ;
+	}
+
+	CMDVerb = upper( word( ZCOMMAND, 1 ) ) ;
+	CMDRest = subword( ZCOMMAND, 2 ) ;
+
+	if ( ZCOMMAND.size() > 1 && ZCOMMAND[ 0 ] == '%' )
 	{
 		currAppl->vcopy( "ZOREXPGM", SEL_PGM, MOVE ) ;
 		SEL_PARM    = ZCOMMAND.substr( 1 ) ;
@@ -856,16 +880,6 @@ void processAction( uint row, uint col, int c, bool &  passthru )
 		passthru    = false ;
 		currAppl->currPanel->cmd_setvalue( "" ) ;
 		return ;
-	}
-
-	switch( c )
-	{
-		case KEY_NPAGE:
-			ZCOMMAND = "DOWN " + ZCOMMAND ;
-			break ;
-		case KEY_PPAGE:
-			ZCOMMAND = "UP " + ZCOMMAND  ;
-			break ;
 	}
 
 	if ( ( substr( ZCOMMAND, 1, 1 ) == "=" ) && ( substr( ZCOMMAND, 2 ) != "" ) && ( PFCMD == "" || PFCMD == "RETURN" ) )
@@ -883,20 +897,6 @@ void processAction( uint row, uint col, int c, bool &  passthru )
 		}
 		currAppl->currPanel->cmd_setvalue( ZCOMMAND ) ;
 	}
-
-	if ( PFCMD != "" ) { ZCOMMAND = PFCMD + " " + ZCOMMAND ; }
-
-	p1 = pos( ";", ZCOMMAND ) ;
-	if ( p1 > 0 )
-	{
-		commandStack = substr( ZCOMMAND, (p1+1) )    ;
-		ZCOMMAND     = substr( ZCOMMAND, 1, (p1-1) ) ;
-		CMDVerb      = upper( word( ZCOMMAND, 1 ) )  ;
-		CMDRest      = subword( ZCOMMAND, 2 )        ;
-	}
-
-	CMDVerb = upper( word( ZCOMMAND, 1 ) ) ;
-	CMDRest = subword( ZCOMMAND, 2 ) ;
 
 	if ( CMDVerb == "RETRIEVE" )
 	{
@@ -1441,6 +1441,7 @@ void terminateApplication()
 		currScrn->clear()   ;
 		currAppl->refresh() ;
 		currAppl->get_home( row, col ) ;
+		currAppl->set_cursor( row, col ) ;
 		currAppl->setMSG = false       ;
 	}
 	log( "I", "Application terminatation of " << ZAPPNAME << " completed.  Current application is " << currAppl->ZAPPNAME << endl ) ;
