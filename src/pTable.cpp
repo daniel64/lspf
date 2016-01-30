@@ -290,17 +290,90 @@ void Table::tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 }
 
 
-void Table::tbbottom( int & RC )
+void Table::tbbottom( int & RC, fPOOL & funcPOOL, string tb_savenm, string tb_rowid_vn, string tb_noread, string tb_crp_name )
 {
-	RC  = 0            ;
+	// RC = 0  Okay
+	// RC = 8  Table Empty.  CRP set to top
+	// RC = 20 Severe error
+
+	// ROWID name and CRP name are for output only
+
+	int    i      ;
+	int    ws     ;
+	string tbelst ;
+	string var    ;
+	string val    ;
+
+
+	RC = 0 ;
+	tb_savenm   = upper( tb_savenm )   ;
+	tb_rowid_vn = upper( tb_rowid_vn ) ;
+	tb_noread   = upper( tb_noread )   ;
+	tb_crp_name = upper( tb_crp_name ) ;
+
+	if ( (tb_savenm   != "") && !isvalidName( tb_savenm   ) ) { RC = 20 ; return ; }
+	if ( (tb_rowid_vn != "") && !isvalidName( tb_rowid_vn ) ) { RC = 20 ; return ; }
+	if ( (tb_crp_name != "") && !isvalidName( tb_crp_name ) ) { RC = 20 ; return ; }
+
+	if ( tb_noread != "" && tb_noread != "NOREAD" )
+	{
+		log( "E", "Invalid NOREAD parameter specified.  Invalid specification is " << tb_noread << endl ) ;
+		RC = 20 ;
+		return ;
+	}
+
+	if ( table.size() == 0 )
+	{
+		CRP = 0 ;
+		RC  = 8 ;
+		if ( tb_crp_name != "" ) { funcPOOL.put( RC, 0, tb_crp_name, CRP ) ; }
+		return  ;
+	}
+
 	CRP = table.size() ;
+
+	if ( tb_savenm != "" )
+	{
+		funcPOOL.put( RC, 0, tb_savenm, "" ) ;
+		if ( RC > 0 ) { RC = 20 ; return ; }
+	}
+	if ( tb_noread != "NOREAD" )
+	{
+		for ( i = 1 ; i <= num_all ; i++ )
+		{
+			funcPOOL.put( RC, 0, word( tab_all, i ), table.at( CRP-1 ).at( i ) ) ;
+			if ( RC > 0 ) { RC = 20 ; return ; }
+		}
+		if ( table.at( CRP-1 ).size() > num_all+1 )
+		{
+			tbelst = table.at( CRP-1 ).at( 1+num_all ) ;
+			for ( ws = words( tbelst ), i = 1 ; i <= ws ; i++ )
+			{
+				var = word( tbelst, i ) ;
+				val = table.at( CRP-1 ).at( 1+num_all+i ) ;
+				funcPOOL.put( RC, 0, var, val ) ;
+				if ( RC > 0 ) { RC = 20 ; return ; }
+			}
+			if ( tb_savenm != "" )
+			{
+				funcPOOL.put( RC, 0, tb_savenm, "("+tbelst+")" ) ;
+				if ( RC > 0 ) { RC = 20 ; return ; }
+			}
+		}
+	}
+	if ( tb_rowid_vn != "" )
+	{
+		funcPOOL.put( RC, 0, tb_rowid_vn, table.at( CRP-1 ).at( 0 ) ) ;
+		if ( RC > 0 ) { RC = 20 ; return ; }
+	}
+	if ( tb_crp_name != "" ) { funcPOOL.put( RC, 0, tb_crp_name, CRP ) ; }
 }
 
 
 void Table::tbdelete( int & RC, fPOOL & funcPOOL )
 {
 	// Delete a row in the table.  For keyed tables, this is the row pointed to be the current contents of the key variable
-	// For non-keyed tables, this is the row pointed to by the tb_crp_name
+	// For non-keyed tables, this is the row pointed to by the CRP
 
 	// RC = 0  Okay
 	// RC = 8  Keyed tables.  Row with key value does not exist.  CRP set to TOP
@@ -345,6 +418,7 @@ void Table::tbdelete( int & RC, fPOOL & funcPOOL )
 		if ( CRP == 0 )
 		{
 			RC  = 8 ;
+			return  ;
 		}
 		else
 		{
@@ -470,6 +544,10 @@ void Table::tbget( int & RC, fPOOL & funcPOOL, string tb_savenm, string tb_rowid
 	tb_noread   = upper( tb_noread )   ;
 	tb_crp_name = upper( tb_crp_name ) ;
 
+	if ( (tb_savenm   != "") && !isvalidName( tb_savenm   ) ) { RC = 20 ; return ; }
+	if ( (tb_rowid_vn != "") && !isvalidName( tb_rowid_vn ) ) { RC = 20 ; return ; }
+	if ( (tb_crp_name != "") && !isvalidName( tb_crp_name ) ) { RC = 20 ; return ; }
+
 	if ( tb_noread != "" && tb_noread != "NOREAD" )
 	{
 		log( "E", "Invalid NOREAD parameter specified.  Invalid specification is " << tb_noread << endl ) ;
@@ -499,7 +577,12 @@ void Table::tbget( int & RC, fPOOL & funcPOOL, string tb_savenm, string tb_rowid
 		}
 		if ( !found ) { CRP = 0 ; }
 	}
-	if ( CRP == 0 ) { RC = 8 ; return ; }
+	if ( CRP == 0 )
+	{
+		if ( tb_crp_name != "" ) { funcPOOL.put( RC, 0, tb_crp_name, CRP ) ; }
+		RC = 8 ;
+		return ;
+	}
 
 	if ( tb_savenm != "" )
 	{
@@ -511,6 +594,7 @@ void Table::tbget( int & RC, fPOOL & funcPOOL, string tb_savenm, string tb_rowid
 		for ( i = 1 ; i <= num_all ; i++ )
 		{
 			funcPOOL.put( RC, 0, word( tab_all, i ), table.at( CRP-1 ).at( i ) ) ;
+			if ( RC > 0 ) { RC = 20 ; return ; }
 		}
 		if ( table.at( CRP-1 ).size() > num_all+1 )
 		{
@@ -532,7 +616,9 @@ void Table::tbget( int & RC, fPOOL & funcPOOL, string tb_savenm, string tb_rowid
 	if ( tb_rowid_vn != "" )
 	{
 		funcPOOL.put( RC, 0, tb_rowid_vn, table.at( CRP-1 ).at( 0 ) ) ;
+		if ( RC > 0 ) { RC = 20 ; return ; }
 	}
+	if ( tb_crp_name != "" ) { funcPOOL.put( RC, 0, tb_crp_name, CRP ) ; }
 }
 
 
@@ -643,6 +729,7 @@ void Table::tbput( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	RC = 0 ;
 
 	if ( sort_flds == "" ) { tb_order = "" ; }
+
 	tb_namelst = upper( tb_namelst ) ;
 	tb_order   = upper( tb_order )   ;
 
@@ -673,7 +760,7 @@ void Table::tbput( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	URID = table[ CRP-1 ].at( 0 ) ;
 	it   = flds.begin() ;
 	flds.insert( it, URID ) ;
-	table[ CRP-1 ] = flds   ; 
+	table[ CRP-1 ] = flds   ;
 	changed = true          ;
 }
 
@@ -681,6 +768,17 @@ void Table::tbput( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 void Table::tbquery( int & RC, fPOOL & funcPOOL, string tb_keyn, string tb_varn, string tb_rownn, string tb_keynn, string tb_namenn, string tb_crpn, string tb_sirn, string tb_lstn, string tb_condn, string tb_dirn )
 {
 	RC = 0 ;
+	tb_keyn   = upper( tb_keyn )   ;
+	tb_varn   = upper( tb_varn )   ;
+	tb_rownn  = upper( tb_rownn )  ;
+	tb_keynn  = upper( tb_keynn )  ;
+	tb_namenn = upper( tb_namenn ) ;
+	tb_crpn   = upper( tb_crpn )   ;
+	tb_sirn   = upper( tb_sirn )   ;
+	tb_lstn   = upper( tb_lstn )   ;
+	tb_condn  = upper( tb_condn )  ;
+	tb_dirn   = upper( tb_dirn )   ;
+
 	if ( tb_keyn != "" )  { funcPOOL.put( RC, 0, tb_keyn, tab_keys )  ; }
 	if ( RC > 0 ) { return ; }
 	if ( tb_varn != "" )  { funcPOOL.put( RC, 0, tb_varn, tab_flds )  ; }
@@ -711,10 +809,10 @@ void Table::tbsarg( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_dir
 	//
 
 	// Q:  What happens to vars in namelst and cond_pairs that are null?  They are NOT ignored.  Must be present with NULL value
-	
+
 	// Extension vars not ignored if they appear in namelst and are null
 	// if var is in condpair it must be in namelst (except for key/fields i guess????)
-	
+
 	int  p1 ;
 	int  p2 ;
 	int  i  ;
@@ -725,7 +823,7 @@ void Table::tbsarg( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_dir
 	string cond ;
 
 	tbsearch t  ;
-	
+
 	RC = 0 ;
 	tb_namelst    = upper( tb_namelst ) ;
 	tb_dir        = upper( tb_dir )     ;
@@ -741,7 +839,7 @@ void Table::tbsarg( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_dir
 		}
 		tb_cond_pairs = tb_cond_pairs.substr( 1, tb_cond_pairs.size()-2 ) ;
 	}
-	
+
 	sarg.clear() ;
 
 	if ( tb_dir == "" ) { tb_dir = "NEXT" ; }
@@ -842,9 +940,9 @@ void Table::tbscan( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_sav
 
 	// Current value of variables not in NAMELST make no difference to search
 	// SAVENM is blank if there are no extension variables or if NOREAD is specified.  Not specifying var leaves it unchanged from before (obviously)
-	
-	// NULL values are not ignored in namelst.  
-	
+
+	// NULL values are not ignored in namelst.
+
 	int  i   ;
 	int p1   ;
 	int ws   ;
@@ -888,6 +986,7 @@ void Table::tbscan( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_sav
 		return  ;
 	}
 
+	if ( (tb_savenm   != "") && !isvalidName( tb_savenm   ) ) { RC = 20 ; return ; }
 	if ( (tb_rowid_vn != "") && !isvalidName( tb_rowid_vn ) ) { RC = 20 ; return ; }
 	if ( (tb_crp_name != "") && !isvalidName( tb_crp_name ) ) { RC = 20 ; return ; }
 
@@ -1002,10 +1101,10 @@ void Table::tbscan( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_sav
 		if ( s_match == scan.size() ) { found = true ; break ; }
 	}
 	if ( !found )
-	{ 
+	{
 		CRP = 0 ;
+		RC  = 8 ;
 		if ( tb_crp_name != "" ) { funcPOOL.put( RC, 0, tb_crp_name, CRP ) ; }
-		RC = 8  ;
 		return  ;
 	}
 
@@ -1019,6 +1118,7 @@ void Table::tbscan( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_sav
 		for ( i = 1 ; i <= num_all ; i++ )
 		{
 			funcPOOL.put( RC, 0, word( tab_all, i ), table.at( CRP-1 ).at( i ) ) ;
+			if ( RC > 0 ) { RC = 20 ; return ; }
 		}
 		if ( table.at( CRP-1 ).size() > num_all+1 )
 		{
@@ -1037,7 +1137,16 @@ void Table::tbscan( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_sav
 			}
 		}
 	}
-	if ( tb_crp_name != "" ) { funcPOOL.put( RC, 0, tb_crp_name, CRP ) ; }
+	if ( tb_crp_name != "" )
+	{
+		funcPOOL.put( RC, 0, tb_crp_name, CRP ) ;
+		if ( RC > 0 ) { RC = 20 ; return ; }
+	}
+	if ( tb_rowid_vn != "" )
+	{
+		funcPOOL.put( RC, 0, tb_rowid_vn, table.at( CRP-1 ).at( 0 ) ) ;
+		if ( RC > 0 ) { RC = 20 ; return ; }
+	}
 	return ;
 }
 
@@ -1088,6 +1197,7 @@ void Table::cmdsearch( int & RC, fPOOL & funcPOOL, string srch )
 	for ( i = 1 ; i <= num_all ; i++ )
 	{
 		funcPOOL.put( RC, 0, word( tab_all, i ), (*it).at( i ) ) ;
+		if ( RC > 0 ) { RC = 20 ; return ; }
 	}
 	return ;
 }
@@ -1112,12 +1222,16 @@ void Table::tbskip( int & RC, fPOOL & funcPOOL, int num, string tb_savenm, strin
 	bool found    ;
 
 	vector< vector<string> >::iterator it ;
-	
+
 	RC = 0 ;
 	tb_savenm    = upper( tb_savenm )   ;
 	tb_rowid_vn  = upper( tb_rowid_vn ) ;
 	tb_noread    = upper( tb_noread )   ;
 	tb_crp_name  = upper( tb_crp_name ) ;
+
+	if ( (tb_savenm   != "") && !isvalidName( tb_savenm   ) ) { RC = 20 ; return ; }
+	if ( (tb_rowid_vn != "") && !isvalidName( tb_rowid_vn ) ) { RC = 20 ; return ; }
+	if ( (tb_crp_name != "") && !isvalidName( tb_crp_name ) ) { RC = 20 ; return ; }
 
 	if ( tb_noread != "" && tb_noread != "NOREAD" )
 	{
@@ -1144,12 +1258,6 @@ void Table::tbskip( int & RC, fPOOL & funcPOOL, int num, string tb_savenm, strin
 		CRP = i ;
 	}
 
-	if ( tb_rowid_vn != "" )
-	{
-		for ( it = table.begin(), i = 1 ; i < CRP ; i++ ) { it++ ; }
-		funcPOOL.put( RC, 0, tb_rowid_vn, (*it).at( 0 ) ) ;
-	}
-
 	if ( tb_savenm != "" )
 	{
 		funcPOOL.put( RC, 0, tb_savenm, "" ) ;
@@ -1160,6 +1268,7 @@ void Table::tbskip( int & RC, fPOOL & funcPOOL, int num, string tb_savenm, strin
 		for ( i = 1 ; i <= num_all ; i++ )
 		{
 			funcPOOL.put( RC, 0, word( tab_all, i ), table[ CRP-1 ].at( i ) ) ;
+			if ( RC > 0 ) { RC = 20 ; return ; }
 		}
 		if ( table.at( CRP-1 ).size() > num_all+1 )
 		{
@@ -1177,6 +1286,11 @@ void Table::tbskip( int & RC, fPOOL & funcPOOL, int num, string tb_savenm, strin
 				if ( RC > 0 ) { RC = 20 ; return ; }
 			}
 		}
+	}
+	if ( tb_rowid_vn != "" )
+	{
+		funcPOOL.put( RC, 0, tb_rowid_vn, table.at( CRP-1 ).at( 0 ) ) ;
+		if ( RC > 0 ) { RC = 20 ; return ; }
 	}
 	if ( tb_crp_name != "" ) { funcPOOL.put( RC, 0, tb_crp_name, CRP ) ; }
 }
@@ -1210,7 +1324,7 @@ void Table::tbsort( int & RC, string tb_fields )
 	string s_order2 ;
 
 	string temp     ;
-	
+
 	tb_fields = upper( tb_fields ) ;
 	temp      = tb_fields          ;
 
@@ -1311,7 +1425,7 @@ void Table::tbsort( int & RC, string tb_fields )
 						if ( s_numeric1 )
 						{
 							if ( ds2d( a[ f1 ] ) == ds2d( b[ f1 ]) )
-							{ 
+							{
 								if ( s_numeric2 ) { return ds2d( a[ f2 ] ) < ds2d( b[ f2 ] ) ; }
 								else              { return a[ f2 ] < b[ f2 ] ; }
 							}
@@ -1320,7 +1434,7 @@ void Table::tbsort( int & RC, string tb_fields )
 						else
 						{
 							if ( a[ f1 ] == b[ f1 ] )
-							{ 
+							{
 								if ( s_numeric2 ) { return ds2d( a[ f2 ] ) < ds2d( b[ f2 ] ) ; }
 								else              { return a[ f2 ] < b[ f2 ] ; }
 							}
@@ -1336,7 +1450,7 @@ void Table::tbsort( int & RC, string tb_fields )
 						if ( s_numeric1 )
 						{
 							if ( ds2d( a[ f1 ] ) == ds2d( b[ f1 ]) )
-							{ 
+							{
 								if ( s_numeric2 ) { return ds2d( a[ f2 ] ) > ds2d( b[ f2 ] ) ; }
 								else              { return a[ f2 ] > b[ f2 ] ; }
 							}
@@ -1345,7 +1459,7 @@ void Table::tbsort( int & RC, string tb_fields )
 						else
 						{
 							if ( a[ f1 ] == b[ f1 ] )
-							{ 
+							{
 								if ( s_numeric2 ) { return ds2d( a[ f2 ] ) > ds2d( b[ f2 ] ) ; }
 								else              { return a[ f2 ] > b[ f2 ] ; }
 							}
@@ -1364,7 +1478,7 @@ void Table::tbsort( int & RC, string tb_fields )
 						if ( s_numeric1 )
 						{
 							if ( ds2d( a[ f1 ] ) == ds2d( b[ f1 ]) )
-							{ 
+							{
 								if ( s_numeric2 ) { return ds2d( a[ f2 ] ) < ds2d( b[ f2 ] ) ; }
 								else              { return a[ f2 ] < b[ f2 ] ; }
 							}
@@ -1373,7 +1487,7 @@ void Table::tbsort( int & RC, string tb_fields )
 						else
 						{
 							if ( a[ f1 ] == b[ f1 ] )
-							{ 
+							{
 								if ( s_numeric2 ) { return ds2d( a[ f2 ] ) < ds2d( b[ f2 ] ) ; }
 								else              { return a[ f2 ] < b[ f2 ] ; }
 							}
@@ -1389,7 +1503,7 @@ void Table::tbsort( int & RC, string tb_fields )
 						if ( s_numeric1 )
 						{
 							if ( ds2d( a[ f1 ] ) == ds2d( b[ f1 ]) )
-							{ 
+							{
 								if ( s_numeric2 ) { return ds2d( a[ f2 ] ) > ds2d( b[ f2 ] ) ; }
 								else              { return a[ f2 ] > b[ f2 ] ; }
 							}
@@ -1398,7 +1512,7 @@ void Table::tbsort( int & RC, string tb_fields )
 						else
 						{
 							if ( a[ f1 ] == b[ f1 ] )
-							{ 
+							{
 								if ( s_numeric2 ) { return ds2d( a[ f2 ] ) > ds2d( b[ f2 ] ) ; }
 								else              { return a[ f2 ] > b[ f2 ] ; }
 							}
@@ -1427,6 +1541,7 @@ void Table::tbvclear( int & RC, fPOOL & funcPOOL )
 	for ( i = 1 ; i <= num_all ; i++ )
 	{
 		funcPOOL.put( RC, 0, word( tab_all, i ), "" ) ;
+		if ( RC > 0 ) { RC = 20 ; return ; }
 	}
 }
 
@@ -1442,6 +1557,9 @@ tableMGR::tableMGR()
 void tableMGR::createTable( int & RC, int m_task, string tb_name, string keys, string flds, bool m_temporary, tbREP m_REP, string m_path, tbDISP m_DISP )
 {
 	Table t ;
+
+	keys = upper( keys ) ;
+	flds = upper( flds ) ;
 
 	debug1( "Creating table >>" << tb_name << "<<" << endl ) ;
 	debug1( "     with keys >>" << keys <<  "<<" << endl ) ;
@@ -1590,7 +1708,7 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 	}
 	debug1( "Loading table " << tb_name << " from " <<  filename << endl ) ;
 
-        table.open( filename.c_str() , ios::binary | ios::in ) ;
+	table.open( filename.c_str() , ios::binary | ios::in ) ;
 	if ( table.fail() != 0 )
 	{
 		RC = 20 ;
@@ -1598,7 +1716,7 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 		return ;
 	}
 
-      	table.read (buf1 , 2);
+	table.read (buf1 , 2);
 	if ( memcmp( buf1, "\x00\x85", 2 ) )
 	{
 		RC = 20 ;
@@ -1663,8 +1781,8 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 	keys = "" ;
 	flds = "" ;
 
-        for ( j = 0 ; j < num_keys ; j++ )
-        {
+	for ( j = 0 ; j < num_keys ; j++ )
+	{
 		table.get( x ) ;
 		if ( table.fail() != 0 )
 		{
@@ -1817,7 +1935,7 @@ void tableMGR::destroyTable( int & RC, int task, string tb_name )
 
 bool tableMGR::isloaded( string tb_name )
 {
-	if ( tables.find( tb_name ) == tables.end() ) {	return false ; }
+	if ( tables.find( tb_name ) == tables.end() ) { return false ; }
 	return true ;
 }
 
@@ -1897,7 +2015,7 @@ void tableMGR::statistics()
 			for ( its = tables[ it->first ].sarg.begin() ; its != tables[ it->first ].sarg.end() ; its++ )
 			{
 				log( "-", "             Field Name: " << (*its).first << endl ) ;
-				if ( (*its).second.tbs_gen ) 
+				if ( (*its).second.tbs_gen )
 					log( "-", "            Field Value: " << (*its).second.tbs_val << " (generic search)" << endl ) ;
 				else
 					log( "-", "            Field Value: " << (*its).second.tbs_val << endl ) ;
@@ -2000,7 +2118,7 @@ void tableMGR::tbadd( int & RC, fPOOL & funcPOOL, string tb_name, string tb_name
 }
 
 
-void tableMGR::tbbottom( int & RC, string tb_name )
+void tableMGR::tbbottom( int & RC, fPOOL & funcPOOL, string tb_name, string tb_savenm, string tb_rowid_vn, string tb_noread, string tb_crp_name  )
 {
 	RC = 0 ;
 	if ( tables.find( tb_name ) == tables.end() )
@@ -2009,7 +2127,7 @@ void tableMGR::tbbottom( int & RC, string tb_name )
 		log( "E", "Table " << tb_name << " not found for tbbottom" << endl ) ;
 		return ;
 	}
-	tables[ tb_name ].tbbottom( RC ) ;
+	tables[ tb_name ].tbbottom( RC, funcPOOL, tb_savenm, tb_rowid_vn, tb_noread, tb_crp_name ) ;
 }
 
 

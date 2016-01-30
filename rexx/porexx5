@@ -1,0 +1,64 @@
+/*
+  Copyright (c) 2015 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+/* Re-direct say ouput and error messages to a temporary file or it'll mess up lspf output */
+"echo x > /tmp/porexx5.say"
+"echo x > /tmp/porexx5.err"
+"rm /tmp/porexx5.say"
+"rm /tmp/porexx5.err"
+.output~destination(.stream~new("/tmp/porexx5.say"))
+.error~destination(.stream~new("/tmp/porexx5.err"))
+/**********************************************************************************************/
+
+address ISPEXEC
+
+MSG = ""
+CSR = "PRSPNL"
+do forever
+    PARM = ""
+    "DISPLAY PANEL(PPRUN01) CURSOR("CSR") MSG(" MSG ")"
+    if RC > 0 then leave
+    MSG = ""
+    if PRAPPL = "" then
+      do
+        if PRNAPPL = "/" then PARM = "NEWAPPL"
+      end
+    else
+      do
+        PARM = "NEWAPPL(" PRAPPL ")"
+      end
+    if PRNPOOL  = "/" then PARM = PARM "NEWPOOL"
+    if PRPSLIB  = "/" then PARM = PARM "PASSLIB"
+    if PRSPNL  \= ""  then PARM = "SELECT PANEL(" PRSPNL ") OPT(" PRSOPT ")" PARM
+    if PRICMD  \= ""  then PARM = "SELECT CMD(%" || PRICMD ")" PARM
+    if PRIPGM  \= ""  then PARM = "SELECT PGM("  PRIPGM ") PARM(" PRIPRM ")" PARM
+    if ( PRSPNL = "" && PRIPGM = "" && PRICMD = "" ) then iterate
+    "CONTROL ERRORS RETURN"
+    PARM
+    if ( RC > 8 ) then
+      do
+        MSG = "PSYS011D"
+      end
+    "CONTROL ERRORS CANCEL"
+    if PRSPNL \= "" then CSR = "PRSPNL"
+    else if PRICMD \= "" then CSR = "PRICMD"
+    else if PRIPGM \= "" then CSR = "PRIPGM"
+end
+exit
+

@@ -146,7 +146,7 @@ void fPOOL::put( int & RC, int maxRC, string name, string value, nameCHCK check 
 
 	RC = 0 ;
 
-	if ( (check == CHECK) & !isvalidName( name ) ) { RC = 20 ; return  ; }
+	if ( (check == CHECK) && !isvalidName( name ) ) { RC = 20 ; return  ; }
 
 	it = POOL.find( name ) ;
 	if ( it == POOL.end() )
@@ -210,7 +210,7 @@ string fPOOL::get( int & RC, int maxRC, string name, nameCHCK check )
 
 	RC = 0 ;
 
-	if ( (check == CHECK) & !isvalidName( name ) ) { RC = 20 ; return "" ; }
+	if ( (check == CHECK) && !isvalidName( name ) ) { RC = 20 ; return "" ; }
 
 	it = POOL.find( name ) ;
 	if ( it == POOL.end() )
@@ -280,7 +280,7 @@ void fPOOL::dlete( int & RC, string name, nameCHCK check )
 
 	RC = 0 ;
 
-	if ( (check == CHECK) & !isvalidName( name ) ) { RC = 20 ; return ; }
+	if ( (check == CHECK) && !isvalidName( name ) ) { RC = 20 ; return ; }
 
 	it = POOL.find( name ) ;
 	if ( it == POOL.end() )

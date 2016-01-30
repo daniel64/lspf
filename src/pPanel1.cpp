@@ -146,11 +146,24 @@ string pPanel::getDialogueVar( string var )
 
 void pPanel::putDialogueVar( string var, string val )
 {
-	// Upate a dialogue variable where it resides in the standard search order.  If not found, create an implicit function pool variable
+	// Upate a dialogue variable where it resides in the standard search order.
+	// If not found, create an implicit function pool variable
 
-	if     ( p_funcPOOL->ifexists( RC, var ) ) { p_funcPOOL->put( RC, 0, var, val )   ; }
-	else if ( p_poolMGR->ifexists( RC, var ) ) { p_poolMGR->put( RC, var, val, ASIS ) ; }
-	else                                       { p_funcPOOL->put( RC, 0, var, val )   ; }
+	if      ( p_funcPOOL->ifexists( RC, var ) ) { p_funcPOOL->put( RC, 0, var, val )   ; }
+	else if ( p_poolMGR->ifexists( RC, var ) )  { p_poolMGR->put( RC, var, val, ASIS ) ; }
+	else                                        { p_funcPOOL->put( RC, 0, var, val )   ; }
+}
+
+
+void pPanel::initDialogueVar( string var )
+{
+	// If a dialogue variable does not exist, initialise an enty in the function pool.
+	// Required for REXX support so variables have a default value of blank, instead of the
+	// REXX default value of the variable's name
+
+	if      ( p_funcPOOL->ifexists( RC, var ) ) { return ; }
+	else if ( p_poolMGR->ifexists( RC, var ) )  { return ; }
+	else                                        { p_funcPOOL->put( RC, 0, var, "" ) ; }
 }
 
 
@@ -222,6 +235,7 @@ void pPanel::display_panel( int & RC )
 	hide_pd()        ;
 	display_pd()     ;
 	display_MSG()    ;
+	wrefresh( win ) ;
 }
 
 
@@ -264,11 +278,13 @@ void pPanel::nrefresh()
 void pPanel::display_panel_update( int & RC )
 {
 	//  For all changed fields, apply attributes (upper case, left/right justified), and copy back to function pool
-	//  If END entered with pull down displayed, just remove the pull down and clear ZVERB
+	//  If END entered with pull down displayed, remove the pull down and clear ZVERB
 	//  If cursor on a point-and-shoot field (PS), set variable as in the )PNTS panel section if defined there
 	//  When copying to the function pool, change value as follows:
 	//      JUST(LEFT/RIGHT) leading and trailing spaces are removed
 	//      JUST(ASIS) Only trailing spaces are removed
+
+	//  Clear error message if END pressed so panel is not re-displaed
 
 	int fieldNum    ;
 	int scrollAmt   ;
@@ -294,9 +310,7 @@ void pPanel::display_panel_update( int & RC )
 	{
 		abActive = false ;
 		p_poolMGR->put( RC, "ZVERB", "",  SHARED ) ;
-		return ;
 	}
-	else if ( CMDVerb == "END" || CMDVerb == "EXIT" || CMDVerb == "RETURN" ) { return ; }
 
 	if ( abActive )
 	{
@@ -320,7 +334,6 @@ void pPanel::display_panel_update( int & RC )
 			}
 		}
 		p_funcPOOL->put( RC, 0, it->first, it->second->field_value ) ;
-		if ( MSGID != "" ) { return ; }
 		it->second->field_changed = false ;
 	}
 
@@ -415,7 +428,6 @@ void pPanel::display_panel_update( int & RC )
 				{
 					MSGID  = "PSYS01I" ;
 					CURFLD = msgfld    ;
-					return             ;
 				}
 				p_poolMGR->put( RC, "ZSCROLLA", CMD, SHARED ) ;
 				p_poolMGR->put( RC, "ZSCROLLN", CMD, SHARED ) ;
@@ -469,7 +481,6 @@ void pPanel::display_panel_update( int & RC )
 					default:
 						MSGID  = "PSYS01I" ;
 						CURFLD = msgfld    ;
-						return             ;
 					}
 				}
 			}
@@ -477,6 +488,7 @@ void pPanel::display_panel_update( int & RC )
 			p_funcPOOL->put( RC, 0, CMDfield, "" )  ;
 		}
 	}
+	if ( findword( CMDVerb, "END EXIT RETURN" ) ) { MSGID = "" ; }
 }
 
 
@@ -2034,7 +2046,6 @@ bool pPanel::display_pd( uint row, uint col )
 		{
 			if ( (col >= ab.at(i).abc_col) && (col < (ab.at(i).abc_col + ab.at(i).abc_name.size()) ) )
 			{
-				debug1( "Found pulldown " << ab.at(i).abc_name << endl ) ;
 				ab.at(i).display_abc_sel( win ) ;
 				ab.at(i).display_pd() ;
 				abActive = true ;

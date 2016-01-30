@@ -42,7 +42,7 @@ int pPanel::loadPanel( string p_name, string paths )
 	string fld, hlp      ;
 
 	bool body(false)     ;
-        bool comment(false)  ;
+	bool comment(false)  ;
 	bool command(false)  ;
 	bool init(false)     ;
 	bool reinit(false)   ;
@@ -61,6 +61,8 @@ int pPanel::loadPanel( string p_name, string paths )
 
 	vector< string > pSource      ;
 	vector< string >::iterator it ;
+
+	map<string, field *>::iterator it1;
 
 	RC = 0 ;
 	if ( !isvalidName( p_name ) ) { PERR = "Panel name " + p_name + " is invalid" ; return 20 ; }
@@ -86,7 +88,7 @@ int pPanel::loadPanel( string p_name, string paths )
 	}
 	if ( !found ) { PERR = "Panel file not found for " + p_name ; return  12 ; }
 
-	debug1( "Loading panel " << p_name << " from " <<  filename << endl ) ;	
+	debug1( "Loading panel " << p_name << " from " <<  filename << endl ) ;
 
 	panel.open( filename.c_str() ) ;
 	while ( true )
@@ -127,7 +129,7 @@ int pPanel::loadPanel( string p_name, string paths )
 			{
 				PERR = "Panel INCLUDE file " + w2 + " not found for " + p_name ; return  12 ;
 			}
-			debug1( "Loading panel INCLUDE " << w2 << " from " <<  filename << endl ) ;	
+			debug1( "Loading panel INCLUDE " << w2 << " from " <<  filename << endl ) ;
 			pincl.open( filename.c_str() ) ;
 			while ( true )
 			{
@@ -157,7 +159,7 @@ int pPanel::loadPanel( string p_name, string paths )
 	{
 		line2 = *it ;
 		p1 = line2.find( "/*" ) ;
-		if ( p1 != string::npos ) 
+		if ( p1 != string::npos )
 		{
 			p2 = line2.find( "*/" ) ;
 			if ( p2 != string::npos ) { line2.replace( p1, p2-p1+2, p2-p1+2, ' ' ) ; }
@@ -249,14 +251,14 @@ int pPanel::loadPanel( string p_name, string paths )
 			body = true  ;
 			continue ;
 		}
-		else if ( w1 == ")PROC" )	{ proc = true    ; continue ; }
-		else if ( w1 == ")INIT" )	{ init = true    ; continue ; }
-		else if ( w1 == ")REINIT" )	{ reinit = true  ; continue ; }
-		else if ( w1 == ")COMMAND" )	{ command = true ; continue ; }
-		else if ( w1 == ")HELP" )	{ help = true    ; continue ; }
-		else if ( w1 == ")PNTS" )	{ ispnts = true  ; continue ; }
-		else if ( w1 == ")FIELD" )	{ isfield = true ; continue ; }
-		
+		else if ( w1 == ")PROC" )       { proc = true    ; continue ; }
+		else if ( w1 == ")INIT" )       { init = true    ; continue ; }
+		else if ( w1 == ")REINIT" )     { reinit = true  ; continue ; }
+		else if ( w1 == ")COMMAND" )    { command = true ; continue ; }
+		else if ( w1 == ")HELP" )       { help = true    ; continue ; }
+		else if ( w1 == ")PNTS" )       { ispnts = true  ; continue ; }
+		else if ( w1 == ")FIELD" )      { isfield = true ; continue ; }
+
 		if ( command )
 		{
 			w2 = strip( subword( line2, 2 ), 'B', '"' ) ;
@@ -279,7 +281,7 @@ int pPanel::loadPanel( string p_name, string paths )
 				m_stmnt.ps_column  = line2.find_first_not_of( ' ' ) ;
 				if ( init )         { vpgListi.push_back( m_VPG ) ; initstmnts.push_back( m_stmnt ) ; }
 				else if ( reinit )  { vpgListr.push_back( m_VPG ) ; reinstmnts.push_back( m_stmnt ) ; }
-				else		    { vpgList.push_back( m_VPG )  ; procstmnts.push_back( m_stmnt ) ; }
+				else                { vpgList.push_back( m_VPG )  ; procstmnts.push_back( m_stmnt ) ; }
 				continue ;
 			}
 			if ( (w1[ 0 ] == '&' || w1[ 0 ] == '.' ) && ( line2.find( "TRUNC(" ) == string::npos && line2.find( "TRANS(" ) == string::npos ) )
@@ -305,7 +307,7 @@ int pPanel::loadPanel( string p_name, string paths )
 				m_stmnt.ps_column = line2.find_first_not_of( ' ' ) ;
 				if ( init )         { assgnListi.push_back( m_assgn ) ; initstmnts.push_back( m_stmnt ) ; }
 				else if ( reinit )  { assgnListr.push_back( m_assgn ) ; reinstmnts.push_back( m_stmnt ) ; }
-				else		    { assgnList.push_back( m_assgn )  ; procstmnts.push_back( m_stmnt ) ; }
+				else                { assgnList.push_back( m_assgn )  ; procstmnts.push_back( m_stmnt ) ; }
 				continue ;
 			}
 		}
@@ -548,7 +550,7 @@ int pPanel::loadPanel( string p_name, string paths )
 			continue ;
 		}
 
-		if ( !body ) 
+		if ( !body )
 		{
 			PERR = "Panel " + p_name + " error.  Invalid line: " + line2 ; return 20 ;
 		}
@@ -695,7 +697,7 @@ int pPanel::loadPanel( string p_name, string paths )
 			if ( isnumeric( w3 ) )                   { tb_depth = ds2d( w3 ) ; }
 			else if ( w3 == "MAX" )                  { tb_depth = WSCRMAXD - start_row ; }
 			else if ( substr( w3, 1, 4 ) == "MAX-" ) { tb_depth = WSCRMAXD - ds2d( substr( w3, 5 ) ) - start_row ; }
-			else 					 { return 20        ; }
+			else                                     { return 20        ; }
 			tb_model = true      ;
 			tb_row   = start_row ;
 			scrollOn = true      ;
@@ -726,11 +728,11 @@ int pPanel::loadPanel( string p_name, string paths )
 			if ( isnumeric( w3 ) )                   { tlen = ds2d( w3 ) ; }
 			else if ( w3 == "MAX" )                  { tlen = WSCRMAXW - tcol + 1 ; }
 			else if ( substr( w3, 1, 4 ) == "MAX-" ) { tlen = WSCRMAXW - tcol - ds2d( substr( w3, 5 ) ) + 1 ; }
-			else 				         { return 20        ; }
+			else                                     { return 20        ; }
 			tbfield_col = tcol    ;
 			tbfield_sz  = tlen    ;
 			w4 = word( line2, 4 ) ;
-  			if ( cuaAttrName.find( w4 ) == cuaAttrName.end() )
+			if ( cuaAttrName.find( w4 ) == cuaAttrName.end() )
 			{
 				PERR = "Unknown field CUA attribute type " + w4  ; return 20 ;
 			}
@@ -740,7 +742,7 @@ int pPanel::loadPanel( string p_name, string paths )
 			if ( RC > 0 ) { return 20 ; }
 			continue ;
 		}
-		else 
+		else
 		{
 			PERR = "Panel " + p_name + " error.  Invalid line: " + line2 ; return 20 ;
 		}
@@ -757,6 +759,11 @@ int pPanel::loadPanel( string p_name, string paths )
 	if ( fieldList.find( CMDfield ) == fieldList.end() )
 	{
 		PERR = "Command field " + CMDfield + " not defined in panel body" ; return 20 ;
+	}
+
+	for ( it1 = fieldList.begin() ; it1 != fieldList.end() ; it1++ )
+	{
+		initDialogueVar( it1->first ) ;
 	}
 
 	PANELID = p_name ;

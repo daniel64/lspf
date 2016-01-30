@@ -59,6 +59,7 @@ void PMAIN0A::application()
 	string w1  ;
 	string ws  ;
 	string command ;
+	string ZTRAIL  ;
 
 	string ZSYSNAME ;
 	string ZOSREL   ;
@@ -80,15 +81,15 @@ void PMAIN0A::application()
 	ZSHADOW = "" ;
 	create_calendar( pmonth, pyear ) ;
 
-//	pFunc = &pApplication::cleanup_custom      ;
-//	ZPUSER = "/home/daniel/.lspf/" ;
-//	libdef( "ZPUSER", "FILE" ) ;
+//      pFunc = &pApplication::cleanup_custom      ;
+//      ZPUSER = "/home/daniel/.lspf/" ;
+//      libdef( "ZPUSER", "FILE" ) ;
 //
-//	ZMUSER = "/home/daniel/.lspf/" ;
-//	libdef( "ZMUSER", "FILE" ) ;
+//      ZMUSER = "/home/daniel/.lspf/" ;
+//      libdef( "ZMUSER", "FILE" ) ;
 
 	while ( true )
-        {
+	{
 		display( "PMAINP01", MSG, "ZCMD" ) ;
 		if ( RC  > 8 ) { abend() ; break   ; }
 		if ( RC == 8 ) { break   ;           }
@@ -162,6 +163,7 @@ void PMAIN0A::application()
 
 		w1 = word( command, 1 ) ;
 		ws = subword( command, 2 ) ;
+		vcopy( "ZTRAIL", ZTRAIL, MOVE ) ;
 		if ( w1 == "SELECT" )
 		{
 			selectParse( RC, ws, S_PGM, S_PARM, S_NEWAPPL, S_NEWPOOL, S_PASSLIB) ;
@@ -178,9 +180,10 @@ void PMAIN0A::application()
 				S_PARM = delstr( S_PARM, p1, 6 )    ;
 				S_PARM = insert( ZCMD, S_PARM, p1 ) ;
 			}
-			if ( substr( S_PGM, 1, 1 ) == "&" )
+			if ( S_PGM == "&ZPANLPGM" && ZTRAIL != "" ) { S_PARM = S_PARM + " " + ZTRAIL ; }
+			if ( S_PGM[ 0 ] == '&' )
 			{
-				vcopy( substr( S_PGM, 2 ), S_PGM, MOVE ) ;
+				vcopy( S_PGM.erase( 0, 1 ), S_PGM, MOVE ) ;
 			}
 			select( S_PGM, S_PARM, S_NEWAPPL, S_NEWPOOL, S_PASSLIB ) ;
 			ZCMD = "" ;
@@ -213,7 +216,7 @@ void PMAIN0A::application()
 			MSG = "PSYS017" ;
 		}
 		if ( ZCMD != "" ) { MSG = "MAIN011" ; }
-        }
+	}
 	cleanup() ;
 }
 

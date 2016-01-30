@@ -152,7 +152,8 @@ class pPanel
 		PANEL  * panel     ;
 		PANEL  * bpanel    ;
 
-		string getDialogueVar( string ) ;
+		void   initDialogueVar( string ) ;
+		string getDialogueVar( string )  ;
 		void   putDialogueVar( string, string ) ;
 
 		void   create_tbfield( int col, int size, cuaType cuaFT, string name, string opts ) ;

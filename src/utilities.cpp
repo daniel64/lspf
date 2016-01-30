@@ -1154,8 +1154,7 @@ bool ispict( string s, string picts )
 		switch ( picts[ i ] )
 		{
 			case 'C': break ;
-			case 'A': if ((!isdigit( s[ i ] )) &&
-				      (!isupper( s[ i ] )) &&
+			case 'A': if ((!isalpha( s[ i ] )) &&
 				      (s[ i ] != '#')      &&
 				      (s[ i ] != '$')      &&
 				      (s[ i ] != '@') ) { return false ; }
@@ -1224,6 +1223,9 @@ void selectParse( int & RC, string SELSTR, string & PGM, string & PARM, string &
 	// CMD(abc def) - translates to PGM(&ZOREXPGM) PARM(abc def)
 	// PANEL(def)   - translates to PGM(&ZPANLPGM) PARM(def)
 
+	// Match brackets for PARM and CMD as these may contain brackets
+
+	int ob ;
 	int p1 ;
 	int p2 ;
 
@@ -1237,8 +1239,18 @@ void selectParse( int & RC, string SELSTR, string & PGM, string & PARM, string &
 	p1 = pos( "PARM(", SELSTR ) ;
 	if ( p1 > 0 )
 	{
-		p2     = pos( ")", SELSTR, p1 ) ;
-		if ( p2 == 0 ) { RC = 20 ; return ; }
+		ob = 1 ;
+		for ( p2 = p1+4 ; p2 < SELSTR.size() ; p2++ )
+		{
+			if ( SELSTR.at( p2 ) == '(' ) { ob++  ; }
+			if ( SELSTR.at( p2 ) == ')' )
+			{
+				ob-- ;
+				if ( ob == 0 ) { break ; }
+			}
+		}
+		if ( ob != 0 ) { RC = 20 ; return ; }
+		p2++ ;
 		PARM   = strip( substr( SELSTR, (p1 + 5), (p2 - (p1 + 5)) ) ) ;
 		PARM   = strip( PARM, 'B', '"' ) ;
 		SELSTR = delstr( SELSTR, p1, (p2 - p1 + 1) ) ;
@@ -1270,6 +1282,14 @@ void selectParse( int & RC, string SELSTR, string & PGM, string & PARM, string &
 			if ( !isvalidName( PARM ) ) { RC = 20 ; return ; }
 			PGM    = "&ZPANLPGM"  ;
 			SELSTR = delstr( SELSTR, p1, (p2 - p1 + 1) ) ;
+			p1 = pos( "OPT(", SELSTR ) ;
+			if ( p1 > 0 )
+			{
+				p2 = pos( ")", SELSTR, p1 ) ;
+				if ( p2 == 0 ) { RC = 20 ; return ; }
+				PARM = PARM + " " + strip( substr( SELSTR, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
+				SELSTR = delstr( SELSTR, p1, (p2 - p1 + 1) ) ;
+			}
 		}
 		else
 		{
@@ -1277,9 +1297,19 @@ void selectParse( int & RC, string SELSTR, string & PGM, string & PARM, string &
 			if ( p1 > 0 )
 			{
 				if ( PARM != "" ) { RC = 20 ; return ; }
-				p2 = pos( ")", SELSTR, p1 ) ;
-				if ( p2 == 0 ) { RC = 20 ; return ; }
-				PARM = strip( substr( SELSTR, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
+				ob = 1 ;
+				for ( p2 = p1+3 ; p2 < SELSTR.size() ; p2++ )
+				{
+					if ( SELSTR.at( p2 ) == '(' ) { ob++  ; }
+					if ( SELSTR.at( p2 ) == ')' )
+					{
+						ob-- ;
+						if ( ob == 0 ) { break ; }
+					}
+				}
+				if ( ob != 0 ) { RC = 20 ; return ; }
+				p2++ ;
+				PARM   = strip( substr( SELSTR, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
 				PGM    = "&ZOREXPGM"  ;
 				SELSTR = delstr( SELSTR, p1, (p2 - p1 + 1) ) ;
 			}
@@ -1330,12 +1360,12 @@ void selectParse( int & RC, string SELSTR, string & PGM, string & PARM, string &
 
 void fieldOptsParse( int & RC, string opts, bool & caps, char & just, bool & numeric, char & padchar, bool & skip )
 {
-//      CAPS(ON,OFF)
-//      JUST(LEFT,RIGHT,ASIS)
-//      NUMERIC(ON,OFF)
-//      PAD(char,NULL,USER)
-//      SKIP(ON,OFF)
-//
+	// CAPS(ON,OFF)
+	// JUST(LEFT,RIGHT,ASIS)
+	// NUMERIC(ON,OFF)
+	// PAD(char,NULL,USER)
+	// SKIP(ON,OFF)
+
 	int p1 ;
 	int p2 ;
 	string t     ;
@@ -1410,43 +1440,77 @@ void fieldOptsParse( int & RC, string opts, bool & caps, char & just, bool & num
 
 string parseString( bool & rlt, string & s, string p )
 {
-//      return value of keyword parameter p, or null if not entered
-//      rlt - true if all okay
-//      s   - entered string (on exit, minus the keyword parameter, p)
-//      p   - parameter to find
-//
-//      for a parameter p of (), return everything between the brackets
-//
+	// return value of keyword parameter p, or null if not entered
+	// for a parameter p of (), return everything between the brackets
+	// for parameter without brackets, return "OK" if found else null
+	// Leading and trailing spaces are removed from the parameter value
+
+	// rlt - true if no syntax errors
+	// s   - entered string (on exit, minus the keyword parameter, p)
+	// p   - parameter to find (case insensitive)
+
+	int ob ;
 	int p1 ;
 	int p2 ;
 
-	string t ;
+	string us ;
+	string t  ;
 
 	rlt = true ;
 
-	if ( p.back() != ')' ) { rlt = false ; return "" ; }
+	if ( p.size() == 0 ) { rlt = false ; return "" ; }
+
+	us = upper( s ) ;
+	if ( p.back() != ')' )
+	{
+		p1 = wordpos( p, us ) ;
+		if ( p1 > 0 )
+		{
+			s = delword( s, p1, 1 ) ;
+			return "OK" ;
+		}
+		return "" ;
+	}
 	if ( p[ 0 ]   == '(' )
 	{
-	     if ( s[ 0 ] == '(' ) { p1 = 0 ; }
-	     else                 { p1 = s.find( " (" ) ; }
-	     if ( p1 == string::npos ) { return "" ; }
-	     p2 = s.find( ")", p1 ) ;
-	     if ( p2 == string::npos )                     { rlt = false ; return "" ; }
-	     if ( p2 < s.size()-1 && s.at( p2+1 ) != ' ' ) { rlt = false ; return "" ; }
-	     t = s.substr( p1+1, p2-p1-1 ) ;
-	     s.erase( p1, p2-p1+1 ) ;
-	     return t ;
+		if ( s[ 0 ] == '(' ) { p1 = 0 ; }
+		else                 { p1 = s.find( " (" ) ; }
+		if ( p1 == string::npos ) { return "" ; }
+		ob = 1 ;
+		for ( p2 = p1+1 ; p2 < s.size() ; p2++ )
+		{
+			if ( s.at( p2 ) == '(' ) { ob++  ; }
+			if ( s.at( p2 ) == ')' )
+			{
+				ob-- ;
+				if ( ob == 0 ) { break ; }
+			}
+		}
+		if ( ob != 0 )                                { rlt = false ; return "" ; }
+		if ( p2 < s.size()-1 && s.at( p2+1 ) != ' ' ) { rlt = false ; return "" ; }
+		t = s.substr( p1+1, p2-p1-1 ) ;
+		s.erase( p1, p2-p1+1 ) ;
+		return strip( t ) ;
 	}
 
 	p.pop_back() ;
-	p1 = s.find( p ) ;
+	p1 = us.find( p ) ;
 	if ( p1 == string::npos ) { return "" ; }
 
-	p2 = s.find( ")", p1 ) ;
-	if ( p2 == string::npos )                     { rlt = false ; return "" ; }
-	if ( p2 < s.size()-1 && s.at( p2+1 ) != ' ' ) { rlt = false ; return "" ; }
+	ob = 1 ;
+	for ( p2 = p1+p.size() ; p2 < s.size() ; p2++ )
+	{
+		if ( s.at( p2 ) == '(' ) { ob++  ; }
+		if ( s.at( p2 ) == ')' )
+		{
+			ob-- ;
+			if ( ob == 0 ) { break ; }
+		}
+	}
+	if ( ob != 0 )                                { rlt = false ; return "a" ; }
+	if ( p2 < s.size()-1 && s.at( p2+1 ) != ' ' ) { rlt = false ; return "b" ; }
 
 	t = s.substr( p1+p.size(), p2-p1-p.size() ) ;
 	s.erase( p1, p2-p1+1 ) ;
-	return t ;
+	return strip( t ) ;
 }

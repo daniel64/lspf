@@ -33,6 +33,7 @@ pApplication::pApplication()
 	jumpEntered            = false  ;
 	resumeTime             = boost::posix_time::second_clock::universal_time() ;
 	ControlDisplayLock     = false  ;
+	ControlNonDispl        = false  ;
 	ControlErrorsReturn    = false  ;
 	ControlSplitEnable     = true   ;
 	ControlRefUpdate       = true   ;
@@ -45,6 +46,8 @@ pApplication::pApplication()
 	abnormalEnd            = false  ;
 	abnormalEndForced      = false  ;
 	reloadCUATables        = false  ;
+	rexxName               = ""     ;
+	dumpFile               = ""     ;
 	NEWPOOL                = false  ;
 	PASSLIB                = false  ;
 	libdef_muser           = false  ;
@@ -271,13 +274,14 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 		if ( RC > 0 ) { checkRCode( "Cursor field >>" + currPanel->CURFLD + "<< not found on panel or invalid for DISPLAY service" ) ; break ; }
 		wait_event() ;
 		currPanel->display_panel_update( RC ) ;
-		currPanel->display_panel_proc( RC, 0 ) ;
-		if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )PROC section of panel " + p_name ) ; break ; }
 
 		ZZVERB = p_poolMGR->get( RC, "ZVERB", SHARED ) ;
 		if ( RC > 0 ) { RC = 20 ; checkRCode( "PoolMGR get of ZVERB failed" ) ; }
 		if ( ZZVERB == "RETURN" )                    { propagateEnd = true  ; }
 		if ( ZZVERB == "END" || ZZVERB == "RETURN" ) { RC = 8 ; return      ; }
+
+		currPanel->display_panel_proc( RC, 0 ) ;
+		if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )PROC section of panel " + p_name ) ; break ; }
 
 		if ( !currPanel->scrollOn )
 		{
@@ -1023,6 +1027,11 @@ void pApplication::control( string parm1, string parm2 )
 		{
 			ControlDisplayLock = true ;
 		}
+		else if ( parm2 == "NONDISPL" )
+		{
+			ControlDisplayLock = true ;
+			ControlNonDispl    = true ;
+		}
 		else if ( parm2 == "REFRESH" )
 		{
 			refresh() ;
@@ -1165,7 +1174,7 @@ void pApplication::tbadd( string tb_name, string tb_namelst, string tb_order, in
 }
 
 
-void pApplication::tbbottom( string tb_name )
+void pApplication::tbbottom( string tb_name, string tb_savenm, string tb_rowid_vn, string tb_noread, string tb_crp_name )
 {
 	// Move row pointer to the bottom
 
@@ -1175,10 +1184,9 @@ void pApplication::tbbottom( string tb_name )
 	// RC = 20  Severe error
 
 	RC = 0 ;
-
 	if ( !isTableOpen( tb_name, "TBBOTTOM" ) ) { return ; }
 
-	p_tableMGR->tbbottom( RC, tb_name ) ;
+	p_tableMGR->tbbottom( RC, funcPOOL, tb_name, tb_savenm, tb_rowid_vn, tb_noread, tb_crp_name  ) ;
 	if ( RC > 8 ) { checkRCode( "TBBOTTOM gave return code of " + d2ds( RC ) ) ; }
 }
 
@@ -2245,6 +2253,31 @@ string pApplication::sub_vars( string s )
 }
 
 
+void pApplication::save_screen()
+{
+	int ret  ;
+	string sess ;
+
+	vcopy( "ZUSER", ZUSER, MOVE ) ;
+
+	srand( time(NULL) )    ;
+	sess = right( d2ds( rand() % 10000 ), 4, '0' ) ;
+
+	dumpFile = "/tmp/lspf_" + ZUSER + "_" + sess + "_screen_" + d2ds( taskid() ) ;
+	ret = scr_dump( dumpFile.c_str() ) ;
+}
+
+
+void pApplication::restore_screen()
+{
+	int ret  ;
+
+	ret = scr_restore( dumpFile.c_str() ) ;
+	remove( dumpFile ) ;
+	dumpFile = ""      ;
+}
+
+
 void pApplication::info()
 {
 	int i ;
@@ -2261,6 +2294,10 @@ void pApplication::info()
 	log( "-", "Last Message Displayed. . : " << MSGID << endl )   ;
 	log( "-", "Number of Panels Loaded . : " << panelList.size() << endl )  ;
 	log( "-", "Number of Open Tables . . : " << tablesOpen.size() << endl ) ;
+	if ( rexxName != "" )
+	{
+		log( "-", "Application running REXX. : " << rexxName << endl ) ;
+	}
 	log( "-", " " << endl ) ;
 	if ( testMode )
 	{
@@ -2345,6 +2382,7 @@ void pApplication::cleanup_default()
 void pApplication::cleanup()
 {
 	log( "I", "Shutting down application: " << ZAPPNAME << " Taskid: " << taskID << endl ) ;
+	if ( dumpFile != "" ) { remove( dumpFile ) ; }
 	terminateAppl = true  ;
 	busyAppl      = false ;
 	log( "I", "Returning to calling program." << endl ) ;
@@ -2355,6 +2393,7 @@ void pApplication::cleanup()
 void pApplication::abend()
 {
 	log( "E", "Shutting down application: " << ZAPPNAME << " Taskid: " << taskID << " due to an abnormal condition" << endl ) ;
+	if ( dumpFile != "" ) { remove( dumpFile ) ; }
 	abnormalEnd   = true  ;
 	terminateAppl = true  ;
 	busyAppl      = false ;
@@ -2389,6 +2428,7 @@ void pApplication::abendexc()
 void pApplication::set_forced_abend()
 {
 	log( "E", "Shutting down application: " << ZAPPNAME << " Taskid: " << taskID << " due to a forced condition" << endl ) ;
+	if ( dumpFile != "" ) { remove( dumpFile ) ; }
 	abnormalEnd       = true  ;
 	abnormalEndForced = true  ;
 	terminateAppl     = true  ;

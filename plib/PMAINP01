@@ -1,6 +1,6 @@
 )PANEL VERSION=1 FORMAT=1
 
-)COMMENT 
+)COMMENT
 
 Defaults for HOME() and CMD() on the BODY statement are ZCMD
              WINDOW(w,d)
@@ -49,7 +49,7 @@ PROC :
      &ZCMD = TRANS( &ZCMD Y,YES N,NO *.* )
      &ZCMD = TRANS( &ZCMD Y,YES N,NO *.? )
 
-     At end of the )PROC section or EXIT, if .MSG set, re-issue panel, else return to program 
+     At end of the )PROC section or EXIT, if .MSG set, re-issue panel, else return to program
 
 INIT | REINIT :
     VGET VAR1 PROFILE | SHARED
@@ -68,123 +68,127 @@ FIELD :
     (Intended use is for file/directory name expansion but a general implementation)
     ZRC = 8 will sound a beep and not replace the field
 
-    
+
 )ENDCOMMENT
 
 )BODY CMD(ZCMD) HOME(ZCMD)
 
 PrimaryMenu
 
-PanelTitle "Primary Menu Panel"  
+PanelTitle "Primary Menu Panel"
 
-LITERAL   4    2    FP  "Options ===> "    
-FIELD     4   15   MAX   NEF   CAPS(On),pad('_'),just(left),numeric(off),skip(on) ZCMD    
+LITERAL   4    2    FP  "Options ===> "
+FIELD     4   15   MAX   NEF   CAPS(On),pad('_'),just(left),numeric(off),skip(on) ZCMD
 
 literal  6  2    SAC  "0"
-literal  6  5    PS   "Settings"    
-literal  6  16   NT   "Display and alter user settings"    
+literal  6  5    PS   "Settings"
+literal  6  16   NT   "Display and alter user settings"
 
 literal  7  2    SAC  "1"
-literal  7  5    PS   "Browse"    
-literal  7  16    NT   "Browse files"    
+literal  7  5    PS   "Browse"
+literal  7  16    NT   "Browse files"
 
 literal  8  2    SAC  "2"
-literal  8  5    PS   "Edit"    
-literal  8  16    NT   "Edit files"    
+literal  8  5    PS   "Edit"
+literal  8  16    NT   "Edit files"
 
 literal  9  2    SAC  "3"
-literal  9  5    PS   "Utilities"    
-literal  9  16    NT   "File Utilities"    
+literal  9  5    PS   "Utilities"
+literal  9  16    NT   "File Utilities"
 
 literal  10  2    SAC  "4"
-literal  10  5    PS   "Testing"    
-literal  10  16    NT   "Invoke Testing Program"    
+literal  10  5    PS   "Testing"
+literal  10  16    NT   "Invoke Testing Program"
 
 literal  11  2    SAC  "5"
-literal  11  5    PS   "Tasks"    
-literal  11  16    NT   "Display Tasks and System Resource Usage"    
+literal  11  5    PS   "Tasks"
+literal  11  16    NT   "Display Tasks and System Resource Usage"
 
 literal  12  2    SAC  "6"
-literal  12  5    PS   "Command"    
-literal  12  16    NT   "Enter Commands"    
+literal  12  5    PS   "Command"
+literal  12  16    NT   "Enter Commands"
 
 literal  13  2    SAC  "7"
-literal  13  5    PS   "Dialogue"    
-literal  13  16    NT   "Dialogue Testing"    
+literal  13  5    PS   "Dialogue"
+literal  13  16    NT   "Dialogue Testing"
 
 literal  14  2    SAC  "8"
-literal  14  5    PS   "Lspf Log"    
-literal  14  16    NT   "Browse Lspf Log"    
+literal  14  5    PS   "Lspf Log"
+literal  14  16    NT   "Browse Lspf Log"
 
 literal  15  2    SAC  "9"
-literal  15  5    PS   "Appl Log"    
-literal  15  16    NT   "Browse Application Log"    
+literal  15  5    PS   "Appl Log"
+literal  15  16    NT   "Browse Application Log"
 
-literal  17  2    SAC  "D"
-literal  17  5    PS   "MySQL"    
-literal  17  16    NT   "MySQL Database Actions"    
+literal  16  2    SAC  "10"
+literal  16  5    PS   "Functions"
+literal  16  16    NT   "Invoke dialogue functions or selection panel"
 
-literal  18  2    SAC  "U"
-literal  18  5    PS   "User Menu"    
-literal  18  16    NT   "User Actions"    
+literal  18  2    SAC  "D"
+literal  18  5    PS   "MySQL"
+literal  18  16    NT   "MySQL Database Actions"
 
-literal  19  2    SAC  "S"
-literal  19  5    PS   "System"    
-literal  19  16    NT   "System Utilities"    
+literal  19  2    SAC  "U"
+literal  19  5    PS   "User Menu"
+literal  19  16    NT   "User Actions"
+
+literal  20  2    SAC  "S"
+literal  20  5    PS   "System"
+literal  20  16    NT   "System Utilities"
 
 literal  21  2    SAC  "T"
-literal  21  5    PS   "TUTORIAL"    
-literal  21  16    NT   "Start Tutorial"    
+literal  21  5    PS   "TUTORIAL"
+literal  21  16    NT   "Start Tutorial"
 
-literal  22  2    SAC  "X"
-literal  22  5    PS   "Terminate"    
-literal  22  16    NT   "Termiante Session"    
+literal  23  2    SAC  "X"
+literal  23  5    PS   "Terminate"
+literal  23  16    NT   "Termiante Session"
 
 dynArea        7 MAX-60  21   11  ZAREA  ZSHADOW
 
-Literal  7  MAX-35    FP    "User       :"     
-Field    7  MAX-22    8    VOI     NONE  ZUSER    
+Literal  7  MAX-35    FP    "User       :"
+Field    7  MAX-22    8    VOI     NONE  ZUSER
 
-literal  8  MAX-35    FP    "Home       :"     
-field    8  MAX-22    15    VOI     NONE  ZHOME    
+literal  8  MAX-35    FP    "Home       :"
+field    8  MAX-22    15    VOI     NONE  ZHOME
 
-literal  9    MAX-35    FP "Node Name  :"     
-field    9    MAX-22    10   VOI     NONE  ZNODNAME    
+literal  9    MAX-35    FP "Node Name  :"
+field    9    MAX-22    10   VOI     NONE  ZNODNAME
 
-literal  10  MAX-35    FP  "Machine    :"     
-field    10  MAX-22    8    VOI     NONE  ZMACHINE    
+literal  10  MAX-35    FP  "Machine    :"
+field    10  MAX-22    8    VOI     NONE  ZMACHINE
 
-literal  11  MAX-35    FP  "Environment:"     
-field    11   MAX-22    15   VOI     NONE  ZENVIR   
+literal  11  MAX-35    FP  "Environment:"
+field    11   MAX-22    15   VOI     NONE  ZENVIR
 
-literal  12  MAX-35    FP  "System Name:"     
-field    12   MAX-22   10    VOI     NONE  ZSYSNAME    
+literal  12  MAX-35    FP  "System Name:"
+field    12   MAX-22   10    VOI     NONE  ZSYSNAME
 
-literal  13   MAX-35    FP "OS Release :"     
-field    13   MAX-22   15    VOI    NONE  ZOSREL    
+literal  13   MAX-35    FP "OS Release :"
+field    13   MAX-22   15    VOI    NONE  ZOSREL
 
-literal  15   MAX-35   FP  "Date       :"     
-field    15   MAX-22   8    VOI     NONE  ZDATE    
+literal  15   MAX-35   FP  "Date       :"
+field    15   MAX-22   8    VOI     NONE  ZDATE
 
-literal  16   MAX-35   FP  "Time       :"     
-field    16   MAX-22   8    VOI     NONE  ZTIMEL    
+literal  16   MAX-35   FP  "Time       :"
+field    16   MAX-22   8    VOI     NONE  ZTIMEL
 
 )COMMENT
-literal   9    2    FP  "ZSCRMAXD:"     
-field    9    12    8    VOI     NONE  ZSCRMAXD    
-literal   10   2    FP  "ZSCRMAXW:"     
-field    10   12    8    VOI     NONE  ZSCRMAXW    
+literal   9    2    FP  "ZSCRMAXD:"
+field    9    12    8    VOI     NONE  ZSCRMAXD
+literal   10   2    FP  "ZSCRMAXW:"
+field    10   12    8    VOI     NONE  ZSCRMAXW
 
 
 
 )ENDCOMMENT
 
 
-literal   25    2    FP     "Enter"     
-literal   25    8    VOI    "HELP"     
-literal   25    13   FP     "to display basic information, or"     
-literal   25    46   VOI    "X"     
-literal   25    48   FP     "to exit"     
+literal   26    2    FP     "Enter"
+literal   26    8    PS     "HELP"
+literal   26    13   FP     "to display basic information, or"
+literal   26    46   PS     "X"
+literal   26    48   FP     "to exit"
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
@@ -202,6 +206,7 @@ literal   25    48   FP     "to exit"
 7 "SELECT PANEL(PDLGTST1)"
 8 "SELECT PGM(PPSP01A) PARM(SL) NEWAPPL(TEST)"
 9 "SELECT PGM(PPSP01A) PARM(AL) NEWAPPL"
+10 "SELECT CMD(%porexx5) NEWAPPL(NAPL)"
 D "SELECT PGM(PSQLAPL1) NEWAPPL(SQL)"
 U "SELECT PANEL(PUSER0A) NEWAPPL(USR)"
 S "SELECT PGM(PSYST0A) PARM(SL) NEWAPPL(SYSA)"
@@ -209,6 +214,9 @@ T "SELECT PGM(&ZHELPPGM)"
 X "END"
 
 )PROC
+
+&ZCMD   = TRUNC(&ZCMD,'.')
+&ZTRAIL = .TRAIL
 
 &W1  = TRUNC(&ZCMD,' ')
 &W2  = .TRAIL
@@ -233,27 +241,27 @@ IF (&W1 = 'DATE')
       .CURSOR = ZCMD
    EXIT
 
-&ZCMD  = TRUNC(&ZCMD,'.')
-&ZREST = .TRAIL
-
-VER (&ZCMD LIST 0 1 2 3 4 5 6 7 8 9 D U S T X)
+VER (&ZCMD LIST 0 1 2 3 4 5 6 7 8 9 10 D U S T X)
 
 )PNTS
-FIELD( ZPS01001 ) VAR(ZCMD)  VAL(0)   
-FIELD( ZPS01002 ) VAR(ZCMD)  VAL(1)   
-FIELD( ZPS01003 ) VAR(ZCMD)  VAL(2)   
-FIELD( ZPS01004 ) VAR(ZCMD)  VAL(3)   
-FIELD( ZPS01005 ) VAR(ZCMD)  VAL(4)   
-FIELD( ZPS01006 ) VAR(ZCMD)  VAL(5)   
-FIELD( ZPS01007 ) VAR(ZCMD)  VAL(6)   
-FIELD( ZPS01008 ) VAR(ZCMD)  VAL(7)   
-FIELD( ZPS01009 ) VAR(ZCMD)  VAL(8)   
-FIELD( ZPS01010 ) VAR(ZCMD)  VAL(9)   
-FIELD( ZPS01011 ) VAR(ZCMD)  VAL(D)   
-FIELD( ZPS01012 ) VAR(ZCMD)  VAL(U)   
-FIELD( ZPS01013 ) VAR(ZCMD)  VAL(S)   
-FIELD( ZPS01014 ) VAR(ZCMD)  VAL(T)   
-FIELD( ZPS01015 ) VAR(ZCMD)  VAL(X)   
+FIELD( ZPS01001 ) VAR(ZCMD)  VAL(0)
+FIELD( ZPS01002 ) VAR(ZCMD)  VAL(1)
+FIELD( ZPS01003 ) VAR(ZCMD)  VAL(2)
+FIELD( ZPS01004 ) VAR(ZCMD)  VAL(3)
+FIELD( ZPS01005 ) VAR(ZCMD)  VAL(4)
+FIELD( ZPS01006 ) VAR(ZCMD)  VAL(5)
+FIELD( ZPS01007 ) VAR(ZCMD)  VAL(6)
+FIELD( ZPS01008 ) VAR(ZCMD)  VAL(7)
+FIELD( ZPS01009 ) VAR(ZCMD)  VAL(8)
+FIELD( ZPS01010 ) VAR(ZCMD)  VAL(9)
+FIELD( ZPS01011 ) VAR(ZCMD)  VAL(10)
+FIELD( ZPS01012 ) VAR(ZCMD)  VAL(D)
+FIELD( ZPS01013 ) VAR(ZCMD)  VAL(U)
+FIELD( ZPS01014 ) VAR(ZCMD)  VAL(S)
+FIELD( ZPS01015 ) VAR(ZCMD)  VAL(T)
+FIELD( ZPS01016 ) VAR(ZCMD)  VAL(X)
+FIELD( ZPS01017 ) VAR(ZCMD)  VAL(HELP)
+FIELD( ZPS01018 ) VAR(ZCMD)  VAL(X)
 
 )HELP
 

@@ -49,27 +49,43 @@ void PDPANLA::application()
 {
 	string w1  ;
 	string ws  ;
+	string opt ;
 	int p1     ;
 
+	string ZTRAIL      ;
 	string S_PGM       ;
 	string S_PARM      ;
 	string S_NEWAPPL   ;
 	bool   S_NEWPOOL   ;
 	bool   S_PASSLIB   ;
 
+	bool   loope       ;
+
 	PANELNM  = word( PARM, 1 ) ;
-	PARM     = subword( PARM, 2 ) ;
+	opt      = subword( PARM, 2 ) ;
+	command  = ""                 ;
 	log( "I", "SELECT PANEL " << PANELNM << " with parameters " << PARM << endl ) ;
 
 	vdefine( "ZCMD ZVERB", &ZCMD, &ZVERB ) ;
 
-	ZCMD = "" ; MSG = "" ;
-        while ( true )
-        {
+	ZCMD  = "" ;
+	MSG   = "" ;
+	loope = false ;
+
+	while ( true )
+	{
+		if ( opt != "" )
+		{
+			ZCMD = opt ;
+			control( "DISPLAY", "NONDISPL" ) ;
+			opt   = ""   ;
+			loope = true ;
+		}
 		display( PANELNM, MSG, "ZCMD" );
 		if ( RC == 8 ) break ;
 		if ( RC  > 8 ) { abend() ; return ; }
 
+		if ( MSG != "" ) { loope = false ; }
 		MSG  = "" ;
 		vget( "ZVERB", SHARED ) ;
 
@@ -78,17 +94,16 @@ void PDPANLA::application()
 		command = get_select_cmd( ZCMD ) ;
 		if ( command == "" )
 		{
-			MSG = "PSYS016" ;
-			continue         ;
+			MSG   = "PSYS016" ;
+			continue          ;
 		}
-
-		if ( command == "ACTION END" ) break ;
 
 		w1 = word( command, 1 ) ;
 		ws = subword( command, 2 ) ;
+		vcopy( "ZTRAIL", ZTRAIL, MOVE ) ;
 		if ( w1 == "SELECT" )
 		{
-			selectParse( RC, ws, S_PGM, S_PARM, S_NEWAPPL, S_NEWPOOL, S_PASSLIB) ;
+			selectParse( RC, ws, S_PGM, S_PARM, S_NEWAPPL, S_NEWPOOL, S_PASSLIB ) ;
 			if ( RC > 0 )
 			{
 				log( "E", "Select command " << ws << " is invalid.  RC > 0 returned from parse" << endl ) ;
@@ -102,9 +117,10 @@ void PDPANLA::application()
 				S_PARM = delstr( S_PARM, p1, 6 )   ;
 				S_PARM = insert( ZCMD, S_PARM, p1 ) ;
 			}
-			if ( substr( S_PGM, 1, 1 ) == "&" )
+			if ( S_PGM == "&ZPANLPGM" && ZTRAIL != "" ) { S_PARM = S_PARM + " " + ZTRAIL ; }
+			if ( S_PGM[ 0 ] == '&' )
 			{
-				vcopy( substr( S_PGM, 2 ), S_PGM, MOVE ) ;
+				vcopy( S_PGM.erase( 0, 1 ), S_PGM, MOVE ) ;
 			}
 			select( S_PGM, S_PARM, S_NEWAPPL, S_NEWPOOL, S_PASSLIB ) ;
 			if ( RC  > 4 )
@@ -118,6 +134,7 @@ void PDPANLA::application()
 		{
 			if ( w1 == "ACTION" )
 			{
+				if ( ws == "END" ) { break ; }
 				log( "N", "ACTION function of select panels has not been implemented yet" << endl ) ;
 				MSG = "PSYS015" ;
 			}
@@ -127,8 +144,10 @@ void PDPANLA::application()
 				MSG = "PSYS017" ;
 			}
 		}
-        }
-        cleanup() ;
+		if ( loope && MSG == "" ) { break ; }
+		command = "" ;
+	}
+	cleanup() ;
 }
 
 

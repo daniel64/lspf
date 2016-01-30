@@ -6,43 +6,43 @@
 
 )BODY
 
-PanelTitle "Dialogue Services Selection Menu"  
+PanelTitle "Dialogue Services Selection Menu"
 
-literal   4    2        FP   "Command ===> "    
-field     4   15   MAX  NEF     CAPS(ON)  ZCMD    
+literal   4    2        FP   "Command ===> "
+field     4   15   MAX  NEF     CAPS(ON)  ZCMD
 
-literal   6   MAX-20        FP  "Date: "     
-field     6   MAX-14    8   VOI   NONE  ZDATE    
+literal   6   MAX-20        FP  "Date: "
+field     6   MAX-14    8   VOI   NONE  ZDATE
 
-literal   7   MAX-20         FP  "Time: "     
-field     7   MAX-14    8    VOI   NONE  ZTIME    
+literal   7   MAX-20         FP  "Time: "
+field     7   MAX-14    8    VOI   NONE  ZTIME
 
 literal  6  2    SAC  "0"
-literal  6  5    PS   "Display Panel"    
-literal  6  20   NT   "Display Panel"    
+literal  6  5    PS   "Display Panel"
+literal  6  20   NT   "Display Panel"
 
 literal  7  2    SAC  "1"
-literal  7  5    PS   "Variables"    
+literal  7  5    PS   "Variables"
 literal  7  20   NT   "Display system variables"
 
 literal  8 2    SAC  "2"
-literal  8 5    PS   "Check Pattern"    
+literal  8 5    PS   "Check Pattern"
 literal  8 20   NT   "Check pattern matching algorithm"
 
 literal  9  2    SAC  "3"
-literal  9  5    PS   "Check Panel"    
-literal  9  20   NT   "Check and Preprocess Panel Source"    
+literal  9  5    PS   "Check Panel"
+literal  9  20   NT   "Check and Preprocess Panel Source"
 
 literal  10  2    SAC  "4"
 literal  10  5    PS   "Variables"
 literal  10  20   NT   "Display Dialogue Variables"
 
 literal  12 2    SAC  "T"
-literal  12 5    PS   "Tutorial"    
-literal  12 20   NT   "Start Tutorial"    
+literal  12 5    PS   "Tutorial"
+literal  12 20   NT   "Start Tutorial"
 
 literal  13  2    SAC  "X"
-literal  13  5    PS   "Terminate"    
+literal  13  5    PS   "Terminate"
 literal  13  20   NT   "Terminate Dialogue Services"
 
 
@@ -60,15 +60,18 @@ T "SELECT PGM(&ZHELPPGM) PARM(&ZPARM)"
 X "ACTION END"
 
 )PROC
+
+&ZCMD   = TRUNC(&ZCMD,'.')
+&ZTRAIL = .TRAIL
 --VER (&ZCMD NB MSG=PSYS019)
 
 )PNTS
-FIELD( ZPS01001 ) VAR(ZCMD)  VAL(0)   
-FIELD( ZPS01002 ) VAR(ZCMD)  VAL(1)   
-FIELD( ZPS01003 ) VAR(ZCMD)  VAL(2)   
-FIELD( ZPS01004 ) VAR(ZCMD)  VAL(3)   
-FIELD( ZPS01005 ) VAR(ZCMD)  VAL(4)   
-FIELD( ZPS01006 ) VAR(ZCMD)  VAL(T)   
-FIELD( ZPS01007 ) VAR(ZCMD)  VAL(X)   
+FIELD( ZPS01001 ) VAR(ZCMD)  VAL(0)
+FIELD( ZPS01002 ) VAR(ZCMD)  VAL(1)
+FIELD( ZPS01003 ) VAR(ZCMD)  VAL(2)
+FIELD( ZPS01004 ) VAR(ZCMD)  VAL(3)
+FIELD( ZPS01005 ) VAR(ZCMD)  VAL(4)
+FIELD( ZPS01006 ) VAR(ZCMD)  VAL(T)
+FIELD( ZPS01007 ) VAR(ZCMD)  VAL(X)
 
 )END

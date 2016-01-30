@@ -32,6 +32,7 @@ class pApplication
 		string PPANELID           ;
 		string MSGID              ;
 		bool   ControlDisplayLock ;
+		bool   ControlNonDispl    ;
 		bool   ControlSplitEnable ;
 		bool   ControlRefUpdate   ;
 		bool   errPanelissued     ;
@@ -47,6 +48,7 @@ class pApplication
 		bool   libdef_muser       ;
 		bool   libdef_puser       ;
 		bool   libdef_tuser       ;
+		string rexxName           ;
 		bool   SEL                ;
 		string SEL_PGM            ;
 		string SEL_PARM           ;
@@ -79,6 +81,8 @@ class pApplication
 		void   info() ;
 		void   refresh()  ;
 		void   nrefresh() ;
+		void   save_screen()    ;
+		void   restore_screen() ;
 		void   panel_create( string p_name ) ;
 
 		string get_select_cmd( string ) ;
@@ -114,7 +118,7 @@ class pApplication
 		map<string,  bool> tablesUpdate ;
 
 		void   tbadd( string tb_name, string tb_namelst="", string tb_order="", int tb_num_of_rows=0 ) ;
-		void   tbbottom( string tb_name ) ;
+		void   tbbottom( string tb_name, string tb_savenm="", string tb_rowid_vn="", string tb_noread="", string tb_crp_name="" ) ;
 		void   tbclose( string tb_name, string new_name="", string path="" ) ;
 		void   tbcreate( string tb_name, string keys, string names, tbSAVE a=NOWRITE, tbREP b=NOREPLACE, string path="", tbDISP c=EXCLUSIVE ) ;
 		void   tbdelete( string tb_name ) ;
@@ -153,6 +157,7 @@ class pApplication
 		void   set_cursor( int row, int col ) ;
 
 		bool   isprimMenu()  ;
+		bool   popupDisplayed() { return addpop_active ; }
 		void   get_home( uint & row, uint & col ) ;
 		void   get_cursor( uint & row, uint & col ) ;
 		void   set_msg( string, string, cuaType, bool ) ;
@@ -218,16 +223,19 @@ class pApplication
 	private:
 		boost::mutex mutex ;
 
-		int   addpop_row            ;
-		int   addpop_col            ;
-		bool  addpop_active         ;
+		int    addpop_row          ;
+		int    addpop_col          ;
 
-		bool  ControlErrorsReturn   ;
-		bool  abending              ;
+		string dumpFile            ;
 
-		stack<string> stk_str       ;
-		stack<int> stk_int          ;
-		stack<int> addpop_stk       ;
+		bool   addpop_active       ;
+
+		bool   ControlErrorsReturn ;
+		bool   abending            ;
+
+		stack<string> stk_str      ;
+		stack<int> stk_int         ;
+		stack<int> addpop_stk      ;
 
 		void read_Message( string ) ;
 		void load_keylist( pPanel * ) ;

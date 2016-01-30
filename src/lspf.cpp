@@ -20,7 +20,6 @@
 
 */
 
-
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -170,7 +169,7 @@ static string BuiltInCommands = "ABEND ACTION DISCARD FIELDEXC INFO NOP PANELID 
 std::ofstream splog(SLOG) ;
 
 
-int main(void)
+int main( void )
 {
 	int  RC      ;
 	int  elapsed ;
@@ -454,7 +453,8 @@ void MainLoop()
 			case KEY_ENTER:
 				debug1( "Action key pressed.  Processing" << endl ) ;
 				Insert = false ;
-				if ( commandStack == "" ) { currScrn->busy_show() ; }
+				if ( commandStack == "" && !currAppl->ControlNonDispl ) { currScrn->busy_show() ; }
+				currAppl->ControlNonDispl = false ;
 				updateDefaultVars() ;
 				processAction( row, col, c, passthru ) ;
 				if ( passthru )
@@ -603,6 +603,10 @@ void MainLoop()
 							break ;
 						}
 						if ( pLScreen::screensTotal == ZMAXSCRN ) continue ;
+						if ( currAppl->popupDisplayed() )
+						{
+							currAppl->save_screen() ;
+						}
 						altScreen  = screenNum         ;
 						screenNum  = screenList.size() ;
 						p_pLScreen = new pLScreen      ;
@@ -651,14 +655,22 @@ void MainLoop()
 								screenNum = t ;
 							}
 						}
+						if ( currAppl->popupDisplayed() )
+						{
+							currAppl->save_screen() ;
+						}
 						p_pLScreen           = screenList[ screenNum ] ;
 						pLScreen::currScreen = p_pLScreen ;
 						currAppl             = p_pLScreen->application_get_current() ;
 						p_poolMGR->setAPPLID( RC, currAppl->ZZAPPLID )   ;
 						p_poolMGR->setshrdPool( RC, currAppl->shrdPool ) ;
 						p_poolMGR->put( RC, "ZPANELID", currAppl->PANELID, SHARED, SYSTEM ) ;
-						pLScreen::currScreen->clear() ;
+						if ( currAppl->popupDisplayed() )
+						{
+							currAppl->restore_screen() ;
+						}
 						currAppl->refresh() ;
+						doupdate();
 						loadpfkeyTable() ;
 						break ;
 					}
@@ -1119,6 +1131,10 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 		ldp = currAppl->libdef_puser ;
 		ldt = currAppl->libdef_tuser ;
 	}
+	if ( currAppl->popupDisplayed() )
+	{
+		currAppl->save_screen() ;
+	}
 	pLScreen::currScreen->clear() ;
 
 	currAppl = ((pApplication*(*)())( maker_ep[ Application ]))() ;
@@ -1231,6 +1247,7 @@ void terminateApplication()
 	bool refList      ;
 	bool propagateEnd ;
 	bool jumpEntered  ;
+	bool setCursor    ;
 
 	boost::thread * pThread ;
 
@@ -1340,6 +1357,7 @@ void terminateApplication()
 		}
 	}
 
+	setCursor = true ;
 	if ( currAppl->field_name != "" )
 	{
 		if ( tRC == 0 )
@@ -1349,6 +1367,7 @@ void terminateApplication()
 				currAppl->currPanel->field_setvalue( currAppl->field_name, tRESULT ) ;
 				currAppl->currPanel->cursor_eof( row, col ) ;
 				currAppl->currPanel->set_cursor( row, col ) ;
+				setCursor = false ;
 			}
 			else
 			{
@@ -1360,6 +1379,7 @@ void terminateApplication()
 		else if ( tRC == 8 )
 		{
 			beep() ;
+			setCursor = false ;
 		}
 		currAppl->field_name = "" ;
 	}
@@ -1372,6 +1392,10 @@ void terminateApplication()
 		commandStack = jumpOption ;
 	}
 
+	if ( currAppl->popupDisplayed() )
+	{
+		currAppl->restore_screen() ;
+	}
 	if ( currAppl->SEL )
 	{
 		if ( propagateEnd )
@@ -1438,11 +1462,17 @@ void terminateApplication()
 			if ( pLScreen::screensTotal == 0 ) return ;
 		}
 		if ( SMSG != "" )  { currAppl->set_msg( SMSG, LMSG, MSGTYPE, MSGALRM ) ; }
-		currScrn->clear()   ;
+		if ( !currAppl->popupDisplayed() )
+		{
+			currScrn->clear()   ;
+		}
 		currAppl->refresh() ;
-		currAppl->get_home( row, col ) ;
-		currAppl->set_cursor( row, col ) ;
-		currAppl->setMSG = false       ;
+		if ( setCursor )
+		{
+			currAppl->get_home( row, col ) ;
+			currAppl->set_cursor( row, col ) ;
+			currAppl->setMSG = false       ;
+		}
 	}
 	log( "I", "Application terminatation of " << ZAPPNAME << " completed.  Current application is " << currAppl->ZAPPNAME << endl ) ;
 	currScrn->set_row_col( row, col ) ;

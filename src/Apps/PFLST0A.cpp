@@ -33,6 +33,10 @@
 /*                SUBPARM of DO1 - return only directories                                                  */
 /*                SUBPARM of FO1 - return only fully qualified files                                        */
 /*                SUBPARM of FO2 - return only the file names (without the directory name)                  */
+/* If invoked with a PARM of EXPAND1, will expand field according to subtype                                */
+/*                SUBPARM of PNL  - panel files in ZPLIB                                                    */
+/*                SUBPARM of REXX - REXX programs in ZORXPATH                                               */
+/*                SUBPARM of PGM  - C++ programs in ZDLPATH                                                 */
 
 /* CD /xxx to change to directory /xxx                                                                      */
 /* CD xxx to change to directory xxx under the current directory listing                                    */
@@ -185,6 +189,12 @@ void PFLST0A::application()
 			{
 				ZRESULT = substr( ZRESULT, lastpos( "/", ZRESULT)+1 ) ;
 			}
+			cleanup() ;
+			return    ;
+		}
+		else if ( w1 == "EXPAND1" )
+		{
+			ZRESULT = expandFld1( subword( PARM, 2 ) ) ;
 			cleanup() ;
 			return    ;
 		}
@@ -1665,6 +1675,124 @@ string PFLST0A::expandDir( string parms )
 }
 
 
+string PFLST0A::expandFld1( string parms )
+{
+	// Expand field from listing of ZPLIB, ZORXPATH or ZLDPATH
+
+	// Cursor sensitive.  Only characters before the current cursor position (if > 1) in the field (ZFECSRP) will
+	// be taken into account
+
+	// If first parameter is PNL, panel files
+	// If first parameter is REXX, rexx programs
+	// If first parameter is PGM, programs (strip off "lib" and ".so" before comparison)
+
+	int i        ;
+	int n        ;
+	int pos      ;
+
+	string Paths ;
+	string type  ;
+	string dir1  ;
+	string entry ;
+	string dir   ;
+	string cpos  ;
+
+	ZRC = 8 ;
+
+	typedef vector< path > vec ;
+	vec v ;
+	vec::iterator vec_end ;
+
+	vector< string > mod ;
+	vector< string >::iterator it ;
+	vector< string >::iterator mod_end ;
+
+	type = word( parms, 1 )    ;
+	dir  = subword( parms, 2 ) ;
+
+	vget( "ZFECSRP", SHARED ) ;
+	vcopy( "ZFECSRP", cpos, MOVE ) ;
+	pos = ds2d( cpos ) ;
+
+	if ( pos > 1 && pos < dir.size() )
+	{
+		dir.erase( pos-1 ) ;
+	}
+
+	if ( type == "PNL" )
+	{
+		vcopy( "ZPLIB", Paths, MOVE ) ;
+	}
+	else if ( type == "REXX" )
+	{
+		vcopy( "ZORXPATH", Paths, MOVE ) ;
+	}
+	else if ( type == "PGM" )
+	{
+		vcopy( "ZLDPATH", Paths, MOVE ) ;
+	}
+	else { return "" ; }
+
+
+	n = getpaths( Paths ) ;
+	v.clear() ;
+	for ( i = 1 ; i <= n ; i++ )
+	{
+		dir1 = getpath( Paths, i ) ;
+		try
+		{
+			copy( directory_iterator( dir1 ), directory_iterator(), back_inserter( v ) ) ;
+		}
+		catch ( const filesystem_error& ex )
+		{
+			ZRESULT = "List Error" ;
+			RC      = 16 ;
+			log( "E", "Error listing directory " << ex.what() << endl ) ;
+			return "" ;
+		}
+	}
+
+	vec_end = remove_if( v.begin(), v.end(), [](const path & a) { return !is_regular_file( a.string() ) ; } ) ;
+
+	for_each( v.begin(), vec_end,
+		[&mod](const path & a) { mod.push_back( substr( a.string(), lastpos( "/", a.string())+1 ) ) ; } ) ;
+
+	mod_end = mod.end() ;
+	if ( type == "PGM" )
+	{
+		mod_end = remove_if( mod.begin(), mod.end(),
+			[](const string & a) { return ( a.compare( a.size()-3,3 , ".so" ) > 0 ) ; } ) ;
+	}
+
+	sort( mod.begin(), mod_end ) ;
+
+	mod_end = unique( mod.begin(), mod_end ) ;
+
+	for ( it = mod.begin() ; it != mod_end ; ++it )
+	{
+		entry = (*it) ;
+		if ( type == "PGM" ) { entry = getAppName( entry ) ; }
+		if ( !abbrev( entry, dir ) ) { continue ; }
+		ZRC = 0 ;
+		if ( entry == dir )
+		{
+			it++ ;
+			if ( it != mod_end )
+			{
+				if ( type == "PGM" ) { return getAppName( (*it) ) ; }
+				return (*it) ;
+			}
+			else
+			{
+				return dir ;
+			}
+		}
+		else { return entry ; }
+	}
+	return entry ;
+}
+
+
 string PFLST0A::showListing()
 {
 	string w1       ;
@@ -1839,6 +1967,18 @@ void PFLST0A::createFileList2( string FLDIRS, string filter )
 	tbtop( DSLIST ) ;
 }
 
+
+string PFLST0A::getAppName( string s )
+{
+	// Remove "lib" at the front and ".so" at the end of a module name
+
+	if ( s.size() > 6 )
+	{
+		s.erase( 0, 3 ) ;
+		return s.erase( s.size() - 3 ) ;
+	}
+	return s ;
+}
 
 
 // ============================================================================================ //

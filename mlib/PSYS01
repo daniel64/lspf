@@ -111,3 +111,12 @@ PSYS011B "OREXX procedure not valid"
 
 PSYS011C "OREXX procedure not found"
 "OREXX procedure has not been found in the ZORXPATH concatination"
+
+PSYS011D "Error in SELECT"
+"Entered SELECT is not valid.  Check log for details"
+
+PSYS011E "Entry Conflict"
+"Fields entered in an invalid combination.  Leave field blank"
+
+PSYS011F "Enter Data"
+"Enter data into fields to continue"

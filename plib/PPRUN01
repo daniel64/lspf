@@ -1,0 +1,119 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel to run an application or rexx procedure with parameters
+)ENDCOMMENT
+)BODY
+PanelTitle "Invoke Dialogue Functions or Selection Panel"
+
+literal  4   2          FP    "Command ===> "
+field    4  15  MAX-17  NEF CAPS(ON) ZCMD
+
+literal  6   2          CH    "Options:"
+literal  7   7          FP    "APPLID. . ."
+field    7  19  4       NEF CAPS(ON) PRAPPL
+
+literal  6   40         FP    "Enter / to select option"
+field    7   40  1      CEF     PAD('_') PRNAPPL
+literal  7   42         SAC   "NEWAPPL"
+
+field    7   51  1      CEF     PAD('_') PRNPOOL
+literal  7   53         SAC   "NEWPOOL"
+
+field    7   62  1      CEF     PAD('_') PRPSLIB
+literal  7   64         SAC   "PASSLIB"
+
+literal  9   2          CH    "Invoke selection panel:"
+literal  10  7          FP    "PANEL . . ."
+field    10 19  8       NEF CAPS(ON) PRSPNL
+literal  11  7          FP    "OPT . . . ."
+field    11 19  MAX-17  NEF NONE     PRSOPT
+
+literal  13  2          CH    "Invoke command:"
+literal  14  7          FP    "CMD . . . ."
+field    14 19  MAX     NEF NONE     PRICMD
+
+literal  16  2          CH    "Invoke program:"
+literal  17  7          FP    "PGM . . . ."
+field    17 19  20      NEF CAPS(ON) PRIPGM
+literal  18  7          FP    "PARM. . . ."
+field    18 19  MAX-17  NEF NONE     PRIPRM
+
+literal 21 2   CH "Instructions"
+literal 23 2   NT "Enter the PANEL, CMD or PGM fields and press"
+literal 23 47  ET "ENTER"
+literal 23 53  NT "to invoke function"
+literal 25 2   NT "These fields support expansion using command"
+literal 25 47  ET "FIELDEXC"
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+
+)INIT
+
+)PROC
+
+IF (&PRSPNL EQ &Z )
+   IF (&PRICMD EQ &Z )
+      IF (&PRIPGM EQ &Z )
+         .CURSOR = PRSPNL
+         .MSG    = PSYS011F
+         EXIT
+
+IF (&PRSPNL NE &Z )
+   IF ( .CURSOR EQ PRSPNL )
+      &PRICMD = &Z
+      &PRIPGM = &Z
+
+IF (&PRICMD NE &Z )
+   IF ( .CURSOR EQ PRICMD )
+      &PRSPNL = &Z
+      &PRIPGM = &Z
+
+IF (&PRIPGM NE &Z )
+   IF ( .CURSOR EQ PRIPGM )
+      &PRSPNL = &Z
+      &PRICMD = &Z
+
+IF (&PRSPNL NE &Z )
+   IF (&PRICMD NE &Z )
+      .MSG    = PSYS011E
+      .CURSOR = PRICMD
+      EXIT
+   IF (&PRIPGM NE &Z )
+      .MSG    = PSYS011E
+      .CURSOR = PRIPGM
+      EXIT
+
+IF (&PRICMD NE &Z )
+   IF (&PRIPGM NE &Z )
+      .MSG    = PSYS011E
+      .CURSOR = PRIPGM
+      EXIT
+
+&L = LENGTH( PRAPPL )
+IF ( &L = 1 )
+   VER (&PRAPPL PICT A)
+ELSE
+  IF ( &L = 2 )
+     VER (&PRAPPL PICT AA)
+  ELSE
+    IF ( &L = 3 )
+       VER (&PRAPPL PICT AAA)
+    ELSE
+      IF ( &L = 4 )
+         VER (&PRAPPL PICT AAAA)
+
+IF ( &PRAPPL EQ &Z )
+   IF ( &PRPSLIB NE &Z )
+      &PRNAPPL = '/'
+
+VER (&PRNAPPL LIST / )
+VER (&PRNPOOL LIST / )
+VER (&PRPSLIB LIST / )
+
+)FIELD
+ FIELD(PRSPNL)  EXEC('SELECT PGM(PFLST0A) PARM(EXPAND1 PNL)')
+ FIELD(PRICMD)  EXEC('SELECT PGM(PFLST0A) PARM(EXPAND1 REXX)')
+ FIELD(PRIPGM)  EXEC('SELECT PGM(PFLST0A) PARM(EXPAND1 PGM)')
+)END

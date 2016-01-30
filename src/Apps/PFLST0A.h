@@ -31,12 +31,14 @@ class PFLST0A : public pApplication
 		void createSearchList( string ) ;
 
 		string showListing() ;
-		void showInfo( string ) ;
-		int  processPrimCMD()   ;
-		void copyDirs( string, string, string, bool & ) ;
-		void modifyAttrs( string ) ;
-		string expandDir( string ) ;
-		void browseTree( string )  ;
+		void   showInfo( string ) ;
+		int    processPrimCMD()   ;
+		void   copyDirs( string, string, string, bool & ) ;
+		void   modifyAttrs( string )  ;
+		string expandDir( string )  ;
+		string expandFld1( string ) ;
+		void   browseTree( string )   ;
+		string getAppName( string )   ;
 
 		vector<string> SearchList ;
 		bool   UseSearch ;

@@ -6,61 +6,61 @@
 
 )BODY
 
-PanelTitle "Testing Services Selection Menu"  
+PanelTitle "Testing Services Selection Menu"
 
-literal   4    2    FP  "Command ===> "    
-field     4   15   MAX  NEF     CAPS(ON)  ZCMD    
+literal   4    2    FP  "Command ===> "
+field     4   15   MAX  NEF     CAPS(ON)  ZCMD
 
-literal   6   MAX-20    FP  "Date: "     
-field     6   MAX-14    8    VOI   NONE  ZDATE    
+literal   6   MAX-20    FP  "Date: "
+field     6   MAX-14    8    VOI   NONE  ZDATE
 
-literal   7   MAX-20    FP  "Time: "     
-field     7   MAX-14    8    VOI   NONE  ZTIME    
+literal   7   MAX-20    FP  "Time: "
+field     7   MAX-14    8    VOI   NONE  ZTIME
 
 literal  6  2    SAC  "0"
-literal  6  5    PS   "Panel"    
-literal  6  22   NT   "Check Panel Functions"    
+literal  6  5    PS   "Panel"
+literal  6  22   NT   "Check Panel Functions"
 
 literal  7  2    SAC  "1"
-literal  7  5    PS   "Keyed Table"    
-literal  7  22   NT   "Check tables with keys"    
+literal  7  5    PS   "Keyed Table"
+literal  7  22   NT   "Check tables with keys"
 
 literal  8  2    SAC  "2"
-literal  8  5    PS   "Non-Keyed Table"    
-literal  8  22   NT   "Check tables without keys"        
+literal  8  5    PS   "Non-Keyed Table"
+literal  8  22   NT   "Check tables without keys"
 
 literal  9  2    SAC  "3"
 literal  9  5    PS   "Table Display"
-literal  9  22   NT   "Keyed"    
+literal  9  22   NT   "Keyed"
 
 literal  10  2    SAC  "4"
-literal  10  5    PS   "Table Display"    
-literal  10  22    NT   "Non-keyed"    
+literal  10  5    PS   "Table Display"
+literal  10  22    NT   "Non-keyed"
 
 literal  11  2    SAC  "5"
-literal  11  5    PS   "Dynamic Areas"    
-literal  11  22   NT   "Check Functioning of Dynamic Areas"    
+literal  11  5    PS   "Dynamic Areas"
+literal  11  22   NT   "Check Functioning of Dynamic Areas"
 
 literal  12  2    SAC  "6"
-literal  12  5    PS   "Utilities"    
-literal  12  22   NT   "Check Utilities"    
+literal  12  5    PS   "Utilities"
+literal  12  22   NT   "Check Utilities"
 
 literal  13  2    SAC  "7"
-literal  13  5    PS   "POPUPS"    
-literal  13  22   NT   "Test ADDPOP/REMPOP and popup windows"    
+literal  13  5    PS   "POPUPS"
+literal  13  22   NT   "Test ADDPOP/REMPOP and popup windows"
 
 literal  14  2    SAC  "8"
-literal  14  5    PS   "Invoke OOREXX"    
+literal  14  5    PS   "Invoke OOREXX"
 literal  14  22   NT   "Invoke OOREXX (porexx1.rex in ZORXPATH)"
 
 
 literal  16  2    SAC  "T"
-literal  16  5    PS   "Tutorial"    
-literal  16  22    NT   "Start Tutorial"    
+literal  16  5    PS   "Tutorial"
+literal  16  22    NT   "Start Tutorial"
 
 literal  17  2    SAC  "X"
-literal  17  5    PS   "Terminate"    
-literal  17  22    NT   "Terminate Dialogue Services"    
+literal  17  5    PS   "Terminate"
+literal  17  22    NT   "Terminate Dialogue Services"
 
 
 )INCLUDE STD_PDC
@@ -79,22 +79,26 @@ literal  17  22    NT   "Terminate Dialogue Services"
 A "SELECT PGM(PTEST01) PARM(ABEND)"
 T "SELECT PGM(&ZHELPPGM)  PARM(&ZPARM)"
 X "ACTION END"
+
 )PROC
+&ZCMD   = TRUNC(&ZCMD,'.')
+&ZTRAIL = .TRAIL
 --VER (&ZCMD NB MSG=PSYS019)
+
 )HELP
 
 )PNTS
-FIELD( ZPS01001 ) VAR(ZCMD)  VAL(0)   
-FIELD( ZPS01002 ) VAR(ZCMD)  VAL(1)   
-FIELD( ZPS01003 ) VAR(ZCMD)  VAL(2)   
-FIELD( ZPS01004 ) VAR(ZCMD)  VAL(3)   
-FIELD( ZPS01005 ) VAR(ZCMD)  VAL(4)   
-FIELD( ZPS01006 ) VAR(ZCMD)  VAL(5)   
-FIELD( ZPS01007 ) VAR(ZCMD)  VAL(6)   
+FIELD( ZPS01001 ) VAR(ZCMD)  VAL(0)
+FIELD( ZPS01002 ) VAR(ZCMD)  VAL(1)
+FIELD( ZPS01003 ) VAR(ZCMD)  VAL(2)
+FIELD( ZPS01004 ) VAR(ZCMD)  VAL(3)
+FIELD( ZPS01005 ) VAR(ZCMD)  VAL(4)
+FIELD( ZPS01006 ) VAR(ZCMD)  VAL(5)
+FIELD( ZPS01007 ) VAR(ZCMD)  VAL(6)
 FIELD( ZPS01008 ) VAR(ZCMD)  VAL(8)
 FIELD( ZPS01009 ) VAR(ZCMD)  VAL(7)
-FIELD( ZPS01010 ) VAR(ZCMD)  VAL(T)   
-FIELD( ZPS01011 ) VAR(ZCMD)  VAL(X)   
+FIELD( ZPS01010 ) VAR(ZCMD)  VAL(T)
+FIELD( ZPS01011 ) VAR(ZCMD)  VAL(X)
 
 
 )END

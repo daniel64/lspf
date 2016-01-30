@@ -47,7 +47,7 @@ class Table
 		void   cmdsearch( int & RC, fPOOL & funcPOOL, string srch ) ;
 
 		void   tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_order, int tb_num_of_rows )  ;
-		void   tbbottom( int & RC ) ;
+		void   tbbottom( int & RC, fPOOL & funcPOOL, string tb_savenm, string tb_rowid_vn, string tb_noread, string tb_crp_name ) ;
 		void   tbdelete( int & RC, fPOOL & funcPOOL ) ;
 		void   tbexist( int & RC, fPOOL & funcPOOL ) ;
 		void   tbget( int & RC, fPOOL & funcPOOL, string tb_savenm, string tb_rowid_vn, string tb_noread, string tb_crp_name ) ;
@@ -114,7 +114,7 @@ class tableMGR
 		void   snap() ;
 
 		void   tbadd( int & RC, fPOOL & funcPOOL, string tb_name, string tb_namelst, string tb_order, int tb_num_of_rows ) ;
-		void   tbbottom( int & RC, string tb_name ) ;
+		void   tbbottom( int & RC, fPOOL & funcPOOL, string tb_name, string tb_savenm, string tb_rowid_vn, string tb_noread, string tb_crp_name  ) ;
 		void   tbdelete( int & RC, fPOOL & funcPOOL, string tb_name ) ;
 		void   tberase( int & RC, string tb_name, string tb_path ) ;
 		void   tbexist( int & RC, fPOOL & funcPOOL, string tb_name ) ;
