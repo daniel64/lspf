@@ -201,8 +201,14 @@ main()
 
 	ZCTVERB  = "KEYLIST"  ;
 	ZCTTRUNC = "0"        ;
-	ZCTACT   = "KEYLIST"  ;
-	ZCTDESC  = "BUILTIN ISPCMDS ENTRY"  ;
+	ZCTACT   = "SELECT PGM(PPSP01A) PARM(KLIST)" ;
+	ZCTDESC  = "Keylist utility"  ;
+	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	ZCTVERB  = "KEYLISTS" ;
+	ZCTTRUNC = "0"        ;
+	ZCTACT   = "SELECT PGM(PPSP01A) PARM(KLISTS)" ;
+	ZCTDESC  = "Keylist utility"  ;
 	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
 	ZCTVERB  = "KEYS" ;

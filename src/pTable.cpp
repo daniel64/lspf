@@ -142,14 +142,16 @@ void Table::tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 
 	// Add extension variables as varname list + values to the flds vector after defined keys and fields (start posn @ 1+all_flds)
 
+	// If ORDER specified on a sorted table, sort the table again after adding the record
+
 	int    i     ;
-	int    j     ;
-	int    l     ;
 	int    ws    ;
-	bool   loope ;
+
 	string key   ;
 	string sfld  ;
+	string URID ;
 
+	vector< string > keys ;
 	vector< string > flds ;
 	vector< vector< string > >::iterator it ;
 
@@ -166,8 +168,27 @@ void Table::tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 
 	if ( tb_num_of_rows > 0 ) { table.reserve( tb_num_of_rows ) ; }
 
-	if      ( tb_order  == "" ) { sort_flds = "" ; sort_ir  = ""  ; sorted_on_keys = false ; }
-	else if ( sort_flds == "" ) { tb_order  = "" ; }
+	if      ( tb_order == "" ) { sort_ir  = "" ; }
+	else if ( sort_ir  == "" ) { tb_order = "" ; }
+
+	if ( num_keys > 0 )
+	{
+		keys.clear()  ;
+		for ( i = 1 ; i <= num_keys ; i++ )
+		{
+			key = funcPOOL.get( RC, 0, word( tab_keys, i ) ) ;
+			if ( RC > 0 ) { RC = 20 ; return ; }
+			keys.push_back( key ) ;
+		}
+		for ( it = table.begin() ; it != table.end() ; it++ )
+		{
+			for ( i = 1 ; i <= num_keys ; i++ )
+			{
+				if ( (*it).at( i ) != keys.at( i-1 ) )  { break ; }
+			}
+			if ( i > num_keys ) { RC = 8 ; return ; }
+		}
+	}
 
 	flds.clear() ;
 	flds.push_back( d2ds( ++maxURID ) ) ;
@@ -186,104 +207,27 @@ void Table::tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 		}
 	}
 
-	if ( num_keys > 0 )
+	if ( CRP == 0 )
 	{
-		key = flds[ 1 ] ;  // Only one key supported for now so at posn 1 (URID at posn 0)
-		loope = false ;
-		j = 1 ;
-		for ( it = table.begin() ; it != table.end() ; it++ )
-		{
-			for ( i = 1 ; i <= num_keys ; i++ )
-			{
-				if ( (*it).at( i ) == key ) { CRP = 0 ; RC = 8 ; maxURID-- ; return ; }
-				if ( !sorted_on_keys ) { continue ; }
-				if ( sort_type == "C" )
-				{
-					if ( sorted_asc )
-					{
-						if ((*it).at( i ) >  key) { loope = true ; break ; }
-					}
-					else
-					{
-						if ((*it).at( i ) <  key) { loope = true ; break ; }
-					}
-				}
-				else
-				{
-					if ( sorted_asc )
-					{
-						if (ds2d((*it).at( i )) >  ds2d(key)) { loope = true ; break ; }
-					}
-					else
-					{
-						if (ds2d((*it).at( i )) <  ds2d(key)) { loope = true ; break ; }
-					}
-				}
-			}
-			if ( loope ) { break ; }
-			j++ ;
-		}
-		if ( sorted_on_keys && tb_order == "ORDER" )
-		{
-			table.insert( it, flds ) ;
-			CRP = j ;
-			changed = true ;
-			return  ;
-		}
-	}
-	if ( tb_order == "ORDER" )
-	{
-		sfld = funcPOOL.get( RC, 0, sort_flds ) ;  // Only one sort field supported for now (tb_order set to "" if not sorted).
-		if ( RC > 0 ) { RC = 20 ; return ; }
-		l    = words( sort_flds )               ;
-		CRP  = 1 ;
-		for ( it = table.begin() ; it != table.end() ; it++ )
-		{
-			for ( i = 1 ; i <= l ; i++ )
-			{
-				j = wordpos( sort_flds, tab_all ) ;
-				if ( sort_type == "C" )
-				{
-					if ( sorted_asc )
-					{
-						if ((*it).at( j ) >  sfld) { loope = true ; break ; }
-					}
-					else
-					{
-						if ((*it).at( j ) <  sfld) { loope = true ; break ; }
-					}
-				}
-				else
-				{
-					if ( sorted_asc )
-					{
-						if (ds2d((*it).at( j )) >  ds2d(sfld)) { loope = true ; break ; }
-					}
-					else
-					{
-						if (ds2d((*it).at( j )) <  ds2d(sfld)) { loope = true ; break ; }
-					}
-				}
-			}
-			if ( loope ) { break ; }
-			CRP++ ;
-		}
-		table.insert( it, flds ) ;
+		table.insert( table.begin(), flds ) ;
+		CRP = 1 ;
 	}
 	else
 	{
-		if ( CRP == 0 )
+		it = table.begin() ;
+		advance( it, CRP ) ;
+		table.insert( it, flds ) ;
+		CRP++ ;
+	}
+
+	if ( tb_order == "ORDER" && sort_ir != "" )
+	{
+		URID = table[ CRP-1 ].at( 0 ) ;
+		tbsort( RC, sort_ir ) ;
+		for ( it = table.begin() ; it != table.end() ; it++ )
 		{
-			it = table.begin() ;
-			table.insert( it, flds ) ;
-			CRP = 1 ;
-		}
-		else
-		{
-			it = table.begin() ;
-			advance( it, CRP ) ;
-			table.insert( it, flds ) ;
 			CRP++ ;
+			if ( URID == (*it).at( 0 ) ) { break ; }
 		}
 	}
 	changed = true ;
@@ -635,8 +579,9 @@ void Table::tbmod( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 
 	// Extension variables must be re-specified or they will be lost (tb_namelst)
 
+	// If ORDER specified on a sorted table, sort again in case tbmod has changed the order
+
 	int  i      ;
-	int  j      ;
 	int  ws     ;
 	bool found  ;
 	string key  ;
@@ -645,18 +590,17 @@ void Table::tbmod( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	vector< string > flds ;
 	vector< string > keys ;
 	vector< vector<string> >::iterator it ;
-	vector< string >::iterator it2 ;
 
 	RC = 0 ;
 
-	if ( sort_flds == "" ) { tb_order = "" ; }
+	if ( sort_ir == "" ) { tb_order = "" ; }
 
 	tb_namelst = upper( tb_namelst ) ;
 	tb_order   = upper( tb_order )   ;
 
 	if ( num_keys == 0 ) { tbadd( RC, funcPOOL, tb_namelst, tb_order, 0 ) ; return ; }
 
-	j     = 0     ;
+	CRP   = 1     ;
 	found = false ;
 
 	keys.clear()  ;
@@ -673,7 +617,7 @@ void Table::tbmod( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 			if ( (*it).at( i ) != keys.at( i-1 ) )  { break ; }
 		}
 		if ( i > num_keys ) { found = true ; break ; }
-		j++ ;
+		CRP++ ;
 	}
 
 	if ( !found )
@@ -698,11 +642,18 @@ void Table::tbmod( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 				if ( RC > 0 ) { RC = 20 ; return ; }
 			}
 		}
-		URID = (*it).at( 0 ) ;
-		it2  = flds.begin() ;
-		flds.insert( it2, URID ) ;
-		table[ j ] =  flds ;
-		CRP        = j+1   ;
+		URID = table[ CRP-1 ].at( 0 ) ;
+		flds.insert( flds.begin(), URID ) ;
+		table[ CRP-1 ] = flds ;
+		if ( tb_order == "ORDER" && sort_ir != "" )
+		{
+			tbsort( RC, sort_ir ) ;
+			for ( it = table.begin() ; it != table.end() ; it++ )
+			{
+				CRP++ ;
+				if ( URID == (*it).at( 0 ) ) { break ; }
+			}
+		}
 	}
 	changed = true ;
 }
@@ -718,17 +669,20 @@ void Table::tbput( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	// RC = 16  Numeric conversion error for sorted tables
 	// RC = 20  Severe error
 
+	// If ORDER specified on a sorted table, sort again in case tbput has changed the order
+
 	int  i  ;
 	int  ws ;
+
 	string key  ;
 	string URID ;
 
 	vector< string > flds ;
-	vector< string >::iterator it ;
+	vector< vector<string> >::iterator it ;
 
 	RC = 0 ;
 
-	if ( sort_flds == "" ) { tb_order = "" ; }
+	if ( sort_ir == "" ) { tb_order = "" ; }
 
 	tb_namelst = upper( tb_namelst ) ;
 	tb_order   = upper( tb_order )   ;
@@ -758,10 +712,19 @@ void Table::tbput( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	}
 
 	URID = table[ CRP-1 ].at( 0 ) ;
-	it   = flds.begin() ;
-	flds.insert( it, URID ) ;
+	flds.insert( flds.begin(), URID ) ;
 	table[ CRP-1 ] = flds   ;
-	changed = true          ;
+
+	if ( tb_order == "ORDER" && sort_ir != "" )
+	{
+		tbsort( RC, sort_ir ) ;
+		for ( it = table.begin() ; it != table.end() ; it++ )
+		{
+			CRP++ ;
+			if ( URID == (*it).at( 0 ) ) { break ; }
+		}
+	}
+	changed = true ;
 }
 
 
@@ -805,13 +768,7 @@ void Table::tbquery( int & RC, fPOOL & funcPOOL, string tb_keyn, string tb_varn,
 void Table::tbsarg( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_dir, string tb_cond_pairs )
 {
 	// Notes:  Current value of variables are used if not blank.  Condition is EQ
-	// ARGLIST is for extension variables, the values of which will be used in the search (bit like current key/field values but these are already known to TBSARG)
-	//
-
-	// Q:  What happens to vars in namelst and cond_pairs that are null?  They are NOT ignored.  Must be present with NULL value
-
-	// Extension vars not ignored if they appear in namelst and are null
-	// if var is in condpair it must be in namelst (except for key/fields i guess????)
+	// ARGLIST is for extension variables, the values of which will be used in the search
 
 	int  p1 ;
 	int  p2 ;
@@ -1304,224 +1261,104 @@ void Table::tbsort( int & RC, string tb_fields )
 	// FIELD,C,A,FIELD2,N
 	// FIELD,C,A,FIELD2,N,D
 
-	int i  ;
 	int f1 ;
-	int f2 ;
-	int n  ;
 	int p1 ;
+
+	string s_fields ;
+	string s_temp   ;
+
+	vector<string>s_parm ;
+	vector<int>s_field  ;
+	vector<bool>s_char  ;
+	vector<bool>s_asc   ;
 
 	int nsort ;
 
-	bool s_numeric1 ;
-	bool s_numeric2 ;
-
-	string s_field1 ;
-	string s_type1  ;
-	string s_order1 ;
-
-	string s_field2 ;
-	string s_type2  ;
-	string s_order2 ;
-
-	string temp     ;
+	string temp ;
 
 	tb_fields = upper( tb_fields ) ;
 	temp      = tb_fields          ;
 
-	n = countc( tb_fields, ',' ) ;
-	if ( n > 5  ) { RC = 20 ; return ; }
-	if ( n < 3  ) { nsort = 1 ; }
-	else          { nsort = 2 ; }
-	if ( n == 0 ) { s_field1 = tb_fields ; s_type1 = "C" ; s_order1 = "A" ; }
-	else
+	while ( true )
 	{
-		for ( i = 0 ; i <= n ; i++ )
+		p1 = tb_fields.find( ',' ) ;
+		if ( p1 == string::npos )
 		{
-			p1 = tb_fields.find( ',' ) ;
-			if ( p1 == string::npos ) { p1 = tb_fields.size() ; }
-			if ( i == 0 ) { s_field1 = tb_fields.substr( 0, p1 ) ; s_type1  = "C" ; s_order1 = "A" ; }
-			if ( i == 1 ) { s_type1  = tb_fields.substr( 0, p1 ) ; s_order1 = "A" ; }
-			if ( i == 2 ) { s_order1 = tb_fields.substr( 0, p1 ) ; }
-			if ( i == 3 ) { s_field2 = tb_fields.substr( 0, p1 ) ; s_type2  = "C" ; s_order2 = "A" ; }
-			if ( i == 4 ) { s_type2  = tb_fields.substr( 0, p1 ) ; s_order2 = "A" ; }
-			if ( i == 5 ) { s_order2 = tb_fields.substr( 0, p1 ) ; }
-			if ( i < n ) { tb_fields.erase( 0, p1+1 ) ; }
-			if ( tb_fields == "" ) { RC = 20 ; return ; }
-		}
-	}
-
-
-	f1 = wordpos( s_field1, tab_all ) ;
-	if ( f1 == 0 ) { RC = 20 ; return ; }
-
-	if ( nsort == 2 )
-	{
-		f2 = wordpos( s_field2, tab_all ) ;
-		if ( f2 == 0 ) { RC = 20 ; return ; }
-	}
-
-	if ( s_order1 != "A" && s_order1 != "D" ) { RC = 20 ; return ; }
-	if ( s_type1  != "C" && s_type1  != "N" ) { RC = 20 ; return ; }
-
-	if ( nsort == 2 )
-	{
-		if ( s_order2 != "A" && s_order2 != "D" ) { RC = 20 ; return ; }
-		if ( s_type2  != "C" && s_type2  != "N" ) { RC = 20 ; return ; }
-	}
-
-	sort_ir        = temp      ;
-	sort_flds      = s_field1  ;
-	sort_type      = s_type1   ;
-	sorted_on_keys = ( s_field1 == tab_keys ) ;
-	sorted_asc     = ( s_order1 == "A" )      ;
-
-	s_numeric1 = false ;
-	s_numeric2 = false ;
-	if ( s_type1 == "N" ) { s_numeric1 = true ; }
-	if ( s_type2 == "N" ) { s_numeric2 = true ; }
-
-	if ( nsort == 1 )
-	{
-		if ( s_order1 == "A" )
-		{
-			sort( table.begin(), table.end(),
-				[ &f1, &s_numeric1 ](const vector<string>& a, const vector<string>& b)
-				{
-					if ( s_numeric1 )
-					{
-						{ return ds2d(a[ f1 ]) < ds2d(b[ f1 ]) ; }
-					}
-					else
-					{
-						 { return a[ f1 ] < b[ f1 ] ; }
-					}
-				} ) ;
+			s_parm.push_back( strip( tb_fields ) ) ;
+			break ;
 		}
 		else
 		{
-			sort( table.begin(), table.end(),
-				[ &f1, &s_numeric1 ](const vector<string>& a, const vector<string>& b)
-				{
-					if ( s_numeric1 )
-					{
-						{ return ds2d(a[ f1 ]) > ds2d(b[ f1 ]) ; }
-					}
-					else
-					{
-						 { return a[ f1 ] > b[ f1 ] ; }
-					}
-				} ) ;
+			s_parm.push_back( strip( tb_fields.substr( 0, p1 ) ) ) ;
+			tb_fields.erase( 0, p1+1 ) ;
 		}
 	}
-	else
+
+	s_fields = "" ;
+	while ( true )
 	{
-		if ( s_order1 == "A" )
-		{
-			if ( s_order2 == "A" )
-			{
-				sort( table.begin(), table.end(),
-					[ &f1, &f2, &s_numeric1, &s_numeric2 ](const vector<string>& a, const vector<string>& b)
-					{
-						if ( s_numeric1 )
-						{
-							if ( ds2d( a[ f1 ] ) == ds2d( b[ f1 ]) )
-							{
-								if ( s_numeric2 ) { return ds2d( a[ f2 ] ) < ds2d( b[ f2 ] ) ; }
-								else              { return a[ f2 ] < b[ f2 ] ; }
-							}
-							else { return ds2d( a[ f1 ] ) < ds2d( b[ f1 ] ) ; }
-						}
-						else
-						{
-							if ( a[ f1 ] == b[ f1 ] )
-							{
-								if ( s_numeric2 ) { return ds2d( a[ f2 ] ) < ds2d( b[ f2 ] ) ; }
-								else              { return a[ f2 ] < b[ f2 ] ; }
-							}
-							else { return a[ f1 ] < b[ f1 ] ; }
-						}
-					} ) ;
-			}
-			else
-			{
-				sort( table.begin(), table.end(),
-					[ &f1, &f2, &s_numeric1, &s_numeric2 ](const vector<string>& a, const vector<string>& b)
-					{
-						if ( s_numeric1 )
-						{
-							if ( ds2d( a[ f1 ] ) == ds2d( b[ f1 ]) )
-							{
-								if ( s_numeric2 ) { return ds2d( a[ f2 ] ) > ds2d( b[ f2 ] ) ; }
-								else              { return a[ f2 ] > b[ f2 ] ; }
-							}
-							else { return ds2d( a[ f1 ] ) < ds2d( b[ f1 ] ) ; }
-						}
-						else
-						{
-							if ( a[ f1 ] == b[ f1 ] )
-							{
-								if ( s_numeric2 ) { return ds2d( a[ f2 ] ) > ds2d( b[ f2 ] ) ; }
-								else              { return a[ f2 ] > b[ f2 ] ; }
-							}
-							else { return a[ f1 ] < b[ f1 ] ; }
-						}
-					} ) ;
-			}
-		}
-		else
-		{
-			if ( s_order2 == "A" )
-			{
-				sort( table.begin(), table.end(),
-					[ &f1, &f2, &s_numeric1, &s_numeric2 ](const vector<string>& a, const vector<string>& b)
-					{
-						if ( s_numeric1 )
-						{
-							if ( ds2d( a[ f1 ] ) == ds2d( b[ f1 ]) )
-							{
-								if ( s_numeric2 ) { return ds2d( a[ f2 ] ) < ds2d( b[ f2 ] ) ; }
-								else              { return a[ f2 ] < b[ f2 ] ; }
-							}
-							else { return ds2d( a[ f1 ] ) > ds2d( b[ f1 ] ) ; }
-						}
-						else
-						{
-							if ( a[ f1 ] == b[ f1 ] )
-							{
-								if ( s_numeric2 ) { return ds2d( a[ f2 ] ) < ds2d( b[ f2 ] ) ; }
-								else              { return a[ f2 ] < b[ f2 ] ; }
-							}
-							else { return a[ f1 ] > b[ f1 ] ; }
-						}
-					} ) ;
-			}
-			else
-			{
-				sort( table.begin(), table.end(),
-					[ &f1, &f2, &s_numeric1, &s_numeric2 ](const vector<string>& a, const vector<string>& b)
-					{
-						if ( s_numeric1 )
-						{
-							if ( ds2d( a[ f1 ] ) == ds2d( b[ f1 ]) )
-							{
-								if ( s_numeric2 ) { return ds2d( a[ f2 ] ) > ds2d( b[ f2 ] ) ; }
-								else              { return a[ f2 ] > b[ f2 ] ; }
-							}
-							else { return ds2d( a[ f1 ] ) > ds2d( b[ f1 ] ) ; }
-						}
-						else
-						{
-							if ( a[ f1 ] == b[ f1 ] )
-							{
-								if ( s_numeric2 ) { return ds2d( a[ f2 ] ) > ds2d( b[ f2 ] ) ; }
-								else              { return a[ f2 ] > b[ f2 ] ; }
-							}
-							else { return a[ f1 ] > b[ f1 ] ; }
-						}
-					} ) ;
-			}
-		}
+		if ( s_parm.size() == 0 ) { break ; }
+		s_temp   = s_parm[ 0 ] ;
+		s_fields = s_temp + " " + s_fields ;
+		f1  = wordpos( s_temp, tab_all ) ;
+		if ( f1 == 0 ) { RC = 20 ; return ; }
+		s_field.push_back( f1 ) ;
+		s_parm.erase( s_parm.begin() ) ;
+		if ( s_parm.size() == 0 ) { break ; }
+
+		s_temp = s_parm[ 0 ] ;
+		if ( s_temp.size() != 1 ) { RC = 20 ; return ; }
+		if ( s_temp != "C" && s_temp != "N" ) { RC = 20 ; return ; }
+		s_char.push_back( (s_temp == "C") ) ;
+		s_parm.erase( s_parm.begin() ) ;
+		if ( s_parm.size() == 0 ) { break ; }
+
+		s_temp = s_parm[ 0 ] ;
+		if ( s_temp.size() != 1 ) { RC = 20 ; return ; }
+		if ( s_temp != "A" && s_temp != "D" ) { RC = 20 ; return ; }
+		s_asc.push_back( (s_temp == "A") ) ;
+		s_parm.erase( s_parm.begin() ) ;
 	}
+
+	s_char.push_back( true ) ;
+	s_asc.push_back( true )  ;
+
+	nsort   = s_field.size() ;
+	sort_ir = temp ;
+
+	sort( table.begin(), table.end(),
+		[ &s_field, &s_char, &s_asc, nsort ](const vector<string>& a, const vector<string>& b)
+		{
+			for ( int i = 0 ; i < nsort ; i++ )
+			{
+				int j = s_field[ i ] ;
+				if ( s_char[ i ] )
+				{
+					 if ( a[ j ] ==  b[ j ] ) { continue ; }
+					 if ( s_asc[ i ] )
+					 {
+						 return a[ j ] < b[ j ] ;
+					 }
+					 else
+					 {
+						 return a[ j ] > b[ j ] ;
+					 }
+				}
+				else
+				{
+					 if ( ds2d(a[ j ]) == ds2d(b[ j ] )) { continue ; }
+					 if ( s_asc[ i ] )
+					 {
+						 return ds2d(a[ j ]) < ds2d(b[ j ]) ;
+					 }
+					 else
+					 {
+						 return ds2d(a[ j ]) > ds2d(b[ j ]) ;
+					 }
+				}
+			}
+			return false ;
+		} ) ;
 	CRP = 0 ;
 }
 
@@ -1567,12 +1404,6 @@ void tableMGR::createTable( int & RC, int m_task, string tb_name, string keys, s
 	debug1( "          path >>" << hex2print( m_path ) << "<<" << endl ) ;
 
 	RC = 0 ;
-	if ( words( keys ) > 1 )
-	{
-		log( "E", "Table " << tb_name << " has more than one key.  This is not currently supported" << endl ) ;
-		RC = 20 ;
-		return  ;
-	}
 	if ( tables.find( tb_name ) != tables.end() )
 	{
 		if ( m_REP == REPLACE )

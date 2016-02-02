@@ -1954,12 +1954,8 @@ void pPanel::remove_tb_lineChanged( int & RC )
 {
 	//  Remove the processed line from the list of changed lines
 
-	map< int, string >::iterator it ;
-
 	RC = 0 ;
-
-	it = tb_linesChanged.begin() ;
-	tb_linesChanged.erase( it ) ;
+	tb_linesChanged.erase( tb_linesChanged.begin() ) ;
 }
 
 

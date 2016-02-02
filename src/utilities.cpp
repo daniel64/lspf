@@ -1471,30 +1471,16 @@ string parseString( bool & rlt, string & s, string p )
 		}
 		return "" ;
 	}
-	if ( p[ 0 ]   == '(' )
+	p.pop_back() ;
+	if ( p == "(" )
 	{
 		if ( s[ 0 ] == '(' ) { p1 = 0 ; }
 		else                 { p1 = s.find( " (" ) ; }
-		if ( p1 == string::npos ) { return "" ; }
-		ob = 1 ;
-		for ( p2 = p1+1 ; p2 < s.size() ; p2++ )
-		{
-			if ( s.at( p2 ) == '(' ) { ob++  ; }
-			if ( s.at( p2 ) == ')' )
-			{
-				ob-- ;
-				if ( ob == 0 ) { break ; }
-			}
-		}
-		if ( ob != 0 )                                { rlt = false ; return "" ; }
-		if ( p2 < s.size()-1 && s.at( p2+1 ) != ' ' ) { rlt = false ; return "" ; }
-		t = s.substr( p1+1, p2-p1-1 ) ;
-		s.erase( p1, p2-p1+1 ) ;
-		return strip( t ) ;
 	}
-
-	p.pop_back() ;
-	p1 = us.find( p ) ;
+	else
+	{
+		p1 = us.find( p ) ;
+	}
 	if ( p1 == string::npos ) { return "" ; }
 
 	ob = 1 ;
@@ -1507,8 +1493,8 @@ string parseString( bool & rlt, string & s, string p )
 			if ( ob == 0 ) { break ; }
 		}
 	}
-	if ( ob != 0 )                                { rlt = false ; return "a" ; }
-	if ( p2 < s.size()-1 && s.at( p2+1 ) != ' ' ) { rlt = false ; return "b" ; }
+	if ( ob != 0 )                                { rlt = false ; return "" ; }
+	if ( p2 < s.size()-1 && s.at( p2+1 ) != ' ' ) { rlt = false ; return "" ; }
 
 	t = s.substr( p1+p.size(), p2-p1-p.size() ) ;
 	s.erase( p1, p2-p1+1 ) ;

@@ -252,6 +252,7 @@ RexxObjectPtr RexxEntry lspfCommandHandler( RexxExitContext *context,
 	{
 		log( "E", "Service " + w1 + " not valid from OOREXX"<<endl) ;
 		context->RaiseCondition( "FAILURE", command, NULLOBJECT, context->WholeNumber( -1 ) ) ;
+		return NULLOBJECT;
 	}
 
 	vptr = context->GetApplicationData() ;
@@ -523,7 +524,7 @@ int lspfDisplay( pApplication * thisAppl, string s )
 	pan = parseString( rlt, str, "PANEL()" ) ;
 	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	msg = strip( parseString( rlt, str, "MSG()" ) ) ;
+	msg = parseString( rlt, str, "MSG()" ) ;
 	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	cursor = parseString( rlt, str, "CURSOR()" ) ;

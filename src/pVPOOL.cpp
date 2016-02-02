@@ -386,7 +386,7 @@ void pVPOOL::erase( int & RC, string name )
 {
 	// RC =  0 Normal completion
 	// RC =  8 Variable not found
-	// RC = 12 Variable read-only or SYSTEM variable
+	// RC = 12 Pool read-only or a system variable
 	// RC = 16 Variable in the SYSTEM PROFILE pool (ISPS)
 	// RC = 20 Severe error
 
@@ -1094,8 +1094,6 @@ string * poolMGR::vlocate( int & RC, string name, poolType pType )
 	// RC = 0  variable found
 	// RC = 8  variable not found
 	// RC = 20 severe error
-
-	// for get PROFILE, delete the variable from the SHARED pool even if not found in the PROFILE pool
 
 	map<string, pVPOOL>::iterator p_it  ;
 	RC  = 0 ;

@@ -2229,7 +2229,7 @@ string pApplication::sub_vars( string s )
 		p1++ ;
 		if ( s[ p1 ] == '&' )
 		{
-			s.erase( p1,1 ) ;
+			s.erase( p1, 1 ) ;
 			p1 = s.find_first_not_of( '&', p1 ) ;
 			continue        ;
 		}

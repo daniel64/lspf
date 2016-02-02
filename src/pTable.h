@@ -32,10 +32,6 @@ class Table
 			sa_cond_pairs  = ""    ;
 			sa_dir         = ""    ;
 			sort_ir        = ""    ;
-			sort_flds      = ""    ;
-			sort_type      = ""    ;
-			sorted_on_keys = false ;
-			sorted_asc     = false ;
 		}
 		void   saveTable( int & RC, string m_name, string m_path ) ;
 		void   loadRow( int & RC, vector< string > & m_flds ) ;
