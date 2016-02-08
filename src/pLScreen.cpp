@@ -55,7 +55,6 @@ pLScreen::pLScreen()
 		init_pair( 6, COLOR_CYAN,    COLOR_BLACK ) ;
 		init_pair( 7, COLOR_WHITE,   COLOR_BLACK ) ;
 		mvhline( maxrow, 0, ACS_HLINE, maxcol ) ;
-		mvaddch( maxrow+1, 0, ACS_CKBOARD ) ;
 		mousemask( ALL_MOUSE_EVENTS, NULL ) ;
 	}
 	++screensTotal    ;
@@ -84,18 +83,33 @@ void pLScreen::clear()
 }
 
 
-void pLScreen::busy_show()
+void pLScreen::show_enter()
 {
-	attron( RED ) ;
-	mvaddstr( maxrow+1, 20, "X-Busy" ) ;
-	attroff( RED ) ;
-	move( row, col ) ;
-	refresh()  ;
-	doupdate() ;
+	curs_set( 0 ) ;
+	wattron( OIA, RED ) ;
+	mvwaddstr( OIA, 0, 20, "X-Enter" ) ;
+	move( 0, 0 ) ;
+	wattroff( OIA, RED ) ;
+	wrefresh( OIA )  ;
+	curs_set( 1 ) ;
 }
 
 
-void pLScreen::busy_clear()
+void pLScreen::show_busy()
 {
-	mvaddstr( maxrow+1, 20, "      " ) ;
+	curs_set( 0 ) ;
+	wattron( OIA, RED ) ;
+	mvwaddstr( OIA, 0, 20, "X-Busy " ) ;
+	move( 0, 0 ) ;
+	wattroff( OIA, RED ) ;
+	wrefresh( OIA )  ;
+	curs_set( 1 ) ;
+}
+
+
+void pLScreen::clear_status()
+{
+	curs_set( 0 ) ;
+	mvwaddstr( OIA, 0, 20, "       " ) ;
+	curs_set( 1 ) ;
 }

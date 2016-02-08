@@ -217,6 +217,12 @@ main()
 	ZCTDESC  = "PFKEY UTILITY" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
+	ZCTVERB  = "RUN" ;
+	ZCTTRUNC = "2"    ;
+	ZCTACT   = "SELECT PGM(PPSP01A) PARM(RUN &ZPARM) NEWPOOL" ;
+	ZCTDESC  = "Run an application by name" ;
+	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
 	ZCTVERB  = "SETTINGS"  ;
 	ZCTTRUNC = "3"         ;
 	ZCTACT   = "SELECT PANEL(PPSET0A)"  ;
@@ -304,7 +310,7 @@ main()
 	ZCTDESC  = "SHOW PATHS SEARCHED FOR PANELS, MESSAGES AND TABLES" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "REXX" ;
+	ZCTVERB  = "EXEC" ;
 	ZCTTRUNC = "3"     ;
 	ZCTACT   = "SELECT PGM(&ZOREXPGM) PARM(&ZPARM) NEWPOOL"    ;
 	ZCTDESC  = "INVOKE OOREXX EXEC" ;

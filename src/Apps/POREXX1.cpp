@@ -76,6 +76,7 @@ int  lspfDisplay( pApplication *, string )  ;
 int  lspfEdit( pApplication *, string )     ;
 int  lspfLibdef( pApplication *, string )   ;
 int  lspfPquery( pApplication *, string )   ;
+int  lspfRDisplay( pApplication *, string ) ;
 int  lspfRempop( pApplication *, string )   ;
 int  lspfSelect( pApplication *, string )   ;
 int  lspfSetmsg( pApplication *, string )   ;
@@ -266,6 +267,7 @@ RexxObjectPtr RexxEntry lspfCommandHandler( RexxExitContext *context,
 	else if ( w1 == "EDIT" )     { sRC = lspfEdit( thisAppl, s2 )     ; }
 	else if ( w1 == "LIBDEF" )   { sRC = lspfLibdef( thisAppl, s2 )   ; }
 	else if ( w1 == "PQUERY" )   { sRC = lspfPquery( thisAppl, s2 )   ; }
+	else if ( w1 == "RDISPLAY" ) { sRC = lspfRDisplay( thisAppl, s2 ) ; }
 	else if ( w1 == "REMPOP" )   { sRC = lspfRempop( thisAppl, s2 )   ; }
 	else if ( w1 == "SELECT" )   { sRC = lspfSelect( thisAppl, s2 )   ; }
 	else if ( w1 == "SETMSG" )   { sRC = lspfSetmsg( thisAppl, s2 )   ; }
@@ -381,7 +383,7 @@ int setAllRexxVariables( pApplication * thisAppl )
 	{
 		w = word( vl, i ) ;
 		thisAppl->vcopy( w, vs, LOCATE ) ;
-		setRexxVariable( w, (*vs) ) ;
+		rc = setRexxVariable( w, (*vs) ) ;
 	}
 	vl = thisAppl->vilist() ;
 	ws = words( vl ) ;
@@ -621,6 +623,13 @@ int lspfPquery( pApplication * thisAppl, string s )
 	if ( str != "" ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	thisAppl->pquery( pq_panel, pq_arean, pq_areat, pq_width, pq_depth, pq_row, pq_col ) ;
+	return thisAppl->RC ;
+}
+
+
+int lspfRDisplay( pApplication * thisAppl, string s )
+{
+	thisAppl->rdisplay( subword( s, 2 ) ) ;
 	return thisAppl->RC ;
 }
 

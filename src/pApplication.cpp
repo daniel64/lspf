@@ -45,6 +45,7 @@ pApplication::pApplication()
 	terminateAppl          = false  ;
 	abnormalEnd            = false  ;
 	abnormalEndForced      = false  ;
+	rawOutput              = false  ;
 	reloadCUATables        = false  ;
 	rexxName               = ""     ;
 	dumpFile               = ""     ;
@@ -81,6 +82,7 @@ pApplication::pApplication()
 	vdefine( "ZERR1",    &ZERR1   ) ;
 	vdefine( "ZERR2",    &ZERR2   ) ;
 	vdefine( "ZAPPNAME", &ZAPPNAME) ;
+	rmsgs.clear()                   ;
 }
 
 
@@ -313,11 +315,7 @@ void pApplication::refresh()
 	map<string, pPanel *>::iterator it ;
 
 	it = panelList.find( PANELID ) ;
-	if ( it == panelList.end() )
-	{
-		RC = 20 ; checkRCode( "Panel >>" + PANELID + "<< not found during REFRESH" ) ;
-	}
-	else
+	if ( it != panelList.end() )
 	{
 		it->second->refresh( RC ) ;
 	}
@@ -399,7 +397,7 @@ string pApplication::get_select_cmd( string opt )
 
 void pApplication::set_cursor( int row, int col )
 {
-	currPanel->set_cursor( row, col ) ;
+	if ( panelList.size() > 0 ) { currPanel->set_cursor( row, col ) ; }
 }
 
 
@@ -1018,6 +1016,7 @@ void pApplication::control( string parm1, string parm2 )
 	// CONTROL TIMEOUT  ENABLE  - Enable application timeouts after ZWAITMAX ms (default).
 	// CONTROL TIMEOUT  DISABLE - Disable forced abend of applications if ZWAITMAX exceeded.
 	// CONTROL ABENDRTN DEFAULT - Reset abend routine to the default, pApplication::cleanup_default
+	// CONTROL RDISPLAY FLUSH   - Flush raw output to the screen
 
 	RC = 0 ;
 
@@ -1078,6 +1077,16 @@ void pApplication::control( string parm1, string parm2 )
 		else if ( parm2 == "CANCEL" )
 		{
 			ControlErrorsReturn = false ;
+		}
+		else { RC = 20 ; }
+	}
+	else if ( parm1 == "RDISPLAY" )
+	{
+		if ( parm2 == "FLUSH" )
+		{
+			rawOutput = true  ;
+			wait_event()      ;
+			rawOutput = false ;
 		}
 		else { RC = 20 ; }
 	}
@@ -1317,7 +1326,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 	// Use separate pointer currtbPanel for tb displays so that a CONTROL DISPLAY SAVE/RESTORE is only necessary when a tbdispl issues another tbdispl and not
 	// for a display of an ordinary panel
 
-	int EXITRC  ;
+	int exitRC  ;
 	int ws      ;
 	int i       ;
 	int ln      ;
@@ -1447,7 +1456,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 		if ( ZZVERB == "RETURN" ) { propagateEnd = true  ; }
 		if ( ZZVERB == "END" || ZZVERB == "EXIT" || ZZVERB == "RETURN" ) { RC = 8 ; return ; }
 
-		EXITRC = 0  ;
+		exitRC = 0  ;
 		if ( currtbPanel->tb_lineChanged( ln, URID ) )
 		{
 			tbskip( tb_name, 0, "", p_rowid_nm, URID, "", p_crp_name ) ;
@@ -1457,7 +1466,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 				s = word( currtbPanel->tb_fields, i ) ;
 				funcPOOL.put( RC, 0, s, funcPOOL.get( RC, 0, s + "." + d2ds( ln ), NOCHECK ) ) ;
 			}
-			if ( ZTDSELS > 1 ) { EXITRC = 4; }
+			if ( ZTDSELS > 1 ) { exitRC = 4; }
 		}
 
 		currtbPanel->display_panel_proc( RC, ln ) ;
@@ -1542,7 +1551,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 		}
 	}
 	currtbPanel->resetAttrs() ;
-	RC = EXITRC ;
+	RC = exitRC ;
 }
 
 
@@ -2014,6 +2023,13 @@ void pApplication::load_keylist( pPanel * p )
 	vcopy( "KEY24DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(24), tabField ) ;
 	tbend( tabName ) ;
 
+}
+
+
+void pApplication::rdisplay( string msg )
+{
+	RC = 0 ;
+	rmsgs.push_back( msg ) ;
 }
 
 

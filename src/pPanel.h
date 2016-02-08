@@ -79,7 +79,7 @@ class pPanel
 		void   refresh( int & RC ) ;
 		void   nrefresh()          ;
 
-		pdc    retrieve_pdc( int row, int col ) ;
+		pdc    retrieve_pdChoice( int row, int col ) ;
 		void   get_panel_info( int & RC, string a_name, string t = "", string w = "", string d = "", string r = "", string c = "" ) ;
 		void   attr( int & RC, string field, string attrs ) ;
 		void   get_home( uint & row, uint & col ) ;

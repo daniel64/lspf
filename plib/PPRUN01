@@ -39,9 +39,9 @@ literal  18  7          FP    "PARM. . . ."
 field    18 19  MAX-17  NEF NONE     PRIPRM
 
 literal 21 2   CH "Instructions"
-literal 23 2   NT "Enter the PANEL, CMD or PGM fields and press"
-literal 23 47  ET "ENTER"
-literal 23 53  NT "to invoke function"
+literal 23 2   NT "Enter the PANEL, CMD or PGM field and press"
+literal 23 46  ET "ENTER"
+literal 23 52  NT "to invoke function"
 literal 25 2   NT "These fields support expansion using command"
 literal 25 47  ET "FIELDEXC"
 

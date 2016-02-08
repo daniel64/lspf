@@ -41,14 +41,14 @@ int field::field_init( int MAXW, int MAXD, string line )
 	string w6 ;
 	string w7 ;
 	cuaType fType   ;
-	
+
 	w2  = word( line, 2 ) ;
 	w3  = word( line, 3 ) ;
 	w4  = word( line, 4 ) ;
 	w5  = word( line, 5 ) ;
 	w6  = word( line, 6 ) ;
 	w7  = word( line, 7 ) ;
-	
+
 	row = ds2d( w2 ) ;
 
 	if ( row > MAXD )
@@ -60,19 +60,19 @@ int field::field_init( int MAXW, int MAXD, string line )
 	if ( isnumeric( w3 ) )                   { col = ds2d( w3 ) ; }
 	else if ( w3 == "MAX" )                  { col = MAXW       ; }
 	else if ( substr( w3, 1, 4 ) == "MAX-" ) { col = MAXW - ds2d( substr( w3, 5 ) ) ; }
-	else 				         { return 20        ; }
+	else                                     { return 20        ; }
 
 	if ( isnumeric( w4 ) )                   { len = ds2d( w4 ) ; }
 	else if ( w4 == "MAX" )                  { len = MAXW - col + 1 ; }
 	else if ( substr( w4, 1, 4 ) == "MAX-" ) { len = MAXW - col - ds2d( substr( w4, 5 ) ) + 1 ; }
-	else 				         { return 20        ; }
+	else                                     { return 20        ; }
 
 	if ( w5 == "PWD" )
 	{
 		fType     = NEF  ;
 		field_pwd = true ;
 	}
-	else 
+	else
 	{
 		if ( cuaAttrName.find( w5 ) != cuaAttrName.end() )
 		{
@@ -87,7 +87,7 @@ int field::field_init( int MAXW, int MAXD, string line )
 
 	field_cua    = fType   ;
 	field_prot   = cuaAttrProt [ fType ] ;
-        field_row    = row - 1 ;
+	field_row    = row - 1 ;
 	field_col    = col - 1 ;
 	field_length = len     ;
 
@@ -95,7 +95,7 @@ int field::field_init( int MAXW, int MAXD, string line )
 
 	fieldOptsParse( RC, w6, field_caps, field_just, field_numeric, field_padchar, field_skip ) ;
 	if ( RC > 0 ) { log( "E", "Error parsing options for field " << w7 << ". Options entry is " << w6 << endl ) ; }
-	
+
 	return RC ;
 }
 
@@ -130,35 +130,35 @@ int dynArea::dynArea_init( int MAXW, int MAXD, string line )
 	string w5 ;
 	string w7 ;
 	string t  ;
-	
+
 	w2  = word( line, 2 ) ;
 	w3  = word( line, 3 ) ;
 	w4  = word( line, 4 ) ;
 	w5  = word( line, 5 ) ;
 	w7  = word( line, 7 ) ;
-	
+
 	row = ds2d( w2 ) ;
 	col = ds2d( w3 ) ;
 
 	if ( isnumeric( w2 ) )                   { row = ds2d( w2  ) ; }
 	else if ( w4 == "MAX" )                  { row = MAXD        ; }
 	else if ( substr( w4, 1, 4 ) == "MAX-" ) { row = MAXD - ds2d( substr( w2, 5 ) ) ; }
-	else 				         { return 20         ; }
+	else                                     { return 20         ; }
 
 	if ( isnumeric( w3 ) )                   { col = ds2d( w3 )  ; }
 	else if ( w3 == "MAX" )                  { col = MAXW        ; }
 	else if ( substr( w3, 1, 4 ) == "MAX-" ) { col = MAXW - ds2d( substr( w3, 5 ) ) ; }
-	else 				         { return 20         ; }
+	else                                     { return 20         ; }
 
 	if ( isnumeric( w4 ) )                   { width = ds2d( w4  )    ; }
 	else if ( w4 == "MAX" )                  { width = MAXW - col + 1 ; }
 	else if ( substr( w4, 1, 4 ) == "MAX-" ) { width = MAXW - col - ds2d( substr( w4, 5 ) ) + 1 ; }
-	else 				         { return 20              ; }
+	else                                     { return 20              ; }
 
 	if ( isnumeric( w5 ) )                   { depth = ds2d( w5 )     ; }
 	else if ( w5 == "MAX" )                  { depth = MAXD - row + 1 ; }
 	else if ( substr( w5, 1, 4 ) == "MAX-" ) { depth = MAXD - row - ds2d( substr( w5, 5 ) ) + 1 ; }
-	else 				         { return 20              ; }
+	else                                     { return 20              ; }
 
 
 	if ( row > MAXD )
@@ -266,7 +266,7 @@ bool field::edit_field_insert( WINDOW * win, char ch, int col, bool Isrt )
 			else                           { return false ;              }
 			for ( i = pos ; i >= 0 ; i-- )
 			{
-				if ( (field_value[ i ]                       == field_dynDataIn)  || 
+				if ( (field_value[ i ]                       == field_dynDataIn)  ||
 				     (field_dynUserModsp && field_value[ i ] == field_dynUserMod) ||
 				     (field_dynDataModsp && field_value[ i ] == field_dynDataMod) ) { break ; }
 			}
@@ -296,7 +296,7 @@ bool field::edit_field_insert( WINDOW * win, char ch, int col, bool Isrt )
 		{
 			for ( i = pos ; i >= 0 ; i-- )
 			{
-				if ( (field_value[ i ]                       == field_dynDataIn)  || 
+				if ( (field_value[ i ]                       == field_dynDataIn)  ||
 				     (field_dynUserModsp && field_value[ i ] == field_dynUserMod) ||
 				     (field_dynDataModsp && field_value[ i ] == field_dynDataMod) ) { break ; }
 			}
@@ -312,7 +312,7 @@ bool field::edit_field_insert( WINDOW * win, char ch, int col, bool Isrt )
 			{
 				field_value[ i ] = field_dynUserMod ;
 			}
-				
+
 		}
 		field_value.replace( pos, 1, 1, ch ) ;
 	}
@@ -334,7 +334,7 @@ void field::edit_field_delete( WINDOW * win, int col )
 	int i   ;
 	int j   ;
 	int l   ;
-	
+
 	pos = col - field_col ;
 	if ( pos > field_value.size() ) return ;
 
@@ -352,7 +352,7 @@ void field::edit_field_delete( WINDOW * win, int col )
 		if ( j == 0 ) { j = l ; }
 		for ( i = pos ; i >= 0 ; i-- )
 		{
-			if ( (field_value[ i ]                       == field_dynDataIn)  || 
+			if ( (field_value[ i ]                       == field_dynDataIn)  ||
 			     (field_dynUserModsp && field_value[ i ] == field_dynUserMod) ||
 			     (field_dynDataModsp && field_value[ i ] == field_dynDataMod) ) { break ; }
 		}
@@ -364,7 +364,7 @@ void field::edit_field_delete( WINDOW * win, int col )
 				else if ( field_dynUserModsp )                                  { field_value[ i ] = field_dynUserMod ; }
 			}
 		}
-		else if ( field_dynUserModsp ) 
+		else if ( field_dynUserModsp )
 		{
 			field_value[ i ] = field_dynUserMod ;
 		}
@@ -388,7 +388,7 @@ int field::edit_field_backspace( WINDOW * win, int col )
 	int i   ;
 	int j   ;
 	int l   ;
-	
+
 	pos = col - field_col ;
 	if ( (pos > field_value.size()) ) return --col ;
 
@@ -410,7 +410,7 @@ int field::edit_field_backspace( WINDOW * win, int col )
 		if ( j == 0 ) { j = l ; }
 		for ( i = pos ; i >= 0 ; i-- )
 		{
-			if ( (field_value[ i ]                       == field_dynDataIn  ) || 
+			if ( (field_value[ i ]                       == field_dynDataIn  ) ||
 			     (field_dynUserModsp && field_value[ i ] == field_dynUserMod ) ||
 			     (field_dynDataModsp && field_value[ i ] == field_dynDataMod ) ) { break ; }
 		}
@@ -422,7 +422,7 @@ int field::edit_field_backspace( WINDOW * win, int col )
 				else if ( field_dynUserModsp )                                        { field_value[ i ] = field_dynUserMod ; }
 			}
 		}
-		else if ( field_dynUserModsp ) 
+		else if ( field_dynUserModsp )
 		{
 			field_value[ i ] = field_dynUserMod ;
 		}
@@ -462,7 +462,7 @@ void field::field_erase_eof( WINDOW * win, uint col )
 	int i   ;
 	int j   ;
 	int l   ;
-	
+
 	if ( ( field_col + field_value.size() ) < col ) return ;
 	pos = (col - field_col) ;
 
@@ -480,7 +480,7 @@ void field::field_erase_eof( WINDOW * win, uint col )
 		if ( j == 0 ) { j = l ; }
 		for ( i = pos ; i >= 0 ; i-- )
 		{
-			if ( (field_value[ i ]                       == field_dynDataIn  ) || 
+			if ( (field_value[ i ]                       == field_dynDataIn  ) ||
 			     (field_dynUserModsp && field_value[ i ] == field_dynUserMod ) ||
 			     (field_dynDataModsp && field_value[ i ] == field_dynDataMod ) ) { break ; }
 		}
@@ -492,7 +492,7 @@ void field::field_erase_eof( WINDOW * win, uint col )
 				else if ( field_dynUserModsp )                                  { field_value[ i ] = field_dynUserMod ; }
 			}
 		}
-		else if ( field_dynUserModsp ) 
+		else if ( field_dynUserModsp )
 		{
 			field_value[ i ] = field_dynUserMod ;
 		}
@@ -504,7 +504,7 @@ void field::field_erase_eof( WINDOW * win, uint col )
 		field_blank( win ) ;
 		field_value = field_value.substr( 0 , pos ) ;
 	}
-	
+
 	display_field( win ) ;
 	field_changed = true ;
 }
@@ -536,7 +536,7 @@ int field::end_of_field( WINDOW * win, uint col )
 		if ( j == 0 ) { j = l ; }
 		for ( i = j-1 ; i >= 0 ; i-- )
 		{
-			if ( (field_value[ i ]                       == field_dynDataIn  ) || 
+			if ( (field_value[ i ]                       == field_dynDataIn  ) ||
 			     (field_dynUserModsp && field_value[ i ] == field_dynUserMod ) ||
 			     (field_dynDataModsp && field_value[ i ] == field_dynDataMod ) ) { return field_col + i + 1 ; }
 			if ( field_value[ i ] != ' ' )
@@ -575,9 +575,9 @@ int field::field_attr( string attrs )
 	int p2 ;
 	string cua    ;
 	string col    ;
-	string hilite ; 
+	string hilite ;
 	string intens ;
-	
+
 	cua    = "" ;
 	col    = "" ;
 	intens = "" ;
@@ -716,7 +716,7 @@ void field::display_field( WINDOW * win )
 			for ( i = 0 ; i < field_value.size() ; i++ )
 			{
 				wattrset( win, usrAttr[ field_shadow_value [ i ] ] ) ;
-				if ( ( field_dynDataInsp  && field_value[ i ] == field_dynDataIn  ) || 
+				if ( ( field_dynDataInsp  && field_value[ i ] == field_dynDataIn  ) ||
 				     ( field_dynDataOutsp && field_value[ i ] == field_dynDataOut ) ||
 				     ( field_dynUserModsp && field_value[ i ] == field_dynUserMod ) ||
 				     ( field_dynDataModsp && field_value[ i ] == field_dynDataMod ) ) { mvwaddch( win, field_row, field_col+i, ' ' ) ; }
@@ -752,7 +752,7 @@ void field::display_field( WINDOW * win )
 				if ( !isprint( field_value[ i ] ) ) field_value.replace( i, 1, 1, '.' ) ;
 			}
 			if ( field_pwd ) { mvwaddstr( win, field_row, field_col, copies( "*", field_value.size()).c_str() ) ; }
-			else		 { mvwaddstr( win, field_row, field_col, field_value.c_str() )                      ; }
+			else             { mvwaddstr( win, field_row, field_col, field_value.c_str() )                      ; }
 		}
 		else
 		{
@@ -763,7 +763,7 @@ void field::display_field( WINDOW * win )
 				if ( !isprint( t[ i ] ) ) t.replace( i, 1, 1, '.' ) ;
 			}
 			if ( field_pwd ) { mvwaddstr( win, field_row, field_col, copies( "*", t.size()).c_str() ) ; }
-			else		 { mvwaddstr( win, field_row, field_col, t.c_str() )                      ; }
+			else             { mvwaddstr( win, field_row, field_col, t.c_str() )                      ; }
 		}
 		if ( field_usecua ) { wattroff( win, cuaAttr[ field_cua ] ) ; }
 		else                { wattroff( win, field_colour )         ; }
@@ -811,12 +811,12 @@ int literal::literal_init( int MAXW, int MAXD, int & opt_field, string line )
 	if ( isnumeric( w2 ) )                   { row = ds2d( w2 ) ; }
 	else if ( w2 == "MAX" )                  { row = MAXD       ; }
 	else if ( substr( w2, 1, 4 ) == "MAX-" ) { row = MAXD - ds2d( substr( w2, 5 ) ) ; }
-	else 				         { return 20        ; }
+	else                                     { return 20        ; }
 
 	if ( isnumeric( w3 ) )                   { col = ds2d( w3 ) ; }
 	else if ( w3 == "MAX" )                  { col = MAXW       ; }
 	else if ( substr( w3, 1, 4 ) == "MAX-" ) { col = MAXW - ds2d( substr( w3, 5 ) ) ; }
-	else 				         { return 20        ; }
+	else                                     { return 20        ; }
 
 	if ( cuaAttrName.find( w4 ) != cuaAttrName.end() )
 	{
@@ -940,16 +940,15 @@ void abc::hide_pd()
 }
 
 
-pdc abc::retrieve_pdc( uint row, uint col )
+pdc abc::retrieve_pdChoice( uint row, uint col )
 {
 	uint y ;
-	pdc t_pdc ;
 
 	hide_pd()   ;
 	y = row - 2 ;
 
-	if ( y > (pdcList.size() - 1) ) return t_pdc ;
-	if ( (col < (abc_col + 2 )) | (col > ( abc_col + abc_maxw + 6 )) ) return t_pdc ;
+	if ( y > (pdcList.size() - 1) ) { return pdc() ; }
+	if ( (col < (abc_col + 2 )) || (col > ( abc_col + abc_maxw + 6 )) ) { return pdc() ; }
 
 	return pdcList.at( y ) ;
 }
@@ -1091,7 +1090,7 @@ IFSTMNT::IFSTMNT( string s )
 		if ( p2 == string::npos ) { if_RC = 20 ; return ; }
 	}
 	else
-	{		
+	{
 		p2 = s.find_first_not_of( "=><!", p1 ) ;
 		if ( p2 == string::npos ) { if_RC = 20 ; return ; }
 		if_lhs = upper( strip( s.substr( 0, p1 ) ) ) ;
@@ -1220,7 +1219,7 @@ ASSGN::ASSGN( string s )
 
 	int p  ;
 	int p1 ;
-	
+
 	as_RC      = 0     ;
 	as_lhs     = ""    ;
 	as_rhs     = ""    ;
@@ -1233,7 +1232,7 @@ ASSGN::ASSGN( string s )
 	as_chkexst = false ;
 	as_chkdir  = false ;
 	as_chkfile = false ;
-	
+
 	p = s.find( '=' ) ;
 	if ( p == string::npos ) { as_RC = 20 ; return ; }
 	as_lhs = upper( strip( s.substr( 0, p ) ) ) ;
@@ -1407,7 +1406,7 @@ VPUTGET::VPUTGET( string s )
 		if ( !isvalidName( word( vars, j ) ) )  { vpg_RC = 20 ; return ; }
 	}
 	if ( w1 == "VPUT" ) { vpg_vput = true ; }
-	else		    { vpg_vget = true ; }
+	else                { vpg_vget = true ; }
 	vpg_vars = vars ;
 
 	if ( w == "ASIS" || w == "" ) { vpg_pool  = ASIS     ; }
@@ -1473,9 +1472,9 @@ VERIFY::VERIFY( string s )
 
 	ver_field = word( s, 1 ) ;
 	if ( !isvalidName( ver_field ) ) { ver_RC = 20 ; return ; }
-	
+
 	w2 = word( s, 2 ) ;
-	
+
 	if ( w2 == "NB" || w2 == "NONBLANK" ) { ver_nblank = true ; i = 3 ; }
 	else                                  { i = 2 ;                     }
 
@@ -1518,7 +1517,7 @@ TRUNC::TRUNC( string s )
 	trnc_RC   = 0   ;
 	trnc_char = ' ' ;
 	trnc_len  = 0   ;
-	
+
 	s = upper( s )    ;
 	p = s.find( '=' ) ;
 	if ( p == string::npos ) { trnc_RC = 20 ; return ; }
@@ -1646,7 +1645,7 @@ pnts::pnts( string s )
 
 	int p1 ;
 	int p2 ;
-	
+
 	pnts_RC = 0 ;
 
 	s  = upper( s )         ;

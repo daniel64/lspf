@@ -24,6 +24,7 @@ class pLScreen
 		~pLScreen();
 
 	static pLScreen * currScreen ;
+	static WINDOW   * OIA    ;
 	static int  screensTotal ;
 	static int  maxScreenID  ;
 	static int  maxrow  ;
@@ -52,8 +53,9 @@ class pLScreen
 	int   application_stack_size()                          { return pApplicationStack.size()  ; } ;
 	bool  application_stack_empty()                         { return pApplicationStack.empty() ; } ;
 
-	void  busy_show()  ;
-	void  busy_clear() ;
+	void  show_enter() ;
+	void  show_busy()  ;
+	void  clear_status() ;
 
 	int   screenID ;
 

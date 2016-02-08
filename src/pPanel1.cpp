@@ -235,7 +235,6 @@ void pPanel::display_panel( int & RC )
 	hide_pd()        ;
 	display_pd()     ;
 	display_MSG()    ;
-	wrefresh( win ) ;
 }
 
 
@@ -271,7 +270,7 @@ void pPanel::nrefresh()
 {
 	//  Refresh the ncurses window for panels only (if in a popup)
 
-	if ( !pan_created ) { wrefresh( win ) ; }
+	if ( pan_created ) { wrefresh( win ) ; }
 }
 
 
@@ -2088,15 +2087,14 @@ void pPanel::hide_pd()
 }
 
 
-pdc pPanel::retrieve_pdc( int row, int col )
+pdc pPanel::retrieve_pdChoice( int row, int col )
 {
-	pdc t_pdc ;
+	if ( !abActive ) { return pdc() ; }
 
-	if ( !abActive ) return t_pdc ;
 	ab.at( abIndex ).hide_pd() ;
 	ab.at( abIndex ).display_abc_unsel( win ) ;
 	abActive = false ;
-	return ab.at( abIndex ).retrieve_pdc( row, col ) ;
+	return ab.at( abIndex ).retrieve_pdChoice( row, col ) ;
 }
 
 
@@ -2160,7 +2158,6 @@ void pPanel::display_MSG()
 		wattrset( win, cuaAttr[ MSGTYPE ] )  ;
 		mvwaddstr( win, 4, 1, LMSG.c_str() ) ;
 		wattroff( win, cuaAttr[ MSGTYPE ] )  ;
-		showLMSG = false               ;
 	}
 }
 

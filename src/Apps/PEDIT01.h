@@ -738,7 +738,7 @@ class PEDIT01 : public pApplication
 
 		const string blkcmds   = "CC MM DD HXX OO RR XX (( )) << >> UCC LCC MMD" ;
 		const string sglcmds   = "A B BNDS C COL COLS D F HX I L LC M MASK MD O R S TABS TS UC X ( ) < > TJ" ;
-		const string spllcmds  = "COL COLS A B I C M D R CC MM DD RR" ;
+		const string spllcmds  = "COL COLS A B I C M MD MMD D R CC MM DD RR" ;
 		const string todlcmds  = "COL COLS A I BNDS MASK TABS" ;
 		const string bodlcmds  = "B" ;
 		const string ABOReq    = "CC MM C M" ;

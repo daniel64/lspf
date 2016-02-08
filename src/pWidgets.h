@@ -154,7 +154,7 @@ class pdc
 		string  pdc_parm ;
 		string  pdc_unavail ;
 
-		pdc()	{
+		pdc()   {
 				pdc_name    = "" ;
 				pdc_run     = "" ;
 				pdc_parm    = "" ;
@@ -191,7 +191,7 @@ class abc
 		void   display_abc_unsel( WINDOW * ) ;
 		void   display_pd()        ;
 		void   hide_pd()           ;
-		pdc    retrieve_pdc( unsigned int row, unsigned int col ) ;
+		pdc    retrieve_pdChoice( unsigned int row, unsigned int col ) ;
 
 	private:
 		bool   pd_created ;
@@ -247,7 +247,7 @@ class tbsearch
 	bool   tbs_ext   ;
 	bool   tbs_gen   ;
 	int    tbs_vsize ;
-} ;	
+} ;
 
 
 class pnts
@@ -286,7 +286,7 @@ class panstmnt
 	bool ps_vputget ;
 	bool ps_trunc   ;
 	bool ps_trans   ;
-	bool ps_exit    ;	
+	bool ps_exit    ;
 } ;
 
 
@@ -371,7 +371,7 @@ class ASSGN
 
 class VERIFY
 {
-	public:	
+	public:
 		VERIFY( string ) ;
 		VERIFY(){
 				ver_RC      = 0     ;
@@ -400,7 +400,7 @@ class VERIFY
 
 class VPUTGET
 {
-	public:	
+	public:
 		VPUTGET( string ) ;
 		VPUTGET()
 			{
@@ -409,10 +409,10 @@ class VPUTGET
 				vpg_vget = false ;
 				vpg_pool = ASIS  ;
 			} ;
-		int	 vpg_RC   ;
-		bool	 vpg_vput ;
-		bool	 vpg_vget ;
-		string	 vpg_vars ;
+		int      vpg_RC   ;
+		bool     vpg_vput ;
+		bool     vpg_vget ;
+		string   vpg_vars ;
 		poolType vpg_pool ;
 } ;
 

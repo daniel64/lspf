@@ -45,6 +45,7 @@ class pApplication
 		bool   abnormalEnd        ;
 		bool   abnormalEndForced  ;
 		bool   reloadCUATables    ;
+		bool   rawOutput          ;
 		bool   libdef_muser       ;
 		bool   libdef_puser       ;
 		bool   libdef_tuser       ;
@@ -61,6 +62,7 @@ class pApplication
 		bool   setMSG             ;
 		string shrdPool           ;
 		int    RC                 ;
+		vector<string>rmsgs       ;
 
 		boost::posix_time::ptime resumeTime ;
 		boost::thread            * pThread  ;
@@ -84,6 +86,7 @@ class pApplication
 		void   save_screen()    ;
 		void   restore_screen() ;
 		void   panel_create( string p_name ) ;
+		bool   isRawOutput() { return rawOutput ; }
 
 		string get_select_cmd( string ) ;
 		string get_help_member( int, int ) ;
@@ -92,6 +95,7 @@ class pApplication
 		void   control( string, string ) ;
 		void   control( string, void (pApplication::*)() ) ;
 		void   libdef( string, string = "" ) ;
+		void   rdisplay( string ) ;
 		void   display( string p_name, string p_msg = "", string p_cursor = "", int p_curpos = 0 ) ;
 		void   pquery( string p_name, string a_name, string t = "", string w = "", string d = "", string r = "", string c = "" ) ;
 		void   select( string )  ;

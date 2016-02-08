@@ -17,7 +17,8 @@ SNAP     Snap SHARED and PROFILE pool variables for the current application to t
 STATS    Display table and pool statistics for the current application to the Application Log
 SPLIT    Split the screen
 SWAP     Swap to the next logical screen
-%nnn xx  Execute oorexx nnn with parameter xx (application defaults are NEWAPPL, NEWPOOL)
+!nnn xx  Execute program nnn with parameter xx (application defaults are NEWAPPL, NEWPOOL)
+%nnn xx  Execute oorexx  nnn with parameter xx (application defaults are NEWAPPL, NEWPOOL)
 
 
 Command Table Entries:
