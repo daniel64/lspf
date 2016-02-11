@@ -56,6 +56,7 @@ pLScreen::pLScreen()
 		init_pair( 7, COLOR_WHITE,   COLOR_BLACK ) ;
 		mvhline( maxrow, 0, ACS_HLINE, maxcol ) ;
 		mousemask( ALL_MOUSE_EVENTS, NULL ) ;
+		OIA = newwin( 1, maxcol, maxrow+1, 0 ) ;
 	}
 	++screensTotal    ;
 	currScreen = this ;
@@ -83,33 +84,38 @@ void pLScreen::clear()
 }
 
 
+void pLScreen::OIA_setup()
+{
+	mvwaddch( OIA, 0, 0, ACS_CKBOARD ) ;
+	wattrset( OIA, YELLOW ) ;
+	mvwaddstr( OIA, 0, 2,  "Screen[        ]" ) ;
+	mvwaddstr( OIA, 0, 31, "Elapsed:" ) ;
+	mvwaddstr( OIA, 0, 51, "Screen:" ) ;
+	wattroff( OIA, YELLOW ) ;
+}
+
+
 void pLScreen::show_enter()
 {
-	curs_set( 0 ) ;
 	wattron( OIA, RED ) ;
 	mvwaddstr( OIA, 0, 20, "X-Enter" ) ;
-	move( 0, 0 ) ;
 	wattroff( OIA, RED ) ;
+	wmove( OIA, 0, 0 ) ;
 	wrefresh( OIA )  ;
-	curs_set( 1 ) ;
 }
 
 
 void pLScreen::show_busy()
 {
-	curs_set( 0 ) ;
 	wattron( OIA, RED ) ;
 	mvwaddstr( OIA, 0, 20, "X-Busy " ) ;
-	move( 0, 0 ) ;
 	wattroff( OIA, RED ) ;
+	wmove( OIA, 0, 0 ) ;
 	wrefresh( OIA )  ;
-	curs_set( 1 ) ;
 }
 
 
 void pLScreen::clear_status()
 {
-	curs_set( 0 ) ;
 	mvwaddstr( OIA, 0, 20, "       " ) ;
-	curs_set( 1 ) ;
 }

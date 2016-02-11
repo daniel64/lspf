@@ -69,11 +69,11 @@ void PCMD0A::application()
 	{
 		if ( MSG == "" ) { ZCMD = "" ; }
 		display( "PCMD0A", MSG, "ZCMD" ) ;
-		if ( RC == 8 ) { break           ; }
-		if ( RC >  8 ) { abend() ; break ; }
-		vget( "ZVERB", SHARED ) ;
+		if ( RC == 8 ) { break   ; }
+		if ( RC >  8 ) { abend() ; }
 		if ( ZCOMMAND != "" )
 		{
+			ZCOMMAND = ZCOMMAND + " 2> /tmp/popen.err" ;
 			of.open( tname ) ;
 			FILE* pipe{popen(ZCOMMAND.c_str(), "r")};
 			while( fgets(buffer, sizeof(buffer), pipe) != nullptr )
@@ -86,15 +86,13 @@ void PCMD0A::application()
 			ZCOMMAND = ""   ;
 			of.close()      ;
 			browse( tname ) ;
+			if ( ZRC == 4 && ZRSN == 4 ) { browse( "/tmp/popen.err" ) ; }
 			remove( tname ) ;
 		}
-		debug1("Result from command is " << result << endl ) ;
 	}
-
 	cleanup() ;
 	return    ;
 }
-
 
 
 // ============================================================================================ //

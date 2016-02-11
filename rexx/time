@@ -18,5 +18,5 @@
 */
 
 address ISPEXEC
-"RDISPLAY The time is" time() "on" date()
+"RDISPLAY The time is" time() "on" date("W")"," date()
 exit

@@ -1,0 +1,97 @@
+/* REXX */
+
+/*
+  Copyright (c) 2015 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+Parse arg date
+
+Call ExecInit
+
+do i = 1 to words(f2List)
+   Type = word(f2List,i)
+   Call FindValidTypes
+end
+
+Call ListDates
+EXIT 0
+
+
+ExecInit:
+True   = (1=1)
+False  = (1=0)
+f1List = "N B D E M O S U W"
+f2List = "B C E J N O S U"
+Abs.   = ""
+List   = ""
+Lit.B  = "Base. . . . . . . . ."
+Lit.C  = "Century . . . . . . ."
+Lit.D  = "Days this year. . . ."
+Lit.E  = "European, dd/mm/yy. ."
+Lit.J  = "Julian, yyddd . . . ."
+Lit.M  = "Month literal . . . ."
+Lit.N  = "Normal, dd mon yyyy ."
+Lit.O  = "Ordered, yy/mm/dd . ."
+Lit.S  = "Standard, yyyymmdd. ."
+Lit.U  = "USA, mm/dd/yy . . . ."
+Lit.W  = "Weekday . . . . . . ."
+if date = "" then date = date()
+aDate  = date("B")
+RETURN
+
+
+FindValidTypes:
+Signal on syntax
+Abs.Type = date("B",date,Type)
+List = List Type
+syntax:
+RETURN
+
+
+ListDates:
+address ISPEXEC
+"RDISPLAY Date "date" has the following valid date types:"
+"RDISPLAY" strip(List)
+"RDISPLAY"
+do i = 1 to words(List)
+   Type2 = word(List,i)
+   Call DisplayOffset
+   do j = 1 to words(f1List)
+      Type1 = word(f1List,j)
+      if Type1 = Type2 then iterate
+      "RDISPLAY" lit.Type1 date(Type1,date,Type2)
+   end
+   "RDISPLAY"
+end
+RETURN
+
+
+DisplayOffset:
+address ISPEXEC
+Offset = Abs.Type2 - aDate
+select
+  when Offset = 0  then lit = "Today"
+  when Offset = -1 then lit = "Yesterday"
+  when Offset = 1  then lit = "Tomorrow"
+  when Offset < -1 then lit = abs(Offset) "days ago"
+  otherwise             lit = Offset "days time"
+end
+parse var lit.Type2 Type "." .
+"RDISPLAY For date type '"Type2"' ("strip(Type)") ("lit")"
+"RDISPLAY"
+RETURN

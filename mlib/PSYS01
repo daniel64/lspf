@@ -120,3 +120,12 @@ PSYS011E "Entry Conflict"
 
 PSYS011F "Enter Data"
 "Enter data into fields to continue"
+
+PSYS011G "Command Issued"
+"Command has been issued.  Check log for details"
+
+PSYS011H "Module reloaded"
+"Module has been reloaded successfully"
+
+PSYS011I "Errors during module reload"
+"Check log for errors"

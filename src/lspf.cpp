@@ -86,9 +86,9 @@ string usrAttrNames = "N_RED N_GREEN N_YELLOW N_BLUE N_MAGENTA N_TURQ N_WHITE " 
 #define MOD_NAME lspf
 #define LOGOUT   splog
 
+#define currAppl pApplication::currApplication
 #define currScrn pLScreen::currScreen
 #define OIA      pLScreen::OIA
-#define currAppl pApplication::currApplication
 
 using namespace std ;
 using namespace boost::filesystem ;
@@ -100,7 +100,7 @@ int  pLScreen::maxcol       = 0 ;
 WINDOW * pLScreen::OIA      = NULL ;
 
 boost::posix_time::ptime startTime ;
-boost::posix_time::ptime endTime ;
+boost::posix_time::ptime endTime   ;
 
 pLScreen     * pLScreen::currScreen          = NULL ;
 pApplication * pApplication::currApplication = NULL ;
@@ -112,17 +112,19 @@ fPOOL  funcPOOL ;
 
 void initialSetup()          ;
 void loadDefaultPools()      ;
+bool loadDynamicClass( string, string, string ) ;
 void loadDynamicClasses()    ;
+void reloadDynamicClasses( string ) ;
 void loadCommandTable()      ;
 void loadApplicationCommandTable( string ) ;
 void loadpfkeyTable()        ;
-void loadcuaTables()         ;
+void loadCUATables()         ;
 void setColourPair( string ) ;
 void updateDefaultVars()     ;
 void updateReflist()         ;
 void startApplication( string, string, string, bool, bool ) ;
 void terminateApplication()  ;
-void ResumeWaitForApplication() ;
+void ResumeApplicationAndWait() ;
 void processSelect()         ;
 void processAction( uint row, uint col, int c, bool & passthru )  ;
 void errorScreen( int, string ) ;
@@ -132,16 +134,22 @@ void mainLoop() ;
 
 vector<pLScreen *>   screenList   ;
 map<int, string>     pfkeyTable   ;
-map<string, void *>  dlibs        ;
-map<string, void *>  maker_ep     ;
-map<string, void *>  destroyer_ep ;
+
+struct modInfo
+{
+	void * dlib     ;
+	void * maker_ep ;
+	void * destroyer_ep ;
+	int    refCount ;
+} ;
+
+map<string, modInfo> dlibs ;
 
 boost::circular_buffer<string> retrieveBuffer(25) ;
 
 int    maxtaskID = 0 ;
 int    screenNum = 0 ;
 int    altScreen = 0 ;
-int    RC            ;
 bool   pfkeyPressed  ;
 string commandStack  ;
 string jumpOption    ;
@@ -167,8 +175,8 @@ string ZHOME  ;
 string ZUSER  ;
 string ZSHELL ;
 
-static string BuiltInCommands = "ABEND ACTION DISCARD FIELDEXC INFO NOP PANELID "
-				"REFRESH SCALE SNAP SHELL SPLIT STATS SWAP TASKS TEST TDOWN" ;
+static string BuiltInCommands = "ABEND ACTION DISCARD FIELDEXC INFO NOP PANELID REFRESH "
+				"RELOAD SCALE SNAP SHELL SPLIT STATS SWAP TASKS TEST TDOWN" ;
 
 std::ofstream splog(SLOG) ;
 
@@ -187,7 +195,6 @@ int main( void )
 	commandStack = "" ;
 
 	screenList.push_back ( new pLScreen ) ;
-	pLScreen::OIA = newwin( 1, pLScreen::maxcol, pLScreen::maxrow+1, 0 ) ;
 
 	log( "I", "lspf startup in progress" << endl ) ;
 
@@ -200,8 +207,8 @@ int main( void )
 	log( "I", "Calling loadDynamicClasses" << endl ) ;
 	loadDynamicClasses() ;
 
-	log( "I", "Calling loadcuaTables" << endl ) ;
-	loadcuaTables() ;
+	log( "I", "Calling loadCUATables" << endl ) ;
+	loadCUATables() ;
 
 	log( "I", "Calling loadCommandTable" << endl ) ;
 	loadCommandTable() ;
@@ -209,7 +216,7 @@ int main( void )
 	updateDefaultVars() ;
 
 	log( "I", "Starting new " << ZMAINPGM << " thread" << endl ) ;
-	currAppl = ((pApplication*(*)())( maker_ep[ ZMAINPGM ]))()   ;
+	currAppl = ((pApplication*(*)())( dlibs[ ZMAINPGM ].maker_ep))()   ;
 
 	currScrn->application_add( currAppl ) ;
 	currAppl->ZAPPNAME   = ZMAINPGM       ;
@@ -227,7 +234,8 @@ int main( void )
 	loadpfkeyTable() ;
 
 	pThread = new boost::thread(boost::bind(&pApplication::application, currAppl ) ) ;
-	currAppl->pThread = pThread ;
+	currAppl->pThread = pThread  ;
+	dlibs[ ZMAINPGM ].refCount++ ;
 
 	log( "I", "Waiting for " << ZMAINPGM << " to complete startup" << endl ) ;
 	elapsed = 0 ;
@@ -243,7 +251,7 @@ int main( void )
 		currAppl->info() ;
 		currAppl->closeTables() ;
 		log( "I", "Removing application instance of " << currAppl->ZAPPNAME << endl ) ;
-		((void (*)(pApplication*))(destroyer_ep[ currAppl->ZAPPNAME ]))( currAppl )  ;
+		((void (*)(pApplication*))(dlibs[ currAppl->ZAPPNAME ].destroyer_ep))( currAppl )  ;
 		delete pThread    ;
 		delete p_poolMGR  ;
 		delete p_tableMGR ;
@@ -262,13 +270,18 @@ int main( void )
 	delete p_poolMGR  ;
 	delete p_tableMGR ;
 
-//      for ( it = dlibs.begin() ; it != dlibs.end() ; it++ )
-//      {
-//              dlerror() ;
-//              log( "I", "dlclose of " << it->first << " at " << it->second << endl ) ;
-//              dlclose( it->second ) ;
-//              debug1( "dlerror " << dlerror() << endl ) ;
-//      }
+	map<string, modInfo>::iterator it ;
+	for ( it = dlibs.begin() ; it != dlibs.end() ; it++ )
+	{
+		log( "I", "dlclose of " << it->first << " at " << it->second.dlib << endl ) ;
+		dlclose( it->second.dlib ) ;
+	}
+
+	for ( it = dlibs.begin() ; it != dlibs.end() ; it++ )
+	{
+		log( "I", "dlclose of " << it->first << " at " << it->second.dlib << endl ) ;
+		dlclose( it->second.dlib ) ;
+	}
 
 	log( "I", "lspf and LOG terminating" <<endl ) ;
 	splog.close() ;
@@ -304,10 +317,7 @@ void mainLoop()
 	fieldExc fxc ;
 	MEVENT event ;
 
-	mvwaddch( OIA, 0, 0, ACS_CKBOARD ) ;
-	wattrset( OIA, YELLOW ) ;
-	mvwaddstr( OIA, 0, 2, "Screen[        ]" ) ;
-	wattroff( OIA, YELLOW ) ;
+	currScrn->OIA_setup() ;
 
 	mousemask( ALL_MOUSE_EVENTS, NULL ) ;
 	currScrn = screenList[ screenNum ] ;
@@ -328,7 +338,7 @@ void mainLoop()
 		endTime  = boost::posix_time::microsec_clock::universal_time() ;
 		respTime = to_iso_string(endTime - startTime) ;
 		pos      = lastpos( ".", respTime ) ;
-		respTime = "    Elapsed: " + substr( respTime, (pos - 2) , 6 ) + " s" ;
+		respTime = substr( respTime, (pos - 2) , 6 ) + " s" ;
 
 		if ( showPanelID )
 		{
@@ -339,10 +349,11 @@ void mainLoop()
 		wattrset( OIA, YELLOW ) ;
 		mvwaddstr( OIA, 0, pLScreen::maxcol-23, Isrt.c_str() ) ;
 		mvwprintw( OIA, 0, pLScreen::maxcol-14, "Row %d Col %d  ", row+1, col+1 ) ;
-		mvwaddstr( OIA, 0, 27, respTime.c_str() ) ;
-		mvwprintw( OIA, 0, 52, "Screen:%d-%d   ", currScrn->screenID, currScrn->application_stack_size() );
-		mvwaddstr( OIA, 0, 9, "        " ) ;
+		mvwaddstr( OIA, 0, 40, respTime.c_str() ) ;
+		mvwprintw( OIA, 0, 59, "%d-%d   ", currScrn->screenID, currScrn->application_stack_size() );
+		mvwaddstr( OIA, 0, 9,  "        " ) ;
 		mvwaddstr( OIA, 0, 9, substr( "12345678", 1, pLScreen::screensTotal).c_str() ) ;
+		mvwaddstr( OIA, 0, 27, "   " ) ;
 		wattroff( OIA, YELLOW ) ;
 		if ( screenNum < 8 )
 		{
@@ -369,9 +380,9 @@ void mainLoop()
 		     !currAppl->ControlDisplayLock )
 		{
 			currAppl->nrefresh() ;
-			wrefresh( stdscr ) ;
+			wnoutrefresh( stdscr ) ;
+			wnoutrefresh( OIA ) ;
 			move( row, col ) ;
-			wrefresh( OIA ) ;
 			doupdate()  ;
 			c = getch() ;
 		}
@@ -472,8 +483,8 @@ void mainLoop()
 				if ( passthru )
 				{
 					currAppl->set_cursor( row, col ) ;
-					ResumeWaitForApplication()       ;
-					if ( currAppl->reloadCUATables ) { loadcuaTables() ; }
+					ResumeApplicationAndWait()       ;
+					if ( currAppl->reloadCUATables ) { loadCUATables() ; }
 					currAppl->get_cursor( row, col ) ;
 					currScrn->set_row_col( row, col ) ;
 					if ( currAppl->SEL )
@@ -561,9 +572,14 @@ void mainLoop()
 					}
 					else if ( ZCOMMAND == "REFRESH" )
 					{
+
 						currAppl->currPanel->refresh( RC ) ;
 						reset_prog_mode() ;
 						refresh() ;
+					}
+					else if ( ZCOMMAND == "RELOAD" )
+					{
+						reloadDynamicClasses( ZPARM ) ;
 					}
 					else if ( ZCOMMAND == "SCALE" )
 					{
@@ -695,6 +711,8 @@ void mainLoop()
 
 void initialSetup()
 {
+	int RC ;
+
 	char* home  = getenv( "HOME" )    ;
 	char* user  = getenv( "LOGNAME" ) ;
 	char* shell = getenv( "SHELL" )   ;
@@ -1064,7 +1082,7 @@ void processSelect()
 		errorScreen( 1, "SELECT function did not find application " + currAppl->SEL_PGM ) ;
 		currAppl->SEL      = false ;
 		log( "W", "Resumed function did a SELECT.  Ending wait in SELECT" << endl ) ;
-		ResumeWaitForApplication() ;
+		ResumeApplicationAndWait() ;
 		while ( currAppl->terminateAppl )
 		{
 			debug1( "Calling application " << currAppl->ZAPPNAME << " also ending" << endl ) ;
@@ -1081,6 +1099,7 @@ void processSelect()
 
 void startApplication( string Application, string parm, string NEWAPPL, bool NEWPOOL, bool PASSLIB )
 {
+	int RC      ;
 	int elapsed ;
 	uint row    ;
 	uint col    ;
@@ -1123,7 +1142,7 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 	}
 	currScrn->clear() ;
 
-	currAppl = ((pApplication*(*)())( maker_ep[ Application ]))() ;
+	currAppl = ((pApplication*(*)())( dlibs[ Application ].maker_ep))() ;
 
 	currScrn->application_add( currAppl ) ;
 	currAppl->ZAPPNAME   = Application ;
@@ -1133,6 +1152,7 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 	currAppl->p_poolMGR  = p_poolMGR   ;
 	currAppl->p_tableMGR = p_tableMGR  ;
 	currAppl->PARM       = parm        ;
+	dlibs[ Application ].refCount++ ;
 
 	if ( NEWAPPL != "" )
 	{
@@ -1283,7 +1303,8 @@ void terminateApplication()
 	}
 
 	log( "I", "Removing application instance of " << currAppl->ZAPPNAME << endl ) ;
-	((void (*)(pApplication*))(destroyer_ep[ currAppl->ZAPPNAME ]))( currAppl )  ;
+	dlibs[ currAppl->ZAPPNAME ].refCount-- ;
+	((void (*)(pApplication*))(dlibs[ currAppl->ZAPPNAME ].destroyer_ep))( currAppl ) ;
 
 	delete pThread  ;
 
@@ -1404,7 +1425,7 @@ void terminateApplication()
 		currAppl->ZRESULT  = tRESULT ;
 		if ( SMSG != "" )  { currAppl->ZSMSG = SMSG ; currAppl->ZLMSG = LMSG ; currAppl->ZMSGTYPE = MSGTYPE ; currAppl->ZMSGALRM = MSGALRM ; currAppl->setMSG = true ; }
 		log( "I", "Resumed function did a SELECT, BROWSE, EDIT or VIEW.  Ending wait in function" << endl ) ;
-		ResumeWaitForApplication() ;
+		ResumeApplicationAndWait() ;
 		while ( currAppl->terminateAppl )
 		{
 			debug1( "Calling application " << currAppl->ZAPPNAME << " also ending" << endl ) ;
@@ -1455,7 +1476,7 @@ void terminateApplication()
 }
 
 
-void ResumeWaitForApplication()
+void ResumeApplicationAndWait()
 {
 	int elapsed ;
 
@@ -1486,7 +1507,7 @@ void ResumeWaitForApplication()
 }
 
 
-void loadcuaTables()
+void loadCUATables()
 {
 
 	cuaAttrName[ "AB"     ] = AB     ;         // AB Selected Choice (was Yellow/normal)
@@ -1662,6 +1683,7 @@ void loadcuaTables()
 
 void setColourPair( string name )
 {
+	int RC   ;
 	string t ;
 	char   c ;
 
@@ -1806,6 +1828,8 @@ void loadApplicationCommandTable( string APPLID )
 
 void loadpfkeyTable()
 {
+	int RC ;
+
 	string ZPF01, ZPF02, ZPF03, ZPF04, ZPF05, ZPF06, ZPF07, ZPF08, ZPF09, ZPF10, ZPF11, ZPF12 ;
 	string ZPF13, ZPF14, ZPF15, ZPF16, ZPF17, ZPF18, ZPF19, ZPF20, ZPF21, ZPF22, ZPF23, ZPF24 ;
 
@@ -1981,6 +2005,7 @@ void loadDynamicClasses()
 	// Duplicates are ignored with a warning messasge.
 	// Terminate lspf if no modules found as we cannot continue
 
+	int RC       ;
 	int i        ;
 	int j        ;
 	int pos1     ;
@@ -1991,18 +2016,12 @@ void loadDynamicClasses()
 	string paths ;
 	string p     ;
 
-	void *dlib   ;
-	void *mkr    ;
-	void *destr  ;
-
 	typedef vector<path> vec ;
 	vec v        ;
-	const char* dlsym_err ;
 
 	vec::const_iterator it ;
 
-	string e1( "** Module not loaded due to error(s).  Check lspf log **" ) ;
-	string e2( "** No applications loaded.  Check ZLDPATH is correct.  lspf terminating **" ) ;
+	const string e1( "** No applications loaded.  Check ZLDPATH is correct.  lspf terminating **" ) ;
 
 	paths = p_poolMGR->get( RC, "ZLDPATH", PROFILE ) ;
 	j     = getpaths( paths ) ;
@@ -2011,12 +2030,12 @@ void loadDynamicClasses()
 		p = getpath( paths, i ) ;
 		if ( is_directory( p ) )
 		{
-			log( "I", "Searching directory " << p << " for application classes" << endl ) ;
+			log( "I", "Searching directory "+ p +" for application classes" << endl ) ;
 			copy( directory_iterator( p ), directory_iterator(), back_inserter( v ) ) ;
 		}
 		else
 		{
-			log( "W", "Ignoring directory " << p << "  Not found or not a directory." << endl ) ;
+			log( "W", "Ignoring directory "+ p +"  Not found or not a directory." << endl ) ;
 		}
 	}
 
@@ -2029,7 +2048,7 @@ void loadDynamicClasses()
 		pos1  = pos( ".so", mod ) ;
 		if ( substr(mod, 1, 3 ) != "lib" || pos1 == 0 ) continue ;
 		appl  = substr( mod, 4, (pos1 - 4) ) ;
-		log( "I", "Loading application " << appl << endl ) ;
+		log( "I", "Loading application "+ appl << endl ) ;
 		if ( dlibs.find( appl ) != dlibs.end() )
 		{
 			log( "W", "Ignoring duplicate module " + mod + " found in " + p << endl ) ;
@@ -2037,59 +2056,189 @@ void loadDynamicClasses()
 		}
 
 		i++       ;
-		dlerror() ;
-		dlib = dlopen( fname.c_str(), RTLD_NOW ) ;
-		p_poolMGR->defaultVARs( RC , "ZDLM" + right( d2ds( i ), 4, '0'), mod, SHARED )  ;
-		p_poolMGR->defaultVARs( RC , "ZDLC" + right( d2ds( i ), 4, '0'), appl, SHARED ) ;
-		if ( !dlib )
+		if ( loadDynamicClass( mod, appl, fname ) )
 		{
-			log( "E", "Error loading " << *it  << endl ) ;
-			log( "E", "Error is " << dlerror() << endl ) ;
-			log( "E", "Module " << mod << " will be ignored" << endl ) ;
-			p_poolMGR->defaultVARs( RC , "ZDLP" + right( d2ds( i ), 4, '0'), e1, SHARED ) ;
-			continue ;
+			log( "I", "Loaded "+ appl +" (module "+ mod +") from "+ p << endl ) ;
 		}
-		dlerror() ;
-		mkr       = dlsym( dlib, "maker" ) ;
-		dlsym_err = dlerror() ;
-		if ( dlsym_err )
-		{
-			log( "E", "Error loading symbol maker" << endl ) ;
-			log( "E", "Error is " << dlerror()  << endl )    ;
-			log( "E", "Module " << mod << " will be ignored" << endl ) ;
-			p_poolMGR->defaultVARs( RC , "ZDLP" + right( d2ds( i ), 4, '0'), e1, SHARED ) ;
-			continue ;
-		}
-		dlerror() ;
-		destr     = dlsym( dlib, "destroy" ) ;
-		dlsym_err = dlerror() ;
-		if ( dlsym_err )
-		{
-			log( "E", "Error loading symbol destroy" << endl ) ;
-			log( "E", "Error is " << dlsym_err  << endl )      ;
-			log( "E", "Module " << mod << " will be ignored" << endl ) ;
-			p_poolMGR->defaultVARs( RC , "ZDLP" + right( d2ds( i ), 4, '0'), e1, SHARED ) ;
-			continue ;
-		}
-		debug1( *it << " loaded at " << dlib << endl ) ;
-		debug1( "Maker at " << mkr << endl ) ;
-		debug1( "Destroyer at " << destr << endl ) ;
-		log( "I", "Loaded " << appl << " (module " << mod << ") from " << p << endl ) ;
-		dlibs[ appl ]        = dlib  ;
-		maker_ep[ appl ]     = mkr   ;
-		destroyer_ep[ appl ] = destr ;
-		p_poolMGR->defaultVARs( RC , "ZDLP" + right( d2ds( i ), 4, '0'), p, SHARED )    ;
 	}
 	if ( dlibs.size() > 0 )
 	{
-		log( "I", "" << dlibs.size() << " applications loaded" << endl ) ;
+		log( "I", d2ds( dlibs.size() ) + " applications loaded" << endl ) ;
 	}
 	else
 	{
 		delete screenList[ 0 ] ;
-		log( "C", e2 << endl ) ;
-		cout <<  e2 << endl ;
+		log( "C", e1 << endl ) ;
+		cout <<  e1 << endl ;
 		splog.close()     ;
 		abort()           ;
 	}
+}
+
+
+void reloadDynamicClasses( string parm )
+{
+	// Reload modules (ALL, NEW or modname).  Ignore reload for modules currently in-use
+
+	int RC       ;
+	int i        ;
+	int j        ;
+	int pos1     ;
+
+	string appl  ;
+	string mod   ;
+	string fname ;
+	string paths ;
+	string p     ;
+
+	bool loaded  ;
+
+	typedef vector<path> vec ;
+	vec v        ;
+
+	vec::const_iterator it ;
+
+	paths = p_poolMGR->get( RC, "ZLDPATH", PROFILE ) ;
+	j     = getpaths( paths ) ;
+	for ( i = 1 ; i <= j ; i++ )
+	{
+		p = getpath( paths, i ) ;
+		if ( is_directory( p ) )
+		{
+			log( "I", "Searching directory "+ p +" for application class" << endl ) ;
+			copy( directory_iterator( p ), directory_iterator(), back_inserter( v ) ) ;
+		}
+		else
+		{
+			log( "W", "Ignoring directory "+ p +"  Not found or not a directory." << endl ) ;
+		}
+	}
+
+	appl = upper( appl ) ;
+
+	i = 0 ;
+	for ( it = v.begin() ; it != v.end() ; ++it )
+	{
+		fname = (*it).string() ;
+		p     = substr( fname, 1, (lastpos( "/", fname ) - 1) ) ;
+		mod   = substr( fname, (lastpos( "/", fname ) + 1) )    ;
+		pos1  = pos( ".so", mod ) ;
+		if ( substr(mod, 1, 3 ) != "lib" || pos1 == 0 ) continue ;
+		appl  = substr( mod, 4, (pos1 - 4) ) ;
+		log( "I", "Found application "+ appl << endl ) ;
+		loaded = false ;
+		if ( dlibs.find( appl ) != dlibs.end() )
+		{
+			loaded = true ;
+		}
+
+		if ( parm == "NEW" && loaded ) { continue ; }
+		if ( parm != "NEW" && parm != "ALL" && parm != appl ) { continue ; }
+		if ( loaded && dlibs[ appl ].refCount > 0 )
+		{
+			log( "W", "Application "+ appl +" in use.  Reload ignored" << endl ) ;
+			continue ;
+		}
+		if ( loaded )
+		{
+			log( "I", "Closing "+ appl << endl ) ;
+			dlclose( dlibs[ appl ].dlib ) ;
+			log( "I", "Reloading module "+ appl << endl ) ;
+		}
+		else
+		{
+			log( "I", "Loading new module "+ appl << endl ) ;
+		}
+
+		if ( loadDynamicClass( mod, appl, fname ) )
+		{
+			log( "I", "Loaded "+ appl +" (module "+ mod +") from "+ p << endl ) ;
+			i++ ;
+		}
+		else if ( loaded )
+		{
+			log( "W", "Errors occured loading "+ appl +"  Module removed" << endl ) ;
+			dlclose( dlibs[ appl ].dlib ) ;
+			dlibs.erase( appl ) ;
+		}
+		if ( parm != "ALL" && parm == appl ) { break ; }
+	}
+
+	currAppl->setmsg( "PSYS011G" ) ;
+	if      ( parm == "NEW" ) { log( "I", d2ds( i ) + " new applications loaded" << endl ) ; }
+	else if ( parm == "ALL" ) { log( "I", d2ds( i ) + " applications (re)loaded" << endl ) ; }
+	else if ( i == 0        ) { log( "W", "Applicaton " + parm + " not reloaded" << endl ) ; currAppl->setmsg( "PSYS011I" ) ; }
+	else                      { log( "I", "Applicaton " + parm + " reloaded" << endl )     ; currAppl->setmsg( "PSYS011H" ) ; }
+
+	log( "I", d2ds( dlibs.size() ) + " applications currently loaded" << endl ) ;
+
+}
+
+
+bool loadDynamicClass( string mod, string appl, string fname )
+{
+	// Load module fname and retrieve address of maker and destroyer symbols
+
+	int RC      ;
+	int i       ;
+
+	void *dlib  ;
+	void *mkr   ;
+	void *destr ;
+
+	string p    ;
+
+	const string e1( "** Module not loaded due to error(s).  Check lspf log **" ) ;
+
+	const char* dlsym_err ;
+	modInfo mI ;
+
+	p = substr( fname, 1, (lastpos( "/", fname ) - 1) ) ;
+	i = dlibs.size() ;
+
+	dlerror() ;
+	dlib = dlopen( fname.c_str(), RTLD_NOW ) ;
+	p_poolMGR->defaultVARs( RC , "ZDLM" + right( d2ds( i ), 4, '0'), mod, SHARED )  ;
+	p_poolMGR->defaultVARs( RC , "ZDLC" + right( d2ds( i ), 4, '0'), appl, SHARED ) ;
+	if ( !dlib )
+	{
+		log( "E", "Error loading "+ fname << endl ) ;
+		log( "E", "Error is " << dlerror() << endl ) ;
+		log( "E", "Module "+ mod +" will be ignored" << endl ) ;
+		p_poolMGR->defaultVARs( RC , "ZDLP" + right( d2ds( i ), 4, '0'), e1, SHARED ) ;
+		return false ;
+	}
+	dlerror() ;
+	mkr       = dlsym( dlib, "maker" ) ;
+	dlsym_err = dlerror() ;
+	if ( dlsym_err )
+	{
+		log( "E", "Error loading symbol maker" << endl ) ;
+		log( "E", "Error is " << dlsym_err  << endl )      ;
+		log( "E", "Module "+ mod +" will be ignored" << endl ) ;
+		p_poolMGR->defaultVARs( RC , "ZDLP" + right( d2ds( i ), 4, '0'), e1, SHARED ) ;
+		return false ;
+	}
+	dlerror() ;
+	destr     = dlsym( dlib, "destroy" ) ;
+	dlsym_err = dlerror() ;
+	if ( dlsym_err )
+	{
+		log( "E", "Error loading symbol destroy" << endl ) ;
+		log( "E", "Error is " << dlsym_err  << endl )      ;
+		log( "E", "Module "+ mod +" will be ignored" << endl ) ;
+		p_poolMGR->defaultVARs( RC , "ZDLP" + right( d2ds( i ), 4, '0'), e1, SHARED ) ;
+		return false ;
+	}
+	debug1( fname +" loaded at " << dlib << endl ) ;
+	debug1( "Maker at " << mkr << endl ) ;
+	debug1( "Destroyer at " << destr << endl ) ;
+	mI.dlib         = dlib  ;
+	mI.maker_ep     = mkr   ;
+	mI.destroyer_ep = destr ;
+	mI.refCount     = 0     ;
+	dlibs[ appl ]   = mI    ;
+	p_poolMGR->defaultVARs( RC , "ZDLP" + right( d2ds( i ), 4, '0'), p, SHARED )    ;
+
+	return true ;
 }

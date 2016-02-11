@@ -53,6 +53,7 @@ class pLScreen
 	int   application_stack_size()                          { return pApplicationStack.size()  ; } ;
 	bool  application_stack_empty()                         { return pApplicationStack.empty() ; } ;
 
+	void  OIA_setup()  ;
 	void  show_enter() ;
 	void  show_busy()  ;
 	void  clear_status() ;
