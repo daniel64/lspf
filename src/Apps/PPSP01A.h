@@ -79,6 +79,7 @@ class PPSP01A : public pApplication
 		void todoList()       ;
 		void poolVariables( string )    ;
 		void getpoolVariables( string ) ;
+		void runApplication( string )   ;
 		void showPaths()         ;
 		void showCommandTables() ;
 		void showLoadedClasses() ;
@@ -86,6 +87,8 @@ class PPSP01A : public pApplication
 		void showTasks()         ;
 		void updateTasks( string ) ;
 		void utilityPrograms()   ;
-		void keylistTables()     ;
+		void keylistTables()       ;
+		void keylistTable( string );
+		void editKeylist( string, string ) ;
 
 };

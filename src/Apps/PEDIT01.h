@@ -283,6 +283,10 @@ class iline
 		{
 			return il_idata.top().id_data ;
 		}
+		bool idata_is_empty()
+		{
+			return il_idata.empty() ;
+		}
 		void undo_idata()
 		{
 			il_vShadow = false ;
@@ -576,8 +580,9 @@ class PEDIT01 : public pApplication
 		void storeCursor(  int, int, int=0 ) ;
 		void placeCursor(  int, int, int=0 ) ;
 		void placeCursor( uint, int, int=0 ) ;
-		void positionCursor()  ;
-		void moveColumn( int ) ;
+		void placeCursorDefault() ;
+		void positionCursor()     ;
+		void moveColumn( int )    ;
 
 		vector<iline * >::iterator getLineItr( int )       ;
 		vector<iline * >::iterator getLineBeforeItr( int ) ;

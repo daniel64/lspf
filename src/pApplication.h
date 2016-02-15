@@ -72,6 +72,7 @@ class pApplication
 		fPOOL      funcPOOL   ;
 		poolMGR  * p_poolMGR  ;
 		tableMGR * p_tableMGR ;
+		void (* lspfCallback)( lspfCommand & ) ;
 
 		pPanel * currPanel   ;
 		pPanel * currtbPanel ;

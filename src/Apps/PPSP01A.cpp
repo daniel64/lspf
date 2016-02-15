@@ -32,6 +32,7 @@
 /* Display loaded Modules (loaded Dynamic Classes)                          */
 /* Display Saved File List                                                  */
 /* Simple task list display (from ps aux output)                            */
+/* RUN an application (default parameters)                                  */
 
 #include <iostream>
 #include <vector>
@@ -98,15 +99,16 @@ void PPSP01A::application()
 		LOGLOC  = ZSLOG   ;
 		show_log( ZSLOG ) ;
 	}
-	else if ( PARM == "KEYS"    ) { pfkeySettings()     ; }
-	else if ( PARM == "COLOURS" ) { colourSettings()    ; }
-	else if ( PARM == "TODO"    ) { todoList()          ; }
-	else if ( w1   == "VARS"    ) { poolVariables( w2 ) ; }
-	else if ( PARM == "PATHS"   ) { showPaths()         ; }
-	else if ( PARM == "CMDS"    ) { showCommandTables() ; }
-	else if ( PARM == "MODS"    ) { showLoadedClasses() ; }
-	else if ( PARM == "SAVELST" ) { showSavedFileList() ; }
-	else if ( PARM == "TASKS"   ) { showTasks()         ; }
+	else if ( PARM == "KEYS"    ) { pfkeySettings()      ; }
+	else if ( PARM == "COLOURS" ) { colourSettings()     ; }
+	else if ( PARM == "TODO"    ) { todoList()           ; }
+	else if ( w1   == "VARS"    ) { poolVariables( w2 )  ; }
+	else if ( PARM == "PATHS"   ) { showPaths()          ; }
+	else if ( PARM == "CMDS"    ) { showCommandTables()  ; }
+	else if ( PARM == "MODS"    ) { showLoadedClasses()  ; }
+	else if ( w1   == "RUN"     ) { runApplication( w2 ) ; }
+	else if ( PARM == "SAVELST" ) { showSavedFileList()  ; }
+	else if ( PARM == "TASKS"   ) { showTasks()          ; }
 	else if ( PARM == "KLOFF"   )
 	{
 		vdefine( "ZKLUSE", &ZKLUSE ) ;
@@ -121,8 +123,9 @@ void PPSP01A::application()
 		vput( "ZKLUSE", PROFILE ) ;
 		vdelete( "ZKLUSE" )       ;
 	}
-	else if ( PARM == "UTPGMS"  ) { utilityPrograms() ; }
-	else if ( PARM == "KLISTS"  ) { keylistTables()   ; }
+	else if ( PARM == "UTPGMS"  ) { utilityPrograms()  ; }
+	else if ( PARM == "KLISTS"  ) { keylistTables()    ; }
+	else if ( PARM == "KLIST"   ) { keylistTable( "" ) ; }
 	else { log( "E", "Invalid parameter passed to PPSP01A: " << PARM << endl ) ; }
 
 	cleanup() ;
@@ -591,7 +594,6 @@ void PPSP01A::colourSettings()
 {
 
 	int  i ;
-	char c ;
 	string MSG    ;
 	string CURFLD ;
 	string var1   ;
@@ -999,7 +1001,6 @@ void PPSP01A::todoList()
 void PPSP01A::poolVariables( string applid )
 {
 	int i       ;
-	int j       ;
 	string MSG  ;
 	string cw   ;
 	string w2   ;
@@ -1154,7 +1155,6 @@ void PPSP01A::getpoolVariables( string pattern )
 void PPSP01A::showPaths()
 {
 	int i ;
-	int j ;
 	string PGM      ;
 	string LIBDEFM  ;
 	string LIBDEFP  ;
@@ -1286,7 +1286,7 @@ void PPSP01A::showPaths()
 	}
 
 	PVAR     = "ZUPROF" ;
-	PATH     =  ZUPROF   ;
+	PATH     =  ZUPROF  ;
 	DESCRIPT = "User home profile path" ;
 	tbadd( PATHLST )    ;
 
@@ -1337,7 +1337,6 @@ void PPSP01A::showPaths()
 			}
 			else { ZTDSELS = 0 ; }
 		}
-
 	}
 	tbclose( PATHLST ) ;
 }
@@ -1423,38 +1422,49 @@ void PPSP01A::showCommandTables()
 void PPSP01A::showLoadedClasses()
 {
 	int i      ;
+	int j      ;
 	int ws     ;
+
+	bool ref   ;
+
 	string w1  ;
 	string w2  ;
 	string w3  ;
 	string MSG ;
-	string VAR ;
-	string varlist ;
+	string SEL ;
+	string STATUS ;
+	string psort  ;
 
-	vdefine( "APPL MOD MODPATH", &APPL, &MOD, &MODPATH ) ;
+	lspfCommand lc ;
+
+	vdefine( "SEL APPL MOD MODPATH STATUS", &SEL, &APPL, &MOD, &MODPATH, &STATUS ) ;
 
 	MODLST = "MODLST" + right( d2ds( taskid() ), 2, '0' ) ;
-	tbcreate( MODLST, "APPL", "MOD MODPATH", NOWRITE ) ;
-	tbsort( MODLST, "APPL,C,A" ) ;
-	varlist = vlist( SHARED, 2 ) ;
 
-	for ( ws = words( varlist ), i = 1 ; i <= ws ; i++ )
-	{
-		VAR = word( varlist, i ) ;
-		if ( pos( "ZDLC", VAR ) == 0 ) { continue ; }
-		vcopy( VAR, APPL, MOVE ) ;
-		VAR.replace( 3, 1, 1, 'M' ) ;
-		vcopy( VAR, MOD, MOVE ) ;
-		VAR.replace( 3, 1, 1, 'P' ) ;
-		vcopy( VAR, MODPATH, MOVE ) ;
-		tbadd( MODLST, "", "ORDER" ) ;
-	}
-	tbtop( MODLST ) ;
-
-	MSG = "" ;
-	i   = 1  ;
+	MSG   = ""   ;
+	i     = 1    ;
+	ref   = true ;
+	psort = "APPL,C,A" ;
 	while ( true )
 	{
+		if ( ref )
+		{
+			tbcreate( MODLST, "APPL", "SEL MOD MODPATH STATUS", NOWRITE ) ;
+			tbsort( MODLST, psort ) ;
+			lc.Command = "MODULE STATUS" ;
+			lspfCallback( lc ) ;
+			for ( j = 0 ; j < lc.reply.size() ; j++ )
+			{
+				SEL     = ""              ;
+				APPL    = lc.reply[   j ] ;
+				MOD     = lc.reply[ ++j ] ;
+				MODPATH = lc.reply[ ++j ] ;
+				MODPATH = substr( MODPATH, 1, (lastpos( "/", MODPATH ) - 1) ) ;
+				STATUS  = lc.reply[ ++j ] ;
+				tbadd( MODLST, "", "ORDER" ) ;
+			}
+			ref = false ;
+		}
 		tbtop( MODLST )     ;
 		tbskip( MODLST, i ) ;
 		if ( MSG == "" ) { ZCMD = "" ; }
@@ -1462,6 +1472,7 @@ void PPSP01A::showLoadedClasses()
 		if ( RC  >  8 ) { abend() ; }
 		if ( RC ==  8 ) { break   ; }
 		MSG = "" ;
+		if ( ZTDSELS == 0 && ZCMD == "" ) { ref = true ; }
 		i   = ZTDTOP ;
 		ws = words( ZCMD )   ;
 		w1 = word( ZCMD, 1 ) ;
@@ -1471,13 +1482,29 @@ void PPSP01A::showLoadedClasses()
 		{
 			if ( w2 == "" ) { w2 = "APPL" ; }
 			if ( w3 == "" ) { w3 = "A"    ; }
-			if ( abbrev( "MODULES", w2, 3 ) )            { tbsort( MODLST, "MOD,C,"+w3 )     ; }
-			else if ( abbrev( "APPLICATIONS", w2, 3 ) )  { tbsort( MODLST, "APPL,C,"+w3 )    ; }
-			else if ( abbrev( "PATHS", w2, 3 ) )         { tbsort( MODLST, "MODPATH,C,"+w3 ) ; }
-			else  { MSG = "PSYS01C" ; }
+			if      ( abbrev( "MODULES", w2, 3 ) )      { psort = "MOD,C,"+w3     ; }
+			else if ( abbrev( "APPLICATIONS", w2, 3 ) ) { psort = "APPL,C,"+w3    ; }
+			else if ( abbrev( "PATHS", w2, 3 ) )        { psort = "MODPATH,C,"+w3 ; }
+			else if ( abbrev( "STATUS", w2, 3 ) )       { psort = "STATUS,C,"+w3  ; }
+			else                                        { MSG = "PSYS01C" ; continue ; }
+			tbsort( MODLST, psort ) ;
 			continue ;
 		}
-		if ( ZCMD != "" ) { MSG = "PSYS018" ; continue ; }
+		while ( ZTDSELS > 0 )
+		{
+			if ( SEL == "R" )
+			{
+				lc.Command = "MODREL " + APPL ;
+				lspfCallback( lc ) ;
+			}
+			if ( ZTDSELS > 1 )
+			{
+				tbdispl( MODLST ) ;
+				if ( RC > 4 ) { break ; }
+			}
+			else { ZTDSELS = 0 ; }
+		}
+		if ( ref ) { tbend( MODLST ) ; }
 	}
 	tbend( MODLST ) ;
 	return ;
@@ -1546,14 +1573,14 @@ void PPSP01A::showSavedFileList()
 					select( "PGM(" + PGM + ") PARM(" + ZFILN + ")" ) ;
 				}
 			}
-			else if ( (SEL == "B") )
+			else if ( SEL == "B" )
 			{
 				if ( is_regular_file( ZFILN ) )
 				{
 					browse( ZFILN ) ;
 				}
 			}
-			else if ( (SEL == "E") )
+			else if ( SEL == "E" )
 			{
 				if ( is_regular_file( ZFILN ) )
 				{
@@ -1568,7 +1595,6 @@ void PPSP01A::showSavedFileList()
 void PPSP01A::showTasks()
 {
 	int i    ;
-	int j    ;
 	int retc ;
 
 	string SEL   ;
@@ -1737,9 +1763,238 @@ void PPSP01A::utilityPrograms()
 
 void PPSP01A::keylistTables()
 {
-	string UPROF ;
+	// Show a list of all key list tables in the ZUPROF path
+
+	int i       ;
+
+	string MSG  ;
+	string cw   ;
+	string w2   ;
+	string tab  ;
+	string fname;
+	string p    ;
+
+	string TBK1SEL ;
+	string TBK1TAB ;
+	string TBK1MSG ;
+	string KTAB    ;
+	string UPROF   ;
+
+	typedef vector<path> vec ;
+	vec v ;
+
+	vec::const_iterator it ;
+
+	vdefine( "TBK1SEL TBK1TAB TBK1MSG", &TBK1SEL, &TBK1TAB, &TBK1MSG ) ;
+	KTAB = "KTAB" + right( d2ds( taskid() ), 4, '0' ) ;
+
+	tbcreate( KTAB, "", "TBK1SEL TBK1TAB TBK1MSG", NOWRITE ) ;
+	if ( RC > 0 ) { abend() ; }
+
 	vcopy( "ZUPROF", UPROF, MOVE ) ;
+	copy( directory_iterator( UPROF ), directory_iterator(), back_inserter( v ) ) ;
+
+	for ( it = v.begin() ; it != v.end() ; ++it )
+	{
+		fname = (*it).string() ;
+		p     = substr( fname, 1, (lastpos( "/", fname ) - 1) ) ;
+		tab   = substr( fname, (lastpos( "/", fname ) + 1) )    ;
+		if ( tab.size() < 5 ) { continue ; }
+		if ( tab.compare( tab.size()-4, 4, "KTAB" ) == 0 )
+		{
+			tbvclear( KTAB ) ;
+			TBK1TAB = tab    ;
+			tbadd( KTAB )    ;
+		}
+	}
+	MSG = "" ;
+	while ( true )
+	{
+		tbtop( KTAB )     ;
+		tbskip( KTAB, ZTDTOP ) ;
+		if ( MSG == "" ) { ZCMD = "" ; }
+		tbdispl( KTAB, "PPSP01K1", MSG, "ZCMD" ) ;
+		if ( RC  >  8 ) { abend() ; }
+		if ( RC ==  8 ) { break   ; }
+		MSG = "" ;
+		while ( ZTDSELS > 0 )
+		{
+			if ( TBK1SEL == "D" )
+			{
+				remove( UPROF + "/" + TBK1TAB ) ;
+				TBK1MSG = "*Deleted*" ;
+				TBK1SEL = ""  ;
+				tbput( KTAB ) ;
+			}
+			else if ( TBK1SEL == "N" )
+			{
+				TBK1MSG = "*Added*" ;
+				TBK1SEL = ""  ;
+				tbput( KTAB ) ;
+			}
+			else if ( TBK1SEL == "S" )
+			{
+				control( "DISPLAY", "SAVE" ) ;
+				keylistTable( TBK1TAB ) ;
+				control( "DISPLAY", "RESTORE" ) ;
+				TBK1MSG = "*Selected*" ;
+				TBK1SEL = ""  ;
+				tbput( KTAB ) ;
+			}
+			if ( ZTDSELS > 1 )
+			{
+				tbdispl( KTAB ) ;
+				if ( RC > 4 ) { break ; }
+			}
+			else { ZTDSELS = 0 ; }
+		}
+	}
+	return ;
+}
+
+
+void PPSP01A::keylistTable( string tab )
+{
+	// Show keylist table (default current profile)
+
+	string MSG  ;
+	string cw   ;
+	string w2   ;
+	string fname;
+	string p    ;
+
+	string TBK2SEL  ;
+	string TBK2LST  ;
+	string TBK2MSG  ;
 	string KEYLISTN ;
+	string KLST     ;
+	string OKLST    ;
+	string UPROF    ;
+
+	if ( tab == "" )
+	{
+		vcopy( "ZAPPLID", ZAPPLID, MOVE ) ;
+		tab = ZAPPLID + "KTAB" ;
+		vreplace( "TBK1TAB", tab ) ;
+	}
+
+	vdefine( "TBK2SEL TBK2LST TBK2MSG KEYLISTN", &TBK2SEL, &TBK2LST, &TBK2MSG, &KEYLISTN ) ;
+	KLST = "KLT2" + right( d2ds( taskid() ), 4, '0' ) ;
+	vcopy( "ZUPROF", UPROF, MOVE ) ;
+
+	tbopen( tab, NOWRITE, UPROF ) ;
+	if ( RC > 0 ) { abend() ; }
+
+	tbcreate( KLST, "", "TBK2SEL TBK2LST TBK2MSG", NOWRITE ) ;
+	if ( RC > 0 ) { abend() ; }
+
+	tbtop( tab ) ;
+	while ( true )
+	{
+		tbskip( tab ) ;
+		if ( RC > 0 ) { break ; }
+		tbvclear( KLST ) ;
+		TBK2LST = KEYLISTN ;
+		tbadd( KLST ) ;
+		if ( RC > 0 ) { abend() ; }
+	}
+	tbend( tab ) ;
+
+	while ( true )
+	{
+		tbtop( KLST )     ;
+		tbskip( KLST, ZTDTOP ) ;
+		if ( MSG == "" ) { ZCMD = "" ; }
+		OKLST = KLST ;
+		tbdispl( KLST, "PPSP01K2", MSG, "ZCMD" ) ;
+		if ( RC  >  8 ) { abend() ; }
+		if ( RC ==  8 ) { break   ; }
+		MSG = "" ;
+		if ( OKLST != KLST )
+		{
+			tbopen( OKLST, NOWRITE, UPROF ) ;
+			if ( RC > 0 )
+			{
+				continue ;
+			}
+			tbend( KLST ) ;
+			tbcreate( KLST, "", "TBK2SEL TBK2LST TBK2MSG", NOWRITE ) ;
+			if ( RC > 0 ) { abend() ; }
+			tbtop( tab ) ;
+			while ( true )
+			{
+				tbskip( tab ) ;
+				if ( RC > 0 ) { break ; }
+				tbvclear( KLST ) ;
+				TBK2LST = KEYLISTN ;
+				tbadd( KLST ) ;
+				if ( RC > 0 ) { abend() ; }
+			}
+			tbend( tab ) ;
+		}
+		while ( ZTDSELS > 0 )
+		{
+			if ( TBK2SEL == "D" )
+			{
+				TBK2MSG = "*Deleted*" ;
+				TBK2SEL = ""  ;
+				tbput( KLST ) ;
+			}
+			else if ( TBK2SEL == "N" )
+			{
+				TBK2MSG = "*Added*" ;
+				TBK2SEL = ""  ;
+				tbput( KLST ) ;
+			}
+			else if ( TBK2SEL == "E" )
+			{
+				editKeylist( tab, TBK2LST ) ;
+				TBK2MSG = "*Edited*" ;
+				TBK2SEL = ""  ;
+				tbput( KLST ) ;
+			}
+			else if ( TBK2SEL == "V" )
+			{
+				TBK2MSG = "*Viewed*" ;
+				TBK2SEL = ""  ;
+				tbput( KLST ) ;
+			}
+			if ( ZTDSELS > 1 )
+			{
+				tbdispl( KLST ) ;
+				if ( RC > 4 ) { break ; }
+			}
+			else { ZTDSELS = 0 ; }
+		}
+	}
+	tbend( KLST ) ;
+}
+
+
+void PPSP01A::editKeylist( string tab, string list )
+{
+	// Field names: KEYLISTN KEYnDEF KEYnLAB KEYnATR (n=1 to 24)
+
+	int i ;
+
+	string TBK3SEL  ;
+	string TBK3LN   ;
+	string TBK3VAL  ;
+	string KEYLISTN ;
+	string KLST     ;
+	string OKLST    ;
+	string UPROF    ;
+
+	vdefine( "TBK3LTN TBK3VAL", &TBK3LN, &TBK3VAL ) ;
+	KLST = "KLT3" + right( d2ds( taskid() ), 4, '0' ) ;
+	vcopy( "ZUPROF", UPROF, MOVE ) ;
+
+	tbopen( tab, NOWRITE, UPROF ) ;
+	if ( RC > 0 ) { abend() ; }
+
+	tbcreate( KLST, "", "TBK3LTN TBK3VAL", NOWRITE ) ;
+	if ( RC > 0 ) { abend() ; }
+
 	string flds =  "KEYLISTN "
 		       "KEY1DEF  KEY1LAB  KEY1ATR "
 		       "KEY2DEF  KEY2LAB  KEY2ATR "
@@ -1766,7 +2021,7 @@ void PPSP01A::keylistTables()
 		       "KEY23DEF KEY23LAB KEY23ATR "
 		       "KEY24DEF KEY24LAB KEY24ATR " ;
 
-	tbopen( "ISRKTAB", WRITE, UPROF ) ;
+	tbopen( tab, NOWRITE, UPROF ) ;
 	if ( RC  > 8 ) { return ; }
 	if ( RC == 8 )
 	{
@@ -1774,25 +2029,38 @@ void PPSP01A::keylistTables()
 		if ( RC > 0 ) { return ; }
 	}
 
-	tbvclear( "ISRKTAB" ) ;
+	tbvclear( tab ) ;
 
-	KEYLISTN = "ISRSAB"   ;
+	KEYLISTN = "list"   ;
 	vdefine( "KEYLISTN", &KEYLISTN ) ;
 
-	tbtop( "ISRKTAB" ) ;
-	tbsarg( "ISRKTAB" ) ;
-
-	tbscan( "ISRKTAB" , "", "", "", "", "NOREAD" ) ;
-	if ( RC  > 0 )
+	tbtop( tab )  ;
+	tbsarg( tab ) ;
+	tbscan( tab , "", "", "", "", "NOREAD" ) ;
+	if ( RC > 0 )
 	{
-		vreplace( "KEY1DEF", "HELP" ) ;
-		vreplace( "KEY5DEF", "RFIND" ) ;
-		vreplace( "KEY6DEF", "RCHANGE" ) ;
-		tbadd( "ISRKTAB" ) ;
+		abend() ;
 	}
-	tbclose( "ISRKTAB" ) ;
+	tbopen( tab, WRITE, UPROF ) ;
+	for ( i = 1 ; i < 25 ; i++ )
+	{
+		TBK3VAL = ""      ;
+		tbtop( KLST )     ;
+		tbskip( KLST, i ) ;
+		vreplace( "KEY"+d2ds(i)+"DEF", TBK3VAL ) ;
+	}
+	tbmod( tab )   ;
+	tbclose( tab ) ;
+	tbend( KLST )  ;
 	vdelete( "KEYLISTN" ) ;
 }
+
+
+void PPSP01A::runApplication( string appl )
+{
+	select( appl, "", "ISP", true, true ) ;
+}
+
 
 // ============================================================================================ //
 

@@ -130,6 +130,7 @@ void processAction( uint row, uint col, int c, bool & passthru )  ;
 void errorScreen( int, string ) ;
 void rawOutput()          ;
 void threadErrorHandler() ;
+void lspfCallbackHandler( lspfCommand & ) ;
 void mainLoop() ;
 
 vector<pLScreen *>   screenList   ;
@@ -140,7 +141,10 @@ struct modInfo
 	void * dlib     ;
 	void * maker_ep ;
 	void * destroyer_ep ;
-	int    refCount ;
+	int    refCount   ;
+	bool   relPending ;
+	string module     ;
+	string file       ;
 } ;
 
 map<string, modInfo> dlibs ;
@@ -219,13 +223,14 @@ int main( void )
 	currAppl = ((pApplication*(*)())( dlibs[ ZMAINPGM ].maker_ep))()   ;
 
 	currScrn->application_add( currAppl ) ;
-	currAppl->ZAPPNAME   = ZMAINPGM       ;
-	currAppl->taskID     = ++maxtaskID    ;
-	currAppl->busyAppl   = true           ;
-	currAppl->p_poolMGR  = p_poolMGR      ;
-	currAppl->p_tableMGR = p_tableMGR     ;
-	currAppl->ZZAPPLID   =  "ISP"         ;
-	currAppl->NEWPOOL    = true           ;
+	currAppl->ZAPPNAME     = ZMAINPGM       ;
+	currAppl->taskID       = ++maxtaskID    ;
+	currAppl->busyAppl     = true           ;
+	currAppl->p_poolMGR    = p_poolMGR      ;
+	currAppl->p_tableMGR   = p_tableMGR     ;
+	currAppl->ZZAPPLID     = "ISP"          ;
+	currAppl->NEWPOOL      = true           ;
+	currAppl->lspfCallback = lspfCallbackHandler ;
 
 	p_poolMGR->put( RC, "ZSCREEN", string( 1, ZSCREEN[ screenNum ] ), SHARED, SYSTEM ) ;
 	p_poolMGR->put( RC, "ZAPPLID", "ISP", SHARED, SYSTEM ) ;
@@ -273,13 +278,7 @@ int main( void )
 	map<string, modInfo>::iterator it ;
 	for ( it = dlibs.begin() ; it != dlibs.end() ; it++ )
 	{
-		log( "I", "dlclose of " << it->first << " at " << it->second.dlib << endl ) ;
-		dlclose( it->second.dlib ) ;
-	}
-
-	for ( it = dlibs.begin() ; it != dlibs.end() ; it++ )
-	{
-		log( "I", "dlclose of " << it->first << " at " << it->second.dlib << endl ) ;
+		log( "I", "dlclose of "+ it->first +" at " << it->second.dlib << endl ) ;
 		dlclose( it->second.dlib ) ;
 	}
 
@@ -1145,13 +1144,14 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 	currAppl = ((pApplication*(*)())( dlibs[ Application ].maker_ep))() ;
 
 	currScrn->application_add( currAppl ) ;
-	currAppl->ZAPPNAME   = Application ;
-	currAppl->taskID     = ++maxtaskID ;
-	currAppl->PASSLIB    = PASSLIB     ;
-	currAppl->busyAppl   = true        ;
-	currAppl->p_poolMGR  = p_poolMGR   ;
-	currAppl->p_tableMGR = p_tableMGR  ;
-	currAppl->PARM       = parm        ;
+	currAppl->ZAPPNAME     = Application ;
+	currAppl->taskID       = ++maxtaskID ;
+	currAppl->PASSLIB      = PASSLIB     ;
+	currAppl->busyAppl     = true        ;
+	currAppl->p_poolMGR    = p_poolMGR   ;
+	currAppl->p_tableMGR   = p_tableMGR  ;
+	currAppl->PARM         = parm        ;
+	currAppl->lspfCallback = lspfCallbackHandler ;
 	dlibs[ Application ].refCount++ ;
 
 	if ( NEWAPPL != "" )
@@ -1302,9 +1302,9 @@ void terminateApplication()
 		currAppl->closeLog()     ;
 	}
 
-	log( "I", "Removing application instance of " << currAppl->ZAPPNAME << endl ) ;
-	dlibs[ currAppl->ZAPPNAME ].refCount-- ;
-	((void (*)(pApplication*))(dlibs[ currAppl->ZAPPNAME ].destroyer_ep))( currAppl ) ;
+	log( "I", "Removing application instance of " << ZAPPNAME << endl ) ;
+	dlibs[ ZAPPNAME ].refCount-- ;
+	((void (*)(pApplication*))(dlibs[ ZAPPNAME ].destroyer_ep))( currAppl ) ;
 
 	delete pThread  ;
 
@@ -1336,6 +1336,23 @@ void terminateApplication()
 	if ( RC > 0 ) { log( "C", "ERROR setting shared pool for pool manager.  RC=" << RC << endl ) ; }
 
 	p_poolMGR->put( RC, "ZPANELID", currAppl->PANELID, SHARED, SYSTEM )  ;
+
+	if ( dlibs[ ZAPPNAME ].refCount == 0 && dlibs[ ZAPPNAME ].relPending )
+	{
+		dlclose( dlibs[ ZAPPNAME ].dlib ) ;
+		dlibs[ ZAPPNAME ].relPending = false ;
+		log( "I", "Reloading module "+ ZAPPNAME +" (pending reload)" << endl ) ;
+		if ( loadDynamicClass( dlibs[ ZAPPNAME ].module, ZAPPNAME, dlibs[ ZAPPNAME ].file ) )
+		{
+			log( "I", "Loaded "+ ZAPPNAME +" (module "+ dlibs[ZAPPNAME].module +") from "+ dlibs[ZAPPNAME].file << endl ) ;
+		}
+		else
+		{
+			log( "W", "Errors occured loading "+ ZAPPNAME +"  Module removed" << endl ) ;
+			dlclose( dlibs[ ZAPPNAME ].dlib ) ;
+			dlibs.erase( ZAPPNAME ) ;
+		}
+	}
 
 	if ( refList )
 	{
@@ -1920,21 +1937,6 @@ void updateReflist()
 }
 
 
-void threadErrorHandler()
-{
-	log( "E", "An exception has occured in an application thread.  See application log for details.  Task ending" << endl ) ;
-	try
-	{
-		currAppl->abendexc() ;
-	}
-	catch (...)
-	{
-		log( "E", "An abend has occured during abend processing.  Calling abend() only to terminate application" << endl ) ;
-		currAppl->abend() ;
-	}
-}
-
-
 void rawOutput()
 {
 	// Write raw output to the display and clear the raw messages vector.
@@ -1972,6 +1974,82 @@ void rawOutput()
 	currAppl->get_cursor( row, col )  ;
 	currScrn->set_row_col( row, col ) ;
 	currAppl->refresh()     ;
+}
+
+
+void threadErrorHandler()
+{
+	log( "E", "An exception has occured in an application thread.  See application log for details.  Task ending" << endl ) ;
+	try
+	{
+		currAppl->abendexc() ;
+	}
+	catch (...)
+	{
+		log( "E", "An abend has occured during abend processing.  Calling abend() only to terminate application" << endl ) ;
+		currAppl->abend() ;
+	}
+}
+
+
+void lspfCallbackHandler( lspfCommand & lc )
+{
+	//  Issue commands from applications using lspfCallback() function
+	//  Replies go into the reply vector
+
+	string w1 ;
+	string w2 ;
+
+	vector<pLScreen *>::iterator its   ;
+	map<string, modInfo>::iterator itm ;
+	pApplication * appl                ;
+
+	lc.reply.clear() ;
+
+	w1 = word( lc.Command, 1 ) ;
+	w2 = word( lc.Command, 2 ) ;
+
+	if ( lc.Command == "SWAP LIST" )
+	{
+		for ( its = screenList.begin() ; its != screenList.end() ; its++ )
+		{
+			appl = (*its)->application_get_current()       ;
+			lc.reply.push_back( d2ds( (*its)->screenID ) ) ;
+			lc.reply.push_back( appl->ZAPPNAME        )    ;
+		}
+		lc.RC = 0 ;
+	}
+	else if ( lc.Command == "MODULE STATUS" )
+	{
+		for ( itm = dlibs.begin() ; itm != dlibs.end() ; itm++ )
+		{
+			lc.reply.push_back( itm->first ) ;
+			lc.reply.push_back( itm->second.module ) ;
+			lc.reply.push_back( itm->second.file   ) ;
+			if ( itm->first == ZMAINPGM )
+			{
+				lc.reply.push_back( "Not Reloadable" ) ;
+			}
+			else if ( itm->second.relPending )
+			{
+				lc.reply.push_back( "Reload Pending" ) ;
+			}
+			else
+			{
+				lc.reply.push_back( "Normal" ) ;
+			}
+		}
+		lc.RC = 0 ;
+	}
+	else if ( w1 == "MODREL" )
+	{
+		reloadDynamicClasses( w2 ) ;
+		lc.RC = 0 ;
+	}
+	else
+	{
+		lc.RC = 20 ;
+	}
 }
 
 
@@ -2078,7 +2156,8 @@ void loadDynamicClasses()
 
 void reloadDynamicClasses( string parm )
 {
-	// Reload modules (ALL, NEW or modname).  Ignore reload for modules currently in-use
+	// Reload modules (ALL, NEW or modname).  Ignore reload for modules currently in-use but set
+	// pending flag to be checked when application terminates.
 
 	int RC       ;
 	int i        ;
@@ -2113,8 +2192,7 @@ void reloadDynamicClasses( string parm )
 			log( "W", "Ignoring directory "+ p +"  Not found or not a directory." << endl ) ;
 		}
 	}
-
-	appl = upper( appl ) ;
+	if ( parm == "" ) { parm = "ALL" ; }
 
 	i = 0 ;
 	for ( it = v.begin() ; it != v.end() ; ++it )
@@ -2134,9 +2212,11 @@ void reloadDynamicClasses( string parm )
 
 		if ( parm == "NEW" && loaded ) { continue ; }
 		if ( parm != "NEW" && parm != "ALL" && parm != appl ) { continue ; }
+		if ( appl == ZMAINPGM ) { continue ; }
 		if ( loaded && dlibs[ appl ].refCount > 0 )
 		{
-			log( "W", "Application "+ appl +" in use.  Reload ignored" << endl ) ;
+			log( "W", "Application "+ appl +" in use.  Reload pending" << endl ) ;
+			dlibs[ appl ].relPending = true ;
 			continue ;
 		}
 		if ( loaded )
@@ -2177,9 +2257,8 @@ void reloadDynamicClasses( string parm )
 
 bool loadDynamicClass( string mod, string appl, string fname )
 {
-	// Load module fname and retrieve address of maker and destroyer symbols
+	// Load module fname and retrieve address of maker and destroy symbols
 
-	int RC      ;
 	int i       ;
 
 	void *dlib  ;
@@ -2198,14 +2277,11 @@ bool loadDynamicClass( string mod, string appl, string fname )
 
 	dlerror() ;
 	dlib = dlopen( fname.c_str(), RTLD_NOW ) ;
-	p_poolMGR->defaultVARs( RC , "ZDLM" + right( d2ds( i ), 4, '0'), mod, SHARED )  ;
-	p_poolMGR->defaultVARs( RC , "ZDLC" + right( d2ds( i ), 4, '0'), appl, SHARED ) ;
 	if ( !dlib )
 	{
 		log( "E", "Error loading "+ fname << endl ) ;
 		log( "E", "Error is " << dlerror() << endl ) ;
 		log( "E", "Module "+ mod +" will be ignored" << endl ) ;
-		p_poolMGR->defaultVARs( RC , "ZDLP" + right( d2ds( i ), 4, '0'), e1, SHARED ) ;
 		return false ;
 	}
 	dlerror() ;
@@ -2216,7 +2292,6 @@ bool loadDynamicClass( string mod, string appl, string fname )
 		log( "E", "Error loading symbol maker" << endl ) ;
 		log( "E", "Error is " << dlsym_err  << endl )      ;
 		log( "E", "Module "+ mod +" will be ignored" << endl ) ;
-		p_poolMGR->defaultVARs( RC , "ZDLP" + right( d2ds( i ), 4, '0'), e1, SHARED ) ;
 		return false ;
 	}
 	dlerror() ;
@@ -2227,18 +2302,20 @@ bool loadDynamicClass( string mod, string appl, string fname )
 		log( "E", "Error loading symbol destroy" << endl ) ;
 		log( "E", "Error is " << dlsym_err  << endl )      ;
 		log( "E", "Module "+ mod +" will be ignored" << endl ) ;
-		p_poolMGR->defaultVARs( RC , "ZDLP" + right( d2ds( i ), 4, '0'), e1, SHARED ) ;
 		return false ;
 	}
 	debug1( fname +" loaded at " << dlib << endl ) ;
 	debug1( "Maker at " << mkr << endl ) ;
 	debug1( "Destroyer at " << destr << endl ) ;
+
 	mI.dlib         = dlib  ;
 	mI.maker_ep     = mkr   ;
 	mI.destroyer_ep = destr ;
 	mI.refCount     = 0     ;
+	mI.relPending   = false ;
+	mI.module       = mod   ;
+	mI.file         = fname ;
 	dlibs[ appl ]   = mI    ;
-	p_poolMGR->defaultVARs( RC , "ZDLP" + right( d2ds( i ), 4, '0'), p, SHARED )    ;
 
 	return true ;
 }

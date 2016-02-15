@@ -41,7 +41,7 @@ literal  10  15   NT   "Display and delete shared and profile pool variables"
 
 literal  11  2    SAC  "5"
 literal  11  5    PS   "Modules"
-literal  11  15   NT   "Display Loaded Modules"
+literal  11  15   NT   "Display/Reload Application Modules"
 
 literal  12  2    SAC  "6"
 literal  12  5    PS   "Programs"

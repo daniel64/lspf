@@ -216,6 +216,8 @@ void PEDIT01::initialise()
 
 void PEDIT01::Edit()
 {
+	bool termEdit ;
+
 	RC  = 0  ;
 	MSG = "" ;
 
@@ -230,11 +232,11 @@ void PEDIT01::Edit()
 
 	CURFLD  = "ZCMD" ;
 	CURPOS  = 1      ;
-	clearCursor()    ;
 
 	cutActive   = false ;
 	pasteActive = false ;
 	colsOn      = false ;
+	placeCursor( 0, 0 ) ;
 
 	while ( true )
 	{
@@ -250,16 +252,14 @@ void PEDIT01::Edit()
 			if ( OCMD[ 0 ] == '&' ) { ZCMD = OCMD ; }
 			else                    { ZCMD = ""   ; }
 		}
+		if ( !cursorPlaced ) { placeCursorDefault() ; }
 
+		termEdit = false ;
 		positionCursor() ;
 		display( "PEDIT012", MSG, CURFLD, CURPOS ) ;
 
-		if ( RC  > 8 ) { abend() ; }
-		if ( RC == 8 )
-		{
-			if ( termOK() ) { break    ; }
-			else            { continue ; }
-		}
+		if ( RC  > 8 ) { abend()         ; }
+		if ( RC == 8 ) { termEdit = true ; }
 		vget( "ZVERB ZSCROLLA ZSCROLLN", SHARED ) ;
 
 		clearCursor() ;
@@ -292,9 +292,24 @@ void PEDIT01::Edit()
 
 		actionPrimCommand() ;
 		if ( MSG != "" ) { continue ; }
+
 		actionLineCommands() ;
+
 		actionZVERB()        ;
+
 		if ( topLine < 0 ) { topLine = 0 ; }
+		if ( MSG != "" )   { continue ;    }
+
+		if ( upper( ZCMD ) == "SAVE" )
+		{
+			if ( !saveFile() ) { continue ; }
+			ZCMD = ""  ;
+		}
+		if ( termEdit && ( MSG == "" || MSG == "PEDT01P" ) )
+		{
+			if ( termOK() ) { break    ; }
+			else            { continue ; }
+		}
 	}
 	vput( "ZSCROLL", PROFILE ) ;
 
@@ -523,6 +538,9 @@ bool PEDIT01::saveFile()
 
 void PEDIT01::fill_dynamic_area()
 {
+	// s2data is only valid while the data vector has not changed since building the screen
+	// ie. after fill_dynamic_area and before procedure actionPrimaryCommand
+
 	int i   ;
 	int l   ;
 	int ln  ;
@@ -1124,6 +1142,10 @@ void PEDIT01::actionPrimCommand()
 		string xxxx ;
 		xxxx.at(5)  ;
 	}
+	if ( w1 == "XABEND" )
+	{
+		abend() ;
+	}
 	if ( w1 == "AUTOSAVE" )
 	{
 		if ( ws > 2 ) { MSG = "PEDT011" ; return ; }
@@ -1715,8 +1737,7 @@ void PEDIT01::actionPrimCommand()
 	else if ( w1 == "SAVE" )
 	{
 		if ( ws > 1 ) { MSG = "PEDT011" ; return ; }
-		saveFile()   ;
-		ZCMD = ""    ;
+		return ;
 	}
 	else if ( w1 == "SHOW" )
 	{
@@ -1747,7 +1768,10 @@ void PEDIT01::actionPrimCommand()
 			if ( (*it)->il_excl   ) { log( "A", " Line is Excluded" << endl ; ) }
 			log( "A", " Line command: " << (*it)->il_lc1 << endl ; )
 			log( "A", " Line label  : " << (*it)->il_label << endl ; )
-			log( "A", " Record      : " << (*it)->get_idata() << endl ; )
+			if ( !(*it)->idata_is_empty() )
+			{
+				log( "A", " Record      : " << (*it)->get_idata() << endl ; )
+			}
 			log( "A", " +End+Record+++++++++++++++++++++++++++++++++++++" << endl ; )
 			dl++ ;
 		}
@@ -2064,7 +2088,7 @@ void PEDIT01::actionLineCommands()
 						il_ite = data.insert( il_ite, p_iline ) ;
 					}
 				}
-				fileChanged  = true ;
+				fileChanged = true ;
 			}
 			if ( itc->icmd_COMMAND == "MM" && overlayOK )
 			{
@@ -2621,14 +2645,9 @@ void PEDIT01::actionLineCommands()
 
 void PEDIT01::actionZVERB()
 {
-	int p1 ;
-	int p2 ;
 	int t  ;
 
 	string w1 ;
-
-	uint dl  ;
-	uint row ;
 
 	if ( ZVERB == "DOWN" )
 	{
@@ -2794,7 +2813,21 @@ void PEDIT01::actionZVERB()
 		ZCMD = ""           ;
 		rebuildZAREA = true ;
 	}
-	else if ( aRow > 0 && s2data.at( aRow-1 ).ipo_URID == 0 )
+}
+
+
+void PEDIT01::placeCursorDefault()
+{
+	int p1 ;
+	int p2 ;
+	int t  ;
+
+	string w1 ;
+
+	uint dl  ;
+	uint row ;
+
+	if ( aRow > 0 && s2data.at( aRow-1 ).ipo_URID == 0 )
 	{
 		placeCursor( 0, 0 ) ;
 	}
@@ -3179,7 +3212,7 @@ void PEDIT01::actionUNDO()
 	// that match that level.  Move level from Global_Undo to Global_Redo
 
 	// If no un-done lines are visible on the screen, move the top line to the line before
-	// the first un-done change
+	// the first un-done change (currently removed!)
 
 	int  lvl  ;
 	uint tTop ;
@@ -3208,14 +3241,14 @@ void PEDIT01::actionUNDO()
 			(*it)->undo_idata()    ;
 			(*it)->il_undo = true  ;
 			(*it)->il_redo = false ;
-			if ( moveTop )
+		 /*     if ( moveTop )
 			{
 				if ( URIDonScreen( (*it)->il_URID ) ) { moveTop = false ; }
 				else
 				{
 					tTop = min( tTop, getLine( (*it)->il_URID ) ) ;
 				}
-			}
+			} */
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 		}
@@ -3226,7 +3259,7 @@ void PEDIT01::actionUNDO()
 	if ( lvl == saveLevel ) { fileChanged = false ; }
 	else                    { fileChanged = true  ; }
 
-	if ( moveTop ) { topLine = getPrevDataLine( tTop ) ; }
+   //   if ( moveTop ) { topLine = getPrevDataLine( tTop ) ; }
 }
 
 
@@ -3236,7 +3269,7 @@ void PEDIT01::actionREDO()
 	// that match that level.  Move level from Global_Redo to Global_Undo
 
 	// If no re-done lines are visible on the screen, move the top line to the line before
-	// the first re-done change
+	// the first re-done change (currently removed!)
 
 	int  lvl  ;
 	uint tTop ;
@@ -3265,14 +3298,14 @@ void PEDIT01::actionREDO()
 			(*it)->redo_idata()    ;
 			(*it)->il_undo = false ;
 			(*it)->il_redo = true  ;
-			if ( moveTop )
+		 /*     if ( moveTop )
 			{
 				if ( URIDonScreen( (*it)->il_URID ) ) { moveTop = false ; }
 				else
 				{
 					tTop = min( tTop, getLine( (*it)->il_URID ) ) ;
 				}
-			}
+			} */
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 		}
@@ -3283,7 +3316,7 @@ void PEDIT01::actionREDO()
 	if ( lvl == saveLevel ) { fileChanged = false ; }
 	else                    { fileChanged = true  ; }
 
-	if ( moveTop ) { topLine = getPrevDataLine( tTop ) ; }
+    //  if ( moveTop ) { topLine = getPrevDataLine( tTop ) ; }
 }
 
 
@@ -5633,7 +5666,7 @@ void PEDIT01::saveEditProfile( string prof )
 		ZEDPFLAG[10] = ZeroOne[ profHTabs   ] ;
 		ZEDPMASK     = maskLine ;
 		ZEDPTABS     = tabsLine ;
-		ZEDPTABC     = string( 1, tabsChar ) ;
+		ZEDPTABC     = tabsChar  ;
 		ZEDPBNDL     = d2ds( LeftBnd )   ;
 		ZEDPBNDR     = d2ds( RightBnd )  ;
 		ZEDPTABZ     = d2ds( profXTabz ) ;

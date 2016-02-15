@@ -3,23 +3,25 @@
  Panel to display/delete pool variables
 )ENDCOMMENT
 )BODY
-PanelTitle "Display Loaded Modules (Dynamically Loaded Classes)"
+PanelTitle "Display/Reload Application Modules (Dynamically Loaded Classes)"
 
 scrollOn
 
-literal  4   2          FP    "Command ===> "  
-field    4  15  MAX-17  NEF CAPS(ON) ZCMD  
+literal  4   2          FP    "Command ===> "
+field    4  15  MAX-17  NEF CAPS(ON) ZCMD
 
 literal  4  MAX-15  FP "SCROLL ===> "
 field    4  MAX-3  4 NEF  NONE ZSCROLL
 
-literal  6 2 CH "Application  Module           Loaded From "  
-literal  7 2 CH EXPAND "-"  
+literal  6 2 CH "S Application Status          Module               Loaded From Path"
+literal  7 2 CH EXPAND "-"
 
 tbmodel  8   MAX
-tbfield  2    8    VOI NONE APPL
-tbfield  15   20   VOI NONE MOD
-tbfield  32   50   VOI NONE MODPATH  
+tbfield  2    1    NEF caps(on),pad('_') SEL
+tbfield  ++1  8    VOI NONE APPL
+tbfield  ++4  15   VOI NONE STATUS
+tbfield  ++1  20   VOI NONE MOD
+tbfield  ++1  40   VOI NONE MODPATH
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
@@ -27,11 +29,19 @@ tbfield  32   50   VOI NONE MODPATH
 
 )INIT
 VGET ZSCROLL PROFILE
+.ATTR(STATUS)  = 'COLOUR(WHITE)'
 .ATTR(MOD)     = 'COLOUR(YELLOW)'
-.ATTR(MODPATH) = 'COLOUR(WHITE)'
+.ATTR(MODPATH) = 'COLOUR(GREEN)'
 
 )PROC
+&W1 = TRUNC(&ZCMD,' ')
+IF (&W1 NE SORT,&Z)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
 VPUT ZSCROLL PROFILE
 .HELP=HPSP01A
 
+VER (&SEL LIST,R)
 )END

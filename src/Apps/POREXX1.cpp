@@ -629,7 +629,7 @@ int lspfPquery( pApplication * thisAppl, string s )
 
 int lspfRDisplay( pApplication * thisAppl, string s )
 {
-	thisAppl->rdisplay( subword( s, 2 ) ) ;
+	thisAppl->rdisplay( substr( s, 10 ) ) ;
 	return thisAppl->RC ;
 }
 
