@@ -43,6 +43,7 @@
 /*      Reset options ( COLS OFF )                                                        */
 /*  TEXT                                                                                  */
 /*      Open file as text (0A will be interpreted as newline)                             */
+/******************************************************************************************/
 
 #include <boost/regex.hpp>
 #include <boost/filesystem.hpp>

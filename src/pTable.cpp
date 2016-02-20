@@ -25,17 +25,15 @@
 
 void Table::loadRow( int & RC, vector< string > & m_flds )
 {
-	vector< string >::iterator it ;
-
 	RC = 0 ;
-	it = m_flds.begin() ;
-	m_flds.insert( it, d2ds( ++maxURID ) ) ;
+
 	if ( table.size() > 65535 )
 	{
 		RC = 20 ;
-		log( "E", "Max size of 65,535 rows exceeded." <<  endl ) ;
+		log( "E", "Max size of 65,535 rows exceeded." << endl ) ;
 		return ;
 	}
+	m_flds.insert( m_flds.begin(), d2ds( ++maxURID ) ) ;
 	table.push_back( m_flds ) ;
 	changed = true ;
 }
@@ -148,7 +146,6 @@ void Table::tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	int    ws    ;
 
 	string key   ;
-	string sfld  ;
 	string URID ;
 
 	vector< string > keys ;
@@ -1268,9 +1265,9 @@ void Table::tbsort( int & RC, string tb_fields )
 	string s_temp   ;
 
 	vector<string>s_parm ;
-	vector<int>s_field  ;
-	vector<bool>s_char  ;
-	vector<bool>s_asc   ;
+	vector<int>s_field   ;
+	vector<bool>s_char   ;
+	vector<bool>s_asc    ;
 
 	int nsort ;
 
@@ -1303,18 +1300,16 @@ void Table::tbsort( int & RC, string tb_fields )
 		f1  = wordpos( s_temp, tab_all ) ;
 		if ( f1 == 0 ) { RC = 20 ; return ; }
 		s_field.push_back( f1 ) ;
+		if ( s_parm.size() == 1 ) { break ; }
 		s_parm.erase( s_parm.begin() ) ;
-		if ( s_parm.size() == 0 ) { break ; }
 
 		s_temp = s_parm[ 0 ] ;
-		if ( s_temp.size() != 1 ) { RC = 20 ; return ; }
 		if ( s_temp != "C" && s_temp != "N" ) { RC = 20 ; return ; }
 		s_char.push_back( (s_temp == "C") ) ;
+		if ( s_parm.size() == 1 ) { break ; }
 		s_parm.erase( s_parm.begin() ) ;
-		if ( s_parm.size() == 0 ) { break ; }
 
 		s_temp = s_parm[ 0 ] ;
-		if ( s_temp.size() != 1 ) { RC = 20 ; return ; }
 		if ( s_temp != "A" && s_temp != "D" ) { RC = 20 ; return ; }
 		s_asc.push_back( (s_temp == "A") ) ;
 		s_parm.erase( s_parm.begin() ) ;
@@ -1477,7 +1472,6 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 	string filename  ;
 	string path  ;
 	string s     ;
-	string t     ;
 	string hdr   ;
 	string sir   ;
 	string val   ;

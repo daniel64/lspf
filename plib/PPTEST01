@@ -49,11 +49,6 @@ literal  13  2    SAC  "7"
 literal  13  5    PS   "POPUPS"
 literal  13  22   NT   "Test ADDPOP/REMPOP and popup windows"
 
-literal  14  2    SAC  "8"
-literal  14  5    PS   "Invoke OOREXX"
-literal  14  22   NT   "Invoke OOREXX (porexx1.rex in ZORXPATH)"
-
-
 literal  16  2    SAC  "T"
 literal  16  5    PS   "Tutorial"
 literal  16  22    NT   "Start Tutorial"
@@ -75,7 +70,6 @@ literal  17  22    NT   "Terminate Dialogue Services"
 5 "SELECT PGM(PTEST01) PARM(&ZPARM)"
 6 "SELECT PGM(PTEST01) PARM(&ZPARM)"
 7 "SELECT PGM(PTEST01) PARM(&ZPARM)"
-8 "SELECT CMD(porexx1.rex HELLO CALLING)"
 A "SELECT PGM(PTEST01) PARM(ABEND)"
 T "SELECT PGM(&ZHELPPGM)  PARM(&ZPARM)"
 X "ACTION END"
@@ -95,10 +89,9 @@ FIELD( ZPS01004 ) VAR(ZCMD)  VAL(3)
 FIELD( ZPS01005 ) VAR(ZCMD)  VAL(4)
 FIELD( ZPS01006 ) VAR(ZCMD)  VAL(5)
 FIELD( ZPS01007 ) VAR(ZCMD)  VAL(6)
-FIELD( ZPS01008 ) VAR(ZCMD)  VAL(8)
-FIELD( ZPS01009 ) VAR(ZCMD)  VAL(7)
-FIELD( ZPS01010 ) VAR(ZCMD)  VAL(T)
-FIELD( ZPS01011 ) VAR(ZCMD)  VAL(X)
+FIELD( ZPS01008 ) VAR(ZCMD)  VAL(7)
+FIELD( ZPS01009 ) VAR(ZCMD)  VAL(T)
+FIELD( ZPS01010 ) VAR(ZCMD)  VAL(X)
 
 
 )END

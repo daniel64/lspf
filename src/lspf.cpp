@@ -2259,21 +2259,12 @@ bool loadDynamicClass( string mod, string appl, string fname )
 {
 	// Load module fname and retrieve address of maker and destroy symbols
 
-	int i       ;
-
 	void *dlib  ;
 	void *mkr   ;
 	void *destr ;
 
-	string p    ;
-
-	const string e1( "** Module not loaded due to error(s).  Check lspf log **" ) ;
-
 	const char* dlsym_err ;
 	modInfo mI ;
-
-	p = substr( fname, 1, (lastpos( "/", fname ) - 1) ) ;
-	i = dlibs.size() ;
 
 	dlerror() ;
 	dlib = dlopen( fname.c_str(), RTLD_NOW ) ;

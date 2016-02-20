@@ -216,6 +216,8 @@ void PEDIT01::initialise()
 
 void PEDIT01::Edit()
 {
+	string t      ;
+
 	bool termEdit ;
 
 	RC  = 0  ;
@@ -252,7 +254,6 @@ void PEDIT01::Edit()
 			if ( OCMD[ 0 ] == '&' ) { ZCMD = OCMD ; }
 			else                    { ZCMD = ""   ; }
 		}
-		if ( !cursorPlaced ) { placeCursorDefault() ; }
 
 		termEdit = false ;
 		positionCursor() ;
@@ -260,6 +261,7 @@ void PEDIT01::Edit()
 
 		if ( RC  > 8 ) { abend()         ; }
 		if ( RC == 8 ) { termEdit = true ; }
+		MSG = "" ;
 		vget( "ZVERB ZSCROLLA ZSCROLLN", SHARED ) ;
 
 		clearCursor() ;
@@ -285,20 +287,26 @@ void PEDIT01::Edit()
 			aURID  = 0      ;
 		}
 		storeCursor( aURID, 4, aCol-CLINESZ+startCol-2 ) ;
-		MSG = "" ;
 
 		getZAREAchanges() ;
 		updateData()      ;
+		actionZVERB()     ;
 
 		actionPrimCommand() ;
-		if ( MSG != "" ) { continue ; }
+		if ( MSG != "" )
+		{
+			getmsg( MSG, "", "", "", "", "ZMTYPE" ) ;
+			vcopy( "ZMTYPE", t, MOVE ) ;
+			if ( t != "NOTIFY" ) { continue ; }
+		}
 
 		actionLineCommands() ;
-
-		actionZVERB()        ;
-
-		if ( topLine < 0 ) { topLine = 0 ; }
-		if ( MSG != "" )   { continue ;    }
+		if ( MSG != "" )
+		{
+			getmsg( MSG, "", "", "", "", "ZMTYPE" ) ;
+			vcopy( "ZMTYPE", t, MOVE ) ;
+			if ( t != "NOTIFY" ) { continue ; }
+		}
 
 		if ( upper( ZCMD ) == "SAVE" )
 		{
@@ -1929,7 +1937,6 @@ void PEDIT01::actionLineCommands()
 	{
 		(*ita)->clearLc12() ;
 	}
-	if ( MSG != "" ) { return ; }
 
 	for ( itc = icmds.begin() ; itc != icmds.end() ; itc++ )
 	{
@@ -2429,7 +2436,6 @@ void PEDIT01::actionLineCommands()
 				il_itr++ ;
 				il_itr = data.insert( il_itr, p_iline ) ;
 			}
-			cursorPlaced = true ;
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 		}
@@ -2646,12 +2652,16 @@ void PEDIT01::actionLineCommands()
 void PEDIT01::actionZVERB()
 {
 	int t  ;
+	int p1 ;
+	int p2 ;
+
+	uint dl  ;
+	uint row ;
 
 	string w1 ;
 
 	if ( ZVERB == "DOWN" )
 	{
-		cursorPlaced = true ;
 		rebuildZAREA = true ;
 		if ( ZSCROLLA == "MAX" )
 		{
@@ -2671,7 +2681,6 @@ void PEDIT01::actionZVERB()
 	}
 	else if ( ZVERB == "UP" )
 	{
-		cursorPlaced = true ;
 		rebuildZAREA = true ;
 		if ( ZSCROLLA == "MAX" )
 		{
@@ -2691,7 +2700,6 @@ void PEDIT01::actionZVERB()
 	}
 	else if ( ZVERB == "LEFT" )
 	{
-		cursorPlaced = true ;
 		rebuildZAREA = true ;
 		if ( ZSCROLLA == "MAX" )
 		{
@@ -2705,7 +2713,6 @@ void PEDIT01::actionZVERB()
 	}
 	else if ( ZVERB == "RIGHT" )
 	{
-		cursorPlaced = true ;
 		rebuildZAREA = true ;
 		if ( ZSCROLLA == "MAX" )
 		{
@@ -2813,25 +2820,11 @@ void PEDIT01::actionZVERB()
 		ZCMD = ""           ;
 		rebuildZAREA = true ;
 	}
-}
-
-
-void PEDIT01::placeCursorDefault()
-{
-	int p1 ;
-	int p2 ;
-	int t  ;
-
-	string w1 ;
-
-	uint dl  ;
-	uint row ;
-
-	if ( aRow > 0 && s2data.at( aRow-1 ).ipo_URID == 0 )
+	else if ( aRow > 0 && s2data.at( aRow-1 ).ipo_URID == 0 )
 	{
 		placeCursor( 0, 0 ) ;
 	}
-	else if ( !cursorPlaced && aRow > 0 && s2data.at( aRow-1 ).ipo_URID > 0 )
+	else if ( aRow > 0 && s2data.at( aRow-1 ).ipo_URID > 0 )
 	{
 		if ( profSTabs && tabsLine != "" && getTabLocation( p1 ) )
 		{
@@ -3191,7 +3184,7 @@ bool PEDIT01::checkLineCommands()
 			}
 		}
 	}
-	if ( MSG != "" )
+	if ( it != data.end() )
 	{
 		placeCursor( (*it)->il_URID, 1 ) ;
 		return false ;
@@ -4001,7 +3994,6 @@ void PEDIT01::clearCursor()
 	//                   4 Use position in cursorPlaceOff
 	// cursorPlaceOff    Offset from start of the data line (adjust for command line and startCol later)
 
-	cursorPlaced    = false ;
 	cursorPlaceHome = false ;
 	cursorPlaceURID = 0     ;
 	cursorPlaceRow  = 0     ;
@@ -4010,7 +4002,6 @@ void PEDIT01::clearCursor()
 
 void PEDIT01::placeCursor( int URID, int pt, int offset )
 {
-	cursorPlaced     = true   ;
 	if ( URID == 0 )
 	{
 		cursorPlaceHome = true ;
@@ -4027,7 +4018,6 @@ void PEDIT01::placeCursor( int URID, int pt, int offset )
 
 void PEDIT01::placeCursor( uint Row, int pt, int offset )
 {
-	cursorPlaced     = true   ;
 	if ( Row > ZAREAD || s2data.at( Row-1 ).ipo_URID == 0 )
 	{
 		cursorPlaceHome = true ;
@@ -4063,8 +4053,6 @@ void PEDIT01::positionCursor()
 
 	const char din  = '\01' ;
 	const char dout = '\02' ;
-
-	if ( !cursorPlaced ) { return ; }
 
 	if ( cursorPlaceHome ) { CURFLD = "ZCMD" ; CURPOS = 1 ; return ; }
 
@@ -5527,7 +5515,7 @@ bool PEDIT01::checkLabel( string lab )
 	for ( i = 1 ; i < l ; i++ )
 	{
 		if ( !isdigit( lab[ i ] ) &&
-		     !isupper( lab[ i ] ) )  { return false ; }
+		     !isupper( lab[ i ] ) ) { return false ; }
 	}
 	return true ;
 }

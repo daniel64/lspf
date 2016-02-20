@@ -86,7 +86,7 @@ class pApplication
 		void   nrefresh() ;
 		void   save_screen()    ;
 		void   restore_screen() ;
-		void   panel_create( string p_name ) ;
+		void   panelCreate( string p_name ) ;
 		bool   isRawOutput() { return rawOutput ; }
 
 		string get_select_cmd( string ) ;
@@ -151,6 +151,7 @@ class pApplication
 		void   edit( string m_file, string m_panel=""   ) ;
 		void   view( string m_file, string m_panel=""   ) ;
 		void   setmsg( string msg, msgSET sType=UNCOND  ) ;
+		void   getmsg( string, string, string, string, string, string ) ;
 
 		void   addpop( string ="", int =0, int =0 ) ;
 		void   rempop( string ="" ) ;
@@ -242,6 +243,17 @@ class pApplication
 		stack<int> stk_int         ;
 		stack<int> addpop_stk      ;
 
-		void read_Message( string ) ;
+		void get_Message( string )  ;
+		bool load_Message( string ) ;
 		void load_keylist( pPanel * ) ;
+
+		struct str_msg
+		{
+			string  smsg ;
+			string  lmsg ;
+			string  hlp  ;
+			cuaType type ;
+			bool    alm  ;
+		} ;
+		map<string, str_msg>msgList ;
 } ;

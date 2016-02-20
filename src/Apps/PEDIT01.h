@@ -580,7 +580,6 @@ class PEDIT01 : public pApplication
 		void storeCursor(  int, int, int=0 ) ;
 		void placeCursor(  int, int, int=0 ) ;
 		void placeCursor( uint, int, int=0 ) ;
-		void placeCursorDefault() ;
 		void positionCursor()     ;
 		void moveColumn( int )    ;
 
@@ -620,7 +619,6 @@ class PEDIT01 : public pApplication
 		bool tabsOnRead          ;
 		bool abendRecovery       ;
 
-		bool cursorPlaced        ;
 		bool cursorPlaceHome     ;
 		int  cursorPlaceUsing    ;
 		int  cursorPlaceURID     ;
@@ -752,5 +750,3 @@ class PEDIT01 : public pApplication
 		const string CutCmds   = "C CC M MM" ;
 		const string PasteCmds = "A B" ;
 } ;
-
-

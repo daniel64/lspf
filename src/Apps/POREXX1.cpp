@@ -74,6 +74,7 @@ int  lspfBrowse( pApplication *, string )   ;
 int  lspfControl( pApplication *, string )  ;
 int  lspfDisplay( pApplication *, string )  ;
 int  lspfEdit( pApplication *, string )     ;
+int  lspfGetmsg( pApplication *, string )   ;
 int  lspfLibdef( pApplication *, string )   ;
 int  lspfPquery( pApplication *, string )   ;
 int  lspfRDisplay( pApplication *, string ) ;
@@ -216,7 +217,6 @@ void POREXX1::application()
 			if ( result != NULLOBJECT )
 			{
 				CSTRING resultString = threadContext->CString( result ) ;
-				debug1( "Data passed back from REXX is :" << resultString << endl ) ;
 			}
 		}
 		instance->Terminate() ;
@@ -265,6 +265,7 @@ RexxObjectPtr RexxEntry lspfCommandHandler( RexxExitContext *context,
 	else if ( w1 == "DISPLAY" )  { sRC = lspfDisplay( thisAppl, s2 )  ; }
 	else if ( w1 == "CONTROL" )  { sRC = lspfControl( thisAppl, s2 )  ; }
 	else if ( w1 == "EDIT" )     { sRC = lspfEdit( thisAppl, s2 )     ; }
+	else if ( w1 == "GETMSG" )   { sRC = lspfGetmsg( thisAppl, s2 )   ; }
 	else if ( w1 == "LIBDEF" )   { sRC = lspfLibdef( thisAppl, s2 )   ; }
 	else if ( w1 == "PQUERY" )   { sRC = lspfPquery( thisAppl, s2 )   ; }
 	else if ( w1 == "RDISPLAY" ) { sRC = lspfRDisplay( thisAppl, s2 ) ; }
@@ -563,6 +564,46 @@ int lspfEdit( pApplication * thisAppl, string s )
 	if ( strip( str ) != "" ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	thisAppl->edit( fl, pan ) ;
+	return thisAppl->RC ;
+}
+
+
+int lspfGetmsg( pApplication * thisAppl, string s )
+{
+	bool   rlt ;
+
+	string msg  ;
+	string smsg ;
+	string lmsg ;
+	string alm  ;
+	string hlp  ;
+	string typ  ;
+
+	string str  ;
+
+	str = subword( s, 2 ) ;
+
+	msg  = parseString( rlt, str, "MSG()" ) ;
+	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
+
+	smsg = parseString( rlt, str, "SHORTMSG()" ) ;
+	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
+
+	lmsg = parseString( rlt, str, "LONGMSG()" ) ;
+	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
+
+	alm  = parseString( rlt, str, "ALARM()" ) ;
+	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
+
+	hlp  = parseString( rlt, str, "HELP()" ) ;
+	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
+
+	typ = parseString( rlt, str, "TYPE()" ) ;
+	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
+
+	if ( strip( str ) != "" ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
+
+	thisAppl->getmsg( msg, smsg, lmsg, alm, hlp, typ ) ;
 	return thisAppl->RC ;
 }
 

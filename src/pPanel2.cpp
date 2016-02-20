@@ -173,7 +173,6 @@ int pPanel::loadPanel( string p_name, string paths )
 		if ( w1[ 0 ] == ')' )
 		{
 			body    = false ;
-			comment = false ;
 			command = false ;
 			init    = false ;
 			reinit  = false ;

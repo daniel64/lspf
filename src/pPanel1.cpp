@@ -60,7 +60,8 @@ pPanel::pPanel()
 
 pPanel::~pPanel()
 {
-	/* iterate over the 4 panel widget types, literal, field (inc tbfield, dynarea field), dynArea, boxes and delete them */
+	// iterate over the 4 panel widget types, literal, field (inc tbfield, dynarea field), dynArea, boxes
+	// and delete them.
 
 	int i ;
 	map<string, field *>::iterator it1;
@@ -161,9 +162,10 @@ void pPanel::initDialogueVar( string var )
 	// Required for REXX support so variables have a default value of blank, instead of the
 	// REXX default value of the variable's name
 
-	if      ( p_funcPOOL->ifexists( RC, var ) ) { return ; }
-	else if ( p_poolMGR->ifexists( RC, var ) )  { return ; }
-	else                                        { p_funcPOOL->put( RC, 0, var, "" ) ; }
+	if ( !p_funcPOOL->ifexists( RC, var ) && !p_poolMGR->ifexists( RC, var ) )
+	{
+	     p_funcPOOL->put( RC, 0, var, "" ) ;
+	}
 }
 
 
@@ -2142,9 +2144,9 @@ void pPanel::display_MSG()
 {
 	if ( SMSG != "" )
 	{
-		debug1( "Selecting SMSG to display " << SMSG << endl ) ;
 		wattrset( win, cuaAttr[ MSGTYPE ] ) ;
-		mvwaddstr( win, 1, ( WSCRMAXW - SMSG.size()), SMSG.c_str() ) ;
+		mvwaddch( win, 1, ( WSCRMAXW - SMSG.size() -1 ), ' ' ) ;
+		waddstr( win, SMSG.c_str() ) ;
 		wattroff( win, cuaAttr[ MSGTYPE ] ) ;
 		if ( !showLMSG && MSGALRM )
 		{
@@ -2154,7 +2156,6 @@ void pPanel::display_MSG()
 	}
 	if ( LMSG != "" && showLMSG )
 	{
-		debug1( "Selecting LMSG to display " << LMSG << endl ) ;
 		wattrset( win, cuaAttr[ MSGTYPE ] )  ;
 		mvwaddstr( win, 4, 1, LMSG.c_str() ) ;
 		wattroff( win, cuaAttr[ MSGTYPE ] )  ;

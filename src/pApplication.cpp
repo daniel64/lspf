@@ -126,7 +126,7 @@ void pApplication::wait_event()
 }
 
 
-void pApplication::panel_create( string p_name )
+void pApplication::panelCreate( string p_name )
 {
 	string paths ;
 
@@ -216,7 +216,7 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 		doReinit = true    ;
 	}
 
-	panel_create( p_name ) ;
+	panelCreate( p_name ) ;
 	if ( RC > 0 ) { checkRCode( "Panel >>" + p_name + "<< not found or invalid for DISPLAY service" ) ; return ; }
 
 	if ( propagateEnd )
@@ -229,7 +229,7 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 
 	if ( p_msg != "" )
 	{
-		read_Message( p_msg ) ;
+		get_Message( p_msg ) ;
 		if ( RC > 0 ) { return ; }
 		currPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM ) ;
 		MSGID = p_msg ;
@@ -294,7 +294,7 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 		}
 		if ( currPanel->MSGID != "" )
 		{
-			read_Message( currPanel->MSGID ) ;
+			get_Message( currPanel->MSGID ) ;
 			if ( RC > 0 ) { break ; }
 			currPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM ) ;
 			MSGID = currPanel->MSGID  ;
@@ -1358,7 +1358,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 
 	if ( p_name != "" )
 	{
-		panel_create( p_name ) ;
+		panelCreate( p_name ) ;
 		if ( RC > 0 ) { checkRCode( "Panel >>" + p_name + "<< not found or invalid for TBDISPL" ) ; return ; }
 		currtbPanel = panelList[ p_name ] ;
 		currPanel   = currtbPanel         ;
@@ -1392,7 +1392,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 
 	if ( p_msg != "" )
 	{
-		read_Message( p_msg ) ;
+		get_Message( p_msg ) ;
 		if ( RC > 0 ) { return ; }
 		currtbPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM ) ;
 		MSGID = p_msg    ;
@@ -1477,7 +1477,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 		else if ( ZZVERB == "LEFT" )  { currtbPanel->MSGID = "PSYS014" ; }
 		if ( currtbPanel->MSGID != "" )
 		{
-			read_Message( currtbPanel->MSGID ) ;
+			get_Message( currtbPanel->MSGID ) ;
 			if ( RC > 0 ) { return ; }
 			currtbPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM ) ;
 			MSGID = currtbPanel->MSGID  ;
@@ -1937,11 +1937,11 @@ void pApplication::pquery( string p_name, string a_name, string t_name, string w
 	if ( (r_name != "") && !isvalidName( r_name ) ) { RC = 20 ; checkRCode( "Invalid area row number name " + r_name + " on PQUERY" ) ; return ; }
 	if ( (c_name != "") && !isvalidName( c_name ) ) { RC = 20 ; checkRCode( "Invalid area column number name " + c_name + " on PQUERY" ) ; return ; }
 
-	panel_create( p_name ) ;
+	panelCreate( p_name ) ;
 	if ( panelList.find( p_name ) == panelList.end() )
 	{
 		RC = 20 ;
-		checkRCode( "Panel " + p_name + " not found or invalid for PQUERY" ) ; return ;
+		checkRCode( "Panel " + p_name + " not found or invalid for PQUERY" ) ;
 		return  ;
 	}
 	panelList[ p_name ]->get_panel_info( RC, a_name, t_name, w_name, d_name, r_name, c_name ) ;
@@ -2022,7 +2022,6 @@ void pApplication::load_keylist( pPanel * p )
 	vcopy( "KEY23DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(23), tabField ) ;
 	vcopy( "KEY24DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(24), tabField ) ;
 	tbend( tabName ) ;
-
 }
 
 
@@ -2039,10 +2038,42 @@ void pApplication::setmsg( string msg, msgSET sType )
 
 	if ( ( sType == COND ) && setMSG ) return ;
 
-	read_Message( msg ) ;
+	get_Message( msg ) ;
 	if ( RC > 0 ) { RC = 20 ; return ; }
 	MSGID  = msg  ;
 	setMSG = true ;
+}
+
+
+void pApplication::getmsg( string msg, string smsg, string lmsg, string alm, string hlp, string typ )
+{
+	RC = 0 ;
+
+	if ( smsg != "" && !isvalidName( smsg ) ) { RC = 20 ; checkRCode( "Invalid SHORT MESSAGE variable name" ) ; return ; }
+	if ( lmsg != "" && !isvalidName( lmsg ) ) { RC = 20 ; checkRCode( "Invalid LONG MESSAGE variable name" )  ; return ; }
+	if ( alm  != "" && !isvalidName( alm  ) ) { RC = 20 ; checkRCode( "Invalid ALARM variable name" )         ; return ; }
+	if ( hlp  != "" && !isvalidName( hlp  ) ) { RC = 20 ; checkRCode( "Invalid HELP variable name" )          ; return ; }
+	if ( typ  != "" && !isvalidName( typ  ) ) { RC = 20 ; checkRCode( "Invalid TYPE variable name" )          ; return ; }
+
+	if ( !load_Message( msg ) ) { RC = 20 ; checkRCode( "Message not found or invalid" ) ; return ; }
+
+	if ( smsg != "" ) { funcPOOL.put( RC, 0, smsg, msgList[ msg ].smsg ) ; }
+	if ( lmsg != "" ) { funcPOOL.put( RC, 0, lmsg, msgList[ msg ].lmsg ) ; }
+	if (  alm != "" )
+	{
+		if ( msgList[ msg ].alm ) { funcPOOL.put( RC, 0, alm, "YES" ) ; }
+		else                      { funcPOOL.put( RC, 0, alm, "NO" )  ; }
+	}
+	if (  typ != "" )
+	{
+		switch ( msgList[ msg ].type )
+		{
+			case IMT: funcPOOL.put( RC, 0, typ, "NOTIFY" )   ; break ;
+			case WMT: funcPOOL.put( RC, 0, typ, "WARNING" )  ; break ;
+			case AMT: funcPOOL.put( RC, 0, typ, "CRITICAL" ) ;
+		}
+	}
+	if ( hlp != "" ) { funcPOOL.put( RC, 0, hlp, msgList[ msg ].hlp ) ; }
 }
 
 
@@ -2051,7 +2082,7 @@ string pApplication::get_help_member( int row, int col )
 	string fld ;
 	string paths ;
 
-	RC  = 0  ;
+	RC = 0 ;
 
 	fld = currPanel->field_getname( row, col ) ;
 
@@ -2062,34 +2093,65 @@ string pApplication::get_help_member( int row, int col )
 }
 
 
-void pApplication::read_Message( string p_msg )
+void pApplication::get_Message( string p_msg )
 {
+	RC = 0 ;
+
+	if ( !load_Message( p_msg ) )
+	{
+		RC = 20 ;
+		return  ;
+	}
+
+	ZSMSG    = sub_vars( msgList[ p_msg ].smsg ) ;
+	ZLMSG    = sub_vars( msgList[ p_msg ].lmsg ) ;
+	ZMSGALRM = msgList[ p_msg ].alm  ;
+	ZMSGTYPE = msgList[ p_msg ].type ;
+	ZMHELP   = msgList[ p_msg ].hlp  ;
+}
+
+
+bool pApplication::load_Message( string p_msg )
+{
+	// Read message and store in msgList map (no variable substitution done at this point)
+
 	// The message file name is determined by truncating the message ID after the second digit of the number.
 	// AB123A file AB12
 	// G012 file G01
+
+	// If in test mode, reload message each time it is requested
 
 	int i  ;
 	int j  ;
 	int p1 ;
 	int p2 ;
 
-	string t        ;
+	string tmp      ;
 	string p_msg_fn ;
 	string filename ;
 	string line2    ;
 	string paths    ;
-	string w1       ;
 	string rest     ;
+
 	bool found      ;
+
 	char line1[ 256 ] ;
 
-	RC       = 0     ;
+	str_msg t     ;
 
-	ZMHELP   = ""    ;
-	ZMSGTYPE = WMT   ;
-	ZMSGALRM = true  ;
+	if ( !testMode && msgList.find( p_msg ) != msgList.end() ) { return true ; }
 
-	if ( !isvalidName( p_msg ) || p_msg.size() < 4 ) { RC = 20 ; checkRCode( "Invalid message format for " + p_msg ) ; return ; }
+	t.lmsg = ""   ;
+	t.smsg = ""   ;
+	t.hlp  = ""   ;
+	t.type = WMT  ;
+	t.alm  = true ;
+
+	if ( !isvalidName( p_msg ) || p_msg.size() < 4 )
+	{
+		checkRCode( "Invalid message format for " + p_msg ) ;
+		return false ;
+	}
 
 	found = false ;
 	for ( i = 1 ; i < p_msg.size() - 2 ; i++ )
@@ -2103,7 +2165,7 @@ void pApplication::read_Message( string p_msg )
 		}
 	}
 
-	if ( !found ) { RC = 20 ; checkRCode( "Message " + p_msg + " has invalid format" ) ; return ; }
+	if ( !found ) { checkRCode( "Message " + p_msg + " has invalid format" ) ; return false ; }
 
 	if ( libdef_muser ) paths = mergepaths( ZMUSER, ZMLIB ) ;
 	else                paths = ZMLIB                       ;
@@ -2117,9 +2179,8 @@ void pApplication::read_Message( string p_msg )
 		{
 			if ( !is_regular_file( filename ) )
 			{
-				RC = 20 ;
 				checkRCode( "Message file " + filename + " is not a regular file" ) ;
-				return  ;
+				return false ;
 			}
 			else
 			{
@@ -2130,9 +2191,8 @@ void pApplication::read_Message( string p_msg )
 	}
 	if ( !found )
 	{
-		RC = 20 ;
 		checkRCode( "Message file " + p_msg_fn + " not found for message id " + p_msg ) ;
-		return  ;
+		return false ;
 	}
 	found = false ;
 	std::ifstream messages ;
@@ -2142,88 +2202,89 @@ void pApplication::read_Message( string p_msg )
 		messages.getline( line1, 256 ) ;
 		if ( messages.fail() != 0 ) break ;
 		line2.assign( line1, messages.gcount() - 1 ) ;
-		w1 = word( line2, 1 )    ;
 		if ( found )
 		{
-			p1 = pos( "\"", line2 ) ;
-			if ( p1 > 0 )
-			{
-				p2 = pos( "\"", line2, p1+1 ) ;
-				if ( p2 == 0 ) { RC = 20 ; break ; }
-				ZLMSG = substr( line2, p1+1, p2-p1-1 ) ;
-				rest  = delstr( line2, p1, p2-p1+1 )   ;
-			}
-			else
-			{
-				ZLMSG = word( line2, 1 )    ;
-				rest  = subword( line2, 2 ) ;
-			}
-			if ( strip( rest ) != "" ) { RC = 20 ; break ; }
-			ZLMSG  = sub_vars( ZLMSG ) ;
+			t.lmsg = line2 ;
 			break ;
 		}
-		if ( w1 == p_msg )
+		if ( word( line2, 1 ) == p_msg )
 		{
-			p1 = pos( "\"", line2 ) ;
-			if ( p1 > 0 )
-			{
-				p2 = pos( "\"", line2, p1+1 ) ;
-				if ( p2 == 0 ) { RC = 20 ; break ; }
-				ZSMSG = " " + substr( line2, p1+1, p2-p1-1 ) ;
-				rest  = substr( line2, p2+1) ;
-			}
-			else
-			{
-				ZSMSG = " " + word( line2, 2 ) ;
-				rest  = subword( line2, 3 )    ;
-			}
-			p1 = pos( ".HELP=", rest ) ;
-			if ( p1 > 0 )
-			{
-				p2 = pos( " ", rest, p1 ) ;
-				if ( p2 == 0 ) { ZMHELP = substr( rest, p1+6 )          ; rest = delstr( rest, p1 )        ; }
-				else           { ZMHELP = substr( rest, p1+6, p2-p1-6 ) ; rest = delstr( rest, p1, p2-p1 ) ; }
-			}
-			p1 = pos( ".TYPE=", rest ) ;
-			if ( p1 > 0 )
-			{
-				p2 = pos( " ", rest, p1 ) ;
-				if ( p2 == 0 ) { t  = substr( rest, p1+6 )          ; rest = delstr( rest, p1 )        ; }
-				else           { t  = substr( rest, p1+6, p2-p1-6 ) ; rest = delstr( rest, p1, p2-p1 ) ; }
-				if      ( t == "N" ) { ZMSGTYPE = IMT   ; ZMSGALRM = false ; }
-				else if ( t == "W" ) { ZMSGTYPE = WMT   ; }
-				else if ( t == "A" ) { ZMSGTYPE = AMT   ; }
-				else if ( t == "C" ) { ZMSGTYPE = AMT   ; }
-				else                 { RC = 20 ; break  ; }
-			}
-			p1 = pos( ".ALARM=", rest ) ;
-			if ( p1 > 0 )
-			{
-				p2 = pos( " ", rest, p1 ) ;
-				if ( p2 == 0 ) { t  = substr( rest, p1+7 )          ; rest = delstr( rest, p1 )        ; }
-				else           { t  = substr( rest, p1+7, p2-p1-7 ) ; rest = delstr( rest, p1, p2-p1 ) ; }
-				if      ( t == "YES" ) { ZMSGALRM = true  ; }
-				else if ( t == "NO" )  { ZMSGALRM = false ; }
-				else                   { RC = 20 ; break  ; }
-			}
-
-			if ( strip( rest ) != "" ) { RC = 20 ; break ; }
-			ZSMSG = sub_vars( ZSMSG ) ;
-			ZLMSG = ""   ;
+			t.smsg = line2 ;
 			found = true ;
 		}
 	}
-	if ( RC > 0 )
+	if ( !found )
 	{
-		checkRCode( "Error in message format of " + p_msg + " found in message file " + p_msg_fn ) ;
-	}
-	else if ( !found )
-	{
-		RC = 20 ;
 		checkRCode( "Message " + p_msg + " not found in message file " + p_msg_fn ) ;
+		return false ;
 	}
 	messages.close() ;
-	return ;
+
+	p1 = pos( "\"", t.smsg ) ;
+	if ( p1 > 0 )
+	{
+		p2 = pos( "\"", t.smsg, p1+1 ) ;
+		if ( p2 == 0 ) { return false ; }
+		rest   = substr( t.smsg, p2+1)  ;
+		t.smsg = substr( t.smsg, p1+1, p2-p1-1 ) ;
+	}
+	else
+	{
+		rest   = subword( t.smsg, 3 ) ;
+		t.smsg = word( t.smsg, 2 ) ;
+	}
+
+	p1 = pos( ".HELP=", rest ) ;
+	if ( p1 > 0 )
+	{
+		p2 = pos( " ", rest, p1 ) ;
+		if ( p2 == 0 ) { t.hlp = substr( rest, p1+6 )          ; rest = delstr( rest, p1 )        ; }
+		else           { t.hlp = substr( rest, p1+6, p2-p1-6 ) ; rest = delstr( rest, p1, p2-p1 ) ; }
+	}
+
+	p1 = pos( ".TYPE=", rest ) ;
+	if ( p1 > 0 )
+	{
+		p2 = pos( " ", rest, p1 ) ;
+		if ( p2 == 0 ) { tmp = substr( rest, p1+6 )          ; rest = delstr( rest, p1 )        ; }
+		else           { tmp = substr( rest, p1+6, p2-p1-6 ) ; rest = delstr( rest, p1, p2-p1 ) ; }
+		if      ( tmp == "N" ) { t.type = IMT ; t.alm = false ; }
+		else if ( tmp == "W" ) { t.type = WMT ; }
+		else if ( tmp == "A" ) { t.type = AMT ; }
+		else if ( tmp == "C" ) { t.type = AMT ; }
+		else                   { return false ; }
+	}
+
+	p1 = pos( ".ALARM=", rest ) ;
+	if ( p1 > 0 )
+	{
+		p2 = pos( " ", rest, p1 ) ;
+		if ( p2 == 0 ) { tmp = substr( rest, p1+7 )          ; rest = delstr( rest, p1 )        ; }
+		else           { tmp = substr( rest, p1+7, p2-p1-7 ) ; rest = delstr( rest, p1, p2-p1 ) ; }
+		if      ( tmp == "YES" ) { t.alm = true  ; }
+		else if ( tmp == "NO" )  { t.alm = false ; }
+		else                     { return false  ; }
+	}
+
+	if ( strip( rest ) != "" ) { return false ; }
+
+	p1 = pos( "\"", t.lmsg ) ;
+	if ( p1 > 0 )
+	{
+		p2 = pos( "\"", t.lmsg, p1+1 ) ;
+		if ( p2 == 0 ) { return false ; }
+		rest   = delstr( t.lmsg, p1, p2-p1+1 )   ;
+		t.lmsg = substr( t.lmsg, p1+1, p2-p1-1 ) ;
+	}
+	else
+	{
+		rest   = subword( t.lmsg, 2 ) ;
+		t.lmsg = word( t.lmsg, 1 )    ;
+	}
+	if ( strip( rest ) != "" ) { return false ; }
+
+	msgList[ p_msg ] = t ;
+	return true ;
 }
 
 
