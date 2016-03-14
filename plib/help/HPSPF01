@@ -41,10 +41,10 @@ REFOPENF Open a list of all referral lists
 
 USER
 ****
+EXEC   Execute OOREXX EXEC from the command line (similar to % command character)
 FLIST  Display saved file names and execute line command
 MODS   List loaded modules (Dynamically Loaded Classes)
+RUN    Run application (similar to ! command character)
 PATHS  Display scrollable list of Path Searches and LIBDEF status
-REXX   Execute OOREXX EXEC from the command line
 TODO   Display a simple TODO list
 VARS   List of SHARED and PROFILE pool variables
-

@@ -19,41 +19,45 @@ field    6   MAX-14    8   VOI   NONE  ZDATE
 literal  7   MAX-20         FP  "Time: "
 field    7   MAX-14    8    VOI   NONE  ZTIME
 
-literal  6  2    SAC  "0"
-literal  6  5    PS   "PF Keys"
-literal  6  15    NT   "Display and alter function key settings"
+literal  6   2    SAC  "0"
+literal  6   5    PS   "General"
+literal  6   16   NT   "Display and alter general lspf option settings"
 
-literal  7  2    SAC  "1"
-literal  7  5    PS   "Colours"
-literal  7  15   NT   "Display and alter screen colours"
+literal  7   2    SAC  "1"
+literal  7   5    PS   "PF Keys"
+literal  7   16   NT   "Display and alter function key settings"
 
-literal  8  2    SAC  "2"
-literal  8  5    PS   "Commands"
-literal  8  15   NT   "Display command tables"
+literal  8   2    SAC  "2"
+literal  8   5    PS   "Colours"
+literal  8   16   NT   "Display and alter screen colours"
 
-literal  9  2    SAC  "3"
-literal  9  5    PS   "Paths"
-literal  9  15   NT   "Display search paths and LIBDEF status"
+literal  9   2    SAC  "3"
+literal  9   5    PS   "Commands"
+literal  9   16   NT   "Display command tables"
 
 literal  10  2    SAC  "4"
-literal  10  5    PS   "Variables"
-literal  10  15   NT   "Display and delete shared and profile pool variables"
+literal  10  5    PS   "Paths"
+literal  10  16   NT   "Display search paths and LIBDEF status"
 
 literal  11  2    SAC  "5"
-literal  11  5    PS   "Modules"
-literal  11  15   NT   "Display/Reload Application Modules"
+literal  11  5    PS   "Variables"
+literal  11  16   NT   "Display and delete shared and profile pool variables"
 
 literal  12  2    SAC  "6"
-literal  12  5    PS   "Programs"
-literal  12  15   NT   "View/change utility programs"
+literal  12  5    PS   "Modules"
+literal  12  16   NT   "Display/Reload Application Modules"
 
-literal  14  2    SAC  "T"
-literal  14  5    PS   "Tutorial"
-literal  14  15   NT   "Start Tutorial"
+literal  13  2    SAC  "7"
+literal  13  5    PS   "Programs"
+literal  13  16   NT   "View/change utility programs"
 
-literal  15  2    SAC  "X"
-literal  15  5    PS   "Terminate"
-literal  15  15   NT   "Terminate Settings"
+literal  15  2    SAC  "T"
+literal  15  5    PS   "Tutorial"
+literal  15  16   NT   "Start Tutorial"
+
+literal  16  2    SAC  "X"
+literal  16  5    PS   "Terminate"
+literal  16  16   NT   "Terminate Settings"
 
 
 )INCLUDE STD_PDC
@@ -61,13 +65,14 @@ literal  15  15   NT   "Terminate Settings"
 
 
 )COMMAND
-0 "SELECT PGM(PPSP01A) PARM(KEYS) NEWPOOL"
-1 "SELECT PGM(PPSP01A) PARM(COLOURS) NEWPOOL"
-2 "SELECT PGM(PPSP01A) PARM(CMDS) NEWPOOL"
-3 "SELECT PGM(PPSP01A) PARM(PATHS) NEWPOOL"
-4 "SELECT PGM(PPSP01A) PARM(VARS)"
-5 "SELECT PGM(PPSP01A) PARM(MODS) NEWPOOL"
-6 "SELECT PGM(PPSP01A) PARM(UTPGMS) NEWPOOL"
+0 "SELECT PGM(PPSP01A) PARM(GOPTS) NEWPOOL"
+1 "SELECT PGM(PPSP01A) PARM(KEYS) NEWPOOL"
+2 "SELECT PGM(PPSP01A) PARM(COLOURS) NEWPOOL"
+3 "SELECT PGM(PPSP01A) PARM(CMDS) NEWPOOL"
+4 "SELECT PGM(PPSP01A) PARM(PATHS) NEWPOOL"
+5 "SELECT PGM(PPSP01A) PARM(VARS)"
+6 "SELECT PGM(PPSP01A) PARM(MODS) NEWPOOL"
+7 "SELECT PGM(PPSP01A) PARM(UTPGMS) NEWPOOL"
 T "SELECT PGM(&ZHELPPGM) PARM(&ZPARM)"
 X "ACTION END"
 
@@ -85,7 +90,8 @@ FIELD( ZPS01004 ) VAR(ZCMD)  VAL(3)
 FIELD( ZPS01005 ) VAR(ZCMD)  VAL(4)
 FIELD( ZPS01006 ) VAR(ZCMD)  VAL(5)
 FIELD( ZPS01007 ) VAR(ZCMD)  VAL(6)
-FIELD( ZPS01008 ) VAR(ZCMD)  VAL(T)
-FIELD( ZPS01009 ) VAR(ZCMD)  VAL(X)
+FIELD( ZPS01008 ) VAR(ZCMD)  VAL(7)
+FIELD( ZPS01009 ) VAR(ZCMD)  VAL(T)
+FIELD( ZPS01010 ) VAR(ZCMD)  VAL(X)
 
 )END

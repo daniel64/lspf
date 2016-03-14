@@ -26,7 +26,7 @@ class fVAR
 		string   fVAR_mask       ;
 		int      fVAR_int        ;
 		dataType fVAR_type       ;
-		bool     fVAR_explicit   ;
+		bool     fVAR_defined    ;
 	friend class fPOOL ;
 } ;
 
@@ -35,7 +35,7 @@ class fPOOL
 {
 	public:
 		void     define( int &, string, string *, nameCHCK check=CHECK ) ;
-		void     define( int &, string, int *    ) ;
+		void     define( int &, string, int * ) ;
 		bool     ifexists( int &, string, nameCHCK check=CHECK ) ;
 		dataType getType( int &, string, nameCHCK check=CHECK )  ;
 		string * vlocate( int &, int, string, nameCHCK check=CHECK )  ;
@@ -45,20 +45,39 @@ class fPOOL
 		int      get( int &, int, dataType, string ) ;
 		void     setmask( int &, string, string ) ;
 		void     dlete( int &, string, nameCHCK check=CHECK ) ;
-		void     reset()         ;
-		string   vilist( int & ) ;
-		string   vslist( int & ) ;
+		void     reset() ;
+		string   vilist( int &, vdType ) ;
+		string   vslist( int &, vdType ) ;
 
 	private:
 		map< string, stack< fVAR> > POOL ;
 } ;
 
 
+enum pVType
+{
+	pV_VALUE,
+	pV_ZTIME,
+	pV_ZTIMEL,
+	pV_ZDATE,
+	pV_ZDATEL,
+	pV_ZDAY,
+	pV_ZDAYOFWK,
+	pV_ZDATESTD,
+	pV_ZMONTH,
+	pV_ZJDATE,
+	pV_ZJ4DATE,
+	pV_ZYEAR,
+	pV_ZSTDYEAR
+} ;
+
 class pVAR
 {
 	private:
-		string   pVAR_value      ;
-		bool     pVAR_system     ;
+		string pVAR_value  ;
+		bool   pVAR_system ;
+		pVType pVAR_type   ;
+
 	friend class pVPOOL ;
 } ;
 
@@ -94,6 +113,7 @@ class pVPOOL
 		bool   isSystem( int &, string ) ;
 		void   setreadOnly()  { readOnly = true  ; }
 		void   resetChanged() { changed  = false ; }
+		void   createGenEntries() ;
 
 	friend class poolMGR ;
 } ;

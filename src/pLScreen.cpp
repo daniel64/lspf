@@ -68,7 +68,6 @@ pLScreen::~pLScreen()
 {
 	--screensTotal ;
 	if ( screensTotal == 0 ) { endwin() ; }
-	return ;
 }
 
 

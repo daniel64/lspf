@@ -33,6 +33,7 @@ class pPanel
 		string KEYAPPL     ;
 		cuaType MSGTYPE    ;
 		bool   MSGALRM     ;
+		bool   REXX        ;
 		string ZPHELP      ;
 		string tb_fields   ;
 		int    tb_depth    ;
@@ -59,7 +60,7 @@ class pPanel
 		void   display_panel_init( int & RC )   ;
 		void   display_panel_reinit( int & RC, int ln ) ;
 		void   display_panel_proc( int & RC, int ln )   ;
-		void   display_MSG()  ;
+		void   display_MSG() ;
 
 		void   set_popup( int, int ) ;
 		void   remove_popup()        ;
@@ -152,7 +153,7 @@ class pPanel
 		PANEL  * panel     ;
 		PANEL  * bpanel    ;
 
-		void   initDialogueVar( string ) ;
+		void   syncDialogueVar( string ) ;
 		string getDialogueVar( string )  ;
 		void   putDialogueVar( string, string ) ;
 

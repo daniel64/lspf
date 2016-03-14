@@ -27,24 +27,6 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/condition.hpp>
 
-enum msgSET   { COND, UNCOND }   ;
-enum tbSAVE   { WRITE, NOWRITE } ;
-enum tbREP    { REPLACE, NOREPLACE } ;
-enum tbDISP   { SHARE, EXCLUSIVE }   ;
-enum dataType { INTEGER, STRING, ERROR } ;
-enum nameCHCK { CHECK, NOCHECK }     ;
-enum readCHCK { ROCHECK, NOROCHECK } ;
-enum vcMODE   { LOCATE, MOVE }       ;
-enum poolType { SHARED, PROFILE, BOTH, ASIS } ;
-enum srCOND   { s_EQ, s_NE, s_LE, s_LT, s_GE, s_GT } ;
-enum vTYPE    { SYSTEM, USER } ;
-
-enum cuaType  { AB,  ABSL, ABU, AMT, AWF, CT,  CEF,  CH,
-		DT,  ET,   EE,  FP,  FK,  IMT, LEF,  LID, LI,
-		NEF, NT,   PI,  PIN, PT,  PS,  PAC,  PUC, RP,
-		SI,  SAC,  SUC, VOI, WMT, WT,  WASL, CHAR,
-		DATAIN, DATAOUT, GRPBOX, OUTPUT, TEXT } ;
-
 // #define DEBUG1 1
 // #define DEBUG2 1
 #define MOD_NAME lspf
@@ -193,6 +175,129 @@ struct lspfCommand
 	string Command       ;
 	int    RC            ;
 	vector<string> reply ;
+} ;
+
+enum msgSET
+{
+	COND,
+	UNCOND
+} ;
+
+enum tbSAVE
+{
+	WRITE,
+	NOWRITE
+} ;
+
+enum tbREP
+{
+	REPLACE,
+	NOREPLACE
+} ;
+
+enum tbDISP
+{
+	SHARE,
+	EXCLUSIVE
+} ;
+
+enum dataType
+{
+	INTEGER,
+	STRING,
+	ERROR
+} ;
+
+enum nameCHCK
+{
+	CHECK,
+	NOCHECK
+} ;
+
+enum vdType
+{
+	DEFINED,
+	IMPLICIT,
+	ALL
+} ;
+
+enum readCHCK
+{
+	ROCHECK,
+	NOROCHECK
+} ;
+
+enum vcMODE
+{
+	LOCATE,
+	MOVE
+} ;
+
+enum poolType
+{
+	SHARED,
+	PROFILE,
+	BOTH,
+	ASIS
+} ;
+
+enum srCOND
+{
+	s_EQ,
+	s_NE,
+	s_LE,
+	s_LT,
+	s_GE,
+	s_GT
+} ;
+
+enum vTYPE
+{
+	SYSTEM,
+	USER
+} ;
+
+enum cuaType
+{
+	AB,
+	ABSL,
+	ABU,
+	AMT,
+	AWF,
+	CT,
+	CEF,
+	CH,
+	DT,
+	ET,
+	EE,
+	FP,
+	FK,
+	IMT,
+	LEF,
+	LID,
+	LI,
+	NEF,
+	NT,
+	PI,
+	PIN,
+	PT,
+	PS,
+	PAC,
+	PUC,
+	RP,
+	SI,
+	SAC,
+	SUC,
+	VOI,
+	WMT,
+	WT,
+	WASL,
+	CHAR,
+	DATAIN,
+	DATAOUT,
+	GRPBOX,
+	OUTPUT,
+	TEXT
 } ;
 
 #define _quotes( a ) #a

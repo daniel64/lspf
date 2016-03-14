@@ -85,7 +85,6 @@ void PPSP01A::application()
 	vdefine( "ZALOG ZSLOG LOGTYPE LOGLOC ZCOL1", &ZALOG, &ZSLOG, &LOGTYPE, &LOGLOC, &ZCOL1 ) ;
 
 	vget( "ZALOG ZSLOG", PROFILE ) ;
-	vget( "ZHOME", SHARED ) ;
 
 	if ( PARM == "AL" )
 	{
@@ -99,6 +98,7 @@ void PPSP01A::application()
 		LOGLOC  = ZSLOG   ;
 		show_log( ZSLOG ) ;
 	}
+	else if ( PARM == "GOPTS"   ) { lspfSettings()       ; }
 	else if ( PARM == "KEYS"    ) { pfkeySettings()      ; }
 	else if ( PARM == "COLOURS" ) { colourSettings()     ; }
 	else if ( PARM == "TODO"    ) { todoList()           ; }
@@ -474,6 +474,51 @@ void PPSP01A::fill_dynamic_area()
 	}
 }
 
+
+
+void PPSP01A::lspfSettings()
+{
+	int RCode      ;
+
+	string GODEL   ;
+	string GOKLUSE ;
+	string ZKLUSE  ;
+	string ZDEL    ;
+
+	vdefine( "ZKLUSE ZDEL GODEL GOKLUSE", &ZKLUSE, &ZDEL, &GODEL, &GOKLUSE ) ;
+	vget( "ZDEL ZKLUSE", PROFILE ) ;
+
+	if ( ZKLUSE == "Y" ) { GOKLUSE = "/" ; }
+	else                 { GOKLUSE = " " ; }
+	GODEL = ZDEL ;
+
+	while ( true )
+	{
+		ZCMD  = "" ;
+		display( "PPSP01GO", "", "ZCMD" );
+		RCode = RC ;
+		if ( RCode >  8 ) { abend() ; }
+		if ( ZCMD == "CANCEL" ) { break ; }
+		if ( RCode == 8 || ZCMD == "SAVE" )
+		{
+		    if ( GOKLUSE == "/" ) { ZKLUSE = "Y" ; }
+		    else                  { ZKLUSE = "N" ; }
+		    vput( "ZKLUSE", PROFILE ) ;
+		    if ( GODEL != "" && GODEL != ZDEL )
+		    {
+			    ZDEL = GODEL ;
+			    vput( "ZDEL", PROFILE ) ;
+		    }
+		    if ( RCode == 8 ) { break ; }
+		}
+		if ( ZCMD == "DEFAULTS" )
+		{
+		    GOKLUSE  = ""  ;
+		    GODEL    = ";" ;
+		}
+	}
+	vdelete( "ZKLUSE ZDEL GODEL GOKLUSE" ) ;
+}
 
 
 void PPSP01A::pfkeySettings()
@@ -1079,6 +1124,30 @@ void PPSP01A::getpoolVariables( string pattern )
 	SEL     = "" ;
 	MESSAGE = "" ;
 
+  /*    varlist = vilist( DEFINED ) + vslist( DEFINED ) ;
+	VPOOL = "F" ;
+	VPLVL = "D" ;
+	ws    = words( varlist ) ;
+	for ( i = 1 ; i <= ws ; i++ )
+	{
+		VAR = word( varlist, i ) ;
+		if ( (pattern != "") && (pos( pattern, VAR ) == 0) ) { continue ; }
+		vcopy( VAR, VAL, MOVE ) ;
+		tbadd( VARLST )    ;
+	}
+
+	varlist = vilist( IMPLICIT ) + vslist( IMPLICIT ) ;
+	VPOOL = "F" ;
+	VPLVL = "I" ;
+	ws    = words( varlist ) ;
+	for ( i = 1 ; i <= ws ; i++ )
+	{
+		VAR = word( varlist, i ) ;
+		if ( (pattern != "") && (pos( pattern, VAR ) == 0) ) { continue ; }
+		vcopy( VAR, VAL, MOVE ) ;
+		tbadd( VARLST )    ;
+	}
+	*/
 	varlist = vlist( SHARED, 1 ) ;
 	VPOOL = "S" ;
 	VPLVL = "1" ;

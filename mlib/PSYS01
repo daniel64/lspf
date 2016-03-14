@@ -128,4 +128,4 @@ PSYS011H "Module reloaded"
 "Module has been reloaded successfully"
 
 PSYS011I "Errors during module reload"
-"Check log for errors"
+"Check lspf log for errors"

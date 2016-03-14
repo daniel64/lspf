@@ -38,7 +38,7 @@ void fPOOL::define( int & RC, string name, string * addr, nameCHCK check )
 
 	var.fVAR_string_ptr = addr   ;
 	var.fVAR_type       = STRING ;
-	var.fVAR_explicit   = true   ;
+	var.fVAR_defined    = true   ;
 	POOL[ name ].push( var )     ;
 }
 
@@ -52,7 +52,7 @@ void fPOOL::define( int & RC, string name, int * addr )
 
 	var.fVAR_int_ptr  = addr    ;
 	var.fVAR_type     = INTEGER ;
-	var.fVAR_explicit = true    ;
+	var.fVAR_defined  = true    ;
 	POOL[ name ].push( var )    ;
 }
 
@@ -68,7 +68,7 @@ bool fPOOL::ifexists( int & RC, string name, nameCHCK check )
 }
 
 
-string fPOOL::vilist( int & RC )
+string fPOOL::vilist( int & RC, vdType defn )
 {
 	string vl ;
 	map<string, stack< fVAR> >::iterator it ;
@@ -78,6 +78,14 @@ string fPOOL::vilist( int & RC )
 	{
 		if ( !isvalidName( it->first ) ) { continue ; }
 		if ( it->second.top().fVAR_type != INTEGER ) { continue ; }
+		if ( it->second.top().fVAR_defined )
+		{
+			if ( defn == IMPLICIT ) { continue ; }
+		}
+		else
+		{
+			if ( defn == DEFINED  ) { continue ; }
+		}
 		vl = vl + " " + it->first ;
 		RC = 0 ;
 	}
@@ -85,7 +93,7 @@ string fPOOL::vilist( int & RC )
 }
 
 
-string fPOOL::vslist( int & RC )
+string fPOOL::vslist( int & RC, vdType defn )
 {
 	string vl ;
 	map<string, stack< fVAR> >::iterator it ;
@@ -95,6 +103,14 @@ string fPOOL::vslist( int & RC )
 	{
 		if ( !isvalidName( it->first ) ) { continue ; }
 		if ( it->second.top().fVAR_type != STRING ) { continue ; }
+		if ( it->second.top().fVAR_defined )
+		{
+			if ( defn == IMPLICIT ) { continue ; }
+		}
+		else
+		{
+			if ( defn == DEFINED  ) { continue ; }
+		}
 		vl = vl + " " + it->first ;
 		RC = 0 ;
 	}
@@ -133,8 +149,8 @@ string * fPOOL::vlocate( int & RC, int maxRC, string name, nameCHCK check )
 		return NULL ;
 	}
 
-	if ( it->second.top().fVAR_explicit ) { return  it->second.top().fVAR_string_ptr ; }
-	else                                  { return &it->second.top().fVAR_string     ; }
+	if ( it->second.top().fVAR_defined ) { return  it->second.top().fVAR_string_ptr ; }
+	else                                 { return &it->second.top().fVAR_string     ; }
 }
 
 
@@ -153,7 +169,7 @@ void fPOOL::put( int & RC, int maxRC, string name, string value, nameCHCK check 
 	{
 		var.fVAR_string   = value  ;
 		var.fVAR_type     = STRING ;
-		var.fVAR_explicit = false  ;
+		var.fVAR_defined  = false  ;
 		POOL[ name ].push( var )   ;
 		return ;
 	}
@@ -166,8 +182,8 @@ void fPOOL::put( int & RC, int maxRC, string name, string value, nameCHCK check 
 		return ;
 	}
 
-	if ( it->second.top().fVAR_explicit ) { *(it->second.top().fVAR_string_ptr) = value ; }
-	else                                  {   it->second.top().fVAR_string      = value ; }
+	if ( it->second.top().fVAR_defined ) { *(it->second.top().fVAR_string_ptr) = value ; }
+	else                                 {   it->second.top().fVAR_string      = value ; }
 }
 
 
@@ -185,7 +201,7 @@ void fPOOL::put( int & RC, int maxRC, string name, int value )
 	{
 		var.fVAR_int      = value   ;
 		var.fVAR_type     = INTEGER ;
-		var.fVAR_explicit = false   ;
+		var.fVAR_defined  = false   ;
 		POOL[ name ].push( var )    ;
 		return ;
 	}
@@ -199,8 +215,8 @@ void fPOOL::put( int & RC, int maxRC, string name, int value )
 
 	}
 
-	if ( it->second.top().fVAR_explicit ) { *(it->second.top().fVAR_int_ptr) = value ; }
-	else                                  {   it->second.top().fVAR_int      = value ; }
+	if ( it->second.top().fVAR_defined ) { *(it->second.top().fVAR_int_ptr) = value ; }
+	else                                 {   it->second.top().fVAR_int      = value ; }
 }
 
 
@@ -229,8 +245,8 @@ string fPOOL::get( int & RC, int maxRC, string name, nameCHCK check )
 
 	}
 
-	if ( it->second.top().fVAR_explicit ) { return *it->second.top().fVAR_string_ptr ; }
-	else                                  { return  it->second.top().fVAR_string     ; }
+	if ( it->second.top().fVAR_defined ) { return *it->second.top().fVAR_string_ptr ; }
+	else                                 { return  it->second.top().fVAR_string     ; }
 }
 
 
@@ -258,19 +274,26 @@ int fPOOL::get( int & RC, int maxRC, dataType type, string name )
 		return 0 ;
 
 	}
-	if ( it->second.top().fVAR_explicit ) { return *it->second.top().fVAR_int_ptr ; }
-	else                                  { return  it->second.top().fVAR_int     ; }
+	if ( it->second.top().fVAR_defined ) { return *it->second.top().fVAR_int_ptr ; }
+	else                                 { return  it->second.top().fVAR_int     ; }
 }
 
 
 void fPOOL::setmask( int & RC, string name, string mask )
 {
+	map<string, stack< fVAR> >::iterator it ;
+
 	RC = 0    ;
 
 	if ( !isvalidName( name ) ) { RC = 20  ; return ; }
 
-	if ( POOL.find( name ) == POOL.end() ) { RC = 8 ; return ; }
-	POOL[ name ].top().fVAR_mask = mask ;
+	it = POOL.find( name ) ;
+	if ( it == POOL.end() )
+	{
+		RC = 8 ;
+		return ;
+	}
+	it->second.top().fVAR_mask = mask ;
 }
 
 
@@ -333,13 +356,15 @@ void pVPOOL::put( int & RC, string name, string value, vTYPE vtype )
 	{
 		val.pVAR_value  = value ;
 		val.pVAR_system = ( vtype == SYSTEM ) ;
+		val.pVAR_type   = pV_VALUE ;
 		POOL[ name ]    = val  ;
 		changed         = true ;
 	}
 	else
 	{
-		if ( it->second.pVAR_system && vtype != SYSTEM ) { RC = 20 ;                                        }
-		else                                             { it->second.pVAR_value = value ; changed = true ; }
+		if ( it->second.pVAR_type != pV_VALUE          ) { RC = 20 ; return ; }
+		if ( it->second.pVAR_system && vtype != SYSTEM ) { RC = 20 ; return ; }
+		it->second.pVAR_value = value ; changed = true ;
 	}
 }
 
@@ -350,7 +375,17 @@ string pVPOOL::get( int & RC, string name )
 	// RC =  8 Variable not found
 	// RC = 20 Severe error
 
+	// Generate the value for pV_type != pV_VALUE (these are date/time entries created on access)
+
+	int    p1 ;
+	string t  ;
+
+	time_t rawtime        ;
+	struct tm * time_info ;
+	char   buf[ 12 ]      ;
+
 	map<string, pVAR>::iterator it ;
+	std::stringstream stream;
 
 	RC = 0 ;
 
@@ -359,7 +394,56 @@ string pVPOOL::get( int & RC, string name )
 	it = POOL.find( name ) ;
 	if ( it == POOL.end() ) { RC = 8 ; return "" ; }
 
-	return it->second.pVAR_value ;
+	if ( it->second.pVAR_type != pV_VALUE &&
+	     it->second.pVAR_type != pV_ZTIMEL  )
+	{
+		time( &rawtime ) ;
+		time_info = localtime( &rawtime ) ;
+	}
+
+	switch( it->second.pVAR_type )
+	{
+		case pV_VALUE:    return it->second.pVAR_value ;
+		case pV_ZTIME:    strftime( buf, sizeof(buf), "%H:%M", time_info ) ;
+				  buf[ 5  ] = 0x00 ;
+				  return buf       ;
+		case pV_ZTIMEL:   stream << microsec_clock::local_time() ;
+				  t  = stream.str()  ;
+				  p1 = t.find( ' ' ) ;
+				  return t.substr( p1+1, 11 ) ;
+		case pV_ZDATE:    strftime( buf, sizeof(buf), "%d/%m/%y", time_info ) ;
+				  buf[ 8  ] = 0x00 ;
+				  return buf       ;
+		case pV_ZDATEL:   strftime( buf, sizeof(buf), "%d/%m/%Y", time_info ) ;
+				  buf[ 10 ] = 0x00 ;
+				  return buf       ;
+		case pV_ZDAY:     strftime( buf, sizeof(buf), "%d", time_info ) ;
+				  buf[ 2  ] = 0x00 ;
+				  return buf       ;
+		case pV_ZDAYOFWK: strftime( buf, sizeof(buf), "%A", time_info ) ;
+				  buf[ 9  ] = 0x00 ;
+				  return buf      ;
+		case pV_ZDATESTD: strftime( buf, sizeof(buf), "%Y/%m/%d", time_info ) ;
+				  buf[ 10 ] = 0x00 ;
+				  return buf       ;
+		case pV_ZMONTH:   strftime( buf, sizeof(buf), "%m", time_info ) ;
+				  buf[ 2  ] = 0x00 ;
+				  return buf       ;
+		case pV_ZJDATE:   strftime( buf, sizeof(buf), "%y.%j", time_info ) ;
+				  buf[ 6  ] = 0x00 ;
+				  return buf       ;
+		case pV_ZJ4DATE:  strftime( buf, sizeof(buf), "%Y.%j", time_info ) ;
+				  buf[ 8  ] = 0x00 ;
+				  return buf       ;
+		case pV_ZYEAR:    strftime( buf, sizeof(buf), "%y", time_info ) ;
+				  buf[ 2  ] = 0x00 ;
+				  return buf       ;
+		case pV_ZSTDYEAR: strftime( buf, sizeof(buf), "%Y", time_info ) ;
+				  buf[ 4  ] = 0x00 ;
+				  return buf       ;
+		default:          RC = 20   ;
+				  return "" ;
+	}
 }
 
 
@@ -377,6 +461,8 @@ string * pVPOOL::vlocate( int & RC, string name )
 
 	it = POOL.find( name ) ;
 	if ( it == POOL.end() ) { RC = 8 ; return NULL ; }
+
+	if ( it->second.pVAR_type != pV_VALUE ) { RC = 20 ; return NULL ; }
 
 	return &it->second.pVAR_value ;
 }
@@ -401,6 +487,8 @@ void pVPOOL::erase( int & RC, string name )
 	it = POOL.find( name ) ;
 	if ( it == POOL.end() ) { RC = 8 ; return ; }
 
+	if ( it->second.pVAR_type != pV_VALUE ) { RC = 20 ; return ; }
+
 	if ( it->second.pVAR_system ) { RC = 12 ;                           }
 	else                          { POOL.erase( it ) ; changed = true ; }
 }
@@ -422,6 +510,28 @@ bool pVPOOL::isSystem( int & RC, string name )
 	if ( it == POOL.end() ) { RC = 8 ; return false ; }
 
 	return it->second.pVAR_system ;
+}
+
+
+void pVPOOL::createGenEntries()
+{
+	pVAR val ;
+
+	val.pVAR_value  = ""    ;
+	val.pVAR_system = true  ;
+
+	val.pVAR_type = pV_ZTIME    ; POOL[ "ZTIME"    ] = val ;
+	val.pVAR_type = pV_ZTIMEL   ; POOL[ "ZTIMEL"   ] = val ;
+	val.pVAR_type = pV_ZDATE    ; POOL[ "ZDATE"    ] = val ;
+	val.pVAR_type = pV_ZDATEL   ; POOL[ "ZDATEL"   ] = val ;
+	val.pVAR_type = pV_ZDAY     ; POOL[ "ZDAY"     ] = val ;
+	val.pVAR_type = pV_ZDAYOFWK ; POOL[ "ZDAYOFWK" ] = val ;
+	val.pVAR_type = pV_ZDATESTD ; POOL[ "ZDATESTD" ] = val ;
+	val.pVAR_type = pV_ZMONTH   ; POOL[ "ZMONTH"   ] = val ;
+	val.pVAR_type = pV_ZJDATE   ; POOL[ "ZJDATE"   ] = val ;
+	val.pVAR_type = pV_ZJ4DATE  ; POOL[ "ZJ4DATE"  ] = val ;
+	val.pVAR_type = pV_ZYEAR    ; POOL[ "ZYEAR"    ] = val ;
+	val.pVAR_type = pV_ZSTDYEAR ; POOL[ "ZSTDYEAR" ] = val ;
 }
 
 
@@ -603,6 +713,7 @@ poolMGR::poolMGR()
 	pVPOOL pool ;
 
 	POOLs_shared [ "@DEFSHAR" ]  = pool ;
+	POOLs_shared [ "@DEFSHAR" ].createGenEntries() ;
 	POOLs_profile[ "@DEFPROF" ]  = pool ;
 	POOLs_profile[ "@ROXPROF" ]  = pool ;
 	shrdPooln = 0 ;

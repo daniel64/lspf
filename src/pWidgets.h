@@ -104,13 +104,13 @@ class literal
 				literal_colour = 0  ;
 				literal_name   = "" ;
 			  }
-		int          literal_row    ;
-		int          literal_col    ;
-		int          literal_length ;
+		int     literal_row    ;
+		int     literal_col    ;
+		int     literal_length ;
 		cuaType literal_cua    ;
-		uint         literal_colour ;
-		string       literal_value  ;
-		string       literal_name   ;
+		uint    literal_colour ;
+		string  literal_value  ;
+		string  literal_name   ;
 
 		int  literal_init( int MAXW, int MAXD, int & opt_field, string line ) ;
 		void literal_display( WINDOW * ) ;
@@ -120,19 +120,19 @@ class literal
 class dynArea
 {
 	public:
-		int          dynArea_row         ;
-		int          dynArea_col         ;
-		int          dynArea_width       ;
-		int          dynArea_depth       ;
-		bool         dynArea_DataInsp    ;
-		bool         dynArea_DataOutsp   ;
-		bool         dynArea_UserModsp   ;
-		bool         dynArea_DataModsp   ;
-		char         dynArea_DataIn      ;
-		char         dynArea_DataOut     ;
-		char         dynArea_UserMod     ;
-		char         dynArea_DataMod     ;
-		string       dynArea_shadow_name ;
+		int    dynArea_row         ;
+		int    dynArea_col         ;
+		int    dynArea_width       ;
+		int    dynArea_depth       ;
+		bool   dynArea_DataInsp    ;
+		bool   dynArea_DataOutsp   ;
+		bool   dynArea_UserModsp   ;
+		bool   dynArea_DataModsp   ;
+		char   dynArea_DataIn      ;
+		char   dynArea_DataOut     ;
+		char   dynArea_UserMod     ;
+		char   dynArea_DataMod     ;
+		string dynArea_shadow_name ;
 
 		dynArea(){
 				dynArea_DataInsp  = false ;
@@ -149,10 +149,10 @@ class dynArea
 class pdc
 {
 	public:
-		string  pdc_name ;
-		string  pdc_run  ;
-		string  pdc_parm ;
-		string  pdc_unavail ;
+		string pdc_name ;
+		string pdc_run  ;
+		string pdc_parm ;
+		string pdc_unavail ;
 
 		pdc()   {
 				pdc_name    = "" ;
@@ -167,10 +167,10 @@ class pdc
 class abc
 {
 	public:
-		string        abc_name   ;
-		unsigned int  abc_col    ;
-		unsigned int  abc_maxh   ;
-		unsigned int  abc_maxw   ;
+		string       abc_name ;
+		unsigned int abc_col  ;
+		unsigned int abc_maxh ;
+		unsigned int abc_maxw ;
 
 		abc()   {
 				abc_maxh   = 0 ;
@@ -186,12 +186,12 @@ class abc
 			}
 			} ;
 
-		void   add_pdc( string, string, string, string ) ;
-		void   display_abc_sel( WINDOW * )   ;
-		void   display_abc_unsel( WINDOW * ) ;
-		void   display_pd()        ;
-		void   hide_pd()           ;
-		pdc    retrieve_pdChoice( unsigned int row, unsigned int col ) ;
+		void add_pdc( string, string, string, string ) ;
+		void display_abc_sel( WINDOW * )   ;
+		void display_abc_unsel( WINDOW * ) ;
+		void display_pd() ;
+		void hide_pd()    ;
+		pdc  retrieve_pdChoice( unsigned int row, unsigned int col ) ;
 
 	private:
 		bool   pd_created ;
@@ -208,13 +208,13 @@ class Box
 		void display_box( WINDOW * )      ;
 
 	private:
-		int      box_row    ;
-		int      box_col    ;
-		int      box_width  ;
-		int      box_depth  ;
-		uint     box_colour ;
-		string   box_title  ;
-		int      box_title_offset ;
+		int    box_row    ;
+		int    box_col    ;
+		int    box_width  ;
+		int    box_depth  ;
+		uint   box_colour ;
+		string box_title  ;
+		int    box_title_offset ;
 } ;
 
 class tbsearch
@@ -465,6 +465,3 @@ class fieldExc
 	string fieldExc_passed  ;
 
 } ;
-
-
-

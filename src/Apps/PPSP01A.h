@@ -72,6 +72,7 @@ class PPSP01A : public pApplication
 		bool   showMod  ;
 		bool   showTask ;
 
+		void lspfSettings()   ;
 		void pfkeySettings()  ;
 		void colourSettings() ;
 		int  setScreenAttrs( string, int, string &, string &, string & ) ;

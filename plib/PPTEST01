@@ -49,13 +49,13 @@ literal  13  2    SAC  "7"
 literal  13  5    PS   "POPUPS"
 literal  13  22   NT   "Test ADDPOP/REMPOP and popup windows"
 
-literal  16  2    SAC  "T"
-literal  16  5    PS   "Tutorial"
-literal  16  22    NT   "Start Tutorial"
+literal  15  2    SAC  "T"
+literal  15  5    PS   "Tutorial"
+literal  15  22    NT   "Start Tutorial"
 
-literal  17  2    SAC  "X"
-literal  17  5    PS   "Terminate"
-literal  17  22    NT   "Terminate Dialogue Services"
+literal  16  2    SAC  "X"
+literal  16  5    PS   "Terminate"
+literal  16  22    NT   "Terminate Dialogue Services"
 
 
 )INCLUDE STD_PDC

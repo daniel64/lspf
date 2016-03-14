@@ -76,8 +76,7 @@ void PEDIT01::application()
 {
 	log( "I", "Application PEDIT01 starting.  Parms are " << PARM << endl ) ;
 
-	int p1 ;
-	int p2 ;
+	bool result ;
 
 	string * pt ;
 
@@ -131,19 +130,19 @@ void PEDIT01::application()
 	}
 	else
 	{
-		p1 = pos( "FILE(", PARM ) ;
-		if ( p1 == 0 )
+		ZFILE = parseString( result, PARM, "FILE()" ) ;
+		if ( !result || ZFILE == "" )
 		{
 			log( "E", "Invalid parameter format passed to PEDIT01" << endl ; )
 			abend() ;
+			return  ;
 		}
-		p2 = pos( ")", PARM, p1 ) ;
-		ZFILE = substr( PARM, p1 + 5, p2 - p1 - 5 ) ;
-		p1 = pos( "PANEL(", PARM ) ;
-		if ( p1 > 0 )
+		panel = parseString( result, PARM, "PANEL()" ) ;
+		if ( !result )
 		{
-			p2 = pos( ")", PARM, p1 )  ;
-			panel = substr( PARM, p1 + 7, p2 - p1 - 6 ) ;
+			log( "E", "Invalid parameter format passed to PEDIT01" << endl ; )
+			abend() ;
+			return  ;
 		}
 		Edit() ;
 	}
@@ -2665,7 +2664,7 @@ void PEDIT01::actionZVERB()
 		rebuildZAREA = true ;
 		if ( ZSCROLLA == "MAX" )
 		{
-			topLine = data.size() - ZAREAD ;
+			topLine = (data.size() > ZAREAD) ? data.size() - ZAREAD : 0 ;
 		}
 		else
 		{

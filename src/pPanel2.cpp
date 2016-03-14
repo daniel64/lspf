@@ -57,7 +57,7 @@ int pPanel::loadPanel( string p_name, string paths )
 	std::ifstream panel  ;
 	std::ifstream pincl  ;
 
-	string e1("Error in )BODY statement for panel ") ;
+	const string e1("Error in )BODY statement for panel ") ;
 
 	vector< string > pSource      ;
 	vector< string >::iterator it ;
@@ -642,7 +642,7 @@ int pPanel::loadPanel( string p_name, string paths )
 			debug2( "Creating box" << endl ) ;
 			w2 = word( line2, 2 ) ;
 			Box * m_box = new Box ;
-			m_box->box_init( WSCRMAXW, WSCRMAXD, line2 ) ;
+			RC = m_box->box_init( WSCRMAXW, WSCRMAXD, line2 ) ;
 			if ( RC > 0 ) { PERR = "Error creating box for panel " + p_name ; delete m_box ; return 20 ; } ;
 			boxes.push_back( m_box ) ;
 			continue ;
@@ -760,14 +760,15 @@ int pPanel::loadPanel( string p_name, string paths )
 		PERR = "Command field " + CMDfield + " not defined in panel body" ; return 20 ;
 	}
 
-	for ( it1 = fieldList.begin() ; it1 != fieldList.end() ; it1++ )
+	if ( REXX )
 	{
-		initDialogueVar( it1->first ) ;
+		for ( it1 = fieldList.begin() ; it1 != fieldList.end() ; it1++ )
+		{
+			if ( !p_funcPOOL->ifexists( RC, it1->first ) ) { syncDialogueVar( it1->first ) ; }
+		}
 	}
 
 	PANELID = p_name ;
 	debug1( "Panel loaded and processed successfully" << endl ) ;
 	return  0 ;
 }
-
-

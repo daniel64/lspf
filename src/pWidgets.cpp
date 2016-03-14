@@ -557,6 +557,7 @@ int field::end_of_field( WINDOW * win, uint col )
 			return ( field_col + field_value.size() ) ;
 		}
 	}
+	return 0 ;
 }
 
 
@@ -1009,6 +1010,7 @@ int Box::box_init( int MAXW, int MAXD, string line )
 	if ( title.size() > ( width - 4) ) title = substr( title, 1, ( width - 4 ) ) ;
 	box_title        = " " + title + " "  ;
 	box_title_offset = ( box_width - box_title.size() ) / 2 ;
+	return 0 ;
 }
 
 

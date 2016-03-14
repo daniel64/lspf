@@ -58,10 +58,10 @@
 using namespace std ;
 using namespace boost::filesystem ;
 
-poolMGR    * p_poolMGR    = new poolMGR    ;
-tableMGR   * p_tableMGR   = new tableMGR   ;
+poolMGR  * p_poolMGR  = new poolMGR  ;
+tableMGR * p_tableMGR = new tableMGR ;
 
-fPOOL  funcPOOL ;
+fPOOL funcPOOL ;
 
 void createSYSPROF() ;
 void setCUAcolours( string, string ) ;
@@ -269,7 +269,6 @@ main()
 	// ========================= USRCMDS ======================================
 	ZCTVERB  = "EDIT" ;
 	ZCTTRUNC = "2" ;
-//      ZCTACT   = "SELECT PGM(&ZFLSTPGM) NEWAPPL(ISR) PARM(EDIT &ZPARM)"   ;
 	ZCTACT   = "SELECT PGM(&ZEDITPGM) NEWAPPL(ISR) PARM(ENTRYPNL)"   ;
 	ZCTDESC  = "INVOKE EDIT ENTRY PANEL" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "USRCMDS", "", "", 0 ) ;
@@ -385,6 +384,7 @@ void createSYSPROF()
 	p_poolMGR->put( RC, "ZALOG", ALOG, PROFILE ) ;
 
 	p_poolMGR->put( RC, "ZPADC", "N", PROFILE ) ;
+	p_poolMGR->put( RC, "ZDEL",  ";", PROFILE ) ;
 
 	p_poolMGR->put( RC, "ZMLIB", MLIB, PROFILE ) ;
 	p_poolMGR->put( RC, "ZPLIB", PLIB, PROFILE ) ;
@@ -478,15 +478,25 @@ void setCUAcolours( string var, string val )
 
 	var1 = "ZC" + var ;
 
-	if ( val[0] != 'R' && val[0] != 'G' && val[0] != 'Y' && val[0] != 'B' && val[0] != 'M' && val[0] != 'T' && val[0] != 'W' )
+	if ( val[0] != 'R' &&
+	     val[0] != 'G' &&
+	     val[0] != 'Y' &&
+	     val[0] != 'B' &&
+	     val[0] != 'M' &&
+	     val[0] != 'T' &&
+	     val[0] != 'W' )
 	{
 		cout << "ERROR:: Invalid colour value of " << val[0] << " in setting " << var << endl ;
 	}
-	if ( val[1] != 'L' && val[1] != 'H' )
+	if ( val[1] != 'L' &&
+	     val[1] != 'H' )
 	{
 		cout << "ERROR:: Invalid colour intensity of " << val[1] << " in setting " << var << endl ;
 	}
-	if ( val[2] != 'N' && val[2] != 'B'  && val[2] != 'R' && val[2] != 'U')
+	if ( val[2] != 'N' &&
+	     val[2] != 'B' &&
+	     val[2] != 'R' &&
+	     val[2] != 'U')
 	{
 		cout << "ERROR:: Invalid colour hilight of " << val[0] << " in setting " << var << endl ;
 	}

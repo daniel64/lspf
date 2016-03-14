@@ -108,7 +108,7 @@ string pPanel::getDialogueVar( string var )
 {
 	// Return the value of a dialogue variable (always as a string so convert int->string if necessary)
 	// Search order is:
-	//   Function pool explicit
+	//   Function pool defined
 	//   Function pool implicit
 	//   SHARED pool
 	//   PROFILE pool
@@ -142,6 +142,7 @@ string pPanel::getDialogueVar( string var )
 	{
 		return p_poolMGR->get( RC, var ) ;
 	}
+	return "" ;
 }
 
 
@@ -156,24 +157,37 @@ void pPanel::putDialogueVar( string var, string val )
 }
 
 
-void pPanel::initDialogueVar( string var )
+void pPanel::syncDialogueVar( string var )
 {
-	// If a dialogue variable does not exist, initialise an enty in the function pool.
-	// Required for REXX support so variables have a default value of blank, instead of the
-	// REXX default value of the variable's name
+	// Relevant for REXX procedures only and called for panel variables not in the function pool
 
-	if ( !p_funcPOOL->ifexists( RC, var ) && !p_poolMGR->ifexists( RC, var ) )
+	// Copy the dialogue variable to the function pool so REXX has access to it without doing a
+	// VGET first.
+	// This means variables that change in the SHARED/PROFILE pool, will be retrieved from the
+	// function pool with the old values (VGET required first, in this case).
+
+	// If the variable does not exist in any pool, create a null entry in the function pool so
+	// a default value of blanks is used instead of the REXX variable name.
+
+	// BUG:  ZPANELID and ZPFKEY are not sync'd as they are not in the SHARED pool at this point !!
+	//       Old values are therefore always blank !!
+
+	if ( !p_poolMGR->ifexists( RC, var ) )
 	{
-	     p_funcPOOL->put( RC, 0, var, "" ) ;
+		p_funcPOOL->put( RC, 0, var, "" ) ;
+	}
+	else
+	{
+		p_funcPOOL->put( RC, 0, var, p_poolMGR->get( RC, var, ASIS ) ) ;
 	}
 }
 
 
 void pPanel::set_popup( int sp_row, int sp_col )
 {
-	win_addpop= true   ;
-	sp_row + win_depth + 1 < ZSCRMAXD ? win_row = sp_row : win_row = ZSCRMAXD - win_depth - 1 ;
-	sp_col + win_width + 1 < ZSCRMAXW ? win_col = sp_col : win_col = ZSCRMAXW - win_width - 1 ;
+	win_addpop = true ;
+	win_row    = (sp_row + win_depth + 1) < ZSCRMAXD ? sp_row : (ZSCRMAXD - win_depth - 1) ;
+	win_col    = (sp_col + win_width + 1) < ZSCRMAXW ? sp_col : (ZSCRMAXW - win_width - 1) ;
 }
 
 
@@ -2027,7 +2041,7 @@ void pPanel::tb_fields_active_inactive()
 
 string pPanel::return_command( string opt )
 {
-	if ( commandTable.find( opt ) == commandTable.end() ) return "" ;
+	if ( commandTable.find( opt ) == commandTable.end() ) { return "" ; }
 	return commandTable.at( opt ) ;
 }
 

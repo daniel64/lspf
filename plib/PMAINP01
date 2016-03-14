@@ -168,7 +168,7 @@ literal  13   MAX-35    FP "OS Release :"
 field    13   MAX-22   15    VOI    NONE  ZOSREL
 
 literal  15   MAX-35   FP  "Date       :"
-field    15   MAX-22   8    VOI     NONE  ZDATE
+field    15   MAX-22   11   VOI     NONE  ZDATEL
 
 literal  16   MAX-35   FP  "Time       :"
 field    16   MAX-22   8    VOI     NONE  ZTIMEL

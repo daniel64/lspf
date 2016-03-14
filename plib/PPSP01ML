@@ -13,13 +13,13 @@ field    4  15  MAX-17  NEF CAPS(ON) ZCMD
 literal  4  MAX-15  FP "SCROLL ===> "
 field    4  MAX-3  4 NEF  NONE ZSCROLL
 
-literal  6 2 CH "S Application Status          Module               Loaded From Path"
+literal  6 2 CH "S Application Status           Module               Loaded From Path"
 literal  7 2 CH EXPAND "-"
 
 tbmodel  8   MAX
 tbfield  2    1    NEF caps(on),pad('_') SEL
 tbfield  ++1  8    VOI NONE APPL
-tbfield  ++4  15   VOI NONE STATUS
+tbfield  ++4  16   VOI NONE STATUS
 tbfield  ++1  20   VOI NONE MOD
 tbfield  ++1  40   VOI NONE MODPATH
 

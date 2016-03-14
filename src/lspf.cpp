@@ -108,12 +108,12 @@ pApplication * pApplication::currApplication = NULL ;
 poolMGR  * p_poolMGR  = new poolMGR  ;
 tableMGR * p_tableMGR = new tableMGR ;
 
-fPOOL  funcPOOL ;
+fPOOL funcPOOL ;
 
 void initialSetup()          ;
 void loadDefaultPools()      ;
-bool loadDynamicClass( string ) ;
 void getDynamicClasses()     ;
+bool loadDynamicClass( string ) ;
 void reloadDynamicClasses( string ) ;
 void loadCommandTable()      ;
 void loadApplicationCommandTable( string ) ;
@@ -133,8 +133,8 @@ void threadErrorHandler() ;
 void lspfCallbackHandler( lspfCommand & ) ;
 void mainLoop() ;
 
-vector<pLScreen *>   screenList   ;
-map<int, string>     pfkeyTable   ;
+vector<pLScreen *> screenList ;
+map<int, string>   pfkeyTable ;
 
 struct appInfo
 {
@@ -156,33 +156,36 @@ boost::circular_buffer<string> retrieveBuffer(25) ;
 int    maxtaskID = 0 ;
 int    screenNum = 0 ;
 int    altScreen = 0 ;
-bool   pfkeyPressed  ;
 string commandStack  ;
 string jumpOption    ;
-
-bool showPanelID = false ;
+bool   pfkeyPressed  ;
+bool   showPanelID   ;
 
 string ZCOMMAND ;
 string ZPARM    ;
 string ZTLIB    ;
-string ZCTVERB, ZCTTRUNC, ZCTACT, ZCTDESC ;
+
+string ZCTVERB  ;
+string ZCTTRUNC ;
+string ZCTACT   ;
+string ZCTDESC  ;
 
 const char ZSCREEN[] = { '1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G',
 			 'H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W' } ;
 
-bool    SEL         ;
-string  SEL_PGM     ;
-string  SEL_PARM    ;
-string  SEL_NEWAPPL ;
-bool    SEL_NEWPOOL ;
-bool    SEL_PASSLIB ;
+bool   SEL         ;
+string SEL_PGM     ;
+string SEL_PARM    ;
+string SEL_NEWAPPL ;
+bool   SEL_NEWPOOL ;
+bool   SEL_PASSLIB ;
 
 string ZHOME  ;
 string ZUSER  ;
 string ZSHELL ;
 
-static string BuiltInCommands = "ABEND ACTION DISCARD FIELDEXC INFO NOP PANELID REFRESH "
-				"RELOAD SCALE SNAP SHELL SPLIT STATS SWAP TASKS TEST TDOWN" ;
+const string BuiltInCommands = "ABEND ACTION DISCARD FIELDEXC INFO NOP PANELID REFRESH "
+			       "RELOAD SCALE SNAP SHELL SPLIT STATS SWAP TASKS TEST TDOWN" ;
 
 std::ofstream splog(SLOG) ;
 
@@ -327,9 +330,9 @@ void mainLoop()
 	currScrn->OIA_setup() ;
 
 	mousemask( ALL_MOUSE_EVENTS, NULL ) ;
-	currScrn = screenList[ screenNum ] ;
-	showLock = false ;
-	Insert   = false ;
+	showLock    = false ;
+	Insert      = false ;
+	showPanelID = false ;
 
 	while ( true )
 	{
@@ -749,13 +752,14 @@ void processAction( uint row, uint col, int c, bool & passthru )
 
 	int  RC ;
 	int  p1 ;
-	uint x  ;
+	uint i  ;
 
 	bool   addRetrieve ;
 
 	string CMDVerb ;
 	string CMDRest ;
 	string PFCMD   ;
+	string delm    ;
 	static uint retPos(0) ;
 
 	pdc t_pdc ;
@@ -894,7 +898,8 @@ void processAction( uint row, uint col, int c, bool & passthru )
 
 	if ( PFCMD != "" ) { ZCOMMAND = PFCMD + " " + ZCOMMAND ; }
 
-	p1 = ZCOMMAND.find( ';' ) ;
+	delm = p_poolMGR->get( RC, "ZDEL", PROFILE ) ;
+	p1   = ZCOMMAND.find( delm[ 0 ] ) ;
 	if ( p1 != string::npos )
 	{
 		commandStack = ZCOMMAND.substr( p1+1 ) ;
@@ -981,7 +986,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 		}
 	}
 
-	for ( x = 0 ; x < 8 ; x++ )
+	for ( i = 0 ; i < 8 ; i++ )
 	{
 		p_tableMGR->cmdsearch( RC, funcPOOL, currAppl->ZZAPPLID + "CMDS", CMDVerb ) ;
 		if ( RC > 4 )
@@ -1000,7 +1005,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 		}
 		else { break ; }
 	}
-	if ( x > 7 )
+	if ( i > 7 )
 	{
 		RC = 8 ;
 		log( "E", "ALIAS dept cannot be greater than 8.  Terminating search" << endl ) ;
@@ -1279,7 +1284,7 @@ void terminateApplication()
 
 	boost::thread * pThread ;
 
-	log( "I", "Application terminating " << currAppl->ZAPPNAME << endl ) ;
+	log( "I", "Application terminating "<< currAppl->ZAPPNAME <<" ID: "<< currAppl->taskid() << endl ) ;
 
 	ZAPPNAME = currAppl->ZAPPNAME ;
 
@@ -1312,7 +1317,7 @@ void terminateApplication()
 		pThread->detach() ;
 	}
 
-	if ( pLScreen::screensTotal == 1 &&  currScrn->application_stack_size() == 1 )
+	if ( pLScreen::screensTotal == 1 && currScrn->application_stack_size() == 1 )
 	{
 		log( "I", "Closing ISPS profile and application log as last application program is terminating" << endl ) ;
 		p_poolMGR->setAPPLID( RC, "ISPS" )    ;
@@ -1360,7 +1365,7 @@ void terminateApplication()
 	if ( apps[ ZAPPNAME ].refCount == 0 && apps[ ZAPPNAME ].relPending )
 	{
 		apps[ ZAPPNAME ].relPending = false ;
-		log( "I", "Reloading module "+ ZAPPNAME +" (pending reload)" << endl ) ;
+		log( "I", "Reloading module "+ ZAPPNAME +" (pending reload status)" << endl ) ;
 		if ( loadDynamicClass( ZAPPNAME ) )
 		{
 			log( "I", "Loaded "+ ZAPPNAME +" (module "+ apps[ZAPPNAME].module +") from "+ apps[ZAPPNAME].file << endl ) ;
@@ -1767,9 +1772,9 @@ void loadDefaultPools()
 
 	i = uname( &buf ) ;
 
-	p_poolMGR->defaultVARs(  RC , "ZSCRMAXD", d2ds( pLScreen::maxrow ), SHARED ) ;
-	p_poolMGR->defaultVARs(  RC , "ZSCRMAXW", d2ds( pLScreen::maxcol ), SHARED ) ;
-	p_poolMGR->defaultVARs(  RC , "ZUSER", ZUSER, SHARED )   ;
+	p_poolMGR->defaultVARs( RC, "ZSCRMAXD", d2ds( pLScreen::maxrow ), SHARED ) ;
+	p_poolMGR->defaultVARs( RC, "ZSCRMAXW", d2ds( pLScreen::maxcol ), SHARED ) ;
+	p_poolMGR->defaultVARs( RC, "ZUSER", ZUSER, SHARED )   ;
 
 	p_poolMGR->setAPPLID( RC, "ISPS" ) ;
 	p_poolMGR->createPool( RC, PROFILE, ZSPROF ) ;
@@ -1794,18 +1799,18 @@ void loadDefaultPools()
 	p_poolMGR->setAPPLID( RC, "ISP" ) ;
 	p_poolMGR->createPool( RC, PROFILE, ZSPROF ) ;
 
-	p_poolMGR->defaultVARs( RC , "ZHOME", ZHOME, SHARED )             ;
-	p_poolMGR->defaultVARs( RC , "ZSHELL", ZSHELL, SHARED )           ;
-	p_poolMGR->defaultVARs( RC , "ZSYSNAME", buf.sysname, SHARED )    ;
-	p_poolMGR->defaultVARs( RC , "ZNODNAME", buf.nodename, SHARED )   ;
-	p_poolMGR->defaultVARs( RC , "ZOSREL", buf.release, SHARED )      ;
-	p_poolMGR->defaultVARs( RC , "ZOSVER", buf.version, SHARED )      ;
-	p_poolMGR->defaultVARs( RC , "ZMACHINE", buf.machine, SHARED )    ;
-	p_poolMGR->defaultVARs( RC , "ZENVIR", "lspf V0R0M1", SHARED )    ;
-	p_poolMGR->defaultVARs( RC , "ZDATEF", "DD/MM/YY", SHARED )       ;
-	p_poolMGR->defaultVARs( RC , "ZDATEFL", "DD/MM/YYYY", SHARED )    ;
-	p_poolMGR->defaultVARs( RC , "ZSCALE", "OFF", SHARED )            ;
-	p_poolMGR->defaultVARs( RC , "ZSPLIT", "NO", SHARED )             ;
+	p_poolMGR->defaultVARs( RC, "ZHOME", ZHOME, SHARED )             ;
+	p_poolMGR->defaultVARs( RC, "ZSHELL", ZSHELL, SHARED )           ;
+	p_poolMGR->defaultVARs( RC, "ZSYSNAME", buf.sysname, SHARED )    ;
+	p_poolMGR->defaultVARs( RC, "ZNODNAME", buf.nodename, SHARED )   ;
+	p_poolMGR->defaultVARs( RC, "ZOSREL", buf.release, SHARED )      ;
+	p_poolMGR->defaultVARs( RC, "ZOSVER", buf.version, SHARED )      ;
+	p_poolMGR->defaultVARs( RC, "ZMACHINE", buf.machine, SHARED )    ;
+	p_poolMGR->defaultVARs( RC, "ZENVIR", "lspf V0R0M1", SHARED )    ;
+	p_poolMGR->defaultVARs( RC, "ZDATEF", "DD/MM/YY", SHARED )       ;
+	p_poolMGR->defaultVARs( RC, "ZDATELF", "DD/MM/YYYY", SHARED )    ;
+	p_poolMGR->defaultVARs( RC, "ZSCALE", "OFF", SHARED )            ;
+	p_poolMGR->defaultVARs( RC, "ZSPLIT", "NO", SHARED )             ;
 
 	p_poolMGR->setPOOLsreadOnly( RC ) ;
 }
@@ -1898,21 +1903,6 @@ void updateDefaultVars()
 {
 	int RC ;
 
-	time_t rawtime        ;
-	struct tm * time_info ;
-	char   buf[ 11 ]      ;
-
-	time( &rawtime ) ;
-	time_info = localtime( &rawtime ) ;
-
-	strftime( buf, sizeof(buf), "%H:%M:%S", time_info )   ; buf[ 8  ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "ZTIMEL", buf, SHARED )   ;
-	strftime( buf, sizeof(buf), "%H:%M", time_info )      ; buf[ 6  ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "ZTIME", buf, SHARED )    ;
-	strftime( buf, sizeof(buf), "%d/%m/%y", time_info )   ; buf[ 8  ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "ZDATE", buf, SHARED )    ;
-	strftime( buf, sizeof(buf), "%d", time_info )         ; buf[ 2  ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "ZDAY", buf, SHARED )     ;
-	strftime( buf, sizeof(buf), "%A       ", time_info )  ; buf[ 9  ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "ZDAYOFWK", buf, SHARED ) ;
-	strftime( buf, sizeof(buf), "%d/%m/%Y  ", time_info ) ; buf[ 10 ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "ZDATEL", buf, SHARED )   ;
-	strftime( buf, sizeof(buf), "%y.%j ", time_info )     ; buf[ 6  ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "ZJDATE", buf, SHARED )   ;
-	strftime( buf, sizeof(buf), "%Y.%j   ", time_info )   ; buf[ 8  ]  = 0x00 ; p_poolMGR->defaultVARs( RC , "Z4JDATE", buf, SHARED )  ;
 	if ( pLScreen::screensTotal > 1 )
 	{
 		p_poolMGR->defaultVARs( RC , "ZSPLIT", "YES", SHARED ) ;
@@ -1921,7 +1911,6 @@ void updateDefaultVars()
 	{
 		p_poolMGR->defaultVARs( RC , "ZSPLIT", "NO", SHARED ) ;
 	}
-
 }
 
 
@@ -1970,7 +1959,7 @@ void rawOutput()
 	for ( i = 0 ; i < currAppl->rmsgs.size() ; i++ )
 	{
 		mvaddstr( l++, 0, currAppl->rmsgs[ i ].c_str() ) ;
-		if ( l == pLScreen::maxrow-1 )
+		if ( l == pLScreen::maxrow-1 || l == currAppl->rmsgs.size() )
 		{
 			mvaddstr( l, 0, "***" ) ;
 			while ( true )
@@ -1980,12 +1969,6 @@ void rawOutput()
 			}
 			currScrn->clear() ;
 		}
-	}
-	mvaddstr( l, 0, "***" ) ;
-	while ( true )
-	{
-		int  c  = getch() ;
-		if ( c == 13 ) { break ; }
 	}
 	currAppl->rmsgs.clear() ;
 	currAppl->get_cursor( row, col )  ;
@@ -2045,7 +2028,7 @@ void lspfCallbackHandler( lspfCommand & lc )
 			lc.reply.push_back( ita->second.file   ) ;
 			if ( ita->first == ZMAINPGM )
 			{
-				lc.reply.push_back( "Not Reloadable" ) ;
+				lc.reply.push_back( "R/Not Reloadable" ) ;
 			}
 			else if ( ita->second.relPending )
 			{
@@ -2084,10 +2067,11 @@ void lspfCallbackHandler( lspfCommand & lc )
 
 void errorScreen( int etype, string msg )
 {
-	int l ;
+	int l    ;
+	string t ;
 
-	if ( currAppl->errPanelissued ) { return ; }
 	log( "E", msg << endl ) ;
+	if ( currAppl->errPanelissued ) { return ; }
 	currScrn->clear() ;
 	currScrn->show_enter() ;
 	mvaddstr( 0, 0, msg.c_str() ) ;
@@ -2095,7 +2079,10 @@ void errorScreen( int etype, string msg )
 	l = 2 ;
 	if ( etype == 2 )
 	{
+		t = "Failing application is " + currAppl->ZAPPNAME + ", taskid=" + d2ds( currAppl->taskid() ) ;
+		log( "E", t << endl ) ;
 		mvaddstr( l++, 0, "Depending on the error, application may still be running in the background.  Recommend restarting lspf." ) ;
+		mvaddstr( l++, 0, t.c_str() ) ;
 	}
 	mvaddstr( l, 0, "***" ) ;
 	while ( true )
@@ -2238,15 +2225,17 @@ void reloadDynamicClasses( string parm )
 		if ( substr(mod, 1, 3 ) != "lib" || pos1 == 0 ) continue ;
 		appl  = substr( mod, 4, (pos1 - 4) ) ;
 		log( "I", "Found application "+ appl << endl ) ;
-		stored = false ;
-		if ( apps.find( appl ) != apps.end() )
-		{
-			stored = true ;
-		}
+		stored = ( apps.find( appl ) != apps.end() ) ;
 
 		if ( parm == "NEW" && stored ) { continue ; }
 		if ( parm != "NEW" && parm != "ALL" && parm != appl ) { continue ; }
 		if ( appl == ZMAINPGM ) { continue ; }
+		if ( parm == appl && stored && !apps[ appl ].dlopened )
+		{
+			apps[ appl ].file = fname ;
+			log( "W", "Application "+ appl +" not loaded.  Ignoring action" << endl ) ;
+			return ;
+		}
 		if ( stored )
 		{
 			apps[ appl ].file = fname ;
@@ -2293,12 +2282,12 @@ void reloadDynamicClasses( string parm )
 	{
 		if ( (i+j) == 0 )
 		{
-			log( "W", "Applicaton "+ parm +" not reloaded/stored" << endl ) ;
+			log( "W", "Application "+ parm +" not reloaded/stored" << endl ) ;
 			currAppl->setmsg( "PSYS011I" ) ;
 		}
 		else
 		{
-			log( "I", "Applicaton "+ parm +" reloaded/stored" << endl )   ;
+			log( "I", "Application "+ parm +" reloaded/stored" << endl )   ;
 			currAppl->setmsg( "PSYS011H" ) ;
 		}
 	}

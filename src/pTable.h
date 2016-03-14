@@ -75,16 +75,11 @@ class Table
 		int    num_flds       ;
 		int    num_all        ;
 		int    CRP            ;
-		bool   sorted_on_keys ;
-		bool   sorted_asc     ;
 		string sort_ir        ;
-		string sort_flds      ;
-		string sort_type      ;
 		string sa_namelst     ;
 		string sa_cond_pairs  ;
 		string sa_dir         ;
 		tbDISP tab_DISP       ;
-
 
 		friend class tableMGR ;
 };

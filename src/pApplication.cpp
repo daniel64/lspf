@@ -137,6 +137,7 @@ void pApplication::panelCreate( string p_name )
 	pPanel * p_panel    = new pPanel ;
 	p_panel->p_poolMGR  = p_poolMGR  ;
 	p_panel->p_funcPOOL = &funcPOOL  ;
+	p_panel->REXX       = (rexxName != "" ) ;
 	p_panel->init( RC )              ;
 
 	if ( libdef_puser ) paths = mergepaths( ZPUSER, ZPLIB ) ;
@@ -232,7 +233,6 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 		get_Message( p_msg ) ;
 		if ( RC > 0 ) { return ; }
 		currPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM ) ;
-		MSGID = p_msg ;
 		if ( ZSMSG == "" ) { currPanel->showLMSG = true ; }
 	}
 	else
@@ -297,7 +297,6 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 			get_Message( currPanel->MSGID ) ;
 			if ( RC > 0 ) { break ; }
 			currPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM ) ;
-			MSGID = currPanel->MSGID  ;
 			currPanel->display_panel_reinit( RC, 0 ) ;
 			if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )REINIT section of panel " + p_name ) ; return ; }
 			continue ;
@@ -411,9 +410,9 @@ void pApplication::vdefine( string names, int * i_ad1, int * i_ad2, int * i_ad3,
 
 	string name ;
 
-	string e1( "Too many variables on VDEFINE statement" ) ;
-	string e2( "Address is null on VDEFINE statement" )    ;
-	string e3( "Error in function pool define for " )      ;
+	const string e1( "Too many variables on VDEFINE statement" ) ;
+	const string e2( "Address is null on VDEFINE statement" )    ;
+	const string e3( "Error in function pool define for " )      ;
 
 	w = words( names ) ;
 	if ( ( w > 8 ) || ( w < 1 ) ) { RC = 20 ; checkRCode( e1 ) ; return ; }
@@ -491,9 +490,9 @@ void pApplication::vdefine( string names, string * s_ad1, string * s_ad2, string
 
 	string name ;
 
-	string e1( "Too many variables on VDEFINE statement" ) ;
-	string e2( "Address is null on VDEFINE statement" )    ;
-	string e3( "Error in function pool define for " )      ;
+	const string e1( "Too many variables on VDEFINE statement" ) ;
+	const string e2( "Address is null on VDEFINE statement" )    ;
+	const string e3( "Error in function pool define for " )      ;
 
 	RC = 0 ;
 
@@ -898,15 +897,15 @@ string pApplication::vlist( poolType pType, int lvl )
 }
 
 
-string pApplication::vilist()
+string pApplication::vilist( vdType defn )
 {
-	return funcPOOL.vilist( RC ) ;
+	return funcPOOL.vilist( RC, defn ) ;
 }
 
 
-string pApplication::vslist()
+string pApplication::vslist( vdType defn )
 {
-	return funcPOOL.vslist( RC ) ;
+	return funcPOOL.vslist( RC, defn ) ;
 }
 
 
@@ -1237,7 +1236,7 @@ void pApplication::tbclose( string tb_name, string tb_newname, string tb_path )
 
 void pApplication::tbcreate( string tb_name, string keys, string names, tbSAVE m_SAVE, tbREP m_REP, string m_path, tbDISP m_DISP )
 {
-	// Create a new table
+	// Create a new table.  For permanent tables without a path specified, save to first path entry in ZTLIB
 
 	// RC = 0   Normal completion
 	// RC = 4   Normal completion - Table exists and REPLACE speified
@@ -1265,7 +1264,7 @@ void pApplication::tbcreate( string tb_name, string keys, string names, tbSAVE m
 	if ( m_SAVE == WRITE )
 	{
 		temp = false ;
-		if ( m_path == "" ) { m_path = ZTLIB ; }
+		if ( m_path == "" ) { m_path = getpath( ZTLIB, 1 ) ; }
 	}
 
 	ws = words( keys ) ;
@@ -1395,7 +1394,6 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 		get_Message( p_msg ) ;
 		if ( RC > 0 ) { return ; }
 		currtbPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM ) ;
-		MSGID = p_msg    ;
 		if ( ZSMSG == "" ) { currtbPanel->showLMSG = true ; }
 	}
 	else
@@ -1480,7 +1478,6 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 			get_Message( currtbPanel->MSGID ) ;
 			if ( RC > 0 ) { return ; }
 			currtbPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM ) ;
-			MSGID = currtbPanel->MSGID  ;
 			if ( p_name == "" )
 			{
 				p_name    = currtbPanel->PANELID ;
@@ -1589,7 +1586,7 @@ void pApplication::tberase( string tb_name, string tb_path )
 	RC = 0 ;
 	if ( !isvalidName( tb_name ) ) { RC = 20 ; checkRCode( "Invalid table name on TBERASE" ) ; return ; }
 
-	if ( tb_path == "" ) tb_path = ZTLIB ;
+	if ( tb_path == "" ) { tb_path = ZTLIB ; }
 	p_tableMGR->tberase( RC, tb_name, tb_path ) ;
 	if ( RC > 8 ) { checkRCode( "TBERASE gave return code of " + d2ds( RC ) ) ; }
 }
@@ -1629,8 +1626,7 @@ void pApplication::tbmod( string tb_name, string tb_namelst, string tb_order )
 
 	RC = 0 ;
 
-	if ( tb_namelst != "" )                             { RC = 20 ; checkRCode( "Name list not yet implemented for TBMOD" ) ; return ; }
-	if ( tb_order  != "" && tb_order != "ORDER" )       { RC = 20 ; checkRCode( "Invalid ORDER parameter specified on TBMOD" ) ; return ; }
+	if ( tb_order  != "" && tb_order != "ORDER" ) { RC = 20 ; checkRCode( "Invalid ORDER parameter specified on TBMOD" ) ; return ; }
 
 	if ( !isTableUpdate( tb_name, "TBMOD" ) ) { return ; }
 
@@ -1662,8 +1658,8 @@ void pApplication::tbopen( string tb_name, tbSAVE m_SAVE, string m_paths, tbDISP
 
 	if ( m_paths == "" )
 	{
-		if ( libdef_tuser ) m_paths = mergepaths( ZTUSER, ZTLIB ) ;
-		else                m_paths = ZTLIB                       ;
+		if ( libdef_tuser ) { m_paths = mergepaths( ZTUSER, ZTLIB ) ; }
+		else                { m_paths = ZTLIB                       ; }
 	}
 
 	p_tableMGR->loadTable( RC, taskid(), tb_name, m_DISP, m_paths ) ;
@@ -1693,8 +1689,7 @@ void pApplication::tbput( string tb_name, string tb_namelst, string tb_order )
 
 	RC = 0 ;
 
-	if ( tb_namelst != "" )                             { RC = 20 ; checkRCode( "Name list not yet implemented for TBPUT"  ) ; return ; }
-	if ( tb_order  != "" && tb_order != "ORDER" )       { RC = 20 ; checkRCode( "Invalid ORDER parameter specified on TBPUT" ) ; return ; }
+	if ( tb_order  != "" && tb_order != "ORDER" ) { RC = 20 ; checkRCode( "Invalid ORDER parameter specified on TBPUT" ) ; return ; }
 
 	if ( !isTableUpdate( tb_name, "TBPUT" ) ) { return ; }
 
@@ -1929,7 +1924,7 @@ void pApplication::pquery( string p_name, string a_name, string t_name, string w
 	RC = 0 ;
 
 	if ( !isvalidName( p_name ) ) { RC = 20 ; checkRCode( "Invalid panel name " + p_name + " on PQUERY" ) ; return ; }
-	if ( !isvalidName( a_name ) ) { RC = 20 ; checkRCode( "Invalid area name " + a_name + " on PQUERY" ) ; return ; }
+	if ( !isvalidName( a_name ) ) { RC = 20 ; checkRCode( "Invalid area name "  + a_name + " on PQUERY" ) ; return ; }
 
 	if ( (t_name != "") && !isvalidName( t_name ) ) { RC = 20 ; checkRCode( "Invalid area type name " + t_name + " on PQUERY" ) ; return ; }
 	if ( (w_name != "") && !isvalidName( w_name ) ) { RC = 20 ; checkRCode( "Invalid area width name " + w_name + " on PQUERY" ) ; return ; }
@@ -2029,6 +2024,12 @@ void pApplication::rdisplay( string msg )
 {
 	RC = 0 ;
 	rmsgs.push_back( msg ) ;
+	if ( rmsgs.size() == ds2d( p_poolMGR->get( RC, "ZSCRMAXD", SHARED ) ) - 1 )
+	{
+		rawOutput = true  ;
+		wait_event()      ;
+		rawOutput = false ;
+	}
 }
 
 
@@ -2055,7 +2056,7 @@ void pApplication::getmsg( string msg, string smsg, string lmsg, string alm, str
 	if ( hlp  != "" && !isvalidName( hlp  ) ) { RC = 20 ; checkRCode( "Invalid HELP variable name" )          ; return ; }
 	if ( typ  != "" && !isvalidName( typ  ) ) { RC = 20 ; checkRCode( "Invalid TYPE variable name" )          ; return ; }
 
-	if ( !load_Message( msg ) ) { RC = 20 ; checkRCode( "Message not found or invalid" ) ; return ; }
+	if ( !load_Message( msg ) ) { RC = 12 ; checkRCode( "Message not found or invalid" ) ; return ; }
 
 	if ( smsg != "" ) { funcPOOL.put( RC, 0, smsg, msgList[ msg ].smsg ) ; }
 	if ( lmsg != "" ) { funcPOOL.put( RC, 0, lmsg, msgList[ msg ].lmsg ) ; }
@@ -2103,6 +2104,7 @@ void pApplication::get_Message( string p_msg )
 		return  ;
 	}
 
+	MSGID    = p_msg ;
 	ZSMSG    = sub_vars( msgList[ p_msg ].smsg ) ;
 	ZLMSG    = sub_vars( msgList[ p_msg ].lmsg ) ;
 	ZMSGALRM = msgList[ p_msg ].alm  ;

@@ -140,7 +140,7 @@ void Table::tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 
 	// Add extension variables as varname list + values to the flds vector after defined keys and fields (start posn @ 1+all_flds)
 
-	// If ORDER specified on a sorted table, sort the table again after adding the record
+	// If ORDER specified on a sorted table, sort the table again after adding the record and reset CRP
 
 	int    i     ;
 	int    ws    ;
@@ -171,6 +171,7 @@ void Table::tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	if ( num_keys > 0 )
 	{
 		keys.clear()  ;
+		keys.reserve( num_keys ) ;
 		for ( i = 1 ; i <= num_keys ; i++ )
 		{
 			key = funcPOOL.get( RC, 0, word( tab_keys, i ) ) ;
@@ -333,6 +334,7 @@ void Table::tbdelete( int & RC, fPOOL & funcPOOL )
 	if ( num_keys > 0 )
 	{
 		keys.clear() ;
+		keys.reserve( num_keys ) ;
 		for ( i = 1 ; i <= num_keys ; i++ )
 		{
 			key = funcPOOL.get( RC, 0, word( tab_keys, i ) ) ;
@@ -396,6 +398,7 @@ void Table::tbexist( int & RC, fPOOL & funcPOOL )
 	if ( num_keys == 0 ) { RC = 8 ; return ; }
 
 	keys.clear() ;
+	keys.reserve( num_keys ) ;
 	for ( i = 1 ; i <= num_keys ; i++ )
 	{
 		key = funcPOOL.get( RC, 0, word( tab_keys, i ) ) ;
@@ -499,6 +502,7 @@ void Table::tbget( int & RC, fPOOL & funcPOOL, string tb_savenm, string tb_rowid
 	if ( num_keys > 0 )
 	{
 		keys.clear() ;
+		keys.reserve( num_keys ) ;
 		for ( i = 1 ; i <= num_keys ; i++ )
 		{
 			key = funcPOOL.get( RC, 0, word( tab_keys, i ) ) ;
@@ -576,7 +580,7 @@ void Table::tbmod( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 
 	// Extension variables must be re-specified or they will be lost (tb_namelst)
 
-	// If ORDER specified on a sorted table, sort again in case tbmod has changed the order
+	// If ORDER specified on a sorted table, sort again in case tbmod has changed the order and reset CRP
 
 	int  i      ;
 	int  ws     ;
@@ -601,6 +605,7 @@ void Table::tbmod( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	found = false ;
 
 	keys.clear()  ;
+	keys.reserve( num_keys ) ;
 	for ( i = 1 ; i <= num_keys ; i++ )
 	{
 		key = funcPOOL.get( RC, 0, word( tab_keys, i ) ) ;
@@ -611,7 +616,7 @@ void Table::tbmod( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	{
 		for ( i = 1 ; i <= num_keys ; i++ )
 		{
-			if ( (*it).at( i ) != keys.at( i-1 ) )  { break ; }
+			if ( (*it).at( i ) != keys.at( i-1 ) ) { break ; }
 		}
 		if ( i > num_keys ) { found = true ; break ; }
 		CRP++ ;
@@ -666,7 +671,7 @@ void Table::tbput( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	// RC = 16  Numeric conversion error for sorted tables
 	// RC = 20  Severe error
 
-	// If ORDER specified on a sorted table, sort again in case tbput has changed the order
+	// If ORDER specified on a sorted table, sort again in case tbput has changed the order and reset CRP
 
 	int  i  ;
 	int  ws ;
@@ -983,7 +988,6 @@ void Table::tbscan( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_sav
 	}
 
 	found   = false ;
-	s_match = 0     ;
 	s_next  = ( s_dir == "NEXT" ) ;
 	size    = table.size()        ;
 
@@ -991,7 +995,8 @@ void Table::tbscan( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_sav
 	{
 		if ( s_next ) { CRP++ ; if ( CRP > size ) break ; }
 		else          { CRP-- ; if ( CRP < 1    ) break ; }
-		loope = false ;
+		s_match = 0     ;
+		loope   = false ;
 		for ( it = scan.begin() ; it != scan.end() ; it++ )
 		{
 			p1 = wordpos( (*it).first, tab_all ) ;
@@ -1057,8 +1062,9 @@ void Table::tbscan( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_sav
 	if ( !found )
 	{
 		CRP = 0 ;
-		RC  = 8 ;
 		if ( tb_crp_name != "" ) { funcPOOL.put( RC, 0, tb_crp_name, CRP ) ; }
+		if ( RC > 0 ) { RC = 20 ; return ; }
+		RC  = 8 ;
 		return  ;
 	}
 
@@ -1480,7 +1486,7 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 
 	size_t buf2Size = 1024  ;
 
-	std::ifstream table          ;
+	std::ifstream table     ;
 	vector< string > m_flds ;
 
 	RC = 0 ;

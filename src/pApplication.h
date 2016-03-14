@@ -112,8 +112,8 @@ class pApplication
 		void   vget( string var, poolType =ASIS )   ;
 		void   vput( string var, poolType =ASIS )   ;
 		string vlist( poolType pType, int lvl )     ;
-		string vilist()                             ;
-		string vslist()                             ;
+		string vilist( vdType =ALL )                ;
+		string vslist( vdType =ALL )                ;
 		void   vmask( string var, string type, string mask ) ;
 		void   vreplace( string, string )           ;
 		void   vreplace( string, int )              ;
@@ -175,8 +175,8 @@ class pApplication
 		void   abend()       ;
 		void   abendexc()    ;
 		void   set_forced_abend() ;
-		void   closeTables() ;
 		void   closeLog()    ;
+		void   closeTables() ;
 
 		string ZAPPNAME   ;
 		string ZAPPDESC   ;

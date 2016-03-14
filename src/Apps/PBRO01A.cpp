@@ -77,8 +77,6 @@ void PBRO01A::application()
 
 	int i  ;
 	int j  ;
-	int p1 ;
-	int p2 ;
 	int offset ;
 	int CURPOS ;
 
@@ -91,25 +89,25 @@ void PBRO01A::application()
 	string ZZSTR1 ;
 
 	bool rebuildZAREA  ;
+	bool result        ;
 
 	panel = "" ;
 	MSG   = "" ;
 
-	p1 = pos( "FILE(", PARM ) ;
-	if ( p1 == 0 )
+	file = parseString( result, PARM, "FILE()" ) ;
+	if ( !result || file == "" )
 	{
 		log( "E", "Invalid parameter format passed to PBRO01A" << endl ; )
 		abend() ;
 		return  ;
 	}
-	p2 = pos( ")", PARM, p1 ) ;
-	file = substr( PARM, p1 + 5, p2 - p1 - 5 ) ;
 
-	p1 = pos( "PANEL(", PARM ) ;
-	if ( p1 > 0 )
+	panel = parseString( result, PARM, "PANEL()" ) ;
+	if ( !result )
 	{
-		p2 = pos( ")", PARM, p1 )  ;
-		panel = substr( PARM, p1 + 7, p2 - p1 - 6 ) ;
+		log( "E", "Invalid parameter format passed to PBRO01A" << endl ; )
+		abend() ;
+		return  ;
 	}
 
 	ZDSN = file ;

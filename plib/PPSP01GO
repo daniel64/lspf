@@ -1,0 +1,44 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Panel for General Option Settings
+)ENDCOMMENT
+
+)BODY
+
+PanelTitle "General lspf Settings"
+literal  4   2    FP "Command ===> "
+field    4  15    MAX NEF CAPS(ON) ZCMD
+
+literal  6   2    ET    "Options"
+literal  7   4    PIN "Enter / to select option"
+field    8   4    1   CEF PAD('_') GOKLUSE
+literal  8   6        SAC    "Turn on keylists"
+
+
+literal  10  2    ET    "General"
+literal  11  4       FP     "Command delimiter. ."
+field    11  25  1   CEF PAD('_') GODEL
+
+
+literal 14 2  CH "Instructions"
+literal 16 2  NT "Enter"
+literal 16 8  ET "SAVE"
+literal 16 13 NT "or"
+literal 16 16 ET "END"
+literal 16 20 NT "to save changes, or"
+literal 16 40 ET "DEFAULTS"
+literal 16 49 NT "to restore defaults"
+
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+
+)PROC
+
+VER (&ZCMD LIST CANCEL::3 DEFAULTS::3 SAVE::3 )
+VER (&GODEL NB)
+VER (&GOKLUSE LIST,/)
+
+)END
