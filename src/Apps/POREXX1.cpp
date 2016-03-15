@@ -241,6 +241,8 @@ RexxObjectPtr RexxEntry lspfCommandHandler( RexxExitContext *context,
 	string w1 ;
 	string w2 ;
 
+	const string e1( " not a recognised service name" ) ;
+
 	void * vptr ;
 
 	const string InvalidServices = "VDEFINE VDELETE VCOPY VREPLACE VRESET" ;
@@ -298,13 +300,11 @@ RexxObjectPtr RexxEntry lspfCommandHandler( RexxExitContext *context,
 	else if ( w1 == "VPUT" )     { sRC = lspfVput( thisAppl, s2 )     ; }
 	else
 	{
-		log( "E", "Unknown service " + w1 <<endl) ;
-		context->RaiseCondition( "FAILURE", command, NULLOBJECT, context->WholeNumber( -1 ) ) ;
+		log( "E", w1 + e1 << endl ) ;
+		thisAppl->RC = 20 ;
+		thisAppl->checkRCode( w1 + e1 ) ;
+		context->RaiseCondition( "FAILURE", command, NULLOBJECT, context->WholeNumber( 20 ) ) ;
 		return NULLOBJECT;
-	}
-	if ( sRC > 8 || sRC < 0 )
-	{
-		context->RaiseCondition( "ERROR", command, NULLOBJECT, context->WholeNumber( sRC ) ) ;
 	}
 
 	setAllRexxVariables( thisAppl ) ;

@@ -35,7 +35,7 @@
 
 
 /* Display contents of the profile file
-   Profile format 
+   Profile format
    0084 - 2 bytes for file type
    01   - profile format V1
    xx   - header length
@@ -47,10 +47,8 @@
 */
 
 /* Re-direct say ouput and error messages to a temporary file or it'll mess up lspf output */
-"echo x > /tmp/porexx2.say"
-"echo x > /tmp/porexx2.err"
-"rm /tmp/porexx2.say"
-"rm /tmp/porexx2.err"
+"rm /tmp/porexx2.say 2> /dev/null"
+"rm /tmp/porexx2.err 2> /dev/null"
 .output~destination(.stream~new("/tmp/porexx2.say"))
 .error~destination(.stream~new("/tmp/porexx2.err"))
 /**********************************************************************************************/
@@ -241,7 +239,7 @@ do forever
     val.row.col = v
     if length(v) > max.col then max.col = length(v)
     col = col + 1
-    if col > cols then 
+    if col > cols then
       do
         col = 1
         row = row + 1

@@ -18,10 +18,8 @@
 */
 
 /* Re-direct say ouput and error messages to a temporary file or it'll mess up lspf output */
-"echo x > /tmp/porexx5.say"
-"echo x > /tmp/porexx5.err"
-"rm /tmp/porexx5.say"
-"rm /tmp/porexx5.err"
+"rm /tmp/porexx5.say 2> /dev/null"
+"rm /tmp/porexx5.err 2> /dev/null"
 .output~destination(.stream~new("/tmp/porexx5.say"))
 .error~destination(.stream~new("/tmp/porexx5.err"))
 /**********************************************************************************************/
