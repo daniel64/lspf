@@ -140,8 +140,8 @@ void pApplication::panelCreate( string p_name )
 	p_panel->REXX       = (rexxName != "" ) ;
 	p_panel->init( RC )              ;
 
-	if ( libdef_puser ) paths = mergepaths( ZPUSER, ZPLIB ) ;
-	else                paths = ZPLIB                       ;
+	if ( libdef_puser ) { paths = mergepaths( ZPUSER, ZPLIB ) ; }
+	else                { paths = ZPLIB                       ; }
 
 	RC = p_panel->loadPanel( p_name, paths ) ;
 
@@ -1962,19 +1962,25 @@ void pApplication::load_keylist( pPanel * p )
 	string UPROF    ;
 	string KEYAPPL  ;
 	string KEYLISTN ;
+	string KLfail   ;
+	string kerr     ;
 
 	KEYLISTN = p->KEYLISTN ;
 	if ( KEYLISTN == "" ) { return ; }
 
 	KEYAPPL = p->KEYAPPL ;
-	tabName = KEYAPPL+"KTAB" ;
+	tabName = KEYAPPL + "KTAB" ;
+
+	KLfail = p_poolMGR->get( RC, "ZKLFAIL", PROFILE ) ;
 
 	vcopy( "ZUPROF", UPROF, MOVE ) ;
 	tbopen( tabName, NOWRITE, UPROF, SHARE ) ;
 	if ( RC  > 0 )
 	{
+		kerr = "Open of keylist table " + tabName + " failed" ;
+		if ( KLfail == "N" ) { RC = 0 ; log( "W", kerr << endl ) ; return ; }
 		RC = 20 ;
-		checkRCode( "Open of keylist table " + tabName + " failed" ) ;
+		checkRCode( kerr ) ;
 	}
 	tbvclear( tabName ) ;
 	vreplace( "KEYLISTN", KEYLISTN ) ;
@@ -1982,13 +1988,17 @@ void pApplication::load_keylist( pPanel * p )
 	if ( RC  > 0 )
 	{
 		tbend( tabName ) ;
+		kerr = "TBSARG error setting search for " + KEYLISTN + ", table " + tabName ;
+		if ( KLfail == "N" ) { RC = 0 ; log( "W", kerr << endl ) ; return ; }
 		RC = 20 ;
-		checkRCode( "TBSARG error setting search for " + KEYLISTN + ", table " + tabName ) ;
+		checkRCode( kerr ) ;
 	}
 	tbscan( tabName ) ;
 	if ( RC  > 0 )
 	{
 		tbend( tabName ) ;
+		kerr = "Keylist " + KEYLISTN + " not found in keylist table " + tabName ;
+		if ( KLfail == "N" ) { RC = 0 ; log( "W", kerr << endl ) ; return ; }
 		RC = 20 ;
 		checkRCode( "Keylist " + KEYLISTN + " not found in keylist table " + tabName ) ;
 	}

@@ -1116,14 +1116,18 @@ void Table::cmdsearch( int & RC, fPOOL & funcPOOL, string srch )
 	// cmdsearch is not part of the normal table services for application.  It's used for retrieving commands from a command table that may be abbreviated.
 	// Use tbsarg/tbscan for normal applications
 
-	int  i     ;
+	// RC = 0  Okay
+	// RC = 8  Commmand not found
+	// RC = 20 Severe error
+
 	int  trunc ;
 	bool found ;
 
 	vector< vector<string> >::iterator it ;
 
 	RC = 0 ;
-	if ( (tab_all != "ZCTVERB ZCTTRUNC ZCTACT ZCTDESC") )
+
+	if ( !tab_cmds )
 	{
 		log( "E", "cmdsearch issued for a non-command table." << endl ) ;
 		RC = 20 ;
@@ -1136,7 +1140,7 @@ void Table::cmdsearch( int & RC, fPOOL & funcPOOL, string srch )
 		trunc = ds2d( (*it).at( 2 )) ;
 		if ( trunc == 0 )
 		{
-			if ( (*it).at( 1 ) ==  srch )
+			if ( (*it).at( 1 ) == srch )
 			{
 				found = true ;
 				break ;
@@ -1154,12 +1158,14 @@ void Table::cmdsearch( int & RC, fPOOL & funcPOOL, string srch )
 
 	if ( !found ) { RC = 8 ; return ; }
 
-	for ( i = 1 ; i <= num_all ; i++ )
-	{
-		funcPOOL.put( RC, 0, word( tab_all, i ), (*it).at( i ) ) ;
-		if ( RC > 0 ) { RC = 20 ; return ; }
-	}
-	return ;
+	funcPOOL.put( RC, 0, "ZCTVERB", (*it).at( 1 ) ) ;
+	if ( RC > 0 ) { RC = 20 ; return ; }
+	funcPOOL.put( RC, 0, "ZCTTRUNC", (*it).at( 2 ) ) ;
+	if ( RC > 0 ) { RC = 20 ; return ; }
+	funcPOOL.put( RC, 0, "ZCTACT", (*it).at( 3 ) ) ;
+	if ( RC > 0 ) { RC = 20 ; return ; }
+	funcPOOL.put( RC, 0, "ZCTDESC", (*it).at( 4 ) ) ;
+	if ( RC > 0 ) { RC = 20 ; return ; }
 }
 
 
@@ -1384,7 +1390,9 @@ void Table::tbvclear( int & RC, fPOOL & funcPOOL )
 }
 
 
-// ************************************************************************ TABLE MANAGER SECTION *******************************************************************************************
+// *******************************************************************************************************************************
+// *************************************************** TABLE MANAGER SECTION *****************************************************
+// *******************************************************************************************************************************
 
 tableMGR::tableMGR()
 {
@@ -1402,7 +1410,7 @@ void tableMGR::createTable( int & RC, int m_task, string tb_name, string keys, s
 	debug1( "Creating table >>" << tb_name << "<<" << endl ) ;
 	debug1( "     with keys >>" << keys <<  "<<" << endl ) ;
 	debug1( "    and fields >>" << flds << "<<" << endl ) ;
-	debug1( "          path >>" << hex2print( m_path ) << "<<" << endl ) ;
+	debug1( "          path >>" << m_path << "<<" << endl ) ;
 
 	RC = 0 ;
 	if ( tables.find( tb_name ) != tables.end() )
@@ -1444,18 +1452,18 @@ void tableMGR::createTable( int & RC, int m_task, string tb_name, string keys, s
 			return  ;
 		}
 	}
-	t.ownerTask = m_task ;
-	if ( getpaths( m_path ) > 0 ) { t.tab_path  = getpath( m_path, 1 ) ; }
-	t.tab_DISP      = m_DISP ;
-	t.tab_temporary = m_temporary ;
-	t.changed       = true   ;
-	t.tab_keys      = space( keys ) ;
-	t.num_keys      = words( keys ) ;
-	t.tab_flds      = space( flds ) ;
-	t.num_flds      = words( flds ) ;
-	t.tab_all       = t.tab_keys + " " + t.tab_flds ;
-	t.num_all       = t.num_keys + t.num_flds       ;
-
+	if ( getpaths( m_path ) > 0 ) { t.tab_path = getpath( m_path, 1 ) ; }
+	t.ownerTask       = m_task ;
+	t.tab_DISP        = m_DISP ;
+	t.tab_temporary   = m_temporary ;
+	t.changed         = true   ;
+	t.tab_keys        = space( keys ) ;
+	t.num_keys        = words( keys ) ;
+	t.tab_flds        = space( flds ) ;
+	t.num_flds        = words( flds ) ;
+	t.tab_all         = t.tab_keys + " " + t.tab_flds ;
+	t.num_all         = t.num_keys + t.num_flds       ;
+	if ( t.tab_all == "ZCTVERB ZCTTRUNC ZCTACT ZCTDESC" ) { t.tab_cmds = true ; }
 	tables[ tb_name ] = t ;
 }
 
@@ -1472,9 +1480,12 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 	int  num_flds ;
 	int  all_flds ;
 	int  n1, n2   ;
+
+	bool   found  ;
+
 	char buf1[ 256 ] ;
 	char * buf2      ;
-	bool   found     ;
+
 	string filename  ;
 	string path  ;
 	string s     ;
@@ -1766,8 +1777,7 @@ void tableMGR::destroyTable( int & RC, int task, string tb_name )
 
 bool tableMGR::isloaded( string tb_name )
 {
-	if ( tables.find( tb_name ) == tables.end() ) { return false ; }
-	return true ;
+	return tables.find( tb_name ) != tables.end() ;
 }
 
 
@@ -2084,6 +2094,7 @@ void tableMGR::cmdsearch( int & RC, fPOOL & funcPOOL, string tb_name, string src
 {
 	RC = 0 ;
 
+	tb_name = tb_name + "CMDS" ;
 	if ( tables.find( tb_name ) == tables.end() ) { RC = 8 ; return ; }
 
 	tables[ tb_name ].cmdsearch( RC, funcPOOL, srch ) ;

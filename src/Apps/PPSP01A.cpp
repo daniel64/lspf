@@ -482,15 +482,52 @@ void PPSP01A::lspfSettings()
 
 	string GODEL   ;
 	string GOKLUSE ;
-	string ZKLUSE  ;
+	string GOKLFAL ;
+
 	string ZDEL    ;
+	string ZKLUSE  ;
+	string ZKLFAIL ;
 
-	vdefine( "ZKLUSE ZDEL GODEL GOKLUSE", &ZKLUSE, &ZDEL, &GODEL, &GOKLUSE ) ;
-	vget( "ZDEL ZKLUSE", PROFILE ) ;
+	string GOUCMD1 ;
+	string GOUCMD2 ;
+	string GOUCMD3 ;
+	string GOSCMD1 ;
+	string GOSCMD2 ;
+	string GOSCMD3 ;
+	string GOSTFST ;
 
-	if ( ZKLUSE == "Y" ) { GOKLUSE = "/" ; }
-	else                 { GOKLUSE = " " ; }
-	GODEL = ZDEL ;
+	string ZUCMDT1 ;
+	string ZUCMDT2 ;
+	string ZUCMDT3 ;
+	string ZSCMDT1 ;
+	string ZSCMDT2 ;
+	string ZSCMDT3 ;
+	string ZSCMDTF ;
+
+	vdefine( "ZUCMDT1 ZUCMDT2 ZUCMDT3", &ZUCMDT1, &ZUCMDT2, &ZUCMDT3 ) ;
+	vdefine( "ZSCMDT1 ZSCMDT2 ZSCMDT3 ZSCMDTF", &ZSCMDT1, &ZSCMDT2, &ZSCMDT3, &ZSCMDTF ) ;
+	vdefine( "GOUCMD1 GOUCMD2 GOUCMD3", &GOUCMD1, &GOUCMD2, &GOUCMD3 ) ;
+	vdefine( "GOSCMD1 GOSCMD2 GOSCMD3 GOSTFST", &GOSCMD1, &GOSCMD2, &GOSCMD3, &GOSTFST ) ;
+	vdefine( "ZKLUSE  ZKLFAIL GOKLUSE GOKLFAL", &ZKLUSE, &ZKLFAIL, &GOKLUSE, &GOKLFAL ) ;
+	vdefine( "ZDEL    GODEL", &ZDEL, &GODEL ) ;
+
+	vget( "ZUCMDT1 ZUCMDT2 ZUCMDT3", PROFILE ) ;
+	vget( "ZSCMDT1 ZSCMDT2 ZSCMDT3 ZSCMDTF", PROFILE ) ;
+	vget( "ZDEL ZKLUSE ZKLFAIL", PROFILE ) ;
+
+	if ( ZKLUSE  == "Y" ) { GOKLUSE = "/" ; }
+	else                  { GOKLUSE = " " ; }
+	if ( ZKLFAIL == "Y" ) { GOKLFAL = "/" ; }
+	else                  { GOKLFAL = " " ; }
+	if ( ZSCMDTF == "Y" ) { GOSTFST = "/" ; }
+	else                  { GOSTFST = " " ; }
+	GODEL   = ZDEL    ;
+	GOUCMD1 = ZUCMDT1 ;
+	GOUCMD2 = ZUCMDT2 ;
+	GOUCMD3 = ZUCMDT3 ;
+	GOSCMD1 = ZSCMDT1 ;
+	GOSCMD2 = ZSCMDT2 ;
+	GOSCMD3 = ZSCMDT3 ;
 
 	while ( true )
 	{
@@ -501,9 +538,21 @@ void PPSP01A::lspfSettings()
 		if ( ZCMD == "CANCEL" ) { break ; }
 		if ( RCode == 8 || ZCMD == "SAVE" )
 		{
-		    if ( GOKLUSE == "/" ) { ZKLUSE = "Y" ; }
-		    else                  { ZKLUSE = "N" ; }
-		    vput( "ZKLUSE", PROFILE ) ;
+		    if ( GOKLUSE == "/" ) { ZKLUSE  = "Y" ; }
+		    else                  { ZKLUSE  = "N" ; }
+		    if ( GOKLFAL == "/" ) { ZKLFAIL = "Y" ; }
+		    else                  { ZKLFAIL = "N" ; }
+		    if ( GOSTFST == "/" ) { ZSCMDTF = "Y" ; }
+		    else                  { ZSCMDTF = "N" ; }
+		    ZUCMDT1 = GOUCMD1 ;
+		    ZUCMDT2 = GOUCMD2 ;
+		    ZUCMDT3 = GOUCMD3 ;
+		    ZSCMDT1 = GOSCMD1 ;
+		    ZSCMDT2 = GOSCMD2 ;
+		    ZSCMDT3 = GOSCMD3 ;
+		    vput( "ZKLUSE ZKLFAIL", PROFILE ) ;
+		    vput( "ZUCMDT1 ZUCMDT2 ZUCMDT3", PROFILE ) ;
+		    vput( "ZSCMDT1 ZSCMDT2 ZSCMDT3 ZSCMDTF", PROFILE ) ;
 		    if ( GODEL != "" && GODEL != ZDEL )
 		    {
 			    ZDEL = GODEL ;
@@ -514,10 +563,23 @@ void PPSP01A::lspfSettings()
 		if ( ZCMD == "DEFAULTS" )
 		{
 		    GOKLUSE  = ""  ;
+		    GOKLFAL  = "/" ;
+		    GOSTFST  = "/" ;
 		    GODEL    = ";" ;
+		    GOUCMD1  = "USR" ;
+		    GOUCMD2  = ""  ;
+		    GOUCMD3  = ""  ;
+		    GOSCMD1  = ""  ;
+		    GOSCMD2  = ""  ;
+		    GOSCMD3  = ""  ;
 		}
 	}
-	vdelete( "ZKLUSE ZDEL GODEL GOKLUSE" ) ;
+	vdelete( "ZUCMDT1 ZUCMDT2 ZUCMDT3" ) ;
+	vdelete( "ZSCMDT1 ZSCMDT2 ZSCMDT3 ZSCMDTF" ) ;
+	vdelete( "GOUCMD1 GOUCMD2 GOUCMD3" ) ;
+	vdelete( "GOSCMD1 GOSCMD2 GOSCMD3 GOSTFST" ) ;
+	vdelete( "ZKLUSE  ZKLFAIL GOKLUSE GOKLFAL" ) ;
+	vdelete( "ZDEL    GODEL" ) ;
 }
 
 

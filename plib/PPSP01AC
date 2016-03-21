@@ -5,40 +5,47 @@
 
 )BODY
 
-PanelTitle "Display Command Tables"
+PanelTitle "Command Tables"
 
 scrollOn
 
-literal  4   2         FP    "Command ===> "  
-field    4  15  MAX-17 NEF CAPS(ON) ZCMD  
+literal  4   2         FP    "Command ===> "
+field    4  15  MAX-17 NEF CAPS(ON) ZCMD
 
 literal  4  MAX-15  FP "SCROLL ===> "
 field    4  MAX-3  4 NEF  NONE ZSCROLL
 
-literal  6  2      FP    "Profile:"  
-field    6  11    8 VOI  NONE ZAPPLID
+literal  6  2      FP    "Profile. . . :"
+field    6  17    8 VOI  NONE ZAPPLID
 
-literal  6  MAX-38     FP  "Application Command Table.:"  
-field    6  MAX-10  8  VOI  NONE   APPLCMD  
+literal  6  MAX-41     FP  "Application Command Table.:"
+field    6  MAX-13  8  VOI  NONE   APPLCMD
 
-literal  7  MAX-38     FP  "User Command Table . . . .:"  
-literal  7  MAX-10     VOI  "USRCMDS"  
+literal  7  MAX-41     FP  "User Command Table . . . .:"
+field    7  MAX-13  4  VOI  NONE   ZUCMDT1
+field    7  MAX-8   4  VOI  NONE   ZUCMDT2
+field    7  MAX-3   4  VOI  NONE   ZUCMDT3
 
-literal  8  MAX-38     FP   "System Command Table . . .:"  
-literal  8  MAX-10     VOI  "ISPCMDS"  
+literal  8  MAX-41     FP  "User Command Table . . . .:"
+field    8  MAX-13  4  VOI  NONE   ZSCMDT1
+field    8  MAX-8   4  VOI  NONE   ZSCMDT2
+field    8  MAX-3   4  VOI  NONE   ZSCMDT3
 
-literal  7  2    FP    "Command Table:"  
+literal  9  MAX-41     FP   "System Command Table . . .:"
+literal  9  MAX-13     VOI  "ISP"
+
+literal  7  2    FP    "Command Table:"
 field    7  17   8      NEF CAPS(ON) CMDTAB
 
 field    8  2   50 VOI  NONE APPLCMDL
 
-literal  10  2      CH    "Command   Trunc Action                                             Description"  
-literal  11  2      CH    EXPAND "-"  
+literal  10  2      CH    "Command  T Action                                             Description"
+literal  11  2      CH    EXPAND "-"
 
 tbmodel  12   MAX
 tbfield  2    8    VOI   NONE ZCTVERB
-tbfield  ++2  1    VOI   NONE ZCTTRUNC
-tbfield  +6   50   VOI   NONE ZCTACT
+tbfield  ++1  1    VOI   NONE ZCTTRUNC
+tbfield  +2   50   VOI   NONE ZCTACT
 tbfield  ++1  MAX  VOI   NONE ZCTDESC
 
 )INCLUDE STD_PDC

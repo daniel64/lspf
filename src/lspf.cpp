@@ -114,6 +114,7 @@ void initialSetup()          ;
 void loadDefaultPools()      ;
 void getDynamicClasses()     ;
 bool loadDynamicClass( string ) ;
+bool unloadDynamicClass( void * ) ;
 void reloadDynamicClasses( string ) ;
 void loadCommandTable()      ;
 void loadApplicationCommandTable( string ) ;
@@ -289,7 +290,7 @@ int main( void )
 		if ( it->second.dlopened )
 		{
 			log( "I", "dlclose of "+ it->first +" at " << it->second.dlib << endl ) ;
-			dlclose( it->second.dlib ) ;
+			unloadDynamicClass( it->second.dlib ) ;
 		}
 	}
 
@@ -607,7 +608,7 @@ void mainLoop()
 					{
 						def_prog_mode()   ;
 						endwin()          ;
-						system( ZSHELL.c_str() )  ;
+						system( ZSHELL.c_str() ) ;
 						reset_prog_mode() ;
 						refresh()         ;
 					}
@@ -753,13 +754,18 @@ void processAction( uint row, uint col, int c, bool & passthru )
 	int  RC ;
 	int  p1 ;
 	uint i  ;
+	uint j  ;
+	uint ws ;
 
 	bool   addRetrieve ;
+	bool   SiteBefore  ;
 
 	string CMDVerb ;
 	string CMDRest ;
 	string PFCMD   ;
 	string delm    ;
+	string cmdtlst ;
+
 	static uint retPos(0) ;
 
 	pdc t_pdc ;
@@ -986,24 +992,43 @@ void processAction( uint row, uint col, int c, bool & passthru )
 		}
 	}
 
+	SiteBefore = ( p_poolMGR->get( RC, "ZSCMDTF", PROFILE ) == "Y" ) ;
+
+	cmdtlst = p_poolMGR->get( RC, "ZUCMDT1", PROFILE ) + " " +
+		  p_poolMGR->get( RC, "ZUCMDT2", PROFILE ) + " " +
+		  p_poolMGR->get( RC, "ZUCMDT3", PROFILE ) + " " ;
+	if ( !SiteBefore )
+	{
+		  cmdtlst += " ISP " ;
+	}
+	cmdtlst += p_poolMGR->get( RC, "ZSCMDT1", PROFILE ) + " " +
+		   p_poolMGR->get( RC, "ZSCMDT2", PROFILE ) + " " +
+		   p_poolMGR->get( RC, "ZSCMDT3", PROFILE ) + " " ;
+	if ( SiteBefore )
+	{
+		  cmdtlst += " ISP" ;
+	}
+
+	RC = 8 ;
+	ws = words( cmdtlst ) ;
 	for ( i = 0 ; i < 8 ; i++ )
 	{
-		p_tableMGR->cmdsearch( RC, funcPOOL, currAppl->ZZAPPLID + "CMDS", CMDVerb ) ;
-		if ( RC > 4 )
+		if ( RC == 0 )
 		{
-			p_tableMGR->cmdsearch( RC, funcPOOL, "USRCMDS", CMDVerb ) ;
-			if ( RC > 4 )
+			if ( word( ZCTACT, 1 ) == "ALIAS" )
 			{
-				p_tableMGR->cmdsearch( RC, funcPOOL, "ISPCMDS", CMDVerb ) ;
+				CMDVerb  = word( ZCTACT, 2 )    ;
+				CMDRest  = subword( ZCTACT, 3 ) ;
+				ZCOMMAND = subword( ZCTACT, 2 ) ;
 			}
+			else { break ; }
 		}
-		if ( RC == 0 && word( ZCTACT, 1 ) == "ALIAS" )
+		for ( j = 1 ; j <= ws ; j++ )
 		{
-			CMDVerb  = word( ZCTACT, 2 )    ;
-			CMDRest  = subword( ZCTACT, 3 ) ;
-			ZCOMMAND = subword( ZCTACT, 2 ) ;
+			p_tableMGR->cmdsearch( RC, funcPOOL, word( cmdtlst, j ), CMDVerb ) ;
+			if ( RC == 0 ) { break ; }
 		}
-		else { break ; }
+		if ( RC > 0 ) { break ; }
 	}
 	if ( i > 7 )
 	{
@@ -2319,9 +2344,13 @@ bool loadDynamicClass( string appl )
 	if ( apps[ appl ].dlopened )
 	{
 		log( "I", "Closing "+ appl << endl ) ;
-		dlclose( apps[ appl ].dlib ) ;
-		log( "I", "Reloading module "+ appl << endl ) ;
+		if ( !unloadDynamicClass( apps[ appl ].dlib ) )
+		{
+			log( "W", "dlclose has failed for "+ appl << endl ) ;
+			return false ;
+		}
 		apps[ appl ].dlopened = false ;
+		log( "I", "Reloading module "+ appl << endl ) ;
 	}
 
 	dlerror() ;
@@ -2342,7 +2371,7 @@ bool loadDynamicClass( string appl )
 		log( "E", "Error loading symbol maker" << endl ) ;
 		log( "E", "Error is " << dlsym_err  << endl )      ;
 		log( "E", "Module "+ mod +" will be ignored" << endl ) ;
-		dlclose( dlib ) ;
+		unloadDynamicClass( apps[ appl ].dlib ) ;
 		return false ;
 	}
 
@@ -2354,7 +2383,7 @@ bool loadDynamicClass( string appl )
 		log( "E", "Error loading symbol destroy" << endl ) ;
 		log( "E", "Error is " << dlsym_err  << endl )      ;
 		log( "E", "Module "+ mod +" will be ignored" << endl ) ;
-		dlclose( dlib ) ;
+		unloadDynamicClass( apps[ appl ].dlib ) ;
 		return false ;
 	}
 
@@ -2368,5 +2397,20 @@ bool loadDynamicClass( string appl )
 	apps[ appl ].errors       = false ;
 	apps[ appl ].dlopened     = true  ;
 
+	return true ;
+}
+
+
+bool unloadDynamicClass( void * dlib )
+{
+	int i  ;
+	int rc ;
+
+	for ( i = 0 ; i < 100 ; i++ )
+	{
+		rc = dlclose( dlib )  ;
+		if ( rc != 0 ) { break ; }
+	}
+	if ( rc == 0 ) { return false ; }
 	return true ;
 }

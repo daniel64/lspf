@@ -20,11 +20,14 @@
 
 */
 
-/* Amend and run to create initial ISPCMDS and USERCMDS command tables           */
-/* and ISPSPROF default profile.  Values taken from lspf.h                       */
-/* *NOTE* Any changes to ISPSPROF done online, will be lost                      */
+/* Amend and run to create initial ISPCMDS and USRCMDS command tables           */
+/* and ISPSPROF default profile.  Values taken from lspf.h                      */
+/* *NOTE* Any changes to ISPSPROF done online, will be lost                     */
 
-/* Create function pool, pool manager and table manager                          */
+/* USRCMDS is the default user command table 1 (ZUCMDT1)                        */
+/* This can be changed in option 0.0, General lspf Settings                     */
+
+/* Create function pool, pool manager and table manager                         */
 
 #include <iostream>
 #include <iomanip>
@@ -383,8 +386,20 @@ void createSYSPROF()
 	p_poolMGR->put( RC, "ZSLOG", SLOG, PROFILE ) ;
 	p_poolMGR->put( RC, "ZALOG", ALOG, PROFILE ) ;
 
-	p_poolMGR->put( RC, "ZPADC", "N", PROFILE ) ;
-	p_poolMGR->put( RC, "ZDEL",  ";", PROFILE ) ;
+	p_poolMGR->put( RC, "ZPADC",   "N", PROFILE ) ;
+	p_poolMGR->put( RC, "ZDEL",    ";", PROFILE ) ;
+	p_poolMGR->put( RC, "ZKLUSE",  "N", PROFILE ) ;
+	p_poolMGR->put( RC, "ZKLFAIL", "Y", PROFILE ) ;
+
+	p_poolMGR->put( RC, "ZUCMDT1", "USR", PROFILE ) ;
+	p_poolMGR->put( RC, "ZUCMDT2", "", PROFILE ) ;
+	p_poolMGR->put( RC, "ZUCMDT3", "", PROFILE ) ;
+
+	p_poolMGR->put( RC, "ZSCMDT1", "", PROFILE ) ;
+	p_poolMGR->put( RC, "ZSCMDT2", "", PROFILE ) ;
+	p_poolMGR->put( RC, "ZSCMDT3", "", PROFILE ) ;
+
+	p_poolMGR->put( RC, "ZSCMDTF", "Y", PROFILE ) ;
 
 	p_poolMGR->put( RC, "ZMLIB", MLIB, PROFILE ) ;
 	p_poolMGR->put( RC, "ZPLIB", PLIB, PROFILE ) ;

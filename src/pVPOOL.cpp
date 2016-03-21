@@ -26,7 +26,9 @@
 
 using namespace boost::filesystem ;
 
-// ************************************************************************** FUNCTION POOL SECTION *******************************************************************************************
+// ******************************************************************************************************************************
+// ************************************************** FUNCTION POOL SECTION *****************************************************
+// ******************************************************************************************************************************
 
 
 void fPOOL::define( int & RC, string name, string * addr, nameCHCK check )
@@ -174,7 +176,7 @@ void fPOOL::put( int & RC, int maxRC, string name, string value, nameCHCK check 
 		return ;
 	}
 
-	if ( POOL[ name ].top().fVAR_type != STRING )
+	if ( it->second.top().fVAR_type != STRING )
 	{
 		RC = 20 ;
 		log( "E", "Function pool definition of " << name << " is not of type string" << endl ) ;
@@ -206,7 +208,7 @@ void fPOOL::put( int & RC, int maxRC, string name, int value )
 		return ;
 	}
 
-	if ( POOL[ name ].top().fVAR_type != INTEGER )
+	if ( it->second.top().fVAR_type != INTEGER )
 	{
 		RC = 20 ;
 		log( "E", "Function pool definition of " << name << " is not of type int" << endl ) ;
@@ -299,26 +301,52 @@ void fPOOL::setmask( int & RC, string name, string mask )
 
 void fPOOL::dlete( int & RC, string name, nameCHCK check )
 {
-	map<string, stack< fVAR> >::iterator it ;
+	// Remove the vdefine for a variable from the function pool.
+
+	// Use * for all vdefined variables (except system variables that have been defined in the
+	// pApplication constructor)
+
+	// RC =  0 OK
+	// RC =  8 Variable not found in the defined area of the function pool
+	// RC = 20 Severe error
+
+	map<string, stack< fVAR> >::iterator it  ;
 
 	RC = 0 ;
+
+	const string vdsys( "ZCURFLD ZCURPOS ZTDMARK ZTDDEPTH ZTDROWS ZTDSELS ZTDTOP ZTDVROWS ZERR1 ZERR2 ZAPPNAME" ) ;
+
+	if ( name == "*")
+	{
+		for ( it = POOL.begin() ; it != POOL.end() ; it++ )
+		{
+			if ( findword( it->first, vdsys ) ) { continue ; }
+			if ( it->second.top().fVAR_defined )
+			{
+				POOL.erase( it )  ;
+				it = POOL.begin() ;
+			}
+		}
+		return ;
+	}
 
 	if ( (check == CHECK) && !isvalidName( name ) ) { RC = 20 ; return ; }
 
 	it = POOL.find( name ) ;
-	if ( it == POOL.end() )
+
+	if ( it == POOL.end() || !it->second.top().fVAR_defined )
 	{
 		RC = 8 ;
 		return ;
 	}
 
-	if ( POOL[ name ].size() == 1 )
+	if ( it->second.size() == 1 )
 	{
 		POOL.erase( it ) ;
 	}
 	else
 	{
-		POOL[ name ].pop() ;
+		it->second.pop() ;
 	}
 }
 
@@ -332,7 +360,9 @@ void fPOOL::reset()
 }
 
 
-// ************************************************************************** VARIABLE POOL SECTION *******************************************************************************************
+// *******************************************************************************************************************************
+// *************************************************** VARIABLE POOL SECTION *****************************************************
+// *******************************************************************************************************************************
 
 
 void pVPOOL::put( int & RC, string name, string value, vTYPE vtype )
@@ -700,7 +730,9 @@ void pVPOOL::save( int & RC, string currAPPLID )
 }
 
 
-// ************************************************************************** POOL MANAGER SECTION *******************************************************************************************
+// ******************************************************************************************************************************
+// ************************************************** POOL MANAGER SECTION ******************************************************
+// ******************************************************************************************************************************
 
 
 poolMGR::poolMGR()
@@ -712,10 +744,10 @@ poolMGR::poolMGR()
 
 	pVPOOL pool ;
 
-	POOLs_shared [ "@DEFSHAR" ]  = pool ;
+	POOLs_shared [ "@DEFSHAR" ] = pool ;
 	POOLs_shared [ "@DEFSHAR" ].createGenEntries() ;
-	POOLs_profile[ "@DEFPROF" ]  = pool ;
-	POOLs_profile[ "@ROXPROF" ]  = pool ;
+	POOLs_profile[ "@DEFPROF" ] = pool ;
+	POOLs_profile[ "@ROXPROF" ] = pool ;
 	shrdPooln = 0 ;
 }
 
@@ -798,7 +830,7 @@ void poolMGR::createPool( int & RC, poolType pType, string path )
 				else
 				{
 					pool.path = path ;
-					POOLs_profile[ currAPPLID ] = pool      ;
+					POOLs_profile[ currAPPLID ] = pool       ;
 					POOLs_profile[ currAPPLID ].refCount = 1 ;
 					log( "I", "Pool " << currAPPLID << " created okay.  Reading saved variables from profile dataset" << endl ) ;
 					POOLs_profile[ currAPPLID ].load(  RC, currAPPLID, path ) ;
@@ -1124,23 +1156,23 @@ void poolMGR::put( int & RC, string name, string value, poolType pType, vTYPE vt
 	{
 	case ASIS:
 		locateSubPool( RC, p_it, name, SHARED ) ;
-		if ( RC == 0 ) { p_it->second.put( RC, name, value, vtype ) ; }
+		if      ( RC == 0 ) { p_it->second.put( RC, name, value, vtype ) ; }
 		else if ( RC == 8 )
 		{
 			locateSubPool( RC, p_it, name, PROFILE ) ;
-			if ( RC == 0 ) { p_it->second.put( RC, name, value, vtype ) ; }
+			if      ( RC == 0 ) { p_it->second.put( RC, name, value, vtype )  ; }
 			else if ( RC == 8 ) { sp_it->second.put( RC, name, value, vtype ) ; }
 		}
 		break ;
 	case SHARED:
 		locateSubPool( RC, p_it, name, SHARED ) ;
-		if ( RC == 0 )      {  p_it->second.put( RC, name, value, vtype ) ; }
+		if      ( RC == 0 ) {  p_it->second.put( RC, name, value, vtype ) ; }
 		else if ( RC == 8 ) { sp_it->second.put( RC, name, value, vtype ) ; }
 		break ;
 	case PROFILE:
 		pp_it = POOLs_profile.find( currAPPLID ) ;
 		locateSubPool( RC, p_it, name, PROFILE ) ;
-		if ( RC == 0 )      {  p_it->second.put( RC, name, value, vtype ) ; }
+		if      ( RC == 0 ) {  p_it->second.put( RC, name, value, vtype ) ; }
 		else if ( RC == 8 ) { pp_it->second.put( RC, name, value, vtype ) ; }
 		locateSubPool( RC2, p_it, name, SHARED ) ;
 		if ( RC2 == 0 )     {  p_it->second.erase( RC2, name ) ; }
@@ -1173,7 +1205,7 @@ string poolMGR::get( int & RC, string name, poolType pType )
 	{
 	case ASIS:
 		locateSubPool( RC, p_it, name, SHARED ) ;
-		if ( RC == 0 ) { return p_it->second.get( RC, name ) ; }
+		if      ( RC == 0 ) { return p_it->second.get( RC, name ) ; }
 		else if ( RC == 8 )
 		{
 			locateSubPool( RC, p_it, name, PROFILE ) ;
@@ -1215,7 +1247,7 @@ string * poolMGR::vlocate( int & RC, string name, poolType pType )
 	{
 	case ASIS:
 		locateSubPool( RC, p_it, name, SHARED ) ;
-		if ( RC == 0 ) { return p_it->second.vlocate( RC, name ) ; }
+		if      ( RC == 0 ) { return p_it->second.vlocate( RC, name ) ; }
 		else if ( RC == 8 )
 		{
 			locateSubPool( RC, p_it, name, PROFILE ) ;

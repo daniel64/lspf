@@ -22,7 +22,7 @@
 
 // REXX-like string handling functions
 
-bool abbrev( string s1, string s2 )
+bool abbrev( const string & s1, const string & s2 )
 {
 	// s2 an abbreviation of s1
 	unsigned int l1 = s1.length() ;
@@ -39,7 +39,7 @@ bool abbrev( string s1, string s2 )
 
 
 
-bool abbrev( string s1, string s2, unsigned int n )
+bool abbrev( const string & s1, const string & s2, unsigned int n )
 {
 	// s2 an abbreviation of s1 with a minumum length n
 	unsigned int l1 = s1.length() ;
@@ -58,7 +58,7 @@ bool abbrev( string s1, string s2, unsigned int n )
 
 
 
-string centre( string s, unsigned int n, char c )
+string centre( const string & s, unsigned int n, char c )
 {
 	int j1 ;
 	int j2 ;
@@ -80,14 +80,14 @@ string centre( string s, unsigned int n, char c )
 
 
 
-string center( string s, unsigned int n )
+string center( const string & s, unsigned int n )
 {
 	return centre( s, n ) ;
 }
 
 
 
-string copies( string s, unsigned int n )
+string copies( const string & s, unsigned int n )
 {
 	string t1 = "" ;
 
@@ -100,7 +100,7 @@ string copies( string s, unsigned int n )
 
 
 
-bool datatype( string s, char type )
+bool datatype( const string & s, char type )
 {
 	if ( type == 'W' )
 	{
@@ -193,7 +193,7 @@ string delword( string s, unsigned int w, unsigned int n )
 
 
 
-string insert( string s1, string s2, int n, char c )
+string insert( const string & s1, string s2, int n, char c )
 {
 	// Insert s1 into s2 at n
 	int l2 = s2.length() ;
@@ -238,7 +238,7 @@ string insert( string s1, string s2, unsigned int n, unsigned int l, char c )
 
 
 
-int lastpos( string s1, string s2 )
+int lastpos( const string & s1, const string & s2 )
 {
 	int i ;
 	int l1 = s1.length() ;
@@ -253,7 +253,7 @@ int lastpos( string s1, string s2 )
 
 
 
-int lastpos( string s1, string s2, unsigned int p )
+int lastpos( const string & s1, const string & s2, unsigned int p )
 {
 	int i ;
 	unsigned int l1 = s1.length() ;
@@ -287,7 +287,7 @@ string left( string s, unsigned int n, char c )
 
 
 
-int pos( string s1, string s2, unsigned int p )
+int pos( const string & s1, const string & s2, unsigned int p )
 {
 	// Find s1 in s2 starting at p returning the offset to the first character
 	int i  ;
@@ -327,11 +327,12 @@ string right( string s, unsigned int n, char c )
 
 
 
-string space( string s, unsigned int n, char c )
+string space( const string & s, unsigned int n, char c )
 {
 	int i ;
 	int w ;
-	string pad( n, c ), t ;
+	string t ;
+	string pad( n, c ) ;
 
 	w = words( s ) ;
 	if ( w == 1 ) return word( s , 1 ) ;
@@ -366,7 +367,7 @@ string strip( string s, char opt, char c )
 
 
 
-string substr( string s, unsigned int n )
+string substr( const string & s, unsigned int n )
 {
 	if ( n > s.length() ) return "" ;
 	return s.substr( n - 1 ) ;
@@ -374,7 +375,7 @@ string substr( string s, unsigned int n )
 
 
 
-string substr( string s, unsigned int n, unsigned int l, char c )
+string substr( const string & s, unsigned int n, unsigned int l, char c )
 {
 	unsigned int l1 = s.length();
 
@@ -395,7 +396,7 @@ string substr( string s, unsigned int n, unsigned int l, char c )
 
 
 
-string subword( string s, unsigned int w )
+string subword( const string & s, unsigned int w )
 {
 	int i = 0 ;
 	int j = 0 ;
@@ -417,7 +418,7 @@ string subword( string s, unsigned int w )
 
 
 
-string subword( string s, unsigned int w, unsigned int n )
+string subword( const string & s, unsigned int w, unsigned int n )
 {
 	int i = 0 ;
 	int j = 0 ;
@@ -448,7 +449,7 @@ string subword( string s, unsigned int w, unsigned int n )
 
 
 
-string word( string s, unsigned int w )
+string word( const string & s, unsigned int w )
 {
 	int i = 0 ;
 	int j = 0 ;
@@ -470,7 +471,7 @@ string word( string s, unsigned int w )
 
 
 
-int wordindex( string s, unsigned int w )
+int wordindex( const string & s, unsigned int w )
 {
 	int i = 0 ;
 	int j = 0 ;
@@ -492,14 +493,14 @@ int wordindex( string s, unsigned int w )
 
 
 
-int wordlength( string s, unsigned int n )
+int wordlength( const string & s, unsigned int n )
 {
 	return word( s, n ).length() ;
 }
 
 
 
-int wordpos( string s1, string s2 )
+int wordpos( const string & s1, const string & s2 )
 {
 	uint wds1 = words( s1 ) ;
 	uint wds2 = words( s2 ) ;
@@ -522,7 +523,7 @@ int wordpos( string s1, string s2 )
 
 
 
-int words( string s )
+int words( const string & s )
 {
 	int i = 0 ;
 	unsigned int w = 0 ;
@@ -575,7 +576,7 @@ string bs2xs( string s )
 
 
 
-string cs2bs( string s )
+string cs2bs( const string & s )
 {
 	int i, j ;
 	string reslt ;
@@ -593,7 +594,7 @@ string cs2bs( string s )
 
 
 
-int cs2d( string s )
+int cs2d( const string & s )
 {
 	int i ;
 	int j ;
@@ -611,7 +612,7 @@ int cs2d( string s )
 
 
 
-string cs2xs( string s )
+string cs2xs( const string & s )
 {
 	const char hexdigits[] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F' } ;
 	char x, y ;
@@ -679,7 +680,7 @@ string d2xs( int i )
 
 
 
-int ds2d( string s )
+int ds2d( const string & s )
 {
 	if ( s == "" ) { return 0 ; }
 	istringstream stream ( s ) ;
@@ -691,7 +692,7 @@ int ds2d( string s )
 
 
 
-string xs2bs( string s )
+string xs2bs( const string & s )
 {
 	int i          ;
 	string res("") ;
@@ -729,7 +730,7 @@ string xs2bs( string s )
 
 
 
-string xs2cs( string s )
+string xs2cs( const string & s )
 {
 	int i ;
 	int j ;
@@ -772,7 +773,7 @@ string xs2cs( string s )
 
 
 
-int xs2d( string s )
+int xs2d( const string & s )
 {
 	int x ;
 
@@ -787,7 +788,7 @@ int xs2d( string s )
 // End of REXX-like functions
 //
 
-bool findword( string s1, string s2 )
+bool findword( const string & s1, const string & s2 )
 {
 	int w ;
 
@@ -800,7 +801,7 @@ bool findword( string s1, string s2 )
 
 
 
-int countc( string s, char c )
+int countc( const string & s, char c )
 {
 	int i, l, n ;
 
@@ -816,7 +817,7 @@ int countc( string s, char c )
 
 
 
-bool matchpattern( string s1, string s2)
+bool matchpattern( const string & s1, const string & s2)
 {
 	int l1 = s1.length() - 1 ;
 	int l2 = s2.length() - 1 ;
@@ -874,7 +875,7 @@ string lower( string s )
 
 
 
-bool isnumeric( string s )
+bool isnumeric( const string & s )
 {
 	if ( s.length() == 0 ) return false ;
 
@@ -886,7 +887,7 @@ bool isnumeric( string s )
 }
 
 
-string d2size( int  size )
+string d2size( int size )
 {
 	int div = 0 ;
 
@@ -906,7 +907,7 @@ string d2size( int  size )
 }
 
 
-string hex2print( string t )
+string hex2print( const string & t )
 {
 	string s ;
 
@@ -979,7 +980,7 @@ string addCommas( string t, int prec )
 }
 
 
-bool isvalidName( string s )
+bool isvalidName( const string & s )
 {
 	int l = s.length() ;
 
@@ -999,7 +1000,7 @@ bool isvalidName( string s )
 }
 
 
-bool isvalidName4( string s )
+bool isvalidName4( const string & s )
 {
 	int l = s.length() ;
 
@@ -1019,7 +1020,7 @@ bool isvalidName4( string s )
 }
 
 
-bool isvalidHex( string s )
+bool isvalidHex( const string & s )
 {
 	int l = s.length() ;
 
@@ -1092,7 +1093,7 @@ bool ishex( char c )
 
 
 
-bool isoctal( string s )
+bool isoctal( const string & s )
 {
 	int l = s.length() ;
 
@@ -1135,7 +1136,7 @@ bool isoctal( char c )
 }
 
 
-bool ispict( string s, string picts )
+bool ispict( const string & s, const string & picts )
 {
 	// C - any char
 	// A -  (A-Z, a-z, #, $, @)
@@ -1174,15 +1175,15 @@ bool ispict( string s, string picts )
 
 
 
-int getpaths( string s )
+int getpaths( const string & p )
 {
-	if ( s == "" ) return 0 ;
+	if ( p == "" ) return 0 ;
 
-	return countc( s, ':' ) + 1 ;
+	return countc( p, ':' ) + 1 ;
 }
 
 
-string getpath( string s, int p )
+string getpath( const string & s, int p )
 {
 	// Return path p in a concatenation.  Add ending '/' if missing
 
@@ -1207,11 +1208,11 @@ string getpath( string s, int p )
 }
 
 
-string mergepaths( string s1, string s2 )
+string mergepaths( const string & p1, const string & p2 )
 {
-	if      ( s1 == "" ) { return s2 ; }
-	else if ( s2 == "" ) { return s1 ; }
-	else                 { return s1 + ':' + s2 ; }
+	if      ( p1 == "" ) { return p2 ; }
+	else if ( p2 == "" ) { return p1 ; }
+	else                 { return p1 + ':' + p2 ; }
 }
 
 

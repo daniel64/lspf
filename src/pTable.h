@@ -27,6 +27,7 @@ class Table
 			maxURID        = 0     ;
 			changed        = false ;
 			tab_temporary  = false ;
+			tab_cmds       = false ;
 			tab_path       = ""    ;
 			sa_namelst     = ""    ;
 			sa_cond_pairs  = ""    ;
@@ -36,7 +37,7 @@ class Table
 		void   saveTable( int & RC, string m_name, string m_path ) ;
 		void   loadRow( int & RC, vector< string > & m_flds ) ;
 		void   reserveSpace( int tot_rows ) ;
-		void   resetChanged() { changed  = false ; } ;
+		void   resetChanged() { changed = false ; } ;
 
 		void   fillfVARs( int & RC, fPOOL & funcPOOL, int depth, int posn ) ;
 		int    getCRP() { return CRP ; }
@@ -64,6 +65,7 @@ class Table
 
 		int    ownerTask      ;
 		bool   tab_temporary  ;
+		bool   tab_cmds       ;
 		string tab_keys       ;
 		string tab_flds       ;
 		string tab_all        ;

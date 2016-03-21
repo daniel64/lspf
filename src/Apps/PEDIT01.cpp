@@ -288,10 +288,10 @@ void PEDIT01::Edit()
 		storeCursor( aURID, 4, aCol-CLINESZ+startCol-2 ) ;
 
 		getZAREAchanges() ;
-		updateData()      ;
 		actionZVERB()     ;
-
+		updateData()      ;
 		actionPrimCommand() ;
+
 		if ( MSG != "" )
 		{
 			getmsg( MSG, "", "", "", "", "ZMTYPE" ) ;
@@ -463,7 +463,7 @@ void PEDIT01::readFile()
 
 	if ( profRecover && !abendRecovery )
 	{
-		vcopy( "Z4JDATE", ZDATE, MOVE ) ;
+		vcopy( "ZJ4DATE", ZDATE, MOVE ) ;
 		vcopy( "ZTIMEL", ZTIMEL, MOVE ) ;
 		p = ZFILE.find_last_of( '/' )   ;
 		copy_file( ZFILE, recoverLoc + ZFILE.substr( p+1 ) + "-" +ZDATE + "-" + ZTIMEL, ec ) ;
@@ -546,7 +546,7 @@ bool PEDIT01::saveFile()
 void PEDIT01::fill_dynamic_area()
 {
 	// s2data is only valid while the data vector has not changed since building the screen
-	// ie. after fill_dynamic_area and before procedure actionPrimaryCommand
+	// ie. after fill_dynamic_area and before procedure updateData()
 
 	int i   ;
 	int l   ;
