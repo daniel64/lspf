@@ -250,7 +250,7 @@ void pPanel::display_panel( int & RC )
 	display_boxes()  ;
 	hide_pd()        ;
 	display_pd()     ;
-	display_MSG()    ;
+	display_msg()    ;
 }
 
 
@@ -276,7 +276,7 @@ void pPanel::refresh( int & RC )
 	display_fields()   ;
 	display_boxes()    ;
 	hide_pd()          ;
-	display_MSG()      ;
+	display_msg()      ;
 	display_pd()       ;
 	if ( tb_model ) { display_tb_mark_posn() ; }
 }
@@ -2154,7 +2154,7 @@ string pPanel::get_keylist( int entry )
 }
 
 
-void pPanel::display_MSG()
+void pPanel::display_msg()
 {
 	if ( SMSG != "" )
 	{

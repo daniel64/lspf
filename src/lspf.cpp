@@ -55,11 +55,11 @@ map<cuaType, unsigned int> cuaAttr  ;
 map<int, unsigned int> usrAttr      ;
 map<cuaType, bool> cuaAttrProt      ;
 
-string usrAttrNames = "N_RED N_GREEN N_YELLOW N_BLUE N_MAGENTA N_TURQ N_WHITE " \
-		      "B_RED B_GREEN B_YELLOW B_BLUE B_MAGENTA B_TURQ B_WHITE " \
-		      "R_RED R_GREEN R_YELLOW R_BLUE R_MAGENTA R_TURQ R_WHITE " \
-		      "U_RED U_GREEN U_YELLOW U_BLUE U_MAGENTA U_TURQ U_WHITE " \
-		      "P_RED P_GREEN P_YELLOW P_BLUE P_MAGENTA P_TURQ P_WHITE" ;
+const string usrAttrNames = "N_RED N_GREEN N_YELLOW N_BLUE N_MAGENTA N_TURQ N_WHITE " \
+			    "B_RED B_GREEN B_YELLOW B_BLUE B_MAGENTA B_TURQ B_WHITE " \
+			    "R_RED R_GREEN R_YELLOW R_BLUE R_MAGENTA R_TURQ R_WHITE " \
+			    "U_RED U_GREEN U_YELLOW U_BLUE U_MAGENTA U_TURQ U_WHITE " \
+			    "P_RED P_GREEN P_YELLOW P_BLUE P_MAGENTA P_TURQ P_WHITE" ;
 
 #include "pWidgets.h"
 #include "pWidgets.cpp"
@@ -117,7 +117,6 @@ bool loadDynamicClass( string ) ;
 bool unloadDynamicClass( void * ) ;
 void reloadDynamicClasses( string ) ;
 void loadCommandTable()      ;
-void loadApplicationCommandTable( string ) ;
 void loadpfkeyTable()        ;
 void loadCUATables()         ;
 void setColourPair( string ) ;
@@ -758,7 +757,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 	uint ws ;
 
 	bool   addRetrieve ;
-	bool   SiteBefore  ;
+	bool   siteBefore  ;
 
 	string CMDVerb ;
 	string CMDRest ;
@@ -979,7 +978,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 		{
 			passthru = false ;
 			currAppl->currPanel->showLMSG = true ;
-			currAppl->currPanel->display_MSG() ;
+			currAppl->currPanel->display_msg() ;
 			return ;
 		}
 		else
@@ -992,43 +991,35 @@ void processAction( uint row, uint col, int c, bool & passthru )
 		}
 	}
 
-	SiteBefore = ( p_poolMGR->get( RC, "ZSCMDTF", PROFILE ) == "Y" ) ;
+	siteBefore = ( p_poolMGR->get( RC, "ZSCMDTF", PROFILE ) == "Y" ) ;
 
 	cmdtlst = p_poolMGR->get( RC, "ZUCMDT1", PROFILE ) + " " +
 		  p_poolMGR->get( RC, "ZUCMDT2", PROFILE ) + " " +
 		  p_poolMGR->get( RC, "ZUCMDT3", PROFILE ) + " " ;
-	if ( !SiteBefore )
+	if ( !siteBefore )
 	{
 		  cmdtlst += " ISP " ;
 	}
 	cmdtlst += p_poolMGR->get( RC, "ZSCMDT1", PROFILE ) + " " +
 		   p_poolMGR->get( RC, "ZSCMDT2", PROFILE ) + " " +
 		   p_poolMGR->get( RC, "ZSCMDT3", PROFILE ) + " " ;
-	if ( SiteBefore )
+	if ( siteBefore )
 	{
 		  cmdtlst += " ISP" ;
 	}
 
-	RC = 8 ;
 	ws = words( cmdtlst ) ;
 	for ( i = 0 ; i < 8 ; i++ )
 	{
-		if ( RC == 0 )
-		{
-			if ( word( ZCTACT, 1 ) == "ALIAS" )
-			{
-				CMDVerb  = word( ZCTACT, 2 )    ;
-				CMDRest  = subword( ZCTACT, 3 ) ;
-				ZCOMMAND = subword( ZCTACT, 2 ) ;
-			}
-			else { break ; }
-		}
 		for ( j = 1 ; j <= ws ; j++ )
 		{
-			p_tableMGR->cmdsearch( RC, funcPOOL, word( cmdtlst, j ), CMDVerb ) ;
+			p_tableMGR->cmdsearch( RC, funcPOOL, word( cmdtlst, j ), CMDVerb, ZTLIB ) ;
 			if ( RC == 0 ) { break ; }
 		}
-		if ( RC > 0 ) { break ; }
+		if ( RC > 0 || word( ZCTACT, 1 ) != "ALIAS" ) { break ; }
+		CMDVerb  = word( ZCTACT, 2 )    ;
+		CMDRest  = subword( ZCTACT, 3 ) ;
+		ZCOMMAND = subword( ZCTACT, 2 ) ;
 	}
 	if ( i > 7 )
 	{
@@ -1281,7 +1272,6 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 	}
 	currAppl->get_cursor( row, col ) ;
 	currScrn->set_row_col( row, col ) ;
-	loadApplicationCommandTable( currAppl->ZZAPPLID ) ;
 }
 
 
@@ -1854,38 +1844,10 @@ void loadCommandTable()
 	{
 		delete screenList[ 0 ] ;
 		log( "C", "Loading of system command table ISPCMDS failed.  RC=" << RC << "  Aborting startup" << endl ) ;
-		log( "C", "Check path " + ZTLIB << endl ) ;
+		log( "C", "Check path" + ZTLIB << endl ) ;
 		cout << "Aborting startup of lspf.  Check lspf and application logs for errors " << endl ;
 		splog.close() ;
 		abort() ;
-	}
-
-	p_tableMGR->loadTable( RC, 0, "USRCMDS", SHARE, ZTLIB ) ;
-	debug1( "Loading user command table.  RC=" << RC << endl ) ;
-}
-
-
-void loadApplicationCommandTable( string APPLID )
-{
-	int RC ;
-
-	if ( APPLID == "ISP" || APPLID == "ISPS" ) return ;
-
-	if ( !p_tableMGR->isloaded( APPLID + "CMDS" ) )
-	{
-		if ( p_tableMGR->tablexists( APPLID + "CMDS", ZTLIB ) )
-		{
-			p_tableMGR->loadTable( RC, 0, APPLID + "CMDS", SHARE, ZTLIB ) ;
-			debug1( "Loading application command table " << APPLID << "CMDS.  RC=" << RC << endl ) ;
-		}
-		else
-		{
-			debug1( "Cannot load application command table " << APPLID << "CMDS.  File does not exist in search path" << endl ) ;
-		}
-	}
-	else
-	{
-		debug1( "Application command table " << APPLID << "CMDS already loaded" << endl ) ;
 	}
 }
 
@@ -1930,11 +1892,11 @@ void updateDefaultVars()
 
 	if ( pLScreen::screensTotal > 1 )
 	{
-		p_poolMGR->defaultVARs( RC , "ZSPLIT", "YES", SHARED ) ;
+		p_poolMGR->defaultVARs( RC, "ZSPLIT", "YES", SHARED ) ;
 	}
 	else
 	{
-		p_poolMGR->defaultVARs( RC , "ZSPLIT", "NO", SHARED ) ;
+		p_poolMGR->defaultVARs( RC, "ZSPLIT", "NO", SHARED ) ;
 	}
 }
 
@@ -2228,7 +2190,7 @@ void reloadDynamicClasses( string parm )
 		p = getpath( paths, i ) ;
 		if ( is_directory( p ) )
 		{
-			log( "I", "Searching directory "+ p +" for application class" << endl ) ;
+			log( "I", "Searching directory "+ p +" for application classes" << endl ) ;
 			copy( directory_iterator( p ), directory_iterator(), back_inserter( v ) ) ;
 		}
 		else

@@ -37,11 +37,11 @@ class Table
 		void   saveTable( int & RC, string m_name, string m_path ) ;
 		void   loadRow( int & RC, vector< string > & m_flds ) ;
 		void   reserveSpace( int tot_rows ) ;
-		void   resetChanged() { changed = false ; } ;
+		void   resetChanged() { changed = false ; }
 
 		void   fillfVARs( int & RC, fPOOL & funcPOOL, int depth, int posn ) ;
 		int    getCRP() { return CRP ; }
-		void   cmdsearch( int & RC, fPOOL & funcPOOL, string srch ) ;
+		void   cmdsearch( int & RC, fPOOL & funcPOOL, string cmd ) ;
 
 		void   tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_order, int tb_num_of_rows )  ;
 		void   tbbottom( int & RC, fPOOL & funcPOOL, string tb_savenm, string tb_rowid_vn, string tb_noread, string tb_crp_name ) ;
@@ -84,7 +84,7 @@ class Table
 		tbDISP tab_DISP       ;
 
 		friend class tableMGR ;
-};
+} ;
 
 
 class tableMGR
@@ -94,7 +94,7 @@ class tableMGR
 
 		void   fillfVARs( int & RC, fPOOL & funcPOOL, string tb_name, int depth, int posn ) ;
 		int    getCRP( int & RC, string tb_name ) ;
-		void   cmdsearch( int & RC, fPOOL & funcPOOL, string tb_name, string srch ) ;
+		void   cmdsearch( int & RC, fPOOL & funcPOOL, string tb_name, string cmd, const string & paths ) ;
 
 		void   createTable( int & RC, int task, string tb_name, string keys, string flds, bool m_temporary, tbREP m_REP, string m_path, tbDISP m_DISP ) ;
 		void   destroyTable( int & RC, int task, string tb_name ) ;
@@ -123,5 +123,5 @@ class tableMGR
 		void   tbvclear( int & RC, fPOOL & funcPOOL, string tb_name ) ;
 
 	private:
-		map< string, Table > tables  ;
-};
+		map<string, Table> tables ;
+} ;

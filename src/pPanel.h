@@ -60,7 +60,7 @@ class pPanel
 		void   display_panel_init( int & RC )   ;
 		void   display_panel_reinit( int & RC, int ln ) ;
 		void   display_panel_proc( int & RC, int ln )   ;
-		void   display_MSG() ;
+		void   display_msg() ;
 
 		void   set_popup( int, int ) ;
 		void   remove_popup()        ;

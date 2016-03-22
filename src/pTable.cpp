@@ -1111,7 +1111,7 @@ void Table::tbscan( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_sav
 }
 
 
-void Table::cmdsearch( int & RC, fPOOL & funcPOOL, string srch )
+void Table::cmdsearch( int & RC, fPOOL & funcPOOL, string cmd )
 {
 	// cmdsearch is not part of the normal table services for application.  It's used for retrieving commands from a command table that may be abbreviated.
 	// Use tbsarg/tbscan for normal applications
@@ -1140,7 +1140,7 @@ void Table::cmdsearch( int & RC, fPOOL & funcPOOL, string srch )
 		trunc = ds2d( (*it).at( 2 )) ;
 		if ( trunc == 0 )
 		{
-			if ( (*it).at( 1 ) == srch )
+			if ( (*it).at( 1 ) == cmd )
 			{
 				found = true ;
 				break ;
@@ -1148,7 +1148,7 @@ void Table::cmdsearch( int & RC, fPOOL & funcPOOL, string srch )
 		}
 		else
 		{
-			if ( abbrev( (*it).at( 1 ), srch, trunc ) )
+			if ( abbrev( (*it).at( 1 ), cmd, trunc ) )
 			{
 				found = true ;
 				break ;
@@ -1783,6 +1783,8 @@ bool tableMGR::isloaded( string tb_name )
 
 bool tableMGR::tablexists( string tb_name, string tb_path )
 {
+	// Check if a table file exists in path tb_path.  Don't check to see if it is a valid table, just a valid file.
+
 	int  i ;
 	int  j ;
 
@@ -1799,7 +1801,7 @@ bool tableMGR::tablexists( string tb_name, string tb_path )
 		{
 			if ( !is_regular_file( filename ) )
 			{
-				log( "I", "Table load file name " << filename << " is not a regular file" << endl ) ;
+				log( "I", "Table file name " << filename << " is not a regular file" << endl ) ;
 				return  false ;
 			}
 			else
@@ -1809,11 +1811,7 @@ bool tableMGR::tablexists( string tb_name, string tb_path )
 			}
 		}
 	}
-	if ( !found )
-	{
-		log( "I", "Table file not found in path search for " << tb_name << endl ) ;
-		return  false ;
-	}
+	if ( !found ) { return  false ; }
 	return true ;
 }
 
@@ -2090,14 +2088,32 @@ void tableMGR::tbscan( int & RC, fPOOL & funcPOOL, string tb_name, string tb_nam
 }
 
 
-void tableMGR::cmdsearch( int & RC, fPOOL & funcPOOL, string tb_name, string srch )
+void tableMGR::cmdsearch( int & RC, fPOOL & funcPOOL, string tb_name, string cmd, const string & paths )
 {
+	// Search table for command 'cmd'.  Load table if not already in storage.
+
 	RC = 0 ;
 
 	tb_name = tb_name + "CMDS" ;
-	if ( tables.find( tb_name ) == tables.end() ) { RC = 8 ; return ; }
-
-	tables[ tb_name ].cmdsearch( RC, funcPOOL, srch ) ;
+	if ( tables.find( tb_name ) == tables.end() )
+	{
+		if ( tablexists( tb_name, paths ) )
+		{
+			loadTable( RC, 0, tb_name, SHARE, paths ) ;
+			if ( RC > 0 )
+			{
+				log( "E", "Command table "+ tb_name +" failed to load" << endl ) ;
+				RC = 20 ;
+				return  ;
+			}
+		}
+		else
+		{
+			RC = 8 ;
+			return ;
+		}
+	}
+	tables[ tb_name ].cmdsearch( RC, funcPOOL, cmd ) ;
 }
 
 
