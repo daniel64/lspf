@@ -21,37 +21,44 @@ literal  9   6         SAC "Fail on missing panel keylist or table"
 field    10  4     1   CEF PAD('_') GOSTFST
 literal  10  6         SAC "Search site command tables before ISPCMDS"
 
+literal  6   60    ET    "Application"
+literal  7   62    FP    "Application Timeout ."
+field    7   84  4 CEF NUMERIC(ON),PAD('_') GOATIMO
+literal  7   89    FP    "seconds"
+
+
 literal  12  2     ET    "General"
 
-literal  13  4     FP    "Command delimiter . ."
-field    13  26  1 CEF PAD('_') GODEL
+literal  13  4     FP    "Command delimiter . . ."
+field    13  28  1 CEF PAD('_') GODEL
 
-literal  14  4     FP    "User command tables ."
-field    14  26  4 CEF PAD('_'),CAPS(ON) GOUCMD1
-field    14  31  4 CEF PAD('_'),CAPS(ON) GOUCMD2
-field    14  36  4 CEF PAD('_'),CAPS(ON) GOUCMD3
+literal  14  4     FP    "Retrieve command size ."
+field    14  28  4 CEF NUMERIC(ON),PAD('_') GORTSIZE
 
-literal  15  4     FP    "Site command tables ."
-field    15  26  4 CEF PAD('_'),CAPS(ON) GOSCMD1
-field    15  31  4 CEF PAD('_'),CAPS(ON) GOSCMD2
-field    15  36  4 CEF PAD('_'),CAPS(ON) GOSCMD3
+literal  15  4     FP    "User command tables . ."
+field    15  28  4 CEF PAD('_'),CAPS(ON) GOUCMD1
+field    15  33  4 CEF PAD('_'),CAPS(ON) GOUCMD2
+field    15  38  4 CEF PAD('_'),CAPS(ON) GOUCMD3
 
-literal 18 2  CH "Instructions"
-literal 20 2  NT "Enter"
-literal 20 8  PS "SAVE"
-literal 20 13 NT "or"
-literal 20 16 PS "END"
-literal 20 20 NT "to save changes,"
-literal 20 37 PS "DEFAULTS"
-literal 20 46 NT "to restore defaults"
+literal  16  4     FP    "Site command tables . ."
+field    16  28  4 CEF PAD('_'),CAPS(ON) GOSCMD1
+field    16  33  4 CEF PAD('_'),CAPS(ON) GOSCMD2
+field    16  38  4 CEF PAD('_'),CAPS(ON) GOSCMD3
+
+literal 19 2  CH "Instructions"
 literal 21 2  NT "Enter"
-literal 21 8  PS "CANCEL"
-literal 21 15 NT "to cancel changes"
-
+literal 21 8  PS "SAVE"
+literal 21 13 NT "or"
+literal 21 16 PS "END"
+literal 21 20 NT "to save changes,"
+literal 21 37 PS "DEFAULTS"
+literal 21 46 NT "to restore defaults"
+literal 22 2  NT "Enter"
+literal 22 8  PS "CANCEL"
+literal 22 15 NT "to cancel changes"
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
-
 
 )PROC
 
@@ -60,6 +67,9 @@ VER (&GODEL NB)
 VER (&GOKLUSE LIST,/)
 VER (&GOKLFAL LIST,/)
 VER (&GOSTFST LIST,/)
+VER (&GOSTFST LIST,/)
+VER (&GOATIMO NB)
+VER (&GORTSIZE NB)
 
 )PNTS
 FIELD( ZPS01001 ) VAR(ZCMD) VAL(SAVE)

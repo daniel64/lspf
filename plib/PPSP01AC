@@ -35,7 +35,7 @@ literal  9  MAX-41     FP   "System Command Table . . .:"
 literal  9  MAX-13     VOI  "ISP"
 
 literal  7  2    FP    "Command Table:"
-field    7  17   8      NEF CAPS(ON) CMDTAB
+field    7  17   4      NEF CAPS(ON),pad('_') CMDTAB
 
 field    8  2   50 VOI  NONE APPLCMDL
 

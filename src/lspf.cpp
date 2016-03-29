@@ -50,16 +50,16 @@ boost::mutex global ;
 #include "utilities.h"
 #include "utilities.cpp"
 
-map<string, cuaType> cuaAttrName    ;
-map<cuaType, unsigned int> cuaAttr  ;
-map<int, unsigned int> usrAttr      ;
-map<cuaType, bool> cuaAttrProt      ;
+map<string, cuaType> cuaAttrName   ;
+map<cuaType, unsigned int> cuaAttr ;
+map<int, unsigned int> usrAttr     ;
+map<cuaType, bool> cuaAttrProt     ;
 
 const string usrAttrNames = "N_RED N_GREEN N_YELLOW N_BLUE N_MAGENTA N_TURQ N_WHITE " \
 			    "B_RED B_GREEN B_YELLOW B_BLUE B_MAGENTA B_TURQ B_WHITE " \
 			    "R_RED R_GREEN R_YELLOW R_BLUE R_MAGENTA R_TURQ R_WHITE " \
 			    "U_RED U_GREEN U_YELLOW U_BLUE U_MAGENTA U_TURQ U_WHITE " \
-			    "P_RED P_GREEN P_YELLOW P_BLUE P_MAGENTA P_TURQ P_WHITE" ;
+			    "P_RED P_GREEN P_YELLOW P_BLUE P_MAGENTA P_TURQ P_WHITE"  ;
 
 #include "pWidgets.h"
 #include "pWidgets.cpp"
@@ -80,9 +80,8 @@ const string usrAttrNames = "N_RED N_GREEN N_YELLOW N_BLUE N_MAGENTA N_TURQ N_WH
 #include "pLScreen.h"
 #include "pLScreen.cpp"
 
-#undef MOD_NAME
-#undef LOGOUT
-
+#undef  MOD_NAME
+#undef  LOGOUT
 #define MOD_NAME lspf
 #define LOGOUT   splog
 
@@ -184,6 +183,9 @@ string ZHOME  ;
 string ZUSER  ;
 string ZSHELL ;
 
+int    GMAXWAIT ;
+string GMAINPGM ;
+
 const string BuiltInCommands = "ABEND ACTION DISCARD FIELDEXC INFO NOP PANELID REFRESH "
 			       "RELOAD SCALE SNAP SHELL SPLIT STATS SWAP TASKS TEST TDOWN" ;
 
@@ -203,21 +205,21 @@ int main( void )
 	startTime    = boost::posix_time::microsec_clock::universal_time() ;
 	commandStack = "" ;
 
-	screenList.push_back ( new pLScreen ) ;
+	screenList.push_back( new pLScreen ) ;
 
 	log( "I", "lspf startup in progress" << endl ) ;
 
 	log( "I", "Calling initialSetup" << endl ) ;
 	initialSetup() ;
 
-	log( "I", "Calling loadSystemDefaultVars" << endl ) ;
+	log( "I", "Calling loadDefaultPools" << endl ) ;
 	loadDefaultPools() ;
 
 	log( "I", "Calling getDynamicClasses" << endl ) ;
 	getDynamicClasses() ;
 
-	log( "I", "Loading main " ZMAINPGM " application" << endl ) ;
-	loadDynamicClass( ZMAINPGM ) ;
+	log( "I", "Loading main "+ GMAINPGM +" application" << endl ) ;
+	loadDynamicClass( GMAINPGM ) ;
 
 	log( "I", "Calling loadCUATables" << endl ) ;
 	loadCUATables() ;
@@ -227,17 +229,17 @@ int main( void )
 
 	updateDefaultVars() ;
 
-	log( "I", "Starting new " << ZMAINPGM << " thread" << endl ) ;
-	currAppl = ((pApplication*(*)())( apps[ ZMAINPGM ].maker_ep))()   ;
+	log( "I", "Starting new "+ GMAINPGM +" thread" << endl ) ;
+	currAppl = ((pApplication*(*)())( apps[ GMAINPGM ].maker_ep))() ;
 
 	currScrn->application_add( currAppl ) ;
-	currAppl->ZAPPNAME     = ZMAINPGM       ;
-	currAppl->taskID       = ++maxtaskID    ;
-	currAppl->busyAppl     = true           ;
-	currAppl->p_poolMGR    = p_poolMGR      ;
-	currAppl->p_tableMGR   = p_tableMGR     ;
-	currAppl->ZZAPPLID     = "ISP"          ;
-	currAppl->NEWPOOL      = true           ;
+	currAppl->ZAPPNAME     = GMAINPGM     ;
+	currAppl->taskID       = ++maxtaskID  ;
+	currAppl->busyAppl     = true         ;
+	currAppl->p_poolMGR    = p_poolMGR    ;
+	currAppl->p_tableMGR   = p_tableMGR   ;
+	currAppl->ZZAPPLID     = "ISP"        ;
+	currAppl->NEWPOOL      = true         ;
 	currAppl->lspfCallback = lspfCallbackHandler ;
 
 	p_poolMGR->put( RC, "ZSCREEN", string( 1, ZSCREEN[ screenNum ] ), SHARED, SYSTEM ) ;
@@ -247,23 +249,23 @@ int main( void )
 	loadpfkeyTable() ;
 
 	pThread = new boost::thread(boost::bind(&pApplication::application, currAppl ) ) ;
-	currAppl->pThread = pThread  ;
-	apps[ ZMAINPGM ].refCount++ ;
+	currAppl->pThread = pThread ;
+	apps[ GMAINPGM ].refCount++ ;
 
-	log( "I", "Waiting for " << ZMAINPGM << " to complete startup" << endl ) ;
+	log( "I", "Waiting for "+ GMAINPGM +" to complete startup" << endl ) ;
 	elapsed = 0 ;
 	while ( currAppl->busyAppl )
 	{
 		elapsed++ ;
 		boost::this_thread::sleep_for(boost::chrono::milliseconds(ZWAIT)) ;
-		if ( elapsed > ZMAXWAIT ) { currAppl->set_forced_abend() ; }
+		if ( elapsed > GMAXWAIT ) { currAppl->set_forced_abend() ; }
 	}
 	if ( currAppl->abnormalEnd || currAppl->terminateAppl )
 	{
-		errorScreen( 1, "An error has occured initialising the first " ZMAINPGM " main task.  lspf cannot continue." ) ;
+		errorScreen( 1, "An error has occured initialising the first "+ GMAINPGM +" main task.  lspf cannot continue." ) ;
 		currAppl->info() ;
 		currAppl->closeTables() ;
-		log( "I", "Removing application instance of " << currAppl->ZAPPNAME << endl ) ;
+		log( "I", "Removing application instance of "+ currAppl->ZAPPNAME << endl ) ;
 		((void (*)(pApplication*))(apps[ currAppl->ZAPPNAME ].destroyer_ep))( currAppl )  ;
 		delete pThread    ;
 		delete p_poolMGR  ;
@@ -273,7 +275,7 @@ int main( void )
 		splog.close() ;
 		return 0 ;
 	}
-	log( "I", "First thread " << ZMAINPGM << " started and initialised.  ID=" << pThread->get_id() << endl ) ;
+	log( "I", "First thread "+ GMAINPGM +" started and initialised.  ID=" << pThread->get_id() << endl ) ;
 
 	currAppl->get_cursor( row, col )  ;
 	currScrn->set_row_col( row, col ) ;
@@ -293,7 +295,7 @@ int main( void )
 		}
 	}
 
-	log( "I", "lspf and LOG terminating" <<endl ) ;
+	log( "I", "lspf and LOG terminating" << endl ) ;
 	splog.close() ;
 	return 0 ;
 }
@@ -507,7 +509,7 @@ void mainLoop()
 						if ( pLScreen::screensTotal == 0 ) return ;
 						if ( currAppl->SEL && !currAppl->terminateAppl )
 						{
-							debug1( "Application " << currAppl->ZAPPNAME << " has done another SELECT without a DISPLAY (1) !!!! " << endl ) ;
+							debug1( "Application "+ currAppl->ZAPPNAME +" has done another SELECT without a DISPLAY (1) !!!! " << endl ) ;
 							processSelect() ;
 						}
 					}
@@ -550,7 +552,7 @@ void mainLoop()
 							selectParse( RC, subword( fxc.fieldExc_command, 2 ), SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB ) ;
 							if ( RC > 0 )
 							{
-								log( "E", "Error in FIELD SELECT command " << fxc.fieldExc_command << endl ) ;
+								log( "E", "Error in FIELD SELECT command "+ fxc.fieldExc_command << endl ) ;
 								currAppl->setmsg( "PSYS01K" ) ;
 								break ;
 							}
@@ -620,6 +622,16 @@ void mainLoop()
 							break ;
 						}
 						if ( pLScreen::screensTotal == ZMAXSCRN ) continue ;
+						updateDefaultVars()            ;
+						if ( apps.find( GMAINPGM ) == apps.end() )
+						{
+							errorScreen( 1, "Application "+ GMAINPGM +" not found" ) ;
+							currAppl->get_cursor( row, col )  ;
+							currScrn->set_row_col( row, col ) ;
+							currScrn->clear()   ;
+							currAppl->refresh() ;
+							break ;
+						}
 						if ( currAppl->popupDisplayed() )
 						{
 							currAppl->save_screen() ;
@@ -627,8 +639,7 @@ void mainLoop()
 						altScreen  = screenNum         ;
 						screenNum  = screenList.size() ;
 						screenList.push_back( new pLScreen ) ;
-						updateDefaultVars()            ;
-						startApplication( ZMAINPGM, "", "ISP", true, false ) ;
+						startApplication( GMAINPGM, "", "ISP", true, false ) ;
 						break ;
 					}
 					else if ( ZCOMMAND == "STATS" )
@@ -742,7 +753,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 {
 	// No actions required if application is issuing raw output (via control rdisplay flush)
 	// perform lspf high-level functions - pfkey -> command
-	// application/user/system command table entry?
+	// application/user/site/system command table entry?
 	// BUILTIN command
 	// RETRIEVE
 	// Jump command entered
@@ -752,9 +763,11 @@ void processAction( uint row, uint col, int c, bool & passthru )
 
 	int  RC ;
 	int  p1 ;
+
 	uint i  ;
 	uint j  ;
 	uint ws ;
+	uint rtsize ;
 
 	bool   addRetrieve ;
 	bool   siteBefore  ;
@@ -811,7 +824,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 						selectParse( RC, CMDRest, SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB) ;
 						if ( RC > 0 )
 						{
-							log( "E", "Error in SELECT command " << t_pdc.pdc_parm << endl ) ;
+							log( "E", "Error in SELECT command "+ t_pdc.pdc_parm << endl ) ;
 							currAppl->setmsg( "PSYS01K" ) ;
 							return ;
 						}
@@ -872,7 +885,8 @@ void processAction( uint row, uint col, int c, bool & passthru )
 
 	if ( addRetrieve )
 	{
-		if ( ZCOMMAND.size() > 3 && upper( ZCOMMAND ) != "RETRIEVE" && upper( PFCMD ) != "RETRIEVE" )
+		rtsize = ds2d( p_poolMGR->get( RC, "ZRTSIZE", PROFILE ) ) ;
+		if ( ZCOMMAND.size() >= rtsize && upper( ZCOMMAND ) != "RETRIEVE" && upper( PFCMD ) != "RETRIEVE" )
 		{
 			if ( retrieveBuffer.size() > 0 )
 			{
@@ -942,7 +956,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 
 	if ( ( ZCOMMAND[ 0 ] == '=' ) && ( ZCOMMAND.size() > 1 ) && ( PFCMD == "" || PFCMD == "RETURN" ) )
 	{
-		debug1( "JUMP entered.  Jumping to primary menu option "<<ZCOMMAND.substr( 1 )<< endl ) ;
+		debug1( "JUMP entered.  Jumping to primary menu option " << ZCOMMAND.substr( 1 ) << endl ) ;
 		passthru = true ;
 		ZCOMMAND = substr( ZCOMMAND, 2 ) ;
 		if ( !currAppl->isprimMenu() )
@@ -991,21 +1005,23 @@ void processAction( uint row, uint col, int c, bool & passthru )
 		}
 	}
 
+	cmdtlst    = "" ;
 	siteBefore = ( p_poolMGR->get( RC, "ZSCMDTF", PROFILE ) == "Y" ) ;
 
-	cmdtlst = p_poolMGR->get( RC, "ZUCMDT1", PROFILE ) + " " +
-		  p_poolMGR->get( RC, "ZUCMDT2", PROFILE ) + " " +
-		  p_poolMGR->get( RC, "ZUCMDT3", PROFILE ) + " " ;
+	if ( currAppl->ZZAPPLID != "ISP" ) { cmdtlst = currAppl->ZZAPPLID + " " ; }
+	cmdtlst += p_poolMGR->get( RC, "ZUCMDT1", PROFILE ) + " " +
+		   p_poolMGR->get( RC, "ZUCMDT2", PROFILE ) + " " +
+		   p_poolMGR->get( RC, "ZUCMDT3", PROFILE ) + " " ;
 	if ( !siteBefore )
 	{
-		  cmdtlst += " ISP " ;
+		  cmdtlst += "ISP " ;
 	}
 	cmdtlst += p_poolMGR->get( RC, "ZSCMDT1", PROFILE ) + " " +
 		   p_poolMGR->get( RC, "ZSCMDT2", PROFILE ) + " " +
 		   p_poolMGR->get( RC, "ZSCMDT3", PROFILE ) + " " ;
 	if ( siteBefore )
 	{
-		  cmdtlst += " ISP" ;
+		  cmdtlst += "ISP" ;
 	}
 
 	ws = words( cmdtlst ) ;
@@ -1039,7 +1055,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 			selectParse( RC, subword( ZCTACT, 2) , SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB) ;
 			if ( RC > 0 )
 			{
-				log( "E", "Error in SELECT command " << ZCTACT << endl ) ;
+				log( "E", "Error in SELECT command "+ ZCTACT << endl ) ;
 				currAppl->setmsg( "PSYS01K" ) ;
 				return ;
 			}
@@ -1091,7 +1107,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 	{
 		currAppl->currPanel->cmd_setvalue( ZCOMMAND ) ;
 	}
-	debug1( "Primary command >>" << ZCOMMAND << "<<  Passthru = " << passthru << endl ) ;
+	debug1( "Primary command >>"+ ZCOMMAND +"<<  Passthru = " << passthru << endl ) ;
 }
 
 
@@ -1113,7 +1129,7 @@ void processSelect()
 		ResumeApplicationAndWait() ;
 		while ( currAppl->terminateAppl )
 		{
-			debug1( "Calling application " << currAppl->ZAPPNAME << " also ending" << endl ) ;
+			debug1( "Calling application "+ currAppl->ZAPPNAME +" also ending" << endl ) ;
 			terminateApplication() ;
 			if ( pLScreen::screensTotal == 0 ) return ;
 		}
@@ -1165,7 +1181,7 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 		}
 	}
 
-	log( "I", "Starting new application " << Application << " with parameters '" << parm << "'" << endl ) ;
+	log( "I", "Starting new application "+ Application +" with parameters '"+ parm +"'" << endl ) ;
 	if ( PASSLIB || !NEWPOOL )
 	{
 		debug1( "PASSLIB or no NEWPOOL specifed on start application.  Saving LIBDEF status" << endl ) ;
@@ -1239,7 +1255,7 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 		elapsed++ ;
 		boost::this_thread::sleep_for(boost::chrono::milliseconds(ZWAIT)) ;
 		if ( currAppl->noTimeOut ) { elapsed = 0 ; }
-		if ( elapsed > ZMAXWAIT  ) { currAppl->set_forced_abend() ; }
+		if ( elapsed > GMAXWAIT  ) { currAppl->set_forced_abend() ; }
 	}
 
 	log( "I", "New thread and application started and initialised. ID=" << pThread->get_id() << endl ) ;
@@ -1248,7 +1264,7 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 
 	if ( currAppl->SEL )
 	{
-		debug1( "Application " << currAppl->ZAPPNAME << " has done a SELECT without a DISPLAY !!!! " << endl ) ;
+		debug1( "Application "+ currAppl->ZAPPNAME +" has done a SELECT without a DISPLAY !!!! " << endl ) ;
 		processSelect() ;
 	}
 
@@ -1261,12 +1277,12 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 
 	while ( currAppl->terminateAppl )
 	{
-		log( "I", "Application " << currAppl->ZAPPNAME << " has immediately terminated.  Cleaning up resources" << endl ) ;
+		log( "I", "Application "+ currAppl->ZAPPNAME +" has immediately terminated.  Cleaning up resources" << endl ) ;
 		terminateApplication() ;
 		if ( pLScreen::screensTotal == 0 ) return ;
 		if ( currAppl->SEL && !currAppl->terminateAppl )
 		{
-			debug1( "Application " << currAppl->ZAPPNAME << " has done another SELECT without a DISPLAY (2) !!!! " << endl ) ;
+			debug1( "Application "+ currAppl->ZAPPNAME +" has done another SELECT without a DISPLAY (2) !!!! " << endl ) ;
 			processSelect() ;
 		}
 	}
@@ -1299,7 +1315,7 @@ void terminateApplication()
 
 	boost::thread * pThread ;
 
-	log( "I", "Application terminating "<< currAppl->ZAPPNAME <<" ID: "<< currAppl->taskid() << endl ) ;
+	log( "I", "Application terminating "+ currAppl->ZAPPNAME +" ID: "<< currAppl->taskid() << endl ) ;
 
 	ZAPPNAME = currAppl->ZAPPNAME ;
 
@@ -1342,7 +1358,7 @@ void terminateApplication()
 		currAppl->closeLog()     ;
 	}
 
-	log( "I", "Removing application instance of " << ZAPPNAME << endl ) ;
+	log( "I", "Removing application instance of "+ ZAPPNAME << endl ) ;
 	apps[ ZAPPNAME ].refCount-- ;
 	((void (*)(pApplication*))(apps[ ZAPPNAME ].destroyer_ep))( currAppl ) ;
 
@@ -1431,7 +1447,7 @@ void terminateApplication()
 			}
 			else
 			{
-				log( "E", "Invalid field " << currAppl->field_name << " in .NRET panel statement" << endl ) ;
+				log( "E", "Invalid field "+ currAppl->field_name +" in .NRET panel statement" << endl ) ;
 				currAppl->setmsg( "PSYS01Z" ) ;
 				SMSG = currAppl->ZSMSG ; LMSG = currAppl->ZLMSG ; MSGTYPE = currAppl->ZMSGTYPE ; MSGALRM = currAppl->ZMSGALRM ;
 			}
@@ -1482,7 +1498,7 @@ void terminateApplication()
 		ResumeApplicationAndWait() ;
 		while ( currAppl->terminateAppl )
 		{
-			debug1( "Calling application " << currAppl->ZAPPNAME << " also ending" << endl ) ;
+			debug1( "Calling application "+ currAppl->ZAPPNAME +" also ending" << endl ) ;
 			terminateApplication() ;
 			if ( pLScreen::screensTotal == 0 ) return ;
 		}
@@ -1503,12 +1519,12 @@ void terminateApplication()
 				elapsed++ ;
 				boost::this_thread::sleep_for(boost::chrono::milliseconds(ZWAIT)) ;
 				if ( currAppl->noTimeOut ) { elapsed = 0 ; }
-				if ( elapsed > ZMAXWAIT  ) { currAppl->set_forced_abend() ; }
+				if ( elapsed > GMAXWAIT  ) { currAppl->set_forced_abend() ; }
 			}
 		}
 		while ( currAppl->terminateAppl )
 		{
-			debug1( "Previous application " << currAppl->ZAPPNAME << " also ending" << endl ) ;
+			debug1( "Previous application "+ currAppl->ZAPPNAME +" also ending" << endl ) ;
 			terminateApplication() ;
 			if ( pLScreen::screensTotal == 0 ) return ;
 		}
@@ -1525,7 +1541,7 @@ void terminateApplication()
 			currAppl->setMSG = false       ;
 		}
 	}
-	log( "I", "Application terminatation of " << ZAPPNAME << " completed.  Current application is " << currAppl->ZAPPNAME << endl ) ;
+	log( "I", "Application terminatation of "+ ZAPPNAME +" completed.  Current application is "+ currAppl->ZAPPNAME << endl ) ;
 	currScrn->set_row_col( row, col ) ;
 }
 
@@ -1542,7 +1558,7 @@ void ResumeApplicationAndWait()
 		elapsed++ ;
 		boost::this_thread::sleep_for(boost::chrono::milliseconds(ZWAIT)) ;
 		if ( currAppl->noTimeOut ) { elapsed = 0 ; }
-		if ( elapsed > ZMAXWAIT  ) { currAppl->set_forced_abend() ; }
+		if ( elapsed > GMAXWAIT  ) { currAppl->set_forced_abend() ; }
 	}
 	if ( currAppl->rmsgs.size() > 0 ) { rawOutput() ; }
 
@@ -1752,19 +1768,19 @@ void setColourPair( string name )
 		else if ( c == 'M' ) { cuaAttr[ cuaAttrName[ name ] ] = MAGENTA ; }
 		else if ( c == 'T' ) { cuaAttr[ cuaAttrName[ name ] ] = TURQ    ; }
 		else if ( c == 'W' ) { cuaAttr[ cuaAttrName[ name ] ] = WHITE   ; }
-		else { log( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ; RC = 20 ; }
+		else { log( "E", "Variable ZC"+ name +" has invalid value "+ t << endl ) ; RC = 20 ; }
 		c = t[ 1 ] ;
 		if      ( c == 'L' ) { cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_NORMAL  ; }
 		else if ( c == 'H' ) { cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_BOLD    ; }
-		else { log( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ; RC = 20 ; }
+		else { log( "E", "Variable ZC"+ name +" has invalid value "+ t << endl ) ; RC = 20 ; }
 		c = t[ 2 ] ;
 		if      ( c == 'N' ) { }
 		else if ( c == 'B' ) { cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_BLINK     ; }
 		else if ( c == 'R' ) { cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_REVERSE   ; }
 		else if ( c == 'U' ) { cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_UNDERLINE ; }
-		else { log( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ; RC = 20 ; }
+		else { log( "E", "Variable ZC"+ name +" has invalid value "+ t << endl ) ; RC = 20 ; }
 	}
-	else { log( "E", "Variable ZC" << name << " not found in ISPS profile" << endl ) ; RC = 20 ; }
+	else { log( "E", "Variable ZC"+ name +" not found in ISPS profile" << endl ) ; RC = 20 ; }
 	if ( RC > 0 )
 	{
 		delete screenList[ 0 ] ;
@@ -1801,7 +1817,7 @@ void loadDefaultPools()
 	{
 		delete screenList[ 0 ] ;
 		log( "C", "Loading of system profile ISPSPROF failed.  RC=" << RC << "  Aborting startup" << endl ) ;
-		log( "C", "Check path " << ZSPROF << endl ) ;
+		log( "C", "Check path " ZSPROF << endl ) ;
 		cout << "Aborting startup of lspf.  Check lspf and application logs for errors " << endl ;
 		splog.close() ;
 		abort() ;
@@ -1822,13 +1838,15 @@ void loadDefaultPools()
 	p_poolMGR->defaultVARs( RC, "ZOSVER", buf.version, SHARED )      ;
 	p_poolMGR->defaultVARs( RC, "ZMACHINE", buf.machine, SHARED )    ;
 	p_poolMGR->defaultVARs( RC, "ZENVIR", "lspf V0R0M1", SHARED )    ;
-	p_poolMGR->defaultVARs( RC, "ZDATEF", "DD/MM/YY", SHARED )       ;
-	p_poolMGR->defaultVARs( RC, "ZDATELF", "DD/MM/YYYY", SHARED )    ;
+	p_poolMGR->defaultVARs( RC, "ZDATEF",  "DD/MM/YY", SHARED )      ;
+	p_poolMGR->defaultVARs( RC, "ZDATEFD", "DD/MM/YY", SHARED )      ;
 	p_poolMGR->defaultVARs( RC, "ZSCALE", "OFF", SHARED )            ;
 	p_poolMGR->defaultVARs( RC, "ZSPLIT", "NO", SHARED )             ;
 
 	p_poolMGR->setPOOLsreadOnly( RC ) ;
+	GMAINPGM = p_poolMGR->get( RC, "ZMAINPGM", PROFILE ) ;
 }
+
 
 
 void loadCommandTable()
@@ -1844,7 +1862,7 @@ void loadCommandTable()
 	{
 		delete screenList[ 0 ] ;
 		log( "C", "Loading of system command table ISPCMDS failed.  RC=" << RC << "  Aborting startup" << endl ) ;
-		log( "C", "Check path" + ZTLIB << endl ) ;
+		log( "C", "Check path "+ ZTLIB << endl ) ;
 		cout << "Aborting startup of lspf.  Check lspf and application logs for errors " << endl ;
 		splog.close() ;
 		abort() ;
@@ -1890,6 +1908,8 @@ void updateDefaultVars()
 {
 	int RC ;
 
+	GMAXWAIT = ds2d( p_poolMGR->get( RC, "ZMAXWAIT", PROFILE ) ) ;
+	GMAINPGM = p_poolMGR->get( RC, "ZMAINPGM", PROFILE ) ;
 	if ( pLScreen::screensTotal > 1 )
 	{
 		p_poolMGR->defaultVARs( RC, "ZSPLIT", "YES", SHARED ) ;
@@ -2013,7 +2033,7 @@ void lspfCallbackHandler( lspfCommand & lc )
 			lc.reply.push_back( ita->first ) ;
 			lc.reply.push_back( ita->second.module ) ;
 			lc.reply.push_back( ita->second.file   ) ;
-			if ( ita->first == ZMAINPGM )
+			if ( ita->first == GMAINPGM )
 			{
 				lc.reply.push_back( "R/Not Reloadable" ) ;
 			}
@@ -2104,7 +2124,7 @@ void getDynamicClasses()
 
 	appInfo aI ;
 
-	const string e1( "** " ZMAINPGM " not found.  Check ZLDPATH is correct.  lspf terminating **" ) ;
+	const string e1( "** "+ GMAINPGM +" not found.  Check ZLDPATH is correct.  lspf terminating **" ) ;
 
 	paths = p_poolMGR->get( RC, "ZLDPATH", PROFILE ) ;
 	j     = getpaths( paths ) ;
@@ -2147,7 +2167,7 @@ void getDynamicClasses()
 		apps[ appl ]   = aI    ;
 	}
 	log( "I", d2ds( apps.size() ) + " applications found and stored" << endl ) ;
-	if ( apps.find( ZMAINPGM ) == apps.end() )
+	if ( apps.find( GMAINPGM ) == apps.end() )
 	{
 		delete screenList[ 0 ] ;
 		log( "C", e1 << endl ) ;
@@ -2216,7 +2236,7 @@ void reloadDynamicClasses( string parm )
 
 		if ( parm == "NEW" && stored ) { continue ; }
 		if ( parm != "NEW" && parm != "ALL" && parm != appl ) { continue ; }
-		if ( appl == ZMAINPGM ) { continue ; }
+		if ( appl == GMAINPGM ) { continue ; }
 		if ( parm == appl && stored && !apps[ appl ].dlopened )
 		{
 			apps[ appl ].file = fname ;

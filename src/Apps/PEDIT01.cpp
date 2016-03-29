@@ -216,7 +216,6 @@ void PEDIT01::initialise()
 void PEDIT01::Edit()
 {
 	string t      ;
-
 	bool termEdit ;
 
 	RC  = 0  ;
@@ -256,6 +255,7 @@ void PEDIT01::Edit()
 
 		termEdit = false ;
 		positionCursor() ;
+
 		display( "PEDIT012", MSG, CURFLD, CURPOS ) ;
 
 		if ( RC  > 8 ) { abend()         ; }
@@ -288,8 +288,9 @@ void PEDIT01::Edit()
 		storeCursor( aURID, 4, aCol-CLINESZ+startCol-2 ) ;
 
 		getZAREAchanges() ;
-		actionZVERB()     ;
 		updateData()      ;
+		actionZVERB()     ;
+		processNISRTlines() ;
 		actionPrimCommand() ;
 
 		if ( MSG != "" )
@@ -546,7 +547,7 @@ bool PEDIT01::saveFile()
 void PEDIT01::fill_dynamic_area()
 {
 	// s2data is only valid while the data vector has not changed since building the screen
-	// ie. after fill_dynamic_area and before procedure updateData()
+	// ie. after fill_dynamic_area and before procedure processNISRTlines()
 
 	int i   ;
 	int l   ;
@@ -932,85 +933,21 @@ void PEDIT01::getZAREAchanges()
 
 void PEDIT01::updateData()
 {
-	int i  ;
-	int j  ;
-	int k  ;
-	int p  ;
+	int i ;
+	int j ;
+	int p ;
 
 	uint dl  ;
-
 	string t ;
 
-	iline * p_iline ;
-
-	vector<iline * >::iterator it ;
-
 	Level++ ;
-	for ( i = ZAREAD-1 ; i >= 0 ; i-- )
+	for ( i = 0 ; i < ZAREAD ; i++ )
 	{
 		if ( s2data.at( i ).ipo_URID == 0 ) { continue ; }
 		dl = s2data.at( i ).ipo_line ;
-		if ( data.at( dl )->il_nisrt )
-		{
-			if ( !sTouched[ i ] && !sChanged[ i ] )
-			{
-				it = data.begin() ;
-				advance( it, dl ) ;
-				delete *it            ;
-				it = data.erase( it ) ;
-				placeCursor( (*it)->il_URID, 3 ) ;
-				rebuildZAREA = true   ;
-				continue              ;
-			}
-			else
-			{
-				data.at( dl )->il_nisrt = false ;
-				t = data.at( dl )->get_idata()  ;
-				if ( startCol > 1 )
-				{
-					if ( t.size() > ZDATAW+startCol-1 )
-					{
-						t = substr( t, 1, startCol-1 ) + ZAREA.substr( CLINESZ+(i*ZAREAW), ZDATAW ) + t.substr( ZDATAW+startCol-1 ) ;
-					}
-					else
-					{
-						t = substr( t, 1, startCol-1 ) + strip( ZAREA.substr( CLINESZ+(i*ZAREAW), ZDATAW ), 'T', ' ' ) ;
-					}
-				}
-				else
-				{
-					if ( t.size() > ZDATAW )
-					{
-						t = ZAREA.substr( CLINESZ+(i*ZAREAW), ZDATAW ) + t.substr( ZDATAW ) ;
-					}
-					else
-					{
-						t =strip( ZAREA.substr( CLINESZ+(i*ZAREAW), ZDATAW ), 'T', ' ' ) ;
-					}
-				}
-				if ( profCaps ) { t = upper( t ) ; }
-				data.at( dl )->put_idata( t ) ;
-				data.at( dl )->set_il_idatalvl( Level ) ;
-				if ( data.at( dl )->il_URID == aURID )
-				{
-					it = getLineItr( data.at( dl )->il_URID ) ;
-					k = (*it)->get_idata().find_first_not_of( ' ', startCol-1 ) ;
-					it++ ;
-					p_iline = new iline( taskid() ) ;
-					p_iline->il_file  = true ;
-					p_iline->il_nisrt = true ;
-					p_iline->put_idata( maskLine ) ;
-					it = data.insert( it, p_iline )       ;
-					if ( k != string::npos ) { placeCursor( p_iline->il_URID, 4, k ) ; }
-					else                     { placeCursor( p_iline->il_URID, 2 )    ; }
-				}
-				rebuildZAREA  = true ;
-				fileChanged   = true ;
-				continue             ;
-			}
-		}
-		if ( !sChanged[ i ] ) { continue ; }
-		if ( data.at( dl )->il_bnds )
+		if ( !data.at( dl )->il_nisrt && !sChanged[ i ] ) { continue ; }
+		if (  data.at( dl )->il_nisrt && !sChanged[ i ] && !sTouched[ i ] ) { continue ; }
+		if (  data.at( dl )->il_bnds )
 		{
 			t = ZAREA.substr( CLINESZ+(i*ZAREAW), ZDATAW ) ;
 			p = LeftBnd - startCol ;
@@ -1042,7 +979,6 @@ void PEDIT01::updateData()
 				p++ ;
 			}
 			if ( RightBnd <= LeftBnd ) { RightBnd = 0 ; }
-			rebuildZAREA   = true  ;
 		}
 		else
 		{
@@ -1089,11 +1025,71 @@ void PEDIT01::updateData()
 			}
 			else
 			{
-				data.at( dl )->put_idata( t, Level ) ;
+				if ( data.at( dl )->il_nisrt )
+				{
+					data.at( dl )->put_idata( t ) ;
+					data.at( dl )->set_il_idatalvl( Level ) ;
+				}
+				else
+				{
+					data.at( dl )->put_idata( t, Level ) ;
+				}
 			}
-			rebuildZAREA = true  ;
 			fileChanged  = true  ;
 		}
+		rebuildZAREA = true  ;
+	}
+}
+
+
+void PEDIT01::processNISRTlines()
+{
+	// Remove new insert lines that have not been changed/touched
+	// Add a new line below inserted lines when changed/touched and cursor is on the line still
+
+	// s2data no longer valid after this routine as it changes the data vector
+
+	int i ;
+	int k ;
+
+	uint dl  ;
+
+	iline * p_iline ;
+
+	vector<iline * >::iterator it ;
+
+	for ( i = ZAREAD-1 ; i >= 0 ; i-- )
+	{
+		if ( s2data.at( i ).ipo_URID == 0 ) { continue ; }
+		dl = s2data.at( i ).ipo_line ;
+		if ( !data.at( dl )->il_nisrt ) { continue ; }
+		if ( !sTouched[ i ] && !sChanged[ i ] )
+		{
+			it = data.begin() ;
+			advance( it, dl ) ;
+			delete *it        ;
+			it = data.erase( it ) ;
+			placeCursor( (*it)->il_URID, 3 ) ;
+		}
+		else
+		{
+			data.at( dl )->il_nisrt = false ;
+			if ( data.at( dl )->il_URID == aURID )
+			{
+				it = getLineItr( data.at( dl )->il_URID ) ;
+				k = (*it)->get_idata().find_first_not_of( ' ', startCol-1 ) ;
+				it++ ;
+				p_iline = new iline( taskid() ) ;
+				p_iline->il_file  = true ;
+				p_iline->il_nisrt = true ;
+				p_iline->put_idata( maskLine ) ;
+				it = data.insert( it, p_iline )       ;
+				if ( k != string::npos ) { placeCursor( p_iline->il_URID, 4, k ) ; }
+				else                     { placeCursor( p_iline->il_URID, 2 )    ; }
+			}
+			fileChanged   = true ;
+		}
+		rebuildZAREA  = true ;
 	}
 }
 
@@ -1752,7 +1748,6 @@ void PEDIT01::actionPrimCommand()
 		log( "A", " ++++++++++++++++++++++++++++++++++++++++" << endl ; )
 		it = data.begin() ;
 		log( "A", " Global UNDO stack size: " << (*it)->get_Global_Undo_Size() << endl  ; )
-		vector<icmd>::iterator itc         ;
 		log( "A", " Global REDO stack size: " << (*it)->get_Global_Redo_Size() << endl  ; )
 		ZCMD = ""    ;
 	}
@@ -4804,7 +4799,7 @@ void PEDIT01::addSpecial( char t, int p, string & s )
 		case 'P': p_iline->il_prof = true ; break ;
 	}
 	p_iline->put_idata( s, 0 ) ;
-	it = data.insert( it, p_iline )    ;
+	it = data.insert( it, p_iline ) ;
 }
 
 
@@ -4854,7 +4849,6 @@ void PEDIT01::cleanupData()
 
 	int topURID ;
 
-	vector<iline * >::iterator it      ;
 	vector<iline * >::iterator new_end ;
 	vector<iline * >tdata              ;
 
@@ -4882,7 +4876,6 @@ void PEDIT01::removeProfLines()
 	// Reposition topLine as lines before may have been removed or topLine itself, deleted
 
 	int topURID ;
-	vector<iline * >::iterator it      ;
 	vector<iline * >::iterator new_end ;
 	vector<iline * >tdata              ;
 
@@ -4913,7 +4906,6 @@ void PEDIT01::removeSpecialLines()
 	// Reposition topLine as lines before may have been removed or topLine itself, deleted
 
 	int topURID ;
-	vector<iline * >::iterator it      ;
 	vector<iline * >::iterator new_end ;
 	vector<iline * >tdata              ;
 

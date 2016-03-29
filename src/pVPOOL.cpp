@@ -59,64 +59,114 @@ void fPOOL::define( int & RC, string name, int * addr )
 }
 
 
-bool fPOOL::ifexists( int & RC, string name, nameCHCK check )
+void fPOOL::dlete( int & RC, string name, nameCHCK check )
 {
+	// Remove the vdefine for a variable from the function pool.
+
+	// Use * for all vdefined variables (except system variables that have been defined in the
+	// pApplication constructor)
+
+	// RC =  0 OK
+	// RC =  8 Variable not found in the defined area of the function pool
+	// RC = 20 Severe error
+
+	map<string, stack< fVAR> >::iterator it  ;
+
 	RC = 0 ;
 
-	if ( (check == CHECK) && !isvalidName( name ) ) { RC = 20 ; return false ; }
+	const string vdsys( "ZCURFLD ZCURPOS ZTDMARK ZTDDEPTH ZTDROWS ZTDSELS ZTDTOP ZTDVROWS ZERR1 ZERR2 ZAPPNAME" ) ;
 
-	if ( POOL.find( name ) == POOL.end() ) { return false; }
-	return true ;
+	if ( name == "*")
+	{
+		for ( it = POOL.begin() ; it != POOL.end() ; it++ )
+		{
+			if ( findword( it->first, vdsys ) ) { continue ; }
+			if ( it->second.top().fVAR_defined )
+			{
+				POOL.erase( it )  ;
+				it = POOL.begin() ;
+			}
+		}
+		return ;
+	}
+
+	if ( (check == CHECK) && !isvalidName( name ) ) { RC = 20 ; return ; }
+
+	it = POOL.find( name ) ;
+
+	if ( it == POOL.end() || !it->second.top().fVAR_defined )
+	{
+		RC = 8 ;
+		return ;
+	}
+
+	if ( it->second.size() == 1 )
+	{
+		POOL.erase( it ) ;
+	}
+	else
+	{
+		it->second.pop() ;
+	}
 }
 
 
-string fPOOL::vilist( int & RC, vdType defn )
+string fPOOL::get( int & RC, int maxRC, string name, nameCHCK check )
 {
-	string vl ;
 	map<string, stack< fVAR> >::iterator it ;
 
-	RC = 8 ;
-	for ( it = POOL.begin() ; it != POOL.end() ; it++ )
+	RC = 0 ;
+
+	if ( (check == CHECK) && !isvalidName( name ) ) { RC = 20 ; return "" ; }
+
+	it = POOL.find( name ) ;
+	if ( it == POOL.end() )
 	{
-		if ( !isvalidName( it->first ) ) { continue ; }
-		if ( it->second.top().fVAR_type != INTEGER ) { continue ; }
-		if ( it->second.top().fVAR_defined )
-		{
-			if ( defn == IMPLICIT ) { continue ; }
-		}
-		else
-		{
-			if ( defn == DEFINED  ) { continue ; }
-		}
-		vl = vl + " " + it->first ;
-		RC = 0 ;
+		RC = 8 ;
+		if ( RC > maxRC ) { RC = 20 ; log( "E", "Maximum return code of " << maxRC << " exceeded for fPOOL.get of " << name << " RC=8" << endl ) ; }
+		return "" ;
 	}
-	return vl ;
+
+	if ( it->second.top().fVAR_type != STRING )
+	{
+		RC = 20 ;
+		log( "E", "Function pool definition of " << name << " is not of type string" << endl ) ;
+		if ( RC > maxRC ) { log( "E", "Maximum return code of " << maxRC << " exceeded for fPOOL.get of " << name << " RC=20" << endl ) ; }
+		return "" ;
+
+	}
+
+	if ( it->second.top().fVAR_defined ) { return *it->second.top().fVAR_string_ptr ; }
+	else                                 { return  it->second.top().fVAR_string     ; }
 }
 
 
-string fPOOL::vslist( int & RC, vdType defn )
+int fPOOL::get( int & RC, int maxRC, dataType type, string name )
 {
-	string vl ;
 	map<string, stack< fVAR> >::iterator it ;
 
-	RC = 8 ;
-	for ( it = POOL.begin() ; it != POOL.end() ; it++ )
+	RC = 0 ;
+
+	if ( !isvalidName( name ) ) { RC = 20  ; return 0 ; }
+
+	it = POOL.find( name ) ;
+	if ( it == POOL.end() )
 	{
-		if ( !isvalidName( it->first ) ) { continue ; }
-		if ( it->second.top().fVAR_type != STRING ) { continue ; }
-		if ( it->second.top().fVAR_defined )
-		{
-			if ( defn == IMPLICIT ) { continue ; }
-		}
-		else
-		{
-			if ( defn == DEFINED  ) { continue ; }
-		}
-		vl = vl + " " + it->first ;
-		RC = 0 ;
+		RC = 8 ;
+		if ( RC > maxRC ) { RC = 20 ; log( "E", "Maximum return code of " << maxRC << " exceeded for fPOOL.get of " << name << " RC=8" << endl ) ; }
+		return 0 ;
 	}
-	return vl ;
+
+	if ( it->second.top().fVAR_type != type )
+	{
+		RC = 20 ;
+		log( "E", "Function pool definition of " << name << " is not of type int" << endl ) ;
+		if ( RC > maxRC ) { log( "E", "Maximum return code of " << maxRC << " exceeded for fPOOL.get of " << name << " RC=20" << endl ) ; }
+		return 0 ;
+
+	}
+	if ( it->second.top().fVAR_defined ) { return *it->second.top().fVAR_int_ptr ; }
+	else                                 { return  it->second.top().fVAR_int     ; }
 }
 
 
@@ -132,29 +182,15 @@ dataType fPOOL::getType( int & RC, string name, nameCHCK check )
 }
 
 
-
-string * fPOOL::vlocate( int & RC, int maxRC, string name, nameCHCK check )
+bool fPOOL::ifexists( int & RC, string name, nameCHCK check )
 {
-	map<string, stack< fVAR> >::iterator it ;
-
 	RC = 0 ;
 
-	if ( (check == CHECK) && !isvalidName( name ) ) { RC = 20 ; return NULL ; }
+	if ( (check == CHECK) && !isvalidName( name ) ) { RC = 20 ; return false ; }
 
-	it = POOL.find( name ) ;
-	if ( it == POOL.end() ) { RC = 8 ; return NULL ; }
-	if ( it->second.top().fVAR_type != STRING )
-	{
-		RC = 20 ;
-		log( "E", "Function pool definition of " << name << " is not of type string" << endl ) ;
-		if ( RC > maxRC ) { log( "E", "Maximum return code of " << maxRC << " exceeded for fPOOL.vlocate of " << name << " RC=20" << endl ) ; }
-		return NULL ;
-	}
-
-	if ( it->second.top().fVAR_defined ) { return  it->second.top().fVAR_string_ptr ; }
-	else                                 { return &it->second.top().fVAR_string     ; }
+	if ( POOL.find( name ) == POOL.end() ) { return false; }
+	return true ;
 }
-
 
 
 void fPOOL::put( int & RC, int maxRC, string name, string value, nameCHCK check )
@@ -222,62 +258,12 @@ void fPOOL::put( int & RC, int maxRC, string name, int value )
 }
 
 
-string fPOOL::get( int & RC, int maxRC, string name, nameCHCK check )
+void fPOOL::reset()
 {
-	map<string, stack< fVAR> >::iterator it ;
-
+	int RC ;
 	RC = 0 ;
 
-	if ( (check == CHECK) && !isvalidName( name ) ) { RC = 20 ; return "" ; }
-
-	it = POOL.find( name ) ;
-	if ( it == POOL.end() )
-	{
-		RC = 8 ;
-		if ( RC > maxRC ) { RC = 20 ; log( "E", "Maximum return code of " << maxRC << " exceeded for fPOOL.get of " << name << " RC=8" << endl ) ; }
-		return "" ;
-	}
-
-	if ( it->second.top().fVAR_type != STRING )
-	{
-		RC = 20 ;
-		log( "E", "Function pool definition of " << name << " is not of type string" << endl ) ;
-		if ( RC > maxRC ) { log( "E", "Maximum return code of " << maxRC << " exceeded for fPOOL.get of " << name << " RC=20" << endl ) ; }
-		return "" ;
-
-	}
-
-	if ( it->second.top().fVAR_defined ) { return *it->second.top().fVAR_string_ptr ; }
-	else                                 { return  it->second.top().fVAR_string     ; }
-}
-
-
-int fPOOL::get( int & RC, int maxRC, dataType type, string name )
-{
-	map<string, stack< fVAR> >::iterator it ;
-
-	RC = 0 ;
-
-	if ( !isvalidName( name ) ) { RC = 20  ; return 0 ; }
-
-	it = POOL.find( name ) ;
-	if ( it == POOL.end() )
-	{
-		RC = 8 ;
-		if ( RC > maxRC ) { RC = 20 ; log( "E", "Maximum return code of " << maxRC << " exceeded for fPOOL.get of " << name << " RC=8" << endl ) ; }
-		return 0 ;
-	}
-
-	if ( it->second.top().fVAR_type != type )
-	{
-		RC = 20 ;
-		log( "E", "Function pool definition of " << name << " is not of type int" << endl ) ;
-		if ( RC > maxRC ) { log( "E", "Maximum return code of " << maxRC << " exceeded for fPOOL.get of " << name << " RC=20" << endl ) ; }
-		return 0 ;
-
-	}
-	if ( it->second.top().fVAR_defined ) { return *it->second.top().fVAR_int_ptr ; }
-	else                                 { return  it->second.top().fVAR_int     ; }
+	POOL.clear() ;
 }
 
 
@@ -299,64 +285,76 @@ void fPOOL::setmask( int & RC, string name, string mask )
 }
 
 
-void fPOOL::dlete( int & RC, string name, nameCHCK check )
+string fPOOL::vilist( int & RC, vdType defn )
 {
-	// Remove the vdefine for a variable from the function pool.
+	string vl ;
+	map<string, stack< fVAR> >::iterator it ;
 
-	// Use * for all vdefined variables (except system variables that have been defined in the
-	// pApplication constructor)
-
-	// RC =  0 OK
-	// RC =  8 Variable not found in the defined area of the function pool
-	// RC = 20 Severe error
-
-	map<string, stack< fVAR> >::iterator it  ;
-
-	RC = 0 ;
-
-	const string vdsys( "ZCURFLD ZCURPOS ZTDMARK ZTDDEPTH ZTDROWS ZTDSELS ZTDTOP ZTDVROWS ZERR1 ZERR2 ZAPPNAME" ) ;
-
-	if ( name == "*")
+	RC = 8 ;
+	for ( it = POOL.begin() ; it != POOL.end() ; it++ )
 	{
-		for ( it = POOL.begin() ; it != POOL.end() ; it++ )
+		if ( !isvalidName( it->first ) ) { continue ; }
+		if ( it->second.top().fVAR_type != INTEGER ) { continue ; }
+		if ( it->second.top().fVAR_defined )
 		{
-			if ( findword( it->first, vdsys ) ) { continue ; }
-			if ( it->second.top().fVAR_defined )
-			{
-				POOL.erase( it )  ;
-				it = POOL.begin() ;
-			}
+			if ( defn == IMPLICIT ) { continue ; }
 		}
-		return ;
+		else
+		{
+			if ( defn == DEFINED  ) { continue ; }
+		}
+		vl = vl + " " + it->first ;
+		RC = 0 ;
 	}
-
-	if ( (check == CHECK) && !isvalidName( name ) ) { RC = 20 ; return ; }
-
-	it = POOL.find( name ) ;
-
-	if ( it == POOL.end() || !it->second.top().fVAR_defined )
-	{
-		RC = 8 ;
-		return ;
-	}
-
-	if ( it->second.size() == 1 )
-	{
-		POOL.erase( it ) ;
-	}
-	else
-	{
-		it->second.pop() ;
-	}
+	return vl ;
 }
 
 
-void fPOOL::reset()
+string fPOOL::vslist( int & RC, vdType defn )
 {
-	int RC ;
+	string vl ;
+	map<string, stack< fVAR> >::iterator it ;
+
+	RC = 8 ;
+	for ( it = POOL.begin() ; it != POOL.end() ; it++ )
+	{
+		if ( !isvalidName( it->first ) ) { continue ; }
+		if ( it->second.top().fVAR_type != STRING ) { continue ; }
+		if ( it->second.top().fVAR_defined )
+		{
+			if ( defn == IMPLICIT ) { continue ; }
+		}
+		else
+		{
+			if ( defn == DEFINED  ) { continue ; }
+		}
+		vl = vl + " " + it->first ;
+		RC = 0 ;
+	}
+	return vl ;
+}
+
+
+string * fPOOL::vlocate( int & RC, int maxRC, string name, nameCHCK check )
+{
+	map<string, stack< fVAR> >::iterator it ;
+
 	RC = 0 ;
 
-	POOL.clear() ;
+	if ( (check == CHECK) && !isvalidName( name ) ) { RC = 20 ; return NULL ; }
+
+	it = POOL.find( name ) ;
+	if ( it == POOL.end() ) { RC = 8 ; return NULL ; }
+	if ( it->second.top().fVAR_type != STRING )
+	{
+		RC = 20 ;
+		log( "E", "Function pool definition of " << name << " is not of type string" << endl ) ;
+		if ( RC > maxRC ) { log( "E", "Maximum return code of " << maxRC << " exceeded for fPOOL.vlocate of " << name << " RC=20" << endl ) ; }
+		return NULL ;
+	}
+
+	if ( it->second.top().fVAR_defined ) { return  it->second.top().fVAR_string_ptr ; }
+	else                                 { return &it->second.top().fVAR_string     ; }
 }
 
 
@@ -406,6 +404,8 @@ string pVPOOL::get( int & RC, string name )
 	// RC = 20 Severe error
 
 	// Generate the value for pV_type != pV_VALUE (these are date/time entries created on access)
+
+	// TODO: Format date variables according to ZDATEF
 
 	int    p1 ;
 	string t  ;

@@ -144,7 +144,7 @@ main()
 
 	ZCTVERB  = "HELP" ;
 	ZCTTRUNC = "0"    ;
-	ZCTACT   = "SELECT PGM(" ZHELPPGM ") PARM(&ZPARM)"  ;
+	ZCTACT   = "SELECT PGM(&ZHELPPGM) PARM(&ZPARM)"  ;
 	ZCTDESC  = "INVOKE HELP SYSTEM" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
@@ -234,37 +234,37 @@ main()
 
 	ZCTVERB  = "START"    ;
 	ZCTTRUNC = "0"        ;
-	ZCTACT   = "SELECT PGM(" ZMAINPGM ")" ;
+	ZCTACT   = "SELECT PGM(&ZMAINPGM)" ;
 	ZCTDESC  = "START A NEW MAIN PROGRAM SESSION" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
 	ZCTVERB  = "REFACTF" ;
 	ZCTTRUNC = "5"       ;
-	ZCTACT   = "SELECT PGM(PLRFLST1) PARM(PL1 &ZPARM)" ;
+	ZCTACT   = "SELECT PGM(&ZRFLPGM) PARM(PL1 &ZPARM)" ;
 	ZCTDESC  = "OPEN ACTIVE REFERRAL LIST" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
 	ZCTVERB  = "REFADDF" ;
 	ZCTTRUNC = "5"       ;
-	ZCTACT   = "SELECT PGM(PLRFLST1) PARM(PLA &ZPARM)" ;
+	ZCTACT   = "SELECT PGM(&ZRFLPGM) PARM(PLA &ZPARM)" ;
 	ZCTDESC  = "ADD FILE TO REFERENCE LIST" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
 	ZCTVERB  = "REFLISTF" ;
 	ZCTTRUNC = "4"        ;
-	ZCTACT   = "SELECT PGM(PLRFLST1) PARM(PL1 REFLIST &ZPARM)" ;
+	ZCTACT   = "SELECT PGM(&ZRFLPGM) PARM(PL1 REFLIST &ZPARM)" ;
 	ZCTDESC  = "OPEN REFERENCE LIST" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
 	ZCTVERB  = "REFOPENF" ;
 	ZCTTRUNC = "4"        ;
-	ZCTACT   = "SELECT PGM(PLRFLST1) PARM(PL2)"  ;
+	ZCTACT   = "SELECT PGM(&ZRFLPGM) PARM(PL2)"  ;
 	ZCTDESC  = "OPEN FILE REFERRAL LISTS" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
 	ZCTVERB  = "NRETRIEV" ;
 	ZCTTRUNC = "0"        ;
-	ZCTACT   = "SELECT PGM(PLRFLST1) PARM(NR1 &ZPARM)"  ;
+	ZCTACT   = "SELECT PGM(&ZRFLPGM) PARM(NR1 &ZPARM)"  ;
 	ZCTDESC  = "RETRIEVE NEXT ENTRY FROM ACTIVE REFERRAL LIST" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
@@ -390,6 +390,7 @@ void createSYSPROF()
 	p_poolMGR->put( RC, "ZDEL",    ";", PROFILE ) ;
 	p_poolMGR->put( RC, "ZKLUSE",  "N", PROFILE ) ;
 	p_poolMGR->put( RC, "ZKLFAIL", "Y", PROFILE ) ;
+	p_poolMGR->put( RC, "ZRTSIZE", "3", PROFILE ) ;
 
 	p_poolMGR->put( RC, "ZUCMDT1", "USR", PROFILE ) ;
 	p_poolMGR->put( RC, "ZUCMDT2", "", PROFILE ) ;

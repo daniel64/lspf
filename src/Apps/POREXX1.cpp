@@ -22,7 +22,7 @@
 /* OOREXX-lspf interface module                                                                         */
 /*                                                                                                      */
 /* Setup command handler and call REXX interpreter                                                      */
-/* (command handler lspfCommandHandler used for address ISPEXEC rexx statements for lspf services)      */
+/* (command handler lspfServiceHandler used for address ISPEXEC rexx statements for lspf services)      */
 /*                                                                                                      */
 /* PARM word 1 is the rexx to invloke                                                                   */
 /* PARM words 2 onwards are the parameters for the rexx (Arg(1))                                        */
@@ -60,7 +60,7 @@ using namespace boost::filesystem ;
 #define MOD_NAME POREXX1
 
 
-RexxObjectPtr RexxEntry lspfCommandHandler( RexxExitContext *, RexxStringObject, RexxStringObject ) ;
+RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext *, RexxStringObject, RexxStringObject ) ;
 
 int getRexxVariable( pApplication *, string, string & ) ;
 int setRexxVariable( string, string ) ;
@@ -130,7 +130,7 @@ void POREXX1::application()
 	RexxContextEnvironment environments[ 2 ] ;
 	RexxOption             options[ 3 ]      ;
 
-	environments[ 0 ].handler = lspfCommandHandler ;
+	environments[ 0 ].handler = lspfServiceHandler ;
 	environments[ 0 ].name    = "ISPEXEC" ;
 	environments[ 1 ].handler = NULL ;
 	environments[ 1 ].name    = ""   ;
@@ -226,7 +226,7 @@ void POREXX1::application()
 }
 
 
-RexxObjectPtr RexxEntry lspfCommandHandler( RexxExitContext *context,
+RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext *context,
 					    RexxStringObject address,
 					    RexxStringObject command )
 {

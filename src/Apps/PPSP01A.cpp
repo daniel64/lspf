@@ -479,6 +479,9 @@ void PPSP01A::fill_dynamic_area()
 void PPSP01A::lspfSettings()
 {
 	int RCode      ;
+	int timeOut    ;
+
+	string *t1     ;
 
 	string GODEL   ;
 	string GOKLUSE ;
@@ -496,6 +499,12 @@ void PPSP01A::lspfSettings()
 	string GOSCMD3 ;
 	string GOSTFST ;
 
+	string GOATIMO  ;
+	string KMAXWAIT ;
+
+	string GORTSIZE ;
+	string ZRTSIZE  ;
+
 	string ZUCMDT1 ;
 	string ZUCMDT2 ;
 	string ZUCMDT3 ;
@@ -510,6 +519,8 @@ void PPSP01A::lspfSettings()
 	vdefine( "GOSCMD1 GOSCMD2 GOSCMD3 GOSTFST", &GOSCMD1, &GOSCMD2, &GOSCMD3, &GOSTFST ) ;
 	vdefine( "ZKLUSE  ZKLFAIL GOKLUSE GOKLFAL", &ZKLUSE, &ZKLFAIL, &GOKLUSE, &GOKLFAL ) ;
 	vdefine( "ZDEL    GODEL", &ZDEL, &GODEL ) ;
+	vdefine( "ZRTSIZE GORTSIZE", &ZRTSIZE, &GORTSIZE ) ;
+	vdefine( "ZMAXWAIT GOATIMO", &KMAXWAIT, &GOATIMO ) ;
 
 	vget( "ZUCMDT1 ZUCMDT2 ZUCMDT3", PROFILE ) ;
 	vget( "ZSCMDT1 ZSCMDT2 ZSCMDT3 ZSCMDTF", PROFILE ) ;
@@ -528,6 +539,14 @@ void PPSP01A::lspfSettings()
 	GOSCMD1 = ZSCMDT1 ;
 	GOSCMD2 = ZSCMDT2 ;
 	GOSCMD3 = ZSCMDT3 ;
+
+	vcopy( "ZWAIT", t1, LOCATE ) ;
+	vget( "ZMAXWAIT ZRTSIZE", PROFILE ) ;
+
+	timeOut = ds2d( *t1 ) * ds2d( KMAXWAIT ) / 1000 ;
+	GOATIMO = d2ds( timeOut ) ;
+
+	GORTSIZE = ZRTSIZE ;
 
 	while ( true )
 	{
@@ -558,6 +577,16 @@ void PPSP01A::lspfSettings()
 			    ZDEL = GODEL ;
 			    vput( "ZDEL", PROFILE ) ;
 		    }
+		    if ( GOATIMO != "" )
+		    {
+			    KMAXWAIT = d2ds( ds2d( GOATIMO ) * 1000 / ds2d( *t1 ) ) ;
+			    vput( "ZMAXWAIT", PROFILE ) ;
+		    }
+		    if ( GORTSIZE != "" )
+		    {
+			    ZRTSIZE = GORTSIZE ;
+			    vput( "ZRTSIZE", PROFILE ) ;
+		    }
 		    if ( RCode == 8 ) { break ; }
 		}
 		if ( ZCMD == "DEFAULTS" )
@@ -572,6 +601,8 @@ void PPSP01A::lspfSettings()
 		    GOSCMD1  = ""  ;
 		    GOSCMD2  = ""  ;
 		    GOSCMD3  = ""  ;
+		    GOATIMO  = d2ds( ZMAXWAIT * ds2d( *t1 ) / 1000 ) ;
+		    GORTSIZE = "3" ;
 		}
 	}
 	vdelete( "ZUCMDT1 ZUCMDT2 ZUCMDT3" ) ;
@@ -580,6 +611,8 @@ void PPSP01A::lspfSettings()
 	vdelete( "GOSCMD1 GOSCMD2 GOSCMD3 GOSTFST" ) ;
 	vdelete( "ZKLUSE  ZKLFAIL GOKLUSE GOKLFAL" ) ;
 	vdelete( "ZDEL    GODEL" ) ;
+	vdelete( "ZRTSIZE GORTSIZE" ) ;
+	vdelete( "ZMAXWAIT GOATIMO" ) ;
 }
 
 
@@ -1487,11 +1520,12 @@ void PPSP01A::showCommandTables()
 	string APPLCMD  ;
 	string APPLCMDL ;
 
-	vdefine( "ZAPPLID CMDTAB ZCTVERB ZCTTRUNC ZCTACT ZCTDESC APPLCMD APPLCMDL", &ZAPPLID, &CMDTAB, &ZCTVERB, &ZCTTRUNC, &ZCTACT, &ZCTDESC, &APPLCMD, &APPLCMDL ) ;
+	vdefine( "ZCTVERB ZCTTRUNC ZCTACT ZCTDESC", &ZCTVERB, &ZCTTRUNC, &ZCTACT, &ZCTDESC ) ;
+	vdefine( "ZAPPLID CMDTAB APPLCMD APPLCMDL", &ZAPPLID, &CMDTAB, &APPLCMD,  &APPLCMDL ) ;
 
 	vget( "ZAPPLID" ) ;
 	vget( "CMDTAB", PROFILE ) ;
-	if ( CMDTAB == "" ) CMDTAB = "ISPCMDS" ;
+	if ( CMDTAB == "" ) { CMDTAB = "ISP" ; }
 	OCMDTAB = CMDTAB ;
 
 	APPLCMD  = "" ;
@@ -1510,31 +1544,31 @@ void PPSP01A::showCommandTables()
 			tbend( APPLCMD ) ;
 		}
 	}
-	MSG     = ""     ;
+	MSG = "" ;
 
-	tbopen( CMDTAB, NOWRITE, "", SHARE ) ;
+	tbopen( CMDTAB+"CMDS", NOWRITE, "", SHARE ) ;
 	if ( RC > 0 )
 	{
-		CMDTAB = "ISPCMDS" ;
-		tbopen( CMDTAB, NOWRITE, "", SHARE ) ;
+		CMDTAB = "ISP" ;
+		tbopen( CMDTAB+"CMDS", NOWRITE, "", SHARE ) ;
 	}
 	i = 1 ;
 	while ( true )
 	{
-		tbtop( CMDTAB )     ;
-		tbskip( CMDTAB, i ) ;
+		tbtop( CMDTAB+"CMDS" )     ;
+		tbskip( CMDTAB+"CMDS", i ) ;
 		ZCMD  = "" ;
-		tbdispl( CMDTAB, "PPSP01AC", MSG, "ZCMD" ) ;
+		tbdispl( CMDTAB+"CMDS", "PPSP01AC", MSG, "ZCMD" ) ;
 		i = ZTDTOP ;
 		if ( RC  >  8 ) { abend() ; }
 		if ( RC ==  8 ) { break   ; }
 		MSG = "" ;
 		if ( OCMDTAB != CMDTAB )
 		{
-			tbopen( CMDTAB, NOWRITE, "", SHARE ) ;
+			tbopen( CMDTAB+"CMDS", NOWRITE, "", SHARE ) ;
 			if ( RC == 0 )
 			{
-				tbend( OCMDTAB ) ;
+				tbend( OCMDTAB+"CMDS" ) ;
 				OCMDTAB = CMDTAB ;
 			}
 			else
@@ -1544,7 +1578,7 @@ void PPSP01A::showCommandTables()
 			}
 		}
 	}
-	tbend( CMDTAB ) ;
+	tbend( CMDTAB+"CMDS" ) ;
 	vput( "CMDTAB", PROFILE ) ;
 
 }

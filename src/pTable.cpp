@@ -2092,6 +2092,11 @@ void tableMGR::cmdsearch( int & RC, fPOOL & funcPOOL, string tb_name, string cmd
 {
 	// Search table for command 'cmd'.  Load table if not already in storage.
 
+	// RC = 0  Okay
+	// RC = 8  Command not found
+	// RC = 12 Table not found
+	// RC = 20 Severe error
+
 	RC = 0 ;
 
 	tb_name = tb_name + "CMDS" ;
@@ -2109,8 +2114,8 @@ void tableMGR::cmdsearch( int & RC, fPOOL & funcPOOL, string tb_name, string cmd
 		}
 		else
 		{
-			RC = 8 ;
-			return ;
+			RC = 12 ;
+			return  ;
 		}
 	}
 	tables[ tb_name ].cmdsearch( RC, funcPOOL, cmd ) ;

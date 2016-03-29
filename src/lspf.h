@@ -303,18 +303,18 @@ enum cuaType
 #define _quotes( a ) #a
 #define quotes( a ) _quotes( a )
 
-#define log(t, s) LOGOUT << microsec_clock::universal_time() << \
+#define log(t, s) LOGOUT << microsec_clock::local_time() << \
 		" " << left( quotes(MOD_NAME), 10 ) << " " << t << " " << s
 
 #ifdef DEBUG1
-#define debug1( s ) LOGOUT << microsec_clock::universal_time() << " " << left( quotes(MOD_NAME), 10 ) << \
+#define debug1( s ) LOGOUT << microsec_clock::local_time() << " " << left( quotes(MOD_NAME), 10 ) << \
 		" D line: "  << __LINE__  << " >>L1 Function: " << __FUNCTION__ << " -  " << s
 #else
 #define debug1( s )
 #endif
 
 #ifdef DEBUG2
-#define debug2( s ) LOGOUT << microsec_clock::universal_time() << " " << left( quotes(MOD_NAME), 10 ) << \
+#define debug2( s ) LOGOUT << microsec_clock::local_time() << " " << left( quotes(MOD_NAME), 10 ) << \
 		" D line: "  << __LINE__  << " >>L2 Function: " << __FUNCTION__ << " -  " << s
 #else
 #define debug2( s )

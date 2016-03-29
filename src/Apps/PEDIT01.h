@@ -550,6 +550,7 @@ class PEDIT01 : public pApplication
 		void cleanupData()        ;
 		void removeProfLines()    ;
 		void removeSpecialLines() ;
+		void processNISRTlines()  ;
 
 		string removeTabs( string ) ;
 
