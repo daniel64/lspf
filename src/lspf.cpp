@@ -26,7 +26,6 @@
 #include <cstring>
 #include <sstream>
 #include <fstream>
-#include <time.h>
 #include <vector>
 #include <ncurses.h>
 #include <dlfcn.h>
@@ -40,7 +39,6 @@
 #include <boost/thread/condition.hpp>
 #include <boost/circular_buffer.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/tokenizer.hpp>
 
 boost::condition cond_appl ;
 boost::mutex global ;
@@ -115,16 +113,16 @@ void getDynamicClasses()     ;
 bool loadDynamicClass( string ) ;
 bool unloadDynamicClass( void * ) ;
 void reloadDynamicClasses( string ) ;
-void loadCommandTable()      ;
-void loadpfkeyTable()        ;
-void loadCUATables()         ;
-void setColourPair( string ) ;
-void updateDefaultVars()     ;
-void updateReflist()         ;
+void loadSystemCommandTable() ;
+void loadpfkeyTable()         ;
+void loadCUATables()          ;
+void setColourPair( string )  ;
+void updateDefaultVars()      ;
+void updateReflist()          ;
 void startApplication( string, string, string, bool, bool ) ;
-void terminateApplication()  ;
+void terminateApplication()   ;
 void ResumeApplicationAndWait() ;
-void processSelect()         ;
+void processPGMSelect()         ;
 void processAction( uint row, uint col, int c, bool & passthru )  ;
 void errorScreen( int, string ) ;
 void rawOutput()          ;
@@ -224,8 +222,8 @@ int main( void )
 	log( "I", "Calling loadCUATables" << endl ) ;
 	loadCUATables() ;
 
-	log( "I", "Calling loadCommandTable" << endl ) ;
-	loadCommandTable() ;
+	log( "I", "Calling loadSystemCommandTable" << endl ) ;
+	loadSystemCommandTable() ;
 
 	updateDefaultVars() ;
 
@@ -258,9 +256,9 @@ int main( void )
 	{
 		elapsed++ ;
 		boost::this_thread::sleep_for(boost::chrono::milliseconds(ZWAIT)) ;
-		if ( elapsed > GMAXWAIT ) { currAppl->set_forced_abend() ; }
+		if ( elapsed > GMAXWAIT ) { currAppl->set_timeout_abend() ; }
 	}
-	if ( currAppl->abnormalEnd || currAppl->terminateAppl )
+	if ( currAppl->terminateAppl )
 	{
 		errorScreen( 1, "An error has occured initialising the first "+ GMAINPGM +" main task.  lspf cannot continue." ) ;
 		currAppl->info() ;
@@ -501,7 +499,7 @@ void mainLoop()
 					currScrn->set_row_col( row, col ) ;
 					if ( currAppl->SEL )
 					{
-						processSelect() ;
+						processPGMSelect() ;
 					}
 					while ( currAppl->terminateAppl )
 					{
@@ -510,7 +508,7 @@ void mainLoop()
 						if ( currAppl->SEL && !currAppl->terminateAppl )
 						{
 							debug1( "Application "+ currAppl->ZAPPNAME +" has done another SELECT without a DISPLAY (1) !!!! " << endl ) ;
-							processSelect() ;
+							processPGMSelect() ;
 						}
 					}
 					updateReflist() ;
@@ -1111,8 +1109,10 @@ void processAction( uint row, uint col, int c, bool & passthru )
 }
 
 
-void processSelect()
+void processPGMSelect()
 {
+	// Called when an application program has invoked the SELECT service (also VIEW, EDIT, BROWSE)
+
 	uint row ;
 	uint col ;
 
@@ -1255,7 +1255,7 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 		elapsed++ ;
 		boost::this_thread::sleep_for(boost::chrono::milliseconds(ZWAIT)) ;
 		if ( currAppl->noTimeOut ) { elapsed = 0 ; }
-		if ( elapsed > GMAXWAIT  ) { currAppl->set_forced_abend() ; }
+		if ( elapsed > GMAXWAIT  ) { currAppl->set_timeout_abend() ; }
 	}
 
 	log( "I", "New thread and application started and initialised. ID=" << pThread->get_id() << endl ) ;
@@ -1265,7 +1265,7 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 	if ( currAppl->SEL )
 	{
 		debug1( "Application "+ currAppl->ZAPPNAME +" has done a SELECT without a DISPLAY !!!! " << endl ) ;
-		processSelect() ;
+		processPGMSelect() ;
 	}
 
 	if ( currAppl->abnormalEnd )
@@ -1283,7 +1283,7 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 		if ( currAppl->SEL && !currAppl->terminateAppl )
 		{
 			debug1( "Application "+ currAppl->ZAPPNAME +" has done another SELECT without a DISPLAY (2) !!!! " << endl ) ;
-			processSelect() ;
+			processPGMSelect() ;
 		}
 	}
 	currAppl->get_cursor( row, col ) ;
@@ -1296,7 +1296,6 @@ void terminateApplication()
 	int  RC      ;
 	int  tRC     ;
 	int  tRSN    ;
-	int  elapsed ;
 	uint row     ;
 	uint col     ;
 
@@ -1511,16 +1510,7 @@ void terminateApplication()
 			debug1( "JUMP entered.  Propagating RETURN to next application on the stack outside a SELECT nested dialogue" << endl ) ;
 			p_poolMGR->put( RC, "ZVERB", "RETURN", SHARED ) ;
 			currAppl->jumpEntered = true ;
-			currAppl->busyAppl    = true ;
-			cond_appl.notify_all()       ;
-			elapsed = 0 ;
-			while ( currAppl->busyAppl )
-			{
-				elapsed++ ;
-				boost::this_thread::sleep_for(boost::chrono::milliseconds(ZWAIT)) ;
-				if ( currAppl->noTimeOut ) { elapsed = 0 ; }
-				if ( elapsed > GMAXWAIT  ) { currAppl->set_forced_abend() ; }
-			}
+			ResumeApplicationAndWait()   ;
 		}
 		while ( currAppl->terminateAppl )
 		{
@@ -1558,14 +1548,17 @@ void ResumeApplicationAndWait()
 		elapsed++ ;
 		boost::this_thread::sleep_for(boost::chrono::milliseconds(ZWAIT)) ;
 		if ( currAppl->noTimeOut ) { elapsed = 0 ; }
-		if ( elapsed > GMAXWAIT  ) { currAppl->set_forced_abend() ; }
+		if ( elapsed > GMAXWAIT  ) { currAppl->set_timeout_abend() ; }
 	}
 	if ( currAppl->rmsgs.size() > 0 ) { rawOutput() ; }
 
 	if ( currAppl->abnormalEnd )
 	{
-		currAppl->terminateAppl = true ;
-		if ( currAppl->abnormalEndForced )
+		if ( currAppl->abnormalTimeout )
+		{
+			errorScreen( 2, "An application timeout has occured.  Increase ZMAXWAIT if necessary" ) ;
+		}
+		else if ( currAppl->abnormalEndForced )
 		{
 			errorScreen( 2, "A forced termination of the subtask has occured" ) ;
 		}
@@ -1849,8 +1842,10 @@ void loadDefaultPools()
 
 
 
-void loadCommandTable()
+void loadSystemCommandTable()
 {
+	// Terminate if ISPCMDS not found
+
 	int RC ;
 
 	p_tableMGR->loadTable( RC, 0, "ISPCMDS", SHARE, ZTLIB ) ;

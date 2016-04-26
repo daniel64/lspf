@@ -1,4 +1,5 @@
 )COMMENT
+  Standard pull down choices
 )ENDCOMMENT
 
 pdc  Display  "Refresh Screen"          ACTION RUN(REFRESH)

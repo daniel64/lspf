@@ -5,7 +5,7 @@
 )BODY
 
  PanelTitle "Utility Program Definitions"
- 
+
  literal  4   2    FP "Command ===> "
  field    4  15    MAX NEF CAPS(ON) ZCMD
 
@@ -21,9 +21,9 @@
  field    8   16   8  NEF CAPS(ON) ZEDITPGM
  literal  8   26      FP "Editor program"
 
- literal  9  2       FP "ZBRPGM. . . ."
- field    9  16   8  NEF CAPS(ON) ZBRPGM
- literal  9  26      FP "Browse program"
+ literal  9  2        FP "ZBRPGM. . . ."
+ field    9  16   8   NEF CAPS(ON) ZBRPGM
+ literal  9  26       FP "Browse program"
 
  literal  10  2       FP "ZVIEWPGM. . ."
  field    10  16   8  NEF CAPS(ON) ZVIEWPGM
@@ -41,17 +41,19 @@
  field    13  16   8  NEF CAPS(ON) ZOREXPGM
  literal  13  26      FP "REXX interpreter stub"
 
- literal  15  2     PIN "Enter"
- literal  15  8     PS "Defaults"
- literal  15  16    PIN ","
- literal  15  18    PS "Save"
- literal  15  23    PIN "or"
- literal  15  26    PS "Cancel"
- 
- literal  17  2     PIN "Defaults are those defined in the lspf.h #define values for these variable names"
- 
- literal  19  2     CT  "Warning"
- literal  20  2     CT  "Incorrect values can render lspf unusable.  Rerun setup program to recreate ISPSPROF in this case"
+ literal  15  2     CH  "Instructions"
+
+ literal  17  2     PIN "Enter"
+ literal  17  8     PS  "Defaults"
+ literal  17  16    PIN ","
+ literal  17  18    PS  "Save"
+ literal  17  23    PIN "or"
+ literal  17  26    PS  "Cancel"
+
+ literal  19  2     PIN "Defaults are those defined in the lspf.h #define values for these variable names"
+
+ literal  21  2     CT  "Warning"
+ literal  22  2     CT  "Incorrect values can render lspf unusable.  Rerun setup program to recreate ISPSPROF in this case"
 
 
 )INCLUDE STD_PDC
@@ -61,6 +63,5 @@
 )PROC
 
 VER (&ZCMD LIST CANCEL::3 DEFAULTS::3 SAVE::3 )
-
 
 )END

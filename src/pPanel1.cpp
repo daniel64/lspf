@@ -1670,7 +1670,7 @@ void pPanel::field_edit( uint row, uint col, char ch, bool Isrt, bool & prot )
 		if ( (it->second->field_row == row) && (col >=it->second->field_col) && (col < (it->second->field_col + it->second->field_length )) )
 		{
 			if ( !it->second->field_active ) return ;
-			if (  it->second->field_numeric && !isdigit( ch ) )   { return ; }
+			if (  it->second->field_numeric && ch != ' ' && !isdigit( ch ) ) { return ; }
 			if ( !it->second->field_dynArea && !it->second->field_input ) return ;
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( col ) ) { return ; }
 			if ( !it->second->edit_field_insert( win, ch, col, Isrt ) ) { return ; }

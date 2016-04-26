@@ -370,7 +370,7 @@ void PEDIT01::readFile()
 	string ZDATE  ;
 	string ZTIMEL ;
 	string inLine ;
-	string f      ;
+	string fname  ;
 
 	vector<string> Notes ;
 
@@ -378,10 +378,18 @@ void PEDIT01::readFile()
 
 	iline * p_iline ;
 
-	if ( abendRecovery ) { f = ZFILE + ".abend" ; }
-	else                 { f = ZFILE            ; }
+	if ( abendRecovery )
+	{
+		fname       = ZFILE + ".abend" ;
+		fileChanged = true ;
+	}
+	else
+	{
+		fname       = ZFILE ;
+		fileChanged = false ;
+	}
 
-	std::ifstream fin( f.c_str() ) ;
+	std::ifstream fin( fname.c_str() ) ;
 
 	if ( EditList.find( ZFILE ) != EditList.end() )
 	{
@@ -393,14 +401,14 @@ void PEDIT01::readFile()
 		return      ;
 	}
 
-	if ( !exists( f ) )
+	if ( !exists( fname ) )
 	{
 	}
 
 	if ( !fin.is_open() )
 	{
 		ZRESULT = "Open Error" ;
-		RC = 16 ;
+		RC      = 16 ;
 		return  ;
 	}
 
@@ -410,7 +418,6 @@ void PEDIT01::readFile()
 	Level    = 0 ;
 
 	rebuildZAREA = true  ;
-	fileChanged  = false ;
 	tabsOnRead   = false ;
 
 	data.clear() ;
@@ -561,7 +568,7 @@ void PEDIT01::fill_dynamic_area()
 
 	uint dl ;
 
-	iposition ip ;
+	ipos ip ;
 
 	string t1 ;
 	string t2 ;
@@ -881,10 +888,10 @@ void PEDIT01::getZAREAchanges()
 					if ( ZAREA[ j ] == ' ' || isdigit( ZAREA[ j ] ) ) { ZAREA[ j ] = ' ' ; continue ; }
 					break ;
 				}
-				sp = j-off ;
+				sp = j - off ;
 				if ( aRow == (i + 1 ) && ( aCol > 1 && aCol < 9 ) )
 				{
-					for ( j = off+6 ; j > off ; j-- )
+					for ( j = (off + 6) ; j > off ; j-- )
 					{
 						if ( j < (aCol + off -1 ) || ( ZAREA[ j ] != CAREA[ j ] ) )  { break ; }
 					}
@@ -892,18 +899,18 @@ void PEDIT01::getZAREAchanges()
 				}
 				else
 				{
-					for ( j = off+6 ; j > off ; j-- )
+					for ( j = (off + 6) ; j > off ; j-- )
 					{
 						if ( ZAREA[ j ] != CAREA[ j ] )  { break ; }
 					}
 
 				}
 				ep = j - off + 1 ;
-				if ( sp < ep ) { lc = ZAREA.substr( sp+off, (ep - sp) ) ; }
+				if ( sp < ep ) { lc = ZAREA.substr( (sp + off), (ep - sp) ) ; }
 			}
 			else
 			{
-				lc = ZAREA.substr( 1+off , 6 ) ;
+				lc = ZAREA.substr( (1 + off), 6 ) ;
 			}
 			lc = strip( upper( lc ) ) ;
 			if ( datatype( lc, 'W' ) ) { lc = "" ; }
@@ -1035,9 +1042,9 @@ void PEDIT01::updateData()
 					data.at( dl )->put_idata( t, Level ) ;
 				}
 			}
-			fileChanged  = true  ;
+			fileChanged = true ;
 		}
-		rebuildZAREA = true  ;
+		rebuildZAREA = true ;
 	}
 }
 
@@ -1077,19 +1084,18 @@ void PEDIT01::processNISRTlines()
 			if ( data.at( dl )->il_URID == aURID )
 			{
 				it = getLineItr( data.at( dl )->il_URID ) ;
-				k = (*it)->get_idata().find_first_not_of( ' ', startCol-1 ) ;
-				it++ ;
+				k  = (*it)->get_idata().find_first_not_of( ' ', startCol-1 ) ;
 				p_iline = new iline( taskid() ) ;
 				p_iline->il_file  = true ;
 				p_iline->il_nisrt = true ;
-				p_iline->put_idata( maskLine ) ;
-				it = data.insert( it, p_iline )       ;
+				p_iline->put_idata( maskLine )  ;
+				it = data.insert( ++it, p_iline ) ;
 				if ( k != string::npos ) { placeCursor( p_iline->il_URID, 4, k ) ; }
 				else                     { placeCursor( p_iline->il_URID, 2 )    ; }
 			}
-			fileChanged   = true ;
+			fileChanged = true ;
 		}
-		rebuildZAREA  = true ;
+		rebuildZAREA = true ;
 	}
 }
 
@@ -1920,16 +1926,15 @@ void PEDIT01::actionLineCommands()
 	iline * p_iline  ;
 
 	vector<ipline>::iterator new_end  ;
-	vector<iline * >::iterator il_itr ;
+	vector<iline * >::iterator il_its ;
 	vector<iline * >::iterator il_ite ;
-	vector<iline * >::iterator ita    ;
 	vector<icmd>::iterator itc        ;
 
 	if ( !checkLineCommands() ) { return ; }
 
-	for ( ita = data.begin() ; ita != data.end() ; ita++ )
+	for ( il_its = data.begin() ; il_its != data.end() ; il_its++ )
 	{
-		(*ita)->clearLc12() ;
+		(*il_its)->clearLc12() ;
 	}
 
 	for ( itc = icmds.begin() ; itc != icmds.end() ; itc++ )
@@ -1941,35 +1946,35 @@ void PEDIT01::actionLineCommands()
 		}
 		if ( itc->icmd_COMMAND == "BNDS" )
 		{
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID )   ;
 			p_iline          = new iline( taskid() ) ;
 			p_iline->il_bnds = true  ;
 			p_iline->put_idata( "" ) ;
-			il_itr = data.insert( il_itr, p_iline ) ;
+			il_its = data.insert( il_its, p_iline ) ;
 			rebuildZAREA = true ;
 		}
 		else if ( itc->icmd_COMMAND == "COL" || itc->icmd_COMMAND == "COLS" )
 		{
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID )   ;
 			p_iline          = new iline( taskid() ) ;
 			p_iline->il_col  = true  ;
 			p_iline->put_idata( "" ) ;
-			il_itr = data.insert( il_itr, p_iline ) ;
+			il_its = data.insert( il_its, p_iline ) ;
 			rebuildZAREA = true ;
 		}
 		else if ( itc->icmd_COMMAND == "C" || itc->icmd_COMMAND == "M" )
 		{
-			Level++ ;
-			vip.clear()   ;
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			Level++     ;
+			vip.clear() ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			for ( j = 0 ; j < itc->icmd_Rpt ; j++ )
 			{
-				if ( (*il_itr)->il_bod )     { break                     ; }
-				if ( (*il_itr)->il_deleted ) { j-- ; il_itr++ ; continue ; }
-				copyPrefix( ip, (*il_itr) ) ;
-				ip.ip_data = (*il_itr)->get_idata() ;
+				if ( (*il_its)->il_bod )     { break                     ; }
+				if ( (*il_its)->il_deleted ) { j-- ; il_its++ ; continue ; }
+				copyPrefix( ip, (*il_its) ) ;
+				ip.ip_data = (*il_its)->get_idata() ;
 				vip.push_back( ip ) ;
-				il_itr++ ;
+				il_its++ ;
 			}
 			overlayOK = true ;
 			if ( itc->icmd_cutpaste )
@@ -2018,14 +2023,14 @@ void PEDIT01::actionLineCommands()
 			}
 			if ( itc->icmd_COMMAND == "M" && overlayOK )
 			{
-				il_itr = getLineItr( itc->icmd_sURID ) ;
+				il_its = getLineItr( itc->icmd_sURID ) ;
 				for ( j = 0 ; j < itc->icmd_Rpt ; j++ )
 				{
-					if ( (*il_itr)->il_bod )     { break                     ; }
-					if ( (*il_itr)->il_deleted ) { j-- ; il_itr++ ; continue ; }
-					(*il_itr)->put_idata( "", Level ) ;
-					(*il_itr)->set_il_deleted()       ;
-					il_itr++ ;
+					if ( (*il_its)->il_bod )     { break                     ; }
+					if ( (*il_its)->il_deleted ) { j-- ; il_its++ ; continue ; }
+					(*il_its)->put_idata( "", Level ) ;
+					(*il_its)->set_il_deleted()       ;
+					il_its++ ;
 				}
 				fileChanged  = true ;
 			}
@@ -2035,15 +2040,15 @@ void PEDIT01::actionLineCommands()
 		else if ( itc->icmd_COMMAND == "CC" || itc->icmd_COMMAND == "MM" )
 		{
 			Level++ ;
-			vip.clear()   ;
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			vip.clear() ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			il_ite = getLineItr( itc->icmd_eURID ) ;
 			il_ite++ ;
-			for ( ; il_itr != il_ite ; il_itr++ )
+			for ( ; il_its != il_ite ; il_its++ )
 			{
-				if ( (*il_itr)->il_deleted ) { continue ; }
-				copyPrefix( ip, (*il_itr) ) ;
-				ip.ip_data = (*il_itr)->get_idata() ;
+				if ( (*il_its)->il_deleted ) { continue ; }
+				copyPrefix( ip, (*il_its) ) ;
+				ip.ip_data = (*il_its)->get_idata() ;
 				vip.push_back( ip ) ;
 			}
 			overlayOK = true ;
@@ -2093,14 +2098,14 @@ void PEDIT01::actionLineCommands()
 			}
 			if ( itc->icmd_COMMAND == "MM" && overlayOK )
 			{
-				il_itr = getLineItr( itc->icmd_sURID ) ;
+				il_its = getLineItr( itc->icmd_sURID ) ;
 				il_ite = getLineItr( itc->icmd_eURID ) ;
 				il_ite++ ;
-				for ( ; il_itr != il_ite ; il_itr++ )
+				for ( ; il_its != il_ite ; il_its++ )
 				{
-					if ( (*il_itr)->il_deleted ) { continue ; }
-					(*il_itr)->put_idata( "", Level ) ;
-					(*il_itr)->set_il_deleted()       ;
+					if ( (*il_its)->il_deleted ) { continue ; }
+					(*il_its)->put_idata( "", Level ) ;
+					(*il_its)->set_il_deleted()       ;
 				}
 				fileChanged  = true ;
 			}
@@ -2110,86 +2115,86 @@ void PEDIT01::actionLineCommands()
 		else if ( itc->icmd_COMMAND == "D" )
 		{
 			Level++ ;
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			for ( j = 0 ; j < itc->icmd_Rpt ; j++ )
 			{
-				if ( (*il_itr)->il_bod )     { break                     ; }
-				if ( (*il_itr)->il_deleted ) { j-- ; il_itr++ ; continue ; }
-				(*il_itr)->put_idata( "", Level ) ;
-				(*il_itr)->set_il_deleted()       ;
-				il_itr++ ;
+				if ( (*il_its)->il_bod )     { break                     ; }
+				if ( (*il_its)->il_deleted ) { j-- ; il_its++ ; continue ; }
+				(*il_its)->put_idata( "", Level ) ;
+				(*il_its)->set_il_deleted()       ;
+				il_its++ ;
 			}
-			il_itr = getValidDataLine( il_itr ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = getValidDataLine( il_its ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 		}
 		else if ( itc->icmd_COMMAND == "DD" )
 		{
 			Level++ ;
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			il_ite = getLineItr( itc->icmd_eURID ) ;
 			il_ite++ ;
-			for ( ; il_itr != il_ite ; il_itr++ )
+			for ( ; il_its != il_ite ; il_its++ )
 			{
-				if ( (*il_itr)->il_deleted ) { continue ; }
-				(*il_itr)->put_idata( "", Level ) ;
-				(*il_itr)->set_il_deleted()       ;
+				if ( (*il_its)->il_deleted ) { continue ; }
+				(*il_its)->put_idata( "", Level ) ;
+				(*il_its)->set_il_deleted()       ;
 
 			}
-			il_itr = getValidDataLine( il_itr ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = getValidDataLine( il_its ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 		}
 		else if ( itc->icmd_COMMAND == "FF" )
 		{
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			for ( j = 0 ; j < itc->icmd_Rpt ; j++ )
 			{
-				if (  (*il_itr)->il_bod )    { break                      ; }
-				if ( !(*il_itr)->il_excl )   { break                      ; }
-				if (  (*il_itr)->il_deleted ) { j-- ; il_itr++ ; continue ; }
-				(*il_itr)->il_excl = false ;
-				il_itr++ ;
+				if (  (*il_its)->il_bod )    { break                      ; }
+				if ( !(*il_its)->il_excl )   { break                      ; }
+				if (  (*il_its)->il_deleted ) { j-- ; il_its++ ; continue ; }
+				(*il_its)->il_excl = false ;
+				il_its++ ;
 			}
-			il_itr = getValidDataLine( il_itr ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = getValidDataLine( il_its ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 		}
 		else if ( itc->icmd_COMMAND == "HX" )
 		{
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			for ( j = 0 ; j < itc->icmd_Rpt ; j++ )
 			{
-				if ( (*il_itr)->il_bod )     { break                     ; }
-				if ( (*il_itr)->il_deleted ) { j-- ; il_itr++ ; continue ; }
-				(*il_itr)->il_hex = true ;
-				il_itr++ ;
+				if ( (*il_its)->il_bod )     { break                     ; }
+				if ( (*il_its)->il_deleted ) { j-- ; il_its++ ; continue ; }
+				(*il_its)->il_hex = true ;
+				il_its++ ;
 			}
-			il_itr = getValidDataLine( il_itr ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = getValidDataLine( il_its ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 		}
 		else if ( itc->icmd_COMMAND == "HXX" || itc->icmd_COMMAND == "HXHX" )
 		{
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			il_ite = getLineItr( itc->icmd_eURID ) ;
 			il_ite++ ;
-			for ( ; il_itr != il_ite ; il_itr++ )
+			for ( ; il_its != il_ite ; il_its++ )
 			{
-				if ( (*il_itr)->il_deleted ) { continue ; }
-				(*il_itr)->il_hex = true ;
+				if ( (*il_its)->il_deleted ) { continue ; }
+				(*il_its)->il_hex = true ;
 			}
-			il_itr = getValidDataLine( il_itr ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = getValidDataLine( il_its ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 		}
 		else if ( itc->icmd_COMMAND == "I" )
 		{
 			Level++ ;
-			il_itr = getLineItr( itc->icmd_sURID ) ;
-			k = (*il_itr)->get_idata().find_first_not_of( ' ', startCol-1 ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
+			k = (*il_its)->get_idata().find_first_not_of( ' ', startCol-1 ) ;
 			k = (k != string::npos) ? k : 0 ;
 			for ( j = 0 ; j < itc->icmd_Rpt ; j++ )
 			{
@@ -2197,10 +2202,10 @@ void PEDIT01::actionLineCommands()
 				p_iline->il_file  = true ;
 				p_iline->il_nisrt = true ;
 				p_iline->put_idata( maskLine ) ;
-				il_itr++ ;
-				il_itr = data.insert( il_itr, p_iline ) ;
-				il_itr = getValidDataLine( il_itr ) ;
-				placeCursor( (*il_itr)->il_URID, 4, k ) ;
+				il_its++ ;
+				il_its = data.insert( il_its, p_iline ) ;
+				il_its = getValidDataLine( il_its ) ;
+				placeCursor( (*il_its)->il_URID, 4, k ) ;
 			}
 			rebuildZAREA = true ;
 			fileChanged  = true ;
@@ -2222,111 +2227,111 @@ void PEDIT01::actionLineCommands()
 		else if ( itc->icmd_COMMAND == "LC" )
 		{
 			Level++ ;
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			for ( j = 0 ; j < itc->icmd_Rpt ; j++ )
 			{
-				if ( (*il_itr)->il_bod )     { break                     ; }
-				if ( (*il_itr)->il_deleted ) { j-- ; il_itr++ ; continue ; }
-				(*il_itr)->put_idata( lower( (*il_itr)->get_idata() ), Level ) ;
-				il_itr++ ;
+				if ( (*il_its)->il_bod )     { break                     ; }
+				if ( (*il_its)->il_deleted ) { j-- ; il_its++ ; continue ; }
+				(*il_its)->put_idata( lower( (*il_its)->get_idata() ), Level ) ;
+				il_its++ ;
 			}
-			il_itr = getValidDataLine( il_itr ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = getValidDataLine( il_its ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 		}
 		else if ( itc->icmd_COMMAND == "LCC" || itc->icmd_COMMAND == "LCLC" )
 		{
 			Level++ ;
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			il_ite = getLineItr( itc->icmd_eURID ) ;
 			il_ite++ ;
-			for ( ; il_itr != il_ite ; il_itr++ )
+			for ( ; il_its != il_ite ; il_its++ )
 			{
-				if ( (*il_itr)->il_deleted ) { continue ; }
-				(*il_itr)->put_idata( lower( (*il_itr)->get_idata() ), Level ) ;
+				if ( (*il_its)->il_deleted ) { continue ; }
+				(*il_its)->put_idata( lower( (*il_its)->get_idata() ), Level ) ;
 			}
-			il_itr = getValidDataLine( il_itr ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = getValidDataLine( il_its ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 		}
 		else if ( itc->icmd_COMMAND == "MASK" )
 		{
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			p_iline          = new iline( taskid() ) ;
 			p_iline->il_mask = true ;
 			p_iline->put_idata( maskLine ) ;
-			il_itr = data.insert( il_itr, p_iline ) ;
-			il_itr = getValidDataLine( il_itr ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = data.insert( il_its, p_iline ) ;
+			il_its = getValidDataLine( il_its ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 		}
 		else if ( itc->icmd_COMMAND == "MD" )
 		{
 			Level++ ;
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			for ( j = 0 ; j < itc->icmd_Rpt ; j++ )
 			{
-				if ( (*il_itr)->il_bod ||
-				     (*il_itr)->il_file )    { break                     ; }
-				if ( (*il_itr)->il_deleted ) { j-- ; il_itr++ ; continue ; }
+				if ( (*il_its)->il_bod ||
+				     (*il_its)->il_file )    { break                     ; }
+				if ( (*il_its)->il_deleted ) { j-- ; il_its++ ; continue ; }
 				p_iline = new iline( taskid() )     ;
 				p_iline->il_file = true ;
-				p_iline->put_idata( (*il_itr)->get_idata(), Level ) ;
-				(*il_itr)->put_idata( "", Level ) ;
-				(*il_itr)->set_il_deleted() ;
-				il_itr++ ;
-				il_itr = data.insert( il_itr, p_iline ) ;
-				il_itr++ ;
+				p_iline->put_idata( (*il_its)->get_idata(), Level ) ;
+				(*il_its)->put_idata( "", Level ) ;
+				(*il_its)->set_il_deleted() ;
+				il_its++ ;
+				il_its = data.insert( il_its, p_iline ) ;
+				il_its++ ;
 			}
-			il_itr = getValidDataLine( il_itr ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = getValidDataLine( il_its ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 		}
 		else if ( itc->icmd_COMMAND == "MMD" || itc->icmd_COMMAND == "MDMD" )
 		{
 			Level++ ;
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			il_ite = getLineItr( itc->icmd_eURID ) ;
 			il_ite++ ;
-			for ( ; il_itr != il_ite ; il_itr++ )
+			for ( ; il_its != il_ite ; il_its++ )
 			{
-				if ( (*il_itr)->il_file )    { continue ; }
-				if ( (*il_itr)->il_deleted ) { continue ; }
+				if ( (*il_its)->il_file )    { continue ; }
+				if ( (*il_its)->il_deleted ) { continue ; }
 				p_iline = new iline( taskid() )        ;
 				p_iline->il_file    = true ;
-				p_iline->put_idata( (*il_itr)->get_idata(), Level ) ;
-				(*il_itr)->put_idata( "", Level ) ;
-				(*il_itr)->set_il_deleted()       ;
-				il_itr++ ;
-				il_itr = data.insert( il_itr, p_iline ) ;
+				p_iline->put_idata( (*il_its)->get_idata(), Level ) ;
+				(*il_its)->put_idata( "", Level ) ;
+				(*il_its)->set_il_deleted()       ;
+				il_its++ ;
+				il_its = data.insert( il_its, p_iline ) ;
 				il_ite = getLineItr( itc->icmd_eURID )  ;
 				il_ite++ ;
-				if ( il_itr == il_ite ) { break ; }
+				if ( il_its == il_ite ) { break ; }
 			}
-			il_itr = getValidDataLine( il_itr ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = getValidDataLine( il_its ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 		}
 		else if ( itc->icmd_COMMAND == "R" )
 		{
 			Level++ ;
-			il_itr  = getLineItr( itc->icmd_sURID ) ;
-			tmp1    = (*il_itr)->get_idata() ;
-			copyPrefix( ip, (*il_itr ) ) ;
+			il_its  = getLineItr( itc->icmd_sURID ) ;
+			tmp1    = (*il_its)->get_idata() ;
+			copyPrefix( ip, (*il_its ) ) ;
 			for ( j = 0 ; j < itc->icmd_Rpt ; j++ )
 			{
 				p_iline = new iline( taskid() )  ;
 				copyPrefix( p_iline, ip ) ;
 				p_iline->put_idata( tmp1, Level ) ;
-				il_itr++ ;
-				il_itr = data.insert( il_itr, p_iline ) ;
+				il_its++ ;
+				il_its = data.insert( il_its, p_iline ) ;
 			}
-			il_itr = getValidDataLine( il_itr ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = getValidDataLine( il_its ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 		}
@@ -2334,15 +2339,15 @@ void PEDIT01::actionLineCommands()
 		{
 			Level++ ;
 			vip.clear() ;
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			il_ite = getLineItr( itc->icmd_eURID ) ;
-			for ( ; ; il_itr++ )
+			for ( ; ; il_its++ )
 			{
-				if ( (*il_itr)->il_deleted ) { continue ; }
-				copyPrefix( ip, (*il_itr ) ) ;
-				ip.ip_data = (*il_itr)->get_idata() ;
+				if ( (*il_its)->il_deleted ) { continue ; }
+				copyPrefix( ip, (*il_its ) ) ;
+				ip.ip_data = (*il_its)->get_idata() ;
 				vip.push_back( ip ) ;
-				if ( il_itr == il_ite ) { break ; }
+				if ( il_its == il_ite ) { break ; }
 			}
 			for ( j = 0 ; j < itc->icmd_Rpt ; j++ )
 			{
@@ -2355,21 +2360,21 @@ void PEDIT01::actionLineCommands()
 					il_ite = data.insert( il_ite, p_iline ) ;
 				}
 			}
-			il_itr = getLineItr( itc->icmd_sURID ) ;
-			il_itr = getValidDataLine( il_itr ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
+			il_its = getValidDataLine( il_its ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 		}
 		else if ( itc->icmd_COMMAND == "TABS" )
 		{
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			p_iline          = new iline( taskid() ) ;
 			p_iline->il_tabs = true        ;
 			p_iline->put_idata( tabsLine ) ;
-			il_itr = data.insert( il_itr, p_iline ) ;
-			il_itr = getValidDataLine( il_itr ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = data.insert( il_its, p_iline ) ;
+			il_its = getValidDataLine( il_its ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 		}
 		else if ( itc->icmd_COMMAND == "TJ" )
@@ -2390,34 +2395,34 @@ void PEDIT01::actionLineCommands()
 			p_iline = new iline( taskid() ) ;
 			p_iline->il_file = true         ;
 			p_iline->put_idata( tmp1, Level ) ;
-			il_itr  = getLineItr( itc->icmd_sURID ) ;
-			il_itr++ ;
-			il_itr  = data.insert( il_itr, p_iline ) ;
+			il_its  = getLineItr( itc->icmd_sURID ) ;
+			il_its++ ;
+			il_its  = data.insert( il_its, p_iline ) ;
 			placeCursor( p_iline->il_URID, 4, k ) ;
 		}
 		else if ( itc->icmd_COMMAND == "TS" )
 		{
 			Level++ ;
-			il_itr  = getLineItr( itc->icmd_sURID ) ;
-			splitOK = textSplitData( (*il_itr)->get_idata(), tmp1, tmp2 ) ;
-			if ( aURID == (*il_itr)->il_URID && aCol > CLINESZ )
+			il_its  = getLineItr( itc->icmd_sURID ) ;
+			splitOK = textSplitData( (*il_its)->get_idata(), tmp1, tmp2 ) ;
+			if ( aURID == (*il_its)->il_URID && aCol > CLINESZ )
 			{
-				if ( (*il_itr)->il_file && !(*il_itr)->il_deleted )
+				if ( (*il_its)->il_file && !(*il_its)->il_deleted )
 				{
-					(*il_itr)->put_idata( tmp1, Level ) ;
+					(*il_its)->put_idata( tmp1, Level ) ;
 					p_iline = new iline( taskid() ) ;
 					p_iline->il_file  = true ;
 					p_iline->il_nisrt = true ;
 					p_iline->put_idata( maskLine )  ;
-					il_itr++ ;
-					il_itr  = data.insert( il_itr, p_iline ) ;
+					il_its++ ;
+					il_its  = data.insert( il_its, p_iline ) ;
 					if ( splitOK )
 					{
 						p_iline = new iline( taskid() )  ;
 						p_iline->il_file = true ;
 						p_iline->put_idata( tmp2, Level ) ;
-						il_itr++ ;
-						il_itr = data.insert( il_itr, p_iline ) ;
+						il_its++ ;
+						il_its = data.insert( il_its, p_iline ) ;
 					}
 				}
 			}
@@ -2427,8 +2432,8 @@ void PEDIT01::actionLineCommands()
 				p_iline->il_file  = true ;
 				p_iline->il_nisrt = true ;
 				p_iline->put_idata( maskLine ) ;
-				il_itr++ ;
-				il_itr = data.insert( il_itr, p_iline ) ;
+				il_its++ ;
+				il_its = data.insert( il_its, p_iline ) ;
 			}
 			rebuildZAREA = true ;
 			fileChanged  = true ;
@@ -2436,183 +2441,183 @@ void PEDIT01::actionLineCommands()
 		else if ( itc->icmd_COMMAND == "UC" )
 		{
 			Level++ ;
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			for ( j = 0 ; j < itc->icmd_Rpt ; j++ )
 			{
-				if ( (*il_itr)->il_deleted ) { j-- ; il_itr++ ; continue ; }
-				(*il_itr)->put_idata( upper( (*il_itr)->get_idata() ), Level ) ;
-				il_itr++ ;
+				if ( (*il_its)->il_deleted ) { j-- ; il_its++ ; continue ; }
+				(*il_its)->put_idata( upper( (*il_its)->get_idata() ), Level ) ;
+				il_its++ ;
 			}
-			il_itr = getValidDataLine( il_itr ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = getValidDataLine( il_its ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 		}
 		else if ( itc->icmd_COMMAND == "UCC" || itc->icmd_COMMAND == "UCUC" )
 		{
 			Level++ ;
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			il_ite = getLineItr( itc->icmd_eURID ) ;
 			il_ite++ ;
-			for ( ; il_itr != il_ite ; il_itr++ )
+			for ( ; il_its != il_ite ; il_its++ )
 			{
-				if ( (*il_itr)->il_deleted ) { continue ; }
-				(*il_itr)->put_idata( upper( (*il_itr)->get_idata() ), Level ) ;
+				if ( (*il_its)->il_deleted ) { continue ; }
+				(*il_its)->put_idata( upper( (*il_its)->get_idata() ), Level ) ;
 			}
-			il_itr = getValidDataLine( il_itr ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = getValidDataLine( il_its ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 		}
 		else if ( itc->icmd_COMMAND == "X" )
 		{
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			for ( j = 0 ; j < itc->icmd_Rpt ; j++ )
 			{
-				if ( (*il_itr)->il_bod )     { break                     ; }
-				if ( (*il_itr)->il_deleted ) { j-- ; il_itr++ ; continue ; }
-				(*il_itr)->il_excl = true ;
-				il_itr++ ;
+				if ( (*il_its)->il_bod )     { break                     ; }
+				if ( (*il_its)->il_deleted ) { j-- ; il_its++ ; continue ; }
+				(*il_its)->il_excl = true ;
+				il_its++ ;
 			}
-			il_itr = getValidDataLine( il_itr ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = getValidDataLine( il_its ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 		}
 		else if ( itc->icmd_COMMAND == "XX" )
 		{
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			il_ite = getLineItr( itc->icmd_eURID ) ;
 			il_ite++ ;
-			for ( ; il_itr != il_ite ; il_itr++ )
+			for ( ; il_its != il_ite ; il_its++ )
 			{
-				if ( (*il_itr)->il_deleted  ) { continue ; }
-				(*il_itr)->il_excl = true ;
+				if ( (*il_its)->il_deleted  ) { continue ; }
+				(*il_its)->il_excl = true ;
 			}
 			rebuildZAREA = true ;
-			il_itr = getValidDataLine( il_itr ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = getValidDataLine( il_its ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 		}
 		else if ( itc->icmd_COMMAND == ")" )
 		{
 			Level++ ;
-			il_itr = getLineItr( itc->icmd_sURID ) ;
-			il_itr = getValidDataLine( il_itr ) ;
-			(*il_itr)->put_idata( rshiftCols( itc->icmd_Rpt, (*il_itr)->get_idata()), Level ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
+			il_its = getValidDataLine( il_its ) ;
+			(*il_its)->put_idata( rshiftCols( itc->icmd_Rpt, (*il_its)->get_idata()), Level ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 		}
 		else if ( itc->icmd_COMMAND == "))" )
 		{
 			Level++ ;
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			il_ite = getLineItr( itc->icmd_eURID ) ;
 			il_ite++ ;
-			for ( ; il_itr != il_ite ; il_itr++ )
+			for ( ; il_its != il_ite ; il_its++ )
 			{
-				if ( (*il_itr)->il_deleted  ) { continue ; }
-				(*il_itr)->put_idata( rshiftCols( itc->icmd_Rpt, (*il_itr)->get_idata()), Level ) ;
+				if ( (*il_its)->il_deleted  ) { continue ; }
+				(*il_its)->put_idata( rshiftCols( itc->icmd_Rpt, (*il_its)->get_idata()), Level ) ;
 			}
-			il_itr = getValidDataLine( il_itr ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = getValidDataLine( il_its ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 		}
 		else if ( itc->icmd_COMMAND == "(" )
 		{
 			Level++ ;
-			il_itr = getLineItr( itc->icmd_sURID ) ;
-			il_itr = getValidDataLine( il_itr ) ;
-			(*il_itr)->put_idata( lshiftCols( itc->icmd_Rpt, (*il_itr)->get_idata()), Level ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
+			il_its = getValidDataLine( il_its ) ;
+			(*il_its)->put_idata( lshiftCols( itc->icmd_Rpt, (*il_its)->get_idata()), Level ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 		}
 		else if ( itc->icmd_COMMAND == "((" )
 		{
 			Level++ ;
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			il_ite = getLineItr( itc->icmd_eURID ) ;
 			il_ite++ ;
-			for ( ; il_itr != il_ite ; il_itr++ )
+			for ( ; il_its != il_ite ; il_its++ )
 			{
-				if ( (*il_itr)->il_deleted ) { continue ; }
-				(*il_itr)->put_idata( lshiftCols( itc->icmd_Rpt, (*il_itr)->get_idata()), Level ) ;
+				if ( (*il_its)->il_deleted ) { continue ; }
+				(*il_its)->put_idata( lshiftCols( itc->icmd_Rpt, (*il_its)->get_idata()), Level ) ;
 			}
-			il_itr = getValidDataLine( il_itr ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = getValidDataLine( il_its ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 		}
 		else if ( itc->icmd_COMMAND == ">" )
 		{
 			Level++ ;
-			il_itr  = getLineItr( itc->icmd_sURID ) ;
-			il_itr  = getValidDataLine( il_itr ) ;
-			shiftOK = rshiftData( itc->icmd_Rpt, (*il_itr)->get_idata(), tmp1 ) ;
-			if ( tmp1 != (*il_itr)->get_idata() )
+			il_its  = getLineItr( itc->icmd_sURID ) ;
+			il_its  = getValidDataLine( il_its ) ;
+			shiftOK = rshiftData( itc->icmd_Rpt, (*il_its)->get_idata(), tmp1 ) ;
+			if ( tmp1 != (*il_its)->get_idata() )
 			{
-				(*il_itr)->put_idata( tmp1, Level ) ;
+				(*il_its)->put_idata( tmp1, Level ) ;
 			}
-			if ( !shiftOK ) { (*il_itr)->il_error = true ; MSG = "PEDT013B" ; }
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			if ( !shiftOK ) { (*il_its)->il_error = true ; MSG = "PEDT013B" ; }
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 		}
 		else if ( itc->icmd_COMMAND == ">>" )
 		{
 			Level++ ;
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			il_ite = getLineItr( itc->icmd_eURID ) ;
 			il_ite++ ;
-			for ( ; il_itr != il_ite ; il_itr++ )
+			for ( ; il_its != il_ite ; il_its++ )
 			{
-				if ( (*il_itr)->il_deleted  ) { continue ; }
-				shiftOK = rshiftData( itc->icmd_Rpt, (*il_itr)->get_idata(), tmp1 ) ;
-				if ( tmp1 != (*il_itr)->get_idata() )
+				if ( (*il_its)->il_deleted  ) { continue ; }
+				shiftOK = rshiftData( itc->icmd_Rpt, (*il_its)->get_idata(), tmp1 ) ;
+				if ( tmp1 != (*il_its)->get_idata() )
 				{
-					(*il_itr)->put_idata( tmp1, Level ) ;
+					(*il_its)->put_idata( tmp1, Level ) ;
 				}
-				if ( !shiftOK ) { (*il_itr)->il_error = true ; MSG = "PEDT013B" ; }
+				if ( !shiftOK ) { (*il_its)->il_error = true ; MSG = "PEDT013B" ; }
 			}
-			il_itr = getValidDataLine( il_itr ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = getValidDataLine( il_its ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 		}
 		else if ( itc->icmd_COMMAND == "<" )
 		{
 			Level++ ;
-			il_itr = getLineItr( itc->icmd_sURID ) ;
-			il_itr = getValidDataLine( il_itr ) ;
-			shiftOK = lshiftData( itc->icmd_Rpt, (*il_itr)->get_idata(), tmp1 ) ;
-			if ( tmp1 != (*il_itr)->get_idata() )
+			il_its = getLineItr( itc->icmd_sURID ) ;
+			il_its = getValidDataLine( il_its ) ;
+			shiftOK = lshiftData( itc->icmd_Rpt, (*il_its)->get_idata(), tmp1 ) ;
+			if ( tmp1 != (*il_its)->get_idata() )
 			{
-				(*il_itr)->put_idata( tmp1, Level ) ;
+				(*il_its)->put_idata( tmp1, Level ) ;
 			}
-			if ( !shiftOK ) { (*il_itr)->il_error = true ; MSG = "PEDT013B" ; }
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			if ( !shiftOK ) { (*il_its)->il_error = true ; MSG = "PEDT013B" ; }
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 		}
 		else if ( itc->icmd_COMMAND == "<<" )
 		{
 			Level++ ;
-			il_itr = getLineItr( itc->icmd_sURID ) ;
+			il_its = getLineItr( itc->icmd_sURID ) ;
 			il_ite = getLineItr( itc->icmd_eURID ) ;
 			il_ite++ ;
-			for ( ; il_itr != il_ite ; il_itr++ )
+			for ( ; il_its != il_ite ; il_its++ )
 			{
-				if ( (*il_itr)->il_deleted ) { continue ; }
-				shiftOK = lshiftData( itc->icmd_Rpt, (*il_itr)->get_idata(), tmp1 ) ;
-				if ( tmp1 != (*il_itr)->get_idata() )
+				if ( (*il_its)->il_deleted ) { continue ; }
+				shiftOK = lshiftData( itc->icmd_Rpt, (*il_its)->get_idata(), tmp1 ) ;
+				if ( tmp1 != (*il_its)->get_idata() )
 				{
-					(*il_itr)->put_idata( tmp1, Level ) ;
+					(*il_its)->put_idata( tmp1, Level ) ;
 				}
-				if ( !shiftOK ) { (*il_itr)->il_error = true ; MSG = "PEDT013B" ; }
+				if ( !shiftOK ) { (*il_its)->il_error = true ; MSG = "PEDT013B" ; }
 			}
-			il_itr = getValidDataLine( il_itr ) ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			il_its = getValidDataLine( il_its ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 		}
@@ -2620,21 +2625,21 @@ void PEDIT01::actionLineCommands()
 		{
 			Level++;
 			getClipboard( vip ) ;
-			il_itr  = getLineItr( itc->icmd_dURID ) ;
-			if ( itc->icmd_ABO == 'B' ) { il_itr = getLineBeforeItr( itc->icmd_dURID ) ; }
+			il_its  = getLineItr( itc->icmd_dURID ) ;
+			if ( itc->icmd_ABO == 'B' ) { il_its = getLineBeforeItr( itc->icmd_dURID ) ; }
 			for ( j = 0 ; j < vip.size() ; j++ )
 			{
-				p_iline          = new iline( taskid() )  ;
-				p_iline->il_file = true       ;
+				p_iline          = new iline( taskid() ) ;
+				p_iline->il_file = true ;
 				p_iline->put_idata( vip[ j ].ip_data, Level ) ;
-				il_itr++ ;
-				il_itr = data.insert( il_itr, p_iline ) ;
+				il_its++ ;
+				il_its = data.insert( il_its, p_iline ) ;
 			}
 			vreplace( "ZEDLNES", d2ds( vip.size() ) ) ;
 			vreplace( "CLIPNAME", clipboard ) ;
 			MSG  = "PEDT012D"    ;
 			ZCMD = ""            ;
-			placeCursor( (*il_itr)->il_URID, 1 ) ;
+			placeCursor( (*il_its)->il_URID, 1 ) ;
 			rebuildZAREA = true  ;
 			fileChanged  = true  ;
 		}
@@ -2878,12 +2883,18 @@ bool PEDIT01::checkLineCommands()
 	// abo  - contains a, b or single o M/C positions
 	// oo   - contains block OO M/C positions.  Use abo for single O positions
 
+	// Check for overlapping commands (ie. Cn, Dn, Mn don't conflict with the next command)
+
 	icmd cmd1    ;
 	icmd cmd2    ;
 	icmd cmd3    ;
 	icmd abo     ;
 	icmd oo      ;
+
 	int rept     ;
+	int adist    ;
+	int rdist    ;
+
 	string lc2   ;
 
 	bool iu_cmd1 ;
@@ -2900,10 +2911,20 @@ bool PEDIT01::checkLineCommands()
 	iu_cmd2 = false ;
 	iu_abo  = false ;
 	iu_oo   = false ;
+	adist   = 1     ;
+	rdist   = -1    ;
 
 	for ( it = data.begin() ; it != data.end() ; it++ )
 	{
+		if ( (*it)->il_deleted    ) { continue ; }
+		adist++ ;
 		if ( (*it)->il_lc1 == ""  ) { continue ; }
+		if ( rdist != -1 && rdist >= adist )
+		{
+			MSG = "PEDT013C" ;
+			break            ;
+		}
+		rdist = -1 ;
 		if ( (*it)->il_lc1[ 0 ] == '.' )
 		{
 			if ( !checkLabel( (*it)->il_lc1 ) ) { MSG = "PEDT014" ; return false ; }
@@ -2922,7 +2943,7 @@ bool PEDIT01::checkLineCommands()
 			if ( MSG == "" ) { MSG = "PEDT01Y" ; }
 			break ;
 		}
-		if ( wordpos( lc2, spllcmds ) == 0 )
+		if ( !findword( lc2, spllcmds ) )
 		{
 			if ( (*it)->il_col  || (*it)->il_prof ||
 			     (*it)->il_tabs || (*it)->il_mask ||
@@ -2933,9 +2954,9 @@ bool PEDIT01::checkLineCommands()
 				break ;
 			}
 		}
-		if ( wordpos( lc2, blkcmds + " " + sglcmds )   == 0 ) { MSG = "PEDT012" ; break ; }
-		if ( (*it)->il_tod && wordpos( lc2, todlcmds ) == 0 ) { MSG = "PEDT013" ; break ; }
-		if ( (*it)->il_bod && wordpos( lc2, bodlcmds ) == 0 ) { MSG = "PEDT013" ; break ; }
+		if ( !findword( lc2, blkcmds + " " + sglcmds )   ) { MSG = "PEDT012" ; break ; }
+		if ( (*it)->il_tod && !findword( lc2, todlcmds ) ) { MSG = "PEDT013" ; break ; }
+		if ( (*it)->il_bod && !findword( lc2, bodlcmds ) ) { MSG = "PEDT013" ; break ; }
 		if ( lc2 == "OO" )
 		{
 			if ( !iu_oo )
@@ -2977,11 +2998,11 @@ bool PEDIT01::checkLineCommands()
 				}
 			}
 		}
-		else if ( wordpos( lc2, blkcmds ) > 0 )
+		else if ( findword( lc2, blkcmds ) )
 		{
 			if ( iu_cmd1 && cmd1.icmd_COMMAND != lc2 ) { MSG = "PEDT01Y" ; break ; }
 			if ( iu_cmd1 && cmd1.icmd_eURID > 0 )      { MSG = "PEDT01W" ; break ; }
-			if ( wordpos( lc2, ABOReq ) > 0 )
+			if ( findword( lc2, ABOReq ) )
 			{
 				cmd1.icmd_ABO_req = true ;
 			}
@@ -2997,7 +3018,7 @@ bool PEDIT01::checkLineCommands()
 				if ( (cmd1.icmd_Rpt != -1 && rept != -1) && cmd1.icmd_Rpt != rept ) { MSG = "PEDT011B" ; break ; }
 				if (  cmd1.icmd_Rpt == -1 ) { cmd1.icmd_Rpt = rept ; }
 				cmd1.icmd_eURID = (*it)->il_URID ;
-				if ( wordpos( lc2, ABOReq ) == 0 )
+				if ( !findword( lc2, ABOReq ) )
 				{
 					icmds.push_back( cmd1 ) ;
 					cmd1.icmd_clear()       ;
@@ -3029,7 +3050,7 @@ bool PEDIT01::checkLineCommands()
 						iu_cmd1  = false         ;
 						iu_oo    = false         ;
 					}
-					else if ( cutActive && wordpos( lc2, CutCmds ) > 0 )
+					else if ( cutActive && findword( lc2, CutCmds ) )
 					{
 						cmd1.icmd_cutpaste = true ;
 						icmds.push_back( cmd1 )   ;
@@ -3042,10 +3063,12 @@ bool PEDIT01::checkLineCommands()
 		}
 		else
 		{
-			if ( wordpos( lc2, ABOList ) > 0 )
+			if ( findword( lc2, Chkdist ) ) { adist = 1 ; rdist = rept ; }
+			else                            { rdist = -1               ; }
+			if ( findword( lc2, ABOList ) )
 			{
 				if ( iu_abo ) { MSG = "PEDT01V" ; break ; }
-				else if ( pasteActive && wordpos( lc2, PasteCmds ) > 0 )
+				else if ( pasteActive && findword( lc2, PasteCmds ) )
 				{
 					abo.icmd_cutpaste = true  ;
 					abo.icmd_dURID    = (*it)->il_URID  ;
@@ -3075,14 +3098,14 @@ bool PEDIT01::checkLineCommands()
 				else
 				{
 					abo.icmd_dURID = (*it)->il_URID ;
-					abo.icmd_ABO   =  lc2[ 0 ]      ;
+					abo.icmd_ABO   = lc2[ 0 ]       ;
 					abo.icmd_OSize = rept ;
 					iu_abo         = true ;
 				}
 			}
 			else
 			{
-				if ( wordpos( lc2, ABOReq ) == 0 )
+				if ( !findword( lc2, ABOReq ) )
 				{
 					if ( (*it)->il_excl )
 					{
@@ -3124,7 +3147,7 @@ bool PEDIT01::checkLineCommands()
 							iu_cmd1  = false         ;
 							iu_abo   = false         ;
 						}
-						else if ( cutActive && wordpos( lc2, CutCmds ) > 0 )
+						else if ( cutActive && findword( lc2, CutCmds ) )
 						{
 							cmd1.icmd_cutpaste = true ;
 							icmds.push_back( cmd1 )   ;
@@ -3165,7 +3188,7 @@ bool PEDIT01::checkLineCommands()
 							iu_cmd2  = false         ;
 							iu_oo    = false         ;
 						}
-						else if ( cutActive && wordpos( lc2, CutCmds ) > 0 )
+						else if ( cutActive && findword( lc2, CutCmds ) )
 						{
 							cmd2.icmd_cutpaste = true ;
 							icmds.push_back( cmd2 )   ;
@@ -3183,10 +3206,10 @@ bool PEDIT01::checkLineCommands()
 		placeCursor( (*it)->il_URID, 1 ) ;
 		return false ;
 	}
-	if ( iu_cmd1 ) { MSG = "PEDT01W"  ; return false ; }
-	if ( iu_cmd2 ) { MSG = "PEDT01Z"  ; return false ; }
-	if ( iu_abo  ) { MSG = "PEDT01Z"  ; return false ; }
-	if ( iu_oo   ) { MSG = "PEDT01Z"  ; return false ; }
+	if ( iu_cmd1     ) { MSG = "PEDT01W"  ; return false ; }
+	if ( iu_cmd2     ) { MSG = "PEDT01Z"  ; return false ; }
+	if ( iu_abo      ) { MSG = "PEDT01Z"  ; return false ; }
+	if ( iu_oo       ) { MSG = "PEDT01Z"  ; return false ; }
 	if ( cutActive   ) { MSG = "PEDT012E" ; return false ; }
 	if ( pasteActive ) { MSG = "PEDT012F" ; return false ; }
 	return true ;
@@ -4176,7 +4199,7 @@ bool PEDIT01::formLineCmd( string cmd, string & lc2, int & rept)
 	t   = strip( t )   ;
 	lc2 = strip( lc2 ) ;
 
-	if ( t != "" && wordpos( lc2, ReptOK ) == 0 )
+	if ( t != "" && !findword( lc2, ReptOK ) )
 	{
 		MSG = "PEDT011A" ;
 		return false     ;

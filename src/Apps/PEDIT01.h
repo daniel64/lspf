@@ -81,12 +81,12 @@ class idata
 } ;
 
 
-class iposition
+class ipos
 {
 	public:
 		int    ipo_line ;
 		int    ipo_URID ;
-		iposition()
+		ipos()
 		{
 			ipo_line = 0 ;
 			ipo_URID = 0 ;
@@ -171,11 +171,11 @@ class iline
 		int    il_rept    ;
 		int    il_URID    ;
 		int    il_taskid  ;
+		string il_Shadow  ;
+		bool   il_vShadow ;
+		bool   il_wShadow ;
 		stack <idata> il_idata      ;
 		stack <idata> il_idata_redo ;
-		string il_Shadow            ;
-		bool   il_vShadow           ;
-		bool   il_wShadow           ;
 
 		iline( int taskid )
 		{
@@ -658,7 +658,7 @@ class PEDIT01 : public pApplication
 		string recoverLoc        ;
 
 		vector<iline *> data     ;
-		map<int, iposition> s2data ;
+		map<int, ipos> s2data    ;
 		map<int, bool> sChanged  ;
 		map<int, bool> sTouched  ;
 		map<bool, string>OnOff   ;
@@ -745,9 +745,10 @@ class PEDIT01 : public pApplication
 		const string spllcmds  = "COL COLS A B I C M MD MMD D R CC MM DD RR" ;
 		const string todlcmds  = "COL COLS A I BNDS MASK TABS" ;
 		const string bodlcmds  = "B" ;
-		const string ABOReq    = "CC MM C M" ;
+		const string ABOReq    = "C CC M MM" ;
+		const string Chkdist   = "C D M HX LC MD O TJ UC X" ;
 		const string ABOList   = "A B O" ;
-		const string ReptOK    = "C M D F HX I L MD X O R UC LC RR TJ (( )) ( ) << >> < >" ;
+		const string ReptOK    = "C D F HX I L M MD X O R UC LC RR TJ (( )) ( ) << >> < >" ;
 		const string CutCmds   = "C CC M MM" ;
 		const string PasteCmds = "A B" ;
 } ;

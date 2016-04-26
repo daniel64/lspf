@@ -208,3 +208,6 @@ PEDT013A "File in use"
 PEDT013B "Data shifting incomplete" .TYPE=W
 "Data shifting was not completed on lines marked ==ERR>"
 
+PEDT013C "Command Conflict" .TYPE=W
+"Command is within the range of the previous command"
+

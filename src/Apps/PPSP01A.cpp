@@ -1532,8 +1532,8 @@ void PPSP01A::showCommandTables()
 	APPLCMDL = "" ;
 	if ( ZAPPLID != "ISP" )
 	{
-		APPLCMD = ZAPPLID + "CMDS" ;
-		tbopen( APPLCMD, NOWRITE, "", SHARE ) ;
+		APPLCMD = ZAPPLID ;
+		tbopen( APPLCMD+"CMDS", NOWRITE, "", SHARE ) ;
 		if ( RC > 4 )
 		{
 			APPLCMDL = "Application Command Table Not Found" ;
@@ -1541,7 +1541,7 @@ void PPSP01A::showCommandTables()
 		else
 		{
 			APPLCMDL = "" ;
-			tbend( APPLCMD ) ;
+			tbend( APPLCMD+"CMDS" ) ;
 		}
 	}
 	MSG = "" ;

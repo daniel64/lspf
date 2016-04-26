@@ -44,6 +44,7 @@ class pApplication
 		bool   terminateAppl      ;
 		bool   abnormalEnd        ;
 		bool   abnormalEndForced  ;
+		bool   abnormalTimeout    ;
 		bool   reloadCUATables    ;
 		bool   rawOutput          ;
 		bool   libdef_muser       ;
@@ -174,7 +175,8 @@ class pApplication
 		void   (pApplication::*pcleanup)() = &pApplication::cleanup_default ;
 		void   abend()       ;
 		void   abendexc()    ;
-		void   set_forced_abend() ;
+		void   set_forced_abend()  ;
+		void   set_timeout_abend() ;
 		void   closeLog()    ;
 		void   closeTables() ;
 

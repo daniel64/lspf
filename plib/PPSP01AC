@@ -21,12 +21,12 @@ field    6  17    8 VOI  NONE ZAPPLID
 literal  6  MAX-41     FP  "Application Command Table.:"
 field    6  MAX-13  8  VOI  NONE   APPLCMD
 
-literal  7  MAX-41     FP  "User Command Table . . . .:"
+literal  7  MAX-41     FP  "User Command Tables. . . .:"
 field    7  MAX-13  4  VOI  NONE   ZUCMDT1
 field    7  MAX-8   4  VOI  NONE   ZUCMDT2
 field    7  MAX-3   4  VOI  NONE   ZUCMDT3
 
-literal  8  MAX-41     FP  "User Command Table . . . .:"
+literal  8  MAX-41     FP  "Site Command Tables. . . .:"
 field    8  MAX-13  4  VOI  NONE   ZSCMDT1
 field    8  MAX-8   4  VOI  NONE   ZSCMDT2
 field    8  MAX-3   4  VOI  NONE   ZSCMDT3

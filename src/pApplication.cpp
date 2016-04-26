@@ -45,6 +45,7 @@ pApplication::pApplication()
 	terminateAppl          = false  ;
 	abnormalEnd            = false  ;
 	abnormalEndForced      = false  ;
+	abnormalTimeout        = false  ;
 	rawOutput              = false  ;
 	reloadCUATables        = false  ;
 	rexxName               = ""     ;
@@ -2486,6 +2487,7 @@ void pApplication::abend()
 	abnormalEnd   = true  ;
 	terminateAppl = true  ;
 	busyAppl      = false ;
+	SEL           = false ;
 	log( "E", "Application entering wait state" << endl ) ;
 	boost::this_thread::sleep_for(boost::chrono::seconds(31536000)) ;
 }
@@ -2509,6 +2511,7 @@ void pApplication::abendexc()
 	abnormalEnd   = true  ;
 	terminateAppl = true  ;
 	busyAppl      = false ;
+	SEL           = false ;
 	log( "E", "Application entering wait state" << endl ) ;
 	boost::this_thread::sleep_for(boost::chrono::seconds(31536000)) ;
 }
@@ -2522,6 +2525,20 @@ void pApplication::set_forced_abend()
 	abnormalEndForced = true  ;
 	terminateAppl     = true  ;
 	busyAppl          = false ;
+	SEL               = false ;
+}
+
+
+void pApplication::set_timeout_abend()
+{
+	log( "E", "Shutting down application: " << ZAPPNAME << " Taskid: " << taskID << " due to a timeout condition" << endl ) ;
+	if ( dumpFile != "" ) { remove( dumpFile ) ; }
+	abnormalEnd       = true  ;
+	abnormalEndForced = true  ;
+	abnormalTimeout   = true  ;
+	terminateAppl     = true  ;
+	busyAppl          = false ;
+	SEL               = false ;
 }
 
 

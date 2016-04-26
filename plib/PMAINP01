@@ -36,10 +36,12 @@ PROC :
      &L      = LENGTH(ZCMD)
      &WS     = WORDS(ZCMD)
 
+     &Z      Special variable representing null
+
      IF...ELSE statements are indentation sensitive
-     IF ( &ZCMD = &A ) can also have a word or quoted (CANCEL,'Bye')
-     IF (&Z EQ A,B,C,D) true if var Z is any of the list
-     IF (&Z NE A,B,C,D) true if var Z is non of the list
+     IF ( &ZCMD = &A ) can also be a word or quoted (CANCEL,'Bye')
+     IF (&V EQ A,B,C,D) true if var V is any of the list
+     IF (&V NE A,B,C,D) true if var V is none of the list
      ELSE
      EXIT  exit panel processing.
      &ZCMD = TRUNC( &CMD, 3 )
@@ -86,101 +88,98 @@ literal  6  16   NT   "Display and alter user settings"
 
 literal  7  2    SAC  "1"
 literal  7  5    PS   "Browse"
-literal  7  16    NT   "Browse files"
+literal  7  16   NT   "Browse files"
 
 literal  8  2    SAC  "2"
 literal  8  5    PS   "Edit"
-literal  8  16    NT   "Edit files"
+literal  8  16   NT   "Edit files"
 
 literal  9  2    SAC  "3"
 literal  9  5    PS   "Utilities"
-literal  9  16    NT   "File Utilities"
+literal  9  16   NT   "File Utilities"
 
 literal  10  2    SAC  "4"
 literal  10  5    PS   "Testing"
-literal  10  16    NT   "Invoke Testing Program"
+literal  10  16   NT   "Invoke Testing Program"
 
 literal  11  2    SAC  "5"
 literal  11  5    PS   "Tasks"
-literal  11  16    NT   "Display Tasks and System Resource Usage"
+literal  11  16   NT   "Display Tasks and System Resource Usage"
 
 literal  12  2    SAC  "6"
 literal  12  5    PS   "Command"
-literal  12  16    NT   "Enter Commands"
+literal  12  16   NT   "Enter Commands"
 
 literal  13  2    SAC  "7"
 literal  13  5    PS   "Dialogue"
-literal  13  16    NT   "Dialogue Testing"
+literal  13  16   NT   "Dialogue Testing"
 
 literal  14  2    SAC  "8"
 literal  14  5    PS   "Lspf Log"
-literal  14  16    NT   "Browse Lspf Log"
+literal  14  16   NT   "Browse Lspf Log"
 
 literal  15  2    SAC  "9"
 literal  15  5    PS   "Appl Log"
-literal  15  16    NT   "Browse Application Log"
+literal  15  16   NT   "Browse Application Log"
 
 literal  16  2    SAC  "10"
 literal  16  5    PS   "Functions"
-literal  16  16    NT   "Invoke dialogue functions or selection panel"
+literal  16  16   NT   "Invoke dialogue functions or selection panel"
 
 literal  18  2    SAC  "D"
 literal  18  5    PS   "MySQL"
-literal  18  16    NT   "MySQL Database Actions"
+literal  18  16   NT   "MySQL Database Actions"
 
 literal  19  2    SAC  "U"
 literal  19  5    PS   "User Menu"
-literal  19  16    NT   "User Actions"
+literal  19  16   NT   "User Actions"
 
 literal  20  2    SAC  "S"
 literal  20  5    PS   "System"
-literal  20  16    NT   "System Utilities"
+literal  20  16   NT   "System Utilities"
 
 literal  22  2    SAC  "T"
 literal  22  5    PS   "TUTORIAL"
-literal  22  16    NT   "Start Tutorial"
+literal  22  16   NT   "Start Tutorial"
 
 literal  23  2    SAC  "X"
 literal  23  5    PS   "Terminate"
-literal  23  16    NT   "Termiante Session"
+literal  23  16   NT   "Termiante Session"
 
-dynArea        7 MAX-60  21   11  ZAREA  ZSHADOW
+dynArea  7  MAX-60   21  11  ZAREA  ZSHADOW
 
-Literal  7  MAX-35    FP    "User       :"
-Field    7  MAX-22    8    VOI     NONE  ZUSER
+Literal  7  MAX-35   FP  "User       :"
+Field    7  MAX-22   8    VOI     NONE  ZUSER
 
-literal  8  MAX-35    FP    "Home       :"
-field    8  MAX-22    15    VOI     NONE  ZHOME
+literal  8  MAX-35   FP  "Home       :"
+field    8  MAX-22   15    VOI     NONE  ZHOME
 
-literal  9    MAX-35    FP "Node Name  :"
-field    9    MAX-22    10   VOI     NONE  ZNODNAME
+literal  9  MAX-35   FP  "Node Name  :"
+field    9  MAX-22   10   VOI     NONE  ZNODNAME
 
-literal  10  MAX-35    FP  "Machine    :"
-field    10  MAX-22    8    VOI     NONE  ZMACHINE
+literal  10  MAX-35  FP  "Machine    :"
+field    10  MAX-22  8    VOI     NONE  ZMACHINE
 
-literal  11  MAX-35    FP  "Environment:"
-field    11   MAX-22    15   VOI     NONE  ZENVIR
+literal  11  MAX-35  FP  "Environment:"
+field    11  MAX-22  15   VOI     NONE  ZENVIR
 
-literal  12  MAX-35    FP  "System Name:"
-field    12   MAX-22   10    VOI     NONE  ZSYSNAME
+literal  12  MAX-35  FP  "System Name:"
+field    12  MAX-22  10    VOI     NONE  ZSYSNAME
 
-literal  13   MAX-35    FP "OS Release :"
-field    13   MAX-22   15    VOI    NONE  ZOSREL
+literal  13  MAX-35  FP  "OS Release :"
+field    13  MAX-22  15    VOI    NONE  ZOSREL
 
-literal  15   MAX-35   FP  "Date       :"
-field    15   MAX-22   11   VOI     NONE  ZDATEL
+literal  15  MAX-35  FP  "Date       :"
+field    15  MAX-22  11   VOI     NONE  ZDATEL
 
-literal  16   MAX-35   FP  "Time       :"
-field    16   MAX-22   8    VOI     NONE  ZTIMEL
+literal  16  MAX-35  FP  "Time       :"
+field    16  MAX-22  8    VOI     NONE  ZTIMEL
 
 )COMMENT
 literal   9    2    FP  "ZSCRMAXD:"
 field    9    12    8    VOI     NONE  ZSCRMAXD
 literal   10   2    FP  "ZSCRMAXW:"
 field    10   12    8    VOI     NONE  ZSCRMAXW
-
-
-
 )ENDCOMMENT
 
 
