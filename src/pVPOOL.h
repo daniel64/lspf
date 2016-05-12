@@ -111,7 +111,7 @@ class pVPOOL
 
 		void   erase( int &, string )    ;
 		bool   isSystem( int &, string ) ;
-		void   setreadOnly()  { readOnly = true  ; }
+		void   setReadOnly()  { readOnly = true  ; }
 		void   resetChanged() { changed  = false ; }
 		void   createGenEntries() ;
 
@@ -125,14 +125,14 @@ class poolMGR
 		poolMGR() ;
 
 		string getAPPLID()   { return currAPPLID ; }
-		string getshrdPool() { return shrdPool   ; }
+		string getShrdPool() { return shrdPool   ; }
 		void   setAPPLID( int & RC, string )     ;
-		void   setshrdPool( int & RC, string )   ;
+		void   setShrdPool( int & RC, string )   ;
 		string vlist( int & RC, poolType, int )  ;
 
 		void   createPool( int & RC, poolType, string path="" ) ;
 		void   destroyPool( int & RC, poolType ) ;
-		void   setPOOLsreadOnly( int & RC ) ;
+		void   setPOOLsReadOnly( int & RC ) ;
 		void   defaultVARs( int & RC, string name, string value, poolType ) ;
 		void   statistics() ;
 		void   snap() ;

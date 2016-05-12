@@ -168,6 +168,7 @@ class pApplication
 		void   get_home( uint & row, uint & col ) ;
 		void   get_cursor( uint & row, uint & col ) ;
 		void   set_msg( string, string, cuaType, bool ) ;
+		void   set_msg( string ) ;
 		bool   nretriev_on()   ;
 		string get_nretfield() ;
 		void   cleanup()       ;

@@ -80,11 +80,10 @@ void fPOOL::dlete( int & RC, string name, nameCHCK check )
 	{
 		for ( it = POOL.begin() ; it != POOL.end() ; it++ )
 		{
-			if ( findword( it->first, vdsys ) ) { continue ; }
-			if ( it->second.top().fVAR_defined )
+			while ( !findword( it->first, vdsys ) && it->second.top().fVAR_defined )
 			{
-				POOL.erase( it )  ;
-				it = POOL.begin() ;
+				it = POOL.erase( it ) ;
+				if ( it == POOL.end() ) { return ; }
 			}
 		}
 		return ;
@@ -188,8 +187,7 @@ bool fPOOL::ifexists( int & RC, string name, nameCHCK check )
 
 	if ( (check == CHECK) && !isvalidName( name ) ) { RC = 20 ; return false ; }
 
-	if ( POOL.find( name ) == POOL.end() ) { return false; }
-	return true ;
+	return POOL.find( name ) != POOL.end() ;
 }
 
 
@@ -547,8 +545,8 @@ void pVPOOL::createGenEntries()
 {
 	pVAR val ;
 
-	val.pVAR_value  = ""    ;
-	val.pVAR_system = true  ;
+	val.pVAR_value  = ""   ;
+	val.pVAR_system = true ;
 
 	val.pVAR_type = pV_ZTIME    ; POOL[ "ZTIME"    ] = val ;
 	val.pVAR_type = pV_ZTIMEL   ; POOL[ "ZTIMEL"   ] = val ;
@@ -752,20 +750,20 @@ poolMGR::poolMGR()
 }
 
 
-void poolMGR::setPOOLsreadOnly( int & RC )
+void poolMGR::setPOOLsReadOnly( int & RC )
 {
 	//  Neither of these are currently used
 
-	RC = 0    ;
+	RC = 0 ;
 
-	POOLs_profile[ "@ROXPROF" ].setreadOnly() ;
-	POOLs_profile[ "@DEFPROF" ].setreadOnly() ;
+	POOLs_profile[ "@ROXPROF" ].setReadOnly() ;
+	POOLs_profile[ "@DEFPROF" ].setReadOnly() ;
 }
 
 
 void poolMGR::defaultVARs( int & RC, string name, string value, poolType pType )
 {
-	RC = 0    ;
+	RC = 0 ;
 
 	switch ( pType )
 	{
@@ -776,7 +774,7 @@ void poolMGR::defaultVARs( int & RC, string name, string value, poolType pType )
 		POOLs_profile[ "@DEFPROF" ].put( RC, name, value, SYSTEM ) ;
 		break ;
 	default:
-		RC = 0 ;
+		RC = 20 ;
 	}
 }
 
@@ -787,10 +785,10 @@ void poolMGR::createPool( int & RC, poolType pType, string path )
 	// RC = 4  Pool created but not loaded as PROFILE file does not exist (for PROFILE pools only)
 	// RC = 20 Severe error
 
-	string s     ;
+	string s ;
 
-	map<string, pVPOOL>::iterator sp_it   ;
-	map<string, pVPOOL>::iterator pp_it   ;
+	map<string, pVPOOL>::iterator sp_it ;
+	map<string, pVPOOL>::iterator pp_it ;
 
 	pVPOOL pool ;
 
@@ -809,9 +807,9 @@ void poolMGR::createPool( int & RC, poolType pType, string path )
 			log( "C", "SHARED POOL " << shrdPool << " already exists.  Logic Error " << endl ) ;
 			return ;
 		}
-		pool.path = "" ;
-		POOLs_shared[ shrdPool ]           = pool ;
-		POOLs_shared[ shrdPool ].refCount  = 1    ;
+		pool.path     = "" ;
+		pool.refCount = 1  ;
+		POOLs_shared[ shrdPool ] = pool ;
 		break ;
 	case PROFILE:
 		debug1( "New profile pool name " << currAPPLID << endl ) ;
@@ -829,11 +827,11 @@ void poolMGR::createPool( int & RC, poolType pType, string path )
 				}
 				else
 				{
-					pool.path = path ;
-					POOLs_profile[ currAPPLID ] = pool       ;
-					POOLs_profile[ currAPPLID ].refCount = 1 ;
+					pool.path     = path ;
+					pool.refCount = 1    ;
+					POOLs_profile[ currAPPLID ] = pool ;
 					log( "I", "Pool " << currAPPLID << " created okay.  Reading saved variables from profile dataset" << endl ) ;
-					POOLs_profile[ currAPPLID ].load(  RC, currAPPLID, path ) ;
+					POOLs_profile[ currAPPLID ].load( RC, currAPPLID, path ) ;
 					if ( currAPPLID == "ISPS" ) { POOLs_profile[ "ISPS" ].sysPROF = true ; }
 				}
 			}
@@ -848,10 +846,10 @@ void poolMGR::createPool( int & RC, poolType pType, string path )
 					}
 					else
 					{
-						log( "I", "Profile " << currAPPLID + "PROF does not exist.  Creating default" <<  endl ) ;
-						pool.path = path                         ;
-						POOLs_profile[ currAPPLID ] = pool       ;
-						POOLs_profile[ currAPPLID ].refCount = 1 ;
+						log( "I", "Profile " << currAPPLID+"PROF does not exist.  Creating default" <<  endl ) ;
+						pool.path     = path ;
+						pool.refCount = 1    ;
+						POOLs_profile[ currAPPLID ] = pool ;
 						log( "I", "Profile Pool " << currAPPLID << " created okay in path " << path << endl ) ;
 						RC = 4 ;
 					}
@@ -958,7 +956,7 @@ void poolMGR::statistics()
 			  "  " << Mode << "  entries: " << setw(5) << sp_it->second.POOL.size() << endl ) ;
 	}
 	log( "-", "" << endl ) ;
-	log( "-", "         PROFILE pool details:" << endl ) ;
+	log( "-", "         Profile pool details:" << endl ) ;
 	for ( pp_it = POOLs_profile.begin() ; pp_it != POOLs_profile.end() ; pp_it++ )
 	{
 		if ( pp_it->second.readOnly ) { Mode = "RO" ; }
@@ -1025,7 +1023,7 @@ void poolMGR::setAPPLID( int & RC, string m_APPLID )
 }
 
 
-void poolMGR::setshrdPool( int & RC, string m_shrdPool )
+void poolMGR::setShrdPool( int & RC, string m_shrdPool )
 {
 	map<string, pVPOOL>::iterator sp_it ;
 

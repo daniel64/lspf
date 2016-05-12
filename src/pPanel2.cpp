@@ -65,7 +65,7 @@ int pPanel::loadPanel( string p_name, string paths )
 	map<string, field *>::iterator it1;
 
 	RC = 0 ;
-	if ( !isvalidName( p_name ) ) { PERR = "Panel name " + p_name + " is invalid" ; return 20 ; }
+	if ( !isvalidName( p_name ) ) { PERR = "Panel name "+ p_name +" is invalid" ; return 20 ; }
 
 	found = false ;
 	i = getpaths( paths ) ;

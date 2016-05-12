@@ -94,6 +94,7 @@ int  pLScreen::screensTotal = 0 ;
 int  pLScreen::maxScreenID  = 0 ;
 int  pLScreen::maxrow       = 0 ;
 int  pLScreen::maxcol       = 0 ;
+
 WINDOW * pLScreen::OIA      = NULL ;
 
 boost::posix_time::ptime startTime ;
@@ -148,7 +149,7 @@ struct appInfo
 
 map<string, appInfo> apps ;
 
-boost::circular_buffer<string> retrieveBuffer(25) ;
+boost::circular_buffer<string> retrieveBuffer(10) ;
 
 int    maxtaskID = 0 ;
 int    screenNum = 0 ;
@@ -184,8 +185,10 @@ string ZSHELL ;
 int    GMAXWAIT ;
 string GMAINPGM ;
 
+string pfkPROF  ;
+
 const string BuiltInCommands = "ABEND ACTION DISCARD FIELDEXC INFO NOP PANELID REFRESH "
-			       "RELOAD SCALE SNAP SHELL SPLIT STATS SWAP TASKS TEST TDOWN" ;
+			       "RELOAD SCALE SNAP SHELL SPLIT STATS SWAP TEST TDOWN" ;
 
 std::ofstream splog(SLOG) ;
 
@@ -242,8 +245,9 @@ int main( void )
 
 	p_poolMGR->put( RC, "ZSCREEN", string( 1, ZSCREEN[ screenNum ] ), SHARED, SYSTEM ) ;
 	p_poolMGR->put( RC, "ZAPPLID", "ISP", SHARED, SYSTEM ) ;
-	currAppl->shrdPool = p_poolMGR->getshrdPool() ;
+	currAppl->shrdPool = p_poolMGR->getShrdPool() ;
 	currAppl->init() ;
+	pfkPROF = ""     ;
 	loadpfkeyTable() ;
 
 	pThread = new boost::thread(boost::bind(&pApplication::application, currAppl ) ) ;
@@ -544,14 +548,19 @@ void mainLoop()
 					{
 
 						field_name = currAppl->currPanel->field_getname( row, col ) ;
-						fxc = currAppl->currPanel->field_getexec( field_name )      ;
+						if ( field_name == "" )
+						{
+							currAppl->set_msg( "PSYS011K" ) ;
+							break ;
+						}
+						fxc = currAppl->currPanel->field_getexec( field_name ) ;
 						if ( fxc.fieldExc_command != "" )
 						{
 							selectParse( RC, subword( fxc.fieldExc_command, 2 ), SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB ) ;
 							if ( RC > 0 )
 							{
 								log( "E", "Error in FIELD SELECT command "+ fxc.fieldExc_command << endl ) ;
-								currAppl->setmsg( "PSYS01K" ) ;
+								currAppl->set_msg( "PSYS01K" ) ;
 								break ;
 							}
 							SEL_PARM = SEL_PARM + " " + currAppl->currPanel->field_getvalue( field_name ) ;
@@ -564,6 +573,11 @@ void mainLoop()
 								p_poolMGR->put( RC, "ZFEDATA" + d2ds( i ), currAppl->currPanel->field_getvalue( ww ) , SHARED ) ;
 							}
 							startApplication( SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB ) ;
+							break ;
+						}
+						else
+						{
+							currAppl->set_msg( "PSYS011J" ) ;
 							break ;
 						}
 					}
@@ -687,7 +701,7 @@ void mainLoop()
 						currScrn = screenList[ screenNum ] ;
 						currAppl = currScrn->application_get_current() ;
 						p_poolMGR->setAPPLID( RC, currAppl->ZZAPPLID )   ;
-						p_poolMGR->setshrdPool( RC, currAppl->shrdPool ) ;
+						p_poolMGR->setShrdPool( RC, currAppl->shrdPool ) ;
 						p_poolMGR->put( RC, "ZPANELID", currAppl->PANELID, SHARED, SYSTEM ) ;
 						if ( currAppl->popupDisplayed() )
 						{
@@ -696,10 +710,6 @@ void mainLoop()
 						currAppl->refresh() ;
 						loadpfkeyTable()    ;
 						break ;
-					}
-					else if ( ZCOMMAND == "TASKS" )
-					{
-						log( "N", "Task display not yet implemented" << endl ) ;
 					}
 					else if ( ZCOMMAND == "TEST" )
 					{
@@ -766,6 +776,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 	uint j  ;
 	uint ws ;
 	uint rtsize ;
+	uint rbsize ;
 
 	bool   addRetrieve ;
 	bool   siteBefore  ;
@@ -881,8 +892,14 @@ void processAction( uint row, uint col, int c, bool & passthru )
 		if ( RC > 0 ) { log( "C", "VPUT for PF00 failed" << endl ) ; }
 	}
 
+
 	if ( addRetrieve )
 	{
+		rbsize = ds2d( p_poolMGR->get( RC, "ZRBSIZE", PROFILE ) ) ;
+		if ( retrieveBuffer.capacity() != rbsize )
+		{
+			retrieveBuffer.rset_capacity( rbsize ) ;
+		}
 		rtsize = ds2d( p_poolMGR->get( RC, "ZRTSIZE", PROFILE ) ) ;
 		if ( ZCOMMAND.size() >= rtsize && upper( ZCOMMAND ) != "RETRIEVE" && upper( PFCMD ) != "RETRIEVE" )
 		{
@@ -925,6 +942,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 
 	CMDVerb = upper( word( ZCOMMAND, 1 ) ) ;
 	CMDRest = subword( ZCOMMAND, 2 ) ;
+
 	if ( CMDVerb == "" ) { return ; }
 
 	if ( CMDVerb[ 0 ] == '%' )
@@ -1085,7 +1103,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 		}
 	}
 
-	if ( (findword( CMDVerb, BuiltInCommands )) || (apps.find( CMDVerb ) != apps.end()) )
+	if ( findword( CMDVerb, BuiltInCommands ) )
 	{
 		passthru = false   ;
 		ZCOMMAND = CMDVerb ;
@@ -1123,8 +1141,8 @@ void processPGMSelect()
 	}
 	else
 	{
-		errorScreen( 1, "SELECT function did not find application " + currAppl->SEL_PGM ) ;
-		currAppl->SEL      = false ;
+		errorScreen( 1, "SELECT function did not find application "+ currAppl->SEL_PGM ) ;
+		currAppl->SEL = false ;
 		log( "W", "Resumed function did a SELECT.  Ending wait in SELECT" << endl ) ;
 		ResumeApplicationAndWait() ;
 		while ( currAppl->terminateAppl )
@@ -1229,7 +1247,7 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 		p_poolMGR->put( RC, "ZSCREEN", s, SHARED, SYSTEM ) ;
 		p_poolMGR->put( RC, "ZAPPLID", p_poolMGR->getAPPLID(), SHARED, SYSTEM ) ;
 	}
-	currAppl->shrdPool = p_poolMGR->getshrdPool() ;
+	currAppl->shrdPool = p_poolMGR->getShrdPool() ;
 	loadpfkeyTable() ;
 	currAppl->init() ;
 
@@ -1308,6 +1326,7 @@ void terminateApplication()
 
 	bool MSGALRM      ;
 	bool refList      ;
+	bool nretError    ;
 	bool propagateEnd ;
 	bool jumpEntered  ;
 	bool setCursor    ;
@@ -1387,7 +1406,7 @@ void terminateApplication()
 
 	p_poolMGR->setAPPLID( RC, currAppl->ZZAPPLID )  ;
 	if ( RC > 0 ) { log( "C", "ERROR setting APPLID for pool manager.  RC=" << RC << endl ) ; }
-	p_poolMGR->setshrdPool( RC, currAppl->shrdPool )   ;
+	p_poolMGR->setShrdPool( RC, currAppl->shrdPool )   ;
 	if ( RC > 0 ) { log( "C", "ERROR setting shared pool for pool manager.  RC=" << RC << endl ) ; }
 
 	p_poolMGR->put( RC, "ZPANELID", currAppl->PANELID, SHARED, SYSTEM )  ;
@@ -1406,34 +1425,44 @@ void terminateApplication()
 		}
 	}
 
+	nretError = false ;
 	if ( refList )
 	{
 		if ( currAppl->nretriev_on() )
 		{
 			fname = currAppl->get_nretfield() ;
-			if ( RC == 0 )
+			if ( fname != "" )
 			{
-				currAppl->field_name = fname ;
-				if ( p_poolMGR->get( RC, "ZRFMOD", PROFILE ) == "BEX" )
+				if ( currAppl->currPanel->field_valid( fname ) )
 				{
-					commandStack = ";;" ;
+					currAppl->field_name = fname ;
+					if ( p_poolMGR->get( RC, "ZRFMOD", PROFILE ) == "BEX" )
+					{
+						commandStack = ";;" ;
+					}
+				}
+				else
+				{
+					log( "E", "Invalid field "+ fname +" in .NRET panel statement" << endl ) ;
+					currAppl->set_msg( "PSYS01Z" ) ;
+					nretError = true ;
 				}
 			}
 			else
 			{
-				currAppl->setmsg( "PSYS01Y" ) ;
-				SMSG = currAppl->ZSMSG ; LMSG = currAppl->ZLMSG ; MSGTYPE = currAppl->ZMSGTYPE ; MSGALRM = currAppl->ZMSGALRM ;
+				currAppl->set_msg( "PSYS01Y" ) ;
+				nretError = true ;
 			}
 		}
 		else
 		{
-			currAppl->setmsg( "PSYS01X" ) ;
-			SMSG = currAppl->ZSMSG ; LMSG = currAppl->ZLMSG ; MSGTYPE = currAppl->ZMSGTYPE ; MSGALRM = currAppl->ZMSGALRM ;
+			currAppl->set_msg( "PSYS01X" ) ;
+			nretError = true ;
 		}
 	}
 
 	setCursor = true ;
-	if ( currAppl->field_name != "" )
+	if ( currAppl->field_name != "" && !nretError )
 	{
 		if ( tRC == 0 )
 		{
@@ -1442,13 +1471,16 @@ void terminateApplication()
 				currAppl->currPanel->field_setvalue( currAppl->field_name, tRESULT ) ;
 				currAppl->currPanel->cursor_eof( row, col ) ;
 				currAppl->currPanel->set_cursor( row, col ) ;
+				if ( refList )
+				{
+					currAppl->set_msg( "PSYS01W" ) ;
+				}
 				setCursor = false ;
 			}
 			else
 			{
 				log( "E", "Invalid field "+ currAppl->field_name +" in .NRET panel statement" << endl ) ;
-				currAppl->setmsg( "PSYS01Z" ) ;
-				SMSG = currAppl->ZSMSG ; LMSG = currAppl->ZLMSG ; MSGTYPE = currAppl->ZMSGTYPE ; MSGALRM = currAppl->ZMSGALRM ;
+				currAppl->set_msg( "PSYS01Z" ) ;
 			}
 		}
 		else if ( tRC == 8 )
@@ -1823,20 +1855,20 @@ void loadDefaultPools()
 	p_poolMGR->setAPPLID( RC, "ISP" ) ;
 	p_poolMGR->createPool( RC, PROFILE, ZSPROF ) ;
 
-	p_poolMGR->defaultVARs( RC, "ZHOME", ZHOME, SHARED )             ;
-	p_poolMGR->defaultVARs( RC, "ZSHELL", ZSHELL, SHARED )           ;
-	p_poolMGR->defaultVARs( RC, "ZSYSNAME", buf.sysname, SHARED )    ;
-	p_poolMGR->defaultVARs( RC, "ZNODNAME", buf.nodename, SHARED )   ;
-	p_poolMGR->defaultVARs( RC, "ZOSREL", buf.release, SHARED )      ;
-	p_poolMGR->defaultVARs( RC, "ZOSVER", buf.version, SHARED )      ;
-	p_poolMGR->defaultVARs( RC, "ZMACHINE", buf.machine, SHARED )    ;
-	p_poolMGR->defaultVARs( RC, "ZENVIR", "lspf V0R0M1", SHARED )    ;
-	p_poolMGR->defaultVARs( RC, "ZDATEF",  "DD/MM/YY", SHARED )      ;
-	p_poolMGR->defaultVARs( RC, "ZDATEFD", "DD/MM/YY", SHARED )      ;
-	p_poolMGR->defaultVARs( RC, "ZSCALE", "OFF", SHARED )            ;
-	p_poolMGR->defaultVARs( RC, "ZSPLIT", "NO", SHARED )             ;
+	p_poolMGR->defaultVARs( RC, "ZHOME", ZHOME, SHARED )           ;
+	p_poolMGR->defaultVARs( RC, "ZSHELL", ZSHELL, SHARED )         ;
+	p_poolMGR->defaultVARs( RC, "ZSYSNAME", buf.sysname, SHARED )  ;
+	p_poolMGR->defaultVARs( RC, "ZNODNAME", buf.nodename, SHARED ) ;
+	p_poolMGR->defaultVARs( RC, "ZOSREL", buf.release, SHARED )    ;
+	p_poolMGR->defaultVARs( RC, "ZOSVER", buf.version, SHARED )    ;
+	p_poolMGR->defaultVARs( RC, "ZMACHINE", buf.machine, SHARED )  ;
+	p_poolMGR->defaultVARs( RC, "ZENVIR", "lspf V0R0M1", SHARED )  ;
+	p_poolMGR->defaultVARs( RC, "ZDATEF",  "DD/MM/YY", SHARED )    ;
+	p_poolMGR->defaultVARs( RC, "ZDATEFD", "DD/MM/YY", SHARED )    ;
+	p_poolMGR->defaultVARs( RC, "ZSCALE", "OFF", SHARED )          ;
+	p_poolMGR->defaultVARs( RC, "ZSPLIT", "NO", SHARED )           ;
 
-	p_poolMGR->setPOOLsreadOnly( RC ) ;
+	p_poolMGR->setPOOLsReadOnly( RC ) ;
 	GMAINPGM = p_poolMGR->get( RC, "ZMAINPGM", PROFILE ) ;
 }
 
@@ -1867,35 +1899,45 @@ void loadSystemCommandTable()
 
 void loadpfkeyTable()
 {
+	// Load the pfkey table, if the one currently loaded (pfkPROF) is not the same as the current application APPLID
+
 	int RC ;
 
-	string ZPF01, ZPF02, ZPF03, ZPF04, ZPF05, ZPF06, ZPF07, ZPF08, ZPF09, ZPF10, ZPF11, ZPF12 ;
-	string ZPF13, ZPF14, ZPF15, ZPF16, ZPF17, ZPF18, ZPF19, ZPF20, ZPF21, ZPF22, ZPF23, ZPF24 ;
+	string ZPF01, ZPF02, ZPF03, ZPF04 ;
+	string ZPF05, ZPF06, ZPF07, ZPF08 ;
+	string ZPF09, ZPF10, ZPF11, ZPF12 ;
+	string ZPF13, ZPF14, ZPF15, ZPF16 ;
+	string ZPF17, ZPF18, ZPF19, ZPF20 ;
+	string ZPF21, ZPF22, ZPF23, ZPF24 ;
 
-	ZPF01 = p_poolMGR->get( RC, "ZPF01", PROFILE ) ; if ( RC == 8 ) { ZPF01 = "HELP" ; }     ; pfkeyTable[ KEY_F(1)  ] = ZPF01  ;
-	ZPF02 = p_poolMGR->get( RC, "ZPF02", PROFILE ) ; if ( RC == 8 ) { ZPF02 = "SPLIT" ; }    ; pfkeyTable[ KEY_F(2)  ] = ZPF02  ;
-	ZPF03 = p_poolMGR->get( RC, "ZPF03", PROFILE ) ; if ( RC == 8 ) { ZPF03 = "END"  ; }     ; pfkeyTable[ KEY_F(3)  ] = ZPF03  ;
-	ZPF04 = p_poolMGR->get( RC, "ZPF04", PROFILE ) ; if ( RC == 8 ) { ZPF04 = "RETURN" ; }   ; pfkeyTable[ KEY_F(4)  ] = ZPF04  ;
-	ZPF05 = p_poolMGR->get( RC, "ZPF05", PROFILE ) ; if ( RC == 8 ) { ZPF05 = "RFIND" ; }    ; pfkeyTable[ KEY_F(5)  ] = ZPF05  ;
-	ZPF06 = p_poolMGR->get( RC, "ZPF06", PROFILE ) ; if ( RC == 8 ) { ZPF06 = "RCHANGE" ;}   ; pfkeyTable[ KEY_F(6)  ] = ZPF06  ;
-	ZPF07 = p_poolMGR->get( RC, "ZPF07", PROFILE ) ; if ( RC == 8 ) { ZPF07 = "UP" ; }       ; pfkeyTable[ KEY_F(7)  ] = ZPF07  ;
-	ZPF08 = p_poolMGR->get( RC, "ZPF08", PROFILE ) ; if ( RC == 8 ) { ZPF08 = "DOWN" ; }     ; pfkeyTable[ KEY_F(8)  ] = ZPF08  ;
-	ZPF09 = p_poolMGR->get( RC, "ZPF09", PROFILE ) ; if ( RC == 8 ) { ZPF09 = "SWAP" ; }     ; pfkeyTable[ KEY_F(9)  ] = ZPF09  ;
-	ZPF10 = p_poolMGR->get( RC, "ZPF10", PROFILE ) ; if ( RC == 8 ) { ZPF10 = "LEFT" ; }     ; pfkeyTable[ KEY_F(10) ] = ZPF10  ;
-	ZPF11 = p_poolMGR->get( RC, "ZPF11", PROFILE ) ; if ( RC == 8 ) { ZPF11 = "RIGHT" ; }    ; pfkeyTable[ KEY_F(11) ] = ZPF11  ;
-	ZPF12 = p_poolMGR->get( RC, "ZPF12", PROFILE ) ; if ( RC == 8 ) { ZPF12 = "RETRIEVE";}   ; pfkeyTable[ KEY_F(12) ] = ZPF12  ;
-	ZPF13 = p_poolMGR->get( RC, "ZPF13", PROFILE ) ; if ( RC == 8 ) { ZPF13 = "HELP" ; }     ; pfkeyTable[ KEY_F(13) ] = ZPF13  ;
-	ZPF14 = p_poolMGR->get( RC, "ZPF14", PROFILE ) ; if ( RC == 8 ) { ZPF14 = "SPLIT" ; }    ; pfkeyTable[ KEY_F(14) ] = ZPF14  ;
-	ZPF15 = p_poolMGR->get( RC, "ZPF15", PROFILE ) ; if ( RC == 8 ) { ZPF15 = "END" ; }      ; pfkeyTable[ KEY_F(15) ] = ZPF15  ;
-	ZPF16 = p_poolMGR->get( RC, "ZPF16", PROFILE ) ; if ( RC == 8 ) { ZPF16 = "RETURN" ; }   ; pfkeyTable[ KEY_F(16) ] = ZPF16  ;
-	ZPF17 = p_poolMGR->get( RC, "ZPF17", PROFILE ) ; if ( RC == 8 ) { ZPF17 = "RFIND" ; }    ; pfkeyTable[ KEY_F(17) ] = ZPF17  ;
-	ZPF18 = p_poolMGR->get( RC, "ZPF18", PROFILE ) ; if ( RC == 8 ) { ZPF18 = "RCHANGE" ; }  ; pfkeyTable[ KEY_F(18) ] = ZPF18  ;
-	ZPF19 = p_poolMGR->get( RC, "ZPF19", PROFILE ) ; if ( RC == 8 ) { ZPF19 = "UP" ; }       ; pfkeyTable[ KEY_F(19) ] = ZPF19  ;
-	ZPF20 = p_poolMGR->get( RC, "ZPF20", PROFILE ) ; if ( RC == 8 ) { ZPF20 = "DOWN" ; }     ; pfkeyTable[ KEY_F(20) ] = ZPF20  ;
-	ZPF21 = p_poolMGR->get( RC, "ZPF21", PROFILE ) ; if ( RC == 8 ) { ZPF21 = "SWAP" ; }     ; pfkeyTable[ KEY_F(21) ] = ZPF21  ;
-	ZPF22 = p_poolMGR->get( RC, "ZPF22", PROFILE ) ; if ( RC == 8 ) { ZPF22 = "SWAP PREV"; } ; pfkeyTable[ KEY_F(22) ] = ZPF22  ;
-	ZPF23 = p_poolMGR->get( RC, "ZPF23", PROFILE ) ; if ( RC == 8 ) { ZPF23 = "SWAP NEXT"; } ; pfkeyTable[ KEY_F(23) ] = ZPF23  ;
-	ZPF24 = p_poolMGR->get( RC, "ZPF24", PROFILE ) ; if ( RC == 8 ) { ZPF24 = "HELP" ; }     ; pfkeyTable[ KEY_F(24) ] = ZPF24  ;
+	if ( pfkPROF == currAppl->ZZAPPLID ) { return ; }
+
+	ZPF01 = p_poolMGR->get( RC, "ZPF01", PROFILE ) ; if ( RC == 8 ) { ZPF01 = "HELP" ; }     ; pfkeyTable[ KEY_F(1)  ] = ZPF01 ;
+	ZPF02 = p_poolMGR->get( RC, "ZPF02", PROFILE ) ; if ( RC == 8 ) { ZPF02 = "SPLIT" ; }    ; pfkeyTable[ KEY_F(2)  ] = ZPF02 ;
+	ZPF03 = p_poolMGR->get( RC, "ZPF03", PROFILE ) ; if ( RC == 8 ) { ZPF03 = "END"  ; }     ; pfkeyTable[ KEY_F(3)  ] = ZPF03 ;
+	ZPF04 = p_poolMGR->get( RC, "ZPF04", PROFILE ) ; if ( RC == 8 ) { ZPF04 = "RETURN" ; }   ; pfkeyTable[ KEY_F(4)  ] = ZPF04 ;
+	ZPF05 = p_poolMGR->get( RC, "ZPF05", PROFILE ) ; if ( RC == 8 ) { ZPF05 = "RFIND" ; }    ; pfkeyTable[ KEY_F(5)  ] = ZPF05 ;
+	ZPF06 = p_poolMGR->get( RC, "ZPF06", PROFILE ) ; if ( RC == 8 ) { ZPF06 = "RCHANGE" ;}   ; pfkeyTable[ KEY_F(6)  ] = ZPF06 ;
+	ZPF07 = p_poolMGR->get( RC, "ZPF07", PROFILE ) ; if ( RC == 8 ) { ZPF07 = "UP" ; }       ; pfkeyTable[ KEY_F(7)  ] = ZPF07 ;
+	ZPF08 = p_poolMGR->get( RC, "ZPF08", PROFILE ) ; if ( RC == 8 ) { ZPF08 = "DOWN" ; }     ; pfkeyTable[ KEY_F(8)  ] = ZPF08 ;
+	ZPF09 = p_poolMGR->get( RC, "ZPF09", PROFILE ) ; if ( RC == 8 ) { ZPF09 = "SWAP" ; }     ; pfkeyTable[ KEY_F(9)  ] = ZPF09 ;
+	ZPF10 = p_poolMGR->get( RC, "ZPF10", PROFILE ) ; if ( RC == 8 ) { ZPF10 = "LEFT" ; }     ; pfkeyTable[ KEY_F(10) ] = ZPF10 ;
+	ZPF11 = p_poolMGR->get( RC, "ZPF11", PROFILE ) ; if ( RC == 8 ) { ZPF11 = "RIGHT" ; }    ; pfkeyTable[ KEY_F(11) ] = ZPF11 ;
+	ZPF12 = p_poolMGR->get( RC, "ZPF12", PROFILE ) ; if ( RC == 8 ) { ZPF12 = "RETRIEVE";}   ; pfkeyTable[ KEY_F(12) ] = ZPF12 ;
+	ZPF13 = p_poolMGR->get( RC, "ZPF13", PROFILE ) ; if ( RC == 8 ) { ZPF13 = "HELP" ; }     ; pfkeyTable[ KEY_F(13) ] = ZPF13 ;
+	ZPF14 = p_poolMGR->get( RC, "ZPF14", PROFILE ) ; if ( RC == 8 ) { ZPF14 = "SPLIT" ; }    ; pfkeyTable[ KEY_F(14) ] = ZPF14 ;
+	ZPF15 = p_poolMGR->get( RC, "ZPF15", PROFILE ) ; if ( RC == 8 ) { ZPF15 = "END" ; }      ; pfkeyTable[ KEY_F(15) ] = ZPF15 ;
+	ZPF16 = p_poolMGR->get( RC, "ZPF16", PROFILE ) ; if ( RC == 8 ) { ZPF16 = "RETURN" ; }   ; pfkeyTable[ KEY_F(16) ] = ZPF16 ;
+	ZPF17 = p_poolMGR->get( RC, "ZPF17", PROFILE ) ; if ( RC == 8 ) { ZPF17 = "RFIND" ; }    ; pfkeyTable[ KEY_F(17) ] = ZPF17 ;
+	ZPF18 = p_poolMGR->get( RC, "ZPF18", PROFILE ) ; if ( RC == 8 ) { ZPF18 = "RCHANGE" ; }  ; pfkeyTable[ KEY_F(18) ] = ZPF18 ;
+	ZPF19 = p_poolMGR->get( RC, "ZPF19", PROFILE ) ; if ( RC == 8 ) { ZPF19 = "UP" ; }       ; pfkeyTable[ KEY_F(19) ] = ZPF19 ;
+	ZPF20 = p_poolMGR->get( RC, "ZPF20", PROFILE ) ; if ( RC == 8 ) { ZPF20 = "DOWN" ; }     ; pfkeyTable[ KEY_F(20) ] = ZPF20 ;
+	ZPF21 = p_poolMGR->get( RC, "ZPF21", PROFILE ) ; if ( RC == 8 ) { ZPF21 = "SWAP" ; }     ; pfkeyTable[ KEY_F(21) ] = ZPF21 ;
+	ZPF22 = p_poolMGR->get( RC, "ZPF22", PROFILE ) ; if ( RC == 8 ) { ZPF22 = "SWAP PREV"; } ; pfkeyTable[ KEY_F(22) ] = ZPF22 ;
+	ZPF23 = p_poolMGR->get( RC, "ZPF23", PROFILE ) ; if ( RC == 8 ) { ZPF23 = "SWAP NEXT"; } ; pfkeyTable[ KEY_F(23) ] = ZPF23 ;
+	ZPF24 = p_poolMGR->get( RC, "ZPF24", PROFILE ) ; if ( RC == 8 ) { ZPF24 = "HELP" ; }     ; pfkeyTable[ KEY_F(24) ] = ZPF24 ;
+
+	pfkPROF = currAppl->ZZAPPLID ;
 }
 
 
@@ -1926,9 +1968,6 @@ void updateReflist()
 
 	int RC ;
 
-	uint row ;
-	uint col ;
-
 	string fname ;
 
 	if ( currAppl->ControlRefUpdate && p_poolMGR->get( RC, "ZRFURL", PROFILE ) == "YES" )
@@ -1936,9 +1975,14 @@ void updateReflist()
 		fname = currAppl->get_nretfield() ;
 		if ( fname != "" )
 		{
-			if ( currAppl->currPanel->field_get_row_col( fname, row, col ) )
+			if ( currAppl->currPanel->field_valid( fname ) )
 			{
 				startApplication( p_poolMGR->get( RC, "ZRFLPGM", PROFILE ), "PLA " + currAppl->currPanel->field_getvalue( fname ), "", false, false ) ;
+			}
+			else
+			{
+				log( "E", "Invalid field "+ fname +" in .NRET panel statement" << endl ) ;
+				currAppl->set_msg( "PSYS01Z" ) ;
 			}
 		}
 	}
@@ -2276,7 +2320,7 @@ void reloadDynamicClasses( string parm )
 		if ( parm == appl ) { break ; }
 	}
 
-	currAppl->setmsg( "PSYS011G" ) ;
+	currAppl->set_msg( "PSYS011G" ) ;
 	log( "I", d2ds( i ) +" applications reloaded" << endl ) ;
 	log( "I", d2ds( j ) +" new applications stored" << endl ) ;
 	log( "I", d2ds( k ) +" errors encounted" << endl ) ;
@@ -2285,12 +2329,12 @@ void reloadDynamicClasses( string parm )
 		if ( (i+j) == 0 )
 		{
 			log( "W", "Application "+ parm +" not reloaded/stored" << endl ) ;
-			currAppl->setmsg( "PSYS011I" ) ;
+			currAppl->set_msg( "PSYS011I" ) ;
 		}
 		else
 		{
 			log( "I", "Application "+ parm +" reloaded/stored" << endl )   ;
-			currAppl->setmsg( "PSYS011H" ) ;
+			currAppl->set_msg( "PSYS011H" ) ;
 		}
 	}
 

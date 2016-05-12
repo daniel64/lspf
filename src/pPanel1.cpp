@@ -63,12 +63,11 @@ pPanel::~pPanel()
 	// iterate over the 4 panel widget types, literal, field (inc tbfield, dynarea field), dynArea, boxes
 	// and delete them.
 
-	int i ;
 	map<string, field *>::iterator it1;
 	map<string, dynArea *>::iterator it2;
 	vector<Box *>::iterator it3;
 
-	for ( i = 0 ; i < literalList.size() ; i++ )
+	for ( int i = 0 ; i < literalList.size() ; i++ )
 	{
 		delete literalList.at( i ) ;
 	}
@@ -86,21 +85,18 @@ pPanel::~pPanel()
 	{
 		delete (*it3) ;
 	}
-
 }
 
 
 void pPanel::init( int & RC )
 {
-	RC = 0 ;
-
 	ZSCRMAXD = ds2d( p_poolMGR->get( RC, "ZSCRMAXD", SHARED ) ) ;
 	if ( RC > 0 ) { PERR = "ZSCRMAXD poolMGR.get failed" ; log("C", PERR ) ; RC = 20 ; return ; }
 	ZSCRMAXW = ds2d( p_poolMGR->get( RC, "ZSCRMAXW", SHARED ) ) ;
 	if ( RC > 0 ) { PERR = "ZSCRMAXW poolMGR.get failed" ; log("C", PERR ) ; RC = 20 ; return ; }
+
 	WSCRMAXD = ZSCRMAXD ;
 	WSCRMAXW = ZSCRMAXW ;
-
 }
 
 
@@ -308,9 +304,10 @@ void pPanel::display_panel_update( int & RC )
 
 	string CMDVerb  ;
 	string CMD      ;
-	string t        ;
 	string fieldNam ;
 	string msgfld   ;
+
+	string * darea  ;
 
 	dataType var_type ;
 
@@ -392,31 +389,29 @@ void pPanel::display_panel_update( int & RC )
 			}
 			else
 			{
-				p        = it->first.find_first_of( '.' ) ;
-				fieldNam = it->first.substr( 0, p )       ;
-				fieldNum = ds2d( it->first.substr( (p + 1) , string::npos ) ) ;
-				t    = p_funcPOOL->get( RC, 0, fieldNam ) ;
-				t    = t.replace( fieldNum*it->second->field_length, it->second->field_length, it->second->field_value ) ;
-				p_funcPOOL->put( RC, 0, fieldNam, t ) ;
-				if ( RC > 0 ) continue ;
+				p        = it->first.find_first_of( '.' )  ;
+				fieldNam = it->first.substr( 0, p )        ;
+				fieldNum = ds2d( it->first.substr( p+1 ) ) ;
+				darea    = p_funcPOOL->vlocate( RC, 0, fieldNam ) ;
+				(*darea).replace( fieldNum*it->second->field_length, it->second->field_length, it->second->field_value ) ;
 			}
 		}
 		if ( (it->second->field_row == p_row) && (p_col >=it->second->field_col) && (p_col < (it->second->field_col + it->second->field_length )) )
 		{
+			curpos = p_col - it->second->field_col + 1 ;
 			if ( it->second->field_dynArea )
 			{
-				p        = it->first.find_first_of( '.' ) ;
-				fieldNam = it->first.substr( 0, p )       ;
-				fieldNum = ds2d( it->first.substr( (p + 1) , string::npos ) ) ;
+				p        = it->first.find_first_of( '.' )  ;
+				fieldNam = it->first.substr( 0, p )        ;
+				fieldNum = ds2d( it->first.substr( p+1 ) ) ;
 				p_funcPOOL->put( RC, 0, "ZCURFLD", fieldNam ) ;
-				p_funcPOOL->put( RC, 0, "ZCURPOS", ( fieldNum * it->second->field_length + p_col - it->second->field_col + 1 ) ) ;
-				curpos   = p_col - it->second->field_col + 1 ;
+				p_funcPOOL->put( RC, 0, "ZCURPOS", ( fieldNum*it->second->field_length + curpos ) ) ;
 				fieldNum++ ;
 			}
 			else
 			{
 				p_funcPOOL->put( RC, 0, "ZCURFLD", it->first ) ;
-				p_funcPOOL->put( RC, 0, "ZCURPOS", ( p_col - it->second->field_col + 1 ) ) ;
+				p_funcPOOL->put( RC, 0, "ZCURPOS", curpos )    ;
 			}
 		}
 	}
@@ -883,13 +878,13 @@ void pPanel::display_panel_proc( int & RC, int ln )
 		{
 			if ( if_column < procstmnts.at( i ).ps_column )
 			{
-				if      ( procstmnts.at( i ).ps_if     )  { i_if++      ; }
-				else if ( procstmnts.at( i ).ps_else   )  { i_if++      ; }
-				else if ( procstmnts.at( i ).ps_assign )  { i_assign++  ; }
-				else if ( procstmnts.at( i ).ps_verify )  { i_verify++  ; }
+				if      ( procstmnts.at( i ).ps_if      ) { i_if++      ; }
+				else if ( procstmnts.at( i ).ps_else    ) { i_if++      ; }
+				else if ( procstmnts.at( i ).ps_assign  ) { i_assign++  ; }
+				else if ( procstmnts.at( i ).ps_verify  ) { i_verify++  ; }
 				else if ( procstmnts.at( i ).ps_vputget ) { i_vputget++ ; }
-				else if ( procstmnts.at( i ).ps_trunc )   { i_trunc++   ; }
-				else if ( procstmnts.at( i ).ps_trans )   { i_trans++   ; }
+				else if ( procstmnts.at( i ).ps_trunc   ) { i_trunc++   ; }
+				else if ( procstmnts.at( i ).ps_trans   ) { i_trans++   ; }
 				continue ;
 			}
 			else { if_skip = false ; }
@@ -1317,10 +1312,10 @@ void pPanel::display_panel_proc( int & RC, int ln )
 void pPanel::clear()
 {
 	RC = 0 ;
-	for ( int i = 0 ; i < WSCRMAXD ; i ++ )
+	for ( int i = 0 ; i < WSCRMAXD ; i++ )
 	{
 		wmove( win, i, 0 ) ;
-		clrtoeol()   ;
+		clrtoeol() ;
 	}
 }
 
@@ -1333,7 +1328,8 @@ void pPanel::create_tbfield( int col, int length, cuaType cuaFT, string name, st
 	if ( !isvalidName( name ) )
 	{
 		RC = 20 ;
-		PERR = "Invalid field name " + name + " entered for TB field" ; return  ;
+		PERR = "Invalid field name "+ name +" entered for TB field" ;
+		return  ;
 	}
 
 	debug2( "Adding tb field name >>" << name << "<< " << endl ) ;
@@ -1341,25 +1337,26 @@ void pPanel::create_tbfield( int col, int length, cuaType cuaFT, string name, st
 
 	for ( int i = 0 ; i < tb_depth ; i++ )
 	{
-		field * m_fld       = new field   ;
-		m_fld->field_cua    = cuaFT ;
+		field * m_fld       = new field  ;
+		m_fld->field_cua    = cuaFT      ;
 		m_fld->field_prot   = cuaAttrProt [ cuaFT ] ;
 		m_fld->field_row    = tb_row + i ;
 		m_fld->field_col    = col -1     ;
 		m_fld->field_length = length     ;
 		m_fld->field_just   = 'A'        ;
 
-		if ( cuaFT == CEF || cuaFT == DATAIN || cuaFT == NEF ) { m_fld->field_input = true  ; }
+		if ( cuaFT == CEF || cuaFT == DATAIN || cuaFT == NEF ) { m_fld->field_input = true ; }
 
 		fieldOptsParse( RC, opts, m_fld->field_caps, m_fld->field_just, m_fld->field_numeric, m_fld->field_padchar, m_fld->field_skip ) ;
 		if ( RC > 0 )
 		{
-			RC = 20 ;
-			PERR = "Error in options for field " + name + ". Entry is " + opts ; return ;
+			RC   = 20 ;
+			PERR = "Error in options for field "+ name +". Entry is "+ opts ;
+			return    ;
 		}
 
-		m_fld->field_tb = true  ;
-		fieldList[ name + "." + d2ds( i ) ] = m_fld  ;
+		m_fld->field_tb = true ;
+		fieldList[ name + "." + d2ds( i ) ] = m_fld ;
 	}
 }
 
@@ -1385,7 +1382,7 @@ void pPanel::create_pdc( string abc_name, string pdc_name, string pdc_run, strin
 		ab.push_back( t_abc ) ;
 		i = ab.size()-1       ;
 	}
-	ab.at(i).add_pdc( pdc_name, pdc_run, pdc_parm, pdc_unavail ) ;
+	ab.at( i ).add_pdc( pdc_name, pdc_run, pdc_parm, pdc_unavail ) ;
 }
 
 
@@ -1429,11 +1426,11 @@ void pPanel::update_field_values( int & RC )
 
 	for ( it2 = dynAreaList.begin() ; it2 != dynAreaList.end() ; it2++ )
 	{
-		darea  = p_funcPOOL->vlocate( RC, 0, it2->first, NOCHECK ) ;
-		if ( RC > 0 ) { PERR = "Error:  Dynamic area variable has not been defined in the function pool" ; return  ; }
+		darea = p_funcPOOL->vlocate( RC, 0, it2->first, NOCHECK ) ;
+		if ( RC > 0 ) { RC = 20 ; PERR = "Dynamic area variable has not been defined in the function pool" ; return ; }
 		sname  = dynAreaList[ it2->first ]->dynArea_shadow_name ;
 		shadow = p_funcPOOL->vlocate( RC, 0, sname, NOCHECK )   ;
-		if ( RC > 0 ) { PERR = "Error:  Dynamic area shadow variable has not been defined in the function pool" ; return  ; }
+		if ( RC > 0 ) { RC = 20 ; PERR = "Dynamic area shadow variable has not been defined in the function pool" ; return ; }
 		if ( (*darea).size() > (*shadow).size() )
 		{
 			log( "W", "Shadow variable " << sname << " size is smaller than the data variable " << it2->first << " size.  Results may be unpredictable" << endl ) ;
@@ -1520,7 +1517,7 @@ void pPanel::cursor_to_field( int & RC, string f_name, int f_pos )
 			p_row = 0  ;
 			RC    = 12 ;
 			if ( !isvalidName( f_name ) ) { RC = 20 ; }
-			return    ;
+			return     ;
 		}
 		else
 		{
@@ -1544,7 +1541,6 @@ void pPanel::cursor_to_field( int & RC, string f_name, int f_pos )
 		p_col = fieldList[ f_name ]->field_col + f_pos - 1 ;
 		p_row = fieldList[ f_name ]->field_row             ;
 	}
-	return ;
 }
 
 
@@ -1584,7 +1580,7 @@ void pPanel::field_setvalue( string f_name, string f_value )
 
 string pPanel::cmd_getvalue()
 {
-	return  fieldList[ CMDfield ]->field_value ;
+	return fieldList[ CMDfield ]->field_value ;
 }
 
 
@@ -1594,6 +1590,12 @@ void pPanel::cmd_setvalue( string f_value )
 	fieldList[ CMDfield ]->field_value   = f_value ;
 	fieldList[ CMDfield ]->field_changed = true    ;
 	fieldList[ CMDfield ]->display_field( win )    ;
+}
+
+
+bool pPanel::field_valid( string f_name )
+{
+	return fieldList.find( f_name ) != fieldList.end() ;
 }
 
 
@@ -1632,7 +1634,8 @@ bool pPanel::field_get_row_col( string fld, uint & row, uint & col )
 
 	row = it->second->field_row + win_row ;
 	col = it->second->field_col + win_col ;
-	return  true ;
+
+	return true ;
 }
 
 
@@ -1640,9 +1643,7 @@ fieldExc pPanel::field_getexec( string field )
 {
 	// If passed field is in the field execute table, return the structure fieldExc for that field as defined in )FIELD panel section.
 
-	fieldExc t ;
-
-	if ( fieldExcTable.find( field ) == fieldExcTable.end() ) { return t ; }
+	if ( fieldExcTable.find( field ) == fieldExcTable.end() ) { return fieldExc() ; }
 	return fieldExcTable[ field ] ;
 }
 
@@ -1669,9 +1670,9 @@ void pPanel::field_edit( uint row, uint col, char ch, bool Isrt, bool & prot )
 	{
 		if ( (it->second->field_row == row) && (col >=it->second->field_col) && (col < (it->second->field_col + it->second->field_length )) )
 		{
-			if ( !it->second->field_active ) return ;
+			if ( !it->second->field_active ) { return ; }
 			if (  it->second->field_numeric && ch != ' ' && !isdigit( ch ) ) { return ; }
-			if ( !it->second->field_dynArea && !it->second->field_input ) return ;
+			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( col ) ) { return ; }
 			if ( !it->second->edit_field_insert( win, ch, col, Isrt ) ) { return ; }
 			prot = false ;
@@ -1705,9 +1706,9 @@ void pPanel::field_backspace( uint & row, uint & col, bool & prot )
 	{
 		if ( (it->second->field_row == trow) && (tcol >it->second->field_col) && (tcol < (it->second->field_col + it->second->field_length )) )
 		{
-			if ( !it->second->field_active ) return ;
-			if ( !it->second->field_dynArea && !it->second->field_input ) return ;
-			if (  it->second->field_dynArea && !it->second->field_dyna_input( tcol ) ) return ;
+			if ( !it->second->field_active ) { return ; }
+			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
+			if (  it->second->field_dynArea && !it->second->field_dyna_input( tcol ) ) { return ; }
 			tcol = fieldList[ it->first ]->edit_field_backspace( win, tcol ) ;
 			prot = false ;
 			row  = trow + win_row ;
@@ -1737,9 +1738,9 @@ void pPanel::field_delete_char( uint row, uint col, bool & prot )
 	{
 		if ( (it->second->field_row == trow) && (tcol >=it->second->field_col) && (tcol < (it->second->field_col + it->second->field_length )) )
 		{
-			if ( !it->second->field_active ) return ;
-			if ( !it->second->field_dynArea && !it->second->field_input ) return ;
-			if (  it->second->field_dynArea && !it->second->field_dyna_input( tcol ) ) return ;
+			if ( !it->second->field_active ) { return ; }
+			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
+			if (  it->second->field_dynArea && !it->second->field_dyna_input( tcol ) ) { return ; }
 			fieldList[ it->first ]->edit_field_delete( win, tcol ) ;
 			prot = false ;
 			row  = trow + win_row ;
@@ -1765,9 +1766,9 @@ void pPanel::field_erase_eof( uint row, uint col, bool & prot )
 	{
 		if ( (it->second->field_row == row) && (col >=it->second->field_col) && (col < (it->second->field_col + it->second->field_length )) )
 		{
-			if ( !it->second->field_active ) return ;
-			if ( !it->second->field_dynArea && !it->second->field_input ) return ;
-			if (  it->second->field_dynArea && !it->second->field_dyna_input( col ) ) return ;
+			if ( !it->second->field_active ) { return ; }
+			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
+			if (  it->second->field_dynArea && !it->second->field_dyna_input( col ) ) { return ; }
 			fieldList[ it->first ]->field_erase_eof( win, col ) ;
 			prot = false ;
 			wrefresh( win ) ;
@@ -1794,8 +1795,8 @@ void pPanel::cursor_eof( uint & row, uint & col )
 	{
 		if ( (it->second->field_row == trow) && (tcol >=it->second->field_col) &&  (tcol < (it->second->field_col + it->second->field_length )) )
 		{
-			if ( !it->second->field_active ) return ;
-			if ( !it->second->field_dynArea && !it->second->field_input ) return ;
+			if ( !it->second->field_active ) { return ; }
+			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( tcol ) ) { return ; }
 			col = fieldList[ it->first ]->end_of_field( win, tcol ) + win_col ;
 			return ;
@@ -1843,13 +1844,13 @@ void pPanel::field_tab_down( uint & row, uint & col )
 		t_offset = it->second->field_row * WSCRMAXW + it->second->field_col + d_offset ;
 		if ( (t_offset > c_offset) & (t_offset < m_offset) )
 		{
-			m_offset = t_offset ;
-			row      = it->second->field_row + win_row ;
-			col      = it->second->field_col + d_offset + win_col ;
+			m_offset     = t_offset ;
+			row          = it->second->field_row + win_row ;
+			col          = it->second->field_col + d_offset + win_col ;
 			cursor_moved = true ;
 		}
 	}
-	if ( !cursor_moved  ) { get_home( row, col ) ; }
+	if ( !cursor_moved ) { get_home( row, col ) ; }
 }
 
 
@@ -1894,9 +1895,9 @@ void pPanel::field_tab_next( uint & row, uint & col )
 		t_offset = it->second->field_row * WSCRMAXW + it->second->field_col + d_offset ;
 		if ( (t_offset > c_offset) & (t_offset < m_offset) )
 		{
-			m_offset = t_offset ;
-			row      = it->second->field_row + win_row ;
-			col      = it->second->field_col + d_offset + win_col ;
+			m_offset     = t_offset ;
+			row          = it->second->field_row + win_row ;
+			col          = it->second->field_col + d_offset + win_col ;
 			cursor_moved = true ;
 		}
 	}
@@ -2000,7 +2001,7 @@ void pPanel::display_tb_mark_posn()
 		p_funcPOOL->put( RC, 0, "ZTDVROWS", tb_depth ) ;
 	}
 
-	posn  = "" ;
+	posn = "" ;
 	if ( top <= rows )
 	{
 		posn = "Row " + d2ds( top ) + " of " + d2ds( rows ) ;
@@ -2031,8 +2032,7 @@ void pPanel::tb_fields_active_inactive()
 		for ( j = 1 ; j <= ws ; j++ )
 		{
 			s = word( tb_fields, j ) + "." + d2ds( i ) ;
-			if ( i < size ) fieldList[ s ]->field_active = true  ;
-			else            fieldList[ s ]->field_active = false ;
+			fieldList[ s ]->field_active = ( i < size ) ;
 		}
 	}
 }

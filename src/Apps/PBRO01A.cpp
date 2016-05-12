@@ -402,6 +402,7 @@ void PBRO01A::read_file( string file )
 	b_shadow t    ;
 
 	int p1 ;
+	int rc ;
 	int i   ;
 	int j   ;
 	char x  ;
@@ -450,12 +451,27 @@ void PBRO01A::read_file( string file )
 		return    ;
 	}
 
-	magic_t cookie = magic_open(MAGIC_CONTINUE|MAGIC_ERROR|MAGIC_MIME);
-	magic_load( cookie, NULL ) ;
+	fileType = "text/plain" ;
+	magic_t cookie = magic_open( MAGIC_CONTINUE | MAGIC_ERROR | MAGIC_MIME | MAGIC_SYMLINK ) ;
+	rc = magic_load( cookie, NULL ) ;
 
-	fileType = magic_file( cookie, file.c_str() ) ;
-	p1 = fileType.find( ';' ) ;
-	if ( p1 != string::npos ) { fileType = fileType.substr( 0, p1 ) ; }
+	if ( rc == 0 )
+	{
+		fileType = magic_file( cookie, file.c_str() ) ;
+		debug1("dje fileType="<<fileType<<endl);
+		if ( fileType != "" )
+		{
+			if ( findword( "charset=binary", fileType ) )
+			{
+				binOn = true ;
+			}
+			else
+			{
+				p1 = fileType.find( ';' ) ;
+				if ( p1 != string::npos ) { fileType = fileType.substr( 0, p1 ) ; }
+			}
+		}
+	}
 	magic_close( cookie ) ;
 
 	if ( fileType == "text/plain" )
@@ -468,7 +484,6 @@ void PBRO01A::read_file( string file )
 			else if ( ext == "rex" ) { fileType = "text/x-rexx" ; }
 		}
 	}
-
 
 	maxLines = 1 ;
 	data.clear()   ;

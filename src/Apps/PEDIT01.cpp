@@ -792,6 +792,9 @@ void PEDIT01::fill_hilight_shadow()
 	// (backing up to the line after the position where there are no open brackets/comments)
 	// until bottom of ZAREA reached (only for non-excluded, data file lines)
 
+	// il_vShadow - true if there is a valid shadow line for this data line (stored in il_Shadow)
+	// il_wShadow - true if no open brackets or open comments at the end of the file line for this shadow line
+
 	int i  ;
 	int ll ;
 	int l  ;
@@ -809,32 +812,29 @@ void PEDIT01::fill_hilight_shadow()
 		if ( ll > 0 ) { break ; }
 	}
 
-	w      = 0     ;
+	w = 0 ;
 	for ( dl = 1 ; dl <= ll ; dl++ )
 	{
-		if (  data.at( dl )->il_deleted ||
-		     !data.at( dl )->il_file    ) { continue ; }
-		if (  data.at( dl )->il_wShadow ) { w = dl   ; }
-		if ( !data.at( dl )->il_vShadow ) { break    ; }
+		if (  data.at( dl )->il_deleted || !data.at( dl )->il_file ) { continue ; }
+		if ( !data.at( dl )->il_vShadow ) { break  ; }
+      //        if (  data.at( dl )->il_wShadow ) { w = dl ; }
 	}
+	for ( dl-- ; dl > 0 ; dl-- )
+	{
+		if (  data.at( dl )->il_deleted || !data.at( dl )->il_file ) { continue ; }
+		if (  data.at( dl )->il_wShadow ) { break ; }
+	}
+	w = dl + 1 ;
 	hlight.hl_oBrac1   = 0     ;
 	hlight.hl_oBrac2   = 0     ;
 	hlight.hl_oComment = false ;
-	if ( dl != w && w < data.size()-1 ) { w++ ; }
+ //     if ( dl != w && w < data.size()-1 ) { w++ ; }
 	for ( dl = w ; dl <= ll ; dl++ )
 	{
-		if ( data.at( dl )->il_deleted ||
-		    !data.at( dl )->il_file    )  { continue ; }
+		if ( data.at( dl )->il_deleted || !data.at( dl )->il_file ) { continue ; }
 		data.at( dl )->il_vShadow = true ;
 		addHilight( hlight, data.at( dl )->get_idata(), data.at( dl )->il_Shadow ) ;
-		if (  hlight.hl_oBrac1 == 0 && hlight.hl_oBrac2 == 0 && !hlight.hl_oComment )
-		{
-			data.at( dl )->il_wShadow = true ;
-		}
-		else
-		{
-			data.at( dl )->il_wShadow = false ;
-		}
+		data.at( dl )->il_wShadow = ( hlight.hl_oBrac1 == 0 && hlight.hl_oBrac2 == 0 && !hlight.hl_oComment ) ;
 	}
 	for ( i = 0 ; i < ZAREAD ; i++ )
 	{
@@ -843,7 +843,7 @@ void PEDIT01::fill_hilight_shadow()
 		ZTEMP = data.at( l )->il_Shadow ;
 		if ( startCol > 1 ) { ZTEMP.erase( 0, startCol-1 ) ; }
 		ZTEMP.resize( ZDATAW, N_GREEN ) ;
-		ZSHADOW.replace( ZAREAW*(i)+CLINESZ, ZDATAW, ZTEMP ) ;
+		ZSHADOW.replace( (ZAREAW*i + CLINESZ), ZDATAW, ZTEMP ) ;
 	}
 }
 

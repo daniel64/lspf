@@ -33,29 +33,32 @@ literal  13  4     FP    "Command delimiter . . ."
 field    13  28  1 CEF PAD('_') GODEL
 
 literal  14  4     FP    "Retrieve command size ."
-field    14  28  4 CEF NUMERIC(ON),PAD('_') GORTSIZE
+field    14  28  2 CEF NUMERIC(ON),PAD('_') GORTSIZE
 
-literal  15  4     FP    "User command tables . ."
-field    15  28  4 CEF PAD('_'),CAPS(ON) GOUCMD1
-field    15  33  4 CEF PAD('_'),CAPS(ON) GOUCMD2
-field    15  38  4 CEF PAD('_'),CAPS(ON) GOUCMD3
+literal  15  4     FP    "Retrieve buffer size. ."
+field    15  28  2 CEF NUMERIC(ON),PAD('_') GORBSIZE
 
-literal  16  4     FP    "Site command tables . ."
-field    16  28  4 CEF PAD('_'),CAPS(ON) GOSCMD1
-field    16  33  4 CEF PAD('_'),CAPS(ON) GOSCMD2
-field    16  38  4 CEF PAD('_'),CAPS(ON) GOSCMD3
+literal  16  4     FP    "User command tables . ."
+field    16  28  4 CEF PAD('_'),CAPS(ON) GOUCMD1
+field    16  33  4 CEF PAD('_'),CAPS(ON) GOUCMD2
+field    16  38  4 CEF PAD('_'),CAPS(ON) GOUCMD3
 
-literal 19 2  CH "Instructions"
-literal 21 2  NT "Enter"
-literal 21 8  PS "SAVE"
-literal 21 13 NT "or"
-literal 21 16 PS "END"
-literal 21 20 NT "to save changes,"
-literal 21 37 PS "DEFAULTS"
-literal 21 46 NT "to restore defaults"
+literal  17  4     FP    "Site command tables . ."
+field    17  28  4 CEF PAD('_'),CAPS(ON) GOSCMD1
+field    17  33  4 CEF PAD('_'),CAPS(ON) GOSCMD2
+field    17  38  4 CEF PAD('_'),CAPS(ON) GOSCMD3
+
+literal 20 2  CH "Instructions"
 literal 22 2  NT "Enter"
-literal 22 8  PS "CANCEL"
-literal 22 15 NT "to cancel changes"
+literal 22 8  PS "SAVE"
+literal 22 13 NT "or"
+literal 22 16 PS "END"
+literal 22 20 NT "to save changes,"
+literal 22 37 PS "DEFAULTS"
+literal 22 46 NT "to restore defaults"
+literal 23 2  NT "Enter"
+literal 23 8  PS "CANCEL"
+literal 23 15 NT "to cancel changes"
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
@@ -70,6 +73,7 @@ VER (&GOSTFST LIST,/)
 VER (&GOSTFST LIST,/)
 VER (&GOATIMO NB)
 VER (&GORTSIZE NB)
+VER (&GORBSIZE NB)
 
 )PNTS
 FIELD( ZPS01001 ) VAR(ZCMD) VAL(SAVE)

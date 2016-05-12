@@ -56,7 +56,7 @@ PSYS01J "Help Member Not Found"
 "Help member &ZZSTR1 was not found in the ZPLIB search"
 
 PSYS01K "Error In Command"
-"Error in PDC or table command entry.  See lspf log for details"
+"Error in PDC, field or table command entry.  See lspf log for details"
 
 PSYS01L "SPLIT Command Disabled"
 "SPLIT command has been disabled via the application-issued CONTROL SPLIT DISABLE service"
@@ -97,11 +97,11 @@ PSYS01W "Retrieved from &ZCURTB" .TYPE=N
 PSYS01X "File retrieve not active"
 "File retrieve is not active on this panel via reflists or NRETRIEV.  Set .NRET in the panel if this is required"
 
-PSYS01Y "No ZRFFLDA variable set in panel"
-"Set variable ZRFFLDA to the field name to receive file names on NRETRIEV or reflist processing"
+PSYS01Y "No .NRET field name set in panel"
+"Set .NRET to the field name to receive file names on NRETRIEV or reflist processing"
 
-PSYS01Z "Invalid field value in variable ZRFFLDA"
-"Variable ZRFFLDA set to incorrect value - no such field exists on the panel.  Check logs for details"
+PSYS01Z "Invalid .NRET field name"
+".NRET has not been set to a valid field name that exists on the panel.  See application log"
 
 PSYS011A "Invalid path specified"
 "Path specified is not valid"
@@ -129,3 +129,9 @@ PSYS011H "Module reloaded"
 
 PSYS011I "Errors during module reload"
 "Check lspf log for errors"
+
+PSYS011J "Field does not support FIELDEXC"
+"An entry in the panel )FIELD section is required to support field-level execution"
+
+PSYS011K "Cursor not on a field"
+"The cursor must be positioned on a field that supports field-level execution"

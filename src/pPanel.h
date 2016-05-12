@@ -104,7 +104,8 @@ class pPanel
 		void   field_tab_next( uint & row, uint & col ) ;
 		void   field_clear( string field )    ;
 		string field_getvalue( string field ) ;
-		fieldExc field_getexec( string ) ;
+		bool   field_valid( string field ) ;
+		fieldExc field_getexec( string )   ;
 		void   field_setvalue( string field, string value ) ;
 
 		string cmd_getvalue() ;

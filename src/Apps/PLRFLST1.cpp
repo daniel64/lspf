@@ -595,7 +595,6 @@ void PLRFLST1::RetrieveEntry( string list )
 	field_name = "#REFLIST"     ;
 	ZRC        = 0              ;
 	vdelete( "ZRFNEX ZRFNPOS" ) ;
-	setmsg( "PSYS01W" )         ;
 }
 
 

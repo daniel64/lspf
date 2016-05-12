@@ -188,6 +188,19 @@ void pApplication::set_msg( string SMSG, string LMSG, cuaType MSGTYPE, bool MSGA
 }
 
 
+void pApplication::set_msg( string msg_id )
+{
+	if ( panelList.size() == 0 ) { return ; }
+
+	get_Message( msg_id ) ;
+	if ( RC == 0 )
+	{
+		currPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM ) ;
+		currPanel->display_msg() ;
+	}
+}
+
+
 bool pApplication::nretriev_on()
 {
 	if ( panelList.size() == 0 ) { return false                     ; }
@@ -272,9 +285,9 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 	while ( true )
 	{
 		currPanel->display_panel( RC ) ;
-		if ( RC > 0 ) { checkRCode( "Panel error displaying " + p_name ) ; break ; }
+		if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Panel error displaying "+ p_name ) ; break ; }
 		currPanel->cursor_to_field( RC ) ;
-		if ( RC > 0 ) { checkRCode( "Cursor field >>" + currPanel->CURFLD + "<< not found on panel or invalid for DISPLAY service" ) ; break ; }
+		if ( RC > 0 ) { checkRCode( "Cursor field >>"+ currPanel->CURFLD +"<< not found on panel or invalid for DISPLAY service" ) ; break ; }
 		wait_event() ;
 		currPanel->display_panel_update( RC ) ;
 
@@ -765,9 +778,10 @@ void pApplication::vput( string names, poolType pType )
 }
 
 
-void pApplication::vcopy( string name, string & var_name, vcMODE mode )
+void pApplication::vcopy( string var, string & val, vcMODE mode )
 {
-	// Retrieve a copy of a dialogue variable (via the normal search order)
+	// Retrieve a copy of a dialogue variable name in var and move to variable val
+	// (normal dialogue variable search order)
 	// This routine is only valid for MODE=MOVE
 
 	// RC = 0  Normal completion
@@ -786,35 +800,36 @@ void pApplication::vcopy( string name, string & var_name, vcMODE mode )
 	{
 	case LOCATE:
 		RC = 20 ;
-		log( "E", "LOCATE invalid.  Pointer parameter required" << endl ) ;
+		log( "E", "LOCATE invalid.  Pointer parameter required, string passed" << endl ) ;
 		break ;
 	case MOVE:
-		var_type = funcPOOL.getType( RC, name ) ;
-		if ( RC  > 8 ) checkRCode( "Function pool getType failed for " + name ) ;
+		var_type = funcPOOL.getType( RC, var ) ;
+		if ( RC  > 8 ) checkRCode( "Function pool getType failed for "+ var ) ;
 		if ( RC == 0 )
 		{
 			switch ( var_type )
 			{
 			case INTEGER:
-				var_name = d2ds( funcPOOL.get( RC, 0, var_type, name ) ) ;
+				val = d2ds( funcPOOL.get( RC, 0, var_type, var ) ) ;
 				break ;
 			case STRING:
-				var_name = funcPOOL.get( RC, 0, name ) ;
+				val = funcPOOL.get( RC, 0, var ) ;
 			}
-			if ( RC  > 0 ) checkRCode( "Function pool get failed for " + name ) ;
+			if ( RC  > 0 ) checkRCode( "Function pool get failed for "+ var ) ;
 		}
 		else if ( RC == 8 )
 		{
-			var_name = p_poolMGR->get( RC, name, ASIS ) ;
-			if ( RC  > 8 ) { checkRCode( "Pool get failed for " + name) ; }
+			val = p_poolMGR->get( RC, var, ASIS ) ;
+			if ( RC  > 8 ) { checkRCode( "Pool get failed for "+ var ) ; }
 		}
 	}
 }
 
 
-void pApplication::vcopy( string name, string * & var_name_addr, vcMODE mode )
+void pApplication::vcopy( string var, string * & p_val, vcMODE mode )
 {
-	// Return the address of a dialogue variable (via the normal search order)
+	// Return the address of a dialogue variable name in var, in p_val
+	// (normal dialogue variable search order)
 	// This routine is only valid for MODE=LOCATE
 	// MODE=LOCATE not valid for integer pointers as these may be in the variable pools as strings
 
@@ -833,8 +848,8 @@ void pApplication::vcopy( string name, string * & var_name_addr, vcMODE mode )
 	switch ( mode )
 	{
 	case LOCATE:
-		var_type = funcPOOL.getType( RC, name ) ;
-		if ( RC  > 8 ) checkRCode( "Function pool getType failed for " + name ) ;
+		var_type = funcPOOL.getType( RC, var ) ;
+		if ( RC  > 8 ) checkRCode( "Function pool getType failed for "+ var ) ;
 		if ( RC == 0 )
 		{
 			switch ( var_type )
@@ -844,14 +859,14 @@ void pApplication::vcopy( string name, string * & var_name_addr, vcMODE mode )
 				log( "E", "LOCATE option invalid for integer values" << endl ) ;
 				break ;
 			case STRING:
-				var_name_addr = funcPOOL.vlocate( RC, 0, name, CHECK ) ;
+				p_val = funcPOOL.vlocate( RC, 0, var, CHECK ) ;
 			}
-			if ( RC  > 0 ) { checkRCode( "Function pool vlocate failed for " + name ) ; }
+			if ( RC  > 0 ) { checkRCode( "Function pool vlocate failed for "+ var ) ; }
 		}
 		else if ( RC == 8 )
 		{
-			var_name_addr = p_poolMGR->vlocate( RC, name, ASIS ) ;
-			if ( RC  > 8 ) { checkRCode( "Pool vlocate failed for " + name) ; }
+			p_val = p_poolMGR->vlocate( RC, var, ASIS ) ;
+			if ( RC  > 8 ) { checkRCode( "Pool vlocate failed for "+ var ) ; }
 		}
 		break ;
 	case MOVE:
@@ -2377,7 +2392,7 @@ void pApplication::info()
 	log( "-", "Application Information for " << ZAPPNAME << endl ) ;
 	log( "-", "                   Task ID: " << taskID << endl ) ;
 	log( "-", "          Shared Pool Name: " << shrdPool << endl ) ;
-	log( "-", "         Profile Pool Name: " << p_poolMGR->get( RC, "ZAPPLID", SHARED ) << endl ) ;
+	log( "-", "         Profile Pool Name: " << ZZAPPLID << endl ) ;
 	log( "-", " " << endl ) ;
 	log( "-", "Application Description . : " << ZAPPDESC << endl ) ;
 	log( "-", "Last Panel Displayed. . . : " << PANELID << endl ) ;

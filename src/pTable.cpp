@@ -427,34 +427,37 @@ void Table::fillfVARs( int & RC, fPOOL & funcPOOL, int depth, int posn )
 	//  Fill the function pool variables ( of the form table_fieldname.line ) from the table for depth lines
 	//  Also create function pool variable ZURID.line to hold the URID of the table row corresponding to that screen line
 
-	int i      ;
-	int j      ;
-	int k      ;
-	int size   ;
+	int j    ;
+	int k    ;
+	int size ;
 
 	vector< vector<string> >::iterator it ;
 
-	RC = 0 ;
+	RC   = 0 ;
 	size = table.size() ;
+
 	funcPOOL.put( RC, 0, "ZTDTOP", posn )  ;
 	funcPOOL.put( RC, 0, "ZTDROWS", size ) ;
-	for ( it = table.begin(), i = 1 ; i < posn ; i++ ) { it++ ; }
+
+	it = table.begin() ;
+	advance( it, posn-1 ) ;
+
 	for ( j = 0 ; j < depth ; j++ )
 	{
-		if ( j + posn > size ) break ;
-		funcPOOL.put( RC, 0, "ZURID." + d2ds(j), (*it).at( 0 ), NOCHECK ) ;
+		if ( j + posn > size ) { break ; }
+		funcPOOL.put( RC, 0, "ZURID." + d2ds( j ), (*it).at( 0 ), NOCHECK ) ;
 		for ( k = 1 ; k <= num_all ; k++ )
 		{
-			funcPOOL.put( RC, 0, word( tab_all, k ) + "." + d2ds(j) , (*it).at( k ), NOCHECK ) ;
+			funcPOOL.put( RC, 0, word( tab_all, k ) + "." + d2ds( j ), (*it).at( k ), NOCHECK ) ;
 		}
 		it++;
 	}
 	for ( ; j < depth ; j++ )
 	{
-		funcPOOL.put( RC, 0, "ZURID." + d2ds(j), "", NOCHECK ) ;
+		funcPOOL.put( RC, 0, "ZURID." + d2ds( j ), "", NOCHECK ) ;
 		for ( k = 1 ; k <= num_all ; k++ )
 		{
-			funcPOOL.put( RC, 0, word( tab_all, k ) + "." + d2ds(j) , "", NOCHECK ) ;
+			funcPOOL.put( RC, 0, word( tab_all, k ) + "." + d2ds( j ), "", NOCHECK ) ;
 		}
 		it++;
 	}
@@ -884,8 +887,6 @@ void Table::tbsarg( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_dir
 	sa_dir        = tb_dir ;
 	sa_namelst    = tb_namelst    ;
 	sa_cond_pairs = tb_cond_pairs ;
-
-	return ;
 }
 
 
@@ -894,7 +895,7 @@ void Table::tbscan( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_sav
 	// Scan table from current CRP according to parameters tb_namelst/tb_condlst/tb_dir if specified or similar values from a previous tbsarg call
 	// Scan on extension variables not currently supported.  Only one search argument/condition currently supported
 
-	// RC = 0  Okay.  Row found
+	// RC = 0  Okay. Row found
 	// RC = 8  Row not found
 
 	// Current value of variables not in NAMELST make no difference to search
@@ -1107,7 +1108,6 @@ void Table::tbscan( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_sav
 		funcPOOL.put( RC, 0, tb_rowid_vn, table.at( CRP-1 ).at( 0 ) ) ;
 		if ( RC > 0 ) { RC = 20 ; return ; }
 	}
-	return ;
 }
 
 
@@ -1137,7 +1137,7 @@ void Table::cmdsearch( int & RC, fPOOL & funcPOOL, string cmd )
 	found = false ;
 	for ( it = table.begin() ; it != table.end() ; it++ )
 	{
-		trunc = ds2d( (*it).at( 2 )) ;
+		trunc = ds2d( (*it).at( 2 ) ) ;
 		if ( trunc == 0 )
 		{
 			if ( (*it).at( 1 ) == cmd )
@@ -1334,7 +1334,7 @@ void Table::tbsort( int & RC, string tb_fields )
 	sort_ir = temp ;
 
 	sort( table.begin(), table.end(),
-		[ &s_field, &s_char, &s_asc, nsort ](const vector<string>& a, const vector<string>& b)
+		[ &s_field, &s_char, &s_asc, nsort ]( const vector<string>& a, const vector<string>& b )
 		{
 			for ( int i = 0 ; i < nsort ; i++ )
 			{
@@ -1353,14 +1353,14 @@ void Table::tbsort( int & RC, string tb_fields )
 				}
 				else
 				{
-					 if ( ds2d(a[ j ]) == ds2d(b[ j ] )) { continue ; }
+					 if ( ds2d( a[ j ] ) == ds2d( b[ j ] ) ) { continue ; }
 					 if ( s_asc[ i ] )
 					 {
-						 return ds2d(a[ j ]) < ds2d(b[ j ]) ;
+						 return ds2d( a[ j ] ) < ds2d( b[ j ] ) ;
 					 }
 					 else
 					 {
-						 return ds2d(a[ j ]) > ds2d(b[ j ]) ;
+						 return ds2d( a[ j ] ) > ds2d( b[ j ] ) ;
 					 }
 				}
 			}
@@ -2099,7 +2099,7 @@ void tableMGR::cmdsearch( int & RC, fPOOL & funcPOOL, string tb_name, string cmd
 
 	RC = 0 ;
 
-	tb_name = tb_name + "CMDS" ;
+	tb_name += "CMDS" ;
 	if ( tables.find( tb_name ) == tables.end() )
 	{
 		if ( tablexists( tb_name, paths ) )

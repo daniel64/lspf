@@ -16,6 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 */
+
 #include <string>
 using namespace std ;
 
@@ -47,19 +48,18 @@ void addHilight( hilight & h, string line, string & shadow )
 
 bool addHilight( string lang )
 {
-	if ( wordpos( lang, "AUTO CPP PANEL" ) == 0 ) { return false ; }
-	return true ;
+	return findword( lang, "AUTO CPP PANEL" ) ;
 }
 
 
 void addCppHilight( hilight & h, string line, string & shadow )
 {
 	int ln ;
+	int p1 ;
 	int start  ;
 	int stop   ;
 	int oBrac1 ;
 	int oBrac2 ;
-	int p1     ;
 
 	uint j ;
 

@@ -503,7 +503,9 @@ void PPSP01A::lspfSettings()
 	string KMAXWAIT ;
 
 	string GORTSIZE ;
+	string GORBSIZE ;
 	string ZRTSIZE  ;
+	string ZRBSIZE  ;
 
 	string ZUCMDT1 ;
 	string ZUCMDT2 ;
@@ -519,7 +521,7 @@ void PPSP01A::lspfSettings()
 	vdefine( "GOSCMD1 GOSCMD2 GOSCMD3 GOSTFST", &GOSCMD1, &GOSCMD2, &GOSCMD3, &GOSTFST ) ;
 	vdefine( "ZKLUSE  ZKLFAIL GOKLUSE GOKLFAL", &ZKLUSE, &ZKLFAIL, &GOKLUSE, &GOKLFAL ) ;
 	vdefine( "ZDEL    GODEL", &ZDEL, &GODEL ) ;
-	vdefine( "ZRTSIZE GORTSIZE", &ZRTSIZE, &GORTSIZE ) ;
+	vdefine( "ZRTSIZE GORTSIZE ZRBSIZE GORBSIZE", &ZRTSIZE, &GORTSIZE, &ZRBSIZE, &GORBSIZE ) ;
 	vdefine( "ZMAXWAIT GOATIMO", &KMAXWAIT, &GOATIMO ) ;
 
 	vget( "ZUCMDT1 ZUCMDT2 ZUCMDT3", PROFILE ) ;
@@ -541,12 +543,13 @@ void PPSP01A::lspfSettings()
 	GOSCMD3 = ZSCMDT3 ;
 
 	vcopy( "ZWAIT", t1, LOCATE ) ;
-	vget( "ZMAXWAIT ZRTSIZE", PROFILE ) ;
+	vget( "ZMAXWAIT ZRTSIZE ZRBSIZE", PROFILE ) ;
 
 	timeOut = ds2d( *t1 ) * ds2d( KMAXWAIT ) / 1000 ;
 	GOATIMO = d2ds( timeOut ) ;
 
 	GORTSIZE = ZRTSIZE ;
+	GORBSIZE = ZRBSIZE ;
 
 	while ( true )
 	{
@@ -587,6 +590,11 @@ void PPSP01A::lspfSettings()
 			    ZRTSIZE = GORTSIZE ;
 			    vput( "ZRTSIZE", PROFILE ) ;
 		    }
+		    if ( GORBSIZE != "" )
+		    {
+			    ZRBSIZE = GORBSIZE ;
+			    vput( "ZRBSIZE", PROFILE ) ;
+		    }
 		    if ( RCode == 8 ) { break ; }
 		}
 		if ( ZCMD == "DEFAULTS" )
@@ -602,7 +610,8 @@ void PPSP01A::lspfSettings()
 		    GOSCMD2  = ""  ;
 		    GOSCMD3  = ""  ;
 		    GOATIMO  = d2ds( ZMAXWAIT * ds2d( *t1 ) / 1000 ) ;
-		    GORTSIZE = "3" ;
+		    GORTSIZE = "3"  ;
+		    GORBSIZE = "10" ;
 		}
 	}
 	vdelete( "ZUCMDT1 ZUCMDT2 ZUCMDT3" ) ;
@@ -611,7 +620,7 @@ void PPSP01A::lspfSettings()
 	vdelete( "GOSCMD1 GOSCMD2 GOSCMD3 GOSTFST" ) ;
 	vdelete( "ZKLUSE  ZKLFAIL GOKLUSE GOKLFAL" ) ;
 	vdelete( "ZDEL    GODEL" ) ;
-	vdelete( "ZRTSIZE GORTSIZE" ) ;
+	vdelete( "ZRTSIZE GORTSIZE ZRBSIZE GORBSIZE" ) ;
 	vdelete( "ZMAXWAIT GOATIMO" ) ;
 }
 
