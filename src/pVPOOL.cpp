@@ -99,14 +99,8 @@ void fPOOL::dlete( int & RC, string name, nameCHCK check )
 		return ;
 	}
 
-	if ( it->second.size() == 1 )
-	{
-		POOL.erase( it ) ;
-	}
-	else
-	{
-		it->second.pop() ;
-	}
+	if ( it->second.size() == 1 ) { POOL.erase( it ) ; }
+	else                          { it->second.pop() ; }
 }
 
 

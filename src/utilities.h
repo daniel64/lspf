@@ -101,7 +101,7 @@ string xs2cs( const string & s ) ;     // eg "42" -> "B"            ( REXX X2C("
 int    xs2d( const string & s )  ;     // eg "A0" -> int160         ( REXX X2D("0E")        ->    14 )
 
 
-bool   findword( const string & s1, const string & s2 ) ;
+bool   findword( const string & s1, const string & s2 )  ;
 int    countc( const string & s, char c )       ;
 bool   matchpattern( const string & s1, const string & s2 ) ;
 string upper( string s )      ;

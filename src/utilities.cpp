@@ -24,15 +24,16 @@
 
 bool abbrev( const string & s1, const string & s2 )
 {
-	// s2 an abbreviation of s1
+	// Return true if s2 is an abbreviation of s1, else false
+
 	unsigned int l1 = s1.length() ;
 	unsigned int l2 = s2.length() ;
 
-	if ( l1 < l2 ) return false ;
+	if ( l1 < l2 ) { return false ; }
 
 	for ( unsigned int i = 0 ; i < l2 ; i++ )
 	{
-		if ( s1[ i ] != s2[ i ] ) return false ;
+		if ( s1[ i ] != s2[ i ] ) { return false ; }
 	}
 	return true ;
 }
@@ -41,17 +42,18 @@ bool abbrev( const string & s1, const string & s2 )
 
 bool abbrev( const string & s1, const string & s2, unsigned int n )
 {
-	// s2 an abbreviation of s1 with a minumum length n
+	// Return true if s2 an abbreviation of s1 with a minumum length n, else false
+
 	unsigned int l1 = s1.length() ;
 	unsigned int l2 = s2.length() ;
 
-	if ( n == 0 )  return true  ;
-	if ( l2 < n )  return false ;
-	if ( l1 < l2 ) return false ;
+	if ( n == 0 )  { return true  ; }
+	if ( l2 < n )  { return false ; }
+	if ( l1 < l2 ) { return false ; }
 
 	for ( unsigned int i = 0 ; i < l2 ; i++ )
 	{
-		if ( s1[ i ] != s2[ i ] ) return false ;
+		if ( s1[ i ] != s2[ i ] ) { return false ; }
 	}
 	return true ;
 }
@@ -89,11 +91,15 @@ string center( const string & s, unsigned int n )
 
 string copies( const string & s, unsigned int n )
 {
-	string t1 = "" ;
+	unsigned int l ;
+	string t1 ;
 
-	for ( ; n > 0 ; n-- )
+	l = s.size()     ;
+	t1.resize( n*l ) ;
+
+	for ( unsigned int i = 0 ; i < n ; i++ )
 	{
-		t1 = t1 + s ;
+		t1.replace( i*l, l, s ) ;
 	}
 	return t1 ;
 }
@@ -106,7 +112,7 @@ bool datatype( const string & s, char type )
 	{
 		for( unsigned int i = 0 ; i < s.length() ; i++ )
 		{
-			if ( !isdigit( s[ i ] ) ) return false ;
+			if ( !isdigit( s[ i ] ) ) { return false ; }
 		}
 		return true ;
 	}
@@ -117,7 +123,7 @@ bool datatype( const string & s, char type )
 
 string delstr( string s, unsigned int n )
 {
-	if ( n > s.length() ) return s ;
+	if ( n > s.length() ) { return s ; }
 
 	return s.erase( n - 1 ) ;
 }
@@ -126,7 +132,7 @@ string delstr( string s, unsigned int n )
 
 string delstr( string s, unsigned int n, unsigned int l )
 {
-	if ( n > s.length() ) return s ;
+	if ( n > s.length() ) { return s ; }
 
 	if ( (n + l) > s.length() )
 	{
@@ -148,12 +154,12 @@ string delword( string s, unsigned int w )
 	for ( ; w > 0 ; w-- )
 	{
 		i = s.find_first_not_of( ' ', j ) ;
-		if ( i == string::npos ) return s ;
+		if ( i == string::npos ) { return s ; }
 		j = s.find_first_of( ' ', i ) ;
 		if ( j == string::npos )
 		{
-			if ( w == 1 ) return s.substr( 0 , i ) ;
-			else return s ;
+			if ( w == 1 ) { return s.substr( 0 , i ) ; }
+			else          { return s                 ; }
 		}
 	}
 	return s.erase( i ) ;
@@ -167,26 +173,26 @@ string delword( string s, unsigned int w, unsigned int n )
 	int j = 0 ;
 	int k = 0 ;
 
-	if ( n == 0 ) return s ;
+	if ( n == 0 ) { return s ; }
 
 	for ( ; w > 0 ; w-- )
 	{
 		i = s.find_first_not_of( ' ', j ) ;
-		if ( i == string::npos ) return s ;
+		if ( i == string::npos ) { return s ; }
 		j = s.find_first_of( ' ', i ) ;
 		if ( j == string::npos )
 		{
-			if ( w == 1 ) return s.substr( 0 , i ) ;
-			else return s ;
+			if ( w == 1 ) { return s.substr( 0 , i ) ; }
+			else          { return s                 ; }
 		}
 	}
 
 	for ( ; n > 0 ; n-- )
 	{
 		k = s.find_first_not_of( ' ', j ) ;
-		if ( k == string::npos ) return s.erase( i ) ;
+		if ( k == string::npos ) { return s.erase( i ) ; }
 		j = s.find_first_of( ' ', k ) ;
-		if ( j == string::npos ) return s.erase( i, k-i ) ;
+		if ( j == string::npos ) { return s.erase( i, k-i ) ; }
 	}
 	return s.erase( i, k-i ) ;
 }
@@ -196,7 +202,8 @@ string delword( string s, unsigned int w, unsigned int n )
 string insert( const string & s1, string s2, int n, char c )
 {
 	// Insert s1 into s2 at n
-	int l2 = s2.length() ;
+
+	unsigned int l2 = s2.length() ;
 
 	if ( n > l2 )
 	{
@@ -214,6 +221,7 @@ string insert( const string & s1, string s2, int n, char c )
 string insert( string s1, string s2, unsigned int n, unsigned int l, char c )
 {
 	// Insert s1 into s2 at n for length l and pad with char c
+
 	unsigned int l1 = s1.length() ;
 	unsigned int l2 = s2.length() ;
 
@@ -241,12 +249,12 @@ string insert( string s1, string s2, unsigned int n, unsigned int l, char c )
 int lastpos( const string & s1, const string & s2 )
 {
 	int i ;
-	int l1 = s1.length() ;
-	int l2 = s2.length() ;
+	unsigned int l1 = s1.length() ;
+	unsigned int l2 = s2.length() ;
 
 	for ( i = l2 ; i > 0 ; i-- )
 	{
-		if ( s1 == s2.substr( (i - 1), l1 ) ) return i ;
+		if ( s1 == s2.substr( (i - 1), l1 ) ) { return i ; }
 	}
 	return 0 ;
 }
@@ -263,7 +271,7 @@ int lastpos( const string & s1, const string & s2, unsigned int p )
 
 	for ( i = p ; i > 0 ; i-- )
 	{
-		if ( s1 == s2.substr( (i - 1), l1 ) ) return i ;
+		if ( s1 == s2.substr( (i - 1), l1 ) ) { return i ; }
 	}
 	return 0 ;
 }
@@ -290,20 +298,21 @@ string left( string s, unsigned int n, char c )
 int pos( const string & s1, const string & s2, unsigned int p )
 {
 	// Find s1 in s2 starting at p returning the offset to the first character
+
 	int i  ;
 	int lp ;
-	int l1 = s1.length() ;
-	int l2 = s2.length() ;
+	unsigned int l1 = s1.length() ;
+	unsigned int l2 = s2.length() ;
 
-	if ( l1 == 0 || l2 == 0 ) return 0 ;
+	if ( l1 == 0 || l2 == 0 ) { return 0 ; }
 
 	lp = l2 - l1 + 1 ;
 
-	if ( lp < 1 ) return 0 ;
+	if ( lp < 1 ) { return 0 ; }
 
 	for ( i = p ; i <= lp ; i++ )
 	{
-		if ( s1 == s2.substr( i - 1, l1 ) ) return i ;
+		if ( s1 == s2.substr( i - 1, l1 ) ) { return i ; }
 	}
 	return 0 ;
 }
@@ -335,9 +344,9 @@ string space( const string & s, unsigned int n, char c )
 	string pad( n, c ) ;
 
 	w = words( s ) ;
-	if ( w == 1 ) return word( s , 1 ) ;
+	if ( w == 1 ) { return word( s, 1 ) ; }
 
-	t = word( s , 1 ) ;
+	t = word( s, 1 ) ;
 	for ( i = 2 ; i <= w ; i++ )
 	{
 		t = t + pad + word( s, i ) ;
@@ -354,13 +363,13 @@ string strip( string s, char opt, char c )
 	if ( (opt == 'B') || (opt == 'L') )
 	{
 		pos = s.find_first_not_of( c ) ;
-		if ( pos != string::npos ) s = s.substr( pos ) ;
-		else return "" ;
+		if ( pos != string::npos ) { s = s.substr( pos ) ; }
+		else                       { return ""           ; }
 	}
 	if ( (opt == 'B') || (opt == 'T') )
 	{
 		pos = s.find_last_not_of( c ) ;
-		s   = s.substr( 0, pos+1 ) ;
+		s   = s.substr( 0, pos+1 )    ;
 	}
 	return s ;
 }
@@ -369,7 +378,7 @@ string strip( string s, char opt, char c )
 
 string substr( const string & s, unsigned int n )
 {
-	if ( n > s.length() ) return "" ;
+	if ( n > s.length() ) { return "" ; }
 	return s.substr( n - 1 ) ;
 }
 
@@ -404,17 +413,16 @@ string subword( const string & s, unsigned int w )
 	for ( ; w > 0 ; w-- )
 	{
 		i = s.find_first_not_of( ' ', j ) ;
-		if ( i == string::npos ) return "" ;
+		if ( i == string::npos ) { return "" ; }
 		j = s.find_first_of( ' ', i ) ;
 		if ( j == string::npos )
 		{
-			if ( w == 1 ) return s.substr( i ) ;
-			else return "" ;
+			if ( w == 1 ) { return s.substr( i ) ; }
+			else          { return ""            ; }
 		}
 	}
 	return strip( s.substr( i ) ) ;
 }
-
 
 
 
@@ -427,24 +435,23 @@ string subword( const string & s, unsigned int w, unsigned int n )
 	for ( ; w > 0 ; w-- )
 	{
 		i = s.find_first_not_of( ' ', j ) ;
-		if ( i == string::npos ) return "" ;
+		if ( i == string::npos ) { return "" ; }
 		j = s.find_first_of( ' ', i ) ;
 		if ( j == string::npos )
 		{
-			if ( w == 1 ) return s.substr( i ) ;
-			else return "" ;
+			if ( w == 1 ) { return s.substr( i ) ; }
+			else          { return ""            ; }
 		}
 	}
 
 	for ( ; n > 1 ; n-- )
 	{
 		k = s.find_first_not_of( ' ', j ) ;
-		if ( k == string::npos ) return strip( s.substr( i ) ) ;
-
+		if ( k == string::npos ) { return strip( s.substr( i ) ) ; }
 		j = s.find_first_of( ' ', k ) ;
-		if ( j == string::npos ) return s.substr( i ) ;
+		if ( j == string::npos ) { return s.substr( i ) ; }
 	}
-	return strip( s.substr( i , j-i ) ) ;
+	return strip( s.substr( i, j-i ) ) ;
 }
 
 
@@ -457,13 +464,12 @@ string word( const string & s, unsigned int w )
 	for ( ; w > 0 ; w-- )
 	{
 		i = s.find_first_not_of( ' ', j ) ;
-		if ( i == string::npos ) return "" ;
-
+		if ( i == string::npos ) { return "" ; }
 		j = s.find_first_of( ' ', i ) ;
 		if ( j == string::npos )
 		{
-			if ( w == 1 ) return s.substr( i ) ;
-			else return "" ;
+			if ( w == 1 ) { return s.substr( i ) ; }
+			else          { return ""            ; }
 		}
 	}
 	return s.substr( i, j-i ) ;
@@ -479,16 +485,15 @@ int wordindex( const string & s, unsigned int w )
 	for ( ; w > 0 ; w-- )
 	{
 		i = s.find_first_not_of( ' ', j ) ;
-		if ( i == string::npos ) return 0 ;
-
+		if ( i == string::npos ) { return 0 ; }
 		j = s.find_first_of( ' ', i ) ;
 		if ( j == string::npos )
 		{
-			if ( w == 1 ) return  i + 1  ;
-			else return 0 ;
+			if ( w == 1 ) { break    ; }
+			else          { return 0 ; }
 		}
 	}
-	return i + 1;
+	return ++i ;
 }
 
 
@@ -502,41 +507,95 @@ int wordlength( const string & s, unsigned int n )
 
 int wordpos( const string & s1, const string & s2 )
 {
-	uint wds1 = words( s1 ) ;
-	uint wds2 = words( s2 ) ;
-	int i = 0 ;
-	int j = 0 ;
+	// Returns the word number of the first word in s1 found in s2, where words in s1 are found
+	// in string s2 in the same sequence, else return 0
+	// The number of spaces in and around words in s1 and s2 is not relevant
 
-	if ( wds1 == 0 ) return 0 ;
-	if ( wds2 == 0 ) return 0 ;
+	int i  = 0 ;
+	int j  = 0 ;
+	int k  = 0 ;
+	int l  = 0 ;
+	int w  = 0 ;
+	int sj = 0 ;
+	int sl = 0 ;
 
-	for ( i = 1 ; i <= wds2 ; i++ )
+	string s  ;
+
+	unsigned int wds1 = words( s1 ) ;
+	unsigned int wds2 ;
+
+	vector<string> ws1 ;
+
+	if ( wds1 == 0 ) { return 0 ; }
+	if ( wds1 == 1 )
 	{
-		for ( j = 1 ; j <= wds1 ; j++ )
+		s = strip( s1 ) ;
+		while ( true )
 		{
-			if ( word( s2, (i + j - 1) ) != word( s1, j ) ) break ;
+			i = s2.find_first_not_of( ' ', j ) ;
+			if ( i == string::npos ) { return 0 ; }
+			j = s2.find_first_of( ' ', i ) ;
+			k++ ;
+			if ( j == string::npos )
+			{
+				if ( s2.compare( i, s2.length()-i, s ) == 0 ) { return k ; }
+				else                                          { return 0 ; }
+			}
+			if ( s2.compare( i, j-i, s ) == 0 ) { return k ; }
 		}
-		if ( j > wds1 ) return i ;
 	}
-	return 0 ;
+	else
+	{
+		wds2 = words( s2 ) ;
+		if ( wds1 > wds2 ) { return 0 ; }
+		for ( i = 1 ; i <= wds1 ; i++ )
+		{
+			ws1.push_back( word( s1, i ) ) ;
+		}
+		l = ( wds2 - wds1 + 1 ) ;
+		while ( true )
+		{
+			i = s2.find_first_not_of( ' ', j ) ;
+			if ( i == string::npos ) { return 0 ; }
+			j = s2.find_first_of( ' ', i ) ;
+			if ( j == string::npos )
+			{
+				if ( s2.compare( i, s2.length()-1, ws1.at( k ) ) == 0 ) { k++ ; }
+				if ( k == wds1 ) { return w ; }
+				else             { return 0 ; }
+			}
+			if ( k == 0 ) { sj = j ; sl = l ; w++ ; }
+			if ( s2.compare( i, j-i, ws1.at( k ) ) == 0 ) { k++   ; }
+			else                                          { k = 0 ; }
+			if ( k == wds1 ) { return w ; }
+			if ( k == 0 )
+			{
+				j = sj ;
+				l = sl - 1 ;
+				if ( l < 1 ) { return 0 ; }
+			}
+		}
+	}
 }
 
 
 
 int words( const string & s )
 {
-	int i = 0 ;
-	unsigned int w = 0 ;
+	int i(0)  ;
+	unsigned int w(0) ;
 
 	for ( ; ; w++ )
 	{
 		i = s.find_first_not_of( ' ', i ) ;
-		if ( i == string::npos ) break ;
+		if ( i == string::npos ) { break ; }
 		i = s.find_first_of( ' ', i ) ;
 	}
 	return w ;
 }
 
+
+// End of REXX-like functions
 
 
 string bs2xs( string s )
@@ -619,7 +678,7 @@ string cs2xs( const string & s )
 	int  i, j ;
 	string reslt ;
 
-	int l = s.length()  ;
+	unsigned int l = s.length()  ;
 	reslt = ""          ;
 	reslt.resize( 2*l ) ;
 
@@ -785,32 +844,23 @@ int xs2d( const string & s )
 
 
 
-// End of REXX-like functions
-//
-
 bool findword( const string & s1, const string & s2 )
 {
-	int w ;
+	// Return true if words in s1 are found in string s2 in the same sequence, else false
 
-	for ( w = words( s2 ) ; w > 0 ; w-- )
-	{
-		if ( word( s2, w ) == s1 ) return true ;
-	}
-	return false ;
+	return wordpos( s1, s2 ) != 0 ;
 }
 
 
 
 int countc( const string & s, char c )
 {
-	int i, l, n ;
+	unsigned int l = s.length() ;
+	int n(0) ;
 
-	n = 0          ;
-	l = s.length() ;
-
-	for ( i = 0 ; i < l ; i++ )
+	for ( unsigned int i = 0 ; i < l ; i++ )
 	{
-		if ( s[ i ] == c ) n++ ;
+		if ( s[ i ] == c ) { n++ ; }
 	}
 	return n ;
 }
@@ -819,35 +869,35 @@ int countc( const string & s, char c )
 
 bool matchpattern( const string & s1, const string & s2)
 {
-	int l1 = s1.length() - 1 ;
-	int l2 = s2.length() - 1 ;
-	int i  = 0  ;
-	int j  = 0  ;
+	unsigned int l1 = s1.length() - 1 ;
+	unsigned int l2 = s2.length() - 1 ;
+	int i = 0 ;
+	int j = 0 ;
 
-	for ( ; ; )
+	while ( true )
 	{
 		if ( s1[ i ] != '?' )
 		{
 			if ( s1[ i ] == '*' )
 			{
 				i++ ;
-				if ( i > l1 ) return true ;
+				if ( i > l1 ) { return true ; }
 				for ( ; j <= l2 ; j++ )
 				{
-					if ( s1[ i ] == s2[ j ] ) break ;
+					if ( s1[ i ] == s2[ j ] ) { break ; }
 				}
-				if ( j > l2 ) return false ;
+				if ( j > l2 ) { return false ; }
 			}
 			else
 			{
-				if ( s1[ i ] != s2[ j ] ) return false ;
+				if ( s1[ i ] != s2[ j ] ) { return false ; }
 			}
 		}
 		i++ ;
 		j++ ;
-		if ( (i > l1) | (j > l2) ) break ;
+		if ( (i > l1) || (j > l2) ) { break ; }
 	}
-	if ( (i > l1) && (j > l2) ) return true ;
+	if ( (i > l1) && (j > l2) ) { return true ; }
 	return false ;
 }
 
@@ -877,11 +927,11 @@ string lower( string s )
 
 bool isnumeric( const string & s )
 {
-	if ( s.length() == 0 ) return false ;
+	if ( s.length() == 0 ) { return false ; }
 
 	for( unsigned int i = 0 ; i < s.length() ; i++ )
 	{
-		if ( !isdigit( s[ i ] ) ) return false ;
+		if ( !isdigit( s[ i ] ) ) { return false ; }
 	}
 	return true ;
 }
@@ -911,7 +961,7 @@ string hex2print( const string & t )
 {
 	string s ;
 
-	int l = t.length() ;
+	unsigned int l = t.length() ;
 	s     = ""         ;
 
 	for ( int i = 0 ; i < l ; i++ )
@@ -982,13 +1032,13 @@ string addCommas( string t, int prec )
 
 bool isvalidName( const string & s )
 {
-	int l = s.length() ;
+	unsigned int l = s.length() ;
 
-	if ( l > 8 ) return false ;
-	if ( l < 1 ) return false ;
-	if ( isdigit( s[ 0 ] ) ) return false ;
+	if ( l > 8 ) { return false ; }
+	if ( l < 1 ) { return false ; }
+	if ( isdigit( s[ 0 ] ) ) { return false ; }
 
-	for ( int i = 0 ; i < l ; i++ )
+	for ( unsigned int i = 0 ; i < l ; i++ )
 	{
 		if ( (!isdigit( s[ i ] )) &&
 		     (!isupper( s[ i ] )) &&
@@ -1002,13 +1052,13 @@ bool isvalidName( const string & s )
 
 bool isvalidName4( const string & s )
 {
-	int l = s.length() ;
+	unsigned int l = s.length() ;
 
-	if ( l > 4 ) return false ;
-	if ( l < 1 ) return false ;
-	if ( isdigit( s[ 0 ] ) ) return false ;
+	if ( l > 4 ) { return false ; }
+	if ( l < 1 ) { return false ; }
+	if ( isdigit( s[ 0 ] ) ) { return false ; }
 
-	for ( int i = 0 ; i < l ; i++ )
+	for ( unsigned int i = 0 ; i < l ; i++ )
 	{
 		if ( (!isdigit( s[ i ] )) &&
 		     (!isupper( s[ i ] )) &&
@@ -1022,12 +1072,12 @@ bool isvalidName4( const string & s )
 
 bool isvalidHex( const string & s )
 {
-	int l = s.length() ;
+	unsigned int l = s.length() ;
 
-	if ( (l % 2) != 0 ) return false ;
-	if ( l < 1 ) return false ;
+	if ( (l % 2) != 0 ) { return false ; }
+	if ( l < 1 ) { return false ; }
 
-	for ( int i = 0 ; i < l ; i++ )
+	for ( unsigned int i = 0 ; i < l ; i++ )
 	{
 		switch ( s[ i ] )
 		{
@@ -1095,11 +1145,11 @@ bool ishex( char c )
 
 bool isoctal( const string & s )
 {
-	int l = s.length() ;
+	unsigned int l = s.length() ;
 
-	if ( l < 1 ) return false ;
+	if ( l < 1 ) { return false ; }
 
-	for ( int i = 0 ; i < l ; i++ )
+	for ( unsigned int i = 0 ; i < l ; i++ )
 	{
 		switch ( s[ i ] )
 		{
@@ -1145,10 +1195,10 @@ bool ispict( const string & s, const string & picts )
 	// X - any hexadecimal character (0-9, A-F, a-f)
 	// O - any octal char
 
-	int l1 = s.length()     ;
-	int l2 = picts.length() ;
+	unsigned int l1 = s.length()     ;
+	unsigned int l2 = picts.length() ;
 
-	if ( l1 != l2 ) return false ;
+	if ( l1 != l2 ) { return false ; }
 
 	for ( int i = 0 ; i < l1 ; i++ )
 	{
@@ -1177,7 +1227,7 @@ bool ispict( const string & s, const string & picts )
 
 int getpaths( const string & p )
 {
-	if ( p == "" ) return 0 ;
+	if ( p == "" ) { return 0 ; }
 
 	return countc( p, ':' ) + 1 ;
 }
@@ -1355,7 +1405,6 @@ void selectParse( int & RC, string SELSTR, string & PGM, string & PARM, string &
 
 	if ( PGM == "" )             { RC = 20 ; }
 	if ( strip( SELSTR ) != "" ) { RC = 20 ; }
-	return ;
 }
 
 
@@ -1383,9 +1432,9 @@ void fieldOptsParse( int & RC, string opts, bool & caps, char & just, bool & num
 	{
 		p2 = pos( ")", uopts, p1 ) ;
 		t = strip( substr( uopts, (p1 + 6), (p2 - (p1 + 6)) ) ) ;
-		if ( t == "ON" ) caps = true ;
-		else    if ( t == "OFF" ) caps = false ;
-			else { RC = 20 ; return ; }
+		if      ( t == "ON"  ) { caps = true  ; }
+		else if ( t == "OFF" ) { caps = false ; }
+		else    { RC = 20 ; return ; }
 		uopts = delstr( uopts, p1, (p2 - p1 + 1) ) ;
 	}
 
@@ -1394,10 +1443,10 @@ void fieldOptsParse( int & RC, string opts, bool & caps, char & just, bool & num
 	{
 		p2 = pos( ")", uopts, p1 ) ;
 		t = strip( substr( uopts, (p1 + 6), (p2 - (p1 + 6)) ) ) ;
-		if ( t == "LEFT" ) just = 'L' ;
-		else    if ( t == "RIGHT" ) just = 'R' ;
-			else    if ( t == "ASIS" ) just = 'A' ;
-				else { RC = 20 ; return ; }
+		if      ( t == "LEFT"  ) just = 'L' ;
+		else if ( t == "RIGHT" ) just = 'R' ;
+		else if ( t == "ASIS"  ) just = 'A' ;
+		else { RC = 20 ; return ; }
 		uopts = delstr( uopts, p1, (p2 - p1 + 1) ) ;
 	}
 
@@ -1406,9 +1455,9 @@ void fieldOptsParse( int & RC, string opts, bool & caps, char & just, bool & num
 	{
 		p2 = pos( ")", uopts, p1 ) ;
 		t = strip( substr( uopts, (p1 + 9), (p2 - (p1 + 9)) ) ) ;
-		if ( t == "ON" ) numeric = true ;
-		else    if ( t == "OFF" ) numeric = false ;
-			else { RC = 20 ; return ; }
+		if      ( t == "ON"  ) numeric = true  ;
+		else if ( t == "OFF" ) numeric = false ;
+		else { RC = 20 ; return ; }
 		uopts = delstr( uopts, p1, (p2 - p1 + 1) ) ;
 	}
 
@@ -1417,8 +1466,8 @@ void fieldOptsParse( int & RC, string opts, bool & caps, char & just, bool & num
 	{
 		p2 = pos( ")", uopts, p1 ) ;
 		t = strip( substr( uopts, (p1 + 5), (p2 - (p1 + 5)) ) ) ;
-		if ( t[ 0 ] == '\'' ) t = strip( t, 'B', '\'' ) ;
-		else if ( t[ 0 ] == '"' ) t = strip( t, 'B', '"' ) ;
+		if      ( t[ 0 ] == '\'' ) t = strip( t, 'B', '\'' ) ;
+		else if ( t[ 0 ] == '"'  ) t = strip( t, 'B', '"' ) ;
 		if ( t.size() != 1 ) { RC = 20 ; return ; }
 		padchar = t[ 0 ] ;
 		uopts = delstr( uopts, p1, (p2 - p1 + 1) ) ;
@@ -1429,9 +1478,9 @@ void fieldOptsParse( int & RC, string opts, bool & caps, char & just, bool & num
 	{
 		p2 = pos( ")", uopts, p1 ) ;
 		t = strip( substr( uopts, (p1 + 6), (p2 - (p1 + 6)) ) ) ;
-		if ( t == "ON" ) skip = true ;
-		else    if ( t == "OFF" ) skip = false ;
-			else { RC = 20 ; return ; }
+		if      ( t == "ON" )  skip = true  ;
+		else if ( t == "OFF" ) skip = false ;
+		else { RC = 20 ; return ; }
 		uopts = delstr( uopts, p1, (p2 - p1 + 1) ) ;
 	}
 

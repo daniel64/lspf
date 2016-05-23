@@ -458,7 +458,6 @@ void PBRO01A::read_file( string file )
 	if ( rc == 0 )
 	{
 		fileType = magic_file( cookie, file.c_str() ) ;
-		debug1("dje fileType="<<fileType<<endl);
 		if ( fileType != "" )
 		{
 			if ( findword( "charset=binary", fileType ) )

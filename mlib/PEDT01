@@ -211,3 +211,6 @@ PEDT013B "Data shifting incomplete" .TYPE=W
 PEDT013C "Command Conflict" .TYPE=W
 "Command is within the range of the previous command"
 
+PEDT013D "Profile Created" .TYPE=N
+"New profile created"
+

@@ -68,14 +68,14 @@ class icmd
 class idata
 {
 	private:
-		int    id_lvl     ;
-		char   id_action  ;
-		string id_data    ;
+		int    id_level  ;
+		char   id_action ;
+		string id_data   ;
 		idata()
 		{
-			id_lvl     = 0     ;
-			id_action  = ' '   ;
-			id_data    = ""    ;
+			id_level   = 0   ;
+			id_action  = ' ' ;
+			id_data    = ""  ;
 		}
 	friend class iline ;
 } ;
@@ -84,12 +84,12 @@ class idata
 class ipos
 {
 	public:
-		int    ipo_line ;
-		int    ipo_URID ;
+		int    ipos_line ;
+		int    ipos_URID ;
 		ipos()
 		{
-			ipo_line = 0 ;
-			ipo_URID = 0 ;
+			ipos_line = 0 ;
+			ipos_URID = 0 ;
 		}
 	friend class PEDIT01 ;
 } ;
@@ -141,10 +141,11 @@ class ipline
 class iline
 {
 	private:
-		static map<int, stack<int> >Global_Undo ;
-		static map<int, stack<int> >Global_Redo ;
-		static map<int, int>maxURID   ;
-		static map<int, bool>setUNDO  ;
+		static map<int, stack<int>>Global_Undo ;
+		static map<int, stack<int>>Global_Redo ;
+		static map<int, stack<int>>Global_File_level ;
+		static map<int, int>maxURID  ;
+		static map<int, bool>setUNDO ;
 
 		bool   il_file    ;
 		bool   il_note    ;
@@ -210,52 +211,57 @@ class iline
 		}
 		void resetFilePrefix()
 		{
-			il_excl    = false  ;
-			il_hex     = false  ;
-			il_chg     = false  ;
-			il_error   = false  ;
-			il_undo    = false  ;
-			il_redo    = false  ;
-			il_msg     = false  ;
+			il_excl  = false ;
+			il_hex   = false ;
+			il_chg   = false ;
+			il_error = false ;
+			il_undo  = false ;
+			il_redo  = false ;
 		}
 		void resetSpecialPrefix()
 		{
-			il_note    = false  ;
-			il_prof    = false  ;
-			il_col     = false  ;
-			il_bnds    = false  ;
-			il_mask    = false  ;
-			il_tabs    = false  ;
-			il_info    = false  ;
+			il_note  = false ;
+			il_msg   = false ;
+			il_prof  = false ;
+			il_col   = false ;
+			il_bnds  = false ;
+			il_mask  = false ;
+			il_tabs  = false ;
+			il_info  = false ;
 		}
 		void clearLc12()
 		{
 			il_lc1 = "" ;
 			il_lc2 = "" ;
 		}
-		void put_idata( string s, int lvl )
+		void put_idata( string s, int level )
 		{
 			idata d ;
 
 			if ( !setUNDO[ il_taskid ] )
 			{
 				d.id_data = s ;
-				if   ( il_idata.empty() ) { il_idata.push( d ) ; }
-				else { il_idata.top() = d ; }
+				if ( il_idata.empty() ) { il_idata.push( d ) ; }
+				else                    { il_idata.top() = d ; }
 			}
 			else
 			{
-				d.id_lvl  = lvl ;
-				d.id_data = s   ;
+				d.id_level = level ;
+				d.id_data  = s     ;
 				il_idata.push( d ) ;
-				if ( Global_Undo[ il_taskid ].empty()     ||
-				     Global_Undo[ il_taskid ].top() != lvl )
+				if ( Global_Undo[ il_taskid ].empty() ||
+				     Global_Undo[ il_taskid ].top() != level )
 				{
-					Global_Undo[ il_taskid ].push( lvl ) ;
+					Global_Undo[ il_taskid ].push( level ) ;
+				}
+				if ( il_file )
+				{
+					set_Global_File_level() ;
 				}
 			}
-			il_vShadow = false ;
+			il_vShadow = false  ;
 			clear_Global_Redo() ;
+			remove_redo_idata() ;
 		}
 		void put_idata( string s )
 		{
@@ -263,19 +269,27 @@ class iline
 
 			if ( il_idata.empty() ) { d.id_data = s ; il_idata.push( d ) ; }
 			else                    { il_idata.top().id_data = s         ; }
-			il_vShadow = false ;
+			il_vShadow = false  ;
 		}
-		void set_il_idatalvl( int lvl )
+		void set_idata_level( int level )
 		{
-			il_idata.top().id_lvl = lvl ;
+			il_idata.top().id_level = level ;
 			if ( Global_Undo[ il_taskid ].empty()     ||
-			     Global_Undo[ il_taskid ].top() != lvl )
+			     Global_Undo[ il_taskid ].top() != level )
 			{
-				Global_Undo[ il_taskid ].push( lvl ) ;
+				Global_Undo[ il_taskid ].push( level ) ;
 			}
+			if ( il_file )
+			{
+				set_Global_File_level() ;
+			}
+			clear_Global_Redo() ;
+			remove_redo_idata() ;
 		}
-		void set_il_deleted()
+		void set_deleted( int Level )
 		{
+			if ( il_deleted ) { return ; }
+			put_idata( "", Level ) ;
 			il_deleted = true ;
 			il_idata.top().id_action = 'D' ;
 		}
@@ -334,16 +348,50 @@ class iline
 				Global_Redo[ il_taskid ].pop() ;
 			}
 		}
-		int get_Global_Undo_lvl()
+		void reset_Global_Undo()
+		{
+			Global_Undo[ il_taskid ] = Global_File_level[ il_taskid ] ;
+		}
+		void clear_Global_File_level()
+		{
+			while ( !Global_File_level[ il_taskid ].empty() )
+			{
+				Global_File_level[ il_taskid ].pop() ;
+			}
+		}
+		int get_Global_File_level()
+		{
+			if ( Global_File_level[ il_taskid ].empty() )
+			{
+				return 0 ;
+			}
+			else
+			{
+				return Global_File_level[ il_taskid ].top() ;
+			}
+		}
+		void set_Global_File_level()
+		{
+			if ( Global_File_level[ il_taskid ].empty() ||
+			     Global_File_level[ il_taskid ].top() != Global_Undo[ il_taskid ].top() )
+			{
+				Global_File_level[ il_taskid ].push( Global_Undo[ il_taskid ].top() ) ;
+			}
+		}
+		void remove_Global_File_level()
+		{
+			Global_File_level[ il_taskid ].pop() ;
+		}
+		int get_Global_Undo_level()
 		{
 			if (  !setUNDO[ il_taskid ] ||
-			     Global_Undo[ il_taskid ].empty() ) { return -1 ; }
+			     Global_Undo[ il_taskid ].empty() ) { return 0 ; }
 			return Global_Undo[ il_taskid ].top() ;
 		}
-		int get_Global_Redo_lvl()
+		int get_Global_Redo_level()
 		{
 			if (  !setUNDO[ il_taskid ] ||
-			     Global_Redo[ il_taskid ].empty() ) { return -1 ; }
+			     Global_Redo[ il_taskid ].empty() ) { return 0 ; }
 			return Global_Redo[ il_taskid ].top() ;
 		}
 		void move_Global_Undo2Redo()
@@ -373,15 +421,22 @@ class iline
 			}
 			il_idata.push( d ) ;
 		}
-		int get_idata_lvl()
+		void remove_redo_idata()
 		{
-			if ( il_idata.empty() ) { return -1 ; }
-			return il_idata.top().id_lvl ;
+			while ( !il_idata_redo.empty() )
+			{
+				il_idata_redo.pop() ;
+			}
 		}
-		int get_idata_redo_lvl()
+		int get_idata_level()
 		{
-			if ( il_idata_redo.empty() ) { return -1 ; }
-			return il_idata_redo.top().id_lvl ;
+			if ( il_idata.empty() ) { return 0 ; }
+			return il_idata.top().id_level ;
+		}
+		int get_idata_Redo_level()
+		{
+			if ( il_idata_redo.empty() ) { return 0 ; }
+			return il_idata_redo.top().id_level ;
 		}
 		int get_Global_Undo_Size()
 		{
@@ -390,6 +445,10 @@ class iline
 		int get_Global_Redo_Size()
 		{
 			return Global_Redo[ il_taskid ].size() ;
+		}
+		int get_Global_File_Size()
+		{
+			return Global_File_level[ il_taskid ].size() ;
 		}
 
 	friend class PEDIT01 ;
@@ -740,15 +799,15 @@ class PEDIT01 : public pApplication
 		string OCC  ;
 		string LINES;
 
-		const string blkcmds   = "CC MM DD HXX OO RR XX (( )) << >> UCC LCC MMD" ;
-		const string sglcmds   = "A B BNDS C COL COLS D F HX I L LC M MASK MD O R S TABS TJ TS UC X ( ) < >" ;
-		const string spllcmds  = "COL COLS A B I C M MD MMD D R CC MM DD RR" ;
+		const string blkcmds   = "CC DD MM HXX LCC MMD MNN OO RR TXX XX (( )) << >> UCC" ;
+		const string sglcmds   = "A B BNDS C COL COLS D F HX I L LC M MASK MD MN O R S TABS TJ TX TS UC X XP ( ) < >" ;
+		const string spllcmds  = "A B C CC COL COLS D DD F I L M MM MD MMD MN MNN R RR S TX TXX X XX XP" ;
 		const string todlcmds  = "COL COLS A I BNDS MASK TABS" ;
 		const string bodlcmds  = "B" ;
 		const string ABOReq    = "C CC M MM" ;
-		const string Chkdist   = "C D M HX LC MD O TJ UC X" ;
+		const string Chkdist   = "C D M HX LC MD MN O TJ UC TX X" ;
 		const string ABOList   = "A B O" ;
-		const string ReptOK    = "C D F HX I L M MD X O R UC LC RR TJ (( )) ( ) << >> < >" ;
+		const string ReptOK    = "C D F HX I L M MD MN O R UC LC RR TJ TX X (( )) ( ) << >> < >" ;
 		const string CutCmds   = "C CC M MM" ;
 		const string PasteCmds = "A B" ;
 } ;

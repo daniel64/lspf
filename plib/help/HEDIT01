@@ -1,0 +1,16 @@
+Help for the PEDIT01 editor
+
+Line Commands:
+--------------
+
+Extensions to the normal ISPF PDF editor line commands:
+MNn      Make note.  Turn current line(s) into note lines, shown by =NOTE=
+MNN
+
+TJn      Text join.  Join a number of lines (default 1) togeter separated by a space
+
+TXn      Toggle exclude status of a line/block of lines
+TXX
+
+XP       Exclude paragraph.  Exclude lines until the indentation is less than the indentation where the command
+         is entered.

@@ -61,7 +61,7 @@ PSYS01K "Error In Command"
 PSYS01L "SPLIT Command Disabled"
 "SPLIT command has been disabled via the application-issued CONTROL SPLIT DISABLE service"
 
-PSYS01M "NON-ZERO RETURN CODE"
+PSYS01M "Non-zero return code"
 "REXX program has returned a non-zero return code.  See application log for more messages"
 
 PSYS01N "Invalid data entered"
@@ -91,7 +91,7 @@ PSYS01U "Unknown Error Occured"
 PSYS01V "Entry Retrieved" .TYPE=N
 "Selected entry has been retrieved"
 
-PSYS01W "Retrieved from &ZCURTB" .TYPE=N
+PSYS01W "Entry &ZRFNPOS retrieved from &ZCURTB" .TYPE=N
 "Entry &ZRFNPOS has been retrieved from personal list &ZCURTB"
 
 PSYS01X "File retrieve not active"
@@ -106,11 +106,11 @@ PSYS01Z "Invalid .NRET field name"
 PSYS011A "Invalid path specified"
 "Path specified is not valid"
 
-PSYS011B "OREXX procedure not valid"
-"File does not contain a valid OREXX procedure"
+PSYS011B "REXX procedure not valid"
+"File does not contain a valid REXX procedure"
 
-PSYS011C "OREXX procedure not found"
-"OREXX procedure has not been found in the ZORXPATH concatination"
+PSYS011C "REXX procedure not found"
+"REXX procedure has not been found in the ZORXPATH concatination"
 
 PSYS011D "Error in SELECT"
 "Entered SELECT is not valid.  Check log for details"

@@ -57,7 +57,7 @@ pApplication::pApplication()
 	libdef_tuser           = false  ;
 	SEL                    = false  ;
 	setMSG                 = false  ;
-	field_name             = ""     ;
+	reffield               = ""     ;
 	PANELID                = ""     ;
 	PPANELID               = ""     ;
 	ZHELP                  = ""     ;
@@ -196,7 +196,8 @@ void pApplication::set_msg( string msg_id )
 	if ( RC == 0 )
 	{
 		currPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM ) ;
-		currPanel->display_msg() ;
+		currPanel->showLMSG = false ;
+		currPanel->display_msg()    ;
 	}
 }
 
@@ -2338,7 +2339,7 @@ string pApplication::sub_vars( string s )
 			p1 = s.find_first_not_of( '&', p1 ) ;
 			continue        ;
 		}
-		p2 = s.find_first_of( "& .'", p1 ) ;
+		p2 = s.find_first_of( "& .')", p1 ) ;
 		if ( p2 == string::npos )  { p2 = s.size() ; }
 		var = s.substr( p1, (p2-p1) ) ;
 		if ( isvalidName( var ) )

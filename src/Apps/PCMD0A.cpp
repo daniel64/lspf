@@ -61,7 +61,6 @@ void PCMD0A::application()
 	vcopy( "ZUSER", ZUSER, MOVE )     ;
 	vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
 
-
 	boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
 	string tname = temp.native() ;
 

@@ -86,9 +86,9 @@ int pPanel::loadPanel( string p_name, string paths )
 			}
 		}
 	}
-	if ( !found ) { PERR = "Panel file not found for " + p_name ; return  12 ; }
+	if ( !found ) { PERR = "Panel file not found for "+ p_name ; return  12 ; }
 
-	debug1( "Loading panel " << p_name << " from " <<  filename << endl ) ;
+	debug1( "Loading panel "+ p_name +" from "+ filename << endl ) ;
 
 	panel.open( filename.c_str() ) ;
 	while ( true )
@@ -115,7 +115,7 @@ int pPanel::loadPanel( string p_name, string paths )
 				{
 					if ( !is_regular_file( filename ) )
 					{
-						PERR = "Panel INCLUDE file " + filename + " is not a regular file" ;
+						PERR = "Panel INCLUDE file "+ filename +" is not a regular file" ;
 						return  20 ;
 					}
 					else
@@ -127,9 +127,9 @@ int pPanel::loadPanel( string p_name, string paths )
 			}
 			if ( !found )
 			{
-				PERR = "Panel INCLUDE file " + w2 + " not found for " + p_name ; return  12 ;
+				PERR = "Panel INCLUDE file "+ w2 +" not found for " + p_name ; return  12 ;
 			}
-			debug1( "Loading panel INCLUDE " << w2 << " from " <<  filename << endl ) ;
+			debug1( "Loading panel INCLUDE "+ w2 +" from "+ filename << endl ) ;
 			pincl.open( filename.c_str() ) ;
 			while ( true )
 			{
@@ -188,7 +188,7 @@ int pPanel::loadPanel( string p_name, string paths )
 			j = pos( " FORMAT=", line2 )  ;
 			if ( i == 0 || j == 0 )
 			{
-				PERR = "Invalid )PANEL statement in panel " + p_name ; return 20 ;
+				PERR = "Invalid )PANEL statement in panel "+ p_name ; return 20 ;
 			}
 			pVersion = ds2d( word( substr( line2, i+9 ), 1 ) ) ;
 			pFormat  = ds2d( word( substr( line2, j+8 ), 1 ) ) ;
@@ -206,7 +206,7 @@ int pPanel::loadPanel( string p_name, string paths )
 				KEYAPPL  = strip( line2.substr( j, k-j-1 ) )   ;
 				if ( !isvalidName( KEYLISTN ) || !isvalidName4( KEYAPPL ) )
 				{
-					PERR = "Invalid Keylist parameters on )PANEL statement in panel " + p_name ; return 20 ;
+					PERR = "Invalid Keylist parameters on )PANEL statement in panel "+ p_name ; return 20 ;
 				}
 			}
 			continue ;
@@ -237,7 +237,7 @@ int pPanel::loadPanel( string p_name, string paths )
 				k  = pos( ")", line2, j ) ;
 				if ( k == 0 ) { PERR = e1 + p_name ; return 20 ; }
 				CMDfield = strip( substr( line2, j+5, k-j-5 ) ) ;
-				if ( !isvalidName( CMDfield ) ) { PERR = "Error creating command field " + CMDfield + " for panel " + p_name ; return 20 ; }
+				if ( !isvalidName( CMDfield ) ) { PERR = "Error creating command field "+ CMDfield +" for panel "+ p_name ; return 20 ; }
 			}
 			j = pos( " HOME(", line2 ) ;
 			if ( j > 0 )
@@ -245,7 +245,7 @@ int pPanel::loadPanel( string p_name, string paths )
 				k  = pos( ")", line2, j ) ;
 				if ( k == 0 ) { PERR = e1 + p_name ; return 20 ; }
 				Home = strip( substr( line2, j+6, k-j-6 ) ) ;
-				if ( !isvalidName( Home ) ) { PERR = "Error creating home field " + Home + " for panel " + p_name ; return 20 ; }
+				if ( !isvalidName( Home ) ) { PERR = "Error creating home field "+ Home +" for panel "+ p_name ; return 20 ; }
 			}
 			body = true  ;
 			continue ;
@@ -262,7 +262,7 @@ int pPanel::loadPanel( string p_name, string paths )
 		{
 			w2 = strip( subword( line2, 2 ), 'B', '"' ) ;
 			commandTable[ w1 ] = w2 ;
-			debug2( "Adding command " << w1 << " options " << w2 << endl ) ;
+			debug2( "Adding command "+ w1 +" options "+ w2 << endl ) ;
 			continue ;
 		}
 
@@ -274,7 +274,7 @@ int pPanel::loadPanel( string p_name, string paths )
 				VPUTGET m_VPG( line2 ) ;
 				if ( m_VPG.vpg_RC != 0 )
 				{
-					PERR = "Error in VPUT or VGET statement " + strip( line2 ) ; return 20 ;
+					PERR = "Error in VPUT or VGET statement "+ strip( line2 ) ; return 20 ;
 				}
 				m_stmnt.ps_vputget = true ;
 				m_stmnt.ps_column  = line2.find_first_not_of( ' ' ) ;
@@ -289,13 +289,13 @@ int pPanel::loadPanel( string p_name, string paths )
 				panstmnt m_stmnt       ;
 				if ( m_assgn.as_RC != 0 )
 				{
-					PERR = "Error in assignment statement " + strip( line2 ) ; return 20 ;
+					PERR = "Error in assignment statement "+ strip( line2 ) ; return 20 ;
 				}
 				if ( m_assgn.as_isattr && ( fieldList.find( m_assgn.as_lhs ) == fieldList.end() ) )
 				{
 					if ( wordpos( m_assgn.as_lhs, tb_fields ) == 0 )
 					{
-						PERR = "Error in .ATTR statement. Field " + m_assgn.as_lhs + " not found" ; return 20 ;
+						PERR = "Error in .ATTR statement. Field "+ m_assgn.as_lhs +" not found" ; return 20 ;
 					}
 					else
 					{
@@ -319,7 +319,7 @@ int pPanel::loadPanel( string p_name, string paths )
 				panstmnt m_stmnt      ;
 				if ( m_if.if_RC != 0 )
 				{
-					PERR = "Error in IF statement " + strip( line2 ) ; return 20 ;
+					PERR = "Error in IF statement "+ strip( line2 ) ; return 20 ;
 				}
 				if ( wordpos( m_if.if_lhs, tb_fields ) > 0 ) { m_if.if_istb = true ; }
 				ifList.push_back( m_if ) ;
@@ -352,7 +352,7 @@ int pPanel::loadPanel( string p_name, string paths )
 				}
 				if ( !found )
 				{
-					PERR = "No matching IF statement found for ELSE at column " + d2ds( m_stmnt.ps_column+1 ) ;
+					PERR = "No matching IF statement found for ELSE at column "+ d2ds( m_stmnt.ps_column+1 ) ;
 					return 20 ;
 				}
 				continue ;
@@ -371,7 +371,7 @@ int pPanel::loadPanel( string p_name, string paths )
 				panstmnt m_stmnt     ;
 				if ( m_VER.ver_RC != 0 )
 				{
-					PERR = "Error in VER statement " + strip( line2 ) ; return 20 ;
+					PERR = "Error in VER statement "+ strip( line2 ) ; return 20 ;
 				}
 				if ( wordpos( m_VER.ver_field, tb_fields ) > 0 )
 				{
@@ -379,7 +379,7 @@ int pPanel::loadPanel( string p_name, string paths )
 				}
 				else if ( fieldList.find( m_VER.ver_field ) == fieldList.end() )
 				{
-					PERR = "Error in VER statement. Field " + m_VER.ver_field + " not found" ; return 20 ;
+					PERR = "Error in VER statement. Field "+ m_VER.ver_field +" not found" ; return 20 ;
 				}
 				verList.push_back( m_VER ) ;
 				m_stmnt.ps_verify = true   ;
@@ -393,7 +393,7 @@ int pPanel::loadPanel( string p_name, string paths )
 				panstmnt m_stmnt      ;
 				if ( m_trunc.trnc_RC != 0 )
 				{
-					PERR = "Error in TRUNC statement " + strip( line2 ) ; return 20 ;
+					PERR = "Error in TRUNC statement "+ strip( line2 ) ; return 20 ;
 				}
 				truncList.push_back( m_trunc ) ;
 				m_stmnt.ps_trunc  = true       ;
@@ -407,7 +407,7 @@ int pPanel::loadPanel( string p_name, string paths )
 				panstmnt m_stmnt      ;
 				if ( m_trans.trns_RC != 0 )
 				{
-					PERR = "Error in TRANS statement " + strip( line2 ) ; return 20 ;
+					PERR = "Error in TRANS statement "+ strip( line2 ) ; return 20 ;
 				}
 				transList.push_back( m_trans ) ;
 				m_stmnt.ps_trans  = true       ;
@@ -428,11 +428,11 @@ int pPanel::loadPanel( string p_name, string paths )
 			fld = strip( substr( line2, i+6, j-i-6 ) ) ;
 			if ( !isvalidName( fld ) )
 			{
-				PERR = "Invalid HELP entry field name " + fld ; return 20 ;
+				PERR = "Invalid HELP entry field name "+ fld ; return 20 ;
 			}
 			if ( fieldList.find( fld ) == fieldList.end() )
 			{
-				PERR = "Invalid HELP statement.  Field " + fld + " does not exist" ; return 20 ;
+				PERR = "Invalid HELP statement.  Field "+ fld +" does not exist" ; return 20 ;
 			}
 
 			i = pos( " HELP(", line2 ) ;
@@ -444,7 +444,7 @@ int pPanel::loadPanel( string p_name, string paths )
 			hlp = strip( substr( line2, i+6, j-i-6 ) ) ;
 			if ( !isvalidName( hlp ) )
 			{
-				PERR = "Invalid HELP entry name " + hlp ; return 20 ;
+				PERR = "Invalid HELP entry name "+ hlp ; return 20 ;
 			}
 			fieldHList[ fld ] = hlp ;
 			continue ;
@@ -468,20 +468,20 @@ int pPanel::loadPanel( string p_name, string paths )
 					}
 					if ( !found )
 					{
-						PERR = "Field " + m_pnts.pnts_field + " not found in panel" ;
+						PERR = "Field "+ m_pnts.pnts_field +" not found in panel" ;
 						return  20 ;
 					}
 				}
 				if ( fieldList.find( m_pnts.pnts_var ) == fieldList.end() )
 				{
-					PERR = "Variable " + m_pnts.pnts_var + " not found in panel" ;
+					PERR = "Variable "+ m_pnts.pnts_var +" not found in panel" ;
 					return  20 ;
 				}
 				pntsTable[ m_pnts.pnts_field ] = m_pnts ;
 			}
 			else
 			{
-				PERR = "Error parsing point-and-shoot line " + line2 ;
+				PERR = "Error parsing point-and-shoot line "+ line2 ;
 				return 20 ;
 			}
 			continue ;
@@ -499,7 +499,7 @@ int pPanel::loadPanel( string p_name, string paths )
 					t1 = strip( substr( line2, i+6, j-i-6 ) ) ;
 					if ( fieldList.find( t1 ) == fieldList.end() )
 					{
-						PERR = "Field " + t1 + " not found on panel" ; return 20 ;
+						PERR = "Field "+ t1 +" not found on panel" ; return 20 ;
 					}
 				}
 			}
@@ -520,7 +520,7 @@ int pPanel::loadPanel( string p_name, string paths )
 			}
 			if ( i == 0 || j == 0 )
 			{
-				PERR = "Invalid format of EXEC() definition. " + line2 ;
+				PERR = "Invalid format of EXEC() definition. "+ line2 ;
 				return 20 ;
 			}
 			i = pos( "PASS(", line2 ) ;
@@ -538,12 +538,12 @@ int pPanel::loadPanel( string p_name, string paths )
 				ww = word( t_fe.fieldExc_passed, i ) ;
 				if ( fieldList.find( ww ) == fieldList.end() )
 				{
-					PERR = "Field " + ww + " passed on field command for " + t1 + " is not defined in panel body" ; return 20 ;
+					PERR = "Field "+ ww +" passed on field command for "+ t1 +" is not defined in panel body" ; return 20 ;
 				}
 			}
 			if ( fieldExcTable.find( t1 ) != fieldExcTable.end() )
 			{
-				PERR = "Duplicate field command entry in )FIELD panel section for " + t1 ; return 20 ;
+				PERR = "Duplicate field command entry in )FIELD panel section for "+ t1 ; return 20 ;
 			}
 			fieldExcTable[ t1 ] = t_fe ;
 			continue ;
@@ -551,7 +551,7 @@ int pPanel::loadPanel( string p_name, string paths )
 
 		if ( !body )
 		{
-			PERR = "Panel " + p_name + " error.  Invalid line: " + line2 ; return 20 ;
+			PERR = "Panel " + p_name + " error.  Invalid line: "+ line2 ; return 20 ;
 		}
 
 		else if ( w1 == "PANELTITLE" )
@@ -577,7 +577,7 @@ int pPanel::loadPanel( string p_name, string paths )
 		{
 			literal * m_lit = new literal ;
 			RC = m_lit->literal_init( WSCRMAXW, WSCRMAXD, opt_field, line2 ) ;
-			if ( RC > 0 ) { PERR = "Error creating literal for panel " + p_name ; delete m_lit ; return 20 ; }
+			if ( RC > 0 ) { PERR = "Error creating literal for panel "+ p_name ; delete m_lit ; return 20 ; }
 			literalList.push_back( m_lit ) ;
 			continue ;
 		}
@@ -586,17 +586,17 @@ int pPanel::loadPanel( string p_name, string paths )
 			w7 = word( line2, 7 ) ;
 			if ( !isvalidName( w7 ) )
 			{
-				PERR = "Invalid field name >>" + w7 + "<< on line: " + line2 ; return 20 ;
+				PERR = "Invalid field name >>"+ w7 +"<< on line: " + line2 ; return 20 ;
 			}
 
 			if ( fieldList.find( w7 ) != fieldList.end() )
 			{
-				PERR = "Field " + w7 + " already exists on panel" ; return  20 ;
+				PERR = "Field "+ w7 +" already exists on panel" ; return  20 ;
 			}
 
 			field * m_fld = new field ;
 			RC = m_fld->field_init( WSCRMAXW, WSCRMAXD, line2 ) ;
-			if ( RC > 0 ) { PERR = "Error creating field for panel " + p_name ; delete m_fld ; return 20 ; } ;
+			if ( RC > 0 ) { PERR = "Error creating field for panel "+ p_name ; delete m_fld ; return 20 ; }  ;
 			fieldList[ w7 ] = m_fld  ;
 			continue ;
 		}
@@ -606,12 +606,12 @@ int pPanel::loadPanel( string p_name, string paths )
 			w6 = word( line2, 6 ) ;
 			if ( !isvalidName( w6 ) )
 			{
-				PERR = "Invalid field name " + w6 + " entered for dynamic area" ; return  20 ;
+				PERR = "Invalid field name "+ w6 +" entered for dynamic area" ; return  20 ;
 			}
 
 			dynArea * m_dynArea = new dynArea ;
 			RC = m_dynArea->dynArea_init( WSCRMAXW, WSCRMAXD, line2 ) ;
-			if ( RC > 0 ) { PERR = "Error creating dynArea for panel " + p_name ; delete m_dynArea ; return 20 ; } ;
+			if ( RC > 0 ) { PERR = "Error creating dynArea for panel "+ p_name ; delete m_dynArea ; return 20 ; }
 
 			dyn_width = m_dynArea->dynArea_width ;
 			dyn_depth = m_dynArea->dynArea_depth ;
@@ -643,7 +643,7 @@ int pPanel::loadPanel( string p_name, string paths )
 			w2 = word( line2, 2 ) ;
 			Box * m_box = new Box ;
 			RC = m_box->box_init( WSCRMAXW, WSCRMAXD, line2 ) ;
-			if ( RC > 0 ) { PERR = "Error creating box for panel " + p_name ; delete m_box ; return 20 ; } ;
+			if ( RC > 0 ) { PERR = "Error creating box for panel "+ p_name ; delete m_box ; return 20 ; }
 			boxes.push_back( m_box ) ;
 			continue ;
 		}
@@ -684,7 +684,7 @@ int pPanel::loadPanel( string p_name, string paths )
 				w6 = strip( substr( rest, 6, p2-7 ), 'B', '\"' ) ;
 			}
 			if ( RC == 0 ) { create_pdc( w2, w3, w5, w6, w7 ) ; }
-			if ( RC > 0 ) { PERR = "Error creating pdc for panel " + p_name ; return 20 ; } ;
+			if ( RC > 0 ) { PERR = "Error creating pdc for panel "+ p_name ; return 20 ; }
 			continue ;
 		}
 		else if ( w1 == "TBMODEL" )
@@ -733,7 +733,7 @@ int pPanel::loadPanel( string p_name, string paths )
 			w4 = word( line2, 4 ) ;
 			if ( cuaAttrName.find( w4 ) == cuaAttrName.end() )
 			{
-				PERR = "Unknown field CUA attribute type " + w4  ; return 20 ;
+				PERR = "Unknown field CUA attribute type "+ w4  ; return 20 ;
 			}
 			fType = cuaAttrName[ w4 ] ;
 			debug2( "Creating tbfield" << endl ) ;
@@ -743,7 +743,7 @@ int pPanel::loadPanel( string p_name, string paths )
 		}
 		else
 		{
-			PERR = "Panel " + p_name + " error.  Invalid line: " + line2 ; return 20 ;
+			PERR = "Panel "+ p_name +" error.  Invalid line: "+ line2 ; return 20 ;
 		}
 	}
 
@@ -753,11 +753,11 @@ int pPanel::loadPanel( string p_name, string paths )
 	}
 	if ( fieldList.find( Home ) == fieldList.end() )
 	{
-		PERR = "Home field " + Home + " not defined in panel body" ; return 20 ;
+		PERR = "Home field "+ Home +" not defined in panel body" ; return 20 ;
 	}
 	if ( fieldList.find( CMDfield ) == fieldList.end() )
 	{
-		PERR = "Command field " + CMDfield + " not defined in panel body" ; return 20 ;
+		PERR = "Command field "+ CMDfield +" not defined in panel body" ; return 20 ;
 	}
 
 	if ( REXX )
@@ -770,5 +770,5 @@ int pPanel::loadPanel( string p_name, string paths )
 
 	PANELID = p_name ;
 	debug1( "Panel loaded and processed successfully" << endl ) ;
-	return  0 ;
+	return 0 ;
 }

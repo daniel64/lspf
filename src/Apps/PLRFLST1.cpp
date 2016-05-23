@@ -23,7 +23,7 @@
 
 /* Personal File List application                                             */
 
-/* On exit, if field_name is set to #REFLIST and ZRC = 0                      */
+/* On exit, if reffield is set to #REFLIST and ZRC = 0                        */
 /* then ZRESULT will be placed in the field specified by the .NRET panel      */
 /* variable:                                                                  */
 /* .NRET = ON                                                                 */
@@ -464,9 +464,9 @@ void PLRFLST1::OpenFileList( string curtb )
 		{
 			if ( CSEL == "S" )
 			{
-				field_name = "#REFLIST" ;
-				ZRESULT    = CFILE      ;
-				ZRC        = 0          ;
+				reffield = "#REFLIST" ;
+				ZRESULT  = CFILE      ;
+				ZRC      = 0          ;
 				break ;
 			}
 			if ( ZTDSELS > 1 )
@@ -592,8 +592,8 @@ void PLRFLST1::RetrieveEntry( string list )
 	ZRFNPOS =  d2ds( p ) ;
 	vput( "ZRFNPOS", SHARED ) ;
 
-	field_name = "#REFLIST"     ;
-	ZRC        = 0              ;
+	reffield = "#REFLIST"       ;
+	ZRC      = 0                ;
 	vdelete( "ZRFNEX ZRFNPOS" ) ;
 }
 

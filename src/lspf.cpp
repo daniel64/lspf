@@ -124,7 +124,7 @@ void startApplication( string, string, string, bool, bool ) ;
 void terminateApplication()   ;
 void ResumeApplicationAndWait() ;
 void processPGMSelect()         ;
-void processAction( uint row, uint col, int c, bool & passthru )  ;
+void processAction( uint row, uint col, int c, bool & passthru ) ;
 void errorScreen( int, string ) ;
 void rawOutput()          ;
 void threadErrorHandler() ;
@@ -564,7 +564,7 @@ void mainLoop()
 								break ;
 							}
 							SEL_PARM = SEL_PARM + " " + currAppl->currPanel->field_getvalue( field_name ) ;
-							currAppl->field_name = field_name ;
+							currAppl->reffield = field_name ;
 							currAppl->currPanel->field_get_row_col( field_name, t, c ) ;
 							p_poolMGR->put( RC, "ZFECSRP", d2ds( col-c+1 ), SHARED )   ;
 							for( ws = words( fxc.fieldExc_passed ), i = 1 ; i <= ws ; i++ )
@@ -1008,12 +1008,14 @@ void processAction( uint row, uint col, int c, bool & passthru )
 		{
 			passthru = false ;
 			currAppl->currPanel->showLMSG = true ;
+			currAppl->currPanel->cmd_setvalue( "" ) ;
 			currAppl->currPanel->display_msg() ;
 			return ;
 		}
 		else
 		{
 			currAppl->currPanel->showLMSG = false ;
+			currAppl->currPanel->cmd_setvalue( "" ) ;
 			currAppl->currPanel->SMSG     = ""    ;
 			currAppl->currPanel->LMSG     = ""    ;
 			ZPARM        = currAppl->get_help_member( row, col ) ;
@@ -1348,8 +1350,8 @@ void terminateApplication()
 	tRSN    = currAppl->ZRSN    ;
 	tRESULT = currAppl->ZRESULT ;
 
-	if ( currAppl->field_name == "#REFLIST" ) { refList = true  ; }
-	else                                      { refList = false ; }
+	if ( currAppl->reffield == "#REFLIST" ) { refList = true  ; }
+	else                                    { refList = false ; }
 
 	if ( currAppl->setMSG ) { SMSG = currAppl->ZSMSG ; LMSG = currAppl->ZLMSG ; MSGTYPE = currAppl->ZMSGTYPE ; MSGALRM = currAppl->ZMSGALRM ; }
 
@@ -1435,7 +1437,7 @@ void terminateApplication()
 			{
 				if ( currAppl->currPanel->field_valid( fname ) )
 				{
-					currAppl->field_name = fname ;
+					currAppl->reffield = fname ;
 					if ( p_poolMGR->get( RC, "ZRFMOD", PROFILE ) == "BEX" )
 					{
 						commandStack = ";;" ;
@@ -1462,13 +1464,13 @@ void terminateApplication()
 	}
 
 	setCursor = true ;
-	if ( currAppl->field_name != "" && !nretError )
+	if ( currAppl->reffield != "" && !nretError )
 	{
 		if ( tRC == 0 )
 		{
-			if ( currAppl->currPanel->field_get_row_col( currAppl->field_name, row, col ) )
+			if ( currAppl->currPanel->field_get_row_col( currAppl->reffield, row, col ) )
 			{
-				currAppl->currPanel->field_setvalue( currAppl->field_name, tRESULT ) ;
+				currAppl->currPanel->field_setvalue( currAppl->reffield, tRESULT ) ;
 				currAppl->currPanel->cursor_eof( row, col ) ;
 				currAppl->currPanel->set_cursor( row, col ) ;
 				if ( refList )
@@ -1479,7 +1481,7 @@ void terminateApplication()
 			}
 			else
 			{
-				log( "E", "Invalid field "+ currAppl->field_name +" in .NRET panel statement" << endl ) ;
+				log( "E", "Invalid field "+ currAppl->reffield +" in .NRET panel statement" << endl )   ;
 				currAppl->set_msg( "PSYS01Z" ) ;
 			}
 		}
@@ -1488,7 +1490,7 @@ void terminateApplication()
 			beep() ;
 			setCursor = false ;
 		}
-		currAppl->field_name = "" ;
+		currAppl->reffield = "" ;
 	}
 
 	loadpfkeyTable() ;
@@ -2184,7 +2186,7 @@ void getDynamicClasses()
 	i = 0 ;
 	for ( it = v.begin() ; it != v.end() ; ++it )
 	{
-		fname = (*it).string() ;
+		fname = it->string() ;
 		p     = substr( fname, 1, (lastpos( "/", fname ) - 1) ) ;
 		mod   = substr( fname, (lastpos( "/", fname ) + 1) )    ;
 		pos1  = pos( ".so", mod ) ;
@@ -2264,7 +2266,7 @@ void reloadDynamicClasses( string parm )
 	k = 0 ;
 	for ( it = v.begin() ; it != v.end() ; ++it )
 	{
-		fname = (*it).string() ;
+		fname = it->string() ;
 		p     = substr( fname, 1, (lastpos( "/", fname ) - 1) ) ;
 		mod   = substr( fname, (lastpos( "/", fname ) + 1) )    ;
 		pos1  = pos( ".so", mod ) ;

@@ -32,26 +32,26 @@ class pLScreen
 
 	void  clear() ;
 
-	int   get_row()                         { return row ; }
-	int   get_col()                         { return col ; }
+	int   get_row()                    { return row ; }
+	int   get_col()                    { return col ; }
 
-	int   get_scrmaxw()                     { return maxcol ; }
-	int   get_scrmaxd()                     { return maxrow ; }
+	int   get_scrmaxw()                { return maxcol ; }
+	int   get_scrmaxd()                { return maxrow ; }
 
-	void  set_row_col( int a, int b )       { row = a ; col = b ; }
+	void  set_row_col( int a, int b )  { row = a ; col = b ; }
 
-	int   cursor_left()                     { return (col == 0 ? (col = maxcol-1, col) : --col) ; }
-	int   cursor_right()                    { return (col == maxcol-1 ? (col = 0, 0) : ++col) ; }
-	int   cursor_up()                       { return (row == 0 ? (row = maxrow-1 ,row) : --row) ; }
-	int   cursor_down()                     { return (row == maxrow-1 ? (row = 0, 0) : ++row) ; }
+	int   cursor_left()                { return (col == 0 ? (col = maxcol-1, col) : --col) ; }
+	int   cursor_right()               { return (col == maxcol-1 ? (col = 0, 0) : ++col)   ; }
+	int   cursor_up()                  { return (row == 0 ? (row = maxrow-1 ,row) : --row) ; }
+	int   cursor_down()                { return (row == maxrow-1 ? (row = 0, 0) : ++row)   ; }
 
 	stack<pApplication *> pApplicationStack ;
 
-	void  application_add( pApplication * pApplication )    { pApplicationStack.push( pApplication ) ; }
-	void  application_remove_current()                      { pApplicationStack.pop() ; } ;
-	pApplication * application_get_current()                { return pApplicationStack.top()   ; }
-	int   application_stack_size()                          { return pApplicationStack.size()  ; }
-	bool  application_stack_empty()                         { return pApplicationStack.empty() ; }
+	void  application_add( pApplication * pApplication ) { pApplicationStack.push( pApplication ) ; }
+	void  application_remove_current()                   { pApplicationStack.pop() ; } ;
+	pApplication * application_get_current()             { return pApplicationStack.top()   ; }
+	int   application_stack_size()                       { return pApplicationStack.size()  ; }
+	bool  application_stack_empty()                      { return pApplicationStack.empty() ; }
 
 	void  OIA_setup()  ;
 	void  show_enter() ;

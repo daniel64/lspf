@@ -182,7 +182,7 @@ void Table::tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 		{
 			for ( i = 1 ; i <= num_keys ; i++ )
 			{
-				if ( (*it).at( i ) != keys.at( i-1 ) )  { break ; }
+				if ( it->at( i ) != keys.at( i-1 ) )  { break ; }
 			}
 			if ( i > num_keys ) { RC = 8 ; return ; }
 		}
@@ -225,7 +225,7 @@ void Table::tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 		for ( it = table.begin() ; it != table.end() ; it++ )
 		{
 			CRP++ ;
-			if ( URID == (*it).at( 0 ) ) { break ; }
+			if ( URID == it->at( 0 ) ) { break ; }
 		}
 	}
 	changed = true ;
@@ -347,7 +347,7 @@ void Table::tbdelete( int & RC, fPOOL & funcPOOL )
 		{
 			for ( i = 1 ; i <= num_keys ; i++ )
 			{
-				if ( (*it).at( i ) != keys.at( i-1 ) ) { break  ; }
+				if ( it->at( i ) != keys.at( i-1 ) ) { break  ; }
 			}
 			if ( i > num_keys ) { found = true ; break ; }
 			j++ ;
@@ -412,7 +412,7 @@ void Table::tbexist( int & RC, fPOOL & funcPOOL )
 	{
 		for ( i = 1 ; i <= num_keys ; i++ )
 		{
-			if ( (*it).at( i ) != keys.at( i-1 ) ) { break  ; }
+			if ( it->at( i ) != keys.at( i-1 ) ) { break  ; }
 		}
 		if ( i > num_keys ) { found = true ; break ; }
 		j++ ;
@@ -445,10 +445,10 @@ void Table::fillfVARs( int & RC, fPOOL & funcPOOL, int depth, int posn )
 	for ( j = 0 ; j < depth ; j++ )
 	{
 		if ( j + posn > size ) { break ; }
-		funcPOOL.put( RC, 0, "ZURID." + d2ds( j ), (*it).at( 0 ), NOCHECK ) ;
+		funcPOOL.put( RC, 0, "ZURID." + d2ds( j ), it->at( 0 ), NOCHECK ) ;
 		for ( k = 1 ; k <= num_all ; k++ )
 		{
-			funcPOOL.put( RC, 0, word( tab_all, k ) + "." + d2ds( j ), (*it).at( k ), NOCHECK ) ;
+			funcPOOL.put( RC, 0, word( tab_all, k ) + "." + d2ds( j ), it->at( k ), NOCHECK ) ;
 		}
 		it++;
 	}
@@ -518,7 +518,7 @@ void Table::tbget( int & RC, fPOOL & funcPOOL, string tb_savenm, string tb_rowid
 		{
 			for ( i = 1 ; i <= num_keys ; i++ )
 			{
-				if ( (*it).at( i ) != keys.at( i-1 ) )  { break ; }
+				if ( it->at( i ) != keys.at( i-1 ) )  { break ; }
 			}
 			if ( i > num_keys ) { found = true ; break ; }
 			CRP++ ;
@@ -619,7 +619,7 @@ void Table::tbmod( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	{
 		for ( i = 1 ; i <= num_keys ; i++ )
 		{
-			if ( (*it).at( i ) != keys.at( i-1 ) ) { break ; }
+			if ( it->at( i ) != keys.at( i-1 ) ) { break ; }
 		}
 		if ( i > num_keys ) { found = true ; break ; }
 		CRP++ ;
@@ -656,7 +656,7 @@ void Table::tbmod( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 			for ( it = table.begin() ; it != table.end() ; it++ )
 			{
 				CRP++ ;
-				if ( URID == (*it).at( 0 ) ) { break ; }
+				if ( URID == it->at( 0 ) ) { break ; }
 			}
 		}
 	}
@@ -726,7 +726,7 @@ void Table::tbput( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 		for ( it = table.begin() ; it != table.end() ; it++ )
 		{
 			CRP++ ;
-			if ( URID == (*it).at( 0 ) ) { break ; }
+			if ( URID == it->at( 0 ) ) { break ; }
 		}
 	}
 	changed = true ;
@@ -1000,59 +1000,59 @@ void Table::tbscan( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_sav
 		loope   = false ;
 		for ( it = scan.begin() ; it != scan.end() ; it++ )
 		{
-			p1 = wordpos( (*it).first, tab_all ) ;
+			p1 = wordpos( it->first, tab_all ) ;
 			if ( p1 == 0 )
 			{
 				if ( table.at( CRP-1 ).size() == num_all+1 ) { break ; }
 				tbelst = table.at( CRP-1 ).at( 1+num_all ) ;
-				p1 = wordpos( (*it).first, tbelst ) ;
+				p1 = wordpos( it->first, tbelst ) ;
 				if ( p1 == 0 ) { break ; }
 				p1 = 1 + num_all + p1 ;
 			}
-			if ( (*it).second.tbs_gen )
+			if ( it->second.tbs_gen )
 			{
-				switch ( (*it).second.tbs_cond )
+				switch ( it->second.tbs_cond )
 				{
 				case s_EQ:
-					if ( table.at( CRP-1 ).at( p1 ).substr( 0 , (*it).second.tbs_vsize ) != (*it).second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 ).at( p1 ).substr( 0 , it->second.tbs_vsize ) != it->second.tbs_val ) { loope = true ; }
 					break ;
 				case s_NE:
-					if ( table.at( CRP-1 ).at( p1 ).substr( 0 , (*it).second.tbs_vsize ) == (*it).second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 ).at( p1 ).substr( 0 , it->second.tbs_vsize ) == it->second.tbs_val ) { loope = true ; }
 					break ;
 				case s_LE:
-					if ( table.at( CRP-1 ).at( p1 ).substr( 0 , (*it).second.tbs_vsize )  > (*it).second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 ).at( p1 ).substr( 0 , it->second.tbs_vsize )  > it->second.tbs_val ) { loope = true ; }
 					break ;
 				case s_LT:
-					if ( table.at( CRP-1 ).at( p1 ).substr( 0 , (*it).second.tbs_vsize ) >= (*it).second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 ).at( p1 ).substr( 0 , it->second.tbs_vsize ) >= it->second.tbs_val ) { loope = true ; }
 					break ;
 				case s_GE:
-					if ( table.at( CRP-1 ).at( p1 ).substr( 0 , (*it).second.tbs_vsize )  < (*it).second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 ).at( p1 ).substr( 0 , it->second.tbs_vsize )  < it->second.tbs_val ) { loope = true ; }
 					break ;
 				case s_GT:
-					if ( table.at( CRP-1 ).at( p1 ).substr( 0 , (*it).second.tbs_vsize ) <=  (*it).second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 ).at( p1 ).substr( 0 , it->second.tbs_vsize ) <=  it->second.tbs_val ) { loope = true ; }
 				}
 			}
 			else
 			{
-				switch ( (*it).second.tbs_cond )
+				switch ( it->second.tbs_cond )
 				{
 				case s_EQ:
-					if ( table.at( CRP-1 ).at( p1 ) != (*it).second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 ).at( p1 ) != it->second.tbs_val ) { loope = true ; }
 					break ;
 				case s_NE:
-					if ( table.at( CRP-1 ).at( p1 ) == (*it).second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 ).at( p1 ) == it->second.tbs_val ) { loope = true ; }
 					break ;
 				case s_LE:
-					if ( table.at( CRP-1 ).at( p1 )  > (*it).second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 ).at( p1 )  > it->second.tbs_val ) { loope = true ; }
 					break ;
 				case s_LT:
-					if ( table.at( CRP-1 ).at( p1 ) >= (*it).second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 ).at( p1 ) >= it->second.tbs_val ) { loope = true ; }
 					break ;
 				case s_GE:
-					if ( table.at( CRP-1 ).at( p1 )  < (*it).second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 ).at( p1 )  < it->second.tbs_val ) { loope = true ; }
 					break ;
 				case s_GT:
-					if ( table.at( CRP-1 ).at( p1 ) <= (*it).second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 ).at( p1 ) <= it->second.tbs_val ) { loope = true ; }
 				}
 			}
 			if ( loope ) { break ; }
@@ -1137,10 +1137,10 @@ void Table::cmdsearch( int & RC, fPOOL & funcPOOL, string cmd )
 	found = false ;
 	for ( it = table.begin() ; it != table.end() ; it++ )
 	{
-		trunc = ds2d( (*it).at( 2 ) ) ;
+		trunc = ds2d( it->at( 2 ) ) ;
 		if ( trunc == 0 )
 		{
-			if ( (*it).at( 1 ) == cmd )
+			if ( it->at( 1 ) == cmd )
 			{
 				found = true ;
 				break ;
@@ -1148,7 +1148,7 @@ void Table::cmdsearch( int & RC, fPOOL & funcPOOL, string cmd )
 		}
 		else
 		{
-			if ( abbrev( (*it).at( 1 ), cmd, trunc ) )
+			if ( abbrev( it->at( 1 ), cmd, trunc ) )
 			{
 				found = true ;
 				break ;
@@ -1158,13 +1158,13 @@ void Table::cmdsearch( int & RC, fPOOL & funcPOOL, string cmd )
 
 	if ( !found ) { RC = 8 ; return ; }
 
-	funcPOOL.put( RC, 0, "ZCTVERB", (*it).at( 1 ) ) ;
+	funcPOOL.put( RC, 0, "ZCTVERB", it->at( 1 ) ) ;
 	if ( RC > 0 ) { RC = 20 ; return ; }
-	funcPOOL.put( RC, 0, "ZCTTRUNC", (*it).at( 2 ) ) ;
+	funcPOOL.put( RC, 0, "ZCTTRUNC", it->at( 2 ) ) ;
 	if ( RC > 0 ) { RC = 20 ; return ; }
-	funcPOOL.put( RC, 0, "ZCTACT", (*it).at( 3 ) ) ;
+	funcPOOL.put( RC, 0, "ZCTACT", it->at( 3 ) ) ;
 	if ( RC > 0 ) { RC = 20 ; return ; }
-	funcPOOL.put( RC, 0, "ZCTDESC", (*it).at( 4 ) ) ;
+	funcPOOL.put( RC, 0, "ZCTDESC", it->at( 4 ) ) ;
 	if ( RC > 0 ) { RC = 20 ; return ; }
 }
 
@@ -1212,7 +1212,7 @@ void Table::tbskip( int & RC, fPOOL & funcPOOL, int num, string tb_savenm, strin
 		found = false ;
 		for ( it = table.begin() ; it != table.end() ; it++ )
 		{
-			if ( tb_rowid == (*it).at( 0 ) ) { found = true ; break ; }
+			if ( tb_rowid == it->at( 0 ) ) { found = true ; break ; }
 			CRP++ ;
 		}
 		if ( !found ) { CRP = 0 ; RC  = 8 ; return  ; }
@@ -1853,12 +1853,12 @@ void tableMGR::statistics()
 			log( "-", "    Extension Variables: " << tables[ it->first ].sa_namelst << endl ) ;
 			for ( its = tables[ it->first ].sarg.begin() ; its != tables[ it->first ].sarg.end() ; its++ )
 			{
-				log( "-", "             Field Name: " << (*its).first << endl ) ;
-				if ( (*its).second.tbs_gen )
-					log( "-", "            Field Value: " << (*its).second.tbs_val << " (generic search)" << endl ) ;
+				log( "-", "             Field Name: " << its->first << endl ) ;
+				if ( its->second.tbs_gen )
+					log( "-", "            Field Value: " << its->second.tbs_val << " (generic search)" << endl ) ;
 				else
-					log( "-", "            Field Value: " << (*its).second.tbs_val << endl ) ;
-				log( "-", "        Field Condition: " << (*its).second.tbs_scond << endl ) ;
+					log( "-", "            Field Value: " << its->second.tbs_val << endl ) ;
+				log( "-", "        Field Condition: " << its->second.tbs_scond << endl ) ;
 			}
 		}
 		if ( tables[ it->first ].sort_ir != "" )

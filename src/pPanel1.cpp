@@ -393,7 +393,7 @@ void pPanel::display_panel_update( int & RC )
 				fieldNam = it->first.substr( 0, p )        ;
 				fieldNum = ds2d( it->first.substr( p+1 ) ) ;
 				darea    = p_funcPOOL->vlocate( RC, 0, fieldNam ) ;
-				(*darea).replace( fieldNum*it->second->field_length, it->second->field_length, it->second->field_value ) ;
+				darea->replace( fieldNum*it->second->field_length, it->second->field_length, it->second->field_value ) ;
 			}
 		}
 		if ( (it->second->field_row == p_row) && (p_col >=it->second->field_col) && (p_col < (it->second->field_col + it->second->field_length )) )
@@ -1431,18 +1431,18 @@ void pPanel::update_field_values( int & RC )
 		sname  = dynAreaList[ it2->first ]->dynArea_shadow_name ;
 		shadow = p_funcPOOL->vlocate( RC, 0, sname, NOCHECK )   ;
 		if ( RC > 0 ) { RC = 20 ; PERR = "Dynamic area shadow variable has not been defined in the function pool" ; return ; }
-		if ( (*darea).size() > (*shadow).size() )
+		if ( darea->size() > shadow->size() )
 		{
 			log( "W", "Shadow variable " << sname << " size is smaller than the data variable " << it2->first << " size.  Results may be unpredictable" << endl ) ;
-			log( "W", "Data variable size   = " << (*darea).size() << endl ) ;
-			log( "W", "Shadow variable size = " << (*shadow).size() << endl ) ;
+			log( "W", "Data variable size   = " << darea->size() << endl ) ;
+			log( "W", "Shadow variable size = " << shadow->size() << endl ) ;
 		}
-		(*darea).resize( it2->second->dynArea_width * it2->second->dynArea_depth, ' ' )  ;
-		(*shadow).resize( it2->second->dynArea_width * it2->second->dynArea_depth, ' ' ) ;
+		darea->resize( it2->second->dynArea_width * it2->second->dynArea_depth, ' ' )  ;
+		shadow->resize( it2->second->dynArea_width * it2->second->dynArea_depth, ' ' ) ;
 		for ( int i = 0 ; i < it2->second->dynArea_depth ; i++ )
 		{
-			fieldList[ it2->first + "." + d2ds( i )]->field_value        = (*darea).substr( i * it2->second->dynArea_width, it2->second->dynArea_width )  ;
-			fieldList[ it2->first + "." + d2ds( i )]->field_shadow_value = (*shadow).substr( i * it2->second->dynArea_width, it2->second->dynArea_width ) ;
+			fieldList[ it2->first + "." + d2ds( i )]->field_value        = darea->substr( i * it2->second->dynArea_width, it2->second->dynArea_width )  ;
+			fieldList[ it2->first + "." + d2ds( i )]->field_shadow_value = shadow->substr( i * it2->second->dynArea_width, it2->second->dynArea_width ) ;
 		}
 	}
 }
