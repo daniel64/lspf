@@ -7,10 +7,16 @@ To install:
 5)  Copy directories mlib, plib and tlib to the paths defined in MLIB, PLIB and TLIB in lspf.h if different.
 
 Boost and ncurses required to compile lspf.cpp
-OOREXX required for POREXX1.cpp but this is not necessary and really doesn't do much.
+OOREXX required for POREXX1.cpp (OOREXX interface module for writing lspf applications in REXX)
 file required for PBRO01A.cpp as it is linked with -lmagic
 
 You can use comp1 to compile lspf.cpp, compsetup to compile setup.cpp and compapps for all applications in directory Apps
 
 
 Run lspf in a terminal
+
+Works with:
+gcc 6.1.1
+ncurses 6.0
+boost 1.60.0
+

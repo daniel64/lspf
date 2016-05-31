@@ -19,47 +19,128 @@
 
 using namespace std;
 
+enum P_CMDS
+{
+	PC_AUTOSAVE,
+	PC_BOUNDS,
+	PC_CHANGE,
+	PC_CAPS,
+	PC_COLUMN,
+	PC_COMPARE,
+	PC_CUT,
+	PC_DELETE,
+	PC_EXCLUDE,
+	PC_FIND,
+	PC_FLIP,
+	PC_HEX,
+	PC_HILIGHT,
+	PC_LOCATE,
+	PC_NULLS,
+	PC_PASTE,
+	PC_PROFILE,
+	PC_RECOVERY,
+	PC_REDO,
+	PC_RESET,
+	PC_SAVE,
+	PC_SETUNDO,
+	PC_SORT,
+	PC_TABS,
+	PC_UNDO,
+	PC_XTABS
+} ;
+
+enum L_CMDS
+{
+	LC_A,
+	LC_AK,
+	LC_B,
+	LC_BK,
+	LC_BOUNDS,
+	LC_C,
+	LC_CC,
+	LC_CHANGE,
+	LC_COLS,
+	LC_D,
+	LC_DD,
+	LC_F,
+	LC_FIND,
+	LC_HX,
+	LC_HXX,
+	LC_I,
+	LC_L,
+	LC_LC,
+	LC_LCC,
+	LC_M,
+	LC_MM,
+	LC_MASK,
+	LC_MD,
+	LC_MDD,
+	LC_MN,
+	LC_MNN,
+	LC_O,
+	LC_OK,
+	LC_OO,
+	LC_OOK,
+	LC_PASTE,
+	LC_R,
+	LC_RR,
+	LC_S,
+	LC_SLC,
+	LC_SLCC,
+	LC_SLD,
+	LC_SLDD,
+	LC_SRC,
+	LC_SRCC,
+	LC_SRD,
+	LC_SRDD,
+	LC_TABS,
+	LC_TJ,
+	LC_TS,
+	LC_TX,
+	LC_TXX,
+	LC_UC,
+	LC_UCC,
+	LC_X,
+	LC_XX,
+	LC_XP
+} ;
+
 class icmd
 {
 	private:
-		string icmd_COMMAND  ;
-		int    icmd_sURID    ;
-		int    icmd_dURID    ;
-		int    icmd_oURID    ;
-		int    icmd_eURID    ;
-		int    icmd_Rpt      ;
-		char   icmd_ABO      ;
-		int    icmd_OSize    ;
-		bool   icmd_ABO_req  ;
-		bool   icmd_overlay  ;
-		bool   icmd_cutpaste ;
+		L_CMDS icmd_CMD     ;
+		string icmd_CMDSTR  ;
+		int    icmd_sURID   ;
+		int    icmd_eURID   ;
+		int    icmd_dURID   ;
+		int    icmd_Rpt     ;
+		char   icmd_ABO     ;
+		int    icmd_OSize   ;
+		bool   icmd_cut     ;
+		bool   icmd_paste   ;
 		icmd()
 		{
-			icmd_COMMAND  = ""    ;
-			icmd_sURID    = 0     ;
-			icmd_dURID    = 0     ;
-			icmd_oURID    = 0     ;
-			icmd_eURID    = 0     ;
-			icmd_ABO      = ' '   ;
-			icmd_OSize    = 0     ;
-			icmd_Rpt      = 0     ;
-			icmd_ABO_req  = false ;
-			icmd_overlay  = false ;
-			icmd_cutpaste = false ;
+			icmd_CMDSTR  = ""    ;
+			icmd_sURID   = 0     ;
+			icmd_eURID   = 0     ;
+			icmd_dURID   = 0     ;
+			icmd_ABO     = ' '   ;
+			icmd_OSize   = 0     ;
+			icmd_Rpt     = 0     ;
+			icmd_cut     = false ;
+			icmd_paste   = false ;
 		}
 		void icmd_clear()
 		{
-			icmd_COMMAND  = ""    ;
-			icmd_sURID    = 0     ;
-			icmd_dURID    = 0     ;
-			icmd_oURID    = 0     ;
-			icmd_eURID    = 0     ;
-			icmd_ABO      = ' '   ;
-			icmd_OSize    = 0     ;
-			icmd_Rpt      = 0     ;
-			icmd_ABO_req  = false ;
-			icmd_overlay  = false ;
-			icmd_cutpaste = false ;
+			icmd_CMDSTR  = ""    ;
+			icmd_sURID   = 0     ;
+			icmd_eURID   = 0     ;
+			icmd_dURID   = 0     ;
+			icmd_ABO     = ' '   ;
+			icmd_OSize   = 0     ;
+			icmd_Rpt     = 0     ;
+			icmd_cut     = false ;
+			icmd_paste   = false ;
 		}
 	friend class PEDIT01 ;
 } ;
@@ -73,9 +154,9 @@ class idata
 		string id_data   ;
 		idata()
 		{
-			id_level   = 0   ;
-			id_action  = ' ' ;
-			id_data    = ""  ;
+			id_level  = 0   ;
+			id_action = ' ' ;
+			id_data   = ""  ;
 		}
 	friend class iline ;
 } ;
@@ -167,8 +248,7 @@ class iline
 		bool   il_deleted ;
 		bool   il_nisrt   ;
 		string il_label   ;
-		string il_lc1     ;
-		string il_lc2     ;
+		string il_lcc     ;
 		int    il_rept    ;
 		int    il_URID    ;
 		int    il_taskid  ;
@@ -198,10 +278,9 @@ class iline
 			il_redo    = false  ;
 			il_msg     = false  ;
 			il_deleted = false  ;
-			il_nisrt = false    ;
+			il_nisrt   = false  ;
 			il_label   = ""     ;
-			il_lc1     = ""     ;
-			il_lc2     = ""     ;
+			il_lcc     = ""     ;
 			il_rept    = 0      ;
 			il_taskid  = taskid ;
 			il_URID    = ++maxURID[ taskid ] ;
@@ -212,7 +291,6 @@ class iline
 		void resetFilePrefix()
 		{
 			il_excl  = false ;
-			il_hex   = false ;
 			il_chg   = false ;
 			il_error = false ;
 			il_undo  = false ;
@@ -229,10 +307,15 @@ class iline
 			il_tabs  = false ;
 			il_info  = false ;
 		}
-		void clearLc12()
+		bool isSpecial()
 		{
-			il_lc1 = "" ;
-			il_lc2 = "" ;
+			if ( il_note || il_msg  || il_prof || il_col  ||
+			     il_bnds || il_mask || il_tabs || il_info ) { return true ; }
+			return false ;
+		}
+		void clearLcc()
+		{
+			il_lcc = "" ;
 		}
 		void put_idata( string s, int level )
 		{
@@ -462,26 +545,35 @@ class c_range
 		bool   c_vcol  ;
 		string c_slab  ;
 		string c_elab  ;
+		int    c_sidx  ;
+		int    c_eidx  ;
 		int    c_scol  ;
 		int    c_ecol  ;
 		bool   c_ocol  ;
+		string c_rest  ;
 	c_range()
 	{
-		c_vlab = false ;
-		c_vcol = false ;
-		c_slab = ""    ;
-		c_elab = ""    ;
-		c_scol = 0     ;
-		c_ecol = 0     ;
-		c_ocol = false ;
+		c_vlab  = false ;
+		c_vcol  = false ;
+		c_slab  = ""    ;
+		c_elab  = ""    ;
+		c_sidx  = -1    ;
+		c_eidx  = -1    ;
+		c_scol  = 0     ;
+		c_ecol  = 0     ;
+		c_ocol  = false ;
+		c_rest  = ""    ;
 	}
 	void c_range_clear()
 	{
-		c_slab = ""    ;
-		c_elab = ""    ;
-		c_scol = 0     ;
-		c_ecol = 0     ;
-		c_ocol = false ;
+		c_slab  = ""    ;
+		c_elab  = ""    ;
+		c_sidx  = -1    ;
+		c_eidx  = -1    ;
+		c_scol  = 0     ;
+		c_ecol  = 0     ;
+		c_ocol  = false ;
+		c_rest  = ""    ;
 	}
 	friend class PEDIT01 ;
 } ;
@@ -588,8 +680,10 @@ class PEDIT01 : public pApplication
 		void actionChange()       ;
 
 		bool checkLineCommands()  ;
-		void actionPrimCommand()  ;
+		void actionPrimCommand1() ;
+		void actionPrimCommand2() ;
 		void actionLineCommands() ;
+		void actionLineCommand( vector<icmd>::iterator ) ;
 		void actionZVERB()        ;
 
 		void actionUNDO()         ;
@@ -597,7 +691,6 @@ class PEDIT01 : public pApplication
 		void removeRecoveryData() ;
 
 		uint getLine( int )       ;
-		int  getFirstEX( int )    ;
 		uint getFirstEX( uint )   ;
 		int  getLastEX( int )     ;
 		uint getLastEX( uint )    ;
@@ -624,13 +717,15 @@ class PEDIT01 : public pApplication
 		uint getPrevDataLine( uint ) ;
 		uint getPrevDataLine( uint, char ) ;
 
+		void copyFileData( vector<string> &, int, int  )  ;
+
 		int  getRangeSize( int, int ) ;
 		int  truncateSize( int ) ;
 
 		bool URIDonScreen( int ) ;
 
 		string overlay( string, string, bool & ) ;
-		bool formLineCmd( string, string &, int & ) ;
+		bool formLineCmd( string, bool, string &, int & ) ;
 
 		void copyToClipboard( vector<ipline> & vip ) ;
 		void getClipboard( vector<ipline> & vip ) ;
@@ -799,15 +894,178 @@ class PEDIT01 : public pApplication
 		string OCC  ;
 		string LINES;
 
-		const string blkcmds   = "CC DD MM HXX LCC MMD MNN OO RR TXX XX (( )) << >> UCC" ;
-		const string sglcmds   = "A B BNDS C COL COLS D F HX I L LC M MASK MD MN O R S TABS TJ TX TS UC X XP ( ) < >" ;
-		const string spllcmds  = "A B C CC COL COLS D DD F I L M MM MD MMD MN MNN R RR S TX TXX X XX XP" ;
-		const string todlcmds  = "COL COLS A I BNDS MASK TABS" ;
+		map<string,P_CMDS> PrimCMDS = { { "AUTOSAVE", PC_AUTOSAVE },
+						{ "BND",      PC_BOUNDS   },
+						{ "BNDS",     PC_BOUNDS   },
+						{ "BOU",      PC_BOUNDS   },
+						{ "BOUND",    PC_BOUNDS   },
+						{ "BOUNDS",   PC_BOUNDS   },
+						{ "CHANGE",   PC_CHANGE   },
+						{ "C",        PC_CHANGE   },
+						{ "CHA",      PC_CHANGE   },
+						{ "CHG",      PC_CHANGE   },
+						{ "CAPS",     PC_CAPS     },
+						{ "COLUMN",   PC_COLUMN   },
+						{ "COL",      PC_COLUMN   },
+						{ "COLS",     PC_COLUMN   },
+						{ "COMPARE",  PC_COMPARE  },
+						{ "COMP",     PC_COMPARE  },
+						{ "CUT",      PC_CUT      },
+						{ "DELETE",   PC_DELETE   },
+						{ "DEL",      PC_DELETE   },
+						{ "EXLUDE",   PC_EXCLUDE  },
+						{ "EXLUDED",  PC_EXCLUDE  },
+						{ "EX",       PC_EXCLUDE  },
+						{ "EXC",      PC_EXCLUDE  },
+						{ "X",        PC_EXCLUDE  },
+						{ "FIND",     PC_FIND     },
+						{ "F",        PC_FIND     },
+						{ "FLIP",     PC_FLIP     },
+						{ "HEX",      PC_HEX      },
+						{ "HILIGHT",  PC_HILIGHT  },
+						{ "HI",       PC_HILIGHT  },
+						{ "HILITE",   PC_HILIGHT  },
+						{ "LOCATE",   PC_LOCATE   },
+						{ "L",        PC_LOCATE   },
+						{ "NULLS",    PC_NULLS    },
+						{ "NULL",     PC_NULLS    },
+						{ "PASTE",    PC_PASTE    },
+						{ "PROFILE",  PC_PROFILE  },
+						{ "PROF",     PC_PROFILE  },
+						{ "RECOVERY", PC_RECOVERY },
+						{ "REC",      PC_RECOVERY },
+						{ "RECOV",    PC_RECOVERY },
+						{ "RECOVER",  PC_RECOVERY },
+						{ "REDO",     PC_REDO     },
+						{ "RESET",    PC_RESET    },
+						{ "RES",      PC_RESET    },
+						{ "SAVE",     PC_SAVE     },
+						{ "SETUNDO",  PC_SETUNDO  },
+						{ "SETU",     PC_SETUNDO  },
+						{ "SORT",     PC_SORT     },
+						{ "TABS",     PC_TABS     },
+						{ "UNDO",     PC_UNDO     },
+						{ "XTABS",    PC_XTABS    } } ;
+
+		map<string,L_CMDS> LineCMDS = { { "A",        LC_A        },
+						{ "AK",       LC_AK       },
+						{ "B",        LC_B        },
+						{ "BK",       LC_BK       },
+						{ "BND",      LC_BOUNDS   },
+						{ "BNDS",     LC_BOUNDS   },
+						{ "BOU",      LC_BOUNDS   },
+						{ "BOUND",    LC_BOUNDS   },
+						{ "BOUNDS",   LC_BOUNDS   },
+						{ "C",        LC_C        },
+						{ "CC",       LC_CC       },
+						{ "COLS",     LC_COLS     },
+						{ "COL",      LC_COLS     },
+						{ "D",        LC_D        },
+						{ "DD",       LC_DD       },
+						{ "F",        LC_F        },
+						{ "HX",       LC_HX       },
+						{ "HXX",      LC_HXX      },
+						{ "HXHX",     LC_HXX      },
+						{ "HHX",      LC_HXX      },
+						{ "I",        LC_I        },
+						{ "L",        LC_L        },
+						{ "LC",       LC_LC       },
+						{ "LCC",      LC_LCC      },
+						{ "LCLC",     LC_LCC      },
+						{ "LLC",      LC_LCC      },
+						{ "M",        LC_M        },
+						{ "MM",       LC_MM       },
+						{ "MASK",     LC_MASK     },
+						{ "MD",       LC_MD       },
+						{ "MDD",      LC_MDD      },
+						{ "MDMD",     LC_MDD      },
+						{ "MMD",      LC_MDD      },
+						{ "MN",       LC_MN       },
+						{ "MNN",      LC_MNN      },
+						{ "MNMN",     LC_MNN      },
+						{ "MMN",      LC_MNN      },
+						{ "O",        LC_O        },
+						{ "OK",       LC_OK       },
+						{ "OO",       LC_OO       },
+						{ "OOK",      LC_OOK      },
+						{ "R",        LC_R        },
+						{ "RR",       LC_RR       },
+						{ "S",        LC_S        },
+						{ "TABS",     LC_TABS     },
+						{ "TAB",      LC_TABS     },
+						{ "TJ",       LC_TJ       },
+						{ "TS",       LC_TS       },
+						{ "TX",       LC_TX       },
+						{ "TXX",      LC_TXX      },
+						{ "TXTX",     LC_TXX      },
+						{ "TTX",      LC_TXX      },
+						{ "UC",       LC_UC       },
+						{ "UCC",      LC_UCC      },
+						{ "UCUC",     LC_UCC      },
+						{ "UUC",      LC_UCC      },
+						{ "X",        LC_X        },
+						{ "XX",       LC_XX       },
+						{ "XP",       LC_XP       },
+						{ ")",        LC_SRC      },
+						{ "))",       LC_SRCC     },
+						{ "(",        LC_SLC      },
+						{ "((",       LC_SLCC     },
+						{ ">",        LC_SRD      },
+						{ ">>",       LC_SRDD     },
+						{ "<",        LC_SLD      },
+						{ "<<",       LC_SLDD     } } ;
+
+		map<string,string> aliasLCMDS = { { "COL",    "COLS" },
+						  { "BND",    "BNDS" },
+						  { "BOU",    "BNDS" },
+						  { "BOUND",  "BNDS" },
+						  { "BOUNDS", "BNDS" },
+						  { "LLC",    "LCC"  },
+						  { "LCLC",   "LCC"  },
+						  { "HHX",    "HXX"  },
+						  { "HXHX",   "HXX"  },
+						  { "MMD",    "MDD"  },
+						  { "MDMD",   "MDD"  },
+						  { "MMN",    "MNN"  },
+						  { "MNMN",   "MNN"  },
+						  { "TAB",    "TABS" },
+						  { "TTX",    "TXX"  },
+						  { "TXTX",   "TXX"  },
+						  { "UUC",    "UCC"  },
+						  { "UCUC",   "UCC"  } } ;
+
+		map<string,string> aliasNames = { { "CHG",      "CHA"   },
+						  { "CHANGE",   "CHA"   },
+						  { "CMDS",     "CMD"   },
+						  { "COM",      "CMD"   },
+						  { "COMMAND",  "CMD"   },
+						  { "COMMANDS", "CMD"   },
+						  { "ERROR",    "ERR"   },
+						  { "ERRORS",   "ERR"   },
+						  { "EX",       "X"     },
+						  { "EXC",      "X"     },
+						  { "EXCLUDE",  "X"     },
+						  { "EXCLUDED", "X"     },
+						  { "LABEL",    "LAB"   },
+						  { "LABELS",   "LAB"   },
+						  { "SPECIAL",  "SPE"   } } ;
+
+		map<string,string> abokLCMDS  = { { "AK",  "A"  },
+						  { "BK",  "B"  },
+						  { "OK",  "O"  },
+						  { "OOK", "OO" } } ;
+
+		const string blkcmds   = "CC DD MM HXX LCC MDD MNN OO OOK RR TXX XX (( )) << >> UCC" ;
+		const string sglcmds   = "A AK B BK BNDS C COLS D F HX I L LC M MASK MD MN O OK R S TABS TJ TX TS UC X XP ( ) < >" ;
+		const string spllcmds  = "A AK B BK C CC COLS D DD F I L M MM MD MDD MN MNN R RR S TX TXX X XX XP" ;
+		const string todlcmds  = "COLS A I BNDS MASK TABS" ;
 		const string bodlcmds  = "B" ;
 		const string ABOReq    = "C CC M MM" ;
-		const string Chkdist   = "C D M HX LC MD MN O TJ UC TX X" ;
-		const string ABOList   = "A B O" ;
-		const string ReptOK    = "C D F HX I L M MD MN O R UC LC RR TJ TX X (( )) ( ) << >> < >" ;
+		const string Chkdist   = "C D M HX LC MD MN O OK TJ UC TX X" ;
+		const string ABOList   = "A AK B BK O OK OO OOK" ;
+		const string ABOBlock  = "OO" ;
+		const string ReptOK    = "C D F HX I L M MD MN O OK R UC LC RR TJ TX X (( )) ( ) << >> < >" ;
+		const string XOnly     = "F L S" ;
 		const string CutCmds   = "C CC M MM" ;
 		const string PasteCmds = "A B" ;
 } ;

@@ -109,7 +109,7 @@ PEDT011A "Number Not Allowed"
 PEDT011B "Number Conflict"
 "If entered twice, the numbers on a block command must match"
 
-PEDT011C "Mismatched Overlay Size"
+PEDT011C "Not all data copied"
 "More copy lines than overlay lines.  Extra lines will be ignored"
 
 PEDT011D "Lines not deleted"
@@ -213,4 +213,13 @@ PEDT013C "Command Conflict" .TYPE=W
 
 PEDT013D "Profile Created" .TYPE=N
 "New profile created"
+
+PEDT013E "Already sorted" .TYPE=N
+"Records were already in sort order"
+
+PEDT013F "Sort column out of range" .TYPE=W
+"If specified, start or end column cannot be before the left bound"
+
+PEDT013G "Sort column out of range" .TYPE=W
+"If specified, start or end column cannot be after the right bound"
 

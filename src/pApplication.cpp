@@ -247,6 +247,7 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 	{
 		get_Message( p_msg ) ;
 		if ( RC > 0 ) { return ; }
+		currPanel->showLMSG = false ;
 		currPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM ) ;
 		if ( ZSMSG == "" ) { currPanel->showLMSG = true ; }
 	}
@@ -311,6 +312,7 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 		{
 			get_Message( currPanel->MSGID ) ;
 			if ( RC > 0 ) { break ; }
+			currPanel->showLMSG = false ;
 			currPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM ) ;
 			currPanel->display_panel_reinit( RC, 0 ) ;
 			if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )REINIT section of panel " + p_name ) ; return ; }
@@ -1410,6 +1412,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 	{
 		get_Message( p_msg ) ;
 		if ( RC > 0 ) { return ; }
+		currPanel->showLMSG = false ;
 		currtbPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM ) ;
 		if ( ZSMSG == "" ) { currtbPanel->showLMSG = true ; }
 	}
@@ -1494,6 +1497,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 		{
 			get_Message( currtbPanel->MSGID ) ;
 			if ( RC > 0 ) { return ; }
+			currPanel->showLMSG = false ;
 			currtbPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM ) ;
 			if ( p_name == "" )
 			{
