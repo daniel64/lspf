@@ -10,16 +10,24 @@ Builtin:
 ACTION   Move cursor to the action bar, or the next entry if already on the action bar
 DISCARD  Discard the screen updates and refresh from the previous output
 FIELDEXC Execute the file-level command (if the cursor is on the field) defined in the panel )FIELD section
-INFO     Display current application information to the Application Log
-RELOAD   ALL | NEW | modname.  Reload application if not in use.
-SHELL    Suspends NCURSES and invokes the shell specified in the SHELL environment variable
-SNAP     Snap SHARED and PROFILE pool variables for the current application to the
-         Application Log
-STATS    Display table and pool statistics for the current application to the Application Log
 SPLIT    Split the screen
 SWAP     Swap to the next logical screen
 !nnn xx  Execute program nnn with parameter xx (application defaults are NEWAPPL, NEWPOOL)
 %nnn xx  Execute oorexx  nnn with parameter xx (application defaults are NEWAPPL, NEWPOOL)
+
+
+System:
+*******
+.ABEND   Abend the current application
+.HIDE    NULLS. Display field nulls as spaces.
+.INFO    Display current application information to the Application Log
+.RELOAD  ALL | NEW | modname.  Reload application if not in use.
+.SCALE
+.SHELL   Suspends NCURSES and invokes the shell specified in the SHELL environment variable
+.SHOW    NULLS. Display field nulls as dots.
+.SNAP    Snap SHARED and PROFILE pool variables for the current application to the
+         Application Log
+.STATS   Display table and pool statistics for the current application to the Application Log
 
 
 Command Table Entries:

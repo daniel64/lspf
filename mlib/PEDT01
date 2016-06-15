@@ -67,8 +67,8 @@ PEDT01M "&LINES Line(s) Deleted" .TYPE=N
 PEDT01N "Invalid Regex"
 "Regular expression entered is not valid"
 
-PEDT01O "File Changed"
-"File has changed and no SAVE has been performed (AUTOSAVE is OFF)"
+PEDT01O "Data changed-SAVE/CANCEL"
+"File has changed and no SAVE or CANCEL has been entered (AUTOSAVE is set OFF)"
 
 PEDT01P "File Saved" .TYPE=N
 "File has been successfully saved"
@@ -85,8 +85,8 @@ PEDT01S "File/Directory Does Not Exist"
 PEDT01T "Entry Is A Directory"
 "'&ZFILE' is a directory entry"
 
-PEDT01U "UNDO Is Set OFF"
-"UNDO option is set to OFF.  UNDO/REDO is not available"
+PEDT01U "UNDO is set OFF"
+"UNDO option is set to OFF.  UNDO/REDO is no longer available"
 
 PEDT01V "Invalid A/B line command"
 "A/B line command found without matching block command"
@@ -222,4 +222,28 @@ PEDT013F "Sort column out of range" .TYPE=W
 
 PEDT013G "Sort column out of range" .TYPE=W
 "If specified, start or end column cannot be after the right bound"
+
+PEDT013H "Invalid swap command" .TYPE=W
+"W/WW can only be used with the M/MM line commands"
+
+PEDT013I "Data not savd by END" .TYPE=W
+"AUTOSAVE OFF NOPROMPT.  Any changes will be automatically cancelled on exit"
+
+PEDT013J "Edit profile not found" .TYPE=W
+"Edit profile was not found to reset"
+
+PEDT013K "Default profile reset" .TYPE=N
+"Default edit profile has been reset with default values"
+
+PEDT013L "Profiles removed and DEFAULT reset" .TYPE=N
+"All edit profile has been removed and the DEFAULT reset with default values"
+
+PEDT013M "Edit profile removed" .TYPE=N
+"Edit profile has been removed"
+
+PEDT013N "Tabs found in file" .TYPE=W
+"Tabs found in file, but option is not to convert to spaces"
+
+PEDT013O "Data shifted" .TYPE=W
+"Data shifted from beyond the right margin"
 

@@ -909,8 +909,8 @@ void PPSP01A::colourSettings()
 					log( "E", "ISPS variable " << isps_var << " not found.  Re-run setup program to create" << endl ) ;
 					abend() ;
 				}
-				prof_var = isps_var ;
-				prof_var.replace( 0, 1, 1, 'A' ) ;
+				prof_var      = isps_var  ;
+				prof_var[ 0 ] = 'A'       ;
 				vdefine( prof_var, &val ) ;
 				vput( prof_var, PROFILE ) ;
 				vdelete( prof_var ) ;
@@ -926,8 +926,8 @@ void PPSP01A::colourSettings()
 				prof_var = "AC" + VarList[i] ;
 				vcopy( prof_var, val, MOVE ) ;
 				if ( RC > 0 ) { MSG = "PPSP019" ; break ; }
-				isps_var = prof_var ;
-				isps_var.replace( 0, 1, 1, 'Z' ) ;
+				isps_var      = prof_var  ;
+				isps_var[ 0 ] = 'Z'       ;
 				vdefine( isps_var, &val ) ;
 				vput( isps_var, PROFILE ) ;
 				vdelete( isps_var ) ;

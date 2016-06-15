@@ -633,6 +633,24 @@ int pPanel::loadPanel( string p_name, string paths )
 				m_fld->field_dynDataOut   = m_dynArea->dynArea_DataOut   ;
 				m_fld->field_dynUserMod   = m_dynArea->dynArea_UserMod   ;
 				m_fld->field_dynDataMod   = m_dynArea->dynArea_DataMod   ;
+				if ( m_dynArea->dynArea_DataInsp )
+				{
+					m_fld->field_dynFieldIn = m_dynArea->dynArea_DataIn ;
+				}
+				if ( m_dynArea->dynArea_UserModsp )
+				{
+					m_fld->field_dynFieldIn.push_back( m_dynArea->dynArea_UserMod ) ;
+				}
+				if ( m_dynArea->dynArea_DataModsp )
+				{
+					m_fld->field_dynFieldIn.push_back( m_dynArea->dynArea_DataMod ) ;
+				}
+				m_fld->field_dynField = m_fld->field_dynFieldIn ;
+				if ( m_dynArea->dynArea_DataOutsp )
+				{
+					m_fld->field_dynField.push_back( m_dynArea->dynArea_DataOut ) ;
+				}
+				      
 				fieldList[ w6 + "." + d2ds( i ) ] = m_fld  ;
 			}
 			continue ;

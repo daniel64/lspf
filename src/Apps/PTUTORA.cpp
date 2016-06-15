@@ -163,8 +163,8 @@ void PTUTORA::application()
 	data.push_back( centre( " BOTTOM OF HELP ", ZAREAW, '*' ) ) ;
 	maxLines++ ;
 
-        while ( true )
-        {
+	while ( true )
+	{
 		ZCMD  = "" ;
 		ZVERB = "" ;
 
@@ -235,10 +235,10 @@ void PTUTORA::application()
 			}
 		}
 		if ( firstLine < 0 ) firstLine = 0 ;
-        }
+	}
 	vput( "ZSCROLL", PROFILE ) ;
 	cleanup() ;
-        return ;
+	return ;
 }
 
 
@@ -311,7 +311,7 @@ void PTUTORA::fill_dynamic_area()
 		{
 			if ( !isprint( t1[ i ] ) )
 			{
-				t1.replace( i, 1, 1, '.' ) ;
+				t1[ i ] = '.' ;
 			}
 		}
 		ZAREA   = ZAREA   + t1 ;

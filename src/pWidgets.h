@@ -49,6 +49,8 @@ class field
 		char         field_dynDataOut   ;
 		char         field_dynUserMod   ;
 		char         field_dynDataMod   ;
+		string       field_dynField     ;
+		string       field_dynFieldIn   ;
 		bool         field_tb           ;
 		bool         field_scrollable   ;
 		unsigned int field_scroll_start ;
@@ -76,6 +78,8 @@ class field
 				field_dynDataOut   = ' '      ;
 				field_dynUserMod   = ' '      ;
 				field_dynDataMod   = ' '      ;
+				field_dynField     = ""       ;
+				field_dynFieldIn   = ""       ;
 				field_tb           = false    ;
 				field_scrollable   = false    ;
 				field_scroll_start = 1        ;
@@ -83,15 +87,17 @@ class field
 			} ;
 
 		int  field_init( int MAXW, int MAXD, string line )  ;
-		void display_field( WINDOW * ) ;
-		bool edit_field_insert( WINDOW * win, char ch, int row, bool Insert ) ;
-		void edit_field_delete( WINDOW * win, int row ) ;
-		int  edit_field_backspace( WINDOW * win, int col ) ;
+		void display_field( WINDOW *, bool ) ;
+		bool edit_field_insert( WINDOW * win, char ch, int row, bool, bool ) ;
+		void edit_field_delete( WINDOW * win, int row, bool ) ;
+		int  edit_field_backspace( WINDOW * win, int col, bool ) ;
+		void field_remove_nulls()        ;
 		void field_blank( WINDOW * win ) ;
 		void field_clear( WINDOW * win ) ;
-		void field_erase_eof( WINDOW * win, unsigned int col ) ;
+		void field_erase_eof( WINDOW * win, unsigned int col, bool ) ;
 		bool field_dyna_input( uint col )  ;
 		int  field_dyna_input_offset( uint col )  ;
+		void field_DataMod_to_UserMod( string *, int ) ;
 		int  field_attr( string attrs ) ;
 		int  end_of_field( WINDOW * win, uint col )   ;
 } ;

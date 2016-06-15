@@ -106,7 +106,9 @@ class PBRO01A : public pApplication
 
 		bool hexOn  ;
 		bool colsOn ;
+		bool Asbin  ;
 		bool binOn  ;
+		bool textOn ;
 		bool hilightOn ;
 
 		string MSG     ;

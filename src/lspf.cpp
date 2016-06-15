@@ -187,8 +187,8 @@ string GMAINPGM ;
 
 string pfkPROF  ;
 
-const string BuiltInCommands = "ABEND ACTION DISCARD FIELDEXC INFO NOP PANELID REFRESH "
-			       "RELOAD SCALE SNAP SHELL SPLIT STATS SWAP TEST TDOWN" ;
+const string BuiltInCommands = "ACTION DISCARD FIELDEXC NOP PANELID REFRESH SPLIT SWAP TEST TDOWN" ;
+const string SystemCommands  = ".ABEND .HIDE .INFO .RELOAD .SCALE .SHELL .SHOW .SNAP .STATS" ;
 
 std::ofstream splog(SLOG) ;
 
@@ -418,7 +418,7 @@ void mainLoop()
 					currScrn->show_busy() ;
 					continue ;
 				}
-				currAppl->currPanel->field_edit( row, col, ch , Insert, showLock ) ;
+				currAppl->currPanel->field_edit( row, col, ch, Insert, showLock ) ;
 				currAppl->currPanel->get_cursor( row, col ) ;
 				currScrn->set_row_col( row, col ) ;
 				continue ;
@@ -519,7 +519,7 @@ void mainLoop()
 				}
 				else
 				{
-					if ( ZCOMMAND == "ABEND" )
+					if ( ZCOMMAND == ".ABEND" )
 					{
 						currAppl->set_forced_abend() ;
 					}
@@ -581,7 +581,15 @@ void mainLoop()
 							break ;
 						}
 					}
-					else if ( ZCOMMAND == "INFO" )
+					else if ( ZCOMMAND == ".HIDE" )
+					{
+						if ( ZPARM == "NULLS" )
+						{
+							p_poolMGR->put( RC, "ZNULLS", "NO", SHARED, SYSTEM ) ;
+						}
+						currAppl->currPanel->refresh( RC ) ;
+					}
+					else if ( ZCOMMAND == ".INFO" )
 					{
 						currAppl->info() ;
 					}
@@ -596,34 +604,37 @@ void mainLoop()
 					}
 					else if ( ZCOMMAND == "REFRESH" )
 					{
-
 						currAppl->currPanel->refresh( RC ) ;
 						reset_prog_mode() ;
 						refresh() ;
 					}
-					else if ( ZCOMMAND == "RELOAD" )
+					else if ( ZCOMMAND == ".RELOAD" )
 					{
 						reloadDynamicClasses( ZPARM ) ;
 					}
-					else if ( ZCOMMAND == "SCALE" )
+					else if ( ZCOMMAND == ".SCALE" )
 					{
-						if ( ZPARM == "ON" )
+						if ( ZPARM == "" ) { ZPARM = "ON" ; }
+						if ( findword( ZPARM, "ON OFF" ) )
 						{
-							p_poolMGR->defaultVARs( RC, "ZSCALE", "ON", SHARED ) ;
+							p_poolMGR->put( RC, "ZSCALE", ZPARM, SHARED, SYSTEM ) ;
 						}
-						else
-							if ( ZPARM == "OFF" )
-							{
-								p_poolMGR->defaultVARs( RC, "ZSCALE", "OFF", SHARED ) ;
-							}
 					}
-					else if ( ZCOMMAND == "SHELL" )
+					else if ( ZCOMMAND == ".SHELL" )
 					{
 						def_prog_mode()   ;
 						endwin()          ;
 						system( ZSHELL.c_str() ) ;
 						reset_prog_mode() ;
 						refresh()         ;
+					}
+					else if ( ZCOMMAND == ".SHOW" )
+					{
+						if ( ZPARM == "NULLS" )
+						{
+							p_poolMGR->put( RC, "ZNULLS", "YES", SHARED, SYSTEM ) ;
+						}
+						currAppl->currPanel->refresh( RC ) ;
 					}
 					else if ( ZCOMMAND == "SPLIT" )
 					{
@@ -654,12 +665,12 @@ void mainLoop()
 						startApplication( GMAINPGM, "", "ISP", true, false ) ;
 						break ;
 					}
-					else if ( ZCOMMAND == "STATS" )
+					else if ( ZCOMMAND == ".STATS" )
 					{
 						p_poolMGR->statistics() ;
 						p_tableMGR->statistics() ;
 					}
-					else if ( ZCOMMAND == "SNAP" )
+					else if ( ZCOMMAND == ".SNAP" )
 					{
 						p_poolMGR->snap() ;
 						p_tableMGR->snap() ;
@@ -732,7 +743,7 @@ void mainLoop()
 				}
 				break ;
 			default:
-				debug1( "Action key " << c << " ignored" << endl ) ;
+				debug1( "Action key "<<c<<" ("<<keyname( c )<<") ignored" << endl ) ;
 		}
 	}
 }
@@ -742,13 +753,9 @@ void initialSetup()
 {
 	int RC ;
 
-	char* home  = getenv( "HOME" )    ;
-	char* user  = getenv( "LOGNAME" ) ;
-	char* shell = getenv( "SHELL" )   ;
-
-	ZHOME.assign( home)    ;
-	ZUSER.assign( user )   ;
-	ZSHELL.assign( shell ) ;
+	ZHOME.assign(  getenv( "HOME" ) )  ;
+	ZSHELL.assign( getenv( "SHELL" ) ) ;
+	ZUSER.assign(  getenv( "LOGNAME" ) ) ;
 
 	funcPOOL.define( RC, "ZCTVERB",  &ZCTVERB  ) ;
 	funcPOOL.define( RC, "ZCTTRUNC", &ZCTTRUNC ) ;
@@ -763,6 +770,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 	// perform lspf high-level functions - pfkey -> command
 	// application/user/site/system command table entry?
 	// BUILTIN command
+	// System command
 	// RETRIEVE
 	// Jump command entered
 	// !abc run abc as a program
@@ -1105,7 +1113,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 		}
 	}
 
-	if ( findword( CMDVerb, BuiltInCommands ) )
+	if ( findword( CMDVerb, BuiltInCommands ) || findword( CMDVerb, SystemCommands ) )
 	{
 		passthru = false   ;
 		ZCOMMAND = CMDVerb ;
@@ -1775,6 +1783,8 @@ void loadCUATables()
 	usrAttr[ P_MAGENTA ] = MAGENTA | A_PROTECT ;
 	usrAttr[ P_TURQ    ] = TURQ    | A_PROTECT ;
 	usrAttr[ P_WHITE   ] = WHITE   | A_PROTECT ;
+
+	usrAttr[ P_FF      ] = GREEN   | A_PROTECT ;
 }
 
 
@@ -1869,11 +1879,11 @@ void loadDefaultPools()
 	p_poolMGR->defaultVARs( RC, "ZDATEFD", "DD/MM/YY", SHARED )    ;
 	p_poolMGR->defaultVARs( RC, "ZSCALE", "OFF", SHARED )          ;
 	p_poolMGR->defaultVARs( RC, "ZSPLIT", "NO", SHARED )           ;
+	p_poolMGR->defaultVARs( RC, "ZNULLS", "NO", SHARED )           ;
 
 	p_poolMGR->setPOOLsReadOnly( RC ) ;
 	GMAINPGM = p_poolMGR->get( RC, "ZMAINPGM", PROFILE ) ;
 }
-
 
 
 void loadSystemCommandTable()
@@ -2004,6 +2014,7 @@ void rawOutput()
 	currScrn->clear() ;
 	currScrn->show_enter() ;
 	l = 0 ;
+	attrset( RED | A_BOLD ) ;
 	for ( i = 0 ; i < currAppl->rmsgs.size() ; i++ )
 	{
 		mvaddstr( l++, 0, currAppl->rmsgs[ i ].c_str() ) ;
@@ -2018,6 +2029,7 @@ void rawOutput()
 			currScrn->clear() ;
 		}
 	}
+	attroff( RED | A_BOLD ) ;
 	currAppl->rmsgs.clear() ;
 	currAppl->get_cursor( row, col )  ;
 	currScrn->set_row_col( row, col ) ;
@@ -2122,6 +2134,7 @@ void errorScreen( int etype, string msg )
 	if ( currAppl->errPanelissued ) { return ; }
 	currScrn->clear() ;
 	currScrn->show_enter() ;
+	attrset( WHITE | A_BOLD ) ;
 	mvaddstr( 0, 0, msg.c_str() ) ;
 	mvaddstr( 1, 0, "See lspf and application logs for possible further details of the error" ) ;
 	l = 2 ;
@@ -2138,6 +2151,7 @@ void errorScreen( int etype, string msg )
 		int  c  = getch() ;
 		if ( c == 13 ) { break ; }
 	}
+	attroff( WHITE | A_BOLD ) ;
 }
 
 

@@ -774,17 +774,17 @@ void PFLST0A::createFileList1( string filter )
 		else if ( S_ISLNK(results.st_mode ) )   TYPE = "Syml"    ;
 		else                                    TYPE = "Unknown" ;
 		PERMISS = string( 10, '-' ) ;
-		if ( S_ISDIR(results.st_mode) )  { PERMISS.replace(0, 1, 1, 'd' ) ; }
-		if ( S_ISLNK(results.st_mode) )  { PERMISS.replace(0, 1, 1, 'l' ) ; }
-		if ( results.st_mode & S_IRUSR ) { PERMISS.replace(1, 1, 1, 'r' ) ; }
-		if ( results.st_mode & S_IWUSR ) { PERMISS.replace(2, 1, 1, 'w' ) ; }
-		if ( results.st_mode & S_IXUSR ) { PERMISS.replace(3, 1, 1, 'x' ) ; }
-		if ( results.st_mode & S_IRGRP ) { PERMISS.replace(4, 1, 1, 'r' ) ; }
-		if ( results.st_mode & S_IWGRP ) { PERMISS.replace(5, 1, 1, 'w' ) ; }
-		if ( results.st_mode & S_IXGRP ) { PERMISS.replace(6, 1, 1, 'x' ) ; }
-		if ( results.st_mode & S_IROTH ) { PERMISS.replace(7, 1, 1, 'r' ) ; }
-		if ( results.st_mode & S_IWOTH ) { PERMISS.replace(8, 1, 1, 'w' ) ; }
-		if ( results.st_mode & S_IXOTH ) { PERMISS.replace(9, 1, 1, 'x' ) ; }
+		if ( S_ISDIR(results.st_mode) )  { PERMISS[ 0 ] = 'd' ; }
+		if ( S_ISLNK(results.st_mode) )  { PERMISS[ 0 ] = 'l' ; }
+		if ( results.st_mode & S_IRUSR ) { PERMISS[ 1 ] = 'r' ; }
+		if ( results.st_mode & S_IWUSR ) { PERMISS[ 2 ] = 'w' ; }
+		if ( results.st_mode & S_IXUSR ) { PERMISS[ 3 ] = 'x' ; }
+		if ( results.st_mode & S_IRGRP ) { PERMISS[ 4 ] = 'r' ; }
+		if ( results.st_mode & S_IWGRP ) { PERMISS[ 5 ] = 'w' ; }
+		if ( results.st_mode & S_IXGRP ) { PERMISS[ 6 ] = 'x' ; }
+		if ( results.st_mode & S_IROTH ) { PERMISS[ 7 ] = 'r' ; }
+		if ( results.st_mode & S_IWOTH ) { PERMISS[ 8 ] = 'w' ; }
+		if ( results.st_mode & S_IXOTH ) { PERMISS[ 9 ] = 'x' ; }
 		SIZE      = d2ds( results.st_size )   ;
 		MODDATES  = d2ds( results.st_mtime )  ;
 		time_info = gmtime( &(results.st_mtime) ) ;
@@ -919,15 +919,15 @@ void PFLST0A::showInfo( string p )
 	}
 
 	IPERMISS = string( 9, '-' ) ;
-	if ( results.st_mode & S_IRUSR ) { IPERMISS.replace(0, 1, 1, 'r' ) ; }
-	if ( results.st_mode & S_IWUSR ) { IPERMISS.replace(1, 1, 1, 'w' ) ; }
-	if ( results.st_mode & S_IXUSR ) { IPERMISS.replace(2, 1, 1, 'x' ) ; }
-	if ( results.st_mode & S_IRGRP ) { IPERMISS.replace(3, 1, 1, 'r' ) ; }
-	if ( results.st_mode & S_IWGRP ) { IPERMISS.replace(4, 1, 1, 'w' ) ; }
-	if ( results.st_mode & S_IXGRP ) { IPERMISS.replace(5, 1, 1, 'x' ) ; }
-	if ( results.st_mode & S_IROTH ) { IPERMISS.replace(6, 1, 1, 'r' ) ; }
-	if ( results.st_mode & S_IWOTH ) { IPERMISS.replace(7, 1, 1, 'w' ) ; }
-	if ( results.st_mode & S_IXOTH ) { IPERMISS.replace(8, 1, 1, 'x' ) ; }
+	if ( results.st_mode & S_IRUSR ) { IPERMISS[ 0 ] = 'r' ; }
+	if ( results.st_mode & S_IWUSR ) { IPERMISS[ 1 ] = 'w' ; }
+	if ( results.st_mode & S_IXUSR ) { IPERMISS[ 2 ] = 'x' ; }
+	if ( results.st_mode & S_IRGRP ) { IPERMISS[ 3 ] = 'r' ; }
+	if ( results.st_mode & S_IWGRP ) { IPERMISS[ 4 ] = 'w' ; }
+	if ( results.st_mode & S_IXGRP ) { IPERMISS[ 5 ] = 'x' ; }
+	if ( results.st_mode & S_IROTH ) { IPERMISS[ 6 ] = 'r' ; }
+	if ( results.st_mode & S_IWOTH ) { IPERMISS[ 7 ] = 'w' ; }
+	if ( results.st_mode & S_IXOTH ) { IPERMISS[ 8 ] = 'x' ; }
 
 	if ( results.st_mode & S_ISUID ) { ISETUID = "YES"; }
 	else                             { ISETUID = "NO "; }
@@ -1594,7 +1594,7 @@ string PFLST0A::expandDir( string parms )
 		if ( dir.size() > 1 )
 		{
 			ZPATH = dir ;
-			ZPATH.replace( 0, 1, 1, '/' ) ;
+			ZPATH[ 0 ] = '/' ;
 		}
 		else
 		{

@@ -9,73 +9,73 @@
 
 
 .ATTR is a permanent change when in the )INIT section and
-      temporary (one redisplay only) in the )REINIT and )PROC sections
+      temporary (on redisplay only) in the )REINIT and )PROC sections
 
 )ENDCOMMENT
 )BODY
 
 PanelTitle "Test Panel Functions"
 
-literal   4    2   FP  "Command ===> "    
-field     4   15  MAX   NEF     CAPS(ON)  ZCMD    
+literal   4    2   FP  "Command ===> "
+field     4   15  MAX   NEF     CAPS(ON)  ZCMD
 
-literal   6   MAX-36    FP  "TIME: "     
-field     6   MAX-30    8    VOI   NONE  ZTIME    
+literal   6   MAX-36    FP  "TIME: "
+field     6   MAX-30    8    VOI   NONE  ZTIME
 
-literal   6   MAX-20    FP  "DATE: "     
-field     6   MAX-14    8    VOI   NONE  ZDATE    
+literal   6   MAX-20    FP  "DATE: "
+field     6   MAX-14    8    VOI   NONE  ZDATE
 
-literal   8   6     FP  "FIELD FLD1: "     
-literal   8   30    FP  "VER FLD1 NB LIST AAA BBB CCC DDD EEE FFF"     
-field     8   18    10    NEF   NONE  FLD1    
+literal   8   6     FP  "FIELD FLD1: "
+literal   8   30    FP  "VER FLD1 NB LIST AAA BBB CCC DDD EEE FFF"
+field     8   18    10    NEF   NONE  FLD1
 
-literal   9   6     FP  "FIELD FLD2: "     
-literal   9   30    FP  "VER FLD2 NB NUM"     
-field     9   18    10    NEF   NONE  FLD2    
+literal   9   6     FP  "FIELD FLD2: "
+literal   9   30    FP  "VER FLD2 NB NUM"
+field     9   18    10    NEF   NONE  FLD2
 
-literal   9   66    FP  "FIELD FLD11:"     
-field     9   79    3    NEF   NONE  FLD11    
-literal   9   84    FP  "TRANS Y,YES N,NO *.*"     
+literal   9   66    FP  "FIELD FLD11:"
+field     9   79    3    NEF   NONE  FLD11
+literal   9   84    FP  "TRANS Y,YES N,NO *.*"
 
-literal   10  6     FP  "FIELD FLD3: "     
-literal   10  30    FP  "VER FLD3 LIST AAA BBB CCC DDD EEE"     
-field     10  18    10   NEF   NONE  FLD3    
+literal   10  6     FP  "FIELD FLD3: "
+literal   10  30    FP  "VER FLD3 LIST AAA BBB CCC DDD EEE"
+field     10  18    10   NEF   NONE  FLD3
 
-literal   10  66    FP  "FIELD FLD21:"     
-field     10  79    3    NEF   NONE  FLD21    
-literal   10  84    FP  "TRANS Y,YES N,NO *.?"     
-
-
-literal   11   6    FP  "PASSWORD  : "     
-literal   11   30    FP  "Password Field (Type is PWD)"     
-field     11   18    10    PWD   NONE  FLD4    
-
-literal   11  66    FP  "FIELD FLD31:"     
-field     11  79    3    NEF   NONE  FLD31    
-literal   11  84    FP  "TRANS Y,YES N,NO"     
+literal   10  66    FP  "FIELD FLD21:"
+field     10  79    3    NEF   NONE  FLD21
+literal   10  84    FP  "TRANS Y,YES N,NO *.?"
 
 
-literal   12   6    FP  "FIELD FLD5: "     
-literal   12   30    FP  "VER NB HEX"     
-field     12   18    10    NEF   NONE  FLD5    
+literal   11   6    FP  "PASSWORD  : "
+literal   11   30    FP  "Password Field (Type is PWD)"
+field     11   18    10    PWD   NONE  FLD4
 
-literal   13   6    FP  "FIELD FLD6: "     
-literal   13   30    FP  "VER NB OCT"     
-field     13   18    10    NEF   NONE  FLD6    
+literal   11  66    FP  "FIELD FLD31:"
+field     11  79    3    NEF   NONE  FLD31
+literal   11  84    FP  "TRANS Y,YES N,NO"
 
-literal   14   6    FP  "FIELD FLD7: "     
-literal   14   30    FP  "VER NB PICT CAN9OX/\=B"     
-field     14   18   10    NEF   NONE  FLD7    
 
-literal   15   6    FP  "FIELD FLD8: "     
+literal   12   6    FP  "FIELD FLD5: "
+literal   12   30    FP  "VER NB HEX"
+field     12   18    10    NEF   NONE  FLD5
+
+literal   13   6    FP  "FIELD FLD6: "
+literal   13   30    FP  "VER NB OCT"
+field     13   18    10    NEF   NONE  FLD6
+
+literal   14   6    FP  "FIELD FLD7: "
+literal   14   30    FP  "VER NB PICT CAN9OX/\=B"
+field     14   18   10    NEF   NONE  FLD7
+
+literal   15   6    FP  "FIELD FLD8: "
 literal   15   30    FP  "IF &Z .ATTR = 'INTENSE(HIGH)' and keep rest"
-field     15   18   10    NEF   NONE  FLD8    
+field     15   18   10    NEF   NONE  FLD8
 
-literal   16   6    FP  "FIELD FLD9: "     
+literal   16   6    FP  "FIELD FLD9: "
 literal   16   30    FP  "LENGTH MUST BE 8 or RED+HILIGHT"
-field     16   18   10    NEF   NONE  FLD9    
+field     16   18   10    NEF   NONE  FLD9
 
-field     20   1   10    NEF   NONE  ATRF1    
+field     20   1   10    NEF   NONE  ATRF1
 field     20   12  10    NEF   NONE  ATRF2
 field     20   23  10    NEF   NONE  ATRF3
 
@@ -87,6 +87,25 @@ field     22   1   10    CH    NONE  ATRF7
 field     22   12  10    CH    NONE  ATRF8
 field     22   23  10    CH    NONE  ATRF9
 
+literal   20   35   FP  "PAD(_),JUST(L):"
+field     20   51   8    NEF   JUST(LEFT),PAD('_')  FLDA
+
+literal   21   35   FP  "PAD(_),JUST(R):"
+field     21   51   8    NEF   JUST(RIGHT),PAD('_')  FLDB
+
+literal   22   35   FP  "PAD(_),JUST(A):"
+field     22   51   8    NEF   JUST(ASIS),PAD('_')  FLDC
+
+
+literal   20   60   FP  "PAD( ),JUST(L):"
+field     20   76   8    NEF   JUST(LEFT)  FLDD
+
+literal   21   60   FP  "PAD( ),JUST(R):"
+field     21   76   8    NEF   JUST(RIGHT) FLDE
+
+literal   22   60   FP  "PAD( ),JUST(A):"
+field     22   76   8    NEF   JUST(ASIS)  FLDF
+
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
@@ -94,7 +113,7 @@ field     22   23  10    CH    NONE  ATRF9
 
 )INIT
 
-VGET (FLD1 FLD2) PROFILE 
+VGET (FLD1 FLD2) PROFILE
 .ATTR(FLD1) = 'COLOUR(TURQ) INTENSE(HIGH)'
 
 &ATRF1 = NEF
@@ -118,11 +137,11 @@ VGET (FLD1 FLD2) PROFILE
 .ATTR(ATRF6) = 'COLOUR(TURQ) INTENSE(HIGH) HILITE(NONE)'
 
 VER (&FLD1 NB LIST AAA BBB CCC DDD EEE FFF)
-VER ( &FLD2 NB NUM ) 
+VER ( &FLD2 NB NUM )
 VER (  &FLD3 LIST AAA BBB CCC DDD EEE   )
-VER (&FLD5      HEX)     
-VER ( &FLD6   NB OCT    )     
-VER (  &FLD7,NB,PICT,CAN9OX/\=B,MSG=PSYS01N  )    
+VER (&FLD5      HEX)
+VER ( &FLD6   NB OCT    )
+VER (  &FLD7,NB,PICT,CAN9OX/\=B,MSG=PSYS01N  )
 
 -- Truncate field to 1 char before using TRANS
 &FLD111 = TRUNC(&FLD11,1)
@@ -162,7 +181,7 @@ VPUT (FLD7 FLD8 FLD9) PROFILE
 )HELP
 FIELD(ZCMD) HELP(TESTHP1)
  FIELD(FLD1) HELP(TESTHP2 )
-FIELD( FLD2)  HELP( TESTHP3 ) 
+FIELD( FLD2)  HELP( TESTHP3 )
 
 
 )END

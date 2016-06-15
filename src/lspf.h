@@ -169,6 +169,7 @@ using namespace boost::posix_time;
 #define P_MAGENTA       33
 #define P_TURQ          34
 #define P_WHITE         35
+#define P_FF            255
 
 struct lspfCommand
 {

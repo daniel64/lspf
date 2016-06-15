@@ -363,13 +363,14 @@ string strip( string s, char opt, char c )
 	if ( (opt == 'B') || (opt == 'L') )
 	{
 		pos = s.find_first_not_of( c ) ;
-		if ( pos != string::npos ) { s = s.substr( pos ) ; }
-		else                       { return ""           ; }
+		if ( pos != string::npos ) { s.erase( 0, pos ) ; }
+		else                       { return ""         ; }
 	}
 	if ( (opt == 'B') || (opt == 'T') )
 	{
 		pos = s.find_last_not_of( c ) ;
-		s   = s.substr( 0, pos+1 )    ;
+		if ( pos != string::npos ) { s.erase( pos+1 ) ; }
+		else                       { return ""        ; }
 	}
 	return s ;
 }
@@ -687,9 +688,9 @@ string cs2xs( const string & s )
 	{
 		x = hexdigits[ s[ i ] >> 4 & 0x0F ] ;
 		y = hexdigits[ s[ i ] & 0x0F ] ;
-		reslt.replace( j, 1, 1, x ) ;
+		reslt[ j ] = x ;
 		j++ ;
-		reslt.replace( j, 1, 1, y ) ;
+		reslt[ j ] = y ;
 		j++ ;
 	}
 	return reslt ;

@@ -116,7 +116,9 @@ void PBRO01A::application()
 	rebuildZAREA = true  ;
 	hexOn        = false ;
 	colsOn       = false ;
+	Asbin        = false ;
 	binOn        = false ;
+	textOn       = false ;
 	hilightOn    = true  ;
 
 	typList[ 'C' ] = "CHARS"  ;
@@ -169,12 +171,12 @@ void PBRO01A::application()
 			for ( i = CURPOS-1 ; i < ZASIZE ; i++ )
 			{
 				if ( ZAREA[ i ] == ' ' ) { break ; }
-				ZSHADOW.replace( i, 1, 1, B_WHITE ) ;
+				ZSHADOW[ i ] = B_WHITE ;
 			}
 			for ( i = CURPOS-1 ; i > 0 ; i-- )
 			{
 				if ( ZAREA[ i ] == ' ' ) { break ; }
-				ZSHADOW.replace( i, 1, 1, B_WHITE ) ;
+				ZSHADOW[ i ] = B_WHITE ;
 			}
 		}
 
@@ -211,8 +213,10 @@ void PBRO01A::application()
 		else if ( CMD == "BIN" || CMD == "BINARY" )
 		{
 			if ( w2 != "" ) { MSG = "PBRO013" ; continue ; }
-			binOn        = true ;
-			rebuildZAREA = true ;
+			Asbin        = true  ;
+			binOn        = true  ;
+			textOn       = false ;
+			rebuildZAREA = true  ;
 			read_file( file ) ;
 			if ( RC > 0 ) { setmsg( "PSYS01E" ) ; cleanup() ; return ; }
 		}
@@ -288,12 +292,16 @@ void PBRO01A::application()
 		{
 			if ( w2 != "" ) { MSG = "PBRO013" ; continue ; }
 			colsOn       = false ;
+			binOn        = false ;
+			textOn       = false ;
 			rebuildZAREA = true  ;
 		}
 		else if ( CMD == "TEXT" )
 		{
 			if ( w2 != "" ) { MSG = "PBRO013" ; continue ; }
+			Asbin        = false ;
 			binOn        = false ;
+			textOn       = true  ;
 			rebuildZAREA = true  ;
 			read_file( file )    ;
 			if ( RC > 0 ) { setmsg( "PSYS01E" ) ; cleanup() ; return ; }
@@ -439,8 +447,9 @@ void PBRO01A::read_file( string file )
 		return    ;
 	}
 
-	if ( binOn ) { fin.open( file.c_str() , ios::binary ) ; }
-	else         { fin.open( file.c_str() )               ; }
+  //    if ( Asbin ) { fin.open( file.c_str() , ios::binary ) ; }
+  //    else         { fin.open( file.c_str() )               ; }
+	fin.open( file.c_str() ) ;
 
 	if ( !fin.is_open() )
 	{
@@ -462,7 +471,7 @@ void PBRO01A::read_file( string file )
 		{
 			if ( findword( "charset=binary", fileType ) )
 			{
-				binOn = true ;
+				Asbin = true ;
 			}
 			else
 			{
@@ -489,7 +498,11 @@ void PBRO01A::read_file( string file )
 	shadow.clear() ;
 	data.push_back( centre( " TOP OF DATA ", ZAREAW, '*' ) ) ;
 	shadow.push_back( t ) ;
-	if ( binOn )
+
+	if      ( binOn )  { Asbin = true ; }
+	else if ( textOn ) { Asbin = false ; }
+
+	if ( Asbin )
 	{
 		inLine = string( ZAREAW, ' ' ) ;
 		maxCol = ZAREAW ;
@@ -498,7 +511,7 @@ void PBRO01A::read_file( string file )
 		{
 			fin.get( x ) ;
 			if ( fin.fail() != 0 ) { break ; } ;
-			inLine.replace( i, 1, 1, x ) ;
+			inLine[ i ] = x ;
 			i++ ;
 			if ( i == ZAREAW )
 			{
@@ -527,7 +540,7 @@ void PBRO01A::read_file( string file )
 			while ( p1 != string::npos )
 			{
 				j = 8 - (p1 % 8 ) ;
-				inLine.replace( p1, 1,  j, ' ' ) ;
+				inLine.replace( p1, 1, j, ' ' ) ;
 				p1 = inLine.find_first_of( '\t', p1 + 1 ) ;
 			}
 			if ( maxCol < inLine.size() ) maxCol = inLine.size() ;
@@ -616,9 +629,9 @@ void PBRO01A::fill_dynamic_area()
 					i = 0 ;
 					for ( l = 0 ; l < (ln * 2) ; l++ )
 					{
-						t3.replace(i, 1, 1, t2[ l ] ) ;
+						t3[ i ] = t2[ l ] ;
 						l++ ;
-						t4.replace(i, 1, 1, t2[ l ] ) ;
+						t4[ i ] = t2[ l ] ;
 						i++ ;
 					}
 				}

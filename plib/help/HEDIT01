@@ -7,10 +7,19 @@ Extensions to the normal ISPF PDF editor line commands:
 MNn      Make note.  Turn current line(s) into note lines, shown by =NOTE=
 MNN
 
-TJn      Text join.  Join a number of lines (default 1) togeter separated by a space
+SI       Show indentation.  Unexclude lines based on left-most indentation
+
+TJn      Text join.  Join a number of lines together (default 1) separated by a single space
+TJJ
+
+TRn      Text trim.  Trim trailing spaces from a line or block of lines
+TRR
 
 TXn      Toggle exclude status of a line/block of lines
 TXX
 
-XP       Exclude paragraph.  Exclude lines until the indentation is less than the indentation where the command
+Wn       Used in conjuction with M/MM to swap marked lines
+WW
+
+XI       Exclude paragraph.  Exclude lines until the indentation is less than the indentation where the command
          is entered.

@@ -746,7 +746,7 @@ poolMGR::poolMGR()
 
 void poolMGR::setPOOLsReadOnly( int & RC )
 {
-	//  Neither of these are currently used
+	// Neither of these pools is currently used
 
 	RC = 0 ;
 

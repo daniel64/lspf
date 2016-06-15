@@ -34,7 +34,7 @@ using namespace std ;
 #define MOD_NAME HILIGHT
 
 
-void addHilight( hilight & h, string line, string & shadow )
+void addHilight( hilight & h, const string & line, string & shadow )
 {
 	if      ( h.hl_language == "text/x-panel" ) { }
 	else if ( h.hl_language == "text/x-c++"  ||
@@ -52,7 +52,7 @@ bool addHilight( string lang )
 }
 
 
-void addCppHilight( hilight & h, string line, string & shadow )
+void addCppHilight( hilight & h, const string & line, string & shadow )
 {
 	int ln ;
 	int p1 ;
@@ -77,9 +77,9 @@ void addCppHilight( hilight & h, string line, string & shadow )
 	oComment = h.hl_oComment ;
 
 	ln = line.size() ;
-	if ( ln == 0 ) { return ; }
-
 	shadow = string( ln, N_GREEN ) ;
+	 
+	if ( ln == 0 ) { return ; }
 	start = 0 ;
 	stop  = 0 ;
 	p1    = 0 ;
@@ -114,7 +114,7 @@ void addCppHilight( hilight & h, string line, string & shadow )
 		}
 		if ( oComment )
 		{
-			shadow.replace( j, 1, 1, B_BLUE ) ;
+			shadow[ j ] = B_BLUE ;
 			continue ;
 		}
 
@@ -145,29 +145,30 @@ void addCppHilight( hilight & h, string line, string & shadow )
 			}
 			else { j = p1  ; }
 		}
-		if ( line[ j ] == '(' ) { oBrac1++ ; shadow.replace( j, 1, 1, oBrac1 % 7 + 7 ) ; continue ; }
+		if ( line[ j ] == '(' ) { oBrac1++ ; shadow[ j ] = oBrac1 % 7 + 7 ; continue ; }
 		if ( line[ j ] == ')' )
 		{
-			if ( oBrac1 == 0 ) { shadow.replace( j, 1, 1, R_WHITE ) ; }
-			else               { shadow.replace( j, 1, 1, oBrac1 % 7 + 7 ) ; oBrac1-- ; }
+			if ( oBrac1 == 0 ) { shadow[ j ] = R_WHITE ; }
+			else               { shadow[ j ] = oBrac1 % 7 + 7 ; oBrac1-- ; }
 			continue ;
 		}
-		if ( line[ j ] == '{' ) { oBrac2++ ; shadow.replace( j, 1, 1, oBrac2 % 7 + 7 ) ; continue ; }
+		if ( line[ j ] == '{' ) { oBrac2++ ; shadow[ j ] = oBrac2 % 7 + 7 ; continue ; }
 		if ( line[ j ] == '}' )
 		{
-			if ( oBrac2 == 0 ) { shadow.replace( j, 1, 1, R_WHITE ) ; }
-			else               { shadow.replace( j, 1, 1, oBrac2 % 7 + 7 ) ; oBrac2-- ; }
+			if ( oBrac2 == 0 ) { shadow[ j ] = R_WHITE ; }
+			else               { shadow[ j ] = oBrac2 % 7 + 7 ; oBrac2-- ; }
 			continue ;
 		}
-		if ( line[ j ] == '=' ) { shadow.replace( j, 1, 1, B_WHITE ) ; continue ; }
+		if ( line[ j ] == '=' ) { shadow[ j ] = B_WHITE ; continue ; }
 	}
 	h.hl_oBrac1   = oBrac1 ;
 	h.hl_oBrac2   = oBrac2 ;
 	h.hl_oComment = oComment ;
+	shadow.resize( ln, N_GREEN ) ;
 }
 
 
-void addNoHilight( hilight & h, string line, string & shadow )
+void addNoHilight( hilight & h, const string & line, string & shadow )
 {
 	int ln ;
 

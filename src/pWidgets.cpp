@@ -1,7 +1,7 @@
 /*
   Copyright (c) 2015 Daniel John Erdos
 
-  This program is free software; you can redistribute it and/or modify
+  This program is free software; you can redistribute it and/or modifyf
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
@@ -85,13 +85,15 @@ int field::field_init( int MAXW, int MAXD, string line )
 		}
 	}
 
-	field_cua    = fType   ;
+	field_cua    = fType ;
 	field_prot   = cuaAttrProt [ fType ] ;
-	field_row    = row - 1 ;
-	field_col    = col - 1 ;
-	field_length = len     ;
+	field_row    = row-1 ;
+	field_col    = col-1 ;
+	field_length = len   ;
 
-	if ( ( fType == CEF) || ( fType == NEF) || ( fType == DATAIN) ) { field_input = true ; }
+	if ( fType == CEF  ||
+	     fType == NEF  ||
+	     fType == DATAIN ) { field_input = true ; }
 
 	fieldOptsParse( RC, w6, field_caps, field_just, field_numeric, field_padchar, field_skip ) ;
 	if ( RC > 0 ) { log( "E", "Error parsing options for field " << w7 << ". Options entry is " << w6 << endl ) ; }
@@ -212,228 +214,244 @@ int dynArea::dynArea_init( int MAXW, int MAXD, string line )
 
 	if ( (dynArea_UserModsp || dynArea_DataModsp) && !dynArea_DataInsp ) { return 20 ; }
 
-	dynArea_row         = row -1 ;
-	dynArea_col         = col -1 ;
-	dynArea_width       = width  ;
-	dynArea_depth       = depth  ;
-	dynArea_shadow_name = w7     ;
+	dynArea_row         = row-1 ;
+	dynArea_col         = col-1 ;
+	dynArea_width       = width ;
+	dynArea_depth       = depth ;
+	dynArea_shadow_name = w7    ;
 
 	return 0 ;
 }
 
 
-bool field::edit_field_insert( WINDOW * win, char ch, int col, bool Isrt )
+bool field::edit_field_insert( WINDOW * win, char ch, int col, bool Isrt, bool snulls )
 {
-	// If this is a dynamic area, we know at this point this is an input field, so field_dynDataInsp is true and there is an input attribute
-	// byte at the start of the field
-	//
+	// If this is a dynamic area, we know at this point this is an input field, so field_dynDataInsp is true and
+	// there is an input attribute byte at the start of the field
+
+	// Use the null character (x'00') to fill fields when the cursor is past the end if the field value
+	// These are then removed before further processing by the application
+
 	uint pos ;
 
-	int i   ;
-	int j   ;
-	int l   ;
+	int p1  ;
+	int p2  ;
 
-	pos = (col - field_col) ;
-	if ( pos > field_value.size() )
+	const char nulls(0x00) ;
+
+	pos = (col - field_col ) ;
+	if ( pos >= field_value.size() )
 	{
-		j = pos - field_value.size() ;
-		if ( field_value == "" )
-		{
-			field_value.append( j, ' ' ) ;
-		}
-		else
-		{
-			field_value.append( j, field_padchar ) ;
-		}
+		field_value.resize( pos+1, nulls ) ;
 	}
 
 	if ( Isrt )
 	{
 		if ( field_dynArea )
 		{
-			l = field_value.size() ;
-			j = 0                  ;
-			for ( i = pos ; i < l ; i++ )
-			{
-				if ( (field_value[ i ]                       == field_dynDataIn )  ||
-				     (field_dynDataOutsp && field_value[ i ] == field_dynDataOut)  ||
-				     (field_dynUserModsp && field_value[ i ] == field_dynUserMod)  ||
-				     (field_dynDataModsp && field_value[ i ] == field_dynDataMod )) { j = i ; break ; }
-			}
-			if ( j == 0 ) { j = l ; }
-			j-- ;
-			if ( field_value[ j ] == ' ' ) { field_value.erase( j, 1 ) ; }
-			else                           { return false ;              }
-			for ( i = pos ; i >= 0 ; i-- )
-			{
-				if ( (field_value[ i ]                       == field_dynDataIn)  ||
-				     (field_dynUserModsp && field_value[ i ] == field_dynUserMod) ||
-				     (field_dynDataModsp && field_value[ i ] == field_dynDataMod) ) { break ; }
-			}
+			p2 = field_value.find_first_of( field_dynField, pos ) ;
+			if ( p2 == string::npos ) { p2 = field_value.size()-1 ; }
+			else                      { p2--                      ; }
+			if ( field_value[ p2 ] != ' '  &&
+			     field_value[ p2 ] != nulls ) { return false ; }
+			field_value.erase( p2, 1 ) ;
+			field_shadow_value.erase( p2, 1 ) ;
+			p1 = field_value.find_last_of( field_dynFieldIn, pos ) ;
 			if ( field_dynDataModsp )
 			{
-				if ( field_value[ i ] != field_dynDataMod )
+				if ( field_value[ p1 ] != field_dynDataMod )
 				{
-					if ( ch != ' ' ) { field_value[ i ] = field_dynDataMod ; }
-					else if ( field_value.substr( pos, j-pos ) != string( j-pos, ' ' ) ) { field_value[ i ] = field_dynDataMod ; }
-					else if ( field_dynUserModsp )                                       { field_value[ i ] = field_dynUserMod ; }
+					if ( ch != ' ' )
+					{
+						field_value[ p1 ] = field_dynDataMod ;
+					}
+					else if ( field_value.substr( pos, p2-pos ) != string( p2-pos, ' ' ) )
+					{
+						field_value[ p1 ] = field_dynDataMod ;
+					}
+					else if ( field_dynUserModsp )
+					{
+						field_value[ p1 ] = field_dynUserMod ;
+					}
 				}
 			}
 			else if ( field_dynUserModsp )
 			{
-				field_value[ i ] = field_dynUserMod ;
+				field_value[ p1 ] = field_dynUserMod ;
+			}
+			if ( field_value[ pos ] == nulls )
+			{
+				field_value[ pos ]        = ch       ;
+				field_shadow_value[ pos ] = B_YELLOW ;
+			}
+			else
+			{
+				field_value.insert( pos, 1, ch ) ;
+				field_shadow_value.insert( pos, 1, B_YELLOW ) ;
 			}
 		}
 		else
 		{
 			if ( field_length == field_value.size() ) { return false ; }
+			if ( field_value[ pos ] == nulls )
+			{
+				field_value[ pos ] = ch ;
+			}
+			else
+			{
+				field_value.insert( pos, 1, ch ) ;
+			}
 		}
-		field_value.insert( pos, 1, ch ) ;
 	}
 	else
 	{
 		if ( field_dynArea )
 		{
-			for ( i = pos ; i >= 0 ; i-- )
-			{
-				if ( (field_value[ i ]                       == field_dynDataIn)  ||
-				     (field_dynUserModsp && field_value[ i ] == field_dynUserMod) ||
-				     (field_dynDataModsp && field_value[ i ] == field_dynDataMod) ) { break ; }
-			}
+			field_shadow_value[ pos ] = B_YELLOW ;
+			p1 = field_value.find_last_of( field_dynFieldIn, pos ) ;
 			if ( field_dynDataModsp )
 			{
-				if ( field_value[ i ] != field_dynDataMod )
+				if ( field_value[ p1 ] != field_dynDataMod )
 				{
-					if ( field_value[ pos ] != ch ) { field_value[ i ] = field_dynDataMod ; }
-					else if ( field_dynUserModsp )  { field_value[ i ] = field_dynUserMod ; }
+					if ( field_value[ pos ] != ch )
+					{
+						field_value[ p1 ] = field_dynDataMod ;
+					}
+					else if ( field_dynUserModsp )
+					{
+						field_value[ p1 ] = field_dynUserMod ;
+					}
 				}
 			}
 			else if ( field_dynUserModsp )
 			{
-				field_value[ i ] = field_dynUserMod ;
+				field_value[ p1 ] = field_dynUserMod ;
 			}
 
 		}
-		field_value.replace( pos, 1, 1, ch ) ;
+		field_value[ pos ] = ch ;
 	}
 
-	display_field( win ) ;
+	display_field( win, snulls ) ;
 	field_changed = true ;
 	return true ;
 }
 
 
-void field::edit_field_delete( WINDOW * win, int col )
+void field::edit_field_delete( WINDOW * win, int col, bool snulls )
 {
-	// If this is a dynamic area, we know at this point this is an input field, so field_dynDataInsp is true and there is an input attribute
-	// byte at the start of the field
-	//
+	// If this is a dynamic area, we know at this point this is an input field, so field_dynDataInsp is true
+	// and there is an input attribute byte at the start of the field.
 
 	uint pos ;
 
-	int i   ;
-	int j   ;
-	int l   ;
+	int p1 ;
+	int p2 ;
 
 	pos = col - field_col ;
-	if ( pos > field_value.size() ) return ;
+	if ( pos > field_value.size() ) { return ; }
 
 	if ( field_dynArea )
 	{
-		l = field_value.size() ;
-		j = 0                  ;
-		for ( i = pos ; i < l ; i++ )
-		{
-			if ( (field_value[ i ]                       == field_dynDataIn  )  ||
-			     (field_dynDataOutsp && field_value[ i ] == field_dynDataOut )  ||
-			     (field_dynUserModsp && field_value[ i ] == field_dynUserMod )  ||
-			     (field_dynDataModsp && field_value[ i ] == field_dynDataMod )  ) { j = i ; break ; }
-		}
-		if ( j == 0 ) { j = l ; }
-		for ( i = pos ; i >= 0 ; i-- )
-		{
-			if ( (field_value[ i ]                       == field_dynDataIn)  ||
-			     (field_dynUserModsp && field_value[ i ] == field_dynUserMod) ||
-			     (field_dynDataModsp && field_value[ i ] == field_dynDataMod) ) { break ; }
-		}
+		p1 = field_value.find_last_of( field_dynFieldIn, pos ) ;
+		p2 = field_value.find_first_of( field_dynField, pos )  ;
+		if ( p2 == string::npos ) { p2 = field_value.size() ; }
 		if ( field_dynDataModsp )
 		{
-			if ( field_value[ i ] != field_dynDataMod )
+			if ( field_value[ p1 ] != field_dynDataMod )
 			{
-				if ( field_value.substr( pos, j-pos ) != string( j-pos, ' ' ) ) { field_value[ i ] = field_dynDataMod ; }
-				else if ( field_dynUserModsp )                                  { field_value[ i ] = field_dynUserMod ; }
+				if ( field_value.substr( pos, p2-pos ) != string( p2-pos, ' ' ) )
+				{
+					field_value[ p1 ] = field_dynDataMod ;
+				}
+				else if ( field_dynUserModsp )
+				{
+					field_value[ p1 ] = field_dynUserMod ;
+				}
 			}
 		}
 		else if ( field_dynUserModsp )
 		{
-			field_value[ i ] = field_dynUserMod ;
+			field_value[ p1 ] = field_dynUserMod ;
 		}
-		field_value.insert( j, 1, ' ' ) ;
+		field_value.insert( p2, 1, ' ' ) ;
+		field_shadow_value.insert( p2, 1, 0xFF ) ;
+		field_shadow_value.erase( pos, 1 ) ;
 	}
 
 	field_value.erase( pos, 1 ) ;
-	display_field( win ) ;
+	display_field( win, snulls ) ;
 	field_changed = true ;
 }
 
 
-int field::edit_field_backspace( WINDOW * win, int col )
+int field::edit_field_backspace( WINDOW * win, int col, bool snulls )
 {
-	// If this is a dynamic area, we know at this point this is an input field, so field_dynDataInsp is true and there is an input attribute
-	// byte at the start of the field
-	//
+	// If this is a dynamic area, we know at this point this is an input field, so field_dynDataInsp is true
+	// and there is an input attribute byte at the start of the field.
 
-	uint pos ;
 
-	int i   ;
-	int j   ;
-	int l   ;
+	int pos ;
+	int p1  ;
 
 	pos = col - field_col ;
-	if ( (pos > field_value.size()) ) return --col ;
+	if ( pos > field_value.size() ) { return --col ; }
+
+	p1 = field_dynField.find_first_of( field_value[ pos ] ) ;
+	if ( p1 != string::npos ) { return col ; }
+
+	col-- ;
+	edit_field_delete( win, col, snulls ) ;
+	return col ;
+}
+
+
+void field::field_erase_eof( WINDOW * win, uint col, bool snulls )
+{
+	// If this is a dynamic area, we know at this point this is an input field, so field_dynDataInsp is true,
+	// and there is an input attribute byte at the start of the field
+
+	int pos ;
+	int p1  ;
+	int p2  ;
+
+	if ( ( field_col + field_value.size() ) < col ) return ;
+	pos = (col - field_col) ;
 
 	if ( field_dynArea )
 	{
-		if ( (field_value[ pos-1 ]                       == field_dynDataIn  ) ||
-		     (field_dynDataOutsp && field_value[ pos-1 ] == field_dynDataOut ) ||
-		     (field_dynUserModsp && field_value[ pos-1 ] == field_dynUserMod ) ||
-		     (field_dynDataModsp && field_value[ pos-1 ] == field_dynDataMod ) ) { return col ; }
-		l = field_value.size() ;
-		j = 0                  ;
-		for ( i = pos ; i < l ; i++ )
-		{
-			if ((field_value[ i ]                       == field_dynDataIn  ) ||
-			    (field_dynDataOutsp && field_value[ i ] == field_dynDataOut ) ||
-			    (field_dynUserModsp && field_value[ i ] == field_dynUserMod ) ||
-			    (field_dynDataModsp && field_value[ i ] == field_dynDataMod ) ) { j = i ; break ; }
-		}
-		if ( j == 0 ) { j = l ; }
-		for ( i = pos ; i >= 0 ; i-- )
-		{
-			if ( (field_value[ i ]                       == field_dynDataIn  ) ||
-			     (field_dynUserModsp && field_value[ i ] == field_dynUserMod ) ||
-			     (field_dynDataModsp && field_value[ i ] == field_dynDataMod ) ) { break ; }
-		}
+		p1 = field_value.find_last_of( field_dynFieldIn, pos ) ;
+		p2 = field_value.find_first_of( field_dynField, pos ) ;
+		if ( p2 == string::npos ) { p2 = field_value.size() ; }
 		if ( field_dynDataModsp )
 		{
-			if ( field_value[ i ] != field_dynDataMod )
+			if ( field_value[ p1 ] != field_dynDataMod )
 			{
-				if ( field_value.substr( pos-1, j-pos+1 ) != string( j-pos+1, ' ' ) ) { field_value[ i ] = field_dynDataMod ; }
-				else if ( field_dynUserModsp )                                        { field_value[ i ] = field_dynUserMod ; }
+				if ( field_value.substr( pos, p2-pos ) != string( p2-pos, ' ' ) )
+				{
+					field_value[ p1 ] = field_dynDataMod ;
+				}
+				else if ( field_dynUserModsp )
+				{
+					field_value[ p1 ] = field_dynUserMod ;
+				}
 			}
 		}
 		else if ( field_dynUserModsp )
 		{
-			field_value[ i ] = field_dynUserMod ;
+			field_value[ p1 ] = field_dynUserMod ;
 		}
-		field_value.insert( j, 1, ' ' ) ;
+		field_value.replace( pos, p2-pos, p2-pos, ' ' )  ;
+		field_shadow_value.replace( pos, p2-pos, p2-pos, 0xFF ) ;
+	}
+	else
+	{
+		field_blank( win ) ;
+		field_value.erase( pos+1 ) ;
 	}
 
-	field_value.erase( pos - 1, 1 ) ;
-	display_field( win ) ;
+	display_field( win, snulls ) ;
 	field_changed = true ;
-
-	return --col ;
 }
 
 
@@ -441,6 +459,94 @@ void field::field_blank( WINDOW * win )
 {
 	string blank( field_length, field_padchar ) ;
 	mvwaddstr( win, field_row, field_col, blank.c_str() ) ;
+}
+
+
+void field::field_remove_nulls()
+{
+	// Remove all nulls from the field value
+
+	// For dynamic areas, remove nulls from input fields that have been touched or changed.
+	// Trailing nulls are changed to blanks.  Keep field size constant by adding blanks at
+	// the end of the input field when removing nulls.
+
+	// If a field that has only been touched, changes, change dynDataIn to dynDataMod (if specified)
+
+	// Keep shadow variable in sync
+
+	// BUG: Nulls not removed from a touched/changed field with no USERMOD/DATAMOD parameter specified
+	// (as we cannot determine if the field has been touched/changed without these)
+
+	int p1 ;
+	int p2 ;
+	int p3 ;
+	int pattr ;
+
+	bool changed ;
+
+	const char nulls(0x00) ;
+
+	p1 = 0 ;
+	if ( field_dynArea )
+	{
+		if ( !field_dynDataInsp ) { return ; }
+		while ( true )
+		{
+			p1 = field_value.find_first_of( field_dynFieldIn, p1 ) ;
+			if ( p1 == string::npos ) { return ; }
+			pattr = p1 ;
+			p1++ ;
+			p3 = field_value.find_first_of( field_dynField, p1 ) ;
+			if ( p3 == string::npos ) { p3 = field_value.size() - 1 ; }
+			else                      { p3--                        ; }
+			p2 = field_value.find_last_not_of( nulls, p3 ) ;
+			if ( p2 == string::npos )
+			{
+				field_value.replace( p1, p3-p1+1, p3-p1+1, ' ' ) ;
+				field_shadow_value.replace( p1, p3-p1+1, p3-p1+1, 0xFF ) ;
+				if ( field_dynDataModsp )
+				{
+					field_value[ pattr ] = field_dynDataMod ;
+				}
+				break ;
+			}
+			changed = false ;
+			if ( p3 > p2 )
+			{
+				field_value.replace( p2+1, p3-p2, p3-p2, ' ' ) ;
+				field_shadow_value.replace( p2+1, p3-p2, p3-p2, 0xFF ) ;
+				changed = true ;
+			}
+			while ( true )
+			{
+				if ( p1 >= p2 ) { break ; }
+				if ( field_value[ p1 ] == nulls )
+				{
+					changed = true ;
+					field_value.erase( p1, 1 ) ;
+					field_value.insert( p3, 1, ' ' ) ;
+					field_shadow_value.erase( p1, 1 ) ;
+					field_shadow_value.insert( p3, 1, 0xFF ) ;
+					p2-- ;
+					continue ;
+				}
+				p1++ ;
+			}
+			if ( changed && field_dynDataModsp )
+			{
+				field_value[ pattr ] = field_dynDataMod ;
+			}
+		}
+	}
+	else
+	{
+		while ( true )
+		{
+			p1 = field_value.find_first_of( nulls, p1 ) ;
+			if ( p1 == string::npos ) { break ; }
+			field_value.erase( p1, 1 ) ;
+		}
+	}
 }
 
 
@@ -452,105 +558,48 @@ void field::field_clear( WINDOW * win )
 }
 
 
-void field::field_erase_eof( WINDOW * win, uint col )
-{
-	// If this is a dynamic area, we know at this point this is an input field, so field_dynDataInsp is true and there is an input attribute
-	// byte at the start of the field
-	//
-
-	int pos ;
-	int i   ;
-	int j   ;
-	int l   ;
-
-	if ( ( field_col + field_value.size() ) < col ) return ;
-	pos = (col - field_col) ;
-
-	if ( field_dynArea )
-	{
-		l = field_value.size() ;
-		j = 0                  ;
-		for ( i = pos ; i < l ; i++ )
-		{
-			if ((field_value[ i ]                       == field_dynDataIn  ) ||
-			    (field_dynDataOutsp && field_value[ i ] == field_dynDataOut ) ||
-			    (field_dynUserModsp && field_value[ i ] == field_dynUserMod ) ||
-			    (field_dynDataModsp && field_value[ i ] == field_dynDataMod ) ) { j = i ; break ; }
-		}
-		if ( j == 0 ) { j = l ; }
-		for ( i = pos ; i >= 0 ; i-- )
-		{
-			if ( (field_value[ i ]                       == field_dynDataIn  ) ||
-			     (field_dynUserModsp && field_value[ i ] == field_dynUserMod ) ||
-			     (field_dynDataModsp && field_value[ i ] == field_dynDataMod ) ) { break ; }
-		}
-		if ( field_dynDataModsp )
-		{
-			if ( field_value[ i ] != field_dynDataMod )
-			{
-				if ( field_value.substr( pos, j-pos ) != string( j-pos, ' ' ) ) { field_value[ i ] = field_dynDataMod ; }
-				else if ( field_dynUserModsp )                                  { field_value[ i ] = field_dynUserMod ; }
-			}
-		}
-		else if ( field_dynUserModsp )
-		{
-			field_value[ i ] = field_dynUserMod ;
-		}
-		field_value = field_value.replace( pos, j-pos, j-pos, ' ' ) ;
-
-	}
-	else
-	{
-		field_blank( win ) ;
-		field_value = field_value.substr( 0 , pos ) ;
-	}
-
-	display_field( win ) ;
-	field_changed = true ;
-}
-
-
 int field::end_of_field( WINDOW * win, uint col )
 {
-	// If this is a dynamic area, we know at this point this is an input field, so field_dynDataInsp is true and there is an input attribute
-	// byte at the start of the field
-	//
+	// If this is a dynamic area, we know at this point this is an input field.
 
-	int l   ;
-	int i   ;
-	int j   ;
+	// Strip trailing nulls if not a dynamic area
+
 	int pos ;
+	int p1  ;
+	int p2  ;
+
+	string padc ;
+
+	padc.clear()           ;
+	padc.push_back( 0x00 ) ;
+	padc.push_back( 0x20 ) ;
+
+	const char nulls(0x00) ;
 
 	if ( field_dynArea )
 	{
-		l = field_value.size()  ;
-		j = 0                   ;
 		pos = (col - field_col) ;
-		for ( i = pos ; i < l ; i++ )
-		{
-			if ( (field_value[ i ]                       == field_dynDataIn  ) ||
-			     (field_dynDataOutsp && field_value[ i ] == field_dynDataOut ) ||
-			     (field_dynUserModsp && field_value[ i ] == field_dynUserMod ) ||
-			     (field_dynDataModsp && field_value[ i ] == field_dynDataMod ) ) { j = i ; break ; }
-		}
-		if ( j == 0 ) { j = l ; }
-		for ( i = j-1 ; i >= 0 ; i-- )
-		{
-			if ( (field_value[ i ]                       == field_dynDataIn  ) ||
-			     (field_dynUserModsp && field_value[ i ] == field_dynUserMod ) ||
-			     (field_dynDataModsp && field_value[ i ] == field_dynDataMod ) ) { return field_col + i + 1 ; }
-			if ( field_value[ i ] != ' ' )
-			{
-				if ( ( i == j - 1 ) ) { return field_col + i     ; }
-				else                  { return field_col + i + 1 ; }
-			}
-		}
+		p2  = field_value.find_first_of( field_dynField, pos ) ;
+		if ( p2 == string::npos ) { p2 = field_value.size() ; }
+		p1  = field_value.find_last_not_of( padc, p2-1 ) ;
+		if ( p1 == p2 - 1 ) { return p1 + field_col     ; }
+		else                { return p1 + field_col + 1 ; }
 	}
 	else
 	{
+		pos = field_value.find_last_not_of( nulls ) ;
+		if ( pos == string::npos )
+		{
+			field_value = "" ;
+			return field_col ;
+		}
+		else
+		{
+			if ( pos < field_value.size()-1 ) { field_value.erase( pos+1 ) ; }
+		}
 		if ( field_value.size() == field_length )
 		{
-			return ( field_col + field_value.size() - 1 ) ;
+			return ( field_col + field_value.size()-1 ) ;
 		}
 		else
 		{
@@ -558,6 +607,48 @@ int field::end_of_field( WINDOW * win, uint col )
 		}
 	}
 	return 0 ;
+}
+
+
+bool field::field_dyna_input( uint col )
+{
+	// When this routine is called, we only know the field is a dynamic area.
+	// Check if we are on an attribute byte
+	// Find the previous field attribute.
+	// If found, test to see if it is an input attribute
+
+	uint pos ;
+	int p1   ;
+
+	if ( !field_dynDataInsp ) return false ;
+
+	pos = (col - field_col) ;
+
+	p1 = field_dynField.find_first_of( field_value[ pos ] ) ;
+	if ( p1 != string::npos ) { return false ; }
+
+	p1 = field_value.find_last_of( field_dynField, pos ) ;
+	if ( p1 == string::npos ) { return false ; }
+
+	p1 = field_dynFieldIn.find_first_of( field_value[ p1 ] ) ;
+	if ( p1 != string::npos ) { return true  ; }
+	else                      { return false ; }
+}
+
+
+int field::field_dyna_input_offset( uint col )
+{
+	// When this routine is called, we know the field is a dynamic area and dynDataIn is true
+
+	uint pos ;
+	int  p1  ;
+
+	if ( col < field_col ) { pos = 0 ;                 }
+	else                   { pos = (col - field_col) ; }
+
+	p1 = field_value.find_first_of( field_dynFieldIn, pos ) ;
+	if ( p1 == string::npos ) { return -1 ; }
+	return p1+1 ;
 }
 
 
@@ -621,7 +712,7 @@ int field::field_attr( string attrs )
 		else if ( col == "MAGENTA" ) { field_colour = field_colour | MAGENTA ; }
 		else if ( col == "TURQ"    ) { field_colour = field_colour | TURQ    ; }
 		else if ( col == "WHITE"   ) { field_colour = field_colour | WHITE   ; }
-		else                         { return 20              ; }
+		else                         { return 20                             ; }
 	}
 	p1 = pos( "INTENSE(", attrs ) ;
 	if ( p1 > 0 )
@@ -657,89 +748,106 @@ int field::field_attr( string attrs )
 }
 
 
-bool field::field_dyna_input( uint col )
+void field::field_DataMod_to_UserMod( string * darea, int offset )
 {
-	// When this routine is called, we only know the field is a dynamic area.  DATAIN, DATAOUT, USERMOD and DATAMOD all need to be tested
+	// Reset any field_dynDataMod attributes to field_dynUserMod or field_dynDataIn, for dynamic fields that
+	// have not changed. This is for fields that have been changed, then changed back to the original.
+	// (This has to show as touched/input attr, not changed).
 
-	uint pos ;
-	int i    ;
+	// When this is called, we know dynDataIn and dynDataMod have been specified (but not necessarily dynUserMod,
+	// or dynDataOut).  If no change to the field, attr=dynUserMod if specified, else dynDataIn
 
-	if ( !field_dynDataInsp ) return false ;
+	int p1 ;
+	int p2 ;
 
-	pos = (col - field_col) ;
-	if ( (field_value[ pos ]                       == field_dynDataIn ) ||
-	     (field_dynUserModsp && field_value[ pos ] == field_dynUserMod) ||
-	     (field_dynDataModsp && field_value[ pos ] == field_dynDataMod) ) { return false ; }
-
-	for ( i = pos ; i >= 0 ; i-- )
+	p1 = 0 ;
+	while ( true )
 	{
-		if ( (field_value[ i ]                       == field_dynDataIn ) ||
-		     (field_dynUserModsp && field_value[ i ] == field_dynUserMod) ||
-		     (field_dynDataModsp && field_value[ i ] == field_dynDataMod) ) { return true  ; }
-		if ( field_dynDataOutsp  && field_value[ i ] == field_dynDataOut  ) { return false ; }
+		p1 = field_value.find_first_of( field_dynDataMod, p1 ) ;
+		if ( p1 == string::npos ) { break ; }
+		p1++ ;
+		p2 = field_value.find_first_of( field_dynField, p1 ) ;
+		if ( p2 == string::npos ) { p2 = field_value.size() ; }
+		if ( field_value.compare( p1, p2-p1, (*darea), offset+p1, p2-p1 ) == 0 )
+		{
+			if ( field_dynUserModsp ) { field_value[ p1-1 ] = field_dynUserMod ; }
+			else                      { field_value[ p1-1 ] = field_dynDataIn  ; }
+		}
+		p1 = p2 ;
 	}
-	return false ;
 }
 
 
-int field::field_dyna_input_offset( uint col )
-{
-	// When this routine is called, we know the field is a dynamic area and dynDataIn is true
-
-	uint pos ;
-	int i    ;
-
-	if ( col < field_col ) { pos = 0 ;                 }
-	else                   { pos = (col - field_col) ; }
-
-	for ( i = pos ; i < field_value.size() ; i++ )
-	{
-		if ( (field_value[ i ]                       == field_dynDataIn ) ||
-		     (field_dynUserModsp && field_value[ i ] == field_dynUserMod) ||
-		     (field_dynDataModsp && field_value[ i ] == field_dynDataMod) ) { return i + 1 ; }
-	}
-	return -1 ;
-}
-
-
-void field::display_field( WINDOW * win )
+void field::display_field( WINDOW * win, bool snulls )
 {
 	// For non-dynamic area fields: if an input field, truncate if value size > field size else for output fields
 	// display field size bytes and leave field value unchanged (necessary for table display fields)
 
-	uint i   ;
-	string t ;
+	// Display the null character as the field pad character and pad the field with the same character
+
+	uint i     ;
+	char nullc ;
+	string t   ;
+
+	const char nulls(0x00) ;
+
+	string::iterator it1 ;
+	string::iterator it2 ;
+
+	nullc = snulls ? '.' : ' ' ;
 
 	if ( field_dynArea )
 	{
 		if ( field_dynDataInsp || field_dynDataOutsp || field_dynUserModsp || field_dynDataModsp )
 		{
-			for ( i = 0 ; i < field_value.size() ; i++ )
+			it2  = field_shadow_value.begin() ;
+			i    = 0 ;
+			for ( it1 = field_value.begin() ; it1 != field_value.end() ; it1++, it2++, i++ )
 			{
-				wattrset( win, usrAttr[ field_shadow_value [ i ] ] ) ;
-				if ( ( field_dynDataInsp  && field_value[ i ] == field_dynDataIn  ) ||
-				     ( field_dynDataOutsp && field_value[ i ] == field_dynDataOut ) ||
-				     ( field_dynUserModsp && field_value[ i ] == field_dynUserMod ) ||
-				     ( field_dynDataModsp && field_value[ i ] == field_dynDataMod ) ) { mvwaddch( win, field_row, field_col+i, ' ' ) ; }
-				else if ( isprint( field_value[ i ] ) ) { mvwaddch( win, field_row, field_col+i, field_value[ i ] ) ; }
-				else                                    { mvwaddch( win, field_row, field_col+i, '.' ) ;              }
-				wattroff( win, usrAttr[ field_shadow_value [ i ] ] ) ;
+				wattrset( win, usrAttr[ (*it2) ] ) ;
+				if (  (*it1) == nulls )
+				{
+					mvwaddch( win, field_row, field_col+i, nullc ) ;
+				}
+				else if (  field_dynField.find_first_of( (*it1) ) != string::npos )
+				{
+					mvwaddch( win, field_row, field_col+i, ' ' ) ;
+				}
+				else if ( isprint( (*it1) ) )
+				{
+					mvwaddch( win, field_row, field_col+i, (*it1) ) ;
+				}
+				else
+				{
+					mvwaddch( win, field_row, field_col+i, '.' ) ;
+				}
 			}
 		}
 		else
 		{
-			for ( i = 0 ; i < field_value.size() ; i++ )
+			it2  = field_shadow_value.begin() ;
+			i    = 0 ;
+			for ( it1 = field_value.begin() ; it1 != field_value.end() ; it1++, it2++, i++ )
 			{
-				wattrset( win, usrAttr[ field_shadow_value [ i ] ] ) ;
-				if ( isprint( field_value[ i ] ) ) { mvwaddch( win, field_row, field_col+i, field_value[ i ] ) ; }
-				else                               { mvwaddch( win, field_row, field_col+i, '.' ) ;              }
-				wattroff( win, usrAttr[ field_shadow_value [ i ] ] ) ;
+				wattrset( win, usrAttr[ (*it2) ] ) ;
+				if (  (*it1) == nulls )
+				{
+					mvwaddch( win, field_row, field_col+i, nullc ) ;
+				}
+				else if ( isprint( (*it1) ) )
+				{
+					mvwaddch( win, field_row, field_col+i, (*it1) ) ;
+				}
+				else
+				{
+					mvwaddch( win, field_row, field_col+i, '.' )    ;
+				}
+				wattroff( win, usrAttr[ (*it2) ] ) ;
 			}
 		}
 	}
 	else
 	{
-		field_blank( win ) ;
 		if ( field_usecua ) { wattrset( win, cuaAttr[ field_cua ] ) ; }
 		else                { wattrset( win, field_colour)          ; }
 		if ( field_input )
@@ -748,28 +856,28 @@ void field::display_field( WINDOW * win )
 			{
 				field_value = field_value.substr( 0, field_length-1 ) ;
 			}
-			for ( i = 0 ; i < field_value.size() ; i++ )
-			{
-				if ( !isprint( field_value[ i ] ) ) field_value.replace( i, 1, 1, '.' ) ;
-			}
-			if ( field_pwd ) { mvwaddstr( win, field_row, field_col, copies( "*", field_value.size()).c_str() ) ; }
-			else             { mvwaddstr( win, field_row, field_col, field_value.c_str() )                      ; }
+			t = field_value ;
 		}
 		else
 		{
 			if ( field_value.size() > field_length ) { t = field_value.substr( 0, field_length ) ; }
 			else                                     { t = field_value                           ; }
-			for ( i = 0 ; i < t.size() ; i++ )
-			{
-				if ( !isprint( t[ i ] ) ) t.replace( i, 1, 1, '.' ) ;
-			}
-			if ( field_pwd ) { mvwaddstr( win, field_row, field_col, copies( "*", t.size()).c_str() ) ; }
-			else             { mvwaddstr( win, field_row, field_col, t.c_str() )                      ; }
 		}
-		if ( field_usecua ) { wattroff( win, cuaAttr[ field_cua ] ) ; }
-		else                { wattroff( win, field_colour )         ; }
+		for ( it1 = t.begin() ; it1 != t.end() ; it1++ )
+		{
+			if      ( (*it1) == nulls   ) { (*it1) = field_padchar ; }
+			else if ( !isprint( (*it1)) ) { (*it1) = '.'           ; }
+		}
+		if ( field_pwd )
+		{
+			mvwaddstr( win, field_row, field_col, string( field_value.size(), '*').c_str() ) ;
+		}
+		else
+		{
+			t.resize( field_length, field_padchar )           ;
+			mvwaddstr( win, field_row, field_col, t.c_str() ) ;
+		}
 	}
-	//wrefresh( win ) ;
 }
 
 
@@ -778,7 +886,6 @@ void literal::literal_display( WINDOW * win )
 	wattrset( win, cuaAttr[ literal_cua ] ) ;
 	mvwaddstr( win, literal_row, literal_col, literal_value.c_str() ) ;
 	wattroff( win, cuaAttr[ literal_cua ] ) ;
-	//wrefresh( win )  ;
 }
 
 
@@ -802,7 +909,7 @@ int literal::literal_init( int MAXW, int MAXD, int & opt_field, string line )
 	string w4 ;
 	string w5 ;
 
-	cuaType fType   ;
+	cuaType fType ;
 
 	w2 = word( line, 2 ) ;
 	w3 = word( line, 3 ) ;
@@ -865,10 +972,10 @@ int literal::literal_init( int MAXW, int MAXD, int & opt_field, string line )
 
 void dynArea::setsize( int row, int col, int width, int depth )
 {
-	dynArea_row    = row - 1 ;
-	dynArea_col    = col - 1 ;
-	dynArea_width  = width   ;
-	dynArea_depth  = depth   ;
+	dynArea_row   = row - 1 ;
+	dynArea_col   = col - 1 ;
+	dynArea_width = width   ;
+	dynArea_depth = depth   ;
 }
 
 
@@ -1452,7 +1559,7 @@ VERIFY::VERIFY( string s )
 	{
 		p = s.find( ',', p ) ;
 		if ( p == string::npos ) { break ; }
-		s.replace( p, 1, 1, ' ' ) ;
+		s[ p ] = ' ' ;
 		p++ ;
 	}
 

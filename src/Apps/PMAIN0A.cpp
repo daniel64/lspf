@@ -78,7 +78,6 @@ void PMAIN0A::application()
 	pyear   = ds2d( substr( ZDATEL, 7, 4 ) ) ;
 	ZCMD    = "" ;
 	MSG     = "" ;
-	ZSHADOW = "" ;
 	create_calendar( pmonth, pyear ) ;
 
 //      pFunc = &pApplication::cleanup_custom      ;
@@ -159,7 +158,7 @@ void PMAIN0A::application()
 			continue         ;
 		}
 
-		if ( command == "END" || command == "EXIT" ) break ;
+		if ( findword( command, "END EXIT" ) ) { break ; }
 
 		w1 = word( command, 1 ) ;
 		ws = subword( command, 2 ) ;
@@ -252,50 +251,42 @@ void PMAIN0A::create_calendar( int pmonth, int pyear )
 
 	switch ( month )
 	{
-	case  1:    m = "January  " ; break ;
-	case  2:    m = "February " ; break ;
-	case  3:    m = "March    " ; break ;
-	case  4:    m = "April    " ; break ;
-	case  5:    m = "May      " ; break ;
-	case  6:    m = "June     " ; break ;
-	case  7:    m = "July     " ; break ;
-	case  8:    m = "August   " ; break ;
-	case  9:    m = "September" ; break ;
-	case 10:    m = "October  " ; break ;
-	case 11:    m = "November " ; break ;
-	case 12:    m = "December " ; break ;
+		case  1: m = "January  " ; break ;
+		case  2: m = "February " ; break ;
+		case  3: m = "March    " ; break ;
+		case  4: m = "April    " ; break ;
+		case  5: m = "May      " ; break ;
+		case  6: m = "June     " ; break ;
+		case  7: m = "July     " ; break ;
+		case  8: m = "August   " ; break ;
+		case  9: m = "September" ; break ;
+		case 10: m = "October  " ; break ;
+		case 11: m = "November " ; break ;
+		case 12: m = "December " ; break ;
 	}
 
-	ZAREA  =         "<     Calendar     > " ;
-	ZAREA  = ZAREA + centre( m + "  " + d2ds( year ), 21 );
-	ZAREA  = ZAREA + "Su Mo Tu We Th Fr Sa " ;
-
-	switch ( ditr->day_of_week() )
-	{
-	case 0: break ;
-	case 1: ZAREA = ZAREA + "   " ; break ;
-	case 2: ZAREA = ZAREA + "      " ; break ;
-	case 3: ZAREA = ZAREA + "         " ; break ;
-	case 4: ZAREA = ZAREA + "            " ; break ;
-	case 5: ZAREA = ZAREA + "               " ; break ;
-	case 6: ZAREA = ZAREA + "                  " ; break ;
-	}
-
+	ZAREA   = "<     Calendar     > "               ;
+	ZAREA  += centre( m + "  " + d2ds( year ), 21 ) ;
+	ZAREA  += "Su Mo Tu We Th Fr Sa "               ;
+	ZAREA  += string( 3*ditr->day_of_week(), ' ' )  ;
+															
 	i = 1 ;
 	for ( ; ditr <= endOfMonth ; ++ditr )
 	{
-		if ( i == cday & month == cmonth & year == cyear ) { daypos = ZAREA.size() ; }
-		ZAREA = ZAREA + centre( d2ds( i ), 3 ) ;
+		if (     i == cday   &&
+		     month == cmonth &&
+		      year == cyear ) { daypos = ZAREA.size() ; }
+		ZAREA += centre( d2ds( i ), 3 ) ;
 		i++ ;
 	}
 
-	ZAREA  = substr( ZAREA, 1, 189 ) ;
-	ZAREA  = ZAREA + left( "Time . . . . : " + ZTIME, 21 ) ;
-	ZAREA  = ZAREA + left( "Day of Year. : " + substr( ZJDATE, 4, 3 ), 21 ) ;
+	ZAREA.resize( 189, ' ' ) ;
+	ZAREA += left( "Time . . . . : " + ZTIME, 21 ) ;
+	ZAREA += left( "Day of Year. : " + substr( ZJDATE, 4, 3 ), 21 ) ;
 
-	ZSHADOW.replace(   0, 231, 231, N_WHITE ) ;
+	ZSHADOW = string( 231, N_WHITE ) ;
+															
 	ZSHADOW.replace(  21,  21,  21, B_RED   ) ;
-
 	ZSHADOW.replace(  42,  21,  21, B_YELLOW ) ;
 
 	ZSHADOW.replace(  63,   2,   2, N_TURQ ) ;
@@ -316,7 +307,7 @@ void PMAIN0A::create_calendar( int pmonth, int pyear )
 	ZSHADOW.replace( 168,   2,   2, N_TURQ ) ;
 	ZSHADOW.replace( 186,   2,   2, N_TURQ ) ;
 
-	if ( daypos > 0 ) ZSHADOW.replace( daypos,   2,   2, R_TURQ ) ;
+	if ( daypos > 0 ) ZSHADOW.replace( daypos, 2, 2, R_TURQ ) ;
 }
 
 

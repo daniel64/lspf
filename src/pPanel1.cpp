@@ -197,8 +197,6 @@ void pPanel::remove_popup()
 
 void pPanel::display_panel( int & RC )
 {
-	debug1( "Displaying fields and action bar " << endl ) ;
-
 	RC = 0 ;
 	clear() ;
 
@@ -252,8 +250,6 @@ void pPanel::display_panel( int & RC )
 
 void pPanel::refresh( int & RC )
 {
-	debug1( "Refreshing panel fields and action bar " << endl ) ;
-
 	RC = 0  ;
 	clear() ;
 
@@ -288,12 +284,15 @@ void pPanel::nrefresh()
 
 void pPanel::display_panel_update( int & RC )
 {
-	//  For all changed fields, apply attributes (upper case, left/right justified), and copy back to function pool
+	//  For all changed fields, remove the null character apply attributes (upper case, left/right justified),
+	//  and copy back to function pool
 	//  If END entered with pull down displayed, remove the pull down and clear ZVERB
 	//  If cursor on a point-and-shoot field (PS), set variable as in the )PNTS panel section if defined there
 	//  When copying to the function pool, change value as follows:
 	//      JUST(LEFT/RIGHT) leading and trailing spaces are removed
 	//      JUST(ASIS) Only trailing spaces are removed
+
+	//  For dynamic areas, also update the shadow variable to indicate character deletes (0xFF)
 
 	//  Clear error message if END pressed so panel is not re-displaed
 
@@ -301,13 +300,16 @@ void pPanel::display_panel_update( int & RC )
 	int scrollAmt   ;
 	int curpos      ;
 	int p           ;
+	int offset      ;
 
 	string CMDVerb  ;
 	string CMD      ;
 	string fieldNam ;
+	string sname    ;
 	string msgfld   ;
 
 	string * darea  ;
+	string * shadow ;
 
 	dataType var_type ;
 
@@ -333,6 +335,7 @@ void pPanel::display_panel_update( int & RC )
 	if ( scrollOn )
 	{
 		it = fieldList.find( "ZSCROLL" ) ;
+		it->second->field_remove_nulls() ;
 		it->second->field_value = upper( strip( it->second->field_value ) ) ;
 		if ( !isnumeric( it->second->field_value ) )
 		{
@@ -356,18 +359,19 @@ void pPanel::display_panel_update( int & RC )
 	{
 		if ( it->second->field_changed )
 		{
-			debug1( "field has changed " << it->first << endl ) ;
+			it->second->field_remove_nulls() ;
 			if ( !it->second->field_dynArea )
 			{
-				debug1( "Updating function pool " << it->first << ">>" << it->second->field_value << "<<" << endl ) ;
 				switch( it->second->field_just )
 				{
 					case 'L':
 					case 'R': it->second->field_value = strip( it->second->field_value, 'B', ' ' ) ; break ;
 					case 'A': it->second->field_value = strip( it->second->field_value, 'T', ' ' ) ; break ;
 				}
-				if ( it->second->field_caps ) it->second->field_value = upper( it->second->field_value ) ;
-				debug1( " (After applying attributes) " << it->first << ">>" << it->second->field_value << "<<" << endl ) ;
+				if ( it->second->field_caps )
+				{
+					it->second->field_value = upper( it->second->field_value ) ;
+				}
 				var_type = p_funcPOOL->getType( RC, it->first ) ;
 				if ( RC == 0 && var_type == INTEGER )
 				{
@@ -393,7 +397,15 @@ void pPanel::display_panel_update( int & RC )
 				fieldNam = it->first.substr( 0, p )        ;
 				fieldNum = ds2d( it->first.substr( p+1 ) ) ;
 				darea    = p_funcPOOL->vlocate( RC, 0, fieldNam ) ;
-				darea->replace( fieldNum*it->second->field_length, it->second->field_length, it->second->field_value ) ;
+				offset   = fieldNum*it->second->field_length      ;
+				if ( it->second->field_dynDataModsp )
+				{
+					it->second->field_DataMod_to_UserMod( darea, offset ) ;
+				}
+				darea->replace( offset, it->second->field_length, it->second->field_value ) ;
+				sname    = dynAreaList[ fieldNam ]->dynArea_shadow_name ;
+				shadow   = p_funcPOOL->vlocate( RC, 0, sname )   ;
+				shadow->replace( offset, it->second->field_length, it->second->field_shadow_value ) ;
 			}
 		}
 		if ( (it->second->field_row == p_row) && (p_col >=it->second->field_col) && (p_col < (it->second->field_col + it->second->field_length )) )
@@ -416,86 +428,78 @@ void pPanel::display_panel_update( int & RC )
 		}
 	}
 
-	if ( scrollOn )
+	p_poolMGR->put( RC, "ZSCROLLA", "",  SHARED ) ;
+	p_poolMGR->put( RC, "ZSCROLLN", "0", SHARED ) ;
+
+	if ( scrollOn && findword( CMDVerb, "UP DOWN LEFT RIGHT" ) )
 	{
-		p_poolMGR->put( RC, "ZSCROLLA", "",  SHARED ) ;
-		p_poolMGR->put( RC, "ZSCROLLN", "0", SHARED ) ;
-		CMD      = fieldList[ CMDfield ]->field_value ;
+		CMD      = upper( fieldList[ CMDfield ]->field_value ) ;
 		msgfld   = CMDfield ;
-		if ( CMD == "" )
+		if ( CMD == "" || ( !findword( CMD, "M MAX C CSR D DATA H HALF P PAGE" ) && !isnumeric( CMD ) ) )
 		{
-			CMD    = fieldList[ "ZSCROLL" ]->field_value ;
-			msgfld = "ZSCROLL" ;
+			CMD      = fieldList[ "ZSCROLL" ]->field_value ;
+			msgfld   = "ZSCROLL" ;
 		}
-		if ( findword( CMDVerb, "UP DOWN LEFT RIGHT" ) )
+		else
 		{
-			if      ( tb_model )                          { scrollAmt = tb_depth  ; }
-			else if ( findword( CMDVerb, "LEFT RIGHT" ) ) { scrollAmt = dyn_width ; }
-			else                                          { scrollAmt = dyn_depth ; }
-			if ( isnumeric( CMD ) )
+			fieldList[ CMDfield ]->field_value = "" ;
+			p_funcPOOL->put( RC, 0, CMDfield, "" )  ;
+		}
+		if      ( tb_model )                          { scrollAmt = tb_depth  ; }
+		else if ( findword( CMDVerb, "LEFT RIGHT" ) ) { scrollAmt = dyn_width ; }
+		else                                          { scrollAmt = dyn_depth ; }
+		if ( isnumeric( CMD ) )
+		{
+			if ( CMD.size() > 6 )
 			{
-				if ( CMD.size() > 6 )
-				{
-					MSGID  = "PSYS01I" ;
-					CURFLD = msgfld    ;
-				}
-				p_poolMGR->put( RC, "ZSCROLLA", CMD, SHARED ) ;
-				p_poolMGR->put( RC, "ZSCROLLN", CMD, SHARED ) ;
+				MSGID  = "PSYS01I" ;
+				CURFLD = msgfld    ;
+			}
+			p_poolMGR->put( RC, "ZSCROLLA", CMD, SHARED ) ;
+			p_poolMGR->put( RC, "ZSCROLLN", CMD, SHARED ) ;
+		}
+		else if ( CMD[ 0 ] == 'M' )
+		{
+			p_poolMGR->put( RC, "ZSCROLLA", "MAX", SHARED ) ;
+		}
+		else if ( CMD[ 0 ] == 'C' )
+		{
+			if ( fieldNum == 0 )
+			{
+				p_poolMGR->put( RC, "ZSCROLLN", d2ds( scrollAmt ),  SHARED ) ;
+			}
+			else if ( CMDVerb[ 0 ] == 'U' )
+			{
+				p_poolMGR->put( RC, "ZSCROLLN", d2ds( dyn_depth-fieldNum ), SHARED ) ;
+			}
+			else if ( CMDVerb[ 0 ] == 'D' )
+			{
+				p_poolMGR->put( RC, "ZSCROLLN", d2ds( fieldNum-1 ), SHARED ) ;
+			}
+			else if ( CMDVerb[ 0 ] == 'L' )
+			{
+				p_poolMGR->put( RC, "ZSCROLLN", d2ds( dyn_width-curpos ), SHARED ) ;
 			}
 			else
 			{
-				CMD = upper( CMD ) ;
-				if ( (CMD == "M") || (CMD == "MAX") )
-				{
-					p_poolMGR->put( RC, "ZSCROLLA", "MAX", SHARED ) ;
-				}
-				else
-				{
-					switch ( CMD[ 0 ] )
-					{
-					case 'C':
-						if ( fieldNum == 0 )
-						{
-							p_poolMGR->put( RC, "ZSCROLLN", d2ds( scrollAmt ),  SHARED ) ;
-						}
-						else if ( CMDVerb == "UP" )
-						{
-							p_poolMGR->put( RC, "ZSCROLLN", d2ds( dyn_depth-fieldNum ), SHARED ) ;
-						}
-						else if ( CMDVerb == "DOWN"  )
-						{
-							p_poolMGR->put( RC, "ZSCROLLN", d2ds( fieldNum-1 ), SHARED ) ;
-						}
-						else if ( CMDVerb == "LEFT"  )
-						{
-							p_poolMGR->put( RC, "ZSCROLLN", d2ds( dyn_width-curpos ), SHARED ) ;
-						}
-						else
-						{
-							p_poolMGR->put( RC, "ZSCROLLN", d2ds( curpos ), SHARED ) ;
-						}
-						p_poolMGR->put( RC, "ZSCROLLA", "CSR", SHARED ) ;
-						break ;
-					case 'D':
-						p_poolMGR->put( RC, "ZSCROLLN", d2ds( scrollAmt ), SHARED ) ;
-						p_poolMGR->put( RC, "ZSCROLLA", "DATA", SHARED ) ;
-						break ;
-					case 'H':
-						p_poolMGR->put( RC, "ZSCROLLN", d2ds( scrollAmt/2 ), SHARED ) ;
-						p_poolMGR->put( RC, "ZSCROLLA", "HALF", SHARED ) ;
-						break ;
-					case 'P':
-						p_poolMGR->put( RC, "ZSCROLLN", d2ds( scrollAmt ), SHARED ) ;
-						p_poolMGR->put( RC, "ZSCROLLA", "PAGE", SHARED ) ;
-						break ;
-					default:
-						MSGID  = "PSYS01I" ;
-						CURFLD = msgfld    ;
-					}
-				}
+				p_poolMGR->put( RC, "ZSCROLLN", d2ds( curpos ), SHARED ) ;
 			}
-			fieldList[ CMDfield ]->field_value = "" ;
-			p_funcPOOL->put( RC, 0, CMDfield, "" )  ;
+			p_poolMGR->put( RC, "ZSCROLLA", "CSR", SHARED ) ;
+		}
+		else if ( CMD[ 0 ] == 'D' )
+		{
+			p_poolMGR->put( RC, "ZSCROLLN", d2ds( scrollAmt ), SHARED ) ;
+			p_poolMGR->put( RC, "ZSCROLLA", "DATA", SHARED ) ;
+		}
+		else if ( CMD[ 0 ] == 'H' )
+		{
+			p_poolMGR->put( RC, "ZSCROLLN", d2ds( scrollAmt/2 ), SHARED ) ;
+			p_poolMGR->put( RC, "ZSCROLLA", "HALF", SHARED ) ;
+		}
+		else
+		{
+			p_poolMGR->put( RC, "ZSCROLLN", d2ds( scrollAmt ), SHARED ) ;
+			p_poolMGR->put( RC, "ZSCROLLA", "PAGE", SHARED ) ;
 		}
 	}
 	if ( findword( CMDVerb, "END EXIT RETURN" ) ) { MSGID = "" ; }
@@ -506,6 +510,7 @@ void pPanel::display_panel_update( int & RC )
 void pPanel::display_panel_init( int & RC )
 {
 	// Perform panel )INIT processing
+
 	// Set RC=8 from VGET/VPUT to 0 as it isn't an error in this case
 	// For table display fields, .ATTR applies to all fields but .CURSOR applies only to the top field, .0
 
@@ -669,22 +674,23 @@ void pPanel::display_panel_init( int & RC )
 void pPanel::display_panel_reinit( int & RC, int ln )
 {
 	// Perform panel )REINIT processing
+
 	// Set RC=8 from VGET/VPUT to 0 as it isn't an error in this case
 	// For table display fields, .ATTR and .CURSOR apply to fields on line ln
 
 	RC = 0 ;
 	int i  ;
-	int j ;
+	int j  ;
 	int ws ;
 	int i_vputget ;
 	int i_assign  ;
 
 	map<string, field *>::iterator it ;
 
-	i_vputget = 0  ;
-	i_assign  = 0  ;
+	i_vputget = 0 ;
+	i_assign  = 0 ;
 
-	string t ;
+	string t   ;
 	string val ;
 	string var ;
 	string vars ;
@@ -830,6 +836,7 @@ void pPanel::display_panel_reinit( int & RC, int ln )
 void pPanel::display_panel_proc( int & RC, int ln )
 {
 	//  Process )PROC statements
+
 	//  Set RC=8 from VGET/VPUT to 0 as it isn't an error in this case
 	//  For table display fields, .ATTR and .CURSOR apply to fields on line ln
 	//  If cursor on a point-and-shoot field (PS), set variable as in the )PNTS panel section if defined there
@@ -1332,7 +1339,6 @@ void pPanel::create_tbfield( int col, int length, cuaType cuaFT, string name, st
 		return  ;
 	}
 
-	debug2( "Adding tb field name >>" << name << "<< " << endl ) ;
 	tb_fields = tb_fields + " " + name ;
 
 	for ( int i = 0 ; i < tb_depth ; i++ )
@@ -1389,7 +1395,7 @@ void pPanel::create_pdc( string abc_name, string pdc_name, string pdc_run, strin
 void pPanel::update_field_values( int & RC )
 {
 	// Update field_values from the dialogue variables (may not exist so treat RC=8 from getDialogueVar as normal completion)
-	//
+
 	// Apply just(right|left|asis) to non-dynamic area input/output fields
 	//     JUST(LEFT)  strip off leading and trailing spaces
 	//     JUST(RIGHT) strip off trailing spaces only and pad to the left with spaces to size field_length
@@ -1405,7 +1411,7 @@ void pPanel::update_field_values( int & RC )
 	map<string, dynArea *>::iterator it2 ;
 
 	RC = 0 ;
-	debug1( "Updating field values from dialogue variables (normal search order)" << endl ) ;
+
 	for ( it1 = fieldList.begin() ; it1 != fieldList.end() ; it1++ )
 	{
 		if ( !it1->second->field_dynArea )
@@ -1416,7 +1422,7 @@ void pPanel::update_field_values( int & RC )
 				case 'L': it1->second->field_value = strip( it1->second->field_value, 'B', ' ' ) ;
 					  break ;
 				case 'R': it1->second->field_value = strip( it1->second->field_value, 'T', ' ' ) ;
-					  it1->second->field_value = right( it1->second->field_value, it1->second->field_length, ' ' ) ;
+					  it1->second->field_value = right( it1->second->field_value, it1->second->field_length, 0x00 ) ;
 					  break ;
 			}
 		}
@@ -1437,8 +1443,8 @@ void pPanel::update_field_values( int & RC )
 			log( "W", "Data variable size   = " << darea->size() << endl ) ;
 			log( "W", "Shadow variable size = " << shadow->size() << endl ) ;
 		}
-		darea->resize( it2->second->dynArea_width * it2->second->dynArea_depth, ' ' )  ;
-		shadow->resize( it2->second->dynArea_width * it2->second->dynArea_depth, ' ' ) ;
+		darea->resize( it2->second->dynArea_width * it2->second->dynArea_depth, ' ' )   ;
+		shadow->resize( it2->second->dynArea_width * it2->second->dynArea_depth, 0xFF ) ;
 		for ( int i = 0 ; i < it2->second->dynArea_depth ; i++ )
 		{
 			fieldList[ it2->first + "." + d2ds( i )]->field_value        = darea->substr( i * it2->second->dynArea_width, it2->second->dynArea_width )  ;
@@ -1451,7 +1457,6 @@ void pPanel::update_field_values( int & RC )
 void pPanel::display_literals()
 {
 	RC = 0 ;
-	debug2( "Displaying literals " << endl ) ;
 
 	for ( uint i = 0 ; i < literalList.size() ; i++ )
 	{
@@ -1462,13 +1467,14 @@ void pPanel::display_literals()
 
 void pPanel::display_fields()
 {
-	debug2( "Displaying active fields (from field values only) " << endl ) ;
 	map<string, field *>::iterator it;
+
+	bool snulls = ( p_poolMGR->get( RC, "ZNULLS", SHARED ) == "YES" ) ;
 
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
 		if ( !it->second->field_active ) { continue ; }
-		it->second->display_field( win ) ;
+		it->second->display_field( win, snulls ) ;
 	}
 }
 
@@ -1565,31 +1571,37 @@ void pPanel::get_home( uint & row, uint & col )
 
 string pPanel::field_getvalue( string f_name )
 {
-	return  fieldList[ f_name ]->field_value ;
+	fieldList[ f_name ]->field_remove_nulls() ;
+	return  fieldList[ f_name ]->field_value  ;
 }
 
 
 void pPanel::field_setvalue( string f_name, string f_value )
 {
+	bool snulls = ( p_poolMGR->get( RC, "ZNULLS", SHARED ) == "YES" ) ;
+
 	if ( f_value.size() > fieldList[ f_name ]->field_length ) { f_value.substr( 0, f_value.size() - 1 ) ; }
 	fieldList[ f_name ]->field_value   = f_value ;
 	fieldList[ f_name ]->field_changed = true    ;
-	fieldList[ f_name ]->display_field( win )    ;
+	fieldList[ f_name ]->display_field( win, snulls ) ;
 }
 
 
 string pPanel::cmd_getvalue()
 {
-	return fieldList[ CMDfield ]->field_value ;
+	fieldList[ CMDfield ]->field_remove_nulls() ;
+	return fieldList[ CMDfield ]->field_value   ;
 }
 
 
 void pPanel::cmd_setvalue( string f_value )
 {
+	bool snulls = ( p_poolMGR->get( RC, "ZNULLS", SHARED ) == "YES" ) ;
+
 	if ( f_value.size() > fieldList[ CMDfield ]->field_length ) { f_value.substr( 0, f_value.size() - 1 ) ; }
 	fieldList[ CMDfield ]->field_value   = f_value ;
 	fieldList[ CMDfield ]->field_changed = true    ;
-	fieldList[ CMDfield ]->display_field( win )    ;
+	fieldList[ CMDfield ]->display_field( win, snulls ) ;
 }
 
 
@@ -1660,6 +1672,8 @@ void pPanel::field_edit( uint row, uint col, char ch, bool Isrt, bool & prot )
 
 	map<string, field *>::iterator it;
 
+	bool snulls = ( p_poolMGR->get( RC, "ZNULLS", SHARED ) == "YES" ) ;
+
 	row   = row - win_row ;
 	col   = col - win_col ;
 	p_row = row ;
@@ -1674,7 +1688,7 @@ void pPanel::field_edit( uint row, uint col, char ch, bool Isrt, bool & prot )
 			if (  it->second->field_numeric && ch != ' ' && !isdigit( ch ) ) { return ; }
 			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( col ) ) { return ; }
-			if ( !it->second->edit_field_insert( win, ch, col, Isrt ) ) { return ; }
+			if ( !it->second->edit_field_insert( win, ch, col, Isrt, snulls ) ) { return ; }
 			prot = false ;
 			++p_col ;
 			if ( (p_col == it->second->field_col + it->second->field_length) & (it->second->field_skip) )
@@ -1696,6 +1710,7 @@ void pPanel::field_backspace( uint & row, uint & col, bool & prot )
 	uint trow ;
 	uint tcol ;
 
+	bool snulls = ( p_poolMGR->get( RC, "ZNULLS", SHARED ) == "YES" ) ;
 	map<string, field *>::iterator it;
 
 	trow = row - win_row ;
@@ -1709,7 +1724,7 @@ void pPanel::field_backspace( uint & row, uint & col, bool & prot )
 			if ( !it->second->field_active ) { return ; }
 			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( tcol ) ) { return ; }
-			tcol = fieldList[ it->first ]->edit_field_backspace( win, tcol ) ;
+			tcol = fieldList[ it->first ]->edit_field_backspace( win, tcol, snulls ) ;
 			prot = false ;
 			row  = trow + win_row ;
 			col  = tcol + win_col ;
@@ -1730,6 +1745,7 @@ void pPanel::field_delete_char( uint row, uint col, bool & prot )
 
 	map<string, field *>::iterator it ;
 
+	bool snulls = ( p_poolMGR->get( RC, "ZNULLS", SHARED ) == "YES" ) ;
 	trow = row - win_row ;
 	tcol = col - win_col ;
 
@@ -1741,7 +1757,7 @@ void pPanel::field_delete_char( uint row, uint col, bool & prot )
 			if ( !it->second->field_active ) { return ; }
 			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( tcol ) ) { return ; }
-			fieldList[ it->first ]->edit_field_delete( win, tcol ) ;
+			fieldList[ it->first ]->edit_field_delete( win, tcol, snulls ) ;
 			prot = false ;
 			row  = trow + win_row ;
 			col  = tcol + win_col ;
@@ -1758,6 +1774,7 @@ void pPanel::field_erase_eof( uint row, uint col, bool & prot )
 
 	map<string, field *>::iterator it;
 
+	bool snulls = ( p_poolMGR->get( RC, "ZNULLS", SHARED ) == "YES" ) ;
 	row = row - win_row ;
 	col = col - win_col ;
 
@@ -1769,7 +1786,7 @@ void pPanel::field_erase_eof( uint row, uint col, bool & prot )
 			if ( !it->second->field_active ) { return ; }
 			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( col ) ) { return ; }
-			fieldList[ it->first ]->field_erase_eof( win, col ) ;
+			fieldList[ it->first ]->field_erase_eof( win, col, snulls ) ;
 			prot = false ;
 			wrefresh( win ) ;
 			return ;
@@ -1865,10 +1882,10 @@ void pPanel::field_tab_next( uint & row, uint & col )
 	uint m_offset ;
 	uint c_offset ;
 	uint d_offset ;
-	uint o_row    ;
-	uint o_col    ;
-	uint trow    ;
-	uint tcol    ;
+	uint o_row ;
+	uint o_col ;
+	uint trow  ;
+	uint tcol  ;
 
 	trow = row - win_row ;
 	tcol = col - win_col ;

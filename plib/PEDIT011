@@ -17,19 +17,22 @@ field    7   18       MAX     NEF  NONE ZFILE
 field    10   2   1   CEF     PAD('_') EEDIRLST
 literal  10   4       SAC    "Show directory list if valid directory entered"
 
-field    12   2   1   CEF     PAD('_') EESTSPC
-literal  12   4       SAC    "Strip trailing spaces and tabs on file save"
+field    11   2   1   CEF     PAD('_') EENEWFLS
+literal  11   4       SAC    "Allow edit of new files"
 
-field    13   2   1   CEF     PAD('_') EETABSS
-literal  13   4       SAC    "Convert tabs to spaces on EDIT entry"
-field    14   2   1   CEF     PAD('_') EETABCC
-literal  14   4       SAC    "Convert spaces back to tabs on file save"
+field    13   2   1   CEF     PAD('_') EEPRSPS
+literal  13   4       SAC    "Preserve trailing spaces on file save"
+
+field    14   2   1   CEF     PAD('_') EETABSS
+literal  14   4       SAC    "Convert tabs to spaces on EDIT entry"
+field    15   2   1   CEF     PAD('_') EETABCC
+literal  15   4       SAC    "Convert spaces back to tabs on file save"
 
 
-literal 17 2  CH "Instructions"
-literal 18 2  NT "Enter file name and press"
-literal 18 28 ET "ENTER"
-literal 18 34 NT "to edit file"
+literal 18 2  CH "Instructions"
+literal 19 2  NT "Enter file name and press"
+literal 19 28 ET "ENTER"
+literal 19 34 NT "to edit file"
 
 
 )INCLUDE STD_PDC
@@ -41,7 +44,7 @@ literal 18 34 NT "to edit file"
 .NRET  = ON
 .NRET  = ZFILE
 &ZFILE = &Z
-VGET (ZFILE EETABCC EETABSS EESTSPC EEDIRLST) PROFILE
+VGET (ZFILE EETABCC EETABSS EEPRSPS EEDIRLST EENEWFLS) PROFILE
 
 )PROC
 if ( &ZCMD1 NE &Z)
@@ -52,8 +55,9 @@ if ( &ZCMD1 NE &Z)
 VER (&ZFILE NB)
 VER (&EETABSS  LIST /)
 VER (&EETABCC  LIST /)
-VER (&EESTSPC  LIST /)
+VER (&EEPRSPS  LIST /)
 VER (&EEDIRLST LIST /)
+VER (&EENEWFLS LIST /)
 
 &SHOWDIR = NO
 
@@ -66,19 +70,21 @@ IF ( &EEDIRLST NE '/' )
      .MSG    = PEDT01T
      EXIT
   IF ( &ISFILE EQ .FALSE )
-     .CURSOR = ZFILE
-     .MSG    = PEDT01R
-     EXIT
+     IF ( &EENEWFLS NE '/' )
+        .CURSOR = ZFILE
+        .MSG    = PEDT01R
+        EXIT
 ELSE
   IF ( &ISFILE EQ .FALSE )
-     IF ( &ISDIR EQ .FALSE )
-        .CURSOR = ZFILE
-        .MSG    = PEDT01S
-        EXIT
-     ELSE
+     IF ( &ISDIR NE .FALSE )
         &SHOWDIR = YES
+     ELSE
+        IF ( &EENEWFLS NE '/' )
+           .CURSOR = ZFILE
+           .MSG    = PEDT01S
+           EXIT
 
-VPUT (ZFILE EETABCC EETABSS EESTSPC EEDIRLST) PROFILE
+VPUT (ZFILE EETABCC EETABSS EEPRSPS EEDIRLST EENEWFLS) PROFILE
 
 )FIELD
 FIELD(ZFILE) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL)')
