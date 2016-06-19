@@ -4,31 +4,31 @@
 )ENDCOMMENT
 )BODY
 
-PanelTitle   "Lspf/Application Log Viewer"
+PanelTitle   "lspf/Application Log Viewer"
 scrollOn
 
-literal   4    2   FP    "Command ===> "    
-field     4   15   MAX-17  NEF  NONE  ZCMD    
+literal   4    2   FP    "Command ===> "
+field     4   15   MAX-17  NEF  NONE  ZCMD
 
-literal   4  MAX-15    FP  "SCROLL ===> "     
-field     4  MAX-3    4   NEF  NONE  ZSCROLL    
+literal   4  MAX-15    FP  "SCROLL ===> "
+field     4  MAX-3    4   NEF  NONE  ZSCROLL
 
-literal   6    2    FP  "Current log:"    
-field     6   15    11  VOI   NONE  LOGTYPE    
+literal   6    2    FP  "Current log:"
+field     6   15    11  VOI   NONE  LOGTYPE
 
-literal   7    2    FP  "Log file location:"    
-field     7   21    MAX  VOI   NONE  LOGLOC    
+literal   7    2    FP  "Log file location:"
+field     7   21    MAX  VOI   NONE  LOGLOC
 
 literal   3   MAX-37      FP  "COL"
 field     3   MAX-33    7 VOI  NONE ZCOL1
 
-literal   3   MAX-25        FP  "LINE "     
-field     3   MAX-20    8   VOI   NONE  ZROW1    
+literal   3   MAX-25        FP  "LINE "
+field     3   MAX-20    8   VOI   NONE  ZROW1
 
-literal   3   MAX-11    FP  "OF"     
-field     3   MAX-8     8   VOI   NONE  ZROW2 
+literal   3   MAX-11    FP  "OF"
+field     3   MAX-8     8   VOI   NONE  ZROW2
 
-field     8   2  MAX   FP  NONE  HEADER    
+field     8   2  MAX   FP  NONE  HEADER
 
 dynArea  9  2  MAX MAX ZAREA ZSHADOW
 

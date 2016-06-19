@@ -1259,7 +1259,7 @@ void pPanel::display_panel_proc( int & RC, int ln )
 			}
 			else if ( verList.at( i_verify ).ver_hex )
 			{
-				if ( !isvalidHex( it->second->field_value ) )
+				if ( !ishex( it->second->field_value ) )
 				{
 					MSGID  = verList.at( i_verify ).ver_msgid  ;
 					if (MSGID == "" ) { MSGID = "PSYS01H" ; }

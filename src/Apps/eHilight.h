@@ -36,6 +36,8 @@ class hilight
 } ;
 
 void addCppHilight( hilight &, const string &, string & ) ;
-
-void addNoHilight( hilight &, const string &, string & ) ;
+void addASMHilight( hilight &, const string &, string & ) ;
+void addRxxHilight( hilight &, const string &, string & ) ;
+void addDefHilight( hilight &, const string &, string & ) ;
+void addNoHilight(  hilight &, const string &, string & ) ;
 

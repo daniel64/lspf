@@ -79,7 +79,9 @@ class field
 				field_dynUserMod   = ' '      ;
 				field_dynDataMod   = ' '      ;
 				field_dynField     = ""       ;
+				field_dynField.reserve( 4 )   ;
 				field_dynFieldIn   = ""       ;
+				field_dynFieldIn.reserve( 3 ) ;
 				field_tb           = false    ;
 				field_scrollable   = false    ;
 				field_scroll_start = 1        ;

@@ -16,13 +16,9 @@ field 4   15  MAX-17     NEF PAD('_') ZCMD
 literal   4   MAX-15     FP  "SCROLL ===> "
 field     4   MAX-3   4  NEF  NONE  ZSCROLL
 
-literal   3   MAX-37     FP  "COL"
-field     3   MAX-33  7  VOI  NONE ZCOL1
-
-literal   3   MAX-25     FP  "LINE"
-literal   3   MAX-11     FP  "OF"
-field     3   MAX-20  8  VOI  NONE ZROW1
-field     3   MAX-8   8  VOI  NONE ZROW2
+literal   3   MAX-18     FP  "Columns"
+field     3   MAX-10  5  VOI  NONE ZCOL1
+field     3   MAX-4   5  VOI  NONE ZCOL2
 
 dynArea   5 1 MAX MAX ZAREA ZSHADOW DATAIN(01) DATAOUT(02) USERMOD(03) DATAMOD(04)
 

@@ -610,26 +610,29 @@ string bs2xs( string s )
 	l = s.length() % 8 ;
 	if ( l > 0 ) { s = string( 8-l, '0' ) + s ; }
 
+	reslt.clear()        ;
+	reslt.reserve( l/4 ) ;
+
 	for ( i = 0 ; i < s.length() ; i += 4 )
 	{
 		t = s.substr( i, 4 ) ;
-		if      ( t == "0000" ) { reslt = reslt + '0' ; }
-		else if ( t == "0001" ) { reslt = reslt + '1' ; }
-		else if ( t == "0010" ) { reslt = reslt + '2' ; }
-		else if ( t == "0011" ) { reslt = reslt + '3' ; }
-		else if ( t == "0100" ) { reslt = reslt + '4' ; }
-		else if ( t == "0101" ) { reslt = reslt + '5' ; }
-		else if ( t == "0110" ) { reslt = reslt + '6' ; }
-		else if ( t == "0111" ) { reslt = reslt + '7' ; }
-		else if ( t == "1000" ) { reslt = reslt + '8' ; }
-		else if ( t == "1001" ) { reslt = reslt + '9' ; }
-		else if ( t == "1010" ) { reslt = reslt + 'A' ; }
-		else if ( t == "1011" ) { reslt = reslt + 'B' ; }
-		else if ( t == "1100" ) { reslt = reslt + 'C' ; }
-		else if ( t == "1101" ) { reslt = reslt + 'D' ; }
-		else if ( t == "1110" ) { reslt = reslt + 'E' ; }
-		else if ( t == "1111" ) { reslt = reslt + 'F' ; }
-		else                    { continue            ; }
+		if      ( t == "0000" ) { reslt.push_back( '0' ) ; }
+		else if ( t == "0001" ) { reslt.push_back( '1' ) ; }
+		else if ( t == "0010" ) { reslt.push_back( '2' ) ; }
+		else if ( t == "0011" ) { reslt.push_back( '3' ) ; }
+		else if ( t == "0100" ) { reslt.push_back( '4' ) ; }
+		else if ( t == "0101" ) { reslt.push_back( '5' ) ; }
+		else if ( t == "0110" ) { reslt.push_back( '6' ) ; }
+		else if ( t == "0111" ) { reslt.push_back( '7' ) ; }
+		else if ( t == "1000" ) { reslt.push_back( '8' ) ; }
+		else if ( t == "1001" ) { reslt.push_back( '9' ) ; }
+		else if ( t == "1010" ) { reslt.push_back( 'A' ) ; }
+		else if ( t == "1011" ) { reslt.push_back( 'B' ) ; }
+		else if ( t == "1100" ) { reslt.push_back( 'C' ) ; }
+		else if ( t == "1101" ) { reslt.push_back( 'D' ) ; }
+		else if ( t == "1110" ) { reslt.push_back( 'E' ) ; }
+		else if ( t == "1111" ) { reslt.push_back( 'F' ) ; }
+		else                    { continue               ; }
 	}
 	return reslt ;
 }
@@ -754,38 +757,40 @@ int ds2d( const string & s )
 
 string xs2bs( const string & s )
 {
-	int i          ;
-	string res("") ;
+	int i ;
+	string reslt("") ;
+
+	reslt.reserve( 4*s.size() ) ;
 
 	for ( i = 0 ; i < s.size() ; i++ )
 	{
 		switch ( s[ i ] )
 		{
-			case '0': res = res + "0000" ; break ;
-			case '1': res = res + "0001" ; break ;
-			case '2': res = res + "0010" ; break ;
-			case '3': res = res + "0011" ; break ;
-			case '4': res = res + "0100" ; break ;
-			case '5': res = res + "0101" ; break ;
-			case '6': res = res + "0110" ; break ;
-			case '7': res = res + "0111" ; break ;
-			case '8': res = res + "1000" ; break ;
-			case '9': res = res + "1001" ; break ;
+			case '0': reslt += "0000" ; break ;
+			case '1': reslt += "0001" ; break ;
+			case '2': reslt += "0010" ; break ;
+			case '3': reslt += "0011" ; break ;
+			case '4': reslt += "0100" ; break ;
+			case '5': reslt += "0101" ; break ;
+			case '6': reslt += "0110" ; break ;
+			case '7': reslt += "0111" ; break ;
+			case '8': reslt += "1000" ; break ;
+			case '9': reslt += "1001" ; break ;
 			case 'a':
-			case 'A': res = res + "1010" ; break ;
+			case 'A': reslt += "1010" ; break ;
 			case 'b':
-			case 'B': res = res + "1011" ; break ;
+			case 'B': reslt += "1011" ; break ;
 			case 'c':
-			case 'C': res = res + "1100" ; break ;
+			case 'C': reslt += "1100" ; break ;
 			case 'd':
-			case 'D': res = res + "1101" ; break ;
+			case 'D': reslt += "1101" ; break ;
 			case 'e':
-			case 'E': res = res + "1110" ; break ;
+			case 'E': reslt += "1110" ; break ;
 			case 'f':
-			case 'F': res = res + "1111" ; break ;
+			case 'F': reslt += "1111" ; break ;
 		}
 	}
-	return res ;
+	return reslt ;
 }
 
 
@@ -797,6 +802,7 @@ string xs2cs( const string & s )
 	int k ;
 
 	string reslt("") ;
+	reslt.reserve( s.size()/2 ) ;
 
 	for ( i = 0 ; i < s.size() ; i++ )
 	{
@@ -825,7 +831,7 @@ string xs2cs( const string & s )
 			case 'f':
 			case 'F': j = 15 ; break ;
 		}
-		if ( ( i % 2 ) == 1 )  { reslt = reslt + string( 1, k*16 + j ) ; }
+		if ( ( i % 2 ) == 1 )  { reslt += string( 1, k*16 + j ) ; }
 		k = j ;
 	}
 	return reslt ;
@@ -1071,7 +1077,7 @@ bool isvalidName4( const string & s )
 }
 
 
-bool isvalidHex( const string & s )
+bool ishex( const string & s )
 {
 	unsigned int l = s.length() ;
 

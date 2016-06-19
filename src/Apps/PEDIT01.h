@@ -175,11 +175,11 @@ class idata
 class ipos
 {
 	public:
-		int    ipos_line ;
+		uint   ipos_dl   ;
 		int    ipos_URID ;
 		ipos()
 		{
-			ipos_line = 0 ;
+			ipos_dl   = 0 ;
 			ipos_URID = 0 ;
 		}
 	friend class PEDIT01 ;
@@ -189,42 +189,44 @@ class ipos
 class ipline
 {
 	private:
-		bool   ip_file  ;
-		bool   ip_note  ;
-		bool   ip_prof  ;
-		bool   ip_col   ;
-		bool   ip_bnds  ;
-		bool   ip_mask  ;
-		bool   ip_tabs  ;
-		bool   ip_excl  ;
-		bool   ip_hex   ;
-		bool   ip_chg   ;
-		bool   ip_error ;
-		bool   ip_undo  ;
-		bool   ip_redo  ;
-		bool   ip_msg   ;
-		bool   ip_info  ;
-		bool   ip_nisrt ;
-		string ip_data  ;
+		bool   ip_file   ;
+		bool   ip_note   ;
+		bool   ip_prof   ;
+		bool   ip_col    ;
+		bool   ip_bnds   ;
+		bool   ip_mask   ;
+		bool   ip_tabs   ;
+		bool   ip_excl   ;
+		bool   ip_hex    ;
+		bool   ip_chg    ;
+		bool   ip_error  ;
+		bool   ip_undo   ;
+		bool   ip_redo   ;
+		bool   ip_msg    ;
+		bool   ip_info   ;
+		bool   ip_nisrt  ;
+		int    ip_profln ;
+		string ip_data   ;
 		ipline()
 		{
-			ip_file  = false ;
-			ip_note  = false ;
-			ip_prof  = false ;
-			ip_col   = false ;
-			ip_bnds  = false ;
-			ip_mask  = false ;
-			ip_tabs  = false ;
-			ip_excl  = false ;
-			ip_hex   = false ;
-			ip_chg   = false ;
-			ip_error = false ;
-			ip_undo  = false ;
-			ip_redo  = false ;
-			ip_msg   = false ;
-			ip_info  = false ;
-			ip_nisrt = false ;
-			ip_data  = ""    ;
+			ip_file   = false ;
+			ip_note   = false ;
+			ip_prof   = false ;
+			ip_col    = false ;
+			ip_bnds   = false ;
+			ip_mask   = false ;
+			ip_tabs   = false ;
+			ip_excl   = false ;
+			ip_hex    = false ;
+			ip_chg    = false ;
+			ip_error  = false ;
+			ip_undo   = false ;
+			ip_redo   = false ;
+			ip_msg    = false ;
+			ip_info   = false ;
+			ip_nisrt  = false ;
+			ip_profln = 0     ;
+			ip_data   = ""    ;
 		}
 
 	friend class PEDIT01 ;
@@ -261,6 +263,7 @@ class iline
 		bool   il_nisrt   ;
 		string il_label   ;
 		string il_lcc     ;
+		int    il_profln  ;
 		int    il_rept    ;
 		int    il_URID    ;
 		int    il_taskid  ;
@@ -294,6 +297,7 @@ class iline
 			il_label   = ""     ;
 			il_lcc     = ""     ;
 			il_rept    = 0      ;
+			il_profln  = 0      ;
 			il_taskid  = taskid ;
 			il_URID    = ++maxURID[ taskid ] ;
 			il_Shadow  = ""     ;
@@ -741,6 +745,8 @@ class PEDIT01 : public pApplication
 		uint getPrevDataFileLine( uint ) ;
 
 		void cleanupData()        ;
+		void updateProfLines( vector<string> & ) ;
+		void buildProfLines( vector<string> & )  ;
 		void removeProfLines()    ;
 		void removeSpecialLines() ;
 		void processNISRTlines()  ;
@@ -789,7 +795,8 @@ class PEDIT01 : public pApplication
 		bool   lshiftData( int, string, string & ) ;
 		bool   textSplitData( string, string &, string & ) ;
 
-		void compareFiles( string ) ;
+		void   compareFiles( string ) ;
+		string determineLang()   ;
 
 		uint topLine             ;
 		int  startCol            ;
@@ -820,13 +827,15 @@ class PEDIT01 : public pApplication
 		bool   profLock          ;
 		bool   profCaps          ;
 		bool   profHex           ;
-		bool   profSTabs         ;
-		bool   profHTabs         ;
+		bool   profTabs          ;
+		bool   profATabs         ;
 		bool   profXTabs         ;
 		int    profXTabz         ;
 		bool   profRecover       ;
 		bool   profHilight       ;
 		string profLang          ;
+
+		string detLang           ;
 
 		bool stripST             ;
 		bool convTabs            ;
@@ -869,9 +878,8 @@ class PEDIT01 : public pApplication
 		string OCMD    ;
 
 		string ZFILE   ;
-		string ZROW1   ;
-		string ZROW2   ;
 		string ZCOL1   ;
+		string ZCOL2   ;
 		string ZAREA   ;
 		string ZSHADOW ;
 		string ZAREAT  ;
@@ -1096,7 +1104,7 @@ class PEDIT01 : public pApplication
 
 		const string BLKcmds   = "CC DD MM HXX LCC MDD MNN OO OOK RR TJJ TRR TXX XX WW UCC (( )) << >>" ;
 		const string SPLcmds   = "A AK B BK C CC COLS D DD F I L M MM MD MDD MN MNN R RR S SI TX TXX X XX XI" ;
-		const string TODcmds   = "A COLS BNDS I MASK TABS" ;
+		const string TODcmds   = "A I" ;
 		const string BODcmds   = "B COLS BNDS MASK TABS" ;
 		const string ABOKReq   = "C CC M MM" ;
 		const string Chkdist   = "C D M HX LC MD MN O OK TJ TR UC TX W X" ;

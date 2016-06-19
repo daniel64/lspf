@@ -159,10 +159,10 @@ void PEDIT01::initialise()
 {
 	control( "ABENDRTN", static_cast<void (pApplication::*)()>(&PEDIT01::cleanup_custom) ) ;
 
-	vdefine( "ZCMD  ZVERB   ZROW1  ZROW2", &ZCMD, &ZVERB, &ZROW1, &ZROW2 ) ;
+	vdefine( "ZCMD  ZVERB", &ZCMD, &ZVERB ) ;
 	vdefine( "ZAREA ZSHADOW ZAREAT ZFILE", &ZAREA, &ZSHADOW, &ZAREAT, &ZFILE ) ;
 	vdefine( "ZSCROLLN ZAREAW ZAREAD", &ZSCROLLN, &ZAREAW, &ZAREAD ) ;
-	vdefine( "ZSCROLLA ZCOL1", &ZSCROLLA, &ZCOL1 ) ;
+	vdefine( "ZSCROLLA ZCOL1 ZCOL2", &ZSCROLLA, &ZCOL1, &ZCOL2 ) ;
 	vdefine( "ZAPPLID  ZEDPROF ZHOME", &ZAPPLID, &ZEDPROF, &ZHOME ) ;
 	vdefine( "TYPE STR OCC LINES", &TYPE, &STR, &OCC, &LINES ) ;
 	vdefine( "EETABCC EETABSS EEPRSPS", &EETABCC, &EETABSS, &EEPRSPS ) ;
@@ -201,11 +201,11 @@ void PEDIT01::initialise()
 
 	clipBoard = "DEFAULT"  ;
 	clipTable = "EDITCLIP" ;
+	ZAHELP    = "HEDIT01"  ;
 
 	maxURID[ taskid() ] = 0 ;
 	abendRecovery = false ;
 
-	ZAHELP = "HEDIT01" ;
 }
 
 
@@ -240,9 +240,8 @@ void PEDIT01::Edit()
 		else if ( rebuildShadow ) { ZSHADOW = CSHADOW   ; }
 		rebuildShadow = false ;
 
-		ZROW1 = right( d2ds( topLine ), 8, '0' )    ;
-		ZROW2 = right( d2ds( data.size() - 2 ), 8, '0' ) ;
-		ZCOL1 = right( d2ds( startCol ), 7, '0' )     ;
+		ZCOL1 = right( d2ds( startCol ), 5, '0' ) ;
+		ZCOL2 = right( d2ds( startCol+ZDATAW-1 ), 5, '0' ) ;
 		if ( MSG == "" )
 		{
 			if ( OCMD.compare( 0, 1, "&" ) == 0 ) { ZCMD = OCMD ; }
@@ -319,6 +318,7 @@ void PEDIT01::Edit()
 			if ( !saveFile() ) { continue ; }
 			ZCMD = ""  ;
 		}
+
 		if ( termEdit && ( MSG == "" || MSG == "PEDT01P" ) )
 		{
 			if ( termOK() ) { break    ; }
@@ -427,18 +427,21 @@ void PEDIT01::readFile()
 	data.clear() ;
 	maxURID[ taskid() ] = 0 ;
 
-	if ( !exists( ZFILE ) )
+	Notes.push_back( "-WARNING- Editor under construction.  Save files at your own risk" ) ;
+	Notes.push_back( "" ) ;
+
+	if ( !exists( fname ) )
 	{
 		p_iline          = new iline( taskid() ) ;
 		p_iline->il_tod  = true   ;
 		p_iline->put_idata( centre( " TOP OF DATA ", ZAREAW, '*' ), 0 ) ;
 		data.push_back( p_iline ) ;
-		for ( i = 0 ; i < ZAREAD-2 ; i++ )
+		for ( i = 0 ; i < ZAREAD-4 ; i++ )
 		{
 			p_iline = new iline( taskid() ) ;
 			p_iline->il_file  = true ;
 			p_iline->il_nisrt = true ;
-			p_iline->put_idata( maskLine ) ;
+			p_iline->put_idata( "" ) ;
 			data.push_back( p_iline ) ;
 		}
 		p_iline = new iline( taskid() ) ;
@@ -449,6 +452,7 @@ void PEDIT01::readFile()
 		data[ 0 ]->clear_Global_Undo() ;
 		data[ 0 ]->clear_Global_File_level() ;
 		EditList[ ZFILE ] = true ;
+		addSpecial( 'N', topLine, Notes ) ;
 		saveLevel = 0 ;
 		return        ;
 	}
@@ -498,9 +502,6 @@ void PEDIT01::readFile()
 	data.push_back( p_iline )    ;
 	fin.close() ;
 
-	Notes.push_back( "-WARNING- Editor under construction.  Save files at your own risk" ) ;
-	Notes.push_back( "" ) ;
-
 	if ( tabsOnRead && !profXTabs )
 	{
 		Notes.push_back( "-WARNING- Tabs have been detected and converted to spaces" ) ;
@@ -533,6 +534,10 @@ void PEDIT01::readFile()
 	data[ 0 ]->clear_Global_File_level() ;
 	saveLevel = 0 ;
 	EditList[ ZFILE ] = true ;
+	if ( profHilight && profLang == "AUTO" )
+	{
+		detLang = determineLang() ;
+	}
 }
 
 
@@ -607,6 +612,7 @@ void PEDIT01::fill_dynamic_area()
 	// ie. after fill_dynamic_area until the end of procedure processNISRTlines()
 
 	int i   ;
+	int j   ;
 	int l   ;
 	int ln  ;
 	int t   ;
@@ -639,6 +645,9 @@ void PEDIT01::fill_dynamic_area()
 	ZAREA   = "" ;
 	ZSHADOW = "" ;
 
+	ZAREA.reserve( ZASIZE ) ;
+	ZSHADOW.reserve( ZASIZE ) ;
+
 	s2data.clear() ;
 	sl = 0         ;
 
@@ -652,8 +661,8 @@ void PEDIT01::fill_dynamic_area()
 		if ( data.at( dl )->il_file )    { fl++     ; }
 		if ( data.at( dl )->il_excl )
 		{
-			elines       = getExBlockSize( dl ) ;
-			ip.ipos_line = dl ;
+			elines     = getExBlockSize( dl ) ;
+			ip.ipos_dl = dl ;
 			ip.ipos_URID = data.at( dl )->il_URID ;
 			s2data.at( sl ) = ip ;
 			tmp1 = copies( "-  ", (ZAREAW - 30)/3 - 2 ) + d2ds( elines ) + " Line(s) Not Displayed" ;
@@ -749,8 +758,8 @@ void PEDIT01::fill_dynamic_area()
 				ZSHADOW += slw + sdg  ;
 				ZSHADOW += slw + sdg  ;
 				ZSHADOW += slw + sdw  ;
-				ip.ipos_line  = dl ;
-				ip.ipos_URID  = data.at( dl )->il_URID ;
+				ip.ipos_dl   = dl ;
+				ip.ipos_URID = data.at( dl )->il_URID ;
 				s2data.at( sl ) = ip ;
 				sl              = sl + 4 ;
 			}
@@ -778,8 +787,8 @@ void PEDIT01::fill_dynamic_area()
 				}
 				if ( data.at( dl )->il_nisrt ) { ZSHADOW += sdyh ; }
 				else                           { ZSHADOW += sdy  ; }
-				ip.ipos_line     = dl ;
-				ip.ipos_URID     = data.at( dl )->il_URID ;
+				ip.ipos_dl      = dl ;
+				ip.ipos_URID    = data.at( dl )->il_URID ;
 				s2data.at( sl ) = ip ;
 				sl++ ;
 			}
@@ -812,6 +821,21 @@ void PEDIT01::fill_dynamic_area()
 				ZAREA   += din + lcc + din + substr( data.at( dl )->get_idata(), startCol, ZDATAW ) ;
 				ZSHADOW += sdr ;
 			}
+			else if ( data.at( dl )->il_prof )
+			{
+				l  = ZSHADOW.size()  ;
+				j  = profLang.size() ;
+				t1 = data.at( dl )->get_idata() ;
+				ZAREA   += din + lcc + dout + substr( t1, 1, ZDATAW ) ;
+				ZSHADOW += sdw ;
+				if ( profHilight && profLang != "AUTO" )
+				{
+					if ( data.at( dl )->il_profln == 3 )
+					{
+						ZSHADOW.replace( t1.find( "HILIGHT " )+l+8, j, j, N_RED ) ;
+					}
+				}
+			}
 			else if ( data.at( dl )->il_tabs )
 			{
 				data.at( dl )->put_idata( tabsLine ) ;
@@ -830,7 +854,7 @@ void PEDIT01::fill_dynamic_area()
 					ZSHADOW += sdw ;
 				}
 			}
-			ip.ipos_line = dl ;
+			ip.ipos_dl   = dl ;
 			ip.ipos_URID = data.at( dl )->il_URID ;
 			s2data.at( sl ) = ip ;
 			sl++ ;
@@ -884,11 +908,11 @@ void PEDIT01::fill_hilight_shadow()
 
 	string ZTEMP ;
 
-	hlight.hl_language = profLang ;
+	hlight.hl_language = detLang ;
 
 	for ( i = ZAREAD-1 ; i >= 0 ; i-- )
 	{
-		ll = s2data.at( i ).ipos_line ;
+		ll = s2data.at( i ).ipos_dl ;
 		if ( ll > 0 ) { break ; }
 	}
 
@@ -918,7 +942,7 @@ void PEDIT01::fill_hilight_shadow()
 	}
 	for ( i = 0 ; i < ZAREAD ; i++ )
 	{
-		l = s2data.at( i ).ipos_line ;
+		l = s2data.at( i ).ipos_dl ;
 		if ( !data.at( l )->il_file || data.at( l )->il_excl )  { continue ; }
 		ZTEMP = data.at( l )->il_Shadow ;
 		if ( startCol > 1 ) { ZTEMP.erase( 0, startCol-1 ) ; }
@@ -957,7 +981,7 @@ void PEDIT01::getZAREAchanges()
 
 	for ( i = 0 ; i < ZAREAD ; i++ )
 	{
-		dl            = s2data.at( i ).ipos_line ;
+		dl            = s2data.at( i ).ipos_dl ;
 		off           = i * ZAREAW  ;
 		sTouched[ i ] = false       ;
 		sChanged[ i ] = false       ;
@@ -1062,7 +1086,7 @@ void PEDIT01::updateData()
 	for ( i = 0 ; i < ZAREAD ; i++ )
 	{
 		if ( s2data.at( i ).ipos_URID == 0 ) { continue ; }
-		dl = s2data.at( i ).ipos_line ;
+		dl = s2data.at( i ).ipos_dl ;
 		if ( !data.at( dl )->il_nisrt && !sChanged[ i ] ) { continue ; }
 		if (  data.at( dl )->il_nisrt && !sChanged[ i ] && !sTouched[ i ] ) { continue ; }
 		if (  data.at( dl )->il_bnds )
@@ -1181,7 +1205,7 @@ void PEDIT01::processNISRTlines()
 	for ( i = ZAREAD-1 ; i >= 0 ; i-- )
 	{
 		if ( s2data.at( i ).ipos_URID == 0 ) { continue ; }
-		dl = s2data.at( i ).ipos_line ;
+		dl = s2data.at( i ).ipos_dl ;
 		if ( !data.at( dl )->il_nisrt ) { continue ; }
 		if ( !sTouched[ i ] && !sChanged[ i ] )
 		{
@@ -1265,7 +1289,7 @@ void PEDIT01::actionPrimCommand1()
 	else if ( w1[ 0 ] == ':' && ZCMD.size() < 8 )
 	{
 		if ( aURID == 0 ) { MSG = "PEDT012X" ; return ; }
-		dl = s2data.at( aRow-1 ).ipos_line ;
+		dl = s2data.at( aRow-1 ).ipos_dl ;
 		if ( data.at( dl )->il_lcc != "" ) { MSG = "PEDT012Y" ; return ; }
 		data.at( dl )->il_lcc = upper( ZCMD.substr( 1 ) ) ;
 		ZCMD         = ""   ;
@@ -1559,19 +1583,21 @@ void PEDIT01::actionPrimCommand2()
 	switch ( PrimCMDS[ w1 ] )
 	{
 	case PC_AUTOSAVE:
-			if ( ws > 3 ) { MSG = "PEDT011" ; return ; }
 			if ( w2 == "ON" || w2 == "" )
 			{
 				if ( ws > 2 ) { MSG = "PEDT011" ; return ; }
 				profASave = true  ;
 			}
-			else if ( w2 == "OFF" )
+			else
 			{
-				if ( w3 == "PROMPT" || w3 == "" )
+				if ( ws > 3 ) { MSG = "PEDT011" ; return ; }
+				if ( w2 == "OFF" ) { w2 = w3                  ; }
+				else if ( ws > 2 ) { MSG = "PEDT011" ; return ; }
+				if ( w2 == "PROMPT" || w2 == "" )
 				{
 					profSaveP = true ;
 				}
-				else if ( w3 == "NOPROMPT" )
+				else if ( w2 == "NOPROMPT" )
 				{
 					profSaveP = false ;
 					MSG = "PEDT013I"  ;
@@ -1583,11 +1609,8 @@ void PEDIT01::actionPrimCommand2()
 				}
 				profASave = false ;
 			}
-			else
-			{
-				MSG = "PEDT011" ;
-				return          ;
-			}
+			buildProfLines( Prof )  ;
+			updateProfLines( Prof ) ;
 			break ;
 
 	case PC_BOUNDS:
@@ -1611,6 +1634,8 @@ void PEDIT01::actionPrimCommand2()
 			if      ( w2 == "ON" || ws == 1 ) { profCaps = true  ; }
 			else if ( w2 == "OFF" )           { profCaps = false ; }
 			else { MSG = "PEDT011" ; return ; }
+			buildProfLines( Prof )  ;
+			updateProfLines( Prof ) ;
 			break ;
 
 	case PC_CHANGE:
@@ -1834,27 +1859,39 @@ void PEDIT01::actionPrimCommand2()
 				rebuildZAREA = true  ;
 			}
 			else { MSG = "PEDT011" ; return ; }
+			buildProfLines( Prof )  ;
+			updateProfLines( Prof ) ;
 			break ;
 
 	case PC_HILIGHT:
-			if ( ws > 3 ) { MSG = "PEDT011" ; return ; }
-			if ( w2 == "ON" )
+			if ( w2 == "OFF" )
 			{
-				if ( ws == 3 )
-				{
-					if ( !addHilight( w3 ) ) { MSG = "PEDT012Q" ; return ; }
-					else                     { profLang = w3             ; }
-				}
-				else { profLang = "AUTO" ; }
-				profHilight  = true ;
-				rebuildZAREA = true ;
-			}
-			else if ( w2 == "OFF" )
-			{
+				if ( ws > 2 ) { MSG = "PEDT011" ; return ; }
 				profHilight  = false ;
 				rebuildZAREA = true ;
 			}
-			else { MSG = "PEDT011" ; return ; }
+			else
+			{
+				if ( ws > 3 ) { MSG = "PEDT011" ; return ; }
+				if ( w2 == "ON" )  { w2 = w3                  ; }
+				else if ( ws > 2 ) { MSG = "PEDT011" ; return ; }
+				if ( w2 != "" && w2 != "AUTO" )
+				{
+					if ( !addHilight( w2 ) ) { MSG = "PEDT012Q" ; return ; }
+					profLang = w2 ;
+					detLang  = w2 ;
+				}
+				else
+				{
+					profLang = "AUTO" ;
+					detLang  = determineLang() ;
+				}
+				for_each( data.begin(), data.end(), [](iline * & a) { a->il_vShadow = false ; } ) ;
+				profHilight  = true ;
+				rebuildZAREA = true ;
+			}
+			buildProfLines( Prof )  ;
+			updateProfLines( Prof ) ;
 			break ;
 
 	case PC_LOCATE:
@@ -1918,23 +1955,31 @@ void PEDIT01::actionPrimCommand2()
 			break ;
 
 	case PC_NULLS:
-			if ( ws > 3 ) { MSG = "PEDT011" ; return ; }
-			if ( w2 == "" || (w2 == "ON" && ( w3 == "" || w3 == "STD" ) ) )
+			if ( w2 == "OFF" )
 			{
-				profNulls = true  ;
-				profNulla = false ;
-			}
-			else if ( w2 == "ON" && w3 == "ALL" )
-			{
-				profNulls = true  ;
-				profNulla = true  ;
-			}
-			else if ( w2 == "OFF" && w3 == "" )
-			{
+				if ( ws > 2 ) { MSG = "PEDT011" ; return ; }
 				profNulla = false ;
 				profNulls = false ;
 			}
-			else { MSG = "PEDT011" ; return ; }
+			else
+			{
+				if ( ws > 3 ) { MSG = "PEDT011" ; return ; }
+				if ( w2 == "ON" )  { w2 = w3                  ; }
+				else if ( ws > 2 ) { MSG = "PEDT011" ; return ; }
+				if ( w2 == "STD" || w2 == "" )
+				{
+					profNulls = true  ;
+					profNulla = false ;
+				}
+				else if ( w2 == "ALL" )
+				{
+					profNulls = true  ;
+					profNulla = true  ;
+				}
+				else { MSG = "PEDT011" ; return ; }
+			}
+			buildProfLines( Prof )  ;
+			updateProfLines( Prof ) ;
 			rebuildZAREA = true ;
 			break ;
 
@@ -1949,38 +1994,15 @@ void PEDIT01::actionPrimCommand2()
 				sPreserve = false ;
 			}
 			else { MSG = "PEDT011" ; return ; }
+			buildProfLines( Prof )  ;
+			updateProfLines( Prof ) ;
 			break ;
 
 	case PC_PROFILE:
 			if ( ws == 1 )
 			{
 				removeProfLines() ;
-				t1  = "...."  ;
-				t1 += ZEDPROF ;
-				t1 += "....UNDO "+ OnOff[ undoON ] ;
-				t1 += "....AUTOSAVE "+ OnOff[ profASave ] ;
-				if ( !profASave ) { profSaveP ? t1 += " PROMPT" : t1 += " NOPROMPT" ; }
-				t1 += "....NUM OFF" ;
-				t1 += "....CAPS "+OnOff[ profCaps ] ;
-				Prof.push_back( left( t1, ZDATAW, '.') ) ;
-
-				t1  = "....HEX "+ OnOff[ profHex ] ;
-				t1 += "....NULLS " ;
-				if ( profNulls ) { t1 += "ON"  ; profNulla ? t1 += " ALL" : t1 += " STD" ; }
-				else             { t1 += "OFF" ; }
-				t1 += "....XTABS "+ OnOff[ profXTabs ] ;
-				t1 += "....TAB SIZE "+ d2ds(profXTabz) ;
-				Prof.push_back( left( t1, ZDATAW, '.' ) ) ;
-
-				t1  = "....SOFTWARE TABS "+ OnOff[ profSTabs ] ;
-				t1 += "....HARDWARE TABS "+ OnOff[ profHTabs ] ;
-				Prof.push_back( left( t1, ZDATAW, '.' ) ) ;
-
-				t1  = "....RECOVER "+ OnOff[ profRecover ]+" PATH "+ recoverLoc ;
-				t1 += "....HILIGHT "+ OnOff[ profHilight ]+" "+profLang ;
-				profLock ? t1 += "....PROFILE LOCK" : t1 += "....PROFILE UNLOCK" ;
-				Prof.push_back( left( t1, ZDATAW, '.' ) ) ;
-
+				buildProfLines( Prof ) ;
 				addSpecial( 'P', topLine, Prof ) ;
 				rebuildZAREA = true  ;
 			}
@@ -1997,33 +2019,40 @@ void PEDIT01::actionPrimCommand2()
 			{
 				saveEditProfile( ZEDPROF ) ;
 				getEditProfile( w2 ) ;
+				for_each( data.begin(), data.end(), [](iline * & a) { a->il_vShadow = false ; } ) ;
+				rebuildZAREA = true ;
 			}
 			else    { MSG = "PEDT011" ; return ; }
+			buildProfLines( Prof )  ;
+			updateProfLines( Prof ) ;
 			break ;
 
 	case PC_RECOVERY:
-			if ( w2 == "PATH" )
+			if ( w2 == "OFF" )
 			{
-				recoverLoc = subword( ZCMD, 3 ) ;
-				if ( recoverLoc.back() != '/' ) { recoverLoc += '/' ; }
+				if ( ws > 2 ) { MSG = "PEDT011" ; return ; }
+				profRecover  = false ;
 			}
-			else if ( w2 == "ON" || ws == 1 )
+			else
 			{
-				if ( w3 == "PATH" )
+				if ( ws > 4 ) { MSG = "PEDT011" ; return ; }
+				if ( w2 == "ON" )  { w2 = w3 ; w3 = w4 ; }
+				else if ( ws > 3 ) { MSG = "PEDT011" ; return ; }
+				if ( w2 == "" )
 				{
-					recoverLoc = subword( ZCMD, 3 ) ;
+					profRecover = true ;
+				}
+				else if ( w2 == "PATH" )
+				{
+					if ( w3 == "" ) { MSG = "PEDT011" ; return ; }
+					recoverLoc  = w3 ;
+					profRecover = true ;
 					if ( recoverLoc.back() != '/' ) { recoverLoc += '/' ; }
 				}
-				else if ( w3 != "" ) { MSG = "PEDT011" ; return ; }
-				profRecover  = true ;
-				rebuildZAREA = true ;
+				else { MSG = "PEDT011" ; return ; }
 			}
-			else if ( w2 == "OFF" && w3 == "" )
-			{
-				profRecover  = false ;
-				rebuildZAREA = true ;
-			}
-			else { MSG = "PEDT011" ; return ; }
+			buildProfLines( Prof )  ;
+			updateProfLines( Prof ) ;
 			break ;
 
 	case PC_REDO:
@@ -2065,6 +2094,8 @@ void PEDIT01::actionPrimCommand2()
 				rebuildZAREA = true  ;
 			}
 			else { MSG = "PEDT011" ; return ; }
+			buildProfLines( Prof )  ;
+			updateProfLines( Prof ) ;
 			break ;
 
 	case PC_SORT:
@@ -2164,35 +2195,35 @@ void PEDIT01::actionPrimCommand2()
 			break ;
 
 	case PC_TABS:
-			if ( ws > 3 ) { MSG = "PEDT011" ; return ; }
-			else if ( w2 == "ON" )
+			if ( w2 == "OFF" )
 			{
-				if ( w3 == "ALL" )
+				if ( ws > 2 ) { MSG = "PEDT011" ; return ; }
+				profTabs  = false ;
+				profATabs = false ;
+			}
+			else
+			{
+				if ( ws > 3 ) { MSG = "PEDT011" ; return ; }
+				if ( w2 == "ON" )  { w2 = w3                  ; }
+				else if ( ws > 2 ) { MSG = "PEDT011" ; return ; }
+				if ( w2 == "STD" || w2 == "" )
 				{
-					profSTabs = true ;
-					profHTabs = true ;
+					profTabs  = true  ;
+					profATabs = false ;
 				}
-				else if ( w3 == "STD" || w3 == "" )
+				else if ( w2 == "ALL" )
 				{
-					profSTabs = true ;
-					profHTabs = true ;
+					profTabs  = true ;
+					profATabs = true ;
 				}
-				else if ( w3.size() == 1 )
+				else if ( w2.size() == 1 )
 				{
-					tabsChar = w3[ 0 ] ;
+					tabsChar = w2[ 0 ] ;
 				}
 				else { MSG = "PEDT011" ; return ; }
 			}
-			else if ( w2 == "OFF" )
-			{
-				if ( w3 == "" )
-				{
-					profSTabs = false ;
-					profHTabs = false ;
-				}
-				else { MSG = "PEDT011" ; return ; }
-			}
-			else { MSG = "PEDT011" ; return ; }
+			buildProfLines( Prof )  ;
+			updateProfLines( Prof ) ;
 			break ;
 
 	case PC_UNDO:
@@ -2225,6 +2256,8 @@ void PEDIT01::actionPrimCommand2()
 				profXTabz = ds2d( w2 ) ;
 			}
 			else { MSG = "PEDT011" ; return ; }
+			buildProfLines( Prof )  ;
+			updateProfLines( Prof ) ;
 			break ;
 	}
 	ZCMD = "" ;
@@ -2786,7 +2819,7 @@ void PEDIT01::actionLineCommand( vector<icmd>::iterator itc )
 				il_its++ ;
 				if (  (*il_its)->il_bod )     { break    ; }
 				if (  (*il_its)->il_deleted ) { continue ; }
-				if ( !(*il_its)->il_file )    { continue ; }
+				if ( !(*il_its)->il_file )    { (*il_its)->il_excl = true ; continue ; }
 				k = (*il_its)->get_idata().find_first_not_of( ' ' ) ;
 				if ( k != string::npos && k < j ) { break ; }
 				(*il_its)->il_excl = true ;
@@ -3129,7 +3162,7 @@ void PEDIT01::actionZVERB()
 	}
 	else if ( aRow > 0 && s2data.at( aRow-1 ).ipos_URID > 0 )
 	{
-		if ( profSTabs && tabsLine != "" && getTabLocation( p1 ) )
+		if ( profTabs && tabsLine != "" && getTabLocation( p1 ) )
 		{
 			if ( p1 > aCol+startCol-CLINESZ-2 )
 			{
@@ -3138,8 +3171,25 @@ void PEDIT01::actionZVERB()
 			}
 			else
 			{
-				t = getNextDataLine( s2data.at( aRow-1 ).ipos_line ) ;
-				placeCursor( t, 4, p1 ) ;
+				if ( aRow == ZAREAD )
+				{
+					if ( data.at( topLine )->il_excl ) { topLine = getLastEX( topLine ) ; }
+					topLine = getNextDataLine( topLine ) ;
+					row     = aRow ;
+					placeCursor( row, 4, p1 ) ;
+					rebuildZAREA = true ;
+				}
+				else
+				{
+					row = aRow + 1 ;
+					dl  = s2data.at( aRow ).ipos_dl ;
+					if ( data.at( dl )->il_bod || dl == 0 )
+					{
+						placeCursor( 0, 0 ) ;
+						return ;
+					}
+					placeCursor( row, 4, p1 ) ;
+				 }
 			}
 		}
 		else
@@ -3155,9 +3205,9 @@ void PEDIT01::actionZVERB()
 			else
 			{
 				row = aRow + 1 ;
-				dl  = s2data.at( aRow-1 ).ipos_line ;
+				dl  = s2data.at( aRow-1 ).ipos_dl ;
 				p1  = data.at( dl )->get_idata().find_first_not_of( ' ', startCol-1 ) ;
-				dl  = s2data.at( aRow ).ipos_line ;
+				dl  = s2data.at( aRow ).ipos_dl ;
 				if ( data.at( dl )->il_bod || dl == 0 )
 				{
 					placeCursor( 0, 0 ) ;
@@ -3855,7 +3905,7 @@ bool PEDIT01::setFindChangeExcl( char type )
 
 	if ( t.fcx_hex )
 	{
-		if ( !isvalidHex( t.fcx_string ) )  { MSG = "PEDT01K" ; return false ; }
+		if ( !ishex( t.fcx_string ) )  { MSG = "PEDT01K" ; return false ; }
 		t.fcx_string = xs2cs( t.fcx_string ) ;
 		t.fcx_asis   = true                  ;
 	}
@@ -4090,7 +4140,7 @@ void PEDIT01::actionFind()
 	else if ( find_parms.fcx_dir == 'A' ) { dl = 1 ; }
 	else if ( find_parms.fcx_dir == 'L' ) { dl = data.size()-2 ; }
 	else if ( aRow == 0 )                 { dl = topLine       ; }
-	else                                  { dl = s2data.at( aRow-1 ).ipos_line ; }
+	else                                  { dl = s2data.at( aRow-1 ).ipos_dl ; }
 
 	if ( find_parms.fcx_slab != "" )
 	{
@@ -4460,7 +4510,7 @@ void PEDIT01::positionCursor()
 			break ;
 		case 3:
 			CURFLD = "ZAREA" ;
-			dl = s2data.at( screenLine ).ipos_line ;
+			dl = s2data.at( screenLine ).ipos_dl ;
 			p  = data.at( dl )->get_idata().find_first_not_of( ' ', startCol-1 ) ;
 			p  = (p != string::npos) ? p + CLINESZ + 2 - startCol : CLINESZ + 1 ;
 			CURPOS = ZAREAW * screenLine + p ;
@@ -5039,36 +5089,38 @@ string PEDIT01::overlay( string s1, string s2, bool & success )
 void PEDIT01::copyPrefix( ipline & d, iline * & s )
 {
 	// Don't copy file line status (changed, error, undo and redo)
-	d.ip_file  = s->il_file  ;
-	d.ip_note  = s->il_note  ;
-	d.ip_prof  = s->il_prof  ;
-	d.ip_col   = s->il_col   ;
-	d.ip_bnds  = s->il_bnds  ;
-	d.ip_mask  = s->il_mask  ;
-	d.ip_tabs  = s->il_tabs  ;
-	d.ip_info  = s->il_info  ;
-	d.ip_excl  = s->il_excl  ;
-	d.ip_hex   = s->il_hex   ;
-	d.ip_msg   = s->il_msg   ;
-	d.ip_nisrt = s->il_nisrt ;
+	d.ip_file   = s->il_file   ;
+	d.ip_note   = s->il_note   ;
+	d.ip_prof   = s->il_prof   ;
+	d.ip_col    = s->il_col    ;
+	d.ip_bnds   = s->il_bnds   ;
+	d.ip_mask   = s->il_mask   ;
+	d.ip_tabs   = s->il_tabs   ;
+	d.ip_info   = s->il_info   ;
+	d.ip_excl   = s->il_excl   ;
+	d.ip_hex    = s->il_hex    ;
+	d.ip_msg    = s->il_msg    ;
+	d.ip_nisrt  = s->il_nisrt  ;
+	d.ip_profln = s->il_profln ;
 }
 
 
 void PEDIT01::copyPrefix( iline * & d, ipline & s )
 {
 	// Don't copy file line status (changed, error, undo and redo)
-	d->il_file  = s.ip_file  ;
-	d->il_note  = s.ip_note  ;
-	d->il_prof  = s.ip_prof  ;
-	d->il_col   = s.ip_col   ;
-	d->il_bnds  = s.ip_bnds  ;
-	d->il_mask  = s.ip_mask  ;
-	d->il_tabs  = s.ip_tabs  ;
-	d->il_info  = s.ip_info  ;
-	d->il_excl  = s.ip_excl  ;
-	d->il_hex   = s.ip_hex   ;
-	d->il_msg   = s.ip_msg   ;
-	d->il_nisrt = s.ip_nisrt ;
+	d->il_file   = s.ip_file   ;
+	d->il_note   = s.ip_note   ;
+	d->il_prof   = s.ip_prof   ;
+	d->il_col    = s.ip_col    ;
+	d->il_bnds   = s.ip_bnds   ;
+	d->il_mask   = s.ip_mask   ;
+	d->il_tabs   = s.ip_tabs   ;
+	d->il_info   = s.ip_info   ;
+	d->il_excl   = s.ip_excl   ;
+	d->il_hex    = s.ip_hex    ;
+	d->il_msg    = s.ip_msg    ;
+	d->il_nisrt  = s.ip_nisrt  ;
+	d->il_profln = s.ip_profln ;
 }
 
 
@@ -5080,7 +5132,8 @@ void PEDIT01::addSpecial( char t, int p, vector<string> & s )
 	iline * p_iline ;
 
 	it = data.begin() ;
-	advance( it, p+1 )  ;
+	if ( p == 0 ) { p = 1 ; }
+	advance( it, p ) ;
 	for ( i = 0 ; i < s.size() ; i++ )
 	{
 		p_iline = new iline( taskid() ) ;
@@ -5089,7 +5142,8 @@ void PEDIT01::addSpecial( char t, int p, vector<string> & s )
 			case 'I': p_iline->il_info = true ; break ;
 			case 'M': p_iline->il_msg  = true ; break ;
 			case 'N': p_iline->il_note = true ; break ;
-			case 'P': p_iline->il_prof = true ; break ;
+			case 'P': p_iline->il_profln = i  ;
+				  p_iline->il_prof = true ; break ;
 		}
 		p_iline->put_idata( s.at( i ) ) ;
 		it = data.insert( it, p_iline ) ;
@@ -5105,7 +5159,8 @@ void PEDIT01::addSpecial( char t, int p, string & s )
 	iline * p_iline ;
 
 	it = data.begin()  ;
-	advance( it, p+1 ) ;
+	if ( p == 0 ) { p = 1 ; }
+	advance( it, p ) ;
 	p_iline = new iline( taskid() ) ;
 	switch ( t )
 	{
@@ -5116,6 +5171,61 @@ void PEDIT01::addSpecial( char t, int p, string & s )
 	p_iline->put_idata( s, 0 ) ;
 	it = data.insert( it, p_iline ) ;
 	rebuildZAREA = true ;
+}
+
+
+void PEDIT01::buildProfLines( vector<string> & Prof )
+{
+	string t ;
+
+	Prof.clear()  ;
+
+	t  = "...."  ;
+	t += ZEDPROF ;
+	t += "....UNDO "+ OnOff[ undoON ] ;
+	t += "....AUTOSAVE "+ OnOff[ profASave ] ;
+	if ( !profASave ) { profSaveP ? t += " PROMPT" : t += " NOPROMPT" ; }
+	t += "....NUM OFF" ;
+	t += "....CAPS "+OnOff[ profCaps ] ;
+	Prof.push_back( left( t, ZDATAW, '.') ) ;
+
+	t  = "....HEX "+ OnOff[ profHex ] ;
+	t += "....NULLS " ;
+	if ( profNulls ) { t += "ON"  ; profNulla ? t += " ALL" : t += " STD" ; }
+	else             { t += "OFF" ; }
+	t += "....XTABS "+ OnOff[ profXTabs ] ;
+	t += "....TAB SIZE "+ d2ds(profXTabz) ;
+	Prof.push_back( left( t, ZDATAW, '.' ) ) ;
+
+	t  = "....TABS "+ OnOff[ profTabs  ] ;
+	if ( profTabs ) { profATabs ? t += " ALL" : t += " STD" ; }
+	t += "....RECOVER "+ OnOff[ profRecover ]+" PATH "+ recoverLoc ;
+	Prof.push_back( left( t, ZDATAW, '.' ) ) ;
+
+	t  = "....HILIGHT " ;
+	if ( profHilight )
+	{
+		(profLang == "AUTO") ? t += detLang : t += profLang ;
+	}
+	else
+	{
+		t += "OFF" ;
+	}
+	profLock ? t += "....PROFILE LOCK" : t += "....PROFILE UNLOCK" ;
+	Prof.push_back( left( t, ZDATAW, '.' ) ) ;
+}
+
+
+void PEDIT01::updateProfLines( vector<string> & Prof )
+{
+	vector<iline * >::iterator it ;
+
+	for ( it = data.begin() ; it != data.end() ; it++ )
+	{
+		if ( !(*it)->il_prof ) { continue ; }
+		(*it)->put_idata( Prof[ (*it)->il_profln ] ) ;
+		rebuildZAREA = true ;
+	}
 }
 
 
@@ -5859,8 +5969,8 @@ void PEDIT01::getEditProfile( string prof )
 
 	// ZEDPFLAG :
 	//      [0]: Profile locked if '1'                                    [8]:  Hilight On if '1'
-	//      [1]: Autosave On if '1'                                       [9]:  Logical tabs On if '1'
-	//      [2]: Nulls on if '1'                                          [10]: Hardware tabs On if '1'
+	//      [1]: Autosave On if '1'                                       [9]:  Tabs On if '1'
+	//      [2]: Nulls on if '1'                                          [10]: Tabs On All if '1' (else STD)
 	//      [3]: Caps On if '1'                                           [11]: Autosave PROMPT/NOPROMPT
 	//      [4]: Hex On if '1'                                            [12]: Nulls STD if '0', ALL if '1'
 	//      [5]: File Tabs (if '1', convert from spaces -> tabs on save)
@@ -5918,8 +6028,8 @@ void PEDIT01::getEditProfile( string prof )
 	profRecover = ( ZEDPFLAG[6]  == '1' ) ;
 	undoON      = ( ZEDPFLAG[7]  == '1' ) ;
 	profHilight = ( ZEDPFLAG[8]  == '1' ) ;
-	profSTabs   = ( ZEDPFLAG[9]  == '1' ) ;
-	profHTabs   = ( ZEDPFLAG[10] == '1' ) ;
+	profTabs    = ( ZEDPFLAG[9]  == '1' ) ;
+	profATabs   = ( ZEDPFLAG[10] == '1' ) ;
 	profSaveP   = ( ZEDPFLAG[11] == '1' ) ;
 	profNulla   = ( ZEDPFLAG[12] == '1' ) ;
 	maskLine    = ZEDPMASK         ;
@@ -5932,6 +6042,15 @@ void PEDIT01::getEditProfile( string prof )
 	profLang    = ZEDPHLLG         ;
 	vdelete( v_list ) ;
 	vdelete( "ZEDPTYPE ZEDPHLLG" ) ;
+
+	if ( profHilight && profLang == "AUTO" && data.size() > 0 )
+	{
+		detLang = determineLang() ;
+	}
+	else
+	{
+		detLang = profLang ;
+	}
 
 	ZEDPROF = prof ;
 	vput( "ZEDPROF", PROFILE ) ;
@@ -5948,8 +6067,8 @@ void PEDIT01::saveEditProfile( string prof )
 
 	// ZEDPFLAG :
 	//      [0]: Profile locked    [8]:  Hilight On
-	//      [1]: Save              [9]:  Logical Tabs On
-	//      [2]: Nulls             [10]: Hardware Tabs On
+	//      [1]: Autosave          [9]:  Tabs On
+	//      [2]: Nulls             [10]: Tabs On All (else STD)
 	//      [3]: Caps              [11]: Autosave PROMPT
 	//      [4]: Hex               [12]: Nulls are STD if off, ALL if on
 	//      [5]: File Tabs
@@ -5993,8 +6112,8 @@ void PEDIT01::saveEditProfile( string prof )
 		ZEDPFLAG[6]  = ZeroOne[ profRecover ] ;
 		ZEDPFLAG[7]  = ZeroOne[ undoON      ] ;
 		ZEDPFLAG[8]  = ZeroOne[ profHilight ] ;
-		ZEDPFLAG[9]  = ZeroOne[ profSTabs   ] ;
-		ZEDPFLAG[10] = ZeroOne[ profHTabs   ] ;
+		ZEDPFLAG[9]  = ZeroOne[ profTabs    ] ;
+		ZEDPFLAG[10] = ZeroOne[ profATabs   ] ;
 		ZEDPFLAG[11] = ZeroOne[ profSaveP   ] ;
 		ZEDPFLAG[12] = ZeroOne[ profNulla   ] ;
 		ZEDPMASK     = maskLine ;
@@ -6144,6 +6263,52 @@ void PEDIT01::createEditProfile( string tabName, string prof )
 
 	tbadd( tabName )  ;
 	if ( RC > 0 ) { abend() ; }
+}
+
+
+string PEDIT01::determineLang()
+{
+	// Try to determine the language, first from the extension, then the contents of the file
+	// Limit the scan to the first 100 lines of code
+
+	int p ;
+	int i ;
+
+	string s ;
+	string t ;
+	string w ;
+
+	vector<iline * >::iterator it ;
+
+	p = ZFILE.find_last_of( '.' ) ;
+	if ( p != string::npos )
+	{
+		s = ZFILE.substr( p+1 ) ;
+		if ( findword( s, "c cpp h hpp" ) ) { return "CPP"  ; }
+		if ( findword( s, "rex rexx"    ) ) { return "REXX" ; }
+	}
+
+	for ( i = 0, it = data.begin() ; it != data.end() ; it++ )
+	{
+		if ( !(*it)->il_file    ||
+		      (*it)->il_deleted ) { continue ; }
+		t = (*it)->get_idata() ;
+		if ( t.size() == 0 ) { continue       ; }
+		if ( t[ 0 ] == '*' ) { return "ASM"   ; }
+		if ( t[ 0 ] == ')' ) { return "PANEL" ; }
+		w = word( t, 1 ) ;
+		if ( wordpos( w, "TITLE CSECT DSECT MACRO START COPY" ) )
+		{
+			return "ASM"  ;
+		}
+		if ( i == 0 && t.find( "rexx" ) != string::npos )
+		{
+			return "REXX" ;
+		}
+		if ( w == "/*"    )  { return "CPP" ; }
+		if ( ++i > 100 ) { break ; }
+	}
+	return "DEFAULT" ;
 }
 
 

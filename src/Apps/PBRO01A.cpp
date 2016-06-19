@@ -909,7 +909,7 @@ int PBRO01A::setFind()
 
 	if ( t.f_hex )
 	{
-		if ( !isvalidHex( t.f_string ) )  { MSG = "PBRO01K" ; return 20 ; }
+		if ( !ishex( t.f_string ) )  { MSG = "PBRO01K" ; return 20 ; }
 		t.f_string = xs2cs( t.f_string ) ;
 		t.f_asis   = true                ;
 	}
