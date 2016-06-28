@@ -94,6 +94,8 @@ class PBRO01A : public pApplication
 		int  setFind()              ;
 		void actionFind( int, int ) ;
 
+		string determineLang( string ) ;
+
 		int topLine  ;
 		int maxLines ;
 		int startCol, maxCol    ;
@@ -114,8 +116,8 @@ class PBRO01A : public pApplication
 		string MSG     ;
 		string CMD     ;
 		string ZROW1   ;
-		string ZROW2   ;
 		string ZCOL1   ;
+		string ZCOL2   ;
 		string ZAREA   ;
 		string ZSHADOW ;
 		string CSHADOW ;
@@ -131,4 +133,6 @@ class PBRO01A : public pApplication
 		string LINES ;
 
 		string fileType ;
+		string detLang  ;
+		string entLang  ;
 };

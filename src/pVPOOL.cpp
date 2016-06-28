@@ -282,6 +282,8 @@ string fPOOL::vilist( int & RC, vdType defn )
 	string vl ;
 	map<string, stack< fVAR> >::iterator it ;
 
+	vl.reserve( 9*POOL.size() ) ;
+
 	RC = 8 ;
 	for ( it = POOL.begin() ; it != POOL.end() ; it++ )
 	{
@@ -295,8 +297,8 @@ string fPOOL::vilist( int & RC, vdType defn )
 		{
 			if ( defn == DEFINED  ) { continue ; }
 		}
-		vl = vl + " " + it->first ;
-		RC = 0 ;
+		vl += " " + it->first ;
+		RC  = 0 ;
 	}
 	return vl ;
 }
@@ -306,6 +308,8 @@ string fPOOL::vslist( int & RC, vdType defn )
 {
 	string vl ;
 	map<string, stack< fVAR> >::iterator it ;
+
+	vl.reserve( 9*POOL.size() ) ;
 
 	RC = 8 ;
 	for ( it = POOL.begin() ; it != POOL.end() ; it++ )
@@ -320,8 +324,8 @@ string fPOOL::vslist( int & RC, vdType defn )
 		{
 			if ( defn == DEFINED  ) { continue ; }
 		}
-		vl = vl + " " + it->first ;
-		RC = 0 ;
+		vl += " " + it->first ;
+		RC  = 0 ;
 	}
 	return vl ;
 }
@@ -1084,9 +1088,10 @@ string poolMGR::vlist( int & RC, poolType pType, int lvl )
 		RC = 20   ;
 		return "" ;
 	}
+	vlist.reserve( 9*p_it->second.POOL.size() ) ;
 	for ( v_it = p_it->second.POOL.begin() ; v_it != p_it->second.POOL.end() ; v_it++ )
 	{
-		vlist = vlist + " " + v_it->first ;
+		vlist += " " + v_it->first ;
 	}
 	return vlist ;
 }

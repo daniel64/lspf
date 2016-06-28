@@ -247,3 +247,6 @@ PEDT013N "Tabs found in file" .TYPE=W
 PEDT013O "Data shifted" .TYPE=W
 "Data shifted from beyond the right margin"
 
+PEDT013P "MOVE/COPY is pending" .TYPE=W
+"Enter A, B, O or W line command"
+

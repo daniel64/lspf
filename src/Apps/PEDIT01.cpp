@@ -327,7 +327,11 @@ void PEDIT01::Edit()
 	}
 	vput( "ZSCROLL", PROFILE ) ;
 
-	for_each( data.begin(), data.end(), [](iline * & a) { delete a ; } ) ;
+	for_each( data.begin(), data.end(),
+		[](iline * & a)
+		{
+			delete a ;
+		} ) ;
 	data.clear() ;
 	saveEditProfile( ZEDPROF ) ;
 	EditList.erase( ZFILE ) ;
@@ -356,20 +360,17 @@ void PEDIT01::showEditRecovery()
 
 bool PEDIT01::termOK()
 {
-	if ( !profASave && !profSaveP )
+	if ( !fileChanged || (!profASave && !profSaveP) )
 	{
 		return true ;
 	}
-	if ( fileChanged && !profASave && ZCMD != "SAVE" )
+	if ( !profASave && ZCMD != "SAVE" )
 	{
 		MSG = "PEDT01O" ;
 		return false    ;
 	}
-	if ( fileChanged )
-	{
-		if ( saveFile() ) { setmsg( "PEDT01P" ) ; }
-		else              { return false        ; }
-	}
+	if ( saveFile() ) { setmsg( "PEDT01P" ) ; }
+	else              { return false        ; }
 	return true ;
 }
 
@@ -385,6 +386,9 @@ void PEDIT01::readFile()
 	string ZTIMEL ;
 	string inLine ;
 	string fname  ;
+
+	const string tod = " Top of Data **********" ;
+	const string bod = " Bottom of Data **********" ;
 
 	vector<string> Notes ;
 	vector<string> Msgs  ;
@@ -423,6 +427,7 @@ void PEDIT01::readFile()
 
 	rebuildZAREA = true  ;
 	tabsOnRead   = false ;
+	lowrOnRead   = false ;
 
 	data.clear() ;
 	maxURID[ taskid() ] = 0 ;
@@ -434,19 +439,19 @@ void PEDIT01::readFile()
 	{
 		p_iline          = new iline( taskid() ) ;
 		p_iline->il_tod  = true   ;
-		p_iline->put_idata( centre( " TOP OF DATA ", ZAREAW, '*' ), 0 ) ;
+		p_iline->put_idata( centre( tod, ZAREAW, '*' ), 0 ) ;
 		data.push_back( p_iline ) ;
 		for ( i = 0 ; i < ZAREAD-4 ; i++ )
 		{
 			p_iline = new iline( taskid() ) ;
-			p_iline->il_file  = true ;
-			p_iline->il_nisrt = true ;
-			p_iline->put_idata( "" ) ;
+			p_iline->il_file  = true  ;
+			p_iline->il_nisrt = true  ;
+			p_iline->put_idata( "" )  ;
 			data.push_back( p_iline ) ;
 		}
 		p_iline = new iline( taskid() ) ;
 		p_iline->il_bod  = true ;
-		p_iline->put_idata( centre( " BOTTOM OF DATA ", ZAREAW, '*' ), 0 ) ;
+		p_iline->put_idata( centre( bod, ZAREAW, '*' ), 0 ) ;
 		data.push_back( p_iline )    ;
 		data[ 0 ]->clear_Global_Redo() ;
 		data[ 0 ]->clear_Global_Undo() ;
@@ -466,7 +471,7 @@ void PEDIT01::readFile()
 
 	p_iline          = new iline( taskid() ) ;
 	p_iline->il_tod  = true   ;
-	p_iline->put_idata( centre( " TOP OF DATA ", ZAREAW, '*' ), 0 ) ;
+	p_iline->put_idata( centre( tod, ZAREAW, '*' ), 0 ) ;
 	data.push_back( p_iline ) ;
 
 	while ( getline( fin, inLine ) )
@@ -488,18 +493,51 @@ void PEDIT01::readFile()
 			ZRC  = 4 ;
 			ZRSN = 4 ;
 			fin.close() ;
-			return      ;
+			return   ;
+		}
+		if ( !lowrOnRead )
+		{
+			if ( any_of( inLine.begin(), inLine.end(),
+				   []( char c )
+				   {
+					return ( islower( c ) ) ;
+				   } ) )
+			{
+				lowrOnRead = true ;
+			}
 		}
 		if ( maxCol < inLine.size() ) maxCol = inLine.size() ;
 		p_iline->il_file = true   ;
 		p_iline->put_idata( inLine, 0 ) ;
 		data.push_back( p_iline ) ;
 	}
+	if ( data.size() == 1 )
+	{
+		for ( i = 0 ; i < ZAREAD-4 ; i++ )
+		{
+			p_iline = new iline( taskid() ) ;
+			p_iline->il_file  = true  ;
+			p_iline->il_nisrt = true  ;
+			p_iline->put_idata( "" )  ;
+			data.push_back( p_iline ) ;
+		}
+		p_iline = new iline( taskid() ) ;
+		p_iline->il_bod  = true ;
+		p_iline->put_idata( centre( bod, ZAREAW, '*' ), 0 ) ;
+		data.push_back( p_iline )    ;
+		data[ 0 ]->clear_Global_Redo() ;
+		data[ 0 ]->clear_Global_Undo() ;
+		data[ 0 ]->clear_Global_File_level() ;
+		EditList[ ZFILE ] = true ;
+		addSpecial( 'N', topLine, Notes ) ;
+		saveLevel = 0 ;
+		return        ;
+	}
 	maxCol++ ;
 	p_iline = new iline( taskid() ) ;
-	p_iline->il_bod  = true ;
-	p_iline->put_idata( centre( " BOTTOM OF DATA ", ZAREAW, '*' ), 0 ) ;
-	data.push_back( p_iline )    ;
+	p_iline->il_bod = true ;
+	p_iline->put_idata( centre( bod, ZAREAW, '*' ), 0 ) ;
+	data.push_back( p_iline ) ;
 	fin.close() ;
 
 	if ( tabsOnRead && !profXTabs )
@@ -510,9 +548,22 @@ void PEDIT01::readFile()
 	}
 	else if ( !tabsOnRead && profXTabs )
 	{
-		Msgs.push_back( "-CAUTION- Tabs have not been detected.  Profile XTABS option" )  ;
-		Msgs.push_back( "          has been set off.  Use 'XTABS ON' command to change" ) ;
+		Msgs.push_back( "-CAUTION- Profile changed to XTABS OFF (from XTABS ON) because the" )  ;
+		Msgs.push_back( "          data does not contain tabs" )  ;
 		profXTabs = false ;
+	}
+
+	if ( lowrOnRead && profCaps )
+	{
+		Msgs.push_back( "-CAUTION- Profile changed to CAPS OFF (from CAPS ON) because the" )  ;
+		Msgs.push_back( "          data contains lower case characters" ) ;
+		profCaps = false ;
+	}
+	else if ( !lowrOnRead && !profCaps )
+	{
+		Msgs.push_back( "-CAUTION- Profile changed to CAPS ON (from CAPS OFF) because the" )  ;
+		Msgs.push_back( "          data does not contain lower case characters" ) ;
+		profCaps = true ;
 	}
 
 	if ( profRecover && !abendRecovery )
@@ -648,6 +699,11 @@ void PEDIT01::fill_dynamic_area()
 	ZAREA.reserve( ZASIZE ) ;
 	ZSHADOW.reserve( ZASIZE ) ;
 
+	t1.reserve( ZDATAW ) ;
+	t2.reserve( 2*ZDATAW ) ;
+	tmp1.reserve( ZAREAW ) ;
+	tmp2.reserve( ZAREAW ) ;
+
 	s2data.clear() ;
 	sl = 0         ;
 
@@ -680,17 +736,13 @@ void PEDIT01::fill_dynamic_area()
 			sl++ ;
 			if ( dl == topLine )
 			{
-				URID    = data.at( topLine )->il_URID ;
-				topLine = getFirstEX( topLine ) ;
-				blines  = getDataBlockSize( topLine )  ;
-				dl      = topLine + blines - 1 ;
+				URID    = data.at( dl )->il_URID ;
+				dl      = getFirstEX( dl ) ;
+				topLine = dl               ;
 			}
-			else
-			{
-				blines = getDataBlockSize( dl ) ;
-				dl     = dl + blines - 1 ;
-			}
-			fl = getFileLine( dl+1 ) ;
+			blines = getDataBlockSize( dl ) ;
+			dl     = dl + blines - 1     ;
+			fl     = getFileLine( dl+1 ) ;
 			continue ;
 		}
 		if ( data.at( dl )->il_lcc == "" )
@@ -748,8 +800,6 @@ void PEDIT01::fill_dynamic_area()
 					}
 				}
 				t1.resize( ZDATAW ) ;
-				t3.resize( ZDATAW ) ;
-				t4.resize( ZDATAW ) ;
 				ZAREA   += din + lcc + din  + t1 ;
 				ZAREA   += "       " + dout + t3 ;
 				ZAREA   += "       " + dout + t4 ;
@@ -931,6 +981,11 @@ void PEDIT01::fill_hilight_shadow()
 	w = dl + 1 ;
 	hlight.hl_oBrac1   = 0     ;
 	hlight.hl_oBrac2   = 0     ;
+	hlight.hl_oIf      = 0     ;
+	hlight.hl_oDo      = 0     ;
+	hlight.hl_ifLogic  = profIfLogic ;
+	hlight.hl_doLogic  = profDoLogic ;
+	hlight.hl_Paren    = profParen   ;
 	hlight.hl_oComment = false ;
 
 	for ( dl = w ; dl <= ll ; dl++ )
@@ -962,9 +1017,11 @@ void PEDIT01::getZAREAchanges()
 
 	// Stip off any remaining leading "- - - " for excluded lines
 	// Stip off any remaining leading "''''''" for new insert lines
+	// Remove the line label from the command, if there is one
 
 	int i   ;
 	int j   ;
+	int l   ;
 	int off ;
 	int sp  ;
 	int ep  ;
@@ -1018,6 +1075,14 @@ void PEDIT01::getZAREAchanges()
 			else
 			{
 				lcc = ZAREA.substr( (1 + off), 6 ) ;
+				l   = data.at( dl )->il_label.size() ;
+				for ( j = 0 ; j < l ; j++ )
+				{
+					if ( data.at( dl )->il_label[ j ] == lcc[ j ] )
+					{
+					      lcc[ j ] = ' ' ;
+					}
+				}
 			}
 			if ( data.at( dl )->il_excl )
 			{
@@ -1372,10 +1437,9 @@ void PEDIT01::actionPrimCommand1()
 	switch ( PrimCMDS[ w1 ] )
 	{
 	case PC_CUT:
-			cutActive  = true ;
-			cutReplace = true ;
-			clipBoard  = "DEFAULT" ;
-			wall       = upper( subword( ZCMD, 2 ) ) ;
+			cutActive = true ;
+			clipBoard = "DEFAULT" ;
+			wall      = upper( subword( ZCMD, 2 ) ) ;
 
 			p1 = wordpos( "DEFAULT", wall ) ;
 			if ( p1 > 0 ) { wall = delword( wall, p1, 1 ) ; }
@@ -1397,7 +1461,7 @@ void PEDIT01::actionPrimCommand1()
 				if ( words( wall ) == 1 ) { clipBoard = strip( wall ) ; }
 				else                      { MSG = "PEDT012A"          ; }
 			}
-			break ;
+			return ;
 
 	case PC_PASTE:
 			pasteActive = true  ;
@@ -1421,7 +1485,7 @@ void PEDIT01::actionPrimCommand1()
 				if ( words( wall ) == 1 ) { clipBoard = wall ; }
 				else                      { MSG = "PEDT012B" ; }
 			}
-			break ;
+			return ;
 
 	case PC_RESET:
 			if ( aliasNames.count( w2 ) > 0 )
@@ -1431,24 +1495,37 @@ void PEDIT01::actionPrimCommand1()
 			if ( w2 == "" )
 			{
 				removeSpecialLines() ;
-				for_each( data.begin(), data.end(), [](iline * & a)
-					{ a->resetFilePrefix() ; a->clearLcc() ; } ) ;
+				for_each( data.begin(), data.end(),
+					[](iline * & a)
+					{
+						a->resetFilePrefix() ;
+						a->clearLcc() ;
+					} ) ;
 				icmds.clear() ;
 				rebuildZAREA = true ;
 			}
 			else if ( ( w2 == "ALL" && w3 == "" ) )
 			{
 				removeSpecialLines() ;
-				for_each( data.begin(), data.end(), [](iline * & a)
-					{ a->resetFilePrefix() ; a->clearLcc() ; a->il_label = "" ; } ) ;
+				for_each( data.begin(), data.end(),
+					[](iline * & a)
+					{
+						a->resetFilePrefix() ;
+						a->clearLcc()    ;
+						a->il_label = "" ;
+					} ) ;
 				icmds.clear()       ;
 				rebuildZAREA = true ;
 			}
 			else if ( ( w2 == "CLEAN" && w3 == "" ) )
 			{
 				removeSpecialLines() ;
-				for_each( data.begin(), data.end(), [](iline * & a)
-					{ a->resetFilePrefix() ; a->clearLcc() ; } ) ;
+				for_each( data.begin(), data.end(),
+					[](iline * & a)
+					{
+						a->resetFilePrefix() ;
+						a->clearLcc() ;
+					} ) ;
 				icmds.clear() ;
 				cleanupData() ;
 				rebuildZAREA = true ;
@@ -1473,23 +1550,39 @@ void PEDIT01::actionPrimCommand1()
 			}
 			else if ( w2 == "CHA" && w3 == "" )
 			{
-				for_each( data.begin(), data.end(), [](iline * & a) { a->il_chg = false ; } ) ;
+				for_each( data.begin(), data.end(),
+					[](iline * & a)
+					{
+						a->il_chg = false ;
+					} ) ;
 				rebuildZAREA = true ;
 			}
 			else if ( w2 == "ERR" && w3 == "" )
 			{
-				for_each( data.begin(), data.end(), [](iline * & a) { a->il_error = false ; } ) ;
+				for_each( data.begin(), data.end(),
+					[](iline * & a)
+					{
+						a->il_error = false ;
+					} ) ;
 				rebuildZAREA = true ;
 			}
 			else if ( w2 == "LAB" && w3 == "" )
 			{
-				for_each( data.begin(), data.end(), [](iline * & a) { a->il_label = "" ; } ) ;
+				for_each( data.begin(), data.end(),
+					[](iline * & a)
+					{
+						a->il_label = "" ;
+					} ) ;
 				rebuildZAREA = true ;
 			}
 			else if ( findword( w2, "UNDO REDO UNDOREDO" ) && w3 == "" )
 			{
-				for_each( data.begin(), data.end(), [](iline * & a)
-					{ a->il_undo = false ; a->il_redo = false ; } ) ;
+				for_each( data.begin(), data.end(),
+					[](iline * & a)
+					{
+						a->il_undo = false ;
+						a->il_redo = false ;
+					} ) ;
 				rebuildZAREA = true ;
 			}
 			else if ( w2 == "SPE" && w3 == "" )
@@ -1751,8 +1844,14 @@ void PEDIT01::actionPrimCommand2()
 	case PC_EXCLUDE:
 			if ( w2 == "ALL" && ws == 2 )
 			{
-				for_each( data.begin(), data.end(), [](iline * & a)
-				    { if ( !a->il_bod && !a->il_tod && !a->il_deleted ) { a->il_excl = true ; } } ) ;
+				for_each( data.begin(), data.end(),
+					[](iline * & a)
+					{
+						if ( !a->il_bod && !a->il_tod && !a->il_deleted )
+						{
+							a->il_excl = true ;
+						}
+					} ) ;
 				rebuildZAREA = true ;
 				break               ;
 			}
@@ -1840,8 +1939,14 @@ void PEDIT01::actionPrimCommand2()
 
 	case PC_FLIP:
 			if ( ws > 1 ) { MSG = "PEDT011" ; return ; }
-			for_each( data.begin(), data.end(), [](iline * & a)
-				{ if ( !a->il_bod && !a->il_tod && !a->il_deleted ) { a->il_excl = !a->il_excl ; } } ) ;
+			for_each( data.begin(), data.end(),
+				[](iline * & a)
+				{
+					if ( !a->il_bod && !a->il_tod && !a->il_deleted )
+					{
+						a->il_excl = !a->il_excl ;
+					}
+				} ) ;
 			rebuildZAREA = true ;
 			break ;
 
@@ -1854,9 +1959,13 @@ void PEDIT01::actionPrimCommand2()
 			}
 			else if ( w2 == "OFF" )
 			{
-				profHex      = false ;
-				for_each( data.begin(), data.end(), [](iline * & a) { a->il_hex = false ; } ) ;
-				rebuildZAREA = true  ;
+				profHex = false ;
+				for_each( data.begin(), data.end(),
+					[](iline * & a)
+					{
+						a->il_hex = false ;
+					} ) ;
+				rebuildZAREA = true ;
 			}
 			else { MSG = "PEDT011" ; return ; }
 			buildProfLines( Prof )  ;
@@ -1864,32 +1973,68 @@ void PEDIT01::actionPrimCommand2()
 			break ;
 
 	case PC_HILIGHT:
-			if ( w2 == "OFF" )
+			if ( w2 == "RESET" )
 			{
 				if ( ws > 2 ) { MSG = "PEDT011" ; return ; }
-				profHilight  = false ;
-				rebuildZAREA = true ;
+				profIfLogic  = false  ;
+				profDoLogic  = false  ;
+				profLang     = "AUTO" ;
+				detLang      = determineLang() ;
+				rebuildZAREA = true     ;
+				buildProfLines( Prof )  ;
+				updateProfLines( Prof ) ;
+				break ;
+			}
+			t1 = upper( ZCMD ) ;
+			p1 = wordpos( "PAREN", t1 ) ;
+			if ( p1 > 0 )
+			{
+				t1 = delword( t1, p1, 1 ) ;
+				ws = words( t1 )   ;
+				w2 = word( t1, 2 ) ;
+				w3 = word( t1, 3 ) ;
+			}
+			if ( findword( w2, "ON OFF LOGIC NOLOGIC IFLOGIC DOLOGIC" ) )
+			{
+				if ( ws > 3 ) { MSG = "PEDT011" ; return ; }
+				if ( w3 != "" && w3 != "AUTO" && !addHilight( w3 ) ) { MSG = "PEDT012Q" ; return ; }
 			}
 			else
 			{
-				if ( ws > 3 ) { MSG = "PEDT011" ; return ; }
-				if ( w2 == "ON" )  { w2 = w3                  ; }
-				else if ( ws > 2 ) { MSG = "PEDT011" ; return ; }
-				if ( w2 != "" && w2 != "AUTO" )
-				{
-					if ( !addHilight( w2 ) ) { MSG = "PEDT012Q" ; return ; }
-					profLang = w2 ;
-					detLang  = w2 ;
-				}
-				else
-				{
-					profLang = "AUTO" ;
-					detLang  = determineLang() ;
-				}
-				for_each( data.begin(), data.end(), [](iline * & a) { a->il_vShadow = false ; } ) ;
-				profHilight  = true ;
-				rebuildZAREA = true ;
+				if ( ws > 2 ) { MSG = "PEDT011" ; return ; }
+				if ( w2 != "" && w2 != "AUTO" && !addHilight( w2 ) ) { MSG = "PEDT012Q" ; return ; }
+				w3 = w2   ;
+				w2 = "ON" ;
 			}
+			if ( w2 == "OFF" )
+			{
+				profHilight  = false ;
+				if ( p1 > 0 ) { profParen = !profParen ; }
+				rebuildZAREA = true  ;
+				buildProfLines( Prof )  ;
+				updateProfLines( Prof ) ;
+				break ;
+			}
+			profIfLogic = ( w2 == "IFLOGIC" || w2 == "LOGIC" ) ;
+			profDoLogic = ( w2 == "DOLOGIC" || w2 == "LOGIC" ) ;
+			if ( w3 != "" && w3 != "AUTO" )
+			{
+				profLang = w3 ;
+				detLang  = w3 ;
+			}
+			else
+			{
+				profLang = "AUTO" ;
+				detLang  = determineLang() ;
+			}
+			for_each( data.begin(), data.end(),
+				[](iline * & a)
+				{
+					a->il_vShadow = false ;
+				} ) ;
+			if ( p1 > 0 ) { profParen = !profParen ; }
+			profHilight  = true ;
+			rebuildZAREA = true ;
 			buildProfLines( Prof )  ;
 			updateProfLines( Prof ) ;
 			break ;
@@ -2019,7 +2164,11 @@ void PEDIT01::actionPrimCommand2()
 			{
 				saveEditProfile( ZEDPROF ) ;
 				getEditProfile( w2 ) ;
-				for_each( data.begin(), data.end(), [](iline * & a) { a->il_vShadow = false ; } ) ;
+				for_each( data.begin(), data.end(),
+					[](iline * & a)
+					{
+						a->il_vShadow = false ;
+					} ) ;
 				rebuildZAREA = true ;
 			}
 			else    { MSG = "PEDT011" ; return ; }
@@ -2272,7 +2421,11 @@ void PEDIT01::actionLineCommands()
 
 	if ( !checkLineCommands() ) { return ; }
 
-	for_each( data.begin(), data.end(), [](iline * & a) { a->clearLcc() ; } ) ;
+	for_each( data.begin(), data.end(),
+		[](iline * & a)
+		{
+			a->clearLcc() ;
+		} ) ;
 
 	for ( itc = icmds.begin() ; itc != icmds.end() ; itc++ )
 	{
@@ -2373,7 +2526,10 @@ void PEDIT01::actionLineCommand( vector<icmd>::iterator itc )
 				if ( itc->icmd_ABOW == 'O' )
 				{
 					new_end = remove_if( vip.begin(), vip.end(),
-						  [](const ipline & a) { return !a.ip_file ; } ) ;
+							   [](const ipline & a)
+							   {
+								   return !a.ip_file ;
+							   } ) ;
 					vip.erase( new_end, vip.end() ) ;
 					il_its = getLineItr( itc->icmd_dURID ) ;
 					il_ite = getLineItr( itc->icmd_lURID, il_its ) ;
@@ -3340,7 +3496,7 @@ bool PEDIT01::checkLineCommands()
 				}
 				abo.icmd_Rpt   = rept ;
 				abo_inuse      = true ;
-				if ( findword( lcc, ABOWBlock ) )
+				if ( findword( lcc, OWBlock ) )
 				{
 					abo_block = true ;
 				}
@@ -3356,9 +3512,9 @@ bool PEDIT01::checkLineCommands()
 			}
 			else
 			{
-				if ( !findword( lcc, ABOWBlock ) ||
-				     !abo_block                  ||
-				      abo.icmd_eURID > 0         ||
+				if ( !findword( lcc, OWBlock ) ||
+				     !abo_block                ||
+				      abo.icmd_eURID > 0       ||
 				      lcc[ 0 ] != abo.icmd_ABOW )  { MSG = "PEDT01Y" ; break ; }
 				if ( (*it)->il_excl )
 				{
@@ -3565,7 +3721,12 @@ bool PEDIT01::checkLineCommands()
 		placeCursor( (*it)->il_URID, 1 ) ;
 		return false ;
 	}
-	if (  cmd_inuse     ) { MSG = "PEDT01W"  ; return false ; }
+	if ( cmd_inuse )
+	{
+		if ( cmd_complete ) { MSG = "PEDT013P" ; }
+		else                { MSG = "PEDT01W"  ; }
+		return false ;
+	}
 	if (  abo_inuse     ) { MSG = "PEDT01Z"  ; return false ; }
 	if ( !tabos.empty() ) { MSG = "PEDT01Z"  ; return false ; }
 	if (  cutActive     ) { MSG = "PEDT012E" ; return false ; }
@@ -4887,7 +5048,7 @@ uint PEDIT01::getLastEX( uint dl )
 
 vector<iline * >::iterator PEDIT01::getValidDataLine( vector<iline * >::iterator it )
 {
-	// Return a valid (ie. non-deleted) data vector index on or after iterator it
+	// Return a valid (ie. non-deleted) data vector iterator on or after iterator it
 
 	for ( ; it != data.end() ; it++ )
 	{
@@ -5089,6 +5250,7 @@ string PEDIT01::overlay( string s1, string s2, bool & success )
 void PEDIT01::copyPrefix( ipline & d, iline * & s )
 {
 	// Don't copy file line status (changed, error, undo and redo)
+
 	d.ip_file   = s->il_file   ;
 	d.ip_note   = s->il_note   ;
 	d.ip_prof   = s->il_prof   ;
@@ -5108,6 +5270,7 @@ void PEDIT01::copyPrefix( ipline & d, iline * & s )
 void PEDIT01::copyPrefix( iline * & d, ipline & s )
 {
 	// Don't copy file line status (changed, error, undo and redo)
+
 	d->il_file   = s.ip_file   ;
 	d->il_note   = s.ip_note   ;
 	d->il_prof   = s.ip_prof   ;
@@ -5206,11 +5369,17 @@ void PEDIT01::buildProfLines( vector<string> & Prof )
 	if ( profHilight )
 	{
 		(profLang == "AUTO") ? t += detLang : t += profLang ;
+		if ( profIfLogic )
+		{
+			(profDoLogic) ? t += " LOGIC" : t += " IFLOGIC" ;
+		}
+		else if ( profDoLogic ) { t += " DOLOGIC" ; }
 	}
 	else
 	{
 		t += "OFF" ;
 	}
+	if ( profParen ) { t += " PAREN" ; }
 	profLock ? t += "....PROFILE LOCK" : t += "....PROFILE UNLOCK" ;
 	Prof.push_back( left( t, ZDATAW, '.' ) ) ;
 }
@@ -5250,13 +5419,29 @@ void PEDIT01::removeRecoveryData()
 	}
 	topURID = data.at( topLine )->il_URID ;
 
-	copy_if( data.begin(), data.end(), back_inserter( tdata ), [](iline * & a) { return a->il_deleted ; } ) ;
+	copy_if( data.begin(), data.end(), back_inserter( tdata ),
+	       [](iline * & a)
+	       {
+		       return a->il_deleted ;
+	       } ) ;
 
-	new_end = remove_if( data.begin(), data.end(), [](iline * & a) { return a->il_deleted ; } ) ;
+	new_end = remove_if( data.begin(), data.end(),
+			   [](iline * & a)
+			   {
+				   return a->il_deleted ;
+			   } ) ;
 	data.erase( new_end, data.end() ) ;
 
-	for_each( tdata.begin(), tdata.end(), [](iline * & a) { delete a           ; } ) ;
-	for_each(  data.begin(),  data.end(), [](iline * & a) { a->flatten_idata() ; } ) ;
+	for_each( tdata.begin(), tdata.end(),
+		[](iline * & a)
+		{
+			delete a ;
+		} ) ;
+	for_each( data.begin(), data.end(),
+		[](iline * & a)
+		{
+			a->flatten_idata() ;
+		} ) ;
 
 	it = data.begin()            ;
 	(*it)->clear_Global_Undo()   ;
@@ -5292,14 +5477,28 @@ void PEDIT01::cleanupData()
 	topURID = data.at( topLine )->il_URID ;
 
 	copy_if( data.begin(), data.end(), back_inserter( tdata ),
-			       [](iline * & a) { return (a->il_deleted && !a->il_file) ; } ) ;
+	       [](iline * & a)
+	       {
+		       return (a->il_deleted && !a->il_file) ;
+	       } ) ;
 
 	new_end = remove_if( data.begin(), data.end(),
-			       [](iline * & a) { return (a->il_deleted && !a->il_file) ; } ) ;
+			   [](iline * & a)
+			   {
+				   return (a->il_deleted && !a->il_file) ;
+			   } ) ;
 	data.erase( new_end, data.end() ) ;
 
-	for_each( tdata.begin(), tdata.end(), [](iline * & a) { delete a               ; } ) ;
-	for_each(  data.begin(),  data.end(), [](iline * & a) { a->remove_redo_idata() ; } ) ;
+	for_each( tdata.begin(), tdata.end(),
+		[](iline * & a)
+		{
+			delete a ;
+		} ) ;
+	for_each( data.begin(), data.end(),
+		[](iline * & a)
+		{
+			a->remove_redo_idata() ;
+		} ) ;
 
 	it = data.begin()            ;
 	(*it)->reset_Global_Undo()   ;
@@ -5324,13 +5523,23 @@ void PEDIT01::removeProfLines()
 	topURID = data.at( topLine )->il_URID ;
 
 	copy_if( data.begin(), data.end(), back_inserter( tdata ),
-			       [](iline * & a) { return a->il_prof ; } ) ;
+	       [](iline * & a)
+	       {
+			return a->il_prof ;
+	       } ) ;
 
 	new_end = remove_if( data.begin(), data.end(),
-			       [](iline * & a) { return a->il_prof ; } ) ;
+			   [](iline * & a)
+			   {
+				   return a->il_prof ;
+			   } ) ;
 	data.erase( new_end, data.end() ) ;
 
-	for_each( tdata.begin(), tdata.end(), [](iline * & a) { delete a ; } ) ;
+	for_each( tdata.begin(), tdata.end(),
+		[](iline * & a)
+		{
+			delete a ;
+		} ) ;
 	topLine = getLine( topURID ) ;
 }
 
@@ -5809,19 +6018,19 @@ string PEDIT01::lshiftCols( int n, string s )
 
 bool PEDIT01::rshiftData( int n, string s, string & t )
 {
-/* > Right shifting rules:
-   1) scanning starts at left column
-   2) first blank char is found
-   3) the next non-blank char is found
-   4) the next double blank char is found
-   5) data from 3) to 4) is shifted 1 col to the right
-   The above 5 steps are repeated until request is satisfied
-
-   Without   1) losing data
-	     2) shift beyond bound
-	     3) deleting single blanks
-	     4) deleting blanks within apostrophes
-   else ==ERR>                                    */
+	//  > Right shifting rules:
+	//  1) scanning starts at left column
+	//  2) first blank char is found
+	//  3) the next non-blank char is found
+	//  4) the next double blank char is found
+	//  5) data from 3) to 4) is shifted 1 col to the right
+	//  The above 5 steps are repeated until request is satisfied
+	//
+	//  Without   1) losing data
+	//            2) shift beyond bound
+	//            3) deleting single blanks
+	//            4) deleting blanks within apostrophes
+	//  else ==ERR>
 
 	int i  ;
 	int c1 ;
@@ -5863,18 +6072,18 @@ bool PEDIT01::rshiftData( int n, string s, string & t )
 
 bool PEDIT01::lshiftData( int n, string s, string & t )
 {
-/* < Left shifting rules:
-   1) scanning starts at left column
-   2) first blank char is found
-   3) the next non-blank char is found
-   4) the next double blank char is found
-   5) data from 3) to 4) is shifted 1 col to the left
-   The above 5 steps are repeated until request is satisfied
-   Without   1) losing data
-	     2) shift beyond bound
-	     3) deleting single blanks
-	     4) deleting blanks within apostrophes
-   else ==ERR>                                   */
+	//  < Left shifting rules:
+	//  1) scanning starts at left column
+	//  2) first blank char is found
+	//  3) the next non-blank char is found
+	//  4) the next double blank char is found
+	//  5) data from 3) to 4) is shifted 1 col to the left
+	//  The above 5 steps are repeated until request is satisfied
+	//  Without   1) losing data
+	//            2) shift beyond bound
+	//            3) deleting single blanks
+	//            4) deleting blanks within apostrophes
+	//  else ==ERR>
 
 	int i  ;
 	int c1 ;
@@ -5973,9 +6182,9 @@ void PEDIT01::getEditProfile( string prof )
 	//      [2]: Nulls on if '1'                                          [10]: Tabs On All if '1' (else STD)
 	//      [3]: Caps On if '1'                                           [11]: Autosave PROMPT/NOPROMPT
 	//      [4]: Hex On if '1'                                            [12]: Nulls STD if '0', ALL if '1'
-	//      [5]: File Tabs (if '1', convert from spaces -> tabs on save)
-	//      [6]: Recover (if '1', create a backup on edit entry)
-	//      [7]: SETUNDO On if '1'
+	//      [5]: File Tabs (if '1', convert from spaces -> tabs on save)  [13]: Hilight If logic if '1'
+	//      [6]: Recover (if '1', create a backup on edit entry)          [14]: Hilight Do logic if '1'
+	//      [7]: SETUNDO On if '1'                                        [15]: Hilight Parenthesis if '1'
 
 	// If RECOV is OFF, set saveLevel = -1 to de-activate this function
 
@@ -6032,6 +6241,9 @@ void PEDIT01::getEditProfile( string prof )
 	profATabs   = ( ZEDPFLAG[10] == '1' ) ;
 	profSaveP   = ( ZEDPFLAG[11] == '1' ) ;
 	profNulla   = ( ZEDPFLAG[12] == '1' ) ;
+	profIfLogic = ( ZEDPFLAG[13] == '1' ) ;
+	profDoLogic = ( ZEDPFLAG[14] == '1' ) ;
+	profParen   = ( ZEDPFLAG[15] == '1' ) ;
 	maskLine    = ZEDPMASK         ;
 	tabsLine    = ZEDPTABS         ;
 	tabsChar    = ZEDPTABC[ 0 ]    ;
@@ -6043,7 +6255,7 @@ void PEDIT01::getEditProfile( string prof )
 	vdelete( v_list ) ;
 	vdelete( "ZEDPTYPE ZEDPHLLG" ) ;
 
-	if ( profHilight && profLang == "AUTO" && data.size() > 0 )
+	if ( profHilight && profLang == "AUTO" )
 	{
 		detLang = determineLang() ;
 	}
@@ -6071,9 +6283,9 @@ void PEDIT01::saveEditProfile( string prof )
 	//      [2]: Nulls             [10]: Tabs On All (else STD)
 	//      [3]: Caps              [11]: Autosave PROMPT
 	//      [4]: Hex               [12]: Nulls are STD if off, ALL if on
-	//      [5]: File Tabs
-	//      [6]: Recover On
-	//      [7]: SETUNDO On
+	//      [5]: File Tabs         [13]: Hilight If logic on
+	//      [6]: Recover On        [14]: Hilight Do logic on
+	//      [7]: SETUNDO On        [15]: Hilight Parenthesis on
 
 	string UPROF    ;
 	string tabName  ;
@@ -6116,6 +6328,9 @@ void PEDIT01::saveEditProfile( string prof )
 		ZEDPFLAG[10] = ZeroOne[ profATabs   ] ;
 		ZEDPFLAG[11] = ZeroOne[ profSaveP   ] ;
 		ZEDPFLAG[12] = ZeroOne[ profNulla   ] ;
+		ZEDPFLAG[13] = ZeroOne[ profIfLogic ] ;
+		ZEDPFLAG[14] = ZeroOne[ profDoLogic ] ;
+		ZEDPFLAG[15] = ZeroOne[ profParen   ] ;
 		ZEDPMASK     = maskLine ;
 		ZEDPTABS     = tabsLine ;
 		ZEDPTABC     = tabsChar ;
@@ -6246,12 +6461,12 @@ void PEDIT01::createEditProfile( string tabName, string prof )
 	// Create a default entry for edit profile 'prof' in table 'tabName'
 	// Called when table is already open for update, and the table variables have been vdefined
 
-	// Defaults: AUTOSAVE OFF PROMPT, RECOVER ON, UNDO ON, HILIGHT ON AUTO
+	// Defaults: AUTOSAVE OFF PROMPT, RECOVER ON, UNDO ON, HILIGHT ON AUTO/LOGIC/PAREN
 
 	tbvclear( tabName ) ;
 	ZEDPTYPE = prof     ;
 
-	ZEDPFLAG = "000000111001000000000000" ;
+	ZEDPFLAG = "000000111001011100000000" ;
 	ZEDPMASK = ""     ;
 	ZEDPBNDL = "1"    ;
 	ZEDPBNDR = "0"    ;
@@ -6268,8 +6483,11 @@ void PEDIT01::createEditProfile( string tabName, string prof )
 
 string PEDIT01::determineLang()
 {
-	// Try to determine the language, first from the extension, then the contents of the file
+	// Try to determine the language, first from the extension, then the directory containing the source,
+	// then the contents of the file.
 	// Limit the scan to the first 100 lines of code
+
+	// Returned language must exist in eHilight (hiRoutine function map) or an exception will occur
 
 	int p ;
 	int i ;
@@ -6285,8 +6503,10 @@ string PEDIT01::determineLang()
 	{
 		s = ZFILE.substr( p+1 ) ;
 		if ( findword( s, "c cpp h hpp" ) ) { return "CPP"  ; }
-		if ( findword( s, "rex rexx"    ) ) { return "REXX" ; }
+		if ( findword( s, "rex rexx rx" ) ) { return "REXX" ; }
 	}
+
+	if ( ZFILE.find( "/rexx/" ) != string::npos ) { return "REXX" ; }
 
 	for ( i = 0, it = data.begin() ; it != data.end() ; it++ )
 	{

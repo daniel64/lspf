@@ -60,3 +60,6 @@ PBRO01K "Invalid Hex String"
 
 PBRO01L "File type '&STR'" .TYPE=N
 "Hilighting filetype is '&STR'"
+
+PBRO01M "Invalid hilight language"
+"Hilighting language not supported"

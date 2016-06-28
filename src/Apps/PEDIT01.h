@@ -808,6 +808,7 @@ class PEDIT01 : public pApplication
 		int  Level               ;
 		int  saveLevel           ;
 
+		bool lowrOnRead          ;
 		bool tabsOnRead          ;
 		bool abendRecovery       ;
 
@@ -833,6 +834,10 @@ class PEDIT01 : public pApplication
 		int    profXTabz         ;
 		bool   profRecover       ;
 		bool   profHilight       ;
+		bool   profIfLogic       ;
+		bool   profDoLogic       ;
+		bool   profLogic         ;
+		bool   profParen         ;
 		string profLang          ;
 
 		string detLang           ;
@@ -1109,7 +1114,7 @@ class PEDIT01 : public pApplication
 		const string ABOKReq   = "C CC M MM" ;
 		const string Chkdist   = "C D M HX LC MD MN O OK TJ TR UC TX W X" ;
 		const string ABOWList  = "A AK B BK O OK OO OOK W WW" ;
-		const string ABOWBlock = "OO WW" ;
+		const string OWBlock   = "OO WW" ;
 		const string ReptOK    = "C D F HX I L M MD MN O OK R UC LC RR S TJ TR TX W X (( )) ( ) << >> < >" ;
 		const string XBlock    = "R (( )) ( ) << >> < >" ;
 		const string CutCmds   = "C CC M MM" ;

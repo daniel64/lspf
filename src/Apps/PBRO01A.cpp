@@ -120,15 +120,18 @@ void PBRO01A::application()
 	binOn        = false ;
 	textOn       = false ;
 	hilightOn    = true  ;
+	entLang      = ""    ;
 
 	typList[ 'C' ] = "CHARS"  ;
 	typList[ 'P' ] = "PREFIX" ;
 	typList[ 'S' ] = "SUFFIX" ;
 	typList[ 'W' ] = "WORD"   ;
 
-	vdefine( "ZCMD ZVERB ZROW1 ZROW2 ZAREA ZSHADOW ZAREAT ZDSN", &ZCMD, &ZVERB, &ZROW1, &ZROW2, &ZAREA, &ZSHADOW, &ZAREAT, &ZDSN ) ;
+	vdefine( "ZCMD  ZVERB   ZROW1", &ZCMD, &ZVERB, &ZROW1 ) ;
+	vdefine( "ZAREA ZSHADOW ZAREAT ZDSN", &ZAREA, &ZSHADOW, &ZAREAT, &ZDSN ) ;
 	vdefine( "ZSCROLLN ZAREAW ZAREAD", &ZSCROLLN, &ZAREAW, &ZAREAD ) ;
-	vdefine( "ZSCROLLA ZCOL1 TYPE STR OCC LINES CMD ZZSTR1", &ZSCROLLA, &ZCOL1, &TYPE, &STR, &OCC, &LINES, &CMD, &ZZSTR1 ) ;
+	vdefine( "ZSCROLLA ZCOL1 ZCOL2 TYPE STR", &ZSCROLLA, &ZCOL1, &ZCOL2, &TYPE, &STR ) ;
+	vdefine( "OCC LINES CMD ZZSTR1", &OCC, &LINES, &CMD, &ZZSTR1 ) ;
 
 	startCol  = 1 ;
 	maxCol    = 1 ;
@@ -180,9 +183,9 @@ void PBRO01A::application()
 			}
 		}
 
-		ZROW1 = right( d2ds( topLine ), 8, '0' )    ;
-		ZROW2 = right( d2ds( maxLines - 2 ), 8, '0' ) ;
-		ZCOL1 = right( d2ds( startCol ), 7, '0' )     ;
+		ZROW1 = right( d2ds( topLine ), 8, '0' )  ;
+		ZCOL1 = right( d2ds( startCol ), 5, '0' ) ;
+		ZCOL2 = right( d2ds( startCol+ZAREAW-1 ), 5, '0' ) ;
 		if ( MSG == "" ) { ZCMD = "" ; }
 
 		display( "PBRO01A1", MSG, CURFLD, CURPOS ) ;
@@ -228,12 +231,11 @@ void PBRO01A::application()
 		}
 		else if ( CMD == "HILITE" || CMD == "HILIGHT" || CMD == "HI" )
 		{
-			if ( w3 == "CPP" ) { w3 = "C++" ; }
-			if      ( w3 == "REXX"  ) { fileType = "text/x-rexx"  ; rebuildZAREA = true ; }
-			else if ( w3 == "C++"   ) { fileType = "text/x-c++"   ; rebuildZAREA = true ; }
-			else if ( w3 == "PANEL" ) { fileType = "text/x-panel" ; rebuildZAREA = true ; }
-			else if ( w3 == "OFF"   ) { fileType = "text"         ; rebuildZAREA = true ; }
-			else if ( w2 == ""      ) { STR = fileType ; MSG = "PBRO01L" ; continue     ; }
+			if ( w3 == "" ) { w3 = "AUTO" ; }
+			if ( w3 != "AUTO" && !addHilight( w3 ) ) { MSG = "PBRO01M" ; continue ; }
+			entLang = w3 ;
+			if      ( w3 == "AUTO"  ) { detLang = determineLang( file ) ; }
+			else                      { detLang = w3                    ; }
 			if      ( w2 == "ON" )
 			{
 				for_each( shadow.begin(), shadow.end(),
@@ -447,8 +449,6 @@ void PBRO01A::read_file( string file )
 		return    ;
 	}
 
-  //    if ( Asbin ) { fin.open( file.c_str() , ios::binary ) ; }
-  //    else         { fin.open( file.c_str() )               ; }
 	fin.open( file.c_str() ) ;
 
 	if ( !fin.is_open() )
@@ -481,17 +481,6 @@ void PBRO01A::read_file( string file )
 		}
 	}
 	magic_close( cookie ) ;
-
-	if ( fileType == "text/plain" )
-	{
-		p1 = lastpos( ".", file ) ;
-		if ( p1 > 0 )
-		{
-			ext = substr( file, p1+1 ) ;
-			if      ( ext == "cpp" ) { fileType = "text/x-c++"  ; }
-			else if ( ext == "rex" ) { fileType = "text/x-rexx" ; }
-		}
-	}
 
 	maxLines = 1 ;
 	data.clear()   ;
@@ -529,7 +518,8 @@ void PBRO01A::read_file( string file )
 			shadow.push_back( t ) ;
 			maxLines++ ;
 		}
-		fileType = "application/octet-stream" ;
+		fileType  = "application/octet-stream" ;
+		hilightOn = false ;
 	}
 	else
 	{
@@ -548,12 +538,15 @@ void PBRO01A::read_file( string file )
 			shadow.push_back( t ) ;
 			maxLines++ ;
 		}
-		if ( fileType == "text/plain" )
+		if ( entLang == "" || entLang == "AUTO" )
 		{
-			w1 = word( line1, 1 ) ;
-			if      ( w1 == ")PANEL" )                    { fileType = "text/x-panel" ; }
-			else if ( pos( "REXX", upper( line1 ) ) > 0 ) { fileType = "text/x-rexx"  ; }
+			detLang = determineLang( file ) ;
 		}
+		else
+		{
+			detLang = entLang ;
+		}
+		hilightOn = true  ;
 	}
 	if ( maxLines == 1 )
 	{
@@ -578,6 +571,7 @@ void PBRO01A::fill_dynamic_area()
 	string t2  ;
 	string t3  ;
 	string t4  ;
+	string s1b ;
 	string s1g ;
 	string s1y ;
 	string s1w ;
@@ -591,6 +585,7 @@ void PBRO01A::fill_dynamic_area()
 	int wL ;
 	int ln ;
 
+	s1b = string( ZAREAW, B_BLUE   ) ;
 	s1g = string( ZAREAW, N_GREEN  ) ;
 	s1y = string( ZAREAW, N_YELLOW ) ;
 	s1w = string( ZAREAW, N_WHITE  ) ;
@@ -636,12 +631,12 @@ void PBRO01A::fill_dynamic_area()
 					}
 				}
 				ZAREA   = ZAREA   + t1  + t3  + t4  + div ;
-				ZSHADOW = ZSHADOW + s1y + s1g + s1g + s1w ;
+				ZSHADOW = ZSHADOW + s1y + s1b + s1b + s1w ;
 			}
 			else
 			{
 				ZAREA   = ZAREA   + substr( data.at( k ), 1, ZAREAW ) ;
-				ZSHADOW = ZSHADOW + s1g ;
+				ZSHADOW = ZSHADOW + s1b ;
 			}
 			if ( ZAREA.size() >= ZASIZE ) { break ; }
 			if ( k >= data.size() - 1 )   { break ; }
@@ -658,7 +653,7 @@ void PBRO01A::fill_dynamic_area()
 			if ( k == data.size() - 1 )   { break ; }
 		}
 		ZAREA.resize( ZASIZE, ' ' ) ;
-		ZSHADOW.resize( ZASIZE, N_GREEN ) ;
+		ZSHADOW.resize( ZASIZE, B_BLUE ) ;
 
 	}
 	if ( hilightOn )
@@ -683,7 +678,7 @@ void PBRO01A::fill_hilight_shadow()
 
 	string ZTEMP ;
 
-	hlight.hl_language = fileType ;
+	hlight.hl_language = detLang ;
 
 	ll = data.size()-2 ;
 	if ( topLine+ZAREAD < ll ) { ll = topLine+ZAREAD ; }
@@ -695,6 +690,11 @@ void PBRO01A::fill_hilight_shadow()
 	}
 	hlight.hl_oBrac1   = 0     ;
 	hlight.hl_oBrac2   = 0     ;
+	hlight.hl_oIf      = 0     ;
+	hlight.hl_oDo      = 0     ;
+	hlight.hl_ifLogic  = true  ;
+	hlight.hl_doLogic  = true  ;
+	hlight.hl_Paren    = true  ;
 	hlight.hl_oComment = false ;
 	if ( dl != w && w < data.size()-1 ) { w++ ; }
 	for ( dl = w ; dl <= ll ; dl++ )
@@ -716,7 +716,7 @@ void PBRO01A::fill_hilight_shadow()
 		if ( l > data.size() - 2 ) { break ; }
 		ZTEMP = shadow.at( l ).bs_Shadow ;
 		if ( startCol > 1 ) { ZTEMP.erase( 0, startCol-1 ) ; }
-		ZTEMP.resize( ZAREAW, N_GREEN ) ;
+		ZTEMP.resize( ZAREAW, B_BLUE ) ;
 		ZSHADOW.replace( ZAREAW*(i), ZAREAW, ZTEMP ) ;
 	}
 }
@@ -1189,6 +1189,50 @@ void PBRO01A::actionFind( int spos, int offset )
 	}
 }
 
+string PBRO01A::determineLang( string ZFILE )
+{
+	// Try to determine the language, first from the extension, then the directory containing the source,
+	// then the contents of the file.
+	// Limit the scan to the first 100 lines of code
+
+	// Returned language must exist in eHilight (hiRoutine function map) or an exception will occur
+
+	int p ;
+	int i ;
+
+	string s ;
+	string t ;
+	string w ;
+
+	p = ZFILE.find_last_of( '.' ) ;
+	if ( p != string::npos )
+	{
+		s = ZFILE.substr( p+1 ) ;
+		if ( findword( s, "c cpp h hpp" ) ) { return "CPP"  ; }
+		if ( findword( s, "rex rexx rx" ) ) { return "REXX" ; }
+	}
+
+	if ( ZFILE.find( "/rexx/" ) != string::npos ) { return "REXX" ; }
+
+	for ( i = 0 ; i < 100 ; i++ )
+	{
+		t = data.at( i ) ;
+		if ( t.size() == 0 ) { continue       ; }
+		if ( t[ 0 ] == '*' ) { return "ASM"   ; }
+		if ( t[ 0 ] == ')' ) { return "PANEL" ; }
+		w = word( t, 1 ) ;
+		if ( wordpos( w, "TITLE CSECT DSECT MACRO START COPY" ) )
+		{
+			return "ASM"  ;
+		}
+		if ( i == 0 && t.find( "rexx" ) != string::npos )
+		{
+			return "REXX" ;
+		}
+		if ( w == "/*"    )  { return "CPP" ; }
+	}
+	return "DEFAULT" ;
+}
 // ============================================================================================ //
 
 extern "C" { pApplication *maker() { return new PBRO01A ; } }

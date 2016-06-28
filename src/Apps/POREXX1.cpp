@@ -69,44 +69,6 @@ int setAllRexxVariables( pApplication * ) ;
 
 void lspfSyntaxError( pApplication *, string ) ;
 
-int  lspfAddpop( pApplication *, string )   ;
-int  lspfBrowse( pApplication *, string )   ;
-int  lspfControl( pApplication *, string )  ;
-int  lspfDisplay( pApplication *, string )  ;
-int  lspfEdit( pApplication *, string )     ;
-int  lspfGetmsg( pApplication *, string )   ;
-int  lspfLibdef( pApplication *, string )   ;
-int  lspfPquery( pApplication *, string )   ;
-int  lspfRDisplay( pApplication *, string ) ;
-int  lspfRempop( pApplication *, string )   ;
-int  lspfSelect( pApplication *, string )   ;
-int  lspfSetmsg( pApplication *, string )   ;
-int  lspfTBAdd( pApplication *, string )    ;
-int  lspfTBBottom( pApplication *, string ) ;
-int  lspfTBCreate( pApplication *, string ) ;
-int  lspfTBClose( pApplication *, string )  ;
-int  lspfTBDelete( pApplication *, string ) ;
-int  lspfTBDispl( pApplication *, string )  ;
-int  lspfTBEnd( pApplication *, string )    ;
-int  lspfTBErase( pApplication *, string )  ;
-int  lspfTBExist( pApplication *, string )  ;
-int  lspfTBGet( pApplication *, string )    ;
-int  lspfTBMod( pApplication *, string )    ;
-int  lspfTBPut( pApplication *, string )    ;
-int  lspfTBOpen( pApplication *, string )   ;
-int  lspfTBQuery( pApplication *, string )  ;
-int  lspfTBSarg( pApplication *, string )  ;
-int  lspfTBSave( pApplication *, string )   ;
-int  lspfTBScan( pApplication *, string )   ;
-int  lspfTBSkip( pApplication *, string )   ;
-int  lspfTBSort( pApplication *, string )   ;
-int  lspfTBTop( pApplication *, string )    ;
-int  lspfTBVClear( pApplication *, string ) ;
-int  lspfVerase( pApplication *, string )   ;
-int  lspfVput( pApplication *, string )     ;
-int  lspfVget( pApplication *, string )     ;
-
-
 void POREXX1::application()
 {
 	log( "I", "Application POREXX1 starting." << endl ) ;
@@ -241,6 +203,8 @@ RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext *context,
 	string w1 ;
 	string w2 ;
 
+	map<string, int(*)(pApplication *,string)>::iterator it ;
+
 	const string e1( " not a recognised service name" ) ;
 
 	void * vptr ;
@@ -261,44 +225,8 @@ RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext *context,
 	vptr = context->GetApplicationData() ;
 	pApplication * thisAppl = static_cast<pApplication *>(vptr) ;
 
-	getAllRexxVariables( thisAppl ) ;
-	if      ( w1 == "ADDPOP" )   { sRC = lspfAddpop( thisAppl, s2 )   ; }
-	else if ( w1 == "BROWSE" )   { sRC = lspfBrowse( thisAppl, s2 )   ; }
-	else if ( w1 == "DISPLAY" )  { sRC = lspfDisplay( thisAppl, s2 )  ; }
-	else if ( w1 == "CONTROL" )  { sRC = lspfControl( thisAppl, s2 )  ; }
-	else if ( w1 == "EDIT" )     { sRC = lspfEdit( thisAppl, s2 )     ; }
-	else if ( w1 == "GETMSG" )   { sRC = lspfGetmsg( thisAppl, s2 )   ; }
-	else if ( w1 == "LIBDEF" )   { sRC = lspfLibdef( thisAppl, s2 )   ; }
-	else if ( w1 == "PQUERY" )   { sRC = lspfPquery( thisAppl, s2 )   ; }
-	else if ( w1 == "RDISPLAY" ) { sRC = lspfRDisplay( thisAppl, s2 ) ; }
-	else if ( w1 == "REMPOP" )   { sRC = lspfRempop( thisAppl, s2 )   ; }
-	else if ( w1 == "SELECT" )   { sRC = lspfSelect( thisAppl, s2 )   ; }
-	else if ( w1 == "SETMSG" )   { sRC = lspfSetmsg( thisAppl, s2 )   ; }
-	else if ( w1 == "TBADD" )    { sRC = lspfTBAdd( thisAppl, s2 )    ; }
-	else if ( w1 == "TBBOTTOM" ) { sRC = lspfTBBottom( thisAppl, s2 ) ; }
-	else if ( w1 == "TBCLOSE" )  { sRC = lspfTBClose( thisAppl, s2 )  ; }
-	else if ( w1 == "TBCREATE" ) { sRC = lspfTBCreate( thisAppl, s2 ) ; }
-	else if ( w1 == "TBDELETE" ) { sRC = lspfTBDelete( thisAppl, s2 ) ; }
-	else if ( w1 == "TBDISPL" )  { sRC = lspfTBDispl( thisAppl, s2 )  ; }
-	else if ( w1 == "TBEND" )    { sRC = lspfTBEnd( thisAppl, s2 )    ; }
-	else if ( w1 == "TBERASE" )  { sRC = lspfTBErase( thisAppl, s2 )  ; }
-	else if ( w1 == "TBEXIST" )  { sRC = lspfTBExist( thisAppl, s2 )  ; }
-	else if ( w1 == "TBGET" )    { sRC = lspfTBGet( thisAppl, s2 )    ; }
-	else if ( w1 == "TBMOD" )    { sRC = lspfTBMod( thisAppl, s2 )    ; }
-	else if ( w1 == "TBPUT" )    { sRC = lspfTBPut( thisAppl, s2 )    ; }
-	else if ( w1 == "TBOPEN" )   { sRC = lspfTBOpen( thisAppl, s2 )   ; }
-	else if ( w1 == "TBQUERY" )  { sRC = lspfTBQuery( thisAppl, s2 )  ; }
-	else if ( w1 == "TBSARG" )   { sRC = lspfTBSarg( thisAppl, s2 )   ; }
-	else if ( w1 == "TBSAVE" )   { sRC = lspfTBSave( thisAppl, s2 )   ; }
-	else if ( w1 == "TBSCAN" )   { sRC = lspfTBScan( thisAppl, s2 )   ; }
-	else if ( w1 == "TBSKIP" )   { sRC = lspfTBSkip( thisAppl, s2 )   ; }
-	else if ( w1 == "TBSORT" )   { sRC = lspfTBSort( thisAppl, s2 )   ; }
-	else if ( w1 == "TBTOP" )    { sRC = lspfTBTop( thisAppl, s2 )    ; }
-	else if ( w1 == "TBVCLEAR" ) { sRC = lspfTBVClear( thisAppl, s2 ) ; }
-	else if ( w1 == "VERASE" )   { sRC = lspfVerase( thisAppl, s2 )   ; }
-	else if ( w1 == "VGET" )     { sRC = lspfVget( thisAppl, s2 )     ; }
-	else if ( w1 == "VPUT" )     { sRC = lspfVput( thisAppl, s2 )     ; }
-	else
+	it = lspfServices.find( w1 ) ;
+	if ( it == lspfServices.end() )
 	{
 		log( "E", w1 + e1 << endl ) ;
 		thisAppl->RC = 20 ;
@@ -306,6 +234,10 @@ RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext *context,
 		context->RaiseCondition( "FAILURE", command, NULLOBJECT, context->WholeNumber( 20 ) ) ;
 		return NULLOBJECT;
 	}
+
+	getAllRexxVariables( thisAppl ) ;
+
+	sRC = it->second( thisAppl, s2 ) ;
 
 	setAllRexxVariables( thisAppl ) ;
 	return context->WholeNumber( sRC ) ;
@@ -1383,38 +1315,6 @@ int lspfVerase( pApplication * thisAppl, string s )
 }
 
 
-int lspfVput( pApplication * thisAppl, string s )
-{
-	bool rlt ;
-
-	string str  ;
-	string vars ;
-
-	poolType pType ;
-
-	str = subword( s, 2 ) ;
-
-	vars = parseString( rlt, str, "()" ) ;
-	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
-
-	if ( words( vars ) == 0 )
-	{
-		vars = word( s, 2 )    ;
-		str  = subword( s, 3 ) ;
-	}
-
-	str = strip( str ) ;
-	if      ( str == "SHARED"  ) { pType = SHARED  ; }
-	else if ( str == "PROFILE" ) { pType = PROFILE ; }
-	else if ( str == "ASIS"    ) { pType = ASIS    ; }
-	else if ( str == ""        ) { pType = ASIS    ; }
-	else                         { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
-
-	thisAppl->vput( vars, pType ) ;
-	return thisAppl->RC ;
-}
-
-
 int lspfVget( pApplication * thisAppl, string s )
 {
 	bool rlt ;
@@ -1443,6 +1343,38 @@ int lspfVget( pApplication * thisAppl, string s )
 	else                         { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	thisAppl->vget( vars, pType ) ;
+	return thisAppl->RC ;
+}
+
+
+int lspfVput( pApplication * thisAppl, string s )
+{
+	bool rlt ;
+
+	string str  ;
+	string vars ;
+
+	poolType pType ;
+
+	str = subword( s, 2 ) ;
+
+	vars = parseString( rlt, str, "()" ) ;
+	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
+
+	if ( words( vars ) == 0 )
+	{
+		vars = word( s, 2 )    ;
+		str  = subword( s, 3 ) ;
+	}
+
+	str = strip( str ) ;
+	if      ( str == "SHARED"  ) { pType = SHARED  ; }
+	else if ( str == "PROFILE" ) { pType = PROFILE ; }
+	else if ( str == "ASIS"    ) { pType = ASIS    ; }
+	else if ( str == ""        ) { pType = ASIS    ; }
+	else                         { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
+
+	thisAppl->vput( vars, pType ) ;
 	return thisAppl->RC ;
 }
 
