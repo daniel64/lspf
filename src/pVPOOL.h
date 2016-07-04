@@ -50,7 +50,7 @@ class fPOOL
 		string   vslist( int &, vdType ) ;
 
 	private:
-		map< string, stack< fVAR> > POOL ;
+		map<string, stack< fVAR>> POOL ;
 } ;
 
 
@@ -95,7 +95,7 @@ class pVPOOL
 		}
 
 	private:
-		map< string, pVAR > POOL ;
+		map<string, pVAR> POOL ;
 
 		int    refCount ;
 		bool   readOnly ;
@@ -148,6 +148,6 @@ class poolMGR
 		string currAPPLID ;
 		string shrdPool   ;
 		int    shrdPooln  ;
-		map< string, pVPOOL > POOLs_shared      ;
-		map< string, pVPOOL > POOLs_profile     ;
+		map<string, pVPOOL> POOLs_shared  ;
+		map<string, pVPOOL> POOLs_profile ;
 } ;

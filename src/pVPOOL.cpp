@@ -70,7 +70,7 @@ void fPOOL::dlete( int & RC, string name, nameCHCK check )
 	// RC =  8 Variable not found in the defined area of the function pool
 	// RC = 20 Severe error
 
-	map<string, stack< fVAR> >::iterator it  ;
+	map<string, stack< fVAR> >::iterator it ;
 
 	RC = 0 ;
 
@@ -381,15 +381,15 @@ void pVPOOL::put( int & RC, string name, string value, vTYPE vtype )
 		val.pVAR_value  = value ;
 		val.pVAR_system = ( vtype == SYSTEM ) ;
 		val.pVAR_type   = pV_VALUE ;
-		POOL[ name ]    = val  ;
-		changed         = true ;
+		POOL[ name ]    = val ;
 	}
 	else
 	{
 		if ( it->second.pVAR_type != pV_VALUE          ) { RC = 20 ; return ; }
 		if ( it->second.pVAR_system && vtype != SYSTEM ) { RC = 20 ; return ; }
-		it->second.pVAR_value = value ; changed = true ;
+		it->second.pVAR_value = value ;
 	}
+	changed = true ;
 }
 
 

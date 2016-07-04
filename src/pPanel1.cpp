@@ -398,12 +398,12 @@ void pPanel::display_panel_update( int & RC )
 				fieldNum = ds2d( it->first.substr( p+1 ) ) ;
 				darea    = p_funcPOOL->vlocate( RC, 0, fieldNam ) ;
 				offset   = fieldNum*it->second->field_length      ;
-				if ( it->second->field_dynDataModsp )
+				if ( it->second->field_dynArea_ptr->dynArea_DataModsp )
 				{
 					it->second->field_DataMod_to_UserMod( darea, offset ) ;
 				}
 				darea->replace( offset, it->second->field_length, it->second->field_value ) ;
-				sname    = dynAreaList[ fieldNam ]->dynArea_shadow_name ;
+				sname    = it->second->field_dynArea_ptr->dynArea_shadow_name ;
 				shadow   = p_funcPOOL->vlocate( RC, 0, sname )   ;
 				shadow->replace( offset, it->second->field_length, it->second->field_shadow_value ) ;
 			}
@@ -433,12 +433,12 @@ void pPanel::display_panel_update( int & RC )
 
 	if ( scrollOn && findword( CMDVerb, "UP DOWN LEFT RIGHT" ) )
 	{
-		CMD      = upper( fieldList[ CMDfield ]->field_value ) ;
-		msgfld   = CMDfield ;
+		CMD    = upper( fieldList[ CMDfield ]->field_value ) ;
+		msgfld = CMDfield ;
 		if ( CMD == "" || ( !findword( CMD, "M MAX C CSR D DATA H HALF P PAGE" ) && !isnumeric( CMD ) ) )
 		{
-			CMD      = fieldList[ "ZSCROLL" ]->field_value ;
-			msgfld   = "ZSCROLL" ;
+			CMD    = fieldList[ "ZSCROLL" ]->field_value ;
+			msgfld = "ZSCROLL" ;
 		}
 		else
 		{
@@ -1347,7 +1347,7 @@ void pPanel::create_tbfield( int col, int length, cuaType cuaFT, string name, st
 		m_fld->field_cua    = cuaFT      ;
 		m_fld->field_prot   = cuaAttrProt [ cuaFT ] ;
 		m_fld->field_row    = tb_row + i ;
-		m_fld->field_col    = col -1     ;
+		m_fld->field_col    = col - 1    ;
 		m_fld->field_length = length     ;
 		m_fld->field_just   = 'A'        ;
 
@@ -1382,9 +1382,9 @@ void pPanel::create_pdc( string abc_name, string pdc_name, string pdc_run, strin
 	}
 	if ( !found )
 	{
-		t_abc.abc_name   = abc_name ;
-		t_abc.abc_col    = abc_pos  ;
-		abc_pos          = abc_pos + abc_name.size() + 2 ;
+		t_abc.abc_name = abc_name ;
+		t_abc.abc_col  = abc_pos  ;
+		abc_pos        = abc_pos + abc_name.size() + 2 ;
 		ab.push_back( t_abc ) ;
 		i = ab.size()-1       ;
 	}
@@ -1434,7 +1434,7 @@ void pPanel::update_field_values( int & RC )
 	{
 		darea = p_funcPOOL->vlocate( RC, 0, it2->first, NOCHECK ) ;
 		if ( RC > 0 ) { RC = 20 ; PERR = "Dynamic area variable has not been defined in the function pool" ; return ; }
-		sname  = dynAreaList[ it2->first ]->dynArea_shadow_name ;
+		sname  = it2->second->dynArea_shadow_name ;
 		shadow = p_funcPOOL->vlocate( RC, 0, sname, NOCHECK )   ;
 		if ( RC > 0 ) { RC = 20 ; PERR = "Dynamic area shadow variable has not been defined in the function pool" ; return ; }
 		if ( darea->size() > shadow->size() )
@@ -1447,8 +1447,8 @@ void pPanel::update_field_values( int & RC )
 		shadow->resize( it2->second->dynArea_width * it2->second->dynArea_depth, 0xFF ) ;
 		for ( int i = 0 ; i < it2->second->dynArea_depth ; i++ )
 		{
-			fieldList[ it2->first + "." + d2ds( i )]->field_value        = darea->substr( i * it2->second->dynArea_width, it2->second->dynArea_width )  ;
-			fieldList[ it2->first + "." + d2ds( i )]->field_shadow_value = shadow->substr( i * it2->second->dynArea_width, it2->second->dynArea_width ) ;
+			fieldList[ it2->first + "." + d2ds( i ) ]->field_value        = darea->substr( i * it2->second->dynArea_width, it2->second->dynArea_width )  ;
+			fieldList[ it2->first + "." + d2ds( i ) ]->field_shadow_value = shadow->substr( i * it2->second->dynArea_width, it2->second->dynArea_width ) ;
 		}
 	}
 }
@@ -1517,7 +1517,7 @@ void pPanel::cursor_to_field( int & RC, string f_name, int f_pos )
 
 	if ( fieldList.find( f_name ) == fieldList.end() )
 	{
-		if ( dynAreaList.find( f_name ) == dynAreaList.end() )
+		if ( dynAreaList.count( f_name ) == 0 )
 		{
 			p_col = 0  ;
 			p_row = 0  ;
@@ -1642,7 +1642,7 @@ bool pPanel::field_get_row_col( string fld, uint & row, uint & col )
 	it = fieldList.find( fld ) ;
 	if ( it == fieldList.end() ) { return false ; }
 
-	if ( !it->second->field_active ) return false ;
+	if ( !it->second->field_active ) { return false ; }
 
 	row = it->second->field_row + win_row ;
 	col = it->second->field_col + win_col ;
@@ -1853,7 +1853,7 @@ void pPanel::field_tab_down( uint & row, uint & col )
 		if ( !it->second->field_dynArea && !it->second->field_input ) { continue ; }
 		if (  it->second->field_row <= o_row ) { continue ; }
 		d_offset = 0 ;
-		if ( it->second->field_dynArea && it->second->field_dynDataInsp )
+		if ( it->second->field_dynArea && it->second->field_dynArea_ptr->dynArea_DataInsp )
 		{
 			d_offset = it->second->field_dyna_input_offset( 0 ) ;
 			if ( d_offset == -1 ) { continue ; }
@@ -1903,7 +1903,7 @@ void pPanel::field_tab_next( uint & row, uint & col )
 		if ( !it->second->field_active) { continue ; }
 		if ( !it->second->field_dynArea && !it->second->field_input ) { continue ; }
 		d_offset = 0 ;
-		if ( it->second->field_dynArea && it->second->field_dynDataInsp )
+		if ( it->second->field_dynArea && it->second->field_dynArea_ptr->dynArea_DataInsp )
 		{
 			if ( o_row == it->second->field_row ) { d_offset = it->second->field_dyna_input_offset( o_col ) ; }
 			else                                  { d_offset = it->second->field_dyna_input_offset( 0 )     ; }
@@ -2090,7 +2090,7 @@ bool pPanel::display_pd( uint row, uint col )
 
 void pPanel::display_pd()
 {
-	if ( !abActive ) return   ;
+	if ( !abActive ) { return ; }
 	ab.at( abIndex ).display_pd() ;
 }
 
@@ -2103,7 +2103,7 @@ bool pPanel::is_pd_displayed()
 
 void pPanel::display_pd_next()
 {
-	if ( !abActive ) return   ;
+	if ( !abActive ) { return ; }
 	if ( ++abIndex == ab.size() ) { abIndex = 0 ; }
 	ab.at( abIndex ).display_abc_sel( win ) ;
 	ab.at( abIndex ).display_pd() ;
@@ -2114,7 +2114,7 @@ void pPanel::display_pd_next()
 
 void pPanel::hide_pd()
 {
-	if ( !abActive ) return  ;
+	if ( !abActive ) { return ; }
 	ab.at( abIndex ).hide_pd() ;
 	ab.at( abIndex ).display_abc_unsel( win ) ;
 }
@@ -2196,26 +2196,30 @@ void pPanel::display_msg()
 
 void pPanel::get_panel_info( int & RC, string a_name, string t_name, string w_name, string d_name, string r_name, string c_name )
 {
+	map<string, dynArea *>::iterator it ;
+
 	RC = 0 ;
-	if ( dynAreaList.find( a_name ) == dynAreaList.end() )
+
+	it = dynAreaList.find( a_name ) ;
+	if ( it == dynAreaList.end() )
 	{
-		log( "E", "PQUERY.  DYNAMIC AREA " << a_name << " not found" << endl ) ;
+		log( "E", "PQUERY.  Dynamic area " << a_name << " not found" << endl ) ;
 		RC = 8 ;
 		return ;
 	}
 
 	if ( t_name != "" ) { p_funcPOOL->put( RC, 0, t_name, "DYNAMIC" ) ; }
-	if ( w_name != "" ) { p_funcPOOL->put( RC, 0, w_name, dynAreaList[ a_name ]->dynArea_width ) ; }
-	if ( d_name != "" ) { p_funcPOOL->put( RC, 0, d_name, dynAreaList[ a_name ]->dynArea_depth ) ; }
-	if ( r_name != "" ) { p_funcPOOL->put( RC, 0, r_name, dynAreaList[ a_name ]->dynArea_row )   ; }
-	if ( c_name != "" ) { p_funcPOOL->put( RC, 0, c_name, dynAreaList[ a_name ]->dynArea_col )   ; }
+	if ( w_name != "" ) { p_funcPOOL->put( RC, 0, w_name, it->second->dynArea_width ) ; }
+	if ( d_name != "" ) { p_funcPOOL->put( RC, 0, d_name, it->second->dynArea_depth ) ; }
+	if ( r_name != "" ) { p_funcPOOL->put( RC, 0, r_name, it->second->dynArea_row )   ; }
+	if ( c_name != "" ) { p_funcPOOL->put( RC, 0, c_name, it->second->dynArea_col )   ; }
 }
 
 
 void pPanel::attr( int & RC, string field, string attrs )
 {
 	RC = 0 ;
-	if ( fieldList.find( field ) == fieldList.end() )
+	if ( fieldList.count( field ) == 0 )
 	{
 		log( "E", "ATTR.  Field " << field << "not found" << endl ) ;
 		RC = 8  ;

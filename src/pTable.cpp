@@ -23,7 +23,7 @@
 #define LOGOUT   aplog
 
 
-void Table::loadRow( int & RC, vector< string > & m_flds )
+void Table::loadRow( int & RC, vector<string> & m_flds )
 {
 	RC = 0 ;
 
@@ -82,7 +82,7 @@ void Table::saveTable( int & RC, string m_name, string m_path )
 		return  ;
 	}
 
-	s = s + m_name ;
+	s += m_name ;
 	if ( exists( s ) )
 	{
 		if ( !is_regular_file( s ) )
@@ -148,9 +148,9 @@ void Table::tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	string key   ;
 	string URID ;
 
-	vector< string > keys ;
-	vector< string > flds ;
-	vector< vector< string > >::iterator it ;
+	vector<string> keys ;
+	vector<string> flds ;
+	vector<vector<string>>::iterator it ;
 
 	RC = 0 ;
 	tb_namelst = upper( tb_namelst ) ;
@@ -327,7 +327,7 @@ void Table::tbdelete( int & RC, fPOOL & funcPOOL )
 	bool found ;
 	string key ;
 
-	vector< vector<string> >::iterator it ;
+	vector<vector<string>>::iterator it ;
 	vector<string> keys ;
 
 	RC  = 0 ;
@@ -389,7 +389,7 @@ void Table::tbexist( int & RC, fPOOL & funcPOOL )
 	int    j     ;
 	string key   ;
 
-	vector< vector<string> >::iterator it ;
+	vector<vector<string>>::iterator it ;
 	vector<string> keys ;
 
 	RC  = 0 ;
@@ -431,7 +431,7 @@ void Table::fillfVARs( int & RC, fPOOL & funcPOOL, int depth, int posn )
 	int k    ;
 	int size ;
 
-	vector< vector<string> >::iterator it ;
+	vector<vector<string>>::iterator it ;
 
 	RC   = 0 ;
 	size = table.size() ;
@@ -482,7 +482,7 @@ void Table::tbget( int & RC, fPOOL & funcPOOL, string tb_savenm, string tb_rowid
 	string var    ;
 	string val    ;
 
-	vector< vector<string> >::iterator it ;
+	vector<vector<string>>::iterator it ;
 	vector<string> keys ;
 
 	RC = 0 ;
@@ -591,9 +591,9 @@ void Table::tbmod( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	string key  ;
 	string URID ;
 
-	vector< string > flds ;
-	vector< string > keys ;
-	vector< vector<string> >::iterator it ;
+	vector<string> flds ;
+	vector<string> keys ;
+	vector<vector<string>>::iterator it ;
 
 	RC = 0 ;
 
@@ -682,8 +682,8 @@ void Table::tbput( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	string key  ;
 	string URID ;
 
-	vector< string > flds ;
-	vector< vector<string> >::iterator it ;
+	vector<string> flds ;
+	vector<vector<string>>::iterator it ;
 
 	RC = 0 ;
 
@@ -946,9 +946,9 @@ void Table::tbscan( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_sav
 		return  ;
 	}
 
-	if ( (tb_savenm   != "") && !isvalidName( tb_savenm   ) ) { RC = 20 ; return ; }
-	if ( (tb_rowid_vn != "") && !isvalidName( tb_rowid_vn ) ) { RC = 20 ; return ; }
-	if ( (tb_crp_name != "") && !isvalidName( tb_crp_name ) ) { RC = 20 ; return ; }
+	if ( tb_savenm   != "" && !isvalidName( tb_savenm   ) ) { RC = 20 ; return ; }
+	if ( tb_rowid_vn != "" && !isvalidName( tb_rowid_vn ) ) { RC = 20 ; return ; }
+	if ( tb_crp_name != "" && !isvalidName( tb_crp_name ) ) { RC = 20 ; return ; }
 
 	if ( tb_namelst == "" )
 	{
@@ -1113,7 +1113,8 @@ void Table::tbscan( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_sav
 
 void Table::cmdsearch( int & RC, fPOOL & funcPOOL, string cmd )
 {
-	// cmdsearch is not part of the normal table services for application.  It's used for retrieving commands from a command table that may be abbreviated.
+	// cmdsearch is not part of the normal table services for application.
+	// It's used for retrieving abbreviated commands from a command table.
 	// Use tbsarg/tbscan for normal applications
 
 	// RC = 0  Okay
@@ -1123,7 +1124,7 @@ void Table::cmdsearch( int & RC, fPOOL & funcPOOL, string cmd )
 	int  trunc ;
 	bool found ;
 
-	vector< vector<string> >::iterator it ;
+	vector<vector<string>>::iterator it ;
 
 	RC = 0 ;
 
@@ -1187,7 +1188,7 @@ void Table::tbskip( int & RC, fPOOL & funcPOOL, int num, string tb_savenm, strin
 	string tbelst ;
 	bool found    ;
 
-	vector< vector<string> >::iterator it ;
+	vector<vector<string>>::iterator it ;
 
 	RC = 0 ;
 	tb_savenm    = upper( tb_savenm )   ;
@@ -1276,10 +1277,10 @@ void Table::tbsort( int & RC, string tb_fields )
 	string s_fields ;
 	string s_temp   ;
 
-	vector<string>s_parm ;
-	vector<int>s_field   ;
-	vector<bool>s_char   ;
-	vector<bool>s_asc    ;
+	vector<string> s_parm ;
+	vector<int> s_field   ;
+	vector<bool> s_char   ;
+	vector<bool> s_asc    ;
 
 	int nsort ;
 
@@ -1353,14 +1354,16 @@ void Table::tbsort( int & RC, string tb_fields )
 				}
 				else
 				{
-					 if ( ds2d( a[ j ] ) == ds2d( b[ j ] ) ) { continue ; }
+					 int ia = ds2d( a[ j ] ) ;
+					 int ib = ds2d( b[ j ] ) ;
+					 if ( ia == ib ) { continue ; }
 					 if ( s_asc[ i ] )
 					 {
-						 return ds2d( a[ j ] ) < ds2d( b[ j ] ) ;
+						 return ia < ib ;
 					 }
 					 else
 					 {
-						 return ds2d( a[ j ] ) > ds2d( b[ j ] ) ;
+						 return ia > ib ;
 					 }
 				}
 			}
@@ -1413,7 +1416,10 @@ void tableMGR::createTable( int & RC, int m_task, string tb_name, string keys, s
 	debug1( "          path >>" << m_path << "<<" << endl ) ;
 
 	RC = 0 ;
-	if ( tables.find( tb_name ) != tables.end() )
+	map<string, Table>::iterator it ;
+
+	it = tables.find( tb_name ) ;
+	if ( it != tables.end() )
 	{
 		if ( m_REP == REPLACE )
 		{
@@ -1425,7 +1431,7 @@ void tableMGR::createTable( int & RC, int m_task, string tb_name, string keys, s
 			}
 			else
 			{
-				if ( tables[ tb_name ].ownerTask != m_task )
+				if ( it->second.ownerTask != m_task )
 				{
 					log( "E", "Table " << tb_name << " already exists in EXCLUSIVE mode but owned by another task.  REPLACE not allowed" << endl ) ;
 					RC = 8 ;
@@ -1445,7 +1451,7 @@ void tableMGR::createTable( int & RC, int m_task, string tb_name, string keys, s
 			RC = 8 ;
 			return ;
 		}
-		if ( m_temporary != tables[ tb_name ].tab_temporary )
+		if ( m_temporary != it->second.tab_temporary )
 		{
 			log( "E", "Table created with inconsistent WRITE/NOWRITE attributes for open table " << tb_name << endl ) ;
 			RC = 20 ;
@@ -1453,17 +1459,17 @@ void tableMGR::createTable( int & RC, int m_task, string tb_name, string keys, s
 		}
 	}
 	if ( getpaths( m_path ) > 0 ) { t.tab_path = getpath( m_path, 1 ) ; }
-	t.ownerTask       = m_task ;
-	t.tab_DISP        = m_DISP ;
-	t.tab_temporary   = m_temporary ;
-	t.changed         = true   ;
-	t.tab_keys        = space( keys ) ;
-	t.num_keys        = words( keys ) ;
-	t.tab_flds        = space( flds ) ;
-	t.num_flds        = words( flds ) ;
-	t.tab_all         = t.tab_keys + " " + t.tab_flds ;
-	t.num_all         = t.num_keys + t.num_flds       ;
-	if ( t.tab_all == "ZCTVERB ZCTTRUNC ZCTACT ZCTDESC" ) { t.tab_cmds = true ; }
+	t.ownerTask     = m_task ;
+	t.tab_DISP      = m_DISP ;
+	t.tab_temporary = m_temporary ;
+	t.changed       = true   ;
+	t.tab_keys      = space( keys ) ;
+	t.num_keys      = words( keys ) ;
+	t.tab_flds      = space( flds ) ;
+	t.num_flds      = words( flds ) ;
+	t.tab_all       = t.tab_keys + " " + t.tab_flds ;
+	t.num_all       = t.num_keys + t.num_flds       ;
+	t.tab_cmds      = ( t.tab_all == "ZCTVERB ZCTTRUNC ZCTACT ZCTDESC" ) ;
 	tables[ tb_name ] = t ;
 }
 
@@ -1486,7 +1492,7 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 	char buf1[ 256 ] ;
 	char * buf2      ;
 
-	string filename  ;
+	string filename ;
 	string path  ;
 	string s     ;
 	string hdr   ;
@@ -1497,27 +1503,29 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 
 	size_t buf2Size = 1024  ;
 
-	std::ifstream table     ;
-	vector< string > m_flds ;
+	std::ifstream table   ;
+	vector<string> m_flds ;
 
 	RC = 0 ;
+	map<string, Table>::iterator it ;
 
-	if ( tables.find( tb_name ) != tables.end() )
+	it = tables.find( tb_name ) ;
+	if ( it != tables.end() )
 	{
-		if ( (tables[ tb_name ].tab_DISP == SHARE) && (m_DISP == EXCLUSIVE) )
+		if ( (it->second.tab_DISP == SHARE) && (m_DISP == EXCLUSIVE) )
 		{
 			RC = 20 ;
 			log( "E", "Table " << tb_name << " is already open in SHARE mode.  EXCLUSIVE requested" << endl ) ;
 			return ;
 		}
-		if ( (tables[ tb_name ].tab_DISP == EXCLUSIVE) && tables[ tb_name ].ownerTask != task )
+		if ( (it->second.tab_DISP == EXCLUSIVE) && it->second.ownerTask != task )
 		{
 			RC = 20 ;
 			log( "E", "Table " << tb_name << " is already open in EXCLUSIVE mode by another task" << endl ) ;
 			return ;
 		}
-		tables[ tb_name ].refCount++ ;
-		tables[ tb_name ].tab_DISP = m_DISP ;
+		it->second.refCount++ ;
+		it->second.tab_DISP = m_DISP ;
 		return ;
 	}
 
@@ -1601,7 +1609,6 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 			table.close() ;
 			return ;
 		}
-
 	}
 	table.get( x ) ;
 	table.get( y ) ;
@@ -1665,7 +1672,7 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 	debug1( "Table created RC = " << RC << endl ) ;
 	debug1( "Number of rows found in table " << num_rows << endl ) ;
 
-	tables[ tb_name ].reserveSpace( num_rows ) ;
+	it->second.reserveSpace( num_rows ) ;
 	if ( sir != "" )
 	{
 		tables[ tb_name ].tbsort( RC, sir ) ;
@@ -1673,11 +1680,9 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 		{
 			RC = 20 ;
 			log( "E", "Bad return code from tbsort.  Sort Information Record found is " << sir << endl ) ;
-			table.close() ;
 			return  ;
 		}
 	}
-
 	buf2 = new char[ buf2Size ] ;
 	for ( l = 0 ; l < num_rows ; l++ )
 	{
@@ -1737,40 +1742,45 @@ void tableMGR::saveTable( int & RC, int task, string tb_name, string m_newname, 
 	// This can be called by tbclose() or tbsave().  For temporary tables, only report error for tbsave() with no m_newname RC=12
 
 	RC = 0 ;
-	if ( tables.find( tb_name ) == tables.end() )
+	map<string, Table>::iterator it ;
+
+	it = tables.find( tb_name ) ;
+	if ( it == tables.end() )
 	{
 		RC = 12 ;
 		log( "E", "Table " << tb_name << " not found for save" << endl ) ;
 		return ;
 	}
-	if ( m_err && m_newname == "" && tables[ tb_name ].tab_temporary )
+	if ( m_err && m_newname == "" && it->second.tab_temporary )
 	{
 		RC = 12 ;
 		log( "E", "Table " << tb_name << " is a temporary table.  Cannot be saved" << endl ) ;
 		return ;
 	}
-	tables[ tb_name ].saveTable( RC, ( m_newname == "" ? tb_name : m_newname ), m_path ) ;
+	it->second.saveTable( RC, ( m_newname == "" ? tb_name : m_newname ), m_path ) ;
 }
 
 
 void tableMGR::destroyTable( int & RC, int task, string tb_name )
 {
-
 	RC = 0 ;
-	if ( tables.find( tb_name ) == tables.end() )
+	map<string, Table>::iterator it ;
+
+	it = tables.find( tb_name ) ;
+	if ( it == tables.end() )
 	{
 		RC = 12 ;
 		log( "E", "Table " << tb_name << " does not exist" << endl ) ;
 		return ;
 	}
 
-	if ( tables[ tb_name ].refCount == 1 )
+	if ( it->second.refCount == 1 )
 	{
-		tables.erase( tb_name ) ;
+		tables.erase( it ) ;
 	}
 	else
 	{
-		tables[ tb_name ].refCount-- ;
+		it->second.refCount-- ;
 	}
 }
 
@@ -1818,8 +1828,8 @@ bool tableMGR::tablexists( string tb_name, string tb_path )
 
 void tableMGR::statistics()
 {
-	map<string, Table>::iterator it ;
-	map< string, tbsearch >::iterator its ;
+	map<string, Table>::iterator it     ;
+	map<string, tbsearch>::iterator its ;
 
 	log( "-", "TABLE STATISTICS:" << endl ) ;
 	log( "-", "         Number of tables loaded . . . " << tables.size() << endl ) ;
@@ -1828,30 +1838,30 @@ void tableMGR::statistics()
 	{
 		log( "-", "" << endl ) ;
 		log( "-", "                  Table: " << it->first << endl ) ;
-		if ( tables[ it->first ].tab_temporary )
+		if ( it->second.tab_temporary )
 		{
 			log( "-", "                 Status: " << "Temporary table" << endl ) ;
 		}
-		else if ( tables[ it->first ].changed )
+		else if ( it->second.changed )
 		{
 			log( "-", "                 Status: " << "Modified since load or last save" << endl ) ;
 		}
-		log( "-", "            Owning Task: " << tables[ it->first ].ownerTask << endl ) ;
-		if ( tables[ it->first ].num_keys > 0 )
+		log( "-", "            Owning Task: " << it->second.ownerTask << endl ) ;
+		if ( it->second.num_keys > 0 )
 		{
-			log( "-", "                   Keys: " << setw(3) << tables[ it->first ].tab_keys << endl ) ;
+			log( "-", "                   Keys: " << setw(3) << it->second.tab_keys << endl ) ;
 		}
-		log( "-", "                 Fields: " << tables[ it->first ].tab_flds << endl ) ;
-		log( "-", "         Number of rows: " << tables[ it->first ].table.size() << endl ) ;
-		log( "-", "                   Path: " << tables[ it->first ].tab_path << endl ) ;
-		log( "-", "   Current Row Position: " << tables[ it->first ].CRP << endl ) ;
-		if ( tables[ it->first ].sarg.size() > 0 )
+		log( "-", "                 Fields: " << it->second.tab_flds << endl ) ;
+		log( "-", "         Number of rows: " << it->second.table.size() << endl ) ;
+		log( "-", "                   Path: " << it->second.tab_path << endl ) ;
+		log( "-", "   Current Row Position: " << it->second.CRP << endl ) ;
+		if ( it->second.sarg.size() > 0 )
 		{
 			log( "-", "Current Search Argument: " << endl ) ;
-			log( "-", "        Condition Pairs: " << tables[ it->first ].sa_cond_pairs << endl ) ;
-			log( "-", "       Search Direction: " << tables[ it->first ].sa_dir << endl ) ;
-			log( "-", "    Extension Variables: " << tables[ it->first ].sa_namelst << endl ) ;
-			for ( its = tables[ it->first ].sarg.begin() ; its != tables[ it->first ].sarg.end() ; its++ )
+			log( "-", "        Condition Pairs: " << it->second.sa_cond_pairs << endl ) ;
+			log( "-", "       Search Direction: " << it->second.sa_dir << endl ) ;
+			log( "-", "    Extension Variables: " << it->second.sa_namelst << endl ) ;
+			for ( its = it->second.sarg.begin() ; its != it->second.sarg.end() ; its++ )
 			{
 				log( "-", "             Field Name: " << its->first << endl ) ;
 				if ( its->second.tbs_gen )
@@ -1861,9 +1871,9 @@ void tableMGR::statistics()
 				log( "-", "        Field Condition: " << its->second.tbs_scond << endl ) ;
 			}
 		}
-		if ( tables[ it->first ].sort_ir != "" )
+		if ( it->second.sort_ir != "" )
 		{
-			log( "-", "Sort Information Record: " << tables[ it->first ].sort_ir << endl ) ;
+			log( "-", "Sort Information Record: " << it->second.sort_ir << endl ) ;
 		}
 	}
 	log( "-", "*************************************************************************************************************" << endl ) ;
@@ -1880,106 +1890,128 @@ void tableMGR::snap()
 int tableMGR::getCRP( int & RC, string tb_name )
 {
 	RC = 0 ;
-	if ( tables.find( tb_name ) == tables.end() )
+	map<string, Table>::iterator it ;
+
+	it = tables.find( tb_name ) ;
+	if ( it == tables.end() )
 	{
 		RC = 12 ;
 		log( "E", "Table " << tb_name << " not found for get CRP" << endl ) ;
 		return 0 ;
 	}
-	return tables[ tb_name ].getCRP() ;
+	return it->second.getCRP() ;
 }
 
 
 void tableMGR::fillfVARs( int & RC, fPOOL & funcPOOL, string tb_name, int depth, int posn )
 {
 	RC = 0 ;
-	if ( tables.find( tb_name ) == tables.end() )
+	map<string, Table>::iterator it ;
+
+	it = tables.find( tb_name ) ;
+	if ( it == tables.end() )
 	{
 		RC = 12 ;
 		log( "E", "Table " << tb_name << " not found for fill function pool" << endl ) ;
 		return ;
 	}
-	tables[ tb_name ].fillfVARs( RC, funcPOOL, depth, posn ) ;
+	it->second.fillfVARs( RC, funcPOOL, depth, posn ) ;
 }
 
 
 void tableMGR::tbget( int & RC, fPOOL & funcPOOL, string tb_name, string tb_savenm, string tb_rowid_vn, string tb_noread, string tb_crp_name  )
 {
 	RC = 0 ;
-	if ( tables.find( tb_name ) == tables.end() )
+	map<string, Table>::iterator it ;
+
+	it = tables.find( tb_name ) ;
+	if ( it == tables.end() )
 	{
 		RC = 12 ;
 		log( "E", "Table " << tb_name << " not found for tbget" << endl ) ;
 		return ;
 	}
-	tables[ tb_name ].tbget( RC, funcPOOL, tb_savenm, tb_rowid_vn, tb_noread, tb_crp_name ) ;
+	it->second.tbget( RC, funcPOOL, tb_savenm, tb_rowid_vn, tb_noread, tb_crp_name ) ;
 }
 
 
 void tableMGR::tbmod( int & RC, fPOOL & funcPOOL, string tb_name, string tb_namelst, string tb_order )
 {
 	RC = 0 ;
-	if ( tables.find( tb_name ) == tables.end() )
+	map<string, Table>::iterator it ;
+
+	it = tables.find( tb_name ) ;
+	if ( it == tables.end() )
 	{
 		RC = 12 ;
 		log( "E", "Table " << tb_name << " not found for modify" << endl ) ;
 		return ;
 	}
-	tables[ tb_name ].tbmod( RC, funcPOOL, tb_namelst, tb_order ) ;
+	it->second.tbmod( RC, funcPOOL, tb_namelst, tb_order ) ;
 }
 
 
 void tableMGR::tbput( int & RC, fPOOL & funcPOOL, string tb_name, string tb_namelst, string tb_order )
 {
 	RC = 0 ;
-	if ( tables.find( tb_name ) == tables.end() )
+	map<string, Table>::iterator it ;
+
+	it = tables.find( tb_name ) ;
+	if ( it == tables.end() )
 	{
 		RC = 12 ;
 		log( "E", "Table " << tb_name << " not found for modify" << endl ) ;
 		return ;
 	}
-	tables[ tb_name ].tbput( RC, funcPOOL, tb_namelst, tb_order ) ;
+	it->second.tbput( RC, funcPOOL, tb_namelst, tb_order ) ;
 }
 
 
 void tableMGR::tbadd( int & RC, fPOOL & funcPOOL, string tb_name, string tb_namelst, string tb_order, int tb_num_of_rows )
 {
 	RC = 0 ;
-	debug2( "tbadd table " << tb_name << endl ) ;
+	map<string, Table>::iterator it ;
 
-	if ( tables.find( tb_name ) == tables.end() )
+	it = tables.find( tb_name ) ;
+	if ( it == tables.end() )
 	{
 		RC = 12 ;
 		log( "E", "Table " << tb_name << " not found for tbadd" << endl ) ;
 		return ;
 	}
-	tables[ tb_name ].tbadd( RC, funcPOOL, tb_namelst, tb_order, tb_num_of_rows ) ;
+	it->second.tbadd( RC, funcPOOL, tb_namelst, tb_order, tb_num_of_rows ) ;
 }
 
 
 void tableMGR::tbbottom( int & RC, fPOOL & funcPOOL, string tb_name, string tb_savenm, string tb_rowid_vn, string tb_noread, string tb_crp_name  )
 {
 	RC = 0 ;
-	if ( tables.find( tb_name ) == tables.end() )
+	map<string, Table>::iterator it ;
+
+	it = tables.find( tb_name ) ;
+	if ( it == tables.end() )
 	{
 		RC = 12 ;
 		log( "E", "Table " << tb_name << " not found for tbbottom" << endl ) ;
 		return ;
 	}
-	tables[ tb_name ].tbbottom( RC, funcPOOL, tb_savenm, tb_rowid_vn, tb_noread, tb_crp_name ) ;
+	it->second.tbbottom( RC, funcPOOL, tb_savenm, tb_rowid_vn, tb_noread, tb_crp_name ) ;
 }
 
 
 void tableMGR::tbdelete( int & RC, fPOOL & funcPOOL, string tb_name )
 {
 	RC = 0 ;
-	if ( tables.find( tb_name ) == tables.end() )
+	map<string, Table>::iterator it ;
+
+	it = tables.find( tb_name ) ;
+	if ( it == tables.end() )
 	{
 		RC = 12 ;
 		log( "E", "Table " << tb_name << " not found for tbdelete" << endl ) ;
 		return ;
 	}
-	tables[ tb_name ].tbdelete( RC, funcPOOL ) ;
+	it->second.tbdelete( RC, funcPOOL ) ;
 }
 
 
@@ -1991,12 +2023,15 @@ void tableMGR::tberase( int & RC, string tb_name, string tb_path )
 	bool found ;
 
 	string filename ;
+	map<string, Table>::iterator it ;
 
 	RC = 0 ;
-	if ( tables.find( tb_name ) != tables.end() )
+
+	it = tables.find( tb_name ) ;
+	if ( it != tables.end() )
 	{
 		RC = 12 ;
-		log( "E", "Table " << tb_name << " in use. Cannot be erasde unless closed" << endl ) ;
+		log( "E", "Table " << tb_name << " in use. Cannot be erased unless closed" << endl ) ;
 		return ;
 	}
 
@@ -2034,57 +2069,64 @@ void tableMGR::tberase( int & RC, string tb_name, string tb_path )
 void tableMGR::tbexist( int & RC, fPOOL & funcPOOL, string tb_name )
 {
 	RC = 0 ;
+	map<string, Table>::iterator it ;
 
-	if ( tables.find( tb_name ) == tables.end() )
+	it = tables.find( tb_name ) ;
+	if ( it == tables.end() )
 	{
 		RC = 12 ;
 		log( "E", "Table " << tb_name << " not found for tbexist" << endl ) ;
 		return ;
 	}
-	tables[ tb_name ].tbexist( RC, funcPOOL ) ;
+	it->second.tbexist( RC, funcPOOL ) ;
 }
 
 
 void   tableMGR::tbquery( int & RC, fPOOL & funcPOOL, string tb_name, string tb_keyn, string tb_varn, string tb_rownn, string tb_keynn, string tb_namenn, string tb_crpn, string tb_sirn, string tb_lstn, string tb_condn, string tb_dirn )
 {
 	RC = 0 ;
+	map<string, Table>::iterator it ;
 
-	if ( tables.find( tb_name ) == tables.end() )
+	it = tables.find( tb_name ) ;
+	if ( it == tables.end() )
 	{
 		RC = 12 ;
 		debug1( "Table " << tb_name << " not found to set search argument" << endl ) ;
 		return ;
 	}
-	tables[ tb_name ].tbquery( RC, funcPOOL, tb_keyn, tb_varn, tb_rownn, tb_keynn, tb_namenn, tb_crpn, tb_sirn, tb_lstn, tb_condn, tb_dirn ) ;
+	it->second.tbquery( RC, funcPOOL, tb_keyn, tb_varn, tb_rownn, tb_keynn, tb_namenn, tb_crpn, tb_sirn, tb_lstn, tb_condn, tb_dirn ) ;
 }
 
 
 void   tableMGR::tbsarg( int & RC, fPOOL & funcPOOL, string tb_name, string tb_namelst, string tb_dir, string tb_cond_pairs )
 {
 	RC = 0 ;
+	map<string, Table>::iterator it ;
 
-	if ( tables.find( tb_name ) == tables.end() )
+	it = tables.find( tb_name ) ;
+	if ( it == tables.end() )
 	{
 		RC = 12 ;
 		debug1( "Table " << tb_name << " not found to set search argument" << endl ) ;
 		return ;
 	}
-	tables[ tb_name ].tbsarg( RC, funcPOOL, tb_namelst, tb_dir, tb_cond_pairs ) ;
+	it->second.tbsarg( RC, funcPOOL, tb_namelst, tb_dir, tb_cond_pairs ) ;
 }
 
 
 void tableMGR::tbscan( int & RC, fPOOL & funcPOOL, string tb_name, string tb_namelst, string tb_savenm, string tb_rowid_vn, string tb_dir, string tb_noread, string tb_crp_name, string tb_condlst )
 {
 	RC = 0 ;
+	map<string, Table>::iterator it ;
 
-	if ( tables.find( tb_name ) == tables.end() )
+	it = tables.find( tb_name ) ;
+	if ( it == tables.end() )
 	{
 		RC = 12 ;
 		debug1( "Table " << tb_name << " not found for tbscan" << endl ) ;
 		return ;
 	}
-	debug2( "Searching table " << tb_name << " for key " << tb_namelst << endl ) ;
-	tables[ tb_name ].tbscan( RC, funcPOOL, tb_namelst, tb_savenm, tb_rowid_vn, tb_dir, tb_noread, tb_crp_name, tb_condlst ) ;
+	it->second.tbscan( RC, funcPOOL, tb_namelst, tb_savenm, tb_rowid_vn, tb_dir, tb_noread, tb_crp_name, tb_condlst ) ;
 }
 
 
@@ -2098,9 +2140,11 @@ void tableMGR::cmdsearch( int & RC, fPOOL & funcPOOL, string tb_name, string cmd
 	// RC = 20 Severe error
 
 	RC = 0 ;
+	map<string, Table>::iterator it ;
 
 	tb_name += "CMDS" ;
-	if ( tables.find( tb_name ) == tables.end() )
+	it = tables.find( tb_name ) ;
+	if ( it == tables.end() )
 	{
 		if ( tablexists( tb_name, paths ) )
 		{
@@ -2111,6 +2155,7 @@ void tableMGR::cmdsearch( int & RC, fPOOL & funcPOOL, string tb_name, string cmd
 				RC = 20 ;
 				return  ;
 			}
+			it = tables.find( tb_name ) ;
 		}
 		else
 		{
@@ -2118,61 +2163,69 @@ void tableMGR::cmdsearch( int & RC, fPOOL & funcPOOL, string tb_name, string cmd
 			return  ;
 		}
 	}
-	tables[ tb_name ].cmdsearch( RC, funcPOOL, cmd ) ;
+	it->second.cmdsearch( RC, funcPOOL, cmd ) ;
 }
 
 
 void tableMGR::tbskip( int & RC, fPOOL & funcPOOL, string tb_name, int num, string tb_savenm, string tb_rowid_vn, string tb_rowid, string tb_noread, string tb_crp_name )
 {
 	RC = 0 ;
+	map<string, Table>::iterator it ;
 
-	if ( tables.find( tb_name ) == tables.end() )
+	it = tables.find( tb_name ) ;
+	if ( it == tables.end() )
 	{
 		RC = 12 ;
 		log( "E", "Table " << tb_name << " not found for tbskip" << endl ) ;
 		return ;
 	}
-	tables[ tb_name ].tbskip( RC, funcPOOL, num, tb_savenm, tb_rowid_vn, tb_rowid, tb_noread, tb_crp_name ) ;
+	it->second.tbskip( RC, funcPOOL, num, tb_savenm, tb_rowid_vn, tb_rowid, tb_noread, tb_crp_name ) ;
 }
 
 
 void tableMGR::tbsort( int & RC, string tb_name, string tb_fields )
 {
 	RC = 0 ;
+	map<string, Table>::iterator it ;
 
-	if ( tables.find( tb_name ) == tables.end() )
+	it = tables.find( tb_name ) ;
+	if ( it == tables.end() )
 	{
 		RC = 12 ;
 		log( "E", "Table " << tb_name << " not found for tbsort" << endl ) ;
 		return ;
 	}
-	tables[ tb_name ].tbsort( RC, tb_fields ) ;
+	it->second.tbsort( RC, tb_fields ) ;
 }
 
 
 void tableMGR::tbtop( int & RC, string tb_name )
 {
 	RC = 0 ;
+	map<string, Table>::iterator it ;
 
-	if ( tables.find( tb_name ) == tables.end() )
+	it = tables.find( tb_name ) ;
+	if ( it == tables.end() )
 	{
 		RC = 12 ;
 		log( "E", "Table " << tb_name << " not found for tbtop" << endl ) ;
 		return ;
 	}
-	tables[ tb_name ].tbtop( RC ) ;
+	it->second.tbtop( RC ) ;
 }
 
 
 void tableMGR::tbvclear( int & RC, fPOOL & funcPOOL, string tb_name )
 {
 	RC = 0 ;
+	map<string, Table>::iterator it ;
 
-	if ( tables.find( tb_name ) == tables.end() )
+	it = tables.find( tb_name ) ;
+	if ( it == tables.end() )
 	{
 		RC = 12 ;
 		log( "E", "Table " << tb_name << " not found for tbvclear" << endl ) ;
 		return ;
 	}
-	tables[ tb_name ].tbvclear( RC, funcPOOL ) ;
+	it->second.tbvclear( RC, funcPOOL ) ;
 }

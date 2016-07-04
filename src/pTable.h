@@ -59,7 +59,7 @@ class Table
 		void   tbvclear( int & RC, fPOOL & funcPOOL ) ;
 
 	private:
-		vector< vector< string > > table  ;
+		vector< vector<string> > table ;
 
 		map< string, tbsearch > sarg ;
 

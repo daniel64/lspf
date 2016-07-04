@@ -64,6 +64,13 @@ void PCMD0A::application()
 	boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
 	string tname = temp.native() ;
 
+	ZCOMMAND = "" ;
+	if ( PARM != "" )
+	{
+		control( "DISPLAY", "NONDISPL" ) ;
+		ZCOMMAND = PARM ;
+	}
+
 	while ( true )
 	{
 		if ( MSG == "" ) { ZCMD = "" ; }

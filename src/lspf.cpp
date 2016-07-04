@@ -187,8 +187,8 @@ string GMAINPGM ;
 
 string pfkPROF  ;
 
-const string BuiltInCommands = "ACTION DISCARD FIELDEXC NOP PANELID REFRESH SPLIT SWAP TEST TDOWN" ;
-const string SystemCommands  = ".ABEND .HIDE .INFO .RELOAD .SCALE .SHELL .SHOW .SNAP .STATS" ;
+const string BuiltInCommands = "ACTION DISCARD FIELDEXC NOP PANELID REFRESH SPLIT SWAP TDOWN" ;
+const string SystemCommands  = ".ABEND .HIDE .INFO .RELOAD .SCALE .SHELL .SHOW .SNAP .STATS .TEST" ;
 
 std::ofstream splog(SLOG) ;
 
@@ -722,7 +722,7 @@ void mainLoop()
 						loadpfkeyTable()    ;
 						break ;
 					}
-					else if ( ZCOMMAND == "TEST" )
+					else if ( ZCOMMAND == ".TEST" )
 					{
 						currAppl->testMode = true ;
 						log( "W", "Application is now running in test mode" << endl ) ;
@@ -1016,8 +1016,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 		{
 			passthru = false ;
 			currAppl->currPanel->showLMSG = true ;
-			currAppl->currPanel->cmd_setvalue( "" ) ;
-			currAppl->currPanel->display_msg() ;
+			currAppl->currPanel->display_msg()   ;
 			return ;
 		}
 		else
@@ -1026,8 +1025,8 @@ void processAction( uint row, uint col, int c, bool & passthru )
 			currAppl->currPanel->cmd_setvalue( "" ) ;
 			currAppl->currPanel->SMSG     = ""    ;
 			currAppl->currPanel->LMSG     = ""    ;
-			ZPARM        = currAppl->get_help_member( row, col ) ;
-			CMDRest      = ZPARM ;
+			ZPARM   = currAppl->get_help_member( row, col ) ;
+			CMDRest = ZPARM ;
 		}
 	}
 
@@ -1530,10 +1529,10 @@ void terminateApplication()
 		{
 			currAppl->RC = 0 ;
 		}
-		currAppl->SEL      = false   ;
-		currAppl->ZRC      = tRC     ;
-		currAppl->ZRSN     = tRSN    ;
-		currAppl->ZRESULT  = tRESULT ;
+		currAppl->SEL     = false   ;
+		currAppl->ZRC     = tRC     ;
+		currAppl->ZRSN    = tRSN    ;
+		currAppl->ZRESULT = tRESULT ;
 		if ( SMSG != "" )  { currAppl->ZSMSG = SMSG ; currAppl->ZLMSG = LMSG ; currAppl->ZMSGTYPE = MSGTYPE ; currAppl->ZMSGALRM = MSGALRM ; currAppl->setMSG = true ; }
 		log( "I", "Resumed function did a SELECT, BROWSE, EDIT or VIEW.  Ending wait in function" << endl ) ;
 		ResumeApplicationAndWait() ;
@@ -1563,14 +1562,14 @@ void terminateApplication()
 		if ( SMSG != "" )  { currAppl->set_msg( SMSG, LMSG, MSGTYPE, MSGALRM ) ; }
 		if ( !currAppl->popupDisplayed() )
 		{
-			currScrn->clear()   ;
+			currScrn->clear() ;
 		}
 		currAppl->refresh() ;
 		if ( setCursor )
 		{
-			currAppl->get_home( row, col ) ;
+			currAppl->get_home( row, col )   ;
 			currAppl->set_cursor( row, col ) ;
-			currAppl->setMSG = false       ;
+			currAppl->setMSG = false         ;
 		}
 	}
 	log( "I", "Application terminatation of "+ ZAPPNAME +" completed.  Current application is "+ currAppl->ZAPPNAME << endl ) ;
@@ -1677,33 +1676,33 @@ void loadCUATables()
 	setColourPair( "CEF" )  ;
 	setColourPair( "CH"  )  ;
 
-	setColourPair( "DT" ) ;
-	setColourPair( "ET" ) ;
-	setColourPair( "EE" ) ;
-	setColourPair( "FP" ) ;
-	setColourPair( "FK")  ;
+	setColourPair( "DT" )   ;
+	setColourPair( "ET" )   ;
+	setColourPair( "EE" )   ;
+	setColourPair( "FP" )   ;
+	setColourPair( "FK")    ;
 
-	setColourPair( "IMT" ) ;
-	setColourPair( "LEF" ) ;
-	setColourPair( "LID" ) ;
-	setColourPair( "LI" )  ;
+	setColourPair( "IMT" )  ;
+	setColourPair( "LEF" )  ;
+	setColourPair( "LID" )  ;
+	setColourPair( "LI" )   ;
 
-	setColourPair( "NEF" ) ;
-	setColourPair( "NT" )  ;
+	setColourPair( "NEF" )  ;
+	setColourPair( "NT" )   ;
 
-	setColourPair( "PI" )  ;
-	setColourPair( "PIN" ) ;
-	setColourPair( "PT" )  ;
+	setColourPair( "PI" )   ;
+	setColourPair( "PIN" )  ;
+	setColourPair( "PT" )   ;
 
-	setColourPair( "PS")   ;
-	setColourPair( "PAC" ) ;
-	setColourPair( "PUC" ) ;
+	setColourPair( "PS")    ;
+	setColourPair( "PAC" )  ;
+	setColourPair( "PUC" )  ;
 
-	setColourPair( "RP" )  ;
+	setColourPair( "RP" )   ;
 
-	setColourPair( "SI" )  ;
-	setColourPair( "SAC" ) ;
-	setColourPair( "SUC")  ;
+	setColourPair( "SI" )   ;
+	setColourPair( "SAC" )  ;
+	setColourPair( "SUC")   ;
 
 	setColourPair( "VOI" )  ;
 	setColourPair( "WMT" )  ;
@@ -1711,7 +1710,7 @@ void loadCUATables()
 	setColourPair( "WASL" ) ;
 
 	cuaAttr[ CHAR   ] = BLUE   | A_BOLD   | A_PROTECT ;
-	cuaAttr[ DATAIN ] = GREEN  | A_NORMAL ;
+	cuaAttr[ DATAIN ] = GREEN  | A_NORMAL             ;
 	cuaAttr[ DATAOUT] = GREEN  | A_NORMAL | A_PROTECT ;
 	cuaAttr[ GRPBOX ] = GREEN  | A_NORMAL | A_PROTECT ;
 	cuaAttr[ OUTPUT ] = GREEN  | A_NORMAL | A_PROTECT ;
@@ -1768,13 +1767,13 @@ void loadCUATables()
 	cuaAttrProt[ OUTPUT ] = true  ;
 	cuaAttrProt[ TEXT   ] = true  ;
 
-	usrAttr[ N_RED     ] = RED     ;        usrAttr[ B_RED     ] = RED     | A_BOLD ;       usrAttr[ R_RED     ] = RED     | A_REVERSE ;    usrAttr[ U_RED     ] = RED     | A_UNDERLINE ;
-	usrAttr[ N_GREEN   ] = GREEN   ;        usrAttr[ B_GREEN   ] = GREEN   | A_BOLD ;       usrAttr[ R_GREEN   ] = GREEN   | A_REVERSE ;    usrAttr[ U_GREEN   ] = GREEN   | A_UNDERLINE ;
-	usrAttr[ N_YELLOW  ] = YELLOW  ;        usrAttr[ B_YELLOW  ] = YELLOW  | A_BOLD ;       usrAttr[ R_YELLOW  ] = YELLOW  | A_REVERSE ;    usrAttr[ U_YELLOW  ] = YELLOW  | A_UNDERLINE ;
-	usrAttr[ N_BLUE    ] = BLUE    ;        usrAttr[ B_BLUE    ] = BLUE    | A_BOLD ;       usrAttr[ R_BLUE    ] = BLUE    | A_REVERSE ;    usrAttr[ U_BLUE    ] = BLUE    | A_UNDERLINE ;
-	usrAttr[ N_MAGENTA ] = MAGENTA ;        usrAttr[ B_MAGENTA ] = MAGENTA | A_BOLD ;       usrAttr[ R_MAGENTA ] = MAGENTA | A_REVERSE ;    usrAttr[ U_MAGENTA ] = MAGENTA | A_UNDERLINE ;
-	usrAttr[ N_TURQ    ] = TURQ    ;        usrAttr[ B_TURQ    ] = TURQ    | A_BOLD ;       usrAttr[ R_TURQ    ] = TURQ    | A_REVERSE ;    usrAttr[ U_TURQ    ] = TURQ    | A_UNDERLINE ;
-	usrAttr[ N_WHITE   ] = WHITE   ;        usrAttr[ B_WHITE   ] = WHITE   | A_BOLD ;       usrAttr[ R_WHITE   ] = WHITE   | A_REVERSE ;    usrAttr[ U_WHITE   ] = WHITE   | A_UNDERLINE ;
+	usrAttr[ N_RED     ] = RED     ; usrAttr[ B_RED     ] = RED     | A_BOLD ; usrAttr[ R_RED     ] = RED     | A_REVERSE ; usrAttr[ U_RED     ] = RED     | A_UNDERLINE ;
+	usrAttr[ N_GREEN   ] = GREEN   ; usrAttr[ B_GREEN   ] = GREEN   | A_BOLD ; usrAttr[ R_GREEN   ] = GREEN   | A_REVERSE ; usrAttr[ U_GREEN   ] = GREEN   | A_UNDERLINE ;
+	usrAttr[ N_YELLOW  ] = YELLOW  ; usrAttr[ B_YELLOW  ] = YELLOW  | A_BOLD ; usrAttr[ R_YELLOW  ] = YELLOW  | A_REVERSE ; usrAttr[ U_YELLOW  ] = YELLOW  | A_UNDERLINE ;
+	usrAttr[ N_BLUE    ] = BLUE    ; usrAttr[ B_BLUE    ] = BLUE    | A_BOLD ; usrAttr[ R_BLUE    ] = BLUE    | A_REVERSE ; usrAttr[ U_BLUE    ] = BLUE    | A_UNDERLINE ;
+	usrAttr[ N_MAGENTA ] = MAGENTA ; usrAttr[ B_MAGENTA ] = MAGENTA | A_BOLD ; usrAttr[ R_MAGENTA ] = MAGENTA | A_REVERSE ; usrAttr[ U_MAGENTA ] = MAGENTA | A_UNDERLINE ;
+	usrAttr[ N_TURQ    ] = TURQ    ; usrAttr[ B_TURQ    ] = TURQ    | A_BOLD ; usrAttr[ R_TURQ    ] = TURQ    | A_REVERSE ; usrAttr[ U_TURQ    ] = TURQ    | A_UNDERLINE ;
+	usrAttr[ N_WHITE   ] = WHITE   ; usrAttr[ B_WHITE   ] = WHITE   | A_BOLD ; usrAttr[ R_WHITE   ] = WHITE   | A_REVERSE ; usrAttr[ U_WHITE   ] = WHITE   | A_UNDERLINE ;
 
 	usrAttr[ P_RED     ] = RED     | A_PROTECT ;
 	usrAttr[ P_GREEN   ] = GREEN   | A_PROTECT ;
@@ -1982,20 +1981,19 @@ void updateReflist()
 
 	string fname ;
 
-	if ( currAppl->ControlRefUpdate && p_poolMGR->get( RC, "ZRFURL", PROFILE ) == "YES" )
+	if ( !currAppl->ControlRefUpdate || p_poolMGR->get( RC, "ZRFURL", PROFILE ) != "YES" ) { return ; }
+
+	fname = currAppl->get_nretfield() ;
+	if ( fname != "" )
 	{
-		fname = currAppl->get_nretfield() ;
-		if ( fname != "" )
+		if ( currAppl->currPanel->field_valid( fname ) )
 		{
-			if ( currAppl->currPanel->field_valid( fname ) )
-			{
-				startApplication( p_poolMGR->get( RC, "ZRFLPGM", PROFILE ), "PLA " + currAppl->currPanel->field_getvalue( fname ), "", false, false ) ;
-			}
-			else
-			{
-				log( "E", "Invalid field "+ fname +" in .NRET panel statement" << endl ) ;
-				currAppl->set_msg( "PSYS01Z" ) ;
-			}
+			startApplication( p_poolMGR->get( RC, "ZRFLPGM", PROFILE ), "PLA " + currAppl->currPanel->field_getvalue( fname ), "", false, false ) ;
+		}
+		else
+		{
+			log( "E", "Invalid field "+ fname +" in .NRET panel statement" << endl ) ;
+			currAppl->set_msg( "PSYS01Z" ) ;
 		}
 	}
 }

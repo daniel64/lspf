@@ -94,16 +94,16 @@ int pPanel::loadPanel( string p_name, string paths )
 	while ( true )
 	{
 		panel.getline( line1, 256 ) ;
-		if ( panel.fail() != 0 ) break ;
+		if ( panel.fail() != 0 ) { break ; }
 		line2.assign( line1, panel.gcount() - 1 ) ;
-		if ( line2.find_first_not_of( ' ' ) == string::npos ) continue ;
+		if ( line2.find_first_not_of( ' ' ) == string::npos ) { continue ; }
 		w1 = upper( word( line2, 1 ) ) ;
 		w2 = word( line2, 2 ) ;
 		if ( substr( w1, 1, 2 ) == "--" || w1[ 0 ] == '#' ) { continue ; }
 		if ( w1 == ")END" )        { break                      ; }
 		if ( w1 == ")COMMENT" )    { comment = true  ; continue ; }
 		if ( w1 == ")ENDCOMMENT" ) { comment = false ; continue ; }
-		if ( comment ) continue ;
+		if ( comment ) { continue ; }
 		if ( w1 == ")INCLUDE" )
 		{
 			found = false ;
@@ -134,15 +134,15 @@ int pPanel::loadPanel( string p_name, string paths )
 			while ( true )
 			{
 				pincl.getline( line1, 256 ) ;
-				if ( pincl.fail() != 0 ) break ;
+				if ( pincl.fail() != 0 ) { break ; }
 				line2.assign( line1, pincl.gcount() - 1 ) ;
-				if ( line2.find_first_not_of( ' ' ) == string::npos ) continue ;
+				if ( line2.find_first_not_of( ' ' ) == string::npos ) { continue ; }
 				w1 = word( line2, 1 ) ;
 				if ( substr( w1, 1, 2 ) == "--" || w1[ 0 ] == '#' ) { continue ; }
 				if ( w1 == ")END" )        { break                      ; }
 				if ( w1 == ")COMMENT" )    { comment = true  ; continue ; }
 				if ( w1 == ")ENDCOMMENT" ) { comment = false ; continue ; }
-				if ( comment ) continue ;
+				if ( comment )             { continue                   ; }
 				pSource.push_back( line2 ) ;
 			}
 			pincl.close() ;
@@ -152,8 +152,8 @@ int pPanel::loadPanel( string p_name, string paths )
 	}
 	panel.close() ;
 
-	tbfield_col = 0  ;
-	tbfield_sz  = 0  ;
+	tbfield_col = 0 ;
+	tbfield_sz  = 0 ;
 
 	for ( it = pSource.begin() ; it != pSource.end() ; it++ )
 	{
@@ -250,13 +250,13 @@ int pPanel::loadPanel( string p_name, string paths )
 			body = true  ;
 			continue ;
 		}
-		else if ( w1 == ")PROC" )       { proc = true    ; continue ; }
-		else if ( w1 == ")INIT" )       { init = true    ; continue ; }
-		else if ( w1 == ")REINIT" )     { reinit = true  ; continue ; }
-		else if ( w1 == ")COMMAND" )    { command = true ; continue ; }
-		else if ( w1 == ")HELP" )       { help = true    ; continue ; }
-		else if ( w1 == ")PNTS" )       { ispnts = true  ; continue ; }
-		else if ( w1 == ")FIELD" )      { isfield = true ; continue ; }
+		else if ( w1 == ")PROC" )    { proc    = true ; continue ; }
+		else if ( w1 == ")INIT" )    { init    = true ; continue ; }
+		else if ( w1 == ")REINIT" )  { reinit  = true ; continue ; }
+		else if ( w1 == ")COMMAND" ) { command = true ; continue ; }
+		else if ( w1 == ")HELP" )    { help    = true ; continue ; }
+		else if ( w1 == ")PNTS" )    { ispnts  = true ; continue ; }
+		else if ( w1 == ")FIELD" )   { isfield = true ; continue ; }
 
 		if ( command )
 		{
@@ -619,39 +619,14 @@ int pPanel::loadPanel( string p_name, string paths )
 			dynAreaList[ w6 ] = m_dynArea ;
 			for ( i = 0 ; i < m_dynArea->dynArea_depth ; i++ )
 			{
-				field * m_fld             = new field ;
-				m_fld->field_cua          = AB        ;
-				m_fld->field_row          = m_dynArea->dynArea_row + i ;
-				m_fld->field_col          = m_dynArea->dynArea_col     ;
-				m_fld->field_length       = m_dynArea->dynArea_width   ;
-				m_fld->field_dynArea      = true                       ;
-				m_fld->field_dynDataInsp  = m_dynArea->dynArea_DataInsp  ;
-				m_fld->field_dynDataOutsp = m_dynArea->dynArea_DataOutsp ;
-				m_fld->field_dynUserModsp = m_dynArea->dynArea_UserModsp ;
-				m_fld->field_dynDataModsp = m_dynArea->dynArea_DataModsp ;
-				m_fld->field_dynDataIn    = m_dynArea->dynArea_DataIn    ;
-				m_fld->field_dynDataOut   = m_dynArea->dynArea_DataOut   ;
-				m_fld->field_dynUserMod   = m_dynArea->dynArea_UserMod   ;
-				m_fld->field_dynDataMod   = m_dynArea->dynArea_DataMod   ;
-				if ( m_dynArea->dynArea_DataInsp )
-				{
-					m_fld->field_dynFieldIn = m_dynArea->dynArea_DataIn ;
-				}
-				if ( m_dynArea->dynArea_UserModsp )
-				{
-					m_fld->field_dynFieldIn.push_back( m_dynArea->dynArea_UserMod ) ;
-				}
-				if ( m_dynArea->dynArea_DataModsp )
-				{
-					m_fld->field_dynFieldIn.push_back( m_dynArea->dynArea_DataMod ) ;
-				}
-				m_fld->field_dynField = m_fld->field_dynFieldIn ;
-				if ( m_dynArea->dynArea_DataOutsp )
-				{
-					m_fld->field_dynField.push_back( m_dynArea->dynArea_DataOut ) ;
-				}
-				      
-				fieldList[ w6 + "." + d2ds( i ) ] = m_fld  ;
+				field * m_fld            = new field ;
+				m_fld->field_cua         = AB        ;
+				m_fld->field_row         = m_dynArea->dynArea_row + i ;
+				m_fld->field_col         = m_dynArea->dynArea_col     ;
+				m_fld->field_length      = m_dynArea->dynArea_width   ;
+				m_fld->field_dynArea     = true           ;
+				m_fld->field_dynArea_ptr = m_dynArea      ;
+				fieldList[ w6 + "." + d2ds( i ) ] = m_fld ;
 			}
 			continue ;
 		}
@@ -742,10 +717,10 @@ int pPanel::loadPanel( string p_name, string paths )
 			{
 				tcol = ds2d( w2 ) ;
 			}
-			if ( isnumeric( w3 ) )                   { tlen = ds2d( w3 ) ; }
+			if      ( isnumeric( w3 ) )              { tlen = ds2d( w3 ) ; }
 			else if ( w3 == "MAX" )                  { tlen = WSCRMAXW - tcol + 1 ; }
 			else if ( substr( w3, 1, 4 ) == "MAX-" ) { tlen = WSCRMAXW - tcol - ds2d( substr( w3, 5 ) ) + 1 ; }
-			else                                     { return 20        ; }
+			else                                     { return 20         ; }
 			tbfield_col = tcol    ;
 			tbfield_sz  = tlen    ;
 			w4 = word( line2, 4 ) ;

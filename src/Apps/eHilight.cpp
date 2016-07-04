@@ -74,7 +74,7 @@ void addCppHilight( hilight & h, const string & line, string & shadow )
 	oComment = h.hl_oComment ;
 
 	ln = line.size() ;
-	if ( ln == 0 ) { return ; }
+	if ( ln == 0 ) { shadow = "" ; return ; }
 
 	shadow = string( ln, N_GREEN ) ;
 	start  = 0 ;
@@ -206,7 +206,7 @@ void addASMHilight( hilight & h, const string & line, string & shadow )
 	oComment = h.hl_oComment ;
 
 	ln = line.size() ;
-	if ( ln == 0 ) { return ; }
+	if ( ln == 0 ) { shadow = "" ; return ; }
 
 	start = 0 ;
 	stop  = 0 ;
@@ -301,7 +301,7 @@ void addRxxHilight( hilight & h, const string & line, string & shadow )
 	oComment = h.hl_oComment ;
 
 	ln = line.size() ;
-	if ( ln == 0 ) { return ; }
+	if ( ln == 0 ) { shadow = "" ; return ; }
 
 	shadow = string( ln, N_GREEN ) ;
 	start  = 0 ;
@@ -414,7 +414,7 @@ void addOthHilight( hilight & h, const string & line, string & shadow )
 	int ln ;
 
 	ln = line.size() ;
-	if ( ln == 0 ) { return ; }
+	if ( ln == 0 ) { shadow = "" ; return ; }
 	shadow = string( ln, N_GREEN ) ;
 }
 
@@ -424,7 +424,7 @@ void addDefHilight( hilight & h, const string & line, string & shadow )
 	int ln ;
 
 	ln = line.size() ;
-	if ( ln == 0 ) { return ; }
+	if ( ln == 0 ) { shadow = "" ; return ; }
 	shadow = string( ln, N_GREEN ) ;
 }
 

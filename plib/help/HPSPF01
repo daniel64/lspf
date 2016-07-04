@@ -28,6 +28,9 @@ System:
 .SNAP    Snap SHARED and PROFILE pool variables for the current application to the
          Application Log
 .STATS   Display table and pool statistics for the current application to the Application Log
+.TEST    Put application into test mode
+         :: Read messages from disk every time
+         :: Set testMode to true                   
 
 
 Command Table Entries:

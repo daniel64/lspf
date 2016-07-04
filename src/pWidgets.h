@@ -20,6 +20,39 @@
 ofstream aplog(ALOG) ;
 
 
+class dynArea
+{
+	public:
+		int    dynArea_row       ;
+		int    dynArea_col       ;
+		int    dynArea_width     ;
+		int    dynArea_depth     ;
+		bool   dynArea_DataInsp  ;
+		bool   dynArea_DataOutsp ;
+		bool   dynArea_UserModsp ;
+		bool   dynArea_DataModsp ;
+		char   dynArea_DataIn    ;
+		char   dynArea_DataOut   ;
+		char   dynArea_UserMod   ;
+		char   dynArea_DataMod   ;
+		string dynArea_Field     ;
+		string dynArea_FieldIn   ;
+		string dynArea_shadow_name ;
+
+		dynArea(){
+				dynArea_DataInsp  = false ;
+				dynArea_DataOutsp = false ;
+				dynArea_UserModsp = false ;
+				dynArea_DataModsp = false ;
+				dynArea_Field     = ""    ;
+				dynArea_FieldIn   = ""    ;
+			 }
+
+		int  dynArea_init( int MAXW, int MAXD, string line ) ;
+		void setsize( int, int, int, int ) ;
+} ;
+
+
 class field
 {
 	public:
@@ -41,54 +74,33 @@ class field
 		bool         field_numeric      ;
 		bool         field_input        ;
 		bool         field_dynArea      ;
-		bool         field_dynDataInsp  ;
-		bool         field_dynDataOutsp ;
-		bool         field_dynUserModsp ;
-		bool         field_dynDataModsp ;
-		char         field_dynDataIn    ;
-		char         field_dynDataOut   ;
-		char         field_dynUserMod   ;
-		char         field_dynDataMod   ;
-		string       field_dynField     ;
-		string       field_dynFieldIn   ;
+		dynArea *    field_dynArea_ptr  ;
 		bool         field_tb           ;
 		bool         field_scrollable   ;
 		unsigned int field_scroll_start ;
 		string       field_shadow_value ;
 
 		field() {
-				field_pwd          = false    ;
-				field_changed      = false    ;
-				field_active       = true     ;
-				field_usecua       = true     ;
-				field_colour       = 0        ;
-				field_prot         = true     ;
-				field_skip         = true     ;
-				field_caps         = false    ;
-				field_padchar      = ' '      ;
-				field_just         = 'L'      ;
-				field_numeric      = false    ;
-				field_input        = false    ;
-				field_dynArea      = false    ;
-				field_dynDataInsp  = false    ;
-				field_dynDataOutsp = false    ;
-				field_dynUserModsp = false    ;
-				field_dynDataModsp = false    ;
-				field_dynDataIn    = ' '      ;
-				field_dynDataOut   = ' '      ;
-				field_dynUserMod   = ' '      ;
-				field_dynDataMod   = ' '      ;
-				field_dynField     = ""       ;
-				field_dynField.reserve( 4 )   ;
-				field_dynFieldIn   = ""       ;
-				field_dynFieldIn.reserve( 3 ) ;
-				field_tb           = false    ;
-				field_scrollable   = false    ;
-				field_scroll_start = 1        ;
-				field_shadow_value = ""       ;
+				field_pwd          = false ;
+				field_changed      = false ;
+				field_active       = true  ;
+				field_usecua       = true  ;
+				field_colour       = 0     ;
+				field_prot         = true  ;
+				field_skip         = true  ;
+				field_caps         = false ;
+				field_padchar      = ' '   ;
+				field_just         = 'L'   ;
+				field_numeric      = false ;
+				field_input        = false ;
+				field_dynArea      = false ;
+				field_tb           = false ;
+				field_scrollable   = false ;
+				field_scroll_start = 1     ;
+				field_shadow_value = ""    ;
 			} ;
 
-		int  field_init( int MAXW, int MAXD, string line )  ;
+		int  field_init( int MAXW, int MAXD, string line ) ;
 		void display_field( WINDOW *, bool ) ;
 		bool edit_field_insert( WINDOW * win, char ch, int row, bool, bool ) ;
 		void edit_field_delete( WINDOW * win, int row, bool ) ;
@@ -122,35 +134,6 @@ class literal
 
 		int  literal_init( int MAXW, int MAXD, int & opt_field, string line ) ;
 		void literal_display( WINDOW * ) ;
-} ;
-
-
-class dynArea
-{
-	public:
-		int    dynArea_row         ;
-		int    dynArea_col         ;
-		int    dynArea_width       ;
-		int    dynArea_depth       ;
-		bool   dynArea_DataInsp    ;
-		bool   dynArea_DataOutsp   ;
-		bool   dynArea_UserModsp   ;
-		bool   dynArea_DataModsp   ;
-		char   dynArea_DataIn      ;
-		char   dynArea_DataOut     ;
-		char   dynArea_UserMod     ;
-		char   dynArea_DataMod     ;
-		string dynArea_shadow_name ;
-
-		dynArea(){
-				dynArea_DataInsp  = false ;
-				dynArea_DataOutsp = false ;
-				dynArea_UserModsp = false ;
-				dynArea_DataModsp = false ;
-			 }
-
-		int  dynArea_init( int MAXW, int MAXD, string line ) ;
-		void setsize( int, int, int, int ) ;
 } ;
 
 

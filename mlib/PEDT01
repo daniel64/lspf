@@ -91,8 +91,8 @@ PEDT01U "UNDO is set OFF"
 PEDT01V "Invalid A/B line command"
 "A/B line command found without matching block command"
 
-PEDT01W "Incomplete block command"
-"Block command is incomplete before another block command is started"
+PEDT01W "Block command incomplete" .TYPE=N
+"Enter matching block command to complete block command pair"
 
 PEDT01X "Invalid A/B line command"
 "A/B line command found within a block command"
@@ -127,11 +127,11 @@ PEDT011G "Recursive EDIT detected"
 PEDT011H "UNDO Data Removed"
 "UNDO data has been deleted.  UNDO/REDO not available before this time"
 
-PEDT012A "Invalid PASTE parameter"
-"PASTE DEFAULT|name KEEP|DELETE"
-
-PEDT012B "Invalid CUT parameter"
+PEDT012A "Invalid CUT parameter"
 "CUT DEFAULT|name APPEND|REPLACE"
+
+PEDT012B "Invalid PASTE parameter"
+"PASTE DEFAULT|name KEEP|DELETE"
 
 PEDT012C "&ZEDLNES lines cut to &CLIPNAME" .TYPE=N
 "&ZEDLNES lines cut to clipboard &CLIPNAME"
@@ -139,8 +139,8 @@ PEDT012C "&ZEDLNES lines cut to &CLIPNAME" .TYPE=N
 PEDT012D "&ZEDLNES lines pasted from &CLIPNAME" .TYPE=N
 "&ZEDLNES lines pasted from clipboard &CLIPNAME"
 
-PEDT012E "Cut Pending"
-"Cut is pending.  Select lines with the copy/move line commands"
+PEDT012E "SPARE"
+"SPARE"
 
 PEDT012F "Paste Pending"
 "Paste is pending.  Select position to paste lines with the A/B line commands"
@@ -247,6 +247,18 @@ PEDT013N "Tabs found in file" .TYPE=W
 PEDT013O "Data shifted" .TYPE=W
 "Data shifted from beyond the right margin"
 
-PEDT013P "MOVE/COPY is pending" .TYPE=W
+PEDT013P "MOVE/COPY is pending" .TYPE=N
 "Enter A, B, O or W line command"
+
+PEDT013Q "MOVE/COPY is pending" .TYPE=W
+"Enter M/MM or C/CC line commands"
+
+PEDT013R "File exists" .TYPE=W
+"File entered on a CREATE command already exists"
+
+PEDT013S "Open error" .TYPE=W
+"File cannot be opened.  Check permissions"
+
+PEDT013T "File created" .TYPE=N
+"File has been created from the selected lines"
 

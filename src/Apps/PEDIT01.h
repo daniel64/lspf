@@ -17,7 +17,7 @@
 
 */
 
-using namespace std;
+using namespace std  ;
 
 enum P_CMDS
 {
@@ -27,6 +27,7 @@ enum P_CMDS
 	PC_CAPS,
 	PC_COLUMN,
 	PC_COMPARE,
+	PC_CREATE,
 	PC_CUT,
 	PC_DELETE,
 	PC_EXCLUDE,
@@ -41,6 +42,7 @@ enum P_CMDS
 	PC_PRESERVE,
 	PC_RECOVERY,
 	PC_REDO,
+	PC_REPLACE,
 	PC_RESET,
 	PC_SAVE,
 	PC_SETUNDO,
@@ -126,9 +128,10 @@ class icmd
 		bool   icmd_swap    ;
 		bool   icmd_cut     ;
 		bool   icmd_paste   ;
+		bool   icmd_create  ;
 		icmd()
 		{
-			icmd_CMDSTR  = ""    ;
+			icmd_CMDSTR  = " "   ;
 			icmd_sURID   = 0     ;
 			icmd_eURID   = 0     ;
 			icmd_dURID   = 0     ;
@@ -138,10 +141,11 @@ class icmd
 			icmd_swap    = false ;
 			icmd_cut     = false ;
 			icmd_paste   = false ;
+			icmd_create  = false ;
 		}
 		void icmd_clear()
 		{
-			icmd_CMDSTR  = ""    ;
+			icmd_CMDSTR  = " "   ;
 			icmd_sURID   = 0     ;
 			icmd_eURID   = 0     ;
 			icmd_dURID   = 0     ;
@@ -151,6 +155,7 @@ class icmd
 			icmd_swap    = false ;
 			icmd_cut     = false ;
 			icmd_paste   = false ;
+			icmd_create  = false ;
 		}
 	friend class PEDIT01 ;
 } ;
@@ -312,11 +317,21 @@ class iline
 			il_undo  = false ;
 			il_redo  = false ;
 		}
+		void resetFileStatus()
+		{
+			il_chg   = false ;
+			il_error = false ;
+			il_undo  = false ;
+			il_redo  = false ;
+		}
+		bool isValidFile()
+		{
+			return il_file && !il_deleted ;
+		}
 		bool isSpecial()
 		{
-			if ( il_note || il_prof || il_col  || il_bnds ||
-			     il_mask || il_tabs || il_info || il_msg  ) { return true ; }
-			return false ;
+			return il_note || il_prof || il_col  || il_bnds ||
+			       il_mask || il_tabs || il_info || il_msg  ;
 		}
 		void clearLcc()
 		{
@@ -415,7 +430,6 @@ class iline
 		}
 		void undo_idata()
 		{
-			il_vShadow = false ;
 			if ( !setUNDO[ il_taskid ] ) { return ; }
 			if ( !il_idata.empty() )
 			{
@@ -433,7 +447,6 @@ class iline
 		}
 		void redo_idata()
 		{
-			il_vShadow = false ;
 			if ( !setUNDO[ il_taskid ] ) { return ; }
 			if ( il_idata_redo.top().id_action == 'D' )
 			{
@@ -705,6 +718,7 @@ class PEDIT01 : public pApplication
 		bool saveFile()           ;
 		void fill_dynamic_area()  ;
 		void fill_hilight_shadow();
+		void clr_hilight_shadow() ;
 		void getZAREAchanges()    ;
 		void updateData()         ;
 
@@ -762,7 +776,9 @@ class PEDIT01 : public pApplication
 
 		void copyToClipboard( vector<ipline> & vip ) ;
 		void getClipboard( vector<ipline> & vip ) ;
-		void clearClipboard( string )  ;
+		void clearClipboard( string ) ;
+
+		void createFile( uint, uint ) ;
 
 		void clearCursor() ;
 		void storeCursor(  int, int=0 ) ;
@@ -841,10 +857,12 @@ class PEDIT01 : public pApplication
 		string profLang          ;
 
 		string detLang           ;
+		string creFile           ;
 
 		bool stripST             ;
 		bool convTabs            ;
 		bool convSpaces          ;
+		bool creActive           ;
 		bool cutActive           ;
 		bool cutReplace          ;
 		bool pasteActive         ;
@@ -966,6 +984,8 @@ class PEDIT01 : public pApplication
 						{ "COLS",     PC_COLUMN   },
 						{ "COMPARE",  PC_COMPARE  },
 						{ "COMP",     PC_COMPARE  },
+						{ "CREATE",   PC_CREATE   },
+						{ "CRE",      PC_CREATE   },
 						{ "CUT",      PC_CUT      },
 						{ "DELETE",   PC_DELETE   },
 						{ "DEL",      PC_DELETE   },
@@ -997,6 +1017,9 @@ class PEDIT01 : public pApplication
 						{ "RECOVER",  PC_RECOVERY },
 						{ "RECOVERY", PC_RECOVERY },
 						{ "REDO",     PC_REDO     },
+						{ "REPLACE",  PC_CREATE   },
+						{ "REP",      PC_CREATE   },
+						{ "REPL",     PC_CREATE   },
 						{ "RESET",    PC_RESET    },
 						{ "RES",      PC_RESET    },
 						{ "SAVE",     PC_SAVE     },

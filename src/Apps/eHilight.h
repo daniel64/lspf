@@ -21,33 +21,33 @@ using namespace std ;
 
 class hilight
 {
-        public:
-                string   hl_language ;
-                int      hl_oBrac1   ;
-                int      hl_oBrac2   ;
-                int      hl_oIf      ;
-                int      hl_oDo      ;
-                bool     hl_oComment ;
-                bool     hl_ifLogic  ;
-                bool     hl_doLogic  ;
-                bool     hl_Paren    ;
-                hilight()
-                {
-                        hl_language = ""    ;
-                        hl_oBrac1   = 0     ;
-                        hl_oBrac2   = 0     ;
-                        hl_oComment = false ;
-                        hl_ifLogic  = false ;
-                        hl_doLogic  = false ;
-                        hl_Paren    = false ;
-                }
+	public:
+		string   hl_language ;
+		int      hl_oBrac1   ;
+		int      hl_oBrac2   ;
+		int      hl_oIf      ;
+		int      hl_oDo      ;
+		bool     hl_oComment ;
+		bool     hl_ifLogic  ;
+		bool     hl_doLogic  ;
+		bool     hl_Paren    ;
+		hilight()
+		{
+			hl_language = ""    ;
+			hl_oBrac1   = 0     ;
+			hl_oBrac2   = 0     ;
+			hl_oComment = false ;
+			hl_ifLogic  = false ;
+			hl_doLogic  = false ;
+			hl_Paren    = false ;
+		}
 } ;
 
 class keyw
 {
-        public:
-               int kw_len ;
-               int kw_col ;
+	public:
+	       int kw_len ;
+	       int kw_col ;
 } ;
 
 void addASMHilight( hilight &, const string &, string & ) ;
@@ -57,11 +57,11 @@ void addOthHilight( hilight &, const string &, string & ) ;
 void addDefHilight( hilight &, const string &, string & ) ;
 
 map<string, void(*)(hilight &, const string &, string &)> hiRoutine = { { "ASM",     addASMHilight },
-                                                                        { "CPP",     addCppHilight },
-                                                                        { "DEFAULT", addDefHilight },
-                                                                        { "OTHER",   addOthHilight },
-                                                                        { "PANEL",   addDefHilight },
-                                                                        { "REXX",    addRxxHilight } } ;
+									{ "CPP",     addCppHilight },
+									{ "DEFAULT", addDefHilight },
+									{ "OTHER",   addOthHilight },
+									{ "PANEL",   addDefHilight },
+									{ "REXX",    addRxxHilight } } ;
  map<string, keyw> keywList1 = {
   { "alignas",           { 7,  N_RED  } },
   { "alignof",           { 7,  N_RED  } },
