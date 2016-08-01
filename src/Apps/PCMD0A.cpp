@@ -95,6 +95,7 @@ void PCMD0A::application()
 			if ( ZRC == 4 && ZRSN == 4 ) { browse( "/tmp/popen.err" ) ; }
 			remove( tname ) ;
 		}
+		if ( PARM != "" ) { break ; }
 	}
 	cleanup() ;
 	return    ;

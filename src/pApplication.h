@@ -169,6 +169,8 @@ class pApplication
 		void   get_cursor( uint & row, uint & col ) ;
 		void   set_msg( string, string, cuaType, bool ) ;
 		void   set_msg( string ) ;
+		void   show_msgid()    ;
+		void   set_msgid_status( bool a ) { showMSGID = a ; }
 		bool   nretriev_on()   ;
 		string get_nretfield() ;
 		void   cleanup()       ;
@@ -242,21 +244,25 @@ class pApplication
 		bool   ControlErrorsReturn ;
 		bool   abending            ;
 
+		bool   showMSGID           ;
+
 		stack<string> stk_str      ;
 		stack<int> stk_int         ;
 		stack<int> addpop_stk      ;
 
-		void get_Message( string )  ;
-		bool load_Message( string ) ;
-		void load_keylist( pPanel * ) ;
+		void get_Message( string )   ;
+		bool load_Message( string )  ;
+		void load_keylist( pPanel * )   ;
 
 		struct str_msg
 		{
-			string  smsg ;
-			string  lmsg ;
-			string  hlp  ;
-			cuaType type ;
-			bool    alm  ;
+			string  smsg  ;
+			string  lmsg  ;
+			string  hlp   ;
+			cuaType type  ;
+			bool    alm   ;
+			bool    cont  ;
 		} ;
+		bool parse_Message( str_msg & ) ;
 		map<string, str_msg>msgList ;
 } ;

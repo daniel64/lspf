@@ -87,6 +87,8 @@ class PBRO01A : public pApplication
 		void application() ;
 
 	private:
+		static b_find Global_bfind_parms ;
+
 		void read_file( string )    ;
 		void fill_dynamic_area()    ;
 		void fill_hilight_shadow()  ;

@@ -70,6 +70,7 @@ using namespace boost::filesystem ;
 #define LOGOUT aplog
 #define MOD_NAME PBRO01A
 
+b_find PBRO01A::Global_bfind_parms ;
 
 void PBRO01A::application()
 {
@@ -145,23 +146,28 @@ void PBRO01A::application()
 		ZZSTR1 = file ;
 		if ( ZRC == 4 )
 		{
-			if ( ZRSN == 4 ) { setmsg( "PSYS01P" ) ; }
+			if ( ZRSN == 4 ) { setmsg( "PSYS011P" ) ; }
 		}
 		else if ( ZRC == 8 )
 		{
-			if       ( ZRSN == 4  ) { setmsg( "PSYS01Q" ) ; }
-			else if  ( ZRSN == 8  ) { setmsg( "PSYS01R" ) ; }
-			else if  ( ZRSN == 12 ) { setmsg( "PSYS01S" ) ; }
-			else if  ( ZRSN == 16 ) { setmsg( "PSYS01T" ) ; }
-			else if  ( ZRSN == 20 ) { setmsg( "PSYS01U" ) ; }
+			if       ( ZRSN == 4  ) { setmsg( "PSYS011Q" ) ; }
+			else if  ( ZRSN == 8  ) { setmsg( "PSYS011R" ) ; }
+			else if  ( ZRSN == 12 ) { setmsg( "PSYS011S" ) ; }
+			else if  ( ZRSN == 16 ) { setmsg( "PSYS011T" ) ; }
+			else if  ( ZRSN == 20 ) { setmsg( "PSYS011U" ) ; }
 		}
-		setmsg( "PSYS01U", COND ) ;
+		setmsg( "PSYS011U", COND ) ;
 		cleanup() ; return ;
 	}
 
 	MSG    = ""     ;
 	CURFLD = "ZCMD" ;
 	CURPOS = 1      ;
+
+	if ( Global_bfind_parms.f_fset )
+	{
+		find_parms = Global_bfind_parms ;
+	}
 
 	ZASIZE = ZAREAW*ZAREAD ;
 
@@ -221,7 +227,7 @@ void PBRO01A::application()
 			textOn       = false ;
 			rebuildZAREA = true  ;
 			read_file( file ) ;
-			if ( RC > 0 ) { setmsg( "PSYS01E" ) ; cleanup() ; return ; }
+			if ( RC > 0 ) { setmsg( "PSYS011E" ) ; cleanup() ; return ; }
 		}
 		else if ( CMD == "HEX" )
 		{
@@ -232,7 +238,7 @@ void PBRO01A::application()
 		else if ( CMD == "HILITE" || CMD == "HILIGHT" || CMD == "HI" )
 		{
 			if ( w3 == "" ) { w3 = "AUTO" ; }
-			if ( w3 != "AUTO" && !addHilight( w3 ) ) { MSG = "PBRO01M" ; continue ; }
+			if ( w3 != "AUTO" && !addHilight( w3 ) ) { MSG = "PBRO011M" ; continue ; }
 			entLang = w3 ;
 			if      ( w3 == "AUTO"  ) { detLang = determineLang( file ) ; }
 			else                      { detLang = w3                    ; }
@@ -276,8 +282,8 @@ void PBRO01A::application()
 				STR    = find_parms.f_estring ;
 				OCC    = d2ds( find_parms.f_occurs ) ;
 				LINES  = d2ds( find_parms.f_lines  ) ;
-				if ( find_parms.f_dir == 'A' ) { MSG = "PBRO01G" ; find_parms.f_dir = 'N' ; }
-				else                           { MSG = "PBRO01F" ;                          }
+				if ( find_parms.f_dir == 'A' ) { MSG = "PBRO011G" ; find_parms.f_dir = 'N' ; }
+				else                           { MSG = "PBRO011F" ;                          }
 			}
 			else
 			{
@@ -285,7 +291,8 @@ void PBRO01A::application()
 				CURPOS = 1 ;
 				TYPE = typList[ find_parms.f_mtch ] ;
 				STR = find_parms.f_estring ;
-				MSG = "PBRO01E" ; continue ;
+				MSG = "PBRO011E" ;
+				continue         ;
 			}
 			rebuildZAREA = true ;
 			continue            ;
@@ -306,7 +313,7 @@ void PBRO01A::application()
 			textOn       = true  ;
 			rebuildZAREA = true  ;
 			read_file( file )    ;
-			if ( RC > 0 ) { setmsg( "PSYS01E" ) ; cleanup() ; return ; }
+			if ( RC > 0 ) { setmsg( "PSYS011E" ) ; cleanup() ; return ; }
 		}
 		else { MSG = "PBRO011" ; continue ; }
 
@@ -381,23 +388,25 @@ void PBRO01A::application()
 					if ( colsOn ) { CURPOS = CURPOS + ZAREAW ; }
 					TYPE    = typList[ find_parms.f_mtch ] ;
 					STR     = find_parms.f_estring ;
-					MSG     = "PBRO01F" ;
+					MSG     = "PBRO011F" ;
 				}
 				else
 				{
-					if      ( find_parms.f_dir == 'N' ) { find_parms.f_dir = 'F' ; MSG = "PBRO016" ; }
-					else if ( find_parms.f_dir == 'P' ) { find_parms.f_dir = 'L' ; MSG = "PBRO017" ; }
+					if ( find_parms.f_dir == 'N' ||
+					     find_parms.f_dir == 'F' ) { find_parms.f_dir = 'F' ; MSG = "PBRO016" ; }
+					else                           { find_parms.f_dir = 'L' ; MSG = "PBRO017" ; }
 					continue ;
 				}
 				rebuildZAREA = true ;
 			}
-			else { MSG = "PBRO01A" ; continue ; }
+			else { MSG = "PBRO011A" ; continue ; }
 		}
 		else  { MSG = "PBRO011" ; continue ; }
 
 		if ( topLine < 0 ) topLine = 0 ;
 	}
 	vput( "ZSCROLL", PROFILE ) ;
+	Global_bfind_parms = find_parms ;
 	return ;
 }
 
@@ -656,7 +665,7 @@ void PBRO01A::fill_dynamic_area()
 		ZSHADOW.resize( ZASIZE, B_BLUE ) ;
 
 	}
-	if ( hilightOn )
+	if ( hilightOn && !hlight.hl_abend )
 	{
 		fill_hilight_shadow() ;
 	}
@@ -682,32 +691,35 @@ void PBRO01A::fill_hilight_shadow()
 
 	ll = data.size()-2 ;
 	if ( topLine+ZAREAD < ll ) { ll = topLine+ZAREAD ; }
-	w  = 0 ;
-	for ( dl = 1 ; dl <= ll ; dl++ )
+
+	for ( w = 0, dl = 1 ; dl <= ll ; dl++ )
 	{
-		if (  shadow.at( dl ).bs_wShadow ) { w = dl   ; }
-		if ( !shadow.at( dl ).bs_vShadow ) { break    ; }
+		if ( !shadow.at( dl ).bs_vShadow ) { break  ; }
+		if (  shadow.at( dl ).bs_wShadow ) { w = dl ; }
 	}
-	hlight.hl_oBrac1   = 0     ;
-	hlight.hl_oBrac2   = 0     ;
-	hlight.hl_oIf      = 0     ;
-	hlight.hl_oDo      = 0     ;
-	hlight.hl_ifLogic  = true  ;
-	hlight.hl_doLogic  = true  ;
-	hlight.hl_Paren    = true  ;
-	hlight.hl_oComment = false ;
-	if ( dl != w && w < data.size()-1 ) { w++ ; }
-	for ( dl = w ; dl <= ll ; dl++ )
+
+	if ( dl <= ll )
 	{
-		shadow.at( dl ).bs_vShadow = true ;
-		addHilight( hlight, data.at( dl ), shadow.at( dl ).bs_Shadow ) ;
-		if (  hlight.hl_oBrac1 == 0 && hlight.hl_oBrac2 == 0 && !hlight.hl_oComment )
+		hlight.hl_oBrac1   = 0     ;
+		hlight.hl_oBrac2   = 0     ;
+		hlight.hl_oIf      = 0     ;
+		hlight.hl_oDo      = 0     ;
+		hlight.hl_ifLogic  = true  ;
+		hlight.hl_doLogic  = true  ;
+		hlight.hl_Paren    = true  ;
+		hlight.hl_oComment = false ;
+		for ( dl = w + 1 ; dl <= ll ; dl++ )
 		{
-			shadow.at( dl ).bs_wShadow = true ;
-		}
-		else
-		{
-			shadow.at( dl ).bs_wShadow = false ;
+			addHilight( hlight, data[ dl ], shadow[ dl ].bs_Shadow ) ;
+			if ( hlight.hl_abend ) { return ; }
+			shadow[ dl ].bs_vShadow = true ;
+			shadow[ dl ].bs_wShadow = ( hlight.hl_oBrac1 == 0 &&
+						    hlight.hl_oBrac2 == 0 &&
+						    hlight.hl_oIf    == 0 &&
+						    hlight.hl_oDo    == 0 &&
+						   !hlight.hl_continue    &&
+						   !hlight.hl_oQuote      &&
+						   !hlight.hl_oComment ) ;
 		}
 	}
 	for ( i = 0 ; i < ZAREAD ; i++ )
@@ -742,7 +754,7 @@ int PBRO01A::setFind()
 	static char quote('\"')  ;
 	static char apost('\'')  ;
 
-	b_find t    ;
+	b_find t  ;
 
 	MSG  = ""                 ;
 	cmd  = " " + subword( ZCMD, 2 ) + " " ;
@@ -758,7 +770,7 @@ int PBRO01A::setFind()
 	if ( p1 = pos( delim, cmd  ) )
 	{
 		p2  = pos( delim, cmd,  p1+1 ) ;
-		if ( p2 == 0 ) { MSG = "PBRO01H" ; return 20 ; }
+		if ( p2 == 0 ) { MSG = "PBRO011H" ; return 20 ; }
 		c1 = toupper( cmd[ p1-2 ] ) ;
 		c2 = toupper( cmd[ p2   ] ) ;
 		if ( c1 == ' ' && c2 == ' ' ) { t.f_text = true ; }
@@ -772,7 +784,7 @@ int PBRO01A::setFind()
 		else if ( c2 == 'X' && c1 == ' ' ) { t.f_hex    = true ; }
 		else if ( c2 == 'P' && c1 == ' ' ) { t.f_pic    = true ; }
 		else if ( c2 == 'R' && c1 == ' ' ) { t.f_rreg   = true ; }
-		else                               { MSG = "PBRO01I" ; return 20 ; }
+		else                               { MSG = "PBRO011I" ; return 20 ; }
 		if ( t.f_text )
 		{
 			t.f_estring = substr( cmd, (p1+1), (p2-p1-1) ) ;
@@ -874,7 +886,7 @@ int PBRO01A::setFind()
 		{
 			if ( t.f_scol != 0 && t.f_ecol != 0 ) { MSG = "PBRO019" ; return 20 ; }
 			j = ds2d( w1 ) ;
-			if ( j < 1 || j > 65535 ) { MSG = "PBRO01J" ; return 20 ; }
+			if ( j < 1 || j > 65535 ) { MSG = "PBRO011J" ; return 20 ; }
 			if ( t.f_scol == 0 ) { t.f_scol = j ; }
 			else                 { t.f_ecol = j ; }
 		}
@@ -882,10 +894,10 @@ int PBRO01A::setFind()
 		{
 			if ( w1 == "*" )
 			{
-				if ( find_parms.f_string == "" ) { MSG = "PBRO01C" ; return 20 ; }
+				if ( find_parms.f_string == "" ) { MSG = "PBRO011C" ; return 20 ; }
 				else
 				{
-					if ( t.f_string != "" )  { MSG = "PBRO015" ; return 20 ; }
+					if ( t.f_string != "" )  { MSG = "PBRO015"  ; return 20 ; }
 					w1 = find_parms.f_string ;
 				}
 			}
@@ -909,7 +921,7 @@ int PBRO01A::setFind()
 
 	if ( t.f_hex )
 	{
-		if ( !ishex( t.f_string ) )  { MSG = "PBRO01K" ; return 20 ; }
+		if ( !ishex( t.f_string ) )  { MSG = "PBRO011K" ; return 20 ; }
 		t.f_string = xs2cs( t.f_string ) ;
 		t.f_asis   = true                ;
 	}
@@ -1046,8 +1058,8 @@ void PBRO01A::actionFind( int spos, int offset )
 	{
 		if ( find_parms.f_regreq )
 		{
-			MSG = "PBRO01N" ;
-			return          ;
+			MSG = "PBRO011N" ;
+			return           ;
 		}
 	}
 

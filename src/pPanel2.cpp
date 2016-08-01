@@ -624,6 +624,7 @@ int pPanel::loadPanel( string p_name, string paths )
 				m_fld->field_row         = m_dynArea->dynArea_row + i ;
 				m_fld->field_col         = m_dynArea->dynArea_col     ;
 				m_fld->field_length      = m_dynArea->dynArea_width   ;
+				m_fld->field_cole        = m_dynArea->dynArea_col + m_dynArea->dynArea_width ;
 				m_fld->field_dynArea     = true           ;
 				m_fld->field_dynArea_ptr = m_dynArea      ;
 				fieldList[ w6 + "." + d2ds( i ) ] = m_fld ;

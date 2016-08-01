@@ -117,7 +117,7 @@ class pPanel
 		bool   get_nretriev()  { return nretriev  ; }
 		string get_nretfield() { return nretfield ; }
 
-		void   set_msg( string, string, cuaType, bool ) ;
+		void   set_msg( string, string, cuaType, bool, string, bool ) ;
 		void   clear_msg() ;
 
 		string return_command( string ) ;

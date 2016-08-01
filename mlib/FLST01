@@ -1,141 +1,111 @@
-FLST011 "Error opening file"
-"Error occured checking file type.  Check permissions"
+FLST011 'Error opening file' .TYPE=W
+'Error occured checking file type.  Check permissions'
 
-FLST012 "Entry retrieved" .TYPE=N
-"New entry name retrieved from entry name"
+FLST012 'Entry retrieved' .TYPE=N
+'New entry name retrieved from entry name'
 
-FLST013 "Cannot be the same"
-"New entry name cannot be the same as the entry name"
+FLST013 'Cannot be the same' .TYPE=W
+'New entry name cannot be the same as the entry name'
 
-FLST014 "Permission Denied" .TYPE=W
-"Permission denied to the entry"
+FLST014 'Permission Denied' .TYPE=W
+'Permission denied to the entry'
 
-FLST015 "SPARE"
-""
+FLST015 'List failed' .TYPE=W
+'List of the requested directory failed.  Check permissions'
 
-FLST016 "SPARE"
-""
+FLST016 'TBSORT Failed' .TYPE=W
+'Non-zero return code from TBSORT serivce'
 
-FLST017 "SPARE"
-""
+FLST017 'Modify cancelled' .TYPE=N
+'Modify of permission attibutes of file has been cancelled.'
 
-FLST018 "SPARE"
-""
+FLST018 'Modify failed' .TYPE=W
+'Modify of the permission attributes has failed.  chmod RC>0'
 
-FLST019 "SPARE"
-""
+FLST019 'Invalid UID number' .TYPE=W
+'UID number is not valid as it does not resolve to a userid'
 
-FLST01A "SPARE"
-""
+FLST011A 'Modify successful' .TYPE=N
+'Change of file attributes has been successful'
 
-FLST01B "SPARE"
-""
+FLST011B 'Error getting USER' .TYPE=W
+'getpwnam has not returned user data.  Check user exists'
 
-FLST01C "SPARE"
-""
+FLST011C 'Error changing GROUP' .TYPE=W
+'getgrnam has not returned group data.  Check group exists'
 
-FLST01D "SPARE"
-""
+FLST011L 'Invalid GID number' .TYPE=W
+'GID number is not valid as it does not resolve to a group'
 
-FLST01E "SPARE"
-""
+FLST011M 'SPARE' .TYPE=W
+''
 
-FLST01F "List failed" .TYPE=W
-"List of the requested directory failed.  Check permissions"
+FLST011N 'Delete successful' .TYPE=N
+'Delete of pathname has been successful.  &RSN.'
 
-FLST01G "SPARE"
-""
+FLST011O 'Delete failed' .TYPE=W
+'Delete of file has failed with &RSN..  See log for error essages'
 
-FLST01H "TBSORT Failed"
-"Non-zero return code from TBSORT serivce"
+FLST011P 'Delete cancelled' .TYPE=N
+'Delete of file has been cancelled.'
 
-FLST01I "Modify cancelled" .TYPE=N
-"Modify of permission attibutes of file has been cancelled."
+FLST011Q 'Rename successful' .TYPE=N
+'Rename of file has been successful'
 
-FLST01J "Modify failed"
-"Modify of the permission attributes has failed.  chmod RC>0"
+FLST011R 'Rename failed' .TYPE=W
+'Rename of file has failed with &RSN..  See log for error messages'
 
-FLST01K "Invalid UID number"
-"UID number is not valid as it does not resolve to a userid"
+FLST011S 'Rename cancelled' .TYPE=N
+'Rename of file has been cancelled.'
 
-FLST01L "Invalid GID number"
-"GID number is not valid as it does not resolve to a group"
+FLST011T 'SPARE' .TYPE=W
+'SPARE'
 
-FLST01M "SPARE"
-""
+FLST011U 'Copy successful' .TYPE=N
+'Copy of file has been successful'
 
-FLST01N "Delete successful" .TYPE=N
-"Delete of pathname has been successful.  &RSN."
+FLST011V 'Copy failed' .TYPE=W
+'Copy of file has failed with &RSN.. See log for error messages.'
 
-FLST01O "Delete failed" .TYPE=W
-"Delete of file has failed with &RSN..  See log for error essages"
+FLST011W 'Copy cancelled' .TYPE=N
+'Copy of file has been cancelled.'
 
-FLST01P "Delete cancelled" .TYPE=N
-"Delete of file has been cancelled."
+FLST011X 'File exists' .TYPE=W
+'To-file exists and replace of like-named files has not been specified'
 
-FLST01Q "Rename successful" .TYPE=N
-"Rename of file has been successful"
+FLST011Y 'Exists but is invalid' .TYPE=W
+'Destination of a copy exists but is not a regular file.  Replace only applies to files.'
 
-FLST01R "Rename failed" .TYPE=W
-"Rename of file has failed with &RSN..  See log for error messages"
+FLST011Z 'Cannot rename cross device' .TYPE=W
+'Cannot rename cross device.  Use C to copy the file instead'
 
-FLST01S "Rename cancelled" .TYPE=N
-"Rename of file has been cancelled."
+FLST012A 'Invalid type' .TYPE=W
+'Can only copy regular files, directories or symlinks'
 
-FLST01U "Copy successful" .TYPE=N
-"Copy of file has been successful"
+FLST012B 'Directory Created' .TYPE=N
+'Directory created successfully'
 
-FLST01V "Copy failed" .TYPE=W
-"Copy of file has failed with &RSN.. See log for error messages."
+FLST012C 'Create failed' .TYPE=W
+'Create of directory failed with &RSN.. See log for error messages.'
 
-FLST01W "Copy cancelled" .TYPE=N
-"Copy of file has been cancelled."
+FLST012D 'File exists' .TYPE=W
+'Cannot create file as it already exists'
 
-FLST01X "File exists" .TYPE=W
-"To-file exists and replace of like-named files has not been specified"
+FLST012E 'File created' .TYPE=N
+'File created successfully'
 
-FLST01Y "Exists but is invalid" .TYPE=W
-"Destination of a copy exists but is not a regular file.  Replace only applies to files."
+FLST012F 'Create failed' .TYPE=W
+'Create of file has failed.  See log for error messages'
 
-FLST01Z "Cannot rename cross device" .TYPE=W
-"Cannot rename cross device.  Use C to copy the file instead"
+FLST012G 'Recursive copy ended with errors' .TYPE=W
+'Errors occured during a resursive copy of subdirectories.  Some files may be missed.  Check log'
 
-FLST0110 "Invalid type" .TYPE=W
-"Can only copy regular files, directories or symlinks"
+FLST012H 'Error creating tree' .TYPE=W
+'Tree create failed with message &RSN.'
 
-FLST0111 "Directory Created" .TYPE=N
-"Directory created successfully"
+FLST012I 'Error changing UID' .TYPE=W
+'chown has returned a non-zero return code'
 
-FLST0112 "Create failed" .TYPE=W
-"Create of directory failed with &RSN.. See log for error messages."
-
-FLST0113 "File exists" .TYPE=W
-"Cannot create file as it already exists"
-
-FLST0114 "File created" .TYPE=N
-"File created successfully"
-
-FLST0115 "Create failed" .TYPE=W
-"Create of file has failed.  See log for error messages"
-
-FLST0116 "Recursive copy ended with errors" .TYPE=W
-"Errors occured during a resursive copy of subdirectories.  Some files may be missed.  Check log"
-
-FLST0117 "Error creating tree" .TYPE=W
-"Tree create failed with message &RSN."
-
-FLST0118 "Error changing UID" .TYPE=W
-"chown has returned a non-zero return code"
-
-FLST0119 "Error changing GID" .TYPE=W
-"chown has returned a non-zero return code"
-
-FLST011A "Modify successful" .TYPE=N
-"Change of file attributes has been successful"
-
-FLST011B "Error getting USER" .TYPE=W
-"getpwnam has not returned user data.  Check user exists"
-
-FLST011C "Error changing GROUP" .TYPE=W
-"getgrnam has not returned group data.  Check group exists"
+FLST012J 'Error changing GID' .TYPE=W
+'chown has returned a non-zero return code'
 

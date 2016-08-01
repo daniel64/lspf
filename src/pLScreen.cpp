@@ -58,8 +58,9 @@ pLScreen::pLScreen()
 		mousemask( ALL_MOUSE_EVENTS, NULL ) ;
 		OIA = newwin( 1, maxcol, maxrow+1, 0 ) ;
 	}
-	++screensTotal    ;
-	currScreen = this ;
+	++screensTotal     ;
+	currScreen = this  ;
+	showMSGID  = false ;
 	screenID   = ++maxScreenID ;
 }
 

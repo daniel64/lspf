@@ -1,12 +1,12 @@
-DLGT011 "Invalid Command"
-"An invalid command has been entered.  See tutorial for valid commands"
+DLGT011 'Invalid Command' .TYPE=W
+'An invalid command has been entered.  See tutorial for valid commands'
 
-DLGT012 "Panel gave error"
-"Return code greater than 8 received on display of the panel.  See application log for details of the error"
+DLGT012 'Panel gave error' .TYPE=W
+'Return code greater than 8 received on display of the panel.  See application log for details of the error'
 
-DLGT013 "Invalid value on command"
-"An invalid value for a command has been entered.  See tutorial for valid commands/values"
+DLGT013 'Invalid value on command' .TYPE=W
+'An invalid value for a command has been entered.  See tutorial for valid commands/values'
 
-DLGT014 "Enter field value"
-"Field must have a value entered"
+DLGT014 'Enter field value' .TYPE=W
+'Field must have a value entered'
 

@@ -1,65 +1,69 @@
-PBRO011 "Invalid Command"
-"Unknown primary command has been entered"
+PBRO011 'Invalid Command' .TYPE=W
+'Unknown primary command has been entered'
 
-PBRO012 "Invalid Command Parameter"
-"Primary command contains an invalid parameter"
+PBRO012 'Invalid Command Parameter' .TYPE=W
+'Primary command contains an invalid parameter'
 
-PBRO013 "Too many parameters"
-"Too many parameters entered for &CMD command"
+PBRO013 'Too many parameters' .TYPE=W
+'Too many parameters entered for &CMD command'
 
-PBRO014 "Invalid columns specified"
+PBRO014 'Invalid columns specified' .TYPE=W
 "String '&STR' does not fit between the specified columns"
 
-PBRO015 "Cannot Enter '*' and a find string"
+PBRO015 "Cannot Enter '*' and a find string" .TYPE=W
 "Don't enter '*' for previous find string together with a new find string"
 
-PBRO016 "*Bottom of data reached*" .TYPE=W
-"Press RFIND to continue from the top of data"
+PBRO016 '*Bottom of data reached*' .TYPE=W
+'Press RFIND to continue from the top of data'
 
-PBRO017 "*Top of data reached*" .TYPE=W
-"Press RFIND to continue from the bottom of data"
+PBRO017 '*Top of data reached*' .TYPE=W
+'Press RFIND to continue from the bottom of data'
 
-PBRO018 "Unknown parameter on FIND"
+PBRO018 'Unknown parameter on FIND' .TYPE=W
 "Find command contains an unknown parameter '&STR'"
 
-PBRO019 "Too many columns specified"
-"There appears to be more than two column delimiters specified.  Put string in quotes"
+PBRO019 'Too many columns specified' .TYPE=W
+'There appears to be more than two column delimiters specified.  Put string in quotes'
 
-PBRO01A "Enter a Find Command" .TYPE=W
-"RFIND cannot be used if no previous FIND command has been entered"
+PBRO011A 'Enter a Find Command' .TYPE=W
+'RFIND cannot be used if no previous FIND command has been entered'
 
-PBRO01B "Extraeneous Data" .TYPE=W
-"Extaeneous data specified on find or change command"
+PBRO011B 'Extraeneous Data' .TYPE=W
+'Extaeneous data specified on find or change command'
 
-PBRO01C "No Previous Find Command" .TYPE=W
-"No previous FIND command specified.  Cannot use * for the find string"
+PBRO011C 'No Previous Find Command' .TYPE=W
+'No previous FIND command specified.  Cannot use * for the find string'
 
-PBRO01D "No Find string" .TYPE=W
-"No FIND string found in the command.  Put string in quotes"
+PBRO011D 'No Find string' .TYPE=W
+'No FIND string found in the command.  Put string in quotes'
 
-PBRO01E "No &TYPE '&STR' Found" .TYPE=W
+PBRO011E "No &TYPE '&STR' Found" .TYPE=W
 "&TYPE '&STR' specified not found"
 
-PBRO01F "&TYPE '&STR' found" .TYPE=N
+PBRO011F "&TYPE '&STR' found" .TYPE=N
 "Search for &TYPE '&STR' was successful"
 
-PBRO01G "&TYPE '&STR' found &OCC time(s)" .TYPE=N
+PBRO011G "&TYPE '&STR' found &OCC time(s)" .TYPE=N
 "Search for &TYPE '&STR' was successful.  Found &OCC time(s) on &LINES line(s)"
 
-PBRO01H "No End Quote"
-"Start quote but no end quote specified"
+PBRO011H 'No End Quote' .TYPE=W
+'Start quote but no end quote specified'
 
-PBRO01I "Invalid Quoted String"
-"Valid types of quoted string are T, C, X and P"
+PBRO011I 'Invalid Quoted String' .TYPE=W
+'Valid types of quoted string are T, C, X and P'
 
-PBRO01J "Column Out Of Range"
-"Entered column value cannot be less that 1 or greater than 65,535"
+PBRO011J 'Column Out Of Range' .TYPE=W
+'Entered column value cannot be less that 1 or greater than 65,535'
 
-PBRO01K "Invalid Hex String"
-"Entered only valid hex characters 0-9, A-F with no spaces"
+PBRO011K 'Invalid Hex String' .TYPE=W
+'Entered only valid hex characters 0-9, A-F with no spaces'
 
-PBRO01L "File type '&STR'" .TYPE=N
+PBRO011L "File type '&STR'" .TYPE=N
 "Hilighting filetype is '&STR'"
 
-PBRO01M "Invalid hilight language"
-"Hilighting language not supported"
+PBRO011M 'Invalid hilight language' .TYPE=W
+'Hilighting language not supported'
+
+PBRO011N 'Invalid Regex' .TYPE=W
+'Regular expression entered is not valid'
+

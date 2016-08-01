@@ -915,7 +915,7 @@ void PPSP01A::colourSettings()
 				vput( prof_var, PROFILE ) ;
 				vdelete( prof_var ) ;
 			}
-			if ( RC == 0 ) { MSG = "PPSP01A" ; }
+			if ( RC == 0 ) { MSG = "PPSP011A" ; }
 			continue ;
 		}
 		else if ( ZCMD == "RESTORE" )
@@ -933,7 +933,7 @@ void PPSP01A::colourSettings()
 				vdelete( isps_var ) ;
 				if ( setScreenAttrs( VarList[i],  i, COLOUR, INTENS, HILITE ) > 0 ) { abend() ; }
 			}
-			if ( RC == 0 ) { MSG = "PPSP01B" ; }
+			if ( RC == 0 ) { MSG = "PPSP011B" ; }
 			continue ;
 		}
 
@@ -1660,7 +1660,7 @@ void PPSP01A::showLoadedClasses()
 			else if ( abbrev( "APPLICATIONS", w2, 3 ) ) { psort = "APPL,C,"+w3    ; }
 			else if ( abbrev( "PATHS", w2, 3 ) )        { psort = "MODPATH,C,"+w3 ; }
 			else if ( abbrev( "STATUS", w2, 3 ) )       { psort = "STATUS,C,"+w3  ; }
-			else                                        { MSG = "PSYS01C" ; continue ; }
+			else                                        { MSG = "PSYS011C" ; continue ; }
 			tbsort( MODLST, psort ) ;
 			continue ;
 		}

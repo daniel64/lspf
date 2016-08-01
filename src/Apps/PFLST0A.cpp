@@ -216,7 +216,7 @@ void PFLST0A::application()
 	UseSearch = false ;
 
 	createFileList1() ;
-	if ( RC > 0 ) { setmsg( "FLST01F" ) ; }
+	if ( RC > 0 ) { setmsg( "FLST015" ) ; }
 
 	while ( true )
 	{
@@ -287,7 +287,7 @@ void PFLST0A::application()
 		{
 			if ( ( !exists( ZPATH ) || !is_directory( ZPATH ) ) )
 			{
-				MSG = "PSYS011A" ;
+				MSG = "PSYS012A" ;
 			}
 			else
 			{
@@ -320,8 +320,8 @@ void PFLST0A::application()
 				vcopy( "ZOREXPGM", PGM, MOVE ) ;
 				select( "PGM(" + PGM + ") PARM(" + entry + ")" ) ;
 				SEL = "" ;
-				if ( ZRESULT != "" ) { MESSAGE = ZRESULT    ; MSG = "PSYS01M" ; }
-				else                 { MESSAGE = "Executed" ;                   }
+				if ( ZRESULT != "" ) { MESSAGE = ZRESULT    ; MSG = "PSYS011M" ; }
+				else                 { MESSAGE = "Executed" ;                    }
 				tbput( DSLIST ) ;
 			}
 			else if ( SEL == "X" )
@@ -374,7 +374,7 @@ void PFLST0A::application()
 				FREPL    = "" ;
 				if ( !is_directory( entry ) && !is_symlink( entry ) && !is_regular_file( entry ) )
 				{
-					MSG     = "FLST0110"     ;
+					MSG     = "FLST012A"     ;
 					MESSAGE = "Invalid Type" ;
 					tbput( DSLIST ) ;
 					continue        ;
@@ -384,7 +384,7 @@ void PFLST0A::application()
 				if ( ZCMD == "CAN" || ZCMD == "CANCEL" || RC == 8 )
 				{
 					ZCMD    = ""          ;
-					MSG     = "FLST01W"   ;
+					MSG     = "FLST011W"  ;
 					MESSAGE = "Cancelled" ;
 				}
 				else
@@ -394,21 +394,21 @@ void PFLST0A::application()
 					{
 						if ( is_directory( entry ) || is_symlink( entry ) )
 						{
-							MSG     = "FLST01Y" ;
-							MESSAGE = "Invalid" ;
+							MSG     = "FLST011Y" ;
+							MESSAGE = "Invalid"  ;
 							tbput( DSLIST ) ;
 							continue        ;
 						}
 						if ( FREPL != "/" )
 						{
-							MSG     = "FLST01X"     ;
+							MSG     = "FLST011X"    ;
 							MESSAGE = "File Exists" ;
 							tbput( DSLIST ) ;
 							continue        ;
 						}
 						if ( !is_regular_file( NEWENTRY ) )
 						{
-							MSG     = "FLST01Y"      ;
+							MSG     = "FLST011Y"     ;
 							MESSAGE = "Invalid Type" ;
 							tbput( DSLIST ) ;
 							continue        ;
@@ -420,13 +420,13 @@ void PFLST0A::application()
 						copyDirs( entry, NEWENTRY, DIRREC, errs ) ;
 						if ( errs )
 						{
-							MSG     = "FLST0116" ;
+							MSG     = "FLST012G" ;
 							MESSAGE = "Errors"   ;
 						}
 						else
 						{
-							MSG     = "FLST01U" ;
-							MESSAGE = "Copied"  ;
+							MSG     = "FLST011U" ;
+							MESSAGE = "Copied"   ;
 						}
 						tbput( DSLIST ) ;
 						continue ;
@@ -441,12 +441,12 @@ void PFLST0A::application()
 					}
 					if ( ec.value() == boost::system::errc::success )
 					{
-						MSG     = "FLST01U" ;
-						MESSAGE = "Copied"  ;
+						MSG     = "FLST011U" ;
+						MESSAGE = "Copied"   ;
 					}
 					else
 					{
-						MSG     = "FLST01V"    ;
+						MSG     = "FLST011V"   ;
 						RSN     = ec.message() ;
 						MESSAGE = ec.message() ;
 						log( "E", "Copy of " + entry + " to " + NEWENTRY + " failed with " + ec.message() << endl ) ;
@@ -467,7 +467,7 @@ void PFLST0A::application()
 					if ( ZCMD == "CAN" || ZCMD == "CANCEL" || RC == 8 )
 					{
 						ZCMD    = ""          ;
-						MSG     = "FLST01P"   ;
+						MSG     = "FLST011P"  ;
 						MESSAGE = "Cancelled" ;
 					}
 					else { del = true ; }
@@ -479,13 +479,13 @@ void PFLST0A::application()
 						num = remove_all( entry.c_str( ), ec ) ;
 						if ( ec.value() == boost::system::errc::success )
 						{
-							MSG     = "FLST01N" ;
+							MSG     = "FLST011N" ;
 							RSN     = d2ds( num ) + " files deleted" ;
 							MESSAGE = "Deleted" ;
 						}
 						else
 						{
-							MSG     = "FLST01O"    ;
+							MSG     = "FLST011O"   ;
 							RSN     = ec.message() ;
 							MESSAGE = ec.message() ;
 							log( "E", "Delete of " + entry + " failed with " + ec.message() << " " << num <<" messages deleted "<< endl ) ;
@@ -496,13 +496,13 @@ void PFLST0A::application()
 						remove( entry.c_str( ), ec ) ;
 						if ( ec.value() == boost::system::errc::success )
 						{
-							MSG     = "FLST01N"         ;
+							MSG     = "FLST011N"        ;
 							RSN     = "1 entry deleted" ;
 							MESSAGE = "Deleted"         ;
 						}
 						else
 						{
-							MSG     = "FLST01O"    ;
+							MSG     = "FLST011O"   ;
 							RSN     = ec.message() ;
 							MESSAGE = ec.message() ;
 							log( "E", "Delete of " + entry + " failed with " + ec.message() << endl ) ;
@@ -528,7 +528,7 @@ void PFLST0A::application()
 				if ( ZCMD == "CAN" || ZCMD == "CANCEL" || RC == 8 )
 				{
 					ZCMD    = ""          ;
-					MSG     = "FLST01S"   ;
+					MSG     = "FLST011S"  ;
 					MESSAGE = "Cancelled" ;
 				}
 				else
@@ -536,19 +536,19 @@ void PFLST0A::application()
 					if ( NEWENTRY[ 0 ] != '/' ) { NEWENTRY = substr( entry, 1, lastpos( "/", entry ) ) + NEWENTRY ; }
 					if ( rename( entry.c_str(), NEWENTRY.c_str() ) == 0 )
 					{
-						MSG     = "FLST01Q" ;
-						MESSAGE = "Renamed" ;
+						MSG     = "FLST011Q" ;
+						MESSAGE = "Renamed"  ;
 					}
 					else
 					{
 						if ( errno == EXDEV )
 						{
-							MSG     = "FLST01Z"  ;
+							MSG     = "FLST011Z" ;
 							MESSAGE = "Use COPY" ;
 						}
 						else
 						{
-							MSG     = "FLST01R"         ;
+							MSG     = "FLST011R"        ;
 							RSN     = strerror( errno ) ;
 							MESSAGE = strerror( errno ) ;
 						}
@@ -639,7 +639,7 @@ void PFLST0A::application()
 				recursive_directory_iterator dIt( entry, ec ) ;
 				if ( ec.value() != boost::system::errc::success )
 				{
-					MSG     = "FLST0117"   ;
+					MSG     = "FLST012H"   ;
 					RSN     = ec.message() ;
 					MESSAGE = ec.message() ;
 					SEL     = ""           ;
@@ -667,7 +667,7 @@ void PFLST0A::application()
 				}
 				catch ( const filesystem_error& ex )
 				{
-					MSG     = "FLST0117" ;
+					MSG     = "FLST012H" ;
 					RSN     = ex.what()  ;
 					MESSAGE = ex.what()  ;
 					SEL     = ""         ;
@@ -687,7 +687,7 @@ void PFLST0A::application()
 				}
 				if ( RC > 0 )
 				{
-					MSG     = "FLST0117"      ;
+					MSG     = "FLST012H"      ;
 					MESSAGE = "Unknown Error" ;
 					tbput( DSLIST )           ;
 				}
@@ -1017,7 +1017,7 @@ int PFLST0A::processPrimCMD()
 		else if ( w2 == "SIZE"    ) { tbsort( DSLIST, "SIZE,N,"+w3    )  ; }
 		else if ( w2 == "MOD"     ) { tbsort( DSLIST, "MODDATES,N,"+w3 ) ; }
 		else                        { return 8 ;                           }
-		if ( RC > 0 ) { MSG = "FLST01H" ; return 4 ; }
+		if ( RC > 0 ) { MSG = "FLST016" ; return 4 ; }
 		return 0 ;
 	}
 	else if ( (cw == "S" || cw == "B" || cw == "E" ) && ws != "" )
@@ -1092,11 +1092,11 @@ int PFLST0A::processPrimCMD()
 		create_directory( ws, ec ) ;
 		if ( ec.value() == boost::system::errc::success )
 		{
-			MSG = "FLST0111" ;
+			MSG = "FLST012B" ;
 		}
 		else
 		{
-			MSG = "FLST0112"   ;
+			MSG = "FLST012C"   ;
 			RSN = ec.message() ;
 			log( "E", "Create of direcotry " + ws + " failed with " + ec.message() << endl ) ;
 		}
@@ -1113,13 +1113,13 @@ int PFLST0A::processPrimCMD()
 			{
 				of << endl ;
 				of.close() ;
-				MSG = "FLST0114" ;
+				MSG = "FLST012E" ;
 			}
-			else { MSG = "FLST0115" ; }
+			else { MSG = "FLST012F" ; }
 		}
 		else
 		{
-			MSG = "FLST0113" ;
+			MSG = "FLST012D" ;
 		}
 		ZCMD = "" ;
 		return 4  ;
@@ -1136,7 +1136,7 @@ void PFLST0A::copyDirs( string src, string dest, string DIRREC, bool & errs )
 	if ( ec.value() != boost::system::errc::success )
 	{
 		errs    = true         ;
-		MSG     = "FLST01V"    ;
+		MSG     = "FLST011V"   ;
 		RSN     = ec.message() ;
 		MESSAGE = ec.message() ;
 		log( "E", "Copy of directory" + src + " to " + dest + " failed with " + ec.message() << endl ) ;
@@ -1295,7 +1295,7 @@ void PFLST0A::modifyAttrs( string p )
 	if ( ZCMD == "CANCEL" || RC == 8 )
 	{
 		ZCMD    = ""          ;
-		MSG     = "FLST01I"   ;
+		MSG     = "FLST017"   ;
 		MESSAGE = "Cancelled" ;
 	}
 	else
@@ -1342,7 +1342,7 @@ void PFLST0A::modifyAttrs( string p )
 		if ( t != results.st_mode )
 		{
 			changed = true ;
-			if ( chmod( p.c_str(), t ) != 0 ) { MSG = "FLST01J" ; }
+			if ( chmod( p.c_str(), t ) != 0 ) { MSG = "FLST018" ; }
 		}
 		if ( MSG == "" && (IOWNERN != OOWNERN) )
 		{
@@ -1350,13 +1350,13 @@ void PFLST0A::modifyAttrs( string p )
 			pwd = getpwuid( ds2d( IOWNERN ) ) ;
 			if ( pwd == NULL )
 			{
-				MSG = "FLST01K" ;
+				MSG = "FLST019" ;
 			}
 			else
 			{
 				changed = true    ;
 				uid = pwd->pw_uid ;
-				if ( chown( p.c_str(), uid, -1 ) == -1 ) { MSG = "FLST0118" ; }
+				if ( chown( p.c_str(), uid, -1 ) == -1 ) { MSG = "FLST012I" ; }
 			}
 		}
 		else if ( MSG == "" && (IOWNER != OOWNER) )
@@ -1370,7 +1370,7 @@ void PFLST0A::modifyAttrs( string p )
 			else
 			{
 				uid = pwd->pw_uid ;
-				if ( chown( p.c_str(), uid, -1 ) == -1 ) { MSG = "FLST0118" ; }
+				if ( chown( p.c_str(), uid, -1 ) == -1 ) { MSG = "FLST012I" ; }
 			}
 		}
 		if ( MSG == "" && (IGROUPN != OGROUPN) )
@@ -1379,12 +1379,12 @@ void PFLST0A::modifyAttrs( string p )
 			grp = getgrgid( ds2d( IGROUPN ) ) ;
 			if ( grp == NULL )
 			{
-				MSG = "FLST01L" ;
+				MSG = "FLST011L" ;
 			}
 			else
 			{
 				gid = grp->gr_gid ;
-				if ( chown( p.c_str(), -1, gid ) == -1 ) { MSG = "FLST0119" ; }
+				if ( chown( p.c_str(), -1, gid ) == -1 ) { MSG = "FLST012J" ; }
 			}
 		}
 		else if ( MSG == "" && (IGROUP != OGROUP) )
@@ -1398,7 +1398,7 @@ void PFLST0A::modifyAttrs( string p )
 			else
 			{
 				gid = grp->gr_gid ;
-				if ( chown( p.c_str(), -1, gid ) == -1 ) { MSG = "FLST0119" ; }
+				if ( chown( p.c_str(), -1, gid ) == -1 ) { MSG = "FLST012J" ; }
 			}
 		}
 		stat( p.c_str(), &results ) ;
@@ -1863,7 +1863,7 @@ string PFLST0A::showListing()
 		{
 			if ( ( !exists( ZPATH ) || !is_directory( ZPATH ) ) )
 			{
-				MSG = "PSYS011A" ;
+				MSG = "PSYS012A" ;
 			}
 			else
 			{

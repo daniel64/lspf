@@ -1,264 +1,268 @@
-PEDT011 "Invalid Command Parameter"
-"Primary command contains an invalid parameter"
+*
+* Message file for the PEDIT01 EDITOR
+*
 
-PEDT012 "Invalid Line Command"
-"Line command entered is not valid"
+PEDT011 'Invalid Command Parameter' .TYPE=W
+'Primary command contains an invalid parameter'
 
-PEDT013 "Line Command Invalid Here"
-"Line command entered is not valid on this line"
+PEDT012 'Invalid Line Command' .TYPE=W
+'Line command entered is not valid'
 
-PEDT014 "Label Invalid"
+PEDT013 'Line Command Invalid Here' .TYPE=W
+'Line command entered is not valid on this line'
+
+PEDT014 'Label Invalid' .TYPE=W
 "Label must be between 1 and 5 alphanumeric characters and not starting with a 'Z'"
 
-PEDT015 "Label Already Exists"
-"Duplicate line labels are not allowed.  Please make the label unique"
+PEDT015 'SPARE' .TYPE=N
+'SPARE'
 
-PEDT016 "Label missing or invalid"
-"Enter both labels to delimit command.  Both labels must already exist"
+PEDT016 'Label missing or invalid' .TYPE=W
+'Enter both labels to delimit command.  Both labels must already exist'
 
-PEDT017 "No More UNDO's"
-"All changes in the UNDO stack have been undone"
+PEDT017 "No More UNDO's" .TYPE=W
+'All changes in the UNDO stack have been undone'
 
-PEDT018 "No REDO's available"
-"All changes in the REDO stack have been redone or data has been changed since last undo"
+PEDT018 "No REDO's available" .TYPE=W
+'All changes in the REDO stack have been redone or data has been changed since last undo'
 
-PEDT019 "Too many columns specified"
-"There appears to be more than two column delimiters specified.  Put string in quotes"
+PEDT019 'Too many columns specified' .TYPE=W
+'There appears to be more than two column delimiters specified.  Put string in quotes'
 
-PEDT01A "Too many labels specified"
-"There appears to be more than two row label delimiters specified.  Put string in quotes"
+PEDT011A 'Too many labels specified' .TYPE=W
+'There appears to be more than two row label delimiters specified.  Put string in quotes'
 
-PEDT01B "Extraeneous Data"
-"Extaeneous data specified on find or change command"
+PEDT011B 'Extraeneous Data' .TYPE=W
+'Extaeneous data specified on find or change command'
 
-PEDT01C "No Previous Find Command"
-"No previous find command specified.  Cannot use * for the find string"
+PEDT011C 'No Previous Find Command' .TYPE=W
+'No previous find command specified.  Cannot use * for the find string'
 
-PEDT01D "Put string in quotes"
-"No find or change string found in the command.  Put string in quotes"
+PEDT011D 'Put string in quotes' .TYPE=W
+'No find or change string found in the command.  Put string in quotes'
 
-PEDT01E "Label Not Valid"
-"A label is only valid on a data line, not a special line"
+PEDT011E 'Label Not Valid' .TYPE=W
+'A label is only valid on a data line, not a special line'
 
-PEDT01F "Label Does Not Exist"
-"Label does not Exist.  Please enter a valid line label"
+PEDT011F 'Label Does Not Exist' .TYPE=W
+'Label does not Exist.  Please enter a valid line label'
 
-PEDT01G "Labels Are The Same"
-"Start label cannot be the same as the end label."
+PEDT011G 'Labels Are The Same' .TYPE=W
+'Start label cannot be the same as the end label.'
 
-PEDT01H "No End Quote"
-"Start quote but no end quote specified"
+PEDT011H 'No End Quote' .TYPE=W
+'Start quote but no end quote specified'
 
-PEDT01I "Invalid Quoted String"
-"Valid types of quoted string are T, C, X and P"
+PEDT011I 'Invalid Quoted String' .TYPE=W
+'Valid types of quoted string are T, C, X and P'
 
-PEDT01J "Column Out Of Range"
-"Entered column value cannot be less that 1 or greater than 65,535"
+PEDT011J 'Column Out Of Range' .TYPE=W
+'Entered column value cannot be less that 1 or greater than 65,535'
 
-PEDT01K "Invalid Hex String"
-"Entered only valid hex characters 0-9, A-F with no spaces"
+PEDT011K 'Invalid Hex String' .TYPE=W
+'Entered only valid hex characters 0-9, A-F with no spaces'
 
-PEDT01L "&LINES Line(s) Excluded" .TYPE=N
-"&LINES line(s) have been excluded"
+PEDT011L '&LINES Line(s) Excluded' .TYPE=N
+'&LINES line(s) have been excluded'
 
-PEDT01M "&LINES Line(s) Deleted" .TYPE=N
-"&LINES line(s) have been deleted"
+PEDT011M '&LINES Line(s) Deleted' .TYPE=N
+'&LINES line(s) have been deleted'
 
-PEDT01N "Invalid Regex"
-"Regular expression entered is not valid"
+PEDT011N 'Invalid Regex' .TYPE=W
+'Regular expression entered is not valid'
 
-PEDT01O "Data changed-SAVE/CANCEL"
-"File has changed and no SAVE or CANCEL has been entered (AUTOSAVE is set OFF)"
+PEDT011O 'Data changed-SAVE/CANCEL' .TYPE=W
+'File has changed and no SAVE or CANCEL has been entered (AUTOSAVE is set OFF)'
 
-PEDT01P "File Saved" .TYPE=N
-"File has been successfully saved"
+PEDT011P 'File Saved' .TYPE=N
+'File has been successfully saved'
 
-PEDT01Q "File Not Saved"
-"An error has occured saving the file.  Check file permissions for access rights"
+PEDT011Q 'File Not Saved' .TYPE=W
+'An error has occured saving the file.  Check file permissions for access rights'
 
-PEDT01R "File Does Not Exist"
+PEDT011R 'File Does Not Exist' .TYPE=W
 "File '&ZFILE' does not exist"
 
-PEDT01S "File/Directory Does Not Exist"
+PEDT011S 'File/Directory Does Not Exist' .TYPE=W
 "'&ZFILE' is neither a valid file, nor a valid directory"
 
-PEDT01T "Entry Is A Directory"
+PEDT011T 'Entry Is A Directory' .TYPE=W
 "'&ZFILE' is a directory entry"
 
-PEDT01U "UNDO is set OFF"
-"UNDO option is set to OFF.  UNDO/REDO is no longer available"
+PEDT011U 'UNDO is set OFF' .TYPE=W
+'UNDO option is set to OFF.  UNDO/REDO is no longer available'
 
-PEDT01V "Invalid A/B line command"
-"A/B line command found without matching block command"
+PEDT011V 'Invalid A/B line command' .TYPE=W
+'A/B line command found without matching block command'
 
-PEDT01W "Block command incomplete" .TYPE=N
-"Enter matching block command to complete block command pair"
+PEDT011W 'Block command incomplete' .TYPE=N
+'Enter matching block command to complete block command pair'
 
-PEDT01X "Invalid A/B line command"
-"A/B line command found within a block command"
+PEDT011X 'Invalid A/B line command' .TYPE=W
+'A/B line command found within a block command'
 
-PEDT01Y "Command Conflict"
-"Line command conflict"
+PEDT011Y 'Command Conflict' .TYPE=W
+'Line command conflict'
 
-PEDT01Z "Incomplete Command"
-"Line command is incomplete"
+PEDT011Z 'Incomplete Command' .TYPE=W
+'Line command is incomplete'
 
-PEDT011A "Number Not Allowed"
-"A number is not allowed with this command.  Please blank it out"
+PEDT012A 'Number Not Allowed' .TYPE=W
+'A number is not allowed with this command.  Please blank it out'
 
-PEDT011B "Number Conflict"
-"If entered twice, the numbers on a block command must match"
+PEDT012B 'Number Conflict' .TYPE=W
+'If entered twice, the numbers on a block command must match'
 
-PEDT011C "Not all data copied"
-"More copy lines than overlay lines.  Extra lines will be ignored"
+PEDT012C 'Not all data copied' .TYPE=W
+'More copy lines than overlay lines.  Extra lines will be ignored'
 
-PEDT011D "Lines not deleted"
-"Data lines not deleted as not all data overlayed"
+PEDT012D 'Lines not deleted' .TYPE=W
+'Data lines not deleted as not all data overlayed'
 
-PEDT011E "Logic Error"
-"A logic error has occured.  See application log for messages"
+PEDT012E 'Logic Error' .TYPE=W
+'A logic error has occured.  See application log for messages'
 
-PEDT011F "Backup Failed"
-"Backup of file to be edited has failed.  Check BACKUP PATH and permissions"
+PEDT012F 'Backup Failed' .TYPE=W
+'Backup of file to be edited has failed.  Check BACKUP PATH and permissions'
 
-PEDT011G "Recursive EDIT detected"
-"Recursive EDIT has been detected.  Not currently supported and can corrupt files"
+PEDT012G 'SPARE' .TYPE=W
+'SPARE'
 
-PEDT011H "UNDO Data Removed"
-"UNDO data has been deleted.  UNDO/REDO not available before this time"
+PEDT012H 'UNDO Data Removed' .TYPE=W
+'UNDO data has been deleted.  UNDO/REDO not available before this time'
 
-PEDT012A "Invalid CUT parameter"
-"CUT DEFAULT|name APPEND|REPLACE"
+PEDT013A 'Invalid CUT parameter' .TYPE=W
+'CUT DEFAULT|name APPEND|REPLACE'
 
-PEDT012B "Invalid PASTE parameter"
-"PASTE DEFAULT|name KEEP|DELETE"
+PEDT013B 'Invalid PASTE parameter' .TYPE=W
+'PASTE DEFAULT|name KEEP|DELETE'
 
-PEDT012C "&ZEDLNES lines cut to &CLIPNAME" .TYPE=N
-"&ZEDLNES lines cut to clipboard &CLIPNAME"
+PEDT013C '&ZEDLNES lines cut to &CLIPNAME' .TYPE=N
+'&ZEDLNES lines cut to clipboard &CLIPNAME'
 
-PEDT012D "&ZEDLNES lines pasted from &CLIPNAME" .TYPE=N
-"&ZEDLNES lines pasted from clipboard &CLIPNAME"
+PEDT013D '&ZEDLNES lines pasted from &CLIPNAME' .TYPE=N
+'&ZEDLNES lines pasted from clipboard &CLIPNAME'
 
-PEDT012E "SPARE"
-"SPARE"
+PEDT013E 'Error in hilighter' .TYPE=W
+'An exception has occured in the hilighter program.  Hilighting has been disabled'
 
-PEDT012F "Paste Pending"
-"Paste is pending.  Select position to paste lines with the A/B line commands"
+PEDT013F 'Paste Pending' .TYPE=W
+'Paste is pending.  Select position to paste lines with the A/B line commands'
 
-PEDT012G "&TYPE '&STR' found" .TYPE=N
+PEDT013G "&TYPE '&STR' found" .TYPE=N
 "Search for &TYPE '&STR' was successful"
 
-PEDT012H "&TYPE '&STR' not found"
+PEDT013H "&TYPE '&STR' not found" .TYPE=W
 "Search for &TYPE '&STR' was not successful"
 
-PEDT012I "&TYPE '&STR' found &OCC time(s)" .TYPE=N
+PEDT013I "&TYPE '&STR' found &OCC time(s)" .TYPE=N
 "Search for &TYPE '&STR' was successful.  Found &OCC time(s) on &LINES line(s)"
 
-PEDT012J "Duplicate/Inconsistent parameter"
-"Duplicate or inconsistent parameter entered on find or change command"
+PEDT013J 'Duplicate/Inconsistent parameter' .TYPE=W
+'Duplicate or inconsistent parameter entered on find or change command'
 
-PEDT012K "&TYPE '&STR' changed &OCC times(s)" .TYPE=N
+PEDT013K "&TYPE '&STR' changed &OCC times(s)" .TYPE=N
 "Change was successful.  &TYPE '&STR' changed &OCC times(s)"
 
-PEDT012L "&TYPE '&STR' changed" .TYPE=N
+PEDT013L "&TYPE '&STR' changed" .TYPE=N
 "Change for &TYPE '&STR' was successful"
 
-PEDT012M "Enter a FIND command"
-"Enter a FIND command before using RFIND"
+PEDT013M 'Enter a FIND command' .TYPE=W
+'Enter a FIND command before using RFIND'
 
-PEDT012N "Enter a CHANGE command"
-"Enter a CHANGE command before using RCHANGE"
+PEDT013N 'Enter a CHANGE command' .TYPE=W
+'Enter a CHANGE command before using RCHANGE'
 
-PEDT012O "Compare File Does Not Exist"
+PEDT013O 'Compare File Does Not Exist' .TYPE=W
 "File '&CFILE' does not exist"
 
-PEDT012P "Files are the same"
-"There are no differences between the files"
+PEDT013P 'Files are the same' .TYPE=W
+'There are no differences between the files'
 
-PEDT012Q "Invalid Hilight Language"
-"Hilight language not supported."
+PEDT013Q 'Invalid Hilight Language' .TYPE=W
+'Hilight language not supported.'
 
-PEDT012R "Label ZLAST invalid"
-"ZLAST cannot be the only label"
+PEDT013R 'Label ZLAST invalid' .TYPE=W
+'ZLAST cannot be the only label'
 
-PEDT012S "Labels not valid"
-"Command does not support label delimiter parameters"
+PEDT013S 'Labels not valid' .TYPE=W
+'Command does not support label delimiter parameters'
 
-PEDT012T "Columns not valid"
-"Command does not support column delimiter parameters"
+PEDT013T 'Columns not valid' .TYPE=W
+'Command does not support column delimiter parameters'
 
-PEDT012U "Invalid FIND/CHANGE/EXCLUDE command"
-"Find, change or exclude command does not contain a search string"
+PEDT013U 'Invalid FIND/CHANGE/EXCLUDE command' .TYPE=W
+'Find, change or exclude command does not contain a search string'
 
-PEDT012V "*Bottom of data reached*" .TYPE=W
-"&TYPE '&STR' not found.  Press RFIND to continue from the bottom of data"
-
-PEDT012W "*Top of data reached*" .TYPE=W
+PEDT013V '*Bottom of data reached*' .TYPE=W
 "&TYPE '&STR' not found.  Press RFIND to continue from the top of data"
 
-PEDT012X "Line command error" .TYPE=W
-"Cursor is not placed in the data area.  Line command ignored"
+PEDT013W '*Top of data reached*' .TYPE=W
+"&TYPE '&STR' not found.  Press RFIND to continue from the bottom of data"
 
-PEDT012Y "Line command error" .TYPE=W
-"A command is already on the line command field"
+PEDT013X 'Line command error' .TYPE=W
+'Cursor is not placed in the data area.  Line command ignored'
 
-PEDT013A "File in use"
+PEDT013Y 'Line command error' .TYPE=W
+'A command is already on the line command field'
+
+PEDT014A 'File in use' .TYPE=W
 "File '&ZFILE' is currently being edited in another session"
 
-PEDT013B "Data shifting incomplete" .TYPE=W
-"Data shifting was not completed on lines marked ==ERR>"
+PEDT014B 'Data shifting incomplete' .TYPE=W
+'Data shifting was not completed on lines marked ==ERR>'
 
-PEDT013C "Command Conflict" .TYPE=W
-"Command is within the range of the previous command"
+PEDT014C 'Command Conflict' .TYPE=W
+'Command is within the range of the previous command'
 
-PEDT013D "Profile Created" .TYPE=N
-"New profile created"
+PEDT014D 'Profile Created' .TYPE=N
+'New profile created'
 
-PEDT013E "Already sorted" .TYPE=N
-"Records were already in sort order"
+PEDT014E 'Already sorted' .TYPE=N
+'Records were already in sort order'
 
-PEDT013F "Sort column out of range" .TYPE=W
-"If specified, start or end column cannot be before the left bound"
+PEDT014F 'Sort column out of range' .TYPE=W
+'If specified, start or end column cannot be before the left bound'
 
-PEDT013G "Sort column out of range" .TYPE=W
-"If specified, start or end column cannot be after the right bound"
+PEDT014G 'Sort column out of range' .TYPE=W
+'If specified, start or end column cannot be after the right bound'
 
-PEDT013H "Invalid swap command" .TYPE=W
-"W/WW can only be used with the M/MM line commands"
+PEDT014H 'Invalid swap command' .TYPE=W
+'W/WW can only be used with the M/MM line commands'
 
-PEDT013I "Data not savd by END" .TYPE=W
-"AUTOSAVE OFF NOPROMPT.  Any changes will be automatically cancelled on exit"
+PEDT014I 'Data not savd by END' .TYPE=W
+'AUTOSAVE OFF NOPROMPT.  Any changes will be automatically cancelled on exit'
 
-PEDT013J "Edit profile not found" .TYPE=W
-"Edit profile was not found to reset"
+PEDT014J 'Edit profile not found' .TYPE=W
+'Edit profile was not found to reset'
 
-PEDT013K "Default profile reset" .TYPE=N
-"Default edit profile has been reset with default values"
+PEDT014K 'Default profile reset' .TYPE=N
+'Default edit profile has been reset with default values'
 
-PEDT013L "Profiles removed and DEFAULT reset" .TYPE=N
-"All edit profile has been removed and the DEFAULT reset with default values"
+PEDT014L 'Profiles removed and DEFAULT reset' .TYPE=N
+'All edit profile has been removed and the DEFAULT reset with default values'
 
-PEDT013M "Edit profile removed" .TYPE=N
-"Edit profile has been removed"
+PEDT014M 'Edit profile removed' .TYPE=N
+'Edit profile has been removed'
 
-PEDT013N "Tabs found in file" .TYPE=W
-"Tabs found in file, but option is not to convert to spaces"
+PEDT014N 'Tabs found in file' .TYPE=W
+'Tabs found in file, but option is not to convert to spaces'
 
-PEDT013O "Data shifted" .TYPE=W
-"Data shifted from beyond the right margin"
+PEDT014O 'Data shifted' .TYPE=W
+'Data shifted from beyond the right margin'
 
-PEDT013P "MOVE/COPY is pending" .TYPE=N
-"Enter A, B, O or W line command"
+PEDT014P 'MOVE/COPY is pending' .TYPE=N
+'Enter A, B, O or W line command'
 
-PEDT013Q "MOVE/COPY is pending" .TYPE=W
-"Enter M/MM or C/CC line commands"
+PEDT014Q 'MOVE/COPY is pending' .TYPE=W
+'Enter M/MM or C/CC line commands'
 
-PEDT013R "File exists" .TYPE=W
-"File entered on a CREATE command already exists"
+PEDT014R 'File exists' .TYPE=W
+'File entered on a CREATE command already exists'
 
-PEDT013S "Open error" .TYPE=W
-"File cannot be opened.  Check permissions"
+PEDT014S 'Open error' .TYPE=W
+'File cannot be opened.  Check permissions'
 
-PEDT013T "File created" .TYPE=N
-"File has been created from the selected lines"
+PEDT014T 'File created' .TYPE=N
+'File has been created from the selected lines'
 

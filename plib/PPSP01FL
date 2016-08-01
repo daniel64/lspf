@@ -66,7 +66,7 @@ VGET (ZFILE1 ZFILE2 ZFILE3 ZFILE4 ZFILE5 ZFILE6 ZFILE7 ZFILE8) PROFILE
 
 )PROC
 IF (&ZCMD NE &Z)
-   .MSG    = PSYS01C
+   .MSG    = PSYS011C
    .CURSOR = ZCMD
    EXIT
 
@@ -113,38 +113,38 @@ ELSE
 
 IF (.CURSOR EQ ZFILE1)
    &ZCURR = &ZFILE1
-   .MSG   = PSYS01V
+   .MSG   = PSYS011V
 ELSE
    IF (.CURSOR EQ ZFILE2)
       &ZCURR = &ZFILE2
-      .MSG   = PSYS01V
+      .MSG   = PSYS011V
    ELSE
       IF (.CURSOR EQ ZFILE3)
          &ZCURR = &ZFILE3
-         .MSG   = PSYS01V
+         .MSG   = PSYS011V
       ELSE
          IF (.CURSOR EQ ZFILE4)
             &ZCURR = &ZFILE4
-            .MSG   = PSYS01V
+            .MSG   = PSYS011V
          ELSE
             IF (.CURSOR EQ ZFILE5)
                &ZCURR = &ZFILE5
-               .MSG   = PSYS01V
+               .MSG   = PSYS011V
             ELSE
                IF (.CURSOR EQ ZFILE6)
                   &ZCURR = &ZFILE6
-                  .MSG   = PSYS01V
+                  .MSG   = PSYS011V
                ELSE
                   IF (.CURSOR EQ ZFILE7)
                      &ZCURR = &ZFILE7
-                     .MSG   = PSYS01V
+                     .MSG   = PSYS011V
                   ELSE
                      IF (.CURSOR EQ ZFILE8)
                         &ZCURR = &ZFILE8
-                        .MSG   = PSYS01V
+                        .MSG   = PSYS011V
 
 
-if (.MSG=PSYS01V)
+if (.MSG=PSYS011V)
    VPUT (ZCURR) PROFILE
    .CURSOR = ZFILE
    EXIT

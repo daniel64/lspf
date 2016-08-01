@@ -701,7 +701,8 @@ class PEDIT01 : public pApplication
 		void application() ;
 
 	private:
-		static map<string,bool>EditList ;
+		static map<string,bool>EditList  ;
+		static e_find Global_efind_parms ;
 
 		void showEditEntry()      ;
 		void showEditRecovery()   ;
@@ -914,6 +915,7 @@ class PEDIT01 : public pApplication
 		string CSHADOW ;
 
 		string ZEDPROF  ;
+		string ZEDPROFT ;
 
 		string ZEDPTYPE ;
 		string ZEDPFLAG ;

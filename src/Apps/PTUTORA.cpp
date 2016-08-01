@@ -148,7 +148,7 @@ void PTUTORA::application()
 		}
 		if ( filename == "" )
 		{
-			setmsg( "PSYS01J" ) ;
+			setmsg( "PSYS011J" ) ;
 			cleanup() ;
 			return    ;
 		}
@@ -297,7 +297,7 @@ void PTUTORA::fill_dynamic_area()
 	t4 = "" ;
 	t3.resize( ZAREAW ) ;
 	t4.resize( ZAREAW ) ;
-	
+
 	Area = ZAREAW * ZAREAD ;
 
 	ZAREA   = "" ;

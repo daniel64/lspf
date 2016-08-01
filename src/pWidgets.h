@@ -58,6 +58,7 @@ class field
 	public:
 		unsigned int field_row          ;
 		unsigned int field_col          ;
+		unsigned int field_cole         ;
 		unsigned int field_length       ;
 		string       field_value        ;
 		bool         field_pwd          ;
@@ -101,6 +102,7 @@ class field
 			} ;
 
 		int  field_init( int MAXW, int MAXD, string line ) ;
+		bool cursor_on_field( uint row, uint col ) ;
 		void display_field( WINDOW *, bool ) ;
 		bool edit_field_insert( WINDOW * win, char ch, int row, bool, bool ) ;
 		void edit_field_delete( WINDOW * win, int row, bool ) ;
@@ -126,7 +128,7 @@ class literal
 			  }
 		int     literal_row    ;
 		int     literal_col    ;
-		int     literal_length ;
+		int     literal_cole   ;
 		cuaType literal_cua    ;
 		uint    literal_colour ;
 		string  literal_value  ;
@@ -134,6 +136,7 @@ class literal
 
 		int  literal_init( int MAXW, int MAXD, int & opt_field, string line ) ;
 		void literal_display( WINDOW * ) ;
+		bool cursor_on_literal( uint row, uint col ) ;
 } ;
 
 

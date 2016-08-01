@@ -224,11 +224,11 @@ X "END"
 
 IF (&W1 = 'DATE')
    IF (&W2S NE 1)
-      .MSG    = PSYS01O
+      .MSG    = PSYS011O
       .CURSOR = ZCMD
       EXIT
    IF (&W2L NE 7)
-      .MSG    = PSYS01O
+      .MSG    = PSYS011O
       .CURSOR = ZCMD
       EXIT
    &MM   = TRUNC(&W2,2)
@@ -236,7 +236,7 @@ IF (&W1 = 'DATE')
    &SEP  = TRUNC(&T,1)
    &YYYY = .TRAIL
    IF (&SEP NE '-','/')
-      .MSG    = PSYS01O
+      .MSG    = PSYS011O
       .CURSOR = ZCMD
    EXIT
 

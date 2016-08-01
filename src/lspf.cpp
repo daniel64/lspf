@@ -187,7 +187,7 @@ string GMAINPGM ;
 
 string pfkPROF  ;
 
-const string BuiltInCommands = "ACTION DISCARD FIELDEXC NOP PANELID REFRESH SPLIT SWAP TDOWN" ;
+const string BuiltInCommands = "ACTION DISCARD FIELDEXC MSGID NOP PANELID REFRESH SPLIT SWAP TDOWN" ;
 const string SystemCommands  = ".ABEND .HIDE .INFO .RELOAD .SCALE .SHELL .SHOW .SNAP .STATS .TEST" ;
 
 std::ofstream splog(SLOG) ;
@@ -508,7 +508,7 @@ void mainLoop()
 					while ( currAppl->terminateAppl )
 					{
 						terminateApplication() ;
-						if ( pLScreen::screensTotal == 0 ) return ;
+						if ( pLScreen::screensTotal == 0 ) { return ; }
 						if ( currAppl->SEL && !currAppl->terminateAppl )
 						{
 							debug1( "Application "+ currAppl->ZAPPNAME +" has done another SELECT without a DISPLAY (1) !!!! " << endl ) ;
@@ -550,7 +550,7 @@ void mainLoop()
 						field_name = currAppl->currPanel->field_getname( row, col ) ;
 						if ( field_name == "" )
 						{
-							currAppl->set_msg( "PSYS011K" ) ;
+							currAppl->set_msg( "PSYS012K" ) ;
 							break ;
 						}
 						fxc = currAppl->currPanel->field_getexec( field_name ) ;
@@ -560,7 +560,7 @@ void mainLoop()
 							if ( RC > 0 )
 							{
 								log( "E", "Error in FIELD SELECT command "+ fxc.fieldExc_command << endl ) ;
-								currAppl->set_msg( "PSYS01K" ) ;
+								currAppl->set_msg( "PSYS011K" ) ;
 								break ;
 							}
 							SEL_PARM = SEL_PARM + " " + currAppl->currPanel->field_getvalue( field_name ) ;
@@ -577,7 +577,7 @@ void mainLoop()
 						}
 						else
 						{
-							currAppl->set_msg( "PSYS011J" ) ;
+							currAppl->set_msg( "PSYS012J" ) ;
 							break ;
 						}
 					}
@@ -592,6 +592,28 @@ void mainLoop()
 					else if ( ZCOMMAND == ".INFO" )
 					{
 						currAppl->info() ;
+					}
+					else if ( ZCOMMAND == "MSGID" )
+					{
+						if ( ZPARM == "" )
+						{
+							currAppl->show_msgid() ;
+						}
+						else if ( ZPARM == "ON" )
+						{
+							currScrn->set_msgid_on() ;
+							currAppl->set_msgid_status( true ) ;
+						}
+						else if ( ZPARM == "OFF" )
+						{
+							currScrn->set_msgid_off() ;
+							currAppl->set_msgid_status( false ) ;
+						}
+						else
+						{
+							currAppl->set_msg( "PSYS012M" ) ;
+						}
+						break ;
 					}
 					else if ( ZCOMMAND == "NOP" )
 					{
@@ -644,7 +666,7 @@ void mainLoop()
 							log( "W", "SPLIT mode disabled due to application-issued CONTROL SPLIT DISABLE service" << endl ) ;
 							break ;
 						}
-						if ( pLScreen::screensTotal == ZMAXSCRN ) continue ;
+						if ( pLScreen::screensTotal == ZMAXSCRN ) { continue ; }
 						updateDefaultVars()            ;
 						if ( apps.find( GMAINPGM ) == apps.end() )
 						{
@@ -688,13 +710,13 @@ void mainLoop()
 						{
 							++screenNum ;
 							screenNum = (screenNum == pLScreen::screensTotal ? 0 : screenNum) ;
-							if ( altScreen == screenNum ) altScreen = (altScreen == 0 ? (pLScreen::screensTotal - 1) : (altScreen - 1) ) ;
+							if ( altScreen == screenNum ) { altScreen = (altScreen == 0 ? (pLScreen::screensTotal - 1) : (altScreen - 1) ) ; }
 						}
 						else if ( ZPARM == "PREV" )
 						{
 							--screenNum ;
 							screenNum = (screenNum < 0 ? (pLScreen::screensTotal - 1) : screenNum) ;
-							if ( altScreen == screenNum ) altScreen = ((altScreen == pLScreen::screensTotal - 1) ? 0 : (altScreen + 1) )  ;
+							if ( altScreen == screenNum ) { altScreen = ((altScreen == pLScreen::screensTotal - 1) ? 0 : (altScreen + 1) )  ; }
 						}
 						else if ( datatype( ZPARM, 'W' ) )
 						{
@@ -842,7 +864,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 						if ( RC > 0 )
 						{
 							log( "E", "Error in SELECT command "+ t_pdc.pdc_parm << endl ) ;
-							currAppl->setmsg( "PSYS01K" ) ;
+							currAppl->setmsg( "PSYS011K" ) ;
 							return ;
 						}
 						if ( SEL_PGM[ 0 ] == '&' )
@@ -1081,7 +1103,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 			if ( RC > 0 )
 			{
 				log( "E", "Error in SELECT command "+ ZCTACT << endl ) ;
-				currAppl->setmsg( "PSYS01K" ) ;
+				currAppl->setmsg( "PSYS011K" ) ;
 				return ;
 			}
 			p1 = wordpos( "&ZPARM", SEL_PARM ) ;
@@ -1158,7 +1180,7 @@ void processPGMSelect()
 		{
 			debug1( "Calling application "+ currAppl->ZAPPNAME +" also ending" << endl ) ;
 			terminateApplication() ;
-			if ( pLScreen::screensTotal == 0 ) return ;
+			if ( pLScreen::screensTotal == 0 ) { return ; }
 		}
 		currAppl->get_cursor( row, col )  ;
 		currScrn->set_row_col( row, col ) ;
@@ -1236,6 +1258,7 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 	currAppl->p_tableMGR   = p_tableMGR  ;
 	currAppl->PARM         = parm        ;
 	currAppl->lspfCallback = lspfCallbackHandler ;
+	currAppl->set_msgid_status( currScrn->get_msgid_status() ) ;
 	apps[ Application ].refCount++ ;
 
 	if ( NEWAPPL != "" )
@@ -1299,14 +1322,14 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 	{
 		errorScreen( 2, "An error has occured initialising new task for " + Application ) ;
 		terminateApplication() ;
-		if ( pLScreen::screensTotal == 0 ) return ;
+		if ( pLScreen::screensTotal == 0 ) { return ; }
 	}
 
 	while ( currAppl->terminateAppl )
 	{
 		log( "I", "Application "+ currAppl->ZAPPNAME +" has immediately terminated.  Cleaning up resources" << endl ) ;
 		terminateApplication() ;
-		if ( pLScreen::screensTotal == 0 ) return ;
+		if ( pLScreen::screensTotal == 0 ) { return ; }
 		if ( currAppl->SEL && !currAppl->terminateAppl )
 		{
 			debug1( "Application "+ currAppl->ZAPPNAME +" has done another SELECT without a DISPLAY (2) !!!! " << endl ) ;
@@ -1401,9 +1424,9 @@ void terminateApplication()
 			return ;
 		}
 		screenList.erase( screenList.begin() + screenNum ) ;
-		if ( altScreen > screenNum ) --altScreen ;
+		if ( altScreen > screenNum ) { --altScreen ; }
 		--screenNum ;
-		if ( screenNum < 0 ) screenNum = pLScreen::screensTotal - 1 ;
+		if ( screenNum < 0 ) { screenNum = pLScreen::screensTotal - 1 ; }
 		if ( pLScreen::screensTotal > 1 )
 		{
 			if ( altScreen == screenNum ) altScreen = ((altScreen == pLScreen::screensTotal - 1) ? 0 : (altScreen + 1) )  ;
@@ -1453,19 +1476,19 @@ void terminateApplication()
 				else
 				{
 					log( "E", "Invalid field "+ fname +" in .NRET panel statement" << endl ) ;
-					currAppl->set_msg( "PSYS01Z" ) ;
+					currAppl->set_msg( "PSYS011Z" ) ;
 					nretError = true ;
 				}
 			}
 			else
 			{
-				currAppl->set_msg( "PSYS01Y" ) ;
+				currAppl->set_msg( "PSYS011Y" ) ;
 				nretError = true ;
 			}
 		}
 		else
 		{
-			currAppl->set_msg( "PSYS01X" ) ;
+			currAppl->set_msg( "PSYS011X" ) ;
 			nretError = true ;
 		}
 	}
@@ -1482,14 +1505,14 @@ void terminateApplication()
 				currAppl->currPanel->set_cursor( row, col ) ;
 				if ( refList )
 				{
-					currAppl->set_msg( "PSYS01W" ) ;
+					currAppl->set_msg( "PSYS011W" ) ;
 				}
 				setCursor = false ;
 			}
 			else
 			{
 				log( "E", "Invalid field "+ currAppl->reffield +" in .NRET panel statement" << endl )   ;
-				currAppl->set_msg( "PSYS01Z" ) ;
+				currAppl->set_msg( "PSYS011Z" ) ;
 			}
 		}
 		else if ( tRC == 8 )
@@ -1512,6 +1535,9 @@ void terminateApplication()
 	{
 		currAppl->restore_screen() ;
 	}
+
+	currAppl->set_msgid_status( currScrn->get_msgid_status() ) ;
+
 	if ( currAppl->SEL )
 	{
 		if ( propagateEnd )
@@ -1540,7 +1566,7 @@ void terminateApplication()
 		{
 			debug1( "Calling application "+ currAppl->ZAPPNAME +" also ending" << endl ) ;
 			terminateApplication() ;
-			if ( pLScreen::screensTotal == 0 ) return ;
+			if ( pLScreen::screensTotal == 0 ) { return ; }
 		}
 		currAppl->get_cursor( row, col ) ;
 	}
@@ -1557,7 +1583,7 @@ void terminateApplication()
 		{
 			debug1( "Previous application "+ currAppl->ZAPPNAME +" also ending" << endl ) ;
 			terminateApplication() ;
-			if ( pLScreen::screensTotal == 0 ) return ;
+			if ( pLScreen::screensTotal == 0 ) { return ; }
 		}
 		if ( SMSG != "" )  { currAppl->set_msg( SMSG, LMSG, MSGTYPE, MSGALRM ) ; }
 		if ( !currAppl->popupDisplayed() )
@@ -1993,7 +2019,7 @@ void updateReflist()
 		else
 		{
 			log( "E", "Invalid field "+ fname +" in .NRET panel statement" << endl ) ;
-			currAppl->set_msg( "PSYS01Z" ) ;
+			currAppl->set_msg( "PSYS011Z" ) ;
 		}
 	}
 }
@@ -2202,22 +2228,22 @@ void getDynamicClasses()
 		p     = substr( fname, 1, (lastpos( "/", fname ) - 1) ) ;
 		mod   = substr( fname, (lastpos( "/", fname ) + 1) )    ;
 		pos1  = pos( ".so", mod ) ;
-		if ( substr(mod, 1, 3 ) != "lib" || pos1 == 0 ) continue ;
+		if ( substr(mod, 1, 3 ) != "lib" || pos1 == 0 ) { continue ; }
 		appl  = substr( mod, 4, (pos1 - 4) ) ;
 		log( "I", "Adding application "+ appl << endl ) ;
-		if ( apps.find( appl ) != apps.end() )
+		if ( apps.count( appl ) > 0 )
 		{
 			log( "W", "Ignoring duplicate module "+ mod +" found in "+ p << endl ) ;
 			continue ;
 		}
 		i++ ;
-		aI.file        = fname ;
-		aI.module      = mod   ;
-		aI.dlopened    = false ;
-		aI.errors      = false ;
-		aI.relPending  = false ;
-		aI.refCount    = 0     ;
-		apps[ appl ]   = aI    ;
+		aI.file       = fname ;
+		aI.module     = mod   ;
+		aI.dlopened   = false ;
+		aI.errors     = false ;
+		aI.relPending = false ;
+		aI.refCount   = 0     ;
+		apps[ appl ]  = aI    ;
 	}
 	log( "I", d2ds( apps.size() ) + " applications found and stored" << endl ) ;
 	if ( apps.find( GMAINPGM ) == apps.end() )
@@ -2282,7 +2308,7 @@ void reloadDynamicClasses( string parm )
 		p     = substr( fname, 1, (lastpos( "/", fname ) - 1) ) ;
 		mod   = substr( fname, (lastpos( "/", fname ) + 1) )    ;
 		pos1  = pos( ".so", mod ) ;
-		if ( substr(mod, 1, 3 ) != "lib" || pos1 == 0 ) continue ;
+		if ( substr(mod, 1, 3 ) != "lib" || pos1 == 0 ) { continue ; }
 		appl  = substr( mod, 4, (pos1 - 4) ) ;
 		log( "I", "Found application "+ appl << endl ) ;
 		stored = ( apps.find( appl ) != apps.end() ) ;
@@ -2334,7 +2360,7 @@ void reloadDynamicClasses( string parm )
 		if ( parm == appl ) { break ; }
 	}
 
-	currAppl->set_msg( "PSYS011G" ) ;
+	currAppl->set_msg( "PSYS012G" ) ;
 	log( "I", d2ds( i ) +" applications reloaded" << endl ) ;
 	log( "I", d2ds( j ) +" new applications stored" << endl ) ;
 	log( "I", d2ds( k ) +" errors encounted" << endl ) ;
@@ -2343,12 +2369,12 @@ void reloadDynamicClasses( string parm )
 		if ( (i+j) == 0 )
 		{
 			log( "W", "Application "+ parm +" not reloaded/stored" << endl ) ;
-			currAppl->set_msg( "PSYS011I" ) ;
+			currAppl->set_msg( "PSYS012I" ) ;
 		}
 		else
 		{
 			log( "I", "Application "+ parm +" reloaded/stored" << endl )   ;
-			currAppl->set_msg( "PSYS011H" ) ;
+			currAppl->set_msg( "PSYS012H" ) ;
 		}
 	}
 

@@ -141,7 +141,7 @@ VER ( &FLD2 NB NUM )
 VER (  &FLD3 LIST AAA BBB CCC DDD EEE   )
 VER (&FLD5      HEX)
 VER ( &FLD6   NB OCT    )
-VER (  &FLD7,NB,PICT,CAN9OX/\=B,MSG=PSYS01N  )
+VER (  &FLD7,NB,PICT,CAN9OX/\=B,MSG=PSYS011N  )
 
 -- Truncate field to 1 char before using TRANS
 &FLD111 = TRUNC(&FLD11,1)

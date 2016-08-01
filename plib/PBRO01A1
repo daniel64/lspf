@@ -51,7 +51,7 @@ IF (&CMD EQ HILITE )
     EXIT
   ELSE
     IF (&ZU3 NE REXX,C++,CPP,PANEL,OFF,&Z)
-       .MSG    = PSYS01O
+       .MSG    = PSYS011O
        .CURSOR = ZCMD
        EXIT
 

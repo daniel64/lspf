@@ -57,7 +57,7 @@ IF (&PRSPNL EQ &Z )
    IF (&PRICMD EQ &Z )
       IF (&PRIPGM EQ &Z )
          .CURSOR = PRSPNL
-         .MSG    = PSYS011F
+         .MSG    = PSYS012F
          EXIT
 
 IF (&PRSPNL NE &Z )
@@ -77,17 +77,17 @@ IF (&PRIPGM NE &Z )
 
 IF (&PRSPNL NE &Z )
    IF (&PRICMD NE &Z )
-      .MSG    = PSYS011E
+      .MSG    = PSYS012E
       .CURSOR = PRICMD
       EXIT
    IF (&PRIPGM NE &Z )
-      .MSG    = PSYS011E
+      .MSG    = PSYS012E
       .CURSOR = PRIPGM
       EXIT
 
 IF (&PRICMD NE &Z )
    IF (&PRIPGM NE &Z )
-      .MSG    = PSYS011E
+      .MSG    = PSYS012E
       .CURSOR = PRIPGM
       EXIT
 

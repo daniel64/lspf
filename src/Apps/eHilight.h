@@ -23,20 +23,42 @@ class hilight
 {
 	public:
 		string   hl_language ;
+		bool     hl_abend    ;
 		int      hl_oBrac1   ;
 		int      hl_oBrac2   ;
 		int      hl_oIf      ;
 		int      hl_oDo      ;
 		bool     hl_oComment ;
+		char     hl_Quote    ;
+		bool     hl_oQuote   ;
+		bool     hl_continue ;
 		bool     hl_ifLogic  ;
 		bool     hl_doLogic  ;
 		bool     hl_Paren    ;
 		hilight()
 		{
 			hl_language = ""    ;
+			hl_abend    = false ;
 			hl_oBrac1   = 0     ;
 			hl_oBrac2   = 0     ;
 			hl_oComment = false ;
+			hl_Quote    = ' '   ;
+			hl_oQuote   = false ;
+			hl_continue = false ;
+			hl_ifLogic  = false ;
+			hl_doLogic  = false ;
+			hl_Paren    = false ;
+		}
+		void hl_clear()
+		{
+			hl_language = ""    ;
+			hl_abend    = false ;
+			hl_oBrac1   = 0     ;
+			hl_oBrac2   = 0     ;
+			hl_oComment = false ;
+			hl_Quote    = ' '   ;
+			hl_oQuote   = false ;
+			hl_continue = false ;
 			hl_ifLogic  = false ;
 			hl_doLogic  = false ;
 			hl_Paren    = false ;
@@ -163,6 +185,7 @@ map<string, void(*)(hilight &, const string &, string &)> hiRoutine = { { "ASM",
   { "CALL",              { 4,  N_RED  } },
   { "DO",                { 2,  N_RED  } },
   { "DROP",              { 4,  N_RED  } },
+  { "ELSE",              { 4,  N_RED  } },
   { "END",               { 3,  N_RED  } },
   { "EXIT",              { 4,  N_RED  } },
   { "EXPOSE",            { 6,  N_RED  } },

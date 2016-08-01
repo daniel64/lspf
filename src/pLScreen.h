@@ -53,6 +53,10 @@ class pLScreen
 	int   application_stack_size()                       { return pApplicationStack.size()  ; }
 	bool  application_stack_empty()                      { return pApplicationStack.empty() ; }
 
+	void  set_msgid_on()                                 { showMSGID = true                 ; }
+	void  set_msgid_off()                                { showMSGID = false                ; }
+	bool  get_msgid_status()                             { return showMSGID                 ; }
+
 	void  OIA_setup()  ;
 	void  show_enter() ;
 	void  show_busy()  ;
@@ -63,5 +67,6 @@ class pLScreen
 private:
 	int row ;
 	int col ;
+	bool showMSGID ;
 } ;
 

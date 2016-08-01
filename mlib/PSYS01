@@ -1,137 +1,151 @@
-PSYS011 "Up is not active"
-"Scrolling not active on this panel"
+*
+* System message file for lspf
+*
 
-PSYS012 "Down is not active"
-"Scrolling not active on this panel"
+PSYS011 'Up is not active' .TYPE=W
+'Scrolling not active on this panel'
 
-PSYS013 "Right is not active"
-"Scrolling not active on this panel"
+PSYS012 'Down is not active' .TYPE=W
+'Scrolling not active on this panel'
 
-PSYS014 "Left is not active"
-"Scrolling not active on this panel"
+PSYS013 'Right is not active' .TYPE=W
+'Scrolling not active on this panel'
 
-PSYS015 "Function not yet implemented"
-"Function has not yet been implemented."
+PSYS014 'Left is not active' .TYPE=W
+'Scrolling not active on this panel'
 
-PSYS016 "Invalid option"
-"Invalid option entered on selection panel or no command defined for selection"
+PSYS015 'Function not yet implemented' .TYPE=W
+'Function has not yet been implemented.'
 
-PSYS017 "Invalid command in panel"
-"Invalid command has been detected in panel )COMMAND section"
+PSYS016 'Invalid option' .TYPE=W
+'Invalid option entered on selection panel or no command defined for selection'
 
-PSYS018 "Invalid primary command"
-"Invalid primary command has been entered.  See help for valid commands for this panel"
+PSYS017 'Invalid command in panel' .TYPE=W
+'Invalid command has been detected in panel )COMMAND section'
 
-PSYS019 "Enter required field"
-"Enter required field at cursor position"
+PSYS018 'Invalid primary command' .TYPE=W
+'Invalid primary command has been entered.  See help for valid commands for this panel'
 
-PSYS01A "Field must be numeric"
-"Enter only numeric data in field at the cursor position"
+PSYS019 'Enter required field' .TYPE=W
+'Enter required field at cursor position'
 
-PSYS01B "Enter one of the listed values"
-"Enter one of the listed values for this field"
+PSYS011A 'Field must be numeric' .TYPE=W
+'Enter only numeric data in field at the cursor position'
 
-PSYS01C "Invalid primary command"
-"There are no valid primary commands for this panel"
+PSYS011B 'Enter one of the listed values' .TYPE=W
+'Enter one of the listed values for this field'
 
-PSYS01D "Invalid line command"
-"Invalid line command has been entered.  See help for valid commands for this panel"
+PSYS011C 'Invalid primary command' .TYPE=W
+'There are no valid primary commands for this panel'
 
-PSYS01E "Open failed"
-"Open of the requested file failed.  Check permissions"
+PSYS011D 'Invalid line command' .TYPE=W
+'Invalid line command has been entered. ' +
+'See help for valid commands for this panel'
 
-PSYS01F "Invalid octal number"
-"Number entered is not a valid octal number"
+PSYS011E 'Open failed' .TYPE=W
+'Open of the requested file failed.  Check permissions'
 
-PSYS01G "Non-integer data entered"
-"Field is an integer via the function pool definition, but non-integer data has been entered.  Change ignored"
+PSYS011F 'Invalid octal number' .TYPE=W
+'Number entered is not a valid octal number'
 
-PSYS01H "Field must be valid hex"
-"Enter only hex data in the field at the cursor position"
+PSYS011G 'Non-integer data entered' .TYPE=W
+'Field is an integer via the function pool definition, but non-integer data has been entered. ' +
+'Change ignored'
 
-PSYS01I "Invalid Scroll Amount"
-"Invalid entry.  Valid scroll values are H(half), P(page), C(cursor), D(data) or a maximum numeric value of 6 digits"
+PSYS011H 'Field must be valid hex' .TYPE=W
+'Enter only hex data in the field at the cursor position'
 
-PSYS01J "Help Member Not Found"
-"Help member &ZZSTR1 was not found in the ZPLIB search"
+PSYS011I 'Invalid Scroll Amount' .TYPE=W
+'Invalid entry.  Valid scroll values are H(half), P(page), C(cursor),' +
+'D(data) or a maximum numeric value of 6 digits'
 
-PSYS01K "Error In Command"
-"Error in PDC, field or table command entry.  See lspf log for details"
+PSYS011J 'Help Member Not Found' .TYPE=W
+'Help member &ZZSTR1 was not found in the ZPLIB search'
 
-PSYS01L "SPLIT Command Disabled"
-"SPLIT command has been disabled via the application-issued CONTROL SPLIT DISABLE service"
+PSYS011K 'Error In Command' .TYPE=W
+'Error in PDC, field or table command entry.  See lspf log for details'
 
-PSYS01M "Non-zero return code"
-"REXX program has returned a non-zero return code.  See application log for more messages"
+PSYS011L 'SPLIT Command Disabled' .TYPE=W
+'SPLIT command has been disabled via the application-issued CONTROL SPLIT DISABLE service'
 
-PSYS01N "Invalid data entered"
+PSYS011M 'Non-zero return code' .TYPE=W
+'REXX program has returned a non-zero return code.  See application log for more messages'
+
+PSYS011N 'Invalid data entered' .TYPE=W
 "Data entered must be of length &ZZSTR1 in the form '&ZZSTR2'"
 
-PSYS01O "Invalid command parameter"
-"Command contains an invalid or missing parameter"
+PSYS011O 'Invalid command parameter' .TYPE=W
+'Command contains an invalid or missing parameter'
 
-PSYS01P "File Empty"
+PSYS011P 'File Empty' .TYPE=W
 "File '&ZZSTR1' is empty"
 
-PSYS01Q "Cannot Open File"
+PSYS011Q 'Cannot Open File' .TYPE=W
 "Open failure for file '&ZZSTR1'"
 
-PSYS01R "Not a Regular File"
+PSYS011R 'Not a Regular File' .TYPE=W
 "File '&ZZSTR1' is not a regular file"
 
-PSYS01S "File Does Not Exist"
+PSYS011S 'File Does Not Exist' .TYPE=W
 "File '&ZZSTR1' does not exist"
 
-PSYS01T "Permisison Denied"
+PSYS011T 'Permisison Denied' .TYPE=W
 "You do not have read access to file '&ZZSTR1'"
 
-PSYS01U "Unknown Error Occured"
+PSYS011U 'Unknown Error Occured' .TYPE=W
 "Unknown error occured opening file '&ZZSTR1'"
 
-PSYS01V "Entry Retrieved" .TYPE=N
-"Selected entry has been retrieved"
+PSYS011V 'Entry Retrieved' .TYPE=N
+'Selected entry has been retrieved'
 
-PSYS01W "Entry &ZRFNPOS retrieved from &ZCURTB" .TYPE=N
-"Entry &ZRFNPOS has been retrieved from personal list &ZCURTB"
+PSYS011W 'Entry &ZRFNPOS retrieved from &ZCURTB' .TYPE=N
+'Entry &ZRFNPOS has been retrieved from personal list &ZCURTB'
 
-PSYS01X "File retrieve not active"
-"File retrieve is not active on this panel via reflists or NRETRIEV.  Set .NRET in the panel if this is required"
+PSYS011X 'File retrieve not active' .TYPE=W
+'File retrieve is not active on this panel via reflists or NRETRIEV. ' +
+'Set .NRET in the panel if this is required'
 
-PSYS01Y "No .NRET field name set in panel"
-"Set .NRET to the field name to receive file names on NRETRIEV or reflist processing"
+PSYS011Y 'No .NRET field name set in panel' .TYPE=W
+'Set .NRET to the field name to receive file names on NRETRIEV or reflist processing'
 
-PSYS01Z "Invalid .NRET field name"
-".NRET has not been set to a valid field name that exists on the panel.  See application log"
+PSYS011Z 'Invalid .NRET field name' .TYPE=W
+'.NRET has not been set to a valid field name that exists on the panel.  See application log'
 
-PSYS011A "Invalid path specified"
-"Path specified is not valid"
+PSYS012A 'Invalid path specified' .TYPE=W
+'Path specified is not valid'
 
-PSYS011B "REXX procedure not valid"
-"File does not contain a valid REXX procedure"
+PSYS012B 'REXX procedure not valid' .TYPE=W
+'File does not contain a valid REXX procedure'
 
-PSYS011C "REXX procedure not found"
-"REXX procedure has not been found in the ZORXPATH concatination"
+PSYS012C 'REXX procedure not found' .TYPE=W
+'REXX procedure has not been found in the ZORXPATH concatination'
 
-PSYS011D "Error in SELECT"
-"Entered SELECT is not valid.  Check log for details"
+PSYS012D 'Error in SELECT' .TYPE=W
+'Entered SELECT is not valid.  Check log for details'
 
-PSYS011E "Entry Conflict"
-"Fields entered in an invalid combination.  Leave field blank"
+PSYS012E 'Entry Conflict' .TYPE=W
+'Fields entered in an invalid combination.  Leave field blank'
 
-PSYS011F "Enter Data"
-"Enter data into fields to continue"
+PSYS012F 'Enter Data' .TYPE=W
+'Enter data into fields to continue'
 
-PSYS011G "Command Issued"
-"Command has been issued.  Check log for details"
+PSYS012G 'Command Issued' .TYPE=W
+'Command has been issued.  Check log for details'
 
-PSYS011H "Module reloaded"
-"Module has been reloaded successfully"
+PSYS012H 'Module reloaded' .TYPE=W
+'Module has been reloaded successfully'
 
-PSYS011I "Errors during module reload"
-"Check lspf log for errors"
+PSYS012I 'Errors during module reload' .TYPE=W
+'Check lspf log for errors'
 
-PSYS011J "Field does not support FIELDEXC"
-"An entry in the panel )FIELD section is required to support field-level execution"
+PSYS012J 'Field does not support FIELDEXC' .TYPE=W
+'An entry in the panel )FIELD section is required to support field-level execution'
 
-PSYS011K "Cursor not on a field"
-"The cursor must be positioned on a field that supports field-level execution"
+PSYS012K 'Cursor not on a field' .TYPE=W
+'The cursor must be positioned on a field that supports field-level execution'
+
+PSYS012L '' .TYPE=W
+'The message id of the last message was &ZMSGID'
+
+PSYS012M 'Invalid MSGID parameter' .TYPE=W
+'Valid MSGID parameters are ON, OFF or blank.'

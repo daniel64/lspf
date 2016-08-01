@@ -26,7 +26,6 @@ class PMAIN0A : public pApplication
 
 	private:
 		void create_calendar(int =0, int =0 ) ;
-		void cleanup_custom() ;
 
 		int  offset ;
 
@@ -36,5 +35,5 @@ class PMAIN0A : public pApplication
 		string ZDATE   ;
 		string ZTIME   ;
 		string ZJDATE  ;
-		map< string, string > commandTable ;
+		map<string, string> commandTable ;
 };

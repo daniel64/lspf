@@ -66,26 +66,16 @@ void PMAIN0A::application()
 
 	ZAHELP = "HPMAIN1" ;
 
-	// Set the customised cleanup routine instead of the dummy entry in pApplication
-	control( "ABENDRTN", static_cast<void (pApplication::*)()>(&PMAIN0A::cleanup_custom) ) ;
-	control( "ABENDRTN", "DEFAULT" ) ;
 	vdefine( "ZCMD ZDATEL ZJDATE ZTIME", &ZCMD, &ZDATEL, &ZJDATE, &ZTIME ) ;
 	vdefine( "ZAREA ZSHADOW", &ZAREA, &ZSHADOW ) ;
 
 	vget( "ZDATEL" ) ;
-	offset  = 0 ;
-	pmonth  = ds2d( substr( ZDATEL, 4, 2 ) ) ;
-	pyear   = ds2d( substr( ZDATEL, 7, 4 ) ) ;
-	ZCMD    = "" ;
-	MSG     = "" ;
+	offset = 0 ;
+	pmonth = ds2d( substr( ZDATEL, 4, 2 ) ) ;
+	pyear  = ds2d( substr( ZDATEL, 7, 4 ) ) ;
+	ZCMD   = "" ;
+	MSG    = "" ;
 	create_calendar( pmonth, pyear ) ;
-
-//      pFunc = &pApplication::cleanup_custom      ;
-//      ZPUSER = "/home/daniel/.lspf/" ;
-//      libdef( "ZPUSER", "FILE" ) ;
-//
-//      ZMUSER = "/home/daniel/.lspf/" ;
-//      libdef( "ZMUSER", "FILE" ) ;
 
 	while ( true )
 	{
@@ -220,28 +210,21 @@ void PMAIN0A::application()
 }
 
 
-
-void PMAIN0A::cleanup_custom()
-{
-	log( "E", "Customised cleanup procedure" << endl ) ;
-}
-
-
 void PMAIN0A::create_calendar( int pmonth, int pyear )
 {
 	string m;
-	int    year, month ;
-	int    cday, cmonth, cyear ;
-	int    i, eom_day, daypos  ;
+	int year, month ;
+	int cday, cmonth, cyear ;
+	int i, eom_day, daypos  ;
 
 	vget( "ZJDATE ZTIME ZDATEL" ) ;
 	cday   = ds2d( substr( ZDATEL, 1, 2 ) ) ;
 	cmonth = ds2d( substr( ZDATEL, 4, 2 ) ) ;
 	cyear  = ds2d( substr( ZDATEL, 7, 4 ) ) ;
 
-	daypos  = 0 ;
-	year    = pyear  + (offset / 12) ;
-	month   = pmonth + (offset % 12) ;
+	daypos = 0 ;
+	year   = pyear  + (offset / 12) ;
+	month  = pmonth + (offset % 12) ;
 	if ( month > 12 ) { month = month - 12 ; year++ ; }
 	if ( month < 1  ) { month = month + 12 ; year-- ; }
 
@@ -265,11 +248,11 @@ void PMAIN0A::create_calendar( int pmonth, int pyear )
 		case 12: m = "December " ; break ;
 	}
 
-	ZAREA   = "<     Calendar     > "               ;
-	ZAREA  += centre( m + "  " + d2ds( year ), 21 ) ;
-	ZAREA  += "Su Mo Tu We Th Fr Sa "               ;
-	ZAREA  += string( 3*ditr->day_of_week(), ' ' )  ;
-															
+	ZAREA  = "<     Calendar     > "               ;
+	ZAREA += centre( m + "  " + d2ds( year ), 21 ) ;
+	ZAREA += "Su Mo Tu We Th Fr Sa "               ;
+	ZAREA += string( 3*ditr->day_of_week(), ' ' )  ;
+
 	i = 1 ;
 	for ( ; ditr <= endOfMonth ; ++ditr )
 	{
@@ -285,8 +268,8 @@ void PMAIN0A::create_calendar( int pmonth, int pyear )
 	ZAREA += left( "Day of Year. : " + substr( ZJDATE, 4, 3 ), 21 ) ;
 
 	ZSHADOW = string( 231, N_WHITE ) ;
-															
-	ZSHADOW.replace(  21,  21,  21, B_RED   ) ;
+
+	ZSHADOW.replace(  21,  21,  21, B_RED   )  ;
 	ZSHADOW.replace(  42,  21,  21, B_YELLOW ) ;
 
 	ZSHADOW.replace(  63,   2,   2, N_TURQ ) ;
@@ -307,7 +290,7 @@ void PMAIN0A::create_calendar( int pmonth, int pyear )
 	ZSHADOW.replace( 168,   2,   2, N_TURQ ) ;
 	ZSHADOW.replace( 186,   2,   2, N_TURQ ) ;
 
-	if ( daypos > 0 ) ZSHADOW.replace( daypos, 2, 2, R_TURQ ) ;
+	if ( daypos > 0 ) { ZSHADOW.replace( daypos, 2, 2, R_TURQ ) ; }
 }
 
 

@@ -130,7 +130,7 @@ void POREXX1::application()
 			if ( !exists( rexxName ) ) { continue ; }
 			if ( is_regular_file( rexxName ) ) { found = true ; break ; }
 			log( "E", "POREXX1 error. " << rxsource << " found but is not a regular file" << endl ) ;
-			setmsg( "PSYS011B" ) ;
+			setmsg( "PSYS012B" ) ;
 			ZRC     = 16 ;
 			ZRSN    = 12 ;
 			ZRESULT = "Invalid REXX passed" ;
@@ -140,7 +140,7 @@ void POREXX1::application()
 		if ( !found )
 		{
 			log( "E", "POREXX1 error. " << rxsource << " not found in ZORXPATH concatination" << endl ) ;
-			setmsg( "PSYS011C" ) ;
+			setmsg( "PSYS012C" ) ;
 			ZRC     = 16 ;
 			ZRSN    = 8  ;
 			ZRESULT = "REXX not found" ;
@@ -169,7 +169,7 @@ void POREXX1::application()
 			log( "E", "   CONDITION CODE . . . . .: " << condition.code << endl ) ;
 			log( "E", "   CONDITION ERROR TEXT . .: " << threadContext->CString( condition.errortext ) << endl ) ;
 			log( "E", "   CONDITION MESSAGE. . . .: " << threadContext->CString( condition.message ) << endl ) ;
-			setmsg( "PSYS01M" ) ;
+			setmsg( "PSYS011M" ) ;
 			ZRC     = 20 ;
 			ZRSN    = condition.code ;
 			ZRESULT = threadContext->CString( condition.message ) ;

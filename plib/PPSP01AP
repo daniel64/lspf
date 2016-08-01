@@ -7,8 +7,8 @@ PanelTitle "Path Searches"
 
 scrollOn
 
-literal  4   2         FP    "Command ===> "  
-field    4  15  MAX-17 NEF CAPS(ON) ZCMD  
+literal  4   2         FP    "Command ===> "
+field    4  15  MAX-17 NEF CAPS(ON) ZCMD
 
 literal  4  MAX-15  FP "SCROLL ===> "
 field    4  MAX-3   4 NEF  NONE ZSCROLL
@@ -17,11 +17,11 @@ field    6  2     50 VOI  NONE LIBDEFM
 field    7  2     50 VOI  NONE LIBDEFP
 field    8 2     50 VOI  NONE LIBDEFT
 
-literal  10 2 CH  "C Name     Path                                              Message         Description"  
-literal  11 2 CH  EXPAND "-"  
+literal  10 2 CH  "C Name     Path                                              Message         Description"
+literal  11 2 CH  EXPAND "-"
 
 tbmodel  12   MAX
-tbfield  2    1    NEF  CAPS(ON),PAD('_'),JUST(LEFT) SEL  
+tbfield  2    1    NEF  CAPS(ON),PAD('_'),JUST(LEFT) SEL
 tbfield  4    8    VOI  NONE PVAR
 tbfield  13   50   VOI  NONE PATH
 tbfield  63   15   VOI  NONE MESSAGE
@@ -30,7 +30,7 @@ tbfield  79   MAX  VOI  NONE DESCRIPT
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
 
- 
+
 )INIT
 VGET ZSCROLL PROFILE
 .ATTR(PATH)    = 'COLOUR(YELLOW)'
@@ -39,7 +39,7 @@ VGET ZSCROLL PROFILE
 )PROC
 
 IF (&ZCMD NE &Z)
-   .MSG    = PSYS01C
+   .MSG    = PSYS011C
    .CURSOR = ZCMD
    EXIT
 

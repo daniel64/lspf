@@ -60,17 +60,10 @@ pPanel::pPanel()
 
 pPanel::~pPanel()
 {
-	// iterate over the 4 panel widget types, literal, field (inc tbfield, dynarea field), dynArea, boxes
-	// and delete them.
+	// iterate over the 4 panel widget types, literal, field, dynArea, boxes and delete them.
 
 	map<string, field *>::iterator it1;
 	map<string, dynArea *>::iterator it2;
-	vector<Box *>::iterator it3;
-
-	for ( int i = 0 ; i < literalList.size() ; i++ )
-	{
-		delete literalList.at( i ) ;
-	}
 
 	for ( it1 = fieldList.begin() ; it1 != fieldList.end() ; it1++ )
 	{
@@ -81,10 +74,18 @@ pPanel::~pPanel()
 	{
 		delete it2->second ;
 	}
-	for ( it3 = boxes.begin() ; it3 != boxes.end() ; it3++ )
-	{
-		delete (*it3) ;
-	}
+
+	for_each( literalList.begin(), literalList.end(),
+		[](literal * a)
+		{
+			delete a ;
+		} ) ;
+
+	for_each( boxes.begin(), boxes.end(),
+		[](Box * a)
+		{
+			delete a ;
+		} ) ;
 }
 
 
@@ -345,7 +346,7 @@ void pPanel::display_panel_update( int & RC )
 				case 'D': it->second->field_value = "DATA" ; break ;
 				case 'H': it->second->field_value = "HALF" ; break ;
 				case 'P': it->second->field_value = "PAGE" ; break ;
-				default:  MSGID  = "PSYS01I" ; CURFLD = "ZSCROLL"  ;
+				default:  MSGID  = "PSYS011I" ; CURFLD = "ZSCROLL" ;
 			}
 		}
 		p_funcPOOL->put( RC, 0, it->first, it->second->field_value ) ;
@@ -381,8 +382,8 @@ void pPanel::display_panel_update( int & RC )
 					}
 					else
 					{
-						MSGID  = "PSYS01G" ;
-						CURFLD = it->first ;
+						MSGID  = "PSYS011G" ;
+						CURFLD = it->first  ;
 					}
 				}
 				else
@@ -408,7 +409,7 @@ void pPanel::display_panel_update( int & RC )
 				shadow->replace( offset, it->second->field_length, it->second->field_shadow_value ) ;
 			}
 		}
-		if ( (it->second->field_row == p_row) && (p_col >=it->second->field_col) && (p_col < (it->second->field_col + it->second->field_length )) )
+		if ( it->second->cursor_on_field( p_row, p_col ) )
 		{
 			curpos = p_col - it->second->field_col + 1 ;
 			if ( it->second->field_dynArea )
@@ -452,8 +453,8 @@ void pPanel::display_panel_update( int & RC )
 		{
 			if ( CMD.size() > 6 )
 			{
-				MSGID  = "PSYS01I" ;
-				CURFLD = msgfld    ;
+				MSGID  = "PSYS011I" ;
+				CURFLD = msgfld     ;
 			}
 			p_poolMGR->put( RC, "ZSCROLLA", CMD, SHARED ) ;
 			p_poolMGR->put( RC, "ZSCROLLN", CMD, SHARED ) ;
@@ -1016,13 +1017,13 @@ void pPanel::display_panel_proc( int & RC, int ln )
 		else if ( procstmnts.at( i ).ps_trans )
 		{
 			t = getDialogueVar( transList.at( i_trans ).trns_field2 ) ;
-			if ( transList.at( i_trans ).tlst.find( t ) !=  transList.at( i_trans ).tlst.end() )
+			if ( transList.at( i_trans ).tlst.find( t ) != transList.at( i_trans ).tlst.end() )
 			{
 				t = transList.at( i_trans ).tlst[ t ] ;
 			}
 			else
 			{
-				if ( transList.at( i_trans ).tlst.find( "*" ) !=  transList.at( i_trans ).tlst.end() )
+				if ( transList.at( i_trans ).tlst.find( "*" ) != transList.at( i_trans ).tlst.end() )
 				{
 					if ( transList.at( i_trans ).tlst[ "*" ] != "*" )
 					{
@@ -1130,7 +1131,7 @@ void pPanel::display_panel_proc( int & RC, int ln )
 			}
 			else if ( assgnList.at( i_assign ).as_lhs == ".MSG" )
 			{
-				MSGID  = t ;
+				MSGID = t ;
 			}
 			else if ( assgnList.at( i_assign ).as_lhs == ".CSRROW" )
 			{
@@ -1197,7 +1198,7 @@ void pPanel::display_panel_proc( int & RC, int ln )
 				if ( !isnumeric( it->second->field_value ) )
 				{
 					MSGID  = verList.at( i_verify ).ver_msgid  ;
-					if (MSGID == "" ) { MSGID = "PSYS01A" ; }
+					if (MSGID == "" ) { MSGID = "PSYS011A" ; }
 					CURFLD = fieldNam ;
 					return            ;
 				}
@@ -1240,7 +1241,7 @@ void pPanel::display_panel_proc( int & RC, int ln )
 				if ( !found )
 				{
 					MSGID  = verList.at( i_verify ).ver_msgid  ;
-					if (MSGID == "" ) { MSGID = "PSYS01B" ; }
+					if (MSGID == "" ) { MSGID = "PSYS011B" ; }
 					CURFLD = fieldNam ;
 					return            ;
 				}
@@ -1252,7 +1253,7 @@ void pPanel::display_panel_proc( int & RC, int ln )
 					p_poolMGR->put( RC, "ZZSTR1", d2ds( verList.at( i_verify ).ver_value.size() ), SHARED ) ;
 					p_poolMGR->put( RC, "ZZSTR2", verList.at( i_verify ).ver_value, SHARED ) ;
 					MSGID  = verList.at( i_verify ).ver_msgid  ;
-					if (MSGID == "" ) { MSGID = "PSYS01N" ; }
+					if (MSGID == "" ) { MSGID = "PSYS011N" ; }
 					CURFLD = fieldNam ;
 					return            ;
 				}
@@ -1262,7 +1263,7 @@ void pPanel::display_panel_proc( int & RC, int ln )
 				if ( !ishex( it->second->field_value ) )
 				{
 					MSGID  = verList.at( i_verify ).ver_msgid  ;
-					if (MSGID == "" ) { MSGID = "PSYS01H" ; }
+					if (MSGID == "" ) { MSGID = "PSYS011H" ; }
 					CURFLD = fieldNam ;
 					return            ;
 				}
@@ -1272,7 +1273,7 @@ void pPanel::display_panel_proc( int & RC, int ln )
 				if ( !isoctal( it->second->field_value ) )
 				{
 					MSGID  = verList.at( i_verify ).ver_msgid  ;
-					if (MSGID == "" ) { MSGID = "PSYS01F" ; }
+					if (MSGID == "" ) { MSGID = "PSYS011F" ; }
 					CURFLD = fieldNam ;
 					return            ;
 				}
@@ -1289,7 +1290,7 @@ void pPanel::display_panel_proc( int & RC, int ln )
 		{
 			if ( it->second->field_cua == PS )
 			{
-				if ( pntsTable.find( fieldNam ) != pntsTable.end() )
+				if ( pntsTable.count( fieldNam ) > 0 )
 				{
 					p_funcPOOL->put( RC, 0, pntsTable[ fieldNam ].pnts_var, pntsTable[ fieldNam ].pnts_val ) ;
 				}
@@ -1300,17 +1301,14 @@ void pPanel::display_panel_proc( int & RC, int ln )
 	{
 		for ( i = 0 ; i < literalList.size() ; i++ )
 		{
+			if ( !literalList.at( i )->cursor_on_literal( p_row, p_col ) ) { continue ; }
 			fieldNam = literalList.at( i )->literal_name ;
-			if ( fieldNam == "" ) { continue ; }
-			if ( (literalList.at( i )->literal_row == p_row) && (p_col >=literalList.at( i )->literal_col) &&
-			     (p_col < (literalList.at( i )->literal_col + literalList.at( i )->literal_length )) )
+			if ( fieldNam == "" ) { break ; }
+			if ( pntsTable.count( fieldNam ) > 0 )
 			{
-				if ( pntsTable.find( fieldNam ) != pntsTable.end() )
-				{
-					p_funcPOOL->put( RC, 0, pntsTable[ fieldNam ].pnts_var, pntsTable[ fieldNam ].pnts_val ) ;
-				}
-				break ;
+				p_funcPOOL->put( RC, 0, pntsTable[ fieldNam ].pnts_var, pntsTable[ fieldNam ].pnts_val ) ;
 			}
+			break ;
 		}
 	}
 }
@@ -1349,15 +1347,15 @@ void pPanel::create_tbfield( int col, int length, cuaType cuaFT, string name, st
 		m_fld->field_row    = tb_row + i ;
 		m_fld->field_col    = col - 1    ;
 		m_fld->field_length = length     ;
+		m_fld->field_cole   = col - 1 + length ;
 		m_fld->field_just   = 'A'        ;
-
-		if ( cuaFT == CEF || cuaFT == DATAIN || cuaFT == NEF ) { m_fld->field_input = true ; }
+		m_fld->field_input  = ( cuaFT == CEF || cuaFT == DATAIN || cuaFT == NEF ) ;
 
 		fieldOptsParse( RC, opts, m_fld->field_caps, m_fld->field_just, m_fld->field_numeric, m_fld->field_padchar, m_fld->field_skip ) ;
 		if ( RC > 0 )
 		{
 			RC   = 20 ;
-			PERR = "Error in options for field "+ name +". Entry is "+ opts ;
+			PERR = "Error in options for field "+ name +".  Entry is "+ opts ;
 			return    ;
 		}
 
@@ -1554,15 +1552,18 @@ void pPanel::get_home( uint & row, uint & col )
 {
 	// Return the physical position on the screen
 
-	if ( fieldList.find( Home ) == fieldList.end() )
+	map<string, field *>::iterator it ;
+
+	it = fieldList.find( Home ) ;
+	if ( it == fieldList.end() )
 	{
 		row = 0 ;
 		col = 0 ;
 	}
 	else
 	{
-		row = fieldList[ Home ]->field_row ;
-		col = fieldList[ Home ]->field_col ;
+		row = it->second->field_row ;
+		col = it->second->field_col ;
 	}
 	row = row + win_row ;
 	col = col + win_col ;
@@ -1622,7 +1623,7 @@ string pPanel::field_getname( uint row, uint col )
 
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
-		if ( (it->second->field_row == row) && (col >=it->second->field_col) && (col < (it->second->field_col + it->second->field_length )) )
+		if ( it->second->cursor_on_field( row, col ) )
 		{
 			if ( !it->second->field_active ) return "" ;
 			return it->first ;
@@ -1682,7 +1683,7 @@ void pPanel::field_edit( uint row, uint col, char ch, bool Isrt, bool & prot )
 	prot = true ;
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
-		if ( (it->second->field_row == row) && (col >=it->second->field_col) && (col < (it->second->field_col + it->second->field_length )) )
+		if ( it->second->cursor_on_field( p_row, p_col ) )
 		{
 			if ( !it->second->field_active ) { return ; }
 			if (  it->second->field_numeric && ch != ' ' && !isdigit( ch ) ) { return ; }
@@ -1691,7 +1692,7 @@ void pPanel::field_edit( uint row, uint col, char ch, bool Isrt, bool & prot )
 			if ( !it->second->edit_field_insert( win, ch, col, Isrt, snulls ) ) { return ; }
 			prot = false ;
 			++p_col ;
-			if ( (p_col == it->second->field_col + it->second->field_length) & (it->second->field_skip) )
+			if ( (p_col == it->second->field_cole) && (it->second->field_skip) )
 			{
 				field_tab_next( p_row, p_col ) ;
 			}
@@ -1709,6 +1710,7 @@ void pPanel::field_backspace( uint & row, uint & col, bool & prot )
 
 	uint trow ;
 	uint tcol ;
+	uint p    ;
 
 	bool snulls = ( p_poolMGR->get( RC, "ZNULLS", SHARED ) == "YES" ) ;
 	map<string, field *>::iterator it;
@@ -1719,12 +1721,15 @@ void pPanel::field_backspace( uint & row, uint & col, bool & prot )
 	prot = true ;
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
-		if ( (it->second->field_row == trow) && (tcol >it->second->field_col) && (tcol < (it->second->field_col + it->second->field_length )) )
+		if ( it->second->cursor_on_field( trow, tcol ) )
 		{
-			if ( !it->second->field_active ) { return ; }
+			if ( tcol == it->second->field_col ) { return ; }
+			if ( !it->second->field_active )     { return ; }
 			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( tcol ) ) { return ; }
-			tcol = fieldList[ it->first ]->edit_field_backspace( win, tcol, snulls ) ;
+			p    = tcol  ;
+			tcol = it->second->edit_field_backspace( win, tcol, snulls ) ;
+			if ( p == tcol ) { return ; }
 			prot = false ;
 			row  = trow + win_row ;
 			col  = tcol + win_col ;
@@ -1752,12 +1757,12 @@ void pPanel::field_delete_char( uint row, uint col, bool & prot )
 	prot = true ;
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
-		if ( (it->second->field_row == trow) && (tcol >=it->second->field_col) && (tcol < (it->second->field_col + it->second->field_length )) )
+		if ( it->second->cursor_on_field( trow, tcol ) )
 		{
 			if ( !it->second->field_active ) { return ; }
 			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( tcol ) ) { return ; }
-			fieldList[ it->first ]->edit_field_delete( win, tcol, snulls ) ;
+			it->second->edit_field_delete( win, tcol, snulls ) ;
 			prot = false ;
 			row  = trow + win_row ;
 			col  = tcol + win_col ;
@@ -1781,12 +1786,12 @@ void pPanel::field_erase_eof( uint row, uint col, bool & prot )
 	prot = true ;
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
-		if ( (it->second->field_row == row) && (col >=it->second->field_col) && (col < (it->second->field_col + it->second->field_length )) )
+		if ( it->second->cursor_on_field( row, col ) )
 		{
 			if ( !it->second->field_active ) { return ; }
 			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( col ) ) { return ; }
-			fieldList[ it->first ]->field_erase_eof( win, col, snulls ) ;
+			it->second->field_erase_eof( win, col, snulls ) ;
 			prot = false ;
 			wrefresh( win ) ;
 			return ;
@@ -1810,12 +1815,12 @@ void pPanel::cursor_eof( uint & row, uint & col )
 
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
-		if ( (it->second->field_row == trow) && (tcol >=it->second->field_col) &&  (tcol < (it->second->field_col + it->second->field_length )) )
+		if ( it->second->cursor_on_field( trow, tcol ) )
 		{
 			if ( !it->second->field_active ) { return ; }
 			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( tcol ) ) { return ; }
-			col = fieldList[ it->first ]->end_of_field( win, tcol ) + win_col ;
+			col = it->second->end_of_field( win, tcol ) + win_col ;
 			return ;
 		}
 	}
@@ -1859,7 +1864,7 @@ void pPanel::field_tab_down( uint & row, uint & col )
 			if ( d_offset == -1 ) { continue ; }
 		}
 		t_offset = it->second->field_row * WSCRMAXW + it->second->field_col + d_offset ;
-		if ( (t_offset > c_offset) & (t_offset < m_offset) )
+		if ( (t_offset > c_offset) && (t_offset < m_offset) )
 		{
 			m_offset     = t_offset ;
 			row          = it->second->field_row + win_row ;
@@ -1910,7 +1915,7 @@ void pPanel::field_tab_next( uint & row, uint & col )
 			if ( d_offset == -1 ) { continue ; }
 		}
 		t_offset = it->second->field_row * WSCRMAXW + it->second->field_col + d_offset ;
-		if ( (t_offset > c_offset) & (t_offset < m_offset) )
+		if ( (t_offset > c_offset) && (t_offset < m_offset) )
 		{
 			m_offset     = t_offset ;
 			row          = it->second->field_row + win_row ;
@@ -2142,12 +2147,14 @@ void pPanel::display_boxes()
 }
 
 
-void pPanel::set_msg( string smsg, string lmsg, cuaType msgtype, bool msgalrm )
+void pPanel::set_msg( string smsg, string lmsg, cuaType msgtype, bool msgalrm, string MSGID, bool showMSGID )
 {
-	SMSG    = smsg    ;
-	LMSG    = lmsg    ;
-	MSGTYPE = msgtype ;
-	MSGALRM = msgalrm ;
+	if ( showMSGID ) { LMSG = MSGID + " " ; }
+	else             { LMSG = ""          ; }
+	SMSG     = smsg    ;
+	LMSG    += lmsg    ;
+	MSGTYPE  = msgtype ;
+	MSGALRM  = msgalrm ;
 }
 
 

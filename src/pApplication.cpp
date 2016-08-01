@@ -122,7 +122,7 @@ void pApplication::wait_event()
 			cond_appl.wait(lk) ;
 			lk.unlock() ;
 		}
-		if ( busyAppl ) return ;
+		if ( busyAppl ) { return ; }
 	}
 }
 
@@ -132,7 +132,7 @@ void pApplication::panelCreate( string p_name )
 	string paths ;
 
 	RC = 0 ;
-	if ( panelList.find( p_name ) != panelList.end() ) return ;
+	if ( panelList.find( p_name ) != panelList.end() ) { return ; }
 	if ( !isvalidName( p_name ) ) { RC = 20 ; checkRCode( "Invalid panel name >>" + p_name + "<<" ) ; return ; }
 
 	pPanel * p_panel    = new pPanel ;
@@ -181,10 +181,17 @@ void pApplication::get_cursor( uint & row, uint & col )
 }
 
 
+void pApplication::show_msgid()
+{
+	p_poolMGR->put( RC, "ZMSGID", MSGID, SHARED, SYSTEM ) ;
+	set_msg( "PSYS012L" ) ;
+}
+
+
 void pApplication::set_msg( string SMSG, string LMSG, cuaType MSGTYPE, bool MSGALRM )
 {
 	if ( panelList.size() == 0 ) { return ; }
-	else                         { currPanel->set_msg( SMSG, LMSG, MSGTYPE, MSGALRM ) ; }
+	else                         { currPanel->set_msg( SMSG, LMSG, MSGTYPE, MSGALRM, MSGID, showMSGID ) ; }
 }
 
 
@@ -195,8 +202,9 @@ void pApplication::set_msg( string msg_id )
 	get_Message( msg_id ) ;
 	if ( RC == 0 )
 	{
-		currPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM ) ;
-		currPanel->showLMSG = false ;
+		currPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM, MSGID, showMSGID ) ;
+		if ( ZSMSG != "" ) { currPanel->showLMSG = false ; }
+		else               { currPanel->showLMSG = true  ; }
 		currPanel->display_msg()    ;
 	}
 }
@@ -248,14 +256,14 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 		get_Message( p_msg ) ;
 		if ( RC > 0 ) { return ; }
 		currPanel->showLMSG = false ;
-		currPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM ) ;
+		currPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM, MSGID, showMSGID ) ;
 		if ( ZSMSG == "" ) { currPanel->showLMSG = true ; }
 	}
 	else
 	{
 		if ( setMSG )
 		{
-			currPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM ) ;
+			currPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM, MSGID, showMSGID ) ;
 		}
 		else
 		{
@@ -313,7 +321,7 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 			get_Message( currPanel->MSGID ) ;
 			if ( RC > 0 ) { break ; }
 			currPanel->showLMSG = false ;
-			currPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM ) ;
+			currPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM, MSGID, showMSGID ) ;
 			currPanel->display_panel_reinit( RC, 0 ) ;
 			if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )REINIT section of panel " + p_name ) ; return ; }
 			continue ;
@@ -439,42 +447,42 @@ void pApplication::vdefine( string names, int * i_ad1, int * i_ad2, int * i_ad3,
 	if ( i_ad1 == NULL ) { RC = 20 ; checkRCode( e2 ) ; return ; }
 	name = word( names, 1 ) ;
 	funcPOOL.define( RC, name, i_ad1 ) ;
-	if ( RC > 0 ) checkRCode( e3 + name ) ;
+	if ( RC > 0 ) { checkRCode( e3 + name ) ; return ; }
 
 	if ( w > 1 )
 	{
 		if ( i_ad2 == NULL ) { RC = 20 ; checkRCode( e2 ) ; return ; }
 		name = word( names, 2 ) ;
 		funcPOOL.define( RC, name , i_ad2 ) ;
-		if ( RC > 0 ) checkRCode( e3 + name ) ;
+		if ( RC > 0 ) { checkRCode( e3 + name ) ; return ; }
 	}
 	if ( w > 2 )
 	{
 		if ( i_ad3 == NULL ) { RC = 20 ; checkRCode( e2 ) ; return ; }
 		name = word( names, 3 ) ;
 		funcPOOL.define( RC, name, i_ad3 ) ;
-		if ( RC > 0 ) checkRCode( e3 + name ) ;
+		if ( RC > 0 ) { checkRCode( e3 + name ) ; return ; }
 	}
 	if ( w > 3 )
 	{
 		if ( i_ad4 == NULL ) { RC = 20 ; checkRCode( e2 ) ; return ; }
 		name = word( names, 4 ) ;
 		funcPOOL.define( RC, name, i_ad4 ) ;
-		if ( RC > 0 ) checkRCode( e3 + name ) ;
+		if ( RC > 0 ) { checkRCode( e3 + name ) ; return ; }
 	}
 	if ( w > 4 )
 	{
 		if ( i_ad5 == NULL ) { RC = 20 ; checkRCode( e2 ) ; return ; }
 		name = word( names, 5 ) ;
 		funcPOOL.define( RC, name, i_ad5 ) ;
-		if ( RC > 0 ) checkRCode( e3 + name ) ;
+		if ( RC > 0 ) { checkRCode( e3 + name ) ; return ; }
 	}
 	if ( w > 5 )
 	{
 		if ( i_ad6 == NULL ) { RC = 20 ; checkRCode( e2 ) ; return ; }
 		name = word( names, 6 ) ;
 		funcPOOL.define( RC, name, i_ad6 ) ;
-		if ( RC > 0 ) checkRCode( e3 + name ) ;
+		if ( RC > 0 ) { checkRCode( e3 + name ) ; return ; }
 	}
 
 	if ( w > 6 )
@@ -482,7 +490,7 @@ void pApplication::vdefine( string names, int * i_ad1, int * i_ad2, int * i_ad3,
 		if ( i_ad7 == NULL ) { RC = 20 ; checkRCode( e2 ) ; return ; }
 		name = word( names, 7 ) ;
 		funcPOOL.define( RC, name, i_ad7 ) ;
-		if ( RC > 0 ) checkRCode( e3 + name ) ;
+		if ( RC > 0 ) { checkRCode( e3 + name ) ; return ; }
 	}
 
 	if ( w > 7 )
@@ -490,9 +498,8 @@ void pApplication::vdefine( string names, int * i_ad1, int * i_ad2, int * i_ad3,
 		if ( i_ad8 == NULL ) { RC = 20 ; checkRCode( e2 ) ; return ; }
 		name = word( names, 8 ) ;
 		funcPOOL.define( RC, name, i_ad8 ) ;
-		if ( RC > 0 ) checkRCode( e3 + name ) ;
+		if ( RC > 0 ) { checkRCode( e3 + name ) ; return ; }
 	}
-	if ( RC > 0 ) { return ; }
 }
 
 
@@ -519,58 +526,57 @@ void pApplication::vdefine( string names, string * s_ad1, string * s_ad2, string
 	if ( s_ad1 == NULL ) { RC = 20 ; checkRCode( e2 ) ; return ; }
 	name = word( names, 1 ) ;
 	funcPOOL.define( RC, name, s_ad1 ) ;
-	if ( RC > 0 ) checkRCode( e3 + name ) ;
+	if ( RC > 0 ) { checkRCode( e3 + name ) ; return ; }
 
 	if ( w > 1 )
 	{
 		if ( s_ad2 == NULL ) { RC = 20 ; checkRCode( e2 ) ; return ; }
 		name = word( names, 2 ) ;
 		funcPOOL.define( RC, name, s_ad2 ) ;
-		if ( RC > 0 ) checkRCode( e3 + name ) ;
+		if ( RC > 0 ) { checkRCode( e3 + name ) ; return ; }
 	}
 	if ( w > 2 )
 	{
 		if ( s_ad3 == NULL ) { RC = 20 ; checkRCode( e2 ) ; return ; }
 		name = word( names, 3 ) ;
 		funcPOOL.define( RC, name, s_ad3 ) ;
-		if ( RC > 0 ) checkRCode( e3 + name ) ;
+		if ( RC > 0 ) { checkRCode( e3 + name ) ; return ; }
 	}
 	if ( w > 3 )
 	{
 		if ( s_ad4 == NULL ) { RC = 20 ; checkRCode( e2 ) ; return ; }
 		name = word( names, 4 ) ;
 		funcPOOL.define( RC, name, s_ad4 ) ;
-		if ( RC > 0 ) checkRCode( e3 + name ) ;
+		if ( RC > 0 ) { checkRCode( e3 + name ) ; return ; }
 	}
 	if ( w > 4 )
 	{
 		if ( s_ad5 == NULL ) { RC = 20 ; checkRCode( e2 ) ; return ; }
 		name = word( names, 5 ) ;
 		funcPOOL.define( RC, name, s_ad5 ) ;
-		if ( RC > 0 ) checkRCode( e3 + name ) ;
+		if ( RC > 0 ) { checkRCode( e3 + name ) ; return ; }
 	}
 	if ( w > 5 )
 	{
 		if ( s_ad6 == NULL ) { RC = 20 ; checkRCode( e2 ) ; return ; }
 		name = word( names, 6 ) ;
 		funcPOOL.define( RC, name, s_ad6 ) ;
-		if ( RC > 0 ) checkRCode( e3 + name ) ;
+		if ( RC > 0 ) { checkRCode( e3 + name ) ; return ; }
 	}
 	if ( w > 6 )
 	{
 		if ( s_ad7 == NULL ) { RC = 20 ; checkRCode( e2 ) ; return ; }
 		name = word( names, 7 ) ;
 		funcPOOL.define( RC, name, s_ad7 ) ;
-		if ( RC > 0 ) checkRCode( e3 + name ) ;
+		if ( RC > 0 ) { checkRCode( e3 + name ) ; return ; }
 	}
 	if ( w > 7 )
 	{
 		if ( s_ad8 == NULL ) { RC = 20 ; checkRCode( e2 ) ; return ; }
 		name = word( names, 8 ) ;
 		funcPOOL.define( RC, name, s_ad8 ) ;
-		if ( RC > 0 ) checkRCode ( e3 + name ) ;
+		if ( RC > 0 ) { checkRCode( e3 + name ) ; return ; }
 	}
-	if ( RC > 0 ) { return ; }
 }
 
 
@@ -595,7 +601,7 @@ void pApplication::vdelete( string names )
 	{
 		name = word( names, i ) ;
 		funcPOOL.dlete( RC, name ) ;
-		if ( RC > 8 ) checkRCode( "VDELETE failed for " + name ) ;
+		if ( RC > 8 )     { checkRCode( "VDELETE failed for " + name ) ; }
 		if ( RC > maxRC ) { maxRC = RC ; }
 		if ( RC > 8 )     { return     ; }
 	}
@@ -661,7 +667,7 @@ void pApplication::vreplace( string name, string s_val )
 
 	RC = 0 ;
 	funcPOOL.put( RC, 0, name, s_val ) ;
-	if ( RC > 8 ) checkRCode( "Function pool put failed for " + name ) ;
+	if ( RC > 8 ) { checkRCode( "Function pool put failed for " + name ) ; }
 }
 
 
@@ -673,7 +679,7 @@ void pApplication::vreplace( string name, int i_val )
 
 	RC = 0 ;
 	funcPOOL.put( RC, 0, name, i_val ) ;
-	if ( RC > 8 ) checkRCode( "VREPLACE failed for " + name ) ;
+	if ( RC > 8 ) { checkRCode( "VREPLACE failed for " + name ) ; }
 }
 
 
@@ -703,11 +709,11 @@ void pApplication::vget( string names, poolType pType )
 	{
 		name = word( names, i ) ;
 		val  = p_poolMGR->get( RC, name, pType ) ;
-		if ( RC  > 8 ) checkRCode( "Pool manager get failed for " + name ) ;
+		if ( RC  > 8 ) { checkRCode( "Pool manager get failed for " + name ) ; }
 		if ( RC == 0 )
 		{
 			var_type = funcPOOL.getType( RC, name ) ;
-			if ( RC  > 8 ) checkRCode( "Function pool getType failed for " + name ) ;
+			if ( RC  > 8 ) { checkRCode( "Function pool getType failed for " + name ) ; }
 			if ( RC == 0 )
 			{
 				switch ( var_type )
@@ -718,12 +724,12 @@ void pApplication::vget( string names, poolType pType )
 				case STRING:
 					funcPOOL.put( RC, 0, name, val ) ;
 				}
-				if ( RC > 0 ) checkRCode( "Function pool put failed for " + name ) ;
+				if ( RC > 0 ) { checkRCode( "Function pool put failed for " + name ) ; }
 			}
 			else if ( RC == 8 )
 			{
 				funcPOOL.put( RC, 0, name, val ) ;
-				if ( RC > 0 ) checkRCode( "Function pool put failed creating implicit variable for " + name ) ;
+				if ( RC > 0 ) { checkRCode( "Function pool put failed creating implicit variable for " + name ) ; }
 			}
 		}
 		if ( RC > maxRC ) { maxRC = RC ; }
@@ -759,7 +765,7 @@ void pApplication::vput( string names, poolType pType )
 	{
 		name     = word( names, i ) ;
 		var_type = funcPOOL.getType( RC, name ) ;
-		if ( RC  > 8 ) checkRCode( "Function pool getType failed for " + name ) ;
+		if ( RC  > 8 ) { checkRCode( "Function pool getType failed for " + name ) ; }
 		if ( RC == 0 )
 		{
 			switch ( var_type )
@@ -770,9 +776,9 @@ void pApplication::vput( string names, poolType pType )
 			case STRING:
 				s_val = funcPOOL.get( RC, 0, name ) ;
 			}
-			if ( RC > 0 ) checkRCode( "Function pool get failed for " + name ) ;
+			if ( RC > 0 ) { checkRCode( "Function pool get failed for "+name ) ; }
 			p_poolMGR->put( RC, name, s_val, pType ) ;
-			if ( RC > 0 ) checkRCode( "Pool manager put failed for " + name + " RC=" + d2ds( RC ) ) ;
+			if ( RC > 0 ) { checkRCode( "Pool manager put failed for "+name+" RC="+d2ds( RC ) ) ; }
 		}
 		if ( RC > maxRC ) { maxRC = RC ; }
 		if ( RC > 8     ) { return     ; }
@@ -807,7 +813,7 @@ void pApplication::vcopy( string var, string & val, vcMODE mode )
 		break ;
 	case MOVE:
 		var_type = funcPOOL.getType( RC, var ) ;
-		if ( RC  > 8 ) checkRCode( "Function pool getType failed for "+ var ) ;
+		if ( RC  > 8 ) { checkRCode( "Function pool getType failed for "+ var ) ; }
 		if ( RC == 0 )
 		{
 			switch ( var_type )
@@ -818,12 +824,12 @@ void pApplication::vcopy( string var, string & val, vcMODE mode )
 			case STRING:
 				val = funcPOOL.get( RC, 0, var ) ;
 			}
-			if ( RC  > 0 ) checkRCode( "Function pool get failed for "+ var ) ;
+			if ( RC  > 0 ) { checkRCode( "Function pool get failed for "+ var ) ; }
 		}
 		else if ( RC == 8 )
 		{
 			val = p_poolMGR->get( RC, var, ASIS ) ;
-			if ( RC  > 8 ) { checkRCode( "Pool get failed for "+ var ) ; }
+			if ( RC  > 8 ) { checkRCode( "Pool get failed for "+var ) ; }
 		}
 	}
 }
@@ -852,7 +858,7 @@ void pApplication::vcopy( string var, string * & p_val, vcMODE mode )
 	{
 	case LOCATE:
 		var_type = funcPOOL.getType( RC, var ) ;
-		if ( RC  > 8 ) checkRCode( "Function pool getType failed for "+ var ) ;
+		if ( RC  > 8 ) { checkRCode( "Function pool getType failed for "+ var ) ; }
 		if ( RC == 0 )
 		{
 			switch ( var_type )
@@ -902,7 +908,7 @@ void pApplication::verase( string names, poolType pType )
 	{
 		name = word( names, i ) ;
 		p_poolMGR->erase( RC, name, pType ) ;
-		if ( RC > 0 ) checkRCode( "Pool erase failed for " + name) ;
+		if ( RC > 0 ) { checkRCode( "Pool erase failed for " + name) ; }
 		if ( RC > maxRC ) { maxRC = RC ; }
 		if ( RC > 8     ) { return     ; }
 	}
@@ -954,7 +960,7 @@ void pApplication::addpop( string a_fld, int a_row, int a_col )
 		if ( !currPanel->field_get_row_col( a_fld, p_row, p_col ) )
 		{
 			RC = 20 ;
-			checkRCode( "Field " + a_fld + " not found or invalid on ADDPOP service" ) ;
+			checkRCode( "Field "+a_fld+" not found or invalid on ADDPOP service" ) ;
 			return ;
 		}
 		a_row = a_row + p_row ;
@@ -1160,7 +1166,7 @@ void pApplication::control( string parm1, string parm2 )
 		else { RC = 20 ; }
 	}
 	else { RC = 20 ; }
-	if ( RC > 0 ) checkRCode( "Error in control service" ) ;
+	if ( RC > 0 ) { checkRCode( "Error in control service" ) ; }
 }
 
 
@@ -1176,7 +1182,7 @@ void pApplication::control( string parm1, void (pApplication::*pFunc)() )
 		pcleanup = pFunc ;
 	}
 	else { RC = 20 ; }
-	if ( RC > 0 ) checkRCode( "Error in control service" ) ;
+	if ( RC > 0 ) { checkRCode( "Error in control service" ) ; }
 }
 
 
@@ -1413,14 +1419,14 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 		get_Message( p_msg ) ;
 		if ( RC > 0 ) { return ; }
 		currPanel->showLMSG = false ;
-		currtbPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM ) ;
+		currtbPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM, MSGID, showMSGID ) ;
 		if ( ZSMSG == "" ) { currtbPanel->showLMSG = true ; }
 	}
 	else
 	{
 		if ( setMSG )
 		{
-			currtbPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM ) ;
+			currtbPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM, MSGID, showMSGID ) ;
 		}
 		else
 		{
@@ -1498,7 +1504,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 			get_Message( currtbPanel->MSGID ) ;
 			if ( RC > 0 ) { return ; }
 			currPanel->showLMSG = false ;
-			currtbPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM ) ;
+			currtbPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM, MSGID, showMSGID ) ;
 			if ( p_name == "" )
 			{
 				p_name    = currtbPanel->PANELID ;
@@ -1897,7 +1903,7 @@ void pApplication::select( string cmd )
 	wait_event()    ;
 	debug1( "SELECT returned.  RC=" << RC << endl ) ;
 
-	if ( RC == 4 ) propagateEnd = true ;
+	if ( RC == 4 ) { propagateEnd = true ; }
 
 	SEL         = false ;
 	SEL_PGM     = ""    ;
@@ -1929,7 +1935,7 @@ void pApplication::select( string pgm, string parm, string newappl, bool newpool
 
 	wait_event() ;
 
-	if ( RC == 4 ) propagateEnd = true ;
+	if ( RC == 4 ) { propagateEnd = true ; }
 
 	SEL         = false ;
 	SEL_PGM     = ""    ;
@@ -2068,7 +2074,7 @@ void pApplication::setmsg( string msg, msgSET sType )
 {
 	RC = 0 ;
 
-	if ( ( sType == COND ) && setMSG ) return ;
+	if ( ( sType == COND ) && setMSG ) { return ; }
 
 	get_Message( msg ) ;
 	if ( RC > 0 ) { RC = 20 ; return ; }
@@ -2087,7 +2093,7 @@ void pApplication::getmsg( string msg, string smsg, string lmsg, string alm, str
 	if ( hlp  != "" && !isvalidName( hlp  ) ) { RC = 20 ; checkRCode( "Invalid HELP variable name" )          ; return ; }
 	if ( typ  != "" && !isvalidName( typ  ) ) { RC = 20 ; checkRCode( "Invalid TYPE variable name" )          ; return ; }
 
-	if ( !load_Message( msg ) ) { RC = 12 ; checkRCode( "Message not found or invalid" ) ; return ; }
+	if ( !load_Message( msg ) ) { return ; }
 
 	if ( smsg != "" ) { funcPOOL.put( RC, 0, smsg, msgList[ msg ].smsg ) ; }
 	if ( lmsg != "" ) { funcPOOL.put( RC, 0, lmsg, msgList[ msg ].lmsg ) ; }
@@ -2118,8 +2124,8 @@ string pApplication::get_help_member( int row, int col )
 
 	fld = currPanel->field_getname( row, col ) ;
 
-	if ( libdef_puser ) paths = mergepaths( ZPUSER, ZPLIB ) ;
-	else                paths = ZPLIB                       ;
+	if ( libdef_puser ) { paths = mergepaths( ZPUSER, ZPLIB ) ; }
+	else                { paths = ZPLIB                       ; }
 
 	return "M("+ZMHELP+") F("+currPanel->get_field_help( fld )+") P("+currPanel->ZPHELP+") A("+ZAHELP+") PATHS("+paths+")" ;
 }
@@ -2129,11 +2135,7 @@ void pApplication::get_Message( string p_msg )
 {
 	RC = 0 ;
 
-	if ( !load_Message( p_msg ) )
-	{
-		RC = 20 ;
-		return  ;
-	}
+	if ( !load_Message( p_msg ) ) { return ; }
 
 	MSGID    = p_msg ;
 	ZSMSG    = sub_vars( msgList[ p_msg ].smsg ) ;
@@ -2146,7 +2148,13 @@ void pApplication::get_Message( string p_msg )
 
 bool pApplication::load_Message( string p_msg )
 {
-	// Read message and store in msgList map (no variable substitution done at this point)
+	// Message format: 1-5 alph char prefix
+	//                 3 numeric chars
+	//                 1 alph char suffix (optional and only if prefix is less than 5)
+
+	// Read messages and store in msgList map (no variable substitution done at this point)
+	// Return false if message not found in member or there is an error (but still store individual messages from member)
+	// Error on duplicate message-id in the file member
 
 	// The message file name is determined by truncating the message ID after the second digit of the number.
 	// AB123A file AB12
@@ -2156,52 +2164,56 @@ bool pApplication::load_Message( string p_msg )
 
 	int i  ;
 	int j  ;
+	int l  ;
 	int p1 ;
-	int p2 ;
 
-	string tmp      ;
 	string p_msg_fn ;
 	string filename ;
 	string line2    ;
 	string paths    ;
-	string rest     ;
+	string tmp      ;
+	string msgid    ;
 
 	bool found      ;
+	bool lcontinue  ;
 
 	char line1[ 256 ] ;
 
-	str_msg t     ;
+	map<string,bool>MMsgs ;
 
-	if ( !testMode && msgList.find( p_msg ) != msgList.end() ) { return true ; }
+	str_msg t ;
 
-	t.lmsg = ""   ;
-	t.smsg = ""   ;
-	t.hlp  = ""   ;
-	t.type = WMT  ;
-	t.alm  = true ;
+	if ( !testMode && msgList.count( p_msg ) > 0 ) { return true ; }
 
 	if ( !isvalidName( p_msg ) || p_msg.size() < 4 )
 	{
-		checkRCode( "Invalid message format for " + p_msg ) ;
+		RC = 20 ;
+		checkRCode( "Invalid message format for message-id "+ p_msg ) ;
 		return false ;
 	}
 
 	found = false ;
 	for ( i = 1 ; i < p_msg.size() - 2 ; i++ )
 	{
-		j = i + 1 ;
-		if ( isdigit( p_msg[ i ] ) && isdigit( p_msg[ j ] ) )
+		if ( isdigit( p_msg[ i ] ) && isdigit( p_msg[ i + 1 ] ) && isdigit( p_msg[ i + 2 ] ) )
 		{
-			p_msg_fn = substr( p_msg, 1, j + 1 ) ;
+			p_msg_fn = substr( p_msg, 1, i+2 ) ;
 			found    = true ;
 			break           ;
 		}
 	}
 
-	if ( !found ) { checkRCode( "Message " + p_msg + " has invalid format" ) ; return false ; }
+	if ( !found ) { RC = 20 ; checkRCode( "Message-id "+ p_msg +" has invalid format" ) ; return false ; }
 
-	if ( libdef_muser ) paths = mergepaths( ZMUSER, ZMLIB ) ;
-	else                paths = ZMLIB                       ;
+	if ( (p_msg.size() - i) > 3 && !isalpha( p_msg.back() ) )
+	{
+		RC = 20 ;
+		checkRCode( "Message-id format invalid: "+ p_msg ) ;
+		return false ;
+	}
+
+	if ( libdef_muser ) { paths = mergepaths( ZMUSER, ZMLIB ) ; }
+	else                { paths = ZMLIB                       ; }
 
 	found = false ;
 	i = getpaths( paths ) ;
@@ -2212,7 +2224,8 @@ bool pApplication::load_Message( string p_msg )
 		{
 			if ( !is_regular_file( filename ) )
 			{
-				checkRCode( "Message file " + filename + " is not a regular file" ) ;
+				RC = 20 ;
+				checkRCode( "Message file "+ filename +" is not a regular file" ) ;
 				return false ;
 			}
 			else
@@ -2224,99 +2237,223 @@ bool pApplication::load_Message( string p_msg )
 	}
 	if ( !found )
 	{
-		checkRCode( "Message file " + p_msg_fn + " not found for message id " + p_msg ) ;
+		RC = 20 ;
+		checkRCode( "Message file "+ p_msg_fn +" not found in ZMLIB for message-id "+ p_msg ) ;
 		return false ;
 	}
-	found = false ;
+
+	msgid  = ""    ;
+	t.smsg = ""    ;
+	t.lmsg = ""    ;
+	t.cont = false ;
+
 	std::ifstream messages ;
 	messages.open( filename.c_str() ) ;
 	while ( true )
 	{
 		messages.getline( line1, 256 ) ;
-		if ( messages.fail() != 0 ) break ;
+		if ( messages.fail() != 0 ) { break ; }
 		line2.assign( line1, messages.gcount() - 1 ) ;
-		if ( found )
+		line2 = strip( line2 ) ;
+		if ( line2 == "" || line2[ 0 ] == '*' ) { continue ; }
+		if ( line2.compare( 0, 2, "/*" ) == 0 ) { continue ; }
+		if ( line2.compare( 0, p_msg_fn.size(), p_msg_fn ) == 0 )
 		{
-			t.lmsg = line2 ;
-			break ;
+			if ( msgid != "" )
+			{
+				if ( t.cont || !parse_Message( t ) )
+				{
+					RC = 20 ;
+					messages.close() ;
+					checkRCode( "Error in message-id "+ msgid ) ;
+					return false ;
+				}
+				if ( MMsgs.count( msgid ) > 0 )
+				{
+					RC = 20 ;
+					messages.close() ;
+					checkRCode( "Duplicate message-id found: "+ msgid ) ;
+					return false ;
+				}
+				msgList[ msgid ] = t    ;
+				MMsgs[ msgid ]   = true ;
+			}
+			msgid  = word( line2, 1 )    ;
+			t.smsg = subword( line2, 2 ) ;
+			t.lmsg = "" ;
+			l      = msgid.size() - p_msg_fn.size() ;
+			if ( ( l == 0 )                              ||
+			     ( l == 1 &&  !isdigit( msgid.back() ) ) ||
+			     ( l == 2 && (!isdigit( msgid[ msgid.size() - 2 ] ) || !isalpha( msgid.back() ) ) ) ||
+			     ( l >  2 ) )
+			{
+				RC = 20 ;
+				messages.close() ;
+				checkRCode( "Message-id format invalid: "+ msgid ) ;
+				return false ;
+			}
 		}
-		if ( word( line2, 1 ) == p_msg )
+		else
 		{
-			t.smsg = line2 ;
-			found = true ;
+			if ( msgid == "" || ( t.lmsg != "" && !t.cont ) )
+			{
+				RC = 20 ;
+				messages.close() ;
+				checkRCode( "Extraeneous data: "+ line2 ) ;
+				return false ;
+			}
+			lcontinue = false ;
+			if ( line2.back() == '+' )
+			{
+				line2.erase( line2.size()-1 ) ;
+				line2 = strip( line2 )        ;
+				lcontinue = true ;
+			}
+			if ( line2[ 0 ] == '\'' || line2[ 0 ] == '"' )
+			{
+				p1 = line2.find_first_of( line2[ 0 ], 1 ) ;
+				if ( p1 == string::npos || p1 != line2.size() - 1 )
+				{
+					RC = 20 ;
+					messages.close() ;
+					checkRCode( "Error in message-id "+ msgid ) ;
+					return false ;
+				}
+				tmp = line2.substr( 1, p1-1 ) ;
+			}
+			else
+			{
+				if ( words( line2 ) > 1 )
+				{
+					RC = 20 ;
+					messages.close() ;
+					checkRCode( "Error in message-id "+ msgid ) ;
+					return false ;
+				}
+				tmp = line2 ;
+			}
+			t.cont ? t.lmsg = t.lmsg + " " + tmp : t.lmsg = tmp ;
+			t.cont = lcontinue ;
 		}
-	}
-	if ( !found )
-	{
-		checkRCode( "Message " + p_msg + " not found in message file " + p_msg_fn ) ;
-		return false ;
 	}
 	messages.close() ;
 
-	p1 = pos( "\"", t.smsg ) ;
-	if ( p1 > 0 )
+	if ( t.smsg != "" )
 	{
-		p2 = pos( "\"", t.smsg, p1+1 ) ;
-		if ( p2 == 0 ) { return false ; }
-		rest   = substr( t.smsg, p2+1)  ;
-		t.smsg = substr( t.smsg, p1+1, p2-p1-1 ) ;
+		if ( t.cont || !parse_Message( t ) )
+		{
+			RC = 20 ;
+			messages.close() ;
+			checkRCode( "Error in message-id "+ msgid ) ;
+			return false ;
+		}
+		msgList[ msgid ] = t ;
+	}
+
+	if ( msgList.count( p_msg ) == 0 )
+	{
+		RC = 20 ;
+		checkRCode( "Message-id "+ p_msg +" not found in file "+ p_msg_fn ) ;
+		return false ;
+	}
+	return true ;
+}
+
+
+bool pApplication::parse_Message( str_msg & t )
+{
+	int p1 ;
+	int p2 ;
+	int ln ;
+
+	string rest ;
+	string tmp  ;
+
+	t.hlp  = ""    ;
+	t.type = IMT   ;
+	t.alm  = false ;
+
+	if ( t.smsg[ 0 ] == '\'' || t.smsg[ 0 ] == '"' )
+	{
+		p1 = t.smsg.find_first_of( t.smsg[ 0 ], 1 ) ;
+		if ( p1 == string::npos ) { return false ; }
+		rest   = substr( t.smsg, p1+2 )   ;
+		t.smsg = t.smsg.substr( 1, p1-1 ) ;
 	}
 	else
 	{
-		rest   = subword( t.smsg, 3 ) ;
-		t.smsg = word( t.smsg, 2 ) ;
+		if ( t.smsg[ 0 ] == '.' )
+		{
+			rest   = t.smsg ;
+			t.smsg = ""     ;
+		}
+		else
+		{
+			rest   = subword( t.smsg, 2 ) ;
+			t.smsg = word( t.smsg, 1 )    ;
+		}
 	}
 
 	p1 = pos( ".HELP=", rest ) ;
+	if ( p1 == 0 )
+	{
+		p1 = pos( ".H=", rest ) ;
+		ln = 3 ;
+	}
+	else
+	{
+		ln = 6 ;
+	}
 	if ( p1 > 0 )
 	{
 		p2 = pos( " ", rest, p1 ) ;
-		if ( p2 == 0 ) { t.hlp = substr( rest, p1+6 )          ; rest = delstr( rest, p1 )        ; }
-		else           { t.hlp = substr( rest, p1+6, p2-p1-6 ) ; rest = delstr( rest, p1, p2-p1 ) ; }
+		if ( p2 == 0 ) { t.hlp = substr( rest, p1+ln )           ; rest = delstr( rest, p1 )        ; }
+		else           { t.hlp = substr( rest, p1+ln, p2-p1-ln ) ; rest = delstr( rest, p1, p2-p1 ) ; }
 	}
 
 	p1 = pos( ".TYPE=", rest ) ;
+	if ( p1 == 0 )
+	{
+		p1 = pos( ".T=", rest ) ;
+		ln = 3 ;
+	}
+	else
+	{
+		ln = 6 ;
+	}
 	if ( p1 > 0 )
 	{
 		p2 = pos( " ", rest, p1 ) ;
-		if ( p2 == 0 ) { tmp = substr( rest, p1+6 )          ; rest = delstr( rest, p1 )        ; }
-		else           { tmp = substr( rest, p1+6, p2-p1-6 ) ; rest = delstr( rest, p1, p2-p1 ) ; }
+		if ( p2 == 0 ) { tmp = substr( rest, p1+ln )           ; rest = delstr( rest, p1 )        ; }
+		else           { tmp = substr( rest, p1+ln, p2-p1-ln ) ; rest = delstr( rest, p1, p2-p1 ) ; }
 		if      ( tmp == "N" ) { t.type = IMT ; t.alm = false ; }
-		else if ( tmp == "W" ) { t.type = WMT ; }
-		else if ( tmp == "A" ) { t.type = AMT ; }
-		else if ( tmp == "C" ) { t.type = AMT ; }
-		else                   { return false ; }
+		else if ( tmp == "W" ) { t.type = WMT ; t.alm = true  ; }
+		else if ( tmp == "A" ) { t.type = AMT ; t.alm = true  ; }
+		else if ( tmp == "C" ) { t.type = AMT ; t.alm = true  ; }
+		else                   { return false                 ; }
 	}
 
 	p1 = pos( ".ALARM=", rest ) ;
+	if ( p1 == 0 )
+	{
+		p1 = pos( ".A=", rest ) ;
+		ln = 3 ;
+	}
+	else
+	{
+		ln = 7 ;
+	}
 	if ( p1 > 0 )
 	{
 		p2 = pos( " ", rest, p1 ) ;
-		if ( p2 == 0 ) { tmp = substr( rest, p1+7 )          ; rest = delstr( rest, p1 )        ; }
-		else           { tmp = substr( rest, p1+7, p2-p1-7 ) ; rest = delstr( rest, p1, p2-p1 ) ; }
+		if ( p2 == 0 ) { tmp = substr( rest, p1+ln )           ; rest = delstr( rest, p1 )        ; }
+		else           { tmp = substr( rest, p1+ln, p2-p1-ln ) ; rest = delstr( rest, p1, p2-p1 ) ; }
 		if      ( tmp == "YES" ) { t.alm = true  ; }
-		else if ( tmp == "NO" )  { t.alm = false ; }
+		else if ( tmp == "NO"  ) { t.alm = false ; }
 		else                     { return false  ; }
 	}
 
 	if ( strip( rest ) != "" ) { return false ; }
-
-	p1 = pos( "\"", t.lmsg ) ;
-	if ( p1 > 0 )
-	{
-		p2 = pos( "\"", t.lmsg, p1+1 ) ;
-		if ( p2 == 0 ) { return false ; }
-		rest   = delstr( t.lmsg, p1, p2-p1+1 )   ;
-		t.lmsg = substr( t.lmsg, p1+1, p2-p1-1 ) ;
-	}
-	else
-	{
-		rest   = subword( t.lmsg, 2 ) ;
-		t.lmsg = word( t.lmsg, 1 )    ;
-	}
-	if ( strip( rest ) != "" ) { return false ; }
-
-	msgList[ p_msg ] = t ;
 	return true ;
 }
 
@@ -2486,6 +2623,11 @@ void pApplication::cleanup_default()
 {
 	// Dummy routine.  Override in the application so the customised one is called on an exception condition.
 	// Use CONTROL ABENDRTN ptr_to_routine
+
+	// Called on: abend()
+	//            abendexc()
+	//            set_forced_abend()
+	//            set_timeout_abend()
 }
 
 
@@ -2508,6 +2650,7 @@ void pApplication::abend()
 	terminateAppl = true  ;
 	busyAppl      = false ;
 	SEL           = false ;
+	(this->*pcleanup)()   ;
 	log( "E", "Application entering wait state" << endl ) ;
 	boost::this_thread::sleep_for(boost::chrono::seconds(31536000)) ;
 }
@@ -2546,6 +2689,7 @@ void pApplication::set_forced_abend()
 	terminateAppl     = true  ;
 	busyAppl          = false ;
 	SEL               = false ;
+	(this->*pcleanup)()       ;
 }
 
 
@@ -2559,6 +2703,7 @@ void pApplication::set_timeout_abend()
 	terminateAppl     = true  ;
 	busyAppl          = false ;
 	SEL               = false ;
+	(this->*pcleanup)()       ;
 }
 
 

@@ -65,7 +65,7 @@ IF (&ZCMD EQ ADD )
    EXIT
 ELSE
    IF (&ZCMD NE &Z)
-      .MSG    = PSYS01C
+      .MSG    = PSYS011C
       .CURSOR = ZCMD
       EXIT
 

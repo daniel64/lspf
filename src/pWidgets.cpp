@@ -28,6 +28,7 @@ int field::field_init( int MAXW, int MAXD, string line )
 	// Format of field entry in panels (FORMAT 1 VERSION 1 )
 	// FIELD row col len cuaAttr opts field_name
 	// w1    w2  w3  w4  w5      w6   w7
+
 	// FIELD 3  14  90  NEF CAPS(On),pad('_'),just(left),numeric(off),skip(on) ZCMD
 
 	int RC    ;
@@ -53,7 +54,7 @@ int field::field_init( int MAXW, int MAXD, string line )
 
 	if ( row > MAXD )
 	{
-		log( "E", "Field outside panel area.  row = " << row << " ZSCRMAXD " << MAXD << endl ; )
+		log( "E", "Field outside panel area.  row=" << row << " ZSCRMAXD=" << MAXD << endl ; )
 		return 20 ;
 	}
 
@@ -90,13 +91,14 @@ int field::field_init( int MAXW, int MAXD, string line )
 	field_row    = row-1 ;
 	field_col    = col-1 ;
 	field_length = len   ;
-
-	if ( fType == CEF  ||
-	     fType == NEF  ||
-	     fType == DATAIN ) { field_input = true ; }
+	field_cole   = field_col + field_length ;
+	field_input  = ( fType == CEF || fType == NEF || fType == DATAIN ) ;
 
 	fieldOptsParse( RC, w6, field_caps, field_just, field_numeric, field_padchar, field_skip ) ;
-	if ( RC > 0 ) { log( "E", "Error parsing options for field " << w7 << ". Options entry is " << w6 << endl ) ; }
+	if ( RC > 0 )
+	{
+	       log( "E", "Error parsing options for field " << w7 << ". Entry is " << w6 << endl ) ;
+	}
 
 	return RC ;
 }
@@ -166,7 +168,7 @@ int dynArea::dynArea_init( int MAXW, int MAXD, string line )
 
 	if ( row > MAXD )
 	{
-		log( "E", "Dynamic area outside panel area.  row = " << row << " MAXD " << MAXD ) ;
+		log( "E", "Dynamic area outside panel area.  row=" << row << " MAXD=" << MAXD ) ;
 		return  20 ;
 	}
 	if ( width > (MAXW - col+1) ) { width = (MAXW - col+1) ; }
@@ -318,6 +320,7 @@ bool field::edit_field_insert( WINDOW * win, char ch, int col, bool Isrt, bool s
 	{
 		if ( field_dynArea )
 		{
+			if ( field_value[ pos ] != nulls && !isprint( field_value[ pos ] ) ) { return false ; }
 			da = field_dynArea_ptr ;
 			field_shadow_value[ pos ] = B_YELLOW ;
 			p1 = field_value.find_last_of( da->dynArea_FieldIn, pos ) ;
@@ -360,10 +363,13 @@ void field::edit_field_delete( WINDOW * win, int col, bool snulls )
 	int p1 ;
 	int p2 ;
 
+	const char nulls(0x00) ;
+
 	dynArea * da ;
 
 	pos = col - field_col ;
 	if ( pos > field_value.size() ) { return ; }
+	if ( field_value[ pos ] != nulls && !isprint( field_value[ pos ] ) ) { return ; }
 
 	if ( field_dynArea )
 	{
@@ -402,16 +408,19 @@ void field::edit_field_delete( WINDOW * win, int col, bool snulls )
 
 int field::edit_field_backspace( WINDOW * win, int col, bool snulls )
 {
+	// If this is a dynamic area, we know it is an input field so pos > 0 (to allow for the input attribute byte)
+
 	int pos ;
-	int p1  ;
 
 	pos = col - field_col ;
 	if ( pos > field_value.size() ) { return --col ; }
 
 	if ( field_dynArea )
 	{
-		p1 = field_dynArea_ptr->dynArea_Field.find_first_of( field_value[ pos ] ) ;
-		if ( p1 != string::npos ) { return col ; }
+		if ( field_dynArea_ptr->dynArea_Field.find_first_of( field_value[ pos-1 ] ) != string::npos )
+		{
+			return col ;
+		}
 	}
 
 	col-- ;
@@ -660,13 +669,12 @@ bool field::field_dyna_input( uint col )
 
 int field::field_dyna_input_offset( uint col )
 {
-	// When this routine is called, we know the field is a dynamic area and dynDataIn is true
+	// When this routine is called, we know the field is a dynamic area
 
 	uint pos ;
 	int  p1  ;
 
-	if ( col < field_col ) { pos = 0 ;                 }
-	else                   { pos = (col - field_col) ; }
+	pos = ( col < field_col ) ? 0 : (col - field_col) ;
 
 	p1 = field_value.find_first_of( field_dynArea_ptr->dynArea_FieldIn, pos ) ;
 	if ( p1 == string::npos ) { return -1 ; }
@@ -908,11 +916,11 @@ void field::display_field( WINDOW * win, bool snulls )
 }
 
 
-void literal::literal_display( WINDOW * win )
+bool field::cursor_on_field( uint row, uint col )
 {
-	wattrset( win, cuaAttr[ literal_cua ] ) ;
-	mvwaddstr( win, literal_row, literal_col, literal_value.c_str() ) ;
-	wattroff( win, cuaAttr[ literal_cua ] ) ;
+	if ( field_row != row) { return false ; } ;
+	if ( col >= field_col && col < field_cole ) { return true ; }
+	return false ;
 }
 
 
@@ -980,20 +988,35 @@ int literal::literal_init( int MAXW, int MAXD, int & opt_field, string line )
 	if ( w5 == "EXPAND" )
 	{
 		literal_value  = strip( strip( subword( line, 6 ) ), 'B', '"' ) ;
-		literal_length = literal_value.size() ;
-		l = (MAXW - col) / literal_length + 1 ;
+		l = (MAXW - col) / literal_value.size() + 1 ;
 		literal_value  = substr( copies( literal_value, l ), 1, MAXW-col+1 ) ;
 	}
 	else
 	{
 		literal_value  = strip( strip( subword( line, 5 ) ), 'B', '"' ) ;
 	}
-	literal_length = literal_value.size() ;
+	literal_cole = literal_col + literal_value.size() ;
 	if ( fType == PS )
 	{
 		literal_name = "ZPS01" + right( d2ds(++opt_field), 3, '0') ;
 	}
 	return 0 ;
+}
+
+
+void literal::literal_display( WINDOW * win )
+{
+	wattrset( win, cuaAttr[ literal_cua ] ) ;
+	mvwaddstr( win, literal_row, literal_col, literal_value.c_str() ) ;
+	wattroff( win, cuaAttr[ literal_cua ] ) ;
+}
+
+
+bool literal::cursor_on_literal( uint row, uint col )
+{
+	if ( literal_row != row) { return false ; } ;
+	if ( col >= literal_col && col < literal_cole ) { return true ; }
+	return false ;
 }
 
 
@@ -1373,12 +1396,7 @@ ASSGN::ASSGN( string s )
 	if ( p == string::npos ) { as_RC = 20 ; return ; }
 	as_lhs = upper( strip( s.substr( 0, p ) ) ) ;
 	if ( words( as_lhs ) != 1 ) { as_RC = 20 ; return ; }
-	if      ( as_lhs == ".AUTOSEL" ) {}
-	else if ( as_lhs == ".CURSOR" )  {}
-	else if ( as_lhs == ".CSRROW" )  {}
-	else if ( as_lhs == ".HELP" )    {}
-	else if ( as_lhs == ".MSG" )     {}
-	else if ( as_lhs == ".NRET" )    {}
+	if      ( findword( as_lhs, ".AUTOSEL .CURSOR .CSRROW .HELP .MSG .NRET" ) ) {}
 	else if ( as_lhs.substr( 0, 6 ) == ".ATTR(" )
 	{
 		p1 = as_lhs.find( ')' ) ;
@@ -1495,7 +1513,7 @@ ASSGN::ASSGN( string s )
 	{
 		if ( words( s ) != 1 ) { as_RC = 20 ; return ; }
 		s = upper( s ) ;
-		if ( s[ 0 ]  == '.' && ( s != ".TRAIL" && s != ".HELP" && s != ".MSG" && s != ".CURSOR" ) ) { as_RC = 20 ; return ; }
+		if ( s[ 0 ]  == '.' && !findword( s, ".TRAIL .HELP .MSG .CURSOR" ) ) { as_RC = 20 ; return ; }
 		as_rhs = s ;
 	}
 }
@@ -1705,6 +1723,7 @@ TRUNC::TRUNC( string s )
 TRANS::TRANS( string s )
 {
 	// Format of the TRANS panel statement ( change val1 to val2, * is everything else )
+
 	// &AAA = TRANS( &BBB  val1,val2 ...  *,* )
 	// &AAA = TRANS( &BBB  val1,val2 ...  *,'?' )
 	// &AAA = TRANS( &BBB  val1,val2 ...  ) non-matching results in &AAA being set to null
@@ -1784,35 +1803,33 @@ pnts::pnts( string s )
 
 	pnts_RC = 0 ;
 
-	s  = upper( s )         ;
+	s  = upper( s ) ;
+
 	p1 = pos( "FIELD(", s ) ;
-	if ( p1 > 0 )
-	{
-		p2 = pos( ")", s, p1 ) ;
-		if ( p2 == 0 ) { pnts_RC = 20 ; return ; }
-		pnts_field = strip( substr( s, (p1 + 6), (p2 - (p1 + 6)) ) ) ;
-		if ( !isvalidName( pnts_field ) ) {  pnts_RC = 20 ; return ; }
-		s = delstr( s, p1, (p2 - p1 + 1) ) ;
-	}
+	if ( p1 == 0 ) { pnts_RC = 20 ; return ; }
+
+	p2 = pos( ")", s, p1 ) ;
+	if ( p2 == 0 ) { pnts_RC = 20 ; return ; }
+	pnts_field = strip( substr( s, (p1 + 6), (p2 - (p1 + 6)) ) ) ;
+	if ( !isvalidName( pnts_field ) ) {  pnts_RC = 20 ; return ; }
+	s = delstr( s, p1, (p2 - p1 + 1) ) ;
 
 	p1 = pos( "VAR(", s ) ;
-	if ( p1 > 0 )
-	{
-		p2 = pos( ")", s, p1 ) ;
-		if ( p2 == 0 ) { pnts_RC = 20 ; return ; }
-		pnts_var = strip( substr( s, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
-		if ( !isvalidName( pnts_var ) ) {  pnts_RC = 20 ; return ; }
-		s = delstr( s, p1, (p2 - p1 + 1) ) ;
-	}
+	if ( p1 == 0 ) { pnts_RC = 20 ; return ; }
+
+	p2 = pos( ")", s, p1 ) ;
+	if ( p2 == 0 ) { pnts_RC = 20 ; return ; }
+	pnts_var = strip( substr( s, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
+	if ( !isvalidName( pnts_var ) ) {  pnts_RC = 20 ; return ; }
+	s = delstr( s, p1, (p2 - p1 + 1) ) ;
 
 	p1 = pos( "VAL(", s ) ;
-	if ( p1 > 0 )
-	{
-		p2 = pos( ")", s, p1 ) ;
-		if ( p2 == 0 ) { pnts_RC = 20 ; return ; }
-		pnts_val = strip( substr( s, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
-		s = strip( delstr( s, p1, (p2 - p1 + 1) ) ) ;
-	}
+	if ( p1 == 0 ) { pnts_RC = 20 ; return ; }
+
+	p2 = pos( ")", s, p1 ) ;
+	if ( p2 == 0 ) { pnts_RC = 20 ; return ; }
+	pnts_val = strip( substr( s, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
+	s = strip( delstr( s, p1, (p2 - p1 + 1) ) ) ;
 
 	if ( s != "" || pnts_field == "" || pnts_var == "" || pnts_val == "" ) { pnts_RC = 20 ; return ; }
 }

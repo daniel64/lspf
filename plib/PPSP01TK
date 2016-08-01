@@ -7,14 +7,14 @@ PanelTitle "Task Display"
 
 scrollOn
 
-literal  4   2         FP    "Command ===> "  
-field    4  15  MAX-17 NEF CAPS(ON) ZCMD  
+literal  4   2         FP    "Command ===> "
+field    4  15  MAX-17 NEF CAPS(ON) ZCMD
 
 literal  4  MAX-15  FP "SCROLL ===> "
 field    4  MAX-3   4  NEF  NONE ZSCROLL
 
 literal  6 2 CH "S USER     PID    %CPU   %MEM   CMD"
-literal  7 2 CH EXPAND "-"  
+literal  7 2 CH EXPAND "-"
 
 tbmodel  8   MAX
 tbfield  2     1   NEF CAPS(ON),PAD('_'),JUST(LEFT) SEL
@@ -39,7 +39,7 @@ VGET ZSCROLL PROFILE
 VPUT ZSCROLL PROFILE
 VER (&SEL,LIST,K)
 IF (&ZCMD NE &Z)
-   .MSG    = PSYS01C
+   .MSG    = PSYS011C
    .CURSOR = ZCMD
    EXIT
 
