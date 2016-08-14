@@ -35,9 +35,6 @@ class pLScreen
 	int   get_row()                    { return row ; }
 	int   get_col()                    { return col ; }
 
-	int   get_scrmaxw()                { return maxcol ; }
-	int   get_scrmaxd()                { return maxrow ; }
-
 	void  set_row_col( int a, int b )  { row = a ; col = b ; }
 
 	int   cursor_left()                { return (col == 0 ? (col = maxcol-1, col) : --col) ; }
@@ -46,6 +43,7 @@ class pLScreen
 	int   cursor_down()                { return (row == maxrow-1 ? (row = 0, 0) : ++row)   ; }
 
 	stack<pApplication *> pApplicationStack ;
+	stack<PANEL *> panelList ;
 
 	void  application_add( pApplication * pApplication ) { pApplicationStack.push( pApplication ) ; }
 	void  application_remove_current()                   { pApplicationStack.pop() ; } ;
@@ -53,20 +51,18 @@ class pLScreen
 	int   application_stack_size()                       { return pApplicationStack.size()  ; }
 	bool  application_stack_empty()                      { return pApplicationStack.empty() ; }
 
-	void  set_msgid_on()                                 { showMSGID = true                 ; }
-	void  set_msgid_off()                                { showMSGID = false                ; }
-	bool  get_msgid_status()                             { return showMSGID                 ; }
-
 	void  OIA_setup()  ;
 	void  show_enter() ;
 	void  show_busy()  ;
 	void  clear_status() ;
+
+	void  save_panel_stack()    ;
+	void  restore_panel_stack() ;
 
 	int   screenID ;
 
 private:
 	int row ;
 	int col ;
-	bool showMSGID ;
 } ;
 

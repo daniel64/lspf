@@ -392,6 +392,7 @@ void createSYSPROF()
 	p_poolMGR->put( RC, "ZKLFAIL", "Y", PROFILE ) ;
 	p_poolMGR->put( RC, "ZRTSIZE", "3", PROFILE ) ;
 	p_poolMGR->put( RC, "ZRBSIZE", "10", PROFILE ) ;
+	p_poolMGR->put( RC, "ZLMSGW",  "N", PROFILE ) ;
 
 	p_poolMGR->put( RC, "ZUCMDT1", "USR", PROFILE ) ;
 	p_poolMGR->put( RC, "ZUCMDT2", "", PROFILE ) ;

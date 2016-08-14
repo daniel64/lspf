@@ -26,19 +26,16 @@ class pPanel
 		string MSGID       ;
 		string CURFLD      ;
 		int    CURPOS      ;
-		string SMSG        ;
-		string LMSG        ;
+		slmsg  MSG         ;
 		string PERR        ;
 		string KEYLISTN    ;
 		string KEYAPPL     ;
-		cuaType MSGTYPE    ;
-		bool   MSGALRM     ;
 		bool   REXX        ;
 		string ZPHELP      ;
 		string tb_fields   ;
 		int    tb_depth    ;
 		int    abc_pos     ;
-		bool   abActive    ;
+		bool   pdActive    ;
 		bool   showLMSG    ;
 		bool   primaryMenu ;
 		bool   scrollOn    ;
@@ -53,14 +50,14 @@ class pPanel
 
 		int    loadPanel( string p_name, string paths ) ;
 
-		map<int, string > tb_linesChanged ;
-
-		void   display_panel( int & RC )  ;
+		void   display_panel( int & RC ) ;
+		void   redisplay_panel()         ;
 		void   display_panel_update( int & RC ) ;
 		void   display_panel_init( int & RC )   ;
 		void   display_panel_reinit( int & RC, int ln ) ;
 		void   display_panel_proc( int & RC, int ln )   ;
 		void   display_msg() ;
+		void   hide_msgs()   ;
 
 		void   set_popup( int, int ) ;
 		void   remove_popup()        ;
@@ -70,15 +67,15 @@ class pPanel
 
 		void   update_field_values( int & RC ) ;
 
-		int    get_abline()      { return win_row ; } ;
-		bool   display_pd( uint row, uint col ) ;
-		void   hide_pd()         ;
-		bool   is_pd_displayed() ;
-		void   display_pd_next() ;
+		bool   on_border_line( uint, uint ) ;
+		int    get_abline()      { return win_row  ; }
+		bool   is_pd_displayed() { return pdActive ; }
+		bool   display_pd( uint col ) ;
+		void   hide_pd()          ;
+		void   display_first_pd() ;
+		void   display_next_pd()  ;
 
-		void   clear() ;
-		void   refresh( int & RC ) ;
-		void   nrefresh()          ;
+		void   refresh() ;
 
 		pdc    retrieve_pdChoice( int row, int col ) ;
 		void   get_panel_info( int & RC, string a_name, string t = "", string w = "", string d = "", string r = "", string c = "" ) ;
@@ -117,42 +114,55 @@ class pPanel
 		bool   get_nretriev()  { return nretriev  ; }
 		string get_nretfield() { return nretfield ; }
 
-		void   set_msg( string, string, cuaType, bool, string, bool ) ;
+		void   set_panel_msg( slmsg, string ) ;
 		void   clear_msg() ;
+		bool   inputInhibited() { return ( pdActive || msgResp ) ; }
+		bool   msgInhibited()   { return msgResp  ; }
+		void   msgResponseOK()  { msgResp = false ; }
 
 		string return_command( string ) ;
+		void   resetAttrs()     ;
 
-		vector<string>attrList ;
-		void   resetAttrs()    ;
+		vector<string>attrList  ;
+		map<int, string > tb_linesChanged ;
+
 
 	private:
 		string PanelTitle  ;
 		int    abIndex     ;
 		int    RC          ;
 		int    tb_row      ;
+		bool   msgResp     ;
 		bool   nretriev    ;
 		string nretfield   ;
 		int    opt_field   ;
 		int    dyn_depth   ;
 		int    dyn_width   ;
+		int    ZSCRNUM     ;
 		int    ZSCRMAXD    ;
 		int    ZSCRMAXW    ;
 		int    WSCRMAXD    ;
 		int    WSCRMAXW    ;
+		string MSGLOC      ;
 		uint   p_row       ;
 		uint   p_col       ;
 		bool   tb_model    ;
 		bool   win_addpop  ;
-		bool   win_created ;
-		bool   pan_created ;
+		bool   pup_created ;
+		bool   smp_created ;
+		bool   lmp_created ;
 		int    win_width   ;
 		int    win_depth   ;
 		int    win_row     ;
 		int    win_col     ;
 		WINDOW * win       ;
 		WINDOW * bwin      ;
+		WINDOW * smwin     ;
+		WINDOW * lmwin     ;
 		PANEL  * panel     ;
 		PANEL  * bpanel    ;
+		PANEL  * smpanel   ;
+		PANEL  * lmpanel   ;
 
 		void   syncDialogueVar( string ) ;
 		string getDialogueVar( string )  ;
@@ -199,4 +209,7 @@ class pPanel
 		void   display_fields()   ;
 		void   display_ab()       ;
 		void   display_pd()       ;
+
+		void   get_msgwin( int, int &, int &, int &, int & ) ;
+		void   panel_cleanup( PANEL * ) ;
 } ;

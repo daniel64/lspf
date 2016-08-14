@@ -125,6 +125,7 @@ void terminateApplication()   ;
 void ResumeApplicationAndWait() ;
 void processPGMSelect()         ;
 void processAction( uint row, uint col, int c, bool & passthru ) ;
+void issueMessage( string )     ;
 void errorScreen( int, string ) ;
 void rawOutput()          ;
 void threadErrorHandler() ;
@@ -157,7 +158,6 @@ int    altScreen = 0 ;
 string commandStack  ;
 string jumpOption    ;
 bool   pfkeyPressed  ;
-bool   showPanelID   ;
 
 string ZCOMMAND ;
 string ZPARM    ;
@@ -184,8 +184,6 @@ string ZSHELL ;
 
 int    GMAXWAIT ;
 string GMAINPGM ;
-
-string pfkPROF  ;
 
 const string BuiltInCommands = "ACTION DISCARD FIELDEXC MSGID NOP PANELID REFRESH SPLIT SWAP TDOWN" ;
 const string SystemCommands  = ".ABEND .HIDE .INFO .RELOAD .SCALE .SHELL .SHOW .SNAP .STATS .TEST" ;
@@ -244,10 +242,10 @@ int main( void )
 	currAppl->lspfCallback = lspfCallbackHandler ;
 
 	p_poolMGR->put( RC, "ZSCREEN", string( 1, ZSCREEN[ screenNum ] ), SHARED, SYSTEM ) ;
+	p_poolMGR->put( RC, "ZSCRNUM", d2ds( currScrn->screenID ), SHARED, SYSTEM ) ;
 	p_poolMGR->put( RC, "ZAPPLID", "ISP", SHARED, SYSTEM ) ;
 	currAppl->shrdPool = p_poolMGR->getShrdPool() ;
 	currAppl->init() ;
-	pfkPROF = ""     ;
 	loadpfkeyTable() ;
 
 	pThread = new boost::thread(boost::bind(&pApplication::application, currAppl ) ) ;
@@ -336,7 +334,6 @@ void mainLoop()
 	mousemask( ALL_MOUSE_EVENTS, NULL ) ;
 	showLock    = false ;
 	Insert      = false ;
-	showPanelID = false ;
 
 	while ( true )
 	{
@@ -354,12 +351,6 @@ void mainLoop()
 		pos      = lastpos( ".", respTime ) ;
 		respTime = substr( respTime, (pos - 2) , 6 ) + " s" ;
 
-		if ( showPanelID )
-		{
-			attrset( cuaAttr[ PI ] ) ;
-			mvprintw( 2, 0, "%s", currAppl->PANELID.c_str() ) ;
-			attroff( cuaAttr[ PI ] ) ;
-		}
 		wattrset( OIA, YELLOW ) ;
 		mvwaddstr( OIA, 0, pLScreen::maxcol-23, Isrt.c_str() ) ;
 		mvwprintw( OIA, 0, pLScreen::maxcol-14, "Row %d Col %d  ", row+1, col+1 ) ;
@@ -389,23 +380,31 @@ void mainLoop()
 			showLock = false ;
 		}
 		pfkeyPressed = false ;
-		if ( commandStack == ""       &&
-		     !currAppl->isRawOutput() &&
-		     !currAppl->ControlDisplayLock )
+		if ( commandStack == ""            &&
+		     !currAppl->isRawOutput()      &&
+		     !currAppl->ControlDisplayLock &&
+		     !currAppl->ControlNonDispl )
 		{
-			currAppl->nrefresh() ;
 			wnoutrefresh( stdscr ) ;
 			wnoutrefresh( OIA ) ;
+			update_panels() ;
 			move( row, col ) ;
 			doupdate()  ;
 			c = getch() ;
 		}
 		else
 		{
+			if ( currAppl->ControlDisplayLock )
+			{
+				wnoutrefresh( stdscr ) ;
+				wnoutrefresh( OIA ) ;
+				update_panels()  ;
+				move( row, col ) ;
+				doupdate()  ;
+			}
 			c = KEY_ENTER ;
 		}
-		currAppl->ControlDisplayLock = false ;
-		ch        = char( c ) ;
+		ch = char( c ) ;
 		startTime = boost::posix_time::microsec_clock::universal_time() ;
 		if ( c == 13 ) { c = KEY_ENTER ; }
 
@@ -413,11 +412,7 @@ void mainLoop()
 		{
 			if ( isprint( c ) )
 			{
-				if ( currAppl->currPanel->is_pd_displayed() )
-				{
-					currScrn->show_busy() ;
-					continue ;
-				}
+				if ( currAppl->inputInhibited() ) { continue ; }
 				currAppl->currPanel->field_edit( row, col, ch, Insert, showLock ) ;
 				currAppl->currPanel->get_cursor( row, col ) ;
 				currScrn->set_row_col( row, col ) ;
@@ -463,10 +458,12 @@ void mainLoop()
 				break ;
 
 			case KEY_DC:
+				if ( currAppl->inputInhibited() ) { break ; }
 				currAppl->currPanel->field_delete_char( row, col, showLock ) ;
 				break ;
 
 			case KEY_SDC:
+				if ( currAppl->inputInhibited() ) { break ; }
 				currAppl->currPanel->field_erase_eof( row, col, showLock ) ;
 				break ;
 
@@ -477,6 +474,7 @@ void mainLoop()
 
 			case 127:
 			case KEY_BACKSPACE:
+				if ( currAppl->inputInhibited() ) { break ; }
 				currAppl->currPanel->field_backspace( row, col, showLock ) ;
 				currScrn->set_row_col( row, col ) ;
 				break ;
@@ -489,10 +487,15 @@ void mainLoop()
 			case KEY_PPAGE:
 			case KEY_ENTER:
 				debug1( "Action key pressed.  Processing" << endl ) ;
+				if ( currAppl->msgInhibited() )
+				{
+					currAppl->msgResponseOK() ;
+					break ;
+				}
 				Insert = false ;
 				currScrn->show_busy() ;
-				currAppl->ControlNonDispl = false ;
-				updateDefaultVars() ;
+				currAppl->hide_msgs() ;
+				updateDefaultVars()   ;
 				processAction( row, col, c, passthru ) ;
 				if ( passthru )
 				{
@@ -527,18 +530,18 @@ void mainLoop()
 					{
 						if ( currAppl->currPanel->is_pd_displayed() )
 						{
-							currAppl->currPanel->display_pd_next() ;
+							currAppl->currPanel->display_next_pd() ;
 							currAppl->currPanel->get_cursor( row, col ) ;
 							currScrn->set_row_col( row, col ) ;
 							break ;
 						}
 						else
-							if ( currAppl->currPanel->display_pd( 0, 2 ) )
-							{
-								currAppl->currPanel->get_cursor( row, col ) ;
-								currScrn->set_row_col( row, col ) ;
-								break ;
-							}
+						{
+							currAppl->currPanel->display_first_pd() ;
+							currAppl->currPanel->get_cursor( row, col ) ;
+							currScrn->set_row_col( row, col ) ;
+							break ;
+						}
 					}
 					else if ( ZCOMMAND == "DISCARD" )
 					{
@@ -550,7 +553,7 @@ void mainLoop()
 						field_name = currAppl->currPanel->field_getname( row, col ) ;
 						if ( field_name == "" )
 						{
-							currAppl->set_msg( "PSYS012K" ) ;
+							issueMessage( "PSYS012K" ) ;
 							break ;
 						}
 						fxc = currAppl->currPanel->field_getexec( field_name ) ;
@@ -560,7 +563,7 @@ void mainLoop()
 							if ( RC > 0 )
 							{
 								log( "E", "Error in FIELD SELECT command "+ fxc.fieldExc_command << endl ) ;
-								currAppl->set_msg( "PSYS011K" ) ;
+								issueMessage( "PSYS011K" ) ;
 								break ;
 							}
 							SEL_PARM = SEL_PARM + " " + currAppl->currPanel->field_getvalue( field_name ) ;
@@ -577,7 +580,7 @@ void mainLoop()
 						}
 						else
 						{
-							currAppl->set_msg( "PSYS012J" ) ;
+							issueMessage( "PSYS012J" ) ;
 							break ;
 						}
 					}
@@ -587,7 +590,7 @@ void mainLoop()
 						{
 							p_poolMGR->put( RC, "ZNULLS", "NO", SHARED, SYSTEM ) ;
 						}
-						currAppl->currPanel->refresh( RC ) ;
+						currAppl->currPanel->redisplay_panel() ;
 					}
 					else if ( ZCOMMAND == ".INFO" )
 					{
@@ -597,21 +600,21 @@ void mainLoop()
 					{
 						if ( ZPARM == "" )
 						{
-							currAppl->show_msgid() ;
+							ww = p_poolMGR->get( RC, currScrn->screenID, "ZMSGID" ) ;
+							p_poolMGR->put( RC, "ZMSGID", ww, SHARED, SYSTEM ) ;
+							issueMessage( "PSYS012L" ) ;
 						}
 						else if ( ZPARM == "ON" )
 						{
-							currScrn->set_msgid_on() ;
-							currAppl->set_msgid_status( true ) ;
+							p_poolMGR->put( RC, currScrn->screenID, "ZSHMSGID", "Y" ) ;
 						}
 						else if ( ZPARM == "OFF" )
 						{
-							currScrn->set_msgid_off() ;
-							currAppl->set_msgid_status( false ) ;
+							p_poolMGR->put( RC, currScrn->screenID, "ZSHMSGID", "N" ) ;
 						}
 						else
 						{
-							currAppl->set_msg( "PSYS012M" ) ;
+							issueMessage( "PSYS012M" ) ;
 						}
 						break ;
 					}
@@ -621,12 +624,30 @@ void mainLoop()
 					}
 					else if ( ZCOMMAND == "PANELID" )
 					{
-						showPanelID = !showPanelID ;
-						currAppl->currPanel->refresh( RC ) ;
+						if ( ZPARM == "" )
+						{
+							ww = p_poolMGR->get( RC, currScrn->screenID, "ZSHPANID" ) ;
+							if ( ww == "Y" ) { ZPARM = "OFF" ; }
+							else             { ZPARM = "ON"  ; }
+						}
+						if ( ZPARM == "ON" )
+						{
+							p_poolMGR->put( RC, currScrn->screenID, "ZSHPANID", "Y" ) ;
+						}
+						else if ( ZPARM == "OFF" )
+						{
+							p_poolMGR->put( RC, currScrn->screenID, "ZSHPANID", "N" ) ;
+						}
+						else
+						{
+							issueMessage( "PSYS012O" ) ;
+						}
+						currAppl->currPanel->redisplay_panel() ;
+						break ;
 					}
 					else if ( ZCOMMAND == "REFRESH" )
 					{
-						currAppl->currPanel->refresh( RC ) ;
+						currAppl->currPanel->refresh() ;
 						reset_prog_mode() ;
 						refresh() ;
 					}
@@ -656,7 +677,7 @@ void mainLoop()
 						{
 							p_poolMGR->put( RC, "ZNULLS", "YES", SHARED, SYSTEM ) ;
 						}
-						currAppl->currPanel->refresh( RC ) ;
+						currAppl->currPanel->redisplay_panel() ;
 					}
 					else if ( ZCOMMAND == "SPLIT" )
 					{
@@ -667,22 +688,15 @@ void mainLoop()
 							break ;
 						}
 						if ( pLScreen::screensTotal == ZMAXSCRN ) { continue ; }
+						currScrn->save_panel_stack() ;
 						updateDefaultVars()            ;
 						if ( apps.find( GMAINPGM ) == apps.end() )
 						{
 							errorScreen( 1, "Application "+ GMAINPGM +" not found" ) ;
-							currAppl->get_cursor( row, col )  ;
-							currScrn->set_row_col( row, col ) ;
-							currScrn->clear()   ;
-							currAppl->refresh() ;
 							break ;
 						}
-						if ( currAppl->popupDisplayed() )
-						{
-							currAppl->save_screen() ;
-						}
-						altScreen  = screenNum         ;
-						screenNum  = screenList.size() ;
+						altScreen = screenNum         ;
+						screenNum = screenList.size() ;
 						screenList.push_back( new pLScreen ) ;
 						startApplication( GMAINPGM, "", "ISP", true, false ) ;
 						break ;
@@ -700,6 +714,7 @@ void mainLoop()
 					else if ( ZCOMMAND == "SWAP" )
 					{
 						if ( pLScreen::screensTotal == 1 ) { continue ; }
+						currScrn->save_panel_stack() ;
 						if ( ZPARM == "" )
 						{
 							t         = screenNum ;
@@ -727,20 +742,12 @@ void mainLoop()
 								screenNum = t ;
 							}
 						}
-						if ( currAppl->popupDisplayed() )
-						{
-							currAppl->save_screen() ;
-						}
 						currScrn = screenList[ screenNum ] ;
 						currAppl = currScrn->application_get_current() ;
 						p_poolMGR->setAPPLID( RC, currAppl->ZZAPPLID )   ;
 						p_poolMGR->setShrdPool( RC, currAppl->shrdPool ) ;
 						p_poolMGR->put( RC, "ZPANELID", currAppl->PANELID, SHARED, SYSTEM ) ;
-						if ( currAppl->popupDisplayed() )
-						{
-							currAppl->restore_screen() ;
-						}
-						currAppl->refresh() ;
+						currScrn->restore_panel_stack() ;
 						loadpfkeyTable()    ;
 						break ;
 					}
@@ -759,7 +766,7 @@ void mainLoop()
 					if ( SEL )
 					{
 						updateDefaultVars()                   ;
-						currAppl->currPanel->abActive = false ;
+						currAppl->currPanel->pdActive = false ;
 						startApplication( SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB ) ;
 					}
 				}
@@ -837,9 +844,17 @@ void processAction( uint row, uint col, int c, bool & passthru )
 
 	if ( c == KEY_ENTER )
 	{
-		if ( row == currAppl->currPanel->get_abline() )
+		if ( currAppl->currPanel->on_border_line( row, col ) )
 		{
-			if ( currAppl->currPanel->display_pd( row, col ) )
+			issueMessage( "PSYS012N" ) ;
+			ZCOMMAND = "NOP" ;
+			passthru = false ;
+			return ;
+			// Move window to be implemented
+		}
+		else if ( row == currAppl->currPanel->get_abline() )
+		{
+			if ( currAppl->currPanel->display_pd( col ) )
 			{
 				passthru = false ;
 				currAppl->currPanel->get_cursor( row, col ) ;
@@ -1019,14 +1034,14 @@ void processAction( uint row, uint col, int c, bool & passthru )
 	if ( CMDVerb == "RETRIEVE" )
 	{
 		commandStack = "" ;
-		if ( retrieveBuffer.empty() ) return ;
+		if ( retrieveBuffer.empty() ) { return ; }
 		ZCOMMAND = "NOP" ;
 		passthru = false ;
 		currAppl->currPanel->cmd_setvalue( retrieveBuffer[ retPos ] ) ;
 		currAppl->currPanel->cursor_to_field( RC, currAppl->currPanel->CMDfield, retrieveBuffer[ retPos ].size()+1 ) ;
 		currAppl->currPanel->get_cursor( row, col ) ;
 		currScrn->set_row_col( row, col ) ;
-		if ( ++retPos >= retrieveBuffer.size() ) retPos = 0 ;
+		if ( ++retPos >= retrieveBuffer.size() ) { retPos = 0 ; }
 		return ;
 	}
 	retPos = 0 ;
@@ -1034,21 +1049,18 @@ void processAction( uint row, uint col, int c, bool & passthru )
 	if ( CMDVerb == "HELP")
 	{
 		commandStack = "" ;
-		if ( currAppl->currPanel->SMSG != "" && !currAppl->currPanel->showLMSG )
+		if ( currAppl->currPanel->showLMSG )
 		{
-			passthru = false ;
-			currAppl->currPanel->showLMSG = true ;
-			currAppl->currPanel->display_msg()   ;
-			return ;
+			currAppl->currPanel->cmd_setvalue( "" ) ;
+			ZPARM   = currAppl->get_help_member( row, col ) ;
+			CMDRest = ZPARM ;
 		}
 		else
 		{
-			currAppl->currPanel->showLMSG = false ;
-			currAppl->currPanel->cmd_setvalue( "" ) ;
-			currAppl->currPanel->SMSG     = ""    ;
-			currAppl->currPanel->LMSG     = ""    ;
-			ZPARM   = currAppl->get_help_member( row, col ) ;
-			CMDRest = ZPARM ;
+			passthru = false ;
+			currAppl->currPanel->showLMSG = true ;
+			currAppl->currPanel->display_msg() ;
+			return ;
 		}
 	}
 
@@ -1162,9 +1174,6 @@ void processPGMSelect()
 {
 	// Called when an application program has invoked the SELECT service (also VIEW, EDIT, BROWSE)
 
-	uint row ;
-	uint col ;
-
 	if ( apps.find( currAppl->SEL_PGM ) != apps.end() )
 	{
 		updateDefaultVars() ;
@@ -1182,10 +1191,6 @@ void processPGMSelect()
 			terminateApplication() ;
 			if ( pLScreen::screensTotal == 0 ) { return ; }
 		}
-		currAppl->get_cursor( row, col )  ;
-		currScrn->set_row_col( row, col ) ;
-		currScrn->clear()   ;
-		currAppl->refresh() ;
 	}
 }
 
@@ -1211,10 +1216,6 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 	if ( apps.find( Application ) == apps.end() )
 	{
 		errorScreen( 1, "Application " + Application + " not found" ) ;
-		currAppl->get_cursor( row, col )  ;
-		currScrn->set_row_col( row, col ) ;
-		currScrn->clear()   ;
-		currAppl->refresh() ;
 		return ;
 	}
 	if ( !apps[ Application ].dlopened )
@@ -1222,10 +1223,6 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 		if ( !loadDynamicClass( Application ) )
 		{
 			errorScreen( 1, "Errors loading application " + Application ) ;
-			currAppl->get_cursor( row, col )  ;
-			currScrn->set_row_col( row, col ) ;
-			currScrn->clear()   ;
-			currAppl->refresh() ;
 			return ;
 		}
 	}
@@ -1241,12 +1238,6 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 		ldp = currAppl->libdef_puser ;
 		ldt = currAppl->libdef_tuser ;
 	}
-	if ( currAppl->popupDisplayed() )
-	{
-		currAppl->save_screen() ;
-	}
-	currScrn->clear() ;
-
 	currAppl = ((pApplication*(*)())( apps[ Application ].maker_ep))() ;
 
 	currScrn->application_add( currAppl ) ;
@@ -1258,7 +1249,6 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 	currAppl->p_tableMGR   = p_tableMGR  ;
 	currAppl->PARM         = parm        ;
 	currAppl->lspfCallback = lspfCallbackHandler ;
-	currAppl->set_msgid_status( currScrn->get_msgid_status() ) ;
 	apps[ Application ].refCount++ ;
 
 	if ( NEWAPPL != "" )
@@ -1277,6 +1267,7 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 		p_poolMGR->createPool( RC, SHARED ) ;
 		s = ZSCREEN[ screenNum ] ;
 		p_poolMGR->put( RC, "ZSCREEN", s, SHARED, SYSTEM ) ;
+		p_poolMGR->put( RC, "ZSCRNUM", d2ds( currScrn->screenID ), SHARED, SYSTEM ) ;
 		p_poolMGR->put( RC, "ZAPPLID", p_poolMGR->getAPPLID(), SHARED, SYSTEM ) ;
 	}
 	currAppl->shrdPool = p_poolMGR->getShrdPool() ;
@@ -1351,17 +1342,17 @@ void terminateApplication()
 
 	string  ZAPPNAME ;
 	string  tRESULT  ;
-	string  SMSG     ;
-	string  LMSG     ;
+	string  tMSGID1  ;
 	string  fname    ;
-	cuaType MSGTYPE  ;
 
-	bool MSGALRM      ;
 	bool refList      ;
 	bool nretError    ;
 	bool propagateEnd ;
 	bool jumpEntered  ;
 	bool setCursor    ;
+	bool setMSG       ;
+
+	slmsg tMSG1       ;
 
 	boost::thread * pThread ;
 
@@ -1375,7 +1366,6 @@ void terminateApplication()
 	}
 
 	currAppl->closeTables()     ;
-	SMSG    = ""                ;
 	tRC     = currAppl->ZRC     ;
 	tRSN    = currAppl->ZRSN    ;
 	tRESULT = currAppl->ZRESULT ;
@@ -1383,7 +1373,8 @@ void terminateApplication()
 	if ( currAppl->reffield == "#REFLIST" ) { refList = true  ; }
 	else                                    { refList = false ; }
 
-	if ( currAppl->setMSG ) { SMSG = currAppl->ZSMSG ; LMSG = currAppl->ZLMSG ; MSGTYPE = currAppl->ZMSGTYPE ; MSGALRM = currAppl->ZMSGALRM ; }
+	setMSG = currAppl->setMSG ;
+	if ( setMSG ) { tMSGID1 = currAppl->getmsgid1() ; tMSG1 = currAppl->getmsg1() ; }
 
 	jumpEntered = currAppl->jumpEntered ;
 	if ( currAppl->propagateEnd && ( currScrn->application_stack_size() > 1 ) ) { propagateEnd = true  ; }
@@ -1417,6 +1408,7 @@ void terminateApplication()
 	currScrn->application_remove_current() ;
 	if ( currScrn->application_stack_empty() )
 	{
+		p_poolMGR->destroyPool( currScrn->screenID ) ;
 		delete currScrn ;
 		if ( pLScreen::screensTotal == 0 )
 		{
@@ -1476,19 +1468,19 @@ void terminateApplication()
 				else
 				{
 					log( "E", "Invalid field "+ fname +" in .NRET panel statement" << endl ) ;
-					currAppl->set_msg( "PSYS011Z" ) ;
+					issueMessage( "PSYS011Z" ) ;
 					nretError = true ;
 				}
 			}
 			else
 			{
-				currAppl->set_msg( "PSYS011Y" ) ;
+				issueMessage( "PSYS011Y" ) ;
 				nretError = true ;
 			}
 		}
 		else
 		{
-			currAppl->set_msg( "PSYS011X" ) ;
+			issueMessage( "PSYS011X" ) ;
 			nretError = true ;
 		}
 	}
@@ -1505,14 +1497,14 @@ void terminateApplication()
 				currAppl->currPanel->set_cursor( row, col ) ;
 				if ( refList )
 				{
-					currAppl->set_msg( "PSYS011W" ) ;
+					issueMessage( "PSYS011W" ) ;
 				}
 				setCursor = false ;
 			}
 			else
 			{
 				log( "E", "Invalid field "+ currAppl->reffield +" in .NRET panel statement" << endl )   ;
-				currAppl->set_msg( "PSYS011Z" ) ;
+				issueMessage( "PSYS011Z" ) ;
 			}
 		}
 		else if ( tRC == 8 )
@@ -1530,13 +1522,6 @@ void terminateApplication()
 	{
 		commandStack = jumpOption ;
 	}
-
-	if ( currAppl->popupDisplayed() )
-	{
-		currAppl->restore_screen() ;
-	}
-
-	currAppl->set_msgid_status( currScrn->get_msgid_status() ) ;
 
 	if ( currAppl->SEL )
 	{
@@ -1559,7 +1544,7 @@ void terminateApplication()
 		currAppl->ZRC     = tRC     ;
 		currAppl->ZRSN    = tRSN    ;
 		currAppl->ZRESULT = tRESULT ;
-		if ( SMSG != "" )  { currAppl->ZSMSG = SMSG ; currAppl->ZLMSG = LMSG ; currAppl->ZMSGTYPE = MSGTYPE ; currAppl->ZMSGALRM = MSGALRM ; currAppl->setMSG = true ; }
+		if ( setMSG ) { currAppl->set_msg1( tMSG1, tMSGID1 ) ; }
 		log( "I", "Resumed function did a SELECT, BROWSE, EDIT or VIEW.  Ending wait in function" << endl ) ;
 		ResumeApplicationAndWait() ;
 		while ( currAppl->terminateAppl )
@@ -1585,12 +1570,7 @@ void terminateApplication()
 			terminateApplication() ;
 			if ( pLScreen::screensTotal == 0 ) { return ; }
 		}
-		if ( SMSG != "" )  { currAppl->set_msg( SMSG, LMSG, MSGTYPE, MSGALRM ) ; }
-		if ( !currAppl->popupDisplayed() )
-		{
-			currScrn->clear() ;
-		}
-		currAppl->refresh() ;
+		if ( setMSG ) { currAppl->set_msg1( tMSG1, tMSGID1, true ) ; }
 		if ( setCursor )
 		{
 			currAppl->get_home( row, col )   ;
@@ -1936,8 +1916,6 @@ void loadSystemCommandTable()
 
 void loadpfkeyTable()
 {
-	// Load the pfkey table, if the one currently loaded (pfkPROF) is not the same as the current application APPLID
-
 	int RC ;
 
 	string ZPF01, ZPF02, ZPF03, ZPF04 ;
@@ -1946,8 +1924,6 @@ void loadpfkeyTable()
 	string ZPF13, ZPF14, ZPF15, ZPF16 ;
 	string ZPF17, ZPF18, ZPF19, ZPF20 ;
 	string ZPF21, ZPF22, ZPF23, ZPF24 ;
-
-	if ( pfkPROF == currAppl->ZZAPPLID ) { return ; }
 
 	ZPF01 = p_poolMGR->get( RC, "ZPF01", PROFILE ) ; if ( RC == 8 ) { ZPF01 = "HELP" ; }     ; pfkeyTable[ KEY_F(1)  ] = ZPF01 ;
 	ZPF02 = p_poolMGR->get( RC, "ZPF02", PROFILE ) ; if ( RC == 8 ) { ZPF02 = "SPLIT" ; }    ; pfkeyTable[ KEY_F(2)  ] = ZPF02 ;
@@ -1973,8 +1949,6 @@ void loadpfkeyTable()
 	ZPF22 = p_poolMGR->get( RC, "ZPF22", PROFILE ) ; if ( RC == 8 ) { ZPF22 = "SWAP PREV"; } ; pfkeyTable[ KEY_F(22) ] = ZPF22 ;
 	ZPF23 = p_poolMGR->get( RC, "ZPF23", PROFILE ) ; if ( RC == 8 ) { ZPF23 = "SWAP NEXT"; } ; pfkeyTable[ KEY_F(23) ] = ZPF23 ;
 	ZPF24 = p_poolMGR->get( RC, "ZPF24", PROFILE ) ; if ( RC == 8 ) { ZPF24 = "HELP" ; }     ; pfkeyTable[ KEY_F(24) ] = ZPF24 ;
-
-	pfkPROF = currAppl->ZZAPPLID ;
 }
 
 
@@ -2019,7 +1993,7 @@ void updateReflist()
 		else
 		{
 			log( "E", "Invalid field "+ fname +" in .NRET panel statement" << endl ) ;
-			currAppl->set_msg( "PSYS011Z" ) ;
+			issueMessage( "PSYS011Z" ) ;
 		}
 	}
 }
@@ -2032,11 +2006,10 @@ void rawOutput()
 
 	int i ;
 	int l ;
-	uint row ;
-	uint col ;
 
 	currScrn->clear() ;
 	currScrn->show_enter() ;
+	currScrn->save_panel_stack() ;
 	l = 0 ;
 	attrset( RED | A_BOLD ) ;
 	for ( i = 0 ; i < currAppl->rmsgs.size() ; i++ )
@@ -2055,9 +2028,7 @@ void rawOutput()
 	}
 	attroff( RED | A_BOLD ) ;
 	currAppl->rmsgs.clear() ;
-	currAppl->get_cursor( row, col )  ;
-	currScrn->set_row_col( row, col ) ;
-	currAppl->refresh()     ;
+	currScrn->restore_panel_stack() ;
 }
 
 
@@ -2149,6 +2120,16 @@ void lspfCallbackHandler( lspfCommand & lc )
 }
 
 
+void issueMessage( string msg )
+{
+	currAppl->set_msg( msg ) ;
+	if ( currAppl->RC > 0 )
+	{
+		errorScreen( 1, "Syntax error in message "+ msg +" or message not found" ) ;
+	}
+}
+
+
 void errorScreen( int etype, string msg )
 {
 	int l    ;
@@ -2156,8 +2137,11 @@ void errorScreen( int etype, string msg )
 
 	log( "E", msg << endl ) ;
 	if ( currAppl->errPanelissued ) { return ; }
+
 	currScrn->clear() ;
 	currScrn->show_enter() ;
+	currScrn->save_panel_stack() ;
+
 	attrset( WHITE | A_BOLD ) ;
 	mvaddstr( 0, 0, msg.c_str() ) ;
 	mvaddstr( 1, 0, "See lspf and application logs for possible further details of the error" ) ;
@@ -2176,6 +2160,8 @@ void errorScreen( int etype, string msg )
 		if ( c == 13 ) { break ; }
 	}
 	attroff( WHITE | A_BOLD ) ;
+
+	currScrn->restore_panel_stack() ;
 }
 
 
@@ -2360,7 +2346,7 @@ void reloadDynamicClasses( string parm )
 		if ( parm == appl ) { break ; }
 	}
 
-	currAppl->set_msg( "PSYS012G" ) ;
+	issueMessage( "PSYS012G" ) ;
 	log( "I", d2ds( i ) +" applications reloaded" << endl ) ;
 	log( "I", d2ds( j ) +" new applications stored" << endl ) ;
 	log( "I", d2ds( k ) +" errors encounted" << endl ) ;
@@ -2369,12 +2355,12 @@ void reloadDynamicClasses( string parm )
 		if ( (i+j) == 0 )
 		{
 			log( "W", "Application "+ parm +" not reloaded/stored" << endl ) ;
-			currAppl->set_msg( "PSYS012I" ) ;
+			issueMessage( "PSYS012I" ) ;
 		}
 		else
 		{
 			log( "I", "Application "+ parm +" reloaded/stored" << endl )   ;
-			currAppl->set_msg( "PSYS012H" ) ;
+			issueMessage( "PSYS012H" ) ;
 		}
 	}
 

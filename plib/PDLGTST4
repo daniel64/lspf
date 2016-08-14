@@ -4,25 +4,25 @@
 )ENDCOMMENT
 )BODY
 
-PanelTitle "Test pattern matching routine"  
+PanelTitle "Test pattern matching routine"
 
-literal   4    2    FP  "Command ===> "    
-field     4   15   MAX  NEF     CAPS(ON)  ZCMD    
+literal   4    2    FP  "Command ===> "
+field     4   15   MAX  NEF     CAPS(ON)  ZCMD
 
-literal   6   MAX-36    FP  "TIME: "     
-field     6   MAX-30    8    VOI   NONE  ZTIME    
+literal   6   MAX-36    FP  "TIME: "
+field     6   MAX-30    8    VOI   NONE  ZTIME
 
-literal   6   MAX-20    FP  "DATE: "     
-field     6   MAX-14    8    VOI   NONE  ZDATE    
+literal   6   MAX-20    FP  "DATE: "
+field     6   MAX-14    8    VOI   NONE  ZDATE
 
-literal   9   21    FP     "String 1 containing pattern . . . . . . ."     
+literal   9   21    FP     "String 1 containing pattern . . . . . . ."
 field     9   61    MAX    NEF   NONE  STR1
 
-literal   10  21    FP     "String 2 to match with string 1 . . . . ."     
-field     10  61    MAX    NEF   NONE  STR2    
+literal   10  21    FP     "String 2 to match with string 1 . . . . ."
+field     10  61    MAX    NEF   NONE  STR2
 
-literal   12  21    FP     "Result of match . . . . . . . . . . . . ."     
-field     12  61    30     RP   NONE  RESLT    
+literal   12  21    FP     "Result of match . . . . . . . . . . . . ."
+field     12  61    30     RP   NONE  RESLT
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC

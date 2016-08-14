@@ -326,7 +326,9 @@ void PEDIT01::Edit()
 
 		if ( upper( ZCMD ) == "SAVE" )
 		{
-			if ( !saveFile() ) { continue ; }
+			if ( !saveFile() ) { continue             ; }
+			if ( termEdit )    { setmsg( "PEDT011P" ) ; }
+			else               { MSG = "PEDT011P"     ; }
 			ZCMD = ""  ;
 		}
 
@@ -382,7 +384,7 @@ bool PEDIT01::termOK()
 		return false    ;
 	}
 	if ( saveFile() ) { setmsg( "PEDT011P" ) ; }
-	else              { return false        ; }
+	else              { return false         ; }
 	return true ;
 }
 

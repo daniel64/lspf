@@ -1,8 +1,8 @@
-*
-* System message file for lspf
-*
+/*                                     */
+/* System message file for lspf        */
+/*                                     */
 
-PSYS011 'Up is not active' .TYPE=W
+PSYS011 'Up is not active' .T=W
 'Scrolling not active on this panel'
 
 PSYS012 'Down is not active' .TYPE=W
@@ -26,13 +26,13 @@ PSYS017 'Invalid command in panel' .TYPE=W
 PSYS018 'Invalid primary command' .TYPE=W
 'Invalid primary command has been entered.  See help for valid commands for this panel'
 
-PSYS019 'Enter required field' .TYPE=W
+PSYS019 'Enter required field' .TYPE=W .W=NORESP
 'Enter required field at cursor position'
 
-PSYS011A 'Field must be numeric' .TYPE=W
+PSYS011A 'Field must be numeric' .TYPE=W .W=NORESP
 'Enter only numeric data in field at the cursor position'
 
-PSYS011B 'Enter one of the listed values' .TYPE=W
+PSYS011B 'Enter one of the listed values' .TYPE=W .W=NORESP
 'Enter one of the listed values for this field'
 
 PSYS011C 'Invalid primary command' .TYPE=W
@@ -45,14 +45,14 @@ PSYS011D 'Invalid line command' .TYPE=W
 PSYS011E 'Open failed' .TYPE=W
 'Open of the requested file failed.  Check permissions'
 
-PSYS011F 'Invalid octal number' .TYPE=W
+PSYS011F 'Invalid octal number' .TYPE=W .W=NORESP
 'Number entered is not a valid octal number'
 
-PSYS011G 'Non-integer data entered' .TYPE=W
+PSYS011G 'Non-integer data entered' .TYPE=W .W=NORESP
 'Field is an integer via the function pool definition, but non-integer data has been entered. ' +
 'Change ignored'
 
-PSYS011H 'Field must be valid hex' .TYPE=W
+PSYS011H 'Field must be valid hex' .TYPE=W .W=NORESP
 'Enter only hex data in the field at the cursor position'
 
 PSYS011I 'Invalid Scroll Amount' .TYPE=W
@@ -71,7 +71,7 @@ PSYS011L 'SPLIT Command Disabled' .TYPE=W
 PSYS011M 'Non-zero return code' .TYPE=W
 'REXX program has returned a non-zero return code.  See application log for more messages'
 
-PSYS011N 'Invalid data entered' .TYPE=W
+PSYS011N 'Invalid data entered' .TYPE=W .W=NORESP
 "Data entered must be of length &ZZSTR1 in the form '&ZZSTR2'"
 
 PSYS011O 'Invalid command parameter' .TYPE=W
@@ -144,8 +144,15 @@ PSYS012J 'Field does not support FIELDEXC' .TYPE=W
 PSYS012K 'Cursor not on a field' .TYPE=W
 'The cursor must be positioned on a field that supports field-level execution'
 
-PSYS012L '' .TYPE=W
+PSYS012L '' .TYPE=W .W=N
 'The message id of the last message was &ZMSGID'
 
 PSYS012M 'Invalid MSGID parameter' .TYPE=W
 'Valid MSGID parameters are ON, OFF or blank.'
+
+PSYS012N 'Window Move Pending' .TYPE=W
+'Place cursor at position to move window'
+
+PSYS012O 'Invalid PANELID parameter' .TYPE=W
+'Valid parameters are ON, OFF or blank to toggle setting'
+

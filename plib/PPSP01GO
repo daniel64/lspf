@@ -20,6 +20,8 @@ field    9   4     1   CEF PAD('_') GOKLFAL
 literal  9   6         SAC "Fail on missing panel keylist or table"
 field    10  4     1   CEF PAD('_') GOSTFST
 literal  10  6         SAC "Search site command tables before ISPCMDS"
+field    11  4     1   CEF PAD('_') GOLMSGW
+literal  11  6         SAC "Always display long message in a pop-up"
 
 literal  6   60    ET    "Application"
 literal  7   62    FP    "Application Timeout ."
@@ -27,38 +29,38 @@ field    7   84  4 CEF NUMERIC(ON),PAD('_') GOATIMO
 literal  7   89    FP    "seconds"
 
 
-literal  12  2     ET    "General"
+literal  13  2     ET    "General"
 
-literal  13  4     FP    "Command delimiter . . ."
-field    13  28  1 CEF PAD('_') GODEL
+literal  14  4     FP    "Command delimiter . . ."
+field    14  28  1 CEF PAD('_') GODEL
 
-literal  14  4     FP    "Retrieve command size ."
-field    14  28  2 CEF NUMERIC(ON),PAD('_') GORTSIZE
+literal  15  4     FP    "Retrieve command size ."
+field    15  28  2 CEF NUMERIC(ON),PAD('_') GORTSIZE
 
-literal  15  4     FP    "Retrieve buffer size. ."
-field    15  28  2 CEF NUMERIC(ON),PAD('_') GORBSIZE
+literal  16  4     FP    "Retrieve buffer size. ."
+field    16  28  2 CEF NUMERIC(ON),PAD('_') GORBSIZE
 
-literal  16  4     FP    "User command tables . ."
-field    16  28  4 CEF PAD('_'),CAPS(ON) GOUCMD1
-field    16  33  4 CEF PAD('_'),CAPS(ON) GOUCMD2
-field    16  38  4 CEF PAD('_'),CAPS(ON) GOUCMD3
+literal  17  4     FP    "User command tables . ."
+field    17  28  4 CEF PAD('_'),CAPS(ON) GOUCMD1
+field    17  33  4 CEF PAD('_'),CAPS(ON) GOUCMD2
+field    17  38  4 CEF PAD('_'),CAPS(ON) GOUCMD3
 
-literal  17  4     FP    "Site command tables . ."
-field    17  28  4 CEF PAD('_'),CAPS(ON) GOSCMD1
-field    17  33  4 CEF PAD('_'),CAPS(ON) GOSCMD2
-field    17  38  4 CEF PAD('_'),CAPS(ON) GOSCMD3
+literal  18  4     FP    "Site command tables . ."
+field    18  28  4 CEF PAD('_'),CAPS(ON) GOSCMD1
+field    18  33  4 CEF PAD('_'),CAPS(ON) GOSCMD2
+field    18  38  4 CEF PAD('_'),CAPS(ON) GOSCMD3
 
-literal 20 2  CH "Instructions"
-literal 22 2  NT "Enter"
-literal 22 8  PS "SAVE"
-literal 22 13 NT "or"
-literal 22 16 PS "END"
-literal 22 20 NT "to save changes,"
-literal 22 37 PS "DEFAULTS"
-literal 22 46 NT "to restore defaults"
+literal 21 2  CH "Instructions"
 literal 23 2  NT "Enter"
-literal 23 8  PS "CANCEL"
-literal 23 15 NT "to cancel changes"
+literal 23 8  PS "SAVE"
+literal 23 13 NT "or"
+literal 23 16 PS "END"
+literal 23 20 NT "to save changes,"
+literal 23 37 PS "DEFAULTS"
+literal 23 46 NT "to restore defaults"
+literal 24 2  NT "Enter"
+literal 24 8  PS "CANCEL"
+literal 24 15 NT "to cancel changes"
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
@@ -70,7 +72,7 @@ VER (&GODEL NB)
 VER (&GOKLUSE LIST,/)
 VER (&GOKLFAL LIST,/)
 VER (&GOSTFST LIST,/)
-VER (&GOSTFST LIST,/)
+VER (&GOLMSGW LIST,/)
 VER (&GOATIMO NB)
 VER (&GORTSIZE NB)
 VER (&GORBSIZE NB)

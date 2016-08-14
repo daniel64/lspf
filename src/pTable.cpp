@@ -1559,14 +1559,14 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 	debug1( "Loading table " << tb_name << " from " <<  filename << endl ) ;
 
 	table.open( filename.c_str() , ios::binary | ios::in ) ;
-	if ( table.fail() != 0 )
+	if ( !table.is_open() )
 	{
 		RC = 20 ;
-		log( "E", "Table open for " << tb_name << " gave error.  Filename " << filename << endl ) ;
+		log( "E", "Table open for "+ tb_name +" gave an error.  Filename "+ filename << endl ) ;
 		return ;
 	}
 
-	table.read (buf1 , 2);
+	table.read( buf1, 2);
 	if ( memcmp( buf1, "\x00\x85", 2 ) )
 	{
 		RC = 20 ;
@@ -1588,7 +1588,7 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 	table.get( x ) ;
 	i = static_cast< int >( x ) ;
 	if ( i < 0 ) { i = 256 + i ; }
-	table.read (buf1, i ) ;
+	table.read( buf1, i ) ;
 	hdr.assign( buf1, i ) ;
 	table.get( x ) ;
 	i = static_cast< int >( x ) ;
@@ -1598,7 +1598,7 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 		table.get( x ) ;
 		k = static_cast< int >( x ) ;
 		if ( k < 0 ) { k = 256 + k ; }
-		table.read (buf1, k ) ;
+		table.read( buf1, k ) ;
 		switch ( j )
 		{
 		case 0: sir.assign( buf1, k ) ;
@@ -1620,7 +1620,7 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 	table.get( x ) ;
 	n1 = static_cast< int >( x ) ;
 	if ( n1 < 0 ) { n1 = 256 + n1 ; }
-	num_keys = n1 ;
+	num_keys = n1  ;
 	table.get( x ) ;
 	n1 = static_cast< int >( x ) ;
 	if ( n1 < 0 ) { n1 = 256 + n1 ; }
@@ -1642,7 +1642,7 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 		}
 		i = static_cast< int >( x ) ;
 		if ( i < 0 ) { i = 256 + i ; }
-		table.read (buf1 , i);
+		table.read( buf1, i ) ;
 		keys = keys + s.assign( buf1, i ) + " " ;
 	}
 	for ( j = 0 ; j < num_flds ; j++ )
@@ -1657,7 +1657,7 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 		}
 		i = static_cast< int >( x ) ;
 		if ( i < 0 ) { i = 256 + i ; }
-		table.read (buf1 , i) ;
+		table.read( buf1, i ) ;
 		flds = flds + s.assign( buf1, i ) + " " ;
 	}
 
@@ -1718,7 +1718,15 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 				buf2Size = i  ;
 				buf2     = new char[ buf2Size ] ;
 			}
-			table.read (buf2, i ) ;
+			table.read( buf2, i ) ;
+			if ( table.fail() != 0 )
+			{
+				RC = 20 ;
+				log( "E", "Unexpected EOF reading table values.  Table " << tb_name << " appears to be corrupt. Filename " << filename << endl ) ;
+				table.close() ;
+				delete[] buf2 ;
+				return ;
+			}
 			val.assign( buf2, i ) ;
 			debug2( "Value read for row " << l << " position " << j << "<<" << val << "<<" << endl ) ;
 			m_flds.push_back ( val ) ;

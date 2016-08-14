@@ -817,6 +817,8 @@ void field::display_field( WINDOW * win, bool snulls )
 
 	// Display the null character as the field pad character and pad the field with the same character
 
+	// Call ncurses touchline() for the field row as the update does not always appear without it
+
 	uint i     ;
 	char nullc ;
 	string t   ;
@@ -913,6 +915,7 @@ void field::display_field( WINDOW * win, bool snulls )
 			mvwaddstr( win, field_row, field_col, t.c_str() ) ;
 		}
 	}
+	touchline( win, field_row, 1 ) ;
 }
 
 
@@ -1039,7 +1042,7 @@ void abc::add_pdc( string name, string run, string parm, string unavail )
 	m_pdc.pdc_unavail = unavail ;
 
 	++abc_maxh ;
-	if ( abc_maxw < name.size() ) abc_maxw = name.size() ;
+	if ( abc_maxw < name.size() ) { abc_maxw = name.size() ; }
 
 	pdcList.push_back( m_pdc ) ;
 }
@@ -1061,14 +1064,14 @@ void abc::display_abc_unsel( WINDOW * win )
 }
 
 
-void abc::display_pd()
+void abc::display_pd( uint prow, uint pcol )
 {
 	string t ;
 	int    i ;
 
 	if ( !pd_created )
 	{
-		win = newwin( abc_maxh + 2 , abc_maxw + 10, 1, abc_col ) ;
+		win = newwin( abc_maxh + 2, abc_maxw + 10, prow+1, pcol+abc_col ) ;
 		wattrset( win, cuaAttr[ AB ] ) ;
 		box( win, 0, 0 ) ;
 		panel = new_panel( win ) ;
@@ -1080,13 +1083,11 @@ void abc::display_pd()
 			wattroff( win, cuaAttr[ PAC ] ) ;
 		}
 		wattroff( win, cuaAttr[ AB ] ) ;
-		update_panels()   ;
 		pd_created = true ;
 	}
 	else
 	{
 		show_panel( panel ) ;
-		update_panels()     ;
 	}
 }
 
@@ -1094,7 +1095,6 @@ void abc::display_pd()
 void abc::hide_pd()
 {
 	hide_panel( panel ) ;
-	update_panels()     ;
 }
 
 

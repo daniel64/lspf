@@ -4,26 +4,26 @@
 )ENDCOMMENT
 )BODY
 
-PanelTitle "Display Dialogue Variables"  
+PanelTitle "Display Dialogue Variables"
 
-literal   4    2    FP  "Command ===> "    
-field     4   15   MAX  NEF     CAPS(ON)  ZCMD    
+literal   4    2    FP  "Command ===> "
+field     4   15   MAX  NEF     CAPS(ON)  ZCMD
 
-literal   6   MAX-36    FP  "TIME: "     
-field     6   MAX-30    8    VOI   NONE  ZTIME    
+literal   6   MAX-36    FP  "TIME: "
+field     6   MAX-30    8    VOI   NONE  ZTIME
 
-literal   6   MAX-20    FP  "DATE: "     
-field     6   MAX-14    8    VOI   NONE  ZDATE    
+literal   6   MAX-20    FP  "DATE: "
+field     6   MAX-14    8    VOI   NONE  ZDATE
 
-literal   8    2    FP  "VAR NAME. . .:"    
-field     8   17   90   NEF     CAPS(ON)  FLD1    
+literal   8    2    FP  "VAR NAME. . .:"
+field     8   17   90   NEF     CAPS(ON)  FLD1
 
-literal   10  2     CT     "FUNNCTION POOL VARIABLES:"     
+literal   10  2     CT     "FUNNCTION POOL VARIABLES:"
 
-literal   11   2     FP     "ZCURFLD:"     
+literal   11   2     FP     "ZCURFLD:"
 field     11   11    10     VOI   NONE  ZCURFLD
 
-literal   12   2     FP     "ZCURPOS:"     
+literal   12   2     FP     "ZCURPOS:"
 field     12   11    10     VOI   NONE  ZCURPOS
 
 )INCLUDE STD_PDC

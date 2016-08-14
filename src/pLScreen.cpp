@@ -60,7 +60,6 @@ pLScreen::pLScreen()
 	}
 	++screensTotal     ;
 	currScreen = this  ;
-	showMSGID  = false ;
 	screenID   = ++maxScreenID ;
 }
 
@@ -84,6 +83,49 @@ void pLScreen::clear()
 }
 
 
+void pLScreen::save_panel_stack()
+{
+	// Save all panels for this logical screen
+	// Panel user data : object panel_data
+	//                   1 int field, screenID
+
+	PANEL * pnl ;
+
+	const void * vptr ;
+	const panel_data * pd ;
+
+	while ( !panelList.empty() )
+	{
+		panelList.pop() ;
+	}
+	pnl = NULL ;
+	while ( true )
+	{
+		pnl = panel_below( pnl ) ;
+		if ( pnl == NULL ) { break ; }
+		vptr = panel_userptr( pnl ) ;
+		if ( vptr == NULL ) { continue ; }
+		pd = static_cast<const panel_data *>(vptr) ;
+		if ( pd->screenID != screenID ) { continue ; }
+		panelList.push( pnl ) ;
+	}
+}
+
+
+void pLScreen::restore_panel_stack()
+{
+	// Restore saved panels for this logical screen.
+	// Call touchwin() to make sure panels are fully refreshed.
+
+	while ( !panelList.empty() )
+	{
+		top_panel( panelList.top() ) ;
+		touchwin( panel_window( panelList.top() ) ) ;
+		panelList.pop() ;
+	}
+}
+
+
 void pLScreen::OIA_setup()
 {
 	mvwaddch( OIA, 0, 0, ACS_CKBOARD ) ;
@@ -101,7 +143,7 @@ void pLScreen::show_enter()
 	mvwaddstr( OIA, 0, 20, "X-Enter" ) ;
 	wattroff( OIA, RED ) ;
 	wmove( OIA, 0, 0 ) ;
-	wrefresh( OIA )  ;
+	wrefresh( OIA )    ;
 }
 
 
@@ -111,7 +153,7 @@ void pLScreen::show_busy()
 	mvwaddstr( OIA, 0, 20, "X-Busy " ) ;
 	wattroff( OIA, RED ) ;
 	wmove( OIA, 0, 0 ) ;
-	wrefresh( OIA )  ;
+	wrefresh( OIA )    ;
 }
 
 

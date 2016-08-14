@@ -1,1 +1,1 @@
-g++ -O0 -std=c++11 -rdynamic -Wunused-variable -lncurses -lpanel -lboost_thread -lboost_filesystem -lboost_system -ldl -lpthread -o lspf lspf.cpp
+g++ -O0 -std=c++11 -rdynamic -Wunused-variable -lpanel -lncurses -lboost_thread -lboost_filesystem -lboost_system -ldl -lpthread -o lspf lspf.cpp

@@ -28,9 +28,9 @@ class pApplication
 		static pApplication * currApplication ;
 
 		int    taskID             ;
+		int    RC                 ;
 		string PANELID            ;
 		string PPANELID           ;
-		string MSGID              ;
 		bool   ControlDisplayLock ;
 		bool   ControlNonDispl    ;
 		bool   ControlSplitEnable ;
@@ -62,7 +62,6 @@ class pApplication
 		bool   PASSLIB            ;
 		bool   setMSG             ;
 		string shrdPool           ;
-		int    RC                 ;
 		vector<string>rmsgs       ;
 
 		boost::posix_time::ptime resumeTime ;
@@ -84,9 +83,6 @@ class pApplication
 		void   init() ;
 		void   info() ;
 		void   refresh()  ;
-		void   nrefresh() ;
-		void   save_screen()    ;
-		void   restore_screen() ;
 		void   panelCreate( string p_name ) ;
 		bool   isRawOutput() { return rawOutput ; }
 
@@ -152,7 +148,7 @@ class pApplication
 		void   edit( string m_file, string m_panel=""   ) ;
 		void   view( string m_file, string m_panel=""   ) ;
 		void   setmsg( string msg, msgSET sType=UNCOND  ) ;
-		void   getmsg( string, string, string, string, string, string ) ;
+		void   getmsg( string, string, string, string, string, string, string ="" ) ;
 
 		void   addpop( string ="", int =0, int =0 ) ;
 		void   rempop( string ="" ) ;
@@ -163,14 +159,17 @@ class pApplication
 
 		void   set_cursor( int row, int col ) ;
 
-		bool   isprimMenu()  ;
-		bool   popupDisplayed() { return addpop_active ; }
+		bool   inputInhibited() ;
+		bool   msgInhibited()   ;
+		bool   isprimMenu()     ;
 		void   get_home( uint & row, uint & col ) ;
 		void   get_cursor( uint & row, uint & col ) ;
-		void   set_msg( string, string, cuaType, bool ) ;
 		void   set_msg( string ) ;
-		void   show_msgid()    ;
-		void   set_msgid_status( bool a ) { showMSGID = a ; }
+		void   set_msg1( slmsg, string, bool =false ) ;
+		slmsg  getmsg1()   { return MSG1   ; }
+		string getmsgid1() { return MSGID1 ; }
+		void   hide_msgs()     ;
+		void   msgResponseOK() ;
 		bool   nretriev_on()   ;
 		string get_nretfield() ;
 		void   cleanup()       ;
@@ -204,7 +203,6 @@ class pApplication
 		string ZEDSMSG    ;
 		string ZHELP      ;
 		string ZAHELP     ;
-		string ZMHELP     ;
 		string ZHOME      ;
 		string ZORXPATH   ;
 		string ZPFKEY     ;
@@ -216,10 +214,6 @@ class pApplication
 		int    ZSCRMAXW   ;
 		int    ZSCROLLN   ;
 		string ZSCROLLA   ;
-		string ZSMSG      ;
-		string ZLMSG      ;
-		cuaType ZMSGTYPE  ;
-		bool   ZMSGALRM   ;
 		string ZUSER      ;
 		string ZVERB      ;
 		string ZMUSER     ;
@@ -234,35 +228,28 @@ class pApplication
 	private:
 		boost::mutex mutex ;
 
-		int    addpop_row          ;
-		int    addpop_col          ;
+		int  addpop_row  ;
+		int  addpop_col  ;
 
-		string dumpFile            ;
+		bool addpop_active       ;
+		bool ControlErrorsReturn ;
+		bool abending            ;
 
-		bool   addpop_active       ;
+		stack<string> stk_str ;
+		stack<int> stk_int    ;
+		stack<int> addpop_stk ;
 
-		bool   ControlErrorsReturn ;
-		bool   abending            ;
+		string MSGID  ;
+		string MSGID1 ;
+		slmsg  MSG    ;
+		slmsg  MSG1   ;
 
-		bool   showMSGID           ;
+		void get_Message( string )  ;
+		int  chk_Message_id( string ) ;
+		bool load_Message( string ) ;
+		bool parse_Message( slmsg & )    ;
+		bool sub_Message_vars( slmsg & ) ;
+		map<string, slmsg>msgList   ;
 
-		stack<string> stk_str      ;
-		stack<int> stk_int         ;
-		stack<int> addpop_stk      ;
-
-		void get_Message( string )   ;
-		bool load_Message( string )  ;
-		void load_keylist( pPanel * )   ;
-
-		struct str_msg
-		{
-			string  smsg  ;
-			string  lmsg  ;
-			string  hlp   ;
-			cuaType type  ;
-			bool    alm   ;
-			bool    cont  ;
-		} ;
-		bool parse_Message( str_msg & ) ;
-		map<string, str_msg>msgList ;
+		void load_keylist( pPanel * ) ;
 } ;

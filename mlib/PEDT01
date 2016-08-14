@@ -2,19 +2,19 @@
 * Message file for the PEDIT01 EDITOR
 *
 
-PEDT011 'Invalid Command Parameter' .TYPE=W
+PEDT011 'Invalid Command Parameter' .TYPE=W .W=NORESP
 'Primary command contains an invalid parameter'
 
-PEDT012 'Invalid Line Command' .TYPE=W
+PEDT012 'Invalid Line Command' .TYPE=W .W=NORESP
 'Line command entered is not valid'
 
-PEDT013 'Line Command Invalid Here' .TYPE=W
+PEDT013 'Line Command Invalid Here' .TYPE=W .W=LNORESP
 'Line command entered is not valid on this line'
 
-PEDT014 'Label Invalid' .TYPE=W
+PEDT014 'Label Invalid' .TYPE=W .W=LRESP
 "Label must be between 1 and 5 alphanumeric characters and not starting with a 'Z'"
 
-PEDT015 'SPARE' .TYPE=N
+PEDT015 'SPARE' .TYPE=N .WINDOW=LRESP
 'SPARE'
 
 PEDT016 'Label missing or invalid' .TYPE=W
@@ -265,4 +265,3 @@ PEDT014S 'Open error' .TYPE=W
 
 PEDT014T 'File created' .TYPE=N
 'File has been created from the selected lines'
-

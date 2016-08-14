@@ -400,7 +400,7 @@ int lspfAddpop( pApplication * thisAppl, string s )
 	if ( ap_row == "" ) { i_row = 0              ; }
 	else                { i_row = ds2d( ap_row ) ; }
 
-	ap_col = parseString( rlt, str, "COL()" ) ;
+	ap_col = parseString( rlt, str, "COLUMN()" ) ;
 	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 	if ( ap_col == "" ) { i_col = 0              ; }
 	else                { i_col = ds2d( ap_col ) ; }
@@ -510,6 +510,7 @@ int lspfGetmsg( pApplication * thisAppl, string s )
 	string alm  ;
 	string hlp  ;
 	string typ  ;
+	string wndo ;
 
 	string str  ;
 
@@ -530,12 +531,15 @@ int lspfGetmsg( pApplication * thisAppl, string s )
 	hlp  = parseString( rlt, str, "HELP()" ) ;
 	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	typ = parseString( rlt, str, "TYPE()" ) ;
+	typ  = parseString( rlt, str, "TYPE()" ) ;
+	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
+
+	wndo = parseString( rlt, str, "WINDOW()" ) ;
 	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	if ( strip( str ) != "" ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	thisAppl->getmsg( msg, smsg, lmsg, alm, hlp, typ ) ;
+	thisAppl->getmsg( msg, smsg, lmsg, alm, hlp, typ, wndo ) ;
 	return thisAppl->RC ;
 }
 

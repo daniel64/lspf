@@ -131,14 +131,18 @@ class poolMGR
 		string vlist( int & RC, poolType, int )  ;
 
 		void   createPool( int & RC, poolType, string path="" ) ;
+		void   createPool( int ls ) ;
 		void   destroyPool( int & RC, poolType ) ;
+		void   destroyPool( int ls ) ;
 		void   setPOOLsReadOnly( int & RC ) ;
 		void   defaultVARs( int & RC, string name, string value, poolType ) ;
 		void   statistics() ;
 		void   snap() ;
 
 		void   put( int &, string, string, poolType = ASIS, vTYPE =USER ) ;
+		void   put( int &, int, string, string ) ;
 		string get( int &, string, poolType=ASIS ) ;
+		string get( int &, int, string ) ;
 		string * vlocate( int &, string, poolType=ASIS ) ;
 		void   locateSubPool( int &, map<string, pVPOOL>::iterator &, string, poolType = ASIS ) ;
 		void   erase( int &, string, poolType = ASIS ) ;
@@ -150,4 +154,5 @@ class poolMGR
 		int    shrdPooln  ;
 		map<string, pVPOOL> POOLs_shared  ;
 		map<string, pVPOOL> POOLs_profile ;
+		map<int,    pVPOOL> POOLs_lscreen ;
 } ;

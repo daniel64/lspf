@@ -172,19 +172,19 @@ class abc
 				pd_created = false ;
 			} ;
 
-		~abc() {
+		~abc()  {
 			if ( pd_created )
 			{
 				del_panel( panel ) ;
-				update_panels()    ;
+				delwin( win )      ;
 			}
 			} ;
 
 		void add_pdc( string, string, string, string ) ;
 		void display_abc_sel( WINDOW * )   ;
 		void display_abc_unsel( WINDOW * ) ;
-		void display_pd() ;
-		void hide_pd()    ;
+		void display_pd( uint, uint ) ;
+		void hide_pd() ;
 		pdc  retrieve_pdChoice( unsigned int row, unsigned int col ) ;
 
 	private:
@@ -435,7 +435,7 @@ class TRANS
 	public:
 		TRANS( string ) ;
 		TRANS() {
-				trns_RC   = 0   ;
+				trns_RC = 0 ;
 			} ;
 
 	map<string, string> tlst ;
@@ -458,4 +458,66 @@ class fieldExc
 	string fieldExc_command ;
 	string fieldExc_passed  ;
 
+} ;
+
+
+class panel_data
+{
+	public:
+		panel_data( int x )
+		{
+			screenID = x ;
+		}
+	int screenID ;
+} ;
+
+
+class slmsg
+{
+	public:
+		slmsg()
+		{
+			smsg   = ""    ;
+			lmsg   = ""    ;
+			hlp    = ""    ;
+			dvwin  = ""    ;
+			dvtype = ""    ;
+			dvalm  = ""    ;
+			dvhlp  = ""    ;
+			type   = IMT   ;
+			alm    = false ;
+			resp   = false ;
+			smwin  = false ;
+			lmwin  = false ;
+			cont   = false ;
+		}
+		void clear()
+		{
+			smsg   = ""    ;
+			lmsg   = ""    ;
+			hlp    = ""    ;
+			dvwin  = ""    ;
+			dvtype = ""    ;
+			dvalm  = ""    ;
+			dvhlp  = ""    ;
+			type   = IMT   ;
+			alm    = false ;
+			resp   = false ;
+			smwin  = false ;
+			lmwin  = false ;
+			cont   = false ;
+		}
+	string  smsg   ;
+	string  lmsg   ;
+	string  hlp    ;
+	string  dvwin  ;
+	string  dvtype ;
+	string  dvalm  ;
+	string  dvhlp  ;
+	cuaType type   ;
+	bool    alm    ;
+	bool    resp   ;
+	bool    smwin  ;
+	bool    lmwin  ;
+	bool    cont   ;
 } ;

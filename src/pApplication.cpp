@@ -49,7 +49,6 @@ pApplication::pApplication()
 	rawOutput              = false  ;
 	reloadCUATables        = false  ;
 	rexxName               = ""     ;
-	dumpFile               = ""     ;
 	NEWPOOL                = false  ;
 	PASSLIB                = false  ;
 	libdef_muser           = false  ;
@@ -62,7 +61,6 @@ pApplication::pApplication()
 	PPANELID               = ""     ;
 	ZHELP                  = ""     ;
 	ZAHELP                 = ""     ;
-	ZMHELP                 = ""     ;
 	ZTDROWS                = 0      ;
 	ZTDTOP                 = 0      ;
 	ZCURFLD                = ""     ;
@@ -132,7 +130,7 @@ void pApplication::panelCreate( string p_name )
 	string paths ;
 
 	RC = 0 ;
-	if ( panelList.find( p_name ) != panelList.end() ) { return ; }
+	if ( panelList.count( p_name ) > 0 ) { return ; }
 	if ( !isvalidName( p_name ) ) { RC = 20 ; checkRCode( "Invalid panel name >>" + p_name + "<<" ) ; return ; }
 
 	pPanel * p_panel    = new pPanel ;
@@ -181,31 +179,71 @@ void pApplication::get_cursor( uint & row, uint & col )
 }
 
 
-void pApplication::show_msgid()
+void pApplication::hide_msgs()
 {
-	p_poolMGR->put( RC, "ZMSGID", MSGID, SHARED, SYSTEM ) ;
-	set_msg( "PSYS012L" ) ;
+	if ( panelList.size() > 0 ) { currPanel->hide_msgs() ; }
 }
 
 
-void pApplication::set_msg( string SMSG, string LMSG, cuaType MSGTYPE, bool MSGALRM )
+bool pApplication::inputInhibited()
 {
-	if ( panelList.size() == 0 ) { return ; }
-	else                         { currPanel->set_msg( SMSG, LMSG, MSGTYPE, MSGALRM, MSGID, showMSGID ) ; }
+	if ( panelList.size() > 0 ) { return currPanel->inputInhibited() ; }
+	return false ;
+}
+
+
+bool pApplication::msgInhibited()
+{
+	if ( panelList.size() > 0 ) { return currPanel->msgInhibited() ; }
+	return false ;
+}
+
+
+void pApplication::msgResponseOK()
+{
+	if ( panelList.size() > 0 ) { currPanel->msgResponseOK() ; }
 }
 
 
 void pApplication::set_msg( string msg_id )
 {
+	// Display a message on current panel using msg_id
+
+	// This is called from mainline lspf, so set CONTROL ERRORS RETURN and restore
+	// original CONTROL ERROR settings on exit.  This is so lspf does not hang on an error.
+
+	bool errorStatus ;
+
 	if ( panelList.size() == 0 ) { return ; }
 
+	errorStatus = ControlErrorsReturn ;
+
+	control( "ERRORS", "RETURN" ) ;
 	get_Message( msg_id ) ;
 	if ( RC == 0 )
 	{
-		currPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM, MSGID, showMSGID ) ;
-		if ( ZSMSG != "" ) { currPanel->showLMSG = false ; }
-		else               { currPanel->showLMSG = true  ; }
-		currPanel->display_msg()    ;
+		currPanel->set_panel_msg( MSG, MSGID ) ;
+		currPanel->display_msg() ;
+	}
+	ControlErrorsReturn = errorStatus ;
+}
+
+
+void pApplication::set_msg1( slmsg t, string msgid, bool Immed )
+{
+	// Propogate setmsg() to the current panel using the short-long-message object.
+	// If immed, display the message now rather than allow the application DISPLAY()/TBDISPL() service to it.
+
+	// MSG1 and MSGID1 are used to store messages issued by the setmsg() service after variable substitution.
+
+	MSG1   = t     ;
+	MSGID1 = msgid ;
+	setMSG = true  ;
+
+	if ( Immed && panelList.size() > 0 )
+	{
+		currPanel->set_panel_msg( MSG1, MSGID1 ) ;
+		currPanel->display_msg() ;
 	}
 }
 
@@ -241,7 +279,7 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 	}
 
 	panelCreate( p_name ) ;
-	if ( RC > 0 ) { checkRCode( "Panel >>" + p_name + "<< not found or invalid for DISPLAY service" ) ; return ; }
+	if ( RC > 0 ) { checkRCode( "Panel >>"+ p_name +"<< not found or invalid for DISPLAY service" ) ; return ; }
 
 	if ( propagateEnd )
 	{
@@ -251,28 +289,24 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 
 	currPanel = panelList[ p_name ] ;
 
-	if ( p_msg != "" )
+	if ( setMSG )
+	{
+		if ( !ControlNonDispl )
+		{
+			currPanel->set_panel_msg( MSG1, MSGID1 ) ;
+			setMSG = false ;
+		}
+	}
+	else if ( p_msg != "" )
 	{
 		get_Message( p_msg ) ;
 		if ( RC > 0 ) { return ; }
-		currPanel->showLMSG = false ;
-		currPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM, MSGID, showMSGID ) ;
-		if ( ZSMSG == "" ) { currPanel->showLMSG = true ; }
+		currPanel->set_panel_msg( MSG, MSGID ) ;
 	}
 	else
 	{
-		if ( setMSG )
-		{
-			currPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM, MSGID, showMSGID ) ;
-		}
-		else
-		{
-			currPanel->clear_msg()       ;
-			ZMHELP = ""                  ;
-			currPanel->showLMSG = false  ;
-		}
+		currPanel->clear_msg() ;
 	}
-	setMSG            = false    ;
 	PANELID           = p_name   ;
 	currPanel->CURFLD = p_cursor ;
 	currPanel->CURPOS = p_csrpos ;
@@ -299,6 +333,8 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 		currPanel->cursor_to_field( RC ) ;
 		if ( RC > 0 ) { checkRCode( "Cursor field >>"+ currPanel->CURFLD +"<< not found on panel or invalid for DISPLAY service" ) ; break ; }
 		wait_event() ;
+		ControlDisplayLock = false ;
+		ControlNonDispl    = false ;
 		currPanel->display_panel_update( RC ) ;
 
 		ZZVERB = p_poolMGR->get( RC, "ZVERB", SHARED ) ;
@@ -320,8 +356,7 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 		{
 			get_Message( currPanel->MSGID ) ;
 			if ( RC > 0 ) { break ; }
-			currPanel->showLMSG = false ;
-			currPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM, MSGID, showMSGID ) ;
+			currPanel->set_panel_msg( MSG, MSGID ) ;
 			currPanel->display_panel_reinit( RC, 0 ) ;
 			if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )REINIT section of panel " + p_name ) ; return ; }
 			continue ;
@@ -341,20 +376,7 @@ void pApplication::refresh()
 	it = panelList.find( PANELID ) ;
 	if ( it != panelList.end() )
 	{
-		it->second->refresh( RC ) ;
-	}
-}
-
-
-void pApplication::nrefresh()
-{
-	RC = 0 ;
-	map<string, pPanel *>::iterator it ;
-
-	it = panelList.find( PANELID ) ;
-	if ( it != panelList.end() )
-	{
-		it->second->nrefresh() ;
+		it->second->refresh() ;
 	}
 }
 
@@ -1052,8 +1074,7 @@ void pApplication::control( string parm1, string parm2 )
 		}
 		else if ( parm2 == "NONDISPL" )
 		{
-			ControlDisplayLock = true ;
-			ControlNonDispl    = true ;
+			ControlNonDispl = true ;
 		}
 		else if ( parm2 == "REFRESH" )
 		{
@@ -1414,28 +1435,24 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 		}
 	}
 
-	if ( p_msg != "" )
+	if ( setMSG )
+	{
+		if ( !ControlNonDispl )
+		{
+			currtbPanel->set_panel_msg( MSG1, MSGID1 ) ;
+			setMSG = false ;
+		}
+	}
+	else if ( p_msg != "" )
 	{
 		get_Message( p_msg ) ;
 		if ( RC > 0 ) { return ; }
-		currPanel->showLMSG = false ;
-		currtbPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM, MSGID, showMSGID ) ;
-		if ( ZSMSG == "" ) { currtbPanel->showLMSG = true ; }
+		currtbPanel->set_panel_msg( MSG, MSGID ) ;
 	}
 	else
 	{
-		if ( setMSG )
-		{
-			currtbPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM, MSGID, showMSGID ) ;
-		}
-		else
-		{
-			currtbPanel->clear_msg()       ;
-			ZMHELP = ""                    ;
-			currtbPanel->showLMSG = false  ;
-		}
+		currtbPanel->clear_msg() ;
 	}
-	setMSG = false ;
 	if ( p_cursor == "" ) { p_cursor = currtbPanel->Home ; }
 	if ( addpop_active )  { currtbPanel->set_popup( addpop_row, addpop_col ) ; }
 	else                  { currtbPanel->remove_popup()                      ; }
@@ -1469,6 +1486,8 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 			currtbPanel->cursor_to_field( RC ) ;
 			if ( RC > 0 ) { checkRCode( "Cursor field >>" + currtbPanel->CURFLD + "<< not found on panel or invalid for TBDISP service" ) ; break ; }
 			wait_event() ;
+			ControlDisplayLock = false ;
+			ControlNonDispl    = false ;
 			currtbPanel->clear_msg() ;
 			currtbPanel->CURFLD = "" ;
 			currtbPanel->display_panel_update( RC ) ;
@@ -1503,8 +1522,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 		{
 			get_Message( currtbPanel->MSGID ) ;
 			if ( RC > 0 ) { return ; }
-			currPanel->showLMSG = false ;
-			currtbPanel->set_msg( ZSMSG, ZLMSG, ZMSGTYPE, ZMSGALRM, MSGID, showMSGID ) ;
+			currtbPanel->set_panel_msg( MSG, MSGID ) ;
 			if ( p_name == "" )
 			{
 				p_name    = currtbPanel->PANELID ;
@@ -2072,19 +2090,26 @@ void pApplication::rdisplay( string msg )
 
 void pApplication::setmsg( string msg, msgSET sType )
 {
+	// Retrieve message and store in MSG1 and MSGID1.
+
 	RC = 0 ;
 
 	if ( ( sType == COND ) && setMSG ) { return ; }
 
 	get_Message( msg ) ;
 	if ( RC > 0 ) { RC = 20 ; return ; }
-	MSGID  = msg  ;
-	setMSG = true ;
+	MSG1   = MSG   ;
+	MSGID1 = msg   ;
+	setMSG = true  ;
 }
 
 
-void pApplication::getmsg( string msg, string smsg, string lmsg, string alm, string hlp, string typ )
+void pApplication::getmsg( string msg, string smsg, string lmsg, string alm, string hlp, string typ, string wndo )
 {
+	// Load message msg and substitute variables
+
+	slmsg tmsg ;
+
 	RC = 0 ;
 
 	if ( smsg != "" && !isvalidName( smsg ) ) { RC = 20 ; checkRCode( "Invalid SHORT MESSAGE variable name" ) ; return ; }
@@ -2092,26 +2117,43 @@ void pApplication::getmsg( string msg, string smsg, string lmsg, string alm, str
 	if ( alm  != "" && !isvalidName( alm  ) ) { RC = 20 ; checkRCode( "Invalid ALARM variable name" )         ; return ; }
 	if ( hlp  != "" && !isvalidName( hlp  ) ) { RC = 20 ; checkRCode( "Invalid HELP variable name" )          ; return ; }
 	if ( typ  != "" && !isvalidName( typ  ) ) { RC = 20 ; checkRCode( "Invalid TYPE variable name" )          ; return ; }
+	if ( wndo != "" && !isvalidName( wndo ) ) { RC = 20 ; checkRCode( "Invalid WINDOW variable name" )        ; return ; }
 
 	if ( !load_Message( msg ) ) { return ; }
 
-	if ( smsg != "" ) { funcPOOL.put( RC, 0, smsg, msgList[ msg ].smsg ) ; }
-	if ( lmsg != "" ) { funcPOOL.put( RC, 0, lmsg, msgList[ msg ].lmsg ) ; }
+	tmsg      = msgList[ msg ] ;
+	tmsg.smsg = sub_vars( tmsg.smsg ) ;
+	tmsg.lmsg = sub_vars( tmsg.lmsg ) ;
+
+	if ( !sub_Message_vars( tmsg ) )
+	{
+		RC = 20 ;
+		checkRCode( "Invalid variable value" ) ;
+		return ;
+	}
+
+	if ( smsg != "" ) { funcPOOL.put( RC, 0, smsg, tmsg.smsg ) ; }
+	if ( lmsg != "" ) { funcPOOL.put( RC, 0, lmsg, tmsg.lmsg ) ; }
 	if (  alm != "" )
 	{
-		if ( msgList[ msg ].alm ) { funcPOOL.put( RC, 0, alm, "YES" ) ; }
-		else                      { funcPOOL.put( RC, 0, alm, "NO" )  ; }
+		if ( tmsg.alm ) { funcPOOL.put( RC, 0, alm, "YES" ) ; }
+		else            { funcPOOL.put( RC, 0, alm, "NO" )  ; }
 	}
 	if (  typ != "" )
 	{
-		switch ( msgList[ msg ].type )
+		switch ( tmsg.type )
 		{
 			case IMT: funcPOOL.put( RC, 0, typ, "NOTIFY" )   ; break ;
 			case WMT: funcPOOL.put( RC, 0, typ, "WARNING" )  ; break ;
 			case AMT: funcPOOL.put( RC, 0, typ, "CRITICAL" ) ;
 		}
 	}
-	if ( hlp != "" ) { funcPOOL.put( RC, 0, hlp, msgList[ msg ].hlp ) ; }
+	if ( hlp  != "" ) { funcPOOL.put( RC, 0, hlp, tmsg.hlp ) ; }
+	if ( wndo != "" )
+	{
+		if   ( tmsg.resp ) { funcPOOL.put( RC, 0, wndo, "RESP" )   ; }
+		else               { funcPOOL.put( RC, 0, wndo, "NORESP" ) ; }
+	}
 }
 
 
@@ -2127,22 +2169,30 @@ string pApplication::get_help_member( int row, int col )
 	if ( libdef_puser ) { paths = mergepaths( ZPUSER, ZPLIB ) ; }
 	else                { paths = ZPLIB                       ; }
 
-	return "M("+ZMHELP+") F("+currPanel->get_field_help( fld )+") P("+currPanel->ZPHELP+") A("+ZAHELP+") PATHS("+paths+")" ;
+	return "M("+MSG.hlp+") F("+currPanel->get_field_help( fld )+") " ,
+	       "P("+currPanel->ZPHELP+") A("+ZAHELP+") PATHS("+paths+")" ;
 }
 
 
 void pApplication::get_Message( string p_msg )
 {
+	// Load messages from message library and copy slmsg object to MSG for the message requested
+
+	// Substitute any dialogue variables in the short and long messages
+	// Substitute any dialogue varibles in .TYPE, .WINDOW, .HELP and .ALARM parameters
+	// Set MSGID
+
 	RC = 0 ;
 
 	if ( !load_Message( p_msg ) ) { return ; }
 
+	MSG      = msgList[ p_msg ]     ;
+	MSG.smsg = sub_vars( MSG.smsg ) ;
+	MSG.lmsg = sub_vars( MSG.lmsg ) ;
+
+	if ( !sub_Message_vars( MSG ) ) { return ; }
+
 	MSGID    = p_msg ;
-	ZSMSG    = sub_vars( msgList[ p_msg ].smsg ) ;
-	ZLMSG    = sub_vars( msgList[ p_msg ].lmsg ) ;
-	ZMSGALRM = msgList[ p_msg ].alm  ;
-	ZMSGTYPE = msgList[ p_msg ].type ;
-	ZMHELP   = msgList[ p_msg ].hlp  ;
 }
 
 
@@ -2164,12 +2214,11 @@ bool pApplication::load_Message( string p_msg )
 
 	int i  ;
 	int j  ;
-	int l  ;
 	int p1 ;
 
 	string p_msg_fn ;
 	string filename ;
-	string line2    ;
+	string mline    ;
 	string paths    ;
 	string tmp      ;
 	string msgid    ;
@@ -2177,40 +2226,22 @@ bool pApplication::load_Message( string p_msg )
 	bool found      ;
 	bool lcontinue  ;
 
-	char line1[ 256 ] ;
-
 	map<string,bool>MMsgs ;
 
-	str_msg t ;
+	slmsg t ;
 
 	if ( !testMode && msgList.count( p_msg ) > 0 ) { return true ; }
 
-	if ( !isvalidName( p_msg ) || p_msg.size() < 4 )
-	{
-		RC = 20 ;
-		checkRCode( "Invalid message format for message-id "+ p_msg ) ;
-		return false ;
-	}
+	i = chk_Message_id( p_msg ) ;
 
-	found = false ;
-	for ( i = 1 ; i < p_msg.size() - 2 ; i++ )
-	{
-		if ( isdigit( p_msg[ i ] ) && isdigit( p_msg[ i + 1 ] ) && isdigit( p_msg[ i + 2 ] ) )
-		{
-			p_msg_fn = substr( p_msg, 1, i+2 ) ;
-			found    = true ;
-			break           ;
-		}
-	}
-
-	if ( !found ) { RC = 20 ; checkRCode( "Message-id "+ p_msg +" has invalid format" ) ; return false ; }
-
-	if ( (p_msg.size() - i) > 3 && !isalpha( p_msg.back() ) )
+	if ( i == 0 || ((p_msg.size() - i) > 3 && !isalpha( p_msg.back()) ) )
 	{
 		RC = 20 ;
 		checkRCode( "Message-id format invalid: "+ p_msg ) ;
 		return false ;
 	}
+
+	p_msg_fn = p_msg.substr( 0, i+2 ) ;
 
 	if ( libdef_muser ) { paths = mergepaths( ZMUSER, ZMLIB ) ; }
 	else                { paths = ZMLIB                       ; }
@@ -2247,17 +2278,19 @@ bool pApplication::load_Message( string p_msg )
 	t.lmsg = ""    ;
 	t.cont = false ;
 
-	std::ifstream messages ;
-	messages.open( filename.c_str() ) ;
-	while ( true )
+	std::ifstream messages( filename.c_str() ) ;
+	if ( !messages.is_open() )
 	{
-		messages.getline( line1, 256 ) ;
-		if ( messages.fail() != 0 ) { break ; }
-		line2.assign( line1, messages.gcount() - 1 ) ;
-		line2 = strip( line2 ) ;
-		if ( line2 == "" || line2[ 0 ] == '*' ) { continue ; }
-		if ( line2.compare( 0, 2, "/*" ) == 0 ) { continue ; }
-		if ( line2.compare( 0, p_msg_fn.size(), p_msg_fn ) == 0 )
+		RC = 20 ;
+		checkRCode( "Error opening message file "+ filename ) ;
+		return false ;
+	}
+	while ( getline( messages, mline ) )
+	{
+		mline = strip( mline ) ;
+		if ( mline == "" || mline[ 0 ] == '*' ) { continue ; }
+		if ( mline.compare( 0, 2, "/*" ) == 0 ) { continue ; }
+		if ( mline.compare( 0, p_msg_fn.size(), p_msg_fn ) == 0 )
 		{
 			if ( msgid != "" )
 			{
@@ -2278,17 +2311,13 @@ bool pApplication::load_Message( string p_msg )
 				msgList[ msgid ] = t    ;
 				MMsgs[ msgid ]   = true ;
 			}
-			msgid  = word( line2, 1 )    ;
-			t.smsg = subword( line2, 2 ) ;
+			msgid  = word( mline, 1 )    ;
+			t.smsg = subword( mline, 2 ) ;
 			t.lmsg = "" ;
-			l      = msgid.size() - p_msg_fn.size() ;
-			if ( ( l == 0 )                              ||
-			     ( l == 1 &&  !isdigit( msgid.back() ) ) ||
-			     ( l == 2 && (!isdigit( msgid[ msgid.size() - 2 ] ) || !isalpha( msgid.back() ) ) ) ||
-			     ( l >  2 ) )
+			i = chk_Message_id( msgid ) ;
+			if ( i == 0 || ((msgid.size() - i) > 3 && !isalpha( msgid.back()) ) )
 			{
 				RC = 20 ;
-				messages.close() ;
 				checkRCode( "Message-id format invalid: "+ msgid ) ;
 				return false ;
 			}
@@ -2299,42 +2328,49 @@ bool pApplication::load_Message( string p_msg )
 			{
 				RC = 20 ;
 				messages.close() ;
-				checkRCode( "Extraeneous data: "+ line2 ) ;
+				checkRCode( "Extraeneous data: "+ mline ) ;
 				return false ;
 			}
 			lcontinue = false ;
-			if ( line2.back() == '+' )
+			if ( mline.back() == '+' )
 			{
-				line2.erase( line2.size()-1 ) ;
-				line2 = strip( line2 )        ;
+				mline.erase( mline.size()-1 ) ;
+				mline = strip( mline )        ;
 				lcontinue = true ;
 			}
-			if ( line2[ 0 ] == '\'' || line2[ 0 ] == '"' )
+			if ( mline[ 0 ] == '\'' || mline[ 0 ] == '"' )
 			{
-				p1 = line2.find_first_of( line2[ 0 ], 1 ) ;
-				if ( p1 == string::npos || p1 != line2.size() - 1 )
+				p1 = mline.find_first_of( mline[ 0 ], 1 ) ;
+				if ( p1 == string::npos || p1 != mline.size() - 1 )
 				{
 					RC = 20 ;
 					messages.close() ;
 					checkRCode( "Error in message-id "+ msgid ) ;
 					return false ;
 				}
-				tmp = line2.substr( 1, p1-1 ) ;
+				tmp = mline.substr( 1, p1-1 ) ;
 			}
 			else
 			{
-				if ( words( line2 ) > 1 )
+				if ( words( mline ) > 1 )
 				{
 					RC = 20 ;
 					messages.close() ;
 					checkRCode( "Error in message-id "+ msgid ) ;
 					return false ;
 				}
-				tmp = line2 ;
+				tmp = mline ;
 			}
 			t.cont ? t.lmsg = t.lmsg + " " + tmp : t.lmsg = tmp ;
 			t.cont = lcontinue ;
 		}
+	}
+	if ( messages.bad() )
+	{
+		RC = 20 ;
+		messages.close() ;
+		checkRCode( "Error while reading message file "+ filename ) ;
+		return false ;
 	}
 	messages.close() ;
 
@@ -2347,21 +2383,32 @@ bool pApplication::load_Message( string p_msg )
 			checkRCode( "Error in message-id "+ msgid ) ;
 			return false ;
 		}
+		if ( MMsgs.count( msgid ) > 0 )
+		{
+			RC = 20 ;
+			messages.close() ;
+			checkRCode( "Duplicate message-id found: "+ msgid ) ;
+			return false ;
+		}
 		msgList[ msgid ] = t ;
 	}
 
 	if ( msgList.count( p_msg ) == 0 )
 	{
-		RC = 20 ;
-		checkRCode( "Message-id "+ p_msg +" not found in file "+ p_msg_fn ) ;
+		RC = 12 ;
+		checkRCode( "Message-id "+ p_msg +" not found in message file "+ p_msg_fn ) ;
 		return false ;
 	}
 	return true ;
 }
 
 
-bool pApplication::parse_Message( str_msg & t )
+bool pApplication::parse_Message( slmsg & t )
 {
+	// Parse message and fill the slmsg object.  Long message already processed at this stage.
+
+	// .TYPE overrides .WINDOW and .ALARM
+
 	int p1 ;
 	int p2 ;
 	int ln ;
@@ -2369,9 +2416,12 @@ bool pApplication::parse_Message( str_msg & t )
 	string rest ;
 	string tmp  ;
 
-	t.hlp  = ""    ;
-	t.type = IMT   ;
-	t.alm  = false ;
+	t.hlp   = ""    ;
+	t.type  = IMT   ;
+	t.smwin = false ;
+	t.lmwin = false ;
+	t.resp  = false ;
+	t.alm   = false ;
 
 	if ( t.smsg[ 0 ] == '\'' || t.smsg[ 0 ] == '"' )
 	{
@@ -2409,28 +2459,43 @@ bool pApplication::parse_Message( str_msg & t )
 		p2 = pos( " ", rest, p1 ) ;
 		if ( p2 == 0 ) { t.hlp = substr( rest, p1+ln )           ; rest = delstr( rest, p1 )        ; }
 		else           { t.hlp = substr( rest, p1+ln, p2-p1-ln ) ; rest = delstr( rest, p1, p2-p1 ) ; }
+		if ( t.hlp.size() == 0 ) { return false ; }
+		if ( t.hlp[ 0 ] == '&')
+		{
+			t.hlp.erase( 0, 1 ) ;
+			if ( !isvalidName( t.hlp ) ) { return false ; }
+			t.dvhlp = t.hlp ;
+		}
 	}
 
-	p1 = pos( ".TYPE=", rest ) ;
+	p1 = pos( ".WINDOW=", rest ) ;
 	if ( p1 == 0 )
 	{
-		p1 = pos( ".T=", rest ) ;
+		p1 = pos( ".W=", rest ) ;
 		ln = 3 ;
 	}
 	else
 	{
-		ln = 6 ;
+		ln = 8 ;
 	}
 	if ( p1 > 0 )
 	{
+		t.lmwin = true ;
 		p2 = pos( " ", rest, p1 ) ;
 		if ( p2 == 0 ) { tmp = substr( rest, p1+ln )           ; rest = delstr( rest, p1 )        ; }
 		else           { tmp = substr( rest, p1+ln, p2-p1-ln ) ; rest = delstr( rest, p1, p2-p1 ) ; }
-		if      ( tmp == "N" ) { t.type = IMT ; t.alm = false ; }
-		else if ( tmp == "W" ) { t.type = WMT ; t.alm = true  ; }
-		else if ( tmp == "A" ) { t.type = AMT ; t.alm = true  ; }
-		else if ( tmp == "C" ) { t.type = AMT ; t.alm = true  ; }
-		else                   { return false                 ; }
+		if ( tmp.size() == 0 ) { return false ; }
+		if ( tmp[ 0 ] == '&')
+		{
+			tmp.erase( 0, 1 ) ;
+			if ( !isvalidName( tmp ) ) { return false ; }
+			t.dvwin = tmp ;
+		}
+		else if ( tmp == "RESP"    || tmp == "R"  ) { t.smwin = true  ; t.resp = true ; }
+		else if ( tmp == "NORESP"  || tmp == "N"  ) { t.smwin = true  ; }
+		else if ( tmp == "LRESP"   || tmp == "LR" ) { t.resp  = true  ; }
+		else if ( tmp == "LNORESP" || tmp == "LN" ) {                   }
+		else    { return false  ; }
 	}
 
 	p1 = pos( ".ALARM=", rest ) ;
@@ -2448,18 +2513,134 @@ bool pApplication::parse_Message( str_msg & t )
 		p2 = pos( " ", rest, p1 ) ;
 		if ( p2 == 0 ) { tmp = substr( rest, p1+ln )           ; rest = delstr( rest, p1 )        ; }
 		else           { tmp = substr( rest, p1+ln, p2-p1-ln ) ; rest = delstr( rest, p1, p2-p1 ) ; }
-		if      ( tmp == "YES" ) { t.alm = true  ; }
+		if ( tmp.size() == 0 ) { return false ; }
+		if ( tmp[ 0 ] == '&')
+		{
+			tmp.erase( 0, 1 ) ;
+			if ( !isvalidName( tmp ) ) { return false ; }
+			t.dvalm = tmp ;
+		}
+		else if ( tmp == "YES" ) { t.alm = true  ; }
 		else if ( tmp == "NO"  ) { t.alm = false ; }
 		else                     { return false  ; }
 	}
 
+	p1 = pos( ".TYPE=", rest ) ;
+	if ( p1 == 0 )
+	{
+		p1 = pos( ".T=", rest ) ;
+		ln = 3 ;
+	}
+	else
+	{
+		ln = 6 ;
+	}
+	if ( p1 > 0 )
+	{
+		p2 = pos( " ", rest, p1 ) ;
+		if ( p2 == 0 ) { tmp = substr( rest, p1+ln )           ; rest = delstr( rest, p1 )        ; }
+		else           { tmp = substr( rest, p1+ln, p2-p1-ln ) ; rest = delstr( rest, p1, p2-p1 ) ; }
+		if ( tmp.size() == 0 ) { return false ; }
+		if ( tmp[ 0 ] == '&')
+		{
+			tmp.erase( 0, 1 ) ;
+			if ( !isvalidName( tmp ) ) { return false ; }
+			t.dvtype = tmp ;
+		}
+		else if ( tmp == "N" ) { t.type = IMT ; t.alm = false ; }
+		else if ( tmp == "W" ) { t.type = WMT ; t.alm = true  ; }
+		else if ( tmp == "A" ) { t.type = AMT ; t.alm = true  ; }
+		else if ( tmp == "C" ) { t.type = AMT ; t.alm = true  ; t.resp = true ; t.smwin = true ; t.lmwin = true ; }
+		else                   { return false                 ; }
+	}
+
 	if ( strip( rest ) != "" ) { return false ; }
+
+	if ( t.smwin && t.smsg != "" ) { t.lmsg = t.smsg + " - " + t.lmsg ; }
 	return true ;
+}
+
+
+bool pApplication::sub_Message_vars( slmsg & t )
+{
+	// Get the dialogue variable value specified in message .T, .A, .H and .W options
+
+	// Error if the dialgue variable is blank
+	// Use defaults for invalid values
+
+	// .TYPE overrides .WINDOW and .ALARM
+
+	string val ;
+
+	if ( t.dvwin != "" )
+	{
+		t.lmwin = true ;
+		vcopy( t.dvwin, val, MOVE ) ;
+		val = strip( val ) ;
+		if      ( val == "RESP"    || val == "R"  ) { t.smwin = true  ; t.resp = true ; }
+		else if ( val == "NORESP"  || val == "N"  ) { t.smwin = true  ; }
+		else if ( val == "LRESP"   || val == "LR" ) { t.resp  = true  ; }
+		else if ( val == "LNORESP" || val == "LN" ) {                   }
+		else if ( val == "" ) { return false ; }
+	}
+	if ( t.dvalm != "" )
+	{
+		vcopy( t.dvalm, val, MOVE ) ;
+		val = strip( val ) ;
+		if      ( val == "YES" ) { t.alm = true  ; }
+		else if ( val == "NO"  ) { t.alm = false ; }
+		else if ( val == ""    ) { return false  ; }
+	}
+	if ( t.dvtype != "" )
+	{
+		vcopy( t.dvtype, val, MOVE ) ;
+		val = strip( val ) ;
+		if      ( val == "N" ) { t.type = IMT ; t.alm = false ; }
+		else if ( val == "W" ) { t.type = WMT ; t.alm = true  ; }
+		else if ( val == "A" ) { t.type = AMT ; t.alm = true  ; }
+		else if ( val == "C" ) { t.type = AMT ; t.alm = true  ; t.resp = true ; t.smwin = true ; t.lmwin = true ; }
+		else if ( val == ""  ) { return false ; }
+	}
+	if ( t.dvhlp != "" )
+	{
+		vcopy( t.dvhlp, t.hlp, MOVE ) ;
+	}
+	return true ;
+}
+
+
+int pApplication::chk_Message_id( string msgid )
+{
+	// Return 0 if message-id format is incorrect, else the offset to the first numeric triplet
+
+	int i ;
+	int l ;
+
+	l = msgid.size() ;
+
+	if ( l < 4 || !isvalidName( msgid ) )
+	{
+		return 0 ;
+	}
+
+	l = l - 2 ;
+	for ( i = 1 ; i < l ; i++ )
+	{
+		if ( isdigit( msgid[ i ] ) && isdigit( msgid[ i + 1 ] ) && isdigit( msgid[ i + 2 ] ) )
+		{
+			return i ;
+		}
+	}
+	return 0 ;
 }
 
 
 string pApplication::sub_vars( string s )
 {
+	// In string, s, substitute variables starting with '&' for their dialogue value
+	// Rules: A '.' at the end of a variable, concatinates the value with the string folling the dot
+	//        && reduces to & with no variable substitution
+
 	int p1 ;
 	int p2 ;
 
@@ -2478,10 +2659,10 @@ string pApplication::sub_vars( string s )
 		{
 			s.erase( p1, 1 ) ;
 			p1 = s.find_first_not_of( '&', p1 ) ;
-			continue        ;
+			continue ;
 		}
 		p2 = s.find_first_of( "& .')", p1 ) ;
-		if ( p2 == string::npos )  { p2 = s.size() ; }
+		if ( p2 == string::npos ) { p2 = s.size() ; }
 		var = s.substr( p1, (p2-p1) ) ;
 		if ( isvalidName( var ) )
 		{
@@ -2497,31 +2678,6 @@ string pApplication::sub_vars( string s )
 	}
 	RC = 0   ;
 	return s ;
-}
-
-
-void pApplication::save_screen()
-{
-	int ret  ;
-	string sess ;
-
-	vcopy( "ZUSER", ZUSER, MOVE ) ;
-
-	srand( time(NULL) )    ;
-	sess = right( d2ds( rand() % 10000 ), 4, '0' ) ;
-
-	dumpFile = "/tmp/lspf_" + ZUSER + "_" + sess + "_screen_" + d2ds( taskid() ) ;
-	ret = scr_dump( dumpFile.c_str() ) ;
-}
-
-
-void pApplication::restore_screen()
-{
-	int ret  ;
-
-	ret = scr_restore( dumpFile.c_str() ) ;
-	remove( dumpFile ) ;
-	dumpFile = ""      ;
 }
 
 
@@ -2634,7 +2790,6 @@ void pApplication::cleanup_default()
 void pApplication::cleanup()
 {
 	log( "I", "Shutting down application: " << ZAPPNAME << " Taskid: " << taskID << endl ) ;
-	if ( dumpFile != "" ) { remove( dumpFile ) ; }
 	terminateAppl = true  ;
 	busyAppl      = false ;
 	log( "I", "Returning to calling program." << endl ) ;
@@ -2645,7 +2800,6 @@ void pApplication::cleanup()
 void pApplication::abend()
 {
 	log( "E", "Shutting down application: " << ZAPPNAME << " Taskid: " << taskID << " due to an abnormal condition" << endl ) ;
-	if ( dumpFile != "" ) { remove( dumpFile ) ; }
 	abnormalEnd   = true  ;
 	terminateAppl = true  ;
 	busyAppl      = false ;
@@ -2683,7 +2837,6 @@ void pApplication::abendexc()
 void pApplication::set_forced_abend()
 {
 	log( "E", "Shutting down application: " << ZAPPNAME << " Taskid: " << taskID << " due to a forced condition" << endl ) ;
-	if ( dumpFile != "" ) { remove( dumpFile ) ; }
 	abnormalEnd       = true  ;
 	abnormalEndForced = true  ;
 	terminateAppl     = true  ;
@@ -2696,7 +2849,6 @@ void pApplication::set_forced_abend()
 void pApplication::set_timeout_abend()
 {
 	log( "E", "Shutting down application: " << ZAPPNAME << " Taskid: " << taskID << " due to a timeout condition" << endl ) ;
-	if ( dumpFile != "" ) { remove( dumpFile ) ; }
 	abnormalEnd       = true  ;
 	abnormalEndForced = true  ;
 	abnormalTimeout   = true  ;

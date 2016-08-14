@@ -582,10 +582,16 @@ void pVPOOL::load( int & RC, string currAPPLID, string path )
 	std::ifstream profile ;
 	debug1(" profile dataset is " << s << endl ) ;
 	profile.open( s.c_str() , ios::binary ) ;
+	if ( !profile.is_open() )
+	{
+		RC = 20 ;
+		log( "E", "Profile open for "+ currAPPLID +" gave an error.  Filename "+ s << endl ) ;
+		return ;
+	}
 
 	buf1 = new char[ buf1Size ] ;
 
-	profile.read (buf1 , 2);
+	profile.read (buf1, 2 ) ;
 	if ( memcmp( buf1, "\x00\x84", 2 ) )
 	{
 		RC = 20 ;
@@ -609,17 +615,18 @@ void pVPOOL::load( int & RC, string currAPPLID, string path )
 	profile.get( x ) ;
 	i = static_cast< int >( x ) ;
 	if ( i < 0 ) { i = 256 + i ; }
-	profile.read (buf1 , i);
-	hdr.assign( buf1, i ) ;
+	profile.read (buf1, i ) ;
+	hdr.assign( buf1, i )   ;
 	debug1(" PROFILE Header " << hdr << endl ) ;
 
 	while ( true )
 	{
 		profile.get( x ) ;
-		if ( profile.fail() != 0 ) { break ; } ;
+		if ( profile.eof() ) { break ; }
 		i = static_cast< int >( x ) ;
 		if ( i < 0 ) { i = 256 + i ; }
 		profile.read (buf1 , i) ;
+		if ( profile.fail() != 0 ) { RC = 20 ; break ; }
 		var.assign( buf1, i )   ;
 		profile.get( x ) ;
 		if ( profile.fail() != 0 ) { RC = 20 ; break ; }
@@ -871,6 +878,20 @@ void poolMGR::createPool( int & RC, poolType pType, string path )
 }
 
 
+void poolMGR::createPool( int ls )
+{
+	// Create the logical-screen variable pool and add defaults.  This is not accessible by applications
+
+	int RC      ;
+	pVPOOL pool ;
+
+	POOLs_lscreen[ ls ] = pool ;
+	POOLs_lscreen[ ls ].put( RC, "ZMSGID",   "",  USER ) ;
+	POOLs_lscreen[ ls ].put( RC, "ZSHMSGID", "N", USER ) ;
+	POOLs_lscreen[ ls ].put( RC, "ZSHPANID", "N", USER ) ;
+}
+
+
 void poolMGR::destroyPool( int & RC, poolType pType )
 {
 
@@ -929,6 +950,17 @@ void poolMGR::destroyPool( int & RC, poolType pType )
 		break ;
 	default:
 		RC = 20 ;
+	}
+}
+
+
+void poolMGR::destroyPool( int ls )
+{
+	// Remove the logical-screen pool when a logical screen is closed
+
+	if ( POOLs_lscreen.count( ls ) > 0 )
+	{
+		POOLs_lscreen.erase( ls ) ;
 	}
 }
 
@@ -1181,6 +1213,17 @@ void poolMGR::put( int & RC, string name, string value, poolType pType, vTYPE vt
 }
 
 
+void poolMGR::put( int & RC, int ls, string name, string value )
+{
+	// Set a variable from the logical-screen pool
+	// Pool is created on first access
+
+	if ( POOLs_lscreen.count( ls ) == 0 ) { createPool( ls ) ; }
+
+	POOLs_lscreen[ ls ].put( RC, name, value, USER ) ;
+}
+
+
 string poolMGR::get( int & RC, string name, poolType pType )
 {
 	// Pool search order: ASIS - SHARED then PROFILE
@@ -1226,6 +1269,16 @@ string poolMGR::get( int & RC, string name, poolType pType )
 	return "" ;
 }
 
+
+string poolMGR::get( int & RC, int ls, string name )
+{
+	// Retrieve a variable from the logical-screen pool
+	// Pool is created on first access
+
+	if ( POOLs_lscreen.count( ls ) == 0 ) { createPool( ls ) ; }
+
+	return POOLs_lscreen[ ls ].get( RC, name ) ;
+}
 
 
 string * poolMGR::vlocate( int & RC, string name, poolType pType )

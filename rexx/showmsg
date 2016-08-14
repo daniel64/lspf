@@ -21,17 +21,27 @@ arg msg .
 address ISPEXEC
 
 "CONTROL ERRORS RETURN"
-"GETMSG MSG("msg") SHORTMSG(A) LONGMSG(B) TYPE(C) ALARM(D) HELP(E)"
-if RC > 0 then
+"GETMSG MSG("msg") SHORTMSG(A) LONGMSG(B) TYPE(C) ALARM(D) HELP(E) WINDOW(F)"
+
+if RC = 12 then
   do
     "RDISPLAY Message" msg "Not Found"
     exit
   end
+else
+  do
+    if RC > 0 then
+      do
+        "RDISPLAY Error in message" msg "or message file"
+        exit
+      end
+  end
 
-"RDISPLAY SMSG:" A
-"RDISPLAY LMSG:" B
-"RDISPLAY TYPE:" C
-"RDISPLAY ALRM:" D
-"RDISPLAY HELP:" E
+"RDISPLAY SMSG  :" A
+"RDISPLAY LMSG  :" B
+"RDISPLAY TYPE  :" C
+"RDISPLAY ALRM  :" D
+"RDISPLAY HELP  :" E
+"RDISPLAY WINDOW:" F
 
 exit
