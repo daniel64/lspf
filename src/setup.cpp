@@ -49,6 +49,8 @@
 #include "utilities.h"
 #include "utilities.cpp"
 
+#include "classes.h"
+
 #include "pWidgets.h"
 
 #include "pVPOOL.h"
@@ -88,21 +90,15 @@ main()
 	p_tableMGR->createTable( RC, 0, "ISPCMDS", "ZCTVERB" , "ZCTTRUNC ZCTACT ZCTDESC", WRITE, NOREPLACE, "", SHARE ) ;
 	p_tableMGR->createTable( RC, 0, "USRCMDS", "ZCTVERB" , "ZCTTRUNC ZCTACT ZCTDESC", WRITE, NOREPLACE, "", SHARE ) ;
 
-	ZCTVERB  = "SNAP" ;
+	ZCTVERB  = "SCRNAME" ;
 	ZCTTRUNC = "0"    ;
-	ZCTACT   = "SNAP" ;
-	ZCTDESC  = "BUILTIN ISPCMDS ENTRY" ;
+	ZCTACT   = "SCRNAME" ;
+	ZCTDESC  = "Set screen name for session" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
 	ZCTVERB  = "SWAP" ;
 	ZCTTRUNC = "0"    ;
 	ZCTACT   = "SWAP" ;
-	ZCTDESC  = "BUILTIN ISPCMDS ENTRY" ;
-	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
-
-	ZCTVERB  = "STATS" ;
-	ZCTTRUNC = "0"     ;
-	ZCTACT   = "STATS" ;
 	ZCTDESC  = "BUILTIN ISPCMDS ENTRY" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
@@ -216,7 +212,7 @@ main()
 
 	ZCTVERB  = "KEYS" ;
 	ZCTTRUNC = "0"    ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(KEYS) NEWPOOL" ;
+	ZCTACT   = "SELECT PGM(PPSP01A) PARM(KEYS) NEWPOOL SCRNAME(KEYS)" ;
 	ZCTDESC  = "PFKEY UTILITY" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
@@ -228,7 +224,7 @@ main()
 
 	ZCTVERB  = "SETTINGS"  ;
 	ZCTTRUNC = "3"         ;
-	ZCTACT   = "SELECT PANEL(PPSET0A)"  ;
+	ZCTACT   = "SELECT PANEL(PPSET0A)" ;
 	ZCTDESC  = "SETTINGS SELECTION PANEL UTILITY"  ;
 	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 )  ;
 
@@ -270,15 +266,15 @@ main()
 
 
 	// ========================= USRCMDS ======================================
-	ZCTVERB  = "EDIT" ;
-	ZCTTRUNC = "2" ;
-	ZCTACT   = "SELECT PGM(&ZEDITPGM) NEWAPPL(ISR) PARM(ENTRYPNL)"   ;
+	ZCTVERB  = "ED" ;
+	ZCTTRUNC = "0" ;
+	ZCTACT   = "SELECT PGM(&ZEDITPGM) NEWAPPL(ISR) PARM(ENTRYPNL)" ;
 	ZCTDESC  = "INVOKE EDIT ENTRY PANEL" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "BROWSE" ;
-	ZCTTRUNC = "2" ;
-	ZCTACT   = "SELECT PGM(&ZFLSTPGM) NEWAPPL(ISRB) PARM(BROWSE &ZPARM)"   ;
+	ZCTVERB  = "BR" ;
+	ZCTTRUNC = "0" ;
+	ZCTACT   = "SELECT PGM(&ZFLSTPGM) NEWAPPL(ISRB) PARM(BROWSE &ZPARM)" ;
 	ZCTDESC  = "INVOKE BROWSE" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "USRCMDS", "", "", 0 ) ;
 

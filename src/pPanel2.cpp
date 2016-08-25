@@ -240,16 +240,12 @@ int pPanel::loadPanel( string p_name, string paths )
 				t2 = strip( ws.substr( j+1) )  ;
 				win_width = ds2d( t1 ) ;
 				win_depth = ds2d( t2 ) ;
-				win  = newwin( win_depth, win_width, win_row, win_col ) ;
-				bwin = newwin( win_depth+2, win_width+2, win_row, win_col ) ;
-				WSCRMAXW = win_width   ;
-				WSCRMAXD = win_depth   ;
-			}
-			else
-			{
-				win   = newwin( WSCRMAXD, WSCRMAXW, 0, 0 ) ;
-				panel = new_panel( win ) ;
-				set_panel_userptr( panel, new panel_data( ZSCRNUM ) ) ;
+				pwin   = newwin( win_depth, win_width, 0, 0 ) ;
+				bwin   = newwin( win_depth+2, win_width+2, 0, 0 ) ;
+				bpanel = new_panel( bwin ) ;
+				set_panel_userptr( bpanel, new panel_data( ZSCRNUM ) ) ;
+				WSCRMAXW = win_width ;
+				WSCRMAXD = win_depth ;
 			}
 			j = pos( " CMD(", pline ) ;
 			if ( j > 0 )
@@ -576,7 +572,7 @@ int pPanel::loadPanel( string p_name, string paths )
 
 		else if ( w1 == "PANELTITLE" )
 		{
-			PanelTitle = strip( strip( subword( pline, 2 ) ), 'B', '"' ) ;
+			panelTitle = strip( strip( subword( pline, 2 ) ), 'B', '"' ) ;
 			continue ;
 		}
 
@@ -781,6 +777,10 @@ int pPanel::loadPanel( string p_name, string paths )
 			if ( !p_funcPOOL->ifexists( RC, it1->first ) ) { syncDialogueVar( it1->first ) ; }
 		}
 	}
+
+	fwin  = newwin( ZSCRMAXD, ZSCRMAXW, 0, 0 ) ;
+	panel = new_panel( fwin ) ;
+	set_panel_userptr( panel, new panel_data( ZSCRNUM ) ) ;
 
 	PANELID = p_name ;
 	debug1( "Panel loaded and processed successfully" << endl ) ;

@@ -103,7 +103,7 @@ void pApplication::init()
 	ZMLIB    = p_poolMGR->get( RC, "ZMLIB", PROFILE ) ;
 	ZORXPATH = p_poolMGR->get( RC, "ZORXPATH", PROFILE ) ;
 
-	ZTDMARK = centre( " BOTTOM OF DATA ", ds2d( p_poolMGR->get( RC, "ZSCRMAXW", SHARED ) ), '*' ) ;
+	ZTDMARK  = centre( " BOTTOM OF DATA ", ds2d( p_poolMGR->get( RC, "ZSCRMAXW", SHARED ) ), '*' ) ;
 	log( "I", "Initialisation complete" << endl ; )
 }
 
@@ -179,9 +179,23 @@ void pApplication::get_cursor( uint & row, uint & col )
 }
 
 
-void pApplication::hide_msgs()
+string pApplication::get_current_panelTitle()
 {
-	if ( panelList.size() > 0 ) { currPanel->hide_msgs() ; }
+	if ( panelList.size() == 0 ) { return ""                          ; }
+	else                         { return currPanel->get_panelTitle() ; }
+}
+
+
+string pApplication::get_current_screenName()
+{
+	// This is called from lspf thread, so we need to set the correct shared pool for this
+	// application thread when getting ZSCRNAME.  Must be set back after this call in lspf
+
+	int RCode      ;
+	string scrname ;
+
+	p_poolMGR->setShrdPool( RCode, shrdPool ) ;
+	return p_poolMGR->get( RCode, "ZSCRNAME", SHARED ) ;
 }
 
 
@@ -202,6 +216,12 @@ bool pApplication::msgInhibited()
 void pApplication::msgResponseOK()
 {
 	if ( panelList.size() > 0 ) { currPanel->msgResponseOK() ; }
+}
+
+
+void pApplication::refresh_id()
+{
+	if ( panelList.size() > 0 ) { currPanel->display_id() ; }
 }
 
 
@@ -244,6 +264,7 @@ void pApplication::set_msg1( slmsg t, string msgid, bool Immed )
 	{
 		currPanel->set_panel_msg( MSG1, MSGID1 ) ;
 		currPanel->display_msg() ;
+		setMSG = false ;
 	}
 }
 
@@ -264,9 +285,10 @@ string pApplication::get_nretfield()
 
 void pApplication::display( string p_name, string p_msg, string p_cursor, int p_csrpos )
 {
-	string  ZZVERB ;
+	string ZZVERB ;
 
-	bool    doReinit ;
+	int  scrnum   ;
+	bool doReinit ;
 
 	RC       = 0     ;
 	doReinit = false ;
@@ -326,6 +348,13 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 		if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )INIT section of panel " + p_name ) ; return ; }
 	}
 
+	scrnum = ds2d(p_poolMGR->get( RC, "ZSCRNUM", SHARED ) ) ;
+	if ( p_poolMGR->get( RC, "ZSCRNAM1", SHARED ) == "ON" &&
+	     p_poolMGR->get( RC, scrnum, "ZSCRNAM2" ) == "PERM" )
+	{
+			p_poolMGR->put( RC, "ZSCRNAME", p_poolMGR->get( RC, scrnum, "ZSCRNAME" ), SHARED ) ;
+	}
+
 	while ( true )
 	{
 		currPanel->display_panel( RC ) ;
@@ -343,22 +372,15 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 		if ( ZZVERB == "END" || ZZVERB == "RETURN" ) { RC = 8 ; return      ; }
 
 		currPanel->display_panel_proc( RC, 0 ) ;
-		if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )PROC section of panel " + p_name ) ; break ; }
+		if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )PROC section of panel "+ p_name ) ; break ; }
 
-		if ( !currPanel->scrollOn )
-		{
-			if      ( ZZVERB == "UP" )    { currPanel->MSGID = "PSYS011" ; }
-			else if ( ZZVERB == "DOWN" )  { currPanel->MSGID = "PSYS012" ; }
-			else if ( ZZVERB == "RIGHT" ) { currPanel->MSGID = "PSYS013" ; }
-			else if ( ZZVERB == "LEFT" )  { currPanel->MSGID = "PSYS014" ; }
-		}
 		if ( currPanel->MSGID != "" )
 		{
 			get_Message( currPanel->MSGID ) ;
 			if ( RC > 0 ) { break ; }
 			currPanel->set_panel_msg( MSG, MSGID ) ;
 			currPanel->display_panel_reinit( RC, 0 ) ;
-			if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )REINIT section of panel " + p_name ) ; return ; }
+			if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )REINIT section of panel "+ p_name ) ; return ; }
 			continue ;
 		}
 		break ;
@@ -993,11 +1015,9 @@ void pApplication::addpop( string a_fld, int a_row, int a_col )
 		addpop_stk.push( addpop_row ) ;
 		addpop_stk.push( addpop_col ) ;
 	}
-	a_row <  0 ? addpop_row = 1 : addpop_row = a_row + 2 ;
-	a_col < -1 ? addpop_col = 2 : addpop_col = a_col + 4 ;
+	addpop_row = (a_row <  0 ) ? 1 : a_row + 2 ;
+	addpop_col = (a_col < -1 ) ? 2 : a_col + 4 ;
 	addpop_active = true ;
-
-	log( "N", "WARNING: ADDPOP service not yet fully implemented" << endl ) ;
 }
 
 
@@ -1037,10 +1057,17 @@ void pApplication::rempop( string r_all )
 		addpop_active = false ;
 	}
 	else { RC = 20 ; checkRCode( "Invalid parameter on REMPOP service.  Must be ALL or blank" ) ; }
-
-	log( "N", "WARNING: REMPOP service not yet fully implemented" << endl ) ;
 }
 
+
+void pApplication::movepop()
+{
+	if ( addpop_active )
+	{
+		currPanel->set_popup( addpop_row, addpop_col ) ;
+		currPanel->move_popup() ;
+	}
+}
 
 
 void pApplication::control( string parm1, string parm2 )
@@ -1377,6 +1404,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 	int ln      ;
 	int posn    ;
 	int csrvrow ;
+	int scrnum  ;
 
 	string ZZVERB ;
 	string URID   ;
@@ -1437,7 +1465,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 
 	if ( setMSG )
 	{
-		if ( !ControlNonDispl )
+		if ( !ControlNonDispl && p_name != "" )
 		{
 			currtbPanel->set_panel_msg( MSG1, MSGID1 ) ;
 			setMSG = false ;
@@ -1464,6 +1492,13 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 	if ( RC == 0 ) { p_autosel = t ; }
 	t = funcPOOL.get( RC, 8, ".CSRROW", NOCHECK ) ;
 	if ( RC == 0 ) { p_csrrow = ds2d( t ) ; }
+
+	scrnum = ds2d(p_poolMGR->get( RC, "ZSCRNUM", SHARED ) ) ;
+	if ( p_poolMGR->get( RC, "ZSCRNAM1", SHARED ) == "ON" &&
+	     p_poolMGR->get( RC, scrnum, "ZSCRNAM2" ) == "PERM" )
+	{
+			p_poolMGR->put( RC, "ZSCRNAME", p_poolMGR->get( RC, scrnum, "ZSCRNAME" ), SHARED ) ;
+	}
 
 	while ( true )
 	{
@@ -1516,8 +1551,6 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 		if ( RC > 0 ) { ZERR2 = currtbPanel->PERR ; checkRCode( "Error processing )PROC section of panel " + p_name ) ; return ; }
 		t = funcPOOL.get( RC, 8, ".CSRROW", NOCHECK ) ;
 		if ( RC == 0 ) { p_csrrow = ds2d( t ) ; }
-		if      ( ZZVERB == "RIGHT" ) { currtbPanel->MSGID = "PSYS013" ; }
-		else if ( ZZVERB == "LEFT" )  { currtbPanel->MSGID = "PSYS014" ; }
 		if ( currtbPanel->MSGID != "" )
 		{
 			get_Message( currtbPanel->MSGID ) ;
@@ -1880,87 +1913,86 @@ bool pApplication::isTableUpdate( string tb_name, string func )
 }
 
 
-
-
 void pApplication::edit( string m_file, string m_panel )
 {
-	select( p_poolMGR->get( RC, "ZEDITPGM", PROFILE ), "FILE(" + m_file + ") PANEL(" + m_panel + ")", "", false, false ) ;
+	SELCT.clear() ;
+	SELCT.PGM     = p_poolMGR->get( RC, "ZEDITPGM", PROFILE ) ;
+	SELCT.PARM    = "FILE(" + m_file + ") PANEL(" + m_panel + ")" ;
+	SELCT.NEWAPPL = ""      ;
+	SELCT.NEWPOOL = false   ;
+	SELCT.PASSLIB = false   ;
+	SELCT.SCRNAME = "EDIT"  ;
+	actionSelect() ;
 }
 
 
 void pApplication::browse( string m_file, string m_panel )
 {
-	select( p_poolMGR->get( RC, "ZBRPGM", PROFILE ), "FILE(" + m_file + ") PANEL(" + m_panel + ")", "", false, false ) ;
+	SELCT.clear() ;
+	SELCT.PGM     = p_poolMGR->get( RC, "ZBRPGM", PROFILE ) ;
+	SELCT.PARM    = "FILE(" + m_file + ") PANEL(" + m_panel + ")" ;
+	SELCT.NEWAPPL = ""       ;
+	SELCT.NEWPOOL = false    ;
+	SELCT.PASSLIB = false    ;
+	SELCT.SCRNAME = "BROWSE" ;
+	actionSelect() ;
 }
 
 
 void pApplication::view( string m_file, string m_panel )
 {
-	select( p_poolMGR->get( RC, "ZVIEWPGM", PROFILE ), "FILE(" + m_file + ") PANEL(" + m_panel + ")", "", false, false ) ;
+	SELCT.clear() ;
+	SELCT.PGM     = p_poolMGR->get( RC, "ZVIEWPGM", PROFILE ) ;
+	SELCT.PARM    = "FILE(" + m_file + ") PANEL(" + m_panel + ")" ;
+	SELCT.NEWAPPL = ""      ;
+	SELCT.NEWPOOL = false   ;
+	SELCT.PASSLIB = false   ;
+	SELCT.SCRNAME = "VIEW"  ;
+	actionSelect() ;
 }
 
 
 void pApplication::select( string cmd )
 {
-	// SELECT a function or panel in keyword format for use in applications, ie PGM(abc) CMD(oorexx) PANEL(xxx) PARM(zzz) NEWAPPL PASSLIB etc.
+	// SELECT a function or panel in keyword format for use in applications,
+	// ie PGM(abc) CMD(oorexx) PANEL(xxx) PARM(zzz) NEWAPPL PASSLIB SCRNAME(abc) etc.
+
 	// No variable substitution is done at this level.
 
+	if ( !SELCT.parse( cmd ) )
+	{
+		RC = 20 ;
+		checkRCode( "Error in SELECT commmand "+ cmd ) ;
+		return ;
+	}
+	actionSelect() ;
+}
+
+
+void pApplication::select( selobj sel )
+{
+	// SELECT a function or panel using a SELECT object (internal use only)
+
+	SELCT = sel    ;
+	actionSelect() ;
+}
+
+
+void pApplication::actionSelect()
+{
 	// RC=0  Normal completion of the selection panel or function.  END was entered.
 	// RC=4  Normal completion.  RETURN was entered or EXIT specified on the selection panel
 
-	selectParse( RC, cmd, SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB) ;
-
-	if ( RC > 0 )
-	{
-		checkRCode( "Error in SELECT commmand format.  RC=" + d2ds( RC ) + "  Command passed was " + cmd ) ;
-		return ;
-	}
-	SEL         = true  ;
-	busyAppl    = false ;
+	SEL      = true  ;
+	busyAppl = false ;
 
 	wait_event()    ;
 	debug1( "SELECT returned.  RC=" << RC << endl ) ;
 
 	if ( RC == 4 ) { propagateEnd = true ; }
 
-	SEL         = false ;
-	SEL_PGM     = ""    ;
-	SEL_PARM    = ""    ;
-	SEL_NEWAPPL = ""    ;
-	SEL_NEWPOOL = false ;
-	SEL_PASSLIB = false ;
-}
-
-
-void pApplication::select( string pgm, string parm, string newappl, bool newpool, bool passlib )
-{
-	// SELECT function - this format is for internal use only.  Use keyword format of the SELECT for application programs.
-	// No variable substitution is done at this level.
-
-	// RC=0  Normal completion of the selection panel or function.  END was entered.
-	// RC=4  Normal completion.  RETURN was entered or EXIT specified on the selection panel
-
-	SEL_PGM  = pgm  ;
-	SEL_PARM = parm ;
-	if ( !isvalidName( SEL_PGM ) ) { RC = 20 ; checkRCode( "Invalid program name passed to SELECT >>" + SEL_PGM + "<<" ) ; return ; }
-	if ( (newappl != "") & !isvalidName4( newappl ) ) { RC = 20 ; checkRCode( "Invalid NEWAPPL pool name passed to SELECT >>" + newappl + "<<" ) ; return ; }
-	SEL_NEWAPPL = newappl ;
-	SEL_NEWPOOL = newpool ;
-	SEL_PASSLIB = passlib ;
-
-	SEL         = true  ;
-	busyAppl    = false ;
-
-	wait_event() ;
-
-	if ( RC == 4 ) { propagateEnd = true ; }
-
-	SEL         = false ;
-	SEL_PGM     = ""    ;
-	SEL_PARM    = ""    ;
-	SEL_NEWAPPL = ""    ;
-	SEL_NEWPOOL = false ;
-	SEL_PASSLIB = false ;
+	SEL = false   ;
+	SELCT.clear() ;
 }
 
 
@@ -2661,7 +2693,7 @@ string pApplication::sub_vars( string s )
 			p1 = s.find_first_not_of( '&', p1 ) ;
 			continue ;
 		}
-		p2 = s.find_first_of( "& .')", p1 ) ;
+		p2 = s.find_first_of( "& .')\"", p1 ) ;
 		if ( p2 == string::npos ) { p2 = s.size() ; }
 		var = s.substr( p1, (p2-p1) ) ;
 		if ( isvalidName( var ) )

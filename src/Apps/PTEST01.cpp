@@ -34,6 +34,7 @@
 #include <string>
 #include "../lspf.h"
 #include "../utilities.h"
+#include "../classes.h"
 #include "../pWidgets.h"
 #include "../pVPOOL.h"
 #include "../pTable.h"
@@ -56,12 +57,12 @@ void PTEST01::application()
 	char a ;
 	string abc ;
 
-//	verase( "ZPLIB ZMLIB ZTLIB ZHLIB" ) ;
-//	cleanup() ;
-//	return ;
+//      verase( "ZPLIB ZMLIB ZTLIB ZHLIB" ) ;
+//      cleanup() ;
+//      return ;
 
-//	ZTUSER = "/home/daniel/.lspf/" ;
-//	libdef( "ZTUSER", "FILE" ) ;
+//      ZTUSER = "/home/daniel/.lspf/" ;
+//      libdef( "ZTUSER", "FILE" ) ;
 
 	vdefine( "ZCMD ZVERB", &ZCMD, &ZVERB ) ;
 
@@ -111,7 +112,7 @@ void PTEST01::application()
 	}
 
 	cleanup() ;
-        return    ;
+	return    ;
 }
 
 
@@ -123,7 +124,7 @@ void PTEST01::opt0()
 	MSG  = "" ;
 
 	while ( true )
-        {
+	{
 		ZCMD = "" ;
 		display( "PTEST01A", MSG, "ZCMD" );
 		if ( RC >  8 ) { abend()   ; return ; }
@@ -154,7 +155,7 @@ void PTEST01::opt1()
 
 	MSG  = "" ;
 
-//	tbopen( "TABK", WRITE, "/home/daniel/.lspf/" ) ;
+//      tbopen( "TABK", WRITE, "/home/daniel/.lspf/" ) ;
 	tbopen( "TABK", WRITE ) ;
 	log( "A", "TBOPEN TABK WRITE no file name RC=" << RC << endl ) ;
 
@@ -229,7 +230,7 @@ void PTEST01::opt1()
 	log( "A", "TBDELETE TABK for TABKEY999 RC=" << RC << endl ) ;
 
 
-//	tbsave( "TABK", "" , "/home/daniel/.lspf/" ) ;
+//      tbsave( "TABK", "" , "/home/daniel/.lspf/" ) ;
 	tbsave( "TABK" ) ;
 	log( "A", "TBSAVE TABK no file name RC=" << RC << endl ) ;
 
@@ -347,8 +348,8 @@ void PTEST01::opt2()
 		log( "A", "TBADD TABN RC=" << RC << " Record number being loaded is " << i << endl ) ;
 	}
 
-//	tbend("TABN" ) ;
-//	return ;
+//      tbend("TABN" ) ;
+//      return ;
 	TABB1 = "NOTAKEY" ; TABB2 = "VALUE WITH EXT VARS" ; TABB3 = "VALUE WITH EXT VARS"  ; TABB4 = "VALUE4" ; TABB5 = "VALUE4"  ;
 
 	EXTV1 = "EXTENSION VAR 1 " ;
@@ -757,7 +758,7 @@ void PTEST01::opt3()
 
 void PTEST01::opt4()
 {
-	// opt4 - Test Table Display and other table functions for non-keyed table 
+	// opt4 - Test Table Display and other table functions for non-keyed table
 
 	int i ;
 	int j ;
@@ -1025,7 +1026,7 @@ void PTEST01::opt5()
 	CURFLD = "ZCMD" ;
 	CURPOS = 0      ;
 	while ( true )
-        {
+	{
 		if ( MSG == "" ) { ZCMD = "" ; }
 		display( "PTEST01C", MSG, CURFLD, CURPOS );
 		if ( RC >  8 ) { abend()   ; return ; }

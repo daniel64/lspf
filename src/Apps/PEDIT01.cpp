@@ -40,6 +40,7 @@
 #include <vector>
 #include "../lspf.h"
 #include "../utilities.h"
+#include "../classes.h"
 #include "../pWidgets.h"
 #include "../pVPOOL.h"
 #include "../pTable.h"
@@ -1474,6 +1475,11 @@ void PEDIT01::actionPrimCommand1()
 
 	switch ( PrimCMDS[ w1 ] )
 	{
+	case PC_BROWSE:
+			p1 = ZFILE.find_last_of( '/' ) ;
+			browse( ZFILE.substr( 0, p1+1 ) + word( ZCMD, 2 ) ) ;
+			return ;
+
 	case PC_CREATE:
 			if ( words( ZCMD ) != 2 ) { MSG = "PEDT011" ; return ; }
 			creFile = word( ZCMD, 2 ) ;
@@ -1519,6 +1525,11 @@ void PEDIT01::actionPrimCommand1()
 				if ( words( wall ) == 1 ) { clipBoard = strip( wall ) ; }
 				else                      { MSG = "PEDT013A"          ; }
 			}
+			return ;
+
+	case PC_EDIT:
+			p1 = ZFILE.find_last_of( '/' ) ;
+			edit( ZFILE.substr( 0, p1+1 ) + word( ZCMD, 2 ) ) ;
 			return ;
 
 	case PC_PASTE:

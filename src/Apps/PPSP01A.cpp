@@ -46,6 +46,7 @@
 
 #include "../lspf.h"
 #include "../utilities.h"
+#include "../classes.h"
 #include "../pWidgets.h"
 #include "../pVPOOL.h"
 #include "../pTable.h"
@@ -2240,7 +2241,7 @@ void PPSP01A::editKeylist( string tab, string list )
 
 void PPSP01A::runApplication( string appl )
 {
-	select( appl, "", "ISP", true, true ) ;
+	select( "PGM("+appl+") NEWAPPL(ISP) NEWPOOL PASSLIB" ) ;
 }
 
 

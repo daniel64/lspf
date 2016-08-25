@@ -40,6 +40,7 @@
 
 #include "../lspf.h"
 #include "../utilities.h"
+#include "../classes.h"
 #include "../pWidgets.h"
 #include "../pVPOOL.h"
 #include "../pTable.h"
@@ -385,10 +386,10 @@ int lspfAddpop( pApplication * thisAppl, string s )
 
 	bool   rlt ;
 
-	string str  ;
-	string ap_loc  ;
-	string ap_row  ;
-	string ap_col  ;
+	string str    ;
+	string ap_loc ;
+	string ap_row ;
+	string ap_col ;
 
 	str = subword( s, 2 ) ;
 
@@ -416,9 +417,9 @@ int lspfBrowse( pApplication * thisAppl, string s )
 {
 	bool   rlt ;
 
-	string str  ;
-	string pan  ;
-	string fl   ;
+	string str ;
+	string pan ;
+	string fl  ;
 
 	str = subword( s, 2 ) ;
 
@@ -448,9 +449,9 @@ int lspfDisplay( pApplication * thisAppl, string s )
 {
 	bool   rlt ;
 
-	string str  ;
-	string pan  ;
-	string msg  ;
+	string str ;
+	string pan ;
+	string msg ;
 	string cursor ;
 	string csrpos ;
 
@@ -481,9 +482,9 @@ int lspfEdit( pApplication * thisAppl, string s )
 {
 	bool   rlt ;
 
-	string str  ;
-	string pan  ;
-	string fl   ;
+	string str ;
+	string pan ;
+	string fl  ;
 
 	str = subword( s, 2 ) ;
 
@@ -630,26 +631,21 @@ int lspfSelect( pApplication * thisAppl, string s )
 
 	string str ;
 
-	string SEL_PGM     ;
-	string SEL_PARM    ;
-	string SEL_NEWAPPL ;
-	bool   SEL_NEWPOOL ;
-	bool   SEL_PASSLIB ;
+	selobj SEL ;
 
 	str = subword( s, 2 ) ;
 
-	selectParse( sRC, str, SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB ) ;
-	if ( sRC > 0 )
+	if ( !SEL.parse( str ) )
 	{
 		lspfSyntaxError( thisAppl, s ) ;
 		return 20 ;
 	}
-	if ( SEL_PGM[ 0 ] == '&' )
+	if ( SEL.PGM[ 0 ] == '&' )
 	{
-		thisAppl->vcopy( SEL_PGM.erase( 0, 1 ), SEL_PGM, MOVE ) ;
+		thisAppl->vcopy( SEL.PGM.erase( 0, 1 ), SEL.PGM, MOVE ) ;
 	}
 
-	thisAppl->select( SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB ) ;
+	thisAppl->select( SEL ) ;
 	return thisAppl->RC ;
 }
 
@@ -1321,6 +1317,12 @@ int lspfVerase( pApplication * thisAppl, string s )
 
 int lspfVget( pApplication * thisAppl, string s )
 {
+	// VGET variables to the application function pool.  VREPLACE first with nulls so a variable not found
+	// results in a blank value, instead of the variable name.
+
+	int i ;
+	int n ;
+
 	bool rlt ;
 
 	string str  ;
@@ -1333,9 +1335,11 @@ int lspfVget( pApplication * thisAppl, string s )
 	vars = parseString( rlt, str, "()" ) ;
 	if ( !rlt ) { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	if ( words( vars ) == 0 )
+	n = words( vars ) ;
+	if ( n == 0 )
 	{
 		vars = word( s, 2 )    ;
+		n    = 1               ;
 		str  = subword( s, 3 ) ;
 	}
 
@@ -1345,6 +1349,11 @@ int lspfVget( pApplication * thisAppl, string s )
 	else if ( str == "ASIS"    ) { pType = ASIS    ; }
 	else if ( str == ""        ) { pType = ASIS    ; }
 	else                         { lspfSyntaxError( thisAppl, s ) ; return 20 ; }
+
+	for ( i = 1 ; i <= n ; i++ )
+	{
+		thisAppl->vreplace( word( vars, i ), "" ) ;
+	}
 
 	thisAppl->vget( vars, pType ) ;
 	return thisAppl->RC ;

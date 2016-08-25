@@ -58,8 +58,8 @@ pLScreen::pLScreen()
 		mousemask( ALL_MOUSE_EVENTS, NULL ) ;
 		OIA = newwin( 1, maxcol, maxrow+1, 0 ) ;
 	}
-	++screensTotal     ;
-	currScreen = this  ;
+	++screensTotal    ;
+	currScreen = this ;
 	screenID   = ++maxScreenID ;
 }
 
@@ -115,7 +115,7 @@ void pLScreen::save_panel_stack()
 void pLScreen::restore_panel_stack()
 {
 	// Restore saved panels for this logical screen.
-	// Call touchwin() to make sure panels are fully refreshed.
+	// Call touchwin() for the associated window, to make sure panels are fully refreshed.
 
 	while ( !panelList.empty() )
 	{
@@ -151,6 +151,16 @@ void pLScreen::show_busy()
 {
 	wattron( OIA, RED ) ;
 	mvwaddstr( OIA, 0, 20, "X-Busy " ) ;
+	wattroff( OIA, RED ) ;
+	wmove( OIA, 0, 0 ) ;
+	wrefresh( OIA )    ;
+}
+
+
+void pLScreen::show_wait()
+{
+	wattron( OIA, RED ) ;
+	mvwaddstr( OIA, 0, 20, "X-Wait " ) ;
 	wattroff( OIA, RED ) ;
 	wmove( OIA, 0, 0 ) ;
 	wrefresh( OIA )    ;

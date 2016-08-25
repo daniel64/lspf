@@ -6,7 +6,7 @@ pdc  Display  "Refresh Screen"          ACTION RUN(REFRESH)
 pdc  Display  "Discard Screen Updates"  ACTION RUN(DISCARD)
 pdc  Display  Quit                      ACTION RUN(END)
 
-pdc  Settings  "General Settings"   ACTION RUN(ISRROUTE) PARM("SELECT PGM(PPSP01A) PARM(GOPTS)")
+pdc  Settings  "General Settings"   ACTION RUN(ISRROUTE) PARM("SELECT PGM(PPSP01A) PARM(GOPTS) SCRNAME(SETTINGS)")
 pdc  Settings  PFKeys               ACTION RUN(KEYS)
 pdc  Settings  Colours              ACTION RUN(CUA)
 pdc  Settings  Commands             ACTION RUN(CMDS)

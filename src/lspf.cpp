@@ -59,6 +59,9 @@ const string usrAttrNames = "N_RED N_GREEN N_YELLOW N_BLUE N_MAGENTA N_TURQ N_WH
 			    "U_RED U_GREEN U_YELLOW U_BLUE U_MAGENTA U_TURQ U_WHITE " \
 			    "P_RED P_GREEN P_YELLOW P_BLUE P_MAGENTA P_TURQ P_WHITE"  ;
 
+#include "classes.h"
+#include "classes.cpp"
+
 #include "pWidgets.h"
 #include "pWidgets.cpp"
 
@@ -120,7 +123,7 @@ void loadCUATables()          ;
 void setColourPair( string )  ;
 void updateDefaultVars()      ;
 void updateReflist()          ;
-void startApplication( string, string, string, bool, bool ) ;
+void startApplication( selobj ) ;
 void terminateApplication()   ;
 void ResumeApplicationAndWait() ;
 void processPGMSelect()         ;
@@ -130,6 +133,7 @@ void errorScreen( int, string ) ;
 void rawOutput()          ;
 void threadErrorHandler() ;
 void lspfCallbackHandler( lspfCommand & ) ;
+string listLogicalScreens() ;
 void mainLoop() ;
 
 vector<pLScreen *> screenList ;
@@ -158,6 +162,7 @@ int    altScreen = 0 ;
 string commandStack  ;
 string jumpOption    ;
 bool   pfkeyPressed  ;
+bool   wmPending     ;
 
 string ZCOMMAND ;
 string ZPARM    ;
@@ -171,12 +176,8 @@ string ZCTDESC  ;
 const char ZSCREEN[] = { '1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G',
 			 'H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W' } ;
 
-bool   SEL         ;
-string SEL_PGM     ;
-string SEL_PARM    ;
-string SEL_NEWAPPL ;
-bool   SEL_NEWPOOL ;
-bool   SEL_PASSLIB ;
+bool   SEL    ;
+selobj SELCT  ;
 
 string ZHOME  ;
 string ZUSER  ;
@@ -185,7 +186,7 @@ string ZSHELL ;
 int    GMAXWAIT ;
 string GMAINPGM ;
 
-const string BuiltInCommands = "ACTION DISCARD FIELDEXC MSGID NOP PANELID REFRESH SPLIT SWAP TDOWN" ;
+const string BuiltInCommands = "ACTION DISCARD FIELDEXC MSGID NOP PANELID REFRESH SCRNAME SPLIT SWAP TDOWN" ;
 const string SystemCommands  = ".ABEND .HIDE .INFO .RELOAD .SCALE .SHELL .SHOW .SNAP .STATS .TEST" ;
 
 std::ofstream splog(SLOG) ;
@@ -198,11 +199,14 @@ int main( void )
 	uint row     ;
 	uint col     ;
 
+	map<string, appInfo>::iterator it ;
+
 	boost::thread * pThread              ;
 	set_terminate ( threadErrorHandler ) ;
 
 	startTime    = boost::posix_time::microsec_clock::universal_time() ;
-	commandStack = "" ;
+	commandStack = ""    ;
+	wmPending    = false ;
 
 	screenList.push_back( new pLScreen ) ;
 
@@ -285,7 +289,6 @@ int main( void )
 	delete p_poolMGR  ;
 	delete p_tableMGR ;
 
-	map<string, appInfo>::iterator it ;
 	for ( it = apps.begin() ; it != apps.end() ; it++ )
 	{
 		if ( it->second.dlopened )
@@ -309,6 +312,7 @@ void mainLoop()
 	int pos  ;
 	int ws   ;
 	int i    ;
+	int l    ;
 
 	uint t   ;
 	uint c   ;
@@ -325,6 +329,14 @@ void mainLoop()
 	string respTime   ;
 	string field_name ;
 	string ww         ;
+	string w1         ;
+	string w2         ;
+	string w3         ;
+
+	vector<pLScreen *>::iterator its ;
+	vector<string>::iterator it ;
+
+	pApplication * appl ;
 
 	fieldExc fxc ;
 	MEVENT event ;
@@ -334,6 +346,8 @@ void mainLoop()
 	mousemask( ALL_MOUSE_EVENTS, NULL ) ;
 	showLock    = false ;
 	Insert      = false ;
+
+	set_escdelay( 25 ) ;
 
 	while ( true )
 	{
@@ -486,6 +500,7 @@ void mainLoop()
 			case KEY_NPAGE:
 			case KEY_PPAGE:
 			case KEY_ENTER:
+			case 27:
 				debug1( "Action key pressed.  Processing" << endl ) ;
 				if ( currAppl->msgInhibited() )
 				{
@@ -494,7 +509,6 @@ void mainLoop()
 				}
 				Insert = false ;
 				currScrn->show_busy() ;
-				currAppl->hide_msgs() ;
 				updateDefaultVars()   ;
 				processAction( row, col, c, passthru ) ;
 				if ( passthru )
@@ -559,14 +573,13 @@ void mainLoop()
 						fxc = currAppl->currPanel->field_getexec( field_name ) ;
 						if ( fxc.fieldExc_command != "" )
 						{
-							selectParse( RC, subword( fxc.fieldExc_command, 2 ), SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB ) ;
-							if ( RC > 0 )
+							if ( !SELCT.parse( subword( fxc.fieldExc_command, 2 ) ) )
 							{
 								log( "E", "Error in FIELD SELECT command "+ fxc.fieldExc_command << endl ) ;
 								issueMessage( "PSYS011K" ) ;
 								break ;
 							}
-							SEL_PARM = SEL_PARM + " " + currAppl->currPanel->field_getvalue( field_name ) ;
+							SELCT.PARM = SELCT.PARM + " " + currAppl->currPanel->field_getvalue( field_name ) ;
 							currAppl->reffield = field_name ;
 							currAppl->currPanel->field_get_row_col( field_name, t, c ) ;
 							p_poolMGR->put( RC, "ZFECSRP", d2ds( col-c+1 ), SHARED )   ;
@@ -575,7 +588,7 @@ void mainLoop()
 								ww = word( fxc.fieldExc_passed, i ) ;
 								p_poolMGR->put( RC, "ZFEDATA" + d2ds( i ), currAppl->currPanel->field_getvalue( ww ) , SHARED ) ;
 							}
-							startApplication( SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB ) ;
+							startApplication( SELCT ) ;
 							break ;
 						}
 						else
@@ -589,8 +602,8 @@ void mainLoop()
 						if ( ZPARM == "NULLS" )
 						{
 							p_poolMGR->put( RC, "ZNULLS", "NO", SHARED, SYSTEM ) ;
+							currAppl->currPanel->redraw_fields() ;
 						}
-						currAppl->currPanel->redisplay_panel() ;
 					}
 					else if ( ZCOMMAND == ".INFO" )
 					{
@@ -616,7 +629,6 @@ void mainLoop()
 						{
 							issueMessage( "PSYS012M" ) ;
 						}
-						break ;
 					}
 					else if ( ZCOMMAND == "NOP" )
 					{
@@ -640,10 +652,9 @@ void mainLoop()
 						}
 						else
 						{
-							issueMessage( "PSYS012O" ) ;
+							issueMessage( "PSYS014" ) ;
 						}
 						currAppl->currPanel->redisplay_panel() ;
-						break ;
 					}
 					else if ( ZCOMMAND == "REFRESH" )
 					{
@@ -663,6 +674,37 @@ void mainLoop()
 							p_poolMGR->put( RC, "ZSCALE", ZPARM, SHARED, SYSTEM ) ;
 						}
 					}
+					else if ( ZCOMMAND == "SCRNAME" )
+					{
+						ww    = word( ZPARM, 2 ) ;
+						ZPARM = word( ZPARM, 1 ) ;
+						if  ( ZPARM == "ON" )
+						{
+							p_poolMGR->put( RC, "ZSCRNAM1", "ON", SHARED, SYSTEM ) ;
+						}
+						else if ( ZPARM == "OFF" )
+						{
+							p_poolMGR->put( RC, "ZSCRNAM1", "OFF", SHARED, SYSTEM ) ;
+						}
+						else if ( isvalidName( ZPARM ) )
+						{
+							p_poolMGR->put( RC, currScrn->screenID, "ZSCRNAME", ZPARM ) ;
+							p_poolMGR->put( RC, "ZSCRNAME", ZPARM, SHARED ) ;
+							if ( ww == "PERM" )
+							{
+								p_poolMGR->put( RC, currScrn->screenID, "ZSCRNAM2", ww ) ;
+							}
+							else
+							{
+								p_poolMGR->put( RC, currScrn->screenID, "ZSCRNAM2", "" ) ;
+							}
+						}
+						else
+						{
+							issueMessage( "PSYS013" ) ;
+						}
+						currAppl->currPanel->redisplay_panel() ;
+					}
 					else if ( ZCOMMAND == ".SHELL" )
 					{
 						def_prog_mode()   ;
@@ -676,8 +718,8 @@ void mainLoop()
 						if ( ZPARM == "NULLS" )
 						{
 							p_poolMGR->put( RC, "ZNULLS", "YES", SHARED, SYSTEM ) ;
+							currAppl->currPanel->redraw_fields() ;
 						}
-						currAppl->currPanel->redisplay_panel() ;
 					}
 					else if ( ZCOMMAND == "SPLIT" )
 					{
@@ -698,7 +740,13 @@ void mainLoop()
 						altScreen = screenNum         ;
 						screenNum = screenList.size() ;
 						screenList.push_back( new pLScreen ) ;
-						startApplication( GMAINPGM, "", "ISP", true, false ) ;
+						SELCT.clear() ;
+						SELCT.PGM     = GMAINPGM ;
+						SELCT.PARM    = ""    ;
+						SELCT.NEWAPPL = "ISP" ;
+						SELCT.NEWPOOL =  true ;
+						SELCT.PASSLIB = false ;
+						startApplication( SELCT ) ;
 						break ;
 					}
 					else if ( ZCOMMAND == ".STATS" )
@@ -713,34 +761,66 @@ void mainLoop()
 					}
 					else if ( ZCOMMAND == "SWAP" )
 					{
+						w1 = word( ZPARM, 1 ) ;
+						w2 = word( ZPARM, 2 ) ;
+						if ( w1 == "LIST" )
+						{
+							w1 = listLogicalScreens() ;
+						}
 						if ( pLScreen::screensTotal == 1 ) { continue ; }
 						currScrn->save_panel_stack() ;
-						if ( ZPARM == "" )
+						if ( w1 != "" && w1 != "NEXT" && w1 != "PREV" && isvalidName( w1 ) )
 						{
-							t         = screenNum ;
-							screenNum = altScreen ;
-							altScreen = t         ;
+							w3 = w1  ;
+							w1 = "0" ;
+							for ( l = 1, its = screenList.begin() ; its != screenList.end() ; its++, l++ )
+							{
+								appl = (*its)->application_get_current() ;
+								if ( appl->get_current_screenName() == w3 )
+								{
+									w1 = d2ds( l ) ;
+									break          ;
+								}
+							}
 						}
-						else if ( ZPARM == "NEXT" )
+						if ( w1 == "*" ) { w1 = "0" ; }
+						if ( w1 == "NEXT" )
 						{
 							++screenNum ;
 							screenNum = (screenNum == pLScreen::screensTotal ? 0 : screenNum) ;
 							if ( altScreen == screenNum ) { altScreen = (altScreen == 0 ? (pLScreen::screensTotal - 1) : (altScreen - 1) ) ; }
 						}
-						else if ( ZPARM == "PREV" )
+						else if ( w1 == "PREV" )
 						{
 							--screenNum ;
 							screenNum = (screenNum < 0 ? (pLScreen::screensTotal - 1) : screenNum) ;
 							if ( altScreen == screenNum ) { altScreen = ((altScreen == pLScreen::screensTotal - 1) ? 0 : (altScreen + 1) )  ; }
 						}
-						else if ( datatype( ZPARM, 'W' ) )
+						else if ( datatype( w1, 'W' ) )
 						{
-							t = ds2d( ZPARM ) - 1 ;
+							t = ds2d( w1 ) - 1 ;
 							if ( t != screenNum && t >= 0 && t < pLScreen::screensTotal )
 							{
-								if ( t == altScreen ) { altScreen = screenNum ; }
+								if ( w2 == "*" || t == altScreen )
+								{
+									altScreen = screenNum ;
+								}
 								screenNum = t ;
 							}
+							if ( datatype( w2, 'W' ) && w1 != w2 )
+							{
+								t = ds2d( w2 ) - 1 ;
+								if ( t != screenNum && t >= 0 && t < pLScreen::screensTotal )
+								{
+									altScreen = t ;
+								}
+							}
+						}
+						else
+						{
+							t         = screenNum ;
+							screenNum = altScreen ;
+							altScreen = t         ;
 						}
 						currScrn = screenList[ screenNum ] ;
 						currAppl = currScrn->application_get_current() ;
@@ -748,7 +828,7 @@ void mainLoop()
 						p_poolMGR->setShrdPool( RC, currAppl->shrdPool ) ;
 						p_poolMGR->put( RC, "ZPANELID", currAppl->PANELID, SHARED, SYSTEM ) ;
 						currScrn->restore_panel_stack() ;
-						loadpfkeyTable()    ;
+						loadpfkeyTable() ;
 						break ;
 					}
 					else if ( ZCOMMAND == ".TEST" )
@@ -767,7 +847,7 @@ void mainLoop()
 					{
 						updateDefaultVars()                   ;
 						currAppl->currPanel->pdActive = false ;
-						startApplication( SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB ) ;
+						startApplication( SELCT ) ;
 					}
 				}
 				break ;
@@ -806,8 +886,10 @@ void processAction( uint row, uint col, int c, bool & passthru )
 	// %abc run abc as a REXX procedure
 	// Else pass event to application
 
-	int  RC ;
-	int  p1 ;
+	// Special processing for SETVERB UP,DOWN,LEFT,RIGHT,RFIND,RCHANGE
+
+	int RC  ;
+	int p1  ;
 
 	uint i  ;
 	uint j  ;
@@ -815,14 +897,15 @@ void processAction( uint row, uint col, int c, bool & passthru )
 	uint rtsize ;
 	uint rbsize ;
 
-	bool   addRetrieve ;
-	bool   siteBefore  ;
+	bool addRetrieve ;
+	bool siteBefore  ;
 
 	string CMDVerb ;
 	string CMDRest ;
 	string PFCMD   ;
 	string delm    ;
 	string cmdtlst ;
+	string AVerb   ;
 
 	static uint retPos(0) ;
 
@@ -842,15 +925,35 @@ void processAction( uint row, uint col, int c, bool & passthru )
 	p_poolMGR->put( RC, "ZVERB", "", SHARED ) ;
 	if ( RC != 0 ) { log( "C", "poolMGR put for ZVERB failed" << endl ) ; }
 
+	if ( c == 27 )
+	{
+		currAppl->currPanel->cmd_setvalue( "SWAP LIST" ) ;
+	}
+
 	if ( c == KEY_ENTER )
 	{
-		if ( currAppl->currPanel->on_border_line( row, col ) )
+		if ( wmPending )
 		{
-			issueMessage( "PSYS012N" ) ;
-			ZCOMMAND = "NOP" ;
-			passthru = false ;
+			currScrn->save_panel_stack() ;
+			currAppl->rempop() ;
+			currAppl->addpop( "", row-1, col-3 ) ;
+			currAppl->movepop() ;
+			currScrn->restore_panel_stack() ;
+			wmPending = false ;
+		}
+		else if ( currAppl->currPanel->on_border_line( row, col ) )
+		{
+			issueMessage( "PSYS015" ) ;
+			ZCOMMAND  = "NOP" ;
+			passthru  = false ;
+			wmPending = true  ;
 			return ;
-			// Move window to be implemented
+		}
+		else if ( currAppl->currPanel->hide_msg_window( row, col ) )
+		{
+			ZCOMMAND  = "NOP" ;
+			passthru  = false ;
+			return ;
 		}
 		else if ( row == currAppl->currPanel->get_abline() )
 		{
@@ -875,16 +978,15 @@ void processAction( uint row, uint col, int c, bool & passthru )
 					CMDRest = subword( t_pdc.pdc_parm, 2 ) ;
 					if ( CMDVerb == "SELECT" )
 					{
-						selectParse( RC, CMDRest, SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB) ;
-						if ( RC > 0 )
+						if ( !SELCT.parse( CMDRest ) )
 						{
 							log( "E", "Error in SELECT command "+ t_pdc.pdc_parm << endl ) ;
 							currAppl->setmsg( "PSYS011K" ) ;
 							return ;
 						}
-						if ( SEL_PGM[ 0 ] == '&' )
+						if ( SELCT.PGM[ 0 ] == '&' )
 						{
-							currAppl->vcopy( substr( SEL_PGM, 2 ), SEL_PGM, MOVE ) ;
+							currAppl->vcopy( substr( SELCT.PGM, 2 ), SELCT.PGM, MOVE ) ;
 						}
 						SEL      = true  ;
 						passthru = false ;
@@ -897,14 +999,17 @@ void processAction( uint row, uint col, int c, bool & passthru )
 
 	currAppl->currPanel->hide_pd() ;
 
-	if ( t_pdc.pdc_run == "" ) { ZCOMMAND  = strip( currAppl->currPanel->cmd_getvalue() ) ; }
+	wmPending   = false ;
+	addRetrieve = true  ;
+	delm        = p_poolMGR->get( RC, "ZDEL", PROFILE ) ;
 
-	addRetrieve = true ;
+	if ( t_pdc.pdc_run == "" ) { ZCOMMAND = strip( currAppl->currPanel->cmd_getvalue() ) ; }
+
 	if ( commandStack != "" )
 	{
 		if ( ZCOMMAND != "" )
 		{
-			currAppl->currPanel->cmd_setvalue( ZCOMMAND + ";" + commandStack ) ;
+			currAppl->currPanel->cmd_setvalue( ZCOMMAND + delm + commandStack ) ;
 			commandStack = "" ;
 			return ;
 		}
@@ -973,12 +1078,13 @@ void processAction( uint row, uint col, int c, bool & passthru )
 			break ;
 	}
 
-	if ( findword( upper( PFCMD ), "SWAP SPLIT RETRIEVE" ) ) { ZCOMMAND = "" ; }
+	if ( findword( upper( PFCMD ), "SPLIT RETRIEVE" ) ) { ZCOMMAND = "" ; }
 
 	if ( PFCMD != "" ) { ZCOMMAND = PFCMD + " " + ZCOMMAND ; }
 
-	delm = p_poolMGR->get( RC, "ZDEL", PROFILE ) ;
-	p1   = ZCOMMAND.find( delm[ 0 ] ) ;
+	jumpOption = ZCOMMAND ;
+
+	p1 = ZCOMMAND.find( delm[ 0 ] ) ;
 	if ( p1 != string::npos )
 	{
 		commandStack = ZCOMMAND.substr( p1+1 ) ;
@@ -992,25 +1098,27 @@ void processAction( uint row, uint col, int c, bool & passthru )
 
 	if ( CMDVerb[ 0 ] == '%' )
 	{
-		currAppl->vcopy( "ZOREXPGM", SEL_PGM, MOVE ) ;
-		SEL_PARM    = ZCOMMAND.substr( 1 ) ;
-		SEL_NEWAPPL = ""    ;
-		SEL_NEWPOOL = true  ;
-		SEL_PASSLIB = false ;
-		SEL         = true  ;
-		passthru    = false ;
+		SELCT.clear() ;
+		currAppl->vcopy( "ZOREXPGM", SELCT.PGM, MOVE ) ;
+		SELCT.PARM    = ZCOMMAND.substr( 1 ) ;
+		SELCT.NEWAPPL = ""    ;
+		SELCT.NEWPOOL = true  ;
+		SELCT.PASSLIB = false ;
+		SEL           = true  ;
+		passthru      = false ;
 		currAppl->currPanel->cmd_setvalue( "" ) ;
 		return ;
 	}
 	else if ( CMDVerb[ 0 ] == '!' )
 	{
-		SEL_PGM     = CMDVerb.substr( 1 ) ;
-		SEL_PARM    = CMDRest ;
-		SEL_NEWAPPL = ""      ;
-		SEL_NEWPOOL = true    ;
-		SEL_PASSLIB = false   ;
-		SEL         = true    ;
-		passthru    = false   ;
+		SELCT.clear() ;
+		SELCT.PGM     = CMDVerb.substr( 1 ) ;
+		SELCT.PARM    = CMDRest ;
+		SELCT.NEWAPPL = ""      ;
+		SELCT.NEWPOOL = true    ;
+		SELCT.PASSLIB = false   ;
+		SEL           = true    ;
+		passthru      = false   ;
 		currAppl->currPanel->cmd_setvalue( "" ) ;
 		return ;
 	}
@@ -1022,7 +1130,6 @@ void processAction( uint row, uint col, int c, bool & passthru )
 		ZCOMMAND = substr( ZCOMMAND, 2 ) ;
 		if ( !currAppl->isprimMenu() )
 		{
-			jumpOption            = ZCOMMAND ;
 			currAppl->jumpEntered = true     ;
 			p_poolMGR->put( RC, "ZVERB", "RETURN", SHARED ) ;
 			currAppl->currPanel->cmd_setvalue( "" ) ;
@@ -1049,7 +1156,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 	if ( CMDVerb == "HELP")
 	{
 		commandStack = "" ;
-		if ( currAppl->currPanel->showLMSG )
+		if ( currAppl->currPanel->MSGID == "" || currAppl->currPanel->showLMSG )
 		{
 			currAppl->currPanel->cmd_setvalue( "" ) ;
 			ZPARM   = currAppl->get_help_member( row, col ) ;
@@ -1083,13 +1190,21 @@ void processAction( uint row, uint col, int c, bool & passthru )
 		  cmdtlst += "ISP" ;
 	}
 
-	ws = words( cmdtlst ) ;
+	AVerb = CMDVerb ;
+	ws    = words( cmdtlst ) ;
+
 	for ( i = 0 ; i < 8 ; i++ )
 	{
 		for ( j = 1 ; j <= ws ; j++ )
 		{
 			p_tableMGR->cmdsearch( RC, funcPOOL, word( cmdtlst, j ), CMDVerb, ZTLIB ) ;
-			if ( RC == 0 ) { break ; }
+			if ( RC > 0 || ZCTACT == "" ) { continue ; }
+			if ( ZCTACT[ 0 ] == '&' )
+			{
+				currAppl->vcopy( substr( ZCTACT, 2 ), ZCTACT, MOVE ) ;
+				if ( ZCTACT == "" ) { continue ; }
+			}
+			break ;
 		}
 		if ( RC > 0 || word( ZCTACT, 1 ) != "ALIAS" ) { break ; }
 		CMDVerb  = word( ZCTACT, 2 )    ;
@@ -1106,43 +1221,63 @@ void processAction( uint row, uint col, int c, bool & passthru )
 	{
 		if ( word( ZCTACT, 1 ) == "NOP" )
 		{
+			p_poolMGR->put( RC, "ZCTMVAR", left( AVerb, 8 ), SHARED ) ;
+			issueMessage( "PSYS011" ) ;
+			currAppl->currPanel->cmd_setvalue( "" ) ;
 			passthru = false ;
 			return ;
 		}
 		else if ( word( ZCTACT, 1 ) == "SELECT" )
 		{
-			selectParse( RC, subword( ZCTACT, 2) , SEL_PGM, SEL_PARM, SEL_NEWAPPL, SEL_NEWPOOL, SEL_PASSLIB) ;
-			if ( RC > 0 )
+			if ( !SELCT.parse( subword( ZCTACT,2 ) ) )
 			{
 				log( "E", "Error in SELECT command "+ ZCTACT << endl ) ;
 				currAppl->setmsg( "PSYS011K" ) ;
 				return ;
 			}
-			p1 = wordpos( "&ZPARM", SEL_PARM ) ;
+			p1 = wordpos( "&ZPARM", SELCT.PARM ) ;
 			if ( p1 > 0 )
 			{
-				p1       = wordindex( SEL_PARM, p1 )       ;
-				SEL_PARM = delstr( SEL_PARM, p1, 6 )       ;
-				SEL_PARM = insert( CMDRest, SEL_PARM, p1 ) ;
+				p1         = wordindex( SELCT.PARM, p1 )       ;
+				SELCT.PARM = delstr( SELCT.PARM, p1, 6 )       ;
+				SELCT.PARM = insert( CMDRest, SELCT.PARM, p1 ) ;
 			}
-			if ( SEL_PGM[ 0 ] == '&' )
+			if ( SELCT.PGM[ 0 ] == '&' )
 			{
-				currAppl->vcopy( substr( SEL_PGM, 2 ), SEL_PGM, MOVE ) ;
+				currAppl->vcopy( substr( SELCT.PGM, 2 ), SELCT.PGM, MOVE ) ;
 			}
 			SEL      = true  ;
 			passthru = false ;
 		}
-		else if ( ZCTACT  == "PASSTHRU" )
+		else if ( ZCTACT == "PASSTHRU" )
 		{
 			passthru = true ;
 			ZCOMMAND = strip( CMDVerb + " " + CMDRest ) ;
 		}
-		else if ( ZCTACT  == "SETVERB" )
+		else if ( ZCTACT == "SETVERB" )
 		{
-			passthru = true ;
-			p_poolMGR->put( RC, "ZVERB", ZCTVERB, SHARED ) ;
-			if ( RC > 0 ) { log( "C", "VPUT for ZVERB failed" << endl ) ; }
-			ZCOMMAND = subword( ZCOMMAND, 2 ) ;
+			if ( currAppl->currPanel->is_cmd_inactive( CMDVerb ) ||
+			   ( CMDVerb == "RFIND"                                              &&
+			     currAppl->ZAPPNAME != p_poolMGR->get( RC, "ZEDITPGM", PROFILE ) &&
+			     currAppl->ZAPPNAME != p_poolMGR->get( RC, "ZVIEWPGM", PROFILE ) &&
+			     currAppl->ZAPPNAME != p_poolMGR->get( RC, "ZBRPGM", PROFILE ) )   ||
+			   ( CMDVerb == "RCHANGE"                                            &&
+			     currAppl->ZAPPNAME != p_poolMGR->get( RC, "ZEDITPGM", PROFILE ) &&
+			     currAppl->ZAPPNAME != p_poolMGR->get( RC, "ZVIEWPGM", PROFILE )  ) )
+			{
+				p_poolMGR->put( RC, "ZCTMVAR", left( AVerb, 8 ), SHARED ) ;
+				issueMessage( "PSYS011" ) ;
+				currAppl->currPanel->cmd_setvalue( "" ) ;
+				passthru = false ;
+				return ;
+			}
+			else
+			{
+				passthru = true ;
+				p_poolMGR->put( RC, "ZVERB", ZCTVERB, SHARED ) ;
+				if ( RC > 0 ) { log( "C", "VPUT for ZVERB failed" << endl ) ; }
+				ZCOMMAND = subword( ZCOMMAND, 2 ) ;
+			}
 		}
 	}
 
@@ -1174,14 +1309,16 @@ void processPGMSelect()
 {
 	// Called when an application program has invoked the SELECT service (also VIEW, EDIT, BROWSE)
 
-	if ( apps.find( currAppl->SEL_PGM ) != apps.end() )
+	SELCT = currAppl->get_select_cmd() ;
+
+	if ( apps.find( SELCT.PGM ) != apps.end() )
 	{
 		updateDefaultVars() ;
-		startApplication( currAppl->SEL_PGM, currAppl->SEL_PARM, currAppl->SEL_NEWAPPL, currAppl->SEL_NEWPOOL, currAppl->SEL_PASSLIB ) ;
+		startApplication( SELCT ) ;
 	}
 	else
 	{
-		errorScreen( 1, "SELECT function did not find application "+ currAppl->SEL_PGM ) ;
+		errorScreen( 1, "SELECT function did not find application "+ SELCT.PGM ) ;
 		currAppl->SEL = false ;
 		log( "W", "Resumed function did a SELECT.  Ending wait in SELECT" << endl ) ;
 		ResumeApplicationAndWait() ;
@@ -1195,7 +1332,7 @@ void processPGMSelect()
 }
 
 
-void startApplication( string Application, string parm, string NEWAPPL, bool NEWPOOL, bool PASSLIB )
+void startApplication( selobj SEL )
 {
 	int RC      ;
 	int elapsed ;
@@ -1206,29 +1343,33 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 	string m    ;
 	string p    ;
 	string t    ;
+	string tMSGID1 ;
 
 	bool ldm    ;
 	bool ldp    ;
 	bool ldt    ;
 
+	bool setMSG ;
+
+	slmsg tMSG1 ;
+
 	boost::thread * pThread ;
 
-	if ( apps.find( Application ) == apps.end() )
+	if ( apps.find( SEL.PGM ) == apps.end() )
 	{
-		errorScreen( 1, "Application " + Application + " not found" ) ;
+		errorScreen( 1, "Application "+ SEL.PGM +" not found" ) ;
 		return ;
 	}
-	if ( !apps[ Application ].dlopened )
+	if ( !apps[ SEL.PGM ].dlopened )
 	{
-		if ( !loadDynamicClass( Application ) )
+		if ( !loadDynamicClass( SEL.PGM ) )
 		{
-			errorScreen( 1, "Errors loading application " + Application ) ;
+			errorScreen( 1, "Errors loading application "+ SEL.PGM ) ;
 			return ;
 		}
 	}
 
-	log( "I", "Starting new application "+ Application +" with parameters '"+ parm +"'" << endl ) ;
-	if ( PASSLIB || !NEWPOOL )
+	if ( SEL.PASSLIB || !SEL.NEWPOOL )
 	{
 		debug1( "PASSLIB or no NEWPOOL specifed on start application.  Saving LIBDEF status" << endl ) ;
 		m   = currAppl->ZMUSER ;
@@ -1238,31 +1379,44 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 		ldp = currAppl->libdef_puser ;
 		ldt = currAppl->libdef_tuser ;
 	}
-	currAppl = ((pApplication*(*)())( apps[ Application ].maker_ep))() ;
+	setMSG = currAppl->setMSG ;
+	if ( setMSG )
+	{
+		tMSGID1 = currAppl->getmsgid1() ;
+		tMSG1   = currAppl->getmsg1()   ;
+		currAppl->setMSG = false        ;
+	}
+
+	log( "I", "Starting new application "+ SEL.PGM +" with parameters '"+ SEL.PARM +"'" << endl ) ;
+	currAppl = ((pApplication*(*)())( apps[ SEL.PGM ].maker_ep))() ;
 
 	currScrn->application_add( currAppl ) ;
-	currAppl->ZAPPNAME     = Application ;
-	currAppl->taskID       = ++maxtaskID ;
-	currAppl->PASSLIB      = PASSLIB     ;
-	currAppl->busyAppl     = true        ;
-	currAppl->p_poolMGR    = p_poolMGR   ;
-	currAppl->p_tableMGR   = p_tableMGR  ;
-	currAppl->PARM         = parm        ;
+	currAppl->ZAPPNAME     = SEL.PGM      ;
+	currAppl->taskID       = ++maxtaskID  ;
+	currAppl->PASSLIB      = SEL.PASSLIB  ;
+	currAppl->busyAppl     = true         ;
+	currAppl->p_poolMGR    = p_poolMGR    ;
+	currAppl->p_tableMGR   = p_tableMGR   ;
+	currAppl->PARM         = SEL.PARM     ;
 	currAppl->lspfCallback = lspfCallbackHandler ;
-	apps[ Application ].refCount++ ;
+	apps[ SEL.PGM ].refCount++ ;
 
-	if ( NEWAPPL != "" )
+	if ( SEL.NEWAPPL != "" )
 	{
-		if ( NEWAPPL != p_poolMGR->getAPPLID() )
+		if ( SEL.NEWAPPL != p_poolMGR->getAPPLID() )
 		{
-			p_poolMGR->setAPPLID( RC, NEWAPPL )  ;
+			p_poolMGR->setAPPLID( RC, SEL.NEWAPPL )  ;
 		}
 	}
 	currAppl->ZZAPPLID = p_poolMGR->getAPPLID() ;
 
 	p_poolMGR->createPool( RC, PROFILE, ZSPROF ) ;
-	if ( NEWPOOL )
+	if ( SEL.NEWPOOL )
 	{
+		if ( currScrn->application_stack_size() > 1 && SELCT.SCRNAME == "" )
+		{
+			SELCT.SCRNAME = p_poolMGR->get( RC, "ZSCRNAME", SHARED ) ;
+		}
 		currAppl->NEWPOOL = true ;
 		p_poolMGR->createPool( RC, SHARED ) ;
 		s = ZSCREEN[ screenNum ] ;
@@ -1274,7 +1428,7 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 	loadpfkeyTable() ;
 	currAppl->init() ;
 
-	if ( PASSLIB || !NEWPOOL )
+	if ( SEL.PASSLIB || !SEL.NEWPOOL )
 	{
 		debug1( "PASSLIB or no NEWPOOL specifed on start application.  Restoring LIBDEF status to new application." << endl ) ;
 		currAppl->ZMUSER = m ;
@@ -1284,10 +1438,16 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 		currAppl->libdef_puser = ldp ;
 		currAppl->libdef_tuser = ldt ;
 	}
+	if ( setMSG ) { currAppl->set_msg1( tMSG1, tMSGID1 ) ; }
 
 	pThread = new boost::thread(boost::bind(&pApplication::application, currAppl ));
 
 	currAppl->pThread = pThread ;
+
+	if ( SELCT.SCRNAME != "" )
+	{
+		p_poolMGR->put( RC, "ZSCRNAME", SELCT.SCRNAME, SHARED ) ;
+	}
 
 	log( "I", "Waiting for new application to complete startup.  ID=" << pThread->get_id() << endl ) ;
 	elapsed = 0 ;
@@ -1311,7 +1471,7 @@ void startApplication( string Application, string parm, string NEWAPPL, bool NEW
 
 	if ( currAppl->abnormalEnd )
 	{
-		errorScreen( 2, "An error has occured initialising new task for " + Application ) ;
+		errorScreen( 2, "An error has occured initialising new task for "+ SEL.PGM ) ;
 		terminateApplication() ;
 		if ( pLScreen::screensTotal == 0 ) { return ; }
 	}
@@ -1427,8 +1587,9 @@ void terminateApplication()
 	}
 
 	currAppl = currScrn->application_get_current() ;
+	currScrn->restore_panel_stack() ;
 
-	p_poolMGR->setAPPLID( RC, currAppl->ZZAPPLID )  ;
+	p_poolMGR->setAPPLID( RC, currAppl->ZZAPPLID ) ;
 	if ( RC > 0 ) { log( "C", "ERROR setting APPLID for pool manager.  RC=" << RC << endl ) ; }
 	p_poolMGR->setShrdPool( RC, currAppl->shrdPool )   ;
 	if ( RC > 0 ) { log( "C", "ERROR setting shared pool for pool manager.  RC=" << RC << endl ) ; }
@@ -1575,10 +1736,14 @@ void terminateApplication()
 		{
 			currAppl->get_home( row, col )   ;
 			currAppl->set_cursor( row, col ) ;
-			currAppl->setMSG = false         ;
 		}
 	}
 	log( "I", "Application terminatation of "+ ZAPPNAME +" completed.  Current application is "+ currAppl->ZAPPNAME << endl ) ;
+	if ( p_poolMGR->get( RC, currScrn->screenID, "ZSCRNAM2" ) == "PERM" )
+	{
+			p_poolMGR->put( RC, "ZSCRNAME", p_poolMGR->get( RC, currScrn->screenID, "ZSCRNAME" ), SHARED ) ;
+	}
+	currAppl->refresh_id() ;
 	currScrn->set_row_col( row, col ) ;
 }
 
@@ -1837,6 +2002,7 @@ void setColourPair( string name )
 void loadDefaultPools()
 {
 	// Default vars go in @DEFPROF (RO) for PROFILE and @DEFSHAR (UP) for SHARE
+	// These have the SYSTEM attibute set on the variable
 
 	int RC ;
 	int i  ;
@@ -1872,7 +2038,9 @@ void loadDefaultPools()
 	p_poolMGR->setAPPLID( RC, "ISP" ) ;
 	p_poolMGR->createPool( RC, PROFILE, ZSPROF ) ;
 
+	p_poolMGR->defaultVARs( RC, "Z", "", SHARED )                  ;
 	p_poolMGR->defaultVARs( RC, "ZHOME", ZHOME, SHARED )           ;
+	p_poolMGR->defaultVARs( RC, "ZSCRNAM1", "OFF", SHARED )        ;
 	p_poolMGR->defaultVARs( RC, "ZSHELL", ZSHELL, SHARED )         ;
 	p_poolMGR->defaultVARs( RC, "ZSYSNAME", buf.sysname, SHARED )  ;
 	p_poolMGR->defaultVARs( RC, "ZNODNAME", buf.nodename, SHARED ) ;
@@ -1988,7 +2156,13 @@ void updateReflist()
 	{
 		if ( currAppl->currPanel->field_valid( fname ) )
 		{
-			startApplication( p_poolMGR->get( RC, "ZRFLPGM", PROFILE ), "PLA " + currAppl->currPanel->field_getvalue( fname ), "", false, false ) ;
+			SELCT.clear() ;
+			SELCT.PGM     = p_poolMGR->get( RC, "ZRFLPGM", PROFILE ) ;
+			SELCT.PARM    = "PLA " + currAppl->currPanel->field_getvalue( fname ) ;
+			SELCT.NEWAPPL = ""    ;
+			SELCT.NEWPOOL = false ;
+			SELCT.PASSLIB = false ;
+			startApplication( SELCT ) ;
 		}
 		else
 		{
@@ -2002,7 +2176,7 @@ void updateReflist()
 void rawOutput()
 {
 	// Write raw output to the display and clear the raw messages vector.
-	// Refresh panel after ENTER has been pressed (if one has been displayed)
+	// save/restore the panel stack for this logica screen
 
 	int i ;
 	int l ;
@@ -2029,6 +2203,91 @@ void rawOutput()
 	attroff( RED | A_BOLD ) ;
 	currAppl->rmsgs.clear() ;
 	currScrn->restore_panel_stack() ;
+}
+
+
+string listLogicalScreens()
+{
+	// Mainline lspf cannot create application panels but let's make this as similar as possible
+	// Note: get_current_screenName() switches shared pools to get the correct ZSCRNAME.  Switch back afterwards.
+
+	int i ;
+	int l ;
+	int m ;
+	int o ;
+	int c ;
+	int RC ;
+
+	string ln ;
+
+	WINDOW * swwin   ;
+	PANEL  * swpanel ;
+
+	pApplication * appl ;
+
+	vector<pLScreen *>::iterator its ;
+	vector<string>::iterator it ;
+	vector<string> lslist ;
+
+	swwin   = newwin( screenList.size() + 6, 80, 1, 1 ) ;
+	swpanel = new_panel( swwin )  ;
+	wattrset( swwin, cuaAttr[ AWF ] ) ;
+	box( swwin, 0, 0 ) ;
+	mvwaddstr( swwin, 0, 34, " Task List " ) ;
+	wattroff( swwin, cuaAttr[ AWF ] ) ;
+
+	wattrset( swwin, cuaAttr[ PT ] ) ;
+	mvwaddstr( swwin, 1, 28, "Active Logical Sessions" ) ;
+	wattroff( swwin, cuaAttr[ PT ] ) ;
+
+	wattrset( swwin, cuaAttr[ PIN ] ) ;
+	mvwaddstr( swwin, 3, 2, "ID  Name      Application  Applid  Panel Title" ) ;
+	wattroff( swwin, cuaAttr[ PIN ] ) ;
+
+	currScrn->show_wait() ;
+
+	for ( l = 0, its = screenList.begin() ; its != screenList.end() ; its++, l++ )
+	{
+		appl = (*its)->application_get_current() ;
+		ln   = d2ds( (*its)->screenID )          ;
+		if      ( l == screenNum ) { ln += "*" ; m = l ; }
+		else if ( l == altScreen ) { ln += "-"         ; }
+		else                       { ln += " "         ; }
+		ln = left( ln, 4 ) +
+		     left( appl->get_current_screenName(), 10 ) +
+		     left( appl->ZAPPNAME, 13 ) +
+		     left( appl->ZZAPPLID, 8  ) +
+		     left( appl->get_current_panelTitle(), 42 ) ;
+		lslist.push_back( ln ) ;
+	}
+
+	p_poolMGR->setShrdPool( RC, currAppl->shrdPool ) ;
+
+	o = m         ;
+	curs_set( 0 ) ;
+	while ( true )
+	{
+		l = 4 ;
+		for ( i = 0, it = lslist.begin() ; it != lslist.end() ; it++, i++ )
+		{
+			if ( i == m ) wattron( swwin, cuaAttr[ PT  ] )  ;
+			else          wattron( swwin, cuaAttr[ VOI ] )  ;
+			mvwaddstr( swwin, l++, 2, (*it).c_str() )       ;
+			if ( i == m ) wattroff( swwin, cuaAttr[ PT  ] ) ;
+			else          wattroff( swwin, cuaAttr[ VOI ] ) ;
+		}
+		update_panels() ;
+		doupdate()  ;
+		c = getch() ;
+		if      ( c == KEY_UP )   { m == 0 ? m = screenList.size() - 1 : m-- ; continue ; }
+		else if ( c == KEY_DOWN ) { m == screenList.size()-1 ? m = 0 : m++   ; continue ; }
+		if ( c == KEY_ENTER || c == 27 || c == 13 ) { break ; }
+	}
+
+	del_panel( swpanel ) ;
+	delwin( swwin )      ;
+	if ( c == 27 ) { m = o ; }
+	return d2ds( m+1 )   ;
 }
 
 
@@ -2455,7 +2714,15 @@ bool unloadDynamicClass( void * dlib )
 
 	for ( i = 0 ; i < 100 ; i++ )
 	{
-		rc = dlclose( dlib )  ;
+		try
+		{
+			rc = dlclose( dlib ) ;
+		}
+		catch (...)
+		{
+			log( "E", "An exception has occured during dlclose" << endl ) ;
+			return false ;
+		}
 		if ( rc != 0 ) { break ; }
 	}
 	if ( rc == 0 ) { return false ; }

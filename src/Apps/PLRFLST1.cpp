@@ -42,6 +42,7 @@
 
 #include "../lspf.h"
 #include "../utilities.h"
+#include "../classes.h"
 #include "../pWidgets.h"
 #include "../pVPOOL.h"
 #include "../pTable.h"

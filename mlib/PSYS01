@@ -2,20 +2,20 @@
 /* System message file for lspf        */
 /*                                     */
 
-PSYS011 'Up is not active' .T=W
-'Scrolling not active on this panel'
+PSYS011 '"&ZCTMVAR" is not active' .TYPE=W
+'Command or function key entered is not defined'
 
-PSYS012 'Down is not active' .TYPE=W
-'Scrolling not active on this panel'
-
-PSYS013 'Right is not active' .TYPE=W
-'Scrolling not active on this panel'
-
-PSYS014 'Left is not active' .TYPE=W
-'Scrolling not active on this panel'
-
-PSYS015 'Function not yet implemented' .TYPE=W
+PSYS012 'Function not yet implemented' .TYPE=W
 'Function has not yet been implemented.'
+
+PSYS013 'Invalid screen name' .TYPE=W
+'A screen name must be alpanumeric and more than one letter'
+
+PSYS014 'Invalid PANELID parameter' .TYPE=W
+'Valid parameters are ON, OFF or blank to toggle setting'
+
+PSYS015 'Window move pending' .TYPE=W
+''
 
 PSYS016 'Invalid option' .TYPE=W
 'Invalid option entered on selection panel or no command defined for selection'
@@ -149,10 +149,3 @@ PSYS012L '' .TYPE=W .W=N
 
 PSYS012M 'Invalid MSGID parameter' .TYPE=W
 'Valid MSGID parameters are ON, OFF or blank.'
-
-PSYS012N 'Window Move Pending' .TYPE=W
-'Place cursor at position to move window'
-
-PSYS012O 'Invalid PANELID parameter' .TYPE=W
-'Valid parameters are ON, OFF or blank to toggle setting'
-

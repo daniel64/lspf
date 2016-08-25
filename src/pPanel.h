@@ -51,23 +51,28 @@ class pPanel
 		int    loadPanel( string p_name, string paths ) ;
 
 		void   display_panel( int & RC ) ;
-		void   redisplay_panel()         ;
+		void   redisplay_panel() ;
+		void   redraw_fields()   ;
 		void   display_panel_update( int & RC ) ;
 		void   display_panel_init( int & RC )   ;
 		void   display_panel_reinit( int & RC, int ln ) ;
 		void   display_panel_proc( int & RC, int ln )   ;
 		void   display_msg() ;
-		void   hide_msgs()   ;
+		void   display_id()  ;
 
 		void   set_popup( int, int ) ;
 		void   remove_popup()        ;
+		void   move_popup()          ;
 
 		void   put_keylist( int, string ) ;
 		string get_keylist( int )         ;
+		string get_panelTitle()  { return panelTitle ; }
 
 		void   update_field_values( int & RC ) ;
 
-		bool   on_border_line( uint, uint ) ;
+		bool   on_border_line( uint, uint )  ;
+		bool   hide_msg_window( uint, uint ) ;
+
 		int    get_abline()      { return win_row  ; }
 		bool   is_pd_displayed() { return pdActive ; }
 		bool   display_pd( uint col ) ;
@@ -106,7 +111,8 @@ class pPanel
 		void   field_setvalue( string field, string value ) ;
 
 		string cmd_getvalue() ;
-		void   cmd_setvalue( string value ) ;
+		void   cmd_setvalue( string value )  ;
+		bool   is_cmd_inactive( string value ) ;
 
 		string field_getname( uint row, uint col ) ;
 		bool   field_get_row_col( string fld, uint & row, uint & col ) ;
@@ -124,11 +130,11 @@ class pPanel
 		void   resetAttrs()     ;
 
 		vector<string>attrList  ;
-		map<int, string > tb_linesChanged ;
+		map<int, string> tb_linesChanged ;
 
 
 	private:
-		string PanelTitle  ;
+		string panelTitle  ;
 		int    abIndex     ;
 		int    RC          ;
 		int    tb_row      ;
@@ -148,7 +154,6 @@ class pPanel
 		uint   p_col       ;
 		bool   tb_model    ;
 		bool   win_addpop  ;
-		bool   pup_created ;
 		bool   smp_created ;
 		bool   lmp_created ;
 		int    win_width   ;
@@ -156,13 +161,17 @@ class pPanel
 		int    win_row     ;
 		int    win_col     ;
 		WINDOW * win       ;
+		WINDOW * fwin      ;
+		WINDOW * pwin      ;
 		WINDOW * bwin      ;
 		WINDOW * smwin     ;
 		WINDOW * lmwin     ;
+		WINDOW * idwin     ;
 		PANEL  * panel     ;
 		PANEL  * bpanel    ;
 		PANEL  * smpanel   ;
 		PANEL  * lmpanel   ;
+		PANEL  * idpanel   ;
 
 		void   syncDialogueVar( string ) ;
 		string getDialogueVar( string )  ;
@@ -212,4 +221,5 @@ class pPanel
 
 		void   get_msgwin( int, int &, int &, int &, int & ) ;
 		void   panel_cleanup( PANEL * ) ;
+
 } ;

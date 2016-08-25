@@ -24,6 +24,7 @@
 #include <iostream>
 #include "../lspf.h"
 #include "../utilities.h"
+#include "../classes.h"
 #include "../pWidgets.h"
 #include "../pVPOOL.h"
 #include "../pTable.h"
@@ -49,11 +50,7 @@ void PMAIN0A::application()
 	int y, m ;
 	int pmonth, pyear ;
 
-	string S_PGM      ;
-	string S_PARM     ;
-	string S_NEWAPPL  ;
-	bool   S_NEWPOOL  ;
-	bool   S_PASSLIB  ;
+	selobj SEL    ;
 
 	string MSG ;
 	string w1  ;
@@ -63,12 +60,15 @@ void PMAIN0A::application()
 
 	string ZSYSNAME ;
 	string ZOSREL   ;
+	string ZSCRNAME ;
 
 	ZAHELP = "HPMAIN1" ;
 
-	vdefine( "ZCMD ZDATEL ZJDATE ZTIME", &ZCMD, &ZDATEL, &ZJDATE, &ZTIME ) ;
+	vdefine( "ZCMD ZDATEL ZJDATE ZTIME ZSCRNAME", &ZCMD, &ZDATEL, &ZJDATE, &ZTIME, &ZSCRNAME ) ;
 	vdefine( "ZAREA ZSHADOW", &ZAREA, &ZSHADOW ) ;
 
+	ZSCRNAME = "MAIN" ;
+	vput( "ZSCRNAME", SHARED ) ;
 	vget( "ZDATEL" ) ;
 	offset = 0 ;
 	pmonth = ds2d( substr( ZDATEL, 4, 2 ) ) ;
@@ -155,26 +155,25 @@ void PMAIN0A::application()
 		vcopy( "ZTRAIL", ZTRAIL, MOVE ) ;
 		if ( w1 == "SELECT" )
 		{
-			selectParse( RC, ws, S_PGM, S_PARM, S_NEWAPPL, S_NEWPOOL, S_PASSLIB) ;
-			if ( RC > 0 )
+			if ( !SEL.parse( ws ) )
 			{
 				log( "E", "Select command " << ws << " is invalid.  RC > 0 returned from parse" << endl ) ;
 				MSG = "PSYS017" ;
 				continue        ;
 			}
-			p1 = wordpos( "&ZPARM", S_PARM ) ;
+			p1 = wordpos( "&ZPARM", SEL.PARM ) ;
 			if ( p1 > 0 )
 			{
-				p1     = wordindex( S_PARM, p1 )    ;
-				S_PARM = delstr( S_PARM, p1, 6 )    ;
-				S_PARM = insert( ZCMD, S_PARM, p1 ) ;
+				p1     = wordindex( SEL.PARM, p1 )    ;
+				SEL.PARM = delstr( SEL.PARM, p1, 6 )    ;
+				SEL.PARM = insert( ZCMD, SEL.PARM, p1 ) ;
 			}
-			if ( S_PGM == "&ZPANLPGM" && ZTRAIL != "" ) { S_PARM = S_PARM + " " + ZTRAIL ; }
-			if ( S_PGM[ 0 ] == '&' )
+			if ( SEL.PGM == "&ZPANLPGM" && ZTRAIL != "" ) { SEL.PARM = SEL.PARM + " " + ZTRAIL ; }
+			if ( SEL.PGM[ 0 ] == '&' )
 			{
-				vcopy( S_PGM.erase( 0, 1 ), S_PGM, MOVE ) ;
+				vcopy( SEL.PGM.erase( 0, 1 ), SEL.PGM, MOVE ) ;
 			}
-			select( S_PGM, S_PARM, S_NEWAPPL, S_NEWPOOL, S_PASSLIB ) ;
+			select( SEL ) ;
 			ZCMD = "" ;
 			if ( RC > 4 )
 			{

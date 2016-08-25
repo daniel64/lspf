@@ -39,7 +39,7 @@
 
  literal  13  2       FP "ZOREXPGM. . ."
  field    13  16   8  NEF CAPS(ON) ZOREXPGM
- literal  13  26      FP "REXX interpreter stub"
+ literal  13  26      FP "REXX interpreter stub and default SELECT CMD() language parameter
 
  literal  15  2     CH  "Instructions"
 

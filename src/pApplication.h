@@ -51,12 +51,8 @@ class pApplication
 		bool   libdef_puser       ;
 		bool   libdef_tuser       ;
 		string rexxName           ;
+		selobj SELCT              ;
 		bool   SEL                ;
-		string SEL_PGM            ;
-		string SEL_PARM           ;
-		string SEL_NEWAPPL        ;
-		bool   SEL_NEWPOOL        ;
-		bool   SEL_PASSLIB        ;
 		string reffield           ;
 		bool   NEWPOOL            ;
 		bool   PASSLIB            ;
@@ -67,28 +63,28 @@ class pApplication
 		boost::posix_time::ptime resumeTime ;
 		boost::thread            * pThread  ;
 
-		string PARM   ;
+		string PARM ;
 
 		fPOOL      funcPOOL   ;
 		poolMGR  * p_poolMGR  ;
 		tableMGR * p_tableMGR ;
+
 		void (* lspfCallback)( lspfCommand & ) ;
 
 		pPanel * currPanel   ;
 		pPanel * currtbPanel ;
-		map<string,  pPanel *>  panelList ;
-		stack<pPanel *> SRpanelStack      ;
 
 		int    taskid()  { return taskID ; }
 		void   init() ;
 		void   info() ;
 		void   refresh()  ;
-		void   panelCreate( string p_name ) ;
 		bool   isRawOutput() { return rawOutput ; }
 
 		string get_select_cmd( string ) ;
+		selobj get_select_cmd() { return SELCT ; }
 		string get_help_member( int, int ) ;
-		string sub_vars( string ) ;
+		string get_current_panelTitle() ;
+		string get_current_screenName() ;
 
 		void   control( string, string ) ;
 		void   control( string, void (pApplication::*)() ) ;
@@ -96,8 +92,8 @@ class pApplication
 		void   rdisplay( string ) ;
 		void   display( string p_name, string p_msg = "", string p_cursor = "", int p_curpos = 0 ) ;
 		void   pquery( string p_name, string a_name, string t = "", string w = "", string d = "", string r = "", string c = "" ) ;
-		void   select( string )  ;
-		void   select( string pgm, string parm, string newappl, bool newpool, bool passlib ) ;
+		void   select( string ) ;
+		void   select( selobj ) ;
 		void   attr( string, string ) ;
 
 		void   vcopy( string, string &, vcMODE=MOVE )   ;
@@ -115,9 +111,6 @@ class pApplication
 		void   vreplace( string, string )           ;
 		void   vreplace( string, int )              ;
 		void   vreset() ;
-
-		map<string,  bool> tablesOpen   ;
-		map<string,  bool> tablesUpdate ;
 
 		void   tbadd( string tb_name, string tb_namelst="", string tb_order="", int tb_num_of_rows=0 ) ;
 		void   tbbottom( string tb_name, string tb_savenm="", string tb_rowid_vn="", string tb_noread="", string tb_crp_name="" ) ;
@@ -148,14 +141,13 @@ class pApplication
 		void   edit( string m_file, string m_panel=""   ) ;
 		void   view( string m_file, string m_panel=""   ) ;
 		void   setmsg( string msg, msgSET sType=UNCOND  ) ;
-		void   getmsg( string, string, string, string, string, string, string ="" ) ;
+		void   getmsg( string, string, string="", string="", string="", string="", string="" ) ;
 
 		void   addpop( string ="", int =0, int =0 ) ;
 		void   rempop( string ="" ) ;
+		void   movepop() ;
 
 		void   wait_event() ;
-
-		void   checkRCode( string ="" ) ;
 
 		void   set_cursor( int row, int col ) ;
 
@@ -168,9 +160,9 @@ class pApplication
 		void   set_msg1( slmsg, string, bool =false ) ;
 		slmsg  getmsg1()   { return MSG1   ; }
 		string getmsgid1() { return MSGID1 ; }
-		void   hide_msgs()     ;
 		void   msgResponseOK() ;
 		bool   nretriev_on()   ;
+		void   refresh_id()    ;
 		string get_nretfield() ;
 		void   cleanup()       ;
 		void   cleanup_default() ;
@@ -181,6 +173,7 @@ class pApplication
 		void   set_timeout_abend() ;
 		void   closeLog()    ;
 		void   closeTables() ;
+		void   checkRCode( string ="" ) ;
 
 		string ZAPPNAME   ;
 		string ZAPPDESC   ;
@@ -235,10 +228,6 @@ class pApplication
 		bool ControlErrorsReturn ;
 		bool abending            ;
 
-		stack<string> stk_str ;
-		stack<int> stk_int    ;
-		stack<int> addpop_stk ;
-
 		string MSGID  ;
 		string MSGID1 ;
 		slmsg  MSG    ;
@@ -249,7 +238,21 @@ class pApplication
 		bool load_Message( string ) ;
 		bool parse_Message( slmsg & )    ;
 		bool sub_Message_vars( slmsg & ) ;
-		map<string, slmsg>msgList   ;
+		string sub_vars( string ) ;
+
+		map<string, slmsg> msgList ;
+		map<string,  bool> tablesOpen    ;
+		map<string,  bool> tablesUpdate  ;
+		map<string,  pPanel *> panelList ;
+
+		stack<pPanel *> SRpanelStack ;
+
+		stack<string> stk_str ;
+		stack<int> stk_int    ;
+		stack<int> addpop_stk ;
 
 		void load_keylist( pPanel * ) ;
+		void panelCreate( string p_name ) ;
+		void actionSelect()   ;
+
 } ;

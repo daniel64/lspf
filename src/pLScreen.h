@@ -42,9 +42,6 @@ class pLScreen
 	int   cursor_up()                  { return (row == 0 ? (row = maxrow-1 ,row) : --row) ; }
 	int   cursor_down()                { return (row == maxrow-1 ? (row = 0, 0) : ++row)   ; }
 
-	stack<pApplication *> pApplicationStack ;
-	stack<PANEL *> panelList ;
-
 	void  application_add( pApplication * pApplication ) { pApplicationStack.push( pApplication ) ; }
 	void  application_remove_current()                   { pApplicationStack.pop() ; } ;
 	pApplication * application_get_current()             { return pApplicationStack.top()   ; }
@@ -54,6 +51,7 @@ class pLScreen
 	void  OIA_setup()  ;
 	void  show_enter() ;
 	void  show_busy()  ;
+	void  show_wait()  ;
 	void  clear_status() ;
 
 	void  save_panel_stack()    ;
@@ -64,5 +62,8 @@ class pLScreen
 private:
 	int row ;
 	int col ;
+
+	stack<pApplication *> pApplicationStack ;
+	stack<PANEL *> panelList ;
 } ;
 

@@ -11,7 +11,14 @@ ACTION   Move cursor to the action bar, or the next entry if already on the acti
 DISCARD  Discard the screen updates and refresh from the previous output
 FIELDEXC Execute the file-level command (if the cursor is on the field) defined in the panel )FIELD section
 SPLIT    Split the screen
-SWAP     Swap to the next logical screen
+SWAP     Swap logical screen
+         NEXT | PREV | n | screen-name
+         Extensions:
+         n m           : swap active to 'n' and make 'm' the alternate
+         * m           : keep active but change alternate to 'm'
+         n *           : swap active to 'n' and make current screen the alternate
+         screen-name * : swap active to screen-name and make current screen the alternate
+         An invalid screen-name or number causes the SWAP to be ignored.
 !nnn xx  Execute program nnn with parameter xx (application defaults are NEWAPPL, NEWPOOL)
 %nnn xx  Execute oorexx  nnn with parameter xx (application defaults are NEWAPPL, NEWPOOL)
 
@@ -30,7 +37,7 @@ System:
 .STATS   Display table and pool statistics for the current application to the Application Log
 .TEST    Put application into test mode
          :: Read messages from disk every time
-         :: Set testMode to true                   
+         :: Set testMode to true
 
 
 Command Table Entries:
