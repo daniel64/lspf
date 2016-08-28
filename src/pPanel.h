@@ -66,7 +66,7 @@ class pPanel
 
 		void   put_keylist( int, string ) ;
 		string get_keylist( int )         ;
-		string get_panelTitle()  { return panelTitle ; }
+		string get_panelTitle()  { return panelTitle != "" ? panelTitle : panelDescr ; }
 
 		void   update_field_values( int & RC ) ;
 
@@ -135,6 +135,7 @@ class pPanel
 
 	private:
 		string panelTitle  ;
+		string panelDescr  ;
 		int    abIndex     ;
 		int    RC          ;
 		int    tb_row      ;

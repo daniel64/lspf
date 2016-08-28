@@ -23,8 +23,6 @@
 #define MOD_NAME pApplic
 #define LOGOUT   aplog
 
-#include <cstdarg>
-
 pApplication::pApplication()
 {
 	currApplication        = this   ;

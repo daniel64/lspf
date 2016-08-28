@@ -668,7 +668,7 @@ bool selobj::parse( string SELSTR )
 	// CMD(abc def)            - translates to PGM(&ZOREXPGM) PARM(abc def)
 	// PANEL(def)   - translates to PGM(&ZPANLPGM) PARM(def)
 
-	// + SCRNAME(ghi) - give the function a screen name
+	// + SCRNAME(ghi) - give the function a screen name (valid name but not LIST, NEXT, PREV)
 
 	// Match brackets for PARM and CMD as these may contain brackets
 
@@ -785,7 +785,7 @@ bool selobj::parse( string SELSTR )
 		if ( p2 == 0 ) { return false ; }
 		SCRNAME = strip( substr( SELSTR, (p1 + 8), (p2 - (p1 + 8)) ) ) ;
 		SELSTR  = delstr( SELSTR, p1, (p2 - p1 + 1) ) ;
-		if ( !isvalidName( SCRNAME ) ) { return false ; }
+		if ( !isvalidName( SCRNAME ) || findword( SCRNAME, "LIST NEXT PREV" ) ) { return false ; }
 	}
 
 	p1 = pos( "NEWAPPL(", SELSTR ) ;

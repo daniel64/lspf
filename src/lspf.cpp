@@ -20,13 +20,8 @@
 
 */
 
-#include <iostream>
-#include <iomanip>
-#include <string>
-#include <cstring>
-#include <sstream>
-#include <fstream>
-#include <vector>
+#include "lspf.h"
+
 #include <ncurses.h>
 #include <dlfcn.h>
 #include <sys/utsname.h>
@@ -36,14 +31,12 @@
 
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
-#include <boost/thread/condition.hpp>
 #include <boost/circular_buffer.hpp>
 #include <boost/filesystem.hpp>
 
 boost::condition cond_appl ;
 boost::mutex global ;
 
-#include "lspf.h"
 
 #include "utilities.h"
 #include "utilities.cpp"
@@ -81,6 +74,31 @@ const string usrAttrNames = "N_RED N_GREEN N_YELLOW N_BLUE N_MAGENTA N_TURQ N_WH
 #include "pLScreen.h"
 #include "pLScreen.cpp"
 
+map<int,string> pfKeyDefaults = { {  1, "HELP"      },
+				  {  2, "SPLIT"     },
+				  {  3, "END"       },
+				  {  4, "RETURN"    },
+				  {  5, "RFIND"     },
+				  {  6, "RCHANGE"   },
+				  {  7, "UP"        },
+				  {  8, "DOWN"      },
+				  {  9, "SWAP"      },
+				  { 10, "LEFT"      },
+				  { 11, "RIGHT"     },
+				  { 12, "RETRIEVE"  },
+				  { 13, "HELP"      },
+				  { 14, "SPLIT"     },
+				  { 15, "END"       },
+				  { 16, "RETURN"    },
+				  { 17, "RFIND"     },
+				  { 18, "RCHANGE"   },
+				  { 19, "UP"        },
+				  { 20, "DOWN"      },
+				  { 21, "SWAP"      },
+				  { 22, "SWAP PREV" },
+				  { 23, "SWAP NEXT" },
+				  { 24, "HELP"      } } ;
+
 #undef  MOD_NAME
 #undef  LOGOUT
 #define MOD_NAME lspf
@@ -111,20 +129,19 @@ tableMGR * p_tableMGR = new tableMGR ;
 
 fPOOL funcPOOL ;
 
-void initialSetup()          ;
-void loadDefaultPools()      ;
-void getDynamicClasses()     ;
+void initialSetup()      ;
+void loadDefaultPools()  ;
+void getDynamicClasses() ;
 bool loadDynamicClass( string ) ;
 bool unloadDynamicClass( void * ) ;
 void reloadDynamicClasses( string ) ;
 void loadSystemCommandTable() ;
-void loadpfkeyTable()         ;
 void loadCUATables()          ;
 void setColourPair( string )  ;
 void updateDefaultVars()      ;
 void updateReflist()          ;
 void startApplication( selobj ) ;
-void terminateApplication()   ;
+void terminateApplication()     ;
 void ResumeApplicationAndWait() ;
 void processPGMSelect()         ;
 void processAction( uint row, uint col, int c, bool & passthru ) ;
@@ -133,11 +150,13 @@ void errorScreen( int, string ) ;
 void rawOutput()          ;
 void threadErrorHandler() ;
 void lspfCallbackHandler( lspfCommand & ) ;
+void createpfKeyDefaults() ;
+string pfKeyValue( int )   ;
 string listLogicalScreens() ;
+int  getScreenNameNum( string ) ;
 void mainLoop() ;
 
 vector<pLScreen *> screenList ;
-map<int, string>   pfkeyTable ;
 
 struct appInfo
 {
@@ -178,10 +197,6 @@ const char ZSCREEN[] = { '1','2','3','4','5','6','7','8','9','A','B','C','D','E'
 
 bool   SEL    ;
 selobj SELCT  ;
-
-string ZHOME  ;
-string ZUSER  ;
-string ZSHELL ;
 
 int    GMAXWAIT ;
 string GMAINPGM ;
@@ -250,7 +265,6 @@ int main( void )
 	p_poolMGR->put( RC, "ZAPPLID", "ISP", SHARED, SYSTEM ) ;
 	currAppl->shrdPool = p_poolMGR->getShrdPool() ;
 	currAppl->init() ;
-	loadpfkeyTable() ;
 
 	pThread = new boost::thread(boost::bind(&pApplication::application, currAppl ) ) ;
 	currAppl->pThread = pThread ;
@@ -328,15 +342,8 @@ void mainLoop()
 	string Isrt       ;
 	string respTime   ;
 	string field_name ;
-	string ww         ;
 	string w1         ;
 	string w2         ;
-	string w3         ;
-
-	vector<pLScreen *>::iterator its ;
-	vector<string>::iterator it ;
-
-	pApplication * appl ;
 
 	fieldExc fxc ;
 	MEVENT event ;
@@ -585,8 +592,8 @@ void mainLoop()
 							p_poolMGR->put( RC, "ZFECSRP", d2ds( col-c+1 ), SHARED )   ;
 							for( ws = words( fxc.fieldExc_passed ), i = 1 ; i <= ws ; i++ )
 							{
-								ww = word( fxc.fieldExc_passed, i ) ;
-								p_poolMGR->put( RC, "ZFEDATA" + d2ds( i ), currAppl->currPanel->field_getvalue( ww ) , SHARED ) ;
+								w1 = word( fxc.fieldExc_passed, i ) ;
+								p_poolMGR->put( RC, "ZFEDATA" + d2ds( i ), currAppl->currPanel->field_getvalue( w1 ) , SHARED ) ;
 							}
 							startApplication( SELCT ) ;
 							break ;
@@ -613,8 +620,8 @@ void mainLoop()
 					{
 						if ( ZPARM == "" )
 						{
-							ww = p_poolMGR->get( RC, currScrn->screenID, "ZMSGID" ) ;
-							p_poolMGR->put( RC, "ZMSGID", ww, SHARED, SYSTEM ) ;
+							w1 = p_poolMGR->get( RC, currScrn->screenID, "ZMSGID" ) ;
+							p_poolMGR->put( RC, "ZMSGID", w1, SHARED, SYSTEM ) ;
 							issueMessage( "PSYS012L" ) ;
 						}
 						else if ( ZPARM == "ON" )
@@ -638,8 +645,8 @@ void mainLoop()
 					{
 						if ( ZPARM == "" )
 						{
-							ww = p_poolMGR->get( RC, currScrn->screenID, "ZSHPANID" ) ;
-							if ( ww == "Y" ) { ZPARM = "OFF" ; }
+							w1 = p_poolMGR->get( RC, currScrn->screenID, "ZSHPANID" ) ;
+							if ( w1 == "Y" ) { ZPARM = "OFF" ; }
 							else             { ZPARM = "ON"  ; }
 						}
 						if ( ZPARM == "ON" )
@@ -676,7 +683,7 @@ void mainLoop()
 					}
 					else if ( ZCOMMAND == "SCRNAME" )
 					{
-						ww    = word( ZPARM, 2 ) ;
+						w1    = word( ZPARM, 2 ) ;
 						ZPARM = word( ZPARM, 1 ) ;
 						if  ( ZPARM == "ON" )
 						{
@@ -686,13 +693,13 @@ void mainLoop()
 						{
 							p_poolMGR->put( RC, "ZSCRNAM1", "OFF", SHARED, SYSTEM ) ;
 						}
-						else if ( isvalidName( ZPARM ) )
+						else if ( isvalidName( ZPARM ) && !findword( ZPARM, "LIST PREV NEXT" ) )
 						{
 							p_poolMGR->put( RC, currScrn->screenID, "ZSCRNAME", ZPARM ) ;
 							p_poolMGR->put( RC, "ZSCRNAME", ZPARM, SHARED ) ;
-							if ( ww == "PERM" )
+							if ( w1 == "PERM" )
 							{
-								p_poolMGR->put( RC, currScrn->screenID, "ZSCRNAM2", ww ) ;
+								p_poolMGR->put( RC, currScrn->screenID, "ZSCRNAM2", w1 ) ;
 							}
 							else
 							{
@@ -709,7 +716,7 @@ void mainLoop()
 					{
 						def_prog_mode()   ;
 						endwin()          ;
-						system( ZSHELL.c_str() ) ;
+						system( p_poolMGR->get( RC, "ZSHELL", SHARED ).c_str() ) ;
 						reset_prog_mode() ;
 						refresh()         ;
 					}
@@ -769,21 +776,17 @@ void mainLoop()
 						}
 						if ( pLScreen::screensTotal == 1 ) { continue ; }
 						currScrn->save_panel_stack() ;
+						if ( w1 =="*" ) { w1 = d2ds( screenNum+1 ) ; }
 						if ( w1 != "" && w1 != "NEXT" && w1 != "PREV" && isvalidName( w1 ) )
 						{
-							w3 = w1  ;
-							w1 = "0" ;
-							for ( l = 1, its = screenList.begin() ; its != screenList.end() ; its++, l++ )
-							{
-								appl = (*its)->application_get_current() ;
-								if ( appl->get_current_screenName() == w3 )
-								{
-									w1 = d2ds( l ) ;
-									break          ;
-								}
-							}
+							l = getScreenNameNum( w1 ) ;
+							if ( l > 0 ) { w1 = d2ds( l ) ; }
 						}
-						if ( w1 == "*" ) { w1 = "0" ; }
+						if ( w2 != "" && isvalidName( w2 ) )
+						{
+							l = getScreenNameNum( w2 ) ;
+							if ( l > 0 ) { w2 = d2ds( l ) ; }
+						}
 						if ( w1 == "NEXT" )
 						{
 							++screenNum ;
@@ -799,13 +802,20 @@ void mainLoop()
 						else if ( datatype( w1, 'W' ) )
 						{
 							t = ds2d( w1 ) - 1 ;
-							if ( t != screenNum && t >= 0 && t < pLScreen::screensTotal )
+							if ( t >= 0 && t < pLScreen::screensTotal )
 							{
-								if ( w2 == "*" || t == altScreen )
+								if ( t != screenNum )
 								{
-									altScreen = screenNum ;
+									if ( w2 == "*" || t == altScreen )
+									{
+										altScreen = screenNum ;
+									}
+									screenNum = t ;
 								}
-								screenNum = t ;
+							}
+							else
+							{
+								swap( screenNum, altScreen ) ;
 							}
 							if ( datatype( w2, 'W' ) && w1 != w2 )
 							{
@@ -818,9 +828,7 @@ void mainLoop()
 						}
 						else
 						{
-							t         = screenNum ;
-							screenNum = altScreen ;
-							altScreen = t         ;
+							swap( screenNum, altScreen ) ;
 						}
 						currScrn = screenList[ screenNum ] ;
 						currAppl = currScrn->application_get_current() ;
@@ -828,7 +836,6 @@ void mainLoop()
 						p_poolMGR->setShrdPool( RC, currAppl->shrdPool ) ;
 						p_poolMGR->put( RC, "ZPANELID", currAppl->PANELID, SHARED, SYSTEM ) ;
 						currScrn->restore_panel_stack() ;
-						loadpfkeyTable() ;
 						break ;
 					}
 					else if ( ZCOMMAND == ".TEST" )
@@ -861,10 +868,6 @@ void mainLoop()
 void initialSetup()
 {
 	int RC ;
-
-	ZHOME.assign(  getenv( "HOME" ) )  ;
-	ZSHELL.assign( getenv( "SHELL" ) ) ;
-	ZUSER.assign(  getenv( "LOGNAME" ) ) ;
 
 	funcPOOL.define( RC, "ZCTVERB",  &ZCTVERB  ) ;
 	funcPOOL.define( RC, "ZCTTRUNC", &ZCTTRUNC ) ;
@@ -1003,7 +1006,25 @@ void processAction( uint row, uint col, int c, bool & passthru )
 	addRetrieve = true  ;
 	delm        = p_poolMGR->get( RC, "ZDEL", PROFILE ) ;
 
-	if ( t_pdc.pdc_run == "" ) { ZCOMMAND = strip( currAppl->currPanel->cmd_getvalue() ) ; }
+	if ( t_pdc.pdc_run == "" )
+	{
+		ZCOMMAND = strip( currAppl->currPanel->cmd_getvalue() ) ;
+	}
+
+	if ( c == KEY_ENTER  &&
+	     ZCOMMAND != ""  &&
+	     p_poolMGR->get( RC, "ZSWAP",  PROFILE ) == "Y"  &&
+	     p_poolMGR->get( RC, "ZSWAPC", PROFILE ) == ZCOMMAND.substr( 0, 1 ) )
+	{
+		ZPARM    = upper( ZCOMMAND.erase( 0, 1 ) ) ;
+		ZCOMMAND = "SWAP" ;
+		passthru = false  ;
+		currAppl->currPanel->cmd_setvalue( "" ) ;
+		currAppl->currPanel->cursor_to_field( RC, currAppl->currPanel->CMDfield, 1 ) ;
+		currAppl->currPanel->get_cursor( row, col ) ;
+		currScrn->set_row_col( row, col ) ;
+		return ;
+	}
 
 	if ( commandStack != "" )
 	{
@@ -1026,15 +1047,13 @@ void processAction( uint row, uint col, int c, bool & passthru )
 		if ( p_poolMGR->get( RC, "ZKLUSE", PROFILE ) == "Y" )
 		{
 			PFCMD = currAppl->currPanel->get_keylist( c ) ;
-			if ( PFCMD == "" ) { PFCMD = strip( pfkeyTable[ c ] ) ; }
+			if ( PFCMD == "" ) { PFCMD = pfKeyValue( c ) ; }
 		}
 		else
 		{
-			debug1( "PF Key pressed " << pfkeyTable[ c ] << endl ) ;
-			PFCMD = strip( pfkeyTable[ c ] ) ;
+			PFCMD = pfKeyValue( c ) ;
+			debug1( "PF Key pressed " << PFCMD << endl ) ;
 		}
-		p_poolMGR->put( RC, "ZPFKEY", "PF" + right( d2ds( (c - KEY_F(0)) ), 2, '0'), SHARED, SYSTEM ) ;
-		if ( RC > 0 ) { log( "C", "VPUT for PFnn failed" << endl ) ; }
 	}
 	else
 	{
@@ -1411,6 +1430,8 @@ void startApplication( selobj SEL )
 	currAppl->ZZAPPLID = p_poolMGR->getAPPLID() ;
 
 	p_poolMGR->createPool( RC, PROFILE, ZSPROF ) ;
+	if ( RC == 4 ) { createpfKeyDefaults() ; }
+
 	if ( SEL.NEWPOOL )
 	{
 		if ( currScrn->application_stack_size() > 1 && SELCT.SCRNAME == "" )
@@ -1425,7 +1446,6 @@ void startApplication( selobj SEL )
 		p_poolMGR->put( RC, "ZAPPLID", p_poolMGR->getAPPLID(), SHARED, SYSTEM ) ;
 	}
 	currAppl->shrdPool = p_poolMGR->getShrdPool() ;
-	loadpfkeyTable() ;
 	currAppl->init() ;
 
 	if ( SEL.PASSLIB || !SEL.NEWPOOL )
@@ -1675,8 +1695,6 @@ void terminateApplication()
 		}
 		currAppl->reffield = "" ;
 	}
-
-	loadpfkeyTable() ;
 
 	if ( currAppl->isprimMenu() ) { propagateEnd = false ; }
 	if ( jumpEntered && currAppl->isprimMenu() )
@@ -2013,7 +2031,9 @@ void loadDefaultPools()
 
 	p_poolMGR->defaultVARs( RC, "ZSCRMAXD", d2ds( pLScreen::maxrow ), SHARED ) ;
 	p_poolMGR->defaultVARs( RC, "ZSCRMAXW", d2ds( pLScreen::maxcol ), SHARED ) ;
-	p_poolMGR->defaultVARs( RC, "ZUSER", ZUSER, SHARED )   ;
+	p_poolMGR->defaultVARs( RC, "ZUSER", getenv( "LOGNAME" ), SHARED )         ;
+	p_poolMGR->defaultVARs( RC, "ZHOME", getenv( "HOME" )  , SHARED ) ;
+	p_poolMGR->defaultVARs( RC, "ZSHELL", getenv( "SHELL" ), SHARED ) ;
 
 	p_poolMGR->setAPPLID( RC, "ISPS" ) ;
 	p_poolMGR->createPool( RC, PROFILE, ZSPROF ) ;
@@ -2037,11 +2057,10 @@ void loadDefaultPools()
 
 	p_poolMGR->setAPPLID( RC, "ISP" ) ;
 	p_poolMGR->createPool( RC, PROFILE, ZSPROF ) ;
+	if ( RC == 4 ) { createpfKeyDefaults() ; }
 
 	p_poolMGR->defaultVARs( RC, "Z", "", SHARED )                  ;
-	p_poolMGR->defaultVARs( RC, "ZHOME", ZHOME, SHARED )           ;
 	p_poolMGR->defaultVARs( RC, "ZSCRNAM1", "OFF", SHARED )        ;
-	p_poolMGR->defaultVARs( RC, "ZSHELL", ZSHELL, SHARED )         ;
 	p_poolMGR->defaultVARs( RC, "ZSYSNAME", buf.sysname, SHARED )  ;
 	p_poolMGR->defaultVARs( RC, "ZNODNAME", buf.nodename, SHARED ) ;
 	p_poolMGR->defaultVARs( RC, "ZOSREL", buf.release, SHARED )    ;
@@ -2082,41 +2101,38 @@ void loadSystemCommandTable()
 }
 
 
-void loadpfkeyTable()
+string pfKeyValue( int c )
+{
+	// Return the value of a pfkey stored in the profile pool.
+	// Also set ZPFKEY in the shared pool to the pfkey pressed
+
+	int RC ;
+	int keyn ;
+
+	string key ;
+	string val ;
+
+	keyn = c - KEY_F( 0 ) ;
+	key  = "ZPF" + right( d2ds( keyn ), 2, '0' ) ;
+	val  = p_poolMGR->get( RC, key, PROFILE ) ;
+	if ( RC == 8 || val == "" )
+	{
+		if ( pfKeyDefaults.count( keyn ) > 0 ) { val = pfKeyDefaults[ keyn ] ; }
+	}
+
+	p_poolMGR->put( RC, "ZPFKEY", key.substr( 1 ), SHARED, SYSTEM ) ;
+	return val ;
+}
+
+
+void createpfKeyDefaults()
 {
 	int RC ;
 
-	string ZPF01, ZPF02, ZPF03, ZPF04 ;
-	string ZPF05, ZPF06, ZPF07, ZPF08 ;
-	string ZPF09, ZPF10, ZPF11, ZPF12 ;
-	string ZPF13, ZPF14, ZPF15, ZPF16 ;
-	string ZPF17, ZPF18, ZPF19, ZPF20 ;
-	string ZPF21, ZPF22, ZPF23, ZPF24 ;
-
-	ZPF01 = p_poolMGR->get( RC, "ZPF01", PROFILE ) ; if ( RC == 8 ) { ZPF01 = "HELP" ; }     ; pfkeyTable[ KEY_F(1)  ] = ZPF01 ;
-	ZPF02 = p_poolMGR->get( RC, "ZPF02", PROFILE ) ; if ( RC == 8 ) { ZPF02 = "SPLIT" ; }    ; pfkeyTable[ KEY_F(2)  ] = ZPF02 ;
-	ZPF03 = p_poolMGR->get( RC, "ZPF03", PROFILE ) ; if ( RC == 8 ) { ZPF03 = "END"  ; }     ; pfkeyTable[ KEY_F(3)  ] = ZPF03 ;
-	ZPF04 = p_poolMGR->get( RC, "ZPF04", PROFILE ) ; if ( RC == 8 ) { ZPF04 = "RETURN" ; }   ; pfkeyTable[ KEY_F(4)  ] = ZPF04 ;
-	ZPF05 = p_poolMGR->get( RC, "ZPF05", PROFILE ) ; if ( RC == 8 ) { ZPF05 = "RFIND" ; }    ; pfkeyTable[ KEY_F(5)  ] = ZPF05 ;
-	ZPF06 = p_poolMGR->get( RC, "ZPF06", PROFILE ) ; if ( RC == 8 ) { ZPF06 = "RCHANGE" ;}   ; pfkeyTable[ KEY_F(6)  ] = ZPF06 ;
-	ZPF07 = p_poolMGR->get( RC, "ZPF07", PROFILE ) ; if ( RC == 8 ) { ZPF07 = "UP" ; }       ; pfkeyTable[ KEY_F(7)  ] = ZPF07 ;
-	ZPF08 = p_poolMGR->get( RC, "ZPF08", PROFILE ) ; if ( RC == 8 ) { ZPF08 = "DOWN" ; }     ; pfkeyTable[ KEY_F(8)  ] = ZPF08 ;
-	ZPF09 = p_poolMGR->get( RC, "ZPF09", PROFILE ) ; if ( RC == 8 ) { ZPF09 = "SWAP" ; }     ; pfkeyTable[ KEY_F(9)  ] = ZPF09 ;
-	ZPF10 = p_poolMGR->get( RC, "ZPF10", PROFILE ) ; if ( RC == 8 ) { ZPF10 = "LEFT" ; }     ; pfkeyTable[ KEY_F(10) ] = ZPF10 ;
-	ZPF11 = p_poolMGR->get( RC, "ZPF11", PROFILE ) ; if ( RC == 8 ) { ZPF11 = "RIGHT" ; }    ; pfkeyTable[ KEY_F(11) ] = ZPF11 ;
-	ZPF12 = p_poolMGR->get( RC, "ZPF12", PROFILE ) ; if ( RC == 8 ) { ZPF12 = "RETRIEVE";}   ; pfkeyTable[ KEY_F(12) ] = ZPF12 ;
-	ZPF13 = p_poolMGR->get( RC, "ZPF13", PROFILE ) ; if ( RC == 8 ) { ZPF13 = "HELP" ; }     ; pfkeyTable[ KEY_F(13) ] = ZPF13 ;
-	ZPF14 = p_poolMGR->get( RC, "ZPF14", PROFILE ) ; if ( RC == 8 ) { ZPF14 = "SPLIT" ; }    ; pfkeyTable[ KEY_F(14) ] = ZPF14 ;
-	ZPF15 = p_poolMGR->get( RC, "ZPF15", PROFILE ) ; if ( RC == 8 ) { ZPF15 = "END" ; }      ; pfkeyTable[ KEY_F(15) ] = ZPF15 ;
-	ZPF16 = p_poolMGR->get( RC, "ZPF16", PROFILE ) ; if ( RC == 8 ) { ZPF16 = "RETURN" ; }   ; pfkeyTable[ KEY_F(16) ] = ZPF16 ;
-	ZPF17 = p_poolMGR->get( RC, "ZPF17", PROFILE ) ; if ( RC == 8 ) { ZPF17 = "RFIND" ; }    ; pfkeyTable[ KEY_F(17) ] = ZPF17 ;
-	ZPF18 = p_poolMGR->get( RC, "ZPF18", PROFILE ) ; if ( RC == 8 ) { ZPF18 = "RCHANGE" ; }  ; pfkeyTable[ KEY_F(18) ] = ZPF18 ;
-	ZPF19 = p_poolMGR->get( RC, "ZPF19", PROFILE ) ; if ( RC == 8 ) { ZPF19 = "UP" ; }       ; pfkeyTable[ KEY_F(19) ] = ZPF19 ;
-	ZPF20 = p_poolMGR->get( RC, "ZPF20", PROFILE ) ; if ( RC == 8 ) { ZPF20 = "DOWN" ; }     ; pfkeyTable[ KEY_F(20) ] = ZPF20 ;
-	ZPF21 = p_poolMGR->get( RC, "ZPF21", PROFILE ) ; if ( RC == 8 ) { ZPF21 = "SWAP" ; }     ; pfkeyTable[ KEY_F(21) ] = ZPF21 ;
-	ZPF22 = p_poolMGR->get( RC, "ZPF22", PROFILE ) ; if ( RC == 8 ) { ZPF22 = "SWAP PREV"; } ; pfkeyTable[ KEY_F(22) ] = ZPF22 ;
-	ZPF23 = p_poolMGR->get( RC, "ZPF23", PROFILE ) ; if ( RC == 8 ) { ZPF23 = "SWAP NEXT"; } ; pfkeyTable[ KEY_F(23) ] = ZPF23 ;
-	ZPF24 = p_poolMGR->get( RC, "ZPF24", PROFILE ) ; if ( RC == 8 ) { ZPF24 = "HELP" ; }     ; pfkeyTable[ KEY_F(24) ] = ZPF24 ;
+	for ( int i = 1 ; i < 25 ; i++ )
+	{
+		p_poolMGR->put( RC, "ZPF" + right( d2ds( i ), 2, '0' ), pfKeyDefaults[ i ], PROFILE ) ;
+	}
 }
 
 
@@ -2241,7 +2257,7 @@ string listLogicalScreens()
 	wattroff( swwin, cuaAttr[ PT ] ) ;
 
 	wattrset( swwin, cuaAttr[ PIN ] ) ;
-	mvwaddstr( swwin, 3, 2, "ID  Name      Application  Applid  Panel Title" ) ;
+	mvwaddstr( swwin, 3, 2, "ID  Name      Application  Applid  Panel Title/Description" ) ;
 	wattroff( swwin, cuaAttr[ PIN ] ) ;
 
 	currScrn->show_wait() ;
@@ -2270,24 +2286,52 @@ string listLogicalScreens()
 		l = 4 ;
 		for ( i = 0, it = lslist.begin() ; it != lslist.end() ; it++, i++ )
 		{
-			if ( i == m ) wattron( swwin, cuaAttr[ PT  ] )  ;
-			else          wattron( swwin, cuaAttr[ VOI ] )  ;
-			mvwaddstr( swwin, l++, 2, (*it).c_str() )       ;
-			if ( i == m ) wattroff( swwin, cuaAttr[ PT  ] ) ;
-			else          wattroff( swwin, cuaAttr[ VOI ] ) ;
+			if ( i == m ) { wattron( swwin, cuaAttr[ PT  ] )  ; }
+			else          { wattron( swwin, cuaAttr[ VOI ] )  ; }
+			mvwaddstr( swwin, l++, 2, (*it).c_str() )         ;
+			if ( i == m ) { wattroff( swwin, cuaAttr[ PT  ] ) ; }
+			else          { wattroff( swwin, cuaAttr[ VOI ] ) ; }
 		}
 		update_panels() ;
 		doupdate()  ;
 		c = getch() ;
-		if      ( c == KEY_UP )   { m == 0 ? m = screenList.size() - 1 : m-- ; continue ; }
-		else if ( c == KEY_DOWN ) { m == screenList.size()-1 ? m = 0 : m++   ; continue ; }
 		if ( c == KEY_ENTER || c == 27 || c == 13 ) { break ; }
+		if ( c == KEY_UP )
+		{
+			m == 0 ? m = screenList.size() - 1 : m-- ;
+		}
+		else if ( c == KEY_DOWN || c == 9 )
+		{
+			m == screenList.size()-1 ? m = 0 : m++ ;
+		}
 	}
 
 	del_panel( swpanel ) ;
 	delwin( swwin )      ;
 	if ( c == 27 ) { m = o ; }
 	return d2ds( m+1 )   ;
+}
+
+
+int getScreenNameNum( string s )
+{
+	// Return the screen number of screen name 's'.  If not found, return 0.
+	// Reset shared pool after this call as it issues get_current_screenName().
+
+	int l ;
+
+	vector<pLScreen *>::iterator its ;
+	pApplication * appl ;
+
+	for ( l = 1, its = screenList.begin() ; its != screenList.end() ; its++, l++ )
+	{
+		appl = (*its)->application_get_current() ;
+		if ( appl->get_current_screenName() == s )
+		{
+			return l ;
+		}
+	}
+	return 0 ;
 }
 
 
@@ -2490,7 +2534,7 @@ void getDynamicClasses()
 		aI.refCount   = 0     ;
 		apps[ appl ]  = aI    ;
 	}
-	log( "I", d2ds( apps.size() ) + " applications found and stored" << endl ) ;
+	log( "I", d2ds( apps.size() ) +" applications found and stored" << endl ) ;
 	if ( apps.find( GMAINPGM ) == apps.end() )
 	{
 		delete screenList[ 0 ] ;

@@ -2667,6 +2667,7 @@ void PEDIT01::actionLineCommand( vector<icmd>::iterator itc )
 				for ( ; il_its != il_ite ; il_its++ )
 				{
 					(*il_its)->set_deleted( Level ) ;
+					if ( (*il_its)->il_file ) {  fileChanged = true ; }
 				}
 			}
 			if ( !overlayOK && itc->icmd_CMDSTR[ 0 ] == 'M' ) { MSG = "PEDT012D" ; }

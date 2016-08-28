@@ -19,10 +19,7 @@
 
 #include <string>
 #include <stack>
-#include <iostream>
-#include <iomanip>
 #include <fstream>
-#include <sstream>
 #include <panel.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/condition.hpp>
@@ -122,7 +119,6 @@ using namespace boost::posix_time;
 #define KWASL   "BLN"
 
 // ***************************************** End defaults *******************************************
-
 
 #define BLACK           COLOR_PAIR(0)
 #define RED             COLOR_PAIR(1)

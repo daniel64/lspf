@@ -5,6 +5,7 @@ Panel for editor PEDIT01
 )ENDCOMMENT
 
 )BODY
+PanelDescr "Edit Panel"
 scrollOn
 
 literal   3   2          FP  "EDIT"

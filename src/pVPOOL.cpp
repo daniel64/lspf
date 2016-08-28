@@ -1057,15 +1057,12 @@ void poolMGR::setAPPLID( int & RC, string m_APPLID )
 
 void poolMGR::setShrdPool( int & RC, string m_shrdPool )
 {
-	map<string, pVPOOL>::iterator sp_it ;
-
 	RC = 0 ;
 
-	sp_it = POOLs_shared.find( m_shrdPool ) ;
-	if ( sp_it == POOLs_shared.end() )
+	if ( POOLs_shared.count( m_shrdPool ) == 0 )
 	{
 		RC = 20 ;
-		log( "C", "poolMGR cannot find pool " << m_shrdPool << ".  Pool must be created before setting pool name" << endl ) ;
+		log( "C", "poolMGR cannot find pool "+ m_shrdPool +".  Pool must be created before setting pool name" << endl ) ;
 		return  ;
 	}
 	shrdPool = m_shrdPool ;

@@ -38,6 +38,7 @@ pPanel::pPanel()
 	KEYLISTN    = ""     ;
 	KEYAPPL     = ""     ;
 	panelTitle  = ""     ;
+	panelDescr  = ""     ;
 	abIndex     = 0      ;
 	opt_field   = 0      ;
 	tb_model    = false  ;

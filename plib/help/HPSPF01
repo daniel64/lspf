@@ -12,13 +12,14 @@ DISCARD  Discard the screen updates and refresh from the previous output
 FIELDEXC Execute the file-level command (if the cursor is on the field) defined in the panel )FIELD section
 SPLIT    Split the screen
 SWAP     Swap logical screen
-         NEXT | PREV | n | screen-name
+         NEXT | PREV | screen-number | p q | screen-name
          Extensions:
-         n m           : swap active to 'n' and make 'm' the alternate
-         * m           : keep active but change alternate to 'm'
-         n *           : swap active to 'n' and make current screen the alternate
-         screen-name * : swap active to screen-name and make current screen the alternate
-         An invalid screen-name or number causes the SWAP to be ignored.
+          p q
+          p - switch active to screen-name | screen-number | '*'
+          q - switch alternate to screen-name | screen-number | '*'
+             for active, '*' keeps the current active screen and only switches the alternate screen
+             for alternate, '*' switches current active to alternate
+          SWAP can also be initiated with the SWAP Character and the ENTER key if the option is enabled.
 !nnn xx  Execute program nnn with parameter xx (application defaults are NEWAPPL, NEWPOOL)
 %nnn xx  Execute oorexx  nnn with parameter xx (application defaults are NEWAPPL, NEWPOOL)
 

@@ -575,6 +575,11 @@ int pPanel::loadPanel( string p_name, string paths )
 			panelTitle = strip( strip( subword( pline, 2 ) ), 'B', '"' ) ;
 			continue ;
 		}
+		else if ( w1 == "PANELDESCR" )
+		{
+			panelDescr = strip( strip( subword( pline, 2 ) ), 'B', '"' ) ;
+			continue ;
+		}
 
 		else if ( w1 == "PRIMARYMENU" )
 		{
