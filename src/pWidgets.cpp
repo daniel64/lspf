@@ -1007,10 +1007,10 @@ int literal::literal_init( int MAXW, int MAXD, int & opt_field, string line )
 }
 
 
-void literal::literal_display( WINDOW * win )
+void literal::literal_display( WINDOW * win, const string & s  )
 {
 	wattrset( win, cuaAttr[ literal_cua ] ) ;
-	mvwaddstr( win, literal_row, literal_col, literal_value.c_str() ) ;
+	mvwaddstr( win, literal_row, literal_col, s.c_str() ) ;
 	wattroff( win, cuaAttr[ literal_cua ] ) ;
 }
 

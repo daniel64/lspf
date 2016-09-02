@@ -27,8 +27,12 @@ class pApplication
 
 		static pApplication * currApplication ;
 
+		poolMGR  * p_poolMGR  ;
+		tableMGR * p_tableMGR ;
+
 		int    taskID             ;
 		int    RC                 ;
+		string PARM               ;
 		string PANELID            ;
 		string PPANELID           ;
 		bool   ControlDisplayLock ;
@@ -50,24 +54,61 @@ class pApplication
 		bool   libdef_muser       ;
 		bool   libdef_puser       ;
 		bool   libdef_tuser       ;
+		string shrdPool           ;
 		string rexxName           ;
 		selobj SELCT              ;
 		bool   SEL                ;
-		string reffield           ;
 		bool   NEWPOOL            ;
 		bool   PASSLIB            ;
 		bool   setMSG             ;
-		string shrdPool           ;
-		vector<string>rmsgs       ;
+		string reffield           ;
 
+		string ZAPPNAME           ;
+		string ZAPPDESC           ;
+		string ZMLIB              ;
+		string ZPLIB              ;
+		string ZTLIB              ;
+		string ZZAPPLID           ;
+		string ZCURFLD            ;
+		int    ZCURPOS            ;
+		string ZTDMARK            ;
+		int    ZTDDEPTH           ;
+		int    ZTDROWS            ;
+		int    ZTDSELS            ;
+		int    ZTDTOP             ;
+		int    ZTDVROWS           ;
+		int    ZCURINX            ;
+		string ZCMD               ;
+		string ZAPPLID            ;
+		string ZEDLMSG            ;
+		string ZEDSMSG            ;
+		string ZHELP              ;
+		string ZAHELP             ;
+		string ZHOME              ;
+		string ZORXPATH           ;
+		string ZPFKEY             ;
+		string ZSEL               ;
+		string ZSELPARM           ;
+		string ZSCREEN            ;
+		string ZSCROLL            ;
+		int    ZSCRMAXD           ;
+		int    ZSCRMAXW           ;
+		int    ZSCROLLN           ;
+		string ZSCROLLA           ;
+		string ZUSER              ;
+		string ZVERB              ;
+		string ZMUSER             ;
+		string ZPUSER             ;
+		string ZTUSER             ;
+		int    ZRC                ;
+		int    ZRSN               ;
+		string ZRESULT            ;
+		string ZERR1              ;
+		string ZERR2              ;
+
+		vector<string>rmsgs  ;
 		boost::posix_time::ptime resumeTime ;
 		boost::thread            * pThread  ;
-
-		string PARM ;
-
-		fPOOL      funcPOOL   ;
-		poolMGR  * p_poolMGR  ;
-		tableMGR * p_tableMGR ;
 
 		void (* lspfCallback)( lspfCommand & ) ;
 
@@ -83,10 +124,10 @@ class pApplication
 		string get_select_cmd( string ) ;
 		selobj get_select_cmd() { return SELCT ; }
 		string get_help_member( int, int ) ;
-		string get_current_panelTitle() ;
+		string get_current_panelDescr() ;
 		string get_current_screenName() ;
 
-		void   control( string, string ) ;
+		void   control( string, string, string="" ) ;
 		void   control( string, void (pApplication::*)() ) ;
 		void   libdef( string, string = "" ) ;
 		void   rdisplay( string ) ;
@@ -147,8 +188,6 @@ class pApplication
 		void   rempop( string ="" ) ;
 		void   movepop() ;
 
-		void   wait_event() ;
-
 		void   set_cursor( int row, int col ) ;
 
 		bool   inputInhibited() ;
@@ -157,7 +196,7 @@ class pApplication
 		void   get_home( uint & row, uint & col ) ;
 		void   get_cursor( uint & row, uint & col ) ;
 		void   set_msg( string ) ;
-		void   set_msg1( slmsg, string, bool =false ) ;
+		void   set_msg1( const slmsg &, string, bool =false ) ;
 		slmsg  getmsg1()   { return MSG1   ; }
 		string getmsgid1() { return MSGID1 ; }
 		void   msgResponseOK() ;
@@ -173,72 +212,40 @@ class pApplication
 		void   set_timeout_abend() ;
 		void   closeLog()    ;
 		void   closeTables() ;
-		void   checkRCode( string ="" ) ;
+		void   checkRCode( const string & ="" ) ;
+		void   store_scrname() ;
+		void   restore_scrname( int ) ;
 
-		string ZAPPNAME   ;
-		string ZAPPDESC   ;
-		string ZMLIB      ;
-		string ZPLIB      ;
-		string ZTLIB      ;
-		string ZZAPPLID   ;
-		string ZCURFLD    ;
-		int    ZCURPOS    ;
-		string ZTDMARK    ;
-		int    ZTDDEPTH   ;
-		int    ZTDROWS    ;
-		int    ZTDSELS    ;
-		int    ZTDTOP     ;
-		int    ZTDVROWS   ;
-		int    ZCURINX    ;
-		string ZCMD       ;
-		string ZAPPLID    ;
-		string ZEDLMSG    ;
-		string ZEDSMSG    ;
-		string ZHELP      ;
-		string ZAHELP     ;
-		string ZHOME      ;
-		string ZORXPATH   ;
-		string ZPFKEY     ;
-		string ZSEL       ;
-		string ZSELPARM   ;
-		string ZSCREEN    ;
-		string ZSCROLL    ;
-		int    ZSCRMAXD   ;
-		int    ZSCRMAXW   ;
-		int    ZSCROLLN   ;
-		string ZSCROLLA   ;
-		string ZUSER      ;
-		string ZVERB      ;
-		string ZMUSER     ;
-		string ZPUSER     ;
-		string ZTUSER     ;
-		int    ZRC        ;
-		int    ZRSN       ;
-		string ZRESULT    ;
-		string ZERR1      ;
-		string ZERR2      ;
+		string sub_vars( string ) ;
+
+		void   ispexec( const string & ) ;
+
 
 	private:
 		boost::mutex mutex ;
 
-		int  addpop_row  ;
-		int  addpop_col  ;
+		fPOOL funcPOOL  ;
+
+		int  addpop_row ;
+		int  addpop_col ;
 
 		bool addpop_active       ;
 		bool ControlErrorsReturn ;
+		bool ControlPassLRScroll ;
 		bool abending            ;
 
-		string MSGID  ;
-		string MSGID1 ;
-		slmsg  MSG    ;
-		slmsg  MSG1   ;
+		string MSGID    ;
+		string MSGID1   ;
+		slmsg  MSG      ;
+		slmsg  MSG1     ;
+		string ZSCRNAME ;
 
 		void get_Message( string )  ;
 		int  chk_Message_id( string ) ;
 		bool load_Message( string ) ;
 		bool parse_Message( slmsg & )    ;
 		bool sub_Message_vars( slmsg & ) ;
-		string sub_vars( string ) ;
+
 
 		map<string, slmsg> msgList ;
 		map<string,  bool> tablesOpen    ;
@@ -254,5 +261,7 @@ class pApplication
 		void load_keylist( pPanel * ) ;
 		void panelCreate( string p_name ) ;
 		void actionSelect()   ;
+
+		void wait_event() ;
 
 } ;

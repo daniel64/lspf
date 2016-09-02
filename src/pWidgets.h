@@ -23,6 +23,16 @@ ofstream aplog(ALOG) ;
 class dynArea
 {
 	public:
+		dynArea(){
+				dynArea_DataInsp  = false ;
+				dynArea_DataOutsp = false ;
+				dynArea_UserModsp = false ;
+				dynArea_DataModsp = false ;
+				dynArea_Field     = ""    ;
+				dynArea_FieldIn   = ""    ;
+			 }
+
+	private:
 		int    dynArea_row       ;
 		int    dynArea_col       ;
 		int    dynArea_width     ;
@@ -39,23 +49,37 @@ class dynArea
 		string dynArea_FieldIn   ;
 		string dynArea_shadow_name ;
 
-		dynArea(){
-				dynArea_DataInsp  = false ;
-				dynArea_DataOutsp = false ;
-				dynArea_UserModsp = false ;
-				dynArea_DataModsp = false ;
-				dynArea_Field     = ""    ;
-				dynArea_FieldIn   = ""    ;
-			 }
-
 		int  dynArea_init( int MAXW, int MAXD, string line ) ;
 		void setsize( int, int, int, int ) ;
+
+       friend class pPanel ;
+       friend class field  ;
 } ;
 
 
 class field
 {
-	public:
+	private:
+		field() {
+				field_pwd          = false ;
+				field_changed      = false ;
+				field_active       = true  ;
+				field_usecua       = true  ;
+				field_colour       = 0     ;
+				field_prot         = true  ;
+				field_skip         = true  ;
+				field_caps         = false ;
+				field_padchar      = ' '   ;
+				field_just         = 'L'   ;
+				field_numeric      = false ;
+				field_input        = false ;
+				field_dynArea      = false ;
+				field_tb           = false ;
+				field_scrollable   = false ;
+				field_scroll_start = 1     ;
+				field_shadow_value = ""    ;
+			} ;
+
 		unsigned int field_row          ;
 		unsigned int field_col          ;
 		unsigned int field_cole         ;
@@ -81,26 +105,6 @@ class field
 		unsigned int field_scroll_start ;
 		string       field_shadow_value ;
 
-		field() {
-				field_pwd          = false ;
-				field_changed      = false ;
-				field_active       = true  ;
-				field_usecua       = true  ;
-				field_colour       = 0     ;
-				field_prot         = true  ;
-				field_skip         = true  ;
-				field_caps         = false ;
-				field_padchar      = ' '   ;
-				field_just         = 'L'   ;
-				field_numeric      = false ;
-				field_input        = false ;
-				field_dynArea      = false ;
-				field_tb           = false ;
-				field_scrollable   = false ;
-				field_scroll_start = 1     ;
-				field_shadow_value = ""    ;
-			} ;
-
 		int  field_init( int MAXW, int MAXD, string line ) ;
 		bool cursor_on_field( uint row, uint col ) ;
 		void display_field( WINDOW *, bool ) ;
@@ -116,15 +120,17 @@ class field
 		void field_DataMod_to_UserMod( string *, int ) ;
 		int  field_attr( string attrs ) ;
 		int  end_of_field( WINDOW * win, uint col )   ;
+
+       friend class pPanel ;
 } ;
 
 
 class literal
 {
-	public:
+	private:
 		literal() {
-				literal_colour = 0  ;
-				literal_name   = "" ;
+				literal_colour = 0     ;
+				literal_name   = ""    ;
 			  }
 		int     literal_row    ;
 		int     literal_col    ;
@@ -135,19 +141,15 @@ class literal
 		string  literal_name   ;
 
 		int  literal_init( int MAXW, int MAXD, int & opt_field, string line ) ;
-		void literal_display( WINDOW * ) ;
+		void literal_display( WINDOW *, const string & ) ;
 		bool cursor_on_literal( uint row, uint col ) ;
+       friend class pPanel ;
 } ;
 
 
 class pdc
 {
 	public:
-		string pdc_name ;
-		string pdc_run  ;
-		string pdc_parm ;
-		string pdc_unavail ;
-
 		pdc()   {
 				pdc_name    = "" ;
 				pdc_run     = "" ;
@@ -155,6 +157,10 @@ class pdc
 				pdc_unavail = "" ;
 			} ;
 		~pdc() {} ;
+		string pdc_name ;
+		string pdc_run  ;
+		string pdc_parm ;
+		string pdc_unavail ;
 } ;
 
 

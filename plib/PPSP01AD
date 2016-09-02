@@ -15,7 +15,7 @@ field    4  15  MAX-17 NEF CAPS(ON),PAD('_') ZCMD
 literal  4  MAX-15  FP "SCROLL ===> "
 field    4  MAX-3  4 NEF  NONE ZSCROLL
 
-literal  5  MAX-15  IMT "More:   >"
+literal  5  MAX-15  IMT "More: <  "
 
 literal  7  2      FP    "Profile. . . :"
 field    7  17    8 VOI  NONE ZAPPLID
@@ -41,14 +41,13 @@ field    8  17   4      NEF CAPS(ON),pad('_') CMDTAB
 
 field    9  2   50 VOI  NONE APPLCMDL
 
-literal  11  2      CH    "Command  T Action                                             Description"
+literal  11  2      CH    "Command  T Action"
 literal  12  2      CH    EXPAND "-"
 
 tbmodel  13   MAX
 tbfield  2    8    VOI   NONE ZCTVERB
 tbfield  ++1  1    VOI   NONE ZCTTRUNC
-tbfield  +2   50   VOI   NONE ZCTACT
-tbfield  ++1  MAX  VOI   NONE ZCTDESC
+tbfield  +2   MAX  VOI   NONE ZCTACT
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
@@ -57,7 +56,6 @@ tbfield  ++1  MAX  VOI   NONE ZCTDESC
 VGET ZSCROLL PROFILE
 .ATTR(ZCTVERB) ='COLOUR(YELLOW)'
 .ATTR(ZCTTRUNC)='COLOUR(WHITE)'
-.ATTR(ZCTDESC) ='COLOUR(WHITE)'
 
 )PROC
 

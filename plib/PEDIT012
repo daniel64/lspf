@@ -5,7 +5,7 @@ Panel for editor PEDIT01
 )ENDCOMMENT
 
 )BODY
-PanelDescr "Edit Panel"
+PanelDescr "Edit &ZFILE"
 scrollOn
 
 literal   3   2          FP  "EDIT"

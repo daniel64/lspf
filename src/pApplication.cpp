@@ -23,6 +23,8 @@
 #define MOD_NAME pApplic
 #define LOGOUT   aplog
 
+int  ispexeci( pApplication *, const string & ) ;
+
 pApplication::pApplication()
 {
 	currApplication        = this   ;
@@ -33,6 +35,7 @@ pApplication::pApplication()
 	ControlDisplayLock     = false  ;
 	ControlNonDispl        = false  ;
 	ControlErrorsReturn    = false  ;
+	ControlPassLRScroll    = false  ;
 	ControlSplitEnable     = true   ;
 	ControlRefUpdate       = true   ;
 	errPanelissued         = false  ;
@@ -134,7 +137,8 @@ void pApplication::panelCreate( string p_name )
 	pPanel * p_panel    = new pPanel ;
 	p_panel->p_poolMGR  = p_poolMGR  ;
 	p_panel->p_funcPOOL = &funcPOOL  ;
-	p_panel->REXX       = (rexxName != "" ) ;
+	p_panel->LRScroll   = ControlPassLRScroll ;
+	p_panel->REXX       = (rexxName != "" )   ;
 	p_panel->init( RC )              ;
 
 	if ( libdef_puser ) { paths = mergepaths( ZPUSER, ZPLIB ) ; }
@@ -177,10 +181,10 @@ void pApplication::get_cursor( uint & row, uint & col )
 }
 
 
-string pApplication::get_current_panelTitle()
+string pApplication::get_current_panelDescr()
 {
 	if ( panelList.size() == 0 ) { return ""                          ; }
-	else                         { return currPanel->get_panelTitle() ; }
+	else                         { return currPanel->get_panelDescr() ; }
 }
 
 
@@ -217,6 +221,26 @@ void pApplication::msgResponseOK()
 }
 
 
+void pApplication::store_scrname()
+{
+	int RC1 ;
+
+	ZSCRNAME = p_poolMGR->get( RC1, "ZSCRNAME", SHARED ) ;
+}
+
+
+void pApplication::restore_scrname( int screenID )
+{
+	int RC1 ;
+
+	if ( p_poolMGR->get( RC, screenID, "ZSCRNAM2" ) == "PERM" )
+	{
+			ZSCRNAME = p_poolMGR->get( RC1, screenID, "ZSCRNAME" ) ;
+	}
+	p_poolMGR->put( RC1, "ZSCRNAME", ZSCRNAME, SHARED ) ;
+}
+
+
 void pApplication::refresh_id()
 {
 	if ( panelList.size() > 0 ) { currPanel->display_id() ; }
@@ -247,7 +271,7 @@ void pApplication::set_msg( string msg_id )
 }
 
 
-void pApplication::set_msg1( slmsg t, string msgid, bool Immed )
+void pApplication::set_msg1( const slmsg & t, string msgid, bool Immed )
 {
 	// Propogate setmsg() to the current panel using the short-long-message object.
 	// If immed, display the message now rather than allow the application DISPLAY()/TBDISPL() service to it.
@@ -296,6 +320,13 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 		if ( PANELID == "" ) { RC = 20 ; checkRCode( "No panel specified" ) ; return ; }
 		p_name   = PANELID ;
 		doReinit = true    ;
+	}
+
+	if ( p_cursor != "" && !isvalidName( p_cursor ) )
+	{
+		RC = 20 ;
+		checkRCode( "Invalid CURSOR position "+ p_cursor ) ;
+		return ;
 	}
 
 	panelCreate( p_name ) ;
@@ -643,9 +674,9 @@ void pApplication::vdelete( string names )
 	{
 		name = word( names, i ) ;
 		funcPOOL.dlete( RC, name ) ;
-		if ( RC > 8 )     { checkRCode( "VDELETE failed for " + name ) ; }
-		if ( RC > maxRC ) { maxRC = RC ; }
-		if ( RC > 8 )     { return     ; }
+		if ( RC > 8 ) { checkRCode( "VDELETE failed for " + name ) ; }
+		maxRC = max( maxRC, RC ) ;
+		if ( RC > 8 ) { return   ; }
 	}
 	RC = maxRC ;
 }
@@ -774,8 +805,8 @@ void pApplication::vget( string names, poolType pType )
 				if ( RC > 0 ) { checkRCode( "Function pool put failed creating implicit variable for " + name ) ; }
 			}
 		}
-		if ( RC > maxRC ) { maxRC = RC ; }
-		if ( RC > 8     ) { return     ; }
+		maxRC = max( maxRC, RC ) ;
+		if ( RC > 8 ) { return   ; }
 	}
 	RC = maxRC ;
 }
@@ -822,8 +853,8 @@ void pApplication::vput( string names, poolType pType )
 			p_poolMGR->put( RC, name, s_val, pType ) ;
 			if ( RC > 0 ) { checkRCode( "Pool manager put failed for "+name+" RC="+d2ds( RC ) ) ; }
 		}
-		if ( RC > maxRC ) { maxRC = RC ; }
-		if ( RC > 8     ) { return     ; }
+		maxRC = max( maxRC, RC ) ;
+		if ( RC > 8 ) { return   ; }
 	}
 	RC = maxRC ;
 }
@@ -950,9 +981,9 @@ void pApplication::verase( string names, poolType pType )
 	{
 		name = word( names, i ) ;
 		p_poolMGR->erase( RC, name, pType ) ;
-		if ( RC > 0 ) { checkRCode( "Pool erase failed for " + name) ; }
-		if ( RC > maxRC ) { maxRC = RC ; }
-		if ( RC > 8     ) { return     ; }
+		if ( RC > 8 ) { checkRCode( "Pool erase failed for " + name) ; }
+		maxRC = max( maxRC, RC ) ;
+		if ( RC > 8 ) { return   ; }
 	}
 	RC = maxRC ;
 }
@@ -1068,7 +1099,7 @@ void pApplication::movepop()
 }
 
 
-void pApplication::control( string parm1, string parm2 )
+void pApplication::control( string parm1, string parm2, string parm3 )
 {
 	// CONTROL ERRORS CANCEL - abend for RC >= 12
 	// CONTROL ERRORS RETURN - return to application for any RC
@@ -1080,16 +1111,27 @@ void pApplication::control( string parm1, string parm2 )
 
 	// CONTROL SPLIT DISABLE - RC=8 if screen already split
 
+	// CONTROL PASSTHRU LRSCROLL  PASON | PASOFF | PASQUERY
+
 	// CONTROL REFLIST UPDATE
 	// CONTROL REFLIST NOUPDATE
 
-	// LSPF extensions:
+	// lspf extensions:
 	// CONTROL TIMEOUT  ENABLE  - Enable application timeouts after ZWAITMAX ms (default).
 	// CONTROL TIMEOUT  DISABLE - Disable forced abend of applications if ZWAITMAX exceeded.
 	// CONTROL ABENDRTN DEFAULT - Reset abend routine to the default, pApplication::cleanup_default
 	// CONTROL RDISPLAY FLUSH   - Flush raw output to the screen
 
 	RC = 0 ;
+
+	map<string, pPanel *>::iterator it;
+
+	if ( parm3 != "" && parm1 != "PASSTHRU" )
+	{
+		RC = 20 ;
+		checkRCode( "Error in control service" ) ;
+		return ;
+	}
 
 	if ( parm1 == "DISPLAY" )
 	{
@@ -1147,6 +1189,34 @@ void pApplication::control( string parm1, string parm2 )
 		else if ( parm2 == "CANCEL" )
 		{
 			ControlErrorsReturn = false ;
+		}
+		else { RC = 20 ; }
+	}
+	else if ( parm1 == "PASSTHRU" )
+	{
+		if ( parm2 == "LRSCROLL" )
+		{
+			if ( parm3 == "PASON" )
+			{
+				ControlPassLRScroll = true ;
+				for ( it = panelList.begin() ; it != panelList.end() ; it++ )
+				{
+					it->second->LRScroll = true ;
+				}
+			}
+			else if ( parm3 == "PASOFF" )
+			{
+				ControlPassLRScroll = false ;
+				for ( it = panelList.begin() ; it != panelList.end() ; it++ )
+				{
+					it->second->LRScroll = false ;
+				}
+			}
+			else if ( parm3 == "PASQUERY" )
+			{
+				RC = ControlPassLRScroll ? 1 : 0 ;
+			}
+			else { RC = 20 ; }
 		}
 		else { RC = 20 ; }
 	}
@@ -1212,7 +1282,7 @@ void pApplication::control( string parm1, string parm2 )
 		else { RC = 20 ; }
 	}
 	else { RC = 20 ; }
-	if ( RC > 0 ) { checkRCode( "Error in control service" ) ; }
+	if ( RC > 4 ) { checkRCode( "Error in control service" ) ; }
 }
 
 
@@ -1449,8 +1519,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 		p_poolMGR->put( RC, "ZVERB", "",  SHARED ) ;
 		if ( p_msg == "" && currtbPanel->tb_lineChanged( ln, URID ) )
 		{
-			currtbPanel->remove_tb_lineChanged( RC ) ;
-			if ( RC > 0 ) { ZERR2 = currtbPanel->PERR ; checkRCode( "Panel >>" + currtbPanel->PANELID + "<< error during TBDISPL" ) ; return ; }
+			currtbPanel->remove_tb_lineChanged() ;
 		}
 		else
 		{
@@ -2298,7 +2367,7 @@ bool pApplication::load_Message( string p_msg )
 	}
 	if ( !found )
 	{
-		RC = 20 ;
+		RC = 12 ;
 		checkRCode( "Message file "+ p_msg_fn +" not found in ZMLIB for message-id "+ p_msg ) ;
 		return false ;
 	}
@@ -2668,7 +2737,8 @@ int pApplication::chk_Message_id( string msgid )
 string pApplication::sub_vars( string s )
 {
 	// In string, s, substitute variables starting with '&' for their dialogue value
-	// Rules: A '.' at the end of a variable, concatinates the value with the string folling the dot
+	// Rules: A '.' at the end of a variable, concatinates the value with the string following the dot
+	//        .. reduces to .
 	//        && reduces to & with no variable substitution
 
 	int p1 ;
@@ -2693,7 +2763,7 @@ string pApplication::sub_vars( string s )
 		}
 		p2 = s.find_first_of( "& .')\"", p1 ) ;
 		if ( p2 == string::npos ) { p2 = s.size() ; }
-		var = s.substr( p1, (p2-p1) ) ;
+		var = upper( s.substr( p1, (p2-p1) ) ) ;
 		if ( isvalidName( var ) )
 		{
 			val = "" ;
@@ -2788,7 +2858,13 @@ void pApplication::closeTables()
 }
 
 
-void pApplication::checkRCode( string s )
+void pApplication::ispexec( const string & s )
+{
+	RC = ispexeci( this, s ) ;
+}
+
+
+void pApplication::checkRCode( const string & s )
 {
 	log( "E", s << endl ) ;
 	if ( ZERR2 != "" ) { log( "E", ZERR2 << endl ) ; }

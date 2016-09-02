@@ -222,6 +222,12 @@ main()
 	ZCTDESC  = "Run an application by name" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
+	ZCTVERB  = "RETP" ;
+	ZCTTRUNC = "0"    ;
+	ZCTACT   = "RETP" ;
+	ZCTDESC  = "List retrieve buffer" ;
+	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
 	ZCTVERB  = "SETTINGS"  ;
 	ZCTTRUNC = "3"         ;
 	ZCTACT   = "SELECT PANEL(PPSET0A) SCRNAME(SETTINGS)" ;

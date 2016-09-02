@@ -20,6 +20,8 @@ SWAP     Swap logical screen
              for active, '*' keeps the current active screen and only switches the alternate screen
              for alternate, '*' switches current active to alternate
           SWAP can also be initiated with the SWAP Character and the ENTER key if the option is enabled.
+          (SWAP Char must be the first non-blank character, and the cursor must remain on the command field.  Only
+           characters up to, but not including the cursor position, are taken into account)
 !nnn xx  Execute program nnn with parameter xx (application defaults are NEWAPPL, NEWPOOL)
 %nnn xx  Execute oorexx  nnn with parameter xx (application defaults are NEWAPPL, NEWPOOL)
 

@@ -678,30 +678,30 @@ void PPSP01A::pfkeySettings()
 {
 	int RCode ;
 
-	map<int,string> pfKeyDefaults = { {  1,   "HELP"      },
-					  {  2,   "SPLIT"     },
-					  {  3,   "END"       },
-					  {  4,   "RETURN"    },
-					  {  5,   "RFIND"     },
-					  {  6,   "RCHANGE"   },
-					  {  7,   "UP"        },
-					  {  8,   "DOWN"      },
-					  {  9,   "SWAP"      },
-					  { 10,   "LEFT"      },
-					  { 11,   "RIGHT"     },
-					  { 12,   "RETRIEVE"  },
-					  { 13,   "HELP"      },
-					  { 14,   "SPLIT"     },
-					  { 15,   "END"       },
-					  { 16,   "RETURN"    },
-					  { 17,   "RFIND"     },
-					  { 18,   "RCHANGE"   },
-					  { 19,   "UP"        },
-					  { 20,   "DOWN"      },
-					  { 21,   "SWAP"      },
-					  { 22,   "SWAP PREV" },
-					  { 23,   "SWAP NEXT" },
-					  { 24,   "HELP"      } } ;
+	map<int,string> pfKeyDefaults = { {  1, "HELP"      },
+					  {  2, "SPLIT NEW" },
+					  {  3, "END"       },
+					  {  4, "RETURN"    },
+					  {  5, "RFIND"     },
+					  {  6, "RCHANGE"   },
+					  {  7, "UP"        },
+					  {  8, "DOWN"      },
+					  {  9, "SWAP"      },
+					  { 10, "LEFT"      },
+					  { 11, "RIGHT"     },
+					  { 12, "RETRIEVE"  },
+					  { 13, "HELP"      },
+					  { 14, "SPLIT NEW" },
+					  { 15, "END"       },
+					  { 16, "RETURN"    },
+					  { 17, "RFIND"     },
+					  { 18, "RCHANGE"   },
+					  { 19, "UP"        },
+					  { 20, "DOWN"      },
+					  { 21, "SWAP"      },
+					  { 22, "SWAP PREV" },
+					  { 23, "SWAP NEXT" },
+					  { 24, "HELP"      } } ;
 
 	string ZPF01, ZPF02, ZPF03, ZPF04, ZPF05, ZPF06, ZPF07, ZPF08, ZPF09, ZPF10, ZPF11, ZPF12 ;
 	string ZPF13, ZPF14, ZPF15, ZPF16, ZPF17, ZPF18, ZPF19, ZPF20, ZPF21, ZPF22, ZPF23, ZPF24 ;
@@ -715,6 +715,40 @@ void PPSP01A::pfkeySettings()
 
 	while ( true )
 	{
+		ZCMD  = "" ;
+		display( "PPSP01AK", "", "ZCMD" );
+		RCode = RC ;
+		if (RCode > 8 ) { abend() ; }
+
+		if ( ZCMD == "CANCEL" ) { break ; }
+		if ( ZCMD == "DEFAULTS" )
+		{
+			ZPF01 = "" ;
+			ZPF02 = "" ;
+			ZPF03 = "" ;
+			ZPF04 = "" ;
+			ZPF05 = "" ;
+			ZPF06 = "" ;
+			ZPF07 = "" ;
+			ZPF08 = "" ;
+			ZPF09 = "" ;
+			ZPF10 = "" ;
+			ZPF11 = "" ;
+			ZPF12 = "" ;
+			ZPF13 = "" ;
+			ZPF14 = "" ;
+			ZPF15 = "" ;
+			ZPF16 = "" ;
+			ZPF17 = "" ;
+			ZPF18 = "" ;
+			ZPF19 = "" ;
+			ZPF20 = "" ;
+			ZPF21 = "" ;
+			ZPF22 = "" ;
+			ZPF23 = "" ;
+			ZPF24 = "" ;
+		}
+
 		if ( ZPF01 == "" ) { ZPF01 = pfKeyDefaults[  1 ] ; }
 		if ( ZPF02 == "" ) { ZPF02 = pfKeyDefaults[  2 ] ; }
 		if ( ZPF03 == "" ) { ZPF03 = pfKeyDefaults[  3 ] ; }
@@ -740,69 +774,33 @@ void PPSP01A::pfkeySettings()
 		if ( ZPF23 == "" ) { ZPF23 = pfKeyDefaults[ 23 ] ; }
 		if ( ZPF24 == "" ) { ZPF24 = pfKeyDefaults[ 24 ] ; }
 
-		ZCMD  = "" ;
-		display( "PPSP01AK", "", "ZCMD" );
-		RCode = RC ;
-		if (RCode > 8 ) { abend() ; }
-
-		if ( ZCMD == "CANCEL" ) { break ; }
-		if ( ZCMD == "DELETE" )
-		{
-			verase( "ZPF01 ZPF02 ZPF03 ZPF04 ZPF05 ZPF06 ZPF07 ZPF08 ZPF09 ZPF10 ZPF11 ZPF12", PROFILE ) ;
-			verase( "ZPF13 ZPF14 ZPF15 ZPF16 ZPF17 ZPF18 ZPF19 ZPF20 ZPF21 ZPF22 ZPF23 ZPF24", PROFILE ) ;
-			break ;
-		}
 		if ( RCode == 8 || ZCMD == "SAVE" )
 		{
-			if ( ZPF01 != "" )   vput( "ZPF01", PROFILE ) ;
-			else               verase( "ZPF01", PROFILE ) ;
-			if ( ZPF02 != "" )   vput( "ZPF02", PROFILE ) ;
-			else               verase( "ZPF02", PROFILE ) ;
-			if ( ZPF03 != "" )   vput( "ZPF03", PROFILE ) ;
-			else               verase( "ZPF03", PROFILE ) ;
-			if ( ZPF04 != "" )   vput( "ZPF04", PROFILE ) ;
-			else               verase( "ZPF04", PROFILE ) ;
-			if ( ZPF05 != "" )   vput( "ZPF05", PROFILE ) ;
-			else               verase( "ZPF05", PROFILE ) ;
-			if ( ZPF06 != "" )   vput( "ZPF06", PROFILE ) ;
-			else               verase( "ZPF06", PROFILE ) ;
-			if ( ZPF07 != "" )   vput( "ZPF07", PROFILE ) ;
-			else               verase( "ZPF07", PROFILE ) ;
-			if ( ZPF08 != "" )   vput( "ZPF08", PROFILE ) ;
-			else               verase( "ZPF08", PROFILE ) ;
-			if ( ZPF09 != "" )   vput( "ZPF09", PROFILE ) ;
-			else               verase( "ZPF09", PROFILE ) ;
-			if ( ZPF10 != "" )   vput( "ZPF10", PROFILE ) ;
-			else               verase( "ZPF10", PROFILE ) ;
-			if ( ZPF11 != "" )   vput( "ZPF11", PROFILE ) ;
-			else               verase( "ZPF11", PROFILE ) ;
-			if ( ZPF12 != "" )   vput( "ZPF12", PROFILE ) ;
-			else               verase( "ZPF12", PROFILE ) ;
-			if ( ZPF13 != "" )   vput( "ZPF13", PROFILE ) ;
-			else               verase( "ZPF13", PROFILE ) ;
-			if ( ZPF14 != "" )   vput( "ZPF14", PROFILE ) ;
-			else               verase( "ZPF14", PROFILE ) ;
-			if ( ZPF15 != "" )   vput( "ZPF15", PROFILE ) ;
-			else               verase( "ZPF15", PROFILE ) ;
-			if ( ZPF16 != "" )   vput( "ZPF16", PROFILE ) ;
-			else               verase( "ZPF16", PROFILE ) ;
-			if ( ZPF17 != "" )   vput( "ZPF17", PROFILE ) ;
-			else               verase( "ZPF17", PROFILE ) ;
-			if ( ZPF18 != "" )   vput( "ZPF18", PROFILE ) ;
-			else               verase( "ZPF18", PROFILE ) ;
-			if ( ZPF19 != "" )   vput( "ZPF19", PROFILE ) ;
-			else               verase( "ZPF19", PROFILE ) ;
-			if ( ZPF20 != "" )   vput( "ZPF20", PROFILE ) ;
-			else               verase( "ZPF20", PROFILE ) ;
-			if ( ZPF21 != "" )   vput( "ZPF21", PROFILE ) ;
-			else               verase( "ZPF21", PROFILE ) ;
-			if ( ZPF22 != "" )   vput( "ZPF22", PROFILE ) ;
-			else               verase( "ZPF22", PROFILE ) ;
-			if ( ZPF23 != "" )   vput( "ZPF23", PROFILE ) ;
-			else               verase( "ZPF23", PROFILE ) ;
-			if ( ZPF24 != "" )   vput( "ZPF24", PROFILE ) ;
-			else               verase( "ZPF24", PROFILE ) ;
-			if ( RCode == 8 ) { break ; }
+			vput( "ZPF01", PROFILE ) ;
+			vput( "ZPF02", PROFILE ) ;
+			vput( "ZPF03", PROFILE ) ;
+			vput( "ZPF04", PROFILE ) ;
+			vput( "ZPF05", PROFILE ) ;
+			vput( "ZPF06", PROFILE ) ;
+			vput( "ZPF07", PROFILE ) ;
+			vput( "ZPF08", PROFILE ) ;
+			vput( "ZPF09", PROFILE ) ;
+			vput( "ZPF10", PROFILE ) ;
+			vput( "ZPF11", PROFILE ) ;
+			vput( "ZPF12", PROFILE ) ;
+			vput( "ZPF13", PROFILE ) ;
+			vput( "ZPF14", PROFILE ) ;
+			vput( "ZPF15", PROFILE ) ;
+			vput( "ZPF16", PROFILE ) ;
+			vput( "ZPF17", PROFILE ) ;
+			vput( "ZPF18", PROFILE ) ;
+			vput( "ZPF19", PROFILE ) ;
+			vput( "ZPF20", PROFILE ) ;
+			vput( "ZPF21", PROFILE ) ;
+			vput( "ZPF22", PROFILE ) ;
+			vput( "ZPF23", PROFILE ) ;
+			vput( "ZPF24", PROFILE ) ;
+			if ( RCode == 8 )  { break ; }
 		}
 	}
 	vdelete( "ZPF01 ZPF02 ZPF03 ZPF04 ZPF05 ZPF06 ZPF07 ZPF08" ) ;
@@ -1598,9 +1596,10 @@ void PPSP01A::showCommandTables()
 	string MSG      ;
 	string APPLCMD  ;
 	string APPLCMDL ;
+	string panel    ;
 
 	vdefine( "ZCTVERB ZCTTRUNC ZCTACT ZCTDESC", &ZCTVERB, &ZCTTRUNC, &ZCTACT, &ZCTDESC ) ;
-	vdefine( "ZAPPLID CMDTAB APPLCMD APPLCMDL", &ZAPPLID, &CMDTAB, &APPLCMD,  &APPLCMDL ) ;
+	vdefine( "ZAPPLID CMDTAB APPLCMD APPLCMDL ZVERB", &ZAPPLID, &CMDTAB, &APPLCMD,  &APPLCMDL, &ZVERB ) ;
 
 	vget( "ZAPPLID" ) ;
 	vget( "CMDTAB", PROFILE ) ;
@@ -1632,12 +1631,14 @@ void PPSP01A::showCommandTables()
 		tbopen( CMDTAB+"CMDS", NOWRITE, "", SHARE ) ;
 	}
 	i = 1 ;
+	panel = "PPSP01AC" ;
+	control( "PASSTHRU", "LRSCROLL", "PASON" ) ;
 	while ( true )
 	{
 		tbtop( CMDTAB+"CMDS" )     ;
 		tbskip( CMDTAB+"CMDS", i ) ;
 		ZCMD  = "" ;
-		tbdispl( CMDTAB+"CMDS", "PPSP01AC", MSG, "ZCMD" ) ;
+		tbdispl( CMDTAB+"CMDS", panel, MSG, "ZCMD" ) ;
 		i = ZTDTOP ;
 		if ( RC  >  8 ) { abend() ; }
 		if ( RC ==  8 ) { break   ; }
@@ -1655,6 +1656,12 @@ void PPSP01A::showCommandTables()
 				CMDTAB = OCMDTAB ;
 				MSG = "PPSP014"  ;
 			}
+		}
+		vget( "ZVERB", SHARED ) ;
+		if ( ZVERB == "LEFT" || ZVERB == "RIGHT" )
+		{
+			if ( panel == "PPSP01AC" ) { panel = "PPSP01AD" ; }
+			else                       { panel = "PPSP01AC" ; }
 		}
 	}
 	tbend( CMDTAB+"CMDS" ) ;

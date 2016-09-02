@@ -36,6 +36,7 @@ class fPOOL
 	public:
 		void     define( int &, string, string *, nameCHCK check=CHECK ) ;
 		void     define( int &, string, int * ) ;
+	private:
 		bool     ifexists( int &, string, nameCHCK check=CHECK ) ;
 		dataType getType( int &, string, nameCHCK check=CHECK )  ;
 		string * vlocate( int &, int, string, nameCHCK check=CHECK )  ;
@@ -49,8 +50,10 @@ class fPOOL
 		string   vilist( int &, vdType ) ;
 		string   vslist( int &, vdType ) ;
 
-	private:
 		map<string, stack< fVAR>> POOL ;
+	friend class pApplication  ;
+	friend class Table ;
+	friend class pPanel ;
 } ;
 
 
@@ -123,36 +126,44 @@ class poolMGR
 {
 	public:
 		poolMGR() ;
-
-		string getAPPLID()   { return currAPPLID ; }
-		string getShrdPool() { return shrdPool   ; }
-		void   setAPPLID( int & RC, string )     ;
-		void   setShrdPool( int & RC, string )   ;
-		string vlist( int & RC, poolType, int )  ;
-
 		void   createPool( int & RC, poolType, string path="" ) ;
-		void   createPool( int ls ) ;
 		void   destroyPool( int & RC, poolType ) ;
 		void   destroyPool( int ls ) ;
-		void   setPOOLsReadOnly( int & RC ) ;
-		void   defaultVARs( int & RC, string name, string value, poolType ) ;
-		void   statistics() ;
-		void   snap() ;
+
+		void   setAPPLID( int & RC, string )     ;
+		void   setShrdPool( int & RC, string )   ;
 
 		void   put( int &, string, string, poolType = ASIS, vTYPE =USER ) ;
 		void   put( int &, int, string, string ) ;
 		string get( int &, string, poolType=ASIS ) ;
 		string get( int &, int, string ) ;
-		string * vlocate( int &, string, poolType=ASIS ) ;
-		void   locateSubPool( int &, map<string, pVPOOL>::iterator &, string, poolType = ASIS ) ;
-		void   erase( int &, string, poolType = ASIS ) ;
+
+		void   defaultVARs( int & RC, string name, string value, poolType ) ;
+
+		string getAPPLID()   { return currAPPLID ; }
+		string getShrdPool() { return shrdPool   ; }
+
+		void   setPOOLsReadOnly( int & RC ) ;
+		void   snap() ;
+		void   statistics() ;
+
 		bool   ifexists( int &, string ) ;
 
 	private:
+		string vlist( int & RC, poolType, int )  ;
+
+		void   createPool( int ls ) ;
+
+		string * vlocate( int &, string, poolType=ASIS ) ;
+		void   locateSubPool( int &, map<string, pVPOOL>::iterator &, string, poolType = ASIS ) ;
+		void   erase( int &, string, poolType = ASIS ) ;
+
 		string currAPPLID ;
 		string shrdPool   ;
 		int    shrdPooln  ;
 		map<string, pVPOOL> POOLs_shared  ;
 		map<string, pVPOOL> POOLs_profile ;
 		map<int,    pVPOOL> POOLs_lscreen ;
+
+	friend class pApplication ;
 } ;

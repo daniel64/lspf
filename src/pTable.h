@@ -34,6 +34,27 @@ class Table
 			sa_dir         = ""    ;
 			sort_ir        = ""    ;
 		}
+	private:
+		int    ownerTask      ;
+		bool   tab_temporary  ;
+		bool   tab_cmds       ;
+		string tab_keys       ;
+		string tab_flds       ;
+		string tab_all        ;
+		string tab_path       ;
+		bool   changed        ;
+		int    refCount       ;
+		int    maxURID        ;
+		int    num_keys       ;
+		int    num_flds       ;
+		int    num_all        ;
+		int    CRP            ;
+		string sort_ir        ;
+		string sa_namelst     ;
+		string sa_cond_pairs  ;
+		string sa_dir         ;
+		tbDISP tab_DISP       ;
+
 		void   saveTable( int & RC, string m_name, string m_path ) ;
 		void   loadRow( int & RC, vector< string > & m_flds ) ;
 		void   reserveSpace( int tot_rows ) ;
@@ -58,30 +79,8 @@ class Table
 		void   tbtop( int & RC ) ;
 		void   tbvclear( int & RC, fPOOL & funcPOOL ) ;
 
-	private:
 		vector< vector<string> > table ;
-
-		map< string, tbsearch > sarg ;
-
-		int    ownerTask      ;
-		bool   tab_temporary  ;
-		bool   tab_cmds       ;
-		string tab_keys       ;
-		string tab_flds       ;
-		string tab_all        ;
-		string tab_path       ;
-		bool   changed        ;
-		int    refCount       ;
-		int    maxURID        ;
-		int    num_keys       ;
-		int    num_flds       ;
-		int    num_all        ;
-		int    CRP            ;
-		string sort_ir        ;
-		string sa_namelst     ;
-		string sa_cond_pairs  ;
-		string sa_dir         ;
-		tbDISP tab_DISP       ;
+		map< string, tbsearch > sarg   ;
 
 		friend class tableMGR ;
 } ;
@@ -92,19 +91,21 @@ class tableMGR
 	public:
 		tableMGR() ;
 
+		void   statistics() ;
+		void   snap() ;
+
+		void   cmdsearch( int & RC, fPOOL & funcPOOL, string tb_name, string cmd, const string & paths ) ;
+		void   loadTable( int & RC, int task, string tb_name, tbDISP=EXCLUSIVE, string src="" ) ;
+
+	private:
 		void   fillfVARs( int & RC, fPOOL & funcPOOL, string tb_name, int depth, int posn ) ;
 		int    getCRP( int & RC, string tb_name ) ;
-		void   cmdsearch( int & RC, fPOOL & funcPOOL, string tb_name, string cmd, const string & paths ) ;
 
 		void   createTable( int & RC, int task, string tb_name, string keys, string flds, bool m_temporary, tbREP m_REP, string m_path, tbDISP m_DISP ) ;
 		void   destroyTable( int & RC, int task, string tb_name ) ;
-		void   loadTable( int & RC, int task, string tb_name, tbDISP=EXCLUSIVE, string src="" ) ;
 		void   saveTable( int & RC, int task, string tb_name, string m_newname, string m_path, bool m_err=true ) ;
 		bool   isloaded( string tb_name ) ;
 		bool   tablexists( string tb_name, string tb_path ) ;
-
-		void   statistics() ;
-		void   snap() ;
 
 		void   tbadd( int & RC, fPOOL & funcPOOL, string tb_name, string tb_namelst, string tb_order, int tb_num_of_rows ) ;
 		void   tbbottom( int & RC, fPOOL & funcPOOL, string tb_name, string tb_savenm, string tb_rowid_vn, string tb_noread, string tb_crp_name  ) ;
@@ -122,6 +123,6 @@ class tableMGR
 		void   tbtop( int & RC, string tb_name ) ;
 		void   tbvclear( int & RC, fPOOL & funcPOOL, string tb_name ) ;
 
-	private:
 		map<string, Table> tables ;
+		friend class pApplication ;
 } ;
