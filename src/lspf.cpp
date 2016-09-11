@@ -742,7 +742,8 @@ void mainLoop()
 
 						if ( !currAppl->ControlSplitEnable )
 						{
-							log( "W", "SPLIT mode disabled due to application-issued CONTROL SPLIT DISABLE service" << endl ) ;
+							p_poolMGR->put( RC, "ZCTMVAR", left( ZCOMMAND, 8 ), SHARED ) ;
+							issueMessage( "PSYS011" ) ;
 							break ;
 						}
 						if ( pLScreen::screensTotal == ZMAXSCRN ) { continue ; }
@@ -1082,7 +1083,6 @@ void processAction( uint row, uint col, int c, bool & passthru )
 		if ( RC > 0 ) { log( "C", "VPUT for PF00 failed" << endl ) ; }
 	}
 
-
 	if ( addRetrieve )
 	{
 		rbsize = ds2d( p_poolMGR->get( RC, "ZRBSIZE", PROFILE ) ) ;
@@ -1320,6 +1320,14 @@ void processAction( uint row, uint col, int c, bool & passthru )
 				p_poolMGR->put( RC, "ZVERB", ZCTVERB, SHARED ) ;
 				if ( RC > 0 ) { log( "C", "VPUT for ZVERB failed" << endl ) ; }
 				ZCOMMAND = subword( ZCOMMAND, 2 ) ;
+			}
+			if ( CMDVerb == "NRETRIEV" )
+			{
+				SELCT.clear() ;
+				currAppl->vcopy( "ZRFLPGM", SELCT.PGM, MOVE ) ;
+				SELCT.PARM = "NR1 " + CMDRest ;
+				SEL        = true  ;
+				passthru   = false ;
 			}
 		}
 	}
@@ -1782,7 +1790,7 @@ void terminateApplication()
 		}
 	}
 	log( "I", "Application terminatation of "+ ZAPPNAME +" completed.  Current application is "+ currAppl->ZAPPNAME << endl ) ;
-	currAppl->restore_scrname( currScrn->screenID ) ;
+	currAppl->restore_Zvars( currScrn->screenID ) ;
 	currAppl->refresh_id()      ;
 	currScrn->set_row_col( row, col ) ;
 }
@@ -2292,7 +2300,7 @@ string listLogicalScreens()
 		if      ( i == screenNum ) { ln += "*" ; m = i ; }
 		else if ( i == altScreen ) { ln += "-"         ; }
 		else                       { ln += " "         ; }
-		t  = appl->get_current_panelDescr(), 42 ;
+		t = appl->get_current_panelDescr() ;
 		if ( t.size() > 42 )
 		{
 			t.erase( 20, t.size()-39 ) ;
@@ -2323,7 +2331,7 @@ string listLogicalScreens()
 		update_panels() ;
 		doupdate()  ;
 		c = getch() ;
-		if ( c == KEY_ENTER || c == 27 || c == 13 ) { break ; }
+		if ( c == KEY_ENTER || c == 13 ) { break ; }
 		if ( c == KEY_UP )
 		{
 			m == 0 ? m = lslist.size() - 1 : m-- ;
@@ -2334,13 +2342,12 @@ string listLogicalScreens()
 		}
 		else if ( isActionKey( c ) )
 		{
+			m = o ;
 			break ;
 		}
 	}
-
 	del_panel( swpanel ) ;
 	delwin( swwin )      ;
-	if ( c == 27 ) { m = o ; }
 	return d2ds( m+1 )   ;
 }
 
@@ -2387,7 +2394,7 @@ void listRetrieveBuffer()
 	currScrn->show_wait() ;
 	for ( i = 0 ; i < mx ; i++ )
 	{
-		ln = left(d2ds( i+1 )+".", 5 ) + retrieveBuffer[ i ] ;
+		ln = left(d2ds( i+1 )+".", 5 ) + left( retrieveBuffer[ i ], 49 ) ;
 		lslist.push_back( ln ) ;
 	}
 
@@ -2406,12 +2413,7 @@ void listRetrieveBuffer()
 		update_panels() ;
 		doupdate()  ;
 		c = getch() ;
-		if ( c == 27 )
-		{
-			currAppl->currPanel->cursor_to_field( RC, currAppl->currPanel->CMDfield, 1 ) ;
-			break ;
-		}
-		else if ( c == KEY_ENTER || c == 13 )
+		if ( c == KEY_ENTER || c == 13 )
 		{
 			currAppl->currPanel->cmd_setvalue( retrieveBuffer[ m ] ) ;
 			currAppl->currPanel->cursor_to_field( RC, currAppl->currPanel->CMDfield, retrieveBuffer[ m ].size()+1 ) ;
@@ -2427,10 +2429,10 @@ void listRetrieveBuffer()
 		}
 		else if ( isActionKey( c ) )
 		{
+			currAppl->currPanel->cursor_to_field( RC, currAppl->currPanel->CMDfield, 1 ) ;
 			break ;
 		}
 	}
-
 	del_panel( rbpanel ) ;
 	delwin( rbwin )      ;
 

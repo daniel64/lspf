@@ -36,7 +36,7 @@ void fPOOL::define( int & RC, string name, string * addr, nameCHCK check )
 	fVAR var ;
 	RC = 0   ;
 
-	if ( (check == CHECK) && !isvalidName( name ) ) { RC = 20 ; return  ; }
+	if ( (check == CHECK) && !isvalidName( name ) ) { RC = 20 ; return ; }
 
 	var.fVAR_string_ptr = addr   ;
 	var.fVAR_type       = STRING ;

@@ -99,13 +99,16 @@ pPanel::~pPanel()
 		del_panel( bpanel ) ;
 		delwin( bwin )      ;
 	}
-	panel_cleanup( panel ) ;
-	del_panel( panel )     ;
+	if ( fwin != NULL )
+	{
+		panel_cleanup( panel ) ;
+		del_panel( panel )     ;
+		delwin( fwin ) ;
+	}
 	if ( pwin != NULL )
 	{
 		delwin( pwin ) ;
 	}
-	delwin( fwin ) ;
 	if ( smp_created )
 	{
 		panel_cleanup( smpanel ) ;
@@ -256,6 +259,8 @@ void pPanel::display_panel( int & RC1 )
 
 	RC1 = 0 ;
 
+	update_keylist_vars() ;
+
 	if ( win_addpop && pwin != NULL )
 	{
 		win = pwin ;
@@ -270,7 +275,7 @@ void pPanel::display_panel( int & RC1 )
 		winttl = getDialogueVar( "ZWINTTL" ) ;
 		if ( winttl != "" )
 		{
-			winttl = " " + winttl + " " ;
+			winttl = " "+ winttl +" " ;
 			mvwaddstr( bwin, 0, ( WSCRMAXW - winttl.size() ) / 2, winttl.c_str() ) ;
 		}
 		wattroff( bwin, cuaAttr[ AWF ] ) ;
@@ -708,9 +713,9 @@ void pPanel::display_panel_init( int & RC1 )
 				{
 					for ( j = 0 ; j < tb_depth ; j++ )
 					{
-						if ( fieldList[ fieldNam + "." + d2ds( j ) ]->field_attr( t ) > 0 )
+						if ( fieldList[ fieldNam +"."+ d2ds( j ) ]->field_attr( t ) > 0 )
 						{
-							PERR = "Error setting attribute " + t + " for table display field " +fieldNam ;
+							PERR = "Error setting attribute "+ t +" for table display field " +fieldNam ;
 							RC1  = 20 ;
 							return    ;
 						}
@@ -720,7 +725,7 @@ void pPanel::display_panel_init( int & RC1 )
 				{
 					if ( fieldList[ fieldNam ]->field_attr( t ) > 0 )
 					{
-						PERR = "Error setting attribute " + t + " for field " + fieldNam ;
+						PERR = "Error setting attribute "+ t +" for field "+ fieldNam ;
 						RC1  = 20 ;
 						return    ;
 					}
@@ -862,7 +867,7 @@ void pPanel::display_panel_reinit( int & RC1, int ln )
 			}
 			else if ( assgnListr.at( i_assign ).as_lhs == ".CURSOR" )
 			{
-				if ( wordpos( assgnListr.at( i_assign ).as_rhs, tb_fields ) > 0 ) { t = t + "." + d2ds( ln ) ; }
+				if ( wordpos( assgnListr.at( i_assign ).as_rhs, tb_fields ) > 0 ) { t = t + "."+ d2ds( ln ) ; }
 				CURFLD = t ;
 			}
 			else if ( assgnListr.at( i_assign ).as_isattr )
@@ -870,19 +875,19 @@ void pPanel::display_panel_reinit( int & RC1, int ln )
 				fieldNam = assgnListr.at( i_assign ).as_lhs ;
 				if ( assgnListr.at( i_assign ).as_istb )
 				{
-					if ( fieldList[ fieldNam + "." + d2ds( ln ) ]->field_attr( t ) > 0 )
+					if ( fieldList[ fieldNam +"."+ d2ds( ln ) ]->field_attr( t ) > 0 )
 					{
-						PERR = "Error setting attribute " + t + " for table display field " +fieldNam ;
+						PERR = "Error setting attribute "+ t +" for table display field " +fieldNam ;
 						RC1  = 20 ;
 						return    ;
 					}
-					attrList.push_back( fieldNam + "." + d2ds( ln ) ) ;
+					attrList.push_back( fieldNam +"."+ d2ds( ln ) ) ;
 				}
 				else
 				{
 					if ( fieldList[ fieldNam ]->field_attr( t ) > 0 )
 					{
-						PERR = "Error setting attribute " + t + " for field " + fieldNam ;
+						PERR = "Error setting attribute "+ t +" for field "+ fieldNam ;
 						RC1  = 20 ;
 						return    ;
 					}
@@ -1217,7 +1222,7 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 			else if ( assgnList.at( i_assign ).as_lhs == ".CURSOR" )
 			{
 				p_funcPOOL->put( RC1, 0, "ZCURFLD", t ) ;
-				if ( wordpos( assgnList.at( i_assign ).as_rhs, tb_fields ) > 0 ) { t = t + "." + d2ds( ln ) ; }
+				if ( wordpos( assgnList.at( i_assign ).as_rhs, tb_fields ) > 0 ) { t = t +"."+ d2ds( ln ) ; }
 				CURFLD = t ;
 			}
 			else if ( assgnList.at( i_assign ).as_lhs == ".HELP" )
@@ -1244,19 +1249,19 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 				fieldNam = assgnList.at( i_assign ).as_lhs ;
 				if ( assgnList.at( i_assign ).as_istb )
 				{
-					if ( fieldList[ fieldNam + "." + d2ds( ln ) ]->field_attr( t ) > 0 )
+					if ( fieldList[ fieldNam +"."+ d2ds( ln ) ]->field_attr( t ) > 0 )
 					{
-						PERR = "Error setting attribute " + t + " for table display field " +fieldNam ;
+						PERR = "Error setting attribute "+ t +" for table display field " +fieldNam ;
 						RC1  = 20 ;
 						return    ;
 					}
-					attrList.push_back( fieldNam + "." + d2ds( ln ) ) ;
+					attrList.push_back( fieldNam +"."+ d2ds( ln ) ) ;
 				}
 				else
 				{
 					if ( fieldList[ fieldNam ]->field_attr( t ) > 0 )
 					{
-						PERR = "Error setting attribute " + t + " for field " + fieldNam ;
+						PERR = "Error setting attribute "+ t +" for field "+ fieldNam ;
 						RC1  = 20 ;
 						return    ;
 					}
@@ -1277,7 +1282,7 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 		else if ( procstmnts.at( i ).ps_verify )
 		{
 			fieldNam = verList.at( i_verify ).ver_field ;
-			if ( verList.at( i_verify ).ver_tbfield ) { fieldNam = fieldNam + "." + d2ds( ln ) ; }
+			if ( verList.at( i_verify ).ver_tbfield ) { fieldNam = fieldNam +"."+ d2ds( ln ) ; }
 			it = fieldList.find( fieldNam ) ;
 			if ( verList.at( i_verify ).ver_nblank )
 			{
@@ -1435,7 +1440,7 @@ void pPanel::create_tbfield( int col, int length, cuaType cuaFT, string name, st
 		return  ;
 	}
 
-	tb_fields = tb_fields + " " + name ;
+	tb_fields = tb_fields +" "+ name ;
 
 	for ( int i = 0 ; i < tb_depth ; i++ )
 	{
@@ -1449,7 +1454,7 @@ void pPanel::create_tbfield( int col, int length, cuaType cuaFT, string name, st
 		m_fld->field_just   = 'A'        ;
 		m_fld->field_input  = ( cuaFT == CEF || cuaFT == DATAIN || cuaFT == NEF ) ;
 		m_fld->field_tb     = true ;
-		fieldList[ name + "." + d2ds( i ) ] = m_fld ;
+		fieldList[ name +"."+ d2ds( i ) ] = m_fld ;
 
 		fieldOptsParse( RC, opts, m_fld->field_caps, m_fld->field_just, m_fld->field_numeric, m_fld->field_padchar, m_fld->field_skip ) ;
 		if ( RC > 0 )
@@ -1470,6 +1475,7 @@ void pPanel::create_pdc( string abc_name, string pdc_name, string pdc_run, strin
 
 	int i      ;
 	bool found ;
+
 	abc t_abc  ;
 
 	RC    = 0     ;
@@ -1477,7 +1483,7 @@ void pPanel::create_pdc( string abc_name, string pdc_name, string pdc_run, strin
 
 	for ( i = 0 ; i < ab.size() ; i++ )
 	{
-		if ( ab.at(i).abc_name == abc_name ) { found = true ; break ; }
+		if ( ab.at( i ).abc_name == abc_name ) { found = true ; break ; }
 	}
 	if ( !found )
 	{
@@ -1546,8 +1552,8 @@ void pPanel::update_field_values( int & RC1 )
 		shadow->resize( it2->second->dynArea_width * it2->second->dynArea_depth, 0xFF ) ;
 		for ( int i = 0 ; i < it2->second->dynArea_depth ; i++ )
 		{
-			fieldList[ it2->first + "." + d2ds( i ) ]->field_value        = darea->substr( i * it2->second->dynArea_width, it2->second->dynArea_width )  ;
-			fieldList[ it2->first + "." + d2ds( i ) ]->field_shadow_value = shadow->substr( i * it2->second->dynArea_width, it2->second->dynArea_width ) ;
+			fieldList[ it2->first +"."+ d2ds( i ) ]->field_value        = darea->substr( i * it2->second->dynArea_width, it2->second->dynArea_width )  ;
+			fieldList[ it2->first +"."+ d2ds( i ) ]->field_shadow_value = shadow->substr( i * it2->second->dynArea_width, it2->second->dynArea_width ) ;
 		}
 	}
 }
@@ -1710,7 +1716,8 @@ void pPanel::cmd_setvalue( string f_value )
 
 bool pPanel::is_cmd_inactive( string cmd )
 {
-	// Some commands may be inactive for this type of panel.
+	// Some commands may be inactive for this type of panel, so return true for these.
+
 	// Not sure how real ISPF does this without setting ZCTACT to NOP !! but this works okay.
 
 	if ( findword( cmd, "LEFT RIGHT" ) )
@@ -1718,6 +1725,8 @@ bool pPanel::is_cmd_inactive( string cmd )
 		if ( LRScroll ) { return false ; }
 		if ( tb_model ) { return true  ; }
 	}
+	else if ( cmd == "NRETRIEV" && !nretriev ) { return true ; }
+
 	if ( !scrollOn && findword( cmd, "UP DOWN LEFT RIGHT" ) ) { return true ; }
 	return false ;
 }
@@ -2060,7 +2069,7 @@ void pPanel::set_tb_linesChanged()
 	{
 		if ( it->second->field_tb && it->second->field_changed )
 		{
-			URID = p_funcPOOL->get( RC, 0, "ZURID." + d2ds( it->second->field_row - tb_row ), NOCHECK ) ;
+			URID = p_funcPOOL->get( RC, 0, "ZURID."+ d2ds( it->second->field_row - tb_row ), NOCHECK ) ;
 			tb_linesChanged[ it->second->field_row - tb_row ] = URID ;
 		}
 	}
@@ -2138,7 +2147,7 @@ void pPanel::display_tb_mark_posn()
 	posn = "" ;
 	if ( top <= rows )
 	{
-		posn = "Row " + d2ds( top ) + " of " + d2ds( rows ) ;
+		posn = "Row "+ d2ds( top ) +" of "+ d2ds( rows ) ;
 	}
 	mvwaddstr( win, 2, WSCRMAXW - posn.length(), posn.c_str() ) ;
 	wattroff( win, WHITE ) ;
@@ -2165,7 +2174,7 @@ void pPanel::tb_fields_active_inactive()
 	{
 		for ( j = 1 ; j <= ws ; j++ )
 		{
-			s = word( tb_fields, j ) + "." + d2ds( i ) ;
+			s = word( tb_fields, j ) +"."+ d2ds( i ) ;
 			fieldList[ s ]->field_active = ( i < size ) ;
 		}
 	}
@@ -2271,15 +2280,16 @@ void pPanel::set_panel_msg( slmsg t, string msgid )
 {
 	int i ;
 
-	MSG   = t ;
-	MSGID = msgid ;
+	clear_msg()    ;
+	MSG    = t     ;
+	MSGID  = msgid ;
 
 	if ( MSG.smsg == "" && MSG.lmsg == "" )
 	{
 		MSGID = "" ;
 		return     ;
 	}
-	if ( p_poolMGR->get( i, ZSCRNUM, "ZSHMSGID" ) == "Y" ) { MSG.lmsg = msgid + " " + MSG.lmsg ; }
+	if ( p_poolMGR->get( i, ZSCRNUM, "ZSHMSGID" ) == "Y" ) { MSG.lmsg = msgid +" "+ MSG.lmsg ; }
 	showLMSG = ( MSG.smsg == "" || MSG.lmsg == "" ) ;
 }
 
@@ -2524,6 +2534,14 @@ bool pPanel::on_border_line( uint r, uint c )
 }
 
 
+void pPanel::update_keylist_vars()
+{
+	p_poolMGR->put( RC, "ZKLNAME", KEYLISTN, SHARED ) ;
+	p_poolMGR->put( RC, "ZKLAPPL", KEYAPPL,  SHARED ) ;
+	p_poolMGR->put( RC, "ZKLTYPE", "P",      SHARED ) ;
+}
+
+
 bool pPanel::hide_msg_window( uint r, uint c )
 {
 	// If the cursor is on a message window, hide the window and return true
@@ -2569,6 +2587,7 @@ bool pPanel::hide_msg_window( uint r, uint c )
 string pPanel::sub_vars( string s )
 {
 	// In string, s, substitute variables starting with '&' for their dialogue value
+	// The variable is delimited by any non-valid variable characters.
 	// Rules: A '.' at the end of a variable, concatinates the value with the string following the dot
 	//        .. reduces to .
 	//        && reduces to & with no variable substitution
@@ -2579,13 +2598,14 @@ string pPanel::sub_vars( string s )
 	string var ;
 	string val ;
 
+	const string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$@" ;
 	p1 = 0 ;
 	p2 = 0 ;
 
 	while ( true )
 	{
 		p1 = s.find( '&', p1 ) ;
-		if ( p1 == string::npos ) { break ; }
+		if ( p1 == string::npos || p1 == s.size() - 1 ) { break ; }
 		p1++ ;
 		if ( s[ p1 ] == '&' )
 		{
@@ -2593,17 +2613,23 @@ string pPanel::sub_vars( string s )
 			p1 = s.find_first_not_of( '&', p1 ) ;
 			continue ;
 		}
-		p2 = s.find_first_of( "& .')\"", p1 ) ;
+		p2  = s.find_first_not_of( validChars, p1 ) ;
 		if ( p2 == string::npos ) { p2 = s.size() ; }
-		var = upper( s.substr( p1, (p2-p1) ) ) ;
+		var = upper( s.substr( p1, p2-p1 ) ) ;
 		if ( isvalidName( var ) )
 		{
 			val = getDialogueVar( var ) ;
 			if ( RC <= 8 )
 			{
-				if ( s[ p2 ] == '.' ) { s.replace( p1-1, var.size()+2, val ) ; }
-				else                  { s.replace( p1-1, var.size()+1, val ) ; }
-				if ( RC == 8 ) { p1-- ; }
+				if ( p2 < s.size() && s[ p2 ] == '.' )
+				{
+					s.replace( p1-1, var.size()+2, val ) ;
+				}
+				else
+				{
+					s.replace( p1-1, var.size()+1, val ) ;
+				}
+				p1 = p1 + val.size() - 1 ;
 			}
 		}
 	}

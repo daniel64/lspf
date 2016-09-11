@@ -197,7 +197,7 @@ do keys
    max.n  = klen
    n = n + 1
    offset = offset + klen
-   say "Key field . . . . . . . . . . . .:" key
+   say "Key    field. . . . . . .:" key
 end
 
 do flds
@@ -215,7 +215,7 @@ do flds
    max.n  = flen
    n = n + 1
    offset = offset + flen
-   say "NonKey field. . . . . . . . . . .:" fld
+   say "NonKey field. . . . . . .:" fld
 end
 name.0 = n-1
 say

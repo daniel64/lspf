@@ -90,6 +90,10 @@ class tableMGR
 {
 	public:
 		tableMGR() ;
+		void   createTable( int & RC, int task, string tb_name, string keys, string flds, bool m_temporary, tbREP m_REP, string m_path, tbDISP m_DISP ) ;
+		void   saveTable( int & RC, int task, string tb_name, string m_newname, string m_path, bool m_err=true ) ;
+		void   tbadd( int & RC, fPOOL & funcPOOL, string tb_name, string tb_namelst, string tb_order, int tb_num_of_rows ) ;
+		void   tbsort( int & RC, string tb_name, string tb_fields ) ;
 
 		void   statistics() ;
 		void   snap() ;
@@ -101,13 +105,10 @@ class tableMGR
 		void   fillfVARs( int & RC, fPOOL & funcPOOL, string tb_name, int depth, int posn ) ;
 		int    getCRP( int & RC, string tb_name ) ;
 
-		void   createTable( int & RC, int task, string tb_name, string keys, string flds, bool m_temporary, tbREP m_REP, string m_path, tbDISP m_DISP ) ;
 		void   destroyTable( int & RC, int task, string tb_name ) ;
-		void   saveTable( int & RC, int task, string tb_name, string m_newname, string m_path, bool m_err=true ) ;
 		bool   isloaded( string tb_name ) ;
 		bool   tablexists( string tb_name, string tb_path ) ;
 
-		void   tbadd( int & RC, fPOOL & funcPOOL, string tb_name, string tb_namelst, string tb_order, int tb_num_of_rows ) ;
 		void   tbbottom( int & RC, fPOOL & funcPOOL, string tb_name, string tb_savenm, string tb_rowid_vn, string tb_noread, string tb_crp_name  ) ;
 		void   tbdelete( int & RC, fPOOL & funcPOOL, string tb_name ) ;
 		void   tberase( int & RC, string tb_name, string tb_path ) ;
@@ -119,7 +120,6 @@ class tableMGR
 		void   tbsarg( int & RC, fPOOL & funcPOOL, string tb_name, string tb_namelst, string tb_next_prev, string tb_cond_pairs ) ;
 		void   tbskip( int & RC, fPOOL & funcPOOL, string tb_name, int num, string tb_varname, string tb_rowid_vn, string tb_rowid, string tb_noread, string tb_crp_name ) ;
 		void   tbscan( int & RC, fPOOL & funcPOOL, string tb_name, string tb_namelst, string tb_savenm, string tb_rowid_vn, string tb_next_prev, string tb_read, string tb_crp_name, string tb_condlst ) ;
-		void   tbsort( int & RC, string tb_name, string tb_fields ) ;
 		void   tbtop( int & RC, string tb_name ) ;
 		void   tbvclear( int & RC, fPOOL & funcPOOL, string tb_name ) ;
 

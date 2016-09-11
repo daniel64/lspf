@@ -26,6 +26,7 @@ O        Filter list (case insensitive, match on name at any position)
 REF      Refresh directory list
 MKDIR    Make a directory (under current or specify full path)
 SEARCH   Filter list on contents search word (case insensitive, uses grep)
+SRCHFOR  Alias for SEARCH                                                                                               
 TOUCH    Make a file (under current or specify full path)
 
 

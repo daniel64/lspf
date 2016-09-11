@@ -1377,6 +1377,7 @@ string parseString( bool & rlt, string & s, string p )
 	if ( p.size() == 0 ) { rlt = false ; return "" ; }
 
 	us = upper( s ) ;
+	p  = upper( p ) ;
 	if ( p.back() != ')' )
 	{
 		p1 = wordpos( p, us ) ;

@@ -22,13 +22,12 @@
 class pnts
 {
 	public:
-		pnts( string ) ;
-		pnts() {}      ;
+		pnts() {} ;
+		bool parse( string ) ;
 
-	int    pnts_RC    ;
-	string pnts_field ;
-	string pnts_var   ;
-	string pnts_val   ;
+		string pnts_field ;
+		string pnts_var   ;
+		string pnts_val   ;
 } ;
 
 
@@ -47,25 +46,24 @@ class panstmnt
 			ps_trans   = false ;
 			ps_exit    = false ;
 		}
-	int  ps_column  ;
-	bool ps_if      ;
-	bool ps_else    ;
-	bool ps_assign  ;
-	bool ps_verify  ;
-	bool ps_vputget ;
-	bool ps_trunc   ;
-	bool ps_trans   ;
-	bool ps_exit    ;
+
+		int  ps_column  ;
+		bool ps_if      ;
+		bool ps_else    ;
+		bool ps_assign  ;
+		bool ps_verify  ;
+		bool ps_vputget ;
+		bool ps_trunc   ;
+		bool ps_trans   ;
+		bool ps_exit    ;
 } ;
 
 
 class IFSTMNT
 {
 	public :
-		IFSTMNT( string ) ;
 		IFSTMNT()
 		{
-			if_RC    = 0     ;
 			if_lhs   = ""    ;
 			if_rhs.clear()   ;
 			if_stmnt = 0     ;
@@ -82,34 +80,31 @@ class IFSTMNT
 			if_ng    = false ;
 			if_nl    = false ;
 		}
-	int    if_RC    ;
-	string if_lhs   ;
-	vector<string> if_rhs   ;
-	vector<bool>   if_isvar ;
-	int    if_stmnt ;
-	bool   if_true  ;
-	bool   if_else  ;
-	bool   if_istb  ;
-	bool   if_eq    ;
-	bool   if_ne    ;
-	bool   if_gt    ;
-	bool   if_lt    ;
-	bool   if_ge    ;
-	bool   if_le    ;
-	bool   if_ng    ;
-	bool   if_nl    ;
+		bool parse( string ) ;
+
+		string if_lhs           ;
+		vector<string> if_rhs   ;
+		vector<bool>   if_isvar ;
+		int    if_stmnt ;
+		bool   if_true  ;
+		bool   if_else  ;
+		bool   if_istb  ;
+		bool   if_eq    ;
+		bool   if_ne    ;
+		bool   if_gt    ;
+		bool   if_lt    ;
+		bool   if_ge    ;
+		bool   if_le    ;
+		bool   if_ng    ;
+		bool   if_nl    ;
 } ;
-
-
 
 
 class ASSGN
 {
 	public :
-		ASSGN( string ) ;
 		ASSGN()
 		{
-			as_RC      = 0     ;
 			as_lhs     = ""    ;
 			as_rhs     = ""    ;
 			as_isvar   = false ;
@@ -122,18 +117,19 @@ class ASSGN
 			as_chkfile = false ;
 			as_chkdir  = false ;
 		}
-	int    as_RC      ;
-	string as_lhs     ;
-	string as_rhs     ;
-	bool   as_isvar   ;
-	bool   as_isattr  ;
-	bool   as_istb    ;
-	bool   as_retlen  ;
-	bool   as_upper   ;
-	bool   as_words   ;
-	bool   as_chkexst ;
-	bool   as_chkfile ;
-	bool   as_chkdir  ;
+		bool parse( string ) ;
+
+		string as_lhs     ;
+		string as_rhs     ;
+		bool   as_isvar   ;
+		bool   as_isattr  ;
+		bool   as_istb    ;
+		bool   as_retlen  ;
+		bool   as_upper   ;
+		bool   as_words   ;
+		bool   as_chkexst ;
+		bool   as_chkfile ;
+		bool   as_chkdir  ;
 } ;
 
 
@@ -141,9 +137,7 @@ class ASSGN
 class VERIFY
 {
 	public:
-		VERIFY( string ) ;
 		VERIFY(){
-				ver_RC      = 0     ;
 				ver_nblank  = false ;
 				ver_numeric = false ;
 				ver_list    = false ;
@@ -153,8 +147,9 @@ class VERIFY
 				ver_tbfield = false ;
 			} ;
 
+		bool parse( string ) ;
+
 		string ver_field   ;
-		int    ver_RC      ;
 		bool   ver_nblank  ;
 		bool   ver_numeric ;
 		bool   ver_list    ;
@@ -170,15 +165,14 @@ class VERIFY
 class VPUTGET
 {
 	public:
-		VPUTGET( string ) ;
 		VPUTGET()
 			{
-				vpg_RC   = 0 ;
 				vpg_vput = false ;
 				vpg_vget = false ;
 				vpg_pool = ASIS  ;
 			} ;
-		int      vpg_RC   ;
+
+		bool parse( string ) ;
 		bool     vpg_vput ;
 		bool     vpg_vget ;
 		string   vpg_vars ;
@@ -189,18 +183,17 @@ class VPUTGET
 class TRUNC
 {
 	public:
-		TRUNC( string ) ;
 		TRUNC() {
-				trnc_RC   = 0   ;
 				trnc_char = ' ' ;
 				trnc_len  = 0   ;
 			} ;
 
-	int    trnc_RC     ;
-	string trnc_field1 ;
-	string trnc_field2 ;
-	char   trnc_char   ;
-	int    trnc_len    ;
+		bool parse( string ) ;
+
+		string trnc_field1 ;
+		string trnc_field2 ;
+		char   trnc_char   ;
+		int    trnc_len    ;
 
 } ;
 
@@ -208,16 +201,12 @@ class TRUNC
 class TRANS
 {
 	public:
-		TRANS( string ) ;
-		TRANS() {
-				trns_RC = 0 ;
-			} ;
+		TRANS() {} ;
+		bool parse( string ) ;
 
-	map<string, string> tlst ;
-
-	int    trns_RC     ;
-	string trns_field1 ;
-	string trns_field2 ;
+		map<string, string> tlst ;
+		string trns_field1 ;
+		string trns_field2 ;
 } ;
 
 
@@ -245,12 +234,12 @@ class tbsearch
 				return true       ;
 			} ;
 
-	string tbs_val   ;
-	string tbs_scond ;
-	srCOND tbs_cond  ;
-	bool   tbs_ext   ;
-	bool   tbs_gen   ;
-	int    tbs_vsize ;
+		string tbs_val   ;
+		string tbs_scond ;
+		srCOND tbs_cond  ;
+		bool   tbs_ext   ;
+		bool   tbs_gen   ;
+		int    tbs_vsize ;
 } ;
 
 
@@ -263,8 +252,8 @@ class fieldExc
 			fieldExc_passed  = "" ;
 		} ;
 
-	string fieldExc_command ;
-	string fieldExc_passed  ;
+		string fieldExc_command ;
+		string fieldExc_passed  ;
 
 } ;
 
@@ -276,7 +265,8 @@ class panel_data
 		{
 			screenID = x ;
 		}
-	int screenID ;
+
+		int screenID ;
 } ;
 
 
@@ -315,19 +305,20 @@ class slmsg
 			lmwin  = false ;
 			cont   = false ;
 		}
-	string  smsg   ;
-	string  lmsg   ;
-	string  hlp    ;
-	string  dvwin  ;
-	string  dvtype ;
-	string  dvalm  ;
-	string  dvhlp  ;
-	cuaType type   ;
-	bool    alm    ;
-	bool    resp   ;
-	bool    smwin  ;
-	bool    lmwin  ;
-	bool    cont   ;
+
+		string  smsg   ;
+		string  lmsg   ;
+		string  hlp    ;
+		string  dvwin  ;
+		string  dvtype ;
+		string  dvalm  ;
+		string  dvhlp  ;
+		cuaType type   ;
+		bool    alm    ;
+		bool    resp   ;
+		bool    smwin  ;
+		bool    lmwin  ;
+		bool    cont   ;
 } ;
 
 
@@ -353,10 +344,11 @@ class selobj
 			SCRNAME = "" ;
 		}
 		bool parse( string ) ;
-	string PGM     ;
-	string PARM    ;
-	string NEWAPPL ;
-	bool   NEWPOOL ;
-	bool   PASSLIB ;
-	string SCRNAME ;
+
+		string PGM     ;
+		string PARM    ;
+		string NEWAPPL ;
+		bool   NEWPOOL ;
+		bool   PASSLIB ;
+		string SCRNAME ;
 } ;

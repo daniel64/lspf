@@ -2026,7 +2026,7 @@ void PPSP01A::keylistTables()
 	string TBK1SEL ;
 	string TBK1TAB ;
 	string TBK1MSG ;
-	string KTAB    ;
+	string KEYP    ;
 	string UPROF   ;
 
 	typedef vector<path> vec ;
@@ -2035,9 +2035,9 @@ void PPSP01A::keylistTables()
 	vec::const_iterator it ;
 
 	vdefine( "TBK1SEL TBK1TAB TBK1MSG", &TBK1SEL, &TBK1TAB, &TBK1MSG ) ;
-	KTAB = "KTAB" + right( d2ds( taskid() ), 4, '0' ) ;
+	KEYP = "KEYP" + right( d2ds( taskid() ), 4, '0' ) ;
 
-	tbcreate( KTAB, "", "TBK1SEL TBK1TAB TBK1MSG", NOWRITE ) ;
+	tbcreate( KEYP, "", "TBK1SEL TBK1TAB TBK1MSG", NOWRITE ) ;
 	if ( RC > 0 ) { abend() ; }
 
 	vcopy( "ZUPROF", UPROF, MOVE ) ;
@@ -2049,20 +2049,20 @@ void PPSP01A::keylistTables()
 		p     = substr( fname, 1, (lastpos( "/", fname ) - 1) ) ;
 		tab   = substr( fname, (lastpos( "/", fname ) + 1) )    ;
 		if ( tab.size() < 5 ) { continue ; }
-		if ( tab.compare( tab.size()-4, 4, "KTAB" ) == 0 )
+		if ( tab.compare( tab.size()-4, 4, "KEYP" ) == 0 )
 		{
-			tbvclear( KTAB ) ;
+			tbvclear( KEYP ) ;
 			TBK1TAB = tab    ;
-			tbadd( KTAB )    ;
+			tbadd( KEYP )    ;
 		}
 	}
 	MSG = "" ;
 	while ( true )
 	{
-		tbtop( KTAB )     ;
-		tbskip( KTAB, ZTDTOP ) ;
+		tbtop( KEYP )     ;
+		tbskip( KEYP, ZTDTOP ) ;
 		if ( MSG == "" ) { ZCMD = "" ; }
-		tbdispl( KTAB, "PPSP01K1", MSG, "ZCMD" ) ;
+		tbdispl( KEYP, "PPSP01K1", MSG, "ZCMD" ) ;
 		if ( RC  >  8 ) { abend() ; }
 		if ( RC ==  8 ) { break   ; }
 		MSG = "" ;
@@ -2073,13 +2073,13 @@ void PPSP01A::keylistTables()
 				remove( UPROF + "/" + TBK1TAB ) ;
 				TBK1MSG = "*Deleted*" ;
 				TBK1SEL = ""  ;
-				tbput( KTAB ) ;
+				tbput( KEYP ) ;
 			}
 			else if ( TBK1SEL == "N" )
 			{
 				TBK1MSG = "*Added*" ;
 				TBK1SEL = ""  ;
-				tbput( KTAB ) ;
+				tbput( KEYP ) ;
 			}
 			else if ( TBK1SEL == "S" )
 			{
@@ -2088,11 +2088,11 @@ void PPSP01A::keylistTables()
 				control( "DISPLAY", "RESTORE" ) ;
 				TBK1MSG = "*Selected*" ;
 				TBK1SEL = ""  ;
-				tbput( KTAB ) ;
+				tbput( KEYP ) ;
 			}
 			if ( ZTDSELS > 1 )
 			{
-				tbdispl( KTAB ) ;
+				tbdispl( KEYP ) ;
 				if ( RC > 4 ) { break ; }
 			}
 			else { ZTDSELS = 0 ; }
@@ -2119,11 +2119,17 @@ void PPSP01A::keylistTable( string tab )
 	string KLST     ;
 	string OKLST    ;
 	string UPROF    ;
+	string AKLIST   ;
 
 	if ( tab == "" )
 	{
-		vcopy( "ZAPPLID", ZAPPLID, MOVE ) ;
-		tab = ZAPPLID + "KTAB" ;
+		vcopy( "ZKLAPPL", ZAPPLID, MOVE ) ;
+		vcopy( "ZKLNAME", AKLIST, MOVE ) ;
+		if ( ZAPPLID == "" )
+		{
+			vcopy( "ZAPPLID", ZAPPLID, MOVE ) ;
+		}
+		tab = ZAPPLID + "KEYP" ;
 		vreplace( "TBK1TAB", tab ) ;
 	}
 
@@ -2144,6 +2150,10 @@ void PPSP01A::keylistTable( string tab )
 		if ( RC > 0 ) { break ; }
 		tbvclear( KLST ) ;
 		TBK2LST = KEYLISTN ;
+		if ( TBK2LST == AKLIST )
+		{
+			TBK2MSG = "*Active*" ;
+		}
 		tbadd( KLST ) ;
 		if ( RC > 0 ) { abend() ; }
 	}
@@ -2274,7 +2284,7 @@ void PPSP01A::editKeylist( string tab, string list )
 	if ( RC  > 8 ) { return ; }
 	if ( RC == 8 )
 	{
-		tbcreate( "ISRKTAB", "KEYLISTN", subword( flds, 2 ), WRITE, NOREPLACE, UPROF ) ;
+		tbcreate( "ISRKEYP", "KEYLISTN", subword( flds, 2 ), WRITE, NOREPLACE, UPROF ) ;
 		if ( RC > 0 ) { return ; }
 	}
 

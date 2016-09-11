@@ -266,7 +266,11 @@ void PEDIT01::Edit()
 		display( "PEDIT012", MSG, CURFLD, CURPOS ) ;
 
 		if ( RC  > 8 ) { abend()         ; }
-		if ( RC == 8 ) { termEdit = true ; }
+		if ( RC == 8 )
+		{
+			if ( upper( ZCMD ) != "SAVE" ) { ZCMD = "" ; }
+			termEdit = true ;
+		}
 		MSG = "" ;
 		vget( "ZVERB ZSCROLLA ZSCROLLN", SHARED ) ;
 
@@ -4129,19 +4133,19 @@ bool PEDIT01::setFindChangeExcl( char type )
 			continue ;
 		}
 		w1 = upper( word( cmd, 1 ) ) ;
-		if ( wordpos( w1, f_keywdir ) > 0 )
+		if ( findword( w1, f_keywdir ) )
 		{
 			if ( f_dir ) { MSG = "PEDT013J" ; return false ; }
 			f_dir     = true    ;
 			t.fcx_dir = w1[ 0 ] ;
 		}
-		else if ( wordpos( w1, f_keywexcl ) > 0 )
+		else if ( findword( w1, f_keywexcl ) )
 		{
 			if ( f_excl || type == 'X' ) { MSG = "PEDT013J" ; return false ; }
 			f_excl     = true    ;
 			t.fcx_excl = w1[ 0 ] ;
 		}
-		else if ( wordpos( w1, f_keywmtch ) > 0 )
+		else if ( findword( w1, f_keywmtch ) )
 		{
 			if ( f_mtch ) { MSG = "PEDT013J" ; return false ; }
 			f_mtch     = true    ;
@@ -6716,7 +6720,7 @@ string PEDIT01::determineLang()
 		if ( t[ 0 ] == '*' ) { return "ASM"   ; }
 		if ( t[ 0 ] == ')' ) { return "PANEL" ; }
 		w = word( t, 1 ) ;
-		if ( wordpos( w, "TITLE CSECT DSECT MACRO START COPY" ) )
+		if ( findword( w, "TITLE CSECT DSECT MACRO START COPY" ) )
 		{
 			return "ASM"  ;
 		}

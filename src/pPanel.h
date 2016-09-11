@@ -165,6 +165,7 @@ class pPanel
 
 		void   set_panel_msg( slmsg, string ) ;
 		void   clear_msg() ;
+		void   clear_msg_loc()  { MSGLOC = ""     ; }
 		bool   inputInhibited() { return ( pdActive || msgResp ) ; }
 		bool   msgInhibited()   { return msgResp  ; }
 		void   msgResponseOK()  { msgResp = false ; }
@@ -224,6 +225,8 @@ class pPanel
 
 		void   get_msgwin( int, int &, int &, int &, int & ) ;
 		void   panel_cleanup( PANEL * ) ;
+
+		void   update_keylist_vars() ;
 
 		friend class pApplication ;
 } ;

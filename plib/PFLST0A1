@@ -14,6 +14,7 @@
 
 )BODY
 PanelTitle "File/Directory List"
+PanelDescr "List &ZPATH"
 
 scrollOn
 

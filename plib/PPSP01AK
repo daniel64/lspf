@@ -13,6 +13,8 @@
  literal  6   2    FP "Profile:"
  field    6  11    4   VOI  NONE ZAPPLID
 
+ field    6  17     MAX WMT NONE ZZMSG
+
  literal  8   3    FP "PF01:"
  field    8   9    20      NEF NONE ZPF01
 
@@ -85,7 +87,16 @@
  literal  19   45   FP "PF24:"
  field    19   51   20      NEF NONE ZPF24
 
- field    21   2    MAX VOI NONE ZZMSG
+
+ literal  21  2     CH  "Instructions"
+
+ literal  23  2     PIN "Enter"
+ literal  23  8     PS  "Defaults"
+ literal  23  16    PIN ","
+ literal  23  18    PS  "Save"
+ literal  23  23    PIN "or"
+ literal  23  26    PS  "Cancel"
+
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
 
@@ -94,12 +105,11 @@
 
 VGET (ZKLUSE) PROFILE
 IF ( &ZKLUSE EQ Y )
-  &ZZMSG = 'Warning.  Keylist active.  Some function keys may be overwridden'
+  &ZZMSG = 'Warning.  Keylists active.  Some function keys may be overwridden'
 
 IF ( &ZCMD EQ RES,RESET)
    &ZCMD = DEFAULTS
 
 VER (&ZCMD LIST CANCEL::3 DEFAULTS::3 SAVE::3 )
-
 
 )END

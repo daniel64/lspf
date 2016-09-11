@@ -1234,7 +1234,7 @@ string PBRO01A::determineLang( string ZFILE )
 		if ( t[ 0 ] == '*' ) { return "ASM"   ; }
 		if ( t[ 0 ] == ')' ) { return "PANEL" ; }
 		w = word( t, 1 ) ;
-		if ( wordpos( w, "TITLE CSECT DSECT MACRO START COPY" ) )
+		if ( findword( w, "TITLE CSECT DSECT MACRO START COPY" ) )
 		{
 			return "ASM"  ;
 		}

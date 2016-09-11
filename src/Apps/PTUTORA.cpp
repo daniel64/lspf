@@ -59,7 +59,6 @@ using namespace boost::filesystem ;
 #define MOD_NAME PTUTORA
 
 
-
 void PTUTORA::application()
 {
 	log( "I", "Application PTUTORA starting.  Parms are " << PARM << endl ) ;
@@ -74,8 +73,12 @@ void PTUTORA::application()
 	bool rebuildZAREA ;
 	string panel      ;
 	string ZDSN       ;
+	string ZSCRNAME   ;
 
-	vdefine( "ZZSTR1", &help ) ;
+	vdefine( "ZZSTR1 ZSCRNAME", &help, &ZSCRNAME ) ;
+
+	ZSCRNAME = "Help" ;
+	vput( "ZSCRNAME", SHARED ) ;
 
 	sh       = ZSHELP ;
 	help     = ZSHELP ;

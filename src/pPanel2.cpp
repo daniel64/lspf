@@ -75,7 +75,7 @@ int pPanel::loadPanel( string p_name, string paths )
 		{
 			if ( !is_regular_file( filename ) )
 			{
-				PERR = "Panel file " + filename + " is not a regular file" ;
+				PERR = "Panel file "+ filename +" is not a regular file" ;
 				return  20 ;
 			}
 			else
@@ -128,7 +128,7 @@ int pPanel::loadPanel( string p_name, string paths )
 			}
 			if ( !found )
 			{
-				PERR = "Panel INCLUDE file "+ w2 +" not found for " + p_name ; return  12 ;
+				PERR = "Panel INCLUDE file "+ w2 +" not found for "+ p_name ; return  12 ;
 			}
 			debug1( "Loading panel INCLUDE "+ w2 +" from "+ filename << endl ) ;
 			pincl.open( filename.c_str() ) ;
@@ -215,7 +215,7 @@ int pPanel::loadPanel( string p_name, string paths )
 				k = pos( ")", pline, i ) ;
 				if ( j == 0 || k == 0 || j > k )
 				{
-					PERR = "Invalid )PANEL statement in panel " + p_name ; return 20 ;
+					PERR = "Invalid )PANEL statement in panel "+ p_name ; return 20 ;
 				}
 				KEYLISTN = strip( pline.substr( i+8, j-i-9 ) ) ;
 				KEYAPPL  = strip( pline.substr( j, k-j-1 ) )   ;
@@ -287,10 +287,10 @@ int pPanel::loadPanel( string p_name, string paths )
 			if ( w1 == "VGET" || w1 == "VPUT" )
 			{
 				panstmnt m_stmnt ;
-				VPUTGET m_VPG( pline ) ;
-				if ( m_VPG.vpg_RC != 0 )
+				VPUTGET m_VPG    ;
+				if ( !m_VPG.parse( pline ) )
 				{
-					PERR = "Error in VPUT or VGET statement "+ strip( pline ) ; return 20 ;
+					PERR = "Error in statement "+ strip( pline ) ; return 20 ;
 				}
 				m_stmnt.ps_vputget = true ;
 				m_stmnt.ps_column  = pline.find_first_not_of( ' ' ) ;
@@ -301,9 +301,9 @@ int pPanel::loadPanel( string p_name, string paths )
 			}
 			if ( (w1[ 0 ] == '&' || w1[ 0 ] == '.' ) && ( pline.find( "TRUNC(" ) == string::npos && pline.find( "TRANS(" ) == string::npos ) )
 			{
-				ASSGN m_assgn( pline ) ;
-				panstmnt m_stmnt       ;
-				if ( m_assgn.as_RC != 0 )
+				ASSGN m_assgn    ;
+				panstmnt m_stmnt ;
+				if ( !m_assgn.parse( pline ) )
 				{
 					PERR = "Error in assignment statement "+ strip( pline ) ; return 20 ;
 				}
@@ -331,9 +331,9 @@ int pPanel::loadPanel( string p_name, string paths )
 		{
 			if ( w1 == "IF" )
 			{
-				IFSTMNT m_if( pline ) ;
-				panstmnt m_stmnt      ;
-				if ( m_if.if_RC != 0 )
+				IFSTMNT m_if     ;
+				panstmnt m_stmnt ;
+				if ( !m_if.parse( pline ) )
 				{
 					PERR = "Error in IF statement "+ strip( pline ) ; return 20 ;
 				}
@@ -383,9 +383,9 @@ int pPanel::loadPanel( string p_name, string paths )
 			}
 			if ( w1 == "VER" )
 			{
-				VERIFY m_VER( pline ) ;
-				panstmnt m_stmnt     ;
-				if ( m_VER.ver_RC != 0 )
+				VERIFY m_VER     ;
+				panstmnt m_stmnt ;
+				if ( !m_VER.parse( pline ) )
 				{
 					PERR = "Error in VER statement "+ strip( pline ) ; return 20 ;
 				}
@@ -405,9 +405,9 @@ int pPanel::loadPanel( string p_name, string paths )
 			}
 			if ( pline.find( "TRUNC(" ) != string::npos )
 			{
-				TRUNC m_trunc( pline ) ;
-				panstmnt m_stmnt      ;
-				if ( m_trunc.trnc_RC != 0 )
+				TRUNC m_trunc    ;
+				panstmnt m_stmnt ;
+				if ( !m_trunc.parse( pline ) )
 				{
 					PERR = "Error in TRUNC statement "+ strip( pline ) ; return 20 ;
 				}
@@ -419,9 +419,9 @@ int pPanel::loadPanel( string p_name, string paths )
 			}
 			if ( pline.find( "TRANS(" ) != string::npos )
 			{
-				TRANS m_trans( pline ) ;
-				panstmnt m_stmnt      ;
-				if ( m_trans.trns_RC != 0 )
+				TRANS m_trans    ;
+				panstmnt m_stmnt ;
+				if ( !m_trans.parse( pline ) )
 				{
 					PERR = "Error in TRANS statement "+ strip( pline ) ; return 20 ;
 				}
@@ -435,7 +435,7 @@ int pPanel::loadPanel( string p_name, string paths )
 
 		if ( help )
 		{
-			i = pos( " FIELD(", " " + pline ) ;
+			i = pos( " FIELD(", " "+ pline ) ;
 			if ( i > 0 ) { j = pos( ")", pline, i ) ; }
 			if ( i == 0 || j == 0 )
 			{
@@ -468,8 +468,8 @@ int pPanel::loadPanel( string p_name, string paths )
 
 		if ( ispnts )
 		{
-			pnts m_pnts( pline ) ;
-			if ( m_pnts.pnts_RC == 0 )
+			pnts m_pnts ;
+			if ( m_pnts.parse( pline ) )
 			{
 				if ( fieldList.find( m_pnts.pnts_field ) == fieldList.end() )
 				{
@@ -521,7 +521,7 @@ int pPanel::loadPanel( string p_name, string paths )
 			}
 			if ( i == 0 || j == 0 )
 			{
-				PERR = "Invalid format of FIELD() definition. " + pline ;
+				PERR = "Invalid format of FIELD() definition. "+ pline ;
 				return 20 ;
 			}
 			i = pos( "EXEC('", pline ) ;
@@ -567,7 +567,7 @@ int pPanel::loadPanel( string p_name, string paths )
 
 		if ( !body )
 		{
-			PERR = "Panel " + p_name + " error.  Invalid line: "+ pline ; return 20 ;
+			PERR = "Panel "+ p_name +" error.  Invalid line: "+ pline ; return 20 ;
 		}
 
 		else if ( w1 == "PANELTITLE" )
@@ -607,7 +607,7 @@ int pPanel::loadPanel( string p_name, string paths )
 			w7 = word( pline, 7 ) ;
 			if ( !isvalidName( w7 ) )
 			{
-				PERR = "Invalid field name >>"+ w7 +"<< on line: " + pline ; return 20 ;
+				PERR = "Invalid field name >>"+ w7 +"<< on line: "+ pline ; return 20 ;
 			}
 
 			if ( fieldList.find( w7 ) != fieldList.end() )

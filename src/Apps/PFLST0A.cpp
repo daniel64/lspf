@@ -259,7 +259,7 @@ void PFLST0A::application()
 			createFileList1( filter ) ;
 			continue ;
 		}
-		if ( w1 == "SEARCH" && w2 != "" && w3 == "" )
+		if ( ( w1 == "SEARCH" || w1 == "SRCHFOR" ) && w2 != "" && w3 == "" )
 		{
 			UseSearch = true ;
 			vreplace( "FMSG2", "Filtered on contents" ) ;
@@ -1943,14 +1943,14 @@ void PFLST0A::createFileList2( string FLDIRS, string filter )
 		if ( t != "/" && ENTRY[ 0 ] == '.' ) { continue ; }
 		if ( filter != "" && pos( filter, upper( ENTRY ) ) == 0 ) { continue ; }
 		lstat( p.c_str(), &results ) ;
-		if ( S_ISDIR( results.st_mode ) )       TYPE = "Dir"     ;
-		else if ( S_ISREG( results.st_mode ) )  TYPE = "File"    ;
-		else if ( S_ISCHR( results.st_mode ) )  TYPE = "Char"    ;
-		else if ( S_ISBLK( results.st_mode ) )  TYPE = "Block"   ;
-		else if ( S_ISFIFO( results.st_mode ) ) TYPE = "Fifo"    ;
-		else if ( S_ISSOCK( results.st_mode ) ) TYPE = "Socket"  ;
-		else if ( S_ISLNK(results.st_mode ) )   TYPE = "Syml"    ;
-		else                                    TYPE = "Unknown" ;
+		if ( S_ISDIR( results.st_mode ) )       { TYPE = "Dir"     ; }
+		else if ( S_ISREG( results.st_mode ) )  { TYPE = "File"    ; }
+		else if ( S_ISCHR( results.st_mode ) )  { TYPE = "Char"    ; }
+		else if ( S_ISBLK( results.st_mode ) )  { TYPE = "Block"   ; }
+		else if ( S_ISFIFO( results.st_mode ) ) { TYPE = "Fifo"    ; }
+		else if ( S_ISSOCK( results.st_mode ) ) { TYPE = "Socket"  ; }
+		else if ( S_ISLNK(results.st_mode ) )   { TYPE = "Syml"    ; }
+		else                                    { TYPE = "Unknown" ; }
 		SEL       = ""  ;
 		if ( FLDIRS == "/" && TYPE != "Dir" ) { continue ; }
 		tbadd( DSLIST ) ;

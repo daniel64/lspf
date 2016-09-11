@@ -130,7 +130,8 @@ class pApplication
 		void   control( string, string, string="" ) ;
 		void   control( string, void (pApplication::*)() ) ;
 		void   libdef( string, string = "" ) ;
-		void   rdisplay( string ) ;
+		void   rdisplay( string )  ;
+		void   rdisplay1( string ) ;
 		void   display( string p_name, string p_msg = "", string p_cursor = "", int p_curpos = 0 ) ;
 		void   pquery( string p_name, string a_name, string t = "", string w = "", string d = "", string r = "", string c = "" ) ;
 		void   select( string ) ;
@@ -214,7 +215,7 @@ class pApplication
 		void   closeTables() ;
 		void   checkRCode( const string & ="" ) ;
 		void   store_scrname() ;
-		void   restore_scrname( int ) ;
+		void   restore_Zvars( int ) ;
 
 		string sub_vars( string ) ;
 

@@ -132,7 +132,7 @@ void pApplication::panelCreate( string p_name )
 
 	RC = 0 ;
 	if ( panelList.count( p_name ) > 0 ) { return ; }
-	if ( !isvalidName( p_name ) ) { RC = 20 ; checkRCode( "Invalid panel name >>" + p_name + "<<" ) ; return ; }
+	if ( !isvalidName( p_name ) ) { RC = 20 ; checkRCode( "Invalid panel name >>"+ p_name +"<<" ) ; return ; }
 
 	pPanel * p_panel    = new pPanel ;
 	p_panel->p_poolMGR  = p_poolMGR  ;
@@ -229,11 +229,13 @@ void pApplication::store_scrname()
 }
 
 
-void pApplication::restore_scrname( int screenID )
+void pApplication::restore_Zvars( int screenID )
 {
 	int RC1 ;
 
-	if ( p_poolMGR->get( RC, screenID, "ZSCRNAM2" ) == "PERM" )
+	if ( panelList.size() > 0 ) { currPanel->update_keylist_vars() ; }
+
+	if ( p_poolMGR->get( RC1, screenID, "ZSCRNAM2" ) == "PERM" )
 	{
 			ZSCRNAME = p_poolMGR->get( RC1, screenID, "ZSCRNAME" ) ;
 	}
@@ -264,10 +266,11 @@ void pApplication::set_msg( string msg_id )
 	get_Message( msg_id ) ;
 	if ( RC == 0 )
 	{
+		currPanel->clear_msg_loc() ;
 		currPanel->set_panel_msg( MSG, MSGID ) ;
-		currPanel->display_msg() ;
+		currPanel->display_msg()   ;
 	}
-	ControlErrorsReturn = errorStatus ;
+	ControlErrorsReturn = errorStatus  ;
 }
 
 
@@ -369,12 +372,12 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 	if ( doReinit )
 	{
 		currPanel->display_panel_reinit( RC, 0 ) ;
-		if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )REINIT section of panel " + p_name ) ; return ; }
+		if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )REINIT section of panel "+ p_name ) ; return ; }
 	}
 	else
 	{
 		currPanel->display_panel_init( RC ) ;
-		if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )INIT section of panel " + p_name ) ; return ; }
+		if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )INIT section of panel "+ p_name ) ; return ; }
 	}
 
 	scrnum = ds2d(p_poolMGR->get( RC, "ZSCRNUM", SHARED ) ) ;
@@ -674,7 +677,7 @@ void pApplication::vdelete( string names )
 	{
 		name = word( names, i ) ;
 		funcPOOL.dlete( RC, name ) ;
-		if ( RC > 8 ) { checkRCode( "VDELETE failed for " + name ) ; }
+		if ( RC > 8 ) { checkRCode( "VDELETE failed for "+ name ) ; }
 		maxRC = max( maxRC, RC ) ;
 		if ( RC > 8 ) { return   ; }
 	}
@@ -715,10 +718,10 @@ void pApplication::vmask( string name, string type, string mask )
 		}
 	}
 	else { RC = 20 ; }
-	if ( RC > 0 ) { checkRCode( "VMASK invalid format for " + name + ".  Mask: " + mask ) ; return ; }
+	if ( RC > 0 ) { checkRCode( "VMASK invalid format for "+ name +".  Mask: "+ mask ) ; return ; }
 
 	funcPOOL.setmask( RC, name, mask ) ;
-	if ( RC > 8 ) { checkRCode( "VMASK failed for " + name ) ; }
+	if ( RC > 8 ) { checkRCode( "VMASK failed for "+ name ) ; }
 }
 
 
@@ -740,7 +743,7 @@ void pApplication::vreplace( string name, string s_val )
 
 	RC = 0 ;
 	funcPOOL.put( RC, 0, name, s_val ) ;
-	if ( RC > 8 ) { checkRCode( "Function pool put failed for " + name ) ; }
+	if ( RC > 8 ) { checkRCode( "Function pool put failed for "+ name ) ; }
 }
 
 
@@ -752,7 +755,7 @@ void pApplication::vreplace( string name, int i_val )
 
 	RC = 0 ;
 	funcPOOL.put( RC, 0, name, i_val ) ;
-	if ( RC > 8 ) { checkRCode( "VREPLACE failed for " + name ) ; }
+	if ( RC > 8 ) { checkRCode( "VREPLACE failed for "+ name ) ; }
 }
 
 
@@ -782,11 +785,11 @@ void pApplication::vget( string names, poolType pType )
 	{
 		name = word( names, i ) ;
 		val  = p_poolMGR->get( RC, name, pType ) ;
-		if ( RC  > 8 ) { checkRCode( "Pool manager get failed for " + name ) ; }
+		if ( RC  > 8 ) { checkRCode( "Pool manager get failed for "+ name ) ; }
 		if ( RC == 0 )
 		{
 			var_type = funcPOOL.getType( RC, name ) ;
-			if ( RC  > 8 ) { checkRCode( "Function pool getType failed for " + name ) ; }
+			if ( RC  > 8 ) { checkRCode( "Function pool getType failed for "+ name ) ; }
 			if ( RC == 0 )
 			{
 				switch ( var_type )
@@ -797,12 +800,12 @@ void pApplication::vget( string names, poolType pType )
 				case STRING:
 					funcPOOL.put( RC, 0, name, val ) ;
 				}
-				if ( RC > 0 ) { checkRCode( "Function pool put failed for " + name ) ; }
+				if ( RC > 0 ) { checkRCode( "Function pool put failed for "+ name ) ; }
 			}
 			else if ( RC == 8 )
 			{
 				funcPOOL.put( RC, 0, name, val ) ;
-				if ( RC > 0 ) { checkRCode( "Function pool put failed creating implicit variable for " + name ) ; }
+				if ( RC > 0 ) { checkRCode( "Function pool put failed creating implicit variable for "+ name ) ; }
 			}
 		}
 		maxRC = max( maxRC, RC ) ;
@@ -838,7 +841,7 @@ void pApplication::vput( string names, poolType pType )
 	{
 		name     = word( names, i ) ;
 		var_type = funcPOOL.getType( RC, name ) ;
-		if ( RC  > 8 ) { checkRCode( "Function pool getType failed for " + name ) ; }
+		if ( RC  > 8 ) { checkRCode( "Function pool getType failed for "+ name ) ; }
 		if ( RC == 0 )
 		{
 			switch ( var_type )
@@ -849,9 +852,9 @@ void pApplication::vput( string names, poolType pType )
 			case STRING:
 				s_val = funcPOOL.get( RC, 0, name ) ;
 			}
-			if ( RC > 0 ) { checkRCode( "Function pool get failed for "+name ) ; }
+			if ( RC > 0 ) { checkRCode( "Function pool get failed for "+ name ) ; }
 			p_poolMGR->put( RC, name, s_val, pType ) ;
-			if ( RC > 0 ) { checkRCode( "Pool manager put failed for "+name+" RC="+d2ds( RC ) ) ; }
+			if ( RC > 0 ) { checkRCode( "Pool manager put failed for "+ name +" RC="+ d2ds( RC ) ) ; }
 		}
 		maxRC = max( maxRC, RC ) ;
 		if ( RC > 8 ) { return   ; }
@@ -902,7 +905,7 @@ void pApplication::vcopy( string var, string & val, vcMODE mode )
 		else if ( RC == 8 )
 		{
 			val = p_poolMGR->get( RC, var, ASIS ) ;
-			if ( RC  > 8 ) { checkRCode( "Pool get failed for "+var ) ; }
+			if ( RC  > 8 ) { checkRCode( "Pool get failed for "+ var ) ; }
 		}
 	}
 }
@@ -981,7 +984,7 @@ void pApplication::verase( string names, poolType pType )
 	{
 		name = word( names, i ) ;
 		p_poolMGR->erase( RC, name, pType ) ;
-		if ( RC > 8 ) { checkRCode( "Pool erase failed for " + name) ; }
+		if ( RC > 8 ) { checkRCode( "Pool erase failed for "+ name) ; }
 		maxRC = max( maxRC, RC ) ;
 		if ( RC > 8 ) { return   ; }
 	}
@@ -1033,7 +1036,7 @@ void pApplication::addpop( string a_fld, int a_row, int a_col )
 		if ( !currPanel->field_get_row_col( a_fld, p_row, p_col ) )
 		{
 			RC = 20 ;
-			checkRCode( "Field "+a_fld+" not found or invalid on ADDPOP service" ) ;
+			checkRCode( "Field "+ a_fld +" not found or invalid on ADDPOP service" ) ;
 			return ;
 		}
 		a_row = a_row + p_row ;
@@ -1288,7 +1291,7 @@ void pApplication::control( string parm1, string parm2, string parm3 )
 
 void pApplication::control( string parm1, void (pApplication::*pFunc)() )
 {
-	// LSPF extensions:
+	// lspf extensions:
 	// CONTROL ABENDRTN ptr_to_routine - Set the routine to get control during an abend
 
 	RC = 0 ;
@@ -1319,7 +1322,7 @@ void pApplication::tbadd( string tb_name, string tb_namelst, string tb_order, in
 	if ( !isTableUpdate( tb_name, "TBADD" ) ) { return ; }
 
 	p_tableMGR->tbadd( RC, funcPOOL, tb_name, tb_namelst, tb_order, tb_num_of_rows ) ;
-	if ( RC > 8 ) { checkRCode( "TBADD gave return code of " + d2ds( RC ) ) ; }
+	if ( RC > 8 ) { checkRCode( "TBADD gave return code of "+ d2ds( RC ) ) ; }
 }
 
 
@@ -1336,7 +1339,7 @@ void pApplication::tbbottom( string tb_name, string tb_savenm, string tb_rowid_v
 	if ( !isTableOpen( tb_name, "TBBOTTOM" ) ) { return ; }
 
 	p_tableMGR->tbbottom( RC, funcPOOL, tb_name, tb_savenm, tb_rowid_vn, tb_noread, tb_crp_name  ) ;
-	if ( RC > 8 ) { checkRCode( "TBBOTTOM gave return code of " + d2ds( RC ) ) ; }
+	if ( RC > 8 ) { checkRCode( "TBBOTTOM gave return code of "+ d2ds( RC ) ) ; }
 }
 
 
@@ -1371,7 +1374,7 @@ void pApplication::tbclose( string tb_name, string tb_newname, string tb_path )
 			tablesUpdate.erase( tb_name ) ;
 		}
 	}
-	if ( RC > 8 ) { checkRCode( "TBCLOSE gave return code of " + d2ds( RC ) ) ; }
+	if ( RC > 8 ) { checkRCode( "TBCLOSE gave return code of "+ d2ds( RC ) ) ; }
 }
 
 
@@ -1394,7 +1397,7 @@ void pApplication::tbcreate( string tb_name, string keys, string names, tbSAVE m
 	RC   = 0    ;
 	temp = true ;
 
-	if ( !isvalidName( tb_name ) ) { RC = 20 ; checkRCode( "Invalid table name on TBCREATE >>" + tb_name + "<<" ) ; return ; }
+	if ( !isvalidName( tb_name ) ) { RC = 20 ; checkRCode( "Invalid table name on TBCREATE >>"+ tb_name +"<<" ) ; return ; }
 	if ( ( tablesOpen.find( tb_name ) != tablesOpen.end() ) && m_REP != REPLACE )
 	{
 		RC = 8  ;
@@ -1412,18 +1415,18 @@ void pApplication::tbcreate( string tb_name, string keys, string names, tbSAVE m
 	for ( int i = 1 ; i <= ws ; i++ )
 	{
 		w = word( keys, i ) ;
-		if ( !isvalidName( w ) ) { RC = 20 ; checkRCode( "Invalid key name >>" + w + "<<" ) ; return ; }
+		if ( !isvalidName( w ) ) { RC = 20 ; checkRCode( "Invalid key name >>"+ w +"<<" ) ; return ; }
 	}
 
 	ws = words( names ) ;
 	for ( int i = 1; i <= ws ; i++ )
 	{
 		w = word( names, i ) ;
-		if ( !isvalidName( w ) ) { RC = 20 ; checkRCode( "Invalid field name >>" + w + "<<" ) ; return ; }
+		if ( !isvalidName( w ) ) { RC = 20 ; checkRCode( "Invalid field name >>"+ w +"<<" ) ; return ; }
 	}
 
 	p_tableMGR->createTable( RC, taskid(), tb_name, keys, names, temp, m_REP, m_path, m_DISP ) ;
-	if ( RC > 8 ) { checkRCode( "TBCREATE gave return code of " + d2ds( RC ) ) ; }
+	if ( RC > 8 ) { checkRCode( "TBCREATE gave return code of "+ d2ds( RC ) ) ; }
 
 	if ( RC < 8 )
 	{
@@ -1446,7 +1449,7 @@ void pApplication::tbdelete( string tb_name )
 	if ( !isTableUpdate( tb_name, "TBDELETE" ) ) { return ; }
 
 	p_tableMGR->tbdelete( RC, funcPOOL, tb_name ) ;
-	if ( RC > 8 ) { checkRCode( "TBDELETE gave return code of " + d2ds( RC ) ) ; }
+	if ( RC > 8 ) { checkRCode( "TBDELETE gave return code of "+ d2ds( RC ) ) ; }
 }
 
 
@@ -1493,14 +1496,14 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 	if ( p_autosel == "" ) { p_autosel = "YES" ; }
 
 	if ( p_cursor   != ""    && !isvalidName( p_cursor   ) ) { RC = 20 ; checkRCode( "Invalid CURSOR position" )     ; return ; }
-	if ( p_autosel  != "YES" &&  p_autosel != "NO" )         { RC = 20 ; checkRCode( "Invalid AUTOSEL parameter.  Must be YES or NO" ) ; return ; }
+	if ( p_autosel  != "YES" &&  p_autosel != "NO"         ) { RC = 20 ; checkRCode( "Invalid AUTOSEL parameter.  Must be YES or NO" ) ; return ; }
 	if ( p_crp_name != ""    && !isvalidName( p_crp_name ) ) { RC = 20 ; checkRCode( "Invalid CRP variable name" )   ; return ; }
 	if ( p_rowid_nm != ""    && !isvalidName( p_rowid_nm ) ) { RC = 20 ; checkRCode( "Invalid ROWID variable name" ) ; return ; }
 
 	if ( p_name != "" )
 	{
 		panelCreate( p_name ) ;
-		if ( RC > 0 ) { checkRCode( "Panel >>" + p_name + "<< not found or invalid for TBDISPL" ) ; return ; }
+		if ( RC > 0 ) { checkRCode( "Panel >>"+ p_name +"<< not found or invalid for TBDISPL" ) ; return ; }
 		currtbPanel = panelList[ p_name ] ;
 		currPanel   = currtbPanel         ;
 		PANELID     = p_name ;
@@ -1508,7 +1511,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 		if ( p_msg == "" )
 		{
 			currtbPanel->clear_tb_linesChanged( RC ) ;
-			if ( RC > 0 ) { ZERR2 = currtbPanel->PERR ; checkRCode( "Panel >>" + p_name + "<< error during TBDISPL" ) ; return ; }
+			if ( RC > 0 ) { ZERR2 = currtbPanel->PERR ; checkRCode( "Panel >>"+ p_name +"<< error during TBDISPL" ) ; return ; }
 		}
 		posn = p_tableMGR->getCRP( RC, tb_name ) ;
 		if ( posn == 0 ) { posn = 1 ; }
@@ -1553,7 +1556,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 	else                  { currtbPanel->remove_popup()                      ; }
 
 	currtbPanel->display_panel_init( RC ) ;
-	if ( RC > 0 ) { ZERR2 = currtbPanel->PERR ; checkRCode( "Error processing )INIT section of panel " + p_name ) ; return ; }
+	if ( RC > 0 ) { ZERR2 = currtbPanel->PERR ; checkRCode( "Error processing )INIT section of panel "+ p_name ) ; return ; }
 
 	t = funcPOOL.get( RC, 8, ".AUTOSEL", NOCHECK ) ;
 	if ( RC == 0 ) { p_autosel = t ; }
@@ -1586,7 +1589,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 				currtbPanel->CURPOS = p_csrpos ;
 			}
 			currtbPanel->cursor_to_field( RC ) ;
-			if ( RC > 0 ) { checkRCode( "Cursor field >>" + currtbPanel->CURFLD + "<< not found on panel or invalid for TBDISP service" ) ; break ; }
+			if ( RC > 0 ) { checkRCode( "Cursor field >>"+ currtbPanel->CURFLD +"<< not found on panel or invalid for TBDISP service" ) ; break ; }
 			wait_event() ;
 			ControlDisplayLock = false ;
 			ControlNonDispl    = false ;
@@ -1615,7 +1618,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 		}
 
 		currtbPanel->display_panel_proc( RC, ln ) ;
-		if ( RC > 0 ) { ZERR2 = currtbPanel->PERR ; checkRCode( "Error processing )PROC section of panel " + p_name ) ; return ; }
+		if ( RC > 0 ) { ZERR2 = currtbPanel->PERR ; checkRCode( "Error processing )PROC section of panel "+ p_name ) ; return ; }
 		t = funcPOOL.get( RC, 8, ".CSRROW", NOCHECK ) ;
 		if ( RC == 0 ) { p_csrrow = ds2d( t ) ; }
 		if ( currtbPanel->MSGID != "" )
@@ -1631,7 +1634,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 				p_poolMGR->put( RC, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 			}
 			currtbPanel->display_panel_reinit( RC, ln ) ;
-			if ( RC > 0 ) { ZERR2 = currtbPanel->PERR ; checkRCode( "Error processing )REINIT section of panel " + p_name ) ; break ; }
+			if ( RC > 0 ) { ZERR2 = currtbPanel->PERR ; checkRCode( "Error processing )REINIT section of panel "+ p_name ) ; break ; }
 			t = funcPOOL.get( RC, 8, ".AUTOSEL", NOCHECK ) ;
 			if ( RC == 0 ) { p_autosel = t ; }
 			t = funcPOOL.get( RC, 8, ".CSRROW", NOCHECK ) ;
@@ -1714,7 +1717,7 @@ void pApplication::tbend( string tb_name )
 		tablesOpen.erase( tb_name ) ;
 		tablesUpdate.erase( tb_name ) ;
 	}
-	if ( RC > 8 ) { checkRCode( "TBEND gave return code of " + d2ds( RC ) ) ; }
+	if ( RC > 8 ) { checkRCode( "TBEND gave return code of "+ d2ds( RC ) ) ; }
 }
 
 
@@ -1733,7 +1736,7 @@ void pApplication::tberase( string tb_name, string tb_path )
 
 	if ( tb_path == "" ) { tb_path = ZTLIB ; }
 	p_tableMGR->tberase( RC, tb_name, tb_path ) ;
-	if ( RC > 8 ) { checkRCode( "TBERASE gave return code of " + d2ds( RC ) ) ; }
+	if ( RC > 8 ) { checkRCode( "TBERASE gave return code of "+ d2ds( RC ) ) ; }
 }
 
 
@@ -1750,7 +1753,7 @@ void pApplication::tbexist( string tb_name )
 	if ( !isTableOpen( tb_name, "TBEXIST" ) ) { return ; }
 
 	p_tableMGR->tbexist( RC, funcPOOL, tb_name ) ;
-	if ( RC > 8 ) { checkRCode( "TBEXISTS gave return code of " + d2ds( RC ) ) ; }
+	if ( RC > 8 ) { checkRCode( "TBEXISTS gave return code of "+ d2ds( RC ) ) ; }
 }
 
 
@@ -1761,7 +1764,7 @@ void pApplication::tbget( string tb_name, string tb_savenm, string tb_rowid_vn, 
 	if ( !isTableOpen( tb_name, "TBGET" ) ) { return ; }
 
 	p_tableMGR->tbget( RC, funcPOOL, tb_name, tb_savenm, tb_rowid_vn, tb_noread, tb_crp_name  ) ;
-	if ( RC > 8 ) { checkRCode( "TBGET gave return code of " + d2ds( RC ) ) ; }
+	if ( RC > 8 ) { checkRCode( "TBGET gave return code of "+ d2ds( RC ) ) ; }
 }
 
 
@@ -1776,7 +1779,7 @@ void pApplication::tbmod( string tb_name, string tb_namelst, string tb_order )
 	if ( !isTableUpdate( tb_name, "TBMOD" ) ) { return ; }
 
 	p_tableMGR->tbmod( RC, funcPOOL, tb_name, tb_namelst, tb_order ) ;
-	if ( RC > 8 ) { checkRCode( "TBMOD gave return code of " + d2ds( RC ) ) ; }
+	if ( RC > 8 ) { checkRCode( "TBMOD gave return code of "+ d2ds( RC ) ) ; }
 }
 
 
@@ -1797,7 +1800,7 @@ void pApplication::tbopen( string tb_name, tbSAVE m_SAVE, string m_paths, tbDISP
 	if ( tablesOpen.find( tb_name ) != tablesOpen.end() )
 	{
 		RC = 12 ;
-		checkRCode( "Table " + tb_name + " already open on TBOPEN" ) ;
+		checkRCode( "Table "+ tb_name +" already open on TBOPEN" ) ;
 		return  ;
 	}
 
@@ -1809,7 +1812,7 @@ void pApplication::tbopen( string tb_name, tbSAVE m_SAVE, string m_paths, tbDISP
 
 	p_tableMGR->loadTable( RC, taskid(), tb_name, m_DISP, m_paths ) ;
 
-	if ( RC > 8 ) { checkRCode( "TBOPEN gave return code of " + d2ds( RC ) ) ; }
+	if ( RC > 8 ) { checkRCode( "TBOPEN gave return code of "+ d2ds( RC ) ) ; }
 	if ( RC < 8 )
 	{
 		tablesOpen[ tb_name ] = true ;
@@ -1839,7 +1842,7 @@ void pApplication::tbput( string tb_name, string tb_namelst, string tb_order )
 	if ( !isTableUpdate( tb_name, "TBPUT" ) ) { return ; }
 
 	p_tableMGR->tbput( RC, funcPOOL, tb_name, tb_namelst, tb_order ) ;
-	if ( RC > 8 ) { checkRCode( "TBPUT gave return code of " + d2ds( RC ) ) ; }
+	if ( RC > 8 ) { checkRCode( "TBPUT gave return code of "+ d2ds( RC ) ) ; }
 }
 
 
@@ -1850,7 +1853,7 @@ void pApplication::tbquery( string tb_name, string tb_keyn, string tb_varn, stri
 	if ( !isTableOpen( tb_name, "TBQUERY" ) ) { return ; }
 
 	p_tableMGR->tbquery( RC, funcPOOL, tb_name, tb_keyn, tb_varn, tb_rownn, tb_keynn, tb_namenn, tb_crpn, tb_sirn, tb_lstn, tb_condn, tb_dirn ) ;
-	if ( RC > 8 ) { checkRCode( "TBQUERY gave return code of " + d2ds( RC ) ) ; }
+	if ( RC > 8 ) { checkRCode( "TBQUERY gave return code of "+ d2ds( RC ) ) ; }
 }
 
 
@@ -1861,7 +1864,7 @@ void pApplication::tbsarg( string tb_name, string tb_namelst, string tb_dir, str
 	if ( !isTableOpen( tb_name, "TBSARG" ) ) { return ; }
 
 	p_tableMGR->tbsarg( RC, funcPOOL, tb_name, tb_namelst, tb_dir, tb_cond_pairs ) ;
-	if ( RC > 8 ) { checkRCode( "TBSARG gave return code of " + d2ds( RC ) ) ; }
+	if ( RC > 8 ) { checkRCode( "TBSARG gave return code of "+ d2ds( RC ) ) ; }
 }
 
 
@@ -1881,7 +1884,7 @@ void pApplication::tbsave( string tb_name, string tb_newname, string path )
 
 	p_tableMGR->saveTable( RC, taskid(), tb_name, tb_newname, path ) ;
 	if ( RC == 4 ) { RC = 0 ; }
-	if ( RC > 8 ) { checkRCode( "TBSAVE gave return code of " + d2ds( RC ) ) ; }
+	if ( RC > 8 ) { checkRCode( "TBSAVE gave return code of "+ d2ds( RC ) ) ; }
 }
 
 
@@ -1892,7 +1895,7 @@ void pApplication::tbscan( string tb_name, string tb_namelst, string tb_savenm, 
 	if ( !isTableOpen( tb_name, "TBSCAN" ) ) { return ; }
 
 	p_tableMGR->tbscan( RC, funcPOOL, tb_name, tb_namelst, tb_savenm, tb_rowid_vn, tb_dir, tb_read, tb_crp_name, tb_condlst ) ;
-	if ( RC > 8 ) { checkRCode( "TBSCAN gave return code of " + d2ds( RC ) ) ; }
+	if ( RC > 8 ) { checkRCode( "TBSCAN gave return code of "+ d2ds( RC ) ) ; }
 }
 
 
@@ -1904,7 +1907,7 @@ void pApplication::tbskip( string tb_name, int num, string tb_savenm, string tb_
 	if ( !isTableOpen( tb_name, "TBSKIP" ) ) { return ; }
 
 	p_tableMGR->tbskip( RC, funcPOOL, tb_name, num, tb_savenm, tb_rowid_vn, tb_rowid, tb_noread, tb_crp_name ) ;
-	if ( RC > 8 ) { checkRCode( "TBSKIP gave return code of " + d2ds( RC ) ) ; }
+	if ( RC > 8 ) { checkRCode( "TBSKIP gave return code of "+ d2ds( RC ) ) ; }
 }
 
 
@@ -1915,7 +1918,7 @@ void pApplication::tbsort( string tb_name, string tb_fields )
 	if ( !isTableUpdate( tb_name, "TBSORT" ) ) { return ; }
 
 	p_tableMGR->tbsort( RC, tb_name, tb_fields ) ;
-	if ( RC > 8 ) { checkRCode( "TBSORT gave return code of " + d2ds( RC ) ) ; }
+	if ( RC > 8 ) { checkRCode( "TBSORT gave return code of "+ d2ds( RC ) ) ; }
 }
 
 
@@ -1927,7 +1930,7 @@ void pApplication::tbtop( string tb_name )
 	if ( !isTableOpen( tb_name, "TBTOP" ) ) { return ; }
 
 	p_tableMGR->tbtop( RC, tb_name ) ;
-	if ( RC > 8 ) { checkRCode( "TBTOP gave return code of " + d2ds( RC ) ) ; }
+	if ( RC > 8 ) { checkRCode( "TBTOP gave return code of "+ d2ds( RC ) ) ; }
 }
 
 
@@ -1938,7 +1941,7 @@ void pApplication::tbvclear( string tb_name )
 	if ( !isTableOpen( tb_name, "TBVCLEAR" ) ) { return ; }
 
 	p_tableMGR->tbvclear( RC, funcPOOL, tb_name ) ;
-	if ( RC > 8 ) { checkRCode( "TBVCLEAR gave return code of " + d2ds( RC ) ) ; }
+	if ( RC > 8 ) { checkRCode( "TBVCLEAR gave return code of "+ d2ds( RC ) ) ; }
 }
 
 
@@ -1947,11 +1950,11 @@ bool pApplication::isTableOpen( string tb_name, string func )
 
 	RC = 0 ;
 
-	if ( !isvalidName( tb_name ) ) { RC = 20 ; checkRCode( "Invalid table name on " + func + " >>" + tb_name + "<<" ) ; return false ; }
+	if ( !isvalidName( tb_name ) ) { RC = 20 ; checkRCode( "Invalid table name on "+ func +" >>"+ tb_name +"<<" ) ; return false ; }
 	if ( tablesOpen.find( tb_name ) == tablesOpen.end() )
 	{
 		RC = 12      ;
-		checkRCode( "Table " + tb_name + " not open on " + func ) ;
+		checkRCode( "Table "+ tb_name +" not open on "+ func ) ;
 		return false ;
 	}
 	return true ;
@@ -1963,17 +1966,17 @@ bool pApplication::isTableUpdate( string tb_name, string func )
 
 	RC = 0 ;
 
-	if ( !isvalidName( tb_name ) ) { RC = 20 ; checkRCode( "Invalid table name on " + func + " " + tb_name ) ; return false ; }
+	if ( !isvalidName( tb_name ) ) { RC = 20 ; checkRCode( "Invalid table name on "+ func +" "+ tb_name ) ; return false ; }
 	if ( tablesOpen.find( tb_name ) == tablesOpen.end() )
 	{
 		RC = 12      ;
-		checkRCode( "Table " + tb_name + " not open on " + func ) ;
+		checkRCode( "Table "+ tb_name +" not open on "+ func ) ;
 		return false ;
 	}
 	if ( tablesUpdate.find( tb_name ) == tablesUpdate.end() )
 	{
 		RC = 12      ;
-		checkRCode( "Table " + tb_name + " open in read-only mode on " + func ) ;
+		checkRCode( "Table "+ tb_name +" open in read-only mode on "+ func ) ;
 		return false ;
 	}
 	return true ;
@@ -1984,7 +1987,7 @@ void pApplication::edit( string m_file, string m_panel )
 {
 	SELCT.clear() ;
 	SELCT.PGM     = p_poolMGR->get( RC, "ZEDITPGM", PROFILE ) ;
-	SELCT.PARM    = "FILE(" + m_file + ") PANEL(" + m_panel + ")" ;
+	SELCT.PARM    = "FILE("+ m_file +") PANEL("+ m_panel +")" ;
 	SELCT.NEWAPPL = ""      ;
 	SELCT.NEWPOOL = false   ;
 	SELCT.PASSLIB = false   ;
@@ -1997,7 +2000,7 @@ void pApplication::browse( string m_file, string m_panel )
 {
 	SELCT.clear() ;
 	SELCT.PGM     = p_poolMGR->get( RC, "ZBRPGM", PROFILE ) ;
-	SELCT.PARM    = "FILE(" + m_file + ") PANEL(" + m_panel + ")" ;
+	SELCT.PARM    = "FILE("+ m_file +") PANEL("+ m_panel +")" ;
 	SELCT.NEWAPPL = ""       ;
 	SELCT.NEWPOOL = false    ;
 	SELCT.PASSLIB = false    ;
@@ -2010,7 +2013,7 @@ void pApplication::view( string m_file, string m_panel )
 {
 	SELCT.clear() ;
 	SELCT.PGM     = p_poolMGR->get( RC, "ZVIEWPGM", PROFILE ) ;
-	SELCT.PARM    = "FILE(" + m_file + ") PANEL(" + m_panel + ")" ;
+	SELCT.PARM    = "FILE("+ m_file +") PANEL("+ m_panel +")" ;
 	SELCT.NEWAPPL = ""      ;
 	SELCT.NEWPOOL = false   ;
 	SELCT.PASSLIB = false   ;
@@ -2067,20 +2070,20 @@ void pApplication::pquery( string p_name, string a_name, string t_name, string w
 {
 	RC = 0 ;
 
-	if ( !isvalidName( p_name ) ) { RC = 20 ; checkRCode( "Invalid panel name " + p_name + " on PQUERY" ) ; return ; }
-	if ( !isvalidName( a_name ) ) { RC = 20 ; checkRCode( "Invalid area name "  + a_name + " on PQUERY" ) ; return ; }
+	if ( !isvalidName( p_name ) ) { RC = 20 ; checkRCode( "Invalid panel name "+ p_name +" on PQUERY" ) ; return ; }
+	if ( !isvalidName( a_name ) ) { RC = 20 ; checkRCode( "Invalid area name "+ a_name +" on PQUERY" ) ; return ; }
 
-	if ( (t_name != "") && !isvalidName( t_name ) ) { RC = 20 ; checkRCode( "Invalid area type name " + t_name + " on PQUERY" ) ; return ; }
-	if ( (w_name != "") && !isvalidName( w_name ) ) { RC = 20 ; checkRCode( "Invalid area width name " + w_name + " on PQUERY" ) ; return ; }
-	if ( (d_name != "") && !isvalidName( d_name ) ) { RC = 20 ; checkRCode( "Invalid area depth name " + d_name + " on PQUERY" ) ; return ; }
-	if ( (r_name != "") && !isvalidName( r_name ) ) { RC = 20 ; checkRCode( "Invalid area row number name " + r_name + " on PQUERY" ) ; return ; }
-	if ( (c_name != "") && !isvalidName( c_name ) ) { RC = 20 ; checkRCode( "Invalid area column number name " + c_name + " on PQUERY" ) ; return ; }
+	if ( (t_name != "") && !isvalidName( t_name ) ) { RC = 20 ; checkRCode( "Invalid area type name "+ t_name +" on PQUERY" ) ; return ; }
+	if ( (w_name != "") && !isvalidName( w_name ) ) { RC = 20 ; checkRCode( "Invalid area width name "+ w_name +" on PQUERY" ) ; return ; }
+	if ( (d_name != "") && !isvalidName( d_name ) ) { RC = 20 ; checkRCode( "Invalid area depth name "+ d_name +" on PQUERY" ) ; return ; }
+	if ( (r_name != "") && !isvalidName( r_name ) ) { RC = 20 ; checkRCode( "Invalid area row number name "+ r_name +" on PQUERY" ) ; return ; }
+	if ( (c_name != "") && !isvalidName( c_name ) ) { RC = 20 ; checkRCode( "Invalid area column number name "+ c_name +" on PQUERY" ) ; return ; }
 
 	panelCreate( p_name ) ;
 	if ( panelList.find( p_name ) == panelList.end() )
 	{
 		RC = 20 ;
-		checkRCode( "Panel " + p_name + " not found or invalid for PQUERY" ) ;
+		checkRCode( "Panel "+ p_name +" not found or invalid for PQUERY" ) ;
 		return  ;
 	}
 	panelList[ p_name ]->get_panel_info( RC, a_name, t_name, w_name, d_name, r_name, c_name ) ;
@@ -2113,7 +2116,7 @@ void pApplication::load_keylist( pPanel * p )
 	if ( KEYLISTN == "" ) { return ; }
 
 	KEYAPPL = p->KEYAPPL ;
-	tabName = KEYAPPL + "KTAB" ;
+	tabName = KEYAPPL + "KEYP" ;
 
 	KLfail = p_poolMGR->get( RC, "ZKLFAIL", PROFILE ) ;
 
@@ -2121,7 +2124,7 @@ void pApplication::load_keylist( pPanel * p )
 	tbopen( tabName, NOWRITE, UPROF, SHARE ) ;
 	if ( RC  > 0 )
 	{
-		kerr = "Open of keylist table " + tabName + " failed" ;
+		kerr = "Open of keylist table "+ tabName +" failed" ;
 		if ( KLfail == "N" ) { RC = 0 ; log( "W", kerr << endl ) ; return ; }
 		RC = 20 ;
 		checkRCode( kerr ) ;
@@ -2132,7 +2135,7 @@ void pApplication::load_keylist( pPanel * p )
 	if ( RC  > 0 )
 	{
 		tbend( tabName ) ;
-		kerr = "TBSARG error setting search for " + KEYLISTN + ", table " + tabName ;
+		kerr = "TBSARG error setting search for "+ KEYLISTN +", table " + tabName ;
 		if ( KLfail == "N" ) { RC = 0 ; log( "W", kerr << endl ) ; return ; }
 		RC = 20 ;
 		checkRCode( kerr ) ;
@@ -2141,10 +2144,10 @@ void pApplication::load_keylist( pPanel * p )
 	if ( RC  > 0 )
 	{
 		tbend( tabName ) ;
-		kerr = "Keylist " + KEYLISTN + " not found in keylist table " + tabName ;
+		kerr = "Keylist " + KEYLISTN +" not found in keylist table "+ tabName ;
 		if ( KLfail == "N" ) { RC = 0 ; log( "W", kerr << endl ) ; return ; }
 		RC = 20 ;
-		checkRCode( "Keylist " + KEYLISTN + " not found in keylist table " + tabName ) ;
+		checkRCode( "Keylist "+ KEYLISTN +" not found in keylist table "+ tabName ) ;
 	}
 	vcopy( "KEY1DEF",  tabField, MOVE ) ; p->put_keylist( KEY_F(1),  tabField ) ;
 	vcopy( "KEY2DEF",  tabField, MOVE ) ; p->put_keylist( KEY_F(2),  tabField ) ;
@@ -2176,6 +2179,22 @@ void pApplication::load_keylist( pPanel * p )
 
 void pApplication::rdisplay( string msg )
 {
+	RC = 0 ;
+	rmsgs.push_back( sub_vars( msg ) ) ;
+	if ( rmsgs.size() == ds2d( p_poolMGR->get( RC, "ZSCRMAXD", SHARED ) ) - 1 )
+	{
+		rawOutput = true  ;
+		wait_event()      ;
+		rawOutput = false ;
+	}
+}
+
+
+void pApplication::rdisplay1( string msg )
+{
+	// Same as RDISPLAY, except no variable substitution is performed.  Is is used in the
+	// ISPEXEC interface which does the substitution itself
+
 	RC = 0 ;
 	rmsgs.push_back( msg ) ;
 	if ( rmsgs.size() == ds2d( p_poolMGR->get( RC, "ZSCRMAXD", SHARED ) ) - 1 )
@@ -2737,6 +2756,7 @@ int pApplication::chk_Message_id( string msgid )
 string pApplication::sub_vars( string s )
 {
 	// In string, s, substitute variables starting with '&' for their dialogue value
+	// The variable is delimited by any non-valid variable characters.
 	// Rules: A '.' at the end of a variable, concatinates the value with the string following the dot
 	//        .. reduces to .
 	//        && reduces to & with no variable substitution
@@ -2747,13 +2767,14 @@ string pApplication::sub_vars( string s )
 	string var ;
 	string val ;
 
+	const string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$@" ;
 	p1 = 0 ;
 	p2 = 0 ;
 
 	while ( true )
 	{
 		p1 = s.find( '&', p1 ) ;
-		if ( p1 == string::npos ) { break ; }
+		if ( p1 == string::npos || p1 == s.size() - 1 ) { break ; }
 		p1++ ;
 		if ( s[ p1 ] == '&' )
 		{
@@ -2761,18 +2782,24 @@ string pApplication::sub_vars( string s )
 			p1 = s.find_first_not_of( '&', p1 ) ;
 			continue ;
 		}
-		p2 = s.find_first_of( "& .')\"", p1 ) ;
+		p2  = s.find_first_not_of( validChars, p1 ) ;
 		if ( p2 == string::npos ) { p2 = s.size() ; }
-		var = upper( s.substr( p1, (p2-p1) ) ) ;
+		var = upper( s.substr( p1, p2-p1 ) ) ;
 		if ( isvalidName( var ) )
 		{
 			val = "" ;
 			vcopy( var, val, MOVE ) ;
 			if ( RC <= 8 )
 			{
-				if ( s[ p2 ] == '.' ) { s.replace( p1-1, var.size()+2, val ) ; }
-				else                  { s.replace( p1-1, var.size()+1, val ) ; }
-				if ( RC == 8 ) { p1-- ; }
+				if ( p2 < s.size() && s[ p2 ] == '.' )
+				{
+					s.replace( p1-1, var.size()+2, val ) ;
+				}
+				else
+				{
+					s.replace( p1-1, var.size()+1, val ) ;
+				}
+				p1 = p1 + val.size() - 1 ;
 			}
 		}
 	}

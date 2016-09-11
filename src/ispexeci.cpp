@@ -75,7 +75,7 @@ map<string, int(*)(pApplication *,const string &)> execiServices = {
 		  { "TBADD",    execiTBAdd    },
 		  { "TBBOTTOM", execiTBBottom },
 		  { "TBCREATE", execiTBCreate },
-		  { "TBCCLOSE", execiTBClose  },
+		  { "TBCLOSE",  execiTBClose  },
 		  { "TBDELETE", execiTBDelete },
 		  { "TBDISPL",  execiTBDispl  },
 		  { "TBEND",    execiTBEnd    },
@@ -140,10 +140,10 @@ int ispexeci( pApplication * thisAppl, const string & s )
 
 int execiAddpop( pApplication * thisAppl, const string & s )
 {
-	int    i_row ;
-	int    i_col ;
+	int i_row ;
+	int i_col ;
 
-	bool   rlt ;
+	bool  rlt ;
 
 	string str    ;
 	string ap_loc ;
@@ -367,7 +367,10 @@ int execiPquery( pApplication * thisAppl, const string & s )
 
 int execiRDisplay( pApplication * thisAppl, const string & s )
 {
-	thisAppl->rdisplay( substr( s, 10 ) ) ;
+	// Call rdisplay1() which does not do dialogue variable substitution as this has
+	// already been done.
+
+	thisAppl->rdisplay1( substr( s, 10 ) ) ;
 	return thisAppl->RC ;
 }
 
@@ -387,17 +390,17 @@ int execiRempop( pApplication * thisAppl, const string & s )
 
 int execiSelect( pApplication * thisAppl, const string & s )
 {
-	string str ;
+	// The SELECT parser may replace PGM with a variable name (eg. for a REXX command), so
+	// substitute with its dialogue variable value
 
 	selobj SEL ;
 
-	str = subword( s, 2 ) ;
-
-	if ( !SEL.parse( str ) )
+	if ( !SEL.parse( subword( s, 2 ) ) )
 	{
 		execiSyntaxError( thisAppl, s ) ;
 		return 20 ;
 	}
+
 	if ( SEL.PGM[ 0 ] == '&' )
 	{
 		thisAppl->vcopy( SEL.PGM.erase( 0, 1 ), SEL.PGM, MOVE ) ;
@@ -1073,7 +1076,7 @@ int execiVerase( pApplication * thisAppl, const string & s )
 
 int execiVget( pApplication * thisAppl, const string & s )
 {
-	// If this is called form the REXX interface module, VREPLACE first with nulls so a variable not found
+	// If this is called from the REXX interface module, VREPLACE first with nulls so a variable not found
 	// results in a blank value, instead of the variable name.
 
 	int i  ;

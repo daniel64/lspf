@@ -493,6 +493,7 @@ void PLRFLST1::RetrieveEntry( string list )
 
 	// If 'list' consists a number < 31, use this as the starting position for the retrieve and not
 	// variable ZRFNPOS from the SHARED pool.  If specified, the other word in 'list' is used as the reflist
+	// If 'list' is specified, but not a number, start at position 1.
 
 	int    i   ;
 	int    p   ;
@@ -512,6 +513,7 @@ void PLRFLST1::RetrieveEntry( string list )
 	w1   = word( list, 1 ) ;
 	w2   = word( list, 2 ) ;
 
+	ZRFNPOS = "" ;
 	if ( w1.size() > 0 && w1.size() < 3 )
 	{
 		list = w2 ;
@@ -533,19 +535,31 @@ void PLRFLST1::RetrieveEntry( string list )
 		}
 	}
 
-	if ( list == "" ) { vget( "ZCURTB", PROFILE ) ; }
-	else              { ZCURTB = list             ; }
+	if ( list == "" )
+	{
+		vget( "ZCURTB", PROFILE ) ;
+	}
+	else
+	{
+		ZCURTB = list ;
+		if ( ZRFNPOS == "" ) { verase( "ZRFNPOS", SHARED ) ; }
+	}
 
 	OpenTableRO()     ;
 	tbget( RFLTABLE ) ;
-	if ( RC > 0 ) { CloseTable() ; return ; }
+	if ( RC > 0 )
+	{
+		ZCURTB = "REFLIST" ;
+		tbget( RFLTABLE ) ;
+		if ( RC > 0 ) { CloseTable() ; return ; }
+	}
 	CloseTable() ;
 
 	vput( "ZCURTB", PROFILE ) ;
 	vget( "ZRFNEX", PROFILE ) ;
 
 	vget( "ZRFNPOS", SHARED ) ;
-	if ( RC == 8 ) { p  = 1 ; }
+	if ( RC == 8 ) { p = 1 ; }
 	else           { (ZRFNPOS == "30") ? (p = 1) : (p = ds2d( ZRFNPOS ) + 1) ; }
 
 	fp = p ;
@@ -561,7 +575,7 @@ void PLRFLST1::RetrieveEntry( string list )
 				ZRFNPOS = "1" ;
 				vput( "ZRFNPOS", SHARED )   ;
 				vdelete( "ZRFNEX ZRFNPOS" ) ;
-				return  ;
+				return ;
 			}
 			continue ;
 		}
@@ -590,7 +604,7 @@ void PLRFLST1::RetrieveEntry( string list )
 		break ;
 	}
 
-	ZRFNPOS =  d2ds( p ) ;
+	ZRFNPOS = d2ds( p )       ;
 	vput( "ZRFNPOS", SHARED ) ;
 
 	reffield = "#REFLIST"       ;

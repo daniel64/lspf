@@ -266,8 +266,8 @@ main()
 
 	ZCTVERB  = "NRETRIEV" ;
 	ZCTTRUNC = "0"        ;
-	ZCTACT   = "SELECT PGM(&ZRFLPGM) PARM(NR1 &ZPARM)"  ;
-	ZCTDESC  = "RETRIEVE NEXT ENTRY FROM ACTIVE REFERRAL LIST" ;
+	ZCTACT   = "SETVERB"  ;
+	ZCTDESC  = "Retrieve next entry from active referral list" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
 
@@ -393,6 +393,7 @@ void createSYSPROF()
 	p_poolMGR->put( RC, "ZSWAP",   "Y", PROFILE ) ;
 	p_poolMGR->put( RC, "ZSWAPC",  "'", PROFILE ) ;
 	p_poolMGR->put( RC, "ZKLUSE",  "N", PROFILE ) ;
+	p_poolMGR->put( RC, "ZKLPRIV", "Y", PROFILE ) ;
 	p_poolMGR->put( RC, "ZKLFAIL", "Y", PROFILE ) ;
 	p_poolMGR->put( RC, "ZRTSIZE", "3", PROFILE ) ;
 	p_poolMGR->put( RC, "ZRBSIZE", "10", PROFILE ) ;

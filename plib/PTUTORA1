@@ -3,17 +3,19 @@
 
 scrollOn
 
-literal  4   2      FP "Command ===> " 
+panelDescr "Tutor"
+
+literal  4   2      FP "Command ===> "
 field 4  15  MAX-17 NEF CAPS(ON),PAD('_') ZCMD
 
-literal  4 MAX-15      FP "SCROLL ===> "  
+literal  4 MAX-15      FP "SCROLL ===> "
 field    4 MAX-3    4  NEF NONE    ZSCROLL
 
 
-literal  6  3      FP "LINE "  
+literal  6  3      FP "LINE "
 field    6  8   8  VOI  NONE    ZROW1
 
-literal  6  17   FP "OF"  
+literal  6  17   FP "OF"
 field    6  20   8  VOI  NONE    ZROW2
 
 dynArea 7 2 MAX MAX ZAREA ZSHADOW

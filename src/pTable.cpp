@@ -142,10 +142,11 @@ void Table::tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 
 	// If ORDER specified on a sorted table, sort the table again after adding the record and reset CRP
 
-	int    i     ;
-	int    ws    ;
+	int    i    ;
+	int    ws   ;
 
-	string key   ;
+	string key  ;
+	string val  ;
 	string URID ;
 
 	vector<string> keys ;
@@ -174,8 +175,13 @@ void Table::tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 		keys.reserve( num_keys ) ;
 		for ( i = 1 ; i <= num_keys ; i++ )
 		{
-			key = funcPOOL.get( RC, 0, word( tab_keys, i ) ) ;
-			if ( RC > 0 ) { RC = 20 ; return ; }
+			key = funcPOOL.get( RC, 8, word( tab_keys, i ) ) ;
+			if ( RC == 8 )
+			{
+				funcPOOL.put( RC, 0, word( tab_keys, i ), "" ) ;
+				key = "" ;
+			}
+			else if ( RC > 8 ) { RC = 20 ; return ; }
 			keys.push_back( key ) ;
 		}
 		for ( it = table.begin() ; it != table.end() ; it++ )
@@ -192,16 +198,28 @@ void Table::tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	flds.push_back( d2ds( ++maxURID ) ) ;
 	for ( i = 1 ; i <= num_all ; i++ )
 	{
-		flds.push_back( funcPOOL.get( RC, 0, word( tab_all, i ) ) ) ;
-		if ( RC > 0 ) { RC = 20 ; return ; }
+		val = funcPOOL.get( RC, 8, word( tab_all, i ) ) ;
+		if ( RC == 8 )
+		{
+			funcPOOL.put( RC, 0, word( tab_all, i ), "" ) ;
+			val = "" ;
+		}
+		else if ( RC > 8 ) { RC = 20 ; return ; }
+		flds.push_back( val ) ;
 	}
 	if ( tb_namelst != "" )
 	{
 		flds.push_back( space( tb_namelst ) ) ;
 		for ( ws = words( tb_namelst ), i = 1 ; i <= ws ; i++ )
 		{
-			flds.push_back( funcPOOL.get( RC, 0, word( tb_namelst, i ) ) ) ;
-			if ( RC > 0 ) { RC = 20 ; return ; }
+			val = funcPOOL.get( RC, 8, word( tb_namelst, i ) ) ;
+			if ( RC == 8 )
+			{
+				funcPOOL.put( RC, 0, word( tb_namelst, i ), "" ) ;
+				val = "" ;
+			}
+			else if ( RC > 8 ) { RC = 20 ; return ; }
+			flds.push_back( val ) ;
 		}
 	}
 
@@ -337,8 +355,13 @@ void Table::tbdelete( int & RC, fPOOL & funcPOOL )
 		keys.reserve( num_keys ) ;
 		for ( i = 1 ; i <= num_keys ; i++ )
 		{
-			key = funcPOOL.get( RC, 0, word( tab_keys, i ) ) ;
-			if ( RC > 0 ) { RC = 20 ; return ; }
+			key = funcPOOL.get( RC, 8, word( tab_keys, i ) ) ;
+			if ( RC == 8 )
+			{
+				funcPOOL.put( RC, 0, word( tab_keys, i ), "" ) ;
+				key = "" ;
+			}
+			else if ( RC > 8 ) { RC = 20 ; return ; }
 			keys.push_back( key ) ;
 		}
 		found = false ;
@@ -401,8 +424,13 @@ void Table::tbexist( int & RC, fPOOL & funcPOOL )
 	keys.reserve( num_keys ) ;
 	for ( i = 1 ; i <= num_keys ; i++ )
 	{
-		key = funcPOOL.get( RC, 0, word( tab_keys, i ) ) ;
-		if ( RC > 0 ) { RC = 20 ; return ; }
+		key = funcPOOL.get( RC, 8, word( tab_keys, i ) ) ;
+		if ( RC == 8 )
+		{
+			funcPOOL.put( RC, 0, word( tab_keys, i ), "" ) ;
+			key = "" ;
+		}
+		else if ( RC > 8 ) { RC = 20 ; return ; }
 		keys.push_back( key ) ;
 	}
 
@@ -508,8 +536,13 @@ void Table::tbget( int & RC, fPOOL & funcPOOL, string tb_savenm, string tb_rowid
 		keys.reserve( num_keys ) ;
 		for ( i = 1 ; i <= num_keys ; i++ )
 		{
-			key = funcPOOL.get( RC, 0, word( tab_keys, i ) ) ;
-			if ( RC > 0 ) { RC = 20 ; return ; }
+			key = funcPOOL.get( RC, 8, word( tab_keys, i ) ) ;
+			if ( RC == 8 )
+			{
+				funcPOOL.put( RC, 0, word( tab_keys, i ), "" ) ;
+				key = "" ;
+			}
+			else if ( RC > 8 ) { RC = 20 ; return ; }
 			keys.push_back( key ) ;
 		}
 		found = false ;
@@ -589,6 +622,7 @@ void Table::tbmod( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	int  ws     ;
 	bool found  ;
 	string key  ;
+	string val  ;
 	string URID ;
 
 	vector<string> flds ;
@@ -611,8 +645,13 @@ void Table::tbmod( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	keys.reserve( num_keys ) ;
 	for ( i = 1 ; i <= num_keys ; i++ )
 	{
-		key = funcPOOL.get( RC, 0, word( tab_keys, i ) ) ;
-		if ( RC > 0 ) { RC = 20 ; return ; }
+		key = funcPOOL.get( RC, 8, word( tab_keys, i ) ) ;
+		if ( RC == 8 )
+		{
+			funcPOOL.put( RC, 0, word( tab_keys, i ), "" ) ;
+			key = "" ;
+		}
+		else if ( RC > 8 ) { RC = 20 ; return ; }
 		keys.push_back( key ) ;
 	}
 	for ( it = table.begin() ; it != table.end() ; it++ )
@@ -635,16 +674,28 @@ void Table::tbmod( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	{
 		for ( i = 1 ; i <= num_all ; i++ )
 		{
-			flds.push_back( funcPOOL.get( RC, 0, word( tab_all, i ) ) ) ;
-			if ( RC > 0 ) { RC = 20 ; return ; }
+			val = funcPOOL.get( RC, 8, word( tab_all, i ) ) ;
+			if ( RC == 8 )
+			{
+				funcPOOL.put( RC, 0, word( tab_all, i ), "" ) ;
+				val = "" ;
+			}
+			else if ( RC > 8 ) { RC = 20 ; return ; }
+			flds.push_back( val ) ;
 		}
 		if ( tb_namelst != "" )
 		{
 			flds.push_back( space( tb_namelst ) ) ;
 			for ( ws = words( tb_namelst ), i = 1 ; i <= ws ; i++ )
 			{
-				flds.push_back( funcPOOL.get( RC, 0, word( tb_namelst, i ) ) ) ;
-				if ( RC > 0 ) { RC = 20 ; return ; }
+				val = funcPOOL.get( RC, 8, word( tb_namelst, i ) ) ;
+				if ( RC == 8 )
+				{
+					funcPOOL.put( RC, 0, word( tb_namelst, i ), "" ) ;
+					val = "" ;
+				}
+				else if ( RC > 8 ) { RC = 20 ; return ; }
+				flds.push_back( val ) ;
 			}
 		}
 		URID = table[ CRP-1 ].at( 0 ) ;
@@ -680,6 +731,7 @@ void Table::tbput( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 	int  ws ;
 
 	string key  ;
+	string val  ;
 	string URID ;
 
 	vector<string> flds ;
@@ -696,23 +748,40 @@ void Table::tbput( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 
 	for ( i = 1 ; i <= num_keys ; i++ )
 	{
-		key = funcPOOL.get( RC, 0, word( tab_keys, i ) ) ;
-		if ( RC > 0 ) { RC = 20 ; return ; }
+		key = funcPOOL.get( RC, 8, word( tab_keys, i ) ) ;
+		if ( RC == 8 )
+		{
+			funcPOOL.put( RC, 0, word( tab_keys, i ), "" ) ;
+			key = "" ;
+		}
+		else if ( RC > 8 ) { RC = 20 ; return ; }
 		if ( key != table[ CRP-1 ].at( i ) ) { CRP = 0 ; RC = 8 ; return ; }
 		flds.push_back( key ) ;
 	}
 	for ( i = 1 ; i <= num_flds ; i++ )
 	{
-		flds.push_back( funcPOOL.get( RC, 0, word( tab_flds, i ) ) ) ;
-		if ( RC > 0 ) { RC = 20 ; return ; }
+		val = funcPOOL.get( RC, 8, word( tab_flds, i ) ) ;
+		if ( RC == 8 )
+		{
+			funcPOOL.put( RC, 0, word( tab_flds, i ), "" ) ;
+			val = "" ;
+		}
+		else if ( RC > 8 ) { RC = 20 ; return ; }
+		flds.push_back( val ) ;
 	}
 	if ( tb_namelst != "" )
 	{
 		flds.push_back( space( tb_namelst ) ) ;
 		for ( ws = words( tb_namelst ), i = 1 ; i <= ws ; i++ )
 		{
-			flds.push_back( funcPOOL.get( RC, 0, word( tb_namelst, i ) ) ) ;
-			if ( RC > 0 ) { RC = 20 ; return ; }
+			val = funcPOOL.get( RC, 8, word( tb_namelst, i ) ) ;
+			if ( RC == 8 )
+			{
+				funcPOOL.put( RC, 0, word( tb_namelst, i ), "" ) ;
+				val = "" ;
+			}
+			else if ( RC > 8 ) { RC = 20 ; return ; }
+			flds.push_back( val ) ;
 		}
 	}
 
@@ -816,8 +885,8 @@ void Table::tbsarg( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_dir
 	for ( i = 1 ; i <= num_all ; i++ )
 	{
 		var = word( tab_all, i ) ;
-		val = funcPOOL.get( RC, 0, var ) ;
-		if ( RC > 0 ) { RC = 20 ; return ; }
+		val = funcPOOL.get( RC, 8, var ) ;
+		if ( RC > 8 ) { RC = 20 ; return ; }
 		if ( val == "" ) { continue ; }
 		if ( val.back() == '*' ) { t.tbs_gen = true  ; t.tbs_vsize = val.size()-1 ; t.tbs_val = val.substr( 0, t.tbs_vsize ) ; }
 		else                     { t.tbs_gen = false ; t.tbs_val = val  ;                                                      }
@@ -835,8 +904,13 @@ void Table::tbsarg( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_dir
 			RC = 20 ;
 			return  ;
 		}
-		val = funcPOOL.get( RC, 0, var ) ;
-		if ( RC > 0 ) { RC = 20 ; return ; }
+		val = funcPOOL.get( RC, 8, var ) ;
+		if ( RC == 8 )
+		{
+			funcPOOL.put( RC, 0, var, "" ) ;
+			val = "" ;
+		}
+		else if ( RC > 8 ) { RC = 20 ; return ; }
 		if ( val.back() == '*' ) { t.tbs_gen = true  ; t.tbs_vsize = val.size()-1 ; t.tbs_val = val.substr( 0, t.tbs_vsize ) ; }
 		else                     { t.tbs_gen = false ; t.tbs_val = val  ;                                                      }
 		t.tbs_cond  = s_EQ ;
@@ -972,8 +1046,13 @@ void Table::tbscan( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_sav
 		for ( ws = words( tb_namelst ), i = 1 ; i <= ws ; i++ )
 		{
 			var = word( tb_namelst, i ) ;
-			val = funcPOOL.get( RC, 0, var ) ;
-			if ( RC > 0 ) { RC = 20 ; return ; }
+			val = funcPOOL.get( RC, 8, var ) ;
+			if ( RC == 8 )
+			{
+				funcPOOL.put( RC, 0, var, "" ) ;
+				val = "" ;
+			}
+			else if ( RC > 8 ) { RC = 20 ; return ; }
 			t.tbs_ext = false ;
 			if ( val.back() == '*' ) { t.tbs_gen = true  ; t.tbs_vsize = val.size()-1 ; t.tbs_val = val.substr( 0, t.tbs_vsize ) ; }
 			else                     { t.tbs_gen = false ; t.tbs_val = val  ;                                                      }
