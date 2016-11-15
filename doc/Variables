@@ -5,7 +5,7 @@ Function pools are automatically created with entries for:
 	int    ZTDDEPTH (not in IBM's ISPF)
 	int    ZTDROWS
 	int    ZTDSELS
-	int    ZTDTOP 
+	int    ZTDTOP
 	int    ZTDVROWS
 	string ZERR1
 	string ZERR2
@@ -35,7 +35,7 @@ Variables defined in Applications but not automatically in the function pool:
 	string ZVERB    ;
 	string ZMUSR    ;
 	string ZPUSR    ;
-	string ZTUSR    ; 
+	string ZTUSR    ;
 
 Variables pre-set when the application starts:
 ZAPPNAME
@@ -80,6 +80,7 @@ ZSCROLLA (pPanel)
 ZSCROLLN (pPanel)
 
 ZFESCRP  (system) Field cursor position on executing field-level command
+ZFEDATAn          Contain passed data
 
 
 Variables put into the application PROFILE pool by the application:

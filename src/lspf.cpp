@@ -256,12 +256,14 @@ int main( void )
 
 	currScrn->application_add( currAppl ) ;
 	currAppl->ZAPPNAME     = GMAINPGM     ;
+	currAppl->PARM         = ""           ;
 	currAppl->taskID       = ++maxtaskID  ;
 	currAppl->busyAppl     = true         ;
 	currAppl->p_poolMGR    = p_poolMGR    ;
 	currAppl->p_tableMGR   = p_tableMGR   ;
 	currAppl->ZZAPPLID     = "ISP"        ;
 	currAppl->NEWPOOL      = true         ;
+	currAppl->SUSPEND      = true         ;
 	currAppl->lspfCallback = lspfCallbackHandler ;
 
 	p_poolMGR->put( RC, "ZSCREEN", string( 1, ZSCREEN[ screenNum ] ), SHARED, SYSTEM ) ;
@@ -761,8 +763,9 @@ void mainLoop()
 						SELCT.PGM     = GMAINPGM ;
 						SELCT.PARM    = ""    ;
 						SELCT.NEWAPPL = "ISP" ;
-						SELCT.NEWPOOL =  true ;
+						SELCT.NEWPOOL = true  ;
 						SELCT.PASSLIB = false ;
+						SELCT.SUSPEND = true  ;
 						startApplication( SELCT ) ;
 						break ;
 					}
@@ -1147,6 +1150,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 		SELCT.NEWAPPL = ""    ;
 		SELCT.NEWPOOL = true  ;
 		SELCT.PASSLIB = false ;
+		SELCT.SUSPEND = true  ;
 		SEL           = true  ;
 		passthru      = false ;
 		currAppl->currPanel->cmd_setvalue( "" ) ;
@@ -1160,6 +1164,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 		SELCT.NEWAPPL = ""      ;
 		SELCT.NEWPOOL = true    ;
 		SELCT.PASSLIB = false   ;
+		SELCT.SUSPEND = true    ;
 		SEL           = true    ;
 		passthru      = false   ;
 		currAppl->currPanel->cmd_setvalue( "" ) ;
@@ -1446,6 +1451,7 @@ void startApplication( selobj SEL )
 	currAppl->ZAPPNAME     = SEL.PGM      ;
 	currAppl->taskID       = ++maxtaskID  ;
 	currAppl->PASSLIB      = SEL.PASSLIB  ;
+	currAppl->SUSPEND      = SEL.SUSPEND  ;
 	currAppl->busyAppl     = true         ;
 	currAppl->p_poolMGR    = p_poolMGR    ;
 	currAppl->p_tableMGR   = p_tableMGR   ;
@@ -1547,16 +1553,17 @@ void startApplication( selobj SEL )
 
 void terminateApplication()
 {
-	int  RC      ;
-	int  tRC     ;
-	int  tRSN    ;
-	uint row     ;
-	uint col     ;
+	int  RC   ;
+	int  tRC  ;
+	int  tRSN ;
+	uint row  ;
+	uint col  ;
 
-	string  ZAPPNAME ;
-	string  tRESULT  ;
-	string  tMSGID1  ;
-	string  fname    ;
+	string ZAPPNAME ;
+	string tRESULT  ;
+	string tMSGID1  ;
+	string fname    ;
+	string delm     ;
 
 	bool refList      ;
 	bool nretError    ;
@@ -1676,7 +1683,8 @@ void terminateApplication()
 					currAppl->reffield = fname ;
 					if ( p_poolMGR->get( RC, "ZRFMOD", PROFILE ) == "BEX" )
 					{
-						commandStack = ";;" ;
+						delm = p_poolMGR->get( RC, "ZDEL", PROFILE ) ;
+						commandStack = delm + delm ;
 					}
 				}
 				else
@@ -2191,7 +2199,12 @@ void updateReflist()
 	// Don't update REFLIST if the application has done a CONTROL REFLIST NOUPDATE (flag ControlRefUpdate=false)
 	// or ISPS PROFILE variable ZRFURL is not set to YES
 
+	// Save/restore cursor position of the current application, as we don't want the reflist appl to move it
+
 	int RC ;
+
+	uint row ;
+	uint col ;
 
 	string fname ;
 
@@ -2202,6 +2215,7 @@ void updateReflist()
 	{
 		if ( currAppl->currPanel->field_valid( fname ) )
 		{
+			currAppl->get_cursor( row, col ) ;
 			SELCT.clear() ;
 			SELCT.PGM     = p_poolMGR->get( RC, "ZRFLPGM", PROFILE ) ;
 			SELCT.PARM    = "PLA " + currAppl->currPanel->field_getvalue( fname ) ;
@@ -2209,6 +2223,7 @@ void updateReflist()
 			SELCT.NEWPOOL = false ;
 			SELCT.PASSLIB = false ;
 			startApplication( SELCT ) ;
+			currScrn->set_row_col( row, col ) ;
 		}
 		else
 		{
@@ -2222,7 +2237,7 @@ void updateReflist()
 void rawOutput()
 {
 	// Write raw output to the display and clear the raw messages vector.
-	// save/restore the panel stack for this logica screen
+	// save/restore the panel stack for this logical screen
 
 	int i ;
 	int l ;

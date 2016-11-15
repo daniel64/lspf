@@ -41,6 +41,8 @@ pApplication::pApplication()
 	errPanelissued         = false  ;
 	abending               = false  ;
 	addpop_active          = false  ;
+	addpop_row             = 0      ;
+	addpop_col             = 0      ;
 	noTimeOut              = false  ;
 	busyAppl               = false  ;
 	terminateAppl          = false  ;
@@ -52,6 +54,7 @@ pApplication::pApplication()
 	rexxName               = ""     ;
 	NEWPOOL                = false  ;
 	PASSLIB                = false  ;
+	SUSPEND                = false  ;
 	libdef_muser           = false  ;
 	libdef_puser           = false  ;
 	libdef_tuser           = false  ;
@@ -99,12 +102,29 @@ pApplication::~pApplication()
 
 void pApplication::init()
 {
+	// Before being dispatched in its own thread, set the search paths, table display BOD mark and
+	// addpop status if this has not been invoked with the SUSPEND option on the SELECT command
+
+	int scrnum ;
+
 	ZPLIB    = p_poolMGR->get( RC, "ZPLIB", PROFILE ) ;
 	ZTLIB    = p_poolMGR->get( RC, "ZTLIB", PROFILE ) ;
 	ZMLIB    = p_poolMGR->get( RC, "ZMLIB", PROFILE ) ;
 	ZORXPATH = p_poolMGR->get( RC, "ZORXPATH", PROFILE ) ;
 
 	ZTDMARK  = centre( " BOTTOM OF DATA ", ds2d( p_poolMGR->get( RC, "ZSCRMAXW", SHARED ) ), '*' ) ;
+
+	if ( !SUSPEND )
+	{
+		scrnum     = ds2d(p_poolMGR->get( RC, "ZSCRNUM", SHARED ) ) ;
+		addpop_row = ds2d( p_poolMGR->get( RC, scrnum, "ZPROW" ) ) ;
+		addpop_col = ds2d( p_poolMGR->get( RC, scrnum, "ZPCOL" ) ) ;
+		if ( addpop_row != 0 || addpop_col != 0 )
+		{
+			addpop_active = true ;
+		}
+	}
+
 	log( "I", "Initialisation complete" << endl ; )
 }
 
@@ -240,6 +260,9 @@ void pApplication::restore_Zvars( int screenID )
 			ZSCRNAME = p_poolMGR->get( RC1, screenID, "ZSCRNAME" ) ;
 	}
 	p_poolMGR->put( RC1, "ZSCRNAME", ZSCRNAME, SHARED ) ;
+
+	p_poolMGR->put( RC, screenID, "ZPROW", d2ds( addpop_row ) ) ;
+	p_poolMGR->put( RC, screenID, "ZPCOL", d2ds( addpop_col ) ) ;
 }
 
 
@@ -262,7 +285,7 @@ void pApplication::set_msg( string msg_id )
 
 	errorStatus = ControlErrorsReturn ;
 
-	control( "ERRORS", "RETURN" ) ;
+	ControlErrorsReturn = true ;
 	get_Message( msg_id ) ;
 	if ( RC == 0 )
 	{
@@ -743,7 +766,7 @@ void pApplication::vreplace( string name, string s_val )
 
 	RC = 0 ;
 	funcPOOL.put( RC, 0, name, s_val ) ;
-	if ( RC > 8 ) { checkRCode( "Function pool put failed for "+ name ) ; }
+	if ( RC > 0 ) { checkRCode( "Function pool put failed for "+ name ) ; }
 }
 
 
@@ -755,7 +778,7 @@ void pApplication::vreplace( string name, int i_val )
 
 	RC = 0 ;
 	funcPOOL.put( RC, 0, name, i_val ) ;
-	if ( RC > 8 ) { checkRCode( "VREPLACE failed for "+ name ) ; }
+	if ( RC > 0 ) { checkRCode( "VREPLACE failed for "+ name ) ; }
 }
 
 
@@ -1013,18 +1036,21 @@ string pApplication::vslist( vdType defn )
 void pApplication::addpop( string a_fld, int a_row, int a_col )
 {
 	//  Create pop-up window and set row/col for the next panel display.  If addpop() is already active, store old values for next rempop()
-	//  Position of addpop is relative to row=1, col=3
+	//  Position of addpop is relative to row=1, col=3 or the previous addpop() position for this logical screen.
 	//  Defaults are 0,0 giving row=1, col=3 (or 2,4 when starting at 1,1)
 
 	//  RC = 0  Normal completion
 	//  RC = 12 No panel displayed before addpop() service when using field parameter
 	//  RC = 20 Severe error
 
+	int  scrnum     ;
+
 	uint p_row( 0 ) ;
 	uint p_col( 0 ) ;
 
 	RC = 0 ;
 
+	scrnum = ds2d(p_poolMGR->get( RC, "ZSCRNUM", SHARED ) ) ;
 	if ( a_fld != "" )
 	{
 		if ( panelList.size() == 0 )
@@ -1039,28 +1065,37 @@ void pApplication::addpop( string a_fld, int a_row, int a_col )
 			checkRCode( "Field "+ a_fld +" not found or invalid on ADDPOP service" ) ;
 			return ;
 		}
-		a_row = a_row + p_row ;
-		a_col = a_col + p_col ;
+		a_row += p_row ;
+		a_col += p_col - 4 ;
+	}
+	else
+	{
+		a_row += ds2d( p_poolMGR->get( RC, scrnum, "ZPROW" ) ) ;
+		a_col += ds2d( p_poolMGR->get( RC, scrnum, "ZPCOL" ) ) ;
 	}
 	if ( addpop_active )
 	{
 		addpop_stk.push( addpop_row ) ;
 		addpop_stk.push( addpop_col ) ;
 	}
+
+	addpop_active = true ;
 	addpop_row = (a_row <  0 ) ? 1 : a_row + 2 ;
 	addpop_col = (a_col < -1 ) ? 2 : a_col + 4 ;
-	addpop_active = true ;
+	p_poolMGR->put( RC, scrnum, "ZPROW", d2ds( addpop_row ) ) ;
+	p_poolMGR->put( RC, scrnum, "ZPCOL", d2ds( addpop_col ) ) ;
 }
 
 
 void pApplication::rempop( string r_all )
 {
 	//  Remove pop-up window.  Restore previous rempop() if there is one (push order row,col).
-	//  Let the current panel know the new row/col or that popups are no longer active
 
 	//  RC = 0  Normal completion
 	//  RC = 16 No pop-up window exists at this level
 	//  RC = 20 Severe error
+
+	int  scrnum ;
 
 	RC = 0 ;
 
@@ -1078,6 +1113,8 @@ void pApplication::rempop( string r_all )
 		else
 		{
 			addpop_active = false ;
+			addpop_row    = 0 ;
+			addpop_col    = 0 ;
 		}
 	}
 	else if ( r_all == "ALL" )
@@ -1087,8 +1124,14 @@ void pApplication::rempop( string r_all )
 			addpop_stk.pop() ;
 		}
 		addpop_active = false ;
+		addpop_row    = 0 ;
+		addpop_col    = 0 ;
 	}
-	else { RC = 20 ; checkRCode( "Invalid parameter on REMPOP service.  Must be ALL or blank" ) ; }
+	else { RC = 20 ; checkRCode( "Invalid parameter on REMPOP service.  Must be ALL or blank" ) ; return ; }
+
+	scrnum = ds2d(p_poolMGR->get( RC, "ZSCRNUM", SHARED ) ) ;
+	p_poolMGR->put( RC, scrnum, "ZPROW", d2ds( addpop_row ) ) ;
+	p_poolMGR->put( RC, scrnum, "ZPCOL", d2ds( addpop_col ) ) ;
 }
 
 
@@ -2893,14 +2936,17 @@ void pApplication::ispexec( const string & s )
 
 void pApplication::checkRCode( const string & s )
 {
+	// If the error panel is to be displayed, cancel CONTROL DISPLAY LOCK
+
 	log( "E", s << endl ) ;
 	if ( ZERR2 != "" ) { log( "E", ZERR2 << endl ) ; }
 
-	if ( (!ControlErrorsReturn) && (RC >= 12) )
+	if ( !ControlErrorsReturn && RC >= 12 )
 	{
-		log( "E", "RC=" << RC << " CONTROL ERRORS CANCEL is in effect.  Aborting" << endl ) ;
+		log( "E", "RC="<< RC <<" CONTROL ERRORS CANCEL is in effect.  Aborting" << endl ) ;
 		ZERR1 = s ;
-		control( "ERRORS", "RETURN" ) ;
+		ControlDisplayLock  = false ;
+		ControlErrorsReturn = true  ;
 		display( "PSYSER1" ) ;
 		if ( RC <= 8 ) { errPanelissued = true ; }
 		abend() ;

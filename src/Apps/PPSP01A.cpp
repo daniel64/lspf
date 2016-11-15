@@ -1858,6 +1858,7 @@ void PPSP01A::showTasks()
 	string CMD   ;
 	string MSG   ;
 	string TASKLST ;
+
 	MSG = "" ;
 
 	vdefine( "SEL USER PID CPU CPUX MEM MEMX CMD", &SEL, &USER, &PID, &CPU, &CPUX, &MEM, &MEMX, &CMD ) ;
@@ -1877,7 +1878,6 @@ void PPSP01A::showTasks()
 		if ( RC ==  8 ) { break   ; }
 		MSG = ""     ;
 		i   = ZTDTOP ;
-		if ( ZCMD != "" ) { MSG = "PSYS018" ; continue ; }
 		while ( ZTDSELS > 0 )
 		{
 			if ( SEL == "K")
@@ -1892,6 +1892,7 @@ void PPSP01A::showTasks()
 			}
 			else { ZTDSELS = 0 ; }
 		}
+		tbend( TASKLST ) ;
 		updateTasks( TASKLST ) ;
 	}
 	tbend( TASKLST ) ;
@@ -1903,30 +1904,19 @@ void PPSP01A::updateTasks( string table )
 {
 	int p ;
 
-	string SEL   ;
-	string USER  ;
-	string PID   ;
-	string CPU   ;
-	string MEM   ;
-	string CPUX  ;
-	string MEMX  ;
-	string CMD   ;
 	string inLine ;
+	string USER   ;
+	string CPU    ;
+	string CPUX   ;
 
 	std::ifstream fin  ;
 
-	vcopy( "ZUSER", ZUSER, MOVE ) ;
+	vcopy( "ZUSER", ZUSER, MOVE )     ;
 	vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
 
 	boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
 	string tname = temp.native() ;
 	string cname = "ps aux > " + tname ;
-
-	vdefine( "SEL USER PID CPU CPUX MEM MEMX CMD", &SEL, &USER, &PID, &CPU, &CPUX, &MEM, &MEMX, &CMD ) ;
-
-	control( "ERRORS", "RETURN" ) ;
-	tbend( table ) ;
-	control( "ERRORS", "CANCEL" ) ;
 
 	tbcreate( table, "", "SEL USER PID CPU CPUX MEM MEMX CMD", NOWRITE ) ;
 
@@ -1934,21 +1924,24 @@ void PPSP01A::updateTasks( string table )
 	fin.open( tname ) ;
 	while ( getline( fin, inLine ) )
 	{
+		tbvclear( table ) ;
 		USER = word( inLine, 1 ) ;
 		if ( USER == "USER" ) { continue ; }
-		PID  = word( inLine, 2 ) ;
+		vreplace( "USER", word( inLine, 1 ) ) ;
+		vreplace( "PID", word( inLine, 2 ) ) ;
 		CPU  = word( inLine, 3 ) ;
+		vreplace( "CPU", CPU ) ;
 		p = CPU.find( '.' )      ;
 		if ( p == string::npos ) { CPUX = d2ds( ds2d( CPU ) * 10 ) ; }
 		else                     { CPUX = CPU ; CPUX.erase( p, 1 ) ; }
-		MEM  = word( inLine, 4 ) ;
-		CMD  = strip( substr( inLine, 65 ) ) ;
+		vreplace( "CPUX", CPUX ) ;
+		vreplace( "MEM", word( inLine, 4 ) ) ;
+		vreplace( "CMD", strip( substr( inLine, 65 ) ) ) ;
 		tbadd( table ) ;
 	}
 	fin.close() ;
 	tbsort( table, "CPUX,N,D" ) ;
 	tbtop( table ) ;
-	vdelete( "SEL USER PID CPU CPUX MEM MEMX CMD" ) ;
 	remove( tname ) ;
 }
 

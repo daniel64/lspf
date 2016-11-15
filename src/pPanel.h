@@ -44,7 +44,7 @@ class pPanel
 		string field_getname( uint row, uint col ) ;
 		bool   field_get_row_col( string fld, uint & row, uint & col ) ;
 
-		void   cursor_to_field( int & RC, string name="", int pos = 1 ) ;
+		void   cursor_to_field( int & RC, string = "", int = 1 ) ;
 		void   cursor_to_next_field ( string name, uint & row, uint & col )  ;
 		void   cursor_eof( uint & row, uint & col )  ;
 		void   get_cursor( uint & row, uint & col )     { row   = p_row + win_row ; col   = p_col + win_col ; } ;

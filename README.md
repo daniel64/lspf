@@ -1,7 +1,7 @@
 # lspf
 Open source Linux version of IBM's z/OS ISPF Dialogue Manager written in C++
 
-Application programs wishing to use DM Services, can be written in C++ or rexx (open object rexx).
+Application programs wishing to use DM Services, can be written in C++ or rexx (open object rexx).  Calls are made via a pApplication method or the ISPEXEC interface.
 
 Most services are supported (missing services are mostly file tailoring, and LM*) as are dynamic input/output areas and a subset of the ISPF panel language.  See doc directory for more details.
 

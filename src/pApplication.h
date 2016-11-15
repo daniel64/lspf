@@ -60,6 +60,7 @@ class pApplication
 		bool   SEL                ;
 		bool   NEWPOOL            ;
 		bool   PASSLIB            ;
+		bool   SUSPEND            ;
 		bool   setMSG             ;
 		string reffield           ;
 

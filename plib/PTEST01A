@@ -160,8 +160,6 @@ IF (&FLD8 EQ &Z)                    /*  NEF Change to hilight+NEF if error */
    .MSG    = PSYS019
    .CURSOR = FLD8
    EXIT
-ELSE
-   .ATTR(FLD8) = RESET
 
 &L = LENGTH(FLD9)
 IF (&L NE 8)

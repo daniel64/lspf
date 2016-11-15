@@ -332,6 +332,7 @@ class selobj
 			NEWAPPL = "" ;
 			NEWPOOL = false ;
 			PASSLIB = false ;
+			SUSPEND = false ;
 			SCRNAME = "" ;
 		}
 		void clear()
@@ -341,6 +342,7 @@ class selobj
 			NEWAPPL = "" ;
 			NEWPOOL = false ;
 			PASSLIB = false ;
+			SUSPEND = false ;
 			SCRNAME = "" ;
 		}
 		bool parse( string ) ;
@@ -350,5 +352,6 @@ class selobj
 		string NEWAPPL ;
 		bool   NEWPOOL ;
 		bool   PASSLIB ;
+		bool   SUSPEND ;
 		string SCRNAME ;
 } ;

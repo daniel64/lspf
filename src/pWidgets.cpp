@@ -705,11 +705,6 @@ int field::field_attr( string attrs )
 	intens = "" ;
 	hilite = "" ;
 
-	if ( strip( attrs ) == "RESET" )
-	{
-		field_usecua = true ;
-		return 0 ;
-	}
 	p1 = pos( "TYPE(", attrs ) ;
 	if ( p1 > 0 )
 	{
@@ -775,6 +770,14 @@ int field::field_attr( string attrs )
 	if ( strip( attrs ) != "" ) { return 20 ; }
 	field_usecua = false ;
 	return 0 ;
+}
+
+
+void field::field_attr()
+{
+	// Reset field attribute to use the CUA value
+
+	field_usecua = true ;
 }
 
 

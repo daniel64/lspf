@@ -27,9 +27,6 @@
 /* PARM word 1 is the rexx to invloke                                                                   */
 /* PARM words 2 onwards are the parameters for the rexx (Arg(1))                                        */
 /*                                                                                                      */
-/* Most services will just call the ISPEXEC interface.  VGET needs to be slightly different             */
-// as variables not found need a blank default value instead of the rexx name.                          */
-/*                                                                                                      */
 /* ZORXPATH is used to find the exec if a fully qualified name not passed                               */
 /*                                                                                                      */
 /* Use system variable ZOREXPGM to refer to this module rather than the name, to allow different        */

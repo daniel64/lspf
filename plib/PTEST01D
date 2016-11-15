@@ -131,7 +131,8 @@ IF (&SEL NE &Z)
    IF (&SEL NE D,R,RO,G)
       .ATTR(SEL) = 'COLOUR(RED) INTENSE(HIGH)'
       .CURSOR    = SEL
-      .MSG       = PSYS011C
+      .MSG       = PSYS011B
+      &ZZSTR1    = 'D, R, RO and G'
       EXIT
 
 

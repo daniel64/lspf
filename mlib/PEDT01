@@ -230,7 +230,7 @@ PEDT014G 'Sort column out of range' .TYPE=W
 PEDT014H 'Invalid swap command' .TYPE=W
 'W/WW can only be used with the M/MM line commands'
 
-PEDT014I 'Data not savd by END' .TYPE=W
+PEDT014I 'Data not saved by END' .TYPE=W
 'AUTOSAVE OFF NOPROMPT.  Any changes will be automatically cancelled on exit'
 
 PEDT014J 'Edit profile not found' .TYPE=W

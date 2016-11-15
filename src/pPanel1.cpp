@@ -1290,6 +1290,7 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 				{
 					MSGID  = verList.at( i_verify ).ver_msgid  ;
 					if (MSGID == "" ) { MSGID = "PSYS019" ; }
+					if ( wordpos( fieldNam, tb_fields ) > 0 ) { fieldNam += "."+ d2ds( ln ) ; }
 					CURFLD = fieldNam ;
 					MSGLOC = CURFLD   ;
 					return            ;
@@ -1306,6 +1307,7 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 				{
 					MSGID  = verList.at( i_verify ).ver_msgid  ;
 					if (MSGID == "" ) { MSGID = "PSYS011A" ; }
+					if ( wordpos( fieldNam, tb_fields ) > 0 ) { fieldNam += "."+ d2ds( ln ) ; }
 					CURFLD = fieldNam ;
 					MSGLOC = CURFLD   ;
 					return            ;
@@ -1348,8 +1350,10 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 				}
 				if ( !found )
 				{
+					p_poolMGR->put( RC1, "ZZSTR1", verList.at( i_verify ).ver_value, SHARED ) ;
 					MSGID  = verList.at( i_verify ).ver_msgid  ;
 					if (MSGID == "" ) { MSGID = "PSYS011B" ; }
+					if ( wordpos( fieldNam, tb_fields ) > 0 ) { fieldNam += "."+ d2ds( ln ) ; }
 					CURFLD = fieldNam ;
 					MSGLOC = CURFLD   ;
 					return            ;
@@ -1363,6 +1367,7 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 					p_poolMGR->put( RC1, "ZZSTR2", verList.at( i_verify ).ver_value, SHARED ) ;
 					MSGID  = verList.at( i_verify ).ver_msgid  ;
 					if (MSGID == "" ) { MSGID = "PSYS011N" ; }
+					if ( wordpos( fieldNam, tb_fields ) > 0 ) { fieldNam += "."+ d2ds( ln ) ; }
 					CURFLD = fieldNam ;
 					MSGLOC = CURFLD   ;
 					return            ;
@@ -1374,6 +1379,7 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 				{
 					MSGID  = verList.at( i_verify ).ver_msgid  ;
 					if (MSGID == "" ) { MSGID = "PSYS011H" ; }
+					if ( wordpos( fieldNam, tb_fields ) > 0 ) { fieldNam += "."+ d2ds( ln ) ; }
 					CURFLD = fieldNam ;
 					MSGLOC = CURFLD   ;
 					return            ;
@@ -1385,6 +1391,7 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 				{
 					MSGID  = verList.at( i_verify ).ver_msgid  ;
 					if (MSGID == "" ) { MSGID = "PSYS011F" ; }
+					if ( wordpos( fieldNam, tb_fields ) > 0 ) { fieldNam += "."+ d2ds( ln ) ; }
 					CURFLD = fieldNam ;
 					MSGLOC = CURFLD   ;
 					return            ;
@@ -1499,7 +1506,8 @@ void pPanel::create_pdc( string abc_name, string pdc_name, string pdc_run, strin
 
 void pPanel::update_field_values( int & RC1 )
 {
-	// Update field_values from the dialogue variables (may not exist so treat RC1=8 from getDialogueVar as normal completion)
+	// Update field_values from the dialogue variables (may not exist so treat RC=8 from getDialogueVar as normal completion)
+	// (RC1 is the passed pApplication RC)
 
 	// Apply just(right|left|asis) to non-dynamic area input/output fields
 	//     JUST(LEFT)  strip off leading and trailing spaces
@@ -1522,6 +1530,7 @@ void pPanel::update_field_values( int & RC1 )
 		if ( !it1->second->field_dynArea )
 		{
 			it1->second->field_value = getDialogueVar( it1->first ) ;
+			RC1 = RC ;
 			switch( it1->second->field_just )
 			{
 				case 'L': it1->second->field_value = strip( it1->second->field_value, 'B', ' ' ) ;
@@ -1606,7 +1615,7 @@ void pPanel::resetAttrs()
 
 	for ( i = 0 ; i < attrList.size() ; i++ )
 	{
-		RC = fieldList[ attrList[ i ] ]->field_attr( "RESET" ) ;
+		fieldList[ attrList[ i ] ]->field_attr() ;
 	}
 	attrList.clear() ;
 }
@@ -2416,6 +2425,7 @@ void pPanel::get_msgwin( int t_size, int & t_row, int & t_col, int & t_depth, in
 	{
 		t_row = fieldList[ MSGLOC ]->field_row + 1 ;
 		t_col = fieldList[ MSGLOC ]->field_col - 2 ;
+		if ( t_col < 0 ) { t_col = 0 ; }
 		w1    = WSCRMAXD - t_col ;
 		t_depth = 3 ;
 		t_width = t_size + 4 ;

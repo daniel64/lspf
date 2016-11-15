@@ -307,7 +307,7 @@ bool ASSGN::parse( string s )
 	{
 		if ( words( s ) != 1 ) { return false ; }
 		s = upper( s ) ;
-		if ( s[ 0 ]  == '.' && !findword( s, ".TRAIL .HELP .MSG .CURSOR" ) ) { return false ; }
+		if ( s[ 0 ]  == '.' && !findword( s, ".CURSOR .HELP .MSG .TRAIL" ) ) { return false ; }
 		as_rhs = s ;
 	}
 	return true ;
@@ -758,6 +758,13 @@ bool selobj::parse( string SELSTR )
 	if ( p1 > 0 )
 	{
 		NEWPOOL = true ;
+		str     = delword( str, p1, 1 ) ;
+	}
+
+	p1 = wordpos( "SUSPEND", str ) ;
+	if ( p1 > 0 )
+	{
+		SUSPEND = true ;
 		str     = delword( str, p1, 1 ) ;
 	}
 

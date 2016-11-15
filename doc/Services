@@ -2,7 +2,7 @@ See IBM's ISPF Services Guide and ISPF Reference Summary for a more complete des
 Detailed ISPF programming information can be found in IBM's Dialog Developer's Guide And Reference.
 
 Application programs running under lspf need to be implemented as a class inheriting from pApplication and
-implement pure virtual function application().  Control is given to this function after initialisation is complete 
+implement pure virtual function application().  Control is given to this function after initialisation is complete
 and routine cleanup() must be called before returning from this function to indicate to lspf the application is
 terminating.
 
@@ -24,8 +24,8 @@ C++ lspf service function prototypes:
 	void   vdelete( string ) ;
 	void   verase( string var, poolType =ASIS )
 	void   vget( string var, poolType =ASIS )
-	string vlist( poolType pType, int lvl ) 
-	void   vput( string var, poolType =ASIS ) 
+	string vlist( poolType pType, int lvl )
+	void   vput( string var, poolType =ASIS )
 	void   vreplace( string, string )
 	void   vreplace( string, int )
 	void   vreset() ;
@@ -51,11 +51,14 @@ C++ lspf service function prototypes:
 	void   tbsort( string tb_name, string tb_fields )
 	void   tbtop( string tb_name )
 	void   tbvclear( string tb_name )
-	
+
 	void   browse( string m_file, string m_panel="" )
 	void   edit( string m_file, string m_panel=""   )
 	void   view( string m_file, string m_panel=""   )
 	void   setmsg( string msg, msgSET sType=UNCOND  )
+
+Alternatively, the ISPEXEC interface is supported (with the usual restrictions), rather than calling the pApplication method.
+The ISPEXEC interface supports variable substitution.
 
 Functions set return code in variable RC
 
@@ -64,9 +67,9 @@ The following services are implemented:
 Variable handling:
 vdefine including definition stacking.  Only STRING and INT supported.
 vdelete
-vcopy (only MOVE option currently supported)
+vcopy (MOVE and LOCATE options supported)
 vreplace
-verase 
+verase
 vget
 vput
 vreset
@@ -75,8 +78,5 @@ vlist (extension to return a list of variables in a pool)
 
 
 Table handling:
-Not well tested and only one key on keyed tables, currently supported.
-tbsort only supports up to two sort fields.
-
-
+Not well tested and but any number of keys, currently supported.
 

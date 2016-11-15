@@ -119,6 +119,7 @@ class field
 		int  field_dyna_input_offset( uint col )  ;
 		void field_DataMod_to_UserMod( string *, int ) ;
 		int  field_attr( string attrs ) ;
+		void field_attr() ;
 		int  end_of_field( WINDOW * win, uint col )   ;
 
        friend class pPanel ;

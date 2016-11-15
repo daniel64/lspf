@@ -880,7 +880,8 @@ void poolMGR::createPool( int & RC, poolType pType, string path )
 
 void poolMGR::createPool( int ls )
 {
-	// Create the logical-screen variable pool and add defaults.  This pool is not accessible by applications.
+	// Create the logical-screen variable pool and add defaults.
+	// This pool is not accessible by applications (for internal use only).
 
 	int RC      ;
 	pVPOOL pool ;
@@ -888,6 +889,8 @@ void poolMGR::createPool( int ls )
 	POOLs_lscreen[ ls ] = pool ;
 	POOLs_lscreen[ ls ].put( RC, "ZMSGID",   "",  USER ) ;
 	POOLs_lscreen[ ls ].put( RC, "ZSCRNAME", "",  USER ) ;
+	POOLs_lscreen[ ls ].put( RC, "ZPROW",    "0", USER ) ;
+	POOLs_lscreen[ ls ].put( RC, "ZPCOL",    "0", USER ) ;
 	POOLs_lscreen[ ls ].put( RC, "ZSCRNAM2", "",  USER ) ;
 	POOLs_lscreen[ ls ].put( RC, "ZSHMSGID", "N", USER ) ;
 	POOLs_lscreen[ ls ].put( RC, "ZSHPANID", "N", USER ) ;
