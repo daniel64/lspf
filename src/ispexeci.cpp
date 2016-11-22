@@ -55,6 +55,7 @@ int execiTBTop( pApplication *, const string & )    ;
 int execiTBVClear( pApplication *, const string & ) ;
 int execiVerase( pApplication *, const string & )   ;
 int execiVget( pApplication *, const string & )     ;
+int execiView( pApplication *, const string & )     ;
 int execiVput( pApplication *, const string & )     ;
 
 void execiSyntaxError( pApplication *, const string & ) ;
@@ -95,6 +96,7 @@ map<string, int(*)(pApplication *,const string &)> execiServices = {
 		  { "TBVCLEAR", execiTBVClear },
 		  { "VERASE",   execiVerase   },
 		  { "VGET",     execiVget     },
+		  { "VIEW",     execiView     },
 		  { "VPUT",     execiVput     } } ;
 
 
@@ -1119,6 +1121,29 @@ int execiVget( pApplication * thisAppl, const string & s )
 	else                         { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	thisAppl->vget( vars, pType ) ;
+	return thisAppl->RC ;
+}
+
+
+int execiView( pApplication * thisAppl, const string & s )
+{
+	bool   rlt ;
+
+	string str ;
+	string pan ;
+	string fl  ;
+
+	str = subword( s, 2 ) ;
+
+	fl  = parseString( rlt, str, "FILE()" ) ;
+	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
+
+	pan = parseString( rlt, str, "PANEL()" ) ;
+	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
+
+	if ( strip( str ) != "" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
+
+	thisAppl->view( fl, upper( pan ) ) ;
 	return thisAppl->RC ;
 }
 

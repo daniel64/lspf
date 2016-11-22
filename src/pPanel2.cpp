@@ -296,7 +296,7 @@ int pPanel::loadPanel( string p_name, string paths )
 				m_stmnt.ps_column  = pline.find_first_not_of( ' ' ) ;
 				if ( init )         { vpgListi.push_back( m_VPG ) ; initstmnts.push_back( m_stmnt ) ; }
 				else if ( reinit )  { vpgListr.push_back( m_VPG ) ; reinstmnts.push_back( m_stmnt ) ; }
-				else                { vpgList.push_back( m_VPG )  ; procstmnts.push_back( m_stmnt ) ; }
+				else                { vpgListp.push_back( m_VPG ) ; procstmnts.push_back( m_stmnt ) ; }
 				continue ;
 			}
 			if ( (w1[ 0 ] == '&' || w1[ 0 ] == '.' ) && ( pline.find( "TRUNC(" ) == string::npos && pline.find( "TRANS(" ) == string::npos ) )
@@ -322,13 +322,9 @@ int pPanel::loadPanel( string p_name, string paths )
 				m_stmnt.ps_column = pline.find_first_not_of( ' ' ) ;
 				if ( init )         { assgnListi.push_back( m_assgn ) ; initstmnts.push_back( m_stmnt ) ; }
 				else if ( reinit )  { assgnListr.push_back( m_assgn ) ; reinstmnts.push_back( m_stmnt ) ; }
-				else                { assgnList.push_back( m_assgn )  ; procstmnts.push_back( m_stmnt ) ; }
+				else                { assgnListp.push_back( m_assgn ) ; procstmnts.push_back( m_stmnt ) ; }
 				continue ;
 			}
-		}
-
-		if ( proc )
-		{
 			if ( w1 == "IF" )
 			{
 				IFSTMNT m_if     ;
@@ -338,14 +334,20 @@ int pPanel::loadPanel( string p_name, string paths )
 					PERR = "Error in IF statement "+ strip( pline ) ; return 20 ;
 				}
 				if ( wordpos( m_if.if_lhs, tb_fields ) > 0 ) { m_if.if_istb = true ; }
-				ifList.push_back( m_if ) ;
-				m_stmnt.ps_if     = true ;
+				m_stmnt.ps_if     = true  ;
 				m_stmnt.ps_column = pline.find_first_not_of( ' ' ) ;
-				procstmnts.push_back( m_stmnt ) ;
+				if ( init )         { ifListi.push_back( m_if ) ; initstmnts.push_back( m_stmnt ) ; }
+				else if ( reinit )  { ifListr.push_back( m_if ) ; reinstmnts.push_back( m_stmnt ) ; }
+				else                { ifListp.push_back( m_if ) ; procstmnts.push_back( m_stmnt ) ; }
 				continue ;
 			}
 			if ( w1 == "ELSE" && w2 == "" )
 			{
+				vector<panstmnt> * p_stmnt  ;
+				vector<IFSTMNT>  * p_ifList ;
+				if ( init )         { p_stmnt = &initstmnts ; p_ifList = &ifListi ; }
+				else if ( reinit )  { p_stmnt = &reinstmnts ; p_ifList = &ifListr ; }
+				else                { p_stmnt = &procstmnts ; p_ifList = &ifListp ; }
 				IFSTMNT m_if        ;
 				m_if.if_else = true ;
 				panstmnt m_stmnt    ;
@@ -353,18 +355,18 @@ int pPanel::loadPanel( string p_name, string paths )
 				found             = false ;
 				m_stmnt.ps_else   = true  ;
 				m_stmnt.ps_column = pline.find_first_not_of( ' ' ) ;
-				for ( i = procstmnts.size()-1 ; i >= 0 ; i-- )
+				for ( i = p_stmnt->size()-1 ; i >= 0 ; i-- )
 				{
-					if ( procstmnts.at( i ).ps_if || ( procstmnts.at( i ).ps_else ) ) { j++ ; }
-					if ( procstmnts.at( i ).ps_if && (procstmnts.at( i ).ps_column == m_stmnt.ps_column) )
+					if ( p_stmnt->at( i ).ps_if || p_stmnt->at( i ).ps_else ) { j++ ; }
+					if ( p_stmnt->at( i ).ps_if && (p_stmnt->at( i ).ps_column == m_stmnt.ps_column))
 					{
-						m_if.if_stmnt = ifList.size()-j ;
-						ifList.push_back( m_if ) ;
-						procstmnts.push_back( m_stmnt ) ;
+						m_if.if_stmnt = p_ifList->size()-j ;
+						p_ifList->push_back( m_if ) ;
+						p_stmnt->push_back( m_stmnt ) ;
 						found = true ;
 						break        ;
 					}
-					if ( procstmnts.at( i ).ps_column <= m_stmnt.ps_column ) { break ; }
+					if ( p_stmnt->at( i ).ps_column <= m_stmnt.ps_column ) { break ; }
 				}
 				if ( !found )
 				{
@@ -376,9 +378,41 @@ int pPanel::loadPanel( string p_name, string paths )
 			if ( w1 == "EXIT" && w2 == "" )
 			{
 				panstmnt m_stmnt ;
-				m_stmnt.ps_exit = true ;
+				m_stmnt.ps_exit   = true ;
 				m_stmnt.ps_column = pline.find_first_not_of( ' ' ) ;
-				procstmnts.push_back( m_stmnt ) ;
+				if ( init )         { initstmnts.push_back( m_stmnt ) ; }
+				else if ( reinit )  { reinstmnts.push_back( m_stmnt ) ; }
+				else                { procstmnts.push_back( m_stmnt ) ; }
+				continue ;
+			}
+			if ( pline.find( "TRANS(" ) != string::npos )
+			{
+				TRANS m_trans    ;
+				panstmnt m_stmnt ;
+				if ( !m_trans.parse( pline ) )
+				{
+					PERR = "Error in TRANS statement "+ strip( pline ) ; return 20 ;
+				}
+				m_stmnt.ps_trans  = true ;
+				m_stmnt.ps_column = pline.find_first_not_of( ' ' ) ;
+				if ( init )         { transListi.push_back( m_trans ) ; initstmnts.push_back( m_stmnt ) ; }
+				else if ( reinit )  { transListr.push_back( m_trans ) ; reinstmnts.push_back( m_stmnt ) ; }
+				else                { transListp.push_back( m_trans ) ; procstmnts.push_back( m_stmnt ) ; }
+				continue ;
+			}
+			if ( pline.find( "TRUNC(" ) != string::npos )
+			{
+				TRUNC m_trunc    ;
+				panstmnt m_stmnt ;
+				if ( !m_trunc.parse( pline ) )
+				{
+					PERR = "Error in TRUNC statement "+ strip( pline ) ; return 20 ;
+				}
+				m_stmnt.ps_trunc  = true ;
+				m_stmnt.ps_column = pline.find_first_not_of( ' ' ) ;
+				if ( init )         { truncListi.push_back( m_trunc ) ; initstmnts.push_back( m_stmnt ) ; }
+				else if ( reinit )  { truncListr.push_back( m_trunc ) ; reinstmnts.push_back( m_stmnt ) ; }
+				else                { truncListp.push_back( m_trunc ) ; procstmnts.push_back( m_stmnt ) ; }
 				continue ;
 			}
 			if ( w1 == "VER" )
@@ -395,40 +429,14 @@ int pPanel::loadPanel( string p_name, string paths )
 				}
 				else if ( fieldList.find( m_VER.ver_field ) == fieldList.end() )
 				{
-					PERR = "Error in VER statement. Field "+ m_VER.ver_field +" not found" ; return 20 ;
+					PERR = "Error in VER statement. Field "+ m_VER.ver_field +" not found" ;
+					return 20 ;
 				}
-				verList.push_back( m_VER ) ;
-				m_stmnt.ps_verify = true   ;
+				m_stmnt.ps_verify = true ;
 				m_stmnt.ps_column = pline.find_first_not_of( ' ' ) ;
-				procstmnts.push_back( m_stmnt ) ;
-				continue ;
-			}
-			if ( pline.find( "TRUNC(" ) != string::npos )
-			{
-				TRUNC m_trunc    ;
-				panstmnt m_stmnt ;
-				if ( !m_trunc.parse( pline ) )
-				{
-					PERR = "Error in TRUNC statement "+ strip( pline ) ; return 20 ;
-				}
-				truncList.push_back( m_trunc ) ;
-				m_stmnt.ps_trunc  = true       ;
-				m_stmnt.ps_column = pline.find_first_not_of( ' ' ) ;
-				procstmnts.push_back( m_stmnt ) ;
-				continue ;
-			}
-			if ( pline.find( "TRANS(" ) != string::npos )
-			{
-				TRANS m_trans    ;
-				panstmnt m_stmnt ;
-				if ( !m_trans.parse( pline ) )
-				{
-					PERR = "Error in TRANS statement "+ strip( pline ) ; return 20 ;
-				}
-				transList.push_back( m_trans ) ;
-				m_stmnt.ps_trans  = true       ;
-				m_stmnt.ps_column = pline.find_first_not_of( ' ' ) ;
-				procstmnts.push_back( m_stmnt ) ;
+				if ( init )         { verListi.push_back( m_VER ) ; initstmnts.push_back( m_stmnt ) ; }
+				else if ( reinit )  { verListr.push_back( m_VER ) ; reinstmnts.push_back( m_stmnt ) ; }
+				else                { verListp.push_back( m_VER ) ; procstmnts.push_back( m_stmnt ) ; }
 				continue ;
 			}
 		}
@@ -607,7 +615,7 @@ int pPanel::loadPanel( string p_name, string paths )
 			w7 = word( pline, 7 ) ;
 			if ( !isvalidName( w7 ) )
 			{
-				PERR = "Invalid field name >>"+ w7 +"<< on line: "+ pline ; return 20 ;
+				PERR = "Invalid field name '"+ w7 +"' on line: "+ pline ; return 20 ;
 			}
 
 			if ( fieldList.find( w7 ) != fieldList.end() )

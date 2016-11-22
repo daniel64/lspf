@@ -57,7 +57,7 @@ IF (&PRSPNL EQ &Z )
    IF (&PRICMD EQ &Z )
       IF (&PRIPGM EQ &Z )
          .CURSOR = PRSPNL
-         .MSG    = PSYS012F
+         .MSG    = PSYS019
          EXIT
 
 IF (&PRSPNL NE &Z )

@@ -101,15 +101,17 @@
 )INCLUDE HLP_PDC
 
 
-)PROC
+)INIT
 
 VGET (ZKLUSE) PROFILE
 IF ( &ZKLUSE EQ Y )
   &ZZMSG = 'Warning.  Keylists active.  Some function keys may be overwridden'
 
+)PROC
+
 IF ( &ZCMD EQ RES,RESET)
    &ZCMD = DEFAULTS
 
-VER (&ZCMD LIST CANCEL::3 DEFAULTS::3 SAVE::3 )
+VER (&ZCMD LIST,CANCEL::3,DEFAULTS::3,SAVE::3 )
 
 )END

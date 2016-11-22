@@ -27,7 +27,7 @@ PSYS018 'Invalid primary command' .TYPE=W
 'Invalid primary command has been entered.  See help for valid commands for this panel'
 
 PSYS019 'Enter required field' .TYPE=W .W=NORESP
-'Enter required field at cursor position'
+'Enter data at cursor position'
 
 PSYS011A 'Field must be numeric' .TYPE=W .W=NORESP
 'Enter only numeric data in field at the cursor position'
@@ -38,9 +38,8 @@ PSYS011B 'Enter one of the listed values' .TYPE=W .W=NORESP
 PSYS011C 'Invalid primary command' .TYPE=W
 'There are no valid primary commands for this panel'
 
-PSYS011D 'Invalid line command' .TYPE=W
-'Invalid line command has been entered. ' +
-'See help for valid commands for this panel'
+PSYS011D 'Maximum Screens Reached' .TYPE=W
+'No more logical screens can be created as ZMAXSCRN has been reached'
 
 PSYS011E 'Open failed' .TYPE=W
 'Open of the requested file failed.  Check permissions'
@@ -126,8 +125,8 @@ PSYS012D 'Error in SELECT' .TYPE=W
 PSYS012E 'Entry Conflict' .TYPE=W
 'Fields entered in an invalid combination.  Leave field blank'
 
-PSYS012F 'Enter Data' .TYPE=W
-'Enter data into fields to continue'
+PSYS012F 'SPARE' .TYPE=W
+'SPARE'
 
 PSYS012G 'Command Issued' .TYPE=W
 'Command has been issued.  Check log for details'

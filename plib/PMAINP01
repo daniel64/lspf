@@ -24,10 +24,11 @@ BOX     row column width depth colour title
 
 LITERAL, PANELTITLE and PANELDESCR can contain dialogue variables
 
-PROC :
+PROC | INIT | REINIT :
+
      VER FLDA NB | NONBLANK MSG=MSGID
-     VER FLDA (NB) NUM MSG=MSGID
-     VER FLDA (NB) LIST VAL1 VAL2 VAL3 MSG=MSGID
+     VER FLDA (NB) NUM,MSG=MSGID
+     VER FLDA (NB) LIST,VAL1,VAL2,VAL3,MSG=MSGID
      (NB and MSG= are optional)
 
      .HELP   = ABC123  (panel help member)
@@ -58,14 +59,11 @@ PROC :
 
      At end of the )PROC section or EXIT, if .MSG set, re-issue panel, else return to program
 
-INIT | REINIT :
-    VGET VAR1 PROFILE | SHARED
-    VGET (VAR1 VAR2 VAR3) PROFILE | SHARED
+     VGET VAR1 PROFILE | SHARED
+     VGET (VAR1,VAR2,VAR3) PROFILE | SHARED
 
-    VPUT VAR1 PROFILE | SHARED
-    VPUT (VAR1 VAR2 VAR3) PROFILE | SHARED
-
-    Assignment statements as for PROC (except for .TRAIL)
+     VPUT VAR1 PROFILE | SHARED
+     VPUT (VAR1,VAR2,VAR3) PROFILE | SHARED
 
 FIELD :
     FIELD(ABCD) EXEC('SELECT PGM(XYZ) PARM(P1)') PASS(FLD1 FLD2 ... )

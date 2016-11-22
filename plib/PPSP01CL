@@ -3,54 +3,54 @@
 )ENDCOMMENT
 )BODY
 
-PanelTitle "CUA Colour Attributes" 
+PanelTitle "CUA Colour Attributes"
 
-literal   4   2   FP "Command ===> "   
-field    4  15  MAX  NEF CAPS(ON) ZCMD   
+literal   4   2   FP "Command ===> "
+field    4  15  MAX  NEF CAPS(ON) ZCMD
 
-literal  7   2   CH "Panel Element                Colour Intensity Hilite   Panel Element                Colour Intensity Hilite"    
+literal  7   2   CH "Panel Element                Colour Intensity Hilite   Panel Element                Colour Intensity Hilite"
 
 literal  9   2   FP  "AB Selected Choice . . . . ."
 field    9   31  6  NEF CAPS(ON) COLOUR01
 field    9   38  4  NEF CAPS(ON) INTENS01
 field    9   48  7  NEF CAPS(ON) HILITE01
 
-literal  10  2   FP  "AB Separator Line. . . . . ."    
+literal  10  2   FP  "AB Separator Line. . . . . ."
 field    10  31  6  NEF CAPS(ON) COLOUR02
 field    10  38  4  NEF CAPS(ON) INTENS02
 field    10  48  7  NEF CAPS(ON) HILITE02
 
-literal  11   2   FP "AB Unselected Choice . . . ."    
+literal  11   2   FP "AB Unselected Choice . . . ."
 field    11   31  6  NEF CAPS(ON) COLOUR03
 field    11   38  4  NEF CAPS(ON) INTENS03
 field    11   48  7  NEF CAPS(ON) HILITE03
 
-literal  12   2   FP "Action Message Text. . . . ."    
+literal  12   2   FP "Action Message Text. . . . ."
 field    12   31  6  NEF CAPS(ON) COLOUR04
 field    12   38  4  NEF CAPS(ON) INTENS04
 field    12   48  7  NEF CAPS(ON) HILITE04
 
-literal  13   2   FP "Active Window Frame. . . . ."    
+literal  13   2   FP "Active Window Frame. . . . ."
 field    13   31  6  NEF CAPS(ON) COLOUR05
 field    13   38  4  NEF CAPS(ON) INTENS05
 field    13   48  7  NEF CAPS(ON) HILITE05
 
-literal  14   2   FP "Caution Text . . . . . . . ."    
+literal  14   2   FP "Caution Text . . . . . . . ."
 field    14   31  6  NEF CAPS(ON) COLOUR06
 field    14   38  4  NEF CAPS(ON) INTENS06
 field    14   48  7  NEF CAPS(ON) HILITE06
 
-literal  15   2   FP "Choice Entry Field . . . . ."    
+literal  15   2   FP "Choice Entry Field . . . . ."
 field    15   31  6  NEF CAPS(ON) COLOUR07
 field    15   38  4  NEF CAPS(ON) INTENS07
 field    15   48  7  NEF CAPS(ON) HILITE07
 
-literal  16   2   FP "Column Heading . . . . . . ."    
+literal  16   2   FP "Column Heading . . . . . . ."
 field    16   31  6  NEF CAPS(ON) COLOUR08
 field    16   38  4  NEF CAPS(ON) INTENS08
 field    16   48  7  NEF CAPS(ON) HILITE08
 
-literal  17   2   FP "Descriptive Text . . . . . ."    
+literal  17   2   FP "Descriptive Text . . . . . ."
 field    17   31  6  NEF CAPS(ON) COLOUR09
 field    17   38  4  NEF CAPS(ON) INTENS09
 field    17   48  7  NEF CAPS(ON) HILITE09
@@ -178,21 +178,21 @@ field    24   86   6  NEF CAPS(ON) COLOUR33
 field    24   93   4  NEF CAPS(ON) INTENS33
 field    24   103  7  NEF CAPS(ON) HILITE33
 
-literal  27  2    CH "Instructions"   
+literal  27  2    CH "Instructions"
 
-literal  29  2     PIN "Enter"   
-literal  29  8     PS "Defaults"    
-literal  29  17    PIN "or"   
+literal  29  2     PIN "Enter"
+literal  29  8     PS "Defaults"
+literal  29  17    PIN "or"
 literal  29  20    PS "Cancel"
 
-literal  31  2     PIN "Use"   
-literal  31  6     PS "SAVE"    
-literal  31  11    PIN "and"   
+literal  31  2     PIN "Use"
+literal  31  6     PS "SAVE"
+literal  31  11    PIN "and"
 literal  31  15    PS "RESTORE"
-literal  31  23    PIN "to save/restore a copy of these variables to the current profile"   
+literal  31  23    PIN "to save/restore a copy of these variables to the current profile"
 
-literal  33   2   CT "These variables are saved to the ISPS system profile.  Re-running the setup"   
-literal  34   2   CT "program will overwrite these variables"   
+literal  33   2   CT "These variables are saved to the ISPS system profile.  Re-running the setup"
+literal  34   2   CT "program will overwrite these variables"
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
@@ -204,5 +204,7 @@ VER (&ZCMD,LIST,CANCEL::3,DEFAULTS::3,RESTORE::3,SAVE::3,MSG=PPSP015)
 )PNTS
 FIELD(ZPS01001) VAR(ZCMD) VAL(DEFAULTS)
 FIELD(ZPS01002) VAR(ZCMD) VAL(CANCEL)
+FIELD(ZPS01003) VAR(ZCMD) VAL(SAVE)
+FIELD(ZPS01004) VAR(ZCMD) VAL(RESTORE)
 
 )END

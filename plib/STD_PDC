@@ -10,12 +10,18 @@ pdc  Settings  "General Settings"   ACTION RUN(ISRROUTE) PARM("SELECT PGM(PPSP01
 pdc  Settings  PFKeys               ACTION RUN(KEYS)
 pdc  Settings  Colours              ACTION RUN(CUA)
 pdc  Settings  Commands             ACTION RUN(CMDS)
-pdc  Settings  "Turn Off Keylists"  ACTION RUN(ISRROUTE) PARM("SELECT PGM(PPSP01A) PARM(KLOFF)")
 pdc  Settings  "Turn On Keylists"   ACTION RUN(ISRROUTE) PARM("SELECT PGM(PPSP01A) PARM(KLON)")
+pdc  Settings  "Turn Off Keylists"  ACTION RUN(ISRROUTE) PARM("SELECT PGM(PPSP01A) PARM(KLOFF)")
 
-pdc  Utilities  "Application Log"   ACTION RUN(ALOG)
-pdc  Utilities  "lspf Log"          ACTION RUN(ISRROUTE) PARM("SELECT PGM(PPSP01A) PARM(SL)")
-pdc  Utilities  File/Directory      ACTION RUN(ISRROUTE) PARM("SELECT PGM(&ZFLSTPGM) PARM()")
-pdc  Utilities  "Saved File List"   ACTION RUN(ISRROUTE) PARM("SELECT PGM(PPSP01A) PARM(SAVELST) NEWAPPL(ISP)")
-pdc  Utilities  Shell               ACTION RUN(SHELL)
+pdc  Utilities  "Application Log"     ACTION RUN(ALOG)
+pdc  Utilities  "lspf Log"            ACTION RUN(ISRROUTE) PARM("SELECT PGM(PPSP01A) PARM(SL)")
+pdc  Utilities  File/Directory        ACTION RUN(ISRROUTE) PARM("SELECT PGM(&ZFLSTPGM) PARM()")
+pdc  Utilities  "Saved File List"     ACTION RUN(ISRROUTE) PARM("SELECT PGM(PPSP01A) PARM(SAVELST) NEWAPPL(ISP)")
+pdc  Utilities  Shell                 ACTION RUN(SHELL)
+pdc  Utilities  "Split screen"        ACTION RUN(ISRROUTE) PARM("SELECT PGM(ISPSTRT)")
+
+)COMMENT
+pdc  Utilities  "Split screen"        ACTION RUN(START)
+pdc  Utilities  "Test start 3"        ACTION RUN(START) PARM("PGM(PCMD0A)")
+)ENDCOMMENT
 

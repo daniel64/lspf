@@ -105,7 +105,7 @@ void pApplication::init()
 	// Before being dispatched in its own thread, set the search paths, table display BOD mark and
 	// addpop status if this has not been invoked with the SUSPEND option on the SELECT command
 
-	int scrnum ;
+	int scrNum ;
 
 	ZPLIB    = p_poolMGR->get( RC, "ZPLIB", PROFILE ) ;
 	ZTLIB    = p_poolMGR->get( RC, "ZTLIB", PROFILE ) ;
@@ -116,9 +116,9 @@ void pApplication::init()
 
 	if ( !SUSPEND )
 	{
-		scrnum     = ds2d(p_poolMGR->get( RC, "ZSCRNUM", SHARED ) ) ;
-		addpop_row = ds2d( p_poolMGR->get( RC, scrnum, "ZPROW" ) ) ;
-		addpop_col = ds2d( p_poolMGR->get( RC, scrnum, "ZPCOL" ) ) ;
+		scrNum     = ds2d(p_poolMGR->get( RC, "ZSCRNUM", SHARED ) ) ;
+		addpop_row = ds2d( p_poolMGR->get( RC, scrNum, "ZPROW" ) ) ;
+		addpop_col = ds2d( p_poolMGR->get( RC, scrNum, "ZPCOL" ) ) ;
 		if ( addpop_row != 0 || addpop_col != 0 )
 		{
 			addpop_active = true ;
@@ -152,7 +152,7 @@ void pApplication::panelCreate( string p_name )
 
 	RC = 0 ;
 	if ( panelList.count( p_name ) > 0 ) { return ; }
-	if ( !isvalidName( p_name ) ) { RC = 20 ; checkRCode( "Invalid panel name >>"+ p_name +"<<" ) ; return ; }
+	if ( !isvalidName( p_name ) ) { RC = 20 ; checkRCode( "Invalid panel name '"+ p_name +"'" ) ; return ; }
 
 	pPanel * p_panel    = new pPanel ;
 	p_panel->p_poolMGR  = p_poolMGR  ;
@@ -335,7 +335,7 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 {
 	string ZZVERB ;
 
-	int  scrnum   ;
+	int  scrNum   ;
 	bool doReinit ;
 
 	RC       = 0     ;
@@ -356,7 +356,7 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 	}
 
 	panelCreate( p_name ) ;
-	if ( RC > 0 ) { checkRCode( "Panel >>"+ p_name +"<< not found or invalid for DISPLAY service" ) ; return ; }
+	if ( RC > 0 ) { checkRCode( "Panel '"+ p_name +"' not found or invalid for DISPLAY service" ) ; return ; }
 
 	if ( propagateEnd )
 	{
@@ -403,11 +403,11 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 		if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )INIT section of panel "+ p_name ) ; return ; }
 	}
 
-	scrnum = ds2d(p_poolMGR->get( RC, "ZSCRNUM", SHARED ) ) ;
+	scrNum = ds2d(p_poolMGR->get( RC, "ZSCRNUM", SHARED ) ) ;
 	if ( p_poolMGR->get( RC, "ZSCRNAM1", SHARED ) == "ON" &&
-	     p_poolMGR->get( RC, scrnum, "ZSCRNAM2" ) == "PERM" )
+	     p_poolMGR->get( RC, scrNum, "ZSCRNAM2" ) == "PERM" )
 	{
-			p_poolMGR->put( RC, "ZSCRNAME", p_poolMGR->get( RC, scrnum, "ZSCRNAME" ), SHARED ) ;
+			p_poolMGR->put( RC, "ZSCRNAME", p_poolMGR->get( RC, scrNum, "ZSCRNAME" ), SHARED ) ;
 	}
 
 	while ( true )
@@ -415,7 +415,7 @@ void pApplication::display( string p_name, string p_msg, string p_cursor, int p_
 		currPanel->display_panel( RC ) ;
 		if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Panel error displaying "+ p_name ) ; break ; }
 		currPanel->cursor_to_field( RC ) ;
-		if ( RC > 0 ) { checkRCode( "Cursor field >>"+ currPanel->CURFLD +"<< not found on panel or invalid for DISPLAY service" ) ; break ; }
+		if ( RC > 0 ) { checkRCode( "Cursor field '"+ currPanel->CURFLD +"' not found on panel or invalid for DISPLAY service" ) ; break ; }
 		wait_event() ;
 		ControlDisplayLock = false ;
 		ControlNonDispl    = false ;
@@ -1043,14 +1043,14 @@ void pApplication::addpop( string a_fld, int a_row, int a_col )
 	//  RC = 12 No panel displayed before addpop() service when using field parameter
 	//  RC = 20 Severe error
 
-	int  scrnum     ;
+	int  scrNum     ;
 
 	uint p_row( 0 ) ;
 	uint p_col( 0 ) ;
 
 	RC = 0 ;
 
-	scrnum = ds2d(p_poolMGR->get( RC, "ZSCRNUM", SHARED ) ) ;
+	scrNum = ds2d(p_poolMGR->get( RC, "ZSCRNUM", SHARED ) ) ;
 	if ( a_fld != "" )
 	{
 		if ( panelList.size() == 0 )
@@ -1070,8 +1070,8 @@ void pApplication::addpop( string a_fld, int a_row, int a_col )
 	}
 	else
 	{
-		a_row += ds2d( p_poolMGR->get( RC, scrnum, "ZPROW" ) ) ;
-		a_col += ds2d( p_poolMGR->get( RC, scrnum, "ZPCOL" ) ) ;
+		a_row += ds2d( p_poolMGR->get( RC, scrNum, "ZPROW" ) ) ;
+		a_col += ds2d( p_poolMGR->get( RC, scrNum, "ZPCOL" ) ) ;
 	}
 	if ( addpop_active )
 	{
@@ -1082,8 +1082,8 @@ void pApplication::addpop( string a_fld, int a_row, int a_col )
 	addpop_active = true ;
 	addpop_row = (a_row <  0 ) ? 1 : a_row + 2 ;
 	addpop_col = (a_col < -1 ) ? 2 : a_col + 4 ;
-	p_poolMGR->put( RC, scrnum, "ZPROW", d2ds( addpop_row ) ) ;
-	p_poolMGR->put( RC, scrnum, "ZPCOL", d2ds( addpop_col ) ) ;
+	p_poolMGR->put( RC, scrNum, "ZPROW", d2ds( addpop_row ) ) ;
+	p_poolMGR->put( RC, scrNum, "ZPCOL", d2ds( addpop_col ) ) ;
 }
 
 
@@ -1095,7 +1095,7 @@ void pApplication::rempop( string r_all )
 	//  RC = 16 No pop-up window exists at this level
 	//  RC = 20 Severe error
 
-	int  scrnum ;
+	int  scrNum ;
 
 	RC = 0 ;
 
@@ -1129,9 +1129,9 @@ void pApplication::rempop( string r_all )
 	}
 	else { RC = 20 ; checkRCode( "Invalid parameter on REMPOP service.  Must be ALL or blank" ) ; return ; }
 
-	scrnum = ds2d(p_poolMGR->get( RC, "ZSCRNUM", SHARED ) ) ;
-	p_poolMGR->put( RC, scrnum, "ZPROW", d2ds( addpop_row ) ) ;
-	p_poolMGR->put( RC, scrnum, "ZPCOL", d2ds( addpop_col ) ) ;
+	scrNum = ds2d(p_poolMGR->get( RC, "ZSCRNUM", SHARED ) ) ;
+	p_poolMGR->put( RC, scrNum, "ZPROW", d2ds( addpop_row ) ) ;
+	p_poolMGR->put( RC, scrNum, "ZPCOL", d2ds( addpop_col ) ) ;
 }
 
 
@@ -1440,11 +1440,11 @@ void pApplication::tbcreate( string tb_name, string keys, string names, tbSAVE m
 	RC   = 0    ;
 	temp = true ;
 
-	if ( !isvalidName( tb_name ) ) { RC = 20 ; checkRCode( "Invalid table name on TBCREATE >>"+ tb_name +"<<" ) ; return ; }
+	if ( !isvalidName( tb_name ) ) { RC = 20 ; checkRCode( "Invalid table name on TBCREATE '"+ tb_name +"'" ) ; return ; }
 	if ( ( tablesOpen.find( tb_name ) != tablesOpen.end() ) && m_REP != REPLACE )
 	{
 		RC = 8  ;
-		log( "E", "Table >>" << tb_name << "<< has already been created under this task and REPLACE not specified" << endl ) ;
+		log( "E", "Table '" << tb_name << "' has already been created under this task and REPLACE not specified" << endl ) ;
 		return  ;
 	}
 
@@ -1458,14 +1458,14 @@ void pApplication::tbcreate( string tb_name, string keys, string names, tbSAVE m
 	for ( int i = 1 ; i <= ws ; i++ )
 	{
 		w = word( keys, i ) ;
-		if ( !isvalidName( w ) ) { RC = 20 ; checkRCode( "Invalid key name >>"+ w +"<<" ) ; return ; }
+		if ( !isvalidName( w ) ) { RC = 20 ; checkRCode( "Invalid key name '"+ w +"'" ) ; return ; }
 	}
 
 	ws = words( names ) ;
 	for ( int i = 1; i <= ws ; i++ )
 	{
 		w = word( names, i ) ;
-		if ( !isvalidName( w ) ) { RC = 20 ; checkRCode( "Invalid field name >>"+ w +"<<" ) ; return ; }
+		if ( !isvalidName( w ) ) { RC = 20 ; checkRCode( "Invalid field name '"+ w +"'" ) ; return ; }
 	}
 
 	p_tableMGR->createTable( RC, taskid(), tb_name, keys, names, temp, m_REP, m_path, m_DISP ) ;
@@ -1518,7 +1518,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 	int ln      ;
 	int posn    ;
 	int csrvrow ;
-	int scrnum  ;
+	int scrNum  ;
 
 	string ZZVERB ;
 	string URID   ;
@@ -1546,7 +1546,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 	if ( p_name != "" )
 	{
 		panelCreate( p_name ) ;
-		if ( RC > 0 ) { checkRCode( "Panel >>"+ p_name +"<< not found or invalid for TBDISPL" ) ; return ; }
+		if ( RC > 0 ) { checkRCode( "Panel '"+ p_name +"' not found or invalid for TBDISPL" ) ; return ; }
 		currtbPanel = panelList[ p_name ] ;
 		currPanel   = currtbPanel         ;
 		PANELID     = p_name ;
@@ -1554,7 +1554,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 		if ( p_msg == "" )
 		{
 			currtbPanel->clear_tb_linesChanged( RC ) ;
-			if ( RC > 0 ) { ZERR2 = currtbPanel->PERR ; checkRCode( "Panel >>"+ p_name +"<< error during TBDISPL" ) ; return ; }
+			if ( RC > 0 ) { ZERR2 = currtbPanel->PERR ; checkRCode( "Panel '"+ p_name +"' error during TBDISPL" ) ; return ; }
 		}
 		posn = p_tableMGR->getCRP( RC, tb_name ) ;
 		if ( posn == 0 ) { posn = 1 ; }
@@ -1606,11 +1606,11 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 	t = funcPOOL.get( RC, 8, ".CSRROW", NOCHECK ) ;
 	if ( RC == 0 ) { p_csrrow = ds2d( t ) ; }
 
-	scrnum = ds2d(p_poolMGR->get( RC, "ZSCRNUM", SHARED ) ) ;
+	scrNum = ds2d(p_poolMGR->get( RC, "ZSCRNUM", SHARED ) ) ;
 	if ( p_poolMGR->get( RC, "ZSCRNAM1", SHARED ) == "ON" &&
-	     p_poolMGR->get( RC, scrnum, "ZSCRNAM2" ) == "PERM" )
+	     p_poolMGR->get( RC, scrNum, "ZSCRNAM2" ) == "PERM" )
 	{
-			p_poolMGR->put( RC, "ZSCRNAME", p_poolMGR->get( RC, scrnum, "ZSCRNAME" ), SHARED ) ;
+			p_poolMGR->put( RC, "ZSCRNAME", p_poolMGR->get( RC, scrNum, "ZSCRNAME" ), SHARED ) ;
 	}
 
 	while ( true )
@@ -1632,7 +1632,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 				currtbPanel->CURPOS = p_csrpos ;
 			}
 			currtbPanel->cursor_to_field( RC ) ;
-			if ( RC > 0 ) { checkRCode( "Cursor field >>"+ currtbPanel->CURFLD +"<< not found on panel or invalid for TBDISP service" ) ; break ; }
+			if ( RC > 0 ) { checkRCode( "Cursor field '"+ currtbPanel->CURFLD +"' not found on panel or invalid for TBDISP service" ) ; break ; }
 			wait_event() ;
 			ControlDisplayLock = false ;
 			ControlNonDispl    = false ;
@@ -1993,7 +1993,7 @@ bool pApplication::isTableOpen( string tb_name, string func )
 
 	RC = 0 ;
 
-	if ( !isvalidName( tb_name ) ) { RC = 20 ; checkRCode( "Invalid table name on "+ func +" >>"+ tb_name +"<<" ) ; return false ; }
+	if ( !isvalidName( tb_name ) ) { RC = 20 ; checkRCode( "Invalid table name on "+ func +" '"+ tb_name +"'" ) ; return false ; }
 	if ( tablesOpen.find( tb_name ) == tablesOpen.end() )
 	{
 		RC = 12      ;
@@ -2034,6 +2034,7 @@ void pApplication::edit( string m_file, string m_panel )
 	SELCT.NEWAPPL = ""      ;
 	SELCT.NEWPOOL = false   ;
 	SELCT.PASSLIB = false   ;
+	SELCT.SUSPEND = true    ;
 	SELCT.SCRNAME = "EDIT"  ;
 	actionSelect() ;
 }
@@ -2047,6 +2048,7 @@ void pApplication::browse( string m_file, string m_panel )
 	SELCT.NEWAPPL = ""       ;
 	SELCT.NEWPOOL = false    ;
 	SELCT.PASSLIB = false    ;
+	SELCT.SUSPEND = true     ;
 	SELCT.SCRNAME = "BROWSE" ;
 	actionSelect() ;
 }
@@ -2060,6 +2062,7 @@ void pApplication::view( string m_file, string m_panel )
 	SELCT.NEWAPPL = ""      ;
 	SELCT.NEWPOOL = false   ;
 	SELCT.PASSLIB = false   ;
+	SELCT.SUSPEND = true    ;
 	SELCT.SCRNAME = "VIEW"  ;
 	actionSelect() ;
 }
@@ -2235,8 +2238,8 @@ void pApplication::rdisplay( string msg )
 
 void pApplication::rdisplay1( string msg )
 {
-	// Same as RDISPLAY, except no variable substitution is performed.  Is is used in the
-	// ISPEXEC interface which does the substitution itself
+	// Same as RDISPLAY, except no variable substitution is performed.  It is used in the
+	// ISPEXEC interface which does the substitution itself.
 
 	RC = 0 ;
 	rmsgs.push_back( msg ) ;

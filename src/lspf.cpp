@@ -142,9 +142,11 @@ void loadCUATables()          ;
 void setColourPair( string )  ;
 void updateDefaultVars()      ;
 void updateReflist()          ;
-void startApplication( selobj ) ;
+void startApplication( selobj, bool =false ) ;
 void terminateApplication()     ;
 void ResumeApplicationAndWait() ;
+bool createLogicalScreen()      ;
+void deleteLogicalScreen()      ;
 void processPGMSelect()         ;
 void processAction( uint row, uint col, int c, bool & passthru ) ;
 void issueMessage( string )     ;
@@ -155,6 +157,7 @@ void lspfCallbackHandler( lspfCommand & ) ;
 void createpfKeyDefaults()  ;
 string pfKeyValue( int )    ;
 string listLogicalScreens() ;
+bool resolveZCTEntry( string &, string & ) ;
 bool isActionKey( int c )   ;
 void listRetrieveBuffer()   ;
 int  getScreenNameNum( string ) ;
@@ -531,10 +534,6 @@ void mainLoop()
 					if ( currAppl->reloadCUATables ) { loadCUATables() ; }
 					currAppl->get_cursor( row, col ) ;
 					currScrn->set_row_col( row, col ) ;
-					if ( currAppl->SEL )
-					{
-						processPGMSelect() ;
-					}
 					while ( currAppl->terminateAppl )
 					{
 						terminateApplication() ;
@@ -741,24 +740,6 @@ void mainLoop()
 					}
 					else if ( ZCOMMAND == "SPLIT" )
 					{
-
-						if ( !currAppl->ControlSplitEnable )
-						{
-							p_poolMGR->put( RC, "ZCTMVAR", left( ZCOMMAND, 8 ), SHARED ) ;
-							issueMessage( "PSYS011" ) ;
-							break ;
-						}
-						if ( pLScreen::screensTotal == ZMAXSCRN ) { continue ; }
-						currScrn->save_panel_stack() ;
-						updateDefaultVars()            ;
-						if ( apps.find( GMAINPGM ) == apps.end() )
-						{
-							errorScreen( 1, "Application "+ GMAINPGM +" not found" ) ;
-							break ;
-						}
-						altScreen = screenNum         ;
-						screenNum = screenList.size() ;
-						screenList.push_back( new pLScreen ) ;
 						SELCT.clear() ;
 						SELCT.PGM     = GMAINPGM ;
 						SELCT.PARM    = ""    ;
@@ -766,7 +747,7 @@ void mainLoop()
 						SELCT.NEWPOOL = true  ;
 						SELCT.PASSLIB = false ;
 						SELCT.SUSPEND = true  ;
-						startApplication( SELCT ) ;
+						startApplication( SELCT, true ) ;
 						break ;
 					}
 					else if ( ZCOMMAND == ".STATS" )
@@ -913,22 +894,17 @@ void processAction( uint row, uint col, int c, bool & passthru )
 	int RC  ;
 	int p1  ;
 
-	uint i  ;
-	uint j  ;
 	uint rw ;
 	uint cl ;
-	uint ws ;
 	uint rtsize ;
 	uint rbsize ;
 
 	bool addRetrieve ;
-	bool siteBefore  ;
 
 	string CMDVerb ;
-	string CMDRest ;
+	string CMDParm ;
 	string PFCMD   ;
 	string delm    ;
-	string cmdtlst ;
 	string AVerb   ;
 
 	static uint retPos(0) ;
@@ -936,10 +912,6 @@ void processAction( uint row, uint col, int c, bool & passthru )
 	pdc t_pdc ;
 
 	SEL      = false ;
-	ZCTVERB  = ""    ;
-	ZCTTRUNC = ""    ;
-	ZCTACT   = ""    ;
-	ZCTDESC  = ""    ;
 
 	PFCMD    = ""    ;
 	passthru = true  ;
@@ -998,14 +970,14 @@ void processAction( uint row, uint col, int c, bool & passthru )
 			t_pdc = currAppl->currPanel->retrieve_pdChoice( row, col ) ;
 			if ( t_pdc.pdc_run != "" )
 			{
-				ZCOMMAND  = t_pdc.pdc_run ;
+				ZCOMMAND = t_pdc.pdc_run ;
 				if ( ZCOMMAND == "ISRROUTE" )
 				{
 					CMDVerb = word( t_pdc.pdc_parm, 1 )    ;
-					CMDRest = subword( t_pdc.pdc_parm, 2 ) ;
+					CMDParm = subword( t_pdc.pdc_parm, 2 ) ;
 					if ( CMDVerb == "SELECT" )
 					{
-						if ( !SELCT.parse( CMDRest ) )
+						if ( !SELCT.parse( CMDParm ) )
 						{
 							log( "E", "Error in SELECT command "+ t_pdc.pdc_parm << endl ) ;
 							currAppl->setmsg( "PSYS011K" ) ;
@@ -1019,6 +991,10 @@ void processAction( uint row, uint col, int c, bool & passthru )
 						passthru = false ;
 						return           ;
 					}
+				}
+				else
+				{
+					ZCOMMAND += " " + t_pdc.pdc_parm ;
 				}
 			}
 		}
@@ -1138,7 +1114,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 	}
 
 	CMDVerb = upper( word( ZCOMMAND, 1 ) ) ;
-	CMDRest = subword( ZCOMMAND, 2 ) ;
+	CMDParm = subword( ZCOMMAND, 2 ) ;
 
 	if ( CMDVerb == "" ) { return ; }
 
@@ -1160,7 +1136,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 	{
 		SELCT.clear() ;
 		SELCT.PGM     = CMDVerb.substr( 1 ) ;
-		SELCT.PARM    = CMDRest ;
+		SELCT.PARM    = CMDParm ;
 		SELCT.NEWAPPL = ""      ;
 		SELCT.NEWPOOL = true    ;
 		SELCT.PASSLIB = false   ;
@@ -1208,10 +1184,11 @@ void processAction( uint row, uint col, int c, bool & passthru )
 		{
 			currAppl->currPanel->cmd_setvalue( "" ) ;
 			ZPARM   = currAppl->get_help_member( row, col ) ;
-			CMDRest = ZPARM ;
+			CMDParm = ZPARM ;
 		}
 		else
 		{
+			ZCOMMAND = "NOP" ;
 			passthru = false ;
 			currAppl->currPanel->showLMSG = true ;
 			currAppl->currPanel->display_msg() ;
@@ -1219,53 +1196,9 @@ void processAction( uint row, uint col, int c, bool & passthru )
 		}
 	}
 
-	cmdtlst    = "" ;
-	siteBefore = ( p_poolMGR->get( RC, "ZSCMDTF", PROFILE ) == "Y" ) ;
-
-	if ( currAppl->ZZAPPLID != "ISP" ) { cmdtlst = currAppl->ZZAPPLID + " " ; }
-	cmdtlst += p_poolMGR->get( RC, "ZUCMDT1", PROFILE ) + " " +
-		   p_poolMGR->get( RC, "ZUCMDT2", PROFILE ) + " " +
-		   p_poolMGR->get( RC, "ZUCMDT3", PROFILE ) + " " ;
-	if ( !siteBefore )
-	{
-		  cmdtlst += "ISP " ;
-	}
-	cmdtlst += p_poolMGR->get( RC, "ZSCMDT1", PROFILE ) + " " +
-		   p_poolMGR->get( RC, "ZSCMDT2", PROFILE ) + " " +
-		   p_poolMGR->get( RC, "ZSCMDT3", PROFILE ) + " " ;
-	if ( siteBefore )
-	{
-		  cmdtlst += "ISP" ;
-	}
-
 	AVerb = CMDVerb ;
-	ws    = words( cmdtlst ) ;
 
-	for ( i = 0 ; i < 8 ; i++ )
-	{
-		for ( j = 1 ; j <= ws ; j++ )
-		{
-			p_tableMGR->cmdsearch( RC, funcPOOL, word( cmdtlst, j ), CMDVerb, ZTLIB ) ;
-			if ( RC > 0 || ZCTACT == "" ) { continue ; }
-			if ( ZCTACT[ 0 ] == '&' )
-			{
-				currAppl->vcopy( substr( ZCTACT, 2 ), ZCTACT, MOVE ) ;
-				if ( ZCTACT == "" ) { continue ; }
-			}
-			break ;
-		}
-		if ( RC > 0 || word( ZCTACT, 1 ) != "ALIAS" ) { break ; }
-		CMDVerb  = word( ZCTACT, 2 )    ;
-		CMDRest  = subword( ZCTACT, 3 ) ;
-		ZCOMMAND = subword( ZCTACT, 2 ) ;
-	}
-	if ( i > 7 )
-	{
-		RC = 8 ;
-		log( "E", "ALIAS dept cannot be greater than 8.  Terminating search" << endl ) ;
-	}
-
-	if ( RC == 0 )
+	if ( resolveZCTEntry( CMDVerb, CMDParm ) )
 	{
 		if ( word( ZCTACT, 1 ) == "NOP" )
 		{
@@ -1277,7 +1210,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 		}
 		else if ( word( ZCTACT, 1 ) == "SELECT" )
 		{
-			if ( !SELCT.parse( subword( ZCTACT,2 ) ) )
+			if ( !SELCT.parse( subword( ZCTACT, 2 ) ) )
 			{
 				log( "E", "Error in SELECT command "+ ZCTACT << endl ) ;
 				currAppl->setmsg( "PSYS011K" ) ;
@@ -1288,7 +1221,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 			{
 				p1         = wordindex( SELCT.PARM, p1 )       ;
 				SELCT.PARM = delstr( SELCT.PARM, p1, 6 )       ;
-				SELCT.PARM = insert( CMDRest, SELCT.PARM, p1 ) ;
+				SELCT.PARM = insert( CMDParm, SELCT.PARM, p1 ) ;
 			}
 			if ( SELCT.PGM[ 0 ] == '&' )
 			{
@@ -1300,7 +1233,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 		else if ( ZCTACT == "PASSTHRU" )
 		{
 			passthru = true ;
-			ZCOMMAND = strip( CMDVerb + " " + CMDRest ) ;
+			ZCOMMAND = strip( CMDVerb + " " + CMDParm ) ;
 		}
 		else if ( ZCTACT == "SETVERB" )
 		{
@@ -1330,7 +1263,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 			{
 				SELCT.clear() ;
 				currAppl->vcopy( "ZRFLPGM", SELCT.PGM, MOVE ) ;
-				SELCT.PARM = "NR1 " + CMDRest ;
+				SELCT.PARM = "NR1 " + CMDParm ;
 				SEL        = true  ;
 				passthru   = false ;
 			}
@@ -1341,7 +1274,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 	{
 		passthru = false   ;
 		ZCOMMAND = CMDVerb ;
-		ZPARM    = upper( CMDRest ) ;
+		ZPARM    = upper( CMDParm ) ;
 	}
 
 	if ( CMDVerb[ 0 ] == '>' )
@@ -1357,7 +1290,77 @@ void processAction( uint row, uint col, int c, bool & passthru )
 	{
 		currAppl->currPanel->cmd_setvalue( ZCOMMAND ) ;
 	}
-	debug1( "Primary command >>"+ ZCOMMAND +"<<  Passthru = " << passthru << endl ) ;
+	debug1( "Primary command '"+ ZCOMMAND +"'  Passthru = " << passthru << endl ) ;
+}
+
+
+bool resolveZCTEntry( string & CMDVerb, string & CMDParm )
+{
+	int i ;
+	int j ;
+	int RC ;
+	int ws ;
+
+	bool siteBefore ;
+	bool found      ;
+
+	string cmdtlst ;
+
+	ZCTVERB  = "" ;
+	ZCTTRUNC = "" ;
+	ZCTACT   = "" ;
+	ZCTDESC  = "" ;
+
+	cmdtlst  = "" ;
+
+	found = false ;
+
+	siteBefore = ( p_poolMGR->get( RC, "ZSCMDTF", PROFILE ) == "Y" ) ;
+
+	if ( currAppl->ZZAPPLID != "ISP" ) { cmdtlst = currAppl->ZZAPPLID + " " ; }
+	cmdtlst += p_poolMGR->get( RC, "ZUCMDT1", PROFILE ) + " " +
+		   p_poolMGR->get( RC, "ZUCMDT2", PROFILE ) + " " +
+		   p_poolMGR->get( RC, "ZUCMDT3", PROFILE ) + " " ;
+	if ( !siteBefore )
+	{
+		  cmdtlst += "ISP " ;
+	}
+	cmdtlst += p_poolMGR->get( RC, "ZSCMDT1", PROFILE ) + " " +
+		   p_poolMGR->get( RC, "ZSCMDT2", PROFILE ) + " " +
+		   p_poolMGR->get( RC, "ZSCMDT3", PROFILE ) + " " ;
+	if ( siteBefore )
+	{
+		  cmdtlst += "ISP" ;
+	}
+
+	ws = words( cmdtlst ) ;
+
+	for ( i = 0 ; i < 8 ; i++ )
+	{
+		for ( j = 1 ; j <= ws ; j++ )
+		{
+			p_tableMGR->cmdsearch( RC, funcPOOL, word( cmdtlst, j ), CMDVerb, ZTLIB ) ;
+			if ( RC > 0 || ZCTACT == "" ) { continue ; }
+			if ( ZCTACT[ 0 ] == '&' )
+			{
+				currAppl->vcopy( substr( ZCTACT, 2 ), ZCTACT, MOVE ) ;
+				if ( ZCTACT == "" ) { found = false ; continue ; }
+			}
+			found = true ;
+			break ;
+		}
+		if ( RC > 0 || word( ZCTACT, 1 ) != "ALIAS" ) { break ; }
+		CMDVerb  = word( ZCTACT, 2 )    ;
+		CMDParm  = subword( ZCTACT, 3 ) ;
+		ZCOMMAND = subword( ZCTACT, 2 ) ;
+	}
+	if ( i > 7 )
+	{
+		RC = 8 ;
+		log( "E", "ALIAS dept cannot be greater than 8.  Terminating search" << endl ) ;
+		found = false ;
+	}
+	return found ;
 }
 
 
@@ -1374,7 +1377,7 @@ void processPGMSelect()
 	}
 	else
 	{
-		errorScreen( 1, "SELECT function did not find application "+ SELCT.PGM ) ;
+		errorScreen( 1, "SELECT function did not find application '"+ SELCT.PGM +"'" ) ;
 		currAppl->SEL = false ;
 		log( "W", "Resumed function did a SELECT.  Ending wait in SELECT" << endl ) ;
 		ResumeApplicationAndWait() ;
@@ -1388,10 +1391,18 @@ void processPGMSelect()
 }
 
 
-void startApplication( selobj SEL )
+void startApplication( selobj SEL, bool nScreen )
 {
+	// Start an application using the passed SELECT object, on a new logical screen if specified.
+
+	// If the program is ISPSTRT, start the application in the PARM field on a new logical screen
+	// or start GMAINPGM.  Force NEWPOOL option regardless of what is coded in the command.
+	// PARM can be a command table entry, a PGM()/CMD()/PANEL() statement or an option for GMAINPGM.
+
 	int RC      ;
 	int elapsed ;
+	int p1      ;
+
 	uint row    ;
 	uint col    ;
 
@@ -1399,21 +1410,58 @@ void startApplication( selobj SEL )
 	string m    ;
 	string p    ;
 	string t    ;
+	string opt  ;
+	string rest ;
 	string tMSGID1 ;
 
-	bool ldm    ;
-	bool ldp    ;
-	bool ldt    ;
-
-	bool setMSG ;
+	bool ldm     ;
+	bool ldp     ;
+	bool ldt     ;
+	bool setMSG  ;
 
 	slmsg tMSG1 ;
 
 	boost::thread * pThread ;
 
+	if ( SEL.PGM == "ISPSTRT" )
+	{
+		nScreen = true ;
+		opt     = upper( SEL.PARM ) ;
+		rest    = ""                ;
+		if ( isvalidName( opt ) && resolveZCTEntry( opt, rest ) && word( ZCTACT, 1 ) == "SELECT" )
+		{
+			if ( !SEL.parse( subword( ZCTACT, 2 ) ) )
+			{
+				errorScreen( 1, "Error in ZCTACT command "+ ZCTACT ) ;
+				return ;
+			}
+			p1 = wordpos( "&ZPARM", SEL.PARM ) ;
+			if ( p1 > 0 )
+			{
+				p1       = wordindex( SEL.PARM, p1 )    ;
+				SEL.PARM = delstr( SEL.PARM, p1, 6 )    ;
+				SEL.PARM = insert( rest, SEL.PARM, p1 ) ;
+			}
+		}
+		else if ( !SEL.parse( SEL.PARM ) )
+		{
+			SEL.clear() ;
+			SEL.PGM     = GMAINPGM ;
+			SEL.PARM    = opt   ;
+			SEL.NEWAPPL = "ISP" ;
+			SEL.PASSLIB = false ;
+			SEL.SUSPEND = true  ;
+		}
+		if ( SEL.PGM[ 0 ] == '&' )
+		{
+			currAppl->vcopy( substr( SEL.PGM, 2 ), SEL.PGM, MOVE ) ;
+		}
+		SEL.NEWPOOL = true ;
+	}
+
 	if ( apps.find( SEL.PGM ) == apps.end() )
 	{
-		errorScreen( 1, "Application "+ SEL.PGM +" not found" ) ;
+		errorScreen( 1, "Application '"+ SEL.PGM +"' not found" ) ;
 		return ;
 	}
 	if ( !apps[ SEL.PGM ].dlopened )
@@ -1424,6 +1472,8 @@ void startApplication( selobj SEL )
 			return ;
 		}
 	}
+
+	if ( nScreen && !createLogicalScreen() ) { return ; }
 
 	if ( SEL.PASSLIB || !SEL.NEWPOOL )
 	{
@@ -1463,7 +1513,7 @@ void startApplication( selobj SEL )
 	{
 		if ( SEL.NEWAPPL != p_poolMGR->getAPPLID() )
 		{
-			p_poolMGR->setAPPLID( RC, SEL.NEWAPPL )  ;
+			p_poolMGR->setAPPLID( RC, SEL.NEWAPPL ) ;
 		}
 	}
 	currAppl->ZZAPPLID = p_poolMGR->getAPPLID() ;
@@ -1609,16 +1659,6 @@ void terminateApplication()
 		pThread->detach() ;
 	}
 
-	if ( pLScreen::screensTotal == 1 && currScrn->application_stack_size() == 1 )
-	{
-		log( "I", "Closing ISPS profile and application log as last application program is terminating" << endl ) ;
-		p_poolMGR->setAPPLID( RC, "ISPS" )    ;
-		p_poolMGR->destroyPool( RC, PROFILE ) ;
-		p_poolMGR->statistics()  ;
-		p_tableMGR->statistics() ;
-		currAppl->closeLog()     ;
-	}
-
 	log( "I", "Removing application instance of "+ ZAPPNAME << endl ) ;
 	apps[ ZAPPNAME ].refCount-- ;
 	((void (*)(pApplication*))(apps[ ZAPPNAME ].destroyer_ep))( currAppl ) ;
@@ -1629,21 +1669,18 @@ void terminateApplication()
 	if ( currScrn->application_stack_empty() )
 	{
 		p_poolMGR->destroyPool( currScrn->screenID ) ;
-		delete currScrn ;
-		if ( pLScreen::screensTotal == 0 )
+		if ( pLScreen::screensTotal == 1 )
 		{
-			log( "I", "Application terminatation completed.  No more applications running - terminating lspf" << endl ) ;
+			delete currScrn ;
+			log( "I", "Closing ISPS profile and application log as last application program is terminating" << endl ) ;
+			p_poolMGR->setAPPLID( RC, "ISPS" )    ;
+			p_poolMGR->destroyPool( RC, PROFILE ) ;
+			p_poolMGR->statistics()  ;
+			p_tableMGR->statistics() ;
+			currAppl->closeLog()     ;
 			return ;
 		}
-		screenList.erase( screenList.begin() + screenNum ) ;
-		if ( altScreen > screenNum ) { --altScreen ; }
-		--screenNum ;
-		if ( screenNum < 0 ) { screenNum = pLScreen::screensTotal - 1 ; }
-		if ( pLScreen::screensTotal > 1 )
-		{
-			if ( altScreen == screenNum ) altScreen = ((altScreen == pLScreen::screensTotal - 1) ? 0 : (altScreen + 1) )  ;
-		}
-		currScrn = screenList[ screenNum ] ;
+		deleteLogicalScreen() ;
 	}
 
 	currAppl = currScrn->application_get_current() ;
@@ -1804,6 +1841,49 @@ void terminateApplication()
 }
 
 
+bool createLogicalScreen()
+{
+	int RC ;
+
+	if ( !currAppl->ControlSplitEnable )
+	{
+		p_poolMGR->put( RC, "ZCTMVAR", left( ZCOMMAND, 8 ), SHARED ) ;
+		issueMessage( "PSYS011" ) ;
+		return false ;
+	}
+	if ( pLScreen::screensTotal == ZMAXSCRN )
+	{
+		issueMessage( "PSYS011D" ) ;
+		return false ;
+	}
+	currScrn->save_panel_stack()  ;
+	updateDefaultVars()           ;
+	altScreen = screenNum         ;
+	screenNum = screenList.size() ;
+	screenList.push_back( new pLScreen ) ;
+	return true ;
+}
+
+
+void deleteLogicalScreen()
+{
+	delete currScrn ;
+
+	screenList.erase( screenList.begin() + screenNum ) ;
+	if ( altScreen > screenNum ) { --altScreen ; }
+	--screenNum ;
+	if ( screenNum < 0 ) { screenNum = pLScreen::screensTotal - 1 ; }
+	if ( pLScreen::screensTotal > 1 )
+	{
+		if ( altScreen == screenNum )
+		{
+			altScreen = ((altScreen == pLScreen::screensTotal - 1) ? 0 : (altScreen + 1) )  ;
+		}
+	}
+	currScrn = screenList[ screenNum ] ;
+}
+
+
 void ResumeApplicationAndWait()
 {
 	int elapsed ;
@@ -1834,6 +1914,10 @@ void ResumeApplicationAndWait()
 		{
 			errorScreen( 2, "An error has occured during application execution" ) ;
 		}
+	}
+	else if ( currAppl->SEL )
+	{
+		processPGMSelect() ;
 	}
 }
 
@@ -2673,12 +2757,12 @@ void getDynamicClasses()
 		pos1  = pos( ".so", mod ) ;
 		if ( substr(mod, 1, 3 ) != "lib" || pos1 == 0 ) { continue ; }
 		appl  = substr( mod, 4, (pos1 - 4) ) ;
-		log( "I", "Adding application "+ appl << endl ) ;
 		if ( apps.count( appl ) > 0 )
 		{
 			log( "W", "Ignoring duplicate module "+ mod +" found in "+ p << endl ) ;
 			continue ;
 		}
+		log( "I", "Adding application "+ appl << endl ) ;
 		i++ ;
 		aI.file       = fname ;
 		aI.module     = mod   ;

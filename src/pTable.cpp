@@ -951,7 +951,7 @@ void Table::tbsarg( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_dir
 		p2++ ;
 		if ( (sarg.find( var ) != sarg.end()) && !sarg[ var ].tbsSetcon( cond ) )
 		{
-			log( "E", "Invalid condition.  Has to be EQ, NE, LE, LT, GE or GT. Invalid specification is >>" << cond << "<<" << endl ) ;
+			log( "E", "Invalid condition.  Has to be EQ, NE, LE, LT, GE or GT. Invalid specification is '" << cond << "'" << endl ) ;
 			RC = 20 ;
 			return  ;
 		}
@@ -1649,7 +1649,7 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 	if ( memcmp( buf1, "\x00\x85", 2 ) )
 	{
 		RC = 20 ;
-		log( "E", "Not a valid table file >>" << tb_name << "<<.  Appears corrupt.  Filename " << filename << endl ) ;
+		log( "E", "Not a valid table file '" << tb_name << "'.  Appears corrupt.  Filename " << filename << endl ) ;
 		table.close() ;
 		return ;
 	}

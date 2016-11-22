@@ -236,8 +236,8 @@ main()
 
 	ZCTVERB  = "START"    ;
 	ZCTTRUNC = "0"        ;
-	ZCTACT   = "SELECT PGM(&ZMAINPGM) SUSPEND" ;
-	ZCTDESC  = "START A NEW MAIN PROGRAM SESSION" ;
+	ZCTACT   = "SELECT PGM(ISPSTRT) PARM(&ZPARM)" ;
+	ZCTDESC  = "Start a program in a new logical screen" ;
 	p_tableMGR->tbadd( RC, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
 	ZCTVERB  = "REFACTF" ;

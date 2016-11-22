@@ -50,7 +50,7 @@ void PMAIN0A::application()
 	int y, m ;
 	int pmonth, pyear ;
 
-	selobj SEL    ;
+	selobj SEL ;
 
 	string MSG ;
 	string w1  ;
@@ -74,9 +74,11 @@ void PMAIN0A::application()
 	offset = 0 ;
 	pmonth = ds2d( substr( ZDATEL, 4, 2 ) ) ;
 	pyear  = ds2d( substr( ZDATEL, 7, 4 ) ) ;
-	ZCMD   = "" ;
-	MSG    = "" ;
+	ZCMD   = PARM ;
+	MSG    = ""   ;
 	create_calendar( pmonth, pyear ) ;
+
+	if ( ZCMD != "" ) { ispexec( "CONTROL DISPLAY NONDISPL" ) ; }
 
 	while ( true )
 	{

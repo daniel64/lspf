@@ -617,163 +617,24 @@ void pPanel::display_panel_init( int & RC1 )
 {
 	// Perform panel )INIT processing
 
-	// Set RC1=8 from VGET/VPUT to 0 as it isn't an error in this case
-	// For table display fields, .ATTR applies to all fields but .CURSOR applies only to the top field, .0
+	// Probably not correct, but call for each line on the screen if a table display,
+	// or just call once if not.
 
-	int i  ;
-	int j  ;
-	int ws ;
-	int i_vputget ;
-	int i_assign  ;
+	int ln(0) ;
 
-	string vars ;
-	string var  ;
-	string val  ;
-	string t    ;
-	string fieldNam ;
-
-	map<string, field *>::iterator it;
-
-	i_vputget = 0  ;
-	i_assign  = 0  ;
-
-	RC1 = 0 ;
-	for ( i = 0 ; i < initstmnts.size() ; i++ )
+	do
 	{
-		if ( initstmnts.at( i ).ps_assign )
-		{
-			if ( assgnListi.at( i_assign ).as_isvar )
-			{
-				if ( assgnListi.at( i_assign ).as_rhs == "Z" )
-				{
-					t = "" ;
-				}
-				else
-				{
-					t = getDialogueVar( assgnListi.at( i_assign ).as_rhs ) ;
-					if ( assgnListi.at( i_assign ).as_retlen )       { t = d2ds( t.size() )   ; }
-					else if ( assgnListi.at( i_assign ).as_upper )   { t = upper( t )         ; }
-					else if ( assgnListi.at( i_assign ).as_words )   { t = d2ds( words( t ) ) ; }
-					else if ( assgnListi.at( i_assign ).as_chkexst ) { t = exists( t ) ? "1" : "0"          ; }
-					else if ( assgnListi.at( i_assign ).as_chkfile ) { t = is_regular_file( t ) ? "1" : "0" ; }
-					else if ( assgnListi.at( i_assign ).as_chkdir  ) { t = is_directory( t )    ? "1" : "0" ; }
-
-				}
-			}
-			else if ( assgnListi.at( i_assign ).as_rhs == ".HELP" )
-			{
-				t = ZPHELP ;
-			}
-			else if ( assgnListi.at( i_assign ).as_rhs == ".MSG" )
-			{
-				t = MSGID ;
-			}
-			else if ( assgnListi.at( i_assign ).as_rhs == ".CURSOR" )
-			{
-				t = p_funcPOOL->get( RC1, 0, "ZCURFLD" ) ;
-			}
-			else
-			{
-				t = assgnListi.at( i_assign ).as_rhs ;
-			}
-			if ( assgnListi.at( i_assign ).as_lhs == ".AUTOSEL" )
-			{
-				if ( t == "" ) { t = "YES" ; }
-				if ( t != "YES" && t != "NO" ) { RC1 = 20 ; PERR = "Invalid .AUTOSEL value.  Must be YES, NO or blank" ; return ; }
-				p_funcPOOL->put( RC1, 0, ".AUTOSEL", t, NOCHECK ) ;
-			}
-			else if ( assgnListi.at( i_assign ).as_lhs == ".HELP" )
-			{
-				ZPHELP = t ;
-			}
-			else if ( assgnListi.at( i_assign ).as_lhs == ".NRET" )
-			{
-				if      ( t == "ON" )        { nretriev  = true  ; }
-				else if ( isvalidName( t ) ) { nretfield = t     ; }
-				else                         { nretriev  = false ; }
-			}
-			else if ( assgnListi.at( i_assign ).as_lhs == ".MSG" )
-			{
-				MSGID = t ;
-			}
-			else if ( assgnListi.at( i_assign ).as_lhs == ".CSRROW" )
-			{
-				if ( !isnumeric( t ) ) { RC1 = 20 ; PERR = "Invalid .CSRROW value.  Must be numeric" ; return ; }
-				p_funcPOOL->put( RC1, 0, ".CSRROW", t, NOCHECK ) ;
-			}
-			else if ( assgnListi.at( i_assign ).as_lhs == ".CURSOR" )
-			{
-				if ( wordpos( assgnListi.at( i_assign ).as_rhs, tb_fields ) > 0 ) { t = t + ".0" ; }
-				CURFLD = t ;
-			}
-			else if ( assgnListi.at( i_assign ).as_isattr )
-			{
-				fieldNam = assgnListi.at( i_assign ).as_lhs ;
-				if ( assgnListi.at( i_assign ).as_istb )
-				{
-					for ( j = 0 ; j < tb_depth ; j++ )
-					{
-						if ( fieldList[ fieldNam +"."+ d2ds( j ) ]->field_attr( t ) > 0 )
-						{
-							PERR = "Error setting attribute "+ t +" for table display field " +fieldNam ;
-							RC1  = 20 ;
-							return    ;
-						}
-					}
-				}
-				else
-				{
-					if ( fieldList[ fieldNam ]->field_attr( t ) > 0 )
-					{
-						PERR = "Error setting attribute "+ t +" for field "+ fieldNam ;
-						RC1  = 20 ;
-						return    ;
-					}
-				}
-			}
-			else
-			{
-				putDialogueVar( assgnListi.at( i_assign ).as_lhs, t ) ;
-				if ( fieldList.find( assgnListi.at( i_assign ).as_lhs ) != fieldList.end() )
-				{
-					it = fieldList.find( assgnListi.at( i_assign ).as_lhs ) ;
-					it->second->field_value = t ;
-				}
-			}
-			i_assign++ ;
-		}
-		else if ( initstmnts.at( i ).ps_vputget )
-		{
-			vars = vpgListi.at( i_vputget ).vpg_vars ;
-			ws   = words( vars ) ;
-			if ( vpgListi.at( i_vputget ).vpg_vget )
-			{
-				for ( j = 1 ; j <= ws ; j++ )
-				{
-					var = word( vars, j ) ;
-					val = p_poolMGR->get( RC1, var, vpgListi.at( i_vputget ).vpg_pool ) ;
-					if ( RC1 == 0 )
-					{
-						p_funcPOOL->put( RC1, 0, var, val ) ;
-					}
-				}
-			}
-			if ( vpgListi.at( i_vputget ).vpg_vput )
-			{
-				for ( j = 1 ; j <= ws ; j++ )
-				{
-					var = word( vars, j ) ;
-					val = p_funcPOOL->get( RC1, 8, var ) ;
-					if ( RC1 == 0 )
-					{
-						p_poolMGR->put( RC1, var, val, vpgListi.at( i_vputget ).vpg_pool ) ;
-					}
-				}
-			}
-			if ( RC1 == 8 ) { RC1 = 0 ; }
-			i_vputget++ ;
-		}
-	}
+		process_panel_stmnts( RC1, ln,
+			 initstmnts,
+			 ifListi,
+			 verListi,
+			 vpgListi,
+			 truncListi,
+			 transListi,
+			 assgnListi ) ;
+	       if ( RC1 > 0 ) { return ; }
+	       ln++ ;
+	} while ( ln < tb_depth ) ;
 }
 
 
@@ -781,172 +642,84 @@ void pPanel::display_panel_reinit( int & RC1, int ln )
 {
 	// Perform panel )REINIT processing
 
-	// Set RC1=8 from VGET/VPUT to 0 as it isn't an error in this case
-	// For table display fields, .ATTR and .CURSOR apply to fields on line ln
-
-	int i   ;
-	int j   ;
-	int ws  ;
-	int i_vputget ;
-	int i_assign  ;
-
-	RC1 = 0 ;
-
-	map<string, field *>::iterator it ;
-
-	i_vputget = 0 ;
-	i_assign  = 0 ;
-
-	string t   ;
-	string val ;
-	string var ;
-	string vars ;
-	string fieldNam ;
-
-	for ( i = 0 ; i < reinstmnts.size() ; i++ )
-	{
-		if ( reinstmnts.at( i ).ps_assign )
-		{
-			if ( assgnListr.at( i_assign ).as_isvar )
-			{
-				if ( assgnListr.at( i_assign ).as_rhs == "Z" )
-				{
-					t = "" ;
-				}
-				else
-				{
-					t = getDialogueVar( assgnListr.at( i_assign ).as_rhs ) ;
-					if ( assgnListr.at( i_assign ).as_retlen )       { t = d2ds( t.size() )   ; }
-					else if ( assgnListr.at( i_assign ).as_upper )   { t = upper( t )         ; }
-					else if ( assgnListr.at( i_assign ).as_words )   { t = d2ds( words( t ) ) ; }
-					else if ( assgnListr.at( i_assign ).as_chkexst ) { t = exists( t ) ? "1" : "0"          ; }
-					else if ( assgnListr.at( i_assign ).as_chkfile ) { t = is_regular_file( t ) ? "1" : "0" ; }
-					else if ( assgnListr.at( i_assign ).as_chkdir  ) { t = is_directory( t )    ? "1" : "0" ; }
-				}
-			}
-			else if ( assgnListr.at( i_assign ).as_rhs == ".HELP" )
-			{
-				t = ZPHELP ;
-			}
-			else if ( assgnListr.at( i_assign ).as_rhs == ".MSG" )
-			{
-				t = MSGID ;
-			}
-			else if ( assgnListr.at( i_assign ).as_lhs == ".NRET" )
-			{
-				if      ( t == "ON" )        { nretriev  = true  ; }
-				else if ( isvalidName( t ) ) { nretfield = t     ; }
-				else                         { nretriev  = false ; }
-			}
-			else if ( assgnListr.at( i_assign ).as_rhs == ".CURSOR" )
-			{
-				t = p_funcPOOL->get( RC1, 0, "ZCURFLD" ) ;
-			}
-			else
-			{
-				t = assgnListr.at( i_assign ).as_rhs ;
-			}
-			if ( assgnListr.at( i_assign ).as_lhs == ".AUTOSEL" )
-			{
-				if ( t == "" ) { t = "YES" ; }
-				if ( t != "YES" && t != "NO" ) { RC1 = 20 ; PERR = "Invalid .AUTOSEL value.  Must be YES, NO or blank" ; return ; }
-				p_funcPOOL->put( RC1, 0, ".AUTOSEL", t, NOCHECK ) ;
-			}
-			else if ( assgnListr.at( i_assign ).as_lhs == ".HELP" )
-			{
-				ZPHELP = t ;
-			}
-			else if ( assgnListr.at( i_assign ).as_lhs == ".MSG" )
-			{
-				MSGID  = t ;
-			}
-			else if ( assgnListr.at( i_assign ).as_lhs == ".CSRROW" )
-			{
-				if ( !isnumeric( t ) ) { RC1 = 20 ; PERR = "Invalid .CSRROW value.  Must be numeric" ; return ; }
-				p_funcPOOL->put( RC1, 0, ".CSRROW", t, NOCHECK ) ;
-			}
-			else if ( assgnListr.at( i_assign ).as_lhs == ".CURSOR" )
-			{
-				if ( wordpos( assgnListr.at( i_assign ).as_rhs, tb_fields ) > 0 ) { t = t + "."+ d2ds( ln ) ; }
-				CURFLD = t ;
-			}
-			else if ( assgnListr.at( i_assign ).as_isattr )
-			{
-				fieldNam = assgnListr.at( i_assign ).as_lhs ;
-				if ( assgnListr.at( i_assign ).as_istb )
-				{
-					if ( fieldList[ fieldNam +"."+ d2ds( ln ) ]->field_attr( t ) > 0 )
-					{
-						PERR = "Error setting attribute "+ t +" for table display field " +fieldNam ;
-						RC1  = 20 ;
-						return    ;
-					}
-					attrList.push_back( fieldNam +"."+ d2ds( ln ) ) ;
-				}
-				else
-				{
-					if ( fieldList[ fieldNam ]->field_attr( t ) > 0 )
-					{
-						PERR = "Error setting attribute "+ t +" for field "+ fieldNam ;
-						RC1  = 20 ;
-						return    ;
-					}
-					attrList.push_back( fieldNam ) ;
-				}
-			}
-			else
-			{
-				putDialogueVar( assgnListr.at( i_assign ).as_lhs, t ) ;
-				if ( fieldList.find( assgnListr.at( i_assign ).as_lhs ) != fieldList.end() )
-				{
-					it = fieldList.find( assgnListr.at( i_assign ).as_lhs ) ;
-					it->second->field_value = t ;
-				}
-			}
-			i_assign++ ;
-		}
-		else if ( reinstmnts.at( i ).ps_vputget )
-		{
-			vars = vpgListr.at( i_vputget ).vpg_vars ;
-			ws   = words( vars ) ;
-			if ( vpgListr.at( i_vputget ).vpg_vget )
-			{
-				for ( j = 1 ; j <= ws ; j++ )
-				{
-					var = word( vars, j ) ;
-					val = p_poolMGR->get( RC1, var, vpgListr.at( i_vputget ).vpg_pool ) ;
-					if ( RC1 == 0 )
-					{
-						p_funcPOOL->put( RC1, 0, var, val ) ;
-					}
-				}
-			}
-			if ( vpgListr.at( i_vputget ).vpg_vput )
-			{
-				for ( j = 1 ; j <= ws ; j++ )
-				{
-					var = word( vars, j ) ;
-					val = p_funcPOOL->get( RC1, 8, var ) ;
-					if ( RC1 == 0 )
-					{
-						p_poolMGR->put( RC1, var, val, vpgListr.at( i_vputget ).vpg_pool ) ;
-					}
-				}
-			}
-			if ( RC1 == 8 ) { RC1 = 0 ; }
-			i_vputget++ ;
-		}
-	}
+	process_panel_stmnts( RC1, ln,
+		 reinstmnts,
+		 ifListr,
+		 verListr,
+		 vpgListr,
+		 truncListr,
+		 transListr,
+		 assgnListr ) ;
 }
 
 
 void pPanel::display_panel_proc( int & RC1, int ln )
 {
-	//  Process )PROC statements
+	// Perform panel )PROC processing
 
-	//  Set RC1=8 from VGET/VPUT to 0 as it isn't an error in this case
-	//  For table display fields, .ATTR and .CURSOR apply to fields on line ln
-	//  If cursor on a point-and-shoot field (PS), set variable as in the )PNTS panel section if defined there
+	// If cursor on a point-and-shoot field (PS), set variable as in the )PNTS panel section if defined there
+
+	int i ;
+	string fieldNam ;
+	map<string, field *>::iterator it;
+
+	process_panel_stmnts( RC1, ln,
+		 procstmnts,
+		 ifListp,
+		 verListp,
+		 vpgListp,
+		 truncListp,
+		 transListp,
+		 assgnListp ) ;
+
+	if ( RC1 > 0 ) { return ; }
+
+	fieldNam = p_funcPOOL->get( RC1, 0, "ZCURFLD" ) ;
+	if ( fieldNam != "" )
+	{
+		it = fieldList.find( fieldNam ) ;
+		if ( it != fieldList.end() )
+		{
+			if ( it->second->field_cua == PS )
+			{
+				if ( pntsTable.count( fieldNam ) > 0 )
+				{
+					p_funcPOOL->put( RC1, 0, pntsTable[ fieldNam ].pnts_var, pntsTable[ fieldNam ].pnts_val ) ;
+				}
+			}
+		}
+	}
+	else
+	{
+		for ( i = 0 ; i < literalList.size() ; i++ )
+		{
+			if ( !literalList.at( i )->cursor_on_literal( p_row, p_col ) ) { continue ; }
+			fieldNam = literalList.at( i )->literal_name ;
+			if ( fieldNam == "" ) { break ; }
+			if ( pntsTable.count( fieldNam ) > 0 )
+			{
+				p_funcPOOL->put( RC1, 0, pntsTable[ fieldNam ].pnts_var, pntsTable[ fieldNam ].pnts_val ) ;
+			}
+			break ;
+		}
+	}
+}
+
+
+void pPanel::process_panel_stmnts( int & RC1, int ln,
+		vector<panstmnt> & panstmnts,
+		vector<IFSTMNT>  & ifList,
+		vector<VERIFY>   & verList,
+		vector<VPUTGET>  & vpgList,
+		vector<TRUNC>    & truncList,
+		vector<TRANS>    & transList,
+		vector<ASSGN>    & assgnList )
+{
+	// General routine to process panel statements.  Pass addresses of the relevant vectors for the
+	// panel section being processed.
+
+	// Set RC1=8 from VGET/VPUT to 0 as it isn't an error in this case
+	// For table display fields, .ATTR and .CURSOR apply to fields on line ln
 
 	int i, j, ws    ;
 	int k           ;
@@ -986,25 +759,25 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 	if_column = 0  ;
 	if_skip   = false ;
 
-	for ( i = 0 ; i < procstmnts.size() ; i++ )
+	for ( i = 0 ; i < panstmnts.size() ; i++ )
 	{
 		if ( if_skip )
 		{
-			if ( if_column < procstmnts.at( i ).ps_column )
+			if ( if_column < panstmnts.at( i ).ps_column )
 			{
-				if      ( procstmnts.at( i ).ps_if      ) { i_if++      ; }
-				else if ( procstmnts.at( i ).ps_else    ) { i_if++      ; }
-				else if ( procstmnts.at( i ).ps_assign  ) { i_assign++  ; }
-				else if ( procstmnts.at( i ).ps_verify  ) { i_verify++  ; }
-				else if ( procstmnts.at( i ).ps_vputget ) { i_vputget++ ; }
-				else if ( procstmnts.at( i ).ps_trunc   ) { i_trunc++   ; }
-				else if ( procstmnts.at( i ).ps_trans   ) { i_trans++   ; }
+				if      ( panstmnts.at( i ).ps_if      ) { i_if++      ; }
+				else if ( panstmnts.at( i ).ps_else    ) { i_if++      ; }
+				else if ( panstmnts.at( i ).ps_assign  ) { i_assign++  ; }
+				else if ( panstmnts.at( i ).ps_verify  ) { i_verify++  ; }
+				else if ( panstmnts.at( i ).ps_vputget ) { i_vputget++ ; }
+				else if ( panstmnts.at( i ).ps_trunc   ) { i_trunc++   ; }
+				else if ( panstmnts.at( i ).ps_trans   ) { i_trans++   ; }
 				continue ;
 			}
 			else { if_skip = false ; }
 		}
-		if ( procstmnts.at( i ).ps_exit ) { return ; }
-		else if ( procstmnts.at( i ).ps_if )
+		if ( panstmnts.at( i ).ps_exit ) { return ; }
+		else if ( panstmnts.at( i ).ps_if )
 		{
 			if ( ifList.at( i_if ).if_eq ) { ifList.at( i_if ).if_true = false ; }
 			if ( ifList.at( i_if ).if_ne ) { ifList.at( i_if ).if_true = true  ; }
@@ -1024,14 +797,7 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 			{
 				if ( ifList.at( i_if ).if_isvar[ j ] )
 				{
-					if ( ifList.at( i_if ).if_rhs[ j ] == "Z" )
-					{
-						t = "" ;
-					}
-					else
-					{
-						t = getDialogueVar( ifList.at( i_if ).if_rhs[ j ] ) ;
-					}
+					t = getDialogueVar( ifList.at( i_if ).if_rhs[ j ] ) ;
 				}
 				else
 				{
@@ -1072,16 +838,16 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 			else
 			{
 				if_skip   = true ;
-				if_column = procstmnts.at( i ).ps_column ;
+				if_column = panstmnts.at( i ).ps_column ;
 			}
 			i_if++ ;
 		}
-		else if ( procstmnts.at( i ).ps_else )
+		else if ( panstmnts.at( i ).ps_else )
 		{
 			if ( ifList.at( ifList.at( i_if ).if_stmnt ).if_true )
 			{
 				if_skip = true ;
-				if_column = procstmnts.at( i ).ps_column ;
+				if_column = panstmnts.at( i ).ps_column ;
 			}
 			else
 			{
@@ -1089,7 +855,7 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 			}
 			i_if++ ;
 		}
-		else if ( procstmnts.at( i ).ps_trunc )
+		else if ( panstmnts.at( i ).ps_trunc )
 		{
 			t = getDialogueVar( truncList.at( i_trunc ).trnc_field2 ) ;
 			if ( truncList.at( i_trunc ).trnc_len > 0 )
@@ -1113,6 +879,12 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 				}
 			}
 			putDialogueVar( truncList.at( i_trunc ).trnc_field1, t ) ;
+			if ( RC > 0 )
+			{
+				PERR = "Error setting variable "+ truncList.at( i_trunc ).trnc_field1 ;
+				RC1  = 20 ;
+				return    ;
+			}
 			if ( fieldList.find( truncList.at( i_trunc ).trnc_field1 ) != fieldList.end() )
 			{
 				it = fieldList.find( truncList.at( i_trunc ).trnc_field1 ) ;
@@ -1120,7 +892,7 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 			}
 			i_trunc++ ;
 		}
-		else if ( procstmnts.at( i ).ps_trans )
+		else if ( panstmnts.at( i ).ps_trans )
 		{
 			t = getDialogueVar( transList.at( i_trans ).trns_field2 ) ;
 			if ( transList.at( i_trans ).tlst.find( t ) != transList.at( i_trans ).tlst.end() )
@@ -1139,6 +911,12 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 				else { t = "" ; }
 			}
 			putDialogueVar( transList.at( i_trans ).trns_field1, t ) ;
+			if ( RC > 0 )
+			{
+				PERR = "Error setting variable "+ transList.at( i_trans ).trns_field1 ;
+				RC1  = 20 ;
+				return    ;
+			}
 			if ( fieldList.find( transList.at( i_trans ).trns_field1 ) != fieldList.end() )
 			{
 				it = fieldList.find( transList.at( i_trans ).trns_field1 ) ;
@@ -1146,7 +924,7 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 			}
 			i_trans++ ;
 		}
-		else if ( procstmnts.at( i ).ps_vputget )
+		else if ( panstmnts.at( i ).ps_vputget )
 		{
 			vars = vpgList.at( i_vputget ).vpg_vars ;
 			ws   = words( vars ) ;
@@ -1177,24 +955,17 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 			if ( RC1 == 8 ) { RC1 = 0 ; }
 			i_vputget++ ;
 		}
-		else if ( procstmnts.at( i ).ps_assign )
+		else if ( panstmnts.at( i ).ps_assign )
 		{
 			if ( assgnList.at( i_assign ).as_isvar )
 			{
-				if ( assgnList.at( i_assign ).as_rhs == "Z" )
-				{
-					t = "" ;
-				}
-				else
-				{
-					t = getDialogueVar( assgnList.at( i_assign ).as_rhs ) ;
-					if      ( assgnList.at( i_assign ).as_retlen  ) { t = d2ds( t.size() )   ; }
-					else if ( assgnList.at( i_assign ).as_upper   ) { t = upper( t )         ; }
-					else if ( assgnList.at( i_assign ).as_words   ) { t = d2ds( words( t ) ) ; }
-					else if ( assgnList.at( i_assign ).as_chkexst ) { t = exists( t ) ? "1" : "0"          ; }
-					else if ( assgnList.at( i_assign ).as_chkfile ) { t = is_regular_file( t ) ? "1" : "0" ; }
-					else if ( assgnList.at( i_assign ).as_chkdir  ) { t = is_directory( t )    ? "1" : "0" ; }
-				}
+				t = getDialogueVar( assgnList.at( i_assign ).as_rhs ) ;
+				if      ( assgnList.at( i_assign ).as_retlen  ) { t = d2ds( t.size() )   ; }
+				else if ( assgnList.at( i_assign ).as_upper   ) { t = upper( t )         ; }
+				else if ( assgnList.at( i_assign ).as_words   ) { t = d2ds( words( t ) ) ; }
+				else if ( assgnList.at( i_assign ).as_chkexst ) { t = exists( t ) ? "1" : "0"          ; }
+				else if ( assgnList.at( i_assign ).as_chkfile ) { t = is_regular_file( t ) ? "1" : "0" ; }
+				else if ( assgnList.at( i_assign ).as_chkdir  ) { t = is_directory( t )    ? "1" : "0" ; }
 			}
 			else if ( assgnList.at( i_assign ).as_rhs == ".CURSOR" )
 			{
@@ -1218,6 +989,7 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 			}
 			if ( assgnList.at( i_assign ).as_lhs == ".AUTOSEL" )
 			{
+				//
 			}
 			else if ( assgnList.at( i_assign ).as_lhs == ".CURSOR" )
 			{
@@ -1271,6 +1043,12 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 			else
 			{
 				putDialogueVar( assgnList.at( i_assign ).as_lhs, t ) ;
+				if ( RC > 0 )
+				{
+					PERR = "Error setting variable "+ assgnList.at( i_assign ).as_lhs ;
+					RC1  = 20 ;
+					return    ;
+				}
 				if ( fieldList.find( assgnList.at( i_assign ).as_lhs ) != fieldList.end() )
 				{
 					it = fieldList.find( assgnList.at( i_assign ).as_lhs ) ;
@@ -1279,10 +1057,10 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 			}
 			i_assign++ ;
 		}
-		else if ( procstmnts.at( i ).ps_verify )
+		else if ( panstmnts.at( i ).ps_verify )
 		{
 			fieldNam = verList.at( i_verify ).ver_field ;
-			if ( verList.at( i_verify ).ver_tbfield ) { fieldNam = fieldNam +"."+ d2ds( ln ) ; }
+			if ( verList.at( i_verify ).ver_tbfield ) { fieldNam += "."+ d2ds( ln ) ; }
 			it = fieldList.find( fieldNam ) ;
 			if ( verList.at( i_verify ).ver_nblank )
 			{
@@ -1290,7 +1068,6 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 				{
 					MSGID  = verList.at( i_verify ).ver_msgid  ;
 					if (MSGID == "" ) { MSGID = "PSYS019" ; }
-					if ( wordpos( fieldNam, tb_fields ) > 0 ) { fieldNam += "."+ d2ds( ln ) ; }
 					CURFLD = fieldNam ;
 					MSGLOC = CURFLD   ;
 					return            ;
@@ -1307,7 +1084,6 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 				{
 					MSGID  = verList.at( i_verify ).ver_msgid  ;
 					if (MSGID == "" ) { MSGID = "PSYS011A" ; }
-					if ( wordpos( fieldNam, tb_fields ) > 0 ) { fieldNam += "."+ d2ds( ln ) ; }
 					CURFLD = fieldNam ;
 					MSGLOC = CURFLD   ;
 					return            ;
@@ -1353,7 +1129,6 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 					p_poolMGR->put( RC1, "ZZSTR1", verList.at( i_verify ).ver_value, SHARED ) ;
 					MSGID  = verList.at( i_verify ).ver_msgid  ;
 					if (MSGID == "" ) { MSGID = "PSYS011B" ; }
-					if ( wordpos( fieldNam, tb_fields ) > 0 ) { fieldNam += "."+ d2ds( ln ) ; }
 					CURFLD = fieldNam ;
 					MSGLOC = CURFLD   ;
 					return            ;
@@ -1367,7 +1142,6 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 					p_poolMGR->put( RC1, "ZZSTR2", verList.at( i_verify ).ver_value, SHARED ) ;
 					MSGID  = verList.at( i_verify ).ver_msgid  ;
 					if (MSGID == "" ) { MSGID = "PSYS011N" ; }
-					if ( wordpos( fieldNam, tb_fields ) > 0 ) { fieldNam += "."+ d2ds( ln ) ; }
 					CURFLD = fieldNam ;
 					MSGLOC = CURFLD   ;
 					return            ;
@@ -1379,8 +1153,6 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 				{
 					MSGID  = verList.at( i_verify ).ver_msgid  ;
 					if (MSGID == "" ) { MSGID = "PSYS011H" ; }
-					if ( wordpos( fieldNam, tb_fields ) > 0 ) { fieldNam += "."+ d2ds( ln ) ; }
-					CURFLD = fieldNam ;
 					MSGLOC = CURFLD   ;
 					return            ;
 				}
@@ -1391,43 +1163,12 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 				{
 					MSGID  = verList.at( i_verify ).ver_msgid  ;
 					if (MSGID == "" ) { MSGID = "PSYS011F" ; }
-					if ( wordpos( fieldNam, tb_fields ) > 0 ) { fieldNam += "."+ d2ds( ln ) ; }
 					CURFLD = fieldNam ;
 					MSGLOC = CURFLD   ;
 					return            ;
 				}
 			}
 			i_verify++ ;
-		}
-	}
-
-	fieldNam = p_funcPOOL->get( RC1, 0, "ZCURFLD" ) ;
-	if ( fieldNam != "" )
-	{
-		it = fieldList.find( fieldNam ) ;
-		if ( it != fieldList.end() )
-		{
-			if ( it->second->field_cua == PS )
-			{
-				if ( pntsTable.count( fieldNam ) > 0 )
-				{
-					p_funcPOOL->put( RC1, 0, pntsTable[ fieldNam ].pnts_var, pntsTable[ fieldNam ].pnts_val ) ;
-				}
-			}
-		}
-	}
-	else
-	{
-		for ( i = 0 ; i < literalList.size() ; i++ )
-		{
-			if ( !literalList.at( i )->cursor_on_literal( p_row, p_col ) ) { continue ; }
-			fieldNam = literalList.at( i )->literal_name ;
-			if ( fieldNam == "" ) { break ; }
-			if ( pntsTable.count( fieldNam ) > 0 )
-			{
-				p_funcPOOL->put( RC1, 0, pntsTable[ fieldNam ].pnts_var, pntsTable[ fieldNam ].pnts_val ) ;
-			}
-			break ;
 		}
 	}
 }

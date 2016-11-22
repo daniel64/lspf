@@ -24,7 +24,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/condition.hpp>
 
-#define DEBUG1 1
+// #define DEBUG1 1
 // #define DEBUG2 1
 #define MOD_NAME lspf
 

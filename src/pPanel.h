@@ -205,23 +205,41 @@ class pPanel
 		vector<panstmnt> initstmnts ;
 		vector<panstmnt> reinstmnts ;
 
-		vector<IFSTMNT>  ifList ;
-		vector<VERIFY>  verList ;
-		vector<VPUTGET> vpgList ;
-		vector<TRUNC> truncList ;
-		vector<TRANS> transList ;
-		vector<ASSGN> assgnList ;
+		vector<IFSTMNT>  ifListp ;
+		vector<VERIFY>  verListp ;
+		vector<VPUTGET> vpgListp ;
+		vector<TRUNC> truncListp ;
+		vector<TRANS> transListp ;
+		vector<ASSGN> assgnListp ;
 
+		vector<IFSTMNT>  ifListi ;
+		vector<VERIFY>  verListi ;
 		vector<VPUTGET> vpgListi ;
+		vector<TRUNC> truncListi ;
+		vector<TRANS> transListi ;
 		vector<ASSGN> assgnListi ;
 
+		vector<IFSTMNT>  ifListr ;
+		vector<VERIFY>  verListr ;
 		vector<VPUTGET> vpgListr ;
+		vector<TRUNC> truncListr ;
+		vector<TRANS> transListr ;
 		vector<ASSGN> assgnListr ;
+
 
 		void   display_literals() ;
 		void   display_fields()   ;
 		void   display_ab()       ;
 		void   display_pd()       ;
+
+		void  process_panel_stmnts( int & RC1, int ln,
+			vector<panstmnt> & stmnts,
+			vector<IFSTMNT>  & ifList,
+			vector<VERIFY>   & verList,
+			vector<VPUTGET>  & vpgList,
+			vector<TRUNC>    & truncList,
+			vector<TRANS>    & transList,
+			vector<ASSGN>    & assgnList ) ;
 
 		void   get_msgwin( int, int &, int &, int &, int & ) ;
 		void   panel_cleanup( PANEL * ) ;

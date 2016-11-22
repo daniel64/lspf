@@ -646,7 +646,7 @@ void pVPOOL::load( int & RC, string currAPPLID, string path )
 		profile.read (buf1, k ) ;
 		if ( profile.fail() != 0 ) { RC = 20 ; break ; }
 		value.assign( buf1, k ) ;
-		debug2("Restoring " << var << " to value >>" << value << "<<" << endl ) ;
+		debug2("Restoring " << var << " to value '" << value << "'" << endl ) ;
 		put( RC, var, value ) ;
 		debug2( "Result of put RC = " << RC << endl ) ;
 	}
@@ -1050,7 +1050,7 @@ void poolMGR::setAPPLID( int & RC, string m_APPLID )
 	if ( !isvalidName4( m_APPLID ) )
 	{
 		RC = 20 ;
-		log( "C", "Invalid APPLID name format passed to pool manager >>" << m_APPLID << "<<" << endl ) ;
+		log( "C", "Invalid APPLID name format passed to pool manager '" << m_APPLID << "'" << endl ) ;
 		return  ;
 	}
 

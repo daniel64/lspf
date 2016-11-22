@@ -610,6 +610,7 @@ bool selobj::parse( string SELSTR )
 	// PANEL(def)   - translates to PGM(&ZPANLPGM) PARM(def)
 
 	// + SCRNAME(ghi) - give the function a screen name (valid name but not LIST, NEXT, PREV)
+	// + SUSPEND      - Suspend any popup windows
 
 	// Match brackets for PARM and CMD as these may contain brackets
 
