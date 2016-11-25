@@ -20,6 +20,5 @@ PACU017 'Invalid Parameter Passed' .TYPE=W
 "PACU01 has been invoked with an invalid parameter of '&ZZSTR1'"
 
 PACU018 'File Cannot Be Opened Or Not Found' .TYPE=W
-'File cannot be opened.  Check file exists and its permissions or file type'
-
+'Check file exists and its permissions or file type'
 

@@ -674,7 +674,7 @@ class e_find
 		fcx_URID    = 0     ;
 		fcx_lines   = 0     ;
 		fcx_offset  = 0     ;
-		fcx_skipln  = 0     ;
+		fcx_skiplen = 0     ;
 		fcx_excl    = 'A'   ;
 		fcx_regreq  = false ;
 		fcx_text    = false ;

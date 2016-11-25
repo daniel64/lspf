@@ -67,12 +67,12 @@ VER (&EENEWFLS LIST /)
 IF ( &EEDIRLST NE '/' )
   IF ( &ISDIR EQ .TRUE )
      .CURSOR = ZFILE
-     .MSG    = PEDT01T
+     .MSG    = PEDT011T
      EXIT
   IF ( &ISFILE EQ .FALSE )
      IF ( &EENEWFLS NE '/' )
         .CURSOR = ZFILE
-        .MSG    = PEDT01R
+        .MSG    = PEDT011R
         EXIT
 ELSE
   IF ( &ISFILE EQ .FALSE )
@@ -81,7 +81,7 @@ ELSE
      ELSE
         IF ( &EENEWFLS NE '/' )
            .CURSOR = ZFILE
-           .MSG    = PEDT01S
+           .MSG    = PEDT011S
            EXIT
 
 VPUT (ZFILE,EETABCC,EETABSS,EEPRSPS,EEDIRLST,EENEWFLS) PROFILE

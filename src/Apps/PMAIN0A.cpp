@@ -124,7 +124,7 @@ void PMAIN0A::application()
 		{
 			if ( ws == "" )
 			{
-				MSG = "MAIN015" ;
+				MSG = "MAIN011" ;
 				continue        ;
 			}
 			else
@@ -133,7 +133,7 @@ void PMAIN0A::application()
 				pyear  = ds2d( substr( ws, 4, 4 ) ) ;
 				if ( pmonth < 1 || pmonth > 12 || pyear < 1900 || pyear > 9999 )
 				{
-					MSG = "MAIN015" ;
+					MSG = "MAIN011" ;
 					continue ;
 				}
 				offset = 0 ;
@@ -206,7 +206,7 @@ void PMAIN0A::application()
 			log( "E", w1 << " function of panel PMAINP01 is invalid" << endl ) ;
 			MSG = "PSYS017" ;
 		}
-		if ( ZCMD != "" ) { MSG = "MAIN011" ; }
+		if ( ZCMD != "" ) { MSG = "PSYS011C" ; }
 	}
 	cleanup() ;
 }
