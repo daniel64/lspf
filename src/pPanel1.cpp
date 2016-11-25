@@ -144,7 +144,7 @@ void pPanel::init( int & RC1 )
 }
 
 
-string pPanel::getDialogueVar( string var )
+string pPanel::getDialogueVar( const string & var )
 {
 	// Return the value of a dialogue variable (always as a string so convert int->string if necessary)
 	// Search order is:
@@ -153,6 +153,10 @@ string pPanel::getDialogueVar( string var )
 	//   SHARED pool
 	//   PROFILE pool
 	// Function pool variables of type int are converted to string
+
+	// If the variable is not found, create a null implicit entry in the function pool
+
+	string * p_str    ;
 
 	dataType var_type ;
 
@@ -163,41 +167,52 @@ string pPanel::getDialogueVar( string var )
 		{
 			switch ( var_type )
 			{
-			case INTEGER:
-				return d2ds( p_funcPOOL->get( RC, 0, var_type, var ) ) ;
-				break ;
-			case STRING:
-				return p_funcPOOL->get( RC, 0, var, NOCHECK ) ;
-				break ;
+				case INTEGER:
+					return d2ds( p_funcPOOL->get( RC, 0, var_type, var ) ) ;
+					break ;
+				case STRING:
+					return p_funcPOOL->get( RC, 0, var, NOCHECK ) ;
+					break ;
 			}
 		}
 		else
 		{
-			log( "E", "Non-zero return code received retrieving variable type for " << var << " from function pool" << endl ) ;
+			log( "E", "Non-zero return code received retrieving variable type for '"+ var +"' from function pool" << endl ) ;
 			RC = 20   ;
 			return "" ;
 		}
 	}
 	else
 	{
-		return p_poolMGR->get( RC, var ) ;
+		p_str = p_poolMGR->vlocate( RC, var ) ;
+		switch ( RC )
+		{
+			case 0:
+				 return *p_str ;
+			case 4:
+				 return p_poolMGR->get( RC, var ) ;
+			case 8:
+				 p_funcPOOL->put( RC, 0, var, "" ) ;
+				 return "" ;
+			default:
+				 log( "E", "RC=20 from pool manager vlocate for variable '"+ var +"'" << endl ) ;
+				 return "" ;
+		}
 	}
 	return "" ;
 }
 
 
-void pPanel::putDialogueVar( string var, string val )
+void pPanel::putDialogueVar( const string & var, const string & val )
 {
-	// Upate a dialogue variable where it resides in the standard search order.
-	// If not found, create an implicit function pool variable
+	// Store data for a dialogue variable in the function pool.
+	// Creates an implicit function pool variable if one does not already exist.
 
-	if      ( p_funcPOOL->ifexists( RC, var ) ) { p_funcPOOL->put( RC, 0, var, val )   ; }
-	else if ( p_poolMGR->ifexists( RC, var ) )  { p_poolMGR->put( RC, var, val, ASIS ) ; }
-	else                                        { p_funcPOOL->put( RC, 0, var, val )   ; }
+	p_funcPOOL->put( RC, 0, var, val ) ;
 }
 
 
-void pPanel::syncDialogueVar( string var )
+void pPanel::syncDialogueVar( const string & var )
 {
 	// Relevant for REXX procedures only and called for panel variables not in the function pool
 
@@ -212,14 +227,7 @@ void pPanel::syncDialogueVar( string var )
 	// BUG:  ZPANELID and ZPFKEY are not sync'd as they are not in the SHARED pool at this point !!
 	//       Old values are therefore always blank !!
 
-	if ( !p_poolMGR->ifexists( RC, var ) )
-	{
-		p_funcPOOL->put( RC, 0, var, "" ) ;
-	}
-	else
-	{
-		p_funcPOOL->put( RC, 0, var, p_poolMGR->get( RC, var, ASIS ) ) ;
-	}
+	p_funcPOOL->put( RC, 0, var, p_poolMGR->get( RC, var, ASIS ) ) ;
 }
 
 
@@ -437,23 +445,26 @@ void pPanel::display_panel_update( int & RC1 )
 	if ( scrollOn )
 	{
 		it = fieldList.find( "ZSCROLL" ) ;
-		it->second->field_remove_nulls() ;
-		it->second->field_value = upper( strip( it->second->field_value ) ) ;
-		if ( !isnumeric( it->second->field_value ) )
+		if ( it->second->field_changed )
 		{
-			switch( it->second->field_value[ 0 ] )
+			it->second->field_remove_nulls() ;
+			it->second->field_value = upper( strip( it->second->field_value ) ) ;
+			if ( !isnumeric( it->second->field_value ) )
 			{
-				case 'C': it->second->field_value = "CSR " ; break ;
-				case 'D': it->second->field_value = "DATA" ; break ;
-				case 'H': it->second->field_value = "HALF" ; break ;
-				case 'P': it->second->field_value = "PAGE" ; break ;
-				default:  MSGID  = "PSYS011I" ;
-					  CURFLD = "ZSCROLL"  ;
-					  MSGLOC = CURFLD     ;
+				switch( it->second->field_value[ 0 ] )
+				{
+					case 'C': it->second->field_value = "CSR " ; break ;
+					case 'D': it->second->field_value = "DATA" ; break ;
+					case 'H': it->second->field_value = "HALF" ; break ;
+					case 'P': it->second->field_value = "PAGE" ; break ;
+					default:  MSGID  = "PSYS011I" ;
+						  CURFLD = "ZSCROLL"  ;
+						  MSGLOC = CURFLD     ;
+				}
 			}
+			p_funcPOOL->put( RC1, 0, it->first, it->second->field_value ) ;
+			it->second->field_changed = false ;
 		}
-		p_funcPOOL->put( RC1, 0, it->first, it->second->field_value ) ;
-		it->second->field_changed = false ;
 	}
 
 	p_funcPOOL->put( RC1, 0, "ZCURFLD", "" ) ;
@@ -1174,7 +1185,7 @@ void pPanel::process_panel_stmnts( int & RC1, int ln,
 }
 
 
-void pPanel::create_tbfield( int col, int length, cuaType cuaFT, string name, string opts )
+void pPanel::create_tbfield( int col, int length, cuaType cuaFT, const string & name, const string & opts )
 {
 	// Default is JUST(ASIS) for fields of a TB model, so change from the default of JUST(LEFT)
 
@@ -1184,7 +1195,7 @@ void pPanel::create_tbfield( int col, int length, cuaType cuaFT, string name, st
 	if ( !isvalidName( name ) )
 	{
 		RC = 20 ;
-		PERR = "Invalid field name "+ name +" entered for TB field" ;
+		PERR = "Invalid field name '"+ name +"' entered for TB field" ;
 		return  ;
 	}
 
@@ -1208,7 +1219,7 @@ void pPanel::create_tbfield( int col, int length, cuaType cuaFT, string name, st
 		if ( RC > 0 )
 		{
 			RC   = 20 ;
-			PERR = "Error in options for field "+ name +".  Entry is "+ opts ;
+			PERR = "Error in options for field '"+ name +"'.  Entry is "+ opts ;
 			return    ;
 		}
 
@@ -1216,7 +1227,7 @@ void pPanel::create_tbfield( int col, int length, cuaType cuaFT, string name, st
 }
 
 
-void pPanel::create_pdc( string abc_name, string pdc_name, string pdc_run, string pdc_parm, string pdc_unavail )
+void pPanel::create_pdc( const string & abc_name, const string & pdc_name, const string & pdc_run, const string & pdc_parm, const string & pdc_unavail )
 {
 	// ab is a vector list of action-bar-choices (abc objects)
 	// Each action-bar-choice is a vector list of pull-down-choices (pdc objects)
@@ -1294,7 +1305,7 @@ void pPanel::update_field_values( int & RC1 )
 		if ( RC1 > 0 ) { RC1 = 20 ; PERR = "Dynamic area shadow variable has not been defined in the function pool" ; return ; }
 		if ( darea->size() > shadow->size() )
 		{
-			log( "W", "Shadow variable " << sname << " size is smaller than the data variable " << it2->first << " size.  Results may be unpredictable" << endl ) ;
+			log( "W", "Shadow variable '"+ sname +"' size is smaller than the data variable " << it2->first << " size.  Results may be unpredictable" << endl ) ;
 			log( "W", "Data variable size   = " << darea->size() << endl ) ;
 			log( "W", "Shadow variable size = " << shadow->size() << endl ) ;
 		}
@@ -1428,14 +1439,14 @@ void pPanel::get_home( uint & row, uint & col )
 }
 
 
-string pPanel::field_getvalue( string f_name )
+string pPanel::field_getvalue( const string & f_name )
 {
 	fieldList[ f_name ]->field_remove_nulls() ;
 	return  fieldList[ f_name ]->field_value  ;
 }
 
 
-void pPanel::field_setvalue( string f_name, string f_value )
+void pPanel::field_setvalue( const string & f_name, const string & f_value )
 {
 	bool snulls = ( p_poolMGR->get( RC, "ZNULLS", SHARED ) == "YES" ) ;
 
@@ -1453,7 +1464,7 @@ string pPanel::cmd_getvalue()
 }
 
 
-void pPanel::cmd_setvalue( string f_value )
+void pPanel::cmd_setvalue( const string & f_value )
 {
 	bool snulls = ( p_poolMGR->get( RC, "ZNULLS", SHARED ) == "YES" ) ;
 
@@ -1464,7 +1475,7 @@ void pPanel::cmd_setvalue( string f_value )
 }
 
 
-bool pPanel::is_cmd_inactive( string cmd )
+bool pPanel::is_cmd_inactive( const string & cmd )
 {
 	// Some commands may be inactive for this type of panel, so return true for these.
 
@@ -1482,7 +1493,7 @@ bool pPanel::is_cmd_inactive( string cmd )
 }
 
 
-bool pPanel::field_valid( string f_name )
+bool pPanel::field_valid( const string & f_name )
 {
 	return fieldList.find( f_name ) != fieldList.end() ;
 }
@@ -1509,7 +1520,7 @@ string pPanel::field_getname( uint row, uint col )
 }
 
 
-bool pPanel::field_get_row_col( string fld, uint & row, uint & col )
+bool pPanel::field_get_row_col( const string & fld, uint & row, uint & col )
 {
 	// If field found on panel (by name), return true and its position, else return false
 	// Return the physical position on the screen, so add the window offsets to field_row/col
@@ -1528,7 +1539,7 @@ bool pPanel::field_get_row_col( string fld, uint & row, uint & col )
 }
 
 
-fieldExc pPanel::field_getexec( string field )
+fieldExc pPanel::field_getexec( const string & field )
 {
 	// If passed field is in the field execute table, return the structure fieldExc for that field as defined in )FIELD panel section.
 
@@ -1537,7 +1548,7 @@ fieldExc pPanel::field_getexec( string field )
 }
 
 
-void pPanel::field_clear( string f_name )
+void pPanel::field_clear( const string & f_name )
 {
 	fieldList[ f_name ]->field_clear( win ) ;
 }
@@ -1799,7 +1810,7 @@ void pPanel::field_tab_next( uint & row, uint & col )
 }
 
 
-string pPanel::get_field_help( string fld )
+string pPanel::get_field_help( const string & fld )
 {
 	if ( fieldHList.count( fld ) == 0 ) { return "" ; }
 	return fieldHList[ fld ] ;
@@ -1932,7 +1943,7 @@ void pPanel::tb_fields_active_inactive()
 
 
 
-string pPanel::return_command( string opt )
+string pPanel::return_command( const string & opt )
 {
 	if ( commandTable.count( opt ) == 0 ) { return "" ; }
 	return commandTable.at( opt ) ;
@@ -2026,7 +2037,7 @@ void pPanel::display_boxes()
 }
 
 
-void pPanel::set_panel_msg( slmsg t, string msgid )
+void pPanel::set_panel_msg( slmsg t, const string & msgid )
 {
 	int i ;
 
@@ -2065,7 +2076,7 @@ void pPanel::clear_msg()
 }
 
 
-void pPanel::put_keylist( int entry, string keyv )
+void pPanel::put_keylist( int entry, const string & keyv )
 {
 	Keylistl[ entry ] = keyv ;
 }
@@ -2227,7 +2238,7 @@ void pPanel::display_id()
 }
 
 
-void pPanel::get_panel_info( int & RC1, string a_name, string t_name, string w_name, string d_name, string r_name, string c_name )
+void pPanel::get_panel_info( int & RC1, const string & a_name, const string & t_name, const string & w_name, const string & d_name, const string & r_name, const string & c_name )
 {
 	map<string, dynArea *>::iterator it ;
 
@@ -2236,7 +2247,7 @@ void pPanel::get_panel_info( int & RC1, string a_name, string t_name, string w_n
 	it = dynAreaList.find( a_name ) ;
 	if ( it == dynAreaList.end() )
 	{
-		log( "E", "PQUERY.  Dynamic area " << a_name << " not found" << endl ) ;
+		log( "E", "PQUERY.  Dynamic area '"+ a_name +"' not found" << endl ) ;
 		RC1 = 8 ;
 		return  ;
 	}
@@ -2249,12 +2260,12 @@ void pPanel::get_panel_info( int & RC1, string a_name, string t_name, string w_n
 }
 
 
-void pPanel::attr( int & RC1, string field, string attrs )
+void pPanel::attr( int & RC1, const string & field, const string & attrs )
 {
 	RC1 = 0 ;
 	if ( fieldList.count( field ) == 0 )
 	{
-		log( "E", "ATTR.  Field " << field << "not found" << endl ) ;
+		log( "E", "ATTR.  Field '"+ field +"' not found" << endl ) ;
 		RC1 = 8  ;
 	}
 	else { RC1 = fieldList[ field ]->field_attr( attrs ) ; }

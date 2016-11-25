@@ -26,6 +26,7 @@
 
 /* If invoked with a PARM of BROWSE file, browse file                                                       */
 /* If invoked with a PARM of EDIT file, edit file                                                           */
+/* If invoked with a PARM of VIEW file, view file                                                           */
 /* If invoked with a PARM of path, list path                                                                */
 /* If invoked with a PARM of INFO, list info for entry                                                      */
 /* If invoked with a PARM of EXPAND, will expand the passed directory name to the next level                */
@@ -166,8 +167,9 @@ void PFLST0A::application()
 			{
 				if ( is_regular_file( ZPATH ) )
 				{
-					if ( w1 == "BROWSE" ) { browse( ZPATH ) ;  cleanup() ; return ;  }
-					else                  { edit( ZPATH )   ;  cleanup() ; return ;  }
+					if      ( w1 == "BROWSE" ) { browse( ZPATH ) ;  cleanup() ; return ;  }
+					else if ( w1 == "VIEW"   ) { view( ZPATH )   ;  cleanup() ; return ;  }
+					else                       { edit( ZPATH )   ;  cleanup() ; return ;  }
 				}
 			}
 			catch ( const filesystem_error& ex )
@@ -577,7 +579,7 @@ void PFLST0A::application()
 				if ( ZRC == 0 ) { browse( "/tmp/porexx2.say" ) ; }
 				tbput( DSLIST ) ;
 			}
-			else if ( is_regular_file( entry ) && (SEL == "S" || SEL == "B" || SEL == "E" || SEL == "L" ) )
+			else if ( is_regular_file( entry ) && findword( SEL, "B S E L V" ) )
 			{
 				if ( SEL == "E" )
 				{
@@ -585,6 +587,14 @@ void PFLST0A::application()
 					SEL = "" ;
 					if ( ZRESULT != "" ) { MESSAGE = ZRESULT  ; }
 					else                 { MESSAGE = "Edited" ; }
+					tbput( DSLIST )     ;
+				}
+				else if ( SEL == "V" )
+				{
+					view( entry ) ;
+					SEL = "" ;
+					if ( ZRESULT != "" ) { MESSAGE = ZRESULT  ; }
+					else                 { MESSAGE = "Viewed" ; }
 					tbput( DSLIST )     ;
 				}
 				else

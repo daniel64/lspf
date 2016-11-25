@@ -23,7 +23,8 @@
 #define LOGOUT   aplog
 
 
-void Table::loadRow( int & RC, vector<string> & m_flds )
+void Table::loadRow( int & RC,
+		     vector<string> & m_flds )
 {
 	RC = 0 ;
 
@@ -45,7 +46,9 @@ void Table::reserveSpace( int tot_rows )
 }
 
 
-void Table::saveTable( int & RC, string m_name, string m_path )
+void Table::saveTable( int & RC,
+		       const string & m_name,
+		       const string & m_path )
 {
 	string s ;
 	int i    ;
@@ -129,7 +132,11 @@ void Table::saveTable( int & RC, string m_name, string m_path )
 }
 
 
-void Table::tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_order, int tb_num_of_rows )
+void Table::tbadd( int & RC,
+		   fPOOL & funcPOOL,
+		   string tb_namelst,
+		   string tb_order,
+		   int tb_num_of_rows )
 {
 	// Add a row to a table after the CRP (if not sorted) or in the sort position if ORDER has been specified and there has been a previous tbsort()
 
@@ -250,7 +257,12 @@ void Table::tbadd( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 }
 
 
-void Table::tbbottom( int & RC, fPOOL & funcPOOL, string tb_savenm, string tb_rowid_vn, string tb_noread, string tb_crp_name )
+void Table::tbbottom( int & RC,
+		      fPOOL & funcPOOL,
+		      string tb_savenm,
+		      string tb_rowid_vn,
+		      string tb_noread,
+		      string tb_crp_name )
 {
 	// RC = 0  Okay
 	// RC = 8  Table Empty.  CRP set to top
@@ -330,7 +342,8 @@ void Table::tbbottom( int & RC, fPOOL & funcPOOL, string tb_savenm, string tb_ro
 }
 
 
-void Table::tbdelete( int & RC, fPOOL & funcPOOL )
+void Table::tbdelete( int & RC,
+		      fPOOL & funcPOOL )
 {
 	// Delete a row in the table.  For keyed tables, this is the row pointed to be the current contents of the key variable
 	// For non-keyed tables, this is the row pointed to by the CRP
@@ -398,7 +411,8 @@ void Table::tbdelete( int & RC, fPOOL & funcPOOL )
 }
 
 
-void Table::tbexist( int & RC, fPOOL & funcPOOL )
+void Table::tbexist( int & RC,
+		     fPOOL & funcPOOL )
 {
 	// Test for the existance of a row in a keyed table using the current value of the key variables.  CRP is positioned at this row if found else TOP
 
@@ -450,7 +464,10 @@ void Table::tbexist( int & RC, fPOOL & funcPOOL )
 }
 
 
-void Table::fillfVARs( int & RC, fPOOL & funcPOOL, int depth, int posn )
+void Table::fillfVARs( int & RC,
+		       fPOOL & funcPOOL,
+		       int depth,
+		       int posn )
 {
 	//  Fill the function pool variables ( of the form table_fieldname.line ) from the table for depth lines
 	//  Also create function pool variable ZURID.line to hold the URID of the table row corresponding to that screen line
@@ -492,7 +509,12 @@ void Table::fillfVARs( int & RC, fPOOL & funcPOOL, int depth, int posn )
 }
 
 
-void Table::tbget( int & RC, fPOOL & funcPOOL, string tb_savenm, string tb_rowid_vn, string tb_noread, string tb_crp_name )
+void Table::tbget( int & RC,
+		   fPOOL & funcPOOL,
+		   string tb_savenm,
+		   string tb_rowid_vn,
+		   string tb_noread,
+		   string tb_crp_name )
 {
 	// Access row in the table.  For table with keys, use the current value of the key in the dialogue variable.  For non-keyed tables, use the CRP
 
@@ -603,7 +625,10 @@ void Table::tbget( int & RC, fPOOL & funcPOOL, string tb_savenm, string tb_rowid
 }
 
 
-void Table::tbmod( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_order )
+void Table::tbmod( int & RC,
+		   fPOOL & funcPOOL,
+		   string tb_namelst,
+		   string tb_order )
 {
 	// tbmod - update row if match found on key (keyed tables),  else perform tbadd to the bottom of the table
 	//         Non-keyed tables same as a tbadd
@@ -715,7 +740,10 @@ void Table::tbmod( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 }
 
 
-void Table::tbput( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_order )
+void Table::tbput( int & RC,
+		   fPOOL & funcPOOL,
+		   string tb_namelst,
+		   string tb_order )
 {
 	// Update the current row in a table using the CRP.  For keyed tables, key variables must match row at CRP
 
@@ -802,7 +830,18 @@ void Table::tbput( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_orde
 }
 
 
-void Table::tbquery( int & RC, fPOOL & funcPOOL, string tb_keyn, string tb_varn, string tb_rownn, string tb_keynn, string tb_namenn, string tb_crpn, string tb_sirn, string tb_lstn, string tb_condn, string tb_dirn )
+void Table::tbquery( int & RC,
+		     fPOOL & funcPOOL,
+		     string tb_keyn,
+		     string tb_varn,
+		     string tb_rownn,
+		     string tb_keynn,
+		     string tb_namenn,
+		     string tb_crpn,
+		     string tb_sirn,
+		     string tb_lstn,
+		     string tb_condn,
+		     string tb_dirn )
 {
 	RC = 0 ;
 	tb_keyn   = upper( tb_keyn )   ;
@@ -839,7 +878,11 @@ void Table::tbquery( int & RC, fPOOL & funcPOOL, string tb_keyn, string tb_varn,
 }
 
 
-void Table::tbsarg( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_dir, string tb_cond_pairs )
+void Table::tbsarg( int & RC,
+		    fPOOL & funcPOOL,
+		    string tb_namelst,
+		    string tb_dir,
+		    string tb_cond_pairs )
 {
 	// Notes:  Current value of variables are used if not blank.  Condition is EQ
 	// ARGLIST is for extension variables, the values of which will be used in the search
@@ -964,7 +1007,15 @@ void Table::tbsarg( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_dir
 }
 
 
-void Table::tbscan( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_savenm, string tb_rowid_vn, string tb_dir, string tb_noread, string tb_crp_name, string tb_condlst )
+void Table::tbscan( int & RC,
+		    fPOOL & funcPOOL,
+		    string tb_namelst,
+		    string tb_savenm,
+		    string tb_rowid_vn,
+		    string tb_dir,
+		    string tb_noread,
+		    string tb_crp_name,
+		    string tb_condlst )
 {
 	// Scan table from current CRP according to parameters tb_namelst/tb_condlst/tb_dir if specified or similar values from a previous tbsarg call
 	// Scan on extension variables not currently supported.  Only one search argument/condition currently supported
@@ -1190,7 +1241,9 @@ void Table::tbscan( int & RC, fPOOL & funcPOOL, string tb_namelst, string tb_sav
 }
 
 
-void Table::cmdsearch( int & RC, fPOOL & funcPOOL, string cmd )
+void Table::cmdsearch( int & RC,
+		       fPOOL & funcPOOL,
+		       const string & cmd )
 {
 	// cmdsearch is not part of the normal table services for application.
 	// It's used for retrieving abbreviated commands from a command table.
@@ -1249,7 +1302,14 @@ void Table::cmdsearch( int & RC, fPOOL & funcPOOL, string cmd )
 }
 
 
-void Table::tbskip( int & RC, fPOOL & funcPOOL, int num, string tb_savenm, string tb_rowid_vn, string tb_rowid, string tb_noread, string tb_crp_name )
+void Table::tbskip( int & RC,
+		    fPOOL & funcPOOL,
+		    int num,
+		    string tb_savenm,
+		    string tb_rowid_vn,
+		    string tb_rowid,
+		    string tb_noread,
+		    string tb_crp_name )
 {
 	// Move CRP to a position in the table and read the row into the dialogue variables
 	// Position using tb_rowid (URID) if specified, else use num
@@ -1342,7 +1402,8 @@ void Table::tbskip( int & RC, fPOOL & funcPOOL, int num, string tb_savenm, strin
 }
 
 
-void Table::tbsort( int & RC, string tb_fields )
+void Table::tbsort( int & RC,
+		    string tb_fields )
 {
 	// FIELD
 	// FIELD,C
@@ -1459,7 +1520,8 @@ void Table::tbtop( int & RC )
 }
 
 
-void Table::tbvclear( int & RC, fPOOL & funcPOOL )
+void Table::tbvclear( int & RC,
+		      fPOOL & funcPOOL )
 {
 	int i ;
 
@@ -1482,7 +1544,14 @@ tableMGR::tableMGR()
 }
 
 
-void tableMGR::createTable( int & RC, int m_task, string tb_name, string keys, string flds, bool m_temporary, tbREP m_REP, string m_path, tbDISP m_DISP )
+void tableMGR::createTable( int & RC,
+			    int m_task,
+			    const string & tb_name,
+			    string keys, string flds,
+			    bool m_temporary,
+			    tbREP m_REP,
+			    const string & m_path,
+			    tbDISP m_DISP )
 {
 	Table t ;
 
@@ -1553,7 +1622,11 @@ void tableMGR::createTable( int & RC, int m_task, string tb_name, string keys, s
 }
 
 
-void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, string m_path )
+void tableMGR::loadTable( int & RC,
+			  int task,
+			  const string & tb_name,
+			  tbDISP m_DISP,
+			  const string & m_path )
 {
 	// If table already loaded, EXCLUSIVE can be changed to SHARE by the same task.  Any other combination is not valid
 
@@ -1824,7 +1897,12 @@ void tableMGR::loadTable( int & RC, int task, string tb_name, tbDISP m_DISP, str
 }
 
 
-void tableMGR::saveTable( int & RC, int task, string tb_name, string m_newname, string m_path, bool m_err )
+void tableMGR::saveTable( int & RC,
+			  int task,
+			  const string & tb_name,
+			  const string & m_newname,
+			  const string & m_path,
+			  bool m_err )
 {
 	// This can be called by tbclose() or tbsave().  For temporary tables, only report error for tbsave() with no m_newname RC=12
 
@@ -1848,7 +1926,9 @@ void tableMGR::saveTable( int & RC, int task, string tb_name, string m_newname, 
 }
 
 
-void tableMGR::destroyTable( int & RC, int task, string tb_name )
+void tableMGR::destroyTable( int & RC,
+			     int task,
+			     const string & tb_name )
 {
 	RC = 0 ;
 	map<string, Table>::iterator it ;
@@ -1872,13 +1952,14 @@ void tableMGR::destroyTable( int & RC, int task, string tb_name )
 }
 
 
-bool tableMGR::isloaded( string tb_name )
+bool tableMGR::isloaded( const string & tb_name )
 {
 	return tables.find( tb_name ) != tables.end() ;
 }
 
 
-bool tableMGR::tablexists( string tb_name, string tb_path )
+bool tableMGR::tablexists( const string & tb_name,
+			   const string & tb_path )
 {
 	// Check if a table file exists in path tb_path.  Don't check to see if it is a valid table, just a valid file.
 
@@ -1974,7 +2055,8 @@ void tableMGR::snap()
 }
 
 
-int tableMGR::getCRP( int & RC, string tb_name )
+int tableMGR::getCRP( int & RC,
+		      const string & tb_name )
 {
 	RC = 0 ;
 	map<string, Table>::iterator it ;
@@ -1990,7 +2072,11 @@ int tableMGR::getCRP( int & RC, string tb_name )
 }
 
 
-void tableMGR::fillfVARs( int & RC, fPOOL & funcPOOL, string tb_name, int depth, int posn )
+void tableMGR::fillfVARs( int & RC,
+			  fPOOL & funcPOOL,
+			  const string & tb_name,
+			  int depth,
+			  int posn )
 {
 	RC = 0 ;
 	map<string, Table>::iterator it ;
@@ -2006,7 +2092,13 @@ void tableMGR::fillfVARs( int & RC, fPOOL & funcPOOL, string tb_name, int depth,
 }
 
 
-void tableMGR::tbget( int & RC, fPOOL & funcPOOL, string tb_name, string tb_savenm, string tb_rowid_vn, string tb_noread, string tb_crp_name  )
+void tableMGR::tbget( int & RC,
+		      fPOOL & funcPOOL,
+		      const string & tb_name,
+		      const string & tb_savenm,
+		      const string & tb_rowid_vn,
+		      const string & tb_noread,
+		      const string & tb_crp_name  )
 {
 	RC = 0 ;
 	map<string, Table>::iterator it ;
@@ -2022,7 +2114,11 @@ void tableMGR::tbget( int & RC, fPOOL & funcPOOL, string tb_name, string tb_save
 }
 
 
-void tableMGR::tbmod( int & RC, fPOOL & funcPOOL, string tb_name, string tb_namelst, string tb_order )
+void tableMGR::tbmod( int & RC,
+		      fPOOL & funcPOOL,
+		      const string & tb_name,
+		      const string & tb_namelst,
+		      const string & tb_order )
 {
 	RC = 0 ;
 	map<string, Table>::iterator it ;
@@ -2038,7 +2134,11 @@ void tableMGR::tbmod( int & RC, fPOOL & funcPOOL, string tb_name, string tb_name
 }
 
 
-void tableMGR::tbput( int & RC, fPOOL & funcPOOL, string tb_name, string tb_namelst, string tb_order )
+void tableMGR::tbput( int & RC,
+		      fPOOL & funcPOOL,
+		      const string & tb_name,
+		      const string & tb_namelst,
+		      const string & tb_order )
 {
 	RC = 0 ;
 	map<string, Table>::iterator it ;
@@ -2054,7 +2154,12 @@ void tableMGR::tbput( int & RC, fPOOL & funcPOOL, string tb_name, string tb_name
 }
 
 
-void tableMGR::tbadd( int & RC, fPOOL & funcPOOL, string tb_name, string tb_namelst, string tb_order, int tb_num_of_rows )
+void tableMGR::tbadd( int & RC,
+		      fPOOL & funcPOOL,
+		      const string & tb_name,
+		      const string & tb_namelst,
+		      const string & tb_order,
+		      int tb_num_of_rows )
 {
 	RC = 0 ;
 	map<string, Table>::iterator it ;
@@ -2070,7 +2175,13 @@ void tableMGR::tbadd( int & RC, fPOOL & funcPOOL, string tb_name, string tb_name
 }
 
 
-void tableMGR::tbbottom( int & RC, fPOOL & funcPOOL, string tb_name, string tb_savenm, string tb_rowid_vn, string tb_noread, string tb_crp_name  )
+void tableMGR::tbbottom( int & RC,
+			 fPOOL & funcPOOL,
+			 const string & tb_name,
+			 const string & tb_savenm,
+			 const string & tb_rowid_vn,
+			 const string & tb_noread,
+			 const string & tb_crp_name  )
 {
 	RC = 0 ;
 	map<string, Table>::iterator it ;
@@ -2086,7 +2197,9 @@ void tableMGR::tbbottom( int & RC, fPOOL & funcPOOL, string tb_name, string tb_s
 }
 
 
-void tableMGR::tbdelete( int & RC, fPOOL & funcPOOL, string tb_name )
+void tableMGR::tbdelete( int & RC,
+			 fPOOL & funcPOOL,
+			 const string & tb_name )
 {
 	RC = 0 ;
 	map<string, Table>::iterator it ;
@@ -2102,7 +2215,9 @@ void tableMGR::tbdelete( int & RC, fPOOL & funcPOOL, string tb_name )
 }
 
 
-void tableMGR::tberase( int & RC, string tb_name, string tb_path )
+void tableMGR::tberase( int & RC,
+			const string & tb_name,
+			const string & tb_path )
 {
 	int  i ;
 	int  j ;
@@ -2118,7 +2233,7 @@ void tableMGR::tberase( int & RC, string tb_name, string tb_path )
 	if ( it != tables.end() )
 	{
 		RC = 12 ;
-		log( "E", "Table " << tb_name << " in use. Cannot be erased unless closed" << endl ) ;
+		log( "E", "Table '"+ tb_name +"' in use. Cannot be erased unless closed" << endl ) ;
 		return ;
 	}
 
@@ -2145,15 +2260,17 @@ void tableMGR::tberase( int & RC, string tb_name, string tb_path )
 	if ( !found )
 	{
 		RC = 8 ;
-		log( "W", "Table file for " << tb_name << " not found in path search"  << endl ) ;
+		log( "W", "Table file for '"+ tb_name +"' not found in path search"  << endl ) ;
 		return ;
 	}
 	remove( filename ) ;
-	log( "I", "Table file " << filename << " deleted"  << endl ) ;
+	log( "I", "Table file '"+ filename +"' deleted"  << endl ) ;
 }
 
 
-void tableMGR::tbexist( int & RC, fPOOL & funcPOOL, string tb_name )
+void tableMGR::tbexist( int & RC,
+			fPOOL & funcPOOL,
+			const string & tb_name )
 {
 	RC = 0 ;
 	map<string, Table>::iterator it ;
@@ -2169,7 +2286,19 @@ void tableMGR::tbexist( int & RC, fPOOL & funcPOOL, string tb_name )
 }
 
 
-void   tableMGR::tbquery( int & RC, fPOOL & funcPOOL, string tb_name, string tb_keyn, string tb_varn, string tb_rownn, string tb_keynn, string tb_namenn, string tb_crpn, string tb_sirn, string tb_lstn, string tb_condn, string tb_dirn )
+void   tableMGR::tbquery( int & RC,
+			  fPOOL & funcPOOL,
+			  const string & tb_name,
+			  const string & tb_keyn,
+			  const string & tb_varn,
+			  const string & tb_rownn,
+			  const string & tb_keynn,
+			  const string & tb_namenn,
+			  const string & tb_crpn,
+			  const string & tb_sirn,
+			  const string & tb_lstn,
+			  const string & tb_condn,
+			  const string & tb_dirn )
 {
 	RC = 0 ;
 	map<string, Table>::iterator it ;
@@ -2185,7 +2314,12 @@ void   tableMGR::tbquery( int & RC, fPOOL & funcPOOL, string tb_name, string tb_
 }
 
 
-void   tableMGR::tbsarg( int & RC, fPOOL & funcPOOL, string tb_name, string tb_namelst, string tb_dir, string tb_cond_pairs )
+void   tableMGR::tbsarg( int & RC,
+			 fPOOL & funcPOOL,
+			 const string & tb_name,
+			 const string & tb_namelst,
+			 const string & tb_dir,
+			 const string & tb_cond_pairs )
 {
 	RC = 0 ;
 	map<string, Table>::iterator it ;
@@ -2201,7 +2335,16 @@ void   tableMGR::tbsarg( int & RC, fPOOL & funcPOOL, string tb_name, string tb_n
 }
 
 
-void tableMGR::tbscan( int & RC, fPOOL & funcPOOL, string tb_name, string tb_namelst, string tb_savenm, string tb_rowid_vn, string tb_dir, string tb_noread, string tb_crp_name, string tb_condlst )
+void tableMGR::tbscan( int & RC,
+		       fPOOL & funcPOOL,
+		       const string & tb_name,
+		       const string & tb_namelst,
+		       const string & tb_savenm,
+		       const string & tb_rowid_vn,
+		       const string & tb_dir,
+		       const string & tb_noread,
+		       const string & tb_crp_name,
+		       const string & tb_condlst )
 {
 	RC = 0 ;
 	map<string, Table>::iterator it ;
@@ -2217,7 +2360,11 @@ void tableMGR::tbscan( int & RC, fPOOL & funcPOOL, string tb_name, string tb_nam
 }
 
 
-void tableMGR::cmdsearch( int & RC, fPOOL & funcPOOL, string tb_name, string cmd, const string & paths )
+void tableMGR::cmdsearch( int & RC,
+			  fPOOL & funcPOOL,
+			  string tb_name,
+			  const string & cmd,
+			  const string & paths )
 {
 	// Search table for command 'cmd'.  Load table if not already in storage.
 
@@ -2254,7 +2401,15 @@ void tableMGR::cmdsearch( int & RC, fPOOL & funcPOOL, string tb_name, string cmd
 }
 
 
-void tableMGR::tbskip( int & RC, fPOOL & funcPOOL, string tb_name, int num, string tb_savenm, string tb_rowid_vn, string tb_rowid, string tb_noread, string tb_crp_name )
+void tableMGR::tbskip( int & RC,
+		       fPOOL & funcPOOL,
+		       const string & tb_name,
+		       int num,
+		       const string & tb_savenm,
+		       const string & tb_rowid_vn,
+		       const string & tb_rowid,
+		       const string & tb_noread,
+		       const string & tb_crp_name )
 {
 	RC = 0 ;
 	map<string, Table>::iterator it ;
@@ -2270,7 +2425,9 @@ void tableMGR::tbskip( int & RC, fPOOL & funcPOOL, string tb_name, int num, stri
 }
 
 
-void tableMGR::tbsort( int & RC, string tb_name, string tb_fields )
+void tableMGR::tbsort( int & RC,
+		       const string & tb_name,
+		       const string & tb_fields )
 {
 	RC = 0 ;
 	map<string, Table>::iterator it ;
@@ -2286,7 +2443,8 @@ void tableMGR::tbsort( int & RC, string tb_name, string tb_fields )
 }
 
 
-void tableMGR::tbtop( int & RC, string tb_name )
+void tableMGR::tbtop( int & RC,
+		      const string & tb_name )
 {
 	RC = 0 ;
 	map<string, Table>::iterator it ;
@@ -2302,7 +2460,9 @@ void tableMGR::tbtop( int & RC, string tb_name )
 }
 
 
-void tableMGR::tbvclear( int & RC, fPOOL & funcPOOL, string tb_name )
+void tableMGR::tbvclear( int & RC,
+			 fPOOL & funcPOOL,
+			 const string & tb_name )
 {
 	RC = 0 ;
 	map<string, Table>::iterator it ;

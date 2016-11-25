@@ -112,7 +112,7 @@ void pApplication::init()
 	ZMLIB    = p_poolMGR->get( RC, "ZMLIB", PROFILE ) ;
 	ZORXPATH = p_poolMGR->get( RC, "ZORXPATH", PROFILE ) ;
 
-	ZTDMARK  = centre( " BOTTOM OF DATA ", ds2d( p_poolMGR->get( RC, "ZSCRMAXW", SHARED ) ), '*' ) ;
+	ZTDMARK  = centre( " Bottom of Data ", ds2d( p_poolMGR->get( RC, "ZSCRMAXW", SHARED ) ), '*' ) ;
 
 	if ( !SUSPEND )
 	{
@@ -146,7 +146,7 @@ void pApplication::wait_event()
 }
 
 
-void pApplication::panelCreate( string p_name )
+void pApplication::panelCreate( const string & p_name )
 {
 	string paths ;
 
@@ -272,7 +272,7 @@ void pApplication::refresh_id()
 }
 
 
-void pApplication::set_msg( string msg_id )
+void pApplication::set_msg( const string & msg_id )
 {
 	// Display a message on current panel using msg_id
 
@@ -331,7 +331,7 @@ string pApplication::get_nretfield()
 }
 
 
-void pApplication::display( string p_name, string p_msg, string p_cursor, int p_csrpos )
+void pApplication::display( string p_name, const string & p_msg, const string & p_cursor, int p_csrpos )
 {
 	string ZZVERB ;
 
@@ -458,7 +458,7 @@ void pApplication::refresh()
 }
 
 
-void pApplication::libdef( string lib, string type )
+void pApplication::libdef( const string & lib, const string & type )
 {
 	// libdef - Add/remove a list of paths to the search order for panels, messages and tables
 
@@ -512,7 +512,7 @@ void pApplication::libdef( string lib, string type )
 }
 
 
-string pApplication::get_select_cmd( string opt )
+string pApplication::get_select_cmd( const string & opt )
 {
 	return panelList[ PANELID ]->return_command( opt ) ;
 }
@@ -524,7 +524,7 @@ void pApplication::set_cursor( int row, int col )
 }
 
 
-void pApplication::vdefine( string names, int * i_ad1, int * i_ad2, int * i_ad3, int * i_ad4, int * i_ad5, int * i_ad6, int * i_ad7, int * i_ad8 )
+void pApplication::vdefine( const string & names, int * i_ad1, int * i_ad2, int * i_ad3, int * i_ad4, int * i_ad5, int * i_ad6, int * i_ad7, int * i_ad8 )
 {
 	// RC = 0  Normal completion
 	// RC = 20 Severe Error
@@ -603,7 +603,7 @@ void pApplication::vdefine( string names, int * i_ad1, int * i_ad2, int * i_ad3,
 
 
 
-void pApplication::vdefine( string names, string * s_ad1, string * s_ad2, string * s_ad3, string * s_ad4, string * s_ad5, string * s_ad6, string * s_ad7, string * s_ad8 )
+void pApplication::vdefine( const string & names, string * s_ad1, string * s_ad2, string * s_ad3, string * s_ad4, string * s_ad5, string * s_ad6, string * s_ad7, string * s_ad8 )
 {
 	// RC = 0  Normal completion
 	// RC = 20 Severe Error
@@ -679,7 +679,7 @@ void pApplication::vdefine( string names, string * s_ad1, string * s_ad2, string
 }
 
 
-void pApplication::vdelete( string names )
+void pApplication::vdelete( const string & names )
 {
 	// RC = 0  Normal completion
 	// RC = 8  At least one variable not found
@@ -708,7 +708,7 @@ void pApplication::vdelete( string names )
 }
 
 
-void pApplication::vmask( string name, string type, string mask )
+void pApplication::vmask( const string & name, const string & type, const string & mask )
 {
 	// Set a mask for a function pool variable (must be vdefined first)
 	// Partial implementation as no VEDIT panel statement yet so this is never used
@@ -758,7 +758,7 @@ void pApplication::vreset()
 }
 
 
-void pApplication::vreplace( string name, string s_val )
+void pApplication::vreplace( const string & name, const string & s_val )
 {
 	// RC = 0  Normal completion
 	// RC = 20 Severe error
@@ -766,11 +766,11 @@ void pApplication::vreplace( string name, string s_val )
 
 	RC = 0 ;
 	funcPOOL.put( RC, 0, name, s_val ) ;
-	if ( RC > 0 ) { checkRCode( "Function pool put failed for "+ name ) ; }
+	if ( RC > 0 ) { checkRCode( "VREPLACE failed for '"+ name +"'" ) ; }
 }
 
 
-void pApplication::vreplace( string name, int i_val )
+void pApplication::vreplace( const string & name, int i_val )
 {
 	// RC = 0  Normal completion
 	// RC = 20 Severe error
@@ -778,11 +778,11 @@ void pApplication::vreplace( string name, int i_val )
 
 	RC = 0 ;
 	funcPOOL.put( RC, 0, name, i_val ) ;
-	if ( RC > 0 ) { checkRCode( "VREPLACE failed for "+ name ) ; }
+	if ( RC > 0 ) { checkRCode( "VREPLACE failed for '"+ name +"'" ) ; }
 }
 
 
-void pApplication::vget( string names, poolType pType )
+void pApplication::vget( const string & names, poolType pType )
 {
 	// RC = 0  Normal completion
 	// RC = 8  Variable not found
@@ -838,7 +838,7 @@ void pApplication::vget( string names, poolType pType )
 }
 
 
-void pApplication::vput( string names, poolType pType )
+void pApplication::vput( const string & names, poolType pType )
 {
 	// RC = 0  Normal completion
 	// RC = 8  Variable not found in function pool
@@ -886,7 +886,7 @@ void pApplication::vput( string names, poolType pType )
 }
 
 
-void pApplication::vcopy( string var, string & val, vcMODE mode )
+void pApplication::vcopy( const string & var, string & val, vcMODE mode )
 {
 	// Retrieve a copy of a dialogue variable name in var and move to variable val
 	// (normal dialogue variable search order)
@@ -934,7 +934,7 @@ void pApplication::vcopy( string var, string & val, vcMODE mode )
 }
 
 
-void pApplication::vcopy( string var, string * & p_val, vcMODE mode )
+void pApplication::vcopy( const string & var, string * & p_val, vcMODE mode )
 {
 	// Return the address of a dialogue variable name in var, in p_val
 	// (normal dialogue variable search order)
@@ -984,7 +984,7 @@ void pApplication::vcopy( string var, string * & p_val, vcMODE mode )
 }
 
 
-void pApplication::verase( string names, poolType pType )
+void pApplication::verase( const string & names, poolType pType )
 {
 	// RC = 0  Normal completion
 	// RC = 8  Variable not found
@@ -1033,7 +1033,7 @@ string pApplication::vslist( vdType defn )
 }
 
 
-void pApplication::addpop( string a_fld, int a_row, int a_col )
+void pApplication::addpop( const string & a_fld, int a_row, int a_col )
 {
 	//  Create pop-up window and set row/col for the next panel display.  If addpop() is already active, store old values for next rempop()
 	//  Position of addpop is relative to row=1, col=3 or the previous addpop() position for this logical screen.
@@ -1087,7 +1087,7 @@ void pApplication::addpop( string a_fld, int a_row, int a_col )
 }
 
 
-void pApplication::rempop( string r_all )
+void pApplication::rempop( const string & r_all )
 {
 	//  Remove pop-up window.  Restore previous rempop() if there is one (push order row,col).
 
@@ -1145,7 +1145,7 @@ void pApplication::movepop()
 }
 
 
-void pApplication::control( string parm1, string parm2, string parm3 )
+void pApplication::control( const string & parm1, const string & parm2, const string & parm3 )
 {
 	// CONTROL ERRORS CANCEL - abend for RC >= 12
 	// CONTROL ERRORS RETURN - return to application for any RC
@@ -1332,7 +1332,7 @@ void pApplication::control( string parm1, string parm2, string parm3 )
 }
 
 
-void pApplication::control( string parm1, void (pApplication::*pFunc)() )
+void pApplication::control( const string & parm1, void (pApplication::*pFunc)() )
 {
 	// lspf extensions:
 	// CONTROL ABENDRTN ptr_to_routine - Set the routine to get control during an abend
@@ -1348,7 +1348,7 @@ void pApplication::control( string parm1, void (pApplication::*pFunc)() )
 }
 
 
-void pApplication::tbadd( string tb_name, string tb_namelst, string tb_order, int tb_num_of_rows )
+void pApplication::tbadd( const string & tb_name, const string & tb_namelst, const string & tb_order, int tb_num_of_rows )
 {
 	// Add a row to a table
 
@@ -1369,7 +1369,7 @@ void pApplication::tbadd( string tb_name, string tb_namelst, string tb_order, in
 }
 
 
-void pApplication::tbbottom( string tb_name, string tb_savenm, string tb_rowid_vn, string tb_noread, string tb_crp_name )
+void pApplication::tbbottom( const string & tb_name, const string & tb_savenm, const string & tb_rowid_vn, const string & tb_noread, const string & tb_crp_name )
 {
 	// Move row pointer to the bottom
 
@@ -1386,7 +1386,7 @@ void pApplication::tbbottom( string tb_name, string tb_savenm, string tb_rowid_v
 }
 
 
-void pApplication::tbclose( string tb_name, string tb_newname, string tb_path )
+void pApplication::tbclose( const string & tb_name, const string & tb_newname, const string & tb_path )
 {
 	// Save and close the table (calls saveTable and destroyTable routines).
 	// Do not report error on tbclose() of a temporary table (pass false as last parm, to saveTable() in this case)
@@ -1421,7 +1421,7 @@ void pApplication::tbclose( string tb_name, string tb_newname, string tb_path )
 }
 
 
-void pApplication::tbcreate( string tb_name, string keys, string names, tbSAVE m_SAVE, tbREP m_REP, string m_path, tbDISP m_DISP )
+void pApplication::tbcreate( const string & tb_name, const string & keys, const string & names, tbSAVE m_SAVE, tbREP m_REP, string m_path, tbDISP m_DISP )
 {
 	// Create a new table.  For permanent tables without a path specified, save to first path entry in ZTLIB
 
@@ -1479,7 +1479,7 @@ void pApplication::tbcreate( string tb_name, string keys, string names, tbSAVE m
 }
 
 
-void pApplication::tbdelete( string tb_name )
+void pApplication::tbdelete( const string & tb_name )
 {
 	// Delete a row in the table.  For keyed tables, the table is searched with the current key.  For non-keyed tables the current CRP is used.
 
@@ -1496,7 +1496,7 @@ void pApplication::tbdelete( string tb_name )
 }
 
 
-void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string p_cursor, int p_csrrow, int p_csrpos, string p_autosel, string p_crp_name, string p_rowid_nm )
+void pApplication::tbdispl( const string & tb_name, string p_name, const string & p_msg, string p_cursor, int p_csrrow, int p_csrpos, string p_autosel, const string & p_crp_name, const string & p_rowid_nm )
 {
 	// tbdispl with panel, no message - clear previous pending lines, rebuild scrollable area and display panel
 	// tbdispl with panel, message    - rebuild scrollable area and display panel and message
@@ -1743,7 +1743,7 @@ void pApplication::tbdispl( string tb_name, string p_name, string p_msg, string 
 }
 
 
-void pApplication::tbend( string tb_name )
+void pApplication::tbend( const string & tb_name )
 {
 	// Close a table without saving (calls destroyTable routine).  If opened share, use count is reduced and table deleted when use count = 0
 
@@ -1764,7 +1764,7 @@ void pApplication::tbend( string tb_name )
 }
 
 
-void pApplication::tberase( string tb_name, string tb_path )
+void pApplication::tberase( const string & tb_name, string tb_path )
 {
 	// Erase a table file from path
 
@@ -1783,7 +1783,7 @@ void pApplication::tberase( string tb_name, string tb_path )
 }
 
 
-void pApplication::tbexist( string tb_name )
+void pApplication::tbexist( const string & tb_name )
 {
 	// Test for the existance of a row in a keyed table
 
@@ -1801,7 +1801,7 @@ void pApplication::tbexist( string tb_name )
 
 
 
-void pApplication::tbget( string tb_name, string tb_savenm, string tb_rowid_vn, string tb_noread, string tb_crp_name )
+void pApplication::tbget( const string & tb_name, const string & tb_savenm, const string & tb_rowid_vn, const string & tb_noread, const string & tb_crp_name )
 {
 	RC = 0 ;
 	if ( !isTableOpen( tb_name, "TBGET" ) ) { return ; }
@@ -1811,7 +1811,7 @@ void pApplication::tbget( string tb_name, string tb_savenm, string tb_rowid_vn, 
 }
 
 
-void pApplication::tbmod( string tb_name, string tb_namelst, string tb_order )
+void pApplication::tbmod( const string & tb_name, const string & tb_namelst, const string & tb_order )
 {
 	// Update a row in a table
 
@@ -1826,7 +1826,7 @@ void pApplication::tbmod( string tb_name, string tb_namelst, string tb_order )
 }
 
 
-void pApplication::tbopen( string tb_name, tbSAVE m_SAVE, string m_paths, tbDISP m_DISP )
+void pApplication::tbopen( const string & tb_name, tbSAVE m_SAVE, string m_paths, tbDISP m_DISP )
 {
 	// Open an existing table, reading it from a file.  If aleady opened in SHARE/NOWRITE, increment use count
 
@@ -1867,7 +1867,7 @@ void pApplication::tbopen( string tb_name, tbSAVE m_SAVE, string m_paths, tbDISP
 }
 
 
-void pApplication::tbput( string tb_name, string tb_namelst, string tb_order )
+void pApplication::tbput( const string & tb_name, const string & tb_namelst, const string & tb_order )
 {
 	// Update the current row in a table
 
@@ -1889,7 +1889,7 @@ void pApplication::tbput( string tb_name, string tb_namelst, string tb_order )
 }
 
 
-void pApplication::tbquery( string tb_name, string tb_keyn, string tb_varn, string tb_rownn, string tb_keynn, string tb_namenn, string tb_crpn, string tb_sirn, string tb_lstn, string tb_condn, string tb_dirn )
+void pApplication::tbquery( const string & tb_name, const string & tb_keyn, const string & tb_varn, const string & tb_rownn, const string & tb_keynn, const string & tb_namenn, const string & tb_crpn, const string & tb_sirn, const string & tb_lstn, const string & tb_condn, const string & tb_dirn )
 {
 	RC = 0 ;
 
@@ -1900,7 +1900,7 @@ void pApplication::tbquery( string tb_name, string tb_keyn, string tb_varn, stri
 }
 
 
-void pApplication::tbsarg( string tb_name, string tb_namelst, string tb_dir, string tb_cond_pairs )
+void pApplication::tbsarg( const string & tb_name, const string & tb_namelst, const string & tb_dir, const string & tb_cond_pairs )
 {
 	RC = 0 ;
 
@@ -1911,7 +1911,7 @@ void pApplication::tbsarg( string tb_name, string tb_namelst, string tb_dir, str
 }
 
 
-void pApplication::tbsave( string tb_name, string tb_newname, string path )
+void pApplication::tbsave( const string & tb_name, const string & tb_newname, const string & path )
 {
 	// Save the table to disk (calls saveTable routine).  Table remains open for processing.  Table must have the WRITE attribute
 	// saveTable() returns RC4 if a table has not been changed (and so no save is performed).  Ignore in this case
@@ -1931,7 +1931,7 @@ void pApplication::tbsave( string tb_name, string tb_newname, string path )
 }
 
 
-void pApplication::tbscan( string tb_name, string tb_namelst, string tb_savenm, string tb_rowid_vn, string tb_dir, string tb_read, string tb_crp_name, string tb_condlst )
+void pApplication::tbscan( const string & tb_name, const string & tb_namelst, const string & tb_savenm, const string & tb_rowid_vn, const string & tb_dir, const string & tb_read, const string & tb_crp_name, const string & tb_condlst )
 {
 	RC = 0 ;
 
@@ -1943,7 +1943,7 @@ void pApplication::tbscan( string tb_name, string tb_namelst, string tb_savenm, 
 
 
 
-void pApplication::tbskip( string tb_name, int num, string tb_savenm, string tb_rowid_vn, string tb_rowid, string tb_noread, string tb_crp_name )
+void pApplication::tbskip( const string & tb_name, int num, const string & tb_savenm, const string & tb_rowid_vn, const string & tb_rowid, const string & tb_noread, const string & tb_crp_name )
 {
 	RC = 0 ;
 
@@ -1954,7 +1954,7 @@ void pApplication::tbskip( string tb_name, int num, string tb_savenm, string tb_
 }
 
 
-void pApplication::tbsort( string tb_name, string tb_fields )
+void pApplication::tbsort( const string & tb_name, const string & tb_fields )
 {
 	RC = 0 ;
 
@@ -1966,7 +1966,7 @@ void pApplication::tbsort( string tb_name, string tb_fields )
 
 
 
-void pApplication::tbtop( string tb_name )
+void pApplication::tbtop( const string & tb_name )
 {
 	RC = 0 ;
 
@@ -1977,7 +1977,7 @@ void pApplication::tbtop( string tb_name )
 }
 
 
-void pApplication::tbvclear( string tb_name )
+void pApplication::tbvclear( const string & tb_name )
 {
 	RC = 0 ;
 
@@ -1988,7 +1988,7 @@ void pApplication::tbvclear( string tb_name )
 }
 
 
-bool pApplication::isTableOpen( string tb_name, string func )
+bool pApplication::isTableOpen( const string & tb_name, const string & func )
 {
 
 	RC = 0 ;
@@ -2004,7 +2004,7 @@ bool pApplication::isTableOpen( string tb_name, string func )
 }
 
 
-bool pApplication::isTableUpdate( string tb_name, string func )
+bool pApplication::isTableUpdate( const string & tb_name, const string & func )
 {
 
 	RC = 0 ;
@@ -2026,7 +2026,7 @@ bool pApplication::isTableUpdate( string tb_name, string func )
 }
 
 
-void pApplication::edit( string m_file, string m_panel )
+void pApplication::edit( const string & m_file, const string & m_panel )
 {
 	SELCT.clear() ;
 	SELCT.PGM     = p_poolMGR->get( RC, "ZEDITPGM", PROFILE ) ;
@@ -2040,7 +2040,7 @@ void pApplication::edit( string m_file, string m_panel )
 }
 
 
-void pApplication::browse( string m_file, string m_panel )
+void pApplication::browse( const string & m_file, const string & m_panel )
 {
 	SELCT.clear() ;
 	SELCT.PGM     = p_poolMGR->get( RC, "ZBRPGM", PROFILE ) ;
@@ -2054,7 +2054,7 @@ void pApplication::browse( string m_file, string m_panel )
 }
 
 
-void pApplication::view( string m_file, string m_panel )
+void pApplication::view( const string & m_file, const string & m_panel )
 {
 	SELCT.clear() ;
 	SELCT.PGM     = p_poolMGR->get( RC, "ZVIEWPGM", PROFILE ) ;
@@ -2068,7 +2068,7 @@ void pApplication::view( string m_file, string m_panel )
 }
 
 
-void pApplication::select( string cmd )
+void pApplication::select( const string & cmd )
 {
 	// SELECT a function or panel in keyword format for use in applications,
 	// ie PGM(abc) CMD(oorexx) PANEL(xxx) PARM(zzz) NEWAPPL PASSLIB SCRNAME(abc) etc.
@@ -2112,7 +2112,7 @@ void pApplication::actionSelect()
 }
 
 
-void pApplication::pquery( string p_name, string a_name, string t_name, string w_name, string d_name, string r_name, string c_name )
+void pApplication::pquery( const string & p_name, const string & a_name, const string & t_name, const string & w_name, const string & d_name, const string & r_name, const string & c_name )
 {
 	RC = 0 ;
 
@@ -2136,7 +2136,7 @@ void pApplication::pquery( string p_name, string a_name, string t_name, string w
 }
 
 
-void pApplication::attr( string field, string attrs )
+void pApplication::attr( const string & field, const string & attrs )
 {
 	if ( PANELID == "" )
 	{
@@ -2223,7 +2223,7 @@ void pApplication::load_keylist( pPanel * p )
 }
 
 
-void pApplication::rdisplay( string msg )
+void pApplication::rdisplay( const string & msg )
 {
 	RC = 0 ;
 	rmsgs.push_back( sub_vars( msg ) ) ;
@@ -2236,7 +2236,7 @@ void pApplication::rdisplay( string msg )
 }
 
 
-void pApplication::rdisplay1( string msg )
+void pApplication::rdisplay1( const string & msg )
 {
 	// Same as RDISPLAY, except no variable substitution is performed.  It is used in the
 	// ISPEXEC interface which does the substitution itself.
@@ -2252,7 +2252,7 @@ void pApplication::rdisplay1( string msg )
 }
 
 
-void pApplication::setmsg( string msg, msgSET sType )
+void pApplication::setmsg( const string & msg, msgSET sType )
 {
 	// Retrieve message and store in MSG1 and MSGID1.
 
@@ -2268,7 +2268,7 @@ void pApplication::setmsg( string msg, msgSET sType )
 }
 
 
-void pApplication::getmsg( string msg, string smsg, string lmsg, string alm, string hlp, string typ, string wndo )
+void pApplication::getmsg( const string & msg, const string & smsg, const string & lmsg, const string & alm, const string & hlp, const string & typ, const string & wndo )
 {
 	// Load message msg and substitute variables
 
@@ -2338,7 +2338,7 @@ string pApplication::get_help_member( int row, int col )
 }
 
 
-void pApplication::get_Message( string p_msg )
+void pApplication::get_Message( const string & p_msg )
 {
 	// Load messages from message library and copy slmsg object to MSG for the message requested
 
@@ -2360,7 +2360,7 @@ void pApplication::get_Message( string p_msg )
 }
 
 
-bool pApplication::load_Message( string p_msg )
+bool pApplication::load_Message( const string & p_msg )
 {
 	// Message format: 1-5 alph char prefix
 	//                 3 numeric chars
@@ -2773,7 +2773,7 @@ bool pApplication::sub_Message_vars( slmsg & t )
 }
 
 
-int pApplication::chk_Message_id( string msgid )
+int pApplication::chk_Message_id( const string & msgid )
 {
 	// Return 0 if message-id format is incorrect, else the offset to the first numeric triplet
 

@@ -23,7 +23,7 @@
 #define LOGOUT   aplog
 
 
-int pPanel::loadPanel( string p_name, string paths )
+int pPanel::loadPanel( const string & p_name, const string & paths )
 {
 	int i, j, k          ;
 	int p1, p2           ;

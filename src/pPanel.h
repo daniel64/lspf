@@ -36,16 +36,16 @@ class pPanel
 		void   field_erase_eof( uint row, uint col, bool & prot )     ;
 		void   field_tab_down( uint & row, uint & col ) ;
 		void   field_tab_next( uint & row, uint & col ) ;
-		void   field_clear( string field )    ;
-		string field_getvalue( string field ) ;
-		bool   field_valid( string field ) ;
-		fieldExc field_getexec( string )   ;
-		void   field_setvalue( string field, string value ) ;
+		void   field_clear( const string & field )    ;
+		string field_getvalue( const string & field ) ;
+		bool   field_valid( const string & field ) ;
+		fieldExc field_getexec( const string & )   ;
+		void   field_setvalue( const string & field, const string & value ) ;
 		string field_getname( uint row, uint col ) ;
-		bool   field_get_row_col( string fld, uint & row, uint & col ) ;
+		bool   field_get_row_col( const string & fld, uint & row, uint & col ) ;
 
 		void   cursor_to_field( int & RC, string = "", int = 1 ) ;
-		void   cursor_to_next_field ( string name, uint & row, uint & col )  ;
+		void   cursor_to_next_field ( const string & name, uint & row, uint & col )  ;
 		void   cursor_eof( uint & row, uint & col )  ;
 		void   get_cursor( uint & row, uint & col )     { row   = p_row + win_row ; col   = p_col + win_col ; } ;
 		void   set_cursor( uint row, uint col )         { p_row = row - win_row   ; p_col = col - win_col   ; } ;
@@ -65,8 +65,8 @@ class pPanel
 		void   refresh() ;
 
 		string cmd_getvalue() ;
-		void   cmd_setvalue( string value )    ;
-		bool   is_cmd_inactive( string value ) ;
+		void   cmd_setvalue( const string & value )    ;
+		bool   is_cmd_inactive( const string & value ) ;
 
 		bool   on_border_line( uint, uint )  ;
 		bool   hide_msg_window( uint, uint ) ;
@@ -133,7 +133,7 @@ class pPanel
 		poolMGR * p_poolMGR  ;
 		fPOOL   * p_funcPOOL ;
 
-		int    loadPanel( string p_name, string paths ) ;
+		int    loadPanel( const string & p_name, const string & paths ) ;
 
 		void   display_panel_update( int & RC ) ;
 		void   display_panel_init( int & RC )   ;
@@ -145,13 +145,13 @@ class pPanel
 		void   remove_popup()        ;
 		void   move_popup()          ;
 
-		void   put_keylist( int, string ) ;
+		void   put_keylist( int, const string & ) ;
 		string get_panelDescr()  { return panelDescr != "" ? sub_vars( panelDescr ) : sub_vars( panelTitle ) ; }
 
 		void   update_field_values( int & RC ) ;
 
-		void   get_panel_info( int & RC, string a_name, string t = "", string w = "", string d = "", string r = "", string c = "" ) ;
-		void   attr( int & RC, string field, string attrs ) ;
+		void   get_panel_info( int & RC, const string & a_name, const string & t = "", const string & w = "", const string & d = "", const string & r = "", const string & c = "" ) ;
+		void   attr( int & RC, const string & field, const string & attrs ) ;
 		void   get_home( uint & row, uint & col ) ;
 
 		void   set_tb_linesChanged() ;
@@ -159,26 +159,26 @@ class pPanel
 		void   clear_tb_linesChanged( int & ) ;
 		void   remove_tb_lineChanged()        ;
 
-		string get_field_help( string fld ) ;
+		string get_field_help( const string & fld ) ;
 		bool   get_nretriev()  { return nretriev  ; }
 		string get_nretfield() { return nretfield ; }
 
-		void   set_panel_msg( slmsg, string ) ;
+		void   set_panel_msg( slmsg, const string & ) ;
 		void   clear_msg() ;
 		void   clear_msg_loc()  { MSGLOC = ""     ; }
 		bool   inputInhibited() { return ( pdActive || msgResp ) ; }
 		bool   msgInhibited()   { return msgResp  ; }
 		void   msgResponseOK()  { msgResp = false ; }
 
-		string return_command( string ) ;
-		void   resetAttrs()             ;
+		string return_command( const string & ) ;
+		void   resetAttrs() ;
 
-		void   syncDialogueVar( string ) ;
-		string getDialogueVar( string )  ;
-		void   putDialogueVar( string, string ) ;
+		void   syncDialogueVar( const string & ) ;
+		string getDialogueVar( const string & )  ;
+		void   putDialogueVar( const string &, const string & ) ;
 
-		void   create_tbfield( int col, int size, cuaType cuaFT, string name, string opts ) ;
-		void   create_pdc( string, string, string, string, string ) ;
+		void   create_tbfield( int col, int size, cuaType cuaFT, const string & name, const string & opts ) ;
+		void   create_pdc( const string &, const string &, const string &, const string &, const string & ) ;
 
 		void   display_boxes() ;
 

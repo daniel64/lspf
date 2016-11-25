@@ -23,7 +23,7 @@
 #define LOGOUT   aplog
 
 
-int field::field_init( int MAXW, int MAXD, string line )
+int field::field_init( int MAXW, int MAXD, const string & line )
 {
 	// Format of field entry in panels (FORMAT 1 VERSION 1 )
 	// FIELD row col len cuaAttr opts field_name
@@ -104,7 +104,7 @@ int field::field_init( int MAXW, int MAXD, string line )
 }
 
 
-int dynArea::dynArea_init( int MAXW, int MAXD, string line )
+int dynArea::dynArea_init( int MAXW, int MAXD, const string & line )
 {
 	// Format of OPTION entry in panels (FORMAT 1 VERSION 1 )
 	// DYNAREA row col width depth   A-name S-name DATAIN() DATAOUT() USERMOD() DATAMOD()
@@ -930,7 +930,7 @@ bool field::cursor_on_field( uint row, uint col )
 }
 
 
-int literal::literal_init( int MAXW, int MAXD, int & opt_field, string line )
+int literal::literal_init( int MAXW, int MAXD, int & opt_field, const string & line )
 {
 	// Format of literal entry in panels (FORMAT 1 VERSION 1 )
 	// LITERAL row col cuaAttr (EXPAND) value
@@ -1035,7 +1035,7 @@ void dynArea::setsize( int row, int col, int width, int depth )
 }
 
 
-void abc::add_pdc( string name, string run, string parm, string unavail )
+void abc::add_pdc( const string & name, const string & run, const string & parm, const string & unavail )
 {
 	pdc m_pdc ;
 
@@ -1116,7 +1116,7 @@ pdc abc::retrieve_pdChoice( uint row, uint col )
 }
 
 
-int Box::box_init( int MAXW, int MAXD, string line )
+int Box::box_init( int MAXW, int MAXD, const string & line )
 {
 	// Format of BOX entry in panels (FORMAT 1 VERSION 1 )
 	// BOX  row col width depth cuaAttr  B-title

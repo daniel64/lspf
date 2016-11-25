@@ -1841,7 +1841,6 @@ void PEDIT01::actionPrimCommand2()
 				else                          { MSG = "PEDT013L" ; }
 			}
 			else                                  { MSG = "PEDT013H" ; }
-			find_parms.fcx_success = false ;
 			TYPE = typList[ find_parms.fcx_mtch ] ;
 			if ( find_parms.fcx_rstring != "" ) { STR = find_parms.fcx_rstring ; }
 			else                                { STR = find_parms.fcx_ostring ; }
@@ -4370,6 +4369,9 @@ void PEDIT01::actionFind()
 	// dl has to be a uint so the corect getNextDataLine routine is called ( int is for URID )
 	// c1,c2 are the column limits of the find, set by bnds, col and initial cursor position
 
+	// If there has been a previous find or change, adjust aCol by the size of the string (skiplen)
+	// so we skip past it.
+
 	uint dl  ;
 	uint sdl ;
 	uint edl ;
@@ -4417,7 +4419,7 @@ void PEDIT01::actionFind()
 
 	if ( aCol > 0 )
 	{
-		offset = aCol - CLINESZ - 1 + startCol ;
+		offset = aCol - CLINESZ - 1 + startCol + find_parms.fcx_skiplen ;
 	}
 	if ( find_parms.fcx_dir == 'F' || find_parms.fcx_dir == 'A' || find_parms.fcx_dir == 'L' )
 	{
@@ -4631,13 +4633,22 @@ void PEDIT01::actionFind()
 		offset = 0 ;
 	}
 	find_parms.fcx_success = found ;
+	if ( found )
+	{
+		find_parms.fcx_skiplen = find_parms.fcx_string.size() ;
+	}
+	else
+	{
+		find_parms.fcx_skiplen = 0 ;
+	}
 }
 
 
 void PEDIT01::actionChange()
 {
 	//  If updating the same line multiple time with the same Level (eg. change ALL command)
-	//  update idata stack in-place
+	//  update idata stack in-place.  Set skiplen to the length of the changed string so we can skip
+	//  past it on an RFIND/RCHANGE
 
 	int l       ;
 	string temp ;
@@ -4653,6 +4664,7 @@ void PEDIT01::actionChange()
 	{
 		data.at( l )->put_idata( temp, Level ) ;
 	}
+	find_parms.fcx_skiplen = find_parms.fcx_cstring.size() ;
 	data.at( l )->il_chg = true ;
 	fileChanged = true ;
 }

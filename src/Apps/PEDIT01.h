@@ -639,6 +639,7 @@ class e_find
 		int    fcx_URID    ;
 		int    fcx_lines   ;
 		int    fcx_offset  ;
+		int    fcx_skiplen ;
 		char   fcx_excl    ;
 		bool   fcx_regreq  ;
 		bool   fcx_text    ;
@@ -673,6 +674,7 @@ class e_find
 		fcx_URID    = 0     ;
 		fcx_lines   = 0     ;
 		fcx_offset  = 0     ;
+		fcx_skipln  = 0     ;
 		fcx_excl    = 'A'   ;
 		fcx_regreq  = false ;
 		fcx_text    = false ;

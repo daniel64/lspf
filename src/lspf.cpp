@@ -134,12 +134,12 @@ fPOOL funcPOOL ;
 void initialSetup()      ;
 void loadDefaultPools()  ;
 void getDynamicClasses() ;
-bool loadDynamicClass( string ) ;
+bool loadDynamicClass( const string & ) ;
 bool unloadDynamicClass( void * ) ;
 void reloadDynamicClasses( string ) ;
 void loadSystemCommandTable() ;
 void loadCUATables()          ;
-void setColourPair( string )  ;
+void setColourPair( const string & ) ;
 void updateDefaultVars()      ;
 void updateReflist()          ;
 void startApplication( selobj, bool =false ) ;
@@ -149,7 +149,7 @@ bool createLogicalScreen()      ;
 void deleteLogicalScreen()      ;
 void processPGMSelect()         ;
 void processAction( uint row, uint col, int c, bool & passthru ) ;
-void issueMessage( string )     ;
+void issueMessage( const string & ) ;
 void rawOutput()          ;
 void threadErrorHandler() ;
 void errorScreen( int, const string & )   ;
@@ -160,7 +160,7 @@ string listLogicalScreens() ;
 bool resolveZCTEntry( string &, string & ) ;
 bool isActionKey( int c )   ;
 void listRetrieveBuffer()   ;
-int  getScreenNameNum( string ) ;
+int  getScreenNameNum( const string & ) ;
 void mainLoop() ;
 
 vector<pLScreen *> screenList ;
@@ -2098,7 +2098,7 @@ void loadCUATables()
 }
 
 
-void setColourPair( string name )
+void setColourPair( const string & name )
 {
 	int RC   ;
 	string t ;
@@ -2541,7 +2541,7 @@ void listRetrieveBuffer()
 }
 
 
-int getScreenNameNum( string s )
+int getScreenNameNum( const string & s )
 {
 	// Return the screen number of screen name 's'.  If not found, return 0.
 	// Reset shared pool after this call as it issues get_current_screenName().
@@ -2685,7 +2685,7 @@ void errorScreen( int etype, const string & msg )
 }
 
 
-void issueMessage( string msg )
+void issueMessage( const string & msg )
 {
 	currAppl->set_msg( msg ) ;
 	if ( currAppl->RC > 0 )
@@ -2909,7 +2909,7 @@ void reloadDynamicClasses( string parm )
 }
 
 
-bool loadDynamicClass( string appl )
+bool loadDynamicClass( const string & appl )
 {
 	// Load module related to application appl and retrieve address of maker and destroy symbols
 	// Perform dlclose first if there has been a previous successful dlopen, or if an error is encountered
