@@ -17,16 +17,16 @@ Panel supports REFLIST and NRETRIEV functions.
 
 Primary commands:
 -----------------
-CD /xxx  Change to directory /xxx
-CD xxx   Change to directory xxx under the current directory listing
+CD /xxx  Change to directory /xxx (can use wildcards '*' and '?')
+CD xxx   Change to directory xxx under the current directory listing (can use wildcards '*' and '?')
 BACK or S Go back one directory level
 S xxx    Select file or directory xxx from the current list
 L xxx    FIRST|LAST|PREV to scroll the list to entry xxx (NEXT is the default)
-O        Filter list (case insensitive, match on name at any position)
+O        Filter list (case insensitive, match on name at any position.  Can also use wildcards '*' and '?')
 REF      Refresh directory list
 MKDIR    Make a directory (under current or specify full path)
 SEARCH   Filter list on contents search word (case insensitive, uses grep)
-SRCHFOR  Alias for SEARCH                                                                                               
+SRCHFOR  Alias for SEARCH
 TOUCH    Make a file (under current or specify full path)
 
 

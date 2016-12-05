@@ -178,6 +178,7 @@ bool ASSGN::parse( string s )
 	// .HELP | .MSG | .CURSOR = &BBB | VALUE | 'Quoted Value'
 	// &AAA = UPPER( ABC )
 	// &AAA = LENGTH( ABC )
+	// &AAA = REVERSE( ABC )
 	// &AAA = WORDS( ABC )  Number of words in the value of ABC
 	// &A   = EXISTS( ABC ) True if file/directory in variable ABC exists
 	// &A   = FILE( ABC )   True if file in variable ABC exists
@@ -276,6 +277,19 @@ bool ASSGN::parse( string s )
 		if ( s != "" )  { return false ; }
 		as_isvar  = true ;
 		as_retlen = true ;
+	}
+	else if ( upper( s.substr( 0, 8 ) ) == "REVERSE(" )
+	{
+		s = upper( s )  ;
+		s = strip( s.erase( 0, 8 ) ) ;
+		p = s.find( ')' ) ;
+		if ( p == string::npos ) { return false ; }
+		as_rhs = strip( s.substr( 0, p ) ) ;
+		if ( !isvalidName( as_rhs ) ) { return false ; }
+		s = strip( s.erase( 0, p+1 ) ) ;
+		if ( s != "" )  { return false ; }
+		as_isvar   = true ;
+		as_reverse = true ;
 	}
 	else if ( upper( s.substr( 0, 6 ) ) == "WORDS(" )
 	{

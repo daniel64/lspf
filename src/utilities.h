@@ -48,6 +48,8 @@ string left( string s, unsigned int l, char c = ' ' ) ;
 
 int    pos( const string & s1, const string & s2, unsigned int p = 1 ) ;
 
+string reverse( string s ) ;
+
 string right( string s, unsigned int l, char c = ' ' ) ;
 
 string space( const string & s, unsigned int n = 1, char c = ' ' ) ;

@@ -17,7 +17,7 @@
 
 */
 
-using namespace std  ;
+using namespace std ;
 
 enum P_CMDS
 {
@@ -166,14 +166,14 @@ class icmd
 class idata
 {
 	private:
-		int    id_level  ;
-		char   id_action ;
-		string id_data   ;
+		int    id_level   ;
+		bool   id_deleted ;
+		string id_data    ;
 		idata()
 		{
-			id_level  = 0   ;
-			id_action = ' ' ;
-			id_data   = ""  ;
+			id_level   = 0     ;
+			id_deleted = false ;
+			id_data    = ""    ;
 		}
 	friend class iline ;
 } ;
@@ -189,7 +189,6 @@ class ipos
 			ipos_dl   = 0 ;
 			ipos_URID = 0 ;
 		}
-	friend class PEDIT01 ;
 } ;
 
 
@@ -339,7 +338,7 @@ class iline
 		{
 			il_lcc = "" ;
 		}
-		void put_idata( string s, int level )
+		void put_idata( const string & s, int level )
 		{
 			idata d ;
 
@@ -368,7 +367,7 @@ class iline
 			clear_Global_Redo() ;
 			remove_redo_idata() ;
 		}
-		void put_idata( string s )
+		void put_idata( const string & s )
 		{
 			idata d ;
 
@@ -419,12 +418,16 @@ class iline
 		{
 			if ( il_deleted ) { return ; }
 			put_idata( "", Level ) ;
-			il_deleted = true ;
-			il_idata.top().id_action = 'D' ;
+			il_idata.top().id_deleted = true ;
+			il_deleted                = true ;
 		}
 		string get_idata()
 		{
 			return il_idata.top().id_data ;
+		}
+		string * get_idata_ptr()
+		{
+			return &il_idata.top().id_data ;
 		}
 		bool idata_is_empty()
 		{
@@ -435,7 +438,7 @@ class iline
 			if ( !setUNDO[ il_taskid ] ) { return ; }
 			if ( !il_idata.empty() )
 			{
-				if ( il_idata.top().id_action == 'D' )
+				if ( il_idata.top().id_deleted )
 				{
 					il_deleted = false ;
 				}
@@ -450,14 +453,7 @@ class iline
 		void redo_idata()
 		{
 			if ( !setUNDO[ il_taskid ] ) { return ; }
-			if ( il_idata_redo.top().id_action == 'D' )
-			{
-				il_deleted = true ;
-			}
-			else
-			{
-				il_deleted = false ;
-			}
+			il_deleted = il_idata_redo.top().id_deleted ;
 			il_idata.push( il_idata_redo.top() ) ;
 			il_idata_redo.pop() ;
 		}
@@ -632,6 +628,8 @@ class e_find
 		string fcx_rstring ;
 		bool   fcx_success ;
 		bool   fcx_error   ;
+		bool   fcx_top     ;
+		bool   fcx_bottom  ;
 		bool   fcx_exclude ;
 		char   fcx_dir     ;
 		char   fcx_mtch    ;
@@ -639,18 +637,18 @@ class e_find
 		int    fcx_URID    ;
 		int    fcx_lines   ;
 		int    fcx_offset  ;
-		int    fcx_skiplen ;
 		char   fcx_excl    ;
 		bool   fcx_regreq  ;
 		bool   fcx_text    ;
 		bool   fcx_asis    ;
 		bool   fcx_hex     ;
 		bool   fcx_pic     ;
+		bool   fcx_reg     ;
 		bool   fcx_ctext   ;
 		bool   fcx_casis   ;
 		bool   fcx_chex    ;
 		bool   fcx_cpic    ;
-		bool   fcx_rreg    ;
+		bool   fcx_creg    ;
 		string fcx_slab    ;
 		string fcx_elab    ;
 		int    fcx_scol    ;
@@ -667,6 +665,8 @@ class e_find
 		fcx_rstring = ""    ;
 		fcx_success = true  ;
 		fcx_error   = false ;
+		fcx_top     = false ;
+		fcx_bottom  = false ;
 		fcx_exclude = false ;
 		fcx_dir     = 'N'   ;
 		fcx_mtch    = 'C'   ;
@@ -674,18 +674,18 @@ class e_find
 		fcx_URID    = 0     ;
 		fcx_lines   = 0     ;
 		fcx_offset  = 0     ;
-		fcx_skiplen = 0     ;
 		fcx_excl    = 'A'   ;
 		fcx_regreq  = false ;
 		fcx_text    = false ;
 		fcx_asis    = false ;
 		fcx_hex     = false ;
 		fcx_pic     = false ;
+		fcx_reg     = false ;
 		fcx_ctext   = false ;
 		fcx_casis   = false ;
 		fcx_chex    = false ;
 		fcx_cpic    = false ;
-		fcx_rreg    = false ;
+		fcx_creg    = false ;
 		fcx_slab    = ""    ;
 		fcx_elab    = ""    ;
 		fcx_scol    = 0     ;
@@ -711,10 +711,10 @@ class PEDIT01 : public pApplication
 		void showEditEntry()      ;
 		void showEditRecovery()   ;
 		void Edit()               ;
-		void getEditProfile( string )  ;
-		void delEditProfile( string )  ;
-		void saveEditProfile( string ) ;
-		void createEditProfile( string, string ) ;
+		void getEditProfile( const string & )  ;
+		void delEditProfile( const string & )  ;
+		void saveEditProfile( const string & ) ;
+		void createEditProfile( const string &, const string & ) ;
 		void resetEditProfile()   ;
 		void cleanup_custom()     ;
 		void initialise()         ;
@@ -738,20 +738,20 @@ class PEDIT01 : public pApplication
 
 		void actionZVERB()        ;
 
-		void actionUNDO()         ;
-		void actionREDO()         ;
+		bool actionUNDO()         ;
+		bool actionREDO()         ;
 		void removeRecoveryData() ;
 
 		uint getLine( int )       ;
 		uint getFirstEX( uint )   ;
-		int  getLastEX( vector<iline * >::iterator ) ;
+		int  getLastEX( vector<iline *>::iterator ) ;
 		uint getLastEX( uint )    ;
 		int  getExBlockSize( uint )   ;
 		int  getDataBlockSize( uint ) ;
-		int  getLastURID( vector<iline * >::iterator, int ) ;
+		int  getLastURID( vector<iline *>::iterator, int ) ;
 
-		int  getFileLine( int ) ;
-		int  getDataLine( int ) ;
+		int  getFileLine( uint ) ;
+		uint getDataLine( int )  ;
 
 		vector<iline * >::iterator getValidDataLine( vector<iline * >::iterator ) ;
 		uint getValidDataFileLine( uint ) ;
@@ -777,7 +777,7 @@ class PEDIT01 : public pApplication
 		bool URIDonScreen( int ) ;
 
 		string overlay( string, string, bool & ) ;
-		bool formLineCmd( const string, string &, int & ) ;
+		bool formLineCmd( const string &, string &, int & ) ;
 
 		void copyToClipboard( vector<ipline> & vip ) ;
 		void getClipboard( vector<ipline> & vip ) ;
@@ -795,14 +795,15 @@ class PEDIT01 : public pApplication
 
 		vector<iline * >::iterator getLineItr( int )       ;
 		vector<iline * >::iterator getLineItr( uint )      ;
-		vector<iline * >::iterator getLineItr( int, vector<iline * >::iterator ) ;
+		vector<iline * >::iterator getLineItr( int, vector<iline *>::iterator ) ;
 
 		bool setFindChangeExcl( char ) ;
+		void setNotFoundMsg()          ;
 		bool setCommandRange( string, c_range & ) ;
 		int  getNextSpecial( char, char ) ;
-		bool getLabelItr( string, vector<iline * >::iterator & , int & ) ;
-		int  getLabelLine( string ) ;
-		bool checkLabel( string ) ;
+		bool getLabelItr( const string &, vector<iline * >::iterator &, int & ) ;
+		int  getLabelLine( const string & ) ;
+		bool checkLabel( const string & ) ;
 
 		bool getTabLocation( int & ) ;
 		void copyPrefix( ipline &, iline * & ) ;
@@ -810,13 +811,13 @@ class PEDIT01 : public pApplication
 		void addSpecial( char, int, vector<string> & ) ;
 		void addSpecial( char, int, string & ) ;
 
-		string rshiftCols( int, string ) ;
-		string lshiftCols( int, string ) ;
-		bool   rshiftData( int, string, string & ) ;
-		bool   lshiftData( int, string, string & ) ;
-		bool   textSplitData( string, string &, string & ) ;
+		string rshiftCols( int, const string * ) ;
+		string lshiftCols( int, const string * ) ;
+		bool   rshiftData( int, const string *, string & ) ;
+		bool   lshiftData( int, const string *, string & ) ;
+		bool   textSplitData( const string &, string &, string & ) ;
 
-		void   compareFiles( string ) ;
+		void   compareFiles( const string & ) ;
 		string determineLang()   ;
 
 		uint topLine             ;
@@ -832,6 +833,7 @@ class PEDIT01 : public pApplication
 		bool lowrOnRead          ;
 		bool tabsOnRead          ;
 		bool abendRecovery       ;
+		bool abendComplete       ;
 
 		bool cursorPlaceHome     ;
 		int  cursorPlaceUsing    ;

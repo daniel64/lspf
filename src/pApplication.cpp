@@ -25,6 +25,8 @@
 
 int  ispexeci( pApplication *, const string & ) ;
 
+#include <stdexcept>
+
 pApplication::pApplication()
 {
 	currApplication        = this   ;
@@ -741,7 +743,7 @@ void pApplication::vmask( const string & name, const string & type, const string
 		}
 	}
 	else { RC = 20 ; }
-	if ( RC > 0 ) { checkRCode( "VMASK invalid format for "+ name +".  Mask: "+ mask ) ; return ; }
+	if ( RC > 0 ) { checkRCode( "VMASK invalid format for '"+ name +"'.  Mask: "+ mask ) ; return ; }
 
 	funcPOOL.setmask( RC, name, mask ) ;
 	if ( RC > 8 ) { checkRCode( "VMASK failed for "+ name ) ; }
@@ -2148,53 +2150,52 @@ void pApplication::attr( const string & field, const string & attrs )
 }
 
 
+void pApplication::reload_keylist( pPanel * p )
+{
+	// Does an unconditional reload every time, but need to find a way to detect a change (TODO)
+	// Alternatively, don't preload pfkeys into the panel object but pass back requested key from pApplication.
+
+	load_keylist( p ) ;
+}
+
+
 void pApplication::load_keylist( pPanel * p )
 {
 	string tabName  ;
 	string tabField ;
+
 	string UPROF    ;
-	string KEYAPPL  ;
-	string KEYLISTN ;
-	string KLfail   ;
 	string kerr     ;
 
-	KEYLISTN = p->KEYLISTN ;
-	if ( KEYLISTN == "" ) { return ; }
+	bool   klfail   ;
 
-	KEYAPPL = p->KEYAPPL ;
-	tabName = KEYAPPL + "KEYP" ;
+	if ( p->KEYLISTN == "" ) { return ; }
 
-	KLfail = p_poolMGR->get( RC, "ZKLFAIL", PROFILE ) ;
+	tabName = p->KEYAPPL + "KEYP" ;
+	klfail  = ( p_poolMGR->get( RC, "ZKLFAIL", PROFILE ) == "Y" ) ;
 
 	vcopy( "ZUPROF", UPROF, MOVE ) ;
 	tbopen( tabName, NOWRITE, UPROF, SHARE ) ;
 	if ( RC  > 0 )
 	{
 		kerr = "Open of keylist table "+ tabName +" failed" ;
-		if ( KLfail == "N" ) { RC = 0 ; log( "W", kerr << endl ) ; return ; }
+		if ( !klfail ) { RC = 0 ; log( "W", kerr << endl ) ; return ; }
 		RC = 20 ;
 		checkRCode( kerr ) ;
 	}
+
 	tbvclear( tabName ) ;
-	vreplace( "KEYLISTN", KEYLISTN ) ;
-	tbsarg( tabName ) ;
-	if ( RC  > 0 )
+	vreplace( "KEYLISTN", p->KEYLISTN ) ;
+	tbget( tabName ) ;
+	if ( RC > 0 )
 	{
 		tbend( tabName ) ;
-		kerr = "TBSARG error setting search for "+ KEYLISTN +", table " + tabName ;
-		if ( KLfail == "N" ) { RC = 0 ; log( "W", kerr << endl ) ; return ; }
+		kerr = "Keylist "+ p->KEYLISTN +" not found in keylist table "+ tabName ;
+		if ( !klfail ) { RC = 0 ; log( "W", kerr << endl ) ; return ; }
 		RC = 20 ;
-		checkRCode( kerr ) ;
+		checkRCode( "Keylist "+ p->KEYLISTN +" not found in keylist table "+ tabName ) ;
 	}
-	tbscan( tabName ) ;
-	if ( RC  > 0 )
-	{
-		tbend( tabName ) ;
-		kerr = "Keylist " + KEYLISTN +" not found in keylist table "+ tabName ;
-		if ( KLfail == "N" ) { RC = 0 ; log( "W", kerr << endl ) ; return ; }
-		RC = 20 ;
-		checkRCode( "Keylist "+ KEYLISTN +" not found in keylist table "+ tabName ) ;
-	}
+
 	vcopy( "KEY1DEF",  tabField, MOVE ) ; p->put_keylist( KEY_F(1),  tabField ) ;
 	vcopy( "KEY2DEF",  tabField, MOVE ) ; p->put_keylist( KEY_F(2),  tabField ) ;
 	vcopy( "KEY3DEF",  tabField, MOVE ) ; p->put_keylist( KEY_F(3),  tabField ) ;
@@ -2219,6 +2220,8 @@ void pApplication::load_keylist( pPanel * p )
 	vcopy( "KEY22DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(22), tabField ) ;
 	vcopy( "KEY23DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(23), tabField ) ;
 	vcopy( "KEY24DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(24), tabField ) ;
+	vcopy( "KEYHELPN", p->KEYHELPN, MOVE ) ;
+
 	tbend( tabName ) ;
 }
 
@@ -2333,8 +2336,12 @@ string pApplication::get_help_member( int row, int col )
 	if ( libdef_puser ) { paths = mergepaths( ZPUSER, ZPLIB ) ; }
 	else                { paths = ZPLIB                       ; }
 
-	return "M("+MSG.hlp+") F("+currPanel->get_field_help( fld )+") " ,
-	       "P("+currPanel->ZPHELP+") A("+ZAHELP+") PATHS("+paths+")" ;
+	return "M("+ MSG.hlp+ ") " +
+	       "F("+ currPanel->get_field_help( fld )+ ") " +
+	       "P("+ currPanel->ZPHELP +") " +
+	       "A("+ ZAHELP +") " +
+	       "K("+ currPanel->KEYHELPN +") "+
+	       "PATHS("+paths+")" ;
 }
 
 
@@ -2878,6 +2885,10 @@ void pApplication::info()
 	if ( testMode )
 	{
 		log( "-", "Application running in test mode" << endl ) ;
+	}
+	if ( noTimeOut )
+	{
+		log( "-", "Application has disabled timeouts" << endl ) ;
 	}
 	if ( PASSLIB )
 	{

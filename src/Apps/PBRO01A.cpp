@@ -495,7 +495,7 @@ void PBRO01A::read_file( string file )
 	maxLines = 1 ;
 	data.clear()   ;
 	shadow.clear() ;
-	data.push_back( centre( " TOP OF DATA ", ZAREAW, '*' ) ) ;
+	data.push_back( centre( " Top of Data ", ZAREAW, '*' ) ) ;
 	shadow.push_back( t ) ;
 
 	if      ( binOn )  { Asbin = true ; }
@@ -568,7 +568,7 @@ void PBRO01A::read_file( string file )
 	}
 	maxCol++   ;
 	maxLines++ ;
-	data.push_back( centre( " BOTTOM OF DATA ", ZAREAW, '*' ) ) ;
+	data.push_back( centre( " Bottom of Data ", ZAREAW, '*' ) ) ;
 	shadow.push_back( t ) ;
 	fin.close() ;
 }

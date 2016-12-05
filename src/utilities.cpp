@@ -320,6 +320,14 @@ int pos( const string & s1, const string & s2, unsigned int p )
 
 
 
+string reverse( string s )
+{
+	reverse( s.begin(), s.end() ) ;
+	return s ;
+}
+
+
+
 string right( string s, unsigned int n, char c )
 {
 	s = strip( s , 'T' ) ;

@@ -1,0 +1,59 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Keylist Utilit Panel 3
+)ENDCOMMENT
+
+)BODY
+
+PanelTitle "&ZZTABL Keylist &KEYLISTN Change"
+
+scrollOn
+
+literal  3   2        CH   "&ZZTYP"
+
+literal  4   2         FP  "Command ===> "
+field    4  15  MAX-17 NEF CAPS(ON) ZCMD
+
+literal  4  MAX-15  FP     "SCROLL ===> "
+field    4  MAX-3   4 NEF  NONE ZSCROLL
+
+literal   6  2      FP    "Keylist Help Panel Name . . :"
+field     6  32   8 NEF  CAPS(ON) KEYHELP
+
+literal   8  2      CH    "Key       Definition                                Format Label"
+literal   9  2      CH    EXPAND "-"
+
+tbmodel   10   MAX
+tbfield    2   8    VOI   NONE KEYNUM
+tbfield  ++2   40   LEF   NONE KEYDEF
+tbfield  ++2   5    LEF   NONE KEYATTR
+tbfield  ++2   8    LEF   NONE KEYLAB
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)INIT
+VGET ZSCROLL PROFILE
+.ATTR(KEYNUM) = 'COLOUR(GREEN)'
+
+&TEMP1  = reverse(TBK1TAB)
+&TEMP1  = TRUNC(&TEMP1, 4)
+IF ( &TEMP1 = 'PYEK' )
+    &ZZTYP = 'Private'
+else
+    &ZZTYP = 'Shared'
+
+&TEMP1  = .TRAIL
+&ZZTABL = reverse(TEMP1)
+
+)PROC
+
+if (&ZCMD NE &Z )
+    .MSG    = PSYS011C
+    .CURSOR = ZCMD
+    EXIT
+
+VPUT ZSCROLL PROFILE
+
+
+)END

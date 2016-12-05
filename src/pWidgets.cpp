@@ -87,12 +87,11 @@ int field::field_init( int MAXW, int MAXD, const string & line )
 	}
 
 	field_cua    = fType ;
-	field_prot   = cuaAttrProt [ fType ] ;
 	field_row    = row-1 ;
 	field_col    = col-1 ;
 	field_length = len   ;
 	field_cole   = field_col + field_length ;
-	field_input  = ( fType == CEF || fType == NEF || fType == DATAIN ) ;
+	field_input  = !cuaAttrProt [ fType ] ;
 
 	fieldOptsParse( RC, w6, field_caps, field_just, field_numeric, field_padchar, field_skip ) ;
 	if ( RC > 0 )

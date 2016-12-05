@@ -98,11 +98,11 @@ void POREXX1::application()
 	environments[ 1 ].handler = NULL ;
 	environments[ 1 ].name    = ""   ;
 
-	options[ 0 ].optionName = APPLICATION_DATA;
-	options[ 0 ].option     = (void *)this;
-	options[ 1 ].optionName = DIRECT_ENVIRONMENTS ;
+	options[ 0 ].optionName = APPLICATION_DATA ;
+	options[ 0 ].option     = (void *)this     ;
+	options[ 1 ].optionName = DIRECT_ENVIRONMENTS  ;
 	options[ 1 ].option     = (void *)environments ;
-	options[ 2 ].optionName = ""   ;
+	options[ 2 ].optionName = ""  ;
 
 	rxsource = word( PARM, 1 )    ;
 	PARM     = subword( PARM, 2 ) ;
@@ -126,7 +126,7 @@ void POREXX1::application()
 		for ( i = 1 ; i <= j ; i++ )
 		{
 			path     = getpath( ZORXPATH, i ) ;
-			if ( path.back() != '/' ) { path = path + "/" ; }
+			if ( path.back() != '/' ) { path += "/" ; }
 			rexxName = path + rxsource ;
 			if ( !exists( rexxName ) ) { continue ; }
 			if ( is_regular_file( rexxName ) ) { found = true ; break ; }
@@ -167,9 +167,9 @@ void POREXX1::application()
 			cond = threadContext->GetConditionInfo() ;
 			threadContext->DecodeConditionInfo( cond, &condition ) ;
 			log( "E", "POREXX1 error running REXX.: " << rxsource << endl ) ;
-			log( "E", "   CONDITION CODE . . . . .: " << condition.code << endl ) ;
-			log( "E", "   CONDITION ERROR TEXT . .: " << threadContext->CString( condition.errortext ) << endl ) ;
-			log( "E", "   CONDITION MESSAGE. . . .: " << threadContext->CString( condition.message ) << endl ) ;
+			log( "E", "   Condition Code . . . . .: " << condition.code << endl ) ;
+			log( "E", "   Condition Error Text . .: " << threadContext->CString( condition.errortext ) << endl ) ;
+			log( "E", "   Condition Message. . . .: " << threadContext->CString( condition.message ) << endl ) ;
 			setmsg( "PSYS011M" ) ;
 			ZRC     = 20 ;
 			ZRSN    = condition.code ;
@@ -247,7 +247,7 @@ int getAllRexxVariables( pApplication * thisAppl )
 		var.shvvaluelen        = 0 ;
 		var.shvcode            = RXSHV_NEXTV ;
 		var.shvret             = 0 ;
-		rc = RexxVariablePool( &var ) ;     /* get the variable */
+		rc = RexxVariablePool( &var ) ;     /* get the variable             */
 		if ( rc != RXSHV_OK) { break ; }
 		n = string( var.shvname.strptr, var.shvname.strlength ) ;
 		v = string( var.shvvalue.strptr, var.shvvalue.strlength ) ;
@@ -313,14 +313,14 @@ int getRexxVariable( pApplication * thisAppl, string n, string & v )
 
 	const char * name = n.c_str() ;
 
-	SHVBLOCK var ;                       /* variable pool control block*/
-	var.shvcode = RXSHV_SYFET ;          /* do a symbolic fetch operation*/
-	var.shvret  = 0 ;                    /* clear return code field */
-	var.shvnext = NULL ;                 /* no next block */
-	var.shvvalue.strptr    = NULL ;      /* let REXX allocate the memory */
+	SHVBLOCK var ;                       /* variable pool control block   */
+	var.shvcode = RXSHV_SYFET ;          /* do a symbolic fetch operation */
+	var.shvret  = 0 ;                    /* clear return code field       */
+	var.shvnext = NULL ;                 /* no next block                 */
+	var.shvvalue.strptr    = NULL ;      /* let REXX allocate the memory  */
 	var.shvvalue.strlength = 0 ;
 	var.shvvaluelen        = 0 ;
-					     /* set variable name string */
+					     /* set variable name string      */
 	MAKERXSTRING( var.shvname, name, n.size() ) ;
 
 	rc = RexxVariablePool( &var ) ;
@@ -340,15 +340,15 @@ int setRexxVariable( string n, string v )
 	const char * name = n.c_str() ;
 	char * value      = (char *)v.c_str() ;
 
-	SHVBLOCK var ;                       /* variable pool control block*/
-	var.shvcode = RXSHV_SYSET  ;         /* do a symbolic set operation*/
-	var.shvret  = 0 ;                    /* clear return code field */
-	var.shvnext = NULL ;                 /* no next block */
-					     /* set variable name string */
+	SHVBLOCK var ;                       /* variable pool control block   */
+	var.shvcode = RXSHV_SYSET  ;         /* do a symbolic set operation   */
+	var.shvret  = 0 ;                    /* clear return code field       */
+	var.shvnext = NULL ;                 /* no next block                 */
+					     /* set variable name string      */
 	MAKERXSTRING( var.shvname, name, n.size() ) ;
-					     /* set value string */
+					     /* set value string              */
 	MAKERXSTRING( var.shvvalue, value, v.size() ) ;
-	var.shvvaluelen = v.size()      ;    /* set value length */
+	var.shvvaluelen = v.size()      ;    /* set value length              */
 	return RexxVariablePool( &var ) ;
 }
 

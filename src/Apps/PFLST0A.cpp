@@ -730,6 +730,8 @@ void PFLST0A::createFileList1( string filter )
 	string p ;
 	string t ;
 
+	bool fGen ;
+
 	vector<string>::iterator itv ;
 
 	struct stat results   ;
@@ -743,6 +745,8 @@ void PFLST0A::createFileList1( string filter )
 	MESSAGE = ""    ;
 	SEL     = ""    ;
 	filter  = upper( filter ) ;
+
+	fGen = ( filter.find_first_of( "?*" ) != string::npos ) ;
 
 	vcopy( "AFHIDDEN", t, MOVE ) ;
 
@@ -768,7 +772,14 @@ void PFLST0A::createFileList1( string filter )
 		i       = lastpos( "/", ENTRY ) + 1 ;
 		ENTRY   = substr( ENTRY, i ) ;
 		if ( t != "/" && ENTRY[ 0 ] == '.' ) { continue ; }
-		if ( filter != "" && pos( filter, upper( ENTRY ) ) == 0 ) { continue ; }
+		if ( fGen )
+		{
+			if ( !matchpattern( filter, upper( ENTRY ) ) ) { continue ; }
+		}
+		else
+		{
+			if ( filter != "" && pos( filter, upper( ENTRY ) ) == 0 ) { continue ; }
+		}
 		if ( UseSearch )
 		{
 			itv = find( SearchList.begin(), SearchList.end(), (*it).string() ) ;
@@ -807,7 +818,7 @@ void PFLST0A::createFileList1( string filter )
 }
 
 
-void PFLST0A::createSearchList( string w )
+void PFLST0A::createSearchList( const string & w )
 {
 	int p1 ;
 
@@ -868,7 +879,7 @@ void PFLST0A::createSearchList( string w )
 }
 
 
-void PFLST0A::showInfo( string p )
+void PFLST0A::showInfo( const string & p )
 {
 	struct stat results   ;
 	struct tm * time_info ;
@@ -1006,6 +1017,7 @@ int PFLST0A::processPrimCMD()
 	string w3  ;
 	string PGM ;
 	string p   ;
+	string t   ;
 
 	std::ofstream of ;
 	boost::system::error_code ec ;
@@ -1015,7 +1027,7 @@ int PFLST0A::processPrimCMD()
 	w2    = word( ZCMD, 2 )    ;
 	w3    = word( ZCMD, 3 )    ;
 
-	if ( cw == "" ) return  0 ;
+	if ( cw == "" ) { return  0 ; }
 	else if ( cw == "SORT" )
 	{
 		w2 = upper( w2 ) ;
@@ -1027,6 +1039,7 @@ int PFLST0A::processPrimCMD()
 		else if ( w2 == "PERMISS" ) { tbsort( DSLIST, "PERMISS,C,"+w3 )  ; }
 		else if ( w2 == "SIZE"    ) { tbsort( DSLIST, "SIZE,N,"+w3    )  ; }
 		else if ( w2 == "MOD"     ) { tbsort( DSLIST, "MODDATES,N,"+w3 ) ; }
+		else if ( w2 == "CHA"     ) { tbsort( DSLIST, "MODDATES,N,"+w3 ) ; }
 		else                        { return 8 ;                           }
 		if ( RC > 0 ) { MSG = "FLST016" ; return 4 ; }
 		return 0 ;
@@ -1034,7 +1047,7 @@ int PFLST0A::processPrimCMD()
 	else if ( (cw == "S" || cw == "B" || cw == "E" ) && ws != "" )
 	{
 		p = ZPATH + "/" + ws ;
-		if ( is_directory( p ) && (cw == "S" || cw == "B" || cw == "CD" ) )
+		if ( is_directory( p ) && (cw == "S" || cw == "B" ) )
 		{
 			vcopy( "ZFLSTPGM", PGM, MOVE ) ;
 			select( "PGM(" + PGM + ") PARM(" + p + ")" ) ;
@@ -1057,10 +1070,14 @@ int PFLST0A::processPrimCMD()
 	else if ( cw == "CD" )
 	{
 		if ( ws == "" ) { ws = ZHOME ; }
-		if ( ZPATH.back() == '/' ) { ZPATH = ZPATH.substr( 0, ZPATH.size()-1) ; }
-		if ( substr( ws, 1, 1 ) != "/" ) { ZPATH = ZPATH + "/" + ws ; }
-		else                             { ZPATH = ws               ; }
-		return 0 ;
+		t = ZPATH ;
+		if ( t.back() == '/' ) { t = t.erase( t.size()-1, 1) ; }
+		if ( substr( ws, 1, 1 ) != "/" ) { t += "/" + ws ; }
+		else                             { t  = ws       ; }
+		if ( t.find_first_of( "*?" ) != string::npos ) { t = expandName( t ) ; }
+		if ( t == "" ) { return 8 ; }
+		if ( is_directory( t ) ) { ZPATH = t ; return 0 ; }
+		else { return 8 ; }
 	}
 	else if ( cw == "L" )
 	{
@@ -1139,7 +1156,7 @@ int PFLST0A::processPrimCMD()
 }
 
 
-void PFLST0A::copyDirs( string src, string dest, string DIRREC, bool & errs )
+void PFLST0A::copyDirs( const string & src, const string & dest, const string & DIRREC, bool & errs )
 {
 	boost::system::error_code ec ;
 
@@ -1206,7 +1223,7 @@ void PFLST0A::copyDirs( string src, string dest, string DIRREC, bool & errs )
 }
 
 
-void PFLST0A::modifyAttrs( string p )
+void PFLST0A::modifyAttrs( const string & p )
 {
 	int i  ;
 	int i1 ;
@@ -1423,7 +1440,7 @@ void PFLST0A::modifyAttrs( string p )
 }
 
 
-void PFLST0A::browseTree( string tname )
+void PFLST0A::browseTree( const string & tname )
 {
 	int i ;
 
@@ -1516,7 +1533,7 @@ void PFLST0A::browseTree( string tname )
 }
 
 
-string PFLST0A::expandDir( string parms )
+string PFLST0A::expandDir( const string & parms )
 {
 	// If passed directory begins with '?', display listing replacing '?' with '/' and using this
 	// as the starting point
@@ -1676,7 +1693,7 @@ string PFLST0A::expandDir( string parms )
 }
 
 
-string PFLST0A::expandFld1( string parms )
+string PFLST0A::expandFld1( const string & parms )
 {
 	// Expand field from listing of ZPLIB, ZORXPATH or ZLDPATH
 
@@ -1913,7 +1930,7 @@ string PFLST0A::showListing()
 }
 
 
-void PFLST0A::createFileList2( string FLDIRS, string filter )
+void PFLST0A::createFileList2( const string & FLDIRS, string filter )
 {
 	int i    ;
 
@@ -1979,6 +1996,53 @@ string PFLST0A::getAppName( string s )
 		return s.erase( s.size() - 3 ) ;
 	}
 	return s ;
+}
+
+
+string PFLST0A::expandName( const string & s )
+{
+	// Resolve name if contains * or ?.  If more than one, return ""
+
+	int i  ;
+	int p1 ;
+	string dir  ;
+	string dir1 ;
+
+	typedef vector< path > vec ;
+
+	vec v ;
+	vec::iterator new_end ;
+	vec::const_iterator it ;
+
+	p1 = s.find_last_of( "/" ) ;
+	if ( p1 == string::npos ) { return "" ; }
+
+	dir = s.substr( 0, p1 ) ;
+
+	try
+	{
+		copy( directory_iterator( dir ), directory_iterator(), back_inserter( v ) ) ;
+	}
+	catch ( const filesystem_error& ex )
+	{
+		return "" ;
+	}
+
+	new_end = remove_if( v.begin(), v.end(),
+		  [](const path & a) { return !is_directory( a.string() ) ; } ) ;
+	v.erase( new_end, v.end() ) ;
+
+	dir1 = "" ;
+	i    = 0  ;
+	for ( i = 0, it = v.begin() ; it != v.end() ; ++it )
+	{
+		dir = (*it).string() ;
+		if ( !matchpattern( s, dir ) ) { continue ; }
+		i++ ;
+		if ( i > 1 ) { return "" ; }
+		dir1 = dir ;
+	}
+	return dir1 ;
 }
 
 

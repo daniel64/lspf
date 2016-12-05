@@ -111,6 +111,7 @@ class ASSGN
 			as_isattr  = false ;
 			as_istb    = false ;
 			as_retlen  = false ;
+			as_reverse = false ;
 			as_upper   = false ;
 			as_words   = false ;
 			as_chkexst = false ;
@@ -125,6 +126,7 @@ class ASSGN
 		bool   as_isattr  ;
 		bool   as_istb    ;
 		bool   as_retlen  ;
+		bool   as_reverse ;
 		bool   as_upper   ;
 		bool   as_words   ;
 		bool   as_chkexst ;

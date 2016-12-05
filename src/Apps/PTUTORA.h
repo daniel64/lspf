@@ -48,6 +48,7 @@ class PTUTORA : public pApplication
 		string ph ;
 		string ah ;
 		string sh ;
+		string kh ;
 		string ps ;
 		string help     ;
 		string helplst  ;

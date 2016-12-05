@@ -51,7 +51,7 @@ do forever
     PARM
     if ( RC > 8 ) then
       do
-        MSG = "PSYS011D"
+        MSG = "PSYS012D"
       end
     "CONTROL ERRORS CANCEL"
     if PRSPNL \= "" then CSR = "PRSPNL"

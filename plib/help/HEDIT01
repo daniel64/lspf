@@ -4,13 +4,19 @@ Line Commands:
 --------------
 
 Extensions to the normal ISPF PDF editor primary commands:
+*--------------------------------------------------------*
 
 PROFILE USE TYPE - Determine profile name from the file type (eg, REXX, ASM, CPP)
                    (PROFILE name switches this off and reverts to an explicit profile name)
                    Explicit profile names are in red (as is the explicit hilight language)
 
+UNDO ALL - Undo all changes on the undo stack
+REDO     - Redo the last undo
+REDO ALL - Redo all changes on the redo stack
+
 
 Extensions to the normal ISPF PDF editor line commands:
+*-----------------------------------------------------*
 MNn      Make note.  Turn current line(s) into note lines, shown by =NOTE=
 MNN
 
@@ -30,3 +36,4 @@ WW
 
 XI       Exclude Indentation.  Exclude lines until the indentation is less than the indentation where the command
          is entered.
+

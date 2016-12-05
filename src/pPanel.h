@@ -83,6 +83,7 @@ class pPanel
 		string PERR        ;
 		string KEYLISTN    ;
 		string KEYAPPL     ;
+		string KEYHELPN    ;
 		bool   REXX        ;
 		string ZPHELP      ;
 		string tb_fields   ;

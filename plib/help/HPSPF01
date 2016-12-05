@@ -49,6 +49,8 @@ SYSTEM
 ******
 CMDS     List of commands (USER, APPLICATION and SYSTEM command tables)
 CUA      View/change cua attribute settings
+KEYLIST  Change/create keylist settings (displays active or default table keylists)
+KEYLISTS Change/create keylist settings (displays all keylist tables)
 KEYS     Change pfkey settings
 ALOG     Display the Application Log
 LOG      Display the lspf Log
@@ -69,3 +71,13 @@ RUN    Run application (similar to ! command character)
 PATHS  Display scrollable list of Path Searches and LIBDEF status
 TODO   Display a simple TODO list
 VARS   List of SHARED and PROFILE pool variables
+
+Keylists:
+=========
+As currently implemented, keylists override keys defined in the traditional way.  Leaving a keylist entry blank
+will cause the normal key definition to be used.  This is diffent from real ISPF where keylists replace all the
+definitions.  In this way, only certain keys need to be defined for a panel keylist, eg. RFIND in EDIT where
+it has no other use outside of this panel.  Other keys will remain as before.
+
+In the lspf General Settings (opt 0.0), it is possible to set the application not to fail if a keylist is missing.
+

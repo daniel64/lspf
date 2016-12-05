@@ -66,7 +66,6 @@ class field
 				field_active       = true  ;
 				field_usecua       = true  ;
 				field_colour       = 0     ;
-				field_prot         = true  ;
 				field_skip         = true  ;
 				field_caps         = false ;
 				field_padchar      = ' '   ;
@@ -91,7 +90,6 @@ class field
 		cuaType      field_cua          ;
 		bool         field_usecua       ;
 		uint         field_colour       ;
-		bool         field_prot         ;
 		bool         field_skip         ;
 		bool         field_caps         ;
 		char         field_padchar      ;

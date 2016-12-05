@@ -25,6 +25,7 @@
 /* Very simple help display.  Need something a lot better                              */
 
 /* Display help members in the order (if they exist):                                                  */
+/*                                   Keylist Help (defined in the keylist table)                       */
 /*                                   Message Help (defined in the message file, .HELP= on the SM line) */
 /*                                   Field Help (defined in the panel file, )HELP section )            */
 /*                                   Panel Help (defined in the panel file, .HELP= in )PROC section )  */
@@ -68,12 +69,15 @@ void PTUTORA::application()
 	int i  ;
 	int j  ;
 	int k  ;
+
 	string tfile      ;
 	string filename   ;
-	bool rebuildZAREA ;
 	string panel      ;
 	string ZDSN       ;
 	string ZSCRNAME   ;
+
+	bool rebuildZAREA ;
+	bool reslt        ;
 
 	vdefine( "ZZSTR1 ZSCRNAME", &help, &ZSCRNAME ) ;
 
@@ -87,24 +91,47 @@ void PTUTORA::application()
 
 	if ( PARM == "" ) { ps = ZPLIB ; }
 
-	p1 = pos( "A(", PARM ) ;
-	if ( p1 > 0 ) { p2 = pos( ")", PARM, p1 ) ; ah = substr( PARM, p1 + 2, p2 - p1 - 2 ) ; }
-	if ( ah != "" ) { help = ah ; helptype = 'A' ; helplst = help + " " + helplst ; }
+	ah = parseString( reslt, PARM, "A()" ) ;
+	if ( ah != "" )
+	{
+		help = ah ;
+		helptype = 'A' ;
+		helplst = help + " " + helplst ;
+	}
 
-	p1 = pos( "P(", PARM ) ;
-	if ( p1 > 0 ) { p2 = pos( ")", PARM, p1 ) ; ph = substr( PARM, p1 + 2, p2 - p1 - 2 ) ; }
-	if ( ph != "" ) { help = ph ; helptype = 'P' ; helplst = help + " " + helplst ; }
+	ph = parseString( reslt, PARM, "P()" ) ;
+	if ( ph != "" )
+	{
+		help = ph ;
+		helptype = 'P' ;
+		helplst = help + " " + helplst ;
+	}
 
-	p1 = pos( "F(", PARM ) ;
-	if ( p1 > 0 ) { p2 = pos( ")", PARM, p1 ) ; fh = substr( PARM, p1 + 2, p2 - p1 - 2 ) ; }
-	if ( fh != "" ) { help = fh ; helptype = 'F' ; helplst = help + " " + helplst ; }
+	fh = parseString( reslt, PARM, "F()" ) ;
+	if ( fh != "" )
+	{
+		help = fh ;
+		helptype = 'F' ;
+		helplst = help + " " + helplst ;
+	}
 
-	p1 = pos( "M(", PARM ) ;
-	if ( p1 > 0 ) { p2 = pos( ")", PARM, p1 ) ; mh = substr( PARM, p1 + 2, p2 - p1 - 2 ) ; }
-	if ( mh != "" ) { help = mh ; helptype = 'M' ; helplst = help + " " + helplst ; }
+	fh = parseString( reslt, PARM, "M()" ) ;
+	if ( mh != "" )
+	{
+		help = mh ;
+		helptype = 'M' ;
+		helplst = help + " " + helplst ;
+	}
 
-	p1 = pos( "PATHS(", PARM ) ;
-	if ( p1 > 0 ) { p2 = pos( ")", PARM, p1 ) ; ps = substr( PARM, p1 + 6, p2 - p1 - 6 ) ; }
+	kh = parseString( reslt, PARM, "K()" ) ;
+	if ( kh != "" )
+	{
+		help = kh ;
+		helptype = 'K' ;
+		helplst = help + " " + helplst ;
+	}
+
+	ps = parseString( reslt, PARM, "PATHS()" ) ;
 
 	rebuildZAREA = true  ;
 
@@ -120,12 +147,13 @@ void PTUTORA::application()
 	if ( RC > 0 )  { abend() ; return ; }
 
 	maxLines = 6 ;
-	data.push_back( centre( " TOP OF HELP ", ZAREAW, '*' ) ) ;
-	data.push_back( " SYSTEM level Help . . . : " + sh ) ;
+	data.push_back( centre( " Top of Help ", ZAREAW, '*' ) ) ;
+	data.push_back( " System level Help . . . : " + sh ) ;
 	data.push_back( " Application level Help. : " + ah ) ;
 	data.push_back( " Panel Help. . . . . . . : " + ph ) ;
 	data.push_back( " Field Help. . . . . . . : " + fh ) ;
 	data.push_back( " Message Help. . . . . . : " + mh ) ;
+	data.push_back( " Keylist Help. . . . . . : " + kh ) ;
 
 	j = getpaths( ps ) ;
 	for ( i = 1 ; i <= words( helplst ) ; i++ )
@@ -164,7 +192,7 @@ void PTUTORA::application()
 		read_file( tfile ) ;
 	}
 
-	data.push_back( centre( " BOTTOM OF HELP ", ZAREAW, '*' ) ) ;
+	data.push_back( centre( " Bottom of Help ", ZAREAW, '*' ) ) ;
 	maxLines++ ;
 
 	while ( true )

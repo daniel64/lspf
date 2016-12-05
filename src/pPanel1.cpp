@@ -37,6 +37,7 @@ pPanel::pPanel()
 	nretfield   = ""     ;
 	KEYLISTN    = ""     ;
 	KEYAPPL     = ""     ;
+	KEYHELPN    = ""     ;
 	panelTitle  = ""     ;
 	panelDescr  = ""     ;
 	abIndex     = 0      ;
@@ -169,17 +170,14 @@ string pPanel::getDialogueVar( const string & var )
 			{
 				case INTEGER:
 					return d2ds( p_funcPOOL->get( RC, 0, var_type, var ) ) ;
-					break ;
 				case STRING:
 					return p_funcPOOL->get( RC, 0, var, NOCHECK ) ;
-					break ;
 			}
 		}
 		else
 		{
 			log( "E", "Non-zero return code received retrieving variable type for '"+ var +"' from function pool" << endl ) ;
 			RC = 20   ;
-			return "" ;
 		}
 	}
 	else
@@ -193,10 +191,9 @@ string pPanel::getDialogueVar( const string & var )
 				 return p_poolMGR->get( RC, var ) ;
 			case 8:
 				 p_funcPOOL->put( RC, 0, var, "" ) ;
-				 return "" ;
+				 break ;
 			default:
 				 log( "E", "RC=20 from pool manager vlocate for variable '"+ var +"'" << endl ) ;
-				 return "" ;
 		}
 	}
 	return "" ;
@@ -324,6 +321,7 @@ void pPanel::display_panel( int & RC1 )
 
 	display_ab()       ;
 	display_literals() ;
+
 	update_field_values( RC1 ) ;
 
 	display_fields() ;
@@ -365,13 +363,12 @@ void pPanel::redisplay_panel()
 
 	display_ab()       ;
 	display_literals() ;
-
-	display_fields() ;
-	display_boxes()  ;
-	hide_pd()        ;
-	display_pd()     ;
-	display_msg()    ;
-	display_id()     ;
+	display_fields()   ;
+	display_boxes()    ;
+	hide_pd()          ;
+	display_pd()       ;
+	display_msg()      ;
+	display_id()       ;
 }
 
 
@@ -971,9 +968,10 @@ void pPanel::process_panel_stmnts( int & RC1, int ln,
 			if ( assgnList.at( i_assign ).as_isvar )
 			{
 				t = getDialogueVar( assgnList.at( i_assign ).as_rhs ) ;
-				if      ( assgnList.at( i_assign ).as_retlen  ) { t = d2ds( t.size() )   ; }
-				else if ( assgnList.at( i_assign ).as_upper   ) { t = upper( t )         ; }
-				else if ( assgnList.at( i_assign ).as_words   ) { t = d2ds( words( t ) ) ; }
+				if      ( assgnList.at( i_assign ).as_retlen  ) { t = d2ds( t.size() )          ; }
+				else if ( assgnList.at( i_assign ).as_reverse ) { reverse( t.begin(), t.end() ) ; }
+				else if ( assgnList.at( i_assign ).as_upper   ) { t = upper( t )                ; }
+				else if ( assgnList.at( i_assign ).as_words   ) { t = d2ds( words( t ) )        ; }
 				else if ( assgnList.at( i_assign ).as_chkexst ) { t = exists( t ) ? "1" : "0"          ; }
 				else if ( assgnList.at( i_assign ).as_chkfile ) { t = is_regular_file( t ) ? "1" : "0" ; }
 				else if ( assgnList.at( i_assign ).as_chkdir  ) { t = is_directory( t )    ? "1" : "0" ; }
@@ -1205,13 +1203,12 @@ void pPanel::create_tbfield( int col, int length, cuaType cuaFT, const string & 
 	{
 		m_fld               = new field  ;
 		m_fld->field_cua    = cuaFT      ;
-		m_fld->field_prot   = cuaAttrProt [ cuaFT ] ;
 		m_fld->field_row    = tb_row + i ;
 		m_fld->field_col    = col - 1    ;
 		m_fld->field_length = length     ;
 		m_fld->field_cole   = col - 1 + length ;
 		m_fld->field_just   = 'A'        ;
-		m_fld->field_input  = ( cuaFT == CEF || cuaFT == DATAIN || cuaFT == NEF ) ;
+		m_fld->field_input  = !cuaAttrProt [ cuaFT ] ;
 		m_fld->field_tb     = true ;
 		fieldList[ name +"."+ d2ds( i ) ] = m_fld ;
 
@@ -2298,9 +2295,9 @@ bool pPanel::on_border_line( uint r, uint c )
 
 void pPanel::update_keylist_vars()
 {
-	p_poolMGR->put( RC, "ZKLNAME", KEYLISTN, SHARED ) ;
-	p_poolMGR->put( RC, "ZKLAPPL", KEYAPPL,  SHARED ) ;
-	p_poolMGR->put( RC, "ZKLTYPE", "P",      SHARED ) ;
+	p_poolMGR->put( RC, "ZKLNAME", KEYLISTN, SHARED, SYSTEM ) ;
+	p_poolMGR->put( RC, "ZKLAPPL", KEYAPPL,  SHARED, SYSTEM ) ;
+	p_poolMGR->put( RC, "ZKLTYPE", "P",      SHARED, SYSTEM ) ;
 }
 
 

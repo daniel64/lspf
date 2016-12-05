@@ -1,0 +1,43 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Keylist Utilit Panel 5
+)ENDCOMMENT
+
+)BODY
+
+PanelTitle "Create Keylist Table"
+
+literal  4   2         FP  "Command ===> "
+field    4  15  MAX-17 NEF CAPS(ON) ZCMD
+
+literal  7    2   FP    "New Table Name . . . . . ."
+field    7   29  4     NEF CAPS(ON) NEWTAB
+
+literal 10 2  CH "Instructions"
+literal 11 2  NT "Press"
+literal 11 8  ET "Enter"
+literal 11 14 NT "to confirm"
+
+literal 13 2  NT "Press"
+literal 13 8  ET "Cancel"
+literal 13 15 NT "or"
+literal 13 18 ET "END"
+literal 13 22 NT "to cancel"
+
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)INIT
+.cursor = newtab
+&NEWTAB  = &Z
+
+)PROC
+if (&ZCMD NE &Z )
+    .MSG    = PSYS011C
+    .CURSOR = ZCMD
+    EXIT
+
+VER (&NEWTAB,NB)
+
+)END

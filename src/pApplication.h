@@ -217,6 +217,7 @@ class pApplication
 		void   checkRCode( const string & ="" ) ;
 		void   store_scrname() ;
 		void   restore_Zvars( int ) ;
+		void   reload_keylist( pPanel * ) ;
 
 		string sub_vars( string ) ;
 
@@ -260,7 +261,7 @@ class pApplication
 		stack<int> stk_int    ;
 		stack<int> addpop_stk ;
 
-		void load_keylist( pPanel * ) ;
+		void load_keylist( pPanel * )   ;
 		void panelCreate( const string & p_name ) ;
 		void actionSelect()   ;
 

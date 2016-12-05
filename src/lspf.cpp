@@ -1047,14 +1047,15 @@ void processAction( uint row, uint col, int c, bool & passthru )
 	{
 		if ( p_poolMGR->get( RC, "ZKLUSE", PROFILE ) == "Y" )
 		{
+			currAppl->reload_keylist( currAppl->currPanel ) ;
 			PFCMD = currAppl->currPanel->get_keylist( c ) ;
 			if ( PFCMD == "" ) { PFCMD = pfKeyValue( c ) ; }
 		}
 		else
 		{
 			PFCMD = pfKeyValue( c ) ;
-			debug1( "PF Key pressed " << PFCMD << endl ) ;
 		}
+		debug1( "PF Key pressed " << PFCMD << endl ) ;
 	}
 	else
 	{
@@ -2044,10 +2045,10 @@ void loadCUATables()
 	cuaAttrProt[ FP     ] = true  ;
 	cuaAttrProt[ FK     ] = true  ;
 
-	cuaAttrProt[ IMT    ] = true ;
-	cuaAttrProt[ LEF    ] = true ;
-	cuaAttrProt[ LID    ] = true ;
-	cuaAttrProt[ LI     ] = true ;
+	cuaAttrProt[ IMT    ] = true  ;
+	cuaAttrProt[ LEF    ] = false ;
+	cuaAttrProt[ LID    ] = true  ;
+	cuaAttrProt[ LI     ] = true  ;
 
 	cuaAttrProt[ NEF    ] = false ;
 	cuaAttrProt[ NT     ] = true  ;

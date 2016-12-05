@@ -1,0 +1,48 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Keylist Utility Panel 1
+)ENDCOMMENT
+
+)BODY
+
+PanelTitle "Keylist Utility"
+
+scrollOn
+
+literal  4   2         FP    "Command ===> "
+field    4  15  MAX-17 NEF CAPS(ON) ZCMD
+
+literal  4  MAX-15  FP "SCROLL ===> "
+field    4  MAX-3  4 NEF  NONE ZSCROLL
+
+literal  6  2          FP  "Actions: S=Select  N=New  D=Delete"
+
+literal   8  2      CH    "S  Table     Type     Messages"
+literal   9  2      CH    EXPAND "-"
+
+tbmodel  10   MAX
+tbfield   2   1    NEF   caps(on),pad('_') TBK1SEL
+tbfield ++2   8    VOI   NONE TBK1TAB
+tbfield ++2   7    VOI   NONE TBK1TYP
+tbfield ++2   20   VOI   NONE TBK1MSG
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)INIT
+VGET ZSCROLL PROFILE
+.ATTR(TBK1TYP) = 'COLOUR(WHITE)'
+
+)PROC
+
+if (&ZCMD NE &Z )
+    .MSG    = PSYS011C
+    .CURSOR = ZCMD
+    EXIT
+
+VPUT ZSCROLL PROFILE
+VER (&TBK1SEL,LIST,D,N,S)
+
+&ZZENTRY = &TBK1TAB
+
+)END

@@ -1,0 +1,44 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Confirm delete panel
+)ENDCOMMENT
+
+)BODY
+PanelTitle "Confirm Delete of &ZZENTRY"
+
+literal  4   2       FP  "Command ===> "
+field    4  15   MAX NEF CAPS(ON)  ZCMD
+
+literal  6   2  PIN  "Enter / to confirm delete"
+field    6   28   1   CEF PAD('_') ENTRYDEL
+
+literal  8 2  CH "Instructions"
+literal 10 2  NT "Press"
+literal 10 8  ET "Enter"
+literal 10 14 NT "to confirm delete"
+
+literal 11 2  NT "Press"
+literal 11 8  ET "Cancel"
+literal 11 15 NT "or"
+literal 11 18 ET "END"
+literal 11 22 NT "to cancel delete."
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)INIT
+
+.CURSOR   = ENTRYDEL
+&ENTRYDEL = &Z
+
+)PROC
+
+if (&ZCMD NE &Z )
+    .MSG    = PSYS011C
+    .CURSOR = ZCMD
+    EXIT
+
+VER (&ENTRYDEL NB,LIST,/)
+
+)END

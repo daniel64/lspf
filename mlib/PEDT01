@@ -2,19 +2,19 @@
 * Message file for the PEDIT01 EDITOR
 *
 
-PEDT011 'Invalid Command Parameter' .TYPE=W .W=NORESP
+PEDT011 'Invalid Command Parameter' .TYPE=W
 'Primary command contains an invalid parameter'
 
-PEDT012 'Invalid Line Command' .TYPE=W .W=NORESP
+PEDT012 'Invalid Line Command' .TYPE=W
 'Line command entered is not valid'
 
-PEDT013 'Line Command Invalid Here' .TYPE=W .W=LNORESP
+PEDT013 'Line Command Invalid Here' .TYPE=W
 'Line command entered is not valid on this line'
 
-PEDT014 'Label Invalid' .TYPE=W .W=LRESP
+PEDT014 'Label Invalid' .TYPE=W
 "Label must be between 1 and 5 alphanumeric characters and not starting with a 'Z'"
 
-PEDT015 'SPARE' .TYPE=N .WINDOW=LRESP
+PEDT015 'SPARE' .TYPE=N
 'SPARE'
 
 PEDT016 'Label missing or invalid' .TYPE=W
@@ -125,8 +125,8 @@ PEDT012E 'Logic Error' .TYPE=W
 PEDT012F 'Backup Failed' .TYPE=W
 'Backup of file to be edited has failed.  Check BACKUP PATH and permissions'
 
-PEDT012G 'SPARE' .TYPE=W
-'SPARE'
+PEDT012G 'Invalid multiplier' .TYPE=W
+'Command multiplier entered is not a numeric integer'
 
 PEDT012H 'UNDO Data Removed' .TYPE=W
 'UNDO data has been deleted.  UNDO/REDO not available before this time'

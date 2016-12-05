@@ -27,18 +27,19 @@ class PFLST0A : public pApplication
 
 	private:
 		void createFileList1( string ="" ) ;
-		void createFileList2( string, string ="" ) ;
-		void createSearchList( string ) ;
+		void createFileList2( const string &, string ="" ) ;
+		void createSearchList( const string & ) ;
 
 		string showListing() ;
-		void   showInfo( string ) ;
+		void   showInfo( const string & ) ;
 		int    processPrimCMD()   ;
-		void   copyDirs( string, string, string, bool & ) ;
-		void   modifyAttrs( string )  ;
-		string expandDir( string )  ;
-		string expandFld1( string ) ;
-		void   browseTree( string )   ;
-		string getAppName( string )   ;
+		void   copyDirs( const string &, const string &, const string &, bool & ) ;
+		void   modifyAttrs( const string & )  ;
+		string expandDir( const string & )  ;
+		string expandFld1( const string & ) ;
+		void   browseTree( const string & ) ;
+		string getAppName( string ) ;
+		string expandName( const string & ) ;
 
 		vector<string> SearchList ;
 		bool   UseSearch ;
