@@ -36,6 +36,8 @@ class panstmnt
 	public :
 		panstmnt()
 		{
+			ps_label   = ""    ;
+			ps_rlist   = ""    ;
 			ps_column  = 0     ;
 			ps_if      = false ;
 			ps_else    = false ;
@@ -45,17 +47,53 @@ class panstmnt
 			ps_trunc   = false ;
 			ps_trans   = false ;
 			ps_exit    = false ;
+			ps_goto    = false ;
+			ps_refresh = false ;
 		}
 
-		int  ps_column  ;
-		bool ps_if      ;
-		bool ps_else    ;
-		bool ps_assign  ;
-		bool ps_verify  ;
-		bool ps_vputget ;
-		bool ps_trunc   ;
-		bool ps_trans   ;
-		bool ps_exit    ;
+		string ps_label   ;
+		string ps_rlist   ;
+		int    ps_column  ;
+		bool   ps_if      ;
+		bool   ps_else    ;
+		bool   ps_assign  ;
+		bool   ps_verify  ;
+		bool   ps_vputget ;
+		bool   ps_trunc   ;
+		bool   ps_trans   ;
+		bool   ps_exit    ;
+		bool   ps_goto    ;
+		bool   ps_refresh ;
+} ;
+
+
+class VERIFY
+{
+	public:
+		VERIFY(){
+				ver_nblank  = false ;
+				ver_numeric = false ;
+				ver_list    = false ;
+				ver_pict    = false ;
+				ver_hex     = false ;
+				ver_octal   = false ;
+				ver_tbfield = false ;
+				ver_field   = false ;
+			} ;
+
+		bool parse( string ) ;
+
+		string ver_var     ;
+		bool   ver_nblank  ;
+		bool   ver_numeric ;
+		bool   ver_list    ;
+		bool   ver_pict    ;
+		bool   ver_hex     ;
+		bool   ver_octal   ;
+		bool   ver_tbfield ;
+		bool   ver_field   ;
+		string ver_value   ;
+		string ver_msgid   ;
 } ;
 
 
@@ -79,24 +117,27 @@ class IFSTMNT
 			if_le    = false ;
 			if_ng    = false ;
 			if_nl    = false ;
+			if_ver   = false ;
 		}
 		bool parse( string ) ;
 
 		string if_lhs           ;
 		vector<string> if_rhs   ;
 		vector<bool>   if_isvar ;
-		int    if_stmnt ;
-		bool   if_true  ;
-		bool   if_else  ;
-		bool   if_istb  ;
-		bool   if_eq    ;
-		bool   if_ne    ;
-		bool   if_gt    ;
-		bool   if_lt    ;
-		bool   if_ge    ;
-		bool   if_le    ;
-		bool   if_ng    ;
-		bool   if_nl    ;
+		VERIFY if_verify ;
+		int    if_stmnt  ;
+		bool   if_true   ;
+		bool   if_else   ;
+		bool   if_istb   ;
+		bool   if_eq     ;
+		bool   if_ne     ;
+		bool   if_gt     ;
+		bool   if_lt     ;
+		bool   if_ge     ;
+		bool   if_le     ;
+		bool   if_ng     ;
+		bool   if_nl     ;
+		bool   if_ver    ;
 } ;
 
 
@@ -134,34 +175,6 @@ class ASSGN
 		bool   as_chkdir  ;
 } ;
 
-
-
-class VERIFY
-{
-	public:
-		VERIFY(){
-				ver_nblank  = false ;
-				ver_numeric = false ;
-				ver_list    = false ;
-				ver_pict    = false ;
-				ver_hex     = false ;
-				ver_octal   = false ;
-				ver_tbfield = false ;
-			} ;
-
-		bool parse( string ) ;
-
-		string ver_field   ;
-		bool   ver_nblank  ;
-		bool   ver_numeric ;
-		bool   ver_list    ;
-		bool   ver_pict    ;
-		bool   ver_hex     ;
-		bool   ver_octal   ;
-		bool   ver_tbfield ;
-		string ver_value   ;
-		string ver_msgid   ;
-} ;
 
 
 class VPUTGET
@@ -203,12 +216,15 @@ class TRUNC
 class TRANS
 {
 	public:
-		TRANS() {} ;
+		TRANS() {
+				trns_msg = "" ;
+			} ;
 		bool parse( string ) ;
 
-		map<string, string> tlst ;
 		string trns_field1 ;
 		string trns_field2 ;
+		string trns_msg    ;
+		map<string, string> trns_list ;
 } ;
 
 

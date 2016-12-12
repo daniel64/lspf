@@ -104,8 +104,6 @@ class pApplication
 		int    ZRC                ;
 		int    ZRSN               ;
 		string ZRESULT            ;
-		string ZERR1              ;
-		string ZERR2              ;
 
 		vector<string>rmsgs  ;
 		boost::posix_time::ptime resumeTime ;
@@ -242,6 +240,16 @@ class pApplication
 		slmsg  MSG      ;
 		slmsg  MSG1     ;
 		string ZSCRNAME ;
+		string ZERR1    ;
+		string ZERR2    ;
+		string ZERR3    ;
+		string ZERR4    ;
+		string ZERR5    ;
+		string ZERR6    ;
+		string ZERR7    ;
+		string ZERR8    ;
+		string ZERR9    ;
+		string ZERR10   ;
 
 		void get_Message( const string & )  ;
 		int  chk_Message_id( const string & ) ;
@@ -262,7 +270,7 @@ class pApplication
 		stack<int> addpop_stk ;
 
 		void load_keylist( pPanel * )   ;
-		void panelCreate( const string & p_name ) ;
+		void createPanel( const string & p_name ) ;
 		void actionSelect()   ;
 
 		void wait_event() ;

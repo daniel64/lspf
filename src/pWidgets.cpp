@@ -487,9 +487,9 @@ void field::field_blank( WINDOW * win )
 }
 
 
-void field::field_remove_nulls()
+void field::field_remove_nulls_da()
 {
-	// Remove all nulls from the field value
+	// Remove all nulls from a dynamic area field
 
 	// For dynamic areas, remove nulls from input fields that have been touched or changed.
 	// Trailing nulls are changed to blanks.  Keep field size constant by adding blanks at
@@ -514,65 +514,54 @@ void field::field_remove_nulls()
 	dynArea * da ;
 
 	p1 = 0 ;
-	if ( field_dynArea )
+	da = field_dynArea_ptr ;
+	if ( !da->dynArea_DataInsp ) { return ; }
+
+	while ( true )
 	{
-		da = field_dynArea_ptr ;
-		if ( !da->dynArea_DataInsp ) { return ; }
-		while ( true )
+		p1 = field_value.find_first_of( da->dynArea_FieldIn, p1 ) ;
+		if ( p1 == string::npos ) { return ; }
+		pattr = p1 ;
+		p1++ ;
+		p3 = field_value.find_first_of( da->dynArea_Field, p1 ) ;
+		if ( p3 == string::npos ) { p3 = field_value.size() - 1 ; }
+		else                      { p3--                        ; }
+		p2 = field_value.find_last_not_of( nulls, p3 ) ;
+		if ( p2 == string::npos )
 		{
-			p1 = field_value.find_first_of( da->dynArea_FieldIn, p1 ) ;
-			if ( p1 == string::npos ) { return ; }
-			pattr = p1 ;
-			p1++ ;
-			p3 = field_value.find_first_of( da->dynArea_Field, p1 ) ;
-			if ( p3 == string::npos ) { p3 = field_value.size() - 1 ; }
-			else                      { p3--                        ; }
-			p2 = field_value.find_last_not_of( nulls, p3 ) ;
-			if ( p2 == string::npos )
-			{
-				field_value.replace( p1, p3-p1+1, p3-p1+1, ' ' ) ;
-				field_shadow_value.replace( p1, p3-p1+1, p3-p1+1, 0xFF ) ;
-				if ( da->dynArea_DataModsp )
-				{
-					field_value[ pattr ] = da->dynArea_DataMod ;
-				}
-				break ;
-			}
-			changed = false ;
-			if ( p3 > p2 )
-			{
-				field_value.replace( p2+1, p3-p2, p3-p2, ' ' ) ;
-				field_shadow_value.replace( p2+1, p3-p2, p3-p2, 0xFF ) ;
-				changed = true ;
-			}
-			while ( true )
-			{
-				if ( p1 >= p2 ) { break ; }
-				if ( field_value[ p1 ] == nulls )
-				{
-					changed = true ;
-					field_value.erase( p1, 1 ) ;
-					field_value.insert( p3, 1, ' ' ) ;
-					field_shadow_value.erase( p1, 1 ) ;
-					field_shadow_value.insert( p3, 1, 0xFF ) ;
-					p2-- ;
-					continue ;
-				}
-				p1++ ;
-			}
-			if ( changed && da->dynArea_DataModsp )
+			field_value.replace( p1, p3-p1+1, p3-p1+1, ' ' ) ;
+			field_shadow_value.replace( p1, p3-p1+1, p3-p1+1, 0xFF ) ;
+			if ( da->dynArea_DataModsp )
 			{
 				field_value[ pattr ] = da->dynArea_DataMod ;
 			}
+			break ;
 		}
-	}
-	else
-	{
+		changed = false ;
+		if ( p3 > p2 )
+		{
+			field_value.replace( p2+1, p3-p2, p3-p2, ' ' ) ;
+			field_shadow_value.replace( p2+1, p3-p2, p3-p2, 0xFF ) ;
+			changed = true ;
+		}
 		while ( true )
 		{
-			p1 = field_value.find_first_of( nulls, p1 ) ;
-			if ( p1 == string::npos ) { break ; }
-			field_value.erase( p1, 1 ) ;
+			if ( p1 >= p2 ) { break ; }
+			if ( field_value[ p1 ] == nulls )
+			{
+				changed = true ;
+				field_value.erase( p1, 1 ) ;
+				field_value.insert( p3, 1, ' ' ) ;
+				field_shadow_value.erase( p1, 1 ) ;
+				field_shadow_value.insert( p3, 1, 0xFF ) ;
+				p2-- ;
+				continue ;
+			}
+			p1++ ;
+		}
+		if ( changed && da->dynArea_DataModsp )
+		{
+			field_value[ pattr ] = da->dynArea_DataMod ;
 		}
 	}
 }
@@ -589,7 +578,6 @@ void field::field_clear( WINDOW * win )
 int field::end_of_field( WINDOW * win, uint col )
 {
 	// If this is a dynamic area, we know at this point this is an input field.
-
 	// Strip trailing nulls if not a dynamic area
 
 	int pos ;
@@ -684,6 +672,7 @@ int field::field_dyna_input_offset( uint col )
 int field::field_attr( string attrs )
 {
 	// Format:
+
 	// TYPE(CUA) (change to/from PS not allowed)
 	// COLOUR(RED/GREEN/YELLOW/BLUE/MAGENTA/TURQ/WHITE) INTENSE(LOW/HIGH) HILITE(NONE/BLINK/REVERSE/USCORE)
 	// For NON-CUA field_colour, default to the current CUA value in case only one attribute is changed
@@ -780,6 +769,79 @@ void field::field_attr()
 }
 
 
+void field::field_prep_input()
+{
+	// Prepare the field to be copied to the function pool (non-dynamic area fields only)
+
+	// Remove nulls from the field.
+	// Apply just(right|left|asis) to non-dynamic area input/output fields
+	//    JUST(LEFT/RIGHT) leading and trailing spaces are removed
+	//    JUST(ASIS) Only trailing spaces are removed
+
+	int p1 ;
+	int p2 ;
+	const char nulls(0x00) ;
+
+	p1 = 0 ;
+	while ( true )
+	{
+		p1 = field_value.find_first_of( nulls, p1 ) ;
+		if ( p1 == string::npos ) { break ; }
+		p2 = field_value.find_first_not_of( nulls, p1 ) ;
+		if ( p2 == string::npos )
+		{
+			field_value.erase( p1 ) ;
+			break ;
+		}
+		else
+		{
+			field_value.erase( p1, p2-p1 ) ;
+		}
+	}
+
+	switch( field_just )
+	{
+		case 'L':
+		case 'R': field_value = strip( field_value, 'B', ' ' ) ;
+			  break ;
+
+		case 'A': field_value = strip( field_value, 'T', ' ' ) ;
+			  break ;
+	}
+}
+
+
+void field::field_prep_display()
+{
+	// Prepare the field for display
+
+	// Apply just(right|left|asis) to non-dynamic area input/output fields
+	//     JUST(LEFT)  strip off leading and trailing spaces
+	//     JUST(RIGHT) strip off trailing spaces only and pad to the left with nulls to size field_length
+	//     JUST(ASIS)  no change
+
+	switch( field_just )
+	{
+		case 'L': field_value = strip( field_value, 'B', ' ' ) ;
+			  break ;
+
+		case 'R': field_value = strip( field_value, 'T', ' ' ) ;
+			  field_value = right( field_value, field_length, 0x00 ) ;
+	}
+}
+
+
+void field::field_set_caps()
+{
+	// Set upper case if CAPS ON
+
+	if ( field_caps )
+	{
+		field_value = upper( field_value ) ;
+	}
+}
+
+
 void field::field_DataMod_to_UserMod( string * darea, int offset )
 {
 	// Reset any dynArea_DataMod attributes to dynArea_UserMod or field_dynDataIn, for dynamic fields that
@@ -831,6 +893,8 @@ void field::display_field( WINDOW * win, bool snulls )
 	string::iterator it2 ;
 
 	dynArea * da ;
+
+	if ( !field_active ) { return ; }
 
 	nullc = snulls ? '.' : ' ' ;
 

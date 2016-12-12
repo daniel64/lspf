@@ -71,7 +71,8 @@ literal 27 22 NT "to cancel changes"
 
 )PROC
 
-ver (&zcmd list cancel::3 )
+&ZCMD = TRANS( &ZCMD CAN,CANCEL *,* )
+ver (&zcmd,list,cancel )
 VER (&IPERMISS NB PICT OOO)
 VER (&ISETUID LIST /)
 VER (&ISETGID LIST /)

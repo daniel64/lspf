@@ -20,14 +20,18 @@
 bool IFSTMNT::parse( string s )
 {
 	// Format of the IF panel statement
+
 	// IF ( &AAA=&BBBB )
 	// IF ( &AAA = VALUE1,VALUE2 )
 	// IF ( &AAA NE 'Hello','Goodbye' )
 	// IF (.CURSOR = ZCMD)
 	// IF (.MSG    = PSYS011)
+	// IF (.RESP   = ENTER)
+	// IF (.RESP   = END)
 	// IF ( &Z EQ .TRUE )
 	// IF ( &Z EQ .FALSE ) .TRUE = "1" and .FALSE = "0"
 	// rhs value lists only for EQ and NE (EQ only one needs to be true, NE all need to be true)
+	// IF ( VER (&A...) )
 
 	int p1 ;
 	int p2 ;
@@ -39,9 +43,24 @@ bool IFSTMNT::parse( string s )
 
 	p1 = s.find( '(' ) ;
 	if ( p1 == string::npos ) { return false ; }
-	t = upper( strip( s.substr( 0, p1 ) ) ) ;
-	if ( t != "IF" ) { return false ; }
 	s = strip( s.erase( 0, p1+1 ) ) ;
+
+	p1 = s.find( '(' ) ;
+	if ( p1 != string::npos )
+	{
+		t = strip( s.substr( 0, p1 ) ) ;
+		if ( t == "VER" )
+		{
+			p2 = s.find_last_of( ")" ) ;
+			if ( p2 == string::npos ) { return false ; }
+			t = s.substr( 0, p2 ) ;
+			if ( !if_verify.parse( t ) ) { return false ; }
+			if ( if_verify.ver_msgid != "" ) { return false ; }
+			if ( strip( s.substr( p2+1 ) ) != "" ) { return false ; }
+			if_ver = true ;
+			return true ;
+		}
+	}
 
 	p1 = s.find_first_of( "=><!" ) ;
 	if ( p1 == string::npos )
@@ -67,6 +86,7 @@ bool IFSTMNT::parse( string s )
 	if ( words( if_lhs ) != 1 ) { return false ; }
 	if      ( if_lhs    == ".CURSOR" ) {}
 	else if ( if_lhs    == ".MSG"    ) {}
+	else if ( if_lhs    == ".RESP"   ) {}
 	else if ( if_lhs[0] != '&' ) { return false ; }
 	else
 	{
@@ -171,11 +191,12 @@ bool IFSTMNT::parse( string s )
 bool ASSGN::parse( string s )
 {
 	// Format of the assignment panel statement
+
 	// &AAA = &BBBB
 	// &AAA = VALUE
 	// &AAA = 'Quoted Value'
-	// &AAA = .TRAIL | .HELP | .MSG | .CURSOR
-	// .HELP | .MSG | .CURSOR = &BBB | VALUE | 'Quoted Value'
+	// &AAA = .ALARM | .TRAIL | .HELP | .MSG | .CURSOR | .RESP
+	// .ALARM .RESP | .HELP | .MSG | .CURSOR = &BBB | VALUE | 'Quoted Value'
 	// &AAA = UPPER( ABC )
 	// &AAA = LENGTH( ABC )
 	// &AAA = REVERSE( ABC )
@@ -191,7 +212,7 @@ bool ASSGN::parse( string s )
 	if ( p == string::npos ) { return false ; }
 	as_lhs = upper( strip( s.substr( 0, p ) ) ) ;
 	if ( words( as_lhs ) != 1 ) {  return false ; }
-	if      ( findword( as_lhs, ".AUTOSEL .CURSOR .CSRROW .HELP .MSG .NRET" ) ) {}
+	if      ( findword( as_lhs, ".ALARM .AUTOSEL .CURSOR .CSRROW .HELP .MSG .NRET .RESP" ) ) {}
 	else if ( as_lhs.substr( 0, 6 ) == ".ATTR(" )
 	{
 		p1 = as_lhs.find( ')' ) ;
@@ -321,7 +342,7 @@ bool ASSGN::parse( string s )
 	{
 		if ( words( s ) != 1 ) { return false ; }
 		s = upper( s ) ;
-		if ( s[ 0 ]  == '.' && !findword( s, ".CURSOR .HELP .MSG .TRAIL" ) ) { return false ; }
+		if ( s[ 0 ]  == '.' && !findword( s, ".ALARM .CURSOR .HELP .MSG .TRAIL .RESP" ) ) { return false ; }
 		as_rhs = s ;
 	}
 	return true ;
@@ -330,16 +351,24 @@ bool ASSGN::parse( string s )
 
 bool VPUTGET::parse( string s )
 {
+	// VGET ABC
+	// VGET(ABC) PROFILE
+
 	int i  ;
 	int j  ;
 	int ws ;
+	int p1 ;
 
-	s = upper( s )  ;
-	( word( s, 1 ) == "VPUT" ) ? vpg_vput = true : vpg_vget = true ;
+	string w1 ;
 
-	s = subword( s, 2 ) ;
+	s  = upper( s )    ;
+	p1 = s.find( '(' ) ;
+	if ( p1 == string::npos ) { w1 = word( s, 1 )               ; s = subword( s, 2 )           ; }
+	else                      { w1 = strip( s.substr( 0, p1 ) ) ; s = strip( s.erase( 0, p1 ) ) ; }
 
 	if ( s == "" ) { return false ; }
+
+	( w1 == "VPUT" ) ? vpg_vput = true : vpg_vget = true ;
 
 	if ( s[ 0 ] == '(' )
 	{
@@ -374,19 +403,24 @@ bool VERIFY::parse( string s )
 	// VER (&VAR LIST A B C D)
 	// VER (&VAR,LIST,A,B,C,D)
 	// VER (&VAR NB LIST A B C D)
-	// VER (&VAR NONBLANK LIST A B C D)
-	// VER (&VAR PICT ABCD)
-	// VER (&VAR HEX)
-	// VER (&VAR OCT)
+	// VER(&VAR NONBLANK LIST A B C D)
+	// VER(&VAR PICT ABCD)
+	// VER(&VAR HEX)
+	// VER(&VAR OCT)
+
 
 	int i     ;
 	int p     ;
+	string t  ;
 	string w  ;
 	string w1 ;
 	string w2 ;
 
-	s  = upper( s )      ;
-	s  = subword( s, 2 ) ;
+	p = s.find( '(' ) ;
+	if ( p == string::npos ) { return false ; }
+	t = upper( strip( s.substr( 0, p ) ) ) ;
+	if ( t != "VER" ) { return false ; }
+	s = upper( strip( s.erase( 0, p ) ) ) ;
 	w1 = word( s, 1 ) ;
 
 	p = 0 ;
@@ -408,8 +442,8 @@ bool VERIFY::parse( string s )
 	if ( s.back() != ')' ) { return false ; }
 	s = substr( s, 1, s.size()-1 ) ;
 
-	ver_field = word( s, 1 ) ;
-	if ( !isvalidName( ver_field ) ) { return false ; }
+	ver_var = word( s, 1 ) ;
+	if ( !isvalidName( ver_var ) ) { return false ; }
 
 	w2 = word( s, 2 ) ;
 
@@ -425,7 +459,11 @@ bool VERIFY::parse( string s )
 		else if ( w == "PICT" ) { ver_pict    = true  ; }
 		else if ( w == "HEX" )  { ver_hex     = true  ; }
 		else if ( w == "OCT" )  { ver_octal   = true  ; }
-		else if ( substr( w, 1, 4 ) == "MSG=" ) { ver_msgid = substr( w, 5 ) ; }
+		else if ( substr( w, 1, 4 ) == "MSG=" )
+		{
+			ver_msgid = strip( substr( w, 5 ) ) ;
+			if ( ver_msgid == "" ) { return false ; }
+		}
 		else if ( ver_pict ) { if ( ver_value != "" ) return false ; else ver_value = w ; }
 		else if ( ver_list ) { ver_value = ver_value + " " + w ; }
 		else    { return false ; }
@@ -447,7 +485,7 @@ bool TRUNC::parse( string s )
 {
 	// Format of the TRUNC panel statement
 	// &AAA = TRUNC( &BBB,'.' )
-	// &AAA = TRUNC( &BBB, 3  )
+	// &AAA = TRUNC ( &BBB, 3  )
 
 	int    p ;
 	string t ;
@@ -456,14 +494,16 @@ bool TRUNC::parse( string s )
 	p = s.find( '=' ) ;
 	if ( p == string::npos ) { return false ; }
 	trnc_field1 = strip( s.substr( 0, p ) ) ;
-	if ( trnc_field1 == "" )     { return false ; }
-	if ( trnc_field1[0] != '&' ) { return false ; }
+	if ( trnc_field1 == "" )       { return false ; }
+	if ( trnc_field1[ 0 ] != '&' ) { return false ; }
 	trnc_field1.erase( 0, 1 ) ;
 
 	s = strip( s.erase( 0, p+1 ) ) ;
-	if ( s.substr( 0, 6 ) != "TRUNC(" ) { return false ; }
-	s = strip( s.erase( 0, 6 ) ) ;
-	if ( s == "" ) { return false ; }
+	if ( s.substr( 0, 5) != "TRUNC" ) { return false ; }
+	s = strip( s.erase( 0, 5 ) ) ;
+	p = s.find( '(' ) ;
+	if ( p != 0 ) { return false ; }
+	s.erase( 0, 1 ) ;
 	p = s.find( ',' ) ;
 	if ( p == string::npos ) { return false ; }
 	trnc_field2 = strip( s.substr( 0, p ) ) ;
@@ -501,11 +541,12 @@ bool TRUNC::parse( string s )
 
 bool TRANS::parse( string s )
 {
-	// Format of the TRANS panel statement ( change val1 to val2, * is everything else )
+	// Format of the TRANS panel statement ( change val1 to val2, * is everything else.  Issue message. )
 
 	// &AAA = TRANS( &BBB  val1,val2 ...  *,* )
-	// &AAA = TRANS( &BBB  val1,val2 ...  *,'?' )
-	// &AAA = TRANS( &BBB  val1,val2 ...  ) non-matching results in &AAA being set to null
+	// &AAA = TRANS ( &BBB  val1,val2 ...  *,'?' )
+	// &AAA = TRANS ( &BBB  val1,val2 ...  ) non-matching results in &AAA being set to null
+	// &AAA = TRANS ( &AAA  val1,val2 ...  MSG=msgid ) issue message if no match
 
 	int    p  ;
 	int    p1 ;
@@ -522,11 +563,14 @@ bool TRANS::parse( string s )
 	if ( trns_field1 == "" )       { return false ; }
 	if ( trns_field1[ 0 ] != '&' ) { return false ; }
 	trns_field1.erase( 0, 1 ) ;
+	if ( !isvalidName( trns_field1 ) ) { return false ; }
 
 	s = strip( s.erase( 0, p+1 ) ) ;
-	if ( s.substr( 0, 6 ) != "TRANS(" ) { return false ; }
-	s = strip( s.erase( 0, 6 ) ) ;
-	if ( s == "" ) { return false ; }
+	if ( s.substr( 0, 5 ) != "TRANS" ) { return false ; }
+	s = strip( s.erase( 0, 5 ) ) ;
+	p = s.find( '(' ) ;
+	if ( p != 0 ) { return false ; }
+	s = strip( s.erase( 0, 1 ) ) ;
 	p = s.find( ' ' ) ;
 	if ( p == string::npos ) { return false ; }
 	trns_field2 = strip( s.substr( 0, p ) ) ;
@@ -534,11 +578,12 @@ bool TRANS::parse( string s )
 	if ( trns_field2 == "" )       { return false ; }
 	if ( trns_field2[ 0 ] != '&' ) { return false ; }
 	trns_field2.erase( 0, 1 ) ;
+	if ( !isvalidName( trns_field2 ) ) { return false ; }
 
 	s = strip( s.erase( 0, p+1 ) ) ;
 	if ( s == "" )         { return false ; }
 	if ( s.back() != ')' ) { return false ; }
-	s = strip( s.erase( s.size()-1, 1 ) ) ;
+	s.pop_back() ;
 
 	j = countc( s, ',' ) ;
 	if ( j == 0 )  { return false ; }
@@ -559,13 +604,21 @@ bool TRANS::parse( string s )
 			v2 = strip( s.substr( 0, p2 ) ) ;
 			s  = strip( s.erase( 0, p2+1 ) ) ;
 		}
-		if ( tlst.find( v1 ) != tlst.end() ) { return false ; }
+		if ( trns_list.find( v1 ) != trns_list.end() ) { return false ; }
 		if ( words( v1 ) != 1 ) { return false ; }
 		if ( words( v2 ) != 1 ) { return false ; }
-		tlst[ v1 ] = v2 ;
+		trns_list[ v1 ] = v2 ;
 	}
-	if ( strip( s ) != "" ) { return false ; }
-	if ( !isvalidName( trns_field1 ) || !isvalidName( trns_field2 ) ) { return false ; }
+	s = strip( s ) ;
+	if ( substr( s, 1, 4 ) == "MSG=" )
+	{
+		trns_msg = strip( substr( s, 5 ) ) ;
+		if ( !isvalidName( trns_msg ) ) { return false ; }
+	}
+	else
+	{
+		if ( s != "" ) { return false ; }
+	}
 	return true ;
 }
 
@@ -573,6 +626,7 @@ bool TRANS::parse( string s )
 bool pnts::parse( string s )
 {
 	// Format of the PNTS panel entry (point-and-shoot entries)
+
 	// FIELD(fld) VAR(var) VAL(value)
 	// fld and var must be defined in the panel
 

@@ -3,104 +3,106 @@
 )COMMENT
 
    Error panel displayed on RC >= 12 from any DM service when CONROL ERRORS CANCEL is in effect
-   ZERR1 and ZERR2 are shown on the panel
+   ZERR1 - ZERR10 are shown on the panel.  Set in function pool to display.
 
 )ENDCOMMENT
 
 )BODY
 
-PanelTitle "Dialogue Error"  
+PanelTitle "Dialogue Error"
 
-literal 4   2      FP  "Command ===> "    
-field   4  15 MAX  NEF  CAPS(ON)  ZCMD    
+literal 4   2      FP  "Command ===> "
+field   4  15 MAX  NEF  CAPS(ON)  ZCMD
 
-literal 7     2 FP EXPAND "*"
+literal 7     2 ET EXPAND "*"
 
-literal 8       2 FP "*"
-literal 8  MAX-1 FP "*"
+literal 8       2 ET "*"
+literal 8  MAX ET "*"
 
-literal 9       2 FP "*"
-literal 9  MAX-1 FP "*"
+literal 9       2 ET "*"
+literal 9  MAX ET "*"
 
-literal 10      2 FP "*"
-literal 10 MAX-1 FP "*"
+literal 10      2 ET "*"
+literal 10 MAX ET "*"
 
-literal 11       2 FP "*"
-literal 11  MAX-1 FP "*"
+literal 11       2 ET "*"
+literal 11  MAX ET "*"
 
-literal 12       2 FP "*"
-literal 12  MAX-1 FP "*"
+literal 12       2 ET "*"
+literal 12  MAX ET "*"
 
-literal 13       2 FP "*"
-literal 13  MAX-1 FP "*"
+literal 13       2 ET "*"
+literal 13  MAX ET "*"
 
-literal 14       2 FP "*"
-literal 14  MAX-1 FP "*"
+literal 14       2 ET "*"
+literal 14  MAX ET "*"
 
-literal 15       2 FP "*"
-literal 15  MAX-1 FP "*"
+literal 15       2 ET "*"
+literal 15  MAX ET "*"
 
-literal 16       2 FP "*"
-literal 16  MAX-1 FP "*"
+literal 16       2 ET "*"
+literal 16  MAX ET "*"
 
-literal 17       2 FP "*"
-literal 17  MAX-1 FP "*"
+literal 17       2 ET "*"
+literal 17  MAX ET "*"
 
-literal 18       2 FP "*"
-literal 18  MAX-1 FP "*"
+literal 18       2 ET "*"
+literal 18  MAX ET "*"
 
-literal 19       2 FP "*"
-literal 19  MAX-1 FP "*"
+literal 19       2 ET "*"
+literal 19  MAX ET "*"
 
-literal 20       2 FP "*"
-literal 20  MAX-1 FP "*"
+literal 20       2 ET "*"
+literal 20  MAX ET "*"
 
-literal 21       2 FP "*"
-literal 21  MAX-1 FP "*"
+literal 21       2 ET "*"
+literal 21  MAX ET "*"
 
-literal 22       2 FP "*"
-literal 22  MAX-1 FP "*"
+literal 22       2 ET "*"
+literal 22  MAX ET "*"
 
-literal 23       2 FP "*"
-literal 23  MAX-1 FP "*"
+literal 23       2 ET "*"
+literal 23  MAX ET "*"
 
-literal 24       2 FP "*"
-literal 24  MAX-1 FP "*"
+literal 24       2 ET "*"
+literal 24  MAX ET "*"
 
-literal 25       2 FP "*"
-literal 25  MAX-1 FP "*"
+literal 25       2 ET "*"
+literal 25  MAX ET "*"
 
-literal 26       2 FP "*"
-literal 26  MAX-1 FP "*"
+literal 26       2 ET "*"
+literal 26  MAX ET "*"
 
-literal 27       2 FP "*"
-literal 27  MAX-1 FP "*"
+literal 27       2 ET "*"
+literal 27  MAX ET "*"
 
-literal 28       2 FP "*"
-literal 28  MAX-1 FP "*"
+literal 28      2 ET EXPAND "*"
 
-literal 29      2 FP EXPAND "*"
+literal 9 4   NT "Error in dialogue"
+field   9 22  MAX-2 ET NONE ZAPPNAME
 
-literal 9 8   NT "Error in dialogue"
-field   9 26  MAX-2 ET NONE ZAPPNAME
+field   11 4  MAX-2 ET NONE ZERR1
+field   12 4  MAX-2 ET NONE ZERR2
+field   13 4  MAX-2 ET NONE ZERR3
+field   14 4  MAX-2 ET NONE ZERR4
+field   15 4  MAX-2 ET NONE ZERR5
+field   16 4  MAX-2 ET NONE ZERR6
+field   17 4  MAX-2 ET NONE ZERR7
+field   18 4  MAX-2 ET NONE ZERR8
+field   19 4  MAX-2 ET NONE ZERR9
+field   20 4  MAX-2 ET NONE ZERR10
 
-literal 11 8   NT "Message is"
-field   11 19  MAX-2 ET NONE ZERR1
-field   12 19  MAX-2 ET NONE ZERR2
+literal 22 4   NT "See application and lspf logs for more messages"
 
-literal 15 8   NT "See application and lspf logs for more messages"
-
-literal 25 8   NT "Press"
-literal 25 14  ET "ENTER"
-literal 25 20  NT "to terminate dialogue"
+literal 24 4   NT "Press"
+literal 24 10  ET "ENTER"
+literal 24 16  NT "to terminate dialogue"
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
 
-
 )INIT
 .CURSOR = ZCMD
-
+&ZCMD   = &Z
 )PROC
-
 )END

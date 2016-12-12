@@ -63,9 +63,11 @@ class pPanel
 		void   redisplay_panel() ;
 		void   redraw_fields()   ;
 		void   refresh() ;
+		void   refresh_fields( const string & ) ;
 
-		string cmd_getvalue() ;
-		void   cmd_setvalue( const string & value )    ;
+		string cmd_getvalue()                   { return field_getvalue( CMDfield ) ; }
+		void   cmd_setvalue( const string & v ) { field_setvalue( CMDfield, v )     ; }
+
 		bool   is_cmd_inactive( const string & value ) ;
 
 		bool   on_border_line( uint, uint )  ;
@@ -77,10 +79,13 @@ class pPanel
 		int    RC          ;
 		string Home        ;
 		string PANELID     ;
+		bool   ALARM       ;
 		string CURFLD      ;
 		int    CURPOS      ;
 		slmsg  MSG         ;
-		string PERR        ;
+		string PERR1       ;
+		string PERR2       ;
+		string PERR3       ;
 		string KEYLISTN    ;
 		string KEYAPPL     ;
 		string KEYHELPN    ;
@@ -138,7 +143,7 @@ class pPanel
 
 		void   display_panel_update( int & RC ) ;
 		void   display_panel_init( int & RC )   ;
-		void   display_panel_reinit( int & RC, int ln ) ;
+		void   display_panel_reinit( int & RC, int ln=0 ) ;
 		void   display_panel_proc( int & RC, int ln )   ;
 		void   display_id()  ;
 

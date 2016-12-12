@@ -103,9 +103,8 @@ void addCppHilight( hilight & h, const string & line, string & shadow )
 				j++ ;
 				continue ;
 			}
-			if ( line.compare( j, 2, "//" ) == 0 )
+			if ( !oComment && line.compare( j, 2, "//" ) == 0 )
 			{
-				oComment = false ;
 				shadow.replace( j, ln-j, ln-j, N_TURQ ) ;
 				break ;
 			}

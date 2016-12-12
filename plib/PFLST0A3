@@ -5,8 +5,8 @@
 )BODY
 PanelTitle "Confirm Delete of File"
 
-literal  4   2       FP  "Command ===> "  
-field    4  15   MAX NEF CAPS(ON)  ZCMD  
+literal  4   2       FP  "Command ===> "
+field    4  15   MAX NEF CAPS(ON)  ZCMD
 
 literal  6   2   FP      "Pathname . . . . . . ."
 field    6   25  MAX  VOI  NONE ENTRY
@@ -20,10 +20,10 @@ field    8   25  20  VOI  NONE MODDATE
 literal  10 2 PIN  "Enter / to select option"
 
 field    11   2   1   CEF PAD('_') NEMPTOK
-literal  11   4       SAC    "Allow delete of non-empty directories"  
+literal  11   4       SAC    "Allow delete of non-empty directories"
 
 field    12   2   1   CEF PAD('_') CONDOFF
-literal  12   4       SAC    "Set file delete confirmation off"  
+literal  12   4       SAC    "Set file delete confirmation off"
 
 literal 15 2  CH "Instructions"
 literal 16 2  NT "Press"
@@ -43,7 +43,8 @@ literal 18 22 NT "to cancel delete."
 
 VER (&NEMPTOK LIST /)
 VER (&CONDOFF LIST /)
-VER (&ZCMD LIST CANCEL::3)
+&ZCMD = TRANS( &ZCMD CAN,CANCEL *,* )
+VER (&ZCMD LIST,CANCEL)
 
 
 )END

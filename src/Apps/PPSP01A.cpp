@@ -2084,9 +2084,9 @@ void PPSP01A::keylistTables()
 					TBK1MSG = "*Added*" ;
 					tbadd( KEYP, "", "ORDER" ) ;
 					createKeyTable( NEWTAB ) ;
+					TBK1SEL = ""  ;
+					tbput( KEYP ) ;
 				}
-				TBK1SEL = ""  ;
-				tbput( KEYP ) ;
 			}
 			else if ( TBK1SEL == "S" )
 			{
@@ -2273,8 +2273,8 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 						editKeylist( tab, NEWKEY ) ;
 					}
 					TBK2SEL = ""  ;
+					tbput( KLST ) ;
 				}
-				tbput( KLST ) ;
 			}
 			else if ( TBK2SEL == "E" )
 			{

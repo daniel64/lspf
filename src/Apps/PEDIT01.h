@@ -325,6 +325,34 @@ class iline
 			il_undo  = false ;
 			il_redo  = false ;
 		}
+		void setChngStatus()
+		{
+			il_chg   = true  ;
+			il_error = false ;
+			il_undo  = false ;
+			il_redo  = false ;
+		}
+		void setErrorStatus()
+		{
+			il_chg   = false ;
+			il_error = true  ;
+			il_undo  = false ;
+			il_redo  = false ;
+		}
+		void setUndoStatus()
+		{
+			il_chg   = false ;
+			il_error = false ;
+			il_undo  = true  ;
+			il_redo  = false ;
+		}
+		void setRedoStatus()
+		{
+			il_chg   = false ;
+			il_error = false ;
+			il_undo  = false ;
+			il_redo  = true  ;
+		}
 		bool isValidFile()
 		{
 			return il_file && !il_deleted ;

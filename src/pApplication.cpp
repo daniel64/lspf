@@ -76,6 +76,14 @@ pApplication::pApplication()
 	ZRESULT                = ""     ;
 	ZERR1                  = ""     ;
 	ZERR2                  = ""     ;
+	ZERR3                  = ""     ;
+	ZERR4                  = ""     ;
+	ZERR5                  = ""     ;
+	ZERR6                  = ""     ;
+	ZERR7                  = ""     ;
+	ZERR8                  = ""     ;
+	ZERR9                  = ""     ;
+	ZERR10                 = ""     ;
 	vdefine( "ZCURFLD",  &ZCURFLD ) ;
 	vdefine( "ZCURPOS",  &ZCURPOS ) ;
 	vdefine( "ZTDMARK",  &ZTDMARK ) ;
@@ -84,8 +92,6 @@ pApplication::pApplication()
 	vdefine( "ZTDSELS",  &ZTDSELS ) ;
 	vdefine( "ZTDTOP",   &ZTDTOP  ) ;
 	vdefine( "ZTDVROWS", &ZTDVROWS) ;
-	vdefine( "ZERR1",    &ZERR1   ) ;
-	vdefine( "ZERR2",    &ZERR2   ) ;
 	vdefine( "ZAPPNAME", &ZAPPNAME) ;
 	rmsgs.clear()                   ;
 }
@@ -148,11 +154,12 @@ void pApplication::wait_event()
 }
 
 
-void pApplication::panelCreate( const string & p_name )
+void pApplication::createPanel( const string & p_name )
 {
 	string paths ;
 
 	RC = 0 ;
+
 	if ( panelList.count( p_name ) > 0 ) { return ; }
 	if ( !isvalidName( p_name ) ) { RC = 20 ; checkRCode( "Invalid panel name '"+ p_name +"'" ) ; return ; }
 
@@ -174,10 +181,22 @@ void pApplication::panelCreate( const string & p_name )
 		load_keylist( p_panel )       ;
 
 	}
+	else if ( RC == 12 )
+	{
+		ZERR2 = "Panel not found" ;
+		delete p_panel            ;
+
+	}
 	else
 	{
-		ZERR2 = p_panel->PERR ;
-		delete p_panel        ;
+		ZERR2  = p_panel->PERR1 ;
+		ZERR3  = p_panel->PERR2 ;
+		if ( p_panel->PERR3 != "" )
+		{
+			ZERR9  = "Panel line where error was detected:" ;
+			ZERR10 = p_panel->PERR3 ;
+		}
+		delete p_panel ;
 	}
 }
 
@@ -357,8 +376,8 @@ void pApplication::display( string p_name, const string & p_msg, const string & 
 		return ;
 	}
 
-	panelCreate( p_name ) ;
-	if ( RC > 0 ) { checkRCode( "Panel '"+ p_name +"' not found or invalid for DISPLAY service" ) ; return ; }
+	createPanel( p_name ) ;
+	if ( RC > 0 ) { checkRCode( "Panel '"+ p_name +"' error during DISPLAY" ) ; return ; }
 
 	if ( propagateEnd )
 	{
@@ -396,13 +415,15 @@ void pApplication::display( string p_name, const string & p_msg, const string & 
 
 	if ( doReinit )
 	{
-		currPanel->display_panel_reinit( RC, 0 ) ;
-		if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )REINIT section of panel "+ p_name ) ; return ; }
+		currPanel->display_panel_reinit( RC ) ;
+		if ( RC > 0 ) { ZERR2 = currPanel->PERR1 ; checkRCode( "Error processing )REINIT section of panel "+ p_name ) ; return ; }
 	}
 	else
 	{
 		currPanel->display_panel_init( RC ) ;
-		if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )INIT section of panel "+ p_name ) ; return ; }
+		if ( RC > 0 ) { ZERR2 = currPanel->PERR1 ; checkRCode( "Error processing )INIT section of panel "+ p_name ) ; return ; }
+		currPanel->update_field_values( RC ) ;
+		if ( RC > 0 ) { ZERR2 = currPanel->PERR1 ; checkRCode( "Error updating field values of panel "+ p_name ) ; return ; }
 	}
 
 	scrNum = ds2d(p_poolMGR->get( RC, "ZSCRNUM", SHARED ) ) ;
@@ -415,29 +436,29 @@ void pApplication::display( string p_name, const string & p_msg, const string & 
 	while ( true )
 	{
 		currPanel->display_panel( RC ) ;
-		if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Panel error displaying "+ p_name ) ; break ; }
+		if ( RC > 0 ) { ZERR2 = currPanel->PERR1 ; checkRCode( "Panel error displaying "+ p_name ) ; break ; }
 		currPanel->cursor_to_field( RC ) ;
-		if ( RC > 0 ) { checkRCode( "Cursor field '"+ currPanel->CURFLD +"' not found on panel or invalid for DISPLAY service" ) ; break ; }
+		if ( RC > 0 ) { checkRCode( "Cursor field '"+ currPanel->CURFLD +"' not found on panel or invalid for DISPLAY" ) ; break ; }
 		wait_event() ;
 		ControlDisplayLock = false ;
 		ControlNonDispl    = false ;
 		currPanel->display_panel_update( RC ) ;
 
+		currPanel->display_panel_proc( RC, 0 ) ;
+		if ( RC > 0 ) { ZERR2 = currPanel->PERR1 ; checkRCode( "Error processing )PROC section of panel "+ p_name ) ; break ; }
+
 		ZZVERB = p_poolMGR->get( RC, "ZVERB", SHARED ) ;
 		if ( RC > 0 ) { RC = 20 ; checkRCode( "PoolMGR get of ZVERB failed" ) ; }
-		if ( ZZVERB == "RETURN" )                    { propagateEnd = true  ; }
-		if ( ZZVERB == "END" || ZZVERB == "RETURN" ) { RC = 8 ; return      ; }
-
-		currPanel->display_panel_proc( RC, 0 ) ;
-		if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )PROC section of panel "+ p_name ) ; break ; }
+		if ( ZZVERB == "RETURN" )                    { propagateEnd = true ; }
+		if ( findword( ZZVERB, "END EXIT RETURN" ) ) { RC = 8 ; return     ; }
 
 		if ( currPanel->MSGID != "" )
 		{
 			get_Message( currPanel->MSGID ) ;
 			if ( RC > 0 ) { break ; }
 			currPanel->set_panel_msg( MSG, MSGID ) ;
-			currPanel->display_panel_reinit( RC, 0 ) ;
-			if ( RC > 0 ) { ZERR2 = currPanel->PERR ; checkRCode( "Error processing )REINIT section of panel "+ p_name ) ; return ; }
+			currPanel->display_panel_reinit( RC ) ;
+			if ( RC > 0 ) { ZERR2 = currPanel->PERR1 ; checkRCode( "Error processing )REINIT section of panel "+ p_name ) ; return ; }
 			continue ;
 		}
 		break ;
@@ -509,7 +530,7 @@ void pApplication::libdef( const string & lib, const string & type )
 	else
 	{
 		RC = 20 ;
-		checkRCode( "Invalid type on LIBDEF service" ) ;
+		checkRCode( "Invalid type on LIBDEF" ) ;
 	}
 }
 
@@ -1058,13 +1079,13 @@ void pApplication::addpop( const string & a_fld, int a_row, int a_col )
 		if ( panelList.size() == 0 )
 		{
 			RC = 12 ;
-			checkRCode( "No prior DISPLAY PANEL before ADDPOP service" ) ;
+			checkRCode( "No prior DISPLAY PANEL before ADDPOP" ) ;
 			return ;
 		}
 		if ( !currPanel->field_get_row_col( a_fld, p_row, p_col ) )
 		{
 			RC = 20 ;
-			checkRCode( "Field "+ a_fld +" not found or invalid on ADDPOP service" ) ;
+			checkRCode( "Field "+ a_fld +" not found or invalid on ADDPOP" ) ;
 			return ;
 		}
 		a_row += p_row ;
@@ -1129,7 +1150,7 @@ void pApplication::rempop( const string & r_all )
 		addpop_row    = 0 ;
 		addpop_col    = 0 ;
 	}
-	else { RC = 20 ; checkRCode( "Invalid parameter on REMPOP service.  Must be ALL or blank" ) ; return ; }
+	else { RC = 20 ; checkRCode( "Invalid parameter on REMPOP.  Must be ALL or blank" ) ; return ; }
 
 	scrNum = ds2d(p_poolMGR->get( RC, "ZSCRNUM", SHARED ) ) ;
 	p_poolMGR->put( RC, scrNum, "ZPROW", d2ds( addpop_row ) ) ;
@@ -1547,8 +1568,8 @@ void pApplication::tbdispl( const string & tb_name, string p_name, const string 
 
 	if ( p_name != "" )
 	{
-		panelCreate( p_name ) ;
-		if ( RC > 0 ) { checkRCode( "Panel '"+ p_name +"' not found or invalid for TBDISPL" ) ; return ; }
+		createPanel( p_name ) ;
+		if ( RC > 0 ) { checkRCode( "Panel '"+ p_name +"' error during TBDISPL" ) ; return ; }
 		currtbPanel = panelList[ p_name ] ;
 		currPanel   = currtbPanel         ;
 		PANELID     = p_name ;
@@ -1556,7 +1577,7 @@ void pApplication::tbdispl( const string & tb_name, string p_name, const string 
 		if ( p_msg == "" )
 		{
 			currtbPanel->clear_tb_linesChanged( RC ) ;
-			if ( RC > 0 ) { ZERR2 = currtbPanel->PERR ; checkRCode( "Panel '"+ p_name +"' error during TBDISPL" ) ; return ; }
+			if ( RC > 0 ) { ZERR2 = currtbPanel->PERR1 ; checkRCode( "Panel '"+ p_name +"' error during TBDISPL" ) ; return ; }
 		}
 		posn = p_tableMGR->getCRP( RC, tb_name ) ;
 		if ( posn == 0 ) { posn = 1 ; }
@@ -1601,7 +1622,10 @@ void pApplication::tbdispl( const string & tb_name, string p_name, const string 
 	else                  { currtbPanel->remove_popup()                      ; }
 
 	currtbPanel->display_panel_init( RC ) ;
-	if ( RC > 0 ) { ZERR2 = currtbPanel->PERR ; checkRCode( "Error processing )INIT section of panel "+ p_name ) ; return ; }
+	if ( RC > 0 ) { ZERR2 = currtbPanel->PERR1 ; checkRCode( "Error processing )INIT section of panel "+ p_name ) ; return ; }
+
+	currPanel->update_field_values( RC ) ;
+	if ( RC > 0 ) { ZERR2 = currPanel->PERR1 ; checkRCode( "Error updating field values of panel "+ p_name ) ; return; }
 
 	t = funcPOOL.get( RC, 8, ".AUTOSEL", NOCHECK ) ;
 	if ( RC == 0 ) { p_autosel = t ; }
@@ -1634,7 +1658,7 @@ void pApplication::tbdispl( const string & tb_name, string p_name, const string 
 				currtbPanel->CURPOS = p_csrpos ;
 			}
 			currtbPanel->cursor_to_field( RC ) ;
-			if ( RC > 0 ) { checkRCode( "Cursor field '"+ currtbPanel->CURFLD +"' not found on panel or invalid for TBDISP service" ) ; break ; }
+			if ( RC > 0 ) { checkRCode( "Cursor field '"+ currtbPanel->CURFLD +"' not found on panel or invalid for TBDISP" ) ; break ; }
 			wait_event() ;
 			ControlDisplayLock = false ;
 			ControlNonDispl    = false ;
@@ -1643,11 +1667,6 @@ void pApplication::tbdispl( const string & tb_name, string p_name, const string 
 			currtbPanel->display_panel_update( RC ) ;
 			currtbPanel->set_tb_linesChanged() ;
 		}
-
-		ZZVERB = p_poolMGR->get( RC, "ZVERB" ) ;
-		if ( RC > 0 ) { RC = 20 ; checkRCode( "PoolMGR get of ZVERB failed" ) ; }
-		if ( ZZVERB == "RETURN" ) { propagateEnd = true  ; }
-		if ( ZZVERB == "END" || ZZVERB == "EXIT" || ZZVERB == "RETURN" ) { RC = 8 ; return ; }
 
 		exitRC = 0  ;
 		if ( currtbPanel->tb_lineChanged( ln, URID ) )
@@ -1663,7 +1682,13 @@ void pApplication::tbdispl( const string & tb_name, string p_name, const string 
 		}
 
 		currtbPanel->display_panel_proc( RC, ln ) ;
-		if ( RC > 0 ) { ZERR2 = currtbPanel->PERR ; checkRCode( "Error processing )PROC section of panel "+ p_name ) ; return ; }
+		if ( RC > 0 ) { ZERR2 = currtbPanel->PERR1 ; checkRCode( "Error processing )PROC section of panel "+ p_name ) ; return ; }
+
+		ZZVERB = p_poolMGR->get( RC, "ZVERB" ) ;
+		if ( RC > 0 ) { RC = 20 ; checkRCode( "PoolMGR get of ZVERB failed" ) ; }
+		if ( ZZVERB == "RETURN" )                    { propagateEnd = true ; }
+		if ( findword( ZZVERB, "END EXIT RETURN" ) ) { RC = 8 ; return     ; }
+
 		t = funcPOOL.get( RC, 8, ".CSRROW", NOCHECK ) ;
 		if ( RC == 0 ) { p_csrrow = ds2d( t ) ; }
 		if ( currtbPanel->MSGID != "" )
@@ -1679,7 +1704,7 @@ void pApplication::tbdispl( const string & tb_name, string p_name, const string 
 				p_poolMGR->put( RC, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 			}
 			currtbPanel->display_panel_reinit( RC, ln ) ;
-			if ( RC > 0 ) { ZERR2 = currtbPanel->PERR ; checkRCode( "Error processing )REINIT section of panel "+ p_name ) ; break ; }
+			if ( RC > 0 ) { ZERR2 = currtbPanel->PERR1 ; checkRCode( "Error processing )REINIT section of panel "+ p_name ) ; break ; }
 			t = funcPOOL.get( RC, 8, ".AUTOSEL", NOCHECK ) ;
 			if ( RC == 0 ) { p_autosel = t ; }
 			t = funcPOOL.get( RC, 8, ".CSRROW", NOCHECK ) ;
@@ -1714,6 +1739,8 @@ void pApplication::tbdispl( const string & tb_name, string p_name, const string 
 				ZCMD = "" ;
 			}
 			p_tableMGR->fillfVARs( RC, funcPOOL, tb_name, currtbPanel->tb_depth, ZTDTOP ) ;
+			currPanel->update_field_values( RC ) ;
+			if ( RC > 0 ) { ZERR2 = currPanel->PERR1 ; checkRCode( "Error updating field values of panel "+ p_name ) ; return ; }
 			continue ;
 		}
 		break ;
@@ -2118,20 +2145,20 @@ void pApplication::pquery( const string & p_name, const string & a_name, const s
 {
 	RC = 0 ;
 
-	if ( !isvalidName( p_name ) ) { RC = 20 ; checkRCode( "Invalid panel name "+ p_name +" on PQUERY" ) ; return ; }
-	if ( !isvalidName( a_name ) ) { RC = 20 ; checkRCode( "Invalid area name "+ a_name +" on PQUERY" ) ; return ; }
+	if ( !isvalidName( p_name ) ) { RC = 20 ; checkRCode( "Invalid panel name '"+ p_name +"' on PQUERY" ) ; return ; }
+	if ( !isvalidName( a_name ) ) { RC = 20 ; checkRCode( "Invalid area name '"+ a_name +"' on PQUERY" ) ; return ; }
 
-	if ( (t_name != "") && !isvalidName( t_name ) ) { RC = 20 ; checkRCode( "Invalid area type name "+ t_name +" on PQUERY" ) ; return ; }
-	if ( (w_name != "") && !isvalidName( w_name ) ) { RC = 20 ; checkRCode( "Invalid area width name "+ w_name +" on PQUERY" ) ; return ; }
-	if ( (d_name != "") && !isvalidName( d_name ) ) { RC = 20 ; checkRCode( "Invalid area depth name "+ d_name +" on PQUERY" ) ; return ; }
-	if ( (r_name != "") && !isvalidName( r_name ) ) { RC = 20 ; checkRCode( "Invalid area row number name "+ r_name +" on PQUERY" ) ; return ; }
-	if ( (c_name != "") && !isvalidName( c_name ) ) { RC = 20 ; checkRCode( "Invalid area column number name "+ c_name +" on PQUERY" ) ; return ; }
+	if ( (t_name != "") && !isvalidName( t_name ) ) { RC = 20 ; checkRCode( "Invalid area type name '"+ t_name +"' on PQUERY" ) ; return ; }
+	if ( (w_name != "") && !isvalidName( w_name ) ) { RC = 20 ; checkRCode( "Invalid area width name '"+ w_name +"' on PQUERY" ) ; return ; }
+	if ( (d_name != "") && !isvalidName( d_name ) ) { RC = 20 ; checkRCode( "Invalid area depth name '"+ d_name +"' on PQUERY" ) ; return ; }
+	if ( (r_name != "") && !isvalidName( r_name ) ) { RC = 20 ; checkRCode( "Invalid area row number name '"+ r_name +"' on PQUERY" ) ; return ; }
+	if ( (c_name != "") && !isvalidName( c_name ) ) { RC = 20 ; checkRCode( "Invalid area column number name '"+ c_name +"' on PQUERY" ) ; return ; }
 
-	panelCreate( p_name ) ;
-	if ( panelList.find( p_name ) == panelList.end() )
+	createPanel( p_name ) ;
+	if ( panelList.count( p_name ) == 0 )
 	{
 		RC = 20 ;
-		checkRCode( "Panel "+ p_name +" not found or invalid for PQUERY" ) ;
+		checkRCode( "Panel '"+ p_name +"' error during PQUERY" ) ;
 		return  ;
 	}
 	panelList[ p_name ]->get_panel_info( RC, a_name, t_name, w_name, d_name, r_name, c_name ) ;
@@ -2178,7 +2205,7 @@ void pApplication::load_keylist( pPanel * p )
 	tbopen( tabName, NOWRITE, UPROF, SHARE ) ;
 	if ( RC  > 0 )
 	{
-		kerr = "Open of keylist table "+ tabName +" failed" ;
+		kerr = "Open of keylist table '"+ tabName +"' failed" ;
 		if ( !klfail ) { RC = 0 ; log( "W", kerr << endl ) ; return ; }
 		RC = 20 ;
 		checkRCode( kerr ) ;
@@ -2190,10 +2217,10 @@ void pApplication::load_keylist( pPanel * p )
 	if ( RC > 0 )
 	{
 		tbend( tabName ) ;
-		kerr = "Keylist "+ p->KEYLISTN +" not found in keylist table "+ tabName ;
+		kerr = "Keylist '"+ p->KEYLISTN +"' not found in keylist table "+ tabName ;
 		if ( !klfail ) { RC = 0 ; log( "W", kerr << endl ) ; return ; }
 		RC = 20 ;
-		checkRCode( "Keylist "+ p->KEYLISTN +" not found in keylist table "+ tabName ) ;
+		checkRCode( "Keylist '"+ p->KEYLISTN +"' not found in keylist table "+ tabName ) ;
 	}
 
 	vcopy( "KEY1DEF",  tabField, MOVE ) ; p->put_keylist( KEY_F(1),  tabField ) ;
@@ -2727,7 +2754,7 @@ bool pApplication::parse_Message( slmsg & t )
 
 	if ( strip( rest ) != "" ) { return false ; }
 
-	if ( t.smwin && t.smsg != "" ) { t.lmsg = t.smsg + " - " + t.lmsg ; }
+	if ( t.smwin && t.smsg != "" ) { t.lmsg = t.smsg +" - "+ t.lmsg ; }
 	return true ;
 }
 
@@ -2958,9 +2985,18 @@ void pApplication::checkRCode( const string & s )
 	if ( !ControlErrorsReturn && RC >= 12 )
 	{
 		log( "E", "RC="<< RC <<" CONTROL ERRORS CANCEL is in effect.  Aborting" << endl ) ;
-		ZERR1 = s ;
-		ControlDisplayLock  = false ;
-		ControlErrorsReturn = true  ;
+		vreplace( "ZERR1",  s ) ;
+		vreplace( "ZERR2",  ZERR2  ) ;
+		vreplace( "ZERR3",  ZERR3  ) ;
+		vreplace( "ZERR4",  ZERR4  ) ;
+		vreplace( "ZERR5",  ZERR5  ) ;
+		vreplace( "ZERR6",  ZERR6  ) ;
+		vreplace( "ZERR7",  ZERR7  ) ;
+		vreplace( "ZERR8",  ZERR8  ) ;
+		vreplace( "ZERR9",  ZERR9  ) ;
+		vreplace( "ZERR10", ZERR10 ) ;
+		ControlDisplayLock  = false  ;
+		ControlErrorsReturn = true   ;
 		display( "PSYSER1" ) ;
 		if ( RC <= 8 ) { errPanelissued = true ; }
 		abend() ;

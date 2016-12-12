@@ -781,10 +781,10 @@ void PEDIT01::fill_dynamic_area()
 				else if ( (*it)->il_mask  ) { lcc = "=MASK>" ; ZSHADOW += slr ; }
 				else if ( (*it)->il_tabs  ) { lcc = "=TABS>" ; ZSHADOW += slr ; }
 				else if ( (*it)->il_chg   ) { lcc = "==CHG>" ; ZSHADOW += slr ; }
-				else if ( (*it)->il_msg   ) { lcc = "==MSG>" ; ZSHADOW += slr ; }
 				else if ( (*it)->il_error ) { lcc = "==ERR>" ; ZSHADOW += slr ; }
 				else if ( (*it)->il_undo  ) { lcc = "=UNDO>" ; ZSHADOW += slr ; }
 				else if ( (*it)->il_redo  ) { lcc = "=REDO>" ; ZSHADOW += slr ; }
+				else if ( (*it)->il_msg   ) { lcc = "==MSG>" ; ZSHADOW += slr ; }
 				else if ( (*it)->il_info  ) { lcc = "======" ; ZSHADOW += slr ; }
 				else if ( (*it)->il_file  )
 				{
@@ -3160,7 +3160,7 @@ void PEDIT01::actionLineCommand( vector<icmd>::iterator itc )
 			{
 				(*il_its)->put_idata( tmp1, Level ) ;
 			}
-			if ( !shiftOK ) { (*il_its)->il_error = true ; MSG = "PEDT014B" ; }
+			if ( !shiftOK ) { (*il_its)->setErrorStatus() ; MSG = "PEDT014B" ; }
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 			break ;
@@ -3179,7 +3179,7 @@ void PEDIT01::actionLineCommand( vector<icmd>::iterator itc )
 				{
 					(*il_its)->put_idata( tmp1, Level ) ;
 				}
-				if ( !shiftOK ) { (*il_its)->il_error = true ; MSG = "PEDT014B" ; }
+				if ( !shiftOK ) { (*il_its)->setErrorStatus() ; MSG = "PEDT014B" ; }
 			}
 			rebuildZAREA = true ;
 			fileChanged  = true ;
@@ -3194,7 +3194,7 @@ void PEDIT01::actionLineCommand( vector<icmd>::iterator itc )
 			{
 				(*il_its)->put_idata( tmp1, Level ) ;
 			}
-			if ( !shiftOK ) { (*il_its)->il_error = true ; MSG = "PEDT014B" ; }
+			if ( !shiftOK ) { (*il_its)->setErrorStatus() ; MSG = "PEDT014B" ; }
 			rebuildZAREA = true ;
 			fileChanged  = true ;
 			break ;
@@ -3213,7 +3213,7 @@ void PEDIT01::actionLineCommand( vector<icmd>::iterator itc )
 				{
 					(*il_its)->put_idata( tmp1, Level ) ;
 				}
-				if ( !shiftOK ) { (*il_its)->il_error = true ; MSG = "PEDT014B" ; }
+				if ( !shiftOK ) { (*il_its)->setErrorStatus() ; MSG = "PEDT014B" ; }
 			}
 			rebuildZAREA = true ;
 			fileChanged  = true ;
@@ -3916,10 +3916,8 @@ bool PEDIT01::actionUNDO()
 	{
 		if ( (*it)->get_idata_level() == lvl )
 		{
-			(*it)->undo_idata()     ;
-			(*it)->il_undo  = true  ;
-			(*it)->il_redo  = false ;
-			(*it)->il_error = false ;
+			(*it)->undo_idata()    ;
+			(*it)->setUndoStatus() ;
 			if ( (*it)->il_file ) { isFile = true ; }
 		 /*     if ( moveTop )
 			{
@@ -3982,10 +3980,8 @@ bool PEDIT01::actionREDO()
 	{
 		if ( (*it)->get_idata_Redo_level() == lvl )
 		{
-			(*it)->redo_idata()     ;
-			(*it)->il_undo  = false ;
-			(*it)->il_redo  = true  ;
-			(*it)->il_error = false ;
+			(*it)->redo_idata()    ;
+			(*it)->setRedoStatus() ;
 			if ( (*it)->il_file ) { isFile = true ; }
 		 /*     if ( moveTop )
 			{
@@ -4700,7 +4696,7 @@ void PEDIT01::actionChange()
 	{
 		data.at( l )->put_idata( temp, Level ) ;
 	}
-	data.at( l )->il_chg = true ;
+	data.at( l )->setChngStatus() ;
 	fileChanged = true ;
 }
 

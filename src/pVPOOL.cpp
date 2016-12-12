@@ -74,7 +74,7 @@ void fPOOL::dlete( int & RC, const string & name, nameCHCK check )
 
 	RC = 0 ;
 
-	const string vdsys( "ZCURFLD ZCURPOS ZTDMARK ZTDDEPTH ZTDROWS ZTDSELS ZTDTOP ZTDVROWS ZERR1 ZERR2 ZAPPNAME" ) ;
+	const string vdsys( "ZCURFLD ZCURPOS ZTDMARK ZTDDEPTH ZTDROWS ZTDSELS ZTDTOP ZTDVROWS ZAPPNAME" ) ;
 
 	if ( name == "*")
 	{
