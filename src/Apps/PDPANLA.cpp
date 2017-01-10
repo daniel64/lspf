@@ -107,12 +107,10 @@ void PDPANLA::application()
 				MSG = "PSYS017" ;
 				continue        ;
 			}
-			p1 = wordpos( "&ZPARM", SEL.PARM ) ;
-			if ( p1 > 0 )
+			p1 = SEL.PARM.find( "&ZPARM" ) ;
+			if ( p1 != string::npos )
 			{
-				p1     = wordindex( SEL.PARM, p1 )   ;
-				SEL.PARM = delstr( SEL.PARM, p1, 6 )   ;
-				SEL.PARM = insert( ZCMD, SEL.PARM, p1 ) ;
+				SEL.PARM.replace( p1, 6, ZCMD ) ;
 			}
 			if ( SEL.PGM == "&ZPANLPGM" && ZTRAIL != "" ) { SEL.PARM = SEL.PARM + " " + ZTRAIL ; }
 			if ( SEL.PGM[ 0 ] == '&' )

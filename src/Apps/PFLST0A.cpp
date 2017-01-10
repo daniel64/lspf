@@ -744,7 +744,7 @@ void PFLST0A::createFileList1( string filter )
 
 	MESSAGE = ""    ;
 	SEL     = ""    ;
-	filter  = upper( filter ) ;
+	iupper( filter ) ;
 
 	fGen = ( filter.find_first_of( "?*" ) != string::npos ) ;
 
@@ -818,7 +818,7 @@ void PFLST0A::createFileList1( string filter )
 }
 
 
-void PFLST0A::createSearchList( const string & w )
+void PFLST0A::createSearchList( const string& w )
 {
 	int p1 ;
 
@@ -879,7 +879,7 @@ void PFLST0A::createSearchList( const string & w )
 }
 
 
-void PFLST0A::showInfo( const string & p )
+void PFLST0A::showInfo( const string& p )
 {
 	struct stat results   ;
 	struct tm * time_info ;
@@ -1030,8 +1030,8 @@ int PFLST0A::processPrimCMD()
 	if ( cw == "" ) { return  0 ; }
 	else if ( cw == "SORT" )
 	{
-		w2 = upper( w2 ) ;
-		w3 = upper( w3 ) ;
+		iupper( w2 ) ;
+		iupper( w3 ) ;
 		if ( w2 == "" ) { w2 = "ENTRY" ; }
 		if ( w3 == "" ) { w3 = "A"     ; }
 		if      ( w2 == "ENTRY"   ) { tbsort( DSLIST, "ENTRY,C,"+w3   )  ; }
@@ -1156,7 +1156,7 @@ int PFLST0A::processPrimCMD()
 }
 
 
-void PFLST0A::copyDirs( const string & src, const string & dest, const string & DIRREC, bool & errs )
+void PFLST0A::copyDirs( const string& src, const string& dest, const string& DIRREC, bool& errs )
 {
 	boost::system::error_code ec ;
 
@@ -1223,7 +1223,7 @@ void PFLST0A::copyDirs( const string & src, const string & dest, const string & 
 }
 
 
-void PFLST0A::modifyAttrs( const string & p )
+void PFLST0A::modifyAttrs( const string& p )
 {
 	int i  ;
 	int i1 ;
@@ -1440,7 +1440,7 @@ void PFLST0A::modifyAttrs( const string & p )
 }
 
 
-void PFLST0A::browseTree( const string & tname )
+void PFLST0A::browseTree( const string& tname )
 {
 	int i ;
 
@@ -1533,7 +1533,7 @@ void PFLST0A::browseTree( const string & tname )
 }
 
 
-string PFLST0A::expandDir( const string & parms )
+string PFLST0A::expandDir( const string& parms )
 {
 	// If passed directory begins with '?', display listing replacing '?' with '/' and using this
 	// as the starting point
@@ -1656,12 +1656,12 @@ string PFLST0A::expandDir( const string & parms )
 		if ( type == "ALL" ) {}
 		else if ( type == "DO1" )
 		{
-			new_end = remove_if( v.begin(), v.end(), [](const path & a) { return !is_directory( a.string() ) ; } ) ;
+			new_end = remove_if( v.begin(), v.end(), [](const path& a) { return !is_directory( a.string() ) ; } ) ;
 			v.erase( new_end, v.end() ) ;
 		}
 		else if ( type == "FO1" || type == "FO2" )
 		{
-			new_end = remove_if( v.begin(), v.end(), [](const path & a) { return !is_regular_file( a.string() ) ; } ) ;
+			new_end = remove_if( v.begin(), v.end(), [](const path& a) { return !is_regular_file( a.string() ) ; } ) ;
 			v.erase( new_end, v.end() ) ;
 		}
 		else { RC = 16 ; return "" ; }
@@ -1693,7 +1693,7 @@ string PFLST0A::expandDir( const string & parms )
 }
 
 
-string PFLST0A::expandFld1( const string & parms )
+string PFLST0A::expandFld1( const string& parms )
 {
 	// Expand field from listing of ZPLIB, ZORXPATH or ZLDPATH
 
@@ -1770,16 +1770,16 @@ string PFLST0A::expandFld1( const string & parms )
 		}
 	}
 
-	vec_end = remove_if( v.begin(), v.end(), [](const path & a) { return !is_regular_file( a.string() ) ; } ) ;
+	vec_end = remove_if( v.begin(), v.end(), [](const path& a) { return !is_regular_file( a.string() ) ; } ) ;
 
 	for_each( v.begin(), vec_end,
-		[&mod](const path & a) { mod.push_back( substr( a.string(), lastpos( "/", a.string())+1 ) ) ; } ) ;
+		[&mod](const path& a) { mod.push_back( substr( a.string(), lastpos( "/", a.string())+1 ) ) ; } ) ;
 
 	mod_end = mod.end() ;
 	if ( type == "PGM" )
 	{
 		mod_end = remove_if( mod.begin(), mod.end(),
-			[](const string & a) { return ( a.compare( a.size()-3,3 , ".so" ) > 0 ) ; } ) ;
+			[](const string& a) { return ( a.compare( a.size()-3,3 , ".so" ) > 0 ) ; } ) ;
 	}
 
 	sort( mod.begin(), mod_end ) ;
@@ -1930,7 +1930,7 @@ string PFLST0A::showListing()
 }
 
 
-void PFLST0A::createFileList2( const string & FLDIRS, string filter )
+void PFLST0A::createFileList2( const string& FLDIRS, string filter )
 {
 	int i    ;
 
@@ -1944,7 +1944,7 @@ void PFLST0A::createFileList2( const string & FLDIRS, string filter )
 	vec v;
 
 	if ( ZPATH == "" ) { ZPATH = "/" ; }
-	filter = upper( filter ) ;
+	iupper( filter ) ;
 
 	vcopy( "FLHIDDEN", t, MOVE ) ;
 
@@ -1999,7 +1999,7 @@ string PFLST0A::getAppName( string s )
 }
 
 
-string PFLST0A::expandName( const string & s )
+string PFLST0A::expandName( const string& s )
 {
 	// Resolve name if contains * or ?.  If more than one, return ""
 
@@ -2029,7 +2029,7 @@ string PFLST0A::expandName( const string & s )
 	}
 
 	new_end = remove_if( v.begin(), v.end(),
-		  [](const path & a) { return !is_directory( a.string() ) ; } ) ;
+		  [](const path& a) { return !is_directory( a.string() ) ; } ) ;
 	v.erase( new_end, v.end() ) ;
 
 	dir1 = "" ;

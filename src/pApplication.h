@@ -120,72 +120,71 @@ class pApplication
 		void   refresh()  ;
 		bool   isRawOutput() { return rawOutput ; }
 
-		string get_select_cmd( const string & ) ;
+		string get_select_cmd( const string& ) ;
 		selobj get_select_cmd() { return SELCT ; }
 		string get_help_member( int, int ) ;
 		string get_current_panelDescr() ;
 		string get_current_screenName() ;
 
-		void   control( const string &, const string &, const string & ="" ) ;
-		void   control( const string &, void (pApplication::*)() ) ;
-		void   libdef( const string &, const string & ="" ) ;
-		void   rdisplay( const string & )  ;
-		void   rdisplay1( const string & ) ;
-		void   display( string p_name, const string & p_msg = "", const string & p_cursor = "", int p_curpos = 0 ) ;
-		void   pquery( const string & p_name, const string & a_name, const string & t = "", const string & w = "", const string & d = "", const string & r = "", const string & c = "" ) ;
-		void   select( const string & ) ;
+		void   control( const string&, const string&, const string& ="" ) ;
+		void   control( const string&, void (pApplication::*)() ) ;
+		void   libdef( const string&, const string& ="" ) ;
+		void   rdisplay( const string&, bool =true ) ;
+		void   display( string p_name, const string& p_msg = "", const string& p_cursor = "", int p_curpos = 0 ) ;
+		void   pquery( const string& p_name, const string& a_name, const string& t = "", const string& w = "", const string& d = "", const string& r = "", const string& c = "" ) ;
+		void   select( const string& ) ;
 		void   select( selobj ) ;
-		void   attr( const string &, const string & ) ;
+		void   attr( const string&, const string& ) ;
 
-		void   vcopy( const string &, string &, vcMODE=MOVE )   ;
-		void   vcopy( const string &, string * &, vcMODE=LOCATE ) ;
-		void   vdefine( const string &, string *, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL ) ;
-		void   vdefine( const string &, int *, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL ) ;
-		void   vdelete( const string & ) ;
-		void   verase( const string & var, poolType =ASIS ) ;
-		void   vget( const string & var, poolType =ASIS )   ;
-		void   vput( const string & var, poolType =ASIS )   ;
-		string vlist( poolType pType, int lvl )     ;
-		string vilist( vdType =ALL )                ;
-		string vslist( vdType =ALL )                ;
-		void   vmask( const string & var, const string & type, const string & mask ) ;
-		void   vreplace( const string &, const string & ) ;
-		void   vreplace( const string &, int )            ;
+		void   vcopy( const string&, string&, vcMODE=MOVE )   ;
+		void   vcopy( const string&, string * &, vcMODE=LOCATE ) ;
+		void   vdefine( const string&, string *, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL ) ;
+		void   vdefine( const string&, int *, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL ) ;
+		void   vdelete( const string& ) ;
+		void   verase( const string& var, poolType =ASIS ) ;
+		void   vget( const string& var, poolType =ASIS )   ;
+		void   vput( const string& var, poolType =ASIS )   ;
+		string vlist( poolType pType, int lvl ) ;
+		string vilist( vdType =ALL ) ;
+		string vslist( vdType =ALL ) ;
+		void   vmask( const string& var, const string& type, const string& mask ) ;
+		void   vreplace( const string&, const string& ) ;
+		void   vreplace( const string&, int )           ;
 		void   vreset() ;
 
-		void   tbadd( const string & tb_name, const string & tb_namelst="", const string & tb_order="", int tb_num_of_rows=0 ) ;
-		void   tbbottom( const string & tb_name, const string & tb_savenm="", const string & tb_rowid_vn="", const string & tb_noread="", const string & tb_crp_name="" ) ;
-		void   tbclose( const string & tb_name, const string & new_name="", const string & path="" ) ;
-		void   tbcreate( const string & tb_name, const string & keys, const string & names, tbSAVE a=NOWRITE, tbREP b=NOREPLACE, string path="", tbDISP c=EXCLUSIVE ) ;
-		void   tbdelete( const string & tb_name ) ;
-		void   tbdispl( const string & tb_name, string p_name="", const string & p_msg="", string p_cursor="", int p_csrrow=0, int p_csrpos=1, string p_autosel="YES", const string & p_crp_name="", const string & p_rowid_nm="" ) ;
-		void   tbend( const string & tb_name ) ;
-		void   tberase( const string & tb_name, string tb_path="" ) ;
-		void   tbexist( const string & tb_name ) ;
-		void   tbget( const string & tb_name, const string & tb_savenm="", const string & tb_rowid_vn="", const string & tb_noread="", const string & tb_crp_name="" ) ;
-		void   tbmod( const string & tb_name, const string & tb_namelst="", const string & tb_order="" ) ;
-		void   tbopen( const string & tb_name, tbSAVE WRITE, string path="", tbDISP c=EXCLUSIVE ) ;
-		void   tbput( const string & tb_name, const string & tb_namelst="", const string & tb_order="" ) ;
-		void   tbquery( const string & tb_name, const string & tb_keyn="", const string & tb_varn="", const string & tb_rownn="", const string & tb_keynn="", const string & tb_namenn="",const string & tb_crpn="", const string & tb_sirn="", const string & tb_lstn="", const string & tb_condn="", const string & tb_dirn="" ) ;
-		void   tbsarg( const string & tb_name, const string & tb_namelst="", const string & tb_dir="NEXT", const string & tb_cond_pairs="" ) ;
-		void   tbsave( const string & tb_name, const string & new_name="", const string & path="") ;
-		void   tbscan( const string & tb_name, const string & tb_namelst="", const string & tb_savenm="", const string & tb_rowid_vn="", const string & tb_dir="NEXT", const string & tb_read="", const string & tb_crp_name="", const string & tb_condlst="" ) ;
-		void   tbskip( const string & tb_name, int num=1, const string & tb_savenm="", const string & tb_rowid_vn="", const string & tb_rowid="", const string & tb_noread="", const string & tb_crp_name=""  ) ;
-		void   tbsort( const string & tb_name, const string & tb_fields ) ;
-		void   tbtop( const string & tb_name ) ;
-		void   tbvclear( const string & tb_name ) ;
+		void   tbadd( const string& tb_name, const string& tb_namelst="", const string& tb_order="", int tb_num_of_rows=0 ) ;
+		void   tbbottom( const string& tb_name, const string& tb_savenm="", const string& tb_rowid_vn="", const string& tb_noread="", const string& tb_crp_name="" ) ;
+		void   tbclose( const string& tb_name, const string& new_name="", const string& path="" ) ;
+		void   tbcreate( const string& tb_name, const string& keys, const string& names, tbSAVE a=NOWRITE, tbREP b=NOREPLACE, string path="", tbDISP c=EXCLUSIVE ) ;
+		void   tbdelete( const string& tb_name ) ;
+		void   tbdispl( const string& tb_name, string p_name="", const string& p_msg="", string p_cursor="", int p_csrrow=0, int p_csrpos=1, string p_autosel="YES", const string& p_crp_name="", const string& p_rowid_nm="" ) ;
+		void   tbend( const string& tb_name ) ;
+		void   tberase( const string& tb_name, string tb_path="" ) ;
+		void   tbexist( const string& tb_name ) ;
+		void   tbget( const string& tb_name, const string& tb_savenm="", const string& tb_rowid_vn="", const string& tb_noread="", const string& tb_crp_name="" ) ;
+		void   tbmod( const string& tb_name, const string& tb_namelst="", const string& tb_order="" ) ;
+		void   tbopen( const string& tb_name, tbSAVE WRITE, string path="", tbDISP c=EXCLUSIVE ) ;
+		void   tbput( const string& tb_name, const string& tb_namelst="", const string& tb_order="" ) ;
+		void   tbquery( const string& tb_name, const string& tb_keyn="", const string& tb_varn="", const string& tb_rownn="", const string& tb_keynn="", const string& tb_namenn="",const string& tb_crpn="", const string& tb_sirn="", const string& tb_lstn="", const string& tb_condn="", const string& tb_dirn="" ) ;
+		void   tbsarg( const string& tb_name, const string& tb_namelst="", const string& tb_dir="NEXT", const string& tb_cond_pairs="" ) ;
+		void   tbsave( const string& tb_name, const string& new_name="", const string& path="") ;
+		void   tbscan( const string& tb_name, const string& tb_namelst="", const string& tb_savenm="", const string& tb_rowid_vn="", const string& tb_dir="NEXT", const string& tb_read="", const string& tb_crp_name="", const string& tb_condlst="" ) ;
+		void   tbskip( const string& tb_name, int num=1, const string& tb_savenm="", const string& tb_rowid_vn="", const string& tb_rowid="", const string& tb_noread="", const string& tb_crp_name=""  ) ;
+		void   tbsort( const string& tb_name, const string& tb_fields ) ;
+		void   tbtop( const string& tb_name ) ;
+		void   tbvclear( const string& tb_name ) ;
 
-		bool   isTableOpen( const string & tb_name, const string & func ) ;
-		bool   isTableUpdate( const string & tb_name, const string & func ) ;
+		bool   isTableOpen( const string& tb_name, const string& func ) ;
+		bool   isTableUpdate( const string& tb_name, const string& func ) ;
 
-		void   browse( const string & m_file, const string & m_panel="" ) ;
-		void   edit( const string & m_file, const string & m_panel=""   ) ;
-		void   view( const string & m_file, const string & m_panel=""   ) ;
-		void   setmsg( const string & msg, msgSET sType=UNCOND  ) ;
-		void   getmsg( const string &, const string &, const string & ="", const string & ="", const string & ="",const string & ="", const string & ="" ) ;
+		void   browse( const string& m_file, const string& m_panel="" ) ;
+		void   edit( const string& m_file, const string& m_panel=""   ) ;
+		void   view( const string& m_file, const string& m_panel=""   ) ;
+		void   setmsg( const string& msg, msgSET sType=UNCOND  ) ;
+		void   getmsg( const string&, const string&, const string& ="", const string& ="", const string& ="",const string& ="", const string& ="" ) ;
 
-		void   addpop( const string & ="", int =0, int =0 ) ;
-		void   rempop( const string & ="" ) ;
+		void   addpop( const string& ="", int =0, int =0 ) ;
+		void   rempop( const string& ="" ) ;
 		void   movepop() ;
 
 		void   set_cursor( int row, int col ) ;
@@ -195,7 +194,7 @@ class pApplication
 		bool   isprimMenu()     ;
 		void   get_home( uint & row, uint & col ) ;
 		void   get_cursor( uint & row, uint & col ) ;
-		void   set_msg( const string & ) ;
+		void   set_msg( const string& ) ;
 		void   set_msg1( const slmsg &, string, bool =false ) ;
 		slmsg  getmsg1()   { return MSG1   ; }
 		string getmsgid1() { return MSGID1 ; }
@@ -212,14 +211,14 @@ class pApplication
 		void   set_timeout_abend() ;
 		void   closeLog()    ;
 		void   closeTables() ;
-		void   checkRCode( const string & ="" ) ;
+		void   checkRCode( const string& ="" ) ;
 		void   store_scrname() ;
 		void   restore_Zvars( int ) ;
 		void   reload_keylist( pPanel * ) ;
 
 		string sub_vars( string ) ;
 
-		void   ispexec( const string & ) ;
+		void   ispexec( const string& ) ;
 
 
 	private:
@@ -251,9 +250,9 @@ class pApplication
 		string ZERR9    ;
 		string ZERR10   ;
 
-		void get_Message( const string & )  ;
-		int  chk_Message_id( const string & ) ;
-		bool load_Message( const string & ) ;
+		void get_Message( const string& )  ;
+		int  chk_Message_id( const string& ) ;
+		bool load_Message( const string& ) ;
 		bool parse_Message( slmsg & )    ;
 		bool sub_Message_vars( slmsg & ) ;
 
@@ -270,9 +269,8 @@ class pApplication
 		stack<int> addpop_stk ;
 
 		void load_keylist( pPanel * )   ;
-		void createPanel( const string & p_name ) ;
+		void createPanel( const string& p_name ) ;
 		void actionSelect()   ;
 
 		void wait_event() ;
-
 } ;

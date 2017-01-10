@@ -27,8 +27,8 @@ class PPSP01A : public pApplication
 	private:
 		void show_log( string fileName ) ;
 
-		void read_file( const string & fileName ) ;
-		bool file_has_changed( const string & fileName, int & fsize ) ;
+		void read_file( const string& fileName ) ;
+		bool file_has_changed( const string& fileName, int& fsize ) ;
 		void fill_dynamic_area() ;
 		void set_excludes()      ;
 		void exclude_all()       ;
@@ -75,12 +75,12 @@ class PPSP01A : public pApplication
 		void lspfSettings()   ;
 		void pfkeySettings()  ;
 		void colourSettings() ;
-		int  setScreenAttrs( const string &, int, string, string, string ) ;
-		void setISPSVar( const string &, string ) ;
+		int  setScreenAttrs( const string&, int, string, string, string ) ;
+		void setISPSVar( const string&, string ) ;
 		void todoList()       ;
-		void poolVariables( const string & )    ;
-		void getpoolVariables( const string & ) ;
-		void runApplication( const string & )   ;
+		void poolVariables( const string& )    ;
+		void getpoolVariables( const string& ) ;
+		void runApplication( const string& )   ;
 		void showPaths()         ;
 		void showCommandTables() ;
 		void showLoadedClasses() ;
@@ -90,8 +90,8 @@ class PPSP01A : public pApplication
 		void utilityPrograms()   ;
 		void keylistTables()     ;
 		void keylistTable( string="", string="", string="" ) ;
-		void editKeylist( const string &, const string & ) ;
-		void viewKeylist( const string &, const string & ) ;
+		void editKeylist( const string&, const string& ) ;
+		void viewKeylist( const string&, const string& ) ;
 		void createKeyTable( string )  ;
 
 };

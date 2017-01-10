@@ -509,11 +509,11 @@ void PLRFLST1::RetrieveEntry( string list )
 	string ZRFNPOS ;
 
 	vdefine( "ZRFNEX ZRFNPOS", &ZRFNEX, &ZRFNPOS ) ;
-	list = upper( list )   ;
+	iupper( list )  ;
 	w1   = word( list, 1 ) ;
 	w2   = word( list, 2 ) ;
 
-	ZRFNPOS = "" ;
+	ZRFNPOS  = "" ;
 	if ( w1.size() > 0 && w1.size() < 3 )
 	{
 		list = w2 ;
@@ -604,9 +604,8 @@ void PLRFLST1::RetrieveEntry( string list )
 		break ;
 	}
 
-	ZRFNPOS = d2ds( p )       ;
-	vput( "ZRFNPOS", SHARED ) ;
-
+	ZRFNPOS  = d2ds( p )        ;
+	vput( "ZRFNPOS", SHARED )   ;
 	reffield = "#REFLIST"       ;
 	ZRC      = 0                ;
 	vdelete( "ZRFNEX ZRFNPOS" ) ;

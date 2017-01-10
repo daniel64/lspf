@@ -134,12 +134,12 @@ fPOOL funcPOOL ;
 void initialSetup()      ;
 void loadDefaultPools()  ;
 void getDynamicClasses() ;
-bool loadDynamicClass( const string & ) ;
+bool loadDynamicClass( const string& ) ;
 bool unloadDynamicClass( void * ) ;
 void reloadDynamicClasses( string ) ;
 void loadSystemCommandTable() ;
 void loadCUATables()          ;
-void setColourPair( const string & ) ;
+void setColourPair( const string& ) ;
 void updateDefaultVars()      ;
 void updateReflist()          ;
 void startApplication( selobj, bool =false ) ;
@@ -148,19 +148,19 @@ void ResumeApplicationAndWait() ;
 bool createLogicalScreen()      ;
 void deleteLogicalScreen()      ;
 void processPGMSelect()         ;
-void processAction( uint row, uint col, int c, bool & passthru ) ;
-void issueMessage( const string & ) ;
+void processAction( uint row, uint col, int c, bool& passthru ) ;
+void issueMessage( const string& ) ;
 void rawOutput()          ;
 void threadErrorHandler() ;
-void errorScreen( int, const string & )   ;
-void lspfCallbackHandler( lspfCommand & ) ;
+void errorScreen( int, const string& )   ;
+void lspfCallbackHandler( lspfCommand& ) ;
 void createpfKeyDefaults()  ;
 string pfKeyValue( int )    ;
 string listLogicalScreens() ;
-bool resolveZCTEntry( string &, string & ) ;
+bool resolveZCTEntry( string&, string& ) ;
 bool isActionKey( int c )   ;
 void listRetrieveBuffer()   ;
-int  getScreenNameNum( const string & ) ;
+int  getScreenNameNum( const string& ) ;
 void mainLoop() ;
 
 vector<pLScreen *> screenList ;
@@ -209,7 +209,7 @@ int    GMAXWAIT ;
 string GMAINPGM ;
 
 const string BuiltInCommands = "ACTION DISCARD FIELDEXC MSGID NOP PANELID REFRESH RETP SCRNAME SPLIT SWAP TDOWN" ;
-const string SystemCommands  = ".ABEND .HIDE .INFO .RELOAD .SCALE .SHELL .SHOW .SNAP .STATS .TEST" ;
+const string SystemCommands  = ".ABEND .HIDE .INFO .LOAD .RELOAD .SCALE .SHELL .SHOW .SNAP .STATS .TEST" ;
 
 std::ofstream splog(SLOG) ;
 
@@ -621,6 +621,17 @@ void mainLoop()
 					{
 						currAppl->info() ;
 					}
+					else if ( ZCOMMAND == ".LOAD" )
+					{
+						map<string, appInfo>::iterator ita ;
+						for ( ita = apps.begin() ; ita != apps.end() ; ita++ )
+						{
+							if ( !ita->second.errors && !ita->second.dlopened )
+							{
+								loadDynamicClass( ita->first ) ;
+							}
+						}
+					}
 					else if ( ZCOMMAND == "MSGID" )
 					{
 						if ( ZPARM == "" )
@@ -758,7 +769,6 @@ void mainLoop()
 					else if ( ZCOMMAND == ".SNAP" )
 					{
 						p_poolMGR->snap() ;
-						p_tableMGR->snap() ;
 					}
 					else if ( ZCOMMAND == "SWAP" )
 					{
@@ -876,7 +886,7 @@ void initialSetup()
 }
 
 
-void processAction( uint row, uint col, int c, bool & passthru )
+void processAction( uint row, uint col, int c, bool& passthru )
 {
 	// No actions required if application is issuing raw output (via control rdisplay flush)
 	// perform lspf high-level functions - pfkey -> command
@@ -1217,12 +1227,10 @@ void processAction( uint row, uint col, int c, bool & passthru )
 				currAppl->setmsg( "PSYS011K" ) ;
 				return ;
 			}
-			p1 = wordpos( "&ZPARM", SELCT.PARM ) ;
-			if ( p1 > 0 )
+			p1 = SELCT.PARM.find( "&ZPARM" ) ;
+			if ( p1 != string::npos )
 			{
-				p1         = wordindex( SELCT.PARM, p1 )       ;
-				SELCT.PARM = delstr( SELCT.PARM, p1, 6 )       ;
-				SELCT.PARM = insert( CMDParm, SELCT.PARM, p1 ) ;
+				SELCT.PARM.replace( p1, 6, CMDParm ) ;
 			}
 			if ( SELCT.PGM[ 0 ] == '&' )
 			{
@@ -1295,7 +1303,7 @@ void processAction( uint row, uint col, int c, bool & passthru )
 }
 
 
-bool resolveZCTEntry( string & CMDVerb, string & CMDParm )
+bool resolveZCTEntry( string& CMDVerb, string& CMDParm )
 {
 	int i ;
 	int j ;
@@ -1415,10 +1423,10 @@ void startApplication( selobj SEL, bool nScreen )
 	string rest ;
 	string tMSGID1 ;
 
-	bool ldm     ;
-	bool ldp     ;
-	bool ldt     ;
-	bool setMSG  ;
+	bool ldm    ;
+	bool ldp    ;
+	bool ldt    ;
+	bool setMSG ;
 
 	slmsg tMSG1 ;
 
@@ -1436,12 +1444,10 @@ void startApplication( selobj SEL, bool nScreen )
 				errorScreen( 1, "Error in ZCTACT command "+ ZCTACT ) ;
 				return ;
 			}
-			p1 = wordpos( "&ZPARM", SEL.PARM ) ;
-			if ( p1 > 0 )
+			p1 = SEL.PARM.find( "&ZPARM" ) ;
+			if ( p1 != string::npos )
 			{
-				p1       = wordindex( SEL.PARM, p1 )    ;
-				SEL.PARM = delstr( SEL.PARM, p1, 6 )    ;
-				SEL.PARM = insert( rest, SEL.PARM, p1 ) ;
+				SEL.PARM.replace( p1, 6, rest ) ;
 			}
 		}
 		else if ( !SEL.parse( SEL.PARM ) )
@@ -2099,7 +2105,7 @@ void loadCUATables()
 }
 
 
-void setColourPair( const string & name )
+void setColourPair( const string& name )
 {
 	int RC   ;
 	string t ;
@@ -2542,7 +2548,7 @@ void listRetrieveBuffer()
 }
 
 
-int getScreenNameNum( const string & s )
+int getScreenNameNum( const string& s )
 {
 	// Return the screen number of screen name 's'.  If not found, return 0.
 	// Reset shared pool after this call as it issues get_current_screenName().
@@ -2579,7 +2585,7 @@ void threadErrorHandler()
 }
 
 
-void lspfCallbackHandler( lspfCommand & lc )
+void lspfCallbackHandler( lspfCommand& lc )
 {
 	//  Issue commands from applications using lspfCallback() function
 	//  Replies go into the reply vector
@@ -2652,7 +2658,7 @@ void lspfCallbackHandler( lspfCommand & lc )
 }
 
 
-void errorScreen( int etype, const string & msg )
+void errorScreen( int etype, const string& msg )
 {
 	int l    ;
 	string t ;
@@ -2686,7 +2692,7 @@ void errorScreen( int etype, const string & msg )
 }
 
 
-void issueMessage( const string & msg )
+void issueMessage( const string& msg )
 {
 	currAppl->set_msg( msg ) ;
 	if ( currAppl->RC > 0 )
@@ -2910,7 +2916,7 @@ void reloadDynamicClasses( string parm )
 }
 
 
-bool loadDynamicClass( const string & appl )
+bool loadDynamicClass( const string& appl )
 {
 	// Load module related to application appl and retrieve address of maker and destroy symbols
 	// Perform dlclose first if there has been a previous successful dlopen, or if an error is encountered
@@ -2946,7 +2952,7 @@ bool loadDynamicClass( const string & appl )
 	dlib = dlopen( fname.c_str(), RTLD_NOW ) ;
 	if ( !dlib )
 	{
-		log( "E", "Error loading "+ fname << endl ) ;
+		log( "E", "Error loading "+ fname << endl )  ;
 		log( "E", "Error is " << dlerror() << endl ) ;
 		log( "E", "Module "+ mod +" will be ignored" << endl ) ;
 		return false ;
@@ -2958,7 +2964,7 @@ bool loadDynamicClass( const string & appl )
 	if ( dlsym_err )
 	{
 		log( "E", "Error loading symbol maker" << endl ) ;
-		log( "E", "Error is " << dlsym_err  << endl )      ;
+		log( "E", "Error is " << dlsym_err << endl )     ;
 		log( "E", "Module "+ mod +" will be ignored" << endl ) ;
 		unloadDynamicClass( apps[ appl ].dlib ) ;
 		return false ;
@@ -2970,7 +2976,7 @@ bool loadDynamicClass( const string & appl )
 	if ( dlsym_err )
 	{
 		log( "E", "Error loading symbol destroy" << endl ) ;
-		log( "E", "Error is " << dlsym_err  << endl )      ;
+		log( "E", "Error is " << dlsym_err << endl )       ;
 		log( "E", "Module "+ mod +" will be ignored" << endl ) ;
 		unloadDynamicClass( apps[ appl ].dlib ) ;
 		return false ;

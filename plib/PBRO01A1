@@ -15,9 +15,6 @@ field    4  15 MAX-17  NEF PAD('_') ZCMD
 literal  4 MAX-15     FP  "SCROLL ===> "
 field    4 MAX-3   4  NEF NONE ZSCROLL
 
---literal  5   1    FP  "File Name:"
---field    5  12   70 NEF  NONE ZDSN
-
 literal   3   MAX-28     FP  "Line"
 field     3   MAX-23  8  VOI  NONE ZROW1
 
@@ -54,6 +51,5 @@ IF (&CMD EQ HILITE )
        .MSG    = PSYS011O
        .CURSOR = ZCMD
        EXIT
-
 
 )END

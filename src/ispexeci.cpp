@@ -20,47 +20,47 @@
 /* ispexeci - ISPEXEC interface module             */
 /*                                                 */
 
-int execiAddpop( pApplication *, const string & )   ;
-int execiBrowse( pApplication *, const string & )   ;
-int execiDisplay( pApplication *, const string & )  ;
-int execiControl( pApplication *, const string & )  ;
-int execiEdit( pApplication *, const string & )     ;
-int execiGetmsg( pApplication *, const string & )   ;
-int execiLibdef( pApplication *, const string & )   ;
-int execiPquery( pApplication *, const string & )   ;
-int execiRDisplay( pApplication *, const string & ) ;
-int execiRempop( pApplication *, const string & )   ;
-int execiSelect( pApplication *, const string & )   ;
-int execiSetmsg( pApplication *, const string & )   ;
-int execiTBAdd( pApplication *, const string & )    ;
-int execiTBBottom( pApplication *, const string & ) ;
-int execiTBCreate( pApplication *, const string & ) ;
-int execiTBClose( pApplication *, const string & )  ;
-int execiTBDelete( pApplication *, const string & ) ;
-int execiTBDispl( pApplication *, const string & )  ;
-int execiTBEnd( pApplication *, const string & )    ;
-int execiTBErase( pApplication *, const string & )  ;
-int execiTBExist( pApplication *, const string & )  ;
-int execiTBGet( pApplication *, const string & )    ;
-int execiTBMod( pApplication *, const string & )    ;
-int execiTBPut( pApplication *, const string & )    ;
-int execiTBOpen( pApplication *, const string & )   ;
-int execiTBQuery( pApplication *, const string & )  ;
-int execiTBSarg( pApplication *, const string & )   ;
-int execiTBSave( pApplication *, const string & )   ;
-int execiTBScan( pApplication *, const string & )   ;
-int execiTBSkip( pApplication *, const string & )   ;
-int execiTBSort( pApplication *, const string & )   ;
-int execiTBTop( pApplication *, const string & )    ;
-int execiTBVClear( pApplication *, const string & ) ;
-int execiVerase( pApplication *, const string & )   ;
-int execiVget( pApplication *, const string & )     ;
-int execiView( pApplication *, const string & )     ;
-int execiVput( pApplication *, const string & )     ;
+int execiAddpop( pApplication *, const string& )   ;
+int execiBrowse( pApplication *, const string& )   ;
+int execiDisplay( pApplication *, const string& )  ;
+int execiControl( pApplication *, const string& )  ;
+int execiEdit( pApplication *, const string& )     ;
+int execiGetmsg( pApplication *, const string& )   ;
+int execiLibdef( pApplication *, const string& )   ;
+int execiPquery( pApplication *, const string& )   ;
+int execiRDisplay( pApplication *, const string& ) ;
+int execiRempop( pApplication *, const string& )   ;
+int execiSelect( pApplication *, const string& )   ;
+int execiSetmsg( pApplication *, const string& )   ;
+int execiTBAdd( pApplication *, const string& )    ;
+int execiTBBottom( pApplication *, const string& ) ;
+int execiTBCreate( pApplication *, const string& ) ;
+int execiTBClose( pApplication *, const string& )  ;
+int execiTBDelete( pApplication *, const string& ) ;
+int execiTBDispl( pApplication *, const string& )  ;
+int execiTBEnd( pApplication *, const string& )    ;
+int execiTBErase( pApplication *, const string& )  ;
+int execiTBExist( pApplication *, const string& )  ;
+int execiTBGet( pApplication *, const string& )    ;
+int execiTBMod( pApplication *, const string& )    ;
+int execiTBPut( pApplication *, const string& )    ;
+int execiTBOpen( pApplication *, const string& )   ;
+int execiTBQuery( pApplication *, const string& )  ;
+int execiTBSarg( pApplication *, const string& )   ;
+int execiTBSave( pApplication *, const string& )   ;
+int execiTBScan( pApplication *, const string& )   ;
+int execiTBSkip( pApplication *, const string& )   ;
+int execiTBSort( pApplication *, const string& )   ;
+int execiTBTop( pApplication *, const string& )    ;
+int execiTBVClear( pApplication *, const string& ) ;
+int execiVerase( pApplication *, const string& )   ;
+int execiVget( pApplication *, const string& )     ;
+int execiView( pApplication *, const string& )     ;
+int execiVput( pApplication *, const string& )     ;
 
-void execiSyntaxError( pApplication *, const string & ) ;
+void execiSyntaxError( pApplication *, const string& ) ;
 
-map<string, int(*)(pApplication *,const string &)> execiServices = {
+map<string, int(*)(pApplication *,const string&)> execiServices = {
 		  { "ADDPOP",   execiAddpop   },
 		  { "BROWSE",   execiBrowse   },
 		  { "DISPLAY",  execiDisplay  },
@@ -100,7 +100,7 @@ map<string, int(*)(pApplication *,const string &)> execiServices = {
 		  { "VPUT",     execiVput     } } ;
 
 
-int ispexeci( pApplication * thisAppl, const string & s )
+int ispexeci( pApplication * thisAppl, const string& s )
 {
 	// Call sub_vars to resolve all dialogue variables in string 's' first
 	// Then parse string to call the correct pApplication method for the service
@@ -114,7 +114,7 @@ int ispexeci( pApplication * thisAppl, const string & s )
 	const string e2( " not a recognised service name" ) ;
 	const string InvalidServices = "VDEFINE VDELETE VCOPY VREPLACE VRESET" ;
 
-	map<string, int(*)(pApplication *,const string &)>::iterator it ;
+	map<string, int(*)(pApplication *,const string&)>::iterator it ;
 
 	s1 = thisAppl->sub_vars( s ) ;
 	w1 = upper( word( s1, 1 ) )  ;
@@ -140,7 +140,7 @@ int ispexeci( pApplication * thisAppl, const string & s )
 }
 
 
-int execiAddpop( pApplication * thisAppl, const string & s )
+int execiAddpop( pApplication * thisAppl, const string& s )
 {
 	int i_row ;
 	int i_col ;
@@ -167,14 +167,14 @@ int execiAddpop( pApplication * thisAppl, const string & s )
 	if ( ap_col == "" ) { i_col = 0              ; }
 	else                { i_col = ds2d( ap_col ) ; }
 
-	if ( strip( str ) != "" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
+	if ( str != "" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	thisAppl->addpop( ap_loc, i_row, i_col ) ;
 	return thisAppl->RC ;
 }
 
 
-int execiBrowse( pApplication * thisAppl, const string & s )
+int execiBrowse( pApplication * thisAppl, const string& s )
 {
 	bool   rlt ;
 
@@ -190,14 +190,14 @@ int execiBrowse( pApplication * thisAppl, const string & s )
 	pan = parseString( rlt, str, "PANEL()" ) ;
 	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	if ( strip( str ) != "" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
+	if ( str != "" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	thisAppl->browse( fl, upper( pan ) ) ;
+	thisAppl->browse( fl, iupper( pan ) ) ;
 	return thisAppl->RC ;
 }
 
 
-int execiControl( pApplication * thisAppl, const string & s )
+int execiControl( pApplication * thisAppl, const string& s )
 {
 	string s1 ;
 
@@ -207,7 +207,7 @@ int execiControl( pApplication * thisAppl, const string & s )
 }
 
 
-int execiDisplay( pApplication * thisAppl, const string & s )
+int execiDisplay( pApplication * thisAppl, const string& s )
 {
 	bool   rlt ;
 
@@ -231,7 +231,7 @@ int execiDisplay( pApplication * thisAppl, const string & s )
 	csrpos = parseString( rlt, str, "CSRPOS()" ) ;
 	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	if ( strip( str ) != "" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
+	if ( str != "" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	if ( csrpos == "" ) { csrpos = "1" ; }
 
@@ -240,7 +240,7 @@ int execiDisplay( pApplication * thisAppl, const string & s )
 }
 
 
-int execiEdit( pApplication * thisAppl, const string & s )
+int execiEdit( pApplication * thisAppl, const string& s )
 {
 	bool   rlt ;
 
@@ -256,14 +256,14 @@ int execiEdit( pApplication * thisAppl, const string & s )
 	pan = parseString( rlt, str, "PANEL()" ) ;
 	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	if ( strip( str ) != "" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
+	if ( str != "" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	thisAppl->edit( fl, upper( pan ) ) ;
+	thisAppl->edit( fl, iupper( pan ) ) ;
 	return thisAppl->RC ;
 }
 
 
-int execiGetmsg( pApplication * thisAppl, const string & s )
+int execiGetmsg( pApplication * thisAppl, const string& s )
 {
 	bool   rlt ;
 
@@ -300,14 +300,14 @@ int execiGetmsg( pApplication * thisAppl, const string & s )
 	wndo = parseString( rlt, str, "WINDOW()" ) ;
 	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	if ( strip( str ) != "" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
+	if ( str != "" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	thisAppl->getmsg( msg, smsg, lmsg, alm, hlp, typ, wndo ) ;
 	return thisAppl->RC ;
 }
 
 
-int execiLibdef( pApplication * thisAppl, const string & s )
+int execiLibdef( pApplication * thisAppl, const string& s )
 {
 	bool   rlt ;
 
@@ -325,7 +325,7 @@ int execiLibdef( pApplication * thisAppl, const string & s )
 }
 
 
-int execiPquery( pApplication * thisAppl, const string & s )
+int execiPquery( pApplication * thisAppl, const string& s )
 {
 	bool   rlt ;
 
@@ -367,17 +367,17 @@ int execiPquery( pApplication * thisAppl, const string & s )
 }
 
 
-int execiRDisplay( pApplication * thisAppl, const string & s )
+int execiRDisplay( pApplication * thisAppl, const string& s )
 {
-	// Call rdisplay1() which does not do dialogue variable substitution as this has
+	// Call rdisplay(s,false) which does not do dialogue variable substitution as this has
 	// already been done.
 
-	thisAppl->rdisplay1( substr( s, 10 ) ) ;
+	thisAppl->rdisplay( substr( s, 10 ), false ) ;
 	return thisAppl->RC ;
 }
 
 
-int execiRempop( pApplication * thisAppl, const string & s )
+int execiRempop( pApplication * thisAppl, const string& s )
 {
 	string ap_all ;
 
@@ -390,7 +390,7 @@ int execiRempop( pApplication * thisAppl, const string & s )
 }
 
 
-int execiSelect( pApplication * thisAppl, const string & s )
+int execiSelect( pApplication * thisAppl, const string& s )
 {
 	// The SELECT parser may replace PGM with a variable name (eg. for a REXX command), so
 	// substitute with its dialogue variable value
@@ -413,7 +413,7 @@ int execiSelect( pApplication * thisAppl, const string & s )
 }
 
 
-int execiSetmsg( pApplication * thisAppl, const string & s )
+int execiSetmsg( pApplication * thisAppl, const string& s )
 {
 	bool   rlt ;
 
@@ -427,7 +427,6 @@ int execiSetmsg( pApplication * thisAppl, const string & s )
 	s_msg  = parseString( rlt, str, "MSG()" ) ;
 	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	str = strip( str ) ;
 	if      ( str == "COND" ) { t = COND   ; }
 	else if ( str == "" )     { t = UNCOND ; }
 	else    { execiSyntaxError( thisAppl, s ) ; return 20 ; }
@@ -437,7 +436,7 @@ int execiSetmsg( pApplication * thisAppl, const string & s )
 }
 
 
-int execiTBAdd( pApplication * thisAppl, const string & s )
+int execiTBAdd( pApplication * thisAppl, const string& s )
 {
 	bool   rlt ;
 
@@ -457,7 +456,7 @@ int execiTBAdd( pApplication * thisAppl, const string & s )
 	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 	if ( tb_numrows == "" ) { tb_numrows = "1" ; }
 
-	tb_order = strip( str ) ;
+	tb_order = str ;
 	if ( tb_order != "" && tb_order != "ORDER" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	thisAppl->tbadd( tb_name, tb_namelst, tb_order, ds2d( tb_numrows ) ) ;
@@ -465,7 +464,7 @@ int execiTBAdd( pApplication * thisAppl, const string & s )
 }
 
 
-int execiTBBottom( pApplication * thisAppl, const string & s )
+int execiTBBottom( pApplication * thisAppl, const string& s )
 {
 	bool   rlt ;
 
@@ -489,7 +488,7 @@ int execiTBBottom( pApplication * thisAppl, const string & s )
 	tb_crpnm   = parseString( rlt, str, "POSITION()" ) ;
 	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	tb_noread = strip( str ) ;
+	tb_noread = str ;
 	if ( tb_noread != "" && tb_noread != "NOREAD" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	thisAppl->tbbottom( tb_name, tb_savenm, tb_rowid, tb_noread, tb_crpnm ) ;
@@ -497,7 +496,7 @@ int execiTBBottom( pApplication * thisAppl, const string & s )
 }
 
 
-int execiTBClose( pApplication * thisAppl, const string & s )
+int execiTBClose( pApplication * thisAppl, const string& s )
 {
 	bool   rlt ;
 
@@ -520,7 +519,7 @@ int execiTBClose( pApplication * thisAppl, const string & s )
 }
 
 
-int execiTBCreate( pApplication * thisAppl, const string & s )
+int execiTBCreate( pApplication * thisAppl, const string& s )
 {
 	bool   rlt ;
 
@@ -544,7 +543,7 @@ int execiTBCreate( pApplication * thisAppl, const string & s )
 	tb_paths = parseString( rlt, str, "LIBRARY()" ) ;
 	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	str      = upper( str ) ;
+	iupper( str ) ;
 	tb_keys  = parseString( rlt, str, "KEYS()" ) ;
 	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
@@ -578,7 +577,7 @@ int execiTBCreate( pApplication * thisAppl, const string & s )
 }
 
 
-int execiTBDelete( pApplication * thisAppl, const string & s )
+int execiTBDelete( pApplication * thisAppl, const string& s )
 {
 	if ( words( s ) != 2 ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
@@ -587,7 +586,7 @@ int execiTBDelete( pApplication * thisAppl, const string & s )
 }
 
 
-int execiTBDispl( pApplication * thisAppl, const string & s )
+int execiTBDispl( pApplication * thisAppl, const string& s )
 {
 	int i_csrpos ;
 	int i_csrrow ;
@@ -635,14 +634,14 @@ int execiTBDispl( pApplication * thisAppl, const string & s )
 	tb_rowid   = parseString( rlt, str, "ROWID()" ) ;
 	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	if ( strip( str ) != "" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
+	if ( str != "" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	thisAppl->tbdispl( tb_name, tb_pan, tb_msg, tb_cursor, i_csrrow, i_csrpos, tb_autosel, tb_posn, tb_rowid ) ;
 	return thisAppl->RC ;
 }
 
 
-int execiTBEnd( pApplication * thisAppl, const string & s )
+int execiTBEnd( pApplication * thisAppl, const string& s )
 {
 	if ( words( s ) != 2 ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
@@ -651,7 +650,7 @@ int execiTBEnd( pApplication * thisAppl, const string & s )
 }
 
 
-int execiTBErase( pApplication * thisAppl, const string & s )
+int execiTBErase( pApplication * thisAppl, const string& s )
 {
 	bool   rlt ;
 
@@ -659,20 +658,20 @@ int execiTBErase( pApplication * thisAppl, const string & s )
 	string tb_name ;
 	string tb_path ;
 
-	tb_name = upper( word( s, 2 ) )    ;
+	tb_name = upper( word( s, 2 ) ) ;
 	str     = subword( s, 3 ) ;
 
 	tb_path = parseString( rlt, str, "LIBRARY()" ) ;
 	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	if ( strip( str ) != "" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
+	if ( str != "" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	thisAppl->tberase( tb_name, tb_path ) ;
 	return thisAppl->RC ;
 }
 
 
-int execiTBExist( pApplication * thisAppl, const string & s )
+int execiTBExist( pApplication * thisAppl, const string& s )
 {
 	if ( words( s ) != 2 ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
@@ -681,7 +680,7 @@ int execiTBExist( pApplication * thisAppl, const string & s )
 }
 
 
-int execiTBGet( pApplication * thisAppl, const string & s )
+int execiTBGet( pApplication * thisAppl, const string& s )
 {
 	bool   rlt ;
 
@@ -705,7 +704,7 @@ int execiTBGet( pApplication * thisAppl, const string & s )
 	tb_crpnm   = parseString( rlt, str, "POSITION()" ) ;
 	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	tb_noread = strip( str ) ;
+	tb_noread = str ;
 	if ( tb_noread != "" && tb_noread != "NOREAD" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	thisAppl->tbget( tb_name, tb_savenm, tb_rowid, tb_noread, tb_crpnm ) ;
@@ -713,7 +712,7 @@ int execiTBGet( pApplication * thisAppl, const string & s )
 }
 
 
-int execiTBMod( pApplication * thisAppl, const string & s )
+int execiTBMod( pApplication * thisAppl, const string& s )
 {
 	bool   rlt ;
 
@@ -729,7 +728,7 @@ int execiTBMod( pApplication * thisAppl, const string & s )
 	tb_savenm  = parseString( rlt, str, "SAVE()" ) ;
 	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	tb_order = strip( str ) ;
+	tb_order = str ;
 	if ( tb_order != "" && tb_order != "ORDER" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	thisAppl->tbmod( tb_name, tb_savenm, tb_order ) ;
@@ -737,7 +736,7 @@ int execiTBMod( pApplication * thisAppl, const string & s )
 }
 
 
-int execiTBPut( pApplication * thisAppl, const string & s )
+int execiTBPut( pApplication * thisAppl, const string& s )
 {
 	bool   rlt ;
 
@@ -753,7 +752,7 @@ int execiTBPut( pApplication * thisAppl, const string & s )
 	tb_savenm  = parseString( rlt, str, "SAVE()" ) ;
 	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	tb_order = strip( str ) ;
+	tb_order = str ;
 	if ( tb_order != "" && tb_order != "ORDER" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	thisAppl->tbput( tb_name, tb_savenm, tb_order ) ;
@@ -761,7 +760,7 @@ int execiTBPut( pApplication * thisAppl, const string & s )
 }
 
 
-int execiTBOpen( pApplication * thisAppl, const string & s )
+int execiTBOpen( pApplication * thisAppl, const string& s )
 {
 	bool   rlt ;
 
@@ -775,7 +774,7 @@ int execiTBOpen( pApplication * thisAppl, const string & s )
 	tbSAVE t_save ;
 	tbDISP t_disp ;
 
-	tb_name = upper( word( s, 2 ) )    ;
+	tb_name = upper( word( s, 2 ) ) ;
 	str     = subword( s, 3 ) ;
 
 	t_save = WRITE ;
@@ -792,7 +791,7 @@ int execiTBOpen( pApplication * thisAppl, const string & s )
 	tb_paths = parseString( rlt, str, "LIBRARY()" ) ;
 	if ( !rlt || words( str ) > 1 ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	tb_disp  = upper( strip( str ) ) ;
+	tb_disp  = iupper( str ) ;
 	if      ( tb_disp == "SHARE" ) { t_disp = SHARE     ; }
 	else if ( tb_disp == ""      ) { t_disp = EXCLUSIVE ; }
 	else                           { execiSyntaxError( thisAppl, s ) ; return 20 ; }
@@ -802,7 +801,7 @@ int execiTBOpen( pApplication * thisAppl, const string & s )
 }
 
 
-int execiTBQuery( pApplication * thisAppl, const string & s )
+int execiTBQuery( pApplication * thisAppl, const string& s )
 {
 	bool   rlt ;
 
@@ -857,7 +856,7 @@ int execiTBQuery( pApplication * thisAppl, const string & s )
 }
 
 
-int execiTBSarg( pApplication * thisAppl, const string & s )
+int execiTBSarg( pApplication * thisAppl, const string& s )
 {
 	bool   rlt ;
 
@@ -876,7 +875,7 @@ int execiTBSarg( pApplication * thisAppl, const string & s )
 	tb_namecnd = parseString( rlt, str, "NAMECOND()" ) ;
 	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	tb_dir = strip( str ) ;
+	tb_dir = str ;
 	if ( tb_dir == "" ) { tb_dir = "NEXT" ; }
 	if ( tb_dir != "NEXT" && tb_dir != "PREVIOUS" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
@@ -885,7 +884,7 @@ int execiTBSarg( pApplication * thisAppl, const string & s )
 }
 
 
-int execiTBSave( pApplication * thisAppl, const string & s )
+int execiTBSave( pApplication * thisAppl, const string& s )
 {
 	bool   rlt ;
 
@@ -908,7 +907,7 @@ int execiTBSave( pApplication * thisAppl, const string & s )
 }
 
 
-int execiTBScan( pApplication * thisAppl, const string & s )
+int execiTBScan( pApplication * thisAppl, const string& s )
 {
 	bool   rlt   ;
 
@@ -951,7 +950,7 @@ int execiTBScan( pApplication * thisAppl, const string & s )
 		if ( t != "" ) { tb_dir = "PREVIOUS" ; }
 	}
 
-	tb_noread = strip( str ) ;
+	tb_noread = str ;
 	if ( tb_noread != "" && tb_noread != "NOREAD" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	thisAppl->tbscan( tb_name, tb_arglst, tb_savenm, tb_rowid, tb_dir, tb_noread, tb_crpnm, tb_condlst ) ;
@@ -959,7 +958,7 @@ int execiTBScan( pApplication * thisAppl, const string & s )
 }
 
 
-int execiTBSkip( pApplication * thisAppl, const string & s )
+int execiTBSkip( pApplication * thisAppl, const string& s )
 {
 	int    i_num ;
 
@@ -995,7 +994,7 @@ int execiTBSkip( pApplication * thisAppl, const string & s )
 	tb_crpnm   = parseString( rlt, str, "POSITION()" ) ;
 	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	tb_noread = strip( str ) ;
+	tb_noread = str ;
 	if ( tb_noread != "" && tb_noread != "NOREAD" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	thisAppl->tbskip( tb_name, i_num, tb_savenm, tb_rowid, tb_row, tb_noread, tb_crpnm ) ;
@@ -1003,7 +1002,7 @@ int execiTBSkip( pApplication * thisAppl, const string & s )
 }
 
 
-int execiTBSort( pApplication * thisAppl, const string & s )
+int execiTBSort( pApplication * thisAppl, const string& s )
 {
 	bool rlt ;
 
@@ -1017,14 +1016,14 @@ int execiTBSort( pApplication * thisAppl, const string & s )
 	tb_flds = parseString( rlt, str, "FIELDS()" ) ;
 	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	if ( strip( str ) != "" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
+	if ( str != "" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	thisAppl->tbsort( tb_name, tb_flds ) ;
 	return thisAppl->RC ;
 }
 
 
-int execiTBTop( pApplication * thisAppl, const string & s )
+int execiTBTop( pApplication * thisAppl, const string& s )
 {
 	if ( words( s ) != 2 ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
@@ -1033,7 +1032,7 @@ int execiTBTop( pApplication * thisAppl, const string & s )
 }
 
 
-int execiTBVClear( pApplication * thisAppl, const string & s )
+int execiTBVClear( pApplication * thisAppl, const string& s )
 {
 	if ( words( s ) != 2 ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
@@ -1042,7 +1041,7 @@ int execiTBVClear( pApplication * thisAppl, const string & s )
 }
 
 
-int execiVerase( pApplication * thisAppl, const string & s )
+int execiVerase( pApplication * thisAppl, const string& s )
 {
 	bool rlt ;
 
@@ -1063,7 +1062,6 @@ int execiVerase( pApplication * thisAppl, const string & s )
 		str  = subword( str, 2 ) ;
 	}
 
-	str = strip( str ) ;
 	if      ( str == "SHARED"  ) { pType = SHARED  ; }
 	else if ( str == "PROFILE" ) { pType = PROFILE ; }
 	else if ( str == "ASIS"    ) { pType = ASIS    ; }
@@ -1076,7 +1074,7 @@ int execiVerase( pApplication * thisAppl, const string & s )
 }
 
 
-int execiVget( pApplication * thisAppl, const string & s )
+int execiVget( pApplication * thisAppl, const string& s )
 {
 	// If this is called from the REXX interface module, VREPLACE first with nulls so a variable not found
 	// results in a blank value, instead of the variable name.
@@ -1113,7 +1111,6 @@ int execiVget( pApplication * thisAppl, const string & s )
 		}
 	}
 
-	str = strip( str ) ;
 	if      ( str == "SHARED"  ) { pType = SHARED  ; }
 	else if ( str == "PROFILE" ) { pType = PROFILE ; }
 	else if ( str == "ASIS"    ) { pType = ASIS    ; }
@@ -1125,7 +1122,7 @@ int execiVget( pApplication * thisAppl, const string & s )
 }
 
 
-int execiView( pApplication * thisAppl, const string & s )
+int execiView( pApplication * thisAppl, const string& s )
 {
 	bool   rlt ;
 
@@ -1141,14 +1138,14 @@ int execiView( pApplication * thisAppl, const string & s )
 	pan = parseString( rlt, str, "PANEL()" ) ;
 	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	if ( strip( str ) != "" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
+	if ( str != "" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	thisAppl->view( fl, upper( pan ) ) ;
+	thisAppl->view( fl, iupper( pan ) ) ;
 	return thisAppl->RC ;
 }
 
 
-int execiVput( pApplication * thisAppl, const string & s )
+int execiVput( pApplication * thisAppl, const string& s )
 {
 	bool rlt ;
 
@@ -1169,7 +1166,6 @@ int execiVput( pApplication * thisAppl, const string & s )
 		str  = subword( str, 2 ) ;
 	}
 
-	str = strip( str ) ;
 	if      ( str == "SHARED"  ) { pType = SHARED  ; }
 	else if ( str == "PROFILE" ) { pType = PROFILE ; }
 	else if ( str == "ASIS"    ) { pType = ASIS    ; }
@@ -1181,7 +1177,7 @@ int execiVput( pApplication * thisAppl, const string & s )
 }
 
 
-void execiSyntaxError( pApplication * thisAppl, const string & s )
+void execiSyntaxError( pApplication * thisAppl, const string& s )
 {
 	thisAppl->RC = 20 ;
 	thisAppl->checkRCode( "Syntax error in service: "+s ) ;

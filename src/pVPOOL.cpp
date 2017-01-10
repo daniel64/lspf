@@ -31,7 +31,7 @@ using namespace boost::filesystem ;
 // ******************************************************************************************************************************
 
 
-void fPOOL::define( int & RC, const string & name, string * addr, nameCHCK check )
+void fPOOL::define( int& RC, const string& name, string * addr, nameCHCK check )
 {
 	fVAR var ;
 	RC = 0   ;
@@ -45,7 +45,7 @@ void fPOOL::define( int & RC, const string & name, string * addr, nameCHCK check
 }
 
 
-void fPOOL::define( int & RC, const string & name, int * addr )
+void fPOOL::define( int& RC, const string& name, int * addr )
 {
 	fVAR var ;
 	RC = 0   ;
@@ -59,7 +59,7 @@ void fPOOL::define( int & RC, const string & name, int * addr )
 }
 
 
-void fPOOL::dlete( int & RC, const string & name, nameCHCK check )
+void fPOOL::dlete( int& RC, const string& name, nameCHCK check )
 {
 	// Remove the vdefine for a variable from the function pool.
 
@@ -104,7 +104,7 @@ void fPOOL::dlete( int & RC, const string & name, nameCHCK check )
 }
 
 
-string fPOOL::get( int & RC, int maxRC, const string & name, nameCHCK check )
+string fPOOL::get( int& RC, int maxRC, const string& name, nameCHCK check )
 {
 	map<string, stack< fVAR> >::iterator it ;
 
@@ -134,7 +134,7 @@ string fPOOL::get( int & RC, int maxRC, const string & name, nameCHCK check )
 }
 
 
-int fPOOL::get( int & RC, int maxRC, dataType type, const string & name )
+int fPOOL::get( int& RC, int maxRC, dataType type, const string& name )
 {
 	map<string, stack< fVAR> >::iterator it ;
 
@@ -163,7 +163,7 @@ int fPOOL::get( int & RC, int maxRC, dataType type, const string & name )
 }
 
 
-dataType fPOOL::getType( int & RC, const string & name, nameCHCK check )
+dataType fPOOL::getType( int& RC, const string& name, nameCHCK check )
 {
 	RC = 0    ;
 
@@ -175,7 +175,7 @@ dataType fPOOL::getType( int & RC, const string & name, nameCHCK check )
 }
 
 
-bool fPOOL::ifexists( int & RC, const string & name, nameCHCK check )
+bool fPOOL::ifexists( int& RC, const string& name, nameCHCK check )
 {
 	RC = 0 ;
 
@@ -185,7 +185,7 @@ bool fPOOL::ifexists( int & RC, const string & name, nameCHCK check )
 }
 
 
-void fPOOL::put( int & RC, int maxRC, const string & name, const string & value, nameCHCK check )
+void fPOOL::put( int& RC, int maxRC, const string& name, const string& value, nameCHCK check )
 {
 	fVAR var ;
 	map<string, stack< fVAR> >::iterator it ;
@@ -217,7 +217,7 @@ void fPOOL::put( int & RC, int maxRC, const string & name, const string & value,
 }
 
 
-void fPOOL::put( int & RC, int maxRC, const string & name, int value )
+void fPOOL::put( int& RC, int maxRC, const string& name, int value )
 {
 	fVAR var ;
 	map<string, stack< fVAR> >::iterator it ;
@@ -259,7 +259,7 @@ void fPOOL::reset()
 }
 
 
-void fPOOL::setmask( int & RC, const string & name, const string & mask )
+void fPOOL::setmask( int& RC, const string& name, const string& mask )
 {
 	map<string, stack< fVAR> >::iterator it ;
 
@@ -277,7 +277,7 @@ void fPOOL::setmask( int & RC, const string & name, const string & mask )
 }
 
 
-string fPOOL::vilist( int & RC, vdType defn )
+string fPOOL::vilist( int& RC, vdType defn )
 {
 	string vl ;
 	map<string, stack< fVAR> >::iterator it ;
@@ -304,7 +304,7 @@ string fPOOL::vilist( int & RC, vdType defn )
 }
 
 
-string fPOOL::vslist( int & RC, vdType defn )
+string fPOOL::vslist( int& RC, vdType defn )
 {
 	string vl ;
 	map<string, stack< fVAR> >::iterator it ;
@@ -331,7 +331,7 @@ string fPOOL::vslist( int & RC, vdType defn )
 }
 
 
-string * fPOOL::vlocate( int & RC, int maxRC, const string & name, nameCHCK check )
+string * fPOOL::vlocate( int& RC, int maxRC, const string& name, nameCHCK check )
 {
 	map<string, stack< fVAR> >::iterator it ;
 
@@ -359,7 +359,7 @@ string * fPOOL::vlocate( int & RC, int maxRC, const string & name, nameCHCK chec
 // *******************************************************************************************************************************
 
 
-void pVPOOL::put( int & RC, const string & name, const string & value, vTYPE vtype )
+void pVPOOL::put( int& RC, const string& name, const string& value, vTYPE vtype )
 {
 	// RC =  0 Normal completion
 	// RC = 12 Variable in read-only
@@ -400,7 +400,7 @@ void pVPOOL::put( int & RC, const string & name, const string & value, vTYPE vty
 }
 
 
-string pVPOOL::get( int & RC, const string & name )
+string pVPOOL::get( int& RC, const string& name )
 {
 	// RC =  0 Normal completion
 	// RC =  8 Variable not found
@@ -480,7 +480,7 @@ string pVPOOL::get( int & RC, const string & name )
 }
 
 
-string * pVPOOL::vlocate( int & RC, const string & name )
+string * pVPOOL::vlocate( int& RC, const string& name )
 {
 	// RC =  0 Normal completion
 	// RC =  4 Variable generated on access.  NULL returned.
@@ -502,7 +502,7 @@ string * pVPOOL::vlocate( int & RC, const string & name )
 }
 
 
-void pVPOOL::erase( int & RC, const string & name )
+void pVPOOL::erase( int& RC, const string& name )
 {
 	// RC =  0 Normal completion
 	// RC =  8 Variable not found
@@ -528,7 +528,7 @@ void pVPOOL::erase( int & RC, const string & name )
 }
 
 
-bool pVPOOL::isSystem( int & RC, const string & name )
+bool pVPOOL::isSystem( int& RC, const string& name )
 {
 	// RC =  0 Normal completion
 	// RC =  8 Variable not found
@@ -569,7 +569,7 @@ void pVPOOL::createGenEntries()
 }
 
 
-void pVPOOL::load( int & RC, const string & currAPPLID, const string & path )
+void pVPOOL::load( int& RC, const string& currAPPLID, const string& path )
 {
 	// RC = 0  Normal completion
 	// RC = 20 Severe error
@@ -672,7 +672,7 @@ void pVPOOL::load( int & RC, const string & currAPPLID, const string & path )
 }
 
 
-void pVPOOL::save( int & RC, const string & currAPPLID )
+void pVPOOL::save( int& RC, const string& currAPPLID )
 {
 	// RC = 0  Normal completion
 	// RC = 4  Save not performed.  Pool in read-only or no changes made to pool
@@ -763,7 +763,7 @@ poolMGR::poolMGR()
 }
 
 
-void poolMGR::setPOOLsReadOnly( int & RC )
+void poolMGR::setPOOLsReadOnly( int& RC )
 {
 	// Neither of these pools is currently used
 
@@ -774,7 +774,7 @@ void poolMGR::setPOOLsReadOnly( int & RC )
 }
 
 
-void poolMGR::defaultVARs( int & RC, const string & name, const string & value, poolType pType )
+void poolMGR::defaultVARs( int& RC, const string& name, const string& value, poolType pType )
 {
 	RC = 0 ;
 
@@ -792,7 +792,7 @@ void poolMGR::defaultVARs( int & RC, const string & name, const string & value, 
 }
 
 
-void poolMGR::createPool( int & RC, poolType pType, string path )
+void poolMGR::createPool( int& RC, poolType pType, string path )
 {
 	// RC = 0  Pool created and loaded from existing file if a PROFILE pool
 	// RC = 4  Pool created but not loaded as PROFILE file does not exist (for PROFILE pools only)
@@ -905,7 +905,7 @@ void poolMGR::createPool( int ls )
 }
 
 
-void poolMGR::destroyPool( int & RC, poolType pType )
+void poolMGR::destroyPool( int& RC, poolType pType )
 {
 
 	map<string, pVPOOL>::iterator sp_it ;
@@ -1051,7 +1051,7 @@ void poolMGR::snap()
 }
 
 
-void poolMGR::setAPPLID( int & RC, const string & m_APPLID )
+void poolMGR::setAPPLID( int& RC, const string& m_APPLID )
 {
 	RC = 0 ;
 
@@ -1066,7 +1066,7 @@ void poolMGR::setAPPLID( int & RC, const string & m_APPLID )
 }
 
 
-void poolMGR::setShrdPool( int & RC, const string & m_shrdPool )
+void poolMGR::setShrdPool( int& RC, const string& m_shrdPool )
 {
 	RC = 0 ;
 
@@ -1080,7 +1080,7 @@ void poolMGR::setShrdPool( int & RC, const string & m_shrdPool )
 }
 
 
-string poolMGR::vlist( int & RC, poolType pType, int lvl )
+string poolMGR::vlist( int& RC, poolType pType, int lvl )
 {
 	string vlist ;
 	map<string, pVPOOL>::iterator p_it ;
@@ -1139,7 +1139,7 @@ string poolMGR::vlist( int & RC, poolType pType, int lvl )
 }
 
 
-bool poolMGR::ifexists( int & RC, const string & name )
+bool poolMGR::ifexists( int& RC, const string& name )
 {
 	// Pool search order: SHARED then PROFILE
 	// RC = 0  variable found, return true
@@ -1163,7 +1163,7 @@ bool poolMGR::ifexists( int & RC, const string & name )
 
 
 
-void poolMGR::put( int & RC, const string & name, const string & value, poolType pType, vTYPE vtype )
+void poolMGR::put( int& RC, const string& name, const string& value, poolType pType, vTYPE vtype )
 {
 	// Pool search order:  ASIS - SHARED then PROFILE
 	// RC = 0  variable put okay
@@ -1223,7 +1223,7 @@ void poolMGR::put( int & RC, const string & name, const string & value, poolType
 }
 
 
-void poolMGR::put( int & RC, int ls, const string & name, const string & value )
+void poolMGR::put( int& RC, int ls, const string& name, const string& value )
 {
 	// Set a variable from the logical-screen pool
 	// Pool is created on first access
@@ -1234,7 +1234,7 @@ void poolMGR::put( int & RC, int ls, const string & name, const string & value )
 }
 
 
-string poolMGR::get( int & RC, const string & name, poolType pType )
+string poolMGR::get( int& RC, const string& name, poolType pType )
 {
 	// Pool search order: ASIS - SHARED then PROFILE
 	// RC = 0  variable found
@@ -1280,7 +1280,7 @@ string poolMGR::get( int & RC, const string & name, poolType pType )
 }
 
 
-string poolMGR::get( int & RC, int ls, const string & name )
+string poolMGR::get( int& RC, int ls, const string& name )
 {
 	// Retrieve a variable from the logical-screen pool
 	// Pool is created on first access
@@ -1291,7 +1291,7 @@ string poolMGR::get( int & RC, int ls, const string & name )
 }
 
 
-string * poolMGR::vlocate( int & RC, const string & name, poolType pType )
+string * poolMGR::vlocate( int& RC, const string& name, poolType pType )
 {
 	// Pool search order: ASIS - SHARED then PROFILE
 	// RC = 0  variable found
@@ -1331,7 +1331,7 @@ string * poolMGR::vlocate( int & RC, const string & name, poolType pType )
 
 
 
-void poolMGR::erase( int & RC, const string & name, poolType pType )
+void poolMGR::erase( int& RC, const string& name, poolType pType )
 {
 	// Pool search order: ASIS - SHARED then PROFILE
 	// RC = 0  variable found and erased
@@ -1388,7 +1388,7 @@ void poolMGR::erase( int & RC, const string & name, poolType pType )
 }
 
 
-void poolMGR::locateSubPool( int & RC, map<string, pVPOOL>::iterator & p_it, const string & name, poolType pType )
+void poolMGR::locateSubPool( int& RC, map<string, pVPOOL>::iterator& p_it, const string& name, poolType pType )
 {
 	// Locate the sub-pool for variable name.
 	// RC = 0 variable found.  Pool iterator, p_it, will be valid on return

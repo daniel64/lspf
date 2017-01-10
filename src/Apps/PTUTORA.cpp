@@ -213,7 +213,7 @@ void PTUTORA::application()
 		rebuildZAREA = false ;
 
 		vget( "ZVERB ZSCROLLA ZSCROLLN", SHARED ) ;
-		ZCMD = upper( ZCMD ) ;
+		iupper( ZCMD ) ;
 
 		if ( ZVERB == "DOWN" )
 		{

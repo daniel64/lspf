@@ -71,6 +71,9 @@ class VERIFY
 {
 	public:
 		VERIFY(){
+				ver_var     = ""    ;
+				ver_value   = ""    ;
+				ver_msgid   = ""    ;
 				ver_nblank  = false ;
 				ver_numeric = false ;
 				ver_list    = false ;
@@ -84,6 +87,8 @@ class VERIFY
 		bool parse( string ) ;
 
 		string ver_var     ;
+		string ver_value   ;
+		string ver_msgid   ;
 		bool   ver_nblank  ;
 		bool   ver_numeric ;
 		bool   ver_list    ;
@@ -92,8 +97,6 @@ class VERIFY
 		bool   ver_octal   ;
 		bool   ver_tbfield ;
 		bool   ver_field   ;
-		string ver_value   ;
-		string ver_msgid   ;
 } ;
 
 
@@ -248,8 +251,8 @@ class tbsearch
 				else if ( cond == "LT" ) { tbs_cond = s_LT ; }
 				else if ( cond == "GE" ) { tbs_cond = s_GE ; }
 				else if ( cond == "GT" ) { tbs_cond = s_GT ; }
-				else return false ;
-				return true       ;
+				else                     { return false    ; }
+				return true ;
 			} ;
 
 		string tbs_val   ;

@@ -62,7 +62,7 @@ literal   11  43        FP  "URID of selected row:"
 field     10  66    8    VOI   NONE  CRP
 field     11  66    8    VOI   NONE  ROWID
 
-literal 16 2 CH  "Sel  Field1      Field2      Field3    Field4    URID(hidden)"
+literal 16 2 CH  "Sel  Field1      Field2      Field3    Field4"
 literal 17 2 CH EXPAND "-"
 
 tbmodel 18 11
@@ -71,7 +71,6 @@ tbfield ++1 10 VOI  NONE              FLD1
 tbfield ++2 10 VOI  NONE              FLD2
 tbfield ++2 8  VOI  NONE              FLD3
 tbfield ++2 8  VOI  NONE              FLD4
-tbfield ++2 8  VOI  NONE              ZURID
 
 literal 29 2 VOI EXPAND "="
 literal   30  2        FP  "Field 1 of selected row:"

@@ -60,7 +60,7 @@ PEDT011J 'Column Out Of Range' .TYPE=W
 'Entered column value cannot be less that 1 or greater than 65,535'
 
 PEDT011K 'Invalid Hex String' .TYPE=W
-'Entered only valid hex characters 0-9, A-F with no spaces'
+'Enter only valid hex characters 0-9, A-F with no spaces'
 
 PEDT011L '&LINES Line(s) Excluded' .TYPE=N
 '&LINES line(s) have been excluded'
@@ -149,23 +149,23 @@ PEDT013E 'Error in hilighter' .TYPE=W
 PEDT013F 'Paste Pending' .TYPE=W
 'Paste is pending.  Select position to paste lines with the A/B line commands'
 
-PEDT013G "&TYPE '&STR' found" .TYPE=N
-"Search for &TYPE '&STR' was successful"
+PEDT013G "&TYPE &STR found" .TYPE=N
+"Search for &TYPE &STR was successful"
 
-PEDT013H "&TYPE '&STR' not found" .TYPE=W
-"Search for &TYPE '&STR' was not successful"
+PEDT013H "&TYPE &STR not found" .TYPE=W
+"Search for &TYPE &STR was not successful"
 
-PEDT013I "&TYPE '&STR' found &OCC time(s)" .TYPE=N
-"Search for &TYPE '&STR' was successful.  Found &OCC time(s) on &LINES line(s)"
+PEDT013I "&TYPE &STR found &OCC time(s)" .TYPE=N
+"Search for &TYPE &STR was successful.  Found &OCC time(s) on &LINES line(s)"
 
 PEDT013J 'Duplicate/Inconsistent parameter' .TYPE=W
 'Duplicate or inconsistent parameter entered on find or change command'
 
-PEDT013K "&TYPE '&STR' changed &OCC times(s)" .TYPE=N
-"Change was successful.  &TYPE '&STR' changed &OCC times(s)"
+PEDT013K "&TYPE &STR changed &OCC times(s)" .TYPE=N
+"Change was successful.  &TYPE &STR changed &OCC times(s)"
 
-PEDT013L "&TYPE '&STR' changed" .TYPE=N
-"Change for &TYPE '&STR' was successful"
+PEDT013L "&TYPE &STR changed" .TYPE=N
+"Change for &TYPE &STR was successful"
 
 PEDT013M 'Enter a FIND command' .TYPE=W
 'Enter a FIND command before using RFIND'
@@ -195,10 +195,10 @@ PEDT013U 'Invalid FIND/CHANGE/EXCLUDE command' .TYPE=W
 'Find, change or exclude command does not contain a search string'
 
 PEDT013V '*Bottom of data reached*' .TYPE=W
-"&TYPE '&STR' not found.  Press RFIND to continue from the top of data"
+"&TYPE &STR not found.  Press RFIND to continue from the top of data"
 
 PEDT013W '*Top of data reached*' .TYPE=W
-"&TYPE '&STR' not found.  Press RFIND to continue from the bottom of data"
+"&TYPE &STR not found.  Press RFIND to continue from the bottom of data"
 
 PEDT013X 'Line command error' .TYPE=W
 'Cursor is not placed in the data area.  Line command ignored'
@@ -265,3 +265,10 @@ PEDT014S 'Open error' .TYPE=W
 
 PEDT014T 'File created' .TYPE=N
 'File has been created from the selected lines'
+
+PEDT014U 'Incorrect number of labels' .TYPE=W
+'If specified, two label delimiters must be entered'
+
+PEDT014V 'Line not located' .TYPE=W
+'LOCATE unsuccessful for requested line'
+

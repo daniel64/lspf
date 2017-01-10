@@ -23,7 +23,7 @@
 #define MOD_NAME pApplic
 #define LOGOUT   aplog
 
-int  ispexeci( pApplication *, const string & ) ;
+int  ispexeci( pApplication *, const string& ) ;
 
 #include <stdexcept>
 
@@ -92,7 +92,6 @@ pApplication::pApplication()
 	vdefine( "ZTDSELS",  &ZTDSELS ) ;
 	vdefine( "ZTDTOP",   &ZTDTOP  ) ;
 	vdefine( "ZTDVROWS", &ZTDVROWS) ;
-	vdefine( "ZAPPNAME", &ZAPPNAME) ;
 	rmsgs.clear()                   ;
 }
 
@@ -154,7 +153,7 @@ void pApplication::wait_event()
 }
 
 
-void pApplication::createPanel( const string & p_name )
+void pApplication::createPanel( const string& p_name )
 {
 	string paths ;
 
@@ -293,7 +292,7 @@ void pApplication::refresh_id()
 }
 
 
-void pApplication::set_msg( const string & msg_id )
+void pApplication::set_msg( const string& msg_id )
 {
 	// Display a message on current panel using msg_id
 
@@ -352,7 +351,7 @@ string pApplication::get_nretfield()
 }
 
 
-void pApplication::display( string p_name, const string & p_msg, const string & p_cursor, int p_csrpos )
+void pApplication::display( string p_name, const string& p_msg, const string& p_cursor, int p_csrpos )
 {
 	string ZZVERB ;
 
@@ -481,7 +480,7 @@ void pApplication::refresh()
 }
 
 
-void pApplication::libdef( const string & lib, const string & type )
+void pApplication::libdef( const string& lib, const string& type )
 {
 	// libdef - Add/remove a list of paths to the search order for panels, messages and tables
 
@@ -535,7 +534,7 @@ void pApplication::libdef( const string & lib, const string & type )
 }
 
 
-string pApplication::get_select_cmd( const string & opt )
+string pApplication::get_select_cmd( const string& opt )
 {
 	return panelList[ PANELID ]->return_command( opt ) ;
 }
@@ -547,7 +546,7 @@ void pApplication::set_cursor( int row, int col )
 }
 
 
-void pApplication::vdefine( const string & names, int * i_ad1, int * i_ad2, int * i_ad3, int * i_ad4, int * i_ad5, int * i_ad6, int * i_ad7, int * i_ad8 )
+void pApplication::vdefine( const string& names, int * i_ad1, int * i_ad2, int * i_ad3, int * i_ad4, int * i_ad5, int * i_ad6, int * i_ad7, int * i_ad8 )
 {
 	// RC = 0  Normal completion
 	// RC = 20 Severe Error
@@ -575,7 +574,7 @@ void pApplication::vdefine( const string & names, int * i_ad1, int * i_ad2, int 
 	{
 		if ( i_ad2 == NULL ) { RC = 20 ; checkRCode( e2 ) ; return ; }
 		name = word( names, 2 ) ;
-		funcPOOL.define( RC, name , i_ad2 ) ;
+		funcPOOL.define( RC, name, i_ad2 ) ;
 		if ( RC > 0 ) { checkRCode( e3 + name ) ; return ; }
 	}
 	if ( w > 2 )
@@ -626,7 +625,7 @@ void pApplication::vdefine( const string & names, int * i_ad1, int * i_ad2, int 
 
 
 
-void pApplication::vdefine( const string & names, string * s_ad1, string * s_ad2, string * s_ad3, string * s_ad4, string * s_ad5, string * s_ad6, string * s_ad7, string * s_ad8 )
+void pApplication::vdefine( const string& names, string * s_ad1, string * s_ad2, string * s_ad3, string * s_ad4, string * s_ad5, string * s_ad6, string * s_ad7, string * s_ad8 )
 {
 	// RC = 0  Normal completion
 	// RC = 20 Severe Error
@@ -702,7 +701,7 @@ void pApplication::vdefine( const string & names, string * s_ad1, string * s_ad2
 }
 
 
-void pApplication::vdelete( const string & names )
+void pApplication::vdelete( const string& names )
 {
 	// RC = 0  Normal completion
 	// RC = 8  At least one variable not found
@@ -731,7 +730,7 @@ void pApplication::vdelete( const string & names )
 }
 
 
-void pApplication::vmask( const string & name, const string & type, const string & mask )
+void pApplication::vmask( const string& name, const string& type, const string& mask )
 {
 	// Set a mask for a function pool variable (must be vdefined first)
 	// Partial implementation as no VEDIT panel statement yet so this is never used
@@ -781,7 +780,7 @@ void pApplication::vreset()
 }
 
 
-void pApplication::vreplace( const string & name, const string & s_val )
+void pApplication::vreplace( const string& name, const string& s_val )
 {
 	// RC = 0  Normal completion
 	// RC = 20 Severe error
@@ -793,7 +792,7 @@ void pApplication::vreplace( const string & name, const string & s_val )
 }
 
 
-void pApplication::vreplace( const string & name, int i_val )
+void pApplication::vreplace( const string& name, int i_val )
 {
 	// RC = 0  Normal completion
 	// RC = 20 Severe error
@@ -805,7 +804,7 @@ void pApplication::vreplace( const string & name, int i_val )
 }
 
 
-void pApplication::vget( const string & names, poolType pType )
+void pApplication::vget( const string& names, poolType pType )
 {
 	// RC = 0  Normal completion
 	// RC = 8  Variable not found
@@ -861,7 +860,7 @@ void pApplication::vget( const string & names, poolType pType )
 }
 
 
-void pApplication::vput( const string & names, poolType pType )
+void pApplication::vput( const string& names, poolType pType )
 {
 	// RC = 0  Normal completion
 	// RC = 8  Variable not found in function pool
@@ -909,7 +908,7 @@ void pApplication::vput( const string & names, poolType pType )
 }
 
 
-void pApplication::vcopy( const string & var, string & val, vcMODE mode )
+void pApplication::vcopy( const string& var, string& val, vcMODE mode )
 {
 	// Retrieve a copy of a dialogue variable name in var and move to variable val
 	// (normal dialogue variable search order)
@@ -957,7 +956,7 @@ void pApplication::vcopy( const string & var, string & val, vcMODE mode )
 }
 
 
-void pApplication::vcopy( const string & var, string * & p_val, vcMODE mode )
+void pApplication::vcopy( const string& var, string * & p_val, vcMODE mode )
 {
 	// Return the address of a dialogue variable name in var, in p_val
 	// (normal dialogue variable search order)
@@ -1007,7 +1006,7 @@ void pApplication::vcopy( const string & var, string * & p_val, vcMODE mode )
 }
 
 
-void pApplication::verase( const string & names, poolType pType )
+void pApplication::verase( const string& names, poolType pType )
 {
 	// RC = 0  Normal completion
 	// RC = 8  Variable not found
@@ -1056,7 +1055,7 @@ string pApplication::vslist( vdType defn )
 }
 
 
-void pApplication::addpop( const string & a_fld, int a_row, int a_col )
+void pApplication::addpop( const string& a_fld, int a_row, int a_col )
 {
 	//  Create pop-up window and set row/col for the next panel display.  If addpop() is already active, store old values for next rempop()
 	//  Position of addpop is relative to row=1, col=3 or the previous addpop() position for this logical screen.
@@ -1110,7 +1109,7 @@ void pApplication::addpop( const string & a_fld, int a_row, int a_col )
 }
 
 
-void pApplication::rempop( const string & r_all )
+void pApplication::rempop( const string& r_all )
 {
 	//  Remove pop-up window.  Restore previous rempop() if there is one (push order row,col).
 
@@ -1168,7 +1167,7 @@ void pApplication::movepop()
 }
 
 
-void pApplication::control( const string & parm1, const string & parm2, const string & parm3 )
+void pApplication::control( const string& parm1, const string& parm2, const string& parm3 )
 {
 	// CONTROL ERRORS CANCEL - abend for RC >= 12
 	// CONTROL ERRORS RETURN - return to application for any RC
@@ -1355,7 +1354,7 @@ void pApplication::control( const string & parm1, const string & parm2, const st
 }
 
 
-void pApplication::control( const string & parm1, void (pApplication::*pFunc)() )
+void pApplication::control( const string& parm1, void (pApplication::*pFunc)() )
 {
 	// lspf extensions:
 	// CONTROL ABENDRTN ptr_to_routine - Set the routine to get control during an abend
@@ -1371,7 +1370,7 @@ void pApplication::control( const string & parm1, void (pApplication::*pFunc)() 
 }
 
 
-void pApplication::tbadd( const string & tb_name, const string & tb_namelst, const string & tb_order, int tb_num_of_rows )
+void pApplication::tbadd( const string& tb_name, const string& tb_namelst, const string& tb_order, int tb_num_of_rows )
 {
 	// Add a row to a table
 
@@ -1392,7 +1391,7 @@ void pApplication::tbadd( const string & tb_name, const string & tb_namelst, con
 }
 
 
-void pApplication::tbbottom( const string & tb_name, const string & tb_savenm, const string & tb_rowid_vn, const string & tb_noread, const string & tb_crp_name )
+void pApplication::tbbottom( const string& tb_name, const string& tb_savenm, const string& tb_rowid_vn, const string& tb_noread, const string& tb_crp_name )
 {
 	// Move row pointer to the bottom
 
@@ -1409,7 +1408,7 @@ void pApplication::tbbottom( const string & tb_name, const string & tb_savenm, c
 }
 
 
-void pApplication::tbclose( const string & tb_name, const string & tb_newname, const string & tb_path )
+void pApplication::tbclose( const string& tb_name, const string& tb_newname, const string& tb_path )
 {
 	// Save and close the table (calls saveTable and destroyTable routines).
 	// Do not report error on tbclose() of a temporary table (pass false as last parm, to saveTable() in this case)
@@ -1444,7 +1443,7 @@ void pApplication::tbclose( const string & tb_name, const string & tb_newname, c
 }
 
 
-void pApplication::tbcreate( const string & tb_name, const string & keys, const string & names, tbSAVE m_SAVE, tbREP m_REP, string m_path, tbDISP m_DISP )
+void pApplication::tbcreate( const string& tb_name, const string& keys, const string& names, tbSAVE m_SAVE, tbREP m_REP, string m_path, tbDISP m_DISP )
 {
 	// Create a new table.  For permanent tables without a path specified, save to first path entry in ZTLIB
 
@@ -1502,7 +1501,7 @@ void pApplication::tbcreate( const string & tb_name, const string & keys, const 
 }
 
 
-void pApplication::tbdelete( const string & tb_name )
+void pApplication::tbdelete( const string& tb_name )
 {
 	// Delete a row in the table.  For keyed tables, the table is searched with the current key.  For non-keyed tables the current CRP is used.
 
@@ -1519,7 +1518,7 @@ void pApplication::tbdelete( const string & tb_name )
 }
 
 
-void pApplication::tbdispl( const string & tb_name, string p_name, const string & p_msg, string p_cursor, int p_csrrow, int p_csrpos, string p_autosel, const string & p_crp_name, const string & p_rowid_nm )
+void pApplication::tbdispl( const string& tb_name, string p_name, const string& p_msg, string p_cursor, int p_csrrow, int p_csrpos, string p_autosel, const string& p_crp_name, const string& p_rowid_nm )
 {
 	// tbdispl with panel, no message - clear previous pending lines, rebuild scrollable area and display panel
 	// tbdispl with panel, message    - rebuild scrollable area and display panel and message
@@ -1772,7 +1771,7 @@ void pApplication::tbdispl( const string & tb_name, string p_name, const string 
 }
 
 
-void pApplication::tbend( const string & tb_name )
+void pApplication::tbend( const string& tb_name )
 {
 	// Close a table without saving (calls destroyTable routine).  If opened share, use count is reduced and table deleted when use count = 0
 
@@ -1793,7 +1792,7 @@ void pApplication::tbend( const string & tb_name )
 }
 
 
-void pApplication::tberase( const string & tb_name, string tb_path )
+void pApplication::tberase( const string& tb_name, string tb_path )
 {
 	// Erase a table file from path
 
@@ -1812,7 +1811,7 @@ void pApplication::tberase( const string & tb_name, string tb_path )
 }
 
 
-void pApplication::tbexist( const string & tb_name )
+void pApplication::tbexist( const string& tb_name )
 {
 	// Test for the existance of a row in a keyed table
 
@@ -1830,7 +1829,7 @@ void pApplication::tbexist( const string & tb_name )
 
 
 
-void pApplication::tbget( const string & tb_name, const string & tb_savenm, const string & tb_rowid_vn, const string & tb_noread, const string & tb_crp_name )
+void pApplication::tbget( const string& tb_name, const string& tb_savenm, const string& tb_rowid_vn, const string& tb_noread, const string& tb_crp_name )
 {
 	RC = 0 ;
 	if ( !isTableOpen( tb_name, "TBGET" ) ) { return ; }
@@ -1840,7 +1839,7 @@ void pApplication::tbget( const string & tb_name, const string & tb_savenm, cons
 }
 
 
-void pApplication::tbmod( const string & tb_name, const string & tb_namelst, const string & tb_order )
+void pApplication::tbmod( const string& tb_name, const string& tb_namelst, const string& tb_order )
 {
 	// Update a row in a table
 
@@ -1855,7 +1854,7 @@ void pApplication::tbmod( const string & tb_name, const string & tb_namelst, con
 }
 
 
-void pApplication::tbopen( const string & tb_name, tbSAVE m_SAVE, string m_paths, tbDISP m_DISP )
+void pApplication::tbopen( const string& tb_name, tbSAVE m_SAVE, string m_paths, tbDISP m_DISP )
 {
 	// Open an existing table, reading it from a file.  If aleady opened in SHARE/NOWRITE, increment use count
 
@@ -1896,7 +1895,7 @@ void pApplication::tbopen( const string & tb_name, tbSAVE m_SAVE, string m_paths
 }
 
 
-void pApplication::tbput( const string & tb_name, const string & tb_namelst, const string & tb_order )
+void pApplication::tbput( const string& tb_name, const string& tb_namelst, const string& tb_order )
 {
 	// Update the current row in a table
 
@@ -1918,7 +1917,7 @@ void pApplication::tbput( const string & tb_name, const string & tb_namelst, con
 }
 
 
-void pApplication::tbquery( const string & tb_name, const string & tb_keyn, const string & tb_varn, const string & tb_rownn, const string & tb_keynn, const string & tb_namenn, const string & tb_crpn, const string & tb_sirn, const string & tb_lstn, const string & tb_condn, const string & tb_dirn )
+void pApplication::tbquery( const string& tb_name, const string& tb_keyn, const string& tb_varn, const string& tb_rownn, const string& tb_keynn, const string& tb_namenn, const string& tb_crpn, const string& tb_sirn, const string& tb_lstn, const string& tb_condn, const string& tb_dirn )
 {
 	RC = 0 ;
 
@@ -1929,7 +1928,7 @@ void pApplication::tbquery( const string & tb_name, const string & tb_keyn, cons
 }
 
 
-void pApplication::tbsarg( const string & tb_name, const string & tb_namelst, const string & tb_dir, const string & tb_cond_pairs )
+void pApplication::tbsarg( const string& tb_name, const string& tb_namelst, const string& tb_dir, const string& tb_cond_pairs )
 {
 	RC = 0 ;
 
@@ -1940,7 +1939,7 @@ void pApplication::tbsarg( const string & tb_name, const string & tb_namelst, co
 }
 
 
-void pApplication::tbsave( const string & tb_name, const string & tb_newname, const string & path )
+void pApplication::tbsave( const string& tb_name, const string& tb_newname, const string& path )
 {
 	// Save the table to disk (calls saveTable routine).  Table remains open for processing.  Table must have the WRITE attribute
 	// saveTable() returns RC4 if a table has not been changed (and so no save is performed).  Ignore in this case
@@ -1960,7 +1959,7 @@ void pApplication::tbsave( const string & tb_name, const string & tb_newname, co
 }
 
 
-void pApplication::tbscan( const string & tb_name, const string & tb_namelst, const string & tb_savenm, const string & tb_rowid_vn, const string & tb_dir, const string & tb_read, const string & tb_crp_name, const string & tb_condlst )
+void pApplication::tbscan( const string& tb_name, const string& tb_namelst, const string& tb_savenm, const string& tb_rowid_vn, const string& tb_dir, const string& tb_read, const string& tb_crp_name, const string& tb_condlst )
 {
 	RC = 0 ;
 
@@ -1972,7 +1971,7 @@ void pApplication::tbscan( const string & tb_name, const string & tb_namelst, co
 
 
 
-void pApplication::tbskip( const string & tb_name, int num, const string & tb_savenm, const string & tb_rowid_vn, const string & tb_rowid, const string & tb_noread, const string & tb_crp_name )
+void pApplication::tbskip( const string& tb_name, int num, const string& tb_savenm, const string& tb_rowid_vn, const string& tb_rowid, const string& tb_noread, const string& tb_crp_name )
 {
 	RC = 0 ;
 
@@ -1983,7 +1982,7 @@ void pApplication::tbskip( const string & tb_name, int num, const string & tb_sa
 }
 
 
-void pApplication::tbsort( const string & tb_name, const string & tb_fields )
+void pApplication::tbsort( const string& tb_name, const string& tb_fields )
 {
 	RC = 0 ;
 
@@ -1995,7 +1994,7 @@ void pApplication::tbsort( const string & tb_name, const string & tb_fields )
 
 
 
-void pApplication::tbtop( const string & tb_name )
+void pApplication::tbtop( const string& tb_name )
 {
 	RC = 0 ;
 
@@ -2006,7 +2005,7 @@ void pApplication::tbtop( const string & tb_name )
 }
 
 
-void pApplication::tbvclear( const string & tb_name )
+void pApplication::tbvclear( const string& tb_name )
 {
 	RC = 0 ;
 
@@ -2017,7 +2016,7 @@ void pApplication::tbvclear( const string & tb_name )
 }
 
 
-bool pApplication::isTableOpen( const string & tb_name, const string & func )
+bool pApplication::isTableOpen( const string& tb_name, const string& func )
 {
 
 	RC = 0 ;
@@ -2033,7 +2032,7 @@ bool pApplication::isTableOpen( const string & tb_name, const string & func )
 }
 
 
-bool pApplication::isTableUpdate( const string & tb_name, const string & func )
+bool pApplication::isTableUpdate( const string& tb_name, const string& func )
 {
 
 	RC = 0 ;
@@ -2055,7 +2054,7 @@ bool pApplication::isTableUpdate( const string & tb_name, const string & func )
 }
 
 
-void pApplication::edit( const string & m_file, const string & m_panel )
+void pApplication::edit( const string& m_file, const string& m_panel )
 {
 	SELCT.clear() ;
 	SELCT.PGM     = p_poolMGR->get( RC, "ZEDITPGM", PROFILE ) ;
@@ -2069,7 +2068,7 @@ void pApplication::edit( const string & m_file, const string & m_panel )
 }
 
 
-void pApplication::browse( const string & m_file, const string & m_panel )
+void pApplication::browse( const string& m_file, const string& m_panel )
 {
 	SELCT.clear() ;
 	SELCT.PGM     = p_poolMGR->get( RC, "ZBRPGM", PROFILE ) ;
@@ -2083,7 +2082,7 @@ void pApplication::browse( const string & m_file, const string & m_panel )
 }
 
 
-void pApplication::view( const string & m_file, const string & m_panel )
+void pApplication::view( const string& m_file, const string& m_panel )
 {
 	SELCT.clear() ;
 	SELCT.PGM     = p_poolMGR->get( RC, "ZVIEWPGM", PROFILE ) ;
@@ -2097,7 +2096,7 @@ void pApplication::view( const string & m_file, const string & m_panel )
 }
 
 
-void pApplication::select( const string & cmd )
+void pApplication::select( const string& cmd )
 {
 	// SELECT a function or panel in keyword format for use in applications,
 	// ie PGM(abc) CMD(oorexx) PANEL(xxx) PARM(zzz) NEWAPPL PASSLIB SCRNAME(abc) etc.
@@ -2141,7 +2140,7 @@ void pApplication::actionSelect()
 }
 
 
-void pApplication::pquery( const string & p_name, const string & a_name, const string & t_name, const string & w_name, const string & d_name, const string & r_name, const string & c_name )
+void pApplication::pquery( const string& p_name, const string& a_name, const string& t_name, const string& w_name, const string& d_name, const string& r_name, const string& c_name )
 {
 	RC = 0 ;
 
@@ -2165,7 +2164,7 @@ void pApplication::pquery( const string & p_name, const string & a_name, const s
 }
 
 
-void pApplication::attr( const string & field, const string & attrs )
+void pApplication::attr( const string& field, const string& attrs )
 {
 	if ( PANELID == "" )
 	{
@@ -2253,36 +2252,48 @@ void pApplication::load_keylist( pPanel * p )
 }
 
 
-void pApplication::rdisplay( const string & msg )
+void pApplication::rdisplay( const string& msg, bool subVars )
 {
+	int i  ;
+	int j  ;
+	int l  ;
+	int m  ;
+
+	string t ;
+
 	RC = 0 ;
-	rmsgs.push_back( sub_vars( msg ) ) ;
-	if ( rmsgs.size() == ds2d( p_poolMGR->get( RC, "ZSCRMAXD", SHARED ) ) - 1 )
+	l  = ds2d( p_poolMGR->get( RC, "ZSCRMAXW", SHARED ) ) ;
+	m  = ds2d( p_poolMGR->get( RC, "ZSCRMAXD", SHARED ) ) - 1 ;
+
+	if ( subVars ) { t = sub_vars( msg ) ; }
+	else           { t = msg             ; }
+
+	while ( true )
 	{
-		rawOutput = true  ;
-		wait_event()      ;
-		rawOutput = false ;
+		if ( t.size() > l )
+		{
+			i = l ;
+			j = t.find_last_of( ' ', i ) ;
+			if ( j != string::npos ) { i = j + 1 ; }
+		}
+		else
+		{
+			i = t.size() ;
+		}
+		rmsgs.push_back( t.substr( 0, i ) ) ;
+		t.erase( 0, i ) ;
+		if ( rmsgs.size() == m )
+		{
+			rawOutput = true  ;
+			wait_event()      ;
+			rawOutput = false ;
+		}
+		if ( t.size() == 0 ) { break ; }
 	}
 }
 
 
-void pApplication::rdisplay1( const string & msg )
-{
-	// Same as RDISPLAY, except no variable substitution is performed.  It is used in the
-	// ISPEXEC interface which does the substitution itself.
-
-	RC = 0 ;
-	rmsgs.push_back( msg ) ;
-	if ( rmsgs.size() == ds2d( p_poolMGR->get( RC, "ZSCRMAXD", SHARED ) ) - 1 )
-	{
-		rawOutput = true  ;
-		wait_event()      ;
-		rawOutput = false ;
-	}
-}
-
-
-void pApplication::setmsg( const string & msg, msgSET sType )
+void pApplication::setmsg( const string& msg, msgSET sType )
 {
 	// Retrieve message and store in MSG1 and MSGID1.
 
@@ -2298,7 +2309,7 @@ void pApplication::setmsg( const string & msg, msgSET sType )
 }
 
 
-void pApplication::getmsg( const string & msg, const string & smsg, const string & lmsg, const string & alm, const string & hlp, const string & typ, const string & wndo )
+void pApplication::getmsg( const string& msg, const string& smsg, const string& lmsg, const string& alm, const string& hlp, const string& typ, const string& wndo )
 {
 	// Load message msg and substitute variables
 
@@ -2372,7 +2383,7 @@ string pApplication::get_help_member( int row, int col )
 }
 
 
-void pApplication::get_Message( const string & p_msg )
+void pApplication::get_Message( const string& p_msg )
 {
 	// Load messages from message library and copy slmsg object to MSG for the message requested
 
@@ -2394,7 +2405,7 @@ void pApplication::get_Message( const string & p_msg )
 }
 
 
-bool pApplication::load_Message( const string & p_msg )
+bool pApplication::load_Message( const string& p_msg )
 {
 	// Message format: 1-5 alph char prefix
 	//                 3 numeric chars
@@ -2427,6 +2438,8 @@ bool pApplication::load_Message( const string & p_msg )
 	map<string,bool>MMsgs ;
 
 	slmsg t ;
+
+	RC = 0  ;
 
 	if ( !testMode && msgList.count( p_msg ) > 0 ) { return true ; }
 
@@ -2485,7 +2498,7 @@ bool pApplication::load_Message( const string & p_msg )
 	}
 	while ( getline( messages, mline ) )
 	{
-		mline = strip( mline ) ;
+		trim( mline ) ;
 		if ( mline == "" || mline[ 0 ] == '*' ) { continue ; }
 		if ( mline.compare( 0, 2, "/*" ) == 0 ) { continue ; }
 		if ( mline.compare( 0, p_msg_fn.size(), p_msg_fn ) == 0 )
@@ -2532,8 +2545,8 @@ bool pApplication::load_Message( const string & p_msg )
 			lcontinue = false ;
 			if ( mline.back() == '+' )
 			{
-				mline.erase( mline.size()-1 ) ;
-				mline = strip( mline )        ;
+				mline.pop_back() ;
+				trim( mline )    ;
 				lcontinue = true ;
 			}
 			if ( mline[ 0 ] == '\'' || mline[ 0 ] == '"' )
@@ -2752,7 +2765,7 @@ bool pApplication::parse_Message( slmsg & t )
 		else                   { return false                 ; }
 	}
 
-	if ( strip( rest ) != "" ) { return false ; }
+	if ( trim( rest ) != "" ) { return false ; }
 
 	if ( t.smwin && t.smsg != "" ) { t.lmsg = t.smsg +" - "+ t.lmsg ; }
 	return true ;
@@ -2774,7 +2787,7 @@ bool pApplication::sub_Message_vars( slmsg & t )
 	{
 		t.lmwin = true ;
 		vcopy( t.dvwin, val, MOVE ) ;
-		val = strip( val ) ;
+		trim( val ) ;
 		if      ( val == "RESP"    || val == "R"  ) { t.smwin = true  ; t.resp = true ; }
 		else if ( val == "NORESP"  || val == "N"  ) { t.smwin = true  ; }
 		else if ( val == "LRESP"   || val == "LR" ) { t.resp  = true  ; }
@@ -2784,7 +2797,7 @@ bool pApplication::sub_Message_vars( slmsg & t )
 	if ( t.dvalm != "" )
 	{
 		vcopy( t.dvalm, val, MOVE ) ;
-		val = strip( val ) ;
+		trim( val ) ;
 		if      ( val == "YES" ) { t.alm = true  ; }
 		else if ( val == "NO"  ) { t.alm = false ; }
 		else if ( val == ""    ) { return false  ; }
@@ -2792,7 +2805,7 @@ bool pApplication::sub_Message_vars( slmsg & t )
 	if ( t.dvtype != "" )
 	{
 		vcopy( t.dvtype, val, MOVE ) ;
-		val = strip( val ) ;
+		trim( val ) ;
 		if      ( val == "N" ) { t.type = IMT ; t.alm = false ; }
 		else if ( val == "W" ) { t.type = WMT ; t.alm = true  ; }
 		else if ( val == "A" ) { t.type = AMT ; t.alm = true  ; }
@@ -2807,7 +2820,7 @@ bool pApplication::sub_Message_vars( slmsg & t )
 }
 
 
-int pApplication::chk_Message_id( const string & msgid )
+int pApplication::chk_Message_id( const string& msgid )
 {
 	// Return 0 if message-id format is incorrect, else the offset to the first numeric triplet
 
@@ -2894,63 +2907,63 @@ void pApplication::info()
 	int p ;
 
 	log( "-", "*************************************************************************************************************" << endl ) ;
-	log( "-", "Application Information for " << ZAPPNAME << endl ) ;
-	log( "-", "                   Task ID: " << taskID << endl ) ;
-	log( "-", "          Shared Pool Name: " << shrdPool << endl ) ;
-	log( "-", "         Profile Pool Name: " << ZZAPPLID << endl ) ;
+	log( "-", "Application Information for "<< ZAPPNAME << endl ) ;
+	log( "-", "                   Task ID: "<< taskID << endl ) ;
+	log( "-", "          Shared Pool Name: "<< shrdPool << endl ) ;
+	log( "-", "         Profile Pool Name: "<< ZZAPPLID << endl ) ;
 	log( "-", " " << endl ) ;
-	log( "-", "Application Description . : " << ZAPPDESC << endl ) ;
-	log( "-", "Last Panel Displayed. . . : " << PANELID << endl ) ;
-	log( "-", "Last Message Displayed. . : " << MSGID << endl )   ;
-	log( "-", "Number of Panels Loaded . : " << panelList.size() << endl )  ;
-	log( "-", "Number of Open Tables . . : " << tablesOpen.size() << endl ) ;
+	log( "-", "Application Description . : "<< ZAPPDESC << endl ) ;
+	log( "-", "Last Panel Displayed. . . : "<< PANELID << endl ) ;
+	log( "-", "Last Message Displayed. . : "<< MSGID << endl )   ;
+	log( "-", "Number of Panels Loaded . : "<< panelList.size() << endl )  ;
+	log( "-", "Number of Open Tables . . : "<< tablesOpen.size() << endl ) ;
 	if ( rexxName != "" )
 	{
-		log( "-", "Application running REXX. : " << rexxName << endl ) ;
+		log( "-", "Application running REXX. : "<< rexxName << endl ) ;
 	}
 	log( "-", " " << endl ) ;
 	if ( testMode )
 	{
-		log( "-", "Application running in test mode" << endl ) ;
+		log( "-", "Application running in test mode"<< endl ) ;
 	}
 	if ( noTimeOut )
 	{
-		log( "-", "Application has disabled timeouts" << endl ) ;
+		log( "-", "Application has disabled timeouts"<< endl ) ;
 	}
 	if ( PASSLIB )
 	{
-		log( "-", "Application started with PASSLIB option" << endl ) ;
+		log( "-", "Application started with PASSLIB option"<< endl ) ;
 	}
 	if ( NEWPOOL )
 	{
-		log( "-", "Application started with NEWPOOL option" << endl ) ;
+		log( "-", "Application started with NEWPOOL option"<< endl ) ;
 	}
 	if ( libdef_muser )
 	{
-		log( "-", "LIBDEF active for user message search" << endl ) ;
+		log( "-", "LIBDEF active for user message search"<< endl ) ;
 		p = getpaths( ZMUSER ) ;
 		for ( i = 1 ; i <= p ; i++ )
 		{
-			log( "-", "       Path. . . . . . . " << getpath( ZMUSER, i ) << endl ) ;
+			log( "-", "       Path. . . . . . . "<< getpath( ZMUSER, i ) << endl ) ;
 		}
 
 	}
 	if ( libdef_puser )
 	{
-		log( "-", "LIBDEF active for user panel search" << endl ) ;
+		log( "-", "LIBDEF active for user panel search"<< endl ) ;
 		p = getpaths( ZPUSER ) ;
 		for ( i = 1 ; i <= p ; i++ )
 		{
-			log( "-", "       Path. . . . . . . " << getpath( ZPUSER, i ) << endl ) ;
+			log( "-", "       Path. . . . . . . "<< getpath( ZPUSER, i ) << endl ) ;
 		}
 	}
 	if ( libdef_tuser )
 	{
-		log( "-", "LIBDEF active for user table search" << endl ) ;
+		log( "-", "LIBDEF active for user table search"<< endl ) ;
 		p = getpaths( ZTUSER ) ;
 		for ( i = 1 ; i <= p ; i++ )
 		{
-			log( "-", "       Path. . . . . . . " << getpath( ZTUSER, i ) << endl ) ;
+			log( "-", "       Path. . . . . . . "<< getpath( ZTUSER, i ) << endl ) ;
 		}
 	}
 	log( "-", "*************************************************************************************************************" << endl ) ;
@@ -2969,13 +2982,13 @@ void pApplication::closeTables()
 }
 
 
-void pApplication::ispexec( const string & s )
+void pApplication::ispexec( const string& s )
 {
 	RC = ispexeci( this, s ) ;
 }
 
 
-void pApplication::checkRCode( const string & s )
+void pApplication::checkRCode( const string& s )
 {
 	// If the error panel is to be displayed, cancel CONTROL DISPLAY LOCK
 
@@ -3018,7 +3031,7 @@ void pApplication::cleanup_default()
 
 void pApplication::cleanup()
 {
-	log( "I", "Shutting down application: " << ZAPPNAME << " Taskid: " << taskID << endl ) ;
+	log( "I", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskID << endl ) ;
 	terminateAppl = true  ;
 	busyAppl      = false ;
 	log( "I", "Returning to calling program." << endl ) ;
@@ -3028,7 +3041,7 @@ void pApplication::cleanup()
 
 void pApplication::abend()
 {
-	log( "E", "Shutting down application: " << ZAPPNAME << " Taskid: " << taskID << " due to an abnormal condition" << endl ) ;
+	log( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskID << " due to an abnormal condition" << endl ) ;
 	abnormalEnd   = true  ;
 	terminateAppl = true  ;
 	busyAppl      = false ;
@@ -3041,7 +3054,7 @@ void pApplication::abend()
 
 void pApplication::abendexc()
 {
-	log( "E", "An unhandled exception has occured in application: " << ZAPPNAME << " Taskid: " << taskID << endl ) ;
+	log( "E", "An unhandled exception has occured in application: "+ ZAPPNAME +" Taskid: " << taskID << endl ) ;
 	if ( !abending )
 	{
 		(this->*pcleanup)() ;
@@ -3065,7 +3078,7 @@ void pApplication::abendexc()
 
 void pApplication::set_forced_abend()
 {
-	log( "E", "Shutting down application: " << ZAPPNAME << " Taskid: " << taskID << " due to a forced condition" << endl ) ;
+	log( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskID << " due to a forced condition" << endl ) ;
 	abnormalEnd       = true  ;
 	abnormalEndForced = true  ;
 	terminateAppl     = true  ;
@@ -3077,7 +3090,7 @@ void pApplication::set_forced_abend()
 
 void pApplication::set_timeout_abend()
 {
-	log( "E", "Shutting down application: " << ZAPPNAME << " Taskid: " << taskID << " due to a timeout condition" << endl ) ;
+	log( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskID << " due to a timeout condition" << endl ) ;
 	abnormalEnd       = true  ;
 	abnormalEndForced = true  ;
 	abnormalTimeout   = true  ;

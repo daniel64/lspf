@@ -1,7 +1,5 @@
 Help for the PEDIT01 editor
 
-Line Commands:
---------------
 
 Extensions to the normal ISPF PDF editor primary commands:
 *--------------------------------------------------------*
@@ -14,9 +12,16 @@ UNDO ALL - Undo all changes on the undo stack
 REDO     - Redo the last undo
 REDO ALL - Redo all changes on the redo stack
 
+L UNDO/REDO - Locate an UNDO or REDO line
+L T         - Locate marked text (alises MRK, MARK, MARKED)
+L *         - Jump back to the previous LOCATE line
+
+RESET T     - Reset marked text (alises MRK, MARK, MARKED)
+
 
 Extensions to the normal ISPF PDF editor line commands:
 *-----------------------------------------------------*
+
 MNn      Make note.  Turn current line(s) into note lines, shown by =NOTE=
 MNN
 
@@ -28,6 +33,10 @@ TJJ
 TRn      Text trim.  Trim trailing spaces from a line or block of lines
 TRR
 
+Tn       Toggle hilighting of a line/block of lines (high white with reverse red on the first attribute char)
+TT       Remove with the 'RESET' or 'RESET T' commands (aliases MRK, MARK, MARKED)
+         Used to easily find marked code, but could later be used with some primary commands.
+
 TXn      Toggle exclude status of a line/block of lines
 TXX
 
@@ -36,4 +45,10 @@ WW
 
 XI       Exclude Indentation.  Exclude lines until the indentation is less than the indentation where the command
          is entered.
+
+[n       Shift characters left to the next nth tab position
+[[n
+
+]n       Shift characters right to the next nth tab position
+]]n
 

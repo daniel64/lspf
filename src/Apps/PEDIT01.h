@@ -36,6 +36,7 @@ enum P_CMDS
 	PC_FIND,
 	PC_FLIP,
 	PC_HEX,
+	PC_HIDE,
 	PC_HILIGHT,
 	PC_LOCATE,
 	PC_NULLS,
@@ -68,7 +69,6 @@ enum L_CMDS
 	LC_D,
 	LC_DD,
 	LC_F,
-	LC_FIND,
 	LC_HX,
 	LC_HXX,
 	LC_I,
@@ -95,16 +95,22 @@ enum L_CMDS
 	LC_SLCC,
 	LC_SLD,
 	LC_SLDD,
+	LC_SLTC,
+	LC_SLTCC,
 	LC_SRC,
 	LC_SRCC,
 	LC_SRD,
 	LC_SRDD,
+	LC_SRTC,
+	LC_SRTCC,
 	LC_TABS,
 	LC_TJ,
 	LC_TJJ,
 	LC_TR,
 	LC_TRR,
 	LC_TS,
+	LC_T,
+	LC_TT,
 	LC_TX,
 	LC_TXX,
 	LC_UC,
@@ -183,10 +189,18 @@ class ipos
 {
 	public:
 		uint   ipos_dl   ;
+		uint   ipos_hex  ;
 		int    ipos_URID ;
 		ipos()
 		{
 			ipos_dl   = 0 ;
+			ipos_hex  = 0 ;
+			ipos_URID = 0 ;
+		}
+	void clear()
+		{
+			ipos_dl   = 0 ;
+			ipos_hex  = 0 ;
 			ipos_URID = 0 ;
 		}
 } ;
@@ -263,6 +277,7 @@ class iline
 		bool   il_error   ;
 		bool   il_undo    ;
 		bool   il_redo    ;
+		bool   il_mark    ;
 		bool   il_msg     ;
 		bool   il_info    ;
 		bool   il_deleted ;
@@ -298,6 +313,7 @@ class iline
 			il_error   = false  ;
 			il_undo    = false  ;
 			il_redo    = false  ;
+			il_mark    = false  ;
 			il_deleted = false  ;
 			il_nisrt   = false  ;
 			il_label   = ""     ;
@@ -317,6 +333,7 @@ class iline
 			il_error = false ;
 			il_undo  = false ;
 			il_redo  = false ;
+			il_mark  = false ;
 		}
 		void resetFileStatus()
 		{
@@ -353,6 +370,14 @@ class iline
 			il_undo  = false ;
 			il_redo  = true  ;
 		}
+		void resetMarked()
+		{
+			il_mark = false ;
+		}
+		void toggleMarked()
+		{
+			il_mark = !il_mark ;
+		}
 		bool isValidFile()
 		{
 			return il_file && !il_deleted ;
@@ -366,7 +391,7 @@ class iline
 		{
 			il_lcc = "" ;
 		}
-		void put_idata( const string & s, int level )
+		void put_idata( const string& s, int level )
 		{
 			idata d ;
 
@@ -395,7 +420,7 @@ class iline
 			clear_Global_Redo() ;
 			remove_redo_idata() ;
 		}
-		void put_idata( const string & s )
+		void put_idata( const string& s )
 		{
 			idata d ;
 
@@ -452,6 +477,10 @@ class iline
 		string get_idata()
 		{
 			return il_idata.top().id_data ;
+		}
+		string::const_iterator get_idata_begin()
+		{
+			return il_idata.top().id_data.begin() ;
 		}
 		string * get_idata_ptr()
 		{
@@ -739,10 +768,10 @@ class PEDIT01 : public pApplication
 		void showEditEntry()      ;
 		void showEditRecovery()   ;
 		void Edit()               ;
-		void getEditProfile( const string & )  ;
-		void delEditProfile( const string & )  ;
-		void saveEditProfile( const string & ) ;
-		void createEditProfile( const string &, const string & ) ;
+		void getEditProfile( const string& )  ;
+		void delEditProfile( const string& )  ;
+		void saveEditProfile( const string& ) ;
+		void createEditProfile( const string&, const string& ) ;
 		void resetEditProfile()   ;
 		void cleanup_custom()     ;
 		void initialise()         ;
@@ -752,6 +781,8 @@ class PEDIT01 : public pApplication
 		void fill_dynamic_area()  ;
 		void fill_hilight_shadow();
 		void clr_hilight_shadow() ;
+		void protNonDisplayChars();
+		void convNonDisplayChars( string& ) ;
 		void getZAREAchanges()    ;
 		void updateData()         ;
 
@@ -765,6 +796,7 @@ class PEDIT01 : public pApplication
 		void actionLineCommand( vector<icmd>::iterator ) ;
 
 		void actionZVERB()        ;
+		void setLineLabels()      ;
 
 		bool actionUNDO()         ;
 		bool actionREDO()         ;
@@ -787,15 +819,17 @@ class PEDIT01 : public pApplication
 		uint getNextDataLine( uint ) ;
 		vector<iline * >::iterator getNextDataLine( vector<iline * >::iterator ) ;
 		uint getNextDataFileLine( uint ) ;
+		vector<iline * >::iterator getNextDataFileLine( vector<iline * >::iterator ) ;
 
 		uint getPrevDataLine( uint ) ;
 		uint getPrevDataFileLine( uint ) ;
+		vector<iline * >::iterator getPrevDataFileLine( vector<iline * >::iterator ) ;
 
 		void cleanupData()        ;
-		void updateProfLines( vector<string> & ) ;
-		void buildProfLines( vector<string> & )  ;
-		void removeProfLines()    ;
-		void removeSpecialLines() ;
+		void updateProfLines( vector<string>& ) ;
+		void buildProfLines( vector<string>& )  ;
+		void removeProfLines( )    ;
+		void removeSpecialLines( vector<iline * >::iterator, vector<iline * >::iterator ) ;
 		void processNISRTlines()  ;
 
 		string removeTabs( string ) ;
@@ -804,11 +838,11 @@ class PEDIT01 : public pApplication
 
 		bool URIDonScreen( int ) ;
 
-		string overlay( string, string, bool & ) ;
-		bool formLineCmd( const string &, string &, int & ) ;
+		string overlay( string, string, bool& ) ;
+		bool formLineCmd( const string&, string&, int& ) ;
 
-		void copyToClipboard( vector<ipline> & vip ) ;
-		void getClipboard( vector<ipline> & vip ) ;
+		void copyToClipboard( vector<ipline>& vip ) ;
+		void getClipboard( vector<ipline>& vip ) ;
 		void clearClipboard( string ) ;
 
 		void createFile( uint, uint ) ;
@@ -827,28 +861,29 @@ class PEDIT01 : public pApplication
 
 		bool setFindChangeExcl( char ) ;
 		void setNotFoundMsg()          ;
-		bool setCommandRange( string, c_range & ) ;
-		int  getNextSpecial( char, char ) ;
-		bool getLabelItr( const string &, vector<iline * >::iterator &, int & ) ;
-		int  getLabelLine( const string & ) ;
-		bool checkLabel( const string & ) ;
+		bool setCommandRange( string, c_range& ) ;
+		int  getNextSpecial( int, int, char, char ) ;
+		bool getLabelItr( const string&, vector<iline * >::iterator &, int& ) ;
+		int  getLabelLine( const string& ) ;
+		bool checkLabel( const string& ) ;
 
-		bool getTabLocation( int & ) ;
-		void copyPrefix( ipline &, iline * & ) ;
-		void copyPrefix( iline * &,ipline & )  ;
-		void addSpecial( char, int, vector<string> & ) ;
-		void addSpecial( char, int, string & ) ;
+		bool getTabLocation( int& ) ;
+		void copyPrefix( ipline &, iline *& ) ;
+		void copyPrefix( iline * &,ipline& )  ;
+		void addSpecial( char, int, vector<string>& ) ;
+		void addSpecial( char, int, string& ) ;
 
 		string rshiftCols( int, const string * ) ;
 		string lshiftCols( int, const string * ) ;
-		bool   rshiftData( int, const string *, string & ) ;
-		bool   lshiftData( int, const string *, string & ) ;
-		bool   textSplitData( const string &, string &, string & ) ;
+		bool   rshiftData( int, const string *, string& ) ;
+		bool   lshiftData( int, const string *, string& ) ;
+		bool   textSplitData( const string&, string&, string& ) ;
 
-		void   compareFiles( const string & ) ;
+		void   compareFiles( const string& ) ;
 		string determineLang()   ;
 
 		uint topLine             ;
+		uint ptopLine            ;
 		int  startCol            ;
 		int  maxCol              ;
 		int  aRow                ;
@@ -857,8 +892,8 @@ class PEDIT01 : public pApplication
 		bool aLCMD               ;
 		int  Level               ;
 		int  saveLevel           ;
+		int  XTabz               ;
 
-		bool lowrOnRead          ;
 		bool tabsOnRead          ;
 		bool abendRecovery       ;
 		bool abendComplete       ;
@@ -903,6 +938,7 @@ class PEDIT01 : public pApplication
 		bool pasteActive         ;
 		bool pasteKeep           ;
 		bool sPreserve           ;
+		bool hideExcl            ;
 
 		int  LeftBnd             ;
 		int  RightBnd            ;
@@ -917,6 +953,7 @@ class PEDIT01 : public pApplication
 		map<int, ipos> s2data    ;
 		map<int, bool> sChanged  ;
 		map<int, bool> sTouched  ;
+		map<int, int>lchar       ;
 		vector<icmd> icmds       ;
 
 
@@ -947,6 +984,7 @@ class PEDIT01 : public pApplication
 		int    ZASIZE  ;
 		string CAREA   ;
 		string CSHADOW ;
+		string XAREA   ;
 
 		string ZEDPROF  ;
 		string ZEDPROFT ;
@@ -977,6 +1015,7 @@ class PEDIT01 : public pApplication
 		string sdr  ;
 		string sdrh ;
 		string sdb  ;
+		string sdmk ;
 
 		string div  ;
 
@@ -993,10 +1032,10 @@ class PEDIT01 : public pApplication
 		string OCC  ;
 		string LINES;
 
-		map<char, string>typList    = { { 'C',  "CHARS"  },
-						{ 'P',  "PREFIX" },
-						{ 'S',  "SUFFIX" },
-						{ 'W',  "WORD"   } } ;
+		map<char, string>typList    = { { 'C', "CHARS"  },
+						{ 'P', "PREFIX" },
+						{ 'S', "SUFFIX" },
+						{ 'W', "WORD"   } } ;
 
 		map<bool, string>OnOff      = { { true,  "ON"  },
 						{ false, "OFF" } } ;
@@ -1036,6 +1075,7 @@ class PEDIT01 : public pApplication
 						{ "F",        PC_FIND     },
 						{ "FLIP",     PC_FLIP     },
 						{ "HEX",      PC_HEX      },
+						{ "HIDE",     PC_HIDE     },
 						{ "HILIGHT",  PC_HILIGHT  },
 						{ "HI",       PC_HILIGHT  },
 						{ "HILITE",   PC_HILIGHT  },
@@ -1106,6 +1146,8 @@ class PEDIT01 : public pApplication
 						{ "TR",       LC_TR       },
 						{ "TRR",      LC_TRR      },
 						{ "TS",       LC_TS       },
+						{ "T",        LC_T        },
+						{ "TT",       LC_TT       },
 						{ "TX",       LC_TX       },
 						{ "TXX",      LC_TXX      },
 						{ "UC",       LC_UC       },
@@ -1122,7 +1164,11 @@ class PEDIT01 : public pApplication
 						{ ">",        LC_SRD      },
 						{ ">>",       LC_SRDD     },
 						{ "<",        LC_SLD      },
-						{ "<<",       LC_SLDD     } } ;
+						{ "<<",       LC_SLDD     },
+						{ "]",        LC_SRTC     },
+						{ "]]",       LC_SRTCC    },
+						{ "[",        LC_SLTC     },
+						{ "[[",       LC_SLTCC    } } ;
 
 		map<string,string> aliasLCMDS = { { "COL",    "COLS" },
 						  { "BND",    "BNDS" },
@@ -1159,8 +1205,15 @@ class PEDIT01 : public pApplication
 						  { "EXC",      "X"     },
 						  { "EXCLUDE",  "X"     },
 						  { "EXCLUDED", "X"     },
+						  { "INFOLINE", "INFO"  },
+						  { "HIDE",     "H"     },
 						  { "LABEL",    "LAB"   },
 						  { "LABELS",   "LAB"   },
+						  { "MRK",      "T"     },
+						  { "MARK",     "T"     },
+						  { "MARKED",   "T"     },
+						  { "MSGLINE",  "MSG"   },
+						  { "NOTELINE", "NOTE"  },
 						  { "SPECIAL",  "SPE"   } } ;
 
 		map<string,string> abokLCMDS  = { { "AK",  "A"  },
@@ -1168,16 +1221,16 @@ class PEDIT01 : public pApplication
 						  { "OK",  "O"  },
 						  { "OOK", "OO" } } ;
 
-		const string BLKcmds   = "CC DD MM HXX LCC MDD MNN OO OOK RR TJJ TRR TXX XX WW UCC (( )) << >>" ;
+		const string BLKcmds   = "CC DD MM HXX LCC MDD MNN OO OOK RR TJJ TRR TT TXX XX WW UCC (( )) << >> [[ ]]" ;
 		const string SPLcmds   = "A AK B BK C CC COLS D DD F I L M MM MD MDD MN MNN R RR S SI TX TXX X XX XI" ;
 		const string TODcmds   = "A I" ;
 		const string BODcmds   = "B COLS BNDS MASK TABS" ;
 		const string ABOKReq   = "C CC M MM" ;
-		const string Chkdist   = "C D M HX LC MD MN O OK TJ TR UC TX W X" ;
+		const string Chkdist   = "C D M HX LC MD MN O OK TJ TR TX UC W X" ;
 		const string ABOWList  = "A AK B BK O OK OO OOK W WW" ;
 		const string OWBlock   = "OO WW" ;
-		const string ReptOK    = "C D F HX I L M MD MN O OK R UC LC RR S TJ TR TX W X (( )) ( ) << >> < >" ;
-		const string XBlock    = "R (( )) ( ) << >> < >" ;
+		const string ReptOK    = "C D F HX I L M MD MN O OK R UC LC RR S TJ TR T TX W X (( )) ( ) << >> < > [[ ]] [ ]" ;
+		const string XBlock    = "R (( )) ( ) << >> < > [[ ]] [ ]" ;
 		const string CutCmds   = "C CC M MM" ;
 		const string PasteCmds = "A B" ;
 } ;

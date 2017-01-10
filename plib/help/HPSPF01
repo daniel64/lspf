@@ -31,6 +31,7 @@ System:
 .ABEND   Abend the current application
 .HIDE    NULLS. Display field nulls as spaces.
 .INFO    Display current application information to the Application Log
+.LOAD    Load all applications not already loaded.
 .RELOAD  ALL | NEW | modname.  Reload application if not in use.
 .SCALE
 .SHELL   Suspends NCURSES and invokes the shell specified in the SHELL environment variable
@@ -66,7 +67,7 @@ USER
 ****
 EXEC   Execute OOREXX EXEC from the command line (similar to % command character)
 FLIST  Display saved file names and execute line command
-MODS   List loaded modules (Dynamically Loaded Classes)
+MODS   List found application modules (Dynamically Loaded Classes) and their status
 RUN    Run application (similar to ! command character)
 PATHS  Display scrollable list of Path Searches and LIBDEF status
 TODO   Display a simple TODO list

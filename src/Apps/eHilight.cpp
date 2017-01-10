@@ -34,7 +34,7 @@ using namespace std ;
 #define MOD_NAME HILIGHT
 
 
-void addHilight( hilight & h, const string & line, string & shadow )
+void addHilight( hilight& h, const string& line, string& shadow )
 {
 	try
 	{
@@ -43,6 +43,8 @@ void addHilight( hilight & h, const string & line, string & shadow )
 	catch (...)
 	{
 		log( "E", "An exception has occured hilighting line "<<line<<endl);
+		exception_ptr ptr = current_exception() ;
+		log( "E", "Exception: " << (ptr ? ptr.__cxa_exception_type()->name() : "Unknown" ) << endl ) ;
 		log( "E", "Hilighting disabled"<<endl);
 		h.hl_abend = true ;
 	}
@@ -51,11 +53,11 @@ void addHilight( hilight & h, const string & line, string & shadow )
 
 bool addHilight( string lang )
 {
-	return findword( lang, "ASM CPP DEFAULT OTHER PANEL REXX" ) ;
+	return hiRoutine.count( lang ) > 0 ;
 }
 
 
-void addCppHilight( hilight & h, const string & line, string & shadow )
+void addCppHilight( hilight& h, const string& line, string& shadow )
 {
 	int ln ;
 	int p1 ;
@@ -64,11 +66,10 @@ void addCppHilight( hilight & h, const string & line, string & shadow )
 	uint j ;
 
 	string w ;
-	const string delims( " (){}=;><+-*[]" ) ;
+	const string delims( " (){}=;><+-*[]&" ) ;
 
-	bool oQuote   ;
-
-	char Quote    ;
+	bool oQuote ;
+	char Quote  ;
 
 	map<string, keyw>::iterator it ;
 
@@ -193,7 +194,7 @@ void addCppHilight( hilight & h, const string & line, string & shadow )
 }
 
 
-void addASMHilight( hilight & h, const string & line, string & shadow )
+void addASMHilight( hilight& h, const string& line, string& shadow )
 {
 	int i  ;
 	int ln ;
@@ -273,7 +274,7 @@ void addASMHilight( hilight & h, const string & line, string & shadow )
 
 		if ( !oQuote )
 		{
-			if ( line[ j ] == ' '  )
+			if ( line[ j ] == ' ' )
 			{
 				if ( j > 0 && line[ j - 1 ] != ' ' ) { wd++ ; }
 				continue ;
@@ -319,7 +320,7 @@ void addASMHilight( hilight & h, const string & line, string & shadow )
 }
 
 
-void addRxxHilight( hilight & h, const string & line, string & shadow )
+void addRxxHilight( hilight& h, const string& line, string& shadow )
 {
 	int ln ;
 	int p1 ;
@@ -462,7 +463,7 @@ void addRxxHilight( hilight & h, const string & line, string & shadow )
 }
 
 
-void addOthHilight( hilight & h, const string & line, string & shadow )
+void addOthHilight( hilight& h, const string& line, string& shadow )
 {
 	int ln ;
 
@@ -472,7 +473,7 @@ void addOthHilight( hilight & h, const string & line, string & shadow )
 }
 
 
-void addDefHilight( hilight & h, const string & line, string & shadow )
+void addDefHilight( hilight& h, const string& line, string& shadow )
 {
 	int ln ;
 

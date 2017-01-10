@@ -134,7 +134,7 @@ pPanel::~pPanel()
 }
 
 
-void pPanel::init( int & RC1 )
+void pPanel::init( int& RC1 )
 {
 	ZSCRMAXD = ds2d( p_poolMGR->get( RC1, "ZSCRMAXD", SHARED ) ) ;
 	if ( RC1 > 0 ) { PERR1 = "ZSCRMAXD poolMGR.get failed" ; log("C", PERR1 ) ; RC1 = 20 ; return ; }
@@ -148,7 +148,7 @@ void pPanel::init( int & RC1 )
 }
 
 
-string pPanel::getDialogueVar( const string & var )
+string pPanel::getDialogueVar( const string& var )
 {
 	// Return the value of a dialogue variable (always as a string so convert int->string if necessary)
 	// Search order is:
@@ -194,7 +194,7 @@ string pPanel::getDialogueVar( const string & var )
 }
 
 
-void pPanel::putDialogueVar( const string & var, const string & val )
+void pPanel::putDialogueVar( const string& var, const string& val )
 {
 	// Store data for a dialogue variable in the function pool.
 	// Creates an implicit function pool variable if one does not already exist.
@@ -203,7 +203,7 @@ void pPanel::putDialogueVar( const string & var, const string & val )
 }
 
 
-void pPanel::syncDialogueVar( const string & var )
+void pPanel::syncDialogueVar( const string& var )
 {
 	// Relevant for REXX procedures only and called for panel variables not in the function pool
 
@@ -245,7 +245,7 @@ void pPanel::move_popup()
 }
 
 
-void pPanel::display_panel( int & RC1 )
+void pPanel::display_panel( int& RC1 )
 {
 	// fwin - created unconditionally and is the full-screen window
 	// pwin - pop-up window only created if the panel contains a WINDOW(w,d) statement
@@ -381,7 +381,7 @@ void pPanel::refresh()
 }
 
 
-void pPanel::display_panel_update( int & RC1 )
+void pPanel::display_panel_update( int& RC1 )
 {
 	//  For all changed fields, remove the null character, apply attributes (upper case, left/right justified),
 	//  and copy back to function pool.  Reset field for display.
@@ -434,6 +434,7 @@ void pPanel::display_panel_update( int & RC1 )
 		{
 			it->second->field_prep_input() ;
 			it->second->field_set_caps()   ;
+			it->second->field_changed = false ;
 			if ( !isnumeric( it->second->field_value ) )
 			{
 				switch( it->second->field_value[ 0 ] )
@@ -445,10 +446,10 @@ void pPanel::display_panel_update( int & RC1 )
 					default:  MSGID  = "PSYS011I" ;
 						  CURFLD = "ZSCROLL"  ;
 						  MSGLOC = CURFLD     ;
+						  it->second->field_changed = true ;
 				}
 			}
 			p_funcPOOL->put( RC1, 0, it->first, it->second->field_value ) ;
-			it->second->field_changed = false ;
 			it->second->field_prep_display() ;
 		}
 	}
@@ -606,7 +607,7 @@ void pPanel::display_panel_update( int & RC1 )
 
 
 
-void pPanel::display_panel_init( int & RC1 )
+void pPanel::display_panel_init( int& RC1 )
 {
 	// Perform panel )INIT processing
 
@@ -631,7 +632,7 @@ void pPanel::display_panel_init( int & RC1 )
 }
 
 
-void pPanel::display_panel_reinit( int & RC1, int ln )
+void pPanel::display_panel_reinit( int& RC1, int ln )
 {
 	// Perform panel )REINIT processing
 
@@ -646,7 +647,7 @@ void pPanel::display_panel_reinit( int & RC1, int ln )
 }
 
 
-void pPanel::display_panel_proc( int & RC1, int ln )
+void pPanel::display_panel_proc( int& RC1, int ln )
 {
 	// Perform panel )PROC processing
 
@@ -699,14 +700,14 @@ void pPanel::display_panel_proc( int & RC1, int ln )
 }
 
 
-void pPanel::process_panel_stmnts( int & RC1, int ln,
-		vector<panstmnt> & panstmnts,
-		vector<IFSTMNT>  & ifList,
-		vector<VERIFY>   & verList,
-		vector<VPUTGET>  & vpgList,
-		vector<TRUNC>    & truncList,
-		vector<TRANS>    & transList,
-		vector<ASSGN>    & assgnList )
+void pPanel::process_panel_stmnts( int& RC1, int ln,
+		vector<panstmnt>& panstmnts,
+		vector<IFSTMNT>&  ifList,
+		vector<VERIFY>&   verList,
+		vector<VPUTGET>&  vpgList,
+		vector<TRUNC>&    truncList,
+		vector<TRANS>&    transList,
+		vector<ASSGN>&    assgnList )
 {
 	// General routine to process panel statements.  Pass addresses of the relevant vectors for the
 	// panel section being processed.
@@ -1043,7 +1044,7 @@ void pPanel::process_panel_stmnts( int & RC1, int ln,
 				t = getDialogueVar( assgnList.at( i_assign ).as_rhs ) ;
 				if      ( assgnList.at( i_assign ).as_retlen  ) { t = d2ds( t.size() )          ; }
 				else if ( assgnList.at( i_assign ).as_reverse ) { reverse( t.begin(), t.end() ) ; }
-				else if ( assgnList.at( i_assign ).as_upper   ) { t = upper( t )                ; }
+				else if ( assgnList.at( i_assign ).as_upper   ) { iupper( t )                   ; }
 				else if ( assgnList.at( i_assign ).as_words   ) { t = d2ds( words( t ) )        ; }
 				else if ( assgnList.at( i_assign ).as_chkexst ) { t = exists( t ) ? "1" : "0"          ; }
 				else if ( assgnList.at( i_assign ).as_chkfile ) { t = is_regular_file( t ) ? "1" : "0" ; }
@@ -1292,7 +1293,7 @@ void pPanel::process_panel_stmnts( int & RC1, int ln,
 }
 
 
-void pPanel::refresh_fields( const string & fields )
+void pPanel::refresh_fields( const string& fields )
 {
 	// Update the field value from the dialogue variable.  Apply any field justification defined.
 
@@ -1323,7 +1324,7 @@ void pPanel::refresh_fields( const string & fields )
 }
 
 
-void pPanel::create_tbfield( int col, int length, cuaType cuaFT, const string & name, const string & opts )
+void pPanel::create_tbfield( int col, int length, cuaType cuaFT, const string& name, const string& opts )
 {
 	// Default is JUST(ASIS) for fields of a TB model, so change from the default of JUST(LEFT)
 
@@ -1362,7 +1363,7 @@ void pPanel::create_tbfield( int col, int length, cuaType cuaFT, const string & 
 }
 
 
-void pPanel::create_pdc( const string & abc_name, const string & pdc_name, const string & pdc_run, const string & pdc_parm, const string & pdc_unavail )
+void pPanel::create_pdc( const string& abc_name, const string& pdc_name, const string& pdc_run, const string& pdc_parm, const string& pdc_unavail )
 {
 	// ab is a vector list of action-bar-choices (abc objects)
 	// Each action-bar-choice is a vector list of pull-down-choices (pdc objects)
@@ -1391,7 +1392,7 @@ void pPanel::create_pdc( const string & abc_name, const string & pdc_name, const
 }
 
 
-void pPanel::update_field_values( int & RC1 )
+void pPanel::update_field_values( int& RC1 )
 {
 	// Update field_values from the dialogue variables (may not exist so treat RC=8 from getDialogueVar as normal completion)
 	// (RC1 is the passed pApplication RC)
@@ -1422,10 +1423,10 @@ void pPanel::update_field_values( int & RC1 )
 
 	for ( it2 = dynAreaList.begin() ; it2 != dynAreaList.end() ; it2++ )
 	{
-		darea = p_funcPOOL->vlocate( RC1, 0, it2->first, NOCHECK ) ;
+		darea = p_funcPOOL->vlocate( RC1, 0, it2->first ) ;
 		if ( RC1 > 0 ) { RC1 = 20 ; PERR1 = "Dynamic area variable is not in the function pool" ; return ; }
 		sname  = it2->second->dynArea_shadow_name ;
-		shadow = p_funcPOOL->vlocate( RC1, 0, sname, NOCHECK ) ;
+		shadow = p_funcPOOL->vlocate( RC1, 0, sname ) ;
 		if ( RC1 > 0 ) { RC1 = 20 ; PERR1 = "Dynamic area shadow variable is not in the function pool" ; return ; }
 		if ( darea->size() > shadow->size() )
 		{
@@ -1496,7 +1497,7 @@ void pPanel::resetAttrs()
 }
 
 
-void pPanel::cursor_to_field( int & RC1, string f_name, int f_pos )
+void pPanel::cursor_to_field( int& RC1, string f_name, int f_pos )
 {
 	int oX ;
 	int oY ;
@@ -1540,7 +1541,7 @@ void pPanel::cursor_to_field( int & RC1, string f_name, int f_pos )
 }
 
 
-void pPanel::get_home( uint & row, uint & col )
+void pPanel::get_home( uint& row, uint& col )
 {
 	// Return the physical position on the screen
 
@@ -1562,14 +1563,14 @@ void pPanel::get_home( uint & row, uint & col )
 }
 
 
-string pPanel::field_getvalue( const string & f_name )
+string pPanel::field_getvalue( const string& f_name )
 {
 	fieldList[ f_name ]->field_prep_input()  ;
 	return  fieldList[ f_name ]->field_value ;
 }
 
 
-void pPanel::field_setvalue( const string & f_name, const string & f_value )
+void pPanel::field_setvalue( const string& f_name, const string& f_value )
 {
 	bool snulls = ( p_poolMGR->get( RC, "ZNULLS", SHARED ) == "YES" ) ;
 
@@ -1579,7 +1580,7 @@ void pPanel::field_setvalue( const string & f_name, const string & f_value )
 }
 
 
-bool pPanel::is_cmd_inactive( const string & cmd )
+bool pPanel::is_cmd_inactive( const string& cmd )
 {
 	// Some commands may be inactive for this type of panel, so return true for these.
 	// Not sure how real ISPF does this without setting ZCTACT to NOP !! but this works okay.
@@ -1596,7 +1597,7 @@ bool pPanel::is_cmd_inactive( const string & cmd )
 }
 
 
-bool pPanel::field_valid( const string & f_name )
+bool pPanel::field_valid( const string& f_name )
 {
 	return fieldList.find( f_name ) != fieldList.end() ;
 }
@@ -1623,7 +1624,7 @@ string pPanel::field_getname( uint row, uint col )
 }
 
 
-bool pPanel::field_get_row_col( const string & fld, uint & row, uint & col )
+bool pPanel::field_get_row_col( const string& fld, uint& row, uint& col )
 {
 	// If field found on panel (by name), return true and its position, else return false
 	// Return the physical position on the screen, so add the window offsets to field_row/col
@@ -1642,7 +1643,7 @@ bool pPanel::field_get_row_col( const string & fld, uint & row, uint & col )
 }
 
 
-fieldExc pPanel::field_getexec( const string & field )
+fieldExc pPanel::field_getexec( const string& field )
 {
 	// If passed field is in the field execute table, return the structure fieldExc for that field as defined in )FIELD panel section.
 
@@ -1651,13 +1652,13 @@ fieldExc pPanel::field_getexec( const string & field )
 }
 
 
-void pPanel::field_clear( const string & f_name )
+void pPanel::field_clear( const string& f_name )
 {
 	fieldList[ f_name ]->field_clear( win ) ;
 }
 
 
-void pPanel::field_edit( uint row, uint col, char ch, bool Isrt, bool & prot )
+void pPanel::field_edit( uint row, uint col, char ch, bool Isrt, bool& prot )
 {
 	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
 
@@ -1692,7 +1693,7 @@ void pPanel::field_edit( uint row, uint col, char ch, bool Isrt, bool & prot )
 }
 
 
-void pPanel::field_backspace( uint & row, uint & col, bool & prot )
+void pPanel::field_backspace( uint& row, uint& col, bool& prot )
 {
 	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
 	// Return physical position of the cursor in row/col
@@ -1728,7 +1729,7 @@ void pPanel::field_backspace( uint & row, uint & col, bool & prot )
 }
 
 
-void pPanel::field_delete_char( uint row, uint col, bool & prot )
+void pPanel::field_delete_char( uint row, uint col, bool& prot )
 {
 	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
 	// Return physical position of the cursor in row/col
@@ -1760,7 +1761,7 @@ void pPanel::field_delete_char( uint row, uint col, bool & prot )
 }
 
 
-void pPanel::field_erase_eof( uint row, uint col, bool & prot )
+void pPanel::field_erase_eof( uint row, uint col, bool& prot )
 {
 	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
 
@@ -1786,7 +1787,7 @@ void pPanel::field_erase_eof( uint row, uint col, bool & prot )
 }
 
 
-void pPanel::cursor_eof( uint & row, uint & col )
+void pPanel::cursor_eof( uint& row, uint& col )
 {
 	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
 	// Return physical position of the cursor in row/col
@@ -1813,7 +1814,7 @@ void pPanel::cursor_eof( uint & row, uint & col )
 }
 
 
-void pPanel::field_tab_down( uint & row, uint & col )
+void pPanel::field_tab_down( uint& row, uint& col )
 {
 	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
 	// Return physical position of the cursor in row/col
@@ -1863,7 +1864,7 @@ void pPanel::field_tab_down( uint & row, uint & col )
 
 
 
-void pPanel::field_tab_next( uint & row, uint & col )
+void pPanel::field_tab_next( uint& row, uint& col )
 {
 	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
 	// Return physical position of the cursor in row/col
@@ -1913,7 +1914,7 @@ void pPanel::field_tab_next( uint & row, uint & col )
 }
 
 
-string pPanel::get_field_help( const string & fld )
+string pPanel::get_field_help( const string& fld )
 {
 	if ( fieldHList.count( fld ) == 0 ) { return "" ; }
 	return fieldHList[ fld ] ;
@@ -1933,7 +1934,7 @@ void pPanel::set_tb_linesChanged()
 	{
 		if ( it->second->field_tb && it->second->field_changed )
 		{
-			URID = p_funcPOOL->get( RC, 0, "ZURID."+ d2ds( it->second->field_row - tb_row ), NOCHECK ) ;
+			URID = p_funcPOOL->get( RC, 0, ".ZURID."+ d2ds( it->second->field_row - tb_row ), NOCHECK ) ;
 			tb_linesChanged[ it->second->field_row - tb_row ] = URID ;
 		}
 	}
@@ -1941,7 +1942,7 @@ void pPanel::set_tb_linesChanged()
 }
 
 
-bool pPanel::tb_lineChanged( int & ln, string & URID )
+bool pPanel::tb_lineChanged( int& ln, string& URID )
 {
 	//  Retrieve the next changed line on the tbdispl.  Return screen line number and URID of the table record
 	//  Don't remove the pair from the list but update ZTDSELS
@@ -1963,7 +1964,7 @@ bool pPanel::tb_lineChanged( int & ln, string & URID )
 }
 
 
-void pPanel::clear_tb_linesChanged( int & RC1 )
+void pPanel::clear_tb_linesChanged( int& RC1 )
 {
 	//  Clear all stored changed lines on a tbdispl with panel name and set ZTDSELS to zero
 
@@ -2046,7 +2047,7 @@ void pPanel::tb_fields_active_inactive()
 
 
 
-string pPanel::return_command( const string & opt )
+string pPanel::return_command( const string& opt )
 {
 	if ( commandTable.count( opt ) == 0 ) { return "" ; }
 	return commandTable.at( opt ) ;
@@ -2140,7 +2141,7 @@ void pPanel::display_boxes()
 }
 
 
-void pPanel::set_panel_msg( slmsg t, const string & msgid )
+void pPanel::set_panel_msg( slmsg t, const string& msgid )
 {
 	int i ;
 
@@ -2179,7 +2180,7 @@ void pPanel::clear_msg()
 }
 
 
-void pPanel::put_keylist( int entry, const string & keyv )
+void pPanel::put_keylist( int entry, const string& keyv )
 {
 	Keylistl[ entry ] = keyv ;
 }
@@ -2187,7 +2188,7 @@ void pPanel::put_keylist( int entry, const string & keyv )
 
 string pPanel::get_keylist( int entry )
 {
-	if ( KEYLISTN == ""  || Keylistl.count( entry ) == 0 ) { return "" ; }
+	if ( KEYLISTN == "" || Keylistl.count( entry ) == 0 ) { return "" ; }
 	return Keylistl[ entry ] ;
 }
 
@@ -2206,6 +2207,7 @@ void pPanel::display_msg()
 	{
 		p_poolMGR->put( RC, ZSCRNUM, "ZMSGID", MSGID ) ;
 	}
+
 	if ( MSG.smsg != "" )
 	{
 		if ( smp_created )
@@ -2268,7 +2270,7 @@ void pPanel::display_msg()
 }
 
 
-void pPanel::get_msgwin( int t_size, int & t_row, int & t_col, int & t_depth, int & t_width )
+void pPanel::get_msgwin( int t_size, int& t_row, int& t_col, int& t_depth, int& t_width )
 {
 	// Calculate the message window position and size
 	// TODO: multi-line messages
@@ -2341,7 +2343,7 @@ void pPanel::display_id()
 }
 
 
-void pPanel::get_panel_info( int & RC1, const string & a_name, const string & t_name, const string & w_name, const string & d_name, const string & r_name, const string & c_name )
+void pPanel::get_panel_info( int& RC1, const string& a_name, const string& t_name, const string& w_name, const string& d_name, const string& r_name, const string& c_name )
 {
 	map<string, dynArea *>::iterator it ;
 
@@ -2363,7 +2365,7 @@ void pPanel::get_panel_info( int & RC1, const string & a_name, const string & t_
 }
 
 
-void pPanel::attr( int & RC1, const string & field, const string & attrs )
+void pPanel::attr( int& RC1, const string& field, const string& attrs )
 {
 	RC1 = 0 ;
 

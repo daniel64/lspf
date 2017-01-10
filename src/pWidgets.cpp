@@ -23,7 +23,7 @@
 #define LOGOUT   aplog
 
 
-int field::field_init( int MAXW, int MAXD, const string & line )
+int field::field_init( int MAXW, int MAXD, const string& line )
 {
 	// Format of field entry in panels (FORMAT 1 VERSION 1 )
 	// FIELD row col len cuaAttr opts field_name
@@ -103,7 +103,7 @@ int field::field_init( int MAXW, int MAXD, const string & line )
 }
 
 
-int dynArea::dynArea_init( int MAXW, int MAXD, const string & line )
+int dynArea::dynArea_init( int MAXW, int MAXD, const string& line )
 {
 	// Format of OPTION entry in panels (FORMAT 1 VERSION 1 )
 	// DYNAREA row col width depth   A-name S-name DATAIN() DATAOUT() USERMOD() DATAMOD()
@@ -701,7 +701,7 @@ int field::field_attr( string attrs )
 		cua    = strip( substr( attrs, (p1 + 5), (p2 - (p1 + 5)) ) ) ;
 		cua    = strip( cua, 'B', '"' ) ;
 		attrs  = delstr( attrs, p1, (p2 - p1 + 1) ) ;
-		if ( strip( attrs ) != "" ) { return 20 ; }
+		if ( trim( attrs ) != "" ) { return 20 ; }
 		if ( cuaAttrName.find( cua ) == cuaAttrName.end() ) { return 20 ; }
 		if ( cua == "PS" || field_cua == PS ) { return 20 ; }
 		field_cua = cuaAttrName[ cua ] ;
@@ -755,7 +755,7 @@ int field::field_attr( string attrs )
 		else if ( hilite == "USCORE"  ) { field_colour = field_colour | A_UNDERLINE ; }
 		else                            { return 20                                 ; }
 	}
-	if ( strip( attrs ) != "" ) { return 20 ; }
+	if ( trim( attrs ) != "" ) { return 20 ; }
 	field_usecua = false ;
 	return 0 ;
 }
@@ -802,10 +802,10 @@ void field::field_prep_input()
 	switch( field_just )
 	{
 		case 'L':
-		case 'R': field_value = strip( field_value, 'B', ' ' ) ;
+		case 'R': trim( field_value ) ;
 			  break ;
 
-		case 'A': field_value = strip( field_value, 'T', ' ' ) ;
+		case 'A': trim_right( field_value ) ;
 			  break ;
 	}
 }
@@ -822,10 +822,10 @@ void field::field_prep_display()
 
 	switch( field_just )
 	{
-		case 'L': field_value = strip( field_value, 'B', ' ' ) ;
+		case 'L': trim( field_value ) ;
 			  break ;
 
-		case 'R': field_value = strip( field_value, 'T', ' ' ) ;
+		case 'R': trim_right( field_value ) ;
 			  field_value = right( field_value, field_length, 0x00 ) ;
 	}
 }
@@ -837,7 +837,7 @@ void field::field_set_caps()
 
 	if ( field_caps )
 	{
-		field_value = upper( field_value ) ;
+		iupper( field_value ) ;
 	}
 }
 
@@ -993,7 +993,7 @@ bool field::cursor_on_field( uint row, uint col )
 }
 
 
-int literal::literal_init( int MAXW, int MAXD, int & opt_field, const string & line )
+int literal::literal_init( int MAXW, int MAXD, int& opt_field, const string& line )
 {
 	// Format of literal entry in panels (FORMAT 1 VERSION 1 )
 	// LITERAL row col cuaAttr (EXPAND) value
@@ -1073,7 +1073,7 @@ int literal::literal_init( int MAXW, int MAXD, int & opt_field, const string & l
 }
 
 
-void literal::literal_display( WINDOW * win, const string & s  )
+void literal::literal_display( WINDOW * win, const string& s  )
 {
 	wattrset( win, cuaAttr[ literal_cua ] ) ;
 	mvwaddstr( win, literal_row, literal_col, s.c_str() ) ;
@@ -1098,7 +1098,7 @@ void dynArea::setsize( int row, int col, int width, int depth )
 }
 
 
-void abc::add_pdc( const string & name, const string & run, const string & parm, const string & unavail )
+void abc::add_pdc( const string& name, const string& run, const string& parm, const string& unavail )
 {
 	pdc m_pdc ;
 
@@ -1179,7 +1179,7 @@ pdc abc::retrieve_pdChoice( uint row, uint col )
 }
 
 
-int Box::box_init( int MAXW, int MAXD, const string & line )
+int Box::box_init( int MAXW, int MAXD, const string& line )
 {
 	// Format of BOX entry in panels (FORMAT 1 VERSION 1 )
 	// BOX  row col width depth cuaAttr  B-title

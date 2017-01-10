@@ -190,7 +190,7 @@ void PPSP01A::show_log( string fileName )
 
 		MSG   = "" ;
 		Restu = subword( ZCMD, 2 ) ;
-		ZCMD  = upper( ( ZCMD ) )  ;
+		iupper( ( ZCMD ) )  ;
 		w1    = word( ZCMD, 1 )    ;
 		w2    = word( ZCMD, 2 )    ;
 		w3    = word( ZCMD, 3 )    ;
@@ -351,7 +351,7 @@ void PPSP01A::show_log( string fileName )
 }
 
 
-void PPSP01A::read_file( const string & fileName )
+void PPSP01A::read_file( const string& fileName )
 {
 	string inLine ;
 	std::ifstream fin( fileName.c_str() ) ;
@@ -375,7 +375,7 @@ void PPSP01A::read_file( const string & fileName )
 }
 
 
-bool PPSP01A::file_has_changed( const string & fileName, int & fsize )
+bool PPSP01A::file_has_changed( const string& fileName, int& fsize )
 {
 	struct stat results   ;
 
@@ -427,7 +427,7 @@ void PPSP01A::find_lines( string fnd )
 {
 	int i ;
 
-	fnd = upper( fnd ) ;
+	iupper( fnd ) ;
 	for ( i = 1 ; i < (maxLines-1) ; i++ )
 	{
 		if ( upper( data[ i ] ).find( fnd ) == string::npos ) { excluded[ i ] = true ; }
@@ -1106,7 +1106,7 @@ void PPSP01A::colourSettings()
 }
 
 
-int PPSP01A::setScreenAttrs( const string & name, int itr, string COLOUR, string INTENS, string HILITE )
+int PPSP01A::setScreenAttrs( const string& name, int itr, string COLOUR, string INTENS, string HILITE )
 {
 	string t ;
 	char   c ;
@@ -1161,7 +1161,7 @@ int PPSP01A::setScreenAttrs( const string & name, int itr, string COLOUR, string
 }
 
 
-void PPSP01A::setISPSVar( const string & var, string val )
+void PPSP01A::setISPSVar( const string& var, string val )
 {
 	string isps_var ;
 
@@ -1193,9 +1193,8 @@ void PPSP01A::todoList()
 }
 
 
-void PPSP01A::poolVariables( const string & applid )
+void PPSP01A::poolVariables( const string& applid )
 {
-	int i       ;
 	string MSG  ;
 	string cw   ;
 	string w2   ;
@@ -1214,12 +1213,12 @@ void PPSP01A::poolVariables( const string & applid )
 
 	getpoolVariables( "" ) ;
 
-	MSG = "" ;
-	i   = 1  ;
+	MSG    = "" ;
+	ZTDTOP = 1  ;
 	while ( true )
 	{
-		tbtop( VARLST )     ;
-		tbskip( VARLST, i ) ;
+		tbtop( VARLST )  ;
+		tbskip( VARLST, ZTDTOP ) ;
 		if ( MSG == "" ) { ZCMD = "" ; }
 		tbdispl( VARLST, "PPSP01AV", MSG, "ZCMD" ) ;
 		if ( RC  >  8 ) { abend() ; }
@@ -1230,7 +1229,6 @@ void PPSP01A::poolVariables( const string & applid )
 		w2 = word( ZCMD, 2 ) ;
 		if ( cw == "O" ) { tbend( VARLST ) ; getpoolVariables( w2 ) ; continue ; }
 		if ( ZCMD != "" ) { MSG = "PSYS018" ; continue ; }
-		i = ZTDTOP ;
 		while ( ZTDSELS > 0 )
 		{
 			if ( SEL == "D" )
@@ -1242,7 +1240,7 @@ void PPSP01A::poolVariables( const string & applid )
 				control( "ERRORS", "CANCEL" ) ;
 				SEL = "" ;
 			}
-			tbput( VARLST )     ;
+			tbput( VARLST ) ;
 			if ( ZTDSELS > 1 )
 			{
 				tbdispl( VARLST ) ;
@@ -1256,7 +1254,7 @@ void PPSP01A::poolVariables( const string & applid )
 }
 
 
-void PPSP01A::getpoolVariables( const string & pattern )
+void PPSP01A::getpoolVariables( const string& pattern )
 {
 	// SHARED 1  - shared variable pool
 	// SHARED 2  - default variable pool (@DEFSHAR)
@@ -1374,6 +1372,7 @@ void PPSP01A::getpoolVariables( const string & pattern )
 void PPSP01A::showPaths()
 {
 	int i ;
+
 	string PGM      ;
 	string LIBDEFM  ;
 	string LIBDEFP  ;
@@ -1523,17 +1522,16 @@ void PPSP01A::showPaths()
 
 	tbtop( PATHLST ) ;
 	MSG = "" ;
-	i   = 1  ;
+	ZTDTOP = 1 ;
 	while ( true )
 	{
-		tbtop( PATHLST )     ;
-		tbskip( PATHLST, i ) ;
+		tbtop( PATHLST ) ;
+		tbskip( PATHLST, ZTDTOP ) ;
 		if ( MSG == "" ) { ZCMD  = "" ; }
 		tbdispl( PATHLST, "PPSP01AP", MSG, "ZCMD" ) ;
 		if ( RC  >  8 ) { abend() ; }
 		if ( RC ==  8 ) { break   ; }
 		MSG = ""     ;
-		i   = ZTDTOP ;
 		while ( ZTDSELS > 0 )
 		{
 			if ( (SEL == "B") || (SEL == "L") || (SEL == "S"))
@@ -1547,8 +1545,8 @@ void PPSP01A::showPaths()
 				else MESSAGE = "*Error*"    ;
 			}
 			else if ( SEL != "" ) { MESSAGE = "*Error*" ; }
-			SEL = ""             ;
-			tbput( PATHLST )     ;
+			SEL = ""         ;
+			tbput( PATHLST ) ;
 			if ( ZTDSELS > 1 )
 			{
 				tbdispl( PATHLST ) ;
@@ -1563,8 +1561,6 @@ void PPSP01A::showPaths()
 
 void PPSP01A::showCommandTables()
 {
-	int i ;
-
 	string CMDTAB   ;
 	string OCMDTAB  ;
 	string ZCTVERB  ;
@@ -1608,16 +1604,15 @@ void PPSP01A::showCommandTables()
 		CMDTAB = "ISP" ;
 		tbopen( CMDTAB+"CMDS", NOWRITE, "", SHARE ) ;
 	}
-	i = 1 ;
+	ZTDTOP = 1 ;
 	panel = "PPSP01AC" ;
 	control( "PASSTHRU", "LRSCROLL", "PASON" ) ;
 	while ( true )
 	{
-		tbtop( CMDTAB+"CMDS" )     ;
-		tbskip( CMDTAB+"CMDS", i ) ;
+		tbtop( CMDTAB+"CMDS" ) ;
+		tbskip( CMDTAB+"CMDS", ZTDTOP ) ;
 		ZCMD  = "" ;
 		tbdispl( CMDTAB+"CMDS", panel, MSG, "ZCMD" ) ;
-		i = ZTDTOP ;
 		if ( RC  >  8 ) { abend() ; }
 		if ( RC ==  8 ) { break   ; }
 		MSG = "" ;
@@ -1650,7 +1645,6 @@ void PPSP01A::showCommandTables()
 
 void PPSP01A::showLoadedClasses()
 {
-	int i      ;
 	int j      ;
 	int ws     ;
 
@@ -1670,10 +1664,10 @@ void PPSP01A::showLoadedClasses()
 
 	MODLST = "MODLST" + right( d2ds( taskid() ), 2, '0' ) ;
 
-	MSG   = ""   ;
-	i     = 1    ;
-	ref   = true ;
-	psort = "APPL,C,A" ;
+	MSG    = ""   ;
+	ZTDTOP = 1    ;
+	ref    = true ;
+	psort  = "APPL,C,A" ;
 	while ( true )
 	{
 		if ( ref )
@@ -1694,15 +1688,14 @@ void PPSP01A::showLoadedClasses()
 			}
 			ref = false ;
 		}
-		tbtop( MODLST )     ;
-		tbskip( MODLST, i ) ;
+		tbtop( MODLST ) ;
+		tbskip( MODLST, ZTDTOP ) ;
 		if ( MSG == "" ) { ZCMD = "" ; }
 		tbdispl( MODLST, "PPSP01ML", MSG, "ZCMD" ) ;
 		if ( RC  >  8 ) { abend() ; }
 		if ( RC ==  8 ) { break   ; }
 		MSG = "" ;
 		if ( ZTDSELS == 0 && ZCMD == "" ) { ref = true ; }
-		i   = ZTDTOP ;
 		ws = words( ZCMD )   ;
 		w1 = word( ZCMD, 1 ) ;
 		w2 = word( ZCMD, 2 ) ;
@@ -1823,7 +1816,6 @@ void PPSP01A::showSavedFileList()
 
 void PPSP01A::showTasks()
 {
-	int i    ;
 	int retc ;
 
 	string SEL   ;
@@ -1845,17 +1837,16 @@ void PPSP01A::showTasks()
 
 	updateTasks( TASKLST ) ;
 
-	i = 1 ;
+	ZTDTOP = 1 ;
 	while ( true )
 	{
-		tbtop( TASKLST )     ;
-		tbskip( TASKLST, i ) ;
+		tbtop( TASKLST ) ;
+		tbskip( TASKLST, ZTDTOP ) ;
 		ZCMD  = "" ;
 		tbdispl( TASKLST, "PPSP01TK", MSG, "ZCMD" ) ;
 		if ( RC  >  8 ) { abend() ; }
 		if ( RC ==  8 ) { break   ; }
 		MSG = ""     ;
-		i   = ZTDTOP ;
 		while ( ZTDSELS > 0 )
 		{
 			if ( SEL == "K")
@@ -2053,7 +2044,8 @@ void PPSP01A::keylistTables()
 		tbadd( KEYP )    ;
 	}
 
-	MSG = "" ;
+	MSG    = "" ;
+	ZTDTOP = 1  ;
 	while ( true )
 	{
 		tbtop( KEYP )     ;
@@ -2207,6 +2199,7 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 
 	tbsort( KLST, "TBK2LST,C,A" ) ;
 
+	ZTDTOP = 1 ;
 	while ( true )
 	{
 		tbtop( KLST ) ;
@@ -2303,7 +2296,7 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 }
 
 
-void PPSP01A::viewKeylist( const string & tab, const string & list )
+void PPSP01A::viewKeylist( const string& tab, const string& list )
 {
 	// Field names: KEYLISTN KEYnDEF KEYnLAB KEYnATR (n=1 to 24)
 	// TD Field names: KEYNUM KEYDEF KEYATTR KEYLAB
@@ -2353,6 +2346,7 @@ void PPSP01A::viewKeylist( const string & tab, const string & list )
 	}
 	tbend( tab ) ;
 
+	ZTDTOP = 1 ;
 	while ( true )
 	{
 		tbtop( KLST ) ;
@@ -2368,7 +2362,7 @@ void PPSP01A::viewKeylist( const string & tab, const string & list )
 }
 
 
-void PPSP01A::editKeylist( const string & tab, const string & list )
+void PPSP01A::editKeylist( const string& tab, const string& list )
 {
 	// Field names: KEYLISTN KEYnDEF KEYnLAB KEYnATR (n=1 to 24)
 	// TD Field names: KEYNUM KEYDEF KEYATTR KEYLAB
@@ -2419,6 +2413,7 @@ void PPSP01A::editKeylist( const string & tab, const string & list )
 	}
 	tbend( tab ) ;
 
+	ZTDTOP = 1 ;
 	while ( true )
 	{
 		tbtop( KLST ) ;
@@ -2503,7 +2498,7 @@ void PPSP01A::createKeyTable( string tab )
 }
 
 
-void PPSP01A::runApplication( const string & appl )
+void PPSP01A::runApplication( const string& appl )
 {
 	select( "PGM("+appl+") NEWAPPL(ISP) NEWPOOL PASSLIB" ) ;
 }

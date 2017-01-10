@@ -49,7 +49,7 @@ class dynArea
 		string dynArea_FieldIn   ;
 		string dynArea_shadow_name ;
 
-		int  dynArea_init( int MAXW, int MAXD, const string & line ) ;
+		int  dynArea_init( int MAXW, int MAXD, const string& line ) ;
 		void setsize( int, int, int, int ) ;
 
        friend class pPanel ;
@@ -103,7 +103,7 @@ class field
 		unsigned int field_scroll_start ;
 		string       field_shadow_value ;
 
-		int  field_init( int MAXW, int MAXD, const string & line ) ;
+		int  field_init( int MAXW, int MAXD, const string& line ) ;
 		bool cursor_on_field( uint row, uint col ) ;
 		void display_field( WINDOW *, bool ) ;
 		bool edit_field_insert( WINDOW * win, char ch, int row, bool, bool ) ;
@@ -142,8 +142,8 @@ class literal
 		string  literal_value  ;
 		string  literal_name   ;
 
-		int  literal_init( int MAXW, int MAXD, int & opt_field, const string & line ) ;
-		void literal_display( WINDOW *, const string & ) ;
+		int  literal_init( int MAXW, int MAXD, int& opt_field, const string& line ) ;
+		void literal_display( WINDOW *, const string& ) ;
 		bool cursor_on_literal( uint row, uint col ) ;
        friend class pPanel ;
 } ;
@@ -188,7 +188,7 @@ class abc
 			}
 			} ;
 
-		void add_pdc( const string &, const string &, const string &, const string & ) ;
+		void add_pdc( const string&, const string&, const string&, const string& ) ;
 		void display_abc_sel( WINDOW * )   ;
 		void display_abc_unsel( WINDOW * ) ;
 		void display_pd( uint, uint ) ;
@@ -197,7 +197,7 @@ class abc
 
 	private:
 		bool   pd_created ;
-		vector< pdc > pdcList ;
+		vector<pdc> pdcList ;
 		WINDOW * win   ;
 		PANEL  * panel ;
 } ;
@@ -206,7 +206,7 @@ class abc
 class Box
 {
 	public:
-		int  box_init( int MAXW, int MAXD, const string & line ) ;
+		int  box_init( int MAXW, int MAXD, const string& line ) ;
 		void display_box( WINDOW * )      ;
 
 	private:

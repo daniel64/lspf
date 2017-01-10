@@ -246,13 +246,13 @@ void PBRO01A::application()
 			if      ( w2 == "ON" )
 			{
 				for_each( shadow.begin(), shadow.end(),
-					  [](b_shadow & a) { a.bs_wShadow = false ; a.bs_vShadow = false ; } ) ;
+					  [](b_shadow& a) { a.bs_wShadow = false ; a.bs_vShadow = false ; } ) ;
 				hilightOn = true  ; rebuildZAREA = true ;
 			}
 			else if ( w2 == "OFF" )
 			{
 				for_each( shadow.begin(), shadow.end(),
-					  [](b_shadow & a) { a.bs_wShadow = false ; a.bs_vShadow = false ; } ) ;
+					  [](b_shadow& a) { a.bs_wShadow = false ; a.bs_vShadow = false ; } ) ;
 				hilightOn = false ; rebuildZAREA = true ;
 			}
 		}
@@ -623,7 +623,7 @@ void PBRO01A::fill_dynamic_area()
 		{
 			t3 = string( ZAREAW, ' ' ) ;
 			t4 = string( ZAREAW, ' ' ) ;
-			if ( k >  0 & k < data.size()-1 )
+			if ( k > 0 && k < data.size()-1 )
 			{
 				ln = data.at( k ).size() - startCol + 1 ;
 				if ( ln > ZAREAW ) ln = ZAREAW       ;
@@ -656,8 +656,8 @@ void PBRO01A::fill_dynamic_area()
 	{
 		for( int k = topLine ; k < (topLine + ZAREAD) ; k++ )
 		{
-			if ( k >  0 & k < data.size()-1 )  t1 = substr( data.at( k ), startCol, ZAREAW ) ;
-			else                               t1 = substr( data.at( k ), 1, ZAREAW ) ;
+			if ( k >  0 && k < data.size()-1 ) { t1 = substr( data.at( k ), startCol, ZAREAW ) ; }
+			else                               { t1 = substr( data.at( k ), 1, ZAREAW )        ; }
 			ZAREA   = ZAREA   + t1 ;
 			if ( ZAREA.size() >= ZASIZE ) { break ; }
 			if ( k == data.size() - 1 )   { break ; }

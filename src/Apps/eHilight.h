@@ -72,19 +72,19 @@ class keyw
 	       int kw_col ;
 } ;
 
-void addASMHilight( hilight &, const string &, string & ) ;
-void addCppHilight( hilight &, const string &, string & ) ;
-void addRxxHilight( hilight &, const string &, string & ) ;
-void addOthHilight( hilight &, const string &, string & ) ;
-void addDefHilight( hilight &, const string &, string & ) ;
+void addASMHilight( hilight&, const string&, string& ) ;
+void addCppHilight( hilight&, const string&, string& ) ;
+void addRxxHilight( hilight&, const string&, string& ) ;
+void addOthHilight( hilight&, const string&, string& ) ;
+void addDefHilight( hilight&, const string&, string& ) ;
 
-map<string, void(*)(hilight &, const string &, string &)> hiRoutine = { { "ASM",     addASMHilight },
-									{ "CPP",     addCppHilight },
-									{ "DEFAULT", addDefHilight },
-									{ "OTHER",   addOthHilight },
-									{ "PANEL",   addDefHilight },
-									{ "REXX",    addRxxHilight } } ;
- map<string, keyw> keywList1 = {
+map<string, void(*)(hilight&, const string&, string&)> hiRoutine = { { "ASM",     addASMHilight },
+								     { "CPP",     addCppHilight },
+								     { "DEFAULT", addDefHilight },
+								     { "OTHER",   addOthHilight },
+								     { "PANEL",   addDefHilight },
+								     { "REXX",    addRxxHilight } } ;
+map<string, keyw> keywList1 = {
   { "alignas",           { 7,  N_RED  } },
   { "alignof",           { 7,  N_RED  } },
   { "and",               { 3,  N_RED  } },
@@ -179,7 +179,7 @@ map<string, void(*)(hilight &, const string &, string &)> hiRoutine = { { "ASM",
   { "xor_eq",            { 6,  N_RED  } } } ;
 
 
- map<string, keyw> keywList2 = {
+map<string, keyw> keywList2 = {
   { "ADDRESS",           { 7,  N_RED  } },
   { "ARG",               { 3,  N_RED  } },
   { "CALL",              { 4,  N_RED  } },

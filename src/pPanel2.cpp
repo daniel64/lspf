@@ -23,7 +23,7 @@
 #define LOGOUT   aplog
 
 
-int pPanel::loadPanel( const string & p_name, const string & paths )
+int pPanel::loadPanel( const string& p_name, const string& paths )
 {
 	int i, j, k          ;
 	int p1, p2           ;
@@ -230,7 +230,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 			if ( i == 0 || j == 0 )
 			{
 				PERR1 = "Invalid )PANEL statement" ;
-				PERR3 = strip( pline ) ;
+				PERR3 = trim( pline ) ;
 				return 20 ;
 			}
 			pVersion = ds2d( word( substr( pline, i+9 ), 1 ) ) ;
@@ -244,7 +244,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 				if ( j == 0 || k == 0 || j > k )
 				{
 					PERR1 = "Invalid )PANEL statement" ;
-					PERR3 = strip( pline ) ;
+					PERR3 = trim( pline ) ;
 					return 20 ;
 				}
 				KEYLISTN = strip( pline.substr( i+8, j-i-9 ) ) ;
@@ -252,7 +252,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 				if ( !isvalidName( KEYLISTN ) || !isvalidName4( KEYAPPL ) )
 				{
 					PERR1 = "Invalid Keylist parameters on )PANEL statement" ;
-					PERR3 = strip( pline ) ;
+					PERR3 = trim( pline ) ;
 					return 20 ;
 				}
 			}
@@ -288,7 +288,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 				if ( !isvalidName( CMDfield ) )
 				{
 					PERR1 = "Invalid command field name '"+ CMDfield +"'" ;
-					PERR3 = strip( pline ) ;
+					PERR3 = trim( pline ) ;
 					return 20 ;
 				}
 			}
@@ -301,7 +301,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 				if ( !isvalidName( Home ) )
 				{
 					PERR1 = "Invalid home field name '"+ Home +"'" ;
-					PERR3 = strip( pline ) ;
+					PERR3 = trim( pline ) ;
 					return 20 ;
 				}
 			}
@@ -332,7 +332,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 				if ( !isvalidName( w1 ) )
 				{
 					PERR1 = "Invalid label '"+ w1 +"'" ;
-					PERR3 = strip( pline ) ;
+					PERR3 = trim( pline ) ;
 					return 20 ;
 				}
 				panstmnt m_stmnt ;
@@ -378,7 +378,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 				if ( !m_VPG.parse( pline ) )
 				{
 					PERR1 = "Invalid VPUT or VGET statement" ;
-					PERR3 = strip( pline ) ;
+					PERR3 = trim( pline ) ;
 					return 20 ;
 				}
 				m_stmnt.ps_vputget = true ;
@@ -398,7 +398,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 				if ( !m_assgn.parse( pline ) )
 				{
 					PERR1 = "Invalid assignment statement" ;
-					PERR3 = strip( pline ) ;
+					PERR3 = trim( pline ) ;
 					return 20 ;
 				}
 				if ( m_assgn.as_isattr && ( fieldList.find( m_assgn.as_lhs ) == fieldList.end() ) )
@@ -406,7 +406,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 					if ( wordpos( m_assgn.as_lhs, tb_fields ) == 0 )
 					{
 						PERR1 = "Invalid .ATTR statement. Field '"+ m_assgn.as_lhs +"' not found" ;
-						PERR3 = strip( pline ) ;
+						PERR3 = trim( pline ) ;
 						return 20 ;
 					}
 					else
@@ -428,7 +428,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 				if ( !m_if.parse( pline ) )
 				{
 					PERR1 = "Invalid IF statement" ;
-					PERR3 = strip( pline ) ;
+					PERR3 = trim( pline ) ;
 					return 20 ;
 				}
 				if ( wordpos( m_if.if_lhs, tb_fields ) > 0 ) { m_if.if_istb = true ; }
@@ -472,7 +472,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 				if ( !found )
 				{
 					PERR1 = "No matching IF statement found for ELSE at column "+ d2ds( m_stmnt.ps_column+1 ) ;
-					PERR3 = strip( pline ) ;
+					PERR3 = trim( pline ) ;
 					return 20 ;
 				}
 				continue ;
@@ -484,19 +484,19 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 				if ( init )
 				{
 					PERR1 = "REFRESH statement is invalid within the )INIT section" ;
-					PERR3 = strip( t1 ) ;
+					PERR3 = trim( t1 ) ;
 					return 20 ;
 				}
 				m_stmnt.ps_refresh = true ;
 				m_stmnt.ps_column  = pline.find_first_not_of( ' ' ) ;
-				pline = upper( pline ) ;
+				iupper( pline ) ;
 				pline = strip( pline.erase( 0, pline.find( "REFRESH" )+7 ) ) ;
 				if ( !isvalidName ( pline ) && pline != "*" )
 				{
 					if ( pline.front() != '(' || pline.back() != ')' )
 					{
 						PERR1 = "Invalid REFRESH statement found in )PROC or )REINIT section" ;
-						PERR3 = strip( t1 ) ;
+						PERR3 = trim( t1 ) ;
 						return 20 ;
 					}
 					pline.pop_back() ;
@@ -515,13 +515,13 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 						if ( !isvalidName( w1 ) )
 						{
 							PERR1 = "Invalid field name '"+ w1 +"' on REFRESH statement" ;
-							PERR3 = strip( t1 ) ;
+							PERR3 = trim( t1 ) ;
 							return 20 ;
 						}
 						if ( fieldList.count( w1 ) == 0 )
 						{
 							PERR1 = "REFRESH field '"+ w1 +"' not on the panel" ;
-							PERR3 = strip( t1 ) ;
+							PERR3 = trim( t1 ) ;
 							return 20 ;
 						}
 						if ( m_stmnt.ps_rlist != "*" ) { m_stmnt.ps_rlist += " " + w1 ; }
@@ -530,7 +530,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 				if ( m_stmnt.ps_rlist == "" )
 				{
 					PERR1 = "Variable name or name-list not coded for 'REFRESH' statement" ;
-					PERR3 = strip( t1 ) ;
+					PERR3 = trim( t1 ) ;
 					return 20 ;
 				}
 				if ( reinit ) { reinstmnts.push_back( m_stmnt ) ; }
@@ -555,7 +555,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 				if ( !isvalidName( w2 ) )
 				{
 					PERR1 = "Invalid label '"+ w2 +"' on GOTO statement" ;
-					PERR3 = strip( pline ) ;
+					PERR3 = trim( pline ) ;
 					return 20 ;
 				}
 				m_stmnt.ps_label  = w2 ;
@@ -572,7 +572,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 				if ( !m_trans.parse( pline ) )
 				{
 					PERR1 = "Invalid TRANS statement" ;
-					PERR3 = strip( pline ) ;
+					PERR3 = trim( pline ) ;
 					return 20 ;
 				}
 				m_stmnt.ps_trans  = true ;
@@ -589,7 +589,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 				if ( !m_trunc.parse( pline ) )
 				{
 					PERR1 = "Invalid TRUNC statement" ;
-					PERR3 = strip( pline ) ;
+					PERR3 = trim( pline ) ;
 					return 20 ;
 				}
 				m_stmnt.ps_trunc  = true ;
@@ -606,7 +606,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 				if ( !m_VER.parse( pline ) )
 				{
 					PERR1 = "Invalid VER statement" ;
-					PERR3 = strip( pline ) ;
+					PERR3 = trim( pline ) ;
 					return 20 ;
 				}
 				if ( wordpos( m_VER.ver_var, tb_fields ) > 0 )
@@ -630,20 +630,20 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 			if ( i == 0 || j == 0 )
 			{
 				PERR1 = "Invalid FIELD help entry in )HELP section.  Missing bracket" ;
-				PERR3 = strip( pline ) ;
+				PERR3 = trim( pline ) ;
 				return 20 ;
 			}
 			fld = strip( substr( pline, i+6, j-i-6 ) ) ;
 			if ( !isvalidName( fld ) )
 			{
 				PERR1 = "Invalid HELP entry field name '"+ fld +"'" ;
-				PERR3 = strip( pline ) ;
+				PERR3 = trim( pline ) ;
 				return 20 ;
 			}
 			if ( fieldList.find( fld ) == fieldList.end() )
 			{
 				PERR1 = "Invalid HELP statement.  Field '"+ fld +"' does not exist" ;
-				PERR3 = strip( pline ) ;
+				PERR3 = trim( pline ) ;
 				return 20 ;
 			}
 
@@ -652,14 +652,14 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 			if ( i == 0 || j == 0 )
 			{
 				PERR1 = "Invalid FIELD help entry in )HELP section.  Missing bracket" ;
-				PERR3 = strip( pline ) ;
+				PERR3 = trim( pline ) ;
 				return 20 ;
 			}
 			hlp = strip( substr( pline, i+6, j-i-6 ) ) ;
 			if ( !isvalidName( hlp ) )
 			{
 				PERR1 = "Invalid HELP entry name '"+ hlp +"'" ;
-				PERR3 = strip( pline ) ;
+				PERR3 = trim( pline ) ;
 				return 20 ;
 			}
 			fieldHList[ fld ] = hlp ;
@@ -685,14 +685,14 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 					if ( !found )
 					{
 						PERR1 = "Field '"+ m_pnts.pnts_field +"' not found in panel" ;
-						PERR3 = strip( pline ) ;
+						PERR3 = trim( pline ) ;
 						return 20 ;
 					}
 				}
 				if ( fieldList.find( m_pnts.pnts_var ) == fieldList.end() )
 				{
 					PERR1 = "Variable '"+ m_pnts.pnts_var +"' not found in panel" ;
-					PERR3 = strip( pline ) ;
+					PERR3 = trim( pline ) ;
 					return 20 ;
 				}
 				pntsTable[ m_pnts.pnts_field ] = m_pnts ;
@@ -700,7 +700,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 			else
 			{
 				PERR1 = "Invalid point-and-shoot line" ;
-				PERR3 = strip( pline ) ;
+				PERR3 = trim( pline ) ;
 				return 20 ;
 			}
 			continue ;
@@ -719,7 +719,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 					if ( fieldList.find( t1 ) == fieldList.end() )
 					{
 						PERR1 = "Field '"+ t1 +"' not found on panel" ;
-						PERR3 = strip( pline ) ;
+						PERR3 = trim( pline ) ;
 						return 20 ;
 					}
 				}
@@ -727,7 +727,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 			if ( i == 0 || j == 0 )
 			{
 				PERR1 = "Invalid format of FIELD() definition" ;
-				PERR3 = strip( pline ) ;
+				PERR3 = trim( pline ) ;
 				return 20 ;
 			}
 			i = pos( "EXEC('", pline ) ;
@@ -743,7 +743,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 			if ( i == 0 || j == 0 )
 			{
 				PERR1 = "Invalid format of EXEC() definition" ;
-				PERR3 = strip( pline ) ;
+				PERR3 = trim( pline ) ;
 				return 20 ;
 			}
 			i = pos( "PASS(", pline ) ;
@@ -762,14 +762,14 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 				if ( fieldList.find( ww ) == fieldList.end() )
 				{
 					PERR1 = "Field '"+ ww +"' passed on field command for '"+ t1 +"' is not defined in panel body" ;
-					PERR3 = strip( pline ) ;
+					PERR3 = trim( pline ) ;
 					return 20 ;
 				}
 			}
 			if ( fieldExcTable.find( t1 ) != fieldExcTable.end() )
 			{
 				PERR1 = "Duplicate field command entry in )FIELD panel section for '"+ t1 +"'" ;
-				PERR3 = strip( pline ) ;
+				PERR3 = trim( pline ) ;
 				return 20 ;
 			}
 			fieldExcTable[ t1 ] = t_fe ;
@@ -779,7 +779,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 		if ( !body )
 		{
 			PERR1 = "Invalid line detected" ;
-			PERR3 = strip( pline ) ;
+			PERR3 = trim( pline ) ;
 			return 20 ;
 		}
 		else if ( w1 == "PANELTITLE" )
@@ -810,7 +810,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 			if ( RC > 0 )
 			{
 				PERR1 = "Error creating literal" ;
-				PERR3 = strip( pline ) ;
+				PERR3 = trim( pline ) ;
 				delete m_lit ;
 				return 20 ;
 			}
@@ -823,14 +823,14 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 			if ( !isvalidName( w7 ) )
 			{
 				PERR1 = "Invalid field name '"+ w7 +"'" ;
-				PERR3 = strip( pline ) ;
+				PERR3 = trim( pline ) ;
 				return 20 ;
 			}
 
 			if ( fieldList.find( w7 ) != fieldList.end() )
 			{
 				PERR1 = "Field '"+ w7 +"' already exists on panel" ;
-				PERR3 = strip( pline ) ;
+				PERR3 = trim( pline ) ;
 				return 20 ;
 			}
 
@@ -839,7 +839,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 			if ( RC > 0 )
 			{
 				PERR1 = "Error creating field" ;
-				PERR3 = strip( pline ) ;
+				PERR3 = trim( pline ) ;
 				delete m_fld ;
 				return 20    ;
 			}
@@ -853,7 +853,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 			if ( !isvalidName( w6 ) )
 			{
 				PERR1 = "Invalid field name '"+ w6 +"' entered for dynamic area" ;
-				PERR3 = strip( pline ) ;
+				PERR3 = trim( pline ) ;
 				return 20 ;
 			}
 
@@ -862,7 +862,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 			if ( RC > 0 )
 			{
 				PERR1 = "Error creating dynArea" ;
-				PERR3 = strip( pline ) ;
+				PERR3 = trim( pline ) ;
 				delete m_dynArea ;
 				return 20 ;
 			}
@@ -894,7 +894,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 			if ( RC > 0 )
 			{
 				PERR1 = "Error creating box" ;
-				PERR3 = strip( pline ) ;
+				PERR3 = trim( pline ) ;
 				delete m_box ;
 				return 20 ;
 			}
@@ -941,7 +941,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 			if ( RC > 0 )
 			{
 				PERR1 = "Error creating pdc" ;
-				PERR3 = strip( pline ) ;
+				PERR3 = trim( pline ) ;
 				return 20 ;
 			}
 			continue ;
@@ -993,7 +993,7 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 			if ( cuaAttrName.find( w4 ) == cuaAttrName.end() )
 			{
 				PERR1 = "Unknown field CUA attribute type '"+ w4 + "'" ;
-				PERR3 = strip( pline ) ;
+				PERR3 = trim( pline ) ;
 				return 20 ;
 			}
 			fType = cuaAttrName[ w4 ] ;
@@ -1005,15 +1005,19 @@ int pPanel::loadPanel( const string & p_name, const string & paths )
 		else
 		{
 			PERR1 = "Invalid line detected" ;
-			PERR3 = strip( pline ) ;
+			PERR3 = trim( pline ) ;
 			return 20 ;
 		}
 	}
 
-	if ( scrollOn && ( fieldList.find( "ZSCROLL" ) == fieldList.end() ) )
+	if ( scrollOn )
 	{
-		PERR1 = "Field ZSCROLL not defined for scrollable panel" ;
-		return 20 ;
+		if ( fieldList.find( "ZSCROLL" ) == fieldList.end() )
+		{
+			PERR1 = "Field ZSCROLL not defined for scrollable panel" ;
+			return 20 ;
+		}
+		fieldList[ "ZSCROLL" ]->field_caps = true ;
 	}
 	if ( fieldList.find( Home ) == fieldList.end() )
 	{

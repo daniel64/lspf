@@ -104,5 +104,7 @@ literal 24 16  NT "to terminate dialogue"
 )INIT
 .CURSOR = ZCMD
 &ZCMD   = &Z
+
 )PROC
+
 )END

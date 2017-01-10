@@ -1039,7 +1039,7 @@ void PTEST01::opt5()
 			log( "A", "ZAREA >>" << ZAREA1 << "<<" << endl ; )
 			log( "A", "ZSHADOW >>" << ZSHADOW1 << "<<" << endl ; )
 		}
-		ZCMD = upper( ZCMD ) ;
+		iupper( ZCMD ) ;
 		if ( word( ZCMD, 1 ) == "GOTO" )
 		{
 			CURFLD = "ZAREA1" ;

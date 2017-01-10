@@ -1,7 +1,7 @@
 /*
   Copyright (c) 2015 Daniel John Erdos
 
-  This program is free software; you can redistribute it and/or modifyf
+  This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
@@ -43,7 +43,7 @@ bool IFSTMNT::parse( string s )
 
 	p1 = s.find( '(' ) ;
 	if ( p1 == string::npos ) { return false ; }
-	s = strip( s.erase( 0, p1+1 ) ) ;
+	trim( s.erase( 0, p1+1 ) ) ;
 
 	p1 = s.find( '(' ) ;
 	if ( p1 != string::npos )
@@ -51,12 +51,10 @@ bool IFSTMNT::parse( string s )
 		t = strip( s.substr( 0, p1 ) ) ;
 		if ( t == "VER" )
 		{
-			p2 = s.find_last_of( ")" ) ;
-			if ( p2 == string::npos ) { return false ; }
-			t = s.substr( 0, p2 ) ;
-			if ( !if_verify.parse( t ) ) { return false ; }
+			if ( s.back() != ')' ) { return false ; }
+			s.pop_back() ;
+			if ( !if_verify.parse( s ) ) { return false ; }
 			if ( if_verify.ver_msgid != "" ) { return false ; }
-			if ( strip( s.substr( p2+1 ) ) != "" ) { return false ; }
 			if_ver = true ;
 			return true ;
 		}
@@ -81,7 +79,7 @@ bool IFSTMNT::parse( string s )
 	}
 
 	comp = s.substr( p1, p2-p1 ) ;
-	s    = strip( s.erase( 0, p2 ) ) ;
+	trim( s.erase( 0, p2 ) ) ;
 
 	if ( words( if_lhs ) != 1 ) { return false ; }
 	if      ( if_lhs    == ".CURSOR" ) {}
@@ -138,7 +136,7 @@ bool IFSTMNT::parse( string s )
 			p1 = s.find( '\'' ) ;
 			if ( p1 == string::npos ) { return false ; }
 			t  = s.substr( 0, p1 ) ;
-			s  = strip( s.erase( 0, p1+1 ) ) ;
+			trim( s.erase( 0, p1+1 ) ) ;
 			p1 = s.find( ',' ) ;
 			if ( p1 == string::npos )
 			{
@@ -178,7 +176,7 @@ bool IFSTMNT::parse( string s )
 			if_isvar.push_back( false ) ;
 		}
 		if_rhs.push_back( t ) ;
-		s = strip( s.erase( 0, p1+1 ) ) ;
+		trim( s.erase( 0, p1+1 ) ) ;
 		if ( s == "" && !f_end )  { return false ; }
 		if ( f_end ) { break ; }
 	}
@@ -227,7 +225,7 @@ bool ASSGN::parse( string s )
 		if ( !isvalidName( as_lhs ) ) { return false ; }
 	}
 	else  { return false ; }
-	s = strip( s.erase( 0, p+1 ) ) ;
+	trim( s.erase( 0, p+1 ) ) ;
 	if ( s[ 0 ] == '&' )
 	{
 
@@ -244,96 +242,96 @@ bool ASSGN::parse( string s )
 		p = s.find( '\'' ) ;
 		if ( p == string::npos ) { return false ; }
 		as_rhs = s.substr( 0, p ) ;
-		s = strip( s.erase( 0, p+1 ) ) ;
+		trim( s.erase( 0, p+1 ) ) ;
 		if ( s != "" )  { return false ; }
 	}
 	else if ( upper( s.substr( 0, 4 ) ) == "DIR(" )
 	{
-		s = upper( s )  ;
-		s = strip( s.erase( 0, 4 ) ) ;
+		iupper( s )  ;
+		trim( s.erase( 0, 4 ) ) ;
 		p = s.find( ')' ) ;
 		if ( p == string::npos ) { return false ; }
 		as_rhs = strip( s.substr( 0, p ) ) ;
 		if ( !isvalidName( as_rhs ) ) { return false ; }
-		s = strip( s.erase( 0, p+1 ) ) ;
+		trim( s.erase( 0, p+1 ) ) ;
 		if ( s != "" )  { return false ; }
 		as_isvar  = true ;
 		as_chkdir = true ;
 	}
 	else if ( upper( s.substr( 0, 7 ) ) == "EXISTS(" )
 	{
-		s = upper( s )  ;
-		s = strip( s.erase( 0, 7 ) ) ;
+		iupper( s )  ;
+		trim( s.erase( 0, 7 ) ) ;
 		p = s.find( ')' ) ;
 		if ( p == string::npos ) { return false ; }
 		as_rhs = strip( s.substr( 0, p ) ) ;
 		if ( !isvalidName( as_rhs ) ) { return false ; }
-		s = strip( s.erase( 0, p+1 ) ) ;
+		trim( s.erase( 0, p+1 ) ) ;
 		if ( s != "" )  { return false ; }
 		as_isvar   = true ;
 		as_chkexst = true ;
 	}
 	else if ( upper( s.substr( 0, 5 ) ) == "FILE(" )
 	{
-		s = upper( s )  ;
-		s = strip( s.erase( 0, 5 ) ) ;
+		iupper( s )  ;
+		trim( s.erase( 0, 5 ) ) ;
 		p = s.find( ')' ) ;
 		if ( p == string::npos ) { return false ; }
 		as_rhs = strip( s.substr( 0, p ) ) ;
 		if ( !isvalidName( as_rhs ) ) { return false ; }
-		s = strip( s.erase( 0, p+1 ) ) ;
+		trim( s.erase( 0, p+1 ) ) ;
 		if ( s != "" )  { return false ; }
 		as_isvar   = true ;
 		as_chkfile = true ;
 	}
 	else if ( upper( s.substr( 0, 7 ) ) == "LENGTH(" )
 	{
-		s = upper( s )  ;
-		s = strip( s.erase( 0, 7 ) ) ;
+		iupper( s )  ;
+		trim( s.erase( 0, 7 ) ) ;
 		p = s.find( ')' ) ;
 		if ( p == string::npos ) { return false ; }
 		as_rhs = strip( s.substr( 0, p ) ) ;
 		if ( !isvalidName( as_rhs ) ) { return false ; }
-		s = strip( s.erase( 0, p+1 ) ) ;
+		trim( s.erase( 0, p+1 ) ) ;
 		if ( s != "" )  { return false ; }
 		as_isvar  = true ;
 		as_retlen = true ;
 	}
 	else if ( upper( s.substr( 0, 8 ) ) == "REVERSE(" )
 	{
-		s = upper( s )  ;
-		s = strip( s.erase( 0, 8 ) ) ;
+		iupper( s )  ;
+		trim( s.erase( 0, 8 ) ) ;
 		p = s.find( ')' ) ;
 		if ( p == string::npos ) { return false ; }
 		as_rhs = strip( s.substr( 0, p ) ) ;
 		if ( !isvalidName( as_rhs ) ) { return false ; }
-		s = strip( s.erase( 0, p+1 ) ) ;
+		trim( s.erase( 0, p+1 ) ) ;
 		if ( s != "" )  { return false ; }
 		as_isvar   = true ;
 		as_reverse = true ;
 	}
 	else if ( upper( s.substr( 0, 6 ) ) == "WORDS(" )
 	{
-		s = upper( s )  ;
-		s = strip( s.erase( 0, 6 ) ) ;
+		iupper( s )  ;
+		trim( s.erase( 0, 6 ) ) ;
 		p = s.find( ')' ) ;
 		if ( p == string::npos ) { return false ; }
 		as_rhs = strip( s.substr( 0, p ) ) ;
 		if ( !isvalidName( as_rhs ) ) { return false ; }
-		s = strip( s.erase( 0, p+1 ) ) ;
+		trim( s.erase( 0, p+1 ) ) ;
 		if ( s != "" )  { return false ; }
 		as_isvar = true ;
 		as_words = true ;
 	}
 	else if ( upper( s.substr( 0, 6 ) ) == "UPPER(" )
 	{
-		s = upper( s )  ;
-		s = strip( s.erase( 0, 6 ) ) ;
+		iupper( s )  ;
+		trim( s.erase( 0, 6 ) ) ;
 		p = s.find( ')' ) ;
 		if ( p == string::npos ) { return false ; }
 		as_rhs = strip( s.substr( 0, p ) ) ;
 		if ( !isvalidName( as_rhs ) ) { return false ; }
-		s = strip( s.erase( 0, p+1 ) ) ;
+		trim( s.erase( 0, p+1 ) ) ;
 		if ( s != "" )  { return false ; }
 		as_isvar = true ;
 		as_upper = true ;
@@ -341,7 +339,7 @@ bool ASSGN::parse( string s )
 	else
 	{
 		if ( words( s ) != 1 ) { return false ; }
-		s = upper( s ) ;
+		iupper( s ) ;
 		if ( s[ 0 ]  == '.' && !findword( s, ".ALARM .CURSOR .HELP .MSG .TRAIL .RESP" ) ) { return false ; }
 		as_rhs = s ;
 	}
@@ -361,10 +359,10 @@ bool VPUTGET::parse( string s )
 
 	string w1 ;
 
-	s  = upper( s )    ;
+	iupper( s )    ;
 	p1 = s.find( '(' ) ;
-	if ( p1 == string::npos ) { w1 = word( s, 1 )               ; s = subword( s, 2 )           ; }
-	else                      { w1 = strip( s.substr( 0, p1 ) ) ; s = strip( s.erase( 0, p1 ) ) ; }
+	if ( p1 == string::npos ) { w1 = word( s, 1 )               ; s = subword( s, 2 )      ; }
+	else                      { w1 = strip( s.substr( 0, p1 ) ) ; trim( s.erase( 0, p1 ) ) ; }
 
 	if ( s == "" ) { return false ; }
 
@@ -389,7 +387,7 @@ bool VPUTGET::parse( string s )
 		s = subword( s, 2 ) ;
 	}
 
-	s = strip( s ) ;
+	trim( s ) ;
 	if ( s == "ASIS" || s == "" ) { vpg_pool  = ASIS    ; }
 	else if ( s == "SHARED" )     { vpg_pool  = SHARED  ; }
 	else if ( s == "PROFILE" )    { vpg_pool  = PROFILE ; }
@@ -410,73 +408,75 @@ bool VERIFY::parse( string s )
 
 
 	int i     ;
-	int p     ;
+	int p1    ;
+	int p2    ;
+	int ws    ;
 	string t  ;
 	string w  ;
-	string w1 ;
-	string w2 ;
 
-	p = s.find( '(' ) ;
-	if ( p == string::npos ) { return false ; }
-	t = upper( strip( s.substr( 0, p ) ) ) ;
-	if ( t != "VER" ) { return false ; }
-	s = upper( strip( s.erase( 0, p ) ) ) ;
-	w1 = word( s, 1 ) ;
+	p1 = s.find( '(' ) ;
+	if ( p1 == string::npos ) { return false ; }
+	p2 = s.find( ')', p1 ) ;
+	if ( p2 == string::npos ) { return false ; }
 
-	p = 0 ;
+	if ( strip( s.substr( p2+1 ) ) != "" ) { return false ; }
+	s = upper( strip( s.substr( p1+1, p2-p1-1 ) ) ) ;
+
 	replace( s.begin(), s.end(), ',', ' ' ) ;
+	w = word( s, 1 ) ;
 
-	if ( w1.size() == 0 ) { return false ; }
-	else if ( w1.size() == 1 )
-	{
-		if ( w1 != "(" ) { return false ; }
-		s = subword( s, 2 )  ;
-		if ( s[ 0 ] != '&' ) { return false ; }
-		s = substr( s, 2 )  ;
-	}
-	else
-	{
-		if ( w1.substr( 0, 2 ) != "(&" ) { return false ; }
-		s = substr( s, 3 ) ;
-	}
-	if ( s.back() != ')' ) { return false ; }
-	s = substr( s, 1, s.size()-1 ) ;
+	if ( w == "" || w.front() != '&' ) { return false ; }
 
-	ver_var = word( s, 1 ) ;
+	ver_var = w.substr( 1 ) ;
 	if ( !isvalidName( ver_var ) ) { return false ; }
 
-	w2 = word( s, 2 ) ;
-
-	if ( w2 == "NB" || w2 == "NONBLANK" ) { ver_nblank = true ; i = 3 ; }
-	else                                  { i = 2 ;                     }
-
-	while ( true )
+	ws = words( s )    ;
+	w  = word( s, ws ) ;
+	if ( w.substr( 0, 4 ) == "MSG=" )
 	{
-		w = word( s, i ) ;
-		if ( w == "" ) break ;
-		if      ( w == "NUM" )  { ver_numeric = true  ; }
-		else if ( w == "LIST" ) { ver_list    = true  ; }
-		else if ( w == "PICT" ) { ver_pict    = true  ; }
-		else if ( w == "HEX" )  { ver_hex     = true  ; }
-		else if ( w == "OCT" )  { ver_octal   = true  ; }
-		else if ( substr( w, 1, 4 ) == "MSG=" )
-		{
-			ver_msgid = strip( substr( w, 5 ) ) ;
-			if ( ver_msgid == "" ) { return false ; }
-		}
-		else if ( ver_pict ) { if ( ver_value != "" ) return false ; else ver_value = w ; }
-		else if ( ver_list ) { ver_value = ver_value + " " + w ; }
-		else    { return false ; }
+		ver_msgid = w.substr( 4 ) ;
+		if ( ver_msgid == "" ) { return false ; }
+		s = subword( s, 1, ws-1 ) ;
+	}
+
+	w = word( s, 2 ) ;
+	if ( w == "NB" || w == "NONBLANK" ) { i = 3 ; ver_nblank = true ; }
+	else                                { i = 2 ;                     }
+
+	w = word( s, i ) ;
+	if ( ver_nblank && w == "" ) { return true ; }
+
+	if      ( w == "NUM"  ) { ver_numeric = true  ; }
+	else if ( w == "LIST" ) { ver_list    = true  ; }
+	else if ( w == "PICT" ) { ver_pict    = true  ; }
+	else if ( w == "HEX"  ) { ver_hex     = true  ; }
+	else if ( w == "OCT"  ) { ver_octal   = true  ; }
+	else                    { return false        ; }
+
+	while ( ver_list )
+	{
 		i++ ;
+		w = word( s, i ) ;
+		if ( w == ""  ) { break        ; }
+		if ( w == ")" ) { return false ; }
+		ver_value += " " + w ;
 	}
-	if ( !ver_nblank && !ver_numeric && !ver_list && !ver_pict && !ver_hex && !ver_octal )
+
+	if ( ver_pict )
 	{
-		return false ;
+		i++ ;
+		w = word( s, i ) ;
+		if ( w == "" || w == ")" ) { return false ; }
+		ver_value = w ;
 	}
+
 	if ( (ver_list || ver_pict) && ver_value == "" )
 	{
 		return false ;
 	}
+
+	i++ ;
+	if ( word( s, i ) != "" ) { return false ; }
 	return true ;
 }
 
@@ -490,7 +490,7 @@ bool TRUNC::parse( string s )
 	int    p ;
 	string t ;
 
-	s = upper( s )    ;
+	iupper( s )    ;
 	p = s.find( '=' ) ;
 	if ( p == string::npos ) { return false ; }
 	trnc_field1 = strip( s.substr( 0, p ) ) ;
@@ -498,9 +498,9 @@ bool TRUNC::parse( string s )
 	if ( trnc_field1[ 0 ] != '&' ) { return false ; }
 	trnc_field1.erase( 0, 1 ) ;
 
-	s = strip( s.erase( 0, p+1 ) ) ;
+	trim( s.erase( 0, p+1 ) ) ;
 	if ( s.substr( 0, 5) != "TRUNC" ) { return false ; }
-	s = strip( s.erase( 0, 5 ) ) ;
+	trim( s.erase( 0, 5 ) ) ;
 	p = s.find( '(' ) ;
 	if ( p != 0 ) { return false ; }
 	s.erase( 0, 1 ) ;
@@ -511,7 +511,7 @@ bool TRUNC::parse( string s )
 	if ( trnc_field2 == "" )     { return false ; }
 	if ( trnc_field2[0] != '&' ) { return false ; }
 	trnc_field2.erase( 0, 1 ) ;
-	s = strip( s.erase( 0, p+1 ) ) ;
+	trim( s.erase( 0, p+1 ) ) ;
 	if ( s == "" ) { return false ; }
 
 	if ( s[0] == '\'' )
@@ -519,7 +519,7 @@ bool TRUNC::parse( string s )
 		if ( s.size() < 4 ) { return false ; }
 		trnc_char = s[ 1 ] ;
 		if ( s[ 2 ] != '\'' ) { return false ; }
-		s = strip( s.erase( 0, 3 ) ) ;
+		trim( s.erase( 0, 3 ) ) ;
 		if ( s != ")" ) { return false ; }
 	}
 	else
@@ -528,7 +528,7 @@ bool TRUNC::parse( string s )
 		p = s.find( ')' ) ;
 		if ( p == string::npos ) { return false ; }
 		t = strip( s.substr( 0, p ) ) ;
-		s = strip( s.erase( 0, p ) )  ;
+		trim( s.erase( 0, p ) )  ;
 		if ( !datatype( t, 'W' ) ) { return false ; }
 		trnc_len = ds2d( t ) ;
 		if ( trnc_len <= 0 ) { return false ; }
@@ -556,7 +556,7 @@ bool TRANS::parse( string s )
 	string v1 ;
 	string v2 ;
 
-	s = upper( s )    ;
+	iupper( s )    ;
 	p = s.find( '=' ) ;
 	if ( p == string::npos ) { return false ; }
 	trns_field1 = strip( s.substr( 0, p ) ) ;
@@ -565,12 +565,12 @@ bool TRANS::parse( string s )
 	trns_field1.erase( 0, 1 ) ;
 	if ( !isvalidName( trns_field1 ) ) { return false ; }
 
-	s = strip( s.erase( 0, p+1 ) ) ;
+	trim( s.erase( 0, p+1 ) ) ;
 	if ( s.substr( 0, 5 ) != "TRANS" ) { return false ; }
-	s = strip( s.erase( 0, 5 ) ) ;
+	trim( s.erase( 0, 5 ) ) ;
 	p = s.find( '(' ) ;
 	if ( p != 0 ) { return false ; }
-	s = strip( s.erase( 0, 1 ) ) ;
+	trim( s.erase( 0, 1 ) ) ;
 	p = s.find( ' ' ) ;
 	if ( p == string::npos ) { return false ; }
 	trns_field2 = strip( s.substr( 0, p ) ) ;
@@ -580,7 +580,7 @@ bool TRANS::parse( string s )
 	trns_field2.erase( 0, 1 ) ;
 	if ( !isvalidName( trns_field2 ) ) { return false ; }
 
-	s = strip( s.erase( 0, p+1 ) ) ;
+	trim( s.erase( 0, p+1 ) ) ;
 	if ( s == "" )         { return false ; }
 	if ( s.back() != ')' ) { return false ; }
 	s.pop_back() ;
@@ -592,7 +592,7 @@ bool TRANS::parse( string s )
 	{
 		p1 = s.find( ',' ) ;
 		v1 = strip( s.substr( 0, p1 ) ) ;
-		s  = strip( s.erase( 0, p1+1 ) ) ;
+		trim( s.erase( 0, p1+1 ) ) ;
 		p2 = s.find( ' ' ) ;
 		if ( p2 == string::npos )
 		{
@@ -602,14 +602,14 @@ bool TRANS::parse( string s )
 		else
 		{
 			v2 = strip( s.substr( 0, p2 ) ) ;
-			s  = strip( s.erase( 0, p2+1 ) ) ;
+			trim( s.erase( 0, p2+1 ) )      ;
 		}
 		if ( trns_list.find( v1 ) != trns_list.end() ) { return false ; }
 		if ( words( v1 ) != 1 ) { return false ; }
 		if ( words( v2 ) != 1 ) { return false ; }
 		trns_list[ v1 ] = v2 ;
 	}
-	s = strip( s ) ;
+	trim( s ) ;
 	if ( substr( s, 1, 4 ) == "MSG=" )
 	{
 		trns_msg = strip( substr( s, 5 ) ) ;
@@ -633,35 +633,38 @@ bool pnts::parse( string s )
 	int p1 ;
 	int p2 ;
 
-	s  = upper( s ) ;
+	iupper( s ) ;
 
-	p1 = pos( "FIELD(", s ) ;
-	if ( p1 == 0 ) { return false ; }
+	p1 = s.find( "FIELD(" ) ;
+	if ( p1 == string::npos ) { return false ; }
 
-	p2 = pos( ")", s, p1 ) ;
-	if ( p2 == 0 ) { return false ; }
-	pnts_field = strip( substr( s, (p1 + 6), (p2 - (p1 + 6)) ) ) ;
+	p2 = s.find( ")", p1 ) ;
+	if ( p2 == string::npos ) { return false ; }
+
+	pnts_field = strip( s.substr( p1+6, p2-p1-6  ) ) ;
 	if ( !isvalidName( pnts_field ) ) { return false ; }
-	s = delstr( s, p1, (p2 - p1 + 1) ) ;
+	s.erase( p1, p2-p1+1) ;
 
-	p1 = pos( "VAR(", s ) ;
-	if ( p1 == 0 ) { return false ; }
+	p1 = s.find( "VAR(" ) ;
+	if ( p1 == string::npos ) { return false ; }
 
-	p2 = pos( ")", s, p1 ) ;
-	if ( p2 == 0 ) { return false ; }
-	pnts_var = strip( substr( s, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
+	p2 = s.find( ")", p1 ) ;
+	if ( p2 == string::npos ) { return false ; }
+
+	pnts_var = strip( s.substr( p1+4, p2-p1-4  ) ) ;
 	if ( !isvalidName( pnts_var ) ) { return false ; }
-	s = delstr( s, p1, (p2 - p1 + 1) ) ;
+	s.erase( p1, p2-p1+1) ;
 
-	p1 = pos( "VAL(", s ) ;
-	if ( p1 == 0 ) { return false ; }
+	p1 = s.find( "VAL(" ) ;
+	if ( p1 == string::npos ) { return false ; }
 
-	p2 = pos( ")", s, p1 ) ;
-	if ( p2 == 0 ) { return false ; }
-	pnts_val = strip( substr( s, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
-	s = strip( delstr( s, p1, (p2 - p1 + 1) ) ) ;
+	p2 = s.find( ")", p1 ) ;
+	if ( p2 == string::npos ) { return false ; }
 
-	if ( s != "" || pnts_field == "" || pnts_var == "" || pnts_val == "" ) { return false ; }
+	pnts_val = strip( s.substr( p1+4, p2-p1-4  ) ) ;
+	s.erase( p1, p2-p1+1) ;
+
+	if ( trim( s ) != "" || pnts_field == "" || pnts_var == "" || pnts_val == "" ) { return false ; }
 	return true ;
 }
 
@@ -680,23 +683,29 @@ bool selobj::parse( string SELSTR )
 	// + SCRNAME(ghi) - give the function a screen name (valid name but not LIST, NEXT, PREV)
 	// + SUSPEND      - Suspend any popup windows
 
-	// Match brackets for PARM and CMD as these may contain brackets
+	// Match brackets for PARM and CMD as these may contain brackets.  These can also be enclosed in
+	// double quotes if needed, that are then removed.
 
 	int ob ;
 	int p1 ;
 	int p2 ;
 
+	bool oquote ;
+
 	string lang ;
 	string str  ;
 
 	clear() ;
-	str = upper( SELSTR )     ;
+	str = upper( SELSTR )   ;
 	p1  = pos( "PARM(", str ) ;
 	if ( p1 > 0 )
 	{
-		ob = 1 ;
+		ob     = 1 ;
+		oquote = false ;
 		for ( p2 = p1+4 ; p2 < SELSTR.size() ; p2++ )
 		{
+			if ( SELSTR.at( p2 ) == '"' ) { oquote = !oquote ; }
+			if ( oquote ) { continue ; }
 			if ( SELSTR.at( p2 ) == '(' ) { ob++  ; }
 			if ( SELSTR.at( p2 ) == ')' )
 			{
@@ -704,7 +713,7 @@ bool selobj::parse( string SELSTR )
 				if ( ob == 0 ) { break ; }
 			}
 		}
-		if ( ob != 0 ) { return false ; }
+		if ( ob != 0 || oquote ) { return false ; }
 		p2++ ;
 		PARM   = strip( substr( SELSTR, (p1 + 5), (p2 - (p1 + 5)) ) ) ;
 		PARM   = strip( PARM, 'B', '"' ) ;
@@ -720,7 +729,7 @@ bool selobj::parse( string SELSTR )
 		PGM    = strip( substr( str, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
 		SELSTR = delstr( SELSTR, p1, (p2 - p1 + 1) ) ;
 		str    = upper( SELSTR ) ;
-		if ( PGM[ 0 ] == '&' )
+		if ( PGM.size() > 0 && PGM[ 0 ] == '&' )
 		{
 			if ( !isvalidName( substr( PGM, 2 ) ) ) { return false ; }
 		}
@@ -747,7 +756,7 @@ bool selobj::parse( string SELSTR )
 			{
 				p2 = pos( ")", SELSTR, p1 ) ;
 				if ( p2 == 0 ) { return false ; }
-				PARM = PARM + " " + strip( substr( str, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
+				PARM  += " " + strip( substr( str, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
 				SELSTR = delstr( SELSTR, p1, (p2 - p1 + 1) ) ;
 				str    = upper( SELSTR ) ;
 			}
@@ -758,9 +767,12 @@ bool selobj::parse( string SELSTR )
 			if ( p1 > 0 )
 			{
 				if ( PARM != "" ) { return false ; }
-				ob = 1 ;
+				ob     = 1 ;
+				oquote = false ;
 				for ( p2 = p1+3 ; p2 < SELSTR.size() ; p2++ )
 				{
+					if ( SELSTR.at( p2 ) == '"' ) { oquote = !oquote ; }
+					if ( oquote ) { continue ; }
 					if ( SELSTR.at( p2 ) == '(' ) { ob++  ; }
 					if ( SELSTR.at( p2 ) == ')' )
 					{
@@ -768,9 +780,10 @@ bool selobj::parse( string SELSTR )
 						if ( ob == 0 ) { break ; }
 					}
 				}
-				if ( ob != 0 ) { return false ; }
+				if ( ob != 0 || oquote ) { return false ; }
 				p2++ ;
 				PARM   = strip( substr( SELSTR, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
+				PARM   = strip( PARM, 'B', '"' ) ;
 				SELSTR = delstr( SELSTR, p1, (p2 - p1 + 1) ) ;
 				str    = upper( SELSTR ) ;
 				lang   = "" ;
@@ -819,7 +832,7 @@ bool selobj::parse( string SELSTR )
 		{
 			NEWAPPL = "ISP";
 			NEWPOOL = true ;
-			str     = delword( str, p1, 1 ) ;
+			idelword( str, p1, 1 ) ;
 		}
 	}
 
@@ -827,14 +840,14 @@ bool selobj::parse( string SELSTR )
 	if ( p1 > 0 )
 	{
 		NEWPOOL = true ;
-		str     = delword( str, p1, 1 ) ;
+		idelword( str, p1, 1 ) ;
 	}
 
 	p1 = wordpos( "SUSPEND", str ) ;
 	if ( p1 > 0 )
 	{
 		SUSPEND = true ;
-		str     = delword( str, p1, 1 ) ;
+		idelword( str, p1, 1 ) ;
 	}
 
 	p1 = wordpos( "PASSLIB", str ) ;
@@ -842,10 +855,10 @@ bool selobj::parse( string SELSTR )
 	{
 		if ( NEWAPPL == "" ) { return false ; }
 		PASSLIB = true ;
-		str     = delword( str, p1, 1 ) ;
+		idelword( str, p1, 1 ) ;
 	}
 
-	if ( PGM == "" || strip( str ) != "" ) { return false ; }
+	if ( PGM == "" || trim( str ) != "" ) { return false ; }
 
 	return true ;
 }
