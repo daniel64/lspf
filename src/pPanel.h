@@ -64,6 +64,7 @@ class pPanel
 		void   redraw_fields()   ;
 		void   refresh() ;
 		void   refresh_fields( const string& ) ;
+		void   refresh_fields()                ;
 
 		string cmd_getvalue()                   { return field_getvalue( CMDfield ) ; }
 		void   cmd_setvalue( const string& v ) { field_setvalue( CMDfield, v )     ; }
@@ -103,6 +104,8 @@ class pPanel
 		bool   msgResp     ;
 		bool   nretriev    ;
 		bool   LRScroll    ;
+		bool   forEdit     ;
+		bool   forBrowse   ;
 		string nretfield   ;
 		int    opt_field   ;
 		int    dyn_depth   ;
@@ -186,7 +189,7 @@ class pPanel
 		void   create_tbfield( int col, int size, cuaType cuaFT, const string& name, const string& opts ) ;
 		void   create_pdc( const string&, const string&, const string&, const string&, const string& ) ;
 
-		void   display_boxes() ;
+		void   display_boxes()  ;
 
 		void   display_tb_mark_posn() ;
 		void   tb_fields_active_inactive() ;
@@ -234,9 +237,9 @@ class pPanel
 
 
 		void   display_literals() ;
-		void   display_fields()   ;
 		void   display_ab()       ;
 		void   display_pd()       ;
+		void   display_fields()   ;
 
 		void  process_panel_stmnts( int& RC1, int ln,
 			vector<panstmnt>& stmnts,
@@ -247,7 +250,7 @@ class pPanel
 			vector<TRANS>&    transList,
 			vector<ASSGN>&    assgnList ) ;
 
-		void   get_msgwin( int, int&, int&, int&, int& ) ;
+		void   get_msgwin( string, int&, int&, int&, int&, vector<string>& ) ;
 		void   panel_cleanup( PANEL * ) ;
 
 		void   update_keylist_vars() ;

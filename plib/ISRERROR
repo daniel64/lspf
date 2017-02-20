@@ -1,0 +1,103 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+
+   Edit macro error panel
+   ZERR1 - ZERR6 are shown on the panel.  Set in function pool to display.
+
+)ENDCOMMENT
+
+)BODY
+
+PanelTitle "Edit Macro Error"
+
+literal 4   2      FP  "Command ===> "
+field   4  15 MAX  NEF  CAPS(ON)  ZCMD
+
+literal 7     2 ET EXPAND "*"
+
+literal 8       2 ET "*"
+literal 8  MAX ET "*"
+
+literal 9       2 ET "*"
+literal 9  MAX ET "*"
+
+literal 10      2 ET "*"
+literal 10 MAX ET "*"
+
+literal 11       2 ET "*"
+literal 11  MAX ET "*"
+
+literal 12       2 ET "*"
+literal 12  MAX ET "*"
+
+literal 13       2 ET "*"
+literal 13  MAX ET "*"
+
+literal 14       2 ET "*"
+literal 14  MAX ET "*"
+
+literal 15       2 ET "*"
+literal 15  MAX ET "*"
+
+literal 16       2 ET "*"
+literal 16  MAX ET "*"
+
+literal 17       2 ET "*"
+literal 17  MAX ET "*"
+
+literal 18       2 ET "*"
+literal 18  MAX ET "*"
+
+literal 19       2 ET "*"
+literal 19  MAX ET "*"
+
+literal 20       2 ET "*"
+literal 20  MAX ET "*"
+
+literal 21       2 ET "*"
+literal 21  MAX ET "*"
+
+literal 22       2 ET "*"
+literal 22  MAX ET "*"
+
+literal 23       2 ET "*"
+literal 23  MAX ET "*"
+
+literal 24       2 ET "*"
+literal 24  MAX ET "*"
+
+literal 25       2 ET "*"
+literal 25  MAX ET "*"
+
+literal 26      2 ET EXPAND "*"
+
+literal  9 4   NT "Command in error. .:"
+field    9 25  MAX-2 ET NONE ZERR1
+
+field   11 4   MAX-2 ET NONE ZERR2
+field   12 4   MAX-2 ET NONE ZERR3
+
+literal 14 4   NT "Error message id. .:"
+field   14 25  MAX-2 ET NONE ZERR4
+
+literal 16 4   NT "Last return code. .:"
+field   16 25  MAX-2 ET NONE ZERR5
+
+literal 18 4   NT "Macro executing . .:"
+field   18 25  MAX-2 ET NONE ZERR6
+
+literal 21 4   NT "Press"
+literal 21 10  ET "ENTER"
+literal 21 16  NT "to terminate the macro"
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)INIT
+.CURSOR = ZCMD
+&ZCMD   = &Z
+
+)PROC
+
+)END

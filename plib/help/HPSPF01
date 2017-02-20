@@ -23,7 +23,7 @@ SWAP     Swap logical screen
           (SWAP Char must be the first non-blank character, and the cursor must remain on the command field.  Only
            characters up to, but not including the cursor position, are taken into account)
 !nnn xx  Execute program nnn with parameter xx (application defaults are NEWAPPL, NEWPOOL)
-%nnn xx  Execute oorexx  nnn with parameter xx (application defaults are NEWAPPL, NEWPOOL)
+@nnn xx  Execute oorexx  nnn with parameter xx (application defaults are NEWAPPL, NEWPOOL)
 
 
 System:

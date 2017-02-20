@@ -27,6 +27,8 @@ int  ispexeci( pApplication *, const string& ) ;
 
 #include <stdexcept>
 
+map<int, void *>pApplication::ApplUserData ;
+
 pApplication::pApplication()
 {
 	currApplication        = this   ;
@@ -266,6 +268,12 @@ void pApplication::store_scrname()
 	int RC1 ;
 
 	ZSCRNAME = p_poolMGR->get( RC1, "ZSCRNAME", SHARED ) ;
+}
+
+
+bool pApplication::errorsReturn()
+{
+	return ControlErrorsReturn ;
 }
 
 
@@ -1773,7 +1781,8 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 
 void pApplication::tbend( const string& tb_name )
 {
-	// Close a table without saving (calls destroyTable routine).  If opened share, use count is reduced and table deleted when use count = 0
+	// Close a table without saving (calls destroyTable routine).
+	// If opened share, use count is reduced and table deleted when use count = 0.
 
 	// RC = 0   Normal completion
 	// RC = 12  Table not open
@@ -2054,11 +2063,11 @@ bool pApplication::isTableUpdate( const string& tb_name, const string& func )
 }
 
 
-void pApplication::edit( const string& m_file, const string& m_panel )
+void pApplication::edit( const string& m_file, const string& m_panel, const string& m_macro, const string& m_profile )
 {
 	SELCT.clear() ;
 	SELCT.PGM     = p_poolMGR->get( RC, "ZEDITPGM", PROFILE ) ;
-	SELCT.PARM    = "FILE("+ m_file +") PANEL("+ m_panel +")" ;
+	SELCT.PARM    = "FILE("+ m_file +") PANEL("+ m_panel +") MACRO("+ m_macro +") PROFILE("+ m_profile+ ")" ;
 	SELCT.NEWAPPL = ""      ;
 	SELCT.NEWPOOL = false   ;
 	SELCT.PASSLIB = false   ;
@@ -2519,6 +2528,8 @@ bool pApplication::load_Message( const string& p_msg )
 					checkRCode( "Duplicate message-id found: "+ msgid ) ;
 					return false ;
 				}
+				trim_right( t.smsg )    ;
+				trim_right( t.lmsg )    ;
 				msgList[ msgid ] = t    ;
 				MMsgs[ msgid ]   = true ;
 			}
@@ -2573,6 +2584,13 @@ bool pApplication::load_Message( const string& p_msg )
 				tmp = mline ;
 			}
 			t.cont ? t.lmsg = t.lmsg + " " + tmp : t.lmsg = tmp ;
+			if ( t.lmsg.size() > 512 )
+			{
+				RC = 20 ;
+				messages.close() ;
+				checkRCode( "Long message size exceeds 512 bytes for message-id "+ msgid ) ;
+				return false ;
+			}
 			t.cont = lcontinue ;
 		}
 	}
@@ -2601,6 +2619,8 @@ bool pApplication::load_Message( const string& p_msg )
 			checkRCode( "Duplicate message-id found: "+ msgid ) ;
 			return false ;
 		}
+		trim_right( t.smsg ) ;
+		trim_right( t.lmsg ) ;
 		msgList[ msgid ] = t ;
 	}
 
@@ -2998,6 +3018,7 @@ void pApplication::checkRCode( const string& s )
 	if ( !ControlErrorsReturn && RC >= 12 )
 	{
 		log( "E", "RC="<< RC <<" CONTROL ERRORS CANCEL is in effect.  Aborting" << endl ) ;
+		vreplace( "ZAPPNAME", ZAPPNAME ) ;
 		vreplace( "ZERR1",  s ) ;
 		vreplace( "ZERR2",  ZERR2  ) ;
 		vreplace( "ZERR3",  ZERR3  ) ;
@@ -3042,6 +3063,43 @@ void pApplication::cleanup()
 void pApplication::abend()
 {
 	log( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskID << " due to an abnormal condition" << endl ) ;
+	abnormalEnd   = true  ;
+	terminateAppl = true  ;
+	busyAppl      = false ;
+	SEL           = false ;
+	(this->*pcleanup)()   ;
+	log( "E", "Application entering wait state" << endl ) ;
+	boost::this_thread::sleep_for(boost::chrono::seconds(31536000)) ;
+}
+
+
+void pApplication::uabend( const string& msgid, const string& e1, int callno )
+{
+	// Abend application with error screen.  Screen will show short and long messages from msgid,
+	// optional override e1 for the long mesage, and an optional call number
+
+	getmsg( msgid, "ZERR3", "ZERR4" ) ;
+	log( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskID << " due to a user abend" << endl ) ;
+	vreplace( "ZAPPNAME", ZAPPNAME ) ;
+	vreplace( "ZERR1",  "A user abend has occured in application "+ ZAPPNAME ) ;
+	vreplace( "ZERR2",  "" ) ;
+	if ( e1 != "" )
+	{
+		vreplace( "ZERR4",  e1 ) ;
+	}
+	vreplace( "ZERR5",  "" ) ;
+	if ( callno != -1 )
+	{
+		vreplace( "ZERR6", "Call number . . . .: "+ d2ds( callno ) ) ;
+	}
+	vreplace( "ZERR7",  "" ) ;
+	vreplace( "ZERR8",  "Error message id. .: "+ msgid ) ;
+	vreplace( "ZERR9",  "" ) ;
+	vreplace( "ZERR10", "Last return code. .: "+ d2ds( RC ) ) ;
+	ControlDisplayLock  = false ;
+	ControlErrorsReturn = true  ;
+	display( "PSYSER1" ) ;
+	if ( RC <= 8 ) { errPanelissued = true ; }
 	abnormalEnd   = true  ;
 	terminateAppl = true  ;
 	busyAppl      = false ;
@@ -3098,6 +3156,11 @@ void pApplication::set_timeout_abend()
 	busyAppl          = false ;
 	SEL               = false ;
 	(this->*pcleanup)()       ;
+}
+
+
+void pApplication::isredit( const string& s)
+{
 }
 
 

@@ -34,6 +34,8 @@ pPanel::pPanel()
 	pdActive    = false  ;
 	msgResp     = false  ;
 	nretriev    = false  ;
+	forEdit     = false  ;
+	forBrowse   = false  ;
 	nretfield   = ""     ;
 	KEYLISTN    = ""     ;
 	KEYAPPL     = ""     ;
@@ -1107,6 +1109,17 @@ void pPanel::process_panel_stmnts( int& RC1, int ln,
 					return     ;
 				}
 			}
+			else if ( assgnList.at( i_assign ).as_lhs == ".BROWSE" )
+			{
+				if ( t == "YES" )
+				{
+					forBrowse = true ;
+				}
+				else
+				{
+					forBrowse = false ;
+				}
+			}
 			else if ( assgnList.at( i_assign ).as_lhs == ".CURSOR" )
 			{
 				p_funcPOOL->put( RC1, 0, "ZCURFLD", t ) ;
@@ -1122,6 +1135,17 @@ void pPanel::process_panel_stmnts( int& RC1, int ln,
 					return     ;
 				}
 				p_funcPOOL->put( RC1, 0, ".CSRROW", t, NOCHECK ) ;
+			}
+			else if ( assgnList.at( i_assign ).as_lhs == ".EDIT" )
+			{
+				if ( t == "YES" )
+				{
+					forEdit = true ;
+				}
+				else
+				{
+					forEdit = false ;
+				}
 			}
 			else if ( assgnList.at( i_assign ).as_lhs == ".HELP" )
 			{
@@ -1186,6 +1210,17 @@ void pPanel::process_panel_stmnts( int& RC1, int ln,
 					PERR1 = "Error setting variable '"+ assgnList.at( i_assign ).as_lhs +"'" ;
 					RC1   = 20 ;
 					return     ;
+				}
+				if ( assgnList.at( i_assign ).as_lhs == "ZPRIM" )
+				{
+					if ( t == "YES" )
+					{
+						primaryMenu = true ;
+					}
+					else if ( t == "NO" )
+					{
+						primaryMenu = false ;
+					}
 				}
 			}
 			i_assign++ ;
@@ -1297,28 +1332,82 @@ void pPanel::refresh_fields( const string& fields )
 {
 	// Update the field value from the dialogue variable.  Apply any field justification defined.
 
-	int i  ;
-	int ws ;
+	int RC1 ;
+	int j   ;
+	int k   ;
 
-	string w ;
+	string sname    ;
+	string * darea  ;
+	string * shadow ;
 
-	map<string, field *>::iterator it ;
+	map<string, field *>::iterator   itf ;
+	map<string, dynArea *>::iterator itd ;
 
-	if ( fields == "*" )
+	for ( itf = fieldList.begin() ; itf != fieldList.end() ; itf++ )
 	{
-		for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
+		if ( fields != "*" && !findword( itf->first, fields ) ) { continue ; }
+		if ( itf->second->field_dynArea ) { continue ; }
+		itf->second->field_value = getDialogueVar( itf->first ) ;
+		itf->second->field_prep_display()                     ;
+	}
+
+	for ( itd = dynAreaList.begin() ; itd != dynAreaList.end() ; itd++ )
+	{
+		if ( fields != "*" && !findword( itf->first, fields ) ) { continue ; }
+		k      = itd->second->dynArea_width ;
+		darea  = p_funcPOOL->vlocate( RC1, 0, itd->first ) ;
+		sname  = itd->second->dynArea_shadow_name ;
+		shadow = p_funcPOOL->vlocate( RC1, 0, sname ) ;
+		for ( int i = 0 ; i < itd->second->dynArea_depth ; i++ )
 		{
-			it->second->field_value = getDialogueVar( it->first ) ;
-			it->second->field_prep_display()                      ;
+			j   = i * itd->second->dynArea_width ;
+			itf = fieldList.find( itd->first +"."+ d2ds( i ) ) ;
+			itf->second->field_value        = darea->substr( j, k )  ;
+			itf->second->field_shadow_value = shadow->substr( j, k ) ;
 		}
 	}
-	else
+}
+
+
+void pPanel::refresh_fields()
+{
+	// Update all field values from their dialogue variables and display.
+
+	int RC1 ;
+	int j   ;
+	int k   ;
+
+	string fname    ;
+	string sname    ;
+	string * darea  ;
+	string * shadow ;
+
+	map<string, field *>::iterator   itf ;
+	map<string, dynArea *>::iterator itd ;
+
+	bool snulls = ( p_poolMGR->get( RC, "ZNULLS", SHARED ) == "YES" ) ;
+
+	for ( itf = fieldList.begin() ; itf != fieldList.end() ; itf++ )
 	{
-		for ( ws = words( fields ), i = 1 ; i <= ws ; i++ )
+		if ( itf->second->field_dynArea ) { continue ; }
+		itf->second->field_value = getDialogueVar( itf->first ) ;
+		itf->second->field_prep_display()        ;
+		itf->second->display_field( win, snulls ) ;
+	}
+
+	for ( itd = dynAreaList.begin() ; itd != dynAreaList.end() ; itd++ )
+	{
+		k      = itd->second->dynArea_width ;
+		darea  = p_funcPOOL->vlocate( RC1, 0, itd->first ) ;
+		sname  = itd->second->dynArea_shadow_name ;
+		shadow = p_funcPOOL->vlocate( RC1, 0, sname ) ;
+		for ( int i = 0 ; i < itd->second->dynArea_depth ; i++ )
 		{
-			w = word( fields, i ) ;
-			fieldList[ w ]->field_value = getDialogueVar( w ) ;
-			fieldList[ w ]->field_prep_display()              ;
+			j   = i * itd->second->dynArea_width ;
+			itf = fieldList.find( itd->first +"."+ d2ds( i ) ) ;
+			itf->second->field_value        = darea->substr( j, k )  ;
+			itf->second->field_shadow_value = shadow->substr( j, k ) ;
+			itf->second->display_field( win, snulls ) ;
 		}
 	}
 }
@@ -1400,46 +1489,52 @@ void pPanel::update_field_values( int& RC1 )
 	// Treat dynamic areas differently - they must reside in the function pool.  Use vlocate to get the dynamic area variables
 	// via their addresses to avoid large string copies
 
+	int j ;
+	int k ;
+
 	string sname    ;
 	string * darea  ;
 	string * shadow ;
 
-	map<string, field   *>::iterator it1 ;
-	map<string, dynArea *>::iterator it2 ;
+	map<string, field   *>::iterator itf ;
+	map<string, dynArea *>::iterator itd ;
 
 	RC1 = 0 ;
 
-	for ( it1 = fieldList.begin() ; it1 != fieldList.end() ; it1++ )
+	for ( itf = fieldList.begin() ; itf != fieldList.end() ; itf++ )
 	{
-		if ( !it1->second->field_dynArea )
+		if ( !itf->second->field_dynArea )
 		{
-			it1->second->field_value = getDialogueVar( it1->first ) ;
+			itf->second->field_value = getDialogueVar( itf->first ) ;
 			RC1 = RC ;
-			it1->second->field_prep_display() ;
+			itf->second->field_prep_display() ;
 		}
-		it1->second->field_changed = false ;
+		itf->second->field_changed = false ;
 	}
 	if ( RC1 == 8 ) { RC1 = 0 ; }
 
-	for ( it2 = dynAreaList.begin() ; it2 != dynAreaList.end() ; it2++ )
+	for ( itd = dynAreaList.begin() ; itd != dynAreaList.end() ; itd++ )
 	{
-		darea = p_funcPOOL->vlocate( RC1, 0, it2->first ) ;
+		darea = p_funcPOOL->vlocate( RC1, 0, itd->first ) ;
 		if ( RC1 > 0 ) { RC1 = 20 ; PERR1 = "Dynamic area variable is not in the function pool" ; return ; }
-		sname  = it2->second->dynArea_shadow_name ;
+		sname  = itd->second->dynArea_shadow_name ;
 		shadow = p_funcPOOL->vlocate( RC1, 0, sname ) ;
 		if ( RC1 > 0 ) { RC1 = 20 ; PERR1 = "Dynamic area shadow variable is not in the function pool" ; return ; }
 		if ( darea->size() > shadow->size() )
 		{
-			log( "W", "Shadow variable '"+ sname +"' size is smaller than the data variable " << it2->first << " size.  Results are be unpredictable" << endl ) ;
+			log( "W", "Shadow variable '"+ sname +"' size is smaller than the data variable " << itd->first << " size.  Results are be unpredictable" << endl ) ;
 			log( "W", "Data variable size   = " << darea->size() << endl ) ;
 			log( "W", "Shadow variable size = " << shadow->size() << endl ) ;
 		}
-		darea->resize( it2->second->dynArea_width * it2->second->dynArea_depth, ' ' )   ;
-		shadow->resize( it2->second->dynArea_width * it2->second->dynArea_depth, 0xFF ) ;
-		for ( int i = 0 ; i < it2->second->dynArea_depth ; i++ )
+		darea->resize( itd->second->dynArea_width * itd->second->dynArea_depth, ' ' )   ;
+		shadow->resize( itd->second->dynArea_width * itd->second->dynArea_depth, 0xFF ) ;
+		k = itd->second->dynArea_width ;
+		for ( int i = 0 ; i < itd->second->dynArea_depth ; i++ )
 		{
-			fieldList[ it2->first +"."+ d2ds( i ) ]->field_value        = darea->substr( i * it2->second->dynArea_width, it2->second->dynArea_width )  ;
-			fieldList[ it2->first +"."+ d2ds( i ) ]->field_shadow_value = shadow->substr( i * it2->second->dynArea_width, it2->second->dynArea_width ) ;
+			j   = i * itd->second->dynArea_width ;
+			itf = fieldList.find( itd->first +"."+ d2ds( i ) ) ;
+			itf->second->field_value        = darea->substr( j, k )  ;
+			itf->second->field_shadow_value = shadow->substr( j, k ) ;
 		}
 	}
 }
@@ -1502,41 +1597,49 @@ void pPanel::cursor_to_field( int& RC1, string f_name, int f_pos )
 	int oX ;
 	int oY ;
 
-	RC1 = 0 ;
-	if ( f_name == "" ) { f_name = CURFLD ; f_pos = CURPOS ; }
-	if ( f_name == "" ) { return                           ; }
+	map<string, field   *>::iterator itf ;
+	map<string, dynArea *>::iterator itd ;
 
-	if ( fieldList.find( f_name ) == fieldList.end() )
+	RC1 = 0 ;
+
+	if ( f_name == "" )
 	{
-		if ( dynAreaList.count( f_name ) == 0 )
+		if ( CURFLD == "" ) { return ; }
+		f_name = CURFLD ;
+		f_pos  = CURPOS ;
+	}
+
+	itf = fieldList.find( f_name ) ;
+	if ( itf == fieldList.end() )
+	{
+		itd = dynAreaList.find( f_name ) ;
+		if ( itd == dynAreaList.end() )
 		{
-			p_col = 0  ;
-			p_row = 0  ;
-			RC1   = 12 ;
+			p_col = 0 ;
+			p_row = 0 ;
 			if ( !isvalidName( f_name ) ) { RC1 = 20 ; }
-			return     ;
+			else                          { RC1 = 12 ; }
 		}
 		else
 		{
-			if ( f_pos < 1 ) f_pos = 1 ;
+			if ( f_pos < 1 ) { f_pos = 1 ; }
 			f_pos-- ;
-			oX = f_pos % ( dynAreaList[ f_name ]->dynArea_width ) ;
-			oY = f_pos / ( dynAreaList[ f_name ]->dynArea_width ) ;
-			if ( oY >= dynAreaList[ f_name ]->dynArea_depth )
+			oX = f_pos % itd->second->dynArea_width ;
+			oY = f_pos / itd->second->dynArea_width ;
+			if ( oY >= itd->second->dynArea_depth )
 			{
 				oX = 0 ;
 				oY = 0 ;
 			}
-			p_col = dynAreaList[ f_name ]->dynArea_col + oX ;
-			p_row = dynAreaList[ f_name ]->dynArea_row + oY ;
+			p_col = itd->second->dynArea_col + oX ;
+			p_row = itd->second->dynArea_row + oY ;
 		}
 	}
 	else
 	{
-		if ( f_pos > fieldList[ f_name ]->field_length ) f_pos = 1 ;
-		if ( f_pos < 1 ) f_pos = 1 ;
-		p_col = fieldList[ f_name ]->field_col + f_pos - 1 ;
-		p_row = fieldList[ f_name ]->field_row             ;
+		if ( f_pos < 1 || f_pos > itf->second->field_length ) { f_pos = 1 ; }
+		p_col = itf->second->field_col + f_pos - 1 ;
+		p_row = itf->second->field_row ;
 	}
 }
 
@@ -1565,8 +1668,11 @@ void pPanel::get_home( uint& row, uint& col )
 
 string pPanel::field_getvalue( const string& f_name )
 {
-	fieldList[ f_name ]->field_prep_input()  ;
-	return  fieldList[ f_name ]->field_value ;
+	map<string, field *>::iterator it ;
+
+	it = fieldList.find( f_name )   ;
+	it->second->field_prep_input()  ;
+	return  it->second->field_value ;
 }
 
 
@@ -1574,9 +1680,12 @@ void pPanel::field_setvalue( const string& f_name, const string& f_value )
 {
 	bool snulls = ( p_poolMGR->get( RC, "ZNULLS", SHARED ) == "YES" ) ;
 
-	fieldList[ f_name ]->field_value   = f_value ;
-	fieldList[ f_name ]->field_changed = true    ;
-	fieldList[ f_name ]->display_field( win, snulls ) ;
+	map<string, field *>::iterator it ;
+
+	it = fieldList.find( f_name ) ;
+	it->second->field_value   = f_value ;
+	it->second->field_changed = true    ;
+	it->second->display_field( win, snulls ) ;
 }
 
 
@@ -1585,12 +1694,17 @@ bool pPanel::is_cmd_inactive( const string& cmd )
 	// Some commands may be inactive for this type of panel, so return true for these.
 	// Not sure how real ISPF does this without setting ZCTACT to NOP !! but this works okay.
 
+	// Control variable .EDIT=YES activates RFIND and RCHANGE for a panel
+	// Control variable .BROWSE=YES activates RFIND for a panel
+
 	if ( findword( cmd, "LEFT RIGHT" ) )
 	{
 		if ( LRScroll ) { return false ; }
 		if ( tb_model ) { return true  ; }
 	}
 	else if ( cmd == "NRETRIEV" && !nretriev ) { return true ; }
+	else if ( cmd == "RFIND"    && ( !forEdit && !forBrowse ) ) { return true ; }
+	else if ( cmd == "RCHANGE"  && !forEdit   ) { return true ; }
 
 	if ( !scrollOn && findword( cmd, "UP DOWN LEFT RIGHT" ) ) { return true ; }
 	return false ;
@@ -2195,10 +2309,13 @@ string pPanel::get_keylist( int entry )
 
 void pPanel::display_msg()
 {
+	int i     ;
 	int w_row ;
 	int w_col ;
 	int w_depth ;
 	int w_width ;
+
+	vector<string>v ;
 
 	if ( MSGID == "" ) { return ; }
 
@@ -2218,11 +2335,14 @@ void pPanel::display_msg()
 		}
 		if ( MSG.smwin )
 		{
-			get_msgwin( MSG.smsg.size(), w_row, w_col, w_depth, w_width ) ;
+			get_msgwin( MSG.smsg, w_row, w_col, w_depth, w_width, v ) ;
 			smwin = newwin( w_depth, w_width, w_row+win_row, w_col+win_col ) ;
 			wattrset( smwin, cuaAttr[ MSG.type ] ) ;
 			box( smwin, 0, 0 ) ;
-			mvwaddstr( smwin, 1, 2, MSG.smsg.c_str() ) ;
+			for ( i = 0 ; i < v.size() ; i++ )
+			{
+				mvwaddstr( smwin, i+1, 2, v[i].c_str() ) ;
+			}
 		}
 		else
 		{
@@ -2250,11 +2370,14 @@ void pPanel::display_msg()
 		}
 		if ( MSG.lmwin || p_poolMGR->get( RC, "ZLMSGW", PROFILE ) == "Y" )
 		{
-			get_msgwin( MSG.lmsg.size(), w_row, w_col, w_depth, w_width ) ;
+			get_msgwin( MSG.lmsg, w_row, w_col, w_depth, w_width, v ) ;
 			lmwin = newwin( w_depth, w_width, w_row+win_row, w_col+win_col ) ;
 			wattrset( lmwin, cuaAttr[ MSG.type ] )  ;
 			box( lmwin, 0, 0 ) ;
-			mvwaddstr( lmwin, 1, 2, MSG.lmsg.c_str() ) ;
+			for ( i = 0 ; i < v.size() ; i++ )
+			{
+				mvwaddstr( lmwin, i+1, 2, v[i].c_str() ) ;
+			}
 		}
 		else
 		{
@@ -2270,31 +2393,70 @@ void pPanel::display_msg()
 }
 
 
-void pPanel::get_msgwin( int t_size, int& t_row, int& t_col, int& t_depth, int& t_width )
+void pPanel::get_msgwin( string m, int& t_row, int& t_col, int& t_depth, int& t_width, vector<string>& v )
 {
-	// Calculate the message window position and size
-	// TODO: multi-line messages
+	// Split message into separate lines if necessary and put into vector v.
+	// Calculate the message window position and size.
 
-	int i  ;
-	int w1 ;
+	int w  ;
+	int mw ;
+	int h  ;
+	int p  ;
 
-	if ( MSGLOC != "" && fieldList.count( MSGLOC ) > 0 )
+	map<string, field *>::iterator it ;
+
+	it = fieldList.find( MSGLOC ) ;
+
+	h = m.size() / WSCRMAXW + 1  ;
+	w = m.size() / h             ;
+	if ( it != fieldList.end() && it->second->field_col > WSCRMAXW/2 )
 	{
-		t_row = fieldList[ MSGLOC ]->field_row + 1 ;
-		t_col = fieldList[ MSGLOC ]->field_col - 2 ;
+		w = w / 3 ;
+	}
+	if ( w > WSCRMAXW - 6 ) { w = WSCRMAXW - 6 ; }
+
+	v.clear() ;
+	mw = 0    ;
+
+	while ( m != "" )
+	{
+		if ( m.size() <= w )
+		{
+			if ( m.size() > mw ) { mw = m.size() ; }
+			v.push_back( m ) ;
+			break ;
+		}
+		p = m.find_last_of( ' ', w ) ;
+		if ( p == string::npos ) { p = w ; }
+		v.push_back( m.substr( 0, p ) ) ;
+		trim_right( v.back() ) ;
+		if ( v.back().size() > mw ) { mw = v.back().size() ; }
+		m.erase( 0, p ) ;
+		trim_left( m )  ;
+	}
+
+	t_depth = v.size() + 2 ;
+	t_width = mw + 4       ;
+
+	if ( it != fieldList.end() )
+	{
+		t_row = it->second->field_row + 1 ;
+		t_col = it->second->field_col - 2 ;
 		if ( t_col < 0 ) { t_col = 0 ; }
-		w1    = WSCRMAXD - t_col ;
-		t_depth = 3 ;
-		t_width = t_size + 4 ;
+		if ( (t_row + t_depth) > WSCRMAXD )
+		{
+			t_row = WSCRMAXD - t_depth ;
+			t_col = t_col + it->second->field_length + 2 ;
+		}
+		if ( (t_col + t_width) > WSCRMAXW )
+		{
+			t_col = WSCRMAXW - t_width ;
+		}
 	}
 	else
 	{
-		t_width = t_size + 4 ;
-		i       = t_width / WSCRMAXW ;
-		t_width = t_width / (i + 1 ) ;
-		t_depth = i + 3              ;
-		t_row   = WSCRMAXD - t_depth - 1 ;
-		t_col   = (WSCRMAXW - t_width)/2 ;
+		t_row =  WSCRMAXD - t_depth    ;
+		t_col = (WSCRMAXW - t_width)/2 ;
 	}
 }
 

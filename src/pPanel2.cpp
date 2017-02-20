@@ -792,12 +792,6 @@ int pPanel::loadPanel( const string& p_name, const string& paths )
 			panelDescr = strip( strip( subword( pline, 2 ) ), 'B', '"' ) ;
 			continue ;
 		}
-		else if ( w1 == "PRIMARYMENU" )
-		{
-			debug1( "Creating a primary options menu" << endl ) ;
-			primaryMenu = true ;
-			continue ;
-		}
 		else if ( w1 == "SCROLLON" )
 		{
 			scrollOn = true ;

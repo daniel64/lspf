@@ -579,10 +579,12 @@ void pVPOOL::load( int& RC, const string& currAPPLID, const string& path )
 	string var   ;
 	string value ;
 
-	char x, y    ;
-	int  i, k    ;
-	int  n1, n2  ;
-	char * buf1  ;
+	char x      ;
+	int  i, k   ;
+	int  n1, n2 ;
+	char * buf1 ;
+	char z[ 2 ] ;
+
 	size_t buf1Size = 1024  ;
 
 	s = path + currAPPLID + "PROF" ;
@@ -635,13 +637,11 @@ void pVPOOL::load( int& RC, const string& currAPPLID, const string& path )
 		if ( i < 0 ) { i = 256 + i ; }
 		profile.read (buf1 , i) ;
 		if ( profile.fail() != 0 ) { RC = 20 ; break ; }
-		var.assign( buf1, i )   ;
-		profile.get( x ) ;
+		var.assign( buf1, i ) ;
+		profile.read( z, 2 )  ;
 		if ( profile.fail() != 0 ) { RC = 20 ; break ; }
-		profile.get( y ) ;
-		if ( profile.fail() != 0 ) { RC = 20 ; break ; }
-		n1 = static_cast< int >( x ) ;
-		n2 = static_cast< int >( y ) ;
+		n1 = static_cast< int >( z[ 0 ] ) ;
+		n2 = static_cast< int >( z[ 1 ] ) ;
 		if ( n1 < 0 ) { n1 = 256 + n1 ; }
 		if ( n2 < 0 ) { n2 = 256 + n2 ; }
 		k = 256 * n1 + n2 ;

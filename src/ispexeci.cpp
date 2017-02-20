@@ -244,21 +244,29 @@ int execiEdit( pApplication * thisAppl, const string& s )
 {
 	bool   rlt ;
 
-	string str ;
-	string pan ;
-	string fl  ;
+	string str  ;
+	string pan  ;
+	string mac  ;
+	string prof ;
+	string fl   ;
 
 	str = subword( s, 2 ) ;
 
-	fl  = parseString( rlt, str, "FILE()" ) ;
+	fl   = parseString( rlt, str, "FILE()" ) ;
 	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	pan = parseString( rlt, str, "PANEL()" ) ;
+	pan  = parseString( rlt, str, "PANEL()" ) ;
+	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
+
+	mac  = parseString( rlt, str, "MACRO()" ) ;
+	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
+
+	prof = parseString( rlt, str, "PROFILE()" ) ;
 	if ( !rlt ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
 	if ( str != "" ) { execiSyntaxError( thisAppl, s ) ; return 20 ; }
 
-	thisAppl->edit( fl, iupper( pan ) ) ;
+	thisAppl->edit( fl, iupper( pan ), iupper( mac ), iupper( prof ) ) ;
 	return thisAppl->RC ;
 }
 

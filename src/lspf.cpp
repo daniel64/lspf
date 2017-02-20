@@ -202,13 +202,13 @@ string ZCTDESC  ;
 const char ZSCREEN[] = { '1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G',
 			 'H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W' } ;
 
-bool   SEL    ;
-selobj SELCT  ;
+bool   SEL   ;
+selobj SELCT ;
 
 int    GMAXWAIT ;
 string GMAINPGM ;
 
-const string BuiltInCommands = "ACTION DISCARD FIELDEXC MSGID NOP PANELID REFRESH RETP SCRNAME SPLIT SWAP TDOWN" ;
+const string BuiltInCommands = "ACTION DISCARD FIELDEXC MSGID NOP PANELID REFRESH RETP RETS SCRNAME SPLIT SWAP TDOWN" ;
 const string SystemCommands  = ".ABEND .HIDE .INFO .LOAD .RELOAD .SCALE .SHELL .SHOW .SNAP .STATS .TEST" ;
 
 std::ofstream splog(SLOG) ;
@@ -571,7 +571,7 @@ void mainLoop()
 					}
 					else if ( ZCOMMAND == "DISCARD" )
 					{
-						currAppl->currPanel->display_panel( RC ) ;
+						currAppl->currPanel->refresh_fields() ;
 					}
 					else if ( ZCOMMAND == "FIELDEXC" )
 					{
@@ -686,6 +686,11 @@ void mainLoop()
 						refresh() ;
 					}
 					else if ( ZCOMMAND == "RETP" )
+					{
+						listRetrieveBuffer() ;
+						break ;
+					}
+					else if ( ZCOMMAND == "RETS" )
 					{
 						listRetrieveBuffer() ;
 						break ;
@@ -896,10 +901,8 @@ void processAction( uint row, uint col, int c, bool& passthru )
 	// RETRIEVE
 	// Jump command entered
 	// !abc run abc as a program
-	// %abc run abc as a REXX procedure
+	// @abc run abc as a REXX procedure
 	// Else pass event to application
-
-	// Special processing for SETVERB UP,DOWN,LEFT,RIGHT,RFIND,RCHANGE
 
 	int RC  ;
 	int p1  ;
@@ -1129,7 +1132,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 
 	if ( CMDVerb == "" ) { return ; }
 
-	if ( CMDVerb[ 0 ] == '%' )
+	if ( CMDVerb[ 0 ] == '@' )
 	{
 		SELCT.clear() ;
 		currAppl->vcopy( "ZOREXPGM", SELCT.PGM, MOVE ) ;
@@ -1246,19 +1249,13 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		}
 		else if ( ZCTACT == "SETVERB" )
 		{
-			if ( currAppl->currPanel->is_cmd_inactive( CMDVerb ) ||
-			   ( CMDVerb == "RFIND"                                              &&
-			     currAppl->ZAPPNAME != p_poolMGR->get( RC, "ZEDITPGM", PROFILE ) &&
-			     currAppl->ZAPPNAME != p_poolMGR->get( RC, "ZVIEWPGM", PROFILE ) &&
-			     currAppl->ZAPPNAME != p_poolMGR->get( RC, "ZBRPGM", PROFILE ) )   ||
-			   ( CMDVerb == "RCHANGE"                                            &&
-			     currAppl->ZAPPNAME != p_poolMGR->get( RC, "ZEDITPGM", PROFILE ) &&
-			     currAppl->ZAPPNAME != p_poolMGR->get( RC, "ZVIEWPGM", PROFILE )  ) )
+			if ( currAppl->currPanel->is_cmd_inactive( CMDVerb ) )
 			{
 				p_poolMGR->put( RC, "ZCTMVAR", left( AVerb, 8 ), SHARED ) ;
 				issueMessage( "PSYS011" ) ;
 				currAppl->currPanel->cmd_setvalue( "" ) ;
 				passthru = false ;
+				ZCOMMAND = "NOP" ;
 				return ;
 			}
 			else
@@ -1321,8 +1318,7 @@ bool resolveZCTEntry( string& CMDVerb, string& CMDParm )
 	ZCTDESC  = "" ;
 
 	cmdtlst  = "" ;
-
-	found = false ;
+	found    = false ;
 
 	siteBefore = ( p_poolMGR->get( RC, "ZSCMDTF", PROFILE ) == "Y" ) ;
 
@@ -1386,8 +1382,12 @@ void processPGMSelect()
 	}
 	else
 	{
-		errorScreen( 1, "SELECT function did not find application '"+ SELCT.PGM +"'" ) ;
+		if ( !currAppl->errorsReturn() )
+		{
+			errorScreen( 1, "SELECT function did not find application '"+ SELCT.PGM +"'" ) ;
+		}
 		currAppl->SEL = false ;
+		currAppl->RC  = 20    ;
 		log( "W", "Resumed function did a SELECT.  Ending wait in SELECT" << endl ) ;
 		ResumeApplicationAndWait() ;
 		while ( currAppl->terminateAppl )

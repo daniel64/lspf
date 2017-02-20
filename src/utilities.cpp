@@ -143,6 +143,8 @@ string delstr( string s, unsigned int n, unsigned int l )
 
 string delword( string s, unsigned int w )
 {
+	// Delete all words starting at w.  Keep leading spaces
+
 	int i = 0 ;
 	int j = 0 ;
 
@@ -164,6 +166,9 @@ string delword( string s, unsigned int w )
 
 string delword( string s, unsigned int w, unsigned int n )
 {
+	// Delete words starting at w for n words.  Keep leading spaces but remove
+	// trailing spaces on last word deleted
+
 	int i = 0 ;
 	int j = 0 ;
 	int k = 0 ;
@@ -988,6 +993,7 @@ string lower( string s )
 string& idelword( string& s, unsigned int w )
 {
 	// Delete word w to end of string in-place and return reference
+	// Keep leading spaces on word w, but remove spaces at end of string
 
 	int i = 0 ;
 	int j = 0 ;
@@ -1011,6 +1017,7 @@ string& idelword( string& s, unsigned int w )
 string& idelword( string& s, unsigned int w, unsigned int n )
 {
 	// Delete word w for n words, in-place and return reference
+	// Keep leading spaces on word w, but remove trailing spaces on last word
 
 	int i = 0 ;
 	int j = 0 ;
@@ -1370,8 +1377,8 @@ string getpath( const string& s, int p )
 	p2 = pos( ":", s, p1 ) ;
 	if ( p2 == 0 ) { path = substr( s, p1, s.size()-p1+1 ) ; }
 	else           { path = substr( s, p1, p2-p1 )         ; }
-	if ( path.back() == '/' ) { return path       ; }
-	else                      { return path + '/' ; }
+	if ( path.back() != '/' ) { path.push_back( '/' ) ; }
+	return path ;
 }
 
 

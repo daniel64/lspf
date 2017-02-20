@@ -20,7 +20,7 @@
 /* Display contents of table file
    Table format
    0085 - 2 bytes for file type
-   01   - table format V1
+   0n   - table format V1/V2
    xx   - header length
    vvv  - header
    xx   - Number of header fields (just SIR so should be 1)
@@ -29,8 +29,15 @@
    xx   - number of rows in the table
    x    - number of keys in the table
    x    - number of fields in the table
-   xx   - value length        }
-   vvv  - table column value  } x num of rows*(num of keys + num of flds)
+   xx   - value length        } x number of cols   ........................}
+   vvv  - table column value  }                                            }
+   nnnn - V2 field at end of each row for the number of extension variables}
+   xx   - V2 field (if present) extension variable list len                } x num of rows
+   vvv  - V2 field extension list                                          }
+   xx   - V2 field ext value length        }                               }
+   vvv  - V2 field ext table column value  } x ext vars present            }
+   0xFF - V2 End-of-record marker                  ........................}
+   0xFF - V2 End-of-file marker
 */
 
 
@@ -40,10 +47,10 @@
    01   - profile format V1
    xx   - header length
    vvv  - header
-   xx   - name length        }
+   xx   - name length    ....}
    vvv  - variable name      } Repeated until EOD
    xxxx - value length       }
-   vvv  - variable value     }
+   vvv  - variable value ....}
 */
 
 /* Re-direct say ouput and error messages to a temporary file or it'll mess up lspf output */
@@ -88,7 +95,7 @@ ListVariables:
 ver = c2d(substr(data,3,1))
 if ver \= 01 then
   do
-    say "Profile version not supported.  Found" version
+    say "Profile version not supported.  Found" ver
     exit 0
   end
 
@@ -136,9 +143,9 @@ RETURN
 ListTable:
 ver = c2d(substr(data,3,1))
 
-if ver \= 01 then
+if ver > 2 then
   do
-    say "Table version not supported.  Found" version
+    say "Table version not supported.  Found" ver
     exit 0
   end
 
@@ -222,13 +229,15 @@ say
 
 tot   = 0
 val.  = ""
+evr.  = 0
+evl.  = ""
 row   = 1
 col   = 1
 cols  = keys+flds
 n     = 1
 
 do forever
-    if offset >= datal then leave
+    if offset >= datal-1 then leave
     l      = c2d(substr(data,offset,2))
     offset = offset + 2
     v      = substr(data,offset,l)
@@ -239,26 +248,64 @@ do forever
     val.row.col = v
     if length(v) > max.col then max.col = length(v)
     col = col + 1
+    tot = tot + 1
     if col > cols then
       do
+        if ver > 1 then
+          do
+            l = c2d(substr(data,offset,2))
+            if l > 0 then
+              do
+                say "      . Number of extension variables on row:" l-1
+                offset = offset + 2
+                l = c2d(substr(data,offset,2))
+                offset = offset + 2
+                v = substr(data,offset,l)
+                say "      . Extenstion variable names:" v
+                evr.row.0 = words( v )
+                do i = 1 to evr.row.0
+                   evr.row.i = word( v, i )
+                end
+                do i = 1 to evr.row.0
+                   offset = offset + l
+                   l = c2d(substr(data,offset,2))
+                   offset = offset + 2
+                   v = substr(data,offset,l)
+                   say right(row, 4) right(i, 2) left(evr.row.i,8) " :" v
+                   evl.row.i = v
+                end
+                offset = offset + l
+              end
+            else
+              do
+                offset = offset + 2
+              end
+            if substr(data,offset,1) \= 'FF'x then errs = errs + 1
+            offset = offset + 1
+          end
         col = 1
         row = row + 1
         say
       end
-    tot = tot + 1
 end
+
+if ver > 1 then
+  do
+    if substr(data,datal,1) \= 'FF'x then errs = errs + 1
+  end
 
 say
 say "Total values found in table is" Tot
 if ( tot \= cols * rows ) then
   do
     say "Error.  Found "tot" values.  Expected " cols * rows
-    err = err + 1
+    errs = errs + 1
     say
   end
 say "Total number of errors found is" errs
 say
 say "In table format:"
+
 
 l = "      "
 width = 0
@@ -273,6 +320,9 @@ l = ""
 do i = 1 to rows
    do j = 1 to cols
       l = l left( val.i.j, max.j )
+   end
+   do j = 1 to evr.rows.0
+      l = l "ex var" j":" evr.i.j"="evl.i.j
    end
    say right( i, 5 ) l
    l = ""

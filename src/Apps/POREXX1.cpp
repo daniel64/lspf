@@ -68,8 +68,6 @@ int setRexxVariable( string, string ) ;
 int getAllRexxVariables( pApplication * ) ;
 int setAllRexxVariables( pApplication * ) ;
 
-void lspfSyntaxError( pApplication *, const string & ) ;
-
 void POREXX1::application()
 {
 	log( "I", "Application POREXX1 starting." << endl ) ;
@@ -81,7 +79,7 @@ void POREXX1::application()
 
 	size_t version  ;
 	string rxsource ;
-	string path     ;
+	string msg      ;
 
 	RexxInstance *instance   ;
 	RexxThreadContext *threadContext ;
@@ -125,9 +123,7 @@ void POREXX1::application()
 		j = getpaths( ZORXPATH ) ;
 		for ( i = 1 ; i <= j ; i++ )
 		{
-			path     = getpath( ZORXPATH, i ) ;
-			if ( path.back() != '/' ) { path += "/" ; }
-			rexxName = path + rxsource ;
+			rexxName = getpath( ZORXPATH, i ) + rxsource ;
 			if ( !exists( rexxName ) ) { continue ; }
 			if ( is_regular_file( rexxName ) ) { found = true ; break ; }
 			log( "E", "POREXX1 error. " << rxsource << " found but is not a regular file" << endl ) ;
@@ -170,6 +166,13 @@ void POREXX1::application()
 			log( "E", "   Condition Code . . . . .: " << condition.code << endl ) ;
 			log( "E", "   Condition Error Text . .: " << threadContext->CString( condition.errortext ) << endl ) ;
 			log( "E", "   Condition Message. . . .: " << threadContext->CString( condition.message ) << endl ) ;
+			log( "E", "   Line Error Occured . . .: " << condition.position << endl ) ;
+			msg = "Error on line: "+ d2ds( condition.position ) ;
+			msg = msg +".  Condition code: "+ d2ds( condition.code ) ;
+			msg = msg +".  Error Text: "+ threadContext->CString( condition.errortext ) ;
+			msg = msg +".  Message: "+ threadContext->CString( condition.message ) ;
+			if ( msg.size() > 512 ) { msg.erase( 512 ) ; }
+			vreplace( "STR", msg ) ;
 			setmsg( "PSYS011M" ) ;
 			ZRC     = 20 ;
 			ZRSN    = condition.code ;

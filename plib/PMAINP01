@@ -93,8 +93,6 @@ FIELD :
 
 )BODY CMD(ZCMD) HOME(ZCMD)
 
-PrimaryMenu
-
 PanelTitle "Primary Menu Panel"
 
 LITERAL   4    2    FP  "Options ===> "
@@ -230,6 +228,9 @@ S "SELECT PGM(PSYST0A) PARM(SL) NEWAPPL(SYSA) SCRNAME(SYSTEM)"
 T "SELECT PGM(&ZHELPPGM)"
 X "END"
 
+
+)INIT
+ &ZPRIM = YES
 
 )PROC
 

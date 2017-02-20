@@ -1,4 +1,5 @@
 g++ -O0 -shared -fPIC -std=c++11 -Wl,-soname,libPEDIT01.so  -lboost_regex -o libPEDIT01.so PEDIT01.cpp
+g++ -O0 -shared -fPIC -std=c++11 -Wl,-soname,libPEDRXM1.so  -lrexx -lrexxapi -o libPEDRXM1.so PEDRXM1.cpp
 g++ -O0 -shared -fPIC -std=c++11 -Wl,-soname,libPBRO01A.so  -lmagic -lboost_regex -o libPBRO01A.so PBRO01A.cpp
 g++ -O0 -shared -fPIC -std=c++11 -Wl,-soname,libPDLGTST.so  -o libPDLGTST.so PDLGTST.cpp
 g++ -O0 -shared -fPIC -std=c++11 -Wl,-soname,libPFLST0A.so  -o libPFLST0A.so PFLST0A.cpp

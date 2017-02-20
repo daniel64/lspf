@@ -21,13 +21,13 @@
 */
 
 
-/* Personal File List application                                             */
+/* Personal File List application                                                */
 
-/* On exit, if reffield is set to #REFLIST and ZRC = 0                        */
-/* then ZRESULT will be placed in the field specified by the .NRET panel      */
-/* variable:                                                                  */
-/* .NRET = ON                                                                 */
-/* .NRET = ZFILE                                                              */
+/* On exit, if reffield is set to #REFLIST and ZRC = 0                           */
+/* then ZRESULT will be placed in the field specified by the .NRET panel varible */
+/* eg:                                                                           */
+/* .NRET = ON                                                                    */
+/* .NRET = ZFILE                                                                 */
 
 
 #include <iostream>
@@ -161,7 +161,6 @@ void PLRFLST1::PersonalFList()
 		FLAUTIME = ldate + " " + ltime ;
 		tbcreate( RFLTABLE, "ZCURTB", subword( TABFLDS, 2 ), WRITE, NOREPLACE, UPROF ) ;
 		tbsort( RFLTABLE, "ZCURTB,C,A" ) ;
-//              tbadd( RFLTABLE, "", "ORDER" )   ;
 		CloseTable()  ;
 		OpenTableRO() ;
 		if ( RC > 0 ) { abend() ; }
@@ -616,10 +615,13 @@ void PLRFLST1::AddReflistEntry( string ent )
 {
 	int i ;
 
-	string ldate  ;
-	string ltime  ;
-	string eent   ;
-	string rffex  ;
+	string ldate ;
+	string ltime ;
+	string eent  ;
+	string rffex ;
+
+	map<string,bool>found ;
+	vector<string>list ;
 
 	vcopy( "ZDATEL", ldate, MOVE ) ;
 	vcopy( "ZTIMEL", ltime, MOVE ) ;
@@ -645,24 +647,31 @@ void PLRFLST1::AddReflistEntry( string ent )
 	tbget( RFLTABLE ) ;
 	if ( RC > 0 ) { CloseTable() ; return ; }
 
-	for ( i = 1 ; i < 6 ; i++ )
-	{
-		vcopy( "FLAPET" + right( d2ds( i ), 2, '0' ), eent, MOVE ) ;
-		if ( eent == ent )
-		{
-			CloseTable() ;
-			return       ;
-		}
-	}
+	found[ ent ] = true ;
+	list.push_back( ent ) ;
 
-	for ( i = 29 ; i > 0 ; i-- )
+	for ( i = 1 ; i <= 30 ; i++ )
 	{
 		vcopy( "FLAPET" + right( d2ds( i ), 2, '0' ), eent, MOVE ) ;
 		if ( eent == "" ) { continue ; }
-		vreplace( "FLAPET" + right( d2ds( i+1 ), 2, '0' ), eent ) ;
+		if ( found.find( eent )     != found.end() ) { continue ; }
+		if ( found.find( eent+"/" ) != found.end() ) { continue ; }
+		list.push_back( eent ) ;
+		found[ eent ] = true ;
 	}
 
-	vreplace( "FLAPET01", ent ) ;
+	for ( i = 0 ; i <= 29 ; i++ )
+	{
+		if ( i < list.size() )
+		{
+			vreplace( "FLAPET" + right( d2ds( i+1 ), 2, '0' ), list.at( i ) ) ;
+		}
+		else
+		{
+			vreplace( "FLAPET" + right( d2ds( i+1 ), 2, '0' ), "" ) ;
+		}
+	}
+
 	FLAUTIME = ldate + " " + ltime ;
 	tbmod( RFLTABLE, "", "ORDER" ) ;
 	CloseTable() ;

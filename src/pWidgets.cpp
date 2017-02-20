@@ -493,7 +493,8 @@ void field::field_remove_nulls_da()
 
 	// For dynamic areas, remove nulls from input fields that have been touched or changed.
 	// Trailing nulls are changed to blanks.  Keep field size constant by adding blanks at
-	// the end of the input field when removing nulls.
+	// the end of the input field when removing nulls.  In this case, change shadow variable to 0xFF
+	// so we know where the real data ends.
 
 	// If a field that has only been touched, changes, change DataIn to DataMod (if specified)
 

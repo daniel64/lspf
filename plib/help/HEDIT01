@@ -18,6 +18,11 @@ L *         - Jump back to the previous LOCATE line
 
 RESET T     - Reset marked text (alises MRK, MARK, MARKED)
 
+XTABS ON    - Convert tabs to spaces on file read, and spaces to tabs on file save
+      OFF   - Don't convert tabs
+
+XTABS nnn   - Set tab size
+
 
 Extensions to the normal ISPF PDF editor line commands:
 *-----------------------------------------------------*
@@ -46,9 +51,9 @@ WW
 XI       Exclude Indentation.  Exclude lines until the indentation is less than the indentation where the command
          is entered.
 
-[n       Shift characters left to the next nth tab position
+[n       Shift characters left to the next nth tab position (no data loss)
 [[n
 
-]n       Shift characters right to the next nth tab position
+]n       Shift characters right to the next nth tab position (data loss only if right tab position set)
 ]]n
 

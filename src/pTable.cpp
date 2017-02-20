@@ -31,7 +31,7 @@ void Table::loadRow( int& RC,
 	if ( table.size() > 65535 )
 	{
 		RC = 20 ;
-		log( "E", "Max size of 65,535 rows exceeded." << endl ) ;
+		log( "E", "Max size of 65,535 rows exceeded." <<endl ) ;
 		return ;
 	}
 	m_flds.insert( m_flds.begin(), d2ds( ++maxURID ) ) ;
@@ -50,11 +50,15 @@ void Table::saveTable( int& RC,
 		       const string& m_name,
 		       const string& m_path )
 {
+	// Save table to disk.
+	// Version 2 file format adds extension variable support and record/file end markers, 0xFF.
+
 	string s ;
 	int i    ;
 	int j    ;
 	int k    ;
 	int size ;
+	int evar ;
 	std::ofstream otable ;
 
 	RC = 0 ;
@@ -62,7 +66,7 @@ void Table::saveTable( int& RC,
 	if ( !changed )
 	{
 		RC = 4  ;
-		log( "I", "No changes to the table have been made.  Ignoring save" <<  endl ) ;
+		log( "I", "No changes to the table have been made.  Ignoring save" <<endl ) ;
 		return  ;
 	}
 
@@ -73,14 +77,14 @@ void Table::saveTable( int& RC,
 	{
 		if ( !is_directory( s ) )
 		{
-			log( "E", "Directory " << s << " is not a regular directory " <<  endl ) ;
+			log( "E", "Directory "+ s +" is not a regular directory " <<endl ) ;
 			RC = 20 ;
 			return  ;
 		}
 	}
 	else
 	{
-		log( "E", "Directory " << s << " does not exist for table save " <<  endl ) ;
+		log( "E", "Directory "+ s +" does not exist for table save " <<endl ) ;
 		RC = 16 ;
 		return  ;
 	}
@@ -90,19 +94,19 @@ void Table::saveTable( int& RC,
 	{
 		if ( !is_regular_file( s ) )
 		{
-			log( "E", "File " << s << " is not a regular file " <<  endl ) ;
+			log( "E", "File "+ s +" is not a regular file " <<endl ) ;
 			RC = 20 ;
 			return  ;
 		}
 	}
 
-	debug1( "Saving table " << m_name << " in " << s << endl ) ;
+	debug1( "Saving table "+ m_name +" in "+ s <<endl ) ;
 
 	size = table.size() ;
 	otable.open( s.c_str(), ios::binary | ios::out ) ;
 	otable << (char)00  ;  //
 	otable << (char)133 ;  // x085 denotes a table
-	otable << (char)1   ;  // Table file format.  Version 1
+	otable << (char)2   ;  // Table file format.  Version 2 (extension variable support)
 	otable << (char)44  ;  // Header length
 	otable << "HDR                                         " ;
 	otable << (char)01  ;  // Number of fields following the header record (only the Sort Information Record for now)
@@ -126,7 +130,19 @@ void Table::saveTable( int& RC,
 			otable << (char)( k  )            ;
 			otable << table.at( i ).at( j )   ;
 		}
+		evar = table.at( i ).size() - num_all - 1 ;
+		otable << (char)( evar >> 8 ) ;
+		otable << (char)( evar  )     ;
+		for ( ; j < table.at( i ).size() ; j++ )
+		{
+			k = table.at( i ).at( j ).size() ;
+			otable << (char)( k >> 8 )       ;
+			otable << (char)( k  )           ;
+			otable << table.at( i ).at( j )  ;
+		}
+		otable << (char)0xFF ;
 	}
+	otable << (char)0xFF ;
 	otable.close() ;
 	resetChanged() ;
 }
@@ -167,7 +183,7 @@ void Table::tbadd( int& RC,
 	if ( table.size() > 65535 )
 	{
 		RC = 20 ;
-		log( "E", "Max size of 65,535 rows exceeded." <<  endl ) ;
+		log( "E", "Max size of 65,535 rows exceeded." <<endl ) ;
 		return ;
 	}
 
@@ -289,7 +305,7 @@ void Table::tbbottom( int& RC,
 
 	if ( tb_noread != "" && tb_noread != "NOREAD" )
 	{
-		log( "E", "Invalid NOREAD parameter specified.  Invalid specification is " << tb_noread << endl ) ;
+		log( "E", "Invalid NOREAD parameter specified.  Invalid specification is "+ tb_noread <<endl ) ;
 		RC = 20 ;
 		return ;
 	}
@@ -547,7 +563,7 @@ void Table::tbget( int& RC,
 
 	if ( tb_noread != "" && tb_noread != "NOREAD" )
 	{
-		log( "E", "Invalid NOREAD parameter specified.  Invalid specification is " << tb_noread << endl ) ;
+		log( "E", "Invalid NOREAD parameter specified.  Invalid specification is "+ tb_noread <<endl ) ;
 		RC = 20 ;
 		return ;
 	}
@@ -885,7 +901,7 @@ void Table::tbsarg( int& RC,
 		    string tb_cond_pairs )
 {
 	// Notes:  Current value of variables are used if not blank.  Condition is EQ
-	// ARGLIST is for extension variables, the values of which will be used in the search
+	// ARGLIST(namelst) is for extension variables, the values of which will be used in the search
 
 	int  p1 ;
 	int  p2 ;
@@ -907,7 +923,7 @@ void Table::tbsarg( int& RC,
 	{
 		if ( tb_cond_pairs[ 0 ] != '(' || tb_cond_pairs.back() != ')' )
 		{
-			log( "E", "Invalid COND PAIRS specified. " << tb_cond_pairs << endl ) ;
+			log( "E", "Invalid COND PAIRS specified. "+ tb_cond_pairs <<endl ) ;
 			RC = 20 ;
 			return ;
 		}
@@ -920,7 +936,7 @@ void Table::tbsarg( int& RC,
 
 	if ( (tb_dir != "NEXT") && (tb_dir != "PREVIOUS") )
 	{
-		log( "E", "Search direction on TBSARG must be NEXT or PREVIOUS.  Invalid specification is " << tb_dir << endl ) ;
+		log( "E", "Search direction on TBSARG must be NEXT or PREVIOUS.  Invalid specification is "+ tb_dir <<endl ) ;
 		RC = 20 ;
 		return  ;
 	}
@@ -943,7 +959,7 @@ void Table::tbsarg( int& RC,
 		var = word( tb_namelst, i ) ;
 		if ( wordpos( var, tab_all ) > 0 )
 		{
-			log( "E", "Extension variables cannot have the same name as key or field names" << endl ) ;
+			log( "E", "Extension variables cannot have the same name as key or field names" <<endl ) ;
 			RC = 20 ;
 			return  ;
 		}
@@ -969,14 +985,14 @@ void Table::tbsarg( int& RC,
 		p1 = tb_cond_pairs.find( ',', p2 ) ;
 		if ( p1 == string::npos )
 		{
-			log( "E", "Search pairs must be of the form NAME,COND,NAME,COND...." << endl ) ;
+			log( "E", "Search pairs must be of the form NAME,COND,NAME,COND...." <<endl ) ;
 			RC = 20 ;
 			return  ;
 		}
 		var = tb_cond_pairs.substr( p2, p1-p2 ) ;
 		if ( wordpos( var, (tab_all + " " + tb_namelst ) ) == 0 )
 		{
-			log( "E", "Invalid NAME specifed on TBSARG request.  Must be a key, field or extension variable name.  Invalid specification is " << var << endl ) ;
+			log( "E", "Invalid NAME specifed on TBSARG request.  Must be a key, field or extension variable name.  Invalid specification is "+ var <<endl ) ;
 			RC = 20 ;
 			return  ;
 		}
@@ -994,7 +1010,7 @@ void Table::tbsarg( int& RC,
 		p2++ ;
 		if ( (sarg.find( var ) != sarg.end()) && !sarg[ var ].tbsSetcon( cond ) )
 		{
-			log( "E", "Invalid condition.  Has to be EQ, NE, LE, LT, GE or GT. Invalid specification is '" << cond << "'" << endl ) ;
+			log( "E", "Invalid condition.  Has to be EQ, NE, LE, LT, GE or GT. Invalid specification is '"+ cond +"'" <<endl ) ;
 			RC = 20 ;
 			return  ;
 		}
@@ -1018,6 +1034,7 @@ void Table::tbscan( int& RC,
 		    string tb_condlst )
 {
 	// Scan table from current CRP according to parameters tb_namelst/tb_condlst/tb_dir if specified or similar values from a previous tbsarg call
+	// tb_namelst contains key, name and extenstion variables.
 	// Scan on extension variables not currently supported.  Only one search argument/condition currently supported
 
 	// RC = 0  Okay. Row found
@@ -1025,7 +1042,6 @@ void Table::tbscan( int& RC,
 
 	// Current value of variables not in NAMELST make no difference to search
 	// SAVENM is blank if there are no extension variables or if NOREAD is specified.  Not specifying var leaves it unchanged from before (obviously)
-
 	// NULL values are not ignored in namelst.
 
 	int  i   ;
@@ -1059,14 +1075,14 @@ void Table::tbscan( int& RC,
 
 	if ( (tb_dir != "NEXT") && (tb_dir != "PREVIOUS") )
 	{
-		log( "E", "Search direction must be NEXT (default) or PREVIOUS" << endl ) ;
+		log( "E", "Search direction must be NEXT (default) or PREVIOUS" <<endl ) ;
 		RC = 20 ;
 		return  ;
 	}
 
 	if ( tb_noread != "" && tb_noread != "NOREAD" )
 	{
-		log( "E", "Only NOREAD should be specifed if variables are not to be read.  Invalid specification is " << tb_noread << endl ) ;
+		log( "E", "Only NOREAD should be specifed if variables are not to be read.  Invalid specification is "+ tb_noread <<endl ) ;
 		RC = 20 ;
 		return  ;
 	}
@@ -1079,7 +1095,7 @@ void Table::tbscan( int& RC,
 	{
 		if ( sarg.size() == 0 )
 		{
-			log( "E", "TBSCAN performed with no name list, but no search arguments set by TBSARG" << endl ) ;
+			log( "E", "TBSCAN performed with no name list, but no search arguments set by TBSARG" <<endl ) ;
 			RC = 20 ;
 			return  ;
 		}
@@ -1090,7 +1106,7 @@ void Table::tbscan( int& RC,
 	{
 		if ( words( tb_condlst ) > words( tb_namelst ) )
 		{
-			log( "E", "CONDLIST parameter has more conditions that names in the NAMELIST parameter (less defaults to EQ)" << endl ) ;
+			log( "E", "CONDLIST parameter has more conditions that names in the NAMELIST parameter (less defaults to EQ)" <<endl ) ;
 			RC = 20 ;
 			return  ;
 		}
@@ -1110,7 +1126,7 @@ void Table::tbscan( int& RC,
 			scan[ var ] = t ;
 			if ( !scan[ var ].tbsSetcon( word( tb_condlst, i )) )
 			{
-				log( "E", "Invalid condition.  Has to be EQ, NE, LE, LT, GE or GT" << endl ) ;
+				log( "E", "Invalid condition.  Has to be EQ, NE, LE, LT, GE or GT" <<endl ) ;
 				RC = 20 ;
 				return  ;
 			}
@@ -1262,7 +1278,7 @@ void Table::cmdsearch( int& RC,
 
 	if ( !tab_cmds )
 	{
-		log( "E", "cmdsearch issued for a non-command table." << endl ) ;
+		log( "E", "cmdsearch issued for a non-command table." <<endl ) ;
 		RC = 20 ;
 		return  ;
 	}
@@ -1341,7 +1357,7 @@ void Table::tbskip( int& RC,
 
 	if ( tb_noread != "" && tb_noread != "NOREAD" )
 	{
-		log( "E", "Invalid NOREAD parameter specified.  Invalid specification is " << tb_noread << endl ) ;
+		log( "E", "Invalid NOREAD parameter specified.  Invalid specification is "+ tb_noread <<endl ) ;
 		RC = 20 ;
 		return ;
 	}
@@ -1540,7 +1556,7 @@ void Table::tbvclear( int& RC,
 
 tableMGR::tableMGR()
 {
-	debug1( "Constructor for table manager called " << endl ) ;
+	debug1( "Constructor for table manager called " <<endl ) ;
 }
 
 
@@ -1558,10 +1574,10 @@ void tableMGR::createTable( int& RC,
 	iupper( keys ) ;
 	iupper( flds ) ;
 
-	debug1( "Creating table >>" << tb_name << "<<" << endl ) ;
-	debug1( "     with keys >>" << keys <<  "<<" << endl ) ;
-	debug1( "    and fields >>" << flds << "<<" << endl ) ;
-	debug1( "          path >>" << m_path << "<<" << endl ) ;
+	debug1( "Creating table >>"+ tb_name +"<<" <<endl ) ;
+	debug1( "     with keys >>"+ keys    +"<<" <<endl ) ;
+	debug1( "    and fields >>"+ flds    +"<<" <<endl ) ;
+	debug1( "          path >>"+ m_path  +"<<" <<endl ) ;
 
 	RC = 0 ;
 	map<string, Table>::iterator it ;
@@ -1573,7 +1589,7 @@ void tableMGR::createTable( int& RC,
 		{
 			if ( m_DISP == SHARE )
 			{
-				log( "E", "Table " << tb_name << " already exists in SHARE mode.  REPLACE not allowed" << endl ) ;
+				log( "E", "Table "+ tb_name +" already exists in SHARE mode.  REPLACE not allowed" <<endl ) ;
 				RC = 8 ;
 				return ;
 			}
@@ -1581,13 +1597,13 @@ void tableMGR::createTable( int& RC,
 			{
 				if ( it->second.ownerTask != m_task )
 				{
-					log( "E", "Table " << tb_name << " already exists in EXCLUSIVE mode but owned by another task.  REPLACE not allowed" << endl ) ;
+					log( "E", "Table "+ tb_name +" already exists in EXCLUSIVE mode but owned by another task.  REPLACE not allowed" <<endl ) ;
 					RC = 8 ;
 					return ;
 				}
 				else
 				{
-					log( "I", "Table " << tb_name << " already exists and REPLACE specified" << endl ) ;
+					log( "I", "Table "+ tb_name +" already exists and REPLACE specified" <<endl ) ;
 					tables.erase( tb_name ) ;
 					RC = 4 ;
 				}
@@ -1595,13 +1611,13 @@ void tableMGR::createTable( int& RC,
 		}
 		else
 		{
-			log( "E", "Table " << tb_name << " already exists and REPLACE not specified" << endl ) ;
+			log( "E", "Table "+ tb_name +" already exists and REPLACE not specified" <<endl ) ;
 			RC = 8 ;
 			return ;
 		}
 		if ( m_temporary != it->second.tab_temporary )
 		{
-			log( "E", "Table created with inconsistent WRITE/NOWRITE attributes for open table " << tb_name << endl ) ;
+			log( "E", "Table created with inconsistent WRITE/NOWRITE attributes for open table "+ tb_name <<endl ) ;
 			RC = 20 ;
 			return  ;
 		}
@@ -1630,9 +1646,14 @@ void tableMGR::loadTable( int& RC,
 {
 	// If table already loaded, EXCLUSIVE can be changed to SHARE by the same task.  Any other combination is not valid
 
-	char x, y     ;
-	int  i, j     ;
-	int  k, l     ;
+	// Routine to load V1 and V2 format tables
+
+	char x        ;
+	int  i        ;
+	int  j        ;
+	int  k        ;
+	int  l        ;
+	int  ver      ;
 	int  num_rows ;
 	int  num_keys ;
 	int  num_flds ;
@@ -1643,6 +1664,7 @@ void tableMGR::loadTable( int& RC,
 
 	char buf1[ 256 ] ;
 	char * buf2      ;
+	char z[ 2 ]      ;
 
 	string filename ;
 	string path  ;
@@ -1652,8 +1674,9 @@ void tableMGR::loadTable( int& RC,
 	string val   ;
 	string keys  ;
 	string flds  ;
+	string err1  ;
 
-	size_t buf2Size = 1024  ;
+	size_t buf2Size = 1024 ;
 
 	std::ifstream table   ;
 	vector<string> m_flds ;
@@ -1667,13 +1690,13 @@ void tableMGR::loadTable( int& RC,
 		if ( (it->second.tab_DISP == SHARE) && (m_DISP == EXCLUSIVE) )
 		{
 			RC = 20 ;
-			log( "E", "Table " << tb_name << " is already open in SHARE mode.  EXCLUSIVE requested" << endl ) ;
+			log( "E", "Table "+ tb_name +" is already open in SHARE mode.  EXCLUSIVE requested" <<endl ) ;
 			return ;
 		}
 		if ( (it->second.tab_DISP == EXCLUSIVE) && it->second.ownerTask != task )
 		{
 			RC = 20 ;
-			log( "E", "Table " << tb_name << " is already open in EXCLUSIVE mode by another task" << endl ) ;
+			log( "E", "Table "+ tb_name +" is already open in EXCLUSIVE mode by another task" <<endl ) ;
 			return ;
 		}
 		it->second.refCount++ ;
@@ -1692,7 +1715,7 @@ void tableMGR::loadTable( int& RC,
 			if ( !is_regular_file( filename ) )
 			{
 				RC = 20 ;
-				log( "E", "Table load file name " << filename << " is not a regular file" << endl ) ;
+				log( "E", "Table load file name "+ filename +" is not a regular file" <<endl ) ;
 				return  ;
 			}
 			else
@@ -1704,17 +1727,17 @@ void tableMGR::loadTable( int& RC,
 	}
 	if ( !found )
 	{
-		log( "E", "Table file not found in path search for " << tb_name << endl ) ;
+		log( "E", "Table file not found in path search for "+ tb_name <<endl ) ;
 		RC = 8 ;
 		return ;
 	}
-	debug1( "Loading table " << tb_name << " from " <<  filename << endl ) ;
+	debug1( "Loading table "+ tb_name +" from "+ filename <<endl ) ;
 
 	table.open( filename.c_str() , ios::binary | ios::in ) ;
 	if ( !table.is_open() )
 	{
 		RC = 20 ;
-		log( "E", "Table open for "+ tb_name +" gave an error.  Filename "+ filename << endl ) ;
+		log( "E", "Table open for "+ tb_name +" gave an error.  Filename "+ filename <<endl ) ;
 		return ;
 	}
 
@@ -1722,17 +1745,17 @@ void tableMGR::loadTable( int& RC,
 	if ( memcmp( buf1, "\x00\x85", 2 ) )
 	{
 		RC = 20 ;
-		log( "E", "Not a valid table file '" << tb_name << "'.  Appears corrupt.  Filename " << filename << endl ) ;
+		log( "E", "Not a valid table file '"+ tb_name +"'.  Appears corrupt.  Filename "+ filename <<endl ) ;
 		table.close() ;
 		return ;
 	}
 
 	table.get( x ) ;
-	i = static_cast< int >( x ) ;
-	if ( i > 1 )
+	ver = static_cast< int >( x ) ;
+	if ( ver > 2 )
 	{
 		RC = 20 ;
-		log( "E", "Invalid table prefix.  Version " << i << " not supported or table is corrupt.  Filename " << filename << endl ) ;
+		log( "E", "Invalid table prefix.  Version "<< ver <<" not supported or table is corrupt.  Filename "+ filename <<endl ) ;
 		table.close() ;
 		return ;
 	}
@@ -1757,18 +1780,18 @@ void tableMGR::loadTable( int& RC,
 			break ;
 		default:
 			RC = 20 ;
-			log( "E", "Invalid number of table information fields found.  Only 1 expected.  Found " << j+1 << endl ) ;
+			log( "E", "Invalid number of table information fields found.  Only 1 expected.  Found " << j+1 <<endl ) ;
 			table.close() ;
 			return ;
 		}
 	}
-	table.get( x ) ;
-	table.get( y ) ;
-	n1 = static_cast< int >( x ) ;
-	n2 = static_cast< int >( y ) ;
+	table.read( z, 2 ) ;
+	n1 = static_cast< int >( z[ 0 ] ) ;
+	n2 = static_cast< int >( z[ 1 ] ) ;
 	if ( n1 < 0 ) { n1 = 256 + n1 ; }
 	if ( n2 < 0 ) { n2 = 256 + n2 ; }
 	num_rows = n1 * 256 + n2 ;
+
 	table.get( x ) ;
 	n1 = static_cast< int >( x ) ;
 	if ( n1 < 0 ) { n1 = 256 + n1 ; }
@@ -1788,7 +1811,7 @@ void tableMGR::loadTable( int& RC,
 		if ( table.fail() != 0 )
 		{
 			RC = 20 ;
-			log( "E", "Unexpected EOF reading keys.  Table " << tb_name << " appears to be corrupt. Filename " << filename << endl ) ;
+			log( "E", "Unexpected EOF reading keys.  Table "+ tb_name +" appears to be corrupt. Filename "+ filename <<endl ) ;
 			table.close() ;
 			return ;
 		}
@@ -1803,7 +1826,7 @@ void tableMGR::loadTable( int& RC,
 		if ( table.fail() != 0 )
 		{
 			RC = 20 ;
-			log( "E", "Unexpected EOF reading fields.  Table " << tb_name << " appears to be corrupt.  Filename " << filename << endl ) ;
+			log( "E", "Unexpected EOF reading fields.  Table "+ tb_name +" appears to be corrupt.  Filename "+ filename <<endl ) ;
 			table.close() ;
 			return ;
 		}
@@ -1816,13 +1839,13 @@ void tableMGR::loadTable( int& RC,
 	createTable( RC, task, tb_name, keys, flds, false, NOREPLACE, path, m_DISP ) ;
 	if ( RC > 0 )
 	{
-		log( "E", "TBCREATE failed during loadTable for " << tb_name << endl ) ;
+		log( "E", "TBCREATE failed during loadTable for "+ tb_name <<endl ) ;
 		table.close() ;
 		return ;
 	}
 
-	debug1( "Table created RC = " << RC << endl ) ;
-	debug1( "Number of rows found in table " << num_rows << endl ) ;
+	debug1( "Table created RC = " << RC <<endl ) ;
+	debug1( "Number of rows found in table " << num_rows <<endl ) ;
 
 	it->second.reserveSpace( num_rows ) ;
 	if ( sir != "" )
@@ -1831,36 +1854,28 @@ void tableMGR::loadTable( int& RC,
 		if ( RC > 0 )
 		{
 			RC = 20 ;
-			log( "E", "Bad return code from tbsort.  Sort Information Record found is " << sir << endl ) ;
+			log( "E", "Bad return code from tbsort.  Sort Information Record found is "+ sir <<endl ) ;
 			return  ;
 		}
 	}
 	buf2 = new char[ buf2Size ] ;
+	err1 = "Unexpected EOF reading table values.  Table "+ tb_name +" appears to be corrupt.  Filename "+ filename ;
 	for ( l = 0 ; l < num_rows ; l++ )
 	{
 		m_flds.clear() ;
 		for ( j = 0 ; j < all_flds ; j++ )
 		{
-			table.get( x ) ;
+			table.read( z, 2 ) ;
 			if ( table.fail() != 0 )
 			{
 				RC = 20 ;
-				log( "E", "Unexpected EOF reading table values.  Table " << tb_name << " appears to be corrupt.  Filename " << filename << endl ) ;
+				log( "E", err1 ) ;
 				table.close() ;
 				delete[] buf2 ;
 				return  ;
 			}
-			table.get( y ) ;
-			if ( table.fail() != 0 )
-			{
-				RC = 20 ;
-				log( "E", "Unexpected EOF reading table values.  Table " << tb_name << " appears to be corrupt. Filename " << filename << endl ) ;
-				table.close() ;
-				delete[] buf2 ;
-				return ;
-			}
-			n1 = static_cast< int >( x ) ;
-			n2 = static_cast< int >( y ) ;
+			n1 = static_cast< int >( z[ 0 ] ) ;
+			n2 = static_cast< int >( z[ 1 ] ) ;
 			if ( n1 < 0 ) { n1 = 256 + n1 ; }
 			if ( n2 < 0 ) { n2 = 256 + n2 ; }
 			i = n1 * 256 + n2 ;
@@ -1874,22 +1889,110 @@ void tableMGR::loadTable( int& RC,
 			if ( table.fail() != 0 )
 			{
 				RC = 20 ;
-				log( "E", "Unexpected EOF reading table values.  Table " << tb_name << " appears to be corrupt. Filename " << filename << endl ) ;
+				log( "E", err1 ) ;
 				table.close() ;
 				delete[] buf2 ;
 				return ;
 			}
 			val.assign( buf2, i ) ;
-			debug2( "Value read for row " << l << " position " << j << "<<" << val << "<<" << endl ) ;
+			debug2( "Value read for row "<< l <<" position "<< j <<" '"+ val +"'" <<endl ) ;
 			m_flds.push_back ( val ) ;
+		}
+		if ( ver > 1 )
+		{
+			table.read( z, 2 ) ;
+			if ( table.fail() != 0 )
+			{
+				RC = 20 ;
+				log( "E", err1 ) ;
+				table.close() ;
+				delete[] buf2 ;
+				return  ;
+			}
+			n1 = static_cast< int >( z[ 0 ] ) ;
+			n2 = static_cast< int >( z[ 1 ] ) ;
+			if ( n1 < 0 ) { n1 = 256 + n1 ; }
+			if ( n2 < 0 ) { n2 = 256 + n2 ; }
+			i = n1 * 256 + n2 ;
+			for ( j = 0 ; j < i ; j++ )
+			{
+				table.read( z, 2 ) ;
+				if ( table.fail() != 0 )
+				{
+					RC = 20 ;
+					log( "E", err1 ) ;
+					table.close() ;
+					delete[] buf2 ;
+					return  ;
+				}
+				n1 = static_cast< int >( z[ 0 ] ) ;
+				n2 = static_cast< int >( z[ 1 ] ) ;
+				if ( n1 < 0 ) { n1 = 256 + n1 ; }
+				if ( n2 < 0 ) { n2 = 256 + n2 ; }
+				k = n1 * 256 + n2 ;
+				if ( k > buf2Size )
+				{
+					delete[] buf2 ;
+					buf2Size = i  ;
+					buf2     = new char[ buf2Size ] ;
+				}
+				table.read( buf2, k ) ;
+				if ( table.fail() != 0 )
+				{
+					RC = 20 ;
+					log( "E", err1 ) ;
+					table.close() ;
+					delete[] buf2 ;
+					return ;
+				}
+				val.assign( buf2, k ) ;
+				m_flds.push_back ( val ) ;
+			}
+			table.read( z, 1 ) ;
+			if ( table.fail() != 0 )
+			{
+				RC = 20 ;
+				log( "E", err1 ) ;
+				table.close() ;
+				delete[] buf2 ;
+				return  ;
+			}
+			if ( z[ 0 ] != char(0xFF) )
+			{
+				RC = 20 ;
+				log( "E", "End of record marker not found.  File corrupt: "+ filename <<endl ; )
+				table.close() ;
+				delete[] buf2 ;
+				return  ;
+			}
 		}
 		tables[ tb_name ].loadRow( RC, m_flds ) ;
 	}
+	if ( ver > 1 )
+	{
+		table.read( z, 1 ) ;
+		if ( table.fail() != 0 )
+		{
+			RC = 20 ;
+			log( "E", err1 ) ;
+			table.close() ;
+			delete[] buf2 ;
+			return  ;
+		}
+		if ( z[ 0 ] != char(0xFF) )
+		{
+			RC = 20 ;
+			log( "E", "End of file marker not found.  File corrupt: "+ filename <<endl ; )
+			table.close() ;
+			delete[] buf2 ;
+			return  ;
+		}
+	}
 	tables[ tb_name ].resetChanged() ;
-	debug1( "Number of rows loaded from table " << l << endl ) ;
+	debug1( "Number of rows loaded from table " << l <<endl ) ;
 	if ( l != num_rows )
 	{
-		log( "E",  "Inconsistent number of records found with saved total.  Found=" << l << " Saved Total=" << num_rows << endl ; )
+		log( "E",  "Inconsistent number of records found with saved total.  Found=" << l << " Saved Total=" << num_rows <<endl ; )
 		RC = 20 ;
 	}
 	table.close() ;
@@ -1913,13 +2016,13 @@ void tableMGR::saveTable( int& RC,
 	if ( it == tables.end() )
 	{
 		RC = 12 ;
-		log( "E", "Table " << tb_name << " not found for save" << endl ) ;
+		log( "E", "Table "+ tb_name +" not found for save" <<endl ) ;
 		return ;
 	}
 	if ( m_err && m_newname == "" && it->second.tab_temporary )
 	{
 		RC = 12 ;
-		log( "E", "Table " << tb_name << " is a temporary table.  Cannot be saved" << endl ) ;
+		log( "E", "Table "+ tb_name +" is a temporary table.  Cannot be saved" <<endl ) ;
 		return ;
 	}
 	it->second.saveTable( RC, ( m_newname == "" ? tb_name : m_newname ), m_path ) ;
@@ -1937,7 +2040,7 @@ void tableMGR::destroyTable( int& RC,
 	if ( it == tables.end() )
 	{
 		RC = 12 ;
-		log( "E", "Table " << tb_name << " does not exist" << endl ) ;
+		log( "E", "Table "+ tb_name +" does not exist" <<endl ) ;
 		return ;
 	}
 
@@ -1979,7 +2082,7 @@ bool tableMGR::tablexists( const string& tb_name,
 		{
 			if ( !is_regular_file( filename ) )
 			{
-				log( "I", "Table file name " << filename << " is not a regular file" << endl ) ;
+				log( "I", "Table file name "+ filename +" is not a regular file" <<endl ) ;
 				return  false ;
 			}
 			else
@@ -1999,52 +2102,52 @@ void tableMGR::statistics()
 	map<string, Table>::iterator it     ;
 	map<string, tbsearch>::iterator its ;
 
-	log( "-", "TABLE STATISTICS:" << endl ) ;
-	log( "-", "         Number of tables loaded . . . " << tables.size() << endl ) ;
-	log( "-", "          Table details:" << endl ) ;
+	log( "-", "TABLE STATISTICS:" <<endl ) ;
+	log( "-", "         Number of tables loaded . . . " << tables.size() <<endl ) ;
+	log( "-", "          Table details:" <<endl ) ;
 	for ( it = tables.begin() ; it != tables.end() ; it++ )
 	{
-		log( "-", "" << endl ) ;
-		log( "-", "                  Table: " << it->first << endl ) ;
+		log( "-", "" <<endl ) ;
+		log( "-", "                  Table: "+ it->first <<endl ) ;
 		if ( it->second.tab_temporary )
 		{
-			log( "-", "                 Status: " << "Temporary table" << endl ) ;
+			log( "-", "                 Status: Temporary table" <<endl ) ;
 		}
 		else if ( it->second.changed )
 		{
-			log( "-", "                 Status: " << "Modified since load or last save" << endl ) ;
+			log( "-", "                 Status: Modified since load or last save" <<endl ) ;
 		}
-		log( "-", "            Owning Task: " << it->second.ownerTask << endl ) ;
+		log( "-", "            Owning Task: " << it->second.ownerTask <<endl ) ;
 		if ( it->second.num_keys > 0 )
 		{
-			log( "-", "                   Keys: " << setw(3) << it->second.tab_keys << endl ) ;
+			log( "-", "                   Keys: " << setw(3) << it->second.tab_keys <<endl ) ;
 		}
-		log( "-", "                 Fields: " << it->second.tab_flds << endl ) ;
-		log( "-", "         Number of rows: " << it->second.table.size() << endl ) ;
-		log( "-", "                   Path: " << it->second.tab_path << endl ) ;
-		log( "-", "   Current Row Position: " << it->second.CRP << endl ) ;
+		log( "-", "                 Fields: " << it->second.tab_flds <<endl ) ;
+		log( "-", "         Number of rows: " << it->second.table.size() <<endl ) ;
+		log( "-", "                   Path: " << it->second.tab_path <<endl ) ;
+		log( "-", "   Current Row Position: " << it->second.CRP <<endl ) ;
 		if ( it->second.sarg.size() > 0 )
 		{
-			log( "-", "Current Search Argument: " << endl ) ;
-			log( "-", "        Condition Pairs: " << it->second.sa_cond_pairs << endl ) ;
-			log( "-", "       Search Direction: " << it->second.sa_dir << endl ) ;
-			log( "-", "    Extension Variables: " << it->second.sa_namelst << endl ) ;
+			log( "-", "Current Search Argument: " <<endl ) ;
+			log( "-", "        Condition Pairs: " << it->second.sa_cond_pairs <<endl ) ;
+			log( "-", "       Search Direction: " << it->second.sa_dir <<endl ) ;
+			log( "-", "    Extension Variables: " << it->second.sa_namelst <<endl ) ;
 			for ( its = it->second.sarg.begin() ; its != it->second.sarg.end() ; its++ )
 			{
-				log( "-", "             Field Name: " << its->first << endl ) ;
+				log( "-", "             Field Name: "+ its->first <<endl ) ;
 				if ( its->second.tbs_gen )
-					log( "-", "            Field Value: " << its->second.tbs_val << " (generic search)" << endl ) ;
+					log( "-", "            Field Value: "+ its->second.tbs_val +" (generic search)" <<endl ) ;
 				else
-					log( "-", "            Field Value: " << its->second.tbs_val << endl ) ;
-				log( "-", "        Field Condition: " << its->second.tbs_scond << endl ) ;
+					log( "-", "            Field Value: "+ its->second.tbs_val <<endl ) ;
+				log( "-", "        Field Condition: "+ its->second.tbs_scond <<endl ) ;
 			}
 		}
 		if ( it->second.sort_ir != "" )
 		{
-			log( "-", "Sort Information Record: " << it->second.sort_ir << endl ) ;
+			log( "-", "Sort Information Record: "+ it->second.sort_ir <<endl ) ;
 		}
 	}
-	log( "-", "*************************************************************************************************************" << endl ) ;
+	log( "-", "*************************************************************************************************************" <<endl ) ;
 }
 
 
@@ -2058,7 +2161,7 @@ int tableMGR::getCRP( int& RC,
 	if ( it == tables.end() )
 	{
 		RC = 12 ;
-		log( "E", "Table " << tb_name << " not found for get CRP" << endl ) ;
+		log( "E", "Table "+ tb_name +" not found for get CRP" <<endl ) ;
 		return 0 ;
 	}
 	return it->second.getCRP() ;
@@ -2078,7 +2181,7 @@ void tableMGR::fillfVARs( int& RC,
 	if ( it == tables.end() )
 	{
 		RC = 12 ;
-		log( "E", "Table " << tb_name << " not found for fill function pool" << endl ) ;
+		log( "E", "Table "+ tb_name +" not found for fill function pool" <<endl ) ;
 		return ;
 	}
 	it->second.fillfVARs( RC, funcPOOL, depth, posn ) ;
@@ -2100,7 +2203,7 @@ void tableMGR::tbget( int& RC,
 	if ( it == tables.end() )
 	{
 		RC = 12 ;
-		log( "E", "Table " << tb_name << " not found for tbget" << endl ) ;
+		log( "E", "Table "+ tb_name +" not found for tbget" <<endl ) ;
 		return ;
 	}
 	it->second.tbget( RC, funcPOOL, tb_savenm, tb_rowid_vn, tb_noread, tb_crp_name ) ;
@@ -2120,7 +2223,7 @@ void tableMGR::tbmod( int& RC,
 	if ( it == tables.end() )
 	{
 		RC = 12 ;
-		log( "E", "Table " << tb_name << " not found for modify" << endl ) ;
+		log( "E", "Table "+ tb_name +" not found for modify" <<endl ) ;
 		return ;
 	}
 	it->second.tbmod( RC, funcPOOL, tb_namelst, tb_order ) ;
@@ -2140,7 +2243,7 @@ void tableMGR::tbput( int& RC,
 	if ( it == tables.end() )
 	{
 		RC = 12 ;
-		log( "E", "Table " << tb_name << " not found for modify" << endl ) ;
+		log( "E", "Table "+ tb_name +" not found for modify" <<endl ) ;
 		return ;
 	}
 	it->second.tbput( RC, funcPOOL, tb_namelst, tb_order ) ;
@@ -2161,7 +2264,7 @@ void tableMGR::tbadd( int& RC,
 	if ( it == tables.end() )
 	{
 		RC = 12 ;
-		log( "E", "Table " << tb_name << " not found for tbadd" << endl ) ;
+		log( "E", "Table "+ tb_name +" not found for tbadd" <<endl ) ;
 		return ;
 	}
 	it->second.tbadd( RC, funcPOOL, tb_namelst, tb_order, tb_num_of_rows ) ;
@@ -2183,7 +2286,7 @@ void tableMGR::tbbottom( int& RC,
 	if ( it == tables.end() )
 	{
 		RC = 12 ;
-		log( "E", "Table " << tb_name << " not found for tbbottom" << endl ) ;
+		log( "E", "Table "+ tb_name +" not found for tbbottom" <<endl ) ;
 		return ;
 	}
 	it->second.tbbottom( RC, funcPOOL, tb_savenm, tb_rowid_vn, tb_noread, tb_crp_name ) ;
@@ -2201,7 +2304,7 @@ void tableMGR::tbdelete( int& RC,
 	if ( it == tables.end() )
 	{
 		RC = 12 ;
-		log( "E", "Table " << tb_name << " not found for tbdelete" << endl ) ;
+		log( "E", "Table "+ tb_name +" not found for tbdelete" <<endl ) ;
 		return ;
 	}
 	it->second.tbdelete( RC, funcPOOL ) ;
@@ -2226,7 +2329,7 @@ void tableMGR::tberase( int& RC,
 	if ( it != tables.end() )
 	{
 		RC = 12 ;
-		log( "E", "Table '"+ tb_name +"' in use. Cannot be erased unless closed" << endl ) ;
+		log( "E", "Table '"+ tb_name +"' in use. Cannot be erased unless closed" <<endl ) ;
 		return ;
 	}
 
@@ -2240,7 +2343,7 @@ void tableMGR::tberase( int& RC,
 			if ( !is_regular_file( filename ) )
 			{
 				RC = 16 ;
-				log( "W", "Table load file name " << filename << " is not a regular file" << endl ) ;
+				log( "W", "Table load file name "+ filename +" is not a regular file" <<endl ) ;
 				return  ;
 			}
 			else
@@ -2253,11 +2356,11 @@ void tableMGR::tberase( int& RC,
 	if ( !found )
 	{
 		RC = 8 ;
-		log( "W", "Table file for '"+ tb_name +"' not found in path search"  << endl ) ;
+		log( "W", "Table file for '"+ tb_name +"' not found in path search"  <<endl ) ;
 		return ;
 	}
 	remove( filename ) ;
-	log( "I", "Table file '"+ filename +"' deleted"  << endl ) ;
+	log( "I", "Table file '"+ filename +"' deleted"  <<endl ) ;
 }
 
 
@@ -2272,7 +2375,7 @@ void tableMGR::tbexist( int& RC,
 	if ( it == tables.end() )
 	{
 		RC = 12 ;
-		log( "E", "Table " << tb_name << " not found for tbexist" << endl ) ;
+		log( "E", "Table "+ tb_name +" not found for tbexist" <<endl ) ;
 		return ;
 	}
 	it->second.tbexist( RC, funcPOOL ) ;
@@ -2300,7 +2403,7 @@ void   tableMGR::tbquery( int& RC,
 	if ( it == tables.end() )
 	{
 		RC = 12 ;
-		debug1( "Table " << tb_name << " not found to set search argument" << endl ) ;
+		debug1( "Table "+ tb_name +" not found to set search argument" <<endl ) ;
 		return ;
 	}
 	it->second.tbquery( RC, funcPOOL, tb_keyn, tb_varn, tb_rownn, tb_keynn, tb_namenn, tb_crpn, tb_sirn, tb_lstn, tb_condn, tb_dirn ) ;
@@ -2321,7 +2424,7 @@ void   tableMGR::tbsarg( int& RC,
 	if ( it == tables.end() )
 	{
 		RC = 12 ;
-		debug1( "Table " << tb_name << " not found to set search argument" << endl ) ;
+		debug1( "Table "+ tb_name +" not found to set search argument" <<endl ) ;
 		return ;
 	}
 	it->second.tbsarg( RC, funcPOOL, tb_namelst, tb_dir, tb_cond_pairs ) ;
@@ -2346,7 +2449,7 @@ void tableMGR::tbscan( int& RC,
 	if ( it == tables.end() )
 	{
 		RC = 12 ;
-		debug1( "Table " << tb_name << " not found for tbscan" << endl ) ;
+		debug1( "Table "+ tb_name +" not found for tbscan" <<endl ) ;
 		return ;
 	}
 	it->second.tbscan( RC, funcPOOL, tb_namelst, tb_savenm, tb_rowid_vn, tb_dir, tb_noread, tb_crp_name, tb_condlst ) ;
@@ -2378,7 +2481,7 @@ void tableMGR::cmdsearch( int& RC,
 			loadTable( RC, 0, tb_name, SHARE, paths ) ;
 			if ( RC > 0 )
 			{
-				log( "E", "Command table "+ tb_name +" failed to load" << endl ) ;
+				log( "E", "Command table "+ tb_name +" failed to load" <<endl ) ;
 				RC = 20 ;
 				return  ;
 			}
@@ -2411,7 +2514,7 @@ void tableMGR::tbskip( int& RC,
 	if ( it == tables.end() )
 	{
 		RC = 12 ;
-		log( "E", "Table " << tb_name << " not found for tbskip" << endl ) ;
+		log( "E", "Table "+ tb_name +" not found for tbskip" <<endl ) ;
 		return ;
 	}
 	it->second.tbskip( RC, funcPOOL, num, tb_savenm, tb_rowid_vn, tb_rowid, tb_noread, tb_crp_name ) ;
@@ -2429,7 +2532,7 @@ void tableMGR::tbsort( int& RC,
 	if ( it == tables.end() )
 	{
 		RC = 12 ;
-		log( "E", "Table " << tb_name << " not found for tbsort" << endl ) ;
+		log( "E", "Table "+ tb_name +" not found for tbsort" <<endl ) ;
 		return ;
 	}
 	it->second.tbsort( RC, tb_fields ) ;
@@ -2446,7 +2549,7 @@ void tableMGR::tbtop( int& RC,
 	if ( it == tables.end() )
 	{
 		RC = 12 ;
-		log( "E", "Table " << tb_name << " not found for tbtop" << endl ) ;
+		log( "E", "Table "+ tb_name +" not found for tbtop" <<endl ) ;
 		return ;
 	}
 	it->second.tbtop( RC ) ;
@@ -2464,7 +2567,7 @@ void tableMGR::tbvclear( int& RC,
 	if ( it == tables.end() )
 	{
 		RC = 12 ;
-		log( "E", "Table " << tb_name << " not found for tbvclear" << endl ) ;
+		log( "E", "Table "+ tb_name +" not found for tbvclear" <<endl ) ;
 		return ;
 	}
 	it->second.tbvclear( RC, funcPOOL ) ;

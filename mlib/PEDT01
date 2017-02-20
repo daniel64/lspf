@@ -11,11 +11,11 @@ PEDT012 'Invalid Line Command' .TYPE=W
 PEDT013 'Line Command Invalid Here' .TYPE=W
 'Line command entered is not valid on this line'
 
-PEDT014 'Label Invalid' .TYPE=W
+PEDT014 'Invalid label name' .TYPE=W
 "Label must be between 1 and 5 alphanumeric characters and not starting with a 'Z'"
 
-PEDT015 'SPARE' .TYPE=N
-'SPARE'
+PEDT015 'Invalid parameter format passed to PEDIT01'
+''
 
 PEDT016 'Label missing or invalid' .TYPE=W
 'Enter both labels to delimit command.  Both labels must already exist'
@@ -272,3 +272,38 @@ PEDT014U 'Incorrect number of labels' .TYPE=W
 PEDT014V 'Line not located' .TYPE=W
 'LOCATE unsuccessful for requested line'
 
+PEDT014W 'Tabs converted' .TYPE=N
+'Tabs have been converted to spaces on file read'
+
+PEDT014X 'SPARE' .TYPE=W
+'SPARE'
+
+PEDT014Y 'SPARE' .TYPE=W
+'SPARE'
+
+PEDT014Z 'SPARE' .TYPE=W
+'SPARE'
+
+PEDT015A 'Invalid command or macro' .TYPE=W
+'Command is not valid, or macro not found in the ZORXPATH concatination'
+
+PEDT015B 'Invalid command' .TYPE=W
+'Command entered is not valid (Macro support is not available)'
+
+PEDT015C "'&STR' macro error" .TYPE=W
+"An error has occured in edit macro '&STR'"
+
+PEDT015D 'Invalid Primary Command' .TYPE=W
+'Primary command entered has too many parameters'
+
+PEDT015E 'Invalid Primary Command' .TYPE=W
+'Primary command entered has too few parameters'
+
+PEDT015F 'Missing command name' .TYPE=W
+'BUILTIN must be followed by a valid edit command'
+
+PEDT015G 'Line number out of range' .TYPE=W
+'Entered line number is outside the data range'
+
+PEDT015H 'Rejected.  Profile locked' .TYPE=W
+'IMACRO change rejected as the profile is locked'

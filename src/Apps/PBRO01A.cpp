@@ -90,8 +90,8 @@ void PBRO01A::application()
 	string CURFLD ;
 	string ZZSTR1 ;
 
-	bool rebuildZAREA  ;
-	bool result        ;
+	bool rebuildZAREA ;
+	bool result       ;
 
 	panel = "" ;
 	MSG   = "" ;
@@ -615,7 +615,11 @@ void PBRO01A::fill_dynamic_area()
 		ZAREA   = col ;
 		ZSHADOW = s1w ;
 	}
-	else { ZAREA = "" ; ZSHADOW = "" ; }
+	else
+	{
+		ZAREA   = "" ;
+		ZSHADOW = "" ;
+	}
 
 	if ( hexOn )
 	{
@@ -640,13 +644,13 @@ void PBRO01A::fill_dynamic_area()
 						i++ ;
 					}
 				}
-				ZAREA   = ZAREA   + t1  + t3  + t4  + div ;
-				ZSHADOW = ZSHADOW + s1y + s1b + s1b + s1w ;
+				ZAREA   += t1  + t3  + t4  + div ;
+				ZSHADOW += s1y + s1b + s1b + s1w ;
 			}
 			else
 			{
-				ZAREA   = ZAREA   + substr( data.at( k ), 1, ZAREAW ) ;
-				ZSHADOW = ZSHADOW + s1b ;
+				ZAREA   += substr( data.at( k ), 1, ZAREAW ) ;
+				ZSHADOW += s1b ;
 			}
 			if ( ZAREA.size() >= ZASIZE ) { break ; }
 			if ( k >= data.size() - 1 )   { break ; }
@@ -658,14 +662,14 @@ void PBRO01A::fill_dynamic_area()
 		{
 			if ( k >  0 && k < data.size()-1 ) { t1 = substr( data.at( k ), startCol, ZAREAW ) ; }
 			else                               { t1 = substr( data.at( k ), 1, ZAREAW )        ; }
-			ZAREA   = ZAREA   + t1 ;
+			ZAREA += t1 ;
 			if ( ZAREA.size() >= ZASIZE ) { break ; }
 			if ( k == data.size() - 1 )   { break ; }
 		}
-		ZAREA.resize( ZASIZE, ' ' ) ;
-		ZSHADOW.resize( ZASIZE, B_BLUE ) ;
 
 	}
+	ZAREA.resize( ZASIZE, ' ' ) ;
+	ZSHADOW.resize( ZASIZE, B_BLUE ) ;
 	if ( hilightOn && !hlight.hl_abend )
 	{
 		fill_hilight_shadow() ;
@@ -984,10 +988,10 @@ int PBRO01A::setFind()
 		switch ( t.f_mtch )
 		{
 			case 'P':
-				t.f_string = "\\b" + t.f_string ;
+				t.f_string = "\\b" + t.f_string + "\\w" ;
 				break ;
 			case 'S':
-				t.f_string = t.f_string + "\\b" ;
+				t.f_string = "\\w" + t.f_string + "\\b" ;
 				break ;
 			case 'W':
 				t.f_string = "\\b" + t.f_string + "\\b" ;

@@ -59,6 +59,9 @@ literal  13  20    NT   "Terminate Session"
 T "ACTION HELP"
 X "ACTION END"
 
+)INIT
+ &ZPRIM = YES
+
 )PROC
 &ZCMD   = TRUNC(&ZCMD,'.')
 &ZTRAIL = .TRAIL

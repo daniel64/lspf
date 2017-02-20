@@ -2,6 +2,7 @@
   Copyright (c) 2015 Daniel John Erdos
 
   This program is free software; you can redistribute it and/or modify
+
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
@@ -18,12 +19,15 @@
 */
 
 using namespace std ;
+using namespace boost::filesystem ;
 
 enum P_CMDS
 {
+	PC_INVCMD,
 	PC_AUTOSAVE,
 	PC_BOUNDS,
 	PC_BROWSE,
+	PC_CANCEL,
 	PC_CHANGE,
 	PC_CAPS,
 	PC_COLUMN,
@@ -38,6 +42,7 @@ enum P_CMDS
 	PC_HEX,
 	PC_HIDE,
 	PC_HILIGHT,
+	PC_IMACRO,
 	PC_LOCATE,
 	PC_NULLS,
 	PC_PASTE,
@@ -122,21 +127,241 @@ enum L_CMDS
 	LC_XI
 } ;
 
+
+enum M_CMDS
+{
+	EM_INVCMD,
+	EM_AUTOSAVE,
+	EM_CANCEL,
+	EM_CAPS,
+	EM_CHANGE,
+	EM_CHANGE_COUNTS,
+	EM_CURSOR,
+	EM_DATASET,
+	EM_DATA_CHANGED,
+	EM_DEFINE,
+	EM_DELETE,
+	EM_END,
+	EM_EXCLUDE,
+	EM_EXCLUDE_COUNTS,
+	EM_FIND,
+	EM_FIND_COUNTS,
+	EM_FLIP,
+	EM_HEX,
+	EM_HIDE,
+	EM_IMACRO,
+	EM_LABEL,
+	EM_LINE,
+	EM_LINE_AFTER,
+	EM_LINE_BEFORE,
+	EM_LINENUM,
+	EM_LOCATE,
+	EM_MACRO,
+	EM_MACRO_LEVEL,
+	EM_MASKLINE,
+	EM_NULLS,
+	EM_PROCESS,
+	EM_RCHANGE,
+	EM_RFIND,
+	EM_SAVE,
+	EM_SCAN,
+	EM_SEEK,
+	EM_SEEK_COUNTS,
+	EM_SHIFT,
+	EM_TABSLINE,
+	EM_RESET,
+	EM_XSTATUS
+} ;
+
+
+enum D_PARMS
+{
+	DF_MACRO,
+	DF_ALIAS,
+	DF_NOP,
+	DF_DISABLED,
+	DF_RESET,
+} ;
+
+
+class pcmd_entry
+{
+	public:
+	       P_CMDS p_cmd    ;
+	       string truename ;
+} ;
+
+
+class pcmd_format
+{
+	public:
+	       int noptions1 ;
+	       int noptions2 ;
+} ;
+
+
+class mc_format
+{
+	public:
+	       M_CMDS m_cmd   ;
+	       int qnvars1    ;
+	       int qnvars2    ;
+	       int qnkeyopts1 ;
+	       int qnkeyopts2 ;
+	       int ankeyopts1 ;
+	       int ankeyopts2 ;
+	       int anvalopts1 ;
+	       int anvalopts2 ;
+} ;
+				//         +----------------------------Query: # variables(min,max)
+				//         |       +--------------------Query: # key options(min,max)
+				//         |       |       +-----------Action: # key options(min,max
+				//         |       |       |       +---Action: # value options(min,max)
+				//         |       |       |       |             -1 = don't check
+				//         V       V       V       V
+map<string,mc_format> EMServ =  //         ~~~~~   ~~~~~   ~~~~~   ~~~~~~
+{ { "AUTOSAVE",       { EM_AUTOSAVE,       1,  2,  0,  0,  0,  0,  0,  2  } },
+  { "CAPS",           { EM_CAPS,           1,  1,  0,  0,  0,  0,  1,  1  } },
+  { "CHANGE_COUNTS",  { EM_CHANGE_COUNTS,  1,  2,  0,  0, -1, -1, -1, -1  } },
+  { "CURSOR",         { EM_CURSOR,         1,  2,  0,  0,  0,  0,  1,  2  } },
+  { "DATA_CHANGED",   { EM_DATA_CHANGED,   1,  1,  0,  0, -1, -1, -1, -1  } },
+  { "DATASET",        { EM_DATASET,        1,  1,  0,  0, -1, -1, -1, -1  } },
+  { "DEFINE",         { EM_DEFINE,        -1, -1, -1, -1,  2,  3, -1, -1  } },
+  { "FIND_COUNTS",    { EM_FIND_COUNTS,    1,  2,  0,  0, -1, -1, -1, -1  } },
+  { "EXCLUDE_COUNTS", { EM_EXCLUDE_COUNTS, 1,  2,  0,  0, -1, -1, -1, -1  } },
+  { "HEX",            { EM_HEX,            1,  2,  0,  0, -1, -1, -1, -1  } },
+  { "IMACRO",         { EM_IMACRO,         1,  1,  0,  0, -1, -1, -1, -1  } },
+  { "LABEL",          { EM_LABEL,          1,  2,  1,  1,  1,  1,  1,  2  } },
+  { "LINE",           { EM_LINE,           1,  1,  1,  1,  1,  1, -1, -1  } },
+  { "LINE_AFTER",     { EM_LINE_AFTER,    -1, -1, -1, -1,  1,  1, -1, -1  } },
+  { "LINE_BEFORE",    { EM_LINE_BEFORE,   -1, -1, -1, -1,  1,  1, -1, -1  } },
+  { "LINENUM",        { EM_LINENUM,        1,  1,  1,  1, -1, -1,  1, -1  } },
+  { "NULLS",          { EM_NULLS,          1,  2,  0,  0, -1, -1, -1, -1  } },
+  { "MACRO_LEVEL",    { EM_MACRO_LEVEL,    1,  1,  0,  0, -1, -1, -1, -1  } },
+  { "MASKLINE",       { EM_MASKLINE,       1,  1,  0,  0,  0,  0, -1, -1  } },
+  { "SCAN",           { EM_SCAN,           1,  1,  0,  0,  0,  0,  1,  1  } },
+  { "SEEK_COUNTS",    { EM_SEEK_COUNTS,    1,  2,  0,  0, -1, -1, -1, -1  } },
+  { "TABSLINE",       { EM_TABSLINE,       1,  1,  0,  0,  0,  0, -1, -1  } },
+  { "XSTATUS",        { EM_XSTATUS,        1,  1,  1,  1,  1,  1,  1,  1  } } } ;
+
+
+map<string,M_CMDS> EMCmds =
+{ { "AUTOSAVE",     EM_AUTOSAVE, },
+  { "CANCEL",       EM_CANCEL    },
+  { "CAPS",         EM_CAPS      },
+  { "CHANGE",       EM_CHANGE    },
+  { "DELETE",       EM_DELETE    },
+  { "END",          EM_END       },
+  { "EXCLUDE",      EM_EXCLUDE   },
+  { "FIND",         EM_FIND      },
+  { "FLIP",         EM_FLIP      },
+  { "HEX",          EM_HEX       },
+  { "HIDE",         EM_HIDE      },
+  { "IMACRO",       EM_IMACRO    },
+  { "LOCATE",       EM_LOCATE    },
+  { "PROCESS",      EM_PROCESS   },
+  { "NULLS",        EM_NULLS     },
+  { "RCHANGE",      EM_RCHANGE   },
+  { "RFIND",        EM_RFIND     },
+  { "SAVE",         EM_SAVE      },
+  { "SCAN",         EM_SCAN,     },
+  { "SEEK",         EM_SEEK      },
+  { "SHIFT",        EM_SHIFT     },
+  { "RESET",        EM_RESET     } } ;
+
+
+map<string,D_PARMS> DefParms =
+{ { "MACRO",        DF_MACRO    },
+  { "ALIAS",        DF_ALIAS    },
+  { "NOP",          DF_NOP      },
+  { "DISABLED",     DF_DISABLED },
+  { "RESET",        DF_RESET    } } ;
+
+
+map<string,pcmd_entry> PrimCMDS =
+{ { "AUTOSAVE", { PC_AUTOSAVE, "AUTOSAVE" } },
+  { "BND",      { PC_BOUNDS,   "BOUNDS"   } },
+  { "BNDS",     { PC_BOUNDS,   "BOUNDS"   } },
+  { "BOU",      { PC_BOUNDS,   "BOUNDS"   } },
+  { "BOUND",    { PC_BOUNDS,   "BOUNDS"   } },
+  { "BOUNDS",   { PC_BOUNDS,   "BOUNDS"   } },
+  { "BROWSE",   { PC_BROWSE,   "BROWSE"   } },
+  { "CANCEL",   { PC_CANCEL,   "CANCEL"   } },
+  { "CHANGE",   { PC_CHANGE,   "CHANGE"   } },
+  { "C",        { PC_CHANGE,   "CHANGE"   } },
+  { "CHA",      { PC_CHANGE,   "CHANGE"   } },
+  { "CHG",      { PC_CHANGE,   "CHANGE"   } },
+  { "CAPS",     { PC_CAPS,     "CAPS"     } },
+  { "COLUMN",   { PC_COLUMN,   "COLUMN"   } },
+  { "COL",      { PC_COLUMN,   "COLUMN"   } },
+  { "COLS",     { PC_COLUMN,   "COLUMN"   } },
+  { "COMPARE",  { PC_COMPARE,  "COMPARE"  } },
+  { "COMP",     { PC_COMPARE,  "COMPARE"  } },
+  { "CREATE",   { PC_CREATE,   "CREATE"   } },
+  { "CRE",      { PC_CREATE,   "CREATE"   } },
+  { "CUT",      { PC_CUT,      "CUT"      } },
+  { "DELETE",   { PC_DELETE,   "DELETE"   } },
+  { "DEL",      { PC_DELETE,   "DELETE"   } },
+  { "EDIT",     { PC_EDIT,     "EDIT"     } },
+  { "EXCLUDE",  { PC_EXCLUDE,  "EXCLUDE"  } },
+  { "EXCLUDED", { PC_EXCLUDE,  "EXCLUDE"  } },
+  { "EX",       { PC_EXCLUDE,  "EXCLUDE"  } },
+  { "EXC",      { PC_EXCLUDE,  "EXCLUDE"  } },
+  { "X",        { PC_EXCLUDE,  "EXCLUDE"  } },
+  { "FIND",     { PC_FIND,     "FIND"     } },
+  { "F",        { PC_FIND,     "FIND"     } },
+  { "FLIP",     { PC_FLIP,     "FLIP"     } },
+  { "HEX",      { PC_HEX,      "HEX"      } },
+  { "HIDE",     { PC_HIDE,     "HIDE"     } },
+  { "HILIGHT",  { PC_HILIGHT,  "HILIGHT"  } },
+  { "HI",       { PC_HILIGHT,  "HILITE"   } },
+  { "HILITE",   { PC_HILIGHT,  "HILITE"   } },
+  { "IMACRO",   { PC_IMACRO,   "IMACRO"   } },
+  { "IMAC",     { PC_IMACRO,   "IMACRO"   } },
+  { "LOCATE",   { PC_LOCATE,   "LOCATE"   } },
+  { "LOC",      { PC_LOCATE,   "LOCATE"   } },
+  { "L",        { PC_LOCATE,   "LOCATE"   } },
+  { "NULLS",    { PC_NULLS,    "NULLS"    } },
+  { "NULL",     { PC_NULLS,    "NULLS"    } },
+  { "PASTE",    { PC_PASTE,    "PASTE"    } },
+  { "PRESERVE", { PC_PRESERVE, "PRESERVE" } },
+  { "PROFILE",  { PC_PROFILE,  "PROFILE"  } },
+  { "PROF",     { PC_PROFILE,  "PROFILE"  } },
+  { "RECVR",    { PC_RECOVERY, "RECOVERY" } },
+  { "RECVRY",   { PC_RECOVERY, "RECOVERY" } },
+  { "RECOV",    { PC_RECOVERY, "RECOVERY" } },
+  { "RECOVRY",  { PC_RECOVERY, "RECOVERY" } },
+  { "RECOVER",  { PC_RECOVERY, "RECOVERY" } },
+  { "RECOVERY", { PC_RECOVERY, "RECOVERY" } },
+  { "REDO",     { PC_REDO,     "REDO"     } },
+  { "REPLACE",  { PC_CREATE,   "REPLACE"  } },
+  { "REP",      { PC_CREATE,   "REPLACE"  } },
+  { "REPL",     { PC_CREATE,   "REPLACE"  } },
+  { "RESET",    { PC_RESET,    "RESET"    } },
+  { "RES",      { PC_RESET,    "RESET"    } },
+  { "SAVE",     { PC_SAVE,     "SAVE"     } },
+  { "SETUNDO",  { PC_SETUNDO,  "SETUNDO"  } },
+  { "SETU",     { PC_SETUNDO,  "SETUNDO"  } },
+  { "SORT",     { PC_SORT,     "SORT"     } },
+  { "TABS",     { PC_TABS,     "TABS"     } },
+  { "UNDO",     { PC_UNDO,     "UNDO"     } },
+  { "XTABS",    { PC_XTABS,    "XTABS"    } }} ;
+
 class icmd
 {
 	private:
-		L_CMDS icmd_CMD     ;
-		string icmd_CMDSTR  ;
-		int    icmd_sURID   ;
-		int    icmd_eURID   ;
-		int    icmd_dURID   ;
-		int    icmd_lURID   ;
-		int    icmd_Rpt     ;
-		char   icmd_ABOW    ;
-		bool   icmd_swap    ;
-		bool   icmd_cut     ;
-		bool   icmd_paste   ;
-		bool   icmd_create  ;
+		L_CMDS icmd_CMD    ;
+		string icmd_CMDSTR ;
+		int    icmd_sURID  ;
+		int    icmd_eURID  ;
+		int    icmd_dURID  ;
+		int    icmd_lURID  ;
+		int    icmd_Rpt    ;
+		char   icmd_ABOW   ;
+		bool   icmd_swap   ;
+		bool   icmd_cut    ;
+		bool   icmd_paste  ;
+		bool   icmd_create ;
 		icmd()
 		{
 			icmd_CMDSTR  = " "   ;
@@ -191,17 +416,20 @@ class ipos
 		uint   ipos_dl   ;
 		uint   ipos_hex  ;
 		int    ipos_URID ;
+		bool   ipos_div  ;
 		ipos()
 		{
 			ipos_dl   = 0 ;
 			ipos_hex  = 0 ;
 			ipos_URID = 0 ;
+			ipos_div  = false ;
 		}
 	void clear()
 		{
 			ipos_dl   = 0 ;
 			ipos_hex  = 0 ;
 			ipos_URID = 0 ;
+			ipos_div  = false ;
 		}
 } ;
 
@@ -227,6 +455,7 @@ class ipline
 		bool   ip_nisrt  ;
 		int    ip_profln ;
 		string ip_data   ;
+		string ip_label  ;
 		ipline()
 		{
 			ip_file   = false ;
@@ -246,6 +475,7 @@ class ipline
 			ip_info   = false ;
 			ip_nisrt  = false ;
 			ip_profln = 0     ;
+			ip_label  = ""    ;
 			ip_data   = ""    ;
 		}
 
@@ -282,7 +512,6 @@ class iline
 		bool   il_info    ;
 		bool   il_deleted ;
 		bool   il_nisrt   ;
-		string il_label   ;
 		string il_lcc     ;
 		int    il_profln  ;
 		int    il_rept    ;
@@ -291,6 +520,7 @@ class iline
 		string il_Shadow  ;
 		bool   il_vShadow ;
 		bool   il_wShadow ;
+		map   <int, string>il_label ;
 		stack <idata> il_idata      ;
 		stack <idata> il_idata_redo ;
 
@@ -316,7 +546,6 @@ class iline
 			il_mark    = false  ;
 			il_deleted = false  ;
 			il_nisrt   = false  ;
-			il_label   = ""     ;
 			il_lcc     = ""     ;
 			il_rept    = 0      ;
 			il_profln  = 0      ;
@@ -391,6 +620,75 @@ class iline
 		{
 			il_lcc = "" ;
 		}
+		bool hasLabel( int lvl=0 )
+		{
+			for ( int i = lvl ; i >= 0 ; i-- )
+			{
+				if ( il_label.count( i ) > 0 ) { return true ; }
+			}
+			return false ;
+		}
+		bool specialLabel( int lvl=0 )
+		{
+			if ( il_label.count( lvl ) > 0 )
+			{
+				return ( il_label[ lvl ].compare( 0, 2, ".O" ) == 0 ) ;
+			}
+			return false ;
+		}
+		string getLabel( int lvl=0 )
+		{
+			if ( il_label.count( lvl ) > 0 )
+			{
+				return il_label[ lvl ] ;
+			}
+			return "" ;
+		}
+		void getLabelInfo( int lvl, string& label, int& foundLvl )
+		{
+			label    = "" ;
+			foundLvl = 0  ;
+
+			for ( int i = lvl ; i >= 0 ; i-- )
+			{
+				if ( il_label.count( i ) > 0 )
+				{
+					label    = il_label[ i ] ;
+					foundLvl = i ;
+					break ;
+				}
+			}
+			return ;
+		}
+		int setLabel( const string& s, int lvl=0 )
+		{
+			int rc = 0 ;
+
+			if ( il_label.count( lvl ) > 0 ) { rc = 4 ; }
+			il_label[ lvl ] = s ;
+			return rc ;
+		}
+		void clearLabel( int lvl=0 )
+		{
+			if ( il_label.count( lvl ) > 0 )
+			{
+				il_label.erase( lvl ) ;
+			}
+		}
+		bool clearLabel( const string& s, int lvl=0 )
+		{
+			if ( il_label.count( lvl ) > 0 && s == il_label[ lvl ] )
+			{
+				il_label.erase( lvl ) ;
+				return true ;
+			}
+			return false ;
+		}
+		bool compareLabel( const string& s, int lvl )
+		{
+			if ( il_label.count( lvl ) > 0 && il_label[ lvl ] == s ) { return true ; }
+			return false ;
+		}
 		void put_idata( const string& s, int level )
 		{
 			idata d ;
@@ -435,19 +733,39 @@ class iline
 				il_idata.top().id_data.resize( i, ' ' ) ;
 			}
 		}
-		void set_idata_upper( int Level )
+		bool set_idata_upper( int Level )
 		{
-			put_idata( upper( il_idata.top().id_data ), Level ) ;
+			bool changed = false ;
+			if ( any_of( il_idata.top().id_data.begin(), il_idata.top().id_data.end(),
+				   []( char c )
+				   {
+					return ( islower( c ) ) ;
+				   } ) )
+			{
+				put_idata( upper( il_idata.top().id_data ), Level ) ;
+				changed = true ;
+			}
+			return changed ;
 		}
-		void set_idata_lower( int Level )
+		bool set_idata_lower( int Level )
 		{
-			put_idata( lower( il_idata.top().id_data ), Level ) ;
+			bool changed = false ;
+			if ( any_of( il_idata.top().id_data.begin(), il_idata.top().id_data.end(),
+				   []( char c )
+				   {
+					return ( isupper( c ) ) ;
+				   } ) )
+			{
+				put_idata( lower( il_idata.top().id_data ), Level ) ;
+				changed = true ;
+			}
+			return changed ;
 		}
 		bool set_idata_trim( int Level )
 		{
 			if ( il_idata.top().id_data.back() == ' ')
 			{
-				put_idata( strip( il_idata.top().id_data, 'T', ' '), Level ) ;
+				put_idata( strip( il_idata.top().id_data, 'T', ' ' ), Level ) ;
 				return true ;
 			}
 			else { return false ; }
@@ -470,6 +788,7 @@ class iline
 		void set_deleted( int Level )
 		{
 			if ( il_deleted ) { return ; }
+			clearLabel() ;
 			put_idata( "", Level ) ;
 			il_idata.top().id_deleted = true ;
 			il_deleted                = true ;
@@ -632,6 +951,7 @@ class iline
 		}
 
 	friend class PEDIT01 ;
+	friend class PEDRXM1 ;
 } ;
 
 
@@ -692,6 +1012,7 @@ class e_find
 		char   fcx_mtch    ;
 		int    fcx_occurs  ;
 		int    fcx_URID    ;
+		int    fcx_dl      ;
 		int    fcx_lines   ;
 		int    fcx_offset  ;
 		char   fcx_excl    ;
@@ -714,6 +1035,14 @@ class e_find
 		bool   fcx_fset    ;
 		bool   fcx_cset    ;
 		bool   fcx_chngall ;
+		int    fcx_fd_occs ;
+		int    fcx_fd_lnes ;
+		int    fcx_ch_occs ;
+		int    fcx_ch_errs ;
+		int    fcx_sk_occs ;
+		int    fcx_sk_lnes ;
+		int    fcx_ex_occs ;
+		int    fcx_ex_lnes ;
 	e_find()
 	{
 		fcx_string  = ""    ;
@@ -729,6 +1058,7 @@ class e_find
 		fcx_mtch    = 'C'   ;
 		fcx_occurs  = 0     ;
 		fcx_URID    = 0     ;
+		fcx_dl      = 0     ;
 		fcx_lines   = 0     ;
 		fcx_offset  = 0     ;
 		fcx_excl    = 'A'   ;
@@ -751,15 +1081,836 @@ class e_find
 		fcx_fset    = false ;
 		fcx_cset    = false ;
 		fcx_chngall = false ;
+		fcx_fd_occs = 0     ;
+		fcx_fd_lnes = 0     ;
+		fcx_ch_occs = 0     ;
+		fcx_ch_errs = 0     ;
+		fcx_sk_occs = 0     ;
+		fcx_sk_lnes = 0     ;
+		fcx_ex_occs = 0     ;
+		fcx_ex_lnes = 0     ;
 	}
 	friend class PEDIT01 ;
+} ;
+
+
+class defName
+{
+	public:
+		string name     ;
+		bool   alias    ;
+		bool   nop      ;
+		bool   disabled ;
+		bool   cmd      ;
+		bool   pgm      ;
+       defName()
+       {
+		name     = ""    ;
+		alias    = false ;
+		nop      = false ;
+		disabled = false ;
+		cmd      = false ;
+		pgm      = false ;
+       }
+       void clear()
+       {
+		name     = ""    ;
+		alias    = false ;
+		nop      = false ;
+		disabled = false ;
+		cmd      = false ;
+		pgm      = false ;
+       }
+       bool deactive()
+       {
+		return ( nop || disabled ) ;
+       }
+       bool macro()
+       {
+		return ( pgm || cmd ) ;
+       }
+} ;
+
+
+class cmdblock
+{
+	public:
+		string CMD   ;
+		string OCMD  ;
+		P_CMDS p_cmd ;
+		string MSG   ;
+		string cchar ;
+		int    RC    ;
+		int    RSN   ;
+		int    cwds  ;
+		bool   alias    ;
+		bool   seek     ;
+		bool   actioned ;
+		bool   macro    ;
+		bool   expl     ;
+		bool   lcmd     ;
+		bool   keep     ;
+		bool   deact    ;
+
+	cmdblock()
+	{
+		CMD      = "" ;
+		OCMD     = "" ;
+		p_cmd    = PC_INVCMD ;
+		MSG      = "" ;
+		cchar    = "" ;
+		RC       = 0  ;
+		RSN      = 0  ;
+		cwds     = 0  ;
+		alias    = false ;
+		seek     = false ;
+		actioned = false ;
+		macro    = false ;
+		expl     = false ;
+		lcmd     = false ;
+		keep     = false ;
+		deact    = false ;
+	}
+	void clear()
+	{
+		CMD      = "" ;
+		OCMD     = "" ;
+		p_cmd    = PC_INVCMD ;
+		MSG      = "" ;
+		cchar    = "" ;
+		RC       = 0  ;
+		RSN      = 0  ;
+		cwds     = 0  ;
+		alias    = false ;
+		seek     = false ;
+		actioned = false ;
+		macro    = false ;
+		expl     = false ;
+		lcmd     = false ;
+		keep     = false ;
+		deact    = false ;
+	}
+	void set_cmd( const string& s, map<string,stack<defName>>& defNames )
+	{
+		string w ;
+		map<string,stack<defName>>::iterator ita ;
+
+		CMD = strip( s ) ;
+		if ( CMD == "" ) { clear() ; return ; }
+
+		MSG      = ""    ;
+		RC       = 0     ;
+		RSN      = 0     ;
+		cchar    = ""    ;
+		macro    = true  ;
+		expl     = false ;
+		seek     = false ;
+		lcmd     = false ;
+		keep     = false ;
+		alias    = false ;
+		deact    = false ;
+		if ( CMD.front() == '&' )
+		{
+			CMD.erase( 0, 1 ) ;
+			if ( CMD == "" ) { return ; }
+			keep  = true ;
+			cchar = "&"  ;
+		}
+		if ( CMD.front() == '%' )
+		{
+			CMD.erase( 0, 1 ) ;
+			if ( CMD == "" ) { return ; }
+			expl   = true ;
+			cchar += "%"  ;
+		}
+		else if ( CMD.front() == ':' && CMD.size() < 8 )
+		{
+			iupper( CMD.erase( 0, 1 ) ) ;
+			if ( CMD == "" ) { return ; }
+			lcmd  = true  ;
+			macro = false ;
+			cchar = ":"   ;
+		}
+		else
+		{
+			w = upper( word( CMD, 1 ) ) ;
+			if ( w == "BUILTIN" )
+			{
+				idelword( CMD, 1, 1 ) ;
+				if ( trim( CMD ) == "" )
+				{
+					set_msg( "PEDT015F" ) ;
+					CMD  = "BUILTIN" ;
+					keep = true      ;
+					return ;
+				}
+				if ( PrimCMDS.count( w ) > 0 ) { w = PrimCMDS[ w ].truename ; }
+				w = upper( word( CMD, 1 ) ) ;
+			}
+			else
+			{
+				if ( PrimCMDS.count( w ) > 0 ) { w = PrimCMDS[ w ].truename ; }
+				ita = defNames.find( w ) ;
+				if ( ita != defNames.end() )
+				{
+					if ( ita->second.top().deactive() )
+					{
+						set_msg( "PEDM012S", 8 ) ;
+						deact = true ;
+						return ;
+					}
+					else if ( ita->second.top().macro() )
+					{
+						expl = true ;
+					}
+					if ( ita->second.top().alias )
+					{
+						w   = ita->second.top().name ;
+						if ( PrimCMDS.count( w ) > 0 ) { w = PrimCMDS[ w ].truename ; }
+						ita = defNames.find( w ) ;
+						if ( ita != defNames.end() && ita->second.top().deactive() )
+						{
+							set_msg( "PEDM012S", 8 ) ;
+							deact = true ;
+							return ;
+						}
+						OCMD  = CMD ;
+						CMD   = w + " " + idelword( CMD, 1, 1 ) ;
+						trim( CMD )  ;
+						alias = true ;
+					}
+				}
+			}
+			if ( !expl )
+			{
+				if ( w == "SEEK" )
+				{
+					p_cmd = PC_FIND ;
+					seek  = true  ;
+					macro = false ;
+				}
+				else if ( PrimCMDS.count( w ) > 0 )
+				{
+					p_cmd = PrimCMDS[ w ].p_cmd ;
+					macro = false ;
+				}
+			}
+		}
+		cwds     = words( CMD ) ;
+		actioned = false ;
+	}
+	string condget_cmd()
+	{
+		if ( error() || keep ) { return alias ? cchar+OCMD : cchar+CMD ; }
+		return "" ;
+	}
+	int get_cmd_words()
+	{
+		return cwds ;
+	}
+	string get_cmd()
+	{
+		return CMD ;
+	}
+	int isMacro()
+	{
+		return macro ;
+	}
+	void setActioned()
+	{
+		actioned = true ;
+	}
+	bool isActioned()
+	{
+		return actioned ;
+	}
+	int isSeek()
+	{
+		return seek ;
+	}
+	int isLine_cmd()
+	{
+		return lcmd ;
+	}
+	void reset()
+	{
+		CMD      = ""    ;
+		cchar    = ""    ;
+		p_cmd    = PC_INVCMD ;
+		actioned = false ;
+		seek     = false ;
+		macro    = false ;
+		expl     = false ;
+		lcmd     = false ;
+		keep     = false ;
+	}
+	void cond_reset()
+	{
+		if ( !keep ) { reset() ; }
+	}
+	void clear_msg()
+	{
+		MSG = "" ;
+		RC  = 0  ;
+		RSN = 0  ;
+	}
+	void set_msg( const string& m, int rc =12 )
+	{
+		MSG = m  ;
+		RC  = rc ;
+	}
+	void setRC( int rc )
+	{
+		RC = rc ;
+	}
+	string get_msg()
+	{
+		return MSG ;
+	}
+	bool msgset()
+	{
+		return ( MSG != "" ) ;
+	}
+	bool cmdset()
+	{
+		return ( CMD != "" ) ;
+	}
+	bool error()
+	{
+		return ( RC > 8 ) ;
+	}
+	bool info()
+	{
+		return ( RC < 9 ) ;
+	}
+	bool deactive()
+	{
+		return deact ;
+	}
+	friend class PEDIT01 ;
+	friend class PEDRXM1 ;
+} ;
+
+
+class miblock
+{
+	public:
+		string emacro   ;
+		string mfile    ;
+		pApplication * editAppl ;
+		pApplication * macAppl  ;
+		string sttment  ;
+		M_CMDS m_cmd    ;
+		string keyword  ;
+		string kphrase  ;
+		string keyopts  ;
+		string value    ;
+		string parms    ;
+		string var1     ;
+		string var2     ;
+		string msgid    ;
+		string msg1     ;
+		string msg2     ;
+		bool   mfound   ;
+		bool   macro    ;
+		bool   process  ;
+		bool   processed;
+		bool   fatal    ;
+		bool   assign   ;
+		bool   query    ;
+		bool   scan     ;
+		bool   runmacro ;
+		bool   eended   ;
+		int    etaskid  ;
+		int    nestlvl  ;
+		int    nvars    ;
+		int    nkeyopts ;
+		int    nvalopts ;
+		int    RC       ;
+		int    RSN      ;
+
+	miblock()
+	{
+		emacro    = ""    ;
+		mfile     = ""    ;
+		editAppl  = NULL  ;
+		macAppl   = NULL  ;
+		sttment   = ""    ;
+		m_cmd     = EM_INVCMD ;
+		kphrase   = ""    ;
+		keyword   = ""    ;
+		keyopts   = ""    ;
+		value     = ""    ;
+		parms     = ""    ;
+		var1      = ""    ;
+		var2      = ""    ;
+		msgid     = ""    ;
+		msg1      = ""    ;
+		msg2      = ""    ;
+		mfound    = false ;
+		macro     = false ;
+		process   = true  ;
+		processed = false ;
+		fatal     = false ;
+		assign    = false ;
+		query     = false ;
+		scan      = true  ;
+		runmacro  = false ;
+		eended    = false ;
+		etaskid   = 0     ;
+		nestlvl   = 0     ;
+		nvars     = 0     ;
+		nkeyopts  = 0     ;
+		nvalopts  = 0     ;
+		RC        = 0     ;
+		RSN       = 0     ;
+	}
+	void clear()
+	{
+		emacro    = ""    ;
+		mfile     = ""    ;
+		editAppl  = NULL  ;
+		macAppl   = NULL  ;
+		sttment   = ""    ;
+		m_cmd     = EM_INVCMD ;
+		kphrase   = ""    ;
+		keyword   = ""    ;
+		keyopts   = ""    ;
+		value     = ""    ;
+		parms     = ""    ;
+		var1      = ""    ;
+		var2      = ""    ;
+		msgid     = ""    ;
+		msg1      = ""    ;
+		msg2      = ""    ;
+		mfound    = false ;
+		macro     = false ;
+		process   = true  ;
+		processed = false ;
+		fatal     = false ;
+		assign    = false ;
+		query     = false ;
+		scan      = true  ;
+		runmacro  = false ;
+		eended    = false ;
+		etaskid   = 0     ;
+		nestlvl   = 0     ;
+		nvars     = 0     ;
+		nkeyopts  = 0     ;
+		nvalopts  = 0     ;
+		RC        = 0     ;
+		RSN       = 0     ;
+	}
+	void reset()
+	{
+		m_cmd     = EM_INVCMD ;
+		sttment   = ""    ;
+		kphrase   = ""    ;
+		keyword   = ""    ;
+		keyopts   = ""    ;
+		value     = ""    ;
+		var1      = ""    ;
+		var2      = ""    ;
+		msgid     = ""    ;
+		msg1      = ""    ;
+		msg2      = ""    ;
+		assign    = false ;
+		query     = false ;
+		runmacro  = false ;
+		nvars     = 0     ;
+		nkeyopts  = 0     ;
+		nvalopts  = 0     ;
+		RC        = 0     ;
+		RSN       = 0     ;
+	}
+	void seterror( const string& e1, const string &e3 ="", int i1 =12, int i2 =0 )
+	{
+		msgid = e1 ;
+		msg1  = "" ;
+		msg2  = e3 ;
+		RC    = i1 ;
+		RSN   = i2 ;
+		fatal = ( RC >= 12 ) ;
+	}
+	void seterror( const string& e1, int i1, int i2 =0 )
+	{
+		msgid = e1 ;
+		msg1  = "" ;
+		msg2  = "" ;
+		RC    = i1 ;
+		RSN   = i2 ;
+		fatal = ( RC >= 12 ) ;
+	}
+	void seterror( cmdblock& cmd )
+	{
+		msgid = cmd.MSG ;
+		msg1  = "" ;
+		msg2  = "" ;
+		RC    = cmd.RC  ;
+		RSN   = cmd.RSN ;
+		fatal = ( RC >= 12 ) ;
+	}
+	void setRC( int i )
+	{
+		RC = i ;
+		if ( RC >= 12 ) { fatal = true ; }
+		else
+		{
+			fatal = false ;
+			msgid = "" ;
+			msg1  = "" ;
+			msg2  = "" ;
+		}
+	}
+	void parseMACRO()
+	{
+		int i  ;
+		int p1 ;
+		int ws ;
+
+		string t ;
+
+		t = upper( sttment )    ;
+		trim( t.erase( 0, 6 ) ) ;
+		if ( t.front() == '(' )
+		{
+			p1 = t.find( ')' ) ;
+			if ( p1 == string::npos )
+			{
+				seterror( "PEDM011C" ) ;
+				return ;
+			}
+			keyopts = t.substr( 1, p1-1 ) ;
+			trim( t.erase( 0, p1+2 ) ) ;
+			replace( keyopts.begin(), keyopts.end(), ',', ' ' ) ;
+			iupper( keyopts ) ;
+			for( ws = words( keyopts ), i = 1 ; i <= ws ; i++ )
+			{
+				var1 = word( keyopts, i ) ;
+				if ( !isvalidName( var1 ) )
+				{
+					seterror( "PEDM011D", var1, 20 ) ;
+					return ;
+				}
+			}
+		}
+		if ( t == "NOPROCESS" )
+		{
+			process = false ;
+		}
+		else if ( t != "" && t != "PROCESS" )
+		{
+			seterror( "PEDM011P" ) ;
+			return                 ;
+		}
+		macro = true ;
+		return       ;
+	}
+	void parseStatement( const string& s, map<string,stack<defName>>& defNames )
+	{
+		int  i      ;
+		int  p1     ;
+		int  miss   ;
+		char qt     ;
+
+		bool isvar   ;
+		bool builtin ;
+		bool quote   ;
+
+		string var ;
+		string w   ;
+		string t   ;
+
+		map<string,mc_format>::iterator it       ;
+		map<string,stack<defName>>::iterator ita ;
+		string::iterator its ;
+
+		reset() ;
+
+		sttment = s ;
+		trim( sttment ) ;
+		t = sttment ;
+
+		for ( quote = false, its = t.begin() ; its != t.end() ; its++ )
+		{
+			if ( !quote && ((*its) == '"' || (*its) == '\'' ) ) { quote = true ; qt = (*its) ; continue ; }
+			if (  quote &&  (*its) == qt ) { quote = false ; continue ; }
+			if ( quote ) { continue  ; }
+			(*its) = toupper( *its ) ;
+		}
+
+		builtin = false ;
+		w       = word( t, 1 ) ;
+
+		if ( w == "MACRO" )
+		{
+			if ( macro )
+			{
+				seterror( "PEDM011B" ) ;
+			}
+			else
+			{
+				m_cmd = EM_MACRO ;
+				parseMACRO()     ;
+			}
+			return ;
+		}
+		if ( !macro )
+		{
+			seterror( "PEDM011E" ) ;
+			return                 ;
+		}
+		if ( sttment == "" )
+		{
+			seterror( "PEDM012P" ) ;
+			return                 ;
+		}
+		if ( w == "BUILTIN" )
+		{
+			idelword( sttment, 1, 1 ) ;
+			idelword( t, 1, 1 )       ;
+			builtin = true ;
+		}
+		if ( t.front() == '(' )
+		{
+			p1 = t.find( '=' ) ;
+			if ( p1 == string::npos )
+			{
+				seterror( "PEDM011K" ) ;
+				return ;
+			}
+			value   = t.substr( 0, p1 )  ;
+			kphrase = t.substr( p1+1  )  ;
+			query   = true ;
+			keyword = word( kphrase, 1 ) ;
+			if ( EMServ.count( keyword ) == 0 )
+			{
+				seterror( "PEDM011N" ) ;
+				return ;
+			}
+		}
+		else
+		{
+			p1      = t.find( '=' ) ;
+			keyword = word( t, 1 )  ;
+			if ( PrimCMDS.count( keyword ) > 0 ) { keyword = PrimCMDS[ keyword ].truename ; }
+			if ( p1 == string::npos && !builtin )
+			{
+				ita = defNames.find( keyword ) ;
+				if ( ita != defNames.end() )
+				{
+					if ( ita->second.top().deactive() )
+					{
+						seterror( "PEDM012U" ) ;
+						return ;
+					}
+					keyword = ita->second.top().name ;
+					sttment = keyword + " " + idelword( sttment, 1, 1 ) ;
+				}
+			}
+			if ( EMServ.count( keyword ) == 0 )
+			{
+				if ( EMCmds.count( keyword ) == 0 )
+				{
+					if ( builtin )
+					{
+						seterror( "PEDM012J" ) ;
+					}
+					else
+					{
+						runmacro = true ;
+					}
+					return ;
+				}
+				m_cmd = EMCmds[ keyword ] ;
+				return ;
+			}
+			if ( p1 == string::npos )
+			{
+				if ( EMServ.count( keyword ) > 0 && EMCmds.count( keyword ) == 0 )
+				{
+					seterror( "PEDM012X" ) ;
+					return ;
+				}
+				keyopts = subword( t, 2 ) ;
+				m_cmd   = EMServ[ keyword ].m_cmd ;
+				if ( m_cmd == EM_PROCESS && processed )
+				{
+					seterror( "PEDM012K" ) ;
+				}
+				return ;
+			}
+			kphrase = t.substr( 0, p1 ) ;
+			value   = t.substr( p1+1  ) ;
+		}
+		keyopts  = subword( kphrase, 2 ) ;
+		nkeyopts = words( keyopts ) ;
+		assign   = true  ;
+		isvar    = false ;
+		m_cmd    = EMServ[ keyword ].m_cmd ;
+		trim( value )    ;
+		if ( !query && (m_cmd == EM_LINE || m_cmd == EM_LINE_BEFORE || m_cmd == EM_LINE_AFTER ) ) {}
+		else if ( value.front() == '(' )
+		{
+			isvar = true ;
+			p1 = value.find( ')' ) ;
+			if ( p1 == string::npos )
+			{
+				seterror( "PEDM011F" ) ;
+				return ;
+			}
+			if ( value.back() != ')' )
+			{
+				seterror( "PEDM011H", 20 ) ;
+				return ;
+			}
+			value = value.substr( 1, value.size() - 2 ) ;
+			if ( trim( value ) == "" )
+			{
+				seterror( "PEDM011G" ) ;
+				return ;
+			}
+		}
+
+		miss = 0 ;
+		if ( isvar )
+		{
+			if ( value.front() == ',' ) { miss = 1 ; }
+			replace( value.begin(), value.end(), ',', ' ' ) ;
+			iupper( trim( value ) ) ;
+			for ( nvars = words( value ), i = 1 ; i <= nvars ; i++ )
+			{
+				var = word( value, i ) ;
+				if ( !isvalidName( var ) )
+				{
+					seterror( "PEDM011D", var, 20 ) ;
+					return ;
+				}
+				if      ( i+miss == 1 ) { var1 = var ; }
+				else if ( i+miss == 2 ) { var2 = var ; }
+				else    { seterror( "PEDM011H", 20 ) ; fatal = true ; return ;  }
+			}
+		}
+
+		it = EMServ.find( keyword ) ;
+		if ( query )
+		{
+			if ( (it->second.qnvars1 != -1 ) )
+			{
+				if ( (nvars + miss) < EMServ[ keyword ].qnvars1 )
+				{
+					seterror( "PEDM012B" ) ;
+					return ;
+				}
+			}
+			if ( (it->second.qnvars2 != -1 ) )
+			{
+				if ( (nvars + miss) > EMServ[ keyword ].qnvars2 )
+				{
+					seterror( "PEDM012C", 20 ) ;
+					return ;
+				}
+			}
+			if ( it->second.qnkeyopts1 != -1 )
+			{
+				if ( nkeyopts < it->second.qnkeyopts1 )
+				{
+					seterror( "PEDM011X", 20 ) ;
+					return ;
+				}
+			}
+			if ( it->second.qnkeyopts2 != -1 )
+			{
+				if ( nkeyopts > it->second.qnkeyopts2 )
+				{
+					seterror( "PEDM011Y", 20 ) ;
+					return ;
+				}
+			}
+		}
+		else
+		{
+			nvalopts = words( value ) ;
+			if ( it->second.ankeyopts1 != -1 )
+			{
+				if ( nkeyopts < it->second.ankeyopts1 )
+				{
+					seterror( "PEDM011X", 20 ) ;
+					return ;
+				}
+			}
+			if ( it->second.ankeyopts2 != -1 )
+			{
+				if ( nkeyopts > it->second.ankeyopts2 )
+				{
+					seterror( "PEDM011Y", 20 ) ;
+					return ;
+				}
+			}
+			if ( it->second.anvalopts1 != -1 )
+			{
+				if ( nvalopts < it->second.anvalopts1 )
+				{
+					seterror( "PEDM011Z", 20 ) ;
+					return ;
+				}
+			}
+			if ( it->second.anvalopts2 != -1 )
+			{
+				if ( nvalopts > it->second.anvalopts2 )
+				{
+					seterror( "PEDM012A", 20 ) ;
+					return ;
+				}
+			}
+		}
+	}
+	void setMacro( const string& s )
+	{
+		emacro = s ;
+	}
+	bool getMacroFileName( const string& paths )
+	{
+		int i ;
+		int j ;
+		setRC( 0 ) ;
+		for ( j = getpaths( paths ), i = 1 ; i <= j ; i++ )
+		{
+			mfile = getpath( paths, i ) + emacro ;
+			if ( !exists( mfile ) ) { continue ; }
+			if ( is_regular_file( mfile ) ) { mfound = true ; return true ; }
+			setRC( 28 )  ;
+			return false ;
+		}
+		setRC( 8 )   ;
+		return false ;
+	}
+	bool scanOn()
+	{
+		return scan ;
+	}
+	bool editEnded()
+	{
+		return eended ;
+	}
+	friend class PEDIT01 ;
+	friend class PEDRXM1 ;
 } ;
 
 
 class PEDIT01 : public pApplication
 {
 	public:
-		void application() ;
+		void application()   ;
+
+		void actionService() ;
+		void querySetting()  ;
+		void isredit( const string& ) ;
+
+		miblock miBlock ;
+		cmdblock pcmd   ;
+
+		map<string,stack<defName>> defNames ;
 
 	private:
 		static map<string,bool>EditList  ;
@@ -785,6 +1936,7 @@ class PEDIT01 : public pApplication
 		void convNonDisplayChars( string& ) ;
 		void getZAREAchanges()    ;
 		void updateData()         ;
+		string getColumnLine()    ;
 
 		void actionFind()         ;
 		void actionChange()       ;
@@ -794,6 +1946,8 @@ class PEDIT01 : public pApplication
 		void actionPrimCommand2() ;
 		void actionLineCommands() ;
 		void actionLineCommand( vector<icmd>::iterator ) ;
+
+		void run_macro()          ;
 
 		void actionZVERB()        ;
 		void setLineLabels()      ;
@@ -824,21 +1978,26 @@ class PEDIT01 : public pApplication
 		uint getPrevDataLine( uint ) ;
 		uint getPrevDataFileLine( uint ) ;
 		vector<iline * >::iterator getPrevDataFileLine( vector<iline * >::iterator ) ;
+		void getLineData( vector<iline *>::iterator ) ;
+		string mergeLine( const string&, vector<iline *>::iterator ) ;
 
-		void cleanupData()        ;
+		void cleanupData()       ;
 		void updateProfLines( vector<string>& ) ;
 		void buildProfLines( vector<string>& )  ;
-		void removeProfLines( )    ;
+		void removeProfLines( )  ;
 		void removeSpecialLines( vector<iline * >::iterator, vector<iline * >::iterator ) ;
-		void processNISRTlines()  ;
+		void processNewInserts() ;
 
-		string removeTabs( string ) ;
+		string removeTabs( string )  ;
+		bool   getVariables( int, string&, string& ) ;
 
-		void copyFileData( vector<string> &, int, int  )  ;
+		void copyFileData( vector<string> &, int, int  ) ;
 
 		bool URIDonScreen( int ) ;
 
-		string overlay( string, string, bool& ) ;
+		string overlay1( string, string, bool& ) ;
+		string overlay2( string, string )        ;
+		string templat( string, string )         ;
 		bool formLineCmd( const string&, string&, int& ) ;
 
 		void copyToClipboard( vector<ipline>& vip ) ;
@@ -855,8 +2014,8 @@ class PEDIT01 : public pApplication
 		void positionCursor()  ;
 		void moveColumn( int ) ;
 
-		vector<iline * >::iterator getLineItr( int )       ;
-		vector<iline * >::iterator getLineItr( uint )      ;
+		vector<iline * >::iterator getLineItr( int )  ;
+		vector<iline * >::iterator getLineItr( uint ) ;
 		vector<iline * >::iterator getLineItr( int, vector<iline *>::iterator ) ;
 
 		bool setFindChangeExcl( char ) ;
@@ -864,12 +2023,14 @@ class PEDIT01 : public pApplication
 		bool setCommandRange( string, c_range& ) ;
 		int  getNextSpecial( int, int, char, char ) ;
 		bool getLabelItr( const string&, vector<iline * >::iterator &, int& ) ;
-		int  getLabelLine( const string& ) ;
-		bool checkLabel( const string& ) ;
+		int  getLabelLine( const string& )  ;
+		int  getLabelIndex( const string& ) ;
+		bool checkLabel1( const string&, int =0 ) ;
+		bool checkLabel2( const string&, int =0 ) ;
 
 		bool getTabLocation( int& ) ;
 		void copyPrefix( ipline &, iline *& ) ;
-		void copyPrefix( iline * &,ipline& )  ;
+		void copyPrefix( iline * &,ipline&, bool =false ) ;
 		void addSpecial( char, int, vector<string>& ) ;
 		void addSpecial( char, int, string& ) ;
 
@@ -886,12 +2047,16 @@ class PEDIT01 : public pApplication
 		uint ptopLine            ;
 		int  startCol            ;
 		int  maxCol              ;
+		int  mRow                ;
+		int  mCol                ;
 		int  aRow                ;
 		int  aCol                ;
 		int  aURID               ;
 		bool aLCMD               ;
+		bool macroRunning        ;
 		int  Level               ;
 		int  saveLevel           ;
+		int  nestLevel           ;
 		int  XTabz               ;
 
 		bool tabsOnRead          ;
@@ -909,7 +2074,7 @@ class PEDIT01 : public pApplication
 
 		bool   profASave         ;
 		bool   profSaveP         ;
-		bool   profNulla         ;
+		bool   profNullA         ;
 		bool   profNulls         ;
 		bool   profLock          ;
 		bool   profCaps          ;
@@ -925,10 +2090,18 @@ class PEDIT01 : public pApplication
 		bool   profLogic         ;
 		bool   profParen         ;
 		string profLang          ;
+		string profIMAC          ;
+		bool   profVert          ;
 
 		string detLang           ;
 		string creFile           ;
 
+		bool optNoConvTabs       ;
+		bool optPreserve         ;
+		string optProfile        ;
+		string optMacro          ;
+
+		bool termEdit            ;
 		bool stripST             ;
 		bool convTabs            ;
 		bool convSpaces          ;
@@ -937,7 +2110,6 @@ class PEDIT01 : public pApplication
 		bool cutReplace          ;
 		bool pasteActive         ;
 		bool pasteKeep           ;
-		bool sPreserve           ;
 		bool hideExcl            ;
 
 		int  LeftBnd             ;
@@ -956,21 +2128,16 @@ class PEDIT01 : public pApplication
 		map<int, int>lchar       ;
 		vector<icmd> icmds       ;
 
-
-		e_find find_parms  ;
+		e_find  find_parms ;
+		hilight hlight     ;
 
 		bool rebuildZAREA  ;
 		bool rebuildShadow ;
 		bool fileChanged   ;
 
-		hilight hlight ;
-
 		string CURFLD  ;
 		int    CURPOS  ;
-		string MSG     ;
-		string MSG1    ;
 		string ZCMD1   ;
-		string OCMD    ;
 
 		string ZFILE   ;
 		string ZCOL1   ;
@@ -999,8 +2166,12 @@ class PEDIT01 : public pApplication
 		string ZEDPTABZ ;
 		string ZEDPRCLC ;
 		string ZEDPHLLG ;
+		string ZEDPIMAC ;
+		string ZEDPFLG2 ;
+		string ZEDPFLG3 ;
 
-		string EETABCC  ;
+		string EEIMAC   ;
+		string EEPROF   ;
 		string EETABSS  ;
 		string EEPRSPS  ;
 
@@ -1037,76 +2208,54 @@ class PEDIT01 : public pApplication
 						{ 'S', "SUFFIX" },
 						{ 'W', "WORD"   } } ;
 
-		map<bool, string>OnOff      = { { true,  "ON"  },
-						{ false, "OFF" } } ;
+		map<bool, string>OnOff      = { { true,  "ON"   },
+						{ false, "OFF"  } } ;
 
-		map<bool, char>ZeroOne      = { { true,  '1' },
-						{ false, '0' } } ;
+		map<bool, char>ZeroOne      = { { true,  '1'    },
+						{ false, '0'    } } ;
 
-		map<string,P_CMDS> PrimCMDS = { { "AUTOSAVE", PC_AUTOSAVE },
-						{ "BND",      PC_BOUNDS   },
-						{ "BNDS",     PC_BOUNDS   },
-						{ "BOU",      PC_BOUNDS   },
-						{ "BOUND",    PC_BOUNDS   },
-						{ "BOUNDS",   PC_BOUNDS   },
-						{ "BROWSE",   PC_BROWSE   },
-						{ "CHANGE",   PC_CHANGE   },
-						{ "C",        PC_CHANGE   },
-						{ "CHA",      PC_CHANGE   },
-						{ "CHG",      PC_CHANGE   },
-						{ "CAPS",     PC_CAPS     },
-						{ "COLUMN",   PC_COLUMN   },
-						{ "COL",      PC_COLUMN   },
-						{ "COLS",     PC_COLUMN   },
-						{ "COMPARE",  PC_COMPARE  },
-						{ "COMP",     PC_COMPARE  },
-						{ "CREATE",   PC_CREATE   },
-						{ "CRE",      PC_CREATE   },
-						{ "CUT",      PC_CUT      },
-						{ "DELETE",   PC_DELETE   },
-						{ "DEL",      PC_DELETE   },
-						{ "EDIT",     PC_EDIT     },
-						{ "EXLUDE",   PC_EXCLUDE  },
-						{ "EXLUDED",  PC_EXCLUDE  },
-						{ "EX",       PC_EXCLUDE  },
-						{ "EXC",      PC_EXCLUDE  },
-						{ "X",        PC_EXCLUDE  },
-						{ "FIND",     PC_FIND     },
-						{ "F",        PC_FIND     },
-						{ "FLIP",     PC_FLIP     },
-						{ "HEX",      PC_HEX      },
-						{ "HIDE",     PC_HIDE     },
-						{ "HILIGHT",  PC_HILIGHT  },
-						{ "HI",       PC_HILIGHT  },
-						{ "HILITE",   PC_HILIGHT  },
-						{ "LOCATE",   PC_LOCATE   },
-						{ "LOC",      PC_LOCATE   },
-						{ "L",        PC_LOCATE   },
-						{ "NULLS",    PC_NULLS    },
-						{ "NULL",     PC_NULLS    },
-						{ "PASTE",    PC_PASTE    },
-						{ "PRESERVE", PC_PRESERVE },
-						{ "PROFILE",  PC_PROFILE  },
-						{ "PROF",     PC_PROFILE  },
-						{ "RECVR",    PC_RECOVERY },
-						{ "RECVRY",   PC_RECOVERY },
-						{ "RECOV",    PC_RECOVERY },
-						{ "RECOVRY",  PC_RECOVERY },
-						{ "RECOVER",  PC_RECOVERY },
-						{ "RECOVERY", PC_RECOVERY },
-						{ "REDO",     PC_REDO     },
-						{ "REPLACE",  PC_CREATE   },
-						{ "REP",      PC_CREATE   },
-						{ "REPL",     PC_CREATE   },
-						{ "RESET",    PC_RESET    },
-						{ "RES",      PC_RESET    },
-						{ "SAVE",     PC_SAVE     },
-						{ "SETUNDO",  PC_SETUNDO  },
-						{ "SETU",     PC_SETUNDO  },
-						{ "SORT",     PC_SORT     },
-						{ "TABS",     PC_TABS     },
-						{ "UNDO",     PC_UNDO     },
-						{ "XTABS",    PC_XTABS    } } ;
+
+						      //
+						      //               +----------Minimum number of parameters
+						      //               |   +------Maximum number of parameters
+						      //               |   |
+						      //               |   |      value of -1 means don't check
+						      //               V   V
+		map<P_CMDS,pcmd_format> PCMDform = { { PC_AUTOSAVE, {  0,  2 } },
+						     { PC_BOUNDS,   {  0,  2 } },
+						     { PC_BROWSE,   { -1, -1 } },
+						     { PC_CANCEL,   {  0,  0 } },
+						     { PC_CHANGE,   { -1, -1 } },
+						     { PC_CAPS,     {  0,  2 } },
+						     { PC_COLUMN,   {  0,  1 } },
+						     { PC_COMPARE,  { -1, -1 } },
+						     { PC_CREATE,   { -1, -1 } },
+						     { PC_CUT,      { -1, -1 } },
+						     { PC_DELETE,   { -1, -1 } },
+						     { PC_EDIT,     { -1, -1 } },
+						     { PC_EXCLUDE,  { -1, -1 } },
+						     { PC_FIND,     { -1, -1 } },
+						     { PC_FLIP,     { -1, -1 } },
+						     { PC_HEX,      {  0,  2 } },
+						     { PC_HIDE,     {  1,  1 } },
+						     { PC_HILIGHT,  { -1, -1 } },
+						     { PC_IMACRO,   {  1,  1 } },
+						     { PC_LOCATE,   { -1, -1 } },
+						     { PC_NULLS,    {  0,  2 } },
+						     { PC_PASTE,    { -1, -1 } },
+						     { PC_PROFILE,  { -1, -1 } },
+						     { PC_PRESERVE, {  0,  1 } },
+						     { PC_RECOVERY, { -1, -1 } },
+						     { PC_REDO,     {  0,  1 } },
+						     { PC_REPLACE,  { -1, -1 } },
+						     { PC_RESET,    { -1, -1 } },
+						     { PC_SAVE,     {  0,  0 } },
+						     { PC_SETUNDO,  {  1,  1 } },
+						     { PC_SORT,     { -1, -1 } },
+						     { PC_TABS,     { -1, -1 } },
+						     { PC_UNDO,     {  0,  1 } },
+						     { PC_XTABS,    {  0,  1 } } } ;
+
 
 		map<string,L_CMDS> LineCMDS = { { "A",        LC_A        },
 						{ "AK",       LC_AK       },
@@ -1221,6 +2370,7 @@ class PEDIT01 : public pApplication
 						  { "OK",  "O"  },
 						  { "OOK", "OO" } } ;
 
+
 		const string BLKcmds   = "CC DD MM HXX LCC MDD MNN OO OOK RR TJJ TRR TT TXX XX WW UCC (( )) << >> [[ ]]" ;
 		const string SPLcmds   = "A AK B BK C CC COLS D DD F I L M MM MD MDD MN MNN R RR S SI TX TXX X XX XI" ;
 		const string TODcmds   = "A I" ;
@@ -1233,4 +2383,5 @@ class PEDIT01 : public pApplication
 		const string XBlock    = "R (( )) ( ) << >> < > [[ ]] [ ]" ;
 		const string CutCmds   = "C CC M MM" ;
 		const string PasteCmds = "A B" ;
+		friend class PEDRXM1 ;
 } ;

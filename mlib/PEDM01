@@ -1,0 +1,166 @@
+*
+* Message file for the PEDIT01 EDITOR macro error messages
+*
+
+PEDM011A 'Service not currently supported'
+''
+
+PEDM011B 'Too many MACRO statements found'
+'Only one MACRO statement is allowed'
+
+PEDM011C 'Missing closing bracket on statement found'
+''
+
+PEDM011D 'Invalid variable name'
+''
+
+PEDM011E 'The MACRO statement must precede any other edit macro statement'
+''
+
+PEDM011F 'Invalid variable format'
+"The ending ')' was not found"
+
+PEDM011G 'No variable name coded'
+"No variable name found between '(' and ')'"
+
+PEDM011H 'Too many variable names'
+'Invalid number of variables for this statement'
+
+PEDM011I 'Invalid variable list format'
+"Variable list must be of the form '(varname,varname)'"
+
+PEDM011J 'Invalid number of variables'
+''
+
+PEDM011K 'Invalid command syntax'
+'Command keyword not found.  Missing "=" before command name'
+
+PEDM011L 'Invalid command syntax'
+"Missing value after '='"
+
+PEDM011M 'Invalid keyphrase syntax'
+"Assignment syntax is 'ISREDIT &STR lptr = value"
+
+PEDM011N 'Invalid command'
+'Command keyword is not recognised or missing'
+
+PEDM011O 'Invalid command'
+'Syntax error in command format'
+
+PEDM011P 'Parameter not recognised'
+'Check for misspelled, missing or extraneous parameters'
+
+PEDM011Q 'Invalid label'
+'Label is not currently assigned to a line'
+
+PEDM011R 'Invalid label'
+'Label is missing or not of the correct format'
+
+PEDM011S 'Invalid line number'
+'Line number is outside the data range'
+
+PEDM011T 'Invalid function use'
+'&STR can only be used to query a setting, not change it'
+
+PEDM011U 'Invalid function use'
+'&STR cannot be used in a query'
+
+PEDM011V 'Command Failed'
+'&STR command has failed'
+
+PEDM011W 'Invalid line pointer'
+'The line pointer specified in the &STR command does not exist'
+
+PEDM011X 'Too few keyphrase words'
+'Macro statement has too few words after the keyphrase'
+
+PEDM011Y 'Too many keyphrase words'
+'Macro statement has too many words after the keyphrase'
+
+PEDM011Z 'Too few value options'
+'Macro statement has too few option words'
+
+PEDM012A 'Too many value options'
+'Macro statement has too many option words'
+
+PEDM012B 'Invalid number of variables'
+'Too few variables specified on the command'
+
+PEDM012C 'Invalid number of variables'
+'Too many variables specified on the command'
+
+PEDM012D 'Primary command has not been actioned'
+'Logic error.  Primary command has not set the actioned flag.'
+
+PEDM012E 'Level out of range'
+'The optional level parameter must in the range 0 to 255'
+
+PEDM012F 'Invalid line pointer'
+'Line pointer must be numberic or a valid line label'
+
+PEDM012G 'Command not found'
+'&STR is not an edit command or macro'
+
+PEDM012H 'Nesting exceeded' .TYPE=W
+'Macros can only be nested to a level of 255.  Check for loops'
+
+PEDM012I 'Not a valid edit macro' .TYPE=W
+'No ISREDIT MACRO statement was found'
+
+PEDM012J 'Command Invalid'
+'&STR not valid.  BUILTIN must be followed by a valid edit command'
+
+PEDM012K 'Invalid process request'
+'End user input previously processed.  Specify NOPROCESS on macro command'
+
+PEDM012L 'Invalid DEFINE option'
+"DEFINE command contains an invalid option.  Must be MACRO, ALIAS, NOP, RESET or DISABLED"
+
+PEDM012M 'Invalid DEFINE option'
+"DEFINE command contains an invalid option.  Must be ALIAS or RESET"
+
+PEDM012N 'Missing DEFINE alias-to name'
+"Missing alias-to name on 'DEFINE name ALIAS alias-to' command"
+
+PEDM012O 'Invalid keyword option'
+"Too many parameters following the 'DEFINE name keyword' command"
+
+PEDM012P 'No macro name specified'
+"Macro name is blank.  Please specify a valid macro"
+
+PEDM012Q 'Invalid rexx file' .TYPE=W
+"Invalid file found in path ZORXPATH"
+
+PEDM012R 'DEFINE is not allowed' .TYPE=W
+"Command name has been disabled with the DEFINE DISABLED command"
+
+PEDM012S 'Deactivated command' .TYPE=W
+"Command name has been deactivated with the DEFINE NOP or DISABLED command"
+
+PEDM012T 'Define name not found' .TYPE=W
+"No previous DEFINE for this command for a NOP or DISABLED request"
+
+PEDM012U 'Deactivated command' .TYPE=W
+"Command name has been deactivated with the DEFINE DISABLED command"
+
+PEDM012V 'Invalid LINE format' .TYPE=W
+"Format must be 'line-type data'"
+
+PEDM012W 'Invalid quoted string' .TYPE=W
+"String must start and end with a single or double quote"
+
+PEDM012X 'Invalid command syntax'
+'Missing "=" after command name'
+
+PEDM012Y 'Invalid template format'
+"Missing '>' to indicate the end of the template"
+
+PEDM012Z 'Invalid template format'
+"Invalid number of parameters between '<' and '>'"
+
+PEDM013A 'Missing parameter'
+""
+
+PEDM013B 'Invalid template parameter'
+"Column parameter must be numeric"
+

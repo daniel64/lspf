@@ -68,7 +68,7 @@ PSYS011L 'SPLIT Command Disabled' .TYPE=W
 'SPLIT command has been disabled via the application-issued CONTROL SPLIT DISABLE service'
 
 PSYS011M 'Non-zero return code' .TYPE=W
-'REXX program has returned a non-zero return code.  See application log for more messages'
+'&STR'
 
 PSYS011N 'Invalid data entered' .TYPE=W .W=NORESP
 "Data entered must be of length &ZZSTR1 in the form '&ZZSTR2'"

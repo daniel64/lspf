@@ -21,11 +21,13 @@ class pApplication
 {
 	public:
 		pApplication()  ;
-		~pApplication() ;
+		virtual ~pApplication() ;
 
 		virtual void application() = 0 ;
+		virtual void isredit( const string& ) ;
 
 		static pApplication * currApplication ;
+		static map<int, void *>ApplUserData   ;
 
 		poolMGR  * p_poolMGR  ;
 		tableMGR * p_tableMGR ;
@@ -178,7 +180,7 @@ class pApplication
 		bool   isTableUpdate( const string& tb_name, const string& func ) ;
 
 		void   browse( const string& m_file, const string& m_panel="" ) ;
-		void   edit( const string& m_file, const string& m_panel=""   ) ;
+		void   edit( const string& m_file, const string& m_panel="", const string& m_macro ="", const string& m_profile="" ) ;
 		void   view( const string& m_file, const string& m_panel=""   ) ;
 		void   setmsg( const string& msg, msgSET sType=UNCOND  ) ;
 		void   getmsg( const string&, const string&, const string& ="", const string& ="", const string& ="",const string& ="", const string& ="" ) ;
@@ -206,6 +208,7 @@ class pApplication
 		void   cleanup_default() ;
 		void   (pApplication::*pcleanup)() = &pApplication::cleanup_default ;
 		void   abend()       ;
+		void   uabend( const string&, const string& = "", int = -1 ) ;
 		void   abendexc()    ;
 		void   set_forced_abend()  ;
 		void   set_timeout_abend() ;
@@ -215,6 +218,7 @@ class pApplication
 		void   store_scrname() ;
 		void   restore_Zvars( int ) ;
 		void   reload_keylist( pPanel * ) ;
+		bool   errorsReturn() ;
 
 		string sub_vars( string ) ;
 

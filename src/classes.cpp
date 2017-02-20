@@ -206,11 +206,13 @@ bool ASSGN::parse( string s )
 	int p  ;
 	int p1 ;
 
+	const string controlVars = ".ALARM .AUTOSEL .BROWSE .CURSOR .CSRROW .EDIT .HELP .MSG .NRET .RESP" ;
+
 	p = s.find( '=' ) ;
 	if ( p == string::npos ) { return false ; }
 	as_lhs = upper( strip( s.substr( 0, p ) ) ) ;
 	if ( words( as_lhs ) != 1 ) {  return false ; }
-	if      ( findword( as_lhs, ".ALARM .AUTOSEL .CURSOR .CSRROW .HELP .MSG .NRET .RESP" ) ) {}
+	if ( findword( as_lhs, controlVars ) ) {}
 	else if ( as_lhs.substr( 0, 6 ) == ".ATTR(" )
 	{
 		p1 = as_lhs.find( ')' ) ;

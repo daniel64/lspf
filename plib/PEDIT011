@@ -14,25 +14,30 @@ field 4  15   MAX     NEF     PAD('_') ZCMD1
 literal  7    2       FP     "File Name. . .:"
 field    7   18       MAX     NEF  NONE ZFILE
 
-field    10   2   1   CEF     PAD('_') EEDIRLST
-literal  10   4       SAC    "Show directory list if valid directory entered"
+literal  9    2       SAC    "Initial Macro. . ."
+field    9    21  8   CEF     PAD('_'),caps(off) EEIMAC
+literal  10   2       SAC    "Profile Name . . ."
+field    10   21  8   CEF     PAD('_'),caps(on) EEPROF
 
-field    11   2   1   CEF     PAD('_') EENEWFLS
-literal  11   4       SAC    "Allow edit of new files"
+literal  12   2       ET     "Options"
+literal  13   4       PIN    "Enter / to select option"
+field    14   4   1   CEF     PAD('_') EEPRSPS
+literal  14   6       SAC    "Preserve trailing spaces on file save"
 
-field    13   2   1   CEF     PAD('_') EEPRSPS
-literal  13   4       SAC    "Preserve trailing spaces on file save"
+field    15   4   1   CEF     PAD('_') EETABSS
+literal  15   6       SAC    "Override XTABS setting to prevent tabs being converted to spaces"
 
-field    14   2   1   CEF     PAD('_') EETABSS
-literal  14   4       SAC    "Convert tabs to spaces on EDIT entry"
-field    15   2   1   CEF     PAD('_') EETABCC
-literal  15   4       SAC    "Convert spaces back to tabs on file save"
+field    16   4   1   CEF     PAD('_') EEDIRLST
+literal  16   6       SAC    "Show directory list if valid directory entered"
+
+field    17   4   1   CEF     PAD('_') EENEWFLS
+literal  17   6       SAC    "Allow edit of new files"
 
 
-literal 18 2  CH "Instructions"
-literal 19 2  NT "Enter file name and press"
-literal 19 28 ET "ENTER"
-literal 19 34 NT "to edit file"
+literal 20 2  CH "Instructions"
+literal 21 2  NT "Enter file name and press"
+literal 21 28 ET "ENTER"
+literal 21 34 NT "to edit file"
 
 
 )INCLUDE STD_PDC
@@ -44,7 +49,8 @@ literal 19 34 NT "to edit file"
 .NRET  = ON
 .NRET  = ZFILE
 &ZFILE = &Z
-VGET (ZFILE,EETABCC,EETABSS,EEPRSPS,EEDIRLST,EENEWFLS) PROFILE
+VGET EEIMAC SHARED
+VGET (ZFILE,EEPROF,EETABSS,EEPRSPS,EEDIRLST,EENEWFLS) PROFILE
 
 )PROC
 if ( &ZCMD1 NE &Z)
@@ -52,12 +58,11 @@ if ( &ZCMD1 NE &Z)
   .CURSOR = ZCMD1
   EXIT
 
-VER (&ZFILE NB)
-VER (&EETABSS  LIST /)
-VER (&EETABCC  LIST /)
-VER (&EEPRSPS  LIST /)
-VER (&EEDIRLST LIST /)
-VER (&EENEWFLS LIST /)
+VER (&ZFILE,NB)
+VER (&EEPRSPS,LIST,/)
+VER (&EETABSS,LIST,/)
+VER (&EEDIRLST,LIST,/)
+VER (&EENEWFLS,LIST,/)
 
 &SHOWDIR = NO
 
@@ -84,7 +89,8 @@ ELSE
            .MSG    = PEDT011S
            EXIT
 
-VPUT (ZFILE,EETABCC,EETABSS,EEPRSPS,EEDIRLST,EENEWFLS) PROFILE
+VPUT EEIMAC SHARED
+VPUT (ZFILE,EEPROF,EETABSS,EEPRSPS,EEDIRLST,EENEWFLS) PROFILE
 
 )FIELD
 FIELD(ZFILE) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL)')

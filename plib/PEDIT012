@@ -32,6 +32,9 @@ pdc File "Exit"    ACTION RUN(END)
 )INCLUDE HLP_PDC
 
 
+)INIT
+.EDIT = YES
+
 )PROC
 
 )END
