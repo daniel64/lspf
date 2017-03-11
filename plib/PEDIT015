@@ -1,0 +1,70 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+Panel for editor copy file
+)ENDCOMMENT
+
+)BODY HOME(ZCMD5) CMD(ZCMD5)
+
+PanelTitle "Edit Copy"
+
+literal  4    2       FP     "Command ===> "
+field 4  15   MAX     NEF     PAD('_') ZCMD5
+
+literal  7    2       FP     "Current File Name:"
+field    7   21       MAX     VOI  NONE ZFILE
+
+literal 10 2  FP "Enter file name to copy"
+literal 11    5       FP     "File Name. . .:"
+field   11   21       MAX     NEF  NONE ZFILE2
+
+literal 13 2  FP "Line numbers (Blank for entire file)"
+literal 14    5       FP     "First Line . .:"
+field   14   21       6       NEF  PAD('_') LINE1
+literal 15    5       FP     "Last Line. . .:"
+field   15   21       6       NEF  PAD('_') LINE2
+
+literal 18 2  CH "Instructions"
+literal 19 2  NT "Enter file name and press"
+literal 19 28 ET "ENTER"
+literal 19 34 NT "to copy file or "
+literal 19 50 ET "END"
+literal 19 54 NT "to cancel copy"
+
+)INCLUDE STD_PDC
+)INCLUDE RFL_PDC
+)INCLUDE HLP_PDC
+
+)INIT
+
+.NRET   = ON
+.NRET   = ZFILE2
+&ZFILE2 = &Z
+.CURSOR = ZFILE2
+
+VGET ZFILE2 PROFILE
+
+)PROC
+if ( &ZCMD5 NE &Z)
+  .MSG    = PSYS018
+  .CURSOR = ZCMD5
+  EXIT
+
+VER (&ZFILE2,NB)
+VER (&LINE1,NUM)
+VER (&LINE2,NUM)
+
+&ISFILE = FILE( ZFILE2 )
+
+IF ( &ISFILE EQ .FALSE )
+    .CURSOR = ZFILE2
+    &ZSTR1  = &ZFILE2
+    .MSG    = PEDT011R
+    EXIT
+
+VPUT ZFILE2 PROFILE
+
+)FIELD
+FIELD(ZFILE2) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL)')
+
+)END

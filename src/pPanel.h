@@ -28,7 +28,7 @@ class pPanel
 		pPanel()  ;
 		~pPanel() ;
 
-		void   init( int& RC ) ;
+		void   init( errblock& err ) ;
 
 		void   field_edit( uint row, uint col, char ch, bool Istr, bool& prot ) ;
 		void   field_delete_char( uint row, uint col, bool& prot ) ;
@@ -50,7 +50,7 @@ class pPanel
 		void   get_cursor( uint& row, uint& col ) { row   = p_row + win_row ; col   = p_col + win_col ; }
 		void   set_cursor( uint row, uint col )   { p_row = row - win_row   ; p_col = col - win_col   ; }
 
-		void   display_panel( int& RC ) ;
+		void   display_panel( errblock& ) ;
 		int    get_abline()      { return win_row  ; }
 		bool   is_pd_displayed() { return pdActive ; }
 		bool   display_pd( uint col ) ;
@@ -84,9 +84,6 @@ class pPanel
 		string CURFLD      ;
 		int    CURPOS      ;
 		slmsg  MSG         ;
-		string PERR1       ;
-		string PERR2       ;
-		string PERR3       ;
 		string KEYLISTN    ;
 		string KEYAPPL     ;
 		string KEYHELPN    ;
@@ -142,12 +139,12 @@ class pPanel
 		poolMGR * p_poolMGR  ;
 		fPOOL   * p_funcPOOL ;
 
-		int    loadPanel( const string& p_name, const string& paths ) ;
+		void   loadPanel( errblock& errBlock, const string& p_name, const string& paths ) ;
 
-		void   display_panel_update( int& RC ) ;
-		void   display_panel_init( int& RC )   ;
-		void   display_panel_reinit( int& RC, int ln=0 ) ;
-		void   display_panel_proc( int& RC, int ln )     ;
+		void   display_panel_update( errblock& ) ;
+		void   display_panel_init( errblock& )   ;
+		void   display_panel_reinit( errblock&, int ln=0 ) ;
+		void   display_panel_proc( errblock&, int ln )     ;
 		void   display_id()  ;
 
 		void   set_popup( int, int ) ;
@@ -157,7 +154,7 @@ class pPanel
 		void   put_keylist( int, const string& ) ;
 		string get_panelDescr()  { return panelDescr != "" ? sub_vars( panelDescr ) : sub_vars( panelTitle ) ; }
 
-		void   update_field_values( int& RC ) ;
+		void   update_field_values( errblock& ) ;
 
 		void   get_panel_info( int& RC, const string& a_name, const string& t = "", const string& w = "", const string& d = "", const string& r = "", const string& c = "" ) ;
 		void   attr( int& RC, const string& field, const string& attrs ) ;
@@ -186,7 +183,7 @@ class pPanel
 		string getDialogueVar( const string& )  ;
 		void   putDialogueVar( const string&, const string& ) ;
 
-		void   create_tbfield( int col, int size, cuaType cuaFT, const string& name, const string& opts ) ;
+		void   create_tbfield( errblock&, int col, int size, cuaType cuaFT, const string& name, const string& opts ) ;
 		void   create_pdc( const string&, const string&, const string&, const string&, const string& ) ;
 
 		void   display_boxes()  ;
@@ -241,7 +238,7 @@ class pPanel
 		void   display_pd()       ;
 		void   display_fields()   ;
 
-		void  process_panel_stmnts( int& RC1, int ln,
+		void  process_panel_stmnts( errblock& err, int ln,
 			vector<panstmnt>& stmnts,
 			vector<IFSTMNT>&  ifList,
 			vector<VERIFY>&   verList,

@@ -64,6 +64,7 @@ VER (&ECPITBE  LIST /)
 
 IF ( &ISFILE EQ .FALSE )
     .CURSOR = CFILE
+    &ZSTR1  = &CFILE
     .MSG    = PEDT011R
      EXIT
 

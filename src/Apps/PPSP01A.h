@@ -86,7 +86,7 @@ class PPSP01A : public pApplication
 		void showLoadedClasses() ;
 		void showSavedFileList() ;
 		void showTasks()         ;
-		void updateTasks( string ) ;
+		void updateTasks( const string&, const string& ="", const string& ="" ) ;
 		void utilityPrograms()   ;
 		void keylistTables()     ;
 		void keylistTable( string="", string="", string="" ) ;

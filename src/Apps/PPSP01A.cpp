@@ -1818,6 +1818,9 @@ void PPSP01A::showTasks()
 {
 	int retc ;
 
+	string of    ;
+	string uf    ;
+	string ZCMD  ;
 	string SEL   ;
 	string USER  ;
 	string PID   ;
@@ -1846,13 +1849,19 @@ void PPSP01A::showTasks()
 		tbdispl( TASKLST, "PPSP01TK", MSG, "ZCMD" ) ;
 		if ( RC  >  8 ) { abend() ; }
 		if ( RC ==  8 ) { break   ; }
-		MSG = ""     ;
+		MSG = "" ;
+		vcopy( "USERF", uf, MOVE ) ;
+		vcopy( "ONLYF", of, MOVE ) ;
 		while ( ZTDSELS > 0 )
 		{
 			if ( SEL == "K")
 			{
 				retc = kill( ds2d(PID), 9 ) ;
 				log( "I", "Kill signal sent to PID " << PID << ".  RC=" << retc << endl ) ;
+			}
+			else if ( SEL == "S")
+			{
+				select( "PGM(PCMD0A) PARM( systemctl status "+ PID +" )" ) ;
 			}
 			if ( ZTDSELS > 1 )
 			{
@@ -1862,18 +1871,19 @@ void PPSP01A::showTasks()
 			else { ZTDSELS = 0 ; }
 		}
 		tbend( TASKLST ) ;
-		updateTasks( TASKLST ) ;
+		updateTasks( TASKLST, uf, of ) ;
 	}
 	tbend( TASKLST ) ;
 	vdelete( "SEL USER PID CPU CPUX MEM MEMX CMD" ) ;
 }
 
 
-void PPSP01A::updateTasks( string table )
+void PPSP01A::updateTasks( const string& table, const string& uf, const string& of )
 {
 	int p ;
 
 	string inLine ;
+	string CMD    ;
 	string USER   ;
 	string CPU    ;
 	string CPUX   ;
@@ -1896,6 +1906,7 @@ void PPSP01A::updateTasks( string table )
 		tbvclear( table ) ;
 		USER = word( inLine, 1 ) ;
 		if ( USER == "USER" ) { continue ; }
+		if ( uf != "" && uf != upper( USER ) ) { continue ; }
 		vreplace( "USER", word( inLine, 1 ) ) ;
 		vreplace( "PID", word( inLine, 2 ) ) ;
 		CPU  = word( inLine, 3 ) ;
@@ -1905,7 +1916,9 @@ void PPSP01A::updateTasks( string table )
 		else                     { CPUX = CPU ; CPUX.erase( p, 1 ) ; }
 		vreplace( "CPUX", CPUX ) ;
 		vreplace( "MEM", word( inLine, 4 ) ) ;
-		vreplace( "CMD", strip( substr( inLine, 65 ) ) ) ;
+		CMD = strip( substr( inLine, 65 ) ) ;
+		vreplace( "CMD", CMD ) ;
+		if ( of != "" && pos( of, upper( CMD ) ) == 0 ) { continue ; }
 		tbadd( table ) ;
 	}
 	fin.close() ;

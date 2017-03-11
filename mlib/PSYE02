@@ -1,0 +1,24 @@
+/*                                           */
+/* System error message file for lspf        */
+
+/* Application messages */
+PSYE021A 'Invalid panel name'
+'Panel name ''&ZVAL1'' is invalid'
+
+PSYE021B 'Panel not found'
+'Panel ''&ZVAL1'' has not been found'
+
+PSYE021C 'No panel specified'
+"No previous panel has been specified for the DISPLAY service"
+
+PSYE021D 'Panel ''&ZVAL1'' error'
+"Invalid cursor position ''&ZVAL2'' specified"
+
+PSYE022A 'LOCATE invalid.  Pointer parameter required, string passed'
+''
+
+PSYE022B 'MOVE invalid.  String parameter required, pointer passed'
+''
+
+PSYE022C 'LOCATE option invalid for integer values'
+''

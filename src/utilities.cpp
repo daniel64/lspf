@@ -883,6 +883,25 @@ string& trim( string& s )
 }
 
 
+string& dquote( char c, string& s )
+{
+	// Reduce repeated sequence of quotes to single quote
+	// Return string& so it can be used in expressions
+
+	int p ;
+	string dq ;
+
+	p = 0 ;
+	dq.assign( 2, c ) ;
+	while ( p < s.size() && (p = s.find( dq, p) ) != std::string::npos )
+	{
+		s.erase( p, 1 ) ;
+		p += 2 ;
+	}
+	return s ;
+}
+
+
 bool findword( const string& s1, const string& s2 )
 {
 	// Return true if words in s1 are found in string s2 in the same sequence, else false

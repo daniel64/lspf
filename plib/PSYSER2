@@ -2,14 +2,14 @@
 
 )COMMENT
 
-   Edit macro error panel
-   ZERRMSG, ZERRSM, ZERRLM and ZERR1 - ZERR3 are shown on the panel.  Set in function pool to display.
+   Error panel displayed on RC >= 12 from any DM service when CONROL ERRORS CANCEL is in effect.
+   Used when ZERRMSG set.  ZERR1, 3, 4, 9 and 10 are shown on the panel.  Set in function pool to display.
 
 )ENDCOMMENT
 
 )BODY
 
-PanelTitle "Edit Macro Error"
+PanelTitle "Dialogue Error in application &ZAPPNAME"
 
 literal 4   2      FP  "Command ===> "
 field   4  15 MAX  NEF  CAPS(ON)  ZCMD
@@ -70,26 +70,31 @@ literal 24  MAX ET "*"
 literal 25       2 ET "*"
 literal 25  MAX ET "*"
 
-literal 26      2 ET EXPAND "*"
+literal 26       2 ET "*"
+literal 26  MAX ET "*"
 
-literal  9 4   NT "Command in error. .:"
-field    9 25  MAX-2 ET NONE ZERR1
+literal 27       2 ET "*"
+literal 27  MAX ET "*"
 
-field   11 4   MAX-2 ET NONE ZERRSM
-field   12 4   MAX-2 ET NONE ZERRLM
+literal 28      2 ET EXPAND "*"
 
-literal 14 4   NT "Error message id. .:"
-field   14 25  MAX-2 ET NONE ZERRMSG
+field    9 4  MAX-2 ET NONE ZERR1
+field   11 4  MAX-2 ET NONE ZERRSM
+field   12 4  MAX-2 ET NONE ZERRLM
+field   16 4  MAX-2 ET NONE ZERR2
+field   17 4  MAX-2 ET NONE ZERR3
 
-literal 16 4   NT "Last return code. .:"
-field   16 25  MAX-2 ET NONE ZERR2
+literal 19 4  NT "Error message id:"
+field   19 22 MAX-2 ET NONE ZERRMSG
 
-literal 18 4   NT "Macro executing . .:"
-field   18 25  MAX-2 ET NONE ZERR3
+literal 21 4  NT "Last return code:"
+field   21 22 MAX-2 ET NONE ZERRRC
 
-literal 21 4   NT "Press"
-literal 21 10  ET "ENTER"
-literal 21 16  NT "to terminate the macro"
+literal 24 4   NT "See application and lspf logs for more messages"
+
+literal 26 4   NT "Press"
+literal 26 10  ET "ENTER"
+literal 26 16  NT "to terminate dialogue"
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC

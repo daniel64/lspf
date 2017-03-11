@@ -24,7 +24,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/condition.hpp>
 
-// #define DEBUG1 1
+#define DEBUG1 1
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
@@ -295,6 +295,215 @@ enum cuaType
 	OUTPUT,
 	TEXT
 } ;
+
+
+class errblock
+{
+	public:
+		string  msgid ;
+		string  msg1  ;
+		string  sline ;
+		const string* dline ;
+		string  val1  ;
+		string  val2  ;
+		string  val3  ;
+		int     RC    ;
+		int     maxRC ;
+		bool    debug ;
+	errblock()
+	{
+		msgid = "" ;
+		msg1  = "" ;
+		sline = "" ;
+		dline = NULL ;
+		val1  = "" ;
+		val2  = "" ;
+		val3  = "" ;
+		RC    = 0  ;
+		maxRC = 0  ;
+		debug = false ;
+	}
+	void clear()
+	{
+		msgid = "" ;
+		msg1  = "" ;
+		sline = "" ;
+		dline = NULL ;
+		val1  = "" ;
+		val2  = "" ;
+		val3  = "" ;
+		RC    = 0  ;
+		maxRC = 0  ;
+		debug = false ;
+	}
+	void setRC( int i )
+	{
+		RC = i ;
+	}
+	int getRC()
+	{
+		return RC ;
+	}
+	bool RC0()
+	{
+		return ( RC == 0 ) ;
+	}
+	bool RC4()
+	{
+		return ( RC == 4 ) ;
+	}
+	bool RC8()
+	{
+		return ( RC == 8 ) ;
+	}
+	bool RC12()
+	{
+		return ( RC == 12 ) ;
+	}
+	void setmaxRC( int i )
+	{
+		maxRC = i ;
+	}
+	void setmaxRC()
+	{
+		maxRC = max( RC, maxRC ) ;
+	}
+	int getmaxRC()
+	{
+		return maxRC ;
+	}
+	void setDebugMode()
+	{
+		debug = true ;
+	}
+	bool debugMode()
+	{
+		return debug ;
+	}
+	bool error()
+	{
+		return RC > 8 ;
+	}
+	void setcall( const string& s )
+	{
+		msg1 = s ;
+	}
+	void setcall( const string& s1, const string& s2, int i=20 )
+	{
+		msg1  = s1 ;
+		msgid = s2 ;
+		val1  = "" ;
+		val2  = "" ;
+		val3  = "" ;
+		RC    = i  ;
+	}
+	void setcall( const string& s1, const string& s2, const string& s3, int i=20 )
+	{
+		msg1  = s1 ;
+		msgid = s2 ;
+		val1  = s3 ;
+		val2  = "" ;
+		val3  = "" ;
+		RC    = i  ;
+	}
+	void setcall( const string& s1, const string& s2, const string& s3, const string& s4, int i=20 )
+	{
+		msg1  = s1 ;
+		msgid = s2 ;
+		val1  = s3 ;
+		val2  = s4 ;
+		val3  = "" ;
+		RC    = i  ;
+	}
+	void setcall( const string& s1, const string& s2, const string& s3, const string& s4, const string& s5, int i=20 )
+	{
+		msg1  = s1 ;
+		msgid = s2 ;
+		val1  = s3 ;
+		val2  = s4 ;
+		val3  = s5 ;
+		RC    = i  ;
+	}
+	void seterror( const string& s1, int i=20 )
+	{
+		msgid = "PSYE019D" ;
+		val1  = s1 ;
+		val2  = "" ;
+		val3  = "" ;
+		RC    = i  ;
+	}
+	void seterror( const string& s1, const string& s2, int i=20 )
+	{
+		msgid = "PSYE019D" ;
+		val1  = s1 ;
+		val2  = s2 ;
+		val3  = "" ;
+		RC    = i  ;
+	}
+	void seterrid( const string& s, int i=20 )
+	{
+		msgid = s  ;
+		val1  = "" ;
+		val2  = "" ;
+		val3  = "" ;
+		RC    = i  ;
+	}
+	void seterrid( const string& s1, const string& s2, int i=20 )
+	{
+		msgid = s1 ;
+		val1  = s2 ;
+		val2  = "" ;
+		val3  = "" ;
+		RC    = i  ;
+	}
+	void seterrid( const string& s1, const string& s2, const string& s3, int i=20 )
+	{
+		msgid = s1 ;
+		val1  = s2 ;
+		val2  = s3 ;
+		val3  = "" ;
+		RC    = i  ;
+	}
+	void seterrid( const string& s1, const string& s2, const string& s3, const string& s4, int i=20 )
+	{
+		msgid = s1 ;
+		val1  = s2 ;
+		val2  = s3 ;
+		val3  = s4 ;
+		RC    = i  ;
+	}
+	void setsrc( const string& s )
+	{
+		sline = s ;
+		dline = NULL ;
+	}
+	void setsrc( const string * p )
+	{
+		dline = p  ;
+		sline = "" ;
+	}
+	string getsrc()
+	{
+		if ( dline == NULL ) { return  sline ; }
+		else                 { return *dline ; }
+	}
+	void setval( const string& s1 )
+	{
+		val1 = s1 ;
+	}
+	void setval( const string& s1, const string& s2 )
+	{
+		val1 = s1 ;
+		val2 = s2 ;
+	}
+	void setval( const string& s1, const string& s2, const string& s3 )
+	{
+		val1 = s1 ;
+		val2 = s2 ;
+		val3 = s3 ;
+	}
+} ;
+
 
 #define _quotes( a ) #a
 #define quotes( a ) _quotes( a )

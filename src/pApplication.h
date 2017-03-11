@@ -215,10 +215,12 @@ class pApplication
 		void   closeLog()    ;
 		void   closeTables() ;
 		void   checkRCode( const string& ="" ) ;
+		void   checkRCode( errblock ) ;
 		void   store_scrname() ;
 		void   restore_Zvars( int ) ;
 		void   reload_keylist( pPanel * ) ;
 		bool   errorsReturn() ;
+		void   setTestMode()  ;
 
 		string sub_vars( string ) ;
 
@@ -260,6 +262,8 @@ class pApplication
 		bool parse_Message( slmsg & )    ;
 		bool sub_Message_vars( slmsg & ) ;
 
+
+		errblock errBlock ;
 
 		map<string, slmsg> msgList ;
 		map<string,  bool> tablesOpen    ;

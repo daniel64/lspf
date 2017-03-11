@@ -82,7 +82,7 @@
 #include <boost/filesystem.hpp>
 #include <vector>
 
-#include <sys/types.h>
+#include <sys/sysmacros.h>
 #include <sys/stat.h>
 #include <pwd.h>
 #include <grp.h>
@@ -787,14 +787,14 @@ void PFLST0A::createFileList1( string filter )
 		}
 		MESSAGE = "";
 		lstat( p.c_str(), &results ) ;
-		if ( S_ISDIR( results.st_mode ) )       TYPE = "Dir"     ;
-		else if ( S_ISREG( results.st_mode ) )  TYPE = "File"    ;
-		else if ( S_ISCHR( results.st_mode ) )  TYPE = "Char"    ;
-		else if ( S_ISBLK( results.st_mode ) )  TYPE = "Block"   ;
-		else if ( S_ISFIFO( results.st_mode ) ) TYPE = "Fifo"    ;
-		else if ( S_ISSOCK( results.st_mode ) ) TYPE = "Socket"  ;
-		else if ( S_ISLNK(results.st_mode ) )   TYPE = "Syml"    ;
-		else                                    TYPE = "Unknown" ;
+		if ( S_ISDIR( results.st_mode ) )       { TYPE = "Dir"     ; }
+		else if ( S_ISREG( results.st_mode ) )  { TYPE = "File"    ; }
+		else if ( S_ISCHR( results.st_mode ) )  { TYPE = "Char"    ; }
+		else if ( S_ISBLK( results.st_mode ) )  { TYPE = "Block"   ; }
+		else if ( S_ISFIFO( results.st_mode ) ) { TYPE = "Fifo"    ; }
+		else if ( S_ISSOCK( results.st_mode ) ) { TYPE = "Socket"  ; }
+		else if ( S_ISLNK(results.st_mode ) )   { TYPE = "Syml"    ; }
+		else                                    { TYPE = "Unknown" ; }
 		PERMISS = string( 10, '-' ) ;
 		if ( S_ISDIR(results.st_mode) )  { PERMISS[ 0 ] = 'd' ; }
 		if ( S_ISLNK(results.st_mode) )  { PERMISS[ 0 ] = 'l' ; }
@@ -917,14 +917,14 @@ void PFLST0A::showInfo( const string& p )
 	vdefine( "ISETGID ISTICKY", &ISETGID, &ISTICKY ) ;
 
 	IENTRY = p ;
-	if ( S_ISDIR( results.st_mode ) )       ITYPE = "Directory"     ;
-	else if ( S_ISREG( results.st_mode ) )  ITYPE = "File"          ;
-	else if ( S_ISCHR( results.st_mode ) )  ITYPE = "Character"     ;
-	else if ( S_ISBLK( results.st_mode ) )  ITYPE = "Block"         ;
-	else if ( S_ISFIFO( results.st_mode ) ) ITYPE = "Fifo"          ;
-	else if ( S_ISSOCK( results.st_mode ) ) ITYPE = "Socket"        ;
-	else if ( S_ISLNK(results.st_mode ) )   ITYPE = "Symbolic link" ;
-	else                                    ITYPE = "Unknown"       ;
+	if ( S_ISDIR( results.st_mode ) )       { ITYPE = "Directory"     ; }
+	else if ( S_ISREG( results.st_mode ) )  { ITYPE = "File"          ; }
+	else if ( S_ISCHR( results.st_mode ) )  { ITYPE = "Character"     ; }
+	else if ( S_ISBLK( results.st_mode ) )  { ITYPE = "Block"         ; }
+	else if ( S_ISFIFO( results.st_mode ) ) { ITYPE = "Fifo"          ; }
+	else if ( S_ISSOCK( results.st_mode ) ) { ITYPE = "Socket"        ; }
+	else if ( S_ISLNK(results.st_mode ) )   { ITYPE = "Symbolic link" ; }
+	else                                    { ITYPE = "Unknown"       ; }
 
 	IOWNER = "" ;
 	IGROUP = "" ;
@@ -963,13 +963,13 @@ void PFLST0A::showInfo( const string& p )
 	ISIZE  = d2ds( results.st_size )  ;
 
 	time_info = gmtime( &(results.st_ctime) ) ;
-	strftime( buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", time_info )  ; buf[ 19 ]  = 0x00 ; ISTCDATE = buf ;
+	strftime( buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", time_info ) ; buf[ 19 ]  = 0x00 ; ISTCDATE = buf ;
 
 	time_info = gmtime( &(results.st_mtime) ) ;
-	strftime( buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", time_info )  ; buf[ 19 ]  = 0x00 ; IMODDATE = buf ;
+	strftime( buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", time_info ) ; buf[ 19 ]  = 0x00 ; IMODDATE = buf ;
 
 	time_info = gmtime( &(results.st_atime) ) ;
-	strftime( buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", time_info )  ; buf[ 19 ]  = 0x00 ; IACCDATE = buf ;
+	strftime( buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", time_info ) ; buf[ 19 ]  = 0x00 ; IACCDATE = buf ;
 
 
 	IRLNK = "" ;
@@ -1044,7 +1044,7 @@ int PFLST0A::processPrimCMD()
 		if ( RC > 0 ) { MSG = "FLST016" ; return 4 ; }
 		return 0 ;
 	}
-	else if ( (cw == "S" || cw == "B" || cw == "E" ) && ws != "" )
+	else if ( findword( cw, "S B E EDIT" ) && ws != "" )
 	{
 		p = ZPATH + "/" + ws ;
 		if ( is_directory( p ) && (cw == "S" || cw == "B" ) )
@@ -1053,10 +1053,10 @@ int PFLST0A::processPrimCMD()
 			select( "PGM(" + PGM + ") PARM(" + p + ")" ) ;
 			ZCMD = "" ;
 		}
-		else if ( is_regular_file( p ) && (cw == "S" || cw == "B" || cw == "E" || cw == "L" ) )
+		else if ( is_regular_file( p ) )
 		{
-			if ( cw == "E" ) { edit( p )   ; }
-			else             { browse( p ) ; }
+			if ( findword( cw, "E EDIT" ) ) { edit( p )   ; }
+			else                            { browse( p ) ; }
 			ZCMD = "" ;
 		}
 		return 0 ;
@@ -1254,14 +1254,14 @@ void PFLST0A::modifyAttrs( const string& p )
 	lstat( p.c_str(), &results ) ;
 
 	IENTRY = p ;
-	if ( S_ISDIR( results.st_mode ) )       ITYPE = "Directory"     ;
-	else if ( S_ISREG( results.st_mode ) )  ITYPE = "File"          ;
-	else if ( S_ISCHR( results.st_mode ) )  ITYPE = "Character"     ;
-	else if ( S_ISBLK( results.st_mode ) )  ITYPE = "Block"         ;
-	else if ( S_ISFIFO( results.st_mode ) ) ITYPE = "Fifo"          ;
-	else if ( S_ISSOCK( results.st_mode ) ) ITYPE = "Socket"        ;
-	else if ( S_ISLNK(results.st_mode ) )   ITYPE = "Symbolic link" ;
-	else                                    ITYPE = "Unknown"       ;
+	if ( S_ISDIR( results.st_mode ) )       { ITYPE = "Directory"     ; }
+	else if ( S_ISREG( results.st_mode ) )  { ITYPE = "File"          ; }
+	else if ( S_ISCHR( results.st_mode ) )  { ITYPE = "Character"     ; }
+	else if ( S_ISBLK( results.st_mode ) )  { ITYPE = "Block"         ; }
+	else if ( S_ISFIFO( results.st_mode ) ) { ITYPE = "Fifo"          ; }
+	else if ( S_ISSOCK( results.st_mode ) ) { ITYPE = "Socket"        ; }
+	else if ( S_ISLNK(results.st_mode ) )   { ITYPE = "Symbolic link" ; }
+	else                                    { ITYPE = "Unknown"       ; }
 
 	struct passwd *pwd ;
 	struct group  *grp ;

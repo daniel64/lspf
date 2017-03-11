@@ -23,15 +23,14 @@
 #define LOGOUT   aplog
 
 
-void Table::loadRow( int& RC,
+void Table::loadRow( errblock& err,
 		     vector<string>& m_flds )
 {
-	RC = 0 ;
+	err.setRC( 0 ) ;
 
 	if ( table.size() > 65535 )
 	{
-		RC = 20 ;
-		log( "E", "Max size of 65,535 rows exceeded." <<endl ) ;
+		err.seterrid( "PSYE013F" ) ;
 		return ;
 	}
 	m_flds.insert( m_flds.begin(), d2ds( ++maxURID ) ) ;
@@ -46,7 +45,7 @@ void Table::reserveSpace( int tot_rows )
 }
 
 
-void Table::saveTable( int& RC,
+void Table::saveTable( errblock& err,
 		       const string& m_name,
 		       const string& m_path )
 {
@@ -61,31 +60,28 @@ void Table::saveTable( int& RC,
 	int evar ;
 	std::ofstream otable ;
 
-	RC = 0 ;
+	err.setRC( 0 ) ;
 
 	if ( !changed )
 	{
-		RC = 4  ;
-		log( "I", "No changes to the table have been made.  Ignoring save" <<endl ) ;
-		return  ;
+		err.setRC( 4 ) ;
+		return ;
 	}
 
 	m_path != "" ? s = m_path : s = tab_path ;
-	if ( s.back() != '/' ) { s = s + "/" ; }
+	if ( s.back() != '/' ) { s += "/" ; }
 
 	if ( exists( s ) )
 	{
 		if ( !is_directory( s ) )
 		{
-			log( "E", "Directory "+ s +" is not a regular directory " <<endl ) ;
-			RC = 20 ;
+			err.seterrid( "PSYE013J", s ) ;
 			return  ;
 		}
 	}
 	else
 	{
-		log( "E", "Directory "+ s +" does not exist for table save " <<endl ) ;
-		RC = 16 ;
+		err.seterrid( "PSYE013K", s, 16 ) ;
 		return  ;
 	}
 
@@ -94,13 +90,12 @@ void Table::saveTable( int& RC,
 	{
 		if ( !is_regular_file( s ) )
 		{
-			log( "E", "File "+ s +" is not a regular file " <<endl ) ;
-			RC = 20 ;
+			err.seterrid( "PSYE013L", s ) ;
 			return  ;
 		}
 	}
 
-	debug1( "Saving table "+ m_name +" in "+ s <<endl ) ;
+	debug2( "Saving table "+ m_name +" in "+ s <<endl ) ;
 
 	size = table.size() ;
 	otable.open( s.c_str(), ios::binary | ios::out ) ;
@@ -148,7 +143,7 @@ void Table::saveTable( int& RC,
 }
 
 
-void Table::tbadd( int& RC,
+void Table::tbadd( errblock& err,
 		   fPOOL& funcPOOL,
 		   string tb_namelst,
 		   string tb_order,
@@ -165,8 +160,8 @@ void Table::tbadd( int& RC,
 
 	// If ORDER specified on a sorted table, sort the table again after adding the record and reset CRP
 
-	int    i    ;
-	int    ws   ;
+	int i  ;
+	int ws ;
 
 	string key  ;
 	string val  ;
@@ -176,14 +171,14 @@ void Table::tbadd( int& RC,
 	vector<string> flds ;
 	vector<vector<string>>::iterator it ;
 
-	RC = 0 ;
 	iupper( tb_namelst ) ;
 	iupper( tb_order )   ;
 
+	err.setRC( 0 ) ;
+
 	if ( table.size() > 65535 )
 	{
-		RC = 20 ;
-		log( "E", "Max size of 65,535 rows exceeded." <<endl ) ;
+		err.seterrid( "PSYE013F" ) ;
 		return ;
 	}
 
@@ -198,13 +193,13 @@ void Table::tbadd( int& RC,
 		keys.reserve( num_keys ) ;
 		for ( i = 1 ; i <= num_keys ; i++ )
 		{
-			key = funcPOOL.get( RC, 8, word( tab_keys, i ) ) ;
-			if ( RC == 8 )
+			key = funcPOOL.get( err, 8, word( tab_keys, i ) ) ;
+			if ( err.getRC() == 8 )
 			{
-				funcPOOL.put( RC, 0, word( tab_keys, i ), "" ) ;
+				funcPOOL.put( err, word( tab_keys, i ), "" ) ;
 				key = "" ;
 			}
-			else if ( RC > 8 ) { RC = 20 ; return ; }
+			else if ( err.error() ) { return ; }
 			keys.push_back( key ) ;
 		}
 		for ( it = table.begin() ; it != table.end() ; it++ )
@@ -213,35 +208,37 @@ void Table::tbadd( int& RC,
 			{
 				if ( it->at( i ) != keys.at( i-1 ) )  { break ; }
 			}
-			if ( i > num_keys ) { RC = 8 ; return ; }
+			if ( i > num_keys ) { err.setRC( 8 ) ; return ; }
 		}
 	}
 
 	flds.clear() ;
 	flds.push_back( d2ds( ++maxURID ) ) ;
+
 	for ( i = 1 ; i <= num_all ; i++ )
 	{
-		val = funcPOOL.get( RC, 8, word( tab_all, i ) ) ;
-		if ( RC == 8 )
+		val = funcPOOL.get( err, 8, word( tab_all, i ) ) ;
+		if ( err.getRC() == 8 )
 		{
-			funcPOOL.put( RC, 0, word( tab_all, i ), "" ) ;
+			funcPOOL.put( err, word( tab_all, i ), "" ) ;
 			val = "" ;
 		}
-		else if ( RC > 8 ) { RC = 20 ; return ; }
+		else if ( err.error() ) { return ; }
 		flds.push_back( val ) ;
 	}
+
 	if ( tb_namelst != "" )
 	{
 		flds.push_back( space( tb_namelst ) ) ;
 		for ( ws = words( tb_namelst ), i = 1 ; i <= ws ; i++ )
 		{
-			val = funcPOOL.get( RC, 8, word( tb_namelst, i ) ) ;
-			if ( RC == 8 )
+			val = funcPOOL.get( err, 8, word( tb_namelst, i ) ) ;
+			if ( err.getRC() == 8 )
 			{
-				funcPOOL.put( RC, 0, word( tb_namelst, i ), "" ) ;
+				funcPOOL.put( err, word( tb_namelst, i ), "" ) ;
 				val = "" ;
 			}
-			else if ( RC > 8 ) { RC = 20 ; return ; }
+			else if ( err.error() ) { return ; }
 			flds.push_back( val ) ;
 		}
 	}
@@ -262,7 +259,7 @@ void Table::tbadd( int& RC,
 	if ( tb_order == "ORDER" && sort_ir != "" )
 	{
 		URID = table[ CRP-1 ].at( 0 ) ;
-		tbsort( RC, sort_ir ) ;
+		tbsort( err, sort_ir ) ;
 		for ( it = table.begin() ; it != table.end() ; it++ )
 		{
 			CRP++ ;
@@ -273,7 +270,7 @@ void Table::tbadd( int& RC,
 }
 
 
-void Table::tbbottom( int& RC,
+void Table::tbbottom( errblock& err,
 		      fPOOL& funcPOOL,
 		      string tb_savenm,
 		      string tb_rowid_vn,
@@ -292,29 +289,42 @@ void Table::tbbottom( int& RC,
 	string var    ;
 	string val    ;
 
+	err.setRC( 0 ) ;
 
-	RC = 0 ;
 	iupper( tb_savenm )   ;
 	iupper( tb_rowid_vn ) ;
 	iupper( tb_noread )   ;
 	iupper( tb_crp_name ) ;
 
-	if ( (tb_savenm   != "") && !isvalidName( tb_savenm   ) ) { RC = 20 ; return ; }
-	if ( (tb_rowid_vn != "") && !isvalidName( tb_rowid_vn ) ) { RC = 20 ; return ; }
-	if ( (tb_crp_name != "") && !isvalidName( tb_crp_name ) ) { RC = 20 ; return ; }
+	if ( tb_savenm != "" && !isvalidName( tb_savenm ) )
+	{
+		err.seterrid( "PSYE013M", "SAVENAME", tb_savenm ) ;
+		return ;
+	}
+
+	if ( tb_rowid_vn != "" && !isvalidName( tb_rowid_vn ) )
+	{
+		err.seterrid( "PSYE013M", "ROWID", tb_rowid_vn ) ;
+		return ;
+	}
+
+	if ( tb_crp_name != "" && !isvalidName( tb_crp_name ) )
+	{
+		err.seterrid( "PSYE013M", "CRP", tb_crp_name ) ;
+		return ;
+	}
 
 	if ( tb_noread != "" && tb_noread != "NOREAD" )
 	{
-		log( "E", "Invalid NOREAD parameter specified.  Invalid specification is "+ tb_noread <<endl ) ;
-		RC = 20 ;
+		err.seterrid( "PSYE013M", "NOREAD", tb_noread ) ;
 		return ;
 	}
 
 	if ( table.size() == 0 )
 	{
 		CRP = 0 ;
-		RC  = 8 ;
-		if ( tb_crp_name != "" ) { funcPOOL.put( RC, 0, tb_crp_name, CRP ) ; }
+		err.setRC( 8 ) ;
+		if ( tb_crp_name != "" ) { funcPOOL.put( err, tb_crp_name, CRP ) ; }
 		return  ;
 	}
 
@@ -322,15 +332,15 @@ void Table::tbbottom( int& RC,
 
 	if ( tb_savenm != "" )
 	{
-		funcPOOL.put( RC, 0, tb_savenm, "" ) ;
-		if ( RC > 0 ) { RC = 20 ; return ; }
+		funcPOOL.put( err, tb_savenm, "" ) ;
+		if ( err.error() ) { return ; }
 	}
 	if ( tb_noread != "NOREAD" )
 	{
 		for ( i = 1 ; i <= num_all ; i++ )
 		{
-			funcPOOL.put( RC, 0, word( tab_all, i ), table.at( CRP-1 ).at( i ) ) ;
-			if ( RC > 0 ) { RC = 20 ; return ; }
+			funcPOOL.put( err, word( tab_all, i ), table.at( CRP-1 ).at( i ) ) ;
+			if ( err.error() ) { return ; }
 		}
 		if ( table.at( CRP-1 ).size() > num_all+1 )
 		{
@@ -339,26 +349,26 @@ void Table::tbbottom( int& RC,
 			{
 				var = word( tbelst, i ) ;
 				val = table.at( CRP-1 ).at( 1+num_all+i ) ;
-				funcPOOL.put( RC, 0, var, val ) ;
-				if ( RC > 0 ) { RC = 20 ; return ; }
+				funcPOOL.put( err, var, val ) ;
+				if ( err.error() ) { return ; }
 			}
 			if ( tb_savenm != "" )
 			{
-				funcPOOL.put( RC, 0, tb_savenm, "("+tbelst+")" ) ;
-				if ( RC > 0 ) { RC = 20 ; return ; }
+				funcPOOL.put( err, tb_savenm, "("+tbelst+")" ) ;
+				if ( err.error() ) { return ; }
 			}
 		}
 	}
 	if ( tb_rowid_vn != "" )
 	{
-		funcPOOL.put( RC, 0, tb_rowid_vn, table.at( CRP-1 ).at( 0 ) ) ;
-		if ( RC > 0 ) { RC = 20 ; return ; }
+		funcPOOL.put( err, tb_rowid_vn, table.at( CRP-1 ).at( 0 ) ) ;
+		if ( err.error() ) { return ; }
 	}
-	if ( tb_crp_name != "" ) { funcPOOL.put( RC, 0, tb_crp_name, CRP ) ; }
+	if ( tb_crp_name != "" ) { funcPOOL.put( err, tb_crp_name, CRP ) ; }
 }
 
 
-void Table::tbdelete( int& RC,
+void Table::tbdelete( errblock& err,
 		      fPOOL& funcPOOL )
 {
 	// Delete a row in the table.  For keyed tables, this is the row pointed to be the current contents of the key variable
@@ -374,23 +384,24 @@ void Table::tbdelete( int& RC,
 	bool found ;
 	string key ;
 
+	err.setRC( 0 ) ;
+
 	vector<vector<string>>::iterator it ;
 	vector<string> keys ;
 
-	RC  = 0 ;
 	if ( num_keys > 0 )
 	{
 		keys.clear() ;
 		keys.reserve( num_keys ) ;
 		for ( i = 1 ; i <= num_keys ; i++ )
 		{
-			key = funcPOOL.get( RC, 8, word( tab_keys, i ) ) ;
-			if ( RC == 8 )
+			key = funcPOOL.get( err, 8, word( tab_keys, i ) ) ;
+			if ( err.getRC() == 8 )
 			{
-				funcPOOL.put( RC, 0, word( tab_keys, i ), "" ) ;
+				funcPOOL.put( err, word( tab_keys, i ), "" ) ;
 				key = "" ;
 			}
-			else if ( RC > 8 ) { RC = 20 ; return ; }
+			else if ( err.error() ) { return ; }
 			keys.push_back( key ) ;
 		}
 		found = false ;
@@ -404,7 +415,7 @@ void Table::tbdelete( int& RC,
 			if ( i > num_keys ) { found = true ; break ; }
 			j++ ;
 		}
-		if ( !found ) { CRP = 0 ; RC = 8 ; return ; }
+		if ( !found ) { CRP = 0 ; err.setRC( 8 ) ; return ; }
 		table.erase( it ) ;
 		CRP = j - 1 ;
 	}
@@ -412,8 +423,8 @@ void Table::tbdelete( int& RC,
 	{
 		if ( CRP == 0 )
 		{
-			RC  = 8 ;
-			return  ;
+			err.setRC( 8 ) ;
+			return ;
 		}
 		else
 		{
@@ -427,7 +438,7 @@ void Table::tbdelete( int& RC,
 }
 
 
-void Table::tbexist( int& RC,
+void Table::tbexist( errblock& err,
 		     fPOOL& funcPOOL )
 {
 	// Test for the existance of a row in a keyed table using the current value of the key variables.  CRP is positioned at this row if found else TOP
@@ -445,22 +456,23 @@ void Table::tbexist( int& RC,
 	vector<vector<string>>::iterator it ;
 	vector<string> keys ;
 
-	RC  = 0 ;
+	err.setRC( 0 ) ;
+
 	CRP = 0 ;
 
-	if ( num_keys == 0 ) { RC = 8 ; return ; }
+	if ( num_keys == 0 ) { err.setRC( 8 ) ; return ; }
 
 	keys.clear() ;
 	keys.reserve( num_keys ) ;
 	for ( i = 1 ; i <= num_keys ; i++ )
 	{
-		key = funcPOOL.get( RC, 8, word( tab_keys, i ) ) ;
-		if ( RC == 8 )
+		key = funcPOOL.get( err, 8, word( tab_keys, i ) ) ;
+		if ( err.error() ) { return ; }
+		else if ( err.getRC() == 8 )
 		{
-			funcPOOL.put( RC, 0, word( tab_keys, i ), "" ) ;
+			funcPOOL.put( err, word( tab_keys, i ), "" ) ;
 			key = "" ;
 		}
-		else if ( RC > 8 ) { RC = 20 ; return ; }
 		keys.push_back( key ) ;
 	}
 
@@ -475,12 +487,12 @@ void Table::tbexist( int& RC,
 		if ( i > num_keys ) { found = true ; break ; }
 		j++ ;
 	}
-	if ( !found ) { RC = 8 ; return ; }
+	if ( !found ) { err.setRC( 8 ) ; return ; }
 	CRP = j ;
 }
 
 
-void Table::fillfVARs( int& RC,
+void Table::fillfVARs( errblock& err,
 		       fPOOL& funcPOOL,
 		       int depth,
 		       int posn )
@@ -494,11 +506,12 @@ void Table::fillfVARs( int& RC,
 
 	vector<vector<string>>::iterator it ;
 
-	RC   = 0 ;
 	size = table.size() ;
 
-	funcPOOL.put( RC, 0, "ZTDTOP", posn )  ;
-	funcPOOL.put( RC, 0, "ZTDROWS", size ) ;
+	funcPOOL.put( err, "ZTDTOP", posn )  ;
+	if ( err.error() ) { return ; }
+	funcPOOL.put( err, "ZTDROWS", size ) ;
+	if ( err.error() ) { return ; }
 
 	it = table.begin() ;
 	advance( it, posn-1 ) ;
@@ -506,26 +519,30 @@ void Table::fillfVARs( int& RC,
 	for ( j = 0 ; j < depth ; j++ )
 	{
 		if ( j + posn > size ) { break ; }
-		funcPOOL.put( RC, 0, ".ZURID." + d2ds( j ), it->at( 0 ), NOCHECK ) ;
+		funcPOOL.put( err, ".ZURID." + d2ds( j ), it->at( 0 ), NOCHECK ) ;
+		if ( err.error() ) { return ; }
 		for ( k = 1 ; k <= num_all ; k++ )
 		{
-			funcPOOL.put( RC, 0, word( tab_all, k ) + "." + d2ds( j ), it->at( k ), NOCHECK ) ;
+			funcPOOL.put( err, word( tab_all, k ) + "." + d2ds( j ), it->at( k ), NOCHECK ) ;
+			if ( err.error() ) { return ; }
 		}
 		it++;
 	}
 	for ( ; j < depth ; j++ )
 	{
-		funcPOOL.put( RC, 0, ".ZURID." + d2ds( j ), "", NOCHECK ) ;
+		funcPOOL.put( err, ".ZURID." + d2ds( j ), "", NOCHECK ) ;
+		if ( err.error() ) { return ; }
 		for ( k = 1 ; k <= num_all ; k++ )
 		{
-			funcPOOL.put( RC, 0, word( tab_all, k ) + "." + d2ds( j ), "", NOCHECK ) ;
+			funcPOOL.put( err, word( tab_all, k ) + "." + d2ds( j ), "", NOCHECK ) ;
+			if ( err.error() ) { return ; }
 		}
 		it++;
 	}
 }
 
 
-void Table::tbget( int& RC,
+void Table::tbget( errblock& err,
 		   fPOOL& funcPOOL,
 		   string tb_savenm,
 		   string tb_rowid_vn,
@@ -551,20 +568,34 @@ void Table::tbget( int& RC,
 	vector<vector<string>>::iterator it ;
 	vector<string> keys ;
 
-	RC = 0 ;
+	err.setRC( 0 ) ;
+
 	iupper( tb_savenm )   ;
 	iupper( tb_rowid_vn ) ;
 	iupper( tb_noread )   ;
 	iupper( tb_crp_name ) ;
 
-	if ( (tb_savenm   != "") && !isvalidName( tb_savenm   ) ) { RC = 20 ; return ; }
-	if ( (tb_rowid_vn != "") && !isvalidName( tb_rowid_vn ) ) { RC = 20 ; return ; }
-	if ( (tb_crp_name != "") && !isvalidName( tb_crp_name ) ) { RC = 20 ; return ; }
+	if ( tb_savenm != "" && !isvalidName( tb_savenm ) )
+	{
+		err.seterrid( "PSYE013M", "SAVENAME", tb_savenm ) ;
+		return ;
+	}
+
+	if ( tb_rowid_vn != "" && !isvalidName( tb_rowid_vn ) )
+	{
+		err.seterrid( "PSYE013M", "ROWID", tb_rowid_vn ) ;
+		return ;
+	}
+
+	if ( tb_crp_name != "" && !isvalidName( tb_crp_name ) )
+	{
+		err.seterrid( "PSYE013M", "CRP", tb_crp_name ) ;
+		return ;
+	}
 
 	if ( tb_noread != "" && tb_noread != "NOREAD" )
 	{
-		log( "E", "Invalid NOREAD parameter specified.  Invalid specification is "+ tb_noread <<endl ) ;
-		RC = 20 ;
+		err.seterrid( "PSYE013M", "NOREAD", tb_noread ) ;
 		return ;
 	}
 
@@ -574,13 +605,13 @@ void Table::tbget( int& RC,
 		keys.reserve( num_keys ) ;
 		for ( i = 1 ; i <= num_keys ; i++ )
 		{
-			key = funcPOOL.get( RC, 8, word( tab_keys, i ) ) ;
-			if ( RC == 8 )
+			key = funcPOOL.get( err, 8, word( tab_keys, i ) ) ;
+			if ( err.getRC() == 8 )
 			{
-				funcPOOL.put( RC, 0, word( tab_keys, i ), "" ) ;
+				funcPOOL.put( err, word( tab_keys, i ), "" ) ;
 				key = "" ;
 			}
-			else if ( RC > 8 ) { RC = 20 ; return ; }
+			else if ( err.error() ) { return ; }
 			keys.push_back( key ) ;
 		}
 		found = false ;
@@ -598,22 +629,22 @@ void Table::tbget( int& RC,
 	}
 	if ( CRP == 0 )
 	{
-		if ( tb_crp_name != "" ) { funcPOOL.put( RC, 0, tb_crp_name, CRP ) ; }
-		RC = 8 ;
+		if ( tb_crp_name != "" ) { funcPOOL.put( err, tb_crp_name, CRP ) ; }
+		err.setRC( 8 ) ;
 		return ;
 	}
 
 	if ( tb_savenm != "" )
 	{
-		funcPOOL.put( RC, 0, tb_savenm, "" ) ;
-		if ( RC > 0 ) { RC = 20 ; return ; }
+		funcPOOL.put( err, tb_savenm, "" ) ;
+		if ( err.error() ) { return ; }
 	}
 	if ( tb_noread != "NOREAD" )
 	{
 		for ( i = 1 ; i <= num_all ; i++ )
 		{
-			funcPOOL.put( RC, 0, word( tab_all, i ), table.at( CRP-1 ).at( i ) ) ;
-			if ( RC > 0 ) { RC = 20 ; return ; }
+			funcPOOL.put( err, word( tab_all, i ), table.at( CRP-1 ).at( i ) ) ;
+			if ( err.error() ) { return ; }
 		}
 		if ( table.at( CRP-1 ).size() > num_all+1 )
 		{
@@ -622,26 +653,26 @@ void Table::tbget( int& RC,
 			{
 				var = word( tbelst, i ) ;
 				val = table.at( CRP-1 ).at( 1+num_all+i ) ;
-				funcPOOL.put( RC, 0, var, val ) ;
-				if ( RC > 0 ) { RC = 20 ; return ; }
+				funcPOOL.put( err, var, val ) ;
+				if ( err.error() ) { return ; }
 			}
 			if ( tb_savenm != "" )
 			{
-				funcPOOL.put( RC, 0, tb_savenm, "("+tbelst+")" ) ;
-				if ( RC > 0 ) { RC = 20 ; return ; }
+				funcPOOL.put( err, tb_savenm, "("+tbelst+")" ) ;
+				if ( err.error() ) { return ; }
 			}
 		}
 	}
 	if ( tb_rowid_vn != "" )
 	{
-		funcPOOL.put( RC, 0, tb_rowid_vn, table.at( CRP-1 ).at( 0 ) ) ;
-		if ( RC > 0 ) { RC = 20 ; return ; }
+		funcPOOL.put( err, tb_rowid_vn, table.at( CRP-1 ).at( 0 ) ) ;
+		if ( err.error() ) { return ; }
 	}
-	if ( tb_crp_name != "" ) { funcPOOL.put( RC, 0, tb_crp_name, CRP ) ; }
+	if ( tb_crp_name != "" ) { funcPOOL.put( err, tb_crp_name, CRP ) ; }
 }
 
 
-void Table::tbmod( int& RC,
+void Table::tbmod( errblock& err,
 		   fPOOL& funcPOOL,
 		   string tb_namelst,
 		   string tb_order )
@@ -670,14 +701,14 @@ void Table::tbmod( int& RC,
 	vector<string> keys ;
 	vector<vector<string>>::iterator it ;
 
-	RC = 0 ;
+	err.setRC( 0 ) ;
 
 	if ( sort_ir == "" ) { tb_order = "" ; }
 
 	iupper( tb_namelst ) ;
 	iupper( tb_order )   ;
 
-	if ( num_keys == 0 ) { tbadd( RC, funcPOOL, tb_namelst, tb_order, 0 ) ; return ; }
+	if ( num_keys == 0 ) { tbadd( err, funcPOOL, tb_namelst, tb_order, 0 ) ; return ; }
 
 	CRP   = 1     ;
 	found = false ;
@@ -686,13 +717,13 @@ void Table::tbmod( int& RC,
 	keys.reserve( num_keys ) ;
 	for ( i = 1 ; i <= num_keys ; i++ )
 	{
-		key = funcPOOL.get( RC, 8, word( tab_keys, i ) ) ;
-		if ( RC == 8 )
+		key = funcPOOL.get( err, 8, word( tab_keys, i ) ) ;
+		if ( err.getRC() == 8 )
 		{
-			funcPOOL.put( RC, 0, word( tab_keys, i ), "" ) ;
+			funcPOOL.put( err, word( tab_keys, i ), "" ) ;
 			key = "" ;
 		}
-		else if ( RC > 8 ) { RC = 20 ; return ; }
+		else if ( err.error() ) { return ; }
 		keys.push_back( key ) ;
 	}
 	for ( it = table.begin() ; it != table.end() ; it++ )
@@ -708,20 +739,20 @@ void Table::tbmod( int& RC,
 	if ( !found )
 	{
 		CRP = table.size() ;
-		tbadd( RC, funcPOOL, tb_namelst, tb_order, 0 ) ;
-		if ( RC == 0 ) { RC = 8 ; }
+		tbadd( err, funcPOOL, tb_namelst, tb_order, 0 ) ;
+		if ( err.getRC() == 0 ) { err.setRC( 8 ) ; }
 	}
 	else
 	{
 		for ( i = 1 ; i <= num_all ; i++ )
 		{
-			val = funcPOOL.get( RC, 8, word( tab_all, i ) ) ;
-			if ( RC == 8 )
+			val = funcPOOL.get( err, 8, word( tab_all, i ) ) ;
+			if ( err.getRC() == 8 )
 			{
-				funcPOOL.put( RC, 0, word( tab_all, i ), "" ) ;
+				funcPOOL.put( err, word( tab_all, i ), "" ) ;
 				val = "" ;
 			}
-			else if ( RC > 8 ) { RC = 20 ; return ; }
+			else if ( err.error() ) { return ; }
 			flds.push_back( val ) ;
 		}
 		if ( tb_namelst != "" )
@@ -729,13 +760,13 @@ void Table::tbmod( int& RC,
 			flds.push_back( space( tb_namelst ) ) ;
 			for ( ws = words( tb_namelst ), i = 1 ; i <= ws ; i++ )
 			{
-				val = funcPOOL.get( RC, 8, word( tb_namelst, i ) ) ;
-				if ( RC == 8 )
+				val = funcPOOL.get( err, 8, word( tb_namelst, i ) ) ;
+				if ( err.getRC() == 8 )
 				{
-					funcPOOL.put( RC, 0, word( tb_namelst, i ), "" ) ;
+					funcPOOL.put( err, word( tb_namelst, i ), "" ) ;
 					val = "" ;
 				}
-				else if ( RC > 8 ) { RC = 20 ; return ; }
+				else if ( err.error() ) { return ; }
 				flds.push_back( val ) ;
 			}
 		}
@@ -744,7 +775,7 @@ void Table::tbmod( int& RC,
 		table[ CRP-1 ] = flds ;
 		if ( tb_order == "ORDER" && sort_ir != "" )
 		{
-			tbsort( RC, sort_ir ) ;
+			tbsort( err, sort_ir ) ;
 			for ( it = table.begin() ; it != table.end() ; it++ )
 			{
 				CRP++ ;
@@ -756,7 +787,7 @@ void Table::tbmod( int& RC,
 }
 
 
-void Table::tbput( int& RC,
+void Table::tbput( errblock& err,
 		   fPOOL& funcPOOL,
 		   string tb_namelst,
 		   string tb_order )
@@ -778,39 +809,39 @@ void Table::tbput( int& RC,
 	string val  ;
 	string URID ;
 
+	err.setRC( 0 ) ;
+
 	vector<string> flds ;
 	vector<vector<string>>::iterator it ;
-
-	RC = 0 ;
 
 	if ( sort_ir == "" ) { tb_order = "" ; }
 
 	iupper( tb_namelst ) ;
 	iupper( tb_order )   ;
 
-	if ( CRP == 0 ) { RC = 8 ; return ; }
+	if ( CRP == 0 ) { err.setRC( 8 ) ; return ; }
 
 	for ( i = 1 ; i <= num_keys ; i++ )
 	{
-		key = funcPOOL.get( RC, 8, word( tab_keys, i ) ) ;
-		if ( RC == 8 )
+		key = funcPOOL.get( err, 8, word( tab_keys, i ) ) ;
+		if ( err.getRC() == 8 )
 		{
-			funcPOOL.put( RC, 0, word( tab_keys, i ), "" ) ;
+			funcPOOL.put( err, word( tab_keys, i ), "" ) ;
 			key = "" ;
 		}
-		else if ( RC > 8 ) { RC = 20 ; return ; }
-		if ( key != table[ CRP-1 ].at( i ) ) { CRP = 0 ; RC = 8 ; return ; }
+		else if ( err.error() ) { return ; }
+		if ( key != table[ CRP-1 ].at( i ) ) { CRP = 0 ; err.setRC( 8 ) ; return ; }
 		flds.push_back( key ) ;
 	}
 	for ( i = 1 ; i <= num_flds ; i++ )
 	{
-		val = funcPOOL.get( RC, 8, word( tab_flds, i ) ) ;
-		if ( RC == 8 )
+		val = funcPOOL.get( err, 8, word( tab_flds, i ) ) ;
+		if ( err.getRC() == 8 )
 		{
-			funcPOOL.put( RC, 0, word( tab_flds, i ), "" ) ;
+			funcPOOL.put( err, word( tab_flds, i ), "" ) ;
 			val = "" ;
 		}
-		else if ( RC > 8 ) { RC = 20 ; return ; }
+		else if ( err.error() ) { return ; }
 		flds.push_back( val ) ;
 	}
 	if ( tb_namelst != "" )
@@ -818,13 +849,13 @@ void Table::tbput( int& RC,
 		flds.push_back( space( tb_namelst ) ) ;
 		for ( ws = words( tb_namelst ), i = 1 ; i <= ws ; i++ )
 		{
-			val = funcPOOL.get( RC, 8, word( tb_namelst, i ) ) ;
-			if ( RC == 8 )
+			val = funcPOOL.get( err, 8, word( tb_namelst, i ) ) ;
+			if ( err.getRC() == 8 )
 			{
-				funcPOOL.put( RC, 0, word( tb_namelst, i ), "" ) ;
+				funcPOOL.put( err, word( tb_namelst, i ), "" ) ;
 				val = "" ;
 			}
-			else if ( RC > 8 ) { RC = 20 ; return ; }
+			else if ( err.error() ) { return ; }
 			flds.push_back( val ) ;
 		}
 	}
@@ -835,7 +866,7 @@ void Table::tbput( int& RC,
 
 	if ( tb_order == "ORDER" && sort_ir != "" )
 	{
-		tbsort( RC, sort_ir ) ;
+		tbsort( err, sort_ir ) ;
 		for ( it = table.begin() ; it != table.end() ; it++ )
 		{
 			CRP++ ;
@@ -846,7 +877,7 @@ void Table::tbput( int& RC,
 }
 
 
-void Table::tbquery( int& RC,
+void Table::tbquery( errblock& err,
 		     fPOOL& funcPOOL,
 		     string tb_keyn,
 		     string tb_varn,
@@ -859,7 +890,8 @@ void Table::tbquery( int& RC,
 		     string tb_condn,
 		     string tb_dirn )
 {
-	RC = 0 ;
+	err.setRC( 0 ) ;
+
 	iupper( tb_keyn )   ;
 	iupper( tb_varn )   ;
 	iupper( tb_rownn )  ;
@@ -871,30 +903,30 @@ void Table::tbquery( int& RC,
 	iupper( tb_condn )  ;
 	iupper( tb_dirn )   ;
 
-	if ( tb_keyn != "" )  { funcPOOL.put( RC, 0, tb_keyn, tab_keys )  ; }
-	if ( RC > 0 ) { return ; }
-	if ( tb_varn != "" )  { funcPOOL.put( RC, 0, tb_varn, tab_flds )  ; }
-	if ( RC > 0 ) { return ; }
-	if ( tb_rownn != "" ) { funcPOOL.put( RC, 0, tb_rownn, table.size() ) ; }
-	if ( RC > 0 ) { return ; }
-	if ( tb_keynn != "" ) { funcPOOL.put( RC, 0, tb_keynn, num_keys ) ; }
-	if ( RC > 0 ) { return ; }
-	if ( tb_namenn != "" ) { funcPOOL.put( RC, 0, tb_namenn, num_flds ) ; }
-	if ( RC > 0 ) { return ; }
-	if ( tb_crpn != "" ) { funcPOOL.put( RC, 0, tb_crpn, CRP ) ; }
-	if ( RC > 0 ) { return ; }
-	if ( tb_sirn != "" ) { funcPOOL.put( RC, 0, tb_sirn, sort_ir ) ; }
-	if ( RC > 0 ) { return ; }
-	if ( tb_lstn != "" ) { funcPOOL.put( RC, 0, tb_lstn, sa_namelst ) ; }
-	if ( RC > 0 ) { return ; }
-	if ( tb_condn != "" ) { funcPOOL.put( RC, 0, tb_condn, sa_cond_pairs ) ; }
-	if ( RC > 0 ) { return ; }
-	if ( tb_dirn != "" ) { funcPOOL.put( RC, 0, tb_dirn, sa_dir ) ; }
-	if ( RC > 0 ) { return ; }
+	if ( tb_keyn != "" )  { funcPOOL.put( err, tb_keyn, tab_keys )  ; }
+	if ( err.error() ) { return ; }
+	if ( tb_varn != "" )  { funcPOOL.put( err, tb_varn, tab_flds )  ; }
+	if ( err.error() ) { return ; }
+	if ( tb_rownn != "" ) { funcPOOL.put( err, tb_rownn, table.size() ) ; }
+	if ( err.error() ) { return ; }
+	if ( tb_keynn != "" ) { funcPOOL.put( err, tb_keynn, num_keys ) ; }
+	if ( err.error() ) { return ; }
+	if ( tb_namenn != "" ) { funcPOOL.put( err, tb_namenn, num_flds ) ; }
+	if ( err.error() ) { return ; }
+	if ( tb_crpn != "" ) { funcPOOL.put( err, tb_crpn, CRP ) ; }
+	if ( err.error() ) { return ; }
+	if ( tb_sirn != "" ) { funcPOOL.put( err, tb_sirn, sort_ir ) ; }
+	if ( err.error() ) { return ; }
+	if ( tb_lstn != "" ) { funcPOOL.put( err, tb_lstn, sa_namelst ) ; }
+	if ( err.error() ) { return ; }
+	if ( tb_condn != "" ) { funcPOOL.put( err, tb_condn, sa_cond_pairs ) ; }
+	if ( err.error() ) { return ; }
+	if ( tb_dirn != "" ) { funcPOOL.put( err, tb_dirn, sa_dir ) ; }
+	if ( err.error() ) { return ; }
 }
 
 
-void Table::tbsarg( int& RC,
+void Table::tbsarg( errblock& err,
 		    fPOOL& funcPOOL,
 		    string tb_namelst,
 		    string tb_dir,
@@ -914,7 +946,8 @@ void Table::tbsarg( int& RC,
 
 	tbsearch t  ;
 
-	RC = 0 ;
+	err.setRC( 0 ) ;
+
 	iupper( tb_namelst ) ;
 	iupper( tb_dir )     ;
 	iupper( trim( tb_cond_pairs ) ) ;
@@ -923,8 +956,7 @@ void Table::tbsarg( int& RC,
 	{
 		if ( tb_cond_pairs[ 0 ] != '(' || tb_cond_pairs.back() != ')' )
 		{
-			log( "E", "Invalid COND PAIRS specified. "+ tb_cond_pairs <<endl ) ;
-			RC = 20 ;
+			err.seterrid( "PSYE013O", tb_cond_pairs ) ;
 			return ;
 		}
 		tb_cond_pairs = tb_cond_pairs.substr( 1, tb_cond_pairs.size()-2 ) ;
@@ -936,16 +968,15 @@ void Table::tbsarg( int& RC,
 
 	if ( (tb_dir != "NEXT") && (tb_dir != "PREVIOUS") )
 	{
-		log( "E", "Search direction on TBSARG must be NEXT or PREVIOUS.  Invalid specification is "+ tb_dir <<endl ) ;
-		RC = 20 ;
-		return  ;
+		err.seterrid( "PSYE013P", tb_dir ) ;
+		return ;
 	}
 
 	for ( i = 1 ; i <= num_all ; i++ )
 	{
 		var = word( tab_all, i ) ;
-		val = funcPOOL.get( RC, 8, var ) ;
-		if ( RC > 8 ) { RC = 20 ; return ; }
+		val = funcPOOL.get( err, 8, var ) ;
+		if ( err.error() ) { return ; }
 		if ( val == "" ) { continue ; }
 		if ( val.back() == '*' ) { t.tbs_gen = true  ; t.tbs_vsize = val.size()-1 ; t.tbs_val = val.substr( 0, t.tbs_vsize ) ; }
 		else                     { t.tbs_gen = false ; t.tbs_val = val  ;                                                      }
@@ -959,17 +990,16 @@ void Table::tbsarg( int& RC,
 		var = word( tb_namelst, i ) ;
 		if ( wordpos( var, tab_all ) > 0 )
 		{
-			log( "E", "Extension variables cannot have the same name as key or field names" <<endl ) ;
-			RC = 20 ;
-			return  ;
+			err.seterrid( "PSYE013Q" ) ;
+			return ;
 		}
-		val = funcPOOL.get( RC, 8, var ) ;
-		if ( RC == 8 )
+		val = funcPOOL.get( err, 8, var ) ;
+		if ( err.getRC() == 8 )
 		{
-			funcPOOL.put( RC, 0, var, "" ) ;
+			funcPOOL.put( err, var, "" ) ;
 			val = "" ;
 		}
-		else if ( RC > 8 ) { RC = 20 ; return ; }
+		else if ( err.error() ) { return ; }
 		if ( val.back() == '*' ) { t.tbs_gen = true  ; t.tbs_vsize = val.size()-1 ; t.tbs_val = val.substr( 0, t.tbs_vsize ) ; }
 		else                     { t.tbs_gen = false ; t.tbs_val = val  ;                                                      }
 		t.tbs_cond  = s_EQ ;
@@ -985,16 +1015,14 @@ void Table::tbsarg( int& RC,
 		p1 = tb_cond_pairs.find( ',', p2 ) ;
 		if ( p1 == string::npos )
 		{
-			log( "E", "Search pairs must be of the form NAME,COND,NAME,COND...." <<endl ) ;
-			RC = 20 ;
-			return  ;
+			err.seterrid( "PSYE013R" ) ;
+			return ;
 		}
 		var = tb_cond_pairs.substr( p2, p1-p2 ) ;
 		if ( wordpos( var, (tab_all + " " + tb_namelst ) ) == 0 )
 		{
-			log( "E", "Invalid NAME specifed on TBSARG request.  Must be a key, field or extension variable name.  Invalid specification is "+ var <<endl ) ;
-			RC = 20 ;
-			return  ;
+			err.seterrid( "PSYE013S", var ) ;
+			return ;
 		}
 		p1++ ;
 		p2 = tb_cond_pairs.find( ',', p1 ) ;
@@ -1010,9 +1038,8 @@ void Table::tbsarg( int& RC,
 		p2++ ;
 		if ( (sarg.find( var ) != sarg.end()) && !sarg[ var ].tbsSetcon( cond ) )
 		{
-			log( "E", "Invalid condition.  Has to be EQ, NE, LE, LT, GE or GT. Invalid specification is '"+ cond +"'" <<endl ) ;
-			RC = 20 ;
-			return  ;
+			err.seterrid( "PSYE013T", cond ) ;
+			return ;
 		}
 		if ( loope ) { break ; }
 	}
@@ -1023,7 +1050,7 @@ void Table::tbsarg( int& RC,
 }
 
 
-void Table::tbscan( int& RC,
+void Table::tbscan( errblock& err,
 		    fPOOL& funcPOOL,
 		    string tb_namelst,
 		    string tb_savenm,
@@ -1063,7 +1090,8 @@ void Table::tbscan( int& RC,
 	map< string, tbsearch > scan ;
 	map< string, tbsearch >::iterator it ;
 
-	RC = 0 ;
+	err.setRC( 0 ) ;
+
 	iupper( tb_namelst )  ;
 	iupper( tb_savenm )   ;
 	iupper( tb_rowid_vn ) ;
@@ -1075,28 +1103,39 @@ void Table::tbscan( int& RC,
 
 	if ( (tb_dir != "NEXT") && (tb_dir != "PREVIOUS") )
 	{
-		log( "E", "Search direction must be NEXT (default) or PREVIOUS" <<endl ) ;
-		RC = 20 ;
-		return  ;
+		err.seterrid( "PSYE013P", tb_dir ) ;
+		return ;
 	}
 
 	if ( tb_noread != "" && tb_noread != "NOREAD" )
 	{
-		log( "E", "Only NOREAD should be specifed if variables are not to be read.  Invalid specification is "+ tb_noread <<endl ) ;
-		RC = 20 ;
-		return  ;
+		err.seterrid( "PSYE013M", "NOREAD", tb_noread ) ;
+		return ;
 	}
 
-	if ( tb_savenm   != "" && !isvalidName( tb_savenm   ) ) { RC = 20 ; return ; }
-	if ( tb_rowid_vn != "" && !isvalidName( tb_rowid_vn ) ) { RC = 20 ; return ; }
-	if ( tb_crp_name != "" && !isvalidName( tb_crp_name ) ) { RC = 20 ; return ; }
+	if ( tb_savenm != "" && !isvalidName( tb_savenm ) )
+	{
+		err.seterrid( "PSYE013M", "SAVENAME", tb_savenm ) ;
+		return ;
+	}
+
+	if ( tb_rowid_vn != "" && !isvalidName( tb_rowid_vn ) )
+	{
+		err.seterrid( "PSYE013M", "ROWID", tb_rowid_vn ) ;
+		return ;
+	}
+
+	if ( tb_crp_name != "" && !isvalidName( tb_crp_name ) )
+	{
+		err.seterrid( "PSYE013M", "CRP", tb_crp_name ) ;
+		return ;
+	}
 
 	if ( tb_namelst == "" )
 	{
 		if ( sarg.size() == 0 )
 		{
-			log( "E", "TBSCAN performed with no name list, but no search arguments set by TBSARG" <<endl ) ;
-			RC = 20 ;
+			err.seterrid( "PSYE013U" ) ;
 			return  ;
 		}
 		scan  = sarg   ;
@@ -1106,28 +1145,26 @@ void Table::tbscan( int& RC,
 	{
 		if ( words( tb_condlst ) > words( tb_namelst ) )
 		{
-			log( "E", "CONDLIST parameter has more conditions that names in the NAMELIST parameter (less defaults to EQ)" <<endl ) ;
-			RC = 20 ;
+			err.seterrid( "PSYE013V" ) ;
 			return  ;
 		}
 		for ( ws = words( tb_namelst ), i = 1 ; i <= ws ; i++ )
 		{
 			var = word( tb_namelst, i ) ;
-			val = funcPOOL.get( RC, 8, var ) ;
-			if ( RC == 8 )
+			val = funcPOOL.get( err, 8, var ) ;
+			if ( err.getRC() == 8 )
 			{
-				funcPOOL.put( RC, 0, var, "" ) ;
+				funcPOOL.put( err, var, "" ) ;
 				val = "" ;
 			}
-			else if ( RC > 8 ) { RC = 20 ; return ; }
+			else if ( err.error() ) { return ; }
 			t.tbs_ext = false ;
 			if ( val.back() == '*' ) { t.tbs_gen = true  ; t.tbs_vsize = val.size()-1 ; t.tbs_val = val.substr( 0, t.tbs_vsize ) ; }
 			else                     { t.tbs_gen = false ; t.tbs_val = val  ;                                                      }
 			scan[ var ] = t ;
 			if ( !scan[ var ].tbsSetcon( word( tb_condlst, i )) )
 			{
-				log( "E", "Invalid condition.  Has to be EQ, NE, LE, LT, GE or GT" <<endl ) ;
-				RC = 20 ;
+				err.seterrid( "PSYE013W" ) ;
 				return  ;
 			}
 		}
@@ -1209,23 +1246,23 @@ void Table::tbscan( int& RC,
 	if ( !found )
 	{
 		CRP = 0 ;
-		if ( tb_crp_name != "" ) { funcPOOL.put( RC, 0, tb_crp_name, CRP ) ; }
-		if ( RC > 0 ) { RC = 20 ; return ; }
-		RC  = 8 ;
-		return  ;
+		if ( tb_crp_name != "" ) { funcPOOL.put( err, tb_crp_name, CRP ) ; }
+		if ( err.error() ) { return ; }
+		err.setRC( 8 ) ;
+		return ;
 	}
 
 	if ( tb_savenm != "" )
 	{
-		funcPOOL.put( RC, 0, tb_savenm, "" ) ;
-		if ( RC > 0 ) { RC = 20 ; return ; }
+		funcPOOL.put( err, tb_savenm, "" ) ;
+		if ( err.error() ) { return ; }
 	}
 	if ( tb_noread != "NOREAD" )
 	{
 		for ( i = 1 ; i <= num_all ; i++ )
 		{
-			funcPOOL.put( RC, 0, word( tab_all, i ), table.at( CRP-1 ).at( i ) ) ;
-			if ( RC > 0 ) { RC = 20 ; return ; }
+			funcPOOL.put( err, word( tab_all, i ), table.at( CRP-1 ).at( i ) ) ;
+			if ( err.error() ) { return ; }
 		}
 		if ( table.at( CRP-1 ).size() > num_all+1 )
 		{
@@ -1234,25 +1271,25 @@ void Table::tbscan( int& RC,
 			{
 				var = word( tbelst, i ) ;
 				val = table.at( CRP-1 ).at( 1+num_all+i ) ;
-				funcPOOL.put( RC, 0, var, val ) ;
-				if ( RC > 0 ) { RC = 20 ; return ; }
+				funcPOOL.put( err, var, val ) ;
+				if ( err.error() ) { return ; }
 			}
 			if ( tb_savenm != "" )
 			{
-				funcPOOL.put( RC, 0, tb_savenm, "("+tbelst+")" ) ;
-				if ( RC > 0 ) { RC = 20 ; return ; }
+				funcPOOL.put( err, tb_savenm, "("+tbelst+")" ) ;
+				if ( err.error() ) { return ; }
 			}
 		}
 	}
 	if ( tb_crp_name != "" )
 	{
-		funcPOOL.put( RC, 0, tb_crp_name, CRP ) ;
-		if ( RC > 0 ) { RC = 20 ; return ; }
+		funcPOOL.put( err, tb_crp_name, CRP ) ;
+		if ( err.error() ) { return ; }
 	}
 	if ( tb_rowid_vn != "" )
 	{
-		funcPOOL.put( RC, 0, tb_rowid_vn, table.at( CRP-1 ).at( 0 ) ) ;
-		if ( RC > 0 ) { RC = 20 ; return ; }
+		funcPOOL.put( err, tb_rowid_vn, table.at( CRP-1 ).at( 0 ) ) ;
+		if ( err.error() ) { return ; }
 	}
 }
 
@@ -1275,6 +1312,8 @@ void Table::cmdsearch( int& RC,
 	vector<vector<string>>::iterator it ;
 
 	RC = 0 ;
+
+	errblock err ;
 
 	if ( !tab_cmds )
 	{
@@ -1307,18 +1346,18 @@ void Table::cmdsearch( int& RC,
 
 	if ( !found ) { RC = 8 ; return ; }
 
-	funcPOOL.put( RC, 0, "ZCTVERB", it->at( 1 ) ) ;
-	if ( RC > 0 ) { RC = 20 ; return ; }
-	funcPOOL.put( RC, 0, "ZCTTRUNC", it->at( 2 ) ) ;
-	if ( RC > 0 ) { RC = 20 ; return ; }
-	funcPOOL.put( RC, 0, "ZCTACT", it->at( 3 ) ) ;
-	if ( RC > 0 ) { RC = 20 ; return ; }
-	funcPOOL.put( RC, 0, "ZCTDESC", it->at( 4 ) ) ;
-	if ( RC > 0 ) { RC = 20 ; return ; }
+	funcPOOL.put( err, "ZCTVERB", it->at( 1 ) ) ;
+	if ( err.error() ) { RC = err.getRC() ; return ; }
+	funcPOOL.put( err, "ZCTTRUNC", it->at( 2 ) ) ;
+	if ( err.error() ) { RC = err.getRC() ; return ; }
+	funcPOOL.put( err, "ZCTACT", it->at( 3 ) ) ;
+	if ( err.error() ) { RC = err.getRC() ; return ; }
+	funcPOOL.put( err, "ZCTDESC", it->at( 4 ) ) ;
+	if ( err.error() ) { RC = err.getRC() ; return ; }
 }
 
 
-void Table::tbskip( int& RC,
+void Table::tbskip( errblock& err,
 		    fPOOL& funcPOOL,
 		    int num,
 		    string tb_savenm,
@@ -1345,20 +1384,34 @@ void Table::tbskip( int& RC,
 
 	vector<vector<string>>::iterator it ;
 
-	RC = 0 ;
+	err.setRC( 0 ) ;
+
 	iupper( tb_savenm )   ;
 	iupper( tb_rowid_vn ) ;
 	iupper( tb_noread )   ;
 	iupper( tb_crp_name ) ;
 
-	if ( (tb_savenm   != "") && !isvalidName( tb_savenm   ) ) { RC = 20 ; return ; }
-	if ( (tb_rowid_vn != "") && !isvalidName( tb_rowid_vn ) ) { RC = 20 ; return ; }
-	if ( (tb_crp_name != "") && !isvalidName( tb_crp_name ) ) { RC = 20 ; return ; }
+	if ( tb_savenm != "" && !isvalidName( tb_savenm ) )
+	{
+		err.seterrid( "PSYE013M", "SAVENAME", tb_savenm ) ;
+		return ;
+	}
+
+	if ( tb_rowid_vn != "" && !isvalidName( tb_rowid_vn ) )
+	{
+		err.seterrid( "PSYE013M", "ROWID", tb_rowid_vn ) ;
+		return ;
+	}
+
+	if ( tb_crp_name != "" && !isvalidName( tb_crp_name ) )
+	{
+		err.seterrid( "PSYE013M", "CRP", tb_crp_name ) ;
+		return ;
+	}
 
 	if ( tb_noread != "" && tb_noread != "NOREAD" )
 	{
-		log( "E", "Invalid NOREAD parameter specified.  Invalid specification is "+ tb_noread <<endl ) ;
-		RC = 20 ;
+		err.seterrid( "PSYE013M", "NOREAD", tb_noread ) ;
 		return ;
 	}
 
@@ -1371,26 +1424,26 @@ void Table::tbskip( int& RC,
 			if ( tb_rowid == it->at( 0 ) ) { found = true ; break ; }
 			CRP++ ;
 		}
-		if ( !found ) { CRP = 0 ; RC  = 8 ; return  ; }
+		if ( !found ) { CRP = 0 ; err.setRC( 8 ) ; return ; }
 	}
 	else
 	{
 		i = CRP + num  ;
-		if ( ( i < 1 ) || ( i > table.size() ) ) { RC = 8 ; return ; }
+		if ( ( i < 1 ) || ( i > table.size() ) ) { err.setRC( 8 ) ; return ; }
 		CRP = i ;
 	}
 
 	if ( tb_savenm != "" )
 	{
-		funcPOOL.put( RC, 0, tb_savenm, "" ) ;
-		if ( RC > 0 ) { RC = 20 ; return ; }
+		funcPOOL.put( err, tb_savenm, "" ) ;
+		if ( err.error() ) { return ; }
 	}
 	if ( tb_noread != "NOREAD" )
 	{
 		for ( i = 1 ; i <= num_all ; i++ )
 		{
-			funcPOOL.put( RC, 0, word( tab_all, i ), table[ CRP-1 ].at( i ) ) ;
-			if ( RC > 0 ) { RC = 20 ; return ; }
+			funcPOOL.put( err, word( tab_all, i ), table[ CRP-1 ].at( i ) ) ;
+			if ( err.error() ) { return ; }
 		}
 		if ( table.at( CRP-1 ).size() > num_all+1 )
 		{
@@ -1399,26 +1452,26 @@ void Table::tbskip( int& RC,
 			{
 				var = word( tbelst, i ) ;
 				val = table.at( CRP-1 ).at( 1+num_all+i ) ;
-				funcPOOL.put( RC, 0, var, val ) ;
-				if ( RC > 0 ) { RC = 20 ; return ; }
+				funcPOOL.put( err, var, val ) ;
+				if ( err.error() ) { return ; }
 			}
 			if ( tb_savenm != "" )
 			{
-				funcPOOL.put( RC, 0, tb_savenm, "("+tbelst+")" ) ;
-				if ( RC > 0 ) { RC = 20 ; return ; }
+				funcPOOL.put( err, tb_savenm, "("+tbelst+")" ) ;
+				if ( err.error() ) { return ; }
 			}
 		}
 	}
 	if ( tb_rowid_vn != "" )
 	{
-		funcPOOL.put( RC, 0, tb_rowid_vn, table.at( CRP-1 ).at( 0 ) ) ;
-		if ( RC > 0 ) { RC = 20 ; return ; }
+		funcPOOL.put( err, tb_rowid_vn, table.at( CRP-1 ).at( 0 ) ) ;
+		if ( err.error() ) { return ; }
 	}
-	if ( tb_crp_name != "" ) { funcPOOL.put( RC, 0, tb_crp_name, CRP ) ; }
+	if ( tb_crp_name != "" ) { funcPOOL.put( err, tb_crp_name, CRP ) ; }
 }
 
 
-void Table::tbsort( int& RC,
+void Table::tbsort( errblock& err,
 		    string tb_fields )
 {
 	// FIELD
@@ -1442,8 +1495,10 @@ void Table::tbsort( int& RC,
 
 	string temp ;
 
+	err.setRC( 0 ) ;
+
 	iupper( tb_fields ) ;
-	temp      = tb_fields          ;
+	temp = tb_fields    ;
 
 	while ( true )
 	{
@@ -1467,19 +1522,19 @@ void Table::tbsort( int& RC,
 		s_temp   = s_parm[ 0 ] ;
 		s_fields = s_temp + " " + s_fields ;
 		f1  = wordpos( s_temp, tab_all ) ;
-		if ( f1 == 0 ) { RC = 20 ; return ; }
+		if ( f1 == 0 ) { err.seterrid( "PSYE013X" ) ; return ; }
 		s_field.push_back( f1 ) ;
 		if ( s_parm.size() == 1 ) { break ; }
 		s_parm.erase( s_parm.begin() ) ;
 
 		s_temp = s_parm[ 0 ] ;
-		if ( s_temp != "C" && s_temp != "N" ) { RC = 20 ; return ; }
+		if ( s_temp != "C" && s_temp != "N" ) { err.seterrid( "PSYE013X" ) ; return ; }
 		s_char.push_back( (s_temp == "C") ) ;
 		if ( s_parm.size() == 1 ) { break ; }
 		s_parm.erase( s_parm.begin() ) ;
 
 		s_temp = s_parm[ 0 ] ;
-		if ( s_temp != "A" && s_temp != "D" ) { RC = 20 ; return ; }
+		if ( s_temp != "A" && s_temp != "D" ) { err.seterrid( "PSYE013X" ) ; return ; }
 		s_asc.push_back( (s_temp == "A") ) ;
 		s_parm.erase( s_parm.begin() ) ;
 	}
@@ -1529,23 +1584,19 @@ void Table::tbsort( int& RC,
 }
 
 
-void Table::tbtop( int& RC )
+void Table::tbtop( errblock& err )
 {
-	RC  = 0 ;
 	CRP = 0 ;
 }
 
 
-void Table::tbvclear( int& RC,
+void Table::tbvclear( errblock& err,
 		      fPOOL& funcPOOL )
 {
-	int i ;
-
-	RC = 0 ;
-	for ( i = 1 ; i <= num_all ; i++ )
+	for ( int i = 1 ; i <= num_all ; i++ )
 	{
-		funcPOOL.put( RC, 0, word( tab_all, i ), "" ) ;
-		if ( RC > 0 ) { RC = 20 ; return ; }
+		funcPOOL.put( err, word( tab_all, i ), "" ) ;
+		if ( err.error() ) { return ; }
 	}
 }
 
@@ -1556,11 +1607,11 @@ void Table::tbvclear( int& RC,
 
 tableMGR::tableMGR()
 {
-	debug1( "Constructor for table manager called " <<endl ) ;
+	debug2( "Constructor for table manager called " <<endl ) ;
 }
 
 
-void tableMGR::createTable( int& RC,
+void tableMGR::createTable( errblock& err,
 			    int m_task,
 			    const string& tb_name,
 			    string keys, string flds,
@@ -1574,12 +1625,14 @@ void tableMGR::createTable( int& RC,
 	iupper( keys ) ;
 	iupper( flds ) ;
 
-	debug1( "Creating table >>"+ tb_name +"<<" <<endl ) ;
-	debug1( "     with keys >>"+ keys    +"<<" <<endl ) ;
-	debug1( "    and fields >>"+ flds    +"<<" <<endl ) ;
-	debug1( "          path >>"+ m_path  +"<<" <<endl ) ;
+	if ( err.debugMode() )
+	{
+		debug1( "Creating table >>"+ tb_name +"<<" <<endl ) ;
+		debug1( "     with keys >>"+ keys    +"<<" <<endl ) ;
+		debug1( "    and fields >>"+ flds    +"<<" <<endl ) ;
+		debug1( "          path >>"+ m_path  +"<<" <<endl ) ;
+	}
 
-	RC = 0 ;
 	map<string, Table>::iterator it ;
 
 	it = tables.find( tb_name ) ;
@@ -1589,36 +1642,31 @@ void tableMGR::createTable( int& RC,
 		{
 			if ( m_DISP == SHARE )
 			{
-				log( "E", "Table "+ tb_name +" already exists in SHARE mode.  REPLACE not allowed" <<endl ) ;
-				RC = 8 ;
+				err.setRC( 8 ) ;
 				return ;
 			}
 			else
 			{
 				if ( it->second.ownerTask != m_task )
 				{
-					log( "E", "Table "+ tb_name +" already exists in EXCLUSIVE mode but owned by another task.  REPLACE not allowed" <<endl ) ;
-					RC = 8 ;
+					err.setRC( 8 ) ;
 					return ;
 				}
 				else
 				{
-					log( "I", "Table "+ tb_name +" already exists and REPLACE specified" <<endl ) ;
 					tables.erase( tb_name ) ;
-					RC = 4 ;
+					err.setRC( 4 ) ;
 				}
 			}
 		}
 		else
 		{
-			log( "E", "Table "+ tb_name +" already exists and REPLACE not specified" <<endl ) ;
-			RC = 8 ;
+			err.setRC( 8 ) ;
 			return ;
 		}
 		if ( m_temporary != it->second.tab_temporary )
 		{
-			log( "E", "Table created with inconsistent WRITE/NOWRITE attributes for open table "+ tb_name <<endl ) ;
-			RC = 20 ;
+			err.seterrid( "PSYE013Y", tb_name ) ;
 			return  ;
 		}
 	}
@@ -1638,7 +1686,7 @@ void tableMGR::createTable( int& RC,
 }
 
 
-void tableMGR::loadTable( int& RC,
+void tableMGR::loadTable( errblock& err,
 			  int task,
 			  const string& tb_name,
 			  tbDISP m_DISP,
@@ -1681,7 +1729,6 @@ void tableMGR::loadTable( int& RC,
 	std::ifstream table   ;
 	vector<string> m_flds ;
 
-	RC = 0 ;
 	map<string, Table>::iterator it ;
 
 	it = tables.find( tb_name ) ;
@@ -1689,14 +1736,12 @@ void tableMGR::loadTable( int& RC,
 	{
 		if ( (it->second.tab_DISP == SHARE) && (m_DISP == EXCLUSIVE) )
 		{
-			RC = 20 ;
-			log( "E", "Table "+ tb_name +" is already open in SHARE mode.  EXCLUSIVE requested" <<endl ) ;
+			err.seterrid( "PSYE013Z", tb_name ) ;
 			return ;
 		}
 		if ( (it->second.tab_DISP == EXCLUSIVE) && it->second.ownerTask != task )
 		{
-			RC = 20 ;
-			log( "E", "Table "+ tb_name +" is already open in EXCLUSIVE mode by another task" <<endl ) ;
+			err.seterrid( "PSYE014A", tb_name ) ;
 			return ;
 		}
 		it->second.refCount++ ;
@@ -1714,8 +1759,7 @@ void tableMGR::loadTable( int& RC,
 		{
 			if ( !is_regular_file( filename ) )
 			{
-				RC = 20 ;
-				log( "E", "Table load file name "+ filename +" is not a regular file" <<endl ) ;
+				err.seterrid( "PSYE014B", tb_name ) ;
 				return  ;
 			}
 			else
@@ -1727,25 +1771,21 @@ void tableMGR::loadTable( int& RC,
 	}
 	if ( !found )
 	{
-		log( "E", "Table file not found in path search for "+ tb_name <<endl ) ;
-		RC = 8 ;
+		err.seterrid( "PSYE014C", tb_name, 8 ) ;
 		return ;
 	}
-	debug1( "Loading table "+ tb_name +" from "+ filename <<endl ) ;
 
 	table.open( filename.c_str() , ios::binary | ios::in ) ;
 	if ( !table.is_open() )
 	{
-		RC = 20 ;
-		log( "E", "Table open for "+ tb_name +" gave an error.  Filename "+ filename <<endl ) ;
+		err.seterrid( "PSYE014D", tb_name, filename ) ;
 		return ;
 	}
 
 	table.read( buf1, 2);
 	if ( memcmp( buf1, "\x00\x85", 2 ) )
 	{
-		RC = 20 ;
-		log( "E", "Not a valid table file '"+ tb_name +"'.  Appears corrupt.  Filename "+ filename <<endl ) ;
+		err.seterrid( "PSYE014E", tb_name, filename ) ;
 		table.close() ;
 		return ;
 	}
@@ -1754,8 +1794,7 @@ void tableMGR::loadTable( int& RC,
 	ver = static_cast< int >( x ) ;
 	if ( ver > 2 )
 	{
-		RC = 20 ;
-		log( "E", "Invalid table prefix.  Version "<< ver <<" not supported or table is corrupt.  Filename "+ filename <<endl ) ;
+		err.seterrid( "PSYE014F", d2ds( ver ), filename ) ;
 		table.close() ;
 		return ;
 	}
@@ -1779,8 +1818,7 @@ void tableMGR::loadTable( int& RC,
 		case 0: sir.assign( buf1, k ) ;
 			break ;
 		default:
-			RC = 20 ;
-			log( "E", "Invalid number of table information fields found.  Only 1 expected.  Found " << j+1 <<endl ) ;
+			err.seterrid( "PSYE014G", d2ds( j+1 ) ) ;
 			table.close() ;
 			return ;
 		}
@@ -1810,8 +1848,7 @@ void tableMGR::loadTable( int& RC,
 		table.get( x ) ;
 		if ( table.fail() != 0 )
 		{
-			RC = 20 ;
-			log( "E", "Unexpected EOF reading keys.  Table "+ tb_name +" appears to be corrupt. Filename "+ filename <<endl ) ;
+			err.seterrid( "PSYE014H", tb_name, filename ) ;
 			table.close() ;
 			return ;
 		}
@@ -1825,8 +1862,7 @@ void tableMGR::loadTable( int& RC,
 		table.get( x ) ;
 		if ( table.fail() != 0 )
 		{
-			RC = 20 ;
-			log( "E", "Unexpected EOF reading fields.  Table "+ tb_name +" appears to be corrupt.  Filename "+ filename <<endl ) ;
+			err.seterrid( "PSYE014I", tb_name, filename ) ;
 			table.close() ;
 			return ;
 		}
@@ -1836,30 +1872,24 @@ void tableMGR::loadTable( int& RC,
 		flds = flds + s.assign( buf1, i ) + " " ;
 	}
 
-	createTable( RC, task, tb_name, keys, flds, false, NOREPLACE, path, m_DISP ) ;
-	if ( RC > 0 )
+	createTable( err, task, tb_name, keys, flds, false, NOREPLACE, path, m_DISP ) ;
+	if ( err.getRC() > 0 )
 	{
-		log( "E", "TBCREATE failed during loadTable for "+ tb_name <<endl ) ;
 		table.close() ;
 		return ;
 	}
 
-	debug1( "Table created RC = " << RC <<endl ) ;
-	debug1( "Number of rows found in table " << num_rows <<endl ) ;
-
 	it->second.reserveSpace( num_rows ) ;
 	if ( sir != "" )
 	{
-		tables[ tb_name ].tbsort( RC, sir ) ;
-		if ( RC > 0 )
+		tables[ tb_name ].tbsort( err, sir ) ;
+		if ( err.getRC() > 0 )
 		{
-			RC = 20 ;
-			log( "E", "Bad return code from tbsort.  Sort Information Record found is "+ sir <<endl ) ;
+			err.seterrid( "PSYE013N", sir ) ;
 			return  ;
 		}
 	}
 	buf2 = new char[ buf2Size ] ;
-	err1 = "Unexpected EOF reading table values.  Table "+ tb_name +" appears to be corrupt.  Filename "+ filename ;
 	for ( l = 0 ; l < num_rows ; l++ )
 	{
 		m_flds.clear() ;
@@ -1868,8 +1898,7 @@ void tableMGR::loadTable( int& RC,
 			table.read( z, 2 ) ;
 			if ( table.fail() != 0 )
 			{
-				RC = 20 ;
-				log( "E", err1 ) ;
+				err.seterrid( "PSYE014M", tb_name, filename ) ;
 				table.close() ;
 				delete[] buf2 ;
 				return  ;
@@ -1888,8 +1917,7 @@ void tableMGR::loadTable( int& RC,
 			table.read( buf2, i ) ;
 			if ( table.fail() != 0 )
 			{
-				RC = 20 ;
-				log( "E", err1 ) ;
+				err.seterrid( "PSYE014M", tb_name, filename ) ;
 				table.close() ;
 				delete[] buf2 ;
 				return ;
@@ -1903,8 +1931,7 @@ void tableMGR::loadTable( int& RC,
 			table.read( z, 2 ) ;
 			if ( table.fail() != 0 )
 			{
-				RC = 20 ;
-				log( "E", err1 ) ;
+				err.seterrid( "PSYE014M", tb_name, filename ) ;
 				table.close() ;
 				delete[] buf2 ;
 				return  ;
@@ -1919,8 +1946,7 @@ void tableMGR::loadTable( int& RC,
 				table.read( z, 2 ) ;
 				if ( table.fail() != 0 )
 				{
-					RC = 20 ;
-					log( "E", err1 ) ;
+					err.seterrid( "PSYE014M", tb_name, filename ) ;
 					table.close() ;
 					delete[] buf2 ;
 					return  ;
@@ -1939,8 +1965,7 @@ void tableMGR::loadTable( int& RC,
 				table.read( buf2, k ) ;
 				if ( table.fail() != 0 )
 				{
-					RC = 20 ;
-					log( "E", err1 ) ;
+					err.seterrid( "PSYE014M", tb_name, filename ) ;
 					table.close() ;
 					delete[] buf2 ;
 					return ;
@@ -1951,107 +1976,91 @@ void tableMGR::loadTable( int& RC,
 			table.read( z, 1 ) ;
 			if ( table.fail() != 0 )
 			{
-				RC = 20 ;
-				log( "E", err1 ) ;
+				err.seterrid( "PSYE014M", tb_name, filename ) ;
 				table.close() ;
 				delete[] buf2 ;
 				return  ;
 			}
 			if ( z[ 0 ] != char(0xFF) )
 			{
-				RC = 20 ;
-				log( "E", "End of record marker not found.  File corrupt: "+ filename <<endl ; )
+				err.seterrid( "PSYE014J", filename ) ;
 				table.close() ;
 				delete[] buf2 ;
 				return  ;
 			}
 		}
-		tables[ tb_name ].loadRow( RC, m_flds ) ;
+		tables[ tb_name ].loadRow( err, m_flds ) ;
 	}
 	if ( ver > 1 )
 	{
 		table.read( z, 1 ) ;
 		if ( table.fail() != 0 )
 		{
-			RC = 20 ;
-			log( "E", err1 ) ;
+			err.seterrid( "PSYE014M", tb_name, filename ) ;
 			table.close() ;
 			delete[] buf2 ;
 			return  ;
 		}
 		if ( z[ 0 ] != char(0xFF) )
 		{
-			RC = 20 ;
-			log( "E", "End of file marker not found.  File corrupt: "+ filename <<endl ; )
+			err.seterrid( "PSYE014K", filename ) ;
 			table.close() ;
 			delete[] buf2 ;
 			return  ;
 		}
 	}
 	tables[ tb_name ].resetChanged() ;
-	debug1( "Number of rows loaded from table " << l <<endl ) ;
+	debug2( "Number of rows loaded from table " << l <<endl ) ;
 	if ( l != num_rows )
 	{
-		log( "E",  "Inconsistent number of records found with saved total.  Found=" << l << " Saved Total=" << num_rows <<endl ; )
-		RC = 20 ;
+		err.seterrid( "PSYE014L", d2ds( l ), d2ds( num_rows ) ) ;
 	}
 	table.close() ;
 	delete[] buf2 ;
 }
 
 
-void tableMGR::saveTable( int& RC,
+void tableMGR::saveTable( errblock& err,
 			  int task,
 			  const string& tb_name,
 			  const string& m_newname,
 			  const string& m_path,
 			  bool m_err )
 {
-	// This can be called by tbclose() or tbsave().  For temporary tables, only report error for tbsave() with no m_newname RC=12
+	// This can be called by tbclose() or tbsave().
+	// For temporary tables, only report error for tbsave() with no m_newname RC=12
 
-	RC = 0 ;
 	map<string, Table>::iterator it ;
 
 	it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
-		RC = 12 ;
-		log( "E", "Table "+ tb_name +" not found for save" <<endl ) ;
+		err.seterrid( "PSYE013G", tb_name, 12 ) ;
 		return ;
 	}
 	if ( m_err && m_newname == "" && it->second.tab_temporary )
 	{
-		RC = 12 ;
-		log( "E", "Table "+ tb_name +" is a temporary table.  Cannot be saved" <<endl ) ;
+		err.seterrid( "PSYE013I", tb_name, 12 ) ;
 		return ;
 	}
-	it->second.saveTable( RC, ( m_newname == "" ? tb_name : m_newname ), m_path ) ;
+	it->second.saveTable( err, ( m_newname == "" ? tb_name : m_newname ), m_path ) ;
 }
 
 
-void tableMGR::destroyTable( int& RC,
+void tableMGR::destroyTable( errblock& err,
 			     int task,
 			     const string& tb_name )
 {
-	RC = 0 ;
 	map<string, Table>::iterator it ;
 
 	it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
-		RC = 12 ;
-		log( "E", "Table "+ tb_name +" does not exist" <<endl ) ;
+		err.seterrid( "PSYE013G", tb_name, 12 ) ;
 		return ;
 	}
 
-	if ( it->second.refCount == 1 )
-	{
-		tables.erase( it ) ;
-	}
-	else
-	{
-		it->second.refCount-- ;
-	}
+	if ( it->second.refCount == 1 ) { tables.erase( it ) ; } else { it->second.refCount-- ; }
 }
 
 
@@ -2082,8 +2091,7 @@ bool tableMGR::tablexists( const string& tb_name,
 		{
 			if ( !is_regular_file( filename ) )
 			{
-				log( "I", "Table file name "+ filename +" is not a regular file" <<endl ) ;
-				return  false ;
+				return false ;
 			}
 			else
 			{
@@ -2151,44 +2159,23 @@ void tableMGR::statistics()
 }
 
 
-int tableMGR::getCRP( int& RC,
-		      const string& tb_name )
+int tableMGR::getCRP( const string& tb_name )
 {
-	RC = 0 ;
-	map<string, Table>::iterator it ;
-
-	it = tables.find( tb_name ) ;
-	if ( it == tables.end() )
-	{
-		RC = 12 ;
-		log( "E", "Table "+ tb_name +" not found for get CRP" <<endl ) ;
-		return 0 ;
-	}
-	return it->second.getCRP() ;
+	return tables[ tb_name ].getCRP() ;
 }
 
 
-void tableMGR::fillfVARs( int& RC,
+void tableMGR::fillfVARs( errblock& err,
 			  fPOOL& funcPOOL,
 			  const string& tb_name,
 			  int depth,
 			  int posn )
 {
-	RC = 0 ;
-	map<string, Table>::iterator it ;
-
-	it = tables.find( tb_name ) ;
-	if ( it == tables.end() )
-	{
-		RC = 12 ;
-		log( "E", "Table "+ tb_name +" not found for fill function pool" <<endl ) ;
-		return ;
-	}
-	it->second.fillfVARs( RC, funcPOOL, depth, posn ) ;
+	tables[ tb_name ].fillfVARs( err, funcPOOL, depth, posn ) ;
 }
 
 
-void tableMGR::tbget( int& RC,
+void tableMGR::tbget( errblock& err,
 		      fPOOL& funcPOOL,
 		      const string& tb_name,
 		      const string& tb_savenm,
@@ -2196,82 +2183,74 @@ void tableMGR::tbget( int& RC,
 		      const string& tb_noread,
 		      const string& tb_crp_name  )
 {
-	RC = 0 ;
 	map<string, Table>::iterator it ;
 
 	it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
-		RC = 12 ;
-		log( "E", "Table "+ tb_name +" not found for tbget" <<endl ) ;
+		err.seterrid( "PSYE013G", tb_name, 12 ) ;
 		return ;
 	}
-	it->second.tbget( RC, funcPOOL, tb_savenm, tb_rowid_vn, tb_noread, tb_crp_name ) ;
+	it->second.tbget( err, funcPOOL, tb_savenm, tb_rowid_vn, tb_noread, tb_crp_name ) ;
 }
 
 
-void tableMGR::tbmod( int& RC,
+void tableMGR::tbmod( errblock& err,
 		      fPOOL& funcPOOL,
 		      const string& tb_name,
 		      const string& tb_namelst,
 		      const string& tb_order )
 {
-	RC = 0 ;
 	map<string, Table>::iterator it ;
 
 	it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
-		RC = 12 ;
-		log( "E", "Table "+ tb_name +" not found for modify" <<endl ) ;
+		err.seterrid( "PSYE013G", tb_name, 12 ) ;
 		return ;
 	}
-	it->second.tbmod( RC, funcPOOL, tb_namelst, tb_order ) ;
+	it->second.tbmod( err, funcPOOL, tb_namelst, tb_order ) ;
 }
 
 
-void tableMGR::tbput( int& RC,
+void tableMGR::tbput( errblock& err,
 		      fPOOL& funcPOOL,
 		      const string& tb_name,
 		      const string& tb_namelst,
 		      const string& tb_order )
 {
-	RC = 0 ;
 	map<string, Table>::iterator it ;
 
 	it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
-		RC = 12 ;
-		log( "E", "Table "+ tb_name +" not found for modify" <<endl ) ;
+		err.seterrid( "PSYE013G", tb_name, 12 ) ;
 		return ;
 	}
-	it->second.tbput( RC, funcPOOL, tb_namelst, tb_order ) ;
+	it->second.tbput( err, funcPOOL, tb_namelst, tb_order ) ;
 }
 
 
-void tableMGR::tbadd( int& RC,
+void tableMGR::tbadd( errblock& err,
 		      fPOOL& funcPOOL,
 		      const string& tb_name,
 		      const string& tb_namelst,
 		      const string& tb_order,
 		      int tb_num_of_rows )
 {
-	RC = 0 ;
 	map<string, Table>::iterator it ;
 
 	it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
-		RC = 12 ;
-		log( "E", "Table "+ tb_name +" not found for tbadd" <<endl ) ;
+		err.seterrid( "PSYE013G", tb_name, 12 ) ;
 		return ;
 	}
-	it->second.tbadd( RC, funcPOOL, tb_namelst, tb_order, tb_num_of_rows ) ;
+	it->second.tbadd( err, funcPOOL, tb_namelst, tb_order, tb_num_of_rows ) ;
 }
 
 
-void tableMGR::tbbottom( int& RC,
+void tableMGR::tbbottom( errblock& err,
 			 fPOOL& funcPOOL,
 			 const string& tb_name,
 			 const string& tb_savenm,
@@ -2279,39 +2258,35 @@ void tableMGR::tbbottom( int& RC,
 			 const string& tb_noread,
 			 const string& tb_crp_name  )
 {
-	RC = 0 ;
 	map<string, Table>::iterator it ;
 
 	it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
-		RC = 12 ;
-		log( "E", "Table "+ tb_name +" not found for tbbottom" <<endl ) ;
+		err.seterrid( "PSYE013G", tb_name, 12 ) ;
 		return ;
 	}
-	it->second.tbbottom( RC, funcPOOL, tb_savenm, tb_rowid_vn, tb_noread, tb_crp_name ) ;
+	it->second.tbbottom( err, funcPOOL, tb_savenm, tb_rowid_vn, tb_noread, tb_crp_name ) ;
 }
 
 
-void tableMGR::tbdelete( int& RC,
+void tableMGR::tbdelete( errblock& err,
 			 fPOOL& funcPOOL,
 			 const string& tb_name )
 {
-	RC = 0 ;
 	map<string, Table>::iterator it ;
 
 	it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
-		RC = 12 ;
-		log( "E", "Table "+ tb_name +" not found for tbdelete" <<endl ) ;
+		err.seterrid( "PSYE013G", tb_name, 12 ) ;
 		return ;
 	}
-	it->second.tbdelete( RC, funcPOOL ) ;
+	it->second.tbdelete( err, funcPOOL ) ;
 }
 
 
-void tableMGR::tberase( int& RC,
+void tableMGR::tberase( errblock& err,
 			const string& tb_name,
 			const string& tb_path )
 {
@@ -2323,13 +2298,10 @@ void tableMGR::tberase( int& RC,
 	string filename ;
 	map<string, Table>::iterator it ;
 
-	RC = 0 ;
-
 	it = tables.find( tb_name ) ;
 	if ( it != tables.end() )
 	{
-		RC = 12 ;
-		log( "E", "Table '"+ tb_name +"' in use. Cannot be erased unless closed" <<endl ) ;
+		err.seterrid( "PSYE014N", tb_name, "TBDELETE", 12 ) ;
 		return ;
 	}
 
@@ -2342,8 +2314,7 @@ void tableMGR::tberase( int& RC,
 		{
 			if ( !is_regular_file( filename ) )
 			{
-				RC = 16 ;
-				log( "W", "Table load file name "+ filename +" is not a regular file" <<endl ) ;
+				err.seterrid( "PSYE014B", filename, 16 ) ;
 				return  ;
 			}
 			else
@@ -2355,34 +2326,30 @@ void tableMGR::tberase( int& RC,
 	}
 	if ( !found )
 	{
-		RC = 8 ;
-		log( "W", "Table file for '"+ tb_name +"' not found in path search"  <<endl ) ;
+		err.setRC( 8 ) ;
 		return ;
 	}
 	remove( filename ) ;
-	log( "I", "Table file '"+ filename +"' deleted"  <<endl ) ;
 }
 
 
-void tableMGR::tbexist( int& RC,
+void tableMGR::tbexist( errblock& err,
 			fPOOL& funcPOOL,
 			const string& tb_name )
 {
-	RC = 0 ;
 	map<string, Table>::iterator it ;
 
 	it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
-		RC = 12 ;
-		log( "E", "Table "+ tb_name +" not found for tbexist" <<endl ) ;
+		err.seterrid( "PSYE013G", tb_name, 12 ) ;
 		return ;
 	}
-	it->second.tbexist( RC, funcPOOL ) ;
+	it->second.tbexist( err, funcPOOL ) ;
 }
 
 
-void   tableMGR::tbquery( int& RC,
+void   tableMGR::tbquery( errblock& err,
 			  fPOOL& funcPOOL,
 			  const string& tb_name,
 			  const string& tb_keyn,
@@ -2396,42 +2363,38 @@ void   tableMGR::tbquery( int& RC,
 			  const string& tb_condn,
 			  const string& tb_dirn )
 {
-	RC = 0 ;
 	map<string, Table>::iterator it ;
 
 	it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
-		RC = 12 ;
-		debug1( "Table "+ tb_name +" not found to set search argument" <<endl ) ;
+		err.seterrid( "PSYE013G", tb_name, 12 ) ;
 		return ;
 	}
-	it->second.tbquery( RC, funcPOOL, tb_keyn, tb_varn, tb_rownn, tb_keynn, tb_namenn, tb_crpn, tb_sirn, tb_lstn, tb_condn, tb_dirn ) ;
+	it->second.tbquery( err, funcPOOL, tb_keyn, tb_varn, tb_rownn, tb_keynn, tb_namenn, tb_crpn, tb_sirn, tb_lstn, tb_condn, tb_dirn ) ;
 }
 
 
-void   tableMGR::tbsarg( int& RC,
+void   tableMGR::tbsarg( errblock& err,
 			 fPOOL& funcPOOL,
 			 const string& tb_name,
 			 const string& tb_namelst,
 			 const string& tb_dir,
 			 const string& tb_cond_pairs )
 {
-	RC = 0 ;
 	map<string, Table>::iterator it ;
 
 	it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
-		RC = 12 ;
-		debug1( "Table "+ tb_name +" not found to set search argument" <<endl ) ;
+		err.seterrid( "PSYE013G", tb_name, 12 ) ;
 		return ;
 	}
-	it->second.tbsarg( RC, funcPOOL, tb_namelst, tb_dir, tb_cond_pairs ) ;
+	it->second.tbsarg( err, funcPOOL, tb_namelst, tb_dir, tb_cond_pairs ) ;
 }
 
 
-void tableMGR::tbscan( int& RC,
+void tableMGR::tbscan( errblock& err,
 		       fPOOL& funcPOOL,
 		       const string& tb_name,
 		       const string& tb_namelst,
@@ -2442,17 +2405,15 @@ void tableMGR::tbscan( int& RC,
 		       const string& tb_crp_name,
 		       const string& tb_condlst )
 {
-	RC = 0 ;
 	map<string, Table>::iterator it ;
 
 	it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
-		RC = 12 ;
-		debug1( "Table "+ tb_name +" not found for tbscan" <<endl ) ;
+		err.seterrid( "PSYE013G", tb_name, 12 ) ;
 		return ;
 	}
-	it->second.tbscan( RC, funcPOOL, tb_namelst, tb_savenm, tb_rowid_vn, tb_dir, tb_noread, tb_crp_name, tb_condlst ) ;
+	it->second.tbscan( err, funcPOOL, tb_namelst, tb_savenm, tb_rowid_vn, tb_dir, tb_noread, tb_crp_name, tb_condlst ) ;
 }
 
 
@@ -2469,6 +2430,8 @@ void tableMGR::cmdsearch( int& RC,
 	// RC = 12 Table not found
 	// RC = 20 Severe error
 
+	errblock err ;
+
 	RC = 0 ;
 	map<string, Table>::iterator it ;
 
@@ -2478,8 +2441,8 @@ void tableMGR::cmdsearch( int& RC,
 	{
 		if ( tablexists( tb_name, paths ) )
 		{
-			loadTable( RC, 0, tb_name, SHARE, paths ) ;
-			if ( RC > 0 )
+			loadTable( err, 0, tb_name, SHARE, paths ) ;
+			if ( err.getRC() > 0 )
 			{
 				log( "E", "Command table "+ tb_name +" failed to load" <<endl ) ;
 				RC = 20 ;
@@ -2497,7 +2460,7 @@ void tableMGR::cmdsearch( int& RC,
 }
 
 
-void tableMGR::tbskip( int& RC,
+void tableMGR::tbskip( errblock& err,
 		       fPOOL& funcPOOL,
 		       const string& tb_name,
 		       int num,
@@ -2507,68 +2470,60 @@ void tableMGR::tbskip( int& RC,
 		       const string& tb_noread,
 		       const string& tb_crp_name )
 {
-	RC = 0 ;
 	map<string, Table>::iterator it ;
 
 	it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
-		RC = 12 ;
-		log( "E", "Table "+ tb_name +" not found for tbskip" <<endl ) ;
+		err.seterrid( "PSYE013G", tb_name, 12 ) ;
 		return ;
 	}
-	it->second.tbskip( RC, funcPOOL, num, tb_savenm, tb_rowid_vn, tb_rowid, tb_noread, tb_crp_name ) ;
+	it->second.tbskip( err, funcPOOL, num, tb_savenm, tb_rowid_vn, tb_rowid, tb_noread, tb_crp_name ) ;
 }
 
 
-void tableMGR::tbsort( int& RC,
+void tableMGR::tbsort( errblock& err,
 		       const string& tb_name,
 		       const string& tb_fields )
 {
-	RC = 0 ;
 	map<string, Table>::iterator it ;
 
 	it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
-		RC = 12 ;
-		log( "E", "Table "+ tb_name +" not found for tbsort" <<endl ) ;
+		err.seterrid( "PSYE013G", tb_name, 12 ) ;
 		return ;
 	}
-	it->second.tbsort( RC, tb_fields ) ;
+	it->second.tbsort( err, tb_fields ) ;
 }
 
 
-void tableMGR::tbtop( int& RC,
+void tableMGR::tbtop( errblock& err,
 		      const string& tb_name )
 {
-	RC = 0 ;
 	map<string, Table>::iterator it ;
 
 	it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
-		RC = 12 ;
-		log( "E", "Table "+ tb_name +" not found for tbtop" <<endl ) ;
+		err.seterrid( "PSYE013G", tb_name, 12 ) ;
 		return ;
 	}
-	it->second.tbtop( RC ) ;
+	it->second.tbtop( err ) ;
 }
 
 
-void tableMGR::tbvclear( int& RC,
+void tableMGR::tbvclear( errblock& err,
 			 fPOOL& funcPOOL,
 			 const string& tb_name )
 {
-	RC = 0 ;
 	map<string, Table>::iterator it ;
 
 	it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
-		RC = 12 ;
-		log( "E", "Table "+ tb_name +" not found for tbvclear" <<endl ) ;
+		err.seterrid( "PSYE013G", tb_name, 12 ) ;
 		return ;
 	}
-	it->second.tbvclear( RC, funcPOOL ) ;
+	it->second.tbvclear( err, funcPOOL ) ;
 }

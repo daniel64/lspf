@@ -32,8 +32,10 @@ enum P_CMDS
 	PC_CAPS,
 	PC_COLUMN,
 	PC_COMPARE,
+	PC_COPY,
 	PC_CREATE,
 	PC_CUT,
+	PC_DEFINE,
 	PC_DELETE,
 	PC_EDIT,
 	PC_EXCLUDE,
@@ -71,6 +73,7 @@ enum L_CMDS
 	LC_CC,
 	LC_CHANGE,
 	LC_COLS,
+	LC_COPY,
 	LC_D,
 	LC_DD,
 	LC_F,
@@ -141,6 +144,8 @@ enum M_CMDS
 	EM_DATA_CHANGED,
 	EM_DEFINE,
 	EM_DELETE,
+	EM_DISPLAY_COLS,
+	EM_DISPLAY_LINES,
 	EM_END,
 	EM_EXCLUDE,
 	EM_EXCLUDE_COUNTS,
@@ -150,6 +155,7 @@ enum M_CMDS
 	EM_HEX,
 	EM_HIDE,
 	EM_IMACRO,
+	EM_INSERT,
 	EM_LABEL,
 	EM_LINE,
 	EM_LINE_AFTER,
@@ -161,6 +167,7 @@ enum M_CMDS
 	EM_MASKLINE,
 	EM_NULLS,
 	EM_PROCESS,
+	EM_PROFILE,
 	EM_RCHANGE,
 	EM_RFIND,
 	EM_SAVE,
@@ -200,7 +207,7 @@ class pcmd_format
 } ;
 
 
-class mc_format
+class mcmd_format
 {
 	public:
 	       M_CMDS m_cmd   ;
@@ -213,20 +220,21 @@ class mc_format
 	       int anvalopts1 ;
 	       int anvalopts2 ;
 } ;
-				//         +----------------------------Query: # variables(min,max)
-				//         |       +--------------------Query: # key options(min,max)
-				//         |       |       +-----------Action: # key options(min,max
-				//         |       |       |       +---Action: # value options(min,max)
-				//         |       |       |       |             -1 = don't check
-				//         V       V       V       V
-map<string,mc_format> EMServ =  //         ~~~~~   ~~~~~   ~~~~~   ~~~~~~
+				  //       +----------------------------Query: # variables(min,max)
+				  //       |       +--------------------Query: # key options(min,max)
+				  //       |       |       +-----------Action: # key options(min,max
+				  //       |       |       |       +---Action: # value options(min,max)
+				  //       |       |       |       |             -1 = don't check
+				  //       V       V       V       V
+map<string,mcmd_format> EMServ =  //       ~~~~~   ~~~~~   ~~~~~   ~~~~~~
 { { "AUTOSAVE",       { EM_AUTOSAVE,       1,  2,  0,  0,  0,  0,  0,  2  } },
   { "CAPS",           { EM_CAPS,           1,  1,  0,  0,  0,  0,  1,  1  } },
   { "CHANGE_COUNTS",  { EM_CHANGE_COUNTS,  1,  2,  0,  0, -1, -1, -1, -1  } },
   { "CURSOR",         { EM_CURSOR,         1,  2,  0,  0,  0,  0,  1,  2  } },
   { "DATA_CHANGED",   { EM_DATA_CHANGED,   1,  1,  0,  0, -1, -1, -1, -1  } },
   { "DATASET",        { EM_DATASET,        1,  1,  0,  0, -1, -1, -1, -1  } },
-  { "DEFINE",         { EM_DEFINE,        -1, -1, -1, -1,  2,  3, -1, -1  } },
+  { "DISPLAY_COLS",   { EM_DISPLAY_COLS,   1,  2,  0,  0, -1, -1, -1, -1  } },
+  { "DISPLAY_LINES",  { EM_DISPLAY_LINES,  1,  2,  0,  0, -1, -1, -1, -1  } },
   { "FIND_COUNTS",    { EM_FIND_COUNTS,    1,  2,  0,  0, -1, -1, -1, -1  } },
   { "EXCLUDE_COUNTS", { EM_EXCLUDE_COUNTS, 1,  2,  0,  0, -1, -1, -1, -1  } },
   { "HEX",            { EM_HEX,            1,  2,  0,  0, -1, -1, -1, -1  } },
@@ -239,6 +247,7 @@ map<string,mc_format> EMServ =  //         ~~~~~   ~~~~~   ~~~~~   ~~~~~~
   { "NULLS",          { EM_NULLS,          1,  2,  0,  0, -1, -1, -1, -1  } },
   { "MACRO_LEVEL",    { EM_MACRO_LEVEL,    1,  1,  0,  0, -1, -1, -1, -1  } },
   { "MASKLINE",       { EM_MASKLINE,       1,  1,  0,  0,  0,  0, -1, -1  } },
+  { "PROFILE",        { EM_PROFILE,        1,  2,  0,  0, -1, -1, -1, -1  } },
   { "SCAN",           { EM_SCAN,           1,  1,  0,  0,  0,  0,  1,  1  } },
   { "SEEK_COUNTS",    { EM_SEEK_COUNTS,    1,  2,  0,  0, -1, -1, -1, -1  } },
   { "TABSLINE",       { EM_TABSLINE,       1,  1,  0,  0,  0,  0, -1, -1  } },
@@ -246,36 +255,31 @@ map<string,mc_format> EMServ =  //         ~~~~~   ~~~~~   ~~~~~   ~~~~~~
 
 
 map<string,M_CMDS> EMCmds =
-{ { "AUTOSAVE",     EM_AUTOSAVE, },
-  { "CANCEL",       EM_CANCEL    },
-  { "CAPS",         EM_CAPS      },
-  { "CHANGE",       EM_CHANGE    },
-  { "DELETE",       EM_DELETE    },
-  { "END",          EM_END       },
-  { "EXCLUDE",      EM_EXCLUDE   },
-  { "FIND",         EM_FIND      },
-  { "FLIP",         EM_FLIP      },
-  { "HEX",          EM_HEX       },
-  { "HIDE",         EM_HIDE      },
-  { "IMACRO",       EM_IMACRO    },
-  { "LOCATE",       EM_LOCATE    },
-  { "PROCESS",      EM_PROCESS   },
-  { "NULLS",        EM_NULLS     },
-  { "RCHANGE",      EM_RCHANGE   },
-  { "RFIND",        EM_RFIND     },
-  { "SAVE",         EM_SAVE      },
-  { "SCAN",         EM_SCAN,     },
-  { "SEEK",         EM_SEEK      },
-  { "SHIFT",        EM_SHIFT     },
-  { "RESET",        EM_RESET     } } ;
-
-
-map<string,D_PARMS> DefParms =
-{ { "MACRO",        DF_MACRO    },
-  { "ALIAS",        DF_ALIAS    },
-  { "NOP",          DF_NOP      },
-  { "DISABLED",     DF_DISABLED },
-  { "RESET",        DF_RESET    } } ;
+{ { "AUTOSAVE",     EM_AUTOSAVE },
+  { "CANCEL",       EM_CANCEL   },
+  { "CAPS",         EM_CAPS     },
+  { "CHANGE",       EM_CHANGE   },
+  { "DEFINE",       EM_DEFINE   },
+  { "DELETE",       EM_DELETE   },
+  { "END",          EM_END      },
+  { "EXCLUDE",      EM_EXCLUDE  },
+  { "FIND",         EM_FIND     },
+  { "FLIP",         EM_FLIP     },
+  { "HEX",          EM_HEX      },
+  { "HIDE",         EM_HIDE     },
+  { "IMACRO",       EM_IMACRO   },
+  { "INSERT",       EM_INSERT   },
+  { "LOCATE",       EM_LOCATE   },
+  { "PROCESS",      EM_PROCESS  },
+  { "NULLS",        EM_NULLS    },
+  { "PROFILE",      EM_PROFILE  },
+  { "RCHANGE",      EM_RCHANGE  },
+  { "RFIND",        EM_RFIND    },
+  { "SAVE",         EM_SAVE     },
+  { "SCAN",         EM_SCAN,    },
+  { "SEEK",         EM_SEEK     },
+  { "SHIFT",        EM_SHIFT    },
+  { "RESET",        EM_RESET    } } ;
 
 
 map<string,pcmd_entry> PrimCMDS =
@@ -287,6 +291,7 @@ map<string,pcmd_entry> PrimCMDS =
   { "BOUNDS",   { PC_BOUNDS,   "BOUNDS"   } },
   { "BROWSE",   { PC_BROWSE,   "BROWSE"   } },
   { "CANCEL",   { PC_CANCEL,   "CANCEL"   } },
+  { "CAN",      { PC_CANCEL,   "CANCEL"   } },
   { "CHANGE",   { PC_CHANGE,   "CHANGE"   } },
   { "C",        { PC_CHANGE,   "CHANGE"   } },
   { "CHA",      { PC_CHANGE,   "CHANGE"   } },
@@ -297,9 +302,12 @@ map<string,pcmd_entry> PrimCMDS =
   { "COLS",     { PC_COLUMN,   "COLUMN"   } },
   { "COMPARE",  { PC_COMPARE,  "COMPARE"  } },
   { "COMP",     { PC_COMPARE,  "COMPARE"  } },
+  { "COPY",     { PC_COPY,     "COPY"     } },
   { "CREATE",   { PC_CREATE,   "CREATE"   } },
   { "CRE",      { PC_CREATE,   "CREATE"   } },
   { "CUT",      { PC_CUT,      "CUT"      } },
+  { "DEFINE",   { PC_DEFINE,   "DEFINE"   } },
+  { "DEF",      { PC_DEFINE,   "DEFINE"   } },
   { "DELETE",   { PC_DELETE,   "DELETE"   } },
   { "DEL",      { PC_DELETE,   "DELETE"   } },
   { "EDIT",     { PC_EDIT,     "EDIT"     } },
@@ -323,10 +331,13 @@ map<string,pcmd_entry> PrimCMDS =
   { "L",        { PC_LOCATE,   "LOCATE"   } },
   { "NULLS",    { PC_NULLS,    "NULLS"    } },
   { "NULL",     { PC_NULLS,    "NULLS"    } },
+  { "NUL",      { PC_NULLS,    "NULLS"    } },
   { "PASTE",    { PC_PASTE,    "PASTE"    } },
   { "PRESERVE", { PC_PRESERVE, "PRESERVE" } },
   { "PROFILE",  { PC_PROFILE,  "PROFILE"  } },
   { "PROF",     { PC_PROFILE,  "PROFILE"  } },
+  { "PRO",      { PC_PROFILE,  "PROFILE"  } },
+  { "PR",       { PC_PROFILE,  "PROFILE"  } },
   { "RECVR",    { PC_RECOVERY, "RECOVERY" } },
   { "RECVRY",   { PC_RECOVERY, "RECOVERY" } },
   { "RECOV",    { PC_RECOVERY, "RECOVERY" } },
@@ -344,51 +355,58 @@ map<string,pcmd_entry> PrimCMDS =
   { "SETU",     { PC_SETUNDO,  "SETUNDO"  } },
   { "SORT",     { PC_SORT,     "SORT"     } },
   { "TABS",     { PC_TABS,     "TABS"     } },
+  { "TAB",      { PC_TABS,     "TABS"     } },
   { "UNDO",     { PC_UNDO,     "UNDO"     } },
   { "XTABS",    { PC_XTABS,    "XTABS"    } }} ;
 
-class icmd
+
+map<string,D_PARMS> DefParms =
+{ { "MACRO",        DF_MACRO    },
+  { "ALIAS",        DF_ALIAS    },
+  { "NOP",          DF_NOP      },
+  { "DISABLED",     DF_DISABLED },
+  { "RESET",        DF_RESET    } } ;
+
+
+class lcmd
 {
 	private:
-		L_CMDS icmd_CMD    ;
-		string icmd_CMDSTR ;
-		int    icmd_sURID  ;
-		int    icmd_eURID  ;
-		int    icmd_dURID  ;
-		int    icmd_lURID  ;
-		int    icmd_Rpt    ;
-		char   icmd_ABOW   ;
-		bool   icmd_swap   ;
-		bool   icmd_cut    ;
-		bool   icmd_paste  ;
-		bool   icmd_create ;
-		icmd()
+		L_CMDS lcmd_CMD    ;
+		string lcmd_CMDSTR ;
+		int    lcmd_sURID  ;
+		int    lcmd_eURID  ;
+		int    lcmd_dURID  ;
+		int    lcmd_lURID  ;
+		int    lcmd_Rpt    ;
+		char   lcmd_ABOW   ;
+		bool   lcmd_swap   ;
+		bool   lcmd_cut    ;
+		bool   lcmd_create ;
+		lcmd()
 		{
-			icmd_CMDSTR  = " "   ;
-			icmd_sURID   = 0     ;
-			icmd_eURID   = 0     ;
-			icmd_dURID   = 0     ;
-			icmd_lURID   = 0     ;
-			icmd_ABOW    = ' '   ;
-			icmd_Rpt     = 0     ;
-			icmd_swap    = false ;
-			icmd_cut     = false ;
-			icmd_paste   = false ;
-			icmd_create  = false ;
+			lcmd_CMDSTR  = " "   ;
+			lcmd_sURID   = 0     ;
+			lcmd_eURID   = 0     ;
+			lcmd_dURID   = 0     ;
+			lcmd_lURID   = 0     ;
+			lcmd_ABOW    = ' '   ;
+			lcmd_Rpt     = 0     ;
+			lcmd_swap    = false ;
+			lcmd_cut     = false ;
+			lcmd_create  = false ;
 		}
-		void icmd_clear()
+		void lcmd_clear()
 		{
-			icmd_CMDSTR  = " "   ;
-			icmd_sURID   = 0     ;
-			icmd_eURID   = 0     ;
-			icmd_dURID   = 0     ;
-			icmd_lURID   = 0     ;
-			icmd_ABOW    = ' '   ;
-			icmd_Rpt     = 0     ;
-			icmd_swap    = false ;
-			icmd_cut     = false ;
-			icmd_paste   = false ;
-			icmd_create  = false ;
+			lcmd_CMDSTR  = " "   ;
+			lcmd_sURID   = 0     ;
+			lcmd_eURID   = 0     ;
+			lcmd_dURID   = 0     ;
+			lcmd_lURID   = 0     ;
+			lcmd_ABOW    = ' '   ;
+			lcmd_Rpt     = 0     ;
+			lcmd_swap    = false ;
+			lcmd_cut     = false ;
+			lcmd_create  = false ;
 		}
 	friend class PEDIT01 ;
 } ;
@@ -770,6 +788,10 @@ class iline
 			}
 			else { return false ; }
 		}
+		void set_idata_trim()
+		{
+			trim_right( il_idata.top().id_data ) ;
+		}
 		void set_idata_level( int level )
 		{
 			il_idata.top().id_level = level ;
@@ -1140,6 +1162,7 @@ class cmdblock
 		P_CMDS p_cmd ;
 		string MSG   ;
 		string cchar ;
+		string udata ;
 		int    RC    ;
 		int    RSN   ;
 		int    cwds  ;
@@ -1159,6 +1182,7 @@ class cmdblock
 		p_cmd    = PC_INVCMD ;
 		MSG      = "" ;
 		cchar    = "" ;
+		udata    = "" ;
 		RC       = 0  ;
 		RSN      = 0  ;
 		cwds     = 0  ;
@@ -1178,6 +1202,7 @@ class cmdblock
 		p_cmd    = PC_INVCMD ;
 		MSG      = "" ;
 		cchar    = "" ;
+		udata    = "" ;
 		RC       = 0  ;
 		RSN      = 0  ;
 		cwds     = 0  ;
@@ -1202,6 +1227,7 @@ class cmdblock
 		RC       = 0     ;
 		RSN      = 0     ;
 		cchar    = ""    ;
+		udata    = ""    ;
 		macro    = true  ;
 		expl     = false ;
 		seek     = false ;
@@ -1255,7 +1281,7 @@ class cmdblock
 				{
 					if ( ita->second.top().deactive() )
 					{
-						set_msg( "PEDM012S", 8 ) ;
+						set_msg( "PEDT015R", 8 ) ;
 						deact = true ;
 						return ;
 					}
@@ -1270,7 +1296,7 @@ class cmdblock
 						ita = defNames.find( w ) ;
 						if ( ita != defNames.end() && ita->second.top().deactive() )
 						{
-							set_msg( "PEDM012S", 8 ) ;
+							set_msg( "PEDT015R", 8 ) ;
 							deact = true ;
 							return ;
 						}
@@ -1312,6 +1338,10 @@ class cmdblock
 	{
 		return CMD ;
 	}
+	bool cmd_not( const string& s )
+	{
+		return ( CMD != s ) ;
+	}
 	int isMacro()
 	{
 		return macro ;
@@ -1336,6 +1366,7 @@ class cmdblock
 	{
 		CMD      = ""    ;
 		cchar    = ""    ;
+		udata    = ""    ;
 		p_cmd    = PC_INVCMD ;
 		actioned = false ;
 		seek     = false ;
@@ -1375,6 +1406,14 @@ class cmdblock
 	{
 		return ( CMD != "" ) ;
 	}
+	void set_userdata( const string& s )
+	{
+		udata = s ;
+	}
+	string get_userdata()
+	{
+		return udata ;
+	}
 	bool error()
 	{
 		return ( RC > 8 ) ;
@@ -1395,39 +1434,42 @@ class cmdblock
 class miblock
 {
 	public:
-		string emacro   ;
-		string mfile    ;
+		string emacro    ;
+		string mfile     ;
 		pApplication * editAppl ;
 		pApplication * macAppl  ;
-		string sttment  ;
-		M_CMDS m_cmd    ;
-		string keyword  ;
-		string kphrase  ;
-		string keyopts  ;
-		string value    ;
-		string parms    ;
-		string var1     ;
-		string var2     ;
-		string msgid    ;
-		string msg1     ;
-		string msg2     ;
-		bool   mfound   ;
-		bool   macro    ;
-		bool   process  ;
-		bool   processed;
-		bool   fatal    ;
-		bool   assign   ;
-		bool   query    ;
-		bool   scan     ;
-		bool   runmacro ;
-		bool   eended   ;
-		int    etaskid  ;
-		int    nestlvl  ;
-		int    nvars    ;
-		int    nkeyopts ;
-		int    nvalopts ;
-		int    RC       ;
-		int    RSN      ;
+		string sttment   ;
+		M_CMDS m_cmd     ;
+		string keyword   ;
+		string kphrase   ;
+		string keyopts   ;
+		string value     ;
+		string parms     ;
+		string var1      ;
+		string var2      ;
+		string msgid     ;
+		string val1      ;
+		bool   mfound    ;
+		bool   macro     ;
+		bool   imacro    ;
+		bool   process   ;
+		bool   processed ;
+		bool   setcursor ;
+		bool   fatal     ;
+		bool   assign    ;
+		bool   query     ;
+		bool   scan      ;
+		bool   runmacro  ;
+		bool   eended    ;
+		int    sttwds    ;
+		int    etaskid   ;
+		int    nestlvl   ;
+		int    nvars     ;
+		int    nkeyopts  ;
+		int    nvalopts  ;
+		int    RC        ;
+		int    RSN       ;
+		int    exitRC    ;
 
 	miblock()
 	{
@@ -1445,12 +1487,13 @@ class miblock
 		var1      = ""    ;
 		var2      = ""    ;
 		msgid     = ""    ;
-		msg1      = ""    ;
-		msg2      = ""    ;
+		val1      = ""    ;
 		mfound    = false ;
 		macro     = false ;
+		imacro    = false ;
 		process   = true  ;
 		processed = false ;
+		setcursor = false ;
 		fatal     = false ;
 		assign    = false ;
 		query     = false ;
@@ -1458,12 +1501,14 @@ class miblock
 		runmacro  = false ;
 		eended    = false ;
 		etaskid   = 0     ;
+		sttwds    = 0     ;
 		nestlvl   = 0     ;
 		nvars     = 0     ;
 		nkeyopts  = 0     ;
 		nvalopts  = 0     ;
 		RC        = 0     ;
 		RSN       = 0     ;
+		exitRC    = 0     ;
 	}
 	void clear()
 	{
@@ -1481,25 +1526,27 @@ class miblock
 		var1      = ""    ;
 		var2      = ""    ;
 		msgid     = ""    ;
-		msg1      = ""    ;
-		msg2      = ""    ;
+		val1      = ""    ;
 		mfound    = false ;
 		macro     = false ;
+		imacro    = false ;
 		process   = true  ;
 		processed = false ;
+		setcursor = false ;
 		fatal     = false ;
 		assign    = false ;
 		query     = false ;
 		scan      = true  ;
 		runmacro  = false ;
-		eended    = false ;
 		etaskid   = 0     ;
+		sttwds    = 0     ;
 		nestlvl   = 0     ;
 		nvars     = 0     ;
 		nkeyopts  = 0     ;
 		nvalopts  = 0     ;
 		RC        = 0     ;
 		RSN       = 0     ;
+		exitRC    = 0     ;
 	}
 	void reset()
 	{
@@ -1512,31 +1559,28 @@ class miblock
 		var1      = ""    ;
 		var2      = ""    ;
 		msgid     = ""    ;
-		msg1      = ""    ;
-		msg2      = ""    ;
+		val1      = ""    ;
 		assign    = false ;
 		query     = false ;
 		runmacro  = false ;
+		sttwds    = 0     ;
 		nvars     = 0     ;
 		nkeyopts  = 0     ;
 		nvalopts  = 0     ;
 		RC        = 0     ;
 		RSN       = 0     ;
 	}
-	void seterror( const string& e1, const string &e3 ="", int i1 =12, int i2 =0 )
+	void seterror( const string& e1, int i1=12, int i2 =0 )
 	{
 		msgid = e1 ;
-		msg1  = "" ;
-		msg2  = e3 ;
 		RC    = i1 ;
 		RSN   = i2 ;
 		fatal = ( RC >= 12 ) ;
 	}
-	void seterror( const string& e1, int i1, int i2 =0 )
+	void seterror( const string& e1, const string& e2, int i1 =12, int i2 =0 )
 	{
 		msgid = e1 ;
-		msg1  = "" ;
-		msg2  = "" ;
+		val1  = e2 ;
 		RC    = i1 ;
 		RSN   = i2 ;
 		fatal = ( RC >= 12 ) ;
@@ -1544,11 +1588,29 @@ class miblock
 	void seterror( cmdblock& cmd )
 	{
 		msgid = cmd.MSG ;
-		msg1  = "" ;
-		msg2  = "" ;
 		RC    = cmd.RC  ;
 		RSN   = cmd.RSN ;
 		fatal = ( RC >= 12 ) ;
+	}
+	void setExitRC( const string& s )
+	{
+		if ( datatype( s, 'W' ) )
+		{
+			exitRC = ds2d( s ) ;
+		}
+		else
+		{
+			seterror( "PEDM012L", 20 ) ;
+			exitRC = 28 ;
+		}
+	}
+	void setExitRC( int i )
+	{
+		exitRC = i ;
+	}
+	int getExitRC()
+	{
+		return exitRC ;
 	}
 	void setRC( int i )
 	{
@@ -1558,9 +1620,11 @@ class miblock
 		{
 			fatal = false ;
 			msgid = "" ;
-			msg1  = "" ;
-			msg2  = "" ;
 		}
+	}
+	bool msgset()
+	{
+		return ( msgid != "" ) ;
 	}
 	void parseMACRO()
 	{
@@ -1608,23 +1672,29 @@ class miblock
 	}
 	void parseStatement( const string& s, map<string,stack<defName>>& defNames )
 	{
-		int  i      ;
-		int  p1     ;
-		int  miss   ;
-		char qt     ;
-
-		bool isvar   ;
-		bool builtin ;
-		bool quote   ;
+		int  i     ;
+		int  p1    ;
+		int  miss  ;
+		char qt    ;
 
 		string var ;
 		string w   ;
 		string t   ;
 
-		map<string,mc_format>::iterator it       ;
+		bool builtin ;
+		bool quote   ;
+		bool isvar   ;
+
+		map<string,mcmd_format>::iterator it       ;
 		map<string,stack<defName>>::iterator ita ;
 		string::iterator its ;
 
+		if ( eended )
+		{
+			seterror( "PEDM013D" ) ;
+			eended = false ;
+			return ;
+		}
 		reset() ;
 
 		sttment = s ;
@@ -1671,6 +1741,7 @@ class miblock
 			idelword( t, 1, 1 )       ;
 			builtin = true ;
 		}
+		sttwds = words( sttment ) ;
 		if ( t.front() == '(' )
 		{
 			p1 = t.find( '=' ) ;
@@ -1679,8 +1750,9 @@ class miblock
 				seterror( "PEDM011K" ) ;
 				return ;
 			}
-			value   = t.substr( 0, p1 )  ;
-			kphrase = t.substr( p1+1  )  ;
+			assign  = true ;
+			value   = t.substr( 0, p1 ) ;
+			kphrase = t.substr( p1+1  ) ;
 			query   = true ;
 			keyword = word( kphrase, 1 ) ;
 			if ( EMServ.count( keyword ) == 0 )
@@ -1693,15 +1765,16 @@ class miblock
 		{
 			p1      = t.find( '=' ) ;
 			keyword = word( t, 1 )  ;
+			if ( p1 != string::npos ) { assign  = true ; }
 			if ( PrimCMDS.count( keyword ) > 0 ) { keyword = PrimCMDS[ keyword ].truename ; }
-			if ( p1 == string::npos && !builtin )
+			if ( assign && !builtin )
 			{
 				ita = defNames.find( keyword ) ;
 				if ( ita != defNames.end() )
 				{
 					if ( ita->second.top().deactive() )
 					{
-						seterror( "PEDM012U" ) ;
+						seterror( "PEDT015S" ) ;
 						return ;
 					}
 					keyword = ita->second.top().name ;
@@ -1723,9 +1796,13 @@ class miblock
 					return ;
 				}
 				m_cmd = EMCmds[ keyword ] ;
+				if ( m_cmd == EM_PROCESS && processed && !imacro )
+				{
+					seterror( "PEDM012K" ) ;
+				}
 				return ;
 			}
-			if ( p1 == string::npos )
+			if ( !assign )
 			{
 				if ( EMServ.count( keyword ) > 0 && EMCmds.count( keyword ) == 0 )
 				{
@@ -1733,8 +1810,8 @@ class miblock
 					return ;
 				}
 				keyopts = subword( t, 2 ) ;
-				m_cmd   = EMServ[ keyword ].m_cmd ;
-				if ( m_cmd == EM_PROCESS && processed )
+				m_cmd   = EMCmds[ keyword ] ;
+				if ( m_cmd == EM_PROCESS && processed && !imacro )
 				{
 					seterror( "PEDM012K" ) ;
 				}
@@ -1745,7 +1822,6 @@ class miblock
 		}
 		keyopts  = subword( kphrase, 2 ) ;
 		nkeyopts = words( keyopts ) ;
-		assign   = true  ;
 		isvar    = false ;
 		m_cmd    = EMServ[ keyword ].m_cmd ;
 		trim( value )    ;
@@ -1893,6 +1969,10 @@ class miblock
 	{
 		return eended ;
 	}
+	int get_sttment_words()
+	{
+		return sttwds ;
+	}
 	friend class PEDIT01 ;
 	friend class PEDRXM1 ;
 } ;
@@ -1945,9 +2025,9 @@ class PEDIT01 : public pApplication
 		void actionPrimCommand1() ;
 		void actionPrimCommand2() ;
 		void actionLineCommands() ;
-		void actionLineCommand( vector<icmd>::iterator ) ;
+		void actionLineCommand( vector<lcmd>::iterator ) ;
 
-		void run_macro()          ;
+		void run_macro( bool =false ) ;
 
 		void actionZVERB()        ;
 		void setLineLabels()      ;
@@ -1962,6 +2042,8 @@ class PEDIT01 : public pApplication
 		uint getLastEX( uint )    ;
 		int  getExBlockSize( uint )   ;
 		int  getDataBlockSize( uint ) ;
+		bool URIDOnScreen( int, int ) ;
+		void moveTopline( int )  ;
 		int  getLastURID( vector<iline *>::iterator, int ) ;
 
 		int  getFileLine( uint ) ;
@@ -1992,8 +2074,6 @@ class PEDIT01 : public pApplication
 		bool   getVariables( int, string&, string& ) ;
 
 		void copyFileData( vector<string> &, int, int  ) ;
-
-		bool URIDonScreen( int ) ;
 
 		string overlay1( string, string, bool& ) ;
 		string overlay2( string, string )        ;
@@ -2032,7 +2112,8 @@ class PEDIT01 : public pApplication
 		void copyPrefix( ipline &, iline *& ) ;
 		void copyPrefix( iline * &,ipline&, bool =false ) ;
 		void addSpecial( char, int, vector<string>& ) ;
-		void addSpecial( char, int, string& ) ;
+		void addSpecial( char, int, const string& ) ;
+		void addSpecial( char, vector<iline * >::iterator, const string& ) ;
 
 		string rshiftCols( int, const string * ) ;
 		string lshiftCols( int, const string * ) ;
@@ -2109,6 +2190,7 @@ class PEDIT01 : public pApplication
 		bool cutActive           ;
 		bool cutReplace          ;
 		bool pasteActive         ;
+		bool copyActive          ;
 		bool pasteKeep           ;
 		bool hideExcl            ;
 
@@ -2126,7 +2208,7 @@ class PEDIT01 : public pApplication
 		map<int, bool> sChanged  ;
 		map<int, bool> sTouched  ;
 		map<int, int>lchar       ;
-		vector<icmd> icmds       ;
+		vector<lcmd> lcmds       ;
 
 		e_find  find_parms ;
 		hilight hlight     ;
@@ -2229,8 +2311,10 @@ class PEDIT01 : public pApplication
 						     { PC_CAPS,     {  0,  2 } },
 						     { PC_COLUMN,   {  0,  1 } },
 						     { PC_COMPARE,  { -1, -1 } },
+						     { PC_COPY,     {  0,  1 } },
 						     { PC_CREATE,   { -1, -1 } },
 						     { PC_CUT,      { -1, -1 } },
+						     { PC_DEFINE,   {  2,  3 } },
 						     { PC_DELETE,   { -1, -1 } },
 						     { PC_EDIT,     { -1, -1 } },
 						     { PC_EXCLUDE,  { -1, -1 } },
@@ -2342,28 +2426,47 @@ class PEDIT01 : public pApplication
 						  { "UUC",    "UCC"  },
 						  { "UCUC",   "UCC"  } } ;
 
-		map<string,string> aliasNames = { { "CHG",      "CHA"   },
-						  { "CHANGE",   "CHA"   },
-						  { "CMDS",     "CMD"   },
-						  { "COM",      "CMD"   },
-						  { "COMMAND",  "CMD"   },
-						  { "COMMANDS", "CMD"   },
-						  { "ERROR",    "ERR"   },
-						  { "ERRORS",   "ERR"   },
-						  { "EX",       "X"     },
-						  { "EXC",      "X"     },
-						  { "EXCLUDE",  "X"     },
-						  { "EXCLUDED", "X"     },
-						  { "INFOLINE", "INFO"  },
-						  { "HIDE",     "H"     },
-						  { "LABEL",    "LAB"   },
-						  { "LABELS",   "LAB"   },
-						  { "MRK",      "T"     },
-						  { "MARK",     "T"     },
-						  { "MARKED",   "T"     },
-						  { "MSGLINE",  "MSG"   },
-						  { "NOTELINE", "NOTE"  },
-						  { "SPECIAL",  "SPE"   } } ;
+		map<string,string> aliasNames = { { "CHAR",     "CHARS"     },
+						  { "CHG",      "CHA"       },
+						  { "CHANGE",   "CHA"       },
+						  { "CMDS",     "CMD"       },
+						  { "COM",      "CMD"       },
+						  { "COMMAND",  "CMD"       },
+						  { "COMMANDS", "CMD"       },
+						  { "CURSOR",   "CUR"       },
+						  { "DIS",      "DISABLED"  },
+						  { "DISAB",    "DISABLED"  },
+						  { "DISABLE",  "DISABLED"  },
+						  { "DISP",     "DISPLAY"   },
+						  { "DISPL",    "DISPLAY"   },
+						  { "DO",       "DOLOGIC"   },
+						  { "ERROR",    "ERR"       },
+						  { "ERRORS",   "ERR"       },
+						  { "EX",       "X"         },
+						  { "EXC",      "X"         },
+						  { "EXCLUDE",  "X"         },
+						  { "EXCLUDED", "X"         },
+						  { "IF",       "IFLOGIC"   },
+						  { "INFOLINE", "INFO"      },
+						  { "HIDE",     "H"         },
+						  { "LABEL",    "LAB"       },
+						  { "LABELS",   "LAB"       },
+						  { "MRK",      "T"         },
+						  { "MARK",     "T"         },
+						  { "MARKED",   "T"         },
+						  { "MSGLINE",  "MSG"       },
+						  { "NOTELINE", "NOTE"      },
+						  { "PRE",      "PREFIX"    },
+						  { "REC",      "RECOVER"   },
+						  { "RECOVERY", "RECOVER"   },
+						  { "SPECIAL",  "SPE"       },
+						  { "STD",      "STANDARD"  },
+						  { "STG",      "STORAGE"   },
+						  { "STO",      "STORAGE"   },
+						  { "STOR",     "STORAGE"   },
+						  { "STORE",    "STORAGE"   },
+						  { "SUF",      "SUFFIX"    },
+						  { "VERT",     "VERTICAL"  } } ;
 
 		map<string,string> abokLCMDS  = { { "AK",  "A"  },
 						  { "BK",  "B"  },

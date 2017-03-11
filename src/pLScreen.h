@@ -48,7 +48,10 @@ class pLScreen
 	int   application_stack_size()                       { return pApplicationStack.size()  ; }
 	bool  application_stack_empty()                      { return pApplicationStack.empty() ; }
 
+	void  set_Insert( bool ins )       { Insert = ins ; Insert ? curs_set(2) : curs_set(1)  ; }
+
 	void  OIA_setup()  ;
+	void  OIA_update( const char* ) ;
 	void  show_enter() ;
 	void  show_busy()  ;
 	void  show_wait()  ;
@@ -62,6 +65,8 @@ class pLScreen
 private:
 	int row ;
 	int col ;
+
+	bool Insert ;
 
 	stack<pApplication *> pApplicationStack ;
 	stack<PANEL *> panelList ;

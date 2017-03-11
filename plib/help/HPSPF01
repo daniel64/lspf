@@ -65,7 +65,7 @@ REFOPENF Open a list of all referral lists
 
 USER
 ****
-EXEC   Execute OOREXX EXEC from the command line (similar to % command character)
+EXEC   Execute OOREXX EXEC from the command line (similar to @ command character)
 FLIST  Display saved file names and execute line command
 MODS   List found application modules (Dynamically Loaded Classes) and their status
 RUN    Run application (similar to ! command character)

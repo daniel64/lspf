@@ -1230,6 +1230,7 @@ string PBRO01A::determineLang( string ZFILE )
 	}
 
 	if ( ZFILE.find( "/rexx/" ) != string::npos ) { return "REXX" ; }
+	if ( ZFILE.find( "/tmp/"  ) != string::npos ) { return "NONE" ; }
 
 	for ( i = 0 ; i < 100 ; i++ )
 	{

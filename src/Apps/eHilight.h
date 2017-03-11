@@ -77,11 +77,13 @@ void addCppHilight( hilight&, const string&, string& ) ;
 void addRxxHilight( hilight&, const string&, string& ) ;
 void addOthHilight( hilight&, const string&, string& ) ;
 void addDefHilight( hilight&, const string&, string& ) ;
+void addNoHilight( hilight&, const string&, string& )  ;
 
 map<string, void(*)(hilight&, const string&, string&)> hiRoutine = { { "ASM",     addASMHilight },
 								     { "CPP",     addCppHilight },
 								     { "DEFAULT", addDefHilight },
 								     { "OTHER",   addOthHilight },
+								     { "NONE",    addNoHilight  },
 								     { "PANEL",   addDefHilight },
 								     { "REXX",    addRxxHilight } } ;
 map<string, keyw> keywList1 = {

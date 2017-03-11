@@ -81,7 +81,7 @@ PEDT011Q 'File Not Saved' .TYPE=W
 'An error has occured saving the file.  Check file permissions for access rights'
 
 PEDT011R 'File Does Not Exist' .TYPE=W
-"File '&ZFILE' does not exist"
+"File '&ZSTR1' does not exist"
 
 PEDT011S 'File/Directory Does Not Exist' .TYPE=W
 "'&ZFILE' is neither a valid file, nor a valid directory"
@@ -261,7 +261,7 @@ PEDT014R 'File exists' .TYPE=W
 'File entered on a CREATE command already exists'
 
 PEDT014S 'Open error' .TYPE=W
-'File cannot be opened.  Check permissions'
+'File &ZSTR1 cannot be opened.  Check permissions'
 
 PEDT014T 'File created' .TYPE=N
 'File has been created from the selected lines'
@@ -275,8 +275,8 @@ PEDT014V 'Line not located' .TYPE=W
 PEDT014W 'Tabs converted' .TYPE=N
 'Tabs have been converted to spaces on file read'
 
-PEDT014X 'SPARE' .TYPE=W
-'SPARE'
+PEDT014X '&ZSTR1 macro error' .TYPE=W
+'&ZSTR1 has set a return code of &ZSTR2'
 
 PEDT014Y 'SPARE' .TYPE=W
 'SPARE'
@@ -293,10 +293,10 @@ PEDT015B 'Invalid command' .TYPE=W
 PEDT015C "'&STR' macro error" .TYPE=W
 "An error has occured in edit macro '&STR'"
 
-PEDT015D 'Invalid Primary Command' .TYPE=W
+PEDT015D 'Invalid command parameter' .TYPE=W
 'Primary command entered has too many parameters'
 
-PEDT015E 'Invalid Primary Command' .TYPE=W
+PEDT015E 'Missing command parameter' .TYPE=W
 'Primary command entered has too few parameters'
 
 PEDT015F 'Missing command name' .TYPE=W
@@ -307,3 +307,42 @@ PEDT015G 'Line number out of range' .TYPE=W
 
 PEDT015H 'Rejected.  Profile locked' .TYPE=W
 'IMACRO change rejected as the profile is locked'
+
+PEDT015I 'Copy Pending' .TYPE=W
+'Copy is pending.  Select position to insert lines with the A/B line commands'
+
+PEDT015J '&ZEDLNES lines copied' .TYPE=N
+'&ZEDLNES lines copied from file &ZSTR1'
+
+PEDT015K 'File does not exist' .TYPE=W
+'File &ZSTR1 entered for a COPY command does not exist'
+
+PEDT015L 'No data added' .TYPE=N
+'No data found to add'
+
+PEDT015M 'Invalid DEFINE option'
+"DEFINE command contains an invalid option.  Must be MACRO, ALIAS, NOP, RESET or DISABLED"
+
+PEDT015N 'Missing DEFINE alias-to name'
+"Missing alias-to name on 'DEFINE name ALIAS alias-to' command"
+
+PEDT015O 'Invalid keyword option'
+"Too many parameters following the 'DEFINE name keyword' command"
+
+PEDT015P 'DEFINE is not allowed' .TYPE=W
+"Command name has been disabled with the DEFINE DISABLED command"
+
+PEDT015Q 'Define name not found' .TYPE=W
+"No previous DEFINE for this command for a NOP or DISABLED request"
+
+PEDT015R 'Deactivated command' .TYPE=W
+"Command name has been deactivated with the DEFINE NOP or DISABLED command"
+
+PEDT015S 'Disabled command' .TYPE=W
+"Command name has been disabled with the DEFINE DISABLED command"
+
+PEDT015T 'Invalid DEFINE request' .TYPE=W
+"RESET attempted for a name not currently DEFINED"
+
+PEDT015U 'Invalid DEFINE request' .TYPE=W
+"DEFINE ALIAS attempted for a name that is currently NOP'ed or DISABLED"

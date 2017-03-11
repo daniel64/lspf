@@ -182,7 +182,12 @@ void POREXX1::application()
 		{
 			if ( result != NULLOBJECT )
 			{
-				CSTRING resultString = threadContext->CString( result ) ;
+				ZRESULT = threadContext->CString( result ) ;
+				if ( datatype( ZRESULT, 'W' ) )
+				{
+					ZRC     = ds2d( ZRESULT ) ;
+					ZRESULT = "" ;
+				}
 			}
 		}
 		instance->Terminate() ;

@@ -61,6 +61,7 @@ pLScreen::pLScreen()
 	++screensTotal    ;
 	currScreen = this ;
 	screenID   = ++maxScreenID ;
+	Insert     = false         ;
 }
 
 
@@ -133,6 +134,20 @@ void pLScreen::OIA_setup()
 	mvwaddstr( OIA, 0, 2,  "Screen[        ]" ) ;
 	mvwaddstr( OIA, 0, 31, "Elapsed:" ) ;
 	mvwaddstr( OIA, 0, 51, "Screen:" ) ;
+	wattroff( OIA, YELLOW ) ;
+}
+
+
+void pLScreen::OIA_update( const char* respTime )
+{
+	wattrset( OIA, YELLOW ) ;
+	mvwaddstr( OIA, 0, 9,  "        " ) ;
+	mvwaddstr( OIA, 0, 9, substr( "12345678", 1, screensTotal).c_str() ) ;
+	mvwaddstr( OIA, 0, 27, "   " ) ;
+	mvwaddstr( OIA, 0, 40, respTime ) ;
+	mvwprintw( OIA, 0, 59, "%d-%d   ", screenID, application_stack_size() );
+	mvwaddstr( OIA, 0, maxcol-23, Insert ? "Insert" : "      " ) ;
+	mvwprintw( OIA, 0, maxcol-14, "Row %d Col %d  ", row+1, col+1 ) ;
 	wattroff( OIA, YELLOW ) ;
 }
 

@@ -12,7 +12,7 @@ PEDM011C 'Missing closing bracket on statement found'
 ''
 
 PEDM011D 'Invalid variable name'
-''
+"Variable name '&ZVAL1' is not valid"
 
 PEDM011E 'The MACRO statement must precede any other edit macro statement'
 ''
@@ -45,7 +45,7 @@ PEDM011N 'Invalid command'
 'Command keyword is not recognised or missing'
 
 PEDM011O 'Invalid command'
-'Syntax error in command format'
+'&ZVAL1'
 
 PEDM011P 'Parameter not recognised'
 'Check for misspelled, missing or extraneous parameters'
@@ -113,17 +113,17 @@ PEDM012J 'Command Invalid'
 PEDM012K 'Invalid process request'
 'End user input previously processed.  Specify NOPROCESS on macro command'
 
-PEDM012L 'Invalid DEFINE option'
-"DEFINE command contains an invalid option.  Must be MACRO, ALIAS, NOP, RESET or DISABLED"
+PEDM012L '&ZSTR1 returned invalid number' .T=W
+"&ZSTR1 has set an invalid return that is not a whole number"
 
-PEDM012M 'Invalid DEFINE option'
-"DEFINE command contains an invalid option.  Must be ALIAS or RESET"
+PEDM012M 'spare'
+"spare"
 
-PEDM012N 'Missing DEFINE alias-to name'
-"Missing alias-to name on 'DEFINE name ALIAS alias-to' command"
+PEDM012N 'spare'
+"spare"
 
-PEDM012O 'Invalid keyword option'
-"Too many parameters following the 'DEFINE name keyword' command"
+PEDM012O 'spare'
+"spare"
 
 PEDM012P 'No macro name specified'
 "Macro name is blank.  Please specify a valid macro"
@@ -131,17 +131,17 @@ PEDM012P 'No macro name specified'
 PEDM012Q 'Invalid rexx file' .TYPE=W
 "Invalid file found in path ZORXPATH"
 
-PEDM012R 'DEFINE is not allowed' .TYPE=W
-"Command name has been disabled with the DEFINE DISABLED command"
+PEDM012R 'spare'
+"spare"
 
-PEDM012S 'Deactivated command' .TYPE=W
-"Command name has been deactivated with the DEFINE NOP or DISABLED command"
+PEDM012S 'spare'
+"spare"
 
-PEDM012T 'Define name not found' .TYPE=W
-"No previous DEFINE for this command for a NOP or DISABLED request"
+PEDM012T 'spare'
+"spare"
 
-PEDM012U 'Deactivated command' .TYPE=W
-"Command name has been deactivated with the DEFINE DISABLED command"
+PEDM012U 'spare'
+"spare"
 
 PEDM012V 'Invalid LINE format' .TYPE=W
 "Format must be 'line-type data'"
@@ -159,8 +159,17 @@ PEDM012Z 'Invalid template format'
 "Invalid number of parameters between '<' and '>'"
 
 PEDM013A 'Missing parameter'
-""
+"&ZVAL1"
 
 PEDM013B 'Invalid template parameter'
 "Column parameter must be numeric"
+
+PEDM013C 'Invalid specification'
+"The specified cursor position exceeds the data length"
+
+PEDM013D 'Statements after CANCEL or END'
+"Macro has ended the edit session but further statements were found in the macro"
+
+PEDM013E 'Initial macro error'
+"Macro command entered is not allowed from an initial macro"
 

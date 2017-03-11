@@ -107,6 +107,8 @@ string& trim_left( string& s )  ;
 string& trim_right( string& s ) ;
 string& trim( string& s )       ;
 
+string& dquote( char c, string& s ) ;
+
 bool   findword( const string& s1, const string& s2 )  ;
 int    countc( const string& s, char c )       ;
 bool   matchpattern( const string& s1, const string& s2 ) ;

@@ -44,7 +44,7 @@ FLST011N 'Delete successful' .TYPE=N
 'Delete of pathname has been successful.  &RSN.'
 
 FLST011O 'Delete failed' .TYPE=W
-'Delete of file has failed with &RSN..  See log for error essages'
+'Delete of file has failed with &RSN..  See log for error messages'
 
 FLST011P 'Delete cancelled' .TYPE=N
 'Delete of file has been cancelled.'

@@ -9,7 +9,7 @@
 
 )BODY
 
-PanelTitle "Dialogue Error"
+PanelTitle "Dialogue Error in application &ZAPPNAME"
 
 literal 4   2      FP  "Command ===> "
 field   4  15 MAX  NEF  CAPS(ON)  ZCMD
@@ -78,19 +78,16 @@ literal 27  MAX ET "*"
 
 literal 28      2 ET EXPAND "*"
 
-literal 9 4   NT "Error in dialogue"
-field   9 22  MAX-2 ET NONE ZAPPNAME
-
-field   11 4  MAX-2 ET NONE ZERR1
-field   12 4  MAX-2 ET NONE ZERR2
-field   13 4  MAX-2 ET NONE ZERR3
-field   14 4  MAX-2 ET NONE ZERR4
-field   15 4  MAX-2 ET NONE ZERR5
-field   16 4  MAX-2 ET NONE ZERR6
-field   17 4  MAX-2 ET NONE ZERR7
-field   18 4  MAX-2 ET NONE ZERR8
-field   19 4  MAX-2 ET NONE ZERR9
-field   20 4  MAX-2 ET NONE ZERR10
+field   10 4  MAX-2 ET NONE ZERR1
+field   11 4  MAX-2 ET NONE ZERR2
+field   12 4  MAX-2 ET NONE ZERR3
+field   13 4  MAX-2 ET NONE ZERR4
+field   14 4  MAX-2 ET NONE ZERR5
+field   15 4  MAX-2 ET NONE ZERR6
+field   16 4  MAX-2 ET NONE ZERR7
+field   17 4  MAX-2 ET NONE ZERR8
+field   18 4  MAX-2 ET NONE ZERR9
+field   19 4  MAX-2 ET NONE ZERR10
 
 literal 22 4   NT "See application and lspf logs for more messages"
 

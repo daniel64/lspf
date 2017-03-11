@@ -1,8 +1,10 @@
 )PANEL VERSION=1 FORMAT=1
+
 )COMMENT
- Panel to display/delete pool variables
+ Panel to display running tasks
 )ENDCOMMENT
-)BODY
+
+)BODY   HOME(ZCMD)
 PanelTitle "Task Display"
 
 scrollOn
@@ -27,23 +29,39 @@ tbfield  ++1   MAX VOI NONE CMD
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
 
-
 )INIT
 VGET ZSCROLL PROFILE
+&ZCMD = &Z
+
 .ATTR(USER) = 'COLOUR(YELLOW)'
-.ATTR(PID) = 'COLOUR(WHITE)'
-.ATTR(CPU) = 'COLOUR(RED)'
-.ATTR(MEM) = 'COLOUR(WHITE)'
+.ATTR(PID)  = 'COLOUR(WHITE)'
+.ATTR(CPU)  = 'COLOUR(RED)'
+.ATTR(MEM)  = 'COLOUR(WHITE)'
 
 .HELP=HPSP01A
 
 )PROC
+
+&W1 = TRUNC( &ZCMD, ' ' )
+&W2 = .TRAIL
+
+IF (&W1 EQ U,USER)
+    &USERF = &W2
+ELSE
+   IF (&W1 EQ O,ONLY)
+      &ONLYF = &W2
+   ELSE
+      IF (&ZCMD EQ RES,RESET)
+         &USERF = &Z
+         &ONLYF = &Z
+      ELSE
+         IF (&ZCMD NE &Z)
+            &ZEDSMSG = 'Invalid command'
+            &ZEDLMSG = 'Valid commands are U user and O filter to filter display on user or command string'
+            .MSG     = PSYZ001
+            .CURSOR  = ZCMD
+            EXIT
+
 VPUT ZSCROLL PROFILE
-VER (&SEL,LIST,K)
-IF (&ZCMD NE &Z)
-   .MSG    = PSYS011C
-   .CURSOR = ZCMD
-   EXIT
-
-
+VER (&SEL,LIST,K,S)
 )END

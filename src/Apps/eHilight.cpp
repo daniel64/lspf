@@ -463,6 +463,16 @@ void addRxxHilight( hilight& h, const string& line, string& shadow )
 }
 
 
+void addNoHilight( hilight& h, const string& line, string& shadow )
+{
+	int ln ;
+
+	ln = line.size() ;
+	if ( ln == 0 ) { shadow = "" ; return ; }
+	shadow = string( ln, N_GREEN ) ;
+}
+
+
 void addOthHilight( hilight& h, const string& line, string& shadow )
 {
 	int ln ;

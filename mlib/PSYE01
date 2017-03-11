@@ -1,0 +1,210 @@
+/*                                           */
+/* System error message file for lspf        */
+/*                                           */
+
+PSYE011A 'Tabs found in panel file'
+'Panel files cannot contain tabs. Please remove'
+
+PSYE011B ')PANEL statement error'
+'Check VERSION and FORMAT statements'
+
+PSYE011C ')PANEL statement error'
+'Invalid Keylist parameters on )PANEL statement'
+
+PSYE011D ')BODY statement error'
+''
+
+PSYE013A 'Invalid variable name on a &ZVAL1'
+'Variable ''&ZVAL2'' has an invalid format'
+
+PSYE013B 'Maximum return code of &ZVAL1 exceeded for function pool GET of &ZVAL2'
+''
+
+PSYE013C 'Function pool definition of &ZVAL1 is not of type STRING'
+''
+
+PSYE013D 'Function pool definition of &ZVAL1 is not of type INT'
+''
+
+PSYE013E 'Function &ZVAL1 gave non-zero return code'
+''
+
+PSYE013F 'Max size of 65,535 rows exceeded'
+''
+
+PSYE013G '&ZVAL1 issued for table &ZVAL2 that is not open'
+''
+
+PSYE013H '&ZVAL1 issued for table &ZVAL2 that is open in read-only mode'
+''
+
+PSYE013I 'Table &ZVAL1 is a temporary table.  Cannot be saved'
+''
+
+PSYE013J 'Entry &ZVAL1 is not a regular directory'
+''
+
+PSYE013K 'Entry &ZVAL1 does not exist for table save'
+''
+
+PSYE013L 'Entry &ZVAL1 is not a regular file'
+''
+
+PSYE013M 'Invalid &ZVAL1 parameter specified.  Invalid specification is &ZVAL2'
+''
+
+PSYE013N 'Bad return code from TBSORT.  Sort Information Record found is &ZVAL1'
+''
+
+PSYE013O 'Invalid COND PAIRS specified. &ZVAL1'
+''
+
+PSYE013P 'Search direction on TBSARG invalid'
+'Search direction on TBSARG must be NEXT or PREVIOUS.  Invalid specification is &ZVAL1'
+
+PSYE013Q 'Extension variables cannot have the same name as key or field names'
+''
+
+PSYE013R 'Invalid search pairs'
+'Search pairs must be of the form NAME,COND,NAME,COND....'
+
+PSYE013S 'Invalid NAME specifed on TBSARG request'
+'Must be a key, field or extension variable name.  Invalid specification is &ZVAL1'
+
+PSYE013T 'Invalid condition'
+'Has to be EQ, NE, LE, LT, GE or GT. Invalid specification is &ZVAL1'
+
+PSYE013U 'TBSCAN performed with no name list'
+'TBSCAN performed with no name list, but no search arguments set by TBSARG'
+
+PSYE013V 'Too many conditions on NAMELIST'
+'CONDLIST parameter has more conditions that names in the NAMELIST parameter (less defaults to EQ)'
+
+PSYE013W 'Invalid condition'
+'Condition has to be EQ, NE, LE, LT, GE or GT'
+
+PSYE013X 'Invalid TBSORT argument'
+''
+
+PSYE013Y 'Table created with inconsistent WRITE/NOWRITE attributes for open table &ZVAL1'
+''
+
+PSYE013Z 'Table &ZVAL1 is already open in SHARE mode.  EXCLUSIVE requested'
+''
+
+PSYE014A 'Table &ZVAL1 is already open in EXCLUSIVE mode by another task'
+''
+
+PSYE014B 'Table load file name &ZVAL1 is not a regular file'
+''
+
+PSYE014C 'Table file not found in path search for &ZVAL1'
+''
+
+PSYE014D 'Table open for &ZVAL1 gave an error.  Filename &ZVAL2'
+''
+
+PSYE014E 'Not a valid table file for table &ZVAL1'
+'Appears corrupt.  Filename &ZVAL2'
+
+PSYE014F 'Invalid table prefix'
+'Version &ZVAL1 not supported or table is corrupt.  Filename &ZVAL2'
+
+PSYE014G 'Invalid number of table information fields found.  Only 1 expected.  Found &ZVAL1'
+''
+
+PSYE014H 'Unexpected EOF reading keys'
+'Table &ZVAL1 appears to be corrupt. Filename &ZVAL2'
+
+PSYE014I 'Unexpected EOF reading fields'
+'Table &ZVAL1 appears to be corrupt.  Filename &ZVAL2'
+
+PSYE014J 'End of record marker not found.  File corrupt: &ZVAL1'
+''
+
+PSYE014K 'End of file marker not found.  File corrupt: &ZVAL1'
+''
+
+PSYE014L 'Inconsistent number of records found with saved total'
+'Found=&ZVAL1 Saved Total=&ZVAL2'
+
+PSYE014M 'Unexpected EOF reading table values.  Table &ZVAL1 appears to be corrupt.  Filename &ZVAL2'
+''
+
+PSYE014N 'Table &ZVAL1 in use. Cannot be erased unless closed'
+''
+
+PSYE014O 'Variable &ZVAL1 is a system variable'
+''
+
+PSYE014P 'Variable &ZVAL1 is unknown but has a dynamically created value'
+''
+
+PSYE014Q 'Invalid table name ''&ZVAL1'' on &ZVAL2'
+''
+
+/* variable pool messages */
+PSYE015A 'Variable &ZVAL1 has been truncated'
+'Maximum length of 32,765 has been exceeded.  Variable truncated.'
+
+PSYE015B 'Pool is read-only'
+''
+
+PSYE015C 'Cannot erase from the system profile pool'
+''
+
+PSYE015D 'Cannot erase a dynamically created value'
+''
+
+PSYE015E 'Cannot erase a system variable'
+''
+
+PSYE015F 'Profile open for &ZVAL1 gave an error'
+'Filename &ZVAL2'
+
+PSYE015G 'Not a valid PROFILE file for &ZVAL1.  Appears corrupt'
+'Filename &ZVAL2'
+
+PSYE015H 'Invalid profile format version'
+'Version &ZVAL1 not supported or profile is corrupt for &ZVAL2'
+
+PSYE015I 'Unexpected EOF reading saved profile variables'
+'Profile &ZVAL1 appears corrupt'
+
+PSYE015J 'Directory &ZVAL1 is not a regular directory for profile save'
+''
+
+PSYE015K 'Directory &ZVAL1 does not exist for profile save'
+''
+
+
+/* pool manager messages */
+PSYE017A 'poolMGR has invalid APPLID (&ZVAL1).  Logic error'
+''
+
+PSYE017B 'poolMGR locateSubPool() function passed invalid POOL TYPE'
+'Internal logic error.  POOL TYPE must be PROFILE or SHARED'
+
+
+PSYE017C 'poolMGR get() function passed invalid POOL TYPE'
+'Internal logic error.  POOL TYPE must be ASIS, PROFILE or SHARED'
+
+PSYE017D 'poolMGR defaultVars() function passed invalid POOL TYPE'
+'Internal logic error.  POOL TYPE must be PROFILE or SHARED'
+
+PSYE017E 'poolMGR cannot find pool &ZVAL1'
+'Internal logic error'
+
+/* ISPEXEC interface messages */
+PSYE019A '&ZVAL1 srvice invalid with this interface'
+''
+
+PSYE019B '&ZVAL1 not a recognised service name'
+''
+
+PSYE019C 'Syntax error in service'
+''
+
+PSYE019D '&ZVAL1'
+'&ZVAL2'
+

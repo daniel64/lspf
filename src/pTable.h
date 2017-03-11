@@ -55,18 +55,18 @@ class Table
 		string sa_dir         ;
 		tbDISP tab_DISP       ;
 
-		void   saveTable( int& RC,
+		void   saveTable( errblock& err,
 				  const string& m_name,
 				  const string& m_path ) ;
 
-		void   loadRow( int& RC,
+		void   loadRow( errblock& err,
 				vector<string>& m_flds ) ;
 
 		void   reserveSpace( int tot_rows ) ;
 
 		void   resetChanged() { changed = false ; }
 
-		void   fillfVARs( int& RC,
+		void   fillfVARs( errblock& err,
 				  fPOOL& funcPOOL,
 				  int depth,
 				  int posn ) ;
@@ -77,43 +77,43 @@ class Table
 				  fPOOL& funcPOOL,
 				  const string& cmd ) ;
 
-		void   tbadd( int& RC,
+		void   tbadd( errblock& err,
 			      fPOOL& funcPOOL,
 			      string tb_namelst,
 			      string tb_order,
 			      int tb_num_of_rows )  ;
 
-		void   tbbottom( int& RC,
+		void   tbbottom( errblock& err,
 				 fPOOL& funcPOOL,
 				 string tb_savenm,
 				 string tb_rowid_vn,
 				 string tb_noread,
 				 string tb_crp_name ) ;
 
-		void   tbdelete( int& RC,
+		void   tbdelete( errblock& err,
 				 fPOOL& funcPOOL ) ;
 
-		void   tbexist( int& RC,
+		void   tbexist( errblock& err,
 				fPOOL& funcPOOL ) ;
 
-		void   tbget( int& RC,
+		void   tbget( errblock& err,
 			      fPOOL& funcPOOL,
 			      string tb_savenm,
 			      string tb_rowid_vn,
 			      string tb_noread,
 			      string tb_crp_name ) ;
 
-		void   tbmod( int& RC,
+		void   tbmod( errblock& err,
 			      fPOOL& funcPOOL,
 			      string tb_namelst,
 			      string tb_order ) ;
 
-		void   tbput( int& RC,
+		void   tbput( errblock& err,
 			      fPOOL& funcPOOL,
 			      string tb_namelst,
 			      string tb_order ) ;
 
-		void   tbquery( int& RC,
+		void   tbquery( errblock& err,
 				fPOOL& funcPOOL,
 				string tb_keyn,
 				string tb_varn,
@@ -126,13 +126,13 @@ class Table
 				string tb_condn,
 				string tb_dirn ) ;
 
-		void   tbsarg( int& RC,
+		void   tbsarg( errblock& err,
 			       fPOOL& funcPOOL,
 			       string tb_namelst,
 			       string tb_next_prev,
 			       string tb_cond_pairs ) ;
 
-		void   tbscan( int&RC,
+		void   tbscan( errblock& err,
 			       fPOOL& funcPOOL,
 			       string tb_namelst,
 			       string tb_varname,
@@ -142,7 +142,7 @@ class Table
 			       string tb_crp_name,
 			       string tb_condlst ) ;
 
-		void   tbskip( int& RC,
+		void   tbskip( errblock& err,
 			       fPOOL& funcPOOL,
 			       int num,
 			       string tb_savenm,
@@ -151,10 +151,10 @@ class Table
 			       string tb_noread,
 			       string tb_crp_name ) ;
 
-		void   tbsort( int& RC,
+		void   tbsort( errblock& err,
 			       string tb_fields ) ;
-		void   tbtop( int& RC ) ;
-		void   tbvclear( int& RC,
+		void   tbtop( errblock& err ) ;
+		void   tbvclear( errblock& err,
 				 fPOOL& funcPOOL ) ;
 
 		vector< vector<string> > table ;
@@ -168,7 +168,7 @@ class tableMGR
 {
 	public:
 		tableMGR() ;
-		void   createTable( int& RC,
+		void   createTable( errblock& err,
 				    int task,
 				    const string& tb_name,
 				    string keys,
@@ -178,21 +178,21 @@ class tableMGR
 				    const string& m_path,
 				    tbDISP m_DISP ) ;
 
-		void   saveTable( int& RC,
+		void   saveTable( errblock& err,
 				  int task,
 				  const string& tb_name,
 				  const string& m_newname,
 				  const string& m_path,
 				  bool m_err=true ) ;
 
-		void   tbadd( int& RC,
+		void   tbadd( errblock& err,
 			      fPOOL& funcPOOL,
 			      const string& tb_name,
 			      const string& tb_namelst,
 			      const string& tb_order,
 			      int tb_num_of_rows ) ;
 
-		void   tbsort( int& RC,
+		void   tbsort( errblock& err,
 			       const string& tb_name,
 			       const string& tb_fields ) ;
 
@@ -204,23 +204,22 @@ class tableMGR
 				  const string& cmd,
 				  const string& paths ) ;
 
-		void   loadTable( int& RC,
+		void   loadTable( errblock& err,
 				  int task,
 				  const string& tb_name,
 				  tbDISP=EXCLUSIVE,
 				  const string& src="" ) ;
 
 	private:
-		void   fillfVARs( int& RC,
+		void   fillfVARs( errblock& err,
 				  fPOOL& funcPOOL,
 				  const string& tb_name,
 				  int depth,
 				  int posn ) ;
 
-		int    getCRP( int& RC,
-			       const string& tb_name ) ;
+		int    getCRP( const string& tb_name ) ;
 
-		void   destroyTable( int& RC,
+		void   destroyTable( errblock& err,
 				     int task,
 				     const string& tb_name ) ;
 
@@ -229,7 +228,7 @@ class tableMGR
 		bool   tablexists( const string& tb_name,
 				   const string& tb_path ) ;
 
-		void   tbbottom( int& RC,
+		void   tbbottom( errblock& err,
 				 fPOOL& funcPOOL,
 				 const string& tb_name,
 				 const string& tb_savenm,
@@ -237,19 +236,19 @@ class tableMGR
 				 const string& tb_noread,
 				 const string& tb_crp_name  ) ;
 
-		void   tbdelete( int& RC,
+		void   tbdelete( errblock& err,
 				 fPOOL& funcPOOL,
 				 const string& tb_name ) ;
 
-		void   tberase( int& RC,
+		void   tberase( errblock& err,
 				const string& tb_name,
 				const string& tb_path ) ;
 
-		void   tbexist( int& RC,
+		void   tbexist( errblock& err,
 				fPOOL& funcPOOL,
 				const string& tb_name ) ;
 
-		void   tbget( int& RC,
+		void   tbget( errblock& err,
 			      fPOOL& funcPOOL,
 			      const string& tb_name,
 			      const string& tb_savenm,
@@ -257,19 +256,19 @@ class tableMGR
 			      const string& tb_noread,
 			      const string& tb_crp_name  ) ;
 
-		void   tbmod( int& RC,
+		void   tbmod( errblock& err,
 			      fPOOL& funcPOOL,
 			      const string& tb_name,
 			      const string& tb_namelst,
 			      const string& tb_order ) ;
 
-		void   tbput( int& RC,
+		void   tbput( errblock& err,
 			      fPOOL& funcPOOL,
 			      const string& tb_name,
 			      const string& tb_namelst,
 			      const string& tb_order ) ;
 
-		void   tbquery( int& RC,
+		void   tbquery( errblock& err,
 				fPOOL& funcPOOL,
 				const string& tb_name,
 				const string& tb_keyn,
@@ -283,14 +282,14 @@ class tableMGR
 				const string& tb_condn,
 				const string& tb_dirn ) ;
 
-		void   tbsarg( int& RC,
+		void   tbsarg( errblock& err,
 			       fPOOL& funcPOOL,
 			       const string& tb_name,
 			       const string& tb_namelst,
 			       const string& tb_next_prev,
 			       const string& tb_cond_pairs ) ;
 
-		void   tbskip( int& RC,
+		void   tbskip( errblock& err,
 			       fPOOL& funcPOOL,
 			       const string& tb_name,
 			       int num,
@@ -300,7 +299,7 @@ class tableMGR
 			       const string& tb_noread,
 			       const string& tb_crp_name ) ;
 
-		void   tbscan( int& RC,
+		void   tbscan( errblock& err,
 			       fPOOL& funcPOOL,
 			       const string& tb_name,
 			       const string& tb_namelst,
@@ -311,10 +310,10 @@ class tableMGR
 			       const string& tb_crp_name,
 			       const string& tb_condlst ) ;
 
-		void   tbtop( int& RC,
+		void   tbtop( errblock& err,
 			      const string& tb_name ) ;
 
-		void   tbvclear( int& RC,
+		void   tbvclear( errblock& err,
 				 fPOOL& funcPOOL,
 				 const string& tb_name ) ;
 

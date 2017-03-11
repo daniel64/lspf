@@ -34,54 +34,51 @@ class fVAR
 class fPOOL
 {
 	public:
-		void     define( int& RC,
+		void     define( errblock& err,
 				 const string& name ,
 				 string * addr,
 				 nameCHCK check=CHECK ) ;
 
-		void     define( int& RC,
+		void     define( errblock& err,
 				 const string& name,
 				 int * addr ) ;
 	private:
-		bool     ifexists( int& RC,
+		bool     ifexists( errblock& err,
 				   const string& name,
 				   nameCHCK check=CHECK ) ;
 
-		dataType getType( int& RC,
+		dataType getType( errblock& err,
 				  const string& name,
 				  nameCHCK check=CHECK )  ;
 
-		string * vlocate( int& RC,
-				  int,
+		string * vlocate( errblock& err,
 				  const string& name,
 				  nameCHCK check=CHECK )  ;
 
-		void     put( int& RC,
-			      int maxRC,
+		void     put( errblock& err,
 			      const string& name,
 			      const string& value,
 			      nameCHCK check=CHECK ) ;
 
-		void     put( int& RC,
-			      int maxRC,
+		void     put( errblock& err,
 			      const string& name,
 			      int value ) ;
 
-		string   get( int& RC,
+		string   get( errblock& err,
 			      int maxRC,
 			      const string& name,
 			      nameCHCK check=CHECK ) ;
 
-		int      get( int& RC,
+		int      get( errblock& err,
 			      int maxRC,
 			      dataType dataType,
 			      const string& name ) ;
 
-		void     setmask( int& RC,
+		void     setmask( errblock& err,
 				  const string& name,
 				  const string& mask ) ;
 
-		void     dlete( int& RC,
+		void     dlete( errblock& err,
 				const string& name,
 				nameCHCK check=CHECK ) ;
 
@@ -136,7 +133,7 @@ class pVPOOL
 			refCount = 0     ;
 			readOnly = false ;
 			changed  = false ;
-			sysPROF  = false ;
+			sysProf  = false ;
 			path     = ""    ;
 		}
 
@@ -146,31 +143,31 @@ class pVPOOL
 		int    refCount ;
 		bool   readOnly ;
 		bool   changed  ;
-		bool   sysPROF  ;
+		bool   sysProf  ;
 		string path     ;
 
-		void   put( int& RC,
+		void   put( errblock& err,
 			    const string& name,
 			    const string& value,
 			    vTYPE =USER ) ;
 
-		string get( int& RC,
+		string get( errblock& err,
 			    const string& name ) ;
 
-		string * vlocate( int& RC,
+		string * vlocate( errblock& err,
 				  const string& name ) ;
 
-		void   load( int& RC,
+		void   load( errblock& err,
 			     const string& applid,
 			     const string& path ) ;
 
-		void   save( int& RC,
+		void   save( errblock& err,
 			     const string& applid ) ;
 
-		void   erase( int& RC,
+		void   erase( errblock& err,
 			      const string& name ) ;
 
-		bool   isSystem( int& RC,
+		bool   isSystem( errblock& err,
 				 const string& name ) ;
 
 		void   setReadOnly()  { readOnly = true  ; }
@@ -185,41 +182,41 @@ class poolMGR
 {
 	public:
 		poolMGR() ;
-		void   createPool( int& RC,
+		void   createPool( errblock& err,
 				   poolType pType,
 				   string path="" ) ;
 
-		void   destroyPool( int& RC,
+		void   destroyPool( errblock& err,
 				    poolType pType ) ;
 
 		void   destroyPool( int ls ) ;
 
-		void   setAPPLID( int& RC,
+		void   setAPPLID( errblock& err,
 				  const string& applid )   ;
 
-		void   setShrdPool( int& RC,
+		void   setShrdPool( errblock& err,
 				    const string& shrPool ) ;
 
-		void   put( int& RC,
+		void   put( errblock& err,
 			    const string& name,
 			    const string& value,
 			    poolType = ASIS,
 			    vTYPE =USER ) ;
 
-		void   put( int& RC,
+		void   put( errblock& err,
 			    int ls,
 			    const string& name,
 			    const string& value ) ;
 
-		string get( int& RC,
+		string get( errblock& err,
 			    const string& name,
 			    poolType=ASIS ) ;
 
-		string get( int& RC,
+		string get( errblock& err,
 			    int ls,
 			    const string& name ) ;
 
-		void   defaultVARs( int& RC,
+		void   defaultVARs( errblock& err,
 				    const string& name,
 				    const string& value,
 				    poolType ) ;
@@ -227,12 +224,9 @@ class poolMGR
 		string getAPPLID()   { return currAPPLID ; }
 		string getShrdPool() { return shrdPool   ; }
 
-		void   setPOOLsReadOnly( int& RC ) ;
+		void   setPOOLsReadOnly() ;
 		void   snap() ;
 		void   statistics() ;
-
-		bool   ifexists( int& RC,
-				 const string& name ) ;
 
 	private:
 		string vlist( int& RC,
@@ -241,16 +235,16 @@ class poolMGR
 
 		void   createPool( int ls ) ;
 
-		string * vlocate( int& RC,
+		string * vlocate( errblock& err,
 				  const string& name,
 				  poolType=ASIS ) ;
 
-		void   locateSubPool( int& RC,
+		void   locateSubPool( errblock& err,
 				      map<string, pVPOOL>::iterator& vpool,
 				      const string& name,
 				      poolType=ASIS ) ;
 
-		void   erase( int& RC,
+		void   erase( errblock& err,
 			      const string& name,
 			      poolType=ASIS ) ;
 

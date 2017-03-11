@@ -30,6 +30,7 @@
 /* ZRC/ZRSN codes returned                                                                     */
 /*   0/0  Okay                                                                                 */
 
+
 #include <boost/filesystem.hpp>
 #include "../lspf.h"
 #include "../utilities.h"
@@ -77,7 +78,9 @@ void PEDRXM1::application()
 
 	if ( mibptr->nestlvl == 255 )
 	{
-		mibptr->seterror( "PEDM012H" ) ;
+		mibptr->seterror( "PEDM012H", 24 ) ;
+		macroError()            ;
+		mibptr->setExitRC( 24 ) ;
 		cleanup() ;
 		return ;
 	}
@@ -94,12 +97,14 @@ void PEDRXM1::application()
 			*mibptr = tmiBlock ;
 			macroError() ;
 			editAppl->pcmd.clear() ;
+			mibptr->setExitRC( 20 ) ;
 			cleanup() ;
 			return ;
 		}
 		mibptr->processed = tmiBlock.processed ;
 		mibptr->editAppl  = tmiBlock.editAppl  ;
 		mibptr->etaskid   = tmiBlock.etaskid   ;
+		mibptr->imacro    = tmiBlock.imacro    ;
 	}
 
 	mibptr->parms   = subword( editAppl->pcmd.get_cmd(), 2 ) ;
@@ -113,9 +118,16 @@ void PEDRXM1::application()
 	{
 		setmsg( "PEDM012I" ) ;
 	}
-	if ( mibptr->fatal )
+	else if ( nlvl > 1 && mibptr->getExitRC() > 8 )
 	{
+		vreplace( "ZSTR1", mibptr->emacro ) ;
+		if ( !mibptr->msgset() )
+		{
+			vreplace( "ZSTR2", d2ds( mibptr->getExitRC() ) ) ;
+			mibptr->seterror( "PEDT014X", mibptr->getExitRC() ) ;
+		}
 		macroError() ;
+		mibptr->setExitRC( 28 ) ;
 	}
 
 	for_each( editAppl->data.begin(), editAppl->data.end(),
@@ -126,13 +138,12 @@ void PEDRXM1::application()
 
 	if ( nlvl > 1 )
 	{
+		tmiBlock.exitRC    = mibptr->exitRC    ;
 		tmiBlock.processed = mibptr->processed ;
 		if ( mibptr->fatal )
 		{
 			tmiBlock.fatal = mibptr->fatal ;
 			tmiBlock.msgid = mibptr->msgid ;
-			tmiBlock.msg1  = mibptr->msg1  ;
-			tmiBlock.msg2  = mibptr->msg2  ;
 			tmiBlock.setRC( mibptr->RC )   ;
 			tmiBlock.RSN   = mibptr->RSN   ;
 		}
@@ -191,7 +202,23 @@ void PEDRXM1::start_rexx()
 			vreplace( "ZERR4", d2ds( condition.position ) ) ;
 			vreplace( "ZERR5", mibptr->emacro ) ;
 			display( "REXERROR" ) ;
-			mibptr->setRC( 28 )   ;
+			mibptr->setRC( 20 )   ;
+			mibptr->setExitRC( condition.code ) ;
+		}
+		else
+		{
+			if ( mibptr->fatal )
+			{
+				mibptr->setExitRC( 28 ) ;
+			}
+			else if ( result != NULLOBJECT )
+			{
+				mibptr->setExitRC( threadContext->CString( result ) ) ;
+			}
+			else
+			{
+				mibptr->setExitRC( 0 ) ;
+			}
 		}
 		instance->Terminate() ;
 	}
@@ -200,36 +227,25 @@ void PEDRXM1::start_rexx()
 
 void PEDRXM1::macroError()
 {
-	// Issue the macro error screen. Override ZERR4 with mibptr->msg2 if not null.
+	// Issue the macro error screen.
 	// Don't show error panel if RC=28 as it has already been shown.
+
+	if ( mibptr->RC == 28 ) { return ; }
 
 	vreplace( "STR", mibptr->keyword )   ;
 	vreplace( "ZERR1", mibptr->sttment ) ;
 
-	if ( mibptr->RC == 28 ) { return ; }
-
-	if ( mibptr->msgid != "" )
+	if ( mibptr->val1 != "" )
 	{
-		getmsg( mibptr->msgid, "ZERR2", "ZERR3" ) ;
-		if ( mibptr->msg2 != "" )
-		{
-			vreplace( "ZERR3", mibptr->msg2 ) ;
-		}
+		vreplace( "ZVAL1", mibptr->val1 ) ;
 	}
-	else
-	{
-		vreplace( "ZERR2", mibptr->msg1 ) ;
-		vreplace( "ZERR3", mibptr->msg2 ) ;
-	}
+	getmsg( mibptr->msgid, "ZERRSM", "ZERRLM", "ZERRALRM", "ZERRHM" ) ;
+	vreplace( "ZERRMSG", mibptr->msgid ) ;
 
-	vreplace( "ZERR4", mibptr->msgid )      ;
-	vreplace( "ZERR5", d2ds( mibptr->RC ) ) ;
-	vreplace( "ZERR6", mibptr->emacro ) ;
+	vreplace( "ZERR2", d2ds( mibptr->RC ) ) ;
+	vreplace( "ZERR3", mibptr->emacro ) ;
 
 	display( "ISRERROR" ) ;
-
-	vreplace( "STR", mibptr->emacro ) ;
-	setmsg( "PEDT015C" ) ;
 
 	mibptr->setRC( 28 )  ;
 }
@@ -248,7 +264,7 @@ RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext *context,
 	int sRC  ;
 
 	void * vptr ;
-	miblock * mibptr   ;
+	miblock * mibptr ;
 
 	string s = context->CString( command ) ;
 
@@ -256,7 +272,7 @@ RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext *context,
 	mibptr = static_cast<miblock *>( vptr ) ;
 	PEDRXM1 * macAppl = static_cast<PEDRXM1 *>( mibptr->macAppl  ) ;
 
-	if ( mibptr->fatal || mibptr->editEnded() )
+	if ( mibptr->fatal )
 	{
 		return context->WholeNumber( 28 ) ;
 	}
@@ -293,7 +309,7 @@ RexxObjectPtr RexxEntry editServiceHandler( RexxExitContext *context,
 	PEDIT01 * editAppl = static_cast<PEDIT01 *>( mibptr->editAppl ) ;
 	PEDRXM1 * macAppl  = static_cast<PEDRXM1 *>( mibptr->macAppl  ) ;
 
-	if ( mibptr->fatal || mibptr->editEnded() )
+	if ( mibptr->fatal )
 	{
 		return context->WholeNumber( 28 ) ;
 	}
@@ -301,11 +317,11 @@ RexxObjectPtr RexxEntry editServiceHandler( RexxExitContext *context,
 	getAllRexxVariables( macAppl ) ;
 
 	editAppl->isredit( macAppl->sub_vars( s ) ) ;
-	sRC = mibptr->RC ;
 
 	if ( mibptr->fatal )
 	{
 		macAppl->macroError() ;
+		sRC = mibptr->RC ;
 	}
 	else if ( mibptr->runmacro )
 	{
@@ -315,15 +331,14 @@ RexxObjectPtr RexxEntry editServiceHandler( RexxExitContext *context,
 			return context->WholeNumber( 20 ) ;
 		}
 		macAppl->select( "PGM(PEDRXM1) PARM( "+ d2ds( mibptr->etaskid ) +" ) NEWPOOL" ) ;
+		sRC = mibptr->getExitRC() ;
 	}
-
-	macAppl->RC = mibptr->RC       ;
-	setAllRexxVariables( macAppl ) ;
-
-	if ( sRC > 8 )
+	else
 	{
-		return context->WholeNumber( sRC ) ;
+		sRC = mibptr->RC ;
 	}
+
+	setAllRexxVariables( macAppl ) ;
 
 	return context->WholeNumber( sRC ) ;
 }
