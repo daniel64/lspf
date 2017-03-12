@@ -24,7 +24,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/condition.hpp>
 
-#define DEBUG1 1
+// #define DEBUG1 1
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
@@ -429,7 +429,6 @@ class errblock
 		msgid = "PSYE019D" ;
 		val1  = s1 ;
 		val2  = "" ;
-		val3  = "" ;
 		RC    = i  ;
 	}
 	void seterror( const string& s1, const string& s2, int i=20 )
@@ -437,7 +436,6 @@ class errblock
 		msgid = "PSYE019D" ;
 		val1  = s1 ;
 		val2  = s2 ;
-		val3  = "" ;
 		RC    = i  ;
 	}
 	void seterrid( const string& s, int i=20 )

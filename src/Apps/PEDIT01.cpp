@@ -175,7 +175,6 @@ void PEDIT01::application()
 		if ( RC == 0 && *pt == "YES" ) { optNoConvTabs = true ; }
 		if ( ZFILE != "" && rfile == ZFILE ) { cleanup() ; return ; }
 	}
-
 	if ( ZFILE == "" || is_directory( ZFILE ) )
 	{
 		while ( true )
@@ -6387,7 +6386,7 @@ int PEDIT01::getLabelIndex( const string& label )
 	if ( findword( label, ".ZFIRST .ZF .ZLAST .ZL" ) )
 	{
 		if ( any_of( data.begin(), data.end(),
-				 [](iline *& a)
+				 [](iline *& a )
 				 {
 					 return a->isValidFile() ;
 				 } ) )
@@ -6441,8 +6440,26 @@ int PEDIT01::getLabelLine( const string& s )
 
 	if ( datatype( s, 'W' ) || s == ".ZCSR" )
 	{
-		if ( s == ".ZCSR" ) { i = mRow      ; }
-		else                { i = ds2d( s ) ; }
+		if ( s == ".ZCSR" )
+		{
+			if ( any_of( data.begin(), data.end(),
+					[](iline *& a )
+					{
+						return a->isValidFile() ;
+					} ) )
+			{
+				i = mRow ;
+			}
+			else
+			{
+				return -2 ;
+			}
+		}
+		else
+		{
+			i = ds2d( s ) ;
+		}
+
 		if ( i == 0 )
 		{
 			miBlock.seterror( "PEDM011S" ) ;
@@ -8768,6 +8785,7 @@ void PEDIT01::isredit( const string& s )
 
 	miBlock.parseStatement( s1, defNames ) ;
 
+
 	if ( miBlock.fatal || miBlock.runmacro )
 	{
 		return ;
@@ -8792,6 +8810,7 @@ void PEDIT01::querySetting()
 	string kw2 ;
 	string t1  ;
 	string lab ;
+
 
 	kw2 = word( miBlock.kphrase, 2 ) ;
 	pApplication * macAppl = miBlock.macAppl ;
@@ -9090,6 +9109,7 @@ void PEDIT01::actionService()
 
 	lcmd cmd  ;
 
+
 	string t   ;
 	string vw1 ;
 	string vw2 ;
@@ -9110,6 +9130,7 @@ void PEDIT01::actionService()
 	kw1 = word( miBlock.keyopts, 1 ) ;
 	kw2 = word( miBlock.keyopts, 2 ) ;
 	kw3 = word( miBlock.keyopts, 3 ) ;
+
 
 	switch ( miBlock.m_cmd )
 	{

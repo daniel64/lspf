@@ -172,7 +172,7 @@ void pApplication::createPanel( const string& p_name )
 	p_panel->p_poolMGR  = p_poolMGR  ;
 	p_panel->p_funcPOOL = &funcPOOL  ;
 	p_panel->LRScroll   = ControlPassLRScroll ;
-	p_panel->REXX       = (rexxName != "" )   ;
+	p_panel->REXX       = ( rexxName != "" )  ;
 	p_panel->init( errBlock ) ;
 
 	if ( errBlock.error() ) { return ; }
@@ -478,11 +478,10 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 	while ( true )
 	{
 		currPanel->display_panel( errBlock ) ;
-		if ( errBlock.getRC() > 0 )
+		if ( errBlock.error() )
 		{
 			errBlock.setcall( "Panel error displaying "+ p_name ) ;
 			checkRCode( errBlock ) ;
-			RC = errBlock.getRC()  ;
 			break ;
 		}
 		currPanel->cursor_to_field( RC ) ;
@@ -495,7 +494,7 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 		ControlDisplayLock = false ;
 		ControlNonDispl    = false ;
 		currPanel->display_panel_update( errBlock ) ;
-		if ( errBlock.getRC() > 0 )
+		if ( errBlock.error() )
 		{
 			errBlock.setcall( "Panel error during update "+ p_name ) ;
 			checkRCode( errBlock ) ;
@@ -1101,7 +1100,7 @@ void pApplication::vcopy( const string& var, string * & p_val, vcMODE mode )
 			case STRING:
 				p_val = funcPOOL.vlocate( errBlock, var, CHECK ) ;
 			}
-			if ( errBlock.getRC() > 0 )
+			if ( errBlock.error() )
 			{
 				errBlock.setcall( e1 ) ;
 				checkRCode( errBlock ) ;
@@ -1110,7 +1109,7 @@ void pApplication::vcopy( const string& var, string * & p_val, vcMODE mode )
 		else if ( errBlock.RC8() )
 		{
 			p_val = p_poolMGR->vlocate( errBlock, var, ASIS ) ;
-			if ( errBlock.getRC() > 0 )
+			if ( errBlock.error() )
 			{
 				errBlock.setcall( e1 ) ;
 				checkRCode( errBlock ) ;
@@ -1816,11 +1815,10 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		if ( p_name != "" )
 		{
 			currtbPanel->display_panel( errBlock ) ;
-			if ( errBlock.getRC() > 0 )
+			if ( errBlock.error() )
 			{
 				errBlock.setcall( "Panel error displaying "+ p_name ) ;
 				checkRCode( errBlock ) ;
-				RC = errBlock.getRC()  ;
 				break ;
 			}
 			if ( currtbPanel->CURFLD == "" )
@@ -1848,7 +1846,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 			currtbPanel->clear_msg() ;
 			currtbPanel->CURFLD = "" ;
 			currtbPanel->display_panel_update( errBlock ) ;
-			if ( errBlock.getRC() > 0 )
+			if ( errBlock.error() )
 			{
 				errBlock.setcall( "Panel error during update "+ p_name ) ;
 				checkRCode( errBlock ) ;
@@ -2731,7 +2729,7 @@ bool pApplication::load_Message( const string& p_msg )
 	if ( i == 0 || ((p_msg.size() - i) > 3 && !isalpha( p_msg.back()) ) )
 	{
 		RC = 20 ;
-		checkRCode( "Message-id format invalid: "+ p_msg ) ;
+		checkRCode( "Message-id format invalid (1): "+ p_msg ) ;
 		return false ;
 	}
 
@@ -2814,7 +2812,7 @@ bool pApplication::load_Message( const string& p_msg )
 			if ( i == 0 || ((msgid.size() - i) > 3 && !isalpha( msgid.back()) ) )
 			{
 				RC = 20 ;
-				checkRCode( "Message-id format invalid: "+ msgid ) ;
+				checkRCode( "Message-id format invalid (2): "+ msgid ) ;
 				return false ;
 			}
 		}
