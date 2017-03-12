@@ -8768,14 +8768,6 @@ void PEDIT01::isredit( const string& s )
 
 	miBlock.parseStatement( s1, defNames ) ;
 
-	debug1( " dje re stmt "<<miBlock.sttment <<endl)  ;
-	debug1( " dje re kph "<<miBlock.kphrase <<endl)  ;
-	debug1( " dje re kyw "<<miBlock.keyword <<endl)  ;
-	debug1( " dje re keyopts "<<miBlock.keyopts <<endl)  ;
-	debug1( " dje re value "<<miBlock.value <<endl)  ;
-	debug1( " dje re var1 "<<miBlock.var1 <<endl)  ;
-	debug1( " dje re var2 "<<miBlock.var2 <<endl)  ;
-
 	if ( miBlock.fatal || miBlock.runmacro )
 	{
 		return ;
@@ -8800,8 +8792,6 @@ void PEDIT01::querySetting()
 	string kw2 ;
 	string t1  ;
 	string lab ;
-
-	debug1( " dje querySetting" <<endl)  ;
 
 	kw2 = word( miBlock.kphrase, 2 ) ;
 	pApplication * macAppl = miBlock.macAppl ;
@@ -9100,8 +9090,6 @@ void PEDIT01::actionService()
 
 	lcmd cmd  ;
 
-	debug1( " dje actionService" <<endl)  ;
-
 	string t   ;
 	string vw1 ;
 	string vw2 ;
@@ -9122,11 +9110,6 @@ void PEDIT01::actionService()
 	kw1 = word( miBlock.keyopts, 1 ) ;
 	kw2 = word( miBlock.keyopts, 2 ) ;
 	kw3 = word( miBlock.keyopts, 3 ) ;
-
-	debug1( " dje act value w1 "<<vw1 <<endl)  ;
-	debug1( " dje act value w2 "<<vw2 <<endl)  ;
-	debug1( " dje act value kw1 "<<kw1 <<endl)  ;
-	debug1( " dje act value kw2 "<<kw2 <<endl)  ;
 
 	switch ( miBlock.m_cmd )
 	{
