@@ -506,6 +506,8 @@ void Table::fillfVARs( errblock& err,
 
 	vector<vector<string>>::iterator it ;
 
+	err.setRC( 0 ) ;
+
 	size = table.size() ;
 
 	funcPOOL.put( err, "ZTDTOP", posn )  ;
@@ -1586,6 +1588,7 @@ void Table::tbsort( errblock& err,
 
 void Table::tbtop( errblock& err )
 {
+	err.setRC( 0 ) ;
 	CRP = 0 ;
 }
 
@@ -1593,6 +1596,8 @@ void Table::tbtop( errblock& err )
 void Table::tbvclear( errblock& err,
 		      fPOOL& funcPOOL )
 {
+	err.setRC( 0 ) ;
+
 	for ( int i = 1 ; i <= num_all ; i++ )
 	{
 		funcPOOL.put( err, word( tab_all, i ), "" ) ;
@@ -1621,6 +1626,8 @@ void tableMGR::createTable( errblock& err,
 			    tbDISP m_DISP )
 {
 	Table t ;
+
+	err.setRC( 0 ) ;
 
 	iupper( keys ) ;
 	iupper( flds ) ;
@@ -1731,17 +1738,19 @@ void tableMGR::loadTable( errblock& err,
 
 	map<string, Table>::iterator it ;
 
+	err.setRC( 0 ) ;
+
 	it = tables.find( tb_name ) ;
 	if ( it != tables.end() )
 	{
-		if ( (it->second.tab_DISP == SHARE) && (m_DISP == EXCLUSIVE) )
+		if ( it->second.tab_DISP == SHARE && (m_DISP == EXCLUSIVE) )
 		{
 			err.seterrid( "PSYE013Z", tb_name ) ;
 			return ;
 		}
-		if ( (it->second.tab_DISP == EXCLUSIVE) && it->second.ownerTask != task )
+		if ( it->second.tab_DISP == EXCLUSIVE && it->second.ownerTask != task )
 		{
-			err.seterrid( "PSYE014A", tb_name ) ;
+			err.seterrid( "PSYE014A", tb_name, d2ds( it->second.ownerTask ) ) ;
 			return ;
 		}
 		it->second.refCount++ ;
@@ -2053,6 +2062,8 @@ void tableMGR::destroyTable( errblock& err,
 {
 	map<string, Table>::iterator it ;
 
+	err.setRC( 0 ) ;
+
 	it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
@@ -2297,6 +2308,8 @@ void tableMGR::tberase( errblock& err,
 
 	string filename ;
 	map<string, Table>::iterator it ;
+
+	err.setRC( 0 ) ;
 
 	it = tables.find( tb_name ) ;
 	if ( it != tables.end() )

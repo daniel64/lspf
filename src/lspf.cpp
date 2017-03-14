@@ -528,7 +528,7 @@ void mainLoop()
 					currAppl->set_cursor( row, col ) ;
 					ResumeApplicationAndWait()       ;
 					if ( currAppl->reloadCUATables ) { loadCUATables() ; }
-					currAppl->get_cursor( row, col ) ;
+					currAppl->get_cursor( row, col )  ;
 					currScrn->set_row_col( row, col ) ;
 					while ( currAppl->terminateAppl )
 					{
@@ -541,327 +541,325 @@ void mainLoop()
 						}
 					}
 					updateReflist() ;
+					continue ;
 				}
-				else
+				if ( ZCOMMAND == ".ABEND" )
 				{
-					if ( ZCOMMAND == ".ABEND" )
+					currAppl->set_forced_abend() ;
+				}
+				else if ( ZCOMMAND == "ACTION" )
+				{
+					if ( currAppl->currPanel->is_pd_displayed() )
 					{
-						currAppl->set_forced_abend() ;
+						currAppl->currPanel->display_next_pd() ;
+						currAppl->currPanel->get_cursor( row, col ) ;
+						currScrn->set_row_col( row, col ) ;
+						break ;
 					}
-					else if ( ZCOMMAND == "ACTION" )
+					else
 					{
-						if ( currAppl->currPanel->is_pd_displayed() )
-						{
-							currAppl->currPanel->display_next_pd() ;
-							currAppl->currPanel->get_cursor( row, col ) ;
-							currScrn->set_row_col( row, col ) ;
-							break ;
-						}
-						else
-						{
-							currAppl->currPanel->display_first_pd() ;
-							currAppl->currPanel->get_cursor( row, col ) ;
-							currScrn->set_row_col( row, col ) ;
-							break ;
-						}
+						currAppl->currPanel->display_first_pd() ;
+						currAppl->currPanel->get_cursor( row, col ) ;
+						currScrn->set_row_col( row, col ) ;
+						break ;
 					}
-					else if ( ZCOMMAND == "DISCARD" )
-					{
-						currAppl->currPanel->refresh_fields() ;
-					}
-					else if ( ZCOMMAND == "FIELDEXC" )
-					{
+				}
+				else if ( ZCOMMAND == "DISCARD" )
+				{
+					currAppl->currPanel->refresh_fields() ;
+				}
+				else if ( ZCOMMAND == "FIELDEXC" )
+				{
 
-						field_name = currAppl->currPanel->field_getname( row, col ) ;
-						if ( field_name == "" )
-						{
-							issueMessage( "PSYS012K" ) ;
-							break ;
-						}
-						fxc = currAppl->currPanel->field_getexec( field_name ) ;
-						if ( fxc.fieldExc_command != "" )
-						{
-							if ( !SELCT.parse( subword( fxc.fieldExc_command, 2 ) ) )
-							{
-								log( "E", "Error in FIELD SELECT command "+ fxc.fieldExc_command << endl ) ;
-								issueMessage( "PSYS011K" ) ;
-								break ;
-							}
-							SELCT.PARM = SELCT.PARM + " " + currAppl->currPanel->field_getvalue( field_name ) ;
-							currAppl->reffield = field_name ;
-							currAppl->currPanel->field_get_row_col( field_name, t, c ) ;
-							p_poolMGR->put( err, "ZFECSRP", d2ds( col-c+1 ), SHARED )  ;
-							for( ws = words( fxc.fieldExc_passed ), i = 1 ; i <= ws ; i++ )
-							{
-								w1 = word( fxc.fieldExc_passed, i ) ;
-								p_poolMGR->put( err, "ZFEDATA" + d2ds( i ), currAppl->currPanel->field_getvalue( w1 ) , SHARED ) ;
-							}
-							startApplication( SELCT ) ;
-							break ;
-						}
-						else
-						{
-							issueMessage( "PSYS012J" ) ;
-							break ;
-						}
-					}
-					else if ( ZCOMMAND == ".HIDE" )
+					field_name = currAppl->currPanel->field_getname( row, col ) ;
+					if ( field_name == "" )
 					{
-						if ( ZPARM == "NULLS" )
-						{
-							p_poolMGR->put( err, "ZNULLS", "NO", SHARED, SYSTEM ) ;
-							currAppl->currPanel->redraw_fields() ;
-						}
-					}
-					else if ( ZCOMMAND == ".INFO" )
-					{
-						currAppl->info() ;
-					}
-					else if ( ZCOMMAND == ".LOAD" )
-					{
-						map<string, appInfo>::iterator ita ;
-						for ( ita = apps.begin() ; ita != apps.end() ; ita++ )
-						{
-							if ( !ita->second.errors && !ita->second.dlopened )
-							{
-								loadDynamicClass( ita->first ) ;
-							}
-						}
-					}
-					else if ( ZCOMMAND == "MSGID" )
-					{
-						if ( ZPARM == "" )
-						{
-							w1 = p_poolMGR->get( err, currScrn->screenID, "ZMSGID" ) ;
-							p_poolMGR->put( err, "ZMSGID", w1, SHARED, SYSTEM ) ;
-							issueMessage( "PSYS012L" ) ;
-						}
-						else if ( ZPARM == "ON" )
-						{
-							p_poolMGR->put( err, currScrn->screenID, "ZSHMSGID", "Y" ) ;
-						}
-						else if ( ZPARM == "OFF" )
-						{
-							p_poolMGR->put( err, currScrn->screenID, "ZSHMSGID", "N" ) ;
-						}
-						else
-						{
-							issueMessage( "PSYS012M" ) ;
-						}
-					}
-					else if ( ZCOMMAND == "NOP" )
-					{
+						issueMessage( "PSYS012K" ) ;
 						break ;
 					}
-					else if ( ZCOMMAND == "PANELID" )
+					fxc = currAppl->currPanel->field_getexec( field_name ) ;
+					if ( fxc.fieldExc_command != "" )
 					{
-						if ( ZPARM == "" )
+						if ( !SELCT.parse( subword( fxc.fieldExc_command, 2 ) ) )
 						{
-							w1 = p_poolMGR->get( err, currScrn->screenID, "ZSHPANID" ) ;
-							if ( w1 == "Y" ) { ZPARM = "OFF" ; }
-							else             { ZPARM = "ON"  ; }
+							log( "E", "Error in FIELD SELECT command "+ fxc.fieldExc_command << endl ) ;
+							issueMessage( "PSYS011K" ) ;
+							break ;
 						}
-						if ( ZPARM == "ON" )
+						SELCT.PARM = SELCT.PARM + " " + currAppl->currPanel->field_getvalue( field_name ) ;
+						currAppl->reffield = field_name ;
+						currAppl->currPanel->field_get_row_col( field_name, t, c ) ;
+						p_poolMGR->put( err, "ZFECSRP", d2ds( col-c+1 ), SHARED )  ;
+						for( ws = words( fxc.fieldExc_passed ), i = 1 ; i <= ws ; i++ )
 						{
-							p_poolMGR->put( err, currScrn->screenID, "ZSHPANID", "Y" ) ;
+							w1 = word( fxc.fieldExc_passed, i ) ;
+							p_poolMGR->put( err, "ZFEDATA" + d2ds( i ), currAppl->currPanel->field_getvalue( w1 ) , SHARED ) ;
 						}
-						else if ( ZPARM == "OFF" )
+						startApplication( SELCT ) ;
+						break ;
+					}
+					else
+					{
+						issueMessage( "PSYS012J" ) ;
+						break ;
+					}
+				}
+				else if ( ZCOMMAND == ".HIDE" )
+				{
+					if ( ZPARM == "NULLS" )
+					{
+						p_poolMGR->put( err, "ZNULLS", "NO", SHARED, SYSTEM ) ;
+						currAppl->currPanel->redraw_fields() ;
+					}
+				}
+				else if ( ZCOMMAND == ".INFO" )
+				{
+					currAppl->info() ;
+				}
+				else if ( ZCOMMAND == ".LOAD" )
+				{
+					map<string, appInfo>::iterator ita ;
+					for ( ita = apps.begin() ; ita != apps.end() ; ita++ )
+					{
+						if ( !ita->second.errors && !ita->second.dlopened )
 						{
-							p_poolMGR->put( err, currScrn->screenID, "ZSHPANID", "N" ) ;
+							loadDynamicClass( ita->first ) ;
+						}
+					}
+				}
+				else if ( ZCOMMAND == "MSGID" )
+				{
+					if ( ZPARM == "" )
+					{
+						w1 = p_poolMGR->get( err, currScrn->screenID, "ZMSGID" ) ;
+						p_poolMGR->put( err, "ZMSGID", w1, SHARED, SYSTEM ) ;
+						issueMessage( "PSYS012L" ) ;
+					}
+					else if ( ZPARM == "ON" )
+					{
+						p_poolMGR->put( err, currScrn->screenID, "ZSHMSGID", "Y" ) ;
+					}
+					else if ( ZPARM == "OFF" )
+					{
+						p_poolMGR->put( err, currScrn->screenID, "ZSHMSGID", "N" ) ;
+					}
+					else
+					{
+						issueMessage( "PSYS012M" ) ;
+					}
+				}
+				else if ( ZCOMMAND == "NOP" )
+				{
+					break ;
+				}
+				else if ( ZCOMMAND == "PANELID" )
+				{
+					if ( ZPARM == "" )
+					{
+						w1 = p_poolMGR->get( err, currScrn->screenID, "ZSHPANID" ) ;
+						if ( w1 == "Y" ) { ZPARM = "OFF" ; }
+						else             { ZPARM = "ON"  ; }
+					}
+					if ( ZPARM == "ON" )
+					{
+						p_poolMGR->put( err, currScrn->screenID, "ZSHPANID", "Y" ) ;
+					}
+					else if ( ZPARM == "OFF" )
+					{
+						p_poolMGR->put( err, currScrn->screenID, "ZSHPANID", "N" ) ;
+					}
+					else
+					{
+						issueMessage( "PSYS014" ) ;
+					}
+					currAppl->currPanel->redisplay_panel() ;
+				}
+				else if ( ZCOMMAND == "REFRESH" )
+				{
+					currAppl->currPanel->refresh() ;
+					reset_prog_mode() ;
+					refresh() ;
+				}
+				else if ( ZCOMMAND == "RETP" )
+				{
+					listRetrieveBuffer() ;
+					break ;
+				}
+				else if ( ZCOMMAND == ".RELOAD" )
+				{
+					reloadDynamicClasses( ZPARM ) ;
+				}
+				else if ( ZCOMMAND == ".SCALE" )
+				{
+					if ( ZPARM == "" ) { ZPARM = "ON" ; }
+					if ( findword( ZPARM, "ON OFF" ) )
+					{
+						p_poolMGR->put( err, "ZSCALE", ZPARM, SHARED, SYSTEM ) ;
+					}
+				}
+				else if ( ZCOMMAND == "SCRNAME" )
+				{
+					w1    = word( ZPARM, 2 ) ;
+					ZPARM = word( ZPARM, 1 ) ;
+					if  ( ZPARM == "ON" )
+					{
+						p_poolMGR->put( err, "ZSCRNAM1", "ON", SHARED, SYSTEM ) ;
+					}
+					else if ( ZPARM == "OFF" )
+					{
+						p_poolMGR->put( err, "ZSCRNAM1", "OFF", SHARED, SYSTEM ) ;
+					}
+					else if ( isvalidName( ZPARM ) && !findword( ZPARM, "LIST PREV NEXT" ) )
+					{
+						p_poolMGR->put( err, currScrn->screenID, "ZSCRNAME", ZPARM ) ;
+						p_poolMGR->put( err, "ZSCRNAME", ZPARM, SHARED ) ;
+						if ( w1 == "PERM" )
+						{
+							p_poolMGR->put( err, currScrn->screenID, "ZSCRNAM2", w1 ) ;
 						}
 						else
 						{
-							issueMessage( "PSYS014" ) ;
-						}
-						currAppl->currPanel->redisplay_panel() ;
-					}
-					else if ( ZCOMMAND == "REFRESH" )
-					{
-						currAppl->currPanel->refresh() ;
-						reset_prog_mode() ;
-						refresh() ;
-					}
-					else if ( ZCOMMAND == "RETP" )
-					{
-						listRetrieveBuffer() ;
-						break ;
-					}
-					else if ( ZCOMMAND == ".RELOAD" )
-					{
-						reloadDynamicClasses( ZPARM ) ;
-					}
-					else if ( ZCOMMAND == ".SCALE" )
-					{
-						if ( ZPARM == "" ) { ZPARM = "ON" ; }
-						if ( findword( ZPARM, "ON OFF" ) )
-						{
-							p_poolMGR->put( err, "ZSCALE", ZPARM, SHARED, SYSTEM ) ;
+							p_poolMGR->put( err, currScrn->screenID, "ZSCRNAM2", "" ) ;
 						}
 					}
-					else if ( ZCOMMAND == "SCRNAME" )
+					else
 					{
-						w1    = word( ZPARM, 2 ) ;
-						ZPARM = word( ZPARM, 1 ) ;
-						if  ( ZPARM == "ON" )
+						issueMessage( "PSYS013" ) ;
+					}
+					currAppl->currPanel->redisplay_panel() ;
+				}
+				else if ( ZCOMMAND == ".SHELL" )
+				{
+					def_prog_mode()   ;
+					endwin()          ;
+					system( p_poolMGR->get( err, "ZSHELL", SHARED ).c_str() ) ;
+					reset_prog_mode() ;
+					refresh()         ;
+				}
+				else if ( ZCOMMAND == ".SHOW" )
+				{
+					if ( ZPARM == "NULLS" )
+					{
+						p_poolMGR->put( err, "ZNULLS", "YES", SHARED, SYSTEM ) ;
+						currAppl->currPanel->redraw_fields() ;
+					}
+				}
+				else if ( ZCOMMAND == "SPLIT" )
+				{
+					SELCT.clear() ;
+					SELCT.PGM     = GMAINPGM ;
+					SELCT.PARM    = ""    ;
+					SELCT.NEWAPPL = "ISP" ;
+					SELCT.NEWPOOL = true  ;
+					SELCT.PASSLIB = false ;
+					SELCT.SUSPEND = true  ;
+					startApplication( SELCT, true ) ;
+					break ;
+				}
+				else if ( ZCOMMAND == ".STATS" )
+				{
+					p_poolMGR->statistics() ;
+					p_tableMGR->statistics() ;
+				}
+				else if ( ZCOMMAND == ".SNAP" )
+				{
+					p_poolMGR->snap() ;
+				}
+				else if ( ZCOMMAND == "SWAP" )
+				{
+					w1 = word( ZPARM, 1 ) ;
+					w2 = word( ZPARM, 2 ) ;
+					if ( ZPARM != "" && ZPARM != "NEXT" && ZPARM != "PREV" )
+					{
+						currAppl->currPanel->cursor_to_field( RC, currAppl->currPanel->CMDfield, 1 ) ;
+						currAppl->currPanel->get_cursor( row, col ) ;
+						currScrn->set_row_col( row, col ) ;
+					}
+					if ( w1 == "LIST" )
+					{
+						w1 = listLogicalScreens() ;
+					}
+					if ( pLScreen::screensTotal == 1 ) { continue ; }
+					currScrn->save_panel_stack() ;
+					if ( w1 =="*" ) { w1 = d2ds( screenNum+1 ) ; }
+					if ( w1 != "" && w1 != "NEXT" && w1 != "PREV" && isvalidName( w1 ) )
+					{
+						l = getScreenNameNum( w1 ) ;
+						if ( l > 0 ) { w1 = d2ds( l ) ; }
+					}
+					if ( w2 != "" && isvalidName( w2 ) )
+					{
+						l = getScreenNameNum( w2 ) ;
+						if ( l > 0 ) { w2 = d2ds( l ) ; }
+					}
+					if ( w1 == "NEXT" )
+					{
+						++screenNum ;
+						screenNum = (screenNum == pLScreen::screensTotal ? 0 : screenNum) ;
+						if ( altScreen == screenNum ) { altScreen = (altScreen == 0 ? (pLScreen::screensTotal - 1) : (altScreen - 1) ) ; }
+					}
+					else if ( w1 == "PREV" )
+					{
+						--screenNum ;
+						screenNum = (screenNum < 0 ? (pLScreen::screensTotal - 1) : screenNum) ;
+						if ( altScreen == screenNum ) { altScreen = ((altScreen == pLScreen::screensTotal - 1) ? 0 : (altScreen + 1) )  ; }
+					}
+					else if ( datatype( w1, 'W' ) )
+					{
+						t = ds2d( w1 ) - 1 ;
+						if ( t >= 0 && t < pLScreen::screensTotal )
 						{
-							p_poolMGR->put( err, "ZSCRNAM1", "ON", SHARED, SYSTEM ) ;
-						}
-						else if ( ZPARM == "OFF" )
-						{
-							p_poolMGR->put( err, "ZSCRNAM1", "OFF", SHARED, SYSTEM ) ;
-						}
-						else if ( isvalidName( ZPARM ) && !findword( ZPARM, "LIST PREV NEXT" ) )
-						{
-							p_poolMGR->put( err, currScrn->screenID, "ZSCRNAME", ZPARM ) ;
-							p_poolMGR->put( err, "ZSCRNAME", ZPARM, SHARED ) ;
-							if ( w1 == "PERM" )
+							if ( t != screenNum )
 							{
-								p_poolMGR->put( err, currScrn->screenID, "ZSCRNAM2", w1 ) ;
-							}
-							else
-							{
-								p_poolMGR->put( err, currScrn->screenID, "ZSCRNAM2", "" ) ;
-							}
-						}
-						else
-						{
-							issueMessage( "PSYS013" ) ;
-						}
-						currAppl->currPanel->redisplay_panel() ;
-					}
-					else if ( ZCOMMAND == ".SHELL" )
-					{
-						def_prog_mode()   ;
-						endwin()          ;
-						system( p_poolMGR->get( err, "ZSHELL", SHARED ).c_str() ) ;
-						reset_prog_mode() ;
-						refresh()         ;
-					}
-					else if ( ZCOMMAND == ".SHOW" )
-					{
-						if ( ZPARM == "NULLS" )
-						{
-							p_poolMGR->put( err, "ZNULLS", "YES", SHARED, SYSTEM ) ;
-							currAppl->currPanel->redraw_fields() ;
-						}
-					}
-					else if ( ZCOMMAND == "SPLIT" )
-					{
-						SELCT.clear() ;
-						SELCT.PGM     = GMAINPGM ;
-						SELCT.PARM    = ""    ;
-						SELCT.NEWAPPL = "ISP" ;
-						SELCT.NEWPOOL = true  ;
-						SELCT.PASSLIB = false ;
-						SELCT.SUSPEND = true  ;
-						startApplication( SELCT, true ) ;
-						break ;
-					}
-					else if ( ZCOMMAND == ".STATS" )
-					{
-						p_poolMGR->statistics() ;
-						p_tableMGR->statistics() ;
-					}
-					else if ( ZCOMMAND == ".SNAP" )
-					{
-						p_poolMGR->snap() ;
-					}
-					else if ( ZCOMMAND == "SWAP" )
-					{
-						w1 = word( ZPARM, 1 ) ;
-						w2 = word( ZPARM, 2 ) ;
-						if ( ZPARM != "" && ZPARM != "NEXT" && ZPARM != "PREV" )
-						{
-							currAppl->currPanel->cursor_to_field( RC, currAppl->currPanel->CMDfield, 1 ) ;
-							currAppl->currPanel->get_cursor( row, col ) ;
-							currScrn->set_row_col( row, col ) ;
-						}
-						if ( w1 == "LIST" )
-						{
-							w1 = listLogicalScreens() ;
-						}
-						if ( pLScreen::screensTotal == 1 ) { continue ; }
-						currScrn->save_panel_stack() ;
-						if ( w1 =="*" ) { w1 = d2ds( screenNum+1 ) ; }
-						if ( w1 != "" && w1 != "NEXT" && w1 != "PREV" && isvalidName( w1 ) )
-						{
-							l = getScreenNameNum( w1 ) ;
-							if ( l > 0 ) { w1 = d2ds( l ) ; }
-						}
-						if ( w2 != "" && isvalidName( w2 ) )
-						{
-							l = getScreenNameNum( w2 ) ;
-							if ( l > 0 ) { w2 = d2ds( l ) ; }
-						}
-						if ( w1 == "NEXT" )
-						{
-							++screenNum ;
-							screenNum = (screenNum == pLScreen::screensTotal ? 0 : screenNum) ;
-							if ( altScreen == screenNum ) { altScreen = (altScreen == 0 ? (pLScreen::screensTotal - 1) : (altScreen - 1) ) ; }
-						}
-						else if ( w1 == "PREV" )
-						{
-							--screenNum ;
-							screenNum = (screenNum < 0 ? (pLScreen::screensTotal - 1) : screenNum) ;
-							if ( altScreen == screenNum ) { altScreen = ((altScreen == pLScreen::screensTotal - 1) ? 0 : (altScreen + 1) )  ; }
-						}
-						else if ( datatype( w1, 'W' ) )
-						{
-							t = ds2d( w1 ) - 1 ;
-							if ( t >= 0 && t < pLScreen::screensTotal )
-							{
-								if ( t != screenNum )
+								if ( w2 == "*" || t == altScreen )
 								{
-									if ( w2 == "*" || t == altScreen )
-									{
-										altScreen = screenNum ;
-									}
-									screenNum = t ;
+									altScreen = screenNum ;
 								}
-							}
-							else
-							{
-								swap( screenNum, altScreen ) ;
-							}
-							if ( datatype( w2, 'W' ) && w1 != w2 )
-							{
-								t = ds2d( w2 ) - 1 ;
-								if ( t != screenNum && t >= 0 && t < pLScreen::screensTotal )
-								{
-									altScreen = t ;
-								}
+								screenNum = t ;
 							}
 						}
 						else
 						{
 							swap( screenNum, altScreen ) ;
 						}
-						currScrn = screenList[ screenNum ] ;
-						currAppl = currScrn->application_get_current() ;
-						p_poolMGR->setAPPLID( err, currAppl->ZZAPPLID )   ;
-						p_poolMGR->setShrdPool( err, currAppl->shrdPool ) ;
-						p_poolMGR->put( err, "ZPANELID", currAppl->PANELID, SHARED, SYSTEM ) ;
-						currScrn->restore_panel_stack() ;
-						break ;
+						if ( datatype( w2, 'W' ) && w1 != w2 )
+						{
+							t = ds2d( w2 ) - 1 ;
+							if ( t != screenNum && t >= 0 && t < pLScreen::screensTotal )
+							{
+								altScreen = t ;
+							}
+						}
 					}
-					else if ( ZCOMMAND == ".TEST" )
+					else
 					{
-						currAppl->setTestMode() ;
-						log( "W", "Application is now running in test mode" << endl ) ;
+						swap( screenNum, altScreen ) ;
 					}
-					else if ( ZCOMMAND == "TDOWN" )
-					{
-						currAppl->currPanel->field_tab_down( row, col ) ;
-						currScrn->set_row_col( row, col ) ;
-					}
-					currAppl->get_home( row, col ) ;
+					currScrn = screenList[ screenNum ] ;
+					currAppl = currScrn->application_get_current() ;
+					p_poolMGR->setAPPLID( err, currAppl->ZZAPPLID )   ;
+					p_poolMGR->setShrdPool( err, currAppl->shrdPool ) ;
+					p_poolMGR->put( err, "ZPANELID", currAppl->PANELID, SHARED, SYSTEM ) ;
+					currScrn->restore_panel_stack() ;
+					break ;
+				}
+				else if ( ZCOMMAND == ".TEST" )
+				{
+					currAppl->setTestMode() ;
+					log( "W", "Application is now running in test mode" << endl ) ;
+				}
+				else if ( ZCOMMAND == "TDOWN" )
+				{
+					currAppl->currPanel->field_tab_down( row, col ) ;
 					currScrn->set_row_col( row, col ) ;
-					if ( SEL )
-					{
-						updateDefaultVars()                   ;
-						currAppl->currPanel->pdActive = false ;
-						startApplication( SELCT ) ;
-					}
+				}
+				currAppl->get_home( row, col ) ;
+				currScrn->set_row_col( row, col ) ;
+				if ( SEL )
+				{
+					updateDefaultVars()                   ;
+					currAppl->currPanel->pdActive = false ;
+					startApplication( SELCT ) ;
 				}
 				break ;
 			default:
@@ -1268,7 +1266,6 @@ void processAction( uint row, uint col, int c, bool& passthru )
 			}
 		}
 	}
-
 	if ( findword( CMDVerb, BuiltInCommands ) || findword( CMDVerb, SystemCommands ) )
 	{
 		passthru = false   ;
@@ -1501,14 +1498,11 @@ void startApplication( selobj SEL, bool nScreen )
 	currAppl = ((pApplication*(*)())( apps[ SEL.PGM ].maker_ep))() ;
 
 	currScrn->application_add( currAppl ) ;
-	currAppl->ZAPPNAME     = SEL.PGM      ;
+	currAppl->startSelect( SEL )          ;
 	currAppl->taskID       = ++maxtaskID  ;
-	currAppl->PASSLIB      = SEL.PASSLIB  ;
-	currAppl->SUSPEND      = SEL.SUSPEND  ;
 	currAppl->busyAppl     = true         ;
 	currAppl->p_poolMGR    = p_poolMGR    ;
 	currAppl->p_tableMGR   = p_tableMGR   ;
-	currAppl->PARM         = SEL.PARM     ;
 	currAppl->lspfCallback = lspfCallbackHandler ;
 	apps[ SEL.PGM ].refCount++ ;
 

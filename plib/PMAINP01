@@ -230,7 +230,8 @@ X "END"
 
 
 )INIT
- &ZPRIM = YES
+ &ZPRIM  = YES
+ .CURSOR = ZCMD
 
 )PROC
 

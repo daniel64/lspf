@@ -221,6 +221,8 @@ class pApplication
 		void   reload_keylist( pPanel * ) ;
 		bool   errorsReturn() ;
 		void   setTestMode()  ;
+		bool   selectPanel()  { return selPanel ; }
+		void   startSelect( selobj& ) ;
 
 		string sub_vars( string ) ;
 
@@ -238,7 +240,8 @@ class pApplication
 		bool addpop_active       ;
 		bool ControlErrorsReturn ;
 		bool ControlPassLRScroll ;
-		bool abending            ;
+		bool selPanel   ;
+		bool abending   ;
 
 		string MSGID    ;
 		string MSGID1   ;

@@ -66,7 +66,7 @@ class pPanel
 		void   refresh_fields( const string& ) ;
 		void   refresh_fields()                ;
 
-		string cmd_getvalue()                   { return field_getvalue( CMDfield ) ; }
+		string cmd_getvalue()                  { return field_getvalue( CMDfield ) ; }
 		void   cmd_setvalue( const string& v ) { field_setvalue( CMDfield, v )     ; }
 
 		bool   is_cmd_inactive( const string& value ) ;

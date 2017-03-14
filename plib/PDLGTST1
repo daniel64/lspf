@@ -59,6 +59,9 @@ literal  13  20   NT   "Terminate Dialogue Services"
 T "SELECT PGM(&ZHELPPGM) PARM(&ZPARM)"
 X "ACTION END"
 
+)INIT
+ .CURSOR = ZCMD
+
 )PROC
 
 &ZCMD   = TRUNC(&ZCMD,'.')

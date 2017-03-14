@@ -762,6 +762,7 @@ bool selobj::parse( string SELSTR )
 				SELSTR = delstr( SELSTR, p1, (p2 - p1 + 1) ) ;
 				str    = upper( SELSTR ) ;
 			}
+			selPanl = true ;
 		}
 		else
 		{

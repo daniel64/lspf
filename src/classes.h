@@ -355,6 +355,7 @@ class selobj
 			PASSLIB = false ;
 			SUSPEND = false ;
 			SCRNAME = "" ;
+			selPanl = false ;
 		}
 		void clear()
 		{
@@ -365,8 +366,10 @@ class selobj
 			PASSLIB = false ;
 			SUSPEND = false ;
 			SCRNAME = "" ;
+			selPanl = false ;
 		}
 		bool parse( string ) ;
+		bool selPanel() { return selPanl ; }
 
 		string PGM     ;
 		string PARM    ;
@@ -375,4 +378,7 @@ class selobj
 		bool   PASSLIB ;
 		bool   SUSPEND ;
 		string SCRNAME ;
+
+	private:
+		bool   selPanl ;
 } ;

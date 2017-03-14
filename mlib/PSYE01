@@ -92,8 +92,8 @@ PSYE013Y 'Table created with inconsistent WRITE/NOWRITE attributes for open tabl
 PSYE013Z 'Table &ZVAL1 is already open in SHARE mode.  EXCLUSIVE requested'
 ''
 
-PSYE014A 'Table &ZVAL1 is already open in EXCLUSIVE mode by another task'
-''
+PSYE014A 'Table &ZVAL1 is already open in EXCLUSIVE mode'
+'Task &ZVAL2 already has this table opened EXCLUSIVE'
 
 PSYE014B 'Table load file name &ZVAL1 is not a regular file'
 ''

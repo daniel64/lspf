@@ -63,6 +63,7 @@ pApplication::pApplication()
 	libdef_puser           = false  ;
 	libdef_tuser           = false  ;
 	SEL                    = false  ;
+	selPanel               = false  ;
 	setMSG                 = false  ;
 	reffield               = ""     ;
 	PANELID                = ""     ;
@@ -106,6 +107,16 @@ pApplication::~pApplication()
 		delete it->second ;
 	}
 	busyAppl = false ;
+}
+
+
+void pApplication::startSelect( selobj& s )
+{
+	ZAPPNAME = s.PGM     ;
+	PASSLIB  = s.PASSLIB ;
+	SUSPEND  = s.SUSPEND ;
+	PARM     = s.PARM    ;
+	selPanel = s.selPanel() ;
 }
 
 
@@ -605,7 +616,16 @@ void pApplication::libdef( const string& lib, const string& type )
 
 string pApplication::get_select_cmd( const string& opt )
 {
-	return panelList[ PANELID ]->return_command( opt ) ;
+	// Get system variable ZSEL for the SELECT PANEL command.  If not set, use the panel command entry.
+
+	string t ;
+
+	vcopy( "ZSEL", t, MOVE ) ;
+	if ( t == "" )
+	{
+		t = panelList[ PANELID ]->return_command( opt ) ;
+	}
+	return t ;
 }
 
 
@@ -1570,12 +1590,12 @@ void pApplication::tbclose( const string& tb_name, const string& tb_newname, con
 	if ( tablesUpdate.find( tb_name ) != tablesUpdate.end() )
 	{
 		p_tableMGR->saveTable( errBlock, taskid(), tb_name, tb_newname, tb_path, false ) ;
-		if ( errBlock.getRC() == 4 ) { errBlock.setRC( 0 ) ; }
+		if ( errBlock.RC4() ) { errBlock.setRC( 0 ) ; }
 	}
-	if ( errBlock.getRC() == 0 )
+	if ( errBlock.RC0() )
 	{
 		p_tableMGR->destroyTable( errBlock, taskid(), tb_name ) ;
-		if ( errBlock.getRC() == 0 )
+		if ( errBlock.RC0() )
 		{
 			tablesOpen.erase( tb_name ) ;
 			tablesUpdate.erase( tb_name ) ;
@@ -1799,9 +1819,9 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 	}
 
 	t = funcPOOL.get( errBlock, 8, ".AUTOSEL", NOCHECK ) ;
-	if ( errBlock.getRC() == 0 ) { p_autosel = t ; }
+	if ( errBlock.RC0() ) { p_autosel = t ; }
 	t = funcPOOL.get( errBlock, 8, ".CSRROW", NOCHECK ) ;
-	if ( errBlock.getRC() == 0 ) { p_csrrow = ds2d( t ) ; }
+	if ( errBlock.RC0() ) { p_csrrow = ds2d( t ) ; }
 
 	scrNum = ds2d(p_poolMGR->get( errBlock, "ZSCRNUM", SHARED ) ) ;
 	if ( p_poolMGR->get( errBlock, "ZSCRNAM1", SHARED ) == "ON" &&
@@ -1888,7 +1908,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		if ( findword( ZZVERB, "END EXIT RETURN" ) ) { RC = 8 ; return     ; }
 
 		t = funcPOOL.get( errBlock, 8, ".CSRROW", NOCHECK ) ;
-		if ( errBlock.getRC() == 0 ) { p_csrrow = ds2d( t ) ; }
+		if ( errBlock.RC0() ) { p_csrrow = ds2d( t ) ; }
 		if ( currtbPanel->MSGID != "" )
 		{
 			get_Message( currtbPanel->MSGID ) ;
@@ -1910,9 +1930,9 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 				break ;
 			}
 			t = funcPOOL.get( errBlock, 8, ".AUTOSEL", NOCHECK ) ;
-			if ( errBlock.getRC() == 0 ) { p_autosel = t ; }
+			if ( errBlock.RC0() ) { p_autosel = t ; }
 			t = funcPOOL.get( errBlock, 8, ".CSRROW", NOCHECK ) ;
-			if ( errBlock.getRC() == 0 ) { p_csrrow = ds2d( t ) ; }
+			if ( errBlock.RC0() ) { p_csrrow = ds2d( t ) ; }
 			continue ;
 		}
 		if ( ZZVERB == "UP" || ZZVERB == "DOWN" )
@@ -2123,7 +2143,7 @@ void pApplication::tbopen( const string& tb_name, tbSAVE m_SAVE, string m_paths,
 		errBlock.setcall( "TBOPEN error" ) ;
 		checkRCode( errBlock ) ;
 	}
-	else if ( errBlock.getRC() == 0 )
+	else if ( errBlock.RC0() )
 	{
 		tablesOpen[ tb_name ] = true ;
 		if ( m_SAVE == WRITE )
@@ -2207,7 +2227,7 @@ void pApplication::tbsave( const string& tb_name, const string& tb_newname, cons
 	if ( !isTableUpdate( tb_name, "TBSAVE" ) ) { return ; }
 
 	p_tableMGR->saveTable( errBlock, taskid(), tb_name, tb_newname, path ) ;
-	if ( errBlock.getRC() == 4 ) { errBlock.setRC( 0 ) ; }
+	if ( errBlock.RC4() ) { errBlock.setRC( 0 ) ; }
 	if ( errBlock.error() )
 	{
 		errBlock.setcall( "TBSAVE error" ) ;
@@ -2411,7 +2431,7 @@ void pApplication::actionSelect()
 	SEL      = true  ;
 	busyAppl = false ;
 
-	wait_event()    ;
+	wait_event() ;
 
 	if ( RC == 4 ) { propagateEnd = true ; }
 
