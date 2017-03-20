@@ -1,0 +1,213 @@
+/*                                           */
+/* System error message file for lspf        */
+
+/* Low-level messages in pWidgets.cpp */
+PSYE031A 'Field outside panel area'
+'ROW=&ZVAL1 ZSCRMAXD=&ZVAL2'
+
+PSYE031B 'Invalid value ''&ZVAL1'''
+'Value must be numeric, MAX or MAX-n'
+
+PSYE031C 'Keyword &ZVAL1 not found'
+'&ZVAL1 is a required keyword'
+
+PSYE031D 'Invalid variable name ''&ZVAL1'''
+'Variable ''&ZVAL1'' has an invalid format'
+
+/* dynamic areas */
+PSYE032A 'Dynamic Area outside panel area'
+'ROW=&ZVAL1 ZSCRMAXD=&ZVAL2'
+
+PSYE032B 'Invalid hex or character value'
+'Value must be a single character or valid hex value representing a single character'
+
+PSYE032C 'No DATAIN specified'
+'DATAIN must be specified if DATAMOD or USERMOD is specified'
+
+PSYE032D 'Missing '')'''
+'Missing closing bracket on keyword'
+
+PSYE032E 'Missing shadow variable name'
+'The shadow variable for a dynamic area must be specified'
+
+PSYE032F 'Invalid CUA attribute specified'
+'CUA attribute &ZVAL1 is invalid'
+
+PSYE032G 'Error parsing field options'
+''
+
+PSYE032H 'Extraeneous Data'
+'Extraeneous data ''&ZVAL1'' found on statement'
+
+/* IF */
+
+PSYE033A 'MSGID not allowed'
+'MSGID is not allowed when VERIFY is used in an IF statement'
+
+PSYE033B 'Invalid IF statement'
+''
+
+PSYE033C 'Invalid number of parameters'
+'Only once parameter is allowed before the comparison operator'
+
+PSYE033D 'Missing ''('''
+'Missing opening bracket on keyword'
+
+PSYE033E 'Invalid comparison operator'
+'&ZVAL1 is not a valid comparison operator for an IF statement'
+
+PSYE033F 'Missing ending quote'
+'String starts with a quote but no ending quote found'
+
+PSYE033G 'Invalid value &ZVAL1'
+'Boolian value has to be .TRUE or .FALSE'
+
+PSYE033H 'List not allowed'
+'A value list is allowed on the right hand side only for EQ and NE comparisons'
+
+PSYE033I 'Invalid variable'
+'Variable has to begin with an ''&&'''
+
+/* VER */
+
+PSYE033J 'Missing variable'
+'VERIFY statement has no variable name'
+
+PSYE033K 'Missing MSG= value'
+'Missing message-id on statement'
+
+PSYE033L 'Invalid VERIFY type'
+'Must be NUM, LIST, PICT, HEX or OCT'
+
+PSYE033M 'Too many brackets'
+'VERIFY statement contains too many close brackets'
+
+PSYE033N 'Verfiy value missing'
+'No verify value entered for LIST or PICT'
+
+/* ASSIGN */
+
+PSYE033O 'Missing ''='' in statement'
+''
+
+PSYE033P 'Too many parameters before the ''='' sign'
+''
+
+PSYE033Q 'Unknown parameter ''&ZVAL1'''
+''
+
+PSYE033R 'Too many parameters after the ''='' sign'
+''
+
+PSYE033S 'Invalid control variable'
+'&ZVAL1 is not a known control variable'
+
+/* VPUT/VGET */
+
+PSYE033T 'Invalid VPUT or VGET statement'
+'Missing parameters on statement'
+
+PSYE033U 'Invalid pool type ''&ZVAL1'''
+'Pool type must be SHARED, PROFILE, ASIS or blank'
+
+/* Box */
+PSYE034A 'Box outside panel area'
+''
+
+
+/* Attr */
+PSYE035A 'Cannot alter a point-and-shoot field'
+''
+
+PSYE035B 'Attribute &ZVAL1 is invalid'
+'&ZVAL1 is not a valid value for keyword &ZVAL2'
+
+
+
+/* Literals */
+PSYE036A 'Literal outside panel area'
+'row=&ZVAL1 ZSCRMAXD=&ZVAL2'
+
+PSYE036B 'Literal outside panel area'
+'col=&ZVAL1 ZSCRMAXW=&ZVAL2'
+
+/* Point-and-Shoot */
+PSYE037A 'Missing keyword'
+'Point and shoot entry must contain FIELD, VAR and VAL keywords'
+
+
+/* Parse string */
+PSYE037F 'Null string'
+'Null string has been passed to parser'
+
+PSYE037G 'Too many brackets'
+'String contains too many open or close brackets'
+
+PSYE037H 'Format error'
+'Format of the string to be parsed is invalid'
+
+/* TRUNC */
+PSYE038A 'TRUNC variable name is blank'
+'Variable name must be entered'
+
+PSYE038B 'Missing TRUNC keyword'
+''
+
+PSYE038C 'Missing '','' in TRUNC statement'
+''
+
+PSYE038D 'Field missing in TRUNC statement'
+''
+
+PSYE038E 'Value missing in TRUNC statement'
+''
+
+PSYE038F 'Invalid value in TRUNC statement'
+'&ZVAL1 is invalid'
+
+/* TRANS */
+
+PSYE039A 'TRANS variable name is blank'
+'Variable name must be entered'
+
+PSYE039B 'Missing TRANS keyword'
+''
+
+PSYE039C 'Inalid format in the TRANS statement'
+''
+
+PSYE039D 'Field missing in TRANS statement'
+''
+
+PSYE039E 'Value missing in TRANS statement'
+''
+
+PSYE039F 'Missing '','' in TRANS statement'
+''
+
+PSYE039G 'Duplicate entry in TRANS statement'
+'&ZVAL1 appears more than once in the translate list'
+
+PSYE039H 'Invalid value in TRANS statement'
+'&ZVAL1 is not valid'
+
+/* SELECT Parser */
+
+PSYE039M 'PARM entered with &ZVAL1 option'
+'PARM is not valid for a SELECT &ZVAL1 statement'
+
+PSYE039N 'Unsupported language &ZVAL1'
+''
+
+PSYE039O 'SCREEN NAME cannot be LIST, NEXT or PREV'
+''
+
+PSYE039P 'Invalid SCREEN NAME forat'
+''
+
+PSYE039Q 'PASSLIB entered without NEWAPPL'
+''
+
+PSYE039R 'PANEL, CMD or PGM must be entered'
+''
+
