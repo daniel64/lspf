@@ -142,8 +142,6 @@ void execiAddpop( pApplication * thisAppl, const string& s, errblock& err )
 	int i_row ;
 	int i_col ;
 
-	bool  rlt ;
-
 	string str    ;
 	string ap_loc ;
 	string ap_row ;
@@ -151,27 +149,24 @@ void execiAddpop( pApplication * thisAppl, const string& s, errblock& err )
 
 	str = upper( subword( s, 2 ) ) ;
 
-	ap_loc = parseString( rlt, str, "POPLOC()" ) ;
-	if ( !rlt )
+	ap_loc = parseString( err, str, "POPLOC()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	ap_row = parseString( rlt, str, "ROW()" ) ;
-	if ( !rlt )
+	ap_row = parseString( err, str, "ROW()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
 	if ( ap_row == "" ) { i_row = 0              ; }
 	else                { i_row = ds2d( ap_row ) ; }
 
-	ap_col = parseString( rlt, str, "COLUMN()" ) ;
-	if ( !rlt )
+	ap_col = parseString( err, str, "COLUMN()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -191,25 +186,21 @@ void execiAddpop( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiBrowse( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool   rlt ;
-
 	string str ;
 	string pan ;
 	string fl  ;
 
 	str = subword( s, 2 ) ;
 
-	fl = parseString( rlt, str, "FILE()" ) ;
-	if ( !rlt )
+	fl = parseString( err, str, "FILE()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	pan = parseString( rlt, str, "PANEL()" ) ;
-	if ( !rlt || str != "" )
+	pan = parseString( err, str, "PANEL()" ) ;
+	if ( err.error() || str != "" )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -230,8 +221,6 @@ void execiControl( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiDisplay( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool   rlt ;
-
 	string str ;
 	string pan ;
 	string msg ;
@@ -240,31 +229,27 @@ void execiDisplay( pApplication * thisAppl, const string& s, errblock& err )
 
 	str = upper( subword( s, 2 ) ) ;
 
-	pan = parseString( rlt, str, "PANEL()" ) ;
-	if ( !rlt )
+	pan = parseString( err, str, "PANEL()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	msg = parseString( rlt, str, "MSG()" ) ;
-	if ( !rlt )
+	msg = parseString( err, str, "MSG()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	cursor = parseString( rlt, str, "CURSOR()" ) ;
-	if ( !rlt )
+	cursor = parseString( err, str, "CURSOR()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	csrpos = parseString( rlt, str, "CSRPOS()" ) ;
-	if ( !rlt || str != "" )
+	csrpos = parseString( err, str, "CSRPOS()" ) ;
+	if ( err.error() || str != "" )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -277,8 +262,6 @@ void execiDisplay( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiEdit( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool   rlt ;
-
 	string str  ;
 	string pan  ;
 	string mac  ;
@@ -287,31 +270,27 @@ void execiEdit( pApplication * thisAppl, const string& s, errblock& err )
 
 	str = subword( s, 2 ) ;
 
-	fl = parseString( rlt, str, "FILE()" ) ;
-	if ( !rlt )
+	fl = parseString( err, str, "FILE()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	pan = parseString( rlt, str, "PANEL()" ) ;
-	if ( !rlt )
+	pan = parseString( err, str, "PANEL()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	mac = parseString( rlt, str, "MACRO()" ) ;
-	if ( !rlt )
+	mac = parseString( err, str, "MACRO()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	prof = parseString( rlt, str, "PROFILE()" ) ;
-	if ( !rlt || str != "" )
+	prof = parseString( err, str, "PROFILE()" ) ;
+	if ( err.error() || str != "" )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -323,8 +302,6 @@ void execiEdit( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiGetmsg( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool   rlt ;
-
 	string msg  ;
 	string smsg ;
 	string lmsg ;
@@ -337,52 +314,45 @@ void execiGetmsg( pApplication * thisAppl, const string& s, errblock& err )
 
 	str = upper( subword( s, 2 ) ) ;
 
-	msg = parseString( rlt, str, "MSG()" ) ;
-	if ( !rlt )
+	msg = parseString( err, str, "MSG()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	smsg = parseString( rlt, str, "SHORTMSG()" ) ;
-	if ( !rlt )
+	smsg = parseString( err, str, "SHORTMSG()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	lmsg = parseString( rlt, str, "LONGMSG()" ) ;
-	if ( !rlt )
+	lmsg = parseString( err, str, "LONGMSG()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	alm = parseString( rlt, str, "ALARM()" ) ;
-	if ( !rlt )
+	alm = parseString( err, str, "ALARM()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	hlp = parseString( rlt, str, "HELP()" ) ;
-	if ( !rlt )
+	hlp = parseString( err, str, "HELP()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	typ = parseString( rlt, str, "TYPE()" ) ;
-	if ( !rlt )
+	typ = parseString( err, str, "TYPE()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	wndo = parseString( rlt, str, "WINDOW()" ) ;
-	if ( !rlt || str != "" )
+	wndo = parseString( err, str, "WINDOW()" ) ;
+	if ( err.error() || str != "" )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -393,28 +363,28 @@ void execiGetmsg( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiLibdef( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool   rlt ;
-
 	string ld_files ;
 	string str      ;
+	string procopt  ;
 
-	str      = subword( s, 3 ) ;
-	ld_files = parseString( rlt, str, "ID()" ) ;
-	if ( !rlt || str != "" )
+	str      = subword( s, 2 ) ;
+	ld_files = parseString( err, str, "ID()" ) ;
+	if ( err.error() || words( str ) > 3 )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
+	iupper( str ) ;
 
-	thisAppl->libdef( word( s, 2 ), ld_files ) ;
+	procopt = word( str, 3 ) ;
+	if ( procopt == "" ) { procopt = "UNCOND" ; }
+
+	thisAppl->libdef( word( str, 1 ), word( str, 2 ), ld_files, procopt ) ;
 	return ;
 }
 
 
 void execiPquery( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool   rlt ;
-
 	string str      ;
 	string pq_panel ;
 	string pq_arean ;
@@ -425,52 +395,45 @@ void execiPquery( pApplication * thisAppl, const string& s, errblock& err )
 	string pq_col   ;
 
 	str      = upper( subword( s, 2 ) ) ;
-	pq_panel = parseString( rlt, str, "PANEL()" ) ;
-	if ( !rlt )
+	pq_panel = parseString( err, str, "PANEL()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	pq_arean = parseString( rlt, str, "AREANAME()" ) ;
-	if ( !rlt )
+	pq_arean = parseString( err, str, "AREANAME()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	pq_areat = parseString( rlt, str, "AREATYPE()" ) ;
-	if ( !rlt )
+	pq_areat = parseString( err, str, "AREATYPE()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	pq_width = parseString( rlt, str, "WIDTH()" ) ;
-	if ( !rlt )
+	pq_width = parseString( err, str, "WIDTH()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	pq_depth = parseString( rlt, str, "DEPTH()" ) ;
-	if ( !rlt )
+	pq_depth = parseString( err, str, "DEPTH()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	pq_row = parseString( rlt, str, "ROW()" ) ;
-	if ( !rlt )
+	pq_row = parseString( err, str, "ROW()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	pq_col = parseString( rlt, str, "COLUMN()" ) ;
-	if ( !rlt || str != "" )
+	pq_col = parseString( err, str, "COLUMN()" ) ;
+	if ( err.error() || str != "" )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -513,9 +476,8 @@ void execiSelect( pApplication * thisAppl, const string& s, errblock& err )
 
 	selobj SEL ;
 
-	if ( !SEL.parse( subword( s, 2 ) ) )
+	if ( !SEL.parse( err, subword( s, 2 ) ) )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -532,8 +494,6 @@ void execiSelect( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiSetmsg( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool   rlt ;
-
 	string str   ;
 	string s_msg ;
 
@@ -541,10 +501,9 @@ void execiSetmsg( pApplication * thisAppl, const string& s, errblock& err )
 
 	str = upper( subword( s, 2 ) ) ;
 
-	s_msg = parseString( rlt, str, "MSG()" ) ;
-	if ( !rlt )
+	s_msg = parseString( err, str, "MSG()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -563,8 +522,6 @@ void execiSetmsg( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiTBAdd( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool   rlt ;
-
 	string str        ;
 	string tb_name    ;
 	string tb_namelst ;
@@ -574,17 +531,15 @@ void execiTBAdd( pApplication * thisAppl, const string& s, errblock& err )
 	tb_name = upper( word( s, 2 ) )    ;
 	str     = upper( subword( s, 3 ) ) ;
 
-	tb_namelst = parseString( rlt, str, "SAVE()" ) ;
-	if ( !rlt )
+	tb_namelst = parseString( err, str, "SAVE()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_numrows = parseString( rlt, str, "MULT()" ) ;
-	if ( !rlt )
+	tb_numrows = parseString( err, str, "MULT()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 	if ( tb_numrows == "" ) { tb_numrows = "1" ; }
@@ -603,8 +558,6 @@ void execiTBAdd( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiTBBottom( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool   rlt ;
-
 	string str       ;
 	string t         ;
 	string tb_name   ;
@@ -616,24 +569,21 @@ void execiTBBottom( pApplication * thisAppl, const string& s, errblock& err )
 	tb_name = upper( word( s, 2 ) )    ;
 	str     = upper( subword( s, 3 ) ) ;
 
-	tb_savenm = parseString( rlt, str, "SAVENAME()" ) ;
-	if ( !rlt )
+	tb_savenm = parseString( err, str, "SAVENAME()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_rowid = parseString( rlt, str, "ROWID()" ) ;
-	if ( !rlt )
+	tb_rowid = parseString( err, str, "ROWID()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_crpnm = parseString( rlt, str, "POSITION()" ) ;
-	if ( !rlt )
+	tb_crpnm = parseString( err, str, "POSITION()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -651,8 +601,6 @@ void execiTBBottom( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiTBClose( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool   rlt ;
-
 	string str      ;
 	string tb_name  ;
 	string tb_nname ;
@@ -661,17 +609,15 @@ void execiTBClose( pApplication * thisAppl, const string& s, errblock& err )
 	tb_name  = upper( word( s, 2 ) ) ;
 	str      = subword( s, 3 )       ;
 
-	tb_nname = parseString( rlt, str, "NAME()" ) ;
-	if ( !rlt )
+	tb_nname = parseString( err, str, "NAME()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_path = parseString( rlt, str, "LIBRARY()" ) ;
-	if ( !rlt )
+	tb_path = parseString( err, str, "LIBRARY()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -682,8 +628,6 @@ void execiTBClose( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiTBCreate( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool   rlt ;
-
 	string str      ;
 	string t        ;
 	string tb_name  ;
@@ -701,61 +645,54 @@ void execiTBCreate( pApplication * thisAppl, const string& s, errblock& err )
 	tb_name = upper( word( s, 2 ) ) ;
 	str     = subword( s, 3 ) ;
 
-	tb_paths = parseString( rlt, str, "LIBRARY()" ) ;
-	if ( !rlt )
+	tb_paths = parseString( err, str, "LIBRARY()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
 	iupper( str ) ;
-	tb_keys  = parseString( rlt, str, "KEYS()" ) ;
-	if ( !rlt )
+	tb_keys  = parseString( err, str, "KEYS()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_names = parseString( rlt, str, "NAMES()" ) ;
-	if ( !rlt )
+	tb_names = parseString( err, str, "NAMES()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
 	t_save = WRITE ;
-	t = parseString( rlt, str, "WRITE" ) ;
-	if ( !rlt )
+	t = parseString( err, str, "WRITE" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 	if ( t == "" )
 	{
-		t = parseString( rlt, str, "NOWRITE" ) ;
-		if ( !rlt )
+		t = parseString( err, str, "NOWRITE" ) ;
+		if ( err.error() )
 		{
-			err.seterrid( "PSYE019C" ) ;
 			return ;
 		}
 		if ( t != "" ) { t_save = NOWRITE ; }
 	}
 
 	t_rep = NOREPLACE ;
-	t = parseString( rlt, str, "REPLACE" ) ;
-	if ( !rlt )
+	t = parseString( err, str, "REPLACE" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
 	if ( t != "" ) { t_rep = REPLACE ; }
 
 	t_disp = EXCLUSIVE ;
-	t = parseString( rlt, str, "SHARE" ) ;
-	if ( !rlt )
+	t = parseString( err, str, "SHARE" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 	if ( t != "" ) { t_disp = SHARE ; }
@@ -789,8 +726,6 @@ void execiTBDispl( pApplication * thisAppl, const string& s, errblock& err )
 	int i_csrpos ;
 	int i_csrrow ;
 
-	bool   rlt ;
-
 	string str  ;
 	string tb_name ;
 	string tb_pan  ;
@@ -804,63 +739,55 @@ void execiTBDispl( pApplication * thisAppl, const string& s, errblock& err )
 
 	str = upper( subword( s, 2 ) ) ;
 
-	tb_pan = parseString( rlt, str, "PANEL()" ) ;
-	if ( !rlt )
+	tb_pan = parseString( err, str, "PANEL()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_msg = parseString( rlt, str, "MSG()" ) ;
-	if ( !rlt )
+	tb_msg = parseString( err, str, "MSG()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_cursor = parseString( rlt, str, "CURSOR()" ) ;
-	if ( !rlt )
+	tb_cursor = parseString( err, str, "CURSOR()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_csrrow = parseString( rlt, str, "CSRROW()" ) ;
-	if ( !rlt )
+	tb_csrrow = parseString( err, str, "CSRROW()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 	if ( tb_csrrow == "" ) { i_csrrow = 1                ; }
 	else                   { i_csrrow = ds2d( tb_csrrow ) ; }
 
-	tb_csrpos = parseString( rlt, str, "CSRPOS()" ) ;
-	if ( !rlt )
+	tb_csrpos = parseString( err, str, "CSRPOS()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 	if ( tb_csrpos == "" ) { i_csrpos = 1                 ; }
 	else                   { i_csrpos = ds2d( tb_csrpos ) ; }
 
-	tb_autosel = parseString( rlt, str, "AUTOSEL()" ) ;
-	if ( !rlt )
+	tb_autosel = parseString( err, str, "AUTOSEL()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_posn = parseString( rlt, str, "POSITION()" ) ;
-	if ( !rlt )
+	tb_posn = parseString( err, str, "POSITION()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_rowid = parseString( rlt, str, "ROWID()" ) ;
-	if ( !rlt || str != "" )
+	tb_rowid = parseString( err, str, "ROWID()" ) ;
+	if ( err.error() || str != "" )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -884,8 +811,6 @@ void execiTBEnd( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiTBErase( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool   rlt ;
-
 	string str     ;
 	string tb_name ;
 	string tb_path ;
@@ -893,10 +818,9 @@ void execiTBErase( pApplication * thisAppl, const string& s, errblock& err )
 	tb_name = upper( word( s, 2 ) ) ;
 	str     = subword( s, 3 ) ;
 
-	tb_path = parseString( rlt, str, "LIBRARY()" ) ;
-	if ( !rlt || str != "" )
+	tb_path = parseString( err, str, "LIBRARY()" ) ;
+	if ( err.error() || str != "" )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -920,8 +844,6 @@ void execiTBExist( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiTBGet( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool   rlt ;
-
 	string str       ;
 	string t         ;
 	string tb_name   ;
@@ -933,24 +855,21 @@ void execiTBGet( pApplication * thisAppl, const string& s, errblock& err )
 	tb_name = upper( word( s, 2 ) )    ;
 	str     = upper( subword( s, 3 ) ) ;
 
-	tb_savenm = parseString( rlt, str, "SAVENAME()" ) ;
-	if ( !rlt )
+	tb_savenm = parseString( err, str, "SAVENAME()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_rowid = parseString( rlt, str, "ROWID()" ) ;
-	if ( !rlt )
+	tb_rowid = parseString( err, str, "ROWID()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_crpnm = parseString( rlt, str, "POSITION()" ) ;
-	if ( !rlt )
+	tb_crpnm = parseString( err, str, "POSITION()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -968,8 +887,6 @@ void execiTBGet( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiTBMod( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool   rlt ;
-
 	string str       ;
 	string t         ;
 	string tb_name   ;
@@ -979,10 +896,9 @@ void execiTBMod( pApplication * thisAppl, const string& s, errblock& err )
 	tb_name = upper( word( s, 2 ) )    ;
 	str     = upper( subword( s, 3 ) ) ;
 
-	tb_savenm = parseString( rlt, str, "SAVE()" ) ;
-	if ( !rlt )
+	tb_savenm = parseString( err, str, "SAVE()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -1000,8 +916,6 @@ void execiTBMod( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiTBPut( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool   rlt ;
-
 	string str       ;
 	string t         ;
 	string tb_name   ;
@@ -1011,10 +925,9 @@ void execiTBPut( pApplication * thisAppl, const string& s, errblock& err )
 	tb_name = upper( word( s, 2 ) )    ;
 	str     = upper( subword( s, 3 ) ) ;
 
-	tb_savenm = parseString( rlt, str, "SAVE()" ) ;
-	if ( !rlt )
+	tb_savenm = parseString( err, str, "SAVE()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -1032,8 +945,6 @@ void execiTBPut( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiTBOpen( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool   rlt ;
-
 	string str      ;
 	string t        ;
 	string tb_name  ;
@@ -1048,29 +959,25 @@ void execiTBOpen( pApplication * thisAppl, const string& s, errblock& err )
 	str     = subword( s, 3 ) ;
 
 	t_save = WRITE ;
-	t = parseString( rlt, str, "WRITE" ) ;
-	if ( !rlt )
+	t = parseString( err, str, "WRITE" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
 	if ( t == "" )
 	{
-		t = parseString( rlt, str, "NOWRITE" ) ;
-		if ( !rlt )
+		t = parseString( err, str, "NOWRITE" ) ;
+		if ( err.error() )
 		{
-			err.seterrid( "PSYE019C" ) ;
 			return ;
 		}
 		if ( t != "" ) { t_save = NOWRITE ; }
 	}
 
-	str      = subword( s, 4 ) ;
-	tb_paths = parseString( rlt, str, "LIBRARY()" ) ;
-	if ( !rlt || words( str ) > 1 )
+	tb_paths = parseString( err, str, "LIBRARY()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -1090,8 +997,6 @@ void execiTBOpen( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiTBQuery( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool   rlt ;
-
 	string str        ;
 	string tb_name    ;
 	string tb_keys    ;
@@ -1108,71 +1013,62 @@ void execiTBQuery( pApplication * thisAppl, const string& s, errblock& err )
 	tb_name = upper( word( s, 2 ) )    ;
 	str     = upper( subword( s, 3 ) ) ;
 
-	tb_keys = parseString( rlt, str, "KEYS()" ) ;
-	if ( !rlt )
+	tb_keys = parseString( err, str, "KEYS()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_names = parseString( rlt, str, "NAMES()" ) ;
-	if ( !rlt )
+	tb_names = parseString( err, str, "NAMES()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_rownum = parseString( rlt, str, "ROWNUM()" ) ;
-	if ( !rlt )
+	tb_rownum = parseString( err, str, "ROWNUM()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_keynum = parseString( rlt, str, "KEYNUM()" ) ;
-	if ( !rlt )
+	tb_keynum = parseString( err, str, "KEYNUM()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_namenum = parseString( rlt, str, "NAMENUM()" ) ;
-	if ( !rlt )
+	tb_namenum = parseString( err, str, "NAMENUM()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_pos = parseString( rlt, str, "POSITION()" ) ;
-	if ( !rlt )
+	tb_pos = parseString( err, str, "POSITION()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_srtflds = parseString( rlt, str, "SORTFLDS()" ) ;
-	if ( !rlt )
+	tb_srtflds = parseString( err, str, "SORTFLDS()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_sarglst = parseString( rlt, str, "SARGLIST()" ) ;
-	if ( !rlt )
+	tb_sarglst = parseString( err, str, "SARGLIST()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_sargcnd = parseString( rlt, str, "SARGCOND()" ) ;
-	if ( !rlt )
+	tb_sargcnd = parseString( err, str, "SARGCOND()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_sargdir = parseString( rlt, str, "SARGDIR()" ) ;
-	if ( !rlt || words( str ) > 0 )
+	tb_sargdir = parseString( err, str, "SARGDIR()" ) ;
+	if ( err.error() || words( str ) > 0 )
 	{
 		err.seterrid( "PSYE019C" ) ;
 		return ;
@@ -1185,8 +1081,6 @@ void execiTBQuery( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiTBSarg( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool rlt ;
-
 	string str ;
 	string tb_name  ;
 	string tb_arglst  ;
@@ -1196,17 +1090,15 @@ void execiTBSarg( pApplication * thisAppl, const string& s, errblock& err )
 	tb_name  = upper( word( s, 2 ) )    ;
 	str      = upper( subword( s, 3 ) ) ;
 
-	tb_arglst = parseString( rlt, str, "ARGLIST()" ) ;
-	if ( !rlt )
+	tb_arglst = parseString( err, str, "ARGLIST()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_namecnd = parseString( rlt, str, "NAMECOND()" ) ;
-	if ( !rlt )
+	tb_namecnd = parseString( err, str, "NAMECOND()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -1225,8 +1117,6 @@ void execiTBSarg( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiTBSave( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool   rlt ;
-
 	string str      ;
 	string tb_name  ;
 	string tb_nname ;
@@ -1235,17 +1125,15 @@ void execiTBSave( pApplication * thisAppl, const string& s, errblock& err )
 	tb_name  = upper( word( s, 2 ) ) ;
 	str      = subword( s, 3 ) ;
 
-	tb_nname = upper( parseString( rlt, str, "NAME()" ) ) ;
-	if ( !rlt )
+	tb_nname = upper( parseString( err, str, "NAME()" ) ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_path = parseString( rlt, str, "LIBRARY()" ) ;
-	if ( !rlt || words( str ) > 0 )
+	tb_path = parseString( err, str, "LIBRARY()" ) ;
+	if ( err.error() || words( str ) > 0 )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -1256,8 +1144,6 @@ void execiTBSave( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiTBScan( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool   rlt   ;
-
 	string str ;
 	string t   ;
 	string tb_name    ;
@@ -1272,54 +1158,47 @@ void execiTBScan( pApplication * thisAppl, const string& s, errblock& err )
 	tb_name = upper( word( s, 2 ) )    ;
 	str     = upper( subword( s, 3 ) ) ;
 
-	tb_arglst = parseString( rlt, str, "ARGLIST()" ) ;
-	if ( !rlt )
+	tb_arglst = parseString( err, str, "ARGLIST()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_savenm = parseString( rlt, str, "SAVENAME()" ) ;
-	if ( !rlt )
+	tb_savenm = parseString( err, str, "SAVENAME()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_rowid = parseString( rlt, str, "ROWID()" ) ;
-	if ( !rlt )
+	tb_rowid = parseString( err, str, "ROWID()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_crpnm = parseString( rlt, str, "POSITION()" ) ;
-	if ( !rlt )
+	tb_crpnm = parseString( err, str, "POSITION()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_condlst = parseString( rlt, str, "CONDLIST()" ) ;
-	if ( !rlt )
+	tb_condlst = parseString( err, str, "CONDLIST()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
 	tb_dir = "NEXT" ;
-	t = parseString( rlt, str, "NEXT" ) ;
-	if ( !rlt )
+	t = parseString( err, str, "NEXT" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 	if ( t == "" )
 	{
-		t = parseString( rlt, str, "PREVIOUS" ) ;
-		if ( !rlt )
+		t = parseString( err, str, "PREVIOUS" ) ;
+		if ( err.error() )
 		{
-			err.seterrid( "PSYE019C" ) ;
 			return ;
 		}
 		if ( t != "" ) { tb_dir = "PREVIOUS" ; }
@@ -1341,8 +1220,6 @@ void execiTBSkip( pApplication * thisAppl, const string& s, errblock& err )
 {
 	int i_num ;
 
-	bool rlt  ;
-
 	string str       ;
 	string t         ;
 	string tb_name   ;
@@ -1356,40 +1233,35 @@ void execiTBSkip( pApplication * thisAppl, const string& s, errblock& err )
 	tb_name = upper( word( s, 2 ) )    ;
 	str     = upper( subword( s, 3 ) ) ;
 
-	tb_num = parseString( rlt, str, "NUMBER()" ) ;
-	if ( !rlt )
+	tb_num = parseString( err, str, "NUMBER()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 	if ( tb_num == "" ) { i_num = 1                 ; }
 	else                { i_num = ds2d( tb_num ) ; }
 
-	tb_savenm = parseString( rlt, str, "SAVENAME()" ) ;
-	if ( !rlt )
+	tb_savenm = parseString( err, str, "SAVENAME()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_rowid = parseString( rlt, str, "ROWID()" ) ;
-	if ( !rlt )
+	tb_rowid = parseString( err, str, "ROWID()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_row = parseString( rlt, str, "ROW()" ) ;
-	if ( !rlt )
+	tb_row = parseString( err, str, "ROW()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	tb_crpnm = parseString( rlt, str, "POSITION()" ) ;
-	if ( !rlt )
+	tb_crpnm = parseString( err, str, "POSITION()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -1407,8 +1279,6 @@ void execiTBSkip( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiTBSort( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool rlt ;
-
 	string str     ;
 	string tb_name ;
 	string tb_flds ;
@@ -1416,10 +1286,9 @@ void execiTBSort( pApplication * thisAppl, const string& s, errblock& err )
 	tb_name = upper( word( s, 2 ) )    ;
 	str     = upper( subword( s, 3 ) ) ;
 
-	tb_flds = parseString( rlt, str, "FIELDS()" ) ;
-	if ( !rlt || str != "" )
+	tb_flds = parseString( err, str, "FIELDS()" ) ;
+	if ( err.error() || str != "" )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -1456,8 +1325,6 @@ void execiTBVClear( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiVerase( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool rlt ;
-
 	string str  ;
 	string vars ;
 
@@ -1465,10 +1332,9 @@ void execiVerase( pApplication * thisAppl, const string& s, errblock& err )
 
 	str = upper( subword( s, 2 ) ) ;
 
-	vars = parseString( rlt, str, "()" ) ;
-	if ( !rlt )
+	vars = parseString( err, str, "()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -1503,8 +1369,6 @@ void execiVget( pApplication * thisAppl, const string& s, errblock& err )
 	int i  ;
 	int n  ;
 
-	bool rlt ;
-
 	string str  ;
 	string vars ;
 	string var  ;
@@ -1513,10 +1377,9 @@ void execiVget( pApplication * thisAppl, const string& s, errblock& err )
 
 	str = upper( subword( s, 2 ) ) ;
 
-	vars = parseString( rlt, str, "()" ) ;
-	if ( !rlt )
+	vars = parseString( err, str, "()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -1558,25 +1421,21 @@ void execiVget( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiView( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool   rlt ;
-
 	string str ;
 	string pan ;
 	string fl  ;
 
 	str = subword( s, 2 ) ;
 
-	fl = parseString( rlt, str, "FILE()" ) ;
-	if ( !rlt )
+	fl = parseString( err, str, "FILE()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
-	pan = parseString( rlt, str, "PANEL()" ) ;
-	if ( !rlt || str != "" )
+	pan = parseString( err, str, "PANEL()" ) ;
+	if ( err.error() || str != "" )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 
@@ -1587,8 +1446,6 @@ void execiView( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiVput( pApplication * thisAppl, const string& s, errblock& err )
 {
-	bool rlt ;
-
 	string str  ;
 	string vars ;
 
@@ -1596,10 +1453,9 @@ void execiVput( pApplication * thisAppl, const string& s, errblock& err )
 
 	str = upper( subword( s, 2 ) ) ;
 
-	vars = parseString( rlt, str, "()" ) ;
-	if ( !rlt )
+	vars = parseString( err, str, "()" ) ;
+	if ( err.error() )
 	{
-		err.seterrid( "PSYE019C" ) ;
 		return ;
 	}
 

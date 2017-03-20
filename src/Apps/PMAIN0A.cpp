@@ -62,6 +62,8 @@ void PMAIN0A::application()
 	string ZOSREL   ;
 	string ZSCRNAME ;
 
+	errblock err ;
+
 	ZAHELP = "HPMAIN1" ;
 
 	vdefine( "ZCMD ZDATEL ZJDATE ZTIME ZSCRNAME", &ZCMD, &ZDATEL, &ZJDATE, &ZTIME, &ZSCRNAME ) ;
@@ -158,7 +160,7 @@ void PMAIN0A::application()
 		vcopy( "ZTRAIL", ZTRAIL, MOVE ) ;
 		if ( w1 == "SELECT" )
 		{
-			if ( !SEL.parse( ws ) )
+			if ( !SEL.parse( err, ws ) )
 			{
 				log( "E", "Select command " << ws << " is invalid.  RC > 0 returned from parse" << endl ) ;
 				MSG = "PSYS017" ;

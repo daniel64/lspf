@@ -82,7 +82,7 @@ class fPOOL
 				const string& name,
 				nameCHCK check=CHECK ) ;
 
-		void     reset() ;
+		void     reset( errblock& err ) ;
 
 		string   vilist( int& RC,
 				 vdType defn ) ;

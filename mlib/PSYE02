@@ -22,3 +22,86 @@ PSYE022B 'MOVE invalid.  String parameter required, pointer passed'
 
 PSYE022C 'LOCATE option invalid for integer values'
 ''
+
+''
+PSYE022D 'Too many variables on VDEFINE statement'
+'A maximum of 8 variables are allowed on a VDEFINE statement'
+
+PSYE022E 'Address is NULL on VDEFINE statement'
+'Address cannot be NULL'
+
+PSYE022F 'LIBDEF FILE ID() does not contain any paths'
+''
+
+PSYE022G 'Invalid user search type ''&ZVAL1'''
+'Valid type is FILE'
+
+PSYE022H 'Invalid search library name ''&ZVAL1'''
+'Valid search libraries are ZMLIB, ZPLIB and ZTLIB'
+
+PSYE022I 'Invalid processing option ''&ZVAL1'''
+'Valid processing options are COND, UNCOND, STACK and STKADD'
+
+PSYE022J 'Invalid &ZVAL1 name ''&ZVAL2'''
+'&ZVAL1 name has an invalid format'
+
+PSYE022K 'Table &ZVAL1 already open'
+'This task has already opened table &ZVAL1'
+
+PSYE022L 'No prior DISPLAY PANEL before ADDPOP'
+''
+
+PSYE022M 'Field &ZVAL1 not found on panel &ZVAL2'
+''
+
+PSYE022N 'Cursor field ''&ZVAL1'' not found or invalid'
+''
+
+PSYE022O 'Invalid &ZVAL1 variable name ''&ZVAL2'''
+''
+
+PSYE022P 'Invalid parameter ''&ZVAL1'''
+'Must be one of: &ZVAL2'
+
+PSYE022Q 'Invalid mask size'
+'Size of mask cannot exceed 20 characters'
+
+PSYE022R 'Invalid mask type &ZVAL1'
+'Must be FORMAT or USER'
+
+PSYE022S 'Mask contains invalid character'
+'Invalid characters in &ZVAL1'
+
+PSYE022T 'No pop-up window exists at this level'
+''
+
+PSYE022U 'Invalid parameter ''&ZVAL1'' on REMPOP service'
+'Must be ALL or blank'
+
+PSYE022V 'Invalid parameter ''&ZVAL1'' on CONTROL service'
+'Must be PASSTHRU'
+
+PSYE022W 'No previous CONTROL DISPLAY SAVE performed'
+''
+
+PSYE022X 'Invalid CONTROL &ZVAL1 parameter'
+'&ZVAL2 is not a valid CONTROL &ZVAL1 parameter'
+
+PSYE022Y 'Invalid CONTROL parameter'
+'&ZVAL1 is invalid'
+
+PSYE023A 'Invalid ORDER parameter specified on &ZVAL1'
+'&ZVAL2 is invalid'
+
+PSYE023B 'Invalid number-of-rows parameter specified on &ZVAL1'
+'&ZVAL2 is invalid'
+
+PSYE023C 'Invalid &ZVAL1 name ''&ZVAL2'''
+''
+
+PSYE023D 'No panel has yet been loaded to change field attributes'
+''
+
+PSYE023E 'Keylist &ZVAL1 not found in keylist table &ZVAL2'
+''
+

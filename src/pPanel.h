@@ -73,6 +73,7 @@ class pPanel
 
 		bool   on_border_line( uint, uint )  ;
 		bool   hide_msg_window( uint, uint ) ;
+		void   selPanel( bool x ) { selectPanel = x ; }
 
 		string get_keylist( int ) ;
 
@@ -93,6 +94,7 @@ class pPanel
 		int    tb_depth    ;
 		int    abc_pos     ;
 		bool   primaryMenu ;
+		bool   selectPanel ;
 		bool   scrollOn    ;
 		string panelTitle  ;
 		string panelDescr  ;

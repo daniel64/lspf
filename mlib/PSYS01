@@ -71,28 +71,28 @@ PSYS011M 'Non-zero return code' .TYPE=W
 '&STR'
 
 PSYS011N 'Invalid data entered' .TYPE=W .W=NORESP
-"Data entered must be of length &ZZSTR1 in the form '&ZZSTR2'"
+'Data entered must be of length &ZZSTR1 in the form ''&ZZSTR2'''
 
 PSYS011O 'Invalid command parameter' .TYPE=W
 'Command contains an invalid or missing parameter'
 
 PSYS011P 'File Empty' .TYPE=W
-"File '&ZZSTR1' is empty"
+'File ''&ZZSTR1'' is empty'
 
 PSYS011Q 'Cannot Open File' .TYPE=W
-"Open failure for file '&ZZSTR1'"
+'Open failure for file ''&ZZSTR1'''
 
 PSYS011R 'Not a Regular File' .TYPE=W
-"File '&ZZSTR1' is not a regular file"
+'File ''&ZZSTR1'' is not a regular file'
 
 PSYS011S 'File Does Not Exist' .TYPE=W
-"File '&ZZSTR1' does not exist"
+'File ''&ZZSTR1'' does not exist'
 
 PSYS011T 'Permisison Denied' .TYPE=W
-"You do not have read access to file '&ZZSTR1'"
+'You do not have read access to file ''&ZZSTR1'''
 
 PSYS011U 'Unknown Error Occured' .TYPE=W
-"Unknown error occured opening file '&ZZSTR1'"
+'Unknown error occured opening file ''&ZZSTR1'''
 
 PSYS011V 'Entry Retrieved' .TYPE=N
 'Selected entry has been retrieved'

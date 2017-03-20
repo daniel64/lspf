@@ -136,5 +136,5 @@ bool   ispict( const string&, const string& ) ;
 int    getpaths( const string& p ) ;
 string getpath( const string& p, int i ) ;
 string mergepaths( const string& p1, const string& p2 ) ;
-void   fieldOptsParse(int&, string, bool&, char&, bool&, char&, bool& ) ;
-string parseString( bool& rlt, string& s, string p ) ;
+void   fieldOptsParse(errblock&, string, bool&, char&, bool&, char&, bool& ) ;
+string parseString( errblock& err, string& s, string p ) ;

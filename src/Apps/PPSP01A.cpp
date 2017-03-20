@@ -1412,7 +1412,7 @@ void PPSP01A::showPaths()
 		PVAR     = "" ;
 	}
 
-	if ( libdef_muser )
+   /*   if ( libdef_muser )
 	{
 		PVAR = "ZMUSER" ;
 		DESCRIPT = "LIBDEF search path for messages" ;
@@ -1425,7 +1425,7 @@ void PPSP01A::showPaths()
 			DESCRIPT = "" ;
 			PVAR     = "" ;
 		}
-	}
+	}   */
 
 	PVAR = "ZMLIB" ;
 	DESCRIPT = "Search for messages" ;
@@ -1439,7 +1439,7 @@ void PPSP01A::showPaths()
 		PVAR     = "" ;
 	}
 
-	if ( libdef_puser )
+  /*    if ( libdef_puser )
 	{
 		PVAR = "ZPUSER" ;
 		DESCRIPT = "LIBDEF search path for panels" ;
@@ -1452,7 +1452,7 @@ void PPSP01A::showPaths()
 			DESCRIPT = "" ;
 			PVAR     = "" ;
 		}
-	}
+	}  */
 
 	PVAR = "ZPLIB" ;
 	DESCRIPT = "Search path for panels" ;
@@ -1466,7 +1466,7 @@ void PPSP01A::showPaths()
 		PVAR     = "" ;
 	}
 
-	if ( libdef_tuser )
+  /*    if ( libdef_tuser )
 	{
 		PVAR = "ZTUSER" ;
 		DESCRIPT = "LIBDEF search path for tables" ;
@@ -1479,7 +1479,7 @@ void PPSP01A::showPaths()
 			DESCRIPT = "" ;
 			PVAR     = "" ;
 		}
-	}
+	}  */
 
 	PVAR     = "ZSPROF" ;
 	PATH     =  ZSPROF  ;

@@ -179,6 +179,13 @@ enum msgSET
 	UNCOND
 } ;
 
+enum s_paths
+{
+	s_ZMLIB,
+	s_ZPLIB,
+	s_ZTLIB
+} ;
+
 enum tbSAVE
 {
 	WRITE,
@@ -423,6 +430,10 @@ class errblock
 		val2  = s4 ;
 		val3  = s5 ;
 		RC    = i  ;
+	}
+	void seterror()
+	{
+		RC    = 20 ;
 	}
 	void seterror( const string& s1, int i=20 )
 	{

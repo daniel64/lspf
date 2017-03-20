@@ -49,7 +49,7 @@ class dynArea
 		string dynArea_FieldIn   ;
 		string dynArea_shadow_name ;
 
-		int  dynArea_init( int MAXW, int MAXD, const string& line ) ;
+		void dynArea_init( errblock& err, int MAXW, int MAXD, const string& line ) ;
 		void setsize( int, int, int, int ) ;
 
        friend class pPanel ;
@@ -103,7 +103,7 @@ class field
 		unsigned int field_scroll_start ;
 		string       field_shadow_value ;
 
-		int  field_init( int MAXW, int MAXD, const string& line ) ;
+		void field_init( errblock& err, int MAXW, int MAXD, const string& line ) ;
 		bool cursor_on_field( uint row, uint col ) ;
 		void display_field( WINDOW *, bool ) ;
 		bool edit_field_insert( WINDOW * win, char ch, int row, bool, bool ) ;
@@ -116,7 +116,7 @@ class field
 		bool field_dyna_input( uint col )  ;
 		int  field_dyna_input_offset( uint col )  ;
 		void field_DataMod_to_UserMod( string *, int ) ;
-		int  field_attr( string attrs ) ;
+		void field_attr( errblock& err, string attrs ) ;
 		void field_attr() ;
 		void field_prep_input()   ;
 		void field_prep_display() ;
@@ -142,7 +142,7 @@ class literal
 		string  literal_value  ;
 		string  literal_name   ;
 
-		int  literal_init( int MAXW, int MAXD, int& opt_field, const string& line ) ;
+		void literal_init( errblock& err, int MAXW, int MAXD, int& opt_field, const string& line ) ;
 		void literal_display( WINDOW *, const string& ) ;
 		bool cursor_on_literal( uint row, uint col ) ;
        friend class pPanel ;
@@ -206,8 +206,8 @@ class abc
 class Box
 {
 	public:
-		int  box_init( int MAXW, int MAXD, const string& line ) ;
-		void display_box( WINDOW * )      ;
+		void box_init( errblock& err, int MAXW, int MAXD, const string& line ) ;
+		void display_box( WINDOW * ) ;
 
 	private:
 		int    box_row    ;

@@ -84,9 +84,9 @@ void PEDIT01::application()
 {
 	log( "I", "Application PEDIT01 starting.  Parms are "+ PARM <<endl ) ;
 
-	bool result ;
+	errblock err ;
 
-	string * pt ;
+	string * pt  ;
 
 	string panel ;
 	string rfile ;
@@ -132,8 +132,8 @@ void PEDIT01::application()
 	if ( PARM != "" )
 	{
 		vget( "ZEDPRSPS ZEDTABSS", SHARED ) ;
-		ZFILE = parseString( result, PARM, "FILE()" ) ;
-		if ( !result )
+		ZFILE = parseString( err, PARM, "FILE()" ) ;
+		if ( err.error() )
 		{
 			uabend( "PEDT015", PARM ) ;
 			return  ;
@@ -142,26 +142,26 @@ void PEDIT01::application()
 		{
 			vput( "ZFILE", PROFILE ) ;
 		}
-		panel = parseString( result, PARM, "PANEL()" ) ;
-		if ( !result )
+		panel = parseString( err, PARM, "PANEL()" ) ;
+		if ( err.error() )
 		{
 			uabend( "PEDT015", PARM ) ;
 			return  ;
 		}
-		optMacro = parseString( result, PARM, "MACRO()" ) ;
-		if ( !result )
+		optMacro = parseString( err, PARM, "MACRO()" ) ;
+		if ( err.error() )
 		{
 			uabend( "PEDT015", PARM ) ;
 			return  ;
 		}
-		optProfile = parseString( result, PARM, "PROFILE()" ) ;
-		if ( !result )
+		optProfile = parseString( err, PARM, "PROFILE()" ) ;
+		if ( err.error() )
 		{
 			uabend( "PEDT015", PARM ) ;
 			return  ;
 		}
-		optPreserve = ( parseString( result, PARM, "PRESERVE" ) == "OK" ) ;
-		if ( !result || PARM != "" )
+		optPreserve = ( parseString( err, PARM, "PRESERVE" ) == "OK" ) ;
+		if ( err.error() || PARM != "" )
 		{
 			uabend( "PEDT015", PARM ) ;
 			return  ;
@@ -8785,7 +8785,6 @@ void PEDIT01::isredit( const string& s )
 
 	miBlock.parseStatement( s1, defNames ) ;
 
-
 	if ( miBlock.fatal || miBlock.runmacro )
 	{
 		return ;
@@ -8810,7 +8809,6 @@ void PEDIT01::querySetting()
 	string kw2 ;
 	string t1  ;
 	string lab ;
-
 
 	kw2 = word( miBlock.kphrase, 2 ) ;
 	pApplication * macAppl = miBlock.macAppl ;
@@ -9109,7 +9107,6 @@ void PEDIT01::actionService()
 
 	lcmd cmd  ;
 
-
 	string t   ;
 	string vw1 ;
 	string vw2 ;
@@ -9130,7 +9127,6 @@ void PEDIT01::actionService()
 	kw1 = word( miBlock.keyopts, 1 ) ;
 	kw2 = word( miBlock.keyopts, 2 ) ;
 	kw3 = word( miBlock.keyopts, 3 ) ;
-
 
 	switch ( miBlock.m_cmd )
 	{

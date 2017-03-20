@@ -294,8 +294,9 @@ void fPOOL::put( errblock& err, const string& name, int value )
 }
 
 
-void fPOOL::reset()
+void fPOOL::reset( errblock& err )
 {
+	err.setRC( 0 ) ;
 	POOL.clear() ;
 }
 

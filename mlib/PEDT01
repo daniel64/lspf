@@ -12,7 +12,7 @@ PEDT013 'Line Command Invalid Here' .TYPE=W
 'Line command entered is not valid on this line'
 
 PEDT014 'Invalid label name' .TYPE=W
-"Label must be between 1 and 5 alphanumeric characters and not starting with a 'Z'"
+'Label must be between 1 and 5 alphanumeric characters and not starting with a ''Z'''
 
 PEDT015 'Invalid parameter format passed to PEDIT01'
 ''
@@ -20,10 +20,10 @@ PEDT015 'Invalid parameter format passed to PEDIT01'
 PEDT016 'Label missing or invalid' .TYPE=W
 'Enter both labels to delimit command.  Both labels must already exist'
 
-PEDT017 "No More UNDO's" .TYPE=W
+PEDT017 'No More UNDO''s' .TYPE=W
 'All changes in the UNDO stack have been undone'
 
-PEDT018 "No REDO's available" .TYPE=W
+PEDT018 'No REDO''s available' .TYPE=W
 'All changes in the REDO stack have been redone or data has been changed since last undo'
 
 PEDT019 'Too many columns specified' .TYPE=W
@@ -81,13 +81,13 @@ PEDT011Q 'File Not Saved' .TYPE=W
 'An error has occured saving the file.  Check file permissions for access rights'
 
 PEDT011R 'File Does Not Exist' .TYPE=W
-"File '&ZSTR1' does not exist"
+'File ''&ZSTR1'' does not exist'
 
 PEDT011S 'File/Directory Does Not Exist' .TYPE=W
-"'&ZFILE' is neither a valid file, nor a valid directory"
+'''&ZFILE'' is neither a valid file, nor a valid directory'
 
 PEDT011T 'Entry Is A Directory' .TYPE=W
-"'&ZFILE' is a directory entry"
+'''&ZFILE'' is a directory entry'
 
 PEDT011U 'UNDO is set OFF' .TYPE=W
 'UNDO option is set to OFF.  UNDO/REDO is no longer available'
@@ -149,23 +149,23 @@ PEDT013E 'Error in hilighter' .TYPE=W
 PEDT013F 'Paste Pending' .TYPE=W
 'Paste is pending.  Select position to paste lines with the A/B line commands'
 
-PEDT013G "&TYPE &STR found" .TYPE=N
-"Search for &TYPE &STR was successful"
+PEDT013G '&TYPE &STR found' .TYPE=N
+'Search for &TYPE &STR was successful'
 
-PEDT013H "&TYPE &STR not found" .TYPE=W
-"Search for &TYPE &STR was not successful"
+PEDT013H '&TYPE &STR not found' .TYPE=W
+'Search for &TYPE &STR was not successful'
 
-PEDT013I "&TYPE &STR found &OCC time(s)" .TYPE=N
-"Search for &TYPE &STR was successful.  Found &OCC time(s) on &LINES line(s)"
+PEDT013I '&TYPE &STR found &OCC time(s)' .TYPE=N
+'Search for &TYPE &STR was successful.  Found &OCC time(s) on &LINES line(s)'
 
 PEDT013J 'Duplicate/Inconsistent parameter' .TYPE=W
 'Duplicate or inconsistent parameter entered on find or change command'
 
-PEDT013K "&TYPE &STR changed &OCC times(s)" .TYPE=N
-"Change was successful.  &TYPE &STR changed &OCC times(s)"
+PEDT013K '&TYPE &STR changed &OCC times(s)' .TYPE=N
+'Change was successful.  &TYPE &STR changed &OCC times(s)'
 
-PEDT013L "&TYPE &STR changed" .TYPE=N
-"Change for &TYPE &STR was successful"
+PEDT013L '&TYPE &STR changed' .TYPE=N
+'Change for &TYPE &STR was successful'
 
 PEDT013M 'Enter a FIND command' .TYPE=W
 'Enter a FIND command before using RFIND'
@@ -174,7 +174,7 @@ PEDT013N 'Enter a CHANGE command' .TYPE=W
 'Enter a CHANGE command before using RCHANGE'
 
 PEDT013O 'Compare File Does Not Exist' .TYPE=W
-"File '&CFILE' does not exist"
+'File ''&CFILE'' does not exist'
 
 PEDT013P 'Files are the same' .TYPE=W
 'There are no differences between the files'
@@ -195,10 +195,10 @@ PEDT013U 'Invalid FIND/CHANGE/EXCLUDE command' .TYPE=W
 'Find, change or exclude command does not contain a search string'
 
 PEDT013V '*Bottom of data reached*' .TYPE=W
-"&TYPE &STR not found.  Press RFIND to continue from the top of data"
+'&TYPE &STR not found.  Press RFIND to continue from the top of data'
 
 PEDT013W '*Top of data reached*' .TYPE=W
-"&TYPE &STR not found.  Press RFIND to continue from the bottom of data"
+'&TYPE &STR not found.  Press RFIND to continue from the bottom of data'
 
 PEDT013X 'Line command error' .TYPE=W
 'Cursor is not placed in the data area.  Line command ignored'
@@ -207,7 +207,7 @@ PEDT013Y 'Line command error' .TYPE=W
 'A command is already on the line command field'
 
 PEDT014A 'File in use' .TYPE=W
-"File '&ZFILE' is currently being edited in another session"
+'File ''&ZFILE'' is currently being edited in another session'
 
 PEDT014B 'Data shifting incomplete' .TYPE=W
 'Data shifting was not completed on lines marked ==ERR>'
@@ -290,8 +290,8 @@ PEDT015A 'Invalid command or macro' .TYPE=W
 PEDT015B 'Invalid command' .TYPE=W
 'Command entered is not valid (Macro support is not available)'
 
-PEDT015C "'&STR' macro error" .TYPE=W
-"An error has occured in edit macro '&STR'"
+PEDT015C '''&STR'' macro error' .TYPE=W
+'An error has occured in edit macro ''&STR'''
 
 PEDT015D 'Invalid command parameter' .TYPE=W
 'Primary command entered has too many parameters'
@@ -321,28 +321,28 @@ PEDT015L 'No data added' .TYPE=N
 'No data found to add'
 
 PEDT015M 'Invalid DEFINE option'
-"DEFINE command contains an invalid option.  Must be MACRO, ALIAS, NOP, RESET or DISABLED"
+'DEFINE command contains an invalid option.  Must be MACRO, ALIAS, NOP, RESET or DISABLED'
 
 PEDT015N 'Missing DEFINE alias-to name'
-"Missing alias-to name on 'DEFINE name ALIAS alias-to' command"
+'Missing alias-to name on 'DEFINE name ALIAS alias-to' command'
 
 PEDT015O 'Invalid keyword option'
-"Too many parameters following the 'DEFINE name keyword' command"
+'Too many parameters following the 'DEFINE name keyword' command'
 
 PEDT015P 'DEFINE is not allowed' .TYPE=W
-"Command name has been disabled with the DEFINE DISABLED command"
+'Command name has been disabled with the DEFINE DISABLED command'
 
 PEDT015Q 'Define name not found' .TYPE=W
-"No previous DEFINE for this command for a NOP or DISABLED request"
+'No previous DEFINE for this command for a NOP or DISABLED request'
 
 PEDT015R 'Deactivated command' .TYPE=W
-"Command name has been deactivated with the DEFINE NOP or DISABLED command"
+'Command name has been deactivated with the DEFINE NOP or DISABLED command'
 
 PEDT015S 'Disabled command' .TYPE=W
-"Command name has been disabled with the DEFINE DISABLED command"
+'Command name has been disabled with the DEFINE DISABLED command'
 
 PEDT015T 'Invalid DEFINE request' .TYPE=W
-"RESET attempted for a name not currently DEFINED"
+'RESET attempted for a name not currently DEFINED'
 
 PEDT015U 'Invalid DEFINE request' .TYPE=W
-"DEFINE ALIAS attempted for a name that is currently NOP'ed or DISABLED"
+'DEFINE ALIAS attempted for a name that is currently NOP'ed or DISABLED'

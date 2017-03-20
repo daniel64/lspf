@@ -91,21 +91,22 @@ void PBRO01A::application()
 	string ZZSTR1 ;
 
 	bool rebuildZAREA ;
-	bool result       ;
+
+	errblock err ;
 
 	panel = "" ;
 	MSG   = "" ;
 
-	file = parseString( result, PARM, "FILE()" ) ;
-	if ( !result || file == "" )
+	file = parseString( err, PARM, "FILE()" ) ;
+	if ( err.error() || file == "" )
 	{
 		log( "E", "Invalid parameter format passed to PBRO01A" << endl ; )
 		abend() ;
 		return  ;
 	}
 
-	panel = parseString( result, PARM, "PANEL()" ) ;
-	if ( !result )
+	panel = parseString( err, PARM, "PANEL()" ) ;
+	if ( err.error() )
 	{
 		log( "E", "Invalid parameter format passed to PBRO01A" << endl ; )
 		abend() ;

@@ -388,9 +388,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			{
 				panstmnt m_stmnt ;
 				VPUTGET m_VPG    ;
-				if ( !m_VPG.parse( pline ) )
+				if ( !m_VPG.parse( err, pline ) )
 				{
-					err.seterror( "Invalid VPUT or VGET statement" ) ;
 					err.setsrc( trim( pline ) ) ;
 					return ;
 				}
@@ -408,9 +407,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			{
 				ASSGN m_assgn    ;
 				panstmnt m_stmnt ;
-				if ( !m_assgn.parse( pline ) )
+				if ( !m_assgn.parse( err, pline ) )
 				{
-					err.seterror( "Invalid assignment statement" ) ;
 					err.setsrc( trim( pline ) ) ;
 					return ;
 				}
@@ -438,9 +436,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			{
 				IFSTMNT m_if     ;
 				panstmnt m_stmnt ;
-				if ( !m_if.parse( pline ) )
+				if ( !m_if.parse( err, pline ) )
 				{
-					err.seterror( "Invalid IF statement" ) ;
 					err.setsrc( trim( pline ) ) ;
 					return ;
 				}
@@ -582,9 +579,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			{
 				TRANS m_trans    ;
 				panstmnt m_stmnt ;
-				if ( !m_trans.parse( pline ) )
+				if ( !m_trans.parse( err, pline ) )
 				{
-					err.seterror( "Invalid TRANS statement" ) ;
 					err.setsrc( trim( pline ) ) ;
 					return ;
 				}
@@ -599,9 +595,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			{
 				TRUNC m_trunc    ;
 				panstmnt m_stmnt ;
-				if ( !m_trunc.parse( pline ) )
+				if ( !m_trunc.parse( err, pline ) )
 				{
-					err.seterror( "Invalid TRUNC statement" ) ;
 					err.setsrc( trim( pline ) ) ;
 					return ;
 				}
@@ -616,9 +611,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			{
 				VERIFY m_VER     ;
 				panstmnt m_stmnt ;
-				if ( !m_VER.parse( pline ) )
+				if ( !m_VER.parse( err, pline ) )
 				{
-					err.seterror( "Invalid VER statement" ) ;
 					err.setsrc( trim( pline ) ) ;
 					return ;
 				}
@@ -682,40 +676,36 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		if ( ispnts )
 		{
 			pnts m_pnts ;
-			if ( m_pnts.parse( pline ) )
+			if ( !m_pnts.parse( err, pline ) )
 			{
-				if ( fieldList.find( m_pnts.pnts_field ) == fieldList.end() )
-				{
-					found = false ;
-					for ( uint i = 0 ; i < literalList.size() ; i++ )
-					{
-						if ( m_pnts.pnts_field == literalList.at( i )->literal_name )
-						{
-							found = true ;
-							break        ;
-						}
-					}
-					if ( !found )
-					{
-						err.seterror( "Field '"+ m_pnts.pnts_field +"' not found in panel" ) ;
-						err.setsrc( trim( pline ) ) ;
-						return ;
-					}
-				}
-				if ( fieldList.find( m_pnts.pnts_var ) == fieldList.end() )
-				{
-					err.seterror( "Variable '"+ m_pnts.pnts_var +"' not found in panel" ) ;
-					err.setsrc( trim( pline ) ) ;
-					return ;
-				}
-				pntsTable[ m_pnts.pnts_field ] = m_pnts ;
-			}
-			else
-			{
-				err.seterror( "Invalid point-and-shoot line" ) ;
 				err.setsrc( trim( pline ) ) ;
 				return ;
 			}
+			if ( fieldList.find( m_pnts.pnts_field ) == fieldList.end() )
+			{
+				found = false ;
+				for ( uint i = 0 ; i < literalList.size() ; i++ )
+				{
+					if ( m_pnts.pnts_field == literalList.at( i )->literal_name )
+					{
+						found = true ;
+						break        ;
+					}
+				}
+				if ( !found )
+				{
+					err.seterror( "Field '"+ m_pnts.pnts_field +"' not found in panel" ) ;
+					err.setsrc( trim( pline ) ) ;
+					return ;
+				}
+			}
+			if ( fieldList.count( m_pnts.pnts_var ) == 0 )
+			{
+				err.seterror( "Variable '"+ m_pnts.pnts_var +"' not found in panel" ) ;
+				err.setsrc( trim( pline ) ) ;
+				return ;
+			}
+			pntsTable[ m_pnts.pnts_field ] = m_pnts ;
 			continue ;
 		}
 
@@ -813,10 +803,9 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		else if ( w1 == "LITERAL" )
 		{
 			literal * m_lit = new literal ;
-			RC = m_lit->literal_init( WSCRMAXW, WSCRMAXD, opt_field, pline ) ;
-			if ( RC > 0 )
+			m_lit->literal_init( err, WSCRMAXW, WSCRMAXD, opt_field, pline ) ;
+			if ( err.error() )
 			{
-				err.seterror( "Error creating literal" ) ;
 				err.setsrc( trim( pline ) ) ;
 				delete m_lit ;
 				return ;
@@ -842,10 +831,9 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			}
 
 			field * m_fld = new field ;
-			RC = m_fld->field_init( WSCRMAXW, WSCRMAXD, pline ) ;
-			if ( RC > 0 )
+			m_fld->field_init( err, WSCRMAXW, WSCRMAXD, pline ) ;
+			if ( err.error() )
 			{
-				err.seterror( "Error creating field" ) ;
 				err.setsrc( trim( pline ) ) ;
 				delete m_fld ;
 				return ;
@@ -865,10 +853,9 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			}
 
 			dynArea * m_dynArea = new dynArea ;
-			RC = m_dynArea->dynArea_init( WSCRMAXW, WSCRMAXD, pline ) ;
-			if ( RC > 0 )
+			m_dynArea->dynArea_init( err, WSCRMAXW, WSCRMAXD, pline ) ;
+			if ( err.error() )
 			{
-				err.seterror( "Error creating dynArea" ) ;
 				err.setsrc( trim( pline ) ) ;
 				delete m_dynArea ;
 				return ;
@@ -897,10 +884,9 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			debug2( "Creating box" << endl ) ;
 			w2 = word( pline, 2 ) ;
 			Box * m_box = new Box ;
-			RC = m_box->box_init( WSCRMAXW, WSCRMAXD, pline ) ;
-			if ( RC > 0 )
+			m_box->box_init( err, WSCRMAXW, WSCRMAXD, pline ) ;
+			if ( err.error() )
 			{
-				err.seterror( "Error creating box" ) ;
 				err.setsrc( trim( pline ) ) ;
 				delete m_box ;
 				return ;
@@ -1019,19 +1005,19 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 
 	if ( scrollOn )
 	{
-		if ( fieldList.find( "ZSCROLL" ) == fieldList.end() )
+		if ( fieldList.count( "ZSCROLL" ) == 0 )
 		{
 			err.seterror( "Field ZSCROLL not defined for scrollable panel" ) ;
 			return ;
 		}
 		fieldList[ "ZSCROLL" ]->field_caps = true ;
 	}
-	if ( fieldList.find( Home ) == fieldList.end() )
+	if ( fieldList.count( Home ) == 0 )
 	{
 		err.seterror( "Home field '"+ Home +"' not defined in panel body" ) ;
 		return ;
 	}
-	if ( fieldList.find( CMDfield ) == fieldList.end() )
+	if ( fieldList.count( CMDfield ) == 0 )
 	{
 		err.seterror( "Command field '"+ CMDfield +"' not defined in panel body" ) ;
 		return ;

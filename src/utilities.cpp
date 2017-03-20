@@ -1409,7 +1409,7 @@ string mergepaths( const string& p1, const string& p2 )
 }
 
 
-void fieldOptsParse( int& RC, string opts, bool& caps, char& just, bool& numeric, char& padchar, bool& skip )
+void fieldOptsParse( errblock& err, string opts, bool& caps, char& just, bool& numeric, char& padchar, bool& skip )
 {
 	// CAPS(ON,OFF)
 	// JUST(LEFT,RIGHT,ASIS)
@@ -1419,13 +1419,14 @@ void fieldOptsParse( int& RC, string opts, bool& caps, char& just, bool& numeric
 
 	int p1 ;
 	int p2 ;
+
 	string t     ;
 	string uopts ;
 
-	RC = 0 ;
+	err.setRC( 0 ) ;
 
 	uopts = upper( opts ) ;
-	if ( uopts == "NONE" ) return ;
+	if ( uopts == "NONE" ) { return ; }
 
 	uopts = "," + uopts ;
 	p1 = pos( ",CAPS(", uopts ) ;
@@ -1435,7 +1436,7 @@ void fieldOptsParse( int& RC, string opts, bool& caps, char& just, bool& numeric
 		t = strip( substr( uopts, (p1 + 6), (p2 - (p1 + 6)) ) ) ;
 		if      ( t == "ON"  ) { caps = true  ; }
 		else if ( t == "OFF" ) { caps = false ; }
-		else    { RC = 20 ; return ; }
+		else    { err.seterror() ; return ; }
 		uopts = delstr( uopts, p1, (p2 - p1 + 1) ) ;
 	}
 
@@ -1447,7 +1448,7 @@ void fieldOptsParse( int& RC, string opts, bool& caps, char& just, bool& numeric
 		if      ( t == "LEFT"  ) just = 'L' ;
 		else if ( t == "RIGHT" ) just = 'R' ;
 		else if ( t == "ASIS"  ) just = 'A' ;
-		else { RC = 20 ; return ; }
+		else { err.seterror() ; return ; }
 		uopts = delstr( uopts, p1, (p2 - p1 + 1) ) ;
 	}
 
@@ -1458,7 +1459,7 @@ void fieldOptsParse( int& RC, string opts, bool& caps, char& just, bool& numeric
 		t = strip( substr( uopts, (p1 + 9), (p2 - (p1 + 9)) ) ) ;
 		if      ( t == "ON"  ) numeric = true  ;
 		else if ( t == "OFF" ) numeric = false ;
-		else { RC = 20 ; return ; }
+		else { err.seterror() ; return ; }
 		uopts = delstr( uopts, p1, (p2 - p1 + 1) ) ;
 	}
 
@@ -1469,7 +1470,7 @@ void fieldOptsParse( int& RC, string opts, bool& caps, char& just, bool& numeric
 		t = strip( substr( uopts, (p1 + 5), (p2 - (p1 + 5)) ) ) ;
 		if      ( t[ 0 ] == '\'' ) t = strip( t, 'B', '\'' ) ;
 		else if ( t[ 0 ] == '"'  ) t = strip( t, 'B', '"' ) ;
-		if ( t.size() != 1 ) { RC = 20 ; return ; }
+		if ( t.size() != 1 ) { err.seterror() ; return ; }
 		padchar = t[ 0 ] ;
 		uopts = delstr( uopts, p1, (p2 - p1 + 1) ) ;
 	}
@@ -1481,22 +1482,22 @@ void fieldOptsParse( int& RC, string opts, bool& caps, char& just, bool& numeric
 		t = strip( substr( uopts, (p1 + 6), (p2 - (p1 + 6)) ) ) ;
 		if      ( t == "ON" )  skip = true  ;
 		else if ( t == "OFF" ) skip = false ;
-		else { RC = 20 ; return ; }
+		else { err.seterror() ; return ; }
 		uopts = delstr( uopts, p1, (p2 - p1 + 1) ) ;
 	}
 
-	if ( strip( uopts ) != "" ) { RC = 20 ; }
+	if ( strip( uopts ) != "" ) { err.seterror() ; }
 }
 
 
-string parseString( bool& rlt, string& s, string p )
+string parseString( errblock& err, string& s, string p )
 {
 	// return value of keyword parameter p, or null if not entered
 	// for a parameter p of (), return everything between the brackets
 	// for parameter without brackets, return "OK" if found else null
 	// Leading and trailing spaces are removed from the parameter value
 
-	// rlt - true if no syntax errors
+	// err - errblock to hold any errors
 	// s   - entered string (on exit, minus the keyword parameter, p and trimmed)
 	// p   - parameter to find (case insensitive)
 
@@ -1507,9 +1508,9 @@ string parseString( bool& rlt, string& s, string p )
 	string us ;
 	string t  ;
 
-	rlt = true ;
+	err.setRC( 0 ) ;
 
-	if ( p.size() == 0 ) { rlt = false ; return "" ; }
+	if ( p.size() == 0 ) { err.seterrid( "PSYE037F" ) ; return "" ; }
 
 	us = upper( s ) ;
 	upper( p ) ;
@@ -1545,8 +1546,8 @@ string parseString( bool& rlt, string& s, string p )
 			if ( ob == 0 ) { break ; }
 		}
 	}
-	if ( ob != 0 )                                { rlt = false ; return "" ; }
-	if ( p2 < s.size()-1 && s.at( p2+1 ) != ' ' ) { rlt = false ; return "" ; }
+	if ( ob != 0 )                                { err.seterrid( "PSYE037G" ) ; return "" ; }
+	if ( p2 < s.size()-1 && s.at( p2+1 ) != ' ' ) { err.seterror( "PSYE037H" ) ; return "" ; }
 
 	t = s.substr( p1+p.size(), p2-p1-p.size() ) ;
 	trim( s.erase( p1, p2-p1+1 ) ) ;

@@ -58,6 +58,8 @@ void PDPANLA::application()
 	bool   loope  ;
 
 	selobj SEL    ;
+	errblock err  ;
+
 
 	PANELNM  = word( PARM, 1 ) ;
 	opt      = subword( PARM, 2 ) ;
@@ -101,7 +103,7 @@ void PDPANLA::application()
 		vcopy( "ZTRAIL", ZTRAIL, MOVE ) ;
 		if ( w1 == "SELECT" )
 		{
-			if ( !SEL.parse( ws ) )
+			if ( !SEL.parse( err, ws ) )
 			{
 				log( "E", "Select command " << ws << " is invalid.  RC > 0 returned from parse" << endl ) ;
 				MSG = "PSYS017" ;

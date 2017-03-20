@@ -30,6 +30,7 @@ pPanel::pPanel()
 	abc_pos     = 2      ;
 	showLMSG    = false  ;
 	primaryMenu = false  ;
+	selectPanel = false  ;
 	scrollOn    = false  ;
 	pdActive    = false  ;
 	msgResp     = false  ;
@@ -202,6 +203,7 @@ string pPanel::getDialogueVar( const string& var )
 void pPanel::putDialogueVar( const string& var, const string& val )
 {
 	// Store data for a dialogue variable in the function pool.
+
 	// Creates an implicit function pool variable if one does not already exist.
 
 	errblock err ;
@@ -1188,20 +1190,14 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 				fieldNam = assgnList.at( i_assign ).as_lhs ;
 				if ( assgnList.at( i_assign ).as_istb )
 				{
-					if ( fieldList[ fieldNam +"."+ d2ds( ln ) ]->field_attr( t ) > 0 )
-					{
-						err.seterror( "Error setting attribute '"+ t +"' for table display field " +fieldNam ) ;
-						return ;
-					}
+					fieldList[ fieldNam +"."+ d2ds( ln ) ]->field_attr( err, t ) ;
+					if ( err.error() ) { return ; }
 					attrList.push_back( fieldNam +"."+ d2ds( ln ) ) ;
 				}
 				else
 				{
-					if ( fieldList[ fieldNam ]->field_attr( t ) > 0 )
-					{
-						err.seterror( "Error setting attribute '"+ t +"' for field "+ fieldNam ) ;
-						return ;
-					}
+					fieldList[ fieldNam ]->field_attr( err, t ) ;
+					if ( err.error() ) { return ; }
 					attrList.push_back( fieldNam ) ;
 				}
 			}
@@ -1444,8 +1440,8 @@ void pPanel::create_tbfield( errblock& err, int col, int length, cuaType cuaFT, 
 		m_fld->field_input  = !cuaAttrProt [ cuaFT ] ;
 		m_fld->field_tb     = true ;
 		fieldList[ name +"."+ d2ds( i ) ] = m_fld ;
-		fieldOptsParse( RC, opts, m_fld->field_caps, m_fld->field_just, m_fld->field_numeric, m_fld->field_padchar, m_fld->field_skip ) ;
-		if ( err.getRC() > 0 )
+		fieldOptsParse( err, opts, m_fld->field_caps, m_fld->field_just, m_fld->field_numeric, m_fld->field_padchar, m_fld->field_skip ) ;
+		if ( err.error() )
 		{
 			err.seterror( "Error in options for field '"+ name +"'.  Entry is "+ opts ) ;
 			return  ;
@@ -2562,6 +2558,8 @@ void pPanel::attr( int& RC1, const string& field, const string& attrs )
 {
 	RC1 = 0 ;
 
+	errblock err ;
+
 	if ( fieldList.count( field ) == 0 )
 	{
 		log( "E", "ATTR.  Field '"+ field +"' not found" << endl ) ;
@@ -2569,7 +2567,11 @@ void pPanel::attr( int& RC1, const string& field, const string& attrs )
 	}
 	else
 	{
-		RC1 = fieldList[ field ]->field_attr( attrs ) ;
+		fieldList[ field ]->field_attr( err, attrs ) ;
+		if ( err.error() )
+		{
+			RC1 = 20 ;
+		}
 	}
 }
 

@@ -23,7 +23,7 @@
 #define LOGOUT   aplog
 
 
-int field::field_init( int MAXW, int MAXD, const string& line )
+void field::field_init( errblock& err, int MAXW, int MAXD, const string& line )
 {
 	// Format of field entry in panels (FORMAT 1 VERSION 1 )
 	// FIELD row col len cuaAttr opts field_name
@@ -31,17 +31,20 @@ int field::field_init( int MAXW, int MAXD, const string& line )
 
 	// FIELD 3  14  90  NEF CAPS(On),pad('_'),just(left),numeric(off),skip(on) ZCMD
 
-	int RC    ;
 	int row   ;
 	int col   ;
 	int len   ;
+
 	string w2 ;
 	string w3 ;
 	string w4 ;
 	string w5 ;
 	string w6 ;
 	string w7 ;
-	cuaType fType   ;
+
+	cuaType fType  ;
+
+	err.setRC( 0 ) ;
 
 	w2  = word( line, 2 ) ;
 	w3  = word( line, 3 ) ;
@@ -54,19 +57,19 @@ int field::field_init( int MAXW, int MAXD, const string& line )
 
 	if ( row > MAXD )
 	{
-		log( "E", "Field outside panel area.  row=" << row << " ZSCRMAXD=" << MAXD << endl ; )
-		return 20 ;
+		err.seterrid( "PSYE031A", d2ds( row ), d2ds( MAXD ) ) ;
+		return ;
 	}
 
 	if ( isnumeric( w3 ) )                   { col = ds2d( w3 ) ; }
 	else if ( w3 == "MAX" )                  { col = MAXW       ; }
-	else if ( substr( w3, 1, 4 ) == "MAX-" ) { col = MAXW - ds2d( substr( w3, 5 ) ) ; }
-	else                                     { return 20        ; }
+	else if ( substr( w3, 1, 4 ) == "MAX-" ) { col = MAXW - ds2d( substr( w3, 5 ) )    ; }
+	else                                     { err.seterrid( "PSYE031B", w3 ) ; return ; }
 
 	if ( isnumeric( w4 ) )                   { len = ds2d( w4 ) ; }
 	else if ( w4 == "MAX" )                  { len = MAXW - col + 1 ; }
 	else if ( substr( w4, 1, 4 ) == "MAX-" ) { len = MAXW - col - ds2d( substr( w4, 5 ) ) + 1 ; }
-	else                                     { return 20        ; }
+	else                                     { err.seterrid( "PSYE031B", w4 ) ; return ; }
 
 	if ( w5 == "PWD" )
 	{
@@ -75,15 +78,12 @@ int field::field_init( int MAXW, int MAXD, const string& line )
 	}
 	else
 	{
-		if ( cuaAttrName.find( w5 ) != cuaAttrName.end() )
+		if ( cuaAttrName.count( w5 ) == 0 )
 		{
-			fType = cuaAttrName[ w5 ] ;
+			err.seterrid( "PSYE032F", w5 ) ;
+			return ;
 		}
-		else
-		{
-			log( "E", "Unknown field CUA attribute type " << w5 << endl ; )
-			return 20 ;
-		}
+		fType = cuaAttrName[ w5 ] ;
 	}
 
 	field_cua    = fType ;
@@ -93,17 +93,17 @@ int field::field_init( int MAXW, int MAXD, const string& line )
 	field_cole   = field_col + field_length ;
 	field_input  = !cuaAttrProt [ fType ] ;
 
-	fieldOptsParse( RC, w6, field_caps, field_just, field_numeric, field_padchar, field_skip ) ;
-	if ( RC > 0 )
+	fieldOptsParse( err, w6, field_caps, field_just, field_numeric, field_padchar, field_skip ) ;
+	if ( err.error() )
 	{
-	       log( "E", "Error parsing options for field " << w7 << ". Entry is " << w6 << endl ) ;
+	       err.seterrid( "PSYE032G" ) ;
 	}
 
-	return RC ;
+	return ;
 }
 
 
-int dynArea::dynArea_init( int MAXW, int MAXD, const string& line )
+void dynArea::dynArea_init( errblock& err, int MAXW, int MAXD, const string& line )
 {
 	// Format of OPTION entry in panels (FORMAT 1 VERSION 1 )
 	// DYNAREA row col width depth   A-name S-name DATAIN() DATAOUT() USERMOD() DATAMOD()
@@ -141,34 +141,36 @@ int dynArea::dynArea_init( int MAXW, int MAXD, const string& line )
 	w5  = word( line, 5 ) ;
 	w7  = word( line, 7 ) ;
 
+	err.setRC( 0 ) ;
+
 	row = ds2d( w2 ) ;
 	col = ds2d( w3 ) ;
 
 	if ( isnumeric( w2 ) )                   { row = ds2d( w2  ) ; }
 	else if ( w2 == "MAX" )                  { row = MAXD        ; }
-	else if ( substr( w2, 1, 4 ) == "MAX-" ) { row = MAXD - ds2d( substr( w2, 5 ) ) ; }
-	else                                     { return 20         ; }
+	else if ( substr( w2, 1, 4 ) == "MAX-" ) { row = MAXD - ds2d( substr( w2, 5 ) )    ; }
+	else                                     { err.seterrid( "PSYE031B", w2 ) ; return ; }
 
 	if ( isnumeric( w3 ) )                   { col = ds2d( w3 )  ; }
 	else if ( w3 == "MAX" )                  { col = MAXW        ; }
-	else if ( substr( w3, 1, 4 ) == "MAX-" ) { col = MAXW - ds2d( substr( w3, 5 ) ) ; }
-	else                                     { return 20         ; }
+	else if ( substr( w3, 1, 4 ) == "MAX-" ) { col = MAXW - ds2d( substr( w3, 5 ) )    ; }
+	else                                     { err.seterrid( "PSYE031B", w3 ) ; return ; }
 
 	if ( isnumeric( w4 ) )                   { width = ds2d( w4  )    ; }
 	else if ( w4 == "MAX" )                  { width = MAXW - col + 1 ; }
 	else if ( substr( w4, 1, 4 ) == "MAX-" ) { width = MAXW - col - ds2d( substr( w4, 5 ) ) + 1 ; }
-	else                                     { return 20              ; }
+	else                                     { err.seterrid( "PSYE031B", w4 ) ; return ; }
 
 	if ( isnumeric( w5 ) )                   { depth = ds2d( w5 )     ; }
 	else if ( w5 == "MAX" )                  { depth = MAXD - row + 1 ; }
 	else if ( substr( w5, 1, 4 ) == "MAX-" ) { depth = MAXD - row - ds2d( substr( w5, 5 ) ) + 1 ; }
-	else                                     { return 20              ; }
+	else                                     { err.seterrid( "PSYE031B", w5 ) ; return ; }
 
 
 	if ( row > MAXD )
 	{
-		log( "E", "Dynamic area outside panel area.  row=" << row << " MAXD=" << MAXD ) ;
-		return  20 ;
+		err.seterrid( "PSYE032A", d2ds( row ), d2ds( MAXD ) ) ;
+		return ;
 	}
 	if ( width > (MAXW - col+1) ) { width = (MAXW - col+1) ; }
 	if ( depth > (MAXD - row+1) ) { depth = (MAXD - row+1) ; }
@@ -176,46 +178,55 @@ int dynArea::dynArea_init( int MAXW, int MAXD, const string& line )
 	if ( p1 = pos( "DATAIN(", line ) )
 	{
 		p2 = pos( ")", line, p1 ) ;
-		if ( p2 == 0 ) { return 20 ; }
+		if ( p2 == 0 ) { err.seterrid( "PSYE032D" ) ; return ; }
 		t  = strip( substr( line, (p1 + 7), (p2 - (p1 + 7)) ) ) ;
 		dynArea_DataInsp = true ;
 		if      ( t.size() == 1 ) { dynArea_DataIn = t[0]          ; }
 		else if ( t.size() == 2 ) { dynArea_DataIn = xs2cs( t )[0] ; }
-		else                      { return 20                      ; }
+		else                      { err.seterrid( "PSYE032B" )     ; return  ; }
 	}
 	if ( p1 = pos( "DATAOUT(", line ) )
 	{
 		p2 = pos( ")", line, p1 ) ;
-		if ( p2 == 0 ) { return 20 ; }
+		if ( p2 == 0 ) { err.seterrid( "PSYE032D" ) ; return ; }
 		t  = strip( substr( line, (p1 + 8), (p2 - (p1 + 8)) ) ) ;
 		dynArea_DataOutsp = true ;
 		if      ( t.size() == 1 ) { dynArea_DataOut = t[0]          ; }
 		else if ( t.size() == 2 ) { dynArea_DataOut = xs2cs( t )[0] ; }
-		else                      { return 20                       ; }
+		else                      { err.seterrid( "PSYE032B" )      ; return ; }
 	}
 	if ( p1 = pos( "USERMOD(", line ) )
 	{
 		p2 = pos( ")", line, p1 ) ;
-		if ( p2 == 0 ) { return 20 ; }
+		if ( p2 == 0 ) { err.seterrid( "PSYE032D" ) ; return ; }
 		t  = strip( substr( line, (p1 + 8), (p2 - (p1 + 8)) ) ) ;
 		dynArea_UserModsp = true ;
 		if      ( t.size() == 1 ) { dynArea_UserMod = t[0]          ; }
 		else if ( t.size() == 2 ) { dynArea_UserMod = xs2cs( t )[0] ; }
-		else                      { return 20                       ; }
+		else                      { err.seterrid( "PSYE032B" )      ; return ; }
 	}
 	if ( p1 = pos( "DATAMOD(", line ) )
 	{
 		p2 = pos( ")", line, p1 ) ;
-		if ( p2 == 0 ) { return 20 ; }
+		if ( p2 == 0 ) { err.seterrid( "PSYE032D" ) ; return ; }
 		t  = strip( substr( line, (p1 + 8), (p2 - (p1 + 8)) ) ) ;
 		dynArea_DataModsp = true ;
 		if      ( t.size() == 1 ) { dynArea_DataMod = t[0]          ; }
 		else if ( t.size() == 2 ) { dynArea_DataMod = xs2cs( t )[0] ; }
-		else                      { return 20                       ; }
+		else                      { err.seterrid( "PSYE032B" )      ; return ; }
 	}
 
-	if ( w7 == "" ) { return 20 ; }
-	if ( (dynArea_UserModsp || dynArea_DataModsp) && !dynArea_DataInsp ) { return 20 ; }
+	if ( w7 == "" )
+	{
+		err.seterrid( "PSYE032E" ) ;
+		return ;
+	}
+
+	if ( (dynArea_UserModsp || dynArea_DataModsp) && !dynArea_DataInsp )
+	{
+		err.seterrid( "PSYE032C" ) ;
+		return ;
+	}
 
 	dynArea_row         = row-1 ;
 	dynArea_col         = col-1 ;
@@ -230,7 +241,7 @@ int dynArea::dynArea_init( int MAXW, int MAXD, const string& line )
 	dynArea_Field = dynArea_FieldIn ;
 	if ( dynArea_DataOutsp ) { dynArea_Field.push_back( dynArea_DataOut   ) ; }
 
-	return 0 ;
+	return ;
 }
 
 
@@ -670,12 +681,13 @@ int field::field_dyna_input_offset( uint col )
 }
 
 
-int field::field_attr( string attrs )
+void field::field_attr( errblock& err, string attrs )
 {
 	// Format:
 
 	// TYPE(CUA) (change to/from PS not allowed)
 	// COLOUR(RED/GREEN/YELLOW/BLUE/MAGENTA/TURQ/WHITE) INTENSE(LOW/HIGH) HILITE(NONE/BLINK/REVERSE/USCORE)
+
 	// For NON-CUA field_colour, default to the current CUA value in case only one attribute is changed
 	// Hex format for field_colour:
 	// 00 X0 00 00   - X is the INTENSITY
@@ -689,6 +701,8 @@ int field::field_attr( string attrs )
 	string hilite ;
 	string intens ;
 
+	err.setRC( 0 ) ;
+
 	cua    = "" ;
 	col    = "" ;
 	intens = "" ;
@@ -698,23 +712,23 @@ int field::field_attr( string attrs )
 	if ( p1 > 0 )
 	{
 		p2     = pos( ")", attrs, p1 ) ;
-		if ( p2 == 0 ) { return 20 ; }
+		if ( p2 == 0 ) { err.seterrid( "PSYE032D" ) ; return ; }
 		cua    = strip( substr( attrs, (p1 + 5), (p2 - (p1 + 5)) ) ) ;
 		cua    = strip( cua, 'B', '"' ) ;
 		attrs  = delstr( attrs, p1, (p2 - p1 + 1) ) ;
-		if ( trim( attrs ) != "" ) { return 20 ; }
-		if ( cuaAttrName.find( cua ) == cuaAttrName.end() ) { return 20 ; }
-		if ( cua == "PS" || field_cua == PS ) { return 20 ; }
+		if ( trim( attrs ) != "" ) { err.seterrid( "PSYE032H", attrs ) ; return ; }
+		if ( cuaAttrName.count( cua ) == 0 )  { err.seterrid( "PSYE032F", cua ) ; return ; }
+		if ( cua == "PS" || field_cua == PS ) { err.seterrid( "PSYE035A" ) ; return ; }
 		field_cua = cuaAttrName[ cua ] ;
 		field_usecua = true ;
-		return 0 ;
+		return ;
 	}
 	if ( field_usecua ) { field_colour = cuaAttr[ field_cua ] ; }
 	p1 = pos( "COLOUR(", attrs ) ;
 	if ( p1 > 0 )
 	{
 		p2     = pos( ")", attrs, p1 ) ;
-		if ( p2 == 0 ) { return 20 ; }
+		if ( p2 == 0 ) { err.seterrid( "PSYE032D" ) ; return ; }
 		col    = strip( substr( attrs, (p1 + 7), (p2 - (p1 + 7)) ) ) ;
 		col    = strip( col, 'B', '"' ) ;
 		attrs  = delstr( attrs, p1, (p2 - p1 + 1) ) ;
@@ -726,27 +740,27 @@ int field::field_attr( string attrs )
 		else if ( col == "MAGENTA" ) { field_colour = field_colour | MAGENTA ; }
 		else if ( col == "TURQ"    ) { field_colour = field_colour | TURQ    ; }
 		else if ( col == "WHITE"   ) { field_colour = field_colour | WHITE   ; }
-		else                         { return 20                             ; }
+		else                         { err.seterrid( "PSYE035B", col, "COLOUR" ) ; return ; }
 	}
 	p1 = pos( "INTENSE(", attrs ) ;
 	if ( p1 > 0 )
 	{
 		field_colour = field_colour & 0XFF0FFFFF ;
 		p2     = pos( ")", attrs, p1 ) ;
-		if ( p2 == 0 ) { return 20 ; }
+		if ( p2 == 0 ) { err.seterrid( "PSYE032D" ) ; return ; }
 		intens = strip( substr( attrs, (p1 + 8), (p2 - (p1 + 8)) ) ) ;
 		intens = strip( intens, 'B', '"' ) ;
 		attrs  = delstr( attrs, p1, (p2 - p1 + 1) ) ;
 		if      ( intens == "HIGH" ) { field_colour = field_colour | A_BOLD   ; }
 		else if ( intens == "LOW"  ) { field_colour = field_colour | A_NORMAL ; }
-		else                         { return 20                              ; }
+		else                         { err.seterrid( "PSYE035B", intens, "INTENSE" ) ; return ; }
 	}
 	p1 = pos( "HILITE(", attrs ) ;
 	if ( p1 > 0 )
 	{
 		field_colour = field_colour & 0XFFF0FFFF ;
 		p2     = pos( ")", attrs, p1 ) ;
-		if ( p2 == 0 ) { return 20 ; }
+		if ( p2 == 0 ) { err.seterrid( "PSYE032D" ) ; return ; }
 		hilite = strip( substr( attrs, (p1 + 7), (p2 - (p1 + 7)) ) ) ;
 		hilite = strip( hilite, 'B', '"' ) ;
 		attrs  = delstr( attrs, p1, (p2 - p1 + 1) ) ;
@@ -754,11 +768,15 @@ int field::field_attr( string attrs )
 		else if ( hilite == "BLINK"   ) { field_colour = field_colour | A_BLINK     ; }
 		else if ( hilite == "REVERSE" ) { field_colour = field_colour | A_REVERSE   ; }
 		else if ( hilite == "USCORE"  ) { field_colour = field_colour | A_UNDERLINE ; }
-		else                            { return 20                                 ; }
+		else                            { err.seterrid( "PSYE035B", hilite, "HILITE" ) ; return ; }
 	}
-	if ( trim( attrs ) != "" ) { return 20 ; }
+	if ( trim( attrs ) != "" )
+	{
+		err.seterrid( "PSYE032H", attrs ) ;
+		return ;
+	}
 	field_usecua = false ;
-	return 0 ;
+	return ;
 }
 
 
@@ -994,7 +1012,7 @@ bool field::cursor_on_field( uint row, uint col )
 }
 
 
-int literal::literal_init( int MAXW, int MAXD, int& opt_field, const string& line )
+void literal::literal_init( errblock& err, int MAXW, int MAXD, int& opt_field, const string& line )
 {
 	// Format of literal entry in panels (FORMAT 1 VERSION 1 )
 	// LITERAL row col cuaAttr (EXPAND) value
@@ -1023,33 +1041,30 @@ int literal::literal_init( int MAXW, int MAXD, int& opt_field, const string& lin
 
 	if ( isnumeric( w2 ) )                   { row = ds2d( w2 ) ; }
 	else if ( w2 == "MAX" )                  { row = MAXD       ; }
-	else if ( substr( w2, 1, 4 ) == "MAX-" ) { row = MAXD - ds2d( substr( w2, 5 ) ) ; }
-	else                                     { return 20        ; }
+	else if ( substr( w2, 1, 4 ) == "MAX-" ) { row = MAXD - ds2d( substr( w2, 5 ) )    ; }
+	else                                     { err.seterrid( "PSYE031B", w2 ) ; return ; }
 
 	if ( isnumeric( w3 ) )                   { col = ds2d( w3 ) ; }
 	else if ( w3 == "MAX" )                  { col = MAXW       ; }
-	else if ( substr( w3, 1, 4 ) == "MAX-" ) { col = MAXW - ds2d( substr( w3, 5 ) ) ; }
-	else                                     { return 20        ; }
+	else if ( substr( w3, 1, 4 ) == "MAX-" ) { col = MAXW - ds2d( substr( w3, 5 ) )    ; }
+	else                                     { err.seterrid( "PSYE031B", w3 ) ; return ; }
 
-	if ( cuaAttrName.find( w4 ) != cuaAttrName.end() )
+	if ( cuaAttrName.count( w4 ) == 0 )
 	{
-		fType = cuaAttrName[ w4 ] ;
+		err.seterrid( "PSYE032F", w4 ) ;
+		return ;
 	}
-	else
-	{
-		log( "E", "Unknown field CUA attribute type " << w4 << endl ; )
-		return 20 ;
-	}
+	fType = cuaAttrName[ w4 ] ;
 
 	if ( row > MAXD )
 	{
-		log( "E", "Literal outside panel area.  row=" << row << " ZSCRMAXD=" << MAXD << endl ; )
-		return 20 ;
+		err.seterrid( "PSYE036A", d2ds( row ), d2ds( MAXD ) ) ;
+		return ;
 	}
 	if ( col > MAXW )
 	{
-		log( "E", "Literal outside panel area.  col=" << col << " ZSCRMAXW=" << MAXW << endl ; )
-		return 20 ;
+		err.seterrid( "PSYE036B", d2ds( col ), d2ds( MAXW ) ) ;
+		return ;
 	}
 
 	literal_cua = fType   ;
@@ -1070,7 +1085,7 @@ int literal::literal_init( int MAXW, int MAXD, int& opt_field, const string& lin
 	{
 		literal_name = "ZPS01" + right( d2ds(++opt_field), 3, '0') ;
 	}
-	return 0 ;
+	return ;
 }
 
 
@@ -1180,7 +1195,7 @@ pdc abc::retrieve_pdChoice( uint row, uint col )
 }
 
 
-int Box::box_init( int MAXW, int MAXD, const string& line )
+void Box::box_init( errblock& err, int MAXW, int MAXD, const string& line )
 {
 	// Format of BOX entry in panels (FORMAT 1 VERSION 1 )
 	// BOX  row col width depth cuaAttr  B-title
@@ -1216,8 +1231,8 @@ int Box::box_init( int MAXW, int MAXD, const string& line )
 
 	if ( row > (MAXD - 2) )
 	{
-		log( "E", "Box outside panel area" << endl ) ;
-		return 20 ;
+		err.seterrid( "PSYE034A" ) ;
+		return ;
 	}
 
 	if ( width > (MAXW - col+1) ) { width = (MAXW - col+1) ; } ;
@@ -1235,7 +1250,7 @@ int Box::box_init( int MAXW, int MAXD, const string& line )
 	if ( title.size() > ( width - 4) ) title = substr( title, 1, ( width - 4 ) ) ;
 	box_title        = " " + title + " "  ;
 	box_title_offset = ( box_width - box_title.size() ) / 2 ;
-	return 0 ;
+	return ;
 }
 
 

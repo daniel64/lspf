@@ -23,7 +23,7 @@ class pnts
 {
 	public:
 		pnts() {} ;
-		bool parse( string ) ;
+		bool parse( errblock&, string ) ;
 
 		string pnts_field ;
 		string pnts_var   ;
@@ -84,7 +84,7 @@ class VERIFY
 				ver_field   = false ;
 			} ;
 
-		bool parse( string ) ;
+		bool parse( errblock&, string ) ;
 
 		string ver_var     ;
 		string ver_value   ;
@@ -122,7 +122,7 @@ class IFSTMNT
 			if_nl    = false ;
 			if_ver   = false ;
 		}
-		bool parse( string ) ;
+		bool parse( errblock&, string ) ;
 
 		string if_lhs           ;
 		vector<string> if_rhs   ;
@@ -162,7 +162,7 @@ class ASSGN
 			as_chkfile = false ;
 			as_chkdir  = false ;
 		}
-		bool parse( string ) ;
+		bool parse( errblock&, string ) ;
 
 		string as_lhs     ;
 		string as_rhs     ;
@@ -190,7 +190,7 @@ class VPUTGET
 				vpg_pool = ASIS  ;
 			} ;
 
-		bool parse( string ) ;
+		bool parse( errblock&, string ) ;
 		bool     vpg_vput ;
 		bool     vpg_vget ;
 		string   vpg_vars ;
@@ -206,7 +206,7 @@ class TRUNC
 				trnc_len  = 0   ;
 			} ;
 
-		bool parse( string ) ;
+		bool parse( errblock&, string ) ;
 
 		string trnc_field1 ;
 		string trnc_field2 ;
@@ -222,7 +222,7 @@ class TRANS
 		TRANS() {
 				trns_msg = "" ;
 			} ;
-		bool parse( string ) ;
+		bool parse( errblock&, string ) ;
 
 		string trns_field1 ;
 		string trns_field2 ;
@@ -368,7 +368,7 @@ class selobj
 			SCRNAME = "" ;
 			selPanl = false ;
 		}
-		bool parse( string ) ;
+		bool parse( errblock&, string ) ;
 		bool selPanel() { return selPanl ; }
 
 		string PGM     ;

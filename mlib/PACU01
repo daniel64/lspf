@@ -17,7 +17,7 @@ PACU016 'Internal Error' .TYPE=W
 'libalpm has returned an error.  See log'
 
 PACU017 'Invalid Parameter Passed' .TYPE=W
-"PACU01 has been invoked with an invalid parameter of '&ZZSTR1'"
+'PACU01 has been invoked with an invalid parameter of ''&ZZSTR1'''
 
 PACU018 'File Cannot Be Opened Or Not Found' .TYPE=W
 'Check file exists and its permissions or file type'

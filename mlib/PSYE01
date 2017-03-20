@@ -177,6 +177,9 @@ PSYE015J 'Directory &ZVAL1 is not a regular directory for profile save'
 PSYE015K 'Directory &ZVAL1 does not exist for profile save'
 ''
 
+PSYE015L 'Pool manager &ZVAL1 of &ZVAL2 failed'
+''
+
 
 /* pool manager messages */
 PSYE017A 'poolMGR has invalid APPLID (&ZVAL1).  Logic error'
@@ -207,4 +210,10 @@ PSYE019C 'Syntax error in service'
 
 PSYE019D '&ZVAL1'
 '&ZVAL2'
+
+PSYE019E 'Value must be numeric'
+''
+
+PSYE019F 'Numeric value must be greater than 0'
+''
 

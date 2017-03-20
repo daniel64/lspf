@@ -541,7 +541,7 @@ void mainLoop()
 						}
 					}
 					updateReflist() ;
-					continue ;
+					if ( !currAppl->selectPanel() ) { continue ; }
 				}
 				if ( ZCOMMAND == ".ABEND" )
 				{
@@ -580,7 +580,7 @@ void mainLoop()
 					fxc = currAppl->currPanel->field_getexec( field_name ) ;
 					if ( fxc.fieldExc_command != "" )
 					{
-						if ( !SELCT.parse( subword( fxc.fieldExc_command, 2 ) ) )
+						if ( !SELCT.parse( err, subword( fxc.fieldExc_command, 2 ) ) )
 						{
 							log( "E", "Error in FIELD SELECT command "+ fxc.fieldExc_command << endl ) ;
 							issueMessage( "PSYS011K" ) ;
@@ -981,7 +981,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 					CMDParm = subword( t_pdc.pdc_parm, 2 ) ;
 					if ( CMDVerb == "SELECT" )
 					{
-						if ( !SELCT.parse( CMDParm ) )
+						if ( !SELCT.parse( err, CMDParm ) )
 						{
 							log( "E", "Error in SELECT command "+ t_pdc.pdc_parm << endl ) ;
 							currAppl->setmsg( "PSYS011K" ) ;
@@ -1215,7 +1215,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		}
 		else if ( word( ZCTACT, 1 ) == "SELECT" )
 		{
-			if ( !SELCT.parse( subword( ZCTACT, 2 ) ) )
+			if ( !SELCT.parse( err, subword( ZCTACT, 2 ) ) )
 			{
 				log( "E", "Error in SELECT command "+ ZCTACT << endl ) ;
 				currAppl->setmsg( "PSYS011K" ) ;
@@ -1432,7 +1432,7 @@ void startApplication( selobj SEL, bool nScreen )
 		rest    = ""                ;
 		if ( isvalidName( opt ) && resolveZCTEntry( opt, rest ) && word( ZCTACT, 1 ) == "SELECT" )
 		{
-			if ( !SEL.parse( subword( ZCTACT, 2 ) ) )
+			if ( !SEL.parse( err, subword( ZCTACT, 2 ) ) )
 			{
 				errorScreen( 1, "Error in ZCTACT command "+ ZCTACT ) ;
 				return ;
@@ -1443,7 +1443,7 @@ void startApplication( selobj SEL, bool nScreen )
 				SEL.PARM.replace( p1, 6, rest ) ;
 			}
 		}
-		else if ( !SEL.parse( SEL.PARM ) )
+		else if ( !SEL.parse( err, SEL.PARM ) )
 		{
 			SEL.clear() ;
 			SEL.PGM     = GMAINPGM ;
@@ -1475,12 +1475,12 @@ void startApplication( selobj SEL, bool nScreen )
 
 	if ( nScreen && !createLogicalScreen() ) { return ; }
 
-	if ( SEL.PASSLIB || !SEL.NEWPOOL )
+	if ( SEL.PASSLIB || SEL.NEWAPPL == "" )
 	{
-		debug1( "PASSLIB or no NEWPOOL specifed on start application.  Saving LIBDEF status" << endl ) ;
-		m   = currAppl->ZMUSER ;
-		p   = currAppl->ZPUSER ;
-		t   = currAppl->ZTUSER ;
+		debug1( "PASSLIB or no NEWAPPL specifed on start application.  Saving LIBDEF status" << endl ) ;
+       // todo  m   = currAppl->ZMUSER ;
+       //       p   = currAppl->ZPUSER ;
+       //       t   = currAppl->ZTUSER ;
 		ldm = currAppl->libdef_muser ;
 		ldp = currAppl->libdef_puser ;
 		ldt = currAppl->libdef_tuser ;
@@ -1506,12 +1506,9 @@ void startApplication( selobj SEL, bool nScreen )
 	currAppl->lspfCallback = lspfCallbackHandler ;
 	apps[ SEL.PGM ].refCount++ ;
 
-	if ( SEL.NEWAPPL != "" )
+	if ( SEL.NEWAPPL != p_poolMGR->getAPPLID() )
 	{
-		if ( SEL.NEWAPPL != p_poolMGR->getAPPLID() )
-		{
-			p_poolMGR->setAPPLID( err, SEL.NEWAPPL ) ;
-		}
+		p_poolMGR->setAPPLID( err, SEL.NEWAPPL ) ;
 	}
 	currAppl->ZZAPPLID = p_poolMGR->getAPPLID() ;
 
@@ -1534,12 +1531,12 @@ void startApplication( selobj SEL, bool nScreen )
 	currAppl->shrdPool = p_poolMGR->getShrdPool() ;
 	currAppl->init() ;
 
-	if ( SEL.PASSLIB || !SEL.NEWPOOL )
+	if ( SEL.PASSLIB || SEL.NEWAPPL == "" )
 	{
-		debug1( "PASSLIB or no NEWPOOL specifed on start application.  Restoring LIBDEF status to new application." << endl ) ;
-		currAppl->ZMUSER = m ;
-		currAppl->ZPUSER = p ;
-		currAppl->ZTUSER = t ;
+		debug1( "PASSLIB or no NEWAPPL specifed on start application.  Restoring LIBDEF status to new application." << endl ) ;
+  //  todo      currAppl->ZMUSER = m ;
+  //            currAppl->ZPUSER = p ;
+  //            currAppl->ZTUSER = t ;
 		currAppl->libdef_muser = ldm ;
 		currAppl->libdef_puser = ldp ;
 		currAppl->libdef_tuser = ldt ;

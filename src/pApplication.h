@@ -100,9 +100,6 @@ class pApplication
 		string ZSCROLLA           ;
 		string ZUSER              ;
 		string ZVERB              ;
-		string ZMUSER             ;
-		string ZPUSER             ;
-		string ZTUSER             ;
 		int    ZRC                ;
 		int    ZRSN               ;
 		string ZRESULT            ;
@@ -122,7 +119,8 @@ class pApplication
 		void   refresh()  ;
 		bool   isRawOutput() { return rawOutput ; }
 
-		string get_select_cmd( const string& ) ;
+		string get_search_path( s_paths ) ;
+		string get_select_cmd( const string& )  ;
 		selobj get_select_cmd() { return SELCT ; }
 		string get_help_member( int, int ) ;
 		string get_current_panelDescr() ;
@@ -130,7 +128,7 @@ class pApplication
 
 		void   control( const string&, const string&, const string& ="" ) ;
 		void   control( const string&, void (pApplication::*)() ) ;
-		void   libdef( const string&, const string& ="" ) ;
+		void   libdef( const string&, const string& ="", const string& ="", const string& ="UNCOND" ) ;
 		void   rdisplay( const string&, bool =true ) ;
 		void   display( string p_name, const string& p_msg = "", const string& p_cursor = "", int p_curpos = 0 ) ;
 		void   pquery( const string& p_name, const string& a_name, const string& t = "", const string& w = "", const string& d = "", const string& r = "", const string& c = "" ) ;
@@ -278,6 +276,10 @@ class pApplication
 		stack<string> stk_str ;
 		stack<int> stk_int    ;
 		stack<int> addpop_stk ;
+
+		stack<string> zmuser ;
+		stack<string> zpuser ;
+		stack<string> ztuser ;
 
 		void load_keylist( pPanel * )   ;
 		void createPanel( const string& p_name ) ;

@@ -12,34 +12,34 @@ PEDM011C 'Missing closing bracket on statement found'
 ''
 
 PEDM011D 'Invalid variable name'
-"Variable name '&ZVAL1' is not valid"
+'Variable name ''&ZVAL1'' is not valid'
 
 PEDM011E 'The MACRO statement must precede any other edit macro statement'
 ''
 
 PEDM011F 'Invalid variable format'
-"The ending ')' was not found"
+'The ending '')'' was not found'
 
 PEDM011G 'No variable name coded'
-"No variable name found between '(' and ')'"
+'No variable name found between ''('' and '')'''
 
 PEDM011H 'Too many variable names'
 'Invalid number of variables for this statement'
 
 PEDM011I 'Invalid variable list format'
-"Variable list must be of the form '(varname,varname)'"
+'Variable list must be of the form ''(varname,varname)'''
 
 PEDM011J 'Invalid number of variables'
 ''
 
 PEDM011K 'Invalid command syntax'
-'Command keyword not found.  Missing "=" before command name'
+'Command keyword not found.  Missing ''='' before command name'
 
 PEDM011L 'Invalid command syntax'
-"Missing value after '='"
+'Missing value after ''='''
 
 PEDM011M 'Invalid keyphrase syntax'
-"Assignment syntax is 'ISREDIT &STR lptr = value"
+'Assignment syntax is ''ISREDIT &STR lptr = value'''
 
 PEDM011N 'Invalid command'
 'Command keyword is not recognised or missing'
@@ -114,62 +114,62 @@ PEDM012K 'Invalid process request'
 'End user input previously processed.  Specify NOPROCESS on macro command'
 
 PEDM012L '&ZSTR1 returned invalid number' .T=W
-"&ZSTR1 has set an invalid return that is not a whole number"
+'&ZSTR1 has set an invalid return that is not a whole number'
 
 PEDM012M 'spare'
-"spare"
+'spare'
 
 PEDM012N 'spare'
-"spare"
+'spare'
 
 PEDM012O 'spare'
-"spare"
+'spare'
 
 PEDM012P 'No macro name specified'
-"Macro name is blank.  Please specify a valid macro"
+'Macro name is blank.  Please specify a valid macro'
 
 PEDM012Q 'Invalid rexx file' .TYPE=W
-"Invalid file found in path ZORXPATH"
+'Invalid file found in path ZORXPATH'
 
 PEDM012R 'spare'
-"spare"
+'spare'
 
 PEDM012S 'spare'
-"spare"
+'spare'
 
 PEDM012T 'spare'
-"spare"
+'spare'
 
 PEDM012U 'spare'
-"spare"
+'spare'
 
 PEDM012V 'Invalid LINE format' .TYPE=W
-"Format must be 'line-type data'"
+'Format must be ''line-type data'''
 
 PEDM012W 'Invalid quoted string' .TYPE=W
-"String must start and end with a single or double quote"
+'String must start and end with a single or double quote'
 
 PEDM012X 'Invalid command syntax'
-'Missing "=" after command name'
+'Missing ''='' after command name'
 
 PEDM012Y 'Invalid template format'
-"Missing '>' to indicate the end of the template"
+'Missing ''>'' to indicate the end of the template'
 
 PEDM012Z 'Invalid template format'
-"Invalid number of parameters between '<' and '>'"
+'Invalid number of parameters between ''<'' and ''>'''
 
 PEDM013A 'Missing parameter'
-"&ZVAL1"
+'&ZVAL1'
 
 PEDM013B 'Invalid template parameter'
-"Column parameter must be numeric"
+'Column parameter must be numeric'
 
 PEDM013C 'Invalid specification'
-"The specified cursor position exceeds the data length"
+'The specified cursor position exceeds the data length'
 
 PEDM013D 'Statements after CANCEL or END'
-"Macro has ended the edit session but further statements were found in the macro"
+'Macro has ended the edit session but further statements were found in the macro'
 
 PEDM013E 'Initial macro error'
-"Macro command entered is not allowed from an initial macro"
+'Macro command entered is not allowed from an initial macro'
 

@@ -77,7 +77,8 @@ void PTUTORA::application()
 	string ZSCRNAME   ;
 
 	bool rebuildZAREA ;
-	bool reslt        ;
+
+	errblock err      ;
 
 	vdefine( "ZZSTR1 ZSCRNAME", &help, &ZSCRNAME ) ;
 
@@ -91,7 +92,7 @@ void PTUTORA::application()
 
 	if ( PARM == "" ) { ps = ZPLIB ; }
 
-	ah = parseString( reslt, PARM, "A()" ) ;
+	ah = parseString( err, PARM, "A()" ) ;
 	if ( ah != "" )
 	{
 		help = ah ;
@@ -99,7 +100,7 @@ void PTUTORA::application()
 		helplst = help + " " + helplst ;
 	}
 
-	ph = parseString( reslt, PARM, "P()" ) ;
+	ph = parseString( err, PARM, "P()" ) ;
 	if ( ph != "" )
 	{
 		help = ph ;
@@ -107,7 +108,7 @@ void PTUTORA::application()
 		helplst = help + " " + helplst ;
 	}
 
-	fh = parseString( reslt, PARM, "F()" ) ;
+	fh = parseString( err, PARM, "F()" ) ;
 	if ( fh != "" )
 	{
 		help = fh ;
@@ -115,7 +116,7 @@ void PTUTORA::application()
 		helplst = help + " " + helplst ;
 	}
 
-	fh = parseString( reslt, PARM, "M()" ) ;
+	fh = parseString( err, PARM, "M()" ) ;
 	if ( mh != "" )
 	{
 		help = mh ;
@@ -123,7 +124,7 @@ void PTUTORA::application()
 		helplst = help + " " + helplst ;
 	}
 
-	kh = parseString( reslt, PARM, "K()" ) ;
+	kh = parseString( err, PARM, "K()" ) ;
 	if ( kh != "" )
 	{
 		help = kh ;
@@ -131,7 +132,7 @@ void PTUTORA::application()
 		helplst = help + " " + helplst ;
 	}
 
-	ps = parseString( reslt, PARM, "PATHS()" ) ;
+	ps = parseString( err, PARM, "PATHS()" ) ;
 
 	rebuildZAREA = true  ;
 

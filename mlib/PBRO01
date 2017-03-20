@@ -8,10 +8,10 @@ PBRO013 'Too many parameters' .TYPE=W
 'Too many parameters entered for &CMD command'
 
 PBRO014 'Invalid columns specified' .TYPE=W
-"String '&STR' does not fit between the specified columns"
+'String ''&STR'' does not fit between the specified columns'
 
-PBRO015 "Cannot Enter '*' and a find string" .TYPE=W
-"Don't enter '*' for previous find string together with a new find string"
+PBRO015 'Cannot Enter ''*'' and a find string' .TYPE=W
+'Don't enter ''*'' for previous find string together with a new find string'
 
 PBRO016 '*Bottom of data reached*' .TYPE=W
 'Press RFIND to continue from the top of data'
@@ -20,7 +20,7 @@ PBRO017 '*Top of data reached*' .TYPE=W
 'Press RFIND to continue from the bottom of data'
 
 PBRO018 'Unknown parameter on FIND' .TYPE=W
-"Find command contains an unknown parameter '&STR'"
+'Find command contains an unknown parameter ''&STR'''
 
 PBRO019 'Too many columns specified' .TYPE=W
 'There appears to be more than two column delimiters specified.  Put string in quotes'
@@ -37,14 +37,14 @@ PBRO011C 'No Previous Find Command' .TYPE=W
 PBRO011D 'No Find string' .TYPE=W
 'No FIND string found in the command.  Put string in quotes'
 
-PBRO011E "No &TYPE '&STR' Found" .TYPE=W
-"&TYPE '&STR' specified not found"
+PBRO011E 'No &TYPE ''&STR'' Found' .TYPE=W
+'&TYPE ''&STR'' specified not found'
 
-PBRO011F "&TYPE '&STR' found" .TYPE=N
-"Search for &TYPE '&STR' was successful"
+PBRO011F '&TYPE ''&STR'' found' .TYPE=N
+'Search for &TYPE ''&STR'' was successful'
 
-PBRO011G "&TYPE '&STR' found &OCC time(s)" .TYPE=N
-"Search for &TYPE '&STR' was successful.  Found &OCC time(s) on &LINES line(s)"
+PBRO011G '&TYPE ''&STR'' found &OCC time(s)' .TYPE=N
+'Search for &TYPE ''&STR'' was successful.  Found &OCC time(s) on &LINES line(s)'
 
 PBRO011H 'No End Quote' .TYPE=W
 'Start quote but no end quote specified'
@@ -58,8 +58,8 @@ PBRO011J 'Column Out Of Range' .TYPE=W
 PBRO011K 'Invalid Hex String' .TYPE=W
 'Entered only valid hex characters 0-9, A-F with no spaces'
 
-PBRO011L "File type '&STR'" .TYPE=N
-"Hilighting filetype is '&STR'"
+PBRO011L 'File type ''&STR''' .TYPE=N
+'Hilighting filetype is ''&STR'''
 
 PBRO011M 'Invalid hilight language' .TYPE=W
 'Hilighting language not supported'
