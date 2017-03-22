@@ -40,7 +40,6 @@ void field::field_init( errblock& err, int MAXW, int MAXD, const string& line )
 	string w4 ;
 	string w5 ;
 	string w6 ;
-	string w7 ;
 
 	cuaType fType  ;
 
@@ -51,7 +50,6 @@ void field::field_init( errblock& err, int MAXW, int MAXD, const string& line )
 	w4  = word( line, 4 ) ;
 	w5  = word( line, 5 ) ;
 	w6  = word( line, 6 ) ;
-	w7  = word( line, 7 ) ;
 
 	row = ds2d( w2 ) ;
 

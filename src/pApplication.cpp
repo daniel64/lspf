@@ -243,9 +243,7 @@ string pApplication::get_current_screenName()
 	// This is called from lspf thread, so we need to set the correct shared pool for this
 	// application thread when getting ZSCRNAME.  Must be set back after this call in lspf
 
-	string scrname ;
-
-	errblock err   ;
+	errblock err ;
 
 	p_poolMGR->setShrdPool( err, shrdPool ) ;
 	return p_poolMGR->get( err, "ZSCRNAME", SHARED ) ;
@@ -1792,7 +1790,7 @@ void pApplication::tbadd( const string& tb_name, const string& tb_namelst, const
 		return ;
 	}
 
-	if ( !isTableUpdate( tb_name, "TBADD" ) ) { return ; }
+	if ( !isTableOpen( tb_name, "TBADD" ) ) { return ; }
 
 	p_tableMGR->tbadd( errBlock, funcPOOL, tb_name, tb_namelst, tb_order, tb_num_of_rows ) ;
 	if ( errBlock.error() )
@@ -1828,10 +1826,7 @@ void pApplication::tbbottom( const string& tb_name, const string& tb_savenm, con
 void pApplication::tbclose( const string& tb_name, const string& tb_newname, const string& tb_path )
 {
 	// Save and close the table (calls saveTable and destroyTable routines).
-	// Do not report error on tbclose() of a temporary table (pass false as last parm, to saveTable() in this case)
-	// Error occurs only on tbsave() in this case
-
-	// saveTable() returns RC4 if a table has not been changed (and so no save is performed).  Ignore in this case
+	// If table opened in NOWRITE mode, just remove table from storage.
 
 	// RC = 0   Normal completion
 	// RC = 12  Table not open
@@ -1842,10 +1837,9 @@ void pApplication::tbclose( const string& tb_name, const string& tb_newname, con
 
 	if ( !isTableOpen( tb_name, "TBCLOSE" ) ) { return ; }
 
-	if ( tablesUpdate.count( tb_name ) > 0 )
+	if ( p_tableMGR->writeableTable( errBlock, tb_name ) )
 	{
-		p_tableMGR->saveTable( errBlock, taskid(), tb_name, tb_newname, tb_path, false ) ;
-		if ( errBlock.RC4() ) { errBlock.setRC( 0 ) ; }
+		p_tableMGR->saveTable( errBlock, taskid(), tb_name, tb_newname, tb_path ) ;
 	}
 	if ( errBlock.RC0() )
 	{
@@ -1853,7 +1847,6 @@ void pApplication::tbclose( const string& tb_name, const string& tb_newname, con
 		if ( errBlock.RC0() )
 		{
 			tablesOpen.erase( tb_name ) ;
-			tablesUpdate.erase( tb_name ) ;
 		}
 	}
 	if ( errBlock.error() )
@@ -1865,9 +1858,9 @@ void pApplication::tbclose( const string& tb_name, const string& tb_newname, con
 }
 
 
-void pApplication::tbcreate( const string& tb_name, const string& keys, const string& names, tbSAVE m_SAVE, tbREP m_REP, string m_path, tbDISP m_DISP )
+void pApplication::tbcreate( const string& tb_name, const string& keys, const string& names, tbWRITE m_WRITE, tbREP m_REP, string m_path, tbDISP m_DISP )
 {
-	// Create a new table.  For permanent tables without a path specified, save to first path entry in ZTLIB
+	// Create a new table.  For tables without a path specified, default to the first path entry in ZTLIB
 
 	// RC = 0   Normal completion
 	// RC = 4   Normal completion - Table exists and REPLACE speified
@@ -1879,14 +1872,11 @@ void pApplication::tbcreate( const string& tb_name, const string& keys, const st
 	int ws ;
 	int i  ;
 
-	bool temp ;
-
 	string w ;
 
 	const string e1 = "TBCREATE error" ;
 
-	RC   = 0    ;
-	temp = true ;
+	RC = 0 ;
 
 	if ( !isvalidName( tb_name ) )
 	{
@@ -1895,17 +1885,13 @@ void pApplication::tbcreate( const string& tb_name, const string& keys, const st
 		return ;
 	}
 
-	if ( ( tablesOpen.count( tb_name ) > 0 ) && m_REP != REPLACE )
+	if ( tablesOpen.count( tb_name ) > 0 && m_REP != REPLACE )
 	{
-		RC = 8  ;
-		return  ;
+		RC = 8 ;
+		return ;
 	}
 
-	if ( m_SAVE == WRITE )
-	{
-		temp = false ;
-		if ( m_path == "" ) { m_path = getpath( ZTLIB, 1 ) ; }
-	}
+	if ( m_path == "" ) { m_path = getpath( ZTLIB, 1 ) ; }
 
 	for ( ws = words( keys ), i = 1 ; i <= ws ; i++ )
 	{
@@ -1929,7 +1915,7 @@ void pApplication::tbcreate( const string& tb_name, const string& keys, const st
 		}
 	}
 
-	p_tableMGR->createTable( errBlock, taskid(), tb_name, keys, names, temp, m_REP, m_path, m_DISP ) ;
+	p_tableMGR->createTable( errBlock, taskid(), tb_name, keys, names, m_REP, m_WRITE, m_path, m_DISP ) ;
 	if ( errBlock.error() )
 	{
 		errBlock.setcall( e1 ) ;
@@ -1937,8 +1923,7 @@ void pApplication::tbcreate( const string& tb_name, const string& keys, const st
 	}
 	else
 	{
-		tablesOpen[ tb_name ]   = true ;
-		tablesUpdate[ tb_name ] = true ;
+		tablesOpen[ tb_name ] = true ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -1953,7 +1938,7 @@ void pApplication::tbdelete( const string& tb_name )
 	// RC = 12  Table not open
 	// RC = 20  Severe error
 
-	if ( !isTableUpdate( tb_name, "TBDELETE" ) ) { return ; }
+	if ( !isTableOpen( tb_name, "TBDELETE" ) ) { return ; }
 
 	p_tableMGR->tbdelete( errBlock, funcPOOL, tb_name ) ;
 	if ( errBlock.error() )
@@ -2322,7 +2307,6 @@ void pApplication::tbend( const string& tb_name )
 	else
 	{
 		tablesOpen.erase( tb_name ) ;
-		tablesUpdate.erase( tb_name ) ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -2407,7 +2391,7 @@ void pApplication::tbmod( const string& tb_name, const string& tb_namelst, const
 		return ;
 	}
 
-	if ( !isTableUpdate( tb_name, "TBMOD" ) ) { return ; }
+	if ( !isTableOpen( tb_name, "TBMOD" ) ) { return ; }
 
 	p_tableMGR->tbmod( errBlock, funcPOOL, tb_name, tb_namelst, tb_order ) ;
 	if ( errBlock.error() )
@@ -2419,7 +2403,7 @@ void pApplication::tbmod( const string& tb_name, const string& tb_namelst, const
 }
 
 
-void pApplication::tbopen( const string& tb_name, tbSAVE m_SAVE, string m_paths, tbDISP m_DISP )
+void pApplication::tbopen( const string& tb_name, tbWRITE m_WRITE, string m_paths, tbDISP m_DISP )
 {
 	// Open an existing table, reading it from a file.  If aleady opened in SHARE/NOWRITE, increment use count
 
@@ -2450,7 +2434,7 @@ void pApplication::tbopen( const string& tb_name, tbSAVE m_SAVE, string m_paths,
 		m_paths = get_search_path( s_ZMLIB ) ;
 	}
 
-	p_tableMGR->loadTable( errBlock, taskid(), tb_name, m_DISP, m_paths ) ;
+	p_tableMGR->loadTable( errBlock, taskid(), tb_name, m_WRITE, m_paths, m_DISP ) ;
 
 	if ( errBlock.error() )
 	{
@@ -2460,10 +2444,6 @@ void pApplication::tbopen( const string& tb_name, tbSAVE m_SAVE, string m_paths,
 	else if ( errBlock.RC0() )
 	{
 		tablesOpen[ tb_name ] = true ;
-		if ( m_SAVE == WRITE )
-		{
-			tablesUpdate[ tb_name ] = true ;
-		}
 	}
 	RC = errBlock.getRC() ;
 }
@@ -2491,7 +2471,7 @@ void pApplication::tbput( const string& tb_name, const string& tb_namelst, const
 		return ;
 	}
 
-	if ( !isTableUpdate( tb_name, "TBPUT" ) ) { return ; }
+	if ( !isTableOpen( tb_name, "TBPUT" ) ) { return ; }
 
 	p_tableMGR->tbput( errBlock, funcPOOL, tb_name, tb_namelst, tb_order ) ;
 	if ( errBlock.error() )
@@ -2533,8 +2513,8 @@ void pApplication::tbsarg( const string& tb_name, const string& tb_namelst, cons
 
 void pApplication::tbsave( const string& tb_name, const string& tb_newname, const string& path )
 {
-	// Save the table to disk (calls saveTable routine).  Table remains open for processing.  Table must have the WRITE attribute
-	// saveTable() returns RC4 if a table has not been changed (and so no save is performed).  Ignore in this case
+	// Save the table to disk (calls saveTable routine).  Table remains open for processing.
+	// Table must be open in WRITE mode.
 
 	// RC = 0   Normal completion
 	// RC = 12  Table not open or not open WRITE
@@ -2543,10 +2523,22 @@ void pApplication::tbsave( const string& tb_name, const string& tb_newname, cons
 
 	RC = 0 ;
 
-	if ( !isTableUpdate( tb_name, "TBSAVE" ) ) { return ; }
+	const string e1 = "TBSAVE error" ;
+
+	if ( !isTableOpen( tb_name, "TBSAVE" ) ) { return ; }
+
+	if ( !p_tableMGR->writeableTable( errBlock, tb_name ) )
+	{
+		errBlock.setcall( e1 ) ;
+		if ( !errBlock.error() )
+		{
+			errBlock.seterrid( "PSYE014S", tb_name, 12 ) ;
+		}
+		checkRCode( errBlock ) ;
+		return ;
+	}
 
 	p_tableMGR->saveTable( errBlock, taskid(), tb_name, tb_newname, path ) ;
-	if ( errBlock.RC4() ) { errBlock.setRC( 0 ) ; }
 	if ( errBlock.error() )
 	{
 		errBlock.setcall( "TBSAVE error" ) ;
@@ -2587,7 +2579,7 @@ void pApplication::tbskip( const string& tb_name, int num, const string& tb_save
 
 void pApplication::tbsort( const string& tb_name, const string& tb_fields )
 {
-	if ( !isTableUpdate( tb_name, "TBSORT" ) ) { return ; }
+	if ( !isTableOpen( tb_name, "TBSORT" ) ) { return ; }
 
 	p_tableMGR->tbsort( errBlock, tb_name, tb_fields ) ;
 	if ( errBlock.error() )
@@ -2639,35 +2631,6 @@ bool pApplication::isTableOpen( const string& tb_name, const string& func )
 	else if ( tablesOpen.count( tb_name ) == 0 )
 	{
 		errBlock.seterrid( "PSYE013G", func, tb_name, 12 ) ;
-	}
-	if ( errBlock.error() )
-	{
-		errBlock.setcall( func + " error" ) ;
-		checkRCode( errBlock ) ;
-		return false ;
-	}
-	return true ;
-}
-
-
-bool pApplication::isTableUpdate( const string& tb_name, const string& func )
-{
-	RC = 0 ;
-
-	if ( !isvalidName( tb_name ) )
-	{
-		errBlock.seterrid( "PSYE014Q", tb_name, func ) ;
-	}
-	else if ( tablesUpdate.count( tb_name ) == 0 )
-	{
-		if ( tablesOpen.count( tb_name ) == 0 )
-		{
-			errBlock.seterrid( "PSYE013G", func, tb_name, 12 ) ;
-		}
-		else
-		{
-			errBlock.seterrid( "PSYE013H", func, tb_name, 12 ) ;
-		}
 	}
 	if ( errBlock.error() )
 	{
@@ -3751,6 +3714,7 @@ void pApplication::checkRCode( errblock err )
 	if ( err.val1 != "" ) { vreplace( "ZVAL1", err.val1 ) ; }
 	if ( err.val2 != "" ) { vreplace( "ZVAL2", err.val2 ) ; }
 	if ( err.val3 != "" ) { vreplace( "ZVAL3", err.val3 ) ; }
+
 	getmsg( err.msgid, "ZERRSM", "ZERRLM" ) ;
 
 	vreplace( "ZERRMSG", err.msgid )  ;

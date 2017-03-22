@@ -186,7 +186,7 @@ enum s_paths
 	s_ZTLIB
 } ;
 
-enum tbSAVE
+enum tbWRITE
 {
 	WRITE,
 	NOWRITE

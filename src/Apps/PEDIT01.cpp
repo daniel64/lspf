@@ -8656,8 +8656,6 @@ void PEDIT01::run_macro( bool imacro )
 	// 24   Nesting level of 255 exceeded
 	// 28
 
-	int i ;
-
 	uint dl ;
 
 	miBlock.clear() ;
@@ -8775,7 +8773,6 @@ void PEDIT01::run_macro( bool imacro )
 
 void PEDIT01::isredit( const string& s )
 {
-	string var ;
 	string s1 = s ;
 
 	if ( miBlock.scanOn() )

@@ -152,9 +152,12 @@ void POREXX1::application()
 		threadContext->ArrayPut(args, threadContext->String( PARM.c_str() ), 1 ) ;
 		version = threadContext->InterpreterVersion() ;
 
-		log( "I", "Starting OOREXX Interpreter Version. .: " << version << endl ) ;
-		log( "I", "Running program. . . . . . . . . . . .: " << rxsource << endl ) ;
-		log( "I", "With parameters. . . . . . . . . . . .: " << PARM << endl ) ;
+		if ( testMode )
+		{
+			log( "I", "Starting OOREXX Interpreter Version. .: "<< version << endl ) ;
+			log( "I", "Running program. . . . . . . . . . . .: "<< rxsource << endl ) ;
+			log( "I", "With parameters. . . . . . . . . . . .: "<< PARM << endl ) ;
+		}
 
 		result = threadContext->CallProgram( rexxName.c_str(), args) ;
 

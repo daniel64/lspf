@@ -89,8 +89,8 @@ main()
 	funcPOOL.define( err, "ZCTACT",   &ZCTACT   ) ;
 	funcPOOL.define( err, "ZCTDESC",  &ZCTDESC  ) ;
 
-	p_tableMGR->createTable( err, 0, "ISPCMDS", "ZCTVERB" , "ZCTTRUNC ZCTACT ZCTDESC", WRITE, NOREPLACE, "", SHARE ) ;
-	p_tableMGR->createTable( err, 0, "USRCMDS", "ZCTVERB" , "ZCTTRUNC ZCTACT ZCTDESC", WRITE, NOREPLACE, "", SHARE ) ;
+	p_tableMGR->createTable( err, 0, "ISPCMDS", "ZCTVERB" , "ZCTTRUNC ZCTACT ZCTDESC", NOREPLACE, WRITE, "", SHARE ) ;
+	p_tableMGR->createTable( err, 0, "USRCMDS", "ZCTVERB" , "ZCTTRUNC ZCTACT ZCTDESC", NOREPLACE, WRITE, "", SHARE ) ;
 
 	ZCTVERB  = "SCRNAME" ;
 	ZCTTRUNC = "0"    ;

@@ -143,6 +143,12 @@ PSYE014P 'Variable &ZVAL1 is unknown but has a dynamically created value'
 PSYE014Q 'Invalid table name ''&ZVAL1'' on &ZVAL2'
 ''
 
+PSYE014R 'Inconsistent WRITE/NOWRITE parameter for open of table &ZVAL1'
+'WRITE/NOWRITE must be consistent across all tasks opening a SHARED table'
+
+PSYE014S 'TBSAVE issued for table &ZVAL1 not opened in WRITE mode'
+'Table must be opened or created in WRITE mode'
+
 /* variable pool messages */
 PSYE015A 'Variable &ZVAL1 has been truncated'
 'Maximum length of 32,765 has been exceeded.  Variable truncated.'

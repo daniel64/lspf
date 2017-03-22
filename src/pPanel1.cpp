@@ -765,7 +765,6 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 	i_vputget = 0  ;
 	i_verify  = 0  ;
 	i_assign  = 0  ;
-	i_if      = 0  ;
 	dTRAIL    = "" ;
 	g_label   = "" ;
 	if_column = 0  ;
@@ -1375,7 +1374,6 @@ void pPanel::refresh_fields()
 	int j   ;
 	int k   ;
 
-	string fname    ;
 	string sname    ;
 	string * darea  ;
 	string * shadow ;

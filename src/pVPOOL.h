@@ -130,7 +130,7 @@ class pVPOOL
 	public:
 		pVPOOL()
 		{
-			refCount = 0     ;
+			refCount = 1     ;
 			readOnly = false ;
 			changed  = false ;
 			sysProf  = false ;
@@ -170,8 +170,13 @@ class pVPOOL
 		bool   isSystem( errblock& err,
 				 const string& name ) ;
 
-		void   setReadOnly()  { readOnly = true  ; }
-		void   resetChanged() { changed  = false ; }
+		void   setReadOnly()  { readOnly = true     ; }
+		void   incRefCount()  { refCount++          ; }
+		void   decRefCount()  { refCount--          ; }
+		void   sysProfile()   { sysProf = true      ; }
+		bool   issysProfile() { return sysProf      ; }
+		bool   inUse()        { return refCount > 0 ; }
+		void   resetChanged() { changed  = false    ; }
 		void   createGenEntries() ;
 
 	friend class poolMGR ;

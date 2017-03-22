@@ -155,7 +155,7 @@ class pApplication
 		void   tbadd( const string& tb_name, const string& tb_namelst="", const string& tb_order="", int tb_num_of_rows=0 ) ;
 		void   tbbottom( const string& tb_name, const string& tb_savenm="", const string& tb_rowid_vn="", const string& tb_noread="", const string& tb_crp_name="" ) ;
 		void   tbclose( const string& tb_name, const string& new_name="", const string& path="" ) ;
-		void   tbcreate( const string& tb_name, const string& keys, const string& names, tbSAVE a=NOWRITE, tbREP b=NOREPLACE, string path="", tbDISP c=EXCLUSIVE ) ;
+		void   tbcreate( const string& tb_name, const string& keys, const string& names, tbWRITE =NOWRITE, tbREP =NOREPLACE, string path="", tbDISP =EXCLUSIVE ) ;
 		void   tbdelete( const string& tb_name ) ;
 		void   tbdispl( const string& tb_name, string p_name="", const string& p_msg="", string p_cursor="", int p_csrrow=0, int p_csrpos=1, string p_autosel="YES", const string& p_crp_name="", const string& p_rowid_nm="" ) ;
 		void   tbend( const string& tb_name ) ;
@@ -163,7 +163,7 @@ class pApplication
 		void   tbexist( const string& tb_name ) ;
 		void   tbget( const string& tb_name, const string& tb_savenm="", const string& tb_rowid_vn="", const string& tb_noread="", const string& tb_crp_name="" ) ;
 		void   tbmod( const string& tb_name, const string& tb_namelst="", const string& tb_order="" ) ;
-		void   tbopen( const string& tb_name, tbSAVE WRITE, string path="", tbDISP c=EXCLUSIVE ) ;
+		void   tbopen( const string& tb_name, tbWRITE WRITE, string path="", tbDISP c=EXCLUSIVE ) ;
 		void   tbput( const string& tb_name, const string& tb_namelst="", const string& tb_order="" ) ;
 		void   tbquery( const string& tb_name, const string& tb_keyn="", const string& tb_varn="", const string& tb_rownn="", const string& tb_keynn="", const string& tb_namenn="",const string& tb_crpn="", const string& tb_sirn="", const string& tb_lstn="", const string& tb_condn="", const string& tb_dirn="" ) ;
 		void   tbsarg( const string& tb_name, const string& tb_namelst="", const string& tb_dir="NEXT", const string& tb_cond_pairs="" ) ;
@@ -175,7 +175,6 @@ class pApplication
 		void   tbvclear( const string& tb_name ) ;
 
 		bool   isTableOpen( const string& tb_name, const string& func ) ;
-		bool   isTableUpdate( const string& tb_name, const string& func ) ;
 
 		void   browse( const string& m_file, const string& m_panel="" ) ;
 		void   edit( const string& m_file, const string& m_panel="", const string& m_macro ="", const string& m_profile="" ) ;
@@ -268,7 +267,6 @@ class pApplication
 
 		map<string, slmsg> msgList ;
 		map<string,  bool> tablesOpen    ;
-		map<string,  bool> tablesUpdate  ;
 		map<string,  pPanel *> panelList ;
 
 		stack<pPanel *> SRpanelStack ;

@@ -113,10 +113,10 @@ map<int,string> pfKeyDefaults = { {  1, "HELP"      },
 using namespace std ;
 using namespace boost::filesystem ;
 
-int  pLScreen::screensTotal = 0 ;
-int  pLScreen::maxScreenID  = 0 ;
-int  pLScreen::maxrow       = 0 ;
-int  pLScreen::maxcol       = 0 ;
+int pLScreen::screensTotal = 0 ;
+int pLScreen::maxScreenID  = 0 ;
+int pLScreen::maxrow       = 0 ;
+int pLScreen::maxcol       = 0 ;
 
 WINDOW * pLScreen::OIA      = NULL ;
 
@@ -1506,7 +1506,7 @@ void startApplication( selobj SEL, bool nScreen )
 	currAppl->lspfCallback = lspfCallbackHandler ;
 	apps[ SEL.PGM ].refCount++ ;
 
-	if ( SEL.NEWAPPL != p_poolMGR->getAPPLID() )
+	if ( SEL.NEWAPPL != "" && SEL.NEWAPPL != p_poolMGR->getAPPLID() )
 	{
 		p_poolMGR->setAPPLID( err, SEL.NEWAPPL ) ;
 	}
@@ -2205,7 +2205,7 @@ void loadSystemCommandTable()
 	// Terminate if ISPCMDS not found
 
 	errblock err ;
-	p_tableMGR->loadTable( err, 0, "ISPCMDS", SHARE, ZTLIB ) ;
+	p_tableMGR->loadTable( err, 0, "ISPCMDS", NOWRITE, ZTLIB, SHARE ) ;
 	if ( err.getRC() == 0 )
 	{
 		log( "I", "Loaded system command table ISPCMDS" << endl ) ;

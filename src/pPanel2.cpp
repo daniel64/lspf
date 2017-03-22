@@ -388,7 +388,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			{
 				panstmnt m_stmnt ;
 				VPUTGET m_VPG    ;
-				if ( !m_VPG.parse( err, pline ) )
+				m_VPG.parse( err, pline ) ;
+				if ( err.error() )
 				{
 					err.setsrc( trim( pline ) ) ;
 					return ;
@@ -407,7 +408,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			{
 				ASSGN m_assgn    ;
 				panstmnt m_stmnt ;
-				if ( !m_assgn.parse( err, pline ) )
+				m_assgn.parse( err, pline ) ;
+				if ( err.error() )
 				{
 					err.setsrc( trim( pline ) ) ;
 					return ;
@@ -436,7 +438,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			{
 				IFSTMNT m_if     ;
 				panstmnt m_stmnt ;
-				if ( !m_if.parse( err, pline ) )
+				m_if.parse( err, pline ) ;
+				if ( err.error() )
 				{
 					err.setsrc( trim( pline ) ) ;
 					return ;
@@ -579,7 +582,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			{
 				TRANS m_trans    ;
 				panstmnt m_stmnt ;
-				if ( !m_trans.parse( err, pline ) )
+				m_trans.parse( err, pline ) ;
+				if ( err.error() )
 				{
 					err.setsrc( trim( pline ) ) ;
 					return ;
@@ -595,7 +599,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			{
 				TRUNC m_trunc    ;
 				panstmnt m_stmnt ;
-				if ( !m_trunc.parse( err, pline ) )
+				m_trunc.parse( err, pline ) ;
+				if ( err.error() )
 				{
 					err.setsrc( trim( pline ) ) ;
 					return ;
@@ -611,7 +616,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			{
 				VERIFY m_VER     ;
 				panstmnt m_stmnt ;
-				if ( !m_VER.parse( err, pline ) )
+				m_VER.parse( err, pline ) ;
+				if ( err.error() )
 				{
 					err.setsrc( trim( pline ) ) ;
 					return ;
@@ -676,7 +682,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		if ( ispnts )
 		{
 			pnts m_pnts ;
-			if ( !m_pnts.parse( err, pline ) )
+			m_pnts.parse( err, pline ) ;
+			if ( err.error() )
 			{
 				err.setsrc( trim( pline ) ) ;
 				return ;

@@ -1513,13 +1513,14 @@ string parseString( errblock& err, string& s, string p )
 	if ( p.size() == 0 ) { err.seterrid( "PSYE037F" ) ; return "" ; }
 
 	us = upper( s ) ;
-	upper( p ) ;
+	p  = iupper( trim( p ) ) ;
+
 	if ( p.back() != ')' )
 	{
 		p1 = wordpos( p, us ) ;
 		if ( p1 > 0 )
 		{
-			s = delword( s, p1, 1 ) ;
+			idelword( s, p1, 1 ) ;
 			return "OK" ;
 		}
 		return "" ;
@@ -1532,7 +1533,16 @@ string parseString( errblock& err, string& s, string p )
 	}
 	else
 	{
-		p1 = us.find( p ) ;
+		if ( us.compare( 0, p.size(), p ) == 0 )
+		{
+			p1 = 0 ;
+		}
+		else
+		{
+			p1 = us.find( " " + p ) ;
+			if ( p1 == string::npos ) { return "" ; }
+			p1++ ;
+		}
 	}
 	if ( p1 == string::npos ) { return "" ; }
 
@@ -1546,8 +1556,16 @@ string parseString( errblock& err, string& s, string p )
 			if ( ob == 0 ) { break ; }
 		}
 	}
-	if ( ob != 0 )                                { err.seterrid( "PSYE037G" ) ; return "" ; }
-	if ( p2 < s.size()-1 && s.at( p2+1 ) != ' ' ) { err.seterror( "PSYE037H" ) ; return "" ; }
+	if ( ob != 0 )
+	{
+		err.seterrid( "PSYE037G" ) ;
+		return "" ;
+	}
+	if ( p2 < s.size()-1 && s.at( p2+1 ) != ' ' )
+	{
+		err.seterror( "PSYE037H" ) ;
+		return "" ;
+	}
 
 	t = s.substr( p1+p.size(), p2-p1-p.size() ) ;
 	trim( s.erase( p1, p2-p1+1 ) ) ;

@@ -26,7 +26,6 @@ class Table
 			CRP            = 0     ;
 			maxURID        = 0     ;
 			changed        = false ;
-			tab_temporary  = false ;
 			tab_cmds       = false ;
 			tab_path       = ""    ;
 			sa_namelst     = ""    ;
@@ -35,25 +34,25 @@ class Table
 			sort_ir        = ""    ;
 		}
 	private:
-		int    ownerTask      ;
-		bool   tab_temporary  ;
-		bool   tab_cmds       ;
-		string tab_keys       ;
-		string tab_flds       ;
-		string tab_all        ;
-		string tab_path       ;
-		bool   changed        ;
-		int    refCount       ;
-		int    maxURID        ;
-		int    num_keys       ;
-		int    num_flds       ;
-		int    num_all        ;
-		int    CRP            ;
-		string sort_ir        ;
-		string sa_namelst     ;
-		string sa_cond_pairs  ;
-		string sa_dir         ;
-		tbDISP tab_DISP       ;
+		int     ownerTask     ;
+		bool    tab_cmds      ;
+		string  tab_keys      ;
+		string  tab_flds      ;
+		string  tab_all       ;
+		string  tab_path      ;
+		bool    changed       ;
+		int     refCount      ;
+		int     maxURID       ;
+		int     num_keys      ;
+		int     num_flds      ;
+		int     num_all       ;
+		int     CRP           ;
+		string  sort_ir       ;
+		string  sa_namelst    ;
+		string  sa_cond_pairs ;
+		string  sa_dir        ;
+		tbDISP  tab_DISP      ;
+		tbWRITE tab_WRITE     ;
 
 		void   saveTable( errblock& err,
 				  const string& m_name,
@@ -157,8 +156,12 @@ class Table
 		void   tbvclear( errblock& err,
 				 fPOOL& funcPOOL ) ;
 
-		vector< vector<string> > table ;
-		map< string, tbsearch > sarg   ;
+		vector<vector<string>> table ;
+		map<string, tbsearch> sarg   ;
+
+		void incRefCount() { refCount++           ; }
+		void decRefCount() { refCount--           ; }
+		bool notInUse()    { return refCount == 0 ; }
 
 		friend class tableMGR ;
 } ;
@@ -173,8 +176,8 @@ class tableMGR
 				    const string& tb_name,
 				    string keys,
 				    string flds,
-				    bool m_temporary,
 				    tbREP m_REP,
+				    tbWRITE m_WRITE,
 				    const string& m_path,
 				    tbDISP m_DISP ) ;
 
@@ -182,8 +185,7 @@ class tableMGR
 				  int task,
 				  const string& tb_name,
 				  const string& m_newname,
-				  const string& m_path,
-				  bool m_err=true ) ;
+				  const string& m_path ) ;
 
 		void   tbadd( errblock& err,
 			      fPOOL& funcPOOL,
@@ -207,8 +209,9 @@ class tableMGR
 		void   loadTable( errblock& err,
 				  int task,
 				  const string& tb_name,
-				  tbDISP=EXCLUSIVE,
-				  const string& src="" ) ;
+				  tbWRITE=WRITE,
+				  const string& src="",
+				  tbDISP=EXCLUSIVE ) ;
 
 	private:
 		void   fillfVARs( errblock& err,
@@ -316,6 +319,9 @@ class tableMGR
 		void   tbvclear( errblock& err,
 				 fPOOL& funcPOOL,
 				 const string& tb_name ) ;
+
+		bool   writeableTable( errblock& err,
+				       const string& tb_name ) ;
 
 		map<string, Table> tables ;
 		friend class pApplication ;

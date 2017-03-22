@@ -23,6 +23,10 @@
 #define LOGOUT   aplog
 
 
+// *******************************************************************************************************************************
+// *************************************************** TABLE SECTION *************************************************************
+// *******************************************************************************************************************************
+
 void Table::loadRow( errblock& err,
 		     vector<string>& m_flds )
 {
@@ -62,13 +66,8 @@ void Table::saveTable( errblock& err,
 
 	err.setRC( 0 ) ;
 
-	if ( !changed )
-	{
-		err.setRC( 4 ) ;
-		return ;
-	}
+	s = m_path != "" ? m_path : tab_path ;
 
-	m_path != "" ? s = m_path : s = tab_path ;
 	if ( s.back() != '/' ) { s += "/" ; }
 
 	if ( exists( s ) )
@@ -1596,8 +1595,6 @@ void Table::tbtop( errblock& err )
 void Table::tbvclear( errblock& err,
 		      fPOOL& funcPOOL )
 {
-	err.setRC( 0 ) ;
-
 	for ( int i = 1 ; i <= num_all ; i++ )
 	{
 		funcPOOL.put( err, word( tab_all, i ), "" ) ;
@@ -1620,11 +1617,17 @@ void tableMGR::createTable( errblock& err,
 			    int m_task,
 			    const string& tb_name,
 			    string keys, string flds,
-			    bool m_temporary,
 			    tbREP m_REP,
+			    tbWRITE m_WRITE,
 			    const string& m_path,
 			    tbDISP m_DISP )
 {
+	// RC =  0 Normal
+	// RC =  4 Normal - duplicate table replaced
+	// RC =  8 REPLACE not specified and table exists, or REPLACE specified with table open in SHARE
+	// RC = 12 Table in use
+	// RC = 20 Severe error
+
 	Table t ;
 
 	err.setRC( 0 ) ;
@@ -1671,17 +1674,17 @@ void tableMGR::createTable( errblock& err,
 			err.setRC( 8 ) ;
 			return ;
 		}
-		if ( m_temporary != it->second.tab_temporary )
+		if ( m_WRITE != it->second.tab_WRITE )
 		{
 			err.seterrid( "PSYE013Y", tb_name ) ;
 			return  ;
 		}
 	}
 	if ( getpaths( m_path ) > 0 ) { t.tab_path = getpath( m_path, 1 ) ; }
-	t.ownerTask     = m_task ;
-	t.tab_DISP      = m_DISP ;
-	t.tab_temporary = m_temporary ;
-	t.changed       = true   ;
+	t.ownerTask     = m_task  ;
+	t.tab_WRITE     = m_WRITE ;
+	t.tab_DISP      = m_DISP  ;
+	t.changed       = true    ;
 	t.tab_keys      = space( keys ) ;
 	t.num_keys      = words( keys ) ;
 	t.tab_flds      = space( flds ) ;
@@ -1696,10 +1699,12 @@ void tableMGR::createTable( errblock& err,
 void tableMGR::loadTable( errblock& err,
 			  int task,
 			  const string& tb_name,
-			  tbDISP m_DISP,
-			  const string& m_path )
+			  tbWRITE m_WRITE,
+			  const string& m_path,
+			  tbDISP m_DISP )
 {
-	// If table already loaded, EXCLUSIVE can be changed to SHARE by the same task.  Any other combination is not valid
+	// If table already loaded, EXCLUSIVE can be changed to SHARE by the same task.
+	// Any other combination is not valid.
 
 	// Routine to load V1 and V2 format tables
 
@@ -1743,7 +1748,7 @@ void tableMGR::loadTable( errblock& err,
 	it = tables.find( tb_name ) ;
 	if ( it != tables.end() )
 	{
-		if ( it->second.tab_DISP == SHARE && (m_DISP == EXCLUSIVE) )
+		if ( it->second.tab_DISP == SHARE && m_DISP == EXCLUSIVE )
 		{
 			err.seterrid( "PSYE013Z", tb_name ) ;
 			return ;
@@ -1753,7 +1758,12 @@ void tableMGR::loadTable( errblock& err,
 			err.seterrid( "PSYE014A", tb_name, d2ds( it->second.ownerTask ) ) ;
 			return ;
 		}
-		it->second.refCount++ ;
+		if ( it->second.tab_WRITE != m_WRITE )
+		{
+			err.seterrid( "PSYE014R", tb_name, 12 ) ;
+			return ;
+		}
+		it->second.incRefCount() ;
 		it->second.tab_DISP = m_DISP ;
 		return ;
 	}
@@ -1881,7 +1891,7 @@ void tableMGR::loadTable( errblock& err,
 		flds = flds + s.assign( buf1, i ) + " " ;
 	}
 
-	createTable( err, task, tb_name, keys, flds, false, NOREPLACE, path, m_DISP ) ;
+	createTable( err, task, tb_name, keys, flds, NOREPLACE, m_WRITE, path, m_DISP ) ;
 	if ( err.getRC() > 0 )
 	{
 		table.close() ;
@@ -2033,11 +2043,9 @@ void tableMGR::saveTable( errblock& err,
 			  int task,
 			  const string& tb_name,
 			  const string& m_newname,
-			  const string& m_path,
-			  bool m_err )
+			  const string& m_path )
 {
 	// This can be called by tbclose() or tbsave().
-	// For temporary tables, only report error for tbsave() with no m_newname RC=12
 
 	map<string, Table>::iterator it ;
 
@@ -2045,11 +2053,6 @@ void tableMGR::saveTable( errblock& err,
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", tb_name, 12 ) ;
-		return ;
-	}
-	if ( m_err && m_newname == "" && it->second.tab_temporary )
-	{
-		err.seterrid( "PSYE013I", tb_name, 12 ) ;
 		return ;
 	}
 	it->second.saveTable( err, ( m_newname == "" ? tb_name : m_newname ), m_path ) ;
@@ -2060,6 +2063,9 @@ void tableMGR::destroyTable( errblock& err,
 			     int task,
 			     const string& tb_name )
 {
+	// RC =  0 Normal completion
+	// RC = 12 Table not open
+
 	map<string, Table>::iterator it ;
 
 	err.setRC( 0 ) ;
@@ -2071,7 +2077,11 @@ void tableMGR::destroyTable( errblock& err,
 		return ;
 	}
 
-	if ( it->second.refCount == 1 ) { tables.erase( it ) ; } else { it->second.refCount-- ; }
+	it->second.decRefCount() ;
+	if ( it->second.notInUse() )
+	{
+		tables.erase( it ) ;
+	}
 }
 
 
@@ -2086,8 +2096,8 @@ bool tableMGR::tablexists( const string& tb_name,
 {
 	// Check if a table file exists in path tb_path.  Don't check to see if it is a valid table, just a valid file.
 
-	int  i ;
-	int  j ;
+	int i ;
+	int j ;
 
 	bool found ;
 
@@ -2095,6 +2105,7 @@ bool tableMGR::tablexists( const string& tb_name,
 
 	i     = getpaths( tb_path ) ;
 	found = false ;
+
 	for ( j = 1 ; j <= i ; j++ )
 	{
 		filename = getpath( tb_path, j ) + tb_name ;
@@ -2102,7 +2113,7 @@ bool tableMGR::tablexists( const string& tb_name,
 		{
 			if ( !is_regular_file( filename ) )
 			{
-				return false ;
+				break ;
 			}
 			else
 			{
@@ -2111,8 +2122,7 @@ bool tableMGR::tablexists( const string& tb_name,
 			}
 		}
 	}
-	if ( !found ) { return  false ; }
-	return true ;
+	return found ;
 }
 
 
@@ -2128,11 +2138,11 @@ void tableMGR::statistics()
 	{
 		log( "-", "" <<endl ) ;
 		log( "-", "                  Table: "+ it->first <<endl ) ;
-		if ( it->second.tab_temporary )
+		if ( it->second.tab_WRITE == NOWRITE )
 		{
-			log( "-", "                 Status: Temporary table" <<endl ) ;
+			log( "-", "                 Status: Open in NOWRITE mode" <<endl ) ;
 		}
-		else if ( it->second.changed )
+		if ( it->second.changed )
 		{
 			log( "-", "                 Status: Modified since load or last save" <<endl ) ;
 		}
@@ -2362,19 +2372,19 @@ void tableMGR::tbexist( errblock& err,
 }
 
 
-void   tableMGR::tbquery( errblock& err,
-			  fPOOL& funcPOOL,
-			  const string& tb_name,
-			  const string& tb_keyn,
-			  const string& tb_varn,
-			  const string& tb_rownn,
-			  const string& tb_keynn,
-			  const string& tb_namenn,
-			  const string& tb_crpn,
-			  const string& tb_sirn,
-			  const string& tb_lstn,
-			  const string& tb_condn,
-			  const string& tb_dirn )
+void tableMGR::tbquery( errblock& err,
+			fPOOL& funcPOOL,
+			const string& tb_name,
+			const string& tb_keyn,
+			const string& tb_varn,
+			const string& tb_rownn,
+			const string& tb_keynn,
+			const string& tb_namenn,
+			const string& tb_crpn,
+			const string& tb_sirn,
+			const string& tb_lstn,
+			const string& tb_condn,
+			const string& tb_dirn )
 {
 	map<string, Table>::iterator it ;
 
@@ -2388,12 +2398,12 @@ void   tableMGR::tbquery( errblock& err,
 }
 
 
-void   tableMGR::tbsarg( errblock& err,
-			 fPOOL& funcPOOL,
-			 const string& tb_name,
-			 const string& tb_namelst,
-			 const string& tb_dir,
-			 const string& tb_cond_pairs )
+void tableMGR::tbsarg( errblock& err,
+		       fPOOL& funcPOOL,
+		       const string& tb_name,
+		       const string& tb_namelst,
+		       const string& tb_dir,
+		       const string& tb_cond_pairs )
 {
 	map<string, Table>::iterator it ;
 
@@ -2454,7 +2464,7 @@ void tableMGR::cmdsearch( int& RC,
 	{
 		if ( tablexists( tb_name, paths ) )
 		{
-			loadTable( err, 0, tb_name, SHARE, paths ) ;
+			loadTable( err, 0, tb_name, NOWRITE, paths, SHARE ) ;
 			if ( err.getRC() > 0 )
 			{
 				log( "E", "Command table "+ tb_name +" failed to load" <<endl ) ;
@@ -2539,4 +2549,19 @@ void tableMGR::tbvclear( errblock& err,
 		return ;
 	}
 	it->second.tbvclear( err, funcPOOL ) ;
+}
+
+
+bool tableMGR::writeableTable( errblock& err,
+			       const string& tb_name )
+{
+	map<string, Table>::iterator it ;
+
+	it = tables.find( tb_name ) ;
+	if ( it == tables.end() )
+	{
+		err.seterrid( "PSYE013G", tb_name, 12 ) ;
+		return false ;
+	}
+	return ( it->second.tab_WRITE == WRITE ) ;
 }
