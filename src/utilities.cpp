@@ -1445,9 +1445,9 @@ void fieldOptsParse( errblock& err, string opts, bool& caps, char& just, bool& n
 	{
 		p2 = pos( ")", uopts, p1 ) ;
 		t = strip( substr( uopts, (p1 + 6), (p2 - (p1 + 6)) ) ) ;
-		if      ( t == "LEFT"  ) just = 'L' ;
-		else if ( t == "RIGHT" ) just = 'R' ;
-		else if ( t == "ASIS"  ) just = 'A' ;
+		if      ( t == "LEFT"  ) { just = 'L' ; }
+		else if ( t == "RIGHT" ) { just = 'R' ; }
+		else if ( t == "ASIS"  ) { just = 'A' ; }
 		else { err.seterror() ; return ; }
 		uopts = delstr( uopts, p1, (p2 - p1 + 1) ) ;
 	}
@@ -1457,8 +1457,8 @@ void fieldOptsParse( errblock& err, string opts, bool& caps, char& just, bool& n
 	{
 		p2 = pos( ")", uopts, p1 ) ;
 		t = strip( substr( uopts, (p1 + 9), (p2 - (p1 + 9)) ) ) ;
-		if      ( t == "ON"  ) numeric = true  ;
-		else if ( t == "OFF" ) numeric = false ;
+		if      ( t == "ON"  ) { numeric = true  ; }
+		else if ( t == "OFF" ) { numeric = false ; }
 		else { err.seterror() ; return ; }
 		uopts = delstr( uopts, p1, (p2 - p1 + 1) ) ;
 	}
@@ -1468,8 +1468,8 @@ void fieldOptsParse( errblock& err, string opts, bool& caps, char& just, bool& n
 	{
 		p2 = pos( ")", uopts, p1 ) ;
 		t = strip( substr( uopts, (p1 + 5), (p2 - (p1 + 5)) ) ) ;
-		if      ( t[ 0 ] == '\'' ) t = strip( t, 'B', '\'' ) ;
-		else if ( t[ 0 ] == '"'  ) t = strip( t, 'B', '"' ) ;
+		if      ( t[ 0 ] == '\'' ) { t = strip( t, 'B', '\'' ) ; }
+		else if ( t[ 0 ] == '"'  ) { t = strip( t, 'B', '"' ) ;  }
 		if ( t.size() != 1 ) { err.seterror() ; return ; }
 		padchar = t[ 0 ] ;
 		uopts = delstr( uopts, p1, (p2 - p1 + 1) ) ;
@@ -1480,8 +1480,8 @@ void fieldOptsParse( errblock& err, string opts, bool& caps, char& just, bool& n
 	{
 		p2 = pos( ")", uopts, p1 ) ;
 		t = strip( substr( uopts, (p1 + 6), (p2 - (p1 + 6)) ) ) ;
-		if      ( t == "ON" )  skip = true  ;
-		else if ( t == "OFF" ) skip = false ;
+		if      ( t == "ON" )  { skip = true  ; }
+		else if ( t == "OFF" ) { skip = false ; }
 		else { err.seterror() ; return ; }
 		uopts = delstr( uopts, p1, (p2 - p1 + 1) ) ;
 	}
@@ -1510,10 +1510,15 @@ string parseString( errblock& err, string& s, string p )
 
 	err.setRC( 0 ) ;
 
-	if ( p.size() == 0 ) { err.seterrid( "PSYE037F" ) ; return "" ; }
+	p = iupper( trim( p ) ) ;
+
+	if ( p.size() == 0 )
+	{
+		err.seterrid( "PSYE037F" ) ;
+		return "" ;
+	}
 
 	us = upper( s ) ;
-	p  = iupper( trim( p ) ) ;
 
 	if ( p.back() != ')' )
 	{
@@ -1526,30 +1531,21 @@ string parseString( errblock& err, string& s, string p )
 		return "" ;
 	}
 	p.pop_back() ;
-	if ( p == "(" )
+	if ( us.compare( 0, p.size(), p ) == 0 )
 	{
-		if ( s[ 0 ] == '(' ) { p1 = 0 ; }
-		else                 { p1 = s.find( " (" ) ; }
+		p1 = 0 ;
 	}
 	else
 	{
-		if ( us.compare( 0, p.size(), p ) == 0 )
-		{
-			p1 = 0 ;
-		}
-		else
-		{
-			p1 = us.find( " " + p ) ;
-			if ( p1 == string::npos ) { return "" ; }
-			p1++ ;
-		}
+		p1 = us.find( " " + p ) ;
+		if ( p1 == string::npos ) { return "" ; }
+		p1++ ;
 	}
-	if ( p1 == string::npos ) { return "" ; }
 
 	ob = 1 ;
 	for ( p2 = p1+p.size() ; p2 < s.size() ; p2++ )
 	{
-		if ( s.at( p2 ) == '(' ) { ob++  ; }
+		if ( s.at( p2 ) == '(' ) { ob++ ; }
 		if ( s.at( p2 ) == ')' )
 		{
 			ob-- ;

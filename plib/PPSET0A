@@ -76,9 +76,18 @@ literal  16  16   NT   "Terminate Settings"
 T "SELECT PGM(&ZHELPPGM) PARM(&ZPARM)"
 X "ACTION END"
 
+)INIT
+ .CURSOR = ZCMD
+
 )PROC
 &ZCMD   = TRUNC(&ZCMD,'.')
 &ZTRAIL = .TRAIL
+
+)COMMENT
+&ZSEL = &Z
+
+)ENDCOMMENT
+
 
 VER (&ZCMD LIST,0,1,2,3,4,5,6,7,T,X)
 

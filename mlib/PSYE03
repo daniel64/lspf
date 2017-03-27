@@ -14,6 +14,9 @@ PSYE031C 'Keyword &ZVAL1 not found'
 PSYE031D 'Invalid variable name ''&ZVAL1'''
 'Variable ''&ZVAL1'' has an invalid format'
 
+PSYE031E 'Invalid &ZVAL1 name'
+'&ZVAL1 name ''&ZVAL2'' has an invalid format'
+
 /* dynamic areas */
 PSYE032A 'Dynamic Area outside panel area'
 'ROW=&ZVAL1 ZSCRMAXD=&ZVAL2'
@@ -194,7 +197,7 @@ PSYE039H 'Invalid value in TRANS statement'
 /* SELECT Parser */
 
 PSYE039M 'PARM entered with &ZVAL1 option'
-'PARM is not valid for a SELECT &ZVAL1 statement'
+'PARM is not valid on a SELECT &ZVAL1 statement'
 
 PSYE039N 'Unsupported language &ZVAL1'
 ''
@@ -202,8 +205,8 @@ PSYE039N 'Unsupported language &ZVAL1'
 PSYE039O 'SCREEN NAME cannot be LIST, NEXT or PREV'
 ''
 
-PSYE039P 'Invalid SCREEN NAME forat'
-''
+PSYE039P 'Invalid SCREEN NAME format'
+'''&ZVAL1'' has an invalid format'
 
 PSYE039Q 'PASSLIB entered without NEWAPPL'
 ''

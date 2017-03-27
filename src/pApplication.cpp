@@ -25,8 +25,6 @@
 
 void ispexeci( pApplication *, const string&, errblock& ) ;
 
-#include <stdexcept>
-
 map<int, void *>pApplication::ApplUserData ;
 
 pApplication::pApplication()
@@ -187,7 +185,10 @@ void pApplication::createPanel( const string& p_name )
 	p_panel->selPanel( selPanel ) ;
 	p_panel->init( errBlock ) ;
 
-	if ( errBlock.error() ) { return ; }
+	if ( errBlock.error() )
+	{
+		return ;
+	}
 
 	paths = get_search_path( s_ZPLIB ) ;
 
@@ -377,14 +378,18 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 {
 	string ZZVERB ;
 
-	const string e1 = "Error during DISPLAY of panel "+ p_name ;
+	const string e1 = "Error during DISPLAY of panel " + p_name ;
+	const string e2 = "Error processing )INIT section of panel "   ;
+	const string e3 = "Error processing )REINIT section of panel " ;
+	const string e4 = "Error processing )PROC section of panel "   ;
+	const string e5 = "Error during update of panel " ;
+	const string e6 = "Error updating field values of panel " ;
 
 	int  scrNum   ;
 	bool doReinit ;
 
 	RC       = 0     ;
 	doReinit = false ;
-
 
 	if ( p_name == "" )
 	{
@@ -453,7 +458,7 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 		currPanel->display_panel_reinit( errBlock ) ;
 		if ( errBlock.error() )
 		{
-			errBlock.setcall( "Error processing )REINIT section of panel "+ PANELID ) ;
+			errBlock.setcall( e3 + p_name ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -463,7 +468,7 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 		currPanel->display_panel_init( errBlock ) ;
 		if ( errBlock.error() )
 		{
-			errBlock.setcall( "Error processing )INIT section of panel "+ PANELID ) ;
+			errBlock.setcall( e2 + p_name ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -471,7 +476,7 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 		RC = errBlock.RC ;
 		if ( errBlock.error() )
 		{
-			errBlock.setcall( "Error updating field values of panel "+ p_name ) ;
+			errBlock.setcall( e6 + p_name ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -489,7 +494,7 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 		currPanel->display_panel( errBlock ) ;
 		if ( errBlock.error() )
 		{
-			errBlock.setcall( "Panel error displaying "+ p_name ) ;
+			errBlock.setcall( e1 ) ;
 			checkRCode( errBlock ) ;
 			break ;
 		}
@@ -506,7 +511,7 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 		currPanel->display_panel_update( errBlock ) ;
 		if ( errBlock.error() )
 		{
-			errBlock.setcall( "Panel error during update "+ p_name ) ;
+			errBlock.setcall( e5 + p_name ) ;
 			checkRCode( errBlock ) ;
 			break ;
 		}
@@ -514,7 +519,7 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 		currPanel->display_panel_proc( errBlock, 0 ) ;
 		if ( errBlock.error() )
 		{
-			errBlock.setcall( "Error processing )PROC section of panel "+ PANELID ) ;
+			errBlock.setcall( e4 + p_name ) ;
 			checkRCode( errBlock ) ;
 			break ;
 		}
@@ -538,7 +543,7 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 			RC = errBlock.getRC() ;
 			if ( errBlock.error() )
 			{
-				errBlock.setcall( "Error processing )REINIT section of panel "+ PANELID ) ;
+				errBlock.setcall( e3 + p_name ) ;
 				checkRCode( errBlock ) ;
 				break ;
 			}
@@ -1635,7 +1640,7 @@ void pApplication::control( const string& parm1, const string& parm2, const stri
 			}
 			else
 			{
-				errBlock.setcall( e1, "PSYE022X", "PASSTHRU LRSCROLL", parm2 ) ;
+				errBlock.setcall( e1, "PSYE022X", "PASSTHRU LRSCROLL", parm3 ) ;
 				checkRCode( errBlock ) ;
 				return ;
 			}
@@ -1860,7 +1865,8 @@ void pApplication::tbclose( const string& tb_name, const string& tb_newname, con
 
 void pApplication::tbcreate( const string& tb_name, const string& keys, const string& names, tbWRITE m_WRITE, tbREP m_REP, string m_path, tbDISP m_DISP )
 {
-	// Create a new table.  For tables without a path specified, default to the first path entry in ZTLIB
+	// Create a new table.
+	// For tables without a path specified and the WRITE option, default to the first path entry in ZTLIB
 
 	// RC = 0   Normal completion
 	// RC = 4   Normal completion - Table exists and REPLACE speified
@@ -1891,7 +1897,10 @@ void pApplication::tbcreate( const string& tb_name, const string& keys, const st
 		return ;
 	}
 
-	if ( m_path == "" ) { m_path = getpath( ZTLIB, 1 ) ; }
+	if ( m_WRITE == WRITE )
+	{
+		if ( m_path == "" ) { m_path = getpath( ZTLIB, 1 ) ; }
+	}
 
 	for ( ws = words( keys ), i = 1 ; i <= ws ; i++ )
 	{
@@ -1966,6 +1975,12 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 	// Use separate pointer currtbPanel for tb displays so that a CONTROL DISPLAY SAVE/RESTORE is only necessary when a tbdispl issues another tbdispl and not
 	// for a display of an ordinary panel
 
+	// RC =  0  Normal completion
+	// RC =  4  More than 1 row selected
+	// RC =  8  End pressed
+	// RC = 12  Panel, message or cursor field not found
+	// RC = 20  Severe error
+
 	int exitRC  ;
 	int ws      ;
 	int i       ;
@@ -1980,6 +1995,11 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 	string t      ;
 
 	const string e1 = "Error during TBDISPL of panel "+ p_name ;
+	const string e2 = "Error processing )INIT section of panel "   ;
+	const string e3 = "Error processing )REINIT section of panel " ;
+	const string e4 = "Error processing )PROC section of panel "   ;
+	const string e5 = "Error during update of panel " ;
+	const string e6 = "Error updating field values of panel " ;
 
 	RC = 0 ;
 	ln = 0 ;
@@ -1991,7 +2011,8 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		else                      { PPANELID = p_name ; RC = 8 ; return ; }
 	}
 
-	if ( !isTableOpen( tb_name, "TBDISPL" ) ) { return ; }
+	if ( !isTableOpen( tb_name, "TBDISPL" ) ) { RC = 20 ; return ; }
+
 	if ( p_autosel == "" ) { p_autosel = "YES" ; }
 
 	if ( p_cursor != "" && !isvalidName( p_cursor ) )
@@ -2034,10 +2055,15 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		p_poolMGR->put( errBlock, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 		if ( p_msg == "" )
 		{
-			currtbPanel->clear_tb_linesChanged( RC ) ;
-			if ( RC > 0 ) { checkRCode( e1 ) ; return ; }
+			currtbPanel->clear_tb_linesChanged( errBlock ) ;
+			if ( errBlock.error() )
+			{
+				errBlock.setcall( e1 ) ;
+				checkRCode( errBlock ) ;
+				return ;
+			}
 		}
-		posn = p_tableMGR->getCRP( tb_name ) ;
+		posn = p_tableMGR->getCRP( errBlock, tb_name ) ;
 		if ( posn == 0 ) { posn = 1 ; }
 		p_tableMGR->fillfVARs( errBlock, funcPOOL, tb_name, currtbPanel->tb_depth, posn ) ;
 	}
@@ -2068,31 +2094,30 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 	else if ( p_msg != "" )
 	{
 		get_Message( p_msg ) ;
-		if ( RC > 0 ) { return ; }
+		if ( RC > 0 ) { RC = 12 ; return ; }
 		currtbPanel->set_panel_msg( MSG, MSGID ) ;
 	}
 	else
 	{
 		currtbPanel->clear_msg() ;
 	}
+
 	if ( p_cursor == "" ) { p_cursor = currtbPanel->Home ; }
 	if ( addpop_active )  { currtbPanel->set_popup( addpop_row, addpop_col ) ; }
 	else                  { currtbPanel->remove_popup()                      ; }
 
 	currtbPanel->display_panel_init( errBlock ) ;
-	RC = errBlock.RC ;
-	if ( RC > 0 )
+	if ( errBlock.error() )
 	{
-		errBlock.setcall( "Error processing )INIT section of panel "+ p_name ) ;
+		errBlock.setcall( e2 + p_name ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
 
 	currPanel->update_field_values( errBlock ) ;
-	RC = errBlock.RC ;
 	if ( errBlock.error() )
 	{
-		errBlock.setcall( "Error updating field values of panel "+ p_name ) ;
+		errBlock.setcall( e6 + p_name ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -2118,6 +2143,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 			{
 				errBlock.setcall( e1 ) ;
 				checkRCode( errBlock ) ;
+				exitRC = 20 ;
 				break ;
 			}
 			if ( currtbPanel->CURFLD == "" )
@@ -2138,6 +2164,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 			{
 				errBlock.setcall( e1, "PSYE022N", currtbPanel->CURFLD ) ;
 				checkRCode( errBlock ) ;
+				exitRC = 20 ;
 				break ;
 			}
 			wait_event() ;
@@ -2148,8 +2175,9 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 			currtbPanel->display_panel_update( errBlock ) ;
 			if ( errBlock.error() )
 			{
-				errBlock.setcall( e1 ) ;
+				errBlock.setcall( e5 ) ;
 				checkRCode( errBlock ) ;
+				exitRC = 20 ;
 				break ;
 			}
 			currtbPanel->set_tb_linesChanged() ;
@@ -2167,6 +2195,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 				if ( errBlock.error() )
 				{
 					checkRCode( errBlock ) ;
+					exitRC = 20 ;
 					break ;
 				}
 			}
@@ -2174,10 +2203,9 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		}
 
 		currtbPanel->display_panel_proc( errBlock, ln ) ;
-		RC = errBlock.RC ;
 		if ( errBlock.error() )
 		{
-			errBlock.setcall( "Error processing )PROC section of panel "+ p_name ) ;
+			errBlock.setcall( e4 + p_name ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -2187,6 +2215,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		{
 			errBlock.setcall( e1, "PSYE015L", "GET", "ZVERB" ) ;
 			checkRCode( errBlock ) ;
+			exitRC = 20 ;
 			break ;
 		}
 		if ( ZZVERB == "RETURN" ) { propagateEnd = true ; }
@@ -2197,7 +2226,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		if ( currtbPanel->MSGID != "" )
 		{
 			get_Message( currtbPanel->MSGID ) ;
-			if ( RC > 0 ) { return ; }
+			if ( RC > 0 ) { RC = 12 ; return ; }
 			currtbPanel->set_panel_msg( MSG, MSGID ) ;
 			if ( p_name == "" )
 			{
@@ -2207,11 +2236,11 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 				p_poolMGR->put( errBlock, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 			}
 			currtbPanel->display_panel_reinit( errBlock, ln ) ;
-			RC = errBlock.RC ;
 			if ( errBlock.error() )
 			{
-				errBlock.setcall( "Error processing )REINIT section of panel "+ p_name ) ;
+				errBlock.setcall( e3 + p_name ) ;
 				checkRCode( errBlock ) ;
+				exitRC = 20 ;
 				break ;
 			}
 			t = funcPOOL.get( errBlock, 8, ".AUTOSEL", NOCHECK ) ;
@@ -2249,10 +2278,9 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 			}
 			p_tableMGR->fillfVARs( errBlock, funcPOOL, tb_name, currtbPanel->tb_depth, ZTDTOP ) ;
 			currPanel->update_field_values( errBlock ) ;
-			RC = errBlock.RC ;
 			if ( errBlock.error() )
 			{
-				errBlock.setcall( "Error updating field values of panel "+ p_name ) ;
+				errBlock.setcall( e6 + p_name ) ;
 				checkRCode( errBlock ) ;
 				return ;
 			}
@@ -2431,7 +2459,7 @@ void pApplication::tbopen( const string& tb_name, tbWRITE m_WRITE, string m_path
 
 	if ( m_paths == "" )
 	{
-		m_paths = get_search_path( s_ZMLIB ) ;
+		m_paths = get_search_path( s_ZTLIB ) ;
 	}
 
 	p_tableMGR->loadTable( errBlock, taskid(), tb_name, m_WRITE, m_paths, m_DISP ) ;
@@ -2815,7 +2843,6 @@ void pApplication::load_keylist( pPanel * p )
 	string tabField ;
 
 	string UPROF    ;
-	string kerr     ;
 
 	bool   klfail   ;
 
@@ -2826,12 +2853,16 @@ void pApplication::load_keylist( pPanel * p )
 
 	vcopy( "ZUPROF", UPROF, MOVE ) ;
 	tbopen( tabName, NOWRITE, UPROF, SHARE ) ;
-	if ( RC  > 0 )
+	if ( RC > 0 )
 	{
-		kerr = "Open of keylist table '"+ tabName +"' failed" ;
-		if ( !klfail ) { RC = 0 ; log( "W", kerr << endl ) ; return ; }
-		RC = 20 ;
-		checkRCode( kerr ) ;
+		if ( !klfail )
+		{
+			RC = 0 ;
+			log( "W", "Open of keylist table '"+ tabName +"' failed" << endl ) ;
+			return ;
+		}
+		errBlock.setcall( "KEYLIST error", "PSYE023E", tabName ) ;
+		checkRCode( errBlock ) ;
 	}
 
 	tbvclear( tabName ) ;
@@ -2846,7 +2877,7 @@ void pApplication::load_keylist( pPanel * p )
 			log( "W", "Keylist '"+ p->KEYLISTN +"' not found in keylist table "+ tabName << endl ) ;
 			return ;
 		}
-		errBlock.setcall( "KEYLIST error", "PSYE023E", p->KEYLISTN, tabName ) ;
+		errBlock.setcall( "KEYLIST error", "PSYE023F", p->KEYLISTN, tabName ) ;
 		checkRCode( errBlock ) ;
 		return  ;
 	}
@@ -3705,7 +3736,8 @@ void pApplication::checkRCode( errblock err )
 	// Format: msg1   header - call description resulting in the error
 	//         short msg
 	//         longer description
-	//         sline  source line error detected.  Placed at bottom if entered
+	//         sline  source line error detected if entered, else dialogue statement.
+	//         dline  dialogue statement if entered.
 
 	// Set RC to the error code in the error block if we are returning to the program (CONTROL ERRORS RETURN)
 
@@ -3803,7 +3835,7 @@ void pApplication::uabend( const string& msgid, const string& e1, int callno )
 	string t ;
 
 	t = "A user abend has occured in application "+ ZAPPNAME ;
-	if ( callno != -1 ) { t = t + " at call number " + d2ds( callno ) ; }
+	if ( callno != -1 ) { t += " at call number " + d2ds( callno ) ; }
 
 	getmsg( msgid, "ZERRSM", "ZERRLM" ) ;
 	if ( e1 != "" ) { vreplace( "ZERRLM",  e1 ) ; }

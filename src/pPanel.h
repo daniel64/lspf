@@ -44,7 +44,7 @@ class pPanel
 		string field_getname( uint row, uint col ) ;
 		bool   field_get_row_col( const string& fld, uint& row, uint& col ) ;
 
-		void   cursor_to_field( int& RC, string = "", int = 1 ) ;
+		void   cursor_to_field( int& RC, string ="", int =1 ) ;
 		void   cursor_to_next_field ( const string& name, uint& row, uint& col )  ;
 		void   cursor_eof( uint& row, uint& col )  ;
 		void   get_cursor( uint& row, uint& col ) { row   = p_row + win_row ; col   = p_col + win_col ; }
@@ -164,8 +164,8 @@ class pPanel
 
 		void   set_tb_linesChanged() ;
 		bool   tb_lineChanged( int&, string& ) ;
-		void   clear_tb_linesChanged( int& ) ;
-		void   remove_tb_lineChanged()       ;
+		void   clear_tb_linesChanged( errblock& ) ;
+		void   remove_tb_lineChanged() ;
 
 		string get_field_help( const string& fld ) ;
 		bool   get_nretriev()  { return nretriev  ; }

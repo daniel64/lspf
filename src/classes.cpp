@@ -1252,7 +1252,7 @@ bool selobj::parse( errblock& err, string SELSTR )
 		{
 			if ( !isvalidName( PGM ) )
 			{
-				err.seterrid( "PSYE031D", PGM ) ;
+				err.seterrid( "PSYE031E", "PROGRAM", PGM ) ;
 				return false ;
 			}
 		}
@@ -1276,7 +1276,7 @@ bool selobj::parse( errblock& err, string SELSTR )
 			PARM = strip( substr( str, (p1 + 6), (p2 - (p1 + 6)) ) ) ;
 			if ( !isvalidName( PARM ) )
 			{
-				err.seterrid( "PSYE031D", PARM ) ;
+				err.seterrid( "PSYE031E", "PANEL", PARM ) ;
 				return false ;
 			}
 			PGM    = "&ZPANLPGM" ;
@@ -1394,7 +1394,7 @@ bool selobj::parse( errblock& err, string SELSTR )
 		str     = delstr( str, p1, (p2 - p1 + 1) ) ;
 		if ( !isvalidName4( NEWAPPL ) )
 		{
-			err.seterrid( "PSYE031D", NEWAPPL ) ;
+			err.seterrid( "PSYE031E", "NEWAPPL", NEWAPPL ) ;
 			return false ;
 		}
 	}

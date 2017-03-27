@@ -69,8 +69,8 @@ PSYE022Q 'Invalid mask size'
 PSYE022R 'Invalid mask type &ZVAL1'
 'Must be FORMAT or USER'
 
-PSYE022S 'Mask contains invalid character'
-'Invalid characters in &ZVAL1'
+PSYE022S 'Mask ''&ZVAL1'' contains invalid character'
+''
 
 PSYE022T 'No pop-up window exists at this level'
 ''
@@ -102,6 +102,9 @@ PSYE023C 'Invalid &ZVAL1 name ''&ZVAL2'''
 PSYE023D 'No panel has yet been loaded to change field attributes'
 ''
 
-PSYE023E 'Keylist &ZVAL1 not found in keylist table &ZVAL2'
+PSYE023E 'Open of &ZVAL1 keylist table failed'
+''
+
+PSYE023F 'Keylist &ZVAL1 not found in keylist table &ZVAL2'
 ''
 

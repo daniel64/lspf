@@ -150,25 +150,16 @@ void execiAddpop( pApplication * thisAppl, const string& s, errblock& err )
 	str = upper( subword( s, 2 ) ) ;
 
 	ap_loc = parseString( err, str, "POPLOC()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	ap_row = parseString( err, str, "ROW()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	if ( ap_row == "" ) { i_row = 0              ; }
 	else                { i_row = ds2d( ap_row ) ; }
 
 	ap_col = parseString( err, str, "COLUMN()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	if ( ap_col == "" ) { i_col = 0              ; }
 	else                { i_col = ds2d( ap_col ) ; }
@@ -193,16 +184,10 @@ void execiBrowse( pApplication * thisAppl, const string& s, errblock& err )
 	str = subword( s, 2 ) ;
 
 	fl = parseString( err, str, "FILE()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	pan = parseString( err, str, "PANEL()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	if ( str != "" )
 	{
@@ -236,28 +221,16 @@ void execiDisplay( pApplication * thisAppl, const string& s, errblock& err )
 	str = upper( subword( s, 2 ) ) ;
 
 	pan = parseString( err, str, "PANEL()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	msg = parseString( err, str, "MSG()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	cursor = parseString( err, str, "CURSOR()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	csrpos = parseString( err, str, "CSRPOS()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	if ( str != "" )
 	{
@@ -283,28 +256,16 @@ void execiEdit( pApplication * thisAppl, const string& s, errblock& err )
 	str = subword( s, 2 ) ;
 
 	fl = parseString( err, str, "FILE()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	pan = parseString( err, str, "PANEL()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	mac = parseString( err, str, "MACRO()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	prof = parseString( err, str, "PROFILE()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	if ( str != "" )
 	{
@@ -332,46 +293,25 @@ void execiGetmsg( pApplication * thisAppl, const string& s, errblock& err )
 	str = upper( subword( s, 2 ) ) ;
 
 	msg = parseString( err, str, "MSG()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	smsg = parseString( err, str, "SHORTMSG()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	lmsg = parseString( err, str, "LONGMSG()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	alm = parseString( err, str, "ALARM()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	hlp = parseString( err, str, "HELP()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	typ = parseString( err, str, "TYPE()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	wndo = parseString( err, str, "WINDOW()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	if ( str != "" )
 	{
@@ -392,10 +332,7 @@ void execiLibdef( pApplication * thisAppl, const string& s, errblock& err )
 
 	str      = subword( s, 2 ) ;
 	ld_files = parseString( err, str, "ID()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	if ( words( str ) > 3 )
 	{
@@ -426,46 +363,25 @@ void execiPquery( pApplication * thisAppl, const string& s, errblock& err )
 
 	str      = upper( subword( s, 2 ) ) ;
 	pq_panel = parseString( err, str, "PANEL()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	pq_arean = parseString( err, str, "AREANAME()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	pq_areat = parseString( err, str, "AREATYPE()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	pq_width = parseString( err, str, "WIDTH()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	pq_depth = parseString( err, str, "DEPTH()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	pq_row = parseString( err, str, "ROW()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	pq_col = parseString( err, str, "COLUMN()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	if ( str != "" )
 	{
@@ -512,10 +428,7 @@ void execiSelect( pApplication * thisAppl, const string& s, errblock& err )
 
 	selobj SEL ;
 
-	if ( !SEL.parse( err, subword( s, 2 ) ) )
-	{
-		return ;
-	}
+	if ( !SEL.parse( err, subword( s, 2 ) ) ) { return ; }
 
 
 	if ( SEL.PGM[ 0 ] == '&' )
@@ -538,10 +451,7 @@ void execiSetmsg( pApplication * thisAppl, const string& s, errblock& err )
 	str = upper( subword( s, 2 ) ) ;
 
 	s_msg = parseString( err, str, "MSG()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	if      ( str == "COND" ) { t = COND   ; }
 	else if ( str == "" )     { t = UNCOND ; }
@@ -568,16 +478,10 @@ void execiTBAdd( pApplication * thisAppl, const string& s, errblock& err )
 	str     = upper( subword( s, 3 ) ) ;
 
 	tb_namelst = parseString( err, str, "SAVE()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_numrows = parseString( err, str, "MULT()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 	if ( tb_numrows == "" ) { tb_numrows = "1" ; }
 
 	tb_order = str ;
@@ -605,22 +509,13 @@ void execiTBBottom( pApplication * thisAppl, const string& s, errblock& err )
 	str     = upper( subword( s, 3 ) ) ;
 
 	tb_savenm = parseString( err, str, "SAVENAME()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_rowid = parseString( err, str, "ROWID()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_crpnm = parseString( err, str, "POSITION()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_noread = str ;
 	if ( tb_noread != "" && tb_noread != "NOREAD" )
@@ -645,16 +540,10 @@ void execiTBClose( pApplication * thisAppl, const string& s, errblock& err )
 	str      = subword( s, 3 )       ;
 
 	tb_nname = parseString( err, str, "NAME()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_path = parseString( err, str, "LIBRARY()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	if ( str != "" )
 	{
@@ -684,55 +573,34 @@ void execiTBCreate( pApplication * thisAppl, const string& s, errblock& err )
 	str     = subword( s, 3 ) ;
 
 	tb_paths = parseString( err, str, "LIBRARY()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	iupper( str ) ;
 	tb_keys  = parseString( err, str, "KEYS()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_names = parseString( err, str, "NAMES()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_write = WRITE ;
 	t = parseString( err, str, "WRITE" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 	if ( t == "" )
 	{
 		t = parseString( err, str, "NOWRITE" ) ;
-		if ( err.error() )
-		{
-			return ;
-		}
+		if ( err.error() ) { return ; }
 		if ( t != "" ) { tb_write = NOWRITE ; }
 	}
 
 	tb_rep = NOREPLACE ;
 	t = parseString( err, str, "REPLACE" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	if ( t != "" ) { tb_rep = REPLACE ; }
 
 	tb_disp = EXCLUSIVE ;
 	t = parseString( err, str, "SHARE" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 	if ( t != "" ) { tb_disp = SHARE ; }
 
 	if ( words( str ) > 0 )
@@ -778,56 +646,32 @@ void execiTBDispl( pApplication * thisAppl, const string& s, errblock& err )
 	str = upper( subword( s, 2 ) ) ;
 
 	tb_pan = parseString( err, str, "PANEL()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_msg = parseString( err, str, "MSG()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_cursor = parseString( err, str, "CURSOR()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_csrrow = parseString( err, str, "CSRROW()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 	if ( tb_csrrow == "" ) { i_csrrow = 1                ; }
 	else                   { i_csrrow = ds2d( tb_csrrow ) ; }
 
 	tb_csrpos = parseString( err, str, "CSRPOS()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 	if ( tb_csrpos == "" ) { i_csrpos = 1                 ; }
 	else                   { i_csrpos = ds2d( tb_csrpos ) ; }
 
 	tb_autosel = parseString( err, str, "AUTOSEL()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_posn = parseString( err, str, "POSITION()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_rowid = parseString( err, str, "ROWID()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	if ( str != "" )
 	{
@@ -863,10 +707,7 @@ void execiTBErase( pApplication * thisAppl, const string& s, errblock& err )
 	str     = subword( s, 3 ) ;
 
 	tb_path = parseString( err, str, "LIBRARY()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	if ( str != "" )
 	{
@@ -905,22 +746,13 @@ void execiTBGet( pApplication * thisAppl, const string& s, errblock& err )
 	str     = upper( subword( s, 3 ) ) ;
 
 	tb_savenm = parseString( err, str, "SAVENAME()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_rowid = parseString( err, str, "ROWID()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_crpnm = parseString( err, str, "POSITION()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_noread = str ;
 	if ( tb_noread != "" && tb_noread != "NOREAD" )
@@ -945,10 +777,7 @@ void execiTBMod( pApplication * thisAppl, const string& s, errblock& err )
 	str     = upper( subword( s, 3 ) ) ;
 
 	tb_savenm = parseString( err, str, "SAVE()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_order = str ;
 	if ( tb_order != "" && tb_order != "ORDER" )
@@ -973,10 +802,7 @@ void execiTBPut( pApplication * thisAppl, const string& s, errblock& err )
 	str     = upper( subword( s, 3 ) ) ;
 
 	tb_savenm = parseString( err, str, "SAVE()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_order = str ;
 	if ( tb_order != "" && tb_order != "ORDER" )
@@ -1005,26 +831,17 @@ void execiTBOpen( pApplication * thisAppl, const string& s, errblock& err )
 
 	tb_write = WRITE ;
 	t = parseString( err, str, "WRITE" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	if ( t == "" )
 	{
 		t = parseString( err, str, "NOWRITE" ) ;
-		if ( err.error() )
-		{
-			return ;
-		}
+		if ( err.error() ) { return ; }
 		if ( t != "" ) { tb_write = NOWRITE ; }
 	}
 
 	tb_paths = parseString( err, str, "LIBRARY()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	iupper( str ) ;
 	if      ( str == "SHARE" ) { tb_disp = SHARE     ; }
@@ -1059,58 +876,31 @@ void execiTBQuery( pApplication * thisAppl, const string& s, errblock& err )
 	str     = upper( subword( s, 3 ) ) ;
 
 	tb_keys = parseString( err, str, "KEYS()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_names = parseString( err, str, "NAMES()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_rownum = parseString( err, str, "ROWNUM()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_keynum = parseString( err, str, "KEYNUM()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_namenum = parseString( err, str, "NAMENUM()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_pos = parseString( err, str, "POSITION()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_srtflds = parseString( err, str, "SORTFLDS()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_sarglst = parseString( err, str, "SARGLIST()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_sargcnd = parseString( err, str, "SARGCOND()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_sargdir = parseString( err, str, "SARGDIR()" ) ;
 	if ( err.error() )
@@ -1142,16 +932,10 @@ void execiTBSarg( pApplication * thisAppl, const string& s, errblock& err )
 	str      = upper( subword( s, 3 ) ) ;
 
 	tb_arglst = parseString( err, str, "ARGLIST()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_namecnd = parseString( err, str, "NAMECOND()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_dir = str ;
 	if ( tb_dir == "" ) { tb_dir = "NEXT" ; }
@@ -1177,16 +961,10 @@ void execiTBSave( pApplication * thisAppl, const string& s, errblock& err )
 	str      = subword( s, 3 ) ;
 
 	tb_nname = parseString( err, str, "NAME()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_path = parseString( err, str, "LIBRARY()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	if ( words( str ) > 0 )
 	{
@@ -1216,48 +994,27 @@ void execiTBScan( pApplication * thisAppl, const string& s, errblock& err )
 	str     = upper( subword( s, 3 ) ) ;
 
 	tb_arglst = parseString( err, str, "ARGLIST()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_savenm = parseString( err, str, "SAVENAME()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_rowid = parseString( err, str, "ROWID()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_crpnm = parseString( err, str, "POSITION()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_condlst = parseString( err, str, "CONDLIST()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_dir = "NEXT" ;
 	t = parseString( err, str, "NEXT" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 	if ( t == "" )
 	{
 		t = parseString( err, str, "PREVIOUS" ) ;
-		if ( err.error() )
-		{
-			return ;
-		}
+		if ( err.error() ) { return ; }
 		if ( t != "" ) { tb_dir = "PREVIOUS" ; }
 	}
 
@@ -1291,36 +1048,22 @@ void execiTBSkip( pApplication * thisAppl, const string& s, errblock& err )
 	str     = upper( subword( s, 3 ) ) ;
 
 	tb_num = parseString( err, str, "NUMBER()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
+
 	if ( tb_num == "" ) { i_num = 1                 ; }
 	else                { i_num = ds2d( tb_num ) ; }
 
 	tb_savenm = parseString( err, str, "SAVENAME()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_rowid = parseString( err, str, "ROWID()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_row = parseString( err, str, "ROW()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_crpnm = parseString( err, str, "POSITION()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	tb_noread = str ;
 	if ( tb_noread != "" && tb_noread != "NOREAD" )
@@ -1344,10 +1087,7 @@ void execiTBSort( pApplication * thisAppl, const string& s, errblock& err )
 	str     = upper( subword( s, 3 ) ) ;
 
 	tb_flds = parseString( err, str, "FIELDS()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	if ( str != "" )
 	{
@@ -1396,10 +1136,7 @@ void execiVerase( pApplication * thisAppl, const string& s, errblock& err )
 	str = upper( subword( s, 2 ) ) ;
 
 	vars = parseString( err, str, "()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	replace( vars.begin(), vars.end(), ',', ' ' ) ;
 	if ( words( vars ) == 0 )
@@ -1441,10 +1178,7 @@ void execiVget( pApplication * thisAppl, const string& s, errblock& err )
 	str = upper( subword( s, 2 ) ) ;
 
 	vars = parseString( err, str, "()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	replace( vars.begin(), vars.end(), ',', ' ' ) ;
 	n = words( vars ) ;
@@ -1491,16 +1225,10 @@ void execiView( pApplication * thisAppl, const string& s, errblock& err )
 	str = subword( s, 2 ) ;
 
 	fl = parseString( err, str, "FILE()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	pan = parseString( err, str, "PANEL()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	if ( str != "" )
 	{
@@ -1523,10 +1251,7 @@ void execiVput( pApplication * thisAppl, const string& s, errblock& err )
 	str = upper( subword( s, 2 ) ) ;
 
 	vars = parseString( err, str, "()" ) ;
-	if ( err.error() )
-	{
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	replace( vars.begin(), vars.end(), ',', ' ' ) ;
 	if ( words( vars ) == 0 )

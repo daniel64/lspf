@@ -139,13 +139,25 @@ void pPanel::init( errblock& err )
 	err.setRC( 0 ) ;
 
 	ZSCRMAXD = ds2d( p_poolMGR->get( err, "ZSCRMAXD", SHARED ) ) ;
-	if ( err.getRC() > 0 ) { err.seterror( "ZSCRMAXD poolMGR.get failed" ) ; return ; }
+	if ( err.getRC() > 0 )
+	{
+		err.seterrid( "PSYE015L", "GET", "ZSCRMAXD" ) ;
+		return ;
+	}
 
 	ZSCRMAXW = ds2d( p_poolMGR->get( err, "ZSCRMAXW", SHARED ) ) ;
-	if ( err.getRC() > 0 ) { err.seterror( "ZSCRMAXW poolMGR.get failed" ) ; return ; }
+	if ( err.getRC() > 0 )
+	{
+		err.seterrid( "PSYE015L", "GET", "ZSCRMAXW" ) ;
+		return ;
+	}
 
 	ZSCRNUM  = ds2d(p_poolMGR->get( err, "ZSCRNUM", SHARED ) ) ;
-	if ( err.getRC() > 0 ) { err.seterror( "ZSCRNUM poolMGR.get failed" )  ; return ; }
+	if ( err.getRC() > 0 )
+	{
+		err.seterrid( "PSYE015L", "GET", "ZSCRNUM" ) ;
+		return ;
+	}
 
 	WSCRMAXD = ZSCRMAXD ;
 	WSCRMAXW = ZSCRMAXW ;
@@ -2093,11 +2105,9 @@ bool pPanel::tb_lineChanged( int& ln, string& URID )
 }
 
 
-void pPanel::clear_tb_linesChanged( int& RC1 )
+void pPanel::clear_tb_linesChanged( errblock& err )
 {
 	//  Clear all stored changed lines on a tbdispl with panel name and set ZTDSELS to zero
-
-	errblock err ;
 
 	tb_linesChanged.clear() ;
 	p_funcPOOL->put( err, "ZTDSELS", 0 ) ;

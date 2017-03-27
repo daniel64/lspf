@@ -53,8 +53,8 @@ PSYE013L 'Entry &ZVAL1 is not a regular file'
 PSYE013M 'Invalid &ZVAL1 parameter specified.  Invalid specification is &ZVAL2'
 ''
 
-PSYE013N 'Bad return code from TBSORT.  Sort Information Record found is &ZVAL1'
-''
+PSYE013N 'Bad return code from TBSORT'
+'Sort Information Record found is &ZVAL1'
 
 PSYE013O 'Invalid COND PAIRS specified. &ZVAL1'
 ''
@@ -86,8 +86,8 @@ PSYE013W 'Invalid condition'
 PSYE013X 'Invalid TBSORT argument'
 ''
 
-PSYE013Y 'Table created with inconsistent WRITE/NOWRITE attributes for open table &ZVAL1'
-''
+PSYE013Y 'Inconsistent WRITE/NOWRITE parameter for create of table &ZVAL1'
+'WRITE/NOWRITE must be consistent with the existing table'
 
 PSYE013Z 'Table &ZVAL1 is already open in SHARE mode.  EXCLUSIVE requested'
 ''
@@ -98,7 +98,7 @@ PSYE014A 'Table &ZVAL1 is already open in EXCLUSIVE mode'
 PSYE014B 'Table load file name &ZVAL1 is not a regular file'
 ''
 
-PSYE014C 'Table file not found in path search for &ZVAL1'
+PSYE014C 'SPARE'
 ''
 
 PSYE014D 'Table open for &ZVAL1 gave an error.  Filename &ZVAL2'
@@ -128,8 +128,8 @@ PSYE014K 'End of file marker not found.  File corrupt: &ZVAL1'
 PSYE014L 'Inconsistent number of records found with saved total'
 'Found=&ZVAL1 Saved Total=&ZVAL2'
 
-PSYE014M 'Unexpected EOF reading table values.  Table &ZVAL1 appears to be corrupt.  Filename &ZVAL2'
-''
+PSYE014M 'Unexpected EOF reading table values.  Table &ZVAL1 appears to be corrupt'
+'Filename &ZVAL2'
 
 PSYE014N 'Table &ZVAL1 in use. Cannot be erased unless closed'
 ''

@@ -771,7 +771,7 @@ void mainLoop()
 					w2 = word( ZPARM, 2 ) ;
 					if ( ZPARM != "" && ZPARM != "NEXT" && ZPARM != "PREV" )
 					{
-						currAppl->currPanel->cursor_to_field( RC, currAppl->currPanel->CMDfield, 1 ) ;
+						currAppl->currPanel->cursor_to_field( RC, currAppl->currPanel->CMDfield ) ;
 						currAppl->currPanel->get_cursor( row, col ) ;
 						currScrn->set_row_col( row, col ) ;
 					}
@@ -908,6 +908,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 	string PFCMD   ;
 	string delm    ;
 	string AVerb   ;
+	string fld     ;
 
 	static uint retPos(0) ;
 
@@ -916,14 +917,16 @@ void processAction( uint row, uint col, int c, bool& passthru )
 	pdc t_pdc ;
 
 	SEL      = false ;
-
 	PFCMD    = ""    ;
 	passthru = true  ;
 
 	if ( currAppl->isRawOutput() ) { return ; }
 
 	p_poolMGR->put( err, "ZVERB", "", SHARED ) ;
-	if ( !err.RC0() ) { log( "C", "poolMGR put for ZVERB failed" << endl ) ; }
+	if ( err.error() )
+	{
+		log( "C", "poolMGR put for ZVERB failed" << endl ) ;
+	}
 
 	if ( c == 27 )
 	{
@@ -1053,9 +1056,8 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		{
 			currAppl->reload_keylist( currAppl->currPanel ) ;
 			PFCMD = currAppl->currPanel->get_keylist( c ) ;
-			if ( PFCMD == "" ) { PFCMD = pfKeyValue( c ) ; }
 		}
-		else
+		if ( PFCMD == "" )
 		{
 			PFCMD = pfKeyValue( c ) ;
 		}
@@ -1076,8 +1078,8 @@ void processAction( uint row, uint col, int c, bool& passthru )
 			retrieveBuffer.rset_capacity( rbsize ) ;
 		}
 		if (  ZCOMMAND.size() >= rtsize &&
-		     !findword( upper( ZCOMMAND ), "RETRIEVE RETP" ) &&
-		     !findword( upper( PFCMD ), "RETRIEVE RETP" ) )
+		     !findword( word( upper( ZCOMMAND ), 1 ), "RETRIEVE RETP" ) &&
+		     !findword( word( upper( PFCMD ), 1 ), "RETRIEVE RETP" ) )
 		{
 			if ( retrieveBuffer.size() > 0 )
 			{
@@ -1104,8 +1106,6 @@ void processAction( uint row, uint col, int c, bool& passthru )
 			break ;
 	}
 
-	if ( findword( upper( PFCMD ), "SPLIT RETRIEVE" ) ) { ZCOMMAND = "" ; }
-
 	if ( PFCMD != "" ) { ZCOMMAND = PFCMD + " " + ZCOMMAND ; }
 
 	jumpOption = ZCOMMAND ;
@@ -1121,7 +1121,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 	CMDVerb = upper( word( ZCOMMAND, 1 ) ) ;
 	CMDParm = subword( ZCOMMAND, 2 ) ;
 
-	if ( CMDVerb == "" ) { return ; }
+	if ( CMDVerb == "" ) { retPos = 0 ; return ; }
 
 	if ( CMDVerb[ 0 ] == '@' )
 	{
@@ -1152,14 +1152,14 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		return ;
 	}
 
-	if ( ( ZCOMMAND[ 0 ] == '=' ) && ( ZCOMMAND.size() > 1 ) && ( PFCMD == "" || PFCMD == "RETURN" ) )
+	if ( ZCOMMAND.size() > 1 && ZCOMMAND.front() == '=' && ( PFCMD == "" || PFCMD == "RETURN" ) )
 	{
-		debug1( "JUMP entered.  Jumping to primary menu option " << ZCOMMAND.substr( 1 ) << endl ) ;
+		ZCOMMAND.erase( 0, 1 ) ;
+		debug1( "JUMP entered.  Jumping to primary menu option " << ZCOMMAND << endl ) ;
 		passthru = true ;
-		ZCOMMAND = substr( ZCOMMAND, 2 ) ;
 		if ( !currAppl->isprimMenu() )
 		{
-			currAppl->jumpEntered = true     ;
+			currAppl->jumpEntered = true ;
 			p_poolMGR->put( err, "ZVERB", "RETURN", SHARED ) ;
 			currAppl->currPanel->cmd_setvalue( "" ) ;
 			return ;
@@ -1169,15 +1169,28 @@ void processAction( uint row, uint col, int c, bool& passthru )
 
 	if ( CMDVerb == "RETRIEVE" )
 	{
-		commandStack = "" ;
-		if ( retrieveBuffer.empty() ) { return ; }
-		ZCOMMAND = "NOP" ;
-		passthru = false ;
-		currAppl->currPanel->cmd_setvalue( retrieveBuffer[ retPos ] ) ;
-		currAppl->currPanel->cursor_to_field( RC, currAppl->currPanel->CMDfield, retrieveBuffer[ retPos ].size()+1 ) ;
+		if ( datatype( CMDParm, 'W' ) )
+		{
+			p1 = ds2d( CMDParm ) ;
+			if ( p1 > 0 && p1 <= retrieveBuffer.size() ) { retPos = p1 - 1 ; }
+		}
+		commandStack = ""    ;
+		ZCOMMAND     = "NOP" ;
+		passthru     = false ;
+		fld          = currAppl->currPanel->CMDfield ;
+		if ( !retrieveBuffer.empty() )
+		{
+			currAppl->currPanel->cmd_setvalue( retrieveBuffer[ retPos ] ) ;
+			currAppl->currPanel->cursor_to_field( RC, fld, retrieveBuffer[ retPos ].size()+1 ) ;
+			if ( ++retPos >= retrieveBuffer.size() ) { retPos = 0 ; }
+		}
+		else
+		{
+			currAppl->currPanel->cmd_setvalue( "" ) ;
+			currAppl->currPanel->cursor_to_field( RC, fld ) ;
+		}
 		currAppl->currPanel->get_cursor( row, col ) ;
 		currScrn->set_row_col( row, col ) ;
-		if ( ++retPos >= retrieveBuffer.size() ) { retPos = 0 ; }
 		return ;
 	}
 	retPos = 0 ;
@@ -1294,7 +1307,6 @@ bool resolveZCTEntry( string& CMDVerb, string& CMDParm )
 {
 	int i ;
 	int j ;
-	int RC ;
 	int ws ;
 
 	bool siteBefore ;
@@ -1336,8 +1348,8 @@ bool resolveZCTEntry( string& CMDVerb, string& CMDParm )
 	{
 		for ( j = 1 ; j <= ws ; j++ )
 		{
-			p_tableMGR->cmdsearch( RC, funcPOOL, word( cmdtlst, j ), CMDVerb, ZTLIB ) ;
-			if ( RC > 0 || ZCTACT == "" ) { continue ; }
+			p_tableMGR->cmdsearch( err, funcPOOL, word( cmdtlst, j ), CMDVerb, ZTLIB ) ;
+			if ( !err.RC0() || ZCTACT == "" ) { continue ; }
 			if ( ZCTACT[ 0 ] == '&' )
 			{
 				currAppl->vcopy( substr( ZCTACT, 2 ), ZCTACT, MOVE ) ;
@@ -1346,14 +1358,13 @@ bool resolveZCTEntry( string& CMDVerb, string& CMDParm )
 			found = true ;
 			break ;
 		}
-		if ( RC > 0 || word( ZCTACT, 1 ) != "ALIAS" ) { break ; }
+		if ( err.getRC() > 0 || word( ZCTACT, 1 ) != "ALIAS" ) { break ; }
 		CMDVerb  = word( ZCTACT, 2 )    ;
 		CMDParm  = subword( ZCTACT, 3 ) ;
 		ZCOMMAND = subword( ZCTACT, 2 ) ;
 	}
 	if ( i > 7 )
 	{
-		RC = 8 ;
 		log( "E", "ALIAS dept cannot be greater than 8.  Terminating search" << endl ) ;
 		found = false ;
 	}
@@ -2206,7 +2217,7 @@ void loadSystemCommandTable()
 
 	errblock err ;
 	p_tableMGR->loadTable( err, 0, "ISPCMDS", NOWRITE, ZTLIB, SHARE ) ;
-	if ( err.getRC() == 0 )
+	if ( err.RC0() )
 	{
 		log( "I", "Loaded system command table ISPCMDS" << endl ) ;
 	}
@@ -2415,8 +2426,7 @@ string listLogicalScreens()
 		t = appl->get_current_panelDescr() ;
 		if ( t.size() > 42 )
 		{
-			t.erase( 20, t.size()-39 ) ;
-			t.insert( 20, "..." ) ;
+			t.replace( 20, t.size()-39, "..." ) ;
 		}
 		ln = left( ln, 4 ) +
 		     left( appl->get_current_screenName(), 10 ) +
@@ -2477,6 +2487,7 @@ void listRetrieveBuffer()
 	uint row ;
 	uint col ;
 
+	string t  ;
 	string ln ;
 
 	WINDOW * rbwin   ;
@@ -2506,7 +2517,12 @@ void listRetrieveBuffer()
 	currScrn->show_wait() ;
 	for ( i = 0 ; i < mx ; i++ )
 	{
-		ln = left(d2ds( i+1 )+".", 5 ) + left( retrieveBuffer[ i ], 49 ) ;
+		t = retrieveBuffer[ i ] ;
+		if ( t.size() > 52 )
+		{
+			t.replace( 20, t.size()-49, "..." ) ;
+		}
+		ln = left(d2ds( i+1 )+".", 4 ) + t ;
 		lslist.push_back( ln ) ;
 	}
 
@@ -2518,7 +2534,7 @@ void listRetrieveBuffer()
 		{
 			if ( i == m ) { wattron( rbwin, cuaAttr[ PT  ] )  ; }
 			else          { wattron( rbwin, cuaAttr[ VOI ] )  ; }
-			mvwaddstr( rbwin, i+3, 5, (*it).c_str() )         ;
+			mvwaddstr( rbwin, i+3, 3, (*it).c_str() )         ;
 			if ( i == m ) { wattroff( rbwin, cuaAttr[ PT  ] ) ; }
 			else          { wattroff( rbwin, cuaAttr[ VOI ] ) ; }
 		}
@@ -2541,7 +2557,7 @@ void listRetrieveBuffer()
 		}
 		else if ( isActionKey( c ) )
 		{
-			currAppl->currPanel->cursor_to_field( RC, currAppl->currPanel->CMDfield, 1 ) ;
+			currAppl->currPanel->cursor_to_field( RC, currAppl->currPanel->CMDfield ) ;
 			break ;
 		}
 	}

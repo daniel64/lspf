@@ -72,7 +72,7 @@ class Table
 
 		int    getCRP() { return CRP ; }
 
-		void   cmdsearch( int& RC,
+		void   cmdsearch( errblock& err,
 				  fPOOL& funcPOOL,
 				  const string& cmd ) ;
 
@@ -200,7 +200,7 @@ class tableMGR
 
 		void   statistics() ;
 
-		void   cmdsearch( int& RC,
+		void   cmdsearch( errblock& err,
 				  fPOOL& funcPOOL,
 				  string tb_name,
 				  const string& cmd,
@@ -220,16 +220,12 @@ class tableMGR
 				  int depth,
 				  int posn ) ;
 
-		int    getCRP( const string& tb_name ) ;
+		int    getCRP( errblock& err,
+			       const string& tb_name ) ;
 
 		void   destroyTable( errblock& err,
 				     int task,
 				     const string& tb_name ) ;
-
-		bool   isloaded( const string& tb_name ) ;
-
-		bool   tablexists( const string& tb_name,
-				   const string& tb_path ) ;
 
 		void   tbbottom( errblock& err,
 				 fPOOL& funcPOOL,
@@ -237,7 +233,7 @@ class tableMGR
 				 const string& tb_savenm,
 				 const string& tb_rowid_vn,
 				 const string& tb_noread,
-				 const string& tb_crp_name  ) ;
+				 const string& tb_crp_name ) ;
 
 		void   tbdelete( errblock& err,
 				 fPOOL& funcPOOL,

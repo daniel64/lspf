@@ -353,6 +353,7 @@ main()
 	else
 	{
 		cout << "ERROR saving ISPCMDS table in " << systemPath << "tlib  RC=" << RC << endl ;
+		cout << "Message is " << err.msgid << endl ;
 	}
 	p_tableMGR->saveTable( err, 0, "USRCMDS", "" , systemPath + "tlib" ) ;
 	if ( err.RC0() )
@@ -362,6 +363,7 @@ main()
 	else
 	{
 		cout << "ERROR saving USRCMDS table in " << systemPath << "tlib  RC=" << RC << endl ;
+		cout << "Message is " << err.msgid << endl ;
 	}
 
 	createSYSPROF() ;
@@ -489,7 +491,8 @@ void createSYSPROF()
 	}
 	else
 	{
-		cout << "ERROR saving profile ISPSPROF in " << ZSPROF << "  RC=" << err.getRC() << endl ;
+		cout << "ERROR saving profile ISPSPROF in "<< ZSPROF <<"  RC="<< err.getRC() << endl ;
+		cout << "Message is " << err.msgid << endl ;
 	}
 	cout << "*******************************************************************************************" << endl ;
 	cout << endl ;
@@ -523,7 +526,7 @@ void setCUAcolours( string var, string val )
 	     val[2] != 'R' &&
 	     val[2] != 'U')
 	{
-		cout << "ERROR:: Invalid colour hilight of " << val[0] << " in setting " << var << endl ;
+		cout << "ERROR:: Invalid colour hilight of " << val[2] << " in setting " << var << endl ;
 	}
 
 	p_poolMGR->put( err, var1, val, PROFILE )   ;
