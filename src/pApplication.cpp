@@ -83,8 +83,6 @@ pApplication::pApplication()
 	ZERR6                  = ""     ;
 	ZERR7                  = ""     ;
 	ZERR8                  = ""     ;
-	ZERR9                  = ""     ;
-	ZERR10                 = ""     ;
 	vdefine( "ZCURFLD",  &ZCURFLD ) ;
 	vdefine( "ZCURPOS",  &ZCURPOS ) ;
 	vdefine( "ZTDMARK",  &ZTDMARK ) ;
@@ -143,7 +141,7 @@ void pApplication::init()
 		}
 	}
 
-	log( "I", "Initialisation complete" << endl ; )
+	llog( "I", "Initialisation complete" << endl ; )
 }
 
 
@@ -152,7 +150,7 @@ void pApplication::wait_event()
 	busyAppl = false ;
 	while ( true )
 	{
-		if ( terminateAppl ) { RC = 20 ; log( "E", "Application terminating.  Cancelling wait_event" << endl ) ; abend() ; }
+		if ( terminateAppl ) { RC = 20 ; llog( "E", "Application terminating.  Cancelling wait_event" << endl ) ; abend() ; }
 		if ( !busyAppl )
 		{
 			boost::mutex::scoped_lock lk(mutex) ;
@@ -556,19 +554,6 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 }
 
 
-void pApplication::refresh()
-{
-	RC = 0 ;
-	map<string, pPanel *>::iterator it ;
-
-	it = panelList.find( PANELID ) ;
-	if ( it != panelList.end() )
-	{
-		it->second->refresh() ;
-	}
-}
-
-
 void pApplication::libdef( const string& lib, const string& type, const string& id, const string& procopt )
 {
 	// libdef - Add/remove a list of paths to the search order for panels, messages and tables
@@ -584,6 +569,8 @@ void pApplication::libdef( const string& lib, const string& type, const string& 
 	// RC = 20  Severe error
 
 	const string e1 = "LIBDEF error" ;
+
+	RC = 0 ;
 
 	if ( !findword( lib, "ZMLIB ZPLIB ZTLIB" ) )
 	{
@@ -720,6 +707,8 @@ void pApplication::vdefine( const string& names, int * i_ad1, int * i_ad2, int *
 
 	string name ;
 
+	RC = 0 ;
+
 	w = words( names ) ;
 	if ( ( w > 8 ) || ( w < 1 ) )
 	{
@@ -727,8 +716,6 @@ void pApplication::vdefine( const string& names, int * i_ad1, int * i_ad2, int *
 		checkRCode( errBlock ) ;
 		return ;
 	}
-
-	RC = 0 ;
 
 	if ( i_ad1 == NULL )
 	{
@@ -1771,6 +1758,26 @@ void pApplication::control( const string& parm1, void (pApplication::*pFunc)() )
 }
 
 
+void pApplication::log( const string& msgid )
+{
+	// RC = 0   Normal completion
+	// RC = 12  Message not found or message syntax error
+	// RC = 20  Severe error
+
+	string t ;
+
+	getmsg( msgid, "ZERRSM", "ZERRLM" ) ;
+
+	if ( RC == 0 )
+	{
+		vcopy( "ZERRSM", t, MOVE ) ;
+		llog( "L", t << endl )     ;
+		vcopy( "ZERRLM", t, MOVE ) ;
+		llog( "L", t << endl )     ;
+	}
+}
+
+
 void pApplication::tbadd( const string& tb_name, const string& tb_namelst, const string& tb_order, int tb_num_of_rows )
 {
 	// Add a row to a table
@@ -2569,7 +2576,7 @@ void pApplication::tbsave( const string& tb_name, const string& tb_newname, cons
 	p_tableMGR->saveTable( errBlock, taskid(), tb_name, tb_newname, path ) ;
 	if ( errBlock.error() )
 	{
-		errBlock.setcall( "TBSAVE error" ) ;
+		errBlock.setcall( e1 ) ;
 		checkRCode( errBlock ) ;
 	}
 	RC = errBlock.getRC() ;
@@ -2740,8 +2747,8 @@ void pApplication::select( selobj sel )
 
 void pApplication::actionSelect()
 {
-	// RC=0  Normal completion of the selection panel or function.  END was entered.
-	// RC=4  Normal completion.  RETURN was entered or EXIT specified on the selection panel
+	// RC =  0  Normal completion of the selection panel or function.  END was entered.
+	// RC =  4  Normal completion.  RETURN was entered or EXIT specified on the selection panel
 
 	RC       = 0     ;
 	SEL      = true  ;
@@ -2858,7 +2865,7 @@ void pApplication::load_keylist( pPanel * p )
 		if ( !klfail )
 		{
 			RC = 0 ;
-			log( "W", "Open of keylist table '"+ tabName +"' failed" << endl ) ;
+			llog( "W", "Open of keylist table '"+ tabName +"' failed" << endl ) ;
 			return ;
 		}
 		errBlock.setcall( "KEYLIST error", "PSYE023E", tabName ) ;
@@ -2874,7 +2881,7 @@ void pApplication::load_keylist( pPanel * p )
 		if ( !klfail )
 		{
 			RC = 0 ;
-			log( "W", "Keylist '"+ p->KEYLISTN +"' not found in keylist table "+ tabName << endl ) ;
+			llog( "W", "Keylist '"+ p->KEYLISTN +"' not found in keylist table "+ tabName << endl ) ;
 			return ;
 		}
 		errBlock.setcall( "KEYLIST error", "PSYE023F", p->KEYLISTN, tabName ) ;
@@ -2972,6 +2979,10 @@ void pApplication::setmsg( const string& msg, msgSET sType )
 void pApplication::getmsg( const string& msg, const string& smsg, const string& lmsg, const string& alm, const string& hlp, const string& typ, const string& wndo )
 {
 	// Load message msg and substitute variables
+
+	// RC = 0   Normal completion
+	// RC = 12  Message not found or message syntax error
+	// RC = 20  Severe error
 
 	const string e1 = "GETMSG error" ;
 
@@ -3089,7 +3100,7 @@ void pApplication::get_Message( const string& p_msg )
 	MSG.smsg = sub_vars( MSG.smsg ) ;
 	MSG.lmsg = sub_vars( MSG.lmsg ) ;
 
-	if ( !sub_Message_vars( MSG ) ) { return ; }
+	if ( !sub_Message_vars( MSG ) ) { RC = 20 ; return ; }
 
 	MSGID    = p_msg ;
 }
@@ -3110,6 +3121,10 @@ bool pApplication::load_Message( const string& p_msg )
 	// G012 file G01
 
 	// If in test mode, reload message each time it is requested
+	// Routine sets the return code:
+	// RC =  0  Normal completion
+	// RC = 12  Message not found or syntax error
+	// RC = 20  Severe error
 
 	int i  ;
 	int j  ;
@@ -3137,7 +3152,7 @@ bool pApplication::load_Message( const string& p_msg )
 
 	if ( i == 0 || ((p_msg.size() - i) > 3 && !isalpha( p_msg.back()) ) )
 	{
-		RC = 20 ;
+		RC = 12 ;
 		checkRCode( "Message-id format invalid (1): "+ p_msg ) ;
 		return false ;
 	}
@@ -3196,7 +3211,7 @@ bool pApplication::load_Message( const string& p_msg )
 			{
 				if ( t.cont || !parse_Message( t ) )
 				{
-					RC = 20 ;
+					RC = 12 ;
 					messages.close() ;
 					checkRCode( "Error (1) in message-id "+ msgid ) ;
 					return false ;
@@ -3219,7 +3234,7 @@ bool pApplication::load_Message( const string& p_msg )
 			i = chk_Message_id( msgid ) ;
 			if ( i == 0 || ((msgid.size() - i) > 3 && !isalpha( msgid.back()) ) )
 			{
-				RC = 20 ;
+				RC = 12 ;
 				checkRCode( "Message-id format invalid (2): "+ msgid ) ;
 				return false ;
 			}
@@ -3228,7 +3243,7 @@ bool pApplication::load_Message( const string& p_msg )
 		{
 			if ( msgid == "" || ( t.lmsg != "" && !t.cont ) )
 			{
-				RC = 20 ;
+				RC = 12 ;
 				messages.close() ;
 				checkRCode( "Extraeneous data: "+ mline ) ;
 				return false ;
@@ -3245,7 +3260,7 @@ bool pApplication::load_Message( const string& p_msg )
 			{
 				if ( mline.back() != c )
 				{
-					RC = 20 ;
+					RC = 12 ;
 					messages.close() ;
 					checkRCode( "Error (2) in message-id "+ msgid ) ;
 					return false ;
@@ -3257,7 +3272,7 @@ bool pApplication::load_Message( const string& p_msg )
 			{
 				if ( words( mline ) > 1 )
 				{
-					RC = 20 ;
+					RC = 12 ;
 					messages.close() ;
 					checkRCode( "Error (3) in message-id "+ msgid ) ;
 					return false ;
@@ -3267,7 +3282,7 @@ bool pApplication::load_Message( const string& p_msg )
 			t.cont ? t.lmsg = t.lmsg + " " + tmp : t.lmsg = tmp ;
 			if ( t.lmsg.size() > 512 )
 			{
-				RC = 20 ;
+				RC = 12 ;
 				messages.close() ;
 				checkRCode( "Long message size exceeds 512 bytes for message-id "+ msgid ) ;
 				return false ;
@@ -3288,7 +3303,7 @@ bool pApplication::load_Message( const string& p_msg )
 	{
 		if ( t.cont || !parse_Message( t ) )
 		{
-			RC = 20 ;
+			RC = 12 ;
 			messages.close() ;
 			checkRCode( "Error (4) in message-id "+ msgid ) ;
 			return false ;
@@ -3482,6 +3497,8 @@ bool pApplication::sub_Message_vars( slmsg& t )
 	// Get the dialogue variable value specified in message .T, .A, .H and .W options
 
 	// Error if the dialgue variable is blank
+	// This routine does not set the return code.  Set in the calling routine.
+
 	// Use defaults for invalid values
 
 	// .TYPE overrides .WINDOW and .ALARM
@@ -3611,67 +3628,67 @@ void pApplication::info()
 	int i ;
 	int p ;
 
-	log( "-", "*************************************************************************************************************" << endl ) ;
-	log( "-", "Application Information for "<< ZAPPNAME << endl ) ;
-	log( "-", "                   Task ID: "<< taskID << endl ) ;
-	log( "-", "          Shared Pool Name: "<< shrdPool << endl ) ;
-	log( "-", "         Profile Pool Name: "<< ZZAPPLID << endl ) ;
-	log( "-", " " << endl ) ;
-	log( "-", "Application Description . : "<< ZAPPDESC << endl ) ;
-	log( "-", "Last Panel Displayed. . . : "<< PANELID << endl ) ;
-	log( "-", "Last Message Displayed. . : "<< MSGID << endl )   ;
-	log( "-", "Number of Panels Loaded . : "<< panelList.size() << endl )  ;
-	log( "-", "Number of Open Tables . . : "<< tablesOpen.size() << endl ) ;
+	llog( "-", "*************************************************************************************************************" << endl ) ;
+	llog( "-", "Application Information for "<< ZAPPNAME << endl ) ;
+	llog( "-", "                   Task ID: "<< taskID << endl ) ;
+	llog( "-", "          Shared Pool Name: "<< shrdPool << endl ) ;
+	llog( "-", "         Profile Pool Name: "<< ZZAPPLID << endl ) ;
+	llog( "-", " " << endl ) ;
+	llog( "-", "Application Description . : "<< ZAPPDESC << endl ) ;
+	llog( "-", "Last Panel Displayed. . . : "<< PANELID << endl ) ;
+	llog( "-", "Last Message Displayed. . : "<< MSGID << endl )   ;
+	llog( "-", "Number of Panels Loaded . : "<< panelList.size() << endl )  ;
+	llog( "-", "Number of Open Tables . . : "<< tablesOpen.size() << endl ) ;
 	if ( rexxName != "" )
 	{
-		log( "-", "Application running REXX. : "<< rexxName << endl ) ;
+		llog( "-", "Application running REXX. : "<< rexxName << endl ) ;
 	}
-	log( "-", " " << endl ) ;
+	llog( "-", " " << endl ) ;
 	if ( testMode )
 	{
-		log( "-", "Application running in test mode"<< endl ) ;
+		llog( "-", "Application running in test mode"<< endl ) ;
 	}
 	if ( noTimeOut )
 	{
-		log( "-", "Application has disabled timeouts"<< endl ) ;
+		llog( "-", "Application has disabled timeouts"<< endl ) ;
 	}
 	if ( PASSLIB )
 	{
-		log( "-", "Application started with PASSLIB option"<< endl ) ;
+		llog( "-", "Application started with PASSLIB option"<< endl ) ;
 	}
 	if ( NEWPOOL )
 	{
-		log( "-", "Application started with NEWPOOL option"<< endl ) ;
+		llog( "-", "Application started with NEWPOOL option"<< endl ) ;
 	}
 	if ( libdef_muser )
 	{
-		log( "-", "LIBDEF active for user message search"<< endl ) ;
+		llog( "-", "LIBDEF active for user message search"<< endl ) ;
 		p = getpaths( zmuser.top() ) ;
 		for ( i = 1 ; i <= p ; i++ )
 		{
-			log( "-", "       Path. . . . . . . "<< getpath( zmuser.top(), i ) << endl ) ;
+			llog( "-", "       Path. . . . . . . "<< getpath( zmuser.top(), i ) << endl ) ;
 		}
 
 	}
 	if ( libdef_puser )
 	{
-		log( "-", "LIBDEF active for user panel search"<< endl ) ;
+		llog( "-", "LIBDEF active for user panel search"<< endl ) ;
 		p = getpaths( zpuser.top() ) ;
 		for ( i = 1 ; i <= p ; i++ )
 		{
-			log( "-", "       Path. . . . . . . "<< getpath( zpuser.top(), i ) << endl ) ;
+			llog( "-", "       Path. . . . . . . "<< getpath( zpuser.top(), i ) << endl ) ;
 		}
 	}
 	if ( libdef_tuser )
 	{
-		log( "-", "LIBDEF active for user table search"<< endl ) ;
+		llog( "-", "LIBDEF active for user table search"<< endl ) ;
 		p = getpaths( ztuser.top() ) ;
 		for ( i = 1 ; i <= p ; i++ )
 		{
-			log( "-", "       Path. . . . . . . "<< getpath( ztuser.top(), i ) << endl ) ;
+			llog( "-", "       Path. . . . . . . "<< getpath( ztuser.top(), i ) << endl ) ;
 		}
 	}
-	log( "-", "*************************************************************************************************************" << endl ) ;
+	llog( "-", "*************************************************************************************************************" << endl ) ;
 }
 
 
@@ -3703,12 +3720,16 @@ void pApplication::checkRCode( const string& s )
 {
 	// If the error panel is to be displayed, cancel CONTROL DISPLAY LOCK
 
-	log( "E", s << endl ) ;
-	if ( ZERR2 != "" ) { log( "E", ZERR2 << endl ) ; }
+	int RC2 ;
+
+	RC2 = RC ;
+
+	llog( "E", s << endl ) ;
+	if ( ZERR2 != "" ) { llog( "E", ZERR2 << endl ) ; }
 
 	if ( !ControlErrorsReturn && RC >= 12 )
 	{
-		log( "E", "RC="<< RC <<" CONTROL ERRORS CANCEL is in effect.  Aborting" << endl ) ;
+		llog( "E", "RC="<< RC <<" CONTROL ERRORS CANCEL is in effect.  Aborting" << endl ) ;
 		vreplace( "ZAPPNAME", ZAPPNAME ) ;
 		vreplace( "ZERR1",  s ) ;
 		vreplace( "ZERR2",  ZERR2  ) ;
@@ -3718,11 +3739,10 @@ void pApplication::checkRCode( const string& s )
 		vreplace( "ZERR6",  ZERR6  ) ;
 		vreplace( "ZERR7",  ZERR7  ) ;
 		vreplace( "ZERR8",  ZERR8  ) ;
-		vreplace( "ZERR9",  ZERR9  ) ;
-		vreplace( "ZERR10", ZERR10 ) ;
-		ControlDisplayLock  = false  ;
-		ControlErrorsReturn = true   ;
-		display( "PSYSER1" ) ;
+		vreplace( "ZERRRC", d2ds( RC2 ) ) ;
+		ControlDisplayLock  = false ;
+		ControlErrorsReturn = true  ;
+		display( "PSYSER1" )  ;
 		errPanelissued = true ;
 		abend() ;
 	}
@@ -3740,6 +3760,7 @@ void pApplication::checkRCode( errblock err )
 	//         dline  dialogue statement if entered.
 
 	// Set RC to the error code in the error block if we are returning to the program (CONTROL ERRORS RETURN)
+	// and clear errBlock (will have been re-used for services run from this routine)
 
 	string t ;
 
@@ -3752,16 +3773,22 @@ void pApplication::checkRCode( errblock err )
 	vreplace( "ZERRMSG", err.msgid )  ;
 	vreplace( "ZERRRC", d2ds( err.getRC() ) ) ;
 
-	log( "E", err.msg1 << endl ) ;
+	llog( "E", err.msg1 << endl ) ;
 
 	vcopy( "ZERRSM", t, MOVE ) ;
-	if ( t != "" ) { log( "E", t << endl ) ; }
+	if ( t != "" ) { llog( "E", t << endl ) ; }
 	vcopy( "ZERRLM", t, MOVE ) ;
-	if ( t != "" ) { log( "E", t << endl ) ; }
+	if ( t != "" ) { llog( "E", t << endl ) ; }
 
-	if ( ControlErrorsReturn ) { RC = err.getRC() ; return ; }
+	if ( ControlErrorsReturn )
+	{
+		RC = err.getRC() ;
+		errBlock.clear() ;
+		return ;
+	}
 
-	log( "E", "RC="<< err.RC <<" CONTROL ERRORS CANCEL is in effect.  Aborting" << endl ) ;
+	llog( "E", "RC="<< err.RC <<" CONTROL ERRORS CANCEL is in effect.  Aborting" << endl ) ;
+
 	vreplace( "ZAPPNAME", ZAPPNAME ) ;
 	vreplace( "ZERR1",  err.msg1  ) ;
 
@@ -3805,23 +3832,23 @@ void pApplication::cleanup_default()
 
 void pApplication::cleanup()
 {
-	log( "I", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskID << endl ) ;
+	llog( "I", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskID << endl ) ;
 	terminateAppl = true  ;
 	busyAppl      = false ;
-	log( "I", "Returning to calling program." << endl ) ;
+	llog( "I", "Returning to calling program." << endl ) ;
 	return ;
 }
 
 
 void pApplication::abend()
 {
-	log( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskID << " due to an abnormal condition" << endl ) ;
+	llog( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskID << " due to an abnormal condition" << endl ) ;
 	abnormalEnd   = true  ;
 	terminateAppl = true  ;
 	busyAppl      = false ;
 	SEL           = false ;
 	(this->*pcleanup)()   ;
-	log( "E", "Application entering wait state" << endl ) ;
+	llog( "E", "Application entering wait state" << endl ) ;
 	boost::this_thread::sleep_for(boost::chrono::seconds(31536000)) ;
 }
 
@@ -3829,7 +3856,7 @@ void pApplication::abend()
 void pApplication::uabend( const string& msgid, const string& e1, int callno )
 {
 	// Abend application with error screen.
-	// Screen will show short and long messages from msgid,
+	// Screen will show short and long messages from msgid, and the return code RC
 	// Optional override e1 for the long mesage, and an optional call number
 
 	string t ;
@@ -3840,7 +3867,7 @@ void pApplication::uabend( const string& msgid, const string& e1, int callno )
 	getmsg( msgid, "ZERRSM", "ZERRLM" ) ;
 	if ( e1 != "" ) { vreplace( "ZERRLM",  e1 ) ; }
 
-	log( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskID << " due to a user abend" << endl ) ;
+	llog( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskID << " due to a user abend" << endl ) ;
 
 	vreplace( "ZAPPNAME", ZAPPNAME ) ;
 	vreplace( "ZERRMSG", msgid )  ;
@@ -3857,14 +3884,14 @@ void pApplication::uabend( const string& msgid, const string& e1, int callno )
 	busyAppl      = false ;
 	SEL           = false ;
 	(this->*pcleanup)()   ;
-	log( "E", "Application entering wait state" << endl ) ;
+	llog( "E", "Application entering wait state" << endl ) ;
 	boost::this_thread::sleep_for(boost::chrono::seconds(31536000)) ;
 }
 
 
 void pApplication::abendexc()
 {
-	log( "E", "An unhandled exception has occured in application: "+ ZAPPNAME +" Taskid: " << taskID << endl ) ;
+	llog( "E", "An unhandled exception has occured in application: "+ ZAPPNAME +" Taskid: " << taskID << endl ) ;
 	if ( !abending )
 	{
 		(this->*pcleanup)() ;
@@ -3872,23 +3899,23 @@ void pApplication::abendexc()
 	}
 	else
 	{
-		log( "E", "An abend has occured during abend processing.  Cleanup will not be called" << endl ) ;
+		llog( "E", "An abend has occured during abend processing.  Cleanup will not be called" << endl ) ;
 	}
 	exception_ptr ptr = current_exception() ;
-	log( "E", "Exception: " << (ptr ? ptr.__cxa_exception_type()->name() : "Unknown" ) << endl ) ;
-	log( "E", "Shutting down application: " << ZAPPNAME << " Taskid: " << taskID << endl ) ;
+	llog( "E", "Exception: " << (ptr ? ptr.__cxa_exception_type()->name() : "Unknown" ) << endl ) ;
+	llog( "E", "Shutting down application: " << ZAPPNAME << " Taskid: " << taskID << endl ) ;
 	abnormalEnd   = true  ;
 	terminateAppl = true  ;
 	busyAppl      = false ;
 	SEL           = false ;
-	log( "E", "Application entering wait state" << endl ) ;
+	llog( "E", "Application entering wait state" << endl ) ;
 	boost::this_thread::sleep_for(boost::chrono::seconds(31536000)) ;
 }
 
 
 void pApplication::set_forced_abend()
 {
-	log( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskID << " due to a forced condition" << endl ) ;
+	llog( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskID << " due to a forced condition" << endl ) ;
 	abnormalEnd       = true  ;
 	abnormalEndForced = true  ;
 	terminateAppl     = true  ;
@@ -3900,7 +3927,7 @@ void pApplication::set_forced_abend()
 
 void pApplication::set_timeout_abend()
 {
-	log( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskID << " due to a timeout condition" << endl ) ;
+	llog( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskID << " due to a timeout condition" << endl ) ;
 	abnormalEnd       = true  ;
 	abnormalEndForced = true  ;
 	abnormalTimeout   = true  ;
@@ -3918,7 +3945,7 @@ void pApplication::isredit( const string& s)
 
 void pApplication::closeLog()
 {
-	log( "I", "Closing application log" << endl ) ;
+	llog( "I", "Closing application log" << endl ) ;
 	aplog.close() ;
 }
 

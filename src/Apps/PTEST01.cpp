@@ -52,7 +52,7 @@ using namespace std ;
 
 void PTEST01::application()
 {
-	log( "I", "Application PTEST01 starting." << endl ) ;
+	llog( "I", "Application PTEST01 starting." << endl ) ;
 
 	char a ;
 	string abc ;
@@ -157,141 +157,141 @@ void PTEST01::opt1()
 
 //      tbopen( "TABK", WRITE, "/home/daniel/.lspf/" ) ;
 	tbopen( "TABK", WRITE ) ;
-	log( "A", "TBOPEN TABK WRITE no file name RC=" << RC << endl ) ;
+	llog( "A", "TBOPEN TABK WRITE no file name RC=" << RC << endl ) ;
 
 	tbsave( "TABK" ) ;
-	log( "A", "TBSAVE TABK no file name RC=" << RC << endl ) ;
+	llog( "A", "TBSAVE TABK no file name RC=" << RC << endl ) ;
 
 	tbend( "TABK" ) ;
-	log( "A", "TBEND TABK RC=" << RC << endl ) ;
+	llog( "A", "TBEND TABK RC=" << RC << endl ) ;
 
 	tberase( "TABK" ) ;
-	log( "A", "TBERASE TABK RC=" << RC << endl ) ;
+	llog( "A", "TBERASE TABK RC=" << RC << endl ) ;
 
 	tbcreate( "TABK", "TABA1", "TABA2 TABA3 TABA4 TABA5", WRITE ) ;
-	log( "A", "TBCREATE TABK with WRITE option RC=" << RC << endl ) ;
+	llog( "A", "TBCREATE TABK with WRITE option RC=" << RC << endl ) ;
 
 	tbsort( "TABK", "TABA1,C,D" ) ;
-	log( "A", "TBSORT TABK RC=" << RC << endl ) ;
+	llog( "A", "TBSORT TABK RC=" << RC << endl ) ;
 
 	tbvclear( "TABK" ) ;
-	log( "A", "TBVCLEAR TABK RC=" << RC << endl ) ;
+	llog( "A", "TBVCLEAR TABK RC=" << RC << endl ) ;
 
 	TABA1 = "KEY2"    ; TABA2 = "AALUE11" ; TABA3 = "VALUE222" ; TABA4 = "VALUE3333" ; TABA5 = "VALUE44444" ;
 	tbadd( "TABK", "", "ORDER" ) ;
-	log( "A", "TBADD TABK RC=" << RC << endl ) ;
+	llog( "A", "TBADD TABK RC=" << RC << endl ) ;
 	TABA1 = "KEY1"    ; TABA2 = "CALUE11" ; TABA3 = "VALUE222" ; TABA4 = "VALUE3333" ; TABA5 = "VALUE44444" ;
 	tbadd( "TABK", "", "ORDER"  ) ;
-	log( "A", "TBADD TABK RC=" << RC << endl ) ;
+	llog( "A", "TBADD TABK RC=" << RC << endl ) ;
 	TABA1 = "KEY3"    ; TABA2 = "BALUE11" ; TABA3 = "VALUE222" ; TABA4 = "VALUE3333" ; TABA5 = "VALUE44444" ;
 	tbadd( "TABK", "", "ORDER"  ) ;
-	log( "A", "TBADD TABK RC=" << RC << endl ) ;
+	llog( "A", "TBADD TABK RC=" << RC << endl ) ;
 
 	int i ;
 	for ( i = 4 ; i > 0 ; i-- )
 	{
 		TABA1 = "TABKEY" + d2ds(i) ; TABA2 = "VALUE B1 " ; TABA3 = "VALUE B2  " ; TABA4 = "VALUE B3   " ; TABA5 = "VALUE B4    " ;
 		tbadd( "TABK"  ) ;
-		log( "A", "TBADD TABK with key >>" << TABA1 << "<<  RC=" << RC << endl ) ;
+		llog( "A", "TBADD TABK with key >>" << TABA1 << "<<  RC=" << RC << endl ) ;
 	}
 
 	tbbottom( "TABK" ) ;
-	log( "A", "TBADD TABK RC=" << RC << endl ) ;
+	llog( "A", "TBADD TABK RC=" << RC << endl ) ;
 
 	TABA1 = "KEY4"    ; TABA2 = "VALUE11" ; TABA3 = "VALUE222" ; TABA4 = "VALUE3333" ; TABA5 = "VALUE44444" ;
 	tbadd( "TABK", "", "ORDER"  ) ;
-	log( "A", "TBADD TABK RC=" << RC << endl ) ;
+	llog( "A", "TBADD TABK RC=" << RC << endl ) ;
 
 	tbtop( "TABK" ) ;
 	while ( true )
 	{
 		tbskip( "TABK", 1 ) ;
 		if ( RC > 0 ) { break ; }
-		log( "A", "TBSKIP TABK VAR VALUES: TABA1 " << TABA1 << " TABA2 " << TABA2  << " TABA3 " << TABA3  << " TABA4 " << TABA4  << " TABA5 " << TABA5 << endl ) ;
+		llog( "A", "TBSKIP TABK VAR VALUES: TABA1 " << TABA1 << " TABA2 " << TABA2  << " TABA3 " << TABA3  << " TABA4 " << TABA4  << " TABA5 " << TABA5 << endl ) ;
 	}
 
 
 	TABA1 = "TABKEY2" ;
 	tbdelete( "TABK" ) ;
-	log( "A", "TBDELETE TABK for TABKEY2 RC=" << RC << endl ) ;
+	llog( "A", "TBDELETE TABK for TABKEY2 RC=" << RC << endl ) ;
 
 	tbtop( "TABK" ) ;
 	while ( true )
 	{
 		tbskip( "TABK", 1 ) ;
 		if ( RC > 0 ) { break ; }
-		log( "A", "TBSKIP TABK VAR VALUES: TABA1 " << TABA1 << " TABA2 " << TABA2  << " TABA3 " << TABA3  << " TABA4 " << TABA4  << " TABA5 " << TABA5 << endl ) ;
+		llog( "A", "TBSKIP TABK VAR VALUES: TABA1 " << TABA1 << " TABA2 " << TABA2  << " TABA3 " << TABA3  << " TABA4 " << TABA4  << " TABA5 " << TABA5 << endl ) ;
 	}
 
 	tbsort( "TABK", "TABA2,C,D" ) ;
 
 	TABA1 = "TABKEY999" ;
 	tbdelete( "TABK" ) ;
-	log( "A", "TBDELETE TABK for TABKEY999 RC=" << RC << endl ) ;
+	llog( "A", "TBDELETE TABK for TABKEY999 RC=" << RC << endl ) ;
 
 
 //      tbsave( "TABK", "" , "/home/daniel/.lspf/" ) ;
 	tbsave( "TABK" ) ;
-	log( "A", "TBSAVE TABK no file name RC=" << RC << endl ) ;
+	llog( "A", "TBSAVE TABK no file name RC=" << RC << endl ) ;
 
 	tbend( "TABK" ) ;
-	log( "A", "TBEND TABK RC=" << RC << endl ) ;
+	llog( "A", "TBEND TABK RC=" << RC << endl ) ;
 
 	tbopen( "TABK", NOWRITE ) ;
-	log( "A", "TBOPEN TABK NOWRITE RC=" << RC << endl ) ;
+	llog( "A", "TBOPEN TABK NOWRITE RC=" << RC << endl ) ;
 
 	tbsave( "TABK", "TEST111" , "/home/daniel/.lspf/" ) ;
-	log( "A", "TBSAVE TABK with file name ( RC=12? ) RC=" << RC << endl ) ;
+	llog( "A", "TBSAVE TABK with file name ( RC=12? ) RC=" << RC << endl ) ;
 
 	tbend( "TABK" ) ;
-	log( "A", "TBEND TABK RC=" << RC << endl ) ;
+	llog( "A", "TBEND TABK RC=" << RC << endl ) ;
 
 	tbopen( "TABK", WRITE ) ;
-	log( "A", "TBOPEN TABK NOWRITE RC=" << RC << endl ) ;
+	llog( "A", "TBOPEN TABK NOWRITE RC=" << RC << endl ) ;
 
 	TABA1 = "KEY2" ;
 	tbdelete( "TABK" );
-	log( "A", "TBDELETE TABK KEY IS KEY2 RC=" << RC << endl ) ;
+	llog( "A", "TBDELETE TABK KEY IS KEY2 RC=" << RC << endl ) ;
 
 	tbquery( "TABK", "TBQ1","TBQ2", "TBQ3", "TBQ4", "TBQ5", "TBQ6", "TBQ7", "TBQ8", "TBQ9", "TBQ10" ) ;
-	log( "A", "CRP........" << TBQ6  << endl ) ;
+	llog( "A", "CRP........" << TBQ6  << endl ) ;
 
 	TABA1 = "KEY1"    ; TABA2 = "VALUE11" ; TABA3 = "VALUE222" ; TABA4 = "VALUE3333" ; TABA5 = "VALUE44444" ;
 	tbadd( "TABK" ) ;
-	log( "A", "TBADD TABK KEY IS KEY1 (exists) RC=" << RC << endl ) ;
+	llog( "A", "TBADD TABK KEY IS KEY1 (exists) RC=" << RC << endl ) ;
 
 	tbquery( "TABK", "TBQ1","TBQ2", "TBQ3", "TBQ4", "TBQ5", "TBQ6", "TBQ7", "TBQ8", "TBQ9", "TBQ10" ) ;
-	log( "A", "CRP........" << TBQ6  << endl ) ;
+	llog( "A", "CRP........" << TBQ6  << endl ) ;
 
 	TABA1 = "KEY2"    ; TABA2 = "VALUE11" ; TABA3 = "VALUE222" ; TABA4 = "VALUE3333" ; TABA5 = "VALUE44444" ;
 	tbadd( "TABK" ) ;
-	log( "A", "TBADD TABK KEY IS KEY2 (should be okay) RC=" << RC << endl ) ;
+	llog( "A", "TBADD TABK KEY IS KEY2 (should be okay) RC=" << RC << endl ) ;
 
 	tbquery( "TABK", "TBQ1","TBQ2", "TBQ3", "TBQ4", "TBQ5", "TBQ6", "TBQ7", "TBQ8", "TBQ9", "TBQ10" ) ;
-	log( "A", "CRP........" << TBQ6  << endl ) ;
+	llog( "A", "CRP........" << TBQ6  << endl ) ;
 
 	tbtop( "TABK" ) ;
 	while ( true )
 	{
 		tbskip( "TABK", 1 ) ;
 		if ( RC > 0 ) { break ; }
-		log( "A", "TBSKIP TABK VAR VALUES: TABA1 " << TABA1 << " TABA2 " << TABA2  << " TABA3 " << TABA3  << " TABA4 " << TABA4  << " TABA5 " << TABA5 << endl ) ;
+		llog( "A", "TBSKIP TABK VAR VALUES: TABA1 " << TABA1 << " TABA2 " << TABA2  << " TABA3 " << TABA3  << " TABA4 " << TABA4  << " TABA5 " << TABA5 << endl ) ;
 	}
 
 	TABA1 = "KEY2"    ; TABA2 = "VALUENEW" ; TABA3 = "VALUENEW" ; TABA4 = "VALUENEW" ; TABA5 = "VALUE4NEW" ;
 	tbput( "TABK" ) ;
-	log( "A", "TBPUT TABK KEY IS KEY2 (should be okay) RC=" << RC << endl ) ;
+	llog( "A", "TBPUT TABK KEY IS KEY2 (should be okay) RC=" << RC << endl ) ;
 
 	tbquery( "TABK", "TBQ1","TBQ2", "TBQ3", "TBQ4", "TBQ5", "TBQ6", "TBQ7", "TBQ8", "TBQ9", "TBQ10" ) ;
-	log( "A", "CRP........" << TBQ6  << endl ) ;
+	llog( "A", "CRP........" << TBQ6  << endl ) ;
 
 	TABA1 = "KEY2"    ;
 	tbget( "TABK" ) ;
-	log( "A", "TBGET TABK KEY IS KEY2 (should be okay) RC=" << RC << endl ) ;
+	llog( "A", "TBGET TABK KEY IS KEY2 (should be okay) RC=" << RC << endl ) ;
 
 	TABA1 = "KEY2"    ; TABA2 = "VALUENEW" ; TABA3 = "VALUENEW" ; TABA4 = "VALUENEW" ; TABA5 = "VALUE4NEW" ;
 	tbput( "TABK" ) ;
-	log( "A", "TBPUT TABK KEY IS KEY2 (should be okay) RC=" << RC << endl ) ;
+	llog( "A", "TBPUT TABK KEY IS KEY2 (should be okay) RC=" << RC << endl ) ;
 
 	tbsort( "TABK", "TABA2,C,D" ) ;
 	tbsarg( "TABK", "", "NEXT", "(TABA5,EQ)" ) ;
@@ -299,21 +299,21 @@ void PTEST01::opt1()
 
 	tbquery( "TABK", "TBQ1","TBQ2", "TBQ3", "TBQ4", "TBQ5", "TBQ6", "TBQ7", "TBQ8", "TBQ9", "TBQ10" ) ;
 
-	log( "A", "TBQUERY RC=" << RC << endl ) ;
-	log( "A", "-" << RC << endl ) ;
-	log( "A", "Key name......." << TBQ1  << endl ) ;
-	log( "A", "Var name......." << TBQ2  << endl ) ;
-	log( "A", "Row Num........" << TBQ3  << endl ) ;
-	log( "A", "Key Num........" << TBQ4  << endl ) ;
-	log( "A", "Name num......." << TBQ5  << endl ) ;
-	log( "A", "CRP............" << TBQ6  << endl ) ;
-	log( "A", "Sort IR........" << TBQ7  << endl ) ;
-	log( "A", "Name List......" << TBQ8  << endl ) ;
-	log( "A", "Cond List......" << TBQ9  << endl ) ;
-	log( "A", "Direction......" << TBQ10 << endl ) ;
+	llog( "A", "TBQUERY RC=" << RC << endl ) ;
+	llog( "A", "-" << RC << endl ) ;
+	llog( "A", "Key name......." << TBQ1  << endl ) ;
+	llog( "A", "Var name......." << TBQ2  << endl ) ;
+	llog( "A", "Row Num........" << TBQ3  << endl ) ;
+	llog( "A", "Key Num........" << TBQ4  << endl ) ;
+	llog( "A", "Name num......." << TBQ5  << endl ) ;
+	llog( "A", "CRP............" << TBQ6  << endl ) ;
+	llog( "A", "Sort IR........" << TBQ7  << endl ) ;
+	llog( "A", "Name List......" << TBQ8  << endl ) ;
+	llog( "A", "Cond List......" << TBQ9  << endl ) ;
+	llog( "A", "Direction......" << TBQ10 << endl ) ;
 
 	tbend( "TABK" ) ;
-	log( "A", "TBEND TABK RC=" << RC << endl ) ;
+	llog( "A", "TBEND TABK RC=" << RC << endl ) ;
 
 	vdelete( "TABA1 TABA2 TABA3 TABA4 TABA5" ) ;
 }
@@ -333,10 +333,10 @@ void PTEST01::opt2()
 	vdefine( "TABB1 TABB2 TABB3 TABB4 TABB5", &TABB1, &TABB2, &TABB3, &TABB4, &TABB5 ) ;
 
 	tbcreate( "TABN", "", "TABB1 TABB2 TABB3 TABB4 TABB5", WRITE ) ;
-	log( "A", "TBCREATE TABN RC=" << RC << endl ) ;
+	llog( "A", "TBCREATE TABN RC=" << RC << endl ) ;
 
 	tbvclear( "TABN" ) ;
-	log( "A", "TBVCLEAR TABN RC=" << RC << endl ) ;
+	llog( "A", "TBVCLEAR TABN RC=" << RC << endl ) ;
 
 
 	r = 0 ;
@@ -345,7 +345,7 @@ void PTEST01::opt2()
 		TABB1 = "NOTAKEY" ; TABB2 = "VALUE "+d2ds(i) ; TABB3 = "VALUE "+d2ds(i)  ; TABB4 = "VALUE  "+d2ds(i)  ; TABB5 = "VALUE     "+d2ds(i)  ;
 		tbadd( "TABN", "", "", r ) ;
 		r = 0 ;
-		log( "A", "TBADD TABN RC=" << RC << " Record number being loaded is " << i << endl ) ;
+		llog( "A", "TBADD TABN RC=" << RC << " Record number being loaded is " << i << endl ) ;
 	}
 
 //      tbend("TABN" ) ;
@@ -358,20 +358,20 @@ void PTEST01::opt2()
 	EXTV4 = "EXTENSION VAR 4 " ;
 
 	tbadd( "TABN", "EXTV1 EXTV2 EXTV3 EXTV4" ) ;
-	log( "A", "TBADD TABN RC=" << RC << " Record number being loaded is custom" << endl ) ;
+	llog( "A", "TBADD TABN RC=" << RC << " Record number being loaded is custom" << endl ) ;
 
 	TABB1 = "NOTAKEY" ; TABB2 = "VALUE3" ; TABB3 = "VALUE3"  ; TABB4 = "VALUE3" ; TABB5 = "VALUE3"  ;
 	tbadd( "TABN" ) ;
-	log( "A", "TBADD TABN RC=" << RC << " Record number being loaded is custom" << endl ) ;
+	llog( "A", "TBADD TABN RC=" << RC << " Record number being loaded is custom" << endl ) ;
 
 	tbtop( "TABN" ) ;
-	log( "A", "TBTOP TABN RC=" << RC << endl ) ;
+	llog( "A", "TBTOP TABN RC=" << RC << endl ) ;
 
 	tbvclear( "TABN" ) ;
 	TABB1 = "NOTAKEY" ;
 	EXTV4 = "EXTENSION VA*" ;
 	tbsarg( "TABN", "EXTV4", "", "" ) ;
-	log( "A", "TBSARG TABN  RC=" << RC << endl ) ;
+	llog( "A", "TBSARG TABN  RC=" << RC << endl ) ;
 
 	EXTV1 = "" ;
 	EXTV2 = "" ;
@@ -381,38 +381,38 @@ void PTEST01::opt2()
 	TABB1 = "NOTAKEY" ;
 	EXTV4 = "EXTENSION VA*" ;
 	tbscan( "TABN" ) ;
-	log( "A", "TBSCAN (no TBSARG) TABN  RC=" << RC << endl ) ;
-	log( "A", "TBSCAN TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
-	log( "A", "EXTLST >>" << EXTLST << "<<"  << endl ) ;
-	log( "A", "EXTV1 >>" << EXTV1 << "<<"  << endl ) ;
-	log( "A", "EXTV2 >>" << EXTV2 << "<<"  << endl ) ;
-	log( "A", "EXTV3 >>" << EXTV3 << "<<"  << endl ) ;
-	log( "A", "EXTV4 >>" << EXTV4 << "<<"  << endl ) ;
+	llog( "A", "TBSCAN (no TBSARG) TABN  RC=" << RC << endl ) ;
+	llog( "A", "TBSCAN TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
+	llog( "A", "EXTLST >>" << EXTLST << "<<"  << endl ) ;
+	llog( "A", "EXTV1 >>" << EXTV1 << "<<"  << endl ) ;
+	llog( "A", "EXTV2 >>" << EXTV2 << "<<"  << endl ) ;
+	llog( "A", "EXTV3 >>" << EXTV3 << "<<"  << endl ) ;
+	llog( "A", "EXTV4 >>" << EXTV4 << "<<"  << endl ) ;
 
 
 	tbvclear( "TABN" ) ;
 	TABB1 = "NOTAKEY" ;
 	EXTV4 = "EXTENSION VAx*" ;
 	tbsarg( "TABN", "EXTV4", "", "" ) ;
-	log( "A", "TBSARG TABN  RC=" << RC << endl ) ;
+	llog( "A", "TBSARG TABN  RC=" << RC << endl ) ;
 	tbscan( "TABN" ) ;
-	log( "A", "TBSCAN TABN  RC=" << RC << endl ) ;
-	log( "A", "TBSCAN TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
-	log( "A", "EXTLST >>" << EXTLST << "<<"  << endl ) ;
-	log( "A", "EXTV1 >>" << EXTV1 << "<<"  << endl ) ;
-	log( "A", "EXTV2 >>" << EXTV2 << "<<"  << endl ) ;
-	log( "A", "EXTV3 >>" << EXTV3 << "<<"  << endl ) ;
-	log( "A", "EXTV4 >>" << EXTV4 << "<<"  << endl ) ;
+	llog( "A", "TBSCAN TABN  RC=" << RC << endl ) ;
+	llog( "A", "TBSCAN TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
+	llog( "A", "EXTLST >>" << EXTLST << "<<"  << endl ) ;
+	llog( "A", "EXTV1 >>" << EXTV1 << "<<"  << endl ) ;
+	llog( "A", "EXTV2 >>" << EXTV2 << "<<"  << endl ) ;
+	llog( "A", "EXTV3 >>" << EXTV3 << "<<"  << endl ) ;
+	llog( "A", "EXTV4 >>" << EXTV4 << "<<"  << endl ) ;
 
 	tbscan( "TABN" ) ;
-	log( "A", "TBSCAN TABN  RC=" << RC << endl ) ;
+	llog( "A", "TBSCAN TABN  RC=" << RC << endl ) ;
 
 	tbtop( "TABN" ) ;
-	log( "A", "TBTOP TABN RC=" << RC << endl ) ;
+	llog( "A", "TBTOP TABN RC=" << RC << endl ) ;
 
 
 	tbskip( "TABN", 1 ) ;
-	log( "A", "TBSKIP TABN 1 RECORD RC=" << RC << endl ) ;
+	llog( "A", "TBSKIP TABN 1 RECORD RC=" << RC << endl ) ;
 
 	EXTV1 = "" ;
 	EXTV2 = "" ;
@@ -420,22 +420,22 @@ void PTEST01::opt2()
 	EXTV4 = "" ;
 
 	tbget( "TABN" ) ;
-	log( "A", "TBGET TABN 1 RECORD RC=" << RC << endl ) ;
-	log( "A", "EXTV1 >>" << EXTV1 << "<<"  << endl ) ;
+	llog( "A", "TBGET TABN 1 RECORD RC=" << RC << endl ) ;
+	llog( "A", "EXTV1 >>" << EXTV1 << "<<"  << endl ) ;
 
 	while ( true )
 	{
 		tbskip( "TABN", 1 ) ;
-		if ( RC > 8 ) { log( "A", "SEVERE ERROR **** TBSKIP" << endl ) ; }
+		if ( RC > 8 ) { llog( "A", "SEVERE ERROR **** TBSKIP" << endl ) ; }
 		if ( RC > 0 ) { break ; }
-		log( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
+		llog( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
 		tbget( "TABN", "EXTLST" ) ;
-		log( "A", "TBGET TABN 1 RECORD RC=" << RC << endl ) ;
-		log( "A", "EXTLST >>" << EXTLST << "<<"  << endl ) ;
-		log( "A", "EXTV1 >>" << EXTV1 << "<<"  << endl ) ;
-		log( "A", "EXTV2 >>" << EXTV2 << "<<"  << endl ) ;
-		log( "A", "EXTV3 >>" << EXTV3 << "<<"  << endl ) ;
-		log( "A", "EXTV4 >>" << EXTV4 << "<<"  << endl ) ;
+		llog( "A", "TBGET TABN 1 RECORD RC=" << RC << endl ) ;
+		llog( "A", "EXTLST >>" << EXTLST << "<<"  << endl ) ;
+		llog( "A", "EXTV1 >>" << EXTV1 << "<<"  << endl ) ;
+		llog( "A", "EXTV2 >>" << EXTV2 << "<<"  << endl ) ;
+		llog( "A", "EXTV3 >>" << EXTV3 << "<<"  << endl ) ;
+		llog( "A", "EXTV4 >>" << EXTV4 << "<<"  << endl ) ;
 		EXTV1 = "" ;
 		EXTV2 = "" ;
 		EXTV3 = "" ;
@@ -443,139 +443,139 @@ void PTEST01::opt2()
 	}
 
 	tbsort( "TABN", "TABB3" ) ;
-	log( "A", "TBSORT TABN RC=" << RC << endl ) ;
+	llog( "A", "TBSORT TABN RC=" << RC << endl ) ;
 
 	tbsave( "TABN", "" , "/home/daniel/.lspf/" ) ;
-	log( "A", "TBASAVE TABN to file name RC=" << RC << endl ) ;
+	llog( "A", "TBASAVE TABN to file name RC=" << RC << endl ) ;
 
 	tbend( "TABN" ) ;
-	log( "A", "TBEND TABN RC=" << RC << endl ) ;
+	llog( "A", "TBEND TABN RC=" << RC << endl ) ;
 
 	tbopen( "TABN", NOWRITE, "/home/daniel/.lspf/" ) ;
-	log( "A", "TBOPEN TABN with NOWRITE RC=" << RC << endl ) ;
+	llog( "A", "TBOPEN TABN with NOWRITE RC=" << RC << endl ) ;
 
 	tbtop( "TABN" ) ;
-	log( "A", "TBTOP TABN RC=" << RC << endl ) ;
+	llog( "A", "TBTOP TABN RC=" << RC << endl ) ;
 
 	while ( true )
 	{
 		tbskip( "TABN", 1 ) ;
-		log( "A", "TBSKIP TABN 1 RECORD RC=" << RC << endl ) ;
+		llog( "A", "TBSKIP TABN 1 RECORD RC=" << RC << endl ) ;
 		if ( RC > 0 ) { break ; }
-		log( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
+		llog( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
 	}
 
 	tbtop( "TABN" ) ;
 	while ( true )
 	{
 		tbskip( "TABN", 1 ) ;
-		log( "A", "TBSKIP TABN 1 RECORD RC=" << RC << endl ) ;
+		llog( "A", "TBSKIP TABN 1 RECORD RC=" << RC << endl ) ;
 		if ( RC > 0 ) { break ; }
-		log( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
+		llog( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
 	}
 
 	tbend( "TABN" ) ;
-	log( "A", "TBEND TABN RC=" << RC << endl ) ;
+	llog( "A", "TBEND TABN RC=" << RC << endl ) ;
 
 	tbopen( "TABN", WRITE, "/home/daniel/.lspf/" ) ;
-	log( "A", "TBOPEN TABN with WRITE RC=" << RC << endl ) ;
+	llog( "A", "TBOPEN TABN with WRITE RC=" << RC << endl ) ;
 
 	tbsort( "TABN", "TABB1" ) ;
-	log( "A", "TBSORT TABN RC=" << RC << endl ) ;
+	llog( "A", "TBSORT TABN RC=" << RC << endl ) ;
 	tbtop( "TABN" ) ;
 	while ( true )
 	{
 		tbskip( "TABN", 1 ) ;
 		if ( RC > 0 ) { break ; }
-		log( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
+		llog( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
 	}
 	tbsort( "TABN", "TABB2" ) ;
-	log( "A", "TBSORT TABN RC=" << RC << endl ) ;
+	llog( "A", "TBSORT TABN RC=" << RC << endl ) ;
 
 	tbtop( "TABN" ) ;
 	while ( true )
 	{
 		tbskip( "TABN", 1 ) ;
 		if ( RC > 0 ) { break ; }
-		log( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
+		llog( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
 	}
 
 	tbsort( "TABN", "TABB3" ) ;
-	log( "A", "TBSORT TABN RC=" << RC << endl ) ;
+	llog( "A", "TBSORT TABN RC=" << RC << endl ) ;
 	tbtop( "TABN" ) ;
 	while ( true )
 	{
 		tbskip( "TABN", 1 ) ;
 		if ( RC > 0 ) { break ; }
-		log( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
+		llog( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
 	}
 
 	tbsort( "TABN", "TABB4" ) ;
-	log( "A", "TBSORT TABN RC=" << RC << endl ) ;
+	llog( "A", "TBSORT TABN RC=" << RC << endl ) ;
 	tbtop( "TABN" ) ;
 	while ( true )
 	{
 		tbskip( "TABN", 1 ) ;
 		if ( RC > 0 ) { break ; }
-		log( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
+		llog( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
 	}
 
 	tbsort( "TABN", "TABB5" ) ;
-	log( "A", "TBSORT TABN RC=" << RC << endl ) ;
+	llog( "A", "TBSORT TABN RC=" << RC << endl ) ;
 	tbtop( "TABN" ) ;
 	while ( true )
 	{
 		tbskip( "TABN", 1 ) ;
 		if ( RC > 0 ) { break ; }
-		log( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
+		llog( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
 	}
 
 	tbsort( "TABN", "TABB6" ) ;
-	log( "A", "TBSORT TABN RC=" << RC << endl ) ;
+	llog( "A", "TBSORT TABN RC=" << RC << endl ) ;
 
 	tbtop( "TABN" ) ;
 	tbskip( "TABN", 4 ) ;
-	log( "A", "TBTOP/TBSKIP TABK for CRP = 4 :: RC=" << RC << endl ) ;
+	llog( "A", "TBTOP/TBSKIP TABK for CRP = 4 :: RC=" << RC << endl ) ;
 
 	tbdelete( "TABN" ) ;
-	log( "A", "TBDELETE TABK for CRP = 4 :: RC=" << RC << endl ) ;
+	llog( "A", "TBDELETE TABK for CRP = 4 :: RC=" << RC << endl ) ;
 
 	tbtop( "TABN" ) ;
 	while ( true )
 	{
 		tbskip( "TABN", 1 ) ;
 		if ( RC > 0 ) { break ; }
-		log( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
+		llog( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
 	}
 
 	tbskip( "TABN", 0, "", "", "2" ) ;
-	log( "A", "TBSKIP TABN URID=2 RECORD RC=" << RC << endl ) ;
+	llog( "A", "TBSKIP TABN URID=2 RECORD RC=" << RC << endl ) ;
 
 	tbget( "TABN" ) ;
-	log( "A", "TBGET RC=" << RC << endl ) ;
-	log( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
+	llog( "A", "TBGET RC=" << RC << endl ) ;
+	llog( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
 
 	tbskip( "TABN", 0, "", "", "1" ) ;
-	log( "A", "TBSKIP TABN URID=1 RECORD RC=" << RC << endl ) ;
+	llog( "A", "TBSKIP TABN URID=1 RECORD RC=" << RC << endl ) ;
 
 	tbget( "TABN" ) ;
-	log( "A", "TBGET RC=" << RC << endl ) ;
-	log( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
+	llog( "A", "TBGET RC=" << RC << endl ) ;
+	llog( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
 
 	tbskip( "TABN", 0, "", "", "999999" ) ;
-	log( "A", "TBSKIP TABN URID=999999 RECORD RC=" << RC << endl ) ;
+	llog( "A", "TBSKIP TABN URID=999999 RECORD RC=" << RC << endl ) ;
 
 	tbget( "TABN" ) ;
-	log( "A", "TBGET RC=" << RC << endl ) ;
-	log( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
+	llog( "A", "TBGET RC=" << RC << endl ) ;
+	llog( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
 
 	tbtop( "TABN" ) ;
 	tbdelete( "TABN" ) ;
-	log( "A", "TBDELETE TABK for TBTOP RC=" << RC << endl ) ;
+	llog( "A", "TBDELETE TABK for TBTOP RC=" << RC << endl ) ;
 
 
 	tbend( "TABN" ) ;
-	log( "A", "TBEND TABN RC=" << RC << endl ) ;
+	llog( "A", "TBEND TABN RC=" << RC << endl ) ;
 }
 
 
@@ -624,7 +624,7 @@ void PTEST01::opt3()
 	vector< string >ops ;
 
 	tbcreate( "TABKD", "KEY1", "SEL FLD1 FLD2 FLD3 FLD4", NOWRITE ) ;
-	log( "A", "TBCREATE TABN RC=" << RC << endl ) ;
+	llog( "A", "TBCREATE TABN RC=" << RC << endl ) ;
 	ops.push_back( "TBCREATE " + d2ds(RC) ) ;
 	if ( RC > TRC ) { TRC = RC ; }
 
@@ -648,7 +648,7 @@ void PTEST01::opt3()
 	if ( RC > TRC ) { TRC = RC ; }
 
 	tbvclear( "TABKD" ) ;
-	log( "A", "TBVCLEAR TABN RC=" << RC << endl ) ;
+	llog( "A", "TBVCLEAR TABN RC=" << RC << endl ) ;
 	CRP    = 0  ;
 	CSRROW = 0  ;
 	ROWID  = "" ;
@@ -800,7 +800,7 @@ void PTEST01::opt4()
 	vector< string >ops ;
 
 	tbcreate( "TABND", "", "SEL FLD1 FLD2 FLD3 FLD4", NOWRITE ) ;
-	log( "A", "TBCREATE TABN RC=" << RC << endl ) ;
+	llog( "A", "TBCREATE TABN RC=" << RC << endl ) ;
 	ops.push_back( "TBCREATE " + d2ds(RC) ) ;
 	if ( RC > TRC ) { TRC = RC ; }
 
@@ -824,7 +824,7 @@ void PTEST01::opt4()
 	if ( RC > TRC ) { TRC = RC ; }
 
 	tbvclear( "TABND" ) ;
-	log( "A", "TBVCLEAR TABN RC=" << RC << endl ) ;
+	llog( "A", "TBVCLEAR TABN RC=" << RC << endl ) ;
 
 	CRP    = 0  ;
 	CSRROW = 0  ;
@@ -966,13 +966,13 @@ void PTEST01::opt5()
 	pquery( "PTEST01C", "ZAREA1", "ZAREAT1", "ZAREAW1", "ZAREAD1" ) ;
 	if ( RC > 0 )
 	{
-		log( "E", "Error in PQUERY command.  RC=" << RC << endl ) ;
+		llog( "E", "Error in PQUERY command.  RC=" << RC << endl ) ;
 		return ;
 	}
 	pquery( "PTEST01C", "ZAREA2", "ZAREAT2", "ZAREAW2", "ZAREAD2" ) ;
 	if ( RC > 0 )
 	{
-		log( "E", "Error in PQUERY command.  RC=" << RC << endl ) ;
+		llog( "E", "Error in PQUERY command.  RC=" << RC << endl ) ;
 		return ;
 	}
 
@@ -1036,8 +1036,8 @@ void PTEST01::opt5()
 		if ( ZCMD == "SHOW" )
 		{
 			ZCMD = "" ;
-			log( "A", "ZAREA >>" << ZAREA1 << "<<" << endl ; )
-			log( "A", "ZSHADOW >>" << ZSHADOW1 << "<<" << endl ; )
+			llog( "A", "ZAREA >>" << ZAREA1 << "<<" << endl ; )
+			llog( "A", "ZSHADOW >>" << ZSHADOW1 << "<<" << endl ; )
 		}
 		iupper( ZCMD ) ;
 		if ( word( ZCMD, 1 ) == "GOTO" )
@@ -1058,34 +1058,34 @@ void PTEST01::opt5()
 		}
 
 		posn = 48 ;
-		if ( ZAREA1.substr( posn-1, 1 ) == usermd )      { log( "A", "ZAREA1 FLD at posn " << posn <<" has been touched by the user " << endl ; ) }
-		else if ( ZAREA1.substr( posn-1, 1 ) == datamd ) { log( "A", "ZAREA1 FLD at posn " << posn <<" has been changed by the user " << endl ; ) }
-		else                                             { log( "A", "ZAREA1 FLD at posn " << posn <<" has not been changed or touched by the user " << endl ; ) }
+		if ( ZAREA1.substr( posn-1, 1 ) == usermd )      { llog( "A", "ZAREA1 FLD at posn " << posn <<" has been touched by the user " << endl ; ) }
+		else if ( ZAREA1.substr( posn-1, 1 ) == datamd ) { llog( "A", "ZAREA1 FLD at posn " << posn <<" has been changed by the user " << endl ; ) }
+		else                                             { llog( "A", "ZAREA1 FLD at posn " << posn <<" has not been changed or touched by the user " << endl ; ) }
 
 		posn = 128 ;
-		if ( ZAREA1.substr( posn-1, 1 ) == usermd )      { log( "A", "ZAREA1 FLD at posn " << posn <<" has been touched by the user " << endl ; ) }
-		else if ( ZAREA1.substr( posn-1, 1 ) == datamd ) { log( "A", "ZAREA1 FLD at posn " << posn <<" has been changed by the user " << endl ; ) }
-		else                                             { log( "A", "ZAREA1 FLD at posn " << posn <<" has not been changed or touched by the user " << endl ; ) }
+		if ( ZAREA1.substr( posn-1, 1 ) == usermd )      { llog( "A", "ZAREA1 FLD at posn " << posn <<" has been touched by the user " << endl ; ) }
+		else if ( ZAREA1.substr( posn-1, 1 ) == datamd ) { llog( "A", "ZAREA1 FLD at posn " << posn <<" has been changed by the user " << endl ; ) }
+		else                                             { llog( "A", "ZAREA1 FLD at posn " << posn <<" has not been changed or touched by the user " << endl ; ) }
 
 		posn = 201 ;
-		if ( ZAREA1.substr( posn-1, 1 ) == usermd )      { log( "A", "ZAREA1 FLD at posn " << posn <<" has been touched by the user " << endl ; ) }
-		else if ( ZAREA1.substr( posn-1, 1 ) == datamd ) { log( "A", "ZAREA1 FLD at posn " << posn <<" has been changed by the user " << endl ; ) }
-		else                                             { log( "A", "ZAREA1 FLD at posn " << posn <<" has not been changed or touched by the user " << endl ; ) }
+		if ( ZAREA1.substr( posn-1, 1 ) == usermd )      { llog( "A", "ZAREA1 FLD at posn " << posn <<" has been touched by the user " << endl ; ) }
+		else if ( ZAREA1.substr( posn-1, 1 ) == datamd ) { llog( "A", "ZAREA1 FLD at posn " << posn <<" has been changed by the user " << endl ; ) }
+		else                                             { llog( "A", "ZAREA1 FLD at posn " << posn <<" has not been changed or touched by the user " << endl ; ) }
 
 		posn = 281;
-		if ( ZAREA1.substr( posn-1, 1 ) == usermd )      { log( "A", "ZAREA1 FLD at posn " << posn <<" has been touched by the user " << endl ; ) }
-		else if ( ZAREA1.substr( posn-1, 1 ) == datamd ) { log( "A", "ZAREA1 FLD at posn " << posn <<" has been changed by the user " << endl ; ) }
-		else                                             { log( "A", "ZAREA1 FLD at posn " << posn <<" has not been changed or touched by the user " << endl ; ) }
+		if ( ZAREA1.substr( posn-1, 1 ) == usermd )      { llog( "A", "ZAREA1 FLD at posn " << posn <<" has been touched by the user " << endl ; ) }
+		else if ( ZAREA1.substr( posn-1, 1 ) == datamd ) { llog( "A", "ZAREA1 FLD at posn " << posn <<" has been changed by the user " << endl ; ) }
+		else                                             { llog( "A", "ZAREA1 FLD at posn " << posn <<" has not been changed or touched by the user " << endl ; ) }
 
 		posn = 408 ;
-		if ( ZAREA1.substr( posn-1, 1 ) == usermd )      { log( "A", "ZAREA1 FLD at posn " << posn <<" has been touched by the user " << endl ; ) }
-		else if ( ZAREA1.substr( posn-1, 1 ) == datamd ) { log( "A", "ZAREA1 FLD at posn " << posn <<" has been changed by the user " << endl ; ) }
-		else                                             { log( "A", "ZAREA1 FLD at posn " << posn <<" has not been changed or touched by the user " << endl ; ) }
+		if ( ZAREA1.substr( posn-1, 1 ) == usermd )      { llog( "A", "ZAREA1 FLD at posn " << posn <<" has been touched by the user " << endl ; ) }
+		else if ( ZAREA1.substr( posn-1, 1 ) == datamd ) { llog( "A", "ZAREA1 FLD at posn " << posn <<" has been changed by the user " << endl ; ) }
+		else                                             { llog( "A", "ZAREA1 FLD at posn " << posn <<" has not been changed or touched by the user " << endl ; ) }
 
 		posn = 430 ;
-		if ( ZAREA1.substr( posn-1, 1 ) == usermd )      { log( "A", "ZAREA1 FLD at posn " << posn <<" has been touched by the user " << endl ; ) }
-		else if ( ZAREA1.substr( posn-1, 1 ) == datamd ) { log( "A", "ZAREA1 FLD at posn " << posn <<" has been changed by the user " << endl ; ) }
-		else                                             { log( "A", "ZAREA1 FLD at posn " << posn <<" has not been changed or touched by the user " << endl ; ) }
+		if ( ZAREA1.substr( posn-1, 1 ) == usermd )      { llog( "A", "ZAREA1 FLD at posn " << posn <<" has been touched by the user " << endl ; ) }
+		else if ( ZAREA1.substr( posn-1, 1 ) == datamd ) { llog( "A", "ZAREA1 FLD at posn " << posn <<" has been changed by the user " << endl ; ) }
+		else                                             { llog( "A", "ZAREA1 FLD at posn " << posn <<" has not been changed or touched by the user " << endl ; ) }
 
 
 		if ( ZCMD != "" ) { MSG = "PSYS018" ; }

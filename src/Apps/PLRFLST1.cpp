@@ -66,7 +66,7 @@ void PLRFLST1::application()
 	string P2 ;
 	string PF ;
 
-	log( "I", "Application PLRFLST1 starting" << endl ) ;
+	llog( "I", "Application PLRFLST1 starting" << endl ) ;
 
 	ZAPPDESC = "Personal File List application" ;
 
@@ -82,7 +82,7 @@ void PLRFLST1::application()
 	else if ( P1 == "US1" ) { userSettings()        ; }
 	else if ( P1 == "BEX" ) { setRefMode( P1 )      ; }
 	else if ( P1 == "BRT" ) { setRefMode( P1 )      ; }
-	else                    { log( "E", "Invalid parameter passed to PLRFLST1: " << PARM << endl ) ; }
+	else                    { llog( "E", "Invalid parameter passed to PLRFLST1: " << PARM << endl ) ; }
 
 	cleanup() ;
 	return    ;

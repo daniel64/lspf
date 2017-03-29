@@ -46,7 +46,7 @@ using namespace boost::filesystem ;
 
 void PCMD0A::application()
 {
-	log( "I", "Application PCMD0A starting" << endl ) ;
+	llog( "I", "Application PCMD0A starting" << endl ) ;
 
 	ZAPPDESC = "Invoke a command and display the output" ;
 

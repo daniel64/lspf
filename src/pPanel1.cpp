@@ -205,7 +205,7 @@ string pPanel::getDialogueVar( const string& var )
 				 p_funcPOOL->put( err, var, "" ) ;
 				 break ;
 			default:
-				 log( "E", "RC=20 from pool manager vlocate for variable '"+ var +"'" << endl ) ;
+				 llog( "E", "RC=20 from pool manager vlocate for variable '"+ var +"'" << endl ) ;
 		}
 	}
 	return "" ;
@@ -1537,9 +1537,9 @@ void pPanel::update_field_values( errblock& err )
 		}
 		if ( darea->size() > shadow->size() )
 		{
-			log( "W", "Shadow variable '"+ sname +"' size is smaller than the data variable " << itd->first << " size.  Results are be unpredictable" << endl ) ;
-			log( "W", "Data variable size   = " << darea->size() << endl ) ;
-			log( "W", "Shadow variable size = " << shadow->size() << endl ) ;
+			llog( "W", "Shadow variable '"+ sname +"' size is smaller than the data variable " << itd->first << " size.  Results are be unpredictable" << endl ) ;
+			llog( "W", "Data variable size   = " << darea->size() << endl ) ;
+			llog( "W", "Shadow variable size = " << shadow->size() << endl ) ;
 		}
 		darea->resize( itd->second->dynArea_width * itd->second->dynArea_depth, ' ' )   ;
 		shadow->resize( itd->second->dynArea_width * itd->second->dynArea_depth, 0xFF ) ;
@@ -1812,7 +1812,14 @@ void pPanel::field_edit( uint row, uint col, char ch, bool Isrt, bool& prot )
 			if (  it->second->field_numeric && ch != ' ' && !isdigit( ch ) ) { return ; }
 			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( col ) ) { return ; }
-			if ( !it->second->edit_field_insert( win, ch, col, Isrt, snulls ) ) { return ; }
+			if ( Isrt )
+			{
+				if ( !it->second->edit_field_insert( win, ch, col, snulls ) ) { return ; }
+			}
+			else
+			{
+				if ( !it->second->edit_field_replace( win, ch, col, snulls ) ) { return ; }
+			}
 			prot = false ;
 			++p_col ;
 			if ( (p_col == it->second->field_cole) && (it->second->field_skip) )
@@ -2549,7 +2556,7 @@ void pPanel::get_panel_info( int& RC1, const string& a_name, const string& t_nam
 	it = dynAreaList.find( a_name ) ;
 	if ( it == dynAreaList.end() )
 	{
-		log( "E", "PQUERY.  Dynamic area '"+ a_name +"' not found" << endl ) ;
+		llog( "E", "PQUERY.  Dynamic area '"+ a_name +"' not found" << endl ) ;
 		RC1 = 8 ;
 		return  ;
 	}
@@ -2570,7 +2577,7 @@ void pPanel::attr( int& RC1, const string& field, const string& attrs )
 
 	if ( fieldList.count( field ) == 0 )
 	{
-		log( "E", "ATTR.  Field '"+ field +"' not found" << endl ) ;
+		llog( "E", "ATTR.  Field '"+ field +"' not found" << endl ) ;
 		RC1 = 8  ;
 	}
 	else

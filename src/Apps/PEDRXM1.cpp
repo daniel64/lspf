@@ -191,11 +191,11 @@ void PEDRXM1::start_rexx()
 		{
 			cond = threadContext->GetConditionInfo() ;
 			threadContext->DecodeConditionInfo( cond, &condition ) ;
-			log( "E", "POREXX1 error running REXX.: "<< mibptr->emacro << endl ) ;
-			log( "E", "   Condition Code . . . . .: "<< condition.code << endl ) ;
-			log( "E", "   Condition Error Text . .: "<< threadContext->CString( condition.errortext ) << endl ) ;
-			log( "E", "   Condition Message. . . .: "<< threadContext->CString( condition.message ) << endl ) ;
-			log( "E", "   Line Error Occured . . .: "<< condition.position << endl ) ;
+			llog( "E", "POREXX1 error running REXX.: "<< mibptr->emacro << endl ) ;
+			llog( "E", "   Condition Code . . . . .: "<< condition.code << endl ) ;
+			llog( "E", "   Condition Error Text . .: "<< threadContext->CString( condition.errortext ) << endl ) ;
+			llog( "E", "   Condition Message. . . .: "<< threadContext->CString( condition.message ) << endl ) ;
+			llog( "E", "   Line Error Occured . . .: "<< condition.position << endl ) ;
 			vreplace( "ZERR1", d2ds( condition.code ) ) ;
 			vreplace( "ZERR2", threadContext->CString( condition.errortext ) ) ;
 			vreplace( "ZERR3", threadContext->CString( condition.message ) ) ;

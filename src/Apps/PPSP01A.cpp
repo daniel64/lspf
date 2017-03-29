@@ -66,7 +66,7 @@ using namespace boost::filesystem ;
 
 void PPSP01A::application()
 {
-	log( "I", "Application PPSP01A starting" << endl ) ;
+	llog( "I", "Application PPSP01A starting" << endl ) ;
 
 	ZAPPDESC = "General utilities to display logs, PF Key settings, variables, etc." ;
 
@@ -127,7 +127,7 @@ void PPSP01A::application()
 	else if ( PARM == "UTPGMS"  ) { utilityPrograms() ; }
 	else if ( PARM == "KLISTS"  ) { keylistTables()   ; }
 	else if ( PARM == "KLIST"   ) { keylistTable( )   ; }
-	else { log( "E", "Invalid parameter passed to PPSP01A: " << PARM << endl ) ; }
+	else { llog( "E", "Invalid parameter passed to PPSP01A: " << PARM << endl ) ; }
 
 	cleanup() ;
 	return    ;
@@ -891,7 +891,7 @@ void PPSP01A::colourSettings()
 	{
 		if ( setScreenAttrs( VarList[ i ], i, COLOUR, INTENS, HILITE ) > 0 )
 		{
-			log( "E", "ISPS variable " << "ZC" + VarList[ i ] << " not found.  Re-run setup program to create" << endl ) ;
+			llog( "E", "ISPS variable " << "ZC" + VarList[ i ] << " not found.  Re-run setup program to create" << endl ) ;
 			abend() ;
 		}
 	}
@@ -902,7 +902,7 @@ void PPSP01A::colourSettings()
 		vcopy( isps_var, val, MOVE ) ;
 		if ( RC > 0 )
 		{
-			log( "E", "ISPS variable " << isps_var << " not found.  Re-run setup program to create" << endl ) ;
+			llog( "E", "ISPS variable " << isps_var << " not found.  Re-run setup program to create" << endl ) ;
 			abend() ;
 		}
 		OrigList[ i ] = val ;
@@ -926,7 +926,7 @@ void PPSP01A::colourSettings()
 				vcopy( isps_var, val, MOVE )   ;
 				if ( RC > 0 )
 				{
-					log( "E", "ISPS variable " << isps_var << " not found.  Re-run setup program to create" << endl ) ;
+					llog( "E", "ISPS variable " << isps_var << " not found.  Re-run setup program to create" << endl ) ;
 					abend() ;
 				}
 				setISPSVar( VarList[ i ], OrigList[ i ] ) ;
@@ -953,7 +953,7 @@ void PPSP01A::colourSettings()
 				vcopy( isps_var, val, MOVE ) ;
 				if ( RC > 0 )
 				{
-					log( "E", "ISPS variable " << isps_var << " not found.  Re-run setup program to create" << endl ) ;
+					llog( "E", "ISPS variable " << isps_var << " not found.  Re-run setup program to create" << endl ) ;
 					abend() ;
 				}
 				prof_var      = isps_var  ;
@@ -1001,12 +1001,12 @@ void PPSP01A::colourSettings()
 			vcopy( isps_var, val, MOVE ) ;
 			if ( RC > 0 )
 			{
-				log( "E", "ISPS variable " << isps_var << " not found.  Re-run setup program to create" << endl ) ;
+				llog( "E", "ISPS variable " << isps_var << " not found.  Re-run setup program to create" << endl ) ;
 				abend() ;
 			}
 			if ( val.size() != 3 )
 			{
-				log( "E", "ISPS variable " << isps_var << " has invalid value of " << val << "  Re-run setup program to re-create" << endl ) ;
+				llog( "E", "ISPS variable " << isps_var << " has invalid value of " << val << "  Re-run setup program to re-create" << endl ) ;
 				abend() ;
 			}
 			switch ( COLOUR[ 0 ] )
@@ -1096,11 +1096,11 @@ void PPSP01A::colourSettings()
 			vput( isps_var, PROFILE ) ;
 			vdelete( isps_var )       ;
 			attr( var1, attr1 )       ;
-			if ( RC > 0 ) { log( "E", "Colour change for field " << var1 << " has failed." << endl ) ; }
+			if ( RC > 0 ) { llog( "E", "Colour change for field " << var1 << " has failed." << endl ) ; }
 			attr( var2, attr1 + " " + attr2 ) ;
-			if ( RC > 0 ) { log( "E", "Colour/intense change for field " << var2 << " has failed." << endl ) ; }
+			if ( RC > 0 ) { llog( "E", "Colour/intense change for field " << var2 << " has failed." << endl ) ; }
 			attr( var3, attr1 + " " + attr2 + " " + attr3 ) ;
-			if ( RC > 0 ) { log( "E", "Colour/intense/hilite change for field " << var3 << " has failed." << endl ) ; }
+			if ( RC > 0 ) { llog( "E", "Colour/intense/hilite change for field " << var3 << " has failed." << endl ) ; }
 		}
 	}
 }
@@ -1116,10 +1116,10 @@ int PPSP01A::setScreenAttrs( const string& name, int itr, string COLOUR, string 
 	string var3 ;
 
 	vcopy( "ZC" + name, t, MOVE ) ;
-	if ( RC > 0 ) { log( "E", "Variable ZC" << name << " not found in ISPS profile" << endl ) ; return 8 ; }
+	if ( RC > 0 ) { llog( "E", "Variable ZC" << name << " not found in ISPS profile" << endl ) ; return 8 ; }
 	else
 	{
-		if ( t.size() != 3 ) { log( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ; return 8 ; }
+		if ( t.size() != 3 ) { llog( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ; return 8 ; }
 		c = t[ 0 ] ;
 		if      ( c == 'R' ) COLOUR = "RED"     ;
 		else if ( c == 'G' ) COLOUR = "GREEN"   ;
@@ -1128,17 +1128,17 @@ int PPSP01A::setScreenAttrs( const string& name, int itr, string COLOUR, string 
 		else if ( c == 'M' ) COLOUR = "MAGENTA" ;
 		else if ( c == 'T' ) COLOUR = "TURQ"    ;
 		else if ( c == 'W' ) COLOUR = "WHITE"   ;
-		else { log( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ; }
+		else { llog( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ; }
 		c = t[ 1 ] ;
 		if      ( c == 'H' ) INTENS = "HIGH" ;
 		else if ( c == 'L' ) INTENS = "LOW" ;
-		else { log( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ; }
+		else { llog( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ; }
 		c = t[ 2 ] ;
 		if      ( c == 'N' ) HILITE = "NONE"    ;
 		else if ( c == 'B' ) HILITE = "BLINK"   ;
 		else if ( c == 'R' ) HILITE = "REVERSE" ;
 		else if ( c == 'U' ) HILITE = "USCORE"  ;
-		else { log( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ; }
+		else { llog( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ; }
 	}
 
 	var1 = "COLOUR" + right( d2ds( itr ), 2, '0') ;
@@ -1146,13 +1146,13 @@ int PPSP01A::setScreenAttrs( const string& name, int itr, string COLOUR, string 
 	var3 = "HILITE" + right( d2ds( itr ), 2, '0') ;
 
 	attr( var1, "COLOUR(" + COLOUR + ")" ) ;
-	if ( RC > 0 ) { log( "E", "Colour change for field " << var1 << " has failed." << endl ) ; }
+	if ( RC > 0 ) { llog( "E", "Colour change for field " << var1 << " has failed." << endl ) ; }
 
 	attr( var2, "COLOUR(" + COLOUR + ") INTENSE(" + INTENS + ")" ) ;
-	if ( RC > 0 ) { log( "E", "Colour/intense change for field " << var2 << " has failed." << endl ) ; }
+	if ( RC > 0 ) { llog( "E", "Colour/intense change for field " << var2 << " has failed." << endl ) ; }
 
 	attr( var3,  "COLOUR(" + COLOUR + ") INTENSE(" + INTENS + ") HILITE(" + HILITE + ")" ) ;
-	if ( RC > 0 ) { log( "E", "Colour/intense/hilite change for field " << var3 << " has failed." << endl ) ; }
+	if ( RC > 0 ) { llog( "E", "Colour/intense/hilite change for field " << var3 << " has failed." << endl ) ; }
 
 	vreplace( var1, COLOUR ) ;
 	vreplace( var2, INTENS ) ;
@@ -1857,7 +1857,7 @@ void PPSP01A::showTasks()
 			if ( SEL == "K")
 			{
 				retc = kill( ds2d(PID), 9 ) ;
-				log( "I", "Kill signal sent to PID " << PID << ".  RC=" << retc << endl ) ;
+				llog( "I", "Kill signal sent to PID " << PID << ".  RC=" << retc << endl ) ;
 			}
 			else if ( SEL == "S")
 			{

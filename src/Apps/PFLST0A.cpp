@@ -109,7 +109,7 @@ using namespace boost::filesystem ;
 
 void PFLST0A::application()
 {
-	log( "I", "Application PFLST0A starting with PARM of " << PARM << endl ) ;
+	llog( "I", "Application PFLST0A starting with PARM of " << PARM << endl ) ;
 
 	int    i        ;
 	int    RCode    ;
@@ -452,7 +452,7 @@ void PFLST0A::application()
 						MSG     = "FLST011V"   ;
 						RSN     = ec.message() ;
 						MESSAGE = ec.message() ;
-						log( "E", "Copy of " + entry + " to " + NEWENTRY + " failed with " + ec.message() << endl ) ;
+						llog( "E", "Copy of " + entry + " to " + NEWENTRY + " failed with " + ec.message() << endl ) ;
 					}
 				}
 				tbput( DSLIST ) ;
@@ -491,7 +491,7 @@ void PFLST0A::application()
 							MSG     = "FLST011O"   ;
 							RSN     = ec.message() ;
 							MESSAGE = ec.message() ;
-							log( "E", "Delete of " + entry + " failed with " + ec.message() << " " << num <<" messages deleted "<< endl ) ;
+							llog( "E", "Delete of " + entry + " failed with " + ec.message() << " " << num <<" messages deleted "<< endl ) ;
 						}
 					}
 					else
@@ -508,7 +508,7 @@ void PFLST0A::application()
 							MSG     = "FLST011O"   ;
 							RSN     = ec.message() ;
 							MESSAGE = ec.message() ;
-							log( "E", "Delete of " + entry + " failed with " + ec.message() << endl ) ;
+							llog( "E", "Delete of " + entry + " failed with " + ec.message() << endl ) ;
 						}
 					}
 				}
@@ -555,7 +555,7 @@ void PFLST0A::application()
 							RSN     = strerror( errno ) ;
 							MESSAGE = strerror( errno ) ;
 						}
-						log( "E", "Rename of " + entry + " to " + NEWENTRY + " failed with " + strerror( errno ) << endl ) ;
+						llog( "E", "Rename of " + entry + " to " + NEWENTRY + " failed with " + strerror( errno ) << endl ) ;
 					}
 				}
 				tbput( DSLIST ) ;
@@ -760,7 +760,7 @@ void PFLST0A::createFileList1( string filter )
 	{
 		ZRESULT = "List Error" ;
 		RC      = 16 ;
-		log( "E", "Error listing directory " << ex.what() << endl ) ;
+		llog( "E", "Error listing directory " << ex.what() << endl ) ;
 		return ;
 	}
 	sort( v.begin(), v.end() ) ;
@@ -1126,7 +1126,7 @@ int PFLST0A::processPrimCMD()
 		{
 			MSG = "FLST012C"   ;
 			RSN = ec.message() ;
-			log( "E", "Create of direcotry " + ws + " failed with " + ec.message() << endl ) ;
+			llog( "E", "Create of direcotry " + ws + " failed with " + ec.message() << endl ) ;
 		}
 		ZCMD = "" ;
 		return 4  ;
@@ -1167,7 +1167,7 @@ void PFLST0A::copyDirs( const string& src, const string& dest, const string& DIR
 		MSG     = "FLST011V"   ;
 		RSN     = ec.message() ;
 		MESSAGE = ec.message() ;
-		log( "E", "Copy of directory" + src + " to " + dest + " failed with " + ec.message() << endl ) ;
+		llog( "E", "Copy of directory" + src + " to " + dest + " failed with " + ec.message() << endl ) ;
 		return ;
 	}
 
@@ -1176,7 +1176,7 @@ void PFLST0A::copyDirs( const string& src, const string& dest, const string& DIR
 		if ( ec.value() != boost::system::errc::success )
 		{
 			errs = true ;
-			log( "E", "Listing directory " << src << " failed with " + ec.message() << endl ) ;
+			llog( "E", "Listing directory " << src << " failed with " + ec.message() << endl ) ;
 			return ;
 		}
 		path current( file->path() ) ;
@@ -1192,7 +1192,7 @@ void PFLST0A::copyDirs( const string& src, const string& dest, const string& DIR
 				if ( ec.value() != boost::system::errc::success )
 				{
 					errs = true ;
-					log( "E", "Copy of directory " << current.filename() << " failed with " + ec.message() << endl ) ;
+					llog( "E", "Copy of directory " << current.filename() << " failed with " + ec.message() << endl ) ;
 				}
 			}
 		}
@@ -1202,7 +1202,7 @@ void PFLST0A::copyDirs( const string& src, const string& dest, const string& DIR
 			if ( ec.value() != boost::system::errc::success )
 			{
 				errs = true ;
-				log( "E", "Copy of file " << current.filename() << " failed with " + ec.message() << endl ) ;
+				llog( "E", "Copy of file " << current.filename() << " failed with " + ec.message() << endl ) ;
 			}
 		}
 		else if ( is_symlink( current ) )
@@ -1211,13 +1211,13 @@ void PFLST0A::copyDirs( const string& src, const string& dest, const string& DIR
 			if ( ec.value() != boost::system::errc::success )
 			{
 				errs = true ;
-				log( "E", "Copy of symlink " << current.filename() << " failed with " + ec.message() << endl ) ;
+				llog( "E", "Copy of symlink " << current.filename() << " failed with " + ec.message() << endl ) ;
 			}
 		}
 		else
 		{
 			errs = true ;
-			log( "E", "Ignoring entry " << current.filename() << " Not a regular file, directory or symlink" << endl ) ;
+			llog( "E", "Ignoring entry " << current.filename() << " Not a regular file, directory or symlink" << endl ) ;
 		}
 	}
 }
@@ -1457,7 +1457,7 @@ void PFLST0A::browseTree( const string& tname )
 	if ( !fin.is_open() )
 	{
 		RC   = 16 ;
-		log( "E", "Error opening file " << tname << endl ) ;
+		llog( "E", "Error opening file " << tname << endl ) ;
 		return    ;
 	}
 
@@ -1647,7 +1647,7 @@ string PFLST0A::expandDir( const string& parms )
 	{
 		ZRESULT = "List Error" ;
 		RC      = 16 ;
-		log( "E", "Error listing directory " << ex.what() << endl ) ;
+		llog( "E", "Error listing directory " << ex.what() << endl ) ;
 		return "" ;
 	}
 
@@ -1670,7 +1670,7 @@ string PFLST0A::expandDir( const string& parms )
 	{
 		ZRESULT = "List Error" ;
 		RC      = 16 ;
-		log( "E", "Error listing directory " << ex.what() << endl ) ;
+		llog( "E", "Error listing directory " << ex.what() << endl ) ;
 		return "" ;
 	}
 
@@ -1765,7 +1765,7 @@ string PFLST0A::expandFld1( const string& parms )
 		{
 			ZRESULT = "List Error" ;
 			RC      = 16 ;
-			log( "E", "Error listing directory " << ex.what() << endl ) ;
+			llog( "E", "Error listing directory " << ex.what() << endl ) ;
 			return "" ;
 		}
 	}
@@ -1956,7 +1956,7 @@ void PFLST0A::createFileList2( const string& FLDIRS, string filter )
 	{
 		ZRESULT = "List Error" ;
 		RC      = 16 ;
-		log( "E", "Error listing directory " << ex.what() << endl ) ;
+		llog( "E", "Error listing directory " << ex.what() << endl ) ;
 		return ;
 	}
 

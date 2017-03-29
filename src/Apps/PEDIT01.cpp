@@ -82,7 +82,7 @@ e_find PEDIT01::Global_efind_parms ;
 
 void PEDIT01::application()
 {
-	log( "I", "Application PEDIT01 starting.  Parms are "+ PARM <<endl ) ;
+	llog( "I", "Application PEDIT01 starting.  Parms are "+ PARM <<endl ) ;
 
 	errblock err ;
 
@@ -4239,7 +4239,7 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 			break ;
 
 		default:
-			     log( "E", "Invalid line command "<< itc->lcmd_CMDSTR <<endl );
+			     llog( "E", "Invalid line command "<< itc->lcmd_CMDSTR <<endl );
 	}
 }
 
@@ -6303,7 +6303,7 @@ vector<iline * >::iterator PEDIT01::getLineItr( int URID )
 	{
 		if ( (*it)->il_URID == URID ) { return it ; }
 	}
-	log( "E", "Logic error.  URID "<< URID <<" not found" <<endl ) ;
+	llog( "E", "Logic error.  URID "<< URID <<" not found" <<endl ) ;
 	abend() ;
 }
 
@@ -6317,7 +6317,7 @@ vector<iline * >::iterator PEDIT01::getLineItr( int URID, vector<iline * >::iter
 	{
 		if ( (*it)->il_URID == URID ) { return it ; }
 	}
-	log( "E", "Logic error.  URID "<< URID <<" not found after iterator" <<endl ) ;
+	llog( "E", "Logic error.  URID "<< URID <<" not found after iterator" <<endl ) ;
 	abend() ;
 }
 
@@ -7432,26 +7432,26 @@ void PEDIT01::cleanup_custom()
 	string f ;
 	vector<iline * >::iterator it ;
 
-	log( "E", "Control given to EDIT cleanup procedure due to an abnormal event" <<endl ) ;
+	llog( "E", "Control given to EDIT cleanup procedure due to an abnormal event" <<endl ) ;
 //      std::ofstream fout( "/tmp/editorsession", ios::binary ) ;
 //      fout.write((char*) &data, sizeof data ) ;
 //      fout.close() ;
 
 	if ( data.size() == 0 )
 	{
-		log( "I", "No data found." <<endl ) ;
+		llog( "I", "No data found." <<endl ) ;
 		return ;
 	}
 
 	if ( abendComplete )
 	{
-		log( "W", "Cleanup routine called a second time.  Ignoring..." <<endl ) ;
+		llog( "W", "Cleanup routine called a second time.  Ignoring..." <<endl ) ;
 		return ;
 	}
 
 	if ( !profRecover )
 	{
-		log( "E", "File not saved as RECOVER is set off" <<endl ) ;
+		llog( "E", "File not saved as RECOVER is set off" <<endl ) ;
 		EditList.erase( ZFILE ) ;
 		ZRC  = 0 ;
 		ZRSN = 0 ;
@@ -7460,7 +7460,7 @@ void PEDIT01::cleanup_custom()
 
 	if ( !fileChanged )
 	{
-		log( "E", "File not saved as no changes made during edit session." <<endl ) ;
+		llog( "E", "File not saved as no changes made during edit session." <<endl ) ;
 		EditList.erase( ZFILE ) ;
 		ZRC  = 0 ;
 		ZRSN = 0 ;
@@ -7486,7 +7486,7 @@ void PEDIT01::cleanup_custom()
 	}
 
 	fout.close() ;
-	log( "E", "File saved to " << f <<endl ) ;
+	llog( "E", "File saved to " << f <<endl ) ;
 	ZRC  = 0 ;
 	ZRSN = 8 ;
 	for_each( data.begin(), data.end(),
@@ -8645,7 +8645,7 @@ void PEDIT01::run_macro( bool imacro )
 {
 	// Call PEDRXM1 for REXX macros.
 	// Set the initial values for mRow and mCol, macro CURSOR position
-	// Process screen changes and line command if no PROCESS has been done when last macro terminates.
+	// Process screen changes and line commands if no PROCESS has been done when last macro terminates.
 
 	// Return from the macro is in miBlock.exitRC
 	// 0    Normal completion, command line blanked and cursor as set by the macro

@@ -86,8 +86,9 @@ field   14 4  MAX-2 ET NONE ZERR5
 field   15 4  MAX-2 ET NONE ZERR6
 field   16 4  MAX-2 ET NONE ZERR7
 field   17 4  MAX-2 ET NONE ZERR8
-field   18 4  MAX-2 ET NONE ZERR9
-field   19 4  MAX-2 ET NONE ZERR10
+
+literal 20 4  NT "Last return code:"
+field   20 22 MAX-2 ET NONE ZERRRC
 
 literal 22 4   NT "See application and lspf logs for more messages"
 

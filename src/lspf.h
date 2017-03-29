@@ -517,7 +517,7 @@ class errblock
 #define _quotes( a ) #a
 #define quotes( a ) _quotes( a )
 
-#define log(t, s) LOGOUT << microsec_clock::local_time() << \
+#define llog(t, s) LOGOUT << microsec_clock::local_time() << \
 		" " << left( quotes(MOD_NAME), 10 ) << " " << t << " " << s
 
 #ifdef DEBUG1

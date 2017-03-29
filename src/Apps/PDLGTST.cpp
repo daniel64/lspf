@@ -50,7 +50,7 @@ using namespace std ;
 
 void PDLGTST::application()
 {
-	log( "I", "Application PDLGTST starting." << endl ) ;
+	llog( "I", "Application PDLGTST starting." << endl ) ;
 
 	vdefine( "ZCMD", &ZCMD ) ;
 
@@ -169,7 +169,7 @@ void PDLGTST::checkAlgo()
 
 void PDLGTST::prepPanels()
 {
-	log( "N", "Preprocessing and checking of panels not yet implemented" << endl ) ;
+	llog( "N", "Preprocessing and checking of panels not yet implemented" << endl ) ;
 }
 
 

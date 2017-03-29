@@ -44,7 +44,7 @@ using namespace boost::gregorian;
 
 void PMAIN0A::application()
 {
-	log( "I", "Application PMAIN0A starting.  Displaying panel PMAINP01" << endl ) ;
+	llog( "I", "Application PMAIN0A starting.  Displaying panel PMAINP01" << endl ) ;
 
 	int p1   ;
 	int y, m ;
@@ -162,7 +162,7 @@ void PMAIN0A::application()
 		{
 			if ( !SEL.parse( err, ws ) )
 			{
-				log( "E", "Select command " << ws << " is invalid.  RC > 0 returned from parse" << endl ) ;
+				llog( "E", "Select command " << ws << " is invalid.  RC > 0 returned from parse" << endl ) ;
 				MSG = "PSYS017" ;
 				continue        ;
 			}
@@ -180,7 +180,7 @@ void PMAIN0A::application()
 			ZCMD = "" ;
 			if ( RC > 4 )
 			{
-				log( "E", "Select command " << command << " is invalid.  RC > 4 returned from select" << endl ) ;
+				llog( "E", "Select command " << command << " is invalid.  RC > 4 returned from select" << endl ) ;
 				MSG = "PSYS017" ;
 				continue        ;
 			}
@@ -196,14 +196,14 @@ void PMAIN0A::application()
 			}
 			else
 			{
-				log( "E", ws << " in ACTION statement of panel PMAINP01 is invalid" << endl ) ;
+				llog( "E", ws << " in ACTION statement of panel PMAINP01 is invalid" << endl ) ;
 				MSG = "PSYS017" ;
 				continue        ;
 			}
 		}
 		else
 		{
-			log( "E", w1 << " function of panel PMAINP01 is invalid" << endl ) ;
+			llog( "E", w1 << " function of panel PMAINP01 is invalid" << endl ) ;
 			MSG = "PSYS017" ;
 		}
 		if ( ZCMD != "" ) { MSG = "PSYS011C" ; }

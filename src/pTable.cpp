@@ -1333,7 +1333,7 @@ void Table::cmdsearch( errblock& err,
 
 	if ( !tab_cmds )
 	{
-		log( "E", "cmdsearch issued for a non-command table." <<endl ) ;
+		llog( "E", "cmdsearch issued for a non-command table." <<endl ) ;
 		err.seterror() ;
 		return  ;
 	}
@@ -2129,56 +2129,56 @@ void tableMGR::statistics()
 	map<string, Table>::iterator it     ;
 	map<string, tbsearch>::iterator its ;
 
-	log( "-", "TABLE STATISTICS:" <<endl ) ;
-	log( "-", "         Number of tables loaded . . . " << tables.size() <<endl ) ;
-	log( "-", "          Table details:" <<endl ) ;
+	llog( "-", "TABLE STATISTICS:" <<endl ) ;
+	llog( "-", "         Number of tables loaded . . . " << tables.size() <<endl ) ;
+	llog( "-", "          Table details:" <<endl ) ;
 	for ( it = tables.begin() ; it != tables.end() ; it++ )
 	{
-		log( "-", "" <<endl ) ;
-		log( "-", "                  Table: "+ it->first <<endl ) ;
+		llog( "-", "" <<endl ) ;
+		llog( "-", "                  Table: "+ it->first <<endl ) ;
 		if ( it->second.tab_WRITE == WRITE )
 		{
-			log( "-", "                 Status: Open in WRITE mode" <<endl ) ;
+			llog( "-", "                 Status: Open in WRITE mode" <<endl ) ;
 		}
 		else
 		{
-			log( "-", "                 Status: Open in NOWRITE mode" <<endl ) ;
+			llog( "-", "                 Status: Open in NOWRITE mode" <<endl ) ;
 		}
 		if ( it->second.changed )
 		{
-			log( "-", "                       : Modified since load or last save" <<endl ) ;
+			llog( "-", "                       : Modified since load or last save" <<endl ) ;
 		}
-		log( "-", "            Owning Task: " << it->second.ownerTask <<endl ) ;
+		llog( "-", "            Owning Task: " << it->second.ownerTask <<endl ) ;
 		if ( it->second.num_keys > 0 )
 		{
-			log( "-", "                   Keys: " << setw(3) << it->second.tab_keys <<endl ) ;
+			llog( "-", "                   Keys: " << setw(3) << it->second.tab_keys <<endl ) ;
 		}
-		log( "-", "                 Fields: " << it->second.tab_flds <<endl ) ;
-		log( "-", "         Number of rows: " << it->second.table.size() <<endl ) ;
-		log( "-", "                   Path: " << it->second.tab_path <<endl ) ;
-		log( "-", "   Current Row Position: " << it->second.CRP <<endl ) ;
+		llog( "-", "                 Fields: " << it->second.tab_flds <<endl ) ;
+		llog( "-", "         Number of rows: " << it->second.table.size() <<endl ) ;
+		llog( "-", "                   Path: " << it->second.tab_path <<endl ) ;
+		llog( "-", "   Current Row Position: " << it->second.CRP <<endl ) ;
 		if ( it->second.sarg.size() > 0 )
 		{
-			log( "-", "Current Search Argument: " <<endl ) ;
-			log( "-", "        Condition Pairs: " << it->second.sa_cond_pairs <<endl ) ;
-			log( "-", "       Search Direction: " << it->second.sa_dir <<endl ) ;
-			log( "-", "    Extension Variables: " << it->second.sa_namelst <<endl ) ;
+			llog( "-", "Current Search Argument: " <<endl ) ;
+			llog( "-", "        Condition Pairs: " << it->second.sa_cond_pairs <<endl ) ;
+			llog( "-", "       Search Direction: " << it->second.sa_dir <<endl ) ;
+			llog( "-", "    Extension Variables: " << it->second.sa_namelst <<endl ) ;
 			for ( its = it->second.sarg.begin() ; its != it->second.sarg.end() ; its++ )
 			{
-				log( "-", "             Field Name: "+ its->first <<endl ) ;
+				llog( "-", "             Field Name: "+ its->first <<endl ) ;
 				if ( its->second.tbs_gen )
-					log( "-", "            Field Value: "+ its->second.tbs_val +" (generic search)" <<endl ) ;
+					llog( "-", "            Field Value: "+ its->second.tbs_val +" (generic search)" <<endl ) ;
 				else
-					log( "-", "            Field Value: "+ its->second.tbs_val <<endl ) ;
-				log( "-", "        Field Condition: "+ its->second.tbs_scond <<endl ) ;
+					llog( "-", "            Field Value: "+ its->second.tbs_val <<endl ) ;
+				llog( "-", "        Field Condition: "+ its->second.tbs_scond <<endl ) ;
 			}
 		}
 		if ( it->second.sort_ir != "" )
 		{
-			log( "-", "Sort Information Record: "+ it->second.sort_ir <<endl ) ;
+			llog( "-", "Sort Information Record: "+ it->second.sort_ir <<endl ) ;
 		}
 	}
-	log( "-", "*************************************************************************************************************" <<endl ) ;
+	llog( "-", "*************************************************************************************************************" <<endl ) ;
 }
 
 
@@ -2481,7 +2481,7 @@ void tableMGR::cmdsearch( errblock& err,
 		loadTable( err, 0, tb_name, NOWRITE, paths, SHARE ) ;
 		if ( err.error() )
 		{
-			log( "E", "Command table "+ tb_name +" failed to load" <<endl ) ;
+			llog( "E", "Command table "+ tb_name +" failed to load" <<endl ) ;
 			err.setRC( 20 ) ;
 			return ;
 		}

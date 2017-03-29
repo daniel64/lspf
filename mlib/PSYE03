@@ -39,8 +39,8 @@ PSYE032F 'Invalid CUA attribute specified'
 PSYE032G 'Error parsing field options'
 ''
 
-PSYE032H 'Extraeneous Data'
-'Extraeneous data ''&ZVAL1'' found on statement'
+PSYE032H 'Extraeneous data'
+'Data ''&ZVAL1'' found on statement not recognised as a valid parameter'
 
 /* IF */
 

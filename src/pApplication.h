@@ -113,10 +113,9 @@ class pApplication
 		pPanel * currPanel   ;
 		pPanel * currtbPanel ;
 
-		int    taskid()  { return taskID ; }
+		int    taskid()      { return taskID ; }
 		void   init() ;
 		void   info() ;
-		void   refresh()  ;
 		bool   isRawOutput() { return rawOutput ; }
 
 		string get_search_path( s_paths ) ;
@@ -151,6 +150,8 @@ class pApplication
 		void   vreplace( const string&, const string& ) ;
 		void   vreplace( const string&, int )           ;
 		void   vreset() ;
+
+		void   log( const string& msg ) ;
 
 		void   tbadd( const string& tb_name, const string& tb_namelst="", const string& tb_order="", int tb_num_of_rows=0 ) ;
 		void   tbbottom( const string& tb_name, const string& tb_savenm="", const string& tb_rowid_vn="", const string& tb_noread="", const string& tb_crp_name="" ) ;
@@ -253,8 +254,6 @@ class pApplication
 		string ZERR6    ;
 		string ZERR7    ;
 		string ZERR8    ;
-		string ZERR9    ;
-		string ZERR10   ;
 
 		void get_Message( const string& )  ;
 		int  chk_Message_id( const string& ) ;

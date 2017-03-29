@@ -106,7 +106,8 @@ class field
 		void field_init( errblock& err, int MAXW, int MAXD, const string& line ) ;
 		bool cursor_on_field( uint row, uint col ) ;
 		void display_field( WINDOW *, bool ) ;
-		bool edit_field_insert( WINDOW * win, char ch, int row, bool, bool ) ;
+		bool edit_field_insert( WINDOW * win, char ch, int row, bool ) ;
+		bool edit_field_replace( WINDOW * win, char ch, int row, bool ) ;
 		void edit_field_delete( WINDOW * win, int row, bool ) ;
 		int  edit_field_backspace( WINDOW * win, int col, bool ) ;
 		void field_remove_nulls_da()     ;

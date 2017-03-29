@@ -70,7 +70,7 @@ int setAllRexxVariables( pApplication * ) ;
 
 void POREXX1::application()
 {
-	log( "I", "Application POREXX1 starting." << endl ) ;
+	llog( "I", "Application POREXX1 starting." << endl ) ;
 
 	int i ;
 	int j ;
@@ -109,7 +109,7 @@ void POREXX1::application()
 	if ( rxsource.size() > 0 && rxsource[ 0 ] == '%' ) { rxsource.erase( 0, 1 ) ; }
 	if ( rxsource == "" )
 	{
-		log( "E", "POREXX1 error. No REXX passed" << endl ) ;
+		llog( "E", "POREXX1 error. No REXX passed" << endl ) ;
 		ZRC     = 16 ;
 		ZRSN    = 4  ;
 		ZRESULT = "No REXX passed" ;
@@ -126,7 +126,7 @@ void POREXX1::application()
 			rexxName = getpath( ZORXPATH, i ) + rxsource ;
 			if ( !exists( rexxName ) ) { continue ; }
 			if ( is_regular_file( rexxName ) ) { found = true ; break ; }
-			log( "E", "POREXX1 error. " << rxsource << " found but is not a regular file" << endl ) ;
+			llog( "E", "POREXX1 error. " << rxsource << " found but is not a regular file" << endl ) ;
 			setmsg( "PSYS012B" ) ;
 			ZRC     = 16 ;
 			ZRSN    = 12 ;
@@ -136,7 +136,7 @@ void POREXX1::application()
 		}
 		if ( !found )
 		{
-			log( "E", "POREXX1 error. " << rxsource << " not found in ZORXPATH concatination" << endl ) ;
+			llog( "E", "POREXX1 error. " << rxsource << " not found in ZORXPATH concatination" << endl ) ;
 			setmsg( "PSYS012C" ) ;
 			ZRC     = 16 ;
 			ZRSN    = 8  ;
@@ -154,9 +154,9 @@ void POREXX1::application()
 
 		if ( testMode )
 		{
-			log( "I", "Starting OOREXX Interpreter Version. .: "<< version << endl ) ;
-			log( "I", "Running program. . . . . . . . . . . .: "<< rxsource << endl ) ;
-			log( "I", "With parameters. . . . . . . . . . . .: "<< PARM << endl ) ;
+			llog( "I", "Starting OOREXX Interpreter Version. .: "<< version << endl ) ;
+			llog( "I", "Running program. . . . . . . . . . . .: "<< rxsource << endl ) ;
+			llog( "I", "With parameters. . . . . . . . . . . .: "<< PARM << endl ) ;
 		}
 
 		result = threadContext->CallProgram( rexxName.c_str(), args) ;
@@ -165,11 +165,11 @@ void POREXX1::application()
 		{
 			cond = threadContext->GetConditionInfo() ;
 			threadContext->DecodeConditionInfo( cond, &condition ) ;
-			log( "E", "POREXX1 error running REXX.: " << rxsource << endl ) ;
-			log( "E", "   Condition Code . . . . .: " << condition.code << endl ) ;
-			log( "E", "   Condition Error Text . .: " << threadContext->CString( condition.errortext ) << endl ) ;
-			log( "E", "   Condition Message. . . .: " << threadContext->CString( condition.message ) << endl ) ;
-			log( "E", "   Line Error Occured . . .: " << condition.position << endl ) ;
+			llog( "E", "POREXX1 error running REXX.: " << rxsource << endl ) ;
+			llog( "E", "   Condition Code . . . . .: " << condition.code << endl ) ;
+			llog( "E", "   Condition Error Text . .: " << threadContext->CString( condition.errortext ) << endl ) ;
+			llog( "E", "   Condition Message. . . .: " << threadContext->CString( condition.message ) << endl ) ;
+			llog( "E", "   Line Error Occured . . .: " << condition.position << endl ) ;
 			msg = "Error on line: "+ d2ds( condition.position ) ;
 			msg = msg +".  Condition code: "+ d2ds( condition.code ) ;
 			msg = msg +".  Error Text: "+ threadContext->CString( condition.errortext ) ;

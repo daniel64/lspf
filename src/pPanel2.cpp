@@ -228,7 +228,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			}
 			pVersion = ds2d( word( substr( pline, i+9 ), 1 ) ) ;
 			pFormat  = ds2d( word( substr( pline, j+8 ), 1 ) ) ;
-			log( "I", "Panel format " << pFormat << " Panel version " << pVersion << endl ) ;
+			llog( "I", "Panel format " << pFormat << " Panel version " << pVersion << endl ) ;
 			i = pos( " KEYLIST(", pline ) ;
 			if ( i > 0 )
 			{

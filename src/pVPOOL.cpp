@@ -791,7 +791,7 @@ void pVPOOL::load( errblock& err, const string& currAPPLID, const string& path )
 	}
 	else
 	{
-		log( "I", "Pool "<< currAPPLID <<" restored from saved variables in profile dataset "<< fname <<endl ) ;
+		llog( "I", "Pool "<< currAPPLID <<" restored from saved variables in profile dataset "<< fname <<endl ) ;
 	}
 	resetChanged() ;
 }
@@ -864,7 +864,7 @@ poolMGR::poolMGR()
 	// Create pools @DEFSHAR, @DEFPROF and @ROXPROF
 	// @DEFPROF and @ROXPROF (Read Only Extention PROFILE) not currently used
 
-	log( "I", "Constructor Creating SYSTEM and DEFAULT pools " << endl ) ;
+	llog( "I", "Constructor Creating SYSTEM and DEFAULT pools " << endl ) ;
 
 	pVPOOL pool ;
 
@@ -923,7 +923,7 @@ void poolMGR::createPool( errblock& err, poolType pType, string path )
 		if ( POOLs_shared.count( shrdPool ) > 0 )
 		{
 			err.seterror() ;
-			log( "C", "SHARED POOL "<< shrdPool <<" already exists.  Logic Error " << endl ) ;
+			llog( "C", "SHARED POOL "<< shrdPool <<" already exists.  Logic Error " << endl ) ;
 			return ;
 		}
 		POOLs_shared[ shrdPool ] = pool ;
@@ -940,13 +940,13 @@ void poolMGR::createPool( errblock& err, poolType pType, string path )
 			{
 				if ( !is_regular_file( fname ) )
 				{
-					log( "E", "File "<< fname <<" is not a regular file for profile load"<< endl ) ;
+					llog( "E", "File "<< fname <<" is not a regular file for profile load"<< endl ) ;
 					err.seterror() ;
 				}
 				else
 				{
 					POOLs_profile[ currAPPLID ] = pool ;
-					log( "I", "Pool " << currAPPLID << " created okay.  Reading saved variables from profile dataset" << endl ) ;
+					llog( "I", "Pool " << currAPPLID << " created okay.  Reading saved variables from profile dataset" << endl ) ;
 					POOLs_profile[ currAPPLID ].load( err, currAPPLID, path ) ;
 					if ( currAPPLID == "ISPS" )
 					{
@@ -958,26 +958,26 @@ void poolMGR::createPool( errblock& err, poolType pType, string path )
 			{
 				if ( !is_directory( path ) )
 				{
-					log( "E", "Directory " << path << " is not a regular directory for profile load" <<  endl ) ;
+					llog( "E", "Directory " << path << " is not a regular directory for profile load" <<  endl ) ;
 					err.seterror() ;
 				}
 				else
 				{
-					log( "I", "Profile "<< currAPPLID+"PROF does not exist.  Creating default" <<endl ) ;
+					llog( "I", "Profile "<< currAPPLID+"PROF does not exist.  Creating default" <<endl ) ;
 					POOLs_profile[ currAPPLID ] = pool ;
-					log( "I", "Profile Pool "<< currAPPLID <<" created okay in path "<< path <<endl ) ;
+					llog( "I", "Profile Pool "<< currAPPLID <<" created okay in path "<< path <<endl ) ;
 					err.setRC( 4 ) ;
 				}
 			}
 			else
 			{
-				log( "E", "Directory "<< path <<" does not exist for profile load" <<  endl ) ;
+				llog( "E", "Directory "<< path <<" does not exist for profile load" <<  endl ) ;
 				err.seterror() ;
 			}
 		}
 		else
 		{
-			log( "I", "Pool " << currAPPLID << " already exists.  Incrementing use count " << endl ) ;
+			llog( "I", "Pool " << currAPPLID << " already exists.  Incrementing use count " << endl ) ;
 			POOLs_profile[ currAPPLID ].incRefCount() ;
 		}
 		break ;
@@ -1014,39 +1014,39 @@ void poolMGR::destroyPool( errblock& err, poolType pType )
 	switch( pType )
 	{
 	case SHARED:
-		log( "I", "Destroying pool "<< shrdPool << endl ) ;
+		llog( "I", "Destroying pool "<< shrdPool << endl ) ;
 		if ( POOLs_shared.count( shrdPool ) == 0 )
 		{
 			err.seterror() ;
-			log( "C", "poolMGR cannot find SHARED POOL " << shrdPool << " Logic error" << endl ) ;
+			llog( "C", "poolMGR cannot find SHARED POOL " << shrdPool << " Logic error" << endl ) ;
 			return ;
 		}
 		POOLs_shared.erase( shrdPool ) ;
 		break ;
 
 	case PROFILE:
-		log( "I", "Destroying pool "<< currAPPLID << endl ) ;
+		llog( "I", "Destroying pool "<< currAPPLID << endl ) ;
 		if ( POOLs_profile.count( currAPPLID ) == 0 )
 		{
 			err.seterror() ;
-			log( "C", "poolMGR cannot find profile pool "<< currAPPLID <<" Logic error" << endl ) ;
+			llog( "C", "poolMGR cannot find profile pool "<< currAPPLID <<" Logic error" << endl ) ;
 			return ;
 		}
 		POOLs_profile[ currAPPLID ].decRefCount() ;
 		if ( POOLs_profile[ currAPPLID ].inUse() )
 		{
-			log( "I", "Pool "<< currAPPLID <<" still in use.  Use count is now "<< POOLs_profile[ currAPPLID ].refCount << endl ) ;
+			llog( "I", "Pool "<< currAPPLID <<" still in use.  Use count is now "<< POOLs_profile[ currAPPLID ].refCount << endl ) ;
 		}
 		else
 		{
 			POOLs_profile[ currAPPLID ].save( err, currAPPLID ) ;
 			if ( err.error() )
 			{
-				log( "E", "Pool "<< currAPPLID <<" cannot be saved"<< endl ) ;
+				llog( "E", "Pool "<< currAPPLID <<" cannot be saved"<< endl ) ;
 				return ;
 			}
 			POOLs_profile.erase( currAPPLID ) ;
-			log( "I", "Pool "<< currAPPLID <<" destroyed okay "<< endl ) ;
+			llog( "I", "Pool "<< currAPPLID <<" destroyed okay "<< endl ) ;
 		}
 		break ;
 
@@ -1073,30 +1073,30 @@ void poolMGR::statistics()
 	map<string, pVPOOL>::iterator pp_it ;
 	string Mode ;
 
-	log( "-", "POOL STATISTICS:" << endl ) ;
-	log( "-", "         Current APPLID . . . . . . . . " << currAPPLID << endl ) ;
-	log( "-", "         Current SHARED POOL ID . . . . " << shrdPool << endl ) ;
-	log( "-", "         Number of shared pools . . . . " << POOLs_shared.size() << endl ) ;
-	log( "-", "         Number of profile pools. . . . " << POOLs_profile.size() << endl ) ;
-	log( "-", "" << endl ) ;
-	log( "-", "         Shared pool details:" << endl ) ;
+	llog( "-", "POOL STATISTICS:" << endl ) ;
+	llog( "-", "         Current APPLID . . . . . . . . " << currAPPLID << endl ) ;
+	llog( "-", "         Current SHARED POOL ID . . . . " << shrdPool << endl ) ;
+	llog( "-", "         Number of shared pools . . . . " << POOLs_shared.size() << endl ) ;
+	llog( "-", "         Number of profile pools. . . . " << POOLs_profile.size() << endl ) ;
+	llog( "-", "" << endl ) ;
+	llog( "-", "         Shared pool details:" << endl ) ;
 	for ( sp_it = POOLs_shared.begin() ; sp_it != POOLs_shared.end() ; sp_it++ )
 	{
 		if ( sp_it->second.readOnly ) { Mode = "RO" ; }
 		else                          { Mode = "UP" ; }
-		log( "-", "            Pool " << setw(8) << sp_it->first << "  use count: " << setw(4) << sp_it->second.refCount <<
+		llog( "-", "            Pool " << setw(8) << sp_it->first << "  use count: " << setw(4) << sp_it->second.refCount <<
 			  "  " << Mode << "  entries: " << setw(5) << sp_it->second.POOL.size() << endl ) ;
 	}
-	log( "-", "" << endl ) ;
-	log( "-", "         Profile pool details:" << endl ) ;
+	llog( "-", "" << endl ) ;
+	llog( "-", "         Profile pool details:" << endl ) ;
 	for ( pp_it = POOLs_profile.begin() ; pp_it != POOLs_profile.end() ; pp_it++ )
 	{
 		if ( pp_it->second.readOnly ) { Mode = "RO" ; }
 		else                          { Mode = "UP" ; }
-		log( "-", "            Pool " << setw(8) << pp_it->first << "  use count: " << setw(4) << pp_it->second.refCount <<
+		llog( "-", "            Pool " << setw(8) << pp_it->first << "  use count: " << setw(4) << pp_it->second.refCount <<
 			  "  " << Mode << "  entries: " << setw(5) << pp_it->second.POOL.size() << "  path: " << pp_it->second.path << endl ) ;
 	}
-	log( "-", "*************************************************************************************************************" << endl ) ;
+	llog( "-", "*************************************************************************************************************" << endl ) ;
 }
 
 
@@ -1109,34 +1109,34 @@ void poolMGR::snap()
 	map<string, pVAR>::iterator v_it    ;
 	string vtype ;
 
-	log( "-", "POOL VARIABLES:" << endl ) ;
-	log( "-", "         Shared pool details:" << endl ) ;
+	llog( "-", "POOL VARIABLES:" << endl ) ;
+	llog( "-", "         Shared pool details:" << endl ) ;
 	for ( sp_it = POOLs_shared.begin() ; sp_it != POOLs_shared.end() ; sp_it++ )
 	{
-		log( "-", "         Pool " << setw(8) << sp_it->first << " use count:" << setw(3) << sp_it->second.refCount <<
+		llog( "-", "         Pool " << setw(8) << sp_it->first << " use count:" << setw(3) << sp_it->second.refCount <<
 			  " entries: " << sp_it->second.POOL.size() << endl ) ;
 		for ( v_it = sp_it->second.POOL.begin() ; v_it != sp_it->second.POOL.end() ; v_it++ )
 		{
 			if ( sp_it->second.isSystem( err, v_it->first ) ) { vtype = "S" ; }
 			else                                              { vtype = "N" ; }
-			log( "-", setw(8) << v_it->first << " :" << vtype << ": " << sp_it->second.get( err, v_it->first ) << "<< " << endl ) ;
+			llog( "-", setw(8) << v_it->first << " :" << vtype << ": " << sp_it->second.get( err, v_it->first ) << "<< " << endl ) ;
 		}
 	}
-	log( "-", endl ) ;
-	log( "-", "         PROFILE pool details:" << endl ) ;
+	llog( "-", endl ) ;
+	llog( "-", "         PROFILE pool details:" << endl ) ;
 	for ( pp_it = POOLs_profile.begin() ; pp_it != POOLs_profile.end() ; pp_it++ )
 	{
-		log( "-", "         Pool " << setw(8) << pp_it->first << " use count: " << setw(3) << pp_it->second.refCount <<
+		llog( "-", "         Pool " << setw(8) << pp_it->first << " use count: " << setw(3) << pp_it->second.refCount <<
 			  " entries: " << pp_it->second.POOL.size() << endl ) ;
-		log( "-", "                            path: " << setw(3) << pp_it->second.path << endl ) ;
+		llog( "-", "                            path: " << setw(3) << pp_it->second.path << endl ) ;
 		for ( v_it = pp_it->second.POOL.begin() ; v_it != pp_it->second.POOL.end() ; v_it++ )
 		{
 			if ( pp_it->second.isSystem( err, v_it->first ) ) { vtype = "S" ; }
 			else                                             { vtype = "N" ; }
-			log( "-", setw(8) << v_it->first << " :" << vtype << ": " << pp_it->second.get( err, v_it->first ) << "<< " << endl ) ;
+			llog( "-", setw(8) << v_it->first << " :" << vtype << ": " << pp_it->second.get( err, v_it->first ) << "<< " << endl ) ;
 		}
 	}
-	log( "-", "*************************************************************************************************************" << endl ) ;
+	llog( "-", "*************************************************************************************************************" << endl ) ;
 }
 
 
@@ -1147,7 +1147,7 @@ void poolMGR::setAPPLID( errblock& err, const string& m_APPLID )
 	if ( !isvalidName4( m_APPLID ) )
 	{
 		err.seterror() ;
-		log( "C", "Invalid APPLID name format passed to pool manager '"<< m_APPLID <<"'" << endl ) ;
+		llog( "C", "Invalid APPLID name format passed to pool manager '"<< m_APPLID <<"'" << endl ) ;
 		return  ;
 	}
 
@@ -1162,7 +1162,7 @@ void poolMGR::setShrdPool( errblock& err, const string& m_shrdPool )
 	if ( POOLs_shared.count( m_shrdPool ) == 0 )
 	{
 		err.seterror() ;
-		log( "C", "poolMGR cannot find pool "+ m_shrdPool +".  Pool must be created before setting pool name" << endl ) ;
+		llog( "C", "poolMGR cannot find pool "+ m_shrdPool +".  Pool must be created before setting pool name" << endl ) ;
 		return  ;
 	}
 	shrdPool = m_shrdPool ;

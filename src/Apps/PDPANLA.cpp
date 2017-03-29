@@ -64,7 +64,7 @@ void PDPANLA::application()
 	PANELNM  = word( PARM, 1 ) ;
 	opt      = subword( PARM, 2 ) ;
 	command  = ""                 ;
-	log( "I", "SELECT PANEL " << PANELNM << " with parameters " << PARM << endl ) ;
+	llog( "I", "SELECT PANEL " << PANELNM << " with parameters " << PARM << endl ) ;
 
 	vdefine( "ZCMD ZVERB", &ZCMD, &ZVERB ) ;
 
@@ -105,7 +105,7 @@ void PDPANLA::application()
 		{
 			if ( !SEL.parse( err, ws ) )
 			{
-				log( "E", "Select command " << ws << " is invalid.  RC > 0 returned from parse" << endl ) ;
+				llog( "E", "Select command " << ws << " is invalid.  RC > 0 returned from parse" << endl ) ;
 				MSG = "PSYS017" ;
 				continue        ;
 			}
@@ -122,7 +122,7 @@ void PDPANLA::application()
 			select( SEL ) ;
 			if ( RC  > 4 )
 			{
-				log( "E", "Select command " << command << " is invalid.  RC > 4 returned from select" << endl ) ;
+				llog( "E", "Select command " << command << " is invalid.  RC > 4 returned from select" << endl ) ;
 				MSG = "PSYS017" ;
 			}
 			ZCMD = "" ;
@@ -132,12 +132,12 @@ void PDPANLA::application()
 			if ( w1 == "ACTION" )
 			{
 				if ( ws == "END" ) { break ; }
-				log( "N", "ACTION function of select panels has not been implemented yet" << endl ) ;
+				llog( "N", "ACTION function of select panels has not been implemented yet" << endl ) ;
 				MSG = "PSYS015" ;
 			}
 			else
 			{
-				log( "E", w1 << " function of select panel " << PANELNM << " is invalid" << endl ) ;
+				llog( "E", w1 << " function of select panel " << PANELNM << " is invalid" << endl ) ;
 				MSG = "PSYS017" ;
 			}
 		}

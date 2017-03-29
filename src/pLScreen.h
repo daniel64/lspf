@@ -37,10 +37,10 @@ class pLScreen
 
 	void  set_row_col( int a, int b )  { row = a ; col = b ; }
 
-	int   cursor_left()                { return (col == 0 ? (col = maxcol-1, col) : --col) ; }
-	int   cursor_right()               { return (col == maxcol-1 ? (col = 0, 0) : ++col)   ; }
-	int   cursor_up()                  { return (row == 0 ? (row = maxrow-1 ,row) : --row) ; }
-	int   cursor_down()                { return (row == maxrow-1 ? (row = 0, 0) : ++row)   ; }
+	void  cursor_left()                { col == 0 ? col = maxcol-1 : --col ; }
+	void  cursor_right()               { col == maxcol-1 ? col = 0 : ++col ; }
+	void  cursor_up()                  { row == 0 ? row = maxrow-1 : --row ; }
+	void  cursor_down()                { row == maxrow-1 ? row = 0 : ++row ; }
 
 	void  application_add( pApplication * pApplication ) { pApplicationStack.push( pApplication ) ; }
 	void  application_remove_current()                   { pApplicationStack.pop() ; } ;

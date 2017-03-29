@@ -108,3 +108,6 @@ PSYE023E 'Open of &ZVAL1 keylist table failed'
 PSYE023F 'Keylist &ZVAL1 not found in keylist table &ZVAL2'
 ''
 
+PSYE023G 'Message ''&ZVAL1'' not found'
+''
+

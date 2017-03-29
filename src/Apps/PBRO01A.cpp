@@ -75,7 +75,7 @@ b_find PBRO01A::Global_bfind_parms ;
 
 void PBRO01A::application()
 {
-	log( "I", "Application PBRO01A starting.  Parms are " << PARM << endl ) ;
+	llog( "I", "Application PBRO01A starting.  Parms are " << PARM << endl ) ;
 
 	int i  ;
 	int j  ;
@@ -100,7 +100,7 @@ void PBRO01A::application()
 	file = parseString( err, PARM, "FILE()" ) ;
 	if ( err.error() || file == "" )
 	{
-		log( "E", "Invalid parameter format passed to PBRO01A" << endl ; )
+		llog( "E", "Invalid parameter format passed to PBRO01A" << endl ; )
 		abend() ;
 		return  ;
 	}
@@ -108,13 +108,13 @@ void PBRO01A::application()
 	panel = parseString( err, PARM, "PANEL()" ) ;
 	if ( err.error() )
 	{
-		log( "E", "Invalid parameter format passed to PBRO01A" << endl ; )
+		llog( "E", "Invalid parameter format passed to PBRO01A" << endl ; )
 		abend() ;
 		return  ;
 	}
 
 	ZDSN = file ;
-	log( "I", "Displaying file " << file << " using panel " << panel << endl ) ;
+	llog( "I", "Displaying file " << file << " using panel " << panel << endl ) ;
 
 	rebuildZAREA = true  ;
 	hexOn        = false ;

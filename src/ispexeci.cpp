@@ -28,6 +28,7 @@ void execiControl( pApplication *, const string&, errblock& )  ;
 void execiEdit( pApplication *, const string&, errblock& )     ;
 void execiGetmsg( pApplication *, const string&, errblock& )   ;
 void execiLibdef( pApplication *, const string&, errblock& )   ;
+void execiLog( pApplication *, const string&, errblock& )      ;
 void execiPquery( pApplication *, const string&, errblock& )   ;
 void execiRDisplay( pApplication *, const string&, errblock& ) ;
 void execiRempop( pApplication *, const string&, errblock& )   ;
@@ -67,6 +68,7 @@ map<string, void(*)(pApplication *,const string&, errblock&)> execiServices = {
 		  { "EDIT",     execiEdit     },
 		  { "GETMSG",   execiGetmsg   },
 		  { "LIBDEF",   execiLibdef   },
+		  { "LOG",      execiLog      },
 		  { "PQUERY",   execiPquery   },
 		  { "RDISPLAY", execiRDisplay },
 		  { "REMPOP",   execiRempop   },
@@ -346,6 +348,26 @@ void execiLibdef( pApplication * thisAppl, const string& s, errblock& err )
 	if ( procopt == "" ) { procopt = "UNCOND" ; }
 
 	thisAppl->libdef( word( str, 1 ), word( str, 2 ), ld_files, procopt ) ;
+	return ;
+}
+
+
+void execiLog( pApplication * thisAppl, const string& s, errblock& err )
+{
+	string msgid ;
+	string str   ;
+
+	str   = upper( subword( s, 2 ) ) ;
+	msgid = parseString( err, str, "MSG()" ) ;
+	if ( err.error() ) { return ; }
+
+	if ( words( str ) > 0 )
+	{
+		err.seterrid( "PSYE032H", str ) ;
+		return ;
+	}
+
+	thisAppl->log( msgid ) ;
 	return ;
 }
 
@@ -688,7 +710,7 @@ void execiTBEnd( pApplication * thisAppl, const string& s, errblock& err )
 {
 	if ( words( s ) != 2 )
 	{
-		err.seterrid( "PSYE019C" ) ;
+		err.seterrid( "PSYE032H", subword( s, 3 ) ) ;
 		return ;
 	}
 
@@ -724,7 +746,7 @@ void execiTBExist( pApplication * thisAppl, const string& s, errblock& err )
 {
 	if ( words( s ) != 2 )
 	{
-		err.seterrid( "PSYE019C" ) ;
+		err.seterrid( "PSYE032H", subword( s, 3 ) ) ;
 		return ;
 	}
 

@@ -234,29 +234,29 @@ int main( void )
 
 	screenList.push_back( new pLScreen ) ;
 
-	log( "I", "lspf startup in progress" << endl ) ;
+	llog( "I", "lspf startup in progress" << endl ) ;
 
-	log( "I", "Calling initialSetup" << endl ) ;
+	llog( "I", "Calling initialSetup" << endl ) ;
 	initialSetup() ;
 
-	log( "I", "Calling loadDefaultPools" << endl ) ;
+	llog( "I", "Calling loadDefaultPools" << endl ) ;
 	loadDefaultPools() ;
 
-	log( "I", "Calling getDynamicClasses" << endl ) ;
+	llog( "I", "Calling getDynamicClasses" << endl ) ;
 	getDynamicClasses() ;
 
-	log( "I", "Loading main "+ GMAINPGM +" application" << endl ) ;
+	llog( "I", "Loading main "+ GMAINPGM +" application" << endl ) ;
 	loadDynamicClass( GMAINPGM ) ;
 
-	log( "I", "Calling loadCUATables" << endl ) ;
+	llog( "I", "Calling loadCUATables" << endl ) ;
 	loadCUATables() ;
 
-	log( "I", "Calling loadSystemCommandTable" << endl ) ;
+	llog( "I", "Calling loadSystemCommandTable" << endl ) ;
 	loadSystemCommandTable() ;
 
 	updateDefaultVars() ;
 
-	log( "I", "Starting new "+ GMAINPGM +" thread" << endl ) ;
+	llog( "I", "Starting new "+ GMAINPGM +" thread" << endl ) ;
 	currAppl = ((pApplication*(*)())( apps[ GMAINPGM ].maker_ep))() ;
 
 	currScrn->application_add( currAppl ) ;
@@ -282,7 +282,7 @@ int main( void )
 	apps[ GMAINPGM ].refCount++ ;
 	apps[ GMAINPGM ].mainpgm = true ;
 
-	log( "I", "Waiting for "+ GMAINPGM +" to complete startup" << endl ) ;
+	llog( "I", "Waiting for "+ GMAINPGM +" to complete startup" << endl ) ;
 	elapsed = 0 ;
 	while ( currAppl->busyAppl )
 	{
@@ -295,17 +295,17 @@ int main( void )
 		errorScreen( 1, "An error has occured initialising the first "+ GMAINPGM +" main task.  lspf cannot continue." ) ;
 		currAppl->info() ;
 		currAppl->closeTables() ;
-		log( "I", "Removing application instance of "+ currAppl->ZAPPNAME << endl ) ;
+		llog( "I", "Removing application instance of "+ currAppl->ZAPPNAME << endl ) ;
 		((void (*)(pApplication*))(apps[ currAppl->ZAPPNAME ].destroyer_ep))( currAppl )  ;
 		delete pThread    ;
 		delete p_poolMGR  ;
 		delete p_tableMGR ;
 		delete currScrn   ;
-		log( "I", "lspf and LOG terminating" << endl ) ;
+		llog( "I", "lspf and LOG terminating" << endl ) ;
 		splog.close() ;
 		return 0 ;
 	}
-	log( "I", "First thread "+ GMAINPGM +" started and initialised.  ID=" << pThread->get_id() << endl ) ;
+	llog( "I", "First thread "+ GMAINPGM +" started and initialised.  ID=" << pThread->get_id() << endl ) ;
 
 	currAppl->get_cursor( row, col )  ;
 	currScrn->set_row_col( row, col ) ;
@@ -319,12 +319,12 @@ int main( void )
 	{
 		if ( it->second.dlopened )
 		{
-			log( "I", "dlclose of "+ it->first +" at " << it->second.dlib << endl ) ;
+			llog( "I", "dlclose of "+ it->first +" at " << it->second.dlib << endl ) ;
 			unloadDynamicClass( it->second.dlib ) ;
 		}
 	}
 
-	log( "I", "lspf and LOG terminating" << endl ) ;
+	llog( "I", "lspf and LOG terminating" << endl ) ;
 	splog.close() ;
 	return 0 ;
 }
@@ -332,7 +332,7 @@ int main( void )
 
 void mainLoop()
 {
-	log( "I", "mainLoop() entered" << endl ) ;
+	llog( "I", "mainLoop() entered" << endl ) ;
 
 	int RC   ;
 	int pos  ;
@@ -460,10 +460,10 @@ void mainLoop()
 		}
 		switch( c )
 		{
-			case KEY_LEFT:  col = currScrn->cursor_left()  ; break ;
-			case KEY_RIGHT: col = currScrn->cursor_right() ; break ;
-			case KEY_UP:    row = currScrn->cursor_up()    ; break ;
-			case KEY_DOWN:  row = currScrn->cursor_down()  ; break ;
+			case KEY_LEFT:  currScrn->cursor_left()  ; break ;
+			case KEY_RIGHT: currScrn->cursor_right() ; break ;
+			case KEY_UP:    currScrn->cursor_up()    ; break ;
+			case KEY_DOWN:  currScrn->cursor_down()  ; break ;
 			case 9:   // Tab key
 				currAppl->currPanel->field_tab_next( row, col ) ;
 				currScrn->set_row_col( row, col ) ;
@@ -582,7 +582,7 @@ void mainLoop()
 					{
 						if ( !SELCT.parse( err, subword( fxc.fieldExc_command, 2 ) ) )
 						{
-							log( "E", "Error in FIELD SELECT command "+ fxc.fieldExc_command << endl ) ;
+							llog( "E", "Error in FIELD SELECT command "+ fxc.fieldExc_command << endl ) ;
 							issueMessage( "PSYS011K" ) ;
 							break ;
 						}
@@ -846,7 +846,7 @@ void mainLoop()
 				else if ( ZCOMMAND == ".TEST" )
 				{
 					currAppl->setTestMode() ;
-					log( "W", "Application is now running in test mode" << endl ) ;
+					llog( "W", "Application is now running in test mode" << endl ) ;
 				}
 				else if ( ZCOMMAND == "TDOWN" )
 				{
@@ -925,7 +925,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 	p_poolMGR->put( err, "ZVERB", "", SHARED ) ;
 	if ( err.error() )
 	{
-		log( "C", "poolMGR put for ZVERB failed" << endl ) ;
+		llog( "C", "poolMGR put for ZVERB failed" << endl ) ;
 	}
 
 	if ( c == 27 )
@@ -986,7 +986,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 					{
 						if ( !SELCT.parse( err, CMDParm ) )
 						{
-							log( "E", "Error in SELECT command "+ t_pdc.pdc_parm << endl ) ;
+							llog( "E", "Error in SELECT command "+ t_pdc.pdc_parm << endl ) ;
 							currAppl->setmsg( "PSYS011K" ) ;
 							return ;
 						}
@@ -1066,7 +1066,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 	else
 	{
 		p_poolMGR->put( err, "ZPFKEY", "PF00", SHARED, SYSTEM ) ;
-		if ( err.error() ) { log( "C", "VPUT for PF00 failed" << endl ) ; }
+		if ( err.error() ) { llog( "C", "VPUT for PF00 failed" << endl ) ; }
 	}
 
 	if ( addRetrieve )
@@ -1230,7 +1230,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		{
 			if ( !SELCT.parse( err, subword( ZCTACT, 2 ) ) )
 			{
-				log( "E", "Error in SELECT command "+ ZCTACT << endl ) ;
+				llog( "E", "Error in SELECT command "+ ZCTACT << endl ) ;
 				currAppl->setmsg( "PSYS011K" ) ;
 				return ;
 			}
@@ -1266,7 +1266,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 			{
 				passthru = true ;
 				p_poolMGR->put( err, "ZVERB", ZCTVERB, SHARED ) ;
-				if ( err.error() ) { log( "C", "VPUT for ZVERB failed" << endl ) ; }
+				if ( err.error() ) { llog( "C", "VPUT for ZVERB failed" << endl ) ; }
 				ZCOMMAND = subword( ZCOMMAND, 2 ) ;
 			}
 			if ( CMDVerb == "NRETRIEV" )
@@ -1365,7 +1365,7 @@ bool resolveZCTEntry( string& CMDVerb, string& CMDParm )
 	}
 	if ( i > 7 )
 	{
-		log( "E", "ALIAS dept cannot be greater than 8.  Terminating search" << endl ) ;
+		llog( "E", "ALIAS dept cannot be greater than 8.  Terminating search" << endl ) ;
 		found = false ;
 	}
 	return found ;
@@ -1391,7 +1391,7 @@ void processPGMSelect()
 		}
 		currAppl->SEL = false ;
 		currAppl->RC  = 20    ;
-		log( "W", "Resumed function did a SELECT.  Ending wait in SELECT" << endl ) ;
+		llog( "W", "Resumed function did a SELECT.  Ending wait in SELECT" << endl ) ;
 		ResumeApplicationAndWait() ;
 		while ( currAppl->terminateAppl )
 		{
@@ -1505,7 +1505,7 @@ void startApplication( selobj SEL, bool nScreen )
 		currAppl->setMSG = false        ;
 	}
 
-	log( "I", "Starting new application "+ SEL.PGM +" with parameters '"+ SEL.PARM +"'" << endl ) ;
+	llog( "I", "Starting new application "+ SEL.PGM +" with parameters '"+ SEL.PARM +"'" << endl ) ;
 	currAppl = ((pApplication*(*)())( apps[ SEL.PGM ].maker_ep))() ;
 
 	currScrn->application_add( currAppl ) ;
@@ -1563,7 +1563,7 @@ void startApplication( selobj SEL, bool nScreen )
 		p_poolMGR->put( err, "ZSCRNAME", SELCT.SCRNAME, SHARED ) ;
 	}
 
-	log( "I", "Waiting for new application to complete startup.  ID=" << pThread->get_id() << endl ) ;
+	llog( "I", "Waiting for new application to complete startup.  ID=" << pThread->get_id() << endl ) ;
 	elapsed = 0 ;
 	while ( currAppl->busyAppl )
 	{
@@ -1573,7 +1573,7 @@ void startApplication( selobj SEL, bool nScreen )
 		if ( elapsed > GMAXWAIT  ) { currAppl->set_timeout_abend() ; }
 	}
 
-	log( "I", "New thread and application started and initialised. ID=" << pThread->get_id() << endl ) ;
+	llog( "I", "New thread and application started and initialised. ID=" << pThread->get_id() << endl ) ;
 
 	if ( currAppl->rmsgs.size() > 0 ) { rawOutput() ; }
 
@@ -1592,7 +1592,7 @@ void startApplication( selobj SEL, bool nScreen )
 
 	while ( currAppl->terminateAppl )
 	{
-		log( "I", "Application "+ currAppl->ZAPPNAME +" has immediately terminated.  Cleaning up resources" << endl ) ;
+		llog( "I", "Application "+ currAppl->ZAPPNAME +" has immediately terminated.  Cleaning up resources" << endl ) ;
 		terminateApplication() ;
 		if ( pLScreen::screensTotal == 0 ) { return ; }
 		if ( currAppl->SEL && !currAppl->terminateAppl )
@@ -1633,7 +1633,7 @@ void terminateApplication()
 
 	boost::thread * pThread ;
 
-	log( "I", "Application terminating "+ currAppl->ZAPPNAME +" ID: "<< currAppl->taskid() << endl ) ;
+	llog( "I", "Application terminating "+ currAppl->ZAPPNAME +" ID: "<< currAppl->taskid() << endl ) ;
 
 	ZAPPNAME = currAppl->ZAPPNAME ;
 
@@ -1666,7 +1666,7 @@ void terminateApplication()
 		pThread->detach() ;
 	}
 
-	log( "I", "Removing application instance of "+ ZAPPNAME << endl ) ;
+	llog( "I", "Removing application instance of "+ ZAPPNAME << endl ) ;
 	apps[ ZAPPNAME ].refCount-- ;
 	((void (*)(pApplication*))(apps[ ZAPPNAME ].destroyer_ep))( currAppl ) ;
 
@@ -1679,7 +1679,7 @@ void terminateApplication()
 		if ( pLScreen::screensTotal == 1 )
 		{
 			delete currScrn ;
-			log( "I", "Closing ISPS profile and application log as last application program is terminating" << endl ) ;
+			llog( "I", "Closing ISPS profile and application log as last application program is terminating" << endl ) ;
 			p_poolMGR->setAPPLID( err, "ISPS" )    ;
 			p_poolMGR->destroyPool( err, PROFILE ) ;
 			p_poolMGR->statistics()  ;
@@ -1694,23 +1694,23 @@ void terminateApplication()
 	currScrn->restore_panel_stack() ;
 
 	p_poolMGR->setAPPLID( err, currAppl->ZZAPPLID ) ;
-	if ( !err.RC0() ) { log( "C", "ERROR setting APPLID for pool manager.  RC=" << err.getRC() << endl ) ; }
+	if ( !err.RC0() ) { llog( "C", "ERROR setting APPLID for pool manager.  RC=" << err.getRC() << endl ) ; }
 	p_poolMGR->setShrdPool( err, currAppl->shrdPool )   ;
-	if ( !err.RC0() ) { log( "C", "ERROR setting shared pool for pool manager.  RC=" << err.getRC() << endl ) ; }
+	if ( !err.RC0() ) { llog( "C", "ERROR setting shared pool for pool manager.  RC=" << err.getRC() << endl ) ; }
 
 	p_poolMGR->put( err, "ZPANELID", currAppl->PANELID, SHARED, SYSTEM )  ;
 
 	if ( apps[ ZAPPNAME ].refCount == 0 && apps[ ZAPPNAME ].relPending )
 	{
 		apps[ ZAPPNAME ].relPending = false ;
-		log( "I", "Reloading module "+ ZAPPNAME +" (pending reload status)" << endl ) ;
+		llog( "I", "Reloading module "+ ZAPPNAME +" (pending reload status)" << endl ) ;
 		if ( loadDynamicClass( ZAPPNAME ) )
 		{
-			log( "I", "Loaded "+ ZAPPNAME +" (module "+ apps[ZAPPNAME].module +") from "+ apps[ZAPPNAME].file << endl ) ;
+			llog( "I", "Loaded "+ ZAPPNAME +" (module "+ apps[ZAPPNAME].module +") from "+ apps[ZAPPNAME].file << endl ) ;
 		}
 		else
 		{
-			log( "W", "Errors occured loading "+ ZAPPNAME +"  Module removed" << endl ) ;
+			llog( "W", "Errors occured loading "+ ZAPPNAME +"  Module removed" << endl ) ;
 		}
 	}
 
@@ -1733,7 +1733,7 @@ void terminateApplication()
 				}
 				else
 				{
-					log( "E", "Invalid field "+ fname +" in .NRET panel statement" << endl ) ;
+					llog( "E", "Invalid field "+ fname +" in .NRET panel statement" << endl ) ;
 					issueMessage( "PSYS011Z" ) ;
 					nretError = true ;
 				}
@@ -1769,7 +1769,7 @@ void terminateApplication()
 			}
 			else
 			{
-				log( "E", "Invalid field "+ currAppl->reffield +" in .NRET panel statement" << endl )   ;
+				llog( "E", "Invalid field "+ currAppl->reffield +" in .NRET panel statement" << endl )   ;
 				issueMessage( "PSYS011Z" ) ;
 			}
 		}
@@ -1791,7 +1791,7 @@ void terminateApplication()
 	{
 		if ( propagateEnd )
 		{
-			log( "I", "RETURN entered.  Propagating END to next application in the SELECT nested dialogue" << endl ) ;
+			llog( "I", "RETURN entered.  Propagating END to next application in the SELECT nested dialogue" << endl ) ;
 			if ( jumpEntered )
 			{
 				debug1( "JUMP entered but in the same nested dialogue." << endl ) ;
@@ -1809,7 +1809,7 @@ void terminateApplication()
 		currAppl->ZRSN    = tRSN    ;
 		currAppl->ZRESULT = tRESULT ;
 		if ( setMSG ) { currAppl->set_msg1( tMSG1, tMSGID1 ) ; }
-		log( "I", "Resumed function did a SELECT, BROWSE, EDIT or VIEW.  Ending wait in function" << endl ) ;
+		llog( "I", "Resumed function did a SELECT, BROWSE, EDIT or VIEW.  Ending wait in function" << endl ) ;
 		ResumeApplicationAndWait() ;
 		while ( currAppl->terminateAppl )
 		{
@@ -1841,9 +1841,9 @@ void terminateApplication()
 			currAppl->set_cursor( row, col ) ;
 		}
 	}
-	log( "I", "Application terminatation of "+ ZAPPNAME +" completed.  Current application is "+ currAppl->ZAPPNAME << endl ) ;
+	llog( "I", "Application terminatation of "+ ZAPPNAME +" completed.  Current application is "+ currAppl->ZAPPNAME << endl ) ;
 	currAppl->restore_Zvars( currScrn->screenID ) ;
-	currAppl->refresh_id()      ;
+	currAppl->refresh_id() ;
 	currScrn->set_row_col( row, col ) ;
 }
 
@@ -2125,23 +2125,23 @@ void setColourPair( const string& name )
 		else if ( c == 'M' ) { cuaAttr[ cuaAttrName[ name ] ] = MAGENTA ; }
 		else if ( c == 'T' ) { cuaAttr[ cuaAttrName[ name ] ] = TURQ    ; }
 		else if ( c == 'W' ) { cuaAttr[ cuaAttrName[ name ] ] = WHITE   ; }
-		else { log( "E", "Variable ZC"+ name +" has invalid value "+ t << endl ) ; RC = 20 ; }
+		else { llog( "E", "Variable ZC"+ name +" has invalid value "+ t << endl ) ; RC = 20 ; }
 		c = t[ 1 ] ;
 		if      ( c == 'L' ) { cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_NORMAL  ; }
 		else if ( c == 'H' ) { cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_BOLD    ; }
-		else { log( "E", "Variable ZC"+ name +" has invalid value "+ t << endl ) ; RC = 20 ; }
+		else { llog( "E", "Variable ZC"+ name +" has invalid value "+ t << endl ) ; RC = 20 ; }
 		c = t[ 2 ] ;
 		if      ( c == 'N' ) { }
 		else if ( c == 'B' ) { cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_BLINK     ; }
 		else if ( c == 'R' ) { cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_REVERSE   ; }
 		else if ( c == 'U' ) { cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_UNDERLINE ; }
-		else { log( "E", "Variable ZC"+ name +" has invalid value "+ t << endl ) ; RC = 20 ; }
+		else { llog( "E", "Variable ZC"+ name +" has invalid value "+ t << endl ) ; RC = 20 ; }
 	}
-	else { log( "E", "Variable ZC"+ name +" not found in ISPS profile" << endl ) ; RC = 20 ; }
+	else { llog( "E", "Variable ZC"+ name +" not found in ISPS profile" << endl ) ; RC = 20 ; }
 	if ( RC > 0 )
 	{
 		delete screenList[ 0 ] ;
-		log( "C", "Rerun setup program to re-initialise ISPS profile" << endl ) ;
+		llog( "C", "Rerun setup program to re-initialise ISPS profile" << endl ) ;
 		cout << "Aborting startup of lspf.  Check lspf and application logs for errors " << endl ;
 		splog.close() ;
 		abort() ;
@@ -2172,13 +2172,13 @@ void loadDefaultPools()
 	p_poolMGR->createPool( err, PROFILE, ZSPROF ) ;
 	if ( err.RC0() )
 	{
-		log( "I", "Loaded system profile ISPSPROF" << endl ) ;
+		llog( "I", "Loaded system profile ISPSPROF" << endl ) ;
 	}
 	else
 	{
 		delete screenList[ 0 ] ;
-		log( "C", "Loading of system profile ISPSPROF failed.  RC="<< err.getRC() << endl ) ;
-		log( "C", "Aborting startup.  Check path " ZSPROF << endl ) ;
+		llog( "C", "Loading of system profile ISPSPROF failed.  RC="<< err.getRC() << endl ) ;
+		llog( "C", "Aborting startup.  Check path " ZSPROF << endl ) ;
 		cout << "Aborting startup of lspf.  Check lspf and application logs for errors " << endl ;
 		splog.close() ;
 		abort() ;
@@ -2219,14 +2219,14 @@ void loadSystemCommandTable()
 	p_tableMGR->loadTable( err, 0, "ISPCMDS", NOWRITE, ZTLIB, SHARE ) ;
 	if ( err.RC0() )
 	{
-		log( "I", "Loaded system command table ISPCMDS" << endl ) ;
+		llog( "I", "Loaded system command table ISPCMDS" << endl ) ;
 	}
 	else
 	{
 		delete screenList[ 0 ] ;
-		log( "C", "Loading of system command table ISPCMDS failed" <<endl ) ;
-		log( "C", "RC="<< err.getRC() <<"  Aborting startup" <<endl ) ;
-		log( "C", "Check path "+ ZTLIB << endl ) ;
+		llog( "C", "Loading of system command table ISPCMDS failed" <<endl ) ;
+		llog( "C", "RC="<< err.getRC() <<"  Aborting startup" <<endl ) ;
+		llog( "C", "Check path "+ ZTLIB << endl ) ;
 		cout << "Aborting startup of lspf.  Check lspf and application logs for errors " << endl ;
 		splog.close() ;
 		abort() ;
@@ -2323,7 +2323,7 @@ void updateReflist()
 		}
 		else
 		{
-			log( "E", "Invalid field "+ fname +" in .NRET panel statement" << endl ) ;
+			llog( "E", "Invalid field "+ fname +" in .NRET panel statement" << endl ) ;
 			issueMessage( "PSYS011Z" ) ;
 		}
 	}
@@ -2470,6 +2470,7 @@ string listLogicalScreens()
 	}
 	del_panel( swpanel ) ;
 	delwin( swwin )      ;
+	curs_set( 1 )        ;
 	return d2ds( m+1 )   ;
 }
 
@@ -2563,6 +2564,7 @@ void listRetrieveBuffer()
 	}
 	del_panel( rbpanel ) ;
 	delwin( rbwin )      ;
+	curs_set( 1 )        ;
 
 	currAppl->currPanel->get_cursor( row, col ) ;
 	currScrn->set_row_col( row, col ) ;
@@ -2594,14 +2596,14 @@ int getScreenNameNum( const string& s )
 
 void threadErrorHandler()
 {
-	log( "E", "An exception has occured in an application thread.  See application log for details.  Task ending" << endl ) ;
+	llog( "E", "An exception has occured in an application thread.  See application log for details.  Task ending" << endl ) ;
 	try
 	{
 		currAppl->abendexc() ;
 	}
 	catch (...)
 	{
-		log( "E", "An abend has occured during abend processing.  Calling abend() only to terminate application" << endl ) ;
+		llog( "E", "An abend has occured during abend processing.  Calling abend() only to terminate application" << endl ) ;
 		currAppl->abend() ;
 	}
 }
@@ -2685,7 +2687,7 @@ void errorScreen( int etype, const string& msg )
 	int l    ;
 	string t ;
 
-	log( "E", msg << endl ) ;
+	llog( "E", msg << endl ) ;
 	if ( currAppl->errPanelissued ) { return ; }
 
 	currScrn->save_panel_stack() ;
@@ -2699,7 +2701,7 @@ void errorScreen( int etype, const string& msg )
 	if ( etype == 2 )
 	{
 		t = "Failing application is " + currAppl->ZAPPNAME + ", taskid=" + d2ds( currAppl->taskid() ) ;
-		log( "E", t << endl ) ;
+		llog( "E", t << endl ) ;
 		mvaddstr( l++, 0, "Depending on the error, application may still be running in the background.  Recommend restarting lspf." ) ;
 		mvaddstr( l++, 0, t.c_str() ) ;
 	}
@@ -2768,12 +2770,12 @@ void getDynamicClasses()
 		p = getpath( paths, i ) ;
 		if ( is_directory( p ) )
 		{
-			log( "I", "Searching directory "+ p +" for application classes" << endl ) ;
+			llog( "I", "Searching directory "+ p +" for application classes" << endl ) ;
 			copy( directory_iterator( p ), directory_iterator(), back_inserter( v ) ) ;
 		}
 		else
 		{
-			log( "W", "Ignoring directory "+ p +"  Not found or not a directory." << endl ) ;
+			llog( "W", "Ignoring directory "+ p +"  Not found or not a directory." << endl ) ;
 		}
 	}
 
@@ -2788,10 +2790,10 @@ void getDynamicClasses()
 		appl  = substr( mod, 4, (pos1 - 4) ) ;
 		if ( apps.count( appl ) > 0 )
 		{
-			log( "W", "Ignoring duplicate module "+ mod +" found in "+ p << endl ) ;
+			llog( "W", "Ignoring duplicate module "+ mod +" found in "+ p << endl ) ;
 			continue ;
 		}
-		log( "I", "Adding application "+ appl << endl ) ;
+		llog( "I", "Adding application "+ appl << endl ) ;
 		i++ ;
 		aI.file       = fname ;
 		aI.module     = mod   ;
@@ -2802,11 +2804,11 @@ void getDynamicClasses()
 		aI.refCount   = 0     ;
 		apps[ appl ]  = aI    ;
 	}
-	log( "I", d2ds( apps.size() ) +" applications found and stored" << endl ) ;
+	llog( "I", d2ds( apps.size() ) +" applications found and stored" << endl ) ;
 	if ( apps.find( GMAINPGM ) == apps.end() )
 	{
 		delete screenList[ 0 ] ;
-		log( "C", e1 << endl ) ;
+		llog( "C", e1 << endl ) ;
 		cout <<  e1 << endl    ;
 		splog.close() ;
 		abort()       ;
@@ -2847,12 +2849,12 @@ void reloadDynamicClasses( string parm )
 		p = getpath( paths, i ) ;
 		if ( is_directory( p ) )
 		{
-			log( "I", "Searching directory "+ p +" for application classes" << endl ) ;
+			llog( "I", "Searching directory "+ p +" for application classes" << endl ) ;
 			copy( directory_iterator( p ), directory_iterator(), back_inserter( v ) ) ;
 		}
 		else
 		{
-			log( "W", "Ignoring directory "+ p +"  Not found or not a directory." << endl ) ;
+			llog( "W", "Ignoring directory "+ p +"  Not found or not a directory." << endl ) ;
 		}
 	}
 	if ( parm == "" ) { parm = "ALL" ; }
@@ -2868,7 +2870,7 @@ void reloadDynamicClasses( string parm )
 		pos1  = pos( ".so", mod ) ;
 		if ( substr(mod, 1, 3 ) != "lib" || pos1 == 0 ) { continue ; }
 		appl  = substr( mod, 4, (pos1 - 4) ) ;
-		log( "I", "Found application "+ appl << endl ) ;
+		llog( "I", "Found application "+ appl << endl ) ;
 		stored = ( apps.find( appl ) != apps.end() ) ;
 
 		if ( parm == "NEW" && stored ) { continue ; }
@@ -2877,7 +2879,7 @@ void reloadDynamicClasses( string parm )
 		if ( parm == appl && stored && !apps[ appl ].dlopened )
 		{
 			apps[ appl ].file = fname ;
-			log( "W", "Application "+ appl +" not loaded.  Ignoring action" << endl ) ;
+			llog( "W", "Application "+ appl +" not loaded.  Ignoring action" << endl ) ;
 			return ;
 		}
 		if ( stored )
@@ -2885,7 +2887,7 @@ void reloadDynamicClasses( string parm )
 			apps[ appl ].file = fname ;
 			if ( apps[ appl ].refCount > 0 )
 			{
-				log( "W", "Application "+ appl +" in use.  Reload pending" << endl ) ;
+				llog( "W", "Application "+ appl +" in use.  Reload pending" << endl ) ;
 				apps[ appl ].relPending = true ;
 				continue ;
 			}
@@ -2893,19 +2895,19 @@ void reloadDynamicClasses( string parm )
 			{
 				if ( loadDynamicClass( appl ) )
 				{
-					log( "I", "Loaded "+ appl +" (module "+ mod +") from "+ p << endl ) ;
+					llog( "I", "Loaded "+ appl +" (module "+ mod +") from "+ p << endl ) ;
 					i++ ;
 				}
 				else
 				{
-					log( "W", "Errors occured loading "+ appl << endl ) ;
+					llog( "W", "Errors occured loading "+ appl << endl ) ;
 					k++ ;
 				}
 			}
 		}
 		else
 		{
-			log( "I", "Adding new module "+ appl << endl ) ;
+			llog( "I", "Adding new module "+ appl << endl ) ;
 			aI.file        = fname ;
 			aI.module      = mod   ;
 			aI.dlopened    = false ;
@@ -2919,24 +2921,24 @@ void reloadDynamicClasses( string parm )
 	}
 
 	issueMessage( "PSYS012G" ) ;
-	log( "I", d2ds( i ) +" applications reloaded" << endl ) ;
-	log( "I", d2ds( j ) +" new applications stored" << endl ) ;
-	log( "I", d2ds( k ) +" errors encounted" << endl ) ;
+	llog( "I", d2ds( i ) +" applications reloaded" << endl ) ;
+	llog( "I", d2ds( j ) +" new applications stored" << endl ) ;
+	llog( "I", d2ds( k ) +" errors encounted" << endl ) ;
 	if ( parm != "ALL" && parm != "NEW" )
 	{
 		if ( (i+j) == 0 )
 		{
-			log( "W", "Application "+ parm +" not reloaded/stored" << endl ) ;
+			llog( "W", "Application "+ parm +" not reloaded/stored" << endl ) ;
 			issueMessage( "PSYS012I" ) ;
 		}
 		else
 		{
-			log( "I", "Application "+ parm +" reloaded/stored" << endl )   ;
+			llog( "I", "Application "+ parm +" reloaded/stored" << endl )   ;
 			issueMessage( "PSYS012H" ) ;
 		}
 	}
 
-	log( "I", d2ds( apps.size() ) + " applications currently stored" << endl ) ;
+	llog( "I", d2ds( apps.size() ) + " applications currently stored" << endl ) ;
 }
 
 
@@ -2962,23 +2964,23 @@ bool loadDynamicClass( const string& appl )
 
 	if ( apps[ appl ].dlopened )
 	{
-		log( "I", "Closing "+ appl << endl ) ;
+		llog( "I", "Closing "+ appl << endl ) ;
 		if ( !unloadDynamicClass( apps[ appl ].dlib ) )
 		{
-			log( "W", "dlclose has failed for "+ appl << endl ) ;
+			llog( "W", "dlclose has failed for "+ appl << endl ) ;
 			return false ;
 		}
 		apps[ appl ].dlopened = false ;
-		log( "I", "Reloading module "+ appl << endl ) ;
+		llog( "I", "Reloading module "+ appl << endl ) ;
 	}
 
 	dlerror() ;
 	dlib = dlopen( fname.c_str(), RTLD_NOW ) ;
 	if ( !dlib )
 	{
-		log( "E", "Error loading "+ fname << endl )  ;
-		log( "E", "Error is " << dlerror() << endl ) ;
-		log( "E", "Module "+ mod +" will be ignored" << endl ) ;
+		llog( "E", "Error loading "+ fname << endl )  ;
+		llog( "E", "Error is " << dlerror() << endl ) ;
+		llog( "E", "Module "+ mod +" will be ignored" << endl ) ;
 		return false ;
 	}
 
@@ -2987,9 +2989,9 @@ bool loadDynamicClass( const string& appl )
 	dlsym_err = dlerror() ;
 	if ( dlsym_err )
 	{
-		log( "E", "Error loading symbol maker" << endl ) ;
-		log( "E", "Error is " << dlsym_err << endl )     ;
-		log( "E", "Module "+ mod +" will be ignored" << endl ) ;
+		llog( "E", "Error loading symbol maker" << endl ) ;
+		llog( "E", "Error is " << dlsym_err << endl )     ;
+		llog( "E", "Module "+ mod +" will be ignored" << endl ) ;
 		unloadDynamicClass( apps[ appl ].dlib ) ;
 		return false ;
 	}
@@ -2999,9 +3001,9 @@ bool loadDynamicClass( const string& appl )
 	dlsym_err = dlerror() ;
 	if ( dlsym_err )
 	{
-		log( "E", "Error loading symbol destroy" << endl ) ;
-		log( "E", "Error is " << dlsym_err << endl )       ;
-		log( "E", "Module "+ mod +" will be ignored" << endl ) ;
+		llog( "E", "Error loading symbol destroy" << endl ) ;
+		llog( "E", "Error is " << dlsym_err << endl )       ;
+		llog( "E", "Module "+ mod +" will be ignored" << endl ) ;
 		unloadDynamicClass( apps[ appl ].dlib ) ;
 		return false ;
 	}
@@ -3034,7 +3036,7 @@ bool unloadDynamicClass( void * dlib )
 		}
 		catch (...)
 		{
-			log( "E", "An exception has occured during dlclose" << endl ) ;
+			llog( "E", "An exception has occured during dlclose" << endl ) ;
 			return false ;
 		}
 		if ( rc != 0 ) { break ; }

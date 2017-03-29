@@ -62,7 +62,7 @@ using namespace boost::filesystem ;
 
 void PTUTORA::application()
 {
-	log( "I", "Application PTUTORA starting.  Parms are " << PARM << endl ) ;
+	llog( "I", "Application PTUTORA starting.  Parms are " << PARM << endl ) ;
 
 	int p1 ;
 	int p2 ;
@@ -168,7 +168,7 @@ void PTUTORA::application()
 			{
 				if ( !is_regular_file( tfile ) )
 				{
-					log( "E", "Help file " << tfile << " is not a regular file" << endl ) ;
+					llog( "E", "Help file " << tfile << " is not a regular file" << endl ) ;
 					cleanup() ;
 					return    ;
 				}
@@ -283,7 +283,7 @@ void PTUTORA::read_file( string file )
 
 	if ( !fin.is_open() )
 	{
-		log( "E", "Error opening file " << file << " for input" << endl ) ;
+		llog( "E", "Error opening file " << file << " for input" << endl ) ;
 		return ;
 	}
 
