@@ -183,8 +183,7 @@ void PPSP01A::show_log( string fileName )
 		if ( MSG == "" ) { ZCMD = "" ; }
 
 		display( "PPSP01AL", MSG, "ZCMD" ) ;
-		if ( RC == 8 ) { return  ; }
-		if ( RC >  8 ) { abend() ; }
+		if ( RC == 8 ) { return ; }
 
 		vget( "ZVERB ZSCROLLA ZSCROLLN", SHARED ) ;
 
@@ -482,6 +481,8 @@ void PPSP01A::lspfSettings()
 	int RCode      ;
 	int timeOut    ;
 
+	string nulls   ;
+
 	string *t1     ;
 
 	string GODEL   ;
@@ -490,6 +491,7 @@ void PPSP01A::lspfSettings()
 	string GOKLUSE ;
 	string GOKLFAL ;
 	string GOLMSGW ;
+	string GOPADC  ;
 
 	string ZDEL    ;
 	string ZSWAP   ;
@@ -497,6 +499,7 @@ void PPSP01A::lspfSettings()
 	string ZKLUSE  ;
 	string ZKLFAIL ;
 	string ZLMSGW  ;
+	string ZPADC   ;
 
 	string GOUCMD1 ;
 	string GOUCMD2 ;
@@ -522,6 +525,8 @@ void PPSP01A::lspfSettings()
 	string ZSCMDT3 ;
 	string ZSCMDTF ;
 
+	nulls = string( 1, 0x00 ) ;
+
 	vdefine( "ZUCMDT1 ZUCMDT2 ZUCMDT3", &ZUCMDT1, &ZUCMDT2, &ZUCMDT3 ) ;
 	if ( RC > 0 ) { abend() ; }
 	vdefine( "ZSCMDT1 ZSCMDT2 ZSCMDT3 ZSCMDTF", &ZSCMDT1, &ZSCMDT2, &ZSCMDT3, &ZSCMDTF ) ;
@@ -538,7 +543,7 @@ void PPSP01A::lspfSettings()
 	if ( RC > 0 ) { abend() ; }
 	vdefine( "ZRTSIZE GORTSIZE ZRBSIZE GORBSIZE", &ZRTSIZE, &GORTSIZE, &ZRBSIZE, &GORBSIZE ) ;
 	if ( RC > 0 ) { abend() ; }
-	vdefine( "ZMAXWAIT GOATIMO", &KMAXWAIT, &GOATIMO ) ;
+	vdefine( "ZMAXWAIT GOATIMO ZPADC   GOPADC", &KMAXWAIT, &GOATIMO, &ZPADC, &GOPADC ) ;
 	if ( RC > 0 ) { abend() ; }
 
 	vget( "ZUCMDT1 ZUCMDT2 ZUCMDT3", PROFILE ) ;
@@ -547,7 +552,7 @@ void PPSP01A::lspfSettings()
 	if ( RC > 0 ) { abend() ; }
 	vget( "ZSWAP ZSWAPC ZKLUSE ZKLFAIL", PROFILE ) ;
 	if ( RC > 0 ) { abend() ; }
-	vget( "ZDEL ZKLUSE  ZLMSGW", PROFILE ) ;
+	vget( "ZDEL ZKLUSE  ZLMSGW ZPADC", PROFILE ) ;
 	if ( RC > 0 ) { abend() ; }
 
 	if ( ZKLUSE  == "Y" ) { GOKLUSE = "/" ; }
@@ -562,6 +567,10 @@ void PPSP01A::lspfSettings()
 	else                  { GOSWAP  = " " ; }
 	GODEL   = ZDEL    ;
 	GOSWAPC = ZSWAPC  ;
+	if      ( ZPADC == " "   ) { ZPADC = "B" ; }
+	else if ( ZPADC == nulls ) { ZPADC = "N" ; }
+	GOPADC  = ZPADC ;
+
 	GOUCMD1 = ZUCMDT1 ;
 	GOUCMD2 = ZUCMDT2 ;
 	GOUCMD3 = ZUCMDT3 ;
@@ -583,74 +592,82 @@ void PPSP01A::lspfSettings()
 		ZCMD  = "" ;
 		display( "PPSP01GO", "", "ZCMD" );
 		RCode = RC ;
-		if ( RCode >  8 ) { abend() ; }
 		if ( ZCMD == "CANCEL" ) { break ; }
 		if ( RCode == 8 || ZCMD == "SAVE" )
 		{
-		    if ( GOKLUSE == "/" ) { ZKLUSE  = "Y" ; }
-		    else                  { ZKLUSE  = "N" ; }
-		    if ( GOKLFAL == "/" ) { ZKLFAIL = "Y" ; }
-		    else                  { ZKLFAIL = "N" ; }
-		    if ( GOSTFST == "/" ) { ZSCMDTF = "Y" ; }
-		    else                  { ZSCMDTF = "N" ; }
-		    if ( GOLMSGW == "/" ) { ZLMSGW  = "Y" ; }
-		    else                  { ZLMSGW  = "N" ; }
-		    if ( GOSWAP  == "/" ) { ZSWAP   = "Y" ; }
-		    else                  { ZSWAP   = "N" ; }
-		    ZUCMDT1 = GOUCMD1 ;
-		    ZUCMDT2 = GOUCMD2 ;
-		    ZUCMDT3 = GOUCMD3 ;
-		    ZSCMDT1 = GOSCMD1 ;
-		    ZSCMDT2 = GOSCMD2 ;
-		    ZSCMDT3 = GOSCMD3 ;
-		    vput( "ZKLUSE  ZKLFAIL ZLMSGW ZSWAP", PROFILE ) ;
-		    vput( "ZUCMDT1 ZUCMDT2 ZUCMDT3", PROFILE ) ;
-		    vput( "ZSCMDT1 ZSCMDT2 ZSCMDT3 ZSCMDTF", PROFILE ) ;
-		    if ( GODEL != "" && GODEL != ZDEL )
-		    {
-			    ZDEL = GODEL ;
-			    vput( "ZDEL", PROFILE ) ;
-		    }
-		    if ( GOSWAPC != "" && GOSWAPC != ZSWAPC )
-		    {
-			    ZSWAPC = GOSWAPC ;
-			    vput( "ZSWAPC", PROFILE ) ;
-		    }
-		    if ( GOATIMO != "" )
-		    {
-			    KMAXWAIT = d2ds( ds2d( GOATIMO ) * 1000 / ds2d( *t1 ) ) ;
-			    vput( "ZMAXWAIT", PROFILE ) ;
-		    }
-		    if ( GORTSIZE != "" )
-		    {
-			    ZRTSIZE = GORTSIZE ;
-			    vput( "ZRTSIZE", PROFILE ) ;
-		    }
-		    if ( GORBSIZE != "" )
-		    {
-			    ZRBSIZE = GORBSIZE ;
-			    vput( "ZRBSIZE", PROFILE ) ;
-		    }
-		    if ( RCode == 8 ) { break ; }
+			if ( GOKLUSE == "/" ) { ZKLUSE  = "Y" ; }
+			else                  { ZKLUSE  = "N" ; }
+			if ( GOKLFAL == "/" ) { ZKLFAIL = "Y" ; }
+			else                  { ZKLFAIL = "N" ; }
+			if ( GOSTFST == "/" ) { ZSCMDTF = "Y" ; }
+			else                  { ZSCMDTF = "N" ; }
+			if ( GOLMSGW == "/" ) { ZLMSGW  = "Y" ; }
+			else                  { ZLMSGW  = "N" ; }
+			if ( GOSWAP  == "/" ) { ZSWAP   = "Y" ; }
+			else                  { ZSWAP   = "N" ; }
+			ZUCMDT1 = GOUCMD1 ;
+			ZUCMDT2 = GOUCMD2 ;
+			ZUCMDT3 = GOUCMD3 ;
+			ZSCMDT1 = GOSCMD1 ;
+			ZSCMDT2 = GOSCMD2 ;
+			ZSCMDT3 = GOSCMD3 ;
+			vput( "ZKLUSE  ZKLFAIL ZLMSGW ZSWAP", PROFILE ) ;
+			vput( "ZUCMDT1 ZUCMDT2 ZUCMDT3", PROFILE ) ;
+			vput( "ZSCMDT1 ZSCMDT2 ZSCMDT3 ZSCMDTF", PROFILE ) ;
+			if ( GODEL != "" && GODEL != ZDEL )
+			{
+				ZDEL = GODEL ;
+				vput( "ZDEL", PROFILE ) ;
+			}
+			if ( GOSWAPC != "" && GOSWAPC != ZSWAPC )
+			{
+				ZSWAPC = GOSWAPC ;
+				vput( "ZSWAPC", PROFILE ) ;
+			}
+			if ( GOPADC != ZPADC )
+			{
+				if      ( GOPADC == "B" ) { ZPADC = " "    ; }
+				else if ( GOPADC == "N" ) { ZPADC = nulls  ; }
+				else                      { ZPADC = GOPADC ; }
+				vput( "ZPADC", PROFILE ) ;
+				ZPADC = GOPADC ;
+			}
+			if ( GOATIMO != "" )
+			{
+				KMAXWAIT = d2ds( ds2d( GOATIMO ) * 1000 / ds2d( *t1 ) ) ;
+				vput( "ZMAXWAIT", PROFILE ) ;
+			}
+			if ( GORTSIZE != "" )
+			{
+				ZRTSIZE = GORTSIZE ;
+				vput( "ZRTSIZE", PROFILE ) ;
+			}
+			if ( GORBSIZE != "" )
+			{
+				ZRBSIZE = GORBSIZE ;
+				vput( "ZRBSIZE", PROFILE ) ;
+			}
+			if ( RCode == 8 ) { break ; }
 		}
 		if ( ZCMD == "DEFAULTS" )
 		{
-		    GOKLUSE  = ""  ;
-		    GOKLFAL  = "/" ;
-		    GOSTFST  = "/" ;
-		    GOLMSGW  = ""  ;
-		    GODEL    = ";" ;
-		    GOSWAP   = "/" ;
-		    GOSWAPC  = "'" ;
-		    GOUCMD1  = "USR" ;
-		    GOUCMD2  = ""  ;
-		    GOUCMD3  = ""  ;
-		    GOSCMD1  = ""  ;
-		    GOSCMD2  = ""  ;
-		    GOSCMD3  = ""  ;
-		    GOATIMO  = d2ds( ZMAXWAIT * ds2d( *t1 ) / 1000 ) ;
-		    GORTSIZE = "3"  ;
-		    GORBSIZE = "10" ;
+			GOKLUSE  = ""  ;
+			GOKLFAL  = "/" ;
+			GOSTFST  = "/" ;
+			GOLMSGW  = ""  ;
+			GODEL    = ";" ;
+			GOSWAP   = "/" ;
+			GOSWAPC  = "'" ;
+			GOPADC   = "_" ;
+			GOUCMD1  = "USR" ;
+			GOUCMD2  = ""  ;
+			GOUCMD3  = ""  ;
+			GOSCMD1  = ""  ;
+			GOSCMD2  = ""  ;
+			GOSCMD3  = ""  ;
+			GOATIMO  = d2ds( ZMAXWAIT * ds2d( *t1 ) / 1000 ) ;
+			GORTSIZE = "3"  ;
+			GORBSIZE = "10" ;
 		}
 	}
 	vdelete( "ZUCMDT1 ZUCMDT2 ZUCMDT3" ) ;
@@ -669,7 +686,7 @@ void PPSP01A::lspfSettings()
 	if ( RC > 0 ) { abend() ; }
 	vdelete( "ZRTSIZE GORTSIZE ZRBSIZE GORBSIZE" ) ;
 	if ( RC > 0 ) { abend() ; }
-	vdelete( "ZMAXWAIT GOATIMO" ) ;
+	vdelete( "ZMAXWAIT GOATIMO ZPADC GOPADC" ) ;
 	if ( RC > 0 ) { abend() ; }
 }
 
@@ -718,7 +735,6 @@ void PPSP01A::pfkeySettings()
 		ZCMD  = "" ;
 		display( "PPSP01AK", "", "ZCMD" );
 		RCode = RC ;
-		if (RCode > 8 ) { abend() ; }
 
 		if ( ZCMD == "CANCEL" ) { break ; }
 		if ( ZCMD == "DEFAULTS" )
@@ -914,7 +930,6 @@ void PPSP01A::colourSettings()
 	{
 		if ( MSG == "" ) { CURFLD = "ZCMD" ; }
 		display( "PPSP01CL", MSG, CURFLD ) ;
-		if (RC  > 8 ) { abend()   ;          }
 		if (RC == 8 ) { cleanup() ; break  ; }
 
 		if ( ZCMD == "" ) {}
@@ -1183,8 +1198,7 @@ void PPSP01A::todoList()
 	{
 		ZCMD  = "" ;
 		display( "PPSP01TD", "", "ZCMD" );
-		if (RC  > 8 ) { abend()   ;          }
-		if (RC == 8 ) { cleanup() ; break  ; }
+		if (RC == 8 ) { cleanup() ; break ; }
 
 		if ( ZCMD == "CANCEL" ) return ;
 	}
@@ -1221,8 +1235,7 @@ void PPSP01A::poolVariables( const string& applid )
 		tbskip( VARLST, ZTDTOP ) ;
 		if ( MSG == "" ) { ZCMD = "" ; }
 		tbdispl( VARLST, "PPSP01AV", MSG, "ZCMD" ) ;
-		if ( RC  >  8 ) { abend() ; }
-		if ( RC ==  8 ) { break   ; }
+		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 		if ( (ZCMD == "REF") || (ZCMD == "RES") ) { tbend( VARLST ) ; getpoolVariables( "" ) ; continue ; }
 		cw = word( ZCMD, 1 ) ;
@@ -1529,8 +1542,7 @@ void PPSP01A::showPaths()
 		tbskip( PATHLST, ZTDTOP ) ;
 		if ( MSG == "" ) { ZCMD  = "" ; }
 		tbdispl( PATHLST, "PPSP01AP", MSG, "ZCMD" ) ;
-		if ( RC  >  8 ) { abend() ; }
-		if ( RC ==  8 ) { break   ; }
+		if ( RC == 8 ) { break ; }
 		MSG = ""     ;
 		while ( ZTDSELS > 0 )
 		{
@@ -1613,8 +1625,7 @@ void PPSP01A::showCommandTables()
 		tbskip( CMDTAB+"CMDS", ZTDTOP ) ;
 		ZCMD  = "" ;
 		tbdispl( CMDTAB+"CMDS", panel, MSG, "ZCMD" ) ;
-		if ( RC  >  8 ) { abend() ; }
-		if ( RC ==  8 ) { break   ; }
+		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 		if ( OCMDTAB != CMDTAB )
 		{
@@ -1692,8 +1703,7 @@ void PPSP01A::showLoadedClasses()
 		tbskip( MODLST, ZTDTOP ) ;
 		if ( MSG == "" ) { ZCMD = "" ; }
 		tbdispl( MODLST, "PPSP01ML", MSG, "ZCMD" ) ;
-		if ( RC  >  8 ) { abend() ; }
-		if ( RC ==  8 ) { break   ; }
+		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 		if ( ZTDSELS == 0 && ZCMD == "" ) { ref = true ; }
 		ws = words( ZCMD )   ;
@@ -1750,8 +1760,7 @@ void PPSP01A::showSavedFileList()
 	while ( true )
 	{
 		display( "PPSP01FL", MSG, "ZCMD" ) ;
-		if ( RC >  8 ) { abend() ; }
-		if ( RC == 8 ) { return  ; }
+		if ( RC == 8 ) { return ; }
 
 		if ( ZFILE != "" )
 		{
@@ -1847,8 +1856,7 @@ void PPSP01A::showTasks()
 		tbskip( TASKLST, ZTDTOP ) ;
 		ZCMD  = "" ;
 		tbdispl( TASKLST, "PPSP01TK", MSG, "ZCMD" ) ;
-		if ( RC  >  8 ) { abend() ; }
-		if ( RC ==  8 ) { break   ; }
+		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 		vcopy( "USERF", uf, MOVE ) ;
 		vcopy( "ONLYF", of, MOVE ) ;
@@ -1952,7 +1960,6 @@ void PPSP01A::utilityPrograms()
 		ZCMD  = "" ;
 		display( "PPSP01UP", "", "ZCMD" ) ;
 		RCode = RC ;
-		if (RCode > 8 ) { abend() ; }
 
 		if ( KMAINPGM == "" ) { KMAINPGM = ZMAINPGM ; } ;
 		if ( KPANLPGM == "" ) { KPANLPGM = ZPANLPGM ; } ;
@@ -2065,8 +2072,7 @@ void PPSP01A::keylistTables()
 		tbskip( KEYP, ZTDTOP ) ;
 		if ( MSG == "" ) { ZCMD = "" ; }
 		tbdispl( KEYP, "PPSP01K1", MSG, "ZCMD" ) ;
-		if ( RC  >  8 ) { abend() ; }
-		if ( RC ==  8 ) { break   ; }
+		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 		while ( ZTDSELS > 0 )
 		{
@@ -2219,8 +2225,7 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 		tbskip( KLST, ZTDTOP ) ;
 		if ( MSG == "" ) { ZCMD = "" ; }
 		tbdispl( KLST, "PPSP01K2", MSG, "ZCMD" ) ;
-		if ( RC  >  8 ) { abend() ; }
-		if ( RC ==  8 ) { break   ; }
+		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 		while ( ZTDSELS > 0 )
 		{
@@ -2366,8 +2371,7 @@ void PPSP01A::viewKeylist( const string& tab, const string& list )
 		tbskip( KLST, ZTDTOP ) ;
 		if ( MSG == "" ) { ZCMD = "" ; }
 		tbdispl( KLST, "PPSP01K6", MSG, "ZCMD" ) ;
-		if ( RC  >  8 ) { abend() ; }
-		if ( RC ==  8 ) { break   ; }
+		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 	}
 	tbend( KLST )  ;
@@ -2433,8 +2437,7 @@ void PPSP01A::editKeylist( const string& tab, const string& list )
 		tbskip( KLST, ZTDTOP ) ;
 		if ( MSG == "" ) { ZCMD = "" ; }
 		tbdispl( KLST, "PPSP01K3", MSG, "ZCMD" ) ;
-		if ( RC  >  8 ) { abend() ; }
-		if ( RC ==  8 ) { break   ; }
+		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 		while ( ZTDSELS > 0 )
 		{

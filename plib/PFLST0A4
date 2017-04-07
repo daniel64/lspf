@@ -11,7 +11,7 @@
 PanelTitle "Rename File"
 
 literal  4   2       FP    "Command ===> "
-field    4  15   MAX NEF CAPS(ON) ZCMD
+field    4  15   MAX NEF CAPS(ON),PAD(USER) ZCMD
 
 literal  6   2   FP    "Pathname . . . . . . ."
 field    6   25  MAX VOI  NONE ENTRY
@@ -25,18 +25,22 @@ field    8   25  20  VOI  NONE MODDATE
 literal  10   2  CH "Enter new name below"
 
 literal  12   2   FP    "Newpath Name . . . . ."
-field    12   25  MAX  NEF NONE NEWENTRY
+field    12   25  MAX  NEF PAD(USER) NEWENTRY
 
 literal 15 2  CH "Instructions"
-literal 16 2  NT "Press"
-literal 16 8  ET "Enter"
-literal 16 14 NT "to confirm rename"
+literal 16 2  NT "Enter"
+literal 16 8  ET "."
+literal 16 10 NT "in Newpath Name field to retrieve path name"
 
 literal 18 2  NT "Press"
-literal 18 8  ET "Cancel"
-literal 18 15 NT "or"
-literal 18 18 ET "END"
-literal 18 22 NT "to cancel rename"
+literal 18 8  ET "Enter"
+literal 18 14 NT "to confirm rename"
+
+literal 19 2  NT "Press"
+literal 19 8  ET "Cancel"
+literal 19 15 NT "or"
+literal 19 18 ET "END"
+literal 19 22 NT "to cancel rename"
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
@@ -49,6 +53,19 @@ literal 18 22 NT "to cancel rename"
 
 
 )PROC
+
+&ZCMD = TRANS( &ZCMD CAN,CANCEL *,* )
+ver (&zcmd,list,cancel )
+if ( &zcmd eq cancel )
+   exit
+
+IF (&NEWENTRY EQ '.' )
+  &NEWENTRY = &ZPATH
+  .CURSOR   = NEWENTRY
+  .CSRPOS   = length(zpath)
+  .MSG      = FLST012
+  REFRESH(NEWENTRY)
+  EXIT
 
 IF (&NEWENTRY EQ &ENTRY )
   .CURSOR = NEWENTRY

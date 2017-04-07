@@ -76,8 +76,7 @@ void PCMD0A::application()
 	{
 		if ( MSG == "" ) { ZCMD = "" ; }
 		display( "PCMD0A", MSG, "ZCMD" ) ;
-		if ( RC == 8 ) { break   ; }
-		if ( RC >  8 ) { abend() ; }
+		if ( RC == 8 ) { break ; }
 		if ( ZCOMMAND != "" )
 		{
 			ZCOMMAND = ZCOMMAND + " 2> /tmp/popen.err" ;

@@ -8,7 +8,7 @@ PanelTitle "Path Searches"
 scrollOn
 
 literal  4   2         FP    "Command ===> "
-field    4  15  MAX-17 NEF CAPS(ON) ZCMD
+field    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
 
 literal  4  MAX-15  FP "SCROLL ===> "
 field    4  MAX-3   4 NEF  NONE ZSCROLL
@@ -21,7 +21,7 @@ literal  10 2 CH  "C Name     Path                                              
 literal  11 2 CH  EXPAND "-"
 
 tbmodel  12   MAX
-tbfield  2    1    NEF  CAPS(ON),PAD('_'),JUST(LEFT) SEL
+tbfield  2    1    NEF  CAPS(ON),PAD(USER),JUST(LEFT) SEL
 tbfield  4    8    VOI  NONE PVAR
 tbfield  13   50   VOI  NONE PATH
 tbfield  63   15   VOI  NONE MESSAGE

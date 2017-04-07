@@ -82,8 +82,7 @@ void PDPANLA::application()
 			loope = true ;
 		}
 		display( PANELNM, MSG, "ZCMD" );
-		if ( RC == 8 ) break ;
-		if ( RC  > 8 ) { abend() ; return ; }
+		if ( RC == 8 ) { break ; }
 
 		if ( MSG != "" ) { loope = false ; }
 		MSG  = "" ;

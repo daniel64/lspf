@@ -19,18 +19,18 @@ PanelDescr "List &ZPATH"
 scrollOn
 
 literal  4   2           FP    "Command ===> "
-field    4  15   MAX-17  NEF PAD('_') ZCMD
+field    4  15   MAX-17  NEF PAD(USER) ZCMD
 
 literal  4  MAX-15  FP "SCROLL ===>"
 field    4  MAX-3   4  NEF  NONE ZSCROLL
 
 literal  6   2         FP  "Path Name . . ."
-field    6  18    MAX  NEF NONE ZPATH
+field    6  18    MAX  NEF PAD(USER) ZPATH
 
 field    7  MAX-20 21  SAC NONE FMSG1
 field    8  MAX-20 21  SAC NONE FMSG2
 
-field    8   2   1   CEF     PAD('_') AFHIDDEN
+field    8   2   1   CEF     PAD(USER) AFHIDDEN
 literal  8   4       SAC    "Show hidden entries also"
 
 
@@ -38,7 +38,7 @@ literal  10  2 CH  "CMD  Entry name                             Message         
 literal  11  2 CH  EXPAND  "-"
 
 tbmodel  12    MAX
-tbfield  2     4   NEF  CAPS(ON),PAD('_'),JUST(LEFT) SEL
+tbfield  2     4   NEF  CAPS(ON),PAD(USER),JUST(LEFT) SEL
 tbfield  ++1   38  VOI  NONE  ENTRY
 tbfield  ++1   15  VOI  NONE  MESSAGE
 tbfield  ++1   7   VOI  NONE  TYPE

@@ -6,7 +6,7 @@
 PanelTitle "Copy File"
 
 literal  4   2        FP    "Command ===> "
-field    4  15   MAX  NEF CAPS(ON) ZCMD
+field    4  15   MAX  NEF CAPS(ON),PAD(USER) ZCMD
 
 literal  6   2   FP   "Pathname . . . . . . ."
 field    6   25  MAX  VOI  NONE ENTRY
@@ -20,27 +20,31 @@ field    8   25  20  VOI  NONE MODDATE
 literal  10  2    CH  "Enter file name below"
 
 literal  12   2   FP   "New File Name. . . . ."
-field    12   25  MAX  NEF NONE NEWENTRY
+field    12   25  MAX  NEF PAD(USER) NEWENTRY
 
 literal  14 2 PIN "Enter / to select option"
 
-field    15   2   1   CEF PAD('_') FREPL
+field    15   2   1   CEF PAD(USER) FREPL
 literal  15   4       SAC    "Replace like-named pathname"
 
-field    16   2   1   CEF PAD('_') DIRREC
+field    16   2   1   CEF PAD(USER) DIRREC
 literal  16   4       SAC    "Recursively copy sub-directories"
 
 literal 19 2  CH "Instructions"
 
-literal 20 2  NT "Press"
-literal 20 8  ET "Enter"
-literal 20 14 NT "to confirm copy"
+literal 20 2  NT "Enter"
+literal 20 8  ET "."
+literal 20 10 NT "in New File Name field to retrieve path name"
 
 literal 22 2  NT "Press"
-literal 22 8  ET "Cancel"
-literal 22 15 NT "or"
-literal 22 18 ET "END"
-literal 22 22 NT "to cancel copy"
+literal 22 8  ET "Enter"
+literal 22 14 NT "to confirm copy"
+
+literal 23 2  NT "Press"
+literal 23 8  ET "Cancel"
+literal 23 15 NT "or"
+literal 23 18 ET "END"
+literal 23 22 NT "to cancel copy"
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
@@ -51,10 +55,17 @@ literal 22 22 NT "to cancel copy"
 
 )PROC
 
+&ZCMD = TRANS( &ZCMD CAN,CANCEL *,* )
+ver (&zcmd,list,cancel )
+if ( &zcmd eq cancel )
+   exit
+
 IF (&NEWENTRY EQ '.' )
   &NEWENTRY = &ZPATH
   .CURSOR   = NEWENTRY
+  .CSRPOS   = length(zpath)
   .MSG      = FLST012
+  REFRESH(NEWENTRY)
   EXIT
 
 IF (&NEWENTRY EQ &ENTRY )

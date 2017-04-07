@@ -2073,6 +2073,12 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		posn = p_tableMGR->getCRP( errBlock, tb_name ) ;
 		if ( posn == 0 ) { posn = 1 ; }
 		p_tableMGR->fillfVARs( errBlock, funcPOOL, tb_name, currtbPanel->tb_depth, posn ) ;
+		if ( errBlock.error() )
+		{
+			errBlock.setcall( e1 ) ;
+			checkRCode( errBlock ) ;
+			return ;
+		}
 	}
 	else
 	{
@@ -2284,6 +2290,12 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 				ZCMD = "" ;
 			}
 			p_tableMGR->fillfVARs( errBlock, funcPOOL, tb_name, currtbPanel->tb_depth, ZTDTOP ) ;
+			if ( errBlock.error() )
+			{
+				errBlock.setcall( e6 + p_name ) ;
+				checkRCode( errBlock ) ;
+				return ;
+			}
 			currPanel->update_field_values( errBlock ) ;
 			if ( errBlock.error() )
 			{
@@ -2765,13 +2777,13 @@ void pApplication::actionSelect()
 
 void pApplication::pquery( const string& p_name, const string& a_name, const string& t_name, const string& w_name, const string& d_name, const string& r_name, const string& c_name )
 {
-	const string e1 = "PQUERY error" ;
+	const string e1 = "PQUERY error for panel "+p_name ;
 
 	RC = 0 ;
 
 	if ( !isvalidName( p_name ) )
 	{
-		errBlock.setcall( e1, "PSYE023C", "panel", p_name ) ;
+		errBlock.setcall( e1, "PSYE021A", p_name ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -2815,7 +2827,7 @@ void pApplication::pquery( const string& p_name, const string& a_name, const str
 	createPanel( p_name ) ;
 	if ( panelList.count( p_name ) == 0 )
 	{
-		errBlock.setcall( e1, "Panel error during PQUERY of panel "+ p_name ) ;
+		errBlock.setcall( e1 ) ;
 		checkRCode( errBlock ) ;
 		return  ;
 	}
@@ -3754,7 +3766,7 @@ void pApplication::checkRCode( errblock err )
 	// If the error panel is to be displayed, cancel CONTROL DISPLAY LOCK
 
 	// Format: msg1   header - call description resulting in the error
-	//         short msg
+	//         short  msg
 	//         longer description
 	//         sline  source line error detected if entered, else dialogue statement.
 	//         dline  dialogue statement if entered.
@@ -3762,7 +3774,30 @@ void pApplication::checkRCode( errblock err )
 	// Set RC to the error code in the error block if we are returning to the program (CONTROL ERRORS RETURN)
 	// and clear errBlock (will have been re-used for services run from this routine)
 
+	// Terminate processing if this routing is called during error processing.
+
 	string t ;
+
+	if ( err.abending() )
+	{
+		llog( "E", "Errors have occured during error processing.  Terminating application." << endl ) ;
+		llog( "E", "Error msg  : "<< err.msg1 << endl )  ;
+		llog( "E", "Error id   : "<< err.msgid << endl ) ;
+		llog( "E", "Error ZVAL1: "<< err.val1 << endl )  ;
+		llog( "E", "Error ZVAL2: "<< err.val2 << endl )  ;
+		llog( "E", "Error ZVAL3: "<< err.val3 << endl )  ;
+		llog( "E", "Source     : "<< err.getsrc() << endl ) ;
+		abend() ;
+	}
+
+	if ( ControlErrorsReturn )
+	{
+		RC = err.getRC() ;
+		errBlock.clear() ;
+		return ;
+	}
+
+	errBlock.setAbending() ;
 
 	if ( err.val1 != "" ) { vreplace( "ZVAL1", err.val1 ) ; }
 	if ( err.val2 != "" ) { vreplace( "ZVAL2", err.val2 ) ; }
@@ -3780,14 +3815,7 @@ void pApplication::checkRCode( errblock err )
 	vcopy( "ZERRLM", t, MOVE ) ;
 	if ( t != "" ) { llog( "E", t << endl ) ; }
 
-	if ( ControlErrorsReturn )
-	{
-		RC = err.getRC() ;
-		errBlock.clear() ;
-		return ;
-	}
-
-	llog( "E", "RC="<< err.RC <<" CONTROL ERRORS CANCEL is in effect.  Aborting" << endl ) ;
+	llog( "E", "RC="<< err.getRC() <<" CONTROL ERRORS CANCEL is in effect.  Aborting" << endl ) ;
 
 	vreplace( "ZAPPNAME", ZAPPNAME ) ;
 	vreplace( "ZERR1",  err.msg1  ) ;

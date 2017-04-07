@@ -17,7 +17,7 @@
 PanelTitle "Test Panel Functions"
 
 literal   4    2   FP  "Command ===> "
-field     4   15  MAX   NEF     CAPS(ON)  ZCMD
+field     4   15  MAX   NEF     CAPS(ON),PAD(USER) ZCMD
 
 literal   6   MAX-36    FP  "TIME: "
 field     6   MAX-30    8    VOI   NONE  ZTIME
@@ -87,24 +87,24 @@ field     22   1   10    CH    NONE  ATRF7
 field     22   12  10    CH    NONE  ATRF8
 field     22   23  10    CH    NONE  ATRF9
 
-literal   20   35   FP  "PAD(_),JUST(L):"
-field     20   51   8    NEF   JUST(LEFT),PAD('_'),CAPS(ON)  FLDA
+literal   20   35   FP  "PAD(USER),JUST(L):"
+field     20   54   8    NEF   JUST(LEFT),PAD(USER),CAPS(ON) FLDA
 
-literal   21   35   FP  "PAD(_),JUST(R):"
-field     21   51   8    NEF   JUST(RIGHT),PAD('_')  FLDB
+literal   21   35   FP  "PAD(USER),JUST(R):"
+field     21   54   8    NEF   JUST(RIGHT),PAD(USER) FLDB
 
-literal   22   35   FP  "PAD(_),JUST(A):"
-field     22   51   8    NEF   JUST(ASIS),PAD('_')  FLDC
+literal   22   35   FP  "PAD(USER),JUST(A):"
+field     22   54   8    NEF   JUST(ASIS),PAD(USER) FLDC
 
 
-literal   20   60   FP  "PAD( ),JUST(L):"
-field     20   76   8    NEF   JUST(LEFT)  FLDD
+literal   20   64   FP  "PAD(USER),JUST(L):"
+field     20   84   8    NEF   pad(user),JUST(LEFT)  FLDD
 
-literal   21   60   FP  "PAD( ),JUST(R):"
-field     21   76   8    NEF   JUST(RIGHT) FLDE
+literal   21   64   FP  "PAD(USER),JUST(R):"
+field     21   84   8    NEF   pad(user),JUST(RIGHT) FLDE
 
-literal   22   60   FP  "PAD( ),JUST(A):"
-field     22   76   8    NEF   JUST(ASIS)  FLDF
+literal   22   64   FP  "PAD(USER),JUST(A):"
+field     22   84   8    NEF   pad(user),JUST(ASIS)  FLDF
 
 
 )INCLUDE STD_PDC

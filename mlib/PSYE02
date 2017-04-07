@@ -2,8 +2,8 @@
 /* System error message file for lspf        */
 
 /* Application messages */
-PSYE021A 'Invalid panel name'
-'Panel name ''&ZVAL1'' is invalid'
+PSYE021A 'Invalid panel name ''&ZVAL1'''
+''
 
 PSYE021B 'Panel not found'
 'Panel ''&ZVAL1'' has not been found'

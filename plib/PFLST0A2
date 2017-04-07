@@ -8,7 +8,7 @@
 PanelTitle "File Information"
 
 literal  4   2        FP    "Command ===> "
-field    4  15   MAX  NEF NONE ZCMD
+field    4  15   MAX  NEF PAD(USER) ZCMD
 
 literal  6   2        FP    "Entry Name . . ."
 field    6  19   MAX  VOI NONE IENTRY

@@ -314,9 +314,11 @@ class errblock
 		string  val1  ;
 		string  val2  ;
 		string  val3  ;
+		string  udata ;
 		int     RC    ;
 		int     maxRC ;
 		bool    debug ;
+		bool    abend ;
 	errblock()
 	{
 		msgid = "" ;
@@ -326,9 +328,11 @@ class errblock
 		val1  = "" ;
 		val2  = "" ;
 		val3  = "" ;
+		udata = "" ;
 		RC    = 0  ;
 		maxRC = 0  ;
 		debug = false ;
+		abend = false ;
 	}
 	void clear()
 	{
@@ -339,9 +343,11 @@ class errblock
 		val1  = "" ;
 		val2  = "" ;
 		val3  = "" ;
+		udata = "" ;
 		RC    = 0  ;
 		maxRC = 0  ;
 		debug = false ;
+		abend = false ;
 	}
 	void setRC( int i )
 	{
@@ -386,6 +392,14 @@ class errblock
 	bool debugMode()
 	{
 		return debug ;
+	}
+	void setAbending()
+	{
+		abend = true ;
+	}
+	bool abending()
+	{
+		return abend ;
 	}
 	bool error()
 	{
@@ -510,6 +524,14 @@ class errblock
 		val1 = s1 ;
 		val2 = s2 ;
 		val3 = s3 ;
+	}
+	void setUserData( const string s )
+	{
+		udata = s ;
+	}
+	string getUserData()
+	{
+		return udata ;
 	}
 } ;
 

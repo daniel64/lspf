@@ -68,6 +68,7 @@ class field
 				field_colour       = 0     ;
 				field_skip         = true  ;
 				field_caps         = false ;
+				field_paduser      = false ;
 				field_padchar      = ' '   ;
 				field_just         = 'L'   ;
 				field_numeric      = false ;
@@ -92,6 +93,7 @@ class field
 		uint         field_colour       ;
 		bool         field_skip         ;
 		bool         field_caps         ;
+		bool         field_paduser      ;
 		char         field_padchar      ;
 		char         field_just         ;
 		bool         field_numeric      ;
@@ -104,16 +106,17 @@ class field
 		string       field_shadow_value ;
 
 		void field_init( errblock& err, int MAXW, int MAXD, const string& line ) ;
+		void field_opts( errblock& err, string& )  ;
 		bool cursor_on_field( uint row, uint col ) ;
-		void display_field( WINDOW *, bool ) ;
-		bool edit_field_insert( WINDOW * win, char ch, int row, bool ) ;
-		bool edit_field_replace( WINDOW * win, char ch, int row, bool ) ;
-		void edit_field_delete( WINDOW * win, int row, bool ) ;
-		int  edit_field_backspace( WINDOW * win, int col, bool ) ;
+		void display_field( WINDOW *, char, bool ) ;
+		bool edit_field_insert( WINDOW * win, char ch, int row, char, bool ) ;
+		bool edit_field_replace( WINDOW * win, char ch, int row, char, bool ) ;
+		void edit_field_delete( WINDOW * win, int row, char, bool ) ;
+		int  edit_field_backspace( WINDOW * win, int col, char, bool ) ;
 		void field_remove_nulls_da()     ;
-		void field_blank( WINDOW * win ) ;
-		void field_clear( WINDOW * win ) ;
-		void field_erase_eof( WINDOW * win, unsigned int col, bool ) ;
+		void field_blank( WINDOW * win, char ) ;
+		void field_clear( WINDOW * win, char ) ;
+		void field_erase_eof( WINDOW * win, unsigned int col, char, bool ) ;
 		bool field_dyna_input( uint col )  ;
 		int  field_dyna_input_offset( uint col )  ;
 		void field_DataMod_to_UserMod( string *, int ) ;
@@ -132,8 +135,8 @@ class literal
 {
 	private:
 		literal() {
-				literal_colour = 0     ;
-				literal_name   = ""    ;
+				literal_colour = 0  ;
+				literal_name   = "" ;
 			  }
 		int     literal_row    ;
 		int     literal_col    ;
@@ -160,6 +163,13 @@ class pdc
 				pdc_unavail = "" ;
 			} ;
 		~pdc() {} ;
+		pdc( const string& a, const string& b, const string& c, const string& d )
+			{
+				pdc_name    = a ;
+				pdc_run     = b ;
+				pdc_parm    = c ;
+				pdc_unavail = d ;
+			} ;
 		string pdc_name ;
 		string pdc_run  ;
 		string pdc_parm ;
@@ -189,7 +199,8 @@ class abc
 			}
 			} ;
 
-		void add_pdc( const string&, const string&, const string&, const string& ) ;
+		bool pdc_exists( const string& )   ;
+		void add_pdc( const pdc& ) ;
 		void display_abc_sel( WINDOW * )   ;
 		void display_abc_unsel( WINDOW * ) ;
 		void display_pd( uint, uint ) ;
@@ -207,6 +218,10 @@ class abc
 class Box
 {
 	public:
+		Box()   {
+				box_title = "" ;
+			}
+
 		void box_init( errblock& err, int MAXW, int MAXD, const string& line ) ;
 		void display_box( WINDOW * ) ;
 

@@ -2154,13 +2154,11 @@ void loadDefaultPools()
 	// Default vars go in @DEFPROF (RO) for PROFILE and @DEFSHAR (UP) for SHARE
 	// These have the SYSTEM attibute set on the variable
 
-	int i  ;
-
 	errblock err ;
 
 	struct utsname buf ;
 
-	i = uname( &buf ) ;
+	uname( &buf ) ;
 
 	p_poolMGR->defaultVARs( err, "ZSCRMAXD", d2ds( pLScreen::maxrow ), SHARED ) ;
 	p_poolMGR->defaultVARs( err, "ZSCRMAXW", d2ds( pLScreen::maxcol ), SHARED ) ;

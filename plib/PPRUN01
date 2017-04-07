@@ -6,37 +6,37 @@
 PanelTitle "Invoke Dialogue Functions or Selection Panel"
 
 literal  4   2          FP    "Command ===> "
-field    4  15  MAX-17  NEF CAPS(ON) ZCMD
+field    4  15  MAX-17  NEF PAD(USER),CAPS(ON) ZCMD
 
 literal  6   2          CH    "Options:"
 literal  7   7          FP    "APPLID. . ."
-field    7  19  4       NEF CAPS(ON) PRAPPL
+field    7  19  4       NEF PAD(USER),CAPS(ON) PRAPPL
 
 literal  6   40         FP    "Enter / to select option"
-field    7   40  1      CEF     PAD('_') PRNAPPL
+field    7   40  1      CEF     PAD(USER) PRNAPPL
 literal  7   42         SAC   "NEWAPPL"
 
-field    7   51  1      CEF     PAD('_') PRNPOOL
+field    7   51  1      CEF     PAD(USER) PRNPOOL
 literal  7   53         SAC   "NEWPOOL"
 
-field    7   62  1      CEF     PAD('_') PRPSLIB
+field    7   62  1      CEF     PAD(USER) PRPSLIB
 literal  7   64         SAC   "PASSLIB"
 
 literal  9   2          CH    "Invoke selection panel:"
 literal  10  7          FP    "PANEL . . ."
-field    10 19  8       NEF CAPS(ON) PRSPNL
+field    10 19  8       NEF PAD(USER),CAPS(ON) PRSPNL
 literal  11  7          FP    "OPT . . . ."
-field    11 19  MAX-17  NEF NONE     PRSOPT
+field    11 19  MAX     NEF PAD(USER)  PRSOPT
 
 literal  13  2          CH    "Invoke command:"
 literal  14  7          FP    "CMD . . . ."
-field    14 19  MAX     NEF NONE     PRICMD
+field    14 19  MAX     NEF PAD(USER)  PRICMD
 
 literal  16  2          CH    "Invoke program:"
 literal  17  7          FP    "PGM . . . ."
-field    17 19  20      NEF CAPS(ON) PRIPGM
+field    17 19  20      NEF PAD(USER),CAPS(ON) PRIPGM
 literal  18  7          FP    "PARM. . . ."
-field    18 19  MAX-17  NEF NONE     PRIPRM
+field    18 19  MAX     NEF PAD(USER)  PRIPRM
 
 literal 21 2   CH "Instructions"
 literal 23 2   NT "Enter the PANEL, CMD or PGM field and press"

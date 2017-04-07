@@ -85,8 +85,7 @@ void PMAIN0A::application()
 	while ( true )
 	{
 		ispexec( "DISPLAY PANEL(PMAINP01) MSG("+MSG+") CURSOR(ZCMD)" ) ;
-		if ( RC  > 8 ) { abend() ; break   ; }
-		if ( RC == 8 ) { break   ;           }
+		if ( RC == 8 ) { break ; }
 
 		ispexec( "VGET (ZJDATE ZTIME) SHARED" ) ;
 		MSG  = "" ;

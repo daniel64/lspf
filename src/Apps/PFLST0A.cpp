@@ -238,8 +238,7 @@ void PFLST0A::application()
 		OHIDDEN = AFHIDDEN ;
 		if ( MSG == "" ) { ZCMD  = "" ; }
 		tbdispl( DSLIST, "PFLST0A1", MSG, "ZCMD" ) ;
-		if ( RC  > 8 ) { abend() ; }
-		if ( RC == 8 ) { break   ; }
+		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 		w1  = upper( word( ZCMD, 1 ) ) ;
 		w2  = word( ZCMD, 2 ) ;
@@ -383,7 +382,6 @@ void PFLST0A::application()
 					continue        ;
 				}
 				display( "PFLST0A5", MSG, "ZCMD" ) ;
-				if ( RC > 8  ) { abend() ; }
 				if ( ZCMD == "CAN" || ZCMD == "CANCEL" || RC == 8 )
 				{
 					ZCMD    = ""          ;
@@ -466,7 +464,6 @@ void PFLST0A::application()
 				if ( !del )
 				{
 					display( "PFLST0A3", MSG, "ZCMD" ) ;
-					if ( RC > 8  ) { abend() ; }
 					if ( ZCMD == "CAN" || ZCMD == "CANCEL" || RC == 8 )
 					{
 						ZCMD    = ""          ;
@@ -527,7 +524,6 @@ void PFLST0A::application()
 				SEL      = "" ;
 				NEWENTRY = "" ;
 				display( "PFLST0A4", MSG, "ZCMD" ) ;
-				if ( RC > 8  ) { abend() ; }
 				if ( ZCMD == "CAN" || ZCMD == "CANCEL" || RC == 8 )
 				{
 					ZCMD    = ""          ;
@@ -1001,8 +997,7 @@ void PFLST0A::showInfo( const string& p )
 	while ( true )
 	{
 		display( "PFLST0A2" ) ;
-		if ( RC  > 8 ) { abend() ;         }
-		if ( RC == 8 ) { RC = 0  ; break ; }
+		if ( RC == 8 ) { RC = 0 ; break ; }
 	}
 	vdelete( "IENTRY   ITYPE    IINODE  INLNKS  IPERMISS ISIZE ISTCDATE IMODDATE IOWNER IGROUP IRLNK IMAJ IMIN" ) ;
 	vdelete( "IBLKSIZE IACCDATE ISETUID ISETGID ISTICKY" ) ;
@@ -1319,7 +1314,6 @@ void PFLST0A::modifyAttrs( const string& p )
 	changed  = false    ;
 
 	display( "PFLST0A6", MSG, "ZCMD" ) ;
-	if ( RC  > 8 ) { abend() ; }
 	if ( ZCMD == "CANCEL" || RC == 8 )
 	{
 		ZCMD    = ""          ;
@@ -1504,8 +1498,7 @@ void PFLST0A::browseTree( const string& tname )
 		}
 		if ( MSG == "" ) { ZCMD  = "" ; }
 		tbdispl( FTREE, "PFLST0A8", MSG, "ZCMD" ) ;
-		if ( RC  > 8 ) { abend() ; }
-		if ( RC == 8 ) { break   ; }
+		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 		i = ZTDTOP ;
 		while ( ZTDSELS > 0 )
@@ -1850,7 +1843,6 @@ string PFLST0A::showListing()
 		OHIDDEN = FLHIDDEN ;
 		if ( MSG == "" ) { ZCMD  = "" ; }
 		tbdispl( DSLIST, "PFLST0A7", MSG, "ZCMD" ) ;
-		if ( RC  > 8 ) { abend() ; }
 		if ( RC == 8 ) { ZRC = 8 ; break ; }
 		MSG = "" ;
 		w1  = upper( word( ZCMD, 1 ) ) ;

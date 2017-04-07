@@ -148,3 +148,11 @@ PSYS012L '' .TYPE=W .W=N
 
 PSYS012M 'Invalid MSGID parameter' .TYPE=W
 'Valid MSGID parameters are ON, OFF or blank.'
+
+PSYS012N 'Invalid command delimiter' .TYPE=W
+'Command delimiter value cannot be a-z, A-Z, 0-9, = and .' +
+'It must also be different from the pad character'
+
+PSYS012O 'Invalid PAD value' .TYPE=W
+'PAD value cannot be a-z, A-Z, 0-9 and / except N for nulls' +
+'and B for blank. It must also be different from the command delimiter'

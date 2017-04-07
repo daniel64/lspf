@@ -9,7 +9,7 @@ PanelTitle "Personal File List"
 scrollOn
 
 literal  4   2         FP    "Command ===> "
-field    4  15  MAX-17 NEF CAPS(ON) ZCMD
+field    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
 
 literal  4  MAX-15  FP "SCROLL ===> "
 field    4  MAX-3  4 NEF  NONE ZSCROLL
@@ -24,7 +24,7 @@ literal  9   MAX-30 CH    "Created     Updated"
 literal  10  2      CH    EXPAND "-"
 
 tbmodel  11   MAX
-tbfield  2    1       NEF   PAD('_'),CAPS(ON) ASEL
+tbfield  2    1       NEF   PAD(USER),CAPS(ON) ASEL
 tbfield  ++1  8       VOI   NONE ACURTB
 tbfield  ++1  MAX-32  VOI   NONE AFLDESCP
 tbfield  ++1  MAX-20  VOI   NONE AFLCTIME

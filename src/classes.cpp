@@ -36,7 +36,7 @@ void IFSTMNT::parse( errblock& err, string s )
 	int p1 ;
 	int p2 ;
 
-	bool  f_end ;
+	bool f_end ;
 
 	string t    ;
 	string comp ;
@@ -137,6 +137,7 @@ void IFSTMNT::parse( errblock& err, string s )
 		}
 	}
 
+	iupper( comp ) ;
 	if      ( comp == "="  ) { if_eq = true ; }
 	else if ( comp == "EQ" ) { if_eq = true ; }
 	else if ( comp == "!=" ) { if_ne = true ; }
@@ -286,8 +287,8 @@ void ASSGN::parse( errblock& err, string s )
 	// &AAA = &BBBB
 	// &AAA = VALUE
 	// &AAA = 'Quoted Value'
-	// &AAA = .ALARM | .TRAIL | .HELP | .MSG | .CURSOR | .RESP
-	// .ALARM .RESP | .HELP | .MSG | .CURSOR = &BBB | VALUE | 'Quoted Value'
+	// &AAA = .ALARM | .TRAIL | .HELP | .MSG | .CSRPOS | .CURSOR | .RESP
+	// .ALARM .RESP | .HELP | .MSG | .CSRPOS | .CURSOR = &BBB | VALUE | 'Quoted Value'
 	// &AAA = UPPER( ABC )
 	// &AAA = LENGTH( ABC )
 	// &AAA = REVERSE( ABC )
@@ -299,7 +300,8 @@ void ASSGN::parse( errblock& err, string s )
 	int p  ;
 	int p1 ;
 
-	const string controlVars = ".ALARM .AUTOSEL .BROWSE .CURSOR .CSRROW .EDIT .HELP .MSG .NRET .RESP" ;
+	const string lhs_control = ".ALARM .AUTOSEL .BROWSE .CURSOR .CSRROW .CSRPOS .EDIT .HELP .MSG .NRET .RESP" ;
+	const string rhs_control = ".ALARM .CSRPOS .CURSOR .HELP .MSG .TRAIL .RESP" ;
 
 	p = s.find( '=' ) ;
 	if ( p == string::npos )
@@ -313,7 +315,7 @@ void ASSGN::parse( errblock& err, string s )
 		err.seterrid( "PSYE033P" ) ;
 		return ;
 	}
-	if ( findword( as_lhs, controlVars ) ) {}
+	if ( findword( as_lhs, lhs_control ) ) {}
 	else if ( as_lhs.substr( 0, 6 ) == ".ATTR(" )
 	{
 		p1 = as_lhs.find( ')' ) ;
@@ -562,7 +564,7 @@ void ASSGN::parse( errblock& err, string s )
 			return ;
 		}
 		iupper( s ) ;
-		if ( s.front() == '.' && !findword( s, ".ALARM .CURSOR .HELP .MSG .TRAIL .RESP" ) )
+		if ( s.front() == '.' && !findword( s, rhs_control ) )
 		{
 			err.seterrid( "PSYE033S", s ) ;
 			return ;

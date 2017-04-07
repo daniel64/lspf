@@ -5,19 +5,19 @@
 
 )BODY
 
-PanelTitle "Test Dynamic Area (Input & Output)"  
+PanelTitle "Test Dynamic Area (Input & Output)"
 
-literal   4    2    FP  "Command ===> "    
-field     4   15  MAX   NEF     CAPS(ON)  ZCMD    
+literal   4    2    FP  "Command ===> "
+field     4   15  MAX   NEF     CAPS(ON),PAD(USER) ZCMD
 
-literal   6   MAX-36    FP  "TIME: "     
-field     6   MAX-30    8    VOI   NONE  ZTIME    
+literal   6   MAX-36    FP  "TIME: "
+field     6   MAX-30    8    VOI   NONE  ZTIME
 
-literal   6   MAX-20    FP  "DATE: "     
-field     6   MAX-14    8    VOI   NONE  ZDATE    
+literal   6   MAX-20    FP  "DATE: "
+field     6   MAX-14    8    VOI   NONE  ZDATE
 
-literal   6  2    FP  " Enter commmands SHOW to dump dynamic vars, GOTO n to set cursor posn in the area"     
-literal   7  2    FP  " Defaults DATAIN(01) DATAOUT(02) "     
+literal   6  2    FP  " Enter commmands SHOW to dump dynamic vars, GOTO n to set cursor posn in the area"
+literal   7  2    FP  " Defaults DATAIN(01) DATAOUT(02) "
 
 box      8  8  42  22 N_WHITE "Test Dynamic Area 1"
 dynarea  9  9  40  20 ZAREA1 ZSHADOW1  DATAIN(01) DATAOUT(02) USERMOD(03) DATAMOD(04)
@@ -25,24 +25,24 @@ dynarea  9  9  40  20 ZAREA1 ZSHADOW1  DATAIN(01) DATAOUT(02) USERMOD(03) DATAMO
 box     30  8  42  12 N_WHITE "Test Dynamic Area 2"
 dynarea 31  9  40  10 ZAREA2 ZSHADOW2 DATAIN(01) DATAOUT(02) USERMOD(03) DATAMOD(04)
 
-literal   9   MAX-25    FP  "ZCURFLD : "     
-field     9   MAX-15    8    VOI   NONE  ZCURFLD    
-literal   10  MAX-25    FP  "ZCURPOS : "     
-field     10  MAX-15    8    VOI   NONE  ZCURPOS    
+literal   9   MAX-25    FP  "ZCURFLD : "
+field     9   MAX-15    8    VOI   NONE  ZCURFLD
+literal   10  MAX-25    FP  "ZCURPOS : "
+field     10  MAX-15    8    VOI   NONE  ZCURPOS
 
-literal  11   MAX-25    FP  "ZAREAW  : "     
-field    11   MAX-15    8    VOI   NONE  ZAREAW1    
-literal  12   MAX-25    FP  "ZAREAD  : "     
-field    12   MAX-15    8    VOI   NONE  ZAREAD1    
-literal  13   MAX-25    FP  "TYPE    : "     
-field    13   MAX-15    8    VOI   NONE  ZAREAT1    
+literal  11   MAX-25    FP  "ZAREAW  : "
+field    11   MAX-15    8    VOI   NONE  ZAREAW1
+literal  12   MAX-25    FP  "ZAREAD  : "
+field    12   MAX-15    8    VOI   NONE  ZAREAD1
+literal  13   MAX-25    FP  "TYPE    : "
+field    13   MAX-15    8    VOI   NONE  ZAREAT1
 
-literal  31   MAX-25    FP  "ZAREAW  : "     
-field    31   MAX-15    8    VOI   NONE  ZAREAW2    
-literal  32   MAX-25    FP  "ZAREAD  : "     
-field    32   MAX-15    8    VOI   NONE  ZAREAD2    
---literal  33   MAX-25    FP  "TYPE    : "     
---field    33   MAX-15    8    VOI   NONE  ZAREAT2    
+literal  31   MAX-25    FP  "ZAREAW  : "
+field    31   MAX-15    8    VOI   NONE  ZAREAW2
+literal  32   MAX-25    FP  "ZAREAD  : "
+field    32   MAX-15    8    VOI   NONE  ZAREAD2
+--literal  33   MAX-25    FP  "TYPE    : "
+--field    33   MAX-15    8    VOI   NONE  ZAREAT2
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC

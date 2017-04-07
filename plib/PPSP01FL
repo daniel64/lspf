@@ -12,43 +12,43 @@
  PanelTitle "Saved File List"
 
  literal   4   2   FP "Command ===> "
- field     4  15  MAX NEF CAPS(ON) ZCMD
+ field     4  15  MAX NEF CAPS(ON),PAD(USER) ZCMD
 
  literal   6   2   FP "Profile:"
  field     6  11   4  VOI NONE ZAPPLID
 
  literal   8   2   FP "File name. . .:"
- field     8  18   MAX  NEF NONE ZFILE
+ field     8  18   MAX  NEF PAD(USER) ZFILE
 
  literal   9   2   FP "Directory. . .:"
- field     9  18   MAX  NEF NONE ZDIR
+ field     9  18   MAX  NEF PAD(USER) ZDIR
 
  literal  10   2   FP "Current. . . .:"
  field    10  18   MAX  VOI NONE ZCURR
 
- field    12   2  1   NEF CAPS(ON),PAD('_'),SKIP(OFF)  SEL1
- field    12   4  60  NEF CAPS(OFF),PAD('_')  ZFILE1
+ field    12   2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL1
+ field    12   4  MAX NEF CAPS(OFF),PAD(USER) ZFILE1
 
- field    13   2  1   NEF CAPS(ON),PAD('_'),SKIP(OFF)  SEL2
- field    13   4  60  NEF CAPS(OFF),PAD('_')  ZFILE2
+ field    13   2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL2
+ field    13   4  MAX NEF CAPS(OFF),PAD(USER) ZFILE2
 
- field     14  2  1   NEF CAPS(ON),PAD('_'),SKIP(OFF)  SEL3
- field     14  4  60  NEF CAPS(OFF),PAD('_')  ZFILE3
+ field     14  2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL3
+ field     14  4  MAX NEF CAPS(OFF),PAD(USER) ZFILE3
 
- field     15  2  1   NEF CAPS(ON),PAD('_'),SKIP(OFF)  SEL4
- field     15  4  60  NEF CAPS(OFF),PAD('_')  ZFILE4
+ field     15  2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL4
+ field     15  4  MAX NEF CAPS(OFF),PAD(USER) ZFILE4
 
- field     16  2  1   NEF CAPS(ON),PAD('_'),SKIP(OFF)  SEL5
- field     16  4  60  NEF CAPS(OFF),PAD('_')  ZFILE5
+ field     16  2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL5
+ field     16  4  MAX NEF CAPS(OFF),PAD(USER) ZFILE5
 
- field     17  2  1   NEF CAPS(ON),PAD('_'),SKIP(OFF)  SEL6
- field     17  4  60  NEF CAPS(OFF),PAD('_')  ZFILE6
+ field     17  2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL6
+ field     17  4  MAX NEF CAPS(OFF),PAD(USER) ZFILE6
 
- field     18  2  1   NEF CAPS(ON),PAD('_'),SKIP(OFF)  SEL7
- field     18  4  60  NEF CAPS(OFF),PAD('_')  ZFILE7
+ field     18  2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL7
+ field     18  4  MAX NEF CAPS(OFF),PAD(USER) ZFILE7
 
- field     19  2  1   NEF CAPS(ON),PAD('_'),SKIP(OFF)  SEL8
- field     19  4  60  NEF CAPS(OFF),PAD('_')  ZFILE8
+ field     19  2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL8
+ field     19  4  MAX NEF CAPS(OFF),PAD(USER) ZFILE8
 
 )INCLUDE STD_PDC
 )INCLUDE RFL_PDC

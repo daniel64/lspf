@@ -2,6 +2,7 @@
 /* System error message file for lspf        */
 
 /* Low-level messages in pWidgets.cpp */
+/* General                            */
 PSYE031A 'Field outside panel area'
 'ROW=&ZVAL1 ZSCRMAXD=&ZVAL2'
 
@@ -16,6 +17,12 @@ PSYE031D 'Invalid variable name ''&ZVAL1'''
 
 PSYE031E 'Invalid &ZVAL1 name'
 '&ZVAL1 name ''&ZVAL2'' has an invalid format'
+
+PSYE031F 'Invalid field name ''&ZVAL1'' on &ZVAL2 statement'
+''
+
+PSYE031G 'No parameter value coded'
+'No value found between ''('' and '')'''
 
 /* dynamic areas */
 PSYE032A 'Dynamic Area outside panel area'
@@ -36,11 +43,14 @@ PSYE032E 'Missing shadow variable name'
 PSYE032F 'Invalid CUA attribute specified'
 'CUA attribute &ZVAL1 is invalid'
 
-PSYE032G 'Error parsing field options'
+PSYE032G 'Dynamic area variable ''&ZVAL1'' is not in the function pool'
 ''
 
 PSYE032H 'Extraeneous data'
 'Data ''&ZVAL1'' found on statement not recognised as a valid parameter'
+
+PSYE032I 'Dynamic area shadow variable ''&ZVAL1'' is not in the function pool'
+''
 
 /* IF */
 
@@ -51,7 +61,7 @@ PSYE033B 'Invalid IF statement'
 ''
 
 PSYE033C 'Invalid number of parameters'
-'Only once parameter is allowed before the comparison operator'
+'Only one parameter is allowed before the comparison operator'
 
 PSYE033D 'Missing ''('''
 'Missing opening bracket on keyword'
@@ -125,7 +135,28 @@ PSYE035A 'Cannot alter a point-and-shoot field'
 PSYE035B 'Attribute &ZVAL1 is invalid'
 '&ZVAL1 is not a valid value for keyword &ZVAL2'
 
+/* PDC  */
+PSYE035J 'Missing ACTION on pulldown choice'
+''
 
+/* Field options        */
+PSYE035K 'Invalid CAPS option ''&ZVAL1'''
+'CAPS must be ON or OFF'
+
+PSYE035L 'Invalid JUSTIFY option ''&ZVAL1'''
+'JUSTIFY must be RIGHT, LEFT or ASIS'
+
+PSYE035M 'Invalid NUMERIC option ''&ZVAL1'''
+'NUMERIC must be ON or OFF'
+
+PSYE035N 'Invalid PAD value ''&ZVAL1'''
+'PAD must be a single character, USER or NULLS'
+
+PSYE035O 'Invalid SKIP option ''&ZVAL1'''
+'SKIP must be ON or OFF'
+
+PSYE035P 'Invalid number of parameters on the FIELD or TBFIELD statement'
+''
 
 /* Literals */
 PSYE036A 'Literal outside panel area'

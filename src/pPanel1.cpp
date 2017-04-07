@@ -49,6 +49,8 @@ pPanel::pPanel()
 	tb_model    = false  ;
 	tb_depth    = 0      ;
 	tb_fields   = ""     ;
+	tb_lcol     = 0      ;
+	tb_lsz      = 0      ;
 	win_addpop  = false  ;
 	smp_created = false  ;
 	lmp_created = false  ;
@@ -152,7 +154,7 @@ void pPanel::init( errblock& err )
 		return ;
 	}
 
-	ZSCRNUM  = ds2d(p_poolMGR->get( err, "ZSCRNUM", SHARED ) ) ;
+	ZSCRNUM = ds2d(p_poolMGR->get( err, "ZSCRNUM", SHARED ) ) ;
 	if ( err.getRC() > 0 )
 	{
 		err.seterrid( "PSYE015L", "GET", "ZSCRNUM" ) ;
@@ -164,7 +166,7 @@ void pPanel::init( errblock& err )
 }
 
 
-string pPanel::getDialogueVar( const string& var )
+string pPanel::getDialogueVar( errblock& err, const string& var )
 {
 	// Return the value of a dialogue variable (always as a string so convert int->string if necessary)
 	// Search order is:
@@ -176,7 +178,9 @@ string pPanel::getDialogueVar( const string& var )
 
 	// If the variable is not found, create a null implicit entry in the function pool
 
-	errblock err ;
+	// RC =  0 Normal completion
+	// RC =  8 Variable not found
+	// RC = 20 Severe error
 
 	string * p_str    ;
 	dataType var_type ;
@@ -212,13 +216,13 @@ string pPanel::getDialogueVar( const string& var )
 }
 
 
-void pPanel::putDialogueVar( const string& var, const string& val )
+void pPanel::putDialogueVar( errblock& err, const string& var, const string& val )
 {
 	// Store data for a dialogue variable in the function pool.
-
 	// Creates an implicit function pool variable if one does not already exist.
 
-	errblock err ;
+	// RC =  0 Normal completion
+	// RC = 20 Severe error
 
 	p_funcPOOL->put( err, var, val ) ;
 }
@@ -294,7 +298,7 @@ void pPanel::display_panel( errblock& err )
 		mvwin( bwin, win_row-1, win_col-1 ) ;
 		wattrset( bwin, cuaAttr[ AWF ] ) ;
 		box( bwin, 0, 0 ) ;
-		winttl = getDialogueVar( "ZWINTTL" ) ;
+		winttl = getDialogueVar( err, "ZWINTTL" ) ;
 		if ( winttl != "" )
 		{
 			winttl = " "+ winttl +" " ;
@@ -475,7 +479,6 @@ void pPanel::display_panel_update( errblock& err )
 				}
 			}
 			p_funcPOOL->put( err, it->first, it->second->field_value ) ;
-			it->second->field_prep_display() ;
 		}
 	}
 
@@ -491,7 +494,7 @@ void pPanel::display_panel_update( errblock& err )
 				it->second->field_prep_input() ;
 				it->second->field_set_caps()   ;
 				var_type = p_funcPOOL->getType( err, it->first ) ;
-				if ( err.RC == 0 && var_type == INTEGER )
+				if ( err.RC0() && var_type == INTEGER )
 				{
 					if ( datatype( it->second->field_value, 'W' ) )
 					{
@@ -508,8 +511,7 @@ void pPanel::display_panel_update( errblock& err )
 				{
 					p_funcPOOL->put( err, it->first, it->second->field_value, NOCHECK ) ;
 				}
-				it->second->field_prep_display() ;
-				if ( err.RC > 0 ) continue ;
+				if ( err.getRC() > 0 ) continue ;
 			}
 			else
 			{
@@ -832,7 +834,7 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 			}
 			if ( g_label != "" )
 			{
-				err.seterror( "GOTO label '"+ g_label +"' not found" ) ;
+				err.seterrid( "PSYE041F", g_label ) ;
 				return ;
 			}
 		}
@@ -847,6 +849,7 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 			if ( ifList.at( i_if ).if_lhs == ".CURSOR" )
 			{
 				val = p_funcPOOL->get( err, 0, "ZCURFLD" ) ;
+				if ( err.error() ) { return ; }
 			}
 			else if ( ifList.at( i_if ).if_lhs == ".MSG" )
 			{
@@ -866,7 +869,8 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 			}
 			else if ( ifList.at( i_if ).if_ver )
 			{
-				fieldVal = getDialogueVar( ifList.at( i_if ).if_verify.ver_var ) ;
+				fieldVal = getDialogueVar( err, ifList.at( i_if ).if_verify.ver_var ) ;
+				if ( err.error() ) { return ; }
 				if ( ifList.at( i_if ).if_verify.ver_nblank )
 				{
 					ifList.at( i_if ).if_true = ( fieldVal != "" ) ;
@@ -901,13 +905,15 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 			}
 			else
 			{
-				val = getDialogueVar( ifList.at( i_if ).if_lhs ) ;
+				val = getDialogueVar( err, ifList.at( i_if ).if_lhs ) ;
+				if ( err.error() ) { return ; }
 			}
 			for ( j = 0 ; j < ifList.at( i_if ).if_rhs.size() ; j++ )
 			{
 				if ( ifList.at( i_if ).if_isvar[ j ] )
 				{
-					t = getDialogueVar( ifList.at( i_if ).if_rhs[ j ] ) ;
+					t = getDialogueVar( err, ifList.at( i_if ).if_rhs[ j ] ) ;
+					if ( err.error() ) { return ; }
 				}
 				else
 				{
@@ -967,7 +973,8 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 		}
 		else if ( panstmnts.at( i ).ps_trunc )
 		{
-			t = getDialogueVar( truncList.at( i_trunc ).trnc_field2 ) ;
+			t = getDialogueVar( err, truncList.at( i_trunc ).trnc_field2 ) ;
+			if ( err.error() ) { return ; }
 			if ( truncList.at( i_trunc ).trnc_len > 0 )
 			{
 				p = truncList.at( i_trunc ).trnc_len ;
@@ -988,17 +995,14 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 					t      = t.substr( 0, p ) ;
 				}
 			}
-			putDialogueVar( truncList.at( i_trunc ).trnc_field1, t ) ;
-			if ( RC > 0 )
-			{
-				err.seterror( "Error setting variable '"+ truncList.at( i_trunc ).trnc_field1 + "'" ) ;
-				return ;
-			}
+			putDialogueVar( err, truncList.at( i_trunc ).trnc_field1, t ) ;
+			if ( err.error() ) { return ; }
 			i_trunc++ ;
 		}
 		else if ( panstmnts.at( i ).ps_trans )
 		{
-			t = getDialogueVar( transList.at( i_trans ).trns_field2 ) ;
+			t = getDialogueVar( err, transList.at( i_trans ).trns_field2 ) ;
+			if ( err.error() ) { return ; }
 			if ( transList.at( i_trans ).trns_list.find( t ) != transList.at( i_trans ).trns_list.end() )
 			{
 				t = transList.at( i_trans ).trns_list[ t ] ;
@@ -1021,12 +1025,8 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 					}
 				}
 			}
-			putDialogueVar( transList.at( i_trans ).trns_field1, t ) ;
-			if ( RC > 0 )
-			{
-				err.seterror( "Error setting variable '"+ transList.at( i_trans ).trns_field1 +"'" ) ;
-				return ;
-			}
+			putDialogueVar( err, transList.at( i_trans ).trns_field1, t ) ;
+			if ( err.error() ) { return ; }
 			i_trans++ ;
 		}
 		else if ( panstmnts.at( i ).ps_vputget )
@@ -1039,6 +1039,7 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 				{
 					var = word( vars, j ) ;
 					val = p_poolMGR->get( err, var, vpgList.at( i_vputget ).vpg_pool ) ;
+					if ( err.error() ) { return ; }
 					if ( err.RC0() )
 					{
 						p_funcPOOL->put( err, var, val ) ;
@@ -1051,20 +1052,23 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 				{
 					var = word( vars, j ) ;
 					val = p_funcPOOL->get( err, 8, var ) ;
-					if ( err.RC == 0 )
+					if ( err.error() ) { return ; }
+					if ( err.RC0() )
 					{
 						p_poolMGR->put( err, var, val, vpgList.at( i_vputget ).vpg_pool ) ;
+						if ( err.error() ) { return ; }
 					}
 				}
 			}
-			if ( err.RC == 8 ) { err.RC = 0 ; }
+			if ( err.RC8() ) { err.setRC( 0 ) ; }
 			i_vputget++ ;
 		}
 		else if ( panstmnts.at( i ).ps_assign )
 		{
 			if ( assgnList.at( i_assign ).as_isvar )
 			{
-				t = getDialogueVar( assgnList.at( i_assign ).as_rhs ) ;
+				t = getDialogueVar( err, assgnList.at( i_assign ).as_rhs ) ;
+				if ( err.error() ) { return ; }
 				if      ( assgnList.at( i_assign ).as_retlen  ) { t = d2ds( t.size() )          ; }
 				else if ( assgnList.at( i_assign ).as_reverse ) { reverse( t.begin(), t.end() ) ; }
 				else if ( assgnList.at( i_assign ).as_upper   ) { iupper( t )                   ; }
@@ -1076,6 +1080,12 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 			else if ( assgnList.at( i_assign ).as_rhs == ".CURSOR" )
 			{
 				t = p_funcPOOL->get( err, 0, "ZCURFLD" ) ;
+				if ( err.error() ) { return ; }
+			}
+			else if ( assgnList.at( i_assign ).as_rhs == ".CSRPOS" )
+			{
+				t = d2ds( p_funcPOOL->get( err, 0, INTEGER, "ZCURPOS" ) ) ;
+				if ( err.error() ) { return ; }
 			}
 			else if ( assgnList.at( i_assign ).as_rhs == ".ALARM" )
 			{
@@ -1092,6 +1102,7 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 			else if ( assgnList.at( i_assign ).as_rhs == ".RESP" )
 			{
 				s = p_poolMGR->get( err, "ZVERB", SHARED ) ;
+				if ( err.error() ) { return ; }
 				if ( findword( s, "END EXIT RETURN" ) )
 				{
 					t = "END" ;
@@ -1111,7 +1122,7 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 			}
 			if ( assgnList.at( i_assign ).as_lhs == ".AUTOSEL" )
 			{
-				//
+				// ???
 			}
 			else if ( assgnList.at( i_assign ).as_lhs == ".ALARM" )
 			{
@@ -1125,7 +1136,7 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 				}
 				else
 				{
-					err.seterror( "Invalid value for .ALARM control variable.  Must be YES, NO or blank" ) ;
+					err.seterrid( "PSYE041G" ) ;
 					return ;
 				}
 			}
@@ -1143,17 +1154,30 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 			else if ( assgnList.at( i_assign ).as_lhs == ".CURSOR" )
 			{
 				p_funcPOOL->put( err, "ZCURFLD", t ) ;
+				if ( err.error() ) { return ; }
 				if ( wordpos( assgnList.at( i_assign ).as_rhs, tb_fields ) > 0 ) { t = t +"."+ d2ds( ln ) ; }
 				CURFLD = t ;
+			}
+			else if ( assgnList.at( i_assign ).as_lhs == ".CSRPOS" )
+			{
+				if ( !isnumeric( t ) )
+				{
+					err.seterrid( "PSYE041J" ) ;
+					return ;
+				}
+				CURPOS = ds2d( t ) ;
+				p_funcPOOL->put( err, "ZCURPOS", CURPOS ) ;
+				if ( err.error() ) { return ; }
 			}
 			else if ( assgnList.at( i_assign ).as_lhs == ".CSRROW" )
 			{
 				if ( !isnumeric( t ) )
 				{
-					err.seterror( "Invalid .CSRROW value.  Must be numeric" ) ;
+					err.seterrid( "PSYE041H" ) ;
 					return ;
 				}
 				p_funcPOOL->put( err, ".CSRROW", t, NOCHECK ) ;
+				if ( err.error() ) { return ; }
 			}
 			else if ( assgnList.at( i_assign ).as_lhs == ".EDIT" )
 			{
@@ -1185,14 +1209,16 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 				if ( t == "ENTER" )
 				{
 					p_poolMGR->put( err, "ZVERB", "", SHARED ) ;
+					if ( err.error() ) { return ; }
 				}
 				else if ( t == "END" )
 				{
 					p_poolMGR->put( err, "ZVERB", "END", SHARED ) ;
+					if ( err.error() ) { return ; }
 				}
 				else
 				{
-					err.seterror( "Invalid value for .RESP control variable.  Must be ENTER or END" ) ;
+					err.seterrid( "PSYE041I" ) ;
 					return ;
 				}
 			}
@@ -1214,12 +1240,8 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 			}
 			else
 			{
-				putDialogueVar( assgnList.at( i_assign ).as_lhs, t ) ;
-				if ( RC > 0 )
-				{
-					err.seterror( "Error setting variable '"+ assgnList.at( i_assign ).as_lhs +"'" ) ;
-					return ;
-				}
+				putDialogueVar( err, assgnList.at( i_assign ).as_lhs, t ) ;
+				if ( err.error() ) { return ; }
 				if ( assgnList.at( i_assign ).as_lhs == "ZPRIM" )
 				{
 					if ( t == "YES" )
@@ -1238,7 +1260,8 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 		{
 			fieldNam = verList.at( i_verify ).ver_var ;
 			if ( verList.at( i_verify ).ver_tbfield ) { fieldNam += "." + d2ds( ln ) ; }
-			fieldVal = getDialogueVar( verList.at( i_verify ).ver_var ) ;
+			fieldVal = getDialogueVar( err, verList.at( i_verify ).ver_var ) ;
+			if ( err.error() ) { return ; }
 			if ( verList.at( i_verify ).ver_nblank )
 			{
 				if ( fieldVal == "" )
@@ -1277,6 +1300,7 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 				if ( !findword( fieldVal, verList.at( i_verify ).ver_value ) )
 				{
 					p_poolMGR->put( err, "ZZSTR1", verList.at( i_verify ).ver_value, SHARED ) ;
+					if ( err.error() ) { return ; }
 					MSGID  = verList.at( i_verify ).ver_msgid  ;
 					if (MSGID == "" ) { MSGID = "PSYS011B" ; }
 					if ( verList.at( i_verify ).ver_field )
@@ -1292,7 +1316,9 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 				if ( !ispict( fieldVal, verList.at( i_verify ).ver_value ) )
 				{
 					p_poolMGR->put( err, "ZZSTR1", d2ds( verList.at( i_verify ).ver_value.size() ), SHARED ) ;
+					if ( err.error() ) { return ; }
 					p_poolMGR->put( err, "ZZSTR2", verList.at( i_verify ).ver_value, SHARED ) ;
+					if ( err.error() ) { return ; }
 					MSGID  = verList.at( i_verify ).ver_msgid  ;
 					if (MSGID == "" ) { MSGID = "PSYS011N" ; }
 					if ( verList.at( i_verify ).ver_field )
@@ -1357,8 +1383,8 @@ void pPanel::refresh_fields( const string& fields )
 	{
 		if ( fields != "*" && !findword( itf->first, fields ) ) { continue ; }
 		if ( itf->second->field_dynArea ) { continue ; }
-		itf->second->field_value = getDialogueVar( itf->first ) ;
-		itf->second->field_prep_display()                     ;
+		itf->second->field_value = getDialogueVar( err, itf->first ) ;
+		itf->second->field_prep_display() ;
 	}
 
 	for ( itd = dynAreaList.begin() ; itd != dynAreaList.end() ; itd++ )
@@ -1396,13 +1422,14 @@ void pPanel::refresh_fields()
 	map<string, dynArea *>::iterator itd ;
 
 	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
+	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
 
 	for ( itf = fieldList.begin() ; itf != fieldList.end() ; itf++ )
 	{
 		if ( itf->second->field_dynArea ) { continue ; }
-		itf->second->field_value = getDialogueVar( itf->first ) ;
-		itf->second->field_prep_display()        ;
-		itf->second->display_field( win, snulls ) ;
+		itf->second->field_value = getDialogueVar( err, itf->first ) ;
+		itf->second->field_prep_display() ;
+		itf->second->display_field( win, pad, snulls ) ;
 	}
 
 	for ( itd = dynAreaList.begin() ; itd != dynAreaList.end() ; itd++ )
@@ -1417,75 +1444,210 @@ void pPanel::refresh_fields()
 			itf = fieldList.find( itd->first +"."+ d2ds( i ) ) ;
 			itf->second->field_value        = darea->substr( j, k )  ;
 			itf->second->field_shadow_value = shadow->substr( j, k ) ;
-			itf->second->display_field( win, snulls ) ;
+			itf->second->display_field( win, pad, snulls ) ;
 		}
 	}
 }
 
 
-void pPanel::create_tbfield( errblock& err, int col, int length, cuaType cuaFT, const string& name, const string& opts )
+void pPanel::create_tbfield( errblock& err, const string& pline )
 {
 	// Default is JUST(ASIS) for fields of a TB model, so change from the default of JUST(LEFT)
 
-	field * m_fld ;
+	int tlen ;
+	int tcol ;
+	int ws   ;
 
-	RC = 0 ;
+	string w2   ;
+	string w3   ;
+	string w4   ;
+	string opts ;
+	string name ;
+
+	cuaType fType ;
+
+	field   a   ;
+	field * fld ;
+
+	ws = words( pline ) ;
+	if ( ws < 6 )
+	{
+		err.seterrid( "PSYE035P" ) ;
+		return ;
+	}
+	w2   = word( pline, 2 ) ;
+	w3   = word( pline, 3 ) ;
+	w4   = word( pline, 4 ) ;
+
+	opts = upper( subword( pline, 5, ws-5 ) ) ;
+	name = word( pline, ws ) ;
+
 	if ( !isvalidName( name ) )
 	{
-		err.seterror( "Invalid field name '"+ name +"' entered for TB field" ) ;
+		err.seterrid( "PSYE031F", name, "TBFIELD" ) ;
 		return  ;
 	}
 
-	tb_fields += " " + name ;
+	if ( findword( name, tb_fields ) )
+	{
+		err.seterrid( "PSYE041A", name ) ;
+		return  ;
+	}
+
+	if ( w2.size() > 1 && w2.front() == '+' )
+	{
+		if ( w2.size() > 2 && w2[ 1 ] == '+' )
+		{
+			tcol = tb_lcol + tb_lsz + ds2d( substr( w2, 3 ) ) ;
+		}
+		else
+		{
+			tcol = tb_lcol + ds2d( substr( w2, 2 ) ) ;
+		}
+	}
+	else
+	{
+		tcol = ds2d( w2 ) ;
+	}
+
+	if      ( isnumeric( w3 ) )                 { tlen = ds2d( w3 ) ; }
+	else if ( w3 == "MAX" )                     { tlen = WSCRMAXW - tcol + 1 ; }
+	else if ( w3.compare( 0, 4, "MAX-" ) == 0 ) { tlen = WSCRMAXW - tcol - ds2d( substr( w3, 5 ) ) + 1 ; }
+	else
+	{
+		err.seterrid( "PSYE031B", w3 ) ;
+		return ;
+	}
+
+	tb_lcol = tcol ;
+	tb_lsz  = tlen ;
+
+	if ( cuaAttrName.count( w4 ) == 0 )
+	{
+		err.seterrid( "PSYE032F", w4 ) ;
+		return ;
+	}
+	fType = cuaAttrName[ w4 ] ;
+
+	a.field_just = 'A'        ;
+	a.field_opts( err, opts ) ;
+	if ( err.error() ) { return ; }
+
+	a.field_cua    = fType    ;
+	a.field_col    = tcol - 1 ;
+	a.field_length = tlen     ;
+	a.field_cole   = tcol - 1 + tlen ;
+	a.field_input  = !cuaAttrProt[ fType ] ;
+	a.field_tb     = true ;
 
 	for ( int i = 0 ; i < tb_depth ; i++ )
 	{
-		m_fld               = new field  ;
-		m_fld->field_cua    = cuaFT      ;
-		m_fld->field_row    = tb_row + i ;
-		m_fld->field_col    = col - 1    ;
-		m_fld->field_length = length     ;
-		m_fld->field_cole   = col - 1 + length ;
-		m_fld->field_just   = 'A'        ;
-		m_fld->field_input  = !cuaAttrProt [ cuaFT ] ;
-		m_fld->field_tb     = true ;
-		fieldList[ name +"."+ d2ds( i ) ] = m_fld ;
-		fieldOptsParse( err, opts, m_fld->field_caps, m_fld->field_just, m_fld->field_numeric, m_fld->field_padchar, m_fld->field_skip ) ;
-		if ( err.error() )
-		{
-			err.seterror( "Error in options for field '"+ name +"'.  Entry is "+ opts ) ;
-			return  ;
-		}
+		fld  = new field ;
+		*fld = a ;
+		fld->field_row = tb_row + i ;
+		fieldList[ name +"."+ d2ds( i ) ] = fld ;
 	}
+	tb_fields += " " + name ;
+
 }
 
 
-void pPanel::create_pdc( const string& abc_name, const string& pdc_name, const string& pdc_run, const string& pdc_parm, const string& pdc_unavail )
+void pPanel::create_pdc( errblock& err, const string& pline )
 {
 	// ab is a vector list of action-bar-choices (abc objects)
 	// Each action-bar-choice is a vector list of pull-down-choices (pdc objects)
 
-	int i      ;
-	bool found ;
+	int i  ;
+	int p1 ;
 
-	abc t_abc  ;
+	string abc_name ;
 
-	RC    = 0     ;
-	found = false ;
+	string pdc_name ;
+	string pdc_run  ;
+	string pdc_parm ;
+	string pdc_unavail ;
+	string rest ;
+
+	abc t_abc ;
+
+	abc_name = word( pline, 2 ) ;
+	rest     = subword( pline, 3 ) ;
+
+	if ( rest.size() > 1 && rest.front() == '\"' )
+	{
+		p1 = rest.find( '\"', 1 ) ;
+		if ( p1 == string::npos )
+		{
+			err.seterrid( "PSYE033F" ) ;
+			return ;
+		}
+		pdc_name = rest.substr( 1, p1-1 ) ;
+		rest.erase( 0, p1+1 ) ;
+	}
+	else
+	{
+		pdc_name = word( rest, 1 ) ;
+		idelword( rest, 1, 1 ) ;
+	}
+
+	if ( word( rest, 1 ) != "ACTION" )
+	{
+		err.seterrid( "PSYE035J" ) ;
+		return ;
+	}
+
+	idelword( rest, 1, 1 ) ;
+
+	pdc_run = parseString( err, rest, "RUN()" ) ;
+	if ( err.error() ) { return ; }
+
+	pdc_parm = parseString( err, rest, "PARM()" ) ;
+	if ( err.error() ) { return ; }
+
+	if ( pdc_parm.size() > 1 && pdc_parm.front() == '"' )
+	{
+		if ( pdc_parm.back() != '"' )
+		{
+			err.seterrid( "PSYE033F" ) ;
+			return ;
+		}
+		pdc_parm.erase( 0, 1 ) ;
+		pdc_parm.pop_back()    ;
+	}
+
+	pdc_unavail = parseString( err, rest, "UNAVAIL()" ) ;
+	if ( err.error() ) { return ; }
+
+	if ( rest != "" )
+	{
+		err.seterrid( "PSYE032H", rest ) ;
+		return ;
+	}
 
 	for ( i = 0 ; i < ab.size() ; i++ )
 	{
-		if ( ab.at( i ).abc_name == abc_name ) { found = true ; break ; }
+		if ( ab.at( i ).abc_name == abc_name )
+		{
+			if ( ab.at( i ).pdc_exists( pdc_name ) )
+			{
+				err.seterrid( "PSYE041B", pdc_name, abc_name ) ;
+				return ;
+			}
+			break ;
+		}
 	}
-	if ( !found )
+
+	if ( i == ab.size() )
 	{
 		t_abc.abc_name = abc_name ;
 		t_abc.abc_col  = abc_pos  ;
 		abc_pos        = abc_pos + abc_name.size() + 2 ;
 		ab.push_back( t_abc ) ;
-		i = ab.size()-1       ;
 	}
-	ab.at( i ).add_pdc( pdc_name, pdc_run, pdc_parm, pdc_unavail ) ;
+
+	pdc t_pdc( pdc_name, pdc_run, pdc_parm, pdc_unavail ) ;
+
+	ab.at( i ).add_pdc( t_pdc ) ;
 }
 
 
@@ -1512,27 +1674,25 @@ void pPanel::update_field_values( errblock& err )
 	{
 		if ( !itf->second->field_dynArea )
 		{
-			itf->second->field_value = getDialogueVar( itf->first ) ;
-			err.RC = RC ;
-			itf->second->field_prep_display() ;
+			itf->second->field_value = getDialogueVar( err, itf->first ) ;
 		}
 		itf->second->field_changed = false ;
 	}
-	if ( err.RC == 8 ) { err.RC = 0 ; }
+	if ( err.RC8() ) { err.setRC( 0 ) ; }
 
 	for ( itd = dynAreaList.begin() ; itd != dynAreaList.end() ; itd++ )
 	{
 		darea = p_funcPOOL->vlocate( err, itd->first ) ;
-		if ( err.getRC() > 0 )
+		if ( !err.RC0() )
 		{
-			err.seterror( "Dynamic area variable is not in the function pool" ) ;
+			err.seterrid( "PSYE032G", itd->first ) ;
 			return ;
 		}
 		sname  = itd->second->dynArea_shadow_name ;
 		shadow = p_funcPOOL->vlocate( err, sname ) ;
-		if ( err.getRC() > 0 )
+		if ( !err.RC0() )
 		{
-			err.seterror( "Dynamic area shadow variable is not in the function pool" ) ;
+			err.seterrid( "PSYE032I", sname ) ;
 			return ;
 		}
 		if ( darea->size() > shadow->size() )
@@ -1573,10 +1733,15 @@ void pPanel::display_fields()
 	map<string, field *>::iterator it;
 
 	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
+	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
 
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
-		it->second->display_field( win, snulls ) ;
+		if ( !it->second->field_dynArea )
+		{
+			it->second->field_prep_display() ;
+		}
+		it->second->display_field( win, pad, snulls ) ;
 	}
 }
 
@@ -1696,13 +1861,15 @@ void pPanel::field_setvalue( const string& f_name, const string& f_value )
 {
 	errblock err ;
 	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
+	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
 
 	map<string, field *>::iterator it ;
 
 	it = fieldList.find( f_name ) ;
 	it->second->field_value   = f_value ;
 	it->second->field_changed = true    ;
-	it->second->display_field( win, snulls ) ;
+	it->second->field_prep_display()    ;
+	it->second->display_field( win, pad, snulls ) ;
 }
 
 
@@ -1776,7 +1943,8 @@ bool pPanel::field_get_row_col( const string& fld, uint& row, uint& col )
 
 fieldExc pPanel::field_getexec( const string& field )
 {
-	// If passed field is in the field execute table, return the structure fieldExc for that field as defined in )FIELD panel section.
+	// If passed field is in the field execute table, return the structure fieldExc
+	// for that field as defined in )FIELD panel section.
 
 	if ( fieldExcTable.find( field ) == fieldExcTable.end() ) { return fieldExc() ; }
 	return fieldExcTable[ field ] ;
@@ -1785,7 +1953,9 @@ fieldExc pPanel::field_getexec( const string& field )
 
 void pPanel::field_clear( const string& f_name )
 {
-	fieldList[ f_name ]->field_clear( win ) ;
+	errblock err ;
+	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
+	fieldList[ f_name ]->field_clear( win, pad ) ;
 }
 
 
@@ -1797,6 +1967,7 @@ void pPanel::field_edit( uint row, uint col, char ch, bool Isrt, bool& prot )
 	map<string, field *>::iterator it;
 
 	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
+	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
 
 	row   = row - win_row ;
 	col   = col - win_col ;
@@ -1814,11 +1985,11 @@ void pPanel::field_edit( uint row, uint col, char ch, bool Isrt, bool& prot )
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( col ) ) { return ; }
 			if ( Isrt )
 			{
-				if ( !it->second->edit_field_insert( win, ch, col, snulls ) ) { return ; }
+				if ( !it->second->edit_field_insert( win, ch, col, pad, snulls ) ) { return ; }
 			}
 			else
 			{
-				if ( !it->second->edit_field_replace( win, ch, col, snulls ) ) { return ; }
+				if ( !it->second->edit_field_replace( win, ch, col, pad, snulls ) ) { return ; }
 			}
 			prot = false ;
 			++p_col ;
@@ -1844,6 +2015,7 @@ void pPanel::field_backspace( uint& row, uint& col, bool& prot )
 	errblock err ;
 
 	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
+	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
 	map<string, field *>::iterator it;
 
 	trow = row - win_row ;
@@ -1859,7 +2031,7 @@ void pPanel::field_backspace( uint& row, uint& col, bool& prot )
 			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( tcol ) ) { return ; }
 			p    = tcol  ;
-			tcol = it->second->edit_field_backspace( win, tcol, snulls ) ;
+			tcol = it->second->edit_field_backspace( win, tcol, pad, snulls ) ;
 			if ( p == tcol ) { return ; }
 			prot = false ;
 			row  = trow + win_row ;
@@ -1883,6 +2055,7 @@ void pPanel::field_delete_char( uint row, uint col, bool& prot )
 	map<string, field *>::iterator it ;
 
 	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
+	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
 	trow = row - win_row ;
 	tcol = col - win_col ;
 
@@ -1894,7 +2067,7 @@ void pPanel::field_delete_char( uint row, uint col, bool& prot )
 			if ( !it->second->field_active ) { return ; }
 			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( tcol ) ) { return ; }
-			it->second->edit_field_delete( win, tcol, snulls ) ;
+			it->second->edit_field_delete( win, tcol, pad, snulls ) ;
 			prot = false ;
 			row  = trow + win_row ;
 			col  = tcol + win_col ;
@@ -1913,6 +2086,7 @@ void pPanel::field_erase_eof( uint row, uint col, bool& prot )
 	map<string, field *>::iterator it;
 
 	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
+	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
 	row = row - win_row ;
 	col = col - win_col ;
 
@@ -1924,7 +2098,7 @@ void pPanel::field_erase_eof( uint row, uint col, bool& prot )
 			if ( !it->second->field_active ) { return ; }
 			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( col ) ) { return ; }
-			it->second->field_erase_eof( win, col, snulls ) ;
+			it->second->field_erase_eof( win, col, pad, snulls ) ;
 			prot = false ;
 			return ;
 		}
@@ -2681,6 +2855,8 @@ string pPanel::sub_vars( string s )
 	string var ;
 	string val ;
 
+	errblock err ;
+
 	const string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$@" ;
 	p1 = 0 ;
 	p2 = 0 ;
@@ -2701,8 +2877,8 @@ string pPanel::sub_vars( string s )
 		var = upper( s.substr( p1, p2-p1 ) ) ;
 		if ( isvalidName( var ) )
 		{
-			val = getDialogueVar( var ) ;
-			if ( RC <= 8 )
+			val = getDialogueVar( err, var ) ;
+			if ( !err.error() )
 			{
 				if ( p2 < s.size() && s[ p2 ] == '.' )
 				{

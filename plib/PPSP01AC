@@ -1,6 +1,6 @@
 )PANEL VERSION=1 FORMAT=1
 )COMMENT
- Browse entry panel
+ Command tables display
 )ENDCOMMENT
 
 )BODY
@@ -10,7 +10,7 @@ PanelTitle "Command Tables"
 scrollOn
 
 literal  4   2         FP    "Command ===> "
-field    4  15  MAX-17 NEF CAPS(ON),PAD('_') ZCMD
+field    4  15  max-17 nef caps(on),pad(user) zcmd
 
 literal  4  MAX-15  FP "SCROLL ===> "
 field    4  MAX-3  4 NEF  NONE ZSCROLL
@@ -18,7 +18,7 @@ field    4  MAX-3  4 NEF  NONE ZSCROLL
 literal  5  MAX-15  IMT "More:   >"
 
 literal  7  2      FP    "Profile. . . :"
-field    7  17    8 VOI  NONE ZAPPLID
+field    7  17    8 voi  none zapplid
 
 literal  7  MAX-41     FP  "Application Command Table.:"
 field    7  MAX-13  8  VOI  NONE   APPLCMD
@@ -37,7 +37,7 @@ literal 10  MAX-41     FP   "System Command Table . . .:"
 literal 10  MAX-13     VOI  "ISP"
 
 literal  8  2    FP    "Command Table:"
-field    8  17   4      NEF CAPS(ON),pad('_') CMDTAB
+field    8  17   4      NEF CAPS(ON),PAD(USER) CMDTAB
 
 field    9  2   50 VOI  NONE APPLCMDL
 

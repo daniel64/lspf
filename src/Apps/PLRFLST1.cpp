@@ -21,13 +21,13 @@
 */
 
 
-/* Personal File List application                                                */
+/* Personal File List application                                                 */
 
-/* On exit, if reffield is set to #REFLIST and ZRC = 0                           */
-/* then ZRESULT will be placed in the field specified by the .NRET panel varible */
-/* eg:                                                                           */
-/* .NRET = ON                                                                    */
-/* .NRET = ZFILE                                                                 */
+/* On exit, if reffield is set to #REFLIST and ZRC = 0                            */
+/* then ZRESULT will be placed in the field specified by the .NRET panel variable */
+/* eg:                                                                            */
+/* .NRET = ON                                                                     */
+/* .NRET = ZFILE                                                                  */
 
 
 #include <iostream>
@@ -190,15 +190,13 @@ void PLRFLST1::PersonalFList()
 		tbskip( FLIST1, ZTDTOP ) ;
 		if ( MSG == "" ) { ZCMD = "" ; }
 		tbdispl( FLIST1, "PLRFLST1", MSG, "ZCMD" ) ;
-		if ( RC  >  8 ) { abend() ; }
-		if ( RC ==  8 ) { break   ; }
+		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 		while ( ZTDSELS > 0 )
 		{
 			if ( ASEL == "A" )
 			{
 				display( "PLRFLST4", MSG, "ZCMD1" ) ;
-				if ( RC  > 8 ) { abend() ; }
 				if ( RC == 0 )
 				{
 					vcopy( "ZDATEL", ldate, MOVE ) ;
@@ -354,8 +352,7 @@ void PLRFLST1::EditFileList( string curtb )
 		tbskip( FLIST2, ZTDTOP ) ;
 		if ( MSG == "" ) { ZCMD1 = "" ; }
 		tbdispl( FLIST2, "PLRFLST2", MSG, "ZCMD1" ) ;
-		if ( RC  >  8 ) { abend() ; }
-		if ( RC ==  8 ) { break   ; }
+		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 		if ( ZCMD1 == "CANCEL" ) { modified = false ; break ; }
 		while ( ZTDSELS > 0 )
@@ -457,8 +454,7 @@ void PLRFLST1::OpenFileList( string curtb )
 		tbskip( FLIST3, ZTDTOP ) ;
 		if ( MSG == "" ) { ZCMD1 = "" ; }
 		tbdispl( FLIST3, "PLRFLST3", MSG, "ZCMD1" ) ;
-		if ( RC  >  8 ) { abend() ; }
-		if ( RC ==  8 ) { break   ; }
+		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 		while ( ZTDSELS > 0 )
 		{
@@ -701,8 +697,7 @@ void PLRFLST1::userSettings()
 	while ( true )
 	{
 		display( "PLRFLST5" ) ;
-		if ( RC >  8 ) { abend() ; }
-		if ( RC == 8 ) { break   ; }
+		if ( RC == 8 ) { break ; }
 	}
 	vdelete( vlist ) ;
 	return ;

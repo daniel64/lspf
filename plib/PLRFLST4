@@ -7,14 +7,14 @@
 
 PanelTitle "Save Personal File List As"
 
-literal  4   2         FP    "Command ===> "  
-field    4  15  MAX-17 NEF CAPS(ON) ZCMD1
+literal  4   2         FP    "Command ===> "
+field    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD1
 
-literal  6  2         FP  "New Name. . . .:"  
-field    6  19   8    NEF  CAPS(ON) NEWNAME
+literal  6  2         FP  "New Name. . . .:"
+field    6  19   8    NEF  CAPS(ON),PAD(USER) NEWNAME
 
-literal  7  2         FP  "Description . .:"  
-field    7  19   MAX  NEF  CAPS(Off) NEWDESC
+literal  7  2         FP  "Description . .:"
+field    7  19   MAX  NEF  CAPS(OFF),PAD(USER) NEWDESC
 
 literal 9  2  CH "Instructions"
 literal 10 2  NT "Press"
@@ -29,7 +29,7 @@ pdc  Options  "Personal Settings"     ACTION RUN(ISRROUTE) PARM("SELECT PGM(PLRF
 
 )INCLUDE HLP_PDC
 
- 
+
 )INIT
 &NEWNAME = &ACURTB
 &NEWDESC = &AFLDESCP

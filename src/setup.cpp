@@ -392,7 +392,7 @@ void createSYSPROF()
 	p_poolMGR->put( err, "ZSLOG", SLOG, PROFILE ) ;
 	p_poolMGR->put( err, "ZALOG", ALOG, PROFILE ) ;
 
-	p_poolMGR->put( err, "ZPADC",   "N", PROFILE ) ;
+	p_poolMGR->put( err, "ZPADC",   "_", PROFILE ) ;
 	p_poolMGR->put( err, "ZDEL",    ";", PROFILE ) ;
 	p_poolMGR->put( err, "ZSWAP",   "Y", PROFILE ) ;
 	p_poolMGR->put( err, "ZSWAPC",  "'", PROFILE ) ;

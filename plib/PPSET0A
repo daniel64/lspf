@@ -11,7 +11,7 @@ This is the selection panel for the SETTINGS MENU
 PanelTitle "Settings/Information Panel"
 
 literal  4    2       FP  "Command ===> "
-field    4   15   MAX  NEF     CAPS(ON)  ZCMD
+field    4   15   MAX  NEF     CAPS(ON),PAD(USER)  ZCMD
 
 literal  6   MAX-20        FP  "Date: "
 field    6   MAX-14    8   VOI   NONE  ZDATE

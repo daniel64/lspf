@@ -100,6 +100,8 @@ class pPanel
 		string panelDescr  ;
 		int    abIndex     ;
 		int    tb_row      ;
+		int    tb_lcol     ;
+		int    tb_lsz      ;
 		bool   msgResp     ;
 		bool   nretriev    ;
 		bool   LRScroll    ;
@@ -182,11 +184,12 @@ class pPanel
 		void   resetAttrs() ;
 
 		void   syncDialogueVar( const string& ) ;
-		string getDialogueVar( const string& )  ;
-		void   putDialogueVar( const string&, const string& ) ;
+		string getDialogueVar( errblock&, const string& ) ;
+		void   putDialogueVar( errblock&, const string&, const string& ) ;
 
 		void   create_tbfield( errblock&, int col, int size, cuaType cuaFT, const string& name, const string& opts ) ;
-		void   create_pdc( const string&, const string&, const string&, const string&, const string& ) ;
+		void   create_tbfield( errblock&, const string& ) ;
+		void   create_pdc( errblock&, const string& ) ;
 
 		void   display_boxes()  ;
 

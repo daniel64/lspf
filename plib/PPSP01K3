@@ -12,13 +12,13 @@ scrollOn
 literal  3   2        CH   "&ZZTYP"
 
 literal  4   2         FP  "Command ===> "
-field    4  15  MAX-17 NEF CAPS(ON) ZCMD
+field    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
 
 literal  4  MAX-15  FP     "SCROLL ===> "
 field    4  MAX-3   4 NEF  NONE ZSCROLL
 
 literal   6  2      FP    "Keylist Help Panel Name . . :"
-field     6  32   8 NEF  CAPS(ON) KEYHELP
+field     6  32   8 NEF  CAPS(ON),PAD(USER) KEYHELP
 
 literal   8  2      CH    "Key       Definition                                Format Label"
 literal   9  2      CH    EXPAND "-"

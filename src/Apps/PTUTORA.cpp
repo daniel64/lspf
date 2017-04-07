@@ -208,8 +208,7 @@ void PTUTORA::application()
 		ZCOL1 = right( d2ds( startCol ), 7, '0' )     ;
 
 		display( "PTUTORA1", "", "ZCMD" ) ;
-		if ( RC > 8 )  { abend()   ; break ; }
-		if ( RC == 8 ) { break ;             }
+		if ( RC == 8 ) { break ; }
 
 		rebuildZAREA = false ;
 

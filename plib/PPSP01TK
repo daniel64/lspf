@@ -10,7 +10,7 @@ PanelTitle "Task Display"
 scrollOn
 
 literal  4   2         FP    "Command ===> "
-field    4  15  MAX-17 NEF CAPS(ON) ZCMD
+field    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
 
 literal  4  MAX-15  FP "SCROLL ===> "
 field    4  MAX-3   4  NEF  NONE ZSCROLL
@@ -19,7 +19,7 @@ literal  6 2 CH "S USER     PID    %CPU   %MEM   CMD"
 literal  7 2 CH EXPAND "-"
 
 tbmodel  8   MAX
-tbfield  2     1   NEF CAPS(ON),PAD('_'),JUST(LEFT) SEL
+tbfield  2     1   NEF CAPS(ON),PAD(USER),JUST(LEFT) SEL
 tbfield  ++1   8   VOI NONE USER
 tbfield  ++1   8   VOI NONE PID
 tbfield  ++1   5   VOI NONE CPU

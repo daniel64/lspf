@@ -6,7 +6,7 @@
 PanelTitle "Display Panel"
 
 literal   4    2    FP  "Command ===> "
-field     4   15   MAX  NEF     CAPS(ON)  ZCMD
+field     4   15   MAX  NEF     CAPS(ON),PAD(USER) ZCMD
 
 literal   6   MAX-36         FP  "TIME: "
 field     6   MAX-30    8    VOI   NONE  ZTIME
@@ -15,7 +15,7 @@ literal   6   MAX-20         FP  "DATE: "
 field     6   MAX-14    8    VOI  NONE  ZDATE
 
 literal   8   21    FP  "Panel name. . . ."
-field     8   39    8    NEF   CAPS(ON),JUST(LEFT),PAD(_)  NAME
+field     8   39    8    NEF   CAPS(ON),JUST(LEFT),PAD(USER) NAME
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC

@@ -10,7 +10,7 @@ PanelTitle "Keylists For &ZZTABL"
 scrollOn
 
 literal   4   2         FP    "Command ===> "
-field     4  15  MAX-17 NEF CAPS(ON) ZCMD
+field     4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
 
 literal   4  MAX-15  FP "SCROLL ===> "
 field     4  MAX-3  4 NEF  NONE ZSCROLL
@@ -20,7 +20,7 @@ literal   8  2   CH  "S  Keylist   Message"
 literal   9  2   CH  EXPAND "-"
 
 tbmodel   10   MAX
-tbfield    2   1    NEF   caps(on),pad('_') TBK2SEL
+tbfield    2   1    NEF   caps(on),PAD(USER) TBK2SEL
 tbfield  ++2   8    VOI   NONE TBK2LST
 tbfield  ++2   20   VOI   NONE TBK2MSG
 

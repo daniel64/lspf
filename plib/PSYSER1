@@ -12,7 +12,7 @@
 PanelTitle "Dialogue Error in application &ZAPPNAME"
 
 literal 4   2      FP  "Command ===> "
-field   4  15 MAX  NEF  CAPS(ON)  ZCMD
+field   4  15 MAX  NEF  CAPS(ON),PAD(USER) ZCMD
 
 literal 7     2 ET EXPAND "*"
 

@@ -1213,12 +1213,12 @@ void PEDIT01::fill_hilight_shadow()
 			if ( hlight.hl_abend ) { pcmd.set_msg( "PEDT013E" ) ; return ; }
 			data.at( dl )->il_vShadow = true ;
 			data.at( dl )->il_wShadow = ( hlight.hl_oBrac1 == 0 &&
-							    hlight.hl_oBrac2 == 0 &&
-							    hlight.hl_oIf    == 0 &&
-							    hlight.hl_oDo    == 0 &&
-							   !hlight.hl_continue    &&
-							   !hlight.hl_oQuote      &&
-							   !hlight.hl_oComment ) ;
+						      hlight.hl_oBrac2 == 0 &&
+						      hlight.hl_oIf    == 0 &&
+						      hlight.hl_oDo    == 0 &&
+						     !hlight.hl_continue    &&
+						     !hlight.hl_oQuote      &&
+						     !hlight.hl_oComment ) ;
 		}
 		dl = getValidDataFileLine( dl ) ;
 		if ( dl != 0 )
@@ -1230,10 +1230,10 @@ void PEDIT01::fill_hilight_shadow()
 	for ( i = 0 ; i < ZAREAD ; i++ )
 	{
 		if ( s2data.at( i ).ipos_hex > 0 ||
-			   s2data.at( i ).ipos_div     ) { continue ; }
+			   s2data.at( i ).ipos_div ) { continue ; }
 		dl = s2data.at( i ).ipos_dl ;
 		if ( !data.at( dl )->isValidFile() ||
-			    data.at( dl )->il_mark       ||
+			    data.at( dl )->il_mark ||
 			    data.at( dl )->il_excl )  { continue ; }
 		if ( data.at( dl )->specialLabel() )
 		{
@@ -1289,8 +1289,8 @@ void PEDIT01::getZAREAchanges()
 
 	string lcc ;
 
-	const char duserMod(0x3) ;
-	const char ddataMod(0x4) ;
+	const char duserMod(0x03) ;
+	const char ddataMod(0x04) ;
 
 	for ( i = 0 ; i < ZAREAD ; i++ )
 	{
@@ -1383,7 +1383,7 @@ void PEDIT01::getZAREAchanges()
 			if ( datatype( lcc, 'W' ) ) { lcc = "" ; }
 			if ( lcc == "" )
 			{
-				if ( data.at( dl )->il_lcc == "" ) { data.at( dl )->clearLabel() ; }
+				if ( data.at( dl )->il_lcc == "" ) { data.at( dl )->clearLabel()  ; }
 				else                               { data.at( dl )->il_lcc   = "" ; }
 			}
 			else
@@ -9389,8 +9389,8 @@ void PEDIT01::actionService()
 	case EM_RCHANGE:
 			if ( !find_parms.fcx_cset ) { miBlock.seterror( "PEDT013N", 20 ) ; break ; }
 			dl = getDataLine( mRow ) ;
-			if ( find_parms.fcx_URID   == data.at( dl )->il_URID &&
-				   find_parms.fcx_success                          &&
+			if ( find_parms.fcx_URID == data.at( dl )->il_URID &&
+				   find_parms.fcx_success                  &&
 				   find_parms.fcx_offset == mCol - 1 )
 			{
 				actionChange() ;

@@ -8,13 +8,13 @@ PanelTitle "Personal File List"
 
 scrollOn
 
-literal  4   2         FP    "Command ===> "  
-field    4  15  MAX-17 NEF CAPS(ON) ZCMD1
+literal  4   2         FP    "Command ===> "
+field    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD1
 
 literal  4  MAX-15  FP "SCROLL ===> "
 field    4  MAX-3  4 NEF  NONE ZSCROLL
 
-literal  6  2       FP  "Action: S=Select entry"  
+literal  6  2       FP  "Action: S=Select entry"
 
 literal  8  2      FP "Name     Description"
 literal  8  MAX-30 FP "Created     Updated"
@@ -24,11 +24,11 @@ field    9  MAX-30  MAX-20 VOI  NONE FLACTIME
 field    9  MAX-18  MAX    VOI  NONE FLAUTIME
 
 
-literal  11  2      CH    "S File Name"  
-literal  12  2      CH    EXPAND "-"  
+literal  11  2      CH    "S File Name"
+literal  12  2      CH    EXPAND "-"
 
 tbmodel  13   MAX
-tbfield  2    1       NEF   PAD('_'),CAPS(ON) CSEL
+tbfield  2    1       NEF   PAD(USER),CAPS(ON) CSEL
 tbfield  ++1  MAX     VOI   NONE CFILE
 
 )INCLUDE STD_PDC
@@ -36,7 +36,7 @@ pdc  Options  "Personal Settings"     ACTION RUN(ISRROUTE) PARM("SELECT PGM(PLRF
 
 )INCLUDE HLP_PDC
 
- 
+
 )INIT
 VGET ZSCROLL PROFILE
 

@@ -6,7 +6,7 @@ scrollOn
 panelDescr "Tutor"
 
 literal  4   2      FP "Command ===> "
-field 4  15  MAX-17 NEF CAPS(ON),PAD('_') ZCMD
+field 4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
 
 literal  4 MAX-15      FP "SCROLL ===> "
 field    4 MAX-3    4  NEF NONE    ZSCROLL

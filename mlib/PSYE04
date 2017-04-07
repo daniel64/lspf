@@ -1,0 +1,37 @@
+/*                                           */
+/* System error message file for lspf        */
+
+/* Panel definition statement errors */
+PSYE041A 'Duplicate table display field ''&ZVAL1'''
+''
+
+PSYE041B 'Duplicate pull down choice ''&ZVAL1'''
+'Action bar choice ''&ZVAL2'' contains a duplicate pull down choice'
+
+PSYE041C 'Duplicate &ZVAL1 name ''&ZVAL2'''
+''
+
+PSYE041D 'Invalid keyword ''&ZVAL1'''
+''
+
+PSYE041E 'Invalid line detected'
+''
+
+PSYE041F 'GOTO label ''&ZVAL1'' not found'
+''
+
+PSYE041G 'Invalid value for .ALARM control variable.  Must be YES, NO or blank'
+''
+
+PSYE041H 'Invalid .CSRROW value.  Must be numeric'
+''
+
+PSYE041I 'Invalid value for .RESP control variable.  Must be ENTER or END'
+''
+
+PSYE041J 'Invalid .CSRPOS value.  Must be numeric'
+''
+
+PSYE041K 'EXPAND must be followed by a literal'
+''
+

@@ -4,12 +4,12 @@
 )ENDCOMMENT
 )BODY
 
- PanelTitle "TODO List" 
- literal   4   2   FP "Command ===> "   
- field    4  15  20  NEF CAPS(ON) ZCMD   
- 
- literal  6   2      FP  "PROFILE:"    
- field    6  11   4  VOI  NONE ZAPPLID   
+ PanelTitle "TODO List"
+ literal   4   2   FP "Command ===> "
+ field     4  15  MAX  NEF CAPS(ON),PAD(USER) ZCMD
+
+ literal  6   2      FP  "PROFILE:"
+ field    6  11   4  VOI  NONE ZAPPLID
 
  field    11  3  MAX-2      NEF NONE TODO1
  field    12  3  MAX-2      NEF NONE TODO2

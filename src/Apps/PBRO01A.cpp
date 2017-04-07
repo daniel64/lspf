@@ -197,7 +197,6 @@ void PBRO01A::application()
 		if ( MSG == "" ) { ZCMD = "" ; }
 
 		display( "PBRO01A1", MSG, CURFLD, CURPOS ) ;
-		if ( RC > 8 )  { abend()   ;         }
 		if ( RC == 8 ) { cleanup() ; break ; }
 
 		MSG          = ""    ;
@@ -1109,13 +1108,6 @@ void PBRO01A::actionFind( int spos, int offset )
 			if ( dl < 1 || dl > data.size()-2 ) { break ; }
 			continue ;
 		}
-
-		if ( c1 > data.at( dl ).size() -1 ) abend() ;
-		if ( c2 > data.at( dl ).size() -1 ) abend() ;
-		if ( c1 < 0 ) abend() ;
-		if ( c2 < 0 ) abend() ;
-		if ( c1 > c2  ) abend() ;
-		//
 
 		if ( find_parms.f_regreq )
 		{

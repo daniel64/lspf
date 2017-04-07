@@ -29,8 +29,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 	int p1, p2           ;
 	int pVersion         ;
 	int pFormat          ;
-	int tbfield_col      ;
-	int tbfield_sz       ;
 
 	string ww, w1, w2    ;
 	string w3, w4, w5    ;
@@ -51,8 +49,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 	bool ispnts(false)   ;
 	bool isfield(false)  ;
 	bool found           ;
-
-	cuaType fType        ;
 
 	std::ifstream panl   ;
 	std::ifstream pincl  ;
@@ -165,9 +161,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		return ;
 	}
 	panl.close() ;
-
-	tbfield_col = 0 ;
-	tbfield_sz  = 0 ;
 
 	for ( it = pSource.begin() ; it != pSource.end() ; it++ )
 	{
@@ -295,7 +288,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				CMDfield = strip( substr( pline, j+5, k-j-5 ) ) ;
 				if ( !isvalidName( CMDfield ) )
 				{
-					err.seterror( "Invalid command field name '"+ CMDfield +"'" ) ;
+					err.seterrid( "PSYE022J", "command field", w7 ) ;
 					err.setsrc( trim( pline ) ) ;
 					return ;
 				}
@@ -313,7 +306,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				Home = strip( substr( pline, j+6, k-j-6 ) ) ;
 				if ( !isvalidName( Home ) )
 				{
-					err.seterror( "Invalid home field name '"+ Home +"'" ) ;
+					err.seterrid( "PSYE022J", "home field", w7 ) ;
 					err.setsrc( trim( pline ) ) ;
 					return ;
 				}
@@ -788,7 +781,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 
 		if ( !body )
 		{
-			err.seterror( "Invalid line detected" ) ;
+			err.seterrid( "PSYE041E" ) ;
 			err.setsrc( trim( pline ) ) ;
 			return ;
 		}
@@ -822,30 +815,31 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		}
 		else if ( w1 == "FIELD" )
 		{
-			w7 = word( pline, 7 ) ;
-			if ( !isvalidName( w7 ) )
-			{
-				err.seterror( "Invalid field name '"+ w7 +"'" ) ;
-				err.setsrc( trim( pline ) ) ;
-				return ;
-			}
-
-			if ( fieldList.find( w7 ) != fieldList.end() )
-			{
-				err.seterror( "Field '"+ w7 +"' already exists on panel" ) ;
-				err.setsrc( trim( pline ) ) ;
-				return ;
-			}
-
-			field * m_fld = new field ;
-			m_fld->field_init( err, WSCRMAXW, WSCRMAXD, pline ) ;
+			field * fld = new field ;
+			fld->field_init( err, WSCRMAXW, WSCRMAXD, upper( pline ) ) ;
 			if ( err.error() )
 			{
 				err.setsrc( trim( pline ) ) ;
-				delete m_fld ;
+				delete fld ;
 				return ;
 			}
-			fieldList[ w7 ] = m_fld  ;
+			w7 = err.getUserData() ;
+			if ( !isvalidName( w7 ) )
+			{
+				err.seterrid( "PSYE022J", "field", w7 ) ;
+				err.setsrc( trim( pline ) ) ;
+				delete fld ;
+				return ;
+			}
+
+			if ( fieldList.count( w7 ) > 0 )
+			{
+				err.seterrid( "PSYE041C", "field", w7 ) ;
+				err.setsrc( trim( pline ) ) ;
+				delete fld ;
+				return ;
+			}
+			fieldList[ w7 ] = fld ;
 			continue ;
 		}
 		else if ( w1 == "DYNAREA" )
@@ -854,13 +848,20 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			w6 = word( pline, 6 ) ;
 			if ( !isvalidName( w6 ) )
 			{
-				err.seterror( "Invalid field name '"+ w6 +"' entered for dynamic area" ) ;
+				err.seterrid( "PSYE022J", "dynamic area", w7 ) ;
+				err.setsrc( trim( pline ) ) ;
+				return ;
+			}
+
+			if ( dynAreaList.count( w6 ) > 0 )
+			{
+				err.seterrid( "PSYE041C", "dynamic area", w7 ) ;
 				err.setsrc( trim( pline ) ) ;
 				return ;
 			}
 
 			dynArea * m_dynArea = new dynArea ;
-			m_dynArea->dynArea_init( err, WSCRMAXW, WSCRMAXD, pline ) ;
+			m_dynArea->dynArea_init( err, WSCRMAXW, WSCRMAXD, upper( pline ) ) ;
 			if ( err.error() )
 			{
 				err.setsrc( trim( pline ) ) ;
@@ -872,17 +873,19 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			dyn_depth = m_dynArea->dynArea_depth ;
 
 			dynAreaList[ w6 ] = m_dynArea ;
+			field a ;
+			a.field_cua         = AB        ;
+			a.field_col         = m_dynArea->dynArea_col   ;
+			a.field_length      = m_dynArea->dynArea_width ;
+			a.field_cole        = m_dynArea->dynArea_col + m_dynArea->dynArea_width ;
+			a.field_dynArea     = true      ;
+			a.field_dynArea_ptr = m_dynArea ;
 			for ( i = 0 ; i < m_dynArea->dynArea_depth ; i++ )
 			{
-				field * m_fld            = new field ;
-				m_fld->field_cua         = AB        ;
-				m_fld->field_row         = m_dynArea->dynArea_row + i ;
-				m_fld->field_col         = m_dynArea->dynArea_col     ;
-				m_fld->field_length      = m_dynArea->dynArea_width   ;
-				m_fld->field_cole        = m_dynArea->dynArea_col + m_dynArea->dynArea_width ;
-				m_fld->field_dynArea     = true           ;
-				m_fld->field_dynArea_ptr = m_dynArea      ;
-				fieldList[ w6 + "." + d2ds( i ) ] = m_fld ;
+				field * fld    = new field ;
+				*fld           = a         ;
+				fld->field_row = m_dynArea->dynArea_row + i ;
+				fieldList[ w6 + "." + d2ds( i ) ] = fld ;
 			}
 			continue ;
 		}
@@ -904,43 +907,9 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		else if ( w1 == "PDC" )
 		{
 			debug2( "Creating pdc" << endl ) ;
-			w2 = word( pline, 2 ) ;
-			w3 = word( pline, 3 ) ;
-			if ( w3[ 0 ] == '\"' )
+			create_pdc( err, pline ) ;
+			if ( err.error() )
 			{
-				p1   = pos( "\"", pline ) ;
-				p2   = pos( "\"", pline, p1+1 ) ;
-				w3   = substr( pline, p1+1, p2-p1-1 ) ;
-				rest = substr( pline, p2+1 ) ;
-			}
-			else
-			{
-				rest = subword( pline, 4 ) ;
-			}
-			if ( word( rest, 1 ) != "ACTION" ) { RC = 20 ; }
-			w5   = word( rest, 2)     ;
-			rest = subword( rest, 3 ) ;
-			if ( substr( w5, 1, 4 ) != "RUN(" ) { RC = 20 ; }
-			p2   = pos( ")", w5, 5 ) ;
-			w5   = substr( w5, 5, p2-5 ) ;
-			w7   = "" ;
-			p1 = pos ( "UNAVAIL(", rest ) ;
-			if ( p1 > 0 )
-			{
-				p2 = pos( ")", rest, p1 ) ;
-				w7 = strip( substr( rest, p1+8, p2-p1-8 )) ;
-				rest = delstr( rest, p1, p2-p1+1 ) ;
-			}
-			w6 = "" ;
-			if ( substr( rest, 1, 5 ) == "PARM(" )
-			{
-				p2 = lastpos( ")", rest ) ;
-				w6 = strip( substr( rest, 6, p2-7 ), 'B', '\"' ) ;
-			}
-			if ( RC == 0 ) { create_pdc( w2, w3, w5, w6, w7 ) ; }
-			if ( RC > 0 )
-			{
-				err.seterror( "Error creating pdc" ) ;
 				err.setsrc( trim( pline ) ) ;
 				return ;
 			}
@@ -950,12 +919,17 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		{
 			debug2( "Creating tbmodel" << endl ) ;
 			w3 = word( pline, 3 ) ;
-			int start_row = ds2d( word( pline, 2 ) ) - 1;
+			int start_row = ds2d( word( pline, 2 ) ) - 1 ;
 
-			if ( isnumeric( w3 ) )                   { tb_depth = ds2d( w3 ) ; }
-			else if ( w3 == "MAX" )                  { tb_depth = WSCRMAXD - start_row ; }
-			else if ( substr( w3, 1, 4 ) == "MAX-" ) { tb_depth = WSCRMAXD - ds2d( substr( w3, 5 ) ) - start_row ; }
-			else                                     { err.setRC( 20 ) ; return ; }
+			if ( isnumeric( w3 ) )                      { tb_depth = ds2d( w3 ) ; }
+			else if ( w3 == "MAX" )                     { tb_depth = WSCRMAXD - start_row ; }
+			else if ( w3.compare( 0, 4, "MAX-" ) == 0 ) { tb_depth = WSCRMAXD - ds2d( substr( w3, 5 ) ) - start_row ; }
+			else
+			{
+				err.seterrid( "PSYE031B", w3 ) ;
+				err.setsrc( trim( pline ) ) ;
+				return ;
+			}
 			tb_model = true      ;
 			tb_row   = start_row ;
 			scrollOn = true      ;
@@ -965,46 +939,17 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		}
 		else if ( w1 == "TBFIELD" )
 		{
-			int tlen ;
-			int tcol ;
-			w3 = word( pline, 3 ) ;
-			if ( w2[ 0 ] == '+' )
+			create_tbfield( err, pline ) ;
+			if ( err.error() )
 			{
-				if ( w2[ 1 ] == '+' )
-				{
-					tcol = tbfield_col + tbfield_sz + ds2d( substr( w2, 3 ) ) ;
-				}
-				else
-				{
-					tcol = tbfield_col + ds2d( substr( w2, 2 ) ) ;
-				}
-			}
-			else
-			{
-				tcol = ds2d( w2 ) ;
-			}
-			if      ( isnumeric( w3 ) )              { tlen = ds2d( w3 ) ; }
-			else if ( w3 == "MAX" )                  { tlen = WSCRMAXW - tcol + 1 ; }
-			else if ( substr( w3, 1, 4 ) == "MAX-" ) { tlen = WSCRMAXW - tcol - ds2d( substr( w3, 5 ) ) + 1 ; }
-			else                                     { err.setRC( 20 ) ; return ; }
-			tbfield_col = tcol    ;
-			tbfield_sz  = tlen    ;
-			w4 = word( pline, 4 ) ;
-			if ( cuaAttrName.find( w4 ) == cuaAttrName.end() )
-			{
-				err.seterror( "Unknown field CUA attribute type '"+ w4 + "'" ) ;
 				err.setsrc( trim( pline ) ) ;
 				return ;
 			}
-			fType = cuaAttrName[ w4 ] ;
-			debug2( "Creating tbfield" << endl ) ;
-			create_tbfield( err, tcol, tlen, fType, word( pline, 6 ), word( pline, 5 ) ) ;
-			if ( err.error() ) { return ; }
 			continue ;
 		}
 		else
 		{
-			err.seterror( "Invalid keyword detected" ) ;
+			err.seterrid( "PSYE041D", w1 ) ;
 			err.setsrc( trim( pline ) ) ;
 			return ;
 		}
@@ -1019,11 +964,13 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		}
 		fieldList[ "ZSCROLL" ]->field_caps = true ;
 	}
+
 	if ( fieldList.count( Home ) == 0 )
 	{
 		err.seterror( "Home field '"+ Home +"' not defined in panel body" ) ;
 		return ;
 	}
+
 	if ( fieldList.count( CMDfield ) == 0 )
 	{
 		err.seterror( "Command field '"+ CMDfield +"' not defined in panel body" ) ;

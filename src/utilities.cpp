@@ -1332,7 +1332,7 @@ bool isoctal( char c )
 bool ispict( const string& s, const string& picts )
 {
 	// C - any char
-	// A -  (A-Z, a-z, #, $, @)
+	// A - A-Z, a-z, #, $, @
 	// N - any numeric character (0-9)
 	// 9 - any numeric character (same as N)
 	// X - any hexadecimal character (0-9, A-F, a-f)
@@ -1409,87 +1409,6 @@ string mergepaths( const string& p1, const string& p2 )
 }
 
 
-void fieldOptsParse( errblock& err, string opts, bool& caps, char& just, bool& numeric, char& padchar, bool& skip )
-{
-	// CAPS(ON,OFF)
-	// JUST(LEFT,RIGHT,ASIS)
-	// NUMERIC(ON,OFF)
-	// PAD(char,NULL,USER)
-	// SKIP(ON,OFF)
-
-	int p1 ;
-	int p2 ;
-
-	string t     ;
-	string uopts ;
-
-	err.setRC( 0 ) ;
-
-	uopts = upper( opts ) ;
-	if ( uopts == "NONE" ) { return ; }
-
-	uopts = "," + uopts ;
-	p1 = pos( ",CAPS(", uopts ) ;
-	if ( p1 > 0 )
-	{
-		p2 = pos( ")", uopts, p1 ) ;
-		t = strip( substr( uopts, (p1 + 6), (p2 - (p1 + 6)) ) ) ;
-		if      ( t == "ON"  ) { caps = true  ; }
-		else if ( t == "OFF" ) { caps = false ; }
-		else    { err.seterror() ; return ; }
-		uopts = delstr( uopts, p1, (p2 - p1 + 1) ) ;
-	}
-
-	p1 = pos( ",JUST(", uopts ) ;
-	if ( p1 > 0 )
-	{
-		p2 = pos( ")", uopts, p1 ) ;
-		t = strip( substr( uopts, (p1 + 6), (p2 - (p1 + 6)) ) ) ;
-		if      ( t == "LEFT"  ) { just = 'L' ; }
-		else if ( t == "RIGHT" ) { just = 'R' ; }
-		else if ( t == "ASIS"  ) { just = 'A' ; }
-		else { err.seterror() ; return ; }
-		uopts = delstr( uopts, p1, (p2 - p1 + 1) ) ;
-	}
-
-	p1 = pos( ",NUMERIC(", uopts ) ;
-	if ( p1 > 0 )
-	{
-		p2 = pos( ")", uopts, p1 ) ;
-		t = strip( substr( uopts, (p1 + 9), (p2 - (p1 + 9)) ) ) ;
-		if      ( t == "ON"  ) { numeric = true  ; }
-		else if ( t == "OFF" ) { numeric = false ; }
-		else { err.seterror() ; return ; }
-		uopts = delstr( uopts, p1, (p2 - p1 + 1) ) ;
-	}
-
-	p1 = pos( ",PAD(", uopts ) ;
-	if ( p1 > 0 )
-	{
-		p2 = pos( ")", uopts, p1 ) ;
-		t = strip( substr( uopts, (p1 + 5), (p2 - (p1 + 5)) ) ) ;
-		if      ( t[ 0 ] == '\'' ) { t = strip( t, 'B', '\'' ) ; }
-		else if ( t[ 0 ] == '"'  ) { t = strip( t, 'B', '"' ) ;  }
-		if ( t.size() != 1 ) { err.seterror() ; return ; }
-		padchar = t[ 0 ] ;
-		uopts = delstr( uopts, p1, (p2 - p1 + 1) ) ;
-	}
-
-	p1 = pos( ",SKIP(", uopts ) ;
-	if ( p1 > 0 )
-	{
-		p2 = pos( ")", uopts, p1 ) ;
-		t = strip( substr( uopts, (p1 + 6), (p2 - (p1 + 6)) ) ) ;
-		if      ( t == "ON" )  { skip = true  ; }
-		else if ( t == "OFF" ) { skip = false ; }
-		else { err.seterror() ; return ; }
-		uopts = delstr( uopts, p1, (p2 - p1 + 1) ) ;
-	}
-
-	if ( strip( uopts ) != "" ) { err.seterror() ; }
-}
-
-
 string parseString( errblock& err, string& s, string p )
 {
 	// return value of keyword parameter p, or null if not entered
@@ -1559,7 +1478,7 @@ string parseString( errblock& err, string& s, string p )
 	}
 	if ( p2 < s.size()-1 && s.at( p2+1 ) != ' ' )
 	{
-		err.seterror( "PSYE037H" ) ;
+		err.seterrid( "PSYE037H" ) ;
 		return "" ;
 	}
 

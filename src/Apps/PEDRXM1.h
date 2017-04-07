@@ -25,7 +25,6 @@ class PEDRXM1 : public pApplication
 {
 	public:
 		void application() ;
-		miblock miBlock    ;
 		void macroError()  ;
 
 	private:

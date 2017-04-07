@@ -8,7 +8,7 @@
 PanelTitle "Modify File Attributes"
 
 literal  4   2       FP    "Command ===> "
-field    4  15  MAX  NEF CAPS(ON) ZCMD
+field    4  15  MAX  NEF CAPS(ON),PAD(USER) ZCMD
 
 literal  6   2       FP    "Entry Name . . :"
 field    6  19  MAX  VOI NONE IENTRY
@@ -17,41 +17,41 @@ literal  7    2       FP   "File Type. . . :"
 field    7   19   16  VOI NONE ITYPE
 
 --literal  8   1       FP    "Userid . . . . :"
---field    8  18   12  NEF NONE IUUID
+--field    8  18   12  NEF PAD(USER) IUUID
 
 --literal  9   1       FP    "Password . . . :"
 --field    9  18   8  PWD NONE IUPWD
 
 literal  9   2       FP    "Permissions"
-field    9  14       3  NEF NONE IPERMISS
+field    9  14       3  NEF PAD(USER) IPERMISS
 literal  9  18       FP    "(Octal)"
 
 
 literal  11   2        ET    "Mode Fields"
 literal  13 2 PIN "Enter / to select option"
 
-field    14   2   1   CEF PAD('_') ISETUID
+field    14   2   1   CEF PAD(USER) ISETUID
 literal  14   4       SAC    "Set UID bit"
 
-field    15   2   1   CEF PAD('_') ISETGID
+field    15   2   1   CEF PAD(USER) ISETGID
 literal  15   4       SAC    "Set GID bit"
 
-field    16   2   1   CEF PAD('_') ISTICKY
+field    16   2   1   CEF PAD(USER) ISTICKY
 literal  16   4       SAC    "Set sticky bit"
 
 literal  18   2       ET    "Owner"
 
 literal  20   2        FP   "UID Number. . . :"
-field    20  20    10  NEF NONE IOWNERN
+field    20  20    10  NEF PAD(USER) IOWNERN
 
 literal  20  32        FP   "File. . . :"
-field    20  44    10  NEF NONE IOWNER
+field    20  44    10  NEF PAD(USER) IOWNER
 
 literal  21   2        FP   "GID Number. . . :"
-field    21  20    10  NEF NONE IGROUPN
+field    21  20    10  NEF PAD(USER) IGROUPN
 
 literal  21   32       FP  "Group . . :"
-field    21   44   10  NEF NONE IGROUP
+field    21   44   10  NEF PAD(USER) IGROUP
 
 literal 24 2  CH "Instructions"
 
@@ -73,6 +73,9 @@ literal 27 22 NT "to cancel changes"
 
 &ZCMD = TRANS( &ZCMD CAN,CANCEL *,* )
 ver (&zcmd,list,cancel )
+if ( &zcmd eq cancel )
+   exit
+
 VER (&IPERMISS NB PICT OOO)
 VER (&ISETUID LIST /)
 VER (&ISETGID LIST /)

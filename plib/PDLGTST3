@@ -11,7 +11,7 @@ Panel for displaying variables from various pools.  Used in Dialogue Test option
 PanelTitle "Display System Variables from Pools"
 
 literal   4    2    FP  "Command ===> "
-field     4   15   MAX   NEF   CAPS(ON)  ZCMD
+field     4   15   MAX   NEF   CAPS(ON),PAD(USER) ZCMD
 
 literal   6   MAX-36    FP  "TIME: "
 field     6   MAX-30    8    VOI   NONE  ZTIME

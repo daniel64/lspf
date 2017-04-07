@@ -9,28 +9,28 @@ Panel for editor PEDIT01
 PanelTitle "Edit Entry Panel"
 
 literal  4    2       FP     "Command ===> "
-field 4  15   MAX     NEF     PAD('_') ZCMD1
+field 4  15   MAX     NEF     PAD(USER) ZCMD1
 
 literal  7    2       FP     "File Name. . .:"
-field    7   18       MAX     NEF  NONE ZFILE
+field    7   18       MAX     NEF  PAD(USER) ZFILE
 
 literal  9    2       SAC    "Initial Macro. . ."
-field    9    21  8   CEF     PAD('_'),caps(off) EEIMAC
+field    9    21  8   CEF     PAD(USER),caps(off) EEIMAC
 literal  10   2       SAC    "Profile Name . . ."
-field    10   21  8   CEF     PAD('_'),caps(on) EEPROF
+field    10   21  8   CEF     PAD(USER),caps(on) EEPROF
 
 literal  12   2       ET     "Options"
 literal  13   4       PIN    "Enter / to select option"
-field    14   4   1   CEF     PAD('_') EEPRSPS
+field    14   4   1   CEF     PAD(USER) EEPRSPS
 literal  14   6       SAC    "Preserve trailing spaces on file save"
 
-field    15   4   1   CEF     PAD('_') EETABSS
+field    15   4   1   CEF     PAD(USER) EETABSS
 literal  15   6       SAC    "Override XTABS setting to prevent tabs being converted to spaces"
 
-field    16   4   1   CEF     PAD('_') EEDIRLST
+field    16   4   1   CEF     PAD(USER) EEDIRLST
 literal  16   6       SAC    "Show directory list if valid directory entered"
 
-field    17   4   1   CEF     PAD('_') EENEWFLS
+field    17   4   1   CEF     PAD(USER) EENEWFLS
 literal  17   6       SAC    "Allow edit of new files"
 
 

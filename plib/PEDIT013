@@ -10,24 +10,24 @@ COMPARE files panel
 PanelTitle "Compare File"
 
 literal  4    2       FP     "Command ===> "
-field 4  15   MAX     NEF     PAD('_') ZCMD3
+field 4  15   MAX     NEF     PAD(USER) ZCMD3
 
 literal  6    2       FP     "Compare File Name. . .:"
-field    6   26      MAX     NEF  NONE CFILE
+field    6   26      MAX     NEF  PAD(USER) CFILE
 
-field    8   2   1   CEF     PAD('_') ECPBRDF
+field    8   2   1   CEF     PAD(USER) ECPBRDF
 literal  8   4       SAC    "Browse output instead of adding EDIT INFO lines"
 
-field    10   2   1   CEF     PAD('_') ECPICAS
+field    10   2   1   CEF     PAD(USER) ECPICAS
 literal  10   4       SAC    "Case insensitive compare"
 
-field    11   2   1   CEF     PAD('_') ECPIREF
+field    11   2   1   CEF     PAD(USER) ECPIREF
 literal  11   4       SAC    "Ignore reformat differences"
 
-field    12   2   1   CEF     PAD('_') ECPIBLK
+field    12   2   1   CEF     PAD(USER) ECPIBLK
 literal  12   4       SAC    "Ignore blank lines"
 
-field    13   2   1   CEF     PAD('_') ECPITBE
+field    13   2   1   CEF     PAD(USER) ECPITBE
 literal  13   4       SAC    "Ignore changes due to tab expansion"
 
 

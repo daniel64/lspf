@@ -9,20 +9,20 @@ Panel for editor copy file
 PanelTitle "Edit Copy"
 
 literal  4    2       FP     "Command ===> "
-field 4  15   MAX     NEF     PAD('_') ZCMD5
+field 4  15   MAX     NEF     PAD(USER) ZCMD5
 
 literal  7    2       FP     "Current File Name:"
 field    7   21       MAX     VOI  NONE ZFILE
 
 literal 10 2  FP "Enter file name to copy"
 literal 11    5       FP     "File Name. . .:"
-field   11   21       MAX     NEF  NONE ZFILE2
+field   11   21       MAX     NEF  PAD(USER) ZFILE2
 
 literal 13 2  FP "Line numbers (Blank for entire file)"
 literal 14    5       FP     "First Line . .:"
-field   14   21       6       NEF  PAD('_') LINE1
+field   14   21       6       NEF  PAD(USER) LINE1
 literal 15    5       FP     "Last Line. . .:"
-field   15   21       6       NEF  PAD('_') LINE2
+field   15   21       6       NEF  PAD(USER) LINE2
 
 literal 18 2  CH "Instructions"
 literal 19 2  NT "Enter file name and press"

@@ -10,7 +10,7 @@
 PanelTitle "Test Keyed Table and TB Functions"
 
 literal   4    2          FP  "Command ===> "
-field     4   15  MAX-17  NEF     CAPS(ON)  ZCMD
+field     4   15  MAX-17  NEF     CAPS(ON),PAD(USER) ZCMD
 
 literal   4   MAX-15       FP  "SCROLL ===> "
 field     4   MAX-3    4   NEF     CAPS(ON)  ZSCROLL
@@ -66,7 +66,7 @@ literal 16 2 CH  "Sel  Key1        Field1      Field2      Field3    Field4"
 literal 17 2 CH EXPAND "-"
 
 tbmodel 18 11
-tbfield 2   4  NEF CAPS(ON),PAD('_'),JUST(LEFT) SEL
+tbfield 2   4  NEF CAPS(ON),PAD(USER),JUST(LEFT) SEL
 tbfield ++1 10 VOI  NONE              KEY1
 tbfield ++2 10 VOI  NONE              FLD1
 tbfield ++2 10 VOI  NONE              FLD2

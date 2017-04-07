@@ -118,8 +118,7 @@ void PDLGTST::displaySystemVars()
 	while ( true )
 	{
 		display( "PDLGTST3", MSG, "ZCMD" );
-		if ( RC  > 8 ) { abend() ; return ; }
-		if ( RC == 8 ) { return  ; }
+		if ( RC == 8 ) { return ; }
 
 		MSG  = "" ;
 		if ( ZCMD != "" ) { MSG = "DLGT011" ; continue ; }
@@ -139,8 +138,6 @@ void PDLGTST::checkAlgo()
 	while ( true )
 	{
 		display( "PDLGTST4", MSG, "STR1" );
-
-		if ( RC  > 8 ) { abend() ; return ; }
 		if ( RC == 8 )
 		{
 			vput( "STR1 STR2", PROFILE ) ;
