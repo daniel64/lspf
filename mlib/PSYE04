@@ -35,3 +35,21 @@ PSYE041J 'Invalid .CSRPOS value.  Must be numeric'
 PSYE041K 'EXPAND must be followed by a literal'
 ''
 
+PSYE041L '&ZVAL1 file ''&ZVAL2'' is not a regular file'
+''
+
+PSYE041M 'Error opening &ZVAL1 file ''&ZVAL2'''
+''
+
+PSYE041N 'Error reading &ZVAL1 file ''&ZVAL2'''
+''
+
+PSYE041O 'Recursion error'
+'INCLUDE file ''&ZVAL1'' contains a previously included file ''&ZVAL2'''
+
+PSYE041P 'INCLUDE file ''&ZVAL1'' not found'
+''
+
+PSYE041Q 'Invalid ROWS parameter ''&ZVAL1'''
+'TBMODEL ROWS parameter must be ALL or SCAN'
+

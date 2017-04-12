@@ -49,6 +49,8 @@ pPanel::pPanel()
 	tb_model    = false  ;
 	tb_depth    = 0      ;
 	tb_fields   = ""     ;
+	tb_clear    = ""     ;
+	tb_scan     = false  ;
 	tb_lcol     = 0      ;
 	tb_lsz      = 0      ;
 	win_addpop  = false  ;
@@ -186,6 +188,8 @@ string pPanel::getDialogueVar( errblock& err, const string& var )
 	dataType var_type ;
 
 	var_type = p_funcPOOL->getType( err, var, NOCHECK ) ;
+	if ( err.error() ) { return "" ; }
+
 	if ( err.RC0() )
 	{
 		switch ( var_type )
@@ -207,9 +211,6 @@ string pPanel::getDialogueVar( errblock& err, const string& var )
 				 return p_poolMGR->get( err, var ) ;
 			case 8:
 				 p_funcPOOL->put( err, var, "" ) ;
-				 break ;
-			default:
-				 llog( "E", "RC=20 from pool manager vlocate for variable '"+ var +"'" << endl ) ;
 		}
 	}
 	return "" ;
@@ -768,6 +769,7 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 	string fieldNam ;
 	string fieldVal ;
 	string g_label  ;
+	string zzstr    ;
 
 	bool if_skip    ;
 
@@ -1299,7 +1301,22 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 			{
 				if ( !findword( fieldVal, verList.at( i_verify ).ver_value ) )
 				{
-					p_poolMGR->put( err, "ZZSTR1", verList.at( i_verify ).ver_value, SHARED ) ;
+					ws = words( verList.at( i_verify ).ver_value ) ;
+					if ( ws == 1 )
+					{
+						zzstr = "value is" + verList.at( i_verify ).ver_value ;
+					}
+					else
+					{
+						zzstr = "values are " ;
+						for ( int i = 1 ; i < ws-1 ; i++ )
+						{
+							zzstr += word( verList.at( i_verify ).ver_value, i ) + ", " ;
+						}
+						zzstr += word( verList.at( i_verify ).ver_value, ws-1 ) ;
+						zzstr += " and " + word( verList.at( i_verify ).ver_value, ws ) ;
+					}
+					p_poolMGR->put( err, "ZZSTR1", zzstr, SHARED ) ;
 					if ( err.error() ) { return ; }
 					MSGID  = verList.at( i_verify ).ver_msgid  ;
 					if (MSGID == "" ) { MSGID = "PSYS011B" ; }
@@ -1453,6 +1470,7 @@ void pPanel::refresh_fields()
 void pPanel::create_tbfield( errblock& err, const string& pline )
 {
 	// Default is JUST(ASIS) for fields of a TB model, so change from the default of JUST(LEFT)
+	// Create implicit function pool variables for the TB field.
 
 	int tlen ;
 	int tcol ;
@@ -1463,6 +1481,7 @@ void pPanel::create_tbfield( errblock& err, const string& pline )
 	string w4   ;
 	string opts ;
 	string name ;
+	string nidx ;
 
 	cuaType fType ;
 
@@ -1545,7 +1564,10 @@ void pPanel::create_tbfield( errblock& err, const string& pline )
 		fld  = new field ;
 		*fld = a ;
 		fld->field_row = tb_row + i ;
-		fieldList[ name +"."+ d2ds( i ) ] = fld ;
+		nidx = name +"."+ d2ds( i ) ;
+		fieldList[ nidx ] = fld ;
+		p_funcPOOL->put( err, nidx, "", NOCHECK ) ;
+		if ( err.error() ) { return ; }
 	}
 	tb_fields += " " + name ;
 
@@ -1675,6 +1697,7 @@ void pPanel::update_field_values( errblock& err )
 		if ( !itf->second->field_dynArea )
 		{
 			itf->second->field_value = getDialogueVar( err, itf->first ) ;
+			if ( err.error() ) { return ; }
 		}
 		itf->second->field_changed = false ;
 	}

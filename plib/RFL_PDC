@@ -1,5 +1,7 @@
 )COMMENT
-)ENDCOMMENT 
+ RefList and RefMode pulldown choices
+)ENDCOMMENT
+
 pdc  RefList  "Open Referral Lists"   ACTION RUN(REFOPENF)
 pdc  RefList  "Open Active List"      ACTION RUN(REFACTF)
 pdc  RefList  "Open Reference List"   ACTION RUN(REFLISTF)

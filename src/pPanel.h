@@ -69,6 +69,9 @@ class pPanel
 		string cmd_getvalue()                  { return field_getvalue( CMDfield ) ; }
 		void   cmd_setvalue( const string& v ) { field_setvalue( CMDfield, v )     ; }
 
+		bool    get_tbscan()                    { return tb_scan  ; }
+		string& get_tb_clear()                  { return tb_clear ; }
+
 		bool   is_cmd_inactive( const string& value ) ;
 
 		bool   on_border_line( uint, uint )  ;
@@ -91,7 +94,9 @@ class pPanel
 		bool   REXX        ;
 		string ZPHELP      ;
 		string tb_fields   ;
+		string tb_clear    ;
 		int    tb_depth    ;
+		bool   tb_scan     ;
 		int    abc_pos     ;
 		bool   primaryMenu ;
 		bool   selectPanel ;
@@ -143,7 +148,8 @@ class pPanel
 		poolMGR * p_poolMGR  ;
 		fPOOL   * p_funcPOOL ;
 
-		void   loadPanel( errblock& errBlock, const string& p_name, const string& paths ) ;
+		void   loadPanel( errblock&, const string&, const string& ) ;
+		void   readPanel( errblock&, vector<string>&, const string&, const string&, string ) ;
 
 		void   display_panel_update( errblock& ) ;
 		void   display_panel_init( errblock& )   ;
@@ -169,9 +175,9 @@ class pPanel
 		void   clear_tb_linesChanged( errblock& ) ;
 		void   remove_tb_lineChanged() ;
 
-		string get_field_help( const string& fld ) ;
-		bool   get_nretriev()  { return nretriev  ; }
-		string get_nretfield() { return nretfield ; }
+		string  get_field_help( const string& fld ) ;
+		bool    get_nretriev()  { return nretriev  ; }
+		string& get_nretfield() { return nretfield ; }
 
 		void   set_panel_msg( slmsg, const string& ) ;
 		void   clear_msg() ;

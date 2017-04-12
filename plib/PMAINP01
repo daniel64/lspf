@@ -14,7 +14,9 @@ LITERAL row column cuaFieldType display_literal
 FIELD   row column length cuaFieldType name
 DYNAREA row column width depth name shadow_name DATAIN(xx) DATAOUT(xx) USERMOD(xx) DATAMOD(xx)
 
-TBMODEL row depth
+TBMODEL row depth CLEAR(var1,var2,) ROWS(ALL|SCAN)
+        Position of the scrollable area.  Clear variables before fetching rows (eg. for extension variables)
+        ROWS(ALL|SCAN) checked but not yet implemented
 TBFIELD column length cuaFieldType name
         (column of '+n'  is n relative to the start of the previous field)
         (column of '++n' is n relative to the end of the previous field)

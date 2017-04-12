@@ -747,9 +747,11 @@ string d2xs( int i )
 
 int ds2d( const string& s )
 {
+	int i ;
+
 	if ( s == "" ) { return 0 ; }
+
 	istringstream stream ( s ) ;
-	int  i      ;
 
 	stream >> i ;
 	return i    ;

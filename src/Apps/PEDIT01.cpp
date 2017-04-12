@@ -4261,26 +4261,27 @@ void PEDIT01::actionZVERB()
 		rebuildZAREA = true ;
 		if ( ZSCROLLA == "MAX" )
 		{
-			topLine = (data.size() > ZAREAD) ? data.size()-1 : 0 ;
+			topLine = data.size() - 1 ;
 			for ( ; topLine > 0 ; topLine-- )
 			{
 				if ( data.at( topLine )->il_deleted ) { continue ; }
 				if ( data.at( topLine )->il_excl )
 				{
 					topLine = getFirstEX( topLine ) ;
-					if ( hideExcl ) { topLine = getPrevDataLine( topLine ) ; }
+					if ( hideExcl )     { topLine = getPrevDataLine( topLine ) ; }
 					if ( topLine == 0 ) { break ; }
 				}
 				if ( data.at( topLine )->isValidFile() &&
 					  (data.at( topLine )->il_hex || profHex ) )
 				{
 					t = t + 4 ;
+					if ( t > ZAREAD-4 ) { break ; }
 				}
 				else
 				{
 					t++ ;
+					if ( t > ZAREAD-1 ) { break ; }
 				}
-				if ( t > ZAREAD-2 ) { break ; }
 			}
 		}
 		else

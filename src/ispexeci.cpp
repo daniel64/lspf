@@ -665,7 +665,8 @@ void execiTBDispl( pApplication * thisAppl, const string& s, errblock& err )
 	string tb_posn    ;
 	string tb_rowid   ;
 
-	str = upper( subword( s, 2 ) ) ;
+	tb_name = upper( word( s, 2 ) ) ;
+	str = upper( subword( s, 3 ) ) ;
 
 	tb_pan = parseString( err, str, "PANEL()" ) ;
 	if ( err.error() ) { return ; }
@@ -1072,7 +1073,7 @@ void execiTBSkip( pApplication * thisAppl, const string& s, errblock& err )
 	tb_num = parseString( err, str, "NUMBER()" ) ;
 	if ( err.error() ) { return ; }
 
-	if ( tb_num == "" ) { i_num = 1                 ; }
+	if ( tb_num == "" ) { i_num = 1              ; }
 	else                { i_num = ds2d( tb_num ) ; }
 
 	tb_savenm = parseString( err, str, "SAVENAME()" ) ;

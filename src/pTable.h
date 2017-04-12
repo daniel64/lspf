@@ -47,6 +47,7 @@ class Table
 		int     num_flds      ;
 		int     num_all       ;
 		int     CRP           ;
+		int     CRPX          ;
 		string  sort_ir       ;
 		string  sa_namelst    ;
 		string  sa_cond_pairs ;
@@ -67,14 +68,27 @@ class Table
 
 		void   fillfVARs( errblock& err,
 				  fPOOL& funcPOOL,
-				  int depth,
-				  int posn ) ;
-
-		int    getCRP() { return CRP ; }
+				  const string& clear_flds,
+				  bool scan,
+				  int  depth,
+				  int  posn ) ;
 
 		void   cmdsearch( errblock& err,
 				  fPOOL& funcPOOL,
 				  const string& cmd ) ;
+
+
+		vector<vector<string>>::iterator getKeyItr( errblock& err,
+							    fPOOL& funcPOOL ) ;
+
+		void   loadfuncPOOL( errblock& err,
+				     fPOOL& funcPOOL,
+				     const string& savename ) ;
+
+		void   loadFields( errblock& err,
+				   fPOOL& funcPOOL,
+				   const string& tb_namelst,
+				   vector<string>& flds ) ;
 
 		void   tbadd( errblock& err,
 			      fPOOL& funcPOOL,
@@ -156,8 +170,8 @@ class Table
 		void   tbvclear( errblock& err,
 				 fPOOL& funcPOOL ) ;
 
-		vector<vector<string>> table ;
-		map<string, tbsearch> sarg   ;
+		vector<vector<string>> table  ;
+		map<string, tbsearch> sarg    ;
 
 		void incRefCount() { refCount++           ; }
 		void decRefCount() { refCount--           ; }
@@ -217,11 +231,10 @@ class tableMGR
 		void   fillfVARs( errblock& err,
 				  fPOOL& funcPOOL,
 				  const string& tb_name,
-				  int depth,
-				  int posn ) ;
-
-		int    getCRP( errblock& err,
-			       const string& tb_name ) ;
+				  const string& clear_flds,
+				  bool scan,
+				  int  depth,
+				  int  posn =-1 ) ;
 
 		void   destroyTable( errblock& err,
 				     int task,

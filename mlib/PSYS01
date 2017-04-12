@@ -33,7 +33,7 @@ PSYS011A 'Field must be numeric' .TYPE=W .W=NORESP
 'Enter only numeric data in field at the cursor position'
 
 PSYS011B 'Enter one of the listed values' .TYPE=W .W=NORESP
-'Valid values are &ZZSTR1'
+'Valid &ZZSTR1'
 
 PSYS011C 'Invalid primary command' .TYPE=W
 'There are no valid primary commands for this panel'

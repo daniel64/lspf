@@ -169,24 +169,21 @@ void pApplication::createPanel( const string& p_name )
 	errBlock.setRC( 0 ) ;
 
 	if ( panelList.count( p_name ) > 0 ) { return ; }
+
 	if ( !isvalidName( p_name ) )
 	{
 		errBlock.seterrid( "PSYE021A", p_name ) ;
 		return ;
 	}
 
-	pPanel * p_panel      = new pPanel ;
-	p_panel->p_poolMGR    = p_poolMGR  ;
-	p_panel->p_funcPOOL   = &funcPOOL  ;
-	p_panel->LRScroll     = ControlPassLRScroll ;
-	p_panel->REXX           = ( rexxName != "" )  ;
+	pPanel * p_panel    = new pPanel ;
+	p_panel->p_poolMGR  = p_poolMGR  ;
+	p_panel->p_funcPOOL = &funcPOOL  ;
+	p_panel->LRScroll   = ControlPassLRScroll ;
+	p_panel->REXX       = ( rexxName != "" )  ;
 	p_panel->selPanel( selPanel ) ;
 	p_panel->init( errBlock ) ;
-
-	if ( errBlock.error() )
-	{
-		return ;
-	}
+	if ( errBlock.error() ) { return ; }
 
 	paths = get_search_path( s_ZPLIB ) ;
 
@@ -200,10 +197,6 @@ void pApplication::createPanel( const string& p_name )
 	}
 	else
 	{
-		if ( errBlock.RC12() )
-		{
-			errBlock.seterrid( "PSYE021B", p_name, 12 ) ;
-		}
 		delete p_panel ;
 	}
 }
@@ -1992,9 +1985,10 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 	int ws      ;
 	int i       ;
 	int ln      ;
-	int posn    ;
 	int csrvrow ;
 	int scrNum  ;
+
+	bool scan   ;
 
 	string ZZVERB ;
 	string URID   ;
@@ -2070,9 +2064,8 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 				return ;
 			}
 		}
-		posn = p_tableMGR->getCRP( errBlock, tb_name ) ;
-		if ( posn == 0 ) { posn = 1 ; }
-		p_tableMGR->fillfVARs( errBlock, funcPOOL, tb_name, currtbPanel->tb_depth, posn ) ;
+		scan = currtbPanel->get_tbscan() ;
+		p_tableMGR->fillfVARs( errBlock, funcPOOL, tb_name, currtbPanel->get_tb_clear(), scan, currtbPanel->tb_depth ) ;
 		if ( errBlock.error() )
 		{
 			errBlock.setcall( e1 ) ;
@@ -2289,7 +2282,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 				}
 				ZCMD = "" ;
 			}
-			p_tableMGR->fillfVARs( errBlock, funcPOOL, tb_name, currtbPanel->tb_depth, ZTDTOP ) ;
+			p_tableMGR->fillfVARs( errBlock, funcPOOL, tb_name, currtbPanel->get_tb_clear(), scan, currtbPanel->tb_depth, ZTDTOP ) ;
 			if ( errBlock.error() )
 			{
 				errBlock.setcall( e6 + p_name ) ;

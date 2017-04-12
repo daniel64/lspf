@@ -20,9 +20,3 @@ pdc  Utilities  File/Directory        ACTION RUN(ISRROUTE) PARM("SELECT PGM(&ZFL
 pdc  Utilities  "Saved File List"     ACTION RUN(ISRROUTE) PARM("SELECT PGM(PPSP01A) PARM(SAVELST) NEWAPPL(ISP)")
 pdc  Utilities  Shell                 ACTION RUN(SHELL)
 pdc  Utilities  "Split screen"        ACTION RUN(ISRROUTE) PARM("SELECT PGM(ISPSTRT)")
-
-)COMMENT
-pdc  Utilities  "Split screen"        ACTION RUN(START)
-pdc  Utilities  "Test start 3"        ACTION RUN(START) PARM("PGM(PCMD0A)")
-)ENDCOMMENT
-
