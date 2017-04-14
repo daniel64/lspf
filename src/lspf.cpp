@@ -2414,6 +2414,7 @@ string listLogicalScreens()
 
 	currScrn->show_wait() ;
 
+	m = 0 ;
 	for ( i = 0, its = screenList.begin() ; its != screenList.end() ; its++, i++ )
 	{
 		appl = (*its)->application_get_current() ;

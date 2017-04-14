@@ -637,7 +637,24 @@ void PLRFLST1::AddReflistEntry( string ent )
 
 	control( "ERRORS", "RETURN" ) ;
 	OpenTableUP() ;
-	if ( RC > 0 ) { return ; }
+	if ( RC == 8 )
+	{
+		tbcreate( RFLTABLE, "ZCURTB", subword( TABFLDS, 2 ), WRITE, NOREPLACE, UPROF ) ;
+		tbvclear( RFLTABLE ) ;
+		ZCURTB = "REFLIST" ;
+		vput( "ZCURTB", PROFILE ) ;
+		vcopy( "ZDATEL", ldate, MOVE )   ;
+		vcopy( "ZTIMEL", ltime, MOVE )   ;
+		FLADESCP = "Default Reference List" ;
+		FLACTIME = ldate ;
+		FLAUTIME = ldate + " " + ltime ;
+		tbadd( RFLTABLE ) ;
+		tbsort( RFLTABLE, "ZCURTB,C,A" ) ;
+		CloseTable()  ;
+		OpenTableUP() ;
+		if ( RC > 0 ) { abend() ; }
+	}
+	else if ( RC > 0 ) { abend() ; }
 
 	ZCURTB = "REFLIST"  ;
 	tbget( RFLTABLE ) ;

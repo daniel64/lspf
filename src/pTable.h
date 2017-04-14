@@ -33,6 +33,7 @@ class Table
 			sa_dir         = ""    ;
 			sort_ir        = ""    ;
 		}
+		~Table() ;
 	private:
 		int     ownerTask     ;
 		bool    tab_cmds      ;
@@ -60,7 +61,7 @@ class Table
 				  const string& m_path ) ;
 
 		void   loadRow( errblock& err,
-				vector<string>& m_flds ) ;
+				vector<string>* m_flds ) ;
 
 		void   reserveSpace( int tot_rows ) ;
 
@@ -78,8 +79,8 @@ class Table
 				  const string& cmd ) ;
 
 
-		vector<vector<string>>::iterator getKeyItr( errblock& err,
-							    fPOOL& funcPOOL ) ;
+		vector<vector<string>*>::iterator getKeyItr( errblock& err,
+							     fPOOL& funcPOOL ) ;
 
 		void   loadfuncPOOL( errblock& err,
 				     fPOOL& funcPOOL,
@@ -88,7 +89,7 @@ class Table
 		void   loadFields( errblock& err,
 				   fPOOL& funcPOOL,
 				   const string& tb_namelst,
-				   vector<string>& flds ) ;
+				   vector<string>* flds ) ;
 
 		void   tbadd( errblock& err,
 			      fPOOL& funcPOOL,
@@ -170,8 +171,8 @@ class Table
 		void   tbvclear( errblock& err,
 				 fPOOL& funcPOOL ) ;
 
-		vector<vector<string>> table  ;
-		map<string, tbsearch> sarg    ;
+		vector<vector<string>*> table  ;
+		map<string, tbsearch> sarg     ;
 
 		void incRefCount() { refCount++           ; }
 		void decRefCount() { refCount--           ; }
@@ -184,7 +185,7 @@ class Table
 class tableMGR
 {
 	public:
-		tableMGR() ;
+		~tableMGR() ;
 		void   createTable( errblock& err,
 				    int task,
 				    const string& tb_name,
@@ -332,6 +333,7 @@ class tableMGR
 		bool   writeableTable( errblock& err,
 				       const string& tb_name ) ;
 
-		map<string, Table> tables ;
+		map<string, Table*> tables ;
+
 		friend class pApplication ;
 } ;

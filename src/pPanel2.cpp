@@ -535,6 +535,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		if ( help )
 		{
 			i = pos( " FIELD(", " "+ pline ) ;
+			j = 0 ;
 			if ( i > 0 ) { j = pos( ")", pline, i ) ; }
 			if ( i == 0 || j == 0 )
 			{
@@ -616,6 +617,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		{
 			fieldExc t_fe ;
 			i = pos( "FIELD(", pline ) ;
+			j = 0 ;
 			if ( i > 0 )
 			{
 				j = pos( ")", pline, i ) ;

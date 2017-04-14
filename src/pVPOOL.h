@@ -19,6 +19,11 @@
 
 class fVAR
 {
+	fVAR()
+	{
+		fVAR_string_ptr = &fVAR_string ;
+		fVAR_int_ptr    = &fVAR_int    ;
+	}
 	private:
 		string * fVAR_string_ptr ;
 		int    * fVAR_int_ptr    ;
@@ -34,6 +39,10 @@ class fVAR
 class fPOOL
 {
 	public:
+	fPOOL() {
+			nullstr = "" ;
+		}
+	~fPOOL() ;
 		void     define( errblock& err,
 				 const string& name ,
 				 string * addr,
@@ -43,6 +52,7 @@ class fPOOL
 				 const string& name,
 				 int * addr ) ;
 	private:
+		string nullstr ;
 		bool     ifexists( errblock& err,
 				   const string& name,
 				   nameCHCK check=CHECK ) ;
@@ -64,7 +74,7 @@ class fPOOL
 			      const string& name,
 			      int value ) ;
 
-		string   get( errblock& err,
+		string&  get( errblock& err,
 			      int maxRC,
 			      const string& name,
 			      nameCHCK check=CHECK ) ;
@@ -90,9 +100,10 @@ class fPOOL
 		string   vslist( int&RC,
 				 vdType defn ) ;
 
-		map<string, stack< fVAR>> POOL ;
-	friend class pApplication  ;
-	friend class Table ;
+		map<string, stack<fVAR*>> POOL ;
+
+	friend class pApplication ;
+	friend class Table  ;
 	friend class pPanel ;
 } ;
 
@@ -136,9 +147,10 @@ class pVPOOL
 			sysProf  = false ;
 			path     = ""    ;
 		}
+		~pVPOOL() ;
 
 	private:
-		map<string, pVAR> POOL ;
+		map<string, pVAR*> POOL ;
 
 		int    refCount ;
 		bool   readOnly ;
@@ -186,7 +198,9 @@ class pVPOOL
 class poolMGR
 {
 	public:
-		poolMGR() ;
+		poolMGR()  ;
+		~poolMGR() ;
+
 		void   createPool( errblock& err,
 				   poolType pType,
 				   string path="" ) ;
@@ -245,7 +259,7 @@ class poolMGR
 				  poolType=ASIS ) ;
 
 		void   locateSubPool( errblock& err,
-				      map<string, pVPOOL>::iterator& vpool,
+				      map<string, pVPOOL*>::iterator& vpool,
 				      const string& name,
 				      poolType=ASIS ) ;
 
@@ -256,9 +270,10 @@ class poolMGR
 		string currAPPLID ;
 		string shrdPool   ;
 		int    shrdPooln  ;
-		map<string, pVPOOL> POOLs_shared  ;
-		map<string, pVPOOL> POOLs_profile ;
-		map<int,    pVPOOL> POOLs_lscreen ;
+
+		map<string, pVPOOL*> POOLs_shared  ;
+		map<string, pVPOOL*> POOLs_profile ;
+		map<int,    pVPOOL*> POOLs_lscreen ;
 
 	friend class pApplication ;
 	friend class pPanel       ;

@@ -2087,6 +2087,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 			currPanel = currtbPanel ;
 			p_poolMGR->put( errBlock, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 		}
+		scan = currtbPanel->get_tbscan() ;
 	}
 
 	if ( setMSG )

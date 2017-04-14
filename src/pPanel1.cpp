@@ -441,6 +441,7 @@ void pPanel::display_panel_update( errblock& err )
 	err.setRC( 0 ) ;
 
 	fieldNum = 0  ;
+	curpos   = 1  ;
 	MSGID    = "" ;
 	MSGLOC   = "" ;
 

@@ -808,6 +808,8 @@ string xs2cs( const string& s )
 	string reslt("") ;
 	reslt.reserve( s.size()/2 ) ;
 
+	j = 0 ;
+	k = 0 ;
 	for ( i = 0 ; i < s.size() ; i++ )
 	{
 		switch ( s[ i ] )
