@@ -510,6 +510,11 @@ class errblock
 		if ( dline == NULL ) { return  sline ; }
 		else                 { return *dline ; }
 	}
+	void clearsrc()
+	{
+		dline = NULL ;
+		sline = ""   ;
+	}
 	void setval( const string& s1 )
 	{
 		val1 = s1 ;

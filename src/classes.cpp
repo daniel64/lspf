@@ -62,11 +62,7 @@ void IFSTMNT::parse( errblock& err, string s )
 			}
 			s.pop_back() ;
 			if_verify.parse( err, s ) ;
-			if ( err.error() )
-			{
-				err.seterrid( "PSYE033B" ) ;
-				return ;
-			}
+			if ( err.error() ) { return ; }
 			if ( if_verify.ver_msgid != "" )
 			{
 				err.seterrid( "PSYE033A" ) ;
@@ -124,7 +120,7 @@ void IFSTMNT::parse( errblock& err, string s )
 	else if ( if_lhs == ".RESP"   ) {}
 	else if ( if_lhs.front() != '&' )
 	{
-		err.seterrid( "PSYE033I" ) ;
+		err.seterrid( "PSYE033I", if_lhs ) ;
 		return ;
 	}
 	else
@@ -361,7 +357,7 @@ void ASSGN::parse( errblock& err, string s )
 			err.seterrid( "PSYE031D", s ) ;
 			return ;
 		}
-		as_rhs   = s   ;
+		as_rhs   = s    ;
 		as_isvar = true ;
 	}
 	else if ( s.front() == '\'' )
@@ -607,7 +603,7 @@ void VPUTGET::parse( errblock& err, string s )
 		return ;
 	}
 
-	( w1 == "VPUT" ) ? vpg_vput = true : vpg_vget = true ;
+	( w1 == "VPUT" ) ? vpg_vput = true : vpg_vput = false ;
 
 	if ( s.front() == '(' )
 	{
@@ -665,12 +661,13 @@ void VERIFY::parse( errblock& err, string s )
 	// VER(&VAR OCT)
 
 
-	int i     ;
-	int p1    ;
-	int p2    ;
-	int ws    ;
-	string t  ;
-	string w  ;
+	int i  ;
+	int p1 ;
+	int p2 ;
+	int ws ;
+
+	string t ;
+	string w ;
 
 	p1 = s.find( '(' ) ;
 	if ( p1 == string::npos )
@@ -703,7 +700,7 @@ void VERIFY::parse( errblock& err, string s )
 	}
 	if ( w.front() != '&' )
 	{
-		err.seterrid( "PSYE033I" ) ;
+		err.seterrid( "PSYE033I", w ) ;
 		return ;
 	}
 
@@ -795,17 +792,14 @@ void TRUNC::parse( errblock& err, string s )
 	// &AAA = TRUNC( &BBB,'.' )
 	// &AAA = TRUNC ( &BBB, 3  )
 
-	int    p ;
+	bool quoted ;
+
 	string t ;
 
-	iupper( s )    ;
-	p = s.find( '=' ) ;
-	if ( p == string::npos )
-	{
-		err.seterrid( "PSYE033O" ) ;
-		return ;
-	}
-	trnc_field1 = strip( s.substr( 0, p ) ) ;
+	iupper( s ) ;
+
+	extractWord( err, s, trnc_field1 ) ;
+	if ( err.error() ) { return ; }
 	if ( trnc_field1 == "" )
 	{
 		err.seterrid( "PSYE038A" ) ;
@@ -813,33 +807,49 @@ void TRUNC::parse( errblock& err, string s )
 	}
 	if ( trnc_field1.front() != '&' )
 	{
-		err.seterrid( "PSYE033I" ) ;
+		err.seterrid( "PSYE033I", trnc_field1 ) ;
 		return ;
 	}
 	trnc_field1.erase( 0, 1 ) ;
+	if ( !isvalidName( trnc_field1 ) )
+	{
+		err.seterrid( "PSYE031D", trnc_field1 ) ;
+		return ;
+	}
 
-	trim( s.erase( 0, p+1 ) ) ;
-	if ( s.compare( 0, 5, "TRUNC" ) != 0 )
+	extractWord( err, s, t ) ;
+	if ( err.error() ) { return ; }
+	if ( t != "=" )
+	{
+		err.seterrid( "PSYE033O" ) ;
+		return ;
+	}
+
+	extractWord( err, s, t ) ;
+	if ( err.error() ) { return ; }
+	if ( t != "TRUNC" )
 	{
 		err.seterrid( "PSYE038B" ) ;
 		return ;
 	}
-	trim( s.erase( 0, 5 ) ) ;
-	p = s.find( '(' ) ;
-	if ( p != 0 )
+
+	trim( s ) ;
+	if ( s.front() != '(' )
 	{
 		err.seterrid( "PSYE033D" ) ;
 		return ;
 	}
 	s.erase( 0, 1 ) ;
-	p = s.find( ',' ) ;
-	if ( p == string::npos )
+
+	if ( s.back() != ')' )
 	{
-		err.seterrid( "PSYE038C" ) ;
+		err.seterrid( "PSYE032D" ) ;
 		return ;
 	}
-	trnc_field2 = strip( s.substr( 0, p ) ) ;
+	s.pop_back() ;
 
+	extractWord( err, s, trnc_field2 ) ;
+	if ( err.error() ) { return ; }
 	if ( trnc_field2 == "" )
 	{
 		err.seterrid( "PSYE038D" ) ;
@@ -847,52 +857,43 @@ void TRUNC::parse( errblock& err, string s )
 	}
 	if ( trnc_field2.front() != '&' )
 	{
-		err.seterrid( "PSYE033I" ) ;
+		err.seterrid( "PSYE033I", trnc_field2 ) ;
 		return ;
 	}
 	trnc_field2.erase( 0, 1 ) ;
-	trim( s.erase( 0, p+1 ) ) ;
-	if ( s == "" )
+	if ( !isvalidName( trnc_field2 ) )
+	{
+		err.seterrid( "PSYE031D", trnc_field2 ) ;
+		return ;
+	}
+
+	extractWord( err, s, t ) ;
+	if ( err.error() ) { return ; }
+	if ( t != "," )
+	{
+		err.seterrid( "PSYE038C" ) ;
+		return ;
+	}
+
+	extractWord( err, s, t, quoted ) ;
+	if ( err.error() ) { return ; }
+	if ( t == "" )
 	{
 		err.seterrid( "PSYE038E" ) ;
 		return ;
 	}
 
-	if ( s.front() == '\'' )
+	if ( quoted )
 	{
-		if ( s.size() < 4 )
+		if ( t.size() != 1 )
 		{
-			err.seterrid( "PSYE038F", s ) ;
+			err.seterrid( "PSYE038F", t ) ;
 			return ;
 		}
-		trnc_char = s[ 1 ] ;
-		if ( s[ 2 ] != '\'' )
-		{
-			err.seterrid( "PSYE033F" ) ;
-			return ;
-		}
-		trim( s.erase( 0, 3 ) ) ;
-		if ( s != ")" )
-		{
-			err.seterrid( "PSYE032D" ) ;
-			return ;
-		}
+		trnc_char = t.front() ;
 	}
 	else
 	{
-		if ( s.size() < 2 )
-		{
-			err.seterrid( "PSYE038F", s ) ;
-			return ;
-		}
-		p = s.find( ')' ) ;
-		if ( p == string::npos )
-		{
-			err.seterrid( "PSYE032D" ) ;
-			return ;
-		}
-		t = strip( s.substr( 0, p ) ) ;
-		trim( s.erase( 0, p ) )  ;
 		if ( !datatype( t, 'W' ) )
 		{
 			err.seterrid( "PSYE019E" ) ;
@@ -904,20 +905,11 @@ void TRUNC::parse( errblock& err, string s )
 			err.seterrid( "PSYE019F" ) ;
 			return ;
 		}
-		if ( s != ")" )
-		{
-			err.seterrid( "PSYE032D" ) ;
-			return ;
-		}
 	}
-	if ( !isvalidName( trnc_field1 ) )
+
+	if ( trim( s ) != "" )
 	{
-		err.seterrid( "PSYE031D", trnc_field1 ) ;
-		return ;
-	}
-	if ( !isvalidName( trnc_field2 ) )
-	{
-		err.seterrid( "PSYE031D", trnc_field2 ) ;
+		err.seterrid( "PSYE032H", s ) ;
 		return ;
 	}
 	return ;
@@ -932,24 +924,19 @@ void TRANS::parse( errblock& err, string s )
 	// &AAA = TRANS ( &BBB  val1,val2 ...  *,'?' )
 	// &AAA = TRANS ( &BBB  val1,val2 ...  ) non-matching results in &AAA being set to null
 	// &AAA = TRANS ( &AAA  val1,val2 ...  MSG=msgid ) issue message if no match
+	// &AAA = TRANS ( &AAA  &v1,&v2 ...  MSG = msgid ) issue message if no match
 
-	int    p  ;
-	int    p1 ;
-	int    p2 ;
-	int    i  ;
-	int    j  ;
+	bool quoted ;
+
 	string v1 ;
 	string v2 ;
+	string v3 ;
+	string t  ;
 
-	iupper( s )    ;
-	p = s.find( '=' ) ;
-	if ( p == string::npos )
-	{
-		err.seterrid( "PSYE033O" ) ;
-		return ;
-	}
+	upper( s ) ;
 
-	trns_field1 = strip( s.substr( 0, p ) ) ;
+	extractWord( err, s, trns_field1 ) ;
+	if ( err.error() ) { return ; }
 	if ( trns_field1 == "" )
 	{
 		err.seterrid( "PSYE039A" ) ;
@@ -958,7 +945,7 @@ void TRANS::parse( errblock& err, string s )
 
 	if ( trns_field1.front() != '&' )
 	{
-		err.seterrid( "PSYE033I" ) ;
+		err.seterrid( "PSYE033I", trns_field1 ) ;
 		return ;
 	}
 
@@ -969,7 +956,15 @@ void TRANS::parse( errblock& err, string s )
 		return ;
 	}
 
-	trim( s.erase( 0, p+1 ) ) ;
+	extractWord( err, s, v1 ) ;
+	if ( err.error() ) { return ; }
+	if ( v1 != "=" )
+	{
+		err.seterrid( "PSYE033O" ) ;
+		return ;
+	}
+
+	trim( s ) ;
 	if ( s.compare( 0, 5, "TRANS" ) != 0 )
 	{
 		err.seterrid( "PSYE039B" ) ;
@@ -982,16 +977,17 @@ void TRANS::parse( errblock& err, string s )
 		err.seterrid( "PSYE033D" ) ;
 		return ;
 	}
+	s.erase( 0, 1 ) ;
 
-	trim( s.erase( 0, 1 ) ) ;
-	p = s.find( ' ' ) ;
-	if ( p == string::npos )
+	if ( s.back() != ')' )
 	{
-		err.seterrid( "PSYE033C" ) ;
+		err.seterrid( "PSYE032D" ) ;
 		return ;
 	}
+	s.pop_back() ;
 
-	trns_field2 = strip( s.substr( 0, p ) ) ;
+	extractWord( err, s, trns_field2 ) ;
+	if ( err.error() ) { return ; }
 	if ( trns_field2 == "" )
 	{
 		err.seterrid( "PSYE039D" ) ;
@@ -1000,7 +996,7 @@ void TRANS::parse( errblock& err, string s )
 
 	if ( trns_field2.front() != '&' )
 	{
-		err.seterrid( "PSYE033I" ) ;
+		err.seterrid( "PSYE033I", trns_field2 ) ;
 		return ;
 	}
 
@@ -1011,77 +1007,86 @@ void TRANS::parse( errblock& err, string s )
 		return ;
 	}
 
-	trim( s.erase( 0, p+1 ) ) ;
-	if ( s == "" )
-	{
-		err.seterrid( "PSYE039E" ) ;
-		return ;
-	}
 
-	if ( s.back() != ')' )
+	while ( true )
 	{
-		err.seterrid( "PSYE032D" ) ;
-		return ;
-	}
-	s.pop_back() ;
-
-	j = countc( s, ',' ) ;
-	if ( j == 0 )
-	{
-		err.seterrid( "PSYE039F" ) ;
-		return ;
-	}
-
-	for ( i = 1 ; i <= j ; i++ )
-	{
-		p1 = s.find( ',' ) ;
-		v1 = strip( s.substr( 0, p1 ) ) ;
-		trim( s.erase( 0, p1+1 ) ) ;
-		p2 = s.find( ' ' ) ;
-		if ( p2 == string::npos )
+		extractWord( err, s, v1, quoted ) ;
+		if ( err.error() ) { return ; }
+		if ( v1 == "" ) { break ; }
+		if ( !quoted )
 		{
-			v2 = s  ;
-			s  = "" ;
+			if ( v1 == "MSG" )
+			{
+				extractWord( err, s, v1 ) ;
+				if ( err.error() ) { return ; }
+				if ( v1 != "=" )
+				{
+					err.seterrid( "PSYE033O" ) ;
+					return ;
+				}
+				extractWord( err, s, trns_msg ) ;
+				if ( err.error() ) { return ; }
+				if ( !isvalidName( trns_msg ) )
+				{
+					err.seterrid( "PSYE031D", trns_msg ) ;
+					return ;
+				}
+				extractWord( err, s, v1 ) ;
+				if ( err.error() ) { return ; }
+				if ( v1 != "" )
+				{
+					err.seterrid( "PSYE039G" ) ;
+					return ;
+				}
+				break ;
+			}
+		}
+		if ( v1.front() == '&' )
+		{
+			t = v1.substr( 1 ) ;
+			if ( !isvalidName( t ) )
+			{
+				err.seterrid( "PSYE031D", t ) ;
+				return ;
+			}
+		}
+		extractWord( err, s, v2 ) ;
+		if ( err.error() ) { return ; }
+		if ( v2 != "," )
+		{
+			err.seterrid( "PSYE039F" ) ;
+			return ;
+		}
+		extractWord( err, s, v3, quoted ) ;
+		if ( err.error() ) { return ; }
+		if ( v3 == "" )
+		{
+			err.seterrid( "PSYE039H" ) ;
+			return ;
+		}
+		if ( v3.front() == '&' )
+		{
+			t = v3.substr( 1 ) ;
+			if ( !isvalidName( t ) )
+			{
+				err.seterrid( "PSYE031D", t ) ;
+				return ;
+			}
+		}
+		if ( v1 == "*" )
+		{
+			trns_default = v3 ;
 		}
 		else
 		{
-			v2 = strip( s.substr( 0, p2 ) ) ;
-			trim( s.erase( 0, p2+1 ) )      ;
-		}
-		if ( trns_list.count( v1 ) > 0 )
-		{
-			err.seterrid( "PSYE039G", v1 ) ;
-			return ;
-		}
-		if ( words( v1 ) != 1 )
-		{
-			err.seterrid( "PSYE039H", v1 ) ;
-			return ;
-		}
-		if ( words( v2 ) != 1 )
-		{
-			err.seterrid( "PSYE039H", v2 ) ;
-			return ;
-		}
-		trns_list[ v1 ] = v2 ;
-	}
-	trim( s ) ;
-	if ( s.compare( 0, 4, "MSG=" ) == 0 )
-	{
-		trns_msg = strip( substr( s, 5 ) ) ;
-		if ( !isvalidName( trns_msg ) )
-		{
-			err.seterrid( "PSYE031D", trns_msg ) ;
-			return ;
+			trns_list.push_back( make_pair( v1, v3 )  ) ;
 		}
 	}
-	else
+
+	if ( trns_list.size() == 0 )
 	{
-		if ( s != "" )
-		{
-			err.seterrid( "PSYE032H", s ) ;
-			return ;
-		}
+		err.seterrid( "PSYE039E" ) ;
+		return ;
 	}
 	return ;
 }
@@ -1094,77 +1099,46 @@ void pnts::parse( errblock& err, string s )
 	// FIELD(fld) VAR(var) VAL(value)
 	// fld and var must be defined in the panel
 
-	int p1 ;
-	int p2 ;
-
 	iupper( s ) ;
 
-	p1 = s.find( "FIELD(" ) ;
-	if ( p1 == string::npos )
+	pnts_field = parseString( err, s, "FIELD()" ) ;
+	if ( pnts_field == "" )
 	{
 		err.seterrid( "PSYE031C", "FIELD" ) ;
 		return ;
 	}
-
-	p2 = s.find( ")", p1 ) ;
-	if ( p2 == string::npos )
-	{
-		err.seterrid( "PSYE032D" ) ;
-		return ;
-	}
-
-	pnts_field = strip( s.substr( p1+6, p2-p1-6  ) ) ;
 	if ( !isvalidName( pnts_field ) )
 	{
 		err.seterrid( "PSYE031D", pnts_field ) ;
 		return ;
 	}
-	s.erase( p1, p2-p1+1) ;
 
-	p1 = s.find( "VAR(" ) ;
-	if ( p1 == string::npos )
+	pnts_var = parseString( err, s, "VAR()" ) ;
+	if ( pnts_var == "" )
 	{
 		err.seterrid( "PSYE031C", "VAR" ) ;
 		return ;
 	}
 
-	p2 = s.find( ")", p1 ) ;
-	if ( p2 == string::npos )
-	{
-		err.seterrid( "PSYE032D" ) ;
-		return ;
-	}
-
-	pnts_var = strip( s.substr( p1+4, p2-p1-4  ) ) ;
 	if ( !isvalidName( pnts_var ) )
 	{
 		err.seterrid( "PSYE031D", pnts_var ) ;
 		return ;
 	}
-	s.erase( p1, p2-p1+1) ;
 
-	p1 = s.find( "VAL(" ) ;
-	if ( p1 == string::npos )
+	pnts_val = parseString( err, s, "VAL()" ) ;
+	if ( pnts_val == "" )
 	{
 		err.seterrid( "PSYE031C", "VAL" ) ;
 		return ;
 	}
-
-	p2 = s.find( ")", p1 ) ;
-	if ( p2 == string::npos )
-	{
-		err.seterrid( "PSYE032D" ) ;
-		return ;
-	}
-
-	pnts_val = strip( s.substr( p1+4, p2-p1-4  ) ) ;
-	s.erase( p1, p2-p1+1) ;
 
 	if ( pnts_field == "" || pnts_var == "" || pnts_val == "" )
 	{
 		err.seterrid( "PSYE037A" ) ;
 		return ;
 	}
+
 	if ( trim( s ) != "" )
 	{
 		err.seterrid( "PSYE032H", s ) ;

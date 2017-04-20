@@ -151,17 +151,7 @@ void PLRFLST1::PersonalFList()
 	OpenTableRO() ;
 	if ( RC == 8 )
 	{
-		ZCURTB = "REFLIST" ;
-		LCURTB = "REFLIST" ;
-		vput( "ZCURTB", PROFILE ) ;
-		vcopy( "ZDATEL", ldate, MOVE )   ;
-		vcopy( "ZTIMEL", ltime, MOVE )   ;
-		FLADESCP = "Default Reference List" ;
-		FLACTIME = ldate ;
-		FLAUTIME = ldate + " " + ltime ;
-		tbcreate( RFLTABLE, "ZCURTB", subword( TABFLDS, 2 ), WRITE, NOREPLACE, UPROF ) ;
-		tbsort( RFLTABLE, "ZCURTB,C,A" ) ;
-		CloseTable()  ;
+		createDefaultTable() ;
 		OpenTableRO() ;
 		if ( RC > 0 ) { abend() ; }
 	}
@@ -332,8 +322,15 @@ void PLRFLST1::EditFileList( string curtb )
 	FLIST2 = "FLST2" + right( d2ds( taskid() ), 3, '0' ) ;
 	tbcreate( FLIST2, "", "BSEL BFILE", NOWRITE ) ;
 
-	ZCURTB = curtb    ;
-	OpenTableRO()     ;
+	ZCURTB = curtb ;
+	OpenTableRO()  ;
+	if ( RC == 8 )
+	{
+		createDefaultTable() ;
+		OpenTableRO() ;
+		if ( RC > 0 ) { abend() ; }
+	}
+	else if ( RC > 0 ) { abend() ; }
 	tbget( RFLTABLE ) ;
 
 	BSEL = "" ;
@@ -431,8 +428,15 @@ void PLRFLST1::OpenFileList( string curtb )
 	FLIST3 = "FLST3" + right( d2ds( taskid() ), 3, '0' ) ;
 	tbcreate( FLIST3, "", "CSEL CFILE", NOWRITE ) ;
 
-	ZCURTB = curtb    ;
-	OpenTableRO()     ;
+	ZCURTB = curtb ;
+	OpenTableRO()  ;
+	if ( RC == 8 )
+	{
+		createDefaultTable() ;
+		OpenTableRO() ;
+		if ( RC > 0 ) { abend() ; }
+	}
+	else if ( RC > 0 ) { abend() ; }
 	tbget( RFLTABLE ) ;
 	CloseTable()      ;
 
@@ -611,10 +615,10 @@ void PLRFLST1::AddReflistEntry( string ent )
 {
 	int i ;
 
-	string ldate ;
-	string ltime ;
 	string eent  ;
 	string rffex ;
+	string ldate ;
+	string ltime ;
 
 	map<string,bool>found ;
 	vector<string>list ;
@@ -639,18 +643,7 @@ void PLRFLST1::AddReflistEntry( string ent )
 	OpenTableUP() ;
 	if ( RC == 8 )
 	{
-		tbcreate( RFLTABLE, "ZCURTB", subword( TABFLDS, 2 ), WRITE, NOREPLACE, UPROF ) ;
-		tbvclear( RFLTABLE ) ;
-		ZCURTB = "REFLIST" ;
-		vput( "ZCURTB", PROFILE ) ;
-		vcopy( "ZDATEL", ldate, MOVE )   ;
-		vcopy( "ZTIMEL", ltime, MOVE )   ;
-		FLADESCP = "Default Reference List" ;
-		FLACTIME = ldate ;
-		FLAUTIME = ldate + " " + ltime ;
-		tbadd( RFLTABLE ) ;
-		tbsort( RFLTABLE, "ZCURTB,C,A" ) ;
-		CloseTable()  ;
+		createDefaultTable() ;
 		OpenTableUP() ;
 		if ( RC > 0 ) { abend() ; }
 	}
@@ -691,32 +684,33 @@ void PLRFLST1::AddReflistEntry( string ent )
 }
 
 
+void PLRFLST1::createDefaultTable()
+{
+	string ldate ;
+	string ltime ;
+
+	tbcreate( RFLTABLE, "ZCURTB", subword( TABFLDS, 2 ), WRITE, NOREPLACE, UPROF ) ;
+	tbvclear( RFLTABLE ) ;
+	ZCURTB = "REFLIST" ;
+	vput( "ZCURTB", PROFILE ) ;
+	vcopy( "ZDATEL", ldate, MOVE )   ;
+	vcopy( "ZTIMEL", ltime, MOVE )   ;
+	FLADESCP = "Default Reference List" ;
+	FLACTIME = ldate ;
+	FLAUTIME = ldate + " " + ltime ;
+	tbadd( RFLTABLE ) ;
+	tbsort( RFLTABLE, "ZCURTB,C,A" ) ;
+	CloseTable() ;
+}
+
+
 void PLRFLST1::userSettings()
 {
-	string RFURL("") ;
-	string RFFEX("") ;
-	string RFNEX("") ;
-
-	string ZRFURL ;
-	string ZRFFEX ;
-	string ZRFNEX ;
-	string vlist  ;
-
-	vlist = "RFURL RFFEX RFNEX ZRFURL ZRFFEX ZRFNEX" ;
-
-	vdefine( vlist, &RFURL, &RFFEX, &RFNEX, &ZRFURL, &ZRFFEX, &ZRFNEX ) ;
-	vget( "ZRFURL ZRFFEX ZRFNEX", PROFILE ) ;
-
-	if ( ZRFURL == "YES" ) { RFURL = '/' ; }
-	if ( ZRFFEX == "YES" ) { RFFEX = '/' ; }
-	if ( ZRFNEX == "YES" ) { RFNEX = '/' ; }
-
 	while ( true )
 	{
 		display( "PLRFLST5" ) ;
 		if ( RC == 8 ) { break ; }
 	}
-	vdelete( vlist ) ;
 	return ;
 }
 

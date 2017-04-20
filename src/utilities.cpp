@@ -929,42 +929,6 @@ int countc( const string& s, char c )
 
 
 
-bool matchpattern( const string& s1, const string& s2)
-{
-	unsigned int l1 = s1.length() - 1 ;
-	unsigned int l2 = s2.length() - 1 ;
-	int i = 0 ;
-	int j = 0 ;
-
-	while ( true )
-	{
-		if ( s1[ i ] != '?' )
-		{
-			if ( s1[ i ] == '*' )
-			{
-				i++ ;
-				if ( i > l1 ) { return true ; }
-				for ( ; j <= l2 ; j++ )
-				{
-					if ( s1[ i ] == s2[ j ] ) { break ; }
-				}
-				if ( j > l2 ) { return false ; }
-			}
-			else
-			{
-				if ( s1[ i ] != s2[ j ] ) { return false ; }
-			}
-		}
-		i++ ;
-		j++ ;
-		if ( (i > l1) || (j > l2) ) { break ; }
-	}
-	if ( (i > l1) && (j > l2) ) { return true ; }
-	return false ;
-}
-
-
-
 string& iupper( string& s )
 {
 	// Convert to upper case in-place
@@ -1490,4 +1454,103 @@ string parseString( errblock& err, string& s, string p )
 	trim( s.erase( p1, p2-p1+1 ) ) ;
 
 	return trim( t ) ;
+}
+
+
+void extractWord( errblock& err, string& s, string& p )
+{
+	// Get the next word in list s and remove from the list.  Place in p.
+	// Words can be delimited by space or "()=,".  "()=," are also returned as words.
+
+	int p1 ;
+
+	char c ;
+
+	err.setRC( 0 ) ;
+
+	trim_left( s ) ;
+	if ( s.size() == 0 )
+	{
+		p = "" ;
+		return ;
+	}
+	c = s.front() ;
+	if ( c == ',' || c == '(' || c == ')' || c == '=' )
+	{
+		p = c ;
+		s = s.erase( 0, 1 ) ;
+	}
+	else if ( c == '\'' )
+	{
+		err.seterrid( "PSYE031H" ) ;
+	}
+	else
+	{
+		p1 = s.find_first_of( " ,()=" ) ;
+		if ( p1 == string::npos )
+		{
+			p = s   ;
+			s = ""  ;
+		}
+		else
+		{
+			p = s.substr( 0, p1 ) ;
+			s.erase( 0, p1 ) ;
+		}
+	}
+}
+
+
+void extractWord( errblock& err, string& s, string& p, bool& quoted )
+{
+	// Allow quoted strings and set quoted parameter accordingly
+
+	// Get the next word in list s and remove from the list.  Place in p.
+	// Words can be delimited by space or "()=,".  "()=," are also returned as words.
+
+	int p1 ;
+
+	char c ;
+
+	err.setRC( 0 ) ;
+	quoted = false ;
+
+	trim_left( s ) ;
+	if ( s.size() == 0 )
+	{
+		p = "" ;
+		return ;
+	}
+	c = s.front() ;
+	if ( c == ',' || c == '(' || c == ')' || c == '=' )
+	{
+		p = c ;
+		s = s.erase( 0, 1 ) ;
+	}
+	else if ( c == '\'' )
+	{
+		p1     = s.find( '\'', 1 ) ;
+		quoted = true ;
+		if ( p1 == string::npos )
+		{
+			err.seterrid( "PSYE033F" ) ;
+			return ;
+		}
+		p = s.substr( 1, p1-1 ) ;
+		s.erase( 0, p1+1 ) ;
+	}
+	else
+	{
+		p1 = s.find_first_of( " ,()=" ) ;
+		if ( p1 == string::npos )
+		{
+			p = s   ;
+			s = ""  ;
+		}
+		else
+		{
+			p = s.substr( 0, p1 ) ;
+			s.erase( 0, p1 ) ;
+		}
+	}
 }

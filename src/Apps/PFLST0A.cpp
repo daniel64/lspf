@@ -80,6 +80,7 @@
 /*     ZRC=8/ZRSN=20 - Unkown error occured                                                                 */
 
 #include <boost/filesystem.hpp>
+#include <boost/regex.hpp>
 #include <vector>
 
 #include <sys/sysmacros.h>
@@ -98,6 +99,7 @@
 #include "PFLST0A.h"
 
 using namespace std ;
+using namespace boost ;
 using namespace boost::filesystem ;
 
 #undef LOGOUT
@@ -114,6 +116,8 @@ void PFLST0A::application()
 	int    i        ;
 	int    RCode    ;
 	int    num      ;
+	int    p1       ;
+	int    p2       ;
 
 	bool   del      ;
 	bool   errs     ;
@@ -137,9 +141,9 @@ void PFLST0A::application()
 	string NEWENTRY ;
 	string FREPL    ;
 
-	char * buffer       ;
+	char * buffer   ;
 	size_t bufferSize = 255 ;
-	size_t rc               ;
+	size_t rc       ;
 
 	boost::system::error_code ec ;
 
@@ -156,7 +160,10 @@ void PFLST0A::application()
 	vget( "ZHOME", SHARED ) ;
 	vget( "AFHIDDEN", PROFILE ) ;
 
-	if ( PARM == "" ) { vget( "ZPATH", PROFILE ) ; }
+	if ( PARM == "" )
+	{
+		vget( "ZPATH", PROFILE ) ;
+	}
 	else
 	{
 		w1 = word( PARM, 1 ) ;
@@ -167,9 +174,9 @@ void PFLST0A::application()
 			{
 				if ( is_regular_file( ZPATH ) )
 				{
-					if      ( w1 == "BROWSE" ) { browse( ZPATH ) ;  cleanup() ; return ;  }
-					else if ( w1 == "VIEW"   ) { view( ZPATH )   ;  cleanup() ; return ;  }
-					else                       { edit( ZPATH )   ;  cleanup() ; return ;  }
+					if      ( w1 == "BROWSE" ) { browse( ZPATH ) ; cleanup() ; return ; }
+					else if ( w1 == "VIEW"   ) { view( ZPATH )   ; cleanup() ; return ; }
+					else                       { edit( ZPATH )   ; cleanup() ; return ; }
 				}
 			}
 			catch ( const filesystem_error& ex )
@@ -202,23 +209,32 @@ void PFLST0A::application()
 			return    ;
 		}
 		else { ZPATH = PARM ; }
-		if( !is_directory( ZPATH ) ) ZPATH = ZHOME ;
 	}
 
-	if ( !is_directory( ZPATH ) ) ZPATH = ZHOME ;
+	filter = "" ;
+	p1 = ZPATH.find_last_of( "/" ) ;
+	if ( p1 != string::npos )
+	{
+		p2 = ZPATH.find( '*', p1 ) ;
+		if ( p2 != string::npos )
+		{
+			filter = ZPATH.substr( p1+1 ) ;
+			ZPATH  = ZPATH.erase( p1 ) ;
+		}
+	}
+	if ( !is_directory( ZPATH ) ) { ZPATH = ZHOME ; }
 
 	OSEL   = ""    ;
 	DSLIST = "DSLST" + right( d2ds( taskid() ), 3, '0' ) ;
 	MSG    = ""  ;
 
 
-	RC        = 0  ;
-	i         = 1  ;
-	ZTDVROWS  = 1  ;
-	filter    = "" ;
+	RC        = 0 ;
+	i         = 1 ;
+	ZTDVROWS  = 1 ;
 	UseSearch = false ;
 
-	createFileList1() ;
+	createFileList1( filter ) ;
 	if ( RC > 0 ) { setmsg( "FLST015" ) ; }
 
 	while ( true )
@@ -614,7 +630,7 @@ void PFLST0A::application()
 				control( "TIMEOUT", "DISABLE" ) ;
 				def_prog_mode()     ;
 				endwin()            ;
-				system( t.c_str() ) ;
+				std::system( t.c_str() ) ;
 				reset_prog_mode()   ;
 				refresh()           ;
 				control( "TIMEOUT", "ENABLE" ) ;
@@ -628,7 +644,7 @@ void PFLST0A::application()
 				control( "TIMEOUT", "DISABLE" ) ;
 				def_prog_mode()     ;
 				endwin()            ;
-				system( t.c_str() ) ;
+				std::system( t.c_str() ) ;
 				reset_prog_mode()   ;
 				refresh()           ;
 				control( "TIMEOUT", "ENABLE" ) ;
@@ -725,7 +741,10 @@ void PFLST0A::createFileList1( string filter )
 	int i    ;
 	string p ;
 	string t ;
+	string pat ;
+	string str ;
 
+	char c    ;
 	bool fGen ;
 
 	vector<string>::iterator itv ;
@@ -735,6 +754,8 @@ void PFLST0A::createFileList1( string filter )
 	char buf[ 20 ]        ;
 
 	typedef vector< path > vec ;
+
+	regex expression ;
 
 	tbcreate( DSLIST, "", "MESSAGE SEL ENTRY TYPE PERMISS SIZE STCDATE MODDATE MODDATES", NOWRITE ) ;
 
@@ -761,6 +782,19 @@ void PFLST0A::createFileList1( string filter )
 	}
 	sort( v.begin(), v.end() ) ;
 
+	if ( fGen )
+	{
+		pat = "" ;
+		for ( i = 0 ; i < filter.size() ; i++ )
+		{
+			c = toupper( filter[ i ] ) ;
+			if      ( c == '*' ) { pat += "[^[:blank:]]*" ; }
+			else if ( c == '?' ) { pat += "[^[:blank:]]"  ; }
+			else                 { pat.push_back( c )     ; }
+		}
+		expression.assign( pat ) ;
+	}
+
 	for ( vec::const_iterator it (v.begin()) ; it != v.end() ; ++it )
 	{
 		ENTRY   = (*it).string() ;
@@ -770,7 +804,8 @@ void PFLST0A::createFileList1( string filter )
 		if ( t != "/" && ENTRY[ 0 ] == '.' ) { continue ; }
 		if ( fGen )
 		{
-			if ( !matchpattern( filter, upper( ENTRY ) ) ) { continue ; }
+			str = upper( ENTRY ) ;
+			if ( !regex_match( str.begin(), str.end(), expression ) ) { continue ; }
 		}
 		else
 		{
@@ -1829,7 +1864,7 @@ string PFLST0A::showListing()
 	{
 		if ( ZTDVROWS > 0 )
 		{
-			tbtop( DSLIST )     ;
+			tbtop( DSLIST ) ;
 			tbskip( DSLIST, ZTDTOP ) ;
 		}
 		else
@@ -1997,8 +2032,14 @@ string PFLST0A::expandName( const string& s )
 
 	int i  ;
 	int p1 ;
+
+	char c ;
+
 	string dir  ;
 	string dir1 ;
+	string pat  ;
+
+	regex expression ;
 
 	typedef vector< path > vec ;
 
@@ -2010,6 +2051,16 @@ string PFLST0A::expandName( const string& s )
 	if ( p1 == string::npos ) { return "" ; }
 
 	dir = s.substr( 0, p1 ) ;
+
+	pat = "" ;
+	for ( i = 0 ; i < s.size() ; i++ )
+	{
+		c = s[ i ] ;
+		if      ( c == '*' ) { pat += "[^[:blank:]]*" ; }
+		else if ( c == '?' ) { pat += "[^[:blank:]]"  ; }
+		else                 { pat.push_back( c )     ; }
+	}
+	expression.assign( pat ) ;
 
 	try
 	{
@@ -2029,7 +2080,7 @@ string PFLST0A::expandName( const string& s )
 	for ( i = 0, it = v.begin() ; it != v.end() ; ++it )
 	{
 		dir = (*it).string() ;
-		if ( !matchpattern( s, dir ) ) { continue ; }
+		if ( !regex_match( dir.begin(), dir.end(), expression ) ) { continue ; }
 		i++ ;
 		if ( i > 1 ) { return "" ; }
 		dir1 = dir ;

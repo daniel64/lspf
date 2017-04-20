@@ -6,7 +6,7 @@
 PanelTitle "Invoke Dialogue Functions or Selection Panel"
 
 literal  4   2          FP    "Command ===> "
-field    4  15  MAX-17  NEF PAD(USER),CAPS(ON) ZCMD
+field    4  15  MAX     NEF PAD(USER),CAPS(ON) ZCMD
 
 literal  6   2          CH    "Options:"
 literal  7   7          FP    "APPLID. . ."
@@ -108,9 +108,9 @@ IF ( &PRAPPL EQ &Z )
    IF ( &PRPSLIB NE &Z )
       &PRNAPPL = '/'
 
-VER (&PRNAPPL LIST / )
-VER (&PRNPOOL LIST / )
-VER (&PRPSLIB LIST / )
+&PRNAPPL = TRANS( &PRNAPPL &Z,&Z *,/ )
+&PRNPOOL = TRANS( &PRNPOOL &Z,&Z *,/ )
+&PRPSLIB = TRANS( &PRPSLIB &Z,&Z *,/ )
 
 )FIELD
  FIELD(PRSPNL)  EXEC('SELECT PGM(PFLST0A) PARM(EXPAND1 PNL)')

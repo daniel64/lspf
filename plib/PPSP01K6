@@ -52,6 +52,8 @@ if (&ZCMD NE &Z )
     .CURSOR = ZCMD
     EXIT
 
-VPUT ZSCROLL PROFILE
+IF (.RESP = END )
+   IF (.MSG = &Z )
+      VPUT ZSCROLL PROFILE
 
 )END

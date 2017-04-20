@@ -24,6 +24,9 @@ PSYE031F 'Invalid field name ''&ZVAL1'' on &ZVAL2 statement'
 PSYE031G 'No parameter value coded'
 'No value found between ''('' and '')'''
 
+PSYE031H 'Quoted string not allowed'
+''
+
 /* dynamic areas */
 PSYE032A 'Dynamic Area outside panel area'
 'ROW=&ZVAL1 ZSCRMAXD=&ZVAL2'
@@ -78,7 +81,7 @@ PSYE033G 'Invalid value &ZVAL1'
 PSYE033H 'List not allowed'
 'A value list is allowed on the right hand side only for EQ and NE comparisons'
 
-PSYE033I 'Invalid variable'
+PSYE033I 'Invalid variable ''&ZVAL1'''
 'Variable has to begin with an ''&&'''
 
 /* VER */
@@ -219,11 +222,11 @@ PSYE039E 'Value missing in TRANS statement'
 PSYE039F 'Missing '','' in TRANS statement'
 ''
 
-PSYE039G 'Duplicate entry in TRANS statement'
-'&ZVAL1 appears more than once in the translate list'
+PSYE039G 'MSG= parameter must be the last in the TRANS list'
+''
 
-PSYE039H 'Invalid value in TRANS statement'
-'&ZVAL1 is not valid'
+PSYE039H 'Missing translate-to entry'
+''
 
 /* SELECT Parser */
 

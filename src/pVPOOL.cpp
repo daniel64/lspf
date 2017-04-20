@@ -207,6 +207,8 @@ int fPOOL::get( errblock& err, int maxRC, dataType type, const string& name )
 
 dataType fPOOL::getType( errblock& err, const string& name, nameCHCK check )
 {
+	map<string, stack<fVAR*> >::iterator it ;
+
 	err.setRC( 0 ) ;
 
 	if ( check == CHECK && !isvalidName( name ) )
@@ -215,14 +217,14 @@ dataType fPOOL::getType( errblock& err, const string& name, nameCHCK check )
 		return ERROR ;
 	}
 
-
-	if ( POOL.find( name ) == POOL.end() )
+	it = POOL.find( name ) ;
+	if ( it == POOL.end() )
 	{
 		err.setRC( 8 ) ;
 		return ERROR ;
 	}
 
-	return POOL[ name ].top()->fVAR_type ;
+	return it->second.top()->fVAR_type ;
 }
 
 
@@ -1000,9 +1002,7 @@ void poolMGR::createPool( errblock& err, poolType pType, string path )
 		if ( POOLs_profile.count( currAPPLID ) == 0 )
 		{
 			if ( path.back() != '/' ) { path += "/" ; }
-			fname      = path + currAPPLID + "PROF" ;
-			pool       = new pVPOOL ;
-			pool->path = path ;
+			fname = path + currAPPLID + "PROF" ;
 			if ( exists( fname ) )
 			{
 				if ( !is_regular_file( fname ) )
@@ -1012,6 +1012,8 @@ void poolMGR::createPool( errblock& err, poolType pType, string path )
 				}
 				else
 				{
+					pool       = new pVPOOL ;
+					pool->path = path ;
 					POOLs_profile[ currAPPLID ] = pool ;
 					llog( "I", "Pool " << currAPPLID << " created okay.  Reading saved variables from profile dataset" << endl ) ;
 					POOLs_profile[ currAPPLID ]->load( err, currAPPLID, path ) ;
@@ -1096,26 +1098,26 @@ void poolMGR::destroyPool( errblock& err, poolType pType )
 
 	case PROFILE:
 		llog( "I", "Destroying pool "<< currAPPLID << endl ) ;
-		if ( POOLs_profile.count( currAPPLID ) == 0 )
+		it = POOLs_profile.find( currAPPLID ) ;
+		if ( it == POOLs_profile.end() )
 		{
 			err.seterror() ;
 			llog( "C", "poolMGR cannot find profile pool "<< currAPPLID <<" Logic error" << endl ) ;
 			return ;
 		}
-		POOLs_profile[ currAPPLID ]->decRefCount() ;
-		if ( POOLs_profile[ currAPPLID ]->inUse() )
+		it->second->decRefCount() ;
+		if ( it->second->inUse() )
 		{
-			llog( "I", "Pool "<< currAPPLID <<" still in use.  Use count is now "<< POOLs_profile[ currAPPLID ]->refCount << endl ) ;
+			llog( "I", "Pool "<< currAPPLID <<" still in use.  Use count is now "<< it->second->refCount << endl ) ;
 		}
 		else
 		{
-			POOLs_profile[ currAPPLID ]->save( err, currAPPLID ) ;
+			it->second->save( err, currAPPLID ) ;
 			if ( err.error() )
 			{
 				llog( "E", "Pool "<< currAPPLID <<" cannot be saved"<< endl ) ;
 				return ;
 			}
-			it = POOLs_profile.find( currAPPLID ) ;
 			delete it->second ;
 			POOLs_profile.erase( it ) ;
 			llog( "I", "Pool "<< currAPPLID <<" destroyed okay "<< endl ) ;
@@ -1133,9 +1135,10 @@ void poolMGR::destroyPool( int ls )
 	// Remove the logical-screen pool when a logical screen is closed
 
 	map<int, pVPOOL*>::iterator it ;
-	if ( POOLs_lscreen.count( ls ) > 0 )
+
+	it = POOLs_lscreen.find( ls ) ;
+	if ( it != POOLs_lscreen.end() )
 	{
-		it = POOLs_lscreen.find( ls ) ;
 		delete it->second ;
 		POOLs_lscreen.erase( it ) ;
 	}
@@ -1144,11 +1147,12 @@ void poolMGR::destroyPool( int ls )
 
 void poolMGR::statistics()
 {
-	map<string, pVPOOL*>::iterator sp_it ;
-	map<string, pVPOOL*>::iterator pp_it ;
 	string Mode ;
 
-	llog( "-", "POOL STATISTICS:" << endl ) ;
+	map<string, pVPOOL*>::iterator sp_it ;
+	map<string, pVPOOL*>::iterator pp_it ;
+
+	llog( "-", "Pool Statistics:" << endl ) ;
 	llog( "-", "         Current APPLID . . . . . . . . " << currAPPLID << endl ) ;
 	llog( "-", "         Current SHARED POOL ID . . . . " << shrdPool << endl ) ;
 	llog( "-", "         Number of shared pools . . . . " << POOLs_shared.size() << endl ) ;
@@ -1179,12 +1183,13 @@ void poolMGR::snap()
 {
 	errblock err ;
 
+	string vtype ;
+
 	map<string, pVPOOL*>::iterator sp_it ;
 	map<string, pVPOOL*>::iterator pp_it ;
 	map<string, pVAR*>::iterator v_it    ;
-	string vtype ;
 
-	llog( "-", "POOL VARIABLES:" << endl ) ;
+	llog( "-", "Pool Variables:" << endl ) ;
 	llog( "-", "         Shared pool details:" << endl ) ;
 	for ( sp_it = POOLs_shared.begin() ; sp_it != POOLs_shared.end() ; sp_it++ )
 	{
@@ -1193,12 +1198,12 @@ void poolMGR::snap()
 		for ( v_it = sp_it->second->POOL.begin() ; v_it != sp_it->second->POOL.end() ; v_it++ )
 		{
 			if ( sp_it->second->isSystem( err, v_it->first ) ) { vtype = "S" ; }
-			else                                              { vtype = "N" ; }
+			else                                               { vtype = "N" ; }
 			llog( "-", setw(8) << v_it->first << " :" << vtype << ": " << sp_it->second->get( err, v_it->first ) << "<< " << endl ) ;
 		}
 	}
 	llog( "-", endl ) ;
-	llog( "-", "         PROFILE pool details:" << endl ) ;
+	llog( "-", "         Profile pool details:" << endl ) ;
 	for ( pp_it = POOLs_profile.begin() ; pp_it != POOLs_profile.end() ; pp_it++ )
 	{
 		llog( "-", "         Pool " << setw(8) << pp_it->first << " use count: " << setw(3) << pp_it->second->refCount <<
@@ -1207,7 +1212,7 @@ void poolMGR::snap()
 		for ( v_it = pp_it->second->POOL.begin() ; v_it != pp_it->second->POOL.end() ; v_it++ )
 		{
 			if ( pp_it->second->isSystem( err, v_it->first ) ) { vtype = "S" ; }
-			else                                             { vtype = "N" ; }
+			else                                               { vtype = "N" ; }
 			llog( "-", setw(8) << v_it->first << " :" << vtype << ": " << pp_it->second->get( err, v_it->first ) << "<< " << endl ) ;
 		}
 	}
@@ -1247,6 +1252,7 @@ void poolMGR::setShrdPool( errblock& err, const string& m_shrdPool )
 string poolMGR::vlist( int& RC, poolType pType, int lvl )
 {
 	string vlist ;
+
 	map<string, pVPOOL*>::iterator p_it ;
 	map<string, pVAR*>::iterator   v_it ;
 
@@ -1294,6 +1300,7 @@ string poolMGR::vlist( int& RC, poolType pType, int lvl )
 		RC = 20   ;
 		return "" ;
 	}
+
 	vlist.reserve( 9*p_it->second->POOL.size() ) ;
 	for ( v_it = p_it->second->POOL.begin() ; v_it != p_it->second->POOL.end() ; v_it++ )
 	{
@@ -1371,11 +1378,18 @@ void poolMGR::put( errblock& err, int ls, const string& name, const string& valu
 	// Set a variable from the logical-screen pool
 	// Pool is created on first access
 
+	map<int, pVPOOL*>::iterator it ;
+
 	err.setRC( 0 ) ;
 
-	if ( POOLs_lscreen.count( ls ) == 0 ) { createPool( ls ) ; }
+	it = POOLs_lscreen.find( ls ) ;
+	if ( it == POOLs_lscreen.end() )
+	{
+		createPool( ls ) ;
+		it = POOLs_lscreen.find( ls ) ;
+	}
 
-	POOLs_lscreen[ ls ]->put( err, name, value, USER ) ;
+	it->second->put( err, name, value, USER ) ;
 }
 
 
@@ -1434,9 +1448,18 @@ string poolMGR::get( errblock& err, int ls, const string& name )
 	// Retrieve a variable from the logical-screen pool
 	// Pool is created on first access
 
-	if ( POOLs_lscreen.count( ls ) == 0 ) { createPool( ls ) ; }
+	map<int, pVPOOL*>::iterator it ;
 
-	return POOLs_lscreen[ ls ]->get( err, name ) ;
+	err.setRC( 0 ) ;
+
+	it = POOLs_lscreen.find( ls ) ;
+	if ( it == POOLs_lscreen.end() )
+	{
+		createPool( ls ) ;
+		it = POOLs_lscreen.find( ls ) ;
+	}
+
+	return it->second->get( err, name ) ;
 }
 
 

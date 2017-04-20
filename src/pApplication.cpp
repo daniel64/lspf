@@ -3143,7 +3143,6 @@ bool pApplication::load_Message( const string& p_msg )
 	string tmp      ;
 	string msgid    ;
 
-	bool found      ;
 	bool lcontinue  ;
 
 	map<string,bool>MMsgs ;
@@ -3167,9 +3166,7 @@ bool pApplication::load_Message( const string& p_msg )
 
 	paths = get_search_path( s_ZMLIB ) ;
 
-	found = false ;
-	i = getpaths( paths ) ;
-	for ( j = 1 ; j <= i ; j++ )
+	for ( i = getpaths( paths ), j = 1 ; j <= i ; j++ )
 	{
 		filename = getpath( paths, j ) + p_msg_fn ;
 		if ( exists( filename ) )
@@ -3182,12 +3179,11 @@ bool pApplication::load_Message( const string& p_msg )
 			}
 			else
 			{
-				found = true ;
-				break        ;
+				break ;
 			}
 		}
 	}
-	if ( !found )
+	if ( j > i )
 	{
 		RC = 12 ;
 		checkRCode( "Message file "+ p_msg_fn +" not found in ZMLIB for message-id "+ p_msg ) ;
@@ -3717,8 +3713,8 @@ void pApplication::ispexec( const string& s )
 	{
 		errBlock.setcall( "ISPEXEC interface error" ) ;
 		checkRCode( errBlock ) ;
-		errBlock.dline = NULL  ;
 	}
+	errBlock.clearsrc() ;
 }
 
 

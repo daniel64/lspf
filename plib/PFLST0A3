@@ -41,10 +41,10 @@ literal 18 22 NT "to cancel delete."
 
 )PROC
 
-VER (&NEMPTOK LIST /)
-VER (&CONDOFF LIST /)
-&ZCMD = TRANS( &ZCMD CAN,CANCEL *,* )
-VER (&ZCMD LIST,CANCEL)
+&ZCMD    = TRANS( &ZCMD    CAN,CANCEL *,* )
+&NEWPTOK = TRANS( &NEWPTOK  &Z,&Z *,/ )
+&CONDOFF = TRANS( &CONDOFF  &Z,&Z *,/ )
 
+VER (&ZCMD LIST,CANCEL)
 
 )END

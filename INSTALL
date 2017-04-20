@@ -9,7 +9,8 @@ To install:
 You can use comp1 to compile lspf.cpp, compsetup to compile setup.cpp and compapps for all applications in directory Apps
 
 Boost and ncurses required to compile lspf.cpp
-OOREXX required for POREXX1.cpp (OOREXX interface module for writing lspf applications in REXX)
+OOREXX required for POREXX1.cpp (OOREXX interface module for writing lspf applications in REXX) and PEDRXM1.cpp (edit
+macro interface module for writing edit macros in REXX)
 file required for PBRO01A.cpp as it is linked with -lmagic
 
 Run lspf in a terminal

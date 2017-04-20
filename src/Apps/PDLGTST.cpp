@@ -129,38 +129,6 @@ void PDLGTST::displaySystemVars()
 
 void PDLGTST::checkAlgo()
 {
-	string MSG, STR1, STR2, RESLT ;
-
-	vdefine( "STR1 STR2 RESLT", &STR1, &STR2, &RESLT ) ;
-	vget( "STR1 STR2", PROFILE ) ;
-	ZCMD = "" ;
-
-	while ( true )
-	{
-		display( "PDLGTST4", MSG, "STR1" );
-		if ( RC == 8 )
-		{
-			vput( "STR1 STR2", PROFILE ) ;
-			return    ;
-		}
-		MSG  = "" ;
-		STR1 = strip( STR1 ) ;
-		STR2 = strip( STR2 ) ;
-		if ( ZCMD != "" ) { MSG = "DLGT011" ; continue ; }
-		if ( STR1 == "" ) continue ;
-		if ( STR2 == "" ) continue ;
-
-		if ( matchpattern( STR1, STR2 ) )
-		{
-			RESLT = "*PATTERN MATCHES*" ;
-		}
-		else
-		{
-			RESLT = "*PATTERN DOES NOT MATCH*" ;
-		}
-
-	}
-
 }
 
 

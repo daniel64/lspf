@@ -478,7 +478,6 @@ void PPSP01A::fill_dynamic_area()
 
 void PPSP01A::lspfSettings()
 {
-	int RCode      ;
 	int timeOut    ;
 
 	string nulls   ;
@@ -591,9 +590,28 @@ void PPSP01A::lspfSettings()
 	{
 		ZCMD  = "" ;
 		display( "PPSP01GO", "", "ZCMD" );
-		RCode = RC ;
-		if ( ZCMD == "CANCEL" ) { break ; }
-		if ( RCode == 8 || ZCMD == "SAVE" )
+		if ( RC == 8 ) { break ; }
+		if ( ZCMD == "DEFAULTS" )
+		{
+			GOKLUSE  = ""  ;
+			GOKLFAL  = "/" ;
+			GOSTFST  = "/" ;
+			GOLMSGW  = ""  ;
+			GODEL    = ";" ;
+			GOSWAP   = "/" ;
+			GOSWAPC  = "'" ;
+			GOPADC   = "_" ;
+			GOUCMD1  = "USR" ;
+			GOUCMD2  = ""  ;
+			GOUCMD3  = ""  ;
+			GOSCMD1  = ""  ;
+			GOSCMD2  = ""  ;
+			GOSCMD3  = ""  ;
+			GOATIMO  = d2ds( ZMAXWAIT * ds2d( *t1 ) / 1000 ) ;
+			GORTSIZE = "3"  ;
+			GORBSIZE = "10" ;
+		}
+		else
 		{
 			if ( GOKLUSE == "/" ) { ZKLUSE  = "Y" ; }
 			else                  { ZKLUSE  = "N" ; }
@@ -647,27 +665,6 @@ void PPSP01A::lspfSettings()
 				ZRBSIZE = GORBSIZE ;
 				vput( "ZRBSIZE", PROFILE ) ;
 			}
-			if ( RCode == 8 ) { break ; }
-		}
-		if ( ZCMD == "DEFAULTS" )
-		{
-			GOKLUSE  = ""  ;
-			GOKLFAL  = "/" ;
-			GOSTFST  = "/" ;
-			GOLMSGW  = ""  ;
-			GODEL    = ";" ;
-			GOSWAP   = "/" ;
-			GOSWAPC  = "'" ;
-			GOPADC   = "_" ;
-			GOUCMD1  = "USR" ;
-			GOUCMD2  = ""  ;
-			GOUCMD3  = ""  ;
-			GOSCMD1  = ""  ;
-			GOSCMD2  = ""  ;
-			GOSCMD3  = ""  ;
-			GOATIMO  = d2ds( ZMAXWAIT * ds2d( *t1 ) / 1000 ) ;
-			GORTSIZE = "3"  ;
-			GORBSIZE = "10" ;
 		}
 	}
 	vdelete( "ZUCMDT1 ZUCMDT2 ZUCMDT3" ) ;
@@ -1190,20 +1187,12 @@ void PPSP01A::setISPSVar( const string& var, string val )
 
 void PPSP01A::todoList()
 {
-	// No need to do vdefines for the TODO variables TODO1... as it is not necessary to reference
-	// them in the application.  First reference of these variables in the panel will create
-	// implicit function pool variables that the vput will save to the PROFILE
-
 	while ( true )
 	{
-		ZCMD  = "" ;
 		display( "PPSP01TD", "", "ZCMD" );
-		if (RC == 8 ) { cleanup() ; break ; }
-
-		if ( ZCMD == "CANCEL" ) return ;
+		if ( RC == 8 ) { break ; }
 	}
-	vput( "TODO1 TODO2  TODO3  TODO4  TODO5 TODO6 TODO7 TODO8", PROFILE ) ;
-	vput( "TODO9 TODO10 TODO11 TODO12", PROFILE ) ;
+	return ;
 }
 
 
@@ -1527,7 +1516,7 @@ void PPSP01A::showPaths()
 	{
 		PATH = getpath( ZORXPATH, i ) ;
 		MESSAGE = "" ;
-		if ( !is_directory( PATH ) ) MESSAGE = "Path not found" ;
+		if ( !is_directory( PATH ) ) { MESSAGE = "Path not found" ; }
 		tbadd( PATHLST ) ;
 		DESCRIPT = "" ;
 		PVAR     = "" ;
@@ -1554,9 +1543,8 @@ void PPSP01A::showPaths()
 					vcopy( "ZFLSTPGM", PGM, MOVE ) ;
 					select( "PGM(" + PGM + ") PARM(" + PATH + ")" ) ;
 				}
-				else MESSAGE = "*Error*"    ;
+				else MESSAGE = "*Error*" ;
 			}
-			else if ( SEL != "" ) { MESSAGE = "*Error*" ; }
 			SEL = ""         ;
 			tbput( PATHLST ) ;
 			if ( ZTDSELS > 1 )

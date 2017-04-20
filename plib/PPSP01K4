@@ -8,7 +8,7 @@
 PanelTitle "Create Keylist Entry"
 
 literal  4   2         FP  "Command ===> "
-field    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
+field    4  15  MAX    NEF CAPS(ON),PAD(USER) ZCMD
 
 literal  7   2   FP    "New Keylist Name . . . . ."
 field    7  29   8     NEF CAPS(ON),PAD(USER) NEWKEY

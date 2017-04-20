@@ -185,14 +185,11 @@ class VPUTGET
 	public:
 		VPUTGET()
 			{
-				vpg_vput = false ;
-				vpg_vget = false ;
 				vpg_pool = ASIS  ;
 			} ;
 
 		void parse( errblock&, string ) ;
 		bool     vpg_vput ;
-		bool     vpg_vget ;
 		string   vpg_vars ;
 		poolType vpg_pool ;
 } ;
@@ -220,14 +217,18 @@ class TRANS
 {
 	public:
 		TRANS() {
-				trns_msg = "" ;
+				trns_msg     = "" ;
+				trns_default = "" ;
+				trns_field   = false ;
 			} ;
 		void parse( errblock&, string ) ;
 
-		string trns_field1 ;
-		string trns_field2 ;
-		string trns_msg    ;
-		map<string, string> trns_list ;
+		string trns_field1  ;
+		string trns_field2  ;
+		string trns_msg     ;
+		string trns_default ;
+		bool   trns_field   ;
+		vector<pair<string,string>> trns_list ;
 } ;
 
 

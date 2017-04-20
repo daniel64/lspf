@@ -25,40 +25,38 @@
 
 void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths )
 {
-	int i, j, k          ;
-	int p1, p2           ;
-	int pVersion         ;
-	int pFormat          ;
+	int i, j, k         ;
+	int p1, p2          ;
+	int pVersion        ;
+	int pFormat         ;
 
-	string ww, w1, w2    ;
-	string w3, w4, w5    ;
-	string w6, w7, ws    ;
-	string t1, t2        ;
-	string rest          ;
-	string filename      ;
-	string pline         ;
-	string oline         ;
-	string fld, hlp      ;
+	string ww, w1, w2   ;
+	string w3, w4, w5   ;
+	string w6, w7, ws   ;
+	string t1, t2       ;
+	string rest         ;
+	string filename     ;
+	string pline        ;
+	string oline        ;
+	string fld, hlp     ;
 
-	bool body(false)     ;
-	bool command(false)  ;
-	bool init(false)     ;
-	bool reinit(false)   ;
-	bool proc(false)     ;
-	bool help(false)     ;
-	bool ispnts(false)   ;
-	bool isfield(false)  ;
-	bool found           ;
+	bool body(false)    ;
+	bool command(false) ;
+	bool init(false)    ;
+	bool reinit(false)  ;
+	bool proc(false)    ;
+	bool help(false)    ;
+	bool ispnts(false)  ;
+	bool isfield(false) ;
+	bool found          ;
 
-	std::ifstream panl   ;
-	std::ifstream pincl  ;
+	std::ifstream panl  ;
+	std::ifstream pincl ;
 
-	vector< string > pSource      ;
-	vector< string >::iterator it ;
+	vector<string> pSource      ;
+	vector<string>::iterator it ;
 
 	map<string, field *>::iterator it1;
-
-	RC = 0 ;
 
 	readPanel( err, pSource, p_name, paths, p_name ) ;
 	if ( err.error() ) { return ; }
@@ -101,7 +99,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				w3 = word( pline, 3 ) ;
 			}
 		}
-		if ( w1[ 0 ] == ')' )
+		if ( w1.front() == ')' )
 		{
 			body    = false ;
 			command = false ;
@@ -235,18 +233,18 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 
 		if ( init || reinit || proc )
 		{
+			panstmnt m_stmnt ;
+			m_stmnt.ps_column = pline.find_first_not_of( ' ' ) ;
 			if ( w1.back() == ':' )
 			{
 				w1.pop_back() ;
 				if ( !isvalidName( w1 ) )
 				{
-					err.seterror( "Invalid label '"+ w1 +"'" ) ;
+					err.seterrid( "PSYE041R", w1 )  ;
 					err.setsrc( oline ) ;
 					return ;
 				}
-				panstmnt m_stmnt ;
-				m_stmnt.ps_label  = upper( w1 ) ;
-				m_stmnt.ps_column = pline.find_first_not_of( ' ' ) ;
+				m_stmnt.ps_label = upper( w1 ) ;
 				if ( init )        { initstmnts.push_back( m_stmnt ) ; }
 				else if ( reinit ) { reinstmnts.push_back( m_stmnt ) ; }
 				else               { procstmnts.push_back( m_stmnt ) ; }
@@ -282,7 +280,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			}
 			if ( w1 == "VGET" || w1 == "VPUT" )
 			{
-				panstmnt m_stmnt ;
 				VPUTGET m_VPG    ;
 				m_VPG.parse( err, pline ) ;
 				if ( err.error() )
@@ -291,19 +288,17 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 					return ;
 				}
 				m_stmnt.ps_vputget = true ;
-				m_stmnt.ps_column  = pline.find_first_not_of( ' ' ) ;
 				if ( init )        { vpgListi.push_back( m_VPG ) ; initstmnts.push_back( m_stmnt ) ; }
 				else if ( reinit ) { vpgListr.push_back( m_VPG ) ; reinstmnts.push_back( m_stmnt ) ; }
 				else               { vpgListp.push_back( m_VPG ) ; procstmnts.push_back( m_stmnt ) ; }
 				continue ;
 			}
-			if ( ( w1[ 0 ] == '&' || w1[ 0 ] == '.' ) &&
+			if ( ( w1.front() == '&' || w1.front() == '.' ) &&
 			     ( w2 == "="                        ) &&
-			     ( substr( w3, 1, 5 ) != "TRUNC"    ) &&
-			     ( substr( w3, 1, 5 ) != "TRANS"    ) )
+			     ( w3.compare( 0, 5, "TRUNC" ) != 0 ) &&
+			     ( w3.compare( 0, 5, "TRANS" ) != 0 ) )
 			{
-				ASSGN m_assgn    ;
-				panstmnt m_stmnt ;
+				ASSGN m_assgn ;
 				m_assgn.parse( err, pline ) ;
 				if ( err.error() )
 				{
@@ -314,7 +309,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				{
 					if ( wordpos( m_assgn.as_lhs, tb_fields ) == 0 )
 					{
-						err.seterror( "Invalid .ATTR statement. Field '"+ m_assgn.as_lhs +"' not found" ) ;
+						err.seterrid( "PSYE041S", m_assgn.as_lhs ) ;
 						err.setsrc( oline ) ;
 						return ;
 					}
@@ -324,7 +319,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 					}
 				}
 				m_stmnt.ps_assign = true ;
-				m_stmnt.ps_column = pline.find_first_not_of( ' ' ) ;
 				if ( init )        { assgnListi.push_back( m_assgn ) ; initstmnts.push_back( m_stmnt ) ; }
 				else if ( reinit ) { assgnListr.push_back( m_assgn ) ; reinstmnts.push_back( m_stmnt ) ; }
 				else               { assgnListp.push_back( m_assgn ) ; procstmnts.push_back( m_stmnt ) ; }
@@ -333,7 +327,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			if ( w1 == "IF" )
 			{
 				IFSTMNT m_if     ;
-				panstmnt m_stmnt ;
 				m_if.parse( err, pline ) ;
 				if ( err.error() )
 				{
@@ -341,8 +334,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 					return ;
 				}
 				if ( wordpos( m_if.if_lhs, tb_fields ) > 0 ) { m_if.if_istb = true ; }
-				m_stmnt.ps_if     = true  ;
-				m_stmnt.ps_column = pline.find_first_not_of( ' ' ) ;
+				m_stmnt.ps_if = true ;
 				if ( init )        { ifListi.push_back( m_if ) ; initstmnts.push_back( m_stmnt ) ; }
 				else if ( reinit ) { ifListr.push_back( m_if ) ; reinstmnts.push_back( m_stmnt ) ; }
 				else               { ifListp.push_back( m_if ) ; procstmnts.push_back( m_stmnt ) ; }
@@ -357,11 +349,9 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				else               { p_stmnt = &procstmnts ; p_ifList = &ifListp ; }
 				IFSTMNT m_if        ;
 				m_if.if_else = true ;
-				panstmnt m_stmnt    ;
 				j                 = 0     ;
 				found             = false ;
 				m_stmnt.ps_else   = true  ;
-				m_stmnt.ps_column = pline.find_first_not_of( ' ' ) ;
 				for ( i = p_stmnt->size()-1 ; i >= 0 ; i-- )
 				{
 					if ( p_stmnt->at( i ).ps_if || p_stmnt->at( i ).ps_else ) { j++ ; }
@@ -380,7 +370,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				}
 				if ( !found )
 				{
-					err.seterror( "No matching IF statement found for ELSE at column "+ d2ds( m_stmnt.ps_column+1 ) ) ;
+					err.seterrid( "PSYE041T", d2ds( m_stmnt.ps_column+1 ) ) ;
 					err.setsrc( oline ) ;
 					return ;
 				}
@@ -388,24 +378,21 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			}
 			if ( substr( w1, 1, 7 ) == "REFRESH"  )
 			{
-				panstmnt m_stmnt ;
-				t1 = pline ;
 				if ( init )
 				{
-					err.seterror( "REFRESH statement is invalid within the )INIT section" ) ;
-					err.setsrc( trim( t1 ) ) ;
+					err.seterrid( "PSYE041U" ) ;
+					err.setsrc( oline ) ;
 					return ;
 				}
 				m_stmnt.ps_refresh = true ;
-				m_stmnt.ps_column  = pline.find_first_not_of( ' ' ) ;
 				iupper( pline ) ;
 				pline = strip( pline.erase( 0, pline.find( "REFRESH" )+7 ) ) ;
 				if ( !isvalidName ( pline ) && pline != "*" )
 				{
 					if ( pline.front() != '(' || pline.back() != ')' )
 					{
-						err.seterror( "Invalid REFRESH statement found in )PROC or )REINIT section" ) ;
-						err.setsrc( trim( t1 ) ) ;
+						err.seterrid( "PSYE041V" ) ;
+						err.setsrc( oline ) ;
 						return ;
 					}
 					pline.pop_back() ;
@@ -423,14 +410,14 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 					{
 						if ( !isvalidName( w1 ) )
 						{
-							err.seterror( "Invalid field name '"+ w1 +"' on REFRESH statement" ) ;
-							err.setsrc( trim( t1 ) ) ;
+							err.seterrid( "PSYE041W", w1 ) ;
+							err.setsrc( oline ) ;
 							return ;
 						}
 						if ( fieldList.count( w1 ) == 0 )
 						{
-							err.seterror( "REFRESH field '"+ w1 +"' not on the panel" ) ;
-							err.setsrc( trim( t1 ) ) ;
+							err.seterrid( "PSYE041X", w1 ) ;
+							err.setsrc( oline ) ;
 							return ;
 						}
 						if ( m_stmnt.ps_rlist != "*" ) { m_stmnt.ps_rlist += " " + w1 ; }
@@ -438,8 +425,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				}
 				if ( m_stmnt.ps_rlist == "" )
 				{
-					err.seterror( "Variable name or name-list not coded for 'REFRESH' statement" ) ;
-					err.setsrc( trim( t1 ) ) ;
+					err.seterrid( "PSYE041Y" ) ;
+					err.setsrc( oline ) ;
 					return ;
 				}
 				if ( reinit ) { reinstmnts.push_back( m_stmnt ) ; }
@@ -448,9 +435,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			}
 			if ( w1 == "EXIT" && w2 == "" )
 			{
-				panstmnt m_stmnt ;
-				m_stmnt.ps_exit   = true ;
-				m_stmnt.ps_column = pline.find_first_not_of( ' ' ) ;
+				m_stmnt.ps_exit = true ;
 				if ( init )        { initstmnts.push_back( m_stmnt ) ; }
 				else if ( reinit ) { reinstmnts.push_back( m_stmnt ) ; }
 				else               { procstmnts.push_back( m_stmnt ) ; }
@@ -458,17 +443,15 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			}
 			if ( w1 == "GOTO" && w2 != "" && w3 == "" )
 			{
-				panstmnt m_stmnt ;
 				m_stmnt.ps_goto = true ;
 				w2              = upper( w2 ) ;
 				if ( !isvalidName( w2 ) )
 				{
-					err.seterror( "Invalid label '"+ w2 +"' on GOTO statement" ) ;
+					err.seterrid( "PSYE041Z", w2 ) ;
 					err.setsrc( oline ) ;
 					return ;
 				}
-				m_stmnt.ps_label  = w2 ;
-				m_stmnt.ps_column = pline.find_first_not_of( ' ' ) ;
+				m_stmnt.ps_label = w2 ;
 				if ( init )        { initstmnts.push_back( m_stmnt ) ; }
 				else if ( reinit ) { reinstmnts.push_back( m_stmnt ) ; }
 				else               { procstmnts.push_back( m_stmnt ) ; }
@@ -477,15 +460,14 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			if ( w2 == "=" && substr( w3, 1, 5 ) == "TRANS" )
 			{
 				TRANS m_trans    ;
-				panstmnt m_stmnt ;
 				m_trans.parse( err, pline ) ;
 				if ( err.error() )
 				{
 					err.setsrc( oline ) ;
 					return ;
 				}
-				m_stmnt.ps_trans  = true ;
-				m_stmnt.ps_column = pline.find_first_not_of( ' ' ) ;
+				m_stmnt.ps_trans = true ;
+				m_trans.trns_field = ( fieldList.count( m_trans.trns_field2 ) > 0 ) ;
 				if ( init )        { transListi.push_back( m_trans ) ; initstmnts.push_back( m_stmnt ) ; }
 				else if ( reinit ) { transListr.push_back( m_trans ) ; reinstmnts.push_back( m_stmnt ) ; }
 				else               { transListp.push_back( m_trans ) ; procstmnts.push_back( m_stmnt ) ; }
@@ -494,15 +476,13 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			if ( w2 == "=" && substr( w3, 1, 5 ) == "TRUNC" )
 			{
 				TRUNC m_trunc    ;
-				panstmnt m_stmnt ;
 				m_trunc.parse( err, pline ) ;
 				if ( err.error() )
 				{
 					err.setsrc( oline ) ;
 					return ;
 				}
-				m_stmnt.ps_trunc  = true ;
-				m_stmnt.ps_column = pline.find_first_not_of( ' ' ) ;
+				m_stmnt.ps_trunc = true ;
 				if ( init )        { truncListi.push_back( m_trunc ) ; initstmnts.push_back( m_stmnt ) ; }
 				else if ( reinit ) { truncListr.push_back( m_trunc ) ; reinstmnts.push_back( m_stmnt ) ; }
 				else               { truncListp.push_back( m_trunc ) ; procstmnts.push_back( m_stmnt ) ; }
@@ -511,7 +491,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			if ( w1 == "VER" )
 			{
 				VERIFY m_VER     ;
-				panstmnt m_stmnt ;
 				m_VER.parse( err, pline ) ;
 				if ( err.error() )
 				{
@@ -524,7 +503,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				}
 				m_VER.ver_field = ( fieldList.count( m_VER.ver_var ) > 0 || m_VER.ver_tbfield ) ;
 				m_stmnt.ps_verify = true ;
-				m_stmnt.ps_column = pline.find_first_not_of( ' ' ) ;
 				if ( init )        { verListi.push_back( m_VER ) ; initstmnts.push_back( m_stmnt ) ; }
 				else if ( reinit ) { verListr.push_back( m_VER ) ; reinstmnts.push_back( m_stmnt ) ; }
 				else               { verListp.push_back( m_VER ) ; procstmnts.push_back( m_stmnt ) ; }
@@ -539,20 +517,20 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			if ( i > 0 ) { j = pos( ")", pline, i ) ; }
 			if ( i == 0 || j == 0 )
 			{
-				err.seterror( "Invalid FIELD help entry in )HELP section.  Missing bracket" ) ;
+				err.seterrid( "PSYE042A" ) ;
 				err.setsrc( oline ) ;
 				return ;
 			}
 			fld = strip( substr( pline, i+6, j-i-6 ) ) ;
 			if ( !isvalidName( fld ) )
 			{
-				err.seterror( "Invalid HELP entry field name '"+ fld +"'" ) ;
+				err.seterrid( "PSYE042B", fld ) ;
 				err.setsrc( oline ) ;
 				return ;
 			}
 			if ( fieldList.find( fld ) == fieldList.end() )
 			{
-				err.seterror( "Invalid HELP statement.  Field '"+ fld +"' does not exist" ) ;
+				err.seterrid( "PSYE042C", fld ) ;
 				err.setsrc( oline ) ;
 				return ;
 			}
@@ -561,14 +539,14 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			if ( i > 0 ) { j = pos( ")", pline, i ) ; }
 			if ( i == 0 || j == 0 )
 			{
-				err.seterror( "Invalid FIELD help entry in )HELP section.  Missing bracket" ) ;
+				err.seterrid( "PSYE042A" ) ;
 				err.setsrc( oline ) ;
 				return ;
 			}
 			hlp = strip( substr( pline, i+6, j-i-6 ) ) ;
 			if ( !isvalidName( hlp ) )
 			{
-				err.seterror( "Invalid HELP entry name '"+ hlp +"'" ) ;
+				err.seterrid( "PSYE042D", hlp ) ;
 				err.setsrc( oline ) ;
 				return ;
 			}
@@ -598,14 +576,14 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				}
 				if ( !found )
 				{
-					err.seterror( "Field '"+ m_pnts.pnts_field +"' not found in panel" ) ;
+					err.seterrid( "PSYE042E", m_pnts.pnts_field ) ;
 					err.setsrc( oline ) ;
 					return ;
 				}
 			}
 			if ( fieldList.count( m_pnts.pnts_var ) == 0 )
 			{
-				err.seterror( "Variable '"+ m_pnts.pnts_var +"' not found in panel" ) ;
+				err.seterrid( "PSYE042F", m_pnts.pnts_var ) ;
 				err.setsrc( oline ) ;
 				return ;
 			}
@@ -626,7 +604,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 					t1 = strip( substr( pline, i+6, j-i-6 ) ) ;
 					if ( fieldList.find( t1 ) == fieldList.end() )
 					{
-						err.seterror( "Field '"+ t1 +"' not found on panel" ) ;
+						err.seterrid( "PSYE042E", t1 ) ;
 						err.setsrc( oline ) ;
 						return ;
 					}
@@ -634,7 +612,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			}
 			if ( i == 0 || j == 0 )
 			{
-				err.seterror( "Invalid format of FIELD() definition" ) ;
+				err.seterrid( "PSYE042G" ) ;
 				err.setsrc( oline ) ;
 				return ;
 			}
@@ -650,7 +628,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			}
 			if ( i == 0 || j == 0 )
 			{
-				err.seterror( "Invalid format of EXEC() definition" ) ;
+				err.seterrid( "PSYE042H" ) ;
 				err.setsrc( oline ) ;
 				return ;
 			}
@@ -669,14 +647,14 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				ww = word( t_fe.fieldExc_passed, i ) ;
 				if ( fieldList.find( ww ) == fieldList.end() )
 				{
-					err.seterror( "Field '"+ ww +"' passed on field command for '"+ t1 +"' is not defined in panel body" ) ;
+					err.seterrid( "PSYE042I", ww, t1 ) ;
 					err.setsrc( oline ) ;
 					return ;
 				}
 			}
 			if ( fieldExcTable.find( t1 ) != fieldExcTable.end() )
 			{
-				err.seterror( "Duplicate field command entry in )FIELD panel section for '"+ t1 +"'" ) ;
+				err.seterrid( "PSYE042J", t1 ) ;
 				err.setsrc( oline ) ;
 				return ;
 			}
@@ -903,7 +881,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 	{
 		if ( fieldList.count( "ZSCROLL" ) == 0 )
 		{
-			err.seterror( "Field ZSCROLL not defined for scrollable panel" ) ;
+			err.seterrid( "PSYE042K" ) ;
 			return ;
 		}
 		fieldList[ "ZSCROLL" ]->field_caps = true ;
@@ -911,13 +889,13 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 
 	if ( fieldList.count( Home ) == 0 )
 	{
-		err.seterror( "Home field '"+ Home +"' not defined in panel body" ) ;
+		err.seterrid( "PSYE042L", Home ) ;
 		return ;
 	}
 
 	if ( fieldList.count( CMDfield ) == 0 )
 	{
-		err.seterror( "Command field '"+ CMDfield +"' not defined in panel body" ) ;
+		err.seterrid( "PSYE042M", CMDfield ) ;
 		return ;
 	}
 
@@ -942,7 +920,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 void pPanel::readPanel( errblock& err, vector<string>& src, const string& name, const string& paths, string slist )
 {
 	int i ;
-	int j ;
+	int p ;
 
 	string filename ;
 	string pline ;
@@ -951,17 +929,14 @@ void pPanel::readPanel( errblock& err, vector<string>& src, const string& name, 
 	string type  ;
 
 	bool comment ;
-	bool found   ;
 
 	std::ifstream panl ;
 
-	if ( words( slist ) == 1 ) { type = "Panel"   ; }
-	else                       { type = "INCLUDE" ; }
+	type = ( words( slist ) == 1 ) ? "Panel" : "INCLUDE" ;
 
-	found = false ;
-	for ( i = getpaths( paths ), j = 1 ; j <= i ; j++ )
+	for ( p = getpaths( paths ), i = 1 ; i <= p ; i++ )
 	{
-		filename = getpath( paths, j ) + name ;
+		filename = getpath( paths, i ) + name ;
 		if ( exists( filename ) )
 		{
 			if ( !is_regular_file( filename ) )
@@ -969,23 +944,12 @@ void pPanel::readPanel( errblock& err, vector<string>& src, const string& name, 
 				err.seterrid( "PSYE041L", type, filename ) ;
 				return ;
 			}
-			else
-			{
-				found = true ;
-				break        ;
-			}
+			break ;
 		}
 	}
-	if ( !found )
+	if ( i > p )
 	{
-		if ( type == "Panel" )
-		{
-			err.seterrid( "PSYE021B", name, 12 ) ;
-		}
-		else
-		{
-			err.seterrid( "PSYE041P", name, 20 ) ;
-		}
+		type == "Panel" ? err.seterrid( "PSYE021B", name, 12 ) : err.seterrid( "PSYE041P", name, 20 ) ;
 		return ;
 	}
 

@@ -8,7 +8,7 @@
 PanelTitle "Save Personal File List As"
 
 literal  4   2         FP    "Command ===> "
-field    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD1
+field    4  15  MAX    NEF CAPS(ON),PAD(USER) ZCMD1
 
 literal  6  2         FP  "New Name. . . .:"
 field    6  19   8    NEF  CAPS(ON),PAD(USER) NEWNAME

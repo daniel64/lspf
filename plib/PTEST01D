@@ -122,7 +122,6 @@ VGET ZSCROLL PROFILE
 .AUTOSEL =YES
 
 )PROC
-VPUT ZSCROLL PROFILE
 
 --VER (&SEL,LIST,D,R,RO,G)
 
@@ -134,5 +133,8 @@ IF (&SEL NE &Z)
       &ZZSTR1    = 'D, R, RO and G'
       EXIT
 
+IF (.RESP = END )
+   IF (.MSG = &Z )
+      VPUT ZSCROLL PROFILE
 
 )END

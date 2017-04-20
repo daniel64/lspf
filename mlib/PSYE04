@@ -53,3 +53,68 @@ PSYE041P 'INCLUDE file ''&ZVAL1'' not found'
 PSYE041Q 'Invalid ROWS parameter ''&ZVAL1'''
 'TBMODEL ROWS parameter must be ALL or SCAN'
 
+PSYE041R 'Invalid label ''&ZVAL1'''
+''
+
+PSYE041S 'Invalid .ATTR statement. Field ''&ZVAL1'' not found'
+''
+
+PSYE041T 'No matching IF statement found for ELSE at column ''&ZVAL1'''
+''
+
+PSYE041U 'REFRESH statement is invalid within the )INIT section'
+''
+
+PSYE041V 'Invalid REFRESH statement found in )PROC or )REINIT section'
+''
+
+PSYE041W 'Invalid field name ''&ZVAL1'' on REFRESH statement'
+''
+
+PSYE041X 'REFRESH field ''&ZVAL1'' not on the panel'
+''
+
+PSYE041Y 'Variable name or name-list not coded for ''REFRESH'' statement'
+''
+
+PSYE041Z 'Invalid label ''&ZVAL1'' on GOTO statement'
+''
+
+PSYE042A 'Invalid FIELD help entry in )HELP section.  Missing bracket'
+''
+
+PSYE042B 'Invalid HELP entry field name ''&ZVAL1'''
+''
+
+PSYE042C 'Invalid HELP statement.  Field ''&ZVAL1'' does not exist'
+''
+
+PSYE042D 'Invalid HELP entry name ''&ZVAL1'''
+''
+
+PSYE042E 'Field ''&ZVAL1'' not found in panel'
+''
+
+PSYE042F 'Variable ''&ZVAL1'' not found in panel'
+''
+
+PSYE042G 'Invalid format of FIELD() definition'
+''
+
+PSYE042H 'Invalid format of REXX() definition'
+''
+
+PSYE042I 'Field ''&ZVAL1'' passed on field command for ''&ZVAL2'' is not defined in panel body'
+''
+
+PSYE042J 'Duplicate field command entry in )FIELD panel section for ''&ZVAL1'''
+''
+
+PSYE042K 'Field ZSCROLL not defined for scrollable panel'
+''
+
+PSYE042L 'Home field ''&ZVAL1'' not defined in panel body'
+''
+
+PSYE042M 'Command field ''&ZVAL1'' not defined in panel body'
+''

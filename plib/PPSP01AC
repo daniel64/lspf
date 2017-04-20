@@ -41,14 +41,15 @@ field    8  17   4      NEF CAPS(ON),PAD(USER) CMDTAB
 
 field    9  2   50 VOI  NONE APPLCMDL
 
-literal  11  2      CH    "Command  T Action                                             Description"
+literal  11  2      CH    "Command  T Action"
 literal  12  2      CH    EXPAND "-"
+literal  11  MAX-44 CH    "Description"
 
-tbmodel  13   MAX
-tbfield  2    8    VOI   NONE ZCTVERB
-tbfield  ++1  1    VOI   NONE ZCTTRUNC
-tbfield  +2   50   VOI   NONE ZCTACT
-tbfield  ++1  MAX  VOI   NONE ZCTDESC
+tbmodel  13  MAX
+tbfield  2      8      VOI   NONE ZCTVERB
+tbfield  ++1    1      VOI   NONE ZCTTRUNC
+tbfield  +2     MAX-44 VOI   NONE ZCTACT
+tbfield  MAX-44 MAX    VOI   NONE ZCTDESC
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
@@ -65,6 +66,9 @@ if ( &ZSCROLL EQ &Z )
 
 )PROC
 
+IF (.RESP = END)
+   EXIT
+
 IF (&ZCMD EQ ADD )
    .MSG    = PSYS012
    .CURSOR = ZCMD
@@ -77,7 +81,8 @@ ELSE
 
 VER (&CMDTAB,NB)
 
-VPUT ZSCROLL PROFILE
+IF ( .MSG = &Z )
+   VPUT ZSCROLL PROFILE
 
 
 )END

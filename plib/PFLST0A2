@@ -79,6 +79,6 @@ field    21   58       5  VOI NONE IMAJ
 if (&zcmd != &z )
    .msg    = PSYS011C
    .cursor = zcmd
-
+.RESP = END
 
 )END

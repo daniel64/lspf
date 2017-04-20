@@ -111,7 +111,6 @@ string& dquote( char c, string& s ) ;
 
 bool   findword( const string& s1, const string& s2 )  ;
 int    countc( const string& s, char c )       ;
-bool   matchpattern( const string& s1, const string& s2 ) ;
 
 string& iupper( string& s ) ;
 string& ilower( string& s ) ;
@@ -124,8 +123,10 @@ string& idelword( string& s, unsigned int w, unsigned int n ) ;
 bool   isnumeric( const string& s ) ;
 string d2size( int )          ;
 string hex2print( const string& t )  ;
+
 string addCommas( string t )  ;
 string addCommas( string t, int prec ) ;
+
 bool   isvalidName( const string& s )  ;
 bool   isvalidName4( const string& s ) ;
 bool   ishex( const string& s ) ;
@@ -133,7 +134,12 @@ bool   ishex( char c )           ;
 bool   isoctal( const string& s ) ;
 bool   isoctal( char c )        ;
 bool   ispict( const string&, const string& ) ;
+
 int    getpaths( const string& p ) ;
 string getpath( const string& p, int i ) ;
 string mergepaths( const string& p1, const string& p2 ) ;
+
 string parseString( errblock& err, string& s, string p ) ;
+
+void   extractWord( errblock& err, string& s, string& p ) ;
+void   extractWord( errblock& err, string& s, string& p, bool& ) ;

@@ -36,6 +36,7 @@ class PLRFLST1 : public pApplication
 		void OpenFileList( string )  ;
 		void EditFileList( string )  ;
 		void RetrieveEntry( string ) ;
+		void createDefaultTable()    ;
 
 		void userSettings() ;
 		void setRefMode( string ) ;

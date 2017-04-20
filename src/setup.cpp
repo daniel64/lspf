@@ -69,12 +69,10 @@ tableMGR * p_tableMGR = new tableMGR ;
 fPOOL funcPOOL ;
 
 void createSYSPROF() ;
-void setCUAcolours( string, string ) ;
+void setCUAcolours( const string&, const string& ) ;
 
 main()
 {
-	int RC ;
-
 	errblock err ;
 
 	string systemPath, homePath ;
@@ -352,7 +350,7 @@ main()
 	}
 	else
 	{
-		cout << "ERROR saving ISPCMDS table in " << systemPath << "tlib  RC=" << RC << endl ;
+		cout << "ERROR saving ISPCMDS table in " << systemPath << "tlib  RC=" << err.getRC() << endl ;
 		cout << "Message is " << err.msgid << endl ;
 	}
 	p_tableMGR->saveTable( err, 0, "USRCMDS", "" , systemPath + "tlib" ) ;
@@ -362,7 +360,7 @@ main()
 	}
 	else
 	{
-		cout << "ERROR saving USRCMDS table in " << systemPath << "tlib  RC=" << RC << endl ;
+		cout << "ERROR saving USRCMDS table in " << systemPath << "tlib  RC=" << err.getRC() << endl ;
 		cout << "Message is " << err.msgid << endl ;
 	}
 
@@ -498,7 +496,7 @@ void createSYSPROF()
 	cout << endl ;
 }
 
-void setCUAcolours( string var, string val )
+void setCUAcolours( const string& var, const string& val )
 {
 	string var1 ;
 

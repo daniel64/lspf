@@ -1127,7 +1127,7 @@ void execiTBTop( pApplication * thisAppl, const string& s, errblock& err )
 {
 	if ( words( s ) != 2 )
 	{
-		err.seterrid( "PSYE019C" ) ;
+		err.seterrid( "PSYE032H", subword( s, 3 ) ) ;
 		return ;
 	}
 
@@ -1140,7 +1140,7 @@ void execiTBVClear( pApplication * thisAppl, const string& s, errblock& err )
 {
 	if ( words( s ) != 2 )
 	{
-		err.seterrid( "PSYE019C" ) ;
+		err.seterrid( "PSYE032H", subword( s, 3 ) ) ;
 		return ;
 	}
 
