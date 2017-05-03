@@ -27,6 +27,9 @@ PSYE031G 'No parameter value coded'
 PSYE031H 'Quoted string not allowed'
 ''
 
+PSYE031I 'Invalid msg-id ''&ZVAL1'''
+''
+
 /* dynamic areas */
 PSYE032A 'Dynamic Area outside panel area'
 'ROW=&ZVAL1 ZSCRMAXD=&ZVAL2'
@@ -75,8 +78,8 @@ PSYE033E 'Invalid comparison operator'
 PSYE033F 'Missing ending quote'
 'String starts with a quote but no ending quote found'
 
-PSYE033G 'Invalid value &ZVAL1'
-'Boolian value has to be .TRUE or .FALSE'
+PSYE033G 'Unrecognised control variable ''&ZVAL1'''
+''
 
 PSYE033H 'List not allowed'
 'A value list is allowed on the right hand side only for EQ and NE comparisons'
@@ -118,12 +121,15 @@ PSYE033R 'Too many parameters after the ''='' sign'
 PSYE033S 'Invalid control variable'
 '&ZVAL1 is not a known control variable'
 
+PSYE033T 'Missing parameter after the ''='' sign'
+''
+
 /* VPUT/VGET */
 
-PSYE033T 'Invalid VPUT or VGET statement'
+PSYE033Y 'Invalid VPUT or VGET statement'
 'Missing parameters on statement'
 
-PSYE033U 'Invalid pool type ''&ZVAL1'''
+PSYE033Z 'Invalid pool type ''&ZVAL1'''
 'Pool type must be SHARED, PROFILE, ASIS or blank'
 
 /* Box */

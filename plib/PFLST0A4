@@ -30,7 +30,7 @@ field    12   25  MAX  NEF PAD(USER) NEWENTRY
 literal 15 2  CH "Instructions"
 literal 16 2  NT "Enter"
 literal 16 8  ET "."
-literal 16 10 NT "in Newpath Name field to retrieve path name"
+literal 16 10 NT "in Newpath Name field to retrieve full path name"
 
 literal 18 2  NT "Press"
 literal 18 8  ET "Enter"
@@ -51,29 +51,27 @@ literal 19 22 NT "to cancel rename"
 .CURSOR    = NEWENTRY
  &NEWENTRY = &ENTRY
 
-
 )PROC
 
 &ZCMD = TRANS( &ZCMD CAN,CANCEL *,* )
 ver (&zcmd,list,cancel )
-if ( &zcmd eq cancel )
-   exit
+
+if ( &zcmd eq cancel ) exit
 
 IF (&NEWENTRY EQ '.' )
-  &NEWENTRY = &ZPATH
+  &NEWENTRY = '&ZPATH/&ENTRY '
   .CURSOR   = NEWENTRY
-  .CSRPOS   = length(zpath)
+  .CSRPOS   = length(NEWENTRY)
   .MSG      = FLST012
-  REFRESH(NEWENTRY)
+  REFRESH (NEWENTRY)
   EXIT
 
-IF (&NEWENTRY EQ &ENTRY )
+IF ( '&ZPATH/&ENTRY' EQ '&ZPATH/&NEWENTRY',&NEWENTRY )
   .CURSOR = NEWENTRY
   .MSG    = FLST013
   EXIT
 
 VER (&NEWENTRY NB)
-VER (&ZCMD LIST CAN CANCEL)
 
 )FIELD
  FIELD(NEWENTRY) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL)')

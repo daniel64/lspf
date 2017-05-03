@@ -2,7 +2,7 @@
 /* System message file for lspf        */
 /*                                     */
 
-PSYS011 '"&ZCTMVAR" is not active' .TYPE=W
+PSYS011 '"&ZCTMVAR" is not active' .TYPE=N
 'Command or function key entered is not defined'
 
 PSYS012 'Function not yet implemented' .TYPE=W
@@ -156,3 +156,6 @@ PSYS012N 'Invalid command delimiter' .TYPE=W
 PSYS012O 'Invalid PAD value' .TYPE=W
 'PAD value cannot be a-z, A-Z, 0-9 and / except N for nulls' +
 'and B for blank. It must also be different from the command delimiter'
+
+PSYS012P 'Invalid REGEX entered' .TYPE=W
+''

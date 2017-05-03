@@ -17,7 +17,342 @@
 
 */
 
-void IFSTMNT::parse( errblock& err, string s )
+void parser::parseStatement( errblock& err, string s )
+{
+	bool quoted ;
+	char c1     ;
+
+	string u ;
+
+	token  t ;
+
+	string::const_iterator it ;
+
+	tokens.clear() ;
+
+	err.setRC( 0 ) ;
+	idx = 0     ;
+	it  = s.begin() ;
+
+	while ( it != s.end() )
+	{
+		getNextString( err, it, s, u, quoted ) ;
+		if ( err.error() ) { return ; }
+		if ( u == "" ) { break ; }
+		c1 = u.front() ;
+		if ( quoted )
+		{
+			t.type  = TT_STRING_QUOTED ;
+			t.value = u ;
+		}
+		else if ( u.size() > 1 && ( c1 == '=' || c1 == '<' || c1 =='>' || c1 == '!' ) )
+		{
+			t.type  = TT_COMPARISON_OP ;
+			t.value = u ;
+		}
+		else if ( c1 == '&' )
+		{
+			if ( optUpper ) { iupper( u ) ; }
+			if ( isvalidName( u.substr( 1 ) ) )
+			{
+				t.type = TT_AMPR_VAR_VALID ;
+			}
+			else
+			{
+				t.type = TT_AMPR_VAR_INVALID ;
+			}
+			t.value = u ;
+		}
+		else if ( c1 == '.' )
+		{
+			if ( optUpper ) { iupper( u ) ; }
+			if ( !isvalidName( u.substr( 1 ) ) )
+			{
+				t.type = TT_CTL_VAR_INVALID ;
+			}
+			else
+			{
+				t.type = TT_CTL_VAR_VALID ;
+			}
+			t.value = u ;
+		}
+		else if ( u == "(" )
+		{
+			t.type  = TT_OPEN_BRACKET ;
+			t.value = "(" ;
+		}
+		else if ( u == ")" )
+		{
+			t.type  = TT_CLOSE_BRACKET ;
+			t.value = ")" ;
+		}
+		else if ( u == "," )
+		{
+			t.type  = TT_COMMA ;
+			t.value = "," ;
+		}
+		else if ( u == "=" )
+		{
+			t.type  = TT_EQUALS ;
+			t.value = "=" ;
+		}
+		else
+		{
+			if ( optUpper ) { iupper( u ) ; }
+			if ( isvalidName( u ) )
+			{
+				t.type  = TT_VAR_VALID ;
+			}
+			else
+			{
+				t.type  = TT_STRING_UNQUOTED ;
+			}
+			t.value = u ;
+		}
+		t.idx = tokens.size() ;
+		tokens.push_back( t ) ;
+	}
+	tokens.size() > 0 ? current_token = tokens[ 0 ] : current_token = token() ;
+}
+
+
+int parser::getEntries()
+{
+	return tokens.size() ;
+}
+
+
+void parser::eraseTokens( int i )
+{
+	if ( i == -1 )
+	{
+		tokens.clear() ;
+		return ;
+	}
+
+	tokens.erase( tokens.begin(), tokens.begin() + i + 1 ) ;
+
+	for ( int j = 0 ; j < tokens.size() ; j++ )
+	{
+		tokens[ j ].idx = j ;
+	}
+}
+
+
+token parser::getToken( int i )
+{
+	if ( i < tokens.size() )
+	{
+		return tokens[ i ] ;
+	}
+	return token() ;
+}
+
+
+token parser::getFirstToken()
+{
+	idx = 0 ;
+
+	tokens.size() > 0 ? current_token = tokens[ 0 ] : current_token = token() ;
+	return current_token ;
+}
+
+
+token parser::getNextToken()
+{
+	idx++ ;
+
+	tokens.size() > idx ? current_token = tokens[ idx ] : current_token = token() ;
+	return current_token ;
+}
+
+
+token parser::getCurrentToken()
+{
+	return current_token ;
+}
+
+
+string parser::getCurrentValue()
+{
+	return current_token.value ;
+}
+
+
+bool parser::isCurrentType( TOKEN_TYPES t )
+{
+	return ( t == current_token.type ) ;
+}
+
+
+bool parser::getNextIfCurrent( TOKEN_TYPES tok )
+{
+	if ( current_token.type == tok )
+	{
+		idx++ ;
+		idx < tokens.size() ? current_token = tokens[ idx ] : current_token = token() ;
+		return true ;
+	}
+	return false ;
+}
+
+
+STATEMENT_TYPE parser::getStatementType()
+{
+	// Return the panel language statement type, ST_EOF if empty or ST_ERROR if not recognised.
+
+	if ( tokens.size() == 0 )
+	{
+		return ST_EOF ;
+	}
+
+	token t = getToken( 0 ) ;
+
+	if      ( t.value == "IF" )      { return ST_IF      ; }
+	else if ( t.value == "ELSE" )    { return ST_ELSE    ; }
+	else if ( t.value == "VGET" )    { return ST_VGET    ; }
+	else if ( t.value == "VPUT" )    { return ST_VPUT    ; }
+	else if ( t.value == "GOTO" )    { return ST_GOTO    ; }
+	else if ( t.value == "EXIT" )    { return ST_EXIT    ; }
+	else if ( t.value == "VER" )     { return ST_VERIFY  ; }
+	else if ( t.value == "REFRESH" ) { return ST_REFRESH ; }
+
+
+	for ( int i = 0 ; i < tokens.size() ; i++ )
+	{
+		t = tokens[ i ] ;
+		if ( t.type == TT_EQUALS )
+		{
+			t = getToken( t.idx + 1 ) ;
+			if      ( t.value == "TRUNC" ) { return ST_TRUNC  ; }
+			else if ( t.value == "TRANS" ) { return ST_TRANS  ; }
+			else                           { return ST_ASSIGN ; }
+		}
+	}
+
+	return ST_ERROR ;
+}
+
+
+
+void parser::getNextString( errblock& err, string::const_iterator& it, const string& s, string& r, bool& quoted )
+{
+	// Get the next word in list s and place in r.
+	// Words can be delimited by space or "()=,<>!".  "()=,<>!" are also returned as words.
+
+	const string delims = " (),=<>!" ;
+	const string compar = "=<>!"     ;
+
+	string::const_iterator itt ;
+
+	err.setRC( 0 ) ;
+
+	quoted = false ;
+	r      = ""    ;
+
+	while ( it != s.end() && (*it) == ' ' ) { it++ ; }
+	if ( it == s.end() )
+	{
+		return ;
+	}
+
+	if ( (*it) == '=' )
+	{
+		it++ ;
+		if ( it == s.end() || ( (*it) != '<' && (*it) !='>' && (*it) != '!' ) )
+		{
+			r = "=" ;
+			return ;
+		}
+	}
+
+	if ( (*it) == '=' || (*it) == '<' || (*it) =='>' || (*it) == '!' )
+	{
+		itt = it ;
+		it++ ;
+		while ( it != s.end() && ( compar.find( (*it) ) != string::npos ) ) { it++ ; }
+		r.assign( itt, it ) ;
+		return ;
+	}
+	else if ( (*it) == ',' || (*it) == '(' || (*it) == ')' )
+	{
+		r = (*it) ;
+		it++ ;
+	}
+	else if ( (*it) == '\'' )
+	{
+		it++ ;
+		itt = it ;
+		while ( it != s.end() && (*it) != '\'' ) { it++ ; }
+		if ( it == s.end() )
+		{
+			err.seterrid( "PSYE033F" ) ;
+			return ;
+		}
+		quoted = true ;
+		r.assign( itt, it ) ;
+		it++ ;
+	}
+	else
+	{
+		itt = it ;
+		while ( it != s.end() && ( delims.find( (*it) ) == string::npos ) ) { it++ ; }
+		r.assign( itt, it ) ;
+	}
+}
+
+
+void parser::getNameList( errblock& err, string& r )
+{
+	// Return a list of valid variable names (type TT_VAR_VALID or TT_AMPR_VAR_VALID)
+	// separated by spaces or commas and between brackets or a single entry.
+
+	err.setRC( 0 ) ;
+
+	if ( getNextIfCurrent( TT_OPEN_BRACKET ) )
+	{
+		if ( getNextIfCurrent( TT_CLOSE_BRACKET ) )
+		{
+			err.seterrid( "PSYE031G" ) ;
+			return ;
+		}
+		while ( true )
+		{
+			if ( getNextIfCurrent( TT_COMMA ) ) { continue ; }
+			if ( getNextIfCurrent( TT_CLOSE_BRACKET ) ) { break ; }
+			if ( current_token.type == TT_VAR_VALID ||
+			     current_token.type == TT_AMPR_VAR_VALID )
+			{
+				r += " " + current_token.value ;
+				getNextToken() ;
+			}
+			else if ( current_token.type == TT_EOF )
+			{
+				err.seterrid( "PSYE032D", current_token.value ) ;
+				return ;
+			}
+			else
+			{
+				err.seterrid( "PSYE031D", current_token.value ) ;
+				return ;
+			}
+		}
+	}
+	else if ( current_token.type == TT_VAR_VALID ||
+		  current_token.type == TT_AMPR_VAR_VALID )
+	{
+		r = current_token.value ;
+		getNextToken() ;
+	}
+	else
+	{
+		err.seterrid( "PSYE031D", current_token.value ) ;
+		return ;
+	}
+}
+
+
+void IFSTMNT::parse( errblock& err, parser& v )
 {
 	// Format of the IF panel statement
 
@@ -31,255 +366,136 @@ void IFSTMNT::parse( errblock& err, string s )
 	// IF ( &Z EQ .TRUE )
 	// IF ( &Z EQ .FALSE ) .TRUE = "1" and .FALSE = "0"
 	// rhs value lists only for EQ and NE (EQ only one needs to be true, NE all need to be true)
-	// IF ( VER (&A...) )
+	// IF ( VER (&A...) ) STATEMENT
 
-	int p1 ;
-	int p2 ;
+	VERIFY* m_ver = new VERIFY ;
 
-	bool f_end ;
+	token t ;
 
-	string t    ;
-	string comp ;
+	const string controlVars = ".ALARM .CSRPOS .CURSOR .HELP .MSG .RESP .TRAIL" ;
 
-	p1 = s.find( '(' ) ;
-	if ( p1 == string::npos )
+	v.getFirstToken() ;
+	v.getNextToken()  ;
+
+	err.setRC( 0 ) ;
+
+	if ( !v.getNextIfCurrent( TT_OPEN_BRACKET ) )
 	{
 		err.seterrid( "PSYE033D" ) ;
 		return ;
 	}
-	trim( s.erase( 0, p1+1 ) ) ;
 
-	p1 = s.find( '(' ) ;
-	if ( p1 != string::npos )
+	t = v.getCurrentToken() ;
+	if ( t.value == "VER" )
 	{
-		t = strip( s.substr( 0, p1 ) ) ;
-		if ( t == "VER" )
+		m_ver = new VERIFY ;
+		v.eraseTokens( 1 ) ;
+		m_ver->parse( err, v, true ) ;
+		if ( err.error() ) { delete m_ver ; return ; }
+		if ( m_ver->ver_msgid != "" )
 		{
-			if ( s.back() != ')' )
-			{
-				err.seterrid( "PSYE032D" ) ;
-				return ;
-			}
-			s.pop_back() ;
-			if_verify.parse( err, s ) ;
-			if ( err.error() ) { return ; }
-			if ( if_verify.ver_msgid != "" )
-			{
-				err.seterrid( "PSYE033A" ) ;
-				return ;
-			}
-			if_ver = true ;
+			err.seterrid( "PSYE033A" ) ;
+			delete m_ver ;
 			return ;
 		}
-	}
-
-	p1 = s.find_first_of( "=><!" ) ;
-	if ( p1 == string::npos )
-	{
-		p2 = s.find( ' ' ) ;
-		if ( p2 == string::npos )
+		t = v.getCurrentToken() ;
+		if ( !v.getNextIfCurrent( TT_CLOSE_BRACKET ) )
 		{
-			err.seterrid( "PSYE033B" ) ;
+			err.seterrid( "PSYE032D" ) ;
+			delete m_ver ;
 			return ;
 		}
-		if_lhs = upper( strip( s.substr( 0, p2 ) ) ) ;
-		p1 = s.find_first_not_of( ' ', p2 ) ;
-		if ( p1 == string::npos )
-		{
-			err.seterrid( "PSYE033B" ) ;
-			return ;
-		}
-		p2 = s.find( ' ', p1 ) ;
-		if ( p2 == string::npos )
-		{
-			err.seterrid( "PSYE033B" ) ;
-			return ;
-		}
-	}
-	else
-	{
-		p2 = s.find_first_not_of( "=><!", p1 ) ;
-		if ( p2 == string::npos )
-		{
-			err.seterrid( "PSYE033B" ) ;
-			return ;
-		}
-		if_lhs = upper( strip( s.substr( 0, p1 ) ) ) ;
-	}
-
-	comp = s.substr( p1, p2-p1 ) ;
-	trim( s.erase( 0, p2 ) ) ;
-
-	if ( words( if_lhs ) != 1 )
-	{
-		err.seterrid( "PSYE033C" ) ;
-		return ;
-	}
-	if      ( if_lhs == ".CURSOR" ) {}
-	else if ( if_lhs == ".MSG"    ) {}
-	else if ( if_lhs == ".RESP"   ) {}
-	else if ( if_lhs.front() != '&' )
-	{
-		err.seterrid( "PSYE033I", if_lhs ) ;
-		return ;
-	}
-	else
-	{
-		if_lhs.erase( 0, 1 ) ;
-		if ( !isvalidName( if_lhs ) )
-		{
-			err.seterrid( "PSYE031D", if_lhs ) ;
-			return ;
-		}
-	}
-
-	iupper( comp ) ;
-	if      ( comp == "="  ) { if_eq = true ; }
-	else if ( comp == "EQ" ) { if_eq = true ; }
-	else if ( comp == "!=" ) { if_ne = true ; }
-	else if ( comp == "NE" ) { if_ne = true ; }
-	else if ( comp == ">"  ) { if_gt = true ; }
-	else if ( comp == "GT" ) { if_gt = true ; }
-	else if ( comp == "<"  ) { if_lt = true ; }
-	else if ( comp == "LT" ) { if_lt = true ; }
-	else if ( comp == ">=" ) { if_ge = true ; }
-	else if ( comp == "=>" ) { if_ge = true ; }
-	else if ( comp == "GE" ) { if_ge = true ; }
-	else if ( comp == "<=" ) { if_le = true ; }
-	else if ( comp == "=<" ) { if_le = true ; }
-	else if ( comp == "LE" ) { if_le = true ; }
-	else if ( comp == "!>" ) { if_ng = true ; }
-	else if ( comp == "NG" ) { if_ng = true ; }
-	else if ( comp == "!<" ) { if_nl = true ; }
-	else if ( comp == "NL" ) { if_nl = true ; }
-	else
-	{
-		err.seterrid( "PSYE033E", comp ) ;
+		v.eraseTokens( t.idx ) ;
+		if_verify = m_ver ;
 		return ;
 	}
 
-	f_end = false ;
+	if_lhs = t.value ;
+	if ( if_lhs == "" )
+	{
+		err.seterrid( "PSYE033B" ) ;
+		return ;
+	}
+	else if ( t.type != TT_STRING_QUOTED && if_lhs.front() == '.' )
+	{
+		if ( !findword( if_lhs, controlVars ) )
+		{
+			err.seterrid( "PSYE033G", if_lhs ) ;
+			return ;
+		}
+	}
+
+	t = v.getNextToken() ;
+
+	if      ( t.value == "="  ) { if_eq = true ; }
+	else if ( t.value == "EQ" ) { if_eq = true ; }
+	else if ( t.value == "!=" ) { if_ne = true ; }
+	else if ( t.value == "NE" ) { if_ne = true ; }
+	else if ( t.value == ">"  ) { if_gt = true ; }
+	else if ( t.value == "GT" ) { if_gt = true ; }
+	else if ( t.value == "<"  ) { if_lt = true ; }
+	else if ( t.value == "LT" ) { if_lt = true ; }
+	else if ( t.value == ">=" ) { if_ge = true ; }
+	else if ( t.value == "=>" ) { if_ge = true ; }
+	else if ( t.value == "GE" ) { if_ge = true ; }
+	else if ( t.value == "<=" ) { if_le = true ; }
+	else if ( t.value == "=<" ) { if_le = true ; }
+	else if ( t.value == "LE" ) { if_le = true ; }
+	else if ( t.value == "!>" ) { if_ng = true ; }
+	else if ( t.value == "NG" ) { if_ng = true ; }
+	else if ( t.value == "!<" ) { if_nl = true ; }
+	else if ( t.value == "NL" ) { if_nl = true ; }
+	else
+	{
+		err.seterrid( "PSYE033E", t.value ) ;
+		return ;
+	}
 
 	while ( true )
 	{
-		if ( s.front() == '&' )
+		t = v.getNextToken() ;
+		if ( t.type == TT_EOF )
 		{
-			p1 = s.find( ',' ) ;
-			if ( p1 == string::npos )
-			{
-				p1 = s.find( ')' ) ;
-				if ( p1 == string::npos )
-				{
-					err.seterrid( "PSYE032D" ) ;
-					return ;
-				}
-				f_end = true ;
-			}
-			t = upper( strip( s.substr( 0, p1 ) ) ) ;
-			t.erase( 0, 1 ) ;
-			if ( !isvalidName( t ) )
-			{
-				err.seterrid( "PSYE031D", t ) ;
-				return ;
-			}
-			if_isvar.push_back( true ) ;
-		}
-		else if ( s.front()  == '\'' )
-		{
-			s.erase( 0, 1 ) ;
-			p1 = s.find( '\'' ) ;
-			if ( p1 == string::npos )
-			{
-				err.seterrid( "PSYE033F" ) ;
-				return ;
-			}
-			t  = s.substr( 0, p1 ) ;
-			trim( s.erase( 0, p1+1 ) ) ;
-			p1 = s.find( ',' ) ;
-			if ( p1 == string::npos )
-			{
-				p1 = s.find( ')' ) ;
-				if ( p1 == string::npos )
-				{
-					err.seterrid( "PSYE032D" ) ;
-					return ;
-				}
-				f_end = true ;
-			}
-			if_isvar.push_back( false ) ;
-		}
-		else if ( s.front() == '.' )
-		{
-			s.erase( 0, 1 ) ;
-			p1 = s.find( ',' ) ;
-			if ( p1 == string::npos )
-			{
-				p1 = s.find( ')' ) ;
-				if ( p1 == string::npos )
-				{
-					err.seterrid( "PSYE032D" ) ;
-					return ;
-				}
-				f_end = true ;
-			}
-			t = upper( strip( s.substr( 0, p1 ) ) ) ;
-			if      ( t == "TRUE" )  { t = "1" ; }
-			else if ( t == "FALSE" ) { t = "0" ; }
-			else
-			{
-				err.seterrid( "PSYE033G", t ) ;
-				return ;
-			}
-			if_isvar.push_back( false ) ;
-		}
-		else
-		{
-			p1 = s.find( ',' ) ;
-			if ( p1 == string::npos )
-			{
-				p1 = s.find( ')' ) ;
-				if ( p1 == string::npos )
-				{
-					err.seterrid( "PSYE032D" ) ;
-					return ;
-				}
-				f_end = true ;
-			}
-			t = upper( strip( s.substr( 0, p1 ) ) ) ;
-			if ( t == "" || (t.find_first_of( " )" ) != string::npos) )
-			{
-				err.seterrid( "PSYE033B" ) ;
-				return ;
-			}
-			if_isvar.push_back( false ) ;
-		}
-		if_rhs.push_back( t ) ;
-		trim( s.erase( 0, p1+1 ) ) ;
-		if ( s == "" && !f_end )
-		{
-			err.seterrid( "PSYE033B" ) ;
+			err.seterrid( "PSYE032D" ) ;
 			return ;
 		}
-		if ( f_end ) { break ; }
+		else if ( t.type == TT_COMMA )
+		{
+			continue ;
+		}
+		else if ( t.type == TT_CLOSE_BRACKET )
+		{
+			break ;
+		}
+		else if ( t.type != TT_STRING_QUOTED && t.value.front() == '.' )
+		{
+			if      ( findword( t.value, controlVars ) ) {}
+			else if ( t.value == ".TRUE" )  { t.value = "1" ; }
+			else if ( t.value == ".FALSE" ) { t.value = "0" ; }
+			else
+			{
+				err.seterrid( "PSYE033G", t.value ) ;
+				return ;
+			}
+		}
+		if_rhs.push_back( t.value ) ;
 	}
-	if ( s != "" )
-	{
-		err.seterrid( "PSYE032H", s ) ;
-		return ;
-	}
+
 	if ( ( !if_eq && !if_ne ) && if_rhs.size() > 1 )
 	{
 		err.seterrid( "PSYE033H" ) ;
 		return ;
 	}
-	return ;
+
+	v.eraseTokens( t.idx ) ;
 }
 
 
-void ASSGN::parse( errblock& err, string s )
+void ASSGN::parse( errblock& err, parser& v )
 {
 	// Format of the assignment panel statement
 
+	// .ATTR(ZCMD) = 'xxxx'
 	// &AAA = &BBBB
 	// &AAA = VALUE
 	// &AAA = 'Quoted Value'
@@ -293,630 +509,415 @@ void ASSGN::parse( errblock& err, string s )
 	// &A   = FILE( ABC )   True if file in variable ABC exists
 	// &A   = DIR( ABC )    True if directory in variable ABC exists
 
-	int p  ;
-	int p1 ;
+	token t ;
 
 	const string lhs_control = ".ALARM .AUTOSEL .BROWSE .CURSOR .CSRROW .CSRPOS .EDIT .HELP .MSG .NRET .RESP" ;
 	const string rhs_control = ".ALARM .CSRPOS .CURSOR .HELP .MSG .TRAIL .RESP" ;
+	const string functn_list = "DIR EXISTS FILE LENGTH REVERSE WORDS UPPER" ;
 
-	p = s.find( '=' ) ;
-	if ( p == string::npos )
+	err.setRC( 0 ) ;
+
+	t = v.getFirstToken() ;
+	if ( t.type == TT_STRING_QUOTED )
 	{
-		err.seterrid( "PSYE033O" ) ;
+		err.seterrid( "PSYE031H" ) ;
 		return ;
 	}
-	as_lhs = upper( strip( s.substr( 0, p ) ) ) ;
-	if ( words( as_lhs ) != 1 )
+
+	if ( v.getNextIfCurrent( TT_AMPR_VAR_VALID ) )
 	{
-		err.seterrid( "PSYE033P" ) ;
-		return ;
+		as_lhs = t.value.substr( 1 ) ;
 	}
-	if ( findword( as_lhs, lhs_control ) ) {}
-	else if ( as_lhs.substr( 0, 6 ) == ".ATTR(" )
+	else if ( t.value == ".ATTR" )
 	{
-		p1 = as_lhs.find( ')' ) ;
-		if ( p1 == string::npos )
+		v.getNextToken() ;
+		if ( !v.getNextIfCurrent( TT_OPEN_BRACKET ) )
 		{
-			err.seterrid( "PSYE032D" ) ;
+			err.seterrid( "PSYE033D" ) ;
 			return ;
 		}
-		as_lhs = strip( as_lhs.substr( 6, p1-6 ) ) ;
-		if ( !isvalidName( as_lhs ) )
+		if ( v.isCurrentType( TT_CLOSE_BRACKET ) )
+		{
+			err.seterrid( "PSYE031G" ) ;
+			return ;
+		}
+		as_lhs = v.getCurrentValue() ;
+		if ( !v.getNextIfCurrent( TT_VAR_VALID ) )
 		{
 			err.seterrid( "PSYE031D", as_lhs ) ;
+			return ;
+		}
+		if ( !v.getNextIfCurrent( TT_CLOSE_BRACKET ) )
+		{
+			err.seterrid( "PSYE032D" ) ;
 			return ;
 		}
 		as_isattr = true ;
 	}
-	else if ( as_lhs.front() == '&' )
+	else if ( findword( t.value, lhs_control ) )
 	{
-		as_lhs.erase( 0, 1 ) ;
-		if ( !isvalidName( as_lhs ) )
-		{
-			err.seterrid( "PSYE031D", as_lhs ) ;
-			return ;
-		}
+		as_lhs = t.value ;
+		t      = v.getNextToken() ;
 	}
 	else
 	{
-		err.seterrid( "PSYE033Q", as_lhs ) ;
+		err.seterrid( "PSYE033Q", t.value ) ;
 		return ;
 	}
-	trim( s.erase( 0, p+1 ) ) ;
-	if ( s.front() == '&' )
+
+
+	if ( !v.getNextIfCurrent( TT_EQUALS ) )
 	{
-		if ( words( s ) != 1 )
-		{
-			err.seterrid( "PSYE033R" ) ;
-			return ;
-		}
-		s.erase( 0, 1 ) ;
-		s = upper( s )  ;
-		if ( !isvalidName( s ) )
-		{
-			err.seterrid( "PSYE031D", s ) ;
-			return ;
-		}
-		as_rhs   = s    ;
-		as_isvar = true ;
+		err.seterrid( "PSYE033O" ) ;
+		return ;
 	}
-	else if ( s.front() == '\'' )
+
+	t = v.getCurrentToken() ;
+	if ( v.getNextIfCurrent( TT_CTL_VAR_VALID ) )
 	{
-		s.erase( 0, 1 ) ;
-		p = s.find( '\'' ) ;
-		if ( p == string::npos )
+		if ( findword( t.value, rhs_control ) )
 		{
-			err.seterrid( "PSYE033F" ) ;
-			return ;
+			as_rhs = t.value ;
 		}
-		as_rhs = s.substr( 0, p ) ;
-		trim( s.erase( 0, p+1 ) ) ;
-		if ( s != "" )
+		else
 		{
-			err.seterrid( "PSYE032H", s ) ;
+			err.seterrid( "PSYE033S", t.value ) ;
 			return ;
 		}
 	}
-	else if ( upper( s.substr( 0, 4 ) ) == "DIR(" )
+	else if ( findword( t.value, functn_list ) )
 	{
-		iupper( s )  ;
-		trim( s.erase( 0, 4 ) ) ;
-		p = s.find( ')' ) ;
-		if ( p == string::npos )
+		if      ( t.value == "DIR"     ) { as_chkdir  = true ; }
+		else if ( t.value == "EXISTS"  ) { as_chkexst = true ; }
+		else if ( t.value == "FILE"    ) { as_chkfile = true ; }
+		else if ( t.value == "LENGTH"  ) { as_retlen  = true ; }
+		else if ( t.value == "REVERSE" ) { as_reverse = true ; }
+		else if ( t.value == "WORDS"   ) { as_words   = true ; }
+		else                             { as_upper   = true ; }
+		t = v.getNextToken() ;
+		if ( !v.getNextIfCurrent( TT_OPEN_BRACKET ) )
 		{
-			err.seterrid( "PSYE032D" ) ;
+			err.seterrid( "PSYE033D" ) ;
 			return ;
 		}
-		as_rhs = strip( s.substr( 0, p ) ) ;
-		if ( !isvalidName( as_rhs ) )
+		if ( v.isCurrentType( TT_CLOSE_BRACKET ) )
+		{
+			err.seterrid( "PSYE031G" ) ;
+			return ;
+		}
+		as_rhs = v.getCurrentValue() ;
+		if ( !v.getNextIfCurrent( TT_VAR_VALID ) )
 		{
 			err.seterrid( "PSYE031D", as_rhs ) ;
 			return ;
 		}
-		trim( s.erase( 0, p+1 ) ) ;
-		if ( s != "" )
-		{
-			err.seterrid( "PSYE032H", s ) ;
-			return ;
-		}
-		as_isvar  = true ;
-		as_chkdir = true ;
-	}
-	else if ( upper( s.substr( 0, 7 ) ) == "EXISTS(" )
-	{
-		iupper( s )  ;
-		trim( s.erase( 0, 7 ) ) ;
-		p = s.find( ')' ) ;
-		if ( p == string::npos )
+		if ( !v.getNextIfCurrent( TT_CLOSE_BRACKET ) )
 		{
 			err.seterrid( "PSYE032D" ) ;
-			return ;
-		}
-		as_rhs = strip( s.substr( 0, p ) ) ;
-		if ( !isvalidName( as_rhs ) )
-		{
-			err.seterrid( "PSYE031D", as_rhs ) ;
-			return ;
-		}
-		trim( s.erase( 0, p+1 ) ) ;
-		if ( s != "" )
-		{
-			err.seterrid( "PSYE032H", s ) ;
-			return ;
-		}
-		as_isvar   = true ;
-		as_chkexst = true ;
-	}
-	else if ( upper( s.substr( 0, 5 ) ) == "FILE(" )
-	{
-		iupper( s )  ;
-		trim( s.erase( 0, 5 ) ) ;
-		p = s.find( ')' ) ;
-		if ( p == string::npos )
-		{
-			err.seterrid( "PSYE032D" ) ;
-			return ;
-		}
-		as_rhs = strip( s.substr( 0, p ) ) ;
-		if ( !isvalidName( as_rhs ) )
-		{
-			err.seterrid( "PSYE031D", as_rhs ) ;
-			return ;
-		}
-		trim( s.erase( 0, p+1 ) ) ;
-		if ( s != "" )
-		{
-			err.seterrid( "PSYE032H", s ) ;
-			return ;
-		}
-		as_isvar   = true ;
-		as_chkfile = true ;
-	}
-	else if ( upper( s.substr( 0, 7 ) ) == "LENGTH(" )
-	{
-		iupper( s )  ;
-		trim( s.erase( 0, 7 ) ) ;
-		p = s.find( ')' ) ;
-		if ( p == string::npos )
-		{
-			err.seterrid( "PSYE032D" ) ;
-			return ;
-		}
-		as_rhs = strip( s.substr( 0, p ) ) ;
-		if ( !isvalidName( as_rhs ) )
-		{
-			err.seterrid( "PSYE031D", as_rhs ) ;
-			return ;
-		}
-		trim( s.erase( 0, p+1 ) ) ;
-		if ( s != "" )
-		{
-			err.seterrid( "PSYE032H", s ) ;
-			return ;
-		}
-		as_isvar  = true ;
-		as_retlen = true ;
-	}
-	else if ( upper( s.substr( 0, 8 ) ) == "REVERSE(" )
-	{
-		iupper( s )  ;
-		trim( s.erase( 0, 8 ) ) ;
-		p = s.find( ')' ) ;
-		if ( p == string::npos )
-		{
-			err.seterrid( "PSYE032D" ) ;
-			return ;
-		}
-		as_rhs = strip( s.substr( 0, p ) ) ;
-		if ( !isvalidName( as_rhs ) )
-		{
-			err.seterrid( "PSYE031D", as_rhs ) ;
-			return ;
-		}
-		trim( s.erase( 0, p+1 ) ) ;
-		if ( s != "" )
-		{
-			err.seterrid( "PSYE032H", s ) ;
-			return ;
-		}
-		as_isvar   = true ;
-		as_reverse = true ;
-	}
-	else if ( upper( s.substr( 0, 6 ) ) == "WORDS(" )
-	{
-		iupper( s )  ;
-		trim( s.erase( 0, 6 ) ) ;
-		p = s.find( ')' ) ;
-		if ( p == string::npos )
-		{
-			err.seterrid( "PSYE032D" ) ;
-			return ;
-		}
-		as_rhs = strip( s.substr( 0, p ) ) ;
-		if ( !isvalidName( as_rhs ) )
-		{
-			err.seterrid( "PSYE031D", as_rhs ) ;
-			return ;
-		}
-		trim( s.erase( 0, p+1 ) ) ;
-		if ( s != "" )
-		{
-			err.seterrid( "PSYE032H", s ) ;
 			return ;
 		}
 		as_isvar = true ;
-		as_words = true ;
-	}
-	else if ( upper( s.substr( 0, 6 ) ) == "UPPER(" )
-	{
-		iupper( s )  ;
-		trim( s.erase( 0, 6 ) ) ;
-		p = s.find( ')' ) ;
-		if ( p == string::npos )
-		{
-			err.seterrid( "PSYE032D" ) ;
-			return ;
-		}
-		as_rhs = strip( s.substr( 0, p ) ) ;
-		if ( !isvalidName( as_rhs ) )
-		{
-			err.seterrid( "PSYE031D", as_rhs ) ;
-			return ;
-		}
-		trim( s.erase( 0, p+1 ) ) ;
-		if ( s != "" )
-		{
-			err.seterrid( "PSYE032H", s ) ;
-			return ;
-		}
-		as_isvar = true ;
-		as_upper = true ;
 	}
 	else
 	{
-		if ( words( s ) != 1 )
-		{
-			err.seterrid( "PSYE032H", subword( s, 2 ) ) ;
-			return ;
-		}
-		iupper( s ) ;
-		if ( s.front() == '.' && !findword( s, rhs_control ) )
-		{
-			err.seterrid( "PSYE033S", s ) ;
-			return ;
-		}
-		as_rhs = s ;
+		as_rhs = t.value ;
+		v.getNextToken() ;
 	}
-	return ;
+
+	if ( !v.isCurrentType( TT_EOF ) )
+	{
+		err.seterrid( "PSYE032H", v.getCurrentValue() ) ;
+		return ;
+	}
 }
 
 
-void VPUTGET::parse( errblock& err, string s )
+void VPUTGET::parse( errblock& err, parser& v )
 {
 	// VGET ABC
 	// VGET(ABC) PROFILE
 
-	int i  ;
-	int j  ;
-	int ws ;
-	int p1 ;
+	token t ;
 
-	string w1 ;
-	string t  ;
+	err.setRC( 0 ) ;
 
-	iupper( s ) ;
-	p1 = s.find( '(' ) ;
-	if ( p1 == string::npos )
-	{
-		w1 = word( s, 1 ) ;
-		s  = subword( s, 2 ) ;
-	}
+	t = v.getFirstToken() ;
+	( t.value == "VPUT" ) ? vpg_vput = true : vpg_vput = false ;
+
+	v.getNextToken() ;
+
+	v.getNameList( err, vpg_vars ) ;
+	if ( err.error() ) { return ; }
+
+	t = v.getCurrentToken() ;
+	if ( t.value == "ASIS" ||
+	     t.type  == TT_EOF )         { vpg_pool = ASIS    ; }
+	else if ( t.value == "SHARED" )  { vpg_pool = SHARED  ; }
+	else if ( t.value == "PROFILE" ) { vpg_pool = PROFILE ; }
 	else
 	{
-		w1 = strip( s.substr( 0, p1 ) ) ;
-		trim( s.erase( 0, p1 ) ) ;
-	}
-
-	if ( s == "" )
-	{
-		err.seterrid( "PSYE033T" ) ;
+		err.seterrid( "PSYE033Z", t.value ) ;
 		return ;
 	}
 
-	( w1 == "VPUT" ) ? vpg_vput = true : vpg_vput = false ;
-
-	if ( s.front() == '(' )
+	t = v.getNextToken() ;
+	if ( t.type != TT_EOF )
 	{
-		i = s.find( ')', 1 ) ;
-		if ( i == string::npos )
-		{
-			err.seterrid( "PSYE032D" ) ;
-			return ;
-		}
-		vpg_vars = s.substr( 1, i-1 ) ;
-		replace( vpg_vars.begin(), vpg_vars.end(), ',', ' ' ) ;
-		for( ws = words( vpg_vars ), j = 1 ; j <= ws ; j++ )
-		{
-			t = word( vpg_vars, j ) ;
-			if ( !isvalidName( t ) )
-			{
-				err.seterrid( "PSYE031D", t ) ;
-				return ;
-			}
-		}
-		s.erase( 0, i+1 ) ;
-	}
-	else
-	{
-		vpg_vars = word( s, 1 ) ;
-		if ( !isvalidName( vpg_vars ) )
-		{
-			err.seterrid( "PSYE031D", vpg_vars ) ;
-			return ;
-		}
-		s = subword( s, 2 ) ;
-	}
-
-	trim( s ) ;
-	if ( s == "ASIS" || s == "" ) { vpg_pool = ASIS    ; }
-	else if ( s == "SHARED" )     { vpg_pool = SHARED  ; }
-	else if ( s == "PROFILE" )    { vpg_pool = PROFILE ; }
-	else
-	{
-		err.seterrid( "PSYE033U", s ) ;
+		err.seterrid( "PSYE032H", t.value ) ;
 		return ;
 	}
-	return ;
 }
 
 
-void VERIFY::parse( errblock& err, string s )
+void VERIFY::parse( errblock& err, parser& v, bool nocheck )
 {
 	// VER (&VAR LIST A B C D)
 	// VER (&VAR,LIST,A,B,C,D)
 	// VER (&VAR NB LIST A B C D)
 	// VER(&VAR NONBLANK LIST A B C D)
-	// VER(&VAR PICT ABCD)
+	// VER(&VAR PICT ABCD MSG = PSYS011A )
 	// VER(&VAR HEX)
 	// VER(&VAR OCT)
 
+	token t ;
 
-	int i  ;
-	int p1 ;
-	int p2 ;
-	int ws ;
+	err.setRC( 0 ) ;
 
-	string t ;
-	string w ;
+	t = v.getFirstToken() ;
 
-	p1 = s.find( '(' ) ;
-	if ( p1 == string::npos )
+	v.getNextToken() ;
+
+	if ( !v.getNextIfCurrent( TT_OPEN_BRACKET ) )
 	{
 		err.seterrid( "PSYE033D" ) ;
 		return ;
 	}
-	p2 = s.find( ')', p1 ) ;
-	if ( p2 == string::npos )
+
+	t = v.getCurrentToken() ;
+	ver_var = t.value.substr( 1 ) ;
+
+	if ( !v.getNextIfCurrent( TT_AMPR_VAR_VALID ) )
 	{
-		err.seterrid( "PSYE032D" ) ;
-		return ;
+		err.seterrid( "PSYE033I", t.value ) ;
 	}
 
-	t = strip( s.substr( p2+1 ) ) ;
-	if ( t != "" )
-	{
-		err.seterrid( "PSYE032H", t ) ;
-		return ;
-	}
-	s = upper( strip( s.substr( p1+1, p2-p1-1 ) ) ) ;
+	v.getNextIfCurrent( TT_COMMA ) ;
+	t = v.getCurrentToken() ;
 
-	replace( s.begin(), s.end(), ',', ' ' ) ;
-	w = word( s, 1 ) ;
-
-	if ( w == "" )
+	if ( findword( t.value, "NB NONBLANK" ) )
 	{
-		err.seterrid( "PSYE033J" ) ;
-		return ;
-	}
-	if ( w.front() != '&' )
-	{
-		err.seterrid( "PSYE033I", w ) ;
-		return ;
-	}
-
-	ver_var = w.substr( 1 ) ;
-	if ( !isvalidName( ver_var ) )
-	{
-		err.seterrid( "PSYE031D", ver_var ) ;
-		return ;
-	}
-
-	ws = words( s )    ;
-	w  = word( s, ws ) ;
-	if ( w.substr( 0, 4 ) == "MSG=" )
-	{
-		ver_msgid = w.substr( 4 ) ;
-		if ( ver_msgid == "" )
+		ver_nblank = true ;
+		v.getNextToken()  ;
+		if ( v.getNextIfCurrent( TT_CLOSE_BRACKET ) )
 		{
-			err.seterrid( "PSYE033K" ) ;
+			if ( !v.isCurrentType( TT_EOF ) )
+			{
+				err.seterrid( "PSYE032H", v.getCurrentValue() ) ;
+				return ;
+			}
 			return ;
 		}
-		s = subword( s, 1, ws-1 ) ;
+		v.getNextIfCurrent( TT_COMMA ) ;
+		t = v.getCurrentToken() ;
 	}
 
-	w = word( s, 2 ) ;
-	if ( w == "NB" || w == "NONBLANK" ) { i = 3 ; ver_nblank = true ; }
-	else                                { i = 2 ;                     }
-
-	w = word( s, i ) ;
-	if ( ver_nblank && w == "" )
-	{
-		return ;
-	}
-
-	if      ( w == "NUM"  ) { ver_numeric = true ; }
-	else if ( w == "LIST" ) { ver_list    = true ; }
-	else if ( w == "PICT" ) { ver_pict    = true ; }
-	else if ( w == "HEX"  ) { ver_hex     = true ; }
-	else if ( w == "OCT"  ) { ver_octal   = true ; }
+	if      ( t.value == "NUM"  ) { ver_numeric = true ; }
+	else if ( t.value == "LIST" ) { ver_list    = true ; }
+	else if ( t.value == "PICT" ) { ver_pict    = true ; }
+	else if ( t.value == "HEX"  ) { ver_hex     = true ; }
+	else if ( t.value == "OCT"  ) { ver_octal   = true ; }
+	else if ( t.value == "MSG"  ) {                    ; }
 	else
 	{
 		err.seterrid( "PSYE033L" ) ;
 		return ;
 	}
 
-	while ( ver_list )
+	if ( t.value != "MSG" )
 	{
-		i++ ;
-		w = word( s, i ) ;
-		if ( w == ""  ) { break ; }
-		if ( w == ")" )
-		{
-			err.seterrid( "PSYE033M" ) ;
-			return ;
-		}
-		ver_value += " " + w ;
+		v.getNextToken()  ;
+		v.getNextIfCurrent( TT_COMMA ) ;
+		t = v.getCurrentToken() ;
 	}
 
 	if ( ver_pict )
 	{
-		i++ ;
-		w = word( s, i ) ;
-		if ( w == "" || w == ")" )
-		{
-			err.seterrid( "PSYE033M" ) ;
-			return ;
-		}
-		ver_value = w ;
+		ver_vlist.push_back( t.value ) ;
+		v.getNextToken() ;
+		v.getNextIfCurrent( TT_COMMA ) ;
 	}
 
-	if ( ( ver_list || ver_pict ) && ver_value == "" )
+	t = v.getCurrentToken() ;
+	while ( ver_list )
+	{
+		if ( t.type == TT_CLOSE_BRACKET )
+		{
+			break ;
+		}
+		else if ( v.getNextIfCurrent( TT_COMMA ) )
+		{
+			t = v.getCurrentToken() ;
+			continue ;
+		}
+		else if ( t.value == "MSG" )
+		{
+			break ;
+		}
+		else if ( t.type == TT_AMPR_VAR_INVALID )
+		{
+			err.seterrid( "PSYE031D", t.value ) ;
+			return ;
+		}
+		else
+		{
+			ver_vlist.push_back( t.value ) ;
+		}
+		t = v.getNextToken() ;
+	}
+
+	if ( t.value == "MSG" )
+	{
+		v.getNextToken() ;
+		if ( !v.getNextIfCurrent( TT_EQUALS ) )
+		{
+			err.seterrid( "PSYE033O" ) ;
+			return ;
+		}
+		t = v.getCurrentToken() ;
+		if ( v.getNextIfCurrent( TT_VAR_VALID )  ||
+		     v.getNextIfCurrent( TT_AMPR_VAR_VALID ) )
+		{
+			ver_msgid = t.value ;
+		}
+		else
+		{
+			err.seterrid( "PSYE031I", t.value ) ;
+			return ;
+		}
+	}
+
+	if ( !v.getNextIfCurrent( TT_CLOSE_BRACKET ) )
+	{
+		err.seterrid( "PSYE032D" ) ;
+		return ;
+	}
+
+	if ( !nocheck && !v.isCurrentType( TT_EOF ) )
+	{
+		err.seterrid( "PSYE032H", v.getCurrentValue() ) ;
+		return ;
+	}
+
+	if ( ( ver_list || ver_pict ) && ver_vlist.empty() )
 	{
 		err.seterrid( "PSYE033N" ) ;
 		return ;
 	}
-
-	i++ ;
-	if ( word( s, i ) != "" )
-	{
-		err.seterrid( "PSYE032H", word( s, i ) ) ;
-		return ;
-	}
-	return ;
 }
 
 
-void TRUNC::parse( errblock& err, string s )
+void TRUNC::parse( errblock& err, parser& v )
 {
 	// Format of the TRUNC panel statement
 	// &AAA = TRUNC( &BBB,'.' )
 	// &AAA = TRUNC ( &BBB, 3  )
 
-	bool quoted ;
+	token t ;
 
-	string t ;
+	err.setRC( 0 ) ;
 
-	iupper( s ) ;
+	t = v.getFirstToken() ;
 
-	extractWord( err, s, trnc_field1 ) ;
-	if ( err.error() ) { return ; }
-	if ( trnc_field1 == "" )
+	trnc_field1 = t.value ;
+	if ( !v.getNextIfCurrent( TT_AMPR_VAR_VALID ) )
 	{
-		err.seterrid( "PSYE038A" ) ;
-		return ;
-	}
-	if ( trnc_field1.front() != '&' )
-	{
-		err.seterrid( "PSYE033I", trnc_field1 ) ;
+		trnc_field1 == "" ? err.seterrid( "PSYE038A" ) : err.seterrid( "PSYE033I", trnc_field1 ) ;
 		return ;
 	}
 	trnc_field1.erase( 0, 1 ) ;
-	if ( !isvalidName( trnc_field1 ) )
-	{
-		err.seterrid( "PSYE031D", trnc_field1 ) ;
-		return ;
-	}
 
-	extractWord( err, s, t ) ;
-	if ( err.error() ) { return ; }
-	if ( t != "=" )
+	if ( !v.getNextIfCurrent( TT_EQUALS ) )
 	{
 		err.seterrid( "PSYE033O" ) ;
 		return ;
 	}
 
-	extractWord( err, s, t ) ;
-	if ( err.error() ) { return ; }
-	if ( t != "TRUNC" )
+	t = v.getCurrentToken() ;
+
+	if ( t.value != "TRUNC" )
 	{
 		err.seterrid( "PSYE038B" ) ;
 		return ;
 	}
 
-	trim( s ) ;
-	if ( s.front() != '(' )
+	t = v.getNextToken() ;
+
+	if ( !v.getNextIfCurrent( TT_OPEN_BRACKET ) )
 	{
 		err.seterrid( "PSYE033D" ) ;
 		return ;
 	}
-	s.erase( 0, 1 ) ;
 
-	if ( s.back() != ')' )
+	trnc_field2 = v.getCurrentValue() ;
+	if ( !v.getNextIfCurrent( TT_AMPR_VAR_VALID ) )
 	{
-		err.seterrid( "PSYE032D" ) ;
-		return ;
-	}
-	s.pop_back() ;
-
-	extractWord( err, s, trnc_field2 ) ;
-	if ( err.error() ) { return ; }
-	if ( trnc_field2 == "" )
-	{
-		err.seterrid( "PSYE038D" ) ;
-		return ;
-	}
-	if ( trnc_field2.front() != '&' )
-	{
-		err.seterrid( "PSYE033I", trnc_field2 ) ;
+		trnc_field2 == "" ? err.seterrid( "PSYE038A" ) : err.seterrid( "PSYE033I", trnc_field2 ) ;
 		return ;
 	}
 	trnc_field2.erase( 0, 1 ) ;
-	if ( !isvalidName( trnc_field2 ) )
-	{
-		err.seterrid( "PSYE031D", trnc_field2 ) ;
-		return ;
-	}
 
-	extractWord( err, s, t ) ;
-	if ( err.error() ) { return ; }
-	if ( t != "," )
+	if ( !v.getNextIfCurrent( TT_COMMA ) )
 	{
 		err.seterrid( "PSYE038C" ) ;
 		return ;
 	}
 
-	extractWord( err, s, t, quoted ) ;
-	if ( err.error() ) { return ; }
-	if ( t == "" )
+	t = v.getCurrentToken() ;
+	if ( v.getNextIfCurrent( TT_STRING_QUOTED ) )
 	{
-		err.seterrid( "PSYE038E" ) ;
-		return ;
-	}
-
-	if ( quoted )
-	{
-		if ( t.size() != 1 )
+		if ( t.value.size() != 1 )
 		{
-			err.seterrid( "PSYE038F", t ) ;
+			err.seterrid( "PSYE038F", t.value ) ;
 			return ;
 		}
-		trnc_char = t.front() ;
+		trnc_char = t.value.front() ;
 	}
-	else
+	else if ( v.getNextIfCurrent( TT_STRING_UNQUOTED ) )
 	{
-		if ( !datatype( t, 'W' ) )
+		if ( !datatype( t.value, 'W' ) )
 		{
 			err.seterrid( "PSYE019E" ) ;
 			return ;
 		}
-		trnc_len = ds2d( t ) ;
+		trnc_len = ds2d( t.value ) ;
 		if ( trnc_len <= 0 )
 		{
 			err.seterrid( "PSYE019F" ) ;
 			return ;
 		}
 	}
-
-	if ( trim( s ) != "" )
+	else
 	{
-		err.seterrid( "PSYE032H", s ) ;
+		err.seterrid( "PSYE019E" ) ;
+		return ;
+	}
+
+	if ( !v.getNextIfCurrent( TT_CLOSE_BRACKET ) )
+	{
+		err.seterrid( "PSYE032D" ) ;
+		return ;
+	}
+
+	if ( !v.isCurrentType( TT_EOF ) )
+	{
+		err.seterrid( "PSYE032H", v.getCurrentValue() ) ;
 		return ;
 	}
 	return ;
 }
 
 
-void TRANS::parse( errblock& err, string s )
+void TRANS::parse( errblock& err, parser& v )
 {
 	// Format of the TRANS panel statement ( change val1 to val2, * is everything else.  Issue message. )
 
@@ -926,152 +927,106 @@ void TRANS::parse( errblock& err, string s )
 	// &AAA = TRANS ( &AAA  val1,val2 ...  MSG=msgid ) issue message if no match
 	// &AAA = TRANS ( &AAA  &v1,&v2 ...  MSG = msgid ) issue message if no match
 
-	bool quoted ;
-
 	string v1 ;
-	string v2 ;
 	string v3 ;
-	string t  ;
 
-	upper( s ) ;
+	token t ;
 
-	extractWord( err, s, trns_field1 ) ;
-	if ( err.error() ) { return ; }
-	if ( trns_field1 == "" )
+	err.setRC( 0 ) ;
+
+	t = v.getFirstToken() ;
+
+	trns_field1 = t.value ;
+	if ( !v.getNextIfCurrent( TT_AMPR_VAR_VALID ) )
 	{
-		err.seterrid( "PSYE039A" ) ;
+		trns_field1 == "" ? err.seterrid( "PSYE038A" ) : err.seterrid( "PSYE033I", trns_field1 ) ;
 		return ;
 	}
-
-	if ( trns_field1.front() != '&' )
-	{
-		err.seterrid( "PSYE033I", trns_field1 ) ;
-		return ;
-	}
-
 	trns_field1.erase( 0, 1 ) ;
-	if ( !isvalidName( trns_field1 ) )
-	{
-		err.seterrid( "PSYE031D", trns_field1 ) ;
-		return ;
-	}
 
-	extractWord( err, s, v1 ) ;
-	if ( err.error() ) { return ; }
-	if ( v1 != "=" )
+	if ( !v.getNextIfCurrent( TT_EQUALS ) )
 	{
 		err.seterrid( "PSYE033O" ) ;
 		return ;
 	}
 
-	trim( s ) ;
-	if ( s.compare( 0, 5, "TRANS" ) != 0 )
+	t = v.getCurrentToken() ;
+
+	if ( t.value != "TRANS" )
 	{
 		err.seterrid( "PSYE039B" ) ;
 		return ;
 	}
 
-	trim( s.erase( 0, 5 ) ) ;
-	if ( s.front() != '(' )
+	t = v.getNextToken() ;
+
+	if ( !v.getNextIfCurrent( TT_OPEN_BRACKET ) )
 	{
 		err.seterrid( "PSYE033D" ) ;
 		return ;
 	}
-	s.erase( 0, 1 ) ;
 
-	if ( s.back() != ')' )
+	trns_field2 = v.getCurrentValue() ;
+	if ( !v.getNextIfCurrent( TT_AMPR_VAR_VALID ) )
 	{
-		err.seterrid( "PSYE032D" ) ;
+		trns_field2 == "" ? err.seterrid( "PSYE038A" ) : err.seterrid( "PSYE033I", trns_field2 ) ;
 		return ;
 	}
-	s.pop_back() ;
-
-	extractWord( err, s, trns_field2 ) ;
-	if ( err.error() ) { return ; }
-	if ( trns_field2 == "" )
-	{
-		err.seterrid( "PSYE039D" ) ;
-		return ;
-	}
-
-	if ( trns_field2.front() != '&' )
-	{
-		err.seterrid( "PSYE033I", trns_field2 ) ;
-		return ;
-	}
-
 	trns_field2.erase( 0, 1 ) ;
-	if ( !isvalidName( trns_field2 ) )
-	{
-		err.seterrid( "PSYE031D", trns_field2 ) ;
-		return ;
-	}
-
 
 	while ( true )
 	{
-		extractWord( err, s, v1, quoted ) ;
-		if ( err.error() ) { return ; }
-		if ( v1 == "" ) { break ; }
-		if ( !quoted )
+		t = v.getCurrentToken() ;
+		if ( v.getNextIfCurrent( TT_STRING_UNQUOTED ) ||
+		     v.getNextIfCurrent( TT_STRING_QUOTED )   ||
+		     v.getNextIfCurrent( TT_AMPR_VAR_VALID )  ||
+		     v.getNextIfCurrent( TT_VAR_VALID ) )
 		{
-			if ( v1 == "MSG" )
-			{
-				extractWord( err, s, v1 ) ;
-				if ( err.error() ) { return ; }
-				if ( v1 != "=" )
-				{
-					err.seterrid( "PSYE033O" ) ;
-					return ;
-				}
-				extractWord( err, s, trns_msg ) ;
-				if ( err.error() ) { return ; }
-				if ( !isvalidName( trns_msg ) )
-				{
-					err.seterrid( "PSYE031D", trns_msg ) ;
-					return ;
-				}
-				extractWord( err, s, v1 ) ;
-				if ( err.error() ) { return ; }
-				if ( v1 != "" )
-				{
-					err.seterrid( "PSYE039G" ) ;
-					return ;
-				}
-				break ;
-			}
+			v1 = t.value ;
 		}
-		if ( v1.front() == '&' )
+		if ( v1 == "MSG" && trns_list.size() > 0 )
 		{
-			t = v1.substr( 1 ) ;
-			if ( !isvalidName( t ) )
+			if ( !v.getNextIfCurrent( TT_EQUALS ) )
 			{
-				err.seterrid( "PSYE031D", t ) ;
+				err.seterrid( "PSYE033O" ) ;
 				return ;
 			}
+			t = v.getCurrentToken() ;
+			if ( v.getNextIfCurrent( TT_VAR_VALID ) ||
+			     v.getNextIfCurrent( TT_AMPR_VAR_VALID ) )
+			{
+				trns_msgid = t.value ;
+			}
+			else
+			{
+				err.seterrid( "PSYE031D", t.value ) ;
+				return ;
+			}
+			if ( !v.getNextIfCurrent( TT_CLOSE_BRACKET ) )
+			{
+				err.seterrid( "PSYE032D" ) ;
+				return ;
+			}
+			break ;
+
 		}
-		extractWord( err, s, v2 ) ;
-		if ( err.error() ) { return ; }
-		if ( v2 != "," )
+		if ( !v.getNextIfCurrent( TT_COMMA ) )
 		{
 			err.seterrid( "PSYE039F" ) ;
 			return ;
 		}
-		extractWord( err, s, v3, quoted ) ;
-		if ( err.error() ) { return ; }
-		if ( v3 == "" )
+		t = v.getCurrentToken() ;
+		if ( v.getNextIfCurrent( TT_STRING_UNQUOTED ) ||
+		     v.getNextIfCurrent( TT_STRING_QUOTED )   ||
+		     v.getNextIfCurrent( TT_AMPR_VAR_VALID )  ||
+		     v.getNextIfCurrent( TT_VAR_VALID ) )
+		{
+			v3 = t.value ;
+		}
+		else
 		{
 			err.seterrid( "PSYE039H" ) ;
 			return ;
-		}
-		if ( v3.front() == '&' )
-		{
-			t = v3.substr( 1 ) ;
-			if ( !isvalidName( t ) )
-			{
-				err.seterrid( "PSYE031D", t ) ;
-				return ;
-			}
 		}
 		if ( v1 == "*" )
 		{
@@ -1081,11 +1036,15 @@ void TRANS::parse( errblock& err, string s )
 		{
 			trns_list.push_back( make_pair( v1, v3 )  ) ;
 		}
+		if ( v.getNextIfCurrent( TT_CLOSE_BRACKET ) )
+		{
+			break ;
+		}
 	}
 
-	if ( trns_list.size() == 0 )
+	if ( !v.isCurrentType( TT_EOF ) )
 	{
-		err.seterrid( "PSYE039E" ) ;
+		err.seterrid( "PSYE032H", v.getCurrentValue() ) ;
 		return ;
 	}
 	return ;
@@ -1100,6 +1059,8 @@ void pnts::parse( errblock& err, string s )
 	// fld and var must be defined in the panel
 
 	iupper( s ) ;
+
+	err.setRC( 0 ) ;
 
 	pnts_field = parseString( err, s, "FIELD()" ) ;
 	if ( pnts_field == "" )
@@ -1173,6 +1134,8 @@ bool selobj::parse( errblock& err, string SELSTR )
 
 	string lang ;
 	string str  ;
+
+	err.setRC( 0 ) ;
 
 	clear() ;
 	str = upper( SELSTR ) ;

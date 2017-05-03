@@ -2778,7 +2778,6 @@ void getDynamicClasses()
 		}
 	}
 
-	i = 0 ;
 	for ( it = v.begin() ; it != v.end() ; ++it )
 	{
 		fname = it->string() ;
@@ -2793,7 +2792,6 @@ void getDynamicClasses()
 			continue ;
 		}
 		llog( "I", "Adding application "+ appl << endl ) ;
-		i++ ;
 		aI.file       = fname ;
 		aI.module     = mod   ;
 		aI.mainpgm    = false ;

@@ -76,6 +76,7 @@ void addASMHilight( hilight&, const string&, string& ) ;
 void addCppHilight( hilight&, const string&, string& ) ;
 void addRxxHilight( hilight&, const string&, string& ) ;
 void addOthHilight( hilight&, const string&, string& ) ;
+void addPanHilight( hilight&, const string&, string& ) ;
 void addDefHilight( hilight&, const string&, string& ) ;
 void addNoHilight( hilight&, const string&, string& )  ;
 
@@ -84,7 +85,7 @@ map<string, void(*)(hilight&, const string&, string&)> hiRoutine = { { "ASM",   
 								     { "DEFAULT", addDefHilight },
 								     { "OTHER",   addOthHilight },
 								     { "NONE",    addNoHilight  },
-								     { "PANEL",   addDefHilight },
+								     { "PANEL",   addPanHilight },
 								     { "REXX",    addRxxHilight } } ;
 map<string, keyw> keywList1 = {
   { "alignas",           { 7,  N_RED  } },
@@ -286,3 +287,26 @@ map<string, keyw> keywList2 = {
   { "OVERLAY",           { 7,  N_WHITE  } },
   { "TIME",              { 4,  N_WHITE  } },
   { "X2D",               { 3,  N_WHITE  } } } ;
+
+
+map<string, keyw> keywList3 = {
+  { ")PANEL",          { 6,  N_WHITE } },
+  { ")INCLUDE",        { 8,  N_WHITE } },
+  { ")BODY",           { 5,  N_WHITE } },
+  { ")INIT",           { 5,  N_WHITE } },
+  { ")REINIT",         { 7,  N_WHITE } },
+  { ")PROC",           { 5,  N_WHITE } },
+  { ")COMMAND",        { 8,  N_WHITE } },
+  { ")FIELD",          { 6,  N_WHITE } },
+  { ")HELP",           { 5,  N_WHITE } },
+  { ")PNTS",           { 5,  N_WHITE } },
+  { ")END",            { 4,  N_WHITE } },
+  { ")COMMENT",        { 8,  N_TURQ  } },
+  { ")ENDCOMMENT",     { 11, N_TURQ  } },
+  { "IF",              { 2,  N_RED   } },
+  { "ELSE",            { 4,  N_RED   } },
+  { "VGET",            { 4,  N_RED   } },
+  { "VPUT",            { 4,  N_RED   } },
+  { "VER",             { 3,  N_RED   } },
+  { "TRANS",           { 5,  N_RED   } },
+  { "TRUNC",           { 5,  N_RED   } } } ;

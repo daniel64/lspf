@@ -73,13 +73,15 @@ literal 27 22 NT "to cancel changes"
 
 &ZCMD = TRANS( &ZCMD CAN,CANCEL *,* )
 ver (&zcmd,list,cancel )
-if ( &zcmd eq cancel )
-   exit
 
-VER (&IPERMISS NB PICT OOO)
+if ( &zcmd eq cancel ) exit
+
+VER (&IPERMISS NB,PICT,OOO)
+
 &ISETUID = TRANS( &ISETUID &Z,&Z *,/ )
 &ISETGID = TRANS( &ISETGID &Z,&Z *,/ )
 &ISTICKY = TRANS( &ISTICKY &Z,&Z *,/ )
+
 VER (&IOWNER  NB)
 VER (&IGROUP  NB)
 VER (&IOWNERN NB NUM)

@@ -101,19 +101,19 @@ pPanel::~pPanel()
 		{
 			delete a ;
 		} ) ;
-	if ( bwin != NULL )
+	if ( bwin )
 	{
 		panel_cleanup( bpanel ) ;
 		del_panel( bpanel ) ;
 		delwin( bwin )      ;
 	}
-	if ( fwin != NULL )
+	if ( fwin )
 	{
 		panel_cleanup( panel ) ;
 		del_panel( panel )     ;
 		delwin( fwin ) ;
 	}
-	if ( pwin != NULL )
+	if ( pwin )
 	{
 		delwin( pwin ) ;
 	}
@@ -129,7 +129,7 @@ pPanel::~pPanel()
 		del_panel( lmpanel ) ;
 		delwin( lmwin )      ;
 	}
-	if ( idwin != NULL )
+	if ( idwin )
 	{
 		panel_cleanup( idpanel ) ;
 		del_panel( idpanel ) ;
@@ -288,7 +288,7 @@ void pPanel::display_panel( errblock& err )
 
 	update_keylist_vars() ;
 
-	if ( win_addpop && pwin != NULL )
+	if ( win_addpop && pwin )
 	{
 		win = pwin ;
 		if ( win != panel_window( panel ) )
@@ -314,7 +314,7 @@ void pPanel::display_panel( errblock& err )
 	else
 	{
 		win = fwin ;
-		if ( bwin != NULL )
+		if ( bwin )
 		{
 			hide_panel( bpanel ) ;
 		}
@@ -444,12 +444,17 @@ void pPanel::display_panel_update( errblock& err )
 	curpos   = 1  ;
 	MSGID    = "" ;
 	MSGLOC   = "" ;
+	cursor_set  = false ;
+	message_set = false ;
 
-	CMDVerb = p_poolMGR->get( err, "ZVERB", SHARED ) ;
+	CMDVerb     = p_poolMGR->get( err, "ZVERB", SHARED ) ;
+	end_pressed = findword( CMDVerb, "END EXIT RETURN" ) ;
+
 	if ( CMDVerb == "END" && pdActive )
 	{
-		pdActive = false ;
 		p_poolMGR->put( err, "ZVERB", "",  SHARED ) ;
+		end_pressed = false ;
+		pdActive    = false ;
 	}
 
 	if ( pdActive )
@@ -472,9 +477,8 @@ void pPanel::display_panel_update( errblock& err )
 				case 'D': it->second->field_value = "DATA" ; break ;
 				case 'H': it->second->field_value = "HALF" ; break ;
 				case 'P': it->second->field_value = "PAGE" ; break ;
-				default:  MSGID  = "PSYS011I" ;
-					  CURFLD = "ZSCROLL"  ;
-					  MSGLOC = CURFLD     ;
+				default:  setMessageCond( "PSYS011I" ) ;
+					  setCursorCond( "ZSCROLL" )   ;
 			}
 		}
 		p_funcPOOL->put( err, it->first, it->second->field_value ) ;
@@ -518,9 +522,8 @@ void pPanel::display_panel_update( errblock& err )
 					}
 					else
 					{
-						MSGID  = "PSYS011G" ;
-						CURFLD = it->first  ;
-						MSGLOC = CURFLD     ;
+						setMessageCond( "PSYS011G" ) ;
+						setCursorCond( it->first )   ;
 					}
 				}
 				else
@@ -574,9 +577,8 @@ void pPanel::display_panel_update( errblock& err )
 		{
 			if ( CMD.size() > 6 )
 			{
-				MSGID  = "PSYS011I" ;
-				CURFLD = msgfld     ;
-				MSGLOC = CURFLD     ;
+				setMessageCond( "PSYS011I" ) ;
+				setCursorCond( msgfld )      ;
 			}
 			else
 			{
@@ -644,16 +646,9 @@ void pPanel::display_panel_init( errblock& err )
 	err.setRC( 0 ) ;
 	do
 	{
-		process_panel_stmnts( err, ln,
-			 initstmnts,
-			 ifListi,
-			 verListi,
-			 vpgListi,
-			 truncListi,
-			 transListi,
-			 assgnListi ) ;
-	       if ( err.error() ) { break ; }
-	       ln++ ;
+		process_panel_stmnts( err, ln, initstmnts ) ;
+		if ( err.error() ) { break ; }
+		ln++ ;
 	} while ( ln < tb_depth ) ;
 }
 
@@ -663,14 +658,7 @@ void pPanel::display_panel_reinit( errblock& err, int ln )
 	// Perform panel )REINIT processing
 
 	err.setRC( 0 ) ;
-	process_panel_stmnts( err, ln,
-		 reinstmnts,
-		 ifListr,
-		 verListr,
-		 vpgListr,
-		 truncListr,
-		 transListr,
-		 assgnListr ) ;
+	process_panel_stmnts( err, ln, reinstmnts ) ;
 }
 
 
@@ -685,15 +673,7 @@ void pPanel::display_panel_proc( errblock& err, int ln )
 	map<string, field *>::iterator it;
 
 	err.setRC( 0 ) ;
-	process_panel_stmnts( err, ln,
-		 procstmnts,
-		 ifListp,
-		 verListp,
-		 vpgListp,
-		 truncListp,
-		 transListp,
-		 assgnListp ) ;
-
+	process_panel_stmnts( err, ln, procstmnts ) ;
 	if ( err.error() ) { return ; }
 
 	fieldNam = p_funcPOOL->get( err, 0, "ZCURFLD" ) ;
@@ -729,30 +709,17 @@ void pPanel::display_panel_proc( errblock& err, int ln )
 
 
 void pPanel::process_panel_stmnts( errblock& err, int ln,
-		vector<panstmnt>& panstmnts,
-		vector<IFSTMNT>&  ifList,
-		vector<VERIFY>&   verList,
-		vector<VPUTGET>&  vpgList,
-		vector<TRUNC>&    truncList,
-		vector<TRANS>&    transList,
-		vector<ASSGN>&    assgnList )
+				   vector<panstmnt* >& panstmnts )
 {
-	// General routine to process panel statements.  Pass addresses of the relevant vectors for the
+	// General routine to process panel statements.  Pass address of the panel statements vector for the
 	// panel section being processed.
 
 	// Set RC1=8 from VGET/VPUT to 0 as it isn't an error in this case
 	// For table display fields, .ATTR and .CURSOR apply to fields on line ln
 
-	int i           ;
-	int j           ;
-	int ws          ;
-	int p           ;
-	int i_if        ;
-	int i_trunc     ;
-	int i_trans     ;
-	int i_vputget   ;
-	int i_verify    ;
-	int i_assign    ;
+	// If the panel statment has a ps_if address and a ps_xxx address, this is for statements coded
+	// inline on the if-statement so test and execute if the if-statement is true.
+
 	int if_column   ;
 
 	string wd       ;
@@ -763,80 +730,70 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 	string val      ;
 	string vars     ;
 	string var      ;
-	string dTRAIL   ;
 	string fieldNam ;
 	string fieldVal ;
 	string g_label  ;
-	string zzstr    ;
 
-	bool if_skip     ;
-	bool ver_failure ;
-	bool end_pressed ;
+	bool if_skip    ;
 
-	vector<pair<string,string>>::iterator itt ;
+	vector<panstmnt* >::iterator ips ;
 
-	map<string, field *>::iterator it;
-
-	i_if      = 0  ;
-	i_trunc   = 0  ;
-	i_trans   = 0  ;
-	i_vputget = 0  ;
-	i_verify  = 0  ;
-	i_assign  = 0  ;
-	dTRAIL    = "" ;
-	g_label   = "" ;
-	if_column = 0  ;
+	g_label     = ""    ;
+	if_column   = 0     ;
 	if_skip     = false ;
 	ver_failure = false ;
 
-	end_pressed = findword( p_poolMGR->get( err, "ZVERB", SHARED ), "END EXIT RETURN" ) ;
-
-	for ( i = 0 ; i < panstmnts.size() ; i++ )
+	for ( ips = panstmnts.begin() ; ips != panstmnts.end() ; ips++ )
 	{
 		if ( if_skip )
 		{
-			if ( if_column < panstmnts.at( i ).ps_column )
+			if ( if_column < (*ips)->ps_column )
 			{
-				if      ( panstmnts.at( i ).ps_if      ) { i_if++      ; }
-				else if ( panstmnts.at( i ).ps_else    ) { i_if++      ; }
-				else if ( panstmnts.at( i ).ps_assign  ) { i_assign++  ; }
-				else if ( panstmnts.at( i ).ps_verify  ) { i_verify++  ; }
-				else if ( panstmnts.at( i ).ps_vputget ) { i_vputget++ ; }
-				else if ( panstmnts.at( i ).ps_trunc   ) { i_trunc++   ; }
-				else if ( panstmnts.at( i ).ps_trans   ) { i_trans++   ; }
 				continue ;
 			}
-			else
+			if_skip = false ;
+		}
+		if ( (*ips)->ps_if )
+		{
+			process_panel_if( err,
+					  ln,
+					  (*ips)->ps_if ) ;
+			if ( err.error() ) { return ; }
+			if_skip = !(*ips)->ps_if->if_true ;
+			if ( if_skip )
 			{
-			       if_skip = false ;
+				if_column = (*ips)->ps_column ;
+				continue ;
 			}
 		}
-		if ( panstmnts.at( i ).ps_exit ) { return ; }
-		if ( panstmnts.at( i ).ps_goto )
+		else if ( (*ips)->ps_else )
 		{
-			g_label = panstmnts.at( i ).ps_label ;
-			for ( ; i < panstmnts.size() ; i++ )
+			if_skip = (*ips)->ps_else->if_true ;
+			if ( if_skip )
 			{
-				if ( !panstmnts.at( i ).ps_goto && panstmnts.at( i ).ps_label == g_label )
+				if_column = (*ips)->ps_column ;
+				continue ;
+			}
+		}
+		if ( (*ips)->ps_exit ) { return ; }
+		else if ( (*ips)->ps_goto )
+		{
+			g_label = (*ips)->ps_label ;
+			for ( ; ips != panstmnts.end() ; ips++ )
+			{
+				if ( !(*ips)->ps_goto && (*ips)->ps_label == g_label )
 				{
 					g_label = "" ;
 					break        ;
 				}
-				if ( panstmnts.at( i ).ps_if )
+				if ( (*ips)->ps_if )
 				{
-					ifList.at( i_if ).if_true = true ;
-					i_if++  ;
+					(*ips)->ps_if->if_true = true ;
 				}
-				else if ( panstmnts.at( i ).ps_else )
+				else if ( (*ips)->ps_else )
 				{
-					ifList.at( ifList.at( i_if ).if_stmnt ).if_true = false ;
-					i_if++ ;
+					(*ips)->ps_else->if_true = false ;
 				}
-				else if ( panstmnts.at( i ).ps_assign  ) { i_assign++  ; }
-				else if ( panstmnts.at( i ).ps_verify  ) { i_verify++  ; }
-				else if ( panstmnts.at( i ).ps_vputget ) { i_vputget++ ; }
-				else if ( panstmnts.at( i ).ps_trunc   ) { i_trunc++   ; }
-				else if ( panstmnts.at( i ).ps_trans   ) { i_trans++   ; }
 				continue ;
 			}
 			if ( g_label != "" )
@@ -845,564 +802,634 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 				return ;
 			}
 		}
-		else if ( panstmnts.at( i ).ps_refresh )
+		else if ( (*ips)->ps_refresh )
 		{
-			refresh_fields( panstmnts.at( i ).ps_rlist ) ;
+			refresh_fields( (*ips)->ps_rlist ) ;
 		}
-		else if ( panstmnts.at( i ).ps_if )
+		else if ( (*ips)->ps_trunc )
 		{
-			if ( ifList.at( i_if ).if_eq ) { ifList.at( i_if ).if_true = false ; }
-			if ( ifList.at( i_if ).if_ne ) { ifList.at( i_if ).if_true = true  ; }
-			if ( ifList.at( i_if ).if_lhs == ".CURSOR" )
+			process_panel_trunc( err,
+					     (*ips)->ps_trunc ) ;
+			if ( err.error() ) { return ; }
+		}
+		else if ( (*ips)->ps_trans )
+		{
+			process_panel_trans( err,
+					     ln,
+					     (*ips)->ps_trans ) ;
+			if ( err.error() ) { return ; }
+		}
+		else if ( (*ips)->ps_vputget )
+		{
+			process_panel_vputget( err,
+					       (*ips)->ps_vputget ) ;
+			if ( err.error() ) { return ; }
+		}
+		else if ( (*ips)->ps_assgn )
+		{
+			process_panel_assignment( err,
+						  ln,
+						  (*ips)->ps_assgn ) ;
+			if ( err.error() ) { return ; }
+		}
+		else if ( (*ips)->ps_ver )
+		{
+			if ( !ver_failure && !end_pressed )
 			{
-				val = p_funcPOOL->get( err, 0, "ZCURFLD" ) ;
+				process_panel_verify( err,
+						      ln,
+						      (*ips)->ps_ver ) ;
 				if ( err.error() ) { return ; }
 			}
-			else if ( ifList.at( i_if ).if_lhs == ".MSG" )
-			{
-				val = MSGID ;
-			}
-			else if ( ifList.at( i_if ).if_lhs == ".RESP" )
-			{
-				val = end_pressed ? "END" : "ENTER" ;
-			}
-			else if ( ifList.at( i_if ).if_ver )
-			{
-				fieldVal = getDialogueVar( err, ifList.at( i_if ).if_verify.ver_var ) ;
-				if ( err.error() ) { return ; }
-				if ( ifList.at( i_if ).if_verify.ver_nblank )
-				{
-					ifList.at( i_if ).if_true = ( fieldVal != "" ) ;
-				}
-				else if ( fieldVal == "" )
-				{
-					ifList.at( i_if ).if_true = true ;
-				}
-				if ( fieldVal != "" )
-				{
-					if ( ifList.at( i_if ).if_verify.ver_numeric )
-					{
-						ifList.at( i_if ).if_true = isnumeric( fieldVal ) ;
-					}
-					else if ( ifList.at( i_if ).if_verify.ver_list )
-					{
-						ifList.at( i_if ).if_true = findword( fieldVal, ifList.at( i_if ).if_verify.ver_value ) ;
-					}
-					else if ( ifList.at( i_if ).if_verify.ver_pict )
-					{
-						ifList.at( i_if ).if_true = ispict( fieldVal, ifList.at( i_if ).if_verify.ver_value ) ;
-					}
-					else if ( ifList.at( i_if ).if_verify.ver_hex )
-					{
-						ifList.at( i_if ).if_true = ishex( fieldVal ) ;
-					}
-					else if ( ifList.at( i_if ).if_verify.ver_octal )
-					{
-						ifList.at( i_if ).if_true = isoctal( fieldVal ) ;
-					}
-				}
-			}
-			else
-			{
-				val = getDialogueVar( err, ifList.at( i_if ).if_lhs ) ;
-				if ( err.error() ) { return ; }
-			}
-			for ( j = 0 ; j < ifList.at( i_if ).if_rhs.size() ; j++ )
-			{
-				if ( ifList.at( i_if ).if_isvar[ j ] )
-				{
-					t = getDialogueVar( err, ifList.at( i_if ).if_rhs[ j ] ) ;
-					if ( err.error() ) { return ; }
-				}
-				else
-				{
-					t = ifList.at( i_if ).if_rhs[ j ] ;
-				}
-				if ( ifList.at( i_if ).if_eq )
-				{
-					ifList.at( i_if ).if_true = ifList.at( i_if ).if_true || ( val == t ) ;
-					if ( ifList.at( i_if ).if_true ) { break ; }
-				}
-				else if ( ifList.at( i_if ).if_ne )
-				{
-					ifList.at( i_if ).if_true = ifList.at( i_if ).if_true && ( val != t ) ;
-					if ( !ifList.at( i_if ).if_true ) { break ; }
-				}
-				else
-				{
-					if ( (ifList.at( i_if ).if_gt && ( val >  t )) ||
-					     (ifList.at( i_if ).if_lt && ( val <  t )) ||
-					     (ifList.at( i_if ).if_ge && ( val >= t )) ||
-					     (ifList.at( i_if ).if_le && ( val <= t )) ||
-					     (ifList.at( i_if ).if_ng && ( val <= t )) ||
-					     (ifList.at( i_if ).if_nl && ( val >= t )) )
-					{
-						ifList.at( i_if ).if_true = true ;
+		}
+	}
+}
 
-					}
-					else
-					{
-						ifList.at( i_if ).if_true = false ;
-					}
+
+void pPanel::process_panel_if( errblock& err, int ln, IFSTMNT* ifstmnt )
+{
+	int j ;
+
+	string rhs_val  ;
+	string lhs_val  ;
+	string fieldVal ;
+	string fieldNam ;
+
+	vector<string>::iterator it ;
+
+	if ( ifstmnt->if_eq ) { ifstmnt->if_true = false ; }
+	if ( ifstmnt->if_ne ) { ifstmnt->if_true = true  ; }
+
+	if ( ifstmnt->if_lhs.front() == '.' )
+	{
+		lhs_val = getControlVar( err, ifstmnt->if_lhs ) ;
+		if ( err.error() ) { return ; }
+	}
+	else if ( ifstmnt->if_verify )
+	{
+		fieldVal = getDialogueVar( err, ifstmnt->if_verify->ver_var ) ;
+		if ( err.error() ) { return ; }
+		if ( ifstmnt->if_verify->ver_nblank )
+		{
+			ifstmnt->if_true = ( fieldVal != "" ) ;
+		}
+		else if ( fieldVal == "" )
+		{
+			ifstmnt->if_true = true ;
+		}
+		if ( fieldVal != "" )
+		{
+			if ( ifstmnt->if_verify->ver_numeric )
+			{
+				ifstmnt->if_true = isnumeric( fieldVal ) ;
+			}
+			else if ( ifstmnt->if_verify->ver_list )
+			{
+				for ( it  = ifstmnt->if_verify->ver_vlist.begin() ;
+				      it != ifstmnt->if_verify->ver_vlist.end()  ; it++ )
+				{
+					if ( sub_vars( (*it) ) == fieldVal ) { break ; }
 				}
+				ifstmnt->if_true = ( it == ifstmnt->if_verify->ver_vlist.end() ) ? false : true ;
 			}
-			if ( ifList.at( i_if ).if_true )
+			else if ( ifstmnt->if_verify->ver_pict )
 			{
-				if_skip = false ;
+				ifstmnt->if_true = ispict( fieldVal, ifstmnt->if_verify->ver_vlist[ 0 ] ) ;
 			}
-			else
+			else if ( ifstmnt->if_verify->ver_hex )
 			{
-				if_skip   = true ;
-				if_column = panstmnts.at( i ).ps_column ;
+				ifstmnt->if_true = ishex( fieldVal ) ;
 			}
-			i_if++ ;
+			else if ( ifstmnt->if_verify->ver_octal )
+			{
+				ifstmnt->if_true = isoctal( fieldVal ) ;
+			}
 		}
-		else if ( panstmnts.at( i ).ps_else )
+	}
+	else
+	{
+		lhs_val = sub_vars( ifstmnt->if_lhs ) ;
+		if ( err.error() ) { return ; }
+	}
+	for ( j = 0 ; j < ifstmnt->if_rhs.size() ; j++ )
+	{
+		if ( ifstmnt->if_rhs[ j ].front() == '.' )
 		{
-			if ( ifList.at( ifList.at( i_if ).if_stmnt ).if_true )
-			{
-				if_skip = true ;
-				if_column = panstmnts.at( i ).ps_column ;
-			}
-			else
-			{
-				if_skip = false ;
-			}
-			i_if++ ;
-		}
-		else if ( panstmnts.at( i ).ps_trunc )
-		{
-			t = getDialogueVar( err, truncList.at( i_trunc ).trnc_field2 ) ;
+			rhs_val = getControlVar( err, ifstmnt->if_rhs[ j ] ) ;
 			if ( err.error() ) { return ; }
-			p = truncList.at( i_trunc ).trnc_len ;
-			if ( p > 0 )
+		}
+		else
+		{
+			rhs_val = sub_vars( ifstmnt->if_rhs[ j ] ) ;
+		}
+		if ( ifstmnt->if_eq )
+		{
+			ifstmnt->if_true = ifstmnt->if_true || ( lhs_val == rhs_val ) ;
+			if ( ifstmnt->if_true ) { break ; }
+		}
+		else if ( ifstmnt->if_ne )
+		{
+			ifstmnt->if_true = ifstmnt->if_true && ( lhs_val != rhs_val ) ;
+			if ( !ifstmnt->if_true ) { break ; }
+		}
+		else
+		{
+			if ( (ifstmnt->if_gt && ( lhs_val >  rhs_val )) ||
+			     (ifstmnt->if_lt && ( lhs_val <  rhs_val )) ||
+			     (ifstmnt->if_ge && ( lhs_val >= rhs_val )) ||
+			     (ifstmnt->if_le && ( lhs_val <= rhs_val )) ||
+			     (ifstmnt->if_ng && ( lhs_val <= rhs_val )) ||
+			     (ifstmnt->if_nl && ( lhs_val >= rhs_val )) )
 			{
-				if ( p > t.size() )
-				{
-					dTRAIL = "" ;
-				}
-				else
-				{
-					dTRAIL = strip( t.substr( p ) ) ;
-					t      = t.substr( 0, p ) ;
-				}
+				ifstmnt->if_true = true ;
+
 			}
 			else
 			{
-				p = t.find( truncList.at( i_trunc ).trnc_char ) ;
-				if ( p == string::npos )
-				{
-					dTRAIL = "" ;
-				}
-				else
-				{
-					dTRAIL = strip( t.substr( p+1 ) ) ;
-					t      = t.substr( 0, p ) ;
-				}
+				ifstmnt->if_true = false ;
 			}
-			putDialogueVar( err, truncList.at( i_trunc ).trnc_field1, t ) ;
-			if ( err.error() ) { return ; }
-			i_trunc++ ;
 		}
-		else if ( panstmnts.at( i ).ps_trans )
+	}
+}
+
+
+void pPanel::process_panel_trunc( errblock& err, TRUNC* trunc )
+{
+	int p ;
+
+	string t      ;
+	string dTrail ;
+
+	t = getDialogueVar( err, trunc->trnc_field2 ) ;
+	if ( err.error() ) { return ; }
+
+	p = trunc->trnc_len ;
+	if ( p > 0 )
+	{
+		if ( p > t.size() )
 		{
-			t = getDialogueVar( err, transList.at( i_trans ).trns_field2 ) ;
-			if ( err.error() ) { return ; }
-			for ( itt  = transList.at( i_trans ).trns_list.begin() ;
-			      itt != transList.at( i_trans ).trns_list.end()   ; itt++ )
-			{
-				u1 = itt->first ;
-				if ( u1.front() == '&' )
-				{
-					u1.erase( 0, 1 ) ;
-					u1 = getDialogueVar( err, u1 ) ;
-					if ( err.error() ) { return ; }
-				}
-				if ( t == u1 )
-				{
-					t = itt->second ;
-					if ( t.front() == '&' )
-					{
-						t.erase( 0, 1 ) ;
-						t = getDialogueVar( err, t ) ;
-						if ( err.error() ) { return ; }
-					}
-					break ;
-				}
-			}
-			if ( itt == transList.at( i_trans ).trns_list.end() )
-			{
-				if ( transList.at( i_trans ).trns_default == "" )
-				{
-					t = "" ;
-					if ( transList.at( i_trans ).trns_msg != "" && !end_pressed && !ver_failure )
-					{
-						MSGID = transList.at( i_trans ).trns_msg ;
-						if ( transList.at( i_trans ).trns_field )
-						{
-							CURFLD = transList.at( i_trans ).trns_field2 ;
-							MSGLOC = CURFLD ;
-						}
-						ver_failure = true ;
-					}
-				}
-				else if ( transList.at( i_trans ).trns_default != "*" )
-				{
-					t = transList.at( i_trans ).trns_default ;
-					if ( t.front() == '&' )
-					{
-						t.erase( 0, 1 ) ;
-						t = getDialogueVar( err, t ) ;
-						if ( err.error() ) { return ; }
-					}
-				}
-			}
-			putDialogueVar( err, transList.at( i_trans ).trns_field1, t ) ;
-			if ( err.error() ) { return ; }
-			i_trans++ ;
+			dTrail = "" ;
 		}
-		else if ( panstmnts.at( i ).ps_vputget )
+		else
 		{
-			vars = vpgList.at( i_vputget ).vpg_vars ;
-			ws   = words( vars ) ;
-			if ( vpgList.at( i_vputget ).vpg_vput )
+			dTrail = strip( t.substr( p ) ) ;
+			t      = t.substr( 0, p ) ;
+		}
+	}
+	else
+	{
+		p = t.find( trunc->trnc_char ) ;
+		if ( p == string::npos )
+		{
+			dTrail = "" ;
+		}
+		else
+		{
+			dTrail = strip( t.substr( p+1 ) ) ;
+			t      = t.substr( 0, p ) ;
+		}
+	}
+
+	putDialogueVar( err, trunc->trnc_field1, t ) ;
+	if ( err.error() ) { return ; }
+
+	p_funcPOOL->put( err, ".TRAIL", dTrail, NOCHECK ) ;
+	if ( err.error() ) { return ; }
+}
+
+
+void pPanel::process_panel_trans( errblock& err, int ln, TRANS* trans )
+{
+	string fieldNam ;
+	string t  ;
+	string u1 ;
+
+	vector<pair<string,string>>::iterator itt ;
+
+	t = getDialogueVar( err, trans->trns_field2 ) ;
+	if ( err.error() ) { return ; }
+
+	for ( itt  = trans->trns_list.begin() ;
+	      itt != trans->trns_list.end()   ; itt++ )
+	{
+		u1 = sub_vars( itt->first ) ;
+		if ( t == u1 )
+		{
+			t = sub_vars( itt->second ) ;
+			break ;
+		}
+	}
+
+	if ( itt == trans->trns_list.end() )
+	{
+		if ( trans->trns_default == "" )
+		{
+			t = "" ;
+			if ( trans->trns_msgid != "" && !end_pressed && !ver_failure )
 			{
-				for ( j = 1 ; j <= ws ; j++ )
+				setMessageCond( sub_vars( trans->trns_msgid ) ) ;
+				if ( trans->trns_pnfield2 )
 				{
-					var = word( vars, j ) ;
-					val = p_funcPOOL->get( err, 8, var ) ;
-					if ( err.error() ) { return ; }
-					if ( err.RC0() )
+					fieldNam = trans->trns_field2 ;
+					if ( trans->trns_tbfield2 )
 					{
-						p_poolMGR->put( err, var, val, vpgList.at( i_vputget ).vpg_pool ) ;
-						if ( err.error() ) { return ; }
+						fieldNam += "." + d2ds( ln ) ;
 					}
+					setCursorCond( fieldNam ) ;
 				}
+				ver_failure = true ;
+			}
+		}
+		else if ( trans->trns_default != "*" )
+		{
+			t = sub_vars( trans->trns_default ) ;
+		}
+	}
+
+	putDialogueVar( err, trans->trns_field1, t ) ;
+	if ( err.error() ) { return ; }
+}
+
+
+void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
+{
+	int i ;
+
+	string fieldNam ;
+	string fieldVal ;
+	string t        ;
+
+	vector<string>::iterator it ;
+
+	fieldNam = verify->ver_var ;
+	if ( verify->ver_tbfield ) { fieldNam += "." + d2ds( ln ) ; }
+
+	fieldVal = getDialogueVar( err, verify->ver_var ) ;
+	if ( err.error() ) { return ; }
+
+	if ( verify->ver_nblank )
+	{
+		if ( fieldVal == "" )
+		{
+			setMessageCond( verify->ver_msgid == "" ? "PSYS019" : sub_vars( verify->ver_msgid ) ) ;
+			if ( verify->ver_pnfield )
+			{
+				setCursorCond( fieldNam ) ;
+			}
+			ver_failure = true ;
+		}
+	}
+	if ( fieldVal == "" )
+	{
+		return ;
+	}
+	if ( verify->ver_numeric )
+	{
+		if ( !isnumeric( fieldVal ) )
+		{
+			setMessageCond( verify->ver_msgid == "" ? "PSYS011A" : sub_vars( verify->ver_msgid ) ) ;
+			if ( verify->ver_pnfield )
+			{
+				setCursorCond( fieldNam ) ;
+			}
+			ver_failure = true ;
+		}
+	}
+	else if ( verify->ver_list )
+	{
+		for ( it = verify->ver_vlist.begin() ; it != verify->ver_vlist.end() ; it++ )
+		{
+			if ( sub_vars( (*it) ) == fieldVal ) { break ; }
+		}
+		if ( it == verify->ver_vlist.end() )
+		{
+			if ( verify->ver_vlist.size() == 1 )
+			{
+				t  = "value is " ;
+				t += sub_vars( verify->ver_vlist[ 0 ] ) ;
 			}
 			else
 			{
-				for ( j = 1 ; j <= ws ; j++ )
+				t = "values are " ;
+				for ( i = 0 ; i < verify->ver_vlist.size() - 2 ; i++ )
 				{
-					var = word( vars, j ) ;
-					val = p_poolMGR->get( err, var, vpgList.at( i_vputget ).vpg_pool ) ;
-					if ( err.error() ) { return ; }
-					if ( err.RC0() )
-					{
-						p_funcPOOL->put( err, var, val ) ;
-					}
+					t += sub_vars( verify->ver_vlist[ i ] ) + ", " ;
 				}
+				t += sub_vars( verify->ver_vlist[ i ] ) ;
+				t += " and " ;
+				i++ ;
+				t += sub_vars( verify->ver_vlist[ i ] ) ;
 			}
-			if ( err.RC8() ) { err.setRC( 0 ) ; }
-			i_vputget++ ;
+			setMessageCond( verify->ver_msgid == "" ? "PSYS011B" : sub_vars( verify->ver_msgid ) ) ;
+			if ( MSGID == "PSYS011B" )
+			{
+				p_poolMGR->put( err, "ZZSTR1", t, SHARED ) ;
+				if ( err.error() ) { return ; }
+			}
+			if ( verify->ver_pnfield )
+			{
+				setCursorCond( fieldNam ) ;
+			}
+			ver_failure = true ;
 		}
-		else if ( panstmnts.at( i ).ps_assign )
+	}
+	else if ( verify->ver_pict )
+	{
+		if ( !ispict( fieldVal, verify->ver_vlist[ 0 ] ) )
 		{
-			if ( assgnList.at( i_assign ).as_isvar )
-			{
-				t = getDialogueVar( err, assgnList.at( i_assign ).as_rhs ) ;
-				if ( err.error() ) { return ; }
-				if      ( assgnList.at( i_assign ).as_retlen  ) { t = d2ds( t.size() )          ; }
-				else if ( assgnList.at( i_assign ).as_reverse ) { reverse( t.begin(), t.end() ) ; }
-				else if ( assgnList.at( i_assign ).as_upper   ) { iupper( t )                   ; }
-				else if ( assgnList.at( i_assign ).as_words   ) { t = d2ds( words( t ) )        ; }
-				else if ( assgnList.at( i_assign ).as_chkexst ) { t = exists( t ) ? "1" : "0"          ; }
-				else if ( assgnList.at( i_assign ).as_chkfile ) { t = is_regular_file( t ) ? "1" : "0" ; }
-				else if ( assgnList.at( i_assign ).as_chkdir  ) { t = is_directory( t )    ? "1" : "0" ; }
-			}
-			else if ( assgnList.at( i_assign ).as_rhs == ".CURSOR" )
-			{
-				t = p_funcPOOL->get( err, 0, "ZCURFLD" ) ;
-				if ( err.error() ) { return ; }
-			}
-			else if ( assgnList.at( i_assign ).as_rhs == ".CSRPOS" )
-			{
-				t = d2ds( p_funcPOOL->get( err, 0, INTEGER, "ZCURPOS" ) ) ;
-				if ( err.error() ) { return ; }
-			}
-			else if ( assgnList.at( i_assign ).as_rhs == ".ALARM" )
-			{
-				t = ALARM ? "YES" : "NO" ;
-			}
-			else if ( assgnList.at( i_assign ).as_rhs == ".HELP" )
-			{
-				t = ZPHELP ;
-			}
-			else if ( assgnList.at( i_assign ).as_rhs == ".MSG" )
-			{
-				t = MSGID ;
-			}
-			else if ( assgnList.at( i_assign ).as_rhs == ".RESP" )
-			{
-				t = end_pressed ? "END" : "ENTER" ;
-			}
-			else if ( assgnList.at( i_assign ).as_rhs == ".TRAIL" )
-			{
-				t = dTRAIL ;
-			}
-			else
-			{
-				t = assgnList.at( i_assign ).as_rhs ;
-			}
-			if ( assgnList.at( i_assign ).as_lhs == ".AUTOSEL" )
-			{
-				// ???
-			}
-			else if ( assgnList.at( i_assign ).as_lhs == ".ALARM" )
-			{
-				if ( t == "YES" )
-				{
-					ALARM = true ;
-				}
-				else if ( t == "NO" || t == "" )
-				{
-					ALARM = false ;
-				}
-				else
-				{
-					err.seterrid( "PSYE041G" ) ;
-					return ;
-				}
-			}
-			else if ( assgnList.at( i_assign ).as_lhs == ".BROWSE" )
-			{
-				if ( t == "YES" )
-				{
-					forBrowse = true ;
-				}
-				else
-				{
-					forBrowse = false ;
-				}
-			}
-			else if ( assgnList.at( i_assign ).as_lhs == ".CURSOR" )
-			{
-				p_funcPOOL->put( err, "ZCURFLD", t ) ;
-				if ( err.error() ) { return ; }
-				if ( wordpos( assgnList.at( i_assign ).as_rhs, tb_fields ) > 0 ) { t = t +"."+ d2ds( ln ) ; }
-				CURFLD = t ;
-			}
-			else if ( assgnList.at( i_assign ).as_lhs == ".CSRPOS" )
-			{
-				if ( !isnumeric( t ) )
-				{
-					err.seterrid( "PSYE041J" ) ;
-					return ;
-				}
-				CURPOS = ds2d( t ) ;
-				p_funcPOOL->put( err, "ZCURPOS", CURPOS ) ;
-				if ( err.error() ) { return ; }
-			}
-			else if ( assgnList.at( i_assign ).as_lhs == ".CSRROW" )
-			{
-				if ( !isnumeric( t ) )
-				{
-					err.seterrid( "PSYE041H" ) ;
-					return ;
-				}
-				p_funcPOOL->put( err, ".CSRROW", t, NOCHECK ) ;
-				if ( err.error() ) { return ; }
-			}
-			else if ( assgnList.at( i_assign ).as_lhs == ".EDIT" )
-			{
-				if ( t == "YES" )
-				{
-					forEdit = true ;
-				}
-				else
-				{
-					forEdit = false ;
-				}
-			}
-			else if ( assgnList.at( i_assign ).as_lhs == ".HELP" )
-			{
-				ZPHELP = t ;
-			}
-			else if ( assgnList.at( i_assign ).as_lhs == ".NRET" )
-			{
-				if      ( t == "ON" )        { nretriev  = true  ; }
-				else if ( isvalidName( t ) ) { nretfield = t     ; }
-				else                         { nretriev  = false ; }
-			}
-			else if ( assgnList.at( i_assign ).as_lhs == ".MSG" )
-			{
-				MSGID = t ;
-			}
-			else if ( assgnList.at( i_assign ).as_lhs == ".RESP" )
-			{
-				if ( t == "ENTER" )
-				{
-					p_poolMGR->put( err, "ZVERB", "", SHARED ) ;
-					if ( err.error() ) { return ; }
-					end_pressed = false ;
-				}
-				else if ( t == "END" )
-				{
-					p_poolMGR->put( err, "ZVERB", "END", SHARED ) ;
-					if ( err.error() ) { return ; }
-					end_pressed = true ;
-				}
-				else
-				{
-					err.seterrid( "PSYE041I" ) ;
-					return ;
-				}
-			}
-			else if ( assgnList.at( i_assign ).as_isattr )
-			{
-				fieldNam = assgnList.at( i_assign ).as_lhs ;
-				if ( assgnList.at( i_assign ).as_istb )
-				{
-					fieldList[ fieldNam +"."+ d2ds( ln ) ]->field_attr( err, t ) ;
-					if ( err.error() ) { return ; }
-					attrList.push_back( fieldNam +"."+ d2ds( ln ) ) ;
-				}
-				else
-				{
-					fieldList[ fieldNam ]->field_attr( err, t ) ;
-					if ( err.error() ) { return ; }
-					attrList.push_back( fieldNam ) ;
-				}
-			}
-			else
-			{
-				putDialogueVar( err, assgnList.at( i_assign ).as_lhs, t ) ;
-				if ( err.error() ) { return ; }
-				if ( assgnList.at( i_assign ).as_lhs == "ZPRIM" )
-				{
-					if ( t == "YES" )
-					{
-						primaryMenu = true ;
-					}
-					else if ( t == "NO" )
-					{
-						primaryMenu = false ;
-					}
-				}
-			}
-			i_assign++ ;
-		}
-		else if ( panstmnts.at( i ).ps_verify )
-		{
-			if ( ver_failure || end_pressed ) { continue ; }
-			fieldNam = verList.at( i_verify ).ver_var ;
-			if ( verList.at( i_verify ).ver_tbfield ) { fieldNam += "." + d2ds( ln ) ; }
-			fieldVal = getDialogueVar( err, verList.at( i_verify ).ver_var ) ;
+			p_poolMGR->put( err, "ZZSTR1", d2ds( verify->ver_vlist[ 0 ].size() ), SHARED ) ;
 			if ( err.error() ) { return ; }
-			if ( verList.at( i_verify ).ver_nblank )
+			p_poolMGR->put( err, "ZZSTR2", verify->ver_vlist[ 0 ], SHARED ) ;
+			if ( err.error() ) { return ; }
+			setMessageCond( verify->ver_msgid == "" ? "PSYS011N" : sub_vars( verify->ver_msgid ) ) ;
+			if ( verify->ver_pnfield )
 			{
-				if ( fieldVal == "" )
-				{
-					MSGID = verList.at( i_verify ).ver_msgid ;
-					if (MSGID == "" ) { MSGID = "PSYS019" ; }
-					if ( verList.at( i_verify ).ver_field )
-					{
-						CURFLD = fieldNam ;
-						MSGLOC = CURFLD   ;
-					}
-					ver_failure = true ;
-				}
+				setCursorCond( fieldNam ) ;
 			}
-			if ( fieldVal == "" )
-			{
-				i_verify++ ;
-				continue   ;
-			}
-			if ( verList.at( i_verify ).ver_numeric )
-			{
-				if ( !isnumeric( fieldVal ) )
-				{
-					MSGID = verList.at( i_verify ).ver_msgid ;
-					if (MSGID == "" ) { MSGID = "PSYS011A" ; }
-					if ( verList.at( i_verify ).ver_field )
-					{
-						CURFLD = fieldNam ;
-						MSGLOC = CURFLD   ;
-					}
-					ver_failure = true ;
-				}
-			}
-			else if ( verList.at( i_verify ).ver_list )
-			{
-				if ( !findword( fieldVal, verList.at( i_verify ).ver_value ) )
-				{
-					MSGID = verList.at( i_verify ).ver_msgid ;
-					if (MSGID == "" )
-					{
-						MSGID = "PSYS011B" ;
-						ws = words( verList.at( i_verify ).ver_value ) ;
-						if ( ws == 1 )
-						{
-							zzstr = "value is" + verList.at( i_verify ).ver_value ;
-						}
-						else
-						{
-							zzstr = "values are " ;
-							for ( int i = 1 ; i < ws-1 ; i++ )
-							{
-								zzstr += word( verList.at( i_verify ).ver_value, i ) + ", " ;
-							}
-							zzstr += word( verList.at( i_verify ).ver_value, ws-1 ) ;
-							zzstr += " and " + word( verList.at( i_verify ).ver_value, ws ) ;
-						}
-						p_poolMGR->put( err, "ZZSTR1", zzstr, SHARED ) ;
-						if ( err.error() ) { return ; }
-					}
-					if ( verList.at( i_verify ).ver_field )
-					{
-						CURFLD = fieldNam ;
-						MSGLOC = CURFLD   ;
-					}
-					ver_failure = true ;
-				}
-			}
-			else if ( verList.at( i_verify ).ver_pict )
-			{
-				if ( !ispict( fieldVal, verList.at( i_verify ).ver_value ) )
-				{
-					p_poolMGR->put( err, "ZZSTR1", d2ds( verList.at( i_verify ).ver_value.size() ), SHARED ) ;
-					if ( err.error() ) { return ; }
-					p_poolMGR->put( err, "ZZSTR2", verList.at( i_verify ).ver_value, SHARED ) ;
-					if ( err.error() ) { return ; }
-					MSGID = verList.at( i_verify ).ver_msgid ;
-					if (MSGID == "" ) { MSGID = "PSYS011N" ; }
-					if ( verList.at( i_verify ).ver_field )
-					{
-						CURFLD = fieldNam ;
-						MSGLOC = CURFLD   ;
-					}
-					ver_failure = true ;
-				}
-			}
-			else if ( verList.at( i_verify ).ver_hex )
-			{
-				if ( !ishex( fieldVal ) )
-				{
-					MSGID = verList.at( i_verify ).ver_msgid ;
-					if (MSGID == "" ) { MSGID = "PSYS011H" ; }
-					if ( verList.at( i_verify ).ver_field )
-					{
-						CURFLD = fieldNam ;
-						MSGLOC = CURFLD   ;
-					}
-					ver_failure = true ;
-				}
-			}
-			else if ( verList.at( i_verify ).ver_octal )
-			{
-				if ( !isoctal( fieldVal ) )
-				{
-					MSGID = verList.at( i_verify ).ver_msgid ;
-					if (MSGID == "" ) { MSGID = "PSYS011F" ; }
-					if ( verList.at( i_verify ).ver_field )
-					{
-						CURFLD = fieldNam ;
-						MSGLOC = CURFLD   ;
-					}
-					ver_failure = true ;
-				}
-			}
-			i_verify++ ;
+			ver_failure = true ;
 		}
+	}
+	else if ( verify->ver_hex )
+	{
+		if ( !ishex( fieldVal ) )
+		{
+			setMessageCond( verify->ver_msgid == "" ? "PSYS011H" : sub_vars( verify->ver_msgid ) ) ;
+			if ( verify->ver_pnfield )
+			{
+				setCursorCond( fieldNam ) ;
+			}
+			ver_failure = true ;
+		}
+	}
+	else if ( verify->ver_octal )
+	{
+		if ( !isoctal( fieldVal ) )
+		{
+			setMessageCond( verify->ver_msgid == "" ? "PSYS011F" : sub_vars( verify->ver_msgid ) ) ;
+			if ( verify->ver_pnfield )
+			{
+				setCursorCond( fieldNam ) ;
+			}
+			ver_failure = true ;
+		}
+	}
+}
+
+
+void pPanel::process_panel_vputget( errblock& err, VPUTGET* vputget )
+{
+	int j  ;
+	int ws ;
+
+	string var ;
+	string val ;
+
+	ws = words( vputget->vpg_vars ) ;
+	if ( vputget->vpg_vput )
+	{
+		for ( j = 1 ; j <= ws ; j++ )
+		{
+			var = sub_vars( word( vputget->vpg_vars, j ) ) ;
+			val = p_funcPOOL->get( err, 8, var ) ;
+			if ( err.error() ) { return ; }
+			if ( err.RC0() )
+			{
+				p_poolMGR->put( err, var, val, vputget->vpg_pool ) ;
+				if ( err.error() ) { return ; }
+			}
+		}
+	}
+	else
+	{
+		for ( j = 1 ; j <= ws ; j++ )
+		{
+			var = sub_vars( word( vputget->vpg_vars, j ) ) ;
+			val = p_poolMGR->get( err, var, vputget->vpg_pool ) ;
+			if ( err.error() ) { return ; }
+			if ( err.RC0() )
+			{
+				p_funcPOOL->put( err, var, val ) ;
+			}
+		}
+	}
+	if ( err.RC8() ) { err.setRC( 0 ) ; }
+}
+
+
+void pPanel::process_panel_assignment( errblock& err, int ln, ASSGN* assgn )
+{
+	string t ;
+	string fieldNam ;
+
+	if ( assgn->as_isvar )
+	{
+		t = getDialogueVar( err, assgn->as_rhs ) ;
+		if ( err.error() ) { return ; }
+		t = sub_vars( t ) ;
+	}
+
+	if      ( assgn->as_retlen )  { t = d2ds( t.size() )          ; }
+	else if ( assgn->as_reverse ) { reverse( t.begin(), t.end() ) ; }
+	else if ( assgn->as_upper  )  { iupper( t )                   ; }
+	else if ( assgn->as_words  )  { t = d2ds( words( t ) )        ; }
+	else if ( assgn->as_chkexst ) { t = exists( t ) ? "1" : "0"   ; }
+	else if ( assgn->as_chkfile ) { t = is_regular_file( t ) ? "1" : "0" ; }
+	else if ( assgn->as_chkdir )  { t = is_directory( t )    ? "1" : "0" ; }
+	else if ( assgn->as_rhs.front() == '.' )
+	{
+		t = getControlVar( err, assgn->as_rhs ) ;
+		if ( err.error() ) { return ; }
+	}
+	else
+	{
+		t = sub_vars( assgn->as_rhs ) ;
+	}
+
+	if ( assgn->as_lhs.front() == '.' )
+	{
+		setControlVar( err, ln, assgn->as_lhs, t ) ;
+		if ( err.error() ) { return ; }
+	}
+	else if ( assgn->as_isattr )
+	{
+		fieldNam = assgn->as_lhs ;
+		if ( assgn->as_istb )
+		{
+			fieldList[ fieldNam +"."+ d2ds( ln ) ]->field_attr( err, t ) ;
+			if ( err.error() ) { return ; }
+			attrList.push_back( fieldNam +"."+ d2ds( ln ) ) ;
+		}
+		else
+		{
+			fieldList[ fieldNam ]->field_attr( err, t ) ;
+			if ( err.error() ) { return ; }
+			attrList.push_back( fieldNam ) ;
+		}
+	}
+	else
+	{
+		putDialogueVar( err, assgn->as_lhs, t ) ;
+		if ( err.error() ) { return ; }
+		if ( assgn->as_lhs == "ZPRIM" )
+		{
+			primaryMenu = ( t == "YES" ) ;
+		}
+	}
+}
+
+
+string pPanel::getControlVar( errblock& err, const string& svar )
+{
+	if ( svar == ".ALARM" )
+	{
+		return ALARM ? "YES" : "NO" ;
+	}
+	else if ( svar == ".CSRPOS" )
+	{
+		return d2ds( p_funcPOOL->get( err, 0, INTEGER, "ZCURPOS" ) ) ;
+	}
+	else if ( svar == ".CURSOR" )
+	{
+		return p_funcPOOL->get( err, 0, "ZCURFLD" ) ;
+	}
+	else if ( svar == ".HELP" )
+	{
+		return ZPHELP ;
+	}
+	else if ( svar == ".MSG" )
+	{
+		return MSGID ;
+	}
+	else if ( svar == ".RESP" )
+	{
+		return end_pressed ? "END" : "ENTER" ;
+	}
+	else if ( svar == ".TRAIL" )
+	{
+		return p_funcPOOL->get( err, 8, ".TRAIL", NOCHECK ) ;
+	}
+	return svar ;
+}
+
+
+void pPanel::setControlVar( errblock& err, int ln, const string& svar, const string& sval )
+{
+	if ( svar == ".AUTOSEL" )
+	{
+		// ???
+	}
+	else if ( svar == ".ALARM" )
+	{
+		if ( sval == "YES" )
+		{
+			ALARM = true ;
+		}
+		else if ( sval == "NO" || sval == "" )
+		{
+			ALARM = false ;
+		}
+		else
+		{
+			err.seterrid( "PSYE041G" ) ;
+			return ;
+		}
+	}
+	else if ( svar == ".BROWSE" )
+	{
+		forBrowse = ( sval == "YES" ) ;
+	}
+	else if ( svar == ".CURSOR" )
+	{
+		if ( !cursor_set )
+		{
+			p_funcPOOL->put( err, "ZCURFLD", sval ) ;
+			if ( err.error() ) { return ; }
+			CURFLD = wordpos( sval, tb_fields ) == 0 ? sval : sval +"."+ d2ds( ln ) ;
+			cursor_set = true ;
+		}
+	}
+	else if ( svar == ".CSRPOS" )
+	{
+		if ( !isnumeric( sval ) )
+		{
+			err.seterrid( "PSYE041J" ) ;
+			return ;
+		}
+		CURPOS = ds2d( sval ) ;
+		p_funcPOOL->put( err, "ZCURPOS", CURPOS ) ;
+		if ( err.error() ) { return ; }
+	}
+	else if ( svar == ".CSRROW" )
+	{
+		if ( !isnumeric( sval ) )
+		{
+			err.seterrid( "PSYE041H" ) ;
+			return ;
+		}
+		p_funcPOOL->put( err, ".CSRROW", sval, NOCHECK ) ;
+		if ( err.error() ) { return ; }
+	}
+	else if ( svar == ".EDIT" )
+	{
+		forEdit = ( sval == "YES" ) ;
+	}
+	else if ( svar == ".HELP" )
+	{
+		ZPHELP = sval ;
+	}
+	else if ( svar == ".NRET" )
+	{
+		if      ( sval == "ON" )        { nretriev  = true  ; }
+		else if ( isvalidName( sval ) ) { nretfield = sval  ; }
+		else                            { nretriev  = false ; }
+	}
+	else if ( svar == ".MSG" )
+	{
+		setMessageCond( sval ) ;
+	}
+	else if ( svar == ".RESP" )
+	{
+		if ( sval == "ENTER" )
+		{
+			p_poolMGR->put( err, "ZVERB", "", SHARED ) ;
+			if ( err.error() ) { return ; }
+			end_pressed = false ;
+		}
+		else if ( sval == "END" )
+		{
+			p_poolMGR->put( err, "ZVERB", "END", SHARED ) ;
+			if ( err.error() ) { return ; }
+			end_pressed = true ;
+		}
+		else
+		{
+			err.seterrid( "PSYE041I" ) ;
+			return ;
+		}
+	}
+}
+
+
+void pPanel::setMessageCond( const string& msg )
+{
+	if ( !message_set )
+	{
+		MSGID       = msg  ;
+		message_set = true ;
+	}
+}
+
+
+void pPanel::setCursorCond( const string& csr )
+{
+	errblock err ;
+
+	if ( !cursor_set )
+	{
+		CURFLD  = csr  ;
+		MSGLOC  = csr  ;
+		p_funcPOOL->put( err, "ZCURFLD", csr ) ;
+		cursor_set = true ;
 	}
 }
 
@@ -1433,7 +1460,7 @@ void pPanel::refresh_fields( const string& fields )
 
 	for ( itd = dynAreaList.begin() ; itd != dynAreaList.end() ; itd++ )
 	{
-		if ( fields != "*" && !findword( itf->first, fields ) ) { continue ; }
+		if ( fields != "*" && !findword( itd->first, fields ) ) { continue ; }
 		k      = itd->second->dynArea_width ;
 		darea  = p_funcPOOL->vlocate( err, itd->first ) ;
 		sname  = itd->second->dynArea_shadow_name ;
@@ -2297,7 +2324,7 @@ string pPanel::get_field_help( const string& fld )
 }
 
 
-void pPanel::set_tb_linesChanged()
+void pPanel::tb_set_linesChanged()
 {
 	//  Store changed lines for processing by the application if requested via tbdispl with no panel name
 	//  Format is a list of line-number/URID pairs
@@ -2343,7 +2370,7 @@ bool pPanel::tb_lineChanged( int& ln, string& URID )
 }
 
 
-void pPanel::clear_tb_linesChanged( errblock& err )
+void pPanel::tb_clear_linesChanged( errblock& err )
 {
 	//  Clear all stored changed lines on a tbdispl with panel name and set ZTDSELS to zero
 
@@ -2352,7 +2379,7 @@ void pPanel::clear_tb_linesChanged( errblock& err )
 }
 
 
-void pPanel::remove_tb_lineChanged()
+void pPanel::tb_remove_lineChanged()
 {
 	//  Remove the processed line from the list of changed lines
 
@@ -2495,6 +2522,7 @@ void pPanel::display_next_pd()
 void pPanel::hide_pd()
 {
 	if ( !pdActive ) { return ; }
+
 	ab.at( abIndex ).hide_pd() ;
 	ab.at( abIndex ).display_abc_unsel( win ) ;
 }
@@ -2526,9 +2554,9 @@ void pPanel::set_panel_msg( slmsg t, const string& msgid )
 {
 	errblock err ;
 
-	clear_msg()    ;
-	MSG    = t     ;
-	MSGID  = msgid ;
+	clear_msg()   ;
+	MSG   = t     ;
+	MSGID = msgid ;
 
 	if ( MSG.smsg == "" && MSG.lmsg == "" )
 	{
@@ -2582,7 +2610,7 @@ void pPanel::display_msg()
 	int w_depth ;
 	int w_width ;
 
-	vector<string>v ;
+	vector<string> v ;
 
 	errblock err ;
 
@@ -2676,8 +2704,8 @@ void pPanel::get_msgwin( string m, int& t_row, int& t_col, int& t_depth, int& t_
 
 	it = fieldList.find( MSGLOC ) ;
 
-	h = m.size() / WSCRMAXW + 1  ;
-	w = m.size() / h             ;
+	h = m.size() / WSCRMAXW + 1 ;
+	w = m.size() / h            ;
 	if ( it != fieldList.end() && it->second->field_col > WSCRMAXW/2 )
 	{
 		w = w / 3 ;
@@ -2741,7 +2769,7 @@ void pPanel::display_id()
 
 	panarea = "" ;
 
-	if ( idwin != NULL )
+	if ( idwin )
 	{
 		panel_cleanup( idpanel ) ;
 		del_panel( idpanel ) ;
@@ -2824,10 +2852,9 @@ void pPanel::attr( int& RC1, const string& field, const string& attrs )
 
 void pPanel::panel_cleanup( PANEL * p )
 {
-	const void * vptr ;
+	const void* vptr = panel_userptr( p ) ;
 
-	vptr = panel_userptr( p ) ;
-	if ( vptr != NULL )
+	if ( vptr )
 	{
 		delete static_cast<const panel_data *>(vptr) ;
 	}

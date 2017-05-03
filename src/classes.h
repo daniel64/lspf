@@ -18,6 +18,85 @@
 */
 
 
+enum TOKEN_TYPES
+{
+	TT_STRING_QUOTED,
+	TT_STRING_UNQUOTED,
+	TT_AMPR_VAR_VALID,
+	TT_AMPR_VAR_INVALID,
+	TT_VAR_VALID,
+	TT_CTL_VAR_VALID,
+	TT_CTL_VAR_INVALID,
+	TT_COMPARISON_OP,
+	TT_OPEN_BRACKET,
+	TT_CLOSE_BRACKET,
+	TT_COMMA,
+	TT_EQUALS,
+	TT_EOF
+} ;
+
+
+enum STATEMENT_TYPE
+{
+	ST_IF,
+	ST_ELSE,
+	ST_ERROR,
+	ST_VGET,
+	ST_VPUT,
+	ST_ASSIGN,
+	ST_GOTO,
+	ST_EXIT,
+	ST_TRUNC,
+	ST_TRANS,
+	ST_REFRESH,
+	ST_VERIFY,
+	ST_EOF
+} ;
+
+class token
+{
+	public:
+		token()
+		{
+			value = ""     ;
+			idx   = -1     ;
+			type  = TT_EOF ;
+		}
+		string      value ;
+		int         idx   ;
+		TOKEN_TYPES type  ;
+} ;
+
+
+class parser
+{
+	public:
+		parser()
+		{
+			idx      = 0     ;
+			optUpper = false ;
+		}
+		void parseStatement( errblock&, string s ) ;
+		token  getFirstToken() ;
+		token  getNextToken()  ;
+		token  getToken( int ) ;
+		int    getEntries()    ;
+		void   eraseTokens( int ) ;
+		void   optionUpper()   { optUpper = true ; }
+		bool   getNextIfCurrent( TOKEN_TYPES ) ;
+		token  getCurrentToken() ;
+		string getCurrentValue() ;
+		void   getNameList( errblock&, string& ) ;
+		bool   isCurrentType( TOKEN_TYPES ) ;
+		void   getNextString( errblock& err, string::const_iterator&, const string& s, string& r, bool& ) ;
+		STATEMENT_TYPE getStatementType() ;
+
+	private:
+		int   idx ;
+		bool  optUpper ;
+		token current_token ;
+		vector<token>tokens ;
+} ;
 
 class pnts
 {
@@ -28,119 +107,6 @@ class pnts
 		string pnts_field ;
 		string pnts_var   ;
 		string pnts_val   ;
-} ;
-
-
-class panstmnt
-{
-	public :
-		panstmnt()
-		{
-			ps_label   = ""    ;
-			ps_rlist   = ""    ;
-			ps_column  = 0     ;
-			ps_if      = false ;
-			ps_else    = false ;
-			ps_assign  = false ;
-			ps_verify  = false ;
-			ps_vputget = false ;
-			ps_trunc   = false ;
-			ps_trans   = false ;
-			ps_exit    = false ;
-			ps_goto    = false ;
-			ps_refresh = false ;
-		}
-
-		string ps_label   ;
-		string ps_rlist   ;
-		int    ps_column  ;
-		bool   ps_if      ;
-		bool   ps_else    ;
-		bool   ps_assign  ;
-		bool   ps_verify  ;
-		bool   ps_vputget ;
-		bool   ps_trunc   ;
-		bool   ps_trans   ;
-		bool   ps_exit    ;
-		bool   ps_goto    ;
-		bool   ps_refresh ;
-} ;
-
-
-class VERIFY
-{
-	public:
-		VERIFY(){
-				ver_var     = ""    ;
-				ver_value   = ""    ;
-				ver_msgid   = ""    ;
-				ver_nblank  = false ;
-				ver_numeric = false ;
-				ver_list    = false ;
-				ver_pict    = false ;
-				ver_hex     = false ;
-				ver_octal   = false ;
-				ver_tbfield = false ;
-				ver_field   = false ;
-			} ;
-
-		void parse( errblock&, string ) ;
-
-		string ver_var     ;
-		string ver_value   ;
-		string ver_msgid   ;
-		bool   ver_nblank  ;
-		bool   ver_numeric ;
-		bool   ver_list    ;
-		bool   ver_pict    ;
-		bool   ver_hex     ;
-		bool   ver_octal   ;
-		bool   ver_tbfield ;
-		bool   ver_field   ;
-} ;
-
-
-class IFSTMNT
-{
-	public :
-		IFSTMNT()
-		{
-			if_lhs   = ""    ;
-			if_rhs.clear()   ;
-			if_stmnt = 0     ;
-			if_isvar.clear() ;
-			if_true  = false ;
-			if_else  = false ;
-			if_istb  = false ;
-			if_eq    = false ;
-			if_ne    = false ;
-			if_gt    = false ;
-			if_lt    = false ;
-			if_ge    = false ;
-			if_le    = false ;
-			if_ng    = false ;
-			if_nl    = false ;
-			if_ver   = false ;
-		}
-		void parse( errblock&, string ) ;
-
-		string if_lhs           ;
-		vector<string> if_rhs   ;
-		vector<bool>   if_isvar ;
-		VERIFY if_verify ;
-		int    if_stmnt  ;
-		bool   if_true   ;
-		bool   if_else   ;
-		bool   if_istb   ;
-		bool   if_eq     ;
-		bool   if_ne     ;
-		bool   if_gt     ;
-		bool   if_lt     ;
-		bool   if_ge     ;
-		bool   if_le     ;
-		bool   if_ng     ;
-		bool   if_nl     ;
-		bool   if_ver    ;
 } ;
 
 
@@ -162,7 +128,7 @@ class ASSGN
 			as_chkfile = false ;
 			as_chkdir  = false ;
 		}
-		void parse( errblock&, string ) ;
+		void parse( errblock&, parser& ) ;
 
 		string as_lhs     ;
 		string as_rhs     ;
@@ -180,15 +146,47 @@ class ASSGN
 
 
 
+class VERIFY
+{
+	public:
+		VERIFY(){
+				ver_var     = ""    ;
+				ver_msgid   = ""    ;
+				ver_nblank  = false ;
+				ver_numeric = false ;
+				ver_list    = false ;
+				ver_pict    = false ;
+				ver_hex     = false ;
+				ver_octal   = false ;
+				ver_tbfield = false ;
+				ver_pnfield = false ;
+			} ;
+
+		void parse( errblock&, parser&, bool =false ) ;
+
+		string ver_var     ;
+		string ver_msgid   ;
+		bool   ver_nblank  ;
+		bool   ver_numeric ;
+		bool   ver_list    ;
+		bool   ver_pict    ;
+		bool   ver_hex     ;
+		bool   ver_octal   ;
+		bool   ver_tbfield ;
+		bool   ver_pnfield ;
+		vector<string> ver_vlist ;
+} ;
+
+
 class VPUTGET
 {
 	public:
 		VPUTGET()
 			{
-				vpg_pool = ASIS  ;
+				vpg_pool = ASIS ;
 			} ;
 
-		void parse( errblock&, string ) ;
+		void parse( errblock&, parser& ) ;
 		bool     vpg_vput ;
 		string   vpg_vars ;
 		poolType vpg_pool ;
@@ -203,7 +201,7 @@ class TRUNC
 				trnc_len  = 0   ;
 			} ;
 
-		void parse( errblock&, string ) ;
+		void parse( errblock&, parser& ) ;
 
 		string trnc_field1 ;
 		string trnc_field2 ;
@@ -217,18 +215,105 @@ class TRANS
 {
 	public:
 		TRANS() {
-				trns_msg     = "" ;
-				trns_default = "" ;
-				trns_field   = false ;
+				trns_msgid    = ""    ;
+				trns_default  = ""    ;
+				trns_tbfield2 = false ;
+				trns_pnfield2 = false ;
 			} ;
-		void parse( errblock&, string ) ;
+		void parse( errblock&, parser& ) ;
 
-		string trns_field1  ;
-		string trns_field2  ;
-		string trns_msg     ;
-		string trns_default ;
-		bool   trns_field   ;
+		string trns_field1   ;
+		string trns_field2   ;
+		string trns_msgid    ;
+		string trns_default  ;
+		bool   trns_tbfield2 ;
+		bool   trns_pnfield2 ;
 		vector<pair<string,string>> trns_list ;
+} ;
+
+
+class IFSTMNT
+{
+	public :
+		IFSTMNT()
+		{
+			if_lhs    = ""    ;
+			if_rhs.clear()    ;
+			if_true   = false ;
+			if_else   = false ;
+			if_eq     = false ;
+			if_ne     = false ;
+			if_gt     = false ;
+			if_lt     = false ;
+			if_ge     = false ;
+			if_le     = false ;
+			if_ng     = false ;
+			if_nl     = false ;
+			if_verify = NULL  ;
+		}
+		~IFSTMNT()
+		{
+			delete if_verify ;
+		}
+		void parse( errblock&, parser& ) ;
+
+		string if_lhs      ;
+		vector<string> if_rhs ;
+		VERIFY*  if_verify ;
+		bool     if_true   ;
+		bool     if_else   ;
+		bool     if_eq     ;
+		bool     if_ne     ;
+		bool     if_gt     ;
+		bool     if_lt     ;
+		bool     if_ge     ;
+		bool     if_le     ;
+		bool     if_ng     ;
+		bool     if_nl     ;
+} ;
+
+
+class panstmnt
+{
+	public :
+		panstmnt()
+		{
+			ps_label   = ""    ;
+			ps_rlist   = ""    ;
+			ps_column  = 0     ;
+			ps_exit    = false ;
+			ps_goto    = false ;
+			ps_refresh = false ;
+			ps_assgn   = NULL  ;
+			ps_ver     = NULL  ;
+			ps_if      = NULL  ;
+			ps_else    = NULL  ;
+			ps_vputget = NULL  ;
+			ps_trunc   = NULL  ;
+			ps_trans   = NULL  ;
+		}
+		~panstmnt()
+		{
+			delete ps_assgn ;
+			delete ps_ver   ;
+			delete ps_if    ;
+			delete ps_vputget ;
+			delete ps_trunc ;
+			delete ps_trans ;
+		}
+		string ps_label   ;
+		string ps_rlist   ;
+		int    ps_column  ;
+		bool   ps_exit    ;
+		bool   ps_goto    ;
+		bool   ps_refresh ;
+		ASSGN*   ps_assgn ;
+		VERIFY*  ps_ver   ;
+		IFSTMNT* ps_if    ;
+		IFSTMNT* ps_else  ;
+		VPUTGET* ps_vputget ;
+		TRUNC*   ps_trunc ;
+		TRANS*   ps_trans ;
 } ;
 
 

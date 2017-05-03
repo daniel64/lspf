@@ -236,7 +236,7 @@ void PBRO01A::application()
 			else if ( (w2 == "OFF" && w3 == "") )               { hexOn = false ; rebuildZAREA = true ; }
 			else    { MSG = "PBRO012" ; continue ; }
 		}
-		else if ( CMD == "HILITE" || CMD == "HILIGHT" || CMD == "HI" )
+		else if ( findword( CMD, "HILITE HILIGHT HI" ) )
 		{
 			if ( w3 == "" ) { w3 = "AUTO" ; }
 			if ( w3 != "AUTO" && !addHilight( w3 ) ) { MSG = "PBRO011M" ; continue ; }
@@ -1225,7 +1225,7 @@ string PBRO01A::determineLang( string ZFILE )
 	if ( ZFILE.find( "/rexx/" ) != string::npos ) { return "REXX" ; }
 	if ( ZFILE.find( "/tmp/"  ) != string::npos ) { return "NONE" ; }
 
-	for ( i = 0 ; i < 100 ; i++ )
+	for ( i = 1 ; i < 100 ; i++ )
 	{
 		t = data.at( i ) ;
 		if ( t.size() == 0 ) { continue       ; }

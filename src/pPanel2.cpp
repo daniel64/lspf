@@ -25,38 +25,38 @@
 
 void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths )
 {
-	int i, j, k         ;
-	int p1, p2          ;
-	int pVersion        ;
-	int pFormat         ;
+	int i  ;
+	int j  ;
+	int k  ;
+	int p1 ;
+	int p2 ;
+	int pVersion ;
+	int pFormat  ;
 
-	string ww, w1, w2   ;
-	string w3, w4, w5   ;
-	string w6, w7, ws   ;
-	string t1, t2       ;
-	string rest         ;
-	string filename     ;
-	string pline        ;
-	string oline        ;
-	string fld, hlp     ;
+	string ww         ;
+	string w1         ;
+	string w6, w7, ws ;
+	string t1, t2     ;
+	string pline      ;
+	string oline      ;
+	string fld, hlp   ;
 
-	bool body(false)    ;
-	bool command(false) ;
-	bool init(false)    ;
-	bool reinit(false)  ;
-	bool proc(false)    ;
-	bool help(false)    ;
-	bool ispnts(false)  ;
-	bool isfield(false) ;
-	bool found          ;
-
-	std::ifstream panl  ;
-	std::ifstream pincl ;
+	bool body    = false ;
+	bool command = false ;
+	bool init    = false ;
+	bool reinit  = false ;
+	bool proc    = false ;
+	bool help    = false ;
+	bool ispnts  = false ;
+	bool isfield = false ;
 
 	vector<string> pSource      ;
 	vector<string>::iterator it ;
 
 	map<string, field *>::iterator it1;
+
+	parser panelLang ;
+	panelLang.optionUpper() ;
 
 	readPanel( err, pSource, p_name, paths, p_name ) ;
 	if ( err.error() ) { return ; }
@@ -78,27 +78,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			return ;
 		}
 		w1 = upper( word( pline, 1 ) ) ;
-		p1 = w1.find( '=' )            ;
-		if ( p1 != string::npos )
-		{
-			if ( p1 == w1.size()-1 ) { w3 = word( pline, 2 )  ; }
-			else                     { w3 = w1.substr( p1+1 ) ; }
-			w1 = w1.substr( 0, p1 ) ;
-			w2 = "="                ;
-		}
-		else
-		{
-			w2 = word( pline, 2 ) ;
-			if ( w2.size() > 1 && w2.front() == '=' )
-			{
-				w3 = w2.erase( 0, 1 ) ;
-				w2 = "=" ;
-			}
-			else
-			{
-				w3 = word( pline, 3 ) ;
-			}
-		}
 		if ( w1.front() == ')' )
 		{
 			body    = false ;
@@ -225,16 +204,20 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 
 		if ( command )
 		{
-			w2 = strip( subword( pline, 2 ), 'B', '"' ) ;
-			commandTable[ w1 ] = w2 ;
-			debug2( "Adding command "+ w1 +" options "+ w2 << endl ) ;
+			ww = strip( subword( pline, 2 ), 'B', '"' ) ;
+			commandTable[ w1 ] = ww ;
+			debug2( "Adding command "+ w1 +" options "+ ww << endl ) ;
 			continue ;
 		}
 
 		if ( init || reinit || proc )
 		{
-			panstmnt m_stmnt ;
-			m_stmnt.ps_column = pline.find_first_not_of( ' ' ) ;
+			panstmnt * m_stmnt = new panstmnt ;
+			m_stmnt->ps_column = pline.find_first_not_of( ' ' ) ;
+			vector<panstmnt* > * p_stmnt  ;
+			if ( init )        { p_stmnt = &initstmnts ; }
+			else if ( reinit ) { p_stmnt = &reinstmnts ; }
+			else               { p_stmnt = &procstmnts ; }
 			if ( w1.back() == ':' )
 			{
 				w1.pop_back() ;
@@ -242,272 +225,141 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				{
 					err.seterrid( "PSYE041R", w1 )  ;
 					err.setsrc( oline ) ;
+					delete m_stmnt ;
 					return ;
 				}
-				m_stmnt.ps_label = upper( w1 ) ;
-				if ( init )        { initstmnts.push_back( m_stmnt ) ; }
-				else if ( reinit ) { reinstmnts.push_back( m_stmnt ) ; }
-				else               { procstmnts.push_back( m_stmnt ) ; }
-				pline.replace( m_stmnt.ps_column, w1.size()+1, w1.size()+1, ' ' ) ;
+				m_stmnt->ps_label = upper( w1 ) ;
+				p_stmnt->push_back( m_stmnt ) ;
+				pline.replace( m_stmnt->ps_column, w1.size()+1, w1.size()+1, ' ' ) ;
 				w1 = upper( word( pline, 1 ) ) ;
 				if ( w1 == "" ) { continue ; }
-				p1 = w1.find( '=' )            ;
-				if ( p1 != string::npos )
-				{
-					if ( p1 == w1.size()-1 ) { w3 = word( pline, 2 )  ; }
-					else                     { w3 = w1.substr( p1+1 ) ; }
-					w1 = w1.substr( 0, p1 ) ;
-					w2 = "="                ;
-				}
-				else
-				{
-					w2 = word( pline, 2 ) ;
-					if ( w2.size() > 1 && w2.front() == '=' )
-					{
-						w3 = w2.erase( 0, 1 ) ;
-						w2 = "=" ;
-					}
-					else
-					{
-						w3 = word( pline, 3 ) ;
-					}
-				}
 			}
-			p1 = w1.find( '(' ) ;
-			if ( p1 != string::npos )
+			panelLang.parseStatement( err, pline ) ;
+			if ( err.error() ) { return ; }
+			token tx ;
+			switch ( panelLang.getStatementType() )
 			{
-				w1.erase( p1 ) ;
-			}
-			if ( w1 == "VGET" || w1 == "VPUT" )
-			{
-				VPUTGET m_VPG    ;
-				m_VPG.parse( err, pline ) ;
+			case ST_VGET:
+			case ST_VPUT:
+				createPanel_Vputget( err, panelLang, m_stmnt ) ;
 				if ( err.error() )
 				{
 					err.setsrc( oline ) ;
+					delete m_stmnt ;
 					return ;
 				}
-				m_stmnt.ps_vputget = true ;
-				if ( init )        { vpgListi.push_back( m_VPG ) ; initstmnts.push_back( m_stmnt ) ; }
-				else if ( reinit ) { vpgListr.push_back( m_VPG ) ; reinstmnts.push_back( m_stmnt ) ; }
-				else               { vpgListp.push_back( m_VPG ) ; procstmnts.push_back( m_stmnt ) ; }
-				continue ;
-			}
-			if ( ( w1.front() == '&' || w1.front() == '.' ) &&
-			     ( w2 == "="                        ) &&
-			     ( w3.compare( 0, 5, "TRUNC" ) != 0 ) &&
-			     ( w3.compare( 0, 5, "TRANS" ) != 0 ) )
-			{
-				ASSGN m_assgn ;
-				m_assgn.parse( err, pline ) ;
+				p_stmnt->push_back( m_stmnt )  ;
+				break ;
+
+			case ST_ASSIGN:
+				createPanel_Assign( err, panelLang, m_stmnt ) ;
 				if ( err.error() )
 				{
 					err.setsrc( oline ) ;
+					delete m_stmnt ;
 					return ;
 				}
-				if ( m_assgn.as_isattr && ( fieldList.find( m_assgn.as_lhs ) == fieldList.end() ) )
-				{
-					if ( wordpos( m_assgn.as_lhs, tb_fields ) == 0 )
-					{
-						err.seterrid( "PSYE041S", m_assgn.as_lhs ) ;
-						err.setsrc( oline ) ;
-						return ;
-					}
-					else
-					{
-						m_assgn.as_istb = true ;
-					}
-				}
-				m_stmnt.ps_assign = true ;
-				if ( init )        { assgnListi.push_back( m_assgn ) ; initstmnts.push_back( m_stmnt ) ; }
-				else if ( reinit ) { assgnListr.push_back( m_assgn ) ; reinstmnts.push_back( m_stmnt ) ; }
-				else               { assgnListp.push_back( m_assgn ) ; procstmnts.push_back( m_stmnt ) ; }
-				continue ;
-			}
-			if ( w1 == "IF" )
-			{
-				IFSTMNT m_if     ;
-				m_if.parse( err, pline ) ;
+				p_stmnt->push_back( m_stmnt )  ;
+				break ;
+
+			case ST_IF:
+				createPanel_If( err, panelLang, m_stmnt, init ) ;
 				if ( err.error() )
 				{
 					err.setsrc( oline ) ;
+					delete m_stmnt ;
 					return ;
 				}
-				if ( wordpos( m_if.if_lhs, tb_fields ) > 0 ) { m_if.if_istb = true ; }
-				m_stmnt.ps_if = true ;
-				if ( init )        { ifListi.push_back( m_if ) ; initstmnts.push_back( m_stmnt ) ; }
-				else if ( reinit ) { ifListr.push_back( m_if ) ; reinstmnts.push_back( m_stmnt ) ; }
-				else               { ifListp.push_back( m_if ) ; procstmnts.push_back( m_stmnt ) ; }
-				continue ;
-			}
-			if ( w1 == "ELSE" && w2 == "" )
-			{
-				vector<panstmnt> * p_stmnt  ;
-				vector<IFSTMNT>  * p_ifList ;
-				if ( init )        { p_stmnt = &initstmnts ; p_ifList = &ifListi ; }
-				else if ( reinit ) { p_stmnt = &reinstmnts ; p_ifList = &ifListr ; }
-				else               { p_stmnt = &procstmnts ; p_ifList = &ifListp ; }
-				IFSTMNT m_if        ;
-				m_if.if_else = true ;
-				j                 = 0     ;
-				found             = false ;
-				m_stmnt.ps_else   = true  ;
-				for ( i = p_stmnt->size()-1 ; i >= 0 ; i-- )
+				p_stmnt->push_back( m_stmnt ) ;
+				break ;
+
+			case ST_ELSE:
+				createPanel_Else( err, panelLang, m_stmnt, p_stmnt, init ) ;
+				if ( err.error() )
 				{
-					if ( p_stmnt->at( i ).ps_if || p_stmnt->at( i ).ps_else ) { j++ ; }
-					if ( p_stmnt->at( i ).ps_if && (p_stmnt->at( i ).ps_column == m_stmnt.ps_column))
-					{
-						m_if.if_stmnt = p_ifList->size()-j ;
-						p_ifList->push_back( m_if ) ;
-						p_stmnt->push_back( m_stmnt ) ;
-						found = true ;
-						break        ;
-					}
-					if ( p_stmnt->at( i ).ps_column <= m_stmnt.ps_column )
-					{
-						break ;
-					}
-				}
-				if ( !found )
-				{
-					err.seterrid( "PSYE041T", d2ds( m_stmnt.ps_column+1 ) ) ;
 					err.setsrc( oline ) ;
+					delete m_stmnt ;
 					return ;
 				}
-				continue ;
-			}
-			if ( substr( w1, 1, 7 ) == "REFRESH"  )
-			{
+				break ;
+
+			case ST_REFRESH:
 				if ( init )
 				{
 					err.seterrid( "PSYE041U" ) ;
 					err.setsrc( oline ) ;
+					delete m_stmnt ;
 					return ;
 				}
-				m_stmnt.ps_refresh = true ;
-				iupper( pline ) ;
-				pline = strip( pline.erase( 0, pline.find( "REFRESH" )+7 ) ) ;
-				if ( !isvalidName ( pline ) && pline != "*" )
-				{
-					if ( pline.front() != '(' || pline.back() != ')' )
-					{
-						err.seterrid( "PSYE041V" ) ;
-						err.setsrc( oline ) ;
-						return ;
-					}
-					pline.pop_back() ;
-					pline.erase( 0, 1 ) ;
-					replace( pline.begin(), pline.end(), ',', ' ' ) ;
-				}
-				for ( i = words( pline ), j = 1 ; j <= i ; j++ )
-				{
-					w1 = word( pline, j ) ;
-					if ( w1 == "*" )
-					{
-						m_stmnt.ps_rlist = "*" ;
-					}
-					else
-					{
-						if ( !isvalidName( w1 ) )
-						{
-							err.seterrid( "PSYE041W", w1 ) ;
-							err.setsrc( oline ) ;
-							return ;
-						}
-						if ( fieldList.count( w1 ) == 0 )
-						{
-							err.seterrid( "PSYE041X", w1 ) ;
-							err.setsrc( oline ) ;
-							return ;
-						}
-						if ( m_stmnt.ps_rlist != "*" ) { m_stmnt.ps_rlist += " " + w1 ; }
-					}
-				}
-				if ( m_stmnt.ps_rlist == "" )
-				{
-					err.seterrid( "PSYE041Y" ) ;
-					err.setsrc( oline ) ;
-					return ;
-				}
-				if ( reinit ) { reinstmnts.push_back( m_stmnt ) ; }
-				else          { procstmnts.push_back( m_stmnt ) ; }
-				continue ;
-			}
-			if ( w1 == "EXIT" && w2 == "" )
-			{
-				m_stmnt.ps_exit = true ;
-				if ( init )        { initstmnts.push_back( m_stmnt ) ; }
-				else if ( reinit ) { reinstmnts.push_back( m_stmnt ) ; }
-				else               { procstmnts.push_back( m_stmnt ) ; }
-				continue ;
-			}
-			if ( w1 == "GOTO" && w2 != "" && w3 == "" )
-			{
-				m_stmnt.ps_goto = true ;
-				w2              = upper( w2 ) ;
-				if ( !isvalidName( w2 ) )
-				{
-					err.seterrid( "PSYE041Z", w2 ) ;
-					err.setsrc( oline ) ;
-					return ;
-				}
-				m_stmnt.ps_label = w2 ;
-				if ( init )        { initstmnts.push_back( m_stmnt ) ; }
-				else if ( reinit ) { reinstmnts.push_back( m_stmnt ) ; }
-				else               { procstmnts.push_back( m_stmnt ) ; }
-				continue ;
-			}
-			if ( w2 == "=" && substr( w3, 1, 5 ) == "TRANS" )
-			{
-				TRANS m_trans    ;
-				m_trans.parse( err, pline ) ;
+				createPanel_Refresh( err, panelLang, m_stmnt ) ;
 				if ( err.error() )
 				{
 					err.setsrc( oline ) ;
+					delete m_stmnt ;
 					return ;
 				}
-				m_stmnt.ps_trans = true ;
-				m_trans.trns_field = ( fieldList.count( m_trans.trns_field2 ) > 0 ) ;
-				if ( init )        { transListi.push_back( m_trans ) ; initstmnts.push_back( m_stmnt ) ; }
-				else if ( reinit ) { transListr.push_back( m_trans ) ; reinstmnts.push_back( m_stmnt ) ; }
-				else               { transListp.push_back( m_trans ) ; procstmnts.push_back( m_stmnt ) ; }
-				continue ;
-			}
-			if ( w2 == "=" && substr( w3, 1, 5 ) == "TRUNC" )
-			{
-				TRUNC m_trunc    ;
-				m_trunc.parse( err, pline ) ;
+				p_stmnt->push_back( m_stmnt ) ;
+				break ;
+
+			case ST_EXIT:
+				m_stmnt->ps_exit = true ;
+				p_stmnt->push_back( m_stmnt ) ;
+				break ;
+
+			case ST_GOTO:
+				m_stmnt->ps_goto = true ;
+				tx = panelLang.getToken( 1 ) ;
+				if ( tx.type != TT_VAR_VALID )
+				{
+					err.seterrid( "PSYE041Z", tx.value ) ;
+					err.setsrc( oline ) ;
+					delete m_stmnt ;
+					return ;
+				}
+				m_stmnt->ps_label = tx.value  ;
+				p_stmnt->push_back( m_stmnt ) ;
+				break ;
+
+			case ST_TRANS:
+				createPanel_Trans( err, panelLang, m_stmnt ) ;
 				if ( err.error() )
 				{
 					err.setsrc( oline ) ;
+					delete m_stmnt ;
 					return ;
 				}
-				m_stmnt.ps_trunc = true ;
-				if ( init )        { truncListi.push_back( m_trunc ) ; initstmnts.push_back( m_stmnt ) ; }
-				else if ( reinit ) { truncListr.push_back( m_trunc ) ; reinstmnts.push_back( m_stmnt ) ; }
-				else               { truncListp.push_back( m_trunc ) ; procstmnts.push_back( m_stmnt ) ; }
-				continue ;
-			}
-			if ( w1 == "VER" )
-			{
-				VERIFY m_VER     ;
-				m_VER.parse( err, pline ) ;
+				p_stmnt->push_back( m_stmnt ) ;
+				break ;
+
+			case ST_TRUNC:
+				createPanel_Trunc( err, panelLang, m_stmnt ) ;
 				if ( err.error() )
 				{
 					err.setsrc( oline ) ;
+					delete m_stmnt ;
 					return ;
 				}
-				if ( wordpos( m_VER.ver_var, tb_fields ) > 0 )
+				p_stmnt->push_back( m_stmnt ) ;
+				break ;
+
+			case ST_VERIFY:
+				createPanel_Verify( err, panelLang, m_stmnt ) ;
+				if ( err.error() )
 				{
-					m_VER.ver_tbfield = true ;
+					err.setsrc( oline ) ;
+					delete m_stmnt ;
+					return ;
 				}
-				m_VER.ver_field = ( fieldList.count( m_VER.ver_var ) > 0 || m_VER.ver_tbfield ) ;
-				m_stmnt.ps_verify = true ;
-				if ( init )        { verListi.push_back( m_VER ) ; initstmnts.push_back( m_stmnt ) ; }
-				else if ( reinit ) { verListr.push_back( m_VER ) ; reinstmnts.push_back( m_stmnt ) ; }
-				else               { verListp.push_back( m_VER ) ; procstmnts.push_back( m_stmnt ) ; }
-				continue ;
+				p_stmnt->push_back( m_stmnt ) ;
+				break ;
+
+			case ST_ERROR:
+				err.seterrid( "PSYE041E" ) ;
+				err.setsrc( oline ) ;
+				delete m_stmnt ;
+				return ;
 			}
+			continue ;
 		}
 
 		if ( help )
@@ -565,16 +417,14 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			}
 			if ( fieldList.find( m_pnts.pnts_field ) == fieldList.end() )
 			{
-				found = false ;
 				for ( uint i = 0 ; i < literalList.size() ; i++ )
 				{
 					if ( m_pnts.pnts_field == literalList.at( i )->literal_name )
 					{
-						found = true ;
-						break        ;
+						break ;
 					}
 				}
-				if ( !found )
+				if ( i == literalList.size() )
 				{
 					err.seterrid( "PSYE042E", m_pnts.pnts_field ) ;
 					err.setsrc( oline ) ;
@@ -775,7 +625,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		else if ( w1 == "BOX" )
 		{
 			debug2( "Creating box" << endl ) ;
-			w2 = word( pline, 2 ) ;
 			Box * m_box = new Box ;
 			m_box->box_init( err, WSCRMAXW, WSCRMAXD, pline ) ;
 			if ( err.error() )
@@ -802,15 +651,15 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		{
 			debug2( "Creating tbmodel" << endl ) ;
 			iupper( pline ) ;
-			w3 = word( pline, 3 ) ;
+			ww = word( pline, 3 ) ;
 			int start_row = ds2d( word( pline, 2 ) ) - 1 ;
 
-			if ( isnumeric( w3 ) )                      { tb_depth = ds2d( w3 ) ; }
-			else if ( w3 == "MAX" )                     { tb_depth = WSCRMAXD - start_row ; }
-			else if ( w3.compare( 0, 4, "MAX-" ) == 0 ) { tb_depth = WSCRMAXD - ds2d( substr( w3, 5 ) ) - start_row ; }
+			if ( isnumeric( ww ) )                      { tb_depth = ds2d( ww ) ; }
+			else if ( ww == "MAX" )                     { tb_depth = WSCRMAXD - start_row ; }
+			else if ( ww.compare( 0, 4, "MAX-" ) == 0 ) { tb_depth = WSCRMAXD - ds2d( substr( ww, 5 ) ) - start_row ; }
 			else
 			{
-				err.seterrid( "PSYE031B", w3 ) ;
+				err.seterrid( "PSYE031B", ww ) ;
 				err.setsrc( oline ) ;
 				return ;
 			}
@@ -996,4 +845,362 @@ void pPanel::readPanel( errblock& err, vector<string>& src, const string& name, 
 		err.seterrid( "PSYE041N", type, filename ) ;
 	}
 	panl.close() ;
+}
+
+
+void pPanel::createPanel_If( errblock& err, parser& v, panstmnt* m_stmnt, bool init )
+{
+	// The if-statement may have an inline statement but the address is in the same location.
+
+	token t ;
+
+	IFSTMNT* m_if = new IFSTMNT ;
+
+	m_if->parse( err, v ) ;
+	if ( err.error() )
+	{
+		delete m_if ;
+		return ;
+	}
+
+	switch ( v.getStatementType() )
+	{
+	case ST_EOF:
+		break ;
+
+	case ST_VGET:
+	case ST_VPUT:
+		createPanel_Vputget( err, v, m_stmnt ) ;
+		break ;
+
+	case ST_ASSIGN:
+		createPanel_Assign( err, v, m_stmnt ) ;
+		break ;
+
+	case ST_REFRESH:
+		if ( init )
+		{
+			err.seterrid( "PSYE041U" ) ;
+			break ;
+		}
+		createPanel_Refresh( err, v, m_stmnt ) ;
+		break ;
+
+	case ST_EXIT:
+		m_stmnt->ps_exit = true ;
+		break ;
+
+	case ST_GOTO:
+		t = v.getToken( 1 ) ;
+		m_stmnt->ps_goto = true ;
+		if ( !isvalidName( t.value ) )
+		{
+			err.seterrid( "PSYE041Z", t.value ) ;
+			break ;
+		}
+		m_stmnt->ps_label = t.value ;
+		break ;
+
+	case ST_TRANS:
+		createPanel_Trans( err, v, m_stmnt ) ;
+		break ;
+
+	case ST_TRUNC:
+		createPanel_Trunc( err, v, m_stmnt ) ;
+		break ;
+
+	case ST_VERIFY:
+		createPanel_Verify( err, v, m_stmnt ) ;
+		break ;
+
+	case ST_IF:
+	case ST_ELSE:
+	case ST_ERROR:
+		err.seterrid( "PSYE041E" ) ;
+	}
+	if ( err.error() )
+	{
+		delete m_if ;
+	}
+	else
+	{
+		m_stmnt->ps_if = m_if ;
+	}
+	return ;
+}
+
+
+void pPanel::createPanel_Else( errblock& err, parser& v, panstmnt* m_stmnt, vector<panstmnt* >* p_stmnt, bool init )
+{
+	// The else-statement may have an inline statement but the address is in the same location.
+
+	bool found = false ;
+
+	token t ;
+
+	vector<panstmnt* >::iterator ips ;
+
+	if ( p_stmnt->size() == 0 )
+	{
+		err.seterrid( "PSYE041T", d2ds( m_stmnt->ps_column+1 ) ) ;
+		return ;
+	}
+
+	ips = p_stmnt->begin() ;
+	advance( ips, p_stmnt->size() ) ;
+
+	do
+	{
+		ips-- ;
+		if ( (*ips)->ps_if && (*ips)->ps_column == m_stmnt->ps_column )
+		{
+			m_stmnt->ps_else = (*ips)->ps_if ;
+			p_stmnt->push_back( m_stmnt ) ;
+			found = true ;
+			break        ;
+		}
+		if ( (*ips)->ps_column <= m_stmnt->ps_column )
+		{
+			break ;
+		}
+	} while ( ips != p_stmnt->begin() ) ;
+
+	if ( !found )
+	{
+		err.seterrid( "PSYE041T", d2ds( m_stmnt->ps_column+1 ) ) ;
+		return ;
+	}
+
+	v.eraseTokens( 0 ) ;
+	switch ( v.getStatementType() )
+	{
+	case ST_EOF:
+		break ;
+
+	case ST_VGET:
+	case ST_VPUT:
+		createPanel_Vputget( err, v, m_stmnt ) ;
+		break ;
+
+	case ST_ASSIGN:
+		createPanel_Assign( err, v, m_stmnt ) ;
+		break ;
+
+	case ST_REFRESH:
+		if ( init )
+		{
+			err.seterrid( "PSYE041U" ) ;
+			break ;
+		}
+		createPanel_Refresh( err, v, m_stmnt ) ;
+		break ;
+
+	case ST_EXIT:
+		m_stmnt->ps_exit = true ;
+		break ;
+
+	case ST_GOTO:
+		t = v.getToken( 1 ) ;
+		m_stmnt->ps_goto = true ;
+		if ( !isvalidName( t.value ) )
+		{
+			err.seterrid( "PSYE041Z", t.value ) ;
+			break ;
+		}
+		m_stmnt->ps_label = t.value ;
+		break ;
+
+	case ST_TRANS:
+		createPanel_Trans( err, v, m_stmnt ) ;
+		break ;
+
+	case ST_TRUNC:
+		createPanel_Trunc( err, v, m_stmnt ) ;
+		break ;
+
+	case ST_VERIFY:
+		createPanel_Verify( err, v, m_stmnt ) ;
+		break ;
+
+	case ST_IF:
+	case ST_ELSE:
+	case ST_ERROR:
+		err.seterrid( "PSYE041E" ) ;
+	}
+}
+
+
+void pPanel::createPanel_Assign( errblock& err, parser& v, panstmnt* m_stmnt )
+{
+	ASSGN* m_assgn = new ASSGN ;
+
+	m_assgn->parse( err, v ) ;
+	if ( err.error() )
+	{
+		delete m_assgn ;
+		return ;
+	}
+	if ( m_assgn->as_isattr && ( fieldList.find( m_assgn->as_lhs ) == fieldList.end() ) )
+	{
+		if ( wordpos( m_assgn->as_lhs, tb_fields ) == 0 )
+		{
+			err.seterrid( "PSYE041S", m_assgn->as_lhs ) ;
+			delete m_assgn ;
+			return ;
+		}
+		else
+		{
+			m_assgn->as_istb = true ;
+		}
+	}
+	m_stmnt->ps_assgn = m_assgn ;
+}
+
+
+void pPanel::createPanel_Verify( errblock& err, parser& v, panstmnt* m_stmnt )
+{
+	VERIFY* m_VER = new VERIFY ;
+
+	m_VER->parse( err, v ) ;
+	if ( err.error() )
+	{
+		delete m_VER ;
+		return ;
+	}
+	if ( wordpos( m_VER->ver_var, tb_fields ) > 0 )
+	{
+		m_VER->ver_tbfield = true ;
+	}
+	m_VER->ver_pnfield = ( fieldList.count( m_VER->ver_var ) > 0 || m_VER->ver_tbfield ) ;
+	m_stmnt->ps_ver    = m_VER ;
+}
+
+
+void pPanel::createPanel_Vputget( errblock& err, parser& v, panstmnt* m_stmnt )
+{
+	VPUTGET* m_VPG = new VPUTGET ;
+
+	m_VPG->parse( err, v ) ;
+	if ( err.error() )
+	{
+		delete m_VPG ;
+		return ;
+	}
+	m_stmnt->ps_vputget = m_VPG ;
+}
+
+
+void pPanel::createPanel_Trunc( errblock& err, parser& v, panstmnt* m_stmnt )
+{
+	TRUNC* m_trunc = new TRUNC ;
+
+	m_trunc->parse( err, v ) ;
+	if ( err.error() )
+	{
+		delete m_trunc ;
+		return ;
+	}
+	m_stmnt->ps_trunc = m_trunc ;
+}
+
+
+void pPanel::createPanel_Trans( errblock& err, parser& v, panstmnt* m_stmnt )
+{
+	TRANS* m_trans = new TRANS ;
+
+	m_trans->parse( err, v ) ;
+	if ( err.error() )
+	{
+		delete m_trans ;
+		return ;
+	}
+
+	if ( wordpos( m_trans->trns_field2, tb_fields ) > 0 )
+	{
+		m_trans->trns_tbfield2 = true ;
+	}
+
+	m_trans->trns_pnfield2 = ( fieldList.count( m_trans->trns_field2 ) > 0 || m_trans->trns_tbfield2 ) ;
+	m_stmnt->ps_trans      = m_trans ;
+}
+
+
+void pPanel::createPanel_Refresh( errblock& err, parser& v, panstmnt* m_stmnt )
+{
+	token t ;
+
+	v.getFirstToken() ;
+	v.getNextToken()  ;
+
+	if ( v.getNextIfCurrent( TT_OPEN_BRACKET ) )
+	{
+		while ( true )
+		{
+			t = v.getCurrentToken() ;
+			if ( v.getNextIfCurrent( TT_VAR_VALID ) )
+			{
+				if ( fieldList.count( t.value ) == 0 )
+				{
+					err.seterrid( "PSYE041X", t.value ) ;
+					return ;
+				}
+				if ( m_stmnt->ps_rlist != "*" )
+				{
+					m_stmnt->ps_rlist += " " + t.value ;
+				}
+			}
+			else if ( v.getNextIfCurrent( TT_STRING_UNQUOTED ) )
+			{
+				if ( t.value != "*" )
+				{
+					err.seterrid( "PSYE041W", t.value ) ;
+					return ;
+				}
+				m_stmnt->ps_rlist = "*" ;
+			}
+			if ( v.getNextIfCurrent( TT_COMMA ) )
+			{
+				continue ;
+			}
+			else if ( v.getNextIfCurrent( TT_CLOSE_BRACKET ) )
+			{
+				break ;
+			}
+			else
+			{
+				err.seterrid( "PSYE041V" ) ;
+				return ;
+			}
+		}
+	}
+	else
+	{
+		t = v.getCurrentToken() ;
+		if ( v.getNextIfCurrent( TT_VAR_VALID ) )
+		{
+			m_stmnt->ps_rlist = t.value ;
+		}
+		else if ( v.getNextIfCurrent( TT_STRING_UNQUOTED ) )
+		{
+			if ( t.value != "*" )
+			{
+				err.seterrid( "PSYE041V" ) ;
+				return ;
+			}
+			m_stmnt->ps_rlist = "*" ;
+		}
+		else
+		{
+			err.seterrid( "PSYE041V" ) ;
+			return ;
+		}
+	}
+
+	if ( !v.isCurrentType( TT_EOF ) )
+	{
+		t = v.getCurrentToken() ;
+		err.seterrid( "PSYE032H", t.value ) ;
+		return ;
+	}
+	m_stmnt->ps_refresh = true ;
 }

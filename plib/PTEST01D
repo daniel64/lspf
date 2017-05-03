@@ -133,8 +133,6 @@ IF (&SEL NE &Z)
       &ZZSTR1    = 'D, R, RO and G'
       EXIT
 
-IF (.RESP = END )
-   IF (.MSG = &Z )
-      VPUT ZSCROLL PROFILE
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
 
 )END

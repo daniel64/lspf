@@ -448,7 +448,6 @@ void PEDIT01::Edit()
 			if ( !termOK() ) { termEdit = false ; }
 		}
 	}
-	vput( "ZSCROLL", PROFILE ) ;
 
 	for_each( data.begin(), data.end(),
 		[](iline *& a)

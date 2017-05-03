@@ -494,10 +494,10 @@ void PLRFLST1::RetrieveEntry( string list )
 	// variable ZRFNPOS from the SHARED pool.  If specified, the other word in 'list' is used as the reflist
 	// If 'list' is specified, but not a number, start at position 1.
 
-	int    i   ;
-	int    p   ;
-	int    fp  ;
-	int    pos ;
+	int i   ;
+	int p   ;
+	int fp  ;
+	int pos ;
 
 	string w1  ;
 	string w2  ;
@@ -509,8 +509,8 @@ void PLRFLST1::RetrieveEntry( string list )
 
 	vdefine( "ZRFNEX ZRFNPOS", &ZRFNEX, &ZRFNPOS ) ;
 	iupper( list )  ;
-	w1   = word( list, 1 ) ;
-	w2   = word( list, 2 ) ;
+	w1 = word( list, 1 ) ;
+	w2 = word( list, 2 ) ;
 
 	ZRFNPOS  = "" ;
 	if ( w1.size() > 0 && w1.size() < 3 )

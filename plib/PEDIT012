@@ -37,4 +37,7 @@ pdc File "Exit"    ACTION RUN(END)
 
 )PROC
 
+IF (.RESP = END )
+   IF (.MSG = &Z) VPUT ZSCROLL PROFILE
+
 )END

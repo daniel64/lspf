@@ -59,8 +59,8 @@ string strip( string s, char opt = 'B', char c = ' ' ) ;
 string substr( const string& s, unsigned int n  )        ;
 string substr( const string& s, unsigned int n, unsigned int l, char pad = ' '  ) ;
 
-string subword( const string& s, unsigned int n )                 ;
-string subword( const string& s, unsigned int n, unsigned int l ) ;
+string subword( const string& s, unsigned int w )                 ;
+string subword( const string& s, unsigned int w, unsigned int n ) ;
 
 string word( const string& s, unsigned int w )   ;
 
@@ -136,7 +136,7 @@ bool   isoctal( char c )        ;
 bool   ispict( const string&, const string& ) ;
 
 int    getpaths( const string& p ) ;
-string getpath( const string& p, int i ) ;
+string getpath( const string& s, int p ) ;
 string mergepaths( const string& p1, const string& p2 ) ;
 
 string parseString( errblock& err, string& s, string p ) ;

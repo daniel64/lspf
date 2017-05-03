@@ -232,8 +232,9 @@ class pApplication
 
 		fPOOL funcPOOL  ;
 
-		int  addpop_row ;
-		int  addpop_col ;
+		int  addpop_row  ;
+		int  addpop_col  ;
+		int  lscreen_num ;
 
 		bool addpop_active       ;
 		bool ControlErrorsReturn ;

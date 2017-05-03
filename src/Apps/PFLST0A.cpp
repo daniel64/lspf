@@ -1,5 +1,5 @@
-/* Compile with ::                                                                          */
-/* g++ -shared -fPIC -std=c++11 -Wl,-soname,libPFLST0A.so -o libPFLST0A.so PFLST0A.cpp      */
+/* Compile with ::                                                                                    */
+/* g++ -shared -fPIC -std=c++11 -Wl,-soname,libPFLST0A.so -lboost_regex -o libPFLST0A.so PFLST0A.cpp  */
 
 /*
   Copyright (c) 2015 Daniel John Erdos
@@ -212,11 +212,10 @@ void PFLST0A::application()
 	}
 
 	filter = "" ;
-	p1 = ZPATH.find_last_of( "/" ) ;
+	p1 = ZPATH.find_last_of( '/' ) ;
 	if ( p1 != string::npos )
 	{
-		p2 = ZPATH.find( '*', p1 ) ;
-		if ( p2 != string::npos )
+		if ( ZPATH.find_first_of( "?*[", p1 ) != string::npos )
 		{
 			filter = ZPATH.substr( p1+1 ) ;
 			ZPATH  = ZPATH.erase( p1 ) ;
@@ -262,8 +261,8 @@ void PFLST0A::application()
 		if ( (w1 == "REFRESH" || w1 == "RESET" ) && w2 == "" )
 		{
 			if ( w1 == "RESET" ) { filter = "" ; UseSearch = false ; }
-			if ( filter == "" ) { vreplace( "FMSG1", "" ) ; }
-			if ( !UseSearch   ) { vreplace( "FMSG2", "" ) ; }
+			if ( filter == "" )  { vreplace( "FMSG1", "" ) ; }
+			if ( !UseSearch   )  { vreplace( "FMSG2", "" ) ; }
 			tbend( DSLIST ) ;
 			createFileList1( filter ) ;
 			continue ;
@@ -287,8 +286,8 @@ void PFLST0A::application()
 		}
 		i = ZTDTOP ;
 		vget( "ZVERB", SHARED ) ;
-		CRP    = 0 ;
-		RCode  = processPrimCMD() ;
+		CRP   = 0 ;
+		RCode = processPrimCMD() ;
 		if ( RCode == 8 )  { MSG = "PSYS018" ; continue ; }
 		if ( CRP > 0 )     { i = CRP       ; }
 		if ( RCode == 4 )  { continue      ; }
@@ -759,11 +758,12 @@ void PFLST0A::createFileList1( string filter )
 
 	tbcreate( DSLIST, "", "MESSAGE SEL ENTRY TYPE PERMISS SIZE STCDATE MODDATE MODDATES", NOWRITE ) ;
 
-	MESSAGE = ""    ;
-	SEL     = ""    ;
+	MESSAGE = ""  ;
+	SEL     = ""  ;
+
 	iupper( filter ) ;
 
-	fGen = ( filter.find_first_of( "?*" ) != string::npos ) ;
+	fGen = ( filter.find_first_of( "?*[" ) != string::npos ) ;
 
 	vcopy( "AFHIDDEN", t, MOVE ) ;
 
@@ -792,7 +792,15 @@ void PFLST0A::createFileList1( string filter )
 			else if ( c == '?' ) { pat += "[^[:blank:]]"  ; }
 			else                 { pat.push_back( c )     ; }
 		}
-		expression.assign( pat ) ;
+		try
+		{
+			expression.assign( pat ) ;
+		}
+		catch  ( boost::regex_error& e )
+		{
+			setmsg( "PSYS012P" ) ;
+			return ;
+		}
 	}
 
 	for ( vec::const_iterator it (v.begin()) ; it != v.end() ; ++it )
@@ -960,13 +968,13 @@ void PFLST0A::showInfo( const string& p )
 	IOWNER = "" ;
 	IGROUP = "" ;
 	struct passwd *pw = getpwuid( results.st_uid ) ;
-	if ( pw != NULL)
+	if ( pw )
 	{
 		IOWNER = pw->pw_name ;
 	}
 
 	struct group  *gr = getgrgid( results.st_gid ) ;
-	if ( gr != NULL)
+	if ( gr )
 	{
 		IGROUP = gr->gr_name ;
 	}
@@ -1032,7 +1040,7 @@ void PFLST0A::showInfo( const string& p )
 	while ( true )
 	{
 		display( "PFLST0A2" ) ;
-		if ( RC == 8 ) { RC = 0 ; break ; }
+		if ( RC == 8 ) { break ; }
 	}
 	vdelete( "IENTRY   ITYPE    IINODE  INLNKS  IPERMISS ISIZE ISTCDATE IMODDATE IOWNER IGROUP IRLNK IMAJ IMIN" ) ;
 	vdelete( "IBLKSIZE IACCDATE ISETUID ISETGID ISTICKY" ) ;
@@ -1104,7 +1112,7 @@ int PFLST0A::processPrimCMD()
 		if ( t.back() == '/' ) { t = t.erase( t.size()-1, 1) ; }
 		if ( substr( ws, 1, 1 ) != "/" ) { t += "/" + ws ; }
 		else                             { t  = ws       ; }
-		if ( t.find_first_of( "*?" ) != string::npos ) { t = expandName( t ) ; }
+		if ( t.find_first_of( "?*[" ) != string::npos ) { t = expandName( t ) ; }
 		if ( t == "" ) { return 8 ; }
 		if ( is_directory( t ) ) { ZPATH = t ; return 0 ; }
 		else { return 8 ; }
@@ -1275,7 +1283,7 @@ void PFLST0A::modifyAttrs( const string& p )
 	uid_t uid ;
 	gid_t gid ;
 
-	struct stat results   ;
+	struct stat results ;
 
 	vdefine( "IENTRY ITYPE  IPERMISS ", &IENTRY, &ITYPE, &IPERMISS ) ;
 	vdefine( "IOWNER IGROUP ISETUID", &IOWNER, &IGROUP, &ISETUID  ) ;
@@ -1299,7 +1307,7 @@ void PFLST0A::modifyAttrs( const string& p )
 	IOWNER  = "" ;
 	IOWNERN = "" ;
 	pwd = getpwuid( results.st_uid ) ;
-	if ( pwd != NULL)
+	if ( pwd )
 	{
 		IOWNER  = pwd->pw_name ;
 		IOWNERN = d2ds( pwd->pw_uid ) ;
@@ -1308,7 +1316,7 @@ void PFLST0A::modifyAttrs( const string& p )
 	IGROUP  = "" ;
 	IGROUPN = "" ;
 	grp = getgrgid( results.st_gid ) ;
-	if ( grp != NULL)
+	if ( grp )
 	{
 		IGROUP  = grp->gr_name ;
 		IGROUPN = d2ds( grp->gr_gid ) ;
@@ -2028,7 +2036,7 @@ string PFLST0A::getAppName( string s )
 
 string PFLST0A::expandName( const string& s )
 {
-	// Resolve name if contains * or ?.  If more than one, return ""
+	// Resolve name if contains *, ? or regex.  If more than one, return ""
 
 	int i  ;
 	int p1 ;
@@ -2060,7 +2068,15 @@ string PFLST0A::expandName( const string& s )
 		else if ( c == '?' ) { pat += "[^[:blank:]]"  ; }
 		else                 { pat.push_back( c )     ; }
 	}
-	expression.assign( pat ) ;
+	try
+	{
+		expression.assign( pat ) ;
+	}
+	catch  ( boost::regex_error& e )
+	{
+		setmsg( "PSYS012P" ) ;
+		return "" ;
+	}
 
 	try
 	{

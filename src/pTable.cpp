@@ -278,9 +278,6 @@ void Table::tbbottom( errblock& err,
 
 	// ROWID name and CRP name are for output only
 
-	string var ;
-	string val ;
-
 	err.setRC( 0 ) ;
 
 	iupper( tb_savenm )   ;
@@ -363,8 +360,6 @@ void Table::tbdelete( errblock& err,
 	//         Non-keyed tables.  CRP was at TOP (zero)
 	// RC = 20 Severe error
 
-	string key ;
-
 	err.setRC( 0 ) ;
 
 	vector<vector<string>*>::iterator it ;
@@ -444,12 +439,7 @@ void Table::tbget( errblock& err,
 
 	// ROWID name and CRP name are for output only (not used for finding the record)
 
-	string key ;
-	string var ;
-	string val ;
-
 	vector<vector<string>*>::iterator it ;
-	vector<string> keys ;
 
 	err.setRC( 0 ) ;
 

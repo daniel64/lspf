@@ -33,8 +33,7 @@ dynArea  5  2  MAX  MAX  ZAREA  ZSHADOW
 
 )PROC
 
-IF (&ZCMD = &Z)
-   EXIT
+IF (&ZCMD = &Z) EXIT
 
 &ZU  = UPPER(ZCMD)           /* Upper case      */
 &CMD = TRUNC(&ZU,' ')        /* Get first word  */

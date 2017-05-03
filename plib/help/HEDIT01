@@ -5,9 +5,10 @@ EDIT Entry Panel
 *--------------*
 
 The File Name field supports NRETRIEV, referral lists and file/directory name expansion.
-A generic can also be used in the low level name file name eg /data/src/*ed*cpp where * represents
+A generic can also be used in the low level file name eg /data/src/*ed*cpp where * represents
 any number of characters, including 0.  In this case a file list will be shown regardless
-of the Show directory list setting.
+of the Show directory list setting.  (Infact any valid regex can be used as long as it contains
+'*', '?' or '[' somewhere in the name)
 
 
 Extensions to the normal ISPF PDF editor primary commands:

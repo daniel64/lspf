@@ -121,8 +121,6 @@ void pApplication::init()
 	// Before being dispatched in its own thread, set the search paths, table display BOD mark and
 	// addpop status if this has not been invoked with the SUSPEND option on the SELECT command
 
-	int scrNum ;
-
 	ZPLIB    = p_poolMGR->get( errBlock, "ZPLIB", PROFILE ) ;
 	ZTLIB    = p_poolMGR->get( errBlock, "ZTLIB", PROFILE ) ;
 	ZMLIB    = p_poolMGR->get( errBlock, "ZMLIB", PROFILE ) ;
@@ -132,9 +130,9 @@ void pApplication::init()
 
 	if ( !SUSPEND )
 	{
-		scrNum     = ds2d( p_poolMGR->get( errBlock, "ZSCRNUM", SHARED ) ) ;
-		addpop_row = ds2d( p_poolMGR->get( errBlock, scrNum, "ZPROW" ) ) ;
-		addpop_col = ds2d( p_poolMGR->get( errBlock, scrNum, "ZPCOL" ) ) ;
+		lscreen_num = ds2d( p_poolMGR->get( errBlock, "ZSCRNUM", SHARED ) ) ;
+		addpop_row  = ds2d( p_poolMGR->get( errBlock, lscreen_num, "ZPROW" ) ) ;
+		addpop_col  = ds2d( p_poolMGR->get( errBlock, lscreen_num, "ZPCOL" ) ) ;
 		if ( addpop_row != 0 || addpop_col != 0 )
 		{
 			addpop_active = true ;
@@ -148,6 +146,7 @@ void pApplication::init()
 void pApplication::wait_event()
 {
 	busyAppl = false ;
+
 	while ( true )
 	{
 		if ( terminateAppl ) { RC = 20 ; llog( "E", "Application terminating.  Cancelling wait_event" << endl ) ; abend() ; }
@@ -376,7 +375,6 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 	const string e5 = "Error during update of panel " ;
 	const string e6 = "Error updating field values of panel " ;
 
-	int  scrNum   ;
 	bool doReinit ;
 
 	RC       = 0     ;
@@ -473,11 +471,10 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 		}
 	}
 
-	scrNum = ds2d(p_poolMGR->get( errBlock, "ZSCRNUM", SHARED ) ) ;
 	if ( p_poolMGR->get( errBlock, "ZSCRNAM1", SHARED ) == "ON" &&
-	     p_poolMGR->get( errBlock, scrNum, "ZSCRNAM2" ) == "PERM" )
+	     p_poolMGR->get( errBlock, lscreen_num, "ZSCRNAM2" ) == "PERM" )
 	{
-			p_poolMGR->put( errBlock, "ZSCRNAME", p_poolMGR->get( errBlock, scrNum, "ZSCRNAME" ), SHARED ) ;
+			p_poolMGR->put( errBlock, "ZSCRNAME", p_poolMGR->get( errBlock, lscreen_num, "ZSCRNAME" ), SHARED ) ;
 	}
 
 	while ( true )
@@ -1366,14 +1363,10 @@ void pApplication::addpop( const string& a_fld, int a_row, int a_col )
 	//  RC = 12 No panel displayed before addpop() service when using field parameter
 	//  RC = 20 Severe error
 
-	int  scrNum ;
-
 	const string e1 = "ADDPOP error" ;
 
 	uint p_row = 0 ;
 	uint p_col = 0 ;
-
-	scrNum = ds2d(p_poolMGR->get( errBlock, "ZSCRNUM", SHARED ) ) ;
 
 	if ( a_fld != "" )
 	{
@@ -1394,8 +1387,8 @@ void pApplication::addpop( const string& a_fld, int a_row, int a_col )
 	}
 	else
 	{
-		a_row += ds2d( p_poolMGR->get( errBlock, scrNum, "ZPROW" ) ) ;
-		a_col += ds2d( p_poolMGR->get( errBlock, scrNum, "ZPCOL" ) ) ;
+		a_row += ds2d( p_poolMGR->get( errBlock, lscreen_num, "ZPROW" ) ) ;
+		a_col += ds2d( p_poolMGR->get( errBlock, lscreen_num, "ZPCOL" ) ) ;
 	}
 	if ( addpop_active )
 	{
@@ -1407,8 +1400,8 @@ void pApplication::addpop( const string& a_fld, int a_row, int a_col )
 	addpop_row = (a_row <  0 ) ? 1 : a_row + 2 ;
 	addpop_col = (a_col < -1 ) ? 2 : a_col + 4 ;
 
-	p_poolMGR->put( errBlock, scrNum, "ZPROW", d2ds( addpop_row ) ) ;
-	p_poolMGR->put( errBlock, scrNum, "ZPCOL", d2ds( addpop_col ) ) ;
+	p_poolMGR->put( errBlock, lscreen_num, "ZPROW", d2ds( addpop_row ) ) ;
+	p_poolMGR->put( errBlock, lscreen_num, "ZPCOL", d2ds( addpop_col ) ) ;
 	RC = errBlock.getRC() ;
 }
 
@@ -1420,8 +1413,6 @@ void pApplication::rempop( const string& r_all )
 	//  RC = 0  Normal completion
 	//  RC = 16 No pop-up window exists at this level
 	//  RC = 20 Severe error
-
-	int  scrNum ;
 
 	const string e1 = "REMPOP error" ;
 
@@ -1467,9 +1458,8 @@ void pApplication::rempop( const string& r_all )
 		return ;
 	}
 
-	scrNum = ds2d(p_poolMGR->get( errBlock, "ZSCRNUM", SHARED ) ) ;
-	p_poolMGR->put( errBlock, scrNum, "ZPROW", d2ds( addpop_row ) ) ;
-	p_poolMGR->put( errBlock, scrNum, "ZPCOL", d2ds( addpop_col ) ) ;
+	p_poolMGR->put( errBlock, lscreen_num, "ZPROW", d2ds( addpop_row ) ) ;
+	p_poolMGR->put( errBlock, lscreen_num, "ZPCOL", d2ds( addpop_col ) ) ;
 	RC = errBlock.getRC() ;
 }
 
@@ -1986,7 +1976,6 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 	int i       ;
 	int ln      ;
 	int csrvrow ;
-	int scrNum  ;
 
 	bool scan   ;
 
@@ -2056,7 +2045,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		p_poolMGR->put( errBlock, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 		if ( p_msg == "" )
 		{
-			currtbPanel->clear_tb_linesChanged( errBlock ) ;
+			currtbPanel->tb_clear_linesChanged( errBlock ) ;
 			if ( errBlock.error() )
 			{
 				errBlock.setcall( e1 ) ;
@@ -2078,7 +2067,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		p_poolMGR->put( errBlock, "ZVERB", "",  SHARED ) ;
 		if ( p_msg == "" && currtbPanel->tb_lineChanged( ln, URID ) )
 		{
-			currtbPanel->remove_tb_lineChanged() ;
+			currtbPanel->tb_remove_lineChanged() ;
 		}
 		else
 		{
@@ -2134,11 +2123,10 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 	t = funcPOOL.get( errBlock, 8, ".CSRROW", NOCHECK ) ;
 	if ( errBlock.RC0() ) { p_csrrow = ds2d( t ) ; }
 
-	scrNum = ds2d(p_poolMGR->get( errBlock, "ZSCRNUM", SHARED ) ) ;
 	if ( p_poolMGR->get( errBlock, "ZSCRNAM1", SHARED ) == "ON" &&
-	     p_poolMGR->get( errBlock, scrNum, "ZSCRNAM2" ) == "PERM" )
+	     p_poolMGR->get( errBlock, lscreen_num, "ZSCRNAM2" ) == "PERM" )
 	{
-			p_poolMGR->put( errBlock, "ZSCRNAME", p_poolMGR->get( errBlock, scrNum, "ZSCRNAME" ), SHARED ) ;
+			p_poolMGR->put( errBlock, "ZSCRNAME", p_poolMGR->get( errBlock, lscreen_num, "ZSCRNAME" ), SHARED ) ;
 	}
 
 	while ( true )
@@ -2187,7 +2175,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 				exitRC = 20 ;
 				break ;
 			}
-			currtbPanel->set_tb_linesChanged() ;
+			currtbPanel->tb_set_linesChanged() ;
 		}
 
 		exitRC = 0  ;

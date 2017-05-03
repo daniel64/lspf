@@ -129,7 +129,5 @@ IF (&SEL NE &Z)
       .MSG       = PSYS011C
       EXIT
 
-IF (.RESP = END )
-   IF (.MSG = &Z )
-      VPUT ZSCROLL PROFILE
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
 )END

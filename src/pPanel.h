@@ -62,9 +62,9 @@ class pPanel
 
 		void   redisplay_panel() ;
 		void   redraw_fields()   ;
-		void   refresh() ;
+		void   refresh()         ;
+		void   refresh_fields()  ;
 		void   refresh_fields( const string& ) ;
-		void   refresh_fields()                ;
 
 		string cmd_getvalue()                  { return field_getvalue( CMDfield ) ; }
 		void   cmd_setvalue( const string& v ) { field_setvalue( CMDfield, v )     ; }
@@ -128,6 +128,10 @@ class pPanel
 		bool   win_addpop  ;
 		bool   smp_created ;
 		bool   lmp_created ;
+		bool   end_pressed ;
+		bool   ver_failure ;
+		bool   message_set ;
+		bool   cursor_set  ;
 		int    win_width   ;
 		int    win_depth   ;
 		int    win_row     ;
@@ -151,11 +155,21 @@ class pPanel
 		void   loadPanel( errblock&, const string&, const string& ) ;
 		void   readPanel( errblock&, vector<string>&, const string&, const string&, string ) ;
 
+		void   createPanel_Refresh( errblock&, parser&, panstmnt* ) ;
+		void   createPanel_Trans( errblock&, parser&, panstmnt* ) ;
+		void   createPanel_Trunc( errblock&, parser&, panstmnt* ) ;
+		void   createPanel_Vputget( errblock&, parser&, panstmnt* ) ;
+		void   createPanel_Assign( errblock&, parser&, panstmnt* ) ;
+		void   createPanel_Verify( errblock&, parser&, panstmnt* ) ;
+		void   createPanel_If( errblock&, parser&, panstmnt*, bool ) ;
+		void   createPanel_Else( errblock&, parser&, panstmnt*, vector<panstmnt* >*, bool )  ;
+
 		void   display_panel_update( errblock& ) ;
 		void   display_panel_init( errblock& )   ;
 		void   display_panel_reinit( errblock&, int ln=0 ) ;
 		void   display_panel_proc( errblock&, int ln )     ;
-		void   display_id()  ;
+
+		void   display_id() ;
 
 		void   set_popup( int, int ) ;
 		void   remove_popup()        ;
@@ -170,10 +184,10 @@ class pPanel
 		void   attr( int& RC, const string& field, const string& attrs ) ;
 		void   get_home( uint& row, uint& col ) ;
 
-		void   set_tb_linesChanged() ;
+		void   tb_set_linesChanged() ;
 		bool   tb_lineChanged( int&, string& ) ;
-		void   clear_tb_linesChanged( errblock& ) ;
-		void   remove_tb_lineChanged() ;
+		void   tb_clear_linesChanged( errblock& ) ;
+		void   tb_remove_lineChanged() ;
 
 		string  get_field_help( const string& fld ) ;
 		bool    get_nretriev()  { return nretriev  ; }
@@ -186,12 +200,17 @@ class pPanel
 		bool   msgInhibited()   { return msgResp  ; }
 		void   msgResponseOK()  { msgResp = false ; }
 
+		void   setMessageCond( const string& ) ;
+		void   setCursorCond( const string& )  ;
+
 		string return_command( const string& ) ;
 		void   resetAttrs() ;
 
 		void   syncDialogueVar( const string& ) ;
-		string getDialogueVar( errblock&, const string& ) ;
+		string getDialogueVar( errblock&, const string& )   ;
 		void   putDialogueVar( errblock&, const string&, const string& ) ;
+		string getControlVar( errblock&, const string& ) ;
+		void   setControlVar( errblock&, int, const string&, const string& ) ;
 
 		void   create_tbfield( errblock&, int col, int size, cuaType cuaFT, const string& name, const string& opts ) ;
 		void   create_tbfield( errblock&, const string& ) ;
@@ -218,45 +237,22 @@ class pPanel
 
 		map<string, fieldExc> fieldExcTable ;
 
-		vector<panstmnt> procstmnts ;
-		vector<panstmnt> initstmnts ;
-		vector<panstmnt> reinstmnts ;
-
-		vector<IFSTMNT>  ifListp ;
-		vector<VERIFY>  verListp ;
-		vector<VPUTGET> vpgListp ;
-		vector<TRUNC> truncListp ;
-		vector<TRANS> transListp ;
-		vector<ASSGN> assgnListp ;
-
-		vector<IFSTMNT>  ifListi ;
-		vector<VERIFY>  verListi ;
-		vector<VPUTGET> vpgListi ;
-		vector<TRUNC> truncListi ;
-		vector<TRANS> transListi ;
-		vector<ASSGN> assgnListi ;
-
-		vector<IFSTMNT>  ifListr ;
-		vector<VERIFY>  verListr ;
-		vector<VPUTGET> vpgListr ;
-		vector<TRUNC> truncListr ;
-		vector<TRANS> transListr ;
-		vector<ASSGN> assgnListr ;
-
+		vector<panstmnt* > procstmnts ;
+		vector<panstmnt* > initstmnts ;
+		vector<panstmnt* > reinstmnts ;
 
 		void   display_literals() ;
 		void   display_ab()       ;
 		void   display_pd()       ;
 		void   display_fields()   ;
 
-		void  process_panel_stmnts( errblock& err, int ln,
-			vector<panstmnt>& stmnts,
-			vector<IFSTMNT>&  ifList,
-			vector<VERIFY>&   verList,
-			vector<VPUTGET>&  vpgList,
-			vector<TRUNC>&    truncList,
-			vector<TRANS>&    transList,
-			vector<ASSGN>&    assgnList ) ;
+		void  process_panel_stmnts( errblock& err, int ln, vector<panstmnt* >& stmnts ) ;
+		void  process_panel_assignment( errblock& err, int ln, ASSGN* assgn ) ;
+		void  process_panel_vputget( errblock& err, VPUTGET* vputget ) ;
+		void  process_panel_verify( errblock& err, int ln, VERIFY* verify ) ;
+		void  process_panel_trunc( errblock& err, TRUNC* trunc ) ;
+		void  process_panel_trans( errblock& err, int ln, TRANS* trans )  ;
+		void  process_panel_if( errblock& err, int ln, IFSTMNT* ifstmnt ) ;
 
 		void   get_msgwin( string, int&, int&, int&, int&, vector<string>& ) ;
 		void   panel_cleanup( PANEL * ) ;
