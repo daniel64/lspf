@@ -66,13 +66,13 @@ void parser::parseStatement( errblock& err, string s )
 		else if ( c1 == '.' )
 		{
 			if ( optUpper ) { iupper( u ) ; }
-			if ( !isvalidName( u.substr( 1 ) ) )
+			if ( findword( u, ctl_valid ) )
 			{
-				t.type = TT_CTL_VAR_INVALID ;
+				t.type = TT_CTL_VAR_VALID ;
 			}
 			else
 			{
-				t.type = TT_CTL_VAR_VALID ;
+				t.type = TT_CTL_VAR_INVALID ;
 			}
 			t.value = u ;
 		}
@@ -368,11 +368,9 @@ void IFSTMNT::parse( errblock& err, parser& v )
 	// rhs value lists only for EQ and NE (EQ only one needs to be true, NE all need to be true)
 	// IF ( VER (&A...) ) STATEMENT
 
-	VERIFY* m_ver = new VERIFY ;
+	VERIFY* m_ver ;
 
 	token t ;
-
-	const string controlVars = ".ALARM .CSRPOS .CURSOR .HELP .MSG .RESP .TRAIL" ;
 
 	v.getFirstToken() ;
 	v.getNextToken()  ;
@@ -416,13 +414,10 @@ void IFSTMNT::parse( errblock& err, parser& v )
 		err.seterrid( "PSYE033B" ) ;
 		return ;
 	}
-	else if ( t.type != TT_STRING_QUOTED && if_lhs.front() == '.' )
+	else if ( t.type == TT_CTL_VAR_INVALID )
 	{
-		if ( !findword( if_lhs, controlVars ) )
-		{
-			err.seterrid( "PSYE033G", if_lhs ) ;
-			return ;
-		}
+		err.seterrid( "PSYE033G", if_lhs ) ;
+		return ;
 	}
 
 	t = v.getNextToken() ;
@@ -467,10 +462,9 @@ void IFSTMNT::parse( errblock& err, parser& v )
 		{
 			break ;
 		}
-		else if ( t.type != TT_STRING_QUOTED && t.value.front() == '.' )
+		else if ( t.type == TT_CTL_VAR_INVALID )
 		{
-			if      ( findword( t.value, controlVars ) ) {}
-			else if ( t.value == ".TRUE" )  { t.value = "1" ; }
+			if      ( t.value == ".TRUE" )  { t.value = "1" ; }
 			else if ( t.value == ".FALSE" ) { t.value = "0" ; }
 			else
 			{
@@ -512,7 +506,6 @@ void ASSGN::parse( errblock& err, parser& v )
 	token t ;
 
 	const string lhs_control = ".ALARM .AUTOSEL .BROWSE .CURSOR .CSRROW .CSRPOS .EDIT .HELP .MSG .NRET .RESP" ;
-	const string rhs_control = ".ALARM .CSRPOS .CURSOR .HELP .MSG .TRAIL .RESP" ;
 	const string functn_list = "DIR EXISTS FILE LENGTH REVERSE WORDS UPPER" ;
 
 	err.setRC( 0 ) ;
@@ -565,7 +558,6 @@ void ASSGN::parse( errblock& err, parser& v )
 		return ;
 	}
 
-
 	if ( !v.getNextIfCurrent( TT_EQUALS ) )
 	{
 		err.seterrid( "PSYE033O" ) ;
@@ -573,17 +565,14 @@ void ASSGN::parse( errblock& err, parser& v )
 	}
 
 	t = v.getCurrentToken() ;
-	if ( v.getNextIfCurrent( TT_CTL_VAR_VALID ) )
+	if ( t.type == TT_CTL_VAR_INVALID )
 	{
-		if ( findword( t.value, rhs_control ) )
-		{
-			as_rhs = t.value ;
-		}
-		else
-		{
-			err.seterrid( "PSYE033S", t.value ) ;
-			return ;
-		}
+		err.seterrid( "PSYE033S", t.value ) ;
+		return ;
+	}
+	else if ( v.getNextIfCurrent( TT_CTL_VAR_VALID ) )
+	{
+		as_rhs = t.value ;
 	}
 	else if ( findword( t.value, functn_list ) )
 	{
@@ -859,12 +848,21 @@ void TRUNC::parse( errblock& err, parser& v )
 	}
 
 	trnc_field2 = v.getCurrentValue() ;
-	if ( !v.getNextIfCurrent( TT_AMPR_VAR_VALID ) )
+	if ( v.getNextIfCurrent( TT_CTL_VAR_VALID ) ) {}
+	else if ( v.getNextIfCurrent( TT_CTL_VAR_INVALID ) )
+	{
+		err.seterrid( "PSYE033S", trnc_field2 ) ;
+		return ;
+	}
+	else if ( !v.getNextIfCurrent( TT_AMPR_VAR_VALID ) )
 	{
 		trnc_field2 == "" ? err.seterrid( "PSYE038A" ) : err.seterrid( "PSYE033I", trnc_field2 ) ;
 		return ;
 	}
-	trnc_field2.erase( 0, 1 ) ;
+	else
+	{
+		trnc_field2.erase( 0, 1 ) ;
+	}
 
 	if ( !v.getNextIfCurrent( TT_COMMA ) )
 	{

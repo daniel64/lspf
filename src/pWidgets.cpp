@@ -334,9 +334,6 @@ void dynArea::dynArea_init( errblock& err, int MAXW, int MAXD, const string& lin
 
 	err.setRC( 0 ) ;
 
-	row = ds2d( w2 ) ;
-	col = ds2d( w3 ) ;
-
 	if ( isnumeric( w2 ) )                      { row = ds2d( w2  ) ; }
 	else if ( w2 == "MAX" )                     { row = MAXD        ; }
 	else if ( w2.compare( 0, 4, "MAX-" ) == 0 ) { row = MAXD - ds2d( substr( w2, 5 ) )    ; }

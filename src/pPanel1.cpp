@@ -417,7 +417,6 @@ void pPanel::display_panel_update( errblock& err )
 
 	//  If END entered with pull down displayed, remove the pull down and clear ZVERB.
 	//  For dynamic areas, also update the shadow variable to indicate character deletes (0xFF).
-	//  Clear error message if END pressed so panel is not re-displaed.
 
 	int fieldNum    ;
 	int scrollAmt   ;
@@ -960,7 +959,14 @@ void pPanel::process_panel_trunc( errblock& err, TRUNC* trunc )
 	string t      ;
 	string dTrail ;
 
-	t = getDialogueVar( err, trunc->trnc_field2 ) ;
+	if ( trunc->trnc_field2.front() == '.' )
+	{
+		t = getControlVar( err, trunc->trnc_field2 ) ;
+	}
+	else
+	{
+		t = getDialogueVar( err, trunc->trnc_field2 ) ;
+	}
 	if ( err.error() ) { return ; }
 
 	p = trunc->trnc_len ;
@@ -1228,11 +1234,11 @@ void pPanel::process_panel_assignment( errblock& err, int ln, ASSGN* assgn )
 		t = sub_vars( t ) ;
 	}
 
-	if      ( assgn->as_retlen )  { t = d2ds( t.size() )          ; }
-	else if ( assgn->as_reverse ) { reverse( t.begin(), t.end() ) ; }
-	else if ( assgn->as_upper  )  { iupper( t )                   ; }
-	else if ( assgn->as_words  )  { t = d2ds( words( t ) )        ; }
-	else if ( assgn->as_chkexst ) { t = exists( t ) ? "1" : "0"   ; }
+	if      ( assgn->as_retlen )  { t = d2ds( t.size() )                 ; }
+	else if ( assgn->as_reverse ) { reverse( t.begin(), t.end() )        ; }
+	else if ( assgn->as_upper  )  { iupper( t )                          ; }
+	else if ( assgn->as_words  )  { t = d2ds( words( t ) )               ; }
+	else if ( assgn->as_chkexst ) { t = exists( t ) ? "1" : "0"          ; }
 	else if ( assgn->as_chkfile ) { t = is_regular_file( t ) ? "1" : "0" ; }
 	else if ( assgn->as_chkdir )  { t = is_directory( t )    ? "1" : "0" ; }
 	else if ( assgn->as_rhs.front() == '.' )
@@ -1426,8 +1432,8 @@ void pPanel::setCursorCond( const string& csr )
 
 	if ( !cursor_set )
 	{
-		CURFLD  = csr  ;
-		MSGLOC  = csr  ;
+		CURFLD = csr ;
+		MSGLOC = csr ;
 		p_funcPOOL->put( err, "ZCURFLD", csr ) ;
 		cursor_set = true ;
 	}
@@ -2153,8 +2159,6 @@ void pPanel::field_delete_char( uint row, uint col, bool& prot )
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( tcol ) ) { return ; }
 			it->second->edit_field_delete( win, tcol, pad, snulls ) ;
 			prot = false ;
-			row  = trow + win_row ;
-			col  = tcol + win_col ;
 			return ;
 		}
 	}
@@ -2943,7 +2947,6 @@ string pPanel::sub_vars( string s )
 
 	const string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$@" ;
 	p1 = 0 ;
-	p2 = 0 ;
 
 	while ( true )
 	{

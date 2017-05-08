@@ -2443,11 +2443,9 @@ string listLogicalScreens()
 	{
 		for ( i = 0, it = lslist.begin() ; it != lslist.end() ; it++, i++ )
 		{
-			if ( i == m ) { wattron( swwin, cuaAttr[ PT  ] )  ; }
-			else          { wattron( swwin, cuaAttr[ VOI ] )  ; }
-			mvwaddstr( swwin, i+4, 2, (*it).c_str() )         ;
-			if ( i == m ) { wattroff( swwin, cuaAttr[ PT  ] ) ; }
-			else          { wattroff( swwin, cuaAttr[ VOI ] ) ; }
+			wattron( swwin, cuaAttr[  i == m ? PT : VOI ] ) ;
+			mvwaddstr( swwin, i+4, 2, (*it).c_str() )       ;
+			wattroff( swwin, cuaAttr[ i == m ? PT : VOI ] ) ;
 		}
 		update_panels() ;
 		doupdate()  ;
@@ -2532,11 +2530,9 @@ void listRetrieveBuffer()
 	{
 		for ( i = 0, it = lslist.begin() ; it != lslist.end() ; it++, i++ )
 		{
-			if ( i == m ) { wattron( rbwin, cuaAttr[ PT  ] )  ; }
-			else          { wattron( rbwin, cuaAttr[ VOI ] )  ; }
-			mvwaddstr( rbwin, i+3, 3, (*it).c_str() )         ;
-			if ( i == m ) { wattroff( rbwin, cuaAttr[ PT  ] ) ; }
-			else          { wattroff( rbwin, cuaAttr[ VOI ] ) ; }
+			wattron( rbwin, cuaAttr[  i == m ? PT : VOI ] ) ;
+			mvwaddstr( rbwin, i+3, 3, (*it).c_str() )       ;
+			wattroff( rbwin, cuaAttr[ i == m ? PT : VOI ] ) ;
 		}
 		update_panels() ;
 		doupdate()  ;

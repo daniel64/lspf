@@ -111,7 +111,7 @@ void addCppHilight( hilight& h, const string& line, string& shadow )
 			}
 		}
 
-		if ( ln > 1 && j < ln-1 && line.compare( j, 2, "\\'" ) == 0 )
+		if ( ln > 1 && j < ln-1 && ( line.compare( j, 2, "\\'" ) == 0 || line.compare( j, 2, "\\\"" ) == 0 ) )
 		{
 			j++ ;
 			continue ;

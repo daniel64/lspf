@@ -237,11 +237,13 @@ X "END"
  .CURSOR = ZCMD
 
 )PROC
+
 IF (&ZCMD EQ DATE)
    &ZCMD = 'DATE MM/YYYY'
    REFRESH ZCMD
    .MSG = PSYS011O
    EXIT
+
 &ZCMD   = TRUNC(&ZCMD,'.')
 &ZTRAIL = .TRAIL
 
@@ -259,10 +261,8 @@ IF (&W1 = 'DATE')
       .MSG    = PSYS011O
       .CURSOR = ZCMD
       EXIT
-   &MM   = TRUNC(&W2,2)
-   &T    = .TRAIL
-   &SEP  = TRUNC(&T,1)
-   &YYYY = .TRAIL
+   &MM  = TRUNC(&W2,2)
+   &SEP = TRUNC(.TRAIL,1)
    IF (&SEP NE '-','/')
       .MSG    = PSYS011O
       .CURSOR = ZCMD

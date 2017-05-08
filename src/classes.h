@@ -94,6 +94,7 @@ class parser
 	private:
 		int   idx ;
 		bool  optUpper ;
+		const string ctl_valid = ".ALARM .CSRPOS .CURSOR .HELP .MSG .RESP .TRAIL" ;
 		token current_token ;
 		vector<token>tokens ;
 } ;

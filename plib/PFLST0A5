@@ -34,7 +34,7 @@ literal 19 2  CH "Instructions"
 
 literal 20 2  NT "Enter"
 literal 20 8  ET "."
-literal 20 10 NT "in New File Name field to retrieve path name"
+literal 20 10 NT "in New File Name field to retrieve full path name"
 
 literal 22 2  NT "Press"
 literal 22 8  ET "Enter"

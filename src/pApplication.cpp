@@ -3574,7 +3574,6 @@ string pApplication::sub_vars( string s )
 
 	const string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$@" ;
 	p1 = 0 ;
-	p2 = 0 ;
 
 	while ( true )
 	{
