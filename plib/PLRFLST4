@@ -40,17 +40,13 @@ IF (&ZCMD1 NE &Z )
    .CURSOR = ZCMD1
    EXIT
 
-IF (&NEWNAME = &ACURTB)
-   &ZEDSMSG = 'Invalid Entry'
-   &ZEDLMSG = 'New name cannot be the same as an existing File List'
-   .MSG     = PSYZ001
-   .CURSOR  = NEWNAME
-   EXIT
-
 &L = LENGTH( NEWNAME )
-IF (&L LE 2)
+IF (&NEWNAME EQ &ACURTB OR &L LE 2 )
    &ZEDSMSG = 'Invalid Entry'
-   &ZEDLMSG = 'New name must be at least 3 characters'
+   IF ( &L LE 2 )
+      &ZEDLMSG = 'New name must be at least 3 characters'
+   ELSE
+      &ZEDLMSG = 'New name cannot be the same as an existing File List'
    .MSG     = PSYZ001
    .CURSOR  = NEWNAME
    EXIT

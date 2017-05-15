@@ -38,10 +38,8 @@ VGET ZSCROLL PROFILE
 
 &TEMP1  = reverse(TBK1TAB)
 &TEMP1  = TRUNC(&TEMP1, 4)
-IF ( &TEMP1 = 'PYEK' )
-    &ZZTYP = 'Private'
-else
-    &ZZTYP = 'Shared'
+IF ( &TEMP1 = 'PYEK' ) &ZZTYP = 'Private'
+else                   &ZZTYP = 'Shared'
 
 &TEMP1  = .TRAIL
 &ZZTABL = reverse(TEMP1)

@@ -26,9 +26,9 @@ literal  9   4       SAC    "Show hidden entries also"
 
 literal 11 2   CH "Instructions"
 literal 12 2   NT "Enter"
-literal 12 8   ET "L"
+literal 12 8   ET "S"
 literal 12 10  NT "to navigate directory list and "
-literal 12 41  ET "S"
+literal 12 41  ET "/"
 literal 12 43  NT "to copy entry to the field"
 
 
@@ -63,27 +63,15 @@ ELSE
     IF ( &ZCMDU EQ 'BACK' ) &ZCMD = 'S'
 
 &W1    = TRUNC(&ZCMD,' ')
-&W1    = UPPER( W1 )
+&W1    = UPPER(W1)
 &WDS   = WORDS(ZCMD)
 
-IF (&W1 NE &Z,REFRESH,S,O,CD)
+IF (&W1 NE &Z,'REFRESH',S,O,CD OR &W1 EQ REFRESH,S AND &WDS NE 1 OR &W1 EQ O AND &WDS NE 2)
    .CURSOR = ZCMD
-   .MSG    = PSYS011C
+   .MSG    = PSYS018
    EXIT
 
-IF (&W1 EQ REFRESH,S)
-   IF (&WDS NE 1)
-      .CURSOR = ZCMD
-      .MSG    = PSYS011C
-      EXIT
-
-IF (&W1 EQ O)
-   IF (&WDS NE 2)
-      .CURSOR = ZCMD
-      .MSG    = PSYS011C
-      EXIT
-
-VER (&SEL LIST L,S)
+VER (&SEL LIST S,/)
 
 &FLDIRS   = TRANS( &FLDIRS   &Z,&Z *,/ )
 &FLHIDDEN = TRANS( &FLHIDDEN &Z,&Z *,/ )

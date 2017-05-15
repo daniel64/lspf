@@ -805,19 +805,6 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 		{
 			refresh_fields( (*ips)->ps_rlist ) ;
 		}
-		else if ( (*ips)->ps_trunc )
-		{
-			process_panel_trunc( err,
-					     (*ips)->ps_trunc ) ;
-			if ( err.error() ) { return ; }
-		}
-		else if ( (*ips)->ps_trans )
-		{
-			process_panel_trans( err,
-					     ln,
-					     (*ips)->ps_trans ) ;
-			if ( err.error() ) { return ; }
-		}
 		else if ( (*ips)->ps_vputget )
 		{
 			process_panel_vputget( err,
@@ -846,6 +833,48 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 
 
 void pPanel::process_panel_if( errblock& err, int ln, IFSTMNT* ifstmnt )
+{
+	// Group AND statements as these have a higher precedence than OR
+
+	bool if_AND     ;
+	bool group_true ;
+
+	process_panel_if_cond( err, ln, ifstmnt ) ;
+	if ( err.error() || !ifstmnt->if_next ) { return ; }
+
+	IFSTMNT* if_stmnt = ifstmnt ;
+
+	group_true = ifstmnt->if_true ;
+	while ( ifstmnt->if_next )
+	{
+		if_AND  = ifstmnt->if_AND  ;
+		ifstmnt = ifstmnt->if_next ;
+		process_panel_if_cond( err, ln, ifstmnt ) ;
+		if ( err.error() ) { return ; }
+		if ( if_AND )
+		{
+			group_true = group_true && ifstmnt->if_true ;
+			while ( !group_true && ifstmnt->if_AND )
+			{
+				ifstmnt = ifstmnt->if_next ;
+			}
+		}
+		else
+		{
+			if ( group_true )
+			{
+				if_stmnt->if_true = true ;
+				return ;
+			}
+			group_true = ifstmnt->if_true ;
+		}
+	}
+
+	if_stmnt->if_true = group_true ;
+}
+
+
+void pPanel::process_panel_if_cond( errblock& err, int ln, IFSTMNT* ifstmnt )
 {
 	int j ;
 
@@ -882,14 +911,21 @@ void pPanel::process_panel_if( errblock& err, int ln, IFSTMNT* ifstmnt )
 			{
 				ifstmnt->if_true = isnumeric( fieldVal ) ;
 			}
-			else if ( ifstmnt->if_verify->ver_list )
+			else if ( ifstmnt->if_verify->ver_list || ifstmnt->if_verify->ver_listx )
 			{
 				for ( it  = ifstmnt->if_verify->ver_vlist.begin() ;
 				      it != ifstmnt->if_verify->ver_vlist.end()  ; it++ )
 				{
 					if ( sub_vars( (*it) ) == fieldVal ) { break ; }
 				}
-				ifstmnt->if_true = ( it == ifstmnt->if_verify->ver_vlist.end() ) ? false : true ;
+				if ( ifstmnt->if_verify->ver_list )
+				{
+					ifstmnt->if_true = ( it != ifstmnt->if_verify->ver_vlist.end() ) ;
+				}
+				else
+				{
+					ifstmnt->if_true = ( it == ifstmnt->if_verify->ver_vlist.end() ) ;
+				}
 			}
 			else if ( ifstmnt->if_verify->ver_pict )
 			{
@@ -904,11 +940,11 @@ void pPanel::process_panel_if( errblock& err, int ln, IFSTMNT* ifstmnt )
 				ifstmnt->if_true = isoctal( fieldVal ) ;
 			}
 		}
+		return ;
 	}
 	else
 	{
 		lhs_val = sub_vars( ifstmnt->if_lhs ) ;
-		if ( err.error() ) { return ; }
 	}
 	for ( j = 0 ; j < ifstmnt->if_rhs.size() ; j++ )
 	{
@@ -952,22 +988,22 @@ void pPanel::process_panel_if( errblock& err, int ln, IFSTMNT* ifstmnt )
 }
 
 
-void pPanel::process_panel_trunc( errblock& err, TRUNC* trunc )
+string pPanel::process_panel_trunc( errblock& err, TRUNC* trunc )
 {
 	int p ;
 
 	string t      ;
 	string dTrail ;
 
-	if ( trunc->trnc_field2.front() == '.' )
+	if ( trunc->trnc_field.front() == '.' )
 	{
-		t = getControlVar( err, trunc->trnc_field2 ) ;
+		t = getControlVar( err, trunc->trnc_field ) ;
 	}
 	else
 	{
-		t = getDialogueVar( err, trunc->trnc_field2 ) ;
+		t = getDialogueVar( err, trunc->trnc_field ) ;
 	}
-	if ( err.error() ) { return ; }
+	if ( err.error() ) { return "" ; }
 
 	p = trunc->trnc_len ;
 	if ( p > 0 )
@@ -996,30 +1032,26 @@ void pPanel::process_panel_trunc( errblock& err, TRUNC* trunc )
 		}
 	}
 
-	putDialogueVar( err, trunc->trnc_field1, t ) ;
-	if ( err.error() ) { return ; }
-
 	p_funcPOOL->put( err, ".TRAIL", dTrail, NOCHECK ) ;
-	if ( err.error() ) { return ; }
+	if ( err.error() ) { return "" ; }
+
+	return t ;
 }
 
 
-void pPanel::process_panel_trans( errblock& err, int ln, TRANS* trans )
+string pPanel::process_panel_trans( errblock& err, int ln, TRANS* trans )
 {
 	string fieldNam ;
-	string t  ;
-	string u1 ;
+	string t ;
 
 	vector<pair<string,string>>::iterator itt ;
 
-	t = getDialogueVar( err, trans->trns_field2 ) ;
-	if ( err.error() ) { return ; }
+	t = getDialogueVar( err, trans->trns_field ) ;
+	if ( err.error() ) { return "" ; }
 
-	for ( itt  = trans->trns_list.begin() ;
-	      itt != trans->trns_list.end()   ; itt++ )
+	for ( itt = trans->trns_list.begin() ; itt != trans->trns_list.end() ; itt++ )
 	{
-		u1 = sub_vars( itt->first ) ;
-		if ( t == u1 )
+		if ( t == sub_vars( itt->first ) )
 		{
 			t = sub_vars( itt->second ) ;
 			break ;
@@ -1034,10 +1066,10 @@ void pPanel::process_panel_trans( errblock& err, int ln, TRANS* trans )
 			if ( trans->trns_msgid != "" && !end_pressed && !ver_failure )
 			{
 				setMessageCond( sub_vars( trans->trns_msgid ) ) ;
-				if ( trans->trns_pnfield2 )
+				if ( trans->trns_pnfield )
 				{
-					fieldNam = trans->trns_field2 ;
-					if ( trans->trns_tbfield2 )
+					fieldNam = trans->trns_field ;
+					if ( trans->trns_tbfield )
 					{
 						fieldNam += "." + d2ds( ln ) ;
 					}
@@ -1052,8 +1084,7 @@ void pPanel::process_panel_trans( errblock& err, int ln, TRANS* trans )
 		}
 	}
 
-	putDialogueVar( err, trans->trns_field1, t ) ;
-	if ( err.error() ) { return ; }
+	return t ;
 }
 
 
@@ -1063,7 +1094,8 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 
 	string fieldNam ;
 	string fieldVal ;
-	string t        ;
+	string msg ;
+	string t   ;
 
 	vector<string>::iterator it ;
 
@@ -1101,13 +1133,14 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 			ver_failure = true ;
 		}
 	}
-	else if ( verify->ver_list )
+	else if ( verify->ver_list || verify->ver_listx )
 	{
 		for ( it = verify->ver_vlist.begin() ; it != verify->ver_vlist.end() ; it++ )
 		{
 			if ( sub_vars( (*it) ) == fieldVal ) { break ; }
 		}
-		if ( it == verify->ver_vlist.end() )
+		if ( ( verify->ver_list  && it == verify->ver_vlist.end() ) ||
+		     ( verify->ver_listx && it != verify->ver_vlist.end() ) )
 		{
 			if ( verify->ver_vlist.size() == 1 )
 			{
@@ -1126,8 +1159,9 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 				i++ ;
 				t += sub_vars( verify->ver_vlist[ i ] ) ;
 			}
-			setMessageCond( verify->ver_msgid == "" ? "PSYS011B" : sub_vars( verify->ver_msgid ) ) ;
-			if ( MSGID == "PSYS011B" )
+			msg = verify->ver_list ? "PSYS011B" : "PSYS012Q" ;
+			setMessageCond( verify->ver_msgid == "" ? msg : sub_vars( verify->ver_msgid ) ) ;
+			if ( MSGID == msg )
 			{
 				p_poolMGR->put( err, "ZZSTR1", t, SHARED ) ;
 				if ( err.error() ) { return ; }
@@ -1229,12 +1263,22 @@ void pPanel::process_panel_assignment( errblock& err, int ln, ASSGN* assgn )
 
 	if ( assgn->as_isvar )
 	{
-		t = getDialogueVar( err, assgn->as_rhs ) ;
-		if ( err.error() ) { return ; }
+		if ( assgn->as_rhs.front() == '.' )
+		{
+			t = getControlVar( err, assgn->as_rhs ) ;
+			if ( err.error() ) { return ; }
+		}
+		else
+		{
+			t = getDialogueVar( err, assgn->as_rhs ) ;
+			if ( err.error() ) { return ; }
+		}
 		t = sub_vars( t ) ;
 	}
 
-	if      ( assgn->as_retlen )  { t = d2ds( t.size() )                 ; }
+	if      ( assgn->as_trans  )  { t = process_panel_trans( err, ln, assgn->as_trans ) ; }
+	else if ( assgn->as_trunc  )  { t = process_panel_trunc( err, assgn->as_trunc )     ; }
+	else if ( assgn->as_retlen )  { t = d2ds( t.size() )                 ; }
 	else if ( assgn->as_reverse ) { reverse( t.begin(), t.end() )        ; }
 	else if ( assgn->as_upper  )  { iupper( t )                          ; }
 	else if ( assgn->as_words  )  { t = d2ds( words( t ) )               ; }
@@ -2044,7 +2088,8 @@ fieldExc pPanel::field_getexec( const string& field )
 void pPanel::field_clear( const string& f_name )
 {
 	errblock err ;
-	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
+	char pad = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
+
 	fieldList[ f_name ]->field_clear( win, pad ) ;
 }
 
@@ -2146,6 +2191,7 @@ void pPanel::field_delete_char( uint row, uint col, bool& prot )
 
 	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
 	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
+
 	trow = row - win_row ;
 	tcol = col - win_col ;
 

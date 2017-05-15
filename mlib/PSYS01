@@ -159,3 +159,7 @@ PSYS012O 'Invalid PAD value' .TYPE=W
 
 PSYS012P 'Invalid REGEX entered' .TYPE=W
 ''
+
+PSYS012Q 'Invalid value entered' .TYPE=W .W=NORESP
+'Invalid &ZZSTR1'
+

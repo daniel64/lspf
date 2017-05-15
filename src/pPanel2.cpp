@@ -214,7 +214,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		{
 			panstmnt * m_stmnt = new panstmnt ;
 			m_stmnt->ps_column = pline.find_first_not_of( ' ' ) ;
-			vector<panstmnt* > * p_stmnt  ;
+			vector<panstmnt* >* p_stmnt ;
 			if ( init )        { p_stmnt = &initstmnts ; }
 			else if ( reinit ) { p_stmnt = &reinstmnts ; }
 			else               { p_stmnt = &procstmnts ; }
@@ -317,28 +317,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 					return ;
 				}
 				m_stmnt->ps_label = tx.value  ;
-				p_stmnt->push_back( m_stmnt ) ;
-				break ;
-
-			case ST_TRANS:
-				createPanel_Trans( err, panelLang, m_stmnt ) ;
-				if ( err.error() )
-				{
-					err.setsrc( oline ) ;
-					delete m_stmnt ;
-					return ;
-				}
-				p_stmnt->push_back( m_stmnt ) ;
-				break ;
-
-			case ST_TRUNC:
-				createPanel_Trunc( err, panelLang, m_stmnt ) ;
-				if ( err.error() )
-				{
-					err.setsrc( oline ) ;
-					delete m_stmnt ;
-					return ;
-				}
 				p_stmnt->push_back( m_stmnt ) ;
 				break ;
 
@@ -901,14 +879,6 @@ void pPanel::createPanel_If( errblock& err, parser& v, panstmnt* m_stmnt, bool i
 		m_stmnt->ps_label = t.value ;
 		break ;
 
-	case ST_TRANS:
-		createPanel_Trans( err, v, m_stmnt ) ;
-		break ;
-
-	case ST_TRUNC:
-		createPanel_Trunc( err, v, m_stmnt ) ;
-		break ;
-
 	case ST_VERIFY:
 		createPanel_Verify( err, v, m_stmnt ) ;
 		break ;
@@ -1010,14 +980,6 @@ void pPanel::createPanel_Else( errblock& err, parser& v, panstmnt* m_stmnt, vect
 		m_stmnt->ps_label = t.value ;
 		break ;
 
-	case ST_TRANS:
-		createPanel_Trans( err, v, m_stmnt ) ;
-		break ;
-
-	case ST_TRUNC:
-		createPanel_Trunc( err, v, m_stmnt ) ;
-		break ;
-
 	case ST_VERIFY:
 		createPanel_Verify( err, v, m_stmnt ) ;
 		break ;
@@ -1087,41 +1049,6 @@ void pPanel::createPanel_Vputget( errblock& err, parser& v, panstmnt* m_stmnt )
 		return ;
 	}
 	m_stmnt->ps_vputget = m_VPG ;
-}
-
-
-void pPanel::createPanel_Trunc( errblock& err, parser& v, panstmnt* m_stmnt )
-{
-	TRUNC* m_trunc = new TRUNC ;
-
-	m_trunc->parse( err, v ) ;
-	if ( err.error() )
-	{
-		delete m_trunc ;
-		return ;
-	}
-	m_stmnt->ps_trunc = m_trunc ;
-}
-
-
-void pPanel::createPanel_Trans( errblock& err, parser& v, panstmnt* m_stmnt )
-{
-	TRANS* m_trans = new TRANS ;
-
-	m_trans->parse( err, v ) ;
-	if ( err.error() )
-	{
-		delete m_trans ;
-		return ;
-	}
-
-	if ( wordpos( m_trans->trns_field2, tb_fields ) > 0 )
-	{
-		m_trans->trns_tbfield2 = true ;
-	}
-
-	m_trans->trns_pnfield2 = ( fieldList.count( m_trans->trns_field2 ) > 0 || m_trans->trns_tbfield2 ) ;
-	m_stmnt->ps_trans      = m_trans ;
 }
 
 

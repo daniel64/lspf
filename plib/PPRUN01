@@ -53,27 +53,27 @@ literal 25 47  ET "FIELDEXC"
 
 )PROC
 
-IF (&PRSPNL EQ &Z )
-   IF (&PRICMD EQ &Z )
-      IF (&PRIPGM EQ &Z )
-         .CURSOR = PRSPNL
-         .MSG    = PSYS019
-         EXIT
+IF (&ZCMD NE &Z )
+   .CURSOR = ZCMD
+   .MSG    = PSYS011C
+   EXIT
 
-IF (&PRSPNL NE &Z )
-   IF ( .CURSOR EQ PRSPNL )
-      &PRICMD = &Z
-      &PRIPGM = &Z
+IF (&PRSPNL EQ &Z AND &PRICMD EQ &Z AND &PRIPGM EQ &Z )
+   .CURSOR = PRSPNL
+   .MSG    = PSYS019
+   EXIT
 
-IF (&PRICMD NE &Z )
-   IF ( .CURSOR EQ PRICMD )
-      &PRSPNL = &Z
-      &PRIPGM = &Z
+IF (&PRSPNL NE &Z AND .CURSOR EQ PRSPNL )
+   &PRICMD = &Z
+   &PRIPGM = &Z
 
-IF (&PRIPGM NE &Z )
-   IF ( .CURSOR EQ PRIPGM )
-      &PRSPNL = &Z
-      &PRICMD = &Z
+IF (&PRICMD NE &Z AND .CURSOR EQ PRICMD )
+   &PRSPNL = &Z
+   &PRIPGM = &Z
+
+IF (&PRIPGM NE &Z AND .CURSOR EQ PRIPGM )
+   &PRSPNL = &Z
+   &PRICMD = &Z
 
 IF (&PRSPNL NE &Z )
    IF (&PRICMD NE &Z )
@@ -85,28 +85,21 @@ IF (&PRSPNL NE &Z )
       .CURSOR = PRIPGM
       EXIT
 
-IF (&PRICMD NE &Z )
-   IF (&PRIPGM NE &Z )
-      .MSG    = PSYS012E
-      .CURSOR = PRIPGM
-      EXIT
+IF (&PRICMD NE &Z AND &PRIPGM NE &Z )
+   .MSG    = PSYS012E
+   .CURSOR = PRIPGM
+   EXIT
 
 &L = LENGTH( PRAPPL )
-IF ( &L = 1 )
-   VER (&PRAPPL PICT A)
+IF ( &L = 1 ) VER (&PRAPPL PICT A)
 ELSE
-  IF ( &L = 2 )
-     VER (&PRAPPL PICT AA)
+  IF ( &L = 2 ) VER (&PRAPPL PICT AA)
   ELSE
-    IF ( &L = 3 )
-       VER (&PRAPPL PICT AAA)
+    IF ( &L = 3 ) VER (&PRAPPL PICT AAA)
     ELSE
-      IF ( &L = 4 )
-         VER (&PRAPPL PICT AAAA)
+      IF ( &L = 4 ) VER (&PRAPPL PICT AAAA)
 
-IF ( &PRAPPL EQ &Z )
-   IF ( &PRPSLIB NE &Z )
-      &PRNAPPL = '/'
+IF ( &PRAPPL EQ &Z AND &PRPSLIB NE &Z ) &PRNAPPL = '/'
 
 &PRNAPPL = TRANS( &PRNAPPL &Z,&Z *,/ )
 &PRNPOOL = TRANS( &PRNPOOL &Z,&Z *,/ )

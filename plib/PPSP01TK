@@ -42,13 +42,10 @@ IF ( &ZSCROLL EQ &Z ) VGET ZSCROLL PROFILE
 
 )PROC
 &W1 = TRUNC( &ZCMD, ' ' )
-&W2 = .TRAIL
 
-IF (&W1 EQ U,USER)
-    &USERF = &W2
+IF (&W1 EQ U,USER) &USERF = .TRAIL
 ELSE
-   IF (&W1 EQ O,ONLY)
-      &ONLYF = &W2
+   IF (&W1 EQ O,ONLY) &ONLYF = .TRAIL
    ELSE
       IF (&ZCMD EQ RES,RESET)
          &USERF = &Z

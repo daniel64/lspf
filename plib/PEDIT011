@@ -100,12 +100,11 @@ IF ( &EEDIRLST NE '/' )
      .CURSOR = ZFILE
      .MSG    = PEDT011T
      EXIT
-  IF ( &ISFILE EQ .FALSE )
-     IF ( &EENEWFLS NE '/' )
-        .CURSOR = ZFILE
-        &ZSTR1  = &ZFILE
-        .MSG    = PEDT011R
-        EXIT
+  IF ( &ISFILE EQ .FALSE AND &EENEWFLS NE '/' )
+     .CURSOR = ZFILE
+     &ZSTR1  = &ZFILE
+     .MSG    = PEDT011R
+     EXIT
 ELSE
   IF ( &ISFILE EQ .FALSE )
      IF ( &ISDIR NE .FALSE )

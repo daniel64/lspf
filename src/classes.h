@@ -46,8 +46,6 @@ enum STATEMENT_TYPE
 	ST_ASSIGN,
 	ST_GOTO,
 	ST_EXIT,
-	ST_TRUNC,
-	ST_TRANS,
 	ST_REFRESH,
 	ST_VERIFY,
 	ST_EOF
@@ -76,7 +74,7 @@ class parser
 			idx      = 0     ;
 			optUpper = false ;
 		}
-		void parseStatement( errblock&, string s ) ;
+		void   parseStatement( errblock&, string s ) ;
 		token  getFirstToken() ;
 		token  getNextToken()  ;
 		token  getToken( int ) ;
@@ -84,6 +82,7 @@ class parser
 		void   eraseTokens( int ) ;
 		void   optionUpper()   { optUpper = true ; }
 		bool   getNextIfCurrent( TOKEN_TYPES ) ;
+		string peekNextValue()   ;
 		token  getCurrentToken() ;
 		string getCurrentValue() ;
 		void   getNameList( errblock&, string& ) ;
@@ -111,6 +110,44 @@ class pnts
 } ;
 
 
+class TRUNC
+{
+	public:
+		TRUNC() {
+				trnc_char = ' ' ;
+				trnc_len  = 0   ;
+			} ;
+
+		void parse( errblock&, parser& ) ;
+
+		string trnc_field ;
+		char   trnc_char  ;
+		int    trnc_len   ;
+
+} ;
+
+
+class TRANS
+{
+	public:
+		TRANS() {
+				trns_msgid   = ""    ;
+				trns_default = ""    ;
+				trns_tbfield = false ;
+				trns_pnfield = false ;
+			} ;
+		void parse( errblock&, parser& ) ;
+
+		string trns_field   ;
+		string trns_msgid   ;
+		string trns_default ;
+		bool   trns_tbfield ;
+		bool   trns_pnfield ;
+		vector<pair<string,string>> trns_list ;
+} ;
+
+
+
 class ASSGN
 {
 	public :
@@ -128,11 +165,20 @@ class ASSGN
 			as_chkexst = false ;
 			as_chkfile = false ;
 			as_chkdir  = false ;
+			as_trunc   = NULL  ;
+			as_trans   = NULL  ;
+		}
+		~ASSGN()
+		{
+			delete as_trunc ;
+			delete as_trans ;
 		}
 		void parse( errblock&, parser& ) ;
 
 		string as_lhs     ;
 		string as_rhs     ;
+		TRUNC* as_trunc   ;
+		TRANS* as_trans   ;
 		bool   as_isvar   ;
 		bool   as_isattr  ;
 		bool   as_istb    ;
@@ -156,6 +202,7 @@ class VERIFY
 				ver_nblank  = false ;
 				ver_numeric = false ;
 				ver_list    = false ;
+				ver_listx   = false ;
 				ver_pict    = false ;
 				ver_hex     = false ;
 				ver_octal   = false ;
@@ -170,6 +217,7 @@ class VERIFY
 		bool   ver_nblank  ;
 		bool   ver_numeric ;
 		bool   ver_list    ;
+		bool   ver_listx   ;
 		bool   ver_pict    ;
 		bool   ver_hex     ;
 		bool   ver_octal   ;
@@ -194,45 +242,6 @@ class VPUTGET
 } ;
 
 
-class TRUNC
-{
-	public:
-		TRUNC() {
-				trnc_char = ' ' ;
-				trnc_len  = 0   ;
-			} ;
-
-		void parse( errblock&, parser& ) ;
-
-		string trnc_field1 ;
-		string trnc_field2 ;
-		char   trnc_char   ;
-		int    trnc_len    ;
-
-} ;
-
-
-class TRANS
-{
-	public:
-		TRANS() {
-				trns_msgid    = ""    ;
-				trns_default  = ""    ;
-				trns_tbfield2 = false ;
-				trns_pnfield2 = false ;
-			} ;
-		void parse( errblock&, parser& ) ;
-
-		string trns_field1   ;
-		string trns_field2   ;
-		string trns_msgid    ;
-		string trns_default  ;
-		bool   trns_tbfield2 ;
-		bool   trns_pnfield2 ;
-		vector<pair<string,string>> trns_list ;
-} ;
-
-
 class IFSTMNT
 {
 	public :
@@ -241,6 +250,7 @@ class IFSTMNT
 			if_lhs    = ""    ;
 			if_rhs.clear()    ;
 			if_true   = false ;
+			if_AND    = false ;
 			if_else   = false ;
 			if_eq     = false ;
 			if_ne     = false ;
@@ -251,17 +261,22 @@ class IFSTMNT
 			if_ng     = false ;
 			if_nl     = false ;
 			if_verify = NULL  ;
+			if_next   = NULL  ;
 		}
 		~IFSTMNT()
 		{
 			delete if_verify ;
+			delete if_next   ;
 		}
 		void parse( errblock&, parser& ) ;
+		void parse_cond( errblock&, parser& ) ;
 
 		string if_lhs      ;
 		vector<string> if_rhs ;
 		VERIFY*  if_verify ;
+		IFSTMNT* if_next   ;
 		bool     if_true   ;
+		bool     if_AND    ;
 		bool     if_else   ;
 		bool     if_eq     ;
 		bool     if_ne     ;
@@ -290,31 +305,25 @@ class panstmnt
 			ps_if      = NULL  ;
 			ps_else    = NULL  ;
 			ps_vputget = NULL  ;
-			ps_trunc   = NULL  ;
-			ps_trans   = NULL  ;
 		}
 		~panstmnt()
 		{
-			delete ps_assgn ;
-			delete ps_ver   ;
-			delete ps_if    ;
+			delete ps_assgn   ;
+			delete ps_ver     ;
+			delete ps_if      ;
 			delete ps_vputget ;
-			delete ps_trunc ;
-			delete ps_trans ;
 		}
-		string ps_label   ;
-		string ps_rlist   ;
-		int    ps_column  ;
-		bool   ps_exit    ;
-		bool   ps_goto    ;
-		bool   ps_refresh ;
-		ASSGN*   ps_assgn ;
-		VERIFY*  ps_ver   ;
-		IFSTMNT* ps_if    ;
-		IFSTMNT* ps_else  ;
+		string   ps_label   ;
+		string   ps_rlist   ;
+		int      ps_column  ;
+		bool     ps_exit    ;
+		bool     ps_goto    ;
+		bool     ps_refresh ;
+		ASSGN*   ps_assgn   ;
+		VERIFY*  ps_ver     ;
+		IFSTMNT* ps_if      ;
+		IFSTMNT* ps_else    ;
 		VPUTGET* ps_vputget ;
-		TRUNC*   ps_trunc ;
-		TRANS*   ps_trans ;
 } ;
 
 

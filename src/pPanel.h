@@ -156,8 +156,6 @@ class pPanel
 		void   readPanel( errblock&, vector<string>&, const string&, const string&, string ) ;
 
 		void   createPanel_Refresh( errblock&, parser&, panstmnt* ) ;
-		void   createPanel_Trans( errblock&, parser&, panstmnt* ) ;
-		void   createPanel_Trunc( errblock&, parser&, panstmnt* ) ;
 		void   createPanel_Vputget( errblock&, parser&, panstmnt* ) ;
 		void   createPanel_Assign( errblock&, parser&, panstmnt* ) ;
 		void   createPanel_Verify( errblock&, parser&, panstmnt* ) ;
@@ -250,9 +248,10 @@ class pPanel
 		void  process_panel_assignment( errblock& err, int ln, ASSGN* assgn ) ;
 		void  process_panel_vputget( errblock& err, VPUTGET* vputget ) ;
 		void  process_panel_verify( errblock& err, int ln, VERIFY* verify ) ;
-		void  process_panel_trunc( errblock& err, TRUNC* trunc ) ;
-		void  process_panel_trans( errblock& err, int ln, TRANS* trans )  ;
 		void  process_panel_if( errblock& err, int ln, IFSTMNT* ifstmnt ) ;
+		void  process_panel_if_cond( errblock& err, int ln, IFSTMNT* ifstmnt ) ;
+		string process_panel_trunc( errblock& err, TRUNC* trunc ) ;
+		string process_panel_trans( errblock& err, int ln, TRANS* trans )  ;
 
 		void   get_msgwin( string, int&, int&, int&, int&, vector<string>& ) ;
 		void   panel_cleanup( PANEL * ) ;

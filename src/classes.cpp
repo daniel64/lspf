@@ -50,7 +50,7 @@ void parser::parseStatement( errblock& err, string s )
 			t.type  = TT_COMPARISON_OP ;
 			t.value = u ;
 		}
-		else if ( c1 == '&' )
+		else if ( c1 == '&' && u.size() > 1 )
 		{
 			if ( optUpper ) { iupper( u ) ; }
 			if ( isvalidName( u.substr( 1 ) ) )
@@ -63,7 +63,7 @@ void parser::parseStatement( errblock& err, string s )
 			}
 			t.value = u ;
 		}
-		else if ( c1 == '.' )
+		else if ( c1 == '.' && u.size() > 1 )
 		{
 			if ( optUpper ) { iupper( u ) ; }
 			if ( findword( u, ctl_valid ) )
@@ -167,6 +167,14 @@ token parser::getNextToken()
 }
 
 
+string parser::peekNextValue()
+{
+	int i = idx + 1 ;
+
+	return tokens.size() > i ? tokens[ i ].value : "" ;
+}
+
+
 token parser::getCurrentToken()
 {
 	return current_token ;
@@ -216,19 +224,18 @@ STATEMENT_TYPE parser::getStatementType()
 	else if ( t.value == "EXIT" )    { return ST_EXIT    ; }
 	else if ( t.value == "VER" )     { return ST_VERIFY  ; }
 	else if ( t.value == "REFRESH" ) { return ST_REFRESH ; }
-
-
-	for ( int i = 0 ; i < tokens.size() ; i++ )
+	else if ( t.value == ".ATTR" )
 	{
-		t = tokens[ i ] ;
-		if ( t.type == TT_EQUALS )
-		{
-			t = getToken( t.idx + 1 ) ;
-			if      ( t.value == "TRUNC" ) { return ST_TRUNC  ; }
-			else if ( t.value == "TRANS" ) { return ST_TRANS  ; }
-			else                           { return ST_ASSIGN ; }
-		}
+		if ( tokens.size() < 6 ) { return ST_ERROR ; }
+		t = tokens[ 4 ] ;
+		if ( t.type == TT_EQUALS ) { return ST_ASSIGN ; }
 	}
+
+
+	if ( tokens.size() < 2 ) { return ST_ERROR ; }
+
+	t = tokens[ 1 ] ;
+	if ( t.type == TT_EQUALS ) { return ST_ASSIGN ; }
 
 	return ST_ERROR ;
 }
@@ -356,19 +363,7 @@ void IFSTMNT::parse( errblock& err, parser& v )
 {
 	// Format of the IF panel statement
 
-	// IF ( &AAA=&BBBB )
-	// IF ( &AAA = VALUE1,VALUE2 )
-	// IF ( &AAA NE 'Hello','Goodbye' )
-	// IF (.CURSOR = ZCMD)
-	// IF (.MSG    = PSYS011)
-	// IF (.RESP   = ENTER)
-	// IF (.RESP   = END)
-	// IF ( &Z EQ .TRUE )
-	// IF ( &Z EQ .FALSE ) .TRUE = "1" and .FALSE = "0"
-	// rhs value lists only for EQ and NE (EQ only one needs to be true, NE all need to be true)
-	// IF ( VER (&A...) ) STATEMENT
-
-	VERIFY* m_ver ;
+	// IF ( COND ) opt-statement
 
 	token t ;
 
@@ -383,28 +378,79 @@ void IFSTMNT::parse( errblock& err, parser& v )
 		return ;
 	}
 
+	parse_cond( err, v ) ;
+	if ( err.error() ) { return ; }
+
+	if ( if_lhs == "" && if_verify == NULL )
+	{
+		err.seterrid( "PSYE031G" ) ;
+		return ;
+	}
+
+	t = v.getCurrentToken()  ;
+	if ( t.type != TT_CLOSE_BRACKET )
+	{
+		err.seterrid( "PSYE032D" ) ;
+		return ;
+	}
+	v.eraseTokens( t.idx ) ;
+}
+
+
+void IFSTMNT::parse_cond( errblock& err, parser& v )
+{
+	// Format of the IF-condition panel statement
+
+	// &AAA=&BBBB
+	// &AAA = VALUE1,VALUE2
+	// &AAA NE 'Hello','Goodbye'
+	// &AAA=&BBBB & &CCC = DDDD AND &EEEE = FFFFF
+	// &AAA=&BBBB | &CCC = DDDD OR  &EEEE = FFFFF
+	// VER (&A...) | &A = 'CAN'
+
+	token t ;
+
 	t = v.getCurrentToken() ;
+	if ( t.type == TT_CLOSE_BRACKET )
+	{
+		err.seterrid( "PSYE031J" ) ;
+		return ;
+	}
+	else if ( t.type == TT_EOF )
+	{
+		err.seterrid( "PSYE031K" ) ;
+		return ;
+	}
+
 	if ( t.value == "VER" )
 	{
-		m_ver = new VERIFY ;
-		v.eraseTokens( 1 ) ;
-		m_ver->parse( err, v, true ) ;
-		if ( err.error() ) { delete m_ver ; return ; }
-		if ( m_ver->ver_msgid != "" )
+		if_verify = new VERIFY ;
+		v.eraseTokens( t.idx - 1 ) ;
+		if_verify->parse( err, v, true ) ;
+		if ( err.error() ) { return ; }
+		if ( if_verify->ver_msgid != "" )
 		{
 			err.seterrid( "PSYE033A" ) ;
-			delete m_ver ;
 			return ;
 		}
 		t = v.getCurrentToken() ;
-		if ( !v.getNextIfCurrent( TT_CLOSE_BRACKET ) )
+		if ( t.type == TT_CLOSE_BRACKET || t.type == TT_EOF ) { return ; }
+		if ( t.type != TT_STRING_QUOTED && findword( t.value, "& | AND OR" ) )
 		{
-			err.seterrid( "PSYE032D" ) ;
-			delete m_ver ;
-			return ;
+			if ( t.value == "&" || t.value == "AND" ) { if_AND = true ; }
+			if_next = new IFSTMNT ;
+			v.getNextToken() ;
+			if_next->parse_cond( err, v ) ;
+			if ( err.error() ) { return ; }
+			if ( if_next->if_lhs == "" && if_next->if_verify == NULL )
+			{
+				err.seterrid( "PSYE031G" ) ;
+			}
 		}
-		v.eraseTokens( t.idx ) ;
-		if_verify = m_ver ;
+		else
+		{
+			err.seterrid( "PSYE032H", t.value ) ;
+		}
 		return ;
 	}
 
@@ -449,7 +495,11 @@ void IFSTMNT::parse( errblock& err, parser& v )
 	while ( true )
 	{
 		t = v.getNextToken() ;
-		if ( t.type == TT_EOF )
+		if ( t.type != TT_STRING_QUOTED && findword( t.value, "& | AND OR" ) && v.peekNextValue() != "," )
+		{
+			break ;
+		}
+		else if ( t.type == TT_EOF )
 		{
 			err.seterrid( "PSYE032D" ) ;
 			return ;
@@ -475,13 +525,31 @@ void IFSTMNT::parse( errblock& err, parser& v )
 		if_rhs.push_back( t.value ) ;
 	}
 
+	if ( if_rhs.size() == 0 )
+	{
+		err.seterrid( "PSYE031K" ) ;
+		return ;
+	}
+
 	if ( ( !if_eq && !if_ne ) && if_rhs.size() > 1 )
 	{
 		err.seterrid( "PSYE033H" ) ;
 		return ;
 	}
 
-	v.eraseTokens( t.idx ) ;
+	if ( t.type != TT_STRING_QUOTED && findword( t.value, "& | AND OR" ) )
+	{
+		if ( t.value == "&" || t.value == "AND" ) { if_AND = true ; }
+		if_next = new IFSTMNT ;
+		v.getNextToken() ;
+		if_next->parse_cond( err, v ) ;
+		if ( err.error() ) { return ; }
+		if ( if_next->if_lhs == "" && if_next->if_verify == NULL )
+		{
+			err.seterrid( "PSYE031G" ) ;
+			return ;
+		}
+	}
 }
 
 
@@ -502,6 +570,8 @@ void ASSGN::parse( errblock& err, parser& v )
 	// &A   = EXISTS( ABC ) True if file/directory in variable ABC exists
 	// &A   = FILE( ABC )   True if file in variable ABC exists
 	// &A   = DIR( ABC )    True if directory in variable ABC exists
+	// &A   = TRUNC()
+	// &A   = TRANS()
 
 	token t ;
 
@@ -574,6 +644,18 @@ void ASSGN::parse( errblock& err, parser& v )
 	{
 		as_rhs = t.value ;
 	}
+	else if ( t.value == "TRUNC" )
+	{
+		as_trunc = new TRUNC ;
+		as_trunc->parse( err, v ) ;
+		if ( err.error() ) { return ; }
+	}
+	else if ( t.value == "TRANS" )
+	{
+		as_trans = new TRANS ;
+		as_trans->parse( err, v ) ;
+		if ( err.error() ) { return ; }
+	}
 	else if ( findword( t.value, functn_list ) )
 	{
 		if      ( t.value == "DIR"     ) { as_chkdir  = true ; }
@@ -595,9 +677,11 @@ void ASSGN::parse( errblock& err, parser& v )
 			return ;
 		}
 		as_rhs = v.getCurrentValue() ;
-		if ( !v.getNextIfCurrent( TT_VAR_VALID ) )
+		if ( !v.getNextIfCurrent( TT_VAR_VALID ) &&
+		     !v.getNextIfCurrent( TT_CTL_VAR_VALID ) )
 		{
-			err.seterrid( "PSYE031D", as_rhs ) ;
+
+			err.seterrid( as_rhs.front() == '.' ? "PSYE033G" : "PSYE031D", as_rhs ) ;
 			return ;
 		}
 		if ( !v.getNextIfCurrent( TT_CLOSE_BRACKET ) )
@@ -631,7 +715,7 @@ void VPUTGET::parse( errblock& err, parser& v )
 	err.setRC( 0 ) ;
 
 	t = v.getFirstToken() ;
-	( t.value == "VPUT" ) ? vpg_vput = true : vpg_vput = false ;
+	vpg_vput = ( t.value == "VPUT" ) ;
 
 	v.getNextToken() ;
 
@@ -710,12 +794,13 @@ void VERIFY::parse( errblock& err, parser& v, bool nocheck )
 		t = v.getCurrentToken() ;
 	}
 
-	if      ( t.value == "NUM"  ) { ver_numeric = true ; }
-	else if ( t.value == "LIST" ) { ver_list    = true ; }
-	else if ( t.value == "PICT" ) { ver_pict    = true ; }
-	else if ( t.value == "HEX"  ) { ver_hex     = true ; }
-	else if ( t.value == "OCT"  ) { ver_octal   = true ; }
-	else if ( t.value == "MSG"  ) {                    ; }
+	if      ( t.value == "NUM"   ) { ver_numeric = true ; }
+	else if ( t.value == "LIST"  ) { ver_list    = true ; }
+	else if ( t.value == "LISTX" ) { ver_listx   = true ; ver_nblank = true ; }
+	else if ( t.value == "PICT"  ) { ver_pict    = true ; }
+	else if ( t.value == "HEX"   ) { ver_hex     = true ; }
+	else if ( t.value == "OCT"   ) { ver_octal   = true ; }
+	else if ( t.value == "MSG"   ) {                    ; }
 	else
 	{
 		err.seterrid( "PSYE033L" ) ;
@@ -737,11 +822,16 @@ void VERIFY::parse( errblock& err, parser& v, bool nocheck )
 	}
 
 	t = v.getCurrentToken() ;
-	while ( ver_list )
+	while ( ver_list || ver_listx )
 	{
 		if ( t.type == TT_CLOSE_BRACKET )
 		{
 			break ;
+		}
+		else if ( t.type == TT_EOF )
+		{
+			err.seterrid( "PSYE032D" ) ;
+			return ;
 		}
 		else if ( v.getNextIfCurrent( TT_COMMA ) )
 		{
@@ -797,7 +887,7 @@ void VERIFY::parse( errblock& err, parser& v, bool nocheck )
 		return ;
 	}
 
-	if ( ( ver_list || ver_pict ) && ver_vlist.empty() )
+	if ( ( ver_list || ver_listx || ver_pict ) && ver_vlist.empty() )
 	{
 		err.seterrid( "PSYE033N" ) ;
 		return ;
@@ -808,36 +898,12 @@ void VERIFY::parse( errblock& err, parser& v, bool nocheck )
 void TRUNC::parse( errblock& err, parser& v )
 {
 	// Format of the TRUNC panel statement
-	// &AAA = TRUNC( &BBB,'.' )
-	// &AAA = TRUNC ( &BBB, 3  )
+	// TRUNC( &BBB,'.' )
+	// TRUNC ( &BBB, 3  )
 
 	token t ;
 
 	err.setRC( 0 ) ;
-
-	t = v.getFirstToken() ;
-
-	trnc_field1 = t.value ;
-	if ( !v.getNextIfCurrent( TT_AMPR_VAR_VALID ) )
-	{
-		trnc_field1 == "" ? err.seterrid( "PSYE038A" ) : err.seterrid( "PSYE033I", trnc_field1 ) ;
-		return ;
-	}
-	trnc_field1.erase( 0, 1 ) ;
-
-	if ( !v.getNextIfCurrent( TT_EQUALS ) )
-	{
-		err.seterrid( "PSYE033O" ) ;
-		return ;
-	}
-
-	t = v.getCurrentToken() ;
-
-	if ( t.value != "TRUNC" )
-	{
-		err.seterrid( "PSYE038B" ) ;
-		return ;
-	}
 
 	t = v.getNextToken() ;
 
@@ -847,21 +913,21 @@ void TRUNC::parse( errblock& err, parser& v )
 		return ;
 	}
 
-	trnc_field2 = v.getCurrentValue() ;
+	trnc_field = v.getCurrentValue() ;
 	if ( v.getNextIfCurrent( TT_CTL_VAR_VALID ) ) {}
 	else if ( v.getNextIfCurrent( TT_CTL_VAR_INVALID ) )
 	{
-		err.seterrid( "PSYE033S", trnc_field2 ) ;
+		err.seterrid( "PSYE033S", trnc_field ) ;
 		return ;
 	}
 	else if ( !v.getNextIfCurrent( TT_AMPR_VAR_VALID ) )
 	{
-		trnc_field2 == "" ? err.seterrid( "PSYE038A" ) : err.seterrid( "PSYE033I", trnc_field2 ) ;
+		trnc_field == "" ? err.seterrid( "PSYE038A" ) : err.seterrid( "PSYE033I", trnc_field ) ;
 		return ;
 	}
 	else
 	{
-		trnc_field2.erase( 0, 1 ) ;
+		trnc_field.erase( 0, 1 ) ;
 	}
 
 	if ( !v.getNextIfCurrent( TT_COMMA ) )
@@ -919,42 +985,20 @@ void TRANS::parse( errblock& err, parser& v )
 {
 	// Format of the TRANS panel statement ( change val1 to val2, * is everything else.  Issue message. )
 
-	// &AAA = TRANS( &BBB  val1,val2 ...  *,* )
-	// &AAA = TRANS ( &BBB  val1,val2 ...  *,'?' )
-	// &AAA = TRANS ( &BBB  val1,val2 ...  ) non-matching results in &AAA being set to null
-	// &AAA = TRANS ( &AAA  val1,val2 ...  MSG=msgid ) issue message if no match
-	// &AAA = TRANS ( &AAA  &v1,&v2 ...  MSG = msgid ) issue message if no match
+	// TRANS( &BBB  val1,val2 ...  *,* )
+	// TRANS ( &BBB  val1,val2 ...  *,'?' )
+	// TRANS ( &BBB  val1,val2 ...  ) non-matching results in &AAA being set to null
+	// TRANS ( &AAA  val1,val2 ...  MSG=msgid ) issue message if no match
+	// TRANS ( &AAA  &v1,&v2 ...  MSG = msgid ) issue message if no match
 
 	string v1 ;
 	string v3 ;
 
+	bool first ;
+
 	token t ;
 
 	err.setRC( 0 ) ;
-
-	t = v.getFirstToken() ;
-
-	trns_field1 = t.value ;
-	if ( !v.getNextIfCurrent( TT_AMPR_VAR_VALID ) )
-	{
-		trns_field1 == "" ? err.seterrid( "PSYE038A" ) : err.seterrid( "PSYE033I", trns_field1 ) ;
-		return ;
-	}
-	trns_field1.erase( 0, 1 ) ;
-
-	if ( !v.getNextIfCurrent( TT_EQUALS ) )
-	{
-		err.seterrid( "PSYE033O" ) ;
-		return ;
-	}
-
-	t = v.getCurrentToken() ;
-
-	if ( t.value != "TRANS" )
-	{
-		err.seterrid( "PSYE039B" ) ;
-		return ;
-	}
 
 	t = v.getNextToken() ;
 
@@ -964,32 +1008,36 @@ void TRANS::parse( errblock& err, parser& v )
 		return ;
 	}
 
-	trns_field2 = v.getCurrentValue() ;
+	trns_field = v.getCurrentValue() ;
 	if ( !v.getNextIfCurrent( TT_AMPR_VAR_VALID ) )
 	{
-		trns_field2 == "" ? err.seterrid( "PSYE038A" ) : err.seterrid( "PSYE033I", trns_field2 ) ;
+		trns_field == "" ? err.seterrid( "PSYE038A" ) : err.seterrid( "PSYE033I", trns_field ) ;
 		return ;
 	}
-	trns_field2.erase( 0, 1 ) ;
+	trns_field.erase( 0, 1 ) ;
 
+	first = true ;
 	while ( true )
 	{
 		t = v.getCurrentToken() ;
-		if ( v.getNextIfCurrent( TT_STRING_UNQUOTED ) ||
-		     v.getNextIfCurrent( TT_STRING_QUOTED )   ||
-		     v.getNextIfCurrent( TT_AMPR_VAR_VALID )  ||
-		     v.getNextIfCurrent( TT_VAR_VALID ) )
+		if ( t.type == TT_EOF )
 		{
-			v1 = t.value ;
+			err.seterrid( "PSYE032D" ) ;
+			return ;
 		}
-		if ( v1 == "MSG" && trns_list.size() > 0 )
+		else if ( v.getNextIfCurrent( TT_CLOSE_BRACKET ) )
 		{
-			if ( !v.getNextIfCurrent( TT_EQUALS ) )
+			if ( !first )
 			{
-				err.seterrid( "PSYE033O" ) ;
+				err.seterrid( "PSYE039H" ) ;
 				return ;
 			}
-			t = v.getCurrentToken() ;
+			break ;
+		}
+		if ( first && t.value == "MSG" && v.peekNextValue() == "=" )
+		{
+			t = v.getNextToken() ;
+			t = v.getNextToken() ;
 			if ( v.getNextIfCurrent( TT_VAR_VALID ) ||
 			     v.getNextIfCurrent( TT_AMPR_VAR_VALID ) )
 			{
@@ -1008,36 +1056,57 @@ void TRANS::parse( errblock& err, parser& v )
 			break ;
 
 		}
-		if ( !v.getNextIfCurrent( TT_COMMA ) )
+		if ( t.type == TT_STRING_UNQUOTED ||
+		     t.type == TT_STRING_QUOTED   ||
+		     t.type == TT_AMPR_VAR_VALID  ||
+		     t.type == TT_VAR_VALID   )
 		{
-			err.seterrid( "PSYE039F" ) ;
-			return ;
+			if ( first )
+			{
+				v1 = t.value ;
+				first = false ;
+				v.getNextToken() ;
+				continue ;
+			}
+			if ( v1 == "*" )
+			{
+				trns_default = t.value ;
+			}
+			else
+			{
+				trns_list.push_back( make_pair( v1, t.value )  ) ;
+			}
+			v.getNextToken() ;
+			first = true ;
+			continue ;
 		}
-		t = v.getCurrentToken() ;
-		if ( v.getNextIfCurrent( TT_STRING_UNQUOTED ) ||
-		     v.getNextIfCurrent( TT_STRING_QUOTED )   ||
-		     v.getNextIfCurrent( TT_AMPR_VAR_VALID )  ||
-		     v.getNextIfCurrent( TT_VAR_VALID ) )
+		if ( t.type == TT_COMMA )
 		{
-			v3 = t.value ;
+			if ( v.peekNextValue() == "," )
+			{
+				if ( first )
+				{
+					v1 = "" ;
+					first = false ;
+					v.getNextToken() ;
+					continue ;
+				}
+				if ( v1 == "*" )
+				{
+					trns_default = "" ;
+				}
+				else
+				{
+					trns_list.push_back( make_pair( v1, "" )  ) ;
+				}
+				first = true ;
+				v.getNextToken() ;
+			}
+			v.getNextToken() ;
+			continue ;
 		}
-		else
-		{
-			err.seterrid( "PSYE039H" ) ;
-			return ;
-		}
-		if ( v1 == "*" )
-		{
-			trns_default = v3 ;
-		}
-		else
-		{
-			trns_list.push_back( make_pair( v1, v3 )  ) ;
-		}
-		if ( v.getNextIfCurrent( TT_CLOSE_BRACKET ) )
-		{
-			break ;
-		}
+		err.seterrid( "PSYE032H", v.getCurrentValue() ) ;
+		return ;
 	}
 
 	if ( !v.isCurrentType( TT_EOF ) )

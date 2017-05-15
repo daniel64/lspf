@@ -66,7 +66,7 @@ void addCppHilight( hilight& h, const string& line, string& shadow )
 	uint j ;
 
 	string w ;
-	const string delims( " (){}=;><+-*[]&" ) ;
+	const string delims( " (){}=;><+-*[]&," ) ;
 
 	bool oQuote ;
 	char Quote  ;
@@ -502,7 +502,7 @@ void addPanHilight( hilight& h, const string& line, string& shadow )
 	uint j ;
 
 	string w ;
-	const string delims( " ()=;><+-*[]\"'" ) ;
+	const string delims( " ,()=><+-*\"'" ) ;
 
 	bool oQuote ;
 	char Quote  ;
@@ -598,6 +598,7 @@ void addPanHilight( hilight& h, const string& line, string& shadow )
 			if ( w == ")COMMENT" ) { oComment = true ; }
 			continue ;
 		}
+		if ( line[ j ] == '&' ) { shadow[ j ] = B_YELLOW ; continue ; }
 		p1 = line.find_first_of( delims, j ) ;
 		if ( p1 != j || p1 == string::npos )
 		{

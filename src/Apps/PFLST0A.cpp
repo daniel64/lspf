@@ -1938,14 +1938,14 @@ string PFLST0A::showListing()
 		while ( ZTDSELS > 0 )
 		{
 			if ( SEL == ""  ) {}
-			else if ( SEL == "L" )
+			else if ( SEL == "S" )
 			{
 				if ( ZPATH.back() == '/' ) { ZPATH = ZPATH + ENTRY       ; }
 				else                       { ZPATH = ZPATH + "/" + ENTRY ; }
 				tbend( DSLIST )   ;
 				createFileList2( FLDIRS ) ;
 			}
-			else if ( SEL == "S" )
+			else if ( SEL == "/" )
 			{
 				if ( ZPATH.back() == '/' ) { ZPATH = ZPATH + ENTRY       ; }
 				else                       { ZPATH = ZPATH + "/" + ENTRY ; }

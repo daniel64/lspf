@@ -30,6 +30,12 @@ PSYE031H 'Quoted string not allowed'
 PSYE031I 'Invalid msg-id ''&ZVAL1'''
 ''
 
+PSYE031J 'Unexpected '')'''
+''
+
+PSYE031K 'Incomplete comparison statement'
+''
+
 /* dynamic areas */
 PSYE032A 'Dynamic Area outside panel area'
 'ROW=&ZVAL1 ZSCRMAXD=&ZVAL2'
@@ -225,7 +231,7 @@ PSYE039D 'Field missing in TRANS statement'
 PSYE039E 'Value missing in TRANS statement'
 ''
 
-PSYE039F 'Missing '','' in TRANS statement'
+PSYE039F 'SPARE'
 ''
 
 PSYE039G 'MSG= parameter must be the last in the TRANS list'

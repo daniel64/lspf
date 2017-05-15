@@ -175,6 +175,7 @@ void PEDIT01::application()
 		if ( RC == 0 && *pt == "YES" ) { optNoConvTabs = true ; }
 		if ( ZFILE != "" && rfile == ZFILE ) { cleanup() ; return ; }
 	}
+
 	if ( ZFILE == "" || is_directory( ZFILE ) )
 	{
 		while ( true )
@@ -1512,7 +1513,7 @@ void PEDIT01::updateData()
 	for ( i = 0 ; i < ZAREAD ; i++ )
 	{
 		if ( s2data.at( i ).ipos_URID == 0 ||
-			   s2data.at( i ).ipos_hex > 0 ) { continue ; }
+		     s2data.at( i ).ipos_hex > 0 ) { continue ; }
 		dl = s2data.at( i ).ipos_dl ;
 		it = getLineItr( dl ) ;
 		if ( !(*it)->il_nisrt && !sChanged[ i ] ) { continue ; }
@@ -1635,7 +1636,7 @@ void PEDIT01::processNewInserts()
 	for ( i = ZAREAD-1 ; i >= 0 ; i-- )
 	{
 		if ( s2data.at( i ).ipos_URID == 0 ||
-			   s2data.at( i ).ipos_hex  >  0 ) { continue ; }
+		     s2data.at( i ).ipos_hex  >  0 ) { continue ; }
 		dl = s2data.at( i ).ipos_dl ;
 		it = getLineItr( dl ) ;
 		if ( !(*it)->il_nisrt ) { continue ; }
