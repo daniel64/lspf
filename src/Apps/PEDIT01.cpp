@@ -6777,6 +6777,9 @@ bool PEDIT01::URIDOnScreen( int URID, int top )
 	// URID may be deleted for UNDO/REDO. (URID found after topLine and n <= ZAREAD)
 	// An excluded block counts as 1 unless excluded lines are hidden in which case the block is ignored.
 
+	// Bug:  This section is really slow so a large number of UNDO/REDO lines can take many minutes instead of
+	//       fractions of a second.  Maybe loading into a map first would be quicker.
+
 	int i ;
 	int j ;
 	int n ;
@@ -7303,6 +7306,7 @@ void PEDIT01::copyToClipboard( vector<ipline>& vip )
 	int t   ;
 	int CRP ;
 	int pos ;
+	int sz  ;
 
 	string UPROF    ;
 	string CLIPNAME ;
@@ -7346,12 +7350,20 @@ void PEDIT01::copyToClipboard( vector<ipline>& vip )
 	tbvclear( clipTable ) ;
 	CLIPNAME = clipBoard ;
 
-	t = 0 ;
-	for ( i = 0 ; i < vip.size() ; i++ )
+	t  = 0 ;
+	sz = vip.size() ;
+	for ( i = 0 ; i < sz ; i++ )
 	{
 		if ( !vip[ i ].ip_file ) { continue ; }
 		LINE = vip[ i ].ip_data ;
-		tbadd( clipTable, "", "", vip.size() ) ;
+		if ( i == 0 )
+		{
+			tbadd( clipTable, "", "", min( 32767, sz ) ) ;
+		}
+		else
+		{
+			tbadd( clipTable ) ;
+		}
 		if ( RC > 0 ) { tbclose( clipTable) ; vdelete( "CLIPNAME LINE CRP" ) ; return ; }
 		t++ ;
 	}

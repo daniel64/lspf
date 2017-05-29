@@ -76,9 +76,11 @@ field    21   58       5  VOI NONE IMAJ
 
 )PROC
 
-if (&zcmd != &z )
-   .msg    = PSYS011C
-   .cursor = zcmd
+IF (&ZCMD != &Z )
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+   EXIT
+
 .RESP = END
 
 )END

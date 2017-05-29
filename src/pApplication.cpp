@@ -1145,7 +1145,7 @@ void pApplication::vput( const string& names, poolType pType )
 	{
 		name     = word( names, i ) ;
 		var_type = funcPOOL.getType( errBlock, name ) ;
-		if ( errBlock.RC == 0 )
+		if ( errBlock.RC0() )
 		{
 			switch ( var_type )
 			{

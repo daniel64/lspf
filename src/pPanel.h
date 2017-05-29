@@ -129,7 +129,6 @@ class pPanel
 		bool   smp_created ;
 		bool   lmp_created ;
 		bool   end_pressed ;
-		bool   ver_failure ;
 		bool   message_set ;
 		bool   cursor_set  ;
 		int    win_width   ;

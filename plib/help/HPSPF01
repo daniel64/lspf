@@ -7,23 +7,26 @@ Primary Commands:
 
 Builtin:
 *------*
-ACTION   Move cursor to the action bar, or the next entry if already on the action bar
-DISCARD  Discard the screen updates and refresh from the previous output
-FIELDEXC Execute the file-level command (if the cursor is on the field) defined in the panel )FIELD section
-SPLIT    Split the screen
-SWAP     Swap logical screen
-         NEXT | PREV | screen-number | p q | screen-name
-         Extensions:
-          p q
-          p - switch active to screen-name | screen-number | '*'
-          q - switch alternate to screen-name | screen-number | '*'
-             for active, '*' keeps the current active screen and only switches the alternate screen
-             for alternate, '*' switches current active to alternate
-          SWAP can also be initiated with the SWAP Character and the ENTER key if the option is enabled.
-          (SWAP Char must be the first non-blank character, and the cursor must remain on the command field.  Only
-           characters up to, but not including the cursor position, are taken into account)
-!nnn xx  Execute program nnn with parameter xx (application defaults are NEWAPPL, NEWPOOL)
-@nnn xx  Execute oorexx  nnn with parameter xx (application defaults are NEWAPPL, NEWPOOL)
+ACTION    Move cursor to the action bar, or the next entry if already on the action bar
+DISCARD   Discard the screen updates and refresh from the previous output
+FIELDEXC  Execute the file-level command (if the cursor is on the field) defined in the panel )FIELD section
+RETP      Show the retrieve stack screen.
+RETRIEVE  Retrieve next entry from the retrieve stack (RETRIEVE n retrieves nth entry)
+SPLIT     Split the screen
+SWAP      Swap logical screen
+          NEXT | PREV | screen-number | p q | screen-name
+          Extensions:
+           p q
+           p - switch active to screen-name | screen-number | '*'
+           q - switch alternate to screen-name | screen-number | '*'
+              for active, '*' keeps the current active screen and only switches the alternate screen
+              for alternate, '*' switches current active to alternate
+           SWAP can also be initiated with the SWAP Character and the ENTER key if the option is enabled.
+           (SWAP Char must be the first non-blank character, and the cursor must remain on the command field.  Only
+            characters up to, but not including the cursor position, are taken into account)
+SWAP LIST Show the Active Logical Sessions screen (the ESC key does the same)
+!nnn xx   Execute program nnn with parameter xx (application defaults are NEWAPPL, NEWPOOL)
+@nnn xx   Execute oorexx  nnn with parameter xx (application defaults are NEWAPPL, NEWPOOL)
 
 
 System:

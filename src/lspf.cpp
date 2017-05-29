@@ -118,7 +118,7 @@ int pLScreen::maxScreenID  = 0 ;
 int pLScreen::maxrow       = 0 ;
 int pLScreen::maxcol       = 0 ;
 
-WINDOW * pLScreen::OIA      = NULL ;
+WINDOW * pLScreen::OIA     = NULL ;
 
 boost::posix_time::ptime startTime ;
 boost::posix_time::ptime endTime   ;

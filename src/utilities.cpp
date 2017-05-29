@@ -641,15 +641,15 @@ string bs2xs( string s )
 
 string cs2bs( const string& s )
 {
-	int i, j ;
 	string reslt ;
 
+	reslt.reserve( 8*s.size() ) ;
 	reslt = "" ;
-	for ( i = 0 ; i < s.size() ; i++ )
+	for ( int i = 0 ; i < s.size() ; i++ )
 	{
-		for ( j = 7; j >= 0; --j)
+		for ( int j = 7; j >= 0; --j)
 		{
-			( s[ i ] && (1 << j) ) ? reslt = reslt + "1" : reslt = reslt + "0" ;
+			( s[ i ] && (1 << j) ) ? reslt.push_back( '1' ) : reslt.push_back( '0' ) ;
 		}
 	}
 	return reslt ;

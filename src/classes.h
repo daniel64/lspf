@@ -51,6 +51,17 @@ enum STATEMENT_TYPE
 	ST_EOF
 } ;
 
+
+enum IF_COND
+{
+	IF_EQ,
+	IF_NE,
+	IF_GT,
+	IF_GE,
+	IF_LE,
+	IF_LT
+} ;
+
 class token
 {
 	public:
@@ -252,14 +263,6 @@ class IFSTMNT
 			if_true   = false ;
 			if_AND    = false ;
 			if_else   = false ;
-			if_eq     = false ;
-			if_ne     = false ;
-			if_gt     = false ;
-			if_lt     = false ;
-			if_ge     = false ;
-			if_le     = false ;
-			if_ng     = false ;
-			if_nl     = false ;
 			if_verify = NULL  ;
 			if_next   = NULL  ;
 		}
@@ -278,14 +281,7 @@ class IFSTMNT
 		bool     if_true   ;
 		bool     if_AND    ;
 		bool     if_else   ;
-		bool     if_eq     ;
-		bool     if_ne     ;
-		bool     if_gt     ;
-		bool     if_lt     ;
-		bool     if_ge     ;
-		bool     if_le     ;
-		bool     if_ng     ;
-		bool     if_nl     ;
+		IF_COND  if_cond   ;
 } ;
 
 

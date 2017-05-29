@@ -754,15 +754,15 @@ int PBRO01A::setFind()
 	string w1    ;
 	string pic   ;
 
-	vector<string>::iterator it  ;
+	vector<string>::iterator it ;
 
-	static char quote('\"')  ;
-	static char apost('\'')  ;
+	const char quote('\"') ;
+	const char apost('\'') ;
 
-	b_find t  ;
+	b_find t ;
 
-	MSG  = ""                 ;
-	cmd  = " " + subword( ZCMD, 2 ) + " " ;
+	MSG = ""  ;
+	cmd = " " + subword( ZCMD, 2 ) + " " ;
 
 	p1 = cmd.find( quote ) ;
 	p2 = cmd.find( apost ) ;

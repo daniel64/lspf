@@ -227,15 +227,13 @@ STATEMENT_TYPE parser::getStatementType()
 	else if ( t.value == ".ATTR" )
 	{
 		if ( tokens.size() < 6 ) { return ST_ERROR ; }
-		t = tokens[ 4 ] ;
-		if ( t.type == TT_EQUALS ) { return ST_ASSIGN ; }
+		if ( tokens[ 4 ].type == TT_EQUALS ) { return ST_ASSIGN ; }
 	}
 
 
 	if ( tokens.size() < 2 ) { return ST_ERROR ; }
 
-	t = tokens[ 1 ] ;
-	if ( t.type == TT_EQUALS ) { return ST_ASSIGN ; }
+	if ( tokens[ 1 ].type == TT_EQUALS ) { return ST_ASSIGN ; }
 
 	return ST_ERROR ;
 }
@@ -244,7 +242,7 @@ STATEMENT_TYPE parser::getStatementType()
 
 void parser::getNextString( errblock& err, string::const_iterator& it, const string& s, string& r, bool& quoted )
 {
-	// Get the next word in list s and place in r.
+	// Get the next word in string s and place in r.
 	// Words can be delimited by space or "()=,<>!".  "()=,<>!" are also returned as words.
 
 	const string delims = " (),=<>!" ;
@@ -437,7 +435,7 @@ void IFSTMNT::parse_cond( errblock& err, parser& v )
 		if ( t.type == TT_CLOSE_BRACKET || t.type == TT_EOF ) { return ; }
 		if ( t.type != TT_STRING_QUOTED && findword( t.value, "& | AND OR" ) )
 		{
-			if ( t.value == "&" || t.value == "AND" ) { if_AND = true ; }
+			if_AND  = ( t.value == "&" || t.value == "AND" ) ;
 			if_next = new IFSTMNT ;
 			v.getNextToken() ;
 			if_next->parse_cond( err, v ) ;
@@ -468,24 +466,24 @@ void IFSTMNT::parse_cond( errblock& err, parser& v )
 
 	t = v.getNextToken() ;
 
-	if      ( t.value == "="  ) { if_eq = true ; }
-	else if ( t.value == "EQ" ) { if_eq = true ; }
-	else if ( t.value == "!=" ) { if_ne = true ; }
-	else if ( t.value == "NE" ) { if_ne = true ; }
-	else if ( t.value == ">"  ) { if_gt = true ; }
-	else if ( t.value == "GT" ) { if_gt = true ; }
-	else if ( t.value == "<"  ) { if_lt = true ; }
-	else if ( t.value == "LT" ) { if_lt = true ; }
-	else if ( t.value == ">=" ) { if_ge = true ; }
-	else if ( t.value == "=>" ) { if_ge = true ; }
-	else if ( t.value == "GE" ) { if_ge = true ; }
-	else if ( t.value == "<=" ) { if_le = true ; }
-	else if ( t.value == "=<" ) { if_le = true ; }
-	else if ( t.value == "LE" ) { if_le = true ; }
-	else if ( t.value == "!>" ) { if_ng = true ; }
-	else if ( t.value == "NG" ) { if_ng = true ; }
-	else if ( t.value == "!<" ) { if_nl = true ; }
-	else if ( t.value == "NL" ) { if_nl = true ; }
+	if      ( t.value == "="  ) { if_cond = IF_EQ ; }
+	else if ( t.value == "EQ" ) { if_cond = IF_EQ ; }
+	else if ( t.value == "!=" ) { if_cond = IF_NE ; }
+	else if ( t.value == "NE" ) { if_cond = IF_NE ; }
+	else if ( t.value == ">"  ) { if_cond = IF_GT ; }
+	else if ( t.value == "GT" ) { if_cond = IF_GT ; }
+	else if ( t.value == "<"  ) { if_cond = IF_LT ; }
+	else if ( t.value == "LT" ) { if_cond = IF_LT ; }
+	else if ( t.value == ">=" ) { if_cond = IF_GE ; }
+	else if ( t.value == "=>" ) { if_cond = IF_GE ; }
+	else if ( t.value == "GE" ) { if_cond = IF_GE ; }
+	else if ( t.value == "!<" ) { if_cond = IF_GE ; }
+	else if ( t.value == "NL" ) { if_cond = IF_GE ; }
+	else if ( t.value == "<=" ) { if_cond = IF_LE ; }
+	else if ( t.value == "=<" ) { if_cond = IF_LE ; }
+	else if ( t.value == "LE" ) { if_cond = IF_LE ; }
+	else if ( t.value == "!>" ) { if_cond = IF_LE ; }
+	else if ( t.value == "NG" ) { if_cond = IF_LE ; }
 	else
 	{
 		err.seterrid( "PSYE033E", t.value ) ;
@@ -531,7 +529,7 @@ void IFSTMNT::parse_cond( errblock& err, parser& v )
 		return ;
 	}
 
-	if ( ( !if_eq && !if_ne ) && if_rhs.size() > 1 )
+	if ( ( if_cond != IF_EQ && if_cond != IF_NE ) && if_rhs.size() > 1 )
 	{
 		err.seterrid( "PSYE033H" ) ;
 		return ;
@@ -539,7 +537,7 @@ void IFSTMNT::parse_cond( errblock& err, parser& v )
 
 	if ( t.type != TT_STRING_QUOTED && findword( t.value, "& | AND OR" ) )
 	{
-		if ( t.value == "&" || t.value == "AND" ) { if_AND = true ; }
+		if_AND  = ( t.value == "&" || t.value == "AND" ) ;
 		if_next = new IFSTMNT ;
 		v.getNextToken() ;
 		if_next->parse_cond( err, v ) ;

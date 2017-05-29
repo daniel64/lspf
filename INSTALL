@@ -16,7 +16,7 @@ file required for PBRO01A.cpp as it is linked with -lmagic
 Run lspf in a terminal
 
 Works with:
-gcc 6.3.1
+gcc 7.1.1
 ncurses 6.0
 boost 1.63.0
 

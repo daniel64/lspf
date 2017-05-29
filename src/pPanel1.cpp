@@ -351,6 +351,7 @@ void pPanel::display_panel( errblock& err )
 	display_id()     ;
 
 	if ( ALARM ) { beep() ; }
+
 }
 
 
@@ -443,6 +444,7 @@ void pPanel::display_panel_update( errblock& err )
 	curpos   = 1  ;
 	MSGID    = "" ;
 	MSGLOC   = "" ;
+
 	cursor_set  = false ;
 	message_set = false ;
 
@@ -642,6 +644,9 @@ void pPanel::display_panel_init( errblock& err )
 
 	int ln( 0 ) ;
 
+	cursor_set  = false ;
+	message_set = false ;
+
 	err.setRC( 0 ) ;
 	do
 	{
@@ -655,6 +660,9 @@ void pPanel::display_panel_init( errblock& err )
 void pPanel::display_panel_reinit( errblock& err, int ln )
 {
 	// Perform panel )REINIT processing
+
+	cursor_set  = false ;
+	message_set = false ;
 
 	err.setRC( 0 ) ;
 	process_panel_stmnts( err, ln, reinstmnts ) ;
@@ -707,8 +715,7 @@ void pPanel::display_panel_proc( errblock& err, int ln )
 }
 
 
-void pPanel::process_panel_stmnts( errblock& err, int ln,
-				   vector<panstmnt* >& panstmnts )
+void pPanel::process_panel_stmnts( errblock& err, int ln, vector<panstmnt* >& panstmnts )
 {
 	// General routine to process panel statements.  Pass address of the panel statements vector for the
 	// panel section being processed.
@@ -740,7 +747,6 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 	g_label     = ""    ;
 	if_column   = 0     ;
 	if_skip     = false ;
-	ver_failure = false ;
 
 	for ( ips = panstmnts.begin() ; ips != panstmnts.end() ; ips++ )
 	{
@@ -820,7 +826,7 @@ void pPanel::process_panel_stmnts( errblock& err, int ln,
 		}
 		else if ( (*ips)->ps_ver )
 		{
-			if ( !ver_failure && !end_pressed )
+			if ( !message_set )
 			{
 				process_panel_verify( err,
 						      ln,
@@ -878,6 +884,8 @@ void pPanel::process_panel_if_cond( errblock& err, int ln, IFSTMNT* ifstmnt )
 {
 	int j ;
 
+	bool l_break ;
+
 	string rhs_val  ;
 	string lhs_val  ;
 	string fieldVal ;
@@ -885,8 +893,7 @@ void pPanel::process_panel_if_cond( errblock& err, int ln, IFSTMNT* ifstmnt )
 
 	vector<string>::iterator it ;
 
-	if ( ifstmnt->if_eq ) { ifstmnt->if_true = false ; }
-	if ( ifstmnt->if_ne ) { ifstmnt->if_true = true  ; }
+	ifstmnt->if_true = ( ifstmnt->if_cond != IF_EQ ) ;
 
 	if ( ifstmnt->if_lhs.front() == '.' )
 	{
@@ -948,6 +955,7 @@ void pPanel::process_panel_if_cond( errblock& err, int ln, IFSTMNT* ifstmnt )
 	}
 	for ( j = 0 ; j < ifstmnt->if_rhs.size() ; j++ )
 	{
+		l_break = false ;
 		if ( ifstmnt->if_rhs[ j ].front() == '.' )
 		{
 			rhs_val = getControlVar( err, ifstmnt->if_rhs[ j ] ) ;
@@ -957,33 +965,36 @@ void pPanel::process_panel_if_cond( errblock& err, int ln, IFSTMNT* ifstmnt )
 		{
 			rhs_val = sub_vars( ifstmnt->if_rhs[ j ] ) ;
 		}
-		if ( ifstmnt->if_eq )
+		switch ( ifstmnt->if_cond )
 		{
+		case IF_EQ:
 			ifstmnt->if_true = ifstmnt->if_true || ( lhs_val == rhs_val ) ;
-			if ( ifstmnt->if_true ) { break ; }
-		}
-		else if ( ifstmnt->if_ne )
-		{
-			ifstmnt->if_true = ifstmnt->if_true && ( lhs_val != rhs_val ) ;
-			if ( !ifstmnt->if_true ) { break ; }
-		}
-		else
-		{
-			if ( (ifstmnt->if_gt && ( lhs_val >  rhs_val )) ||
-			     (ifstmnt->if_lt && ( lhs_val <  rhs_val )) ||
-			     (ifstmnt->if_ge && ( lhs_val >= rhs_val )) ||
-			     (ifstmnt->if_le && ( lhs_val <= rhs_val )) ||
-			     (ifstmnt->if_ng && ( lhs_val <= rhs_val )) ||
-			     (ifstmnt->if_nl && ( lhs_val >= rhs_val )) )
-			{
-				ifstmnt->if_true = true ;
+			l_break = ifstmnt->if_true ;
+			break ;
 
-			}
-			else
-			{
-				ifstmnt->if_true = false ;
-			}
+		case IF_NE:
+			ifstmnt->if_true = ifstmnt->if_true && ( lhs_val != rhs_val ) ;
+			l_break = !ifstmnt->if_true ;
+			break ;
+
+		case IF_GT:
+			ifstmnt->if_true = ( lhs_val >  rhs_val ) ;
+			break ;
+
+		case IF_GE:
+			ifstmnt->if_true = ( lhs_val >= rhs_val ) ;
+			break ;
+
+		case IF_LE:
+			ifstmnt->if_true = ( lhs_val <= rhs_val ) ;
+			break ;
+
+		case IF_LT:
+			ifstmnt->if_true = ( lhs_val <  rhs_val ) ;
+			break ;
+
 		}
+		if ( l_break ) { break ; }
 	}
 }
 
@@ -1063,7 +1074,7 @@ string pPanel::process_panel_trans( errblock& err, int ln, TRANS* trans )
 		if ( trans->trns_default == "" )
 		{
 			t = "" ;
-			if ( trans->trns_msgid != "" && !end_pressed && !ver_failure )
+			if ( trans->trns_msgid != "" && !message_set )
 			{
 				setMessageCond( sub_vars( trans->trns_msgid ) ) ;
 				if ( trans->trns_pnfield )
@@ -1075,7 +1086,6 @@ string pPanel::process_panel_trans( errblock& err, int ln, TRANS* trans )
 					}
 					setCursorCond( fieldNam ) ;
 				}
-				ver_failure = true ;
 			}
 		}
 		else if ( trans->trns_default != "*" )
@@ -1114,7 +1124,6 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 			{
 				setCursorCond( fieldNam ) ;
 			}
-			ver_failure = true ;
 		}
 	}
 	if ( fieldVal == "" )
@@ -1130,7 +1139,6 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 			{
 				setCursorCond( fieldNam ) ;
 			}
-			ver_failure = true ;
 		}
 	}
 	else if ( verify->ver_list || verify->ver_listx )
@@ -1170,7 +1178,6 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 			{
 				setCursorCond( fieldNam ) ;
 			}
-			ver_failure = true ;
 		}
 	}
 	else if ( verify->ver_pict )
@@ -1186,7 +1193,6 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 			{
 				setCursorCond( fieldNam ) ;
 			}
-			ver_failure = true ;
 		}
 	}
 	else if ( verify->ver_hex )
@@ -1198,7 +1204,6 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 			{
 				setCursorCond( fieldNam ) ;
 			}
-			ver_failure = true ;
 		}
 	}
 	else if ( verify->ver_octal )
@@ -1210,7 +1215,6 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 			{
 				setCursorCond( fieldNam ) ;
 			}
-			ver_failure = true ;
 		}
 	}
 }
@@ -1395,6 +1399,7 @@ void pPanel::setControlVar( errblock& err, int ln, const string& svar, const str
 			p_funcPOOL->put( err, "ZCURFLD", sval ) ;
 			if ( err.error() ) { return ; }
 			CURFLD = wordpos( sval, tb_fields ) == 0 ? sval : sval +"."+ d2ds( ln ) ;
+			CURPOS = 1 ;
 			cursor_set = true ;
 		}
 	}
