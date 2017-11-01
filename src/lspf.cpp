@@ -727,7 +727,7 @@ void mainLoop()
 					{
 						issueMessage( "PSYS013" ) ;
 					}
-					currAppl->currPanel->redisplay_panel() ;
+					currAppl->refresh_id() ;
 				}
 				else if ( ZCOMMAND == ".SHELL" )
 				{

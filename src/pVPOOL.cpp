@@ -1185,8 +1185,7 @@ void poolMGR::statistics()
 	llog( "-", "         Shared pool details:" << endl ) ;
 	for ( sp_it = POOLs_shared.begin() ; sp_it != POOLs_shared.end() ; sp_it++ )
 	{
-		if ( sp_it->second->readOnly ) { Mode = "RO" ; }
-		else                           { Mode = "UP" ; }
+		Mode = sp_it->second->readOnly ? "RO" : "UP" ;
 		llog( "-", "            Pool " << setw(8) << sp_it->first << "  use count: " << setw(4) << sp_it->second->refCount <<
 			  "  " << Mode << "  entries: " << setw(5) << sp_it->second->POOL.size() << endl ) ;
 	}
@@ -1194,8 +1193,7 @@ void poolMGR::statistics()
 	llog( "-", "         Profile pool details:" << endl ) ;
 	for ( pp_it = POOLs_profile.begin() ; pp_it != POOLs_profile.end() ; pp_it++ )
 	{
-		if ( pp_it->second->readOnly ) { Mode = "RO" ; }
-		else                           { Mode = "UP" ; }
+		Mode = pp_it->second->readOnly ? Mode = "RO" : Mode = "UP" ;
 		llog( "-", "            Pool " << setw(8) << pp_it->first << "  use count: " << setw(4) << pp_it->second->refCount <<
 			  "  " << Mode << "  entries: " << setw(5) << pp_it->second->POOL.size() << "  path: " << pp_it->second->path << endl ) ;
 	}
@@ -1215,19 +1213,20 @@ void poolMGR::snap()
 
 	llog( "-", "Pool Variables:" << endl ) ;
 	llog( "-", "         Shared pool details:" << endl ) ;
+
 	for ( sp_it = POOLs_shared.begin() ; sp_it != POOLs_shared.end() ; sp_it++ )
 	{
 		llog( "-", "         Pool " << setw(8) << sp_it->first << " use count:" << setw(3) << sp_it->second->refCount <<
 			  " entries: " << sp_it->second->POOL.size() << endl ) ;
 		for ( v_it = sp_it->second->POOL.begin() ; v_it != sp_it->second->POOL.end() ; v_it++ )
 		{
-			if ( sp_it->second->isSystem( v_it ) ) { vtype = "S" ; }
-			else                                   { vtype = "N" ; }
-			llog( "-", setw(8) << v_it->first << " :" << vtype << ": " << sp_it->second->get( err, v_it ) << "<< " << endl ) ;
+			vtype = sp_it->second->isSystem( v_it ) ? vtype = " :S: " : vtype = " :N: " ;
+			llog( "-", setw(8) << v_it->first << vtype << sp_it->second->get( err, v_it ) << "<< " << endl ) ;
 		}
 	}
 	llog( "-", endl ) ;
 	llog( "-", "         Profile pool details:" << endl ) ;
+
 	for ( pp_it = POOLs_profile.begin() ; pp_it != POOLs_profile.end() ; pp_it++ )
 	{
 		llog( "-", "         Pool " << setw(8) << pp_it->first << " use count: " << setw(3) << pp_it->second->refCount <<
@@ -1235,9 +1234,8 @@ void poolMGR::snap()
 		llog( "-", "                            path: " << setw(3) << pp_it->second->path << endl ) ;
 		for ( v_it = pp_it->second->POOL.begin() ; v_it != pp_it->second->POOL.end() ; v_it++ )
 		{
-			if ( pp_it->second->isSystem( v_it ) ) { vtype = "S" ; }
-			else                                   { vtype = "N" ; }
-			llog( "-", setw(8) << v_it->first << " :" << vtype << ": " << pp_it->second->get( err, v_it ) << "<< " << endl ) ;
+			vtype = pp_it->second->isSystem( v_it ) ? vtype = " :S: " : vtype = " :N: " ;
+			llog( "-", setw(8) << v_it->first << vtype << pp_it->second->get( err, v_it ) << "<< " << endl ) ;
 		}
 	}
 	llog( "-", "*************************************************************************************************************" << endl ) ;

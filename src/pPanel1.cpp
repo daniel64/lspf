@@ -355,7 +355,6 @@ void pPanel::display_panel( errblock& err )
 	display_id()     ;
 
 	if ( ALARM ) { beep() ; }
-
 }
 
 
@@ -364,38 +363,6 @@ void pPanel::redraw_fields()
 	// Re-draw all fields in a window (eg after a .SHOW/.HIDE NULLS command)
 
 	display_fields() ;
-}
-
-
-void pPanel::redisplay_panel()
-{
-	// Refresh the screen by re-drawing all the elements
-
-	string panttl ;
-	errblock err  ;
-
-	werase( win ) ;
-
-	panttl = sub_vars( panelTitle ) ;
-	wattrset( win, cuaAttr[ PT ] ) ;
-	mvwaddstr( win, ab.size() > 0 ? 2 : 0, ( WSCRMAXW - panttl.size() ) / 2, panttl.c_str() ) ;
-	wattroff( win, cuaAttr[ PT ] ) ;
-
-	if ( tb_model )
-	{
-		p_funcPOOL->put( err, "ZTDSELS", 0 ) ;
-		display_tb_mark_posn() ;
-		tb_fields_active_inactive() ;
-	}
-
-	display_ab()     ;
-	display_literals() ;
-	display_fields() ;
-	display_boxes()  ;
-	hide_pd()        ;
-	display_pd()     ;
-	display_msg()    ;
-	display_id()     ;
 }
 
 

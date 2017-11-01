@@ -376,7 +376,7 @@ void createSYSPROF()
 
 	errblock err ;
 
-	p_poolMGR->setAPPLID( err, "ISPS" )  ;
+	p_poolMGR->setApplid( err, "ISPS" )  ;
 	p_poolMGR->createPool( err, SHARED ) ;
 	p_poolMGR->createPool( err, PROFILE, ZSPROF ) ;
 

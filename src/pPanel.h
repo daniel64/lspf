@@ -61,7 +61,6 @@ class pPanel
 		void   toggle_fscreen()   { ff_screen = !ff_screen ; }
 
 		void   display_panel( errblock& ) ;
-		void   redisplay_panel() ;
 		void   redraw_fields()   ;
 		void   refresh()         ;
 		void   refresh_fields()  ;

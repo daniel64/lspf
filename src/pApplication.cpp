@@ -126,8 +126,8 @@ void pApplication::taskid( int taskid )
 
 void pApplication::init()
 {
-	// Before being dispatched in its own thread, set the search paths, table display BOD mark and
-	// addpop status if this has not been invoked with the SUSPEND option on the SELECT command
+	// Before being dispatched in its own thread, set the search paths and addpop status
+	// if this has not been invoked with the SUSPEND option on the SELECT command
 
 	ZPLIB    = p_poolMGR->get( errBlock, "ZPLIB", PROFILE ) ;
 	ZPLIB    = p_poolMGR->get( errBlock, "ZPLIB", PROFILE ) ;
@@ -168,8 +168,6 @@ void pApplication::wait_event()
 
 void pApplication::createPanel( const string& p_name )
 {
-	string paths ;
-
 	errBlock.setRC( 0 ) ;
 
 	if ( panelList.count( p_name ) > 0 ) { return ; }
@@ -189,9 +187,7 @@ void pApplication::createPanel( const string& p_name )
 	p_panel->init( errBlock ) ;
 	if ( errBlock.error() ) { return ; }
 
-	paths = get_search_path( s_ZPLIB ) ;
-
-	p_panel->loadPanel( errBlock, p_name, paths ) ;
+	p_panel->loadPanel( errBlock, p_name, get_search_path( s_ZPLIB ) ) ;
 
 	if ( errBlock.RC0() )
 	{
@@ -301,8 +297,9 @@ void pApplication::restore_Zvars( int screenid )
 
 	if ( p_poolMGR->get( err, screenid, "ZSCRNAM2" ) == "PERM" )
 	{
-			ZSCRNAME = p_poolMGR->get( err, screenid, "ZSCRNAME" ) ;
+		ZSCRNAME = p_poolMGR->get( err, screenid, "ZSCRNAME" ) ;
 	}
+
 	p_poolMGR->put( err, "ZSCRNAME", ZSCRNAME, SHARED ) ;
 
 	p_poolMGR->put( err, screenid, "ZPOPROW", d2ds( addpop_row ) ) ;
@@ -2018,7 +2015,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 	if ( propagateEnd )
 	{
 		if ( p_name == "" )       { RC = 8 ; return      ; }
-		if ( PPANELID == p_name ) { propagateEnd = false ;                }
+		if ( PPANELID == p_name ) { propagateEnd = false ; }
 		else                      { PPANELID = p_name ; RC = 8 ; return ; }
 	}
 
