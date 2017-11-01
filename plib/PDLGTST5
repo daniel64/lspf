@@ -18,7 +18,7 @@ field     6   MAX-14    8    VOI   NONE  ZDATE
 literal   8    2    FP  "VAR NAME. . .:"
 field     8   17   90   NEF     CAPS(ON),PAD(USER) FLD1
 
-literal   10  2     CT     "FUNNCTION POOL VARIABLES:"
+literal   10  2     CT     "FUNCTION POOL VARIABLES:"
 
 literal   11   2     FP     "ZCURFLD:"
 field     11   11    10     VOI   NONE  ZCURFLD

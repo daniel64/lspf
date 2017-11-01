@@ -79,7 +79,7 @@ field     16   31    8     VOI   NONE  ZUSER
 
 -- ------------------------------------
 
-literal   18   2     CT     "PROFILE POOL VARIABLES: (READ-ONLY EXTENTION)"
+literal   18   2     CT     "PROFILE POOL VARIABLES: (READ-ONLY EXTENSION)"
 
 -- ------------------------------------
 

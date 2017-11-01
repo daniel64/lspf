@@ -12,21 +12,18 @@ SHARED                                                                PROFILE
 | ZPANELID    ZSCROLLN           |              |              |     | ZKLUSE                         |              |              |
 | ZPFKEY                         |              |              |     +--------------------------------+--------------+--------------+
 | ZSCREEN                        |              |              |     | @ROXPROF (RO) (common)                                       |
-| ZVERB                          |              |              |     | Loaded from ZPROFAPP (not used at present)                   | 
-+--------------------------------+--------------+--------------+     |                                                              | 
+| ZVERB                          |              |              |     | Loaded from ZPROFAPP (not used at present)                   |
++--------------------------------+--------------+--------------+     |                                                              |
 | @DEFSHAR (common)                                            |     +--------------------------------------------------------------+
-| Initial load by defaultVARS() method.  Not updatable by      |     | @DEFPROF (RO) (common)                                       | 
-| applications                                                 |     | Loaded by defaultVARS()(not used at present)                 | 
-|Z4JDATE                                                       |     |                                                              | 
+| Initial load by defaultVARS() method.  Not updatable by      |     | @DEFPROF (RO) (common)                                       |
+| applications                                                 |     | Loaded by defaultVARS()(not used at present)                 |
+|Z4JDATE                                                       |     |                                                              |
 |ZDATE                                                         |     +--------------------------------------------------------------+
 |ZDATEF                                                        |     | ISPSPROF (UP) (common)                                       |
 |ZDATEFL                                                       |     | Loaded from ISPSPROF                                         |
 |ZDATEL                                                        |     | Updatable by applications but not deletable                  |
 |ZDAY                                                          |     +--------------------------------------------------------------+
 |ZDAYOFWK                                                      |
-|ZDLCnnnn (loaded class name)                                  |
-|ZDLMnnnn (loaded class module)                                |
-|ZDLPnnnn (module path or error msg)                           |
 |ZENVIR                                                        |
 |ZHOME                                                         |
 |ZJDATE                                                        |

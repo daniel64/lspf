@@ -17,7 +17,7 @@
 
 */
 
-void parser::parseStatement( errblock& err, string s )
+void parser::parseStatement( errblock& err, const string& s )
 {
 	bool quoted ;
 	char c1     ;
@@ -31,7 +31,7 @@ void parser::parseStatement( errblock& err, string s )
 	tokens.clear() ;
 
 	err.setRC( 0 ) ;
-	idx = 0     ;
+	idx = 0        ;
 	it  = s.begin() ;
 
 	while ( it != s.end() )
@@ -792,12 +792,12 @@ void VERIFY::parse( errblock& err, parser& v, bool nocheck )
 		t = v.getCurrentToken() ;
 	}
 
-	if      ( t.value == "NUM"   ) { ver_numeric = true ; }
-	else if ( t.value == "LIST"  ) { ver_list    = true ; }
-	else if ( t.value == "LISTX" ) { ver_listx   = true ; ver_nblank = true ; }
-	else if ( t.value == "PICT"  ) { ver_pict    = true ; }
-	else if ( t.value == "HEX"   ) { ver_hex     = true ; }
-	else if ( t.value == "OCT"   ) { ver_octal   = true ; }
+	if      ( t.value == "NUM"   ) { ver_type = VER_NUMERIC ; }
+	else if ( t.value == "LIST"  ) { ver_type = VER_LIST ; }
+	else if ( t.value == "LISTX" ) { ver_type = VER_LISTX ; ver_nblank = true ; }
+	else if ( t.value == "PICT"  ) { ver_type = VER_PICT ; }
+	else if ( t.value == "HEX"   ) { ver_type = VER_HEX ; }
+	else if ( t.value == "OCT"   ) { ver_type = VER_OCT ; }
 	else if ( t.value == "MSG"   ) {                    ; }
 	else
 	{
@@ -812,7 +812,7 @@ void VERIFY::parse( errblock& err, parser& v, bool nocheck )
 		t = v.getCurrentToken() ;
 	}
 
-	if ( ver_pict )
+	if ( ver_type == VER_PICT )
 	{
 		ver_vlist.push_back( t.value ) ;
 		v.getNextToken() ;
@@ -820,7 +820,7 @@ void VERIFY::parse( errblock& err, parser& v, bool nocheck )
 	}
 
 	t = v.getCurrentToken() ;
-	while ( ver_list || ver_listx )
+	while ( ver_type == VER_LIST || ver_type == VER_LISTX )
 	{
 		if ( t.type == TT_CLOSE_BRACKET )
 		{
@@ -885,7 +885,7 @@ void VERIFY::parse( errblock& err, parser& v, bool nocheck )
 		return ;
 	}
 
-	if ( ( ver_list || ver_listx || ver_pict ) && ver_vlist.empty() )
+	if ( ( ver_type == VER_LIST || ver_type == VER_LISTX || ver_type == VER_PICT ) && ver_vlist.empty() )
 	{
 		err.seterrid( "PSYE033N" ) ;
 		return ;

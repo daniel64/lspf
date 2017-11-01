@@ -89,8 +89,8 @@ PEDM012B 'Invalid number of variables'
 PEDM012C 'Invalid number of variables'
 'Too many variables specified on the command'
 
-PEDM012D 'Primary command has not been actioned'
-'Logic error.  Primary command has not set the actioned flag.'
+PEDM012D 'Primary command not properly actioned'
+'Logic error.  Primary command ''&ZSTR1'' of MACRO ''&ZSTR2'' has not set the actioned flag.'
 
 PEDM012E 'Level out of range'
 'The optional level parameter must in the range 0 to 255'
@@ -104,8 +104,8 @@ PEDM012G 'Command not found'
 PEDM012H 'Nesting exceeded' .TYPE=W
 'Macros can only be nested to a level of 255.  Check for loops'
 
-PEDM012I 'Not a valid edit macro' .TYPE=W
-'No ISREDIT MACRO statement was found'
+PEDM012I '''&ZSTR1'' not a valid edit macro' .TYPE=W
+'No ISREDIT MACRO statement was found in MACRO ''&ZSTR1'''
 
 PEDM012J 'Command Invalid'
 '&STR not valid.  BUILTIN must be followed by a valid edit command'
@@ -116,8 +116,8 @@ PEDM012K 'Invalid process request'
 PEDM012L '&ZSTR1 returned invalid number' .T=W
 '&ZSTR1 has set an invalid return that is not a whole number'
 
-PEDM012M 'spare'
-'spare'
+PEDM012M 'Primary command not properly actioned'
+'Logic error.  IMACRO primary command ''&ZSTR1'' has not set the actioned flag.'
 
 PEDM012N 'spare'
 'spare'

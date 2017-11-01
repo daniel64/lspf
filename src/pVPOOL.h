@@ -39,9 +39,10 @@ class fVAR
 class fPOOL
 {
 	public:
-	fPOOL() {
-			nullstr = "" ;
-		}
+	fPOOL()
+	{
+		nullstr = "" ;
+	}
 	~fPOOL() ;
 		void     define( errblock& err,
 				 const string& name ,
@@ -53,6 +54,7 @@ class fPOOL
 				 int * addr ) ;
 	private:
 		string nullstr ;
+		string varList ;
 		bool     ifexists( errblock& err,
 				   const string& name,
 				   nameCHCK check=CHECK ) ;
@@ -74,10 +76,10 @@ class fPOOL
 			      const string& name,
 			      int value ) ;
 
-		string&  get( errblock& err,
-			      int maxRC,
-			      const string& name,
-			      nameCHCK check=CHECK ) ;
+		const string& get( errblock& err,
+				   int maxRC,
+				   const string& name,
+				   nameCHCK check=CHECK ) ;
 
 		int      get( errblock& err,
 			      int maxRC,
@@ -94,11 +96,11 @@ class fPOOL
 
 		void     reset( errblock& err ) ;
 
-		string   vilist( int& RC,
-				 vdType defn ) ;
+		const string& vilist( int& RC,
+				      vdType defn ) ;
 
-		string   vslist( int&RC,
-				 vdType defn ) ;
+		const string& vslist( int&RC,
+				      vdType defn ) ;
 
 		map<string, stack<fVAR*>> POOL ;
 
@@ -124,6 +126,7 @@ enum pVType
 	pV_ZYEAR,
 	pV_ZSTDYEAR
 } ;
+
 
 class pVAR
 {
@@ -163,11 +166,16 @@ class pVPOOL
 			    const string& value,
 			    vTYPE =USER ) ;
 
+		void   put( errblock& err,
+			    map<string, pVAR*>::iterator v_it,
+			    const string& value,
+			    vTYPE =USER ) ;
+
 		string get( errblock& err,
-			    const string& name ) ;
+			    map<string, pVAR*>::iterator v_it ) ;
 
 		string * vlocate( errblock& err,
-				  const string& name ) ;
+				  map<string, pVAR*>::iterator v_it ) ;
 
 		void   load( errblock& err,
 			     const string& applid,
@@ -177,10 +185,9 @@ class pVPOOL
 			     const string& applid ) ;
 
 		void   erase( errblock& err,
-			      const string& name ) ;
+			      map<string, pVAR*>::iterator v_it ) ;
 
-		bool   isSystem( errblock& err,
-				 const string& name ) ;
+		bool   isSystem( map<string, pVAR*>::iterator v_it ) ;
 
 		void   setReadOnly()  { readOnly = true     ; }
 		void   incRefCount()  { refCount++          ; }
@@ -210,7 +217,7 @@ class poolMGR
 
 		void   destroyPool( int ls ) ;
 
-		void   setAPPLID( errblock& err,
+		void   setApplid( errblock& err,
 				  const string& applid )   ;
 
 		void   setShrdPool( errblock& err,
@@ -240,7 +247,7 @@ class poolMGR
 				    const string& value,
 				    poolType ) ;
 
-		string getAPPLID()   { return currAPPLID ; }
+		string getApplid()   { return currApplid ; }
 		string getShrdPool() { return shrdPool   ; }
 
 		void   setPOOLsReadOnly() ;
@@ -248,9 +255,9 @@ class poolMGR
 		void   statistics() ;
 
 	private:
-		string vlist( int& RC,
-			      poolType pType,
-			      int lvl )  ;
+		const string& vlist( int& RC,
+				     poolType pType,
+				     int lvl )  ;
 
 		void   createPool( int ls ) ;
 
@@ -259,7 +266,8 @@ class poolMGR
 				  poolType=ASIS ) ;
 
 		void   locateSubPool( errblock& err,
-				      map<string, pVPOOL*>::iterator& vpool,
+				      map<string, pVPOOL*>::iterator& p_it,
+				      map<string, pVAR*>::iterator& v_it,
 				      const string& name,
 				      poolType=ASIS ) ;
 
@@ -267,8 +275,9 @@ class poolMGR
 			      const string& name,
 			      poolType=ASIS ) ;
 
-		string currAPPLID ;
+		string currApplid ;
 		string shrdPool   ;
+		string varList    ;
 		int    shrdPooln  ;
 
 		map<string, pVPOOL*> POOLs_shared  ;

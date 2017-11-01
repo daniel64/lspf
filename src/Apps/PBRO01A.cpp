@@ -1114,9 +1114,9 @@ void PBRO01A::actionFind( int spos, int offset )
 			found1 = true  ;
 			found  = false ;
 			itss   = data.at( dl ).begin() ;
-			advance( itss, c1 ) ;
+			std::advance( itss, c1 ) ;
 			itse   = itss    ;
-			advance( itse, c2-c1+1 ) ;
+			std::advance( itse, c2-c1+1 ) ;
 			if ( find_parms.f_oncol )
 			{
 				if ( regex_search( itss, itse, results, regexp ) )

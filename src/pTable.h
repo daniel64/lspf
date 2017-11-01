@@ -187,7 +187,6 @@ class tableMGR
 	public:
 		~tableMGR() ;
 		void   createTable( errblock& err,
-				    int task,
 				    const string& tb_name,
 				    string keys,
 				    string flds,
@@ -197,7 +196,6 @@ class tableMGR
 				    tbDISP m_DISP ) ;
 
 		void   saveTable( errblock& err,
-				  int task,
 				  const string& tb_name,
 				  const string& m_newname,
 				  const string& m_path ) ;
@@ -222,7 +220,6 @@ class tableMGR
 				  const string& paths ) ;
 
 		void   loadTable( errblock& err,
-				  int task,
 				  const string& tb_name,
 				  tbWRITE=WRITE,
 				  const string& src="",
@@ -238,7 +235,6 @@ class tableMGR
 				  int  posn =-1 ) ;
 
 		void   destroyTable( errblock& err,
-				     int task,
 				     const string& tb_name ) ;
 
 		void   tbbottom( errblock& err,

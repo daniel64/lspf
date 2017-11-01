@@ -2,7 +2,6 @@
 
 )COMMENT
  Rename file
- WINDOW(width,depth) on body statement for pop-up window testing
 )ENDCOMMENT
 
 

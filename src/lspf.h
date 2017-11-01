@@ -24,7 +24,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/condition.hpp>
 
-// #define DEBUG1 1
+#define DEBUG1 1
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
@@ -307,47 +307,49 @@ enum cuaType
 class errblock
 {
 	public:
-		string  msgid ;
-		string  msg1  ;
-		string  sline ;
+		string  msgid  ;
+		string  msg1   ;
+		string  sline  ;
 		const string* dline ;
-		string  val1  ;
-		string  val2  ;
-		string  val3  ;
-		string  udata ;
-		int     RC    ;
-		int     maxRC ;
-		bool    debug ;
-		bool    abend ;
+		string  val1   ;
+		string  val2   ;
+		string  val3   ;
+		string  udata  ;
+		int     taskid ;
+		int     RC     ;
+		int     maxRC  ;
+		bool    debug  ;
+		bool    abend  ;
 	errblock()
 	{
-		msgid = "" ;
-		msg1  = "" ;
-		sline = "" ;
-		dline = NULL ;
-		val1  = "" ;
-		val2  = "" ;
-		val3  = "" ;
-		udata = "" ;
-		RC    = 0  ;
-		maxRC = 0  ;
-		debug = false ;
-		abend = false ;
+		msgid  = "" ;
+		msg1   = "" ;
+		sline  = "" ;
+		dline  = NULL ;
+		val1   = "" ;
+		val2   = "" ;
+		val3   = "" ;
+		udata  = "" ;
+		taskid = 0  ;
+		RC     = 0  ;
+		maxRC  = 0  ;
+		debug  = false ;
+		abend  = false ;
 	}
 	void clear()
 	{
-		msgid = "" ;
-		msg1  = "" ;
-		sline = "" ;
-		dline = NULL ;
-		val1  = "" ;
-		val2  = "" ;
-		val3  = "" ;
-		udata = "" ;
-		RC    = 0  ;
-		maxRC = 0  ;
-		debug = false ;
-		abend = false ;
+		msgid  = "" ;
+		msg1   = "" ;
+		sline  = "" ;
+		dline  = NULL ;
+		val1   = "" ;
+		val2   = "" ;
+		val3   = "" ;
+		udata  = "" ;
+		RC     = 0  ;
+		maxRC  = 0  ;
+		debug  = false ;
+		abend  = false ;
 	}
 	void setRC( int i )
 	{
@@ -507,8 +509,8 @@ class errblock
 	}
 	string getsrc()
 	{
-		if ( dline == NULL ) { return  sline ; }
-		else                 { return *dline ; }
+		if ( dline ) { return *dline ; }
+		else         { return  sline ; }
 	}
 	void clearsrc()
 	{
@@ -530,11 +532,11 @@ class errblock
 		val2 = s2 ;
 		val3 = s3 ;
 	}
-	void setUserData( const string s )
+	void setUserData( const string& s )
 	{
 		udata = s ;
 	}
-	string getUserData()
+	string& getUserData()
 	{
 		return udata ;
 	}

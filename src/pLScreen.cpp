@@ -60,7 +60,7 @@ pLScreen::pLScreen()
 	}
 	++screensTotal    ;
 	currScreen = this ;
-	screenID   = ++maxScreenID ;
+	screenId   = ++maxScreenId ;
 	Insert     = false         ;
 }
 
@@ -88,7 +88,7 @@ void pLScreen::save_panel_stack()
 {
 	// Save all panels for this logical screen
 	// Panel user data : object panel_data
-	//                   1 int field, screenID
+	//                   1 int field, screenId
 
 	PANEL * pnl ;
 
@@ -107,7 +107,7 @@ void pLScreen::save_panel_stack()
 		vptr = panel_userptr( pnl ) ;
 		if ( vptr == NULL ) { continue ; }
 		pd = static_cast<const panel_data *>(vptr) ;
-		if ( pd->screenID != screenID ) { continue ; }
+		if ( pd->screenId != screenId ) { continue ; }
 		panelList.push( pnl ) ;
 	}
 }
@@ -145,7 +145,7 @@ void pLScreen::OIA_update( const char* respTime )
 	mvwaddstr( OIA, 0, 9, substr( "12345678", 1, screensTotal).c_str() ) ;
 	mvwaddstr( OIA, 0, 27, "   " ) ;
 	mvwaddstr( OIA, 0, 40, respTime ) ;
-	mvwprintw( OIA, 0, 59, "%d-%d   ", screenID, application_stack_size() );
+	mvwprintw( OIA, 0, 59, "%d-%d   ", screenId, application_stack_size() );
 	mvwaddstr( OIA, 0, maxcol-23, Insert ? "Insert" : "      " ) ;
 	mvwprintw( OIA, 0, maxcol-14, "Row %d Col %d  ", row+1, col+1 ) ;
 	wattroff( OIA, YELLOW ) ;

@@ -31,8 +31,7 @@ bool abbrev( const string& s1, const string& s2 )
 
 	if ( l1 < l2 ) { return false ; }
 
-	if ( s1.compare( 0, l2, s2 ) == 0 ) { return true ; }
-	return false ;
+	return s1.compare( 0, l2, s2 ) == 0 ;
 }
 
 
@@ -48,8 +47,7 @@ bool abbrev( const string& s1, const string& s2, unsigned int n )
 	if ( l2 < n )  { return false ; }
 	if ( l1 < l2 ) { return false ; }
 
-	if ( s1.compare( 0, l2, s2 ) == 0 ) { return true ; }
-	return false ;
+	return s1.compare( 0, l2, s2 ) == 0 ;
 }
 
 

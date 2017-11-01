@@ -1,7 +1,7 @@
 )PANEL VERSION=1 FORMAT=1
 
 )COMMENT
-Panel for editor PEDIT01
+Edit recovery panel for editor PEDIT01
 )ENDCOMMENT
 
 )BODY HOME(ZCMD4) CMD(ZCMD4)
@@ -9,7 +9,7 @@ Panel for editor PEDIT01
 PanelTitle "Edit Recovery Panel"
 
 literal  4    2       FP     "Command ===> "
-field 4  15   MAX     NEF     PAD(USER),CAPS(ON) ZCMD4
+field    4   15   MAX NEF     PAD(USER),CAPS(ON) ZCMD4
 
 literal  6   10       FP     "**********************************************"
 literal  7   10       FP     "*          EDIT AUTOMATIC RECOVERY           *"

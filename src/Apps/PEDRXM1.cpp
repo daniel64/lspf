@@ -116,6 +116,7 @@ void PEDRXM1::application()
 
 	if ( !mibptr->macro )
 	{
+		vreplace( "ZSTR1", mibptr->emacro ) ;
 		setmsg( "PEDM012I" ) ;
 	}
 	else if ( nlvl > 1 && mibptr->getExitRC() > 8 )

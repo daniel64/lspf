@@ -492,6 +492,14 @@ void PPSP01A::lspfSettings()
 	string GOLMSGW ;
 	string GOPADC  ;
 
+	string RODEL   ;
+	string ROSWAP  ;
+	string ROSWAPC ;
+	string ROKLUSE ;
+	string ROKLFAL ;
+	string ROLMSGW ;
+	string ROPADC  ;
+
 	string ZDEL    ;
 	string ZSWAP   ;
 	string ZSWAPC  ;
@@ -508,11 +516,22 @@ void PPSP01A::lspfSettings()
 	string GOSCMD3 ;
 	string GOSTFST ;
 
+	string ROUCMD1 ;
+	string ROUCMD2 ;
+	string ROUCMD3 ;
+	string ROSCMD1 ;
+	string ROSCMD2 ;
+	string ROSCMD3 ;
+	string ROSTFST ;
+
 	string GOATIMO  ;
+	string ROATIMO  ;
 	string KMAXWAIT ;
 
 	string GORTSIZE ;
 	string GORBSIZE ;
+	string RORTSIZE ;
+	string RORBSIZE ;
 	string ZRTSIZE  ;
 	string ZRBSIZE  ;
 
@@ -532,17 +551,31 @@ void PPSP01A::lspfSettings()
 	if ( RC > 0 ) { abend() ; }
 	vdefine( "GOUCMD1 GOUCMD2 GOUCMD3", &GOUCMD1, &GOUCMD2, &GOUCMD3 ) ;
 	if ( RC > 0 ) { abend() ; }
+	vdefine( "ROUCMD1 ROUCMD2 ROUCMD3", &ROUCMD1, &ROUCMD2, &ROUCMD3 ) ;
+	if ( RC > 0 ) { abend() ; }
 	vdefine( "GOSCMD1 GOSCMD2 GOSCMD3 GOSTFST", &GOSCMD1, &GOSCMD2, &GOSCMD3, &GOSTFST ) ;
+	if ( RC > 0 ) { abend() ; }
+	vdefine( "ROSCMD1 ROSCMD2 ROSCMD3 ROSTFST", &ROSCMD1, &ROSCMD2, &ROSCMD3, &ROSTFST ) ;
 	if ( RC > 0 ) { abend() ; }
 	vdefine( "ZKLUSE  ZKLFAIL GOKLUSE GOKLFAL", &ZKLUSE, &ZKLFAIL, &GOKLUSE, &GOKLFAL ) ;
 	if ( RC > 0 ) { abend() ; }
+	vdefine( "ROKLUSE ROKLFAL", &ROKLUSE, &ROKLFAL ) ;
+	if ( RC > 0 ) { abend() ; }
 	vdefine( "ZDEL    GODEL   ZLMSGW  GOLMSGW", &ZDEL, &GODEL, &ZLMSGW, &GOLMSGW ) ;
+	if ( RC > 0 ) { abend() ; }
+	vdefine( "RODEL ROLMSGW", &RODEL, &ROLMSGW ) ;
 	if ( RC > 0 ) { abend() ; }
 	vdefine( "ZSWAP   GOSWAP   ZSWAPC  GOSWAPC",  &ZSWAP, &GOSWAP, &ZSWAPC, &GOSWAPC ) ;
 	if ( RC > 0 ) { abend() ; }
+	vdefine( "ROSWAP  ROSWAPC",  &ROSWAP, &ROSWAPC ) ;
+	if ( RC > 0 ) { abend() ; }
 	vdefine( "ZRTSIZE GORTSIZE ZRBSIZE GORBSIZE", &ZRTSIZE, &GORTSIZE, &ZRBSIZE, &GORBSIZE ) ;
 	if ( RC > 0 ) { abend() ; }
+	vdefine( "RORTSIZE RORBSIZE", &RORTSIZE, &RORBSIZE ) ;
+	if ( RC > 0 ) { abend() ; }
 	vdefine( "ZMAXWAIT GOATIMO ZPADC   GOPADC", &KMAXWAIT, &GOATIMO, &ZPADC, &GOPADC ) ;
+	if ( RC > 0 ) { abend() ; }
+	vdefine( "ROATIMO ROPADC", &ROATIMO, &ROPADC ) ;
 	if ( RC > 0 ) { abend() ; }
 
 	vget( "ZUCMDT1 ZUCMDT2 ZUCMDT3", PROFILE ) ;
@@ -554,16 +587,12 @@ void PPSP01A::lspfSettings()
 	vget( "ZDEL ZKLUSE  ZLMSGW ZPADC", PROFILE ) ;
 	if ( RC > 0 ) { abend() ; }
 
-	if ( ZKLUSE  == "Y" ) { GOKLUSE = "/" ; }
-	else                  { GOKLUSE = " " ; }
-	if ( ZKLFAIL == "Y" ) { GOKLFAL = "/" ; }
-	else                  { GOKLFAL = " " ; }
-	if ( ZSCMDTF == "Y" ) { GOSTFST = "/" ; }
-	else                  { GOSTFST = " " ; }
-	if ( ZLMSGW  == "Y" ) { GOLMSGW = "/" ; }
-	else                  { GOLMSGW = " " ; }
-	if ( ZSWAP   == "Y" ) { GOSWAP  = "/" ; }
-	else                  { GOSWAP  = " " ; }
+	ZKLUSE  == "Y" ? GOKLUSE = "/" : GOKLUSE = " " ;
+	ZKLFAIL == "Y" ? GOKLFAL = "/" : GOKLFAL = " " ;
+	ZSCMDTF == "Y" ? GOSTFST = "/" : GOSTFST = " " ;
+	ZLMSGW  == "Y" ? GOLMSGW = "/" : GOLMSGW = " " ;
+	ZSWAP   == "Y" ? GOSWAP  = "/" : GOSWAP  = " " ;
+
 	GODEL   = ZDEL    ;
 	GOSWAPC = ZSWAPC  ;
 	if      ( ZPADC == " "   ) { ZPADC = "B" ; }
@@ -586,9 +615,27 @@ void PPSP01A::lspfSettings()
 	GORTSIZE = ZRTSIZE ;
 	GORBSIZE = ZRBSIZE ;
 
+	RODEL    = GODEL    ;
+	ROSWAP   = GOSWAP   ;
+	ROSWAPC  = GOSWAPC  ;
+	ROKLUSE  = GOKLUSE  ;
+	ROKLFAL  = GOKLFAL  ;
+	ROLMSGW  = GOLMSGW  ;
+	ROPADC   = GOPADC   ;
+	ROUCMD1  = GOUCMD1  ;
+	ROUCMD2  = GOUCMD2  ;
+	ROUCMD3  = GOUCMD3  ;
+	ROSCMD1  = GOSCMD1  ;
+	ROSCMD2  = GOSCMD2  ;
+	ROSCMD3  = GOSCMD3  ;
+	ROSTFST  = GOSTFST  ;
+	ROATIMO  = GOATIMO  ;
+	RORTSIZE = GORTSIZE ;
+	RORBSIZE = GORBSIZE ;
+
 	while ( true )
 	{
-		ZCMD  = "" ;
+		ZCMD = "" ;
 		display( "PPSP01GO", "", "ZCMD" );
 		if ( RC == 8 ) { break ; }
 		if ( ZCMD == "DEFAULTS" )
@@ -611,60 +658,72 @@ void PPSP01A::lspfSettings()
 			GORTSIZE = "3"  ;
 			GORBSIZE = "10" ;
 		}
-		else
+		else if ( ZCMD == "RESET" )
 		{
-			if ( GOKLUSE == "/" ) { ZKLUSE  = "Y" ; }
-			else                  { ZKLUSE  = "N" ; }
-			if ( GOKLFAL == "/" ) { ZKLFAIL = "Y" ; }
-			else                  { ZKLFAIL = "N" ; }
-			if ( GOSTFST == "/" ) { ZSCMDTF = "Y" ; }
-			else                  { ZSCMDTF = "N" ; }
-			if ( GOLMSGW == "/" ) { ZLMSGW  = "Y" ; }
-			else                  { ZLMSGW  = "N" ; }
-			if ( GOSWAP  == "/" ) { ZSWAP   = "Y" ; }
-			else                  { ZSWAP   = "N" ; }
-			ZUCMDT1 = GOUCMD1 ;
-			ZUCMDT2 = GOUCMD2 ;
-			ZUCMDT3 = GOUCMD3 ;
-			ZSCMDT1 = GOSCMD1 ;
-			ZSCMDT2 = GOSCMD2 ;
-			ZSCMDT3 = GOSCMD3 ;
-			vput( "ZKLUSE  ZKLFAIL ZLMSGW ZSWAP", PROFILE ) ;
-			vput( "ZUCMDT1 ZUCMDT2 ZUCMDT3", PROFILE ) ;
-			vput( "ZSCMDT1 ZSCMDT2 ZSCMDT3 ZSCMDTF", PROFILE ) ;
-			if ( GODEL != "" && GODEL != ZDEL )
-			{
-				ZDEL = GODEL ;
-				vput( "ZDEL", PROFILE ) ;
-			}
-			if ( GOSWAPC != "" && GOSWAPC != ZSWAPC )
-			{
-				ZSWAPC = GOSWAPC ;
-				vput( "ZSWAPC", PROFILE ) ;
-			}
-			if ( GOPADC != ZPADC )
-			{
-				if      ( GOPADC == "B" ) { ZPADC = " "    ; }
-				else if ( GOPADC == "N" ) { ZPADC = nulls  ; }
-				else                      { ZPADC = GOPADC ; }
-				vput( "ZPADC", PROFILE ) ;
-				ZPADC = GOPADC ;
-			}
-			if ( GOATIMO != "" )
-			{
-				KMAXWAIT = d2ds( ds2d( GOATIMO ) * 1000 / ds2d( *t1 ) ) ;
-				vput( "ZMAXWAIT", PROFILE ) ;
-			}
-			if ( GORTSIZE != "" )
-			{
-				ZRTSIZE = GORTSIZE ;
-				vput( "ZRTSIZE", PROFILE ) ;
-			}
-			if ( GORBSIZE != "" )
-			{
-				ZRBSIZE = GORBSIZE ;
-				vput( "ZRBSIZE", PROFILE ) ;
-			}
+			GODEL    = RODEL    ;
+			GOSWAP   = ROSWAP   ;
+			GOSWAPC  = ROSWAPC  ;
+			GOKLUSE  = ROKLUSE  ;
+			GOKLFAL  = ROKLFAL  ;
+			GOLMSGW  = ROLMSGW  ;
+			GOPADC   = ROPADC   ;
+			GOUCMD1  = ROUCMD1  ;
+			GOUCMD2  = ROUCMD2  ;
+			GOUCMD3  = ROUCMD3  ;
+			GOSCMD1  = ROSCMD1  ;
+			GOSCMD2  = ROSCMD2  ;
+			GOSCMD3  = ROSCMD3  ;
+			GOSTFST  = ROSTFST  ;
+			GOATIMO  = ROATIMO  ;
+			GORTSIZE = RORTSIZE ;
+			GORBSIZE = RORBSIZE ;
+		}
+		GOKLUSE == "/" ? ZKLUSE  = "Y" : ZKLUSE  = "N" ;
+		GOKLFAL == "/" ? ZKLFAIL = "Y" : ZKLFAIL = "N" ;
+		GOSTFST == "/" ? ZSCMDTF = "Y" : ZSCMDTF = "N" ;
+		GOLMSGW == "/" ? ZLMSGW  = "Y" : ZLMSGW  = "N" ;
+		GOSWAP  == "/" ? ZSWAP   = "Y" : ZSWAP   = "N" ;
+		ZUCMDT1 = GOUCMD1 ;
+		ZUCMDT2 = GOUCMD2 ;
+		ZUCMDT3 = GOUCMD3 ;
+		ZSCMDT1 = GOSCMD1 ;
+		ZSCMDT2 = GOSCMD2 ;
+		ZSCMDT3 = GOSCMD3 ;
+		vput( "ZKLUSE  ZKLFAIL ZLMSGW ZSWAP", PROFILE ) ;
+		vput( "ZUCMDT1 ZUCMDT2 ZUCMDT3", PROFILE ) ;
+		vput( "ZSCMDT1 ZSCMDT2 ZSCMDT3 ZSCMDTF", PROFILE ) ;
+		if ( GODEL != "" && GODEL != ZDEL )
+		{
+			ZDEL = GODEL ;
+			vput( "ZDEL", PROFILE ) ;
+		}
+		if ( GOSWAPC != "" && GOSWAPC != ZSWAPC )
+		{
+			ZSWAPC = GOSWAPC ;
+			vput( "ZSWAPC", PROFILE ) ;
+		}
+		if ( GOPADC != ZPADC )
+		{
+			if      ( GOPADC == "B" ) { ZPADC = " "    ; }
+			else if ( GOPADC == "N" ) { ZPADC = nulls  ; }
+			else                      { ZPADC = GOPADC ; }
+			vput( "ZPADC", PROFILE ) ;
+			ZPADC = GOPADC ;
+		}
+		if ( GOATIMO != "" )
+		{
+			KMAXWAIT = d2ds( ds2d( GOATIMO ) * 1000 / ds2d( *t1 ) ) ;
+			vput( "ZMAXWAIT", PROFILE ) ;
+		}
+		if ( GORTSIZE != "" )
+		{
+			ZRTSIZE = GORTSIZE ;
+			vput( "ZRTSIZE", PROFILE ) ;
+		}
+		if ( GORBSIZE != "" )
+		{
+			ZRBSIZE = GORBSIZE ;
+			vput( "ZRBSIZE", PROFILE ) ;
 		}
 	}
 	vdelete( "ZUCMDT1 ZUCMDT2 ZUCMDT3" ) ;
@@ -684,6 +743,10 @@ void PPSP01A::lspfSettings()
 	vdelete( "ZRTSIZE GORTSIZE ZRBSIZE GORBSIZE" ) ;
 	if ( RC > 0 ) { abend() ; }
 	vdelete( "ZMAXWAIT GOATIMO ZPADC GOPADC" ) ;
+	if ( RC > 0 ) { abend() ; }
+	vdelete( "RODEL ROSWAP ROSWAPC ROKLUSE ROKLFAL ROLMSGW ROPADC ROUCMD1 ROUCMD2" ) ;
+	if ( RC > 0 ) { abend() ; }
+	vdelete( "ROUCMD3 ROSCMD1 ROSCMD2 ROSCMD3 ROSTFST ROATIMO RORTSIZE RORBSIZE" ) ;
 	if ( RC > 0 ) { abend() ; }
 }
 
@@ -1236,8 +1299,8 @@ void PPSP01A::poolVariables( const string& applid )
 			if ( SEL == "D" )
 			{
 				control( "ERRORS", "RETURN" ) ;
-				if ( VPOOL == "S" ) verase( VAR, SHARED  ) ;
-				else                verase( VAR, PROFILE ) ;
+				if ( VPOOL == "S" ) { verase( VAR, SHARED  ) ; }
+				else                { verase( VAR, PROFILE ) ; }
 				MESSAGE = "*Delete RC=" + d2ds(RC) + "*" ;
 				control( "ERRORS", "CANCEL" ) ;
 				SEL = "" ;
@@ -1632,8 +1695,7 @@ void PPSP01A::showCommandTables()
 		vget( "ZVERB", SHARED ) ;
 		if ( ZVERB == "LEFT" || ZVERB == "RIGHT" )
 		{
-			if ( panel == "PPSP01AC" ) { panel = "PPSP01AD" ; }
-			else                       { panel = "PPSP01AC" ; }
+			panel == "PPSP01AC" ? panel = "PPSP01AD" : panel = "PPSP01AC" ;
 		}
 	}
 	tbend( CMDTAB+"CMDS" ) ;

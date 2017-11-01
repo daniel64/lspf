@@ -14,6 +14,13 @@ PSYE011C ')PANEL statement error'
 PSYE011D ')BODY statement error'
 ''
 
+PSYE011E 'WINDOW() statement error'
+'Window width must be at least 2 less than the physical screen width of &ZSCRMAXW'
+
+PSYE011F 'WINDOW() statement error'
+'Window depth must be at least 2 less than the physical screen width of &ZSCRMAXD'
+
+/*  */
 PSYE013A 'Invalid variable name on a &ZVAL1'
 'Variable ''&ZVAL2'' has an invalid format'
 

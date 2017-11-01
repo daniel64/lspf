@@ -132,7 +132,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				k  = pos( ")", pline, j ) ;
 				if ( k == 0 )
 				{
-					err.seterrid( "PSYE011D" )  ;
+					err.seterrid( "PSYE011D" ) ;
 					err.setsrc( oline ) ;
 					return ;
 				}
@@ -140,14 +140,27 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				j  = ws.find( ',' )       ;
 				if ( j == string::npos )
 				{
-					err.seterrid( "PSYE011D" )  ;
+					err.seterrid( "PSYE011D" ) ;
 					err.setsrc( oline ) ;
 					return ;
 				}
 				t1 = strip( ws.substr( 0, j) ) ;
 				t2 = strip( ws.substr( j+1) )  ;
 				win_width = ds2d( t1 ) ;
+				if ( win_width > ZSCRMAXW - 2 )
+				{
+					err.seterrid( "PSYE011E" ) ;
+					err.setsrc( oline ) ;
+					return ;
+				}
+				pwin = newwin( win_depth, win_width, 0, 0 ) ;
 				win_depth = ds2d( t2 ) ;
+				if ( win_depth > ZSCRMAXD - 2 )
+				{
+					err.seterrid( "PSYE011F" ) ;
+					err.setsrc( oline ) ;
+					return ;
+				}
 				pwin   = newwin( win_depth, win_width, 0, 0 ) ;
 				bwin   = newwin( win_depth+2, win_width+2, 0, 0 ) ;
 				bpanel = new_panel( bwin ) ;
@@ -585,12 +598,11 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 
 			dynAreaList[ w6 ] = m_dynArea ;
 			field a ;
-			a.field_cua         = AB ;
-			a.field_col         = m_dynArea->dynArea_col   ;
-			a.field_length      = m_dynArea->dynArea_width ;
-			a.field_cole        = m_dynArea->dynArea_col + m_dynArea->dynArea_width ;
-			a.field_dynArea     = true      ;
-			a.field_dynArea_ptr = m_dynArea ;
+			a.field_cua     = AB ;
+			a.field_col     = m_dynArea->dynArea_col   ;
+			a.field_length  = m_dynArea->dynArea_width ;
+			a.field_cole    = m_dynArea->dynArea_col + m_dynArea->dynArea_width ;
+			a.field_dynArea = m_dynArea ;
 			for ( i = 0 ; i < m_dynArea->dynArea_depth ; i++ )
 			{
 				field * fld    = new field ;

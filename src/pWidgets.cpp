@@ -510,7 +510,7 @@ bool field::edit_field_insert( WINDOW * win, char ch, int col, char pad, bool sn
 
 	if ( field_dynArea )
 	{
-		da = field_dynArea_ptr ;
+		da = field_dynArea ;
 		p2 = field_value.find_first_of( da->dynArea_Field, pos ) ;
 		if ( p2 == string::npos ) { p2 = field_value.size()-1 ; }
 		else                      { p2--                      ; }
@@ -596,7 +596,7 @@ bool field::edit_field_replace( WINDOW * win, char ch, int col, char pad, bool s
 	if ( field_dynArea )
 	{
 		if ( field_value[ pos ] != nulls && !isprint( field_value[ pos ] ) ) { return false ; }
-		da = field_dynArea_ptr ;
+		da = field_dynArea ;
 		field_shadow_value[ pos ] = B_YELLOW ;
 		p1 = field_value.find_last_of( da->dynArea_FieldIn, pos ) ;
 		if ( da->dynArea_DataModsp )
@@ -647,7 +647,7 @@ void field::edit_field_delete( WINDOW * win, int col, char pad, bool snulls )
 
 	if ( field_dynArea )
 	{
-		da = field_dynArea_ptr ;
+		da = field_dynArea ;
 		p1 = field_value.find_last_of( da->dynArea_FieldIn, pos ) ;
 		p2 = field_value.find_first_of( da->dynArea_Field, pos )  ;
 		if ( p2 == string::npos ) { p2 = field_value.size() ; }
@@ -691,7 +691,7 @@ int field::edit_field_backspace( WINDOW * win, int col, char pad, bool snulls )
 
 	if ( field_dynArea )
 	{
-		if ( field_dynArea_ptr->dynArea_Field.find_first_of( field_value[ pos-1 ] ) != string::npos )
+		if ( field_dynArea->dynArea_Field.find_first_of( field_value[ pos-1 ] ) != string::npos )
 		{
 			return col ;
 		}
@@ -719,7 +719,7 @@ void field::field_erase_eof( WINDOW * win, uint col, char pad, bool snulls )
 
 	if ( field_dynArea )
 	{
-		da = field_dynArea_ptr ;
+		da = field_dynArea ;
 		p1 = field_value.find_last_of( da->dynArea_FieldIn, pos ) ;
 		p2 = field_value.find_first_of( da->dynArea_Field, pos ) ;
 		if ( p2 == string::npos ) { p2 = field_value.size() ; }
@@ -801,7 +801,7 @@ void field::field_remove_nulls_da()
 	dynArea * da ;
 
 	p1 = 0 ;
-	da = field_dynArea_ptr ;
+	da = field_dynArea ;
 	if ( !da->dynArea_DataInsp ) { return ; }
 
 	while ( true )
@@ -882,7 +882,7 @@ int field::end_of_field( WINDOW * win, uint col )
 	if ( field_dynArea )
 	{
 		pos = (col - field_col) ;
-		p2  = field_value.find_first_of( field_dynArea_ptr->dynArea_Field, pos ) ;
+		p2  = field_value.find_first_of( field_dynArea->dynArea_Field, pos ) ;
 		if ( p2 == string::npos ) { p2 = field_value.size() ; }
 		p1  = field_value.find_last_not_of( padc, p2-1 ) ;
 		if ( p1 == p2 - 1 ) { return p1 + field_col     ; }
@@ -923,7 +923,7 @@ bool field::field_dyna_input( uint col )
 	uint pos ;
 	int p1   ;
 
-	dynArea * da = field_dynArea_ptr ;
+	dynArea * da = field_dynArea ;
 
 	if ( !da->dynArea_DataInsp ) { return false ; }
 
@@ -950,7 +950,7 @@ int field::field_dyna_input_offset( uint col )
 
 	pos = ( col < field_col ) ? 0 : (col - field_col) ;
 
-	p1 = field_value.find_first_of( field_dynArea_ptr->dynArea_FieldIn, pos ) ;
+	p1 = field_value.find_first_of( field_dynArea->dynArea_FieldIn, pos ) ;
 	if ( p1 == string::npos ) { return -1 ; }
 	return p1+1 ;
 }
@@ -1148,7 +1148,7 @@ void field::field_DataMod_to_UserMod( string * darea, int offset )
 	int p1 ;
 	int p2 ;
 
-	dynArea * da = field_dynArea_ptr ;
+	dynArea * da = field_dynArea ;
 
 	p1 = 0 ;
 	while ( true )
@@ -1198,7 +1198,7 @@ void field::display_field( WINDOW * win, char pad, bool snulls )
 
 	if ( field_dynArea )
 	{
-		da = field_dynArea_ptr ;
+		da = field_dynArea ;
 		if ( da->dynArea_DataInsp || da->dynArea_DataOutsp )
 		{
 			it2  = field_shadow_value.begin() ;
@@ -1252,8 +1252,7 @@ void field::display_field( WINDOW * win, char pad, bool snulls )
 	}
 	else
 	{
-		if ( field_usecua ) { wattrset( win, cuaAttr[ field_cua ] ) ; }
-		else                { wattrset( win, field_colour )         ; }
+		wattrset( win, field_usecua ? cuaAttr[ field_cua ] : field_colour ) ;
 		if ( field_input )
 		{
 			if ( field_value.size() > field_length )
@@ -1355,18 +1354,18 @@ void literal::literal_init( errblock& err, int MAXW, int MAXD, int& opt_field, c
 	literal_col = col - 1 ;
 	if ( upper( w5 ) == "EXPAND" )
 	{
-		literal_value  = strip( strip( subword( line, 6 ) ), 'B', '"' ) ;
+		literal_value = strip( strip( subword( line, 6 ) ), 'B', '"' ) ;
 		if ( literal_value.size() == 0 )
 		{
 			err.seterrid( "PSYE041K" ) ;
 			return ;
 		}
 		l = (MAXW - col) / literal_value.size() + 1 ;
-		literal_value  = substr( copies( literal_value, l ), 1, MAXW-col+1 ) ;
+		literal_value = substr( copies( literal_value, l ), 1, MAXW-col+1 ) ;
 	}
 	else
 	{
-		literal_value  = strip( strip( subword( line, 5 ) ), 'B', '"' ) ;
+		literal_value = strip( strip( subword( line, 5 ) ), 'B', '"' ) ;
 	}
 	literal_cole = literal_col + literal_value.size() ;
 	if ( fType == PS )
@@ -1476,7 +1475,6 @@ pdc abc::retrieve_pdChoice( uint row, uint col )
 {
 	uint y ;
 
-	hide_pd()   ;
 	y = row - 2 ;
 
 	if ( y > (pdcList.size() - 1) ) { return pdc() ; }

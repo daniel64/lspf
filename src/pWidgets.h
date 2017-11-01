@@ -73,7 +73,7 @@ class field
 				field_just         = 'L'   ;
 				field_numeric      = false ;
 				field_input        = false ;
-				field_dynArea      = false ;
+				field_dynArea      = NULL  ;
 				field_tb           = false ;
 				field_scrollable   = false ;
 				field_scroll_start = 1     ;
@@ -98,8 +98,7 @@ class field
 		char         field_just         ;
 		bool         field_numeric      ;
 		bool         field_input        ;
-		bool         field_dynArea      ;
-		dynArea *    field_dynArea_ptr  ;
+		dynArea *    field_dynArea      ;
 		bool         field_tb           ;
 		bool         field_scrollable   ;
 		unsigned int field_scroll_start ;

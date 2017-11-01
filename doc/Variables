@@ -63,16 +63,17 @@ ZDATE (default updated)
 ZDAY (default updated)
 ZDAYOFWK (default updated)
 ZDATEL (default updated)
-
-Variables put into the PROFILE pool by lspf:
-ZKLUSE
 ZHOME (default)
 ZSYSNAME  (default)
 ZNODNAME (default)
 ZOSREL (default)
 ZOSVER (default)
 ZMACHINE (default)
+
 all ISPS variables placed in the system PROFILE.
+
+Variables put into the PROFILE pool by lspf:
+ZKLUSE
 
 Variables put into the SHARED pool by the application:
 ZPANELID (pApplication)
@@ -86,7 +87,7 @@ ZFEDATAn          Contain passed data
 Variables put into the application PROFILE pool by the application:
 ZSCROLL (pPanel)
 
-ISPS system profile (updated by the setup program).  RO and not saved.
+ISPS system profile (updated by the setup program).  UP mode.
 ZSPROF
 ZUPROF
 ZSYSPATH
@@ -103,6 +104,7 @@ ZVIEWPGM
 ZMAINPGM
 ZSHELP
 ZWAIT
+
 ISPS RW variables:
 ZC + cua name for default cua field attributes
 
@@ -116,6 +118,6 @@ ZTDVROWS function pool
 Unlike IBM's ISPF, these variables are save/restored on the CONTROL DISPLAY SAVE/RESTORE call as well as
 other status information necessary when calling a TBDISPL service from another TBDISPL service.
 
-int ZRC        }
-int ZRSN       } used to pass back information from a SELECT PGM request to the calling program
+int    ZRC     }
+int    ZRSN    } used to pass back information from a SELECT PGM request to the calling program
 string ZRESULT }

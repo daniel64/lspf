@@ -10,31 +10,33 @@ COMPARE files panel
 PanelTitle "Compare File"
 
 literal  4    2       FP     "Command ===> "
-field 4  15   MAX     NEF     PAD(USER) ZCMD3
+field    4  15   MAX  NEF     PAD(USER) ZCMD3
 
 literal  6    2       FP     "Compare File Name. . .:"
 field    6   26      MAX     NEF  PAD(USER) CFILE
 
-field    8   2   1   CEF     PAD(USER) ECPBRDF
-literal  8   4       SAC    "Browse output instead of adding EDIT INFO lines"
+literal  9    2       ET     "Options"
+literal  10   4       PIN    "Enter / to select option"
+field    11   4    1  CEF     PAD(USER) ECPBRDF
+literal  11   6       SAC    "Browse output instead of adding EDIT INFO lines"
 
-field    10   2   1   CEF     PAD(USER) ECPICAS
-literal  10   4       SAC    "Case insensitive compare"
+field    12   4   1   CEF     PAD(USER) ECPICAS
+literal  12   6       SAC    "Case insensitive compare"
 
-field    11   2   1   CEF     PAD(USER) ECPIREF
-literal  11   4       SAC    "Ignore reformat differences"
+field    13   4   1   CEF     PAD(USER) ECPIREF
+literal  13   6       SAC    "Ignore reformat differences"
 
-field    12   2   1   CEF     PAD(USER) ECPIBLK
-literal  12   4       SAC    "Ignore blank lines"
+field    14   4   1   CEF     PAD(USER) ECPIBLK
+literal  14   6       SAC    "Ignore blank lines"
 
-field    13   2   1   CEF     PAD(USER) ECPITBE
-literal  13   4       SAC    "Ignore changes due to tab expansion"
+field    15   4   1   CEF     PAD(USER) ECPITBE
+literal  15   6       SAC    "Ignore changes due to tab expansion"
 
 
-literal 16 2  CH "Instructions"
-literal 17 2  NT "Enter file name and press"
-literal 17 28 ET "ENTER"
-literal 17 34 NT "to compare files"
+literal 18 2  CH "Instructions"
+literal 19 2  NT "Enter file name and press"
+literal 19 28 ET "ENTER"
+literal 19 34 NT "to compare files"
 
 
 )INCLUDE STD_PDC

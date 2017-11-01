@@ -106,6 +106,7 @@
 VGET (ZKLUSE) PROFILE
 
 IF ( &ZKLUSE EQ Y ) &ZZMSG = 'Warning.  Keylists active.  Some function keys may be overwridden'
+ELSE                &ZZMSG = &Z
 
 )PROC
 

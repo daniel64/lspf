@@ -131,7 +131,6 @@ void PEDIT01::application()
 
 	if ( PARM != "" )
 	{
-		vget( "ZEDPRSPS ZEDTABSS", SHARED ) ;
 		ZFILE = parseString( err, PARM, "FILE()" ) ;
 		if ( err.error() )
 		{
@@ -171,9 +170,11 @@ void PEDIT01::application()
 			vcopy( "ZEDPRSPS", pt, LOCATE ) ;
 			if ( RC == 0 && *pt == "YES" ) { optPreserve = true ; }
 		}
-		vcopy( "ZEDTABSS", pt, LOCATE ) ;
-		if ( RC == 0 && *pt == "YES" ) { optNoConvTabs = true ; }
-		if ( ZFILE != "" && rfile == ZFILE ) { cleanup() ; return ; }
+		if ( ZFILE != "" && rfile == ZFILE )
+		{
+			cleanup() ;
+			return    ;
+		}
 	}
 
 	if ( ZFILE == "" || is_directory( ZFILE ) )
@@ -208,6 +209,8 @@ void PEDIT01::application()
 
 void PEDIT01::initialise()
 {
+	string * pt  ;
+
 	control( "ABENDRTN", static_cast<void (pApplication::*)()>(&PEDIT01::cleanup_custom) ) ;
 	control( "TIMEOUT", "DISABLE" ) ;
 
@@ -217,7 +220,7 @@ void PEDIT01::initialise()
 	vdefine( "ZSCROLLA ZCOL1 ZCOL2", &ZSCROLLA, &ZCOL1, &ZCOL2 ) ;
 	vdefine( "ZAPPLID  ZEDPROF ZEDPROFT ZHOME", &ZAPPLID, &ZEDPROF, &ZEDPROFT, &ZHOME ) ;
 	vdefine( "TYPE STR OCC LINES ", &TYPE, &STR, &OCC, &LINES ) ;
-	vdefine( "EEIMAC EEPROF EETABSS EEPRSPS", &EEIMAC, &EEPROF, &EETABSS, &EEPRSPS ) ;
+	vdefine( "EEIMAC EEPROF EETABSS EEPRSPS EECCAN", &EEIMAC, &EEPROF, &EETABSS, &EEPRSPS, &EECCAN ) ;
 
 	vget( "ZEDPROF ZEDPROFT", PROFILE ) ;
 	vget( "ZAPPLID ZHOME", SHARED ) ;
@@ -258,6 +261,16 @@ void PEDIT01::initialise()
 	abendRecovery = false ;
 	optPreserve   = false ;
 	optNoConvTabs = false ;
+	optConfCancel = false ;
+
+	vget( "ZEDPRSPS ZEDTABSS", SHARED ) ;
+	vget( "EECCAN", PROFILE ) ;
+
+	vcopy( "ZEDTABSS", pt, LOCATE ) ;
+	if ( RC == 0 && *pt == "YES" ) { optNoConvTabs = true ; }
+
+	vcopy( "EECCAN", pt, LOCATE ) ;
+	if ( RC == 0 && *pt == "/" )   { optConfCancel = true ; }
 }
 
 
@@ -341,7 +354,8 @@ void PEDIT01::Edit()
 				actionPrimCommand2() ;
 				if ( !pcmd.isActioned() )
 				{
-					pcmd.set_msg( "PEDM012D", 20 ) ;
+					vreplace( "ZSTR1", pcmd.get_cmd() ) ;
+					pcmd.set_msg( "PEDM012M", 20 ) ;
 				}
 			}
 			pcmd.cond_reset() ;
@@ -387,7 +401,10 @@ void PEDIT01::Edit()
 		copyActive  = false ;
 		pasteActive = false ;
 
-		if ( wordpos( upper( ZCMD ), "CAN CANCEL" ) ) { break ; }
+		if ( wordpos( upper( ZCMD ), "CAN CANCEL" ) )
+		{
+			if ( showConfirmCancel() ) { break ; }
+		}
 
 		if ( ZCURFLD == "ZAREA" )
 		{
@@ -426,23 +443,23 @@ void PEDIT01::Edit()
 		getZAREAchanges() ;
 
 		updateData() ;
-		if ( pcmd.error() )  { continue ; }
+		if ( pcmd.error() )  { termEdit = false ; continue ; }
 
 		actionZVERB() ;
 
 		setLineLabels() ;
-		if ( pcmd.error() )  { continue ; }
+		if ( pcmd.error() )  { termEdit = false ; continue ; }
 
 		actionPrimCommand1() ;
-		if ( pcmd.error() )  { continue ; }
+		if ( pcmd.error() )  { termEdit = false ; continue ; }
 
 		processNewInserts()  ;
 
 		actionLineCommands() ;
-		if ( pcmd.error() )  { continue ; }
+		if ( pcmd.error() )  { termEdit = false ; continue ; }
 
 		actionPrimCommand2() ;
-		if ( pcmd.error() )  { continue ; }
+		if ( pcmd.error() )  { termEdit = false ; continue ; }
 
 		if ( termEdit && !pcmd.error() )
 		{
@@ -467,6 +484,7 @@ void PEDIT01::showEditEntry()
 {
 	ZRC = 0  ;
 	pcmd.clear() ;
+
 	display( "PEDIT011", pcmd.get_msg(), "ZCMD1" ) ;
 	if ( RC == 8 ) { ZRC = 4 ; return ; }
 
@@ -474,6 +492,7 @@ void PEDIT01::showEditEntry()
 	optMacro      = EEIMAC ;
 	optPreserve   = ( EEPRSPS == "/" ) ;
 	optNoConvTabs = ( EETABSS == "/" ) ;
+	optConfCancel = ( EECCAN  == "/" ) ;
 }
 
 
@@ -481,11 +500,26 @@ void PEDIT01::showEditRecovery()
 {
 	ZRC = 0  ;
 	pcmd.clear() ;
+
 	display( "PEDIT014", pcmd.get_msg(), "ZCMD4" ) ;
 	if ( RC == 8 ) { ZRC = 4 ; return ; }
 
 	optPreserve   = ( EEPRSPS == "/" ) ;
 	optNoConvTabs = ( EETABSS == "/" ) ;
+}
+
+
+bool PEDIT01::showConfirmCancel()
+{
+	if ( !optConfCancel || !fileChanged ) { return true ; }
+
+	addpop( "", 2, 4 ) ;
+
+	display( "PEDIT016", "", "ZCMD6" ) ;
+	if ( RC == 8 ) { rempop() ; termEdit = false ; return false ; }
+
+	rempop() ;
+	return true ;
 }
 
 
@@ -531,14 +565,14 @@ void PEDIT01::readFile()
 
 	boost::system::error_code ec ;
 
+	fname = ZFILE ;
 	if ( abendRecovery )
 	{
-		fname       = ZFILE + ".##abend" ;
+		fname      += ".##abend" ;
 		fileChanged = true ;
 	}
 	else
 	{
-		fname       = ZFILE ;
 		fileChanged = false ;
 	}
 
@@ -562,8 +596,6 @@ void PEDIT01::readFile()
 
 	data.clear() ;
 	maxURID[ taskid() ] = 0 ;
-
-	Notes.push_back( "-WARNING- Editor under construction.  Save files at your own risk" ) ;
 
 	if ( !exists( fname ) )
 	{
@@ -1018,7 +1050,7 @@ void PEDIT01::fill_dynamic_area()
 			{
 				if ( !profNulls )
 				{
-					t1 = substr( *(*it)->get_idata_ptr(), startCol, ZDATAW ) ;
+					t1 = substr( (*it)->get_idata(), startCol, ZDATAW ) ;
 				}
 				else
 				{
@@ -1066,7 +1098,7 @@ void PEDIT01::fill_dynamic_area()
 			else if ( (*it)->il_mask )
 			{
 				(*it)->put_idata( maskLine ) ;
-				ZAREA   += din + lcc + din + substr( *(*it)->get_idata_ptr(), startCol, ZDATAW ) ;
+				ZAREA   += din + lcc + din + substr( (*it)->get_idata(), startCol, ZDATAW ) ;
 				ZSHADOW += sdr ;
 			}
 			else if ( (*it)->il_prof )
@@ -1092,12 +1124,12 @@ void PEDIT01::fill_dynamic_area()
 			else if ( (*it)->il_tabs )
 			{
 				(*it)->put_idata( tabsLine ) ;
-				ZAREA   += din + lcc + din + substr( *(*it)->get_idata_ptr(), startCol, ZDATAW ) ;
+				ZAREA   += din + lcc + din + substr( (*it)->get_idata(), startCol, ZDATAW ) ;
 				ZSHADOW += sdr ;
 			}
 			else
 			{
-				ZAREA += din + lcc + dout + substr( *(*it)->get_idata_ptr(), 1, ZDATAW ) ;
+				ZAREA += din + lcc + dout + substr( (*it)->get_idata(), 1, ZDATAW ) ;
 				if ( (*it)->il_tod || (*it)->il_bod )
 				{
 					ZSHADOW += sdb ;
@@ -1209,7 +1241,7 @@ void PEDIT01::fill_hilight_shadow()
 		for ( dl = w + 1 ; dl <= ll ; dl++ )
 		{
 			if ( !data.at( dl )->isValidFile() ) { continue ; }
-			addHilight( hlight, *data.at( dl )->get_idata_ptr(), data.at( dl )->il_Shadow ) ;
+			addHilight( hlight, data.at( dl )->get_idata(), data.at( dl )->il_Shadow ) ;
 			if ( hlight.hl_abend ) { pcmd.set_msg( "PEDT013E" ) ; return ; }
 			data.at( dl )->il_vShadow = true ;
 			data.at( dl )->il_wShadow = ( hlight.hl_oBrac1 == 0 &&
@@ -1264,6 +1296,8 @@ void PEDIT01::clr_hilight_shadow()
 
 void PEDIT01::getZAREAchanges()
 {
+	// Put back non-display characters stored in XAREA (replaced by datain attribute).  Set touched/changed byte.
+
 	// Algorithm for getting the line command:
 	//    Remove leading digits and spaces (these are ignored)
 	//    Find last changed character
@@ -1272,8 +1306,6 @@ void PEDIT01::getZAREAchanges()
 
 	// Strip off any remaining leading "- - - " for excluded lines
 	// Strip off any remaining leading "''''''" for new insert lines
-
-	// Put back non-display characters stored in XAREA (replaced by datain attribute).  Set touched/changed byte.
 
 	int i   ;
 	int j   ;
@@ -4170,18 +4202,11 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 				if ( i < j ) { continue ; }
 				if ( k > -1 && i > k ) { break ; }
 				p1 = inLine.find( '\t' ) ;
-				while ( p1 != string::npos )
+				while ( p1 != string::npos && !optNoConvTabs )
 				{
-					if ( !optNoConvTabs )
-					{
-						j   = profXTabz - (p1 % profXTabz ) ;
-						inLine.replace( p1, 1,  j, ' ' )  ;
-						p1 = inLine.find( '\t', p1 + 1 ) ;
-					}
-					else
-					{
-						break ;
-					}
+					j  = profXTabz - (p1 % profXTabz ) ;
+					inLine.replace( p1, 1,  j, ' ' ) ;
+					p1 = inLine.find( '\t', p1 + 1 ) ;
 				}
 				ip.ip_data = inLine ;
 				vip.push_back( ip ) ;
@@ -4217,7 +4242,7 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 			getClipboard( vip ) ;
 			if ( vip.size() == 0 )
 			{
-				pcmd.set_msg( "PEDT015L" ) ;
+				pcmd.set_msg( "PEDT015L", 8 ) ;
 				break ;
 			}
 			il_its  = getLineItr( itc->lcmd_sURID ) ;
@@ -5707,8 +5732,8 @@ void PEDIT01::actionFind()
 			found  = false ;
 			itss   = data[ dl ]->get_idata_begin() ;
 			itse   = itss  ;
-			advance( itss, c1 )   ;
-			advance( itse, c2+1 ) ;
+			std::advance( itss, c1 )   ;
+			std::advance( itse, c2+1 ) ;
 			if ( find_parms.fcx_ocol )
 			{
 				if ( regex_search( itss, itse, results, regexp ) )
@@ -6289,7 +6314,7 @@ vector<iline * >::iterator PEDIT01::getLineItr( uint dl )
 	vector<iline * >::iterator it ;
 
 	it = data.begin() ;
-	advance( it, dl ) ;
+	std::advance( it, dl ) ;
 	return it ;
 }
 
@@ -6993,7 +7018,7 @@ void PEDIT01::addSpecial( char t, int p, vector<string>& s )
 
 	it = data.begin() ;
 	if ( p == 0 ) { p = 1 ; }
-	advance( it, p ) ;
+	std::advance( it, p ) ;
 	for ( i = 0 ; i < s.size() ; i++ )
 	{
 		p_iline = new iline( taskid() ) ;
@@ -7020,7 +7045,7 @@ void PEDIT01::addSpecial( char t, int p, const string& s )
 
 	it = data.begin()  ;
 	if ( p == 0 ) { p = 1 ; }
-	advance( it, p ) ;
+	std::advance( it, p ) ;
 	p_iline = new iline( taskid() ) ;
 	switch ( t )
 	{
@@ -7464,7 +7489,7 @@ void PEDIT01::cleanup_custom()
 
 	if ( !profRecover )
 	{
-		llog( "E", "File not saved as RECOVER is set off" <<endl ) ;
+		llog( "W", "File not saved as RECOVER is set off" <<endl ) ;
 		EditList.erase( ZFILE ) ;
 		ZRC  = 0 ;
 		ZRSN = 0 ;
@@ -7473,7 +7498,7 @@ void PEDIT01::cleanup_custom()
 
 	if ( !fileChanged )
 	{
-		llog( "E", "File not saved as no changes made during edit session." <<endl ) ;
+		llog( "I", "File not saved as no changes made during edit session." <<endl ) ;
 		EditList.erase( ZFILE ) ;
 		ZRC  = 0 ;
 		ZRSN = 0 ;
@@ -7499,7 +7524,7 @@ void PEDIT01::cleanup_custom()
 	}
 
 	fout.close() ;
-	llog( "E", "File saved to " << f <<endl ) ;
+	llog( "I", "File saved to "<< f <<endl ) ;
 	ZRC  = 0 ;
 	ZRSN = 8 ;
 	for_each( data.begin(), data.end(),
@@ -7513,6 +7538,7 @@ void PEDIT01::cleanup_custom()
 	vreplace( "ZEDABRC", f ) ;
 	vput( "ZEDABRC", PROFILE ) ;
 	abendComplete = true ;
+	llog( "I", "Edit cleanup complete" <<endl ) ;
 	return ;
 }
 
@@ -8081,7 +8107,11 @@ void PEDIT01::getEditProfile( const string& prof )
 	if ( RC == 8 )
 	{
 		tbcreate( tabName, "ZEDPTYPE", flds, WRITE, NOREPLACE, UPROF ) ;
-		if ( RC > 0 ) { abend() ; }
+		if ( RC > 0 )
+		{
+			llog( "E", "Invalid return code from TBCREATE.  RC="<< RC << endl ) ;
+			abend() ;
+		}
 	}
 
 	tbvclear( tabName ) ;
@@ -8092,10 +8122,15 @@ void PEDIT01::getEditProfile( const string& prof )
 	{
 		tbclose( tabName ) ;
 		tbopen( tabName, WRITE, UPROF ) ;
-		if ( RC > 0 ) { abend() ; }
+		if ( RC > 0 )
+		{
+			llog( "E", "Invalid return code from TBOPEN.  RC="<< RC << endl ) ;
+			abend() ;
+		}
 		createEditProfile( tabName, prof ) ;
 		pcmd.set_msg( "PEDT014D", 4 ) ;
 	}
+
 	tbclose( tabName ) ;
 
 	profLock    = ( ZEDPFLAG[0]  == '1' ) ;
@@ -8174,7 +8209,11 @@ void PEDIT01::saveEditProfile( const string& prof )
 	vcopy( "ZUPROF", UPROF, MOVE ) ;
 
 	tbopen( tabName, WRITE, UPROF ) ;
-	if ( RC > 0 ) { abend() ; }
+	if ( RC > 0 )
+	{
+		llog( "E", "Invalid return code from TBOPEN.  RC="<< RC << endl ) ;
+		abend() ;
+	}
 
 	tbvclear( tabName ) ;
 
@@ -8219,7 +8258,11 @@ void PEDIT01::saveEditProfile( const string& prof )
 		ZEDPIMAC     = profIMAC           ;
 	}
 	tbmod( tabName ) ;
-	if ( RC > 0 ) { abend() ; }
+	if ( RC > 0 )
+	{
+		llog( "E", "Invalid return code from TBMOD.  RC="<< RC << endl ) ;
+		abend() ;
+	}
 
 	tbclose( tabName ) ;
 
@@ -8249,7 +8292,11 @@ void PEDIT01::delEditProfile( const string& prof )
 	vcopy( "ZUPROF", UPROF, MOVE ) ;
 
 	tbopen( tabName, WRITE, UPROF ) ;
-	if ( RC > 0 ) { abend() ; }
+	if ( RC > 0 )
+	{
+		llog( "E", "Invalid return code from TBOPEN.  RC="<< RC << endl ) ;
+		abend() ;
+	}
 
 	if ( prof == "ALL" )
 	{
@@ -8260,7 +8307,11 @@ void PEDIT01::delEditProfile( const string& prof )
 			tbskip( tabName ) ;
 			if ( RC > 0 ) { break ; }
 			tbdelete( tabName ) ;
-			if ( RC > 0 ) { abend() ; }
+			if ( RC > 0 )
+			{
+				llog( "E", "Invalid return code from TBDELETE.  RC="<< RC << endl ) ;
+				abend() ;
+			}
 		}
 		pcmd.set_msg( "PEDT014L", 4 ) ;
 	}
@@ -8315,13 +8366,21 @@ void PEDIT01::resetEditProfile()
 	vcopy( "ZUPROF", UPROF, MOVE ) ;
 
 	tbopen( tabName, WRITE, UPROF ) ;
-	if ( RC > 0 ) { abend() ; }
+	if ( RC > 0 )
+	{
+		llog( "E", "Invalid return code from TBOPEN.  RC="<< RC << endl ) ;
+		abend() ;
+	}
 
 	tbvclear( tabName )  ;
 
 	ZEDPTYPE = "DEFAULT" ;
 	tbdelete( tabName )  ;
-	if ( RC > 0 ) { abend() ; }
+	if ( RC > 0 )
+	{
+		llog( "E", "Invalid return code from TBDELETE.  RC="<< RC << endl ) ;
+		abend() ;
+	}
 
 	tbclose( tabName ) ;
 
@@ -8360,7 +8419,11 @@ void PEDIT01::createEditProfile( const string& tabName, const string& prof )
 	ZEDPFLG3 = "0000000000000000" ;
 
 	tbadd( tabName )  ;
-	if ( RC > 0 ) { abend() ; }
+	if ( RC > 0 )
+	{
+		llog( "E", "Invalid return code from TBADD.  RC="<< RC << endl ) ;
+		abend() ;
+	}
 }
 
 
@@ -9540,6 +9603,8 @@ void PEDIT01::actionService()
 					actionPrimCommand2() ;
 					if ( !pcmd.isActioned() )
 					{
+						macAppl->vreplace( "ZSTR1", pcmd.get_cmd() ) ;
+						macAppl->vreplace( "ZSTR2", miBlock.emacro ) ;
 						miBlock.seterror( "PEDM012D" ) ;
 						break ;
 					}

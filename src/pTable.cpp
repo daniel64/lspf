@@ -1575,7 +1575,6 @@ tableMGR::~tableMGR()
 
 
 void tableMGR::createTable( errblock& err,
-			    int m_task,
 			    const string& tb_name,
 			    string keys, string flds,
 			    tbREP m_REP,
@@ -1616,7 +1615,7 @@ void tableMGR::createTable( errblock& err,
 			}
 			else
 			{
-				if ( it->second->ownerTask != m_task )
+				if ( it->second->ownerTask != err.taskid )
 				{
 					err.setRC( 8 ) ;
 					return ;
@@ -1642,7 +1641,7 @@ void tableMGR::createTable( errblock& err,
 	Table * t = new Table ;
 
 	if ( getpaths( m_path ) > 0 ) { t->tab_path = getpath( m_path, 1 ) ; }
-	t->ownerTask = m_task  ;
+	t->ownerTask = err.taskid ;
 	t->tab_WRITE = m_WRITE ;
 	t->tab_DISP  = m_DISP  ;
 	t->changed   = true    ;
@@ -1658,7 +1657,6 @@ void tableMGR::createTable( errblock& err,
 
 
 void tableMGR::loadTable( errblock& err,
-			  int task,
 			  const string& tb_name,
 			  tbWRITE m_WRITE,
 			  const string& m_path,
@@ -1720,7 +1718,7 @@ void tableMGR::loadTable( errblock& err,
 			err.seterrid( "PSYE013Z", tb_name ) ;
 			return ;
 		}
-		if ( it->second->tab_DISP == EXCLUSIVE && it->second->ownerTask != task )
+		if ( it->second->tab_DISP == EXCLUSIVE && it->second->ownerTask != err.taskid )
 		{
 			err.seterrid( "PSYE014A", tb_name, d2ds( it->second->ownerTask ) ) ;
 			return ;
@@ -1855,7 +1853,7 @@ void tableMGR::loadTable( errblock& err,
 		flds = flds + s.assign( buf1, i ) + " " ;
 	}
 
-	createTable( err, task, tb_name, keys, flds, NOREPLACE, m_WRITE, path, m_DISP ) ;
+	createTable( err, tb_name, keys, flds, NOREPLACE, m_WRITE, path, m_DISP ) ;
 	if ( err.getRC() > 0 )
 	{
 		table.close() ;
@@ -2018,7 +2016,6 @@ void tableMGR::loadTable( errblock& err,
 
 
 void tableMGR::saveTable( errblock& err,
-			  int task,
 			  const string& tb_name,
 			  const string& m_newname,
 			  const string& m_path )
@@ -2038,7 +2035,6 @@ void tableMGR::saveTable( errblock& err,
 
 
 void tableMGR::destroyTable( errblock& err,
-			     int task,
 			     const string& tb_name )
 {
 	// RC =  0 Normal completion
@@ -2400,7 +2396,7 @@ void tableMGR::cmdsearch( errblock& err,
 	it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
-		loadTable( err, 0, tb_name, NOWRITE, paths, SHARE ) ;
+		loadTable( err, tb_name, NOWRITE, paths, SHARE ) ;
 		if ( err.error() )
 		{
 			llog( "E", "Command table "+ tb_name +" failed to load" <<endl ) ;

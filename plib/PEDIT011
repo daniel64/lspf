@@ -1,18 +1,18 @@
 )PANEL VERSION=1 FORMAT=1
 
 )COMMENT
-Panel for editor PEDIT01
+Edit Entry panel for editor PEDIT01
 )ENDCOMMENT
 
 )BODY HOME(ZCMD1) CMD(ZCMD1)
 
 PanelTitle "Edit Entry Panel"
 
-literal  4    2       FP     "Command ===> "
-field 4  15   MAX     NEF     PAD(USER) ZCMD1
+literal  4    2       FP     "Command ===>"
+field    4   15   MAX NEF     PAD(USER) ZCMD1
 
 literal  7    2       FP     "File Name. . .:"
-field    7   18       MAX     NEF  PAD(USER) ZFILE
+field    7   18   MAX NEF     PAD(USER) ZFILE
 
 literal  9    2       SAC    "Initial Macro. . ."
 field    9    21  8   CEF     PAD(USER),caps(off) EEIMAC
@@ -21,23 +21,26 @@ field    10   21  8   CEF     PAD(USER),caps(on) EEPROF
 
 literal  12   2       ET     "Options"
 literal  13   4       PIN    "Enter / to select option"
-field    14   4   1   CEF     PAD(USER) EEPRSPS
-literal  14   6       SAC    "Preserve trailing spaces on file save"
 
-field    15   4   1   CEF     PAD(USER) EETABSS
-literal  15   6       SAC    "Override XTABS setting to prevent tabs being converted to spaces"
+field    14   4   1   CEF     PAD(USER) EECCAN
+literal  14   6       SAC    "Confirm Cancel"
+field    15   4   1   CEF     PAD(USER) EEPRSPS
+literal  15   6       SAC    "Preserve trailing spaces on file save"
 
-field    16   4   1   CEF     PAD(USER) EEDIRLST
-literal  16   6       SAC    "Show directory list if valid directory entered"
+field    16   4   1   CEF     PAD(USER) EETABSS
+literal  16   6       SAC    "Override XTABS setting to prevent tabs being converted to spaces"
 
-field    17   4   1   CEF     PAD(USER) EENEWFLS
-literal  17   6       SAC    "Allow edit of new files"
+field    17   4   1   CEF     PAD(USER) EEDIRLST
+literal  17   6       SAC    "Show directory list if valid directory entered"
+
+field    18   4   1   CEF     PAD(USER) EENEWFLS
+literal  18   6       SAC    "Allow edit of new files"
 
 
-literal 20 2  CH "Instructions"
-literal 21 2  NT "Enter file name and press"
-literal 21 28 ET "ENTER"
-literal 21 34 NT "to edit file"
+literal 21 2  CH "Instructions"
+literal 23 2  NT "Enter file name and press"
+literal 23 28 ET "ENTER"
+literal 23 34 NT "to edit file"
 
 
 )INCLUDE STD_PDC
@@ -46,11 +49,11 @@ literal 21 34 NT "to edit file"
 
 )INIT
 
-.NRET  = ON
-.NRET  = ZFILE
+.NRET = ON
+.NRET = ZFILE
 
 VGET EEIMAC SHARED
-VGET ( ZFILE , EEPROF , EEPRSPS , EETABSS , EEDIRLST , EENEWFLS ) PROFILE
+VGET ( ZFILE,EEPROF,EECCAN,EEPRSPS,EETABSS,EEDIRLST,EENEWFLS ) PROFILE
 
 )PROC
 if ( &ZCMD1 NE &Z)
@@ -59,12 +62,13 @@ if ( &ZCMD1 NE &Z)
   EXIT
 
 VER (&ZFILE,NB)
+&EECCAN   = TRANS( &EECCAN   &Z,&Z *,/ )
 &EEPRSPS  = TRANS( &EEPRSPS  &Z,&Z *,/ )
 &EETABSS  = TRANS( &EETABSS  &Z,&Z *,/ )
 &EEDIRLST = TRANS( &EEDIRLST &Z,&Z *,/ )
 &EENEWFLS = TRANS( &EENEWFLS &Z,&Z *,/ )
 
-VPUT (EEPRSPS,EETABSS,EEDIRLST,EENEWFLS) PROFILE
+VPUT (EECCAN,EEPRSPS,EETABSS,EEDIRLST,EENEWFLS) PROFILE
 
 &SHOWDIR = NO
 

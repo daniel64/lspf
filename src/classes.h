@@ -62,6 +62,17 @@ enum IF_COND
 	IF_LT
 } ;
 
+enum VER_TYPE
+{
+	VER_NUMERIC,
+	VER_LIST,
+	VER_LISTX,
+	VER_PICT,
+	VER_HEX,
+	VER_OCT,
+	VER_NA
+} ;
+
 class token
 {
 	public:
@@ -85,7 +96,7 @@ class parser
 			idx      = 0     ;
 			optUpper = false ;
 		}
-		void   parseStatement( errblock&, string s ) ;
+		void   parseStatement( errblock&, const string& ) ;
 		token  getFirstToken() ;
 		token  getNextToken()  ;
 		token  getToken( int ) ;
@@ -208,30 +219,20 @@ class VERIFY
 {
 	public:
 		VERIFY(){
-				ver_var     = ""    ;
-				ver_msgid   = ""    ;
-				ver_nblank  = false ;
-				ver_numeric = false ;
-				ver_list    = false ;
-				ver_listx   = false ;
-				ver_pict    = false ;
-				ver_hex     = false ;
-				ver_octal   = false ;
-				ver_tbfield = false ;
-				ver_pnfield = false ;
+				ver_var     = ""     ;
+				ver_type    = VER_NA ;
+				ver_msgid   = ""     ;
+				ver_nblank  = false  ;
+				ver_tbfield = false  ;
+				ver_pnfield = false  ;
 			} ;
 
 		void parse( errblock&, parser&, bool =false ) ;
 
 		string ver_var     ;
 		string ver_msgid   ;
+		VER_TYPE ver_type  ;
 		bool   ver_nblank  ;
-		bool   ver_numeric ;
-		bool   ver_list    ;
-		bool   ver_listx   ;
-		bool   ver_pict    ;
-		bool   ver_hex     ;
-		bool   ver_octal   ;
 		bool   ver_tbfield ;
 		bool   ver_pnfield ;
 		vector<string> ver_vlist ;
@@ -376,10 +377,10 @@ class panel_data
 	public:
 		panel_data( int x )
 		{
-			screenID = x ;
+			screenId = x ;
 		}
 
-		int screenID ;
+		int screenId ;
 } ;
 
 

@@ -24,11 +24,11 @@ class pLScreen
 		~pLScreen() ;
 
 	static pLScreen * currScreen ;
-	static WINDOW   * OIA    ;
-	static int  screensTotal ;
-	static int  maxScreenID  ;
-	static int  maxrow ;
-	static int  maxcol ;
+	static WINDOW   * OIA   ;
+	static int screensTotal ;
+	static int maxScreenId  ;
+	static int maxrow ;
+	static int maxcol ;
 
 	void  clear() ;
 
@@ -60,7 +60,7 @@ class pLScreen
 	void  save_panel_stack()    ;
 	void  restore_panel_stack() ;
 
-	int   screenID ;
+	int   screenId ;
 
 private:
 	int row ;

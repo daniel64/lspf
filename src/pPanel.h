@@ -22,7 +22,6 @@ class pPanel
 	public:
 		string MSGID    ;
 		string CMDfield ;
-		bool   pdActive ;
 		bool   showLMSG ;
 
 		pPanel()  ;
@@ -50,16 +49,18 @@ class pPanel
 		void   get_cursor( uint& row, uint& col ) { row   = p_row + win_row ; col   = p_col + win_col ; }
 		void   set_cursor( uint row, uint col )   { p_row = row - win_row   ; p_col = col - win_col   ; }
 
-		void   display_panel( errblock& ) ;
-		int    get_abline()      { return win_row  ; }
-		bool   is_pd_displayed() { return pdActive ; }
+		int    get_abline()      { if ( ab.size() > 0 ) return win_row ; else return -1 ; }
+		bool   pd_Active()       { return pdActive ; }
 		bool   display_pd( uint col ) ;
+		void   display_pd()       ;
 		void   hide_pd()          ;
-		void   display_first_pd() ;
+		void   remove_pd()        ;
 		void   display_next_pd()  ;
 		void   display_msg()      ;
 		pdc    retrieve_pdChoice( int row, int col ) ;
+		void   toggle_fscreen()   { ff_screen = !ff_screen ; }
 
+		void   display_panel( errblock& ) ;
 		void   redisplay_panel() ;
 		void   redraw_fields()   ;
 		void   refresh()         ;
@@ -69,8 +70,8 @@ class pPanel
 		string cmd_getvalue()                  { return field_getvalue( CMDfield ) ; }
 		void   cmd_setvalue( const string& v ) { field_setvalue( CMDfield, v )     ; }
 
-		bool    get_tbscan()                    { return tb_scan  ; }
-		string& get_tb_clear()                  { return tb_clear ; }
+		bool    get_tbscan()                   { return tb_scan  ; }
+		string& get_tb_clear()                 { return tb_clear ; }
 
 		bool   is_cmd_inactive( const string& value ) ;
 
@@ -97,6 +98,7 @@ class pPanel
 		string tb_clear    ;
 		int    tb_depth    ;
 		bool   tb_scan     ;
+		bool   pdActive    ;
 		int    abc_pos     ;
 		bool   primaryMenu ;
 		bool   selectPanel ;
@@ -126,11 +128,10 @@ class pPanel
 		string MSGLOC      ;
 		bool   tb_model    ;
 		bool   win_addpop  ;
-		bool   smp_created ;
-		bool   lmp_created ;
 		bool   end_pressed ;
 		bool   message_set ;
 		bool   cursor_set  ;
+		bool   ff_screen   ;
 		int    win_width   ;
 		int    win_depth   ;
 		int    win_row     ;
@@ -186,7 +187,7 @@ class pPanel
 		void   tb_clear_linesChanged( errblock& ) ;
 		void   tb_remove_lineChanged() ;
 
-		string  get_field_help( const string& fld ) ;
+		string  get_field_help( uint row, uint col ) ;
 		bool    get_nretriev()  { return nretriev  ; }
 		string& get_nretfield() { return nretfield ; }
 
@@ -223,12 +224,12 @@ class pPanel
 		map<int, string> tb_linesChanged ;
 
 		vector<literal *> literalList      ;
-		vector<abc > ab                    ;
+		vector<abc> ab                     ;
 		vector<Box *> boxes                ;
-		map<string, field   *> fieldList   ;
+		map<string, field *> fieldList     ;
 		map<string, dynArea *> dynAreaList ;
-		map<string, string > commandTable  ;
-		map<string, pnts > pntsTable       ;
+		map<string, string> commandTable   ;
+		map<string, pnts> pntsTable        ;
 		map<string, string> fieldHList     ;
 		map<int, string> Keylistl          ;
 
@@ -240,7 +241,6 @@ class pPanel
 
 		void   display_literals() ;
 		void   display_ab()       ;
-		void   display_pd()       ;
 		void   display_fields()   ;
 
 		void  process_panel_stmnts( errblock& err, int ln, vector<panstmnt* >& stmnts ) ;

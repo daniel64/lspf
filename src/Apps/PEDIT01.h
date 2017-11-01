@@ -815,7 +815,7 @@ class iline
 			il_idata.top().id_deleted = true ;
 			il_deleted                = true ;
 		}
-		string get_idata()
+		const string& get_idata()
 		{
 			return il_idata.top().id_data ;
 		}
@@ -1334,7 +1334,7 @@ class cmdblock
 	{
 		return cwds ;
 	}
-	string get_cmd()
+	const string& get_cmd()
 	{
 		return CMD ;
 	}
@@ -1394,7 +1394,7 @@ class cmdblock
 	{
 		RC = rc ;
 	}
-	string get_msg()
+	const string& get_msg()
 	{
 		return MSG ;
 	}
@@ -1410,7 +1410,7 @@ class cmdblock
 	{
 		udata = s ;
 	}
-	string get_userdata()
+	const string& get_userdata()
 	{
 		return udata ;
 	}
@@ -1685,7 +1685,7 @@ class miblock
 		bool quote   ;
 		bool isvar   ;
 
-		map<string,mcmd_format>::iterator it       ;
+		map<string,mcmd_format>::iterator it     ;
 		map<string,stack<defName>>::iterator ita ;
 		string::iterator its ;
 
@@ -2009,6 +2009,7 @@ class PEDIT01 : public pApplication
 		bool termOK()             ;
 		void readFile()           ;
 		bool saveFile()           ;
+		bool showConfirmCancel()  ;
 		void fill_dynamic_area()  ;
 		void fill_hilight_shadow();
 		void clr_hilight_shadow() ;
@@ -2179,6 +2180,7 @@ class PEDIT01 : public pApplication
 
 		bool optNoConvTabs       ;
 		bool optPreserve         ;
+		bool optConfCancel       ;
 		string optProfile        ;
 		string optMacro          ;
 
@@ -2256,6 +2258,7 @@ class PEDIT01 : public pApplication
 		string EEPROF   ;
 		string EETABSS  ;
 		string EEPRSPS  ;
+		string EECCAN   ;
 
 		string fileType  ;
 		string clipBoard ;

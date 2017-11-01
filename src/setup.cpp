@@ -87,8 +87,8 @@ main()
 	funcPOOL.define( err, "ZCTACT",   &ZCTACT   ) ;
 	funcPOOL.define( err, "ZCTDESC",  &ZCTDESC  ) ;
 
-	p_tableMGR->createTable( err, 0, "ISPCMDS", "ZCTVERB" , "ZCTTRUNC ZCTACT ZCTDESC", NOREPLACE, WRITE, "", SHARE ) ;
-	p_tableMGR->createTable( err, 0, "USRCMDS", "ZCTVERB" , "ZCTTRUNC ZCTACT ZCTDESC", NOREPLACE, WRITE, "", SHARE ) ;
+	p_tableMGR->createTable( err, "ISPCMDS", "ZCTVERB" , "ZCTTRUNC ZCTACT ZCTDESC", NOREPLACE, WRITE, "", SHARE ) ;
+	p_tableMGR->createTable( err, "USRCMDS", "ZCTVERB" , "ZCTTRUNC ZCTACT ZCTDESC", NOREPLACE, WRITE, "", SHARE ) ;
 
 	ZCTVERB  = "SCRNAME" ;
 	ZCTTRUNC = "0"    ;
@@ -343,7 +343,7 @@ main()
 
 	cout << endl ;
 	cout << "*******************************************************************************************" << endl ;
-	p_tableMGR->saveTable( err, 0, "ISPCMDS", "" , systemPath + "tlib" ) ;
+	p_tableMGR->saveTable( err, "ISPCMDS", "" , systemPath + "tlib" ) ;
 	if ( err.RC0() )
 	{
 		cout << "ISPCMDS table created successfully in " << systemPath << "tlib" << endl ;
@@ -353,7 +353,7 @@ main()
 		cout << "ERROR saving ISPCMDS table in " << systemPath << "tlib  RC=" << err.getRC() << endl ;
 		cout << "Message is " << err.msgid << endl ;
 	}
-	p_tableMGR->saveTable( err, 0, "USRCMDS", "" , systemPath + "tlib" ) ;
+	p_tableMGR->saveTable( err, "USRCMDS", "" , systemPath + "tlib" ) ;
 	if ( err.RC0() )
 	{
 		cout << "USRCMDS table created successfully in " << systemPath << "tlib" << endl ;

@@ -26,13 +26,11 @@ class pApplication
 		virtual void application() = 0 ;
 		virtual void isredit( const string& ) ;
 
-		static pApplication * currApplication ;
 		static map<int, void *>ApplUserData   ;
 
 		poolMGR  * p_poolMGR  ;
 		tableMGR * p_tableMGR ;
 
-		int    taskID             ;
 		int    RC                 ;
 		string PARM               ;
 		string PANELID            ;
@@ -74,7 +72,6 @@ class pApplication
 		string ZZAPPLID           ;
 		string ZCURFLD            ;
 		int    ZCURPOS            ;
-		string ZTDMARK            ;
 		int    ZTDDEPTH           ;
 		int    ZTDROWS            ;
 		int    ZTDSELS            ;
@@ -113,7 +110,8 @@ class pApplication
 		pPanel * currPanel   ;
 		pPanel * currtbPanel ;
 
-		int    taskid()      { return taskID ; }
+		int    taskid()      { return taskId ; }
+		void   taskid( int ) ;
 		void   init() ;
 		void   info() ;
 		bool   isRawOutput() { return rawOutput ; }
@@ -143,9 +141,9 @@ class pApplication
 		void   verase( const string& var, poolType =ASIS ) ;
 		void   vget( const string& var, poolType =ASIS )   ;
 		void   vput( const string& var, poolType =ASIS )   ;
-		string vlist( poolType pType, int lvl ) ;
-		string vilist( vdType =ALL ) ;
-		string vslist( vdType =ALL ) ;
+		const string& vlist( poolType pType, int lvl ) ;
+		const string& vilist( vdType =ALL ) ;
+		const string& vslist( vdType =ALL ) ;
 		void   vmask( const string& var, const string& type, const string& mask ) ;
 		void   vreplace( const string&, const string& ) ;
 		void   vreplace( const string&, int )           ;
@@ -191,6 +189,7 @@ class pApplication
 
 		bool   inputInhibited() ;
 		bool   msgInhibited()   ;
+		void   display_pd()     ;
 		bool   isprimMenu()     ;
 		void   get_home( uint & row, uint & col ) ;
 		void   get_cursor( uint & row, uint & col ) ;
@@ -205,6 +204,7 @@ class pApplication
 		void   cleanup()       ;
 		void   cleanup_default() ;
 		void   (pApplication::*pcleanup)() = &pApplication::cleanup_default ;
+		bool   cleanupRunning() { return !abended ; }
 		void   abend()       ;
 		void   uabend( const string&, const string& = "", int = -1 ) ;
 		void   abendexc()    ;
@@ -230,17 +230,20 @@ class pApplication
 	private:
 		boost::mutex mutex ;
 
-		fPOOL funcPOOL  ;
+		fPOOL funcPOOL   ;
 
 		int  addpop_row  ;
 		int  addpop_col  ;
 		int  lscreen_num ;
+
+		int  taskId      ;
 
 		bool addpop_active       ;
 		bool ControlErrorsReturn ;
 		bool ControlPassLRScroll ;
 		bool selPanel   ;
 		bool abending   ;
+		bool abended    ;
 
 		string MSGID    ;
 		string MSGID1   ;
@@ -262,12 +265,11 @@ class pApplication
 		bool parse_Message( slmsg & )    ;
 		bool sub_Message_vars( slmsg & ) ;
 
-
 		errblock errBlock ;
 
 		map<string, slmsg> msgList ;
-		map<string,  bool> tablesOpen    ;
-		map<string,  pPanel *> panelList ;
+		map<string, bool> tablesOpen    ;
+		map<string, pPanel *> panelList ;
 
 		stack<pPanel *> SRpanelStack ;
 

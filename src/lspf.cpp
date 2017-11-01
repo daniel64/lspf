@@ -1,5 +1,5 @@
-/*  Compile with ::                                                                                                                                  */
-/* g++ -O0 -std=c++11 -rdynamic -Wunused-variable -lncurses -lpanel -lboost_thread -lboost_filesystem -lboost_system -ldl -lpthread -o lspf lspf.cpp */
+/*  Compile with ::                                                                                                                                          */
+/* g++ -O0 -std=c++11 -rdynamic -Wunused-variable -ltinfo -lncurses -lpanel -lboost_thread -lboost_filesystem -lboost_system -ldl -lpthread -o lspf lspf.cpp */
 
 /*
   Copyright (c) 2015 Daniel John Erdos
@@ -106,7 +106,6 @@ map<int,string> pfKeyDefaults = { {  1, "HELP"      },
 #define MOD_NAME lspf
 #define LOGOUT   splog
 
-#define currAppl pApplication::currApplication
 #define currScrn pLScreen::currScreen
 #define OIA      pLScreen::OIA
 
@@ -114,7 +113,7 @@ using namespace std ;
 using namespace boost::filesystem ;
 
 int pLScreen::screensTotal = 0 ;
-int pLScreen::maxScreenID  = 0 ;
+int pLScreen::maxScreenId  = 0 ;
 int pLScreen::maxrow       = 0 ;
 int pLScreen::maxcol       = 0 ;
 
@@ -123,8 +122,8 @@ WINDOW * pLScreen::OIA     = NULL ;
 boost::posix_time::ptime startTime ;
 boost::posix_time::ptime endTime   ;
 
-pLScreen     * pLScreen::currScreen          = NULL ;
-pApplication * pApplication::currApplication = NULL ;
+pLScreen     * pLScreen::currScreen = NULL ;
+pApplication * currAppl ;
 
 poolMGR  * p_poolMGR  = new poolMGR  ;
 tableMGR * p_tableMGR = new tableMGR ;
@@ -153,6 +152,7 @@ void issueMessage( const string& ) ;
 void rawOutput()          ;
 void threadErrorHandler() ;
 void errorScreen( int, const string& )   ;
+void abortStartup()                      ;
 void lspfCallbackHandler( lspfCommand& ) ;
 void createpfKeyDefaults()  ;
 string pfKeyValue( int )    ;
@@ -209,7 +209,7 @@ selobj SELCT ;
 int    GMAXWAIT ;
 string GMAINPGM ;
 
-const string BuiltInCommands = "ACTION DISCARD FIELDEXC MSGID NOP PANELID REFRESH RETP SCRNAME SPLIT SWAP TDOWN" ;
+const string BuiltInCommands = "ACTION DISCARD FIELDEXC MSGID NOP PANELID REFRESH RESIZE RETP SCRNAME SPLIT SWAP TDOWN USERID" ;
 const string SystemCommands  = ".ABEND .HIDE .INFO .LOAD .RELOAD .SCALE .SHELL .SHOW .SNAP .STATS .TEST" ;
 
 std::ofstream splog(SLOG) ;
@@ -260,19 +260,16 @@ int main( void )
 	currAppl = ((pApplication*(*)())( apps[ GMAINPGM ].maker_ep))() ;
 
 	currScrn->application_add( currAppl ) ;
+	currAppl->taskid( ++maxtaskID )       ;
 	currAppl->ZAPPNAME     = GMAINPGM     ;
-	currAppl->PARM         = ""           ;
-	currAppl->taskID       = ++maxtaskID  ;
-	currAppl->busyAppl     = true         ;
 	currAppl->p_poolMGR    = p_poolMGR    ;
 	currAppl->p_tableMGR   = p_tableMGR   ;
 	currAppl->ZZAPPLID     = "ISP"        ;
 	currAppl->NEWPOOL      = true         ;
-	currAppl->SUSPEND      = true         ;
 	currAppl->lspfCallback = lspfCallbackHandler ;
 
 	p_poolMGR->put( err, "ZSCREEN", string( 1, ZSCREEN[ screenNum ] ), SHARED, SYSTEM ) ;
-	p_poolMGR->put( err, "ZSCRNUM", d2ds( currScrn->screenID ), SHARED, SYSTEM ) ;
+	p_poolMGR->put( err, "ZSCRNUM", d2ds( currScrn->screenId ), SHARED, SYSTEM ) ;
 	p_poolMGR->put( err, "ZAPPLID", "ISP", SHARED, SYSTEM ) ;
 	currAppl->shrdPool = p_poolMGR->getShrdPool() ;
 	currAppl->init() ;
@@ -546,23 +543,19 @@ void mainLoop()
 				if ( ZCOMMAND == ".ABEND" )
 				{
 					currAppl->set_forced_abend() ;
+					ResumeApplicationAndWait()   ;
+					if ( currAppl->abnormalEnd )
+					{
+						terminateApplication() ;
+						if ( pLScreen::screensTotal == 0 ) { return ; }
+					}
 				}
 				else if ( ZCOMMAND == "ACTION" )
 				{
-					if ( currAppl->currPanel->is_pd_displayed() )
-					{
-						currAppl->currPanel->display_next_pd() ;
-						currAppl->currPanel->get_cursor( row, col ) ;
-						currScrn->set_row_col( row, col ) ;
-						break ;
-					}
-					else
-					{
-						currAppl->currPanel->display_first_pd() ;
-						currAppl->currPanel->get_cursor( row, col ) ;
-						currScrn->set_row_col( row, col ) ;
-						break ;
-					}
+					currAppl->currPanel->display_next_pd() ;
+					currAppl->currPanel->get_cursor( row, col ) ;
+					currScrn->set_row_col( row, col ) ;
+					break ;
 				}
 				else if ( ZCOMMAND == "DISCARD" )
 				{
@@ -611,6 +604,10 @@ void mainLoop()
 						p_poolMGR->put( err, "ZNULLS", "NO", SHARED, SYSTEM ) ;
 						currAppl->currPanel->redraw_fields() ;
 					}
+					else
+					{
+						issueMessage( "PSYS012R" ) ;
+					}
 				}
 				else if ( ZCOMMAND == ".INFO" )
 				{
@@ -631,17 +628,17 @@ void mainLoop()
 				{
 					if ( ZPARM == "" )
 					{
-						w1 = p_poolMGR->get( err, currScrn->screenID, "ZMSGID" ) ;
+						w1 = p_poolMGR->get( err, currScrn->screenId, "ZMSGID" ) ;
 						p_poolMGR->put( err, "ZMSGID", w1, SHARED, SYSTEM ) ;
 						issueMessage( "PSYS012L" ) ;
 					}
 					else if ( ZPARM == "ON" )
 					{
-						p_poolMGR->put( err, currScrn->screenID, "ZSHMSGID", "Y" ) ;
+						p_poolMGR->put( err, currScrn->screenId, "ZSHMSGID", "Y" ) ;
 					}
 					else if ( ZPARM == "OFF" )
 					{
-						p_poolMGR->put( err, currScrn->screenID, "ZSHMSGID", "N" ) ;
+						p_poolMGR->put( err, currScrn->screenId, "ZSHMSGID", "N" ) ;
 					}
 					else
 					{
@@ -656,23 +653,22 @@ void mainLoop()
 				{
 					if ( ZPARM == "" )
 					{
-						w1 = p_poolMGR->get( err, currScrn->screenID, "ZSHPANID" ) ;
-						if ( w1 == "Y" ) { ZPARM = "OFF" ; }
-						else             { ZPARM = "ON"  ; }
+						w1 = p_poolMGR->get( err, currScrn->screenId, "ZSHPANID" ) ;
+						ZPARM = ( w1 == "Y" ) ? "OFF" : "ON" ;
 					}
 					if ( ZPARM == "ON" )
 					{
-						p_poolMGR->put( err, currScrn->screenID, "ZSHPANID", "Y" ) ;
+						p_poolMGR->put( err, currScrn->screenId, "ZSHPANID", "Y" ) ;
 					}
 					else if ( ZPARM == "OFF" )
 					{
-						p_poolMGR->put( err, currScrn->screenID, "ZSHPANID", "N" ) ;
+						p_poolMGR->put( err, currScrn->screenId, "ZSHPANID", "N" ) ;
 					}
 					else
 					{
 						issueMessage( "PSYS014" ) ;
 					}
-					currAppl->currPanel->redisplay_panel() ;
+					currAppl->refresh_id() ;
 				}
 				else if ( ZCOMMAND == "REFRESH" )
 				{
@@ -684,6 +680,11 @@ void mainLoop()
 				{
 					listRetrieveBuffer() ;
 					break ;
+				}
+				else if ( ZCOMMAND == "RESIZE" )
+				{
+					currAppl->currPanel->toggle_fscreen()     ;
+					currAppl->currPanel->display_panel( err ) ;
 				}
 				else if ( ZCOMMAND == ".RELOAD" )
 				{
@@ -711,15 +712,15 @@ void mainLoop()
 					}
 					else if ( isvalidName( ZPARM ) && !findword( ZPARM, "LIST PREV NEXT" ) )
 					{
-						p_poolMGR->put( err, currScrn->screenID, "ZSCRNAME", ZPARM ) ;
+						p_poolMGR->put( err, currScrn->screenId, "ZSCRNAME", ZPARM ) ;
 						p_poolMGR->put( err, "ZSCRNAME", ZPARM, SHARED ) ;
 						if ( w1 == "PERM" )
 						{
-							p_poolMGR->put( err, currScrn->screenID, "ZSCRNAM2", w1 ) ;
+							p_poolMGR->put( err, currScrn->screenId, "ZSCRNAM2", w1 ) ;
 						}
 						else
 						{
-							p_poolMGR->put( err, currScrn->screenID, "ZSCRNAM2", "" ) ;
+							p_poolMGR->put( err, currScrn->screenId, "ZSCRNAM2", "" ) ;
 						}
 					}
 					else
@@ -837,10 +838,11 @@ void mainLoop()
 					}
 					currScrn = screenList[ screenNum ] ;
 					currAppl = currScrn->application_get_current() ;
-					p_poolMGR->setAPPLID( err, currAppl->ZZAPPLID )   ;
+					p_poolMGR->setApplid( err, currAppl->ZZAPPLID )   ;
 					p_poolMGR->setShrdPool( err, currAppl->shrdPool ) ;
 					p_poolMGR->put( err, "ZPANELID", currAppl->PANELID, SHARED, SYSTEM ) ;
 					currScrn->restore_panel_stack() ;
+					currAppl->display_pd() ;
 					break ;
 				}
 				else if ( ZCOMMAND == ".TEST" )
@@ -853,12 +855,33 @@ void mainLoop()
 					currAppl->currPanel->field_tab_down( row, col ) ;
 					currScrn->set_row_col( row, col ) ;
 				}
+				else if ( ZCOMMAND == "USERID" )
+				{
+					if ( ZPARM == "" )
+					{
+						w1 = p_poolMGR->get( err, currScrn->screenId, "ZSHUSRID" ) ;
+						ZPARM = ( w1 == "Y" ) ? "OFF" : "ON" ;
+					}
+					if ( ZPARM == "ON" )
+					{
+						p_poolMGR->put( err, currScrn->screenId, "ZSHUSRID", "Y" ) ;
+					}
+					else if ( ZPARM == "OFF" )
+					{
+						p_poolMGR->put( err, currScrn->screenId, "ZSHUSRID", "N" ) ;
+					}
+					else
+					{
+						issueMessage( "PSYS012F" ) ;
+					}
+					currAppl->refresh_id() ;
+				}
 				currAppl->get_home( row, col ) ;
 				currScrn->set_row_col( row, col ) ;
 				if ( SEL )
 				{
-					updateDefaultVars()                   ;
-					currAppl->currPanel->pdActive = false ;
+					updateDefaultVars()       ;
+					currAppl->currPanel->remove_pd() ;
 					startApplication( SELCT ) ;
 				}
 				break ;
@@ -1191,6 +1214,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		}
 		currAppl->currPanel->get_cursor( row, col ) ;
 		currScrn->set_row_col( row, col ) ;
+		currAppl->currPanel->remove_pd()  ;
 		return ;
 	}
 	retPos = 0 ;
@@ -1291,14 +1315,14 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		ZCOMMAND.erase( 0, 1 ) ;
 	}
 
-	if ( !passthru )
+	if ( currAppl->currPanel->pd_Active() && ZCTVERB == "END" )
 	{
-		currAppl->currPanel->cmd_setvalue( "" ) ;
+		currAppl->currPanel->remove_pd() ;
+		ZCOMMAND = ""    ;
+		passthru = false ;
 	}
-	else
-	{
-		currAppl->currPanel->cmd_setvalue( ZCOMMAND ) ;
-	}
+
+	currAppl->currPanel->cmd_setvalue( passthru ? ZCOMMAND : "" ) ;
 	debug1( "Primary command '"+ ZCOMMAND +"'  Passthru = " << passthru << endl ) ;
 }
 
@@ -1417,7 +1441,6 @@ void startApplication( selobj SEL, bool nScreen )
 	uint row    ;
 	uint col    ;
 
-	string s    ;
 	string m    ;
 	string p    ;
 	string t    ;
@@ -1510,18 +1533,17 @@ void startApplication( selobj SEL, bool nScreen )
 
 	currScrn->application_add( currAppl ) ;
 	currAppl->startSelect( SEL )          ;
-	currAppl->taskID       = ++maxtaskID  ;
-	currAppl->busyAppl     = true         ;
+	currAppl->taskid( ++maxtaskID )       ;
 	currAppl->p_poolMGR    = p_poolMGR    ;
 	currAppl->p_tableMGR   = p_tableMGR   ;
 	currAppl->lspfCallback = lspfCallbackHandler ;
 	apps[ SEL.PGM ].refCount++ ;
 
-	if ( SEL.NEWAPPL != "" && SEL.NEWAPPL != p_poolMGR->getAPPLID() )
+	if ( SEL.NEWAPPL != "" && SEL.NEWAPPL != p_poolMGR->getApplid() )
 	{
-		p_poolMGR->setAPPLID( err, SEL.NEWAPPL ) ;
+		p_poolMGR->setApplid( err, SEL.NEWAPPL ) ;
 	}
-	currAppl->ZZAPPLID = p_poolMGR->getAPPLID() ;
+	currAppl->ZZAPPLID = p_poolMGR->getApplid() ;
 
 	p_poolMGR->createPool( err, PROFILE, ZSPROF ) ;
 	if ( err.RC4() ) { createpfKeyDefaults() ; }
@@ -1534,10 +1556,9 @@ void startApplication( selobj SEL, bool nScreen )
 		}
 		currAppl->NEWPOOL = true ;
 		p_poolMGR->createPool( err, SHARED ) ;
-		s = ZSCREEN[ screenNum ] ;
-		p_poolMGR->put( err, "ZSCREEN", s, SHARED, SYSTEM ) ;
-		p_poolMGR->put( err, "ZSCRNUM", d2ds( currScrn->screenID ), SHARED, SYSTEM ) ;
-		p_poolMGR->put( err, "ZAPPLID", p_poolMGR->getAPPLID(), SHARED, SYSTEM ) ;
+		p_poolMGR->put( err, "ZSCREEN", string( 1, ZSCREEN[ screenNum ] ), SHARED, SYSTEM ) ;
+		p_poolMGR->put( err, "ZSCRNUM", d2ds( currScrn->screenId ), SHARED, SYSTEM ) ;
+		p_poolMGR->put( err, "ZAPPLID", p_poolMGR->getApplid(), SHARED, SYSTEM ) ;
 	}
 	currAppl->shrdPool = p_poolMGR->getShrdPool() ;
 	currAppl->init() ;
@@ -1601,7 +1622,7 @@ void startApplication( selobj SEL, bool nScreen )
 			processPGMSelect() ;
 		}
 	}
-	currAppl->get_cursor( row, col ) ;
+	currAppl->get_cursor( row, col )  ;
 	currScrn->set_row_col( row, col ) ;
 }
 
@@ -1637,33 +1658,34 @@ void terminateApplication()
 
 	ZAPPNAME = currAppl->ZAPPNAME ;
 
-	if ( currAppl->NEWPOOL )
-	{
-		p_poolMGR->destroyPool( err, SHARED ) ;
-	}
-
 	currAppl->closeTables()     ;
 	tRC     = currAppl->ZRC     ;
 	tRSN    = currAppl->ZRSN    ;
 	tRESULT = currAppl->ZRESULT ;
 
-	if ( currAppl->reffield == "#REFLIST" ) { refList = true  ; }
-	else                                    { refList = false ; }
+	refList = ( currAppl->reffield == "#REFLIST" ) ;
 
 	setMSG = currAppl->setMSG ;
 	if ( setMSG ) { tMSGID1 = currAppl->getmsgid1() ; tMSG1 = currAppl->getmsg1() ; }
 
-	jumpEntered = currAppl->jumpEntered ;
-	if ( currAppl->propagateEnd && ( currScrn->application_stack_size() > 1 ) ) { propagateEnd = true  ; }
-	else                                                                        { propagateEnd = false ; }
-
-	p_poolMGR->destroyPool( err, PROFILE ) ;
+	jumpEntered  = currAppl->jumpEntered ;
+	propagateEnd = currAppl->propagateEnd && ( currScrn->application_stack_size() > 1 ) ;
 
 	pThread = currAppl->pThread ;
 
 	if ( currAppl->abnormalEnd )
 	{
+		while ( currAppl->cleanupRunning() )
+		{
+			boost::this_thread::sleep_for(boost::chrono::milliseconds(ZWAIT)) ;
+		}
 		pThread->detach() ;
+	}
+
+	p_poolMGR->destroyPool( err, PROFILE ) ;
+	if ( currAppl->NEWPOOL )
+	{
+		p_poolMGR->destroyPool( err, SHARED ) ;
 	}
 
 	llog( "I", "Removing application instance of "+ ZAPPNAME << endl ) ;
@@ -1675,12 +1697,12 @@ void terminateApplication()
 	currScrn->application_remove_current() ;
 	if ( currScrn->application_stack_empty() )
 	{
-		p_poolMGR->destroyPool( currScrn->screenID ) ;
+		p_poolMGR->destroyPool( currScrn->screenId ) ;
 		if ( pLScreen::screensTotal == 1 )
 		{
 			delete currScrn ;
 			llog( "I", "Closing ISPS profile and application log as last application program is terminating" << endl ) ;
-			p_poolMGR->setAPPLID( err, "ISPS" )    ;
+			p_poolMGR->setApplid( err, "ISPS" )    ;
 			p_poolMGR->destroyPool( err, PROFILE ) ;
 			p_poolMGR->statistics()  ;
 			p_tableMGR->statistics() ;
@@ -1692,8 +1714,9 @@ void terminateApplication()
 
 	currAppl = currScrn->application_get_current() ;
 	currScrn->restore_panel_stack() ;
+	currAppl->display_pd()          ;
 
-	p_poolMGR->setAPPLID( err, currAppl->ZZAPPLID ) ;
+	p_poolMGR->setApplid( err, currAppl->ZZAPPLID ) ;
 	if ( !err.RC0() ) { llog( "C", "ERROR setting APPLID for pool manager.  RC=" << err.getRC() << endl ) ; }
 	p_poolMGR->setShrdPool( err, currAppl->shrdPool )   ;
 	if ( !err.RC0() ) { llog( "C", "ERROR setting shared pool for pool manager.  RC=" << err.getRC() << endl ) ; }
@@ -1781,10 +1804,10 @@ void terminateApplication()
 		currAppl->reffield = "" ;
 	}
 
-	if ( currAppl->isprimMenu() ) { propagateEnd = false ; }
-	if ( jumpEntered && currAppl->isprimMenu() )
+	if ( currAppl->isprimMenu() )
 	{
-		commandStack = jumpOption ;
+		propagateEnd = false ;
+		if ( jumpEntered ) { commandStack = jumpOption ; }
 	}
 
 	if ( currAppl->SEL )
@@ -1841,8 +1864,9 @@ void terminateApplication()
 			currAppl->set_cursor( row, col ) ;
 		}
 	}
+
 	llog( "I", "Application terminatation of "+ ZAPPNAME +" completed.  Current application is "+ currAppl->ZAPPNAME << endl ) ;
-	currAppl->restore_Zvars( currScrn->screenID ) ;
+	currAppl->restore_Zvars( currScrn->screenId ) ;
 	currAppl->refresh_id() ;
 	currScrn->set_row_col( row, col ) ;
 }
@@ -2107,44 +2131,57 @@ void loadCUATables()
 
 void setColourPair( const string& name )
 {
-	int RC   ;
 	string t ;
-	char   c ;
 
 	errblock err ;
 
-	t = p_poolMGR->get( err, "ZC" + name, PROFILE ) ;
-	if ( err.RC0() )
+	t = p_poolMGR->get( err, "ZC"+ name, PROFILE ) ;
+	if ( !err.RC0() )
 	{
-		RC = 0 ;
-		c  = t[ 0 ] ;
-		if      ( c == 'R' ) { cuaAttr[ cuaAttrName[ name ] ] = RED     ; }
-		else if ( c == 'G' ) { cuaAttr[ cuaAttrName[ name ] ] = GREEN   ; }
-		else if ( c == 'Y' ) { cuaAttr[ cuaAttrName[ name ] ] = YELLOW  ; }
-		else if ( c == 'B' ) { cuaAttr[ cuaAttrName[ name ] ] = BLUE    ; }
-		else if ( c == 'M' ) { cuaAttr[ cuaAttrName[ name ] ] = MAGENTA ; }
-		else if ( c == 'T' ) { cuaAttr[ cuaAttrName[ name ] ] = TURQ    ; }
-		else if ( c == 'W' ) { cuaAttr[ cuaAttrName[ name ] ] = WHITE   ; }
-		else { llog( "E", "Variable ZC"+ name +" has invalid value "+ t << endl ) ; RC = 20 ; }
-		c = t[ 1 ] ;
-		if      ( c == 'L' ) { cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_NORMAL  ; }
-		else if ( c == 'H' ) { cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_BOLD    ; }
-		else { llog( "E", "Variable ZC"+ name +" has invalid value "+ t << endl ) ; RC = 20 ; }
-		c = t[ 2 ] ;
-		if      ( c == 'N' ) { }
-		else if ( c == 'B' ) { cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_BLINK     ; }
-		else if ( c == 'R' ) { cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_REVERSE   ; }
-		else if ( c == 'U' ) { cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_UNDERLINE ; }
-		else { llog( "E", "Variable ZC"+ name +" has invalid value "+ t << endl ) ; RC = 20 ; }
-	}
-	else { llog( "E", "Variable ZC"+ name +" not found in ISPS profile" << endl ) ; RC = 20 ; }
-	if ( RC > 0 )
-	{
-		delete screenList[ 0 ] ;
+		llog( "E", "Variable ZC"+ name +" not found in ISPS profile" << endl ) ;
 		llog( "C", "Rerun setup program to re-initialise ISPS profile" << endl ) ;
-		cout << "Aborting startup of lspf.  Check lspf and application logs for errors " << endl ;
-		splog.close() ;
-		abort() ;
+		abortStartup() ;
+	}
+
+	if ( t.size() != 3 )
+	{
+		llog( "E", "Variable ZC"+ name +" invalid value of "+ t +".  Must be length of three "<< endl ) ;
+		llog( "C", "Rerun setup program to re-initialise ISPS profile" << endl ) ;
+		abortStartup() ;
+	}
+
+	switch  ( t[ 0 ] )
+	{
+		case 'R':  cuaAttr[ cuaAttrName[ name ] ] = RED     ; break ;
+		case 'G':  cuaAttr[ cuaAttrName[ name ] ] = GREEN   ; break ;
+		case 'Y':  cuaAttr[ cuaAttrName[ name ] ] = YELLOW  ; break ;
+		case 'B':  cuaAttr[ cuaAttrName[ name ] ] = BLUE    ; break ;
+		case 'M':  cuaAttr[ cuaAttrName[ name ] ] = MAGENTA ; break ;
+		case 'T':  cuaAttr[ cuaAttrName[ name ] ] = TURQ    ; break ;
+		case 'W':  cuaAttr[ cuaAttrName[ name ] ] = WHITE   ; break ;
+		default :  llog( "E", "Variable ZC"+ name +" has invalid value[0] "+ t << endl ) ;
+			   llog( "C", "Rerun setup program to re-initialise ISPS profile" << endl ) ;
+			   abortStartup() ;
+	}
+
+	switch  ( t[ 1 ] )
+	{
+		case 'L':  cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_NORMAL   ; break ;
+		case 'H':  cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_BOLD     ; break ;
+		default :  llog( "E", "Variable ZC"+ name +" has invalid value[1] "+ t << endl ) ;
+			   llog( "C", "Rerun setup program to re-initialise ISPS profile" << endl ) ;
+			   abortStartup() ;
+	}
+
+	switch  ( t[ 2 ] )
+	{
+		case 'N':  break ;
+		case 'B':  cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_BLINK     ; break ;
+		case 'R':  cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_REVERSE   ; break ;
+		case 'U':  cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_UNDERLINE ; break ;
+		default :  llog( "E", "Variable ZC"+ name +" has invalid value[2] "+ t << endl ) ;
+			   llog( "C", "Rerun setup program to re-initialise ISPS profile" << endl ) ;
+			   abortStartup() ;
 	}
 }
 
@@ -2160,33 +2197,29 @@ void loadDefaultPools()
 
 	uname( &buf ) ;
 
+	p_poolMGR->defaultVARs( err, "ZSCREEND", d2ds( pLScreen::maxrow ), SHARED ) ;
 	p_poolMGR->defaultVARs( err, "ZSCRMAXD", d2ds( pLScreen::maxrow ), SHARED ) ;
+	p_poolMGR->defaultVARs( err, "ZSCREENW", d2ds( pLScreen::maxcol ), SHARED ) ;
 	p_poolMGR->defaultVARs( err, "ZSCRMAXW", d2ds( pLScreen::maxcol ), SHARED ) ;
 	p_poolMGR->defaultVARs( err, "ZUSER", getenv( "LOGNAME" ), SHARED )         ;
 	p_poolMGR->defaultVARs( err, "ZHOME", getenv( "HOME" )  , SHARED ) ;
 	p_poolMGR->defaultVARs( err, "ZSHELL", getenv( "SHELL" ), SHARED ) ;
 
-	p_poolMGR->setAPPLID( err, "ISPS" ) ;
+	p_poolMGR->setApplid( err, "ISPS" ) ;
 	p_poolMGR->createPool( err, PROFILE, ZSPROF ) ;
-	if ( err.RC0() )
+	if ( !err.RC0() )
 	{
-		llog( "I", "Loaded system profile ISPSPROF" << endl ) ;
-	}
-	else
-	{
-		delete screenList[ 0 ] ;
 		llog( "C", "Loading of system profile ISPSPROF failed.  RC="<< err.getRC() << endl ) ;
 		llog( "C", "Aborting startup.  Check path " ZSPROF << endl ) ;
-		cout << "Aborting startup of lspf.  Check lspf and application logs for errors " << endl ;
-		splog.close() ;
-		abort() ;
+		abortStartup() ;
 	}
 
+	llog( "I", "Loaded system profile ISPSPROF" << endl ) ;
 	p_poolMGR->createPool( err, SHARED )   ;
 
 	ZTLIB = p_poolMGR->get( err, "ZTLIB", PROFILE ) ;
 
-	p_poolMGR->setAPPLID( err, "ISP" ) ;
+	p_poolMGR->setApplid( err, "ISP" ) ;
 	p_poolMGR->createPool( err, PROFILE, ZSPROF ) ;
 	if ( err.RC4() ) { createpfKeyDefaults() ; }
 
@@ -2214,21 +2247,15 @@ void loadSystemCommandTable()
 	// Terminate if ISPCMDS not found
 
 	errblock err ;
-	p_tableMGR->loadTable( err, 0, "ISPCMDS", NOWRITE, ZTLIB, SHARE ) ;
-	if ( err.RC0() )
+	p_tableMGR->loadTable( err, "ISPCMDS", NOWRITE, ZTLIB, SHARE ) ;
+	if ( !err.RC0() )
 	{
-		llog( "I", "Loaded system command table ISPCMDS" << endl ) ;
-	}
-	else
-	{
-		delete screenList[ 0 ] ;
 		llog( "C", "Loading of system command table ISPCMDS failed" <<endl ) ;
 		llog( "C", "RC="<< err.getRC() <<"  Aborting startup" <<endl ) ;
 		llog( "C", "Check path "+ ZTLIB << endl ) ;
-		cout << "Aborting startup of lspf.  Check lspf and application logs for errors " << endl ;
-		splog.close() ;
-		abort() ;
+		abortStartup() ;
 	}
+	llog( "I", "Loaded system command table ISPCMDS" << endl ) ;
 }
 
 
@@ -2274,14 +2301,7 @@ void updateDefaultVars()
 
 	GMAXWAIT = ds2d( p_poolMGR->get( err, "ZMAXWAIT", PROFILE ) ) ;
 	GMAINPGM = p_poolMGR->get( err, "ZMAINPGM", PROFILE ) ;
-	if ( pLScreen::screensTotal > 1 )
-	{
-		p_poolMGR->defaultVARs( err, "ZSPLIT", "YES", SHARED ) ;
-	}
-	else
-	{
-		p_poolMGR->defaultVARs( err, "ZSPLIT", "NO", SHARED ) ;
-	}
+	p_poolMGR->defaultVARs( err, "ZSPLIT", pLScreen::screensTotal > 1 ? "YES" : "NO", SHARED ) ;
 }
 
 
@@ -2418,7 +2438,7 @@ string listLogicalScreens()
 	for ( i = 0, its = screenList.begin() ; its != screenList.end() ; its++, i++ )
 	{
 		appl = (*its)->application_get_current() ;
-		ln   = d2ds( (*its)->screenID )          ;
+		ln   = d2ds( (*its)->screenId )          ;
 		if      ( i == screenNum ) { ln += "*" ; m = i ; }
 		else if ( i == altScreen ) { ln += "-"         ; }
 		else                       { ln += " "         ; }
@@ -2626,7 +2646,7 @@ void lspfCallbackHandler( lspfCommand& lc )
 		for ( its = screenList.begin() ; its != screenList.end() ; its++ )
 		{
 			appl = (*its)->application_get_current()       ;
-			lc.reply.push_back( d2ds( (*its)->screenID ) ) ;
+			lc.reply.push_back( d2ds( (*its)->screenId ) ) ;
 			lc.reply.push_back( appl->ZAPPNAME        )    ;
 		}
 		lc.RC = 0 ;
@@ -2674,6 +2694,15 @@ void lspfCallbackHandler( lspfCommand& lc )
 	{
 		lc.RC = 20 ;
 	}
+}
+
+
+void abortStartup()
+{
+	delete screenList[ 0 ] ;
+	cout << "Aborting startup of lspf.  Check lspf and application logs for errors " << endl ;
+	splog.close() ;
+	abort() ;
 }
 
 
@@ -2800,11 +2829,8 @@ void getDynamicClasses()
 	llog( "I", d2ds( apps.size() ) +" applications found and stored" << endl ) ;
 	if ( apps.find( GMAINPGM ) == apps.end() )
 	{
-		delete screenList[ 0 ] ;
 		llog( "C", e1 << endl ) ;
-		cout <<  e1 << endl    ;
-		splog.close() ;
-		abort()       ;
+		abortStartup()          ;
 	}
 }
 

@@ -125,8 +125,8 @@ PSYS012D 'Error in SELECT' .TYPE=W
 PSYS012E 'Entry Conflict' .TYPE=W
 'Fields entered in an invalid combination.  Leave field blank'
 
-PSYS012F 'SPARE' .TYPE=W
-'SPARE'
+PSYS012F 'Invalid USERID parameter' .TYPE=W
+'Valid parameters are ON, OFF or blank to toggle setting'
 
 PSYS012G 'Command Issued' .TYPE=W
 'Command has been issued.  Check log for details'
@@ -162,4 +162,7 @@ PSYS012P 'Invalid REGEX entered' .TYPE=W
 
 PSYS012Q 'Invalid value entered' .TYPE=W .W=NORESP
 'Invalid &ZZSTR1'
+
+PSYS012R 'Invalid .HIDE parameter' .TYPE=W
+'Valid .HIDE parameter is NULLS'
 

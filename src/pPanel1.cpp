@@ -53,9 +53,8 @@ pPanel::pPanel()
 	tb_scan     = false  ;
 	tb_lcol     = 0      ;
 	tb_lsz      = 0      ;
+	ff_screen   = false  ;
 	win_addpop  = false  ;
-	smp_created = false  ;
-	lmp_created = false  ;
 	win_row     = 0      ;
 	win_col     = 0      ;
 	win_width   = 0      ;
@@ -68,6 +67,8 @@ pPanel::pPanel()
 	pwin        = NULL   ;
 	bwin        = NULL   ;
 	idwin       = NULL   ;
+	smwin       = NULL   ;
+	lmwin       = NULL   ;
 }
 
 
@@ -117,13 +118,13 @@ pPanel::~pPanel()
 	{
 		delwin( pwin ) ;
 	}
-	if ( smp_created )
+	if ( smwin )
 	{
 		panel_cleanup( smpanel ) ;
 		del_panel( smpanel ) ;
 		delwin( smwin )      ;
 	}
-	if ( lmp_created )
+	if ( lmwin )
 	{
 		panel_cleanup( lmpanel ) ;
 		del_panel( lmpanel ) ;
@@ -279,7 +280,9 @@ void pPanel::display_panel( errblock& err )
 	// pwin - pop-up window only created if the panel contains a WINDOW(w,d) statement
 	// (associate ncurses panel 'panel' with whichever is active and set WSCRMAX?)
 
-	// Use fwin if no pwin exists, or no ADDPOP() has been done (not exactly how real ISPF works)
+	// Use fwin if no pwin exists, or no ADDPOP() has been done and remove the popup
+	// if no pwin exists, even if an ADDPOP() has been done (not exactly how real ISPF works).
+	// The RESIZE lspf command can also toggle full screen mode (BUG: not working properly yet)
 
 	string winttl ;
 	string panttl ;
@@ -288,7 +291,7 @@ void pPanel::display_panel( errblock& err )
 
 	update_keylist_vars() ;
 
-	if ( win_addpop && pwin )
+	if ( win_addpop && pwin && !ff_screen )
 	{
 		win = pwin ;
 		if ( win != panel_window( panel ) )
@@ -313,6 +316,7 @@ void pPanel::display_panel( errblock& err )
 	}
 	else
 	{
+		if ( win_addpop ) { remove_popup() ; }
 		win = fwin ;
 		if ( bwin )
 		{
@@ -331,7 +335,7 @@ void pPanel::display_panel( errblock& err )
 
 	panttl = sub_vars( panelTitle ) ;
 	wattrset( win, cuaAttr[ PT ] ) ;
-	mvwaddstr( win, 2, ( WSCRMAXW - panttl.size() ) / 2, panttl.c_str() ) ;
+	mvwaddstr( win, ab.size() > 0 ? 2 : 0, ( WSCRMAXW - panttl.size() ) / 2, panttl.c_str() ) ;
 	wattroff( win, cuaAttr[ PT ] ) ;
 
 	if ( tb_model )
@@ -374,7 +378,7 @@ void pPanel::redisplay_panel()
 
 	panttl = sub_vars( panelTitle ) ;
 	wattrset( win, cuaAttr[ PT ] ) ;
-	mvwaddstr( win, 2, ( WSCRMAXW - panttl.size() ) / 2, panttl.c_str() ) ;
+	mvwaddstr( win, ab.size() > 0 ? 2 : 0, ( WSCRMAXW - panttl.size() ) / 2, panttl.c_str() ) ;
 	wattroff( win, cuaAttr[ PT ] ) ;
 
 	if ( tb_model )
@@ -451,17 +455,10 @@ void pPanel::display_panel_update( errblock& err )
 	CMDVerb     = p_poolMGR->get( err, "ZVERB", SHARED ) ;
 	end_pressed = findword( CMDVerb, "END EXIT RETURN" ) ;
 
-	if ( CMDVerb == "END" && pdActive )
+	if ( pdActive && CMDVerb == "END" )
 	{
 		p_poolMGR->put( err, "ZVERB", "",  SHARED ) ;
 		end_pressed = false ;
-		pdActive    = false ;
-	}
-
-	if ( pdActive )
-	{
-		hide_pd()        ;
-		pdActive = false ;
 	}
 
 	if ( scrollOn )
@@ -500,12 +497,12 @@ void pPanel::display_panel_update( errblock& err )
 				fieldNum = ds2d( it->first.substr( p+1 ) ) ;
 				darea    = p_funcPOOL->vlocate( err, fieldNam ) ;
 				offset   = fieldNum*it->second->field_length      ;
-				if ( it->second->field_dynArea_ptr->dynArea_DataModsp )
+				if ( it->second->field_dynArea->dynArea_DataModsp )
 				{
 					it->second->field_DataMod_to_UserMod( darea, offset ) ;
 				}
 				darea->replace( offset, it->second->field_length, it->second->field_value ) ;
-				sname    = it->second->field_dynArea_ptr->dynArea_shadow_name ;
+				sname    = it->second->field_dynArea->dynArea_shadow_name ;
 				shadow   = p_funcPOOL->vlocate( err, sname ) ;
 				shadow->replace( offset, it->second->field_length, it->second->field_shadow_value ) ;
 			}
@@ -720,7 +717,6 @@ void pPanel::process_panel_stmnts( errblock& err, int ln, vector<panstmnt* >& pa
 	// General routine to process panel statements.  Pass address of the panel statements vector for the
 	// panel section being processed.
 
-	// Set RC1=8 from VGET/VPUT to 0 as it isn't an error in this case
 	// For table display fields, .ATTR and .CURSOR apply to fields on line ln
 
 	// If the panel statment has a ps_if address and a ps_xxx address, this is for statements coded
@@ -914,18 +910,20 @@ void pPanel::process_panel_if_cond( errblock& err, int ln, IFSTMNT* ifstmnt )
 		}
 		if ( fieldVal != "" )
 		{
-			if ( ifstmnt->if_verify->ver_numeric )
+			switch ( ifstmnt->if_verify->ver_type )
 			{
+			case VER_NUMERIC:
 				ifstmnt->if_true = isnumeric( fieldVal ) ;
-			}
-			else if ( ifstmnt->if_verify->ver_list || ifstmnt->if_verify->ver_listx )
-			{
+				break ;
+
+			case VER_LIST:
+			case VER_LISTX:
 				for ( it  = ifstmnt->if_verify->ver_vlist.begin() ;
 				      it != ifstmnt->if_verify->ver_vlist.end()  ; it++ )
 				{
 					if ( sub_vars( (*it) ) == fieldVal ) { break ; }
 				}
-				if ( ifstmnt->if_verify->ver_list )
+				if ( ifstmnt->if_verify->ver_type == VER_LIST )
 				{
 					ifstmnt->if_true = ( it != ifstmnt->if_verify->ver_vlist.end() ) ;
 				}
@@ -933,17 +931,17 @@ void pPanel::process_panel_if_cond( errblock& err, int ln, IFSTMNT* ifstmnt )
 				{
 					ifstmnt->if_true = ( it == ifstmnt->if_verify->ver_vlist.end() ) ;
 				}
-			}
-			else if ( ifstmnt->if_verify->ver_pict )
-			{
+				break ;
+
+			case VER_PICT:
 				ifstmnt->if_true = ispict( fieldVal, ifstmnt->if_verify->ver_vlist[ 0 ] ) ;
-			}
-			else if ( ifstmnt->if_verify->ver_hex )
-			{
+				break ;
+
+			case VER_HEX:
 				ifstmnt->if_true = ishex( fieldVal ) ;
-			}
-			else if ( ifstmnt->if_verify->ver_octal )
-			{
+				break ;
+
+			case VER_OCT:
 				ifstmnt->if_true = isoctal( fieldVal ) ;
 			}
 		}
@@ -1130,8 +1128,9 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 	{
 		return ;
 	}
-	if ( verify->ver_numeric )
+	switch ( verify->ver_type )
 	{
+	case VER_NUMERIC:
 		if ( !isnumeric( fieldVal ) )
 		{
 			setMessageCond( verify->ver_msgid == "" ? "PSYS011A" : sub_vars( verify->ver_msgid ) ) ;
@@ -1140,15 +1139,16 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 				setCursorCond( fieldNam ) ;
 			}
 		}
-	}
-	else if ( verify->ver_list || verify->ver_listx )
-	{
+		break ;
+
+	case VER_LIST:
+	case VER_LISTX:
 		for ( it = verify->ver_vlist.begin() ; it != verify->ver_vlist.end() ; it++ )
 		{
 			if ( sub_vars( (*it) ) == fieldVal ) { break ; }
 		}
-		if ( ( verify->ver_list  && it == verify->ver_vlist.end() ) ||
-		     ( verify->ver_listx && it != verify->ver_vlist.end() ) )
+		if ( ( verify->ver_type == VER_LIST  && it == verify->ver_vlist.end() ) ||
+		     ( verify->ver_type == VER_LISTX && it != verify->ver_vlist.end() ) )
 		{
 			if ( verify->ver_vlist.size() == 1 )
 			{
@@ -1167,7 +1167,7 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 				i++ ;
 				t += sub_vars( verify->ver_vlist[ i ] ) ;
 			}
-			msg = verify->ver_list ? "PSYS011B" : "PSYS012Q" ;
+			msg = verify->ver_type == VER_LIST ? "PSYS011B" : "PSYS012Q" ;
 			setMessageCond( verify->ver_msgid == "" ? msg : sub_vars( verify->ver_msgid ) ) ;
 			if ( MSGID == msg )
 			{
@@ -1179,9 +1179,9 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 				setCursorCond( fieldNam ) ;
 			}
 		}
-	}
-	else if ( verify->ver_pict )
-	{
+		break ;
+
+	case VER_PICT:
 		if ( !ispict( fieldVal, verify->ver_vlist[ 0 ] ) )
 		{
 			p_poolMGR->put( err, "ZZSTR1", d2ds( verify->ver_vlist[ 0 ].size() ), SHARED ) ;
@@ -1194,9 +1194,9 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 				setCursorCond( fieldNam ) ;
 			}
 		}
-	}
-	else if ( verify->ver_hex )
-	{
+		break ;
+
+	case VER_HEX:
 		if ( !ishex( fieldVal ) )
 		{
 			setMessageCond( verify->ver_msgid == "" ? "PSYS011H" : sub_vars( verify->ver_msgid ) ) ;
@@ -1205,9 +1205,9 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 				setCursorCond( fieldNam ) ;
 			}
 		}
-	}
-	else if ( verify->ver_octal )
-	{
+		break ;
+
+	case VER_OCT:
 		if ( !isoctal( fieldVal ) )
 		{
 			setMessageCond( verify->ver_msgid == "" ? "PSYS011F" : sub_vars( verify->ver_msgid ) ) ;
@@ -1887,11 +1887,11 @@ void pPanel::display_fields()
 
 void pPanel::display_ab()
 {
-	int i ;
+	if ( ab.size() == 0 ) { return ; }
 
-	for ( i = 0 ; i < ab.size() ; i++ )
+	for ( int i = 0 ; i < ab.size() ; i++ )
 	{
-		ab.at( i ).display_abc_unsel( win ) ;
+		ab[ i ].display_abc_unsel( win ) ;
 	}
 
 	wattrset( win, cuaAttr[ ABSL ] ) ;
@@ -2303,7 +2303,7 @@ void pPanel::field_tab_down( uint& row, uint& col )
 		if ( !it->second->field_dynArea && !it->second->field_input ) { continue ; }
 		if (  it->second->field_row <= o_row ) { continue ; }
 		d_offset = 0 ;
-		if ( it->second->field_dynArea && it->second->field_dynArea_ptr->dynArea_DataInsp )
+		if ( it->second->field_dynArea && it->second->field_dynArea->dynArea_DataInsp )
 		{
 			d_offset = it->second->field_dyna_input_offset( 0 ) ;
 			if ( d_offset == -1 ) { continue ; }
@@ -2353,7 +2353,7 @@ void pPanel::field_tab_next( uint& row, uint& col )
 		if ( !it->second->field_active) { continue ; }
 		if ( !it->second->field_dynArea && !it->second->field_input ) { continue ; }
 		d_offset = 0 ;
-		if ( it->second->field_dynArea && it->second->field_dynArea_ptr->dynArea_DataInsp )
+		if ( it->second->field_dynArea && it->second->field_dynArea->dynArea_DataInsp )
 		{
 			if ( o_row == it->second->field_row ) { d_offset = it->second->field_dyna_input_offset( o_col ) ; }
 			else                                  { d_offset = it->second->field_dyna_input_offset( 0 )     ; }
@@ -2372,8 +2372,10 @@ void pPanel::field_tab_next( uint& row, uint& col )
 }
 
 
-string pPanel::get_field_help( const string& fld )
+string pPanel::get_field_help( uint row, uint col )
 {
+	string fld = field_getname( row, col ) ;
+
 	if ( fieldHList.count( fld ) == 0 ) { return "" ; }
 	return fieldHList[ fld ] ;
 }
@@ -2461,7 +2463,19 @@ void pPanel::display_tb_mark_posn()
 	wattrset( win, WHITE ) ;
 	if ( size < tb_depth )
 	{
-		mark = p_funcPOOL->get( err, 0, "ZTDMARK" ) ;
+		mark = p_funcPOOL->get( err, 8, "ZTDMARK" ) ;
+		if ( err.RC8() )
+		{
+			mark = p_poolMGR->get( err, "ZTDMARK" ) ;
+			if ( err.RC8() )
+			{
+				mark = centre( " Bottom of Data ", WSCRMAXW, '*' ) ;
+			}
+		}
+		if ( mark.size() > WSCRMAXW )
+		{
+			mark.resize( WSCRMAXW ) ;
+		}
 		mvwaddstr( win, tb_row + size, 0, mark.c_str() ) ;
 		p_funcPOOL->put( err, "ZTDVROWS", size ) ;
 	}
@@ -2521,19 +2535,18 @@ bool pPanel::display_pd( uint col )
 {
 	// col is the pysical position on the screen.  Correct by subtracting the window column position
 
-	int i ;
-
 	col = col - win_col ;
 	hide_pd() ;
-	for ( i = 0 ; i < ab.size() ; i++ )
+
+	for ( int i = 0 ; i < ab.size() ; i++ )
 	{
-		if ( (col >= ab.at(i).abc_col) && (col < (ab.at(i).abc_col + ab.at(i).abc_name.size()) ) )
+		if ( col >= ab[ i ].abc_col && col < ( ab[ i ].abc_col + ab[ i ].abc_name.size() ) )
 		{
-			ab.at(i).display_abc_sel( win ) ;
-			ab.at(i).display_pd( win_row, win_col ) ;
-			pdActive = true ;
 			abIndex  = i ;
-			p_col    = ab.at(i).abc_col + 2 ;
+			ab[ abIndex ].display_abc_sel( win ) ;
+			ab[ abIndex ].display_pd( win_row, win_col ) ;
+			pdActive = true ;
+			p_col    = ab[ abIndex ].abc_col + 2 ;
 			p_row    = 2 ;
 			return true  ;
 		}
@@ -2545,32 +2558,30 @@ bool pPanel::display_pd( uint col )
 void pPanel::display_pd()
 {
 	if ( !pdActive ) { return ; }
+
+	ab.at( abIndex ).display_abc_sel( win ) ;
 	ab.at( abIndex ).display_pd( win_row, win_col ) ;
-}
-
-
-void pPanel::display_first_pd()
-{
-	if ( ab.size() == 0 ) { return ; }
-
-	ab.at( 0 ).display_abc_sel( win ) ;
-	ab.at( 0 ).display_pd( win_row, win_col ) ;
-	pdActive = true ;
-	abIndex  = 0    ;
-	p_col    = ab.at( 0 ).abc_col + 2 ;
-	p_row    = 2    ;
 }
 
 
 void pPanel::display_next_pd()
 {
-	if ( !pdActive ) { return ; }
+	if ( ab.size() == 0 ) { return ; }
+	if ( !pdActive || ++abIndex == ab.size() ) { abIndex = 0 ; }
 
-	if ( ++abIndex == ab.size() ) { abIndex = 0 ; }
+	pdActive = true ;
+
 	ab.at( abIndex ).display_abc_sel( win ) ;
 	ab.at( abIndex ).display_pd( win_row, win_col ) ;
 	p_col = ab.at( abIndex ).abc_col + 2 ;
 	p_row = 2 ;
+}
+
+
+void pPanel::remove_pd()
+{
+	hide_pd() ;
+	pdActive = false ;
 }
 
 
@@ -2590,6 +2601,7 @@ pdc pPanel::retrieve_pdChoice( int row, int col )
 	ab.at( abIndex ).hide_pd() ;
 	ab.at( abIndex ).display_abc_unsel( win ) ;
 	pdActive = false ;
+
 	return ab.at( abIndex ).retrieve_pdChoice( row-win_row, col-win_col ) ;
 }
 
@@ -2627,19 +2639,19 @@ void pPanel::clear_msg()
 {
 	MSG.clear() ;
 	showLMSG = false ;
-	if ( smp_created )
+	if ( smwin )
 	{
 		panel_cleanup( smpanel ) ;
 		del_panel( smpanel ) ;
 		delwin( smwin )      ;
-		smp_created = false  ;
+		smwin = NULL         ;
 	}
-	if ( lmp_created )
+	if ( lmwin )
 	{
 		panel_cleanup( lmpanel ) ;
 		del_panel( lmpanel ) ;
 		delwin( lmwin )      ;
-		lmp_created = false  ;
+		lmwin = NULL         ;
 	}
 }
 
@@ -2679,7 +2691,7 @@ void pPanel::display_msg()
 
 	if ( MSG.smsg != "" )
 	{
-		if ( smp_created )
+		if ( smwin )
 		{
 			panel_cleanup( smpanel ) ;
 			del_panel( smpanel ) ;
@@ -2705,7 +2717,6 @@ void pPanel::display_msg()
 		smpanel = new_panel( smwin )  ;
 		set_panel_userptr( smpanel, new panel_data( ZSCRNUM ) ) ;
 		wattroff( smwin, cuaAttr[ MSG.type ] ) ;
-		smp_created = true ;
 		if ( MSG.alm )
 		{
 			beep() ;
@@ -2714,7 +2725,7 @@ void pPanel::display_msg()
 	}
 	if ( showLMSG && MSG.lmsg != "" )
 	{
-		if ( lmp_created )
+		if ( lmwin )
 		{
 			panel_cleanup( lmpanel ) ;
 			del_panel( lmpanel ) ;
@@ -2740,7 +2751,6 @@ void pPanel::display_msg()
 		lmpanel = new_panel( lmwin )  ;
 		set_panel_userptr( lmpanel, new panel_data( ZSCRNUM ) ) ;
 		wattroff( lmwin, cuaAttr[ MSG.type ] )  ;
-		lmp_created = true ;
 	}
 }
 
@@ -2832,9 +2842,14 @@ void pPanel::display_id()
 		idwin = NULL         ;
 	}
 
+	if ( p_poolMGR->get( err, ZSCRNUM, "ZSHUSRID" ) == "Y" )
+	{
+		panarea = p_poolMGR->get( err, "ZUSER", SHARED ) + " " ;
+	}
+
 	if ( p_poolMGR->get( err, ZSCRNUM, "ZSHPANID" ) == "Y" )
 	{
-		panarea = PANELID + " " ;
+		panarea += PANELID + " " ;
 	}
 
 	if ( p_poolMGR->get( err, "ZSCRNAM1", SHARED ) == "ON" )
@@ -2842,7 +2857,7 @@ void pPanel::display_id()
 		scrname = p_poolMGR->get( err, "ZSCRNAME", SHARED ) ;
 		if ( scrname != "" )
 		{
-			panarea  = panarea + scrname + " " ;
+			panarea += scrname + " " ;
 		}
 	}
 
@@ -2948,7 +2963,7 @@ bool pPanel::hide_msg_window( uint r, uint c )
 	int w_row ;
 	int w_col ;
 
-	if ( smp_created && !panel_hidden( smpanel) )
+	if ( smwin && !panel_hidden( smpanel) )
 	{
 		getmaxyx( smwin, len, ht ) ;
 		if ( ht > 1 )
@@ -2962,7 +2977,7 @@ bool pPanel::hide_msg_window( uint r, uint c )
 			}
 		}
 	}
-	if ( lmp_created && !panel_hidden( lmpanel) )
+	if ( lmwin && !panel_hidden( lmpanel) )
 	{
 		getmaxyx( lmwin, len, ht ) ;
 		if ( ht > 1 )

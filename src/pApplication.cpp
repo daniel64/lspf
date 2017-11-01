@@ -29,7 +29,6 @@ map<int, void *>pApplication::ApplUserData ;
 
 pApplication::pApplication()
 {
-	currApplication        = this   ;
 	testMode               = false  ;
 	propagateEnd           = false  ;
 	jumpEntered            = false  ;
@@ -42,11 +41,12 @@ pApplication::pApplication()
 	ControlRefUpdate       = true   ;
 	errPanelissued         = false  ;
 	abending               = false  ;
+	abended                = false  ;
 	addpop_active          = false  ;
 	addpop_row             = 0      ;
 	addpop_col             = 0      ;
 	noTimeOut              = false  ;
-	busyAppl               = false  ;
+	busyAppl               = true   ;
 	terminateAppl          = false  ;
 	abnormalEnd            = false  ;
 	abnormalEndForced      = false  ;
@@ -56,7 +56,7 @@ pApplication::pApplication()
 	rexxName               = ""     ;
 	NEWPOOL                = false  ;
 	PASSLIB                = false  ;
-	SUSPEND                = false  ;
+	SUSPEND                = true   ;
 	libdef_muser           = false  ;
 	libdef_puser           = false  ;
 	libdef_tuser           = false  ;
@@ -64,8 +64,10 @@ pApplication::pApplication()
 	selPanel               = false  ;
 	setMSG                 = false  ;
 	reffield               = ""     ;
+	PARM                   = ""     ;
 	PANELID                = ""     ;
 	PPANELID               = ""     ;
+	currPanel              = NULL   ;
 	ZHELP                  = ""     ;
 	ZAHELP                 = ""     ;
 	ZTDROWS                = 0      ;
@@ -83,15 +85,14 @@ pApplication::pApplication()
 	ZERR6                  = ""     ;
 	ZERR7                  = ""     ;
 	ZERR8                  = ""     ;
-	vdefine( "ZCURFLD",  &ZCURFLD ) ;
-	vdefine( "ZCURPOS",  &ZCURPOS ) ;
-	vdefine( "ZTDMARK",  &ZTDMARK ) ;
-	vdefine( "ZTDDEPTH", &ZTDDEPTH) ;
-	vdefine( "ZTDROWS",  &ZTDROWS ) ;
-	vdefine( "ZTDSELS",  &ZTDSELS ) ;
-	vdefine( "ZTDTOP",   &ZTDTOP  ) ;
-	vdefine( "ZTDVROWS", &ZTDVROWS) ;
-	rmsgs.clear()                   ;
+	funcPOOL.define( errBlock, "ZCURFLD",  &ZCURFLD ) ;
+	funcPOOL.define( errBlock, "ZCURPOS",  &ZCURPOS ) ;
+	funcPOOL.define( errBlock, "ZTDDEPTH", &ZTDDEPTH) ;
+	funcPOOL.define( errBlock, "ZTDROWS",  &ZTDROWS ) ;
+	funcPOOL.define( errBlock, "ZTDSELS",  &ZTDSELS ) ;
+	funcPOOL.define( errBlock, "ZTDTOP",   &ZTDTOP  ) ;
+	funcPOOL.define( errBlock, "ZTDVROWS", &ZTDVROWS) ;
+	rmsgs.clear() ;
 }
 
 
@@ -116,27 +117,30 @@ void pApplication::startSelect( selobj& s )
 }
 
 
+void pApplication::taskid( int taskid )
+{
+	taskId          = taskid ;
+	errBlock.taskid = taskid ;
+}
+
+
 void pApplication::init()
 {
 	// Before being dispatched in its own thread, set the search paths, table display BOD mark and
 	// addpop status if this has not been invoked with the SUSPEND option on the SELECT command
 
 	ZPLIB    = p_poolMGR->get( errBlock, "ZPLIB", PROFILE ) ;
+	ZPLIB    = p_poolMGR->get( errBlock, "ZPLIB", PROFILE ) ;
 	ZTLIB    = p_poolMGR->get( errBlock, "ZTLIB", PROFILE ) ;
 	ZMLIB    = p_poolMGR->get( errBlock, "ZMLIB", PROFILE ) ;
 	ZORXPATH = p_poolMGR->get( errBlock, "ZORXPATH", PROFILE ) ;
 
-	ZTDMARK  = centre( " Bottom of Data ", ds2d( p_poolMGR->get( errBlock, "ZSCRMAXW", SHARED ) ), '*' ) ;
-
 	if ( !SUSPEND )
 	{
-		lscreen_num = ds2d( p_poolMGR->get( errBlock, "ZSCRNUM", SHARED ) ) ;
-		addpop_row  = ds2d( p_poolMGR->get( errBlock, lscreen_num, "ZPROW" ) ) ;
-		addpop_col  = ds2d( p_poolMGR->get( errBlock, lscreen_num, "ZPCOL" ) ) ;
-		if ( addpop_row != 0 || addpop_col != 0 )
-		{
-			addpop_active = true ;
-		}
+		lscreen_num   = ds2d( p_poolMGR->get( errBlock, "ZSCRNUM", SHARED ) ) ;
+		addpop_row    = ds2d( p_poolMGR->get( errBlock, lscreen_num, "ZPOPROW" ) ) ;
+		addpop_col    = ds2d( p_poolMGR->get( errBlock, lscreen_num, "ZPOPCOL" ) ) ;
+		addpop_active = p_poolMGR->get( errBlock, lscreen_num, "ZADDPOP" ) == "Y"  ;
 	}
 
 	llog( "I", "Initialisation complete" << endl ; )
@@ -147,16 +151,17 @@ void pApplication::wait_event()
 {
 	busyAppl = false ;
 
-	while ( true )
+	while ( !busyAppl )
 	{
-		if ( terminateAppl ) { RC = 20 ; llog( "E", "Application terminating.  Cancelling wait_event" << endl ) ; abend() ; }
-		if ( !busyAppl )
+		boost::mutex::scoped_lock lk( mutex ) ;
+		cond_appl.wait( lk ) ;
+		lk.unlock() ;
+		if ( terminateAppl )
 		{
-			boost::mutex::scoped_lock lk(mutex) ;
-			cond_appl.wait(lk) ;
-			lk.unlock() ;
+			RC = 20 ;
+			llog( "E", "Application terminating.  Cancelling wait_event" << endl ) ;
+			abend() ;
 		}
-		if ( busyAppl ) { return ; }
 	}
 }
 
@@ -203,29 +208,29 @@ void pApplication::createPanel( const string& p_name )
 
 bool pApplication::isprimMenu()
 {
-	if ( panelList.size() == 0 ) { return false                  ; }
-	else                         { return currPanel->primaryMenu ; }
+	if ( currPanel ) { return currPanel->primaryMenu ; }
+	return false ;
 }
 
 
 void pApplication::get_home( uint& row, uint& col )
 {
-	if ( panelList.size() == 0 ) { row = 0 ; col = 0               ; }
-	else                         { currPanel->get_home( row, col ) ; }
+	if ( currPanel ) { currPanel->get_home( row, col ) ; }
+	else             { row = 0 ; col = 0               ; }
 }
 
 
 void pApplication::get_cursor( uint& row, uint& col )
 {
-	if ( panelList.size() == 0 ) { row = 0 ; col = 0                 ; }
-	else                         { currPanel->get_cursor( row, col ) ; }
+	if ( currPanel ) { currPanel->get_cursor( row, col ) ; }
+	else             { row = 0 ; col = 0                 ; }
 }
 
 
 string pApplication::get_current_panelDescr()
 {
-	if ( panelList.size() == 0 ) { return ""                          ; }
-	else                         { return currPanel->get_panelDescr() ; }
+	if ( currPanel ) { return currPanel->get_panelDescr() ; }
+	return "" ;
 }
 
 
@@ -243,21 +248,27 @@ string pApplication::get_current_screenName()
 
 bool pApplication::inputInhibited()
 {
-	if ( panelList.size() > 0 ) { return currPanel->inputInhibited() ; }
+	if ( currPanel ) { return currPanel->inputInhibited() ; }
 	return false ;
 }
 
 
 bool pApplication::msgInhibited()
 {
-	if ( panelList.size() > 0 ) { return currPanel->msgInhibited() ; }
+	if ( currPanel ) { return currPanel->msgInhibited() ; }
 	return false ;
+}
+
+
+void pApplication::display_pd()
+{
+	if ( currPanel ) { currPanel->display_pd() ; }
 }
 
 
 void pApplication::msgResponseOK()
 {
-	if ( panelList.size() > 0 ) { currPanel->msgResponseOK() ; }
+	if ( currPanel ) { currPanel->msgResponseOK() ; }
 }
 
 
@@ -282,26 +293,27 @@ void pApplication::setTestMode()
 }
 
 
-void pApplication::restore_Zvars( int screenID )
+void pApplication::restore_Zvars( int screenid )
 {
 	errblock err ;
 
-	if ( panelList.size() > 0 ) { currPanel->update_keylist_vars() ; }
+	if ( currPanel ) { currPanel->update_keylist_vars() ; }
 
-	if ( p_poolMGR->get( err, screenID, "ZSCRNAM2" ) == "PERM" )
+	if ( p_poolMGR->get( err, screenid, "ZSCRNAM2" ) == "PERM" )
 	{
-			ZSCRNAME = p_poolMGR->get( err, screenID, "ZSCRNAME" ) ;
+			ZSCRNAME = p_poolMGR->get( err, screenid, "ZSCRNAME" ) ;
 	}
 	p_poolMGR->put( err, "ZSCRNAME", ZSCRNAME, SHARED ) ;
 
-	p_poolMGR->put( err, screenID, "ZPROW", d2ds( addpop_row ) ) ;
-	p_poolMGR->put( err, screenID, "ZPCOL", d2ds( addpop_col ) ) ;
+	p_poolMGR->put( err, screenid, "ZPOPROW", d2ds( addpop_row ) ) ;
+	p_poolMGR->put( err, screenid, "ZPOPCOL", d2ds( addpop_col ) ) ;
+	p_poolMGR->put( err, screenid, "ZADDPOP", addpop_active ? "Y" : "N" ) ;
 }
 
 
 void pApplication::refresh_id()
 {
-	if ( panelList.size() > 0 ) { currPanel->display_id() ; }
+	if ( currPanel ) { currPanel->display_id() ; }
 }
 
 
@@ -314,7 +326,7 @@ void pApplication::set_msg( const string& msg_id )
 
 	bool errorStatus ;
 
-	if ( panelList.size() == 0 ) { return ; }
+	if ( !currPanel ) { return ; }
 
 	errorStatus = ControlErrorsReturn ;
 
@@ -341,7 +353,7 @@ void pApplication::set_msg1( const slmsg& t, string msgid, bool Immed )
 	MSGID1 = msgid ;
 	setMSG = true  ;
 
-	if ( Immed && panelList.size() > 0 )
+	if ( Immed && currPanel )
 	{
 		currPanel->set_panel_msg( MSG1, MSGID1 ) ;
 		currPanel->display_msg() ;
@@ -352,15 +364,15 @@ void pApplication::set_msg1( const slmsg& t, string msgid, bool Immed )
 
 bool pApplication::nretriev_on()
 {
-	if ( panelList.size() == 0 ) { return false                     ; }
-	else                         { return currPanel->get_nretriev() ; }
+	if ( currPanel ) { return currPanel->get_nretriev() ; }
+	return false ;
 }
 
 
 string pApplication::get_nretfield()
 {
-	if ( panelList.size() == 0 ) { return ""                         ; }
-	else                         { return currPanel->get_nretfield() ; }
+	if ( currPanel ) { return currPanel->get_nretfield() ; }
+	return "" ;
 }
 
 
@@ -433,6 +445,7 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 	{
 		currPanel->clear_msg() ;
 	}
+
 	PANELID           = p_name   ;
 	currPanel->CURFLD = p_cursor ;
 	currPanel->CURPOS = p_csrpos ;
@@ -522,22 +535,19 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 		if ( ZZVERB == "RETURN" ) { propagateEnd = true ; }
 		if ( findword( ZZVERB, "END EXIT RETURN" ) ) { RC = 8 ; return ; }
 
-		if ( currPanel->MSGID != "" )
+		if ( currPanel->MSGID == "" ) { break ; }
+
+		get_Message( currPanel->MSGID ) ;
+		if ( RC > 0 ) { break ; }
+		currPanel->set_panel_msg( MSG, MSGID ) ;
+		currPanel->display_panel_reinit( errBlock ) ;
+		RC = errBlock.getRC() ;
+		if ( errBlock.error() )
 		{
-			get_Message( currPanel->MSGID ) ;
-			if ( RC > 0 ) { break ; }
-			currPanel->set_panel_msg( MSG, MSGID ) ;
-			currPanel->display_panel_reinit( errBlock ) ;
-			RC = errBlock.getRC() ;
-			if ( errBlock.error() )
-			{
-				errBlock.setcall( e3 + p_name ) ;
-				checkRCode( errBlock ) ;
-				break ;
-			}
-			continue ;
+			errBlock.setcall( e3 + p_name ) ;
+			checkRCode( errBlock ) ;
+			break ;
 		}
-		break ;
 	}
 	currPanel->clear_msg()  ;
 	currPanel->resetAttrs() ;
@@ -683,7 +693,7 @@ string pApplication::get_select_cmd( const string& opt )
 
 void pApplication::set_cursor( int row, int col )
 {
-	if ( panelList.size() > 0 ) { currPanel->set_cursor( row, col ) ; }
+	if ( currPanel ) { currPanel->set_cursor( row, col ) ; }
 }
 
 
@@ -1335,19 +1345,19 @@ void pApplication::verase( const string& names, poolType pType )
 }
 
 
-string pApplication::vlist( poolType pType, int lvl )
+const string& pApplication::vlist( poolType pType, int lvl )
 {
 	return p_poolMGR->vlist( RC, pType, lvl ) ;
 }
 
 
-string pApplication::vilist( vdType defn )
+const string& pApplication::vilist( vdType defn )
 {
 	return funcPOOL.vilist( RC, defn ) ;
 }
 
 
-string pApplication::vslist( vdType defn )
+const string& pApplication::vslist( vdType defn )
 {
 	return funcPOOL.vslist( RC, defn ) ;
 }
@@ -1368,9 +1378,11 @@ void pApplication::addpop( const string& a_fld, int a_row, int a_col )
 	uint p_row = 0 ;
 	uint p_col = 0 ;
 
+	RC = 0 ;
+
 	if ( a_fld != "" )
 	{
-		if ( panelList.size() == 0 )
+		if ( !currPanel )
 		{
 			errBlock.setcall( e1, "PSYE022L", 12 ) ;
 			checkRCode( errBlock ) ;
@@ -1387,8 +1399,8 @@ void pApplication::addpop( const string& a_fld, int a_row, int a_col )
 	}
 	else
 	{
-		a_row += ds2d( p_poolMGR->get( errBlock, lscreen_num, "ZPROW" ) ) ;
-		a_col += ds2d( p_poolMGR->get( errBlock, lscreen_num, "ZPCOL" ) ) ;
+		a_row += ds2d( p_poolMGR->get( errBlock, lscreen_num, "ZPOPROW" ) ) ;
+		a_col += ds2d( p_poolMGR->get( errBlock, lscreen_num, "ZPOPCOL" ) ) ;
 	}
 	if ( addpop_active )
 	{
@@ -1400,9 +1412,14 @@ void pApplication::addpop( const string& a_fld, int a_row, int a_col )
 	addpop_row = (a_row <  0 ) ? 1 : a_row + 2 ;
 	addpop_col = (a_col < -1 ) ? 2 : a_col + 4 ;
 
-	p_poolMGR->put( errBlock, lscreen_num, "ZPROW", d2ds( addpop_row ) ) ;
-	p_poolMGR->put( errBlock, lscreen_num, "ZPCOL", d2ds( addpop_col ) ) ;
-	RC = errBlock.getRC() ;
+	p_poolMGR->put( errBlock, lscreen_num, "ZPOPROW", d2ds( addpop_row ) ) ;
+	if ( !errBlock.RC0() ) { RC = 20 ; return ; }
+
+	p_poolMGR->put( errBlock, lscreen_num, "ZPOPCOL", d2ds( addpop_col ) ) ;
+	if ( !errBlock.RC0() ) { RC = 20 ; return ; }
+
+	p_poolMGR->put( errBlock, lscreen_num, "ZADDPOP", "Y" ) ;
+	if ( !errBlock.RC0() ) { RC = 20 ; return ; }
 }
 
 
@@ -1458,9 +1475,14 @@ void pApplication::rempop( const string& r_all )
 		return ;
 	}
 
-	p_poolMGR->put( errBlock, lscreen_num, "ZPROW", d2ds( addpop_row ) ) ;
-	p_poolMGR->put( errBlock, lscreen_num, "ZPCOL", d2ds( addpop_col ) ) ;
-	RC = errBlock.getRC() ;
+	p_poolMGR->put( errBlock, lscreen_num, "ZPOPROW", d2ds( addpop_row ) ) ;
+	if ( !errBlock.RC0() ) { RC = 20 ; return ; }
+
+	p_poolMGR->put( errBlock, lscreen_num, "ZPOPCOL", d2ds( addpop_col ) ) ;
+	if ( !errBlock.RC0() ) { RC = 20 ; return ; }
+
+	p_poolMGR->put( errBlock, lscreen_num, "ZADDPOP", addpop_active ? "Y" : "N" ) ;
+	if ( !errBlock.RC0() ) { RC = 20 ; return ; }
 }
 
 
@@ -1526,7 +1548,6 @@ void pApplication::control( const string& parm1, const string& parm2, const stri
 		}
 		else if ( parm2 == "SAVE" )
 		{
-			stk_str.push( ZTDMARK  ) ;
 			stk_int.push( ZTDDEPTH ) ;
 			stk_int.push( ZTDROWS  ) ;
 			stk_int.push( ZTDSELS  ) ;
@@ -1554,8 +1575,6 @@ void pApplication::control( const string& parm1, const string& parm2, const stri
 				stk_int.pop() ;
 				ZTDDEPTH = stk_int.top() ;
 				stk_int.pop() ;
-				ZTDMARK  = stk_str.top() ;
-				stk_str.pop() ;
 				currtbPanel = SRpanelStack.top() ;
 				SRpanelStack.pop() ;
 			}
@@ -1714,6 +1733,7 @@ void pApplication::control( const string& parm1, const string& parm2, const stri
 		checkRCode( errBlock ) ;
 		return ;
 	}
+
 	RC = errBlock.getRC() ;
 }
 
@@ -1737,6 +1757,7 @@ void pApplication::control( const string& parm1, void (pApplication::*pFunc)() )
 		checkRCode( errBlock ) ;
 		return ;
 	}
+
 	RC = errBlock.getRC() ;
 }
 
@@ -1834,11 +1855,11 @@ void pApplication::tbclose( const string& tb_name, const string& tb_newname, con
 
 	if ( p_tableMGR->writeableTable( errBlock, tb_name ) )
 	{
-		p_tableMGR->saveTable( errBlock, taskid(), tb_name, tb_newname, tb_path ) ;
+		p_tableMGR->saveTable( errBlock, tb_name, tb_newname, tb_path ) ;
 	}
 	if ( errBlock.RC0() )
 	{
-		p_tableMGR->destroyTable( errBlock, taskid(), tb_name ) ;
+		p_tableMGR->destroyTable( errBlock, tb_name ) ;
 		if ( errBlock.RC0() )
 		{
 			tablesOpen.erase( tb_name ) ;
@@ -1914,7 +1935,7 @@ void pApplication::tbcreate( const string& tb_name, const string& keys, const st
 		}
 	}
 
-	p_tableMGR->createTable( errBlock, taskid(), tb_name, keys, names, m_REP, m_WRITE, m_path, m_DISP ) ;
+	p_tableMGR->createTable( errBlock, tb_name, keys, names, m_REP, m_WRITE, m_path, m_DISP ) ;
 	if ( errBlock.error() )
 	{
 		errBlock.setcall( e1 ) ;
@@ -2327,7 +2348,7 @@ void pApplication::tbend( const string& tb_name )
 
 	if ( !isTableOpen( tb_name, "TBEND" ) ) { return ; }
 
-	p_tableMGR->destroyTable( errBlock, taskid(), tb_name ) ;
+	p_tableMGR->destroyTable( errBlock, tb_name ) ;
 	if ( errBlock.error() )
 	{
 		errBlock.setcall( "TBEND error" ) ;
@@ -2463,7 +2484,7 @@ void pApplication::tbopen( const string& tb_name, tbWRITE m_WRITE, string m_path
 		m_paths = get_search_path( s_ZTLIB ) ;
 	}
 
-	p_tableMGR->loadTable( errBlock, taskid(), tb_name, m_WRITE, m_paths, m_DISP ) ;
+	p_tableMGR->loadTable( errBlock, tb_name, m_WRITE, m_paths, m_DISP ) ;
 
 	if ( errBlock.error() )
 	{
@@ -2567,7 +2588,7 @@ void pApplication::tbsave( const string& tb_name, const string& tb_newname, cons
 		return ;
 	}
 
-	p_tableMGR->saveTable( errBlock, taskid(), tb_name, tb_newname, path ) ;
+	p_tableMGR->saveTable( errBlock, tb_name, tb_newname, path ) ;
 	if ( errBlock.error() )
 	{
 		errBlock.setcall( e1 ) ;
@@ -2915,19 +2936,17 @@ void pApplication::load_keylist( pPanel * p )
 
 void pApplication::rdisplay( const string& msg, bool subVars )
 {
-	int i  ;
-	int j  ;
-	int l  ;
-	int m  ;
+	int i ;
+	int j ;
+	int l ;
+	int m ;
 
 	string t ;
 
 	RC = 0 ;
 	l  = ds2d( p_poolMGR->get( errBlock, "ZSCRMAXW", SHARED ) ) ;
 	m  = ds2d( p_poolMGR->get( errBlock, "ZSCRMAXD", SHARED ) ) - 1 ;
-
-	if ( subVars ) { t = sub_vars( msg ) ; }
-	else           { t = msg             ; }
+	t  = subVars ? sub_vars( msg ) : msg ;
 
 	while ( true )
 	{
@@ -3060,21 +3079,14 @@ void pApplication::getmsg( const string& msg, const string& smsg, const string& 
 
 string pApplication::get_help_member( int row, int col )
 {
-	string fld ;
-	string paths ;
-
 	RC = 0 ;
 
-	fld = currPanel->field_getname( row, col ) ;
-
-	paths = get_search_path( s_ZPLIB ) ;
-
 	return "M("+ MSG.hlp+ ") " +
-	       "F("+ currPanel->get_field_help( fld )+ ") " +
+	       "F("+ currPanel->get_field_help( row, col )+ ") " +
 	       "P("+ currPanel->ZPHELP +") " +
 	       "A("+ ZAHELP +") " +
 	       "K("+ currPanel->KEYHELPN +") "+
-	       "PATHS("+paths+")" ;
+	       "PATHS("+ get_search_path( s_ZPLIB ) +")" ;
 }
 
 
@@ -3165,10 +3177,7 @@ bool pApplication::load_Message( const string& p_msg )
 				checkRCode( "Message file "+ filename +" is not a regular file" ) ;
 				return false ;
 			}
-			else
-			{
-				break ;
-			}
+			break ;
 		}
 	}
 	if ( j > i )
@@ -3190,6 +3199,7 @@ bool pApplication::load_Message( const string& p_msg )
 		checkRCode( "Error opening message file "+ filename ) ;
 		return false ;
 	}
+
 	while ( getline( messages, mline ) )
 	{
 		trim( mline ) ;
@@ -3619,7 +3629,7 @@ void pApplication::info()
 
 	llog( "-", "*************************************************************************************************************" << endl ) ;
 	llog( "-", "Application Information for "<< ZAPPNAME << endl ) ;
-	llog( "-", "                   Task ID: "<< taskID << endl ) ;
+	llog( "-", "                   Task ID: "<< taskId << endl ) ;
 	llog( "-", "          Shared Pool Name: "<< shrdPool << endl ) ;
 	llog( "-", "         Profile Pool Name: "<< ZZAPPLID << endl ) ;
 	llog( "-", " " << endl ) ;
@@ -3688,7 +3698,7 @@ void pApplication::closeTables()
 	for ( it = tablesOpen.begin() ; it != tablesOpen.end() ; it++ )
 	{
 		debug1( "Closing table " << it->first << endl ) ;
-		p_tableMGR->destroyTable( errBlock, taskid(), it->first ) ;
+		p_tableMGR->destroyTable( errBlock, it->first ) ;
 	}
 }
 
@@ -3707,7 +3717,7 @@ void pApplication::ispexec( const string& s )
 
 void pApplication::checkRCode( const string& s )
 {
-	// If the error panel is to be displayed, cancel CONTROL DISPLAY LOCK
+	// If the error panel is to be displayed, cancel CONTROL DISPLAY LOCK and remove any popup's
 
 	int RC2 ;
 
@@ -3731,6 +3741,7 @@ void pApplication::checkRCode( const string& s )
 		vreplace( "ZERRRC", d2ds( RC2 ) ) ;
 		ControlDisplayLock  = false ;
 		ControlErrorsReturn = true  ;
+		if ( addpop_active ) { rempop( "ALL" ) ; }
 		display( "PSYSER1" )  ;
 		errPanelissued = true ;
 		abend() ;
@@ -3740,7 +3751,7 @@ void pApplication::checkRCode( const string& s )
 
 void pApplication::checkRCode( errblock err )
 {
-	// If the error panel is to be displayed, cancel CONTROL DISPLAY LOCK
+	// If the error panel is to be displayed, cancel CONTROL DISPLAY LOCK and remove any popup's
 
 	// Format: msg1   header - call description resulting in the error
 	//         short  msg
@@ -3817,6 +3828,7 @@ void pApplication::checkRCode( errblock err )
 	}
 	ControlDisplayLock  = false ;
 	ControlErrorsReturn = true  ;
+	if ( addpop_active ) { rempop( "ALL" ) ; }
 	display( "PSYSER2" )  ;
 	errPanelissued = true ;
 	abend() ;
@@ -3837,7 +3849,7 @@ void pApplication::cleanup_default()
 
 void pApplication::cleanup()
 {
-	llog( "I", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskID << endl ) ;
+	llog( "I", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskId << endl ) ;
 	terminateAppl = true  ;
 	busyAppl      = false ;
 	llog( "I", "Returning to calling program." << endl ) ;
@@ -3847,12 +3859,13 @@ void pApplication::cleanup()
 
 void pApplication::abend()
 {
-	llog( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskID << " due to an abnormal condition" << endl ) ;
+	llog( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskId << " due to an abnormal condition" << endl ) ;
 	abnormalEnd   = true  ;
 	terminateAppl = true  ;
 	busyAppl      = false ;
 	SEL           = false ;
 	(this->*pcleanup)()   ;
+	abended       = true  ;
 	llog( "E", "Application entering wait state" << endl ) ;
 	boost::this_thread::sleep_for(boost::chrono::seconds(31536000)) ;
 }
@@ -3872,7 +3885,7 @@ void pApplication::uabend( const string& msgid, const string& e1, int callno )
 	getmsg( msgid, "ZERRSM", "ZERRLM" ) ;
 	if ( e1 != "" ) { vreplace( "ZERRLM",  e1 ) ; }
 
-	llog( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskID << " due to a user abend" << endl ) ;
+	llog( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskId << " due to a user abend" << endl ) ;
 
 	vreplace( "ZAPPNAME", ZAPPNAME ) ;
 	vreplace( "ZERRMSG", msgid )  ;
@@ -3889,6 +3902,7 @@ void pApplication::uabend( const string& msgid, const string& e1, int callno )
 	busyAppl      = false ;
 	SEL           = false ;
 	(this->*pcleanup)()   ;
+	abended       = true  ;
 	llog( "E", "Application entering wait state" << endl ) ;
 	boost::this_thread::sleep_for(boost::chrono::seconds(31536000)) ;
 }
@@ -3896,11 +3910,11 @@ void pApplication::uabend( const string& msgid, const string& e1, int callno )
 
 void pApplication::abendexc()
 {
-	llog( "E", "An unhandled exception has occured in application: "+ ZAPPNAME +" Taskid: " << taskID << endl ) ;
+	llog( "E", "An unhandled exception has occured in application: "+ ZAPPNAME +" Taskid: " << taskId << endl ) ;
 	if ( !abending )
 	{
-		(this->*pcleanup)() ;
 		abending = true     ;
+		(this->*pcleanup)() ;
 	}
 	else
 	{
@@ -3908,11 +3922,12 @@ void pApplication::abendexc()
 	}
 	exception_ptr ptr = current_exception() ;
 	llog( "E", "Exception: " << (ptr ? ptr.__cxa_exception_type()->name() : "Unknown" ) << endl ) ;
-	llog( "E", "Shutting down application: " << ZAPPNAME << " Taskid: " << taskID << endl ) ;
+	llog( "E", "Shutting down application: " << ZAPPNAME << " Taskid: " << taskId << endl ) ;
 	abnormalEnd   = true  ;
 	terminateAppl = true  ;
 	busyAppl      = false ;
 	SEL           = false ;
+	abended       = true  ;
 	llog( "E", "Application entering wait state" << endl ) ;
 	boost::this_thread::sleep_for(boost::chrono::seconds(31536000)) ;
 }
@@ -3920,19 +3935,20 @@ void pApplication::abendexc()
 
 void pApplication::set_forced_abend()
 {
-	llog( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskID << " due to a forced condition" << endl ) ;
+	llog( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskId << " due to a forced condition" << endl ) ;
 	abnormalEnd       = true  ;
 	abnormalEndForced = true  ;
 	terminateAppl     = true  ;
 	busyAppl          = false ;
 	SEL               = false ;
 	(this->*pcleanup)()       ;
+	abended           = true  ;
 }
 
 
 void pApplication::set_timeout_abend()
 {
-	llog( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskID << " due to a timeout condition" << endl ) ;
+	llog( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskId << " due to a timeout condition" << endl ) ;
 	abnormalEnd       = true  ;
 	abnormalEndForced = true  ;
 	abnormalTimeout   = true  ;
@@ -3940,6 +3956,7 @@ void pApplication::set_timeout_abend()
 	busyAppl          = false ;
 	SEL               = false ;
 	(this->*pcleanup)()       ;
+	abended           = true  ;
 }
 
 
@@ -3953,4 +3970,3 @@ void pApplication::closeLog()
 	llog( "I", "Closing application log" << endl ) ;
 	aplog.close() ;
 }
-

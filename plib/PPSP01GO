@@ -66,7 +66,9 @@ literal 25 2  NT "Press"
 literal 25 8  PS "ENTER"
 literal 25 14 NT "to make changes,"
 literal 25 31 PS "DEFAULTS"
-literal 25 40 NT "to restore defaults"
+literal 25 40 NT "to restore defaults,"
+literal 25 61 PS "RESET"
+literal 25 67 NT "for original values"
 
 )INCLUDE STD_PDC
 )INCLUDE RFS_PDC
@@ -75,13 +77,15 @@ literal 25 40 NT "to restore defaults"
 
 )PROC
 
-&ZCMD = TRANS( &ZCMD DEF,DEFAULTS *,* )
+&ZCMD = TRANS( &ZCMD DEF,DEFAULTS RES,RESET *,* )
 
-IF (VER(&ZCMD,LIST,DEFAULTS))
+IF (VER(&ZCMD,LIST,DEFAULTS,RESET))
 ELSE
     .MSG    = PSYS018
     .CURSOR = ZCMD
     EXIT
+
+IF ( &ZCMD EQ RESET ) EXIT
 
 &GOKLUSE = TRANS( &GOKLUSE &Z,&Z *,/ )
 &GOKLFAL = TRANS( &GOKLFAL &Z,&Z *,/ )
@@ -114,5 +118,6 @@ IF ( &GOPADC EQ &GODEL )
 
 FIELD( ZPS01001 ) VAR(ZCMD) VAL(>)
 FIELD( ZPS01002 ) VAR(ZCMD) VAL(DEFAULTS)
+FIELD( ZPS01003 ) VAR(ZCMD) VAL(RESET)
 
 )END

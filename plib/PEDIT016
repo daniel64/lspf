@@ -1,0 +1,32 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+Confirm cancel panel for editor PEDIT01
+)ENDCOMMENT
+
+)BODY HOME(ZCMD6) CMD(ZCMD6) WINDOW(57,11)
+
+literal  2    2       FP     "Command ===> "
+field    2   15  MAX  NEF     PAD(USER) ZCMD6
+
+literal  4    2       NT     "File has been changed"
+
+literal 6   2   CH "Instructions"
+literal 8   2   NT "Press"
+literal 8   8   ET "ENTER"
+literal 8   14  NT "key to confirm cancel and discard changes
+literal 10  2   NT "Enter"
+literal 10  8   ET "END"
+literal 10  12  NT "to return to edit session"
+
+)INIT
+
+&ZWINTTL = 'Confirm Cancel'
+
+)PROC
+if ( &ZCMD6 NE &Z)
+  .MSG    = PSYS018
+  .CURSOR = ZCMD6
+  EXIT
+
+)END

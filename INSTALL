@@ -7,16 +7,19 @@ To install:
 5)  Copy directories mlib, plib and tlib to the paths defined in MLIB, PLIB and TLIB in lspf.h if different.
 
 You can use comp1 to compile lspf.cpp, compsetup to compile setup.cpp and compapps for all applications in directory Apps
+This has been developed on Arch Linux - link options may vary (eg. if ncurses is built with --with-termlib add -ltinfo )
 
 Boost and ncurses required to compile lspf.cpp
+
 OOREXX required for POREXX1.cpp (OOREXX interface module for writing lspf applications in REXX) and PEDRXM1.cpp (edit
 macro interface module for writing edit macros in REXX)
+
 file required for PBRO01A.cpp as it is linked with -lmagic
 
 Run lspf in a terminal
 
 Works with:
-gcc 7.1.1
+gcc 7.2.0
 ncurses 6.0
-boost 1.63.0
+boost 1.65.0
 
