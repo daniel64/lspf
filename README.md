@@ -11,7 +11,7 @@ Other features include split screen, application stacking, keylists, reflists, c
 
 Screenshots:
 
-https://user-images.githubusercontent.com/15121632/32369290-942fdd3e-c080-11e7-908b-379ff2acdaef.png
+![Alt text](https://user-images.githubusercontent.com/15121632/32369290-942fdd3e-c080-11e7-908b-379ff2acdaef.png)
 
 https://user-images.githubusercontent.com/15121632/32369287-920be2d2-c080-11e7-936e-69664450d4aa.png
 
