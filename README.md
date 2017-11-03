@@ -9,6 +9,11 @@ This as been written as an exercise whilst learning C++ and OOP and I've put it 
 
 Other features include split screen, application stacking, keylists, reflists, command tables, field expansion, command retrieve, cursor-sensitive help, keylist help etc. (see Help)
 
+Screenshots:
+
 https://user-images.githubusercontent.com/15121632/32369290-942fdd3e-c080-11e7-908b-379ff2acdaef.png
+
 https://user-images.githubusercontent.com/15121632/32369287-920be2d2-c080-11e7-936e-69664450d4aa.png
+
 https://user-images.githubusercontent.com/15121632/32369287-920be2d2-c080-11e7-936e-69664450d4aa.png
+
