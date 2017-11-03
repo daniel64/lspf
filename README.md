@@ -15,5 +15,7 @@ Screenshots:
 
 ![Alt text](https://user-images.githubusercontent.com/15121632/32369287-920be2d2-c080-11e7-936e-69664450d4aa.png)
 
+![Alt text](https://user-images.githubusercontent.com/15121632/32378552-f01d5c62-c0a2-11e7-812a-66da7433f79e.png)
+
 ![Alt text](https://user-images.githubusercontent.com/15121632/32369293-966305f4-c080-11e7-977c-269c76c0dec6.png)
 
