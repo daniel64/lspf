@@ -39,6 +39,7 @@ literal 19 54 NT "to cancel copy"
 
 .NRET   = ON
 .NRET   = ZFILE2
+&ZCMD5  = &Z
 &ZFILE2 = &Z
 .CURSOR = ZFILE2
 

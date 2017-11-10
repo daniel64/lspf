@@ -53,7 +53,7 @@ pPanel::pPanel()
 	tb_scan     = false  ;
 	tb_lcol     = 0      ;
 	tb_lsz      = 0      ;
-	ff_screen   = false  ;
+	full_screen = false  ;
 	win_addpop  = false  ;
 	win_row     = 0      ;
 	win_col     = 0      ;
@@ -259,6 +259,13 @@ void pPanel::set_popup( int sp_row, int sp_col )
 }
 
 
+void pPanel::move_popup()
+{
+	mvwin( win, win_row, win_col )      ;
+	mvwin( bwin, win_row-1, win_col-1 ) ;
+}
+
+
 void pPanel::remove_popup()
 {
 	win_addpop = false ;
@@ -267,10 +274,32 @@ void pPanel::remove_popup()
 }
 
 
-void pPanel::move_popup()
+void pPanel::show_popup()
 {
-	mvwin( win, win_row, win_col )      ;
-	mvwin( bwin, win_row-1, win_col-1 ) ;
+	if ( win != pwin ) { return ; }
+
+	top_panel( bpanel ) ;
+	top_panel( panel )  ;
+}
+
+
+void pPanel::hide_popup()
+{
+	if ( win != pwin ) { return ; }
+
+	hide_panel( bpanel ) ;
+	hide_panel( panel )  ;
+}
+
+
+void pPanel::toggle_fscreen( bool sp_popup, int sp_row, int sp_col )
+{
+	full_screen = !full_screen ;
+
+	if ( !full_screen && sp_popup )
+	{
+		set_popup( sp_row, sp_col ) ;
+	}
 }
 
 
@@ -282,7 +311,7 @@ void pPanel::display_panel( errblock& err )
 
 	// Use fwin if no pwin exists, or no ADDPOP() has been done and remove the popup
 	// if no pwin exists, even if an ADDPOP() has been done (not exactly how real ISPF works).
-	// The RESIZE lspf command can also toggle full screen mode (BUG: not working properly yet)
+	// The RESIZE lspf command can also toggle full screen mode.
 
 	string winttl ;
 	string panttl ;
@@ -291,7 +320,7 @@ void pPanel::display_panel( errblock& err )
 
 	update_keylist_vars() ;
 
-	if ( win_addpop && pwin && !ff_screen )
+	if ( win_addpop && pwin && !full_screen )
 	{
 		win = pwin ;
 		if ( win != panel_window( panel ) )
@@ -306,7 +335,7 @@ void pPanel::display_panel( errblock& err )
 		if ( winttl != "" )
 		{
 			winttl = " "+ winttl +" " ;
-			mvwaddstr( bwin, 0, ( WSCRMAXW - winttl.size() ) / 2, winttl.c_str() ) ;
+			mvwaddstr( bwin, 0, ( win_width - winttl.size() ) / 2, winttl.c_str() ) ;
 		}
 		wattroff( bwin, cuaAttr[ AWF ] ) ;
 		top_panel( bpanel ) ;
@@ -1750,9 +1779,7 @@ void pPanel::create_pdc( errblock& err, const string& pline )
 		ab.push_back( t_abc ) ;
 	}
 
-	pdc t_pdc( pdc_name, pdc_run, pdc_parm, pdc_unavail ) ;
-
-	ab.at( i ).add_pdc( t_pdc ) ;
+	ab.at( i ).add_pdc( pdc( pdc_name, pdc_run, pdc_parm, pdc_unavail ) ) ;
 }
 
 
@@ -1803,7 +1830,7 @@ void pPanel::update_field_values( errblock& err )
 		}
 		if ( darea->size() > shadow->size() )
 		{
-			llog( "W", "Shadow variable '"+ sname +"' size is smaller than the data variable " << itd->first << " size.  Results are be unpredictable" << endl ) ;
+			llog( "W", "Shadow variable '"+ sname +"' size is smaller than the data variable " << itd->first << " size.  Results are unpredictable" << endl ) ;
 			llog( "W", "Data variable size   = " << darea->size() << endl ) ;
 			llog( "W", "Shadow variable size = " << shadow->size() << endl ) ;
 		}
@@ -1904,8 +1931,7 @@ void pPanel::cursor_to_field( int& RC1, string f_name, int f_pos )
 		{
 			p_col = 0 ;
 			p_row = 0 ;
-			if ( !isvalidName( f_name ) ) { RC1 = 20 ; }
-			else                          { RC1 = 12 ; }
+			RC1   = !isvalidName( f_name ) ? 20 : 12 ;
 		}
 		else
 		{
@@ -2639,6 +2665,7 @@ string pPanel::get_keylist( int entry )
 void pPanel::display_msg()
 {
 	int i     ;
+	int x_row ;
 	int w_row ;
 	int w_col ;
 	int w_depth ;
@@ -2677,7 +2704,9 @@ void pPanel::display_msg()
 		}
 		else
 		{
-			smwin = newwin( 1, MSG.smsg.size()+1, 1+win_row, (WSCRMAXW - MSG.smsg.size() - 1 + win_col) ) ;
+			x_row = ab.size() > 0 ? 2 : 0 ;
+			mvwaddstr( win, x_row, (WSCRMAXW - 25), "                         " ) ;
+			smwin = newwin( 1, MSG.smsg.size(), x_row+win_row, (WSCRMAXW - MSG.smsg.size() + win_col) ) ;
 			wattrset( smwin, cuaAttr[ MSG.type ] ) ;
 			mvwaddstr( smwin, 0, 0, MSG.smsg.c_str() ) ;
 		}
@@ -2830,7 +2859,7 @@ void pPanel::display_id()
 
 	if ( panarea != "" )
 	{
-		idwin   = newwin( 1, panarea.size(), win_row+2, win_col+0 ) ;
+		idwin   = newwin( 1, panarea.size(), ab.size() > 0 ? win_row+2 : win_row, win_col+1 ) ;
 		idpanel = new_panel( idwin )  ;
 		set_panel_userptr( idpanel, new panel_data( ZSCRNUM ) ) ;
 		wattrset( idwin, cuaAttr[ PI ] ) ;

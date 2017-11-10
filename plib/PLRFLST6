@@ -1,10 +1,11 @@
 )PANEL VERSION=1 FORMAT=1
 )COMMENT
- Browse entry panel
+ Personal reflist for dslist filter
 )ENDCOMMENT
+
 )BODY
 
-PanelTitle "Personal File List"
+PanelTitle "Personal File Lists"
 
 scrollOn
 
@@ -14,16 +15,14 @@ field    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
 literal  4  MAX-15  FP "Scroll ===> "
 field    4  MAX-3  4 NEF  NONE ZSCROLL
 
-literal  6  2       FP "Active:"
-field    6  10  8 VOI  NONE LCURTB
+literal  6  2          FP  "Actions: S=Select"
 
-literal  7  2       FP  "Action: O=Open A=Save As D=Delete E=Edit L=DSLIST S=Set Active"
+literal  8   2      CH    "S Name     Description"
+literal  8   MAX-30 CH    "Created     Updated"
+literal   9  2      CH    EXPAND "-"
 
-literal  9   2      CH    "S Name     Description"
-literal  9   MAX-30 CH    "Created     Updated"
-literal  10  2      CH    EXPAND "-"
-
-tbmodel  11   MAX
+tbmodel  10   MAX
+tbmodel  10   MAX
 tbfield  2    1       NEF   PAD(USER),CAPS(ON) ASEL
 tbfield  ++1  8       VOI   NONE ACURTB
 tbfield  ++1  MAX-32  VOI   NONE AFLDESCP
@@ -31,9 +30,7 @@ tbfield  ++1  MAX-20  VOI   NONE AFLCTIME
 tbfield  ++1  MAX     VOI   NONE AFLUTIME
 
 )INCLUDE STD_PDC
-pdc  Options  "Personal Settings"   ACTION RUN(ISRROUTE) PARM("SELECT PGM(PLRFLST1) PARM(US1) NEWAPPL(ISP)")
 )INCLUDE HLP_PDC
-
 
 )INIT
 VGET ZSCROLL PROFILE
@@ -45,7 +42,8 @@ IF (&ZCMD NE &Z )
    .CURSOR = ZCMD
    EXIT
 
-VER (&ASEL,LIST,A,D,E,L,O,S)
+VER (&ASEL,LIST,S)
+IF (&ASEL = 'S' ) &ASEL = 'L'
 
 IF (.RESP = END AND .MSG = &Z ) VPUT ZSCROLL PROFILE
 )END

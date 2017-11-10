@@ -25,7 +25,7 @@ class PPSP01A : public pApplication
 		void application() ;
 
 	private:
-		void show_log( string fileName ) ;
+		void show_log( const string& fileName ) ;
 
 		void read_file( const string& fileName ) ;
 		bool file_has_changed( const string& fileName, int& fsize ) ;
@@ -72,6 +72,7 @@ class PPSP01A : public pApplication
 		bool   showMod  ;
 		bool   showTask ;
 
+		void dsList( const string& ) ;
 		void lspfSettings()   ;
 		void pfkeySettings()  ;
 		void colourSettings() ;
@@ -94,4 +95,4 @@ class PPSP01A : public pApplication
 		void viewKeylist( const string&, const string& ) ;
 		void createKeyTable( string )  ;
 
-};
+} ;

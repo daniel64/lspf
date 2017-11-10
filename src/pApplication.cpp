@@ -53,6 +53,7 @@ pApplication::pApplication()
 	abnormalTimeout        = false  ;
 	rawOutput              = false  ;
 	reloadCUATables        = false  ;
+	refreshlScreen         = false  ;
 	rexxName               = ""     ;
 	NEWPOOL                = false  ;
 	PASSLIB                = false  ;
@@ -126,22 +127,13 @@ void pApplication::taskid( int taskid )
 
 void pApplication::init()
 {
-	// Before being dispatched in its own thread, set the search paths and addpop status
-	// if this has not been invoked with the SUSPEND option on the SELECT command
+	// Before being dispatched in its own thread, set the search paths.
 
 	ZPLIB    = p_poolMGR->get( errBlock, "ZPLIB", PROFILE ) ;
 	ZPLIB    = p_poolMGR->get( errBlock, "ZPLIB", PROFILE ) ;
 	ZTLIB    = p_poolMGR->get( errBlock, "ZTLIB", PROFILE ) ;
 	ZMLIB    = p_poolMGR->get( errBlock, "ZMLIB", PROFILE ) ;
 	ZORXPATH = p_poolMGR->get( errBlock, "ZORXPATH", PROFILE ) ;
-
-	if ( !SUSPEND )
-	{
-		lscreen_num   = ds2d( p_poolMGR->get( errBlock, "ZSCRNUM", SHARED ) ) ;
-		addpop_row    = ds2d( p_poolMGR->get( errBlock, lscreen_num, "ZPOPROW" ) ) ;
-		addpop_col    = ds2d( p_poolMGR->get( errBlock, lscreen_num, "ZPOPCOL" ) ) ;
-		addpop_active = p_poolMGR->get( errBlock, lscreen_num, "ZADDPOP" ) == "Y"  ;
-	}
 
 	llog( "I", "Initialisation complete" << endl ; )
 }
@@ -301,14 +293,10 @@ void pApplication::restore_Zvars( int screenid )
 	}
 
 	p_poolMGR->put( err, "ZSCRNAME", ZSCRNAME, SHARED ) ;
-
-	p_poolMGR->put( err, screenid, "ZPOPROW", d2ds( addpop_row ) ) ;
-	p_poolMGR->put( err, screenid, "ZPOPCOL", d2ds( addpop_col ) ) ;
-	p_poolMGR->put( err, screenid, "ZADDPOP", addpop_active ? "Y" : "N" ) ;
 }
 
 
-void pApplication::refresh_id()
+void pApplication::display_id()
 {
 	if ( currPanel ) { currPanel->display_id() ; }
 }
@@ -359,6 +347,12 @@ void pApplication::set_msg1( const slmsg& t, string msgid, bool Immed )
 }
 
 
+void pApplication::clear_msg()
+{
+	currPanel->clear_msg() ;
+}
+
+
 bool pApplication::nretriev_on()
 {
 	if ( currPanel ) { return currPanel->get_nretriev() ; }
@@ -370,6 +364,14 @@ string pApplication::get_nretfield()
 {
 	if ( currPanel ) { return currPanel->get_nretfield() ; }
 	return "" ;
+}
+
+
+void pApplication::toggle_fscreen()
+{
+	currPanel->toggle_fscreen( addpop_active, addpop_row, addpop_col ) ;
+	currPanel->display_panel( errBlock ) ;
+	return ;
 }
 
 
@@ -506,6 +508,8 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 		wait_event() ;
 		ControlDisplayLock = false ;
 		ControlNonDispl    = false ;
+		refreshlScreen     = false ;
+		currPanel->hide_popup()    ;
 		currPanel->display_panel_update( errBlock ) ;
 		if ( errBlock.error() )
 		{
@@ -1362,9 +1366,14 @@ const string& pApplication::vslist( vdType defn )
 
 void pApplication::addpop( const string& a_fld, int a_row, int a_col )
 {
-	//  Create pop-up window and set row/col for the next panel display.  If addpop() is already active, store old values for next rempop()
+	//  Create pop-up window and set row/col for the next panel display.
+	//  If addpop() is already active, store old values for next rempop()
+
 	//  Position of addpop is relative to row=1, col=3 or the previous addpop() position for this logical screen.
 	//  Defaults are 0,0 giving row=1, col=3 (or 2,4 when starting at 1,1)
+
+	//  Force a refresh of the screen in case the same window has been displayed after another addpop.  This can
+	//  leave parts of the old window on the screen. (save/restore panel stack by the logical screen)
 
 	//  RC = 0  Normal completion
 	//  RC = 12 No panel displayed before addpop() service when using field parameter
@@ -1394,29 +1403,21 @@ void pApplication::addpop( const string& a_fld, int a_row, int a_col )
 		a_row += p_row ;
 		a_col += p_col - 4 ;
 	}
-	else
-	{
-		a_row += ds2d( p_poolMGR->get( errBlock, lscreen_num, "ZPOPROW" ) ) ;
-		a_col += ds2d( p_poolMGR->get( errBlock, lscreen_num, "ZPOPCOL" ) ) ;
-	}
+
 	if ( addpop_active )
 	{
 		addpop_stk.push( addpop_row ) ;
 		addpop_stk.push( addpop_col ) ;
+		a_row += addpop_row ;
+		a_col += addpop_col ;
 	}
 
 	addpop_active = true ;
 	addpop_row = (a_row <  0 ) ? 1 : a_row + 2 ;
 	addpop_col = (a_col < -1 ) ? 2 : a_col + 4 ;
 
-	p_poolMGR->put( errBlock, lscreen_num, "ZPOPROW", d2ds( addpop_row ) ) ;
-	if ( !errBlock.RC0() ) { RC = 20 ; return ; }
-
-	p_poolMGR->put( errBlock, lscreen_num, "ZPOPCOL", d2ds( addpop_col ) ) ;
-	if ( !errBlock.RC0() ) { RC = 20 ; return ; }
-
-	p_poolMGR->put( errBlock, lscreen_num, "ZADDPOP", "Y" ) ;
-	if ( !errBlock.RC0() ) { RC = 20 ; return ; }
+	if ( currPanel ) { currPanel->show_popup() ; }
+	refreshlScreen = true ;
 }
 
 
@@ -1431,6 +1432,13 @@ void pApplication::rempop( const string& r_all )
 	const string e1 = "REMPOP error" ;
 
 	RC = 0 ;
+
+	if ( r_all != "" && r_all != "ALL" )
+	{
+		errBlock.setcall( e1, "PSYE022U", r_all ) ;
+		checkRCode( errBlock ) ;
+		return ;
+	}
 
 	if ( !addpop_active )
 	{
@@ -1455,7 +1463,7 @@ void pApplication::rempop( const string& r_all )
 			addpop_col    = 0 ;
 		}
 	}
-	else if ( r_all == "ALL" )
+	else
 	{
 		while ( !addpop_stk.empty() )
 		{
@@ -1465,21 +1473,6 @@ void pApplication::rempop( const string& r_all )
 		addpop_row    = 0 ;
 		addpop_col    = 0 ;
 	}
-	else
-	{
-		errBlock.setcall( e1, "PSYE022U", r_all ) ;
-		checkRCode( errBlock ) ;
-		return ;
-	}
-
-	p_poolMGR->put( errBlock, lscreen_num, "ZPOPROW", d2ds( addpop_row ) ) ;
-	if ( !errBlock.RC0() ) { RC = 20 ; return ; }
-
-	p_poolMGR->put( errBlock, lscreen_num, "ZPOPCOL", d2ds( addpop_col ) ) ;
-	if ( !errBlock.RC0() ) { RC = 20 ; return ; }
-
-	p_poolMGR->put( errBlock, lscreen_num, "ZADDPOP", addpop_active ? "Y" : "N" ) ;
-	if ( !errBlock.RC0() ) { RC = 20 ; return ; }
 }
 
 
@@ -2117,6 +2110,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 	}
 
 	if ( p_cursor == "" ) { p_cursor = currtbPanel->Home ; }
+
 	if ( addpop_active )  { currtbPanel->set_popup( addpop_row, addpop_col ) ; }
 	else                  { currtbPanel->remove_popup()                      ; }
 
@@ -2183,6 +2177,8 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 			wait_event() ;
 			ControlDisplayLock = false ;
 			ControlNonDispl    = false ;
+			refreshlScreen     = false ;
+			currtbPanel->hide_popup()  ;
 			currtbPanel->clear_msg() ;
 			currtbPanel->CURFLD = "" ;
 			currtbPanel->display_panel_update( errBlock ) ;

@@ -43,10 +43,12 @@ class PFLST0A : public pApplication
 
 		vector<string> SearchList ;
 		bool   UseSearch ;
+		bool   UseList   ;
 
 		int    CRP ;
 		string MSG ;
 		string RSN ;
+		string PssList ;
 
 		string ZPATH  ;
 		string ZDIR   ;

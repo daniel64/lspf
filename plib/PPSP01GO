@@ -59,7 +59,7 @@ field    20  38  4 CEF PAD(USER),CAPS(ON) GOSCMD3
 
 literal  14  60    ET    "Screen"
 literal  15  62    FP    "Input field pad character ."
-field    15  90  1 CEF    CAPS(ON)  GOPADC
+field    15  90  1 CEF    CAPS(ON) GOPADC
 
 literal 23 2  CH "Instructions"
 literal 25 2  NT "Press"

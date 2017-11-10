@@ -30,16 +30,17 @@ class PLRFLST1 : public pApplication
 		void OpenTableUP() ;
 		void CloseTable()  ;
 
-		void OpenActiveFList( string ) ;
-		void AddReflistEntry( string ) ;
-		void PersonalFList() ;
-		void OpenFileList( string )  ;
-		void EditFileList( string )  ;
-		void RetrieveEntry( string ) ;
-		void createDefaultTable()    ;
+		void   OpenActiveFList( const string& ) ;
+		void   AddReflistEntry( const string& ) ;
+		void   PersonalFList( const string& ) ;
+		void   OpenFileList( const string& )  ;
+		string StoreFileList( const string& ) ;
+		void   EditFileList( const string& )  ;
+		void   RetrieveEntry( string ) ;
+		void   createDefaultTable()    ;
 
 		void userSettings() ;
-		void setRefMode( string ) ;
+		void setRefMode( const string& ) ;
 
 		string ZCURTB   ;
 		string FLADESCP ;

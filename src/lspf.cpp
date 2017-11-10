@@ -525,6 +525,11 @@ void mainLoop()
 					currAppl->set_cursor( row, col ) ;
 					ResumeApplicationAndWait()       ;
 					if ( currAppl->reloadCUATables ) { loadCUATables() ; }
+					if ( currAppl->do_refresh_lscreen() )
+					{
+						currScrn->save_panel_stack() ;
+						currScrn->restore_panel_stack() ;
+					}
 					currAppl->get_cursor( row, col )  ;
 					currScrn->set_row_col( row, col ) ;
 					while ( currAppl->terminateAppl )
@@ -668,7 +673,7 @@ void mainLoop()
 					{
 						issueMessage( "PSYS014" ) ;
 					}
-					currAppl->refresh_id() ;
+					currAppl->display_id() ;
 				}
 				else if ( ZCOMMAND == "REFRESH" )
 				{
@@ -683,8 +688,7 @@ void mainLoop()
 				}
 				else if ( ZCOMMAND == "RESIZE" )
 				{
-					currAppl->currPanel->toggle_fscreen()     ;
-					currAppl->currPanel->display_panel( err ) ;
+					currAppl->toggle_fscreen() ;
 				}
 				else if ( ZCOMMAND == ".RELOAD" )
 				{
@@ -727,7 +731,7 @@ void mainLoop()
 					{
 						issueMessage( "PSYS013" ) ;
 					}
-					currAppl->refresh_id() ;
+					currAppl->display_id() ;
 				}
 				else if ( ZCOMMAND == ".SHELL" )
 				{
@@ -874,7 +878,7 @@ void mainLoop()
 					{
 						issueMessage( "PSYS012F" ) ;
 					}
-					currAppl->refresh_id() ;
+					currAppl->display_id() ;
 				}
 				currAppl->get_home( row, col ) ;
 				currScrn->set_row_col( row, col ) ;
@@ -963,19 +967,27 @@ void processAction( uint row, uint col, int c, bool& passthru )
 	{
 		if ( wmPending )
 		{
+			currAppl->clear_msg() ;
 			currScrn->save_panel_stack() ;
 			currAppl->rempop() ;
 			currAppl->addpop( "", row-1, col-3 ) ;
 			currAppl->movepop() ;
 			currScrn->restore_panel_stack() ;
 			wmPending = false ;
+			passthru  = false ;
+			ZCOMMAND  = "NOP" ;
+			currAppl->currPanel->get_cursor( row, col ) ;
+			currScrn->set_row_col( row, col ) ;
+			currAppl->display_pd() ;
+			currAppl->display_id() ;
+			return ;
 		}
 		else if ( currAppl->currPanel->on_border_line( row, col ) )
 		{
 			issueMessage( "PSYS015" ) ;
 			ZCOMMAND  = "NOP" ;
-			passthru  = false ;
 			wmPending = true  ;
+			passthru  = false ;
 			return ;
 		}
 		else if ( currAppl->currPanel->hide_msg_window( row, col ) )
@@ -1032,7 +1044,12 @@ void processAction( uint row, uint col, int c, bool& passthru )
 
 	currAppl->currPanel->hide_pd() ;
 
-	wmPending   = false ;
+	if ( wmPending )
+	{
+		wmPending = false ;
+		currAppl->clear_msg() ;
+	}
+
 	addRetrieve = true  ;
 	delm        = p_poolMGR->get( err, "ZDEL", PROFILE ) ;
 
@@ -1441,21 +1458,14 @@ void startApplication( selobj SEL, bool nScreen )
 	uint row    ;
 	uint col    ;
 
-	string m    ;
-	string p    ;
-	string t    ;
 	string opt  ;
 	string rest ;
-	string tMSGID1 ;
 
-	bool ldm    ;
-	bool ldp    ;
-	bool ldt    ;
 	bool setMSG ;
 
-	slmsg tMSG1 ;
-
 	errblock err ;
+
+	pApplication * oldAppl = currAppl ;
 
 	boost::thread * pThread ;
 
@@ -1498,6 +1508,7 @@ void startApplication( selobj SEL, bool nScreen )
 		errorScreen( 1, "Application '"+ SEL.PGM +"' not found" ) ;
 		return ;
 	}
+
 	if ( !apps[ SEL.PGM ].dlopened )
 	{
 		if ( !loadDynamicClass( SEL.PGM ) )
@@ -1509,22 +1520,10 @@ void startApplication( selobj SEL, bool nScreen )
 
 	if ( nScreen && !createLogicalScreen() ) { return ; }
 
-	if ( SEL.PASSLIB || SEL.NEWAPPL == "" )
-	{
-		debug1( "PASSLIB or no NEWAPPL specifed on start application.  Saving LIBDEF status" << endl ) ;
-       // todo  m   = currAppl->ZMUSER ;
-       //       p   = currAppl->ZPUSER ;
-       //       t   = currAppl->ZTUSER ;
-		ldm = currAppl->libdef_muser ;
-		ldp = currAppl->libdef_puser ;
-		ldt = currAppl->libdef_tuser ;
-	}
 	currAppl->store_scrname() ;
 	setMSG = currAppl->setMSG ;
 	if ( setMSG )
 	{
-		tMSGID1 = currAppl->getmsgid1() ;
-		tMSG1   = currAppl->getmsg1()   ;
 		currAppl->setMSG = false        ;
 	}
 
@@ -1563,17 +1562,25 @@ void startApplication( selobj SEL, bool nScreen )
 	currAppl->shrdPool = p_poolMGR->getShrdPool() ;
 	currAppl->init() ;
 
+	if ( !SEL.SUSPEND )
+	{
+		currAppl->set_addpop_row( oldAppl->get_addpop_row() ) ;
+		currAppl->set_addpop_col( oldAppl->get_addpop_col() ) ;
+		currAppl->set_addpop_act( oldAppl->get_addpop_act() ) ;
+	}
+
 	if ( SEL.PASSLIB || SEL.NEWAPPL == "" )
 	{
 		debug1( "PASSLIB or no NEWAPPL specifed on start application.  Restoring LIBDEF status to new application." << endl ) ;
-  //  todo      currAppl->ZMUSER = m ;
-  //            currAppl->ZPUSER = p ;
-  //            currAppl->ZTUSER = t ;
-		currAppl->libdef_muser = ldm ;
-		currAppl->libdef_puser = ldp ;
-		currAppl->libdef_tuser = ldt ;
+  //  todo      currAppl->ZMUSER = oldAppl->ZMUSER ;
+  //            currAppl->ZPUSER = oldAppl->ZPUSER ;
+  //            currAppl->ZTUSER = oldAppl->ZTUSER ;
+		currAppl->libdef_muser = oldAppl->libdef_muser ;
+		currAppl->libdef_puser = oldAppl->libdef_puser ;
+		currAppl->libdef_tuser = oldAppl->libdef_tuser ;
 	}
-	if ( setMSG ) { currAppl->set_msg1( tMSG1, tMSGID1 ) ; }
+
+	if ( setMSG ) { currAppl->set_msg1( oldAppl->getmsg1(), oldAppl->getmsgid1() ) ; }
 
 	pThread = new boost::thread(boost::bind(&pApplication::application, currAppl ));
 
@@ -1867,7 +1874,7 @@ void terminateApplication()
 
 	llog( "I", "Application terminatation of "+ ZAPPNAME +" completed.  Current application is "+ currAppl->ZAPPNAME << endl ) ;
 	currAppl->restore_Zvars( currScrn->screenId ) ;
-	currAppl->refresh_id() ;
+	currAppl->display_id() ;
 	currScrn->set_row_col( row, col ) ;
 }
 

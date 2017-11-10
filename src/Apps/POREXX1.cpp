@@ -214,15 +214,14 @@ RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext *context,
 
 	void * vptr ;
 
-	string s1 = context->CString( address ) ;
-	string s2 = context->CString( command ) ;
+	string s = context->CString( command ) ;
 
 	vptr = context->GetApplicationData() ;
 	pApplication * thisAppl = static_cast<pApplication *>(vptr) ;
 
 	getAllRexxVariables( thisAppl ) ;
 
-	thisAppl->ispexec( s2 ) ;
+	thisAppl->ispexec( s ) ;
 	sRC = thisAppl->RC      ;
 
 	setAllRexxVariables( thisAppl ) ;
@@ -242,9 +241,8 @@ int getAllRexxVariables( pApplication * thisAppl )
 
 	string n  ;
 	string v  ;
-	string vl ;
 
-	vl = thisAppl->vilist() ;
+	const string& vl = thisAppl->vilist() ;
 
 	SHVBLOCK var ;
 	while ( true )
@@ -287,16 +285,18 @@ int setAllRexxVariables( pApplication * thisAppl )
 	// Executed before returning to the REXX procedure after a call to the command handler
 	// and after all lspf functions have been called
 
+	// Note: vslist and vilist return the same variable reference
+
 	int i  ;
 	int ws ;
 	int rc ;
 
-	string vl ;
+	const string& vl = thisAppl->vslist() ;
+
 	string w  ;
 	string vi ;
 	string * vs ;
 
-	vl = thisAppl->vslist() ;
 	ws = words( vl ) ;
 	for ( i = 1 ; i <= ws ; i++ )
 	{
@@ -304,7 +304,8 @@ int setAllRexxVariables( pApplication * thisAppl )
 		thisAppl->vcopy( w, vs, LOCATE ) ;
 		rc = setRexxVariable( w, (*vs) ) ;
 	}
-	vl = thisAppl->vilist() ;
+
+	thisAppl->vilist() ;
 	ws = words( vl ) ;
 	for ( i = 1 ; i <= ws ; i++ )
 	{
@@ -312,6 +313,7 @@ int setAllRexxVariables( pApplication * thisAppl )
 		thisAppl->vcopy( w, vi, MOVE ) ;
 		rc = setRexxVariable( w, vi ) ;
 	}
+
 	return rc ;
 }
 

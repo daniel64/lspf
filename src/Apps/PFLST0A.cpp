@@ -29,6 +29,7 @@
 /* If invoked with a PARM of VIEW file, view file                                                           */
 /* If invoked with a PARM of path, list path                                                                */
 /* If invoked with a PARM of INFO, list info for entry                                                      */
+/* If invoked with a PARM of LIST, use passed list to create a file list instead of listing a directory     */
 /* If invoked with a PARM of EXPAND, will expand the passed directory name to the next level                */
 /*                SUBPARM of ALL - return all types (fully qualified)                                       */
 /*                SUBPARM of DO1 - return only directories                                                  */
@@ -134,6 +135,7 @@ void PFLST0A::application()
 	string w3       ;
 	string t        ;
 	string filter   ;
+	string panl     ;
 
 	string CONDOFF  ;
 	string NEMPTOK  ;
@@ -159,6 +161,8 @@ void PFLST0A::application()
 
 	vget( "ZHOME", SHARED ) ;
 	vget( "AFHIDDEN", PROFILE ) ;
+
+	UseList = false ;
 
 	if ( PARM == "" )
 	{
@@ -208,7 +212,16 @@ void PFLST0A::application()
 			cleanup() ;
 			return    ;
 		}
-		else { ZPATH = PARM ; }
+		else if ( w1 == "LIST" )
+		{
+			UseList = true ;
+			vreplace( "LSTNAME", word( PARM, 2 ) ) ;
+			PssList = word( PARM, 3 ) ;
+		}
+		else
+		{
+			ZPATH = PARM ;
+		}
 	}
 
 	filter = "" ;
@@ -223,7 +236,7 @@ void PFLST0A::application()
 	}
 	if ( !is_directory( ZPATH ) ) { ZPATH = ZHOME ; }
 
-	OSEL   = ""    ;
+	OSEL   = ""   ;
 	DSLIST = "DSLST" + right( d2ds( taskid() ), 3, '0' ) ;
 	MSG    = ""  ;
 
@@ -235,6 +248,8 @@ void PFLST0A::application()
 
 	createFileList1( filter ) ;
 	if ( RC > 0 ) { setmsg( "FLST015" ) ; }
+
+	panl = UseList ? "PFLST0A9" : "PFLST0A1" ;
 
 	while ( true )
 	{
@@ -252,7 +267,7 @@ void PFLST0A::application()
 		OPATH   = ZPATH    ;
 		OHIDDEN = AFHIDDEN ;
 		if ( MSG == "" ) { ZCMD  = "" ; }
-		tbdispl( DSLIST, "PFLST0A1", MSG, "ZCMD" ) ;
+		tbdispl( DSLIST, panl, MSG, "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 		w1  = upper( word( ZCMD, 1 ) ) ;
@@ -322,8 +337,15 @@ void PFLST0A::application()
 		{
 			if ( SEL == "=" && OSEL != "" ) { SEL = OSEL ; }
 			OSEL = SEL ;
-			if ( ZPATH.back() == '/' ) { entry = ZPATH + ENTRY       ; }
-			else                       { entry = ZPATH + "/" + ENTRY ; }
+			if ( UseList )
+			{
+				entry = ENTRY ;
+			}
+			else
+			{
+				if ( ZPATH.back() == '/' ) { entry = ZPATH + ENTRY       ; }
+				else                       { entry = ZPATH + "/" + ENTRY ; }
+			}
 			if ( SEL == ""  ) {}
 			else if ( SEL == "I" )
 			{
@@ -730,6 +752,8 @@ void PFLST0A::application()
 		}
 	}
 	tbend( DSLIST ) ;
+	if ( UseList ) { remove( PssList ) ; }
+
 	cleanup() ;
 	return    ;
 }
@@ -738,10 +762,12 @@ void PFLST0A::application()
 void PFLST0A::createFileList1( string filter )
 {
 	int i    ;
+
 	string p ;
 	string t ;
 	string pat ;
 	string str ;
+	string rest ;
 
 	char c    ;
 	bool fGen ;
@@ -769,18 +795,30 @@ void PFLST0A::createFileList1( string filter )
 
 	vec v;
 
-	try
+	if ( UseList )
 	{
-		copy( directory_iterator( ZPATH ), directory_iterator(), back_inserter( v ) ) ;
+		std::ifstream fin( PssList.c_str() ) ;
+		while ( getline( fin, t ) )
+		{
+			v.push_back( t ) ;
+		}
+		fin.close() ;
 	}
-	catch ( const filesystem_error& ex )
+	else
 	{
-		ZRESULT = "List Error" ;
-		RC      = 16 ;
-		llog( "E", "Error listing directory " << ex.what() << endl ) ;
-		return ;
+		try
+		{
+			copy( directory_iterator( ZPATH ), directory_iterator(), back_inserter( v ) ) ;
+		}
+		catch ( const filesystem_error& ex )
+		{
+			ZRESULT = "List Error" ;
+			RC      = 16 ;
+			llog( "E", "Error listing directory " << ex.what() << endl ) ;
+			return ;
+		}
+		sort( v.begin(), v.end() ) ;
 	}
-	sort( v.begin(), v.end() ) ;
 
 	if ( fGen )
 	{
@@ -805,10 +843,11 @@ void PFLST0A::createFileList1( string filter )
 
 	for ( vec::const_iterator it (v.begin()) ; it != v.end() ; ++it )
 	{
-		ENTRY   = (*it).string() ;
-		p       = ENTRY          ;
-		i       = lastpos( "/", ENTRY ) + 1 ;
-		ENTRY   = substr( ENTRY, i ) ;
+		ENTRY = (*it).string() ;
+		p     = ENTRY          ;
+		i     = lastpos( "/", ENTRY ) + 1 ;
+		rest  = ENTRY.substr( 0, i-1 ) ;
+		ENTRY = substr( ENTRY, i )   ;
 		if ( t != "/" && ENTRY[ 0 ] == '.' ) { continue ; }
 		if ( fGen )
 		{
@@ -851,6 +890,7 @@ void PFLST0A::createFileList1( string filter )
 		time_info = gmtime( &(results.st_mtime) ) ;
 		strftime( buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", time_info )  ; buf[ 19 ]  = 0x00 ; MODDATE = buf ;
 		SEL       = ""  ;
+		if ( UseList ) { ENTRY = rest + ENTRY ; }
 		tbadd( DSLIST ) ;
 	}
 	tbtop( DSLIST ) ;

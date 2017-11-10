@@ -210,6 +210,12 @@ main()
 	ZCTDESC  = "Keylist utility"  ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
+	ZCTVERB  = "DSLIST" ;
+	ZCTTRUNC = "0"      ;
+	ZCTACT   = "SELECT PGM(PPSP01A) PARM(DSL &ZPARM) SCRNAME(DSLIST) SUSPEND" ;
+	ZCTDESC  = "File list utility"  ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
 	ZCTVERB  = "KEYS" ;
 	ZCTTRUNC = "0"    ;
 	ZCTACT   = "SELECT PGM(PPSP01A) PARM(KEYS) NEWPOOL SCRNAME(KEYS) SUSPEND" ;

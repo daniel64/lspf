@@ -12,7 +12,7 @@ PanelTitle "Test Non-Keyed Table and TB Functions"
 literal   4    2          FP  "Command ===> "
 field     4   15  MAX-17  NEF     CAPS(ON),PAD(USER) ZCMD
 
-literal   4   MAX-15       FP  "SCROLL ===> "
+literal   4   MAX-15       FP  "Scroll ===> "
 field     4   MAX-3    4   NEF     CAPS(ON)  ZSCROLL
 
 literal   6   MAX-36         FP  "TIME: "

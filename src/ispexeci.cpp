@@ -428,17 +428,7 @@ void execiRDisplay( pApplication * thisAppl, const string& s, errblock& err )
 
 void execiRempop( pApplication * thisAppl, const string& s, errblock& err )
 {
-	string ap_all ;
-
-	ap_all = upper( subword( s, 2 ) ) ;
-
-	if ( ap_all != "" && ap_all != "ALL" )
-	{
-		err.seterrid( "PSYE019C" ) ;
-		return ;
-	}
-
-	thisAppl->rempop( ap_all ) ;
+	thisAppl->rempop( upper( subword( s, 2 ) ) ) ;
 	return ;
 }
 
@@ -493,7 +483,6 @@ void execiTBAdd( pApplication * thisAppl, const string& s, errblock& err )
 	string str        ;
 	string tb_name    ;
 	string tb_namelst ;
-	string tb_order   ;
 	string tb_numrows ;
 
 	tb_name = upper( word( s, 2 ) )    ;
@@ -506,14 +495,7 @@ void execiTBAdd( pApplication * thisAppl, const string& s, errblock& err )
 	if ( err.error() ) { return ; }
 	if ( tb_numrows == "" ) { tb_numrows = "1" ; }
 
-	tb_order = str ;
-	if ( tb_order != "" && tb_order != "ORDER" )
-	{
-		err.seterrid( "PSYE019C" ) ;
-		return ;
-	}
-
-	thisAppl->tbadd( tb_name, tb_namelst, tb_order, ds2d( tb_numrows ) ) ;
+	thisAppl->tbadd( tb_name, tb_namelst, str, ds2d( tb_numrows ) ) ;
 	return ;
 }
 
@@ -525,7 +507,6 @@ void execiTBBottom( pApplication * thisAppl, const string& s, errblock& err )
 	string tb_savenm ;
 	string tb_crpnm  ;
 	string tb_rowid  ;
-	string tb_noread ;
 
 	tb_name = upper( word( s, 2 ) )    ;
 	str     = upper( subword( s, 3 ) ) ;
@@ -539,14 +520,7 @@ void execiTBBottom( pApplication * thisAppl, const string& s, errblock& err )
 	tb_crpnm = parseString( err, str, "POSITION()" ) ;
 	if ( err.error() ) { return ; }
 
-	tb_noread = str ;
-	if ( tb_noread != "" && tb_noread != "NOREAD" )
-	{
-		err.seterrid( "PSYE019C" ) ;
-		return ;
-	}
-
-	thisAppl->tbbottom( tb_name, tb_savenm, tb_rowid, tb_noread, tb_crpnm ) ;
+	thisAppl->tbbottom( tb_name, tb_savenm, tb_rowid, str, tb_crpnm ) ;
 	return ;
 }
 
@@ -763,7 +737,6 @@ void execiTBGet( pApplication * thisAppl, const string& s, errblock& err )
 	string tb_savenm ;
 	string tb_crpnm  ;
 	string tb_rowid  ;
-	string tb_noread ;
 
 	tb_name = upper( word( s, 2 ) )    ;
 	str     = upper( subword( s, 3 ) ) ;
@@ -777,14 +750,7 @@ void execiTBGet( pApplication * thisAppl, const string& s, errblock& err )
 	tb_crpnm = parseString( err, str, "POSITION()" ) ;
 	if ( err.error() ) { return ; }
 
-	tb_noread = str ;
-	if ( tb_noread != "" && tb_noread != "NOREAD" )
-	{
-		err.seterrid( "PSYE019C" ) ;
-		return ;
-	}
-
-	thisAppl->tbget( tb_name, tb_savenm, tb_rowid, tb_noread, tb_crpnm ) ;
+	thisAppl->tbget( tb_name, tb_savenm, tb_rowid, str, tb_crpnm ) ;
 	return ;
 }
 
@@ -794,7 +760,6 @@ void execiTBMod( pApplication * thisAppl, const string& s, errblock& err )
 	string str       ;
 	string tb_name   ;
 	string tb_savenm ;
-	string tb_order  ;
 
 	tb_name = upper( word( s, 2 ) )    ;
 	str     = upper( subword( s, 3 ) ) ;
@@ -802,14 +767,7 @@ void execiTBMod( pApplication * thisAppl, const string& s, errblock& err )
 	tb_savenm = parseString( err, str, "SAVE()" ) ;
 	if ( err.error() ) { return ; }
 
-	tb_order = str ;
-	if ( tb_order != "" && tb_order != "ORDER" )
-	{
-		err.seterrid( "PSYE019C" ) ;
-		return ;
-	}
-
-	thisAppl->tbmod( tb_name, tb_savenm, tb_order ) ;
+	thisAppl->tbmod( tb_name, tb_savenm, str ) ;
 	return ;
 }
 
@@ -819,7 +777,6 @@ void execiTBPut( pApplication * thisAppl, const string& s, errblock& err )
 	string str       ;
 	string tb_name   ;
 	string tb_savenm ;
-	string tb_order  ;
 
 	tb_name = upper( word( s, 2 ) )    ;
 	str     = upper( subword( s, 3 ) ) ;
@@ -827,14 +784,7 @@ void execiTBPut( pApplication * thisAppl, const string& s, errblock& err )
 	tb_savenm = parseString( err, str, "SAVE()" ) ;
 	if ( err.error() ) { return ; }
 
-	tb_order = str ;
-	if ( tb_order != "" && tb_order != "ORDER" )
-	{
-		err.seterrid( "PSYE019C" ) ;
-		return ;
-	}
-
-	thisAppl->tbput( tb_name, tb_savenm, tb_order ) ;
+	thisAppl->tbput( tb_name, tb_savenm, str ) ;
 	return ;
 }
 
@@ -949,7 +899,6 @@ void execiTBSarg( pApplication * thisAppl, const string& s, errblock& err )
 	string tb_name  ;
 	string tb_arglst  ;
 	string tb_namecnd ;
-	string tb_dir     ;
 
 	tb_name  = upper( word( s, 2 ) )    ;
 	str      = upper( subword( s, 3 ) ) ;
@@ -960,15 +909,7 @@ void execiTBSarg( pApplication * thisAppl, const string& s, errblock& err )
 	tb_namecnd = parseString( err, str, "NAMECOND()" ) ;
 	if ( err.error() ) { return ; }
 
-	tb_dir = str ;
-	if ( tb_dir == "" ) { tb_dir = "NEXT" ; }
-	if ( tb_dir != "NEXT" && tb_dir != "PREVIOUS" )
-	{
-		err.seterrid( "PSYE019C" ) ;
-		return ;
-	}
-
-	thisAppl->tbsarg( tb_name, tb_arglst, tb_dir, tb_namecnd ) ;
+	thisAppl->tbsarg( tb_name, tb_arglst, str, tb_namecnd ) ;
 	return ;
 }
 
@@ -1011,7 +952,6 @@ void execiTBScan( pApplication * thisAppl, const string& s, errblock& err )
 	string tb_crpnm   ;
 	string tb_condlst ;
 	string tb_dir     ;
-	string tb_noread  ;
 
 	tb_name = upper( word( s, 2 ) )    ;
 	str     = upper( subword( s, 3 ) ) ;
@@ -1041,14 +981,7 @@ void execiTBScan( pApplication * thisAppl, const string& s, errblock& err )
 		if ( t != "" ) { tb_dir = "PREVIOUS" ; }
 	}
 
-	tb_noread = str ;
-	if ( tb_noread != "" && tb_noread != "NOREAD" )
-	{
-		err.seterrid( "PSYE019C" ) ;
-		return ;
-	}
-
-	thisAppl->tbscan( tb_name, tb_arglst, tb_savenm, tb_rowid, tb_dir, tb_noread, tb_crpnm, tb_condlst ) ;
+	thisAppl->tbscan( tb_name, tb_arglst, tb_savenm, tb_rowid, tb_dir, str, tb_crpnm, tb_condlst ) ;
 	return ;
 }
 
@@ -1065,7 +998,6 @@ void execiTBSkip( pApplication * thisAppl, const string& s, errblock& err )
 	string tb_crpnm  ;
 	string tb_rowid  ;
 	string tb_row    ;
-	string tb_noread ;
 
 	tb_name = upper( word( s, 2 ) )    ;
 	str     = upper( subword( s, 3 ) ) ;
@@ -1088,14 +1020,7 @@ void execiTBSkip( pApplication * thisAppl, const string& s, errblock& err )
 	tb_crpnm = parseString( err, str, "POSITION()" ) ;
 	if ( err.error() ) { return ; }
 
-	tb_noread = str ;
-	if ( tb_noread != "" && tb_noread != "NOREAD" )
-	{
-		err.seterrid( "PSYE019C" ) ;
-		return ;
-	}
-
-	thisAppl->tbskip( tb_name, i_num, tb_savenm, tb_rowid, tb_row, tb_noread, tb_crpnm ) ;
+	thisAppl->tbskip( tb_name, i_num, tb_savenm, tb_rowid, tb_row, str, tb_crpnm ) ;
 	return ;
 }
 

@@ -11,7 +11,7 @@ scrollOn
 literal  4   2         FP    "Command ===> "
 field    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD1
 
-literal  4  MAX-15  FP "SCROLL ===> "
+literal  4  MAX-15  FP "Scroll ===> "
 field    4  MAX-3  4 NEF  NONE ZSCROLL
 
 literal  6  2       FP  "Action: I=Insert entry R=Repeat line D=Delete entry"

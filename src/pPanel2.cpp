@@ -144,10 +144,10 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 					err.setsrc( oline ) ;
 					return ;
 				}
-				t1 = strip( ws.substr( 0, j) ) ;
-				t2 = strip( ws.substr( j+1) )  ;
+				t1 = strip( ws.substr( 0, j ) ) ;
+				t2 = strip( ws.substr( j+1 ) )  ;
 				win_width = ds2d( t1 ) ;
-				if ( win_width > ZSCRMAXW - 2 )
+				if ( win_width > ZSCRMAXW - 1 )
 				{
 					err.seterrid( "PSYE011E" ) ;
 					err.setsrc( oline ) ;

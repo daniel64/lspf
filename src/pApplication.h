@@ -190,16 +190,18 @@ class pApplication
 		bool   inputInhibited() ;
 		bool   msgInhibited()   ;
 		void   display_pd()     ;
+		void   display_id()     ;
+		void   toggle_fscreen() ;
 		bool   isprimMenu()     ;
 		void   get_home( uint & row, uint & col ) ;
 		void   get_cursor( uint & row, uint & col ) ;
 		void   set_msg( const string& ) ;
 		void   set_msg1( const slmsg &, string, bool =false ) ;
+		void   clear_msg() ;
 		slmsg  getmsg1()   { return MSG1   ; }
 		string getmsgid1() { return MSGID1 ; }
 		void   msgResponseOK() ;
 		bool   nretriev_on()   ;
-		void   refresh_id()    ;
 		string get_nretfield() ;
 		void   cleanup()       ;
 		void   cleanup_default() ;
@@ -222,6 +224,16 @@ class pApplication
 		bool   selectPanel()  { return selPanel ; }
 		void   startSelect( selobj& ) ;
 
+		int    get_addpop_row() { return addpop_row    ; }
+		int    get_addpop_col() { return addpop_col    ; }
+		bool   get_addpop_act() { return addpop_active ; }
+
+		void   set_addpop_row( int  i ) { addpop_row = i    ; }
+		void   set_addpop_col( int  i ) { addpop_col = i    ; }
+		void   set_addpop_act( bool b ) { addpop_active = b ; }
+
+		bool   do_refresh_lscreen()     { return refreshlScreen ; }
+
 		string sub_vars( string ) ;
 
 		void   ispexec( const string& ) ;
@@ -239,6 +251,7 @@ class pApplication
 		int  taskId      ;
 
 		bool addpop_active       ;
+		bool refreshlScreen      ;
 		bool ControlErrorsReturn ;
 		bool ControlPassLRScroll ;
 		bool selPanel   ;

@@ -402,7 +402,7 @@ const string& fPOOL::vilist( int& RC,
 			if ( defn == DEFINED  ) { continue ; }
 		}
 		varList += " " + it->first ;
-		RC  = 0 ;
+		RC = 0 ;
 	}
 	return varList ;
 }
@@ -430,7 +430,7 @@ const string& fPOOL::vslist( int& RC,
 			if ( defn == DEFINED  ) { continue ; }
 		}
 		varList += " " + it->first ;
-		RC  = 0 ;
+		RC = 0 ;
 	}
 	return varList ;
 }
@@ -1088,9 +1088,6 @@ void poolMGR::createPool( int ls )
 	POOLs_lscreen[ ls ] = new pVPOOL ;
 	POOLs_lscreen[ ls ]->put( err, "ZMSGID",   "",  USER ) ;
 	POOLs_lscreen[ ls ]->put( err, "ZSCRNAME", "",  USER ) ;
-	POOLs_lscreen[ ls ]->put( err, "ZPOPROW",  "0", USER ) ;
-	POOLs_lscreen[ ls ]->put( err, "ZPOPCOL",  "0", USER ) ;
-	POOLs_lscreen[ ls ]->put( err, "ZADDPOP",  "N", USER ) ;
 	POOLs_lscreen[ ls ]->put( err, "ZSCRNAM2", "",  USER ) ;
 	POOLs_lscreen[ ls ]->put( err, "ZSHMSGID", "N", USER ) ;
 	POOLs_lscreen[ ls ]->put( err, "ZSHPANID", "N", USER ) ;
@@ -1109,13 +1106,13 @@ void poolMGR::destroyPool( errblock& err,
 	{
 	case SHARED:
 		llog( "I", "Destroying pool "<< shrdPool << endl ) ;
-		if ( POOLs_shared.count( shrdPool ) == 0 )
+		it = POOLs_shared.find( shrdPool ) ;
+		if ( it == POOLs_shared.end() )
 		{
 			err.seterror() ;
 			llog( "C", "poolMGR cannot find SHARED POOL " << shrdPool << " Logic error" << endl ) ;
 			return ;
 		}
-		it = POOLs_shared.find( shrdPool ) ;
 		delete it->second ;
 		POOLs_shared.erase( it ) ;
 		break ;
@@ -1183,6 +1180,7 @@ void poolMGR::statistics()
 	llog( "-", "         Number of profile pools. . . . " << POOLs_profile.size() << endl ) ;
 	llog( "-", "" << endl ) ;
 	llog( "-", "         Shared pool details:" << endl ) ;
+
 	for ( sp_it = POOLs_shared.begin() ; sp_it != POOLs_shared.end() ; sp_it++ )
 	{
 		Mode = sp_it->second->readOnly ? "RO" : "UP" ;
@@ -1191,6 +1189,7 @@ void poolMGR::statistics()
 	}
 	llog( "-", "" << endl ) ;
 	llog( "-", "         Profile pool details:" << endl ) ;
+
 	for ( pp_it = POOLs_profile.begin() ; pp_it != POOLs_profile.end() ; pp_it++ )
 	{
 		Mode = pp_it->second->readOnly ? Mode = "RO" : Mode = "UP" ;

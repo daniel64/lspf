@@ -3,36 +3,38 @@
  Browse entry panel
 )ENDCOMMENT
 
-)BODY CMD(ZCMD1) HOME(ZCMD1)
+)BODY CMD(ZCMD1) HOME(ZCMD1) WINDOW(70,11)
 
-PanelTitle "Save Personal File List As"
+-- PanelTitle "Save Personal File List As"
 
-literal  4   2         FP    "Command ===> "
-field    4  15  MAX    NEF CAPS(ON),PAD(USER) ZCMD1
+literal  2   2         FP    "Command ===> "
+field    2  15  MAX    NEF CAPS(ON),PAD(USER) ZCMD1
 
-literal  6  2         FP  "New Name. . . .:"
-field    6  19   8    NEF  CAPS(ON),PAD(USER) NEWNAME
+literal  4  2         FP  "New Name. . . .:"
+field    4  19   8    NEF  CAPS(ON),PAD(USER) NEWNAME
 
-literal  7  2         FP  "Description . .:"
-field    7  19   MAX  NEF  CAPS(OFF),PAD(USER) NEWDESC
+literal  5  2         FP  "Description . .:"
+field    5  19   MAX  NEF  CAPS(OFF),PAD(USER) NEWDESC
 
-literal 9  2  CH "Instructions"
-literal 10 2  NT "Press"
-literal 10 8  ET "Enter"
-literal 10 14 NT "to confirm or"
-literal 10 28 ET "END"
-literal 10 32 NT "to cancel operation"
+literal 7  2  CH "Instructions"
+literal 9  2  NT "Press"
+literal 9  8  ET "Enter"
+literal 9  14 NT "to confirm or"
+literal 9  28 ET "END"
+literal 9  32 NT "to cancel operation"
 
 
+)COMMENT
 )INCLUDE STD_PDC
-pdc  Options  "Personal Settings"     ACTION RUN(ISRROUTE) PARM("SELECT PGM(PLRFLST1) PARM(US1) NEWAPPL(ISP)")
-
+pdc  Options  "Personal Settings"  ACTION RUN(ISRROUTE) PARM("SELECT PGM(PLRFLST1) PARM(US1) NEWAPPL(ISP) SUSPEND")
 )INCLUDE HLP_PDC
+)ENDCOMMENT
 
 
 )INIT
 &NEWNAME = &ACURTB
 &NEWDESC = &AFLDESCP
+&ZWINTTL = 'Save Personal File List As'
 
 )PROC
 IF (&ZCMD1 NE &Z )

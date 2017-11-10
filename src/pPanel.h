@@ -53,12 +53,13 @@ class pPanel
 		bool   pd_Active()       { return pdActive ; }
 		bool   display_pd( uint col ) ;
 		void   display_pd()       ;
+		void   hide_popup()       ;
 		void   hide_pd()          ;
 		void   remove_pd()        ;
 		void   display_next_pd()  ;
 		void   display_msg()      ;
 		pdc    retrieve_pdChoice( int row, int col ) ;
-		void   toggle_fscreen()   { ff_screen = !ff_screen ; }
+		void   toggle_fscreen( bool, int, int ) ;
 
 		void   display_panel( errblock& ) ;
 		void   redraw_fields()   ;
@@ -130,7 +131,7 @@ class pPanel
 		bool   end_pressed ;
 		bool   message_set ;
 		bool   cursor_set  ;
-		bool   ff_screen   ;
+		bool   full_screen ;
 		int    win_width   ;
 		int    win_depth   ;
 		int    win_row     ;
@@ -169,8 +170,9 @@ class pPanel
 		void   display_id() ;
 
 		void   set_popup( int, int ) ;
-		void   remove_popup()        ;
-		void   move_popup()          ;
+		void   remove_popup() ;
+		void   move_popup()   ;
+		void   show_popup()   ;
 
 		void   put_keylist( int, const string& ) ;
 		string get_panelDescr()  { return panelDescr != "" ? sub_vars( panelDescr ) : sub_vars( panelTitle ) ; }

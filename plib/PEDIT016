@@ -5,6 +5,7 @@ Confirm cancel panel for editor PEDIT01
 )ENDCOMMENT
 
 )BODY HOME(ZCMD6) CMD(ZCMD6) WINDOW(57,11)
+PanelDescr "Edit Cancel"
 
 literal  2    2       FP     "Command ===> "
 field    2   15  MAX  NEF     PAD(USER) ZCMD6
@@ -21,6 +22,7 @@ literal 10  12  NT "to return to edit session"
 
 )INIT
 
+&ZCMD6   = &Z
 &ZWINTTL = 'Confirm Cancel'
 
 )PROC

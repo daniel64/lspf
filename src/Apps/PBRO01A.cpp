@@ -92,6 +92,8 @@ void PBRO01A::application()
 
 	bool rebuildZAREA ;
 
+	map<string, int>labelList ;
+
 	errblock err ;
 
 	panel = "" ;
@@ -316,7 +318,23 @@ void PBRO01A::application()
 			read_file( file )    ;
 			if ( RC > 0 ) { setmsg( "PSYS011E" ) ; cleanup() ; return ; }
 		}
-		else { MSG = "PBRO011" ; continue ; }
+		else if ( CMD.size() > 1 && CMD[ 0 ] == '.' )
+		{
+			labelList[ CMD ] = topLine ;
+		}
+		else if ( findword( CMD, "L LOC LOCATE" ) && w2.size() > 1 && w2[ 0 ] == '.' )
+		{
+			if ( labelList.count( w2 ) > 0 )
+			{
+				topLine = labelList[ w2 ] ;
+				rebuildZAREA = true ;
+			}
+		}
+		else
+		{
+			MSG = "PBRO011" ;
+			continue ;
+		}
 
 		if ( ZVERB == "" ) {}
 		else if ( ZVERB == "DOWN" )

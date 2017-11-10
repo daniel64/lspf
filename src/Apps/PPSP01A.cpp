@@ -99,6 +99,7 @@ void PPSP01A::application()
 		LOGLOC  = ZSLOG   ;
 		show_log( ZSLOG ) ;
 	}
+	else if ( w1   == "DSL"     ) { dsList( word( PARM, 2 ) ) ; }
 	else if ( PARM == "GOPTS"   ) { lspfSettings()       ; }
 	else if ( PARM == "KEYS"    ) { pfkeySettings()      ; }
 	else if ( PARM == "COLOURS" ) { colourSettings()     ; }
@@ -134,7 +135,7 @@ void PPSP01A::application()
 }
 
 
-void PPSP01A::show_log( string fileName )
+void PPSP01A::show_log( const string& fileName )
 {
 	int fsize ;
 	int t     ;
@@ -355,18 +356,17 @@ void PPSP01A::read_file( const string& fileName )
 	string inLine ;
 	std::ifstream fin( fileName.c_str() ) ;
 
-	data.clear()     ;
+	data.clear()  ;
 
 	data.push_back( centre( " Top of Data ", ZAREAW, '*' ) ) ;
 	excluded.push_back( false ) ;
 	while ( getline( fin, inLine ) )
 	{
-		inLine = inLine             ;
 		data.push_back( inLine )    ;
 		excluded.push_back( false ) ;
-		if ( maxCol < inLine.size() ) maxCol = inLine.size() ;
+		if ( maxCol < inLine.size() ) { maxCol = inLine.size() ; }
 	}
-	maxCol++   ;
+	maxCol++ ;
 	data.push_back( centre( " Bottom of Data ", ZAREAW, '*' ) ) ;
 	excluded.push_back( false ) ;
 	maxLines = data.size() ;
@@ -474,6 +474,69 @@ void PPSP01A::fill_dynamic_area()
 	}
 }
 
+
+void PPSP01A::dsList( const string& parms )
+{
+	// If no parms passed, show the Personal File List screen
+	// If parm is a Personal File List, get list of files and invoke PFLSTPGM with LIST
+	// Else assume passed parm is a path to be listed
+
+	int i ;
+
+	bool reflist = false ;
+
+	string PGM ;
+	string UPROF    ;
+	string RFLTABLE ;
+	string ZUSER    ;
+	string ZSCREEN  ;
+
+	string fname ;
+	string cname ;
+
+	if ( parms == "" )
+	{
+		vcopy( "ZRFLPGM", PGM, MOVE ) ;
+		select( "PGM(" + PGM + ") PARM(PL3) SCRNAME(DSLIST) SUSPEND" ) ;
+	}
+	else
+	{
+		vcopy( "ZUPROF", UPROF, MOVE ) ;
+		vcopy( "ZRFLTBL", RFLTABLE, MOVE ) ;
+		tbopen( RFLTABLE, NOWRITE, UPROF ) ;
+		if ( RC == 0 )
+		{
+			vreplace( "ZCURTB", upper( parms ) ) ;
+			tbget( RFLTABLE ) ;
+			reflist = ( RC == 0 ) ;
+		}
+		if ( reflist )
+		{
+			std::ofstream fout ;
+			vcopy( "ZUSER", ZUSER, MOVE )     ;
+			vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
+			boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
+			string tname = temp.native() ;
+			fout.open( tname ) ;
+			for ( i = 1 ; i <= 30 ; i++ )
+			{
+				vcopy( "FLAPET" + right( d2ds( i ), 2, '0' ), fname, MOVE ) ;
+				if ( fname == "" ) { continue ; }
+				fout << fname << endl ;
+			}
+			fout.close() ;
+			tbclose( RFLTABLE ) ;
+			vcopy( "ZFLSTPGM", PGM, MOVE ) ;
+			select( "PGM(" + PGM + ") PARM(LIST " + upper( parms ) + " " + tname + ")" ) ;
+		}
+		else
+		{
+			tbclose( RFLTABLE ) ;
+			vcopy( "ZFLSTPGM", PGM, MOVE ) ;
+			select( "PGM(" + PGM + ") PARM(" + parms + ")" ) ;
+		}
+	}
+}
 
 
 void PPSP01A::lspfSettings()
@@ -2222,10 +2285,18 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 	vcopy( "ZUPROF", UPROF, MOVE ) ;
 
 	tbopen( tab, NOWRITE, UPROF ) ;
-	if ( RC > 0 ) { abend() ; }
+	if ( RC > 0 )
+	{
+		llog( "E", "Error opening Keylist table "<< tab << ".  RC="<< RC << endl ) ;
+		abend() ;
+	}
 
 	tbcreate( KLST, "", "TBK2SEL TBK2LST TBK2MSG", NOWRITE ) ;
-	if ( RC > 0 ) { abend() ; }
+	if ( RC > 0 )
+	{
+		llog( "E", "Error creating Keylist table "<< KLST << ".  RC="<< RC << endl ) ;
+		abend() ;
+	}
 
 	tbtop( tab ) ;
 	tbskip( tab, 1 ) ;
@@ -2331,7 +2402,9 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 						TBK2MSG = "*Added*" ;
 						tbadd( KLST, "", "ORDER" ) ;
 						if ( RC > 0 ) { abend() ; }
+						control( "DISPLAY", "SAVE" ) ;
 						editKeylist( tab, NEWKEY ) ;
+						control( "DISPLAY", "RESTORE" ) ;
 					}
 					TBK2SEL = ""  ;
 					tbput( KLST ) ;
@@ -2339,14 +2412,18 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 			}
 			else if ( TBK2SEL == "E" )
 			{
+				control( "DISPLAY", "SAVE" ) ;
 				editKeylist( tab, TBK2LST ) ;
+				control( "DISPLAY", "RESTORE" ) ;
 				TBK2MSG = "*Edited*" ;
 				TBK2SEL = ""  ;
 				tbput( KLST ) ;
 			}
 			else if ( TBK2SEL == "V" )
 			{
+				control( "DISPLAY", "SAVE" ) ;
 				viewKeylist( tab, TBK2LST ) ;
+				control( "DISPLAY", "RESTORE" ) ;
 				TBK2MSG = "*Viewed*" ;
 				TBK2SEL = ""  ;
 				tbput( KLST ) ;

@@ -76,7 +76,8 @@ void PLRFLST1::application()
 
 	setup() ;
 	if      ( P1 == "PL1" ) { OpenActiveFList( P2 ) ; }
-	else if ( P1 == "PL2" ) { PersonalFList()       ; }
+	else if ( P1 == "PL2" ) { PersonalFList( "" )   ; }
+	else if ( P1 == "PL3" ) { PersonalFList( "DSL") ; }
 	else if ( P1 == "PLA" ) { AddReflistEntry( PF ) ; }
 	else if ( P1 == "NR1" ) { RetrieveEntry( PF )   ; }
 	else if ( P1 == "US1" ) { userSettings()        ; }
@@ -119,9 +120,11 @@ void PLRFLST1::setup()
 }
 
 
-void PLRFLST1::PersonalFList()
+void PLRFLST1::PersonalFList( const string& p )
 {
+	string PGM    ;
 	string MSG    ;
+	string PANL   ;
 	string FLIST1 ;
 	string vlist  ;
 	string ldate  ;
@@ -135,6 +138,8 @@ void PLRFLST1::PersonalFList()
 	string NEWNAME  ;
 	string NEWDESC  ;
 	string LCURTB   ;
+
+	PANL = p == "" ? "PLRFLST1" : "PLRFLST6" ;
 
 	vlist = "ASEL ACURTB AFLDESCP AFLCTIME AFLUTIME NEWNAME NEWDESC LCURTB " ;
 	vdefine( vlist, &ASEL, &ACURTB, &AFLDESCP, &AFLCTIME, &AFLUTIME, &NEWNAME, &NEWDESC, &LCURTB ) ;
@@ -155,7 +160,6 @@ void PLRFLST1::PersonalFList()
 		OpenTableRO() ;
 		if ( RC > 0 ) { abend() ; }
 	}
-	else if ( RC > 0 ) { abend() ; }
 
 	FLIST1 = "FLST1" + right( d2ds( taskid() ), 3, '0' ) ;
 	tbcreate( FLIST1, "ACURTB", "ASEL AFLDESCP AFLCTIME AFLUTIME", NOWRITE ) ;
@@ -179,13 +183,14 @@ void PLRFLST1::PersonalFList()
 		tbtop( FLIST1 )  ;
 		tbskip( FLIST1, ZTDTOP ) ;
 		if ( MSG == "" ) { ZCMD = "" ; }
-		tbdispl( FLIST1, "PLRFLST1", MSG, "ZCMD" ) ;
+		tbdispl( FLIST1, PANL, MSG, "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 		while ( ZTDSELS > 0 )
 		{
 			if ( ASEL == "A" )
 			{
+				addpop( "", 9, 9 ) ;
 				display( "PLRFLST4", MSG, "ZCMD1" ) ;
 				if ( RC == 0 )
 				{
@@ -200,7 +205,7 @@ void PLRFLST1::PersonalFList()
 					vput( "ZCURTB", PROFILE ) ;
 					FLADESCP = NEWDESC  ;
 					FLACTIME = ldate    ;
-					FLAUTIME = ldate + " " + ltime   ;
+					FLAUTIME = ldate + " " + ltime ;
 					OpenTableUP()       ;
 					tbadd( RFLTABLE, "", "ORDER" ) ;
 					CloseTable()        ;
@@ -211,6 +216,7 @@ void PLRFLST1::PersonalFList()
 					AFLUTIME = FLAUTIME ;
 					tbadd( FLIST1, "", "ORDER" ) ;
 				}
+				rempop() ;
 			}
 			else if ( ASEL == "D" )
 			{
@@ -222,15 +228,15 @@ void PLRFLST1::PersonalFList()
 					vget( "ZCURTB", PROFILE ) ;
 					if ( ZCURTB == ACURTB )
 					{
-						ZCURTB = "REFLIST"        ;
-						LCURTB = ZCURTB           ;
+						ZCURTB = "REFLIST" ;
+						LCURTB = ZCURTB    ;
 						vput( "ZCURTB", PROFILE ) ;
 					}
-					ZCURTB = ACURTB        ;
-					OpenTableUP()          ;
-					tbdelete( RFLTABLE )   ;
-					CloseTable()           ;
-					tbdelete( FLIST1 )     ;
+					ZCURTB = ACURTB      ;
+					OpenTableUP()        ;
+					tbdelete( RFLTABLE ) ;
+					CloseTable()         ;
+					tbdelete( FLIST1 )   ;
 				}
 
 			}
@@ -239,6 +245,12 @@ void PLRFLST1::PersonalFList()
 				control( "DISPLAY", "SAVE" )    ;
 				EditFileList( ACURTB )          ;
 				control( "DISPLAY", "RESTORE" ) ;
+			}
+			else if ( ASEL == "L" )
+			{
+				vcopy( "ZFLSTPGM", PGM, MOVE ) ;
+				select( "PGM(" + PGM + ") PARM(LIST " + ACURTB + " " + StoreFileList( ACURTB ) + ")" ) ;
+				ZRC = 4 ;
 			}
 			else if ( ASEL == "O" )
 			{
@@ -271,7 +283,7 @@ void PLRFLST1::PersonalFList()
 }
 
 
-void PLRFLST1::OpenActiveFList( string list )
+void PLRFLST1::OpenActiveFList( const string& list )
 {
 	// Open the active referral list or the one specified in 'list'
 	// Make 'list' the active one unless it is the REFLIST we are opening
@@ -299,7 +311,7 @@ void PLRFLST1::OpenActiveFList( string list )
 }
 
 
-void PLRFLST1::EditFileList( string curtb )
+void PLRFLST1::EditFileList( const string& curtb )
 {
 	int i ;
 
@@ -330,7 +342,6 @@ void PLRFLST1::EditFileList( string curtb )
 		OpenTableRO() ;
 		if ( RC > 0 ) { abend() ; }
 	}
-	else if ( RC > 0 ) { abend() ; }
 	tbget( RFLTABLE ) ;
 
 	BSEL = "" ;
@@ -413,7 +424,7 @@ void PLRFLST1::EditFileList( string curtb )
 }
 
 
-void PLRFLST1::OpenFileList( string curtb )
+void PLRFLST1::OpenFileList( const string& curtb )
 {
 	int i ;
 
@@ -436,7 +447,6 @@ void PLRFLST1::OpenFileList( string curtb )
 		OpenTableRO() ;
 		if ( RC > 0 ) { abend() ; }
 	}
-	else if ( RC > 0 ) { abend() ; }
 	tbget( RFLTABLE ) ;
 	CloseTable()      ;
 
@@ -480,6 +490,44 @@ void PLRFLST1::OpenFileList( string curtb )
 	}
 	tbend( FLIST3 )  ;
 	vdelete( vlist ) ;
+}
+
+
+string PLRFLST1::StoreFileList( const string& curtb )
+{
+	int i ;
+
+	string fname ;
+	string cname ;
+
+	std::ofstream fout ;
+
+	vcopy( "ZUSER", ZUSER, MOVE )     ;
+	vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
+
+	boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
+	string tname = temp.native() ;
+
+	ZCURTB = curtb ;
+	OpenTableRO()  ;
+	if ( RC == 8 )
+	{
+		createDefaultTable() ;
+		OpenTableRO() ;
+		if ( RC > 0 ) { abend() ; }
+	}
+	tbget( RFLTABLE ) ;
+	CloseTable()      ;
+
+	fout.open( tname ) ;
+	for ( i = 1 ; i <= 30 ; i++ )
+	{
+		vcopy( "FLAPET" + right( d2ds( i ), 2, '0' ), fname, MOVE ) ;
+		if ( fname == "" ) { continue ; }
+		fout << fname << endl ;
+	}
+	fout.close() ;
+	return tname ;
 }
 
 
@@ -611,7 +659,7 @@ void PLRFLST1::RetrieveEntry( string list )
 }
 
 
-void PLRFLST1::AddReflistEntry( string ent )
+void PLRFLST1::AddReflistEntry( const string& ent )
 {
 	int i ;
 
@@ -647,7 +695,6 @@ void PLRFLST1::AddReflistEntry( string ent )
 		OpenTableUP() ;
 		if ( RC > 0 ) { abend() ; }
 	}
-	else if ( RC > 0 ) { abend() ; }
 
 	ZCURTB = "REFLIST"  ;
 	tbget( RFLTABLE ) ;
@@ -659,9 +706,9 @@ void PLRFLST1::AddReflistEntry( string ent )
 	for ( i = 1 ; i <= 30 ; i++ )
 	{
 		vcopy( "FLAPET" + right( d2ds( i ), 2, '0' ), eent, MOVE ) ;
-		if ( eent == "" ) { continue ; }
-		if ( found.find( eent )     != found.end() ) { continue ; }
-		if ( found.find( eent+"/" ) != found.end() ) { continue ; }
+		if ( eent == "" ||
+		     found.find( eent )     != found.end() ||
+		     found.find( eent+"/" ) != found.end() ) { continue ; }
 		list.push_back( eent ) ;
 		found[ eent ] = true ;
 	}
@@ -715,7 +762,7 @@ void PLRFLST1::userSettings()
 }
 
 
-void PLRFLST1::setRefMode( string mode )
+void PLRFLST1::setRefMode( const string& mode )
 {
 	string ZRFMOD ;
 

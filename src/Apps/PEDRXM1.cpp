@@ -355,11 +355,10 @@ int getAllRexxVariables( pApplication * macAppl )
 
 	int rc ;
 
-	string n  ;
-	string v  ;
-	string vl ;
+	string n ;
+	string v ;
 
-	vl = macAppl->vilist() ;
+	const string& vl = macAppl->vilist() ;
 
 	SHVBLOCK var ;
 	while ( true )
@@ -402,16 +401,18 @@ int setAllRexxVariables( pApplication * macAppl )
 	// Executed before returning to the REXX procedure after a call to the command handler
 	// and after all lspf functions have been called
 
+	// Note: vslist and vilist return the same variable reference
+
 	int i  ;
 	int ws ;
 	int rc ;
 
-	string vl ;
+	const string& vl = macAppl->vslist() ;
+
 	string w  ;
 	string vi ;
 	string * vs ;
 
-	vl = macAppl->vslist() ;
 	ws = words( vl ) ;
 	for ( i = 1 ; i <= ws ; i++ )
 	{
@@ -419,7 +420,8 @@ int setAllRexxVariables( pApplication * macAppl )
 		macAppl->vcopy( w, vs, LOCATE )  ;
 		rc = setRexxVariable( w, (*vs) ) ;
 	}
-	vl = macAppl->vilist() ;
+
+	macAppl->vilist() ;
 	ws = words( vl ) ;
 	for ( i = 1 ; i <= ws ; i++ )
 	{

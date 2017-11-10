@@ -195,7 +195,7 @@ PSYE015L 'Pool manager &ZVAL1 of &ZVAL2 failed'
 
 
 /* pool manager messages */
-PSYE017A 'poolMGR has invalid APPLID (&ZVAL1).  Logic error'
+PSYE017A 'poolMGR has invalid Applid (&ZVAL1).  Logic error'
 ''
 
 PSYE017B 'poolMGR locateSubPool() function passed invalid POOL TYPE'

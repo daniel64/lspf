@@ -54,6 +54,11 @@ SYSTEM
 *----*
 CMDS     List of commands (USER, APPLICATION and SYSTEM command tables)
 CUA      View/change cua attribute settings
+DSLIST   Show a file list
+         Without parms, shows the Personal File Lists screen where you can select an entry
+         With a Personal File List, shows the list of files contained in that list
+         With a file path, shows the entries for the path
+         Anything invalid shows the home directory
 KEYLIST  Change/create keylist settings (displays active or default table keylists)
 KEYLISTS Change/create keylist settings (displays all keylist tables)
 KEYS     Change pfkey settings

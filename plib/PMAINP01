@@ -8,7 +8,9 @@ Defaults for HOME() and CMD() on the BODY statement are ZCMD
 Format for fields, literals, proc, etc
 
 PANELTITLE Title of the panel that appears on screen.  Also appears in the task list if PANELDESCR is not defined.
-PANELDESCR Description of the panel.  Appears in the task list (SWAP LIST) if defined.
+PANELDESCR Description of the panel.  Appears in the Task List (SWAP LIST) if defined.
+           At least one of these should be defined for a panel so a description appears in the Task List
+           Variables are allowed.
 
 LITERAL row column cuaFieldType display_literal
 FIELD   row column length cuaFieldType name

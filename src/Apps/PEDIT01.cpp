@@ -679,7 +679,7 @@ void PEDIT01::readFile()
 	}
 	if ( tabsOnRead )
 	{
-		optNoConvTabs ? pcmd.set_msg( "PEDT014N", 4 ) : pcmd.set_msg( "PEDT014W", 4 ) ;
+		pcmd.set_msg( optNoConvTabs ? "PEDT014N" : "PEDT014W", 4 ) ;
 	}
 	if ( data.size() == 1 )
 	{
@@ -922,7 +922,7 @@ void PEDIT01::fill_dynamic_area()
 			ip.ipos_URID = (*it)->il_URID ;
 			s2data.at( sl ) = ip ;
 			t1 = copies( "-  ", (ZAREAW - 30)/3 - 2 ) + d2ds( elines ) + " Line(s) Not Displayed" ;
-			(*it)->il_lcc == "" ? t2 = "- - - " : t2 = left( (*it)->il_lcc, 6 ) ;
+			t2 = (*it)->il_lcc == "" ? "- - - " : left( (*it)->il_lcc, 6 ) ;
 			ZAREA   += din + t2 + dout + substr( t1, 1, ZAREAW-8 ) ;
 			ZSHADOW += slr + sdw ;
 			if ( ZAREA.size() >= ZASIZE ) { break ; }
@@ -2210,7 +2210,7 @@ void PEDIT01::actionPrimCommand2()
 			while ( true )
 			{
 				actionFind() ;
-				if (  find_parms.fcx_error || !find_parms.fcx_success ) { break  ; }
+				if ( find_parms.fcx_error || !find_parms.fcx_success ) { break  ; }
 				i++ ;
 				if ( firstc )
 				{
@@ -2241,13 +2241,18 @@ void PEDIT01::actionPrimCommand2()
 			}
 			topLine  = tTop  ;
 			startCol = tCol  ;
-			setNotFoundMsg() ;
 			if ( i > 0 )
 			{
-				OCC = d2ds( i ) ;
+				STR  = find_parms.fcx_string ;
+				convNonDisplayChars( STR )   ;
+				TYPE = typList[ find_parms.fcx_mtch ] ;
+				OCC  = d2ds( i ) ;
 				find_parms.fcx_ch_occs = i ;
-				if ( find_parms.fcx_chngall ) { pcmd.set_msg( "PEDT013K", 0 ) ; }
-				else                          { pcmd.set_msg( "PEDT013L", 0 ) ; }
+				pcmd.set_msg( find_parms.fcx_chngall ? "PEDT013K" : "PEDT013L", 0 ) ;
+			}
+			else
+			{
+				setNotFoundMsg() ;
 			}
 			rebuildZAREA = true ;
 			break ;
@@ -5700,7 +5705,7 @@ void PEDIT01::actionFind()
 		}
 
 		if ( (find_parms.fcx_excl == 'X' && !data[ dl ]->il_excl) ||
-			   (find_parms.fcx_excl == 'N' &&  data[ dl ]->il_excl) )
+		     (find_parms.fcx_excl == 'N' &&  data[ dl ]->il_excl) )
 		{
 			skip = true ;
 		}
@@ -8264,6 +8269,13 @@ void PEDIT01::saveEditProfile( const string& prof )
 		abend() ;
 	}
 
+	tbsort( tabName, "ZEDPTYPE,C,A") ;
+	if ( RC > 0 )
+	{
+		llog( "E", "Invalid return code from TBSORT.  RC="<< RC << endl ) ;
+		abend() ;
+	}
+
 	tbclose( tabName ) ;
 
 	vdelete( v_list ) ;
@@ -8744,7 +8756,7 @@ void PEDIT01::run_macro( bool imacro )
 	miBlock.setMacro( word( pcmd.get_cmd(), 1 ) )  ;
 	if ( !miBlock.getMacroFileName( ZORXPATH ) )
 	{
-		miBlock.RC > 8 ? pcmd.set_msg( "PEDM012Q" ) : pcmd.set_msg( "PEDT015A" ) ;
+		pcmd.set_msg( miBlock.RC > 8 ? "PEDM012Q" : "PEDT015A" ) ;
 		return ;
 	}
 

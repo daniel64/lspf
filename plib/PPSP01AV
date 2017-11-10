@@ -3,23 +3,20 @@
  Panel to display/delete pool variables
 )ENDCOMMENT
 )BODY
-PanelTitle "Shared and Profile Variables"
+PanelTitle "Shared and Profile Variables (&ZAPPLID)"
 
 scrollOn
 
 literal  4   2         FP    "Command ===> "
 field    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
 
-literal  4  MAX-15  FP "SCROLL ===> "
+literal  4  MAX-15  FP "Scroll ===> "
 field    4  MAX-3   4  NEF  NONE ZSCROLL
 
-literal  6  2      FP    "Profile:"
-field    6  11    8 VOI  NONE ZAPPLID
+literal  6 2 CH "C Variable  P S Message         Value"
+literal  7 2 CH EXPAND "-"
 
-literal  7 2 CH "C Variable  P S Message         Value"
-literal  8 2 CH EXPAND "-"
-
-tbmodel  9   MAX
+tbmodel  8   MAX
 tbfield  2    1   NEF  PAD(USER),CAPS(ON),JUST(LEFT) SEL
 tbfield  4    8   VOI  NONE VAR
 tbfield  14   1   VOI  NONE VPOOL
