@@ -10,6 +10,8 @@
      .NRET = field_name holds the field name for both of
      these functions.  Set in the )INIT section
 
+ Check panel PFLST0A9 if this panel is updated
+
 )ENDCOMMENT
 
 )BODY
@@ -41,7 +43,8 @@ literal  11  2 CH  EXPAND  "-"
 
 tbmodel  12    MAX
 tbfield  2     4   NEF  CAPS(ON),PAD(USER),JUST(LEFT) SEL
-tbfield  ++1   38  VOI  NONE  ENTRY
+
+tbfield  ++1    MAX-66  VOI  NONE  ENTRY
 tbfield  MAX-64  15  VOI  NONE  MESSAGE
 tbfield  MAX-48   7  VOI  NONE  TYPE
 tbfield  MAX-40  10  VOI  NONE  PERMISS

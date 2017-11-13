@@ -32,7 +32,7 @@ field     9   19    MAX   NEF   CAPS(OFF),PAD(USER) TFLD1
 
 
 )INIT
-
+&ZWINTTL = 'Test Panel For Popup Windows'
 )REINIT
 
 )PROC

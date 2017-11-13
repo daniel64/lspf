@@ -320,6 +320,7 @@ class errblock
 		int     maxRC  ;
 		bool    debug  ;
 		bool    abend  ;
+		bool    sCall  ;
 	errblock()
 	{
 		msgid  = "" ;
@@ -335,6 +336,7 @@ class errblock
 		maxRC  = 0  ;
 		debug  = false ;
 		abend  = false ;
+		sCall  = false ;
 	}
 	void clear()
 	{
@@ -539,6 +541,14 @@ class errblock
 	string& getUserData()
 	{
 		return udata ;
+	}
+	void setServiceCall()
+	{
+		sCall = true ;
+	}
+	bool ServiceCall()
+	{
+		return sCall ;
 	}
 } ;
 

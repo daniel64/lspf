@@ -59,6 +59,7 @@ DSLIST   Show a file list
          With a Personal File List, shows the list of files contained in that list
          With a file path, shows the entries for the path
          Anything invalid shows the home directory
+         The file name can contain a valid regex, '*' or '?' with the option to expand the generic.
 KEYLIST  Change/create keylist settings (displays active or default table keylists)
 KEYLISTS Change/create keylist settings (displays all keylist tables)
 KEYS     Change pfkey settings

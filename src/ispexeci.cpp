@@ -493,7 +493,7 @@ void execiTBAdd( pApplication * thisAppl, const string& s, errblock& err )
 
 	tb_numrows = parseString( err, str, "MULT()" ) ;
 	if ( err.error() ) { return ; }
-	if ( tb_numrows == "" ) { tb_numrows = "1" ; }
+	if ( tb_numrows == "" ) { tb_numrows = "0" ; }
 
 	thisAppl->tbadd( tb_name, tb_namelst, str, ds2d( tb_numrows ) ) ;
 	return ;

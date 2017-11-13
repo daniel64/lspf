@@ -12,7 +12,7 @@ scrollOn
 literal  4   2         FP    "Command ===> "
 field    4  15  max-17 nef caps(on),pad(user) zcmd
 
-literal  4  MAX-15  FP "SCROLL ===> "
+literal  4  MAX-15  FP "Scroll ===> "
 field    4  MAX-3  4 NEF  NONE ZSCROLL
 
 literal  5  MAX-15  IMT "More:   >"

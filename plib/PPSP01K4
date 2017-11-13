@@ -3,41 +3,44 @@
  Keylist Utilit Panel 4
 )ENDCOMMENT
 
-)BODY
+)BODY WINDOW(60,11)
 
 PanelTitle "Create Keylist Entry"
 
-literal  4   2         FP  "Command ===> "
-field    4  15  MAX    NEF CAPS(ON),PAD(USER) ZCMD
+literal  2   2         FP  "Command ===> "
+field    2  15  MAX    NEF CAPS(ON),PAD(USER) ZCMD
 
-literal  7   2   FP    "New Keylist Name . . . . ."
-field    7  29   8     NEF CAPS(ON),PAD(USER) NEWKEY
+literal  4   2   FP    "New Keylist Name . . . . ."
+field    4  29   8     NEF CAPS(ON),PAD(USER) NEWKEY
 
-literal 10 2  CH "Instructions"
-literal 11 2  NT "Press"
-literal 11 8  ET "Enter"
-literal 11 14 NT "to confirm"
+literal 6 2  CH "Instructions"
+literal 8 2  NT "Press"
+literal 8 8  ET "Enter"
+literal 8 14 NT "to confirm"
 
-literal 13 2  NT "Press"
-literal 13 8  ET "Cancel"
-literal 13 15 NT "or"
-literal 13 18 ET "END"
-literal 13 22 NT "to cancel"
+literal 9 2  NT "Press"
+literal 9 8  ET "Cancel"
+literal 9 15 NT "or"
+literal 9 18 ET "END"
+literal 9 22 NT "to cancel"
 
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 )INIT
 .cursor = newkey
 &NEWKEY = &Z
+&ZWINTTL= &Z
 
 )PROC
+&ZCMD = TRANS( &ZCMD CAN,CANCEL *,* )
 
-if (&ZCMD NE &Z )
-    .MSG    = PSYS011C
-    .CURSOR = ZCMD
-    EXIT
+IF ( &ZCMD = CANCEL )
+   .RESP = END
+   EXIT
+ELSE
+   IF (&ZCMD NE &Z )
+      .MSG    = PSYS018
+      .CURSOR = ZCMD
+      EXIT
 
 VER (&NEWKEY,NB)
 

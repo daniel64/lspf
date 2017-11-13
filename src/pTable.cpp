@@ -113,7 +113,7 @@ void Table::loadfuncPOOL( errblock& err,
 	int i  ;
 	int ws ;
 
-	string tbelst ;
+	string tbelst = "" ;
 
 	vector<vector<string>*>::iterator it ;
 
@@ -134,11 +134,37 @@ void Table::loadfuncPOOL( errblock& err,
 			funcPOOL.put( err, word( tbelst, i ), (*it)->at( num_all+1+i ) ) ;
 			if ( err.error() ) { return ; }
 		}
-		if ( tb_savenm != "" )
-		{
-			funcPOOL.put( err, tb_savenm, "("+ tbelst +")" ) ;
-			if ( err.error() ) { return ; }
-		}
+		tbelst = "("+ tbelst +")" ;
+	}
+
+	if ( tb_savenm != "" )
+	{
+		funcPOOL.put( err, tb_savenm, tbelst ) ;
+	}
+}
+
+
+
+
+void Table::saveExtensionVarNames( errblock& err,
+				   fPOOL& funcPOOL,
+				   const string& tb_savenm )
+{
+	// Save extension variable names in tb_savenm function pool variable.  (Null if there are none)
+	// For use when NOREAD specified with tb_savenm, otherwise it is set by loadfuncPool().
+
+	vector<vector<string>*>::iterator it ;
+
+	it = table.begin()   ;
+	advance( it, CRP-1 ) ;
+
+	if ( (*it)->size() > num_all+1 )
+	{
+		funcPOOL.put( err, tb_savenm, "("+ (*it)->at( num_all+1 ) +")" ) ;
+	}
+	else
+	{
+		funcPOOL.put( err, tb_savenm, "" ) ;
 	}
 }
 
@@ -224,14 +250,20 @@ void Table::tbadd( errblock& err,
 
 	if ( tb_num_of_rows > 0 )
 	{
-		table.reserve( table.size() + tb_num_of_rows ) ;
+		if ( firstMult || table.capacity() == table.size() )
+		{
+			table.reserve( table.size() + tb_num_of_rows ) ;
+			firstMult = false ;
+		}
 	}
 
 	if ( tb_order == "" ) { sort_ir = "" ; }
 
 	if ( num_keys > 0 )
 	{
-		if ( getKeyItr( err, funcPOOL ) != table.end() )
+		it = getKeyItr( err, funcPOOL ) ;
+		if ( err.error() ) { return ; }
+		if ( it != table.end() )
 		{
 			CRP = 0 ;
 			err.setRC( 8 ) ;
@@ -255,6 +287,7 @@ void Table::tbadd( errblock& err,
 	{
 		URID = (*it)->at( 0 ) ;
 		tbsort( err, sort_ir ) ;
+		if ( err.error() ) { return ; }
 		for ( it = table.begin() ; it != table.end() ; it++ )
 		{
 			CRP++ ;
@@ -285,24 +318,6 @@ void Table::tbbottom( errblock& err,
 	iupper( tb_noread )   ;
 	iupper( tb_crp_name ) ;
 
-	if ( tb_savenm != "" && !isvalidName( tb_savenm ) )
-	{
-		err.seterrid( "PSYE013M", "SAVENAME", tb_savenm ) ;
-		return ;
-	}
-
-	if ( tb_rowid_vn != "" && !isvalidName( tb_rowid_vn ) )
-	{
-		err.seterrid( "PSYE013M", "ROWID", tb_rowid_vn ) ;
-		return ;
-	}
-
-	if ( tb_crp_name != "" && !isvalidName( tb_crp_name ) )
-	{
-		err.seterrid( "PSYE013M", "CRP", tb_crp_name ) ;
-		return ;
-	}
-
 	if ( tb_noread != "" && tb_noread != "NOREAD" )
 	{
 		err.seterrid( "PSYE013M", "NOREAD", tb_noread ) ;
@@ -322,15 +337,14 @@ void Table::tbbottom( errblock& err,
 
 	CRP = table.size() ;
 
-	if ( tb_savenm != "" )
-	{
-		funcPOOL.put( err, tb_savenm, "" ) ;
-		if ( err.error() ) { return ; }
-	}
-
 	if ( tb_noread != "NOREAD" )
 	{
 		loadfuncPOOL( err, funcPOOL, tb_savenm ) ;
+		if ( err.error() ) { return ; }
+	}
+	else if ( tb_savenm != "" )
+	{
+		saveExtensionVarNames( err, funcPOOL, tb_savenm ) ;
 		if ( err.error() ) { return ; }
 	}
 
@@ -367,6 +381,7 @@ void Table::tbdelete( errblock& err,
 	if ( num_keys > 0 )
 	{
 		it = getKeyItr( err, funcPOOL ) ;
+		if ( err.error() ) { return ; }
 		if ( it == table.end() )
 		{
 			CRP = 0 ;
@@ -416,7 +431,7 @@ void Table::tbexist( errblock& err,
 
 	if ( getKeyItr( err, funcPOOL ) == table.end() )
 	{
-		err.setRC( 8 ) ;
+		if ( !err.error() ) { err.setRC( 8 ) ; }
 		return ;
 	}
 	CRP = CRPX ;
@@ -448,24 +463,6 @@ void Table::tbget( errblock& err,
 	iupper( tb_noread )   ;
 	iupper( tb_crp_name ) ;
 
-	if ( tb_savenm != "" && !isvalidName( tb_savenm ) )
-	{
-		err.seterrid( "PSYE013M", "SAVENAME", tb_savenm ) ;
-		return ;
-	}
-
-	if ( tb_rowid_vn != "" && !isvalidName( tb_rowid_vn ) )
-	{
-		err.seterrid( "PSYE013M", "ROWID", tb_rowid_vn ) ;
-		return ;
-	}
-
-	if ( tb_crp_name != "" && !isvalidName( tb_crp_name ) )
-	{
-		err.seterrid( "PSYE013M", "CRP", tb_crp_name ) ;
-		return ;
-	}
-
 	if ( tb_noread != "" && tb_noread != "NOREAD" )
 	{
 		err.seterrid( "PSYE013M", "NOREAD", tb_noread ) ;
@@ -475,6 +472,7 @@ void Table::tbget( errblock& err,
 	if ( num_keys > 0 )
 	{
 		it = getKeyItr( err, funcPOOL ) ;
+		if ( err.error() ) { return ; }
 		if ( it == table.end() )
 		{
 			CRP = 0 ;
@@ -487,20 +485,22 @@ void Table::tbget( errblock& err,
 
 	if ( CRP == 0 )
 	{
-		if ( tb_crp_name != "" ) { funcPOOL.put( err, tb_crp_name, CRP ) ; }
+		if ( tb_crp_name != "" )
+		{
+			funcPOOL.put( err, tb_crp_name, CRP ) ;
+		}
 		err.setRC( 8 ) ;
 		return ;
-	}
-
-	if ( tb_savenm != "" )
-	{
-		funcPOOL.put( err, tb_savenm, "" ) ;
-		if ( err.error() ) { return ; }
 	}
 
 	if ( tb_noread != "NOREAD" )
 	{
 		loadfuncPOOL( err, funcPOOL, tb_savenm ) ;
+		if ( err.error() ) { return ; }
+	}
+	else if ( tb_savenm != "" )
+	{
+		saveExtensionVarNames( err, funcPOOL, tb_savenm ) ;
 		if ( err.error() ) { return ; }
 	}
 
@@ -558,6 +558,7 @@ void Table::tbmod( errblock& err,
 	}
 
 	it = getKeyItr( err, funcPOOL ) ;
+	if ( err.error() ) { return ; }
 	if ( it == table.end() )
 	{
 		CRP = table.size() ;
@@ -576,6 +577,7 @@ void Table::tbmod( errblock& err,
 		if ( tb_order == "ORDER" && sort_ir != "" )
 		{
 			tbsort( err, sort_ir ) ;
+			if ( err.error() ) { return ; }
 			for ( it = table.begin() ; it != table.end() ; it++ )
 			{
 				CRP++ ;
@@ -648,6 +650,7 @@ void Table::tbput( errblock& err,
 	if ( tb_order == "ORDER" && sort_ir != "" )
 	{
 		tbsort( err, sort_ir ) ;
+		if ( err.error() ) { return ; }
 		for ( it = table.begin() ; it != table.end() ; it++ )
 		{
 			CRP++ ;
@@ -896,24 +899,6 @@ void Table::tbscan( errblock& err,
 		return ;
 	}
 
-	if ( tb_savenm != "" && !isvalidName( tb_savenm ) )
-	{
-		err.seterrid( "PSYE013M", "SAVENAME", tb_savenm ) ;
-		return ;
-	}
-
-	if ( tb_rowid_vn != "" && !isvalidName( tb_rowid_vn ) )
-	{
-		err.seterrid( "PSYE013M", "ROWID", tb_rowid_vn ) ;
-		return ;
-	}
-
-	if ( tb_crp_name != "" && !isvalidName( tb_crp_name ) )
-	{
-		err.seterrid( "PSYE013M", "CRP", tb_crp_name ) ;
-		return ;
-	}
-
 	if ( tb_namelst == "" )
 	{
 		if ( sarg.size() == 0 )
@@ -1047,15 +1032,14 @@ void Table::tbscan( errblock& err,
 		return ;
 	}
 
-	if ( tb_savenm != "" )
-	{
-		funcPOOL.put( err, tb_savenm, "" ) ;
-		if ( err.error() ) { return ; }
-	}
-
 	if ( tb_noread != "NOREAD" )
 	{
 		loadfuncPOOL( err, funcPOOL, tb_savenm ) ;
+		if ( err.error() ) { return ; }
+	}
+	else if ( tb_savenm != "" )
+	{
+		saveExtensionVarNames( err, funcPOOL, tb_savenm ) ;
 		if ( err.error() ) { return ; }
 	}
 
@@ -1105,24 +1089,6 @@ void Table::tbskip( errblock& err,
 	iupper( tb_noread )   ;
 	iupper( tb_crp_name ) ;
 
-	if ( tb_savenm != "" && !isvalidName( tb_savenm ) )
-	{
-		err.seterrid( "PSYE013M", "SAVENAME", tb_savenm ) ;
-		return ;
-	}
-
-	if ( tb_rowid_vn != "" && !isvalidName( tb_rowid_vn ) )
-	{
-		err.seterrid( "PSYE013M", "ROWID", tb_rowid_vn ) ;
-		return ;
-	}
-
-	if ( tb_crp_name != "" && !isvalidName( tb_crp_name ) )
-	{
-		err.seterrid( "PSYE013M", "CRP", tb_crp_name ) ;
-		return ;
-	}
-
 	if ( tb_noread != "" && tb_noread != "NOREAD" )
 	{
 		err.seterrid( "PSYE013M", "NOREAD", tb_noread ) ;
@@ -1151,15 +1117,14 @@ void Table::tbskip( errblock& err,
 		CRP = i ;
 	}
 
-	if ( tb_savenm != "" )
-	{
-		funcPOOL.put( err, tb_savenm, "" ) ;
-		if ( err.error() ) { return ; }
-	}
-
 	if ( tb_noread != "NOREAD" )
 	{
 		loadfuncPOOL( err, funcPOOL, tb_savenm ) ;
+		if ( err.error() ) { return ; }
+	}
+	else if ( tb_savenm != "" )
+	{
+		saveExtensionVarNames( err, funcPOOL, tb_savenm ) ;
 		if ( err.error() ) { return ; }
 	}
 
@@ -1298,6 +1263,7 @@ void Table::tbsort( errblock& err,
 			return false ;
 		} ) ;
 	CRP = 0 ;
+	changed = true ;
 }
 
 
@@ -1865,7 +1831,7 @@ void tableMGR::loadTable( errblock& err,
 	if ( sir != "" )
 	{
 		it->second->tbsort( err, sir ) ;
-		if ( err.getRC() > 0 )
+		if ( err.error() )
 		{
 			err.seterrid( "PSYE013N", sir ) ;
 			return  ;

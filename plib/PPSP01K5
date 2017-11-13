@@ -3,40 +3,43 @@
  Keylist Utilit Panel 5
 )ENDCOMMENT
 
-)BODY
+)BODY WINDOW(60,11)
 
 PanelTitle "Create Keylist Table"
 
-literal  4   2         FP  "Command ===> "
-field    4  15  MAX    NEF CAPS(ON),PAD(USER) ZCMD
+literal  2   2         FP  "Command ===> "
+field    2  15  MAX    NEF CAPS(ON),PAD(USER) ZCMD
 
-literal  7    2   FP    "New Table Name . . . . . ."
-field    7   29  4     NEF CAPS(ON),PAD(USER) NEWTAB
+literal  4    2   FP    "New Table Name . . . . . ."
+field    4   29  4     NEF CAPS(ON),PAD(USER) NEWTAB
 
-literal 10 2  CH "Instructions"
-literal 11 2  NT "Press"
-literal 11 8  ET "Enter"
-literal 11 14 NT "to confirm"
+literal 6 2  CH "Instructions"
+literal 8 2  NT "Press"
+literal 8 8  ET "Enter"
+literal 8 14 NT "to confirm"
 
-literal 13 2  NT "Press"
-literal 13 8  ET "Cancel"
-literal 13 15 NT "or"
-literal 13 18 ET "END"
-literal 13 22 NT "to cancel"
-
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
+literal 9 2  NT "Press"
+literal 9 8  ET "Cancel"
+literal 9 15 NT "or"
+literal 9 18 ET "END"
+literal 9 22 NT "to cancel"
 
 )INIT
-.cursor = newtab
+.cursor  = newtab
 &NEWTAB  = &Z
+&ZWINTTL = &Z
 
 )PROC
-if (&ZCMD NE &Z )
-    .MSG    = PSYS011C
-    .CURSOR = ZCMD
-    EXIT
+&ZCMD = TRANS( &ZCMD CAN,CANCEL *,* )
+
+IF ( &ZCMD = CANCEL )
+   .RESP = END
+   EXIT
+ELSE
+   IF (&ZCMD NE &Z )
+      .MSG    = PSYS018
+      .CURSOR = ZCMD
+      EXIT
 
 VER (&NEWTAB,NB)
 

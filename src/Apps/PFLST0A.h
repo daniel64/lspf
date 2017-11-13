@@ -20,6 +20,8 @@
 using namespace std;
 
 
+using namespace boost::filesystem ;
+
 class PFLST0A : public pApplication
 {
 	public:
@@ -31,15 +33,16 @@ class PFLST0A : public pApplication
 		void createSearchList( const string & ) ;
 
 		string showListing() ;
-		void   showInfo( const string & ) ;
+		void   showInfo( const string& ) ;
 		int    processPrimCMD()   ;
-		void   copyDirs( const string &, const string &, const string &, bool & ) ;
-		void   modifyAttrs( const string & )  ;
-		string expandDir( const string & )  ;
-		string expandFld1( const string & ) ;
-		void   browseTree( const string & ) ;
+		void   copyDirs( const string&, const string&, const string&, bool & ) ;
+		void   modifyAttrs( const string& )  ;
+		string expandDir( const string& )  ;
+		string expandFld1( const string& ) ;
+		void   browseTree( const string& ) ;
 		string getAppName( string ) ;
-		string expandName( const string & ) ;
+		string expandName( const string& ) ;
+		void   AddPath( const string&, const string&, vector<path>& ) ;
 
 		vector<string> SearchList ;
 		bool   UseSearch ;
@@ -53,6 +56,8 @@ class PFLST0A : public pApplication
 		string ZPATH  ;
 		string ZDIR   ;
 		string DSLIST ;
+		string EXGEN  ;
+		string AFHIDDEN ;
 		string SEL, ENTRY, MESSAGE, TYPE, PERMISS, SIZE, STCDATE, MODDATE, MODDATES ;
 		string IENTRY, ITYPE, IOWNER, IGROUP, IINODE, INLNKS, IRLNK, IPERMISS, ISIZE, ISTCDATE, IMODDATE, IACCDATE, IMAJ, IMIN, IBLKSIZE ;
 		string ISETUID, ISETGID, ISTICKY, IOWNERN, IGROUPN ;

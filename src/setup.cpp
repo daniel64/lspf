@@ -212,7 +212,7 @@ main()
 
 	ZCTVERB  = "DSLIST" ;
 	ZCTTRUNC = "0"      ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(DSL &ZPARM) SCRNAME(DSLIST) SUSPEND" ;
+	ZCTACT   = "SELECT PGM(PPSP01A) PARM(DSL &ZPARM) NEWAPPL(ISR) SCRNAME(DSLIST) SUSPEND" ;
 	ZCTDESC  = "File list utility"  ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 

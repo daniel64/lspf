@@ -5,6 +5,7 @@ To install:
 3)  Compile lspf.cpp
 4)  Compile applications
 5)  Copy directories mlib, plib and tlib to the paths defined in MLIB, PLIB and TLIB in lspf.h if different.
+    If using keylists, make sure key table file ISRKEYP in the tlib/ directory is in the ZUPROF directory (usually ~/.lspf/)
 
 You can use comp1 to compile lspf.cpp, compsetup to compile setup.cpp and compapps for all applications in directory Apps
 This has been developed on Arch Linux - link options may vary (eg. if ncurses is built with --with-termlib add -ltinfo )
@@ -21,5 +22,5 @@ Run lspf in a terminal
 Works with:
 gcc 7.2.0
 ncurses 6.0
-boost 1.65.0
+boost 1.65.1
 

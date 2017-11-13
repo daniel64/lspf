@@ -2110,6 +2110,8 @@ void PPSP01A::keylistTables()
 	// Show a list of all key list tables in the ZUPROF path
 	// If there are no tables found, create an empty ISPKEYP
 
+	int RC1     ;
+
 	string MSG  ;
 	string cw   ;
 	string w2   ;
@@ -2191,8 +2193,11 @@ void PPSP01A::keylistTables()
 		{
 			if ( TBK1SEL == "D" )
 			{
+				addpop( "", 5, 5 ) ;
 				display( "PPSP01K7", MSG, "ZCMD" ) ;
-				if ( RC == 0 )
+				RC1 = RC ;
+				rempop() ;
+				if ( RC1 == 0 )
 				{
 					remove( UPROF + "/" + TBK1TAB ) ;
 					tbdelete( KEYP ) ;
@@ -2201,6 +2206,7 @@ void PPSP01A::keylistTables()
 			}
 			else if ( TBK1SEL == "N" )
 			{
+				addpop( "", 5, 5 ) ;
 				display( "PPSP01K5", MSG, "ZCMD" ) ;
 				if ( RC == 0 )
 				{
@@ -2211,6 +2217,7 @@ void PPSP01A::keylistTables()
 					TBK1SEL = ""  ;
 					tbput( KEYP ) ;
 				}
+				rempop() ;
 			}
 			else if ( TBK1SEL == "S" )
 			{
@@ -2240,6 +2247,7 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 	// If there are no rows in table tab, create an empty ISPDEF entry
 
 	int i ;
+	int RC1 ;
 
 	string MSG  ;
 	string cw   ;
@@ -2352,8 +2360,11 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 		{
 			if ( TBK2SEL == "D" )
 			{
+				addpop( "", 5, 5 ) ;
 				display( "PPSP01K7", MSG, "ZCMD" ) ;
-				if ( RC == 0 )
+				RC1 = RC ;
+				rempop() ;
+				if ( RC1 == 0 )
 				{
 					tbopen( tab, WRITE, UPROF ) ;
 					if ( RC > 0 ) { abend() ; }
@@ -2367,8 +2378,11 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 			}
 			else if ( TBK2SEL == "N" )
 			{
+				addpop( "", 5, 5 ) ;
 				display( "PPSP01K4", MSG, "ZCMD" ) ;
-				if ( RC == 0 )
+				RC1 = RC ;
+				rempop() ;
+				if ( RC1 == 0 )
 				{
 					tbopen( tab, NOWRITE, UPROF ) ;
 					if ( RC > 0 ) { abend() ; }
@@ -2564,6 +2578,13 @@ void PPSP01A::editKeylist( const string& tab, const string& list )
 		tbskip( KLST, ZTDTOP ) ;
 		if ( MSG == "" ) { ZCMD = "" ; }
 		tbdispl( KLST, "PPSP01K3", MSG, "ZCMD" ) ;
+		if ( ZCMD == "CANCEL" )
+		{
+			vdelete( "KEYLISTN KEYNUM KEYDEF KEYATTR KEYLAB" ) ;
+			tbend( KLST ) ;
+			if ( RC > 0 ) { abend() ; }
+			return ;
+		}
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 		while ( ZTDSELS > 0 )

@@ -22,16 +22,17 @@ class Table
 	public:
 		Table()
 		{
-			refCount       = 1     ;
-			CRP            = 0     ;
-			maxURID        = 0     ;
-			changed        = false ;
-			tab_cmds       = false ;
-			tab_path       = ""    ;
-			sa_namelst     = ""    ;
-			sa_cond_pairs  = ""    ;
-			sa_dir         = ""    ;
-			sort_ir        = ""    ;
+			refCount      = 1     ;
+			CRP           = 0     ;
+			maxURID       = 0     ;
+			firstMult     = true  ;
+			changed       = false ;
+			tab_cmds      = false ;
+			tab_path      = ""    ;
+			sa_namelst    = ""    ;
+			sa_cond_pairs = ""    ;
+			sa_dir        = ""    ;
+			sort_ir       = ""    ;
 		}
 		~Table() ;
 	private:
@@ -41,6 +42,7 @@ class Table
 		string  tab_flds      ;
 		string  tab_all       ;
 		string  tab_path      ;
+		bool    firstMult     ;
 		bool    changed       ;
 		int     refCount      ;
 		int     maxURID       ;
@@ -85,6 +87,10 @@ class Table
 		void   loadfuncPOOL( errblock& err,
 				     fPOOL& funcPOOL,
 				     const string& savename ) ;
+
+		void   saveExtensionVarNames( errblock& err,
+					      fPOOL& funcPOOL,
+					      const string& savename ) ;
 
 		void   loadFields( errblock& err,
 				   fPOOL& funcPOOL,

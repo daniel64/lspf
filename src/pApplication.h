@@ -218,7 +218,7 @@ class pApplication
 		void   checkRCode( errblock ) ;
 		void   store_scrname() ;
 		void   restore_Zvars( int ) ;
-		void   reload_keylist( pPanel * ) ;
+		void   reload_keylist( errblock&, pPanel * ) ;
 		bool   errorsReturn() ;
 		void   setTestMode()  ;
 		bool   selectPanel()  { return selPanel ; }
@@ -294,7 +294,7 @@ class pApplication
 		stack<string> zpuser ;
 		stack<string> ztuser ;
 
-		void load_keylist( pPanel * )   ;
+		void load_keylist( errblock&, pPanel * )   ;
 		void createPanel( const string& p_name ) ;
 		void actionSelect()   ;
 

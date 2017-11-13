@@ -360,9 +360,8 @@ void PLRFLST1::EditFileList( const string& curtb )
 		tbskip( FLIST2, ZTDTOP ) ;
 		if ( MSG == "" ) { ZCMD1 = "" ; }
 		tbdispl( FLIST2, "PLRFLST2", MSG, "ZCMD1" ) ;
-		if ( RC == 8 ) { break ; }
+		if ( RC == 8 ) { modified = false ; break ; }
 		MSG = "" ;
-		if ( ZCMD1 == "CANCEL" ) { modified = false ; break ; }
 		while ( ZTDSELS > 0 )
 		{
 			if ( BSEL == "" )

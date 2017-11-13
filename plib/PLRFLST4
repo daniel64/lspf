@@ -5,7 +5,7 @@
 
 )BODY CMD(ZCMD1) HOME(ZCMD1) WINDOW(70,11)
 
--- PanelTitle "Save Personal File List As"
+PanelTitle "Save Personal File List As"
 
 literal  2   2         FP    "Command ===> "
 field    2  15  MAX    NEF CAPS(ON),PAD(USER) ZCMD1
@@ -34,13 +34,19 @@ pdc  Options  "Personal Settings"  ACTION RUN(ISRROUTE) PARM("SELECT PGM(PLRFLST
 )INIT
 &NEWNAME = &ACURTB
 &NEWDESC = &AFLDESCP
-&ZWINTTL = 'Save Personal File List As'
+&ZWINTTL = &Z
 
 )PROC
-IF (&ZCMD1 NE &Z )
-   .MSG    = PSYS018
-   .CURSOR = ZCMD1
+&ZCMD1 = TRANS( &ZCMD1 CAN,CANCEL *,* )
+
+IF ( &ZCMD1 = CANCEL )
+   .RESP = END
    EXIT
+ELSE
+   IF (&ZCMD1 NE &Z )
+      .MSG    = PSYS018
+      .CURSOR = ZCMD1
+      EXIT
 
 &L = LENGTH( NEWNAME )
 IF (&NEWNAME EQ &ACURTB OR &L LE 2 )

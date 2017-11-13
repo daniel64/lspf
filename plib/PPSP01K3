@@ -46,8 +46,10 @@ else                   &ZZTYP = 'Shared'
 
 )PROC
 
-if (&ZCMD NE &Z )
-    .MSG    = PSYS011C
+&ZCMD = TRANS(&ZCMD CAN,CANCEL *,* )
+
+if (&ZCMD NE &Z,CANCEL )
+    .MSG    = PSYS018
     .CURSOR = ZCMD
     EXIT
 

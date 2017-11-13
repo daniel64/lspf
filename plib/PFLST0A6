@@ -72,9 +72,15 @@ literal 27 22 NT "to cancel changes"
 )PROC
 
 &ZCMD = TRANS( &ZCMD CAN,CANCEL *,* )
-ver (&zcmd,list,cancel )
 
-if ( &zcmd eq cancel ) exit
+IF ( &ZCMD = CANCEL )
+   .RESP = END
+   EXIT
+ELSE
+   IF (&ZCMD NE &Z )
+      .MSG    = PSYS018
+      .CURSOR = ZCMD
+      EXIT
 
 VER (&IPERMISS NB,PICT,OOO)
 

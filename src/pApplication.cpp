@@ -184,7 +184,7 @@ void pApplication::createPanel( const string& p_name )
 	if ( errBlock.RC0() )
 	{
 		panelList[ p_name ] = p_panel ;
-		load_keylist( p_panel )       ;
+		load_keylist( errBlock, p_panel ) ;
 
 	}
 	else
@@ -1887,7 +1887,7 @@ void pApplication::tbcreate( const string& tb_name, const string& keys, const st
 
 	if ( !isvalidName( tb_name ) )
 	{
-		errBlock.setcall( e1, "PSYE022J", "table", w ) ;
+		errBlock.setcall( e1, "PSYE022J", "table", tb_name ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -2843,17 +2843,18 @@ void pApplication::attr( const string& field, const string& attrs )
 }
 
 
-void pApplication::reload_keylist( pPanel * p )
+void pApplication::reload_keylist( errblock& err, pPanel * p )
 {
 	// Does an unconditional reload every time, but need to find a way to detect a change (TODO)
 	// Alternatively, don't preload pfkeys into the panel object but pass back requested key from pApplication.
 
-	load_keylist( p ) ;
+	load_keylist( err, p ) ;
 }
 
-
-void pApplication::load_keylist( pPanel * p )
+void pApplication::load_keylist( errblock& err, pPanel * p  )
 {
+	// This routine can be called from mainline lspf.  Don't issue wait in this case (eg when there is an error)
+
 	string tabName  ;
 	string tabField ;
 
@@ -2861,10 +2862,13 @@ void pApplication::load_keylist( pPanel * p )
 
 	bool   klfail   ;
 
-	if ( p->KEYLISTN == "" ) { return ; }
+	if ( p->KEYLISTN == "" || p_poolMGR->get( err, "ZKLUSE", PROFILE ) != "Y" )
+	{
+		return ;
+	}
 
 	tabName = p->KEYAPPL + "KEYP" ;
-	klfail  = ( p_poolMGR->get( errBlock, "ZKLFAIL", PROFILE ) == "Y" ) ;
+	klfail  = ( p_poolMGR->get( err, "ZKLFAIL", PROFILE ) == "Y" ) ;
 
 	vcopy( "ZUPROF", UPROF, MOVE ) ;
 	tbopen( tabName, NOWRITE, UPROF, SHARE ) ;
@@ -2876,8 +2880,9 @@ void pApplication::load_keylist( pPanel * p )
 			llog( "W", "Open of keylist table '"+ tabName +"' failed" << endl ) ;
 			return ;
 		}
-		errBlock.setcall( "KEYLIST error", "PSYE023E", tabName ) ;
-		checkRCode( errBlock ) ;
+		err.setcall( "KEYLIST error", "PSYE023E", tabName ) ;
+		checkRCode( err ) ;
+		return ;
 	}
 
 	tbvclear( tabName ) ;
@@ -2892,8 +2897,8 @@ void pApplication::load_keylist( pPanel * p )
 			llog( "W", "Keylist '"+ p->KEYLISTN +"' not found in keylist table "+ tabName << endl ) ;
 			return ;
 		}
-		errBlock.setcall( "KEYLIST error", "PSYE023F", p->KEYLISTN, tabName ) ;
-		checkRCode( errBlock ) ;
+		err.setcall( "KEYLIST error", "PSYE023F", p->KEYLISTN, tabName ) ;
+		checkRCode( err ) ;
 		return  ;
 	}
 
@@ -3757,7 +3762,15 @@ void pApplication::checkRCode( errblock err )
 
 	// Terminate processing if this routing is called during error processing.
 
+	// If this is issued as a result of a service call (a call from another thread ie. lspf), just return.
+	// The caller needs to check further for errors as there is not much that can be done here.
+
 	string t ;
+
+	if ( err.ServiceCall() )
+	{
+		return ;
+	}
 
 	if ( err.abending() )
 	{
@@ -3822,6 +3835,7 @@ void pApplication::checkRCode( errblock err )
 	ControlDisplayLock  = false ;
 	ControlErrorsReturn = true  ;
 	if ( addpop_active ) { rempop( "ALL" ) ; }
+	errBlock.clear() ;
 	display( "PSYSER2" )  ;
 	errPanelissued = true ;
 	abend() ;
@@ -3855,9 +3869,9 @@ void pApplication::abend()
 	llog( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskId << " due to an abnormal condition" << endl ) ;
 	abnormalEnd   = true  ;
 	terminateAppl = true  ;
-	busyAppl      = false ;
 	SEL           = false ;
 	(this->*pcleanup)()   ;
+	busyAppl      = false ;
 	abended       = true  ;
 	llog( "E", "Application entering wait state" << endl ) ;
 	boost::this_thread::sleep_for(boost::chrono::seconds(31536000)) ;
@@ -3892,9 +3906,9 @@ void pApplication::uabend( const string& msgid, const string& e1, int callno )
 	if ( RC <= 8 ) { errPanelissued = true ; }
 	abnormalEnd   = true  ;
 	terminateAppl = true  ;
-	busyAppl      = false ;
 	SEL           = false ;
 	(this->*pcleanup)()   ;
+	busyAppl      = false ;
 	abended       = true  ;
 	llog( "E", "Application entering wait state" << endl ) ;
 	boost::this_thread::sleep_for(boost::chrono::seconds(31536000)) ;
@@ -3932,9 +3946,9 @@ void pApplication::set_forced_abend()
 	abnormalEnd       = true  ;
 	abnormalEndForced = true  ;
 	terminateAppl     = true  ;
-	busyAppl          = false ;
 	SEL               = false ;
 	(this->*pcleanup)()       ;
+	busyAppl          = false ;
 	abended           = true  ;
 }
 
@@ -3946,9 +3960,9 @@ void pApplication::set_timeout_abend()
 	abnormalEndForced = true  ;
 	abnormalTimeout   = true  ;
 	terminateAppl     = true  ;
-	busyAppl          = false ;
 	SEL               = false ;
 	(this->*pcleanup)()       ;
+	busyAppl          = false ;
 	abended           = true  ;
 }
 

@@ -232,6 +232,8 @@ int main( void )
 	commandStack = ""    ;
 	wmPending    = false ;
 
+	err.setServiceCall() ;
+
 	screenList.push_back( new pLScreen ) ;
 
 	llog( "I", "lspf startup in progress" << endl ) ;
@@ -363,6 +365,8 @@ void mainLoop()
 	Insert   = false ;
 
 	set_escdelay( 25 ) ;
+
+	err.setServiceCall() ;
 
 	while ( true )
 	{
@@ -947,6 +951,8 @@ void processAction( uint row, uint col, int c, bool& passthru )
 	PFCMD    = ""    ;
 	passthru = true  ;
 
+	err.setServiceCall() ;
+
 	if ( currAppl->isRawOutput() ) { return ; }
 
 	p_poolMGR->put( err, "ZVERB", "", SHARED ) ;
@@ -1094,7 +1100,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 	{
 		if ( p_poolMGR->get( err, "ZKLUSE", PROFILE ) == "Y" )
 		{
-			currAppl->reload_keylist( currAppl->currPanel ) ;
+			currAppl->reload_keylist( err, currAppl->currPanel ) ;
 			PFCMD = currAppl->currPanel->get_keylist( c ) ;
 		}
 		if ( PFCMD == "" )
@@ -1365,6 +1371,8 @@ bool resolveZCTEntry( string& CMDVerb, string& CMDParm )
 	cmdtlst  = "" ;
 	found    = false ;
 
+	err.setServiceCall() ;
+
 	siteBefore = ( p_poolMGR->get( err, "ZSCMDTF", PROFILE ) == "Y" ) ;
 
 	if ( currAppl->ZZAPPLID != "ISP" ) { cmdtlst = currAppl->ZZAPPLID + " " ; }
@@ -1468,6 +1476,8 @@ void startApplication( selobj SEL, bool nScreen )
 	pApplication * oldAppl = currAppl ;
 
 	boost::thread * pThread ;
+
+	err.setServiceCall() ;
 
 	if ( SEL.PGM == "ISPSTRT" )
 	{
@@ -1662,6 +1672,8 @@ void terminateApplication()
 	boost::thread * pThread ;
 
 	llog( "I", "Application terminating "+ currAppl->ZAPPNAME +" ID: "<< currAppl->taskid() << endl ) ;
+
+	err.setServiceCall() ;
 
 	ZAPPNAME = currAppl->ZAPPNAME ;
 
@@ -1882,6 +1894,7 @@ void terminateApplication()
 bool createLogicalScreen()
 {
 	errblock err ;
+	err.setServiceCall() ;
 
 	if ( !currAppl->ControlSplitEnable )
 	{
@@ -2141,6 +2154,7 @@ void setColourPair( const string& name )
 	string t ;
 
 	errblock err ;
+	err.setServiceCall() ;
 
 	t = p_poolMGR->get( err, "ZC"+ name, PROFILE ) ;
 	if ( !err.RC0() )
@@ -2204,6 +2218,8 @@ void loadDefaultPools()
 
 	uname( &buf ) ;
 
+	err.setServiceCall() ;
+
 	p_poolMGR->defaultVARs( err, "ZSCREEND", d2ds( pLScreen::maxrow ), SHARED ) ;
 	p_poolMGR->defaultVARs( err, "ZSCRMAXD", d2ds( pLScreen::maxrow ), SHARED ) ;
 	p_poolMGR->defaultVARs( err, "ZSCREENW", d2ds( pLScreen::maxcol ), SHARED ) ;
@@ -2254,6 +2270,8 @@ void loadSystemCommandTable()
 	// Terminate if ISPCMDS not found
 
 	errblock err ;
+	err.setServiceCall() ;
+
 	p_tableMGR->loadTable( err, "ISPCMDS", NOWRITE, ZTLIB, SHARE ) ;
 	if ( !err.RC0() )
 	{
@@ -2277,6 +2295,7 @@ string pfKeyValue( int c )
 	string val ;
 
 	errblock err ;
+	err.setServiceCall() ;
 
 	keyn = c - KEY_F( 0 ) ;
 	key  = "ZPF" + right( d2ds( keyn ), 2, '0' ) ;
@@ -2294,6 +2313,7 @@ string pfKeyValue( int c )
 void createpfKeyDefaults()
 {
 	errblock err ;
+	err.setServiceCall() ;
 
 	for ( int i = 1 ; i < 25 ; i++ )
 	{
@@ -2305,6 +2325,7 @@ void createpfKeyDefaults()
 void updateDefaultVars()
 {
 	errblock err ;
+	err.setServiceCall() ;
 
 	GMAXWAIT = ds2d( p_poolMGR->get( err, "ZMAXWAIT", PROFILE ) ) ;
 	GMAINPGM = p_poolMGR->get( err, "ZMAINPGM", PROFILE ) ;
@@ -2328,6 +2349,7 @@ void updateReflist()
 	string fname ;
 
 	errblock err ;
+	err.setServiceCall() ;
 
 	if ( !currAppl->ControlRefUpdate || p_poolMGR->get( err, "ZRFURL", PROFILE ) != "YES" ) { return ; }
 
@@ -2438,6 +2460,8 @@ string listLogicalScreens()
 	wattrset( swwin, cuaAttr[ PIN ] ) ;
 	mvwaddstr( swwin, 3, 2, "ID  Name      Application  Applid  Panel Title/Description" ) ;
 	wattroff( swwin, cuaAttr[ PIN ] ) ;
+
+	err.setServiceCall() ;
 
 	currScrn->show_wait() ;
 
@@ -2794,6 +2818,7 @@ void getDynamicClasses()
 
 	const string e1( GMAINPGM +" not found.  Check ZLDPATH is correct.  lspf terminating **" ) ;
 
+	err.setServiceCall() ;
 	paths = p_poolMGR->get( err, "ZLDPATH", PROFILE ) ;
 	j     = getpaths( paths ) ;
 	for ( i = 1 ; i <= j ; i++ )
@@ -2868,6 +2893,7 @@ void reloadDynamicClasses( string parm )
 
 	vec::const_iterator it ;
 
+	err.setServiceCall() ;
 	paths = p_poolMGR->get( err, "ZLDPATH", PROFILE ) ;
 	j     = getpaths( paths ) ;
 	for ( i = 1 ; i <= j ; i++ )

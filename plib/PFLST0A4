@@ -53,9 +53,15 @@ literal 19 22 NT "to cancel rename"
 )PROC
 
 &ZCMD = TRANS( &ZCMD CAN,CANCEL *,* )
-ver (&zcmd,list,cancel )
 
-if ( &zcmd eq cancel ) exit
+IF ( &ZCMD = CANCEL )
+   .RESP = END
+   EXIT
+ELSE
+   IF (&ZCMD NE &Z )
+      .MSG    = PSYS018
+      .CURSOR = ZCMD
+      EXIT
 
 IF (&NEWENTRY EQ '.' )
   &NEWENTRY = '&ZPATH/&ENTRY '

@@ -2095,6 +2095,7 @@ void pPanel::field_clear( const string& f_name )
 void pPanel::field_edit( uint row, uint col, char ch, bool Isrt, bool& prot )
 {
 	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
+	// field_tab_next also needs the physical position, so addjust before and after the call.
 
 	errblock err ;
 	map<string, field *>::iterator it;
@@ -2126,9 +2127,13 @@ void pPanel::field_edit( uint row, uint col, char ch, bool Isrt, bool& prot )
 			}
 			prot = false ;
 			++p_col ;
-			if ( (p_col == it->second->field_cole) && (it->second->field_skip) )
+			if ( p_col == it->second->field_cole && it->second->field_skip )
 			{
+				p_row += win_row ;
+				p_col += win_col ;
 				field_tab_next( p_row, p_col ) ;
+				p_row -= win_row ;
+				p_col -= win_col ;
 			}
 			return ;
 		}
