@@ -118,3 +118,10 @@ PSYE042L 'Home field ''&ZVAL1'' not defined in panel body'
 
 PSYE042M 'Command field ''&ZVAL1'' not defined in panel body'
 ''
+
+PSYE042N 'No command field defined'
+'Scrollable panels must have a command field defined'
+
+PSYE042O 'Invalid value for .AUTOSEL control variable.  Must be YES, NO or blank'
+''
+

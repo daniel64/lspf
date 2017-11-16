@@ -21,7 +21,7 @@ class pPanel
 {
 	public:
 		string MSGID    ;
-		string CMDfield ;
+		string cmdField ;
 		bool   showLMSG ;
 
 		pPanel()  ;
@@ -44,6 +44,7 @@ class pPanel
 		bool   field_get_row_col( const string& fld, uint& row, uint& col ) ;
 
 		void   cursor_to_field( int& RC, string ="", int =1 ) ;
+		void   cursor_to_cmdField( int& RC, int =1 ) ;
 		void   cursor_to_next_field ( const string& name, uint& row, uint& col )  ;
 		void   cursor_eof( uint& row, uint& col )  ;
 		void   get_cursor( uint& row, uint& col ) { row   = p_row + win_row ; col   = p_col + win_col ; }
@@ -67,14 +68,15 @@ class pPanel
 		void   refresh_fields()  ;
 		void   refresh_fields( const string& ) ;
 
-		string cmd_getvalue()                  { return field_getvalue( CMDfield ) ; }
-		void   cmd_setvalue( const string& v ) { field_setvalue( CMDfield, v )     ; }
+		string cmd_getvalue()                  ;
+		void   cmd_setvalue( const string& v ) ;
 
 		bool    get_tbscan()                   { return tb_scan  ; }
 		string& get_tb_clear()                 { return tb_clear ; }
 
 		bool   is_cmd_inactive( const string& value ) ;
 
+		bool   cmdFieldDefined()               { return fieldList.count( cmdField ) > 0 ; }
 		bool   on_border_line( uint, uint )  ;
 		bool   hide_msg_window( uint, uint ) ;
 		void   selPanel( bool x ) { selectPanel = x ; }
@@ -94,10 +96,16 @@ class pPanel
 		string KEYHELPN    ;
 		bool   REXX        ;
 		string ZPHELP      ;
+		string ZZCMD       ;
 		string tb_fields   ;
 		string tb_clear    ;
 		int    tb_depth    ;
+		int    tb_curidx   ;
+		int    tb_csrrow   ;
 		bool   tb_scan     ;
+		bool   tb_autosel  ;
+		bool   tb_autospc  ;
+		bool   tb_crowspc  ;
 		bool   pdActive    ;
 		int    abc_pos     ;
 		bool   primaryMenu ;

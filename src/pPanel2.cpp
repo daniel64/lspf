@@ -178,8 +178,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 					err.setsrc( oline ) ;
 					return ;
 				}
-				CMDfield = strip( substr( pline, j+5, k-j-5 ) ) ;
-				if ( !isvalidName( CMDfield ) )
+				cmdField = strip( substr( pline, j+5, k-j-5 ) ) ;
+				if ( !isvalidName( cmdField ) )
 				{
 					err.seterrid( "PSYE022J", "command field", w7 ) ;
 					err.setsrc( oline ) ;
@@ -408,7 +408,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			}
 			if ( fieldList.find( m_pnts.pnts_field ) == fieldList.end() )
 			{
-				for ( uint i = 0 ; i < literalList.size() ; i++ )
+				for ( i = 0 ; i < literalList.size() ; i++ )
 				{
 					if ( m_pnts.pnts_field == literalList.at( i )->literal_name )
 					{
@@ -726,15 +726,31 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		fieldList[ "ZSCROLL" ]->field_caps = true ;
 	}
 
-	if ( fieldList.count( Home ) == 0 )
+	if ( Home != "" && fieldList.count( Home ) == 0 )
 	{
 		err.seterrid( "PSYE042L", Home ) ;
 		return ;
 	}
 
-	if ( fieldList.count( CMDfield ) == 0 )
+	if ( cmdField != "" && fieldList.count( cmdField ) == 0 )
 	{
-		err.seterrid( "PSYE042M", CMDfield ) ;
+		err.seterrid( "PSYE042M", cmdField ) ;
+		return ;
+	}
+
+	if ( cmdField == "" && fieldList.count( "ZCMD" ) > 0 )
+	{
+		cmdField = "ZCMD" ;
+	}
+
+	if ( Home == "" && cmdField != "" )
+	{
+		Home = cmdField ;
+	}
+
+	if ( scrollOn && cmdField == "" )
+	{
+		err.seterrid( "PSYE042N", cmdField ) ;
 		return ;
 	}
 

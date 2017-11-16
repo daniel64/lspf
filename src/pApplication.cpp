@@ -88,6 +88,7 @@ pApplication::pApplication()
 	ZERR8                  = ""     ;
 	funcPOOL.define( errBlock, "ZCURFLD",  &ZCURFLD ) ;
 	funcPOOL.define( errBlock, "ZCURPOS",  &ZCURPOS ) ;
+	funcPOOL.define( errBlock, "ZCURINX",  &ZCURINX ) ;
 	funcPOOL.define( errBlock, "ZTDDEPTH", &ZTDDEPTH) ;
 	funcPOOL.define( errBlock, "ZTDROWS",  &ZTDROWS ) ;
 	funcPOOL.define( errBlock, "ZTDSELS",  &ZTDSELS ) ;
@@ -184,7 +185,7 @@ void pApplication::createPanel( const string& p_name )
 	if ( errBlock.RC0() )
 	{
 		panelList[ p_name ] = p_panel ;
-		load_keylist( errBlock, p_panel ) ;
+		load_keylist( p_panel ) ;
 
 	}
 	else
@@ -306,16 +307,8 @@ void pApplication::set_msg( const string& msg_id )
 {
 	// Display a message on current panel using msg_id
 
-	// This is called from mainline lspf, so set CONTROL ERRORS RETURN and restore
-	// original CONTROL ERROR settings on exit.  This is so lspf does not hang on an error.
-
-	bool errorStatus ;
-
 	if ( !currPanel ) { return ; }
 
-	errorStatus = ControlErrorsReturn ;
-
-	ControlErrorsReturn = true ;
 	get_Message( msg_id ) ;
 	if ( RC == 0 )
 	{
@@ -323,7 +316,6 @@ void pApplication::set_msg( const string& msg_id )
 		currPanel->set_panel_msg( MSG, MSGID ) ;
 		currPanel->display_msg()   ;
 	}
-	ControlErrorsReturn = errorStatus  ;
 }
 
 
@@ -350,6 +342,20 @@ void pApplication::set_msg1( const slmsg& t, string msgid, bool Immed )
 void pApplication::clear_msg()
 {
 	currPanel->clear_msg() ;
+}
+
+
+void pApplication::save_errblock()
+{
+	serBlock = errBlock ;
+	errBlock.clear()    ;
+	errBlock.setServiceCall() ;
+}
+
+
+void pApplication::restore_errblock()
+{
+	errBlock = serBlock ;
 }
 
 
@@ -1973,8 +1979,8 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 
 	// Autoselect if the p_csrpos CRP is visible
 
-	// Use separate pointer currtbPanel for tb displays so that a CONTROL DISPLAY SAVE/RESTORE is only necessary when a tbdispl issues another tbdispl and not
-	// for a display of an ordinary panel
+	// Use separate pointer currtbPanel for tb displays so that a CONTROL DISPLAY SAVE/RESTORE is only necessary
+	// when a tbdispl issues another tbdispl and not for a display of an ordinary panel.
 
 	// RC =  0  Normal completion
 	// RC =  4  More than 1 row selected
@@ -1986,9 +1992,11 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 	int ws      ;
 	int i       ;
 	int ln      ;
+	int csrrow  ;
 	int csrvrow ;
 
-	bool scan   ;
+	bool scan    ;
+	bool autosel ;
 
 	string ZZVERB ;
 	string URID   ;
@@ -2014,15 +2022,13 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 
 	if ( !isTableOpen( tb_name, "TBDISPL" ) ) { RC = 20 ; return ; }
 
-	if ( p_autosel == "" ) { p_autosel = "YES" ; }
-
 	if ( p_cursor != "" && !isvalidName( p_cursor ) )
 	{
 		errBlock.seterror( "Invalid CURSOR position" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
-	if ( p_autosel != "YES" &&  p_autosel != "NO" )
+	if ( p_autosel != "YES" && p_autosel != "NO" && p_autosel != "" )
 	{
 		errBlock.seterror( "Invalid AUTOSEL parameter.  Must be YES or NO" ) ;
 		checkRCode( errBlock ) ;
@@ -2111,6 +2117,9 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 
 	if ( p_cursor == "" ) { p_cursor = currtbPanel->Home ; }
 
+	autosel = ( p_autosel == "YES" || p_autosel == "" ) ;
+	csrrow  = p_csrrow ;
+
 	if ( addpop_active )  { currtbPanel->set_popup( addpop_row, addpop_col ) ; }
 	else                  { currtbPanel->remove_popup()                      ; }
 
@@ -2122,7 +2131,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		return ;
 	}
 
-	currPanel->update_field_values( errBlock ) ;
+	currtbPanel->update_field_values( errBlock ) ;
 	if ( errBlock.error() )
 	{
 		errBlock.setcall( e6 + p_name ) ;
@@ -2130,10 +2139,8 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		return ;
 	}
 
-	t = funcPOOL.get( errBlock, 8, ".AUTOSEL", NOCHECK ) ;
-	if ( errBlock.RC0() ) { p_autosel = t ; }
-	t = funcPOOL.get( errBlock, 8, ".CSRROW", NOCHECK ) ;
-	if ( errBlock.RC0() ) { p_csrrow = ds2d( t ) ; }
+	if ( currtbPanel->tb_autospc ) { autosel = currtbPanel->tb_autosel ; }
+	if ( currtbPanel->tb_crowspc ) { csrrow  = currtbPanel->tb_csrrow  ; }
 
 	if ( p_poolMGR->get( errBlock, "ZSCRNAM1", SHARED ) == "ON" &&
 	     p_poolMGR->get( errBlock, lscreen_num, "ZSCRNAM2" ) == "PERM" )
@@ -2150,20 +2157,22 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 			{
 				errBlock.setcall( e1 ) ;
 				checkRCode( errBlock ) ;
-				exitRC = 20 ;
-				break ;
+				return ;
 			}
 			if ( currtbPanel->CURFLD == "" )
 			{
 				if ( wordpos( p_cursor, currtbPanel->tb_fields ) > 0 )
 				{
-					csrvrow = p_csrrow - ZTDTOP + 1 ;
+					csrvrow = csrrow - ZTDTOP + 1 ;
 					if ( csrvrow > 0 && csrvrow <= ZTDVROWS ) { i = csrvrow - 1 ; }
 					else if ( ln > 0 ) { i = ln ; }
 					else               { i = 1  ; }
 					currtbPanel->CURFLD = p_cursor + "." + d2ds( i ) ;
 				}
-				else { currtbPanel->CURFLD = p_cursor ; }
+				else
+				{
+					currtbPanel->CURFLD = p_cursor ;
+				}
 				currtbPanel->CURPOS = p_csrpos ;
 			}
 			currtbPanel->cursor_to_field( RC ) ;
@@ -2171,8 +2180,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 			{
 				errBlock.setcall( e1, "PSYE022N", currtbPanel->CURFLD ) ;
 				checkRCode( errBlock ) ;
-				exitRC = 20 ;
-				break ;
+				return ;
 			}
 			wait_event() ;
 			ControlDisplayLock = false ;
@@ -2186,13 +2194,21 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 			{
 				errBlock.setcall( e5 ) ;
 				checkRCode( errBlock ) ;
-				exitRC = 20 ;
-				break ;
+				return ;
 			}
 			currtbPanel->tb_set_linesChanged() ;
 		}
 
 		exitRC = 0  ;
+		if ( currtbPanel->tb_curidx > -1 )
+		{
+			URID = funcPOOL.get( errBlock, 0, ".ZURID."+d2ds( currtbPanel->tb_curidx), NOCHECK ) ;
+			tbskip( tb_name, 0, "", "", URID, "NOREAD", "ZCURINX" ) ;
+		}
+		else
+		{
+			ZCURINX = "00000000" ;
+		}
 		if ( currtbPanel->tb_lineChanged( ln, URID ) )
 		{
 			tbskip( tb_name, 0, "", p_rowid_nm, URID, "", p_crp_name ) ;
@@ -2204,8 +2220,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 				if ( errBlock.error() )
 				{
 					checkRCode( errBlock ) ;
-					exitRC = 20 ;
-					break ;
+					return ;
 				}
 			}
 			if ( ZTDSELS > 1 ) { exitRC = 4; }
@@ -2224,14 +2239,11 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		{
 			errBlock.setcall( e1, "PSYE015L", "GET", "ZVERB" ) ;
 			checkRCode( errBlock ) ;
-			exitRC = 20 ;
-			break ;
+			return ;
 		}
 		if ( ZZVERB == "RETURN" ) { propagateEnd = true ; }
 		if ( findword( ZZVERB, "END EXIT RETURN" ) ) { RC = 8 ; return ; }
 
-		t = funcPOOL.get( errBlock, 8, ".CSRROW", NOCHECK ) ;
-		if ( errBlock.RC0() ) { p_csrrow = ds2d( t ) ; }
 		if ( currtbPanel->MSGID != "" )
 		{
 			get_Message( currtbPanel->MSGID ) ;
@@ -2249,13 +2261,10 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 			{
 				errBlock.setcall( e3 + p_name ) ;
 				checkRCode( errBlock ) ;
-				exitRC = 20 ;
-				break ;
+				return ;
 			}
-			t = funcPOOL.get( errBlock, 8, ".AUTOSEL", NOCHECK ) ;
-			if ( errBlock.RC0() ) { p_autosel = t ; }
-			t = funcPOOL.get( errBlock, 8, ".CSRROW", NOCHECK ) ;
-			if ( errBlock.RC0() ) { p_csrrow = ds2d( t ) ; }
+			if ( currtbPanel->tb_autospc ) { autosel = currtbPanel->tb_autosel ; }
+			if ( currtbPanel->tb_crowspc ) { csrrow  = currtbPanel->tb_csrrow  ; }
 			continue ;
 		}
 		if ( ZZVERB == "UP" || ZZVERB == "DOWN" )
@@ -2303,20 +2312,20 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		}
 		break ;
 	}
-	if ( URID == "" )
+	if ( ZTDSELS == 0 )
 	{
-		csrvrow = p_csrrow - ZTDTOP + 1 ;
-		if ( p_autosel == "YES" && csrvrow > 0 && csrvrow <= ZTDVROWS )
+		csrvrow = csrrow - ZTDTOP + 1 ;
+		if ( csrrow > 0 && autosel && csrvrow > 0 && csrvrow <= ZTDVROWS )
 		{
 			tbtop( tb_name ) ;
-			tbskip( tb_name, p_csrrow, "", p_rowid_nm, "", "", p_crp_name ) ;
-			ws = words( currtbPanel->tb_fields ) ;
-			for ( i = 1 ; i <= ws ; i++ )
+			tbskip( tb_name, csrrow, "", p_rowid_nm, "", "", p_crp_name ) ;
+			t = "." + d2ds( csrvrow - 1 ) ;
+			for ( ws = words( currtbPanel->tb_fields ), i = 1 ; i <= ws ; i++ )
 			{
 				s = word( currtbPanel->tb_fields, i ) ;
-				funcPOOL.put( errBlock, s, funcPOOL.get( errBlock, 0, s + "." + d2ds( csrvrow-1 ), NOCHECK ) ) ;
+				funcPOOL.put( errBlock, s, funcPOOL.get( errBlock, 0, s+t, NOCHECK ) ) ;
 			}
-			ZTDSELS++ ;
+			ZTDSELS = 1 ;
 		}
 		else
 		{
@@ -2843,18 +2852,16 @@ void pApplication::attr( const string& field, const string& attrs )
 }
 
 
-void pApplication::reload_keylist( errblock& err, pPanel * p )
+void pApplication::reload_keylist( pPanel * p )
 {
 	// Does an unconditional reload every time, but need to find a way to detect a change (TODO)
 	// Alternatively, don't preload pfkeys into the panel object but pass back requested key from pApplication.
 
-	load_keylist( err, p ) ;
+	load_keylist( p ) ;
 }
 
-void pApplication::load_keylist( errblock& err, pPanel * p  )
+void pApplication::load_keylist( pPanel * p  )
 {
-	// This routine can be called from mainline lspf.  Don't issue wait in this case (eg when there is an error)
-
 	string tabName  ;
 	string tabField ;
 
@@ -2862,13 +2869,13 @@ void pApplication::load_keylist( errblock& err, pPanel * p  )
 
 	bool   klfail   ;
 
-	if ( p->KEYLISTN == "" || p_poolMGR->get( err, "ZKLUSE", PROFILE ) != "Y" )
+	if ( p->KEYLISTN == "" || p_poolMGR->get( errBlock, "ZKLUSE", PROFILE ) != "Y" )
 	{
 		return ;
 	}
 
 	tabName = p->KEYAPPL + "KEYP" ;
-	klfail  = ( p_poolMGR->get( err, "ZKLFAIL", PROFILE ) == "Y" ) ;
+	klfail  = ( p_poolMGR->get( errBlock, "ZKLFAIL", PROFILE ) == "Y" ) ;
 
 	vcopy( "ZUPROF", UPROF, MOVE ) ;
 	tbopen( tabName, NOWRITE, UPROF, SHARE ) ;
@@ -2880,8 +2887,8 @@ void pApplication::load_keylist( errblock& err, pPanel * p  )
 			llog( "W", "Open of keylist table '"+ tabName +"' failed" << endl ) ;
 			return ;
 		}
-		err.setcall( "KEYLIST error", "PSYE023E", tabName ) ;
-		checkRCode( err ) ;
+		errBlock.setcall( "KEYLIST error", "PSYE023E", tabName ) ;
+		checkRCode( errBlock ) ;
 		return ;
 	}
 
@@ -2897,8 +2904,8 @@ void pApplication::load_keylist( errblock& err, pPanel * p  )
 			llog( "W", "Keylist '"+ p->KEYLISTN +"' not found in keylist table "+ tabName << endl ) ;
 			return ;
 		}
-		err.setcall( "KEYLIST error", "PSYE023F", p->KEYLISTN, tabName ) ;
-		checkRCode( err ) ;
+		errBlock.setcall( "KEYLIST error", "PSYE023F", p->KEYLISTN, tabName ) ;
+		checkRCode( errBlock ) ;
 		return  ;
 	}
 
@@ -3717,9 +3724,18 @@ void pApplication::checkRCode( const string& s )
 {
 	// If the error panel is to be displayed, cancel CONTROL DISPLAY LOCK and remove any popup's
 
-	int RC2 ;
+	// If this is issued as a result of a service call (a call from another thread ie. lspf), just return.
+	// The calling thread needs to check further for errors as there is not much that can be done here.
 
-	RC2 = RC ;
+	int RC1 ;
+
+	if ( errBlock.ServiceCall() )
+	{
+		errBlock.seterror() ;
+		return ;
+	}
+
+	RC1 = RC ;
 
 	llog( "E", s << endl ) ;
 	if ( ZERR2 != "" ) { llog( "E", ZERR2 << endl ) ; }
@@ -3736,7 +3752,7 @@ void pApplication::checkRCode( const string& s )
 		vreplace( "ZERR6",  ZERR6  ) ;
 		vreplace( "ZERR7",  ZERR7  ) ;
 		vreplace( "ZERR8",  ZERR8  ) ;
-		vreplace( "ZERRRC", d2ds( RC2 ) ) ;
+		vreplace( "ZERRRC", d2ds( RC1 ) ) ;
 		ControlDisplayLock  = false ;
 		ControlErrorsReturn = true  ;
 		if ( addpop_active ) { rempop( "ALL" ) ; }
@@ -3763,7 +3779,7 @@ void pApplication::checkRCode( errblock err )
 	// Terminate processing if this routing is called during error processing.
 
 	// If this is issued as a result of a service call (a call from another thread ie. lspf), just return.
-	// The caller needs to check further for errors as there is not much that can be done here.
+	// The calling thread needs to check further for errors as there is not much that can be done here.
 
 	string t ;
 
@@ -3776,6 +3792,7 @@ void pApplication::checkRCode( errblock err )
 	{
 		llog( "E", "Errors have occured during error processing.  Terminating application." << endl ) ;
 		llog( "E", "Error msg  : "<< err.msg1 << endl )  ;
+		llog( "E", "Error RC   : "<< err.getRC() << endl ) ;
 		llog( "E", "Error id   : "<< err.msgid << endl ) ;
 		llog( "E", "Error ZVAL1: "<< err.val1 << endl )  ;
 		llog( "E", "Error ZVAL2: "<< err.val2 << endl )  ;

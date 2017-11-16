@@ -7,15 +7,13 @@
 
 PanelTitle "Personal File Lists"
 
-scrollOn
-
 literal  4   2         FP    "Command ===> "
 field    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
 
 literal  4  MAX-15  FP "Scroll ===> "
 field    4  MAX-3  4 NEF  NONE ZSCROLL
 
-literal  6  2          FP  "Actions: S=Select"
+literal  6  2          FP  "Select personal file list for dslist"
 
 literal  8   2      CH    "S Name     Description"
 literal  8   MAX-30 CH    "Created     Updated"
@@ -23,7 +21,7 @@ literal   9  2      CH    EXPAND "-"
 
 tbmodel  10   MAX
 tbmodel  10   MAX
-tbfield  2    1       NEF   PAD(USER),CAPS(ON) ASEL
+tbfield  2    1       NEF   PAD('.'),CAPS(ON) ASEL
 tbfield  ++1  8       VOI   NONE ACURTB
 tbfield  ++1  MAX-32  VOI   NONE AFLDESCP
 tbfield  ++1  MAX-20  VOI   NONE AFLCTIME
@@ -42,8 +40,7 @@ IF (&ZCMD NE &Z )
    .CURSOR = ZCMD
    EXIT
 
-VER (&ASEL,LIST,S)
-IF (&ASEL = 'S' ) &ASEL = 'L'
+&ASEL = TRANS( &ASEL &Z,&Z *,'L' )
 
-IF (.RESP = END AND .MSG = &Z ) VPUT ZSCROLL PROFILE
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
 )END

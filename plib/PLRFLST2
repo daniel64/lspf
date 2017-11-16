@@ -6,8 +6,6 @@
 
 PanelTitle "Edit Personal File List"
 
-scrollOn
-
 literal  4   2         FP    "Command ===> "
 field    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD1
 

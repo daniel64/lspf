@@ -69,6 +69,11 @@ class Table
 
 		void   resetChanged() { changed = false ; }
 
+		void   storeIntValue( errblock& err,
+				      fPOOL& funcPOOL,
+				      const string&,
+				      int ) ;
+
 		void   fillfVARs( errblock& err,
 				  fPOOL& funcPOOL,
 				  const string& clear_flds,

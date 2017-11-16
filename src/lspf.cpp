@@ -161,6 +161,7 @@ bool resolveZCTEntry( string&, string& ) ;
 bool isActionKey( int c )   ;
 void listRetrieveBuffer()   ;
 int  getScreenNameNum( const string& ) ;
+void serviceCallError( errblock& )     ;
 void mainLoop() ;
 
 vector<pLScreen *> screenList ;
@@ -231,8 +232,6 @@ int main( void )
 	startTime    = boost::posix_time::microsec_clock::universal_time() ;
 	commandStack = ""    ;
 	wmPending    = false ;
-
-	err.setServiceCall() ;
 
 	screenList.push_back( new pLScreen ) ;
 
@@ -365,8 +364,6 @@ void mainLoop()
 	Insert   = false ;
 
 	set_escdelay( 25 ) ;
-
-	err.setServiceCall() ;
 
 	while ( true )
 	{
@@ -780,7 +777,7 @@ void mainLoop()
 					w2 = word( ZPARM, 2 ) ;
 					if ( ZPARM != "" && ZPARM != "NEXT" && ZPARM != "PREV" )
 					{
-						currAppl->currPanel->cursor_to_field( RC, currAppl->currPanel->CMDfield ) ;
+						currAppl->currPanel->cursor_to_cmdField( RC ) ;
 						currAppl->currPanel->get_cursor( row, col ) ;
 						currScrn->set_row_col( row, col ) ;
 					}
@@ -951,8 +948,6 @@ void processAction( uint row, uint col, int c, bool& passthru )
 	PFCMD    = ""    ;
 	passthru = true  ;
 
-	err.setServiceCall() ;
-
 	if ( currAppl->isRawOutput() ) { return ; }
 
 	p_poolMGR->put( err, "ZVERB", "", SHARED ) ;
@@ -1066,10 +1061,11 @@ void processAction( uint row, uint col, int c, bool& passthru )
 
 	if ( c == KEY_ENTER  &&
 	     ZCOMMAND != ""  &&
+	     currAppl->currPanel->cmdFieldDefined() &&
 	     p_poolMGR->get( err, "ZSWAPC", PROFILE ) == ZCOMMAND.substr( 0, 1 ) &&
 	     p_poolMGR->get( err, "ZSWAP",  PROFILE ) == "Y" )
 	{
-		currAppl->currPanel->field_get_row_col( currAppl->currPanel->CMDfield, rw, cl ) ;
+		currAppl->currPanel->field_get_row_col( currAppl->currPanel->cmdField, rw, cl ) ;
 		if ( rw == row && cl < col )
 		{
 			ZPARM    = upper( ZCOMMAND.substr( 1, col-cl-1 ) ) ;
@@ -1100,8 +1096,18 @@ void processAction( uint row, uint col, int c, bool& passthru )
 	{
 		if ( p_poolMGR->get( err, "ZKLUSE", PROFILE ) == "Y" )
 		{
-			currAppl->reload_keylist( err, currAppl->currPanel ) ;
-			PFCMD = currAppl->currPanel->get_keylist( c ) ;
+			currAppl->save_errblock() ;
+			currAppl->reload_keylist( currAppl->currPanel ) ;
+			err = currAppl->get_errblock() ;
+			currAppl->restore_errblock()   ;
+			if ( err.error() )
+			{
+				serviceCallError( err ) ;
+			}
+			else
+			{
+				PFCMD = currAppl->currPanel->get_keylist( c ) ;
+			}
 		}
 		if ( PFCMD == "" )
 		{
@@ -1215,6 +1221,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 
 	if ( CMDVerb == "RETRIEVE" )
 	{
+		if ( !currAppl->currPanel->cmdFieldDefined() ) { return ; }
 		if ( datatype( CMDParm, 'W' ) )
 		{
 			p1 = ds2d( CMDParm ) ;
@@ -1223,7 +1230,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		commandStack = ""    ;
 		ZCOMMAND     = "NOP" ;
 		passthru     = false ;
-		fld          = currAppl->currPanel->CMDfield ;
+		fld          = currAppl->currPanel->cmdField ;
 		if ( !retrieveBuffer.empty() )
 		{
 			currAppl->currPanel->cmd_setvalue( retrieveBuffer[ retPos ] ) ;
@@ -1371,8 +1378,6 @@ bool resolveZCTEntry( string& CMDVerb, string& CMDParm )
 	cmdtlst  = "" ;
 	found    = false ;
 
-	err.setServiceCall() ;
-
 	siteBefore = ( p_poolMGR->get( err, "ZSCMDTF", PROFILE ) == "Y" ) ;
 
 	if ( currAppl->ZZAPPLID != "ISP" ) { cmdtlst = currAppl->ZZAPPLID + " " ; }
@@ -1476,8 +1481,6 @@ void startApplication( selobj SEL, bool nScreen )
 	pApplication * oldAppl = currAppl ;
 
 	boost::thread * pThread ;
-
-	err.setServiceCall() ;
 
 	if ( SEL.PGM == "ISPSTRT" )
 	{
@@ -1672,8 +1675,6 @@ void terminateApplication()
 	boost::thread * pThread ;
 
 	llog( "I", "Application terminating "+ currAppl->ZAPPNAME +" ID: "<< currAppl->taskid() << endl ) ;
-
-	err.setServiceCall() ;
 
 	ZAPPNAME = currAppl->ZAPPNAME ;
 
@@ -1894,7 +1895,6 @@ void terminateApplication()
 bool createLogicalScreen()
 {
 	errblock err ;
-	err.setServiceCall() ;
 
 	if ( !currAppl->ControlSplitEnable )
 	{
@@ -2154,7 +2154,6 @@ void setColourPair( const string& name )
 	string t ;
 
 	errblock err ;
-	err.setServiceCall() ;
 
 	t = p_poolMGR->get( err, "ZC"+ name, PROFILE ) ;
 	if ( !err.RC0() )
@@ -2218,8 +2217,6 @@ void loadDefaultPools()
 
 	uname( &buf ) ;
 
-	err.setServiceCall() ;
-
 	p_poolMGR->defaultVARs( err, "ZSCREEND", d2ds( pLScreen::maxrow ), SHARED ) ;
 	p_poolMGR->defaultVARs( err, "ZSCRMAXD", d2ds( pLScreen::maxrow ), SHARED ) ;
 	p_poolMGR->defaultVARs( err, "ZSCREENW", d2ds( pLScreen::maxcol ), SHARED ) ;
@@ -2270,7 +2267,6 @@ void loadSystemCommandTable()
 	// Terminate if ISPCMDS not found
 
 	errblock err ;
-	err.setServiceCall() ;
 
 	p_tableMGR->loadTable( err, "ISPCMDS", NOWRITE, ZTLIB, SHARE ) ;
 	if ( !err.RC0() )
@@ -2295,7 +2291,6 @@ string pfKeyValue( int c )
 	string val ;
 
 	errblock err ;
-	err.setServiceCall() ;
 
 	keyn = c - KEY_F( 0 ) ;
 	key  = "ZPF" + right( d2ds( keyn ), 2, '0' ) ;
@@ -2313,7 +2308,6 @@ string pfKeyValue( int c )
 void createpfKeyDefaults()
 {
 	errblock err ;
-	err.setServiceCall() ;
 
 	for ( int i = 1 ; i < 25 ; i++ )
 	{
@@ -2325,7 +2319,6 @@ void createpfKeyDefaults()
 void updateDefaultVars()
 {
 	errblock err ;
-	err.setServiceCall() ;
 
 	GMAXWAIT = ds2d( p_poolMGR->get( err, "ZMAXWAIT", PROFILE ) ) ;
 	GMAINPGM = p_poolMGR->get( err, "ZMAINPGM", PROFILE ) ;
@@ -2349,7 +2342,6 @@ void updateReflist()
 	string fname ;
 
 	errblock err ;
-	err.setServiceCall() ;
 
 	if ( !currAppl->ControlRefUpdate || p_poolMGR->get( err, "ZRFURL", PROFILE ) != "YES" ) { return ; }
 
@@ -2460,8 +2452,6 @@ string listLogicalScreens()
 	wattrset( swwin, cuaAttr[ PIN ] ) ;
 	mvwaddstr( swwin, 3, 2, "ID  Name      Application  Applid  Panel Title/Description" ) ;
 	wattroff( swwin, cuaAttr[ PIN ] ) ;
-
-	err.setServiceCall() ;
 
 	currScrn->show_wait() ;
 
@@ -2591,7 +2581,7 @@ void listRetrieveBuffer()
 		if ( c == KEY_ENTER || c == 13 )
 		{
 			currAppl->currPanel->cmd_setvalue( retrieveBuffer[ m ] ) ;
-			currAppl->currPanel->cursor_to_field( RC, currAppl->currPanel->CMDfield, retrieveBuffer[ m ].size()+1 ) ;
+			currAppl->currPanel->cursor_to_cmdField( RC, retrieveBuffer[ m ].size()+1 ) ;
 			break ;
 		}
 		else if ( c == KEY_UP )
@@ -2604,7 +2594,7 @@ void listRetrieveBuffer()
 		}
 		else if ( isActionKey( c ) )
 		{
-			currAppl->currPanel->cursor_to_field( RC, currAppl->currPanel->CMDfield ) ;
+			currAppl->currPanel->cursor_to_cmdField( RC ) ;
 			break ;
 		}
 	}
@@ -2773,11 +2763,30 @@ void errorScreen( int etype, const string& msg )
 
 void issueMessage( const string& msg )
 {
+	errblock err ;
+
+	currAppl->save_errblock() ;
 	currAppl->set_msg( msg ) ;
-	if ( currAppl->RC > 0 )
+	err = currAppl->get_errblock() ;
+	currAppl->restore_errblock()   ;
+	if ( !err.RC0() )
 	{
 		errorScreen( 1, "Syntax error in message "+ msg +", message file or message not found" ) ;
 	}
+}
+
+
+void serviceCallError( errblock& err )
+{
+	llog( "E", "A Serive Call error has occured"<< endl ) ;
+
+	llog( "E", "Error msg  : "<< err.msg1 << endl )  ;
+	llog( "E", "Error id   : "<< err.msgid << endl ) ;
+	llog( "E", "Error RC   : "<< err.getRC() << endl ) ;
+	llog( "E", "Error ZVAL1: "<< err.val1 << endl )  ;
+	llog( "E", "Error ZVAL2: "<< err.val2 << endl )  ;
+	llog( "E", "Error ZVAL3: "<< err.val3 << endl )  ;
+	llog( "E", "Source     : "<< err.getsrc() << endl ) ;
 }
 
 
@@ -2818,7 +2827,6 @@ void getDynamicClasses()
 
 	const string e1( GMAINPGM +" not found.  Check ZLDPATH is correct.  lspf terminating **" ) ;
 
-	err.setServiceCall() ;
 	paths = p_poolMGR->get( err, "ZLDPATH", PROFILE ) ;
 	j     = getpaths( paths ) ;
 	for ( i = 1 ; i <= j ; i++ )
@@ -2893,7 +2901,6 @@ void reloadDynamicClasses( string parm )
 
 	vec::const_iterator it ;
 
-	err.setServiceCall() ;
 	paths = p_poolMGR->get( err, "ZLDPATH", PROFILE ) ;
 	j     = getpaths( paths ) ;
 	for ( i = 1 ; i <= j ; i++ )

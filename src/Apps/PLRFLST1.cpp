@@ -180,12 +180,19 @@ void PLRFLST1::PersonalFList( const string& p )
 
 	while ( true )
 	{
-		tbtop( FLIST1 )  ;
+		tbtop( FLIST1 ) ;
 		tbskip( FLIST1, ZTDTOP ) ;
 		if ( MSG == "" ) { ZCMD = "" ; }
 		tbdispl( FLIST1, PANL, MSG, "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
+		if ( ZTDSELS == 0 && p != "" && ZCURINX != "00000000" )
+		{
+			tbtop( FLIST1 ) ;
+			tbskip( FLIST1, ds2d( ZCURINX ) ) ;
+			ZTDSELS = 1   ;
+			ASEL    = "L" ;
+		}
 		while ( ZTDSELS > 0 )
 		{
 			if ( ASEL == "A" )

@@ -7,8 +7,6 @@
 )BODY
 PanelTitle "File/Directory Selection List"
 
-scrollOn
-
 literal  4   2           FP    "Command ===> "
 field    4  15   MAX-17  NEF PAD(USER) ZCMD
 

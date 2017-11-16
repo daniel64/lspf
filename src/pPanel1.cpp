@@ -48,9 +48,13 @@ pPanel::pPanel()
 	opt_field   = 0      ;
 	tb_model    = false  ;
 	tb_depth    = 0      ;
+	tb_curidx   = -1     ;
 	tb_fields   = ""     ;
 	tb_clear    = ""     ;
 	tb_scan     = false  ;
+	tb_autosel  = false  ;
+	tb_autospc  = false  ;
+	tb_crowspc  = false  ;
 	tb_lcol     = 0      ;
 	tb_lsz      = 0      ;
 	full_screen = false  ;
@@ -61,8 +65,8 @@ pPanel::pPanel()
 	win_depth   = 0      ;
 	dyn_depth   = 0      ;
 	ZPHELP      = ""     ;
-	CMDfield    = "ZCMD" ;
-	Home        = "ZCMD" ;
+	cmdField    = ""     ;
+	Home        = ""     ;
 	fwin        = NULL   ;
 	pwin        = NULL   ;
 	bwin        = NULL   ;
@@ -447,6 +451,8 @@ void pPanel::display_panel_update( errblock& err )
 
 	cursor_set  = false ;
 	message_set = false ;
+	tb_autospc  = false ;
+	tb_crowspc  = false ;
 
 	CMDVerb     = p_poolMGR->get( err, "ZVERB", SHARED ) ;
 	end_pressed = findword( CMDVerb, "END EXIT RETURN" ) ;
@@ -478,8 +484,10 @@ void pPanel::display_panel_update( errblock& err )
 		p_funcPOOL->put( err, it->first, it->second->field_value ) ;
 	}
 
-	p_funcPOOL->put( err, "ZCURFLD", "" ) ;
-	p_funcPOOL->put( err, "ZCURPOS", 1  ) ;
+	p_funcPOOL->put( err, "ZCURFLD", ""  ) ;
+	p_funcPOOL->put( err, "ZCURPOS", 1   ) ;
+
+	tb_curidx = -1 ;
 
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
@@ -527,22 +535,32 @@ void pPanel::display_panel_update( errblock& err )
 				}
 			}
 		}
-		if ( it->second->cursor_on_field( p_row, p_col ) )
+		if ( it->second->field_active && it->second->cursor_on_field( p_row, p_col ) )
 		{
 			curpos = p_col - it->second->field_col + 1 ;
 			if ( it->second->field_dynArea )
 			{
-				p        = it->first.find_first_of( '.' )  ;
-				fieldNam = it->first.substr( 0, p )        ;
-				fieldNum = ds2d( it->first.substr( p+1 ) ) ;
+				p        = it->first.find_first_of( '.' )   ;
+				fieldNam = it->first.substr( 0, p )         ;
+				fieldNum = ds2d( it->first.substr( p+1 ) )  ;
 				p_funcPOOL->put( err, "ZCURFLD", fieldNam ) ;
 				p_funcPOOL->put( err, "ZCURPOS", ( fieldNum*it->second->field_length + curpos ) ) ;
 				fieldNum++ ;
 			}
 			else
 			{
-				p_funcPOOL->put( err, "ZCURFLD", it->first ) ;
-				p_funcPOOL->put( err, "ZCURPOS", curpos )    ;
+				if ( it->second->field_tb )
+				{
+					p        = it->first.find_first_of( '.' )   ;
+					fieldNam = it->first.substr( 0, p )         ;
+					p_funcPOOL->put( err, "ZCURFLD", fieldNam ) ;
+					tb_curidx = ds2d( it->first.substr( p+1 ) ) ;
+				}
+				else
+				{
+					p_funcPOOL->put( err, "ZCURFLD", it->first ) ;
+				}
+				p_funcPOOL->put( err, "ZCURPOS", curpos ) ;
 			}
 		}
 	}
@@ -552,8 +570,8 @@ void pPanel::display_panel_update( errblock& err )
 
 	if ( scrollOn && findword( CMDVerb, "UP DOWN LEFT RIGHT" ) )
 	{
-		CMD    = upper( fieldList[ CMDfield ]->field_value ) ;
-		msgfld = CMDfield ;
+		CMD    = upper( cmd_getvalue() ) ;
+		msgfld = cmdField ;
 		if ( CMD == "" || ( !findword( CMD, "M MAX C CSR D DATA H HALF P PAGE" ) && !isnumeric( CMD ) ) )
 		{
 			CMD    = fieldList[ "ZSCROLL" ]->field_value ;
@@ -561,8 +579,8 @@ void pPanel::display_panel_update( errblock& err )
 		}
 		else
 		{
-			fieldList[ CMDfield ]->field_value = "" ;
-			p_funcPOOL->put( err, CMDfield, "" )  ;
+			cmd_setvalue( "" ) ;
+			p_funcPOOL->put( err, cmdField, "" )  ;
 		}
 		if      ( tb_model )                          { scrollAmt = tb_depth  ; }
 		else if ( findword( CMDVerb, "LEFT RIGHT" ) ) { scrollAmt = dyn_width ; }
@@ -1334,9 +1352,17 @@ string pPanel::getControlVar( errblock& err, const string& svar )
 	{
 		return ALARM ? "YES" : "NO" ;
 	}
+	else if ( svar == ".AUTOSEL" )
+	{
+		return tb_autosel ? "YES" : "NO" ;
+	}
 	else if ( svar == ".CSRPOS" )
 	{
 		return d2ds( p_funcPOOL->get( err, 0, INTEGER, "ZCURPOS" ) ) ;
+	}
+	else if ( svar == ".CSRROW" )
+	{
+		return p_funcPOOL->get( err, 0, "ZCURINX" ) ;
 	}
 	else if ( svar == ".CURSOR" )
 	{
@@ -1364,11 +1390,7 @@ string pPanel::getControlVar( errblock& err, const string& svar )
 
 void pPanel::setControlVar( errblock& err, int ln, const string& svar, const string& sval )
 {
-	if ( svar == ".AUTOSEL" )
-	{
-		// ???
-	}
-	else if ( svar == ".ALARM" )
+	if ( svar == ".ALARM" )
 	{
 		if ( sval == "YES" )
 		{
@@ -1383,6 +1405,23 @@ void pPanel::setControlVar( errblock& err, int ln, const string& svar, const str
 			err.seterrid( "PSYE041G" ) ;
 			return ;
 		}
+	}
+	else if ( svar == ".AUTOSEL" )
+	{
+		if ( sval == "YES" || sval == "" )
+		{
+			tb_autosel = true ;
+		}
+		else if ( sval == "NO" )
+		{
+			tb_autosel = false ;
+		}
+		else
+		{
+			err.seterrid( "PSYE042O" ) ;
+			return ;
+		}
+		tb_autospc = true ;
 	}
 	else if ( svar == ".BROWSE" )
 	{
@@ -1417,8 +1456,10 @@ void pPanel::setControlVar( errblock& err, int ln, const string& svar, const str
 			err.seterrid( "PSYE041H" ) ;
 			return ;
 		}
-		p_funcPOOL->put( err, ".CSRROW", sval, NOCHECK ) ;
+		p_funcPOOL->put( err, "ZCURINX", sval, NOCHECK ) ;
 		if ( err.error() ) { return ; }
+		tb_csrrow  = ds2d( sval ) ;
+		tb_crowspc = true ;
 	}
 	else if ( svar == ".EDIT" )
 	{
@@ -1906,6 +1947,12 @@ void pPanel::resetAttrs()
 }
 
 
+void pPanel::cursor_to_cmdField( int& RC1, int f_pos )
+{
+	if ( cmdField != "" ) { cursor_to_field( RC1, cmdField, f_pos ) ; }
+}
+
+
 void pPanel::cursor_to_field( int& RC1, string f_name, int f_pos )
 {
 	int oX ;
@@ -2002,6 +2049,35 @@ void pPanel::field_setvalue( const string& f_name, const string& f_value )
 	it->second->field_changed = true    ;
 	it->second->field_prep_display()    ;
 	it->second->display_field( win, pad, snulls ) ;
+}
+
+
+string pPanel::cmd_getvalue()
+{
+	map<string, field *>::iterator it ;
+
+	it = fieldList.find( cmdField ) ;
+	if ( it == fieldList.end() )
+	{
+		return ZZCMD ;
+	}
+	return field_getvalue( cmdField ) ;
+}
+
+
+void pPanel::cmd_setvalue( const string& v )
+{
+	map<string, field *>::iterator it ;
+
+	it = fieldList.find( cmdField ) ;
+	if ( it != fieldList.end() )
+	{
+		field_setvalue( cmdField, v ) ;
+	}
+	else
+	{
+		ZZCMD = v ;
+	}
 }
 
 

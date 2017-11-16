@@ -211,6 +211,35 @@ void Table::loadFields( errblock& err,
 }
 
 
+void Table::storeIntValue( errblock& err,
+			   fPOOL& funcPOOL,
+			   const string& var,
+			   int val )
+{
+	// Store an integer value in the function pool.  If the entry has been defined as a string,
+	// convert to a string and pad on the left with zeroes, length 8.
+
+	dataType var_type ;
+
+	var_type = funcPOOL.getType( err, var ) ;
+	if ( err.RC0() )
+	{
+		if ( var_type == INTEGER )
+		{
+			funcPOOL.put( err, var, val ) ;
+		}
+		else
+		{
+			funcPOOL.put( err, var, right( d2ds( val ), 8, '0' ) ) ;
+		}
+	}
+	else if ( err.RC8() )
+	{
+		funcPOOL.put( err, var, val ) ;
+	}
+}
+
+
 void Table::tbadd( errblock& err,
 		   fPOOL& funcPOOL,
 		   string tb_namelst,
@@ -356,7 +385,8 @@ void Table::tbbottom( errblock& err,
 
 	if ( tb_crp_name != "" )
 	{
-		funcPOOL.put( err, tb_crp_name, CRP ) ;
+		storeIntValue( err, funcPOOL, tb_crp_name, CRP ) ;
+		if ( err.error() ) { return ; }
 	}
 }
 
@@ -487,7 +517,8 @@ void Table::tbget( errblock& err,
 	{
 		if ( tb_crp_name != "" )
 		{
-			funcPOOL.put( err, tb_crp_name, CRP ) ;
+			storeIntValue( err, funcPOOL, tb_crp_name, CRP ) ;
+			if ( err.error() ) { return ; }
 		}
 		err.setRC( 8 ) ;
 		return ;
@@ -512,7 +543,8 @@ void Table::tbget( errblock& err,
 
 	if ( tb_crp_name != "" )
 	{
-		funcPOOL.put( err, tb_crp_name, CRP ) ;
+		storeIntValue( err, funcPOOL, tb_crp_name, CRP ) ;
+		if ( err.error() ) { return ; }
 	}
 }
 
@@ -1025,7 +1057,7 @@ void Table::tbscan( errblock& err,
 		CRP = 0 ;
 		if ( tb_crp_name != "" )
 		{
-			funcPOOL.put( err, tb_crp_name, CRP ) ;
+			storeIntValue( err, funcPOOL, tb_crp_name, CRP ) ;
 			if ( err.error() ) { return ; }
 		}
 		err.setRC( 8 ) ;
@@ -1045,7 +1077,7 @@ void Table::tbscan( errblock& err,
 
 	if ( tb_crp_name != "" )
 	{
-		funcPOOL.put( err, tb_crp_name, CRP ) ;
+		storeIntValue( err, funcPOOL, tb_crp_name, CRP ) ;
 		if ( err.error() ) { return ; }
 	}
 
@@ -1079,6 +1111,7 @@ void Table::tbskip( errblock& err,
 
 	string val ;
 	string var ;
+
 
 	vector<vector<string>*>::iterator it ;
 
@@ -1136,7 +1169,8 @@ void Table::tbskip( errblock& err,
 
 	if ( tb_crp_name != "" )
 	{
-		funcPOOL.put( err, tb_crp_name, CRP ) ;
+		storeIntValue( err, funcPOOL, tb_crp_name, CRP ) ;
+		if ( err.error() ) { return ; }
 	}
 }
 
@@ -1348,7 +1382,7 @@ void Table::fillfVARs( errblock& err,
 		for ( j = 0 ; j <= num_all ; j++ )
 		{
 			funcPOOL.put( err, row->at( j ) + sufx, (*it)->at( j ), NOCHECK ) ;
-			if ( err.error() ) { return ; }
+			if ( err.error() ) { delete row ; return ; }
 		}
 		if ( (*it)->size() > num_all+1 )
 		{
@@ -1356,7 +1390,7 @@ void Table::fillfVARs( errblock& err,
 			for ( l = 1, j = num_all+2 ; j < (*it)->size() ; j++, l++ )
 			{
 				funcPOOL.put( err, word( enames, l ) + sufx, (*it)->at( j ), NOCHECK ) ;
-				if ( err.error() ) { return ; }
+				if ( err.error() ) { delete row ; return ; }
 			}
 		}
 	}
@@ -1367,9 +1401,10 @@ void Table::fillfVARs( errblock& err,
 		for ( j = 0 ; j <= num_all ; j++ )
 		{
 			funcPOOL.put( err, row->at( j ) + sufx, "", NOCHECK ) ;
-			if ( err.error() ) { return ; }
+			if ( err.error() ) { delete row ; return ; }
 		}
 	}
+	delete row ;
 }
 
 

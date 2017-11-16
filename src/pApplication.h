@@ -77,7 +77,7 @@ class pApplication
 		int    ZTDSELS            ;
 		int    ZTDTOP             ;
 		int    ZTDVROWS           ;
-		int    ZCURINX            ;
+		string ZCURINX            ;
 		string ZCMD               ;
 		string ZAPPLID            ;
 		string ZEDLMSG            ;
@@ -218,7 +218,7 @@ class pApplication
 		void   checkRCode( errblock ) ;
 		void   store_scrname() ;
 		void   restore_Zvars( int ) ;
-		void   reload_keylist( errblock&, pPanel * ) ;
+		void   reload_keylist( pPanel * ) ;
 		bool   errorsReturn() ;
 		void   setTestMode()  ;
 		bool   selectPanel()  { return selPanel ; }
@@ -233,6 +233,10 @@ class pApplication
 		void   set_addpop_act( bool b ) { addpop_active = b ; }
 
 		bool   do_refresh_lscreen()     { return refreshlScreen ; }
+
+		void   save_errblock()    ;
+		void   restore_errblock() ;
+		errblock get_errblock()         { return errBlock ; }
 
 		string sub_vars( string ) ;
 
@@ -279,6 +283,7 @@ class pApplication
 		bool sub_Message_vars( slmsg & ) ;
 
 		errblock errBlock ;
+		errblock serBlock ;
 
 		map<string, slmsg> msgList ;
 		map<string, bool> tablesOpen    ;
@@ -294,7 +299,7 @@ class pApplication
 		stack<string> zpuser ;
 		stack<string> ztuser ;
 
-		void load_keylist( errblock&, pPanel * )   ;
+		void load_keylist( pPanel * ) ;
 		void createPanel( const string& p_name ) ;
 		void actionSelect()   ;
 

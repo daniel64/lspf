@@ -7,8 +7,6 @@
 
 PanelTitle "Command Tables"
 
-scrollOn
-
 literal  4   2         FP    "Command ===> "
 field    4  15  max-17 nef caps(on),pad(user) zcmd
 
@@ -80,6 +78,6 @@ ELSE
 
 VER (&CMDTAB,NB)
 
-IF ( .MSG = &Z ) VPUT ZSCROLL PROFILE
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
 
 )END

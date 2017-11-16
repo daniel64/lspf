@@ -111,3 +111,6 @@ PSYE023F 'Keylist &ZVAL1 not found in keylist table &ZVAL2'
 PSYE023G 'Message ''&ZVAL1'' not found'
 ''
 
+PSYE023H 'Error loading keylist'
+'Error loading keylist.  See lspf log for details'
+

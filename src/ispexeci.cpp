@@ -653,7 +653,7 @@ void execiTBDispl( pApplication * thisAppl, const string& s, errblock& err )
 
 	tb_csrrow = parseString( err, str, "CSRROW()" ) ;
 	if ( err.error() ) { return ; }
-	if ( tb_csrrow == "" ) { i_csrrow = 1                ; }
+	if ( tb_csrrow == "" ) { i_csrrow = 0                ; }
 	else                   { i_csrrow = ds2d( tb_csrrow ) ; }
 
 	tb_csrpos = parseString( err, str, "CSRPOS()" ) ;

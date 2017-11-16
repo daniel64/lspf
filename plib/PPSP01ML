@@ -5,8 +5,6 @@
 )BODY
 PanelTitle "Display/Reload Application Modules (Dynamically Loaded Classes)"
 
-scrollOn
-
 literal  4   2          FP    "Command ===> "
 field    4  15  MAX-17  NEF CAPS(ON),PAD(USER) ZCMD
 
