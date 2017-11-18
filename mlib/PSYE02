@@ -9,10 +9,10 @@ PSYE021B 'Panel not found'
 'Panel ''&ZVAL1'' has not been found'
 
 PSYE021C 'No panel specified'
-"No previous panel has been specified for the DISPLAY service"
+"Neither a panel nor previous panel have been specified"
 
-PSYE021D 'Panel ''&ZVAL1'' error'
-"Invalid cursor position ''&ZVAL2'' specified"
+PSYE021D 'Invalid panel type'
+"No panel specified and previous panel is invalid for TBDISPL"
 
 PSYE022A 'LOCATE invalid.  Pointer parameter required, string passed'
 ''
@@ -113,4 +113,10 @@ PSYE023G 'Message ''&ZVAL1'' not found'
 
 PSYE023H 'Error loading keylist'
 'Error loading keylist.  See lspf log for details'
+
+PSYE023I 'Invalid CURSOR field name ''&ZVAL1'''
+''
+
+PSYE023J 'Invalid AUTOSEL parameter ''&ZVAL1'''
+'Must be YES, NO or blank'
 

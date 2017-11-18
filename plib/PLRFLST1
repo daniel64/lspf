@@ -2,7 +2,7 @@
 )COMMENT
  Browse entry panel
 )ENDCOMMENT
-)BODY
+)BODY SCROLL(ZSCROLL)
 
 PanelTitle "Personal File List"
 

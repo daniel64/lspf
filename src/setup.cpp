@@ -222,6 +222,12 @@ main()
 	ZCTDESC  = "PFKEY UTILITY" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
+	ZCTVERB  = "RECENT" ;
+	ZCTTRUNC = "0"      ;
+	ZCTACT   = "SELECT PGM(PPSP01A) PARM(DSL REFLIST) NEWAPPL(ISR) SCRNAME(DSLIST) SUSPEND" ;
+	ZCTDESC  = "File list utility"  ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
 	ZCTVERB  = "RUN" ;
 	ZCTTRUNC = "2"    ;
 	ZCTACT   = "SELECT PGM(PPSP01A) PARM(RUN &ZPARM) NEWPOOL SUSPEND" ;

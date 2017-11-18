@@ -4,7 +4,7 @@
 Panel for editor PEDIT01
 )ENDCOMMENT
 
-)BODY
+)BODY SCROLL(ZSCROLL)
 PanelDescr "Edit &ZFILE"
 scrollOn
 

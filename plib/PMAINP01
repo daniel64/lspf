@@ -7,6 +7,9 @@ Defaults for HOME() and CMD() on the BODY statement are ZCMD
              If HOME() and CMD() are defined, they must be fields on the panel.
              If no CMD() is defined, it defaults to ZCMD if this is on the panel, else there is no command field.
              If no HOME() is defined, it defaults to the command line, if one is defined.
+             SCROLL(fld)
+             Define the scroll field to be used.  It must also be defined as a field in the panel body
+             Default is ZSCROLL
 
 Format for fields, literals, proc, etc
 

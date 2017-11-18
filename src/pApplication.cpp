@@ -69,6 +69,7 @@ pApplication::pApplication()
 	PANELID                = ""     ;
 	PPANELID               = ""     ;
 	currPanel              = NULL   ;
+	currtbPanel            = NULL   ;
 	ZHELP                  = ""     ;
 	ZAHELP                 = ""     ;
 	ZTDROWS                = 0      ;
@@ -309,7 +310,7 @@ void pApplication::set_msg( const string& msg_id )
 
 	if ( !currPanel ) { return ; }
 
-	get_Message( msg_id ) ;
+	get_message( msg_id ) ;
 	if ( RC == 0 )
 	{
 		currPanel->clear_msg_loc() ;
@@ -381,7 +382,7 @@ void pApplication::toggle_fscreen()
 }
 
 
-void pApplication::display( string p_name, const string& p_msg, const string& p_cursor, int p_csrpos )
+void pApplication::display( string p_name, const string& p_msg, const string& p_cursor, int p_curpos )
 {
 	string ZZVERB ;
 
@@ -411,7 +412,7 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 
 	if ( p_cursor != "" && !isvalidName( p_cursor ) )
 	{
-		errBlock.setcall( e1, "PSYE021D", p_name, p_cursor ) ;
+		errBlock.setcall( e1, "PSYE023I", p_cursor ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -442,7 +443,7 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 	}
 	else if ( p_msg != "" )
 	{
-		get_Message( p_msg ) ;
+		get_message( p_msg ) ;
 		if ( RC > 0 ) { return ; }
 		currPanel->set_panel_msg( MSG, MSGID ) ;
 	}
@@ -451,9 +452,8 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 		currPanel->clear_msg() ;
 	}
 
-	PANELID           = p_name   ;
-	currPanel->CURFLD = p_cursor ;
-	currPanel->CURPOS = p_csrpos ;
+	PANELID = p_name ;
+	currPanel->set_cursor( p_cursor, p_curpos ) ;
 
 	if ( addpop_active ) { currPanel->set_popup( addpop_row, addpop_col ) ; }
 	else                 { currPanel->remove_popup()                      ; }
@@ -489,11 +489,7 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 		}
 	}
 
-	if ( p_poolMGR->get( errBlock, "ZSCRNAM1", SHARED ) == "ON" &&
-	     p_poolMGR->get( errBlock, lscreen_num, "ZSCRNAM2" ) == "PERM" )
-	{
-			p_poolMGR->put( errBlock, "ZSCRNAME", p_poolMGR->get( errBlock, lscreen_num, "ZSCRNAME" ), SHARED ) ;
-	}
+	set_screenName() ;
 
 	while ( true )
 	{
@@ -502,14 +498,14 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 		{
 			errBlock.setcall( e1 ) ;
 			checkRCode( errBlock ) ;
-			break ;
+			return ;
 		}
 		currPanel->cursor_to_field( RC ) ;
 		if ( RC > 0 )
 		{
-			errBlock.setcall( e1, "PSYE022N", currPanel->CURFLD ) ;
+			errBlock.setcall( e1, "PSYE022N", currPanel->curfld ) ;
 			checkRCode( errBlock ) ;
-			break ;
+			return ;
 		}
 		wait_event() ;
 		ControlDisplayLock = false ;
@@ -521,7 +517,7 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 		{
 			errBlock.setcall( e5 + p_name ) ;
 			checkRCode( errBlock ) ;
-			break ;
+			return ;
 		}
 
 		currPanel->display_panel_proc( errBlock, 0 ) ;
@@ -529,7 +525,7 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 		{
 			errBlock.setcall( e4 + p_name ) ;
 			checkRCode( errBlock ) ;
-			break ;
+			return ;
 		}
 
 		ZZVERB = p_poolMGR->get( errBlock, "ZVERB", SHARED ) ;
@@ -537,24 +533,24 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 		{
 			errBlock.setcall( e1, "PSYE015L", "GET", "ZVERB" ) ;
 			checkRCode( errBlock ) ;
-			break ;
+			return ;
 		}
 		if ( ZZVERB == "RETURN" ) { propagateEnd = true ; }
 		if ( findword( ZZVERB, "END EXIT RETURN" ) ) { RC = 8 ; return ; }
 
-		if ( currPanel->MSGID == "" ) { break ; }
+		if ( currPanel->MSGID == "" ) { return ; }
 
-		get_Message( currPanel->MSGID ) ;
-		if ( RC > 0 ) { break ; }
+		get_message( currPanel->MSGID ) ;
+		if ( RC > 0 ) { return ; }
 		currPanel->set_panel_msg( MSG, MSGID ) ;
 		currPanel->display_panel_reinit( errBlock ) ;
-		RC = errBlock.getRC() ;
 		if ( errBlock.error() )
 		{
 			errBlock.setcall( e3 + p_name ) ;
 			checkRCode( errBlock ) ;
-			break ;
+			return ;
 		}
+		RC = errBlock.getRC() ;
 	}
 	currPanel->clear_msg()  ;
 	currPanel->resetAttrs() ;
@@ -679,6 +675,16 @@ string pApplication::get_search_path( s_paths p )
 		break ;
 	}
 	return "" ;
+}
+
+
+void pApplication::set_screenName()
+{
+	if ( p_poolMGR->get( errBlock, "ZSCRNAM1", SHARED ) == "ON" &&
+	     p_poolMGR->get( errBlock, lscreen_num, "ZSCRNAM2" ) == "PERM" )
+	{
+		p_poolMGR->put( errBlock, "ZSCRNAME", p_poolMGR->get( errBlock, lscreen_num, "ZSCRNAME" ), SHARED ) ;
+	}
 }
 
 
@@ -1108,12 +1114,12 @@ void pApplication::vget( const string& names, poolType pType )
 			var_type = funcPOOL.getType( errBlock, name ) ;
 			if ( errBlock.RC0() )
 			{
-				switch ( var_type )
+				if ( var_type == INTEGER )
 				{
-				case INTEGER:
 					funcPOOL.put( errBlock, name, ds2d( val ) ) ;
-					break ;
-				case STRING:
+				}
+				else
+				{
 					funcPOOL.put( errBlock, name, val ) ;
 				}
 			}
@@ -1164,12 +1170,12 @@ void pApplication::vput( const string& names, poolType pType )
 		var_type = funcPOOL.getType( errBlock, name ) ;
 		if ( errBlock.RC0() )
 		{
-			switch ( var_type )
+			if ( var_type == INTEGER )
 			{
-			case INTEGER:
 				s_val = d2ds( funcPOOL.get( errBlock, 0, var_type, name ) ) ;
-				break ;
-			case STRING:
+			}
+			else
+			{
 				s_val = funcPOOL.get( errBlock, 0, name ) ;
 			}
 			if ( errBlock.error() )
@@ -1220,12 +1226,12 @@ void pApplication::vcopy( const string& var, string& val, vcMODE mode )
 		var_type = funcPOOL.getType( errBlock, var ) ;
 		if ( errBlock.RC0() )
 		{
-			switch ( var_type )
+			if ( var_type == INTEGER )
 			{
-			case INTEGER:
 				val = d2ds( funcPOOL.get( errBlock, 0, var_type, var ) ) ;
-				break ;
-			case STRING:
+			}
+			else
+			{
 				val = funcPOOL.get( errBlock, 0, var ) ;
 			}
 			if ( errBlock.error() )
@@ -1281,12 +1287,12 @@ void pApplication::vcopy( const string& var, string * & p_val, vcMODE mode )
 		var_type = funcPOOL.getType( errBlock, var ) ;
 		if ( errBlock.RC0() )
 		{
-			switch ( var_type )
+			if ( var_type == INTEGER )
 			{
-			case INTEGER:
 				errBlock.setcall( e1, "PSYE022C" ) ;
-				break ;
-			case STRING:
+			}
+			else
+			{
 				p_val = funcPOOL.vlocate( errBlock, var, CHECK ) ;
 			}
 			if ( errBlock.error() )
@@ -1966,21 +1972,21 @@ void pApplication::tbdelete( const string& tb_name )
 }
 
 
-void pApplication::tbdispl( const string& tb_name, string p_name, const string& p_msg, string p_cursor, int p_csrrow, int p_csrpos, string p_autosel, const string& p_crp_name, const string& p_rowid_nm )
+void pApplication::tbdispl( const string& tb_name, string p_name, const string& p_msg, string p_cursor, int p_csrrow, int p_curpos, string p_autosel, const string& p_crp_name, const string& p_rowid_nm )
 {
 	// tbdispl with panel, no message - clear previous pending lines, rebuild scrollable area and display panel
 	// tbdispl with panel, message    - rebuild scrollable area and display panel and message
 	// tbdispl no panel, no message   - retrieve next pending line.  If none, display panel
 	// tbdispl no panel, message      - display panel with message.  No rebuilding of the scrollable area
 
-	// Set CRP to first changed line, autoselected line, or tbtop if there are no selected lines
+	// Set CRP to first changed line or tbtop if there are no selected lines
 
 	// If .AUTOSEL and .CSRROW set in panel, override the parameters p_autosel and p_csrrow
 
-	// Autoselect if the p_csrpos CRP is visible
+	// Autoselect if the p_curpos CRP is visible
 
-	// Use separate pointer currtbPanel for tb displays so that a CONTROL DISPLAY SAVE/RESTORE is only necessary
-	// when a tbdispl issues another tbdispl and not for a display of an ordinary panel.
+	// Store panel pointer in currtbPanel so that a CONTROL DISPLAY SAVE/RESTORE is only necessary
+	// when a TBDISPL issues another TBDISPL and not for a display of an ordinary panel.
 
 	// RC =  0  Normal completion
 	// RC =  4  More than 1 row selected
@@ -1988,18 +1994,16 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 	// RC = 12  Panel, message or cursor field not found
 	// RC = 20  Severe error
 
-	int exitRC  ;
-	int ws      ;
-	int i       ;
-	int ln      ;
-	int csrrow  ;
-	int csrvrow ;
+	int exitRC ;
+	int ws     ;
+	int i      ;
+	int ln     ;
 
-	bool scan    ;
-	bool autosel ;
+	bool scan  ;
 
 	string ZZVERB ;
 	string URID   ;
+	string asURID ;
 	string s      ;
 	string t      ;
 
@@ -2020,29 +2024,29 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		else                      { PPANELID = p_name ; RC = 8 ; return ; }
 	}
 
-	if ( !isTableOpen( tb_name, "TBDISPL" ) ) { RC = 20 ; return ; }
+	if ( !isTableOpen( tb_name, "TBDISPL" ) ) { return ; }
 
 	if ( p_cursor != "" && !isvalidName( p_cursor ) )
 	{
-		errBlock.seterror( "Invalid CURSOR position" ) ;
+		errBlock.seterrid( "PSYE023I", p_cursor ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
 	if ( p_autosel != "YES" && p_autosel != "NO" && p_autosel != "" )
 	{
-		errBlock.seterror( "Invalid AUTOSEL parameter.  Must be YES or NO" ) ;
+		errBlock.seterrid( "PSYE023J", p_autosel ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
 	if ( p_crp_name != "" && !isvalidName( p_crp_name ) )
 	{
-		errBlock.seterror( "Invalid CRP variable name" ) ;
+		errBlock.seterrid( "PSYE022O", "CRP", p_crp_name ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
 	if ( p_rowid_nm != "" && !isvalidName( p_rowid_nm ) )
 	{
-		errBlock.seterror( "Invalid ROWID variable name" ) ;
+		errBlock.seterrid( "PSYE022O", "ROW", p_rowid_nm ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -2056,13 +2060,12 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 			checkRCode( errBlock ) ;
 			return ;
 		}
-		currtbPanel = panelList[ p_name ] ;
-		currPanel   = currtbPanel         ;
-		PANELID     = p_name ;
+		currPanel = panelList[ p_name ] ;
+		PANELID   = p_name ;
 		p_poolMGR->put( errBlock, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 		if ( p_msg == "" )
 		{
-			currtbPanel->tb_clear_linesChanged( errBlock ) ;
+			currPanel->tb_clear_linesChanged( errBlock ) ;
 			if ( errBlock.error() )
 			{
 				errBlock.setcall( e1 ) ;
@@ -2070,8 +2073,8 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 				return ;
 			}
 		}
-		scan = currtbPanel->get_tbscan() ;
-		p_tableMGR->fillfVARs( errBlock, funcPOOL, tb_name, currtbPanel->get_tb_clear(), scan, currtbPanel->tb_depth ) ;
+		scan = currPanel->get_tbscan() ;
+		p_tableMGR->fillfVARs( errBlock, funcPOOL, tb_name, currPanel->get_tb_clear(), scan, currPanel->tb_depth ) ;
 		if ( errBlock.error() )
 		{
 			errBlock.setcall( e1 ) ;
@@ -2082,48 +2085,67 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 	else
 	{
 		p_poolMGR->put( errBlock, "ZVERB", "",  SHARED ) ;
-		if ( p_msg == "" && currtbPanel->tb_lineChanged( ln, URID ) )
+		currPanel = currtbPanel ;
+		if ( currPanel == NULL )
 		{
-			currtbPanel->tb_remove_lineChanged() ;
+			if ( PANELID == "" )
+			{
+				errBlock.setcall( e1, "PSYE021C" ) ;
+				checkRCode( errBlock ) ;
+				return ;
+			}
+			p_name    = PANELID ;
+			currPanel = panelList[ p_name ] ;
+			if ( !currPanel->tb_model )
+			{
+				errBlock.setcall( e1, "PSYE021D" ) ;
+				checkRCode( errBlock ) ;
+				return ;
+			}
+		}
+		if ( p_msg == "" && currPanel->tb_get_lineChanged( ln, URID ) )
+		{
+			currPanel->tb_remove_lineChanged() ;
 		}
 		else
 		{
-			p_name    = currtbPanel->PANELID ;
-			PANELID   = currtbPanel->PANELID ;
-			currPanel = currtbPanel ;
+			p_name  = currPanel->PANELID ;
+			PANELID = currPanel->PANELID ;
 			p_poolMGR->put( errBlock, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 		}
-		scan = currtbPanel->get_tbscan() ;
+		scan = currPanel->get_tbscan() ;
 	}
+
+	currtbPanel = currPanel ;
 
 	if ( setMSG )
 	{
 		if ( !ControlNonDispl && p_name != "" )
 		{
-			currtbPanel->set_panel_msg( MSG1, MSGID1 ) ;
+			currPanel->set_panel_msg( MSG1, MSGID1 ) ;
 			setMSG = false ;
 		}
 	}
 	else if ( p_msg != "" )
 	{
-		get_Message( p_msg ) ;
+		get_message( p_msg ) ;
 		if ( RC > 0 ) { RC = 12 ; return ; }
-		currtbPanel->set_panel_msg( MSG, MSGID ) ;
+		currPanel->set_panel_msg( MSG, MSGID ) ;
 	}
 	else
 	{
-		currtbPanel->clear_msg() ;
+		currPanel->clear_msg() ;
 	}
 
-	if ( p_cursor == "" ) { p_cursor = currtbPanel->Home ; }
+	currPanel->set_cursor( p_cursor, p_curpos ) ;
 
-	autosel = ( p_autosel == "YES" || p_autosel == "" ) ;
-	csrrow  = p_csrrow ;
+	currPanel->tb_set_autosel( p_autosel == "YES" || p_autosel == "" ) ;
+	currPanel->tb_set_csrrow( p_csrrow ) ;
 
-	if ( addpop_active )  { currtbPanel->set_popup( addpop_row, addpop_col ) ; }
-	else                  { currtbPanel->remove_popup()                      ; }
+	if ( addpop_active ) { currPanel->set_popup( addpop_row, addpop_col ) ; }
+	else                 { currPanel->remove_popup()                    ; }
 
-	currtbPanel->display_panel_init( errBlock ) ;
+	currPanel->display_panel_init( errBlock ) ;
 	if ( errBlock.error() )
 	{
 		errBlock.setcall( e2 + p_name ) ;
@@ -2131,7 +2153,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		return ;
 	}
 
-	currtbPanel->update_field_values( errBlock ) ;
+	currPanel->update_field_values( errBlock ) ;
 	if ( errBlock.error() )
 	{
 		errBlock.setcall( e6 + p_name ) ;
@@ -2139,46 +2161,23 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		return ;
 	}
 
-	if ( currtbPanel->tb_autospc ) { autosel = currtbPanel->tb_autosel ; }
-	if ( currtbPanel->tb_crowspc ) { csrrow  = currtbPanel->tb_csrrow  ; }
-
-	if ( p_poolMGR->get( errBlock, "ZSCRNAM1", SHARED ) == "ON" &&
-	     p_poolMGR->get( errBlock, lscreen_num, "ZSCRNAM2" ) == "PERM" )
-	{
-			p_poolMGR->put( errBlock, "ZSCRNAME", p_poolMGR->get( errBlock, lscreen_num, "ZSCRNAME" ), SHARED ) ;
-	}
+	set_screenName() ;
 
 	while ( true )
 	{
 		if ( p_name != "" )
 		{
-			currtbPanel->display_panel( errBlock ) ;
+			currPanel->display_panel( errBlock ) ;
 			if ( errBlock.error() )
 			{
 				errBlock.setcall( e1 ) ;
 				checkRCode( errBlock ) ;
 				return ;
 			}
-			if ( currtbPanel->CURFLD == "" )
-			{
-				if ( wordpos( p_cursor, currtbPanel->tb_fields ) > 0 )
-				{
-					csrvrow = csrrow - ZTDTOP + 1 ;
-					if ( csrvrow > 0 && csrvrow <= ZTDVROWS ) { i = csrvrow - 1 ; }
-					else if ( ln > 0 ) { i = ln ; }
-					else               { i = 1  ; }
-					currtbPanel->CURFLD = p_cursor + "." + d2ds( i ) ;
-				}
-				else
-				{
-					currtbPanel->CURFLD = p_cursor ;
-				}
-				currtbPanel->CURPOS = p_csrpos ;
-			}
-			currtbPanel->cursor_to_field( RC ) ;
+			currPanel->cursor_to_field( RC ) ;
 			if ( RC > 0 )
 			{
-				errBlock.setcall( e1, "PSYE022N", currtbPanel->CURFLD ) ;
+				errBlock.setcall( e1, "PSYE022N", currPanel->curfld ) ;
 				checkRCode( errBlock ) ;
 				return ;
 			}
@@ -2186,37 +2185,47 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 			ControlDisplayLock = false ;
 			ControlNonDispl    = false ;
 			refreshlScreen     = false ;
-			currtbPanel->hide_popup()  ;
-			currtbPanel->clear_msg() ;
-			currtbPanel->CURFLD = "" ;
-			currtbPanel->display_panel_update( errBlock ) ;
+			currPanel->hide_popup() ;
+			currPanel->clear_msg() ;
+			currPanel->curfld = "" ;
+			currPanel->display_panel_update( errBlock ) ;
 			if ( errBlock.error() )
 			{
 				errBlock.setcall( e5 ) ;
 				checkRCode( errBlock ) ;
 				return ;
 			}
-			currtbPanel->tb_set_linesChanged() ;
+			asURID = "" ;
+			if ( currPanel->tb_is_autosel() && currPanel->tb_csrrow > 0 )
+			{
+				asURID = p_tableMGR->getURID( errBlock, tb_name, currPanel->tb_csrrow ) ;
+				if ( errBlock.error() )
+				{
+					errBlock.setcall( e5 ) ;
+					checkRCode( errBlock ) ;
+					return ;
+				}
+			}
+			currPanel->tb_set_linesChanged( asURID ) ;
 		}
 
 		exitRC = 0  ;
-		if ( currtbPanel->tb_curidx > -1 )
+		if ( currPanel->tb_curidx > -1 )
 		{
-			URID = funcPOOL.get( errBlock, 0, ".ZURID."+d2ds( currtbPanel->tb_curidx), NOCHECK ) ;
+			URID = funcPOOL.get( errBlock, 0, ".ZURID."+d2ds( currPanel->tb_curidx), NOCHECK ) ;
 			tbskip( tb_name, 0, "", "", URID, "NOREAD", "ZCURINX" ) ;
 		}
 		else
 		{
 			ZCURINX = "00000000" ;
 		}
-		if ( currtbPanel->tb_lineChanged( ln, URID ) )
+		if ( currPanel->tb_get_lineChanged( ln, URID ) )
 		{
 			tbskip( tb_name, 0, "", p_rowid_nm, URID, "", p_crp_name ) ;
-			ws = words( currtbPanel->tb_fields ) ;
-			for ( i = 1 ; i <= ws ; i++ )
+			for ( ws = words( currPanel->tb_fields ), i = 1 ; i <= ws ; i++ )
 			{
-				s = word( currtbPanel->tb_fields, i ) ;
-				funcPOOL.put( errBlock, s, funcPOOL.get( errBlock, 0, s + "." + d2ds( ln ), NOCHECK ) ) ;
+				s = word( currPanel->tb_fields, i ) ;
+				funcPOOL.put( errBlock, s, funcPOOL.get( errBlock, 0, s+"."+ d2ds( ln ), NOCHECK ) ) ;
 				if ( errBlock.error() )
 				{
 					checkRCode( errBlock ) ;
@@ -2226,14 +2235,13 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 			if ( ZTDSELS > 1 ) { exitRC = 4; }
 		}
 
-		currtbPanel->display_panel_proc( errBlock, ln ) ;
+		currPanel->display_panel_proc( errBlock, ln ) ;
 		if ( errBlock.error() )
 		{
 			errBlock.setcall( e4 + p_name ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
-
 		ZZVERB = p_poolMGR->get( errBlock, "ZVERB" ) ;
 		if ( !errBlock.RC0() )
 		{
@@ -2244,30 +2252,28 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		if ( ZZVERB == "RETURN" ) { propagateEnd = true ; }
 		if ( findword( ZZVERB, "END EXIT RETURN" ) ) { RC = 8 ; return ; }
 
-		if ( currtbPanel->MSGID != "" )
+		if ( currPanel->MSGID != "" )
 		{
-			get_Message( currtbPanel->MSGID ) ;
+			get_message( currPanel->MSGID ) ;
 			if ( RC > 0 ) { RC = 12 ; return ; }
-			currtbPanel->set_panel_msg( MSG, MSGID ) ;
+			currPanel->set_panel_msg( MSG, MSGID ) ;
 			if ( p_name == "" )
 			{
-				p_name    = currtbPanel->PANELID ;
-				currPanel = currtbPanel ;
+				p_name    = currPanel->PANELID ;
+				currPanel = currPanel ;
 				PANELID   = p_name      ;
 				p_poolMGR->put( errBlock, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 			}
-			currtbPanel->display_panel_reinit( errBlock, ln ) ;
+			currPanel->display_panel_reinit( errBlock, ln ) ;
 			if ( errBlock.error() )
 			{
 				errBlock.setcall( e3 + p_name ) ;
 				checkRCode( errBlock ) ;
 				return ;
 			}
-			if ( currtbPanel->tb_autospc ) { autosel = currtbPanel->tb_autosel ; }
-			if ( currtbPanel->tb_crowspc ) { csrrow  = currtbPanel->tb_csrrow  ; }
 			continue ;
 		}
-		if ( ZZVERB == "UP" || ZZVERB == "DOWN" )
+		if ( ZTDSELS == 0 && ( ZZVERB == "UP" || ZZVERB == "DOWN" ) )
 		{
 			if ( ZZVERB == "UP" )
 			{
@@ -2294,7 +2300,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 				}
 				ZCMD = "" ;
 			}
-			p_tableMGR->fillfVARs( errBlock, funcPOOL, tb_name, currtbPanel->get_tb_clear(), scan, currtbPanel->tb_depth, ZTDTOP ) ;
+			p_tableMGR->fillfVARs( errBlock, funcPOOL, tb_name, currPanel->get_tb_clear(), scan, currPanel->tb_depth, ZTDTOP ) ;
 			if ( errBlock.error() )
 			{
 				errBlock.setcall( e6 + p_name ) ;
@@ -2314,27 +2320,12 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 	}
 	if ( ZTDSELS == 0 )
 	{
-		csrvrow = csrrow - ZTDTOP + 1 ;
-		if ( csrrow > 0 && autosel && csrvrow > 0 && csrvrow <= ZTDVROWS )
-		{
-			tbtop( tb_name ) ;
-			tbskip( tb_name, csrrow, "", p_rowid_nm, "", "", p_crp_name ) ;
-			t = "." + d2ds( csrvrow - 1 ) ;
-			for ( ws = words( currtbPanel->tb_fields ), i = 1 ; i <= ws ; i++ )
-			{
-				s = word( currtbPanel->tb_fields, i ) ;
-				funcPOOL.put( errBlock, s, funcPOOL.get( errBlock, 0, s+t, NOCHECK ) ) ;
-			}
-			ZTDSELS = 1 ;
-		}
-		else
-		{
-			tbtop( tb_name ) ;
-			if ( p_crp_name != "" ) { funcPOOL.put( errBlock, p_crp_name, 0  ) ; }
-			if ( p_rowid_nm != "" ) { funcPOOL.put( errBlock, p_rowid_nm, "" ) ; }
-		}
+		tbtop( tb_name ) ;
+		if ( p_crp_name != "" ) { funcPOOL.put( errBlock, p_crp_name, 0  ) ; }
+		if ( p_rowid_nm != "" ) { funcPOOL.put( errBlock, p_rowid_nm, "" ) ; }
 	}
-	currtbPanel->resetAttrs() ;
+
+	currPanel->resetAttrs() ;
 	RC = exitRC ;
 }
 
@@ -2986,7 +2977,7 @@ void pApplication::setmsg( const string& msg, msgSET sType )
 
 	if ( ( sType == COND ) && setMSG ) { return ; }
 
-	get_Message( msg ) ;
+	get_message( msg ) ;
 	if ( RC > 0 ) { RC = 20 ; return ; }
 	MSG1   = MSG   ;
 	MSGID1 = msg   ;
@@ -3043,13 +3034,13 @@ void pApplication::getmsg( const string& msg, const string& smsg, const string& 
 		return ;
 	}
 
-	if ( !load_Message( msg ) ) { return ; }
+	if ( !load_message( msg ) ) { return ; }
 
 	tmsg      = msgList[ msg ] ;
 	tmsg.smsg = sub_vars( tmsg.smsg ) ;
 	tmsg.lmsg = sub_vars( tmsg.lmsg ) ;
 
-	if ( !sub_Message_vars( tmsg ) )
+	if ( !sub_message_vars( tmsg ) )
 	{
 		errBlock.seterror( "Invalid variable value" ) ;
 		checkRCode( errBlock ) ;
@@ -3095,7 +3086,7 @@ string pApplication::get_help_member( int row, int col )
 }
 
 
-void pApplication::get_Message( const string& p_msg )
+void pApplication::get_message( const string& p_msg )
 {
 	// Load messages from message library and copy slmsg object to MSG for the message requested
 
@@ -3105,19 +3096,19 @@ void pApplication::get_Message( const string& p_msg )
 
 	RC = 0 ;
 
-	if ( !load_Message( p_msg ) ) { return ; }
+	if ( !load_message( p_msg ) ) { return ; }
 
 	MSG      = msgList[ p_msg ]     ;
 	MSG.smsg = sub_vars( MSG.smsg ) ;
 	MSG.lmsg = sub_vars( MSG.lmsg ) ;
 
-	if ( !sub_Message_vars( MSG ) ) { RC = 20 ; return ; }
+	if ( !sub_message_vars( MSG ) ) { RC = 20 ; return ; }
 
 	MSGID    = p_msg ;
 }
 
 
-bool pApplication::load_Message( const string& p_msg )
+bool pApplication::load_message( const string& p_msg )
 {
 	// Message format: 1-5 alph char prefix
 	//                 3 numeric chars
@@ -3158,7 +3149,7 @@ bool pApplication::load_Message( const string& p_msg )
 
 	if ( !testMode && msgList.count( p_msg ) > 0 ) { return true ; }
 
-	i = chk_Message_id( p_msg ) ;
+	i = check_message_id( p_msg ) ;
 
 	if ( i == 0 || ((p_msg.size() - i) > 3 && !isalpha( p_msg.back()) ) )
 	{
@@ -3214,7 +3205,7 @@ bool pApplication::load_Message( const string& p_msg )
 		{
 			if ( msgid != "" )
 			{
-				if ( t.cont || !parse_Message( t ) )
+				if ( t.cont || !parse_message( t ) )
 				{
 					RC = 12 ;
 					messages.close() ;
@@ -3236,7 +3227,7 @@ bool pApplication::load_Message( const string& p_msg )
 			msgid  = word( mline, 1 )    ;
 			t.smsg = subword( mline, 2 ) ;
 			t.lmsg = "" ;
-			i = chk_Message_id( msgid ) ;
+			i = check_message_id( msgid ) ;
 			if ( i == 0 || ((msgid.size() - i) > 3 && !isalpha( msgid.back()) ) )
 			{
 				RC = 12 ;
@@ -3306,7 +3297,7 @@ bool pApplication::load_Message( const string& p_msg )
 
 	if ( t.smsg != "" )
 	{
-		if ( t.cont || !parse_Message( t ) )
+		if ( t.cont || !parse_message( t ) )
 		{
 			RC = 12 ;
 			messages.close() ;
@@ -3335,7 +3326,7 @@ bool pApplication::load_Message( const string& p_msg )
 }
 
 
-bool pApplication::parse_Message( slmsg& t )
+bool pApplication::parse_message( slmsg& t )
 {
 	// Parse message and fill the slmsg object.  Long message already processed at this stage.
 
@@ -3497,7 +3488,7 @@ bool pApplication::parse_Message( slmsg& t )
 }
 
 
-bool pApplication::sub_Message_vars( slmsg& t )
+bool pApplication::sub_message_vars( slmsg& t )
 {
 	// Get the dialogue variable value specified in message .T, .A, .H and .W options
 
@@ -3547,7 +3538,7 @@ bool pApplication::sub_Message_vars( slmsg& t )
 }
 
 
-int pApplication::chk_Message_id( const string& msgid )
+int pApplication::check_message_id( const string& msgid )
 {
 	// Return 0 if message-id format is incorrect, else the offset to the first numeric triplet
 

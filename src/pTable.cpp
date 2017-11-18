@@ -217,7 +217,7 @@ void Table::storeIntValue( errblock& err,
 			   int val )
 {
 	// Store an integer value in the function pool.  If the entry has been defined as a string,
-	// convert to a string and pad on the left with zeroes, length 8.
+	// or is not defined, convert to a string and pad on the left with zeroes, length 8.
 
 	dataType var_type ;
 
@@ -235,7 +235,7 @@ void Table::storeIntValue( errblock& err,
 	}
 	else if ( err.RC8() )
 	{
-		funcPOOL.put( err, var, val ) ;
+		funcPOOL.put( err, var, right( d2ds( val ), 8, '0' ) ) ;
 	}
 }
 
@@ -359,7 +359,8 @@ void Table::tbbottom( errblock& err,
 		err.setRC( 8 ) ;
 		if ( tb_crp_name != "" )
 		{
-			funcPOOL.put( err, tb_crp_name, CRP ) ;
+			storeIntValue( err, funcPOOL, tb_crp_name, CRP ) ;
+			if ( err.error() ) { return ; }
 		}
 		return  ;
 	}
@@ -719,17 +720,17 @@ void Table::tbquery( errblock& err,
 	iupper( tb_condn )  ;
 	iupper( tb_dirn )   ;
 
-	if ( tb_keyn != "" )  { funcPOOL.put( err, tb_keyn, tab_keys )  ; }
+	if ( tb_keyn != "" )  { funcPOOL.put( err, tb_keyn, tab_keys ) ; }
 	if ( err.error() ) { return ; }
-	if ( tb_varn != "" )  { funcPOOL.put( err, tb_varn, tab_flds )  ; }
+	if ( tb_varn != "" )  { funcPOOL.put( err, tb_varn, tab_flds ) ; }
 	if ( err.error() ) { return ; }
-	if ( tb_rownn != "" ) { funcPOOL.put( err, tb_rownn, table.size() ) ; }
+	if ( tb_rownn != "" ) { storeIntValue( err, funcPOOL, tb_rownn, table.size() ) ; }
 	if ( err.error() ) { return ; }
-	if ( tb_keynn != "" ) { funcPOOL.put( err, tb_keynn, num_keys ) ; }
+	if ( tb_keynn != "" ) { storeIntValue( err, funcPOOL, tb_keynn, num_keys ) ; }
 	if ( err.error() ) { return ; }
-	if ( tb_namenn != "" ) { funcPOOL.put( err, tb_namenn, num_flds ) ; }
+	if ( tb_namenn != "") { storeIntValue( err, funcPOOL, tb_namenn, num_flds ) ; }
 	if ( err.error() ) { return ; }
-	if ( tb_crpn != "" ) { funcPOOL.put( err, tb_crpn, CRP ) ; }
+	if ( tb_crpn != "" )  { storeIntValue( err, funcPOOL, tb_crpn, CRP ) ; }
 	if ( err.error() ) { return ; }
 	if ( tb_sirn != "" ) { funcPOOL.put( err, tb_sirn, sort_ir ) ; }
 	if ( err.error() ) { return ; }
@@ -1557,6 +1558,24 @@ void Table::cmdsearch( errblock& err,
 
 	funcPOOL.put( err, "ZCTDESC", (*it)->at( 4 ) ) ;
 	if ( err.error() ) { return ; }
+}
+
+
+string Table::getURID( errblock& err,
+		     int CRN )
+{
+	vector<vector<string>*>::iterator it ;
+
+	string s = d2ds( CRN ) ;
+
+	for ( it = table.begin() ; it != table.end() ; it++ )
+	{
+		if ( (*it)->at( 0 ) == s )
+		{
+			return (*it)->at( 0 ) ;
+		}
+	}
+	return "" ;
 }
 
 
@@ -2481,6 +2500,24 @@ void tableMGR::tbvclear( errblock& err,
 		return ;
 	}
 	it->second->tbvclear( err, funcPOOL ) ;
+}
+
+
+string tableMGR::getURID( errblock& err,
+			  const string& tb_name,
+			  int CRN )
+{
+	err.setRC( 0 ) ;
+
+	map<string, Table*>::iterator it ;
+
+	it = tables.find( tb_name ) ;
+	if ( it == tables.end() )
+	{
+		err.seterrid( "PSYE013G", "GET URID", tb_name, 12 ) ;
+		return "" ;
+	}
+	return ( it->second->getURID( err, CRN ) ) ;
 }
 
 

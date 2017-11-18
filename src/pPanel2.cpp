@@ -126,6 +126,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		}
 		if ( w1 == ")BODY" )
 		{
+			iupper( pline ) ;
 			j = pos( " WINDOW(", pline ) ;
 			if ( j > 0 )
 			{
@@ -181,7 +182,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				cmdField = strip( substr( pline, j+5, k-j-5 ) ) ;
 				if ( !isvalidName( cmdField ) )
 				{
-					err.seterrid( "PSYE022J", "command field", w7 ) ;
+					err.seterrid( "PSYE022J", "COMMAND field", cmdField ) ;
 					err.setsrc( oline ) ;
 					return ;
 				}
@@ -199,12 +200,30 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				Home = strip( substr( pline, j+6, k-j-6 ) ) ;
 				if ( !isvalidName( Home ) )
 				{
-					err.seterrid( "PSYE022J", "home field", w7 ) ;
+					err.seterrid( "PSYE022J", "HOME field", Home ) ;
 					err.setsrc( oline ) ;
 					return ;
 				}
 			}
-			body = true  ;
+			j = pos( " SCROLL(", pline ) ;
+			if ( j > 0 )
+			{
+				k = pos( ")", pline, j ) ;
+				if ( k == 0 )
+				{
+					err.seterrid( "PSYE011D" )  ;
+					err.setsrc( oline ) ;
+					return ;
+				}
+				scroll = strip( substr( pline, j+8, k-j-8 ) ) ;
+				if ( !isvalidName( scroll ) )
+				{
+					err.seterrid( "PSYE022J", "SCROLL field", scroll ) ;
+					err.setsrc( oline ) ;
+					return ;
+				}
+			}
+			body = true ;
 			continue ;
 		}
 		else if ( w1 == ")PROC" )    { proc    = true ; continue ; }
@@ -718,12 +737,12 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 
 	if ( scrollOn )
 	{
-		if ( fieldList.count( "ZSCROLL" ) == 0 )
+		if ( fieldList.count( scroll ) == 0 )
 		{
 			err.seterrid( "PSYE042K" ) ;
 			return ;
 		}
-		fieldList[ "ZSCROLL" ]->field_caps = true ;
+		fieldList[ scroll ]->field_caps = true ;
 	}
 
 	if ( Home != "" && fieldList.count( Home ) == 0 )

@@ -20,17 +20,17 @@ PSYE041E 'Invalid line detected'
 PSYE041F 'GOTO label ''&ZVAL1'' not found'
 ''
 
-PSYE041G 'Invalid value for .ALARM control variable.  Must be YES, NO or blank'
-''
+PSYE041G 'Invalid value for .ALARM control variable.'
+'Value mus be YES, NO or blank'
 
-PSYE041H 'Invalid .CSRROW value.  Must be numeric'
-''
+PSYE041H 'Invalid .CSRROW value.'
+'Value for .CSRROW must be a valid numeric value'
 
-PSYE041I 'Invalid value for .RESP control variable.  Must be ENTER or END'
-''
+PSYE041I 'Invalid value for .RESP control variable.'
+'Value must be ENTER or END'
 
-PSYE041J 'Invalid .CSRPOS value.  Must be numeric'
-''
+PSYE041J 'Invalid .CSRPOS value.'
+'Value for .CSRPOS must be a valid numeric value'
 
 PSYE041K 'EXPAND must be followed by a literal'
 ''

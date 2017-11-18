@@ -5,7 +5,8 @@
  Similar to PFLST0A1
 )ENDCOMMENT
 
-)BODY
+)BODY SCROLL(ZSCROLL)
+
 PanelTitle "Entry List for &LSTNAME"
 
 literal  4   2           FP    "Command ===> "

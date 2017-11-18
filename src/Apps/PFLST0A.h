@@ -43,6 +43,7 @@ class PFLST0A : public pApplication
 		string getAppName( string ) ;
 		string expandName( const string& ) ;
 		void   AddPath( const string&, const string&, vector<path>& ) ;
+		string createEntry( const string&, const string& ) ;
 
 		vector<string> SearchList ;
 		bool   UseSearch ;

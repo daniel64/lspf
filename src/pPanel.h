@@ -35,8 +35,8 @@ class pPanel
 		void   field_erase_eof( uint row, uint col, bool& prot )   ;
 		void   field_tab_down( uint& row, uint& col ) ;
 		void   field_tab_next( uint& row, uint& col ) ;
-		void   field_clear( const string& field )    ;
-		string field_getvalue( const string& field ) ;
+		void   field_clear( const string& field )     ;
+		string& field_getvalue( const string& field ) ;
 		bool   field_valid( const string& field ) ;
 		fieldExc field_getexec( const string& )   ;
 		void   field_setvalue( const string& field, const string& value ) ;
@@ -68,8 +68,8 @@ class pPanel
 		void   refresh_fields()  ;
 		void   refresh_fields( const string& ) ;
 
-		string cmd_getvalue()                  ;
-		void   cmd_setvalue( const string& v ) ;
+		string& cmd_getvalue()                  ;
+		void    cmd_setvalue( const string& v ) ;
 
 		bool    get_tbscan()                   { return tb_scan  ; }
 		string& get_tb_clear()                 { return tb_clear ; }
@@ -86,10 +86,12 @@ class pPanel
 	private:
 		int    RC          ;
 		string Home        ;
+		string scroll      ;
 		string PANELID     ;
 		bool   ALARM       ;
-		string CURFLD      ;
-		int    CURPOS      ;
+		string curfld      ;
+		int    curidx      ;
+		int    curpos      ;
 		slmsg  MSG         ;
 		string KEYLISTN    ;
 		string KEYAPPL     ;
@@ -104,8 +106,6 @@ class pPanel
 		int    tb_csrrow   ;
 		bool   tb_scan     ;
 		bool   tb_autosel  ;
-		bool   tb_autospc  ;
-		bool   tb_crowspc  ;
 		bool   pdActive    ;
 		int    abc_pos     ;
 		bool   primaryMenu ;
@@ -133,7 +133,7 @@ class pPanel
 		int    WSCRMAXW    ;
 		uint   p_row       ;
 		uint   p_col       ;
-		string MSGLOC      ;
+		string msgloc      ;
 		bool   tb_model    ;
 		bool   win_addpop  ;
 		bool   end_pressed ;
@@ -177,6 +177,10 @@ class pPanel
 
 		void   display_id() ;
 
+		void   set_cursor( const string&, int ) ;
+		string get_cursor() ;
+		string get_msgloc() ;
+
 		void   set_popup( int, int ) ;
 		void   remove_popup() ;
 		void   move_popup()   ;
@@ -191,9 +195,12 @@ class pPanel
 		void   attr( int& RC, const string& field, const string& attrs ) ;
 		void   get_home( uint& row, uint& col ) ;
 
-		void   tb_set_linesChanged() ;
-		bool   tb_lineChanged( int&, string& ) ;
-		void   tb_clear_linesChanged( errblock& ) ;
+		void   tb_set_csrrow( int i )   { tb_csrrow  = i    ; }
+		void   tb_set_autosel( bool b ) { tb_autosel = b    ; }
+		bool   tb_is_autosel()          { return tb_autosel ; }
+		void   tb_set_linesChanged( string& )      ;
+		bool   tb_get_lineChanged( int&, string& ) ;
+		void   tb_clear_linesChanged( errblock& )  ;
 		void   tb_remove_lineChanged() ;
 
 		string  get_field_help( uint row, uint col ) ;
@@ -202,13 +209,13 @@ class pPanel
 
 		void   set_panel_msg( slmsg, const string& ) ;
 		void   clear_msg() ;
-		void   clear_msg_loc()  { MSGLOC = ""     ; }
+		void   clear_msg_loc()  { msgloc = ""     ; }
 		bool   inputInhibited() { return ( pdActive || msgResp ) ; }
 		bool   msgInhibited()   { return msgResp  ; }
 		void   msgResponseOK()  { msgResp = false ; }
 
-		void   setMessageCond( const string& ) ;
-		void   setCursorCond( const string& )  ;
+		void   set_message_cond( const string& ) ;
+		void   set_cursor_cond( const string&, int =0 ) ;
 
 		string return_command( const string& ) ;
 		void   resetAttrs() ;

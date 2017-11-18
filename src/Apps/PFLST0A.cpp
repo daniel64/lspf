@@ -337,6 +337,43 @@ void PFLST0A::application()
 		CONDOFF = "" ;
 		NEMPTOK = "" ;
 		DIRREC  = "" ;
+		if ( ZTDSELS == 0 && ZCURINX != "00000000" )
+		{
+			tbtop( DSLIST ) ;
+			tbskip( DSLIST, ds2d( ZCURINX ) ) ;
+			if ( UseList )
+			{
+				entry = ENTRY ;
+			}
+			else
+			{
+				entry = createEntry( ZPATH, ENTRY ) ;
+			}
+			if ( ZCURFLD == "ENTRY" )
+			{
+				if ( is_directory( entry ) )
+				{
+					SEL = "L" ;
+				}
+				else if ( is_regular_file( entry ) )
+				{
+					SEL = "E" ;
+				}
+				else
+				{
+					continue ;
+				}
+			}
+			else if ( ZCURFLD == "TYPE" )
+			{
+				SEL = "I" ;
+			}
+			else
+			{
+				continue ;
+			}
+			ZTDSELS = 1 ;
+		}
 		while ( ZTDSELS > 0 )
 		{
 			if ( SEL == "=" && OSEL != "" ) { SEL = OSEL ; }
@@ -347,8 +384,7 @@ void PFLST0A::application()
 			}
 			else
 			{
-				if ( ZPATH.back() == '/' ) { entry = ZPATH + ENTRY       ; }
-				else                       { entry = ZPATH + "/" + ENTRY ; }
+				entry = createEntry( ZPATH, ENTRY ) ;
 			}
 			if ( SEL == "I" )
 			{
@@ -868,7 +904,14 @@ void PFLST0A::createFileList1( string filter )
 		}
 		else
 		{
-			if ( filter != "" && pos( filter, upper( ENTRY ) ) == 0 ) { continue ; }
+			if ( UseList )
+			{
+				if ( filter != "" && pos( filter, upper( p ) ) == 0 ) { continue ; }
+			}
+			else
+			{
+				if ( filter != "" && pos( filter, upper( ENTRY ) ) == 0 ) { continue ; }
+			}
 		}
 		if ( UseSearch )
 		{
@@ -2065,15 +2108,13 @@ string PFLST0A::showListing()
 		{
 			if ( SEL == "S" )
 			{
-				if ( ZPATH.back() == '/' ) { ZPATH += ENTRY       ; }
-				else                       { ZPATH += "/" + ENTRY ; }
+				ZPATH = createEntry( ZPATH, ENTRY ) ;
 				tbend( DSLIST )   ;
 				createFileList2( FLDIRS ) ;
 			}
 			else if ( SEL == "/" )
 			{
-				if ( ZPATH.back() == '/' ) { ZPATH += ENTRY       ; }
-				else                       { ZPATH += "/" + ENTRY ; }
+				ZPATH = createEntry( ZPATH, ENTRY ) ;
 				tbend( DSLIST ) ;
 				return ZPATH    ;
 			}
@@ -2162,6 +2203,13 @@ string PFLST0A::getAppName( string s )
 		return s.erase( s.size() - 3 ) ;
 	}
 	return s ;
+}
+
+
+string PFLST0A::createEntry( const string& s1, const string& s2 )
+{
+	if ( s1.back() == '/' ) { return s1 + s2       ; }
+	else                    { return s1 + "/" + s2 ; }
 }
 
 

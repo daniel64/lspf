@@ -276,11 +276,12 @@ class pApplication
 		string ZERR7    ;
 		string ZERR8    ;
 
-		void get_Message( const string& )  ;
-		int  chk_Message_id( const string& ) ;
-		bool load_Message( const string& ) ;
-		bool parse_Message( slmsg & )    ;
-		bool sub_Message_vars( slmsg & ) ;
+		void get_message( const string& )  ;
+		int  check_message_id( const string& ) ;
+		bool load_message( const string& ) ;
+		bool parse_message( slmsg & )    ;
+		bool sub_message_vars( slmsg & ) ;
+		void set_screenName() ;
 
 		errblock errBlock ;
 		errblock serBlock ;

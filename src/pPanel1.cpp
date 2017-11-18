@@ -49,12 +49,11 @@ pPanel::pPanel()
 	tb_model    = false  ;
 	tb_depth    = 0      ;
 	tb_curidx   = -1     ;
+	tb_csrrow   = -1     ;
 	tb_fields   = ""     ;
 	tb_clear    = ""     ;
 	tb_scan     = false  ;
 	tb_autosel  = false  ;
-	tb_autospc  = false  ;
-	tb_crowspc  = false  ;
 	tb_lcol     = 0      ;
 	tb_lsz      = 0      ;
 	full_screen = false  ;
@@ -67,6 +66,7 @@ pPanel::pPanel()
 	ZPHELP      = ""     ;
 	cmdField    = ""     ;
 	Home        = ""     ;
+	scroll      = "ZSCROLL" ;
 	fwin        = NULL   ;
 	pwin        = NULL   ;
 	bwin        = NULL   ;
@@ -197,12 +197,13 @@ string pPanel::getDialogueVar( errblock& err, const string& var )
 
 	if ( err.RC0() )
 	{
-		switch ( var_type )
+		if ( var_type == INTEGER )
 		{
-			case INTEGER:
-				return d2ds( p_funcPOOL->get( err, 0, var_type, var ) ) ;
-			case STRING:
-				return p_funcPOOL->get( err, 0, var, NOCHECK ) ;
+			return d2ds( p_funcPOOL->get( err, 0, var_type, var ) ) ;
+		}
+		else
+		{
+			return p_funcPOOL->get( err, 0, var, NOCHECK ) ;
 		}
 	}
 	else
@@ -425,9 +426,9 @@ void pPanel::display_panel_update( errblock& err )
 
 	int fieldNum    ;
 	int scrollAmt   ;
-	int curpos      ;
 	int p           ;
 	int offset      ;
+	int posn        ;
 
 	string CMDVerb  ;
 	string CMD      ;
@@ -445,14 +446,12 @@ void pPanel::display_panel_update( errblock& err )
 	err.setRC( 0 ) ;
 
 	fieldNum = 0  ;
-	curpos   = 1  ;
+	posn     = 1  ;
 	MSGID    = "" ;
-	MSGLOC   = "" ;
+	msgloc   = "" ;
 
 	cursor_set  = false ;
 	message_set = false ;
-	tb_autospc  = false ;
-	tb_crowspc  = false ;
 
 	CMDVerb     = p_poolMGR->get( err, "ZVERB", SHARED ) ;
 	end_pressed = findword( CMDVerb, "END EXIT RETURN" ) ;
@@ -465,7 +464,7 @@ void pPanel::display_panel_update( errblock& err )
 
 	if ( scrollOn )
 	{
-		it = fieldList.find( "ZSCROLL" ) ;
+		it = fieldList.find( scroll )  ;
 		it->second->field_prep_input() ;
 		it->second->field_set_caps()   ;
 		it->second->field_changed = false ;
@@ -477,15 +476,15 @@ void pPanel::display_panel_update( errblock& err )
 				case 'D': it->second->field_value = "DATA" ; break ;
 				case 'H': it->second->field_value = "HALF" ; break ;
 				case 'P': it->second->field_value = "PAGE" ; break ;
-				default:  setMessageCond( "PSYS011I" ) ;
-					  setCursorCond( "ZSCROLL" )   ;
+				default:  set_message_cond( "PSYS011I" ) ;
+					  set_cursor_cond( scroll )      ;
 			}
 		}
 		p_funcPOOL->put( err, it->first, it->second->field_value ) ;
 	}
 
-	p_funcPOOL->put( err, "ZCURFLD", ""  ) ;
-	p_funcPOOL->put( err, "ZCURPOS", 1   ) ;
+	p_funcPOOL->put( err, "ZCURFLD", "" ) ;
+	p_funcPOOL->put( err, "ZCURPOS", 1  ) ;
 
 	tb_curidx = -1 ;
 
@@ -524,8 +523,8 @@ void pPanel::display_panel_update( errblock& err )
 					}
 					else
 					{
-						setMessageCond( "PSYS011G" ) ;
-						setCursorCond( it->first )   ;
+						set_message_cond( "PSYS011G" ) ;
+						set_cursor_cond( it->first )   ;
 					}
 				}
 				else
@@ -537,14 +536,14 @@ void pPanel::display_panel_update( errblock& err )
 		}
 		if ( it->second->field_active && it->second->cursor_on_field( p_row, p_col ) )
 		{
-			curpos = p_col - it->second->field_col + 1 ;
+			posn = p_col - it->second->field_col + 1 ;
 			if ( it->second->field_dynArea )
 			{
 				p        = it->first.find_first_of( '.' )   ;
 				fieldNam = it->first.substr( 0, p )         ;
 				fieldNum = ds2d( it->first.substr( p+1 ) )  ;
 				p_funcPOOL->put( err, "ZCURFLD", fieldNam ) ;
-				p_funcPOOL->put( err, "ZCURPOS", ( fieldNum*it->second->field_length + curpos ) ) ;
+				p_funcPOOL->put( err, "ZCURPOS", ( fieldNum*it->second->field_length + posn ) ) ;
 				fieldNum++ ;
 			}
 			else
@@ -560,7 +559,7 @@ void pPanel::display_panel_update( errblock& err )
 				{
 					p_funcPOOL->put( err, "ZCURFLD", it->first ) ;
 				}
-				p_funcPOOL->put( err, "ZCURPOS", curpos ) ;
+				p_funcPOOL->put( err, "ZCURPOS", posn ) ;
 			}
 		}
 	}
@@ -574,8 +573,8 @@ void pPanel::display_panel_update( errblock& err )
 		msgfld = cmdField ;
 		if ( CMD == "" || ( !findword( CMD, "M MAX C CSR D DATA H HALF P PAGE" ) && !isnumeric( CMD ) ) )
 		{
-			CMD    = fieldList[ "ZSCROLL" ]->field_value ;
-			msgfld = "ZSCROLL" ;
+			CMD    = fieldList[ scroll ]->field_value ;
+			msgfld = scroll ;
 		}
 		else
 		{
@@ -589,8 +588,8 @@ void pPanel::display_panel_update( errblock& err )
 		{
 			if ( CMD.size() > 6 )
 			{
-				setMessageCond( "PSYS011I" ) ;
-				setCursorCond( msgfld )      ;
+				set_message_cond( "PSYS011I" ) ;
+				set_cursor_cond( msgfld )      ;
 			}
 			else
 			{
@@ -618,11 +617,11 @@ void pPanel::display_panel_update( errblock& err )
 			}
 			else if ( CMDVerb[ 0 ] == 'L' )
 			{
-				p_poolMGR->put( err, "ZSCROLLN", d2ds( dyn_width-curpos ), SHARED ) ;
+				p_poolMGR->put( err, "ZSCROLLN", d2ds( dyn_width-posn ), SHARED ) ;
 			}
 			else
 			{
-				p_poolMGR->put( err, "ZSCROLLN", d2ds( curpos ), SHARED ) ;
+				p_poolMGR->put( err, "ZSCROLLN", d2ds( posn ), SHARED ) ;
 			}
 			p_poolMGR->put( err, "ZSCROLLA", "CSR", SHARED ) ;
 		}
@@ -1088,15 +1087,11 @@ string pPanel::process_panel_trans( errblock& err, int ln, TRANS* trans )
 			t = "" ;
 			if ( trans->trns_msgid != "" && !message_set )
 			{
-				setMessageCond( sub_vars( trans->trns_msgid ) ) ;
+				set_message_cond( sub_vars( trans->trns_msgid ) ) ;
 				if ( trans->trns_pnfield )
 				{
 					fieldNam = trans->trns_field ;
-					if ( trans->trns_tbfield )
-					{
-						fieldNam += "." + d2ds( ln ) ;
-					}
-					setCursorCond( fieldNam ) ;
+					set_cursor_cond( fieldNam, ln ) ;
 				}
 			}
 		}
@@ -1122,7 +1117,6 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 	vector<string>::iterator it ;
 
 	fieldNam = verify->ver_var ;
-	if ( verify->ver_tbfield ) { fieldNam += "." + d2ds( ln ) ; }
 
 	fieldVal = getDialogueVar( err, verify->ver_var ) ;
 	if ( err.error() ) { return ; }
@@ -1131,10 +1125,10 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 	{
 		if ( fieldVal == "" )
 		{
-			setMessageCond( verify->ver_msgid == "" ? "PSYS019" : sub_vars( verify->ver_msgid ) ) ;
+			set_message_cond( verify->ver_msgid == "" ? "PSYS019" : sub_vars( verify->ver_msgid ) ) ;
 			if ( verify->ver_pnfield )
 			{
-				setCursorCond( fieldNam ) ;
+				set_cursor_cond( fieldNam, ln ) ;
 			}
 		}
 	}
@@ -1147,10 +1141,10 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 	case VER_NUMERIC:
 		if ( !isnumeric( fieldVal ) )
 		{
-			setMessageCond( verify->ver_msgid == "" ? "PSYS011A" : sub_vars( verify->ver_msgid ) ) ;
+			set_message_cond( verify->ver_msgid == "" ? "PSYS011A" : sub_vars( verify->ver_msgid ) ) ;
 			if ( verify->ver_pnfield )
 			{
-				setCursorCond( fieldNam ) ;
+				set_cursor_cond( fieldNam, ln ) ;
 			}
 		}
 		break ;
@@ -1182,7 +1176,7 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 				t += sub_vars( verify->ver_vlist[ i ] ) ;
 			}
 			msg = verify->ver_type == VER_LIST ? "PSYS011B" : "PSYS012Q" ;
-			setMessageCond( verify->ver_msgid == "" ? msg : sub_vars( verify->ver_msgid ) ) ;
+			set_message_cond( verify->ver_msgid == "" ? msg : sub_vars( verify->ver_msgid ) ) ;
 			if ( MSGID == msg )
 			{
 				p_poolMGR->put( err, "ZZSTR1", t, SHARED ) ;
@@ -1190,7 +1184,7 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 			}
 			if ( verify->ver_pnfield )
 			{
-				setCursorCond( fieldNam ) ;
+				set_cursor_cond( fieldNam, ln ) ;
 			}
 		}
 		break ;
@@ -1202,10 +1196,10 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 			if ( err.error() ) { return ; }
 			p_poolMGR->put( err, "ZZSTR2", verify->ver_vlist[ 0 ], SHARED ) ;
 			if ( err.error() ) { return ; }
-			setMessageCond( verify->ver_msgid == "" ? "PSYS011N" : sub_vars( verify->ver_msgid ) ) ;
+			set_message_cond( verify->ver_msgid == "" ? "PSYS011N" : sub_vars( verify->ver_msgid ) ) ;
 			if ( verify->ver_pnfield )
 			{
-				setCursorCond( fieldNam ) ;
+				set_cursor_cond( fieldNam, ln ) ;
 			}
 		}
 		break ;
@@ -1213,10 +1207,10 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 	case VER_HEX:
 		if ( !ishex( fieldVal ) )
 		{
-			setMessageCond( verify->ver_msgid == "" ? "PSYS011H" : sub_vars( verify->ver_msgid ) ) ;
+			set_message_cond( verify->ver_msgid == "" ? "PSYS011H" : sub_vars( verify->ver_msgid ) ) ;
 			if ( verify->ver_pnfield )
 			{
-				setCursorCond( fieldNam ) ;
+				set_cursor_cond( fieldNam, ln ) ;
 			}
 		}
 		break ;
@@ -1224,10 +1218,10 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 	case VER_OCT:
 		if ( !isoctal( fieldVal ) )
 		{
-			setMessageCond( verify->ver_msgid == "" ? "PSYS011F" : sub_vars( verify->ver_msgid ) ) ;
+			set_message_cond( verify->ver_msgid == "" ? "PSYS011F" : sub_vars( verify->ver_msgid ) ) ;
 			if ( verify->ver_pnfield )
 			{
-				setCursorCond( fieldNam ) ;
+				set_cursor_cond( fieldNam, ln ) ;
 			}
 		}
 	}
@@ -1403,7 +1397,6 @@ void pPanel::setControlVar( errblock& err, int ln, const string& svar, const str
 		else
 		{
 			err.seterrid( "PSYE041G" ) ;
-			return ;
 		}
 	}
 	else if ( svar == ".AUTOSEL" )
@@ -1419,9 +1412,7 @@ void pPanel::setControlVar( errblock& err, int ln, const string& svar, const str
 		else
 		{
 			err.seterrid( "PSYE042O" ) ;
-			return ;
 		}
-		tb_autospc = true ;
 	}
 	else if ( svar == ".BROWSE" )
 	{
@@ -1433,33 +1424,32 @@ void pPanel::setControlVar( errblock& err, int ln, const string& svar, const str
 		{
 			p_funcPOOL->put( err, "ZCURFLD", sval ) ;
 			if ( err.error() ) { return ; }
-			CURFLD = wordpos( sval, tb_fields ) == 0 ? sval : sval +"."+ d2ds( ln ) ;
-			CURPOS = 1 ;
+			curfld = wordpos( sval, tb_fields ) == 0 ? sval : sval +"."+ d2ds( ln ) ;
+			curpos = 1 ;
 			cursor_set = true ;
 		}
 	}
 	else if ( svar == ".CSRPOS" )
 	{
-		if ( !isnumeric( sval ) )
+		if ( !isnumeric( sval ) || ds2d( sval ) < 1 )
 		{
 			err.seterrid( "PSYE041J" ) ;
 			return ;
 		}
-		CURPOS = ds2d( sval ) ;
-		p_funcPOOL->put( err, "ZCURPOS", CURPOS ) ;
+		curpos = ds2d( sval ) ;
+		p_funcPOOL->put( err, "ZCURPOS", curpos ) ;
 		if ( err.error() ) { return ; }
 	}
 	else if ( svar == ".CSRROW" )
 	{
-		if ( !isnumeric( sval ) )
+		if ( !isnumeric( sval ) || ds2d( sval ) < 0 )
 		{
 			err.seterrid( "PSYE041H" ) ;
 			return ;
 		}
-		p_funcPOOL->put( err, "ZCURINX", sval, NOCHECK ) ;
+		p_funcPOOL->put( err, "ZCURINX", sval ) ;
 		if ( err.error() ) { return ; }
 		tb_csrrow  = ds2d( sval ) ;
-		tb_crowspc = true ;
 	}
 	else if ( svar == ".EDIT" )
 	{
@@ -1477,7 +1467,7 @@ void pPanel::setControlVar( errblock& err, int ln, const string& svar, const str
 	}
 	else if ( svar == ".MSG" )
 	{
-		setMessageCond( sval ) ;
+		set_message_cond( sval ) ;
 	}
 	else if ( svar == ".RESP" )
 	{
@@ -1496,13 +1486,12 @@ void pPanel::setControlVar( errblock& err, int ln, const string& svar, const str
 		else
 		{
 			err.seterrid( "PSYE041I" ) ;
-			return ;
 		}
 	}
 }
 
 
-void pPanel::setMessageCond( const string& msg )
+void pPanel::set_message_cond( const string& msg )
 {
 	if ( !message_set )
 	{
@@ -1512,16 +1501,52 @@ void pPanel::setMessageCond( const string& msg )
 }
 
 
-void pPanel::setCursorCond( const string& csr )
+void pPanel::set_cursor_cond( const string& csr, int i )
 {
 	errblock err ;
 
 	if ( !cursor_set )
 	{
-		CURFLD = csr ;
-		MSGLOC = csr ;
+		curfld = csr ;
+		msgloc = csr ;
+		curidx = i   ;
 		p_funcPOOL->put( err, "ZCURFLD", csr ) ;
 		cursor_set = true ;
+	}
+}
+
+
+void pPanel::set_cursor( const string& csr, int i )
+{
+	curfld = csr ;
+	curpos = i   ;
+}
+
+
+string pPanel::get_cursor()
+{
+	if ( findword( curfld, tb_fields ) )
+	{
+		if ( curidx == -1 ) { curidx = 0 ; }
+		return curfld + "." + d2ds( curidx ) ;
+	}
+	else
+	{
+		return curfld ;
+	}
+}
+
+
+string pPanel::get_msgloc()
+{
+	if ( findword( msgloc, tb_fields ) )
+	{
+		if ( curidx == -1 ) { curidx = 0 ; }
+		return msgloc + "." + d2ds( curidx ) ;
+	}
+	else
+	{
+		return msgloc ;
 	}
 }
 
@@ -1965,9 +1990,9 @@ void pPanel::cursor_to_field( int& RC1, string f_name, int f_pos )
 
 	if ( f_name == "" )
 	{
-		if ( CURFLD == "" ) { return ; }
-		f_name = CURFLD ;
-		f_pos  = CURPOS ;
+		f_name = get_cursor() ;
+		f_pos  = curpos ;
+		if ( f_name == "" ) { return ; }
 	}
 
 	itf = fieldList.find( f_name ) ;
@@ -2026,7 +2051,7 @@ void pPanel::get_home( uint& row, uint& col )
 }
 
 
-string pPanel::field_getvalue( const string& f_name )
+string& pPanel::field_getvalue( const string& f_name )
 {
 	map<string, field *>::iterator it ;
 
@@ -2052,12 +2077,9 @@ void pPanel::field_setvalue( const string& f_name, const string& f_value )
 }
 
 
-string pPanel::cmd_getvalue()
+string& pPanel::cmd_getvalue()
 {
-	map<string, field *>::iterator it ;
-
-	it = fieldList.find( cmdField ) ;
-	if ( it == fieldList.end() )
+	if ( fieldList.find( cmdField ) == fieldList.end() )
 	{
 		return ZZCMD ;
 	}
@@ -2067,16 +2089,13 @@ string pPanel::cmd_getvalue()
 
 void pPanel::cmd_setvalue( const string& v )
 {
-	map<string, field *>::iterator it ;
-
-	it = fieldList.find( cmdField ) ;
-	if ( it != fieldList.end() )
+	if ( fieldList.find( cmdField ) == fieldList.end() )
 	{
-		field_setvalue( cmdField, v ) ;
+		ZZCMD = v ;
 	}
 	else
 	{
-		ZZCMD = v ;
+		field_setvalue( cmdField, v ) ;
 	}
 }
 
@@ -2455,10 +2474,12 @@ string pPanel::get_field_help( uint row, uint col )
 }
 
 
-void pPanel::tb_set_linesChanged()
+void pPanel::tb_set_linesChanged( string& asURID )
 {
 	//  Store changed lines for processing by the application if requested via tbdispl with no panel name
 	//  Format is a list of line-number/URID pairs
+
+	//  If AUTOSEL(YES)/CSRROW specified and the line is on the screen, add row even if it has not changed
 
 	string URID  ;
 	errblock err ;
@@ -2467,17 +2488,27 @@ void pPanel::tb_set_linesChanged()
 
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
-		if ( it->second->field_tb && it->second->field_changed )
+		if ( !it->second->field_tb ) { continue ; }
+		if ( it->second->field_changed )
 		{
 			URID = p_funcPOOL->get( err, 0, ".ZURID."+ d2ds( it->second->field_row - tb_row ), NOCHECK ) ;
 			tb_linesChanged[ it->second->field_row - tb_row ] = URID ;
+		}
+		else if ( asURID != "" )
+		{
+			URID = p_funcPOOL->get( err, 0, ".ZURID."+ d2ds( it->second->field_row - tb_row ), NOCHECK ) ;
+			if ( URID == asURID )
+			{
+				tb_linesChanged[ it->second->field_row - tb_row ] = URID ;
+				asURID = "" ;
+			}
 		}
 	}
 	p_funcPOOL->put( err, "ZTDSELS", tb_linesChanged.size() ) ;
 }
 
 
-bool pPanel::tb_lineChanged( int& ln, string& URID )
+bool pPanel::tb_get_lineChanged( int& ln, string& URID )
 {
 	//  Retrieve the next changed line on the tbdispl.  Return screen line number and URID of the table record
 	//  Don't remove the pair from the list but update ZTDSELS
@@ -2844,7 +2875,7 @@ void pPanel::get_msgwin( string m, int& t_row, int& t_col, int& t_depth, int& t_
 
 	map<string, field *>::iterator it ;
 
-	it = fieldList.find( MSGLOC ) ;
+	it = fieldList.find( get_msgloc() ) ;
 
 	h = m.size() / WSCRMAXW + 1 ;
 	w = m.size() / h            ;

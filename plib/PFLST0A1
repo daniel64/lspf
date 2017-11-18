@@ -14,7 +14,7 @@
 
 )ENDCOMMENT
 
-)BODY
+)BODY SCROLL(ZSCROLL)
 PanelTitle "File/Directory List"
 PanelDescr "List &ZPATH"
 

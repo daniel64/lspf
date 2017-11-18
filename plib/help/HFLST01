@@ -4,6 +4,10 @@ Primary and line commands for file list application PFLST01
 ===========================================================
 
 
+The Entry name field is cursor sensitive.  Placing the cursor on a line within then Entry name column
+and pressing ENTER will show a file list if the entry is a directory name, or edit the file if the entry
+is a regular file.
+
 Place cursor on Path Name and execute primary command FIELDEXC for directory name completion.
 (Assign FIELDEXC to a PF key to make this easier).  This function is cursor sensitive, so only characters
 before the cursor will be taken into account (if cursor is on the first position, all the field is used).
