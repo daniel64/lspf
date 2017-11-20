@@ -573,7 +573,7 @@ void ASSGN::parse( errblock& err, parser& v )
 
 	token t ;
 
-	const string lhs_control = ".ALARM .AUTOSEL .BROWSE .CURSOR .CSRROW .CSRPOS .EDIT .HELP .MSG .NRET .RESP" ;
+	const string lhs_control = ".ALARM .AUTOSEL .BROWSE .CURSOR .CSRROW .CSRPOS .EDIT .HELP .MSG .NRET .PFKEY .RESP" ;
 	const string functn_list = "DIR EXISTS FILE LENGTH REVERSE WORDS UPPER" ;
 
 	err.setRC( 0 ) ;
@@ -635,7 +635,7 @@ void ASSGN::parse( errblock& err, parser& v )
 	t = v.getCurrentToken() ;
 	if ( t.type == TT_CTL_VAR_INVALID )
 	{
-		err.seterrid( "PSYE033S", t.value ) ;
+		err.seterrid( "PSYE033G", t.value ) ;
 		return ;
 	}
 	else if ( v.getNextIfCurrent( TT_CTL_VAR_VALID ) )
@@ -915,7 +915,7 @@ void TRUNC::parse( errblock& err, parser& v )
 	if ( v.getNextIfCurrent( TT_CTL_VAR_VALID ) ) {}
 	else if ( v.getNextIfCurrent( TT_CTL_VAR_INVALID ) )
 	{
-		err.seterrid( "PSYE033S", trnc_field ) ;
+		err.seterrid( "PSYE033G", trnc_field ) ;
 		return ;
 	}
 	else if ( !v.getNextIfCurrent( TT_AMPR_VAR_VALID ) )

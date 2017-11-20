@@ -79,7 +79,10 @@ class Table
 				  const string& clear_flds,
 				  bool scan,
 				  int  depth,
-				  int  posn ) ;
+				  int  posn,
+				  int  csrrow,
+				  int& idx,
+				  string& asURID ) ;
 
 		void   cmdsearch( errblock& err,
 				  fPOOL& funcPOOL,
@@ -189,9 +192,6 @@ class Table
 		void decRefCount() { refCount--           ; }
 		bool notInUse()    { return refCount == 0 ; }
 
-		string getURID( errblock& err,
-				int CRN ) ;
-
 		friend class tableMGR ;
 } ;
 
@@ -246,7 +246,10 @@ class tableMGR
 				  const string& clear_flds,
 				  bool scan,
 				  int  depth,
-				  int  posn =-1 ) ;
+				  int  posn,
+				  int  csrrow,
+				  int& idx,
+				  string& asURID ) ;
 
 		void   destroyTable( errblock& err,
 				     const string& tb_name ) ;
@@ -339,10 +342,6 @@ class tableMGR
 		void   tbvclear( errblock& err,
 				 fPOOL& funcPOOL,
 				 const string& tb_name ) ;
-
-		string getURID( errblock& err,
-				const string& tb_name,
-				int CRN ) ;
 
 		bool   writeableTable( errblock& err,
 				       const string& tb_name ) ;

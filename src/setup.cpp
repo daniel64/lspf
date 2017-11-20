@@ -224,7 +224,7 @@ main()
 
 	ZCTVERB  = "RECENT" ;
 	ZCTTRUNC = "0"      ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(DSL REFLIST) NEWAPPL(ISR) SCRNAME(DSLIST) SUSPEND" ;
+	ZCTACT   = "ALIAS DSLIST REFLIST" ;
 	ZCTDESC  = "File list utility"  ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
@@ -445,7 +445,7 @@ void createSYSPROF()
 	p_poolMGR->put( err, "ZRFURL", "YES", PROFILE ) ;
 	p_poolMGR->put( err, "ZRFFEX", "YES", PROFILE ) ;
 	p_poolMGR->put( err, "ZRFNEX", "YES", PROFILE ) ;
-	p_poolMGR->put( err, "ZRFMOD", "BEX", PROFILE ) ;
+	p_poolMGR->put( err, "ZRFMOD", "BRT", PROFILE ) ;
 
 	setCUAcolours( "AB",   KAB   ) ;
 	setCUAcolours( "ABSL", KABSL ) ;

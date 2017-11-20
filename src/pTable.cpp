@@ -1325,11 +1325,16 @@ void Table::fillfVARs( errblock& err,
 		       const string& clear_flds,
 		       bool scan,
 		       int  depth,
-		       int  posn )
+		       int  posn,
+		       int  csrrow,
+		       int& idx,
+		       string& asURID )
 {
 	// Fill the function pool variables ( of the form table_fieldname.line ) from the table for depth lines
 	// starting as table position posn. (Use CRP position if posn not specified)
 	// Create function pool variable .ZURID.line to hold the URID of the table row corresponding to that screen line
+
+	// Also pass back the csrrow matching tb line index and the URID, if there is one.
 
 	// BUGS:  Should only do fields on the tbmodel statement instead of all fields in the row (inc. extension variables)
 	//        SCAN not supported yet
@@ -1343,7 +1348,7 @@ void Table::fillfVARs( errblock& err,
 	string enames ;
 	string sufx   ;
 
-	vector<string>* row ;
+	vector<string> row ;
 	vector<vector<string>*>::iterator it ;
 
 	err.setRC( 0 ) ;
@@ -1367,23 +1372,26 @@ void Table::fillfVARs( errblock& err,
 		}
 	}
 
-	row = new vector<string> ;
-	row->push_back( ".ZURID" ) ;
+	row.push_back( ".ZURID" ) ;
 	for ( k = 1 ; k <= num_all ; k++ )
 	{
-		row->push_back( word( tab_all, k ) ) ;
+		row.push_back( word( tab_all, k ) ) ;
 	}
 
 	it = table.begin() ;
 	advance( it, posn-1 ) ;
+
+	csrrow -= posn ;
+	idx     = 0    ;
+	asURID  = ""   ;
 
 	for ( k = 0 ; k < depth && it != table.end() ; k++, it++ )
 	{
 		sufx = "." + d2ds( k ) ;
 		for ( j = 0 ; j <= num_all ; j++ )
 		{
-			funcPOOL.put( err, row->at( j ) + sufx, (*it)->at( j ), NOCHECK ) ;
-			if ( err.error() ) { delete row ; return ; }
+			funcPOOL.put( err, row.at( j ) + sufx, (*it)->at( j ), NOCHECK ) ;
+			if ( err.error() ) { return ; }
 		}
 		if ( (*it)->size() > num_all+1 )
 		{
@@ -1391,8 +1399,13 @@ void Table::fillfVARs( errblock& err,
 			for ( l = 1, j = num_all+2 ; j < (*it)->size() ; j++, l++ )
 			{
 				funcPOOL.put( err, word( enames, l ) + sufx, (*it)->at( j ), NOCHECK ) ;
-				if ( err.error() ) { delete row ; return ; }
+				if ( err.error() ) { return ; }
 			}
+		}
+		if ( k == csrrow )
+		{
+			idx    = k ;
+			asURID = (*it)->at( 0 ) ;
 		}
 	}
 
@@ -1401,11 +1414,10 @@ void Table::fillfVARs( errblock& err,
 		sufx = "." + d2ds( k ) ;
 		for ( j = 0 ; j <= num_all ; j++ )
 		{
-			funcPOOL.put( err, row->at( j ) + sufx, "", NOCHECK ) ;
-			if ( err.error() ) { delete row ; return ; }
+			funcPOOL.put( err, row.at( j ) + sufx, "", NOCHECK ) ;
+			if ( err.error() ) { return ; }
 		}
 	}
-	delete row ;
 }
 
 
@@ -1558,24 +1570,6 @@ void Table::cmdsearch( errblock& err,
 
 	funcPOOL.put( err, "ZCTDESC", (*it)->at( 4 ) ) ;
 	if ( err.error() ) { return ; }
-}
-
-
-string Table::getURID( errblock& err,
-		     int CRN )
-{
-	vector<vector<string>*>::iterator it ;
-
-	string s = d2ds( CRN ) ;
-
-	for ( it = table.begin() ; it != table.end() ; it++ )
-	{
-		if ( (*it)->at( 0 ) == s )
-		{
-			return (*it)->at( 0 ) ;
-		}
-	}
-	return "" ;
 }
 
 
@@ -2144,7 +2138,10 @@ void tableMGR::fillfVARs( errblock& err,
 			  const string& clear_flds,
 			  bool scan,
 			  int  depth,
-			  int  posn )
+			  int  posn,
+			  int  csrrow,
+			  int& idx,
+			  string& asURID )
 {
 	map<string, Table*>::iterator it ;
 
@@ -2154,7 +2151,7 @@ void tableMGR::fillfVARs( errblock& err,
 		err.seterrid( "PSYE013G", "FILLVARS", tb_name, 12 ) ;
 		return ;
 	}
-	it->second->fillfVARs( err, funcPOOL, clear_flds, scan, depth, posn ) ;
+	it->second->fillfVARs( err, funcPOOL, clear_flds, scan, depth, posn, csrrow, idx, asURID ) ;
 }
 
 
@@ -2500,24 +2497,6 @@ void tableMGR::tbvclear( errblock& err,
 		return ;
 	}
 	it->second->tbvclear( err, funcPOOL ) ;
-}
-
-
-string tableMGR::getURID( errblock& err,
-			  const string& tb_name,
-			  int CRN )
-{
-	err.setRC( 0 ) ;
-
-	map<string, Table*>::iterator it ;
-
-	it = tables.find( tb_name ) ;
-	if ( it == tables.end() )
-	{
-		err.seterrid( "PSYE013G", "GET URID", tb_name, 12 ) ;
-		return "" ;
-	}
-	return ( it->second->getURID( err, CRN ) ) ;
 }
 
 

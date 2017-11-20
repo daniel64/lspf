@@ -81,8 +81,6 @@ void PLRFLST1::application()
 	else if ( P1 == "PLA" ) { AddReflistEntry( PF ) ; }
 	else if ( P1 == "NR1" ) { RetrieveEntry( PF )   ; }
 	else if ( P1 == "US1" ) { userSettings()        ; }
-	else if ( P1 == "BEX" ) { setRefMode( P1 )      ; }
-	else if ( P1 == "BRT" ) { setRefMode( P1 )      ; }
 	else                    { llog( "E", "Invalid parameter passed to PLRFLST1: " << PARM << endl ) ; }
 
 	cleanup() ;
@@ -363,11 +361,12 @@ void PLRFLST1::EditFileList( const string& curtb )
 	modified = false ;
 	while ( true )
 	{
-		tbtop( FLIST2 )  ;
+		tbtop( FLIST2 ) ;
 		tbskip( FLIST2, ZTDTOP ) ;
 		if ( MSG == "" ) { ZCMD1 = "" ; }
 		tbdispl( FLIST2, "PLRFLST2", MSG, "ZCMD1" ) ;
-		if ( RC == 8 ) { modified = false ; break ; }
+		if ( ZCMD1 == "CANCEL" ) { modified = false ; break ; }
+		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 		while ( ZTDSELS > 0 )
 		{
@@ -376,14 +375,14 @@ void PLRFLST1::EditFileList( const string& curtb )
 				tbput( FLIST2 ) ;
 				modified = true ;
 			}
-			if ( BSEL == "I" )
+			else if ( BSEL == "I" )
 			{
 				BSEL  = "" ;
 				BFILE = "" ;
 				tbadd( FLIST2 ) ;
 				modified = true ;
 			}
-			if ( BSEL == "R" )
+			else if ( BSEL == "R" )
 			{
 				BSEL = "" ;
 				tbadd( FLIST2 ) ;
@@ -394,18 +393,18 @@ void PLRFLST1::EditFileList( const string& curtb )
 				tbdelete( FLIST2 ) ;
 				modified = true ;
 			}
-			BSEL = "" ;
 			if ( ZTDSELS > 1 )
 			{
 				tbdispl( FLIST2 ) ;
 				if ( RC > 4 ) { break ; }
 			}
 			else { ZTDSELS = 0 ; }
+			BSEL = "" ;
 		}
 	}
 	if ( modified )
 	{
-		OpenTableUP()     ;
+		OpenTableUP() ;
 		tbget( RFLTABLE ) ;
 		tbtop( FLIST2 ) ;
 		for ( i = 1 ; i <= 30 ; i++ )
@@ -669,13 +668,14 @@ void PLRFLST1::AddReflistEntry( const string& ent )
 {
 	int i ;
 
-	string eent  ;
+	string* eent ;
+
 	string rffex ;
 	string ldate ;
 	string ltime ;
 
-	map<string,bool>found ;
 	vector<string>list ;
+	vector<string>::iterator it ;
 
 	vcopy( "ZDATEL", ldate, MOVE ) ;
 	vcopy( "ZTIMEL", ltime, MOVE ) ;
@@ -702,32 +702,42 @@ void PLRFLST1::AddReflistEntry( const string& ent )
 		if ( RC > 0 ) { abend() ; }
 	}
 
-	ZCURTB = "REFLIST"  ;
-	tbget( RFLTABLE ) ;
+	ZCURTB = "REFLIST" ;
+	tbget( RFLTABLE )  ;
 	if ( RC > 0 ) { CloseTable() ; return ; }
-
-	found[ ent ] = true ;
-	list.push_back( ent ) ;
 
 	for ( i = 1 ; i <= 30 ; i++ )
 	{
-		vcopy( "FLAPET" + right( d2ds( i ), 2, '0' ), eent, MOVE ) ;
-		if ( eent == "" ||
-		     found.find( eent )     != found.end() ||
-		     found.find( eent+"/" ) != found.end() ) { continue ; }
-		list.push_back( eent ) ;
-		found[ eent ] = true ;
+		vcopy( "FLAPET" + right( d2ds( i ), 2, '0' ), eent, LOCATE ) ;
+		if ( *eent == "" ) { continue ; }
+		list.push_back( *eent ) ;
 	}
 
-	for ( i = 0 ; i <= 29 ; i++ )
+	it = find( list.begin(), list.end(), ent ) ;
+	if ( it != list.end() )
 	{
-		if ( i < list.size() )
+		list.erase( it ) ;
+	}
+	else
+	{
+		it = find( list.begin(), list.end(), ent+"/" ) ;
+		if ( it != list.end() )
 		{
-			vreplace( "FLAPET" + right( d2ds( i+1 ), 2, '0' ), list.at( i ) ) ;
+			list.erase( it ) ;
+		}
+	}
+
+	vreplace( "FLAPET01", ent ) ;
+
+	for ( i = 2 ; i <= 30 ; i++ )
+	{
+		if ( i <= list.size()+1 )
+		{
+			vreplace( "FLAPET" + right( d2ds( i ), 2, '0' ), list.at( i-2 ) ) ;
 		}
 		else
 		{
-			vreplace( "FLAPET" + right( d2ds( i+1 ), 2, '0' ), "" ) ;
+			vreplace( "FLAPET" + right( d2ds( i ), 2, '0' ), "" ) ;
 		}
 	}
 
@@ -764,20 +774,6 @@ void PLRFLST1::userSettings()
 		display( "PLRFLST5" ) ;
 		if ( RC == 8 ) { break ; }
 	}
-	return ;
-}
-
-
-void PLRFLST1::setRefMode( const string& mode )
-{
-	string ZRFMOD ;
-
-	ZRFMOD = mode ;
-
-	vdefine( "ZRFMOD", &ZRFMOD ) ;
-	vput( "ZRFMOD", PROFILE ) ;
-	vdelete( "ZRFMOD" ) ;
-
 	return ;
 }
 

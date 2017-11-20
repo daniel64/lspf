@@ -81,10 +81,12 @@ class pPanel
 		bool   hide_msg_window( uint, uint ) ;
 		void   selPanel( bool x ) { selectPanel = x ; }
 
+		void   set_pfpressed( const string& s ) { pfkey = s    ; }
+		string get_pfpressed()                  { return pfkey ; }
+
 		string get_keylist( int ) ;
 
 	private:
-		int    RC          ;
 		string Home        ;
 		string scroll      ;
 		string PANELID     ;
@@ -93,6 +95,7 @@ class pPanel
 		int    curidx      ;
 		int    curpos      ;
 		slmsg  MSG         ;
+		string pfkey       ;
 		string KEYLISTN    ;
 		string KEYAPPL     ;
 		string KEYHELPN    ;
@@ -181,6 +184,9 @@ class pPanel
 		string get_cursor() ;
 		string get_msgloc() ;
 
+		void   set_cursor_idx( int i ) { curidx = i ; }
+		void   set_cursor_home() ;
+
 		void   set_popup( int, int ) ;
 		void   remove_popup() ;
 		void   move_popup()   ;
@@ -196,6 +202,7 @@ class pPanel
 		void   get_home( uint& row, uint& col ) ;
 
 		void   tb_set_csrrow( int i )   { tb_csrrow  = i    ; }
+		int    tb_get_csrrow()          { return tb_csrrow  ; }
 		void   tb_set_autosel( bool b ) { tb_autosel = b    ; }
 		bool   tb_is_autosel()          { return tb_autosel ; }
 		void   tb_set_linesChanged( string& )      ;
@@ -233,7 +240,8 @@ class pPanel
 		void   display_boxes()  ;
 
 		void   display_tb_mark_posn() ;
-		void   tb_fields_active_inactive() ;
+		void   set_tb_fields_act_inact() ;
+
 		string sub_vars( string s ) ;
 
 		vector<string>attrList ;

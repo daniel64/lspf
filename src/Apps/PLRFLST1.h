@@ -37,10 +37,9 @@ class PLRFLST1 : public pApplication
 		string StoreFileList( const string& ) ;
 		void   EditFileList( const string& )  ;
 		void   RetrieveEntry( string ) ;
-		void   createDefaultTable()    ;
+		void   createDefaultTable() ;
 
 		void userSettings() ;
-		void setRefMode( const string& ) ;
 
 		string ZCURTB   ;
 		string FLADESCP ;
@@ -80,8 +79,4 @@ class PLRFLST1 : public pApplication
 		string RFLTABLE ;
 		string UPROF    ;
 		string TABFLDS  ;
-
-
-
-
 } ;

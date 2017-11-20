@@ -374,9 +374,8 @@ void pPanel::display_panel( errblock& err )
 
 	if ( tb_model )
 	{
-		p_funcPOOL->put( err, "ZTDSELS", 0 ) ;
 		display_tb_mark_posn() ;
-		tb_fields_active_inactive() ;
+		set_tb_fields_act_inact() ;
 	}
 
 	display_ab()     ;
@@ -657,6 +656,8 @@ void pPanel::display_panel_init( errblock& err )
 	cursor_set  = false ;
 	message_set = false ;
 
+	set_pfpressed( "" ) ;
+
 	err.setRC( 0 ) ;
 	do
 	{
@@ -673,6 +674,8 @@ void pPanel::display_panel_reinit( errblock& err, int ln )
 
 	cursor_set  = false ;
 	message_set = false ;
+
+	set_pfpressed( "" ) ;
 
 	err.setRC( 0 ) ;
 	process_panel_stmnts( err, ln, reinstmnts ) ;
@@ -1374,6 +1377,10 @@ string pPanel::getControlVar( errblock& err, const string& svar )
 	{
 		return end_pressed ? "END" : "ENTER" ;
 	}
+	else if ( svar == ".PFKEY" )
+	{
+		return get_pfpressed() ;
+	}
 	else if ( svar == ".TRAIL" )
 	{
 		return p_funcPOOL->get( err, 8, ".TRAIL", NOCHECK ) ;
@@ -1469,6 +1476,11 @@ void pPanel::setControlVar( errblock& err, int ln, const string& svar, const str
 	{
 		set_message_cond( sval ) ;
 	}
+	else if ( svar == ".PFKEY" )
+	{
+		err.seterrid( "PSYE033S", svar ) ;
+		return ;
+	}
 	else if ( svar == ".RESP" )
 	{
 		if ( sval == "ENTER" )
@@ -1516,10 +1528,17 @@ void pPanel::set_cursor_cond( const string& csr, int i )
 }
 
 
-void pPanel::set_cursor( const string& csr, int i )
+void pPanel::set_cursor( const string& csr, int p )
 {
 	curfld = csr ;
-	curpos = i   ;
+	curpos = p   ;
+}
+
+
+void pPanel::set_cursor_home()
+{
+	curfld = Home ;
+	curpos = 1    ;
 }
 
 
@@ -1527,7 +1546,6 @@ string pPanel::get_cursor()
 {
 	if ( findword( curfld, tb_fields ) )
 	{
-		if ( curidx == -1 ) { curidx = 0 ; }
 		return curfld + "." + d2ds( curidx ) ;
 	}
 	else
@@ -1541,7 +1559,6 @@ string pPanel::get_msgloc()
 {
 	if ( findword( msgloc, tb_fields ) )
 	{
-		if ( curidx == -1 ) { curidx = 0 ; }
 		return msgloc + "." + d2ds( curidx ) ;
 	}
 	else
@@ -2004,6 +2021,7 @@ void pPanel::cursor_to_field( int& RC1, string f_name, int f_pos )
 			p_col = 0 ;
 			p_row = 0 ;
 			RC1   = !isvalidName( f_name ) ? 20 : 12 ;
+			llog( "E", "Internal cursor value "<< f_name << " not found"<<endl ) ;
 		}
 		else
 		{
@@ -2526,7 +2544,6 @@ bool pPanel::tb_get_lineChanged( int& ln, string& URID )
 	ln   = it->first  ;
 	URID = it->second ;
 
-	RC = 0 ;
 	p_funcPOOL->put( err, "ZTDSELS", tb_linesChanged.size() ) ;
 	return true ;
 }
@@ -2599,7 +2616,7 @@ void pPanel::display_tb_mark_posn()
 }
 
 
-void pPanel::tb_fields_active_inactive()
+void pPanel::set_tb_fields_act_inact()
 {
 	int rows ;
 	int top  ;
@@ -2935,8 +2952,6 @@ void pPanel::display_id()
 {
 	string scrname ;
 	string panarea ;
-
-	RC = 0 ;
 
 	errblock err ;
 

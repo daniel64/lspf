@@ -937,8 +937,11 @@ void processAction( uint row, uint col, int c, bool& passthru )
 	string delm    ;
 	string AVerb   ;
 	string fld     ;
+	string t       ;
 
 	static uint retPos(0) ;
+
+	boost::circular_buffer<string>::iterator itt ;
 
 	errblock err ;
 
@@ -1113,12 +1116,16 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		{
 			PFCMD = pfKeyValue( c ) ;
 		}
-		debug1( "PF Key pressed " << PFCMD << endl ) ;
+		t = "PF" + right( d2ds( c - KEY_F( 0 ) ), 2, '0' ) ;
+		p_poolMGR->put( err, "ZPFKEY", t, SHARED, SYSTEM ) ;
+		debug1( "PF Key pressed " <<t<<" value "<< PFCMD << endl ) ;
+		currAppl->currPanel->set_pfpressed( t ) ;
 	}
 	else
 	{
 		p_poolMGR->put( err, "ZPFKEY", "PF00", SHARED, SYSTEM ) ;
 		if ( err.error() ) { llog( "C", "VPUT for PF00 failed" << endl ) ; }
+		currAppl->currPanel->set_pfpressed( "" ) ;
 	}
 
 	if ( addRetrieve )
@@ -1133,17 +1140,12 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		     !findword( word( upper( ZCOMMAND ), 1 ), "RETRIEVE RETP" ) &&
 		     !findword( word( upper( PFCMD ), 1 ), "RETRIEVE RETP" ) )
 		{
-			if ( retrieveBuffer.size() > 0 )
-			{
-				if ( ZCOMMAND != retrieveBuffer[ 0 ] )
-				{
-					retrieveBuffer.push_front( ZCOMMAND ) ;
-				}
-			}
-			else
-			{
-				retrieveBuffer.push_front( ZCOMMAND ) ;
-			}
+			itt = find( retrieveBuffer.begin(), retrieveBuffer.end(), ZCOMMAND ) ;
+	                if ( itt != retrieveBuffer.end() )
+		        {
+				retrieveBuffer.erase( itt ) ;
+		        }
+			retrieveBuffer.push_front( ZCOMMAND ) ;
 			retPos = 0 ;
 		}
 	}
@@ -2221,9 +2223,9 @@ void loadDefaultPools()
 	p_poolMGR->defaultVARs( err, "ZSCRMAXD", d2ds( pLScreen::maxrow ), SHARED ) ;
 	p_poolMGR->defaultVARs( err, "ZSCREENW", d2ds( pLScreen::maxcol ), SHARED ) ;
 	p_poolMGR->defaultVARs( err, "ZSCRMAXW", d2ds( pLScreen::maxcol ), SHARED ) ;
-	p_poolMGR->defaultVARs( err, "ZUSER", getenv( "LOGNAME" ), SHARED )         ;
-	p_poolMGR->defaultVARs( err, "ZHOME", getenv( "HOME" )  , SHARED ) ;
-	p_poolMGR->defaultVARs( err, "ZSHELL", getenv( "SHELL" ), SHARED ) ;
+	p_poolMGR->defaultVARs( err, "ZUSER", getenv( "LOGNAME" ), SHARED ) ;
+	p_poolMGR->defaultVARs( err, "ZHOME", getenv( "HOME" )  , SHARED )  ;
+	p_poolMGR->defaultVARs( err, "ZSHELL", getenv( "SHELL" ), SHARED )  ;
 
 	p_poolMGR->setApplid( err, "ISPS" ) ;
 	p_poolMGR->createPool( err, PROFILE, ZSPROF ) ;
@@ -2300,7 +2302,6 @@ string pfKeyValue( int c )
 		p_poolMGR->put( err, key, "", PROFILE ) ;
 	}
 
-	p_poolMGR->put( err, "ZPFKEY", key.substr( 1 ), SHARED, SYSTEM ) ;
 	return val ;
 }
 

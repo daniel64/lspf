@@ -1983,7 +1983,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 
 	// If .AUTOSEL and .CSRROW set in panel, override the parameters p_autosel and p_csrrow
 
-	// Autoselect if the p_curpos CRP is visible
+	// Autoselect if the p_curpos CRN is visible
 
 	// Store panel pointer in currtbPanel so that a CONTROL DISPLAY SAVE/RESTORE is only necessary
 	// when a TBDISPL issues another TBDISPL and not for a display of an ordinary panel.
@@ -1998,8 +1998,9 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 	int ws     ;
 	int i      ;
 	int ln     ;
+	int idx    ;
 
-	bool scan  ;
+	bool tbscan  ;
 
 	string ZZVERB ;
 	string URID   ;
@@ -2073,14 +2074,6 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 				return ;
 			}
 		}
-		scan = currPanel->get_tbscan() ;
-		p_tableMGR->fillfVARs( errBlock, funcPOOL, tb_name, currPanel->get_tb_clear(), scan, currPanel->tb_depth ) ;
-		if ( errBlock.error() )
-		{
-			errBlock.setcall( e1 ) ;
-			checkRCode( errBlock ) ;
-			return ;
-		}
 	}
 	else
 	{
@@ -2113,7 +2106,6 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 			PANELID = currPanel->PANELID ;
 			p_poolMGR->put( errBlock, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 		}
-		scan = currPanel->get_tbscan() ;
 	}
 
 	currtbPanel = currPanel ;
@@ -2143,7 +2135,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 	currPanel->tb_set_csrrow( p_csrrow ) ;
 
 	if ( addpop_active ) { currPanel->set_popup( addpop_row, addpop_col ) ; }
-	else                 { currPanel->remove_popup()                    ; }
+	else                 { currPanel->remove_popup()                      ; }
 
 	currPanel->display_panel_init( errBlock ) ;
 	if ( errBlock.error() )
@@ -2151,6 +2143,19 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		errBlock.setcall( e2 + p_name ) ;
 		checkRCode( errBlock ) ;
 		return ;
+	}
+
+	if ( p_name != "" )
+	{
+		tbscan = currPanel->get_tbscan() ;
+		p_tableMGR->fillfVARs( errBlock, funcPOOL, tb_name, currPanel->get_tb_clear(), tbscan, currPanel->tb_depth, -1, currPanel->tb_get_csrrow(), idx, asURID ) ;
+		currPanel->set_cursor_idx( idx ) ;
+		if ( errBlock.error() )
+		{
+			errBlock.setcall( e1 ) ;
+			checkRCode( errBlock ) ;
+			return ;
+		}
 	}
 
 	currPanel->update_field_values( errBlock ) ;
@@ -2194,17 +2199,6 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 				errBlock.setcall( e5 ) ;
 				checkRCode( errBlock ) ;
 				return ;
-			}
-			asURID = "" ;
-			if ( currPanel->tb_is_autosel() && currPanel->tb_csrrow > 0 )
-			{
-				asURID = p_tableMGR->getURID( errBlock, tb_name, currPanel->tb_csrrow ) ;
-				if ( errBlock.error() )
-				{
-					errBlock.setcall( e5 ) ;
-					checkRCode( errBlock ) ;
-					return ;
-				}
 			}
 			currPanel->tb_set_linesChanged( asURID ) ;
 		}
@@ -2278,12 +2272,15 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 			if ( ZZVERB == "UP" )
 			{
 				ZSCROLLA = p_poolMGR->get( errBlock, "ZSCROLLA", SHARED ) ;
-				if ( ZSCROLLA != "MAX" )
+				if ( ZSCROLLA == "MAX" )
+				{
+					ZTDTOP = 1 ;
+				}
+				else
 				{
 					ZSCROLLN = ds2d( p_poolMGR->get( errBlock, "ZSCROLLN", SHARED ) ) ;
-					ZTDTOP > ZSCROLLN ? ( ZTDTOP = ZTDTOP - ZSCROLLN ) : ZTDTOP = 1 ;
+					ZTDTOP = ZTDTOP > ZSCROLLN ? ( ZTDTOP - ZSCROLLN ) : 1 ;
 				}
-				else { ZTDTOP = 1 ; }
 				ZCMD = "" ;
 			}
 			else
@@ -2296,11 +2293,11 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 				else
 				{
 					ZSCROLLN = ds2d( p_poolMGR->get( errBlock, "ZSCROLLN", SHARED ) ) ;
-					ZSCROLLN + ZTDTOP > ZTDROWS ? ( ZTDTOP = ZTDROWS+1 ) : ZTDTOP = ZTDTOP + ZSCROLLN ;
+					ZTDTOP = ( ZSCROLLN + ZTDTOP > ZTDROWS ) ? ( ZTDROWS + 1 ) : ZTDTOP + ZSCROLLN ;
 				}
 				ZCMD = "" ;
 			}
-			p_tableMGR->fillfVARs( errBlock, funcPOOL, tb_name, currPanel->get_tb_clear(), scan, currPanel->tb_depth, ZTDTOP ) ;
+			p_tableMGR->fillfVARs( errBlock, funcPOOL, tb_name, currPanel->get_tb_clear(), tbscan, currPanel->tb_depth, ZTDTOP, 0, idx, asURID ) ;
 			if ( errBlock.error() )
 			{
 				errBlock.setcall( e6 + p_name ) ;
@@ -2314,6 +2311,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 				checkRCode( errBlock ) ;
 				return ;
 			}
+			currPanel->set_cursor_home() ;
 			continue ;
 		}
 		break ;

@@ -109,3 +109,6 @@ FLST012I 'Error changing UID' .TYPE=W
 FLST012J 'Error changing GID' .TYPE=W
 'chown has returned a non-zero return code'
 
+FLST012K 'Not a directory' .TYPE=W
+'Select a valid directory to expand'
+

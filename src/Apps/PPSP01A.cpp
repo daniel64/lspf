@@ -74,7 +74,6 @@ void PPSP01A::application()
 	string ZALOG   ;
 	string ZSLOG   ;
 	string LOGLOC  ;
-	string ZKLUSE  ;
 	string w1      ;
 	string w2      ;
 
@@ -111,23 +110,14 @@ void PPSP01A::application()
 	else if ( w1   == "RUN"     ) { runApplication( w2 ) ; }
 	else if ( PARM == "SAVELST" ) { showSavedFileList()  ; }
 	else if ( PARM == "TASKS"   ) { showTasks()          ; }
-	else if ( PARM == "KLOFF"   )
-	{
-		vdefine( "ZKLUSE", &ZKLUSE ) ;
-		ZKLUSE = "N" ;
-		vput( "ZKLUSE", PROFILE ) ;
-		vdelete( "ZKLUSE" )       ;
-	}
-	else if ( PARM == "KLON"   )
-	{
-		vdefine( "ZKLUSE", &ZKLUSE ) ;
-		ZKLUSE = "Y" ;
-		vput( "ZKLUSE", PROFILE ) ;
-		vdelete( "ZKLUSE" )       ;
-	}
 	else if ( PARM == "UTPGMS"  ) { utilityPrograms() ; }
 	else if ( PARM == "KLISTS"  ) { keylistTables()   ; }
-	else if ( PARM == "KLIST"   ) { keylistTable( )   ; }
+	else if ( PARM == "KLIST"   ) { keylistTable()    ; }
+	else if ( w1   == "SETVAR"  )
+	{
+		vreplace( w2, word( PARM, 3 ) ) ;
+		vput( w2, PROFILE ) ;
+	}
 	else { llog( "E", "Invalid parameter passed to PPSP01A: " << PARM << endl ) ; }
 
 	cleanup() ;
