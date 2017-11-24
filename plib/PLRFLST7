@@ -1,0 +1,49 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Confirm delete panel
+)ENDCOMMENT
+
+)BODY WINDOW(60,11)
+PanelTitle "Confirm Delete of &ACURTB"
+
+literal  2   2       FP  "Command ===> "
+field    2  15   MAX NEF CAPS(ON),PAD(USER) ZCMD
+
+literal  4   2  PIN  "Enter / to confirm delete"
+field    4   28   1   CEF PAD(USER) ENTRYDEL
+
+literal  6 2  CH "Instructions"
+literal  8 2  NT "Press"
+literal  8 8  ET "Enter"
+literal  8 14 NT "to confirm delete"
+
+literal  9 2  NT "Press"
+literal  9 8  ET "Cancel"
+literal  9 15 NT "or"
+literal  9 18 ET "END"
+literal  9 22 NT "to cancel delete."
+
+)INIT
+
+.CURSOR   = ENTRYDEL
+&ENTRYDEL = &Z
+&ZWINTTL  = &Z
+
+)PROC
+
+&ZCMD = TRANS(&ZCMD CAN,CANCEL *,* )
+
+IF (&ZCMD EQ CANCEL )
+    .RESP = END
+    &ZCMD = &Z
+    EXIT
+ELSE
+   IF (&ZCMD NE &Z )
+       .MSG    = PSYS018
+       .CURSOR = ZCMD
+       EXIT
+
+VER (&ENTRYDEL NB,LIST,/)
+
+)END
