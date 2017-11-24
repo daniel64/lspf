@@ -72,7 +72,7 @@ class PPSP01A : public pApplication
 		bool   showMod  ;
 		bool   showTask ;
 
-		void dsList( const string& ) ;
+		void dsList( string ) ;
 		void lspfSettings()   ;
 		void pfkeySettings()  ;
 		void colourSettings() ;

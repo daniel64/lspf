@@ -1141,10 +1141,10 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		     !findword( word( upper( PFCMD ), 1 ), "RETRIEVE RETP" ) )
 		{
 			itt = find( retrieveBuffer.begin(), retrieveBuffer.end(), ZCOMMAND ) ;
-	                if ( itt != retrieveBuffer.end() )
-		        {
+			if ( itt != retrieveBuffer.end() )
+			{
 				retrieveBuffer.erase( itt ) ;
-		        }
+			}
 			retrieveBuffer.push_front( ZCOMMAND ) ;
 			retPos = 0 ;
 		}
@@ -1885,6 +1885,10 @@ void terminateApplication()
 			currAppl->get_home( row, col )   ;
 			currAppl->set_cursor( row, col ) ;
 		}
+		else
+		{
+			currAppl->get_cursor( row, col ) ;
+		}
 	}
 
 	llog( "I", "Application terminatation of "+ ZAPPNAME +" completed.  Current application is "+ currAppl->ZAPPNAME << endl ) ;
@@ -2340,32 +2344,31 @@ void updateReflist()
 	uint row ;
 	uint col ;
 
-	string fname ;
+	string fname = currAppl->get_nretfield() ;
 
 	errblock err ;
 
-	if ( !currAppl->ControlRefUpdate || p_poolMGR->get( err, "ZRFURL", PROFILE ) != "YES" ) { return ; }
-
-	fname = currAppl->get_nretfield() ;
-	if ( fname != "" )
+	if ( fname == "" || !currAppl->ControlRefUpdate || p_poolMGR->get( err, "ZRFURL", PROFILE ) != "YES" )
 	{
-		if ( currAppl->currPanel->field_valid( fname ) )
-		{
-			currAppl->get_cursor( row, col ) ;
-			SELCT.clear() ;
-			SELCT.PGM     = p_poolMGR->get( err, "ZRFLPGM", PROFILE ) ;
-			SELCT.PARM    = "PLA " + currAppl->currPanel->field_getvalue( fname ) ;
-			SELCT.NEWAPPL = ""    ;
-			SELCT.NEWPOOL = false ;
-			SELCT.PASSLIB = false ;
-			startApplication( SELCT ) ;
-			currScrn->set_row_col( row, col ) ;
-		}
-		else
-		{
-			llog( "E", "Invalid field "+ fname +" in .NRET panel statement" << endl ) ;
-			issueMessage( "PSYS011Z" ) ;
-		}
+		return ;
+	}
+
+	if ( currAppl->currPanel->field_valid( fname ) )
+	{
+		currAppl->get_cursor( row, col ) ;
+		SELCT.clear() ;
+		SELCT.PGM     = p_poolMGR->get( err, "ZRFLPGM", PROFILE ) ;
+		SELCT.PARM    = "PLA " + currAppl->currPanel->field_getvalue( fname ) ;
+		SELCT.NEWAPPL = ""    ;
+		SELCT.NEWPOOL = false ;
+		SELCT.PASSLIB = false ;
+		startApplication( SELCT ) ;
+		currScrn->set_row_col( row, col ) ;
+	}
+	else
+	{
+		llog( "E", "Invalid field "+ fname +" in .NRET panel statement" << endl ) ;
+		issueMessage( "PSYS011Z" ) ;
 	}
 }
 

@@ -74,11 +74,10 @@ VER (&SEL LIST S,/)
 &FLDIRS   = TRANS( &FLDIRS   &Z,&Z *,/ )
 &FLHIDDEN = TRANS( &FLHIDDEN &Z,&Z *,/ )
 
-IF (&SEL == 'S' )
-   IF (&TYPE NE 'Dir')
-      .MSG    = FLST012K
-      .CURSOR = SEL
-      EXIT
+IF (&SEL = 'S' AND &TYPE NE 'Dir')
+   .MSG    = FLST012K
+   .CURSOR = SEL
+   EXIT
 
 VPUT (ZPATH FLDIRS FLHIDDEN) PROFILE
 

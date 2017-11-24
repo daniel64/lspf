@@ -1,6 +1,6 @@
 )PANEL VERSION=1 FORMAT=1
 )COMMENT
- Browse entry panel
+ Save Personal File List panel
 )ENDCOMMENT
 
 )BODY CMD(ZCMD1) HOME(ZCMD1) WINDOW(70,11)
@@ -14,7 +14,7 @@ literal  4  2         FP  "New Name. . . .:"
 field    4  19   8    NEF  CAPS(ON),PAD(USER) NEWNAME
 
 literal  5  2         FP  "Description . .:"
-field    5  19   MAX  NEF  CAPS(OFF),PAD(USER) NEWDESC
+field    5  19   40   NEF  CAPS(OFF),PAD(USER) NEWDESC
 
 literal 7  2  CH "Instructions"
 literal 9  2  NT "Press"

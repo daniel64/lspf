@@ -31,7 +31,7 @@ class PLRFLST1 : public pApplication
 		void CloseTable()  ;
 
 		void   OpenActiveFList( const string& ) ;
-		void   AddReflistEntry( const string& ) ;
+		void   AddReflistEntry( string& )     ;
 		void   PersonalFList( const string& ) ;
 		void   OpenFileList( const string& )  ;
 		string StoreFileList( const string& ) ;

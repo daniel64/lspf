@@ -115,7 +115,8 @@ class parser
 	private:
 		int   idx ;
 		bool  optUpper ;
-		const string ctl_valid = ".ALARM .AUTOSEL .CSRPOS .CSRROW .CURSOR .HELP .MSG .PFKEY .RESP .TRAIL" ;
+		const string ctl_valid = ".ALARM .AUTOSEL .BROWSE .CSRPOS .CSRROW .CURSOR " \
+					 ".EDIT .FALSE .HELP .MSG .NRET .PFKEY .RESP .TRUE .TRAIL" ;
 		token current_token ;
 		vector<token>tokens ;
 } ;
@@ -329,14 +330,39 @@ class tbsearch
 	public:
 		tbsearch()
 			{
-				tbs_ext  = false ;
-				tbs_gen  = false ;
-				tbs_cond = s_EQ  ;
+				tbs_val   = ""    ;
+				tbs_gen   = false ;
+				tbs_cond  = s_EQ  ;
+				tbs_scond = "EQ"  ;
+				tbs_size  = 0     ;
 			} ;
 
-		bool tbsSetcon( string cond )
+		tbsearch( const string& val )
 			{
-				if ( cond == "" ) { cond = "GE" ; }
+				tbs_cond  = s_EQ  ;
+				tbs_scond = "EQ"  ;
+				if ( val.back() == '*' )
+				{
+					tbs_gen  = true ;
+					tbs_size = val.size() - 1 ;
+					tbs_val  = val.substr( 0, tbs_size ) ;
+				}
+				else
+				{
+					tbs_gen  = false ;
+					tbs_size = 0     ;
+					tbs_val  = val   ;
+				}
+			} ;
+
+		bool setCondition( const string& cond )
+			{
+				if ( cond == "" )
+				{
+					tbs_scond = "GE" ;
+					tbs_cond  = s_GE ;
+					return true ;
+				}
 				tbs_scond = cond ;
 				if      ( cond == "EQ" ) { tbs_cond = s_EQ ; }
 				else if ( cond == "NE" ) { tbs_cond = s_NE ; }
@@ -351,9 +377,8 @@ class tbsearch
 		string tbs_val   ;
 		string tbs_scond ;
 		srCOND tbs_cond  ;
-		bool   tbs_ext   ;
 		bool   tbs_gen   ;
-		int    tbs_vsize ;
+		int    tbs_size  ;
 } ;
 
 

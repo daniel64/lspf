@@ -22,9 +22,9 @@ literal  10  4       SAC    "NRETRIEV verifies file exists"
 
 
 literal 13  2  CH "Instructions"
-literal 14  2  NT "Press"
-literal 14  8  ET "Enter"
-literal 14 14  NT "to save Personal List options"
+literal 15  2  NT "Press"
+literal 15  8  ET "Enter"
+literal 15 14  NT "to save Personal List options"
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC

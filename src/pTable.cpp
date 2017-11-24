@@ -504,14 +504,7 @@ void Table::tbget( errblock& err,
 	{
 		it = getKeyItr( err, funcPOOL ) ;
 		if ( err.error() ) { return ; }
-		if ( it == table.end() )
-		{
-			CRP = 0 ;
-		}
-		else
-		{
-			CRP = CRPX ;
-		}
+		CRP = ( it == table.end() ) ? 0 : CRPX ;
 	}
 
 	if ( CRP == 0 )
@@ -749,123 +742,131 @@ void Table::tbsarg( errblock& err,
 		    string tb_dir,
 		    string tb_cond_pairs )
 {
-	// Notes:  Current value of variables are used if not blank.  Condition is EQ
-	// ARGLIST(namelst) is for extension variables, the values of which will be used in the search
 
-	int  p1 ;
-	int  p2 ;
-	int  i  ;
-	int  ws ;
+	// RC = 0  Okay. Search arguments set
+	// RC = 8  No search arguments set (all column variables null and namelst not specified)
 
-	bool loope  ;
+	string nl_namelst ;
+	string nl_cond_pairs ;
 
-	string var  ;
-	string val  ;
-	string cond ;
-
-	tbsearch t  ;
-
-	err.setRC( 0 ) ;
-
-	iupper( tb_namelst ) ;
-	iupper( tb_dir )     ;
-	iupper( trim( tb_cond_pairs ) ) ;
-
-	if ( tb_cond_pairs != "" )
-	{
-		if ( tb_cond_pairs.front() != '(' || tb_cond_pairs.back() != ')' )
-		{
-			err.seterrid( "PSYE013O", tb_cond_pairs ) ;
-			return ;
-		}
-		tb_cond_pairs = tb_cond_pairs.substr( 1, tb_cond_pairs.size()-2 ) ;
-	}
-
-	sarg.clear() ;
+	iupper( tb_dir ) ;
 
 	if ( tb_dir == "" ) { tb_dir = "NEXT" ; }
-
 	if ( tb_dir != "NEXT" && tb_dir != "PREVIOUS" )
 	{
 		err.seterrid( "PSYE013P", tb_dir ) ;
 		return ;
 	}
 
-	for ( i = 1 ; i <= num_all ; i++ )
+	nl_cond_pairs = getNameList( err, tb_cond_pairs ) ;
+	if ( err.error() )
 	{
-		var = word( tab_all, i ) ;
-		val = funcPOOL.get( err, 8, var ) ;
-		if ( err.error() ) { return ; }
-		if ( val == "" ) { continue ; }
-		if ( val.back() == '*' ) { t.tbs_gen = true  ; t.tbs_vsize = val.size()-1 ; t.tbs_val = val.substr( 0, t.tbs_vsize ) ; }
-		else                     { t.tbs_gen = false ; t.tbs_val = val  ;                                                      }
-		t.tbs_cond  = s_EQ  ;
-		t.tbs_ext   = false ;
-		sarg[ var ] = t     ;
+		err.seterrid( "PSYE013O", tb_cond_pairs ) ;
+		return ;
 	}
 
-	for ( ws = words( tb_namelst ), i = 1 ; i <= ws ; i++ )
-	{
-		var = word( tb_namelst, i ) ;
-		if ( wordpos( var, tab_all ) > 0 )
-		{
-			err.seterrid( "PSYE013Q" ) ;
-			return ;
-		}
-		val = funcPOOL.get( err, 8, var ) ;
-		if ( err.RC8() )
-		{
-			funcPOOL.put( err, var, "" ) ;
-			val = "" ;
-		}
-		else if ( err.error() ) { return ; }
-		if ( val.back() == '*' ) { t.tbs_gen = true  ; t.tbs_vsize = val.size()-1 ; t.tbs_val = val.substr( 0, t.tbs_vsize ) ; }
-		else                     { t.tbs_gen = false ; t.tbs_val = val  ;                                                      }
-		t.tbs_cond  = s_EQ ;
-		t.tbs_ext   = true ;
-		sarg[ var ] = t    ;
-	}
+	nl_namelst = getNameList( err, tb_namelst ) ;
+	if ( err.error() ) { return ; }
 
-	p2    = 0     ;
-	loope = false ;
-	while ( true )
+	tbsets( err, funcPOOL, sarg, nl_namelst, nl_cond_pairs, true ) ;
+	if ( err.error() ) { return ; }
+
+	if ( sarg.size() == 0 )
 	{
-		if ( tb_cond_pairs == "" ) { break ; }
-		p1 = tb_cond_pairs.find( ',', p2 ) ;
-		if ( p1 == string::npos )
-		{
-			err.seterrid( "PSYE013R" ) ;
-			return ;
-		}
-		var = tb_cond_pairs.substr( p2, p1-p2 ) ;
-		if ( wordpos( var, (tab_all + " " + tb_namelst ) ) == 0 )
-		{
-			err.seterrid( "PSYE013S", var ) ;
-			return ;
-		}
-		p1++ ;
-		p2 = tb_cond_pairs.find( ',', p1 ) ;
-		if ( p2 == string::npos )
-		{
-			cond  = tb_cond_pairs.substr( p1 ) ;
-			loope = true ;
-		}
-		else
-		{
-			cond = tb_cond_pairs.substr( p1, p2-p1 ) ;
-		}
-		p2++ ;
-		if ( (sarg.find( var ) != sarg.end()) && !sarg[ var ].tbsSetcon( cond ) )
-		{
-			err.seterrid( "PSYE013T", cond ) ;
-			return ;
-		}
-		if ( loope ) { break ; }
+		err.setRC( 8 ) ;
+		return         ;
 	}
 
 	sa_dir        = tb_dir ;
 	sa_namelst    = tb_namelst ;
 	sa_cond_pairs = tb_cond_pairs ;
+}
+
+
+void Table::tbsets( errblock& err,
+		    fPOOL& funcPOOL,
+		    map<string, tbsearch>& scan,
+		    string& nl_namelst,
+		    string& nl_cond_pairs,
+		    bool for_tbsarg )
+{
+	// Notes:
+	// TBSARG: Current value of all table variables.
+	//         nl_namelst is for extension variables, the values of which will be used in the search
+	//         Default condition is EQ.  Ignore nulls except for extension variables
+
+	// TBSCAN: Only use variables from nl_namelst (any type).  Don't ignore nulls.
+
+	int i  ;
+	int ws ;
+
+	string var  ;
+	string val  ;
+	string cond ;
+	string flds ;
+
+	map<string, tbsearch>::iterator it ;
+
+	err.setRC( 0 ) ;
+
+	iupper( nl_namelst ) ;
+	iupper( nl_cond_pairs ) ;
+
+	flds = tab_all + " " + nl_namelst ;
+
+	scan.clear() ;
+
+	if ( for_tbsarg )
+	{
+		for ( i = 1 ; i <= num_all ; i++ )
+		{
+			var = word( tab_all, i ) ;
+			val = funcPOOL.get( err, 8, var ) ;
+			if ( err.error() ) { return ; }
+			if ( val == "" )
+			{
+				continue ;
+			}
+			scan[ var ] = tbsearch( val ) ;
+		}
+	}
+
+	for ( ws = words( nl_namelst ), i = 1 ; i <= ws ; i++ )
+	{
+		var = word( nl_namelst, i ) ;
+		val = funcPOOL.get( err, 8, var ) ;
+		if ( err.error() ) { return ; }
+		if ( err.RC8() )
+		{
+			funcPOOL.put( err, var, "" ) ;
+			val = "" ;
+		}
+		scan[ var ] = tbsearch( val ) ;
+	}
+
+	ws = words( nl_cond_pairs ) ;
+	if ( ws % 2 == 1 )
+	{
+		err.seterrid( "PSYE013R" ) ;
+		return ;
+	}
+
+	for ( i = 1 ; i <= ws ; i += 2 )
+	{
+		var  = word( nl_cond_pairs, i ) ;
+		cond = word( nl_cond_pairs, i+1 ) ;
+		if ( !findword( var, flds ) && !findword( var, nl_namelst ) )
+		{
+			err.seterrid( "PSYE013S", var ) ;
+			return ;
+		}
+		it = scan.find( var ) ;
+		if ( it != scan.end() && !it->second.setCondition( cond ) )
+		{
+			err.seterrid( "PSYE013T", cond ) ;
+			return ;
+		}
+	}
 }
 
 
@@ -879,48 +880,47 @@ void Table::tbscan( errblock& err,
 		    string tb_crp_name,
 		    string tb_condlst )
 {
-	// Scan table from current CRP according to parameters tb_namelst/tb_condlst/tb_dir if specified or similar values from a previous tbsarg call
-	// tb_namelst contains key, name and extenstion variables.
-	// Scan on extension variables not currently supported.  Only one search argument/condition currently supported
+	// Scan table from current CRP according to parameters tb_namelst/tb_condlst/tb_dir if specified
+	// or the search parameters set by a previous tbsarg call.
+
+	// tb_condlst contains the condidtions to use for variables in tb_namelst (1:1 between the two lists).
+	// Only use variables in tb_namelst not other table variables.
 
 	// RC = 0  Okay. Row found
 	// RC = 8  Row not found
 
-	// Current value of variables not in NAMELST make no difference to search
-	// SAVENM is blank if there are no extension variables or if NOREAD is specified.  Not specifying var leaves it unchanged from before (obviously)
-	// NULL values are not ignored in namelst.
-
-	int  i   ;
-	int p1   ;
+	int i    ;
 	int ws   ;
+	int p1   ;
 	int size ;
+	int s_match ;
 
-	string val     ;
-	string var     ;
-	string tbelst  ;
-	string s_dir   ;
-	int    s_match ;
-	bool   s_next  ;
-	bool   found   ;
-	bool   loope   ;
+	bool s_next  ;
+	bool found   ;
+	bool endloop ;
 
-	tbsearch t     ;
+	string val    ;
+	string var    ;
+	string cond   ;
+	string tbelst ;
+	string s_dir  ;
+
+	string nl_namelst ;
+	string nl_condlst ;
+	string nl_cond_pairs ;
 
 	map<string, tbsearch> scan ;
 	map<string, tbsearch>::iterator it ;
 
 	err.setRC( 0 ) ;
 
-	iupper( tb_namelst )  ;
 	iupper( tb_savenm )   ;
 	iupper( tb_rowid_vn ) ;
 	iupper( tb_dir )      ;
 	iupper( tb_noread )   ;
 	iupper( tb_crp_name ) ;
 
-	if ( tb_dir == "" ) { tb_dir = "NEXT" ; }
-
-	if ( (tb_dir != "NEXT") && (tb_dir != "PREVIOUS") )
+	if ( tb_dir != "NEXT" && tb_dir != "PREVIOUS" && tb_dir != "" )
 	{
 		err.seterrid( "PSYE013P", tb_dir ) ;
 		return ;
@@ -932,11 +932,21 @@ void Table::tbscan( errblock& err,
 		return ;
 	}
 
-	if ( tb_namelst == "" )
+	nl_condlst = getNameList( err, tb_condlst ) ;
+	if ( err.error() )
+	{
+		err.seterrid( "PSYE013Q", tb_condlst ) ;
+		return ;
+	}
+
+	nl_namelst = getNameList( err, tb_namelst ) ;
+	if ( err.error() ) { return ; }
+
+	if ( nl_namelst == "" )
 	{
 		if ( sarg.size() == 0 )
 		{
-			err.seterrid( "PSYE013U" ) ;
+			err.seterrid( "PSYE013U", tab_name ) ;
 			return ;
 		}
 		scan  = sarg   ;
@@ -944,85 +954,105 @@ void Table::tbscan( errblock& err,
 	}
 	else
 	{
-		if ( words( tb_condlst ) > words( tb_namelst ) )
+		ws = words( nl_namelst ) ;
+		if ( words( nl_condlst ) > ws )
 		{
-			err.seterrid( "PSYE013V" ) ;
-			return  ;
+			err.seterrid( "PSYE014C" ) ;
+			return ;
 		}
-		for ( ws = words( tb_namelst ), i = 1 ; i <= ws ; i++ )
+		nl_cond_pairs = "" ;
+		for ( i = 1 ; i <= ws ; i++ )
 		{
-			var = word( tb_namelst, i ) ;
-			val = funcPOOL.get( err, 8, var ) ;
-			if ( err.error() ) { return ; }
-			if ( err.RC8() )
-			{
-				funcPOOL.put( err, var, "" ) ;
-				val = "" ;
-			}
-			t.tbs_ext = false ;
-			if ( val.back() == '*' )
-			{
-				t.tbs_gen   = true ;
-				t.tbs_vsize = val.size()-1 ;
-				t.tbs_val   = val.substr( 0, t.tbs_vsize ) ;
-			}
-			else
-			{
-				t.tbs_gen = false ;
-				t.tbs_val = val   ;
-			}
-			scan[ var ] = t ;
-			if ( !scan[ var ].tbsSetcon( word( tb_condlst, i )) )
-			{
-				err.seterrid( "PSYE013W" ) ;
-				return  ;
-			}
+			var  = word( nl_namelst, i ) ;
+			cond = word( nl_condlst, i ) ;
+			if ( cond == "" ) { cond = "EQ" ; }
+			nl_cond_pairs += var + " " + cond + " " ;
 		}
+		tbsets( err, funcPOOL, scan, nl_namelst, nl_cond_pairs, false ) ;
+		if ( err.error() ) { return ; }
 		s_dir = tb_dir ;
 	}
 
-	found   = false ;
-	s_next  = ( s_dir == "NEXT" ) ;
-	size    = table.size()        ;
+	found  = false ;
+	s_next = ( s_dir != "PREVIOUS" ) ;
+	size   = table.size() ;
 
-	while ( true )
+	while ( size > 0 )
 	{
-		if ( s_next ) { CRP++ ; if ( CRP > size ) break ; }
-		else          { CRP-- ; if ( CRP < 1    ) break ; }
+		if ( s_next )
+		{
+			CRP++ ;
+			if ( CRP > size ) { break ; }
+		}
+		else
+		{
+			if ( CRP == 0 )
+			{
+				CRP = size ;
+			}
+			else
+			{
+				CRP-- ;
+				if ( CRP < 1 ) { break ; }
+			}
+		}
 		s_match = 0     ;
-		loope   = false ;
+		endloop = false ;
 		for ( it = scan.begin() ; it != scan.end() ; it++ )
 		{
 			p1 = wordpos( it->first, tab_all ) ;
 			if ( p1 == 0 )
 			{
-				if ( table.at( CRP-1 )->size() == num_all+1 ) { break ; }
-				tbelst = table.at( CRP-1 )->at( 1+num_all ) ;
+				if ( table.at( CRP-1 )->size() == num_all + 1 ) { break ; }
+				tbelst = table.at( CRP-1 )->at( num_all + 1 ) ;
 				p1 = wordpos( it->first, tbelst ) ;
 				if ( p1 == 0 ) { break ; }
-				p1 = 1 + num_all + p1 ;
+				p1 = p1 + num_all + 1 ;
 			}
 			if ( it->second.tbs_gen )
 			{
 				switch ( it->second.tbs_cond )
 				{
 				case s_EQ:
-					if ( table.at( CRP-1 )->at( p1 ).substr( 0 , it->second.tbs_vsize ) != it->second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 )->at( p1 ).compare( 0, it->second.tbs_size, it->second.tbs_val ) != 0 )
+					{
+						endloop = true ;
+					}
 					break ;
+
 				case s_NE:
-					if ( table.at( CRP-1 )->at( p1 ).substr( 0 , it->second.tbs_vsize ) == it->second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 )->at( p1 ).compare( 0, it->second.tbs_size, it->second.tbs_val ) == 0 )
+					{
+						endloop = true ;
+					}
 					break ;
+
 				case s_LE:
-					if ( table.at( CRP-1 )->at( p1 ).substr( 0 , it->second.tbs_vsize )  > it->second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 )->at( p1 ).compare( 0, it->second.tbs_size, it->second.tbs_val ) > 0 )
+					{
+						endloop = true ;
+					}
 					break ;
+
 				case s_LT:
-					if ( table.at( CRP-1 )->at( p1 ).substr( 0 , it->second.tbs_vsize ) >= it->second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 )->at( p1 ).compare( 0, it->second.tbs_size, it->second.tbs_val ) >= 0 )
+					{
+						endloop = true ;
+					}
 					break ;
+
 				case s_GE:
-					if ( table.at( CRP-1 )->at( p1 ).substr( 0 , it->second.tbs_vsize )  < it->second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 )->at( p1 ).compare( 0, it->second.tbs_size, it->second.tbs_val ) < 0 )
+					{
+						endloop = true ;
+					}
 					break ;
+
 				case s_GT:
-					if ( table.at( CRP-1 )->at( p1 ).substr( 0 , it->second.tbs_vsize ) <= it->second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 )->at( p1 ).compare( 0, it->second.tbs_size, it->second.tbs_val ) <= 0 )
+					{
+						endloop = true ;
+					}
 				}
 			}
 			else
@@ -1030,28 +1060,55 @@ void Table::tbscan( errblock& err,
 				switch ( it->second.tbs_cond )
 				{
 				case s_EQ:
-					if ( table.at( CRP-1 )->at( p1 ) != it->second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 )->at( p1 ) != it->second.tbs_val )
+					{
+						endloop = true ;
+					}
 					break ;
+
 				case s_NE:
-					if ( table.at( CRP-1 )->at( p1 ) == it->second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 )->at( p1 ) == it->second.tbs_val )
+					{
+						endloop = true ;
+					}
 					break ;
+
 				case s_LE:
-					if ( table.at( CRP-1 )->at( p1 )  > it->second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 )->at( p1 )  > it->second.tbs_val )
+					{
+						endloop = true ;
+					}
 					break ;
+
 				case s_LT:
-					if ( table.at( CRP-1 )->at( p1 ) >= it->second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 )->at( p1 ) >= it->second.tbs_val )
+					{
+						endloop = true ;
+					}
 					break ;
+
 				case s_GE:
-					if ( table.at( CRP-1 )->at( p1 )  < it->second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 )->at( p1 )  < it->second.tbs_val )
+					{
+						endloop = true ;
+					}
 					break ;
+
 				case s_GT:
-					if ( table.at( CRP-1 )->at( p1 ) <= it->second.tbs_val ) { loope = true ; }
+					if ( table.at( CRP-1 )->at( p1 ) <= it->second.tbs_val )
+					{
+						endloop = true ;
+					}
 				}
 			}
-			if ( loope ) { break ; }
+			if ( endloop ) { break ; }
 			s_match++ ;
 		}
-		if ( s_match == scan.size() ) { found = true ; break ; }
+		if ( s_match == scan.size() )
+		{
+			found = true ;
+			break ;
+		}
 	}
 	if ( !found )
 	{
@@ -1659,6 +1716,7 @@ void tableMGR::createTable( errblock& err,
 	t->tab_WRITE = m_WRITE ;
 	t->tab_DISP  = m_DISP  ;
 	t->changed   = true    ;
+	t->tab_name  = tb_name ;
 	t->tab_keys  = space( keys ) ;
 	t->num_keys  = words( keys ) ;
 	t->tab_flds  = space( flds ) ;
@@ -2380,7 +2438,7 @@ void tableMGR::tbscan( errblock& err,
 		       const string& tb_dir,
 		       const string& tb_noread,
 		       const string& tb_crp_name,
-		       const string& tb_condlst )
+		       const string& tb_cond_pairs )
 {
 	map<string, Table*>::iterator it ;
 
@@ -2390,7 +2448,7 @@ void tableMGR::tbscan( errblock& err,
 		err.seterrid( "PSYE013G", "TBSCAN", tb_name, 12 ) ;
 		return ;
 	}
-	it->second->tbscan( err, funcPOOL, tb_namelst, tb_savenm, tb_rowid_vn, tb_dir, tb_noread, tb_crp_name, tb_condlst ) ;
+	it->second->tbscan( err, funcPOOL, tb_namelst, tb_savenm, tb_rowid_vn, tb_dir, tb_noread, tb_crp_name, tb_cond_pairs ) ;
 }
 
 

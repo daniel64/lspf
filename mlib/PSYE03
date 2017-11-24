@@ -260,3 +260,10 @@ PSYE039Q 'PASSLIB entered without NEWAPPL'
 PSYE039R 'PANEL, CMD or PGM must be entered'
 ''
 
+
+/* Name List Parser */
+
+PSYE039S 'Invalid name list'
+'Name list must be enclosed in brackets if more than one name entered'
+
+

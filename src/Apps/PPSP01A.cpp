@@ -465,7 +465,7 @@ void PPSP01A::fill_dynamic_area()
 }
 
 
-void PPSP01A::dsList( const string& parms )
+void PPSP01A::dsList( string parms )
 {
 	// If no parms passed, show the Personal File List screen
 	// If parm is a Personal File List, get list of files and invoke PFLSTPGM with LIST
@@ -499,6 +499,16 @@ void PPSP01A::dsList( const string& parms )
 			vreplace( "ZCURTB", upper( parms ) ) ;
 			tbget( RFLTABLE ) ;
 			reflist = ( RC == 0 ) ;
+			if ( RC == 8 )
+			{
+				tbsort( RFLTABLE, "ZCURTB,C,A" ) ;
+				tbvclear( RFLTABLE ) ;
+				vreplace( "ZCURTB", upper( parms )+"*" ) ;
+				tbsarg( RFLTABLE, "", "NEXT", "(ZCURTB,EQ)" ) ;
+				tbscan( RFLTABLE ) ;
+				reflist = ( RC == 0 ) ;
+				vcopy( "ZCURTB", parms, MOVE ) ;
+			}
 		}
 		if ( reflist )
 		{

@@ -222,7 +222,7 @@ RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext *context,
 	getAllRexxVariables( thisAppl ) ;
 
 	thisAppl->ispexec( s ) ;
-	sRC = thisAppl->RC      ;
+	sRC = thisAppl->RC     ;
 
 	setAllRexxVariables( thisAppl ) ;
 	return context->WholeNumber( sRC ) ;

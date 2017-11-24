@@ -1353,6 +1353,10 @@ string pPanel::getControlVar( errblock& err, const string& svar )
 	{
 		return tb_autosel ? "YES" : "NO" ;
 	}
+	else if ( svar == ".BROWSE" )
+	{
+		return forBrowse ? "YES" : "NO" ;
+	}
 	else if ( svar == ".CSRPOS" )
 	{
 		return d2ds( p_funcPOOL->get( err, 0, INTEGER, "ZCURPOS" ) ) ;
@@ -1365,6 +1369,14 @@ string pPanel::getControlVar( errblock& err, const string& svar )
 	{
 		return p_funcPOOL->get( err, 0, "ZCURFLD" ) ;
 	}
+	else if ( svar == ".EDIT" )
+	{
+		return forEdit ? "YES" : "NO" ;
+	}
+	else if ( svar == ".FALSE" )
+	{
+		return "0" ;
+	}
 	else if ( svar == ".HELP" )
 	{
 		return ZPHELP ;
@@ -1373,13 +1385,21 @@ string pPanel::getControlVar( errblock& err, const string& svar )
 	{
 		return MSGID ;
 	}
-	else if ( svar == ".RESP" )
+	else if ( svar == ".NRET" )
 	{
-		return end_pressed ? "END" : "ENTER" ;
+		return nretriev ? "ON" : "OFF" ;
 	}
 	else if ( svar == ".PFKEY" )
 	{
 		return get_pfpressed() ;
+	}
+	else if ( svar == ".RESP" )
+	{
+		return end_pressed ? "END" : "ENTER" ;
+	}
+	else if ( svar == ".TRUE" )
+	{
+		return "1" ;
 	}
 	else if ( svar == ".TRAIL" )
 	{
@@ -1425,17 +1445,6 @@ void pPanel::setControlVar( errblock& err, int ln, const string& svar, const str
 	{
 		forBrowse = ( sval == "YES" ) ;
 	}
-	else if ( svar == ".CURSOR" )
-	{
-		if ( !cursor_set )
-		{
-			p_funcPOOL->put( err, "ZCURFLD", sval ) ;
-			if ( err.error() ) { return ; }
-			curfld = wordpos( sval, tb_fields ) == 0 ? sval : sval +"."+ d2ds( ln ) ;
-			curpos = 1 ;
-			cursor_set = true ;
-		}
-	}
 	else if ( svar == ".CSRPOS" )
 	{
 		if ( !isnumeric( sval ) || ds2d( sval ) < 1 )
@@ -1458,6 +1467,17 @@ void pPanel::setControlVar( errblock& err, int ln, const string& svar, const str
 		if ( err.error() ) { return ; }
 		tb_csrrow  = ds2d( sval ) ;
 	}
+	else if ( svar == ".CURSOR" )
+	{
+		if ( !cursor_set )
+		{
+			p_funcPOOL->put( err, "ZCURFLD", sval ) ;
+			if ( err.error() ) { return ; }
+			curfld = wordpos( sval, tb_fields ) == 0 ? sval : sval +"."+ d2ds( ln ) ;
+			curpos = 1 ;
+			cursor_set = true ;
+		}
+	}
 	else if ( svar == ".EDIT" )
 	{
 		forEdit = ( sval == "YES" ) ;
@@ -1475,11 +1495,6 @@ void pPanel::setControlVar( errblock& err, int ln, const string& svar, const str
 	else if ( svar == ".MSG" )
 	{
 		set_message_cond( sval ) ;
-	}
-	else if ( svar == ".PFKEY" )
-	{
-		err.seterrid( "PSYE033S", svar ) ;
-		return ;
 	}
 	else if ( svar == ".RESP" )
 	{

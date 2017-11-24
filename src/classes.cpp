@@ -490,6 +490,19 @@ void IFSTMNT::parse_cond( errblock& err, parser& v )
 		return ;
 	}
 
+	t = v.getNextToken() ;
+	if ( t.type != TT_STRING_UNQUOTED &&
+	     t.type != TT_STRING_QUOTED   &&
+	     t.type != TT_AMPR_VAR_VALID  &&
+	     t.type != TT_VAR_VALID       &&
+	     t.type != TT_CTL_VAR_VALID )
+	{
+		err.seterrid( "PSYE033Q", t.value ) ;
+		return ;
+	}
+
+	if_rhs.push_back( t.value ) ;
+
 	while ( true )
 	{
 		t = v.getNextToken() ;
@@ -504,6 +517,10 @@ void IFSTMNT::parse_cond( errblock& err, parser& v )
 		}
 		else if ( t.type == TT_COMMA )
 		{
+			if ( v.peekNextValue() == "," || v.peekNextValue() == ")" )
+			{
+				if_rhs.push_back( "" ) ;
+			}
 			continue ;
 		}
 		else if ( t.type == TT_CLOSE_BRACKET )
@@ -512,13 +529,8 @@ void IFSTMNT::parse_cond( errblock& err, parser& v )
 		}
 		else if ( t.type == TT_CTL_VAR_INVALID )
 		{
-			if      ( t.value == ".TRUE" )  { t.value = "1" ; }
-			else if ( t.value == ".FALSE" ) { t.value = "0" ; }
-			else
-			{
-				err.seterrid( "PSYE033G", t.value ) ;
-				return ;
-			}
+			err.seterrid( "PSYE033G", t.value ) ;
+			return ;
 		}
 		if_rhs.push_back( t.value ) ;
 	}
@@ -573,7 +585,6 @@ void ASSGN::parse( errblock& err, parser& v )
 
 	token t ;
 
-	const string lhs_control = ".ALARM .AUTOSEL .BROWSE .CURSOR .CSRROW .CSRPOS .EDIT .HELP .MSG .NRET .PFKEY .RESP" ;
 	const string functn_list = "DIR EXISTS FILE LENGTH REVERSE WORDS UPPER" ;
 
 	err.setRC( 0 ) ;
@@ -615,7 +626,17 @@ void ASSGN::parse( errblock& err, parser& v )
 		}
 		as_isattr = true ;
 	}
-	else if ( findword( t.value, lhs_control ) )
+	else if ( findword( t.value, ".FALSE .PFKEY .TRUE .TRAIL" ) )
+	{
+		err.seterrid( "PSYE033S", t.value ) ;
+		return ;
+	}
+	else if ( t.type == TT_CTL_VAR_INVALID )
+	{
+		err.seterrid( "PSYE033G", t.value ) ;
+		return ;
+	}
+	else if ( t.type == TT_CTL_VAR_VALID )
 	{
 		as_lhs = t.value ;
 		t      = v.getNextToken() ;
@@ -831,9 +852,13 @@ void VERIFY::parse( errblock& err, parser& v, bool nocheck )
 			err.seterrid( "PSYE032D" ) ;
 			return ;
 		}
-		else if ( v.getNextIfCurrent( TT_COMMA ) )
+		else if ( t.type == TT_COMMA )
 		{
-			t = v.getCurrentToken() ;
+			if ( v.peekNextValue() == "," || v.peekNextValue() == ")" )
+			{
+				ver_vlist.push_back( "" ) ;
+			}
+			t = v.getNextToken() ;
 			continue ;
 		}
 		else if ( t.value == "MSG" )

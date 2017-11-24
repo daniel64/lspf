@@ -140,6 +140,7 @@ string getpath( const string& s, int p ) ;
 string mergepaths( const string& p1, const string& p2 ) ;
 
 string parseString( errblock& err, string& s, string p ) ;
+string getNameList( errblock& err, string s1 ) ;
 
 void   extractWord( errblock& err, string& s, string& p ) ;
 void   extractWord( errblock& err, string& s, string& p, bool& ) ;

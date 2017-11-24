@@ -173,7 +173,7 @@ literal  20  5    PS   "System"
 literal  20  16   NT   "System Utilities"
 
 literal  22  2    SAC  "T"
-literal  22  5    PS   "TUTORIAL"
+literal  22  5    PS   "Tutorial"
 literal  22  16   NT   "Start Tutorial"
 
 literal  23  2    SAC  "X"

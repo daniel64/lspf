@@ -69,8 +69,10 @@ NRETRIEV Retrieve next entry from the active (or specified) referral list
          NRETRIEV
          NRETRIEV pos list   eg. NRETRIEV  4 MINE   get the 4th entry from list 'MINE'
          NRETRIEV list pos   eg. NRETRIEV  LSPF 6   get the 6th entry from list 'LSPF'
+         The list parameter can be a generic in which case the first one matching
+         in alphabetically ascending order will be used.
 RECENT   ALIAS for DSLIST REFLIST
-REFACTF  List the active referral list (accepts a list as parameter)
+REFACTF  List the active referral list (accepts a list as parameter - can be generic)
 REFLISTF List the reference list
 REFOPENF Open a list of all referral lists
 

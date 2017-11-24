@@ -905,9 +905,11 @@ void execiTBSarg( pApplication * thisAppl, const string& s, errblock& err )
 
 	tb_arglst = parseString( err, str, "ARGLIST()" ) ;
 	if ( err.error() ) { return ; }
+	if ( tb_arglst != "" ) { tb_arglst = "(" + tb_arglst + ")" ; }
 
 	tb_namecnd = parseString( err, str, "NAMECOND()" ) ;
 	if ( err.error() ) { return ; }
+	if ( tb_namecnd != "" ) { tb_namecnd = "(" + tb_namecnd + ")" ; }
 
 	thisAppl->tbsarg( tb_name, tb_arglst, str, tb_namecnd ) ;
 	return ;
@@ -958,6 +960,7 @@ void execiTBScan( pApplication * thisAppl, const string& s, errblock& err )
 
 	tb_arglst = parseString( err, str, "ARGLIST()" ) ;
 	if ( err.error() ) { return ; }
+	if ( tb_arglst != "" ) { tb_arglst = "(" + tb_arglst + ")" ; }
 
 	tb_savenm = parseString( err, str, "SAVENAME()" ) ;
 	if ( err.error() ) { return ; }
@@ -970,6 +973,7 @@ void execiTBScan( pApplication * thisAppl, const string& s, errblock& err )
 
 	tb_condlst = parseString( err, str, "CONDLIST()" ) ;
 	if ( err.error() ) { return ; }
+	if ( tb_condlst != "" ) { tb_condlst = "(" + tb_condlst + ")" ; }
 
 	tb_dir = "NEXT" ;
 	t = parseString( err, str, "NEXT" ) ;

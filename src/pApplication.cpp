@@ -538,7 +538,7 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 		if ( ZZVERB == "RETURN" ) { propagateEnd = true ; }
 		if ( findword( ZZVERB, "END EXIT RETURN" ) ) { RC = 8 ; return ; }
 
-		if ( currPanel->MSGID == "" ) { return ; }
+		if ( currPanel->MSGID == "" ) { break ; }
 
 		get_message( currPanel->MSGID ) ;
 		if ( RC > 0 ) { return ; }
@@ -2465,7 +2465,7 @@ void pApplication::tbopen( const string& tb_name, tbWRITE m_WRITE, string m_path
 
 	if ( tablesOpen.count( tb_name ) > 0 )
 	{
-		errBlock.setcall( e1, "PSYE022K", "table", tb_name, 12 ) ;
+		errBlock.setcall( e1, "PSYE022K", tb_name, 12 ) ;
 		checkRCode( errBlock ) ;
 		return  ;
 	}

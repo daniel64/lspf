@@ -1308,7 +1308,7 @@ int PFLST0A::processPrimCMD()
 				if ( w3 == "LAST" )
 				{
 					tbsarg( DSLIST, "", "PREVIOUS", "(ENTRY,LE)" ) ;
-					tbbottom( DSLIST ) ;
+					tbtop( DSLIST ) ;
 					tbscan( DSLIST, "", "", "", "", "", "CRP"  ) ;
 				}
 				else

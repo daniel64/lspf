@@ -1455,6 +1455,40 @@ string parseString( errblock& err, string& s, string p )
 }
 
 
+string getNameList( errblock& err, string s )
+{
+	// return the name list contained in s
+	// err - errblock to hold any errors
+
+	trim( s ) ;
+
+	bool bracket = false ;
+
+	if ( s == "" ) { return "" ; }
+
+	if ( s.front() == '(' )
+	{
+		if ( s.back() != ')' )
+		{
+			err.seterrid( "PSYE032D" ) ;
+			return "" ;
+		}
+		else
+		{
+			s = s.substr( 1, s.size() - 2 ) ;
+			bracket = true ;
+		}
+	}
+	std::replace( s.begin(), s.end(), ',', ' ' ) ;
+	if ( !bracket && words( s ) > 1 )
+	{
+		err.seterrid( "PSYE039S" ) ;
+		return "" ;
+	}
+	return s ;
+}
+
+
 void extractWord( errblock& err, string& s, string& p )
 {
 	// Get the next word in list s and remove from the list.  Place in p.

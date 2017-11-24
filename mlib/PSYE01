@@ -66,11 +66,11 @@ PSYE013N 'Bad return code from TBSORT'
 PSYE013O 'Invalid COND PAIRS specified. &ZVAL1'
 ''
 
-PSYE013P 'Search direction on TBSARG invalid'
-'Search direction on TBSARG must be NEXT or PREVIOUS.  Invalid specification is &ZVAL1'
+PSYE013P 'Invalid keyword'
+'''&ZVAL1'' is not a valid keyword for this service'
 
-PSYE013Q 'Extension variables cannot have the same name as key or field names'
-''
+PSYE013Q 'Invalid condition list specified: &ZVAL1'
+'Condition list must be a list of conditions matching arglist'
 
 PSYE013R 'Invalid search pairs'
 'Search pairs must be of the form NAME,COND,NAME,COND....'
@@ -81,8 +81,8 @@ PSYE013S 'Invalid NAME specifed on TBSARG request'
 PSYE013T 'Invalid condition'
 'Has to be EQ, NE, LE, LT, GE or GT. Invalid specification is &ZVAL1'
 
-PSYE013U 'TBSCAN performed with no name list'
-'TBSCAN performed with no name list, but no search arguments set by TBSARG'
+PSYE013U 'No scan arguments have been set'
+'Establish scan arguments for table &ZVAL1'
 
 PSYE013V 'Too many conditions on NAMELIST'
 'CONDLIST parameter has more conditions than names in the NAMELIST parameter (less defaults to EQ)'
@@ -105,8 +105,8 @@ PSYE014A 'Table &ZVAL1 is already open in EXCLUSIVE mode'
 PSYE014B 'Table load file name &ZVAL1 is not a regular file'
 ''
 
-PSYE014C 'SPARE'
-''
+PSYE014C 'More conditions specified than table fields'
+'There must be at least as many table fields in arglist as conditions'
 
 PSYE014D 'Table open for &ZVAL1 gave an error.  Filename &ZVAL2'
 ''

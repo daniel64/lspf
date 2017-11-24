@@ -90,7 +90,7 @@ void PMAIN0A::application()
 		ispexec( "VGET (ZJDATE ZTIME) SHARED" ) ;
 		MSG  = "" ;
 
-		ZAREA  = ZAREA.replace( 204, 5, ZTIME ) ;
+		ZAREA = ZAREA.replace( 204, 5, ZTIME ) ;
 
 		w1 = word( ZCMD, 1 ) ;
 		ws = subword( ZCMD, 2 ) ;
@@ -226,8 +226,8 @@ void PMAIN0A::create_calendar( int pmonth, int pyear )
 	daypos = 0 ;
 	year   = pyear  + (offset / 12) ;
 	month  = pmonth + (offset % 12) ;
-	if ( month > 12 ) { month = month - 12 ; year++ ; }
-	if ( month < 1  ) { month = month + 12 ; year-- ; }
+	if ( month > 12 ) { month -= 12 ; year++ ; }
+	if ( month < 1  ) { month += 12 ; year-- ; }
 
 	eom_day = gregorian_calendar::end_of_month_day(year,month);
 	date endOfMonth( year, month, eom_day ) ;

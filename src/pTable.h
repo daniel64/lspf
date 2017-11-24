@@ -38,6 +38,7 @@ class Table
 	private:
 		int     ownerTask     ;
 		bool    tab_cmds      ;
+		string  tab_name      ;
 		string  tab_keys      ;
 		string  tab_flds      ;
 		string  tab_all       ;
@@ -159,6 +160,13 @@ class Table
 			       string tb_namelst,
 			       string tb_next_prev,
 			       string tb_cond_pairs ) ;
+
+		void   tbsets( errblock& err,
+			       fPOOL& funcPOOL,
+			       map<string, tbsearch>& ,
+			       string& tb_namelst,
+			       string& tb_cond_pairs,
+			       bool for_tbsarg ) ;
 
 		void   tbscan( errblock& err,
 			       fPOOL& funcPOOL,
