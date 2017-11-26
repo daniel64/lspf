@@ -61,27 +61,32 @@ literal  16  22    NT   "Terminate Dialogue Services"
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
 
-)COMMAND
-0 "SELECT PGM(PTEST01) PARM(&ZPARM)"
-1 "SELECT PGM(PTEST01) PARM(&ZPARM)"
-2 "SELECT PGM(PTEST01) PARM(&ZPARM)"
-3 "SELECT PGM(PTEST01) PARM(&ZPARM)"
-4 "SELECT PGM(PTEST01) PARM(&ZPARM)"
-5 "SELECT PGM(PTEST01) PARM(&ZPARM)"
-6 "SELECT PGM(PTEST01) PARM(&ZPARM)"
-7 "SELECT PGM(PTEST01) PARM(&ZPARM)"
-A "SELECT PGM(PTEST01) PARM(ABEND)"
-T "SELECT PGM(&ZHELPPGM)  PARM(&ZPARM)"
-X "ACTION END"
-
 )INIT
  .CURSOR = ZCMD
+ &ZCMD   = &Z
 
 )PROC
-&ZCMD   = TRUNC(&ZCMD,'.')
-&ZTRAIL = .TRAIL
---VER (&ZCMD NB MSG=PSYS019)
+IF ( &ZCMD EQ &Z )
+   .MSG    = PSYS012S
+   .CURSOR = ZCMD
+   EXIT
 
+&ZCMD = TRUNC( &ZCMD,'.' )
+&ZSEL = TRANS( &ZCMD
+               0,'PGM(PTEST01) PARM(0)'
+               1,'PGM(PTEST01) PARM(1)'
+               2,'PGM(PTEST01) PARM(2)'
+               3,'PGM(PTEST01) PARM(3)'
+               4,'PGM(PTEST01) PARM(4)'
+               5,'PGM(PTEST01) PARM(5)'
+               6,'PGM(PTEST01) PARM(6)'
+               7,'PGM(PTEST01) PARM(7)'
+               A,'PGM(PTEST01) PARM(ABEND)'
+               T,'PGM(&ZHELPPGM)  PARM(T)'
+               X,EXIT
+              &Z,&Z
+               *,'?'
+             )
 )HELP
 
 )PNTS

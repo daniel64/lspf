@@ -199,7 +199,17 @@ literal  34   2   CT "program will overwrite these variables"
 
 
 )PROC
-&ZCMD = TRANS( &ZCMD CAN,CANCEL DEF,DEFAULTS RES,RESTORE REST,RESTORE SAV,SAVE &Z,&Z MSG=PPSP015 )
+&ZCMD = TRANS( &ZCMD CAN,CANCEL
+                     CANCEL,CANCEL
+                     DEF,DEFAULTS
+                     DEFAULTS,DEFAULTS
+                     RES,RESTORE
+                     REST,RESTORE
+                     RESTORE,RESTORE
+                     SAV,SAVE
+                     SAVE,SAVE
+                     &Z,&Z
+                     MSG=PPSP015 )
 
 )PNTS
 FIELD(ZPS01001) VAR(ZCMD) VAL(DEFAULTS)

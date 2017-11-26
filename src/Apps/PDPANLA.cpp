@@ -20,11 +20,13 @@
 
 */
 
+/* Invoked as part of the SELECT PANEL(xxxx) service.  Panel name is          */
+/* passed as word 1 of parameter PARM and an optional selection as word 2.    */
 
-/* Invoked as part of the SELECT PANEL(xxxx) service.  Panel name is        */
-/* passed as word 1 of parameter PARM.  Normal parameters are the rest.     */
-/* Program automatically executes the command defined in the )COMMAND       */
-/* section of the panel definition using ZCMD as the command identifier     */
+/* An invalid passed option will cause an error message but after a valid     */
+/* option is entered, the panel will not be re-displayed but to work properly */
+/* a null option has to display a message (PSYS012S) or the panel will        */
+/* end.  passthru can be changed to false after mesage PSYS016 to avoid this. */
 
 #include "../lspf.h"
 #include "../utilities.h"
@@ -48,101 +50,49 @@ using namespace std ;
 
 void PDPANLA::application()
 {
-	string w1  ;
-	string ws  ;
-	string opt ;
-	int p1     ;
+	int RC1     ;
 
-	string ZTRAIL ;
+	bool passthru = false ;
 
-	bool   loope  ;
+	string pan  ;
+	string msg  ;
+	string ZCMD ;
+	string ZSEL ;
 
-	selobj SEL    ;
-	errblock err  ;
+	pan  = word( PARM, 1 ) ;
+	msg  = "" ;
+	ZCMD = subword( PARM, 2 ) ;
 
+	vdefine( "ZCMD", &ZCMD ) ;
 
-	PANELNM  = word( PARM, 1 ) ;
-	opt      = subword( PARM, 2 ) ;
-	command  = ""                 ;
-	llog( "I", "SELECT PANEL " << PANELNM << " with parameters " << PARM << endl ) ;
-
-	vdefine( "ZCMD ZVERB", &ZCMD, &ZVERB ) ;
-
-	ZCMD  = "" ;
-	MSG   = "" ;
-	loope = false ;
+	if ( ZCMD != "" )
+	{
+		control( "DISPLAY", "NONDISPL" ) ;
+		passthru = true ;
+	}
 
 	while ( true )
 	{
-		if ( opt != "" )
+		display( pan, msg ) ;
+		RC1 = RC ;
+		msg = "" ;
+		vcopy( "ZSEL", ZSEL, MOVE ) ;
+		if ( ZSEL == "EXIT" || RC1 == 8 )
 		{
-			ZCMD = opt ;
-			control( "DISPLAY", "NONDISPL" ) ;
-			opt   = ""   ;
-			loope = true ;
+			vreplace( "ZSEL", "" ) ;
+			break ;
 		}
-		display( PANELNM, MSG, "ZCMD" );
-		if ( RC == 8 ) { break ; }
-
-		if ( MSG != "" ) { loope = false ; }
-		MSG  = "" ;
-		vget( "ZVERB", SHARED ) ;
-
-		if ( ZCMD == "" ) continue   ;
-
-		command = get_select_cmd( ZCMD ) ;
-		if ( command == "" )
+		if ( ZSEL == "?" )
 		{
-			MSG   = "PSYS016" ;
-			continue          ;
+			msg = "PSYS016" ;
+			vreplace( "ZSEL", "" ) ;
+			continue ;
 		}
-
-		w1 = word( command, 1 ) ;
-		ws = subword( command, 2 ) ;
-		vcopy( "ZTRAIL", ZTRAIL, MOVE ) ;
-		if ( w1 == "SELECT" )
-		{
-			if ( !SEL.parse( err, ws ) )
-			{
-				llog( "E", "Select command " << ws << " is invalid.  RC > 0 returned from parse" << endl ) ;
-				MSG = "PSYS017" ;
-				continue        ;
-			}
-			p1 = SEL.PARM.find( "&ZPARM" ) ;
-			if ( p1 != string::npos )
-			{
-				SEL.PARM.replace( p1, 6, ZCMD ) ;
-			}
-			if ( SEL.PGM == "&ZPANLPGM" && ZTRAIL != "" ) { SEL.PARM = SEL.PARM + " " + ZTRAIL ; }
-			if ( SEL.PGM[ 0 ] == '&' )
-			{
-				vcopy( SEL.PGM.erase( 0, 1 ), SEL.PGM, MOVE ) ;
-			}
-			select( SEL ) ;
-			if ( RC  > 4 )
-			{
-				llog( "E", "Select command " << command << " is invalid.  RC > 4 returned from select" << endl ) ;
-				MSG = "PSYS017" ;
-			}
-			ZCMD = "" ;
-		}
-		else
-		{
-			if ( w1 == "ACTION" )
-			{
-				if ( ws == "END" ) { break ; }
-				llog( "N", "ACTION function of select panels has not been implemented yet" << endl ) ;
-				MSG = "PSYS015" ;
-			}
-			else
-			{
-				llog( "E", w1 << " function of select panel " << PANELNM << " is invalid" << endl ) ;
-				MSG = "PSYS017" ;
-			}
-		}
-		if ( loope && MSG == "" ) { break ; }
-		command = "" ;
+		if ( passthru ) { break ; }
+		ZCMD = "" ;
 	}
+
+	vdelete( "ZCMD" ) ;
 	cleanup() ;
 }
 

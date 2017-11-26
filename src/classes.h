@@ -496,7 +496,7 @@ class selobj
 		bool   PASSLIB ;
 		bool   SUSPEND ;
 		string SCRNAME ;
+		bool   selPanl ;
 
 	private:
-		bool   selPanl ;
 } ;

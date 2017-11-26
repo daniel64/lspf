@@ -147,6 +147,7 @@ void ResumeApplicationAndWait() ;
 bool createLogicalScreen()      ;
 void deleteLogicalScreen()      ;
 void processPGMSelect()         ;
+void processZSEL()              ;
 void processAction( uint row, uint col, int c, bool& passthru ) ;
 void issueMessage( const string& ) ;
 void rawOutput()          ;
@@ -267,6 +268,7 @@ int main( void )
 	currAppl->p_tableMGR   = p_tableMGR   ;
 	currAppl->ZZAPPLID     = "ISP"        ;
 	currAppl->NEWPOOL      = true         ;
+	currAppl->setSelectPanel()            ;
 	currAppl->lspfCallback = lspfCallbackHandler ;
 
 	p_poolMGR->put( err, "ZSCREEN", string( 1, ZSCREEN[ screenNum ] ), SHARED, SYSTEM ) ;
@@ -531,6 +533,10 @@ void mainLoop()
 						currScrn->save_panel_stack() ;
 						currScrn->restore_panel_stack() ;
 					}
+					if ( currAppl->selectPanel() )
+					{
+						processZSEL() ;
+					}
 					currAppl->get_cursor( row, col )  ;
 					currScrn->set_row_col( row, col ) ;
 					while ( currAppl->terminateAppl )
@@ -759,6 +765,7 @@ void mainLoop()
 					SELCT.NEWPOOL = true  ;
 					SELCT.PASSLIB = false ;
 					SELCT.SUSPEND = true  ;
+					SELCT.selPanl = true  ;
 					startApplication( SELCT, true ) ;
 					break ;
 				}
@@ -905,6 +912,44 @@ void initialSetup()
 	funcPOOL.define( err, "ZCTTRUNC", &ZCTTRUNC ) ;
 	funcPOOL.define( err, "ZCTACT",   &ZCTACT   ) ;
 	funcPOOL.define( err, "ZCTDESC",  &ZCTDESC  ) ;
+}
+
+
+void processZSEL()
+{
+	// Called for a selection panel (ie. SELECT PANEL(ABC) function ).
+	// Use what's in ZSEL to start application
+
+	string cmd ;
+	string opt ;
+
+	errblock err ;
+
+	cmd = currAppl->get_ZSEL() ;
+
+	if ( cmd == "" ) { return ; }
+
+	if ( cmd.compare( 0, 5, "PANEL" ) == 0 )
+	{
+		opt = currAppl->get_dTRAIL() ;
+		if ( opt != "" ) { cmd += " OPT(" + opt + ")" ; }
+	}
+
+	updateDefaultVars() ;
+	currAppl->currPanel->remove_pd() ;
+
+	if ( !SELCT.parse( err, cmd ) )
+	{
+		errorScreen( 1, "Error in ZSEL command "+ cmd ) ;
+		return ;
+	}
+
+	if ( SELCT.PGM[ 0 ] == '&' )
+	{
+		currAppl->vcopy( substr( SELCT.PGM, 2 ), SELCT.PGM, MOVE ) ;
+	}
+
+	startApplication( SELCT ) ;
 }
 
 
@@ -1510,6 +1555,7 @@ void startApplication( selobj SEL, bool nScreen )
 			SEL.NEWAPPL = "ISP" ;
 			SEL.PASSLIB = false ;
 			SEL.SUSPEND = true  ;
+			SEL.selPanl = true  ;
 		}
 		if ( SEL.PGM[ 0 ] == '&' )
 		{

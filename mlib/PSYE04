@@ -125,3 +125,6 @@ PSYE042N 'No command field defined'
 PSYE042O 'Invalid value for .AUTOSEL control variable.  Must be YES, NO or blank'
 ''
 
+PSYE042P 'Invalid command field name'
+'Selection panels must have a command field name of ZCMD'
+

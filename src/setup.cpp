@@ -428,6 +428,7 @@ void createSYSPROF()
 	p_poolMGR->put( err, "ZTLIB", TLIB, PROFILE ) ;
 
 	p_poolMGR->put( err, "ZMAINPGM", ZMAINPGM, PROFILE ) ;
+	p_poolMGR->put( err, "ZMAINPAN", ZMAINPAN, PROFILE ) ;
 	p_poolMGR->put( err, "ZPANLPGM", ZPANLPGM, PROFILE ) ;
 	p_poolMGR->put( err, "ZEDITPGM", ZEDITPGM, PROFILE ) ;
 	p_poolMGR->put( err, "ZBRPGM",   ZBRPGM,   PROFILE ) ;

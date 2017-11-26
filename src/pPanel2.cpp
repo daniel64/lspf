@@ -42,7 +42,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 	string fld, hlp   ;
 
 	bool body    = false ;
-	bool command = false ;
 	bool init    = false ;
 	bool reinit  = false ;
 	bool proc    = false ;
@@ -81,7 +80,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		if ( w1.front() == ')' )
 		{
 			body    = false ;
-			command = false ;
 			init    = false ;
 			reinit  = false ;
 			proc    = false ;
@@ -229,18 +227,9 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		else if ( w1 == ")PROC" )    { proc    = true ; continue ; }
 		else if ( w1 == ")INIT" )    { init    = true ; continue ; }
 		else if ( w1 == ")REINIT" )  { reinit  = true ; continue ; }
-		else if ( w1 == ")COMMAND" ) { command = true ; continue ; }
 		else if ( w1 == ")HELP" )    { help    = true ; continue ; }
 		else if ( w1 == ")PNTS" )    { ispnts  = true ; continue ; }
 		else if ( w1 == ")FIELD" )   { isfield = true ; continue ; }
-
-		if ( command )
-		{
-			ww = strip( subword( pline, 2 ), 'B', '"' ) ;
-			commandTable[ w1 ] = ww ;
-			debug2( "Adding command "+ w1 +" options "+ ww << endl ) ;
-			continue ;
-		}
 
 		if ( init || reinit || proc )
 		{
@@ -773,6 +762,12 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		return ;
 	}
 
+	if ( selectPanel && cmdField != "ZCMD" )
+	{
+		err.seterrid( "PSYE042P" ) ;
+		return ;
+	}
+
 	if ( REXX )
 	{
 		for ( it1 = fieldList.begin() ; it1 != fieldList.end() ; it1++ )
@@ -800,9 +795,12 @@ void pPanel::readPanel( errblock& err, vector<string>& src, const string& name, 
 	string pline ;
 	string w1    ;
 	string w2    ;
+	string w3    ;
 	string type  ;
+	string temp  ;
 
 	bool comment ;
+	bool split   ;
 
 	std::ifstream panl ;
 
@@ -835,11 +833,30 @@ void pPanel::readPanel( errblock& err, vector<string>& src, const string& name, 
 	}
 
 	comment = false ;
+	split   = false ;
 	while ( getline( panl, pline ) )
 	{
-		if ( pline.find_first_not_of( ' ' ) == string::npos ) { continue ; }
+		trim_right( pline ) ;
+		if ( pline == "" ) { continue ; }
+		if ( split )
+		{
+			temp += " " + trim_left( pline ) ;
+			if ( pline.back() == ')' )
+			{
+				src.push_back( temp ) ;
+				split = false ;
+			}
+			continue ;
+		}
 		w1 = upper( word( pline, 1 ) ) ;
 		w2 = word( pline, 2 ) ;
+		w3 = word( pline, 3 ) ;
+		if ( w2 == "=" && w3.compare( 0, 5, "TRANS" ) == 0 && pline.back() != ')' )
+		{
+			split = true  ;
+			temp  = pline ;
+			continue      ;
+		}
 		if ( w1.compare( 0, 2, "--" ) == 0 || w1.front() == '#' ) { continue ; }
 		if ( w1 == ")END" )        { break                      ; }
 		if ( w1 == ")COMMENT" )    { comment = true  ; continue ; }

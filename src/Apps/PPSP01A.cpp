@@ -2055,6 +2055,7 @@ void PPSP01A::utilityPrograms()
 	int RCode ;
 
 	string KMAINPGM ;
+	string KMAINPAN ;
 	string KPANLPGM ;
 	string KEDITPGM ;
 	string KBRPGM   ;
@@ -2063,10 +2064,14 @@ void PPSP01A::utilityPrograms()
 	string KHELPPGM ;
 	string KOREXPGM ;
 
-	string v_list("ZMAINPGM ZPANLPGM ZEDITPGM ZBRPGM ZVIEWPGM ZFLSTPGM ZHELPPGM ZOREXPGM")   ;
+	string v_list1 = "ZMAINPGM ZMAINPAN ZPANLPGM ZEDITPGM ZBRPGM ZVIEWPGM ZFLSTPGM ZHELPPGM" ;
+	string v_list2 = "ZOREXPGM" ;
 
-	vdefine( v_list, &KMAINPGM, &KPANLPGM, &KEDITPGM, &KBRPGM, &KVIEWPGM, &KFLSTPGM, &KHELPPGM, &KOREXPGM ) ;
-	vget( v_list, PROFILE ) ;
+	vdefine( v_list1, &KMAINPGM, &KMAINPAN, &KPANLPGM, &KEDITPGM, &KBRPGM, &KVIEWPGM, &KFLSTPGM, &KHELPPGM ) ;
+	vget( v_list1, PROFILE ) ;
+
+	vdefine( v_list2, &KOREXPGM ) ;
+	vget( v_list2, PROFILE ) ;
 
 	while ( true )
 	{
@@ -2075,6 +2080,7 @@ void PPSP01A::utilityPrograms()
 		RCode = RC ;
 
 		if ( KMAINPGM == "" ) { KMAINPGM = ZMAINPGM ; } ;
+		if ( KMAINPAN == "" ) { KMAINPAN = ZMAINPAN ; } ;
 		if ( KPANLPGM == "" ) { KPANLPGM = ZPANLPGM ; } ;
 		if ( KEDITPGM == "" ) { KEDITPGM = ZEDITPGM ; } ;
 		if ( KBRPGM   == "" ) { KBRPGM   = ZBRPGM   ; } ;
@@ -2087,6 +2093,7 @@ void PPSP01A::utilityPrograms()
 		if ( ZCMD == "DEFAULTS" )
 		{
 			KMAINPGM = ZMAINPGM ;
+			KMAINPAN = ZMAINPAN ;
 			KPANLPGM = ZPANLPGM ;
 			KEDITPGM = ZEDITPGM ;
 			KBRPGM   = ZBRPGM   ;
@@ -2098,11 +2105,13 @@ void PPSP01A::utilityPrograms()
 
 		if ( RCode == 8 || ZCMD == "SAVE" )
 		{
-			vput( v_list, PROFILE ) ;
+			vput( v_list1, PROFILE ) ;
+			vput( v_list2, PROFILE ) ;
 			if ( RCode == 8 ) { break ; }
 		}
 	}
-	vdelete( v_list ) ;
+	vdelete( v_list1 ) ;
+	vdelete( v_list2 ) ;
 }
 
 void PPSP01A::keylistTables()

@@ -117,7 +117,8 @@ class pApplication
 		bool   isRawOutput() { return rawOutput ; }
 
 		string get_search_path( s_paths ) ;
-		string get_select_cmd( const string& )  ;
+		string get_ZSEL()                 ;
+		string get_dTRAIL()               ;
 		selobj get_select_cmd() { return SELCT ; }
 		string get_help_member( int, int ) ;
 		string get_current_panelDescr() ;
@@ -221,7 +222,8 @@ class pApplication
 		void   reload_keylist( pPanel * ) ;
 		bool   errorsReturn() ;
 		void   setTestMode()  ;
-		bool   selectPanel()  { return selPanel ; }
+		bool   selectPanel()     { return selPanel ; }
+		void   setSelectPanel()  { selPanel = true ; }
 		void   startSelect( selobj& ) ;
 
 		int    get_addpop_row() { return addpop_row    ; }

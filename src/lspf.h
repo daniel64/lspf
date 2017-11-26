@@ -42,7 +42,8 @@ using namespace boost::posix_time;
 // SLOG     - Location of the system log file (fully qualified)
 // ALOG     - Location of the application log file (fully qualified)
 // ZREXPATH - Location of the rexx execs (conatenation allowed)
-// ZMAINPGM - Name of the initial program to invoke
+// ZMAINPGM - Name of the initial program to invoke.  This is treated as a SELECT PANEL()
+// ZMAINPAN - Name of the initial selection panel to invoke ( ie. SELECT PANEL(ZMAINPAN)
 // ZPANLPGM - Name of the program invoked on the SELECT PANEL service
 // ZEDITPGM - Name of the editor program to invoke
 // ZBRPGM   - Name of the browser program to invoke
@@ -68,6 +69,7 @@ using namespace boost::posix_time;
 #define ALOG            HOME "/.lspf/appllog"
 #define ZRFLTBL         "LSRPLIST"
 #define ZMAINPGM        "PMAIN0A"
+#define ZMAINPAN        "PMAINP01"
 #define ZPANLPGM        "PDPANLA"
 #define ZEDITPGM        "PEDIT01"
 #define ZBRPGM          "PBRO01A"

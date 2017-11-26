@@ -18,7 +18,7 @@ PSYS015 'Window move pending' .TYPE=W
 ''
 
 PSYS016 'Invalid option' .TYPE=W
-'Invalid option entered on selection panel or no command defined for selection'
+'Enter one of the listed option'
 
 PSYS017 'Invalid command in panel' .TYPE=W
 'Invalid command has been detected in panel )COMMAND section'
@@ -165,4 +165,7 @@ PSYS012Q 'Invalid value entered' .TYPE=W .W=NORESP
 
 PSYS012R 'Invalid .HIDE parameter' .TYPE=W
 'Valid .HIDE parameter is NULLS'
+
+PSYS012S 'Enter option' .TYPE=N
+'Enter one of the listed option'
 

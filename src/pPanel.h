@@ -224,7 +224,6 @@ class pPanel
 		void   set_message_cond( const string& ) ;
 		void   set_cursor_cond( const string&, int =0 ) ;
 
-		string return_command( const string& ) ;
 		void   resetAttrs() ;
 
 		void   syncDialogueVar( const string& ) ;
@@ -252,7 +251,6 @@ class pPanel
 		vector<Box *> boxes                ;
 		map<string, field *> fieldList     ;
 		map<string, dynArea *> dynAreaList ;
-		map<string, string> commandTable   ;
 		map<string, pnts> pntsTable        ;
 		map<string, string> fieldHList     ;
 		map<int, string> Keylistl          ;

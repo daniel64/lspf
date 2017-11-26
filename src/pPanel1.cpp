@@ -452,6 +452,8 @@ void pPanel::display_panel_update( errblock& err )
 	cursor_set  = false ;
 	message_set = false ;
 
+	p_funcPOOL->put( err, "ZERRMSG", "" ) ;
+
 	CMDVerb     = p_poolMGR->get( err, "ZVERB", SHARED ) ;
 	end_pressed = findword( CMDVerb, "END EXIT RETURN" ) ;
 
@@ -687,9 +689,14 @@ void pPanel::display_panel_proc( errblock& err, int ln )
 	// Perform panel )PROC processing
 
 	// If cursor on a point-and-shoot field (PS), set variable as in the )PNTS panel section if defined there
+	// If a selection panel, check .TRAIL if not NOCHECK on the ZSEL variable and issue error
 
 	int i ;
+	int p ;
+
+	string ZSEL     ;
 	string fieldNam ;
+
 	map<string, field *>::iterator it;
 
 	err.setRC( 0 ) ;
@@ -723,6 +730,26 @@ void pPanel::display_panel_proc( errblock& err, int ln )
 				p_funcPOOL->put( err, pntsTable[ fieldNam ].pnts_var, pntsTable[ fieldNam ].pnts_val ) ;
 			}
 			break ;
+		}
+	}
+
+	if ( selectPanel )
+	{
+		ZSEL = p_funcPOOL->get( err, 8, "ZSEL" ) ;
+		if ( err.error() ) { return ; }
+		if ( ZSEL != "" )
+		{
+			p = wordpos( "NOCHECK", ZSEL ) ;
+			if ( ZSEL.compare( 0, 5, "PANEL" )  != 0  &&
+			     getControlVar( err, ".TRAIL" ) != "" && p == 0  )
+			{
+				ZSEL = "?" ;
+			}
+			else if ( p > 0 )
+			{
+				idelword( ZSEL, p, 1 ) ;
+			}
+			p_funcPOOL->put( err, "ZSEL", ZSEL ) ;
 		}
 	}
 }
@@ -1057,7 +1084,7 @@ string pPanel::process_panel_trunc( errblock& err, TRUNC* trunc )
 		}
 	}
 
-	p_funcPOOL->put( err, ".TRAIL", dTrail, NOCHECK ) ;
+	setControlVar( err, 0, ".TRAIL", dTrail ) ;
 	if ( err.error() ) { return "" ; }
 
 	return t ;
@@ -1515,15 +1542,22 @@ void pPanel::setControlVar( errblock& err, int ln, const string& svar, const str
 			err.seterrid( "PSYE041I" ) ;
 		}
 	}
+	else if ( svar == ".TRAIL" )
+	{
+		p_funcPOOL->put( err, ".TRAIL", sval, NOCHECK ) ;
+	}
 }
 
 
 void pPanel::set_message_cond( const string& msg )
 {
+	errblock err ;
+
 	if ( !message_set )
 	{
 		MSGID       = msg  ;
 		message_set = true ;
+		p_funcPOOL->put( err, "ZERRMSG", msg ) ;
 	}
 }
 
@@ -2657,14 +2691,6 @@ void pPanel::set_tb_fields_act_inact()
 			fieldList[ s ]->field_active = ( i < size ) ;
 		}
 	}
-}
-
-
-
-string pPanel::return_command( const string& opt )
-{
-	if ( commandTable.count( opt ) == 0 ) { return "" ; }
-	return commandTable.at( opt ) ;
 }
 
 

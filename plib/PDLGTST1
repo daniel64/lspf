@@ -50,24 +50,29 @@ literal  13  20   NT   "Terminate Dialogue Services"
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
 
-)COMMAND
-0 "SELECT PGM(PDLGTST) PARM(&ZPARM)"
-1 "SELECT PANEL(PDLGTST3)"
-2 "SELECT PGM(PDLGTST) PARM(&ZPARM)"
-3 "SELECT PGM(PDLGTST) PARM(&ZPARM)"
-4 "SELECT PANEL(PDLGTST5)"
-T "SELECT PGM(&ZHELPPGM) PARM(&ZPARM)"
-X "ACTION END"
-
 )INIT
  .CURSOR = ZCMD
+ &ZCMD   = &Z
 
 )PROC
 
-&ZCMD   = TRUNC(&ZCMD,'.')
-&ZTRAIL = .TRAIL
---VER (&ZCMD NB MSG=PSYS019)
+IF ( &ZCMD EQ &Z )
+   .MSG    = PSYS012S
+   .CURSOR = ZCMD
+   EXIT
 
+&ZCMD = TRUNC( &ZCMD,'.' )
+&ZSEL = TRANS( &ZCMD
+               0,'PGM(PDLGTST) PARM(0)'
+               1,'PANEL(PDLGTST3)'
+               2,'PGM(PDLGTST) PARM(2)'
+               3,'PGM(PDLGTST) PARM(3)'
+               4,'PANEL(PDLGTST5)'
+               T,'PGM(&ZHELPPGM) PARM(T)'
+               X,EXIT
+              &Z,&Z
+               *,'?'
+             )
 )PNTS
 FIELD( ZPS01001 ) VAR(ZCMD)  VAL(0)
 FIELD( ZPS01002 ) VAR(ZCMD)  VAL(1)

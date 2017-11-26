@@ -24,9 +24,5 @@ class PDPANLA : public pApplication
 	public:
 		void application() ;
 
-	private:
-		string PANELNM ;
-		string MSG     ;
-		string command ;
 
 } ;

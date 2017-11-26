@@ -13,47 +13,51 @@
  field    6   16   8  NEF CAPS(ON),PAD(USER) ZMAINPGM
  literal  6   26      FP "Initial program to run"
 
- literal  7   2       FP "ZPANLPGM. . ."
- field    7   16   8  NEF CAPS(ON),PAD(USER) ZPANLPGM
- literal  7   26      FP "Program to run on SELECT PANEL command"
+ literal  7   2       FP "ZMAINPAN. . ."
+ field    7   16   8  NEF CAPS(ON),PAD(USER) ZMAINPAN
+ literal  7   26      FP "Initial panel to display"
 
- literal  8   2       FP "ZEDITPGM. . ."
- field    8   16   8  NEF CAPS(ON),PAD(USER) ZEDITPGM
- literal  8   26      FP "Editor program"
+ literal  8   2       FP "ZPANLPGM. . ."
+ field    8   16   8  NEF CAPS(ON),PAD(USER) ZPANLPGM
+ literal  8   26      FP "Program to run on SELECT PANEL command"
 
- literal  9  2        FP "ZBRPGM. . . ."
- field    9  16   8   NEF CAPS(ON),PAD(USER) ZBRPGM
- literal  9  26       FP "Browse program"
+ literal  9   2       FP "ZEDITPGM. . ."
+ field    9   16   8  NEF CAPS(ON),PAD(USER) ZEDITPGM
+ literal  9   26      FP "Editor program"
 
- literal  10  2       FP "ZVIEWPGM. . ."
- field    10  16   8  NEF CAPS(ON),PAD(USER) ZVIEWPGM
- literal  10  26      FP "View program"
+ literal  10  2       FP "ZBRPGM. . . ."
+ field    10  16   8  NEF CAPS(ON),PAD(USER) ZBRPGM
+ literal  10  26      FP "Browse program"
 
- literal  11  2       FP "ZFLSTPGM. . ."
- field    11  16   8  NEF CAPS(ON),PAD(USER) ZFLSTPGM
- literal  11  26      FP "File list program"
+ literal  11  2       FP "ZVIEWPGM. . ."
+ field    11  16   8  NEF CAPS(ON),PAD(USER) ZVIEWPGM
+ literal  11  26      FP "View program"
 
- literal  12  2       FP "ZHELPPGM. . ."
- field    12  16   8  NEF CAPS(ON),PAD(USER) ZHELPPGM
- literal  12  26      FP "Program to run on selecting HELP"
+ literal  12  2       FP "ZFLSTPGM. . ."
+ field    12  16   8  NEF CAPS(ON),PAD(USER) ZFLSTPGM
+ literal  12  26      FP "File list program"
 
- literal  13  2       FP "ZOREXPGM. . ."
- field    13  16   8  NEF CAPS(ON),PAD(USER) ZOREXPGM
- literal  13  26      FP "REXX interpreter stub and default SELECT CMD() language parameter
+ literal  13  2       FP "ZHELPPGM. . ."
+ field    13  16   8  NEF CAPS(ON),PAD(USER) ZHELPPGM
+ literal  13  26      FP "Program to run on selecting HELP"
 
- literal  15  2     CH  "Instructions"
+ literal  14  2       FP "ZOREXPGM. . ."
+ field    14  16   8  NEF CAPS(ON),PAD(USER) ZOREXPGM
+ literal  14  26      FP "REXX interpreter stub and default SELECT CMD() language parameter
 
- literal  17  2     PIN "Enter"
- literal  17  8     PS  "Defaults"
- literal  17  16    PIN ","
- literal  17  18    PS  "Save"
- literal  17  23    PIN "or"
- literal  17  26    PS  "Cancel"
+ literal  16  2     CH  "Instructions"
 
- literal  19  2     PIN "Defaults are those defined in the lspf.h #define values for these variable names"
+ literal  18  2     PIN "Enter"
+ literal  18  8     PS  "Defaults"
+ literal  18  16    PIN ","
+ literal  18  18    PS  "Save"
+ literal  18  23    PIN "or"
+ literal  18  26    PS  "Cancel"
 
- literal  21  2     CT  "Warning"
- literal  22  2     CT  "Incorrect values can render lspf unusable.  Rerun setup program to recreate ISPSPROF in this case"
+ literal  20  2     PIN "Defaults are those defined in the lspf.h #define values for these variable names"
+
+ literal  22  2     CT  "Warning"
+ literal  23  2     CT  "Incorrect values can render lspf unusable.  Rerun setup program to recreate ISPSPROF in this case"
 
 
 )INCLUDE STD_PDC

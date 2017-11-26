@@ -688,19 +688,20 @@ void pApplication::set_screenName()
 }
 
 
-string pApplication::get_select_cmd( const string& opt )
+string pApplication::get_ZSEL()
 {
-	// Get system variable ZSEL for the SELECT PANEL command.  If not set, use the panel command entry.
+	string ZSEL ;
 
-	string t ;
+	ZSEL = funcPOOL.get( errBlock, 0, "ZSEL" ) ;
+	funcPOOL.put( errBlock, "ZSEL", "" ) ;
 
-	vcopy( "ZSEL", t, MOVE ) ;
-	if ( t == "" )
-	{
-		t = panelList[ PANELID ]->return_command( opt ) ;
-	}
-	vreplace( "ZSEL", "" ) ;
-	return t ;
+	return ZSEL ;
+}
+
+
+string pApplication::get_dTRAIL()
+{
+	return funcPOOL.get( errBlock, 0, ".TRAIL", NOCHECK ) ;
 }
 
 

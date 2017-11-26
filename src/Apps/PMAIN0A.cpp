@@ -46,17 +46,20 @@ void PMAIN0A::application()
 {
 	llog( "I", "Application PMAIN0A starting.  Displaying panel PMAINP01" << endl ) ;
 
+	int RC1  ;
 	int p1   ;
 	int y, m ;
 	int pmonth, pyear ;
 
 	selobj SEL ;
 
+	string pan ;
 	string MSG ;
 	string w1  ;
 	string ws  ;
 	string command ;
 	string ZTRAIL  ;
+	string ZSEL    ;
 
 	string ZSYSNAME ;
 	string ZOSREL   ;
@@ -81,11 +84,24 @@ void PMAIN0A::application()
 	create_calendar( pmonth, pyear ) ;
 
 	if ( ZCMD != "" ) { ispexec( "CONTROL DISPLAY NONDISPL" ) ; }
+	vcopy( "ZMAINPAN", pan, MOVE ) ;
 
 	while ( true )
 	{
-		ispexec( "DISPLAY PANEL(PMAINP01) MSG("+MSG+") CURSOR(ZCMD)" ) ;
-		if ( RC == 8 ) { break ; }
+		ispexec( "DISPLAY PANEL("+pan+") MSG("+MSG+") CURSOR(ZCMD)" ) ;
+		RC1 = RC ;
+		vcopy( "ZSEL", ZSEL, MOVE ) ;
+		if ( ZSEL == "EXIT" || RC1 == 8 )
+		{
+			vreplace( "ZSEL", "" ) ;
+			break ;
+		}
+		if ( ZSEL == "?" )
+		{
+			MSG = "PSYS016" ;
+			vreplace( "ZSEL", "" ) ;
+			continue ;
+		}
 
 		ispexec( "VGET (ZJDATE ZTIME) SHARED" ) ;
 		MSG  = "" ;
@@ -140,72 +156,8 @@ void PMAIN0A::application()
 				offset = 0 ;
 				create_calendar( pmonth, pyear ) ;
 			}
-			ZCMD = "" ;
 		}
-
-		if ( ZCMD == "" ) { continue ; }
-
-		command = get_select_cmd( ZCMD ) ;
-		if ( command == "" )
-		{
-			MSG = "PSYS016" ;
-			continue         ;
-		}
-
-		if ( findword( command, "END EXIT" ) ) { break ; }
-
-		w1 = word( command, 1 ) ;
-		ws = subword( command, 2 ) ;
-		vcopy( "ZTRAIL", ZTRAIL, MOVE ) ;
-		if ( w1 == "SELECT" )
-		{
-			if ( !SEL.parse( err, ws ) )
-			{
-				llog( "E", "Select command " << ws << " is invalid.  RC > 0 returned from parse" << endl ) ;
-				MSG = "PSYS017" ;
-				continue        ;
-			}
-			p1 = SEL.PARM.find( "&ZPARM" ) ;
-			if ( p1 != string::npos )
-			{
-				SEL.PARM.replace( p1, 6, ZCMD ) ;
-			}
-			if ( SEL.PGM == "&ZPANLPGM" && ZTRAIL != "" ) { SEL.PARM = SEL.PARM + " " + ZTRAIL ; }
-			if ( SEL.PGM[ 0 ] == '&' )
-			{
-				vcopy( SEL.PGM.erase( 0, 1 ), SEL.PGM, MOVE ) ;
-			}
-			select( SEL ) ;
-			ZCMD = "" ;
-			if ( RC > 4 )
-			{
-				llog( "E", "Select command " << command << " is invalid.  RC > 4 returned from select" << endl ) ;
-				MSG = "PSYS017" ;
-				continue        ;
-			}
-		}
-		else if ( w1 == "ACTION" )
-		{
-			if ( substr( ws, 1, 4 ) == "RUN(" )
-			{
-				p1   = pos( ")", ws, 5 ) ;
-				ZCMD = substr( ws, 5, p1-5 ) ;
-				ispexec( "CONTROL DISPLAY LOCK" ) ;
-				continue ;
-			}
-			else
-			{
-				llog( "E", ws << " in ACTION statement of panel PMAINP01 is invalid" << endl ) ;
-				MSG = "PSYS017" ;
-				continue        ;
-			}
-		}
-		else
-		{
-			llog( "E", w1 << " function of panel PMAINP01 is invalid" << endl ) ;
-			MSG = "PSYS017" ;
-		}
-		if ( ZCMD != "" ) { MSG = "PSYS011C" ; }
+		ZCMD = "" ;
 	}
 	cleanup() ;
 }
