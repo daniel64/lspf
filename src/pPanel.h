@@ -265,12 +265,12 @@ class pPanel
 		void   display_ab()       ;
 		void   display_fields()   ;
 
-		void  process_panel_stmnts( errblock& err, int ln, vector<panstmnt* >& stmnts ) ;
-		void  process_panel_assignment( errblock& err, int ln, ASSGN* assgn ) ;
-		void  process_panel_vputget( errblock& err, VPUTGET* vputget ) ;
-		void  process_panel_verify( errblock& err, int ln, VERIFY* verify ) ;
-		void  process_panel_if( errblock& err, int ln, IFSTMNT* ifstmnt ) ;
-		void  process_panel_if_cond( errblock& err, int ln, IFSTMNT* ifstmnt ) ;
+		void   process_panel_stmnts( errblock& err, int ln, vector<panstmnt* >& stmnts ) ;
+		void   process_panel_assignment( errblock& err, int ln, ASSGN* assgn ) ;
+		void   process_panel_vputget( errblock& err, VPUTGET* vputget ) ;
+		void   process_panel_verify( errblock& err, int ln, VERIFY* verify ) ;
+		void   process_panel_if( errblock& err, int ln, IFSTMNT* ifstmnt ) ;
+		void   process_panel_if_cond( errblock& err, int ln, IFSTMNT* ifstmnt ) ;
 		string process_panel_trunc( errblock& err, TRUNC* trunc ) ;
 		string process_panel_trans( errblock& err, int ln, TRANS* trans )  ;
 

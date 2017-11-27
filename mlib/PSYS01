@@ -18,13 +18,13 @@ PSYS015 'Window move pending' .TYPE=W
 ''
 
 PSYS016 'Invalid option' .TYPE=W
-'Enter one of the listed option'
+'Enter one of the listed options'
 
-PSYS017 'Invalid command in panel' .TYPE=W
-'Invalid command has been detected in panel )COMMAND section'
+PSYS017  'Enter option' .TYPE=N
+'Enter one of the listed options'
 
 PSYS018 'Invalid primary command' .TYPE=W
-'Invalid primary command has been entered.  See help for valid commands for this panel'
+'See help for valid commands for this panel'
 
 PSYS019 'Enter required field' .TYPE=W .W=NORESP
 'Enter data at cursor position'
@@ -143,7 +143,7 @@ PSYS012J 'Field does not support FIELDEXC' .TYPE=W
 PSYS012K 'Cursor not on a field' .TYPE=W
 'The cursor must be positioned on a field that supports field-level execution'
 
-PSYS012L '' .TYPE=W .W=N
+PSYS012L '' .TYPE=N .W=N
 'The message id of the last message was &ZMSGID'
 
 PSYS012M 'Invalid MSGID parameter' .TYPE=W
@@ -166,6 +166,6 @@ PSYS012Q 'Invalid value entered' .TYPE=W .W=NORESP
 PSYS012R 'Invalid .HIDE parameter' .TYPE=W
 'Valid .HIDE parameter is NULLS'
 
-PSYS012S 'Enter option' .TYPE=N
-'Enter one of the listed option'
+PSYS012S 'Spare' .TYPE=N
+'Spare'
 

@@ -3,6 +3,7 @@
 )COMMENT
 
 This is the selection panel for the SETTINGS MENU
+Dialogue variables for selection panels reside in the shared/profile pools
 
 )ENDCOMMENT
 
@@ -64,11 +65,11 @@ literal  16  16   NT   "Terminate Settings"
 
 )INIT
 .CURSOR = ZCMD
---&ZCMD   = &Z
+&ZPRIM  = YES
 
 )PROC
 IF ( &ZCMD EQ &Z )
-   .MSG    = PSYS012S
+   .MSG    = PSYS017
    .CURSOR = ZCMD
    EXIT
 

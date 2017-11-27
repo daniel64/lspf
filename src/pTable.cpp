@@ -1576,7 +1576,7 @@ void Table::cmdsearch( errblock& err,
 		       fPOOL& funcPOOL,
 		       const string& cmd )
 {
-	// cmdsearch is not part of the normal table services for application.
+	// cmdsearch is not part of the normal table services for applications.
 	// It's used for retrieving abbreviated commands from a command table.
 	// Use tbsarg/tbscan for normal applications
 

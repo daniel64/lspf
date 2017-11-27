@@ -183,6 +183,8 @@ string pPanel::getDialogueVar( errblock& err, const string& var )
 	//   PROFILE pool
 	// Function pool variables of type int are converted to string
 
+	// Selection panels do not use the function pool.  Retrieve from shared or profile pools only
+
 	// If the variable is not found, create a null implicit entry in the function pool
 
 	// RC =  0 Normal completion
@@ -191,6 +193,11 @@ string pPanel::getDialogueVar( errblock& err, const string& var )
 
 	string * p_str    ;
 	dataType var_type ;
+
+	if ( selectPanel )
+	{
+		return p_poolMGR->get( err, var, ASIS ) ;
+	}
 
 	var_type = p_funcPOOL->getType( err, var, NOCHECK ) ;
 	if ( err.error() ) { return "" ; }
@@ -209,6 +216,7 @@ string pPanel::getDialogueVar( errblock& err, const string& var )
 	else
 	{
 		p_str = p_poolMGR->vlocate( err, var ) ;
+		if ( err.error() ) { return "" ; }
 		switch ( err.getRC() )
 		{
 			case 0:
@@ -228,10 +236,20 @@ void pPanel::putDialogueVar( errblock& err, const string& var, const string& val
 	// Store data for a dialogue variable in the function pool.
 	// Creates an implicit function pool variable if one does not already exist.
 
+	// Selection panels do not use the function pool.  Put in SHARED or PROFILE
+	// wherever it resides in ( or SHARED if not found )
+
 	// RC =  0 Normal completion
 	// RC = 20 Severe error
 
-	p_funcPOOL->put( err, var, val ) ;
+	if ( selectPanel )
+	{
+		p_poolMGR->put( err, var, val, ASIS ) ;
+	}
+	else
+	{
+		p_funcPOOL->put( err, var, val ) ;
+	}
 }
 
 
@@ -337,6 +355,7 @@ void pPanel::display_panel( errblock& err )
 		wattrset( bwin, cuaAttr[ AWF ] ) ;
 		box( bwin, 0, 0 ) ;
 		winttl = getDialogueVar( err, "ZWINTTL" ) ;
+		if ( err.error() ) { return ; }
 		if ( winttl != "" )
 		{
 			winttl = " "+ winttl +" " ;
@@ -453,13 +472,17 @@ void pPanel::display_panel_update( errblock& err )
 	message_set = false ;
 
 	p_funcPOOL->put( err, "ZERRMSG", "" ) ;
+	if ( err.error() ) { return ; }
 
-	CMDVerb     = p_poolMGR->get( err, "ZVERB", SHARED ) ;
+	CMDVerb = p_poolMGR->get( err, "ZVERB", SHARED ) ;
+	if ( err.error() ) { return ; }
+
 	end_pressed = findword( CMDVerb, "END EXIT RETURN" ) ;
 
 	if ( pdActive && CMDVerb == "END" )
 	{
 		p_poolMGR->put( err, "ZVERB", "",  SHARED ) ;
+		if ( err.error() ) { return ; }
 		end_pressed = false ;
 	}
 
@@ -482,10 +505,13 @@ void pPanel::display_panel_update( errblock& err )
 			}
 		}
 		p_funcPOOL->put( err, it->first, it->second->field_value ) ;
+		if ( err.error() ) { return ; }
 	}
 
 	p_funcPOOL->put( err, "ZCURFLD", "" ) ;
+	if ( err.error() ) { return ; }
 	p_funcPOOL->put( err, "ZCURPOS", 1  ) ;
+	if ( err.error() ) { return ; }
 
 	tb_curidx = -1 ;
 
@@ -495,11 +521,12 @@ void pPanel::display_panel_update( errblock& err )
 		{
 			if ( it->second->field_dynArea )
 			{
-				it->second->field_remove_nulls_da()        ;
-				p        = it->first.find_first_of( '.' )  ;
-				fieldNam = it->first.substr( 0, p )        ;
+				it->second->field_remove_nulls_da() ;
+				p        = it->first.find( '.' )    ;
+				fieldNam = it->first.substr( 0, p ) ;
 				fieldNum = ds2d( it->first.substr( p+1 ) ) ;
 				darea    = p_funcPOOL->vlocate( err, fieldNam ) ;
+				if ( err.error() ) { return ; }
 				offset   = fieldNum*it->second->field_length      ;
 				if ( it->second->field_dynArea->dynArea_DataModsp )
 				{
@@ -508,19 +535,20 @@ void pPanel::display_panel_update( errblock& err )
 				darea->replace( offset, it->second->field_length, it->second->field_value ) ;
 				sname    = it->second->field_dynArea->dynArea_shadow_name ;
 				shadow   = p_funcPOOL->vlocate( err, sname ) ;
+				if ( err.error() ) { return ; }
 				shadow->replace( offset, it->second->field_length, it->second->field_shadow_value ) ;
 			}
 			else
 			{
 				it->second->field_prep_input() ;
 				it->second->field_set_caps()   ;
-				var_type = p_funcPOOL->getType( err, it->first ) ;
+				var_type = p_funcPOOL->getType( err, it->first, NOCHECK ) ;
+				if ( err.error() ) { return ; }
 				if ( err.RC0() && var_type == INTEGER )
 				{
 					if ( datatype( it->second->field_value, 'W' ) )
 					{
 						p_funcPOOL->put( err, it->first, ds2d( it->second->field_value ) ) ;
-						if ( err.error() ) { return ; }
 					}
 					else
 					{
@@ -528,11 +556,15 @@ void pPanel::display_panel_update( errblock& err )
 						set_cursor_cond( it->first )   ;
 					}
 				}
+				else if ( selectPanel )
+				{
+					p_poolMGR->put( err, it->first, it->second->field_value, ASIS ) ;
+				}
 				else
 				{
 					p_funcPOOL->put( err, it->first, it->second->field_value, NOCHECK ) ;
-					if ( err.error() ) { return ; }
 				}
+				if ( err.error() ) { return ; }
 			}
 		}
 		if ( it->second->field_active && it->second->cursor_on_field( p_row, p_col ) )
@@ -540,33 +572,41 @@ void pPanel::display_panel_update( errblock& err )
 			posn = p_col - it->second->field_col + 1 ;
 			if ( it->second->field_dynArea )
 			{
-				p        = it->first.find_first_of( '.' )   ;
-				fieldNam = it->first.substr( 0, p )         ;
+				p        = it->first.find( '.' )    ;
+				fieldNam = it->first.substr( 0, p ) ;
 				fieldNum = ds2d( it->first.substr( p+1 ) )  ;
 				p_funcPOOL->put( err, "ZCURFLD", fieldNam ) ;
+				if ( err.error() ) { return ; }
 				p_funcPOOL->put( err, "ZCURPOS", ( fieldNum*it->second->field_length + posn ) ) ;
+				if ( err.error() ) { return ; }
 				fieldNum++ ;
 			}
 			else
 			{
 				if ( it->second->field_tb )
 				{
-					p        = it->first.find_first_of( '.' )   ;
-					fieldNam = it->first.substr( 0, p )         ;
+					p        = it->first.find( '.' )    ;
+					fieldNam = it->first.substr( 0, p ) ;
 					p_funcPOOL->put( err, "ZCURFLD", fieldNam ) ;
+					if ( err.error() ) { return ; }
 					tb_curidx = ds2d( it->first.substr( p+1 ) ) ;
 				}
 				else
 				{
 					p_funcPOOL->put( err, "ZCURFLD", it->first ) ;
+					if ( err.error() ) { return ; }
 				}
 				p_funcPOOL->put( err, "ZCURPOS", posn ) ;
+				if ( err.error() ) { return ; }
 			}
 		}
 	}
 
 	p_poolMGR->put( err, "ZSCROLLA", "",  SHARED ) ;
+	if ( err.error() ) { return ; }
+
 	p_poolMGR->put( err, "ZSCROLLN", "0", SHARED ) ;
+	if ( err.error() ) { return ; }
 
 	if ( scrollOn && findword( CMDVerb, "UP DOWN LEFT RIGHT" ) )
 	{
@@ -581,6 +621,7 @@ void pPanel::display_panel_update( errblock& err )
 		{
 			cmd_setvalue( "" ) ;
 			p_funcPOOL->put( err, cmdField, "" )  ;
+			if ( err.error() ) { return ; }
 		}
 		if      ( tb_model )                          { scrollAmt = tb_depth  ; }
 		else if ( findword( CMDVerb, "LEFT RIGHT" ) ) { scrollAmt = dyn_width ; }
@@ -595,12 +636,15 @@ void pPanel::display_panel_update( errblock& err )
 			else
 			{
 				p_poolMGR->put( err, "ZSCROLLA", CMD, SHARED ) ;
+				if ( err.error() ) { return ; }
 				p_poolMGR->put( err, "ZSCROLLN", CMD, SHARED ) ;
+				if ( err.error() ) { return ; }
 			}
 		}
 		else if ( CMD[ 0 ] == 'M' )
 		{
 			p_poolMGR->put( err, "ZSCROLLA", "MAX", SHARED ) ;
+			if ( err.error() ) { return ; }
 		}
 		else if ( CMD[ 0 ] == 'C' )
 		{
@@ -624,22 +668,30 @@ void pPanel::display_panel_update( errblock& err )
 			{
 				p_poolMGR->put( err, "ZSCROLLN", d2ds( posn ), SHARED ) ;
 			}
+			if ( err.error() ) { return ; }
 			p_poolMGR->put( err, "ZSCROLLA", "CSR", SHARED ) ;
+			if ( err.error() ) { return ; }
 		}
 		else if ( CMD[ 0 ] == 'D' )
 		{
 			p_poolMGR->put( err, "ZSCROLLN", d2ds( scrollAmt ), SHARED ) ;
+			if ( err.error() ) { return ; }
 			p_poolMGR->put( err, "ZSCROLLA", "DATA", SHARED ) ;
+			if ( err.error() ) { return ; }
 		}
 		else if ( CMD[ 0 ] == 'H' )
 		{
 			p_poolMGR->put( err, "ZSCROLLN", d2ds( scrollAmt/2 ), SHARED ) ;
+			if ( err.error() ) { return ; }
 			p_poolMGR->put( err, "ZSCROLLA", "HALF", SHARED ) ;
+			if ( err.error() ) { return ; }
 		}
 		else
 		{
 			p_poolMGR->put( err, "ZSCROLLN", d2ds( scrollAmt ), SHARED ) ;
+			if ( err.error() ) { return ; }
 			p_poolMGR->put( err, "ZSCROLLA", "PAGE", SHARED ) ;
+			if ( err.error() ) { return ; }
 		}
 	}
 }
@@ -700,21 +752,18 @@ void pPanel::display_panel_proc( errblock& err, int ln )
 	map<string, field *>::iterator it;
 
 	err.setRC( 0 ) ;
-	process_panel_stmnts( err, ln, procstmnts ) ;
-	if ( err.error() ) { return ; }
 
 	fieldNam = p_funcPOOL->get( err, 0, "ZCURFLD" ) ;
+	if ( err.error() ) { return ; }
 	if ( fieldNam != "" )
 	{
 		it = fieldList.find( fieldNam ) ;
 		if ( it != fieldList.end() )
 		{
-			if ( it->second->field_cua == PS )
+			if ( it->second->field_cua == PS && pntsTable.count( fieldNam ) > 0 )
 			{
-				if ( pntsTable.count( fieldNam ) > 0 )
-				{
-					p_funcPOOL->put( err, pntsTable[ fieldNam ].pnts_var, pntsTable[ fieldNam ].pnts_val ) ;
-				}
+				putDialogueVar( err, pntsTable[ fieldNam ].pnts_var, pntsTable[ fieldNam ].pnts_val ) ;
+				if ( err.error() ) { return ; }
 			}
 		}
 	}
@@ -727,15 +776,19 @@ void pPanel::display_panel_proc( errblock& err, int ln )
 			if ( fieldNam == "" ) { break ; }
 			if ( pntsTable.count( fieldNam ) > 0 )
 			{
-				p_funcPOOL->put( err, pntsTable[ fieldNam ].pnts_var, pntsTable[ fieldNam ].pnts_val ) ;
+				putDialogueVar( err, pntsTable[ fieldNam ].pnts_var, pntsTable[ fieldNam ].pnts_val ) ;
+				if ( err.error() ) { return ; }
 			}
 			break ;
 		}
 	}
 
+	process_panel_stmnts( err, ln, procstmnts ) ;
+	if ( err.error() ) { return ; }
+
 	if ( selectPanel )
 	{
-		ZSEL = p_funcPOOL->get( err, 8, "ZSEL" ) ;
+		ZSEL = getDialogueVar( err, "ZSEL" ) ;
 		if ( err.error() ) { return ; }
 		if ( ZSEL != "" )
 		{
@@ -749,7 +802,8 @@ void pPanel::display_panel_proc( errblock& err, int ln )
 			{
 				idelword( ZSEL, p, 1 ) ;
 			}
-			p_funcPOOL->put( err, "ZSEL", ZSEL ) ;
+			putDialogueVar( err, "ZSEL", ZSEL ) ;
+			if ( err.error() ) { return ; }
 		}
 	}
 }
@@ -1318,15 +1372,44 @@ void pPanel::process_panel_assignment( errblock& err, int ln, ASSGN* assgn )
 		t = sub_vars( t ) ;
 	}
 
-	if      ( assgn->as_trans  )  { t = process_panel_trans( err, ln, assgn->as_trans ) ; }
-	else if ( assgn->as_trunc  )  { t = process_panel_trunc( err, assgn->as_trunc )     ; }
-	else if ( assgn->as_retlen )  { t = d2ds( t.size() )                 ; }
-	else if ( assgn->as_reverse ) { reverse( t.begin(), t.end() )        ; }
-	else if ( assgn->as_upper  )  { iupper( t )                          ; }
-	else if ( assgn->as_words  )  { t = d2ds( words( t ) )               ; }
-	else if ( assgn->as_chkexst ) { t = exists( t ) ? "1" : "0"          ; }
-	else if ( assgn->as_chkfile ) { t = is_regular_file( t ) ? "1" : "0" ; }
-	else if ( assgn->as_chkdir )  { t = is_directory( t )    ? "1" : "0" ; }
+	if ( assgn->as_trans )
+	{
+		t = process_panel_trans( err, ln, assgn->as_trans ) ;
+		if ( err.error() ) { return ; }
+	}
+	else if ( assgn->as_trunc )
+	{
+		t = process_panel_trunc( err, assgn->as_trunc ) ;
+		if ( err.error() ) { return ; }
+	}
+	else if ( assgn->as_retlen )
+	{
+		t = d2ds( t.size() ) ;
+	}
+	else if ( assgn->as_reverse )
+	{
+		reverse( t.begin(), t.end() ) ;
+	}
+	else if ( assgn->as_upper )
+	{
+		iupper( t ) ;
+	}
+	else if ( assgn->as_words )
+	{
+		t = d2ds( words( t ) ) ;
+	}
+	else if ( assgn->as_chkexst )
+	{
+		t = exists( t ) ? "1" : "0" ;
+	}
+	else if ( assgn->as_chkfile )
+	{
+		t = is_regular_file( t ) ? "1" : "0" ;
+	}
+	else if ( assgn->as_chkdir )
+	{
+		t = is_directory( t )    ? "1" : "0" ;
+	}
 	else if ( assgn->as_rhs.front() == '.' )
 	{
 		t = getControlVar( err, assgn->as_rhs ) ;
@@ -1638,6 +1721,7 @@ void pPanel::refresh_fields( const string& fields )
 		if ( fields != "*" && !findword( itf->first, fields ) ) { continue ; }
 		if ( itf->second->field_dynArea ) { continue ; }
 		itf->second->field_value = getDialogueVar( err, itf->first ) ;
+		if ( err.error() ) { return ; }
 		itf->second->field_prep_display() ;
 	}
 
@@ -1646,8 +1730,10 @@ void pPanel::refresh_fields( const string& fields )
 		if ( fields != "*" && !findword( itd->first, fields ) ) { continue ; }
 		k      = itd->second->dynArea_width ;
 		darea  = p_funcPOOL->vlocate( err, itd->first ) ;
+		if ( err.error() ) { return ; }
 		sname  = itd->second->dynArea_shadow_name ;
 		shadow = p_funcPOOL->vlocate( err, sname ) ;
+		if ( err.error() ) { return ; }
 		for ( int i = 0 ; i < itd->second->dynArea_depth ; i++ )
 		{
 			j   = i * itd->second->dynArea_width ;
@@ -1676,12 +1762,15 @@ void pPanel::refresh_fields()
 	map<string, dynArea *>::iterator itd ;
 
 	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
+	if ( err.error() ) { return ; }
 	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
+	if ( err.error() ) { return ; }
 
 	for ( itf = fieldList.begin() ; itf != fieldList.end() ; itf++ )
 	{
 		if ( itf->second->field_dynArea ) { continue ; }
 		itf->second->field_value = getDialogueVar( err, itf->first ) ;
+		if ( err.error() ) { return ; }
 		itf->second->field_prep_display() ;
 		itf->second->display_field( win, pad, snulls ) ;
 	}
@@ -1690,8 +1779,10 @@ void pPanel::refresh_fields()
 	{
 		k      = itd->second->dynArea_width ;
 		darea  = p_funcPOOL->vlocate( err, itd->first ) ;
+		if ( err.error() ) { return ; }
 		sname  = itd->second->dynArea_shadow_name ;
 		shadow = p_funcPOOL->vlocate( err, sname ) ;
+		if ( err.error() ) { return ; }
 		for ( int i = 0 ; i < itd->second->dynArea_depth ; i++ )
 		{
 			j   = i * itd->second->dynArea_width ;
@@ -1998,7 +2089,9 @@ void pPanel::display_fields()
 	map<string, field *>::iterator it;
 
 	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
+	if ( err.error() ) { return ; }
 	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
+	if ( err.error() ) { return ; }
 
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
@@ -2132,7 +2225,9 @@ void pPanel::field_setvalue( const string& f_name, const string& f_value )
 {
 	errblock err ;
 	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
+	if ( err.error() ) { return ; }
 	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
+	if ( err.error() ) { return ; }
 
 	map<string, field *>::iterator it ;
 
@@ -2249,6 +2344,7 @@ void pPanel::field_clear( const string& f_name )
 {
 	errblock err ;
 	char pad = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
+	if ( err.error() ) { return ; }
 
 	fieldList[ f_name ]->field_clear( win, pad ) ;
 }
@@ -2263,7 +2359,9 @@ void pPanel::field_edit( uint row, uint col, char ch, bool Isrt, bool& prot )
 	map<string, field *>::iterator it;
 
 	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
+	if ( err.error() ) { return ; }
 	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
+	if ( err.error() ) { return ; }
 
 	row   = row - win_row ;
 	col   = col - win_col ;
@@ -2315,7 +2413,10 @@ void pPanel::field_backspace( uint& row, uint& col, bool& prot )
 	errblock err ;
 
 	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
+	if ( err.error() ) { return ; }
 	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
+	if ( err.error() ) { return ; }
+
 	map<string, field *>::iterator it;
 
 	trow = row - win_row ;
@@ -2355,7 +2456,9 @@ void pPanel::field_delete_char( uint row, uint col, bool& prot )
 	map<string, field *>::iterator it ;
 
 	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
+	if ( err.error() ) { return ; }
 	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
+	if ( err.error() ) { return ; }
 
 	trow = row - win_row ;
 	tcol = col - win_col ;
@@ -2385,7 +2488,10 @@ void pPanel::field_erase_eof( uint row, uint col, bool& prot )
 	map<string, field *>::iterator it;
 
 	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
+	if ( err.error() ) { return ; }
 	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
+	if ( err.error() ) { return ; }
+
 	row = row - win_row ;
 	col = col - win_col ;
 
@@ -2559,11 +2665,13 @@ void pPanel::tb_set_linesChanged( string& asURID )
 		if ( it->second->field_changed )
 		{
 			URID = p_funcPOOL->get( err, 0, ".ZURID."+ d2ds( it->second->field_row - tb_row ), NOCHECK ) ;
+			if ( err.error() ) { return ; }
 			tb_linesChanged[ it->second->field_row - tb_row ] = URID ;
 		}
 		else if ( asURID != "" )
 		{
 			URID = p_funcPOOL->get( err, 0, ".ZURID."+ d2ds( it->second->field_row - tb_row ), NOCHECK ) ;
+			if ( err.error() ) { return ; }
 			if ( URID == asURID )
 			{
 				tb_linesChanged[ it->second->field_row - tb_row ] = URID ;
@@ -2594,6 +2702,7 @@ bool pPanel::tb_get_lineChanged( int& ln, string& URID )
 	URID = it->second ;
 
 	p_funcPOOL->put( err, "ZTDSELS", tb_linesChanged.size() ) ;
+	if ( err.error() ) { return  false ; }
 	return true ;
 }
 
@@ -2627,17 +2736,22 @@ void pPanel::display_tb_mark_posn()
 	errblock err ;
 
 	rows = p_funcPOOL->get( err, 0, INTEGER, "ZTDROWS" ) ;
+	if ( err.error() ) { return ; }
 	top  = p_funcPOOL->get( err, 0, INTEGER, "ZTDTOP"  ) ;
+	if ( err.error() ) { return ; }
 	size = rows - top + 1 ;
 	p_funcPOOL->put( err, "ZTDVROWS", size ) ;
+	if ( err.error() ) { return ; }
 
 	wattrset( win, WHITE ) ;
 	if ( size < tb_depth )
 	{
 		mark = p_funcPOOL->get( err, 8, "ZTDMARK" ) ;
+		if ( err.error() ) { return ; }
 		if ( err.RC8() )
 		{
 			mark = p_poolMGR->get( err, "ZTDMARK" ) ;
+			if ( err.error() ) { return ; }
 			if ( err.RC8() )
 			{
 				mark = centre( " Bottom of Data ", WSCRMAXW, '*' ) ;
@@ -2649,10 +2763,12 @@ void pPanel::display_tb_mark_posn()
 		}
 		mvwaddstr( win, tb_row + size, 0, mark.c_str() ) ;
 		p_funcPOOL->put( err, "ZTDVROWS", size ) ;
+		if ( err.error() ) { return ; }
 	}
 	else
 	{
 		p_funcPOOL->put( err, "ZTDVROWS", tb_depth ) ;
+		if ( err.error() ) { return ; }
 	}
 
 	posn = "" ;
@@ -2679,7 +2795,10 @@ void pPanel::set_tb_fields_act_inact()
 	errblock err ;
 
 	rows = p_funcPOOL->get( err, 0, INTEGER, "ZTDROWS" ) ;
+	if ( err.error() ) { return ; }
 	top  = p_funcPOOL->get( err, 0, INTEGER, "ZTDTOP"  ) ;
+	if ( err.error() ) { return ; }
+
 	size = rows - top + 1 ;
 
 	ws = words( tb_fields ) ;
@@ -2794,6 +2913,7 @@ void pPanel::set_panel_msg( slmsg t, const string& msgid )
 		return     ;
 	}
 	if ( p_poolMGR->get( err, ZSCRNUM, "ZSHMSGID" ) == "Y" ) { MSG.lmsg = msgid +" "+ MSG.lmsg ; }
+	if ( err.error() ) { return ; }
 	showLMSG = ( MSG.smsg == "" || MSG.lmsg == "" ) ;
 }
 
@@ -2851,6 +2971,7 @@ void pPanel::display_msg()
 	if ( MSGID != "PSYS012L" )
 	{
 		p_poolMGR->put( err, ZSCRNUM, "ZMSGID", MSGID ) ;
+		if ( err.error() ) { return ; }
 	}
 
 	if ( MSG.smsg != "" )

@@ -23,10 +23,8 @@
 /* Invoked as part of the SELECT PANEL(xxxx) service.  Panel name is          */
 /* passed as word 1 of parameter PARM and an optional selection as word 2.    */
 
-/* An invalid passed option will cause an error message but after a valid     */
-/* option is entered, the panel will not be re-displayed but to work properly */
-/* a null option has to display a message (PSYS012S) or the panel will        */
-/* end.  passthru can be changed to false after mesage PSYS016 to avoid this. */
+/* Note: Selection panels only use the shared and function pools so this      */
+/*       is where all panel variables reside (eg. ZSEL, ZCMD, etc)            */
 
 #include "../lspf.h"
 #include "../utilities.h"
@@ -62,8 +60,9 @@ void PDPANLA::application()
 	pan  = word( PARM, 1 ) ;
 	msg  = "" ;
 	ZCMD = subword( PARM, 2 ) ;
+	ZSEL = "" ;
 
-	vdefine( "ZCMD", &ZCMD ) ;
+	vdefine( "ZCMD ZSEL", &ZCMD, &ZSEL ) ;
 
 	if ( ZCMD != "" )
 	{
@@ -73,26 +72,29 @@ void PDPANLA::application()
 
 	while ( true )
 	{
+		vput( "ZCMD ZSEL", SHARED ) ;
 		display( pan, msg ) ;
 		RC1 = RC ;
 		msg = "" ;
-		vcopy( "ZSEL", ZSEL, MOVE ) ;
+		vget( "ZCMD ZSEL", SHARED ) ;
 		if ( ZSEL == "EXIT" || RC1 == 8 )
 		{
-			vreplace( "ZSEL", "" ) ;
+			ZSEL = "" ;
+			vput( "ZSEL", SHARED ) ;
 			break ;
 		}
 		if ( ZSEL == "?" )
 		{
-			msg = "PSYS016" ;
-			vreplace( "ZSEL", "" ) ;
-			continue ;
+			msg  = "PSYS016" ;
+			ZSEL = "" ;
+			continue  ;
 		}
-		if ( passthru ) { break ; }
+		if ( ZCMD == "" ) { continue ; }
+		if ( passthru )   { break    ; }
 		ZCMD = "" ;
 	}
 
-	vdelete( "ZCMD" ) ;
+	vdelete( "ZCMD ZSEL" ) ;
 	cleanup() ;
 }
 

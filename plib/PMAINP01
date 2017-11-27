@@ -240,11 +240,6 @@ IF (&W1 = 'DATE')
       .MSG    = PSYS011O
       .CURSOR = ZCMD
 
-IF ( &ZCMD EQ &Z )
-   .MSG    = PSYS012S
-   .CURSOR = ZCMD
-   EXIT
-
 &ZOPT = TRUNC( &ZCMD,'.' )
 &ZSEL = TRANS( &ZOPT
                0,'PANEL(PPSET0A) NEWAPPL  PASSLIB'

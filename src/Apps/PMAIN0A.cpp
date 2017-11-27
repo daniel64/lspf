@@ -69,7 +69,7 @@ void PMAIN0A::application()
 
 	ZAHELP = "HPMAIN1" ;
 
-	vdefine( "ZCMD ZDATEL ZJDATE ZTIME ZSCRNAME", &ZCMD, &ZDATEL, &ZJDATE, &ZTIME, &ZSCRNAME ) ;
+	vdefine( "ZCMD ZSEL ZDATEL ZJDATE ZTIME ZSCRNAME", &ZCMD, &ZSEL, &ZDATEL, &ZJDATE, &ZTIME, &ZSCRNAME ) ;
 	vdefine( "ZAREA ZSHADOW", &ZAREA, &ZSHADOW ) ;
 
 	ZSCRNAME = "MAIN" ;
@@ -88,18 +88,20 @@ void PMAIN0A::application()
 
 	while ( true )
 	{
+		ispexec( "VPUT (ZCMD ZSEL) SHARED" ) ;
 		ispexec( "DISPLAY PANEL("+pan+") MSG("+MSG+") CURSOR(ZCMD)" ) ;
 		RC1 = RC ;
-		vcopy( "ZSEL", ZSEL, MOVE ) ;
+		ispexec( "VGET (ZCMD ZSEL) SHARED" ) ;
 		if ( ZSEL == "EXIT" || RC1 == 8 )
 		{
-			vreplace( "ZSEL", "" ) ;
+			ZSEL = "" ;
+			ispexec( "VPUT ZSEL SHARED" ) ;
 			break ;
 		}
 		if ( ZSEL == "?" )
 		{
-			MSG = "PSYS016" ;
-			vreplace( "ZSEL", "" ) ;
+			MSG  = "PSYS016" ;
+			ZSEL = "" ;
 			continue ;
 		}
 

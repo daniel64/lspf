@@ -692,8 +692,8 @@ string pApplication::get_ZSEL()
 {
 	string ZSEL ;
 
-	ZSEL = funcPOOL.get( errBlock, 0, "ZSEL" ) ;
-	funcPOOL.put( errBlock, "ZSEL", "" ) ;
+	ZSEL = p_poolMGR->get( errBlock, "ZSEL" ) ;
+	p_poolMGR->put( errBlock, "ZSEL", "" ) ;
 
 	return ZSEL ;
 }
@@ -3649,6 +3649,10 @@ void pApplication::info()
 	if ( PASSLIB )
 	{
 		llog( "-", "Application started with PASSLIB option"<< endl ) ;
+	}
+	if ( selPanel )
+	{
+		llog( "-", "Application started with SELECT PANEL"<< endl ) ;
 	}
 	if ( NEWPOOL )
 	{

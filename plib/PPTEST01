@@ -62,17 +62,16 @@ literal  16  22    NT   "Terminate Dialogue Services"
 )INCLUDE HLP_PDC
 
 )INIT
- .CURSOR = ZCMD
- &ZCMD   = &Z
+.CURSOR = ZCMD
 
 )PROC
 IF ( &ZCMD EQ &Z )
-   .MSG    = PSYS012S
+   .MSG    = PSYS017
    .CURSOR = ZCMD
    EXIT
 
-&ZCMD = TRUNC( &ZCMD,'.' )
-&ZSEL = TRANS( &ZCMD
+&ZOPT = TRUNC( &ZCMD,'.' )
+&ZSEL = TRANS( &ZOPT
                0,'PGM(PTEST01) PARM(0)'
                1,'PGM(PTEST01) PARM(1)'
                2,'PGM(PTEST01) PARM(2)'
