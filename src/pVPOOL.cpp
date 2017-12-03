@@ -533,7 +533,7 @@ void pVPOOL::put( errblock& err,
 	{
 		if ( it->second->pVAR_type != pV_VALUE )
 		{
-			err.seterrid( "PSYE015D" ) ;
+			err.seterrid( "PSYE015D", name ) ;
 			return ;
 		}
 		if ( it->second->pVAR_system && vtype != SYSTEM )
@@ -570,7 +570,7 @@ void pVPOOL::put( errblock& err,
 
 	if ( v_it->second->pVAR_type != pV_VALUE )
 	{
-		err.seterrid( "PSYE015D" ) ;
+		err.seterrid( "PSYE015D", v_it->first ) ;
 		return ;
 	}
 
@@ -707,7 +707,7 @@ void pVPOOL::erase( errblock& err,
 
 	if ( v_it->second->pVAR_system )
 	{
-		err.seterrid( "PSYE015E", 12 ) ;
+		err.seterrid( "PSYE015E", v_it->first, 12 ) ;
 		return ;
 	}
 
@@ -719,7 +719,7 @@ void pVPOOL::erase( errblock& err,
 
 	if ( v_it->second->pVAR_type != pV_VALUE )
 	{
-		err.seterrid( "PSYE015D" ) ;
+		err.seterrid( "PSYE015D", v_it->first ) ;
 		return ;
 	}
 

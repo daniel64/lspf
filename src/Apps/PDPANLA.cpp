@@ -23,8 +23,11 @@
 /* Invoked as part of the SELECT PANEL(xxxx) service.  Panel name is          */
 /* passed as word 1 of parameter PARM and an optional selection as word 2.    */
 
-/* Note: Selection panels only use the shared and function pools so this      */
-/*       is where all panel variables reside (eg. ZSEL, ZCMD, etc)            */
+/* Note: Selection panels only use the shared and profile pools so this       */
+/*       is where all panel variables reside (eg. ZSEL, ZCMD, ZPRIM, etc)     */
+
+/* Don't passthrough if the selection panel is defined as a primary panel     */
+/* ADDPOP is accepted but does not do anything at present                     */
 
 #include "../lspf.h"
 #include "../utilities.h"
@@ -48,21 +51,31 @@ using namespace std ;
 
 void PDPANLA::application()
 {
-	int RC1     ;
+	int RC1 ;
+	int p   ;
 
 	bool passthru = false ;
+	bool addpop   = false ;
 
-	string pan  ;
-	string msg  ;
-	string ZCMD ;
-	string ZSEL ;
+	string pan   ;
+	string msg   ;
+	string ZCMD  ;
+	string ZSEL  ;
+	string ZPRIM ;
+
+	p = wordpos( "ADDPOP", PARM ) ;
+	if ( p > 0 )
+	{
+		idelword( PARM, p, 1 ) ;
+		addpop = true ;
+	}
 
 	pan  = word( PARM, 1 ) ;
 	msg  = "" ;
 	ZCMD = subword( PARM, 2 ) ;
 	ZSEL = "" ;
 
-	vdefine( "ZCMD ZSEL", &ZCMD, &ZSEL ) ;
+	vdefine( "ZCMD ZSEL ZPRIM", &ZCMD, &ZSEL, &ZPRIM ) ;
 
 	if ( ZCMD != "" )
 	{
@@ -76,8 +89,8 @@ void PDPANLA::application()
 		display( pan, msg ) ;
 		RC1 = RC ;
 		msg = "" ;
-		vget( "ZCMD ZSEL", SHARED ) ;
-		if ( ZSEL == "EXIT" || RC1 == 8 )
+		vget( "ZCMD ZSEL ZPRIM", SHARED ) ;
+		if ( ZSEL  == "EXIT" || RC1 == 8 )
 		{
 			ZSEL = "" ;
 			vput( "ZSEL", SHARED ) ;
@@ -89,12 +102,16 @@ void PDPANLA::application()
 			ZSEL = "" ;
 			continue  ;
 		}
-		if ( ZCMD == "" ) { continue ; }
-		if ( passthru )   { break    ; }
+		if ( ZCMD == "" )
+		{
+			if ( ZPRIM != "YES" ) { msg = "PSYS017" ; }
+			continue ;
+		}
+		if ( passthru && ZPRIM != "YES" ) { break ; }
 		ZCMD = "" ;
 	}
 
-	vdelete( "ZCMD ZSEL" ) ;
+	vdelete( "ZCMD ZSEL ZPRIM" ) ;
 	cleanup() ;
 }
 

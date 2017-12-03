@@ -117,7 +117,7 @@ class pApplication
 		bool   isRawOutput() { return rawOutput ; }
 
 		string get_search_path( s_paths ) ;
-		string get_ZSEL()                 ;
+		string get_zsel()                 ;
 		string get_dTRAIL()               ;
 		selobj get_select_cmd() { return SELCT ; }
 		string get_help_member( int, int ) ;
@@ -281,7 +281,6 @@ class pApplication
 		void get_message( const string& )  ;
 		int  check_message_id( const string& ) ;
 		bool load_message( const string& ) ;
-		bool parse_message( slmsg & )    ;
 		bool sub_message_vars( slmsg & ) ;
 		void set_screenName() ;
 

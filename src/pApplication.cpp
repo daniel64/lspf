@@ -285,9 +285,15 @@ void pApplication::setTestMode()
 
 void pApplication::restore_Zvars( int screenid )
 {
+	// Restore various variables after application has terminated
+
 	errblock err ;
 
-	if ( currPanel ) { currPanel->update_keylist_vars() ; }
+	if ( currPanel )
+	{
+		currPanel->update_keylist_vars() ;
+		p_poolMGR->put( err, "ZPRIM", currPanel->get_zprim(), SHARED ) ;
+	}
 
 	if ( p_poolMGR->get( err, screenid, "ZSCRNAM2" ) == "PERM" )
 	{
@@ -688,7 +694,7 @@ void pApplication::set_screenName()
 }
 
 
-string pApplication::get_ZSEL()
+string pApplication::get_zsel()
 {
 	string ZSEL ;
 
@@ -2757,6 +2763,8 @@ void pApplication::actionSelect()
 	// RC =  0  Normal completion of the selection panel or function.  END was entered.
 	// RC =  4  Normal completion.  RETURN was entered or EXIT specified on the selection panel
 
+	// If the application has abended, propogate back.
+
 	RC       = 0     ;
 	SEL      = true  ;
 	busyAppl = false ;
@@ -2767,6 +2775,13 @@ void pApplication::actionSelect()
 
 	SEL = false   ;
 	SELCT.clear() ;
+
+	if ( abnormalEnd )
+	{
+		llog( "E", "Percolating abend to calling application.  Taskid: "<< taskId <<endl ) ;
+		errPanelissued = true ;
+		abend() ;
+	}
 }
 
 
@@ -3129,6 +3144,7 @@ bool pApplication::load_message( const string& p_msg )
 
 	int i  ;
 	int j  ;
+
 	char c ;
 
 	string p_msg_fn ;
@@ -3137,10 +3153,10 @@ bool pApplication::load_message( const string& p_msg )
 	string paths    ;
 	string tmp      ;
 	string msgid    ;
+	string smsg     ;
+	string lmsg     ;
 
-	bool lcontinue  ;
-
-	map<string,bool>MMsgs ;
+	bool lcontinue = false ;
 
 	slmsg t ;
 
@@ -3150,7 +3166,7 @@ bool pApplication::load_message( const string& p_msg )
 
 	i = check_message_id( p_msg ) ;
 
-	if ( i == 0 || ((p_msg.size() - i) > 3 && !isalpha( p_msg.back()) ) )
+	if ( i == 0 || ( p_msg.size() - i > 3 && !isalpha( p_msg.back() ) ) )
 	{
 		RC = 12 ;
 		checkRCode( "Message-id format invalid (1): "+ p_msg ) ;
@@ -3182,10 +3198,10 @@ bool pApplication::load_message( const string& p_msg )
 		return false ;
 	}
 
-	msgid  = ""    ;
-	t.smsg = ""    ;
-	t.lmsg = ""    ;
-	t.cont = false ;
+	msgid = "" ;
+	smsg  = "" ;
+	lmsg  = "" ;
+	tmp   = "" ;
 
 	std::ifstream messages( filename.c_str() ) ;
 	if ( !messages.is_open() )
@@ -3198,36 +3214,34 @@ bool pApplication::load_message( const string& p_msg )
 	while ( getline( messages, mline ) )
 	{
 		trim( mline ) ;
-		if ( mline == "" || mline[ 0 ] == '*' ) { continue ; }
-		if ( mline.compare( 0, 2, "/*" ) == 0 ) { continue ; }
+		if ( mline == "" || mline.front() == '*' ) { continue ; }
+		if ( mline.compare( 0, 2, "/*" ) == 0 )    { continue ; }
 		if ( mline.compare( 0, p_msg_fn.size(), p_msg_fn ) == 0 )
 		{
 			if ( msgid != "" )
 			{
-				if ( t.cont || !parse_message( t ) )
+				if ( lcontinue || !t.parse( smsg, lmsg ) )
 				{
 					RC = 12 ;
 					messages.close() ;
 					checkRCode( "Error (1) in message-id "+ msgid ) ;
 					return false ;
 				}
-				if ( MMsgs.count( msgid ) > 0 )
+				if ( msgList.count( msgid ) > 0 )
 				{
 					RC = 20 ;
 					messages.close() ;
 					checkRCode( "Duplicate message-id found: "+ msgid ) ;
 					return false ;
 				}
-				trim_right( t.smsg )    ;
-				trim_right( t.lmsg )    ;
-				msgList[ msgid ] = t    ;
-				MMsgs[ msgid ]   = true ;
+				msgList[ msgid ] = t ;
 			}
-			msgid  = word( mline, 1 )    ;
-			t.smsg = subword( mline, 2 ) ;
-			t.lmsg = "" ;
+			msgid = word( mline, 1 )    ;
+			smsg  = subword( mline, 2 ) ;
+			lmsg  = "" ;
+			tmp   = "" ;
 			i = check_message_id( msgid ) ;
-			if ( i == 0 || ((msgid.size() - i) > 3 && !isalpha( msgid.back()) ) )
+			if ( i == 0 || ( msgid.size() - i > 3 && !isalpha( msgid.back() ) ) )
 			{
 				RC = 12 ;
 				checkRCode( "Message-id format invalid (2): "+ msgid ) ;
@@ -3236,19 +3250,18 @@ bool pApplication::load_message( const string& p_msg )
 		}
 		else
 		{
-			if ( msgid == "" || ( t.lmsg != "" && !t.cont ) )
+			if ( msgid == "" || ( lmsg != "" && !lcontinue ) )
 			{
 				RC = 12 ;
 				messages.close() ;
 				checkRCode( "Extraeneous data: "+ mline ) ;
 				return false ;
 			}
-			lcontinue = false ;
-			if ( mline.back() == '+' )
+			lcontinue = ( mline.back() == '+' ) ;
+			if ( lcontinue )
 			{
 				mline.pop_back() ;
 				trim( mline )    ;
-				lcontinue = true ;
 			}
 			c = mline.front() ;
 			if ( c == '\'' || c == '"' )
@@ -3274,15 +3287,14 @@ bool pApplication::load_message( const string& p_msg )
 				}
 				tmp = mline ;
 			}
-			t.cont ? t.lmsg = t.lmsg + " " + tmp : t.lmsg = tmp ;
-			if ( t.lmsg.size() > 512 )
+			lmsg = ( lmsg != "" ) ? lmsg + " " + tmp : tmp ;
+			if ( lmsg.size() > 512 )
 			{
 				RC = 12 ;
 				messages.close() ;
 				checkRCode( "Long message size exceeds 512 bytes for message-id "+ msgid ) ;
 				return false ;
 			}
-			t.cont = lcontinue ;
 		}
 	}
 	if ( messages.bad() )
@@ -3294,24 +3306,22 @@ bool pApplication::load_message( const string& p_msg )
 	}
 	messages.close() ;
 
-	if ( t.smsg != "" )
+	if ( smsg != "" )
 	{
-		if ( t.cont || !parse_message( t ) )
+		if ( lcontinue || !t.parse( smsg, lmsg ) )
 		{
 			RC = 12 ;
 			messages.close() ;
 			checkRCode( "Error (4) in message-id "+ msgid ) ;
 			return false ;
 		}
-		if ( MMsgs.count( msgid ) > 0 )
+		if ( msgList.count( msgid ) > 0 )
 		{
 			RC = 20 ;
 			messages.close() ;
 			checkRCode( "Duplicate message-id found: "+ msgid ) ;
 			return false ;
 		}
-		trim_right( t.smsg ) ;
-		trim_right( t.lmsg ) ;
 		msgList[ msgid ] = t ;
 	}
 
@@ -3321,168 +3331,6 @@ bool pApplication::load_message( const string& p_msg )
 		checkRCode( "Message-id "+ p_msg +" not found in message file "+ p_msg_fn ) ;
 		return false ;
 	}
-	return true ;
-}
-
-
-bool pApplication::parse_message( slmsg& t )
-{
-	// Parse message and fill the slmsg object.  Long message already processed at this stage.
-
-	// .TYPE overrides .WINDOW and .ALARM
-
-	int p1 ;
-	int p2 ;
-	int ln ;
-
-	char c ;
-
-	string rest ;
-	string tmp  ;
-
-	t.hlp   = ""    ;
-	t.type  = IMT   ;
-	t.smwin = false ;
-	t.lmwin = false ;
-	t.resp  = false ;
-	t.alm   = false ;
-
-	c = t.smsg.front() ;
-	if ( c == '\'' || c == '"' )
-	{
-		p1 = t.smsg.find_last_of( c ) ;
-		if ( p1 == string::npos ) { return false ; }
-		rest   = substr( t.smsg, p1+2 )   ;
-		t.smsg = t.smsg.substr( 1, p1-1 ) ;
-		dquote( c, t.smsg ) ;
-	}
-	else
-	{
-		if ( t.smsg[ 0 ] == '.' )
-		{
-			rest   = t.smsg ;
-			t.smsg = ""     ;
-		}
-		else
-		{
-			rest   = subword( t.smsg, 2 ) ;
-			t.smsg = word( t.smsg, 1 )    ;
-		}
-	}
-
-	p1 = pos( ".HELP=", rest ) ;
-	if ( p1 == 0 )
-	{
-		p1 = pos( ".H=", rest ) ;
-		ln = 3 ;
-	}
-	else
-	{
-		ln = 6 ;
-	}
-	if ( p1 > 0 )
-	{
-		p2 = pos( " ", rest, p1 ) ;
-		if ( p2 == 0 ) { t.hlp = substr( rest, p1+ln )           ; rest = delstr( rest, p1 )        ; }
-		else           { t.hlp = substr( rest, p1+ln, p2-p1-ln ) ; rest = delstr( rest, p1, p2-p1 ) ; }
-		if ( t.hlp.size() == 0 ) { return false ; }
-		if ( t.hlp[ 0 ] == '&')
-		{
-			t.hlp.erase( 0, 1 ) ;
-			if ( !isvalidName( t.hlp ) ) { return false ; }
-			t.dvhlp = t.hlp ;
-		}
-	}
-
-	p1 = pos( ".WINDOW=", rest ) ;
-	if ( p1 == 0 )
-	{
-		p1 = pos( ".W=", rest ) ;
-		ln = 3 ;
-	}
-	else
-	{
-		ln = 8 ;
-	}
-	if ( p1 > 0 )
-	{
-		t.lmwin = true ;
-		p2 = pos( " ", rest, p1 ) ;
-		if ( p2 == 0 ) { tmp = substr( rest, p1+ln )           ; rest = delstr( rest, p1 )        ; }
-		else           { tmp = substr( rest, p1+ln, p2-p1-ln ) ; rest = delstr( rest, p1, p2-p1 ) ; }
-		if ( tmp.size() == 0 ) { return false ; }
-		if ( tmp[ 0 ] == '&')
-		{
-			tmp.erase( 0, 1 ) ;
-			if ( !isvalidName( tmp ) ) { return false ; }
-			t.dvwin = tmp ;
-		}
-		else if ( tmp == "RESP"    || tmp == "R"  ) { t.smwin = true  ; t.resp = true ; }
-		else if ( tmp == "NORESP"  || tmp == "N"  ) { t.smwin = true  ; }
-		else if ( tmp == "LRESP"   || tmp == "LR" ) { t.resp  = true  ; }
-		else if ( tmp == "LNORESP" || tmp == "LN" ) {                   }
-		else    { return false  ; }
-	}
-
-	p1 = pos( ".ALARM=", rest ) ;
-	if ( p1 == 0 )
-	{
-		p1 = pos( ".A=", rest ) ;
-		ln = 3 ;
-	}
-	else
-	{
-		ln = 7 ;
-	}
-	if ( p1 > 0 )
-	{
-		p2 = pos( " ", rest, p1 ) ;
-		if ( p2 == 0 ) { tmp = substr( rest, p1+ln )           ; rest = delstr( rest, p1 )        ; }
-		else           { tmp = substr( rest, p1+ln, p2-p1-ln ) ; rest = delstr( rest, p1, p2-p1 ) ; }
-		if ( tmp.size() == 0 ) { return false ; }
-		if ( tmp[ 0 ] == '&')
-		{
-			tmp.erase( 0, 1 ) ;
-			if ( !isvalidName( tmp ) ) { return false ; }
-			t.dvalm = tmp ;
-		}
-		else if ( tmp == "YES" ) { t.alm = true  ; }
-		else if ( tmp == "NO"  ) { t.alm = false ; }
-		else                     { return false  ; }
-	}
-
-	p1 = pos( ".TYPE=", rest ) ;
-	if ( p1 == 0 )
-	{
-		p1 = pos( ".T=", rest ) ;
-		ln = 3 ;
-	}
-	else
-	{
-		ln = 6 ;
-	}
-	if ( p1 > 0 )
-	{
-		p2 = pos( " ", rest, p1 ) ;
-		if ( p2 == 0 ) { tmp = substr( rest, p1+ln )           ; rest = delstr( rest, p1 )        ; }
-		else           { tmp = substr( rest, p1+ln, p2-p1-ln ) ; rest = delstr( rest, p1, p2-p1 ) ; }
-		if ( tmp.size() == 0 ) { return false ; }
-		if ( tmp[ 0 ] == '&')
-		{
-			tmp.erase( 0, 1 ) ;
-			if ( !isvalidName( tmp ) ) { return false ; }
-			t.dvtype = tmp ;
-		}
-		else if ( tmp == "N" ) { t.type = IMT ; t.alm = false ; }
-		else if ( tmp == "W" ) { t.type = WMT ; t.alm = true  ; }
-		else if ( tmp == "A" ) { t.type = AMT ; t.alm = true  ; }
-		else if ( tmp == "C" ) { t.type = AMT ; t.alm = true  ; t.resp = true ; t.smwin = true ; t.lmwin = true ; }
-		else                   { return false                 ; }
-	}
-
-	if ( trim( rest ) != "" ) { return false ; }
-
-	if ( t.smwin && t.smsg != "" ) { t.lmsg = t.smsg +" - "+ t.lmsg ; }
 	return true ;
 }
 
@@ -3650,10 +3498,6 @@ void pApplication::info()
 	{
 		llog( "-", "Application started with PASSLIB option"<< endl ) ;
 	}
-	if ( selPanel )
-	{
-		llog( "-", "Application started with SELECT PANEL"<< endl ) ;
-	}
 	if ( NEWPOOL )
 	{
 		llog( "-", "Application started with NEWPOOL option"<< endl ) ;
@@ -3749,6 +3593,7 @@ void pApplication::checkRCode( const string& s )
 		vreplace( "ZERRRC", d2ds( RC1 ) ) ;
 		ControlDisplayLock  = false ;
 		ControlErrorsReturn = true  ;
+		selPanel           = false ;
 		if ( addpop_active ) { rempop( "ALL" ) ; }
 		display( "PSYSER1" )  ;
 		errPanelissued = true ;
@@ -3845,6 +3690,7 @@ void pApplication::checkRCode( errblock err )
 	}
 	ControlDisplayLock  = false ;
 	ControlErrorsReturn = true  ;
+	selPanel            = false ;
 	if ( addpop_active ) { rempop( "ALL" ) ; }
 	errBlock.clear() ;
 	display( "PSYSER2" )  ;
@@ -3913,6 +3759,7 @@ void pApplication::uabend( const string& msgid, const string& e1, int callno )
 	vreplace( "ZERR3",  "" ) ;
 	ControlDisplayLock  = false ;
 	ControlErrorsReturn = true  ;
+	selPanel            = false ;
 	display( "PSYSER2" ) ;
 	if ( RC <= 8 ) { errPanelissued = true ; }
 	abnormalEnd   = true  ;

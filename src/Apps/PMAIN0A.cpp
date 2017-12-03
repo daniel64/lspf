@@ -102,7 +102,7 @@ void PMAIN0A::application()
 		{
 			MSG  = "PSYS016" ;
 			ZSEL = "" ;
-			continue ;
+			continue  ;
 		}
 
 		ispexec( "VGET (ZJDATE ZTIME) SHARED" ) ;

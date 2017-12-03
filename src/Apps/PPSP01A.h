@@ -76,6 +76,7 @@ class PPSP01A : public pApplication
 		void lspfSettings()   ;
 		void pfkeySettings()  ;
 		void colourSettings() ;
+		void globalColours()  ;
 		int  setScreenAttrs( const string&, int, string, string, string ) ;
 		void setISPSVar( const string&, string ) ;
 		void todoList()       ;

@@ -448,6 +448,14 @@ void createSYSPROF()
 	p_poolMGR->put( err, "ZRFNEX", "YES", PROFILE ) ;
 	p_poolMGR->put( err, "ZRFMOD", "BRT", PROFILE ) ;
 
+	p_poolMGR->put( err, "ZGCLB", "B", PROFILE ) ;
+	p_poolMGR->put( err, "ZGCLR", "R", PROFILE ) ;
+	p_poolMGR->put( err, "ZGCLM", "M", PROFILE ) ;
+	p_poolMGR->put( err, "ZGCLG", "G", PROFILE ) ;
+	p_poolMGR->put( err, "ZGCLT", "T", PROFILE ) ;
+	p_poolMGR->put( err, "ZGCLY", "Y", PROFILE ) ;
+	p_poolMGR->put( err, "ZGCLW", "W", PROFILE ) ;
+
 	setCUAcolours( "AB",   KAB   ) ;
 	setCUAcolours( "ABSL", KABSL ) ;
 	setCUAcolours( "ABU",  KABU  ) ;
@@ -540,6 +548,6 @@ void setCUAcolours( const string& var, const string& val )
 		cout << "ERROR:: Invalid colour hilight of " << val[2] << " in setting " << var << endl ;
 	}
 
-	p_poolMGR->put( err, var1, val, PROFILE )   ;
+	p_poolMGR->put( err, var1, val, PROFILE ) ;
 }
 

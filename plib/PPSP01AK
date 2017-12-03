@@ -112,7 +112,12 @@ ELSE                &ZZMSG = &Z
 
 IF ( &ZCMD = RES,RESET) &ZCMD = DEFAULTS
 
-&ZCMD = TRANS( &ZCMD CAN,CANCEL DEF,DEFAULTS *,* )
+&ZCMD = TRANS( &ZCMD
+               CAN,CANCEL
+               DEF,DEFAULTS
+               *,*
+             )
+
 VER (&ZCMD LIST,CANCEL,DEFAULTS,SAVE )
 
 )END

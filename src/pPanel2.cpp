@@ -27,7 +27,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 {
 	int i  ;
 	int j  ;
-	int k  ;
 	int p1 ;
 	int p2 ;
 	int pVersion ;
@@ -89,6 +88,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		}
 		if ( w1 == ")PANEL" )
 		{
+			iupper( pline ) ;
 			i = pos( " VERSION=", pline ) ;
 			j = pos( " FORMAT=", pline )  ;
 			if ( i == 0 || j == 0 )
@@ -100,19 +100,23 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			pVersion = ds2d( word( substr( pline, i+9 ), 1 ) ) ;
 			pFormat  = ds2d( word( substr( pline, j+8 ), 1 ) ) ;
 			llog( "I", "Panel format " << pFormat << " Panel version " << pVersion << endl ) ;
-			i = pos( " KEYLIST(", pline ) ;
-			if ( i > 0 )
+			ws = parseString( err, pline, "KEYLIST()" ) ;
+			if ( err.error() )
 			{
-				j = pos( ",", pline, i ) ;
-				k = pos( ")", pline, i ) ;
-				if ( j == 0 || k == 0 || j > k )
+				err.setsrc( oline ) ;
+				return ;
+			}
+			if ( ws != "" )
+			{
+				j = ws.find( ',' ) ;
+				if ( j == string::npos )
 				{
 					err.seterrid( "PSYE011B" ) ;
 					err.setsrc( oline ) ;
 					return ;
 				}
-				KEYLISTN = strip( pline.substr( i+8, j-i-9 ) ) ;
-				KEYAPPL  = strip( pline.substr( j, k-j-1 ) )   ;
+				KEYLISTN = strip( ws.substr( 0, j ) ) ;
+				KEYAPPL  = strip( ws.substr( j+1  ) ) ;
 				if ( !isvalidName( KEYLISTN ) || !isvalidName4( KEYAPPL ) )
 				{
 					err.seterrid( "PSYE011C" ) ;
@@ -124,19 +128,17 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		}
 		if ( w1 == ")BODY" )
 		{
+			idelword( pline, 1, 1 ) ;
 			iupper( pline ) ;
-			j = pos( " WINDOW(", pline ) ;
-			if ( j > 0 )
+			ws = parseString( err, pline, "WINDOW()" ) ;
+			if ( err.error() )
 			{
-				k  = pos( ")", pline, j ) ;
-				if ( k == 0 )
-				{
-					err.seterrid( "PSYE011D" ) ;
-					err.setsrc( oline ) ;
-					return ;
-				}
-				ws = substr( pline, j+8, k-j-8 ) ;
-				j  = ws.find( ',' )       ;
+				err.setsrc( oline ) ;
+				return ;
+			}
+			if ( ws != "" )
+			{
+				j = ws.find( ',' ) ;
 				if ( j == string::npos )
 				{
 					err.seterrid( "PSYE011D" ) ;
@@ -167,17 +169,15 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				WSCRMAXW = win_width ;
 				WSCRMAXD = win_depth ;
 			}
-			j = pos( " CMD(", pline ) ;
-			if ( j > 0 )
+			ws = parseString( err, pline, "CMD()" ) ;
+			if ( err.error() )
 			{
-				k  = pos( ")", pline, j ) ;
-				if ( k == 0 )
-				{
-					err.seterrid( "PSYE011D" )  ;
-					err.setsrc( oline ) ;
-					return ;
-				}
-				cmdField = strip( substr( pline, j+5, k-j-5 ) ) ;
+				err.setsrc( oline ) ;
+				return ;
+			}
+			if ( ws != "" )
+			{
+				cmdField = ws ;
 				if ( !isvalidName( cmdField ) )
 				{
 					err.seterrid( "PSYE022J", "COMMAND field", cmdField ) ;
@@ -185,17 +185,15 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 					return ;
 				}
 			}
-			j = pos( " HOME(", pline ) ;
-			if ( j > 0 )
+			ws = parseString( err, pline, "HOME()" ) ;
+			if ( err.error() )
 			{
-				k = pos( ")", pline, j ) ;
-				if ( k == 0 )
-				{
-					err.seterrid( "PSYE011D" )  ;
-					err.setsrc( oline ) ;
-					return ;
-				}
-				Home = strip( substr( pline, j+6, k-j-6 ) ) ;
+				err.setsrc( oline ) ;
+				return ;
+			}
+			if ( ws != "" )
+			{
+				Home = ws ;
 				if ( !isvalidName( Home ) )
 				{
 					err.seterrid( "PSYE022J", "HOME field", Home ) ;
@@ -203,17 +201,15 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 					return ;
 				}
 			}
-			j = pos( " SCROLL(", pline ) ;
-			if ( j > 0 )
+			ws = parseString( err, pline, "SCROLL()" ) ;
+			if ( err.error() )
 			{
-				k = pos( ")", pline, j ) ;
-				if ( k == 0 )
-				{
-					err.seterrid( "PSYE011D" )  ;
-					err.setsrc( oline ) ;
-					return ;
-				}
-				scroll = strip( substr( pline, j+8, k-j-8 ) ) ;
+				err.setsrc( oline ) ;
+				return ;
+			}
+			if ( ws != "" )
+			{
+				scroll = ws ;
 				if ( !isvalidName( scroll ) )
 				{
 					err.seterrid( "PSYE022J", "SCROLL field", scroll ) ;
@@ -221,15 +217,21 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 					return ;
 				}
 			}
+			if ( pline != "" )
+			{
+				err.seterrid( "PSYE032H", pline ) ;
+				err.setsrc( oline ) ;
+				return ;
+			}
 			body = true ;
 			continue ;
 		}
-		else if ( w1 == ")PROC" )    { proc    = true ; continue ; }
-		else if ( w1 == ")INIT" )    { init    = true ; continue ; }
-		else if ( w1 == ")REINIT" )  { reinit  = true ; continue ; }
-		else if ( w1 == ")HELP" )    { help    = true ; continue ; }
-		else if ( w1 == ")PNTS" )    { ispnts  = true ; continue ; }
-		else if ( w1 == ")FIELD" )   { isfield = true ; continue ; }
+		else if ( w1 == ")PROC" )   { proc    = true ; continue ; }
+		else if ( w1 == ")INIT" )   { init    = true ; continue ; }
+		else if ( w1 == ")REINIT" ) { reinit  = true ; continue ; }
+		else if ( w1 == ")HELP" )   { help    = true ; continue ; }
+		else if ( w1 == ")PNTS" )   { ispnts  = true ; continue ; }
+		else if ( w1 == ")FIELD" )  { isfield = true ; continue ; }
 
 		if ( init || reinit || proc )
 		{
@@ -330,7 +332,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			case ST_GOTO:
 				m_stmnt->ps_goto = true ;
 				tx = panelLang.getToken( 1 ) ;
-				if ( tx.type != TT_VAR_VALID )
+				if ( tx.subtype != TS_NAME )
 				{
 					err.seterrid( "PSYE041Z", tx.value ) ;
 					err.setsrc( oline ) ;
@@ -363,16 +365,18 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 
 		if ( help )
 		{
-			i = pos( " FIELD(", " "+ pline ) ;
-			j = 0 ;
-			if ( i > 0 ) { j = pos( ")", pline, i ) ; }
-			if ( i == 0 || j == 0 )
+			fld = parseString( err, pline, "FIELD()" ) ;
+			if ( err.error() )
+			{
+				err.setsrc( oline ) ;
+				return ;
+			}
+			if ( fld == "" )
 			{
 				err.seterrid( "PSYE042A" ) ;
 				err.setsrc( oline ) ;
 				return ;
 			}
-			fld = strip( substr( pline, i+6, j-i-6 ) ) ;
 			if ( !isvalidName( fld ) )
 			{
 				err.seterrid( "PSYE042B", fld ) ;
@@ -386,15 +390,18 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				return ;
 			}
 
-			i = pos( " HELP(", pline ) ;
-			if ( i > 0 ) { j = pos( ")", pline, i ) ; }
-			if ( i == 0 || j == 0 )
+			hlp = parseString( err, pline, "HELP()" ) ;
+			if ( err.error() )
+			{
+				err.setsrc( oline ) ;
+				return ;
+			}
+			if ( hlp == "" )
 			{
 				err.seterrid( "PSYE042A" ) ;
 				err.setsrc( oline ) ;
 				return ;
 			}
-			hlp = strip( substr( pline, i+6, j-i-6 ) ) ;
 			if ( !isvalidName( hlp ) )
 			{
 				err.seterrid( "PSYE042D", hlp ) ;
@@ -443,71 +450,35 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		if ( isfield )
 		{
 			fieldExc t_fe ;
-			i = pos( "FIELD(", pline ) ;
-			j = 0 ;
-			if ( i > 0 )
+			t_fe.parse( err, pline ) ;
+			if ( err.error() )
 			{
-				j = pos( ")", pline, i ) ;
-				if ( j > 0 )
-				{
-					t1 = strip( substr( pline, i+6, j-i-6 ) ) ;
-					if ( fieldList.find( t1 ) == fieldList.end() )
-					{
-						err.seterrid( "PSYE042E", t1 ) ;
-						err.setsrc( oline ) ;
-						return ;
-					}
-				}
-			}
-			if ( i == 0 || j == 0 )
-			{
-				err.seterrid( "PSYE042G" ) ;
 				err.setsrc( oline ) ;
 				return ;
 			}
-			i = pos( "EXEC('", pline ) ;
-			if ( i > 0 )
+			if ( fieldList.count( t_fe.fieldExc_field ) == 0 )
 			{
-				j = pos( "')", pline, i ) ;
-				if ( j > 0 )
-				{
-					t2 = strip( substr( pline, i+6, j-i-6 ) ) ;
-					t_fe.fieldExc_command = t2 ;
-				}
-			}
-			if ( i == 0 || j == 0 )
-			{
-				err.seterrid( "PSYE042H" ) ;
+				err.seterrid( "PSYE042E", t_fe.fieldExc_field ) ;
 				err.setsrc( oline ) ;
 				return ;
-			}
-			i = pos( "PASS(", pline ) ;
-			if ( i > 0 )
-			{
-				j = pos( ")", pline, i ) ;
-				if ( j > 0 )
-				{
-					t2 = strip( substr( pline, i+5, j-i-5 ) ) ;
-					t_fe.fieldExc_passed = t2 ;
-				}
 			}
 			for ( j = words( t_fe.fieldExc_passed ), i = 1 ; i <= j ; i++ )
 			{
 				ww = word( t_fe.fieldExc_passed, i ) ;
 				if ( fieldList.find( ww ) == fieldList.end() )
 				{
-					err.seterrid( "PSYE042I", ww, t1 ) ;
+					err.seterrid( "PSYE042I", ww, t_fe.fieldExc_field ) ;
 					err.setsrc( oline ) ;
 					return ;
 				}
 			}
-			if ( fieldExcTable.find( t1 ) != fieldExcTable.end() )
+			if ( fieldExcTable.count( t_fe.fieldExc_field ) > 0 )
 			{
-				err.seterrid( "PSYE042J", t1 ) ;
+				err.seterrid( "PSYE042J", t_fe.fieldExc_field ) ;
 				err.setsrc( oline ) ;
 				return ;
 			}
-			fieldExcTable[ t1 ] = t_fe ;
+			fieldExcTable[ t_fe.fieldExc_field ] = t_fe ;
 			continue ;
 		}
 
@@ -517,7 +488,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			err.setsrc( oline ) ;
 			return ;
 		}
-		else if ( w1 == "PANELTITLE" )
+		if ( w1 == "PANELTITLE" )
 		{
 			panelTitle = strip( strip( subword( pline, 2 ) ), 'B', '"' ) ;
 			continue ;
@@ -661,9 +632,9 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				err.setsrc( oline ) ;
 				return ;
 			}
+			scrollOn = true      ;
 			tb_model = true      ;
 			tb_row   = start_row ;
-			scrollOn = true      ;
 			t1 = subword( pline, 4 ) ;
 			t2 = parseString( err, t1, "ROWS()" ) ;
 			if ( err.error() )
@@ -781,7 +752,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 	set_panel_userptr( panel, new panel_data( ZSCRNUM ) ) ;
 
 	PANELID = p_name ;
-	debug1( "Panel loaded and processed successfully" << endl ) ;
 	return ;
 }
 
@@ -849,6 +819,7 @@ void pPanel::readPanel( errblock& err, vector<string>& src, const string& name, 
 			continue ;
 		}
 		w1 = upper( word( pline, 1 ) ) ;
+		if ( w1.compare( 0, 2, "--" ) == 0 || w1.front() == '#' ) { continue ; }
 		w2 = word( pline, 2 ) ;
 		w3 = word( pline, 3 ) ;
 		if ( w2 == "=" && w3.compare( 0, 5, "TRANS" ) == 0 && pline.back() != ')' )
@@ -857,7 +828,6 @@ void pPanel::readPanel( errblock& err, vector<string>& src, const string& name, 
 			temp  = pline ;
 			continue      ;
 		}
-		if ( w1.compare( 0, 2, "--" ) == 0 || w1.front() == '#' ) { continue ; }
 		if ( w1 == ")END" )        { break                      ; }
 		if ( w1 == ")COMMENT" )    { comment = true  ; continue ; }
 		if ( w1 == ")ENDCOMMENT" ) { comment = false ; continue ; }
@@ -907,16 +877,11 @@ void pPanel::createPanel_If( errblock& err, parser& v, panstmnt* m_stmnt, bool i
 
 	switch ( v.getStatementType() )
 	{
-	case ST_EOF:
-		break ;
-
-	case ST_VGET:
-	case ST_VPUT:
-		createPanel_Vputget( err, v, m_stmnt ) ;
-		break ;
-
 	case ST_ASSIGN:
 		createPanel_Assign( err, v, m_stmnt ) ;
+		break ;
+
+	case ST_EOF:
 		break ;
 
 	case ST_REFRESH:
@@ -945,6 +910,11 @@ void pPanel::createPanel_If( errblock& err, parser& v, panstmnt* m_stmnt, bool i
 
 	case ST_VERIFY:
 		createPanel_Verify( err, v, m_stmnt ) ;
+		break ;
+
+	case ST_VGET:
+	case ST_VPUT:
+		createPanel_Vputget( err, v, m_stmnt ) ;
 		break ;
 
 	case ST_IF:
@@ -1035,12 +1005,12 @@ void pPanel::createPanel_Else( errblock& err, parser& v, panstmnt* m_stmnt, vect
 
 	case ST_GOTO:
 		t = v.getToken( 1 ) ;
-		m_stmnt->ps_goto = true ;
 		if ( !isvalidName( t.value ) )
 		{
 			err.seterrid( "PSYE041Z", t.value ) ;
 			break ;
 		}
+		m_stmnt->ps_goto  = true ;
 		m_stmnt->ps_label = t.value ;
 		break ;
 
@@ -1123,12 +1093,25 @@ void pPanel::createPanel_Refresh( errblock& err, parser& v, panstmnt* m_stmnt )
 	v.getFirstToken() ;
 	v.getNextToken()  ;
 
-	if ( v.getNextIfCurrent( TT_OPEN_BRACKET ) )
+	if ( v.getNextIfCurrent( TS_OPEN_BRACKET ) )
 	{
 		while ( true )
 		{
+			if ( v.getNextIfCurrent( TS_COMMA ) )
+			{
+				continue ;
+			}
+			else if ( v.getNextIfCurrent( TS_CLOSE_BRACKET ) )
+			{
+				if ( m_stmnt->ps_rlist == "" )
+				{
+					err.seterrid( "PSYE031G" ) ;
+					return ;
+				}
+				break ;
+			}
 			t = v.getCurrentToken() ;
-			if ( v.getNextIfCurrent( TT_VAR_VALID ) )
+			if ( t.subtype == TS_NAME )
 			{
 				if ( fieldList.count( t.value ) == 0 )
 				{
@@ -1140,7 +1123,7 @@ void pPanel::createPanel_Refresh( errblock& err, parser& v, panstmnt* m_stmnt )
 					m_stmnt->ps_rlist += " " + t.value ;
 				}
 			}
-			else if ( v.getNextIfCurrent( TT_STRING_UNQUOTED ) )
+			else
 			{
 				if ( t.value != "*" )
 				{
@@ -1149,45 +1132,30 @@ void pPanel::createPanel_Refresh( errblock& err, parser& v, panstmnt* m_stmnt )
 				}
 				m_stmnt->ps_rlist = "*" ;
 			}
-			if ( v.getNextIfCurrent( TT_COMMA ) )
-			{
-				continue ;
-			}
-			else if ( v.getNextIfCurrent( TT_CLOSE_BRACKET ) )
-			{
-				break ;
-			}
-			else
-			{
-				err.seterrid( "PSYE041V" ) ;
-				return ;
-			}
+			v.getNextToken() ;
 		}
 	}
 	else
 	{
 		t = v.getCurrentToken() ;
-		if ( v.getNextIfCurrent( TT_VAR_VALID ) )
+		if ( t.subtype == TS_NAME )
 		{
-			m_stmnt->ps_rlist = t.value ;
-		}
-		else if ( v.getNextIfCurrent( TT_STRING_UNQUOTED ) )
-		{
-			if ( t.value != "*" )
+			if ( fieldList.count( t.value ) == 0 )
 			{
-				err.seterrid( "PSYE041V" ) ;
+				err.seterrid( "PSYE041X", t.value ) ;
 				return ;
 			}
-			m_stmnt->ps_rlist = "*" ;
 		}
-		else
+		else if ( t.value != "*" )
 		{
-			err.seterrid( "PSYE041V" ) ;
+			err.seterrid( "PSYE041W", t.value ) ;
 			return ;
 		}
+		m_stmnt->ps_rlist = t.value ;
+		v.getNextToken() ;
 	}
 
-	if ( !v.isCurrentType( TT_EOF ) )
+	if ( !v.isCurrentType( TT_EOT ) )
 	{
 		t = v.getCurrentToken() ;
 		err.seterrid( "PSYE032H", t.value ) ;

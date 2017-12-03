@@ -1,0 +1,161 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+)ENDCOMMENT
+)BODY WINDOW(78,24)
+
+PanelTitle "Global Colours"
+
+literal   4   2   FP "Command ===> "
+field    4  15  MAX  NEF CAPS(ON),PAD(USER) ZCMD
+
+literal  7   2   CH "lspf default colours"
+
+literal  9   2   FP  "Blue . . . ."
+field    9   15  6  NEF CAPS(ON),PAD(USER) COLOUR01
+
+literal  10  2   FP  "Red. . . . ."
+field    10  15  6  NEF CAPS(ON),PAD(USER) COLOUR02
+
+literal  11  2   FP  "Magenta. . ."
+field    11  15  6  NEF CAPS(ON),PAD(USER) COLOUR03
+
+literal  12  2   FP  "Green. . . ."
+field    12  15  6  NEF CAPS(ON),PAD(USER) COLOUR04
+
+literal  13  2   FP  "Turquoise. ."
+field    13  15  6  NEF CAPS(ON),PAD(USER) COLOUR05
+
+literal  14  2   FP  "Yellow . . ."
+field    14  15  6  NEF CAPS(ON),PAD(USER) COLOUR06
+
+literal  15  2   FP  "White. . . ."
+field    15  15  6  NEF CAPS(ON),PAD(USER) COLOUR07
+
+literal  18  2    CH "Instructions"
+
+literal  20  2     PIN "Enter first letter of the colour or blank field for default colour"
+literal  22  2     PIN "Enter"
+literal  22  8     PS  "Defaults"
+literal  22  17    PIN "to restore global colours to their original"
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)INIT
+&ZCMD   = &Z
+.CURSOR = COLOUR01
+
+.ATTR(COLOUR01) = 'COLOUR(BLUE)'
+.ATTR(COLOUR02) = 'COLOUR(RED)'
+.ATTR(COLOUR03) = 'COLOUR(MAGENTA)'
+.ATTR(COLOUR04) = 'COLOUR(GREEN)'
+.ATTR(COLOUR05) = 'COLOUR(TURQ)'
+.ATTR(COLOUR06) = 'COLOUR(YELLOW)'
+.ATTR(COLOUR07) = 'COLOUR(WHITE)'
+
+)PROC
+&ZCMD = TRANS( &ZCMD DEF,DEFAULTS
+                     DEFAULT,DEFAULTS
+                     DEFAULTS,DEFAULTS
+                     &Z,&Z
+                     MSG=PSYS018
+             )
+
+IF ( &ZCMD EQ 'DEFAULTS' )
+   &COLOUR01 = &Z
+   &COLOUR02 = &Z
+   &COLOUR03 = &Z
+   &COLOUR04 = &Z
+   &COLOUR05 = &Z
+   &COLOUR06 = &Z
+   &COLOUR07 = &Z
+   EXIT
+
+&COLOUR01 = TRANS( TRUNC( &COLOUR01, 1 ) ,
+                   B,BLUE
+                   R,RED
+                   M,MAGENTA
+                   G,GREEN
+                   T,TURQ
+                   Y,YELLOW
+                   W,WHITE
+                   &Z,&Z
+                   MSG=PPSP016
+                 )
+
+&COLOUR02 = TRANS( TRUNC( &COLOUR02, 1 ) ,
+                   B,BLUE
+                   R,RED
+                   M,MAGENTA
+                   G,GREEN
+                   T,TURQ
+                   Y,YELLOW
+                   W,WHITE
+                   &Z,&Z
+                   MSG=PPSP016
+                 )
+
+&COLOUR03 = TRANS( TRUNC( &COLOUR03, 1 ) ,
+                   B,BLUE
+                   R,RED
+                   M,MAGENTA
+                   G,GREEN
+                   T,TURQ
+                   Y,YELLOW
+                   W,WHITE
+                   &Z,&Z
+                   MSG=PPSP016
+                 )
+
+&COLOUR04 = TRANS( TRUNC( &COLOUR04, 1 ) ,
+                   B,BLUE
+                   R,RED
+                   M,MAGENTA
+                   G,GREEN
+                   T,TURQ
+                   Y,YELLOW
+                   W,WHITE
+                   &Z,&Z
+                   MSG=PPSP016
+                 )
+
+&COLOUR05 = TRANS( TRUNC( &COLOUR05, 1 ) ,
+                   B,BLUE
+                   R,RED
+                   M,MAGENTA
+                   G,GREEN
+                   T,TURQ
+                   Y,YELLOW
+                   W,WHITE
+                   &Z,&Z
+                   MSG=PPSP016
+                 )
+
+&COLOUR06 = TRANS( TRUNC( &COLOUR06, 1 ) ,
+                   B,BLUE
+                   R,RED
+                   M,MAGENTA
+                   G,GREEN
+                   T,TURQ
+                   Y,YELLOW
+                   W,WHITE
+                   &Z,&Z
+                   MSG=PPSP016
+                 )
+
+&COLOUR07 = TRANS( TRUNC( &COLOUR07, 1 ) ,
+                   B,BLUE
+                   R,RED
+                   M,MAGENTA
+                   G,GREEN
+                   T,TURQ
+                   Y,YELLOW
+                   W,WHITE
+                   &Z,&Z
+                   MSG=PPSP016
+                 )
+
+)PNTS
+FIELD(ZPS01001) VAR(ZCMD) VAL(DEFAULTS)
+
+)END

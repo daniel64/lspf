@@ -117,8 +117,13 @@ string& ilower( string& s ) ;
 string  upper( string s ) ;
 string  lower( string s ) ;
 
+string& idelstr( string& s, unsigned int n )  ;
+string& idelstr( string& s, unsigned int n, unsigned int l ) ;
+
 string& idelword( string& s, unsigned int w ) ;
 string& idelword( string& s, unsigned int w, unsigned int n ) ;
+
+string& istrip( string& s, char opt = 'B', char c = ' ' ) ;
 
 bool   isnumeric( const string& s ) ;
 string d2size( int )          ;

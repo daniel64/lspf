@@ -130,6 +130,9 @@ PSYE033S 'Panel control variable &ZVAL1 cannot be set by the dialogue'
 PSYE033T 'Missing parameter after the ''='' sign'
 ''
 
+PSYE033U 'Unknown function &ZVAL1'
+''
+
 /* VPUT/VGET */
 
 PSYE033Y 'Invalid VPUT or VGET statement'
@@ -189,8 +192,8 @@ PSYE037A 'Missing keyword'
 PSYE037F 'Null string'
 'Null string has been passed to parser'
 
-PSYE037G 'Too many brackets'
-'String contains too many open or close brackets'
+PSYE037G 'Spare'
+'Spare'
 
 PSYE037H 'Format error'
 'Format of the string to be parsed is invalid'
@@ -212,7 +215,10 @@ PSYE038E 'Value missing in TRUNC statement'
 ''
 
 PSYE038F 'Invalid value in TRUNC statement'
-'&ZVAL1 is invalid'
+'&ZVAL1 is invalid.  Must be a single character or numeric'
+
+PSYE038G 'Invalid TRUNC statement'
+'.TRAIL not allowed in a TRUNC statement'
 
 /* TRANS */
 

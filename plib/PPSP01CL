@@ -209,7 +209,8 @@ literal  34   2   CT "program will overwrite these variables"
                      SAV,SAVE
                      SAVE,SAVE
                      &Z,&Z
-                     MSG=PPSP015 )
+                     MSG=PPSP015
+             )
 
 )PNTS
 FIELD(ZPS01001) VAR(ZCMD) VAL(DEFAULTS)

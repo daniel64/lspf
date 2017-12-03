@@ -975,6 +975,31 @@ string lower( string s )
 
 
 
+string& idelstr( string& s, unsigned int n )
+{
+	if ( n > s.length() ) { return s ; }
+
+	return s.erase( n - 1 ) ;
+}
+
+
+
+string& idelstr( string& s, unsigned int n, unsigned int l )
+{
+	if ( n > s.length() ) { return s ; }
+
+	if ( (n + l) > s.length() )
+	{
+		return s.erase( n - 1 ) ;
+	}
+	else
+	{
+		return s.erase( n - 1, l ) ;
+	}
+}
+
+
+
 string& idelword( string& s, unsigned int w )
 {
 	// Delete word w to end of string in-place and return reference
@@ -1030,6 +1055,21 @@ string& idelword( string& s, unsigned int w, unsigned int n )
 		if ( j == string::npos ) { return s.erase( i, k-i ) ; }
 	}
 	return s.erase( i, k-i ) ;
+}
+
+
+
+string& istrip( string& s, char opt, char c )
+{
+	if ( (opt == 'B') || (opt == 'L') )
+	{
+		s.erase( 0, s.find_first_not_of( c ) ) ;
+	}
+	if ( (opt == 'B') || (opt == 'T') )
+	{
+		s.erase( s.find_last_not_of( c ) + 1 ) ;
+	}
+	return s ;
 }
 
 
@@ -1437,9 +1477,9 @@ string parseString( errblock& err, string& s, string p )
 			if ( ob == 0 ) { break ; }
 		}
 	}
-	if ( ob != 0 )
+	if ( ob > 0 )
 	{
-		err.seterrid( "PSYE037G" ) ;
+		err.seterrid( "PSYE032D" ) ;
 		return "" ;
 	}
 	if ( p2 < s.size()-1 && s.at( p2+1 ) != ' ' )

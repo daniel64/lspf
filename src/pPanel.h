@@ -86,6 +86,8 @@ class pPanel
 
 		string get_keylist( int ) ;
 
+		const string& get_zprim() { return ZPRIM ; }
+
 	private:
 		string Home        ;
 		string scroll      ;
@@ -102,6 +104,7 @@ class pPanel
 		bool   REXX        ;
 		string ZPHELP      ;
 		string ZZCMD       ;
+		string ZPRIM       ;
 		string tb_fields   ;
 		string tb_clear    ;
 		int    tb_depth    ;

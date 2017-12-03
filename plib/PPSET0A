@@ -9,7 +9,7 @@ Dialogue variables for selection panels reside in the shared/profile pools
 
 )BODY
 
-PanelTitle "Settings/Information Panel"
+PanelTitle "Primary Settings and Information Panel"
 
 literal  4    2       FP  "Command ===> "
 field    4   15   MAX  NEF     CAPS(ON),PAD(USER)  ZCMD
@@ -22,43 +22,47 @@ field    7   MAX-14    8    VOI   NONE  ZTIME
 
 literal  6   2    SAC  "0"
 literal  6   5    PS   "General"
-literal  6   16   NT   "Display and alter general lspf option settings"
+literal  6   17   NT   "Display and alter general lspf option settings"
 
 literal  7   2    SAC  "1"
 literal  7   5    PS   "PF Keys"
-literal  7   16   NT   "Display and alter function key settings"
+literal  7   17   NT   "Display and alter function key settings"
 
 literal  8   2    SAC  "2"
-literal  8   5    PS   "Colours"
-literal  8   16   NT   "Display and alter screen colours"
+literal  8   5    PS   "CUA Colours"
+literal  8   17   NT   "Display and alter screen colours"
 
 literal  9   2    SAC  "3"
-literal  9   5    PS   "Commands"
-literal  9   16   NT   "Display command tables"
+literal  9   5    PS   "Colours"
+literal  9   17   NT   "Display and alter lspf global colours"
 
 literal  10  2    SAC  "4"
-literal  10  5    PS   "Paths"
-literal  10  16   NT   "Display search paths and LIBDEF status"
+literal  10  5    PS   "Commands"
+literal  10  17   NT   "Display command tables"
 
 literal  11  2    SAC  "5"
-literal  11  5    PS   "Variables"
-literal  11  16   NT   "Display and delete shared and profile pool variables"
+literal  11  5    PS   "Paths"
+literal  11  17   NT   "Display search paths and LIBDEF status"
 
 literal  12  2    SAC  "6"
-literal  12  5    PS   "Modules"
-literal  12  16   NT   "Display/Reload Application Modules"
+literal  12  5    PS   "Variables"
+literal  12  17   NT   "Display and delete shared and profile pool variables"
 
 literal  13  2    SAC  "7"
-literal  13  5    PS   "Programs"
-literal  13  16   NT   "View/change utility programs"
+literal  13  5    PS   "Modules"
+literal  13  17   NT   "Display/Reload Application Modules"
 
-literal  15  2    SAC  "T"
-literal  15  5    PS   "Tutorial"
-literal  15  16   NT   "Start Tutorial"
+literal  14  2    SAC  "8"
+literal  14  5    PS   "Programs"
+literal  14  17   NT   "View/change utility programs"
 
-literal  16  2    SAC  "X"
-literal  16  5    PS   "Terminate"
-literal  16  16   NT   "Terminate Settings"
+literal  16  2    SAC  "T"
+literal  16  5    PS   "Tutorial"
+literal  16  17   NT   "Start Tutorial"
+
+literal  17  2    SAC  "X"
+literal  17  5    PS   "Terminate"
+literal  17  17   NT   "Terminate Settings"
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
@@ -68,20 +72,16 @@ literal  16  16   NT   "Terminate Settings"
 &ZPRIM  = YES
 
 )PROC
-IF ( &ZCMD EQ &Z )
-   .MSG    = PSYS017
-   .CURSOR = ZCMD
-   EXIT
-
-&ZOPT = TRUNC( &ZCMD,'.' )
-&ZSEL = TRANS( &ZOPT 0,'PGM(PPSP01A) PARM(GOPTS)   NEWPOOL SCRNAME(SETTINGS)'
+&ZSEL = TRANS( TRUNC( &ZCMD,'.' ) ,
+                     0,'PGM(PPSP01A) PARM(GOPTS)   NEWPOOL SCRNAME(SETTINGS)'
                      1,'PGM(PPSP01A) PARM(KEYS)    NEWPOOL SCRNAME(PFKEYS)'
                      2,'PGM(PPSP01A) PARM(COLOURS) NEWPOOL SCRNAME(CUA)'
-                     3,'PGM(PPSP01A) PARM(CMDS)    NEWPOOL SCRNAME(COMMANDS)'
-                     4,'PGM(PPSP01A) PARM(PATHS)   NEWPOOL SCRNAME(PATHS)'
-                     5,'PGM(PPSP01A) PARM(VARS)    SCRNAME(VARS)'
-                     6,'PGM(PPSP01A) PARM(MODS)    NEWPOOL SCRNAME(MODULES)'
-                     7,'PGM(PPSP01A) PARM(UTPGMS)  NEWPOOL SCRNAME(UTILS)'
+                     3,'PGM(PPSP01A) PARM(GCL)     NEWPOOL SCRNAME(CUA)'
+                     4,'PGM(PPSP01A) PARM(CMDS)    NEWPOOL SCRNAME(COMMANDS)'
+                     5,'PGM(PPSP01A) PARM(PATHS)   NEWPOOL SCRNAME(PATHS)'
+                     6,'PGM(PPSP01A) PARM(VARS)    SCRNAME(VARS)'
+                     7,'PGM(PPSP01A) PARM(MODS)    NEWPOOL SCRNAME(MODULES)'
+                     8,'PGM(PPSP01A) PARM(UTPGMS)  NEWPOOL SCRNAME(UTILS)'
                      T,'PGM(&ZHELPPGM) PARM(T)'
                      X,EXIT
                     &Z,&Z

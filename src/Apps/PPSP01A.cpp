@@ -102,6 +102,7 @@ void PPSP01A::application()
 	else if ( PARM == "GOPTS"   ) { lspfSettings()       ; }
 	else if ( PARM == "KEYS"    ) { pfkeySettings()      ; }
 	else if ( PARM == "COLOURS" ) { colourSettings()     ; }
+	else if ( PARM == "GCL"     ) { globalColours()      ; }
 	else if ( PARM == "TODO"    ) { todoList()           ; }
 	else if ( w1   == "VARS"    ) { poolVariables( w2 )  ; }
 	else if ( PARM == "PATHS"   ) { showPaths()          ; }
@@ -1241,6 +1242,64 @@ void PPSP01A::colourSettings()
 			if ( RC > 0 ) { llog( "E", "Colour/intense/hilite change for field " << var3 << " has failed." << endl ) ; }
 		}
 	}
+}
+
+
+void PPSP01A::globalColours()
+{
+	int i ;
+
+	string colour ;
+	string var    ;
+	string val    ;
+
+	map<int, string> tab1 = { { 1, "B" } ,
+				  { 2, "R" } ,
+				  { 3, "M" } ,
+				  { 4, "G" } ,
+				  { 5, "T" } ,
+				  { 6, "Y" } ,
+				  { 7, "W" } } ;
+
+	map<string, string> tab2 = { { "B", "BLUE"    } ,
+				     { "R", "RED"     } ,
+				     { "M", "MAGENTA" } ,
+				     { "G", "GREEN"   } ,
+				     { "T", "TURQ"    } ,
+				     { "Y", "YELLOW"  } ,
+				     { "W", "WHITE"   } } ;
+
+	reloadCUATables = true ;
+
+	for ( i = 1 ; i < 8 ; i++ )
+	{
+		var = "ZGCL" + tab1[ i ] ;
+		vcopy( var, colour, MOVE ) ;
+		if ( colour == tab1[ i ] )
+		{
+			vreplace( "COLOUR"+ right( d2ds( i ), 2, '0'), "" ) ;
+		}
+		else
+		{
+			vreplace( "COLOUR"+ right( d2ds( i ), 2, '0'), tab2[ colour ] ) ;
+		}
+	}
+
+	addpop( "", 5, 5 ) ;
+	while ( true )
+	{
+		display( "PPSP01CR" ) ;
+		if (RC == 8 ) { cleanup() ; break  ; }
+		for ( i = 1 ; i < 8 ; i++ )
+		{
+			vcopy( "COLOUR"+ right( d2ds( i ), 2, '0'), colour, MOVE ) ;
+			var = "ZGCL" + tab1[ i ] ;
+			val = ( colour == "" ) ? tab1[ i ] : colour.substr( 0, 1 ) ;
+			vreplace( var, val ) ;
+			vput( var, PROFILE ) ;
+		}
+	}
+	rempop() ;
 }
 
 

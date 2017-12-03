@@ -166,11 +166,11 @@ PSYE015B 'Pool is read-only'
 PSYE015C 'Cannot erase from the system profile pool'
 ''
 
-PSYE015D 'Cannot erase a dynamically created value'
-''
+PSYE015D 'Cannot modify a system variable'
+'''&ZVAL1'' cannot be modified'
 
 PSYE015E 'Cannot erase a system variable'
-''
+'''&ZVAL1'' cannot be erased'
 
 PSYE015F 'Profile open for &ZVAL1 gave an error'
 'Filename &ZVAL2'
@@ -225,7 +225,7 @@ PSYE019D '&ZVAL1'
 '&ZVAL2'
 
 PSYE019E 'Value must be numeric'
-''
+'''&ZVAL1'' is not a numeric value'
 
 PSYE019F 'Numeric value must be greater than 0'
 ''

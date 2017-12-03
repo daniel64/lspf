@@ -42,6 +42,7 @@ pPanel::pPanel()
 	KEYAPPL     = ""     ;
 	KEYHELPN    = ""     ;
 	ALARM       = false  ;
+	ZPRIM       = ""     ;
 	panelTitle  = ""     ;
 	panelDescr  = ""     ;
 	abIndex     = 0      ;
@@ -711,6 +712,7 @@ void pPanel::display_panel_init( errblock& err )
 	message_set = false ;
 
 	set_pfpressed( "" ) ;
+	putDialogueVar( err, "ZPRIM", "" ) ;
 
 	err.setRC( 0 ) ;
 	do
@@ -1044,6 +1046,11 @@ void pPanel::process_panel_if_cond( errblock& err, int ln, IFSTMNT* ifstmnt )
 		}
 		return ;
 	}
+	else if ( ifstmnt->if_trunc )
+	{
+		lhs_val = process_panel_trunc( err, ifstmnt->if_trunc ) ;
+		if ( err.error() ) { return ; }
+	}
 	else
 	{
 		lhs_val = sub_vars( ifstmnt->if_lhs ) ;
@@ -1101,13 +1108,15 @@ string pPanel::process_panel_trunc( errblock& err, TRUNC* trunc )
 	string t      ;
 	string dTrail ;
 
+	setControlVar( err, 0, ".TRAIL", "" ) ;
+
 	if ( trunc->trnc_field.front() == '.' )
 	{
-		t = getControlVar( err, trunc->trnc_field ) ;
+		t = getControlVar( err, trunc->trnc_field.substr( 1 ) ) ;
 	}
 	else
 	{
-		t = getDialogueVar( err, trunc->trnc_field ) ;
+		t = getDialogueVar( err, trunc->trnc_field.substr( 1 ) ) ;
 	}
 	if ( err.error() ) { return "" ; }
 
@@ -1152,7 +1161,15 @@ string pPanel::process_panel_trans( errblock& err, int ln, TRANS* trans )
 
 	vector<pair<string,string>>::iterator itt ;
 
-	t = getDialogueVar( err, trans->trns_field ) ;
+	if ( trans->trns_trunc )
+	{
+		t = process_panel_trunc( err, trans->trns_trunc ) ;
+		if ( err.error() ) { return "" ; }
+	}
+	else
+	{
+		t = getDialogueVar( err, trans->trns_field ) ;
+	}
 	if ( err.error() ) { return "" ; }
 
 	for ( itt = trans->trns_list.begin() ; itt != trans->trns_list.end() ; itt++ )
@@ -1314,6 +1331,11 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 
 void pPanel::process_panel_vputget( errblock& err, VPUTGET* vputget )
 {
+	// For select panels: VGET from PROFILE deletes from SHARED, otherwise has no effect
+	//                    VPUT to SHARED  copies from PROFILE to SHARED (or null if not found)
+	//                    VPUT to PROFILE copies from SHARED to PROFILE (or null if not found) and deletes SHARED
+	//                    BUG: VPUT has been a bit of a guess - probably not correct!
+
 	int j  ;
 	int ws ;
 
@@ -1326,13 +1348,40 @@ void pPanel::process_panel_vputget( errblock& err, VPUTGET* vputget )
 		for ( j = 1 ; j <= ws ; j++ )
 		{
 			var = sub_vars( word( vputget->vpg_vars, j ) ) ;
+			if ( selectPanel )
+			{
+				if ( vputget->vpg_pool == SHARED ||
+				   ( vputget->vpg_pool == ASIS && p_poolMGR->vlocate( err, var, SHARED ) != NULL ) )
+				{
+					val = p_poolMGR->get( err, var, PROFILE ) ;
+					if ( err.error() ) { return ; }
+					p_poolMGR->put( err, var, val, SHARED ) ;
+					if ( err.error() ) { return ; }
+				}
+				else if ( vputget->vpg_pool == PROFILE )
+				{
+					val = p_poolMGR->get( err, var, SHARED ) ;
+					if ( err.RC0() )
+					{
+						p_poolMGR->erase( err, var, SHARED ) ;
+					}
+					if ( err.error() ) { return ; }
+					p_poolMGR->put( err, var, val, PROFILE ) ;
+					if ( err.error() ) { return ; }
+				}
+				else if ( vputget->vpg_pool == ASIS && p_poolMGR->vlocate( err, var, SHARED ) == NULL )
+				{
+					p_poolMGR->put( err, var, "", PROFILE ) ;
+					if ( err.error() ) { return ; }
+				}
+				continue ;
+			}
 			val = p_funcPOOL->get( err, 8, var ) ;
-			if ( err.error() ) { return ; }
 			if ( err.RC0() )
 			{
 				p_poolMGR->put( err, var, val, vputget->vpg_pool ) ;
-				if ( err.error() ) { return ; }
 			}
+			if ( err.error() ) { return ; }
 		}
 	}
 	else
@@ -1340,6 +1389,15 @@ void pPanel::process_panel_vputget( errblock& err, VPUTGET* vputget )
 		for ( j = 1 ; j <= ws ; j++ )
 		{
 			var = sub_vars( word( vputget->vpg_vars, j ) ) ;
+			if ( selectPanel )
+			{
+				if ( vputget->vpg_pool == PROFILE )
+				{
+					p_poolMGR->erase( err, var, SHARED ) ;
+					if ( err.error() ) { return ; }
+				}
+				continue ;
+			}
 			val = p_poolMGR->get( err, var, vputget->vpg_pool ) ;
 			if ( err.error() ) { return ; }
 			if ( err.RC0() )
@@ -1354,70 +1412,66 @@ void pPanel::process_panel_vputget( errblock& err, VPUTGET* vputget )
 
 void pPanel::process_panel_assignment( errblock& err, int ln, ASSGN* assgn )
 {
+
 	string t ;
 	string fieldNam ;
 
-	if ( assgn->as_isvar )
+
+	if ( assgn->as_function == AS_TRANS )
+	{
+		t = process_panel_trans( err, ln, assgn->as_trans ) ;
+		if ( err.error() ) { return ; }
+	}
+	else if ( assgn->as_function == AS_TRUNC )
+	{
+		t = process_panel_trunc( err, assgn->as_trunc ) ;
+		if ( err.error() ) { return ; }
+	}
+	else
 	{
 		if ( assgn->as_rhs.front() == '.' )
 		{
 			t = getControlVar( err, assgn->as_rhs ) ;
 			if ( err.error() ) { return ; }
 		}
-		else
+		else if ( assgn->as_isvar )
 		{
 			t = getDialogueVar( err, assgn->as_rhs ) ;
 			if ( err.error() ) { return ; }
 		}
-		t = sub_vars( t ) ;
-	}
+		else
+		{
+			t = sub_vars( assgn->as_rhs ) ;
+		}
+		switch ( assgn->as_function )
+		{
+		case AS_LENGTH:
+			t = d2ds( t.size() ) ;
+			break ;
 
-	if ( assgn->as_trans )
-	{
-		t = process_panel_trans( err, ln, assgn->as_trans ) ;
-		if ( err.error() ) { return ; }
-	}
-	else if ( assgn->as_trunc )
-	{
-		t = process_panel_trunc( err, assgn->as_trunc ) ;
-		if ( err.error() ) { return ; }
-	}
-	else if ( assgn->as_retlen )
-	{
-		t = d2ds( t.size() ) ;
-	}
-	else if ( assgn->as_reverse )
-	{
-		reverse( t.begin(), t.end() ) ;
-	}
-	else if ( assgn->as_upper )
-	{
-		iupper( t ) ;
-	}
-	else if ( assgn->as_words )
-	{
-		t = d2ds( words( t ) ) ;
-	}
-	else if ( assgn->as_chkexst )
-	{
-		t = exists( t ) ? "1" : "0" ;
-	}
-	else if ( assgn->as_chkfile )
-	{
-		t = is_regular_file( t ) ? "1" : "0" ;
-	}
-	else if ( assgn->as_chkdir )
-	{
-		t = is_directory( t )    ? "1" : "0" ;
-	}
-	else if ( assgn->as_rhs.front() == '.' )
-	{
-		t = getControlVar( err, assgn->as_rhs ) ;
-		if ( err.error() ) { return ; }
-	}
-	else
-	{
-		t = sub_vars( assgn->as_rhs ) ;
+		case AS_REVERSE:
+			reverse( t.begin(), t.end() ) ;
+			break ;
+
+		case AS_UPPER:
+			iupper( t ) ;
+			break ;
+
+		case AS_WORDS:
+			t = d2ds( words( t ) ) ;
+			break ;
+
+		case AS_EXISTS:
+			t = exists( t ) ? "1" : "0" ;
+			break ;
+
+		case AS_FILE:
+			t = is_regular_file( t ) ? "1" : "0" ;
+			break ;
+
+		case AS_DIR:
+			t = is_directory( t ) ? "1" : "0" ;
+		}
 	}
 
 	if ( assgn->as_lhs.front() == '.' )
@@ -1428,18 +1482,10 @@ void pPanel::process_panel_assignment( errblock& err, int ln, ASSGN* assgn )
 	else if ( assgn->as_isattr )
 	{
 		fieldNam = assgn->as_lhs ;
-		if ( assgn->as_istb )
-		{
-			fieldList[ fieldNam +"."+ d2ds( ln ) ]->field_attr( err, t ) ;
-			if ( err.error() ) { return ; }
-			attrList.push_back( fieldNam +"."+ d2ds( ln ) ) ;
-		}
-		else
-		{
-			fieldList[ fieldNam ]->field_attr( err, t ) ;
-			if ( err.error() ) { return ; }
-			attrList.push_back( fieldNam ) ;
-		}
+		if ( assgn->as_istb ) { fieldNam += "." + d2ds( ln ) ; }
+		fieldList[ fieldNam ]->field_attr( err, t ) ;
+		if ( err.error() ) { return ; }
+		attrList.push_back( fieldNam ) ;
 	}
 	else
 	{
@@ -1447,6 +1493,7 @@ void pPanel::process_panel_assignment( errblock& err, int ln, ASSGN* assgn )
 		if ( err.error() ) { return ; }
 		if ( assgn->as_lhs == "ZPRIM" )
 		{
+			ZPRIM = t ;
 			primaryMenu = ( t == "YES" ) ;
 		}
 	}

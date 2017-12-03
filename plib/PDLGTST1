@@ -45,8 +45,6 @@ literal  13  2    SAC  "X"
 literal  13  5    PS   "Terminate"
 literal  13  20   NT   "Terminate Dialogue Services"
 
-
-
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
 
@@ -55,13 +53,7 @@ literal  13  20   NT   "Terminate Dialogue Services"
 
 )PROC
 
-IF ( &ZCMD EQ &Z )
-   .MSG    = PSYS017
-   .CURSOR = ZCMD
-   EXIT
-
-&ZOPT = TRUNC( &ZCMD,'.' )
-&ZSEL = TRANS( &ZOPT
+&ZSEL = TRANS( TRUNC( &ZCMD,'.' ) ,
                0,'PGM(PDLGTST) PARM(0)'
                1,'PANEL(PDLGTST3)'
                2,'PGM(PDLGTST) PARM(2)'

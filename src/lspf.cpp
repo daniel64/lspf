@@ -138,6 +138,7 @@ bool unloadDynamicClass( void * ) ;
 void reloadDynamicClasses( string ) ;
 void loadSystemCommandTable() ;
 void loadCUATables()          ;
+void setGlobalColours()       ;
 void setColourPair( const string& ) ;
 void updateDefaultVars()      ;
 void updateReflist()          ;
@@ -545,7 +546,6 @@ void mainLoop()
 						if ( pLScreen::screensTotal == 0 ) { return ; }
 						if ( currAppl->SEL && !currAppl->terminateAppl )
 						{
-							debug1( "Application "+ currAppl->ZAPPNAME +" has done another SELECT without a DISPLAY (1) !!!! " << endl ) ;
 							processPGMSelect() ;
 						}
 					}
@@ -920,12 +920,23 @@ void processZSEL()
 	// Called for a selection panel (ie. SELECT PANEL(ABC) function ).
 	// Use what's in ZSEL to start application
 
+	int p ;
+
 	string cmd ;
 	string opt ;
 
+	bool addpop = false ;
+
 	errblock err ;
 
-	cmd = currAppl->get_ZSEL() ;
+	currAppl->save_errblock()  ;
+	cmd = currAppl->get_zsel() ;
+	err = currAppl->get_errblock() ;
+	currAppl->restore_errblock()   ;
+	if ( err.error() )
+	{
+		serviceCallError( err ) ;
+	}
 
 	if ( cmd == "" ) { return ; }
 
@@ -933,6 +944,13 @@ void processZSEL()
 	{
 		opt = currAppl->get_dTRAIL() ;
 		if ( opt != "" ) { cmd += " OPT(" + opt + ")" ; }
+	}
+
+	p = wordpos( "ADDPOP", cmd ) ;
+	if ( p > 0 )
+	{
+		addpop = true ;
+		idelword( cmd, p, 1 ) ;
 	}
 
 	updateDefaultVars() ;
@@ -947,6 +965,11 @@ void processZSEL()
 	if ( SELCT.PGM[ 0 ] == '&' )
 	{
 		currAppl->vcopy( substr( SELCT.PGM, 2 ), SELCT.PGM, MOVE ) ;
+	}
+
+	if ( addpop )
+	{
+		SELCT.PARM += " ADDPOP" ;
 	}
 
 	startApplication( SELCT ) ;
@@ -1254,7 +1277,6 @@ void processAction( uint row, uint col, int c, bool& passthru )
 	if ( ZCOMMAND.size() > 1 && ZCOMMAND.front() == '=' && ( PFCMD == "" || PFCMD == "RETURN" ) )
 	{
 		ZCOMMAND.erase( 0, 1 ) ;
-		debug1( "JUMP entered.  Jumping to primary menu option " << ZCOMMAND << endl ) ;
 		passthru = true ;
 		if ( !currAppl->isprimMenu() )
 		{
@@ -1492,11 +1514,9 @@ void processPGMSelect()
 		}
 		currAppl->SEL = false ;
 		currAppl->RC  = 20    ;
-		llog( "W", "Resumed function did a SELECT.  Ending wait in SELECT" << endl ) ;
 		ResumeApplicationAndWait() ;
 		while ( currAppl->terminateAppl )
 		{
-			debug1( "Calling application "+ currAppl->ZAPPNAME +" also ending" << endl ) ;
 			terminateApplication() ;
 			if ( pLScreen::screensTotal == 0 ) { return ; }
 		}
@@ -1632,7 +1652,6 @@ void startApplication( selobj SEL, bool nScreen )
 
 	if ( SEL.PASSLIB || SEL.NEWAPPL == "" )
 	{
-		debug1( "PASSLIB or no NEWAPPL specifed on start application.  Restoring LIBDEF status to new application." << endl ) ;
   //  todo      currAppl->ZMUSER = oldAppl->ZMUSER ;
   //            currAppl->ZPUSER = oldAppl->ZPUSER ;
   //            currAppl->ZTUSER = oldAppl->ZTUSER ;
@@ -1668,7 +1687,6 @@ void startApplication( selobj SEL, bool nScreen )
 
 	if ( currAppl->SEL )
 	{
-		debug1( "Application "+ currAppl->ZAPPNAME +" has done a SELECT without a DISPLAY !!!! " << endl ) ;
 		processPGMSelect() ;
 	}
 
@@ -1681,12 +1699,10 @@ void startApplication( selobj SEL, bool nScreen )
 
 	while ( currAppl->terminateAppl )
 	{
-		llog( "I", "Application "+ currAppl->ZAPPNAME +" has immediately terminated.  Cleaning up resources" << endl ) ;
 		terminateApplication() ;
 		if ( pLScreen::screensTotal == 0 ) { return ; }
 		if ( currAppl->SEL && !currAppl->terminateAppl )
 		{
-			debug1( "Application "+ currAppl->ZAPPNAME +" has done another SELECT without a DISPLAY (2) !!!! " << endl ) ;
 			processPGMSelect() ;
 		}
 	}
@@ -1712,6 +1728,7 @@ void terminateApplication()
 	bool refList      ;
 	bool nretError    ;
 	bool propagateEnd ;
+	bool abnormalEnd  ;
 	bool jumpEntered  ;
 	bool setCursor    ;
 	bool setMSG       ;
@@ -1726,10 +1743,11 @@ void terminateApplication()
 
 	ZAPPNAME = currAppl->ZAPPNAME ;
 
-	currAppl->closeTables()     ;
-	tRC     = currAppl->ZRC     ;
-	tRSN    = currAppl->ZRSN    ;
+	currAppl->closeTables()  ;
+	tRC     = currAppl->ZRC  ;
+	tRSN    = currAppl->ZRSN ;
 	tRESULT = currAppl->ZRESULT ;
+	abnormalEnd = currAppl->abnormalEnd ;
 
 	refList = ( currAppl->reffield == "#REFLIST" ) ;
 
@@ -1785,9 +1803,16 @@ void terminateApplication()
 	currAppl->display_pd()          ;
 
 	p_poolMGR->setApplid( err, currAppl->ZZAPPLID ) ;
-	if ( !err.RC0() ) { llog( "C", "ERROR setting APPLID for pool manager.  RC=" << err.getRC() << endl ) ; }
+	if ( !err.RC0() )
+	{
+		llog( "C", "Error setting APPLID for pool manager.  RC=" << err.getRC() << endl ) ;
+	}
+
 	p_poolMGR->setShrdPool( err, currAppl->shrdPool )   ;
-	if ( !err.RC0() ) { llog( "C", "ERROR setting shared pool for pool manager.  RC=" << err.getRC() << endl ) ; }
+	if ( !err.RC0() )
+	{
+		llog( "C", "Error setting shared pool for pool manager.  RC=" << err.getRC() << endl ) ;
+	}
 
 	p_poolMGR->put( err, "ZPANELID", currAppl->PANELID, SHARED, SYSTEM )  ;
 
@@ -1882,29 +1907,26 @@ void terminateApplication()
 	{
 		if ( propagateEnd )
 		{
-			llog( "I", "RETURN entered.  Propagating END to next application in the SELECT nested dialogue" << endl ) ;
 			if ( jumpEntered )
 			{
-				debug1( "JUMP entered but in the same nested dialogue." << endl ) ;
 				currAppl->jumpEntered  = true ;
 			}
-			currAppl->RC           = 4     ;
-			currAppl->propagateEnd = true  ;
+			currAppl->RC           = 4    ;
+			currAppl->propagateEnd = true ;
 		}
 		else
 		{
 			currAppl->RC = 0 ;
 		}
-		currAppl->SEL     = false   ;
-		currAppl->ZRC     = tRC     ;
-		currAppl->ZRSN    = tRSN    ;
+		currAppl->SEL  = false ;
+		currAppl->ZRC  = tRC   ;
+		currAppl->ZRSN = tRSN  ;
 		currAppl->ZRESULT = tRESULT ;
+		currAppl->abnormalEnd = abnormalEnd ;
 		if ( setMSG ) { currAppl->set_msg1( tMSG1, tMSGID1 ) ; }
-		llog( "I", "Resumed function did a SELECT, BROWSE, EDIT or VIEW.  Ending wait in function" << endl ) ;
 		ResumeApplicationAndWait() ;
 		while ( currAppl->terminateAppl )
 		{
-			debug1( "Calling application "+ currAppl->ZAPPNAME +" also ending" << endl ) ;
 			terminateApplication() ;
 			if ( pLScreen::screensTotal == 0 ) { return ; }
 		}
@@ -1914,14 +1936,12 @@ void terminateApplication()
 	{
 		if ( jumpEntered && propagateEnd )
 		{
-			debug1( "JUMP entered.  Propagating RETURN to next application on the stack outside a SELECT nested dialogue" << endl ) ;
 			p_poolMGR->put( err, "ZVERB", "RETURN", SHARED ) ;
 			currAppl->jumpEntered = true ;
 			ResumeApplicationAndWait()   ;
 		}
 		while ( currAppl->terminateAppl )
 		{
-			debug1( "Previous application "+ currAppl->ZAPPNAME +" also ending" << endl ) ;
 			terminateApplication() ;
 			if ( pLScreen::screensTotal == 0 ) { return ; }
 		}
@@ -2027,10 +2047,9 @@ void ResumeApplicationAndWait()
 
 void loadCUATables()
 {
-
-	cuaAttrName[ "AB"     ] = AB     ;         // AB Selected Choice (was Yellow/normal)
-	cuaAttrName[ "ABSL"   ] = ABSL   ;         // AB Separator Line  (was blue/normal)
-	cuaAttrName[ "ABU"    ] = ABU    ;         // AB Unselected Choice (was Yellow/normal)
+	cuaAttrName[ "AB"     ] = AB     ;         // AB Selected Choice
+	cuaAttrName[ "ABSL"   ] = ABSL   ;         // AB Separator Line
+	cuaAttrName[ "ABU"    ] = ABU    ;         // AB Unselected Choice
 
 	cuaAttrName[ "AMT"    ] = AMT    ;         // Action Message Text
 	cuaAttrName[ "AWF"    ] = AWF    ;         // Active Window Frame
@@ -2181,13 +2200,21 @@ void loadCUATables()
 	cuaAttrProt[ OUTPUT ] = true  ;
 	cuaAttrProt[ TEXT   ] = true  ;
 
-	usrAttr[ N_RED     ] = RED     ; usrAttr[ B_RED     ] = RED     | A_BOLD ; usrAttr[ R_RED     ] = RED     | A_REVERSE ; usrAttr[ U_RED     ] = RED     | A_UNDERLINE ;
-	usrAttr[ N_GREEN   ] = GREEN   ; usrAttr[ B_GREEN   ] = GREEN   | A_BOLD ; usrAttr[ R_GREEN   ] = GREEN   | A_REVERSE ; usrAttr[ U_GREEN   ] = GREEN   | A_UNDERLINE ;
-	usrAttr[ N_YELLOW  ] = YELLOW  ; usrAttr[ B_YELLOW  ] = YELLOW  | A_BOLD ; usrAttr[ R_YELLOW  ] = YELLOW  | A_REVERSE ; usrAttr[ U_YELLOW  ] = YELLOW  | A_UNDERLINE ;
-	usrAttr[ N_BLUE    ] = BLUE    ; usrAttr[ B_BLUE    ] = BLUE    | A_BOLD ; usrAttr[ R_BLUE    ] = BLUE    | A_REVERSE ; usrAttr[ U_BLUE    ] = BLUE    | A_UNDERLINE ;
-	usrAttr[ N_MAGENTA ] = MAGENTA ; usrAttr[ B_MAGENTA ] = MAGENTA | A_BOLD ; usrAttr[ R_MAGENTA ] = MAGENTA | A_REVERSE ; usrAttr[ U_MAGENTA ] = MAGENTA | A_UNDERLINE ;
-	usrAttr[ N_TURQ    ] = TURQ    ; usrAttr[ B_TURQ    ] = TURQ    | A_BOLD ; usrAttr[ R_TURQ    ] = TURQ    | A_REVERSE ; usrAttr[ U_TURQ    ] = TURQ    | A_UNDERLINE ;
-	usrAttr[ N_WHITE   ] = WHITE   ; usrAttr[ B_WHITE   ] = WHITE   | A_BOLD ; usrAttr[ R_WHITE   ] = WHITE   | A_REVERSE ; usrAttr[ U_WHITE   ] = WHITE   | A_UNDERLINE ;
+	usrAttr[ N_RED     ] = RED     ; usrAttr[ B_RED     ] = RED     | A_BOLD ;
+	usrAttr[ N_GREEN   ] = GREEN   ; usrAttr[ B_GREEN   ] = GREEN   | A_BOLD ;
+	usrAttr[ N_YELLOW  ] = YELLOW  ; usrAttr[ B_YELLOW  ] = YELLOW  | A_BOLD ;
+	usrAttr[ N_BLUE    ] = BLUE    ; usrAttr[ B_BLUE    ] = BLUE    | A_BOLD ;
+	usrAttr[ N_MAGENTA ] = MAGENTA ; usrAttr[ B_MAGENTA ] = MAGENTA | A_BOLD ;
+	usrAttr[ N_TURQ    ] = TURQ    ; usrAttr[ B_TURQ    ] = TURQ    | A_BOLD ;
+	usrAttr[ N_WHITE   ] = WHITE   ; usrAttr[ B_WHITE   ] = WHITE   | A_BOLD ;
+
+	usrAttr[ R_RED     ] = RED     | A_REVERSE ; usrAttr[ U_RED     ] = RED     | A_UNDERLINE ;
+	usrAttr[ R_GREEN   ] = GREEN   | A_REVERSE ; usrAttr[ U_GREEN   ] = GREEN   | A_UNDERLINE ;
+	usrAttr[ R_YELLOW  ] = YELLOW  | A_REVERSE ; usrAttr[ U_YELLOW  ] = YELLOW  | A_UNDERLINE ;
+	usrAttr[ R_BLUE    ] = BLUE    | A_REVERSE ; usrAttr[ U_BLUE    ] = BLUE    | A_UNDERLINE ;
+	usrAttr[ R_MAGENTA ] = MAGENTA | A_REVERSE ; usrAttr[ U_MAGENTA ] = MAGENTA | A_UNDERLINE ;
+	usrAttr[ R_TURQ    ] = TURQ    | A_REVERSE ; usrAttr[ U_TURQ    ] = TURQ    | A_UNDERLINE ;
+	usrAttr[ R_WHITE   ] = WHITE   | A_REVERSE ; usrAttr[ U_WHITE   ] = WHITE   | A_UNDERLINE ;
 
 	usrAttr[ P_RED     ] = RED     | A_PROTECT ;
 	usrAttr[ P_GREEN   ] = GREEN   | A_PROTECT ;
@@ -2198,14 +2225,22 @@ void loadCUATables()
 	usrAttr[ P_WHITE   ] = WHITE   | A_PROTECT ;
 
 	usrAttr[ P_FF      ] = GREEN   | A_PROTECT ;
+
+	setGlobalColours() ;
 }
 
 
 void setColourPair( const string& name )
 {
-	string t ;
+	string t   ;
 
 	errblock err ;
+
+	pair<map<cuaType, unsigned int>::iterator, bool> result ;
+
+	result = cuaAttr.insert( pair<cuaType, unsigned int>( cuaAttrName[ name ], WHITE ) ) ;
+
+	map<cuaType, unsigned int>::iterator it = result.first ;
 
 	t = p_poolMGR->get( err, "ZC"+ name, PROFILE ) ;
 	if ( !err.RC0() )
@@ -2224,13 +2259,14 @@ void setColourPair( const string& name )
 
 	switch  ( t[ 0 ] )
 	{
-		case 'R':  cuaAttr[ cuaAttrName[ name ] ] = RED     ; break ;
-		case 'G':  cuaAttr[ cuaAttrName[ name ] ] = GREEN   ; break ;
-		case 'Y':  cuaAttr[ cuaAttrName[ name ] ] = YELLOW  ; break ;
-		case 'B':  cuaAttr[ cuaAttrName[ name ] ] = BLUE    ; break ;
-		case 'M':  cuaAttr[ cuaAttrName[ name ] ] = MAGENTA ; break ;
-		case 'T':  cuaAttr[ cuaAttrName[ name ] ] = TURQ    ; break ;
-		case 'W':  cuaAttr[ cuaAttrName[ name ] ] = WHITE   ; break ;
+		case 'R': (*it).second = RED     ; break ;
+		case 'G': (*it).second = GREEN   ; break ;
+		case 'Y': (*it).second = YELLOW  ; break ;
+		case 'B': (*it).second = BLUE    ; break ;
+		case 'M': (*it).second = MAGENTA ; break ;
+		case 'T': (*it).second = TURQ    ; break ;
+		case 'W': (*it).second = WHITE   ; break ;
+
 		default :  llog( "E", "Variable ZC"+ name +" has invalid value[0] "+ t << endl ) ;
 			   llog( "C", "Rerun setup program to re-initialise ISPS profile" << endl ) ;
 			   abortStartup() ;
@@ -2238,8 +2274,9 @@ void setColourPair( const string& name )
 
 	switch  ( t[ 1 ] )
 	{
-		case 'L':  cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_NORMAL   ; break ;
-		case 'H':  cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_BOLD     ; break ;
+		case 'L':  (*it).second = (*it).second | A_NORMAL ; break ;
+		case 'H':  (*it).second = (*it).second | A_BOLD   ; break ;
+
 		default :  llog( "E", "Variable ZC"+ name +" has invalid value[1] "+ t << endl ) ;
 			   llog( "C", "Rerun setup program to re-initialise ISPS profile" << endl ) ;
 			   abortStartup() ;
@@ -2248,13 +2285,51 @@ void setColourPair( const string& name )
 	switch  ( t[ 2 ] )
 	{
 		case 'N':  break ;
-		case 'B':  cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_BLINK     ; break ;
-		case 'R':  cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_REVERSE   ; break ;
-		case 'U':  cuaAttr[ cuaAttrName[ name ] ] = cuaAttr[ cuaAttrName[ name ] ] | A_UNDERLINE ; break ;
+		case 'B':  (*it).second = (*it).second | A_BLINK     ; break ;
+		case 'R':  (*it).second = (*it).second | A_REVERSE   ; break ;
+		case 'U':  (*it).second = (*it).second | A_UNDERLINE ; break ;
+
 		default :  llog( "E", "Variable ZC"+ name +" has invalid value[2] "+ t << endl ) ;
 			   llog( "C", "Rerun setup program to re-initialise ISPS profile" << endl ) ;
 			   abortStartup() ;
 	}
+}
+
+
+void setGlobalColours()
+{
+	string t ;
+
+	map<int, unsigned int> gcolours = { { 'R', COLOR_RED,     } ,
+					    { 'G', COLOR_GREEN,   } ,
+					    { 'Y', COLOR_YELLOW,  } ,
+					    { 'B', COLOR_BLUE,    } ,
+					    { 'M', COLOR_MAGENTA, } ,
+					    { 'T', COLOR_CYAN,    } ,
+					    { 'W', COLOR_WHITE    } } ;
+
+	errblock err ;
+
+	t = p_poolMGR->get( err, "ZGCLR", PROFILE ) ;
+	init_pair( 1, gcolours[ t[ 0 ] ], COLOR_BLACK ) ;
+
+	t = p_poolMGR->get( err, "ZGCLG", PROFILE ) ;
+	init_pair( 2, gcolours[ t[ 0 ] ], COLOR_BLACK ) ;
+
+	t = p_poolMGR->get( err, "ZGCLY", PROFILE ) ;
+	init_pair( 3, gcolours[ t[ 0 ] ], COLOR_BLACK ) ;
+
+	t = p_poolMGR->get( err, "ZGCLB", PROFILE ) ;
+	init_pair( 4, gcolours[ t[ 0 ] ], COLOR_BLACK ) ;
+
+	t = p_poolMGR->get( err, "ZGCLM", PROFILE ) ;
+	init_pair( 5, gcolours[ t[ 0 ] ], COLOR_BLACK ) ;
+
+	t = p_poolMGR->get( err, "ZGCLT", PROFILE ) ;
+	init_pair( 6, gcolours[ t[ 0 ] ], COLOR_BLACK ) ;
+
+	t = p_poolMGR->get( err, "ZGCLW", PROFILE ) ;
+	init_pair( 7, gcolours[ t[ 0 ] ], COLOR_BLACK ) ;
 }
 
 
