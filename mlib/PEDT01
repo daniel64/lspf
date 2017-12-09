@@ -132,7 +132,7 @@ PEDT012H 'UNDO Data Removed' .TYPE=W
 'UNDO data has been deleted.  UNDO/REDO not available before this time'
 
 PEDT013A 'Invalid CUT parameter' .TYPE=W
-'CUT DEFAULT|name APPEND|REPLACE'
+'CUT DEFAULT|name APPEND|REPLACE MARKED'
 
 PEDT013B 'Invalid PASTE parameter' .TYPE=W
 'PASTE DEFAULT|name KEEP|DELETE'

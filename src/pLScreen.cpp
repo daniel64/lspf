@@ -18,9 +18,7 @@
 */
 
 #undef  MOD_NAME
-#undef  LOGOUT
-#define MOD_NAME pLScreen
-#define LOGOUT   aplog
+#define MOD_NAME SCREEN
 
 
 pLScreen::pLScreen()

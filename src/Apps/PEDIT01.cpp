@@ -57,10 +57,7 @@ using namespace std ;
 using namespace boost ;
 using namespace boost::filesystem ;
 
-#undef LOGOUT
-#undef MOD_NAME
-
-#define LOGOUT aplog
+#undef  MOD_NAME
 #define MOD_NAME PEDIT01
 
 #define CLINESZ     8
@@ -76,7 +73,7 @@ map<int, stack<int>>Global_Undo ;
 map<int, stack<int>>Global_Redo ;
 map<int, stack<int>>Global_File_level ;
 
-map<string, bool>PEDIT01::EditList ;
+set<string>PEDIT01::EditList       ;
 e_find PEDIT01::Global_efind_parms ;
 
 
@@ -475,7 +472,7 @@ void PEDIT01::Edit()
 	data.clear() ;
 
 	saveEditProfile( ZEDPROF ) ;
-	EditList.erase( ZFILE ) ;
+	EditList.erase( ZFILE )    ;
 	Global_efind_parms = find_parms ;
 }
 
@@ -618,7 +615,7 @@ void PEDIT01::readFile()
 		data[ 0 ]->clear_Global_Redo() ;
 		data[ 0 ]->clear_Global_Undo() ;
 		data[ 0 ]->clear_Global_File_level() ;
-		EditList[ ZFILE ] = true ;
+		EditList.insert( ZFILE ) ;
 		addSpecial( 'N', topLine, Notes ) ;
 		saveLevel = 0 ;
 		return        ;
@@ -698,7 +695,7 @@ void PEDIT01::readFile()
 		data[ 0 ]->clear_Global_Redo() ;
 		data[ 0 ]->clear_Global_Undo() ;
 		data[ 0 ]->clear_Global_File_level() ;
-		EditList[ ZFILE ] = true ;
+		EditList.insert( ZFILE )          ;
 		addSpecial( 'N', topLine, Notes ) ;
 		saveLevel = 0 ;
 		fin.close()   ;
@@ -767,7 +764,7 @@ void PEDIT01::readFile()
 	data[ 0 ]->clear_Global_Undo() ;
 	data[ 0 ]->clear_Global_File_level() ;
 	saveLevel = 0 ;
-	EditList[ ZFILE ] = true ;
+	EditList.insert( ZFILE ) ;
 	if ( profHilight && profLang == "AUTO" )
 	{
 		detLang = determineLang() ;
@@ -1241,7 +1238,7 @@ void PEDIT01::fill_hilight_shadow()
 		for ( dl = w + 1 ; dl <= ll ; dl++ )
 		{
 			if ( !data.at( dl )->isValidFile() ) { continue ; }
-			addHilight( hlight, data.at( dl )->get_idata(), data.at( dl )->il_Shadow ) ;
+			addHilight( lg, hlight, data.at( dl )->get_idata(), data.at( dl )->il_Shadow ) ;
 			if ( hlight.hl_abend ) { pcmd.set_msg( "PEDT013E" ) ; return ; }
 			data.at( dl )->il_vShadow = true ;
 			data.at( dl )->il_wShadow = ( hlight.hl_oBrac1 == 0 &&
@@ -1306,6 +1303,7 @@ void PEDIT01::getZAREAchanges()
 
 	// Strip off any remaining leading "- - - " for excluded lines
 	// Strip off any remaining leading "''''''" for new insert lines
+	// Strip off label characters from the line command if label '.' has been overwritten
 
 	int i   ;
 	int j   ;
@@ -1320,6 +1318,7 @@ void PEDIT01::getZAREAchanges()
 	uint dl ;
 
 	string lcc ;
+	string lab ;
 
 	const char duserMod(0x03) ;
 	const char ddataMod(0x04) ;
@@ -1408,15 +1407,28 @@ void PEDIT01::getZAREAchanges()
 			{
 				lcc = strip( lcc, 'L', '=' ) ;
 			}
-			else if (  data.at( dl )->il_nisrt )
+			else if ( data.at( dl )->il_nisrt )
 			{
 				lcc = strip( lcc, 'L', '\'' ) ;
+			}
+			else if ( data.at( dl )->hasLabel() && lcc.front() != '.' )
+			{
+				lab = data.at( dl )->getLabel() ;
+				for ( j = 0 ; j < lab.size() && j < lcc.size() ; j++ )
+				{
+					if ( lab[ j ] == lcc[ j ] ) { lcc[ j ] = ' ' ; }
+				}
+				trim( lcc ) ;
+				if ( lcc == "" )
+				{
+					data.at( dl )->il_lcc = "." ;
+				}
 			}
 			if ( datatype( lcc, 'W' ) ) { lcc = "" ; }
 			if ( lcc == "" )
 			{
-				if ( data.at( dl )->il_lcc == "" ) { data.at( dl )->clearLabel()  ; }
-				else                               { data.at( dl )->il_lcc   = "" ; }
+				if ( data.at( dl )->il_lcc == "" ) { data.at( dl )->clearLabel() ; }
+				else                               { data.at( dl )->il_lcc = ""  ; }
 			}
 			else
 			{
@@ -1544,8 +1556,7 @@ void PEDIT01::updateData()
 
 	for ( i = 0 ; i < ZAREAD ; i++ )
 	{
-		if ( s2data.at( i ).ipos_URID == 0 ||
-		     s2data.at( i ).ipos_hex > 0 ) { continue ; }
+		if ( s2data.at( i ).ipos_URID == 0 || s2data.at( i ).ipos_hex > 0 ) { continue ; }
 		dl = s2data.at( i ).ipos_dl ;
 		it = getLineItr( dl ) ;
 		if ( !(*it)->il_nisrt && !sChanged[ i ] ) { continue ; }
@@ -1667,8 +1678,7 @@ void PEDIT01::processNewInserts()
 
 	for ( i = ZAREAD-1 ; i >= 0 ; i-- )
 	{
-		if ( s2data.at( i ).ipos_URID == 0 ||
-		     s2data.at( i ).ipos_hex  >  0 ) { continue ; }
+		if ( s2data.at( i ).ipos_URID == 0 || s2data.at( i ).ipos_hex  >  0 ) { continue ; }
 		dl = s2data.at( i ).ipos_dl ;
 		it = getLineItr( dl ) ;
 		if ( !(*it)->il_nisrt ) { continue ; }
@@ -1751,6 +1761,9 @@ void PEDIT01::actionPrimCommand1()
 	vector<iline * >::iterator it  ;
 	vector<iline * >::iterator its ;
 	vector<iline * >::iterator ite ;
+
+	vector<ipline> vip ;
+	ipline ip ;
 
 	map<P_CMDS,pcmd_format>::iterator itp ;
 
@@ -1835,8 +1848,8 @@ void PEDIT01::actionPrimCommand1()
 	case PC_CUT:
 			cutActive  = true ;
 			cutReplace = true ;
-			clipBoard = "DEFAULT" ;
-			wall      = upper( subword( cmd, 2 ) ) ;
+			clipBoard  = "DEFAULT" ;
+			wall       = upper( subword( cmd, 2 ) ) ;
 
 			p1 = wordpos( "DEFAULT", wall ) ;
 			if ( p1 > 0 ) { idelword( wall, p1, 1 ) ; }
@@ -1852,6 +1865,29 @@ void PEDIT01::actionPrimCommand1()
 					p1 = wordpos( "R", wall )  ;
 					if ( p1 > 0 ) { idelword( wall, p1, 1 ) ; }
 				}
+			}
+			p1 = wordpos( "MARKED", wall ) ;
+			if ( p1 > 0 )
+			{
+				idelword( wall, p1, 1 ) ;
+				if ( wall != "" )
+				{
+					if ( words( wall ) == 1 ) { clipBoard = strip( wall )  ;         }
+					else                      { pcmd.set_msg( "PEDT013A" ) ; break ; }
+				}
+				vip.clear() ;
+				for ( its = data.begin() ; its != data.end() ; its++ )
+				{
+					if ( (*its)->isValidFile() && (*its)->il_mark )
+					{
+						ip.ip_file = true ;
+						ip.ip_data = (*its)->get_idata() ;
+						vip.push_back( ip ) ;
+					}
+				}
+				copyToClipboard( vip ) ;
+				cutActive = false ;
+				break ;
 			}
 			if ( wall != "" )
 			{
@@ -6353,7 +6389,7 @@ vector<iline * >::iterator PEDIT01::getLineItr( int URID, vector<iline * >::iter
 }
 
 
-bool PEDIT01::getLabelItr( const string& label, vector<iline * >::iterator& it , int& posn )
+bool PEDIT01::getLabelItr( const string& label, vector<iline * >::iterator& it, int& posn )
 {
 	// Return false for .ZFIRST, and .ZLAST if the data has no valid file lines
 

@@ -30,6 +30,8 @@ L UNDO/REDO - Locate an UNDO or REDO line
 L T         - Locate marked text (alises MRK, MARK, MARKED)
 L *         - Jump back to the previous LOCATE line
 
+CUT MARKED  - Copy marked text to the clipboard
+
 RESET T     - Reset marked text (alises MRK, MARK, MARKED)
 
 XTABS ON    - Convert tabs to spaces on file read, and spaces to tabs on file save
@@ -54,7 +56,7 @@ TRR
 
 Tn       Toggle hilighting of a line/block of lines (high white with reverse red on the first attribute char)
 TT       Remove with the 'RESET' or 'RESET T' commands (aliases MRK, MARK, MARKED)
-         Used to easily find marked code, but could later be used with some primary commands.
+         Used to easily find marked code, but could later be used with some primary commands (currenty only CUT)
 
 TXn      Toggle exclude status of a line/block of lines
 TXX

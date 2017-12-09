@@ -41,10 +41,7 @@
 
 using namespace std ;
 
-#undef LOGOUT
-#undef MOD_NAME
-
-#define LOGOUT aplog
+#undef  MOD_NAME
 #define MOD_NAME PDLGTST
 
 

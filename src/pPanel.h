@@ -24,6 +24,9 @@ class pPanel
 		string cmdField ;
 		bool   showLMSG ;
 
+		static poolMGR * p_poolMGR ;
+		static logger  * lg        ;
+
 		pPanel()  ;
 		~pPanel() ;
 
@@ -94,6 +97,7 @@ class pPanel
 		string PANELID     ;
 		bool   ALARM       ;
 		string curfld      ;
+		int    taskId      ;
 		int    curidx      ;
 		int    curpos      ;
 		slmsg  MSG         ;
@@ -163,8 +167,7 @@ class pPanel
 		PANEL  * lmpanel   ;
 		PANEL  * idpanel   ;
 
-		poolMGR * p_poolMGR  ;
-		fPOOL   * p_funcPOOL ;
+		fPOOL  * p_funcPOOL ;
 
 		void   loadPanel( errblock&, const string&, const string& ) ;
 		void   readPanel( errblock&, vector<string>&, const string&, const string&, string ) ;
@@ -284,3 +287,50 @@ class pPanel
 
 		friend class pApplication ;
 } ;
+
+#undef llog
+#undef debug1
+#undef debug2
+
+
+#define llog(t, s) \
+{ \
+lg->lock() ; \
+(*lg) << microsec_clock::local_time() << \
+" PANEL     " << \
+" " << right( d2ds( taskId ), 5, '0' ) << " " << t << " " << s ; \
+lg->unlock() ; \
+}
+
+#ifdef DEBUG1
+#define debug1( s ) \
+{ \
+lg->lock() ; \
+(*lg) << microsec_clock::local_time() << \
+" PANEL     " << \
+" " << right( d2ds( taskId ), 5, '0' ) << \
+" D line: "  << __LINE__  << \
+" >>L1 Function: " << __FUNCTION__ << \
+" -  " << s ; \
+lg->unlock() ; \
+}
+#else
+#define debug1( s )
+#endif
+
+
+#ifdef DEBUG2
+#define debug2( s ) \
+{ \
+lg->lock() ; \
+(*lg) << microsec_clock::local_time() << \
+" PANEL     " << \
+" " << right( d2ds( taskId ), 5, '0' ) << \
+" D line: "  << __LINE__  << \
+" >>L2 Function: " << __FUNCTION__ << \
+" -  " << s ; \
+lg->unlock() ; \
+}
+#else
+#define debug2( s )
+#endif

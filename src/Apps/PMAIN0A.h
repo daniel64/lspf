@@ -35,5 +35,4 @@ class PMAIN0A : public pApplication
 		string ZDATE   ;
 		string ZTIME   ;
 		string ZJDATE  ;
-		map<string, string> commandTable ;
 };

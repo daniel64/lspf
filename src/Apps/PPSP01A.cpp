@@ -58,10 +58,8 @@
 using namespace std ;
 using namespace boost::filesystem ;
 
-#undef MOD_NAME
-#undef LOGOUT
+#undef  MOD_NAME
 #define MOD_NAME PPSP01A
-#define LOGOUT aplog
 
 
 void PPSP01A::application()
@@ -152,7 +150,8 @@ void PPSP01A::show_log( const string& fileName )
 	vget( "ZSCRMAXW ZSCRMAXD", SHARED ) ;
 	pquery( "PPSP01AL", "ZAREA", "ZAREAT", "ZAREAW", "ZAREAD" ) ;
 
-	startCol     = 42     ;
+	startCol     = 48     ;
+	task         = 0      ;
 	showDate     = false  ;
 	showTime     = true   ;
 	showMod      = true   ;
@@ -169,7 +168,7 @@ void PPSP01A::show_log( const string& fileName )
 
 	while ( true )
 	{
-		ZCOL1 = right( d2ds( startCol-41 ), 7, '0' )  ;
+		ZCOL1 = right( d2ds( startCol-47 ), 7, '0' )  ;
 		ZROW1 = right( d2ds( firstLine ), 8, '0' )    ;
 		ZROW2 = right( d2ds( maxLines ), 8, '0' )     ;
 		if ( MSG == "" ) { ZCMD = "" ; }
@@ -206,6 +205,21 @@ void PPSP01A::show_log( const string& fileName )
 			}
 			else { MSG = "PPSP012" ; }
 		}
+		else if ( findword( w1, "TASK TASKID ID" ) )
+		{
+			if ( w2 == "" )
+			{
+				task = 0 ;
+			}
+			else
+			{
+				task = ds2d ( w2 ) ;
+			}
+			excluded.clear() ;
+			for ( t = 0 ; t <= maxLines ; t++ ) { excluded.push_back( false ) ; }
+			set_excludes() ;
+			rebuildZAREA = true ;
+		}
 		else if ( w1 == "EX" || w1 == "X" )
 		{
 			if ( Rest == "ALL" )
@@ -239,6 +253,7 @@ void PPSP01A::show_log( const string& fileName )
 			filterx = ' '    ;
 			ffilter = ""     ;
 			Xon     = false  ;
+			task    = 0      ;
 			rebuildZAREA = true ;
 			excluded.clear() ;
 			for ( t = 0 ; t <= maxLines ; t++ ) { excluded.push_back( false ) ; }
@@ -315,12 +330,12 @@ void PPSP01A::show_log( const string& fileName )
 			rebuildZAREA = true ;
 			if ( ZSCROLLA == "MAX" )
 			{
-				startCol = 42 ;
+				startCol = 48 ;
 			}
 			else
 			{
 				startCol = startCol - ZSCROLLN ;
-				if ( startCol < 42 ) { startCol = 42 ; }
+				if ( startCol < 48 ) { startCol = 48 ; }
 			}
 		}
 		else if ( ZVERB == "RIGHT" )
@@ -349,7 +364,7 @@ void PPSP01A::read_file( const string& fileName )
 
 	data.clear()  ;
 
-	data.push_back( centre( " Top of Data ", ZAREAW, '*' ) ) ;
+	data.push_back( centre( " Top of Log ", ZAREAW, '*' ) ) ;
 	excluded.push_back( false ) ;
 	while ( getline( fin, inLine ) )
 	{
@@ -358,7 +373,7 @@ void PPSP01A::read_file( const string& fileName )
 		if ( maxCol < inLine.size() ) { maxCol = inLine.size() ; }
 	}
 	maxCol++ ;
-	data.push_back( centre( " Bottom of Data ", ZAREAW, '*' ) ) ;
+	data.push_back( centre( " Bottom of Log ", ZAREAW, '*' ) ) ;
 	excluded.push_back( false ) ;
 	maxLines = data.size() ;
 	fin.close() ;
@@ -384,22 +399,28 @@ bool PPSP01A::file_has_changed( const string& fileName, int& fsize )
 void PPSP01A::set_excludes()
 {
 	int i ;
+	int j ;
 	for ( i = 1 ; i < maxLines ; i++ )
 	{
+		if ( task > 0 )
+		{
+			j = ds2d( data[ i ].substr( 39, 5 ) ) ;
+			if ( j != 0 && j != task ) { excluded[ i ] = true ; continue ; }
+		}
 		if ( Xon )
 		{
-			if ( data[ i ][ 39 ] == 'D' ||
-			     data[ i ][ 39 ] == 'I' ||
-			     data[ i ][ 39 ] == '-' )
+			if ( data[ i ][ 45 ] == 'D' ||
+			     data[ i ][ 45 ] == 'I' ||
+			     data[ i ][ 45 ] == '-' )
 			{
 				excluded[ i ] = true ;
 				continue ;
 			}
 		}
-		if ( data[ i ].size() > 39 )
+		if ( data[ i ].size() > 45 )
 		{
-			if ( filteri != ' ' && filteri != data[ i ][ 39 ] && data[ i ][ 39 ] != '*' ) { excluded[ i ] = true ; continue ; }
-			if ( filterx != ' ' && filterx == data[ i ][ 39 ] && data[ i ][ 39 ] != '*' ) { excluded[ i ] = true ; continue ; }
+			if ( filteri != ' ' && filteri != data[ i ][ 45 ] && data[ i ][ 45 ] != '*' ) { excluded[ i ] = true ; continue ; }
+			if ( filterx != ' ' && filterx == data[ i ][ 45 ] && data[ i ][ 45 ] != '*' ) { excluded[ i ] = true ; continue ; }
 		}
 	}
 
@@ -452,15 +473,17 @@ void PPSP01A::fill_dynamic_area()
 			t = "" ;
 			s = string( ZAREAW, N_GREEN ) ;
 			p = 0 ;
-			if ( showDate ) { t = data[ k ].substr( 0,  12 )     ; s.replace( p, 12, 12, N_WHITE ) ; p = 12     ; }
-			if ( showTime ) { t = t + data[ k ].substr( 12, 16 ) ; s.replace( p, 16, 16, N_WHITE ) ; p = p + 16 ; }
-			if ( showMod  ) { t = t + data[ k ].substr( 28, 11 ) ; s.replace( p, 11, 11, N_RED   ) ; p = p + 11 ; }
-			t = t + data[ k ].substr( 39, 2 ) ;
-			t = t + substr( data[ k ], startCol, ZAREAW ) ;
+			if ( showDate ) { t = data[ k ].substr( 0,  12 )     ; s.replace( p, 12, 12, N_TURQ   ) ; p = 12     ; }
+			if ( showTime ) { t = t + data[ k ].substr( 12, 16 ) ; s.replace( p, 16, 16, N_TURQ   ) ; p = p + 16 ; }
+			if ( showMod  ) { t = t + data[ k ].substr( 28, 11 ) ; s.replace( p, 11, 11, N_YELLOW ) ; p = p + 11 ; }
+			t += data[ k ].substr( 39, 8 ) ;
+			t += substr( data[ k ], startCol, ZAREAW ) ;
 			t.resize( ZAREAW, ' ' ) ;
-			ZAREA = ZAREA + t ;
-			s.replace( p, 2, 2, N_TURQ ) ;
-			ZSHADOW = ZSHADOW + s ;
+			ZAREA   += t ;
+			s.replace( p, 5, 5, N_WHITE ) ;
+			p += 6 ;
+			s.replace( p, 2, 2, N_TURQ  ) ;
+			ZSHADOW += s ;
 		}
 	}
 }
@@ -651,11 +674,11 @@ void PPSP01A::lspfSettings()
 	vget( "ZDEL ZKLUSE  ZLMSGW ZPADC", PROFILE ) ;
 	if ( RC > 0 ) { abend() ; }
 
-	ZKLUSE  == "Y" ? GOKLUSE = "/" : GOKLUSE = " " ;
-	ZKLFAIL == "Y" ? GOKLFAL = "/" : GOKLFAL = " " ;
-	ZSCMDTF == "Y" ? GOSTFST = "/" : GOSTFST = " " ;
-	ZLMSGW  == "Y" ? GOLMSGW = "/" : GOLMSGW = " " ;
-	ZSWAP   == "Y" ? GOSWAP  = "/" : GOSWAP  = " " ;
+	ZKLUSE  == "Y" ? GOKLUSE = "/" : GOKLUSE = "" ;
+	ZKLFAIL == "Y" ? GOKLFAL = "/" : GOKLFAL = "" ;
+	ZSCMDTF == "Y" ? GOSTFST = "/" : GOSTFST = "" ;
+	ZLMSGW  == "Y" ? GOLMSGW = "/" : GOLMSGW = "" ;
+	ZSWAP   == "Y" ? GOSWAP  = "/" : GOSWAP  = "" ;
 
 	GODEL   = ZDEL    ;
 	GOSWAPC = ZSWAPC  ;
@@ -1018,7 +1041,7 @@ void PPSP01A::colourSettings()
 	DefList[ 32 ] = KWT    ;
 	DefList[ 33 ] = KWASL  ;
 
-	reloadCUATables = true ;
+	control( "RELOAD", "CUA" ) ;
 
 	attr1 = "" ;
 	attr2 = "" ;
@@ -1269,7 +1292,7 @@ void PPSP01A::globalColours()
 				     { "Y", "YELLOW"  } ,
 				     { "W", "WHITE"   } } ;
 
-	reloadCUATables = true ;
+	control( "RELOAD", "CUA" ) ;
 
 	for ( i = 1 ; i < 8 ; i++ )
 	{
@@ -1289,7 +1312,7 @@ void PPSP01A::globalColours()
 	while ( true )
 	{
 		display( "PPSP01CR" ) ;
-		if (RC == 8 ) { cleanup() ; break  ; }
+		if (RC == 8 ) { cleanup() ; break ; }
 		for ( i = 1 ; i < 8 ; i++ )
 		{
 			vcopy( "COLOUR"+ right( d2ds( i ), 2, '0'), colour, MOVE ) ;

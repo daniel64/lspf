@@ -50,6 +50,7 @@
 #include "utilities.cpp"
 
 #include "classes.h"
+#include "classes.cpp"
 
 #include "pWidgets.h"
 
@@ -68,6 +69,11 @@ tableMGR * p_tableMGR = new tableMGR ;
 
 fPOOL funcPOOL ;
 
+logger* lg = new logger ;
+
+logger * tableMGR::lg = NULL ;
+logger * poolMGR::lg  = NULL ;
+
 void createSYSPROF() ;
 void setCUAcolours( const string&, const string& ) ;
 
@@ -75,7 +81,13 @@ main()
 {
 	errblock err ;
 
-	string systemPath, homePath ;
+	tableMGR::lg = lg ;
+	poolMGR::lg  = lg ;
+
+	string systemPath ;
+	string homePath   ;
+
+	lg->open( ALOG ) ;
 
 	systemPath = ZSPROF ;
 	if ( systemPath.back() != '/' ) { systemPath = systemPath + '/' ; }
@@ -379,6 +391,11 @@ main()
 	createSYSPROF() ;
 
 	cout << "See application log in ZALOG if any errors have been encountered" << endl ;
+	lg->close() ;
+
+	delete p_poolMGR  ;
+	delete p_tableMGR ;
+	delete lg         ;
 }
 
 

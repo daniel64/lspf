@@ -1993,7 +1993,7 @@ class PEDIT01 : public pApplication
 		map<string,stack<defName>> defNames ;
 
 	private:
-		static map<string,bool>EditList  ;
+		static set<string>EditList       ;
 		static e_find Global_efind_parms ;
 
 		void showEditEntry()      ;

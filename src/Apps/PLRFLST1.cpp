@@ -54,10 +54,8 @@
 using namespace std ;
 using namespace boost::filesystem ;
 
-#undef MOD_NAME
-#undef LOGOUT
+#undef  MOD_NAME
 #define MOD_NAME PLRFLST1
-#define LOGOUT aplog
 
 
 void PLRFLST1::application()

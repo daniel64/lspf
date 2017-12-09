@@ -38,10 +38,8 @@
 using namespace std ;
 using namespace boost::filesystem ;
 
-#undef MOD_NAME
-#undef LOGOUT
+#undef  MOD_NAME
 #define MOD_NAME PCMD0A
-#define LOGOUT aplog
 
 
 void PCMD0A::application()

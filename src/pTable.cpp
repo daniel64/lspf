@@ -17,12 +17,6 @@
 
 */
 
-#undef  MOD_NAME
-#undef  LOGOUT
-#define MOD_NAME pTable
-#define LOGOUT   aplog
-
-
 // *******************************************************************************************************************************
 // *************************************************** TABLE SECTION *************************************************************
 // *******************************************************************************************************************************
@@ -1523,8 +1517,6 @@ void Table::saveTable( errblock& err,
 		}
 	}
 
-	debug2( "Saving table "+ m_name +" in "+ s <<endl ) ;
-
 	size = table.size() ;
 	otable.open( s.c_str(), ios::binary | ios::out ) ;
 
@@ -1592,8 +1584,7 @@ void Table::cmdsearch( errblock& err,
 
 	if ( !tab_cmds )
 	{
-		llog( "E", "cmdsearch issued for a non-command table." <<endl ) ;
-		err.seterror() ;
+		err.seterror( "cmdsearch issued for a non-command table" ) ;
 		return  ;
 	}
 
@@ -1774,7 +1765,7 @@ void tableMGR::loadTable( errblock& err,
 
 	size_t buf2Size = 1024 ;
 
-	vector<string> * row ;
+	vector<string>* row ;
 
 	std::ifstream table ;
 
@@ -1956,7 +1947,7 @@ void tableMGR::loadTable( errblock& err,
 				table.close() ;
 				delete[] buf2 ;
 				delete row    ;
-				return  ;
+				return ;
 			}
 			n1 = static_cast< int >( z[ 0 ] ) ;
 			n2 = static_cast< int >( z[ 1 ] ) ;
@@ -1991,7 +1982,7 @@ void tableMGR::loadTable( errblock& err,
 				table.close() ;
 				delete[] buf2 ;
 				delete row    ;
-				return  ;
+				return ;
 			}
 			n1 = static_cast< int >( z[ 0 ] ) ;
 			n2 = static_cast< int >( z[ 1 ] ) ;
@@ -2007,7 +1998,7 @@ void tableMGR::loadTable( errblock& err,
 					table.close() ;
 					delete[] buf2 ;
 					delete row    ;
-					return  ;
+					return ;
 				}
 				n1 = static_cast< int >( z[ 0 ] ) ;
 				n2 = static_cast< int >( z[ 1 ] ) ;
@@ -2055,6 +2046,7 @@ void tableMGR::loadTable( errblock& err,
 		{
 			table.close() ;
 			delete[] buf2 ;
+			delete row    ;
 			return ;
 		}
 	}
@@ -2137,7 +2129,9 @@ void tableMGR::statistics()
 	map<string, Table*>::iterator it    ;
 	map<string, tbsearch>::iterator its ;
 
-	llog( "-", "TABLE STATISTICS:" <<endl ) ;
+	errblock err ;
+
+	llog( "-", "Table Statistics:" <<endl ) ;
 	llog( "-", "         Number of tables loaded . . . " << tables.size() <<endl ) ;
 	llog( "-", "          Table details:" <<endl ) ;
 	for ( it = tables.begin() ; it != tables.end() ; it++ )
@@ -2175,9 +2169,13 @@ void tableMGR::statistics()
 			{
 				llog( "-", "             Field Name: "+ its->first <<endl ) ;
 				if ( its->second.tbs_gen )
+				{
 					llog( "-", "            Field Value: "+ its->second.tbs_val +" (generic search)" <<endl ) ;
+				}
 				else
+				{
 					llog( "-", "            Field Value: "+ its->second.tbs_val <<endl ) ;
+				}
 				llog( "-", "        Field Condition: "+ its->second.tbs_scond <<endl ) ;
 			}
 		}

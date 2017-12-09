@@ -17,12 +17,6 @@
 
 */
 
-#undef  MOD_NAME
-#undef  LOGOUT
-#define MOD_NAME pWidgets
-#define LOGOUT   aplog
-
-
 void field::field_init( errblock& err, int MAXW, int MAXD, const string& line )
 {
 	// Format of field entry in panels (FORMAT 1 VERSION 1 )
@@ -102,7 +96,7 @@ void field::field_init( errblock& err, int MAXW, int MAXD, const string& line )
 	field_col    = col-1 ;
 	field_length = len   ;
 	field_cole   = field_col + field_length ;
-	field_input  = !cuaAttrProt [ fType ] ;
+	field_input  = ( cuaAttrUnprot.count( fType ) > 0 ) ;
 
 	field_opts( err, opts ) ;
 	if ( err.error() ) { return ; }
@@ -971,6 +965,7 @@ void field::field_attr( errblock& err, string attrs )
 
 	int p1 ;
 	int p2 ;
+
 	string cua    ;
 	string col    ;
 	string hilite ;
@@ -986,11 +981,11 @@ void field::field_attr( errblock& err, string attrs )
 	p1 = pos( "TYPE(", attrs ) ;
 	if ( p1 > 0 )
 	{
-		p2     = pos( ")", attrs, p1 ) ;
+		p2    = pos( ")", attrs, p1 ) ;
 		if ( p2 == 0 ) { err.seterrid( "PSYE032D" ) ; return ; }
-		cua    = strip( substr( attrs, (p1 + 5), (p2 - (p1 + 5)) ) ) ;
-		cua    = strip( cua, 'B', '"' ) ;
-		attrs  = delstr( attrs, p1, (p2 - p1 + 1) ) ;
+		cua   = strip( substr( attrs, (p1 + 5), (p2 - (p1 + 5)) ) ) ;
+		cua   = strip( cua, 'B', '"' ) ;
+		attrs = delstr( attrs, p1, (p2 - p1 + 1) ) ;
 		if ( trim( attrs ) != "" ) { err.seterrid( "PSYE032H", attrs ) ; return ; }
 		if ( cuaAttrName.count( cua ) == 0 )  { err.seterrid( "PSYE032F", cua ) ; return ; }
 		if ( cua == "PS" || field_cua == PS ) { err.seterrid( "PSYE035A" ) ; return ; }
@@ -1002,11 +997,11 @@ void field::field_attr( errblock& err, string attrs )
 	p1 = pos( "COLOUR(", attrs ) ;
 	if ( p1 > 0 )
 	{
-		p2     = pos( ")", attrs, p1 ) ;
+		p2    = pos( ")", attrs, p1 ) ;
 		if ( p2 == 0 ) { err.seterrid( "PSYE032D" ) ; return ; }
-		col    = strip( substr( attrs, (p1 + 7), (p2 - (p1 + 7)) ) ) ;
-		col    = strip( col, 'B', '"' ) ;
-		attrs  = delstr( attrs, p1, (p2 - p1 + 1) ) ;
+		col   = strip( substr( attrs, (p1 + 7), (p2 - (p1 + 7)) ) ) ;
+		col   = strip( col, 'B', '"' ) ;
+		attrs = delstr( attrs, p1, (p2 - p1 + 1) ) ;
 		field_colour = field_colour & 0XFFFF00FF ;
 		if      ( col == "RED"     ) { field_colour = field_colour | RED     ; }
 		else if ( col == "GREEN"   ) { field_colour = field_colour | GREEN   ; }
@@ -1074,6 +1069,7 @@ void field::field_prep_input()
 
 	int p1 ;
 	int p2 ;
+
 	const char nulls(0x00) ;
 
 	p1 = 0 ;
@@ -1545,8 +1541,7 @@ void Box::box_init( errblock& err, int MAXW, int MAXD, const string& line )
 	if ( width > (MAXW - col+1) ) { width = (MAXW - col+1) ; } ;
 	if ( depth > (MAXD - row+1) ) { depth = (MAXD - row+1) ; } ;
 
-	colour = wordpos( w6, usrAttrNames ) ;
-	if ( colour == 0 ) { colour = B_GREEN ; }
+	colour = ( usrAttrNames.count( w6 ) > 0 ) ? usrAttrNames[ w6 ] : B_GREEN ;
 
 	box_row    = row - 1 ;
 	box_col    = col - 1 ;

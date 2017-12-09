@@ -27,14 +27,12 @@ using namespace std ;
 
 #include "eHilight.h"
 
-#undef LOGOUT
-#undef MOD_NAME
-
-#define LOGOUT aplog
+#undef  MOD_NAME
 #define MOD_NAME HILIGHT
 
+int taskid() { return 0 ; }
 
-void addHilight( hilight& h, const string& line, string& shadow )
+void addHilight( logger* lg, hilight& h, const string& line, string& shadow )
 {
 	try
 	{

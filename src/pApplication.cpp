@@ -17,12 +17,6 @@
 
 */
 
-#undef  MOD_NAME
-#undef  LOGOUT
-
-#define MOD_NAME pApplic
-#define LOGOUT   aplog
-
 void ispexeci( pApplication *, const string&, errblock& ) ;
 
 map<int, void *>pApplication::ApplUserData ;
@@ -173,7 +167,6 @@ void pApplication::createPanel( const string& p_name )
 	}
 
 	pPanel * p_panel    = new pPanel ;
-	p_panel->p_poolMGR  = p_poolMGR  ;
 	p_panel->p_funcPOOL = &funcPOOL  ;
 	p_panel->LRScroll   = ControlPassLRScroll ;
 	p_panel->REXX       = ( rexxName != "" )  ;
@@ -1523,10 +1516,12 @@ void pApplication::control( const string& parm1, const string& parm2, const stri
 	// CONTROL REFLIST NOUPDATE
 
 	// lspf extensions:
-	// CONTROL TIMEOUT  ENABLE  - Enable application timeouts after ZWAITMAX ms (default).
-	// CONTROL TIMEOUT  DISABLE - Disable forced abend of applications if ZWAITMAX exceeded.
+	//
 	// CONTROL ABENDRTN DEFAULT - Reset abend routine to the default, pApplication::cleanup_default
 	// CONTROL RDISPLAY FLUSH   - Flush raw output to the screen
+	// CONTROL RELOAD   CUA     - Reload the CUA tables
+	// CONTROL TIMEOUT  ENABLE  - Enable application timeouts after ZWAITMAX ms (default).
+	// CONTROL TIMEOUT  DISABLE - Disable forced abend of applications if ZWAITMAX exceeded.
 
 	map<string, pPanel *>::iterator it;
 
@@ -1650,6 +1645,19 @@ void pApplication::control( const string& parm1, const string& parm2, const stri
 			return ;
 		}
 	}
+	else if ( parm1 == "RELOAD" )
+	{
+		if ( parm2 == "CUA" )
+		{
+			reloadCUATables = true ;
+		}
+		else
+		{
+			errBlock.setcall( e1, "PSYE022X", "RELOAD", parm2 ) ;
+			checkRCode( errBlock ) ;
+			return ;
+		}
+	}
 	else if ( parm1 == "RDISPLAY" )
 	{
 		if ( parm2 == "FLUSH" )
@@ -1750,6 +1758,7 @@ void pApplication::control( const string& parm1, const string& parm2, const stri
 void pApplication::control( const string& parm1, void (pApplication::*pFunc)() )
 {
 	// lspf extensions:
+	//
 	// CONTROL ABENDRTN ptr_to_routine - Set the routine to get control during an abend
 
 	const string e1 = "CONTROL error" ;
@@ -1952,7 +1961,7 @@ void pApplication::tbcreate( const string& tb_name, const string& keys, const st
 	}
 	else
 	{
-		tablesOpen[ tb_name ] = true ;
+		tablesOpen.insert( tb_name ) ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -2491,7 +2500,7 @@ void pApplication::tbopen( const string& tb_name, tbWRITE m_WRITE, string m_path
 	}
 	else if ( errBlock.RC0() )
 	{
-		tablesOpen[ tb_name ] = true ;
+		tablesOpen.insert( tb_name ) ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -3162,7 +3171,8 @@ bool pApplication::load_message( const string& p_msg )
 
 	RC = 0  ;
 
-	if ( !testMode && msgList.count( p_msg ) > 0 ) { return true ; }
+	if ( testMode ) { msgList.clear() ; }
+	else if ( msgList.count( p_msg ) > 0 ) { return true ; }
 
 	i = check_message_id( p_msg ) ;
 
@@ -3536,12 +3546,12 @@ void pApplication::info()
 
 void pApplication::closeTables()
 {
-	map<string, bool>::iterator it;
+	set<string>::iterator it;
 
 	for ( it = tablesOpen.begin() ; it != tablesOpen.end() ; it++ )
 	{
-		debug1( "Closing table " << it->first << endl ) ;
-		p_tableMGR->destroyTable( errBlock, it->first ) ;
+		debug1( "Closing table " << *it << endl ) ;
+		p_tableMGR->destroyTable( errBlock, *it ) ;
 	}
 }
 
@@ -3582,18 +3592,18 @@ void pApplication::checkRCode( const string& s )
 	{
 		llog( "E", "RC="<< RC <<" CONTROL ERRORS CANCEL is in effect.  Aborting" << endl ) ;
 		vreplace( "ZAPPNAME", ZAPPNAME ) ;
-		vreplace( "ZERR1",  s ) ;
-		vreplace( "ZERR2",  ZERR2  ) ;
-		vreplace( "ZERR3",  ZERR3  ) ;
-		vreplace( "ZERR4",  ZERR4  ) ;
-		vreplace( "ZERR5",  ZERR5  ) ;
-		vreplace( "ZERR6",  ZERR6  ) ;
-		vreplace( "ZERR7",  ZERR7  ) ;
-		vreplace( "ZERR8",  ZERR8  ) ;
+		vreplace( "ZERR1",  s     ) ;
+		vreplace( "ZERR2",  ZERR2 ) ;
+		vreplace( "ZERR3",  ZERR3 ) ;
+		vreplace( "ZERR4",  ZERR4 ) ;
+		vreplace( "ZERR5",  ZERR5 ) ;
+		vreplace( "ZERR6",  ZERR6 ) ;
+		vreplace( "ZERR7",  ZERR7 ) ;
+		vreplace( "ZERR8",  ZERR8 ) ;
 		vreplace( "ZERRRC", d2ds( RC1 ) ) ;
 		ControlDisplayLock  = false ;
 		ControlErrorsReturn = true  ;
-		selPanel           = false ;
+		selPanel            = false ;
 		if ( addpop_active ) { rempop( "ALL" ) ; }
 		display( "PSYSER1" )  ;
 		errPanelissued = true ;
@@ -3827,11 +3837,4 @@ void pApplication::set_timeout_abend()
 
 void pApplication::isredit( const string& s)
 {
-}
-
-
-void pApplication::closeLog()
-{
-	llog( "I", "Closing application log" << endl ) ;
-	aplog.close() ;
 }

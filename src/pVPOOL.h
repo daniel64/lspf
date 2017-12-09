@@ -53,8 +53,8 @@ class fPOOL
 				 const string& name,
 				 int * addr ) ;
 	private:
-		string nullstr ;
-		string varList ;
+		string nullstr  ;
+		string varList  ;
 		bool     ifexists( errblock& err,
 				   const string& name,
 				   nameCHCK check=CHECK ) ;
@@ -208,6 +208,8 @@ class poolMGR
 		poolMGR()  ;
 		~poolMGR() ;
 
+		static logger * lg ;
+
 		void   createPool( errblock& err,
 				   poolType pType,
 				   string path="" ) ;
@@ -287,3 +289,50 @@ class poolMGR
 	friend class pApplication ;
 	friend class pPanel       ;
 } ;
+
+#undef llog
+#undef debug1
+#undef debug2
+
+
+#define llog(t, s) \
+{ \
+lg->lock() ; \
+(*lg) << microsec_clock::local_time() << \
+" POOL      " << \
+" " << right( d2ds( err.taskid ), 5, '0' ) << " " << t << " " << s ; \
+lg->unlock() ; \
+}
+
+#ifdef DEBUG1
+#define debug1( s ) \
+{ \
+lg->lock() ; \
+(*lg) << microsec_clock::local_time() << \
+" POOL      " << \
+" " << right( d2ds( err.taskid ), 5, '0' ) << \
+" D line: "  << __LINE__  << \
+" >>L1 Function: " << __FUNCTION__ << \
+" -  " << s ; \
+lg->unlock() ; \
+}
+#else
+#define debug1( s )
+#endif
+
+
+#ifdef DEBUG2
+#define debug2( s ) \
+{ \
+lg->lock() ; \
+(*lg) << microsec_clock::local_time() << \
+" POOL      " << \
+" " << right( d2ds( err.taskid ), 5, '0' ) << \
+" D line: "  << __LINE__  << \
+" >>L2 Function: " << __FUNCTION__ << \
+" -  " << s ; \
+lg->unlock() ; \
+}
+#else
+#define debug2( s )
+#endif

@@ -44,10 +44,7 @@
 
 using namespace std ;
 
-#undef LOGOUT
-#undef MOD_NAME
-
-#define LOGOUT aplog
+#undef  MOD_NAME
 #define MOD_NAME PTEST01
 
 void PTEST01::application()

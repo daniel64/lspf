@@ -17,12 +17,6 @@
 
 */
 
-#undef  MOD_NAME
-#undef  LOGOUT
-#define MOD_NAME pPanel2
-#define LOGOUT   aplog
-
-
 void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths )
 {
 	int i  ;

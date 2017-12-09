@@ -53,10 +53,7 @@
 using namespace std ;
 using namespace boost::filesystem ;
 
-#undef LOGOUT
-#undef MOD_NAME
-
-#define LOGOUT aplog
+#undef  MOD_NAME
 #define MOD_NAME PTUTORA
 
 

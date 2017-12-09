@@ -17,6 +17,8 @@
 
 */
 
+using namespace boost::filesystem ;
+
 void parser::parseStatement( errblock& err, const string& s )
 {
 	bool quoted ;
@@ -628,6 +630,17 @@ void ASSGN::parse( errblock& err, parser& v )
 	// &A   = TRANS()
 
 	token t ;
+
+	map<string, AS_FUNCTION> assign_functions =
+	{ { "DIR",     AS_DIR     },
+	  { "EXISTS",  AS_EXISTS  },
+	  { "FILE",    AS_FILE    },
+	  { "LENGTH",  AS_LENGTH  },
+	  { "TRANS",   AS_TRANS   },
+	  { "TRUNC",   AS_TRUNC   },
+	  { "REVERSE", AS_REVERSE },
+	  { "WORDS",   AS_WORDS   },
+	  { "UPPER",   AS_UPPER   } } ;
 
 	const string functn_list = "DIR EXISTS FILE LENGTH REVERSE WORDS UPPER" ;
 
@@ -1737,4 +1750,90 @@ bool selobj::parse( errblock& err, string SELSTR )
 	}
 
 	return true ;
+}
+
+
+logger::logger()
+{
+	logfl   = ""    ;
+	currfl  = NULL  ;
+	logOpen = false ;
+
+	boost::filesystem::path temp = \
+	boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( "lspf-%%%%-%%%%" ) ;
+	tmpfl  = temp.native() ;
+}
+
+
+logger::~logger()
+{
+	if ( logOpen ) { close() ; }
+}
+
+
+bool logger::open( const string& dest, bool append )
+{
+	// Open log file for output.  Write to temporary file if destination not set
+
+	if ( logOpen ) { return true ; }
+
+	logfl  = dest ;
+	currfl = ( dest == "" ) ? &tmpfl : &logfl ;
+
+	if ( append )
+	{
+		of.open( *currfl, std::fstream::app ) ;
+	}
+	else
+	{
+		of.open( *currfl ) ;
+	}
+
+	if ( of.is_open() ) { logOpen = true ; }
+	return logOpen ;
+}
+
+
+void logger::close()
+{
+	lock() ;
+	of.close() ;
+	logOpen = false ;
+	unlock()   ;
+}
+
+
+bool logger::set( const string& dest )
+{
+	// Move log records to a new destination and continue recording.  Remove the old file.
+
+	string* t ;
+
+	bool res = false ;
+
+	boost::system::error_code ec ;
+
+	if ( dest == *currfl ) { return true ; }
+
+	lock() ;
+	of.close() ;
+	logOpen = false ;
+
+	if ( currfl && !exists( *currfl ) )
+	{
+		res = open( dest, true ) ;
+	}
+	else if ( !exists( dest ) || is_regular_file( dest ) )
+	{
+		copy_file( *currfl, dest, copy_option::overwrite_if_exists, ec ) ;
+		if ( ec.value() == boost::system::errc::success )
+		{
+			t   = currfl ;
+			res = open( dest, true ) ;
+			remove( *t ) ;
+		}
+	}
+
+	unlock()   ;
+	return res ;
 }

@@ -65,10 +65,7 @@ using namespace boost ;
 using namespace std   ;
 using namespace boost::filesystem ;
 
-#undef LOGOUT
-#undef MOD_NAME
-
-#define LOGOUT aplog
+#undef  MOD_NAME
 #define MOD_NAME PBRO01A
 
 b_find PBRO01A::Global_bfind_parms ;
@@ -733,7 +730,7 @@ void PBRO01A::fill_hilight_shadow()
 		hlight.hl_oComment = false ;
 		for ( dl = w + 1 ; dl <= ll ; dl++ )
 		{
-			addHilight( hlight, data[ dl ], shadow[ dl ].bs_Shadow ) ;
+			addHilight( lg, hlight, data[ dl ], shadow[ dl ].bs_Shadow ) ;
 			if ( hlight.hl_abend ) { return ; }
 			shadow[ dl ].bs_vShadow = true ;
 			shadow[ dl ].bs_wShadow = ( hlight.hl_oBrac1 == 0 &&

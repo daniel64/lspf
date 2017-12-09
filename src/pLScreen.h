@@ -72,3 +72,46 @@ private:
 	stack<PANEL *> panelList ;
 } ;
 
+#undef  llog
+#undef  debug1
+#undef  debug2
+
+#define llog(t, s) \
+{ \
+lg->lock() ; \
+(*lg) << microsec_clock::local_time() << \
+" " << left( quotes(MOD_NAME), 10 ) << \
+" 00000 " << t << " " << s ; \
+lg->unlock() ; \
+}
+
+#ifdef DEBUG1
+#define debug1( s ) \
+{ \
+lg->lock() ; \
+(*lg) << microsec_clock::local_time() << \
+" " << left( quotes(MOD_NAME), 10 ) << \
+" 00000 D line: "  << __LINE__  << \
+" >>L1 Function: " << __FUNCTION__ << \
+" -  " << s ; \
+lg->unlock() ; \
+}
+#else
+#define debug1( s )
+#endif
+
+
+#ifdef DEBUG2
+#define debug2( s ) \
+{ \
+lg->lock() ; \
+(*lg) << microsec_clock::local_time() << \
+" " << left( quotes(MOD_NAME), 10 ) << \
+" 00000 D line: "  << __LINE__  << \
+" >>L2 Function: " << __FUNCTION__ << \
+" -  " << s ; \
+lg->unlock() ; \
+}
+#else
+#define debug2( s )
+#endif

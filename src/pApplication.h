@@ -26,10 +26,10 @@ class pApplication
 		virtual void application() = 0 ;
 		virtual void isredit( const string& ) ;
 
-		static map<int, void *>ApplUserData   ;
-
-		poolMGR  * p_poolMGR  ;
-		tableMGR * p_tableMGR ;
+		static map<int, void *>ApplUserData ;
+		static poolMGR  * p_poolMGR  ;
+		static tableMGR * p_tableMGR ;
+		static logger   * lg         ;
 
 		int    RC                 ;
 		string PARM               ;
@@ -105,7 +105,7 @@ class pApplication
 		boost::posix_time::ptime resumeTime ;
 		boost::thread            * pThread  ;
 
-		void (* lspfCallback)( lspfCommand & ) ;
+		void (* lspfCallback)( lspfCommand& ) ;
 
 		pPanel * currPanel   ;
 		pPanel * currtbPanel ;
@@ -213,7 +213,6 @@ class pApplication
 		void   abendexc()    ;
 		void   set_forced_abend()  ;
 		void   set_timeout_abend() ;
-		void   closeLog()    ;
 		void   closeTables() ;
 		void   checkRCode( const string& ="" ) ;
 		void   checkRCode( errblock ) ;
@@ -288,7 +287,7 @@ class pApplication
 		errblock serBlock ;
 
 		map<string, slmsg> msgList ;
-		map<string, bool> tablesOpen    ;
+		set<string> tablesOpen     ;
 		map<string, pPanel *> panelList ;
 
 		stack<pPanel *> SRpanelStack ;
@@ -307,3 +306,50 @@ class pApplication
 
 		void wait_event() ;
 } ;
+
+#undef llog
+#undef debug1
+#undef debug2
+
+
+#define llog(t, s) \
+{ \
+lg->lock() ; \
+(*lg) << microsec_clock::local_time() << \
+" APPL      " << \
+" " << right( d2ds( taskid() ), 5, '0' ) << " " << t << " " << s ; \
+lg->unlock() ; \
+}
+
+#ifdef DEBUG1
+#define debug1( s ) \
+{ \
+lg->lock() ; \
+(*lg) << microsec_clock::local_time() << \
+" APPL      " << \
+" " << right( d2ds( taskid() ), 5, '0' ) << \
+" D line: "  << __LINE__  << \
+" >>L1 Function: " << __FUNCTION__ << \
+" -  " << s ; \
+lg->unlock() ; \
+}
+#else
+#define debug1( s )
+#endif
+
+
+#ifdef DEBUG2
+#define debug2( s ) \
+{ \
+lg->lock() ; \
+(*lg) << microsec_clock::local_time() << \
+" APPL      " << \
+" " << right( d2ds( taskid() ), 5, '0' ) << \
+" D line: "  << __LINE__  << \
+" >>L2 Function: " << __FUNCTION__ << \
+" -  " << s ; \
+lg->unlock() ; \
+}
+#else
+#define debug2( s )
+#endif

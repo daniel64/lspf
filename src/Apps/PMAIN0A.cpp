@@ -35,10 +35,7 @@
 using namespace std ;
 using namespace boost::gregorian;
 
-#undef LOGOUT
-#undef MOD_NAME
-
-#define LOGOUT aplog
+#undef  MOD_NAME
 #define MOD_NAME PMAIN0A
 
 

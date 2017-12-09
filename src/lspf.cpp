@@ -41,19 +41,12 @@ boost::mutex global ;
 #include "utilities.h"
 #include "utilities.cpp"
 
-map<string, cuaType> cuaAttrName   ;
 map<cuaType, unsigned int> cuaAttr ;
-map<int, unsigned int> usrAttr     ;
-map<cuaType, bool> cuaAttrProt     ;
-
-const string usrAttrNames = "N_RED N_GREEN N_YELLOW N_BLUE N_MAGENTA N_TURQ N_WHITE " \
-			    "B_RED B_GREEN B_YELLOW B_BLUE B_MAGENTA B_TURQ B_WHITE " \
-			    "R_RED R_GREEN R_YELLOW R_BLUE R_MAGENTA R_TURQ R_WHITE " \
-			    "U_RED U_GREEN U_YELLOW U_BLUE U_MAGENTA U_TURQ U_WHITE " \
-			    "P_RED P_GREEN P_YELLOW P_BLUE P_MAGENTA P_TURQ P_WHITE"  ;
 
 #include "classes.h"
 #include "classes.cpp"
+
+#include "colours.h"
 
 #include "pWidgets.h"
 #include "pWidgets.cpp"
@@ -102,9 +95,7 @@ map<int,string> pfKeyDefaults = { {  1, "HELP"      },
 				  { 24, "HELP"      } } ;
 
 #undef  MOD_NAME
-#undef  LOGOUT
 #define MOD_NAME lspf
-#define LOGOUT   splog
 
 #define currScrn pLScreen::currScreen
 #define OIA      pLScreen::OIA
@@ -127,12 +118,23 @@ pApplication * currAppl ;
 
 poolMGR  * p_poolMGR  = new poolMGR  ;
 tableMGR * p_tableMGR = new tableMGR ;
+logger   * lg         = new logger   ;
+logger   * lgx        = new logger   ;
 
-fPOOL funcPOOL ;
+tableMGR * pApplication::p_tableMGR = NULL ;
+poolMGR  * pApplication::p_poolMGR  = NULL ;
+logger   * pApplication::lg         = NULL ;
+poolMGR  * pPanel::p_poolMGR        = NULL ;
+logger   * pPanel::lg               = NULL ;
+logger   * tableMGR::lg             = NULL ;
+logger   * poolMGR::lg              = NULL ;
 
-void initialSetup()      ;
-void loadDefaultPools()  ;
-void getDynamicClasses() ;
+fPOOL  funcPOOL ;
+
+void setGlobalClassVars() ;
+void initialSetup()       ;
+void loadDefaultPools()   ;
+void getDynamicClasses()  ;
 bool loadDynamicClass( const string& ) ;
 bool unloadDynamicClass( void * ) ;
 void reloadDynamicClasses( string ) ;
@@ -184,7 +186,7 @@ struct appInfo
 
 map<string, appInfo> apps ;
 
-boost::circular_buffer<string> retrieveBuffer(10) ;
+boost::circular_buffer<string> retrieveBuffer( 20 ) ;
 
 int    maxtaskID = 0 ;
 int    screenNum = 0 ;
@@ -215,14 +217,17 @@ string GMAINPGM ;
 const string BuiltInCommands = "ACTION DISCARD FIELDEXC MSGID NOP PANELID REFRESH RESIZE RETP SCRNAME SPLIT SWAP TDOWN USERID" ;
 const string SystemCommands  = ".ABEND .HIDE .INFO .LOAD .RELOAD .SCALE .SHELL .SHOW .SNAP .STATS .TEST" ;
 
-std::ofstream splog(SLOG) ;
-
 
 int main( void )
 {
 	int  elapsed ;
 	uint row     ;
 	uint col     ;
+
+	setGlobalClassVars() ;
+
+	lg->open()  ;
+	lgx->open() ;
 
 	errblock err ;
 
@@ -238,7 +243,6 @@ int main( void )
 	screenList.push_back( new pLScreen ) ;
 
 	llog( "I", "lspf startup in progress" << endl ) ;
-
 	llog( "I", "Calling initialSetup" << endl ) ;
 	initialSetup() ;
 
@@ -263,13 +267,11 @@ int main( void )
 	currAppl = ((pApplication*(*)())( apps[ GMAINPGM ].maker_ep))() ;
 
 	currScrn->application_add( currAppl ) ;
-	currAppl->taskid( ++maxtaskID )       ;
-	currAppl->ZAPPNAME     = GMAINPGM     ;
-	currAppl->p_poolMGR    = p_poolMGR    ;
-	currAppl->p_tableMGR   = p_tableMGR   ;
-	currAppl->ZZAPPLID     = "ISP"        ;
-	currAppl->NEWPOOL      = true         ;
-	currAppl->setSelectPanel()            ;
+	currAppl->taskid( ++maxtaskID ) ;
+	currAppl->ZAPPNAME = GMAINPGM   ;
+	currAppl->ZZAPPLID = "ISP"      ;
+	currAppl->NEWPOOL  = true       ;
+	currAppl->setSelectPanel()      ;
 	currAppl->lspfCallback = lspfCallbackHandler ;
 
 	p_poolMGR->put( err, "ZSCREEN", string( 1, ZSCREEN[ screenNum ] ), SHARED, SYSTEM ) ;
@@ -301,10 +303,12 @@ int main( void )
 		delete pThread    ;
 		delete p_poolMGR  ;
 		delete p_tableMGR ;
+		delete lgx        ;
 		delete currScrn   ;
 		llog( "I", "lspf and LOG terminating" << endl ) ;
-		splog.close() ;
-		return 0 ;
+		lg->close() ;
+		delete lg   ;
+		return 0    ;
 	}
 	llog( "I", "First thread "+ GMAINPGM +" started and initialised.  ID=" << pThread->get_id() << endl ) ;
 
@@ -315,6 +319,7 @@ int main( void )
 
 	delete p_poolMGR  ;
 	delete p_tableMGR ;
+	delete lgx        ;
 
 	for ( it = apps.begin() ; it != apps.end() ; it++ )
 	{
@@ -326,8 +331,9 @@ int main( void )
 	}
 
 	llog( "I", "lspf and LOG terminating" << endl ) ;
-	splog.close() ;
-	return 0 ;
+	lg->close() ;
+	delete lg ;
+	return 0  ;
 }
 
 
@@ -904,6 +910,18 @@ void mainLoop()
 }
 
 
+void setGlobalClassVars()
+{
+	pApplication::p_tableMGR = p_tableMGR ;
+	pApplication::p_poolMGR  = p_poolMGR  ;
+	pApplication::lg         = lgx        ;
+	pPanel::p_poolMGR        = p_poolMGR  ;
+	pPanel::lg               = lgx        ;
+	tableMGR::lg             = lgx        ;
+	poolMGR::lg              = lgx        ;
+}
+
+
 void initialSetup()
 {
 	errblock err ;
@@ -962,7 +980,7 @@ void processZSEL()
 		return ;
 	}
 
-	if ( SELCT.PGM[ 0 ] == '&' )
+	if ( SELCT.PGM.front() == '&' )
 	{
 		currAppl->vcopy( substr( SELCT.PGM, 2 ), SELCT.PGM, MOVE ) ;
 	}
@@ -1097,7 +1115,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 							currAppl->setmsg( "PSYS011K" ) ;
 							return ;
 						}
-						if ( SELCT.PGM[ 0 ] == '&' )
+						if ( SELCT.PGM.front() == '&' )
 						{
 							currAppl->vcopy( substr( SELCT.PGM, 2 ), SELCT.PGM, MOVE ) ;
 						}
@@ -1232,8 +1250,8 @@ void processAction( uint row, uint col, int c, bool& passthru )
 
 	jumpOption = ZCOMMAND ;
 
-	ZCOMMAND = strip( ZCOMMAND, 'L', delm[ 0 ] ) ;
-	p1 = ZCOMMAND.find( delm[ 0 ] ) ;
+	ZCOMMAND = strip( ZCOMMAND, 'L', delm.front() ) ;
+	p1 = ZCOMMAND.find( delm.front() ) ;
 	if ( p1 != string::npos )
 	{
 		commandStack = ZCOMMAND.substr( p1+1 ) ;
@@ -1245,7 +1263,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 
 	if ( CMDVerb == "" ) { retPos = 0 ; return ; }
 
-	if ( CMDVerb[ 0 ] == '@' )
+	if ( CMDVerb.front() == '@' )
 	{
 		SELCT.clear() ;
 		currAppl->vcopy( "ZOREXPGM", SELCT.PGM, MOVE ) ;
@@ -1259,7 +1277,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		currAppl->currPanel->cmd_setvalue( "" ) ;
 		return ;
 	}
-	else if ( CMDVerb[ 0 ] == '!' )
+	else if ( CMDVerb.front() == '!' )
 	{
 		SELCT.clear() ;
 		SELCT.PGM     = CMDVerb.substr( 1 ) ;
@@ -1362,7 +1380,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 			{
 				SELCT.PARM.replace( p1, 6, CMDParm ) ;
 			}
-			if ( SELCT.PGM[ 0 ] == '&' )
+			if ( SELCT.PGM.front() == '&' )
 			{
 				currAppl->vcopy( substr( SELCT.PGM, 2 ), SELCT.PGM, MOVE ) ;
 			}
@@ -1409,7 +1427,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		ZPARM    = upper( CMDParm ) ;
 	}
 
-	if ( CMDVerb[ 0 ] == '>' )
+	if ( CMDVerb.front() == '>' )
 	{
 		ZCOMMAND.erase( 0, 1 ) ;
 	}
@@ -1473,7 +1491,7 @@ bool resolveZCTEntry( string& CMDVerb, string& CMDParm )
 		{
 			p_tableMGR->cmdsearch( err, funcPOOL, word( cmdtlst, j ), CMDVerb, ZTLIB ) ;
 			if ( !err.RC0() || ZCTACT == "" ) { continue ; }
-			if ( ZCTACT[ 0 ] == '&' )
+			if ( ZCTACT.front() == '&' )
 			{
 				currAppl->vcopy( substr( ZCTACT, 2 ), ZCTACT, MOVE ) ;
 				if ( ZCTACT == "" ) { found = false ; continue ; }
@@ -1577,7 +1595,7 @@ void startApplication( selobj SEL, bool nScreen )
 			SEL.SUSPEND = true  ;
 			SEL.selPanl = true  ;
 		}
-		if ( SEL.PGM[ 0 ] == '&' )
+		if ( SEL.PGM.front() == '&' )
 		{
 			currAppl->vcopy( substr( SEL.PGM, 2 ), SEL.PGM, MOVE ) ;
 		}
@@ -1614,8 +1632,6 @@ void startApplication( selobj SEL, bool nScreen )
 	currScrn->application_add( currAppl ) ;
 	currAppl->startSelect( SEL )          ;
 	currAppl->taskid( ++maxtaskID )       ;
-	currAppl->p_poolMGR    = p_poolMGR    ;
-	currAppl->p_tableMGR   = p_tableMGR   ;
 	currAppl->lspfCallback = lspfCallbackHandler ;
 	apps[ SEL.PGM ].refCount++ ;
 
@@ -1792,7 +1808,7 @@ void terminateApplication()
 			p_poolMGR->destroyPool( err, PROFILE ) ;
 			p_poolMGR->statistics()  ;
 			p_tableMGR->statistics() ;
-			currAppl->closeLog()     ;
+			llog( "I", "Closing application log" << endl ) ;
 			return ;
 		}
 		deleteLogicalScreen() ;
@@ -2047,58 +2063,9 @@ void ResumeApplicationAndWait()
 
 void loadCUATables()
 {
-	cuaAttrName[ "AB"     ] = AB     ;         // AB Selected Choice
-	cuaAttrName[ "ABSL"   ] = ABSL   ;         // AB Separator Line
-	cuaAttrName[ "ABU"    ] = ABU    ;         // AB Unselected Choice
+	// Set according to the ZC variables in ISPS profile
 
-	cuaAttrName[ "AMT"    ] = AMT    ;         // Action Message Text
-	cuaAttrName[ "AWF"    ] = AWF    ;         // Active Window Frame
-
-	cuaAttrName[ "CT"     ] = CT     ;         // Caution Text
-	cuaAttrName[ "CEF"    ] = CEF    ;         // Choice Entry Field
-	cuaAttrName[ "CH"     ] = CH     ;         // Column Heading
-
-	cuaAttrName[ "DT"     ] = DT     ;         // Descriptive Text
-	cuaAttrName[ "ET"     ] = ET     ;         // Emphasized Text
-	cuaAttrName[ "EE"     ] = EE     ;         // Error Emphasis
-	cuaAttrName[ "FP"     ] = FP     ;         // Field Prompt
-	cuaAttrName[ "FK"     ] = FK     ;         // Function Keys
-
-	cuaAttrName[ "IMT"    ] = IMT    ;         // Informational Message Text
-	cuaAttrName[ "LEF"    ] = LEF    ;         // List Entry Field
-	cuaAttrName[ "LID"    ] = LID    ;         // List Item Description
-	cuaAttrName[ "LI"     ] = LI     ;         // List Items
-
-	cuaAttrName[ "NEF"    ] = NEF    ;         // Normal Entry Field
-	cuaAttrName[ "NT"     ] = NT     ;         // Normal Text
-
-	cuaAttrName[ "PI"     ] = PI     ;         // Panel ID
-	cuaAttrName[ "PIN"    ] = PIN    ;         // Panel Instruction
-	cuaAttrName[ "PT"     ] = PT     ;         // Panel Title
-
-	cuaAttrName[ "PS"     ] = PS     ;         // Point-and-Shoot
-	cuaAttrName[ "PAC"    ] = PAC    ;         // PD Available Choices
-	cuaAttrName[ "PUC"    ] = PUC    ;         // PD Unavailable Choices
-
-	cuaAttrName[ "RP"     ] = RP     ;         // Reference Phrase
-
-	cuaAttrName[ "SI"     ] = SI     ;         // Scroll Information
-	cuaAttrName[ "SAC"    ] = SAC    ;         // Sel. Available Choices
-	cuaAttrName[ "SUC"    ] = SUC    ;         // Sel. Unavailable Choices
-
-	cuaAttrName[ "VOI"    ] = VOI    ;         // Variable Output Info
-	cuaAttrName[ "WMT"    ] = WMT    ;         // Warning Message Text
-	cuaAttrName[ "WT"     ] = WT     ;         // Warning Text
-	cuaAttrName[ "WASL"   ] = WASL   ;         // Work Area Separator Line
-
-	cuaAttrName[ "CHAR"   ] = CHAR   ;         //
-	cuaAttrName[ "DATAIN" ] = DATAIN ;         //
-	cuaAttrName[ "DATAOUT"] = DATAOUT;         //
-	cuaAttrName[ "GRPBOX" ] = GRPBOX ;         // Group Box
-	cuaAttrName[ "OUTPUT" ] = OUTPUT ;         //
-	cuaAttrName[ "TEXT"   ] = TEXT   ;         //
-
-	setColourPair( "AB" )   ;                  //  Set according to the variables in ISPS profile
+	setColourPair( "AB" )   ;
 	setColourPair( "ABSL" ) ;
 	setColourPair( "ABU" )  ;
 
@@ -2148,83 +2115,6 @@ void loadCUATables()
 	cuaAttr[ GRPBOX ] = GREEN  | A_NORMAL | A_PROTECT ;
 	cuaAttr[ OUTPUT ] = GREEN  | A_NORMAL | A_PROTECT ;
 	cuaAttr[ TEXT   ] = BLUE   | A_NORMAL | A_PROTECT ;
-
-	cuaAttrProt[ AB     ] = true  ;
-	cuaAttrProt[ ABSL   ] = true  ;
-	cuaAttrProt[ ABU    ] = true  ;
-
-	cuaAttrProt[ AMT    ] = true  ;
-	cuaAttrProt[ AWF    ] = true  ;
-
-	cuaAttrProt[ CT     ] = true  ;
-	cuaAttrProt[ CEF    ] = false ;
-	cuaAttrProt[ CH     ] = true  ;
-
-	cuaAttrProt[ DT     ] = true  ;
-	cuaAttrProt[ ET     ] = true  ;
-	cuaAttrProt[ EE     ] = true  ;
-	cuaAttrProt[ FP     ] = true  ;
-	cuaAttrProt[ FK     ] = true  ;
-
-	cuaAttrProt[ IMT    ] = true  ;
-	cuaAttrProt[ LEF    ] = false ;
-	cuaAttrProt[ LID    ] = true  ;
-	cuaAttrProt[ LI     ] = true  ;
-
-	cuaAttrProt[ NEF    ] = false ;
-	cuaAttrProt[ NT     ] = true  ;
-
-	cuaAttrProt[ PI     ] = true  ;
-	cuaAttrProt[ PIN    ] = true  ;
-	cuaAttrProt[ PT     ] = true  ;
-
-	cuaAttrProt[ PS     ] = true  ;
-	cuaAttrProt[ PAC    ] = true  ;
-	cuaAttrProt[ PUC    ] = true  ;
-
-	cuaAttrProt[ RP     ] = true  ;
-
-	cuaAttrProt[ SI     ] = true  ;
-	cuaAttrProt[ SAC    ] = true  ;
-	cuaAttrProt[ SUC    ] = true  ;
-
-	cuaAttrProt[ VOI    ] = true  ;
-	cuaAttrProt[ WMT    ] = true  ;
-	cuaAttrProt[ WT     ] = true  ;
-	cuaAttrProt[ WASL   ] = true  ;
-
-	cuaAttrProt[ CHAR   ] = true  ;
-	cuaAttrProt[ DATAIN ] = false ;
-	cuaAttrProt[ DATAOUT] = true  ;
-	cuaAttrProt[ GRPBOX ] = true  ;
-	cuaAttrProt[ OUTPUT ] = true  ;
-	cuaAttrProt[ TEXT   ] = true  ;
-
-	usrAttr[ N_RED     ] = RED     ; usrAttr[ B_RED     ] = RED     | A_BOLD ;
-	usrAttr[ N_GREEN   ] = GREEN   ; usrAttr[ B_GREEN   ] = GREEN   | A_BOLD ;
-	usrAttr[ N_YELLOW  ] = YELLOW  ; usrAttr[ B_YELLOW  ] = YELLOW  | A_BOLD ;
-	usrAttr[ N_BLUE    ] = BLUE    ; usrAttr[ B_BLUE    ] = BLUE    | A_BOLD ;
-	usrAttr[ N_MAGENTA ] = MAGENTA ; usrAttr[ B_MAGENTA ] = MAGENTA | A_BOLD ;
-	usrAttr[ N_TURQ    ] = TURQ    ; usrAttr[ B_TURQ    ] = TURQ    | A_BOLD ;
-	usrAttr[ N_WHITE   ] = WHITE   ; usrAttr[ B_WHITE   ] = WHITE   | A_BOLD ;
-
-	usrAttr[ R_RED     ] = RED     | A_REVERSE ; usrAttr[ U_RED     ] = RED     | A_UNDERLINE ;
-	usrAttr[ R_GREEN   ] = GREEN   | A_REVERSE ; usrAttr[ U_GREEN   ] = GREEN   | A_UNDERLINE ;
-	usrAttr[ R_YELLOW  ] = YELLOW  | A_REVERSE ; usrAttr[ U_YELLOW  ] = YELLOW  | A_UNDERLINE ;
-	usrAttr[ R_BLUE    ] = BLUE    | A_REVERSE ; usrAttr[ U_BLUE    ] = BLUE    | A_UNDERLINE ;
-	usrAttr[ R_MAGENTA ] = MAGENTA | A_REVERSE ; usrAttr[ U_MAGENTA ] = MAGENTA | A_UNDERLINE ;
-	usrAttr[ R_TURQ    ] = TURQ    | A_REVERSE ; usrAttr[ U_TURQ    ] = TURQ    | A_UNDERLINE ;
-	usrAttr[ R_WHITE   ] = WHITE   | A_REVERSE ; usrAttr[ U_WHITE   ] = WHITE   | A_UNDERLINE ;
-
-	usrAttr[ P_RED     ] = RED     | A_PROTECT ;
-	usrAttr[ P_GREEN   ] = GREEN   | A_PROTECT ;
-	usrAttr[ P_YELLOW  ] = YELLOW  | A_PROTECT ;
-	usrAttr[ P_BLUE    ] = BLUE    | A_PROTECT ;
-	usrAttr[ P_MAGENTA ] = MAGENTA | A_PROTECT ;
-	usrAttr[ P_TURQ    ] = TURQ    | A_PROTECT ;
-	usrAttr[ P_WHITE   ] = WHITE   | A_PROTECT ;
-
-	usrAttr[ P_FF      ] = GREEN   | A_PROTECT ;
 
 	setGlobalColours() ;
 }
@@ -2338,6 +2228,8 @@ void loadDefaultPools()
 	// Default vars go in @DEFPROF (RO) for PROFILE and @DEFSHAR (UP) for SHARE
 	// These have the SYSTEM attibute set on the variable
 
+	string log   ;
+
 	errblock err ;
 
 	struct utsname buf ;
@@ -2360,6 +2252,15 @@ void loadDefaultPools()
 		llog( "C", "Aborting startup.  Check path " ZSPROF << endl ) ;
 		abortStartup() ;
 	}
+
+	log = p_poolMGR->get( err, "ZSLOG", PROFILE ) ;
+
+	lg->set( log ) ;
+	llog( "I", "Starting logger on " << log << endl ) ;
+
+	log = p_poolMGR->get( err, "ZALOG", PROFILE ) ;
+	lgx->set( log ) ;
+	llog( "I", "Starting application logger on " << log << endl ) ;
 
 	llog( "I", "Loaded system profile ISPSPROF" << endl ) ;
 	p_poolMGR->createPool( err, SHARED )   ;
@@ -2847,7 +2748,7 @@ void abortStartup()
 {
 	delete screenList[ 0 ] ;
 	cout << "Aborting startup of lspf.  Check lspf and application logs for errors " << endl ;
-	splog.close() ;
+	lg->close() ;
 	abort() ;
 }
 

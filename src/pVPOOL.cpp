@@ -18,12 +18,6 @@
 */
 
 
-#undef  MOD_NAME
-#undef  LOGOUT
-
-#define MOD_NAME pVPOOL
-#define LOGOUT   aplog
-
 using namespace boost::filesystem ;
 
 // ******************************************************************************************************************************
@@ -784,7 +778,6 @@ void pVPOOL::load( errblock& err,
 	fname = path + currApplid + "PROF" ;
 
 	std::ifstream profile ;
-	debug1(" profile dataset is " << fname << endl ) ;
 	profile.open( fname.c_str() , ios::binary ) ;
 	if ( !profile.is_open() )
 	{
@@ -818,7 +811,6 @@ void pVPOOL::load( errblock& err,
 	if ( i < 0 ) { i = 256 + i ; }
 	profile.read (buf1, i ) ;
 	hdr.assign( buf1, i )   ;
-	debug1(" PROFILE Header " << hdr << endl ) ;
 
 	while ( true )
 	{
@@ -852,10 +844,6 @@ void pVPOOL::load( errblock& err,
 	if ( err.error() )
 	{
 		err.seterrid( "PSYE015I", currApplid ) ;
-	}
-	else
-	{
-		llog( "I", "Pool "<< currApplid <<" restored from saved variables in profile dataset "<< fname <<endl ) ;
 	}
 	resetChanged() ;
 }
@@ -903,8 +891,6 @@ void pVPOOL::save( errblock& err,
 	map< string, pVAR*>::iterator it ;
 	for ( it = POOL.begin() ; it != POOL.end() ; it++ )
 	{
-		debug2( "Saving profile variable " << it->first << " for pool " << currApplid << endl ) ;
-		debug2( "value: " << it->second->pVAR_value << endl ) ;
 		i = it->first.size() ;
 		profile << (char)i ;
 		profile.write( it->first.c_str(), i ) ;
@@ -915,7 +901,6 @@ void pVPOOL::save( errblock& err,
 	}
 	profile.close() ;
 	resetChanged()  ;
-	debug1( "Saved pool okay to filename "<< fname <<endl ) ;
 }
 
 
@@ -1170,12 +1155,14 @@ void poolMGR::statistics()
 {
 	string Mode ;
 
+	errblock err ;
+
 	map<string, pVPOOL*>::iterator sp_it ;
 	map<string, pVPOOL*>::iterator pp_it ;
 
 	llog( "-", "Pool Statistics:" << endl ) ;
 	llog( "-", "         Current Applid . . . . . . . . " << currApplid << endl ) ;
-	llog( "-", "         Current SHARED POOL ID . . . . " << shrdPool << endl ) ;
+	llog( "-", "         Current Shared Pool ID . . . . " << shrdPool << endl ) ;
 	llog( "-", "         Number of shared pools . . . . " << POOLs_shared.size() << endl ) ;
 	llog( "-", "         Number of profile pools. . . . " << POOLs_profile.size() << endl ) ;
 	llog( "-", "" << endl ) ;

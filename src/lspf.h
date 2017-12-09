@@ -23,6 +23,8 @@
 #include <panel.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/condition.hpp>
+#include <boost/thread/mutex.hpp>
+#include <set>
 
 // #define DEBUG1 1
 // #define DEBUG2 1
@@ -43,7 +45,7 @@ using namespace boost::posix_time;
 // ALOG     - Location of the application log file (fully qualified)
 // ZREXPATH - Location of the rexx execs (conatenation allowed)
 // ZMAINPGM - Name of the initial program to invoke.  This is treated as a SELECT PANEL()
-// ZMAINPAN - Name of the initial selection panel to invoke ( ie. SELECT PANEL(ZMAINPAN)
+// ZMAINPAN - Name of the initial selection panel to invoke ( ie. SELECT PANEL(ZMAINPAN) )
 // ZPANLPGM - Name of the program invoked on the SELECT PANEL service
 // ZEDITPGM - Name of the editor program to invoke
 // ZBRPGM   - Name of the browser program to invoke
@@ -558,19 +560,43 @@ class errblock
 #define _quotes( a ) #a
 #define quotes( a ) _quotes( a )
 
-#define llog(t, s) LOGOUT << microsec_clock::local_time() << \
-		" " << left( quotes(MOD_NAME), 10 ) << " " << t << " " << s
+
+#define llog(t, s) \
+{ \
+lg->lock() ; \
+(*lg) << microsec_clock::local_time() << \
+" " << left( quotes(MOD_NAME), 10 ) << \
+" 00000 " << t << " " << s ; \
+lg->unlock() ; \
+}
 
 #ifdef DEBUG1
-#define debug1( s ) LOGOUT << microsec_clock::local_time() << " " << left( quotes(MOD_NAME), 10 ) << \
-		" D line: "  << __LINE__  << " >>L1 Function: " << __FUNCTION__ << " -  " << s
+#define debug1( s ) \
+{ \
+lg->lock() ; \
+(*lg) << microsec_clock::local_time() << \
+" " << left( quotes(MOD_NAME), 10 ) << \
+" 00000 D line: "  << __LINE__  << \
+" >>L1 Function: " << __FUNCTION__ << \
+" -  " << s ; \
+lg->unlock() ; \
+}
 #else
 #define debug1( s )
 #endif
 
+
 #ifdef DEBUG2
-#define debug2( s ) LOGOUT << microsec_clock::local_time() << " " << left( quotes(MOD_NAME), 10 ) << \
-		" D line: "  << __LINE__  << " >>L2 Function: " << __FUNCTION__ << " -  " << s
+#define debug2( s ) \
+{ \
+lg->lock() ; \
+(*lg) << microsec_clock::local_time() << \
+" " << left( quotes(MOD_NAME), 10 ) << \
+" 00000 D line: "  << __LINE__  << \
+" >>L2 Function: " << __FUNCTION__ << \
+" -  " << s ; \
+lg->unlock() ; \
+}
 #else
 #define debug2( s )
 #endif

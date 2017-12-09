@@ -98,18 +98,6 @@ enum AS_FUNCTION
 } ;
 
 
-map<string, AS_FUNCTION> assign_functions =
-{ { "DIR",     AS_DIR     },
-  { "EXISTS",  AS_EXISTS  },
-  { "FILE",    AS_FILE    },
-  { "LENGTH",  AS_LENGTH  },
-  { "TRANS",   AS_TRANS   },
-  { "TRUNC",   AS_TRUNC   },
-  { "REVERSE", AS_REVERSE },
-  { "WORDS",   AS_WORDS   },
-  { "UPPER",   AS_UPPER   } } ;
-
-
 class token
 {
 	public:
@@ -168,21 +156,21 @@ class parser
 	private:
 		int   idx ;
 		bool  optUpper ;
-		map<string, bool> ctl_valid = { { ".ALARM" ,  true },
-						{ ".AUTOSEL", true },
-						{ ".BROWSE",  true },
-						{ ".CSRPOS",  true },
-						{ ".CSRROW",  true },
-						{ ".CURSOR",  true },
-						{ ".EDIT",    true },
-						{ ".FALSE",   true },
-						{ ".HELP",    true },
-						{ ".MSG",     true },
-						{ ".NRET",    true },
-						{ ".PFKEY",   true },
-						{ ".RESP",    true },
-						{ ".TRUE",    true },
-						{ ".TRAIL",   true } } ;
+		set<string> ctl_valid = { { ".ALARM"   },
+					  { ".AUTOSEL" },
+					  { ".BROWSE"  },
+					  { ".CSRPOS"  },
+					  { ".CSRROW"  },
+					  { ".CURSOR"  },
+					  { ".EDIT"    },
+					  { ".FALSE"   },
+					  { ".HELP"    },
+					  { ".MSG"     },
+					  { ".NRET"    },
+					  { ".PFKEY"   },
+					  { ".RESP"    },
+					  { ".TRUE"    },
+					  { ".TRAIL"   } } ;
 		token current_token ;
 		vector<token>tokens ;
 } ;
@@ -570,3 +558,42 @@ class selobj
 
 	private:
 } ;
+
+
+class logger
+{
+	public:
+	logger()  ;
+	~logger() ;
+
+	ofstream& operator<<( const string& s )
+	{
+		of << s   ;
+		return of ;
+	}
+
+	ofstream& operator<<( const ptime& t )
+	{
+		of << t   ;
+		return of ;
+	}
+
+	void lock()    { mtx.lock()   ; }
+	void unlock()  { mtx.unlock() ; }
+
+	bool open( const string& ="", bool =false ) ;
+	void close() ;
+	bool set( const string& ) ;
+
+	private:
+	bool logOpen ;
+
+	string* currfl ;
+	string  tmpfl  ;
+	string  logfl  ;
+
+	ofstream of ;
+	boost::mutex mtx ;
+} ;
+
+

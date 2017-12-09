@@ -17,9 +17,6 @@
 
 */
 
-ofstream aplog(ALOG) ;
-
-
 class dynArea
 {
 	public:

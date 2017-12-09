@@ -50,6 +50,7 @@ class PPSP01A : public pApplication
 		int    ZAREAD  ;
 		string ZSHADOW ;
 		int    maxCol  ;
+		int    task    ;
 
 		string VARLST  ;
 		string SEL     ;

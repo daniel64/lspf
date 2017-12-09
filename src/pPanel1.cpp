@@ -17,12 +17,6 @@
 
 */
 
-#undef  MOD_NAME
-#undef  LOGOUT
-#define MOD_NAME pPanel1
-#define LOGOUT   aplog
-
-
 pPanel::pPanel()
 {
 	p_row       = 0      ;
@@ -107,6 +101,21 @@ pPanel::~pPanel()
 		{
 			delete a ;
 		} ) ;
+	for_each( initstmnts.begin(), initstmnts.end(),
+		[](panstmnt * a)
+		{
+			delete a ;
+		} ) ;
+	for_each( reinstmnts.begin(), reinstmnts.end(),
+		[](panstmnt * a)
+		{
+			delete a ;
+		} ) ;
+	for_each( procstmnts.begin(), procstmnts.end(),
+		[](panstmnt * a)
+		{
+			delete a ;
+		} ) ;
 	if ( bwin )
 	{
 		panel_cleanup( bpanel ) ;
@@ -171,6 +180,7 @@ void pPanel::init( errblock& err )
 
 	WSCRMAXD = ZSCRMAXD ;
 	WSCRMAXW = ZSCRMAXW ;
+	taskId   = err.taskid ;
 }
 
 
@@ -1938,7 +1948,7 @@ void pPanel::create_tbfield( errblock& err, const string& pline )
 	a.field_col    = tcol - 1 ;
 	a.field_length = tlen     ;
 	a.field_cole   = tcol - 1 + tlen ;
-	a.field_input  = !cuaAttrProt[ fType ] ;
+	a.field_input  = ( cuaAttrUnprot.count( fType ) > 0 ) ;
 	a.field_tb     = true ;
 
 	for ( int i = 0 ; i < tb_depth ; i++ )
