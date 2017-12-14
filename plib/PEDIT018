@@ -1,0 +1,41 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+Rename Clipboard
+)ENDCOMMENT
+
+)BODY HOME(NEWNAME) WINDOW(65,11)
+PanelTitle "Rename Clipboard"
+
+literal  3  2         FP  "Original Name. . . .:"
+field    3  24   8    NEF  CAPS(ON),PAD(' ') OLDNAME
+literal  4  2         FP  "New Name . . . . . .:"
+field    4  24   8    NEF  CAPS(ON),PAD(USER) NEWNAME
+
+literal  5  2         FP  "Description. . . . .:"
+field    5  24   40   NEF  CAPS(OFF),PAD(USER) NEWDESC
+
+literal 7  2  CH "Instructions"
+literal 9  2  NT "Press"
+literal 9  8  ET "Enter"
+literal 9  14 NT "to confirm or"
+literal 9  28 ET "END"
+literal 9  32 NT "to cancel operation"
+
+
+)INIT
+.CURSOR  = NEWNAME
+&ZWINTTL = &Z
+.ATTR(OLDNAME) = 'TYPE(TEXT)'
+
+)PROC
+IF ( &NEWNAME EQ &OLDNAME )
+   &ZEDSMSG = 'Invalid Entry'
+   &ZEDLMSG = 'New name cannot be the same as an existing name'
+   .MSG     = PSYZ001
+   .CURSOR  = NEWNAME
+   EXIT
+
+VER (&NEWNAME NB)
+
+)END

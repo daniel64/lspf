@@ -1761,7 +1761,7 @@ logger::logger()
 
 	boost::filesystem::path temp = \
 	boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( "lspf-%%%%-%%%%" ) ;
-	tmpfl  = temp.native() ;
+	tmpfl = temp.native() ;
 }
 
 

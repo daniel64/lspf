@@ -1934,11 +1934,23 @@ void terminateApplication()
 		{
 			currAppl->RC = 0 ;
 		}
-		currAppl->SEL  = false ;
-		currAppl->ZRC  = tRC   ;
-		currAppl->ZRSN = tRSN  ;
-		currAppl->ZRESULT = tRESULT ;
-		currAppl->abnormalEnd = abnormalEnd ;
+		if ( abnormalEnd )
+		{
+			currAppl->ZRC     = 20  ;
+			currAppl->ZRSN    = 999 ;
+			currAppl->ZRESULT = "Abended" ;
+			if ( !currAppl->errorsReturn() )
+			{
+				currAppl->abnormalEnd = true ;
+			}
+		}
+		else
+		{
+			currAppl->ZRC     = tRC     ;
+			currAppl->ZRSN    = tRSN    ;
+			currAppl->ZRESULT = tRESULT ;
+		}
+		currAppl->SEL = false ;
 		if ( setMSG ) { currAppl->set_msg1( tMSG1, tMSGID1 ) ; }
 		ResumeApplicationAndWait() ;
 		while ( currAppl->terminateAppl )
@@ -2009,14 +2021,14 @@ void deleteLogicalScreen()
 	delete currScrn ;
 
 	screenList.erase( screenList.begin() + screenNum ) ;
-	if ( altScreen > screenNum ) { --altScreen ; }
-	--screenNum ;
+	if ( altScreen > screenNum ) { altScreen-- ; }
+	screenNum-- ;
 	if ( screenNum < 0 ) { screenNum = pLScreen::screensTotal - 1 ; }
 	if ( pLScreen::screensTotal > 1 )
 	{
 		if ( altScreen == screenNum )
 		{
-			altScreen = ((altScreen == pLScreen::screensTotal - 1) ? 0 : (altScreen + 1) )  ;
+			altScreen = (altScreen == pLScreen::screensTotal - 1) ? 0 : (altScreen + 1) ;
 		}
 	}
 	currScrn = screenList[ screenNum ] ;

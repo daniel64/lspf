@@ -1,0 +1,57 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+EDITSET panel
+)ENDCOMMENT
+
+)BODY HOME(ZCMD9) CMD(ZCMD9) WINDOW(68,14)
+
+PanelTitle "Edit Settings"
+
+literal  3    2       FP     "Command ===>"
+field    3   15   MAX NEF     PAD(USER),CAPS(ON) ZCMD9
+
+literal  6    2       NT     "CUT default. . "
+literal  6    35      NT     "PASTE default. . "
+literal  6    20      SAC    "1. Append"
+literal  7    20      SAC    "2. Replace"
+field    6    17  1   CEF     PAD(USER) ZCUTDEF
+field    6    52  1   CEF     PAD(USER) ZPSTDEF
+
+literal  6    55      SAC    "1. Delete"
+literal  7    55      SAC    "2. Keep"
+
+literal  9 2  CH "Instructions"
+literal 11 2  NT "Press"
+literal 11 8  ET "END"
+literal 11 12 NT "to save changes
+
+literal 12 2  NT "Enter"
+literal 12 8  ET "CANCEL"
+literal 12 15 NT "to cancel changes
+
+
+)INIT
+
+&ZCMD9  = &Z
+.CURSOR = ZCMD9
+
+)PROC
+
+&ZCMD9 = TRANS(&ZCMD9 CAN,CANCEL *,* )
+
+IF (&ZCMD9 EQ CANCEL)
+   .RESP = END
+   EXIT
+ELSE
+   IF (&ZCMD9 NE &Z)
+      .MSG    = PSYS018
+      .CURSOR = ZCMD9
+      EXIT
+
+VER(&ZCUTDEF,NB,LIST,1,2)
+VER(&ZPSTDEF,NB,LIST,1,2)
+
+IF (.MSG NE &Z) &ZCMD9 = CANCEL
+
+)END

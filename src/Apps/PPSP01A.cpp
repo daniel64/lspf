@@ -525,7 +525,7 @@ void PPSP01A::dsList( string parms )
 			reflist = ( RC == 0 ) ;
 			if ( RC == 8 )
 			{
-				tbsort( RFLTABLE, "ZCURTB,C,A" ) ;
+				tbsort( RFLTABLE, "(ZCURTB,C,A)" ) ;
 				tbvclear( RFLTABLE ) ;
 				vreplace( "ZCURTB", upper( parms )+"*" ) ;
 				tbsarg( RFLTABLE, "", "NEXT", "(ZCURTB,EQ)" ) ;
@@ -1477,7 +1477,7 @@ void PPSP01A::getpoolVariables( const string& pattern )
 	int i  ;
 	int ws ;
 
-	tbcreate( VARLST, "", "SEL VAR VPOOL VPLVL MESSAGE VAL", NOWRITE ) ;
+	tbcreate( VARLST, "", "(SEL,VAR,VPOOL,VPLVL,MESSAGE,VAL)", NOWRITE ) ;
 
 	SEL     = "" ;
 	MESSAGE = "" ;
@@ -1607,7 +1607,7 @@ void PPSP01A::showPaths()
 
 	vdefine( "SEL PVAR PATH MESSAGE DESCRIPT", &SEL, &PVAR, &PATH, &MESSAGE, &DESCRIPT ) ;
 
-	tbcreate( PATHLST, "", "SEL PVAR PATH MESSAGE DESCRIPT", NOWRITE ) ;
+	tbcreate( PATHLST, "", "(SEL,PVAR,PATH,MESSAGE,DESCRIPT)", NOWRITE ) ;
 
 	SEL      = ""        ;
 	PVAR     = "ZLDPATH" ;
@@ -1873,12 +1873,12 @@ void PPSP01A::showLoadedClasses()
 	MSG    = ""   ;
 	ZTDTOP = 1    ;
 	ref    = true ;
-	psort  = "APPL,C,A" ;
+	psort  = "(APPL,C,A)" ;
 	while ( true )
 	{
 		if ( ref )
 		{
-			tbcreate( MODLST, "APPL", "SEL MOD MODPATH STATUS", NOWRITE ) ;
+			tbcreate( MODLST, "APPL", "(SEL,MOD,MODPATH,STATUS)", NOWRITE ) ;
 			tbsort( MODLST, psort ) ;
 			lc.Command = "MODULE STATUS" ;
 			lspfCallback( lc ) ;
@@ -2100,7 +2100,7 @@ void PPSP01A::updateTasks( const string& table, const string& uf, const string& 
 	string tname = temp.native() ;
 	string cname = "ps aux > " + tname ;
 
-	tbcreate( table, "", "SEL USER PID CPU CPUX MEM MEMX CMD", NOWRITE ) ;
+	tbcreate( table, "", "(SEL,USER,PID,CPU,CPUX,MEM,MEMX,CMD)", NOWRITE ) ;
 
 	system( cname.c_str() ) ;
 	fin.open( tname ) ;
@@ -2125,7 +2125,7 @@ void PPSP01A::updateTasks( const string& table, const string& uf, const string& 
 		tbadd( table ) ;
 	}
 	fin.close() ;
-	tbsort( table, "CPUX,N,D" ) ;
+	tbsort( table, "(CPUX,N,D)" ) ;
 	tbtop( table ) ;
 	remove( tname ) ;
 }
@@ -2229,10 +2229,10 @@ void PPSP01A::keylistTables()
 	vdefine( "TBK1SEL TBK1TAB TBK1TYP TBK1MSG NEWTAB", &TBK1SEL, &TBK1TAB, &TBK1TYP, &TBK1MSG, &NEWTAB ) ;
 	KEYP = "KEYP" + right( d2ds( taskid() ), 4, '0' ) ;
 
-	tbcreate( KEYP, "", "TBK1SEL TBK1TAB TBK1TYP TBK1MSG", NOWRITE ) ;
+	tbcreate( KEYP, "", "(TBK1SEL,TBK1TAB,TBK1TYP,TBK1MSG)", NOWRITE ) ;
 	if ( RC > 0 ) { abend() ; }
 
-	tbsort( KEYP, "TBK1TAB,C,A" ) ;
+	tbsort( KEYP, "(TBK1TAB,C,A)" ) ;
 
 	vcopy( "ZUPROF", UPROF, MOVE ) ;
 	vcopy( "ZKLNAME", AKLIST, MOVE ) ;
@@ -2390,7 +2390,7 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 		abend() ;
 	}
 
-	tbcreate( KLST, "", "TBK2SEL TBK2LST TBK2MSG", NOWRITE ) ;
+	tbcreate( KLST, "", "(TBK2SEL,TBK2LST,TBK2MSG)", NOWRITE ) ;
 	if ( RC > 0 )
 	{
 		llog( "E", "Error creating Keylist table "<< KLST << ".  RC="<< RC << endl ) ;
@@ -2404,7 +2404,7 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 		tbend( tab ) ;
 		tbopen( tab, WRITE, UPROF ) ;
 		if ( RC > 0 ) { abend() ; }
-		tbsort( tab, "KEYLISTN,C,A" ) ;
+		tbsort( tab, "(KEYLISTN,C,A)" ) ;
 		KEYLISTN = "ISPDEF" ;
 		for ( i = 1 ; i < 25 ; i++ )
 		{
@@ -2436,7 +2436,7 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 	}
 	tbend( tab ) ;
 
-	tbsort( KLST, "TBK2LST,C,A" ) ;
+	tbsort( KLST, "(TBK2LST,C,A)" ) ;
 
 	ZTDTOP = 1 ;
 	while ( true )
@@ -2490,7 +2490,7 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 						tbend( tab ) ;
 						tbopen( tab, WRITE, UPROF ) ;
 						if ( RC > 0 ) { abend() ; }
-						tbsort( tab, "KEYLISTN,C,A" ) ;
+						tbsort( tab, "(KEYLISTN,C,A)" ) ;
 						KEYLISTN = NEWKEY ;
 						for ( i = 1 ; i < 25 ; i++ )
 						{
@@ -2575,7 +2575,7 @@ void PPSP01A::viewKeylist( const string& tab, const string& list )
 
 	vdefine( "KEYLISTN KEYNUM KEYDEF KEYATTR KEYLAB", &KEYLISTN, &KEYNUM, &KEYDEF, &KEYATTR, &KEYLAB ) ;
 
-	tbcreate( KLST, "KEYNUM", "KEYDEF KEYATTR KEYLAB", NOWRITE ) ;
+	tbcreate( KLST, "KEYNUM", "(KEYDEF,KEYATTR,KEYLAB)", NOWRITE ) ;
 	if ( RC > 0 ) { abend() ; }
 
 	tbvclear( tab ) ;
@@ -2641,7 +2641,7 @@ void PPSP01A::editKeylist( const string& tab, const string& list )
 
 	vdefine( "KEYLISTN KEYNUM KEYDEF KEYATTR KEYLAB", &KEYLISTN, &KEYNUM, &KEYDEF, &KEYATTR, &KEYLAB ) ;
 
-	tbcreate( KLST, "KEYNUM", "KEYDEF KEYATTR KEYLAB", NOWRITE ) ;
+	tbcreate( KLST, "KEYNUM", "(KEYDEF,KEYATTR,KEYLAB)", NOWRITE ) ;
 	if ( RC > 0 ) { abend() ; }
 
 	tbvclear( tab ) ;
@@ -2743,7 +2743,7 @@ void PPSP01A::createKeyTable( string tab )
 	}
 	flds += "KEYHELPN" ;
 
-	tbcreate( tab, "KEYLISTN", flds, WRITE, NOREPLACE, UPROF ) ;
+	tbcreate( tab, "KEYLISTN", "("+flds+")", WRITE, NOREPLACE, UPROF ) ;
 	if ( RC > 0 ) { abend() ; }
 
 	tbsave( tab ) ;

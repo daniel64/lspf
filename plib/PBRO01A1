@@ -4,10 +4,10 @@ Panel for ...
 )ENDCOMMENT
 )BODY
 scrollOn
-PanelDescr "Browse &ZDSN"
+PanelDescr "Browse &ZBRALT"
 
 literal  3   2    FP "BROWSE"
-field    3  12   70 VOI  NONE ZDSN
+field    3  10   70 VOI  NONE ZBRALT
 
 literal  4   2         FP  "Command ===> "
 field    4  15 MAX-17  NEF PAD(USER) ZCMD

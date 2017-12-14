@@ -39,7 +39,7 @@ void Table::loadRow( errblock& err,
 {
 	err.setRC( 0 ) ;
 
-	if ( table.size() > 65535 )
+	if ( table.size() > 262144 )
 	{
 		err.seterrid( "PSYE013F" ) ;
 		return ;
@@ -593,7 +593,8 @@ void Table::tbmod( errblock& err,
 		row->push_back( URID ) ;
 		loadFields( err, funcPOOL, tb_namelst, row ) ;
 		if ( err.error() ) { delete row ; return ; }
-		(*it) = row ;
+		delete (*it) ;
+		(*it) = row  ;
 		if ( tb_order == "ORDER" && sort_ir != "" )
 		{
 			tbsort( err, sort_ir ) ;
@@ -614,6 +615,8 @@ void Table::tbput( errblock& err,
 		   string tb_namelst,
 		   string tb_order )
 {
+	// Update a row in a table.
+	// For non-keyed tables, use row pointed to by the CRP
 	// For keyed tables, key variables must match row at CRP
 
 	// RC = 0   OK
@@ -880,7 +883,7 @@ void Table::tbscan( errblock& err,
 	// tb_condlst contains the condidtions to use for variables in tb_namelst (1:1 between the two lists).
 	// Only use variables in tb_namelst not other table variables.
 
-	// RC = 0  Okay. Row found
+	// RC = 0  Okay. Row found. CRP set to top.
 	// RC = 8  Row not found
 
 	int i    ;
@@ -1236,8 +1239,9 @@ void Table::tbsort( errblock& err,
 	// FIELD,C,A,FIELD2,N
 	// FIELD,C,A,FIELD2,N,D
 
+	int i  ;
 	int f1 ;
-	int p1 ;
+	int ws ;
 
 	string s_fields ;
 	string s_temp   ;
@@ -1256,19 +1260,10 @@ void Table::tbsort( errblock& err,
 	iupper( tb_fields ) ;
 	temp = tb_fields    ;
 
-	while ( true )
+	replace( tb_fields.begin(), tb_fields.end(), ',', ' ' ) ;
+	for ( ws = words( tb_fields ), i = 1 ; i <= ws ; i++ )
 	{
-		p1 = tb_fields.find( ',' ) ;
-		if ( p1 == string::npos )
-		{
-			s_parm.push_back( trim( tb_fields ) ) ;
-			break ;
-		}
-		else
-		{
-			s_parm.push_back( strip( tb_fields.substr( 0, p1 ) ) ) ;
-			tb_fields.erase( 0, p1+1 ) ;
-		}
+		s_parm.push_back( word( tb_fields, i ) ) ;
 	}
 
 	s_fields = "" ;

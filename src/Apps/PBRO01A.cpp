@@ -86,6 +86,7 @@ void PBRO01A::application()
 	string ZDSN   ;
 	string CURFLD ;
 	string ZZSTR1 ;
+	string zbralt ;
 
 	bool rebuildZAREA ;
 
@@ -171,6 +172,10 @@ void PBRO01A::application()
 	}
 
 	ZASIZE = ZAREAW*ZAREAD ;
+
+	vget( "ZBRALT", SHARED ) ;
+	vcopy( "ZBRALT", zbralt, MOVE ) ;
+	if ( zbralt == "" ) { vreplace( "ZBRALT", ZDSN ) ; }
 
 	while ( true )
 	{

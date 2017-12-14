@@ -5,11 +5,11 @@ Panel for editor PEDIT01
 )ENDCOMMENT
 
 )BODY SCROLL(ZSCROLL)
-PanelDescr "Edit &ZFILE"
+PanelDescr "Edit &ZEDALT"
 scrollOn
 
 literal   3   2             FP  "EDIT"
-field     3   12    70      VOI  NONE ZFILE
+field     3   10    70      VOI  NONE ZEDALT
 
 literal   4   2             FP "Command ===>"
 field     4   15    MAX-17  NEF PAD(USER) ZCMD

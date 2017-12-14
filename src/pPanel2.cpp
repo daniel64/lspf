@@ -246,10 +246,13 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 					return ;
 				}
 				m_stmnt->ps_label = upper( w1 ) ;
-				p_stmnt->push_back( m_stmnt ) ;
 				pline.replace( m_stmnt->ps_column, w1.size()+1, w1.size()+1, ' ' ) ;
-				w1 = upper( word( pline, 1 ) ) ;
-				if ( w1 == "" ) { continue ; }
+				trim( pline ) ;
+				if ( pline == "" )
+				{
+					p_stmnt->push_back( m_stmnt ) ;
+					continue ;
+				}
 			}
 			panelLang.parseStatement( err, pline ) ;
 			if ( err.error() ) { return ; }

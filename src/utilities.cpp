@@ -1495,23 +1495,25 @@ string parseString( errblock& err, string& s, string p )
 }
 
 
-string getNameList( errblock& err, string s )
+string& getNameList( errblock& err, string& s )
 {
-	// return the name list contained in s
+	// return the name list contained in s.  Change in-place if there are no errors, else return original string.
 	// err - errblock to hold any errors
+
+	string tmp = s ;
 
 	trim( s ) ;
 
 	bool bracket = false ;
 
-	if ( s == "" ) { return "" ; }
+	if ( s == "" ) { return s ; }
 
 	if ( s.front() == '(' )
 	{
 		if ( s.back() != ')' )
 		{
 			err.seterrid( "PSYE032D" ) ;
-			return "" ;
+			return s ;
 		}
 		else
 		{
@@ -1523,7 +1525,7 @@ string getNameList( errblock& err, string s )
 	if ( !bracket && words( s ) > 1 )
 	{
 		err.seterrid( "PSYE039S" ) ;
-		return "" ;
+		s = tmp ;
 	}
 	return s ;
 }

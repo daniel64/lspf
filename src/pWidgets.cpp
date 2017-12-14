@@ -968,6 +968,7 @@ void field::field_attr( errblock& err, string attrs )
 
 	string cua    ;
 	string col    ;
+	string typ    ;
 	string hilite ;
 	string intens ;
 
@@ -984,23 +985,31 @@ void field::field_attr( errblock& err, string attrs )
 		p2    = pos( ")", attrs, p1 ) ;
 		if ( p2 == 0 ) { err.seterrid( "PSYE032D" ) ; return ; }
 		cua   = strip( substr( attrs, (p1 + 5), (p2 - (p1 + 5)) ) ) ;
-		cua   = strip( cua, 'B', '"' ) ;
 		attrs = delstr( attrs, p1, (p2 - p1 + 1) ) ;
-		if ( trim( attrs ) != "" ) { err.seterrid( "PSYE032H", attrs ) ; return ; }
-		if ( cuaAttrName.count( cua ) == 0 )  { err.seterrid( "PSYE032F", cua ) ; return ; }
-		if ( cua == "PS" || field_cua == PS ) { err.seterrid( "PSYE035A" ) ; return ; }
-		field_cua = cuaAttrName[ cua ] ;
-		field_usecua = true ;
-		return ;
+		if      ( cua == "TEXT"    ) { field_input  = false ; }
+		else if ( cua == "OUTPUT"  ) { field_input  = false ; }
+		else if ( cua == "INPUT"   ) { field_input  = true  ; }
+		else
+		{
+			if ( trim( attrs ) != "" ) { err.seterrid( "PSYE032H", attrs ) ; return ; }
+			if ( cuaAttrName.count( cua ) == 0 )  { err.seterrid( "PSYE032F", cua ) ; return ; }
+			if ( cua == "PS" || field_cua == PS ) { err.seterrid( "PSYE035A" ) ; return ; }
+			field_cua    = cuaAttrName[ cua ] ;
+			field_input  = ( cuaAttrUnprot.count( field_cua ) > 0 ) ;
+			field_usecua = true ;
+			return ;
+		}
 	}
-	if ( field_usecua ) { field_colour = cuaAttr[ field_cua ] ; }
+	if ( field_usecua )
+	{
+		field_colour = cuaAttr[ field_cua ] ;
+	}
 	p1 = pos( "COLOUR(", attrs ) ;
 	if ( p1 > 0 )
 	{
 		p2    = pos( ")", attrs, p1 ) ;
 		if ( p2 == 0 ) { err.seterrid( "PSYE032D" ) ; return ; }
 		col   = strip( substr( attrs, (p1 + 7), (p2 - (p1 + 7)) ) ) ;
-		col   = strip( col, 'B', '"' ) ;
 		attrs = delstr( attrs, p1, (p2 - p1 + 1) ) ;
 		field_colour = field_colour & 0XFFFF00FF ;
 		if      ( col == "RED"     ) { field_colour = field_colour | RED     ; }
@@ -1019,7 +1028,6 @@ void field::field_attr( errblock& err, string attrs )
 		p2     = pos( ")", attrs, p1 ) ;
 		if ( p2 == 0 ) { err.seterrid( "PSYE032D" ) ; return ; }
 		intens = strip( substr( attrs, (p1 + 8), (p2 - (p1 + 8)) ) ) ;
-		intens = strip( intens, 'B', '"' ) ;
 		attrs  = delstr( attrs, p1, (p2 - p1 + 1) ) ;
 		if      ( intens == "HIGH" ) { field_colour = field_colour | A_BOLD   ; }
 		else if ( intens == "LOW"  ) { field_colour = field_colour | A_NORMAL ; }
@@ -1032,7 +1040,6 @@ void field::field_attr( errblock& err, string attrs )
 		p2     = pos( ")", attrs, p1 ) ;
 		if ( p2 == 0 ) { err.seterrid( "PSYE032D" ) ; return ; }
 		hilite = strip( substr( attrs, (p1 + 7), (p2 - (p1 + 7)) ) ) ;
-		hilite = strip( hilite, 'B', '"' ) ;
 		attrs  = delstr( attrs, p1, (p2 - p1 + 1) ) ;
 		if      ( hilite == "NONE"    ) {}
 		else if ( hilite == "BLINK"   ) { field_colour = field_colour | A_BLINK     ; }

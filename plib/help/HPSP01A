@@ -21,6 +21,9 @@ HIDE TIME  Hide time in the log record
 HIDE MOD   Hide mod  in the log record
 HIDE ALL   Hide all the above in the log record
 
+TASKID | TASK | ID n : Show only log records for task n.
+                       Task 0 records will also be shown as these could be related.
+                       (lspf log only contains task 0)
 
 X A     Exlude all type A log messages
 X ALL   Exlude all log messages

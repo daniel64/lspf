@@ -15,7 +15,7 @@ PEDT014 'Invalid label name' .TYPE=W
 'Label must be between 1 and 5 alphanumeric characters and not starting with a ''Z'''
 
 PEDT015 'Invalid parameter format passed to PEDIT01'
-''
+'&ZVAL1'
 
 PEDT016 'Label missing or invalid' .TYPE=W
 'Enter both labels to delimit command.  Both labels must already exist'
@@ -137,8 +137,8 @@ PEDT013A 'Invalid CUT parameter' .TYPE=W
 PEDT013B 'Invalid PASTE parameter' .TYPE=W
 'PASTE DEFAULT|name KEEP|DELETE'
 
-PEDT013C '&ZEDLNES lines cut to &CLIPNAME' .TYPE=N
-'&ZEDLNES lines cut to clipboard &CLIPNAME'
+PEDT013C '&ZEDLNES lines cut to &ZEDCNAME' .TYPE=N
+'&ZEDLNES lines cut to clipboard &ZEDCNAME'
 
 PEDT013D '&ZEDLNES lines pasted from &CLIPNAME' .TYPE=N
 '&ZEDLNES lines pasted from clipboard &CLIPNAME'
@@ -278,8 +278,8 @@ PEDT014W 'Tabs converted' .TYPE=N
 PEDT014X '&ZSTR1 macro error' .TYPE=W
 '&ZSTR1 has set a return code of &ZSTR2'
 
-PEDT014Y 'SPARE' .TYPE=W
-'SPARE'
+PEDT014Y 'No clipboard found' .TYPE=W
+''
 
 PEDT014Z 'SPARE' .TYPE=W
 'SPARE'
@@ -346,3 +346,9 @@ PEDT015T 'Invalid DEFINE request' .TYPE=W
 
 PEDT015U 'Invalid DEFINE request' .TYPE=W
 'DEFINE ALIAS attempted for a name that is currently NOP'ed or DISABLED'
+
+PEDT015V '&ZEDCLIP is read-only' .TYPE=W
+'Use clipboard manager, line command ''O'', to unlock clipboard'
+
+PEDT015W 'Invalid return code from &ZVAL1' .TYPE=W
+''

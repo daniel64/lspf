@@ -393,10 +393,20 @@ void PFLST0A::application()
 			else if ( SEL == "EX" )
 			{
 				vcopy( "ZOREXPGM", PGM, MOVE ) ;
+				control( "ERRORS", "RETURN" ) ;
 				select( "PGM(" + PGM + ") PARM(" + entry + ")" ) ;
+				control( "ERRORS", "CANCEL" ) ;
 				SEL = "" ;
-				if ( ZRESULT != "" ) { MESSAGE = ZRESULT    ; MSG = "PSYS011M" ; }
-				else                 { MESSAGE = "Executed" ;                    }
+				if ( ZRESULT != "" )
+				{
+					MESSAGE = ZRESULT    ;
+					MSG     = "PSYS011M" ;
+					vreplace( "STR", "RC="+ d2ds( ZRC ) +"  RSN="+ d2ds( ZRSN ) ) ;
+				}
+				else
+				{
+					MESSAGE = "Executed" ;
+				}
 				tbput( DSLIST ) ;
 			}
 			else if ( SEL == "X" )
@@ -804,7 +814,7 @@ void PFLST0A::createFileList1( string filter )
 
 	regex expression ;
 
-	tbcreate( DSLIST, "", "MESSAGE SEL ENTRY TYPE PERMISS SIZE STCDATE MODDATE MODDATES", NOWRITE ) ;
+	tbcreate( DSLIST, "", "(MESSAGE,SEL,ENTRY,TYPE,PERMISS,SIZE,STCDATE,MODDATE,MODDATES)", NOWRITE ) ;
 
 	MESSAGE = ""  ;
 	SEL     = ""  ;
@@ -1237,13 +1247,13 @@ int PFLST0A::processPrimCMD()
 		iupper( w3 ) ;
 		if ( w2 == "" ) { w2 = "ENTRY" ; }
 		if ( w3 == "" ) { w3 = "A"     ; }
-		if      ( w2 == "ENTRY"   ) { tbsort( DSLIST, "ENTRY,C,"+w3   )  ; }
-		else if ( w2 == "TYPE"    ) { tbsort( DSLIST, "TYPE,C,"+w3    )  ; }
-		else if ( w2 == "PERMISS" ) { tbsort( DSLIST, "PERMISS,C,"+w3 )  ; }
-		else if ( w2 == "SIZE"    ) { tbsort( DSLIST, "SIZE,N,"+w3    )  ; }
-		else if ( w2 == "MOD"     ) { tbsort( DSLIST, "MODDATES,N,"+w3 ) ; }
-		else if ( w2 == "CHA"     ) { tbsort( DSLIST, "MODDATES,N,"+w3 ) ; }
-		else                        { return 8 ;                           }
+		if      ( w2 == "ENTRY"   ) { tbsort( DSLIST, "(ENTRY,C,"+w3+")"   )  ; }
+		else if ( w2 == "TYPE"    ) { tbsort( DSLIST, "(TYPE,C,"+w3+")"    )  ; }
+		else if ( w2 == "PERMISS" ) { tbsort( DSLIST, "(PERMISS,C,"+w3+")" )  ; }
+		else if ( w2 == "SIZE"    ) { tbsort( DSLIST, "(SIZE,N,"+w3+")"    )  ; }
+		else if ( w2 == "MOD"     ) { tbsort( DSLIST, "(MODDATES,N,"+w3+")" ) ; }
+		else if ( w2 == "CHA"     ) { tbsort( DSLIST, "(MODDATES,N,"+w3+")" ) ; }
+		else                        { return 8 ;                                }
 		if ( RC > 0 ) { MSG = "FLST016" ; return 4 ; }
 		return 0 ;
 	}
@@ -1668,7 +1678,7 @@ void PFLST0A::browseTree( const string& tname )
 	vcopy( "ZFLSTPGM", PGM, MOVE ) ;
 	tab = "FTREE" + right( d2ds( taskid() ), 3, '0' ) ;
 
-	tbcreate( tab, "", "TSEL TFILE TENTRY", NOWRITE ) ;
+	tbcreate( tab, "", "(TSEL,TFILE,TENTRY)", NOWRITE ) ;
 
 	TSEL = "" ;
 	i    = 1  ;
@@ -2138,7 +2148,7 @@ void PFLST0A::createFileList2( const string& FLDIRS, string filter )
 	struct stat results ;
 	typedef vector< path > vec ;
 
-	tbcreate( DSLIST, "", "SEL ENTRY TYPE", NOWRITE ) ;
+	tbcreate( DSLIST, "", "(SEL,ENTRY,TYPE)", NOWRITE ) ;
 
 	vec v;
 

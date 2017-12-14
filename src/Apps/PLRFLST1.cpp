@@ -160,8 +160,8 @@ void PLRFLST1::PersonalFList( const string& p )
 	}
 
 	FLIST1 = "FLST1" + right( d2ds( taskid() ), 3, '0' ) ;
-	tbcreate( FLIST1, "ACURTB", "ASEL AFLDESCP AFLCTIME AFLUTIME", NOWRITE ) ;
-	tbsort( FLIST1, "ACURTB,C,A" ) ;
+	tbcreate( FLIST1, "ACURTB", "(ASEL,AFLDESCP,AFLCTIME,AFLUTIME)", NOWRITE ) ;
+	tbsort( FLIST1, "(ACURTB,C,A)" ) ;
 
 	while ( true )
 	{
@@ -212,7 +212,7 @@ void PLRFLST1::PersonalFList( const string& p )
 					FLACTIME = ldate    ;
 					FLAUTIME = ldate + " " + ltime ;
 					OpenTableUP()       ;
-					tbsort( RFLTABLE, "ZCURTB,C,A" ) ;
+					tbsort( RFLTABLE, "(ZCURTB,C,A)" ) ;
 					tbadd( RFLTABLE, "", "ORDER" ) ;
 					CloseTable()        ;
 					ACURTB   = ZCURTB   ;
@@ -364,7 +364,7 @@ void PLRFLST1::EditFileList( const string& curtb )
 
 
 	FLIST2 = "FLST2" + right( d2ds( taskid() ), 3, '0' ) ;
-	tbcreate( FLIST2, "", "BSEL BFILE", NOWRITE ) ;
+	tbcreate( FLIST2, "", "(BSEL,BFILE)", NOWRITE ) ;
 
 	ZCURTB = curtb ;
 	OpenTableRO()  ;
@@ -471,7 +471,7 @@ void PLRFLST1::OpenFileList( const string& curtb )
 	string vlist  ;
 
 	FLIST3 = "FLST3" + right( d2ds( taskid() ), 3, '0' ) ;
-	tbcreate( FLIST3, "", "CSEL CFILE CNUM", NOWRITE ) ;
+	tbcreate( FLIST3, "", "(CSEL,CFILE,CNUM)", NOWRITE ) ;
 
 	ZCURTB = curtb ;
 	OpenTableRO()  ;
@@ -798,7 +798,7 @@ void PLRFLST1::createDefaultTable()
 	string ldate ;
 	string ltime ;
 
-	tbcreate( RFLTABLE, "ZCURTB", subword( TABFLDS, 2 ), WRITE, NOREPLACE, UPROF ) ;
+	tbcreate( RFLTABLE, "ZCURTB", "("+subword( TABFLDS, 2 )+")", WRITE, NOREPLACE, UPROF ) ;
 	if ( RC > 0 ) { return ; }
 
 	tbvclear( RFLTABLE ) ;
@@ -812,7 +812,7 @@ void PLRFLST1::createDefaultTable()
 
 	tbadd( RFLTABLE ) ;
 	if ( RC > 0 ) { return ; }
-	tbsort( RFLTABLE, "ZCURTB,C,A" ) ;
+	tbsort( RFLTABLE, "(ZCURTB,C,A)" ) ;
 	if ( RC > 0 ) { return ; }
 
 	CloseTable() ;

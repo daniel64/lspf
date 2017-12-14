@@ -1800,7 +1800,7 @@ void pApplication::log( const string& msgid )
 }
 
 
-void pApplication::tbadd( const string& tb_name, const string& tb_namelst, const string& tb_order, int tb_num_of_rows )
+void pApplication::tbadd( const string& tb_name, string tb_namelst, const string& tb_order, int tb_num_of_rows )
 {
 	// Add a row to a table
 
@@ -1820,6 +1820,14 @@ void pApplication::tbadd( const string& tb_name, const string& tb_namelst, const
 	if ( tb_num_of_rows < 0 || tb_num_of_rows > 65535 )
 	{
 		errBlock.setcall( e1, "PSYE023B", "TBADD", d2ds( tb_num_of_rows ) ) ;
+		checkRCode( errBlock ) ;
+		return ;
+	}
+
+	getNameList( errBlock, tb_namelst ) ;
+	if ( errBlock.error() )
+	{
+		errBlock.setcall( e1 ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -1892,7 +1900,7 @@ void pApplication::tbclose( const string& tb_name, const string& tb_newname, con
 }
 
 
-void pApplication::tbcreate( const string& tb_name, const string& keys, const string& names, tbWRITE m_WRITE, tbREP m_REP, string m_path, tbDISP m_DISP )
+void pApplication::tbcreate( const string& tb_name, string keys, string names, tbWRITE m_WRITE, tbREP m_REP, string m_path, tbDISP m_DISP )
 {
 	// Create a new table.
 	// For tables without a path specified and the WRITE option, default to the first path entry in ZTLIB
@@ -1931,6 +1939,14 @@ void pApplication::tbcreate( const string& tb_name, const string& keys, const st
 		if ( m_path == "" ) { m_path = getpath( ZTLIB, 1 ) ; }
 	}
 
+	getNameList( errBlock, keys ) ;
+	if ( errBlock.error() )
+	{
+		errBlock.setcall( e1 ) ;
+		checkRCode( errBlock ) ;
+		return ;
+	}
+
 	for ( ws = words( keys ), i = 1 ; i <= ws ; i++ )
 	{
 		w = word( keys, i ) ;
@@ -1942,6 +1958,13 @@ void pApplication::tbcreate( const string& tb_name, const string& keys, const st
 		}
 	}
 
+	getNameList( errBlock, names ) ;
+	if ( errBlock.error() )
+	{
+		errBlock.setcall( e1 ) ;
+		checkRCode( errBlock ) ;
+		return ;
+	}
 	for ( ws = words( names ), i = 1; i <= ws ; i++ )
 	{
 		w = word( names, i ) ;
@@ -2435,9 +2458,14 @@ void pApplication::tbget( const string& tb_name, const string& tb_savenm, const 
 }
 
 
-void pApplication::tbmod( const string& tb_name, const string& tb_namelst, const string& tb_order )
+void pApplication::tbmod( const string& tb_name, string tb_namelst, const string& tb_order )
 {
-	// Update a row in a table
+	// Update/add a row in a table
+
+	// RC = 0   Okay.  Keyed tables - row updated.  Non-keyed tables new row added
+	// RC = 8   Row did not match - row added for keyed tables
+	// RC = 16  Numeric conversion error
+	// RC = 20  Severe error
 
 	const string e1 = "TBMOD error" ;
 
@@ -2450,6 +2478,13 @@ void pApplication::tbmod( const string& tb_name, const string& tb_namelst, const
 
 	if ( !isTableOpen( tb_name, "TBMOD" ) ) { return ; }
 
+	getNameList( errBlock, tb_namelst ) ;
+	if ( errBlock.error() )
+	{
+		errBlock.setcall( e1 ) ;
+		checkRCode( errBlock ) ;
+		return ;
+	}
 	p_tableMGR->tbmod( errBlock, funcPOOL, tb_name, tb_namelst, tb_order ) ;
 	if ( errBlock.error() )
 	{
@@ -2506,7 +2541,7 @@ void pApplication::tbopen( const string& tb_name, tbWRITE m_WRITE, string m_path
 }
 
 
-void pApplication::tbput( const string& tb_name, const string& tb_namelst, const string& tb_order )
+void pApplication::tbput( const string& tb_name, string tb_namelst, const string& tb_order )
 {
 	// Update the current row in a table
 
@@ -2530,6 +2565,13 @@ void pApplication::tbput( const string& tb_name, const string& tb_namelst, const
 
 	if ( !isTableOpen( tb_name, "TBPUT" ) ) { return ; }
 
+	getNameList( errBlock, tb_namelst ) ;
+	if ( errBlock.error() )
+	{
+		errBlock.setcall( e1 ) ;
+		checkRCode( errBlock ) ;
+		return ;
+	}
 	p_tableMGR->tbput( errBlock, funcPOOL, tb_name, tb_namelst, tb_order ) ;
 	if ( errBlock.error() )
 	{
@@ -2634,9 +2676,17 @@ void pApplication::tbskip( const string& tb_name, int num, const string& tb_save
 }
 
 
-void pApplication::tbsort( const string& tb_name, const string& tb_fields )
+void pApplication::tbsort( const string& tb_name, string tb_fields )
 {
 	if ( !isTableOpen( tb_name, "TBSORT" ) ) { return ; }
+
+	getNameList( errBlock, tb_fields ) ;
+	if ( errBlock.error() )
+	{
+		errBlock.setcall( "TBSORT error" ) ;
+		checkRCode( errBlock ) ;
+		return ;
+	}
 
 	p_tableMGR->tbsort( errBlock, tb_name, tb_fields ) ;
 	if ( errBlock.error() )
@@ -2785,7 +2835,7 @@ void pApplication::actionSelect()
 	SEL = false   ;
 	SELCT.clear() ;
 
-	if ( abnormalEnd )
+	if ( abnormalEnd && !ControlErrorsReturn )
 	{
 		llog( "E", "Percolating abend to calling application.  Taskid: "<< taskId <<endl ) ;
 		errPanelissued = true ;
@@ -3745,26 +3795,58 @@ void pApplication::abend()
 }
 
 
-void pApplication::uabend( const string& msgid, const string& e1, int callno )
+void pApplication::uabend( const string& msgid, int callno )
 {
 	// Abend application with error screen.
 	// Screen will show short and long messages from msgid, and the return code RC
-	// Optional override e1 for the long mesage, and an optional call number
+	// Optional variables can be coded after the message id and are placed in ZVAR1, ZVAR2 etc.
 
+	vreplace( "ZERRRC", d2ds( RC ) ) ;
+	xabend( msgid, callno ) ;
+}
+
+
+void pApplication::uabend( const string& msgid, const string& val1, int callno )
+{
+	vreplace( "ZERRRC", d2ds( RC ) ) ;
+	vreplace( "ZVAL1", val1 ) ;
+	xabend( msgid, callno )   ;
+}
+
+
+void pApplication::uabend( const string& msgid, const string& val1, const string& val2, int callno )
+{
+	vreplace( "ZERRRC", d2ds( RC ) ) ;
+	vreplace( "ZVAL1", val1 ) ;
+	vreplace( "ZVAL2", val2 ) ;
+	xabend( msgid, callno )   ;
+}
+
+
+void pApplication::uabend( const string& msgid, const string& val1, const string& val2, const string& val3, int callno )
+{
+	vreplace( "ZERRRC", d2ds( RC ) ) ;
+	vreplace( "ZVAL1", val1 ) ;
+	vreplace( "ZVAL3", val2 ) ;
+	vreplace( "ZVAL4", val3 ) ;
+	xabend( msgid, callno )   ;
+}
+
+
+void pApplication::xabend( const string& msgid, int callno )
+{
 	string t ;
 
 	t = "A user abend has occured in application "+ ZAPPNAME ;
 	if ( callno != -1 ) { t += " at call number " + d2ds( callno ) ; }
 
 	getmsg( msgid, "ZERRSM", "ZERRLM" ) ;
-	if ( e1 != "" ) { vreplace( "ZERRLM",  e1 ) ; }
 
 	llog( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskId << " due to a user abend" << endl ) ;
 
 	vreplace( "ZAPPNAME", ZAPPNAME ) ;
-	vreplace( "ZERRMSG", msgid )  ;
-	vreplace( "ZERRRC", d2ds( RC ) ) ;
-	vreplace( "ZERR1",  t ) ;
+	vreplace( "ZERRMSG", msgid ) ;
+	vreplace( "ZERR1",  t  ) ;
 	vreplace( "ZERR2",  "" ) ;
 	vreplace( "ZERR3",  "" ) ;
 	ControlDisplayLock  = false ;

@@ -490,6 +490,7 @@ void execiTBAdd( pApplication * thisAppl, const string& s, errblock& err )
 
 	tb_namelst = parseString( err, str, "SAVE()" ) ;
 	if ( err.error() ) { return ; }
+	if ( tb_namelst != "" ) { tb_namelst = "(" + tb_namelst + ")" ; }
 
 	tb_numrows = parseString( err, str, "MULT()" ) ;
 	if ( err.error() ) { return ; }
@@ -574,9 +575,11 @@ void execiTBCreate( pApplication * thisAppl, const string& s, errblock& err )
 	iupper( str ) ;
 	tb_keys  = parseString( err, str, "KEYS()" ) ;
 	if ( err.error() ) { return ; }
+	if ( tb_keys != "" ) { tb_keys = "(" + tb_keys + ")" ; }
 
 	tb_names = parseString( err, str, "NAMES()" ) ;
 	if ( err.error() ) { return ; }
+	if ( tb_names != "" ) { tb_names = "(" + tb_names + ")" ; }
 
 	tb_write = WRITE ;
 	t = parseString( err, str, "WRITE" ) ;
@@ -766,6 +769,7 @@ void execiTBMod( pApplication * thisAppl, const string& s, errblock& err )
 
 	tb_savenm = parseString( err, str, "SAVE()" ) ;
 	if ( err.error() ) { return ; }
+	if ( tb_savenm != "" ) { tb_savenm = "(" + tb_savenm + ")" ; }
 
 	thisAppl->tbmod( tb_name, tb_savenm, str ) ;
 	return ;
@@ -783,6 +787,7 @@ void execiTBPut( pApplication * thisAppl, const string& s, errblock& err )
 
 	tb_savenm = parseString( err, str, "SAVE()" ) ;
 	if ( err.error() ) { return ; }
+	if ( tb_savenm != "" ) { tb_savenm = "(" + tb_savenm + ")" ; }
 
 	thisAppl->tbput( tb_name, tb_savenm, str ) ;
 	return ;
@@ -1046,6 +1051,7 @@ void execiTBSort( pApplication * thisAppl, const string& s, errblock& err )
 		err.seterrid( "PSYE032H", str ) ;
 		return ;
 	}
+	if ( tb_flds != "" ) { tb_flds = "(" + tb_flds + ")" ; }
 
 	thisAppl->tbsort( tb_name, tb_flds ) ;
 	return ;

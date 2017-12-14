@@ -22,12 +22,12 @@
 
 /* Invoked as part of the SELECT PANEL(xxxx) service.  Panel name is          */
 /* passed as word 1 of parameter PARM and an optional selection as word 2.    */
+/* Parameter ADDPOP is also passed but not currenty used.                     */
 
 /* Note: Selection panels only use the shared and profile pools so this       */
 /*       is where all panel variables reside (eg. ZSEL, ZCMD, ZPRIM, etc)     */
 
 /* Don't passthrough if the selection panel is defined as a primary panel     */
-/* ADDPOP is accepted but does not do anything at present                     */
 
 #include "../lspf.h"
 #include "../utilities.h"
@@ -87,7 +87,7 @@ void PDPANLA::application()
 		RC1 = RC ;
 		msg = "" ;
 		vget( "ZCMD ZSEL ZPRIM", SHARED ) ;
-		if ( ZSEL  == "EXIT" || RC1 == 8 )
+		if ( ZSEL == "EXIT" || RC1 == 8 )
 		{
 			ZSEL = "" ;
 			vput( "ZSEL", SHARED ) ;

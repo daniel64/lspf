@@ -152,25 +152,25 @@ class pApplication
 
 		void   log( const string& msg ) ;
 
-		void   tbadd( const string& tb_name, const string& tb_namelst="", const string& tb_order="", int tb_num_of_rows=0 ) ;
+		void   tbadd( const string& tb_name, string tb_namelst="", const string& tb_order="", int tb_num_of_rows=0 ) ;
 		void   tbbottom( const string& tb_name, const string& tb_savenm="", const string& tb_rowid_vn="", const string& tb_noread="", const string& tb_crp_name="" ) ;
 		void   tbclose( const string& tb_name, const string& new_name="", const string& path="" ) ;
-		void   tbcreate( const string& tb_name, const string& keys, const string& names, tbWRITE =NOWRITE, tbREP =NOREPLACE, string path="", tbDISP =EXCLUSIVE ) ;
+		void   tbcreate( const string& tb_name, string keys, string names, tbWRITE =NOWRITE, tbREP =NOREPLACE, string path="", tbDISP =EXCLUSIVE ) ;
 		void   tbdelete( const string& tb_name ) ;
 		void   tbdispl( const string& tb_name, string p_name="", const string& p_msg="", string p_cursor="", int p_csrrow=0, int p_csrpos=1, string p_autosel="YES", const string& p_crp_name="", const string& p_rowid_nm="" ) ;
 		void   tbend( const string& tb_name ) ;
 		void   tberase( const string& tb_name, string tb_path="" ) ;
 		void   tbexist( const string& tb_name ) ;
 		void   tbget( const string& tb_name, const string& tb_savenm="", const string& tb_rowid_vn="", const string& tb_noread="", const string& tb_crp_name="" ) ;
-		void   tbmod( const string& tb_name, const string& tb_namelst="", const string& tb_order="" ) ;
+		void   tbmod( const string& tb_name, string tb_namelst="", const string& tb_order="" ) ;
 		void   tbopen( const string& tb_name, tbWRITE WRITE, string path="", tbDISP c=EXCLUSIVE ) ;
-		void   tbput( const string& tb_name, const string& tb_namelst="", const string& tb_order="" ) ;
+		void   tbput( const string& tb_name, string tb_namelst="", const string& tb_order="" ) ;
 		void   tbquery( const string& tb_name, const string& tb_keyn="", const string& tb_varn="", const string& tb_rownn="", const string& tb_keynn="", const string& tb_namenn="",const string& tb_crpn="", const string& tb_sirn="", const string& tb_lstn="", const string& tb_condn="", const string& tb_dirn="" ) ;
 		void   tbsarg( const string& tb_name, const string& tb_namelst="", const string& tb_dir="NEXT", const string& tb_cond_pairs="" ) ;
 		void   tbsave( const string& tb_name, const string& new_name="", const string& path="") ;
 		void   tbscan( const string& tb_name, const string& tb_namelst="", const string& tb_savenm="", const string& tb_rowid_vn="", const string& tb_dir="NEXT", const string& tb_read="", const string& tb_crp_name="", const string& tb_condlst="" ) ;
 		void   tbskip( const string& tb_name, int num=1, const string& tb_savenm="", const string& tb_rowid_vn="", const string& tb_rowid="", const string& tb_noread="", const string& tb_crp_name=""  ) ;
-		void   tbsort( const string& tb_name, const string& tb_fields ) ;
+		void   tbsort( const string& tb_name, string tb_fields ) ;
 		void   tbtop( const string& tb_name ) ;
 		void   tbvclear( const string& tb_name ) ;
 
@@ -208,9 +208,13 @@ class pApplication
 		void   cleanup_default() ;
 		void   (pApplication::*pcleanup)() = &pApplication::cleanup_default ;
 		bool   cleanupRunning() { return !abended ; }
-		void   abend()       ;
-		void   uabend( const string&, const string& = "", int = -1 ) ;
-		void   abendexc()    ;
+		void   abend()    ;
+		void   xabend( const string&, int = -1 ) ;
+		void   uabend( const string&, int = -1 ) ;
+		void   uabend( const string&, const string&, int = -1 ) ;
+		void   uabend( const string&, const string&, const string&, int = -1 ) ;
+		void   uabend( const string&, const string&, const string&, const string&, int = -1 ) ;
+		void   abendexc() ;
 		void   set_forced_abend()  ;
 		void   set_timeout_abend() ;
 		void   closeTables() ;
@@ -307,6 +311,9 @@ class pApplication
 		void wait_event() ;
 } ;
 
+#undef  MOD_NAME
+#define MOD_NAME APPL
+
 #undef llog
 #undef debug1
 #undef debug2
@@ -316,7 +323,7 @@ class pApplication
 { \
 lg->lock() ; \
 (*lg) << microsec_clock::local_time() << \
-" APPL      " << \
+" " << left( quotes(MOD_NAME), 10 ) << \
 " " << right( d2ds( taskid() ), 5, '0' ) << " " << t << " " << s ; \
 lg->unlock() ; \
 }
@@ -326,7 +333,7 @@ lg->unlock() ; \
 { \
 lg->lock() ; \
 (*lg) << microsec_clock::local_time() << \
-" APPL      " << \
+" " << left( quotes(MOD_NAME), 10 ) << \
 " " << right( d2ds( taskid() ), 5, '0' ) << \
 " D line: "  << __LINE__  << \
 " >>L1 Function: " << __FUNCTION__ << \
@@ -343,7 +350,7 @@ lg->unlock() ; \
 { \
 lg->lock() ; \
 (*lg) << microsec_clock::local_time() << \
-" APPL      " << \
+" " << left( quotes(MOD_NAME), 10 ) << \
 " " << right( d2ds( taskid() ), 5, '0' ) << \
 " D line: "  << __LINE__  << \
 " >>L2 Function: " << __FUNCTION__ << \

@@ -38,6 +38,7 @@ enum P_CMDS
 	PC_DEFINE,
 	PC_DELETE,
 	PC_EDIT,
+	PC_EDITSET,
 	PC_EXCLUDE,
 	PC_FIND,
 	PC_FLIP,
@@ -311,6 +312,8 @@ map<string,pcmd_entry> PrimCMDS =
   { "DELETE",   { PC_DELETE,   "DELETE"   } },
   { "DEL",      { PC_DELETE,   "DELETE"   } },
   { "EDIT",     { PC_EDIT,     "EDIT"     } },
+  { "EDITSET",  { PC_EDITSET,  "EDITSET"  } },
+  { "EDSET",    { PC_EDITSET,  "EDITSET"  } },
   { "EXCLUDE",  { PC_EXCLUDE,  "EXCLUDE"  } },
   { "EXCLUDED", { PC_EXCLUDE,  "EXCLUDE"  } },
   { "EX",       { PC_EXCLUDE,  "EXCLUDE"  } },
@@ -2015,6 +2018,7 @@ class PEDIT01 : public pApplication
 		void clr_hilight_shadow() ;
 		void protNonDisplayChars();
 		void convNonDisplayChars( string& ) ;
+		void releaseDynamicStorage() ;
 		void getZAREAchanges()    ;
 		void updateData()         ;
 		string getColumnLine()    ;
@@ -2081,9 +2085,18 @@ class PEDIT01 : public pApplication
 		string templat( string, string )         ;
 		bool formLineCmd( const string&, string&, int& ) ;
 
-		void copyToClipboard( vector<ipline>& vip ) ;
+		bool copyToClipboard( vector<ipline>& vip ) ;
 		void getClipboard( vector<ipline>& vip ) ;
 		void clearClipboard( string ) ;
+		void manageClipboard() ;
+		void manageClipboard_create( vector<string>& ) ;
+		void manageClipboard_descr( const string&, const string& )  ;
+		void manageClipboard_browse( const string& ) ;
+		void manageClipboard_toggle( int, const string& ) ;
+		void manageClipboard_edit( const string&, const string& )   ;
+		void manageClipboard_rename( const string&, const string& ) ;
+		void manageClipboard_delete( const string& ) ;
+		void manageClipboard_islocked( const string& ) ;
 
 		void createFile( uint, uint ) ;
 
@@ -2171,6 +2184,8 @@ class PEDIT01 : public pApplication
 		bool   profDoLogic       ;
 		bool   profLogic         ;
 		bool   profParen         ;
+		bool   profCutReplace    ;
+		bool   profPasteKeep     ;
 		string profLang          ;
 		string profIMAC          ;
 		bool   profVert          ;
@@ -2320,6 +2335,7 @@ class PEDIT01 : public pApplication
 						     { PC_DEFINE,   {  2,  3 } },
 						     { PC_DELETE,   { -1, -1 } },
 						     { PC_EDIT,     { -1, -1 } },
+						     { PC_EDITSET,  {  0,  0 } },
 						     { PC_EXCLUDE,  { -1, -1 } },
 						     { PC_FIND,     { -1, -1 } },
 						     { PC_FLIP,     { -1, -1 } },
@@ -2476,18 +2492,150 @@ class PEDIT01 : public pApplication
 						  { "OK",  "O"  },
 						  { "OOK", "OO" } } ;
 
+		set<string> BLKcmds  = { { "CC"   },
+					 { "DD"   },
+					 { "MM"   },
+					 { "HXX"  },
+					 { "LCC"  },
+					 { "MDD"  },
+					 { "MNN"  },
+					 { "OO"   },
+					 { "OOK"  },
+					 { "RR"   },
+					 { "TJJ"  },
+					 { "TRR"  },
+					 { "TT"   },
+					 { "TXX"  },
+					 { "XX"   },
+					 { "WW"   },
+					 { "UCC"  },
+					 { "(("   },
+					 { "))"   },
+					 { "<<"   },
+					 { ">>"   },
+					 { "[["   },
+					 { "]]"   } } ;
 
-		const string BLKcmds   = "CC DD MM HXX LCC MDD MNN OO OOK RR TJJ TRR TT TXX XX WW UCC (( )) << >> [[ ]]" ;
-		const string SPLcmds   = "A AK B BK C CC COLS D DD F I L M MM MD MDD MN MNN R RR S SI TX TXX X XX XI" ;
-		const string TODcmds   = "A I" ;
-		const string BODcmds   = "B COLS BNDS MASK TABS" ;
-		const string ABOKReq   = "C CC M MM" ;
-		const string Chkdist   = "C D M HX LC MD MN O OK TJ TR TX UC W X" ;
-		const string ABOWList  = "A AK B BK O OK OO OOK W WW" ;
-		const string OWBlock   = "OO WW" ;
-		const string ReptOK    = "C D F HX I L M MD MN O OK R UC LC RR S TJ TR T TX W X (( )) ( ) << >> < > [[ ]] [ ]" ;
-		const string XBlock    = "R (( )) ( ) << >> < > [[ ]] [ ]" ;
-		const string CutCmds   = "C CC M MM" ;
-		const string PasteCmds = "A B" ;
+		set<string> SPLcmds  = { { "A"    },
+					 { "AK"   },
+					 { "B"    },
+					 { "BK"   },
+					 { "C"    },
+					 { "CC"   },
+					 { "COLS" },
+					 { "D"    },
+					 { "DD"   },
+					 { "F"    },
+					 { "I"    },
+					 { "L"    },
+					 { "M"    },
+					 { "MM"   },
+					 { "MD"   },
+					 { "MDD"  },
+					 { "MN"   },
+					 { "MNN"  },
+					 { "R"    },
+					 { "RR"   },
+					 { "S"    },
+					 { "SI"   },
+					 { "TX"   },
+					 { "TXX"  },
+					 { "X"    },
+					 { "XX"   },
+					 { "XI"   } } ;
+
+		set<string> TODcmds  = { { "A"    },
+					 { "I"    } } ;
+
+		set<string> BODcmds  = { { "B"    },
+					 { "COLS" },
+					 { "BNDS" },
+					 { "MASK" },
+					 { "TABS" } } ;
+
+		set<string> ABOKReq  = { { "C"    },
+					 { "CC"   },
+					 { "M"    },
+					 { "MM"   } } ;
+
+		set<string> Chkdist  = { { "C"    },
+					 { "D"    },
+					 { "M"    },
+					 { "HX"   },
+					 { "LC"   },
+					 { "MD"   },
+					 { "MN"   },
+					 { "O"    },
+					 { "OK"   },
+					 { "TJ"   },
+					 { "TR"   },
+					 { "TX"   },
+					 { "UC"   },
+					 { "W"    },
+					 { "X"    } } ;
+
+		set<string> ABOWList = { { "A"    },
+					 { "AK"   },
+					 { "B"    },
+					 { "BK"   },
+					 { "O"    },
+					 { "OK"   },
+					 { "OO"   },
+					 { "OOK"  },
+					 { "W"    },
+					 { "WW"   } } ;
+
+		set<string> OWBlock  = { { "OO"   },
+					 { "WW"   } } ;
+
+		set<string> ReptOK   = { { "C"    },
+					 { "D"    },
+					 { "F"    },
+					 { "HX"   },
+					 { "I"    },
+					 { "L"    },
+					 { "M"    },
+					 { "MD"   },
+					 { "MN"   },
+					 { "O"    },
+					 { "OK"   },
+					 { "R"    },
+					 { "UC"   },
+					 { "LC"   },
+					 { "RR"   },
+					 { "S"    },
+					 { "TJ"   },
+					 { "TR"   },
+					 { "T"    },
+					 { "TX"   },
+					 { "W"    },
+					 { "X"    },
+					 { "(("   },
+					 { "))"   },
+					 { "("    },
+					 { ")"    },
+					 { "<<"   },
+					 { ">>"   },
+					 { "<"    },
+					 { ">"    },
+					 { "[["   },
+					 { "]]"   },
+					 { "["    },
+					 { "]"    } } ;
+
+		set<string> XBlock   = { { "R"    },
+					 { "(("   },
+					 { "))"   },
+					 { "("    },
+					 { ")"    },
+					 { "<<"   },
+					 { ">>"   },
+					 { "<"    },
+					 { ">"    },
+					 { "[["   },
+					 { "]]"   },
+					 { "["    },
+					 { "]"    } } ;
+
 		friend class PEDRXM1 ;
 } ;
