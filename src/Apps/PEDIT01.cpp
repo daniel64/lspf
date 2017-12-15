@@ -2310,19 +2310,8 @@ void PEDIT01::actionPrimCommand2()
 			}
 			topLine  = tTop  ;
 			startCol = tCol  ;
-			if ( i > 0 )
-			{
-				STR  = find_parms.fcx_string ;
-				convNonDisplayChars( STR )   ;
-				TYPE = typList[ find_parms.fcx_mtch ] ;
-				OCC  = d2ds( i ) ;
-				find_parms.fcx_ch_occs = i ;
-				pcmd.set_msg( find_parms.fcx_chngall ? "PEDT013K" : "PEDT013L", 0 ) ;
-			}
-			else
-			{
-				setNotFoundMsg() ;
-			}
+			find_parms.fcx_ch_occs = i ;
+			( i > 0 ) ? setChangedMsg() : setNotFoundMsg() ;
 			rebuildZAREA = true ;
 			break ;
 
@@ -2660,12 +2649,7 @@ void PEDIT01::actionPrimCommand2()
 			{
 				moveColumn( find_parms.fcx_offset ) ;
 				placeCursor( find_parms.fcx_URID, 4, find_parms.fcx_offset ) ;
-				pcmd.set_msg( "PEDT011L", 0 ) ;
-				TYPE  = typList[ find_parms.fcx_mtch ] ;
-				LINES = d2ds( find_parms.fcx_lines  ) ;
-				if ( find_parms.fcx_rstring != "" ) { STR = find_parms.fcx_rstring ; }
-				else                                { STR = find_parms.fcx_ostring ; }
-				convNonDisplayChars( STR ) ;
+				setExcludedMsg() ;
 				find_parms.fcx_ex_occs = 1 ;
 				find_parms.fcx_ex_lnes = 1 ;
 				if ( macroRunning )
@@ -2681,12 +2665,7 @@ void PEDIT01::actionPrimCommand2()
 				find_parms.fcx_ex_lnes = find_parms.fcx_lines  ;
 				moveColumn( find_parms.fcx_offset ) ;
 				placeCursor( find_parms.fcx_URID, 4, find_parms.fcx_offset ) ;
-				pcmd.set_msg( "PEDT011L", 0 ) ;
-				LINES = d2ds( find_parms.fcx_lines  ) ;
-				TYPE  = typList[ find_parms.fcx_mtch ] ;
-				if ( find_parms.fcx_rstring != "" ) { STR = find_parms.fcx_rstring ; }
-				else                                { STR = find_parms.fcx_ostring ; }
-				convNonDisplayChars( STR ) ;
+				setExcludedMsg() ;
 				if ( macroRunning )
 				{
 					mRow = getFileLine( find_parms.fcx_dl ) + 1 ;
@@ -2714,12 +2693,7 @@ void PEDIT01::actionPrimCommand2()
 				moveColumn( find_parms.fcx_offset ) ;
 				placeCursor( find_parms.fcx_URID, 4, find_parms.fcx_offset ) ;
 				moveTopline( find_parms.fcx_URID ) ;
-				pcmd.set_msg( "PEDT013G", 0 ) ;
-				TYPE = typList[ find_parms.fcx_mtch ] ;
-				OCC  = d2ds( find_parms.fcx_occurs ) ;
-				if ( find_parms.fcx_rstring != "" ) { STR = find_parms.fcx_rstring ; }
-				else                                { STR = find_parms.fcx_ostring ; }
-				convNonDisplayChars( STR ) ;
+				setFoundMsg() ;
 				if ( pcmd.isSeek() )
 				{
 					find_parms.fcx_sk_occs = 1 ;
@@ -2752,21 +2726,15 @@ void PEDIT01::actionPrimCommand2()
 				moveColumn( find_parms.fcx_offset ) ;
 				placeCursor( find_parms.fcx_URID, 4, find_parms.fcx_offset ) ;
 				moveTopline( find_parms.fcx_URID ) ;
+				setFoundMsg() ;
 				find_parms.fcx_dir     = 'N'  ;
 				find_parms.fcx_success = true ;
-				pcmd.set_msg( "PEDT013I", 0 ) ;
-				TYPE  = typList[ find_parms.fcx_mtch ] ;
-				OCC   = d2ds( find_parms.fcx_occurs ) ;
-				LINES = d2ds( find_parms.fcx_lines  ) ;
-				if ( find_parms.fcx_rstring != "" ) { STR = find_parms.fcx_rstring ; }
-				else                                { STR = find_parms.fcx_ostring ; }
 				if ( macroRunning )
 				{
 					mRow = getFileLine( find_parms.fcx_dl ) + 1 ;
 					mCol = find_parms.fcx_offset + 1 ;
 					miBlock.setcursor = true ;
 				}
-				convNonDisplayChars( STR ) ;
 			}
 			else
 			{
@@ -4510,11 +4478,7 @@ void PEDIT01::actionZVERB()
 				placeCursor( find_parms.fcx_URID, 4, find_parms.fcx_offset + find_parms.fcx_cstring.size() ) ;
 			}
 			moveTopline( find_parms.fcx_URID ) ;
-			pcmd.set_msg( "PEDT013L", 0 ) ;
-			TYPE = typList[ find_parms.fcx_mtch ] ;
-			if ( find_parms.fcx_rstring != "" ) { STR = find_parms.fcx_rstring ; }
-			else                                { STR = find_parms.fcx_ostring ; }
-			convNonDisplayChars( STR ) ;
+			setChangedMsg() ;
 		}
 		else
 		{
@@ -4534,7 +4498,11 @@ void PEDIT01::actionZVERB()
 		{
 			if ( !setFindChangeExcl( 'F' ) ) { return ; }
 		}
-		else if ( !find_parms.fcx_fset ) { pcmd.set_msg( "PEDT013M" ) ; return ; }
+		else if ( !find_parms.fcx_fset )
+		{
+			pcmd.set_msg( "PEDT013M" ) ;
+			return ;
+		}
 		actionFind() ;
 		if ( find_parms.fcx_error ) { return ; }
 		if ( find_parms.fcx_success )
@@ -4542,11 +4510,7 @@ void PEDIT01::actionZVERB()
 			moveColumn( find_parms.fcx_offset ) ;
 			placeCursor( find_parms.fcx_URID, 4, find_parms.fcx_offset ) ;
 			moveTopline( find_parms.fcx_URID ) ;
-			pcmd.set_msg( "PEDT013G", 0 ) ;
-			TYPE = typList[ find_parms.fcx_mtch ] ;
-			if ( find_parms.fcx_rstring != "" ) { STR = find_parms.fcx_rstring ; }
-			else                                { STR = find_parms.fcx_ostring ; }
-			convNonDisplayChars( STR ) ;
+			setFoundMsg() ;
 		}
 		else
 		{
@@ -6238,10 +6202,9 @@ uint PEDIT01::getLine( int URID )
 
 	vector<iline *>::iterator it ;
 
-	for ( dl = 0, it = data.begin() ; it != data.end() ; it++ )
+	for ( dl = 0, it = data.begin() ; it != data.end() ; it++, dl++ )
 	{
 		if ( (*it)->il_URID == URID ) { break ; }
-		dl++ ;
 	}
 	return dl ;
 }
@@ -6256,7 +6219,7 @@ int PEDIT01::getFileLine( uint dl )
 
 	vector<iline *>::iterator it ;
 
-	for ( fl = 0, it = data.begin() ; it != data.end() ; it++ )
+	for ( fl = 0, it = data.begin() ; it != data.end() && dl > 0 ; it++, dl-- )
 	{
 		if ( (*it)->isValidFile()) { fl++ ; }
 	}
@@ -7402,7 +7365,9 @@ bool PEDIT01::getTabLocation( int& pos )
 bool PEDIT01::copyToClipboard( vector<ipline>& vip )
 {
 	// Copy only data lines in vip (from copy/move) to lspf table clipTable
+
 	// cutReplace - clear clipBoard before copy, else append at end of current contents
+	// An error will be issued if the clipboard is locked
 
 	int i   ;
 	int t   ;
@@ -7496,7 +7461,7 @@ bool PEDIT01::copyToClipboard( vector<ipline>& vip )
 void PEDIT01::getClipboard( vector<ipline>& vip )
 {
 	// Get lines from clipBoard and put them in vector vip
-	// pasteKeep - don't clear clipBoard after paste
+	// pasteKeep - don't clear clipBoard after paste (A locked clipboard will always be kept)
 
 	string uprof    ;
 	string zedcname ;
@@ -7535,7 +7500,7 @@ void PEDIT01::getClipboard( vector<ipline>& vip )
 void PEDIT01::clearClipboard( string clip )
 {
 	// Pass 'clip' by value as this has been vdefined as zedcname so will be cleared by a tbvclear()
-	// if passed by reference.
+	// if passed by reference.  Don't clear clipboard if is has been locked (ZEDCSTAT = RO)
 
 	string t ;
 
@@ -7751,14 +7716,10 @@ void PEDIT01::manageClipboard_descr( const string& name, const string& desc )
 void PEDIT01::manageClipboard_browse( const string& name )
 {
 	string tname ;
+
 	vector<ipline> vip ;
 
-	path temp ;
-
-	vcopy( "ZUSER", ZUSER, MOVE ) ;
-	vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
-	temp  = temp_directory_path() / unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
-	tname = temp.native() ;
+	tname = createTempName() ;
 
 	clipBoard = name    ;
 	pasteKeep = true    ;
@@ -7784,16 +7745,12 @@ void PEDIT01::manageClipboard_edit( const string& name, const string& desc )
 {
 	string inLine ;
 	string tname  ;
+
 	vector<ipline> vip ;
 
 	ipline ip ;
 
-	path temp ;
-
-	vcopy( "ZUSER", ZUSER, MOVE ) ;
-	vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
-	temp  = temp_directory_path() / unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
-	tname = temp.native() ;
+	tname = createTempName() ;
 
 	clipBoard = name    ;
 	pasteKeep = true    ;
@@ -7820,14 +7777,13 @@ void PEDIT01::manageClipboard_edit( const string& name, const string& desc )
 			ip.ip_data = inLine ;
 			vip.push_back( ip ) ;
 		}
-
 		fin.close() ;
-		remove( tname ) ;
 
 		cutReplace = true ;
 		copyToClipboard( vip ) ;
 		manageClipboard_descr( name, desc ) ;
 	}
+	remove( tname ) ;
 	verase( "ZEDALT", SHARED ) ;
 }
 
@@ -7845,6 +7801,8 @@ void PEDIT01::manageClipboard_toggle( int i, const string& name )
 	tbvclear( clipTable ) ;
 
 	vreplace( "ZEDCNAME", name ) ;
+	vreplace( "ZEDCSTAT", ""   ) ;
+	vreplace( "ZEDCDESC", ""   ) ;
 
 	tbsarg( clipTable ) ;
 	tbscan( clipTable ) ;
@@ -8059,9 +8017,6 @@ void PEDIT01::compareFiles( const string& s )
 	vector<iline * >::iterator it ;
 	vector<string>Changes ;
 
-	path temp1 ;
-	path temp2 ;
-
 	v_list = "CFILE ECPBRDF ECPICAS ECPIREF ECPIBLK ECPITBE" ;
 
 	vcopy( "ZUSER", ZUSER, MOVE ) ;
@@ -8103,11 +8058,8 @@ void PEDIT01::compareFiles( const string& s )
 	if ( ECPIBLK == "/" ) { dparms += " -B " ; }
 	if ( ECPITBE == "/" ) { dparms += " -E " ; }
 
-	temp1  = temp_directory_path() / unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
-	tname1 = temp1.native() ;
-
-	temp2  = temp_directory_path() / unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
-	tname2 = temp2.native() ;
+	tname1 = createTempName() ;
+	tname2 = createTempName() ;
 
 	std::ofstream fout( tname1.c_str() ) ;
 	std::ofstream of ;
@@ -8439,6 +8391,39 @@ bool PEDIT01::textSplitData( const string& s, string& t1, string& t2 )
 		t2.insert( 0, k, ' ' ) ;
 	}
 	return true ;
+}
+
+
+void PEDIT01::setChangedMsg()
+{
+	STR  = find_parms.fcx_string ;
+	convNonDisplayChars( STR )   ;
+	TYPE = typList[ find_parms.fcx_mtch ] ;
+	OCC  = d2ds( find_parms.fcx_ch_occs ) ;
+	pcmd.set_msg( find_parms.fcx_chngall ? "PEDT013K" : "PEDT013L", 0 ) ;
+}
+
+
+void PEDIT01::setFoundMsg()
+{
+	if ( find_parms.fcx_rstring != "" ) { STR = find_parms.fcx_rstring ; }
+	else                                { STR = find_parms.fcx_ostring ; }
+	convNonDisplayChars( STR ) ;
+	TYPE  = typList[ find_parms.fcx_mtch ] ;
+	OCC   = d2ds( find_parms.fcx_occurs ) ;
+	LINES = d2ds( find_parms.fcx_lines  ) ;
+	pcmd.set_msg( find_parms.fcx_dir == 'A' ? "PEDT013I" : "PEDT013G", 0 ) ;
+}
+
+
+void PEDIT01::setExcludedMsg()
+{
+	if ( find_parms.fcx_rstring != "" ) { STR = find_parms.fcx_rstring ; }
+	else                                { STR = find_parms.fcx_ostring ; }
+	convNonDisplayChars( STR ) ;
+	TYPE  = typList[ find_parms.fcx_mtch ] ;
+	LINES = d2ds( find_parms.fcx_lines  ) ;
+	pcmd.set_msg( "PEDT011L", 0 ) ;
 }
 
 
@@ -9103,6 +9088,18 @@ void PEDIT01::convNonDisplayChars( string& s )
 		s = "X'" + cs2xs( s ) + "'" ; return ;
 	}
 	s = "'" + s + "'" ;
+}
+
+
+string PEDIT01::createTempName()
+{
+	path temp ;
+
+	vcopy( "ZUSER", ZUSER, MOVE ) ;
+	vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
+	temp = temp_directory_path() / unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
+
+	return temp.native() ;
 }
 
 

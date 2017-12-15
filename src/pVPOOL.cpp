@@ -59,6 +59,7 @@ void fPOOL::define( errblock& err,
 	var->fVAR_string_ptr = addr     ;
 	var->fVAR_type       = STRING   ;
 	var->fVAR_defined    = true     ;
+	var->fVAR_system     = ( sysvar.count( name ) > 0 ) ;
 	POOL[ name ].push( var )        ;
 }
 
@@ -79,6 +80,7 @@ void fPOOL::define( errblock& err,
 	var->fVAR_int_ptr = addr     ;
 	var->fVAR_type    = INTEGER  ;
 	var->fVAR_defined = true     ;
+	var->fVAR_system  = ( sysvar.count( name ) > 0 ) ;
 	POOL[ name ].push( var )     ;
 }
 
@@ -98,22 +100,20 @@ void fPOOL::dlete( errblock& err,
 
 	map<string, stack<fVAR*> >::iterator it ;
 
-	const string vdsys( "ZCURFLD ZCURPOS ZTDMARK ZTDDEPTH ZTDROWS ZTDSELS ZTDTOP ZTDVROWS ZAPPNAME" ) ;
-
 	err.setRC( 0 ) ;
 
 	if ( name == "*")
 	{
 		for ( it = POOL.begin() ; it != POOL.end() ; it++ )
 		{
-			while ( !findword( it->first, vdsys ) && it->second.top()->fVAR_defined )
+			while ( !it->second.top()->fVAR_system && it->second.top()->fVAR_defined )
 			{
 				while ( !it->second.empty() )
 				{
 					delete it->second.top() ;
 					it->second.pop() ;
 				}
-				it = POOL.erase( it )   ;
+				it = POOL.erase( it ) ;
 				if ( it == POOL.end() ) { return ; }
 			}
 		}
@@ -278,6 +278,7 @@ void fPOOL::put( errblock& err,
 		var->fVAR_string  = value    ;
 		var->fVAR_type    = STRING   ;
 		var->fVAR_defined = false    ;
+		var->fVAR_system  = ( sysvar.count( name ) > 0 ) ;
 		POOL[ name ].push( var )     ;
 		return ;
 	}
@@ -316,6 +317,7 @@ void fPOOL::put( errblock& err,
 		var->fVAR_int     = value    ;
 		var->fVAR_type    = INTEGER  ;
 		var->fVAR_defined = false    ;
+		var->fVAR_system  = ( sysvar.count( name ) > 0 ) ;
 		POOL[ name ].push( var )     ;
 		return ;
 	}

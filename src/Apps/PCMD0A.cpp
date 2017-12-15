@@ -77,6 +77,8 @@ void PCMD0A::application()
 		if ( RC == 8 ) { break ; }
 		if ( ZCOMMAND != "" )
 		{
+			vreplace( "ZBRALT", "COMMAND:"+ZCOMMAND ) ;
+			vput( "ZBRALT", SHARED ) ;
 			ZCOMMAND = ZCOMMAND + " 2> /tmp/popen.err" ;
 			of.open( tname ) ;
 			FILE* pipe{popen(ZCOMMAND.c_str(), "r")};
@@ -95,6 +97,8 @@ void PCMD0A::application()
 		}
 		if ( PARM != "" ) { break ; }
 	}
+
+	verase( "ZBRALT", SHARED ) ;
 	cleanup() ;
 	return    ;
 }

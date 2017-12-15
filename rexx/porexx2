@@ -242,7 +242,7 @@ do forever
     offset = offset + 2
     v      = substr(data,offset,l)
     offset = offset + l
-    say right(row, 4) right(col, 2) left(name.n,8) " :" v
+    say right(row, 4) right(col, 3) left(name.n,8) " :" v
     n = n + 1
     if n > name.0 then n = 1
     val.row.col = v
@@ -256,12 +256,13 @@ do forever
             l = c2d(substr(data,offset,2))
             if l > 0 then
               do
-                say "      . Number of extension variables on row:" l-1
+                say
+                say "       * Number of extension variables on row:" l-1
                 offset = offset + 2
                 l = c2d(substr(data,offset,2))
                 offset = offset + 2
                 v = substr(data,offset,l)
-                say "      . Extenstion variable names:" v
+                say "       * Extension variable names:" v
                 evr.row.0 = words( v )
                 do i = 1 to evr.row.0
                    evr.row.i = word( v, i )
@@ -271,7 +272,7 @@ do forever
                    l = c2d(substr(data,offset,2))
                    offset = offset + 2
                    v = substr(data,offset,l)
-                   say right(row, 4) right(i, 2) left(evr.row.i,8) " :" v
+                   say right(row, 4) "X"||right(i, 2) left(evr.row.i,8) " :" v
                    evl.row.i = v
                 end
                 offset = offset + l

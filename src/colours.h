@@ -21,7 +21,7 @@
 */
 
 
-map<string, cuaType> cuaAttrName = \
+map<string, cuaType> cuaAttrName =
 { { "AB",      AB     },
   { "ABSL",    ABSL   },
   { "ABU",     ABU    },
@@ -63,7 +63,7 @@ map<string, cuaType> cuaAttrName = \
   { "TEXT",    TEXT   }, } ;
 
 
-map<string, unsigned int> usrAttrNames = \
+map<string, unsigned int> usrAttrNames =
 { { "N_RED",     N_RED     },
   { "N_GREEN",   N_GREEN   },
   { "N_YELLOW",  N_YELLOW  },
@@ -108,7 +108,7 @@ set<cuaType> cuaAttrUnprot =
   { DATAIN } } ;
 
 
-map<int, unsigned int> usrAttr = \
+map<int, unsigned int> usrAttr =
 { { N_RED,     RED     },
   { N_GREEN,   GREEN   },
   { N_YELLOW,  YELLOW  },
@@ -116,6 +116,7 @@ map<int, unsigned int> usrAttr = \
   { N_MAGENTA, MAGENTA },
   { N_TURQ,    TURQ    },
   { N_WHITE,   WHITE   },
+
   { B_RED,     RED     | A_BOLD    },
   { B_GREEN,   GREEN   | A_BOLD    },
   { B_YELLOW,  YELLOW  | A_BOLD    },
@@ -123,6 +124,7 @@ map<int, unsigned int> usrAttr = \
   { B_MAGENTA, MAGENTA | A_BOLD    },
   { B_TURQ,    TURQ    | A_BOLD    },
   { B_WHITE,   WHITE   | A_BOLD    },
+
   { R_RED,     RED     | A_REVERSE },
   { R_GREEN,   GREEN   | A_REVERSE },
   { R_YELLOW,  YELLOW  | A_REVERSE },
@@ -130,6 +132,7 @@ map<int, unsigned int> usrAttr = \
   { R_MAGENTA, MAGENTA | A_REVERSE },
   { R_TURQ,    TURQ    | A_REVERSE },
   { R_WHITE,   WHITE   | A_REVERSE },
+
   { U_RED,     RED     | A_UNDERLINE },
   { U_GREEN,   GREEN   | A_UNDERLINE },
   { U_YELLOW,  YELLOW  | A_UNDERLINE },
@@ -137,12 +140,6 @@ map<int, unsigned int> usrAttr = \
   { U_MAGENTA, MAGENTA | A_UNDERLINE },
   { U_TURQ,    TURQ    | A_UNDERLINE },
   { U_WHITE,   WHITE   | A_UNDERLINE },
-  { P_RED,     RED     | A_PROTECT },
-  { P_GREEN,   GREEN   | A_PROTECT },
-  { P_YELLOW,  YELLOW  | A_PROTECT },
-  { P_BLUE,    BLUE    | A_PROTECT },
-  { P_MAGENTA, MAGENTA | A_PROTECT },
-  { P_TURQ,    TURQ    | A_PROTECT },
-  { P_WHITE,   WHITE   | A_PROTECT },
-  { P_FF,      GREEN   | A_PROTECT }, } ;
+
+  { P_FF,      GREEN   }, } ;
 

@@ -69,30 +69,30 @@ map<cuaType, unsigned int> cuaAttr ;
 #include "pLScreen.h"
 #include "pLScreen.cpp"
 
-map<int,string> pfKeyDefaults = { {  1, "HELP"      },
-				  {  2, "SPLIT NEW" },
-				  {  3, "END"       },
-				  {  4, "RETURN"    },
-				  {  5, "RFIND"     },
-				  {  6, "RCHANGE"   },
-				  {  7, "UP"        },
-				  {  8, "DOWN"      },
-				  {  9, "SWAP"      },
-				  { 10, "LEFT"      },
-				  { 11, "RIGHT"     },
-				  { 12, "RETRIEVE"  },
-				  { 13, "HELP"      },
-				  { 14, "SPLIT NEW" },
-				  { 15, "END"       },
-				  { 16, "RETURN"    },
-				  { 17, "RFIND"     },
-				  { 18, "RCHANGE"   },
-				  { 19, "UP"        },
-				  { 20, "DOWN"      },
-				  { 21, "SWAP"      },
-				  { 22, "SWAP PREV" },
-				  { 23, "SWAP NEXT" },
-				  { 24, "HELP"      } } ;
+map<int, string> pfKeyDefaults = { {  1, "HELP"      },
+				   {  2, "SPLIT NEW" },
+				   {  3, "END"       },
+				   {  4, "RETURN"    },
+				   {  5, "RFIND"     },
+				   {  6, "RCHANGE"   },
+				   {  7, "UP"        },
+				   {  8, "DOWN"      },
+				   {  9, "SWAP"      },
+				   { 10, "LEFT"      },
+				   { 11, "RIGHT"     },
+				   { 12, "RETRIEVE"  },
+				   { 13, "HELP"      },
+				   { 14, "SPLIT NEW" },
+				   { 15, "END"       },
+				   { 16, "RETURN"    },
+				   { 17, "RFIND"     },
+				   { 18, "RCHANGE"   },
+				   { 19, "UP"        },
+				   { 20, "DOWN"      },
+				   { 21, "SWAP"      },
+				   { 22, "SWAP PREV" },
+				   { 23, "SWAP NEXT" },
+				   { 24, "HELP"      } } ;
 
 #undef  MOD_NAME
 #define MOD_NAME lspf
@@ -813,13 +813,13 @@ void mainLoop()
 					}
 					if ( w1 == "NEXT" )
 					{
-						++screenNum ;
+						screenNum++ ;
 						screenNum = (screenNum == pLScreen::screensTotal ? 0 : screenNum) ;
 						if ( altScreen == screenNum ) { altScreen = (altScreen == 0 ? (pLScreen::screensTotal - 1) : (altScreen - 1) ) ; }
 					}
 					else if ( w1 == "PREV" )
 					{
-						--screenNum ;
+						screenNum-- ;
 						screenNum = (screenNum < 0 ? (pLScreen::screensTotal - 1) : screenNum) ;
 						if ( altScreen == screenNum ) { altScreen = ((altScreen == pLScreen::screensTotal - 1) ? 0 : (altScreen + 1) )  ; }
 					}

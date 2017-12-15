@@ -955,7 +955,10 @@ void field::field_attr( errblock& err, string attrs )
 	// Format:
 
 	// TYPE(CUA) (change to/from PS not allowed)
-	// COLOUR(RED/GREEN/YELLOW/BLUE/MAGENTA/TURQ/WHITE) INTENSE(LOW/HIGH) HILITE(NONE/BLINK/REVERSE/USCORE)
+
+	// COLOUR(RED/GREEN/YELLOW/BLUE/MAGENTA/TURQ/WHITE)
+	// INTENSE(LOW/HIGH)
+	// HILITE(NONE/BLINK/REVERSE/USCORE)
 
 	// For NON-CUA field_colour, default to the current CUA value in case only one attribute is changed
 	// Hex format for field_colour:

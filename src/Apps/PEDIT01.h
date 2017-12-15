@@ -2113,6 +2113,9 @@ class PEDIT01 : public pApplication
 		vector<iline * >::iterator getLineItr( int, vector<iline *>::iterator ) ;
 
 		bool setFindChangeExcl( char ) ;
+		void setFoundMsg()             ;
+		void setChangedMsg()           ;
+		void setExcludedMsg()          ;
 		void setNotFoundMsg()          ;
 		bool setCommandRange( string, c_range& ) ;
 		int  getNextSpecial( int, int, char, char ) ;
@@ -2136,6 +2139,7 @@ class PEDIT01 : public pApplication
 		bool   textSplitData( const string&, string&, string& ) ;
 
 		void   compareFiles( const string& ) ;
+		string createTempName()  ;
 		string determineLang()   ;
 
 		uint topLine             ;

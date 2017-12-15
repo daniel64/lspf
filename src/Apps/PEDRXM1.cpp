@@ -1,4 +1,4 @@
-/*  Compile with ::                                                                                                    */
+/* Compile with ::                                                                                                     */
 /* g++  -shared -fPIC -std=c++11 -Wl,-soname,libPEDRXM1.so -lboost_regex -lrexx -lrexxapi -o libPEDRXM1.so PEDRXM1.cpp */
 /*
   Copyright (c) 2017 Daniel John Erdos
