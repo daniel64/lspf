@@ -2318,7 +2318,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 				else
 				{
 					ZSCROLLN = ds2d( p_poolMGR->get( errBlock, "ZSCROLLN", SHARED ) ) ;
-					ZTDTOP = ZTDTOP > ZSCROLLN ? ( ZTDTOP - ZSCROLLN ) : 1 ;
+					ZTDTOP = ( ZTDTOP > ZSCROLLN ) ? ( ZTDTOP - ZSCROLLN ) : 1 ;
 				}
 				ZCMD = "" ;
 			}

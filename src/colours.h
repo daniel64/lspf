@@ -91,14 +91,7 @@ map<string, unsigned int> usrAttrNames =
   { "U_BLUE",    U_BLUE    },
   { "U_MAGENTA", U_MAGENTA },
   { "U_TURQ",    U_TURQ    },
-  { "U_WHITE",   U_WHITE   },
-  { "P_RED",     P_RED     },
-  { "P_GREEN",   P_GREEN   },
-  { "P_YELLOW",  P_YELLOW  },
-  { "P_BLUE",    P_BLUE    },
-  { "P_MAGENTA", P_MAGENTA },
-  { "P_TURQ",    P_TURQ    },
-  { "P_WHITE",   P_WHITE   } } ;
+  { "U_WHITE",   U_WHITE   } } ;
 
 
 set<cuaType> cuaAttrUnprot =

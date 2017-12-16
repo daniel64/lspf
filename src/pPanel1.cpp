@@ -454,7 +454,8 @@ void pPanel::display_panel_update( errblock& err )
 	//  For dynamic areas, also update the shadow variable to indicate character deletes (0xFF).
 
 	int fieldNum    ;
-	int scrollAmt   ;
+	int scrollAmnt  ;
+	int Amnt        ;
 	int p           ;
 	int offset      ;
 	int posn        ;
@@ -474,7 +475,7 @@ void pPanel::display_panel_update( errblock& err )
 
 	err.setRC( 0 ) ;
 
-	fieldNum = 0  ;
+	fieldNum = -1 ;
 	posn     = 1  ;
 	MSGID    = "" ;
 	msgloc   = "" ;
@@ -590,7 +591,6 @@ void pPanel::display_panel_update( errblock& err )
 				if ( err.error() ) { return ; }
 				p_funcPOOL->put( err, "ZCURPOS", ( fieldNum*it->second->field_length + posn ) ) ;
 				if ( err.error() ) { return ; }
-				fieldNum++ ;
 			}
 			else
 			{
@@ -598,6 +598,7 @@ void pPanel::display_panel_update( errblock& err )
 				{
 					p        = it->first.find( '.' )    ;
 					fieldNam = it->first.substr( 0, p ) ;
+					fieldNum = ds2d( it->first.substr( p+1 ) )  ;
 					p_funcPOOL->put( err, "ZCURFLD", fieldNam ) ;
 					if ( err.error() ) { return ; }
 					tb_curidx = ds2d( it->first.substr( p+1 ) ) ;
@@ -634,9 +635,9 @@ void pPanel::display_panel_update( errblock& err )
 			p_funcPOOL->put( err, cmdField, "" )  ;
 			if ( err.error() ) { return ; }
 		}
-		if      ( tb_model )                          { scrollAmt = tb_depth  ; }
-		else if ( findword( CMDVerb, "LEFT RIGHT" ) ) { scrollAmt = dyn_width ; }
-		else                                          { scrollAmt = dyn_depth ; }
+		if      ( tb_model )                          { scrollAmnt = tb_depth  ; }
+		else if ( findword( CMDVerb, "LEFT RIGHT" ) ) { scrollAmnt = dyn_width ; }
+		else                                          { scrollAmnt = dyn_depth ; }
 		if ( isnumeric( CMD ) )
 		{
 			if ( CMD.size() > 6 )
@@ -652,54 +653,59 @@ void pPanel::display_panel_update( errblock& err )
 				if ( err.error() ) { return ; }
 			}
 		}
-		else if ( CMD[ 0 ] == 'M' )
+		else if ( CMD.front() == 'M' )
 		{
 			p_poolMGR->put( err, "ZSCROLLA", "MAX", SHARED ) ;
 			if ( err.error() ) { return ; }
 		}
-		else if ( CMD[ 0 ] == 'C' )
+		else if ( CMD.front() == 'C' )
 		{
-			if ( fieldNum == 0 )
+			if ( fieldNum == -1 )
 			{
-				p_poolMGR->put( err, "ZSCROLLN", d2ds( scrollAmt ),  SHARED ) ;
+				Amnt = scrollAmnt ;
 			}
-			else if ( CMDVerb[ 0 ] == 'U' )
+			else if ( CMDVerb.front() == 'U' )
 			{
-				p_poolMGR->put( err, "ZSCROLLN", d2ds( dyn_depth-fieldNum ), SHARED ) ;
+				Amnt = scrollAmnt - fieldNum - 1 ;
+				if ( Amnt == 0 ) { Amnt = scrollAmnt ; }
 			}
-			else if ( CMDVerb[ 0 ] == 'D' )
+			else if ( CMDVerb.front() == 'D' )
 			{
-				p_poolMGR->put( err, "ZSCROLLN", d2ds( fieldNum-1 ), SHARED ) ;
+				Amnt = fieldNum ;
+				if ( Amnt == 0 ) { Amnt = scrollAmnt ; }
 			}
-			else if ( CMDVerb[ 0 ] == 'L' )
+			else if ( CMDVerb.front() == 'L' )
 			{
-				p_poolMGR->put( err, "ZSCROLLN", d2ds( dyn_width-posn ), SHARED ) ;
+				Amnt = dyn_width - posn ;
+				if ( Amnt == 0 ) { Amnt = dyn_width ; }
 			}
 			else
 			{
-				p_poolMGR->put( err, "ZSCROLLN", d2ds( posn ), SHARED ) ;
+				Amnt = posn - 1 ;
+				if ( Amnt == 0 ) { Amnt = dyn_width ; }
 			}
+			p_poolMGR->put( err, "ZSCROLLN", d2ds( Amnt ), SHARED ) ;
 			if ( err.error() ) { return ; }
 			p_poolMGR->put( err, "ZSCROLLA", "CSR", SHARED ) ;
 			if ( err.error() ) { return ; }
 		}
-		else if ( CMD[ 0 ] == 'D' )
+		else if ( CMD.front() == 'D' )
 		{
-			p_poolMGR->put( err, "ZSCROLLN", d2ds( scrollAmt ), SHARED ) ;
+			p_poolMGR->put( err, "ZSCROLLN", d2ds( scrollAmnt ), SHARED ) ;
 			if ( err.error() ) { return ; }
 			p_poolMGR->put( err, "ZSCROLLA", "DATA", SHARED ) ;
 			if ( err.error() ) { return ; }
 		}
-		else if ( CMD[ 0 ] == 'H' )
+		else if ( CMD.front() == 'H' )
 		{
-			p_poolMGR->put( err, "ZSCROLLN", d2ds( scrollAmt/2 ), SHARED ) ;
+			p_poolMGR->put( err, "ZSCROLLN", d2ds( scrollAmnt/2 ), SHARED ) ;
 			if ( err.error() ) { return ; }
 			p_poolMGR->put( err, "ZSCROLLA", "HALF", SHARED ) ;
 			if ( err.error() ) { return ; }
 		}
 		else
 		{
-			p_poolMGR->put( err, "ZSCROLLN", d2ds( scrollAmt ), SHARED ) ;
+			p_poolMGR->put( err, "ZSCROLLN", d2ds( scrollAmnt ), SHARED ) ;
 			if ( err.error() ) { return ; }
 			p_poolMGR->put( err, "ZSCROLLA", "PAGE", SHARED ) ;
 			if ( err.error() ) { return ; }
