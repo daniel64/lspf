@@ -311,7 +311,7 @@ class poolMGR
 lg->lock() ; \
 (*lg) << microsec_clock::local_time() << \
 " POOL      " << \
-" " << right( d2ds( err.taskid ), 5, '0' ) << " " << t << " " << s ; \
+" " << d2ds( err.taskid, 5 ) << " " << t << " " << s ; \
 lg->unlock() ; \
 }
 
@@ -321,7 +321,7 @@ lg->unlock() ; \
 lg->lock() ; \
 (*lg) << microsec_clock::local_time() << \
 " POOL      " << \
-" " << right( d2ds( err.taskid ), 5, '0' ) << \
+" " << d2ds( err.taskid, 5 ) << \
 " D line: "  << __LINE__  << \
 " >>L1 Function: " << __FUNCTION__ << \
 " -  " << s ; \
@@ -338,7 +338,7 @@ lg->unlock() ; \
 lg->lock() ; \
 (*lg) << microsec_clock::local_time() << \
 " POOL      " << \
-" " << right( d2ds( err.taskid ), 5, '0' ) << \
+" " << d2ds( err.taskid, 5 ) << \
 " D line: "  << __LINE__  << \
 " >>L2 Function: " << __FUNCTION__ << \
 " -  " << s ; \

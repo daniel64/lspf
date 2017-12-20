@@ -168,9 +168,9 @@ void PPSP01A::show_log( const string& fileName )
 
 	while ( true )
 	{
-		ZCOL1 = right( d2ds( startCol-47 ), 7, '0' )  ;
-		ZROW1 = right( d2ds( firstLine ), 8, '0' )    ;
-		ZROW2 = right( d2ds( maxLines ), 8, '0' )     ;
+		ZCOL1 = d2ds( startCol-47, 7 ) ;
+		ZROW1 = d2ds( firstLine, 8 )   ;
+		ZROW2 = d2ds( maxLines, 8 )    ;
 		if ( MSG == "" ) { ZCMD = "" ; }
 
 		display( "PPSP01AL", MSG, "ZCMD" ) ;
@@ -347,8 +347,23 @@ void PPSP01A::show_log( const string& fileName )
 			}
 			else
 			{
-				startCol = startCol + ZSCROLLN ;
+				if ( ZSCROLLA == "CSR" )
+				{
+					if ( ZSCROLLN == lprefix )
+					{
+						startCol += ZAREAW - lprefix ;
+					}
+					else
+					{
+						startCol += ZSCROLLN - lprefix ;
+					}
+				}
+				else
+				{
+					startCol += ZSCROLLN ;
+				}
 			}
+			if ( startCol < 1 ) { startCol = 1 ; }
 		}
 
 		if ( rebuildZAREA ) fill_dynamic_area() ;
@@ -484,6 +499,7 @@ void PPSP01A::fill_dynamic_area()
 			p += 6 ;
 			s.replace( p, 2, 2, N_TURQ  ) ;
 			ZSHADOW += s ;
+			lprefix  = p + 2 ;
 		}
 	}
 }
@@ -544,7 +560,7 @@ void PPSP01A::dsList( string parms )
 			fout.open( tname ) ;
 			for ( i = 1 ; i <= 30 ; i++ )
 			{
-				vcopy( "FLAPET" + right( d2ds( i ), 2, '0' ), fname, MOVE ) ;
+				vcopy( "FLAPET" + d2ds( i, 2 ), fname, MOVE ) ;
 				if ( fname == "" ) { continue ; }
 				fout << fname << endl ;
 			}
@@ -1150,9 +1166,9 @@ void PPSP01A::colourSettings()
 		ZCMD = "" ;
 		for ( i = 1 ; i < 34 ; i++)
 		{
-			var1 = "COLOUR" + right( d2ds(i), 2, '0') ;
-			var2 = "INTENS" + right( d2ds(i), 2, '0') ;
-			var3 = "HILITE" + right( d2ds(i), 2, '0') ;
+			var1 = "COLOUR" + d2ds( i, 2 ) ;
+			var2 = "INTENS" + d2ds( i, 2 ) ;
+			var3 = "HILITE" + d2ds( i, 2 ) ;
 			vcopy( var1, COLOUR, MOVE ) ;
 			vcopy( var2, INTENS, MOVE ) ;
 			vcopy( var3, HILITE, MOVE ) ;
@@ -1300,11 +1316,11 @@ void PPSP01A::globalColours()
 		vcopy( var, colour, MOVE ) ;
 		if ( colour == tab1[ i ] )
 		{
-			vreplace( "COLOUR"+ right( d2ds( i ), 2, '0'), "" ) ;
+			vreplace( "COLOUR"+ d2ds( i, 2 ), "" ) ;
 		}
 		else
 		{
-			vreplace( "COLOUR"+ right( d2ds( i ), 2, '0'), tab2[ colour ] ) ;
+			vreplace( "COLOUR"+ d2ds( i, 2 ), tab2[ colour ] ) ;
 		}
 	}
 
@@ -1315,7 +1331,7 @@ void PPSP01A::globalColours()
 		if (RC == 8 ) { cleanup() ; break ; }
 		for ( i = 1 ; i < 8 ; i++ )
 		{
-			vcopy( "COLOUR"+ right( d2ds( i ), 2, '0'), colour, MOVE ) ;
+			vcopy( "COLOUR"+ d2ds( i, 2 ), colour, MOVE ) ;
 			var = "ZGCL" + tab1[ i ] ;
 			val = ( colour == "" ) ? tab1[ i ] : colour.substr( 0, 1 ) ;
 			vreplace( var, val ) ;
@@ -1361,9 +1377,9 @@ int PPSP01A::setScreenAttrs( const string& name, int itr, string COLOUR, string 
 		else { llog( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ; }
 	}
 
-	var1 = "COLOUR" + right( d2ds( itr ), 2, '0') ;
-	var2 = "INTENS" + right( d2ds( itr ), 2, '0') ;
-	var3 = "HILITE" + right( d2ds( itr ), 2, '0') ;
+	var1 = "COLOUR" + d2ds( itr, 2 ) ;
+	var2 = "INTENS" + d2ds( itr, 2 ) ;
+	var3 = "HILITE" + d2ds( itr, 2 ) ;
 
 	attr( var1, "COLOUR(" + COLOUR + ")" ) ;
 	if ( RC > 0 ) { llog( "E", "Colour change for field " << var1 << " has failed." << endl ) ; }
@@ -1418,7 +1434,7 @@ void PPSP01A::poolVariables( const string& applid )
 		return ;
 	}
 
-	VARLST = "VARLST" + right( d2ds( taskid() ), 2, '0' ) ;
+	VARLST = "VARLST" + d2ds( taskid(), 2 ) ;
 
 	vdefine( "SEL VAR VPOOL VPLVL VAL MESSAGE", &SEL, &VAR, &VPOOL, &VPLVL, &VAL, &MESSAGE ) ;
 
@@ -1603,7 +1619,7 @@ void PPSP01A::showPaths()
 	if ( libdef_muser ) { LIBDEFT = "LIBDEF active for user table search"       ; }
 	else                { LIBDEFT = "LIBDEF not active for user table search"   ; }
 
-	PATHLST = "PTHLST" + right( d2ds( taskid() ), 2, '0' ) ;
+	PATHLST = "PTHLST" + d2ds( taskid(), 2 ) ;
 
 	vdefine( "SEL PVAR PATH MESSAGE DESCRIPT", &SEL, &PVAR, &PATH, &MESSAGE, &DESCRIPT ) ;
 
@@ -1868,7 +1884,7 @@ void PPSP01A::showLoadedClasses()
 
 	vdefine( "SEL APPL MOD MODPATH STATUS", &SEL, &APPL, &MOD, &MODPATH, &STATUS ) ;
 
-	MODLST = "MODLST" + right( d2ds( taskid() ), 2, '0' ) ;
+	MODLST = "MODLST" + d2ds( taskid(), 2 ) ;
 
 	MSG    = ""   ;
 	ZTDTOP = 1    ;
@@ -2040,7 +2056,7 @@ void PPSP01A::showTasks()
 
 	vdefine( "SEL USER PID CPU CPUX MEM MEMX CMD", &SEL, &USER, &PID, &CPU, &CPUX, &MEM, &MEMX, &CMD ) ;
 
-	TASKLST = "TSKLST" + right( d2ds( taskid() ), 2, '0' ) ;
+	TASKLST = "TSKLST" + d2ds( taskid(), 2 ) ;
 
 	updateTasks( TASKLST ) ;
 
@@ -2227,7 +2243,7 @@ void PPSP01A::keylistTables()
 	vec::const_iterator it ;
 
 	vdefine( "TBK1SEL TBK1TAB TBK1TYP TBK1MSG NEWTAB", &TBK1SEL, &TBK1TAB, &TBK1TYP, &TBK1MSG, &NEWTAB ) ;
-	KEYP = "KEYP" + right( d2ds( taskid() ), 4, '0' ) ;
+	KEYP = "KEYP" + d2ds( taskid(), 4 ) ;
 
 	tbcreate( KEYP, "", "(TBK1SEL,TBK1TAB,TBK1TYP,TBK1MSG)", NOWRITE ) ;
 	if ( RC > 0 ) { abend() ; }
@@ -2380,7 +2396,7 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 	}
 
 	vdefine( "TBK2SEL TBK2LST TBK2MSG KEYLISTN NEWKEY", &TBK2SEL, &TBK2LST, &TBK2MSG, &KEYLISTN, &NEWKEY ) ;
-	KLST = "KLT2" + right( d2ds( taskid() ), 4, '0' ) ;
+	KLST = "KLT2" + d2ds( taskid(), 4 ) ;
 	vcopy( "ZUPROF", UPROF, MOVE ) ;
 
 	tbopen( tab, NOWRITE, UPROF ) ;
@@ -2566,7 +2582,7 @@ void PPSP01A::viewKeylist( const string& tab, const string& list )
 	string UPROF    ;
 	string MSG      ;
 
-	KLST = "KLT4" + right( d2ds( taskid() ), 4, '0' ) ;
+	KLST = "KLT4" + d2ds( taskid(), 4 ) ;
 
 	vcopy( "ZUPROF", UPROF, MOVE ) ;
 
@@ -2632,7 +2648,7 @@ void PPSP01A::editKeylist( const string& tab, const string& list )
 	string UPROF    ;
 	string MSG      ;
 
-	KLST = "KLT3" + right( d2ds( taskid() ), 4, '0' ) ;
+	KLST = "KLT3" + d2ds( taskid(), 4 ) ;
 
 	vcopy( "ZUPROF", UPROF, MOVE ) ;
 

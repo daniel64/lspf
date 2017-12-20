@@ -994,7 +994,7 @@ void poolMGR::createPool( errblock& err,
 	switch( pType )
 	{
 	case SHARED:
-		shrdPool = right( d2ds( ++shrdPooln ), 8, '0' ) ;
+		shrdPool = d2ds( ++shrdPooln, 8 ) ;
 		debug1( "New shared POOL name "<< shrdPool <<endl ) ;
 		if ( POOLs_shared.count( shrdPool ) > 0 )
 		{

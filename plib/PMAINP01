@@ -178,7 +178,7 @@ literal  22  16   NT   "Start Tutorial"
 
 literal  23  2    SAC  "X"
 literal  23  5    PS   "Terminate"
-literal  23  16   NT   "Termiante Session"
+literal  23  16   NT   "Terminate Session"
 
 dynArea  7  MAX-60   21  11  ZAREA  ZSHADOW
 

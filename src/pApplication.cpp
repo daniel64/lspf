@@ -26,7 +26,6 @@ pApplication::pApplication()
 	testMode               = false  ;
 	propagateEnd           = false  ;
 	jumpEntered            = false  ;
-	resumeTime             = boost::posix_time::second_clock::universal_time() ;
 	ControlDisplayLock     = false  ;
 	ControlNonDispl        = false  ;
 	ControlErrorsReturn    = false  ;
@@ -60,8 +59,8 @@ pApplication::pApplication()
 	setMSG                 = false  ;
 	reffield               = ""     ;
 	PARM                   = ""     ;
-	PANELID                = ""     ;
-	PPANELID               = ""     ;
+	panelid                = ""     ;
+	ppanelid               = ""     ;
 	currPanel              = NULL   ;
 	currtbPanel            = NULL   ;
 	ZHELP                  = ""     ;
@@ -399,13 +398,13 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 
 	if ( p_name == "" )
 	{
-		if ( PANELID == "" )
+		if ( panelid == "" )
 		{
 			errBlock.setcall( e1, "PSYE021C" ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
-		p_name   = PANELID ;
+		p_name   = panelid ;
 		doReinit = true    ;
 	}
 
@@ -426,8 +425,8 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 
 	if ( propagateEnd )
 	{
-		if ( PPANELID == p_name ) { propagateEnd = false ;                }
-		else                      { PPANELID = p_name ; RC = 8 ; return ; }
+		if ( ppanelid == p_name ) { propagateEnd = false ;                }
+		else                      { ppanelid = p_name ; RC = 8 ; return ; }
 	}
 
 	currPanel = panelList[ p_name ] ;
@@ -451,7 +450,7 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 		currPanel->clear_msg() ;
 	}
 
-	PANELID = p_name ;
+	panelid = p_name ;
 	currPanel->set_cursor( p_cursor, p_curpos ) ;
 
 	if ( addpop_active ) { currPanel->set_popup( addpop_row, addpop_col ) ; }
@@ -537,9 +536,9 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 		if ( ZZVERB == "RETURN" ) { propagateEnd = true ; }
 		if ( findword( ZZVERB, "END EXIT RETURN" ) ) { RC = 8 ; return ; }
 
-		if ( currPanel->MSGID == "" ) { break ; }
+		if ( currPanel->msgid == "" ) { break ; }
 
-		get_message( currPanel->MSGID ) ;
+		get_message( currPanel->msgid ) ;
 		if ( RC > 0 ) { return ; }
 		currPanel->set_panel_msg( MSG, MSGID ) ;
 		currPanel->display_panel_reinit( errBlock ) ;
@@ -1408,7 +1407,7 @@ void pApplication::addpop( const string& a_fld, int a_row, int a_col )
 		}
 		if ( !currPanel->field_get_row_col( a_fld, p_row, p_col ) )
 		{
-			errBlock.setcall( e1, "PSYE022M", a_fld,  PANELID, 20 ) ;
+			errBlock.setcall( e1, "PSYE022M", a_fld, panelid, 20 ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -2060,8 +2059,8 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 	if ( propagateEnd )
 	{
 		if ( p_name == "" )       { RC = 8 ; return      ; }
-		if ( PPANELID == p_name ) { propagateEnd = false ; }
-		else                      { PPANELID = p_name ; RC = 8 ; return ; }
+		if ( ppanelid == p_name ) { propagateEnd = false ; }
+		else                      { ppanelid = p_name ; RC = 8 ; return ; }
 	}
 
 	if ( !isTableOpen( tb_name, "TBDISPL" ) ) { return ; }
@@ -2101,7 +2100,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 			return ;
 		}
 		currPanel = panelList[ p_name ] ;
-		PANELID   = p_name ;
+		panelid   = p_name ;
 		p_poolMGR->put( errBlock, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 		if ( p_msg == "" )
 		{
@@ -2120,13 +2119,13 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		currPanel = currtbPanel ;
 		if ( currPanel == NULL )
 		{
-			if ( PANELID == "" )
+			if ( panelid == "" )
 			{
 				errBlock.setcall( e1, "PSYE021C" ) ;
 				checkRCode( errBlock ) ;
 				return ;
 			}
-			p_name    = PANELID ;
+			p_name    = panelid ;
 			currPanel = panelList[ p_name ] ;
 			if ( !currPanel->tb_model )
 			{
@@ -2141,8 +2140,8 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		}
 		else
 		{
-			p_name  = currPanel->PANELID ;
-			PANELID = currPanel->PANELID ;
+			p_name  = currPanel->panelid ;
+			panelid = currPanel->panelid ;
 			p_poolMGR->put( errBlock, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 		}
 	}
@@ -2250,7 +2249,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		}
 		else
 		{
-			ZCURINX = "00000000" ;
+			ZCURINX = 0 ;
 		}
 		if ( currPanel->tb_get_lineChanged( ln, URID ) )
 		{
@@ -2285,16 +2284,16 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		if ( ZZVERB == "RETURN" ) { propagateEnd = true ; }
 		if ( findword( ZZVERB, "END EXIT RETURN" ) ) { RC = 8 ; return ; }
 
-		if ( currPanel->MSGID != "" )
+		if ( currPanel->msgid != "" )
 		{
-			get_message( currPanel->MSGID ) ;
+			get_message( currPanel->msgid ) ;
 			if ( RC > 0 ) { RC = 12 ; return ; }
 			currPanel->set_panel_msg( MSG, MSGID ) ;
 			if ( p_name == "" )
 			{
-				p_name    = currPanel->PANELID ;
+				p_name    = currPanel->panelid ;
 				currPanel = currPanel ;
-				PANELID   = p_name      ;
+				panelid   = p_name      ;
 				p_poolMGR->put( errBlock, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 			}
 			currPanel->display_panel_reinit( errBlock, ln ) ;
@@ -2906,13 +2905,13 @@ void pApplication::pquery( const string& p_name, const string& a_name, const str
 
 void pApplication::attr( const string& field, const string& attrs )
 {
-	if ( PANELID == "" )
+	if ( panelid == "" )
 	{
 		errBlock.setcall( "ATTR change error", "PSYE023D" ) ;
 		checkRCode( errBlock ) ;
 		return  ;
 	}
-	panelList[ PANELID ]->attr( RC, field, attrs ) ;
+	panelList[ panelid ]->attr( RC, field, attrs ) ;
 }
 
 
@@ -3537,7 +3536,7 @@ void pApplication::info()
 	llog( "-", "         Profile Pool Name: "<< ZZAPPLID << endl ) ;
 	llog( "-", " " << endl ) ;
 	llog( "-", "Application Description . : "<< ZAPPDESC << endl ) ;
-	llog( "-", "Last Panel Displayed. . . : "<< PANELID << endl ) ;
+	llog( "-", "Last Panel Displayed. . . : "<< panelid << endl ) ;
 	llog( "-", "Last Message Displayed. . : "<< MSGID << endl )   ;
 	llog( "-", "Number of Panels Loaded . : "<< panelList.size() << endl )  ;
 	llog( "-", "Number of Open Tables . . : "<< tablesOpen.size() << endl ) ;

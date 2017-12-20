@@ -238,7 +238,7 @@ void PFLST0A::application()
 	if ( !is_directory( ZPATH ) ) { ZPATH = ZHOME ; }
 
 	OSEL   = ""   ;
-	DSLIST = "DSLST" + right( d2ds( taskid() ), 3, '0' ) ;
+	DSLIST = "DSLST" + d2ds( taskid(), 3 ) ;
 	MSG    = ""  ;
 
 	RC        = 0 ;
@@ -334,10 +334,10 @@ void PFLST0A::application()
 		CONDOFF = "" ;
 		NEMPTOK = "" ;
 		DIRREC  = "" ;
-		if ( ZTDSELS == 0 && ZCURINX != "00000000" )
+		if ( ZTDSELS == 0 && ZCURINX != 0 )
 		{
 			tbtop( DSLIST ) ;
-			tbskip( DSLIST, ds2d( ZCURINX ) ) ;
+			tbskip( DSLIST, ZCURINX ) ;
 			if ( UseList )
 			{
 				entry = ENTRY ;
@@ -1676,7 +1676,7 @@ void PFLST0A::browseTree( const string& tname )
 
 	vdefine( "TSEL TFILE TENTRY ZDIR", &TSEL, &TFILE, &TENTRY, &ZDIR ) ;
 	vcopy( "ZFLSTPGM", PGM, MOVE ) ;
-	tab = "FTREE" + right( d2ds( taskid() ), 3, '0' ) ;
+	tab = "FTREE" + d2ds( taskid(), 3 ) ;
 
 	tbcreate( tab, "", "(TSEL,TFILE,TENTRY)", NOWRITE ) ;
 
@@ -2037,7 +2037,7 @@ string PFLST0A::showListing()
 	vdefine( "SEL ENTRY TYPE FLDIRS FLHIDDEN", &SEL, &ENTRY, &TYPE, &FLDIRS, &FLHIDDEN ) ;
 	vget( "FLDIRS FLHIDDEN", PROFILE ) ;
 
-	DSLIST = "DSLST" + right( d2ds( taskid() ), 3, '0' ) ;
+	DSLIST = "DSLST" + d2ds( taskid(), 3 ) ;
 	createFileList2( FLDIRS ) ;
 
 	RC       = 0 ;

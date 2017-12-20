@@ -63,7 +63,7 @@ PEDT011K 'Invalid Hex String' .TYPE=W
 'Enter only valid hex characters 0-9, A-F with no spaces'
 
 PEDT011L '&LINES Line(s) Excluded' .TYPE=N
-'&LINES line(s) have been excluded'
+'&TYPE &STR excluded &OCC times.  &LINES line(s) have been excluded'
 
 PEDT011M '&LINES Line(s) Deleted' .TYPE=N
 '&LINES line(s) have been deleted'
@@ -152,7 +152,7 @@ PEDT013F 'Paste Pending' .TYPE=W
 PEDT013G '&TYPE &STR found' .TYPE=N
 'Search for &TYPE &STR was successful'
 
-PEDT013H '&TYPE &STR not found' .TYPE=W
+PEDT013H 'No &TYPE &STR found' .TYPE=W
 'Search for &TYPE &STR was not successful'
 
 PEDT013I '&TYPE &STR found &OCC time(s)' .TYPE=N
@@ -352,3 +352,16 @@ PEDT015V '&ZEDCLIP is read-only' .TYPE=W
 
 PEDT015W 'Invalid return code from &ZVAL1' .TYPE=W
 ''
+
+PEDT015X 'Invalid ''to'' picture string' .T=W
+'Special character not allowed in a ''to'' picture string'
+
+PEDT015Y 'Invalid ''to'' picture string' .T=W
+'The ''to'' picture string must be the same length as the ''from'' string'
+
+PEDT015Z 'Invalid ''from'' picture string' .T=W
+'The ''from'' picture string cannot contain special character ''*'' if ''to'' picture string also specified'
+
+PEDT016A 'Invalid ''from'' regex' .T=W
+'The ''from'' string cannot be a regex if ''to'' picture string specified'
+

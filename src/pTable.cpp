@@ -224,12 +224,12 @@ void Table::storeIntValue( errblock& err,
 		}
 		else
 		{
-			funcPOOL.put( err, var, right( d2ds( val ), 8, '0' ) ) ;
+			funcPOOL.put( err, var, d2ds( val, 8 ) ) ;
 		}
 	}
 	else if ( err.RC8() )
 	{
-		funcPOOL.put( err, var, right( d2ds( val ), 8, '0' ) ) ;
+		funcPOOL.put( err, var, d2ds( val, 8 ) ) ;
 	}
 }
 

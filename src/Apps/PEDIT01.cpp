@@ -73,8 +73,8 @@ map<int, stack<int>>Global_Undo ;
 map<int, stack<int>>Global_Redo ;
 map<int, stack<int>>Global_File_level ;
 
-set<string>PEDIT01::EditList       ;
-e_find PEDIT01::Global_efind_parms ;
+set<string>PEDIT01::EditList          ;
+edit_find PEDIT01::Global_efind_parms ;
 
 
 void PEDIT01::application()
@@ -374,8 +374,8 @@ void PEDIT01::Edit()
 
 		vreplace( "ZEDALT", zedalt ) ;
 
-		ZCOL1 = right( d2ds( startCol ), 5, '0' ) ;
-		ZCOL2 = right( d2ds( startCol+ZDATAW-1 ), 5, '0' ) ;
+		ZCOL1 = d2ds( startCol, 5 ) ;
+		ZCOL2 = d2ds( startCol+ZDATAW-1, 5 ) ;
 
 		positionCursor() ;
 
@@ -954,7 +954,7 @@ void PEDIT01::fill_dynamic_area()
 				else if ( (*it)->il_info  ) { lcc = "======" ; ZSHADOW += slr ; }
 				else if ( (*it)->il_file  )
 				{
-					lcc = right( d2ds( fl ), 6, '0' ) ;
+					lcc = d2ds( fl, 6 ) ;
 					ZSHADOW += slg ;
 				}
 				else { lcc = "******" ; ZSHADOW += slr ; }
@@ -1305,7 +1305,8 @@ void PEDIT01::getZAREAchanges()
 
 	// Strip off any remaining leading "- - - " for excluded lines
 	// Strip off any remaining leading "''''''" for new insert lines
-	// Strip off label characters from the line command if label '.' has been overwritten
+	// Strip off label characters from the line command if label '.' has been overwritten or command has been
+	// entered after the label (label+space+lcc)
 
 	int i   ;
 	int j   ;
@@ -1363,15 +1364,15 @@ void PEDIT01::getZAREAchanges()
 			lcc = "" ;
 			if ( data.at( dl )->il_lcc == "" && !data.at( dl )->hasLabel() )
 			{
-				for ( j = off+1 ; j < off+6 ; j++ )
+				for ( j = off + 1 ; j < off + 6 ; j++ )
 				{
 					if ( ZAREA[ j ] == ' ' || isdigit( ZAREA[ j ] ) ) { ZAREA[ j ] = ' ' ; continue ; }
 					break ;
 				}
 				sp = j - off ;
-				if ( aRow == (i + 1 ) && ( aCol > 1 && aCol < 8 ) )
+				if ( aRow == ( i + 1 ) && ( aCol > 1 && aCol < 8 ) )
 				{
-					for ( j = (off + 6) ; j > off ; j-- )
+					for ( j = off + 6 ; j > off ; j-- )
 					{
 						if ( j < (aCol + off -1 ) || ( ZAREA[ j ] != CAREA[ j ] ) )  { break ; }
 					}
@@ -1413,17 +1414,19 @@ void PEDIT01::getZAREAchanges()
 			{
 				lcc = strip( lcc, 'L', '\'' ) ;
 			}
-			else if ( data.at( dl )->hasLabel() && lcc.front() != '.' )
+			else
 			{
 				lab = data.at( dl )->getLabel() ;
-				for ( j = 0 ; j < lab.size() && j < lcc.size() ; j++ )
+				if ( lab != "" && ( lcc.front() != '.' || lcc.find( ' ' ) != string::npos ) )
 				{
-					if ( lab[ j ] == lcc[ j ] ) { lcc[ j ] = ' ' ; }
-				}
-				trim( lcc ) ;
-				if ( lcc == "" )
-				{
-					data.at( dl )->il_lcc = "." ;
+					for ( j = 0 ; j < lab.size() && j < lcc.size() ; j++ )
+					{
+						if ( lab[ j ] == lcc[ j ] ) { lcc[ j ] = ' ' ; }
+					}
+					if ( trim( lcc ) == "" )
+					{
+						data.at( dl )->il_lcc = "." ;
+					}
 				}
 			}
 			if ( datatype( lcc, 'W' ) ) { lcc = "" ; }
@@ -2180,7 +2183,7 @@ void PEDIT01::actionPrimCommand2()
 	defName dn  ;
 	D_PARMS dp  ;
 
-	c_range r ;
+	cmd_range r ;
 
 	vector<string> Prof  ;
 	vector<string> Info  ;
@@ -2294,6 +2297,7 @@ void PEDIT01::actionPrimCommand2()
 						placeCursor( find_parms.fcx_URID, 4, find_parms.fcx_offset + find_parms.fcx_cstring.size() ) ;
 					}
 					moveTopline( find_parms.fcx_URID ) ;
+					tTop = topLine ;
 					if ( macroRunning )
 					{
 						mRow = getFileLine( find_parms.fcx_dl ) + 1 ;
@@ -2308,8 +2312,8 @@ void PEDIT01::actionPrimCommand2()
 				topLine  = getLine( find_parms.fcx_URID ) ;
 				aCol     = find_parms.fcx_offset + find_parms.fcx_cstring.size() + CLINESZ ;
 			}
-			topLine  = tTop  ;
-			startCol = tCol  ;
+			topLine  = tTop ;
+			startCol = tCol ;
 			find_parms.fcx_ch_occs = i ;
 			( i > 0 ) ? setChangedMsg() : setNotFoundMsg() ;
 			rebuildZAREA = true ;
@@ -3732,9 +3736,18 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 			if ( (*il_it)->il_file )    { continue ; }
 			p_iline = new iline( taskid() ) ;
 			p_iline->il_file = true ;
-			p_iline->put_idata( (*il_it)->get_idata(), Level ) ;
+			if ( (*il_it)->il_col )
+			{
+				tmp1 = getColumnLine( 1 ) ;
+			}
+			else
+			{
+				tmp1 = (*il_it)->get_idata() ;
+			}
+			p_iline->put_idata( tmp1, Level ) ;
 			(*il_it)->set_deleted( Level ) ;
-			il_it  = data.insert( il_it, p_iline ) ;
+			il_it = data.insert( il_it, p_iline ) ;
+			fileChanged = true ;
 			if ( !csrPlaced && aLCMD )
 			{
 				placeCursor( (*il_it)->il_URID, 1 ) ;
@@ -3745,7 +3758,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 			if ( il_it == il_ite ) { break ; }
 			il_ite++ ;
 			il_ite++ ;
-			fileChanged = true ;
 		}
 		rebuildZAREA = true ;
 		break ;
@@ -4428,7 +4440,6 @@ void PEDIT01::actionZVERB()
 		if ( ZSCROLLA == "MAX" )
 		{
 			startCol = maxCol - ZAREAW ;
-			if ( startCol < 1 ) { startCol = 1 ; }
 		}
 		else
 		{
@@ -4436,19 +4447,19 @@ void PEDIT01::actionZVERB()
 			{
 				if ( ZSCROLLN == CLINESZ )
 				{
-					startCol = startCol + ZDATAW ;
+					startCol += ZDATAW ;
 				}
 				else
 				{
-					startCol = startCol + ZSCROLLN - CLINESZ ;
+					startCol += ZSCROLLN - CLINESZ ;
 				}
 			}
 			else
 			{
-				startCol = startCol + ZSCROLLN ;
+				startCol += ZSCROLLN ;
 			}
-			if ( startCol < 1 ) { startCol = 1 ; }
 		}
+		if ( startCol < 1 ) { startCol = 1 ; }
 	}
 	else if ( ZVERB == "RCHANGE" )
 	{
@@ -5258,8 +5269,8 @@ bool PEDIT01::setFindChangeExcl( char type )
 	string rcmd  ;
 	string w1    ;
 	string pic   ;
-	e_find t     ;
-	c_range r    ;
+	edit_find t  ;
+	cmd_range r  ;
 
 	const string f_keywdir  = "NEXT PREV FIRST LAST ALL" ;
 	const string f_keywexcl = "X NX" ;
@@ -5282,9 +5293,8 @@ bool PEDIT01::setFindChangeExcl( char type )
 	if ( strip( cmd ) == "" ) { pcmd.set_msg( "PEDT013U" ) ; return false ; }
 	rcmd = "" ;
 
-	while ( true )
+	while ( cmd.size() > 0 )
 	{
-		if ( cmd.size() == 0 ) { break ; }
 		c1 = cmd.front() ;
 		if ( c1 == ' ' ) { cmd.erase( 0, 1 ) ; continue ; }
 		if ( cmd.size() > 1 ) { c2 = cmd.at( 1 ) ; }
@@ -5388,43 +5398,44 @@ bool PEDIT01::setFindChangeExcl( char type )
 		{
 			rcmd += " " + w1 ;
 		}
+		else if ( !f_str1 )
+		{
+			f_str1 = true ;
+			if ( w1 == "*" )
+			{
+				if ( find_parms.fcx_string == "" ) { pcmd.set_msg( "PEDT011C" ) ; return false ; }
+				t.fcx_string = find_parms.fcx_string ;
+				t.fcx_regreq = find_parms.fcx_regreq ;
+				t.fcx_mtch   = find_parms.fcx_mtch   ;
+				t.fcx_text   = find_parms.fcx_text   ;
+				t.fcx_asis   = find_parms.fcx_asis   ;
+				t.fcx_hex    = find_parms.fcx_hex    ;
+				t.fcx_pic    = find_parms.fcx_pic    ;
+			}
+			else
+			{
+				t.fcx_text   = true ;
+				t.fcx_string = w1   ;
+			}
+		}
+		else if ( !f_str2 )
+		{
+			if ( type != 'C' ) { pcmd.set_msg( "PEDT011B" ) ; return false ; }
+			if ( profCaps )
+			{
+				t.fcx_cstring = w1 ;
+			}
+			else
+			{
+				t.fcx_cstring = word( cmd, 1 ) ;
+			}
+			t.fcx_ctext = true ;
+			f_str2      = true ;
+		}
 		else
 		{
-			if ( !f_str1 )
-			{
-				f_str1 = true ;
-				if ( w1 == "*" )
-				{
-					if ( find_parms.fcx_string == "" ) { pcmd.set_msg( "PEDT011C" ) ; return false ; }
-					t.fcx_string = find_parms.fcx_string ;
-					t.fcx_regreq = find_parms.fcx_regreq ;
-					t.fcx_mtch   = find_parms.fcx_mtch   ;
-					t.fcx_text   = find_parms.fcx_text   ;
-					t.fcx_asis   = find_parms.fcx_asis   ;
-					t.fcx_hex    = find_parms.fcx_hex    ;
-					t.fcx_pic    = find_parms.fcx_pic    ;
-				}
-				else
-				{
-					t.fcx_text   = true ;
-					t.fcx_string = w1   ;
-				}
-			}
-			else if ( !f_str2 )
-			{
-				if ( type != 'C' ) { pcmd.set_msg( "PEDT011B" ) ; return false ; }
-				if ( profCaps )
-				{
-					t.fcx_cstring = w1 ;
-				}
-				else
-				{
-					t.fcx_cstring = word( cmd, 1 ) ;
-				}
-				t.fcx_ctext = true ;
-				f_str2      = true ;
-			}
-			else  { pcmd.set_msg( "PEDT013J" ) ; return false ; }
+			pcmd.set_msg( "PEDT013J" ) ;
+			return false ;
 		}
 		cmd = subword( cmd, 2 ) ;
 	}
@@ -5450,6 +5461,7 @@ bool PEDIT01::setFindChangeExcl( char type )
 		if ( !ishex( t.fcx_string ) ) { pcmd.set_msg( "PEDT011K" ) ; return false ; }
 		t.fcx_string = xs2cs( t.fcx_string ) ;
 		t.fcx_asis   = true                  ;
+		iupper( t.fcx_ostring )              ;
 	}
 
 	if ( t.fcx_chex )
@@ -5457,6 +5469,41 @@ bool PEDIT01::setFindChangeExcl( char type )
 		if ( !ishex( t.fcx_cstring ) ) { pcmd.set_msg( "PEDT011K" ) ; return false ; }
 		t.fcx_cstring = xs2cs( t.fcx_cstring ) ;
 		t.fcx_casis   = true                   ;
+	}
+
+	if ( t.fcx_cpic )
+	{
+		// =  any character
+		// <  lower case alphabetic
+		// >  upper case alphabetic
+		if ( t.fcx_reg )
+		{
+			pcmd.set_msg( "PEDT016A" ) ;
+			return false ;
+		}
+		for ( i = 0 ; i < t.fcx_cstring.size() ; i++ )
+		{
+			switch ( t.fcx_string[ i ] )
+			{
+				case '=':
+				case '<':
+				case '>':
+					break ;
+				case '@':
+				case '#':
+				case '$':
+				case '¬':
+				case '.':
+				case '-':
+					pcmd.set_msg( "PEDT015X" ) ;
+					return false ;
+			}
+		}
+		if ( t.fcx_cstring.size() != t.fcx_string.size() )
+		{
+			pcmd.set_msg( "PEDT015Y" ) ;
+			return false ;
+		}
 	}
 
 	if ( t.fcx_pic )
@@ -5472,6 +5519,11 @@ bool PEDIT01::setFindChangeExcl( char type )
 			switch ( t.fcx_string[ i ] )
 			{
 				case '*':
+					if ( t.fcx_cpic )
+					{
+						pcmd.set_msg( "PEDT015Z" ) ;
+						return false ;
+					}
 					pic += "[^[:blank:]]*" ;
 					break ;
 				case '=':
@@ -5544,7 +5596,7 @@ bool PEDIT01::setFindChangeExcl( char type )
 }
 
 
-bool PEDIT01::setCommandRange( string s, c_range& t )
+bool PEDIT01::setCommandRange( string s, cmd_range& t )
 {
 	// Extract the command range ( start/end labels and start/end columns or on column ) from
 	// a command and return data in t.
@@ -5557,7 +5609,7 @@ bool PEDIT01::setCommandRange( string s, c_range& t )
 
 	string w ;
 
-	t.c_range_clear() ;
+	t.cmd_range_clear() ;
 
 	while ( true )
 	{
@@ -5580,16 +5632,21 @@ bool PEDIT01::setCommandRange( string s, c_range& t )
 		else { pcmd.set_msg( "PEDT011" ) ; return false ; }
 		idelword( s, 1, 1 ) ;
 	}
+
 	if ( t.c_scol != 0 && t.c_ecol == 0 ) { t.c_ocol = true ; }
 	else if ( t.c_scol > t.c_ecol )
 	{
-		j          = t.c_scol ;
-		t.c_scol = t.c_ecol ;
-		t.c_ecol = j ;
+		swap( t.c_scol, t.c_ecol ) ;
 	}
+
 	if ( t.c_scol == 0 ) { t.c_scol = 1 ; }
 
-	if ( t.c_slab == ".ZLAST" && t.c_elab == "" )   { pcmd.set_msg( "PEDT013R" ) ; return false ; }
+	if ( t.c_slab == ".ZLAST" && t.c_elab == "" )
+	{
+		pcmd.set_msg( "PEDT013R" ) ;
+		return false ;
+	}
+
 	if ( t.c_slab != "" )
 	{
 		if ( t.c_elab == "" )       { t.c_elab = ".ZLAST"             ; }
@@ -5613,34 +5670,32 @@ bool PEDIT01::setCommandRange( string s, c_range& t )
 void PEDIT01::actionFind()
 {
 	// dl has to be a uint so the corect getNextDataLine routine is called ( int is for URID )
-	// c1,c2 are the column limits of the find, set by bnds, col and initial cursor position
+	// c1,c2 are the column limits of the find, set by bnds, col, line length and initial cursor position
 
 	// If running under an edit macro, use mRow, mCol instead of aRow, aCol
 
 	int Col  ;
 	int Row  ;
+	int c1   ;
+	int c2   ;
+	int p1   ;
+	int offset ;
 
 	uint dl  ;
 	uint dx  ;
 	uint sdl ;
 	uint edl ;
 
-	int c1 ;
-	int c2 ;
-	int p1 ;
-	int offset ;
-
 	bool found ;
 	bool fline ;
-	bool skip  ;
 
 	string::const_iterator itss ;
 	string::const_iterator itse ;
 
-	boost::regex regexp ;
+	boost::regex  regexp  ;
 	boost::smatch results ;
 
-	Col = macroRunning ? mCol + 9 : aCol ;
+	Col = macroRunning ? ( mCol + 9 ) : aCol ;
 
 	if ( Col == 0 && find_parms.fcx_dir == 'P' && topLine <= getDataLine( 1 ) )
 	{
@@ -5656,25 +5711,17 @@ void PEDIT01::actionFind()
 		find_parms.fcx_dir = 'L' ;
 	}
 
-	find_parms.fcx_success = false ;
-	find_parms.fcx_error   = false ;
-	find_parms.fcx_top     = false ;
-	find_parms.fcx_bottom  = false ;
-	find_parms.fcx_rstring = "" ;
-	find_parms.fcx_occurs  = 0  ;
-	find_parms.fcx_URID    = 0  ;
-	find_parms.fcx_dl      = 0  ;
-	find_parms.fcx_lines   = 0  ;
-	find_parms.fcx_offset  = 0  ;
+	find_parms.reset() ;
 
 	offset = 0 ;
-	sdl    = 0 ;
+	sdl    = 1 ;
 	edl    = data.size() - 2 ;
 
 	if ( Col > 0 )
 	{
 		offset = Col - CLINESZ - 1 + startCol ;
 	}
+
 	if ( find_parms.fcx_dir == 'F' || find_parms.fcx_dir == 'A' || find_parms.fcx_dir == 'L' )
 	{
 		offset = 0 ;
@@ -5701,8 +5748,8 @@ void PEDIT01::actionFind()
 		}
 	}
 
-	if      ( find_parms.fcx_dir == 'F' ) { dl = 1 ; }
-	else if ( find_parms.fcx_dir == 'A' ) { dl = 1 ; }
+	if      ( find_parms.fcx_dir == 'F' ) { dl = 1 ; aRow = 0  ; }
+	else if ( find_parms.fcx_dir == 'A' ) { dl = 1             ; }
 	else if ( find_parms.fcx_dir == 'L' ) { dl = data.size()-2 ; }
 	else if ( macroRunning )              { dl = getDataLine( mRow ) ; }
 	else if ( aRow == 0 )                 { dl = find_parms.fcx_dir == 'P' ? topLine - 1 : topLine ; }
@@ -5712,11 +5759,13 @@ void PEDIT01::actionFind()
 	{
 		sdl = getLabelIndex( find_parms.fcx_slab ) ;
 	}
+
 	if ( find_parms.fcx_elab != "" )
 	{
 		edl = getLabelIndex( find_parms.fcx_elab ) ;
 		if ( find_parms.fcx_dir == 'L' ) { dl = edl ; }
 	}
+
 	dl = max( sdl, dl ) ;
 	dx = getValidDataFileLine( dl ) ;
 
@@ -5728,10 +5777,9 @@ void PEDIT01::actionFind()
 
 	dl    = dx    ;
 	found = false ;
-	while ( true )
+
+	while ( dl >= sdl && dl <= edl )
 	{
-		if ( dl < sdl || dl > edl ) { break ; }
-		skip = false ;
 		if ( find_parms.fcx_dir == 'P' )
 		{
 			c1 = 0 ;
@@ -5747,7 +5795,9 @@ void PEDIT01::actionFind()
 		if ( (find_parms.fcx_excl == 'X' && !data[ dl ]->il_excl) ||
 		     (find_parms.fcx_excl == 'N' &&  data[ dl ]->il_excl) )
 		{
-			skip = true ;
+			dl = ( find_parms.findReverse() ) ? getPrevDataFileLine( dl ) : getNextDataFileLine( dl ) ;
+			offset = 0 ;
+			continue   ;
 		}
 
 		if ( find_parms.fcx_scol > c1+1 )                            { c1 = find_parms.fcx_scol - 1 ; }
@@ -5756,24 +5806,16 @@ void PEDIT01::actionFind()
 		if ( LeftBnd  > c1+1 )                 { c1 = LeftBnd  - 1 ; }
 		if ( RightBnd > 0 && RightBnd < c2+1 ) { c2 = RightBnd - 1 ; }
 
-		if ( skip || c1 >= c2 || offset > c2 )
+		if ( c1 >= c2 || offset > c2 )
 		{
-			if ( find_parms.fcx_dir == 'L' || find_parms.fcx_dir == 'P' )
-			{
-				dl = getPrevDataFileLine( dl ) ;
-			}
-			else
-			{
-				dl = getNextDataFileLine( dl ) ;
-			}
-			if ( dl < 1 || dl > edl ) { break ; }
+			dl = ( find_parms.findReverse() ) ? getPrevDataFileLine( dl ) : getNextDataFileLine( dl ) ;
 			offset = 0 ;
-			continue ;
+			continue   ;
 		}
 
+		fline = true ;
 		if ( find_parms.fcx_regreq )
 		{
-			fline  = true  ;
 			found  = false ;
 			itss   = data[ dl ]->get_idata_begin() ;
 			itse   = itss  ;
@@ -5788,7 +5830,7 @@ void PEDIT01::actionFind()
 						found = true ;
 						p1    = find_parms.fcx_scol-1  ;
 						if ( !pcmd.isSeek() ) { data.at( dl )->il_excl = find_parms.fcx_exclude ; }
-						find_parms.fcx_rstring = results[ 0 ] ;
+						find_parms.setrstring( results[ 0 ] ) ;
 					}
 				}
 			}
@@ -5800,7 +5842,7 @@ void PEDIT01::actionFind()
 					{
 						found = true ;
 						if ( !pcmd.isSeek() ) { data.at( dl )->il_excl = find_parms.fcx_exclude ; }
-						find_parms.fcx_rstring = results[ 0 ] ;
+						find_parms.setrstring( results[ 0 ] ) ;
 						for ( p1 = c1 ; itss != results[ 0 ].first ; itss++ ) { p1++ ; }
 						c1   = p1 + 1 ;
 						itss = results[ 0 ].first ;
@@ -5821,7 +5863,7 @@ void PEDIT01::actionFind()
 					{
 						found = true ;
 						if ( !pcmd.isSeek() ) { data.at( dl )->il_excl = find_parms.fcx_exclude ; }
-						find_parms.fcx_rstring = results[ 0 ] ;
+						find_parms.setrstring( results[ 0 ] ) ;
 						for ( p1 = c1 ; itss  != results[ 0 ].first ; itss++ ) { p1++ ; }
 					}
 				}
@@ -5836,11 +5878,10 @@ void PEDIT01::actionFind()
 		}
 		else
 		{
-			fline = true ;
 			while ( true )
 			{
 				found = false ;
-				if ( find_parms.fcx_dir == 'P' || find_parms.fcx_dir == 'L' )
+				if ( find_parms.findReverse() )
 				{
 					if ( find_parms.fcx_asis )
 					{
@@ -5870,7 +5911,7 @@ void PEDIT01::actionFind()
 					{
 						if ( p1 == find_parms.fcx_scol-1 ) { found = true ; }
 					}
-					else if ( find_parms.fcx_dir == 'P' || find_parms.fcx_dir == 'L' )
+					else if ( find_parms.findReverse() )
 					{
 						if ( p1 >= c1 ) { found = true ; }
 					}
@@ -5879,28 +5920,65 @@ void PEDIT01::actionFind()
 						if ( p1 <= c2 ) { found = true ; }
 					}
 				}
-				if ( found && find_parms.fcx_URID == 0 )
-				{
-					find_parms.fcx_URID   = data.at( dl )->il_URID ;
-					find_parms.fcx_dl     = dl ;
-					find_parms.fcx_offset = p1 ;
-				}
 				if ( found )
 				{
-					if ( !pcmd.isSeek() ) { data.at( dl )->il_excl = find_parms.fcx_exclude ; }
+					if ( find_parms.fcx_URID == 0 )
+					{
+						find_parms.fcx_URID   = data.at( dl )->il_URID ;
+						find_parms.fcx_dl     = dl ;
+						find_parms.fcx_offset = p1 ;
+					}
+					if ( !pcmd.isSeek() )
+					{
+						data.at( dl )->il_excl = find_parms.fcx_exclude ;
+					}
 				}
 				if ( find_parms.fcx_dir != 'A' || !found ) { break ; }
 				find_parms.fcx_occurs++ ;
-				if ( fline ) { fline = false ; find_parms.fcx_lines++ ; }
+				if ( fline )
+				{
+					fline = false ;
+					find_parms.fcx_lines++ ;
+				}
 			}
 		}
-		if      ( find_parms.fcx_dir == 'A' ) { dl = getNextDataLine( dl ) ; }
-		else if ( find_parms.fcx_dir == 'F' ) { if ( found ) { find_parms.fcx_dir = 'N' ; break ; } ; dl = getNextDataFileLine( dl ) ; }
-		else if ( find_parms.fcx_dir == 'L' ) { if ( found ) { find_parms.fcx_dir = 'P' ; break ; } ; dl = getPrevDataFileLine( dl ) ; }
-		else if ( find_parms.fcx_dir == 'N' ) { if ( found ) { break ; } ; dl = getNextDataFileLine( dl ) ; }
-		else if ( find_parms.fcx_dir == 'P' ) { if ( found ) { break ; } ; dl = getPrevDataFileLine( dl ) ; }
-		if ( dl == 0 || dl < sdl || dl > edl ) { break ; }
+		if ( find_parms.fcx_dir == 'A' )
+		{
+			dl = getNextDataLine( dl ) ;
+		}
+		else if ( find_parms.fcx_dir == 'F' )
+		{
+			if ( found )
+			{
+				find_parms.fcx_dir = 'N' ;
+				break ;
+			}
+			dl = getNextDataFileLine( dl ) ;
+		}
+		else if ( find_parms.fcx_dir == 'L' )
+		{
+			if ( found )
+			{
+				find_parms.fcx_dir = 'P' ;
+				break ;
+			}
+			dl = getPrevDataFileLine( dl ) ;
+		}
+		else if ( find_parms.fcx_dir == 'N' )
+		{
+			if ( found ) { break ; }
+			dl = getNextDataFileLine( dl ) ;
+		}
+		else if ( find_parms.fcx_dir == 'P' )
+		{
+			if ( found ) { break ; }
+			dl = getPrevDataFileLine( dl ) ;
+		}
 		offset = 0 ;
+	}
+	if ( find_parms.fcx_dir == 'A' && find_parms.fcx_regreq )
+	{
+		found = false ;
 	}
 	find_parms.fcx_success = found ;
 }
@@ -5912,31 +5990,93 @@ void PEDIT01::actionChange()
 	//  update idata stack in-place.
 
 	//  If a regex has been used as the find argument, use fcx_rstring instead of fcx_string.
-	//  If the inserted string is longer, remove some spaces at the end to compensate, if any.
+	//  If the inserted string is longer, remove some spaces at the end of the insert to compensate.
 
 	int i ;
+	int j ;
 	int l ;
 	int d ;
+	int osz ;
 
 	string temp ;
 	string fstring ;
 
-	if ( find_parms.fcx_regreq ) { fstring = find_parms.fcx_rstring ; }
-	else                         { fstring = find_parms.fcx_string  ; }
+	boost::regex regexp ;
+	boost::smatch results ;
 
 	l    = getLine( find_parms.fcx_URID ) ;
 	temp = data.at( l )->get_idata()      ;
-	temp.replace( find_parms.fcx_offset, fstring.size(), find_parms.fcx_cstring ) ;
+	osz  = temp.size() ;
 
-	d = find_parms.fcx_cstring.size() - fstring.size()        ;
-	i = find_parms.fcx_offset + find_parms.fcx_cstring.size() ;
-	i = temp.find( ' ', i ) ;
-	if ( i != string::npos )
+	if ( find_parms.fcx_cpic )
 	{
-		for ( i++ ; d > 0 && i < temp.size() ; d-- )
+		for ( i = 0 ; i < find_parms.fcx_cstring.size() ; i++ )
 		{
-			if ( temp.at( i ) != ' ' ) { break ; }
-			temp.erase( i, 1 ) ;
+			if ( find_parms.fcx_cstring[ i ] == '=' )
+			{
+				continue ;
+			}
+			else if ( find_parms.fcx_cstring[ i ] == '<' )
+			{
+				temp[ find_parms.fcx_offset + i ] = tolower( temp[ find_parms.fcx_offset + i ] ) ;
+			}
+			else if ( find_parms.fcx_cstring[ i ] == '>' )
+			{
+				temp[ find_parms.fcx_offset + i ] = toupper( temp[ find_parms.fcx_offset + i ] ) ;
+			}
+			else
+			{
+				temp[ find_parms.fcx_offset + i ] = find_parms.fcx_cstring[ i ] ;
+			}
+		}
+		if ( data.at( l )->get_idata_level() == Level )
+		{
+			data.at( l )->put_idata( temp ) ;
+		}
+		else
+		{
+			data.at( l )->put_idata( temp, Level ) ;
+		}
+		data.at( l )->setChngStatus() ;
+		fileChanged = true ;
+		return ;
+	}
+
+	if ( find_parms.fcx_mtch == 'P' )
+	{
+		find_parms.fcx_rstring.pop_back() ;
+		temp.replace( find_parms.fcx_offset, find_parms.fcx_rstring.size(), find_parms.fcx_cstring ) ;
+	}
+	else if ( find_parms.fcx_mtch == 'S' )
+	{
+		find_parms.fcx_rstring.erase( 0, 1 ) ;
+		temp.replace( find_parms.fcx_offset, find_parms.fcx_rstring.size(), find_parms.fcx_cstring ) ;
+	}
+	else if ( find_parms.fcx_regreq )
+	{
+		if ( find_parms.fcx_asis )
+		{
+			regexp.assign( find_parms.fcx_string ) ;
+		}
+		else
+		{
+			regexp.assign( find_parms.fcx_string, boost::regex_constants::icase ) ;
+		}
+		temp = regex_replace( temp, regexp, find_parms.fcx_cstring, boost::format_first_only ) ;
+	}
+	else
+	{
+		temp.replace( find_parms.fcx_offset, find_parms.fcx_string.size(), find_parms.fcx_cstring ) ;
+	}
+
+	d = temp.size() - osz ;
+	i = temp.find( ' ', find_parms.fcx_offset + find_parms.fcx_cstring.size() ) ;
+	if ( d > 0 && i != string::npos )
+	{
+		j = temp.find_first_not_of( ' ', i ) ;
+		if ( j != string::npos && (j - i) > 1 )
+		{
+			temp.erase( i, min( d, (j - i - 1) ) ) ;
 		}
 	}
 
@@ -5948,6 +6088,7 @@ void PEDIT01::actionChange()
 	{
 		data.at( l )->put_idata( temp, Level ) ;
 	}
+
 	data.at( l )->setChngStatus() ;
 	fileChanged = true ;
 }
@@ -8155,7 +8296,7 @@ void PEDIT01::compareFiles( const string& s )
 		}
 		else if ( inLine.front() == '>' )
 		{
-			data.at(( getDataLine( d1+o ) ))->setLabel( ".O" + right( d2ds( lab ), 4, '0' ) ) ;
+			data.at(( getDataLine( d1+o ) ))->setLabel( ".O" + d2ds( lab, 4 ) ) ;
 			lab++ ;
 			o++   ;
 		}
@@ -8404,8 +8545,7 @@ bool PEDIT01::textSplitData( const string& s, string& t1, string& t2 )
 
 void PEDIT01::setChangedMsg()
 {
-	STR  = find_parms.fcx_string ;
-	convNonDisplayChars( STR )   ;
+	STR  = setFoundString() ;
 	TYPE = typList[ find_parms.fcx_mtch ] ;
 	OCC  = d2ds( find_parms.fcx_ch_occs ) ;
 	pcmd.set_msg( find_parms.fcx_chngall ? "PEDT013K" : "PEDT013L", 0 ) ;
@@ -8414,9 +8554,7 @@ void PEDIT01::setChangedMsg()
 
 void PEDIT01::setFoundMsg()
 {
-	if ( find_parms.fcx_rstring != "" ) { STR = find_parms.fcx_rstring ; }
-	else                                { STR = find_parms.fcx_ostring ; }
-	convNonDisplayChars( STR ) ;
+	STR   = setFoundString() ;
 	TYPE  = typList[ find_parms.fcx_mtch ] ;
 	OCC   = d2ds( find_parms.fcx_occurs ) ;
 	LINES = d2ds( find_parms.fcx_lines  ) ;
@@ -8426,11 +8564,10 @@ void PEDIT01::setFoundMsg()
 
 void PEDIT01::setExcludedMsg()
 {
-	if ( find_parms.fcx_rstring != "" ) { STR = find_parms.fcx_rstring ; }
-	else                                { STR = find_parms.fcx_ostring ; }
-	convNonDisplayChars( STR ) ;
+	STR   = setFoundString() ;
 	TYPE  = typList[ find_parms.fcx_mtch ] ;
-	LINES = d2ds( find_parms.fcx_lines  ) ;
+	OCC   = d2ds( find_parms.fcx_occurs ) ;
+	LINES = d2ds( find_parms.fcx_lines ) ;
 	pcmd.set_msg( "PEDT011L", 0 ) ;
 }
 
@@ -8441,8 +8578,7 @@ void PEDIT01::setNotFoundMsg()
 	// dir = P and not from bottom - Top of Data reached
 	// dir = F/A/L/N-top/P-bottom  - Not found
 
-	STR = ( find_parms.fcx_rstring != "" ) ? find_parms.fcx_rstring : find_parms.fcx_ostring ;
-	convNonDisplayChars( STR ) ;
+	STR = setFoundString() ;
 
 	if ( find_parms.fcx_dir == 'N' && !find_parms.fcx_top )
 	{
@@ -8457,6 +8593,54 @@ void PEDIT01::setNotFoundMsg()
 		TYPE = typList[ find_parms.fcx_mtch ] ;
 		pcmd.set_msg( "PEDT013H", 4 ) ;
 	}
+}
+
+
+string PEDIT01::setFoundString()
+{
+	// Called to set the found/notfound string in find/change/exclude messages
+
+	string s ;
+
+	if ( find_parms.fcx_rstring == "" )
+	{
+		s = find_parms.fcx_ostring ;
+		if ( find_parms.fcx_hex )
+		{
+			return "X'" + s + "'" ;
+		}
+	}
+	else
+	{
+		s = find_parms.fcx_rstring ;
+		if ( find_parms.fcx_mtch == 'P' )
+		{
+			s.pop_back() ;
+		}
+		else if ( find_parms.fcx_mtch == 'S' )
+		{
+			s.erase( 0, 1 ) ;
+		}
+		if ( find_parms.fcx_hex )
+		{
+			return "X'" + cs2xs( s ) + "'" ;
+		}
+	}
+
+
+	if ( any_of( s.begin(), s.end(),
+			[]( char c )
+			{
+				return ( !isprint( c ) ) ;
+			} ) )
+	{
+		s = "X'" + cs2xs( s ) + "'" ;
+	}
+	else
+	{
+		s = "'" + s + "'" ;
+	}
+	return s ;
 }
 
 
@@ -8863,16 +9047,30 @@ void PEDIT01::createEditProfile( const string& tabName, const string& prof )
 }
 
 
-string PEDIT01::getColumnLine()
+string PEDIT01::getColumnLine( int s )
 {
+	// Create column line.  If start position, s, not specified, use startCol and data width, else
+	// use a width of right screen position + 256
+
 	int i ;
 	int j ;
 	int k ;
+	int l ;
 
 	string t = "" ;
 
-	i = startCol % 10 ;
-	j = startCol / 10 ;
+	if ( s == 0 )
+	{
+		s = startCol ;
+		l = ZDATAW   ;
+	}
+	else
+	{
+		l = startCol + ZDATAW + 256 ;
+	}
+
+	i = s % 10 ;
+	j = s / 10 ;
 
 	if ( i > 0 )
 	{
@@ -8880,11 +9078,11 @@ string PEDIT01::getColumnLine()
 		t = substr( "----+----", i, 10-i ) ;
 	}
 
-	for ( k = 0 ; k <= ZDATAW/10 ; k++, j++ )
+	for ( k = 0 ; k <= l/10 ; k++, j++ )
 	{
 		t += d2ds( j%10 ) + "----+----" ;
 	}
-	return t.substr( 0, ZDATAW ) ;
+	return t.substr( 0, l ) ;
 }
 
 
@@ -9082,20 +9280,6 @@ bool PEDIT01::getVariables( int n, string& s, string& vars )
 		}
 	}
 	return true ;
-}
-
-
-void PEDIT01::convNonDisplayChars( string& s )
-{
-	if ( any_of( s.begin(), s.end(),
-			[]( char c )
-			{
-				return ( !isprint( c ) ) ;
-			} ) )
-	{
-		s = "X'" + cs2xs( s ) + "'" ; return ;
-	}
-	s = "'" + s + "'" ;
 }
 
 
@@ -9354,22 +9538,22 @@ void PEDIT01::querySetting()
 	case EM_CHANGE_COUNTS:
 			if ( miBlock.var1 != "" )
 			{
-				macAppl->vreplace( miBlock.var1, right( d2ds( find_parms.fcx_ch_occs ), 8, '0' ) ) ;
+				macAppl->vreplace( miBlock.var1, d2ds( find_parms.fcx_ch_occs, 8 ) ) ;
 			}
 			if ( miBlock.var2 != "" )
 			{
-				macAppl->vreplace( miBlock.var2, right( d2ds( find_parms.fcx_ch_errs ), 8, '0' ) ) ;
+				macAppl->vreplace( miBlock.var2, d2ds( find_parms.fcx_ch_errs, 8 ) ) ;
 			}
 			break ;
 
 	case EM_CURSOR:
 			if ( miBlock.var1 != "" )
 			{
-				macAppl->vreplace( miBlock.var1, right( d2ds( mRow ), 8, '0' ) ) ;
+				macAppl->vreplace( miBlock.var1, d2ds( mRow, 8 ) ) ;
 			}
 			if ( miBlock.var2 != "" )
 			{
-				macAppl->vreplace( miBlock.var2, right( d2ds( mCol ), 5, '0' ) ) ;
+				macAppl->vreplace( miBlock.var2, d2ds( mCol, 5 ) ) ;
 			}
 			break ;
 
@@ -9389,11 +9573,11 @@ void PEDIT01::querySetting()
 			}
 			if ( miBlock.var1 != "" )
 			{
-				macAppl->vreplace( miBlock.var1, right( d2ds( startCol ), 5, '0' ) ) ;
+				macAppl->vreplace( miBlock.var1, d2ds( startCol, 5 ) ) ;
 			}
 			if ( miBlock.var2 != "" )
 			{
-				macAppl->vreplace( miBlock.var2, right( d2ds( startCol+ZDATAW-1 ), 5, '0' ) ) ;
+				macAppl->vreplace( miBlock.var2, d2ds( startCol+ZDATAW-1, 5 ) ) ;
 			}
 			break ;
 
@@ -9431,33 +9615,33 @@ void PEDIT01::querySetting()
 			}
 			if ( miBlock.var1 != "" )
 			{
-				macAppl->vreplace( miBlock.var1, right( d2ds( getFileLine( l1 ) + 1 ), 8, '0' ) ) ;
+				macAppl->vreplace( miBlock.var1, d2ds( getFileLine( l1 ) + 1, 8 ) ) ;
 			}
 			if ( miBlock.var2 != "" )
 			{
-				macAppl->vreplace( miBlock.var2, right( d2ds( getFileLine( l2 ) + 1 ), 8, '0' ) ) ;
+				macAppl->vreplace( miBlock.var2, d2ds( getFileLine( l2 ) + 1, 8 ) ) ;
 			}
 			break ;
 
 	case EM_FIND_COUNTS:
 			if ( miBlock.var1 != "" )
 			{
-				macAppl->vreplace( miBlock.var1, right( d2ds( find_parms.fcx_fd_occs ), 8, '0' ) ) ;
+				macAppl->vreplace( miBlock.var1, d2ds( find_parms.fcx_fd_occs, 8 ) ) ;
 			}
 			if ( miBlock.var2 != "" )
 			{
-				macAppl->vreplace( miBlock.var2, right( d2ds( find_parms.fcx_fd_lnes ), 8, '0' ) ) ;
+				macAppl->vreplace( miBlock.var2, d2ds( find_parms.fcx_fd_lnes, 8 ) ) ;
 			}
 			break ;
 
 	case EM_EXCLUDE_COUNTS:
 			if ( miBlock.var1 != "" )
 			{
-				macAppl->vreplace( miBlock.var1, right( d2ds( find_parms.fcx_ex_occs ), 8, '0' ) ) ;
+				macAppl->vreplace( miBlock.var1, d2ds( find_parms.fcx_ex_occs, 8 ) ) ;
 			}
 			if ( miBlock.var2 != "" )
 			{
-				macAppl->vreplace( miBlock.var2, right( d2ds( find_parms.fcx_ex_lnes ), 8, '0' ) ) ;
+				macAppl->vreplace( miBlock.var2, d2ds( find_parms.fcx_ex_lnes, 8 ) ) ;
 			}
 			break ;
 
@@ -9494,7 +9678,7 @@ void PEDIT01::querySetting()
 			}
 			if ( miBlock.var2 != "" )
 			{
-				macAppl->vreplace( miBlock.var2, right( d2ds( lvl ), 3, '0' ) ) ;
+				macAppl->vreplace( miBlock.var2, d2ds( lvl, 3 ) ) ;
 			}
 			if ( lab == "" ) { miBlock.setRC( 4 ) ; }
 			break ;
@@ -9513,7 +9697,7 @@ void PEDIT01::querySetting()
 			}
 			if ( kw2 == ".ZCSR" )
 			{
-				macAppl->vreplace( miBlock.var1, right( d2ds( mRow ), 8, '0' ) ) ;
+				macAppl->vreplace( miBlock.var1, d2ds( mRow, 8 ) ) ;
 				break ;
 			}
 			p1 = getLabelIndex( kw2 ) ;
@@ -9530,7 +9714,7 @@ void PEDIT01::querySetting()
 				return ;
 			}
 			p1 = getFileLine( p1 ) + 1 ;
-			macAppl->vreplace( miBlock.var1, right( d2ds( p1 ), 8, '0' ) ) ;
+			macAppl->vreplace( miBlock.var1, d2ds( p1, 8 ) ) ;
 			break ;
 
 	case EM_IMACRO:
@@ -9538,7 +9722,7 @@ void PEDIT01::querySetting()
 			break ;
 
 	case EM_MACRO_LEVEL:
-			macAppl->vreplace( miBlock.var1, right( d2ds( miBlock.nestlvl ), 3, '0' ) ) ;
+			macAppl->vreplace( miBlock.var1, d2ds( miBlock.nestlvl, 3 ) ) ;
 			break ;
 
 	case EM_MASKLINE:
@@ -9581,11 +9765,11 @@ void PEDIT01::querySetting()
 	case EM_SEEK_COUNTS:
 			if ( miBlock.var1 != "" )
 			{
-				macAppl->vreplace( miBlock.var1, right( d2ds( find_parms.fcx_sk_occs ), 8, '0' ) ) ;
+				macAppl->vreplace( miBlock.var1, d2ds( find_parms.fcx_sk_occs, 8 ) ) ;
 			}
 			if ( miBlock.var2 != "" )
 			{
-				macAppl->vreplace( miBlock.var2, right( d2ds( find_parms.fcx_sk_lnes ), 8, '0' ) ) ;
+				macAppl->vreplace( miBlock.var2, d2ds( find_parms.fcx_sk_lnes, 8 ) ) ;
 			}
 			break ;
 

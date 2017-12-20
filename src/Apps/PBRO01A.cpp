@@ -195,9 +195,9 @@ void PBRO01A::application()
 			}
 		}
 
-		ZROW1 = right( d2ds( topLine ), 8, '0' )  ;
-		ZCOL1 = right( d2ds( startCol ), 5, '0' ) ;
-		ZCOL2 = right( d2ds( startCol+ZAREAW-1 ), 5, '0' ) ;
+		ZROW1 = d2ds( topLine, 8 )  ;
+		ZCOL1 = d2ds( startCol, 5 ) ;
+		ZCOL2 = d2ds( startCol+ZAREAW-1, 5 ) ;
 		if ( MSG == "" ) { ZCMD = "" ; }
 
 		display( "PBRO01A1", MSG, CURFLD, CURPOS ) ;

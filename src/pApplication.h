@@ -33,8 +33,7 @@ class pApplication
 
 		int    RC                 ;
 		string PARM               ;
-		string PANELID            ;
-		string PPANELID           ;
+		string panelid            ;
 		bool   ControlDisplayLock ;
 		bool   ControlNonDispl    ;
 		bool   ControlSplitEnable ;
@@ -77,7 +76,7 @@ class pApplication
 		int    ZTDSELS            ;
 		int    ZTDTOP             ;
 		int    ZTDVROWS           ;
-		string ZCURINX            ;
+		int    ZCURINX            ;
 		string ZCMD               ;
 		string ZAPPLID            ;
 		string ZEDLMSG            ;
@@ -101,9 +100,8 @@ class pApplication
 		int    ZRSN               ;
 		string ZRESULT            ;
 
-		vector<string>rmsgs  ;
-		boost::posix_time::ptime resumeTime ;
-		boost::thread            * pThread  ;
+		vector<string>rmsgs       ;
+		boost::thread * pThread   ;
 
 		void (* lspfCallback)( lspfCommand& ) ;
 
@@ -116,7 +114,6 @@ class pApplication
 		void   info() ;
 		bool   isRawOutput() { return rawOutput ; }
 
-		string get_search_path( s_paths ) ;
 		string get_zsel()                 ;
 		string get_dTRAIL()               ;
 		selobj get_select_cmd() { return SELCT ; }
@@ -174,8 +171,6 @@ class pApplication
 		void   tbtop( const string& tb_name ) ;
 		void   tbvclear( const string& tb_name ) ;
 
-		bool   isTableOpen( const string& tb_name, const string& func ) ;
-
 		void   browse( const string& m_file, const string& m_panel="" ) ;
 		void   edit( const string& m_file, const string& m_panel="", const string& m_macro ="", const string& m_profile="" ) ;
 		void   view( const string& m_file, const string& m_panel=""   ) ;
@@ -205,11 +200,9 @@ class pApplication
 		bool   nretriev_on()   ;
 		string get_nretfield() ;
 		void   cleanup()       ;
-		void   cleanup_default() ;
 		void   (pApplication::*pcleanup)() = &pApplication::cleanup_default ;
 		bool   cleanupRunning() { return !abended ; }
 		void   abend()    ;
-		void   xabend( const string&, int = -1 ) ;
 		void   uabend( const string&, int = -1 ) ;
 		void   uabend( const string&, const string&, int = -1 ) ;
 		void   uabend( const string&, const string&, const string&, int = -1 ) ;
@@ -218,8 +211,6 @@ class pApplication
 		void   set_forced_abend()  ;
 		void   set_timeout_abend() ;
 		void   closeTables() ;
-		void   checkRCode( const string& ="" ) ;
-		void   checkRCode( errblock ) ;
 		void   store_scrname() ;
 		void   restore_Zvars( int ) ;
 		void   reload_keylist( pPanel * ) ;
@@ -241,12 +232,11 @@ class pApplication
 
 		void   save_errblock()    ;
 		void   restore_errblock() ;
+		void   ispexec( const string& ) ;
+
 		errblock get_errblock()         { return errBlock ; }
 
 		string sub_vars( string ) ;
-
-		void   ispexec( const string& ) ;
-
 
 	private:
 		boost::mutex mutex ;
@@ -266,6 +256,8 @@ class pApplication
 		bool selPanel   ;
 		bool abending   ;
 		bool abended    ;
+
+		string ppanelid ;
 
 		string MSGID    ;
 		string MSGID1   ;
@@ -308,6 +300,13 @@ class pApplication
 		void createPanel( const string& p_name ) ;
 		void actionSelect()   ;
 
+		void checkRCode( const string& ="" )   ;
+		void checkRCode( errblock )            ;
+		void xabend( const string&, int = -1 ) ;
+		void cleanup_default()                 ;
+		string get_search_path( s_paths )      ;
+		bool   isTableOpen( const string& tb_name, const string& func ) ;
+
 		void wait_event() ;
 } ;
 
@@ -324,7 +323,7 @@ class pApplication
 lg->lock() ; \
 (*lg) << microsec_clock::local_time() << \
 " " << left( quotes(MOD_NAME), 10 ) << \
-" " << right( d2ds( taskid() ), 5, '0' ) << " " << t << " " << s ; \
+" " << d2ds( taskid(), 5 ) << " " << t << " " << s ; \
 lg->unlock() ; \
 }
 
@@ -334,7 +333,7 @@ lg->unlock() ; \
 lg->lock() ; \
 (*lg) << microsec_clock::local_time() << \
 " " << left( quotes(MOD_NAME), 10 ) << \
-" " << right( d2ds( taskid() ), 5, '0' ) << \
+" " << d2ds( taskid(), 5 ) << \
 " D line: "  << __LINE__  << \
 " >>L1 Function: " << __FUNCTION__ << \
 " -  " << s ; \
@@ -351,7 +350,7 @@ lg->unlock() ; \
 lg->lock() ; \
 (*lg) << microsec_clock::local_time() << \
 " " << left( quotes(MOD_NAME), 10 ) << \
-" " << right( d2ds( taskid() ), 5, '0' ) << \
+" " << d2ds( taskid(), 5 ) << \
 " D line: "  << __LINE__  << \
 " >>L2 Function: " << __FUNCTION__ << \
 " -  " << s ; \

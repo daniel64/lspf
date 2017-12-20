@@ -129,14 +129,14 @@ logger   * pPanel::lg               = NULL ;
 logger   * tableMGR::lg             = NULL ;
 logger   * poolMGR::lg              = NULL ;
 
-fPOOL  funcPOOL ;
+fPOOL funcPOOL ;
 
 void setGlobalClassVars() ;
 void initialSetup()       ;
 void loadDefaultPools()   ;
 void getDynamicClasses()  ;
 bool loadDynamicClass( const string& ) ;
-bool unloadDynamicClass( void * ) ;
+bool unloadDynamicClass( void * )   ;
 void reloadDynamicClasses( string ) ;
 void loadSystemCommandTable() ;
 void loadCUATables()          ;
@@ -333,6 +333,7 @@ int main( void )
 	llog( "I", "lspf and LOG terminating" << endl ) ;
 	lg->close() ;
 	delete lg ;
+
 	return 0  ;
 }
 
@@ -858,7 +859,7 @@ void mainLoop()
 					currAppl = currScrn->application_get_current() ;
 					p_poolMGR->setApplid( err, currAppl->ZZAPPLID )   ;
 					p_poolMGR->setShrdPool( err, currAppl->shrdPool ) ;
-					p_poolMGR->put( err, "ZPANELID", currAppl->PANELID, SHARED, SYSTEM ) ;
+					p_poolMGR->put( err, "ZPANELID", currAppl->panelid, SHARED, SYSTEM ) ;
 					currScrn->restore_panel_stack() ;
 					currAppl->display_pd() ;
 					break ;
@@ -1202,7 +1203,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		{
 			PFCMD = pfKeyValue( c ) ;
 		}
-		t = "PF" + right( d2ds( c - KEY_F( 0 ) ), 2, '0' ) ;
+		t = "PF" + d2ds( c - KEY_F( 0 ), 2 ) ;
 		p_poolMGR->put( err, "ZPFKEY", t, SHARED, SYSTEM ) ;
 		debug1( "PF Key pressed " <<t<<" value "<< PFCMD << endl ) ;
 		currAppl->currPanel->set_pfpressed( t ) ;
@@ -1339,7 +1340,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 	if ( CMDVerb == "HELP")
 	{
 		commandStack = "" ;
-		if ( currAppl->currPanel->MSGID == "" || currAppl->currPanel->showLMSG )
+		if ( currAppl->currPanel->msgid == "" || currAppl->currPanel->showLMSG )
 		{
 			currAppl->currPanel->cmd_setvalue( "" ) ;
 			ZPARM   = currAppl->get_help_member( row, col ) ;
@@ -1623,7 +1624,7 @@ void startApplication( selobj SEL, bool nScreen )
 	setMSG = currAppl->setMSG ;
 	if ( setMSG )
 	{
-		currAppl->setMSG = false        ;
+		currAppl->setMSG = false ;
 	}
 
 	llog( "I", "Starting new application "+ SEL.PGM +" with parameters '"+ SEL.PARM +"'" << endl ) ;
@@ -1830,7 +1831,7 @@ void terminateApplication()
 		llog( "C", "Error setting shared pool for pool manager.  RC=" << err.getRC() << endl ) ;
 	}
 
-	p_poolMGR->put( err, "ZPANELID", currAppl->PANELID, SHARED, SYSTEM )  ;
+	p_poolMGR->put( err, "ZPANELID", currAppl->panelid, SHARED, SYSTEM )  ;
 
 	if ( apps[ ZAPPNAME ].refCount == 0 && apps[ ZAPPNAME ].relPending )
 	{
@@ -2333,7 +2334,7 @@ string pfKeyValue( int c )
 	errblock err ;
 
 	keyn = c - KEY_F( 0 ) ;
-	key  = "ZPF" + right( d2ds( keyn ), 2, '0' ) ;
+	key  = "ZPF" + d2ds( keyn, 2 ) ;
 	val  = p_poolMGR->get( err, key, PROFILE ) ;
 	if ( err.RC8() )
 	{
@@ -2350,7 +2351,7 @@ void createpfKeyDefaults()
 
 	for ( int i = 1 ; i < 25 ; i++ )
 	{
-		p_poolMGR->put( err, "ZPF" + right( d2ds( i ), 2, '0' ), pfKeyDefaults[ i ], PROFILE ) ;
+		p_poolMGR->put( err, "ZPF" + d2ds( i, 2 ), pfKeyDefaults[ i ], PROFILE ) ;
 	}
 }
 

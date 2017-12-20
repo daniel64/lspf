@@ -178,16 +178,13 @@ void POREXX1::application()
 			ZRSN    = condition.code ;
 			ZRESULT = threadContext->CString( condition.message ) ;
 		}
-		else
+		else if ( result != NULLOBJECT )
 		{
-			if ( result != NULLOBJECT )
+			ZRESULT = threadContext->CString( result ) ;
+			if ( datatype( ZRESULT, 'W' ) )
 			{
-				ZRESULT = threadContext->CString( result ) ;
-				if ( datatype( ZRESULT, 'W' ) )
-				{
-					ZRC     = ds2d( ZRESULT ) ;
-					ZRESULT = "" ;
-				}
+				ZRC     = ds2d( ZRESULT ) ;
+				ZRESULT = "" ;
 			}
 		}
 		instance->Terminate() ;
@@ -236,8 +233,8 @@ int getAllRexxVariables( pApplication * thisAppl )
 
 	int rc ;
 
-	string n  ;
-	string v  ;
+	string n ;
+	string v ;
 
 	const string& vl = thisAppl->vilist() ;
 

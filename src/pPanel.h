@@ -20,7 +20,7 @@
 class pPanel
 {
 	public:
-		string MSGID    ;
+		string msgid    ;
 		string cmdField ;
 		bool   showLMSG ;
 
@@ -94,7 +94,7 @@ class pPanel
 	private:
 		string Home        ;
 		string scroll      ;
-		string PANELID     ;
+		string panelid     ;
 		bool   ALARM       ;
 		string curfld      ;
 		int    taskId      ;
@@ -298,7 +298,7 @@ class pPanel
 lg->lock() ; \
 (*lg) << microsec_clock::local_time() << \
 " PANEL     " << \
-" " << right( d2ds( taskId ), 5, '0' ) << " " << t << " " << s ; \
+" " << d2ds( taskId, 5 ) << " " << t << " " << s ; \
 lg->unlock() ; \
 }
 
@@ -308,7 +308,7 @@ lg->unlock() ; \
 lg->lock() ; \
 (*lg) << microsec_clock::local_time() << \
 " PANEL     " << \
-" " << right( d2ds( taskId ), 5, '0' ) << \
+" " << d2ds( taskId, 5 ) << \
 " D line: "  << __LINE__  << \
 " >>L1 Function: " << __FUNCTION__ << \
 " -  " << s ; \
@@ -325,7 +325,7 @@ lg->unlock() ; \
 lg->lock() ; \
 (*lg) << microsec_clock::local_time() << \
 " PANEL     " << \
-" " << right( d2ds( taskId ), 5, '0' ) << \
+" " << d2ds( taskId, 5 ) << \
 " D line: "  << __LINE__  << \
 " >>L2 Function: " << __FUNCTION__ << \
 " -  " << s ; \

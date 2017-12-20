@@ -450,11 +450,10 @@ void pPanel::display_panel_update( errblock& err )
 	//  For all changed fields, remove the null character, apply attributes (upper case, left/right justified),
 	//  and copy back to function pool.  Reset field for display.
 
-	//  If END entered with pull down displayed, remove the pull down and clear ZVERB.
 	//  For dynamic areas, also update the shadow variable to indicate character deletes (0xFF).
 
 	int fieldNum    ;
-	int scrollAmnt  ;
+	int maxAmount   ;
 	int Amnt        ;
 	int p           ;
 	int offset      ;
@@ -477,7 +476,7 @@ void pPanel::display_panel_update( errblock& err )
 
 	fieldNum = -1 ;
 	posn     = 1  ;
-	MSGID    = "" ;
+	msgid    = "" ;
 	msgloc   = "" ;
 
 	cursor_set  = false ;
@@ -490,13 +489,6 @@ void pPanel::display_panel_update( errblock& err )
 	if ( err.error() ) { return ; }
 
 	end_pressed = findword( CMDVerb, "END EXIT RETURN" ) ;
-
-	if ( pdActive && CMDVerb == "END" )
-	{
-		p_poolMGR->put( err, "ZVERB", "",  SHARED ) ;
-		if ( err.error() ) { return ; }
-		end_pressed = false ;
-	}
 
 	if ( scrollOn )
 	{
@@ -635,9 +627,9 @@ void pPanel::display_panel_update( errblock& err )
 			p_funcPOOL->put( err, cmdField, "" )  ;
 			if ( err.error() ) { return ; }
 		}
-		if      ( tb_model )                          { scrollAmnt = tb_depth  ; }
-		else if ( findword( CMDVerb, "LEFT RIGHT" ) ) { scrollAmnt = dyn_width ; }
-		else                                          { scrollAmnt = dyn_depth ; }
+		if      ( tb_model )                          { maxAmount = tb_depth  ; }
+		else if ( findword( CMDVerb, "LEFT RIGHT" ) ) { maxAmount = dyn_width ; }
+		else                                          { maxAmount = dyn_depth ; }
 		if ( isnumeric( CMD ) )
 		{
 			if ( CMD.size() > 6 )
@@ -662,50 +654,46 @@ void pPanel::display_panel_update( errblock& err )
 		{
 			if ( fieldNum == -1 )
 			{
-				Amnt = scrollAmnt ;
+				Amnt = maxAmount ;
 			}
 			else if ( CMDVerb.front() == 'U' )
 			{
-				Amnt = scrollAmnt - fieldNum - 1 ;
-				if ( Amnt == 0 ) { Amnt = scrollAmnt ; }
+				Amnt = maxAmount - fieldNum - 1 ;
 			}
 			else if ( CMDVerb.front() == 'D' )
 			{
 				Amnt = fieldNum ;
-				if ( Amnt == 0 ) { Amnt = scrollAmnt ; }
 			}
 			else if ( CMDVerb.front() == 'L' )
 			{
-				Amnt = dyn_width - posn ;
-				if ( Amnt == 0 ) { Amnt = dyn_width ; }
+				Amnt = maxAmount - posn ;
 			}
 			else
 			{
 				Amnt = posn - 1 ;
-				if ( Amnt == 0 ) { Amnt = dyn_width ; }
 			}
-			p_poolMGR->put( err, "ZSCROLLN", d2ds( Amnt ), SHARED ) ;
+			p_poolMGR->put( err, "ZSCROLLN", Amnt == 0 ? d2ds( maxAmount ) : d2ds( Amnt ), SHARED ) ;
 			if ( err.error() ) { return ; }
 			p_poolMGR->put( err, "ZSCROLLA", "CSR", SHARED ) ;
 			if ( err.error() ) { return ; }
 		}
 		else if ( CMD.front() == 'D' )
 		{
-			p_poolMGR->put( err, "ZSCROLLN", d2ds( scrollAmnt ), SHARED ) ;
+			p_poolMGR->put( err, "ZSCROLLN", d2ds( maxAmount - 1 ), SHARED ) ;
 			if ( err.error() ) { return ; }
 			p_poolMGR->put( err, "ZSCROLLA", "DATA", SHARED ) ;
 			if ( err.error() ) { return ; }
 		}
 		else if ( CMD.front() == 'H' )
 		{
-			p_poolMGR->put( err, "ZSCROLLN", d2ds( scrollAmnt/2 ), SHARED ) ;
+			p_poolMGR->put( err, "ZSCROLLN", d2ds( maxAmount/2 ), SHARED ) ;
 			if ( err.error() ) { return ; }
 			p_poolMGR->put( err, "ZSCROLLA", "HALF", SHARED ) ;
 			if ( err.error() ) { return ; }
 		}
 		else
 		{
-			p_poolMGR->put( err, "ZSCROLLN", d2ds( scrollAmnt ), SHARED ) ;
+			p_poolMGR->put( err, "ZSCROLLN", d2ds( maxAmount ), SHARED ) ;
 			if ( err.error() ) { return ; }
 			p_poolMGR->put( err, "ZSCROLLA", "PAGE", SHARED ) ;
 			if ( err.error() ) { return ; }
@@ -1294,7 +1282,7 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 			}
 			msg = verify->ver_type == VER_LIST ? "PSYS011B" : "PSYS012Q" ;
 			set_message_cond( verify->ver_msgid == "" ? msg : sub_vars( verify->ver_msgid ) ) ;
-			if ( MSGID == msg )
+			if ( msgid == msg )
 			{
 				p_poolMGR->put( err, "ZZSTR1", t, SHARED ) ;
 				if ( err.error() ) { return ; }
@@ -1532,11 +1520,11 @@ string pPanel::getControlVar( errblock& err, const string& svar )
 	}
 	else if ( svar == ".CSRPOS" )
 	{
-		return d2ds( p_funcPOOL->get( err, 0, INTEGER, "ZCURPOS" ) ) ;
+		return d2ds( p_funcPOOL->get( err, 0, INTEGER, "ZCURPOS" ), 4 ) ;
 	}
 	else if ( svar == ".CSRROW" )
 	{
-		return p_funcPOOL->get( err, 0, "ZCURINX" ) ;
+		return d2ds( p_funcPOOL->get( err, 0, INTEGER, "ZCURINX" ), 8 ) ;
 	}
 	else if ( svar == ".CURSOR" )
 	{
@@ -1556,7 +1544,7 @@ string pPanel::getControlVar( errblock& err, const string& svar )
 	}
 	else if ( svar == ".MSG" )
 	{
-		return MSGID ;
+		return msgid ;
 	}
 	else if ( svar == ".NRET" )
 	{
@@ -1636,9 +1624,9 @@ void pPanel::setControlVar( errblock& err, int ln, const string& svar, const str
 			err.seterrid( "PSYE041H" ) ;
 			return ;
 		}
-		p_funcPOOL->put( err, "ZCURINX", sval ) ;
+		tb_csrrow = ds2d( sval ) ;
+		p_funcPOOL->put( err, "ZCURINX", tb_csrrow ) ;
 		if ( err.error() ) { return ; }
-		tb_csrrow  = ds2d( sval ) ;
 	}
 	else if ( svar == ".CURSOR" )
 	{
@@ -1701,7 +1689,7 @@ void pPanel::set_message_cond( const string& msg )
 
 	if ( !message_set )
 	{
-		MSGID       = msg  ;
+		msgid       = msg  ;
 		message_set = true ;
 		p_funcPOOL->put( err, "ZERRMSG", msg ) ;
 	}
@@ -2962,17 +2950,17 @@ void pPanel::display_boxes()
 }
 
 
-void pPanel::set_panel_msg( slmsg t, const string& msgid )
+void pPanel::set_panel_msg( slmsg t, const string& m )
 {
 	errblock err ;
 
-	clear_msg()   ;
-	MSG   = t     ;
-	MSGID = msgid ;
+	clear_msg() ;
+	MSG   = t   ;
+	msgid = m   ;
 
 	if ( MSG.smsg == "" && MSG.lmsg == "" )
 	{
-		MSGID = "" ;
+		msgid = "" ;
 		return     ;
 	}
 	if ( p_poolMGR->get( err, ZSCRNUM, "ZSHMSGID" ) == "Y" ) { MSG.lmsg = msgid +" "+ MSG.lmsg ; }
@@ -3028,12 +3016,12 @@ void pPanel::display_msg()
 
 	errblock err ;
 
-	if ( MSGID == "" ) { return ; }
+	if ( msgid == "" ) { return ; }
 
 	msgResp = MSG.resp ;
-	if ( MSGID != "PSYS012L" )
+	if ( msgid != "PSYS012L" )
 	{
-		p_poolMGR->put( err, ZSCRNUM, "ZMSGID", MSGID ) ;
+		p_poolMGR->put( err, ZSCRNUM, "ZMSGID", msgid ) ;
 		if ( err.error() ) { return ; }
 	}
 
@@ -3197,7 +3185,7 @@ void pPanel::display_id()
 
 	if ( p_poolMGR->get( err, ZSCRNUM, "ZSHPANID" ) == "Y" )
 	{
-		panarea += PANELID + " " ;
+		panarea += panelid + " " ;
 	}
 
 	if ( p_poolMGR->get( err, "ZSCRNAM1", SHARED ) == "ON" )

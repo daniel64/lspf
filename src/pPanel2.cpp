@@ -19,10 +19,8 @@
 
 void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths )
 {
-	int i  ;
-	int j  ;
-	int p1 ;
-	int p2 ;
+	int i ;
+	int j ;
 	int pVersion ;
 	int pFormat  ;
 
@@ -58,12 +56,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		pline = *it   ;
 		oline = *it   ;
 		trim( oline ) ;
-		p1 = pline.find( "/*" ) ;
-		if ( p1 != string::npos )
-		{
-			p2 = pline.find( "*/" ) ;
-			if ( p2 != string::npos ) { pline.replace( p1, p2-p1+2, p2-p1+2, ' ' ) ; }
-		}
 		if ( pline.find( '\t' ) != string::npos )
 		{
 			err.seterrid( "PSYE011A" ) ;
@@ -349,6 +341,10 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 					return ;
 				}
 				p_stmnt->push_back( m_stmnt ) ;
+				break ;
+
+			case ST_EOF:
+				delete m_stmnt ;
 				break ;
 
 			case ST_ERROR:
@@ -748,15 +744,17 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 	panel = new_panel( fwin ) ;
 	set_panel_userptr( panel, new panel_data( ZSCRNUM ) ) ;
 
-	PANELID = p_name ;
+	panelid = p_name ;
 	return ;
 }
 
 
 void pPanel::readPanel( errblock& err, vector<string>& src, const string& name, const string& paths, string slist )
 {
-	int i ;
-	int p ;
+	int i  ;
+	int p  ;
+	int p1 ;
+	int p2 ;
 
 	string filename ;
 	string pline ;
@@ -803,6 +801,12 @@ void pPanel::readPanel( errblock& err, vector<string>& src, const string& name, 
 	split   = false ;
 	while ( getline( panl, pline ) )
 	{
+		p1 = pline.find( "/*" ) ;
+		if ( p1 != string::npos )
+		{
+			p2 = pline.find( "*/" ) ;
+			if ( p2 != string::npos ) { pline.replace( p1, p2-p1+2, p2-p1+2, ' ' ) ; }
+		}
 		trim_right( pline ) ;
 		if ( pline == "" ) { continue ; }
 		if ( split )

@@ -159,7 +159,7 @@ void PLRFLST1::PersonalFList( const string& p )
 		if ( RC > 0 ) { abend() ; }
 	}
 
-	FLIST1 = "FLST1" + right( d2ds( taskid() ), 3, '0' ) ;
+	FLIST1 = "FLST1" + d2ds( taskid(), 3 ) ;
 	tbcreate( FLIST1, "ACURTB", "(ASEL,AFLDESCP,AFLCTIME,AFLUTIME)", NOWRITE ) ;
 	tbsort( FLIST1, "(ACURTB,C,A)" ) ;
 
@@ -184,10 +184,10 @@ void PLRFLST1::PersonalFList( const string& p )
 		tbdispl( FLIST1, PANL, MSG, "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
-		if ( ZTDSELS == 0 && p != "" && ZCURINX != "00000000" )
+		if ( ZTDSELS == 0 && p != "" && ZCURINX != 0 )
 		{
 			tbtop( FLIST1 ) ;
-			tbskip( FLIST1, ds2d( ZCURINX ) ) ;
+			tbskip( FLIST1, ZCURINX ) ;
 			ZTDSELS = 1   ;
 			ASEL    = "L" ;
 		}
@@ -363,7 +363,7 @@ void PLRFLST1::EditFileList( const string& curtb )
 	vdefine( vlist, &BSEL, &BFILE, &ZCMD1 ) ;
 
 
-	FLIST2 = "FLST2" + right( d2ds( taskid() ), 3, '0' ) ;
+	FLIST2 = "FLST2" + d2ds( taskid(), 3 ) ;
 	tbcreate( FLIST2, "", "(BSEL,BFILE)", NOWRITE ) ;
 
 	ZCURTB = curtb ;
@@ -379,7 +379,7 @@ void PLRFLST1::EditFileList( const string& curtb )
 	BSEL = "" ;
 	for ( i = 1 ; i <= 30 ; i++ )
 	{
-		vcopy( "FLAPET" + right( d2ds( i ), 2, '0' ), BFILE, MOVE ) ;
+		vcopy( "FLAPET" + d2ds( i, 2 ), BFILE, MOVE ) ;
 		if ( i > 1 && BFILE == "" ) { continue ; }
 		tbadd( FLIST2 ) ;
 	}
@@ -439,11 +439,11 @@ void PLRFLST1::EditFileList( const string& curtb )
 			tbskip( FLIST2 ) ;
 			if ( RC > 0 ) { break ; }
 			if ( BFILE == "" ) { i-- ; continue ; }
-			vreplace( "FLAPET" + right( d2ds( i ), 2, '0' ), BFILE ) ;
+			vreplace( "FLAPET" + d2ds( i, 2 ), BFILE ) ;
 		}
 		for ( ; i <= 30 ; i++ )
 		{
-			vreplace( "FLAPET" + right( d2ds( i ), 2, '0' ), "" ) ;
+			vreplace( "FLAPET" + d2ds( i, 2 ), "" ) ;
 		}
 		vcopy( "ZDATEL", ldate, MOVE ) ;
 		vcopy( "ZTIMEL", ltime, MOVE ) ;
@@ -470,7 +470,7 @@ void PLRFLST1::OpenFileList( const string& curtb )
 	string CNUM   ;
 	string vlist  ;
 
-	FLIST3 = "FLST3" + right( d2ds( taskid() ), 3, '0' ) ;
+	FLIST3 = "FLST3" + d2ds( taskid(), 3 ) ;
 	tbcreate( FLIST3, "", "(CSEL,CFILE,CNUM)", NOWRITE ) ;
 
 	ZCURTB = curtb ;
@@ -499,7 +499,7 @@ void PLRFLST1::OpenFileList( const string& curtb )
 
 	for ( j = 0, i = 1 ; i <= 30 ; i++ )
 	{
-		vcopy( "FLAPET" + right( d2ds( i ), 2, '0' ), CFILE, MOVE ) ;
+		vcopy( "FLAPET" + d2ds( i, 2 ), CFILE, MOVE ) ;
 		if ( i > 1 && CFILE == "" ) { continue ; }
 		j++ ;
 		CNUM = d2ds( j ) ;
@@ -514,10 +514,10 @@ void PLRFLST1::OpenFileList( const string& curtb )
 		tbdispl( FLIST3, "PLRFLST3", MSG, "ZCMD1" ) ;
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
-		if ( ZTDSELS == 0 && ZCURINX != "00000000" )
+		if ( ZTDSELS == 0 && ZCURINX != 0 )
 		{
 			tbtop( FLIST3 ) ;
-			tbskip( FLIST3, ds2d( ZCURINX ) ) ;
+			tbskip( FLIST3, ZCURINX ) ;
 			CSEL    = "S" ;
 			ZTDSELS = 1   ;
 		}
@@ -576,7 +576,7 @@ string PLRFLST1::StoreFileList( const string& curtb )
 	fout.open( tname ) ;
 	for ( i = 1 ; i <= 30 ; i++ )
 	{
-		vcopy( "FLAPET" + right( d2ds( i ), 2, '0' ), fname, MOVE ) ;
+		vcopy( "FLAPET" + d2ds( i, 2 ), fname, MOVE ) ;
 		if ( fname == "" ) { continue ; }
 		fout << fname << endl ;
 	}
@@ -676,7 +676,7 @@ void PLRFLST1::RetrieveEntry( string list )
 	for ( i = 1 ; i <= 30 ; i++ )
 	{
 		if ( p > 30 ) { p = 1 ; }
-		vcopy( "FLAPET" + right( d2ds( p ), 2, '0' ), ZRESULT, MOVE ) ;
+		vcopy( "FLAPET" + d2ds( p, 2 ), ZRESULT, MOVE ) ;
 		if ( ZRESULT == "" && p > 1 )
 		{
 			p = 1 ;
@@ -760,7 +760,7 @@ void PLRFLST1::AddReflistEntry( string& ent )
 
 	for ( i = 1 ; i <= 30 ; i++ )
 	{
-		vcopy( "FLAPET" + right( d2ds( i ), 2, '0' ), eent, LOCATE ) ;
+		vcopy( "FLAPET" + d2ds( i, 2 ), eent, LOCATE ) ;
 		if ( *eent == "" ) { continue ; }
 		list.push_back( *eent ) ;
 	}
@@ -779,11 +779,11 @@ void PLRFLST1::AddReflistEntry( string& ent )
 	{
 		if ( i <= list.size()+1 )
 		{
-			vreplace( "FLAPET" + right( d2ds( i ), 2, '0' ), list.at( i-2 ) ) ;
+			vreplace( "FLAPET" + d2ds( i, 2 ), list.at( i-2 ) ) ;
 		}
 		else
 		{
-			vreplace( "FLAPET" + right( d2ds( i ), 2, '0' ), "" ) ;
+			vreplace( "FLAPET" + d2ds( i, 2 ), "" ) ;
 		}
 	}
 

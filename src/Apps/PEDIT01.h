@@ -445,7 +445,7 @@ class ipos
 			ipos_URID = 0 ;
 			ipos_div  = false ;
 		}
-	void clear()
+		void clear()
 		{
 			ipos_dl   = 0 ;
 			ipos_hex  = 0 ;
@@ -980,7 +980,7 @@ class iline
 } ;
 
 
-class c_range
+class cmd_range
 {
 	private:
 		bool   c_vlab  ;
@@ -993,7 +993,7 @@ class c_range
 		int    c_ecol  ;
 		bool   c_ocol  ;
 		string c_rest  ;
-	c_range()
+	cmd_range()
 	{
 		c_vlab  = false ;
 		c_vcol  = false ;
@@ -1006,7 +1006,7 @@ class c_range
 		c_ocol  = false ;
 		c_rest  = ""    ;
 	}
-	void c_range_clear()
+	void cmd_range_clear()
 	{
 		c_slab  = ""    ;
 		c_elab  = ""    ;
@@ -1021,7 +1021,7 @@ class c_range
 } ;
 
 
-class e_find
+class edit_find
 {
 	private:
 		string fcx_string  ;
@@ -1068,7 +1068,7 @@ class e_find
 		int    fcx_sk_lnes ;
 		int    fcx_ex_occs ;
 		int    fcx_ex_lnes ;
-	e_find()
+	edit_find()
 	{
 		fcx_string  = ""    ;
 		fcx_ostring = ""    ;
@@ -1114,6 +1114,27 @@ class e_find
 		fcx_sk_lnes = 0     ;
 		fcx_ex_occs = 0     ;
 		fcx_ex_lnes = 0     ;
+	}
+	void reset()
+	{
+		fcx_success = false ;
+		fcx_error   = false ;
+		fcx_top     = false ;
+		fcx_bottom  = false ;
+		fcx_rstring = "" ;
+		fcx_occurs  = 0  ;
+		fcx_URID    = 0  ;
+		fcx_dl      = 0  ;
+		fcx_lines   = 0  ;
+		fcx_offset  = 0  ;
+	}
+	void setrstring( const string& s )
+	{
+		if ( fcx_rstring == "" ) { fcx_rstring = s ; }
+	}
+	bool findReverse()
+	{
+		return ( fcx_dir == 'L' || fcx_dir == 'P' ) ;
 	}
 	friend class PEDIT01 ;
 } ;
@@ -1997,7 +2018,7 @@ class PEDIT01 : public pApplication
 
 	private:
 		static set<string>EditList       ;
-		static e_find Global_efind_parms ;
+		static edit_find Global_efind_parms ;
 
 		void showEditEntry()      ;
 		void showEditRecovery()   ;
@@ -2017,11 +2038,11 @@ class PEDIT01 : public pApplication
 		void fill_hilight_shadow();
 		void clr_hilight_shadow() ;
 		void protNonDisplayChars();
-		void convNonDisplayChars( string& ) ;
 		void releaseDynamicStorage() ;
 		void getZAREAchanges()    ;
 		void updateData()         ;
-		string getColumnLine()    ;
+		string setFoundString()   ;
+		string getColumnLine( int =0 ) ;
 
 		void actionFind()         ;
 		void actionChange()       ;
@@ -2117,7 +2138,7 @@ class PEDIT01 : public pApplication
 		void setChangedMsg()           ;
 		void setExcludedMsg()          ;
 		void setNotFoundMsg()          ;
-		bool setCommandRange( string, c_range& ) ;
+		bool setCommandRange( string, cmd_range& ) ;
 		int  getNextSpecial( int, int, char, char ) ;
 		bool getLabelItr( const string&, vector<iline * >::iterator &, int& ) ;
 		int  getLabelLine( const string& )  ;
@@ -2231,8 +2252,8 @@ class PEDIT01 : public pApplication
 		map<int, int>lchar       ;
 		vector<lcmd> lcmds       ;
 
-		e_find  find_parms ;
-		hilight hlight     ;
+		edit_find find_parms ;
+		hilight hlight       ;
 
 		bool rebuildZAREA  ;
 		bool rebuildShadow ;

@@ -509,7 +509,7 @@ bool field::edit_field_insert( WINDOW * win, char ch, int col, char pad, bool sn
 		if ( p2 == string::npos ) { p2 = field_value.size()-1 ; }
 		else                      { p2--                      ; }
 		if ( field_value[ p2 ] != ' '  &&
-			field_value[ p2 ] != nulls ) { return false ; }
+		     field_value[ p2 ] != nulls ) { return false ; }
 		field_value.erase( p2, 1 ) ;
 		field_shadow_value.erase( p2, 1 ) ;
 		p1 = field_value.find_last_of( da->dynArea_FieldIn, pos ) ;
@@ -1376,7 +1376,7 @@ void literal::literal_init( errblock& err, int MAXW, int MAXD, int& opt_field, c
 	literal_cole = literal_col + literal_value.size() ;
 	if ( fType == PS )
 	{
-		literal_name = "ZPS01" + right( d2ds(++opt_field), 3, '0') ;
+		literal_name = "ZPS01" + d2ds( ++opt_field, 3 ) ;
 	}
 	return ;
 }

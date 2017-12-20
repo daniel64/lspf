@@ -734,6 +734,15 @@ string d2ds( int i )
 
 
 
+string d2ds( int i, int j )
+{
+	ostringstream stream ;
+	stream << i          ;
+	return right( stream.str(), j, '0' ) ;
+}
+
+
+
 string d2xs( int i )
 {
 	ostringstream stream ;

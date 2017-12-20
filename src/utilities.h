@@ -94,6 +94,7 @@ string cs2xs( char c   ) ;             // eg "B" -> "42"            ( same )
 
 string d2cs( int i ) ;                 // eg int66 -> "B"           ( REXX D2C(65)      ->   "A" )
 string d2ds( int i ) ;                 // eg int66 -> "66"          ( not required for REXX but is for C++)
+string d2ds( int i, int j ) ;          // eg int66 -> "66"          ( not required for REXX but is for C++)
 string d2xs( int i ) ;                 // eg int66 -> "42"          ( REXX D2X(129)       ->    "81" )
 
 int    ds2d( const string& s )  ;     // eg "66"  -> int66         ( not required for REXX but is for C++)

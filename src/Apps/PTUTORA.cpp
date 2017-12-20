@@ -200,9 +200,9 @@ void PTUTORA::application()
 
 		if ( rebuildZAREA ) fill_dynamic_area() ;
 
-		ZROW1 = right( d2ds( firstLine ), 8, '0' )    ;
-		ZROW2 = right( d2ds( maxLines - 2 ), 8, '0' ) ;
-		ZCOL1 = right( d2ds( startCol ), 7, '0' )     ;
+		ZROW1 = d2ds( firstLine, 8 )    ;
+		ZROW2 = d2ds( maxLines - 2, 8 ) ;
+		ZCOL1 = d2ds( startCol, 7 )     ;
 
 		display( "PTUTORA1", "", "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }

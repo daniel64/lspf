@@ -203,20 +203,17 @@ void PEDRXM1::start_rexx()
 			mibptr->setRC( 20 )   ;
 			mibptr->setExitRC( condition.code ) ;
 		}
+		else if ( mibptr->fatal )
+		{
+			mibptr->setExitRC( 28 ) ;
+		}
+		else if ( result != NULLOBJECT )
+		{
+			mibptr->setExitRC( threadContext->CString( result ) ) ;
+		}
 		else
 		{
-			if ( mibptr->fatal )
-			{
-				mibptr->setExitRC( 28 ) ;
-			}
-			else if ( result != NULLOBJECT )
-			{
-				mibptr->setExitRC( threadContext->CString( result ) ) ;
-			}
-			else
-			{
-				mibptr->setExitRC( 0 ) ;
-			}
+			mibptr->setExitRC( 0 ) ;
 		}
 		instance->Terminate() ;
 	}

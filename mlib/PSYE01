@@ -36,7 +36,7 @@ PSYE013D 'Function pool definition of &ZVAL1 is not of type INT'
 PSYE013E 'Function &ZVAL1 gave non-zero return code'
 ''
 
-PSYE013F 'Max size of 65,535 rows exceeded'
+PSYE013F 'Max size of 262,144 rows exceeded'
 ''
 
 PSYE013G '&ZVAL1 issued for table &ZVAL2 that is not open'

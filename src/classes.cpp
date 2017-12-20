@@ -642,8 +642,6 @@ void ASSGN::parse( errblock& err, parser& v )
 	  { "WORDS",   AS_WORDS   },
 	  { "UPPER",   AS_UPPER   } } ;
 
-	const string functn_list = "DIR EXISTS FILE LENGTH REVERSE WORDS UPPER" ;
-
 	map<string, AS_FUNCTION>::iterator it;
 
 	err.setRC( 0 ) ;
