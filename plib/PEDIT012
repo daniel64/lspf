@@ -23,9 +23,17 @@ field     3   MAX-4   5     VOI  NONE ZCOL2
 
 dynArea   5 1 MAX MAX ZAREA ZSHADOW DATAIN(01) DATAOUT(02) USERMOD(03) DATAMOD(04)
 
-pdc File "Save"    ACTION RUN(SAVE)
-pdc File "Cancel"  ACTION RUN(CANCEL)
-pdc File "Exit"    ACTION RUN(END)
+pdc File          "Save"             ACTION RUN(SAVE)
+pdc File          "Cancel"           ACTION RUN(CANCEL)
+pdc File          "Exit"             ACTION RUN(END)
+
+pdc Edit          "Reset"            ACTION RUN(RESET)
+pdc Edit          "Undo"             ACTION RUN(UNDO)
+pdc Edit          "Redo"             ACTION RUN(REDO)
+pdc Edit          "Cut"              ACTION RUN(CUT)
+pdc Edit          "Paste"            ACTION RUN(PASTE)
+
+pdc Edit_Settings "Edit Settings"    ACTION RUN(EDITSET)
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC

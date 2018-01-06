@@ -266,6 +266,9 @@ PSYE039Q 'PASSLIB entered without NEWAPPL'
 PSYE039R 'PANEL, CMD or PGM must be entered'
 ''
 
+PSYE039S 'Profile ISPS invalid'
+'ISPS is the system profile and cannot be used as an application profile'
+
 
 /* Name List Parser */
 

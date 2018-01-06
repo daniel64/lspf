@@ -53,7 +53,7 @@ class pApplication
 		bool   libdef_muser       ;
 		bool   libdef_puser       ;
 		bool   libdef_tuser       ;
-		string shrdPool           ;
+		int    shrdPool           ;
 		string rexxName           ;
 		selobj SELCT              ;
 		bool   SEL                ;
@@ -228,6 +228,9 @@ class pApplication
 		void   set_addpop_col( int  i ) { addpop_col = i    ; }
 		void   set_addpop_act( bool b ) { addpop_active = b ; }
 
+		void   set_background()         { background = true ; }
+		bool   is_background()          { return background ; }
+
 		bool   do_refresh_lscreen()     { return refreshlScreen ; }
 
 		void   save_errblock()    ;
@@ -249,6 +252,7 @@ class pApplication
 
 		int  taskId      ;
 
+		bool background          ;
 		bool addpop_active       ;
 		bool refreshlScreen      ;
 		bool ControlErrorsReturn ;

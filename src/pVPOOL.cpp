@@ -758,7 +758,7 @@ void pVPOOL::createGenEntries()
 
 
 void pVPOOL::load( errblock& err,
-		   const string& currApplid,
+		   const string& applid,
 		   const string& path )
 {
 	// RC = 0  Normal completion
@@ -777,13 +777,13 @@ void pVPOOL::load( errblock& err,
 
 	size_t buf1Size = 1024  ;
 
-	fname = path + currApplid + "PROF" ;
+	fname = path + applid + "PROF" ;
 
 	std::ifstream profile ;
 	profile.open( fname.c_str() , ios::binary ) ;
 	if ( !profile.is_open() )
 	{
-		err.seterrid( "PSYE015F", currApplid, fname ) ;
+		err.seterrid( "PSYE015F", applid, fname ) ;
 		return ;
 	}
 
@@ -792,7 +792,7 @@ void pVPOOL::load( errblock& err,
 	profile.read (buf1, 2 ) ;
 	if ( memcmp( buf1, "\x00\x84", 2 ) )
 	{
-		err.seterrid( "PSYE015G", currApplid, fname ) ;
+		err.seterrid( "PSYE015G", applid, fname ) ;
 		profile.close() ;
 		delete[] buf1   ;
 		return  ;
@@ -802,7 +802,7 @@ void pVPOOL::load( errblock& err,
 	i = static_cast< int >( x ) ;
 	if ( i > 1 )
 	{
-		err.seterrid( "PSYE015H", d2ds( i ), currApplid ) ;
+		err.seterrid( "PSYE015H", d2ds( i ), applid ) ;
 		profile.close() ;
 		delete[] buf1   ;
 		return  ;
@@ -845,14 +845,14 @@ void pVPOOL::load( errblock& err,
 	delete[] buf1   ;
 	if ( err.error() )
 	{
-		err.seterrid( "PSYE015I", currApplid ) ;
+		err.seterrid( "PSYE015I", applid ) ;
 	}
 	resetChanged() ;
 }
 
 
 void pVPOOL::save( errblock& err,
-		   const string& currApplid )
+		   const string& applid )
 {
 	// RC = 0  Normal completion
 	// RC = 4  Save not performed.  Pool in read-only or no changes made to pool
@@ -880,7 +880,7 @@ void pVPOOL::save( errblock& err,
 		return ;
 	}
 	if ( path.back() != '/' ) { path += "/" ; }
-	fname = path + currApplid + "PROF" ;
+	fname = path + applid + "PROF" ;
 
 	std::ofstream profile ;
 	profile.open( fname.c_str(), ios::binary | ios::out ) ;
@@ -922,7 +922,7 @@ poolMGR::poolMGR()
 	POOLs_profile[ "@DEFPROF" ] = new pVPOOL ;
 	POOLs_profile[ "@ROXPROF" ] = new pVPOOL ;
 
-	shrdPooln = 0 ;
+	shrdPool = 0 ;
 }
 
 
@@ -930,21 +930,109 @@ poolMGR::~poolMGR()
 {
 	// Iterate over all remaining variable pools and delete to release dynamic storage
 
-	map<string, pVPOOL*>::iterator it1 ;
-	map<int,    pVPOOL*>::iterator it2 ;
+	for ( auto it = POOLs_shared.begin() ; it != POOLs_shared.end() ; it++ )
+	{
+		delete it->second ;
+	}
+	for ( auto it = POOLs_profile.begin() ; it != POOLs_profile.end() ; it++ )
+	{
+		delete it->second ;
+	}
+	for ( auto it = POOLs_lscreen.begin() ; it != POOLs_lscreen.end() ; it++ )
+	{
+		delete it->second ;
+	}
+}
 
-	for ( it1 = POOLs_shared.begin() ; it1 != POOLs_shared.end() ; it1++ )
+
+void poolMGR::connect( int taskid, const string& ppool, int spool )
+{
+	// Add profile and shared pool names to the task table.  Increment use count for both.
+
+	errblock err ;
+
+	llog( "I", "Connecting task "<<taskid<<" to pool manager"<< endl ) ;
+	llog( "I", "Profile pool: "<<ppool<< endl ) ;
+	llog( "I", "Shared  pool: "<<d2ds( spool, 8 ) << endl ) ;
+
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
+
+	task_table[ taskid ] = make_pair( ppool, spool ) ;
+
+	POOLs_profile[ ppool ]->incRefCount() ;
+	POOLs_shared[ d2ds( spool, 8 ) ]->incRefCount() ;
+}
+
+
+void poolMGR::disconnect( int taskid )
+{
+	// Remove task from the profile/shared task tables and decrement use count.
+	// If pool no longer in use, save if a profile, and delete it.
+
+	errblock err ;
+
+	string ppool ;
+	string spool ;
+
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
+
+	auto it = task_table.find( taskid ) ;
+	ppool = it->second.first ;
+	spool = d2ds( it->second.second, 8 ) ;
+
+	auto itp = POOLs_profile.find( ppool ) ;
+	auto its = POOLs_shared.find( spool )  ;
+	itp->second->decRefCount() ;
+	its->second->decRefCount() ;
+
+	llog( "I", "Disconnecting task "<< taskid <<" from pool manager"<< endl ) ;
+	task_table.erase( it ) ;
+
+	if ( !itp->second->inUse() )
 	{
-		delete it1->second ;
+		itp->second->save( err, itp->first ) ;
+		if ( err.error() )
+		{
+			llog( "E", "Pool "<< itp->first <<" cannot be saved"<< endl ) ;
+		}
+		else
+		{
+			delete itp->second ;
+			POOLs_profile.erase( itp ) ;
+		}
 	}
-	for ( it1 = POOLs_profile.begin() ; it1 != POOLs_profile.end() ; it1++ )
+
+	if ( !its->second->inUse() )
 	{
-		delete it1->second ;
+		delete its->second ;
+		POOLs_shared.erase( its ) ;
 	}
-	for ( it2 = POOLs_lscreen.begin() ; it2 != POOLs_lscreen.end() ; it2++ )
+}
+
+
+void poolMGR::setPools( errblock& err )
+{
+	// Lock is held when this is called, so don't lock (most routines)
+
+	_shared = 0  ;
+	_applid = "" ;
+
+	if ( err.taskid == 0 )
 	{
-		delete it2->second ;
+		llog( "E", "Logic error.  Task id cannot be zero "<< endl ) ;
+		err.seterror() ;
+		return ;
 	}
+
+	if ( task_table.count( err.taskid ) == 0 )
+	{
+		llog( "E", "Logic error.  Task "<< err.taskid <<" not connected to pool manager"<< endl ) ;
+		err.seterror() ;
+		return ;
+	}
+
+	_applid = task_table[ err.taskid ].first  ;
+	_shared = task_table[ err.taskid ].second ;
 }
 
 
@@ -952,38 +1040,19 @@ void poolMGR::setPOOLsReadOnly()
 {
 	// Neither of these pools is currently used
 
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
+
 	POOLs_profile[ "@ROXPROF" ]->setReadOnly() ;
 	POOLs_profile[ "@DEFPROF" ]->setReadOnly() ;
 }
 
 
-void poolMGR::defaultVARs( errblock& err,
-			   const string& name,
-			   const string& value,
-			   poolType pType )
-{
-	switch ( pType )
-	{
-	case SHARED:
-		POOLs_shared[ "@DEFSHAR" ]->put( err, name, value, SYSTEM ) ;
-		break ;
-
-	case PROFILE:
-		POOLs_profile[ "@DEFPROF" ]->put( err, name, value, SYSTEM ) ;
-		break ;
-
-	default:
-		err.seterrid( "PSYE017D" ) ;
-	}
-}
-
-
-void poolMGR::createPool( errblock& err,
-			  poolType pType,
-			  string path )
+void poolMGR::createProfilePool( errblock& err,
+				 const string& ppool,
+				 string path )
 {
 	// RC = 0  Pool created and loaded from existing file if a PROFILE pool
-	// RC = 4  Pool created but not loaded as PROFILE file does not exist (for PROFILE pools only)
+	// RC = 4  Pool created but not loaded as PROFILE file does not exist
 	// RC = 20 Severe error
 
 	string fname ;
@@ -991,77 +1060,64 @@ void poolMGR::createPool( errblock& err,
 	pVPOOL * pool  ;
 	err.setRC( 0 ) ;
 
-	switch( pType )
-	{
-	case SHARED:
-		shrdPool = d2ds( ++shrdPooln, 8 ) ;
-		debug1( "New shared POOL name "<< shrdPool <<endl ) ;
-		if ( POOLs_shared.count( shrdPool ) > 0 )
-		{
-			err.seterror() ;
-			llog( "C", "SHARED POOL "<< shrdPool <<" already exists.  Logic Error " << endl ) ;
-			return ;
-		}
-		POOLs_shared[ shrdPool ] = new pVPOOL ;
-		break ;
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
 
-	case PROFILE:
-		debug1( "New profile pool name " << currApplid << endl ) ;
-		if ( POOLs_profile.count( currApplid ) == 0 )
+	if ( POOLs_profile.count( ppool ) > 0 ) { return ; }
+
+	if ( path.back() != '/' ) { path += "/" ; }
+	fname = path + ppool + "PROF" ;
+	if ( exists( fname ) )
+	{
+		if ( !is_regular_file( fname ) )
 		{
-			if ( path.back() != '/' ) { path += "/" ; }
-			fname = path + currApplid + "PROF" ;
-			if ( exists( fname ) )
-			{
-				if ( !is_regular_file( fname ) )
-				{
-					llog( "E", "File "<< fname <<" is not a regular file for profile load"<< endl ) ;
-					err.seterror() ;
-				}
-				else
-				{
-					pool       = new pVPOOL ;
-					pool->path = path ;
-					POOLs_profile[ currApplid ] = pool ;
-					llog( "I", "Pool " << currApplid << " created okay.  Reading saved variables from profile dataset" << endl ) ;
-					POOLs_profile[ currApplid ]->load( err, currApplid, path ) ;
-					if ( currApplid == "ISPS" )
-					{
-						POOLs_profile[ "ISPS" ]->sysProfile() ;
-					}
-				}
-			}
-			else if ( exists( path ) )
-			{
-				if ( !is_directory( path ) )
-				{
-					llog( "E", "Directory " << path << " is not a regular directory for profile load" <<  endl ) ;
-					err.seterror() ;
-				}
-				else
-				{
-					llog( "I", "Profile "<< currApplid+"PROF does not exist.  Creating default" <<endl ) ;
-					POOLs_profile[ currApplid ] = new pVPOOL ;
-					llog( "I", "Profile Pool "<< currApplid <<" created okay in path "<< path <<endl ) ;
-					err.setRC( 4 ) ;
-				}
-			}
-			else
-			{
-				llog( "E", "Directory "<< path <<" does not exist for profile load" <<  endl ) ;
-				err.seterror() ;
-			}
+			llog( "E", "File "<< fname <<" is not a regular file for profile load"<< endl ) ;
+			err.seterror() ;
 		}
 		else
 		{
-			llog( "I", "Pool " << currApplid << " already exists.  Incrementing use count " << endl ) ;
-			POOLs_profile[ currApplid ]->incRefCount() ;
+			pool       = new pVPOOL ;
+			pool->path = path ;
+			POOLs_profile[ ppool ] = pool ;
+			llog( "I", "Pool " << ppool << " created okay.  Reading saved variables from profile dataset" << endl ) ;
+			POOLs_profile[ ppool ]->load( err, ppool, path ) ;
+			if ( ppool == "ISPS" )
+			{
+				POOLs_profile[ "ISPS" ]->sysProfile() ;
+			}
 		}
-		break ;
-
-	default:
+	}
+	else if ( exists( path ) )
+	{
+		if ( !is_directory( path ) )
+		{
+			llog( "E", "Directory " << path << " is not a regular directory for profile load" <<  endl ) ;
+			err.seterror() ;
+		}
+		else
+		{
+			llog( "I", "Profile "<< ppool+"PROF does not exist.  Creating default" <<endl ) ;
+			pool       = new pVPOOL ;
+			pool->path = path ;
+			POOLs_profile[ ppool ] = pool ;
+			llog( "I", "Profile Pool "<< ppool <<" created okay in path "<< path <<endl ) ;
+			err.setRC( 4 ) ;
+		}
+	}
+	else
+	{
+		llog( "E", "Directory "<< path <<" does not exist for profile load" <<  endl ) ;
 		err.seterror() ;
 	}
+}
+
+
+int poolMGR::createSharedPool()
+{
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
+
+	POOLs_shared[ d2ds( ++shrdPool, 8 ) ] = new pVPOOL ;
+
+	return shrdPool ;
 }
 
 
@@ -1069,6 +1125,8 @@ void poolMGR::createPool( int ls )
 {
 	// Create the logical-screen variable pool and add defaults.
 	// This pool is not accessible by applications (internal use only).
+
+	// Lock is held when this is called, so don't lock (put and get routines)
 
 	errblock err  ;
 
@@ -1082,59 +1140,17 @@ void poolMGR::createPool( int ls )
 }
 
 
-void poolMGR::destroyPool( errblock& err,
-			   poolType pType )
+void poolMGR::destroySystemPool( errblock& err )
 {
-	map<string, pVPOOL*>::iterator it ;
+	// Save ISPS pool and remove it from storage.  Called when lspf is terminating
 
-	err.setRC( 0 ) ;
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
 
-	switch( pType )
-	{
-	case SHARED:
-		llog( "I", "Destroying pool "<< shrdPool << endl ) ;
-		it = POOLs_shared.find( shrdPool ) ;
-		if ( it == POOLs_shared.end() )
-		{
-			err.seterror() ;
-			llog( "C", "poolMGR cannot find SHARED POOL " << shrdPool << " Logic error" << endl ) ;
-			return ;
-		}
-		delete it->second ;
-		POOLs_shared.erase( it ) ;
-		break ;
+	auto it = POOLs_profile.find( "ISPS" ) ;
+	it->second->save( err, "ISPS" ) ;
 
-	case PROFILE:
-		llog( "I", "Destroying pool "<< currApplid << endl ) ;
-		it = POOLs_profile.find( currApplid ) ;
-		if ( it == POOLs_profile.end() )
-		{
-			err.seterror() ;
-			llog( "C", "poolMGR cannot find profile pool "<< currApplid <<" Logic error" << endl ) ;
-			return ;
-		}
-		it->second->decRefCount() ;
-		if ( it->second->inUse() )
-		{
-			llog( "I", "Pool "<< currApplid <<" still in use.  Use count is now "<< it->second->refCount << endl ) ;
-		}
-		else
-		{
-			it->second->save( err, currApplid ) ;
-			if ( err.error() )
-			{
-				llog( "E", "Pool "<< currApplid <<" cannot be saved"<< endl ) ;
-				return ;
-			}
-			delete it->second ;
-			POOLs_profile.erase( it ) ;
-			llog( "I", "Pool "<< currApplid <<" destroyed okay "<< endl ) ;
-		}
-		break ;
-
-	default:
-		err.seterror() ;
-	}
+	delete it->second ;
+	POOLs_profile.erase( it ) ;
 }
 
 
@@ -1142,9 +1158,9 @@ void poolMGR::destroyPool( int ls )
 {
 	// Remove the logical-screen pool when a logical screen is closed
 
-	map<int, pVPOOL*>::iterator it ;
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
 
-	it = POOLs_lscreen.find( ls ) ;
+	auto it = POOLs_lscreen.find( ls ) ;
 	if ( it != POOLs_lscreen.end() )
 	{
 		delete it->second ;
@@ -1159,31 +1175,39 @@ void poolMGR::statistics()
 
 	errblock err ;
 
-	map<string, pVPOOL*>::iterator sp_it ;
-	map<string, pVPOOL*>::iterator pp_it ;
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
 
 	llog( "-", "Pool Statistics:" << endl ) ;
-	llog( "-", "         Current Applid . . . . . . . . " << currApplid << endl ) ;
-	llog( "-", "         Current Shared Pool ID . . . . " << shrdPool << endl ) ;
 	llog( "-", "         Number of shared pools . . . . " << POOLs_shared.size() << endl ) ;
 	llog( "-", "         Number of profile pools. . . . " << POOLs_profile.size() << endl ) ;
+	llog( "-", "         Number of connected tasks. . . " << task_table.size() << endl ) ;
 	llog( "-", "" << endl ) ;
 	llog( "-", "         Shared pool details:" << endl ) ;
 
-	for ( sp_it = POOLs_shared.begin() ; sp_it != POOLs_shared.end() ; sp_it++ )
+	for ( auto sp_it = POOLs_shared.begin() ; sp_it != POOLs_shared.end() ; sp_it++ )
 	{
 		Mode = sp_it->second->readOnly ? "RO" : "UP" ;
-		llog( "-", "            Pool " << setw(8) << sp_it->first << "  use count: " << setw(4) << sp_it->second->refCount <<
+		llog( "-", "            Pool " << setw(8) << sp_it->first <<
+			  "  use count: " << setw(4) << sp_it->second->refCount <<
 			  "  " << Mode << "  entries: " << setw(5) << sp_it->second->POOL.size() << endl ) ;
 	}
 	llog( "-", "" << endl ) ;
 	llog( "-", "         Profile pool details:" << endl ) ;
 
-	for ( pp_it = POOLs_profile.begin() ; pp_it != POOLs_profile.end() ; pp_it++ )
+	for ( auto pp_it = POOLs_profile.begin() ; pp_it != POOLs_profile.end() ; pp_it++ )
 	{
 		Mode = pp_it->second->readOnly ? Mode = "RO" : Mode = "UP" ;
 		llog( "-", "            Pool " << setw(8) << pp_it->first << "  use count: " << setw(4) << pp_it->second->refCount <<
 			  "  " << Mode << "  entries: " << setw(5) << pp_it->second->POOL.size() << "  path: " << pp_it->second->path << endl ) ;
+	}
+
+	llog( "-", "" << endl ) ;
+	llog( "-", "         Connected Tasks:" << endl ) ;
+	for ( auto it = task_table.begin() ; it != task_table.end() ; it++ )
+	{
+		llog( "-", "            Id   " << setw(5) << it->first <<
+		      " Profile: " << setw(4) << it->second.first <<
+		      "  Shared: " << d2ds( it->second.second, 8 ) << endl) ;
 	}
 	llog( "-", "*************************************************************************************************************" << endl ) ;
 }
@@ -1198,6 +1222,8 @@ void poolMGR::snap()
 	map<string, pVPOOL*>::iterator sp_it ;
 	map<string, pVPOOL*>::iterator pp_it ;
 	map<string, pVAR*>::iterator v_it    ;
+
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
 
 	llog( "-", "Pool Variables:" << endl ) ;
 	llog( "-", "         Shared pool details:" << endl ) ;
@@ -1230,38 +1256,8 @@ void poolMGR::snap()
 }
 
 
-void poolMGR::setApplid( errblock& err,
-			 const string& m_Applid )
-{
-	err.setRC( 0 ) ;
-
-	if ( !isvalidName4( m_Applid ) )
-	{
-		err.seterror() ;
-		llog( "C", "Invalid APPLID name format passed to pool manager '"<< m_Applid <<"'" << endl ) ;
-		return  ;
-	}
-
-	currApplid = m_Applid ;
-}
-
-
-void poolMGR::setShrdPool( errblock& err,
-			   const string& m_shrdPool )
-{
-	err.setRC( 0 ) ;
-
-	if ( POOLs_shared.count( m_shrdPool ) == 0 )
-	{
-		err.seterror() ;
-		llog( "C", "poolMGR cannot find pool "+ m_shrdPool +".  Pool must be created before setting pool name" << endl ) ;
-		return  ;
-	}
-	shrdPool = m_shrdPool ;
-}
-
-
-const string& poolMGR::vlist( int& RC,
+const string& poolMGR::vlist( errblock& err,
+			      int& RC,
 			      poolType pType,
 			      int lvl )
 {
@@ -1271,13 +1267,27 @@ const string& poolMGR::vlist( int& RC,
 	RC      = 0  ;
 	varList = "" ;
 
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
+
+	setPools( err ) ;
+	if ( _applid == "" )
+	{
+		llog( "E", "Logic error.  _applid is null for vlist"<< endl ) ;
+		return varList;
+	}
+	if ( _shared == 0 )
+	{
+		llog( "E", "Logic error.  _shared is null for vlist"<< endl ) ;
+		return varList;
+	}
+
 	switch( pType )
 	{
 	case SHARED:
 		switch ( lvl )
 		{
 		case 1:
-			p_it = POOLs_shared.find( shrdPool ) ;
+			p_it = POOLs_shared.find( d2ds( _shared, 8 ) ) ;
 			break ;
 		case 2:
 			p_it = POOLs_shared.find( "@DEFSHAR" ) ;
@@ -1291,7 +1301,7 @@ const string& poolMGR::vlist( int& RC,
 		switch ( lvl )
 		{
 		case 1:
-			p_it = POOLs_profile.find( currApplid ) ;
+			p_it = POOLs_profile.find( _applid ) ;
 			break ;
 		case 2:
 			p_it = POOLs_profile.find( "@ROXPROF" ) ;
@@ -1318,7 +1328,34 @@ const string& poolMGR::vlist( int& RC,
 	{
 		varList += " " + v_it->first ;
 	}
+
 	return varList ;
+}
+
+
+void poolMGR::sysput( errblock& err,
+		      const string& name,
+		      const string& value,
+		      poolType pType )
+{
+	// Put variables to the profile ISPF pool or @DEFSHAR shared pool
+	// These calls are not associated with an application
+
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
+
+	switch ( pType )
+	{
+		case SHARED:
+			POOLs_shared[ "@DEFSHAR" ]->put( err, name, value, SYSTEM ) ;
+			break ;
+
+		case PROFILE:
+			POOLs_profile[ "ISPS" ]->put( err, name, value, SYSTEM ) ;
+			break ;
+
+		default:
+			err.seterrid( "PSYE017D" ) ;
+	}
 }
 
 
@@ -1328,7 +1365,7 @@ void poolMGR::put( errblock& err,
 		   poolType pType,
 		   vTYPE vtype )
 {
-	// Pool search order:  ASIS - SHARED then PROFILE
+	// Pool search order:  ASIS, SHARED then PROFILE
 	// RC = 0  variable put okay
 	// RC = 12 variable not put as in read-only status
 	// RC = 20 severe error
@@ -1349,44 +1386,57 @@ void poolMGR::put( errblock& err,
 		return ;
 	}
 
-	sp_it = POOLs_shared.find( shrdPool ) ;
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
+
+	setPools( err ) ;
+	if ( _applid == "" )
+	{
+		llog( "E", "Logic error.  _applid is null for put "<<name<< endl ) ;
+		return ;
+	}
+	if ( _shared == 0 )
+	{
+		llog( "E", "Logic error.  _shared is null for put "<<name<< endl ) ;
+		return ;
+	}
+
+	sp_it = POOLs_shared.find( d2ds( _shared, 8 ) ) ;
 	if ( sp_it == POOLs_shared.end() )
 	{
-		err.seterrid( "PSYE017E", shrdPool ) ;
-		return ;
+		err.seterrid( "PSYE017E", _shared ) ;
+		return   ;
 	}
 
 	switch( pType )
 	{
 	case ASIS:
-		locateSubPool( err, p_it, v_it, name, SHARED ) ;
+		locateSubPool( err, p_it, v_it, _shared, name ) ;
 		if      ( err.RC0() ) { p_it->second->put( err, v_it, value, vtype ) ; }
 		else if ( err.RC8() )
 		{
-			locateSubPool( err, p_it, v_it, name, PROFILE ) ;
+			locateSubPool( err, p_it, v_it, _applid, name ) ;
 			if      ( err.RC0() ) {  p_it->second->put( err, v_it, value, vtype ) ; }
 			else if ( err.RC8() ) { sp_it->second->put( err, name, value, vtype ) ; }
 		}
 		break ;
 
 	case SHARED:
-		locateSubPool( err, p_it, v_it, name, SHARED ) ;
+		locateSubPool( err, p_it, v_it, _shared, name ) ;
 		if      ( err.RC0() ) {  p_it->second->put( err, v_it, value, vtype ) ; }
 		else if ( err.RC8() ) { sp_it->second->put( err, name, value, vtype ) ; }
 		break ;
 
 	case PROFILE:
-		pp_it = POOLs_profile.find( currApplid ) ;
-		locateSubPool( err, p_it, v_it, name, PROFILE ) ;
+		pp_it = POOLs_profile.find( _applid ) ;
+		locateSubPool( err, p_it, v_it, _applid, name ) ;
 		if      ( err.RC0() ) {  p_it->second->put( err, v_it, value, vtype ) ; }
 		else if ( err.RC8() ) { pp_it->second->put( err, name, value, vtype ) ; }
-		locateSubPool( err2, p_it, v_it, name, SHARED ) ;
+		locateSubPool( err2, p_it, v_it, _shared, name ) ;
 		if ( err2.RC0() )     {  p_it->second->erase( err, v_it ) ; }
 		break ;
 
 	default:
 		err.seterrid( "PSYE017C" ) ;
-		return  ;
 	}
 }
 
@@ -1399,11 +1449,11 @@ void poolMGR::put( errblock& err,
 	// Set a variable from the logical-screen pool
 	// Pool is created on first access
 
-	map<int, pVPOOL*>::iterator it ;
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
 
 	err.setRC( 0 ) ;
 
-	it = POOLs_lscreen.find( ls ) ;
+	auto it = POOLs_lscreen.find( ls ) ;
 	if ( it == POOLs_lscreen.end() )
 	{
 		createPool( ls ) ;
@@ -1411,6 +1461,39 @@ void poolMGR::put( errblock& err,
 	}
 
 	it->second->put( err, name, value, USER ) ;
+}
+
+
+string poolMGR::sysget( errblock& err,
+			const string& name,
+			poolType pType )
+{
+	// Get variables from the profile ISPF pool or @DEFSHAR shared pool
+	// These calls are not associated with an application
+
+	map<string, pVPOOL*>::iterator p_it ;
+	map<string, pVAR*>::iterator v_it   ;
+
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
+
+	switch ( pType )
+	{
+		case SHARED:
+			p_it = POOLs_shared.find( "@DEFSHAR" ) ;
+			break ;
+
+		case PROFILE:
+			p_it = POOLs_profile.find( "ISPS" ) ;
+			break ;
+
+		default:
+			err.seterrid( "PSYE017D" ) ;
+			return "" ;
+	}
+
+	v_it = p_it->second->POOL.find( name ) ;
+
+	return p_it->second->get( err, v_it ) ;
 }
 
 
@@ -1436,33 +1519,48 @@ string poolMGR::get( errblock& err,
 		return "" ;
 	}
 
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
+
+	setPools( err ) ;
+	if ( _applid == "" )
+	{
+		llog( "E", "Logic error.  _applid is null for get "<<name<< endl ) ;
+		return "";
+	}
+	if ( _shared == 0 )
+	{
+		llog( "E", "Logic error.  _shared is null for get "<<name<< endl ) ;
+		return "";
+	}
+
 	switch ( pType )
 	{
 	case ASIS:
-		locateSubPool( err, p_it, v_it, name, SHARED ) ;
+		locateSubPool( err, p_it, v_it, _shared, name ) ;
 		if      ( err.RC0() ) { return p_it->second->get( err, v_it ) ; }
 		else if ( err.RC8() )
 		{
-			locateSubPool( err, p_it, v_it, name, PROFILE ) ;
+			locateSubPool( err, p_it, v_it, _applid, name ) ;
 			if ( err.RC0() ) { return p_it->second->get( err, v_it ) ; }
 		}
 		break ;
 
 	case PROFILE:
-		locateSubPool( err2, p_it, v_it, name, SHARED ) ;
+		locateSubPool( err2, p_it, v_it, _shared, name ) ;
 		if ( err2.RC0() ) { p_it->second->erase( err, v_it ) ; }
-		locateSubPool( err, p_it, v_it, name, PROFILE ) ;
+		locateSubPool( err, p_it, v_it, _applid, name ) ;
 		if ( err.RC0() ) { return p_it->second->get( err, v_it ) ; }
 		break ;
 
 	case SHARED:
-		locateSubPool( err, p_it, v_it, name, SHARED ) ;
+		locateSubPool( err, p_it, v_it, _shared, name ) ;
 		if ( err.RC0() ) { return p_it->second->get( err, v_it ) ; }
 		break ;
 
 	default:
 		err.seterrid( "PSYE017C" ) ;
 	}
+
 	return "" ;
 }
 
@@ -1474,19 +1572,18 @@ string poolMGR::get( errblock& err,
 	// Retrieve a variable from the logical-screen pool
 	// Pool is created on first access
 
-	map<int, pVPOOL*>::iterator  p_it ;
-	map<string, pVAR*>::iterator v_it ;
-
 	err.setRC( 0 ) ;
 
-	p_it = POOLs_lscreen.find( ls ) ;
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
+
+	auto p_it = POOLs_lscreen.find( ls ) ;
 	if ( p_it == POOLs_lscreen.end() )
 	{
 		createPool( ls ) ;
 		p_it = POOLs_lscreen.find( ls ) ;
 	}
 
-	v_it = p_it->second->POOL.find( name ) ;
+	auto v_it = p_it->second->POOL.find( name ) ;
 	if ( v_it == p_it->second->POOL.end() )
 	{
 		return "" ;
@@ -1516,31 +1613,46 @@ string * poolMGR::vlocate( errblock& err,
 		return NULL ;
 	}
 
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
+
+	setPools( err ) ;
+	if ( _applid == "" )
+	{
+		llog( "E", "Logic error.  _applid is null for vlocate "<<name<< endl ) ;
+		return NULL ;
+	}
+	if ( _shared == 0 )
+	{
+		llog( "E", "Logic error.  _shared is null for vlocate "<<name<< endl ) ;
+		return NULL;
+	}
+
 	switch ( pType )
 	{
 	case ASIS:
-		locateSubPool( err, p_it, v_it, name, SHARED ) ;
+		locateSubPool( err, p_it, v_it, _shared, name ) ;
 		if      ( err.RC0() ) { return p_it->second->vlocate( err, v_it ) ; }
 		else if ( err.RC8() )
 		{
-			locateSubPool( err, p_it, v_it, name, PROFILE ) ;
+			locateSubPool( err, p_it, v_it, _applid, name ) ;
 			if ( err.RC0() ) { return p_it->second->vlocate( err, v_it ) ; }
 		}
 		break ;
 
 	case PROFILE:
-		locateSubPool( err, p_it, v_it, name, PROFILE ) ;
+		locateSubPool( err, p_it, v_it, _applid, name ) ;
 		if ( err.RC0() ) { return p_it->second->vlocate( err, v_it ) ; }
 		break ;
 
 	case SHARED:
-		locateSubPool( err, p_it, v_it, name, SHARED ) ;
+		locateSubPool( err, p_it, v_it, _shared, name ) ;
 		if ( err.RC0() ) { return p_it->second->vlocate( err, v_it ) ; }
 		break ;
 
 	default:
 		err.seterrid( "PSYE017C" ) ;
 	}
+
 	return NULL ;
 }
 
@@ -1568,39 +1680,53 @@ void poolMGR::erase( errblock& err,
 		return ;
 	}
 
-	sp_it = POOLs_shared.find( shrdPool ) ;
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
+
+	setPools( err ) ;
+	if ( _applid == "" )
+	{
+		llog( "E", "Logic error.  _applid is null for erase "<<name<< endl ) ;
+		return ;
+	}
+	if ( _shared == 0 )
+	{
+		llog( "E", "Logic error.  _shared is null for erase "<<name<< endl ) ;
+		return ;
+	}
+
+	sp_it = POOLs_shared.find( d2ds( _shared, 8 ) ) ;
 	if ( sp_it == POOLs_shared.end() )
 	{
-		err.seterrid( "PSYE017A", shrdPool ) ;
-		return  ;
+		err.seterrid( "PSYE017A", _shared ) ;
+		return ;
 	}
 
 	switch( pType )
 	{
 	case ASIS:
-		locateSubPool( err, p_it, v_it, name, SHARED ) ;
+		locateSubPool( err, p_it, v_it, _shared, name ) ;
 		if ( err.RC0() ) { p_it->second->erase( err, v_it ) ; }
 		else if ( err.RC8() )
 		{
-			locateSubPool( err, p_it, v_it, name, PROFILE ) ;
+			locateSubPool( err, p_it, v_it, _applid, name ) ;
 			if ( err.RC0() ) { p_it->second->erase( err, v_it ) ; }
 		}
 		break ;
 
 	case PROFILE:
-		locateSubPool( err, p_it, v_it, name, PROFILE ) ;
+		locateSubPool( err, p_it, v_it, _applid, name ) ;
 		if ( err.RC0() ) { p_it->second->erase( err, v_it ) ; }
 		break ;
 
 	case SHARED:
-		locateSubPool( err, p_it, v_it, name, SHARED ) ;
+		locateSubPool( err, p_it, v_it, _shared, name ) ;
 		if ( err.RC0() ) { p_it->second->erase( err, v_it ) ; }
 		break ;
 
 	case BOTH:
-		locateSubPool( err, p_it, v_it, name, SHARED ) ;
+		locateSubPool( err, p_it, v_it, _shared, name ) ;
 		if ( err.RC0() ) { p_it->second->erase( err, v_it ) ; }
-		locateSubPool( err, p_it, v_it, name, PROFILE ) ;
+		locateSubPool( err, p_it, v_it, _applid, name ) ;
 		if ( err.RC0() ) { p_it->second->erase( err, v_it ) ; }
 		break ;
 	}
@@ -1610,55 +1736,60 @@ void poolMGR::erase( errblock& err,
 void poolMGR::locateSubPool( errblock& err,
 			     map<string, pVPOOL*>::iterator& p_it,
 			     map<string, pVAR*>::iterator& v_it,
-			     const string& name,
-			     poolType pType )
+			     const string& pool,
+			     const string& name )
 {
-	// Locate the variable name in a sub-pool.
+	// Locate the variable name in a profile sub-pool.
+	// RC = 0 variable found.  Pool iterator p_it and variable iterator v_it, will be valid on return
+	// RC = 8 if variable not found
+
+	// Sub-Pool search order
+	// PROFILE: APPLID, @ROXPROF @DEFPROF ISPS
+
+	err.setRC( 0 ) ;
+
+	p_it = POOLs_profile.find( pool ) ;
+	v_it = p_it->second->POOL.find( name ) ;
+	if ( v_it == p_it->second->POOL.end() )
+	{
+		p_it = POOLs_profile.find( "@ROXPROF" ) ;
+		v_it = p_it->second->POOL.find( name ) ;
+		if ( v_it == p_it->second->POOL.end() )
+		{
+			p_it = POOLs_profile.find( "@DEFPROF" ) ;
+			v_it = p_it->second->POOL.find( name ) ;
+			if ( v_it == p_it->second->POOL.end() )
+			{
+				p_it = POOLs_profile.find( "ISPS" ) ;
+				v_it = p_it->second->POOL.find( name ) ;
+				if ( v_it == p_it->second->POOL.end() ) { err.setRC( 8 ) ; }
+			}
+		}
+	}
+}
+
+
+void poolMGR::locateSubPool( errblock& err,
+			     map<string, pVPOOL*>::iterator& p_it,
+			     map<string, pVAR*>::iterator& v_it,
+			     int pool,
+			     const string& name )
+{
+	// Locate the variable name in the shared pool sub-pool.
 	// RC = 0 variable found.  Pool iterator p_it and variable iterator v_it, will be valid on return
 	// RC = 8 if variable not found
 
 	// Sub-Pool search order
 	// SHARED:  CURRENT @DEFSHAR
-	// PROFILE: APPLID, @ROXPROF @DEFPROF ISPS
 
 	err.setRC( 0 ) ;
 
-	switch ( pType )
+	p_it = POOLs_shared.find( d2ds( pool, 8 ) ) ;
+	v_it = p_it->second->POOL.find( name ) ;
+	if ( v_it == p_it->second->POOL.end() )
 	{
-	case PROFILE:
-		p_it = POOLs_profile.find( currApplid ) ;
-		v_it = p_it->second->POOL.find( name ) ;
-		if ( v_it == p_it->second->POOL.end() )
-		{
-			p_it = POOLs_profile.find( "@ROXPROF" ) ;
-			v_it = p_it->second->POOL.find( name ) ;
-			if ( v_it == p_it->second->POOL.end() )
-			{
-				p_it = POOLs_profile.find( "@DEFPROF" ) ;
-				v_it = p_it->second->POOL.find( name ) ;
-				if ( v_it == p_it->second->POOL.end() )
-				{
-					p_it = POOLs_profile.find( "ISPS" ) ;
-					v_it = p_it->second->POOL.find( name ) ;
-					if ( v_it == p_it->second->POOL.end() ) { err.setRC( 8 ) ; }
-				}
-			}
-		}
-		break ;
-
-	case SHARED:
-		p_it = POOLs_shared.find( shrdPool ) ;
-		v_it = p_it->second->POOL.find( name ) ;
-		if ( v_it == p_it->second->POOL.end() )
-		{
-			p_it = POOLs_shared.find( "@DEFSHAR" ) ;
-			v_it = p_it->second->POOL.find( name )  ;
-			if ( v_it == p_it->second->POOL.end() ) { err.setRC( 8 ) ; }
-		}
-		break ;
-
-	default:
-		err.seterrid( "PSYE017B" ) ;
+		p_it = POOLs_shared.find( "@DEFSHAR" ) ;
+		v_it = p_it->second->POOL.find( name )  ;
+		if ( v_it == p_it->second->POOL.end() ) { err.setRC( 8 ) ; }
 	}
-	return ;
 }

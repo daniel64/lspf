@@ -38,6 +38,7 @@ pApplication::pApplication()
 	addpop_active          = false  ;
 	addpop_row             = 0      ;
 	addpop_col             = 0      ;
+	background             = false  ;
 	noTimeOut              = false  ;
 	busyAppl               = true   ;
 	terminateAppl          = false  ;
@@ -218,13 +219,7 @@ string pApplication::get_current_panelDescr()
 
 string pApplication::get_current_screenName()
 {
-	// This is called from lspf thread, so we need to set the correct shared pool for this
-	// application thread when getting ZSCRNAME.  Must be set back after this call in lspf
-
-	errblock err ;
-
-	p_poolMGR->setShrdPool( err, shrdPool ) ;
-	return p_poolMGR->get( err, "ZSCRNAME", SHARED ) ;
+	return p_poolMGR->get( errBlock, "ZSCRNAME", SHARED ) ;
 }
 
 
@@ -256,9 +251,7 @@ void pApplication::msgResponseOK()
 
 void pApplication::store_scrname()
 {
-	errblock err ;
-
-	ZSCRNAME = p_poolMGR->get( err, "ZSCRNAME", SHARED ) ;
+	ZSCRNAME = p_poolMGR->get( errBlock, "ZSCRNAME", SHARED ) ;
 }
 
 
@@ -279,26 +272,24 @@ void pApplication::restore_Zvars( int screenid )
 {
 	// Restore various variables after application has terminated
 
-	errblock err ;
-
 	if ( currPanel )
 	{
-		currPanel->update_keylist_vars() ;
-		p_poolMGR->put( err, "ZPRIM", currPanel->get_zprim(), SHARED ) ;
+		currPanel->update_keylist_vars( errBlock ) ;
+		p_poolMGR->put( errBlock, "ZPRIM", currPanel->get_zprim(), SHARED ) ;
 	}
 
-	if ( p_poolMGR->get( err, screenid, "ZSCRNAM2" ) == "PERM" )
+	if ( p_poolMGR->get( errBlock, screenid, "ZSCRNAM2" ) == "PERM" )
 	{
-		ZSCRNAME = p_poolMGR->get( err, screenid, "ZSCRNAME" ) ;
+		ZSCRNAME = p_poolMGR->get( errBlock, screenid, "ZSCRNAME" ) ;
 	}
 
-	p_poolMGR->put( err, "ZSCRNAME", ZSCRNAME, SHARED ) ;
+	p_poolMGR->put( errBlock, "ZSCRNAME", ZSCRNAME, SHARED ) ;
 }
 
 
 void pApplication::display_id()
 {
-	if ( currPanel ) { currPanel->display_id() ; }
+	if ( currPanel ) { currPanel->display_id( errBlock ) ; }
 }
 
 
@@ -313,7 +304,7 @@ void pApplication::set_msg( const string& msg_id )
 	{
 		currPanel->clear_msg_loc() ;
 		currPanel->set_panel_msg( MSG, MSGID ) ;
-		currPanel->display_msg()   ;
+		currPanel->display_msg( errBlock )     ;
 	}
 }
 
@@ -332,7 +323,7 @@ void pApplication::set_msg1( const slmsg& t, string msgid, bool Immed )
 	if ( Immed && currPanel )
 	{
 		currPanel->set_panel_msg( MSG1, MSGID1 ) ;
-		currPanel->display_msg() ;
+		currPanel->display_msg( errBlock ) ;
 		setMSG = false ;
 	}
 }
@@ -1359,7 +1350,7 @@ void pApplication::verase( const string& names, poolType pType )
 
 const string& pApplication::vlist( poolType pType, int lvl )
 {
-	return p_poolMGR->vlist( RC, pType, lvl ) ;
+	return p_poolMGR->vlist( errBlock, RC, pType, lvl ) ;
 }
 
 
@@ -2134,7 +2125,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 				return ;
 			}
 		}
-		if ( p_msg == "" && currPanel->tb_get_lineChanged( ln, URID ) )
+		if ( p_msg == "" && currPanel->tb_get_lineChanged( errBlock, ln, URID ) )
 		{
 			currPanel->tb_remove_lineChanged() ;
 		}
@@ -2238,7 +2229,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 				checkRCode( errBlock ) ;
 				return ;
 			}
-			currPanel->tb_set_linesChanged( asURID ) ;
+			currPanel->tb_set_linesChanged( errBlock, asURID ) ;
 		}
 
 		exitRC = 0  ;
@@ -2251,7 +2242,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		{
 			ZCURINX = 0 ;
 		}
-		if ( currPanel->tb_get_lineChanged( ln, URID ) )
+		if ( currPanel->tb_get_lineChanged( errBlock, ln, URID ) )
 		{
 			tbskip( tb_name, 0, "", p_rowid_nm, URID, "", p_crp_name ) ;
 			for ( ws = words( currPanel->tb_fields ), i = 1 ; i <= ws ; i++ )
@@ -2292,7 +2283,6 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 			if ( p_name == "" )
 			{
 				p_name    = currPanel->panelid ;
-				currPanel = currPanel ;
 				panelid   = p_name      ;
 				p_poolMGR->put( errBlock, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 			}
@@ -3532,7 +3522,7 @@ void pApplication::info()
 	llog( "-", "*************************************************************************************************************" << endl ) ;
 	llog( "-", "Application Information for "<< ZAPPNAME << endl ) ;
 	llog( "-", "                   Task ID: "<< taskId << endl ) ;
-	llog( "-", "          Shared Pool Name: "<< shrdPool << endl ) ;
+	llog( "-", "          Shared Pool Name: "<< d2ds( shrdPool, 8 ) << endl ) ;
 	llog( "-", "         Profile Pool Name: "<< ZZAPPLID << endl ) ;
 	llog( "-", " " << endl ) ;
 	llog( "-", "Application Description . : "<< ZAPPDESC << endl ) ;
@@ -3595,9 +3585,7 @@ void pApplication::info()
 
 void pApplication::closeTables()
 {
-	set<string>::iterator it;
-
-	for ( it = tablesOpen.begin() ; it != tablesOpen.end() ; it++ )
+	for ( auto it = tablesOpen.begin() ; it != tablesOpen.end() ; it++ )
 	{
 		debug1( "Closing table " << *it << endl ) ;
 		p_tableMGR->destroyTable( errBlock, *it ) ;
@@ -3688,7 +3676,7 @@ void pApplication::checkRCode( errblock err )
 
 	if ( err.abending() )
 	{
-		llog( "E", "Errors have occured during error processing.  Terminating application." << endl ) ;
+		llog( "E", "Errors have occured during error processing.  Terminating application."<<endl ) ;
 		llog( "E", "Error msg  : "<< err.msg1 << endl )  ;
 		llog( "E", "Error RC   : "<< err.getRC() << endl ) ;
 		llog( "E", "Error id   : "<< err.msgid << endl ) ;
@@ -3772,11 +3760,18 @@ void pApplication::cleanup_default()
 
 void pApplication::cleanup()
 {
-	llog( "I", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskId << endl ) ;
 	terminateAppl = true  ;
 	busyAppl      = false ;
-	llog( "I", "Returning to calling program." << endl ) ;
-	return ;
+	if ( background )
+	{
+		llog( "I", "Shutting down background application: " + ZAPPNAME +" Taskid: " << taskId << endl ) ;
+		p_poolMGR->disconnect( taskid() ) ;
+	}
+	else
+	{
+		llog( "I", "Shutting down application: " + ZAPPNAME +" Taskid: " << taskId << endl ) ;
+		llog( "I", "Returning to calling program." << endl ) ;
+	}
 }
 
 

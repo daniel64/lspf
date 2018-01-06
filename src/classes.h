@@ -108,7 +108,7 @@ class token
 			type    = TT_OTHER ;
 			subtype = TS_NONE  ;
 		}
-		token( TOKEN_TYPES tt )
+		explicit token( TOKEN_TYPES tt )
 		{
 			value   = ""       ;
 			type    = tt       ;
@@ -392,7 +392,7 @@ class tbsearch
 			tbs_size  = 0     ;
 		} ;
 
-		tbsearch( const string& val )
+		explicit tbsearch( const string& val )
 		{
 			tbs_cond  = s_EQ  ;
 			tbs_scond = "EQ"  ;
@@ -459,7 +459,7 @@ class fieldExc
 class panel_data
 {
 	public:
-		panel_data( int x )
+		explicit panel_data( int x )
 		{
 			screenId = x ;
 		}
@@ -595,5 +595,3 @@ class logger
 	ofstream of ;
 	boost::mutex mtx ;
 } ;
-
-

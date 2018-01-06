@@ -24,6 +24,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/condition.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/recursive_mutex.hpp>
 #include <set>
 
 // #define DEBUG1 1
@@ -161,6 +162,7 @@ using namespace boost::posix_time;
 #define U_MAGENTA       26
 #define U_TURQ          27
 #define U_WHITE         28
+#define P_FE            254
 #define P_FF            255
 
 struct lspfCommand
@@ -546,6 +548,10 @@ class errblock
 	bool ServiceCall()
 	{
 		return sCall ;
+	}
+	void settask( int i )
+	{
+		taskid = i ;
 	}
 } ;
 

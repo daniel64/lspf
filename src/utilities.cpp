@@ -949,6 +949,16 @@ string& iupper( string& s )
 
 
 
+char& iupper( char& c )
+{
+	// Convert to upper case in-place
+
+	c = toupper( c ) ;
+	return c ;
+}
+
+
+
 string& ilower( string& s )
 {
 	// Convert to lower case in-place
@@ -958,6 +968,16 @@ string& ilower( string& s )
 		s[ i ] = tolower( s[ i ] ) ;
 	}
 	return s ;
+}
+
+
+
+char& ilower( char& c )
+{
+	// Convert to lower case in-place
+
+	c = tolower( c ) ;
+	return c ;
 }
 
 

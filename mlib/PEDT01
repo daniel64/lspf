@@ -21,10 +21,10 @@ PEDT016 'Label missing or invalid' .TYPE=W
 'Enter both labels to delimit command.  Both labels must already exist'
 
 PEDT017 'No More UNDO''s' .TYPE=W
-'All changes in the UNDO stack have been undone'
+'All changes on the UNDO stack have been undone'
 
 PEDT018 'No REDO''s available' .TYPE=W
-'All changes in the REDO stack have been redone or data has been changed since last undo'
+'All changes on the REDO stack have been redone or data has been changed since last undo'
 
 PEDT019 'Too many columns specified' .TYPE=W
 'There appears to be more than two column delimiters specified.  Put string in quotes'
@@ -54,7 +54,7 @@ PEDT011H 'No End Quote' .TYPE=W
 'Start quote but no end quote specified'
 
 PEDT011I 'Invalid Quoted String' .TYPE=W
-'Valid types of quoted string are T, C, X and P'
+'Valid types of quoted string are T, C, X, P, R and RC for FIND, and T, C, X and P for CHANGE'
 
 PEDT011J 'Column Out Of Range' .TYPE=W
 'Entered column value cannot be less that 1 or greater than 65,535'
@@ -354,7 +354,7 @@ PEDT015W 'Invalid return code from &ZVAL1' .TYPE=W
 ''
 
 PEDT015X 'Invalid ''to'' picture string' .T=W
-'Special character not allowed in a ''to'' picture string'
+'Special characters not allowed in a ''to'' picture string'
 
 PEDT015Y 'Invalid ''to'' picture string' .T=W
 'The ''to'' picture string must be the same length as the ''from'' string'

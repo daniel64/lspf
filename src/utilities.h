@@ -114,7 +114,9 @@ bool   findword( const string& s1, const string& s2 )  ;
 int    countc( const string& s, char c )       ;
 
 string& iupper( string& s ) ;
+char&   iupper( char& c   ) ;
 string& ilower( string& s ) ;
+char&   ilower( char& c ) ;
 string  upper( string s ) ;
 string  lower( string s ) ;
 

@@ -32,17 +32,16 @@ class pPanel
 
 		void   init( errblock& err ) ;
 
-		void   field_edit( uint row, uint col, char ch, bool Istr, bool& prot ) ;
-		void   field_delete_char( uint row, uint col, bool& prot ) ;
-		void   field_backspace( uint& row, uint& col, bool& prot ) ;
-		void   field_erase_eof( uint row, uint col, bool& prot )   ;
+		void   field_edit( errblock&, uint row, uint col, char ch, bool Istr, bool& prot ) ;
+		void   field_delete_char( errblock&, uint row, uint col, bool& prot ) ;
+		void   field_backspace( errblock&, uint& row, uint& col, bool& prot ) ;
+		void   field_erase_eof( errblock&, uint row, uint col, bool& prot )   ;
 		void   field_tab_down( uint& row, uint& col ) ;
 		void   field_tab_next( uint& row, uint& col ) ;
-		void   field_clear( const string& field )     ;
 		string& field_getvalue( const string& field ) ;
 		bool   field_valid( const string& field ) ;
 		fieldExc field_getexec( const string& )   ;
-		void   field_setvalue( const string& field, const string& value ) ;
+		void   field_setvalue( errblock&, const string& field, const string& value ) ;
 		string field_getname( uint row, uint col ) ;
 		bool   field_get_row_col( const string& fld, uint& row, uint& col ) ;
 
@@ -61,18 +60,18 @@ class pPanel
 		void   hide_pd()          ;
 		void   remove_pd()        ;
 		void   display_next_pd()  ;
-		void   display_msg()      ;
+		void   display_msg( errblock& ) ;
 		pdc    retrieve_pdChoice( int row, int col ) ;
 		void   toggle_fscreen( bool, int, int ) ;
 
 		void   display_panel( errblock& ) ;
-		void   redraw_fields()   ;
+		void   redraw_fields( errblock& ) ;
 		void   refresh()         ;
-		void   refresh_fields()  ;
-		void   refresh_fields( const string& ) ;
+		void   refresh_fields( errblock& ) ;
+		void   refresh_fields( errblock&, const string& ) ;
 
 		string& cmd_getvalue()                  ;
-		void    cmd_setvalue( const string& v ) ;
+		void    cmd_setvalue( errblock&, const string& ) ;
 
 		bool    get_tbscan()                   { return tb_scan  ; }
 		string& get_tb_clear()                 { return tb_clear ; }
@@ -184,7 +183,7 @@ class pPanel
 		void   display_panel_reinit( errblock&, int ln=0 ) ;
 		void   display_panel_proc( errblock&, int ln )     ;
 
-		void   display_id() ;
+		void   display_id( errblock& ) ;
 
 		void   set_cursor( const string&, int ) ;
 		string get_cursor() ;
@@ -211,8 +210,8 @@ class pPanel
 		int    tb_get_csrrow()          { return tb_csrrow  ; }
 		void   tb_set_autosel( bool b ) { tb_autosel = b    ; }
 		bool   tb_is_autosel()          { return tb_autosel ; }
-		void   tb_set_linesChanged( string& )      ;
-		bool   tb_get_lineChanged( int&, string& ) ;
+		void   tb_set_linesChanged( errblock&, string& ) ;
+		bool   tb_get_lineChanged( errblock&, int&, string& ) ;
 		void   tb_clear_linesChanged( errblock& )  ;
 		void   tb_remove_lineChanged() ;
 
@@ -232,7 +231,7 @@ class pPanel
 
 		void   resetAttrs() ;
 
-		void   syncDialogueVar( const string& ) ;
+		void   syncDialogueVar( errblock&, const string& ) ;
 		string getDialogueVar( errblock&, const string& )   ;
 		void   putDialogueVar( errblock&, const string&, const string& ) ;
 		string getControlVar( errblock&, const string& ) ;
@@ -244,8 +243,8 @@ class pPanel
 
 		void   display_boxes()  ;
 
-		void   display_tb_mark_posn() ;
-		void   set_tb_fields_act_inact() ;
+		void   display_tb_mark_posn( errblock& )    ;
+		void   set_tb_fields_act_inact( errblock& ) ;
 
 		string sub_vars( string s ) ;
 
@@ -269,7 +268,7 @@ class pPanel
 
 		void   display_literals() ;
 		void   display_ab()       ;
-		void   display_fields()   ;
+		void   display_fields( errblock& ) ;
 
 		void   process_panel_stmnts( errblock& err, int ln, vector<panstmnt* >& stmnts ) ;
 		void   process_panel_assignment( errblock& err, int ln, ASSGN* assgn ) ;
@@ -283,7 +282,7 @@ class pPanel
 		void   get_msgwin( string, int&, int&, int&, int&, vector<string>& ) ;
 		void   panel_cleanup( PANEL * ) ;
 
-		void   update_keylist_vars() ;
+		void   update_keylist_vars( errblock& ) ;
 
 		friend class pApplication ;
 } ;

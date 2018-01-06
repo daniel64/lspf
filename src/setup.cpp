@@ -1,5 +1,5 @@
-/*  Compile with ::                                                              */
-/* g++ -rdynamic -std=c++11 -lboost_filesystem -lboost_system -o setup setup.cpp */
+/* Compile with ::                                                                         */
+/* g++ -rdynamic -std=c++11 -lboost_filesystem -lboost_system -lpthread -o setup setup.cpp */
 
 /*
   Copyright (c) 2015 Daniel John Erdos
@@ -404,10 +404,11 @@ void createSYSPROF()
 	string p ;
 
 	errblock err ;
+	err.settask( 1 ) ;
 
-	p_poolMGR->setApplid( err, "ISPS" )  ;
-	p_poolMGR->createPool( err, SHARED ) ;
-	p_poolMGR->createPool( err, PROFILE, ZSPROF ) ;
+	p_poolMGR->createSharedPool() ;
+	p_poolMGR->createProfilePool( err, "ISPS", ZSPROF ) ;
+	p_poolMGR->connect( 1, "ISPS", 1 ) ;
 
 	p_poolMGR->put( err, "ZSPROF", ZSPROF, PROFILE ) ;
 	p_poolMGR->put( err, "ZUPROF", ZUPROF, PROFILE ) ;
@@ -519,8 +520,7 @@ void createSYSPROF()
 
 	p_poolMGR->statistics() ;
 	p_poolMGR->snap() ;
-
-	p_poolMGR->destroyPool( err, PROFILE  ) ;
+	p_poolMGR->disconnect( 1 ) ;
 	if ( err.RC0() )
 	{
 		cout << "SYSTEM profile ISPSPROF created successfully in " << ZSPROF << endl ;
@@ -530,6 +530,7 @@ void createSYSPROF()
 		cout << "ERROR saving profile ISPSPROF in "<< ZSPROF <<"  RC="<< err.getRC() << endl ;
 		cout << "Message is " << err.msgid << endl ;
 	}
+
 	cout << "*******************************************************************************************" << endl ;
 	cout << endl ;
 }
@@ -539,6 +540,7 @@ void setCUAcolours( const string& var, const string& val )
 	string var1 ;
 
 	errblock err ;
+	err.settask( 1 ) ;
 
 	var1 = "ZC" + var ;
 

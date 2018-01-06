@@ -205,6 +205,8 @@ string pPanel::getDialogueVar( errblock& err, const string& var )
 	string * p_str    ;
 	dataType var_type ;
 
+	err.taskid = taskId ;
+
 	if ( selectPanel )
 	{
 		return p_poolMGR->get( err, var, ASIS ) ;
@@ -264,7 +266,7 @@ void pPanel::putDialogueVar( errblock& err, const string& var, const string& val
 }
 
 
-void pPanel::syncDialogueVar( const string& var )
+void pPanel::syncDialogueVar( errblock& err, const string& var )
 {
 	// Relevant for REXX procedures only and called for panel variables not in the function pool
 
@@ -278,8 +280,6 @@ void pPanel::syncDialogueVar( const string& var )
 
 	// BUG:  ZPANELID and ZPFKEY are not sync'd as they are not in the SHARED pool at this point !!
 	//       Old values are therefore always blank !!
-
-	errblock err ;
 
 	p_funcPOOL->put( err, var, p_poolMGR->get( err, var, ASIS ) ) ;
 }
@@ -352,7 +352,7 @@ void pPanel::display_panel( errblock& err )
 
 	err.setRC( 0 ) ;
 
-	update_keylist_vars() ;
+	update_keylist_vars( err ) ;
 
 	if ( win_addpop && pwin && !full_screen )
 	{
@@ -404,28 +404,28 @@ void pPanel::display_panel( errblock& err )
 
 	if ( tb_model )
 	{
-		display_tb_mark_posn() ;
-		set_tb_fields_act_inact() ;
+		display_tb_mark_posn( err )    ;
+		set_tb_fields_act_inact( err ) ;
 	}
 
 	display_ab()     ;
-	display_literals() ;
-	display_fields() ;
+	display_literals()    ;
+	display_fields( err ) ;
 	display_boxes()  ;
 	hide_pd()        ;
 	display_pd()     ;
-	display_msg()    ;
-	display_id()     ;
+	display_msg( err ) ;
+	display_id( err )  ;
 
 	if ( ALARM ) { beep() ; }
 }
 
 
-void pPanel::redraw_fields()
+void pPanel::redraw_fields( errblock& err )
 {
 	// Re-draw all fields in a window (eg after a .SHOW/.HIDE NULLS command)
 
-	display_fields() ;
+	display_fields( err ) ;
 }
 
 
@@ -623,7 +623,7 @@ void pPanel::display_panel_update( errblock& err )
 		}
 		else
 		{
-			cmd_setvalue( "" ) ;
+			cmd_setvalue( err, "" ) ;
 			p_funcPOOL->put( err, cmdField, "" )  ;
 			if ( err.error() ) { return ; }
 		}
@@ -908,7 +908,7 @@ void pPanel::process_panel_stmnts( errblock& err, int ln, vector<panstmnt* >& pa
 		}
 		else if ( (*ips)->ps_refresh )
 		{
-			refresh_fields( (*ips)->ps_rlist ) ;
+			refresh_fields( err, (*ips)->ps_rlist ) ;
 		}
 		else if ( (*ips)->ps_vputget )
 		{
@@ -1751,14 +1751,12 @@ string pPanel::get_msgloc()
 }
 
 
-void pPanel::refresh_fields( const string& fields )
+void pPanel::refresh_fields( errblock& err, const string& fields )
 {
 	// Update the field value from the dialogue variable.  Apply any field justification defined.
 
 	int j ;
 	int k ;
-
-	errblock err ;
 
 	string sname    ;
 	string * darea  ;
@@ -1796,7 +1794,7 @@ void pPanel::refresh_fields( const string& fields )
 }
 
 
-void pPanel::refresh_fields()
+void pPanel::refresh_fields( errblock& err )
 {
 	// Update all field values from their dialogue variables and display.
 
@@ -1806,8 +1804,6 @@ void pPanel::refresh_fields()
 	string sname    ;
 	string * darea  ;
 	string * shadow ;
-
-	errblock err ;
 
 	map<string, field *>::iterator   itf ;
 	map<string, dynArea *>::iterator itd ;
@@ -2134,9 +2130,8 @@ void pPanel::display_literals()
 }
 
 
-void pPanel::display_fields()
+void pPanel::display_fields( errblock& err )
 {
-	errblock err ;
 	map<string, field *>::iterator it;
 
 	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
@@ -2272,9 +2267,8 @@ string& pPanel::field_getvalue( const string& f_name )
 }
 
 
-void pPanel::field_setvalue( const string& f_name, const string& f_value )
+void pPanel::field_setvalue( errblock& err, const string& f_name, const string& f_value )
 {
-	errblock err ;
 	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
 	if ( err.error() ) { return ; }
 	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
@@ -2300,7 +2294,7 @@ string& pPanel::cmd_getvalue()
 }
 
 
-void pPanel::cmd_setvalue( const string& v )
+void pPanel::cmd_setvalue( errblock& err, const string& v )
 {
 	if ( fieldList.find( cmdField ) == fieldList.end() )
 	{
@@ -2308,7 +2302,7 @@ void pPanel::cmd_setvalue( const string& v )
 	}
 	else
 	{
-		field_setvalue( cmdField, v ) ;
+		field_setvalue( err, cmdField, v ) ;
 	}
 }
 
@@ -2391,23 +2385,10 @@ fieldExc pPanel::field_getexec( const string& field )
 }
 
 
-void pPanel::field_clear( const string& f_name )
-{
-	errblock err ;
-	char pad = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
-	if ( err.error() ) { return ; }
-
-	fieldList[ f_name ]->field_clear( win, pad ) ;
-}
-
-
-void pPanel::field_edit( uint row, uint col, char ch, bool Isrt, bool& prot )
+void pPanel::field_edit( errblock& err, uint row, uint col, char ch, bool Isrt, bool& prot )
 {
 	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
 	// field_tab_next also needs the physical position, so addjust before and after the call.
-
-	errblock err ;
-	map<string, field *>::iterator it;
 
 	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
 	if ( err.error() ) { return ; }
@@ -2420,7 +2401,7 @@ void pPanel::field_edit( uint row, uint col, char ch, bool Isrt, bool& prot )
 	p_col = col ;
 
 	prot = true ;
-	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
+	for ( auto it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
 		if ( it->second->cursor_on_field( p_row, p_col ) )
 		{
@@ -2452,7 +2433,7 @@ void pPanel::field_edit( uint row, uint col, char ch, bool Isrt, bool& prot )
 }
 
 
-void pPanel::field_backspace( uint& row, uint& col, bool& prot )
+void pPanel::field_backspace( errblock& err, uint& row, uint& col, bool& prot )
 {
 	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
 	// Return physical position of the cursor in row/col
@@ -2460,8 +2441,6 @@ void pPanel::field_backspace( uint& row, uint& col, bool& prot )
 	uint trow ;
 	uint tcol ;
 	uint p    ;
-
-	errblock err ;
 
 	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
 	if ( err.error() ) { return ; }
@@ -2494,15 +2473,13 @@ void pPanel::field_backspace( uint& row, uint& col, bool& prot )
 }
 
 
-void pPanel::field_delete_char( uint row, uint col, bool& prot )
+void pPanel::field_delete_char( errblock& err, uint row, uint col, bool& prot )
 {
 	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
 	// Return physical position of the cursor in row/col
 
 	uint trow ;
 	uint tcol ;
-
-	errblock err ;
 
 	map<string, field *>::iterator it ;
 
@@ -2530,11 +2507,9 @@ void pPanel::field_delete_char( uint row, uint col, bool& prot )
 }
 
 
-void pPanel::field_erase_eof( uint row, uint col, bool& prot )
+void pPanel::field_erase_eof( errblock& err, uint row, uint col, bool& prot )
 {
 	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
-
-	errblock err ;
 
 	map<string, field *>::iterator it;
 
@@ -2698,7 +2673,7 @@ string pPanel::get_field_help( uint row, uint col )
 }
 
 
-void pPanel::tb_set_linesChanged( string& asURID )
+void pPanel::tb_set_linesChanged( errblock& err, string& asURID )
 {
 	//  Store changed lines for processing by the application if requested via tbdispl with no panel name
 	//  Format is a list of line-number/URID pairs
@@ -2706,7 +2681,6 @@ void pPanel::tb_set_linesChanged( string& asURID )
 	//  If AUTOSEL(YES)/CSRROW specified and the line is on the screen, add row even if it has not changed
 
 	string URID  ;
-	errblock err ;
 
 	map<string, field *>::iterator it ;
 
@@ -2734,14 +2708,12 @@ void pPanel::tb_set_linesChanged( string& asURID )
 }
 
 
-bool pPanel::tb_get_lineChanged( int& ln, string& URID )
+bool pPanel::tb_get_lineChanged( errblock& err, int& ln, string& URID )
 {
 	//  Retrieve the next changed line on the tbdispl.  Return screen line number and URID of the table record
 	//  Don't remove the pair from the list but update ZTDSELS
 
 	map<int, string>::iterator it ;
-
-	errblock err ;
 
 	ln   = 0  ;
 	URID = "" ;
@@ -2775,7 +2747,7 @@ void pPanel::tb_remove_lineChanged()
 }
 
 
-void pPanel::display_tb_mark_posn()
+void pPanel::display_tb_mark_posn( errblock& err )
 {
 	int rows  ;
 	int top   ;
@@ -2783,8 +2755,6 @@ void pPanel::display_tb_mark_posn()
 
 	string mark ;
 	string posn ;
-
-	errblock err ;
 
 	rows = p_funcPOOL->get( err, 0, INTEGER, "ZTDROWS" ) ;
 	if ( err.error() ) { return ; }
@@ -2832,7 +2802,7 @@ void pPanel::display_tb_mark_posn()
 }
 
 
-void pPanel::set_tb_fields_act_inact()
+void pPanel::set_tb_fields_act_inact( errblock& err )
 {
 	int rows ;
 	int top  ;
@@ -2842,8 +2812,6 @@ void pPanel::set_tb_fields_act_inact()
 	int j    ;
 
 	string s ;
-
-	errblock err ;
 
 	rows = p_funcPOOL->get( err, 0, INTEGER, "ZTDROWS" ) ;
 	if ( err.error() ) { return ; }
@@ -3003,7 +2971,7 @@ string pPanel::get_keylist( int entry )
 }
 
 
-void pPanel::display_msg()
+void pPanel::display_msg( errblock& err )
 {
 	int i     ;
 	int x_row ;
@@ -3013,8 +2981,6 @@ void pPanel::display_msg()
 	int w_width ;
 
 	vector<string> v ;
-
-	errblock err ;
 
 	if ( msgid == "" ) { return ; }
 
@@ -3161,12 +3127,10 @@ void pPanel::get_msgwin( string m, int& t_row, int& t_col, int& t_depth, int& t_
 }
 
 
-void pPanel::display_id()
+void pPanel::display_id( errblock& err )
 {
 	string scrname ;
 	string panarea ;
-
-	errblock err ;
 
 	panarea = "" ;
 
@@ -3279,10 +3243,8 @@ bool pPanel::on_border_line( uint r, uint c )
 }
 
 
-void pPanel::update_keylist_vars()
+void pPanel::update_keylist_vars( errblock& err )
 {
-	errblock err ;
-
 	p_poolMGR->put( err, "ZKLNAME", KEYLISTN, SHARED, SYSTEM ) ;
 	p_poolMGR->put( err, "ZKLAPPL", KEYAPPL,  SHARED, SYSTEM ) ;
 	p_poolMGR->put( err, "ZKLTYPE", "P",      SHARED, SYSTEM ) ;

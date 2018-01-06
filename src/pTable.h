@@ -223,6 +223,12 @@ class tableMGR
 				    const string& m_path,
 				    tbDISP m_DISP ) ;
 
+		void   loadTable( errblock& err,
+				  const string& tb_name,
+				  tbWRITE=WRITE,
+				  const string& src="",
+				  tbDISP=EXCLUSIVE ) ;
+
 		void   saveTable( errblock& err,
 				  const string& tb_name,
 				  const string& m_newname,
@@ -246,12 +252,6 @@ class tableMGR
 				  string tb_name,
 				  const string& cmd,
 				  const string& paths ) ;
-
-		void   loadTable( errblock& err,
-				  const string& tb_name,
-				  tbWRITE=WRITE,
-				  const string& src="",
-				  tbDISP=EXCLUSIVE ) ;
 
 	private:
 		void   fillfVARs( errblock& err,
@@ -361,6 +361,8 @@ class tableMGR
 				       const string& tb_name ) ;
 
 		map<string, Table*> tables ;
+
+		boost::recursive_mutex mtx ;
 
 		friend class pApplication ;
 } ;

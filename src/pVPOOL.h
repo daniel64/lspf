@@ -155,7 +155,7 @@ class pVPOOL
 	public:
 		pVPOOL()
 		{
-			refCount = 1     ;
+			refCount = 0     ;
 			readOnly = false ;
 			changed  = false ;
 			sysProf  = false ;
@@ -221,20 +221,25 @@ class poolMGR
 
 		static logger * lg ;
 
-		void   createPool( errblock& err,
-				   poolType pType,
-				   string path="" ) ;
+		void   connect( int taskid, const string&, int ) ;
+		void   disconnect( int taskid ) ;
 
-		void   destroyPool( errblock& err,
-				    poolType pType ) ;
+		void   setPools( errblock& ) ;
+
+		void   createProfilePool( errblock& err,
+					  const string& appl,
+					  string path="" ) ;
+
+		int    createSharedPool() ;
+
+		void   destroySystemPool( errblock& err ) ;
 
 		void   destroyPool( int ls ) ;
 
-		void   setApplid( errblock& err,
-				  const string& applid )   ;
-
-		void   setShrdPool( errblock& err,
-				    const string& shrPool ) ;
+		void   sysput( errblock& err,
+			       const string& name,
+			       const string& value,
+			       poolType ) ;
 
 		void   put( errblock& err,
 			    const string& name,
@@ -247,6 +252,10 @@ class poolMGR
 			    const string& name,
 			    const string& value ) ;
 
+		string sysget( errblock& err,
+			       const string& name,
+			       poolType ) ;
+
 		string get( errblock& err,
 			    const string& name,
 			    poolType=ASIS ) ;
@@ -255,20 +264,16 @@ class poolMGR
 			    int ls,
 			    const string& name ) ;
 
-		void   defaultVARs( errblock& err,
-				    const string& name,
-				    const string& value,
-				    poolType ) ;
-
-		string getApplid()   { return currApplid ; }
-		string getShrdPool() { return shrdPool   ; }
-
 		void   setPOOLsReadOnly() ;
 		void   snap() ;
 		void   statistics() ;
 
 	private:
-		const string& vlist( int& RC,
+		void lock()    { mtx.lock()   ; }
+		void unlock()  { mtx.unlock() ; }
+
+		const string& vlist( errblock& err,
+				     int& RC,
 				     poolType pType,
 				     int lvl )  ;
 
@@ -281,21 +286,31 @@ class poolMGR
 		void   locateSubPool( errblock& err,
 				      map<string, pVPOOL*>::iterator& p_it,
 				      map<string, pVAR*>::iterator& v_it,
-				      const string& name,
-				      poolType=ASIS ) ;
+				      const string& pool,
+				      const string& name ) ;
+
+		void   locateSubPool( errblock& err,
+				      map<string, pVPOOL*>::iterator& p_it,
+				      map<string, pVAR*>::iterator& v_it,
+				      int pool,
+				      const string& name ) ;
 
 		void   erase( errblock& err,
 			      const string& name,
 			      poolType=ASIS ) ;
 
-		string currApplid ;
-		string shrdPool   ;
-		string varList    ;
-		int    shrdPooln  ;
+		int    shrdPool ;
+		int    _shared  ;
+		string _applid  ;
+		string varList  ;
+
+		map<int, pair<string,int>> task_table ;
 
 		map<string, pVPOOL*> POOLs_shared  ;
 		map<string, pVPOOL*> POOLs_profile ;
 		map<int,    pVPOOL*> POOLs_lscreen ;
+
+		boost::mutex mtx ;
 
 	friend class pApplication ;
 	friend class pPanel       ;

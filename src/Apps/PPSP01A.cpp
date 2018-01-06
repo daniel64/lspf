@@ -522,7 +522,6 @@ void PPSP01A::dsList( string parms )
 	string ZSCREEN  ;
 
 	string fname ;
-	string cname ;
 
 	if ( parms == "" )
 	{

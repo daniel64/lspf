@@ -132,6 +132,34 @@ enum L_CMDS
 } ;
 
 
+enum LN_TYPE
+{
+	LN_FILE,
+	LN_ISRT,
+	LN_NOTE,
+	LN_PROF,
+	LN_COL,
+	LN_BNDS,
+	LN_MASK,
+	LN_TABS,
+	LN_TOD,
+	LN_BOD,
+	LN_MSG,
+	LN_INFO,
+	LN_INVALID
+} ;
+
+
+enum LS_TYPE
+{
+	LS_NONE,
+	LS_CHNG,
+	LS_ERROR,
+	LS_UNDO,
+	LS_REDO
+} ;
+
+
 enum M_CMDS
 {
 	EM_INVCMD,
@@ -236,8 +264,8 @@ map<string,mcmd_format> EMServ =  //       ~~~~~   ~~~~~   ~~~~~   ~~~~~~
   { "DATASET",        { EM_DATASET,        1,  1,  0,  0, -1, -1, -1, -1  } },
   { "DISPLAY_COLS",   { EM_DISPLAY_COLS,   1,  2,  0,  0, -1, -1, -1, -1  } },
   { "DISPLAY_LINES",  { EM_DISPLAY_LINES,  1,  2,  0,  0, -1, -1, -1, -1  } },
-  { "FIND_COUNTS",    { EM_FIND_COUNTS,    1,  2,  0,  0, -1, -1, -1, -1  } },
   { "EXCLUDE_COUNTS", { EM_EXCLUDE_COUNTS, 1,  2,  0,  0, -1, -1, -1, -1  } },
+  { "FIND_COUNTS",    { EM_FIND_COUNTS,    1,  2,  0,  0, -1, -1, -1, -1  } },
   { "HEX",            { EM_HEX,            1,  2,  0,  0, -1, -1, -1, -1  } },
   { "IMACRO",         { EM_IMACRO,         1,  1,  0,  0, -1, -1, -1, -1  } },
   { "LABEL",          { EM_LABEL,          1,  2,  1,  1,  1,  1,  1,  2  } },
@@ -245,9 +273,9 @@ map<string,mcmd_format> EMServ =  //       ~~~~~   ~~~~~   ~~~~~   ~~~~~~
   { "LINE_AFTER",     { EM_LINE_AFTER,    -1, -1, -1, -1,  1,  1, -1, -1  } },
   { "LINE_BEFORE",    { EM_LINE_BEFORE,   -1, -1, -1, -1,  1,  1, -1, -1  } },
   { "LINENUM",        { EM_LINENUM,        1,  1,  1,  1, -1, -1,  1, -1  } },
-  { "NULLS",          { EM_NULLS,          1,  2,  0,  0, -1, -1, -1, -1  } },
   { "MACRO_LEVEL",    { EM_MACRO_LEVEL,    1,  1,  0,  0, -1, -1, -1, -1  } },
   { "MASKLINE",       { EM_MASKLINE,       1,  1,  0,  0,  0,  0, -1, -1  } },
+  { "NULLS",          { EM_NULLS,          1,  2,  0,  0, -1, -1, -1, -1  } },
   { "PROFILE",        { EM_PROFILE,        1,  2,  0,  0, -1, -1, -1, -1  } },
   { "SCAN",           { EM_SCAN,           1,  1,  0,  0,  0,  0,  1,  1  } },
   { "SEEK_COUNTS",    { EM_SEEK_COUNTS,    1,  2,  0,  0, -1, -1, -1, -1  } },
@@ -271,16 +299,16 @@ map<string,M_CMDS> EMCmds =
   { "IMACRO",       EM_IMACRO   },
   { "INSERT",       EM_INSERT   },
   { "LOCATE",       EM_LOCATE   },
-  { "PROCESS",      EM_PROCESS  },
   { "NULLS",        EM_NULLS    },
+  { "PROCESS",      EM_PROCESS  },
   { "PROFILE",      EM_PROFILE  },
   { "RCHANGE",      EM_RCHANGE  },
+  { "RESET",        EM_RESET    },
   { "RFIND",        EM_RFIND    },
   { "SAVE",         EM_SAVE     },
   { "SCAN",         EM_SCAN,    },
   { "SEEK",         EM_SEEK     },
-  { "SHIFT",        EM_SHIFT    },
-  { "RESET",        EM_RESET    } } ;
+  { "SHIFT",        EM_SHIFT    } } ;
 
 
 map<string,pcmd_entry> PrimCMDS =
@@ -458,46 +486,30 @@ class ipos
 class ipline
 {
 	private:
-		bool   ip_file   ;
-		bool   ip_note   ;
-		bool   ip_prof   ;
-		bool   ip_col    ;
-		bool   ip_bnds   ;
-		bool   ip_mask   ;
-		bool   ip_tabs   ;
-		bool   ip_excl   ;
-		bool   ip_hex    ;
-		bool   ip_chg    ;
-		bool   ip_error  ;
-		bool   ip_undo   ;
-		bool   ip_redo   ;
-		bool   ip_msg    ;
-		bool   ip_info   ;
-		bool   ip_nisrt  ;
-		int    ip_profln ;
-		string ip_data   ;
-		string ip_label  ;
+		LN_TYPE ip_type   ;
+		LS_TYPE ip_status ;
+		bool    ip_excl   ;
+		bool    ip_hex    ;
+		int     ip_profln ;
+		string  ip_data   ;
+		string  ip_label  ;
 		ipline()
 		{
-			ip_file   = false ;
-			ip_note   = false ;
-			ip_prof   = false ;
-			ip_col    = false ;
-			ip_bnds   = false ;
-			ip_mask   = false ;
-			ip_tabs   = false ;
+			ip_type   = LN_INVALID ;
+			ip_status = LS_NONE    ;
 			ip_excl   = false ;
 			ip_hex    = false ;
-			ip_chg    = false ;
-			ip_error  = false ;
-			ip_undo   = false ;
-			ip_redo   = false ;
-			ip_msg    = false ;
-			ip_info   = false ;
-			ip_nisrt  = false ;
 			ip_profln = 0     ;
 			ip_label  = ""    ;
 			ip_data   = ""    ;
+		}
+		bool is_file() const
+		{
+			return ( ip_type == LN_FILE ) ;
+		}
+		bool is_isrt() const
+		{
+			return ( ip_type == LN_ISRT ) ;
 		}
 
 	friend class PEDIT01 ;
@@ -513,62 +525,32 @@ class iline
 		static map<int, int>maxURID  ;
 		static map<int, bool>setUNDO ;
 
-		bool   il_file    ;
-		bool   il_note    ;
-		bool   il_prof    ;
-		bool   il_col     ;
-		bool   il_bnds    ;
-		bool   il_mask    ;
-		bool   il_tabs    ;
-		bool   il_excl    ;
-		bool   il_tod     ;
-		bool   il_bod     ;
-		bool   il_hex     ;
-		bool   il_chg     ;
-		bool   il_error   ;
-		bool   il_undo    ;
-		bool   il_redo    ;
-		bool   il_mark    ;
-		bool   il_msg     ;
-		bool   il_info    ;
-		bool   il_deleted ;
-		bool   il_nisrt   ;
-		string il_lcc     ;
-		int    il_profln  ;
-		int    il_rept    ;
-		int    il_URID    ;
-		int    il_taskid  ;
-		string il_Shadow  ;
-		bool   il_vShadow ;
-		bool   il_wShadow ;
-		map   <int, string>il_label ;
-		stack <idata> il_idata      ;
-		stack <idata> il_idata_redo ;
+		LN_TYPE il_type    ;
+		LS_TYPE il_status  ;
+		bool    il_excl    ;
+		bool    il_hex     ;
+		bool    il_mark    ;
+		bool    il_deleted ;
+		string  il_lcc     ;
+		int     il_profln  ;
+		int     il_URID    ;
+		int     il_taskid  ;
+		string  il_Shadow  ;
+		bool    il_vShadow ;
+		bool    il_wShadow ;
+		map    <int, string>il_label ;
+		stack  <idata> il_idata      ;
+		stack  <idata> il_idata_redo ;
 
-		iline( int taskid )
+		explicit iline( int taskid )
 		{
-			il_file    = false  ;
-			il_tod     = false  ;
-			il_bod     = false  ;
-			il_note    = false  ;
-			il_prof    = false  ;
-			il_col     = false  ;
-			il_bnds    = false  ;
-			il_mask    = false  ;
-			il_tabs    = false  ;
-			il_info    = false  ;
-			il_msg     = false  ;
+			il_type    = LN_INVALID ;
+			il_status  = LS_NONE    ;
 			il_excl    = false  ;
 			il_hex     = false  ;
-			il_chg     = false  ;
-			il_error   = false  ;
-			il_undo    = false  ;
-			il_redo    = false  ;
 			il_mark    = false  ;
 			il_deleted = false  ;
-			il_nisrt   = false  ;
 			il_lcc     = ""     ;
-			il_rept    = 0      ;
 			il_profln  = 0      ;
 			il_taskid  = taskid ;
 			il_URID    = ++maxURID[ taskid ] ;
@@ -576,49 +558,115 @@ class iline
 			il_vShadow = false  ;
 			il_wShadow = false  ;
 		}
+		bool is_file() const
+		{
+			return ( il_type == LN_FILE ) ;
+		}
+		bool is_tod() const
+		{
+			return ( il_type == LN_TOD ) ;
+		}
+		bool is_bod() const
+		{
+			return ( il_type == LN_BOD ) ;
+		}
+		bool is_tod_or_bod() const
+		{
+			return ( il_type == LN_TOD || il_type == LN_BOD ) ;
+		}
+		bool is_note() const
+		{
+			return ( il_type == LN_NOTE ) ;
+		}
+		bool is_info() const
+		{
+			return ( il_type == LN_INFO ) ;
+		}
+		bool is_msg() const
+		{
+			return ( il_type == LN_MSG ) ;
+		}
+		bool is_col() const
+		{
+			return ( il_type == LN_COL ) ;
+		}
+		bool is_prof() const
+		{
+			return ( il_type == LN_PROF ) ;
+		}
+		bool is_tabs() const
+		{
+			return ( il_type == LN_TABS ) ;
+		}
+		bool is_mask() const
+		{
+			return ( il_type == LN_MASK ) ;
+		}
+		bool is_bnds() const
+		{
+			return ( il_type == LN_BNDS ) ;
+		}
+		bool is_isrt() const
+		{
+			return ( il_type == LN_ISRT ) ;
+		}
+		bool is_chng() const
+		{
+			return ( il_status == LS_CHNG ) ;
+		}
+		bool is_error() const
+		{
+			return ( il_status == LS_ERROR ) ;
+		}
+		bool is_undo() const
+		{
+			return ( il_status == LS_UNDO ) ;
+		}
+		bool is_redo() const
+		{
+			return ( il_status == LS_REDO ) ;
+		}
 		void resetFilePrefix()
 		{
-			il_excl  = false ;
-			il_chg   = false ;
-			il_error = false ;
-			il_undo  = false ;
-			il_redo  = false ;
-			il_mark  = false ;
+			il_status = LS_NONE ;
+			il_excl   = false ;
+			il_mark   = false ;
 		}
 		void resetFileStatus()
 		{
-			il_chg   = false ;
-			il_error = false ;
-			il_undo  = false ;
-			il_redo  = false ;
+			il_status = LS_NONE ;
 		}
 		void setChngStatus()
 		{
-			il_chg   = true  ;
-			il_error = false ;
-			il_undo  = false ;
-			il_redo  = false ;
+			il_status = LS_CHNG ;
+		}
+		void clrChngStatus()
+		{
+			if ( il_status == LS_CHNG ) { il_status = LS_NONE ; }
+		}
+		void clrErrorStatus()
+		{
+			if ( il_status == LS_ERROR ) { il_status = LS_NONE ; }
+		}
+		void clrUndoStatus()
+		{
+			if ( il_status == LS_UNDO ) { il_status = LS_NONE ; }
+		}
+		void clrRedoStatus()
+		{
+			if ( il_status == LS_REDO ) { il_status = LS_NONE ; }
 		}
 		void setErrorStatus()
 		{
-			il_chg   = false ;
-			il_error = true  ;
-			il_undo  = false ;
-			il_redo  = false ;
+			il_status = LS_ERROR ;
 		}
 		void setUndoStatus()
 		{
-			il_chg   = false ;
-			il_error = false ;
-			il_undo  = true  ;
-			il_redo  = false ;
+			il_status = LS_UNDO ;
 		}
 		void setRedoStatus()
 		{
-			il_chg   = false ;
-			il_error = false ;
-			il_undo  = false ;
-			il_redo  = true  ;
+			il_status = LS_REDO ;
 		}
 		void resetMarked()
 		{
@@ -628,20 +676,20 @@ class iline
 		{
 			il_mark = !il_mark ;
 		}
-		bool isValidFile()
+		bool isValidFile() const
 		{
-			return il_file && !il_deleted ;
+			return il_type == LN_FILE && !il_deleted ;
 		}
-		bool isSpecial()
+		bool isSpecial() const
 		{
-			return il_note || il_prof || il_col  || il_bnds ||
-			       il_mask || il_tabs || il_info || il_msg  ;
+			return is_note() || is_prof() || is_col()  || is_bnds() ||
+			       is_mask() || is_tabs() || is_info() || is_msg()  ;
 		}
 		void clearLcc()
 		{
 			il_lcc = "" ;
 		}
-		bool hasLabel( int lvl=0 )
+		bool hasLabel( int lvl=0 ) const
 		{
 			for ( int i = lvl ; i >= 0 ; i-- )
 			{
@@ -698,7 +746,7 @@ class iline
 		}
 		bool clearLabel( const string& s, int lvl=0 )
 		{
-			if ( il_label.count( lvl ) > 0 && s == il_label[ lvl ] )
+			if ( il_label.count( lvl ) > 0 && il_label[ lvl ] == s )
 			{
 				il_label.erase( lvl ) ;
 				return true ;
@@ -710,10 +758,14 @@ class iline
 			if ( il_label.count( lvl ) > 0 && il_label[ lvl ] == s ) { return true ; }
 			return false ;
 		}
-		void put_idata( const string& s, int level )
+		bool put_idata( const string& s, int level )
 		{
 			idata d ;
 
+			if ( !il_idata.empty() && s == il_idata.top().id_data )
+			{
+				return false ;
+			}
 			if ( !setUNDO[ il_taskid ] )
 			{
 				d.id_data = s ;
@@ -730,7 +782,7 @@ class iline
 				{
 					Global_Undo[ il_taskid ].push( level ) ;
 				}
-				if ( il_file )
+				if ( il_type == LN_FILE )
 				{
 					set_Global_File_level() ;
 				}
@@ -738,25 +790,31 @@ class iline
 			il_vShadow = false  ;
 			clear_Global_Redo() ;
 			remove_redo_idata() ;
+			return il_type == LN_FILE && !il_deleted ;
 		}
-		void put_idata( const string& s )
+		bool put_idata( const string& s )
 		{
 			idata d ;
 
-			if ( il_idata.empty() ) { d.id_data = s ; il_idata.push( d ) ; }
-			else                    { il_idata.top().id_data = s         ; }
+			if ( il_idata.empty() )
+			{
+				d.id_data = s ;
+				il_idata.push( d ) ;
+			}
+			else
+			{
+				if ( s == il_idata.top().id_data ) { return false ; }
+				il_idata.top().id_data = s ;
+			}
 			il_vShadow = false  ;
+			return il_type == LN_FILE && !il_deleted ;
 		}
 		void set_idata_minsize( int i )
 		{
-			if ( il_idata.top().id_data.size() < i )
-			{
-				il_idata.top().id_data.resize( i, ' ' ) ;
-			}
+			il_idata.top().id_data.resize( i, ' ' ) ;
 		}
 		bool set_idata_upper( int Level )
 		{
-			bool changed = false ;
 			if ( any_of( il_idata.top().id_data.begin(), il_idata.top().id_data.end(),
 				   []( char c )
 				   {
@@ -764,13 +822,12 @@ class iline
 				   } ) )
 			{
 				put_idata( upper( il_idata.top().id_data ), Level ) ;
-				changed = true ;
+				return il_type == LN_FILE ;
 			}
-			return changed ;
+			return false ;
 		}
 		bool set_idata_lower( int Level )
 		{
-			bool changed = false ;
 			if ( any_of( il_idata.top().id_data.begin(), il_idata.top().id_data.end(),
 				   []( char c )
 				   {
@@ -778,37 +835,22 @@ class iline
 				   } ) )
 			{
 				put_idata( lower( il_idata.top().id_data ), Level ) ;
-				changed = true ;
+				return il_type == LN_FILE ;
 			}
-			return changed ;
+			return false ;
 		}
 		bool set_idata_trim( int Level )
 		{
-			if ( il_idata.top().id_data.back() == ' ')
+			if ( il_idata.top().id_data.size() > 0 && il_idata.top().id_data.back() == ' ' )
 			{
 				put_idata( strip( il_idata.top().id_data, 'T', ' ' ), Level ) ;
-				return true ;
+				return il_type == LN_FILE ;
 			}
-			else { return false ; }
+			return false ;
 		}
 		void set_idata_trim()
 		{
 			trim_right( il_idata.top().id_data ) ;
-		}
-		void set_idata_level( int level )
-		{
-			il_idata.top().id_level = level ;
-			if ( Global_Undo[ il_taskid ].empty()     ||
-			     Global_Undo[ il_taskid ].top() != level )
-			{
-				Global_Undo[ il_taskid ].push( level ) ;
-			}
-			if ( il_file )
-			{
-				set_Global_File_level() ;
-			}
-			clear_Global_Redo() ;
-			remove_redo_idata() ;
 		}
 		void set_deleted( int Level )
 		{
@@ -818,38 +860,58 @@ class iline
 			il_idata.top().id_deleted = true ;
 			il_deleted                = true ;
 		}
-		const string& get_idata()
+		void convert_to_file( int level )
+		{
+			il_type = LN_FILE ;
+			if ( !setUNDO[ il_taskid ] ) { return ; }
+			il_idata.top().id_level = level ;
+			if ( Global_Undo[ il_taskid ].empty()     ||
+			     Global_Undo[ il_taskid ].top() != level )
+			{
+				Global_Undo[ il_taskid ].push( level ) ;
+			}
+			set_Global_File_level() ;
+			clear_Global_Redo() ;
+			remove_redo_idata() ;
+		}
+		const string& get_idata() const
 		{
 			return il_idata.top().id_data ;
 		}
-		string::const_iterator get_idata_begin()
+		int get_idata_len() const
+		{
+			return il_idata.top().id_data.size() ;
+		}
+		string::const_iterator get_idata_begin() const
 		{
 			return il_idata.top().id_data.begin() ;
+		}
+		string::const_iterator get_idata_end() const
+		{
+			return il_idata.top().id_data.end() ;
 		}
 		string * get_idata_ptr()
 		{
 			return &il_idata.top().id_data ;
 		}
-		bool idata_is_empty()
+		bool idata_is_empty() const
 		{
 			return il_idata.empty() ;
 		}
 		void undo_idata()
 		{
 			if ( !setUNDO[ il_taskid ] ) { return ; }
-			if ( !il_idata.empty() )
+			if ( il_idata.top().id_deleted )
 			{
-				if ( il_idata.top().id_deleted )
-				{
-					il_deleted = false ;
-				}
-				il_idata_redo.push( il_idata.top() ) ;
-				il_idata.pop()                       ;
-				if ( il_idata.empty() )
-				{
-					il_deleted = true ;
-				}
+				il_deleted = false ;
 			}
+			il_idata_redo.push( il_idata.top() ) ;
+			il_idata.pop()                       ;
+			if ( il_idata.empty() )
+			{
+				il_deleted = true ;
+			}
+			il_excl = false ;
 		}
 		void redo_idata()
 		{
@@ -857,6 +919,7 @@ class iline
 			il_deleted = il_idata_redo.top().id_deleted ;
 			il_idata.push( il_idata_redo.top() ) ;
 			il_idata_redo.pop() ;
+			il_excl = false ;
 		}
 		void clear_Global_Undo()
 		{
@@ -883,7 +946,7 @@ class iline
 				Global_File_level[ il_taskid ].pop() ;
 			}
 		}
-		int get_Global_File_level()
+		int get_Global_File_level() const
 		{
 			if ( Global_File_level[ il_taskid ].empty() )
 			{
@@ -906,15 +969,15 @@ class iline
 		{
 			Global_File_level[ il_taskid ].pop() ;
 		}
-		int get_Global_Undo_level()
+		int get_Global_Undo_level() const
 		{
-			if (  !setUNDO[ il_taskid ] ||
+			if ( !setUNDO[ il_taskid ] ||
 			     Global_Undo[ il_taskid ].empty() ) { return 0 ; }
 			return Global_Undo[ il_taskid ].top() ;
 		}
-		int get_Global_Redo_level()
+		int get_Global_Redo_level() const
 		{
-			if (  !setUNDO[ il_taskid ] ||
+			if ( !setUNDO[ il_taskid ] ||
 			     Global_Redo[ il_taskid ].empty() ) { return 0 ; }
 			return Global_Redo[ il_taskid ].top() ;
 		}
@@ -932,9 +995,7 @@ class iline
 		}
 		void flatten_idata()
 		{
-			idata d ;
-
-			d = il_idata.top() ;
+			idata d = il_idata.top() ;
 			while ( !il_idata.empty() )
 			{
 				il_idata.pop() ;
@@ -952,25 +1013,25 @@ class iline
 				il_idata_redo.pop() ;
 			}
 		}
-		int get_idata_level()
+		int get_idata_level() const
 		{
 			if ( il_idata.empty() ) { return 0 ; }
 			return il_idata.top().id_level ;
 		}
-		int get_idata_Redo_level()
+		int get_idata_Redo_level() const
 		{
 			if ( il_idata_redo.empty() ) { return 0 ; }
 			return il_idata_redo.top().id_level ;
 		}
-		int get_Global_Undo_Size()
+		int get_Global_Undo_Size() const
 		{
 			return Global_Undo[ il_taskid ].size() ;
 		}
-		int get_Global_Redo_Size()
+		int get_Global_Redo_Size() const
 		{
 			return Global_Redo[ il_taskid ].size() ;
 		}
-		int get_Global_File_Size()
+		int get_Global_File_Size() const
 		{
 			return Global_File_level[ il_taskid ].size() ;
 		}
@@ -1024,117 +1085,123 @@ class cmd_range
 class edit_find
 {
 	private:
-		string fcx_string  ;
-		string fcx_ostring ;
-		string fcx_cstring ;
-		string fcx_rstring ;
-		bool   fcx_success ;
-		bool   fcx_error   ;
-		bool   fcx_top     ;
-		bool   fcx_bottom  ;
-		bool   fcx_exclude ;
-		char   fcx_dir     ;
-		char   fcx_mtch    ;
-		int    fcx_occurs  ;
-		int    fcx_URID    ;
-		int    fcx_dl      ;
-		int    fcx_lines   ;
-		int    fcx_offset  ;
-		char   fcx_excl    ;
-		bool   fcx_regreq  ;
-		bool   fcx_text    ;
-		bool   fcx_asis    ;
-		bool   fcx_hex     ;
-		bool   fcx_pic     ;
-		bool   fcx_reg     ;
-		bool   fcx_ctext   ;
-		bool   fcx_casis   ;
-		bool   fcx_chex    ;
-		bool   fcx_cpic    ;
-		bool   fcx_creg    ;
-		string fcx_slab    ;
-		string fcx_elab    ;
-		int    fcx_scol    ;
-		int    fcx_ecol    ;
-		int    fcx_ocol    ;
-		bool   fcx_fset    ;
-		bool   fcx_cset    ;
-		bool   fcx_chngall ;
-		int    fcx_fd_occs ;
-		int    fcx_fd_lnes ;
-		int    fcx_ch_occs ;
-		int    fcx_ch_errs ;
-		int    fcx_sk_occs ;
-		int    fcx_sk_lnes ;
-		int    fcx_ex_occs ;
-		int    fcx_ex_lnes ;
+		string f_string  ;
+		string f_ostring ;
+		string f_cstring ;
+		string f_rstring ;
+		bool   f_success ;
+		bool   f_error   ;
+		bool   f_top     ;
+		bool   f_bottom  ;
+		bool   f_exclude ;
+		char   f_dir     ;
+		char   f_mtch    ;
+		int    f_ssize   ;
+		int    f_occurs  ;
+		int    f_URID    ;
+		int    f_pURID   ;
+		int    f_pCol    ;
+		int    f_dl      ;
+		int    f_lines   ;
+		int    f_offset  ;
+		char   f_excl    ;
+		bool   f_regreq  ;
+		bool   f_text    ;
+		bool   f_asis    ;
+		bool   f_hex     ;
+		bool   f_pic     ;
+		bool   f_reg     ;
+		bool   f_ctext   ;
+		bool   f_casis   ;
+		bool   f_chex    ;
+		bool   f_cpic    ;
+		bool   f_creg    ;
+		string f_slab    ;
+		string f_elab    ;
+		int    f_scol    ;
+		int    f_ecol    ;
+		int    f_ocol    ;
+		bool   f_fset    ;
+		bool   f_cset    ;
+		bool   f_chngall ;
+		int    f_fd_occs ;
+		int    f_fd_lnes ;
+		int    f_ch_occs ;
+		int    f_ch_errs ;
+		int    f_sk_occs ;
+		int    f_sk_lnes ;
+		int    f_ex_occs ;
+		int    f_ex_lnes ;
 	edit_find()
 	{
-		fcx_string  = ""    ;
-		fcx_ostring = ""    ;
-		fcx_cstring = ""    ;
-		fcx_rstring = ""    ;
-		fcx_success = true  ;
-		fcx_error   = false ;
-		fcx_top     = false ;
-		fcx_bottom  = false ;
-		fcx_exclude = false ;
-		fcx_dir     = 'N'   ;
-		fcx_mtch    = 'C'   ;
-		fcx_occurs  = 0     ;
-		fcx_URID    = 0     ;
-		fcx_dl      = 0     ;
-		fcx_lines   = 0     ;
-		fcx_offset  = 0     ;
-		fcx_excl    = 'A'   ;
-		fcx_regreq  = false ;
-		fcx_text    = false ;
-		fcx_asis    = false ;
-		fcx_hex     = false ;
-		fcx_pic     = false ;
-		fcx_reg     = false ;
-		fcx_ctext   = false ;
-		fcx_casis   = false ;
-		fcx_chex    = false ;
-		fcx_cpic    = false ;
-		fcx_creg    = false ;
-		fcx_slab    = ""    ;
-		fcx_elab    = ""    ;
-		fcx_scol    = 0     ;
-		fcx_ecol    = 0     ;
-		fcx_ocol    = 0     ;
-		fcx_fset    = false ;
-		fcx_cset    = false ;
-		fcx_chngall = false ;
-		fcx_fd_occs = 0     ;
-		fcx_fd_lnes = 0     ;
-		fcx_ch_occs = 0     ;
-		fcx_ch_errs = 0     ;
-		fcx_sk_occs = 0     ;
-		fcx_sk_lnes = 0     ;
-		fcx_ex_occs = 0     ;
-		fcx_ex_lnes = 0     ;
+		f_string  = ""    ;
+		f_ostring = ""    ;
+		f_cstring = ""    ;
+		f_rstring = ""    ;
+		f_success = true  ;
+		f_error   = false ;
+		f_top     = false ;
+		f_bottom  = false ;
+		f_exclude = false ;
+		f_dir     = 'N'   ;
+		f_mtch    = 'C'   ;
+		f_ssize   = 0     ;
+		f_occurs  = 0     ;
+		f_URID    = 0     ;
+		f_pURID   = 0     ;
+		f_pCol    = 0     ;
+		f_dl      = 0     ;
+		f_lines   = 0     ;
+		f_offset  = 0     ;
+		f_excl    = 'A'   ;
+		f_regreq  = false ;
+		f_text    = false ;
+		f_asis    = false ;
+		f_hex     = false ;
+		f_pic     = false ;
+		f_reg     = false ;
+		f_ctext   = false ;
+		f_casis   = false ;
+		f_chex    = false ;
+		f_cpic    = false ;
+		f_creg    = false ;
+		f_slab    = ""    ;
+		f_elab    = ""    ;
+		f_scol    = 0     ;
+		f_ecol    = 0     ;
+		f_ocol    = 0     ;
+		f_fset    = false ;
+		f_cset    = false ;
+		f_chngall = false ;
+		f_fd_occs = 0     ;
+		f_fd_lnes = 0     ;
+		f_ch_occs = 0     ;
+		f_ch_errs = 0     ;
+		f_sk_occs = 0     ;
+		f_sk_lnes = 0     ;
+		f_ex_occs = 0     ;
+		f_ex_lnes = 0     ;
 	}
 	void reset()
 	{
-		fcx_success = false ;
-		fcx_error   = false ;
-		fcx_top     = false ;
-		fcx_bottom  = false ;
-		fcx_rstring = "" ;
-		fcx_occurs  = 0  ;
-		fcx_URID    = 0  ;
-		fcx_dl      = 0  ;
-		fcx_lines   = 0  ;
-		fcx_offset  = 0  ;
+		f_success = false ;
+		f_error   = false ;
+		f_top     = false ;
+		f_bottom  = false ;
+		f_rstring = "" ;
+		f_occurs  = 0  ;
+		f_URID    = 0  ;
+		f_dl      = 0  ;
+		f_lines   = 0  ;
+		f_offset  = 0  ;
 	}
 	void setrstring( const string& s )
 	{
-		if ( fcx_rstring == "" ) { fcx_rstring = s ; }
+		if ( f_rstring == "" ) { f_rstring = s ; }
 	}
-	bool findReverse()
+	bool findReverse() const
 	{
-		return ( fcx_dir == 'L' || fcx_dir == 'P' ) ;
+		return ( f_dir == 'L' || f_dir == 'P' ) ;
 	}
 	friend class PEDIT01 ;
 } ;
@@ -1167,11 +1234,11 @@ class defName
 		cmd      = false ;
 		pgm      = false ;
        }
-       bool deactive()
+       bool deactive() const
        {
 		return ( nop || disabled ) ;
        }
-       bool macro()
+       bool macro() const
        {
 		return ( pgm || cmd ) ;
        }
@@ -1349,24 +1416,24 @@ class cmdblock
 		cwds     = words( CMD ) ;
 		actioned = false ;
 	}
-	string condget_cmd()
+	string condget_cmd() const
 	{
 		if ( error() || keep ) { return alias ? cchar+OCMD : cchar+CMD ; }
 		return "" ;
 	}
-	int get_cmd_words()
+	int get_cmd_words() const
 	{
 		return cwds ;
 	}
-	const string& get_cmd()
+	const string& get_cmd() const
 	{
 		return CMD ;
 	}
-	bool cmd_not( const string& s )
+	bool cmd_not( const string& s ) const
 	{
 		return ( CMD != s ) ;
 	}
-	int isMacro()
+	int isMacro() const
 	{
 		return macro ;
 	}
@@ -1374,15 +1441,15 @@ class cmdblock
 	{
 		actioned = true ;
 	}
-	bool isActioned()
+	bool isActioned() const
 	{
 		return actioned ;
 	}
-	int isSeek()
+	int isSeek() const
 	{
 		return seek ;
 	}
-	int isLine_cmd()
+	int isLine_cmd() const
 	{
 		return lcmd ;
 	}
@@ -1418,15 +1485,15 @@ class cmdblock
 	{
 		RC = rc ;
 	}
-	const string& get_msg()
+	const string& get_msg() const
 	{
 		return MSG ;
 	}
-	bool msgset()
+	bool msgset() const
 	{
 		return ( MSG != "" ) ;
 	}
-	bool cmdset()
+	bool cmdset() const
 	{
 		return ( CMD != "" ) ;
 	}
@@ -1434,19 +1501,19 @@ class cmdblock
 	{
 		udata = s ;
 	}
-	const string& get_userdata()
+	const string& get_userdata() const
 	{
 		return udata ;
 	}
-	bool error()
+	bool error() const
 	{
 		return ( RC > 8 ) ;
 	}
-	bool info()
+	bool info() const
 	{
 		return ( RC < 9 ) ;
 	}
-	bool deactive()
+	bool deactive() const
 	{
 		return deact ;
 	}
@@ -1632,7 +1699,7 @@ class miblock
 	{
 		exitRC = i ;
 	}
-	int getExitRC()
+	int getExitRC() const
 	{
 		return exitRC ;
 	}
@@ -1646,7 +1713,7 @@ class miblock
 			msgid = "" ;
 		}
 	}
-	bool msgset()
+	bool msgset() const
 	{
 		return ( msgid != "" ) ;
 	}
@@ -1985,15 +2052,15 @@ class miblock
 		setRC( 8 )   ;
 		return false ;
 	}
-	bool scanOn()
+	bool scanOn() const
 	{
 		return scan ;
 	}
-	bool editEnded()
+	bool editEnded() const
 	{
 		return eended ;
 	}
-	int get_sttment_words()
+	int get_sttment_words() const
 	{
 		return sttwds ;
 	}
@@ -2075,17 +2142,18 @@ class PEDIT01 : public pApplication
 		int  getFileLine( uint ) ;
 		uint getDataLine( int )  ;
 
-		vector<iline * >::iterator getValidDataLine( vector<iline * >::iterator ) ;
-		uint getValidDataFileLine( uint ) ;
+		vector<iline * >::iterator getValidDataLineNext( vector<iline * >::iterator ) ;
+		uint getValidFileLinePrev( uint ) ;
+		uint getValidFileLineNext( uint ) ;
 
 		uint getNextDataLine( uint ) ;
 		vector<iline * >::iterator getNextDataLine( vector<iline * >::iterator ) ;
-		uint getNextDataFileLine( uint ) ;
-		vector<iline * >::iterator getNextDataFileLine( vector<iline * >::iterator ) ;
+		uint getNextFileLine( uint ) ;
+		vector<iline * >::iterator getNextFileLine( vector<iline * >::iterator ) ;
 
 		uint getPrevDataLine( uint ) ;
-		uint getPrevDataFileLine( uint ) ;
-		vector<iline * >::iterator getPrevDataFileLine( vector<iline * >::iterator ) ;
+		uint getPrevFileLine( uint ) ;
+		vector<iline * >::iterator getPrevFileLine( vector<iline * >::iterator ) ;
 		void getLineData( vector<iline *>::iterator ) ;
 		string mergeLine( const string&, vector<iline *>::iterator ) ;
 
@@ -2153,6 +2221,7 @@ class PEDIT01 : public pApplication
 		void addSpecial( char, int, const string& ) ;
 		void addSpecial( char, vector<iline * >::iterator, const string& ) ;
 
+		string getMaskLine() ;
 		string rshiftCols( int, const string * ) ;
 		string lshiftCols( int, const string * ) ;
 		bool   rshiftData( int, const string *, string& ) ;
@@ -2252,8 +2321,8 @@ class PEDIT01 : public pApplication
 		map<int, int>lchar       ;
 		vector<lcmd> lcmds       ;
 
-		edit_find find_parms ;
-		hilight hlight       ;
+		edit_find fcx_parms ;
+		hilight hlight      ;
 
 		bool rebuildZAREA  ;
 		bool rebuildShadow ;
@@ -2261,7 +2330,6 @@ class PEDIT01 : public pApplication
 
 		string CURFLD  ;
 		int    CURPOS  ;
-		string ZCMD1   ;
 
 		string ZFILE   ;
 		string ZCOL1   ;

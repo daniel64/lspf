@@ -1308,7 +1308,7 @@ void Table::tbsort( errblock& err,
 	nsort   = s_field.size() ;
 	sort_ir = temp ;
 
-	sort( table.begin(), table.end(),
+	stable_sort( table.begin(), table.end(),
 		[ &s_field, &s_char, &s_asc, nsort ]( const vector<string>* a, const vector<string>* b )
 		{
 			for ( int i = 0 ; i < nsort ; i++ )
@@ -1647,6 +1647,8 @@ void tableMGR::createTable( errblock& err,
 
 	err.setRC( 0 ) ;
 
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
+
 	iupper( keys ) ;
 	iupper( flds ) ;
 
@@ -1767,6 +1769,8 @@ void tableMGR::loadTable( errblock& err,
 	map<string, Table*>::iterator it ;
 
 	err.setRC( 0 ) ;
+
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
 	it = tables.find( tb_name ) ;
 	if ( it != tables.end() )
@@ -2081,9 +2085,9 @@ void tableMGR::saveTable( errblock& err,
 {
 	// This can be called by tbclose() or tbsave().
 
-	map<string, Table*>::iterator it ;
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	it = tables.find( tb_name ) ;
+	auto it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "SAVETABLE", tb_name, 12 ) ;
@@ -2099,11 +2103,11 @@ void tableMGR::destroyTable( errblock& err,
 	// RC =  0 Normal completion
 	// RC = 12 Table not open
 
-	map<string, Table*>::iterator it ;
-
 	err.setRC( 0 ) ;
 
-	it = tables.find( tb_name ) ;
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
+
+	auto it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "DESTROYTABLE", tb_name, 12 ) ;
@@ -2125,6 +2129,8 @@ void tableMGR::statistics()
 	map<string, tbsearch>::iterator its ;
 
 	errblock err ;
+
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
 	llog( "-", "Table Statistics:" <<endl ) ;
 	llog( "-", "         Number of tables loaded . . . " << tables.size() <<endl ) ;
@@ -2194,9 +2200,9 @@ void tableMGR::fillfVARs( errblock& err,
 			  int& idx,
 			  string& asURID )
 {
-	map<string, Table*>::iterator it ;
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	it = tables.find( tb_name ) ;
+	auto it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "FILLVARS", tb_name, 12 ) ;
@@ -2214,9 +2220,9 @@ void tableMGR::tbget( errblock& err,
 		      const string& tb_noread,
 		      const string& tb_crp_name  )
 {
-	map<string, Table*>::iterator it ;
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	it = tables.find( tb_name ) ;
+	auto it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBGET", tb_name, 12 ) ;
@@ -2232,9 +2238,9 @@ void tableMGR::tbmod( errblock& err,
 		      const string& tb_namelst,
 		      const string& tb_order )
 {
-	map<string, Table*>::iterator it ;
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	it = tables.find( tb_name ) ;
+	auto it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBMOD", tb_name, 12 ) ;
@@ -2250,9 +2256,9 @@ void tableMGR::tbput( errblock& err,
 		      const string& tb_namelst,
 		      const string& tb_order )
 {
-	map<string, Table*>::iterator it ;
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	it = tables.find( tb_name ) ;
+	auto it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBPUT", tb_name, 12 ) ;
@@ -2269,9 +2275,9 @@ void tableMGR::tbadd( errblock& err,
 		      const string& tb_order,
 		      int tb_num_of_rows )
 {
-	map<string, Table*>::iterator it ;
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	it = tables.find( tb_name ) ;
+	auto it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBADD", tb_name, 12 ) ;
@@ -2289,9 +2295,9 @@ void tableMGR::tbbottom( errblock& err,
 			 const string& tb_noread,
 			 const string& tb_crp_name  )
 {
-	map<string, Table*>::iterator it ;
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	it = tables.find( tb_name ) ;
+	auto it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBBOTTOM", tb_name, 12 ) ;
@@ -2305,9 +2311,9 @@ void tableMGR::tbdelete( errblock& err,
 			 fPOOL& funcPOOL,
 			 const string& tb_name )
 {
-	map<string, Table*>::iterator it ;
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	it = tables.find( tb_name ) ;
+	auto it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBDELETE", tb_name, 12 ) ;
@@ -2325,11 +2331,12 @@ void tableMGR::tberase( errblock& err,
 	int j ;
 
 	string filename ;
-	map<string, Table*>::iterator it ;
 
 	err.setRC( 0 ) ;
 
-	it = tables.find( tb_name ) ;
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
+
+	auto it = tables.find( tb_name ) ;
 	if ( it != tables.end() )
 	{
 		err.seterrid( "PSYE014N", tb_name, 12 ) ;
@@ -2365,9 +2372,9 @@ void tableMGR::tbexist( errblock& err,
 			fPOOL& funcPOOL,
 			const string& tb_name )
 {
-	map<string, Table*>::iterator it ;
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	it = tables.find( tb_name ) ;
+	auto it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBEXIST", tb_name, 12 ) ;
@@ -2391,9 +2398,9 @@ void tableMGR::tbquery( errblock& err,
 			const string& tb_condn,
 			const string& tb_dirn )
 {
-	map<string, Table*>::iterator it ;
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	it = tables.find( tb_name ) ;
+	auto it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBQUERY", tb_name, 12 ) ;
@@ -2410,9 +2417,9 @@ void tableMGR::tbsarg( errblock& err,
 		       const string& tb_dir,
 		       const string& tb_cond_pairs )
 {
-	map<string, Table*>::iterator it ;
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	it = tables.find( tb_name ) ;
+	auto it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBSARG", tb_name, 12 ) ;
@@ -2433,9 +2440,9 @@ void tableMGR::tbscan( errblock& err,
 		       const string& tb_crp_name,
 		       const string& tb_cond_pairs )
 {
-	map<string, Table*>::iterator it ;
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	it = tables.find( tb_name ) ;
+	auto it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBSCAN", tb_name, 12 ) ;
@@ -2458,10 +2465,10 @@ void tableMGR::cmdsearch( errblock& err,
 	// RC = 12 Table not found (RC=8 from loadTable)
 	// RC = 20 Severe error
 
-	map<string, Table*>::iterator it ;
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
 	tb_name += "CMDS" ;
-	it = tables.find( tb_name ) ;
+	auto it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
 		loadTable( err, tb_name, NOWRITE, paths, SHARE ) ;
@@ -2492,9 +2499,9 @@ void tableMGR::tbskip( errblock& err,
 		       const string& tb_noread,
 		       const string& tb_crp_name )
 {
-	map<string, Table*>::iterator it ;
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	it = tables.find( tb_name ) ;
+	auto it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBSKIP", tb_name, 12 ) ;
@@ -2508,9 +2515,9 @@ void tableMGR::tbsort( errblock& err,
 		       const string& tb_name,
 		       const string& tb_fields )
 {
-	map<string, Table*>::iterator it ;
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	it = tables.find( tb_name ) ;
+	auto it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBSORT", tb_name, 12 ) ;
@@ -2523,9 +2530,9 @@ void tableMGR::tbsort( errblock& err,
 void tableMGR::tbtop( errblock& err,
 		      const string& tb_name )
 {
-	map<string, Table*>::iterator it ;
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	it = tables.find( tb_name ) ;
+	auto it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBTOP", tb_name, 12 ) ;
@@ -2539,9 +2546,9 @@ void tableMGR::tbvclear( errblock& err,
 			 fPOOL& funcPOOL,
 			 const string& tb_name )
 {
-	map<string, Table*>::iterator it ;
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	it = tables.find( tb_name ) ;
+	auto it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBVCLEAR", tb_name, 12 ) ;
@@ -2556,9 +2563,9 @@ bool tableMGR::writeableTable( errblock& err,
 {
 	err.setRC( 0 ) ;
 
-	map<string, Table*>::iterator it ;
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	it = tables.find( tb_name ) ;
+	auto it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "WRITEABLETABLE", tb_name, 12 ) ;

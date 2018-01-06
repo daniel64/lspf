@@ -429,6 +429,26 @@ void IFSTMNT::parse_cond( errblock& err, parser& v )
 
 	token t ;
 
+	map<string, IF_COND> if_conds =
+	{ { "=",  IF_EQ },
+	  { "EQ", IF_EQ },
+	  { "!=", IF_NE },
+	  { "NE", IF_NE },
+	  { ">",  IF_GT },
+	  { "GT", IF_GT },
+	  { "<",  IF_LT },
+	  { "LT", IF_LT },
+	  { ">=", IF_GE },
+	  { "=>", IF_GE },
+	  { "GE", IF_GE },
+	  { "!<", IF_GE },
+	  { "NL", IF_GE },
+	  { "<=", IF_LE },
+	  { "=<", IF_LE },
+	  { "LE", IF_LE },
+	  { "!>", IF_LE },
+	  { "NG", IF_LE } } ;
+
 	t = v.getCurrentToken() ;
 	if ( t.subtype == TS_CLOSE_BRACKET )
 	{
@@ -500,29 +520,13 @@ void IFSTMNT::parse_cond( errblock& err, parser& v )
 		t = v.getNextToken() ;
 	}
 
-	if      ( t.value == "="  ) { if_cond = IF_EQ ; }
-	else if ( t.value == "EQ" ) { if_cond = IF_EQ ; }
-	else if ( t.value == "!=" ) { if_cond = IF_NE ; }
-	else if ( t.value == "NE" ) { if_cond = IF_NE ; }
-	else if ( t.value == ">"  ) { if_cond = IF_GT ; }
-	else if ( t.value == "GT" ) { if_cond = IF_GT ; }
-	else if ( t.value == "<"  ) { if_cond = IF_LT ; }
-	else if ( t.value == "LT" ) { if_cond = IF_LT ; }
-	else if ( t.value == ">=" ) { if_cond = IF_GE ; }
-	else if ( t.value == "=>" ) { if_cond = IF_GE ; }
-	else if ( t.value == "GE" ) { if_cond = IF_GE ; }
-	else if ( t.value == "!<" ) { if_cond = IF_GE ; }
-	else if ( t.value == "NL" ) { if_cond = IF_GE ; }
-	else if ( t.value == "<=" ) { if_cond = IF_LE ; }
-	else if ( t.value == "=<" ) { if_cond = IF_LE ; }
-	else if ( t.value == "LE" ) { if_cond = IF_LE ; }
-	else if ( t.value == "!>" ) { if_cond = IF_LE ; }
-	else if ( t.value == "NG" ) { if_cond = IF_LE ; }
-	else
+	auto it = if_conds.find( t.value ) ;
+	if ( it == if_conds.end() )
 	{
 		err.seterrid( "PSYE033E", t.value ) ;
 		return ;
 	}
+	if_cond = it->second ;
 
 	t = v.getNextToken() ;
 	if ( t.subtype == TS_CTL_VAR_INVALID )
@@ -1697,6 +1701,11 @@ bool selobj::parse( errblock& err, string SELSTR )
 			err.seterrid( "PSYE031E", "NEWAPPL", NEWAPPL ) ;
 			return false ;
 		}
+		if ( NEWAPPL == "ISPS" )
+		{
+			err.seterrid( "PSYE039S" ) ;
+			return false ;
+		}
 	}
 	else
 	{
@@ -1794,10 +1803,10 @@ bool logger::open( const string& dest, bool append )
 
 void logger::close()
 {
-	lock() ;
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
+
 	of.close() ;
 	logOpen = false ;
-	unlock()   ;
 }
 
 
@@ -1811,9 +1820,10 @@ bool logger::set( const string& dest )
 
 	boost::system::error_code ec ;
 
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
+
 	if ( dest == *currfl ) { return true ; }
 
-	lock() ;
 	of.close() ;
 	logOpen = false ;
 
@@ -1832,6 +1842,5 @@ bool logger::set( const string& dest )
 		}
 	}
 
-	unlock()   ;
 	return res ;
 }

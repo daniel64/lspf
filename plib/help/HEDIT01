@@ -68,8 +68,8 @@ XI       Exclude Indentation.  Exclude lines until the indentation is less than 
          is entered.
 
 [n       Shift characters left to the next nth tab position (no data loss)
-[[n
+[[n      For block command, lines are shifted individually, so alignment may change.
 
 ]n       Shift characters right to the next nth tab position (data loss only if right tab position set)
-]]n
+]]n      For block command, lines are shifted individually, so alignment may change.
 

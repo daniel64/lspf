@@ -48,40 +48,42 @@ void PCMD0A::application()
 
 	ZAPPDESC = "Invoke a command and display the output" ;
 
-	string ZCOMMAND  ;
-	string MSG       ;
+	string zcommand  ;
+	string msg       ;
 	string result    ;
 	string file      ;
+
 	char buffer[256] ;
 
 	std::ofstream of ;
 
-	vdefine( "ZCOMMAND", &ZCOMMAND )  ;
+	vdefine( "ZCOMMAND", &zcommand )  ;
 	vcopy( "ZUSER", ZUSER, MOVE )     ;
 	vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
 
-	boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
+	boost::filesystem::path temp = boost::filesystem::temp_directory_path() /
+	boost::filesystem::unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
 	string tname = temp.native() ;
 
-	ZCOMMAND = "" ;
+	zcommand = "" ;
 	if ( PARM != "" )
 	{
 		control( "DISPLAY", "NONDISPL" ) ;
-		ZCOMMAND = PARM ;
+		zcommand = PARM ;
 	}
 
 	while ( true )
 	{
-		if ( MSG == "" ) { ZCMD = "" ; }
-		display( "PCMD0A", MSG, "ZCMD" ) ;
+		if ( msg == "" ) { ZCMD = "" ; }
+		display( "PCMD0A", msg, "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
-		if ( ZCOMMAND != "" )
+		if ( zcommand != "" )
 		{
-			vreplace( "ZBRALT", "COMMAND:"+ZCOMMAND ) ;
+			vreplace( "ZBRALT", "COMMAND:"+zcommand ) ;
 			vput( "ZBRALT", SHARED ) ;
-			ZCOMMAND = ZCOMMAND + " 2> /tmp/popen.err" ;
+			zcommand += " 2> /tmp/popen.err" ;
 			of.open( tname ) ;
-			FILE* pipe{popen(ZCOMMAND.c_str(), "r")};
+			FILE* pipe{popen(zcommand.c_str(), "r")};
 			while( fgets(buffer, sizeof(buffer), pipe) != nullptr )
 			{
 				file = buffer;
@@ -89,7 +91,7 @@ void PCMD0A::application()
 				of << result << endl ;
 			}
 			pclose( pipe )  ;
-			ZCOMMAND = ""   ;
+			zcommand = ""   ;
 			of.close()      ;
 			browse( tname ) ;
 			if ( ZRC == 4 && ZRSN == 4 ) { browse( "/tmp/popen.err" ) ; }

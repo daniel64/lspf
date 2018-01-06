@@ -664,7 +664,7 @@ void field::edit_field_delete( WINDOW * win, int col, char pad, bool snulls )
 			field_value[ p1 ] = da->dynArea_UserMod ;
 		}
 		field_value.insert( p2, 1, ' ' ) ;
-		field_shadow_value.insert( p2, 1, 0xFF ) ;
+		field_shadow_value.insert( p2, 1, 0xFE ) ;
 		field_shadow_value.erase( pos, 1 ) ;
 	}
 
@@ -736,7 +736,7 @@ void field::field_erase_eof( WINDOW * win, uint col, char pad, bool snulls )
 			field_value[ p1 ] = da->dynArea_UserMod ;
 		}
 		field_value.replace( pos, p2-pos, p2-pos, ' ' )  ;
-		field_shadow_value.replace( pos, p2-pos, p2-pos, 0xFF ) ;
+		field_shadow_value.replace( pos, p2-pos, p2-pos, 0xFE ) ;
 	}
 	else
 	{
@@ -865,9 +865,8 @@ int field::end_of_field( WINDOW * win, uint col )
 	int p1  ;
 	int p2  ;
 
-	string padc ;
+	string padc = "" ;
 
-	padc.clear()           ;
 	padc.push_back( 0x00 ) ;
 	padc.push_back( 0x20 ) ;
 
@@ -971,7 +970,6 @@ void field::field_attr( errblock& err, string attrs )
 
 	string cua    ;
 	string col    ;
-	string typ    ;
 	string hilite ;
 	string intens ;
 

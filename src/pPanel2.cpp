@@ -736,7 +736,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 	{
 		for ( it1 = fieldList.begin() ; it1 != fieldList.end() ; it1++ )
 		{
-			if ( !p_funcPOOL->ifexists( err, it1->first ) ) { syncDialogueVar( it1->first ) ; }
+			if ( !p_funcPOOL->ifexists( err, it1->first ) ) { syncDialogueVar( err, it1->first ) ; }
 		}
 	}
 

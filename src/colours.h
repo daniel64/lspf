@@ -60,7 +60,7 @@ map<string, cuaType> cuaAttrName =
   { "DATAOUT", DATAOUT},
   { "GRPBOX",  GRPBOX },
   { "OUTPUT",  OUTPUT },
-  { "TEXT",    TEXT   }, } ;
+  { "TEXT",    TEXT   }  } ;
 
 
 map<string, unsigned int> usrAttrNames =
@@ -94,11 +94,7 @@ map<string, unsigned int> usrAttrNames =
   { "U_WHITE",   U_WHITE   } } ;
 
 
-set<cuaType> cuaAttrUnprot =
-{ { LEF    },
-  { CEF    },
-  { NEF    },
-  { DATAIN } } ;
+set<cuaType> cuaAttrUnprot = { LEF, CEF, NEF, DATAIN } ;
 
 
 map<int, unsigned int> usrAttr =
@@ -134,5 +130,6 @@ map<int, unsigned int> usrAttr =
   { U_TURQ,    TURQ    | A_UNDERLINE },
   { U_WHITE,   WHITE   | A_UNDERLINE },
 
-  { P_FF,      GREEN   }, } ;
+  { P_FE,      GREEN   },
+  { P_FF,      GREEN   }  } ;
 
