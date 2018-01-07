@@ -40,9 +40,8 @@ System:
 .SCALE
 .SHELL   Suspends NCURSES and invokes the shell specified in the SHELL environment variable
 .SHOW    NULLS. Display field nulls as dots.
-.SNAP    Snap SHARED and PROFILE pool variables for the current application to the
-         Application Log
-.STATS   Display table and pool statistics for the current application to the Application Log
+.SNAP    Snap all SHARED and PROFILE pool variables to the application log.
+.STATS   Write table and pool statistics to the application log.
 .TEST    Put application into test mode
          :: Read messages from disk every time
          :: Set testMode to true

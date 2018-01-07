@@ -1553,7 +1553,7 @@ string& getNameList( errblock& err, string& s )
 	std::replace( s.begin(), s.end(), ',', ' ' ) ;
 	if ( !bracket && words( s ) > 1 )
 	{
-		err.seterrid( "PSYE039S" ) ;
+		err.seterrid( "PSYE039T" ) ;
 		s = tmp ;
 	}
 	return s ;

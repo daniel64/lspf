@@ -1181,7 +1181,7 @@ void poolMGR::statistics()
 	llog( "-", "         Number of shared pools . . . . " << POOLs_shared.size() << endl ) ;
 	llog( "-", "         Number of profile pools. . . . " << POOLs_profile.size() << endl ) ;
 	llog( "-", "         Number of connected tasks. . . " << task_table.size() << endl ) ;
-	llog( "-", "" << endl ) ;
+	llog( "-", endl ) ;
 	llog( "-", "         Shared pool details:" << endl ) ;
 
 	for ( auto sp_it = POOLs_shared.begin() ; sp_it != POOLs_shared.end() ; sp_it++ )
@@ -1191,7 +1191,7 @@ void poolMGR::statistics()
 			  "  use count: " << setw(4) << sp_it->second->refCount <<
 			  "  " << Mode << "  entries: " << setw(5) << sp_it->second->POOL.size() << endl ) ;
 	}
-	llog( "-", "" << endl ) ;
+	llog( "-", endl ) ;
 	llog( "-", "         Profile pool details:" << endl ) ;
 
 	for ( auto pp_it = POOLs_profile.begin() ; pp_it != POOLs_profile.end() ; pp_it++ )
@@ -1201,7 +1201,7 @@ void poolMGR::statistics()
 			  "  " << Mode << "  entries: " << setw(5) << pp_it->second->POOL.size() << "  path: " << pp_it->second->path << endl ) ;
 	}
 
-	llog( "-", "" << endl ) ;
+	llog( "-", endl ) ;
 	llog( "-", "         Connected Tasks:" << endl ) ;
 	for ( auto it = task_table.begin() ; it != task_table.end() ; it++ )
 	{
@@ -1230,6 +1230,7 @@ void poolMGR::snap()
 
 	for ( sp_it = POOLs_shared.begin() ; sp_it != POOLs_shared.end() ; sp_it++ )
 	{
+		llog( "-", endl ) ;
 		llog( "-", "         Pool " << setw(8) << sp_it->first << " use count:" << setw(3) << sp_it->second->refCount <<
 			  " entries: " << sp_it->second->POOL.size() << endl ) ;
 		for ( v_it = sp_it->second->POOL.begin() ; v_it != sp_it->second->POOL.end() ; v_it++ )
@@ -1243,6 +1244,7 @@ void poolMGR::snap()
 
 	for ( pp_it = POOLs_profile.begin() ; pp_it != POOLs_profile.end() ; pp_it++ )
 	{
+		llog( "-", endl ) ;
 		llog( "-", "         Pool " << setw(8) << pp_it->first << " use count: " << setw(3) << pp_it->second->refCount <<
 			  " entries: " << pp_it->second->POOL.size() << endl ) ;
 		llog( "-", "                            path: " << setw(3) << pp_it->second->path << endl ) ;

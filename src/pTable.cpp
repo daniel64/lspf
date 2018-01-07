@@ -1308,6 +1308,8 @@ void Table::tbsort( errblock& err,
 	nsort   = s_field.size() ;
 	sort_ir = temp ;
 
+	replace( sort_ir.begin(), sort_ir.end(), ' ', ',' ) ;
+
 	stable_sort( table.begin(), table.end(),
 		[ &s_field, &s_char, &s_asc, nsort ]( const vector<string>* a, const vector<string>* b )
 		{
