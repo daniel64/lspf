@@ -1094,6 +1094,7 @@ class edit_find
 		bool   f_top     ;
 		bool   f_bottom  ;
 		bool   f_exclude ;
+		bool   f_searched;
 		char   f_dir     ;
 		char   f_mtch    ;
 		int    f_ssize   ;
@@ -1134,66 +1135,68 @@ class edit_find
 		int    f_ex_lnes ;
 	edit_find()
 	{
-		f_string  = ""    ;
-		f_ostring = ""    ;
-		f_cstring = ""    ;
-		f_rstring = ""    ;
-		f_success = true  ;
-		f_error   = false ;
-		f_top     = false ;
-		f_bottom  = false ;
-		f_exclude = false ;
-		f_dir     = 'N'   ;
-		f_mtch    = 'C'   ;
-		f_ssize   = 0     ;
-		f_occurs  = 0     ;
-		f_URID    = 0     ;
-		f_pURID   = 0     ;
-		f_pCol    = 0     ;
-		f_dl      = 0     ;
-		f_lines   = 0     ;
-		f_offset  = 0     ;
-		f_excl    = 'A'   ;
-		f_regreq  = false ;
-		f_text    = false ;
-		f_asis    = false ;
-		f_hex     = false ;
-		f_pic     = false ;
-		f_reg     = false ;
-		f_ctext   = false ;
-		f_casis   = false ;
-		f_chex    = false ;
-		f_cpic    = false ;
-		f_creg    = false ;
-		f_slab    = ""    ;
-		f_elab    = ""    ;
-		f_scol    = 0     ;
-		f_ecol    = 0     ;
-		f_ocol    = 0     ;
-		f_fset    = false ;
-		f_cset    = false ;
-		f_chngall = false ;
-		f_fd_occs = 0     ;
-		f_fd_lnes = 0     ;
-		f_ch_occs = 0     ;
-		f_ch_errs = 0     ;
-		f_sk_occs = 0     ;
-		f_sk_lnes = 0     ;
-		f_ex_occs = 0     ;
-		f_ex_lnes = 0     ;
+		f_string   = ""    ;
+		f_ostring  = ""    ;
+		f_cstring  = ""    ;
+		f_rstring  = ""    ;
+		f_success  = true  ;
+		f_error    = false ;
+		f_top      = false ;
+		f_bottom   = false ;
+		f_exclude  = false ;
+		f_searched = false ;
+		f_dir      = 'N'   ;
+		f_mtch     = 'C'   ;
+		f_ssize    = 0     ;
+		f_occurs   = 0     ;
+		f_URID     = 0     ;
+		f_pURID    = 0     ;
+		f_pCol     = 0     ;
+		f_dl       = 0     ;
+		f_lines    = 0     ;
+		f_offset   = 0     ;
+		f_excl     = 'A'   ;
+		f_regreq   = false ;
+		f_text     = false ;
+		f_asis     = false ;
+		f_hex      = false ;
+		f_pic      = false ;
+		f_reg      = false ;
+		f_ctext    = false ;
+		f_casis    = false ;
+		f_chex     = false ;
+		f_cpic     = false ;
+		f_creg     = false ;
+		f_slab     = ""    ;
+		f_elab     = ""    ;
+		f_scol     = 0     ;
+		f_ecol     = 0     ;
+		f_ocol     = 0     ;
+		f_fset     = false ;
+		f_cset     = false ;
+		f_chngall  = false ;
+		f_fd_occs  = 0     ;
+		f_fd_lnes  = 0     ;
+		f_ch_occs  = 0     ;
+		f_ch_errs  = 0     ;
+		f_sk_occs  = 0     ;
+		f_sk_lnes  = 0     ;
+		f_ex_occs  = 0     ;
+		f_ex_lnes  = 0     ;
 	}
 	void reset()
 	{
-		f_success = false ;
-		f_error   = false ;
-		f_top     = false ;
-		f_bottom  = false ;
-		f_rstring = "" ;
-		f_occurs  = 0  ;
-		f_URID    = 0  ;
-		f_dl      = 0  ;
-		f_lines   = 0  ;
-		f_offset  = 0  ;
+		f_success  = false ;
+		f_error    = false ;
+		f_top      = false ;
+		f_bottom   = false ;
+		f_searched = false ;
+		f_rstring  = "" ;
+		f_occurs   = 0  ;
+		f_URID     = 0  ;
+		f_dl       = 0  ;
+		f_lines    = 0  ;
+		f_offset   = 0  ;
 	}
 	void setrstring( const string& s )
 	{
@@ -2111,6 +2114,7 @@ class PEDIT01 : public pApplication
 		string setFoundString()   ;
 		string getColumnLine( int =0 ) ;
 
+		void hiliteFindPhrase()   ;
 		void actionFind()         ;
 		void actionChange()       ;
 
@@ -2280,9 +2284,12 @@ class PEDIT01 : public pApplication
 		bool   profParen         ;
 		bool   profCutReplace    ;
 		bool   profPasteKeep     ;
+		bool   profPosFcx        ;
 		string profLang          ;
 		string profIMAC          ;
 		bool   profVert          ;
+		bool   profFindPhrase    ;
+		bool   profCsrPhrase     ;
 
 		string detLang           ;
 		string creFile           ;
@@ -2290,6 +2297,7 @@ class PEDIT01 : public pApplication
 		bool optNoConvTabs       ;
 		bool optPreserve         ;
 		bool optConfCancel       ;
+		bool optFindPhrase       ;
 		string optProfile        ;
 		string optMacro          ;
 

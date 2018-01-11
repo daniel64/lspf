@@ -528,6 +528,11 @@ void PPSP01A::dsList( string parms )
 		vcopy( "ZRFLPGM", PGM, MOVE ) ;
 		select( "PGM(" + PGM + ") PARM(PL3) SCRNAME(DSLIST) SUSPEND" ) ;
 	}
+	else if ( parms.front() == '/' )
+	{
+		vcopy( "ZFLSTPGM", PGM, MOVE ) ;
+		select( "PGM(" + PGM + ") PARM(BROWSE "+parms+") SCRNAME(FILES) SUSPEND" ) ;
+	}
 	else
 	{
 		vcopy( "ZUPROF", UPROF, MOVE ) ;

@@ -125,7 +125,7 @@ void field::field_opts( errblock& err, string& opts )
 	if ( opts == "NONE" ) { return ; }
 
 	opts = "," + opts ;
-	p1    = opts.find( ",CAPS(" ) ;
+	p1   = opts.find( ",CAPS(" ) ;
 	if ( p1 != string::npos )
 	{
 		p2 = opts.find( ')', p1 ) ;

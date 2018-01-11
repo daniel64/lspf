@@ -1158,7 +1158,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		currAppl->clear_msg() ;
 	}
 
-	addRetrieve = true  ;
+	addRetrieve = true ;
 	delm        = p_poolMGR->sysget( err, "ZDEL", PROFILE ) ;
 
 	if ( t_pdc.pdc_run == "" )
@@ -1187,7 +1187,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 	{
 		if ( ZCOMMAND != "" )
 		{
-			currAppl->currPanel->cmd_setvalue( err, ZCOMMAND + delm + commandStack ) ;
+			currAppl->currPanel->cmd_setvalue( err, ZCOMMAND + commandStack ) ;
 			commandStack = "" ;
 			return ;
 		}
@@ -1268,12 +1268,25 @@ void processAction( uint row, uint col, int c, bool& passthru )
 
 	jumpOption = ZCOMMAND ;
 
-	ZCOMMAND = strip( ZCOMMAND, 'L', delm.front() ) ;
+	if ( ZCOMMAND.compare( 0, 2, delm+delm ) == 0 )
+	{
+		commandStack = ZCOMMAND.substr( 1 ) ;
+		ZCOMMAND     = ""                   ;
+		currAppl->currPanel->cmd_setvalue( err, "" ) ;
+		return ;
+	}
+	else if ( ZCOMMAND.compare( 0, 1, delm ) == 0 )
+	{
+		ZCOMMAND.erase( 0, 1 ) ;
+		currAppl->currPanel->cmd_setvalue( err, ZCOMMAND ) ;
+	}
+
 	p1 = ZCOMMAND.find( delm.front() ) ;
 	if ( p1 != string::npos )
 	{
-		commandStack = ZCOMMAND.substr( p1+1 ) ;
-		ZCOMMAND.erase( p1 )                   ;
+		commandStack = ZCOMMAND.substr( p1 ) ;
+		ZCOMMAND.erase( p1 )                 ;
+		currAppl->currPanel->cmd_setvalue( err, ZCOMMAND ) ;
 	}
 
 	CMDVerb = upper( word( ZCOMMAND, 1 ) ) ;
@@ -2480,11 +2493,6 @@ void updateReflist()
 	// Don't update REFLIST if the application has done a CONTROL REFLIST NOUPDATE (flag ControlRefUpdate=false)
 	// or ISPS PROFILE variable ZRFURL is not set to YES
 
-	// Save/restore cursor position of the current application, as we don't want the reflist appl to move it
-
-	uint row ;
-	uint col ;
-
 	string fname = currAppl->get_nretfield() ;
 
 	err.clear() ;
@@ -2496,7 +2504,6 @@ void updateReflist()
 
 	if ( currAppl->currPanel->field_valid( fname ) )
 	{
-		currAppl->get_cursor( row, col ) ;
 		SELCT.clear() ;
 		SELCT.PGM     = p_poolMGR->sysget( err, "ZRFLPGM", PROFILE ) ;
 		SELCT.PARM    = "PLA " + currAppl->currPanel->field_getvalue( fname ) ;
@@ -2504,7 +2511,6 @@ void updateReflist()
 		SELCT.NEWPOOL = false ;
 		SELCT.PASSLIB = false ;
 		startApplicationBack( SELCT ) ;
-		currScrn->set_row_col( row, col ) ;
 	}
 	else
 	{
@@ -2771,7 +2777,6 @@ void listBackTasks()
 int getScreenNameNum( const string& s )
 {
 	// Return the screen number of screen name 's'.  If not found, return 0.
-	// Reset shared pool after this call as it issues get_current_screenName().
 
 	int l ;
 

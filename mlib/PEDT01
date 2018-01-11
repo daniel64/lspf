@@ -365,3 +365,12 @@ PEDT015Z 'Invalid ''from'' picture string' .T=W
 PEDT016A 'Invalid ''from'' regex' .T=W
 'The ''from'' string cannot be a regex if ''to'' picture string specified'
 
+PEDT016B 'No lines searched' .T=W
+'No excluded lines where found to search'
+
+PEDT016C 'No lines searched' .T=W
+'No non-excluded lines where found to search'
+
+PEDT016D 'No lines searched' .T=W
+'No lines where found to search'
+

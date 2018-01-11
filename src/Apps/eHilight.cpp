@@ -461,18 +461,10 @@ void addRxxHilight( hilight& h, const string& line, string& shadow )
 }
 
 
-void addNoHilight( hilight& h, const string& line, string& shadow )
-{
-	int ln ;
-
-	ln = line.size() ;
-	if ( ln == 0 ) { shadow = "" ; return ; }
-	shadow = string( ln, N_GREEN ) ;
-}
-
-
 void addOthHilight( hilight& h, const string& line, string& shadow )
 {
+	// Highlight as a pseudo-PL/1 language (TODO)
+
 	int ln ;
 
 	ln = line.size() ;
@@ -483,6 +475,8 @@ void addOthHilight( hilight& h, const string& line, string& shadow )
 
 void addDefHilight( hilight& h, const string& line, string& shadow )
 {
+	// Highlight in a single colour
+
 	int ln ;
 
 	ln = line.size() ;

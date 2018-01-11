@@ -379,6 +379,11 @@ void PEDIT01::Edit()
 
 		positionCursor() ;
 
+		if ( optFindPhrase && profFindPhrase && fcx_parms.f_fset )
+		{
+			hiliteFindPhrase() ;
+		}
+
 		ZCMD = pcmd.condget_cmd() ;
 		if ( ZCMD != "" && !pcmd.error() )
 		{
@@ -1977,6 +1982,7 @@ void PEDIT01::actionPrimCommand1()
 			break ;
 
 	case PC_EDITSET:
+			vreplace( "ZPOSFCX", profPosFcx     ? "/" : ""  ) ;
 			vreplace( "ZCUTDEF", profCutReplace ? "2" : "1" ) ;
 			vreplace( "ZPSTDEF", profPasteKeep  ? "2" : "1" ) ;
 			addpop( "", 5, 5 ) ;
@@ -1987,6 +1993,8 @@ void PEDIT01::actionPrimCommand1()
 				vcopy( "ZCMD9", t, MOVE ) ;
 				if ( t != "CANCEL" )
 				{
+					vcopy( "ZPOSFCX", t, MOVE ) ;
+					profPosFcx     = ( t == "/" ) ;
 					vcopy( "ZCUTDEF", t, MOVE ) ;
 					profCutReplace = ( t == "2" ) ;
 					vcopy( "ZPSTDEF", t, MOVE ) ;
@@ -2037,7 +2045,7 @@ void PEDIT01::actionPrimCommand1()
 					{
 						w = aliasNames[ w ] ;
 					}
-					if ( !findword( w, "ALL CLEAN CHA CMD ERR LAB H UNDO REDO SPE T X" ) )
+					if ( !findword( w, "ALL CLEAN CHA CMD ERR FIND LAB H UNDO REDO SPE T X" ) )
 					{
 						     pcmd.set_msg( "PEDT011" ) ;
 						     return ;
@@ -2077,7 +2085,8 @@ void PEDIT01::actionPrimCommand1()
 						a->resetFilePrefix() ;
 						a->clearLcc() ;
 					} ) ;
-				hideExcl = false ;
+				hideExcl      = false ;
+				optFindPhrase = false ;
 				lcmds.clear() ;
 			}
 			it = its ;
@@ -2142,6 +2151,10 @@ void PEDIT01::actionPrimCommand1()
 						{
 							a->clearLabel() ;
 						} ) ;
+				}
+				else if ( w == "FIND" )
+				{
+					optFindPhrase = false ;
 				}
 				else if ( w == "H" )
 				{
@@ -2704,6 +2717,7 @@ void PEDIT01::actionPrimCommand2()
 			{
 				moveColumn( fcx_parms.f_offset ) ;
 				placeCursor( fcx_parms.f_URID, 4, fcx_parms.f_offset ) ;
+				moveTopline( fcx_parms.f_URID ) ;
 				fcx_parms.f_occurs  = 1 ;
 				fcx_parms.f_lines   = 1 ;
 				setExcludedMsg() ;
@@ -2722,6 +2736,7 @@ void PEDIT01::actionPrimCommand2()
 				fcx_parms.f_ex_lnes = fcx_parms.f_lines  ;
 				moveColumn( fcx_parms.f_offset ) ;
 				placeCursor( fcx_parms.f_URID, 4, fcx_parms.f_offset ) ;
+				moveTopline( fcx_parms.f_URID ) ;
 				setExcludedMsg() ;
 				if ( macroRunning )
 				{
@@ -2903,6 +2918,48 @@ void PEDIT01::actionPrimCommand2()
 			break ;
 
 	case PC_HILIGHT:
+			if ( w2 == "" )
+			{
+				vreplace( "ZPROFLG", profLang ) ;
+				vreplace( "ZPROFHI", profHilight    ? "YES" : "NO" ) ;
+				vreplace( "ZPROFIF", profIfLogic    ? "YES" : "NO" ) ;
+				vreplace( "ZPROFDO", profDoLogic    ? "YES" : "NO" ) ;
+				vreplace( "ZPARMTC", profParen      ? "/" : ""  ) ;
+				vreplace( "ZHIFIND", profFindPhrase ? "/" : ""  ) ;
+				vreplace( "ZHICURS", profCsrPhrase  ? "/" : ""  ) ;
+				addpop( "", 5, 5 ) ;
+				while ( true )
+				{
+					display( "PEDIT01A" ) ;
+					if ( RC == 0 ) { continue ; }
+					vcopy( "ZCMDA", t1, MOVE ) ;
+					if ( t1 != "CANCEL" )
+					{
+						vcopy( "ZPROFLG", profLang, MOVE ) ;
+						vcopy( "ZPROFHI", t1, MOVE )  ;
+						profHilight = ( t1 == "YES" ) ;
+						vcopy( "ZPROFIF", t1, MOVE )  ;
+						profIfLogic = ( t1 == "YES" ) ;
+						vcopy( "ZPROFDO", t1, MOVE )  ;
+						profDoLogic = ( t1 == "YES" ) ;
+						vcopy( "ZPARMTC", t1, MOVE )  ;
+						profParen   = ( t1 == "/" )    ;
+						vcopy( "ZHIFIND", t1, MOVE )   ;
+						profFindPhrase = ( t1 == "/" ) ;
+						vcopy( "ZHICURS", t1, MOVE )   ;
+						profCsrPhrase = ( t1 == "/" )  ;
+						optFindPhrase = profFindPhrase ;
+						buildProfLines( Prof )  ;
+						updateProfLines( Prof ) ;
+						detLang = ( profLang != "AUTO" ) ? profLang : determineLang() ;
+						clr_hilight_shadow()    ;
+						rebuildZAREA   = true   ;
+					}
+					break ;
+				}
+				rempop() ;
+				break    ;
+			}
 			if ( w2 == "RESET" )
 			{
 				if ( ws > 2 ) { pcmd.set_msg( "PEDT011" ) ; break ; }
@@ -5185,7 +5242,7 @@ bool PEDIT01::actionUNDO()
 			if ( (*it)->is_file() ) { isFile = true ; }
 			if ( tURID == 0 )
 			{
-				tURID   = (*it)->il_URID ;
+				tURID = (*it)->il_URID ;
 			}
 			rebuildZAREA = true ;
 		}
@@ -5587,6 +5644,169 @@ bool PEDIT01::setFindChangeExcl( char type )
 }
 
 
+void PEDIT01::hiliteFindPhrase()
+{
+	// dl has to be a uint so the corect getNextDataLine routine is called ( int is for URID )
+	// c1,c2 are the column limits of the find, set by bnds, col, line length and initial cursor position
+
+	// hilite FIND phrase between normal limits (bounds, range) between first and last line on screen
+
+	int i    ;
+	int ln   ;
+	int s1   ;
+	int c1   ;
+	int c2   ;
+	int p1   ;
+	int scol ;
+	int ecol ;
+
+	uint dl  ;
+	uint sdl ;
+	uint edl ;
+
+	string str ;
+
+	bool found ;
+
+	string::const_iterator itss ;
+	string::const_iterator itse ;
+
+	boost::regex  regexp  ;
+	boost::smatch results ;
+
+	if ( fcx_parms.f_regreq )
+	{
+		try
+		{
+			if ( fcx_parms.f_asis )
+			{
+				regexp.assign( fcx_parms.f_string ) ;
+			}
+			else
+			{
+				regexp.assign( fcx_parms.f_string, boost::regex_constants::icase ) ;
+			}
+		}
+		catch  ( boost::regex_error& e )
+		{
+			fcx_parms.f_error = true ;
+			pcmd.set_msg( "PEDT011N" ) ;
+			return ;
+		}
+	}
+
+	sdl = ( fcx_parms.f_slab != "" ) ? getLabelIndex( fcx_parms.f_slab ) : topLine ;
+	edl = ( fcx_parms.f_elab != "" ) ? getLabelIndex( fcx_parms.f_elab ) : data.size() - 2 ;
+
+	scol = max( fcx_parms.f_scol, LeftBnd ) - 1 ;
+	if ( fcx_parms.f_ecol == 0 )
+	{
+		ecol = ( RightBnd > 0 ) ? RightBnd - 1 : ecol = 0 ;
+	}
+	else
+	{
+		ecol = ( RightBnd > 0 ) ? min( fcx_parms.f_ecol, RightBnd ) - 1 : fcx_parms.f_ecol - 1 ;
+	}
+
+	found = false ;
+	for ( i = 0 ; i < ZAREAD ; i++ )
+	{
+		dl = s2data.at( i ).ipos_dl ;
+
+		if ( s2data.at( i ).ipos_URID == 0 ||
+		     s2data.at( i ).ipos_hex > 0   ||
+		     dl < sdl ||
+		     dl > edl ||
+		     !data[ dl ]->isValidFile() ||
+		      data[ dl ]->il_excl )     { continue ; }
+
+		c1 = 0 ;
+		c2 = data[ dl ]->get_idata_len() - 1 ;
+
+		if ( scol > c1 )             { c1 = scol ; }
+		if ( ecol > 0 && ecol < c2 ) { c2 = ecol ; }
+
+		if ( c1 > c2 )
+		{
+			dl = getNextFileLine( dl ) ;
+			continue ;
+		}
+
+		found = false ;
+		if ( fcx_parms.f_regreq )
+		{
+			itss = data[ dl ]->get_idata_begin() ;
+			std::advance( itss, c1 ) ;
+			itse = itss ;
+			std::advance( itse, c2-c1+1 ) ;
+			while ( regex_search( itss, itse, results, regexp ) )
+			{
+				if ( fcx_parms.f_ocol && itss != results[ 0 ].first )
+				{
+					break ;
+				}
+				for ( p1 = c1 ; itss != results[ 0 ].first ; itss++ ) { p1++ ; }
+				found = true   ;
+				c1    = p1 + 1 ;
+				itss  = results[ 0 ].first ;
+				if ( itss == itse ) { break ; }
+				itss++ ;
+				str = results[ 0 ] ;
+				ln  = str.size()   ;
+				s1  = p1 - startCol + 1 ;
+				if ( s1 < 0 )
+				{
+					ln = ln + s1 ;
+					if ( ln <= 0 ) { continue ; }
+					s1 = 0 ;
+				}
+				ZSHADOW.replace( (ZAREAW*i + CLINESZ + s1 ), ln, string( ln, R_WHITE ) ) ;
+				if ( fcx_parms.f_ocol ) { break ; }
+			}
+		}
+		else
+		{
+			while ( true )
+			{
+				found = false ;
+				if ( fcx_parms.f_asis )
+				{
+					p1 = data[ dl ]->get_idata_ptr()->find( fcx_parms.f_string, c1 )  ;
+				}
+				else
+				{
+					p1 = upper( data[ dl ]->get_idata()).find( fcx_parms.f_string, c1 ) ;
+				}
+				if ( p1 != string::npos )
+				{
+					if ( fcx_parms.f_ocol )
+					{
+						if ( p1 == fcx_parms.f_scol-1 ) { found = true ; }
+					}
+					else
+					{
+						if ( p1 + fcx_parms.f_ssize - 1 <= c2 ) { found = true ; }
+						c1 = p1 + 1 ;
+					}
+				}
+				if ( !found ) { break ; }
+				ln = fcx_parms.f_ssize ;
+				s1 = p1 - startCol + 1 ;
+				if ( s1 < 0 )
+				{
+					ln = ln + s1 ;
+					if ( ln <= 0 ) { continue ; }
+					s1 = 0 ;
+				}
+				ZSHADOW.replace( (ZAREAW*i + CLINESZ + s1 ), ln, string( ln, R_WHITE ) ) ;
+				if ( fcx_parms.f_ocol ) { break ; }
+			}
+		}
+		dl = getNextDataLine( dl ) ;
+	}
+}
+
+
 void PEDIT01::actionFind()
 {
 	// dl has to be a uint so the corect getNextDataLine routine is called ( int is for URID )
@@ -5715,6 +5935,7 @@ void PEDIT01::actionFind()
 		ecol = ( RightBnd > 0 ) ? min( fcx_parms.f_ecol, RightBnd ) - 1 : fcx_parms.f_ecol - 1 ;
 	}
 
+	optFindPhrase = true ;
 	found = false ;
 
 	while ( dl >= sdl && dl <= edl )
@@ -5751,6 +5972,7 @@ void PEDIT01::actionFind()
 
 		fline = true  ;
 		found = false ;
+		fcx_parms.f_searched = true ;
 		if ( fcx_parms.f_regreq )
 		{
 			itss = data[ dl ]->get_idata_begin() ;
@@ -6235,6 +6457,10 @@ void PEDIT01::restoreCursor()
 
 void PEDIT01::positionCursor()
 {
+	// Move cursor to its set position
+	// Highlight cursor phrase if option set
+	// Highlight FIND phrase if option set
+
 	int i  ;
 	int j  ;
 	int p  ;
@@ -6242,7 +6468,7 @@ void PEDIT01::positionCursor()
 	int o  ;
 	int screenLine ;
 
-	const string delim = "\01\02 " ;
+	const string delim = "\x01\x02\x20" ;
 
 	if ( cursorPlaceHome ) { CURFLD = "ZCMD" ; CURPOS = 1 ; return ; }
 
@@ -6266,11 +6492,9 @@ void PEDIT01::positionCursor()
 				}
 			}
 			break ;
+
 		case 2:
 			screenLine = cursorPlaceRow - 1 ;
-			break ;
-		default:
-			return ;
 	}
 
 	if ( screenLine == -1 ) { CURFLD = "ZCMD" ; CURPOS = 1 ; return ; }
@@ -6281,10 +6505,12 @@ void PEDIT01::positionCursor()
 			CURFLD = "ZAREA" ;
 			CURPOS = ZAREAW * screenLine + 2 ;
 			break ;
+
 		case 2:
 			CURFLD = "ZAREA" ;
 			CURPOS = ZAREAW * screenLine + 1 + CLINESZ ;
 			break ;
+
 		case 3:
 			CURFLD = "ZAREA" ;
 			dl = s2data.at( screenLine ).ipos_dl ;
@@ -6292,6 +6518,7 @@ void PEDIT01::positionCursor()
 			p  = (p != string::npos) ? p + CLINESZ + 2 - startCol : CLINESZ + 1 ;
 			CURPOS = ZAREAW * screenLine + p ;
 			break ;
+
 		case 4:
 			o = cursorPlaceOff - startCol + CLINESZ + 2 ;
 			if ( o < 1 || o > ZAREAW )
@@ -6305,16 +6532,16 @@ void PEDIT01::positionCursor()
 				CURPOS = ZAREAW * screenLine + o ;
 			}
 			break ;
+
 		case 5:
 			CURFLD = "ZAREA" ;
 			CURPOS = ZAREAW * screenLine + CLINESZ + 1 + cursorPlaceOff ;
-			break ;
 	}
 
 	ZSHADOW.replace( ZAREAW*screenLine, slr.size()-1, slr.size()-1, N_RED ) ;
 	rebuildShadow = true ;
 
-	if ( ((CURPOS-1) % ZAREAW) >= CLINESZ )
+	if ( profCsrPhrase && ((CURPOS-1) % ZAREAW) >= CLINESZ )
 	{
 		dl = s2data.at( screenLine ).ipos_dl ;
 		if ( data.at( dl )->isValidFile() )
@@ -7021,8 +7248,9 @@ int PEDIT01::getLastURID( vector<iline * >::iterator it, int Rpt )
 void PEDIT01::moveTopline( int URID )
 {
 	// Change topLine so that the URID will be on the screen after a rebuild.
+	// Always position topLine if profPosFcx is set
 
-	if ( !URIDOnScreen( URID, topLine ) )
+	if ( profPosFcx || !URIDOnScreen( URID, topLine ) )
 	{
 		topLine = getLine( fcx_parms.f_URID ) ;
 		topLine = getPrevDataLine( topLine ) ;
@@ -8632,7 +8860,13 @@ void PEDIT01::setNotFoundMsg()
 
 	STR = setFoundString() ;
 
-	if ( fcx_parms.f_dir == 'N' && !fcx_parms.f_top )
+	if ( !fcx_parms.f_searched )
+	{
+		if      ( fcx_parms.f_excl == 'X' ) { pcmd.set_msg( "PEDT016B", 4 ) ; }
+		else if ( fcx_parms.f_excl == 'N' ) { pcmd.set_msg( "PEDT016C", 4 ) ; }
+		else                                { pcmd.set_msg( "PEDT016D", 4 ) ; }
+	}
+	else if ( fcx_parms.f_dir == 'N' && !fcx_parms.f_top )
 	{
 		pcmd.set_msg( "PEDT013V", 4 ) ;
 	}
@@ -8781,6 +9015,9 @@ void PEDIT01::getEditProfile( const string& prof )
 	//      [16]: Hex vert if '1'
 	//      [17]: Cut Append if '1'
 	//      [18]: Paste Delete if '1'
+	//      [19]: Position find/c/x to target line
+	//      [20]: Hilite find phrase
+	//      [21]: Hilite cursor phrase
 
 	// If RECOV is OFF, set saveLevel = -1 to de-activate this function
 
@@ -8827,6 +9064,8 @@ void PEDIT01::getEditProfile( const string& prof )
 
 	tbclose( tabName ) ;
 
+	ZEDPFLAG.resize( 32, '0' ) ;
+
 	profLock        = ( ZEDPFLAG[0]  == '1' ) ;
 	profASave       = ( ZEDPFLAG[1]  == '1' ) ;
 	profNulls       = ( ZEDPFLAG[2]  == '1' ) ;
@@ -8846,6 +9085,9 @@ void PEDIT01::getEditProfile( const string& prof )
 	profVert        = ( ZEDPFLAG[16] == '1' ) ;
 	profCutReplace  = ( ZEDPFLAG[17] == '1' ) ;
 	profPasteKeep   = ( ZEDPFLAG[18] == '1' ) ;
+	profPosFcx      = ( ZEDPFLAG[19] == '1' ) ;
+	profFindPhrase  = ( ZEDPFLAG[20] == '1' ) ;
+	profCsrPhrase   = ( ZEDPFLAG[21] == '1' ) ;
 	maskLine        = ZEDPMASK         ;
 	tabsLine        = ZEDPTABS         ;
 	tabsChar        = ZEDPTABC.front() ;
@@ -8881,9 +9123,9 @@ void PEDIT01::saveEditProfile( const string& prof )
 	//      [0]: Profile locked    [8]:  Hilight On                        [16]: Hex Vert
 	//      [1]: Autosave          [9]:  Tabs On                           [17]: Cut Replace
 	//      [2]: Nulls             [10]: Tabs On All (else STD)            [18]: Paste Keep
-	//      [3]: Caps              [11]: Autosave PROMPT
-	//      [4]: Hex               [12]: Nulls are STD if off, ALL if on
-	//      [5]: File Tabs         [13]: Hilight If logic on
+	//      [3]: Caps              [11]: Autosave PROMPT                   [19]: Position find
+	//      [4]: Hex               [12]: Nulls are STD if off, ALL if on   [20]: Find phrase
+	//      [5]: File Tabs         [13]: Hilight If logic on               [21]: Cursor phrase
 	//      [6]: Recover On        [14]: Hilight Do logic on
 	//      [7]: SETUNDO On        [15]: Hilight Parenthesis on
 
@@ -8914,6 +9156,7 @@ void PEDIT01::saveEditProfile( const string& prof )
 	tbget( tabName ) ;
 	if ( RC == 8 ) { createEditProfile( tabName, prof ) ; }
 
+	ZEDPFLAG.resize( 32, '0' ) ;
 	ZEDPFLAG[0] = ZeroOne[ profLock ] ;
 
 	if ( ZEDPIMAC == "" ) { ZEDPIMAC = "NONE"             ; }
@@ -8940,6 +9183,9 @@ void PEDIT01::saveEditProfile( const string& prof )
 		ZEDPFLAG[16] = ZeroOne[ profVert    ] ;
 		ZEDPFLAG[17] = ZeroOne[ profCutReplace ] ;
 		ZEDPFLAG[18] = ZeroOne[ profPasteKeep  ] ;
+		ZEDPFLAG[19] = ZeroOne[ profPosFcx     ] ;
+		ZEDPFLAG[20] = ZeroOne[ profFindPhrase ] ;
+		ZEDPFLAG[21] = ZeroOne[ profCsrPhrase  ] ;
 		ZEDPMASK     = maskLine ;
 		ZEDPTABS     = tabsLine ;
 		ZEDPTABC     = tabsChar ;
@@ -9077,11 +9323,12 @@ void PEDIT01::createEditProfile( const string& tabName, const string& prof )
 	// Called when table is already open for update, and the table variables have been vdefined
 
 	// Defaults: AUTOSAVE OFF PROMPT, RECOVER ON, UNDO ON, HILIGHT ON AUTO/LOGIC/PAREN, HEX VERT[16]
+	//           Hilight cursor phrase[21]
 
 	tbvclear( tabName ) ;
 	ZEDPTYPE = prof     ;
 
-	ZEDPFLAG = "000000111001011110000000" ;
+	ZEDPFLAG = "00000011100101111000010000000000" ;
 	ZEDPMASK = ""     ;
 	ZEDPBNDL = "1"    ;
 	ZEDPBNDR = "0"    ;
@@ -9375,8 +9622,8 @@ string PEDIT01::determineLang()
 		if ( findword( s, "rex rexx rx" ) ) { return "REXX" ; }
 	}
 
-	if ( ZFILE.find( "/rexx/" ) != string::npos ) { return "REXX" ; }
-	if ( ZFILE.find( "/tmp/"  ) != string::npos ) { return "NONE" ; }
+	if ( ZFILE.find( "/rexx/" ) != string::npos ) { return "REXX"  ; }
+	if ( ZFILE.find( "/tmp/"  ) != string::npos ) { return "OTHER" ; }
 
 	for ( i = 0, it = data.begin() ; it != data.end() ; it++ )
 	{

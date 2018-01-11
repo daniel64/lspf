@@ -4,40 +4,46 @@
 EDITSET panel
 )ENDCOMMENT
 
-)BODY HOME(ZCMD9) CMD(ZCMD9) WINDOW(68,14)
+)BODY HOME(ZCMD9) CMD(ZCMD9) WINDOW(68,16)
 
 PanelTitle "Edit Settings"
 
 literal  3    2       FP     "Command ===>"
 field    3   15   MAX NEF     PAD(USER),CAPS(ON) ZCMD9
 
-literal  6    2       NT     "CUT default. . "
-literal  6    35      NT     "PASTE default. . "
-literal  6    20      SAC    "1. Append"
-literal  7    20      SAC    "2. Replace"
-field    6    17  1   CEF     PAD(USER) ZCUTDEF
-field    6    52  1   CEF     PAD(USER) ZPSTDEF
+literal  5    2       PIN    "Enter / to select option"
 
-literal  6    55      SAC    "1. Delete"
-literal  7    55      SAC    "2. Keep"
+field    6    2   1   CEF     PAD(USER) ZPOSFCX
+literal  6    4       SAC    "Always position Find/Change/Exclude string to target line"
 
-literal  9 2  CH "Instructions"
-literal 11 2  NT "Press"
-literal 11 8  ET "END"
-literal 11 12 NT "to save changes
+literal  9    2       NT     "CUT default. . "
+literal  9    35      NT     "PASTE default. . "
+literal  9    20      SAC    "1. Append"
+literal 10    20      SAC    "2. Replace"
+field    9    17  1   CEF     PAD(USER) ZCUTDEF
+field    9    52  1   CEF     PAD(USER) ZPSTDEF
 
-literal 12 2  NT "Enter"
-literal 12 8  ET "CANCEL"
-literal 12 15 NT "to cancel changes
+literal  9    55      SAC    "1. Delete"
+literal 10    55      SAC    "2. Keep"
+
+literal 12 2  CH "Instructions"
+literal 14 2  NT "Press"
+literal 14 8  ET "END"
+literal 14 12 NT "to save changes"
+
+literal 15 2  NT "Enter"
+literal 15 8  ET "CANCEL"
+literal 15 15 NT "to cancel changes"
 
 
 )INIT
-
 &ZCMD9  = &Z
 .CURSOR = ZCMD9
 
-)PROC
+)REINIT
+&ZCMD9  = &Z
 
+)PROC
 &ZCMD9 = TRANS(&ZCMD9 CAN,CANCEL *,* )
 
 IF (&ZCMD9 EQ CANCEL)
@@ -48,6 +54,8 @@ ELSE
       .MSG    = PSYS018
       .CURSOR = ZCMD9
       EXIT
+
+&ZPOSFCX = TRANS( &ZPOSFCX  &Z,&Z *,/ )
 
 VER(&ZCUTDEF,NB,LIST,1,2)
 VER(&ZPSTDEF,NB,LIST,1,2)

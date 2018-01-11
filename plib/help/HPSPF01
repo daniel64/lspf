@@ -42,6 +42,7 @@ System:
 .SHOW    NULLS. Display field nulls as dots.
 .SNAP    Snap all SHARED and PROFILE pool variables to the application log.
 .STATS   Write table and pool statistics to the application log.
+.TASKS   Show background tasks
 .TEST    Put application into test mode
          :: Read messages from disk every time
          :: Set testMode to true

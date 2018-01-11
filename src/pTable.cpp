@@ -25,9 +25,7 @@ Table::~Table()
 {
 	// Free table row storage when deleting a table
 
-	vector<vector<string>*>::iterator it ;
-
-	for ( it = table.begin() ; it != table.end() ; it++ )
+	for ( auto it = table.begin() ; it != table.end() ; it++ )
 	{
 		delete (*it) ;
 	}

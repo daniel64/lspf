@@ -1242,8 +1242,8 @@ string PBRO01A::determineLang( string ZFILE )
 		if ( findword( s, "rex rexx rx" ) ) { return "REXX" ; }
 	}
 
-	if ( ZFILE.find( "/rexx/" ) != string::npos ) { return "REXX" ; }
-	if ( ZFILE.find( "/tmp/"  ) != string::npos ) { return "NONE" ; }
+	if ( ZFILE.find( "/rexx/" ) != string::npos ) { return "REXX"  ; }
+	if ( ZFILE.find( "/tmp/"  ) != string::npos ) { return "OTHER" ; }
 
 	for ( i = 1 ; i < data.size() && i < 100 ; i++ )
 	{

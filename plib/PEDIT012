@@ -42,6 +42,8 @@ pdc Edit_Settings "Edit Settings"    ACTION RUN(EDITSET)
 )INIT
 .EDIT = YES
 
+IF (&ZSCROLL = &Z) &ZSCROLL = 'HALF'
+
 )PROC
 
 IF (.MSG = &Z) VPUT ZSCROLL PROFILE

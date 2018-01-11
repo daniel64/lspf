@@ -966,7 +966,7 @@ void poolMGR::connect( int taskid, const string& ppool, int spool )
 
 void poolMGR::disconnect( int taskid )
 {
-	// Remove task from the profile/shared task tables and decrement use count.
+	// Remove task from the profile/shared task tables and decrement use counts.
 	// If pool no longer in use, save if a profile, and delete it.
 
 	errblock err ;
