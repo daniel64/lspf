@@ -1052,7 +1052,7 @@ void PFLST0A::createSearchList( const string& w )
 
 	if ( ZPATH.back() != '/' ) { ZPATH += "/" ; }
 
-	cmd = "grep -i -s \"" + w + "\" " + ZPATH + "*" ;
+	cmd = "grep -i -s \"" + w + "\" " + ZPATH + "* 2>&1" ;
 
 	of.open( tname ) ;
 	FILE* pipe { popen( cmd.c_str(), "r" ) } ;
@@ -1339,7 +1339,7 @@ int PFLST0A::processPrimCMD()
 		{
 			MSG = "FLST012C"   ;
 			RSN = ec.message() ;
-			llog( "E", "Create of direcotry " + ws + " failed with " + ec.message() << endl ) ;
+			llog( "E", "Create of directory " + ws + " failed with " + ec.message() << endl ) ;
 		}
 		ZCMD = "" ;
 		return 4  ;
@@ -2235,10 +2235,10 @@ string PFLST0A::expandName( const string& s )
 
 	regex expression ;
 
-	typedef vector< path > vec ;
+	typedef vector<path> vec ;
 
 	vec v ;
-	vec::iterator new_end ;
+	vec::iterator new_end  ;
 	vec::const_iterator it ;
 
 	p1 = s.find_last_of( "/" ) ;

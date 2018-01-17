@@ -450,7 +450,8 @@ void pPanel::display_panel_update( errblock& err )
 	//  For all changed fields, remove the null character, apply attributes (upper case, left/right justified),
 	//  and copy back to function pool.  Reset field for display.
 
-	//  For dynamic areas, also update the shadow variable to indicate character deletes (0xFF).
+	//  For dynamic areas, also update the shadow variable to indicate character deletes (0xFE) or nulls
+	//  converted to spaced (0xFF)
 
 	int fieldNum    ;
 	int maxAmount   ;

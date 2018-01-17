@@ -1235,8 +1235,8 @@ void poolMGR::snap()
 			  " entries: " << sp_it->second->POOL.size() << endl ) ;
 		for ( v_it = sp_it->second->POOL.begin() ; v_it != sp_it->second->POOL.end() ; v_it++ )
 		{
-			vtype = sp_it->second->isSystem( v_it ) ? vtype = " :S: " : vtype = " :N: " ;
-			llog( "-", setw(8) << v_it->first << vtype << sp_it->second->get( err, v_it ) << "<< " << endl ) ;
+			vtype = sp_it->second->isSystem( v_it ) ? vtype = " (SYS) " : vtype = " (USR) " ;
+			llog( "-", setw(8) << std::left << v_it->first << vtype << sp_it->second->get( err, v_it ) << "<< " << endl ) ;
 		}
 	}
 	llog( "-", endl ) ;
@@ -1250,8 +1250,8 @@ void poolMGR::snap()
 		llog( "-", "                            path: " << setw(3) << pp_it->second->path << endl ) ;
 		for ( v_it = pp_it->second->POOL.begin() ; v_it != pp_it->second->POOL.end() ; v_it++ )
 		{
-			vtype = pp_it->second->isSystem( v_it ) ? vtype = " :S: " : vtype = " :N: " ;
-			llog( "-", setw(8) << v_it->first << vtype << pp_it->second->get( err, v_it ) << "<< " << endl ) ;
+			vtype = pp_it->second->isSystem( v_it ) ? vtype = " (SYS) " : vtype = " (USR) " ;
+			llog( "-", setw(8) << std::left << v_it->first << vtype << pp_it->second->get( err, v_it ) << "<< " << endl ) ;
 		}
 	}
 	llog( "-", "*************************************************************************************************************" << endl ) ;
@@ -1671,9 +1671,7 @@ void poolMGR::erase( errblock& err,
 	// RC = 16 variable not erased as in the ISPS SYSTEM profile pool
 	// RC = 20 severe error
 
-	map<string, pVPOOL*>::iterator sp_it ;
-	map<string, pVPOOL*>::iterator p_it  ;
-
+	map<string, pVPOOL*>::iterator p_it ;
 	map<string, pVAR*>::iterator v_it   ;
 
 	if ( !isvalidName( name ) )
@@ -1693,13 +1691,6 @@ void poolMGR::erase( errblock& err,
 	if ( _shared == 0 )
 	{
 		llog( "E", "Logic error.  _shared is null for erase "<<name<< endl ) ;
-		return ;
-	}
-
-	sp_it = POOLs_shared.find( d2ds( _shared, 8 ) ) ;
-	if ( sp_it == POOLs_shared.end() )
-	{
-		err.seterrid( "PSYE017A", _shared ) ;
 		return ;
 	}
 

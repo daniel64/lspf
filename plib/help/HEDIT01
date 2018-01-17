@@ -23,8 +23,9 @@ REDO     - Redo the last undo
 REDO ALL - Redo all changes on the redo stack
            If UNDO/REDO line is not on the screen, the top line is repositioned to show
            the UNDO/REDO line (this may be a delete action so no line will be visible in this case)
-           UNDO/REDO stacks are not cleared on a save so UNDO ALL will normally go back to the start
-           of the edit session.
+
+           UNDO ALL will go back to the last save for 'SETUNDO ON' or back to the start of
+           the edit session for 'SETUNDO KEEP'
 
 L UNDO/REDO - Locate an UNDO or REDO line
 L T         - Locate marked text (alises MRK, MARK, MARKED)

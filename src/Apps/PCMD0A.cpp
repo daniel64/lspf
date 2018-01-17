@@ -79,15 +79,15 @@ void PCMD0A::application()
 		if ( RC == 8 ) { break ; }
 		if ( zcommand != "" )
 		{
-			vreplace( "ZBRALT", "COMMAND:"+zcommand ) ;
+			vreplace( "ZBRALT", "COMMAND:"+ zcommand ) ;
 			vput( "ZBRALT", SHARED ) ;
 			zcommand += " 2> /tmp/popen.err" ;
 			of.open( tname ) ;
-			FILE* pipe{popen(zcommand.c_str(), "r")};
-			while( fgets(buffer, sizeof(buffer), pipe) != nullptr )
+			FILE* pipe{ popen( zcommand.c_str(), "r" ) } ;
+			while( fgets( buffer, sizeof( buffer ), pipe) != nullptr )
 			{
 				file = buffer;
-				result = file.substr(0, file.size() - 1);
+				result = file.substr( 0, file.size() - 1 ) ;
 				of << result << endl ;
 			}
 			pclose( pipe )  ;

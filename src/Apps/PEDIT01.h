@@ -522,8 +522,9 @@ class iline
 		static map<int, stack<int>>Global_Undo ;
 		static map<int, stack<int>>Global_Redo ;
 		static map<int, stack<int>>Global_File_level ;
-		static map<int, int>maxURID  ;
-		static map<int, bool>setUNDO ;
+		static map<int, int>maxURID    ;
+		static map<int, bool>setUNDO   ;
+		static map<int, bool>Redo_data ;
 
 		LN_TYPE il_type    ;
 		LS_TYPE il_status  ;
@@ -758,11 +759,11 @@ class iline
 			if ( il_label.count( lvl ) > 0 && il_label[ lvl ] == s ) { return true ; }
 			return false ;
 		}
-		bool put_idata( const string& s, int level )
+		bool put_idata( const string& s, int level, bool comp = true )
 		{
 			idata d ;
 
-			if ( !il_idata.empty() && s == il_idata.top().id_data )
+			if ( comp && !il_idata.empty() && s == il_idata.top().id_data )
 			{
 				return false ;
 			}
@@ -856,7 +857,7 @@ class iline
 		{
 			if ( il_deleted ) { return ; }
 			clearLabel() ;
-			put_idata( "", Level ) ;
+			put_idata( "", Level, false ) ;
 			il_idata.top().id_deleted = true ;
 			il_deleted                = true ;
 		}
@@ -912,6 +913,7 @@ class iline
 				il_deleted = true ;
 			}
 			il_excl = false ;
+			Redo_data[ il_taskid ] = true ;
 		}
 		void redo_idata()
 		{
@@ -934,6 +936,14 @@ class iline
 			{
 				Global_Redo[ il_taskid ].pop() ;
 			}
+		}
+		bool is_Redo_data()
+		{
+			return Redo_data[ il_taskid ] ;
+		}
+		void reset_Redo_data()
+		{
+			Redo_data[ il_taskid ] = false ;
 		}
 		void reset_Global_Undo()
 		{
@@ -1102,6 +1112,7 @@ class edit_find
 		int    f_URID    ;
 		int    f_pURID   ;
 		int    f_pCol    ;
+		int    f_ptopLine;
 		int    f_dl      ;
 		int    f_lines   ;
 		int    f_offset  ;
@@ -1152,6 +1163,7 @@ class edit_find
 		f_URID     = 0     ;
 		f_pURID    = 0     ;
 		f_pCol     = 0     ;
+		f_ptopLine = 0     ;
 		f_dl       = 0     ;
 		f_lines    = 0     ;
 		f_offset   = 0     ;
@@ -2162,6 +2174,7 @@ class PEDIT01 : public pApplication
 		string mergeLine( const string&, vector<iline *>::iterator ) ;
 
 		void cleanupData()       ;
+		void cleanupRedoStacks() ;
 		void updateProfLines( vector<string>& ) ;
 		void buildProfLines( vector<string>& )  ;
 		void removeProfLines( )  ;
@@ -2290,6 +2303,7 @@ class PEDIT01 : public pApplication
 		bool   profVert          ;
 		bool   profFindPhrase    ;
 		bool   profCsrPhrase     ;
+		bool   profUndoKeep      ;
 
 		string detLang           ;
 		string creFile           ;

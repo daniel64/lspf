@@ -126,7 +126,6 @@ void pApplication::init()
 	// Before being dispatched in its own thread, set the search paths.
 
 	ZPLIB    = p_poolMGR->get( errBlock, "ZPLIB", PROFILE ) ;
-	ZPLIB    = p_poolMGR->get( errBlock, "ZPLIB", PROFILE ) ;
 	ZTLIB    = p_poolMGR->get( errBlock, "ZTLIB", PROFILE ) ;
 	ZMLIB    = p_poolMGR->get( errBlock, "ZMLIB", PROFILE ) ;
 	ZORXPATH = p_poolMGR->get( errBlock, "ZORXPATH", PROFILE ) ;

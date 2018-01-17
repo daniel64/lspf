@@ -374,3 +374,12 @@ PEDT016C 'No lines searched' .T=W
 PEDT016D 'No lines searched' .T=W
 'No lines where found to search'
 
+PEDT016E '*Bottom of range reached*' .TYPE=W
+'&TYPE &STR not found from &ZVAL1 to &ZVAL2.  Press RFIND to continue'
+
+PEDT016F '*Top of range reached*' .TYPE=W
+'&TYPE &STR not found from &ZVAL1 to &ZVAL2.  Press RFIND to continue'
+
+PEDT016G 'No &TYPE &STR found' .TYPE=W
+'Search for &TYPE &STR was not successful from &ZVAL1 to &ZVAL2'
+

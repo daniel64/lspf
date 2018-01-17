@@ -1454,10 +1454,20 @@ void PPSP01A::poolVariables( const string& applid )
 		tbdispl( VARLST, "PPSP01AV", MSG, "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
-		if ( (ZCMD == "REF") || (ZCMD == "RES") ) { tbend( VARLST ) ; getpoolVariables( "" ) ; continue ; }
+		if ( ZCMD == "REF" || ZCMD == "RES" )
+		{
+			tbend( VARLST ) ;
+			getpoolVariables( "" ) ;
+			continue ;
+		}
 		cw = word( ZCMD, 1 ) ;
 		w2 = word( ZCMD, 2 ) ;
-		if ( cw == "O" ) { tbend( VARLST ) ; getpoolVariables( w2 ) ; continue ; }
+		if ( cw == "O" )
+		{
+			tbend( VARLST ) ;
+			getpoolVariables( w2 ) ;
+			continue ;
+		}
 		if ( ZCMD != "" ) { MSG = "PSYS018" ; continue ; }
 		while ( ZTDSELS > 0 )
 		{
@@ -1479,8 +1489,8 @@ void PPSP01A::poolVariables( const string& applid )
 			else { ZTDSELS = 0 ; }
 		}
 	}
+
 	tbend( VARLST ) ;
-	return ;
 }
 
 
@@ -1493,15 +1503,17 @@ void PPSP01A::getpoolVariables( const string& pattern )
 	// PROFILE 3 - default read-only profile pool (@DEFPROF)
 	// PROFILE 4 - System profile (ISPSPROF)
 
-	string varlist ;
 	int i  ;
 	int ws ;
+
+	string varlist ;
 
 	tbcreate( VARLST, "", "(SEL,VAR,VPOOL,VPLVL,MESSAGE,VAL)", NOWRITE ) ;
 
 	SEL     = "" ;
 	MESSAGE = "" ;
 
+	set<string> found ;
   /*    varlist = vilist( DEFINED ) + vslist( DEFINED ) ;
 	VPOOL = "F" ;
 	VPLVL = "D" ;
@@ -1526,73 +1538,83 @@ void PPSP01A::getpoolVariables( const string& pattern )
 		tbadd( VARLST )    ;
 	}
 	*/
+	found.clear() ;
 	varlist = vlist( SHARED, 1 ) ;
-	VPOOL = "S" ;
-	VPLVL = "1" ;
-	ws    = words( varlist ) ;
-	for ( i = 1 ; i <= ws ; i++ )
+	VPOOL   = "S" ;
+	VPLVL   = "1" ;
+	for ( ws = words( varlist ), i = 1 ; i <= ws ; i++ )
 	{
 		VAR = word( varlist, i ) ;
-		if ( (pattern != "") && (pos( pattern, VAR ) == 0) ) { continue ; }
+		if ( pattern != "" && pos( pattern, VAR ) == 0 ) { continue ; }
+		vget( VAR, SHARED ) ;
 		vcopy( VAR, VAL, MOVE ) ;
-		tbadd( VARLST )    ;
+		tbadd( VARLST )     ;
+		found.insert( VAR ) ;
 	}
 
 	varlist = vlist( SHARED, 2 ) ;
 	VPLVL   = "2" ;
-	ws      = words( varlist ) ;
-	for ( i = 1 ; i <= ws ; i++ )
+	for ( ws = words( varlist ), i = 1 ; i <= ws ; i++ )
 	{
 		VAR = word( varlist, i ) ;
-		if ( (pattern != "") && (pos( pattern, VAR ) == 0) ) { continue ; }
+		if ( found.count( VAR ) > 0 ) { continue ; }
+		if ( pattern != "" && pos( pattern, VAR ) == 0 ) { continue ; }
+		vget( VAR, SHARED ) ;
 		vcopy( VAR, VAL, MOVE ) ;
-		tbadd( VARLST )    ;
+		tbadd( VARLST )     ;
+		found.insert( VAR ) ;
 	}
 
-	VPOOL = "P" ;
-	VPLVL = "1" ;
+	found.clear() ;
+	VPOOL   = "P" ;
+	VPLVL   = "1" ;
 	varlist = vlist( PROFILE, 1 ) ;
-	ws    = words( varlist ) ;
-	for ( i = 1 ; i <= ws ; i++ )
+	for ( ws = words( varlist ), i = 1 ; i <= ws ; i++ )
 	{
-
 		VAR = word( varlist, i ) ;
-		if ( (pattern != "") && (pos( pattern, VAR ) == 0) ) { continue ; }
+		if ( pattern != "" && pos( pattern, VAR ) == 0 ) { continue ; }
+		vget( VAR, PROFILE ) ;
 		vcopy( VAR, VAL, MOVE ) ;
-		tbadd( VARLST )    ;
+		tbadd( VARLST )     ;
+		found.insert( VAR ) ;
 	}
 
 	varlist = vlist( PROFILE, 2 ) ;
 	VPLVL   = "2"                 ;
-	ws      = words( varlist )    ;
-	for ( i = 1 ; i <= ws ; i++ )
+	for ( ws = words( varlist ), i = 1 ; i <= ws ; i++ )
 	{
 		VAR = word( varlist, i ) ;
-		if ( (pattern != "") && (pos( pattern, VAR ) == 0) ) { continue ; }
+		if ( found.count( VAR ) > 0 ) { continue ; }
+		if ( pattern != "" && pos( pattern, VAR ) == 0 ) { continue ; }
+		vget( VAR, PROFILE ) ;
 		vcopy( VAR, VAL, MOVE ) ;
-		tbadd( VARLST )    ;
+		tbadd( VARLST )     ;
+		found.insert( VAR ) ;
 	}
 
 	varlist = vlist( PROFILE, 3 ) ;
 	VPLVL   = "3"                 ;
-	ws      = words( varlist )    ;
-	for ( i = 1 ; i <= ws ; i++ )
+	for ( ws = words( varlist ), i = 1 ; i <= ws ; i++ )
 	{
 		VAR = word( varlist, i ) ;
-		if ( (pattern != "") && (pos( pattern, VAR ) == 0) ) { continue ; }
+		if ( found.count( VAR ) > 0 ) { continue ; }
+		if ( pattern != "" && pos( pattern, VAR ) == 0 ) { continue ; }
+		vget( VAR, PROFILE ) ;
 		vcopy( VAR, VAL, MOVE ) ;
-		tbadd( VARLST )    ;
+		tbadd( VARLST )     ;
+		found.insert( VAR ) ;
 	}
 
 	varlist = vlist( PROFILE, 4 ) ;
 	VPLVL   = "4"                 ;
-	ws      = words( varlist )    ;
-	for ( i = 1 ; i <= ws ; i++ )
+	for ( ws = words( varlist ), i = 1 ; i <= ws ; i++ )
 	{
 		VAR = word( varlist, i ) ;
-		if ( (pattern != "") && (pos( pattern, VAR ) == 0) ) { continue ; }
+		if ( found.count( VAR ) > 0 ) { continue ; }
+		if ( pattern != "" && pos( pattern, VAR ) == 0 ) { continue ; }
+		vget( VAR, PROFILE ) ;
 		vcopy( VAR, VAL, MOVE ) ;
-		tbadd( VARLST )    ;
+		tbadd( VARLST )      ;
 	}
 
 	tbtop( VARLST ) ;
