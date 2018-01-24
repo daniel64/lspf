@@ -303,8 +303,12 @@ void PEDIT01::Edit()
 		getEditProfile( ZEDPROF ) ;
 	}
 
+	zedalt = "" ;
 	vget( "ZEDALT", SHARED ) ;
-	vcopy( "ZEDALT", zedalt, MOVE ) ;
+	if ( RC == 0 )
+	{
+		vcopy( "ZEDALT", zedalt, MOVE ) ;
+	}
 	if ( zedalt == "" ) { zedalt = ZFILE ; }
 
 	CURFLD = "ZCMD" ;
