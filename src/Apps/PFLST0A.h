@@ -54,8 +54,14 @@ class PFLST0A : public pApplication
 		string RSN ;
 		string PssList ;
 
-		string ZPATH  ;
-		string ZDIR   ;
+		string zcmd    ;
+		string zverb   ;
+		string zhome   ;
+		string zscreen ;
+		string zuser   ;
+		string zpath   ;
+		string zdir    ;
+
 		string DSLIST ;
 		string EXGEN  ;
 		string AFHIDDEN ;

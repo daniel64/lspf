@@ -19,7 +19,7 @@
 
 void ispexeci( pApplication *, const string&, errblock& ) ;
 
-map<int, void *>pApplication::ApplUserData ;
+map<int, void *>pApplication::ApplUserData  ;
 
 pApplication::pApplication()
 {
@@ -38,6 +38,7 @@ pApplication::pApplication()
 	addpop_active          = false  ;
 	addpop_row             = 0      ;
 	addpop_col             = 0      ;
+	taskId                 = 0      ;
 	background             = false  ;
 	noTimeOut              = false  ;
 	busyAppl               = true   ;
@@ -64,7 +65,6 @@ pApplication::pApplication()
 	ppanelid               = ""     ;
 	currPanel              = NULL   ;
 	currtbPanel            = NULL   ;
-	ZHELP                  = ""     ;
 	ZAHELP                 = ""     ;
 	ZTDROWS                = 0      ;
 	ZTDTOP                 = 0      ;
@@ -466,6 +466,12 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 			errBlock.setcall( e2 + p_name ) ;
 			checkRCode( errBlock ) ;
 			return ;
+		}
+		if ( currPanel->msgid != "" )
+		{
+			get_message( currPanel->msgid ) ;
+			if ( RC > 0 ) { return ; }
+			currPanel->set_panel_msg( MSG, MSGID ) ;
 		}
 		currPanel->update_field_values( errBlock ) ;
 		RC = errBlock.RC ;
@@ -2172,6 +2178,12 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		checkRCode( errBlock ) ;
 		return ;
 	}
+	if ( currPanel->msgid != "" )
+	{
+		get_message( currPanel->msgid ) ;
+		if ( RC > 0 ) { return ; }
+		currPanel->set_panel_msg( MSG, MSGID ) ;
+	}
 
 	if ( p_name != "" )
 	{
@@ -2308,7 +2320,6 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 					ZSCROLLN = ds2d( p_poolMGR->get( errBlock, "ZSCROLLN", SHARED ) ) ;
 					ZTDTOP = ( ZTDTOP > ZSCROLLN ) ? ( ZTDTOP - ZSCROLLN ) : 1 ;
 				}
-				ZCMD = "" ;
 			}
 			else
 			{
@@ -2322,7 +2333,6 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 					ZSCROLLN = ds2d( p_poolMGR->get( errBlock, "ZSCROLLN", SHARED ) ) ;
 					ZTDTOP = ( ZSCROLLN + ZTDTOP > ZTDROWS ) ? ( ZTDROWS + 1 ) : ZTDTOP + ZSCROLLN ;
 				}
-				ZCMD = "" ;
 			}
 			p_tableMGR->fillfVARs( errBlock, funcPOOL, tb_name, currPanel->get_tb_clear(), tbscan, currPanel->tb_depth, ZTDTOP, 0, idx, asURID ) ;
 			if ( errBlock.error() )
@@ -2812,9 +2822,8 @@ void pApplication::actionSelect()
 
 	// If the application has abended, propogate back.
 
-	RC       = 0     ;
-	SEL      = true  ;
-	busyAppl = false ;
+	RC  = 0    ;
+	SEL = true ;
 
 	wait_event() ;
 
@@ -3522,7 +3531,7 @@ void pApplication::info()
 	llog( "-", "Application Information for "<< ZAPPNAME << endl ) ;
 	llog( "-", "                   Task ID: "<< taskId << endl ) ;
 	llog( "-", "          Shared Pool Name: "<< d2ds( shrdPool, 8 ) << endl ) ;
-	llog( "-", "         Profile Pool Name: "<< ZZAPPLID << endl ) ;
+	llog( "-", "         Profile Pool Name: "<< ZAPPLID << endl ) ;
 	llog( "-", " " << endl ) ;
 	llog( "-", "Application Description . : "<< ZAPPDESC << endl ) ;
 	llog( "-", "Last Panel Displayed. . . : "<< panelid << endl ) ;
@@ -3764,7 +3773,6 @@ void pApplication::cleanup()
 	if ( background )
 	{
 		llog( "I", "Shutting down background application: " + ZAPPNAME +" Taskid: " << taskId << endl ) ;
-		p_poolMGR->disconnect( taskid() ) ;
 	}
 	else
 	{

@@ -213,7 +213,6 @@ class TRANS
 			trns_msgid   = ""    ;
 			trns_default = ""    ;
 			trns_tbfield = false ;
-			trns_pnfield = false ;
 			trns_trunc   = NULL  ;
 		} ;
 		~TRANS()
@@ -227,7 +226,6 @@ class TRANS
 		string trns_msgid   ;
 		string trns_default ;
 		bool   trns_tbfield ;
-		bool   trns_pnfield ;
 		vector<pair<string,string>> trns_list ;
 } ;
 
@@ -532,6 +530,7 @@ class selobj
 			SUSPEND = false ;
 			SCRNAME = "" ;
 			selPanl = false ;
+			backgrd = false ;
 		}
 		void clear()
 		{
@@ -543,6 +542,7 @@ class selobj
 			SUSPEND = false ;
 			SCRNAME = "" ;
 			selPanl = false ;
+			backgrd = false ;
 		}
 		bool parse( errblock&, string ) ;
 		bool selPanel() { return selPanl ; }
@@ -555,6 +555,7 @@ class selobj
 		bool   SUSPEND ;
 		string SCRNAME ;
 		bool   selPanl ;
+		bool   backgrd ;
 
 	private:
 } ;

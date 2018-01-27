@@ -29,6 +29,8 @@ class PMAIN0A : public pApplication
 
 		int  offset ;
 
+		string zcmd    ;
+
 		string ZAREA   ;
 		string ZSHADOW ;
 		string ZDATEL  ;

@@ -68,7 +68,7 @@ class pApplication
 		string ZMLIB              ;
 		string ZPLIB              ;
 		string ZTLIB              ;
-		string ZZAPPLID           ;
+		string ZAPPLID            ;
 		string ZCURFLD            ;
 		int    ZCURPOS            ;
 		int    ZTDDEPTH           ;
@@ -77,27 +77,14 @@ class pApplication
 		int    ZTDTOP             ;
 		int    ZTDVROWS           ;
 		int    ZCURINX            ;
-		string ZCMD               ;
-		string ZAPPLID            ;
-		string ZEDLMSG            ;
-		string ZEDSMSG            ;
-		string ZHELP              ;
 		string ZAHELP             ;
-		string ZHOME              ;
 		string ZORXPATH           ;
-		string ZPFKEY             ;
 		string ZSEL               ;
-		string ZSELPARM           ;
-		string ZSCREEN            ;
-		string ZSCROLL            ;
-		int    ZSCRMAXD           ;
-		int    ZSCRMAXW           ;
 		int    ZSCROLLN           ;
 		string ZSCROLLA           ;
-		string ZUSER              ;
-		string ZVERB              ;
 		int    ZRC                ;
 		int    ZRSN               ;
+		int    ZTASKID            ;
 		string ZRESULT            ;
 
 		vector<string>rmsgs       ;
@@ -202,7 +189,7 @@ class pApplication
 		void   cleanup()       ;
 		void   (pApplication::*pcleanup)() = &pApplication::cleanup_default ;
 		bool   cleanupRunning() { return !abended ; }
-		void   abend()    ;
+		void   abend() ;
 		void   uabend( const string&, int = -1 ) ;
 		void   uabend( const string&, const string&, int = -1 ) ;
 		void   uabend( const string&, const string&, const string&, int = -1 ) ;

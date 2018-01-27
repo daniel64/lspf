@@ -1110,6 +1110,7 @@ void TRANS::parse( errblock& err, parser& v )
 		trns_trunc = new TRUNC ;
 		trns_trunc->parse( err, v, false ) ;
 		if ( err.error() ) { return ; }
+		trns_field = "" ;
 	}
 	else if ( !v.getNextIfCurrent( TS_AMPR_VAR_VALID ) )
 	{
@@ -1487,6 +1488,7 @@ bool selobj::parse( errblock& err, string SELSTR )
 
 	// + SCRNAME(ghi) - give the function a screen name (valid name but not LIST, NEXT, PREV)
 	// + SUSPEND      - Suspend any popup windows
+	// + BACK         - Run task in the background
 
 	// Match brackets for PARM and CMD as these may contain brackets.  These can also be enclosed in
 	// double quotes if needed, that are then removed.
@@ -1732,6 +1734,13 @@ bool selobj::parse( errblock& err, string SELSTR )
 		idelword( str, p1, 1 ) ;
 	}
 
+	p1 = wordpos( "BACK", str ) ;
+	if ( p1 > 0 )
+	{
+		backgrd = true ;
+		idelword( str, p1, 1 ) ;
+	}
+
 	p1 = wordpos( "PASSLIB", str ) ;
 	if ( p1 > 0 )
 	{
@@ -1812,7 +1821,8 @@ void logger::close()
 
 bool logger::set( const string& dest )
 {
-	// Move log records to a new destination and continue recording.  Remove the old file.
+	// Move log records to a new destination and continue recording.
+	// Overwrite the new file and remove the old file.
 
 	string* t ;
 

@@ -28,4 +28,6 @@ class PDLGTST : public pApplication
 		void displaySystemVars() ;
 		void checkAlgo() ;
 		void prepPanels() ;
+
+		string zcmd ;
 };

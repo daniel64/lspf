@@ -61,34 +61,34 @@ void PTEST01::application()
 //      ZTUSER = "/home/daniel/.lspf/" ;
 //      libdef( "ZTUSER", "FILE" ) ;
 
-	vdefine( "ZCMD ZVERB", &ZCMD, &ZVERB ) ;
+	vdefine( "ZCMD", &zcmd ) ;
 
-	if ( ZCMD == "WAIT" )
+	if ( zcmd == "WAIT" )
 	{
 		debug1( "Waiting forever...." << endl ) ;
 		boost::this_thread::sleep_for(boost::chrono::milliseconds(1000000)) ;
 	}
-	else if ( ZCMD == "LOOP" )
+	else if ( zcmd == "LOOP" )
 	{
 		debug1( "Looping forever...." << endl ) ;
 		while ( true ) { PARM = "99" ; }
 	}
-	else if ( ZCMD == "ABEND" )
+	else if ( zcmd == "ABEND" )
 	{
 		debug1( "Abending...." << endl ) ;
 		abend() ;
 	}
-	else if ( ZCMD == "ABORT" )
+	else if ( zcmd == "ABORT" )
 	{
 		debug1( "Aborting...." << endl ) ;
 		abort() ;
 	}
-	else if ( ZCMD == "TERMINATE" )
+	else if ( zcmd == "TERMINATE" )
 	{
 		debug1( "Terminating..." << endl ) ;
 		terminate() ;
 	}
-	else if ( ZCMD == "EXCEPTION" )
+	else if ( zcmd == "EXCEPTION" )
 	{
 		debug1( "Generating an exception...." << endl ) ;
 		a = abc[ 4 ] ;
@@ -122,12 +122,10 @@ void PTEST01::opt0()
 
 	while ( true )
 	{
-		ZCMD = "" ;
+		zcmd = "" ;
 		display( "PTEST01A", MSG, "ZCMD" );
 		if ( RC == 8 ) { cleanup() ; break ; }
 		MSG  = "" ;
-
-		vget( "ZVERB" ) ;
 	}
 
 }
@@ -653,7 +651,7 @@ void PTEST01::opt3()
 	while ( true )
 	{
 		TOPR1 = "" ; TRC1 = "" ; TOPR2 = "" ; TRC2 = "" ; TOPR3 = "" ; TRC3 = "" ; TOPR4 = "" ; TRC4 = "" ; TOPR5 = "" ; TRC5 = "" ;
-		ZCMD  = "" ;
+		zcmd  = "" ;
 		i = ops.size() - 1 ;
 		if ( i >= 0 ) { TOPR1 = word( ops[i], 1 ) ; TRC1 = word( ops[i], 2 ) ; i-- ; }
 		if ( i >= 0 ) { TOPR2 = word( ops[i], 1 ) ; TRC2 = word( ops[i], 2 ) ; i-- ; }
@@ -674,12 +672,11 @@ void PTEST01::opt3()
 		YFLD4   = FLD4    ;
 		YROWID  = ""      ;
 		MSG  = "" ;
-		vget( "ZVERB" ) ;
-		w1 = upper( word( ZCMD, 1 ) ) ;
-		w2 = word( ZCMD, 2 ) ;
-		w3 = word( ZCMD, 3 ) ;
-		w4 = word( ZCMD, 4 ) ;
-		w5 = word( ZCMD, 5 ) ;
+		w1 = upper( word( zcmd, 1 ) ) ;
+		w2 = word( zcmd, 2 ) ;
+		w3 = word( zcmd, 3 ) ;
+		w4 = word( zcmd, 4 ) ;
+		w5 = word( zcmd, 5 ) ;
 		if ( w1 == "SORT" )
 		{
 			control( "ERRORS", "RETURN" ) ;
@@ -828,7 +825,7 @@ void PTEST01::opt4()
 	while ( true )
 	{
 		TOPR1 = "" ; TRC1 = "" ; TOPR2 = "" ; TRC2 = "" ; TOPR3 = "" ; TRC3 = "" ; TOPR4 = "" ; TRC4 = "" ; TOPR5 = "" ; TRC5 = "" ;
-		ZCMD  = "" ;
+		zcmd  = "" ;
 		i = ops.size() - 1 ;
 		if ( i >= 0 ) { TOPR1 = word( ops[i], 1 ) ; TRC1 = word( ops[i], 2 ) ; i-- ; }
 		if ( i >= 0 ) { TOPR2 = word( ops[i], 1 ) ; TRC2 = word( ops[i], 2 ) ; i-- ; }
@@ -849,12 +846,11 @@ void PTEST01::opt4()
 		YFLD4   = FLD4    ;
 		YROWID  = ""      ;
 		MSG  = "" ;
-		vget( "ZVERB" ) ;
-		w1 = upper( word( ZCMD, 1 ) ) ;
-		w2 = word( ZCMD, 2 ) ;
-		w3 = word( ZCMD, 3 ) ;
-		w4 = word( ZCMD, 4 ) ;
-		w5 = word( ZCMD, 5 ) ;
+		w1 = upper( word( zcmd, 1 ) ) ;
+		w2 = word( zcmd, 2 ) ;
+		w3 = word( zcmd, 3 ) ;
+		w4 = word( zcmd, 4 ) ;
+		w5 = word( zcmd, 5 ) ;
 		if ( w1 == "SORT" )
 		{
 			control( "ERRORS", "RETURN" ) ;
@@ -1021,33 +1017,32 @@ void PTEST01::opt5()
 	CURPOS = 0      ;
 	while ( true )
 	{
-		if ( MSG == "" ) { ZCMD = "" ; }
+		if ( MSG == "" ) { zcmd = "" ; }
 		display( "PTEST01C", MSG, CURFLD, CURPOS );
 		if ( RC == 8 ) { cleanup() ; break ; }
 		MSG = "" ;
-		vget( "ZVERB" ) ;
-		if ( ZCMD == "SHOW" )
+		if ( zcmd == "SHOW" )
 		{
-			ZCMD = "" ;
+			zcmd = "" ;
 			llog( "A", "ZAREA >>" << ZAREA1 << "<<" << endl ; )
 			llog( "A", "ZSHADOW >>" << ZSHADOW1 << "<<" << endl ; )
 		}
-		iupper( ZCMD ) ;
-		if ( word( ZCMD, 1 ) == "GOTO" )
+		iupper( zcmd ) ;
+		if ( word( zcmd, 1 ) == "GOTO" )
 		{
 			CURFLD = "ZAREA1" ;
-			CURPOS = ds2d( word( ZCMD,2 ) ) ;
-			ZCMD   = ""       ;
+			CURPOS = ds2d( word( zcmd,2 ) ) ;
+			zcmd   = ""       ;
 		}
 		else
 		{
 			CURFLD = "ZCMD" ;
 			CURPOS = 1      ;
 		}
-		if ( word( ZCMD, 1 ) == "RELOAD" )
+		if ( word( zcmd, 1 ) == "RELOAD" )
 		{
 			ZAREA1 = CAREA1 ;
-			ZCMD   = ""     ;
+			zcmd   = ""     ;
 		}
 
 		posn = 48 ;
@@ -1081,7 +1076,7 @@ void PTEST01::opt5()
 		else                                             { llog( "A", "ZAREA1 FLD at posn " << posn <<" has not been changed or touched by the user " << endl ; ) }
 
 
-		if ( ZCMD != "" ) { MSG = "PSYS018" ; }
+		if ( zcmd != "" ) { MSG = "PSYS018" ; }
 	}
 }
 
@@ -1105,21 +1100,19 @@ void PTEST01::opt7()
 	{
 		CURFLD = "ZCMD" ;
 		CURPOS = 1      ;
-		if ( MSG == "" ) { ZCMD = "" ; }
+		if ( MSG == "" ) { zcmd = "" ; }
 		display( "PTEST01E", MSG, CURFLD, CURPOS ) ;
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
-		vget( "ZVERB" ) ;
 		addpop( "", i, i ) ;
 		while( true )
 		{
 			CURFLD = "ZCMD1" ;
 			CURPOS = 1       ;
-			if ( MSG == "" ) { ZCMD = "" ; }
+			if ( MSG == "" ) { zcmd = "" ; }
 			display( "PTEST01F", MSG, CURFLD, CURPOS ) ;
 			if ( RC == 8 ) { break ; }
 			MSG = "" ;
-			vget( "ZVERB" ) ;
 		}
 		rempop() ;
 	}

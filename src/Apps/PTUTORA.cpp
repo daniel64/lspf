@@ -133,7 +133,7 @@ void PTUTORA::application()
 
 	rebuildZAREA = true  ;
 
-	vdefine( "ZCMD ZVERB ZROW1 ZROW2 ZAREA ZSHADOW ZAREAT ZDSN", &ZCMD, &ZVERB, &ZROW1, &ZROW2, &ZAREA, &ZSHADOW, &ZAREAT, &ZDSN ) ;
+	vdefine( "ZCMD ZVERB ZROW1 ZROW2 ZAREA ZSHADOW ZAREAT ZDSN", &zcmd, &zverb, &ZROW1, &ZROW2, &ZAREA, &ZSHADOW, &ZAREAT, &ZDSN ) ;
 	vdefine( "ZSCROLLN ZAREAW ZAREAD", &ZSCROLLN, &ZAREAW, &ZAREAD ) ;
 	vdefine( "ZSCROLLA ZCOL1", &ZSCROLLA, &ZCOL1 ) ;
 
@@ -195,8 +195,8 @@ void PTUTORA::application()
 
 	while ( true )
 	{
-		ZCMD  = "" ;
-		ZVERB = "" ;
+		zcmd  = "" ;
+		zverb = "" ;
 
 		if ( rebuildZAREA ) fill_dynamic_area() ;
 
@@ -210,9 +210,9 @@ void PTUTORA::application()
 		rebuildZAREA = false ;
 
 		vget( "ZVERB ZSCROLLA ZSCROLLN", SHARED ) ;
-		iupper( ZCMD ) ;
+		iupper( zcmd ) ;
 
-		if ( ZVERB == "DOWN" )
+		if ( zverb == "DOWN" )
 		{
 			rebuildZAREA = true ;
 			if ( ZSCROLLA == "MAX" )
@@ -225,7 +225,7 @@ void PTUTORA::application()
 				if ( firstLine >= maxLines ) { firstLine = maxLines - 1 ; }
 			}
 		}
-		else if ( ZVERB == "UP" )
+		else if ( zverb == "UP" )
 		{
 			rebuildZAREA = true ;
 			if ( ZSCROLLA == "MAX" )
@@ -237,7 +237,7 @@ void PTUTORA::application()
 				firstLine = firstLine - ZSCROLLN  ;
 			}
 		}
-		else if ( ZVERB == "LEFT" )
+		else if ( zverb == "LEFT" )
 		{
 			rebuildZAREA = true ;
 			if ( ZSCROLLA == "MAX" )
@@ -250,7 +250,7 @@ void PTUTORA::application()
 				if ( startCol < 1 ) { startCol = 1 ; }
 			}
 		}
-		else if ( ZVERB == "RIGHT" )
+		else if ( zverb == "RIGHT" )
 		{
 			rebuildZAREA = true ;
 			if ( ZSCROLLA == "MAX" )

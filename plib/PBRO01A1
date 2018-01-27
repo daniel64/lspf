@@ -7,7 +7,7 @@ scrollOn
 PanelDescr "Browse &ZBRALT"
 
 literal  3   2    FP "BROWSE"
-field    3  10   70 VOI  NONE ZBRALT
+field    3  10   MAX-30 VOI  NONE ZBRALT
 
 literal  4   2         FP  "Command ===> "
 field    4  15 MAX-17  NEF PAD(USER) ZCMD

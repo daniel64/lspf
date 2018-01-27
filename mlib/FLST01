@@ -112,3 +112,6 @@ FLST012J 'Error changing GID' .TYPE=W
 FLST012K 'Not a directory' .TYPE=W
 'Select a valid directory to expand'
 
+FLST012L 'Entry does not exist' .TYPE=W
+''
+

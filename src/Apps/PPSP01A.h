@@ -25,6 +25,8 @@ class PPSP01A : public pApplication
 		void application() ;
 
 	private:
+		static boost::mutex mtx ;
+
 		void show_log( const string& fileName ) ;
 
 		void read_file( const string& fileName ) ;
@@ -37,6 +39,9 @@ class PPSP01A : public pApplication
 		int firstLine ;
 		int maxLines  ;
 		int startCol  ;
+
+		void lock()   { mtx.lock()   ; }
+		void unlock() { mtx.unlock() ; }
 
 		vector<string> data     ;
 		vector<bool>   excluded ;
@@ -65,6 +70,12 @@ class PPSP01A : public pApplication
 		string APPL    ;
 		string MOD     ;
 		string MODPATH ;
+
+		string zcmd    ;
+		string zverb   ;
+		string zapplid ;
+		string zuser   ;
+		string zscreen ;
 
 		char   filteri  ;
 		char   filterx  ;

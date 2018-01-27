@@ -149,13 +149,13 @@ void PFLST0A::application()
 
 	boost::system::error_code ec ;
 
-	vcopy( "ZUSER", ZUSER, MOVE ) ;
-	vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
+	vcopy( "ZUSER", zuser, MOVE ) ;
+	vcopy( "ZSCREEN", zscreen, MOVE ) ;
 
 	std::ofstream of ;
 
 	vdefine( "SEL ENTRY MESSAGE TYPE PERMISS SIZE STCDATE MODDATE", &SEL, &ENTRY, &MESSAGE, &TYPE, &PERMISS, &SIZE, &STCDATE, &MODDATE ) ;
-	vdefine( "MODDATES ZVERB ZHOME ZCMD ZPATH CONDOFF NEWENTRY FREPL", &MODDATES, &ZVERB, &ZHOME, &ZCMD, &ZPATH, &CONDOFF, &NEWENTRY, &FREPL ) ;
+	vdefine( "MODDATES ZVERB ZHOME ZCMD ZPATH CONDOFF NEWENTRY FREPL", &MODDATES, &zverb, &zhome, &zcmd, &zpath, &CONDOFF, &NEWENTRY, &FREPL ) ;
 	vdefine( "RSN NEMPTOK DIRREC AFHIDDEN", &RSN, &NEMPTOK, &DIRREC, &AFHIDDEN ) ;
 	vdefine( "EXGEN OEXGEN", &EXGEN, &OEXGEN ) ;
 	vdefine( "CRP", &CRP ) ;
@@ -174,14 +174,14 @@ void PFLST0A::application()
 		w1 = word( PARM, 1 ) ;
 		if ( w1 == "BROWSE" || w1 == "EDIT" )
 		{
-			ZPATH = subword( PARM, 2 ) ;
+			zpath = subword( PARM, 2 ) ;
 			try
 			{
-				if ( is_regular_file( ZPATH ) )
+				if ( is_regular_file( zpath ) )
 				{
-					if      ( w1 == "BROWSE" ) { browse( ZPATH ) ; cleanup() ; return ; }
-					else if ( w1 == "VIEW"   ) { view( ZPATH )   ; cleanup() ; return ; }
-					else                       { edit( ZPATH )   ; cleanup() ; return ; }
+					if      ( w1 == "BROWSE" ) { browse( zpath ) ; cleanup() ; return ; }
+					else if ( w1 == "VIEW"   ) { view( zpath )   ; cleanup() ; return ; }
+					else                       { edit( zpath )   ; cleanup() ; return ; }
 				}
 			}
 			catch ( const filesystem_error& ex )
@@ -221,21 +221,21 @@ void PFLST0A::application()
 		}
 		else
 		{
-			ZPATH = PARM ;
+			zpath = PARM ;
 		}
 	}
 
 	filter = "" ;
-	p1 = ZPATH.find_last_of( '/' ) ;
+	p1 = zpath.find_last_of( '/' ) ;
 	if ( p1 != string::npos )
 	{
-		if ( ZPATH.find_first_of( "?*[", p1 ) != string::npos )
+		if ( zpath.find_first_of( "?*[", p1 ) != string::npos )
 		{
-			filter = ZPATH.substr( p1+1 ) ;
-			ZPATH.erase( p1 ) ;
+			filter = zpath.substr( p1+1 ) ;
+			zpath.erase( p1 ) ;
 		}
 	}
-	if ( !is_directory( ZPATH ) ) { ZPATH = ZHOME ; }
+	if ( !is_directory( zpath ) ) { zpath = zhome ; }
 
 	OSEL   = ""   ;
 	DSLIST = "DSLST" + d2ds( taskid(), 3 ) ;
@@ -264,16 +264,16 @@ void PFLST0A::application()
 			tbskip( DSLIST, - (ZTDDEPTH-2) ) ;
 			if ( RC > 0 ) { tbtop( DSLIST ) ; }
 		}
-		OPATH   = ZPATH    ;
+		OPATH   = zpath    ;
 		OHIDDEN = AFHIDDEN ;
 		OEXGEN  = EXGEN    ;
-		if ( MSG == "" ) { ZCMD  = "" ; }
+		if ( MSG == "" ) { zcmd  = "" ; }
 		tbdispl( DSLIST, panl, MSG, "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
-		w1  = upper( word( ZCMD, 1 ) ) ;
-		w2  = word( ZCMD, 2 ) ;
-		w3  = word( ZCMD, 3 ) ;
+		w1  = upper( word( zcmd, 1 ) ) ;
+		w2  = word( zcmd, 2 ) ;
+		w3  = word( zcmd, 3 ) ;
 		if ( (w1 == "REFRESH" || w1 == "RESET" ) && w2 == "" )
 		{
 			if ( w1 == "RESET" ) { filter = "" ; UseSearch = false ; }
@@ -307,7 +307,7 @@ void PFLST0A::application()
 		if ( RCode == 8 )  { MSG = "PSYS018" ; continue ; }
 		if ( CRP > 0 )     { i = CRP       ; }
 		if ( RCode == 4 )  { continue      ; }
-		if ( ZPATH == "" ) { ZPATH = ZHOME ; }
+		if ( zpath == "" ) { zpath = zhome ; }
 		if ( OHIDDEN != AFHIDDEN || OEXGEN != EXGEN )
 		{
 			filter = ""       ;
@@ -316,9 +316,9 @@ void PFLST0A::application()
 			i = 1    ;
 			continue ;
 		}
-		if ( OPATH != ZPATH )
+		if ( OPATH != zpath )
 		{
-			if ( ( !exists( ZPATH ) || !is_directory( ZPATH ) ) )
+			if ( ( !exists( zpath ) || !is_directory( zpath ) ) )
 			{
 				MSG = "PSYS012A" ;
 			}
@@ -344,7 +344,7 @@ void PFLST0A::application()
 			}
 			else
 			{
-				entry = createEntry( ZPATH, ENTRY ) ;
+				entry = createEntry( zpath, ENTRY ) ;
 			}
 			if ( ZCURFLD == "ENTRY" )
 			{
@@ -381,9 +381,16 @@ void PFLST0A::application()
 			}
 			else
 			{
-				entry = createEntry( ZPATH, ENTRY ) ;
+				entry = createEntry( zpath, ENTRY ) ;
 			}
-			if ( SEL == "I" )
+			if ( SEL != "" && !exists( entry ) )
+			{
+				MSG     = "FLST012L"  ;
+				MESSAGE = "Not Found" ;
+				SEL     = ""          ;
+				tbput( DSLIST )       ;
+			}
+			else if ( SEL == "I" )
 			{
 				showInfo( entry )       ;
 				SEL     = ""            ;
@@ -434,7 +441,7 @@ void PFLST0A::application()
 					{
 						lp = string( buffer, rc ) ;
 						delete[] buffer ;
-						if ( substr( lp, 1, 1 ) != "/" ) { lp = ZPATH + lp ; }
+						if ( substr( lp, 1, 1 ) != "/" ) { lp = zpath + lp ; }
 						if ( !is_directory( lp ) )
 						{
 							MESSAGE = "Not a directory" ;
@@ -453,7 +460,7 @@ void PFLST0A::application()
 			}
 			else if ( SEL == "C" )
 			{
-				ZCMD     = "" ;
+				zcmd     = "" ;
 				SEL      = "" ;
 				NEWENTRY = "" ;
 				FREPL    = "" ;
@@ -467,7 +474,7 @@ void PFLST0A::application()
 				display( "PFLST0A5", MSG, "ZCMD" ) ;
 				if ( RC == 8 )
 				{
-					ZCMD    = ""          ;
+					zcmd    = ""          ;
 					MSG     = "FLST011W"  ;
 					MESSAGE = "Cancelled" ;
 				}
@@ -540,7 +547,7 @@ void PFLST0A::application()
 			}
 			else if ( SEL == "D" )
 			{
-				ZCMD = "" ;
+				zcmd = "" ;
 				SEL  = "" ;
 				del  = ( CONDOFF == "/" ) ;
 				if ( !del )
@@ -549,7 +556,7 @@ void PFLST0A::application()
 					display( "PFLST0A3", MSG, "ZCMD" ) ;
 					if ( RC == 8 )
 					{
-						ZCMD    = ""          ;
+						zcmd    = ""          ;
 						MSG     = "FLST011P"  ;
 						MESSAGE = "Cancelled" ;
 					}
@@ -597,20 +604,20 @@ void PFLST0A::application()
 			}
 			else if ( SEL == "M" )
 			{
-				ZCMD     = "" ;
+				zcmd     = "" ;
 				SEL      = "" ;
 				modifyAttrs( entry ) ;
 				tbput( DSLIST ) ;
 			}
 			else if ( SEL == "R" )
 			{
-				ZCMD     = "" ;
+				zcmd     = "" ;
 				SEL      = "" ;
 				NEWENTRY = "" ;
 				display( "PFLST0A4", MSG, "ZCMD" ) ;
 				if ( RC == 8 )
 				{
-					ZCMD    = ""          ;
+					zcmd    = ""          ;
 					MSG     = "FLST011S"  ;
 					MESSAGE = "Cancelled" ;
 				}
@@ -723,7 +730,7 @@ void PFLST0A::application()
 			else if ( SEL == "T" || SEL == "TT" )
 			{
 				RC = 0 ;
-				boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
+				boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( zuser + "-" + zscreen + "-%%%%-%%%%" ) ;
 				string tname = temp.native() ;
 				of.open( tname ) ;
 				recursive_directory_iterator eIt ;
@@ -780,7 +787,7 @@ void PFLST0A::application()
 			if ( ZTDSELS > 1 )
 			{
 				tbdispl( DSLIST ) ;
-				if ( RC > 4 ) break ;
+				if ( RC > 4 ) { break ; }
 			}
 			else { ZTDSELS = 0 ; }
 		}
@@ -862,7 +869,7 @@ void PFLST0A::createFileList1( string filter )
 	{
 		try
 		{
-			copy( directory_iterator( ZPATH ), directory_iterator(), back_inserter( v ) ) ;
+			copy( directory_iterator( zpath ), directory_iterator(), back_inserter( v ) ) ;
 		}
 		catch ( const filesystem_error& ex )
 		{
@@ -1044,15 +1051,15 @@ void PFLST0A::createSearchList( const string& w )
 
 	path temp ;
 
-	vcopy( "ZUSER", ZUSER, MOVE ) ;
-	vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
+	vcopy( "ZUSER", zuser, MOVE ) ;
+	vcopy( "ZSCREEN", zscreen, MOVE ) ;
 
-	temp  = temp_directory_path() / unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
+	temp  = temp_directory_path() / unique_path( zuser + "-" + zscreen + "-%%%%-%%%%" ) ;
 	tname = temp.native() ;
 
-	if ( ZPATH.back() != '/' ) { ZPATH += "/" ; }
+	if ( zpath.back() != '/' ) { zpath += "/" ; }
 
-	cmd = "grep -i -s \"" + w + "\" " + ZPATH + "* 2>&1" ;
+	cmd = "grep -i -s \"" + w + "\" " + zpath + "* 2>&1" ;
 
 	of.open( tname ) ;
 	FILE* pipe { popen( cmd.c_str(), "r" ) } ;
@@ -1232,10 +1239,10 @@ int PFLST0A::processPrimCMD()
 	std::ofstream of ;
 	boost::system::error_code ec ;
 
-	cw = upper( word( ZCMD, 1 ) ) ;
-	ws = subword( ZCMD, 2 ) ;
-	w2 = word( ZCMD, 2 )    ;
-	w3 = word( ZCMD, 3 )    ;
+	cw = upper( word( zcmd, 1 ) ) ;
+	ws = subword( zcmd, 2 ) ;
+	w2 = word( zcmd, 2 )    ;
+	w3 = word( zcmd, 3 )    ;
 
 	if ( cw == "" )
 	{
@@ -1259,37 +1266,37 @@ int PFLST0A::processPrimCMD()
 	}
 	else if ( findword( cw, "S B E EDIT" ) && ws != "" )
 	{
-		p = ZPATH + "/" + ws ;
+		p = zpath + "/" + ws ;
 		if ( is_directory( p ) && (cw == "S" || cw == "B" ) )
 		{
 			vcopy( "ZFLSTPGM", PGM, MOVE ) ;
 			select( "PGM(" + PGM + ") PARM(" + p + ")" ) ;
-			ZCMD = "" ;
+			zcmd = "" ;
 		}
 		else if ( is_regular_file( p ) )
 		{
 			if ( findword( cw, "E EDIT" ) ) { edit( p )   ; }
 			else                            { browse( p ) ; }
-			ZCMD = "" ;
+			zcmd = "" ;
 		}
 		return 0 ;
 	}
 	else if ( cw == "BACK" | cw == "S" )
 	{
-		if ( ZPATH.back() == '/' ) { ZPATH = ZPATH.substr( 0, ZPATH.size()-1) ; }
-		ZPATH = substr( ZPATH, 1, lastpos( "/", ZPATH)-1 ) ;
+		if ( zpath.back() == '/' ) { zpath = zpath.substr( 0, zpath.size()-1) ; }
+		zpath = substr( zpath, 1, lastpos( "/", zpath)-1 ) ;
 		return 0 ;
 	}
 	else if ( cw == "CD" )
 	{
-		if ( ws == "" ) { ws = ZHOME ; }
-		t = ZPATH ;
+		if ( ws == "" ) { ws = zhome ; }
+		t = zpath ;
 		if ( t.back() == '/' ) { t.erase( t.size()-1, 1) ; }
 		if ( substr( ws, 1, 1 ) != "/" ) { t += "/" + ws ; }
 		else                             { t  = ws       ; }
 		if ( t.find_first_of( "?*[" ) != string::npos ) { t = expandName( t ) ; }
 		if ( t == "" ) { return 8 ; }
-		if ( is_directory( t ) ) { ZPATH = t ; return 0 ; }
+		if ( is_directory( t ) ) { zpath = t ; return 0 ; }
 		else { return 8 ; }
 	}
 	else if ( cw == "L" )
@@ -1329,7 +1336,7 @@ int PFLST0A::processPrimCMD()
 	}
 	else if ( cw == "MKDIR" )
 	{
-		if ( ws[ 0 ] != '/' ) { ws = ZPATH + "/" + ws ; }
+		if ( ws[ 0 ] != '/' ) { ws = zpath + "/" + ws ; }
 		create_directory( ws, ec ) ;
 		if ( ec.value() == boost::system::errc::success )
 		{
@@ -1341,12 +1348,12 @@ int PFLST0A::processPrimCMD()
 			RSN = ec.message() ;
 			llog( "E", "Create of directory " + ws + " failed with " + ec.message() << endl ) ;
 		}
-		ZCMD = "" ;
+		zcmd = "" ;
 		return 4  ;
 	}
 	else if ( cw == "TOUCH" )
 	{
-		if ( ws[ 0 ] != '/' ) { ws = ZPATH + "/" + ws ; }
+		if ( ws[ 0 ] != '/' ) { ws = zpath + "/" + ws ; }
 		if ( !exists( ws ) )
 		{
 			of.open( ws.c_str() ) ;
@@ -1362,7 +1369,7 @@ int PFLST0A::processPrimCMD()
 		{
 			MSG = "FLST012D" ;
 		}
-		ZCMD = "" ;
+		zcmd = "" ;
 		return 4  ;
 	}
 	return 8 ;
@@ -1535,7 +1542,7 @@ void PFLST0A::modifyAttrs( const string& p )
 	display( "PFLST0A6", MSG, "ZCMD" ) ;
 	if ( RC == 8 )
 	{
-		ZCMD    = ""          ;
+		zcmd    = ""          ;
 		MSG     = "FLST017"   ;
 		MESSAGE = "Cancelled" ;
 	}
@@ -1674,7 +1681,7 @@ void PFLST0A::browseTree( const string& tname )
 		return    ;
 	}
 
-	vdefine( "TSEL TFILE TENTRY ZDIR", &TSEL, &TFILE, &TENTRY, &ZDIR ) ;
+	vdefine( "TSEL TFILE TENTRY ZDIR", &TSEL, &TFILE, &TENTRY, &zdir ) ;
 	vcopy( "ZFLSTPGM", PGM, MOVE ) ;
 	tab = "FTREE" + d2ds( taskid(), 3 ) ;
 
@@ -1686,7 +1693,7 @@ void PFLST0A::browseTree( const string& tname )
 	{
 		if ( i == 1 )
 		{
-			ZDIR = strip( line ) ;
+			zdir = strip( line ) ;
 		}
 		else if ( i % 2 )
 		{
@@ -1715,7 +1722,7 @@ void PFLST0A::browseTree( const string& tname )
 			tbskip( tab, - (ZTDDEPTH-2) ) ;
 			if ( RC > 0 ) { tbtop( tab ) ; }
 		}
-		if ( MSG == "" ) { ZCMD  = "" ; }
+		if ( MSG == "" ) { zcmd = "" ; }
 		tbdispl( tab, "PFLST0A8", MSG, "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
@@ -1820,25 +1827,25 @@ string PFLST0A::expandDir( const string& parms )
 			else                       { dir = data1 + "/" + dir   ; }
 			pos = pos + data1.size() + 1 ;
 		}
-		if ( showl ) { ZPATH = dir ; return showListing() ; }
+		if ( showl ) { zpath = dir ; return showListing() ; }
 	}
 
 
 	if ( dir == "" )
 	{
-		dir = ZHOME ;
-		pos = ZHOME.size() ;
+		dir = zhome ;
+		pos = zhome.size() ;
 	}
 	else if ( dir[ 0 ] == '?' )
 	{
 		if ( dir.size() > 1 )
 		{
-			ZPATH = dir ;
-			ZPATH[ 0 ] = '/' ;
+			zpath = dir ;
+			zpath[ 0 ] = '/' ;
 		}
 		else
 		{
-			ZPATH = ZHOME ;
+			zpath = zhome ;
 		}
 		return showListing() ;
 	}
@@ -2057,32 +2064,32 @@ string PFLST0A::showListing()
 			tbskip( DSLIST, - (ZTDDEPTH-2) ) ;
 			if ( RC > 0 ) { tbtop( DSLIST ) ; }
 		}
-		OPATH   = ZPATH    ;
+		OPATH   = zpath    ;
 		OFLDIRS = FLDIRS   ;
 		OHIDDEN = FLHIDDEN ;
-		if ( MSG == "" ) { ZCMD  = "" ; }
+		if ( MSG == "" ) { zcmd  = "" ; }
 		tbdispl( DSLIST, "PFLST0A7", MSG, "ZCMD" ) ;
 		if ( RC == 8 ) { ZRC = 8 ; break ; }
 		MSG = "" ;
-		w1  = upper( word( ZCMD, 1 ) ) ;
-		w2  = word( ZCMD, 2 )    ;
-		ws  = subword( ZCMD, 2 ) ;
+		w1  = upper( word( zcmd, 1 ) ) ;
+		w2  = word( zcmd, 2 )    ;
+		ws  = subword( zcmd, 2 ) ;
 		if ( w1 == "REFRESH" ) { tbend( DSLIST ) ; createFileList2( FLDIRS )     ; continue ; }
 		if ( w1 == "O" )       { tbend( DSLIST ) ; createFileList2( FLDIRS, w2 ) ; continue ; }
-		if ( w1 == "S" && ZPATH != "/" )
+		if ( w1 == "S" && zpath != "/" )
 		{
-			if ( ZPATH.back() == '/' ) { ZPATH = ZPATH.substr( 0, ZPATH.size()-1) ; }
-			ZPATH = substr( ZPATH, 1, lastpos( "/", ZPATH)-1 ) ;
+			if ( zpath.back() == '/' ) { zpath = zpath.substr( 0, zpath.size()-1) ; }
+			zpath = substr( zpath, 1, lastpos( "/", zpath)-1 ) ;
 			tbend( DSLIST )   ;
 			createFileList2( FLDIRS ) ;
 			continue ;
 		}
 		if ( w1 == "CD" )
 		{
-			if ( ws == "" ) { ws = ZHOME ; }
-			if ( ZPATH.back() == '/' ) { ZPATH = ZPATH.substr( 0, ZPATH.size()-1) ; }
-			if ( substr( ws, 1, 1 ) != "/" ) { ZPATH += "/" + ws ; }
-			else                             { ZPATH  = ws       ; }
+			if ( ws == "" ) { ws = zhome ; }
+			if ( zpath.back() == '/' ) { zpath = zpath.substr( 0, zpath.size()-1) ; }
+			if ( substr( ws, 1, 1 ) != "/" ) { zpath += "/" + ws ; }
+			else                             { zpath  = ws       ; }
 			tbend( DSLIST ) ; createFileList2( FLDIRS ) ; continue ;
 		}
 		vget( "ZVERB", SHARED ) ;
@@ -2098,9 +2105,9 @@ string PFLST0A::showListing()
 			createFileList2( FLDIRS ) ;
 			continue ;
 		}
-		if ( OPATH != ZPATH )
+		if ( OPATH != zpath )
 		{
-			if ( ( !exists( ZPATH ) || !is_directory( ZPATH ) ) )
+			if ( ( !exists( zpath ) || !is_directory( zpath ) ) )
 			{
 				MSG = "PSYS012A" ;
 			}
@@ -2115,15 +2122,15 @@ string PFLST0A::showListing()
 		{
 			if ( SEL == "S" )
 			{
-				ZPATH = createEntry( ZPATH, ENTRY ) ;
+				zpath = createEntry( zpath, ENTRY ) ;
 				tbend( DSLIST )   ;
 				createFileList2( FLDIRS ) ;
 			}
 			else if ( SEL == "/" )
 			{
-				ZPATH = createEntry( ZPATH, ENTRY ) ;
+				zpath = createEntry( zpath, ENTRY ) ;
 				tbend( DSLIST ) ;
-				return ZPATH    ;
+				return zpath    ;
 			}
 			if ( ZTDSELS > 1 )
 			{
@@ -2152,14 +2159,14 @@ void PFLST0A::createFileList2( const string& FLDIRS, string filter )
 
 	vec v;
 
-	if ( ZPATH == "" ) { ZPATH = "/" ; }
+	if ( zpath == "" ) { zpath = "/" ; }
 	iupper( filter ) ;
 
 	vcopy( "FLHIDDEN", t, MOVE ) ;
 
 	try
 	{
-		copy( directory_iterator( ZPATH ), directory_iterator(), back_inserter( v ) ) ;
+		copy( directory_iterator( zpath ), directory_iterator(), back_inserter( v ) ) ;
 	}
 	catch ( const filesystem_error& ex )
 	{

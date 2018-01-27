@@ -43,6 +43,9 @@ class PTUTORA : public pApplication
 
 		string fileType ;
 
+		string zcmd  ;
+		string zverb ;
+
 		string mh ;
 		string fh ;
 		string ph ;

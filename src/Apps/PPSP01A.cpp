@@ -61,6 +61,7 @@ using namespace boost::filesystem ;
 #undef  MOD_NAME
 #define MOD_NAME PPSP01A
 
+boost::mutex PPSP01A::mtx ;
 
 void PPSP01A::application()
 {
@@ -78,7 +79,7 @@ void PPSP01A::application()
 	w1 = upper( word( PARM, 1 ) ) ;
 	w2 = upper( word( PARM, 2 ) ) ;
 
-	vdefine( "ZCMD ZVERB ZROW1 ZROW2 ZAREA ZSHADOW ZAREAT ZSCROLLA", &ZCMD, &ZVERB, &ZROW1, &ZROW2, &ZAREA, &ZSHADOW, &ZAREAT, &ZSCROLLA ) ;
+	vdefine( "ZCMD ZVERB ZROW1 ZROW2 ZAREA ZSHADOW ZAREAT ZSCROLLA", &zcmd, &zverb, &ZROW1, &ZROW2, &ZAREA, &ZSHADOW, &ZAREAT, &ZSCROLLA ) ;
 	vdefine( "ZSCROLLN ZAREAW ZAREAD", &ZSCROLLN, &ZAREAW, &ZAREAD ) ;
 	vdefine( "ZALOG ZSLOG LOGTYPE LOGLOC ZCOL1", &ZALOG, &ZSLOG, &LOGTYPE, &LOGLOC, &ZCOL1 ) ;
 
@@ -171,7 +172,7 @@ void PPSP01A::show_log( const string& fileName )
 		ZCOL1 = d2ds( startCol-47, 7 ) ;
 		ZROW1 = d2ds( firstLine, 8 )   ;
 		ZROW2 = d2ds( maxLines, 8 )    ;
-		if ( MSG == "" ) { ZCMD = "" ; }
+		if ( MSG == "" ) { zcmd = "" ; }
 
 		display( "PPSP01AL", MSG, "ZCMD" ) ;
 		if ( RC == 8 ) { return ; }
@@ -179,12 +180,12 @@ void PPSP01A::show_log( const string& fileName )
 		vget( "ZVERB ZSCROLLA ZSCROLLN", SHARED ) ;
 
 		MSG   = "" ;
-		Restu = subword( ZCMD, 2 ) ;
-		iupper( ( ZCMD ) )  ;
-		w1    = word( ZCMD, 1 )    ;
-		w2    = word( ZCMD, 2 )    ;
-		w3    = word( ZCMD, 3 )    ;
-		Rest  = subword( ZCMD, 2 ) ;
+		Restu = subword( zcmd, 2 ) ;
+		iupper( ( zcmd ) )  ;
+		w1    = word( zcmd, 1 )    ;
+		w2    = word( zcmd, 2 )    ;
+		w3    = word( zcmd, 3 )    ;
+		Rest  = subword( zcmd, 2 ) ;
 
 		if ( file_has_changed( fileName, fsize ) )
 		{
@@ -288,7 +289,7 @@ void PPSP01A::show_log( const string& fileName )
 			continue        ;
 		}
 
-		if ( ZVERB == "DOWN" )
+		if ( zverb == "DOWN" )
 		{
 			rebuildZAREA = true ;
 			if ( ZSCROLLA == "MAX" )
@@ -307,7 +308,7 @@ void PPSP01A::show_log( const string& fileName )
 				}
 			}
 		}
-		else if ( ZVERB == "UP" )
+		else if ( zverb == "UP" )
 		{
 			rebuildZAREA = true ;
 			if ( ZSCROLLA == "MAX" )
@@ -325,7 +326,7 @@ void PPSP01A::show_log( const string& fileName )
 				}
 			}
 		}
-		else if ( ZVERB == "LEFT" )
+		else if ( zverb == "LEFT" )
 		{
 			rebuildZAREA = true ;
 			if ( ZSCROLLA == "MAX" )
@@ -338,7 +339,7 @@ void PPSP01A::show_log( const string& fileName )
 				if ( startCol < 48 ) { startCol = 48 ; }
 			}
 		}
-		else if ( ZVERB == "RIGHT" )
+		else if ( zverb == "RIGHT" )
 		{
 			rebuildZAREA = true ;
 			if ( ZSCROLLA == "MAX" )
@@ -518,8 +519,6 @@ void PPSP01A::dsList( string parms )
 	string PGM ;
 	string UPROF    ;
 	string RFLTABLE ;
-	string ZUSER    ;
-	string ZSCREEN  ;
 
 	string fname ;
 
@@ -557,9 +556,9 @@ void PPSP01A::dsList( string parms )
 		if ( reflist )
 		{
 			std::ofstream fout ;
-			vcopy( "ZUSER", ZUSER, MOVE )     ;
-			vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
-			boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
+			vcopy( "ZUSER", zuser, MOVE )     ;
+			vcopy( "ZSCREEN", zscreen, MOVE ) ;
+			boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( zuser + "-" + zscreen + "-%%%%-%%%%" ) ;
 			string tname = temp.native() ;
 			fout.open( tname ) ;
 			for ( i = 1 ; i <= 30 ; i++ )
@@ -742,10 +741,10 @@ void PPSP01A::lspfSettings()
 
 	while ( true )
 	{
-		ZCMD = "" ;
+		zcmd = "" ;
 		display( "PPSP01GO", "", "ZCMD" );
 		if ( RC == 8 ) { break ; }
-		if ( ZCMD == "DEFAULTS" )
+		if ( zcmd == "DEFAULTS" )
 		{
 			GOKLUSE  = ""  ;
 			GOKLFAL  = "/" ;
@@ -765,7 +764,7 @@ void PPSP01A::lspfSettings()
 			GORTSIZE = "3"  ;
 			GORBSIZE = "10" ;
 		}
-		else if ( ZCMD == "RESET" )
+		else if ( zcmd == "RESET" )
 		{
 			GODEL    = RODEL    ;
 			GOSWAP   = ROSWAP   ;
@@ -899,12 +898,12 @@ void PPSP01A::pfkeySettings()
 
 	while ( true )
 	{
-		ZCMD  = "" ;
+		zcmd  = "" ;
 		display( "PPSP01AK", "", "ZCMD" );
 		RCode = RC ;
 
-		if ( ZCMD == "CANCEL" ) { break ; }
-		if ( ZCMD == "DEFAULTS" )
+		if ( zcmd == "CANCEL" ) { break ; }
+		if ( zcmd == "DEFAULTS" )
 		{
 			ZPF01 = "" ;
 			ZPF02 = "" ;
@@ -957,7 +956,7 @@ void PPSP01A::pfkeySettings()
 		if ( ZPF23 == "" ) { ZPF23 = pfKeyDefaults[ 23 ] ; }
 		if ( ZPF24 == "" ) { ZPF24 = pfKeyDefaults[ 24 ] ; }
 
-		if ( RCode == 8 || ZCMD == "SAVE" )
+		if ( RCode == 8 || zcmd == "SAVE" )
 		{
 			vput( "ZPF01 ZPF02 ZPF03 ZPF04 ZPF05 ZPF06 ZPF07 ZPF08 ZPF09 ZPF10 ZPF11 ZPF12", PROFILE ) ;
 			vput( "ZPF13 ZPF14 ZPF15 ZPF16 ZPF17 ZPF18 ZPF19 ZPF20 ZPF21 ZPF22 ZPF23 ZPF24", PROFILE ) ;
@@ -1092,15 +1091,15 @@ void PPSP01A::colourSettings()
 	}
 
 	MSG    = "" ;
-	ZCMD   = "" ;
+	zcmd   = "" ;
 	while ( true )
 	{
 		if ( MSG == "" ) { CURFLD = "ZCMD" ; }
 		display( "PPSP01CL", MSG, CURFLD ) ;
 		if (RC == 8 ) { cleanup() ; break  ; }
 
-		if ( ZCMD == "" ) {}
-		else if ( ZCMD == "CANCEL" )
+		if ( zcmd == "" ) {}
+		else if ( zcmd == "CANCEL" )
 		{
 			for ( i = 1 ; i < 34 ; i++ )
 			{
@@ -1115,7 +1114,7 @@ void PPSP01A::colourSettings()
 			}
 			return ;
 		}
-		else if ( ZCMD == "DEFAULTS" )
+		else if ( zcmd == "DEFAULTS" )
 		{
 			for ( i = 1 ; i < 34 ; i++ )
 			{
@@ -1126,9 +1125,9 @@ void PPSP01A::colourSettings()
 				setScreenAttrs( VarList[ i ],  i, COLOUR, INTENS, HILITE ) ;
 			}
 		}
-		else if ( ZCMD == "SAVE" )
+		else if ( zcmd == "SAVE" )
 		{
-			ZCMD = "" ;
+			zcmd = "" ;
 			for ( i = 1 ; i < 34 ; i++ )
 			{
 				isps_var = "ZC" + VarList[i] ;
@@ -1147,9 +1146,9 @@ void PPSP01A::colourSettings()
 			if ( RC == 0 ) { MSG = "PPSP011A" ; }
 			continue ;
 		}
-		else if ( ZCMD == "RESTORE" )
+		else if ( zcmd == "RESTORE" )
 		{
-			ZCMD = "" ;
+			zcmd = "" ;
 			for ( i = 1 ; i < 34 ; i++ )
 			{
 				prof_var = "AC" + VarList[i] ;
@@ -1167,7 +1166,7 @@ void PPSP01A::colourSettings()
 		}
 
 		MSG  = "" ;
-		ZCMD = "" ;
+		zcmd = "" ;
 		for ( i = 1 ; i < 34 ; i++)
 		{
 			var1 = "COLOUR" + d2ds( i, 2 ) ;
@@ -1430,8 +1429,8 @@ void PPSP01A::poolVariables( const string& applid )
 	string cw   ;
 	string w2   ;
 
-	vcopy( "ZAPPLID", ZAPPLID, MOVE ) ;
-	if ( applid != "" && ZAPPLID != applid )
+	vcopy( "ZAPPLID", zapplid, MOVE ) ;
+	if ( applid != "" && zapplid != applid )
 	{
 		if ( !isvalidName4( applid ) ) { return ; }
 		select( "PGM(PPSP01A) PARM(VARS) NEWAPPL(" + applid + ")" ) ;
@@ -1450,25 +1449,25 @@ void PPSP01A::poolVariables( const string& applid )
 	{
 		tbtop( VARLST )  ;
 		tbskip( VARLST, ZTDTOP ) ;
-		if ( MSG == "" ) { ZCMD = "" ; }
+		if ( MSG == "" ) { zcmd = "" ; }
 		tbdispl( VARLST, "PPSP01AV", MSG, "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
-		if ( ZCMD == "REF" || ZCMD == "RES" )
+		if ( zcmd == "REF" || zcmd == "RES" )
 		{
 			tbend( VARLST ) ;
 			getpoolVariables( "" ) ;
 			continue ;
 		}
-		cw = word( ZCMD, 1 ) ;
-		w2 = word( ZCMD, 2 ) ;
+		cw = word( zcmd, 1 ) ;
+		w2 = word( zcmd, 2 ) ;
 		if ( cw == "O" )
 		{
 			tbend( VARLST ) ;
 			getpoolVariables( w2 ) ;
 			continue ;
 		}
-		if ( ZCMD != "" ) { MSG = "PSYS018" ; continue ; }
+		if ( zcmd != "" ) { MSG = "PSYS018" ; continue ; }
 		while ( ZTDSELS > 0 )
 		{
 			if ( SEL == "D" )
@@ -1779,7 +1778,7 @@ void PPSP01A::showPaths()
 	{
 		tbtop( PATHLST ) ;
 		tbskip( PATHLST, ZTDTOP ) ;
-		if ( MSG == "" ) { ZCMD  = "" ; }
+		if ( MSG == "" ) { zcmd  = "" ; }
 		tbdispl( PATHLST, "PPSP01AP", MSG, "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
 		MSG = ""     ;
@@ -1823,7 +1822,7 @@ void PPSP01A::showCommandTables()
 	string panel    ;
 
 	vdefine( "ZCTVERB ZCTTRUNC ZCTACT ZCTDESC", &ZCTVERB, &ZCTTRUNC, &ZCTACT, &ZCTDESC ) ;
-	vdefine( "ZAPPLID CMDTAB APPLCMD APPLCMDL ZVERB", &ZAPPLID, &CMDTAB, &APPLCMD,  &APPLCMDL, &ZVERB ) ;
+	vdefine( "ZAPPLID CMDTAB APPLCMD APPLCMDL ZVERB", &zapplid, &CMDTAB, &APPLCMD,  &APPLCMDL, &zverb ) ;
 
 	vget( "ZAPPLID" ) ;
 	vget( "CMDTAB", PROFILE ) ;
@@ -1832,9 +1831,9 @@ void PPSP01A::showCommandTables()
 
 	APPLCMD  = "" ;
 	APPLCMDL = "" ;
-	if ( ZAPPLID != "ISP" )
+	if ( zapplid != "ISP" )
 	{
-		APPLCMD = ZAPPLID ;
+		APPLCMD = zapplid ;
 		tbopen( APPLCMD+"CMDS", NOWRITE, "", SHARE ) ;
 		if ( RC > 4 )
 		{
@@ -1861,7 +1860,7 @@ void PPSP01A::showCommandTables()
 	{
 		tbtop( CMDTAB+"CMDS" ) ;
 		tbskip( CMDTAB+"CMDS", ZTDTOP ) ;
-		ZCMD  = "" ;
+		zcmd  = "" ;
 		tbdispl( CMDTAB+"CMDS", panel, MSG, "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
@@ -1880,7 +1879,7 @@ void PPSP01A::showCommandTables()
 			}
 		}
 		vget( "ZVERB", SHARED ) ;
-		if ( ZVERB == "LEFT" || ZVERB == "RIGHT" )
+		if ( zverb == "LEFT" || zverb == "RIGHT" )
 		{
 			panel == "PPSP01AC" ? panel = "PPSP01AD" : panel = "PPSP01AC" ;
 		}
@@ -1938,15 +1937,15 @@ void PPSP01A::showLoadedClasses()
 		}
 		tbtop( MODLST ) ;
 		tbskip( MODLST, ZTDTOP ) ;
-		if ( MSG == "" ) { ZCMD = "" ; }
+		if ( MSG == "" ) { zcmd = "" ; }
 		tbdispl( MODLST, "PPSP01ML", MSG, "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
-		if ( ZTDSELS == 0 && ZCMD == "" ) { ref = true ; }
-		ws = words( ZCMD )   ;
-		w1 = word( ZCMD, 1 ) ;
-		w2 = word( ZCMD, 2 ) ;
-		w3 = word( ZCMD, 3 ) ;
+		if ( ZTDSELS == 0 && zcmd == "" ) { ref = true ; }
+		ws = words( zcmd )   ;
+		w1 = word( zcmd, 1 ) ;
+		w2 = word( zcmd, 2 ) ;
+		w3 = word( zcmd, 3 ) ;
 		if ( w1 == "SORT" )
 		{
 			if ( w2 == "" ) { w2 = "APPL" ; }
@@ -2125,45 +2124,76 @@ void PPSP01A::showTasks()
 
 void PPSP01A::updateTasks( const string& table, const string& uf, const string& of )
 {
+	// Columns for top: PID, user, priority, NI, virt, RES, %CPU, %MEM, time, S, Command
+
+	// Procedure can use 'top' or 'ps'
+	// top gives a better representation of CPU percentage but there is a delay
+
 	int p ;
 
 	string inLine ;
+	string PID    ;
 	string CMD    ;
 	string USER   ;
 	string CPU    ;
 	string CPUX   ;
+	string tname  ;
+	string cname  ;
 
-	std::ifstream fin  ;
+	enum Columns
+	{
+		C_PID = 1,
+		C_USER,
+		C_PRI,
+		C_NI,
+		C_VIRT,
+		C_RES,
+		C_CPU,
+		C_MEM,
+		C_TIME,
+		C_S,
+		C_CMD
+	} ;
 
-	vcopy( "ZUSER", ZUSER, MOVE )     ;
-	vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
+	std::ifstream fin ;
 
-	boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
-	string tname = temp.native() ;
-	string cname = "ps aux > " + tname ;
+	vcopy( "ZUSER", zuser, MOVE )     ;
+	vcopy( "ZSCREEN", zscreen, MOVE ) ;
+
+	boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( zuser + "-" + zscreen + "-%%%%-%%%%" ) ;
+	tname = temp.native() ;
+
+  //    cname = "ps ax  -o pid,user,pri,ni,vsz,drs,%cpu,%mem,time,stat,cmd > " + tname ;
+	cname = "top -b -n 1 > " + tname ;
 
 	tbcreate( table, "", "(SEL,USER,PID,CPU,CPUX,MEM,MEMX,CMD)", NOWRITE ) ;
 
 	system( cname.c_str() ) ;
 	fin.open( tname ) ;
+
 	while ( getline( fin, inLine ) )
 	{
 		tbvclear( table ) ;
-		USER = word( inLine, 1 ) ;
-		if ( USER == "USER" ) { continue ; }
+		PID = word( inLine, C_PID ) ;
+		if ( !datatype( PID, 'W' ) ) { continue ; }
+		vreplace( "PID", PID )   ;
+		USER = word( inLine, C_USER ) ;
 		if ( uf != "" && uf != upper( USER ) ) { continue ; }
-		vreplace( "USER", word( inLine, 1 ) ) ;
-		vreplace( "PID", word( inLine, 2 ) ) ;
-		CPU  = word( inLine, 3 ) ;
+		vreplace( "USER", USER ) ;
+		CPU  = word( inLine, C_CPU ) ;
 		vreplace( "CPU", CPU ) ;
 		p = CPU.find( '.' )      ;
 		if ( p == string::npos ) { CPUX = d2ds( ds2d( CPU ) * 10 ) ; }
 		else                     { CPUX = CPU ; CPUX.erase( p, 1 ) ; }
 		vreplace( "CPUX", CPUX ) ;
-		vreplace( "MEM", word( inLine, 4 ) ) ;
-		CMD = strip( substr( inLine, 65 ) ) ;
-		vreplace( "CMD", CMD ) ;
+		vreplace( "MEM", word( inLine, C_MEM ) ) ;
+		CMD = subword( inLine, C_CMD ) ;
 		if ( of != "" && pos( of, upper( CMD ) ) == 0 ) { continue ; }
+		trim_left( CMD ) ;
+		CMD = strip( CMD, 'L', '`' ) ;
+		CMD = strip( CMD, 'L', '-' ) ;
+		trim_left( CMD ) ;
+		vreplace( "CMD", CMD ) ;
 		tbadd( table ) ;
 	}
 	fin.close() ;
@@ -2199,7 +2229,7 @@ void PPSP01A::utilityPrograms()
 
 	while ( true )
 	{
-		ZCMD  = "" ;
+		zcmd = "" ;
 		display( "PPSP01UP", "", "ZCMD" ) ;
 		RCode = RC ;
 
@@ -2213,8 +2243,8 @@ void PPSP01A::utilityPrograms()
 		if ( KHELPPGM == "" ) { KHELPPGM = ZHELPPGM ; } ;
 		if ( KOREXPGM == "" ) { KOREXPGM = ZOREXPGM ; } ;
 
-		if ( ZCMD == "CANCEL" ) { break ; }
-		if ( ZCMD == "DEFAULTS" )
+		if ( zcmd == "CANCEL" ) { break ; }
+		if ( zcmd == "DEFAULTS" )
 		{
 			KMAINPGM = ZMAINPGM ;
 			KMAINPAN = ZMAINPAN ;
@@ -2227,7 +2257,7 @@ void PPSP01A::utilityPrograms()
 			KOREXPGM = ZOREXPGM ;
 		}
 
-		if ( RCode == 8 || ZCMD == "SAVE" )
+		if ( RCode == 8 || zcmd == "SAVE" )
 		{
 			vput( v_list1, PROFILE ) ;
 			vput( v_list2, PROFILE ) ;
@@ -2318,7 +2348,7 @@ void PPSP01A::keylistTables()
 	{
 		tbtop( KEYP )     ;
 		tbskip( KEYP, ZTDTOP ) ;
-		if ( MSG == "" ) { ZCMD = "" ; }
+		if ( MSG == "" ) { zcmd = "" ; }
 		tbdispl( KEYP, "PPSP01K1", MSG, "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
@@ -2485,7 +2515,7 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 	{
 		tbtop( KLST ) ;
 		tbskip( KLST, ZTDTOP ) ;
-		if ( MSG == "" ) { ZCMD = "" ; }
+		if ( MSG == "" ) { zcmd = "" ; }
 		tbdispl( KLST, "PPSP01K2", MSG, "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
@@ -2643,7 +2673,7 @@ void PPSP01A::viewKeylist( const string& tab, const string& list )
 	{
 		tbtop( KLST ) ;
 		tbskip( KLST, ZTDTOP ) ;
-		if ( MSG == "" ) { ZCMD = "" ; }
+		if ( MSG == "" ) { zcmd = "" ; }
 		tbdispl( KLST, "PPSP01K6", MSG, "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
@@ -2709,9 +2739,9 @@ void PPSP01A::editKeylist( const string& tab, const string& list )
 	{
 		tbtop( KLST ) ;
 		tbskip( KLST, ZTDTOP ) ;
-		if ( MSG == "" ) { ZCMD = "" ; }
+		if ( MSG == "" ) { zcmd = "" ; }
 		tbdispl( KLST, "PPSP01K3", MSG, "ZCMD" ) ;
-		if ( ZCMD == "CANCEL" )
+		if ( zcmd == "CANCEL" )
 		{
 			vdelete( "KEYLISTN KEYNUM KEYDEF KEYATTR KEYLAB" ) ;
 			tbend( KLST ) ;

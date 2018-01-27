@@ -66,7 +66,7 @@ void PMAIN0A::application()
 
 	ZAHELP = "HPMAIN1" ;
 
-	vdefine( "ZCMD ZSEL ZDATEL ZJDATE ZTIME ZSCRNAME", &ZCMD, &ZSEL, &ZDATEL, &ZJDATE, &ZTIME, &ZSCRNAME ) ;
+	vdefine( "ZCMD ZSEL ZDATEL ZJDATE ZTIME ZSCRNAME", &zcmd, &ZSEL, &ZDATEL, &ZJDATE, &ZTIME, &ZSCRNAME ) ;
 	vdefine( "ZAREA ZSHADOW", &ZAREA, &ZSHADOW ) ;
 
 	ZSCRNAME = "MAIN" ;
@@ -76,11 +76,11 @@ void PMAIN0A::application()
 	offset = 0 ;
 	pmonth = ds2d( substr( ZDATEL, 4, 2 ) ) ;
 	pyear  = ds2d( substr( ZDATEL, 7, 4 ) ) ;
-	ZCMD   = PARM ;
+	zcmd   = PARM ;
 	MSG    = ""   ;
 	create_calendar( pmonth, pyear ) ;
 
-	if ( ZCMD != "" ) { ispexec( "CONTROL DISPLAY NONDISPL" ) ; }
+	if ( zcmd != "" ) { ispexec( "CONTROL DISPLAY NONDISPL" ) ; }
 	vcopy( "ZMAINPAN", pan, MOVE ) ;
 
 	while ( true )
@@ -107,8 +107,8 @@ void PMAIN0A::application()
 
 		ZAREA = ZAREA.replace( 204, 5, ZTIME ) ;
 
-		w1 = word( ZCMD, 1 ) ;
-		ws = subword( ZCMD, 2 ) ;
+		w1 = word( zcmd, 1 ) ;
+		ws = subword( zcmd, 2 ) ;
 
 		if ( ZCURFLD == "ZAREA")
 		{
@@ -156,7 +156,7 @@ void PMAIN0A::application()
 				create_calendar( pmonth, pyear ) ;
 			}
 		}
-		ZCMD = "" ;
+		zcmd = "" ;
 	}
 	cleanup() ;
 }

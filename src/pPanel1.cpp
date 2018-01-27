@@ -1159,7 +1159,7 @@ string pPanel::process_panel_trunc( errblock& err, TRUNC* trunc )
 }
 
 
-string pPanel::process_panel_trans( errblock& err, int ln, TRANS* trans )
+string pPanel::process_panel_trans( errblock& err, int ln, TRANS* trans, const string& as_lhs )
 {
 	string fieldNam ;
 	string t ;
@@ -1194,10 +1194,13 @@ string pPanel::process_panel_trans( errblock& err, int ln, TRANS* trans )
 			if ( trans->trns_msgid != "" && !message_set )
 			{
 				set_message_cond( sub_vars( trans->trns_msgid ) ) ;
-				if ( trans->trns_pnfield )
+				if ( fieldList.count( trans->trns_field ) > 0 )
 				{
-					fieldNam = trans->trns_field ;
-					set_cursor_cond( fieldNam, ln ) ;
+					set_cursor_cond( trans->trns_field, ln ) ;
+				}
+				else if ( fieldList.count( as_lhs ) > 0 )
+				{
+					set_cursor_cond( as_lhs, ln ) ;
 				}
 			}
 		}
@@ -1424,7 +1427,7 @@ void pPanel::process_panel_assignment( errblock& err, int ln, ASSGN* assgn )
 
 	if ( assgn->as_function == AS_TRANS )
 	{
-		t = process_panel_trans( err, ln, assgn->as_trans ) ;
+		t = process_panel_trans( err, ln, assgn->as_trans, assgn->as_lhs ) ;
 		if ( err.error() ) { return ; }
 	}
 	else if ( assgn->as_function == AS_TRUNC )

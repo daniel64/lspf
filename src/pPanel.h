@@ -277,7 +277,7 @@ class pPanel
 		void   process_panel_if( errblock& err, int ln, IFSTMNT* ifstmnt ) ;
 		void   process_panel_if_cond( errblock& err, int ln, IFSTMNT* ifstmnt ) ;
 		string process_panel_trunc( errblock& err, TRUNC* trunc ) ;
-		string process_panel_trans( errblock& err, int ln, TRANS* trans )  ;
+		string process_panel_trans( errblock& err, int ln, TRANS* trans, const string& )  ;
 
 		void   get_msgwin( string, int&, int&, int&, int&, vector<string>& ) ;
 		void   panel_cleanup( PANEL * ) ;

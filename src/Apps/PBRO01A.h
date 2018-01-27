@@ -115,6 +115,9 @@ class PBRO01A : public pApplication
 		bool textOn ;
 		bool hilightOn ;
 
+		string zcmd    ;
+		string zverb   ;
+
 		string MSG     ;
 		string CMD     ;
 		string ZROW1   ;

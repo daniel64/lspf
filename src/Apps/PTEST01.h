@@ -33,4 +33,6 @@ class PTEST01 : public pApplication
 		void opt5() ;
 		void opt6() ;
 		void opt7() ;
+
+		string zcmd ;
 };

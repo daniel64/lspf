@@ -25,5 +25,10 @@ class PCMD0A : public pApplication
 		void application() ;
 
 	private:
+		void run_command( string, const string&, const string& ) ;
+		bool invoke_task_wait( const string&, string&, const string& ) ;
+
+		string zscreen ;
+		string zuser   ;
 
 };

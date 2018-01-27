@@ -49,13 +49,17 @@ literal  13  2    SAC  "7"
 literal  13  5    PS   "POPUPS"
 literal  13  22   NT   "Test ADDPOP/REMPOP and popup windows"
 
-literal  15  2    SAC  "T"
-literal  15  5    PS   "Tutorial"
-literal  15  22    NT   "Start Tutorial"
+literal  14  2    SAC  "8"
+literal  14  5    PS   "Background"
+literal  14  22   NT   "Run a task in the background"
 
-literal  16  2    SAC  "X"
-literal  16  5    PS   "Terminate"
-literal  16  22    NT   "Terminate Dialogue Services"
+literal  16  2    SAC  "T"
+literal  16  5    PS   "Tutorial"
+literal  16  22    NT   "Start Tutorial"
+
+literal  17  2    SAC  "X"
+literal  17  5    PS   "Terminate"
+literal  17  22    NT   "Terminate Dialogue Services"
 
 
 )INCLUDE STD_PDC
@@ -74,6 +78,7 @@ literal  16  22    NT   "Terminate Dialogue Services"
                5,'PGM(PTEST01) PARM(5)'
                6,'PGM(PTEST01) PARM(6)'
                7,'PGM(PTEST01) PARM(7)'
+               8,'CMD(rtest2) BACK'
                A,'PGM(PTEST01) PARM(ABEND)'
                T,'PGM(&ZHELPPGM)  PARM(T)'
                X,EXIT

@@ -166,5 +166,5 @@ PSYS012Q 'Invalid value entered' .TYPE=W .W=NORESP
 PSYS012R 'Invalid .HIDE parameter' .TYPE=W
 'Valid .HIDE parameter is NULLS'
 
-PSYS012S 'Spare' .TYPE=N
-'Spare'
+PSYS012S 'Timeout occured' .TYPE=W
+'Timeout waiting for a command response'

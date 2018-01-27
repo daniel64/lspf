@@ -130,7 +130,7 @@ void PBRO01A::application()
 	typList[ 'S' ] = "SUFFIX" ;
 	typList[ 'W' ] = "WORD"   ;
 
-	vdefine( "ZCMD  ZVERB   ZROW1", &ZCMD, &ZVERB, &ZROW1 ) ;
+	vdefine( "ZCMD  ZVERB   ZROW1", &zcmd, &zverb, &ZROW1 ) ;
 	vdefine( "ZAREA ZSHADOW ZAREAT ZDSN", &ZAREA, &ZSHADOW, &ZAREAT, &ZDSN ) ;
 	vdefine( "ZSCROLLN ZAREAW ZAREAD", &ZSCROLLN, &ZAREAW, &ZAREAD ) ;
 	vdefine( "ZSCROLLA ZCOL1 ZCOL2 TYPE STR", &ZSCROLLA, &ZCOL1, &ZCOL2, &TYPE, &STR ) ;
@@ -198,7 +198,7 @@ void PBRO01A::application()
 		ZROW1 = d2ds( topLine, 8 )  ;
 		ZCOL1 = d2ds( startCol, 5 ) ;
 		ZCOL2 = d2ds( startCol+ZAREAW-1, 5 ) ;
-		if ( MSG == "" ) { ZCMD = "" ; }
+		if ( MSG == "" ) { zcmd = "" ; }
 
 		display( "PBRO01A1", MSG, CURFLD, CURPOS ) ;
 		if ( RC == 8 ) { cleanup() ; break ; }
@@ -207,9 +207,9 @@ void PBRO01A::application()
 		rebuildZAREA = false ;
 
 		vget( "ZVERB ZSCROLLA ZSCROLLN", SHARED ) ;
-		CMD  = upper( word( ZCMD, 1 ) ) ;
-		w2   = upper( word( ZCMD, 2 ) ) ;
-		w3   = upper( word( ZCMD, 3 ) ) ;
+		CMD  = upper( word( zcmd, 1 ) ) ;
+		w2   = upper( word( zcmd, 2 ) ) ;
+		w3   = upper( word( zcmd, 3 ) ) ;
 
 		if ( ZCURFLD == "ZAREA" )
 		{
@@ -269,7 +269,7 @@ void PBRO01A::application()
 		else if ( CMD == "F" || CMD == "FIND" )
 		{
 			if ( setFind() > 0 ) { continue ; }
-			ZCMD = ""  ;
+			zcmd = ""  ;
 			if ( ZCURFLD == "ZAREA" ) { offset = ZCURPOS ; if ( ( offset % ZAREAW ) == 1  ) { offset++ ; } }
 			else                      { offset = 0       ; }
 			actionFind( topLine, offset ) ;
@@ -338,8 +338,8 @@ void PBRO01A::application()
 			continue ;
 		}
 
-		if ( ZVERB == "" ) {}
-		else if ( ZVERB == "DOWN" )
+		if ( zverb == "" ) {}
+		else if ( zverb == "DOWN" )
 		{
 			rebuildZAREA = true ;
 			if ( ZSCROLLA == "MAX" )
@@ -352,7 +352,7 @@ void PBRO01A::application()
 				if ( topLine >= maxLines ) { topLine = maxLines - 1 ; }
 			}
 		}
-		else if ( ZVERB == "UP" )
+		else if ( zverb == "UP" )
 		{
 			rebuildZAREA = true ;
 			if ( ZSCROLLA == "MAX" )
@@ -364,7 +364,7 @@ void PBRO01A::application()
 				topLine = topLine - ZSCROLLN  ;
 			}
 		}
-		else if ( ZVERB == "LEFT" )
+		else if ( zverb == "LEFT" )
 		{
 			rebuildZAREA = true ;
 			if ( ZSCROLLA == "MAX" )
@@ -377,7 +377,7 @@ void PBRO01A::application()
 				if ( startCol < 1 ) { startCol = 1 ; }
 			}
 		}
-		else if ( ZVERB == "RIGHT" )
+		else if ( zverb == "RIGHT" )
 		{
 			rebuildZAREA = true ;
 			if ( ZSCROLLA == "MAX" )
@@ -390,7 +390,7 @@ void PBRO01A::application()
 				startCol = startCol + ZSCROLLN ;
 			}
 		}
-		else if ( ZVERB == "RFIND" )
+		else if ( zverb == "RFIND" )
 		{
 			if ( find_parms.f_fset )
 			{
@@ -782,7 +782,7 @@ int PBRO01A::setFind()
 	b_find t ;
 
 	MSG = ""  ;
-	cmd = " " + subword( ZCMD, 2 ) + " " ;
+	cmd = " " + subword( zcmd, 2 ) + " " ;
 
 	p1 = cmd.find( quote ) ;
 	p2 = cmd.find( apost ) ;

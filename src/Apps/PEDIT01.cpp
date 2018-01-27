@@ -212,11 +212,11 @@ void PEDIT01::initialise()
 	control( "ABENDRTN", static_cast<void (pApplication::*)()>(&PEDIT01::cleanup_custom) ) ;
 	control( "TIMEOUT", "DISABLE" ) ;
 
-	vdefine( "ZCMD  ZVERB", &ZCMD, &ZVERB ) ;
+	vdefine( "ZCMD  ZVERB", &zcmd, &zverb ) ;
 	vdefine( "ZAREA ZSHADOW ZAREAT ZFILE", &ZAREA, &ZSHADOW, &ZAREAT, &ZFILE ) ;
 	vdefine( "ZSCROLLN ZAREAW ZAREAD", &ZSCROLLN, &ZAREAW, &ZAREAD ) ;
 	vdefine( "ZSCROLLA ZCOL1 ZCOL2", &ZSCROLLA, &ZCOL1, &ZCOL2 ) ;
-	vdefine( "ZAPPLID  ZEDPROF ZEDPROFT ZHOME", &ZAPPLID, &ZEDPROF, &ZEDPROFT, &ZHOME ) ;
+	vdefine( "ZAPPLID  ZEDPROF ZEDPROFT ZHOME", &zapplid, &ZEDPROF, &ZEDPROFT, &zhome ) ;
 	vdefine( "TYPE STR OCC LINES ", &TYPE, &STR, &OCC, &LINES ) ;
 	vdefine( "EEIMAC EEPROF EETABSS EEPRSPS EECCAN", &EEIMAC, &EEPROF, &EETABSS, &EEPRSPS, &EECCAN ) ;
 
@@ -389,11 +389,11 @@ void PEDIT01::Edit()
 			hiliteFindPhrase() ;
 		}
 
-		ZCMD = pcmd.condget_cmd() ;
-		if ( ZCMD != "" && !pcmd.error() )
+		zcmd = pcmd.condget_cmd() ;
+		if ( zcmd != "" && !pcmd.error() )
 		{
 			CURFLD = "ZCMD" ;
-			CURPOS = ZCMD.size() + 1;
+			CURPOS = zcmd.size() + 1;
 		}
 		pcmd.reset() ;
 
@@ -401,7 +401,7 @@ void PEDIT01::Edit()
 
 		if ( RC == 8 )
 		{
-			if ( upper( ZCMD ) != "SAVE" ) { ZCMD = "" ; }
+			if ( upper( zcmd ) != "SAVE" ) { zcmd = "" ; }
 			termEdit = true ;
 		}
 
@@ -415,7 +415,7 @@ void PEDIT01::Edit()
 		copyActive  = false ;
 		pasteActive = false ;
 
-		if ( wordpos( upper( ZCMD ), "CAN CANCEL" ) )
+		if ( wordpos( upper( zcmd ), "CAN CANCEL" ) )
 		{
 			if ( showConfirmCancel() ) { break ; }
 		}
@@ -440,7 +440,7 @@ void PEDIT01::Edit()
 		}
 		storeCursor( aURID, aCol-CLINESZ+startCol-2 ) ;
 
-		pcmd.set_cmd( ZCMD, defNames ) ;
+		pcmd.set_cmd( zcmd, defNames ) ;
 		if ( pcmd.error() || pcmd.deactive() ) { continue ; }
 
 		if ( pcmd.isMacro() )
@@ -1864,7 +1864,7 @@ void PEDIT01::actionPrimCommand1()
 
 	map<P_CMDS,pcmd_format>::iterator itp ;
 
-	if ( ZVERB == "RFIND" || ZVERB == "RCHANGE" ) { return ; }
+	if ( zverb == "RFIND" || zverb == "RCHANGE" ) { return ; }
 
 	cmd = pcmd.get_cmd() ;
 	ws  = pcmd.get_cmd_words() ;
@@ -2298,7 +2298,7 @@ void PEDIT01::actionPrimCommand2()
 	map<string,stack<defName>>::iterator ita ;
 	map<string,stack<defName>>::iterator itb ;
 
-	if ( ZVERB == "RFIND" || ZVERB == "RCHANGE" ) { return ; }
+	if ( zverb == "RFIND" || zverb == "RCHANGE" ) { return ; }
 	if ( pcmd.isMacro() ) { return ; }
 
 	cmd = pcmd.get_cmd() ;
@@ -4479,7 +4479,7 @@ void PEDIT01::actionZVERB()
 
 	string w1 ;
 
-	if ( ZVERB == "DOWN" )
+	if ( zverb == "DOWN" )
 	{
 		t = 0 ;
 		rebuildZAREA = true ;
@@ -4533,7 +4533,7 @@ void PEDIT01::actionZVERB()
 			}
 		}
 	}
-	else if ( ZVERB == "UP" )
+	else if ( zverb == "UP" )
 	{
 		rebuildZAREA = true ;
 		if ( ZSCROLLA == "MAX" )
@@ -4566,7 +4566,7 @@ void PEDIT01::actionZVERB()
 			}
 		}
 	}
-	else if ( ZVERB == "LEFT" )
+	else if ( zverb == "LEFT" )
 	{
 		rebuildZAREA = true ;
 		if ( ZSCROLLA == "MAX" )
@@ -4579,7 +4579,7 @@ void PEDIT01::actionZVERB()
 			if ( startCol < 1 ) { startCol = 1 ; }
 		}
 	}
-	else if ( ZVERB == "RIGHT" )
+	else if ( zverb == "RIGHT" )
 	{
 		rebuildZAREA = true ;
 		if ( ZSCROLLA == "MAX" )
@@ -4603,7 +4603,7 @@ void PEDIT01::actionZVERB()
 		}
 		if ( startCol < 1 ) { startCol = 1 ; }
 	}
-	else if ( ZVERB == "RCHANGE" )
+	else if ( zverb == "RCHANGE" )
 	{
 		w1 = upper( word( pcmd.get_cmd(), 1 ) ) ;
 		if ( findword( w1, "C CHA CHG CHANGE" ) )
@@ -4651,7 +4651,7 @@ void PEDIT01::actionZVERB()
 		fcx_parms.f_URID = 0 ;
 		rebuildZAREA = true ;
 	}
-	else if ( ZVERB == "RFIND" )
+	else if ( zverb == "RFIND" )
 	{
 		w1 = upper( word( pcmd.get_cmd(), 1 ) ) ;
 		if ( findword( w1, "C CHA CHG CHANGE" ) )
@@ -5565,7 +5565,7 @@ bool PEDIT01::setFindChangeExcl( char type )
 		}
 		for ( int i = 0 ; i < t.f_cstring.size() ; i++ )
 		{
-			switch ( t.f_string[ i ] )
+			switch ( t.f_cstring[ i ] )
 			{
 				case '=':
 				case '<':
@@ -8528,8 +8528,8 @@ void PEDIT01::compareFiles( const string& s )
 
 	v_list = "CFILE ECPBRDF ECPICAS ECPIREF ECPIBLK ECPITBE" ;
 
-	vcopy( "ZUSER", ZUSER, MOVE ) ;
-	vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
+	vcopy( "ZUSER", zuser, MOVE ) ;
+	vcopy( "ZSCREEN", zscreen, MOVE ) ;
 
 	vdefine( v_list, &CFILE, &ECPBRDF, &ECPICAS, &ECPIREF, &ECPIBLK, &ECPITBE) ;
 	vget( v_list, PROFILE ) ;
@@ -9150,7 +9150,7 @@ void PEDIT01::getEditProfile( const string& prof )
 	string v_list1  ;
 	string v_list2  ;
 
-	tabName = ZAPPLID + "EDIT" ;
+	tabName = zapplid + "EDIT" ;
 
 	flds    = "(ZEDPFLAG,ZEDPMASK,ZEDPBNDL,ZEDPBNDR,ZEDPTABC,ZEDPTABS,ZEDPTABZ,ZEDPRCLC," \
 		  "ZEDPHLLG,ZEDPIMAC,ZEDPFLG2,ZEDPFLG3)" ;
@@ -9258,7 +9258,7 @@ void PEDIT01::saveEditProfile( const string& prof )
 	string v_list1  ;
 	string v_list2  ;
 
-	tabName = ZAPPLID + "EDIT" ;
+	tabName = zapplid + "EDIT" ;
 
 	v_list1 = "ZEDPFLAG ZEDPMASK ZEDPBNDL ZEDPBNDR ZEDPTABC ZEDPTABS ZEDPTABZ ZEDPRCLC" ;
 	v_list2 = "ZEDPTYPE ZEDPHLLG ZEDPIMAC ZEDPFLG2 ZEDPFLG3" ;
@@ -9343,7 +9343,7 @@ void PEDIT01::delEditProfile( const string& prof )
 	string v_list1 ;
 	string v_list2 ;
 
-	tabName = ZAPPLID + "EDIT" ;
+	tabName = zapplid + "EDIT" ;
 
 	v_list1 = "ZEDPFLAG ZEDPMASK ZEDPBNDL ZEDPBNDR ZEDPTABC ZEDPTABS ZEDPTABZ ZEDPRCLC" ;
 	v_list2 = "ZEDPTYPE ZEDPHLLG ZEDPIMAC ZEDPFLG2 ZEDPFLG3" ;
@@ -9408,7 +9408,7 @@ void PEDIT01::resetEditProfile()
 	string v_list1 ;
 	string v_list2 ;
 
-	tabName = ZAPPLID + "EDIT" ;
+	tabName = zapplid + "EDIT" ;
 
 	v_list1 = "ZEDPFLAG ZEDPMASK ZEDPBNDL ZEDPBNDR ZEDPTABC ZEDPTABS ZEDPTABZ ZEDPRCLC" ;
 	v_list2 = "ZEDPTYPE ZEDPHLLG ZEDPIMAC ZEDPFLG2 ZEDPFLG3" ;
@@ -9459,7 +9459,7 @@ void PEDIT01::createEditProfile( const string& tabName, const string& prof )
 	ZEDPTABC = " "    ;
 	ZEDPTABS = ""     ;
 	ZEDPTABZ = "8"    ;
-	ZEDPRCLC = ZHOME + "/" ;
+	ZEDPRCLC = zhome + "/" ;
 	ZEDPHLLG = "AUTO" ;
 	ZEDPIMAC = "NONE" ;
 	ZEDPFLG2 = "0000000000000000" ;
@@ -9710,9 +9710,9 @@ string PEDIT01::createTempName()
 {
 	path temp ;
 
-	vcopy( "ZUSER", ZUSER, MOVE ) ;
-	vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
-	temp = temp_directory_path() / unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
+	vcopy( "ZUSER", zuser, MOVE ) ;
+	vcopy( "ZSCREEN", zscreen, MOVE ) ;
+	temp = temp_directory_path() / unique_path( zuser + "-" + zscreen + "-%%%%-%%%%" ) ;
 
 	return temp.native() ;
 }

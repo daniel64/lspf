@@ -145,9 +145,9 @@ void setColourPair( const string& ) ;
 void updateDefaultVars()      ;
 void updateReflist()          ;
 void startApplication( selobj, bool =false ) ;
-void startApplicationBack( selobj ) ;
+void startApplicationBack( selobj, bool =false ) ;
 void terminateApplication()     ;
-void cleanupBackgroundTasks()   ;
+void processBackgroundTasks()   ;
 void ResumeApplicationAndWait() ;
 bool createLogicalScreen()      ;
 void deleteLogicalScreen()      ;
@@ -276,7 +276,7 @@ int main( void )
 	currScrn->application_add( currAppl ) ;
 	currAppl->taskid( ++maxtaskID ) ;
 	currAppl->ZAPPNAME = GMAINPGM   ;
-	currAppl->ZZAPPLID = "ISP"      ;
+	currAppl->ZAPPLID  = "ISP"      ;
 	currAppl->shrdPool = 1          ;
 	currAppl->NEWPOOL  = true       ;
 	currAppl->setSelectPanel()      ;
@@ -330,7 +330,7 @@ int main( void )
 
 	mainLoop() ;
 
-	cleanupBackgroundTasks() ;
+	processBackgroundTasks() ;
 
 	delete p_poolMGR  ;
 	delete p_tableMGR ;
@@ -534,7 +534,7 @@ void mainLoop()
 			case 27:       // Escape key
 
 				debug1( "Action key pressed.  Processing" << endl ) ;
-				cleanupBackgroundTasks() ;
+				processBackgroundTasks() ;
 				if ( currAppl->msgInhibited() )
 				{
 					currAppl->msgResponseOK() ;
@@ -916,9 +916,16 @@ void mainLoop()
 				currScrn->set_row_col( row, col ) ;
 				if ( SEL )
 				{
-					updateDefaultVars()       ;
-					currAppl->currPanel->remove_pd() ;
-					startApplication( SELCT ) ;
+					updateDefaultVars() ;
+					if ( SELCT.backgrd )
+					{
+						startApplicationBack( SELCT ) ;
+					}
+					else
+					{
+						currAppl->currPanel->remove_pd() ;
+						startApplication( SELCT ) ;
+					}
 				}
 				break ;
 			default:
@@ -1008,7 +1015,14 @@ void processZSEL()
 		SELCT.PARM += " ADDPOP" ;
 	}
 
-	startApplication( SELCT ) ;
+	if ( SELCT.backgrd )
+	{
+		startApplicationBack( SELCT ) ;
+	}
+	else
+	{
+		startApplication( SELCT ) ;
+	}
 }
 
 
@@ -1498,7 +1512,7 @@ bool resolveZCTEntry( string& CMDVerb, string& CMDParm )
 
 	siteBefore = ( p_poolMGR->sysget( err, "ZSCMDTF", PROFILE ) == "Y" ) ;
 
-	if ( currAppl->ZZAPPLID != "ISP" ) { cmdtlst = currAppl->ZZAPPLID + " " ; }
+	if ( currAppl->ZAPPLID != "ISP" ) { cmdtlst = currAppl->ZAPPLID + " " ; }
 	cmdtlst += p_poolMGR->sysget( err, "ZUCMDT1", PROFILE ) + " " +
 		   p_poolMGR->sysget( err, "ZUCMDT2", PROFILE ) + " " +
 		   p_poolMGR->sysget( err, "ZUCMDT3", PROFILE ) + " " ;
@@ -1553,7 +1567,15 @@ void processPGMSelect()
 	if ( apps.find( SELCT.PGM ) != apps.end() )
 	{
 		updateDefaultVars() ;
-		startApplication( SELCT ) ;
+		if ( SELCT.backgrd )
+		{
+			startApplicationBack( SELCT, true ) ;
+			ResumeApplicationAndWait() ;
+		}
+		else
+		{
+			startApplication( SELCT ) ;
+		}
 	}
 	else
 	{
@@ -1595,6 +1617,8 @@ void startApplication( selobj SEL, bool nScreen )
 	bool setMSG ;
 
 	err.clear() ;
+
+	processBackgroundTasks() ;
 
 	pApplication * oldAppl = currAppl ;
 
@@ -1670,7 +1694,7 @@ void startApplication( selobj SEL, bool nScreen )
 	currAppl->lspfCallback = lspfCallbackHandler ;
 	apps[ SEL.PGM ].refCount++ ;
 
-	currAppl->ZZAPPLID = ( SEL.NEWAPPL == "" ) ? oldAppl->ZZAPPLID : SEL.NEWAPPL ;
+	currAppl->ZAPPLID = ( SEL.NEWAPPL == "" ) ? oldAppl->ZAPPLID : SEL.NEWAPPL ;
 	err.settask( currAppl->taskid() ) ;
 
 	if ( SEL.NEWPOOL )
@@ -1683,13 +1707,13 @@ void startApplication( selobj SEL, bool nScreen )
 		spool = p_poolMGR->createSharedPool() ;
 	}
 
-	p_poolMGR->createProfilePool( err, currAppl->ZZAPPLID, ZSPROF ) ;
-	p_poolMGR->connect( currAppl->taskid(), currAppl->ZZAPPLID, spool ) ;
+	p_poolMGR->createProfilePool( err, currAppl->ZAPPLID, ZSPROF ) ;
+	p_poolMGR->connect( currAppl->taskid(), currAppl->ZAPPLID, spool ) ;
 	if ( err.RC4() ) { createpfKeyDefaults() ; }
 
 	p_poolMGR->put( err, "ZSCREEN", string( 1, ZSCREEN[ screenNum ] ), SHARED, SYSTEM ) ;
 	p_poolMGR->put( err, "ZSCRNUM", d2ds( currScrn->screenId ), SHARED, SYSTEM ) ;
-	p_poolMGR->put( err, "ZAPPLID", currAppl->ZZAPPLID, SHARED, SYSTEM ) ;
+	p_poolMGR->put( err, "ZAPPLID", currAppl->ZAPPLID, SHARED, SYSTEM ) ;
 
 	currAppl->shrdPool = spool ;
 	currAppl->init() ;
@@ -1732,20 +1756,20 @@ void startApplication( selobj SEL, bool nScreen )
 		if ( elapsed > GMAXWAIT  ) { currAppl->set_timeout_abend() ; }
 	}
 
-	llog( "I", "New thread and application started and initialised. ID=" << pThread->get_id() << endl ) ;
-
-	if ( currAppl->rmsgs.size() > 0 ) { rawOutput() ; }
-
-	if ( currAppl->SEL )
-	{
-		processPGMSelect() ;
-	}
-
 	if ( currAppl->abnormalEnd )
 	{
 		errorScreen( 2, "An error has occured initialising new task for "+ SEL.PGM ) ;
 		terminateApplication() ;
 		if ( pLScreen::screensTotal == 0 ) { return ; }
+	}
+	else
+	{
+		llog( "I", "New thread and application started and initialised. ID=" << pThread->get_id() << endl ) ;
+		if ( currAppl->rmsgs.size() > 0 ) { rawOutput() ; }
+		if ( currAppl->SEL )
+		{
+			processPGMSelect() ;
+		}
 	}
 
 	while ( currAppl->terminateAppl )
@@ -1762,10 +1786,9 @@ void startApplication( selobj SEL, bool nScreen )
 }
 
 
-void startApplicationBack( selobj SEL )
+void startApplicationBack( selobj SEL, bool pgmselect )
 {
 	// Start a background application using the passed SELECT object
-	// Always use a new shared pool
 
 	int spool ;
 
@@ -1774,6 +1797,8 @@ void startApplicationBack( selobj SEL )
 	string sname ;
 
 	errblock err1 ;
+
+	processBackgroundTasks() ;
 
 	pApplication * oldAppl = currAppl ;
 	pApplication * Appl ;
@@ -1805,19 +1830,31 @@ void startApplicationBack( selobj SEL )
 	pApplicationBackground.push_back( Appl ) ;
 	apps[ SEL.PGM ].refCount++ ;
 
-	Appl->ZZAPPLID = ( SEL.NEWAPPL == "" ) ? oldAppl->ZZAPPLID : SEL.NEWAPPL ;
+	Appl->ZAPPLID = ( SEL.NEWAPPL == "" ) ? oldAppl->ZAPPLID : SEL.NEWAPPL ;
 	err1.settask( Appl->taskid() ) ;
 
-	Appl->NEWPOOL = true ;
-	spool = p_poolMGR->createSharedPool() ;
+	if ( SEL.NEWPOOL )
+	{
+		Appl->NEWPOOL = true ;
+		spool = p_poolMGR->createSharedPool() ;
+	}
+	else
+	{
+		spool  = oldAppl->shrdPool ;
+	}
 
-	p_poolMGR->createProfilePool( err1, Appl->ZZAPPLID, ZSPROF ) ;
-	p_poolMGR->connect( Appl->taskid(), Appl->ZZAPPLID, spool ) ;
+	if ( pgmselect )
+	{
+		oldAppl->ZTASKID = Appl->taskid() ;
+	}
+
+	p_poolMGR->createProfilePool( err1, Appl->ZAPPLID, ZSPROF ) ;
+	p_poolMGR->connect( Appl->taskid(), Appl->ZAPPLID, spool ) ;
 	if ( err1.RC4() ) { createpfKeyDefaults() ; }
 
 	p_poolMGR->put( err1, "ZSCREEN", string( 1, ZSCREEN[ screenNum ] ), SHARED, SYSTEM ) ;
 	p_poolMGR->put( err1, "ZSCRNUM", d2ds( currScrn->screenId ), SHARED, SYSTEM ) ;
-	p_poolMGR->put( err1, "ZAPPLID", Appl->ZZAPPLID, SHARED, SYSTEM ) ;
+	p_poolMGR->put( err1, "ZAPPLID", Appl->ZAPPLID, SHARED, SYSTEM ) ;
 
 	Appl->shrdPool = spool ;
 	Appl->init() ;
@@ -1840,9 +1877,14 @@ void startApplicationBack( selobj SEL )
 }
 
 
-void cleanupBackgroundTasks()
+void processBackgroundTasks()
 {
-	// Cleanup and delete any background tasks that have ended
+	// This routine is invoked at various points in the program to check if
+	// there are any background tasks waiting for action:
+	//    cleanup application if ended
+	//    start application if SELECT() done in the program
+
+	// TODO:  This should be managed by a separate thread
 
 	boost::thread * pThread ;
 
@@ -1850,13 +1892,27 @@ void cleanupBackgroundTasks()
 	{
 		while ( (*it)->terminateAppl )
 		{
-			llog( "I", "Removing background application instance of "+ (*it)->ZAPPNAME << endl ) ;
+			llog( "I", "Removing background application instance of "+
+				    (*it)->ZAPPNAME << " taskid: " << (*it)->taskid() << endl ) ;
+			p_poolMGR->disconnect( (*it)->taskid() ) ;
 			pThread = (*it)->pThread ;
 			apps[ (*it)->ZAPPNAME ].refCount-- ;
 			((void (*)(pApplication*))(apps[ (*it)->ZAPPNAME ].destroyer_ep))( (*it) ) ;
 			delete pThread ;
 			it = pApplicationBackground.erase( it ) ;
-			if ( it == pApplicationBackground.end() ) { return ; }
+			if ( it == pApplicationBackground.end() ) { break ; }
+		}
+		if ( it == pApplicationBackground.end() ) { break ; }
+	}
+
+	vector<pApplication *> temp = pApplicationBackground ;
+	for ( auto it = temp.begin() ; it != temp.end() ; it++ )
+	{
+		if ( (*it)->SEL && !currAppl->terminateAppl )
+		{
+			startApplicationBack( (*it)->get_select_cmd() ) ;
+			(*it)->busyAppl = true  ;
+			cond_appl.notify_all()  ;
 		}
 	}
 }
@@ -1889,6 +1945,8 @@ void terminateApplication()
 	err.clear() ;
 
 	boost::thread * pThread ;
+
+	processBackgroundTasks() ;
 
 	llog( "I", "Application terminating "+ currAppl->ZAPPNAME +" ID: "<< currAppl->taskid() << endl ) ;
 
@@ -2170,6 +2228,7 @@ void ResumeApplicationAndWait()
 		if ( currAppl->noTimeOut ) { elapsed = 0 ; }
 		if ( elapsed > GMAXWAIT  ) { currAppl->set_timeout_abend() ; }
 	}
+
 	if ( currAppl->rmsgs.size() > 0 ) { rawOutput() ; }
 
 	if ( currAppl->abnormalEnd )
@@ -2622,7 +2681,7 @@ string listLogicalScreens()
 		ln = left( ln, 4 ) +
 		     left( appl->get_current_screenName(), 10 ) +
 		     left( appl->ZAPPNAME, 13 ) +
-		     left( appl->ZZAPPLID, 8  ) +
+		     left( appl->ZAPPLID, 8  ) +
 		     left( t, 42 ) ;
 		lslist.push_back( ln ) ;
 	}
@@ -3134,6 +3193,7 @@ void reloadDynamicClasses( string parm )
 			llog( "I", "Adding new module "+ appl << endl ) ;
 			aI.file        = fname ;
 			aI.module      = mod   ;
+			aI.mainpgm     = false ;
 			aI.dlopened    = false ;
 			aI.errors      = false ;
 			aI.relPending  = false ;

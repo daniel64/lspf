@@ -17,8 +17,6 @@
 
 */
 
-
-
 using namespace std ;
 
 class PEDRXM1 : public pApplication

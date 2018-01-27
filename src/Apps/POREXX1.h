@@ -23,5 +23,10 @@ class POREXX1 : public pApplication
 {
 	public:
 		void application() ;
+
 	private:
-};
+		static boost::mutex mtx ;
+
+		void lock()   { mtx.lock()   ; }
+		void unlock() { mtx.unlock() ; }
+} ;

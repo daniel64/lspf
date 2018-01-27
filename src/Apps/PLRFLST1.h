@@ -41,6 +41,10 @@ class PLRFLST1 : public pApplication
 
 		void userSettings() ;
 
+		string zuser    ;
+		string zcmd     ;
+		string zscreen  ;
+
 		string ZCURTB   ;
 		string FLADESCP ;
 		string FLAPET01 ;

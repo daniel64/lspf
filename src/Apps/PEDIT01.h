@@ -2308,6 +2308,13 @@ class PEDIT01 : public pApplication
 		string detLang           ;
 		string creFile           ;
 
+		string zcmd              ;
+		string zverb             ;
+		string zapplid           ;
+		string zuser             ;
+		string zscreen           ;
+		string zhome             ;
+
 		bool optNoConvTabs       ;
 		bool optPreserve         ;
 		bool optConfCancel       ;

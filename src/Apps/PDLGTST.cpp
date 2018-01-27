@@ -49,7 +49,7 @@ void PDLGTST::application()
 {
 	llog( "I", "Application PDLGTST starting." << endl ) ;
 
-	vdefine( "ZCMD", &ZCMD ) ;
+	vdefine( "ZCMD", &zcmd ) ;
 
 	if      ( PARM == "0"  ) { displayPanel() ; }
 	else if ( PARM == "1"  ) { displaySystemVars() ; }
@@ -67,7 +67,7 @@ void PDLGTST::displayPanel()
 
 	vdefine( "NAME", &NAME ) ;
 	vget( "NAME", PROFILE ) ;
-	ZCMD = "" ;
+	zcmd = "" ;
 
 	while ( true )
 	{
@@ -83,7 +83,7 @@ void PDLGTST::displayPanel()
 		}
 		vput ( "NAME", PROFILE ) ;
 		MSG  = "" ;
-		if ( ZCMD != "" ) { MSG = "DLGT011" ; continue ; }
+		if ( zcmd != "" ) { MSG = "DLGT011" ; continue ; }
 		if ( NAME == "" ) continue ;
 		while ( true )
 		{
@@ -99,7 +99,7 @@ void PDLGTST::displayPanel()
 				break ;
 			}
 			MSG  = "" ;
-			ZCMD = "" ;
+			zcmd = "" ;
 		}
 	}
 }
@@ -109,7 +109,7 @@ void PDLGTST::displaySystemVars()
 {
 	string MSG ;
 
-	ZCMD = "" ;
+	zcmd = "" ;
 	MSG  = "" ;
 
 	while ( true )
@@ -118,7 +118,7 @@ void PDLGTST::displaySystemVars()
 		if ( RC == 8 ) { return ; }
 
 		MSG  = "" ;
-		if ( ZCMD != "" ) { MSG = "DLGT011" ; continue ; }
+		if ( zcmd != "" ) { MSG = "DLGT011" ; continue ; }
 	}
 	return ;
 }

@@ -180,7 +180,7 @@ void PLRFLST1::PersonalFList( const string& p )
 	{
 		tbtop( FLIST1 ) ;
 		tbskip( FLIST1, ZTDTOP ) ;
-		if ( MSG == "" ) { ZCMD = "" ; }
+		if ( MSG == "" ) { zcmd = "" ; }
 		tbdispl( FLIST1, PANL, MSG, "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
@@ -348,7 +348,7 @@ void PLRFLST1::EditFileList( const string& curtb )
 	int i ;
 
 	string MSG   ;
-	string ZCMD1 ;
+	string zcmd1 ;
 
 	string FLIST2 ;
 	string BSEL   ;
@@ -360,7 +360,7 @@ void PLRFLST1::EditFileList( const string& curtb )
 	bool modified ;
 
 	vlist = "BSEL BFILE ZCMD1" ;
-	vdefine( vlist, &BSEL, &BFILE, &ZCMD1 ) ;
+	vdefine( vlist, &BSEL, &BFILE, &zcmd1 ) ;
 
 
 	FLIST2 = "FLST2" + d2ds( taskid(), 3 ) ;
@@ -390,9 +390,9 @@ void PLRFLST1::EditFileList( const string& curtb )
 	{
 		tbtop( FLIST2 ) ;
 		tbskip( FLIST2, ZTDTOP ) ;
-		if ( MSG == "" ) { ZCMD1 = "" ; }
+		if ( MSG == "" ) { zcmd1 = "" ; }
 		tbdispl( FLIST2, "PLRFLST2", MSG, "ZCMD1" ) ;
-		if ( ZCMD1 == "CANCEL" ) { modified = false ; break ; }
+		if ( zcmd1 == "CANCEL" ) { modified = false ; break ; }
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 		while ( ZTDSELS > 0 )
@@ -462,7 +462,7 @@ void PLRFLST1::OpenFileList( const string& curtb )
 	int j ;
 
 	string MSG    ;
-	string ZCMD1  ;
+	string zcmd1  ;
 
 	string FLIST3 ;
 	string CSEL   ;
@@ -493,7 +493,7 @@ void PLRFLST1::OpenFileList( const string& curtb )
 	CloseTable() ;
 
 	vlist = "CSEL CFILE CNUM ZCMD1" ;
-	vdefine( vlist, &CSEL, &CFILE, &CNUM, &ZCMD1 ) ;
+	vdefine( vlist, &CSEL, &CFILE, &CNUM, &zcmd1 ) ;
 
 	CSEL = "" ;
 
@@ -510,7 +510,7 @@ void PLRFLST1::OpenFileList( const string& curtb )
 	{
 		tbtop( FLIST3 )  ;
 		tbskip( FLIST3, ZTDTOP ) ;
-		if ( MSG == "" ) { ZCMD1 = "" ; }
+		if ( MSG == "" ) { zcmd1 = "" ; }
 		tbdispl( FLIST3, "PLRFLST3", MSG, "ZCMD1" ) ;
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
@@ -556,10 +556,10 @@ string PLRFLST1::StoreFileList( const string& curtb )
 
 	std::ofstream fout ;
 
-	vcopy( "ZUSER", ZUSER, MOVE )     ;
-	vcopy( "ZSCREEN", ZSCREEN, MOVE ) ;
+	vcopy( "ZUSER", zuser, MOVE )     ;
+	vcopy( "ZSCREEN", zscreen, MOVE ) ;
 
-	boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( ZUSER + "-" + ZSCREEN + "-%%%%-%%%%" ) ;
+	boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( zuser + "-" + zscreen + "-%%%%-%%%%" ) ;
 	string tname = temp.native() ;
 
 	ZCURTB = curtb ;

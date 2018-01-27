@@ -35,6 +35,10 @@
 /* RC/RSN codes returned                                                                                */
 /*   0/0  Okay                                                                                          */
 /*  20/condition.code ZRESULT is set to condition.message                                               */
+/*                                                                                                      */
+/* Take class-scope mutex lock around create interpreter and terminate() as these seem to hang when     */
+/* they run together in background tasks (first terminate() hangs then everything attempting to         */
+/* create a new interpreter instance)                                                                   */
 
 #include <boost/filesystem.hpp>
 
@@ -64,6 +68,8 @@ int getRexxVariable( pApplication *, string, string & ) ;
 int setRexxVariable( string, string ) ;
 int getAllRexxVariables( pApplication * ) ;
 int setAllRexxVariables( pApplication * ) ;
+
+boost::mutex POREXX1::mtx ;
 
 void POREXX1::application()
 {
@@ -143,8 +149,10 @@ void POREXX1::application()
 		}
 	}
 
+	lock() ;
 	if ( RexxCreateInterpreter( &instance, &threadContext, options ) )
 	{
+		unlock() ;
 		args = threadContext->NewArray( 1 ) ;
 		threadContext->ArrayPut(args, threadContext->String( PARM.c_str() ), 1 ) ;
 		version = threadContext->InterpreterVersion() ;
@@ -187,8 +195,11 @@ void POREXX1::application()
 				ZRESULT = "" ;
 			}
 		}
+		lock() ;
 		instance->Terminate() ;
 	}
+	unlock()  ;
+
 	cleanup() ;
 	return    ;
 }
