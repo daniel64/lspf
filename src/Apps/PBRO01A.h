@@ -131,6 +131,8 @@ class PBRO01A : public pApplication
 		int    ZAREAD  ;
 		int    ZASIZE  ;
 		int    ZALINE  ;
+		string ZSCROLLA  ;
+		int    ZSCROLLN  ;
 
 		string TYPE  ;
 		string STR   ;

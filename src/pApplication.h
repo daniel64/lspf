@@ -49,7 +49,6 @@ class pApplication
 		bool   abnormalEndForced  ;
 		bool   abnormalTimeout    ;
 		bool   reloadCUATables    ;
-		bool   rawOutput          ;
 		bool   libdef_muser       ;
 		bool   libdef_puser       ;
 		bool   libdef_tuser       ;
@@ -62,32 +61,28 @@ class pApplication
 		bool   SUSPEND            ;
 		bool   setMSG             ;
 		string reffield           ;
+		string lineBuffer         ;
 
-		string ZAPPNAME           ;
-		string ZAPPDESC           ;
 		string ZMLIB              ;
 		string ZPLIB              ;
 		string ZTLIB              ;
-		string ZAPPLID            ;
+		string ZORXPATH           ;
+		string ZAHELP             ;
+
 		string ZCURFLD            ;
 		int    ZCURPOS            ;
+		int    ZCURINX            ;
 		int    ZTDDEPTH           ;
 		int    ZTDROWS            ;
 		int    ZTDSELS            ;
 		int    ZTDTOP             ;
 		int    ZTDVROWS           ;
-		int    ZCURINX            ;
-		string ZAHELP             ;
-		string ZORXPATH           ;
-		string ZSEL               ;
-		int    ZSCROLLN           ;
-		string ZSCROLLA           ;
+
 		int    ZRC                ;
 		int    ZRSN               ;
 		int    ZTASKID            ;
 		string ZRESULT            ;
 
-		vector<string>rmsgs       ;
 		boost::thread * pThread   ;
 
 		void (* lspfCallback)( lspfCommand& ) ;
@@ -99,14 +94,20 @@ class pApplication
 		void   taskid( int ) ;
 		void   init() ;
 		void   info() ;
-		bool   isRawOutput() { return rawOutput ; }
 
-		string get_zsel()                 ;
-		string get_dTRAIL()               ;
+		string get_zsel()   ;
+		string get_dTRAIL() ;
 		selobj get_select_cmd() { return SELCT ; }
 		string get_help_member( int, int ) ;
 		string get_current_panelDescr() ;
 		string get_current_screenName() ;
+
+		string get_applid() ;
+
+		void   set_appname( const string& s )   { ZAPPNAME = s ; }
+		void   set_appdesc( const string& s )   { ZAPPDESC = s ; }
+		const string& get_appname()             { return ZAPPNAME ; }
+		const string& get_appdesc()             { return ZAPPDESC ; }
 
 		void   control( const string&, const string&, const string& ="" ) ;
 		void   control( const string&, void (pApplication::*)() ) ;
@@ -118,7 +119,7 @@ class pApplication
 		void   select( selobj ) ;
 		void   attr( const string&, const string& ) ;
 
-		void   vcopy( const string&, string&, vcMODE=MOVE )   ;
+		void   vcopy( const string&, string&, vcMODE=MOVE ) ;
 		void   vcopy( const string&, string * &, vcMODE=LOCATE ) ;
 		void   vdefine( const string&, string *, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL ) ;
 		void   vdefine( const string&, int *, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL ) ;
@@ -211,14 +212,17 @@ class pApplication
 		int    get_addpop_col() { return addpop_col    ; }
 		bool   get_addpop_act() { return addpop_active ; }
 
-		void   set_addpop_row( int  i ) { addpop_row = i    ; }
-		void   set_addpop_col( int  i ) { addpop_col = i    ; }
-		void   set_addpop_act( bool b ) { addpop_active = b ; }
+		void   set_addpop_row( int  i )  { addpop_row = i    ; }
+		void   set_addpop_col( int  i )  { addpop_col = i    ; }
+		void   set_addpop_act( bool b )  { addpop_active = b ; }
 
-		void   set_background()         { background = true ; }
-		bool   is_background()          { return background ; }
+		void   set_background()          { background = true ; }
+		bool   is_background()           { return background ; }
 
-		bool   do_refresh_lscreen()     { return refreshlScreen ; }
+		bool   do_refresh_lscreen()      { return refreshlScreen ; }
+		bool   line_output_done()        { return lineOutDone    ; }
+		bool   line_output_pending()     { return lineOutPending ; }
+		void   set_output_done( bool b ) { lineOutDone = b       ; }
 
 		void   save_errblock()    ;
 		void   restore_errblock() ;
@@ -244,25 +248,32 @@ class pApplication
 		bool refreshlScreen      ;
 		bool ControlErrorsReturn ;
 		bool ControlPassLRScroll ;
-		bool selPanel   ;
-		bool abending   ;
-		bool abended    ;
+		bool selPanel ;
+		bool abending ;
+		bool abended  ;
+		bool lineOutDone    ;
+		bool lineOutPending ;
 
 		string ppanelid ;
 
-		string MSGID    ;
-		string MSGID1   ;
-		slmsg  MSG      ;
-		slmsg  MSG1     ;
-		string ZSCRNAME ;
-		string ZERR1    ;
-		string ZERR2    ;
-		string ZERR3    ;
-		string ZERR4    ;
-		string ZERR5    ;
-		string ZERR6    ;
-		string ZERR7    ;
-		string ZERR8    ;
+		string ZAPPNAME ;
+		string ZAPPDESC ;
+
+		string MSGID     ;
+		string MSGID1    ;
+		slmsg  MSG       ;
+		slmsg  MSG1      ;
+		string ZSCROLLA  ;
+		int    ZSCROLLN  ;
+		string ZSCRNAME  ;
+		string ZERR1     ;
+		string ZERR2     ;
+		string ZERR3     ;
+		string ZERR4     ;
+		string ZERR5     ;
+		string ZERR6     ;
+		string ZERR7     ;
+		string ZERR8     ;
 
 		void get_message( const string& )  ;
 		int  check_message_id( const string& ) ;

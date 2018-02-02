@@ -56,9 +56,9 @@ void PDPANLA::application()
 
 	string pan   ;
 	string msg   ;
-	string ZCMD  ;
-	string ZSEL  ;
-	string ZPRIM ;
+	string zcmd  ;
+	string zsel  ;
+	string zprim ;
 
 	p = wordpos( "ADDPOP", PARM ) ;
 	if ( p > 0 )
@@ -69,12 +69,12 @@ void PDPANLA::application()
 
 	pan  = word( PARM, 1 ) ;
 	msg  = "" ;
-	ZCMD = subword( PARM, 2 ) ;
-	ZSEL = "" ;
+	zcmd = subword( PARM, 2 ) ;
+	zsel = "" ;
 
-	vdefine( "ZCMD ZSEL ZPRIM", &ZCMD, &ZSEL, &ZPRIM ) ;
+	vdefine( "ZCMD ZSEL ZPRIM", &zcmd, &zsel, &zprim ) ;
 
-	if ( ZCMD != "" )
+	if ( zcmd != "" )
 	{
 		control( "DISPLAY", "NONDISPL" ) ;
 		passthru = true ;
@@ -87,25 +87,25 @@ void PDPANLA::application()
 		RC1 = RC ;
 		msg = "" ;
 		vget( "ZCMD ZSEL ZPRIM", SHARED ) ;
-		if ( ZSEL == "EXIT" || RC1 == 8 )
+		if ( zsel == "EXIT" || RC1 == 8 )
 		{
-			ZSEL = "" ;
+			zsel = "" ;
 			vput( "ZSEL", SHARED ) ;
 			break ;
 		}
-		if ( ZSEL == "?" )
+		if ( zsel == "?" )
 		{
 			msg  = "PSYS016" ;
-			ZSEL = "" ;
+			zsel = "" ;
 			continue  ;
 		}
-		if ( ZCMD == "" )
+		if ( zcmd == "" )
 		{
-			if ( ZPRIM != "YES" ) { msg = "PSYS017" ; }
+			if ( zprim != "YES" ) { msg = "PSYS017" ; }
 			continue ;
 		}
-		if ( passthru && ZPRIM != "YES" ) { break ; }
-		ZCMD = "" ;
+		if ( passthru && zprim != "YES" ) { break ; }
+		zcmd = "" ;
 	}
 
 	vdelete( "ZCMD ZSEL ZPRIM" ) ;

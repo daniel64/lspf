@@ -51,14 +51,18 @@ class pLScreen
 	void  set_Insert( bool ins )       { Insert = ins ; Insert ? curs_set(2) : curs_set(1)  ; }
 
 	void  OIA_setup()  ;
-	void  OIA_update( const char* ) ;
+	void  OIA_update( int, int, boost::posix_time::ptime ) ;
+	void  OIA_startTime( boost::posix_time::ptime st )   { startTime = st ; }
 	void  show_enter() ;
 	void  show_busy()  ;
 	void  show_wait()  ;
+	void  show_auto()  ;
+	void  show_lock( bool ) ;
 	void  clear_status() ;
 
 	void  save_panel_stack()    ;
 	void  restore_panel_stack() ;
+	void  refresh_panel_stack() ;
 
 	int   screenId ;
 
@@ -67,6 +71,8 @@ private:
 	int col ;
 
 	bool Insert ;
+
+	boost::posix_time::ptime startTime ;
 
 	stack<pApplication *> pApplicationStack ;
 	stack<PANEL *> panelList ;

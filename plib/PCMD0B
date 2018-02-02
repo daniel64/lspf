@@ -1,0 +1,30 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel for Issuing commands
+)ENDCOMMENT
+
+)BODY CMD(ZCMD) SCROLL(ZSCROLL)
+
+ScrollOn
+
+PanelTitle "Execute Command"
+
+dynArea   5 1 MAX MAX-4 ZAREA ZSHADOW
+
+literal   MAX-2  1          FP  "===>"
+field     MAX-2  6   MAX-17 NEF CAPS(OFF),PAD(USER) ZCMD
+
+literal   MAX-2  MAX-15     FP  "Scroll ===>"
+field     MAX-2  MAX-3   4  NEF  NONE  ZSCROLL
+
+pdc  Commmands "Clear Output"  ACTION RUN(>:CLEAR)
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)INIT
+.CURSOR = ZCMD
+
+)PROC
+
+)END

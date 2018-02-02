@@ -373,6 +373,7 @@ void PFLST0A::application()
 		}
 		while ( ZTDSELS > 0 )
 		{
+			MSG = "" ;
 			if ( SEL == "=" && OSEL != "" ) { SEL = OSEL ; }
 			OSEL = SEL ;
 			if ( UseList )

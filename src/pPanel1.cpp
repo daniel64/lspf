@@ -753,7 +753,7 @@ void pPanel::display_panel_proc( errblock& err, int ln )
 	int i ;
 	int p ;
 
-	string ZSEL     ;
+	string zsel     ;
 	string fieldNam ;
 
 	map<string, field *>::iterator it;
@@ -795,21 +795,21 @@ void pPanel::display_panel_proc( errblock& err, int ln )
 
 	if ( selectPanel )
 	{
-		ZSEL = getDialogueVar( err, "ZSEL" ) ;
+		zsel = getDialogueVar( err, "ZSEL" ) ;
 		if ( err.error() ) { return ; }
-		if ( ZSEL != "" )
+		if ( zsel != "" )
 		{
-			p = wordpos( "NOCHECK", ZSEL ) ;
-			if ( ZSEL.compare( 0, 5, "PANEL" )  != 0  &&
+			p = wordpos( "NOCHECK", zsel ) ;
+			if ( zsel.compare( 0, 5, "PANEL" )  != 0  &&
 			     getControlVar( err, ".TRAIL" ) != "" && p == 0  )
 			{
-				ZSEL = "?" ;
+				zsel = "?" ;
 			}
 			else if ( p > 0 )
 			{
-				idelword( ZSEL, p, 1 ) ;
+				idelword( zsel, p, 1 ) ;
 			}
-			putDialogueVar( err, "ZSEL", ZSEL ) ;
+			putDialogueVar( err, "ZSEL", zsel ) ;
 			if ( err.error() ) { return ; }
 		}
 	}
@@ -2944,6 +2944,7 @@ void pPanel::set_panel_msg( slmsg t, const string& m )
 void pPanel::clear_msg()
 {
 	MSG.clear() ;
+	msgid    = "" ;
 	showLMSG = false ;
 	if ( smwin )
 	{

@@ -33,6 +33,7 @@ SWAP LIST Show the Active Logical Sessions screen (the ESC key does the same)
 System:
 *-----*
 .ABEND   Abend the current application
+.AUTO    Auto-update screen every 1second.  Press ESC to interrupt.
 .HIDE    NULLS. Display field nulls as spaces.
 .INFO    Display current application information to the Application Log
 .LOAD    Load all applications not already loaded.

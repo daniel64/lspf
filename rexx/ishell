@@ -17,46 +17,16 @@
 
 */
 
-using namespace std;
+address ISPEXEC
+"VGET ZAPPLID SHARED"
 
-class PTUTORA : public pApplication
-{
-	public:
-		void application() ;
+if zapplid \= "ISP" then
+  do
+    "SELECT CMD(%ishell) NEWAPPL(ISP)"
+  end
+else
+  do
+    "SELECT PGM(PCMD0A) NEWPOOL"
+  end
 
-	private:
-		void read_file( string ) ;
-		void fill_dynamic_area() ;
-
-		int firstLine, maxLines ;
-		int startCol, maxCol    ;
-		vector<string> data ;
-
-		string ZROW1 ;
-		string ZROW2 ;
-		string ZCOL1 ;
-		string ZAREA ;
-		string ZSHADOW ;
-		string ZAREAT  ;
-		int    ZAREAW  ;
-		int    ZAREAD  ;
-
-		string fileType ;
-
-		string zcmd  ;
-		string zverb ;
-
-		string ZSCROLLA  ;
-		int    ZSCROLLN  ;
-
-		string mh ;
-		string fh ;
-		string ph ;
-		string ah ;
-		string sh ;
-		string kh ;
-		string ps ;
-		string help     ;
-		string helplst  ;
-		char   helptype ;
-};
+exit

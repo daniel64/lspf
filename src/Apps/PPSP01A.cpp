@@ -67,7 +67,7 @@ void PPSP01A::application()
 {
 	llog( "I", "Application PPSP01A starting" << endl ) ;
 
-	ZAPPDESC = "General utilities to display logs, PF Key settings, variables, etc." ;
+	set_appdesc( "General utilities to display logs, PF Key settings, variables, etc." ) ;
 
 	string LOGTYPE ;
 	string ZALOG   ;

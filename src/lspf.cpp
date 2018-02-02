@@ -1,4 +1,4 @@
-/*  Compile with ::                                                                                                                                          */
+/* Compile with ::                                                                                                                                           */
 /* g++ -O0 -std=c++11 -rdynamic -Wunused-variable -ltinfo -lncurses -lpanel -lboost_thread -lboost_filesystem -lboost_system -ldl -lpthread -o lspf lspf.cpp */
 
 /*
@@ -110,9 +110,6 @@ int pLScreen::maxcol       = 0 ;
 
 WINDOW * pLScreen::OIA     = NULL ;
 
-boost::posix_time::ptime startTime ;
-boost::posix_time::ptime endTime   ;
-
 pLScreen     * pLScreen::currScreen = NULL ;
 pApplication * currAppl ;
 
@@ -147,6 +144,7 @@ void updateReflist()          ;
 void startApplication( selobj, bool =false ) ;
 void startApplicationBack( selobj, bool =false ) ;
 void terminateApplication()     ;
+void abnormalTermMessage()      ;
 void processBackgroundTasks()   ;
 void ResumeApplicationAndWait() ;
 bool createLogicalScreen()      ;
@@ -155,7 +153,8 @@ void processPGMSelect()         ;
 void processZSEL()              ;
 void processAction( uint row, uint col, int c, bool& passthru ) ;
 void issueMessage( const string& ) ;
-void rawOutput()          ;
+void lineOutput()         ;
+void lineOutput_end()     ;
 void threadErrorHandler() ;
 void errorScreen( int, const string& )   ;
 void abortStartup()                      ;
@@ -164,6 +163,7 @@ void createpfKeyDefaults()  ;
 string pfKeyValue( int )    ;
 string listLogicalScreens() ;
 void listBackTasks()        ;
+void autoUpdate()           ;
 bool resolveZCTEntry( string&, string& ) ;
 bool isActionKey( int c )   ;
 void listRetrieveBuffer()   ;
@@ -191,15 +191,19 @@ map<string, appInfo> apps ;
 
 boost::circular_buffer<string> retrieveBuffer( 20 ) ;
 
-int    maxtaskID = 0 ;
-int    screenNum = 0 ;
-int    altScreen = 0 ;
-string commandStack  ;
-string jumpOption    ;
-bool   pfkeyPressed  ;
-bool   wmPending     ;
+int    linePosn  = -1 ;
+int    maxtaskID = 0  ;
+int    screenNum = 0  ;
+int    altScreen = 0  ;
+string commandStack   ;
+string jumpOption     ;
+bool   pfkeyPressed   ;
+bool   wmPending      ;
+char   lspfStatus     ;
+char   backStatus     ;
 
 vector<pApplication *> pApplicationBackground ;
+vector<pApplication *> pApplicationTimeout    ;
 
 errblock err    ;
 
@@ -222,8 +226,9 @@ int    GMAXWAIT ;
 string GMAINPGM ;
 
 const string BuiltInCommands = "ACTION DISCARD FIELDEXC MSGID NOP PANELID REFRESH RESIZE RETP SCRNAME SPLIT SWAP TDOWN USERID" ;
-const string SystemCommands  = ".ABEND .HIDE .INFO .LOAD .RELOAD .SCALE .SHELL .SHOW .SNAP .STATS .TASKS .TEST" ;
+const string SystemCommands  = ".ABEND .AUTO .HIDE .INFO .LOAD .RELOAD .SCALE .SHELL .SHOW .SNAP .STATS .TASKS .TEST" ;
 
+boost::recursive_mutex mtx ;
 
 int main( void )
 {
@@ -241,15 +246,20 @@ int main( void )
 	map<string, appInfo>::iterator it ;
 
 	boost::thread * pThread              ;
+	boost::thread * bThread              ;
 	set_terminate ( threadErrorHandler ) ;
 
-	startTime    = boost::posix_time::microsec_clock::universal_time() ;
 	commandStack = ""    ;
 	wmPending    = false ;
+	lspfStatus   = 'R'   ;
 
 	screenList.push_back( new pLScreen ) ;
+	currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
 
 	llog( "I", "lspf startup in progress" << endl ) ;
+	llog( "I", "Starting background monitor task" << endl ) ;
+	bThread = new boost::thread( &processBackgroundTasks ) ;
+
 	llog( "I", "Calling initialSetup" << endl ) ;
 	initialSetup() ;
 
@@ -274,9 +284,8 @@ int main( void )
 	currAppl = ((pApplication*(*)())( apps[ GMAINPGM ].maker_ep))() ;
 
 	currScrn->application_add( currAppl ) ;
-	currAppl->taskid( ++maxtaskID ) ;
-	currAppl->ZAPPNAME = GMAINPGM   ;
-	currAppl->ZAPPLID  = "ISP"      ;
+	currAppl->taskid( ++maxtaskID )   ;
+	currAppl->set_appname( GMAINPGM ) ;
 	currAppl->shrdPool = 1          ;
 	currAppl->NEWPOOL  = true       ;
 	currAppl->setSelectPanel()      ;
@@ -292,7 +301,7 @@ int main( void )
 	p_poolMGR->put( err, "ZAPPLID", "ISP", SHARED ) ;
 	currAppl->init() ;
 
-	pThread = new boost::thread(boost::bind(&pApplication::application, currAppl ) ) ;
+	pThread = new boost::thread( boost::bind( &pApplication::application, currAppl ) ) ;
 	currAppl->pThread = pThread ;
 	apps[ GMAINPGM ].refCount++ ;
 	apps[ GMAINPGM ].mainpgm = true ;
@@ -302,7 +311,7 @@ int main( void )
 	while ( currAppl->busyAppl )
 	{
 		elapsed++ ;
-		boost::this_thread::sleep_for(boost::chrono::milliseconds(ZWAIT)) ;
+		boost::this_thread::sleep_for( boost::chrono::milliseconds( ZWAIT ) ) ;
 		if ( elapsed > GMAXWAIT ) { currAppl->set_timeout_abend() ; }
 	}
 	if ( currAppl->terminateAppl )
@@ -311,8 +320,8 @@ int main( void )
 		currAppl->info() ;
 		currAppl->closeTables() ;
 		p_poolMGR->disconnect( currAppl->taskid() ) ;
-		llog( "I", "Removing application instance of "+ currAppl->ZAPPNAME << endl ) ;
-		((void (*)(pApplication*))(apps[ currAppl->ZAPPNAME ].destroyer_ep))( currAppl )  ;
+		llog( "I", "Removing application instance of "+ currAppl->get_appname() << endl ) ;
+		((void (*)(pApplication*))(apps[ currAppl->get_appname() ].destroyer_ep))( currAppl )  ;
 		delete pThread    ;
 		delete p_poolMGR  ;
 		delete p_tableMGR ;
@@ -330,7 +339,7 @@ int main( void )
 
 	mainLoop() ;
 
-	processBackgroundTasks() ;
+	lspfStatus = 'S'  ;
 
 	delete p_poolMGR  ;
 	delete p_tableMGR ;
@@ -345,6 +354,13 @@ int main( void )
 		}
 	}
 
+	llog( "I", "Terminating background monitor task" << endl ) ;
+	while ( backStatus == 'R' )
+	{
+		boost::this_thread::sleep_for( boost::chrono::milliseconds( ZWAIT ) ) ;
+	}
+	delete bThread ;
+
 	llog( "I", "lspf and LOG terminating" << endl ) ;
 	lg->close() ;
 	delete lg ;
@@ -358,7 +374,6 @@ void mainLoop()
 	llog( "I", "mainLoop() entered" << endl ) ;
 
 	int RC   ;
-	int pos  ;
 	int ws   ;
 	int i    ;
 	int l    ;
@@ -372,7 +387,6 @@ void mainLoop()
 	bool showLock ;
 	bool Insert   ;
 
-	string respTime   ;
 	string field_name ;
 	string w1         ;
 	string w2         ;
@@ -397,35 +411,15 @@ void mainLoop()
 		row = currScrn->get_row() ;
 		col = currScrn->get_col() ;
 
-		endTime  = boost::posix_time::microsec_clock::universal_time() ;
-		respTime = to_iso_string(endTime - startTime) ;
-		pos      = lastpos( ".", respTime ) ;
-		respTime = substr( respTime, (pos - 2) , 6 ) + " s" ;
-		currScrn->OIA_update( respTime.c_str() ) ;
+		currScrn->OIA_update( screenNum, altScreen, boost::posix_time::microsec_clock::universal_time() ) ;
+		currScrn->show_lock( showLock ) ;
 
-		if ( screenNum < 8 )
-		{
-			wattrset( OIA, RED | A_REVERSE ) ;
-			mvwaddch( OIA, 0, 9+screenNum, d2ds( screenNum+1 )[0] ) ;
-			wattroff( OIA, RED | A_REVERSE ) ;
-		}
-		if ( altScreen < 8 && altScreen != screenNum )
-		{
-			wattrset( OIA, YELLOW | A_BOLD | A_UNDERLINE ) ;
-			mvwaddch( OIA, 0, 9+altScreen, d2ds( altScreen+1 )[0] ) ;
-			wattroff( OIA, YELLOW | A_BOLD | A_UNDERLINE ) ;
-		}
-		if ( showLock )
-		{
-			wattrset( OIA,  RED ) ;
-			mvwaddstr( OIA, 0, 27, "|X|" ) ;
-			wattroff( OIA,  RED ) ;
-			showLock = false ;
-		}
+		showLock     = false ;
 		pfkeyPressed = false ;
+
 		if ( commandStack == ""            &&
-		     !currAppl->isRawOutput()      &&
 		     !currAppl->ControlDisplayLock &&
+		     !currAppl->line_output_done() &&
 		     !currAppl->ControlNonDispl )
 		{
 			wnoutrefresh( stdscr ) ;
@@ -448,7 +442,7 @@ void mainLoop()
 			}
 			c = KEY_ENTER ;
 		}
-		startTime = boost::posix_time::microsec_clock::universal_time() ;
+		currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
 
 		if ( c < 256 )
 		{
@@ -534,7 +528,6 @@ void mainLoop()
 			case 27:       // Escape key
 
 				debug1( "Action key pressed.  Processing" << endl ) ;
-				processBackgroundTasks() ;
 				if ( currAppl->msgInhibited() )
 				{
 					currAppl->msgResponseOK() ;
@@ -549,12 +542,6 @@ void mainLoop()
 				{
 					currAppl->set_cursor( row, col ) ;
 					ResumeApplicationAndWait()       ;
-					if ( currAppl->reloadCUATables ) { loadCUATables() ; }
-					if ( currAppl->do_refresh_lscreen() )
-					{
-						currScrn->save_panel_stack() ;
-						currScrn->restore_panel_stack() ;
-					}
 					if ( currAppl->selectPanel() )
 					{
 						processZSEL() ;
@@ -571,7 +558,7 @@ void mainLoop()
 						}
 					}
 					updateReflist() ;
-					if ( !currAppl->selectPanel() ) { continue ; }
+					continue ;
 				}
 				if ( ZCOMMAND == ".ABEND" )
 				{
@@ -588,6 +575,12 @@ void mainLoop()
 					currAppl->currPanel->display_next_pd() ;
 					currAppl->currPanel->get_cursor( row, col ) ;
 					currScrn->set_row_col( row, col ) ;
+					break ;
+				}
+				else if ( ZCOMMAND == ".AUTO" )
+				{
+					currAppl->set_cursor( row, col ) ;
+					autoUpdate() ;
 					break ;
 				}
 				else if ( ZCOMMAND == "DISCARD" )
@@ -1028,7 +1021,7 @@ void processZSEL()
 
 void processAction( uint row, uint col, int c, bool& passthru )
 {
-	// No actions required if application is issuing raw output (via control rdisplay flush)
+	// Return if application is just doing line output
 	// perform lspf high-level functions - pfkey -> command
 	// application/user/site/system command table entry?
 	// BUILTIN command
@@ -1069,7 +1062,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 	PFCMD    = ""    ;
 	passthru = true  ;
 
-	if ( currAppl->isRawOutput() ) { return ; }
+	if ( currAppl->line_output_done() ) { return ; }
 
 	p_poolMGR->put( err, "ZVERB", "", SHARED ) ;
 	if ( err.error() )
@@ -1512,7 +1505,7 @@ bool resolveZCTEntry( string& CMDVerb, string& CMDParm )
 
 	siteBefore = ( p_poolMGR->sysget( err, "ZSCMDTF", PROFILE ) == "Y" ) ;
 
-	if ( currAppl->ZAPPLID != "ISP" ) { cmdtlst = currAppl->ZAPPLID + " " ; }
+	if ( currAppl->get_applid() != "ISP" ) { cmdtlst = currAppl->get_applid() + " " ; }
 	cmdtlst += p_poolMGR->sysget( err, "ZUCMDT1", PROFILE ) + " " +
 		   p_poolMGR->sysget( err, "ZUCMDT2", PROFILE ) + " " +
 		   p_poolMGR->sysget( err, "ZUCMDT3", PROFILE ) + " " ;
@@ -1613,12 +1606,11 @@ void startApplication( selobj SEL, bool nScreen )
 	string opt   ;
 	string rest  ;
 	string sname ;
+	string applid ;
 
 	bool setMSG ;
 
 	err.clear() ;
-
-	processBackgroundTasks() ;
 
 	pApplication * oldAppl = currAppl ;
 
@@ -1692,9 +1684,10 @@ void startApplication( selobj SEL, bool nScreen )
 	currAppl->startSelect( SEL )          ;
 	currAppl->taskid( ++maxtaskID )       ;
 	currAppl->lspfCallback = lspfCallbackHandler ;
+	currAppl->set_output_done( oldAppl->line_output_done() ) ;
 	apps[ SEL.PGM ].refCount++ ;
 
-	currAppl->ZAPPLID = ( SEL.NEWAPPL == "" ) ? oldAppl->ZAPPLID : SEL.NEWAPPL ;
+	applid = ( SEL.NEWAPPL == "" ) ? oldAppl->get_applid() : SEL.NEWAPPL ;
 	err.settask( currAppl->taskid() ) ;
 
 	if ( SEL.NEWPOOL )
@@ -1707,13 +1700,13 @@ void startApplication( selobj SEL, bool nScreen )
 		spool = p_poolMGR->createSharedPool() ;
 	}
 
-	p_poolMGR->createProfilePool( err, currAppl->ZAPPLID, ZSPROF ) ;
-	p_poolMGR->connect( currAppl->taskid(), currAppl->ZAPPLID, spool ) ;
+	p_poolMGR->createProfilePool( err, applid, ZSPROF ) ;
+	p_poolMGR->connect( currAppl->taskid(), applid, spool ) ;
 	if ( err.RC4() ) { createpfKeyDefaults() ; }
 
 	p_poolMGR->put( err, "ZSCREEN", string( 1, ZSCREEN[ screenNum ] ), SHARED, SYSTEM ) ;
 	p_poolMGR->put( err, "ZSCRNUM", d2ds( currScrn->screenId ), SHARED, SYSTEM ) ;
-	p_poolMGR->put( err, "ZAPPLID", currAppl->ZAPPLID, SHARED, SYSTEM ) ;
+	p_poolMGR->put( err, "ZAPPLID", applid, SHARED, SYSTEM ) ;
 
 	currAppl->shrdPool = spool ;
 	currAppl->init() ;
@@ -1735,9 +1728,12 @@ void startApplication( selobj SEL, bool nScreen )
 		currAppl->libdef_tuser = oldAppl->libdef_tuser ;
 	}
 
-	if ( setMSG ) { currAppl->set_msg1( oldAppl->getmsg1(), oldAppl->getmsgid1() ) ; }
+	if ( setMSG )
+	{
+		currAppl->set_msg1( oldAppl->getmsg1(), oldAppl->getmsgid1() ) ;
+	}
 
-	pThread = new boost::thread(boost::bind(&pApplication::application, currAppl ));
+	pThread = new boost::thread( boost::bind( &pApplication::application, currAppl ) ) ;
 
 	currAppl->pThread = pThread ;
 
@@ -1751,24 +1747,37 @@ void startApplication( selobj SEL, bool nScreen )
 	while ( currAppl->busyAppl )
 	{
 		elapsed++ ;
-		boost::this_thread::sleep_for(boost::chrono::milliseconds(ZWAIT)) ;
+		boost::this_thread::sleep_for( boost::chrono::milliseconds( ZWAIT ) ) ;
 		if ( currAppl->noTimeOut ) { elapsed = 0 ; }
 		if ( elapsed > GMAXWAIT  ) { currAppl->set_timeout_abend() ; }
 	}
 
+	if ( currAppl->do_refresh_lscreen() )
+	{
+		if ( linePosn != -1 )
+		{
+			lineOutput_end() ;
+			linePosn = -1 ;
+		}
+		currScrn->refresh_panel_stack() ;
+	}
+
 	if ( currAppl->abnormalEnd )
 	{
-		errorScreen( 2, "An error has occured initialising new task for "+ SEL.PGM ) ;
+		abnormalTermMessage()  ;
 		terminateApplication() ;
 		if ( pLScreen::screensTotal == 0 ) { return ; }
 	}
 	else
 	{
 		llog( "I", "New thread and application started and initialised. ID=" << pThread->get_id() << endl ) ;
-		if ( currAppl->rmsgs.size() > 0 ) { rawOutput() ; }
 		if ( currAppl->SEL )
 		{
 			processPGMSelect() ;
+		}
+		else if ( currAppl->line_output_pending() )
+		{
+			lineOutput() ;
 		}
 	}
 
@@ -1795,10 +1804,9 @@ void startApplicationBack( selobj SEL, bool pgmselect )
 	string opt   ;
 	string rest  ;
 	string sname ;
+	string applid ;
 
 	errblock err1 ;
-
-	processBackgroundTasks() ;
 
 	pApplication * oldAppl = currAppl ;
 	pApplication * Appl ;
@@ -1827,10 +1835,13 @@ void startApplicationBack( selobj SEL, bool pgmselect )
 	Appl->taskid( ++maxtaskID ) ;
 	Appl->lspfCallback = lspfCallbackHandler ;
 	Appl->set_background()    ;
-	pApplicationBackground.push_back( Appl ) ;
 	apps[ SEL.PGM ].refCount++ ;
 
-	Appl->ZAPPLID = ( SEL.NEWAPPL == "" ) ? oldAppl->ZAPPLID : SEL.NEWAPPL ;
+	mtx.lock() ;
+	pApplicationBackground.push_back( Appl ) ;
+	mtx.unlock() ;
+
+	applid = ( SEL.NEWAPPL == "" ) ? oldAppl->get_applid() : SEL.NEWAPPL ;
 	err1.settask( Appl->taskid() ) ;
 
 	if ( SEL.NEWPOOL )
@@ -1848,13 +1859,13 @@ void startApplicationBack( selobj SEL, bool pgmselect )
 		oldAppl->ZTASKID = Appl->taskid() ;
 	}
 
-	p_poolMGR->createProfilePool( err1, Appl->ZAPPLID, ZSPROF ) ;
-	p_poolMGR->connect( Appl->taskid(), Appl->ZAPPLID, spool ) ;
+	p_poolMGR->createProfilePool( err1, applid, ZSPROF ) ;
+	p_poolMGR->connect( Appl->taskid(), applid, spool ) ;
 	if ( err1.RC4() ) { createpfKeyDefaults() ; }
 
 	p_poolMGR->put( err1, "ZSCREEN", string( 1, ZSCREEN[ screenNum ] ), SHARED, SYSTEM ) ;
 	p_poolMGR->put( err1, "ZSCRNUM", d2ds( currScrn->screenId ), SHARED, SYSTEM ) ;
-	p_poolMGR->put( err1, "ZAPPLID", Appl->ZAPPLID, SHARED, SYSTEM ) ;
+	p_poolMGR->put( err1, "ZAPPLID", applid, SHARED, SYSTEM ) ;
 
 	Appl->shrdPool = spool ;
 	Appl->init() ;
@@ -1869,7 +1880,7 @@ void startApplicationBack( selobj SEL, bool pgmselect )
 		Appl->libdef_tuser = oldAppl->libdef_tuser ;
 	}
 
-	pThread = new boost::thread(boost::bind(&pApplication::application, Appl ));
+	pThread = new boost::thread( boost::bind( &pApplication::application, Appl ) ) ;
 
 	Appl->pThread = pThread ;
 
@@ -1879,49 +1890,60 @@ void startApplicationBack( selobj SEL, bool pgmselect )
 
 void processBackgroundTasks()
 {
-	// This routine is invoked at various points in the program to check if
-	// there are any background tasks waiting for action:
+	// This routine is invoked every 100ms from a separate thread to check if there are any
+	// background tasks waiting for action:
 	//    cleanup application if ended
-	//    start application if SELECT() done in the program
+	//    start application if SELECT() done in the background program
 
-	// TODO:  This should be managed by a separate thread
+	backStatus = 'R' ;
 
 	boost::thread * pThread ;
 
-	for ( auto it = pApplicationBackground.begin() ; it != pApplicationBackground.end() ; it++ )
+	while ( lspfStatus == 'R' )
 	{
-		while ( (*it)->terminateAppl )
+		boost::this_thread::sleep_for( boost::chrono::milliseconds( 100 ) ) ;
+		mtx.lock() ;
+		for ( auto it = pApplicationBackground.begin() ; it != pApplicationBackground.end() ; it++ )
 		{
-			llog( "I", "Removing background application instance of "+
-				    (*it)->ZAPPNAME << " taskid: " << (*it)->taskid() << endl ) ;
-			p_poolMGR->disconnect( (*it)->taskid() ) ;
-			pThread = (*it)->pThread ;
-			apps[ (*it)->ZAPPNAME ].refCount-- ;
-			((void (*)(pApplication*))(apps[ (*it)->ZAPPNAME ].destroyer_ep))( (*it) ) ;
-			delete pThread ;
-			it = pApplicationBackground.erase( it ) ;
+			while ( (*it)->terminateAppl )
+			{
+				llog( "I", "Removing background application instance of "+
+					(*it)->get_appname() << " taskid: " << (*it)->taskid() << endl ) ;
+				p_poolMGR->disconnect( (*it)->taskid() ) ;
+				pThread = (*it)->pThread ;
+				apps[ (*it)->get_appname() ].refCount-- ;
+				((void (*)(pApplication*))(apps[ (*it)->get_appname() ].destroyer_ep))( (*it) ) ;
+				delete pThread ;
+				it = pApplicationBackground.erase( it ) ;
+				if ( it == pApplicationBackground.end() ) { break ; }
+			}
 			if ( it == pApplicationBackground.end() ) { break ; }
 		}
-		if ( it == pApplicationBackground.end() ) { break ; }
-	}
+     //         mtx.unlock() ;
 
-	vector<pApplication *> temp = pApplicationBackground ;
-	for ( auto it = temp.begin() ; it != temp.end() ; it++ )
-	{
-		if ( (*it)->SEL && !currAppl->terminateAppl )
+       //       mtx.lock() ;
+		vector<pApplication *> temp = pApplicationBackground ;
+       //       mtx.unlock() ;
+
+		for ( auto it = temp.begin() ; it != temp.end() ; it++ )
 		{
-			startApplicationBack( (*it)->get_select_cmd() ) ;
-			(*it)->busyAppl = true  ;
-			cond_appl.notify_all()  ;
+			if ( (*it)->SEL && !currAppl->terminateAppl )
+			{
+				startApplicationBack( (*it)->get_select_cmd() ) ;
+				(*it)->busyAppl = true  ;
+				cond_appl.notify_all()  ;
+			}
 		}
+		mtx.unlock() ;
 	}
+	backStatus = 'S' ;
 }
 
 
 void terminateApplication()
 {
-	int  tRC  ;
-	int  tRSN ;
+	int tRC  ;
+	int tRSN ;
 
 	uint row  ;
 	uint col  ;
@@ -1939,6 +1961,7 @@ void terminateApplication()
 	bool jumpEntered  ;
 	bool setCursor    ;
 	bool setMSG       ;
+	bool lineOutput   ;
 
 	slmsg tMSG1 ;
 
@@ -1946,11 +1969,9 @@ void terminateApplication()
 
 	boost::thread * pThread ;
 
-	processBackgroundTasks() ;
+	llog( "I", "Application terminating "+ currAppl->get_appname() +" ID: "<< currAppl->taskid() << endl ) ;
 
-	llog( "I", "Application terminating "+ currAppl->ZAPPNAME +" ID: "<< currAppl->taskid() << endl ) ;
-
-	ZAPPNAME = currAppl->ZAPPNAME ;
+	ZAPPNAME = currAppl->get_appname() ;
 
 	currAppl->closeTables()  ;
 	tRC     = currAppl->ZRC  ;
@@ -1965,6 +1986,7 @@ void terminateApplication()
 
 	jumpEntered  = currAppl->jumpEntered ;
 	propagateEnd = currAppl->propagateEnd && ( currScrn->application_stack_size() > 1 ) ;
+	lineOutput   = currAppl->line_output_done() ;
 
 	pThread = currAppl->pThread ;
 
@@ -1972,18 +1994,25 @@ void terminateApplication()
 	{
 		while ( currAppl->cleanupRunning() )
 		{
-			boost::this_thread::sleep_for(boost::chrono::milliseconds(ZWAIT)) ;
+			boost::this_thread::sleep_for( boost::chrono::milliseconds( ZWAIT ) ) ;
 		}
 		pThread->detach() ;
 	}
 
 	p_poolMGR->disconnect( currAppl->taskid() ) ;
 
-	llog( "I", "Removing application instance of "+ ZAPPNAME << endl ) ;
-	apps[ ZAPPNAME ].refCount-- ;
-	((void (*)(pApplication*))(apps[ ZAPPNAME ].destroyer_ep))( currAppl ) ;
-
-	delete pThread ;
+	if ( currAppl->abnormalTimeout )
+	{
+		llog( "I", "Moving application instance of "+ ZAPPNAME +" to timeout queue" << endl ) ;
+		pApplicationTimeout.push_back( currAppl ) ;
+	}
+	else
+	{
+		llog( "I", "Removing application instance of "+ ZAPPNAME << endl ) ;
+		apps[ ZAPPNAME ].refCount-- ;
+		((void (*)(pApplication*))(apps[ ZAPPNAME ].destroyer_ep))( currAppl ) ;
+		delete pThread ;
+	}
 
 	currScrn->application_remove_current() ;
 	if ( currScrn->application_stack_empty() )
@@ -2016,7 +2045,7 @@ void terminateApplication()
 		llog( "I", "Reloading module "+ ZAPPNAME +" (pending reload status)" << endl ) ;
 		if ( loadDynamicClass( ZAPPNAME ) )
 		{
-			llog( "I", "Loaded "+ ZAPPNAME +" (module "+ apps[ZAPPNAME].module +") from "+ apps[ZAPPNAME].file << endl ) ;
+			llog( "I", "Loaded "+ ZAPPNAME +" (module "+ apps[ ZAPPNAME ].module +") from "+ apps[ ZAPPNAME ].file << endl ) ;
 		}
 		else
 		{
@@ -2130,6 +2159,7 @@ void terminateApplication()
 		}
 		currAppl->SEL = false ;
 		if ( setMSG ) { currAppl->set_msg1( tMSG1, tMSGID1 ) ; }
+		currAppl->set_output_done( lineOutput ) ;
 		ResumeApplicationAndWait() ;
 		while ( currAppl->terminateAppl )
 		{
@@ -2161,9 +2191,17 @@ void terminateApplication()
 		{
 			currAppl->get_cursor( row, col ) ;
 		}
+		if ( linePosn != -1 )
+		{
+			lineOutput_end() ;
+			currScrn->refresh_panel_stack() ;
+			update_panels() ;
+			doupdate() ;
+			linePosn = -1 ;
+		}
 	}
 
-	llog( "I", "Application terminatation of "+ ZAPPNAME +" completed.  Current application is "+ currAppl->ZAPPNAME << endl ) ;
+	llog( "I", "Application terminatation of "+ ZAPPNAME +" completed.  Current application is "+ currAppl->get_appname() << endl ) ;
 	currAppl->restore_Zvars( currScrn->screenId ) ;
 	currAppl->display_id() ;
 	currScrn->set_row_col( row, col ) ;
@@ -2224,31 +2262,33 @@ void ResumeApplicationAndWait()
 	while ( currAppl->busyAppl )
 	{
 		elapsed++ ;
-		boost::this_thread::sleep_for(boost::chrono::milliseconds(ZWAIT)) ;
+		boost::this_thread::sleep_for( boost::chrono::milliseconds( ZWAIT ) ) ;
 		if ( currAppl->noTimeOut ) { elapsed = 0 ; }
 		if ( elapsed > GMAXWAIT  ) { currAppl->set_timeout_abend() ; }
 	}
 
-	if ( currAppl->rmsgs.size() > 0 ) { rawOutput() ; }
+	if ( currAppl->reloadCUATables ) { loadCUATables() ; }
+	if ( currAppl->do_refresh_lscreen() )
+	{
+		if ( linePosn != -1 )
+		{
+			lineOutput_end() ;
+			linePosn = -1 ;
+		}
+		currScrn->refresh_panel_stack() ;
+	}
 
 	if ( currAppl->abnormalEnd )
 	{
-		if ( currAppl->abnormalTimeout )
-		{
-			errorScreen( 2, "An application timeout has occured.  Increase ZMAXWAIT if necessary" ) ;
-		}
-		else if ( currAppl->abnormalEndForced )
-		{
-			errorScreen( 2, "A forced termination of the subtask has occured" ) ;
-		}
-		else
-		{
-			errorScreen( 2, "An error has occured during application execution" ) ;
-		}
+		abnormalTermMessage() ;
 	}
 	else if ( currAppl->SEL )
 	{
 		processPGMSelect() ;
+	}
+	else if ( currAppl->line_output_pending() )
+	{
+		lineOutput() ;
 	}
 }
 
@@ -2579,55 +2619,80 @@ void updateReflist()
 }
 
 
-void rawOutput()
+void lineOutput()
 {
-	// Write raw output to the display and clear the raw messages vector.
-	// save/restore the panel stack for this logical screen
+	// Write line output to the display.  Split line if longer than screen width.
 
 	int i ;
-	int l ;
-	int pos ;
 
-	string respTime ;
+	string t ;
 
-	startTime = boost::posix_time::microsec_clock::universal_time() ;
-
-	currScrn->save_panel_stack() ;
-	currScrn->clear() ;
-	currScrn->show_enter() ;
-
-	l = 0 ;
-	attrset( RED | A_BOLD ) ;
-	for ( i = 0 ; i < currAppl->rmsgs.size() ; i++ )
+	if ( linePosn == -1 )
 	{
-		mvaddstr( l++, 0, currAppl->rmsgs[ i ].c_str() ) ;
-		if ( l == pLScreen::maxrow-1 || l == currAppl->rmsgs.size() )
-		{
-			mvaddstr( l, 0, "***" ) ;
-			while ( true )
-			{
-				if ( isActionKey( getch() ) ) { l = 0 ; break ; }
-			}
-			currScrn->clear() ;
-		}
+		currScrn->save_panel_stack() ;
+		currScrn->clear() ;
+		linePosn = 0 ;
 	}
-	attroff( RED | A_BOLD ) ;
-	currAppl->rmsgs.clear() ;
 
-	endTime  = boost::posix_time::microsec_clock::universal_time() ;
-	respTime = to_iso_string(endTime - startTime) ;
-	pos      = lastpos( ".", respTime ) ;
-	respTime = substr( respTime, (pos - 2) , 6 ) + " s" ;
-	currScrn->restore_panel_stack() ;
-	currScrn->OIA_update( respTime.c_str() ) ;
+	currScrn->show_busy() ;
+	attrset( RED | A_BOLD ) ;
+	t = currAppl->lineBuffer ;
 
+	do
+	{
+		if ( linePosn == pLScreen::maxrow-1 )
+		{
+			lineOutput_end() ;
+		}
+		if ( t.size() > pLScreen::maxcol )
+		{
+			i = t.find_last_of( ' ', pLScreen::maxcol ) ;
+			if ( i == string::npos ) { i = pLScreen::maxcol ; }
+			else                     { i++                  ; }
+			mvaddstr( linePosn++, 0, t.substr( 0, i ).c_str() ) ;
+			t.erase( 0, i ) ;
+		}
+		else
+		{
+			mvaddstr( linePosn++, 0, t.c_str() ) ;
+			t = "" ;
+		}
+	} while ( t.size() > 0 ) ;
+
+	currScrn->OIA_update( screenNum, altScreen, boost::posix_time::microsec_clock::universal_time() ) ;
+
+	wnoutrefresh( stdscr ) ;
+	wnoutrefresh( OIA ) ;
+	doupdate() ;
+}
+
+
+void lineOutput_end()
+{
+	attrset( RED | A_BOLD ) ;
+	mvaddstr( linePosn, 0, "***" ) ;
+
+	currScrn->show_enter() ;
+	wnoutrefresh( stdscr ) ;
+	wnoutrefresh( OIA ) ;
+	move( linePosn, 3 ) ;
+	doupdate() ;
+
+	while ( true )
+	{
+		if ( isActionKey( getch() ) ) { break ; }
+	}
+
+	linePosn = 0 ;
+	currScrn->clear() ;
+	currScrn->clear_status() ;
+	currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
 }
 
 
 string listLogicalScreens()
 {
 	// Mainline lspf cannot create application panels but let's make this as similar as possible
-	// Note: get_current_screenName() switches shared pools to get the correct ZSCRNAME.  Switch back afterwards.
 
 	int i ;
 	int m ;
@@ -2680,8 +2745,8 @@ string listLogicalScreens()
 		}
 		ln = left( ln, 4 ) +
 		     left( appl->get_current_screenName(), 10 ) +
-		     left( appl->ZAPPNAME, 13 ) +
-		     left( appl->ZAPPLID, 8  ) +
+		     left( appl->get_appname(), 13 ) +
+		     left( appl->get_applid(), 8  )  +
 		     left( t, 42 ) ;
 		lslist.push_back( ln ) ;
 	}
@@ -2819,17 +2884,77 @@ void listRetrieveBuffer()
 
 void listBackTasks()
 {
+	// List background tasks and tasks that have been moved to the timeout queue
+
 	llog( "-", "Listing background tasks:" << endl ) ;
 	llog( "-", "         Number of tasks. . . . "<< pApplicationBackground.size()<< endl ) ;
 	llog( "-", " "<< endl ) ;
 
+	mtx.lock() ;
 	for ( auto it = pApplicationBackground.begin() ; it != pApplicationBackground.end() ; it++ )
 	{
-		llog( "-", "         "<< setw(8) << (*it)->ZAPPNAME <<
+		llog( "-", "         "<< setw(8) << (*it)->get_appname() <<
 		      "   Id: "<< setw(5) << (*it)->taskid() <<
 		      "   Status: "<< ( (*it)->terminateAppl ? "Terminated" : "Running" ) <<endl ) ;
 	}
+	mtx.unlock() ;
+
+	llog( "-", " "<< endl ) ;
+	llog( "-", "Listing timed-out tasks:" << endl ) ;
+	llog( "-", "         Number of tasks. . . . "<< pApplicationTimeout.size()<< endl ) ;
+	llog( "-", " "<< endl ) ;
+
+	for ( auto it = pApplicationTimeout.begin() ; it != pApplicationTimeout.end() ; it++ )
+	{
+		llog( "-", "         "<< setw(8) << (*it)->get_appname() <<
+		      "   Id: "<< setw(5) << (*it)->taskid() << endl ) ;
+	}
 	llog( "-", "*********************************************************************************"<<endl ) ;
+}
+
+
+void autoUpdate()
+{
+	// Resume application every 1s and wait.
+	// Check every 50ms to see if ESC(27) has been pressed - read all characters from the buffer.
+
+	uint row ;
+	uint col ;
+
+	char c ;
+
+	bool end_auto = false ;
+
+	currScrn->show_auto() ;
+	nodelay( stdscr, true ) ;
+	curs_set( 0 ) ;
+
+	while ( !end_auto )
+	{
+		currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
+		ResumeApplicationAndWait() ;
+		currScrn->OIA_update( screenNum, altScreen, boost::posix_time::microsec_clock::universal_time() ) ;
+		wnoutrefresh( stdscr ) ;
+		wnoutrefresh( OIA ) ;
+		update_panels() ;
+		doupdate() ;
+		for ( int i = 0 ; i < 20 && !end_auto ; i++ )
+		{
+			boost::this_thread::sleep_for( boost::chrono::milliseconds( 50 ) ) ;
+			do
+			{
+				c = getch() ;
+				if ( c == 27 ) { end_auto = true ; }
+			} while ( c != -1 ) ;
+		}
+	}
+
+	curs_set( 1 ) ;
+	currScrn->clear_status() ;
+	nodelay( stdscr, false ) ;
+
+	currAppl->get_cursor( row, col )  ;
+	currScrn->set_row_col( row, col ) ;
 }
 
 
@@ -2892,7 +3017,7 @@ void lspfCallbackHandler( lspfCommand& lc )
 		{
 			appl = (*its)->application_get_current()       ;
 			lc.reply.push_back( d2ds( (*its)->screenId ) ) ;
-			lc.reply.push_back( appl->ZAPPNAME        )    ;
+			lc.reply.push_back( appl->get_appname()   )    ;
 		}
 		lc.RC = 0 ;
 	}
@@ -2951,6 +3076,23 @@ void abortStartup()
 }
 
 
+void abnormalTermMessage()
+{
+	if ( currAppl->abnormalTimeout )
+	{
+		errorScreen( 2, "An application timeout has occured.  Increase ZMAXWAIT if necessary" ) ;
+	}
+	else if ( currAppl->abnormalEndForced )
+	{
+		errorScreen( 2, "A forced termination of the subtask has occured" ) ;
+	}
+	else
+	{
+		errorScreen( 2, "An error has occured during application execution" ) ;
+	}
+}
+
+
 void errorScreen( int etype, const string& msg )
 {
 	int l    ;
@@ -2969,7 +3111,7 @@ void errorScreen( int etype, const string& msg )
 	l = 2 ;
 	if ( etype == 2 )
 	{
-		t = "Failing application is " + currAppl->ZAPPNAME + ", taskid=" + d2ds( currAppl->taskid() ) ;
+		t = "Failing application is " + currAppl->get_appname() + ", taskid=" + d2ds( currAppl->taskid() ) ;
 		llog( "E", t << endl ) ;
 		mvaddstr( l++, 0, "Depending on the error, application may still be running in the background.  Recommend restarting lspf." ) ;
 		mvaddstr( l++, 0, t.c_str() ) ;
@@ -2981,6 +3123,7 @@ void errorScreen( int etype, const string& msg )
 	}
 	attroff( WHITE | A_BOLD ) ;
 
+	linePosn = -1 ;
 	currScrn->restore_panel_stack() ;
 }
 

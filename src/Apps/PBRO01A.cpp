@@ -77,15 +77,15 @@ void PBRO01A::application()
 	int i  ;
 	int j  ;
 	int offset ;
-	int CURPOS ;
+	int curpos ;
 
 	string w2     ;
 	string w3     ;
 	string file   ;
 	string panel  ;
-	string ZDSN   ;
-	string CURFLD ;
-	string ZZSTR1 ;
+	string zdsn   ;
+	string curfld ;
+	string zzstr1 ;
 	string zbralt ;
 
 	bool rebuildZAREA ;
@@ -113,7 +113,7 @@ void PBRO01A::application()
 		return  ;
 	}
 
-	ZDSN = file ;
+	zdsn = file ;
 	llog( "I", "Displaying file " << file << " using panel " << panel << endl ) ;
 
 	rebuildZAREA = true  ;
@@ -131,10 +131,10 @@ void PBRO01A::application()
 	typList[ 'W' ] = "WORD"   ;
 
 	vdefine( "ZCMD  ZVERB   ZROW1", &zcmd, &zverb, &ZROW1 ) ;
-	vdefine( "ZAREA ZSHADOW ZAREAT ZDSN", &ZAREA, &ZSHADOW, &ZAREAT, &ZDSN ) ;
+	vdefine( "ZAREA ZSHADOW ZAREAT ZDSN", &ZAREA, &ZSHADOW, &ZAREAT, &zdsn ) ;
 	vdefine( "ZSCROLLN ZAREAW ZAREAD", &ZSCROLLN, &ZAREAW, &ZAREAD ) ;
 	vdefine( "ZSCROLLA ZCOL1 ZCOL2 TYPE STR", &ZSCROLLA, &ZCOL1, &ZCOL2, &TYPE, &STR ) ;
-	vdefine( "OCC LINES CMD ZZSTR1", &OCC, &LINES, &CMD, &ZZSTR1 ) ;
+	vdefine( "OCC LINES CMD ZZSTR1", &OCC, &LINES, &CMD, &zzstr1 ) ;
 
 	startCol  = 1 ;
 	maxCol    = 1 ;
@@ -145,7 +145,7 @@ void PBRO01A::application()
 	read_file( file ) ;
 	if ( RC > 0 )
 	{
-		ZZSTR1 = file ;
+		zzstr1 = file ;
 		if ( ZRC == 4 )
 		{
 			if ( ZRSN == 4 ) { setmsg( "PSYS011P" ) ; }
@@ -163,8 +163,8 @@ void PBRO01A::application()
 	}
 
 	MSG    = ""     ;
-	CURFLD = "ZCMD" ;
-	CURPOS = 1      ;
+	curfld = "ZCMD" ;
+	curpos = 1      ;
 
 	if ( Global_bfind_parms.f_fset )
 	{
@@ -175,20 +175,20 @@ void PBRO01A::application()
 
 	vget( "ZBRALT", SHARED ) ;
 	vcopy( "ZBRALT", zbralt, MOVE ) ;
-	if ( zbralt == "" ) { vreplace( "ZBRALT", ZDSN ) ; }
+	if ( zbralt == "" ) { vreplace( "ZBRALT", zdsn ) ; }
 
 	while ( true )
 	{
 		if ( rebuildZAREA ) { fill_dynamic_area() ; }
 		else                { ZSHADOW = CSHADOW   ; }
-		if ( CURFLD == "ZAREA" )
+		if ( curfld == "ZAREA" )
 		{
-			for ( i = CURPOS-1 ; i < ZASIZE ; i++ )
+			for ( i = curpos-1 ; i < ZASIZE ; i++ )
 			{
 				if ( ZAREA[ i ] == ' ' ) { break ; }
 				ZSHADOW[ i ] = B_WHITE ;
 			}
-			for ( i = CURPOS-1 ; i > 0 ; i-- )
+			for ( i = curpos-1 ; i > 0 ; i-- )
 			{
 				if ( ZAREA[ i ] == ' ' ) { break ; }
 				ZSHADOW[ i ] = B_WHITE ;
@@ -200,27 +200,28 @@ void PBRO01A::application()
 		ZCOL2 = d2ds( startCol+ZAREAW-1, 5 ) ;
 		if ( MSG == "" ) { zcmd = "" ; }
 
-		display( "PBRO01A1", MSG, CURFLD, CURPOS ) ;
+		display( "PBRO01A1", MSG, curfld, curpos ) ;
 		if ( RC == 8 ) { cleanup() ; break ; }
 
 		MSG          = ""    ;
 		rebuildZAREA = false ;
 
 		vget( "ZVERB ZSCROLLA ZSCROLLN", SHARED ) ;
+
 		CMD  = upper( word( zcmd, 1 ) ) ;
 		w2   = upper( word( zcmd, 2 ) ) ;
 		w3   = upper( word( zcmd, 3 ) ) ;
 
 		if ( ZCURFLD == "ZAREA" )
 		{
-			if ( (colsOn && ZCURPOS <= ZAREAW) ) { CURFLD = "ZCMD" ; CURPOS = 1 ; }
-			else if ( topLine == 0 && ( ZCURPOS <= ZAREAW || (colsOn && ZCURPOS <= 2*ZAREAW))) { CURFLD = "ZCMD" ; CURPOS = 1 ; }
-			else { CURFLD = "ZAREA" ; CURPOS = ZCURPOS ; }
+			if ( (colsOn && ZCURPOS <= ZAREAW) ) { curfld = "ZCMD" ; curpos = 1 ; }
+			else if ( topLine == 0 && ( ZCURPOS <= ZAREAW || (colsOn && ZCURPOS <= 2*ZAREAW))) { curfld = "ZCMD" ; curpos = 1 ; }
+			else { curfld = "ZAREA" ; curpos = ZCURPOS ; }
 		}
 		else
 		{
-			CURFLD = "ZCMD" ;
-			CURPOS = 1      ;
+			curfld = "ZCMD" ;
+			curpos = 1      ;
 		}
 
 		if ( CMD == "" ) {}
@@ -280,9 +281,9 @@ void PBRO01A::application()
 				{
 					topLine = find_parms.f_line - 1 ;
 				}
-				CURFLD = "ZAREA" ;
-				CURPOS = ( find_parms.f_line - topLine ) * ZAREAW + find_parms.f_offset + 1 ;
-				if ( colsOn ) { CURPOS = CURPOS + ZAREAW ; }
+				curfld = "ZAREA" ;
+				curpos = ( find_parms.f_line - topLine ) * ZAREAW + find_parms.f_offset + 1 ;
+				if ( colsOn ) { curpos += ZAREAW ; }
 				TYPE   = typList[ find_parms.f_mtch ] ;
 				STR    = find_parms.f_estring ;
 				OCC    = d2ds( find_parms.f_occurs ) ;
@@ -292,8 +293,8 @@ void PBRO01A::application()
 			}
 			else
 			{
-				CURFLD = "ZCMD" ;
-				CURPOS = 1 ;
+				curfld = "ZCMD" ;
+				curpos = 1 ;
 				TYPE = typList[ find_parms.f_mtch ] ;
 				STR = find_parms.f_estring ;
 				MSG = "PBRO011E" ;
@@ -404,9 +405,9 @@ void PBRO01A::application()
 					{
 						topLine = find_parms.f_line - 1 ;
 					}
-					CURFLD  = "ZAREA" ;
-					CURPOS  = ( find_parms.f_line - topLine ) * ZAREAW + find_parms.f_offset + 1 ;
-					if ( colsOn ) { CURPOS = CURPOS + ZAREAW ; }
+					curfld  = "ZAREA" ;
+					curpos  = ( find_parms.f_line - topLine ) * ZAREAW + find_parms.f_offset + 1 ;
+					if ( colsOn ) { curpos += ZAREAW ; }
 					TYPE    = typList[ find_parms.f_mtch ] ;
 					STR     = find_parms.f_estring ;
 					MSG     = "PBRO011F" ;

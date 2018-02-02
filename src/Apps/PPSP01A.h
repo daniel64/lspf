@@ -58,6 +58,9 @@ class PPSP01A : public pApplication
 		int    task    ;
 		int    lprefix ;
 
+		string ZSCROLLA  ;
+		int    ZSCROLLN  ;
+
 		string VARLST  ;
 		string SEL     ;
 		string VAR     ;

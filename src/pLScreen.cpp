@@ -125,6 +125,13 @@ void pLScreen::restore_panel_stack()
 }
 
 
+void pLScreen::refresh_panel_stack()
+{
+	save_panel_stack()    ;
+	restore_panel_stack() ;
+}
+
+
 void pLScreen::OIA_setup()
 {
 	mvwaddch( OIA, 0, 0, ACS_CKBOARD ) ;
@@ -136,16 +143,39 @@ void pLScreen::OIA_setup()
 }
 
 
-void pLScreen::OIA_update( const char* respTime )
+void pLScreen::OIA_update( int screen, int altscreen, boost::posix_time::ptime et )
 {
+	int pos ;
+
+	string respTime ;
+
+	respTime = to_iso_string( et - startTime )  ;
+	pos      = respTime.find_last_of( '.' ) - 1 ;
+	respTime = substr( respTime, pos, 6 ) + " s" ;
+
 	wattrset( OIA, YELLOW ) ;
 	mvwaddstr( OIA, 0, 9,  "        " ) ;
 	mvwaddstr( OIA, 0, 9, substr( "12345678", 1, screensTotal).c_str() ) ;
 	mvwaddstr( OIA, 0, 27, "   " ) ;
-	mvwaddstr( OIA, 0, 40, respTime ) ;
+	mvwaddstr( OIA, 0, 40, respTime.c_str() ) ;
 	mvwprintw( OIA, 0, 59, "%d-%d   ", screenId, application_stack_size() );
 	mvwaddstr( OIA, 0, maxcol-23, Insert ? "Insert" : "      " ) ;
 	mvwprintw( OIA, 0, maxcol-14, "Row %d Col %d  ", row+1, col+1 ) ;
+
+	if ( screen < 8 )
+	{
+		wattrset( OIA, RED | A_REVERSE ) ;
+		mvwaddch( OIA, 0, screen+9, d2ds( screen+1 ).front() ) ;
+		wattroff( OIA, RED | A_REVERSE ) ;
+	}
+
+	if ( altscreen < 8 && altscreen != screen )
+	{
+		wattrset( OIA, YELLOW | A_BOLD | A_UNDERLINE ) ;
+		mvwaddch( OIA, 0, altscreen+9, d2ds( altscreen+1 ).front() ) ;
+		wattroff( OIA, YELLOW | A_BOLD | A_UNDERLINE ) ;
+	}
+
 	wattroff( OIA, YELLOW ) ;
 }
 
@@ -177,6 +207,27 @@ void pLScreen::show_wait()
 	wattroff( OIA, RED ) ;
 	wmove( OIA, 0, 0 ) ;
 	wrefresh( OIA )    ;
+}
+
+
+void pLScreen::show_auto()
+{
+	wattron( OIA, RED ) ;
+	mvwaddstr( OIA, 0, 20, "X-Auto " ) ;
+	wattroff( OIA, RED ) ;
+	wmove( OIA, 0, 0 ) ;
+	wrefresh( OIA )    ;
+}
+
+
+void pLScreen::show_lock( bool showLock )
+{
+	if ( showLock )
+	{
+		wattrset( OIA,  RED ) ;
+		mvwaddstr( OIA, 0, 27, "|X|" ) ;
+		wattroff( OIA,  RED ) ;
+	}
 }
 
 

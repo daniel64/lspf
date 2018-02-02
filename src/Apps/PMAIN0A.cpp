@@ -51,12 +51,10 @@ void PMAIN0A::application()
 	selobj SEL ;
 
 	string pan ;
-	string MSG ;
+	string msg ;
 	string w1  ;
 	string ws  ;
-	string command ;
-	string ZTRAIL  ;
-	string ZSEL    ;
+	string zsel ;
 
 	string ZSYSNAME ;
 	string ZOSREL   ;
@@ -66,44 +64,44 @@ void PMAIN0A::application()
 
 	ZAHELP = "HPMAIN1" ;
 
-	vdefine( "ZCMD ZSEL ZDATEL ZJDATE ZTIME ZSCRNAME", &zcmd, &ZSEL, &ZDATEL, &ZJDATE, &ZTIME, &ZSCRNAME ) ;
+	vdefine( "ZCMD ZSEL ZDATEL ZJDATE ZTIME ZSCRNAME", &zcmd, &zsel, &ZDATEL, &ZJDATE, &ZTIME, &ZSCRNAME ) ;
 	vdefine( "ZAREA ZSHADOW", &ZAREA, &ZSHADOW ) ;
 
 	ZSCRNAME = "MAIN" ;
-	ispexec( "VPUT (ZSCRNAME) SHARED" ) ;
-	ispexec( "VGET ZDATEL" ) ;
+	vput( "ZSCRNAME", SHARED ) ;
+	vget( "ZDATEL" ) ;
 
 	offset = 0 ;
 	pmonth = ds2d( substr( ZDATEL, 4, 2 ) ) ;
 	pyear  = ds2d( substr( ZDATEL, 7, 4 ) ) ;
 	zcmd   = PARM ;
-	MSG    = ""   ;
+	msg    = ""   ;
 	create_calendar( pmonth, pyear ) ;
 
-	if ( zcmd != "" ) { ispexec( "CONTROL DISPLAY NONDISPL" ) ; }
+	if ( zcmd != "" ) { control( "DISPLAY", "NONDISPL" ) ; }
 	vcopy( "ZMAINPAN", pan, MOVE ) ;
 
 	while ( true )
 	{
-		ispexec( "VPUT (ZCMD ZSEL) SHARED" ) ;
-		ispexec( "DISPLAY PANEL("+pan+") MSG("+MSG+") CURSOR(ZCMD)" ) ;
+		vput( "ZCMD ZSEL", SHARED ) ;
+		display( pan, msg, "ZCMD" ) ;
 		RC1 = RC ;
-		ispexec( "VGET (ZCMD ZSEL) SHARED" ) ;
-		if ( ZSEL == "EXIT" || RC1 == 8 )
+		vget( "ZCMD ZSEL", SHARED ) ;
+		if ( zsel == "EXIT" || RC1 == 8 )
 		{
-			ZSEL = "" ;
-			ispexec( "VPUT ZSEL SHARED" ) ;
+			zsel = "" ;
+			vput( "ZSEL", SHARED ) ;
 			break ;
 		}
-		if ( ZSEL == "?" )
+		if ( zsel == "?" )
 		{
-			MSG  = "PSYS016" ;
-			ZSEL = "" ;
+			msg  = "PSYS016" ;
+			zsel = "" ;
 			continue  ;
 		}
 
-		ispexec( "VGET (ZJDATE ZTIME) SHARED" ) ;
-		MSG  = "" ;
+		vget( "ZJDATE ZTIME", SHARED ) ;
+		msg = "" ;
 
 		ZAREA = ZAREA.replace( 204, 5, ZTIME ) ;
 
@@ -140,7 +138,7 @@ void PMAIN0A::application()
 		{
 			if ( ws == "" )
 			{
-				MSG = "MAIN011" ;
+				msg = "MAIN011" ;
 				continue        ;
 			}
 			else
@@ -149,7 +147,7 @@ void PMAIN0A::application()
 				pyear  = ds2d( substr( ws, 4, 4 ) ) ;
 				if ( pmonth < 1 || pmonth > 12 || pyear < 1900 || pyear > 9999 )
 				{
-					MSG = "MAIN011" ;
+					msg = "MAIN011" ;
 					continue ;
 				}
 				offset = 0 ;
@@ -169,7 +167,7 @@ void PMAIN0A::create_calendar( int pmonth, int pyear )
 	int cday, cmonth, cyear ;
 	int i, eom_day, daypos  ;
 
-	ispexec( "VGET (ZJDATE ZTIME ZDATEL)" ) ;
+	vget( "ZJDATE ZTIME ZDATEL" ) ;
 	cday   = ds2d( substr( ZDATEL, 1, 2 ) ) ;
 	cmonth = ds2d( substr( ZDATEL, 4, 2 ) ) ;
 	cyear  = ds2d( substr( ZDATEL, 7, 4 ) ) ;

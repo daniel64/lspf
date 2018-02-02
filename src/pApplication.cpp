@@ -32,6 +32,8 @@ pApplication::pApplication()
 	ControlPassLRScroll    = false  ;
 	ControlSplitEnable     = true   ;
 	ControlRefUpdate       = true   ;
+	lineOutDone            = false  ;
+	lineOutPending         = false  ;
 	errPanelissued         = false  ;
 	abending               = false  ;
 	abended                = false  ;
@@ -46,7 +48,6 @@ pApplication::pApplication()
 	abnormalEnd            = false  ;
 	abnormalEndForced      = false  ;
 	abnormalTimeout        = false  ;
-	rawOutput              = false  ;
 	reloadCUATables        = false  ;
 	refreshlScreen         = false  ;
 	rexxName               = ""     ;
@@ -59,6 +60,7 @@ pApplication::pApplication()
 	SEL                    = false  ;
 	selPanel               = false  ;
 	setMSG                 = false  ;
+	lineBuffer             = ""     ;
 	reffield               = ""     ;
 	PARM                   = ""     ;
 	panelid                = ""     ;
@@ -68,8 +70,6 @@ pApplication::pApplication()
 	ZAHELP                 = ""     ;
 	ZTDROWS                = 0      ;
 	ZTDTOP                 = 0      ;
-	ZCURFLD                = ""     ;
-	ZCURPOS                = 1      ;
 	ZRC                    = 0      ;
 	ZRSN                   = 0      ;
 	ZRESULT                = ""     ;
@@ -89,7 +89,6 @@ pApplication::pApplication()
 	funcPOOL.define( errBlock, "ZTDSELS",  &ZTDSELS ) ;
 	funcPOOL.define( errBlock, "ZTDTOP",   &ZTDTOP  ) ;
 	funcPOOL.define( errBlock, "ZTDVROWS", &ZTDVROWS) ;
-	rmsgs.clear() ;
 }
 
 
@@ -199,6 +198,12 @@ void pApplication::get_home( uint& row, uint& col )
 {
 	if ( currPanel ) { currPanel->get_home( row, col ) ; }
 	else             { row = 0 ; col = 0               ; }
+}
+
+
+string pApplication::get_applid()
+{
+	return p_poolMGR->get( errBlock, "ZAPPLID", SHARED ) ;
 }
 
 
@@ -385,6 +390,14 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 
 	RC       = 0     ;
 	doReinit = false ;
+
+	if ( lineOutDone )
+	{
+		refreshlScreen = true  ;
+		wait_event() ;
+		lineOutDone    = false ;
+		refreshlScreen = false ;
+	}
 
 	if ( p_name == "" )
 	{
@@ -1203,6 +1216,7 @@ void pApplication::vcopy( const string& var, string& val, vcMODE mode )
 	// RC = 8  Variable not found
 	// RC = 16 Truncation occured
 	// RC = 20 Severe error
+
 	// (funcPOOL.get returns 0, 8 or 20)
 	// (funcPOOL.getType returns 0, 8 or 20)
 	// (poolMGR.get return 0, 8 or 20)
@@ -1267,6 +1281,7 @@ void pApplication::vcopy( const string& var, string * & p_val, vcMODE mode )
 	// RC = 8  Variable not found
 	// RC = 16 Truncation occured
 	// RC = 20 Severe error
+
 	// (funcPOOL.get returns 0, 8 or 20)
 	// (funcPOOL.getType returns 0, 8 or 20)
 	// (funcPOOL.vlocate returns 0, 8 or 20)
@@ -1513,7 +1528,6 @@ void pApplication::control( const string& parm1, const string& parm2, const stri
 	// lspf extensions:
 	//
 	// CONTROL ABENDRTN DEFAULT - Reset abend routine to the default, pApplication::cleanup_default
-	// CONTROL RDISPLAY FLUSH   - Flush raw output to the screen
 	// CONTROL RELOAD   CUA     - Reload the CUA tables
 	// CONTROL TIMEOUT  ENABLE  - Enable application timeouts after ZWAITMAX ms (default).
 	// CONTROL TIMEOUT  DISABLE - Disable forced abend of applications if ZWAITMAX exceeded.
@@ -1649,21 +1663,6 @@ void pApplication::control( const string& parm1, const string& parm2, const stri
 		else
 		{
 			errBlock.setcall( e1, "PSYE022X", "RELOAD", parm2 ) ;
-			checkRCode( errBlock ) ;
-			return ;
-		}
-	}
-	else if ( parm1 == "RDISPLAY" )
-	{
-		if ( parm2 == "FLUSH" )
-		{
-			rawOutput = true  ;
-			wait_event()      ;
-			rawOutput = false ;
-		}
-		else
-		{
-			errBlock.setcall( e1, "PSYE022X", "RDISPLAY", parm2 ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -2051,6 +2050,14 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 
 	RC = 0 ;
 	ln = 0 ;
+
+	if ( p_name != "" && lineOutDone )
+	{
+		refreshlScreen = true  ;
+		wait_event() ;
+		lineOutDone    = false ;
+		refreshlScreen = false ;
+	}
 
 	if ( propagateEnd )
 	{
@@ -3002,40 +3009,14 @@ void pApplication::load_keylist( pPanel * p  )
 
 void pApplication::rdisplay( const string& msg, bool subVars )
 {
-	int i ;
-	int j ;
-	int l ;
-	int m ;
-
-	string t ;
-
 	RC = 0 ;
-	l  = ds2d( p_poolMGR->get( errBlock, "ZSCRMAXW", SHARED ) ) ;
-	m  = ds2d( p_poolMGR->get( errBlock, "ZSCRMAXD", SHARED ) ) - 1 ;
-	t  = subVars ? sub_vars( msg ) : msg ;
 
-	while ( true )
-	{
-		if ( t.size() > l )
-		{
-			i = l ;
-			j = t.find_last_of( ' ', i ) ;
-			if ( j != string::npos ) { i = j + 1 ; }
-		}
-		else
-		{
-			i = t.size() ;
-		}
-		rmsgs.push_back( t.substr( 0, i ) ) ;
-		t.erase( 0, i ) ;
-		if ( rmsgs.size() == m )
-		{
-			rawOutput = true  ;
-			wait_event()      ;
-			rawOutput = false ;
-		}
-		if ( t.size() == 0 ) { break ; }
-	}
+	lineBuffer = subVars ? sub_vars( msg ) : msg ;
+
+	lineOutDone    = true ;
+	lineOutPending = true ;
+	wait_event() ;
+	lineOutPending = false ;
 }
 
 
@@ -3531,7 +3512,7 @@ void pApplication::info()
 	llog( "-", "Application Information for "<< ZAPPNAME << endl ) ;
 	llog( "-", "                   Task ID: "<< taskId << endl ) ;
 	llog( "-", "          Shared Pool Name: "<< d2ds( shrdPool, 8 ) << endl ) ;
-	llog( "-", "         Profile Pool Name: "<< ZAPPLID << endl ) ;
+	llog( "-", "         Profile Pool Name: "<< p_poolMGR->get( errBlock, "ZAPPLID", SHARED ) << endl ) ;
 	llog( "-", " " << endl ) ;
 	llog( "-", "Application Description . : "<< ZAPPDESC << endl ) ;
 	llog( "-", "Last Panel Displayed. . . : "<< panelid << endl ) ;

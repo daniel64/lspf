@@ -19,44 +19,45 @@
 
 using namespace std;
 
-class PTUTORA : public pApplication
+class PCMD0B : public pApplication
 {
 	public:
 		void application() ;
 
 	private:
-		void read_file( string ) ;
+		void copy_output( const string&, const string& ) ;
+		void timeout_output()    ;
 		void fill_dynamic_area() ;
+		void actionCommand()     ;
+		void actionZVERB()       ;
+		bool invoke_task_wait( const string&, string&, const string& ) ;
 
-		int firstLine, maxLines ;
-		int startCol, maxCol    ;
-		vector<string> data ;
+		int topLine    ;
+		int startCol   ;
+		int maxCol     ;
+		int zaread     ;
+		int zareaw     ;
+		int zasize     ;
 
-		string ZROW1 ;
-		string ZROW2 ;
-		string ZCOL1 ;
-		string ZAREA ;
-		string ZSHADOW ;
-		string ZAREAT  ;
-		int    ZAREAW  ;
-		int    ZAREAD  ;
+		string msg     ;
+		string inLine  ;
 
-		string fileType ;
+		string zcmd    ;
+		string zverb   ;
+		string zscreen ;
+		string zuser   ;
+		string zarea   ;
+		string zshadow ;
+		string zareat  ;
 
-		string zcmd  ;
-		string zverb ;
+		string sdr  ;
+		string sdw  ;
+		string sdy  ;
 
 		string ZSCROLLA  ;
 		int    ZSCROLLN  ;
 
-		string mh ;
-		string fh ;
-		string ph ;
-		string ah ;
-		string sh ;
-		string kh ;
-		string ps ;
-		string help     ;
-		string helplst  ;
-		char   helptype ;
+		bool rebuildZAREA ;
+
+		vector<string> lines  ;
 };

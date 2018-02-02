@@ -311,8 +311,8 @@ void PEDIT01::Edit()
 	}
 	if ( zedalt == "" ) { zedalt = ZFILE ; }
 
-	CURFLD = "ZCMD" ;
-	CURPOS = 1      ;
+	curfld = "ZCMD" ;
+	curpos = 1      ;
 
 	hlight.hl_clear() ;
 	miBlock.clear()   ;
@@ -392,12 +392,12 @@ void PEDIT01::Edit()
 		zcmd = pcmd.condget_cmd() ;
 		if ( zcmd != "" && !pcmd.error() )
 		{
-			CURFLD = "ZCMD" ;
-			CURPOS = zcmd.size() + 1;
+			curfld = "ZCMD" ;
+			curpos = zcmd.size() + 1;
 		}
 		pcmd.reset() ;
 
-		display( "PEDIT012", pcmd.get_msg(), CURFLD, CURPOS ) ;
+		display( "PEDIT012", pcmd.get_msg(), curfld, curpos ) ;
 
 		if ( RC == 8 )
 		{
@@ -422,17 +422,17 @@ void PEDIT01::Edit()
 
 		if ( ZCURFLD == "ZAREA" )
 		{
-			CURFLD = ZCURFLD ;
-			CURPOS = ZCURPOS ;
-			aRow   = ((ZCURPOS-1) / ZAREAW + 1)    ;
-			aCol   = ((ZCURPOS-1) % ZAREAW + 1)    ;
+			curfld = ZCURFLD ;
+			curpos = ZCURPOS ;
+			aRow   = ((curpos-1) / ZAREAW + 1)    ;
+			aCol   = ((curpos-1) % ZAREAW + 1)    ;
 			aURID  = s2data.at( aRow-1 ).ipos_URID ;
 			aLCMD  = ( aCol > 0 && aCol < 9 )      ;
 		}
 		else
 		{
-			CURFLD = "ZCMD" ;
-			CURPOS = 1      ;
+			curfld = "ZCMD" ;
+			curpos = 1      ;
 			aRow   = 0      ;
 			aCol   = 0      ;
 			aURID  = 0      ;
@@ -6542,7 +6542,7 @@ void PEDIT01::positionCursor()
 
 	const string delim = "\x01\x02\x20" ;
 
-	if ( cursorPlaceHome ) { CURFLD = "ZCMD" ; CURPOS = 1 ; return ; }
+	if ( cursorPlaceHome ) { curfld = "ZCMD" ; curpos = 1 ; return ; }
 
 	screenLine = -1 ;
 
@@ -6569,57 +6569,57 @@ void PEDIT01::positionCursor()
 			screenLine = cursorPlaceRow - 1 ;
 	}
 
-	if ( screenLine == -1 ) { CURFLD = "ZCMD" ; CURPOS = 1 ; return ; }
+	if ( screenLine == -1 ) { curfld = "ZCMD" ; curpos = 1 ; return ; }
 
 	switch ( cursorPlaceType )
 	{
 		case 1:
-			CURFLD = "ZAREA" ;
-			CURPOS = ZAREAW * screenLine + 2 ;
+			curfld = "ZAREA" ;
+			curpos = ZAREAW * screenLine + 2 ;
 			break ;
 
 		case 2:
-			CURFLD = "ZAREA" ;
-			CURPOS = ZAREAW * screenLine + 1 + CLINESZ ;
+			curfld = "ZAREA" ;
+			curpos = ZAREAW * screenLine + 1 + CLINESZ ;
 			break ;
 
 		case 3:
-			CURFLD = "ZAREA" ;
+			curfld = "ZAREA" ;
 			dl = s2data.at( screenLine ).ipos_dl ;
 			p  = data.at( dl )->get_idata_ptr()->find_first_not_of( ' ', startCol-1 ) ;
 			p  = (p != string::npos) ? p + CLINESZ + 2 - startCol : CLINESZ + 1 ;
-			CURPOS = ZAREAW * screenLine + p ;
+			curpos = ZAREAW * screenLine + p ;
 			break ;
 
 		case 4:
 			o = cursorPlaceOff - startCol + CLINESZ + 2 ;
 			if ( o < 1 || o > ZAREAW )
 			{
-				CURFLD = "ZAREA" ;
-				CURPOS = ZAREAW * screenLine + CLINESZ + 1 ;
+				curfld = "ZAREA" ;
+				curpos = ZAREAW * screenLine + CLINESZ + 1 ;
 			}
 			else
 			{
-				CURFLD = "ZAREA" ;
-				CURPOS = ZAREAW * screenLine + o ;
+				curfld = "ZAREA" ;
+				curpos = ZAREAW * screenLine + o ;
 			}
 			break ;
 
 		case 5:
-			CURFLD = "ZAREA" ;
-			CURPOS = ZAREAW * screenLine + CLINESZ + 1 + cursorPlaceOff ;
+			curfld = "ZAREA" ;
+			curpos = ZAREAW * screenLine + CLINESZ + 1 + cursorPlaceOff ;
 	}
 
 	ZSHADOW.replace( ZAREAW*screenLine, slr.size()-1, slr.size()-1, N_RED ) ;
 	rebuildShadow = true ;
 
-	if ( profCsrPhrase && ((CURPOS-1) % ZAREAW) >= CLINESZ )
+	if ( profCsrPhrase && ((curpos-1) % ZAREAW) >= CLINESZ )
 	{
 		dl = s2data.at( screenLine ).ipos_dl ;
 		if ( data.at( dl )->isValidFile() )
 		{
-			i = ZAREA.find_first_of( delim, CURPOS-1 ) ;
-			j = ZAREA.find_last_of( delim, CURPOS-1 )  ;
+			i = ZAREA.find_first_of( delim, curpos-1 ) ;
+			j = ZAREA.find_last_of( delim, curpos-1 )  ;
 			if ( i == string::npos ) { i = ZAREA.size() ; }
 			if ( j == string::npos ) { j = 0            ; }
 			ZSHADOW.replace( j, i-j, i-j, B_WHITE ) ;
@@ -9803,7 +9803,7 @@ void PEDIT01::run_macro( bool imacro )
 		return ;
 	}
 
-	if ( CURFLD != "ZAREA" )
+	if ( curfld != "ZAREA" )
 	{
 		mRow = 1 ;
 		mCol = 0 ;

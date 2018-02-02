@@ -46,7 +46,7 @@ void PCMD0A::application()
 {
 	llog( "I", "Application PCMD0A starting" << endl ) ;
 
-	ZAPPDESC = "Invoke a command and display the output" ;
+	set_appdesc( "Invoke a command and display the output" ) ;
 
 	string zcmd   ;
 	string msg    ;

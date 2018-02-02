@@ -66,7 +66,7 @@ void PLRFLST1::application()
 
 	llog( "I", "Application PLRFLST1 starting" << endl ) ;
 
-	ZAPPDESC = "Personal File List application" ;
+	set_appdesc( "Personal File List application" ) ;
 
 	P1 = word( PARM, 1 )          ;
 	P2 = upper( word( PARM, 2 ) ) ;

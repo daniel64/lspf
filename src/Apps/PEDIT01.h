@@ -2357,8 +2357,8 @@ class PEDIT01 : public pApplication
 		bool rebuildShadow ;
 		bool fileChanged   ;
 
-		string CURFLD  ;
-		int    CURPOS  ;
+		string curfld  ;
+		int    curpos  ;
 
 		string ZFILE   ;
 		string ZCOL1   ;
@@ -2373,6 +2373,9 @@ class PEDIT01 : public pApplication
 		string CAREA   ;
 		string CSHADOW ;
 		string XAREA   ;
+
+		string ZSCROLLA  ;
+		int    ZSCROLLN  ;
 
 		string ZEDPROF  ;
 		string ZEDPROFT ;
