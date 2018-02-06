@@ -118,6 +118,7 @@ class fPOOL
 	friend class pApplication ;
 	friend class Table  ;
 	friend class pPanel ;
+	friend class abc    ;
 } ;
 
 
@@ -314,6 +315,7 @@ class poolMGR
 
 	friend class pApplication ;
 	friend class pPanel       ;
+	friend class abc          ;
 } ;
 
 #undef llog

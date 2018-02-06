@@ -65,8 +65,8 @@ PSYE041T 'No matching IF statement found for ELSE at column ''&ZVAL1'''
 PSYE041U 'REFRESH statement is invalid within the )INIT section'
 ''
 
-PSYE041V 'Spare'
-'Spare'
+PSYE041V 'PDC found with no ACTION'
+'Missing ACTION statement after PDC statement'
 
 PSYE041W 'Invalid field name ''&ZVAL1'' on REFRESH statement'
 ''
@@ -127,4 +127,7 @@ PSYE042O 'Invalid value for .AUTOSEL control variable.  Must be YES, NO or blank
 
 PSYE042P 'Invalid command field name'
 'Selection panels must have a command field name of ZCMD'
+
+PSYE042Q 'ACTION found with no PDC'
+'Missing PDC statement before ACTION statement'
 

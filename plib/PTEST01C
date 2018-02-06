@@ -3,6 +3,9 @@
 
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 PanelTitle "Test Dynamic Area (Input & Output)"
@@ -43,9 +46,6 @@ literal  32   MAX-25    FP  "ZAREAD  : "
 field    32   MAX-15    8    VOI   NONE  ZAREAD2
 --literal  33   MAX-25    FP  "TYPE    : "
 --field    33   MAX-15    8    VOI   NONE  ZAREAT2
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 
 )PROC

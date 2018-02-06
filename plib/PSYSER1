@@ -7,6 +7,9 @@
 
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 PanelTitle "Dialogue Error in application &ZAPPNAME"
@@ -95,9 +98,6 @@ literal 22 4   NT "See application and lspf logs for more messages"
 literal 24 4   NT "Press"
 literal 24 10  ET "ENTER"
 literal 24 16  NT "to terminate dialogue"
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 )INIT
 .CURSOR = ZCMD

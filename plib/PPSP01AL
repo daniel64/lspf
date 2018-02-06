@@ -2,6 +2,10 @@
 )COMMENT
  Panel for application and lspf log viewer
 )ENDCOMMENT
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 PanelTitle   "lspf/Application Log Viewer"
@@ -31,9 +35,6 @@ field     3   MAX-7     8   VOI   NONE  ZROW2
 field     8   2  MAX   FP  NONE  HEADER
 
 dynArea  9  2  MAX MAX ZAREA ZSHADOW
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 )INIT
 IF (&ZSCROLL = &Z) &ZSCROLL = 'HALF'

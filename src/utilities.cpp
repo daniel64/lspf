@@ -1657,3 +1657,104 @@ void extractWord( errblock& err, string& s, string& p, bool& quoted )
 		}
 	}
 }
+
+
+string extractKWord( errblock& err, string& s, string p )
+{
+	// return value of keyword parameter p, or null if not entered.  Value can be quoted (removed).
+
+	// err - errblock to hold any errors
+	// s   - entered string (on exit, minus the keyword parameter, p and trimmed)
+	// p   - parameter to find (case insensitive)
+
+	int p1 ;
+	int p2 ;
+
+	char q ;
+
+	bool quote = false ;
+
+	string us ;
+	string t  ;
+
+	err.setRC( 0 ) ;
+
+	p = iupper( trim( p ) ) ;
+
+	if ( p.size() == 0 )
+	{
+		err.seterrid( "PSYE037F" ) ;
+		return "" ;
+	}
+
+	us = upper( s ) ;
+	if ( p.back() != ')' || p.size() < 3 )
+	{
+		err.seterrid( "PSYE037H" ) ;
+		return "" ;
+	}
+
+	p.pop_back() ;
+	if ( p.back() != '(' )
+	{
+		err.seterrid( "PSYE037H" ) ;
+		return "" ;
+	}
+
+	if ( us.compare( 0, p.size(), p ) == 0 )
+	{
+		p1 = 0 ;
+	}
+	else
+	{
+		p1 = us.find( " " + p ) ;
+		if ( p1 == string::npos ) { return "" ; }
+		p1++ ;
+	}
+
+	p2 = p1 + p.size() ;
+	p2 = s.find_first_not_of( ' ', p2 ) ;
+	if ( p2 == string::npos )
+	{
+		err.seterrid( "PSYE037H" ) ;
+		return "" ;
+	}
+	if ( s[ p2 ] == '"' || s[ p2 ] == '\'' )
+	{
+		quote  = true ;
+		q      = s[ p2 ] ;
+		p2++ ;
+	}
+
+	for ( ; p2 < s.size() ; p2++ )
+	{
+		if ( quote && s[ p2 ] == q ) { p2++ ; break ; }
+		if ( quote ) { continue ; }
+		if ( s[ p2 ] == ')' ) { break ; }
+	}
+
+	p2 = s.find_first_not_of( ' ', p2 ) ;
+	if ( p2 == string::npos || s[ p2 ] != ')' )
+	{
+		err.seterrid( "PSYE037H" ) ;
+		return "" ;
+	}
+
+	if ( p2 < s.size()-1 && s[ p2+1 ] != ' ' )
+	{
+		err.seterrid( "PSYE037H" ) ;
+		return "" ;
+	}
+
+	t = s.substr( p1+p.size(), p2-p1-p.size() ) ;
+	trim( s.erase( p1, p2-p1+1 ) ) ;
+
+	trim( t ) ;
+	if ( quote )
+	{
+		t.erase( 0, 1 ) ;
+		t.pop_back() ;
+	}
+
+	return t ;
+}

@@ -4,6 +4,9 @@
 
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 PanelTitle "Testing Services Selection Menu"
@@ -61,9 +64,6 @@ literal  17  2    SAC  "X"
 literal  17  5    PS   "Terminate"
 literal  17  22    NT   "Terminate Dialogue Services"
 
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 )INIT
 .CURSOR = ZCMD

@@ -48,11 +48,11 @@ map<cuaType, unsigned int> cuaAttr ;
 
 #include "colours.h"
 
-#include "pWidgets.h"
-#include "pWidgets.cpp"
-
 #include "pVPOOL.h"
 #include "pVPOOL.cpp"
+
+#include "pWidgets.h"
+#include "pWidgets.cpp"
 
 #include "pTable.h"
 #include "pTable.cpp"
@@ -122,6 +122,7 @@ tableMGR * pApplication::p_tableMGR = NULL ;
 poolMGR  * pApplication::p_poolMGR  = NULL ;
 logger   * pApplication::lg         = NULL ;
 poolMGR  * pPanel::p_poolMGR        = NULL ;
+poolMGR  * abc::p_poolMGR           = NULL ;
 logger   * pPanel::lg               = NULL ;
 logger   * tableMGR::lg             = NULL ;
 logger   * poolMGR::lg              = NULL ;
@@ -257,7 +258,7 @@ int main( void )
 	currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
 
 	llog( "I", "lspf startup in progress" << endl ) ;
-	llog( "I", "Starting background monitor task" << endl ) ;
+	llog( "I", "Starting background job monitor task" << endl ) ;
 	bThread = new boost::thread( &processBackgroundTasks ) ;
 
 	llog( "I", "Calling initialSetup" << endl ) ;
@@ -354,7 +355,7 @@ int main( void )
 		}
 	}
 
-	llog( "I", "Terminating background monitor task" << endl ) ;
+	llog( "I", "Terminating background job monitor task" << endl ) ;
 	while ( backStatus == 'R' )
 	{
 		boost::this_thread::sleep_for( boost::chrono::milliseconds( ZWAIT ) ) ;
@@ -475,12 +476,53 @@ void mainLoop()
 		}
 		switch( c )
 		{
-			case KEY_LEFT:  currScrn->cursor_left()  ; break ;
-			case KEY_RIGHT: currScrn->cursor_right() ; break ;
-			case KEY_UP:    currScrn->cursor_up()    ; break ;
-			case KEY_DOWN:  currScrn->cursor_down()  ; break ;
+			case KEY_LEFT:
+				currScrn->cursor_left() ;
+				if ( currAppl->currPanel->pd_active() )
+				{
+					col = currScrn->get_col() ;
+					currAppl->currPanel->display_current_pd( row, col ) ;
+				}
+				break ;
+
+			case KEY_RIGHT:
+				currScrn->cursor_right() ;
+				if ( currAppl->currPanel->pd_active() )
+				{
+					col = currScrn->get_col() ;
+					currAppl->currPanel->display_current_pd( row, col ) ;
+				}
+				break ;
+
+			case KEY_UP:
+				currScrn->cursor_up() ;
+				if ( currAppl->currPanel->pd_active() )
+				{
+					row = currScrn->get_row() ;
+					currAppl->currPanel->display_current_pd( row, col ) ;
+				}
+				break ;
+
+			case KEY_DOWN:
+				currScrn->cursor_down() ;
+				if ( currAppl->currPanel->pd_active() )
+				{
+					row = currScrn->get_row() ;
+					currAppl->currPanel->display_current_pd( row, col ) ;
+				}
+				break ;
+
 			case 9:   // Tab key
-				currAppl->currPanel->field_tab_next( row, col ) ;
+				if ( currAppl->currPanel->pd_active() )
+				{
+					currAppl->currPanel->hide_pd() ;
+					currAppl->currPanel->display_next_pd() ;
+					currAppl->currPanel->get_cursor( row, col ) ;
+				}
+				else
+				{
+					currAppl->currPanel->field_tab_next( row, col ) ;
+				}
 				currScrn->set_row_col( row, col ) ;
 				break ;
 
@@ -490,7 +532,15 @@ void mainLoop()
 				break ;
 
 			case KEY_HOME:
-				currAppl->get_home( row, col ) ;
+				if ( currAppl->currPanel->pd_active() )
+				{
+					currAppl->currPanel->get_pd_home( row, col ) ;
+					currAppl->currPanel->display_current_pd( row, col ) ;
+				}
+				else
+				{
+					currAppl->get_home( row, col ) ;
+				}
 				currScrn->set_row_col( row, col ) ;
 				break ;
 
@@ -934,6 +984,7 @@ void setGlobalClassVars()
 	pApplication::p_poolMGR  = p_poolMGR  ;
 	pApplication::lg         = lgx        ;
 	pPanel::p_poolMGR        = p_poolMGR  ;
+	abc::p_poolMGR           = p_poolMGR  ;
 	pPanel::lg               = lgx        ;
 	tableMGR::lg             = lgx        ;
 	poolMGR::lg              = lgx        ;
@@ -1072,10 +1123,18 @@ void processAction( uint row, uint col, int c, bool& passthru )
 
 	if ( c == 27 )
 	{
-		ZCOMMAND = "SWAP" ;
-		ZPARM    = "LIST" ;
-		passthru = false  ;
-		return            ;
+		if ( currAppl->currPanel->pd_active() )
+		{
+			currAppl->currPanel->remove_pd() ;
+			ZCOMMAND = "" ;
+		}
+		else
+		{
+			ZCOMMAND = "SWAP" ;
+			ZPARM    = "LIST" ;
+		}
+		passthru = false ;
+		return ;
 	}
 
 	if ( c == KEY_ENTER )
@@ -1113,7 +1172,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		}
 		else if ( row == currAppl->currPanel->get_abline() )
 		{
-			if ( currAppl->currPanel->display_pd( col ) )
+			if ( currAppl->currPanel->display_pd( row+2, col ) )
 			{
 				passthru = false ;
 				currAppl->currPanel->get_cursor( row, col ) ;
@@ -1124,7 +1183,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		}
 		else
 		{
-			t_pdc = currAppl->currPanel->retrieve_pdChoice( row, col ) ;
+			t_pdc = currAppl->currPanel->retrieve_choice() ;
 			if ( t_pdc.pdc_run != "" )
 			{
 				ZCOMMAND = t_pdc.pdc_run ;
@@ -1470,7 +1529,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		ZCOMMAND.erase( 0, 1 ) ;
 	}
 
-	if ( currAppl->currPanel->pd_Active() && ZCTVERB == "END" )
+	if ( currAppl->currPanel->pd_active() && ZCTVERB == "END" )
 	{
 		currAppl->currPanel->remove_pd() ;
 		ZCOMMAND = ""    ;

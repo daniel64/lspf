@@ -4,6 +4,9 @@
  File information panel
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 PanelTitle "File Information"
 
@@ -66,9 +69,6 @@ literal  20   42       FP  "Minor Device. :"
 field    20   58       5  VOI NONE IMIN
 literal  21   42       FP  "Major Device. :"
 field    21   58       5  VOI NONE IMAJ
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 
 )INIT

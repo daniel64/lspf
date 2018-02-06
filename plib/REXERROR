@@ -7,6 +7,9 @@
 
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 PanelTitle "REXX Error"
@@ -94,9 +97,6 @@ field   16 28  MAX-2 ET NONE ZERR5
 literal 20 4   NT "Press"
 literal 20 10  ET "ENTER"
 literal 20 16  NT "to terminate the macro"
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 )INIT
 .CURSOR = ZCMD

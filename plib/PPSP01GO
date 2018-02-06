@@ -6,6 +6,10 @@
 )ENDCOMMENT
 
 
+)INCLUDE STD_PDC
+)INCLUDE RFS_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 PanelTitle "General lspf Settings"
@@ -71,10 +75,9 @@ literal 26 2  NT "Enter"
 literal 26 8  PS "RESET"
 literal 26 14 NT "for original values"
 
-)INCLUDE STD_PDC
-)INCLUDE RFS_PDC
-)INCLUDE HLP_PDC
 
+)INIT
+&ZPS0 = 1
 
 )PROC
 

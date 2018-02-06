@@ -170,6 +170,8 @@ class pdc
 		string pdc_run  ;
 		string pdc_parm ;
 		string pdc_unavail ;
+		void   display_pdc_avail( WINDOW *, cuaType, int ) ;
+		void   display_pdc_unavail( WINDOW *, cuaType, int ) ;
 } ;
 
 
@@ -181,9 +183,23 @@ class abc
 		unsigned int abc_maxh ;
 		unsigned int abc_maxw ;
 
+		static poolMGR * p_poolMGR ;
+
 		abc()   {
 				abc_maxh   = 0 ;
 				abc_maxw   = 0 ;
+				currChoice = 0 ;
+				pd_created = false ;
+			} ;
+
+		abc( fPOOL* p, bool b, int i )
+			{
+				p_funcPOOL = p ;
+				selPanel   = b ;
+				taskId     = i ;
+				abc_maxh   = 0 ;
+				abc_maxw   = 0 ;
+				currChoice = 0 ;
 				pd_created = false ;
 			} ;
 
@@ -195,16 +211,24 @@ class abc
 			}
 			} ;
 
-		bool pdc_exists( const string& )   ;
-		void add_pdc( const pdc& ) ;
-		void display_abc_sel( WINDOW * )   ;
-		void display_abc_unsel( WINDOW * ) ;
-		void display_pd( uint, uint ) ;
-		void hide_pd() ;
-		pdc  retrieve_pdChoice( unsigned int row, unsigned int col ) ;
+		bool  pdc_exists( const string& )   ;
+		void  add_pdc( const pdc& ) ;
+		void  display_abc_sel( WINDOW * )    ;
+		void  display_abc_unsel( WINDOW * )  ;
+		void  display_pd( uint, uint, uint ) ;
+		void  hide_pd()    ;
+		int   get_pd_col() ;
+		const string& get_abc_name() ;
+		pdc   retrieve_choice() ;
+		string getDialogueVar( errblock&, const string& ) ;
 
 	private:
+		fPOOL* p_funcPOOL ;
 		bool   pd_created ;
+		bool   selPanel   ;
+		int    taskId     ;
+		int    currChoice ;
+
 		vector<pdc> pdcList ;
 		WINDOW * win   ;
 		PANEL  * panel ;

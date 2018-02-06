@@ -12,6 +12,10 @@
       temporary (on redisplay only) in the )REINIT and )PROC sections
 
 )ENDCOMMENT
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 PanelTitle "Test Panel Functions"
@@ -105,11 +109,6 @@ field     21   84   8    NEF   pad(user),JUST(RIGHT) FLDE
 
 literal   22   64   FP  "PAD(USER),JUST(A):"
 field     22   84   8    NEF   pad(user),JUST(ASIS)  FLDF
-
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
-
 
 )INIT
 

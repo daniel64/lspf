@@ -31,11 +31,15 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 	string pline      ;
 	string oline      ;
 	string fld, hlp   ;
+	string abc_name   ;
 
+	bool abc     = false ;
 	bool body    = false ;
 	bool init    = false ;
+	bool abcinit = false ;
 	bool reinit  = false ;
 	bool proc    = false ;
+	bool abcproc = false ;
 	bool help    = false ;
 	bool ispnts  = false ;
 	bool isfield = false ;
@@ -64,13 +68,33 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		w1 = upper( word( pline, 1 ) ) ;
 		if ( w1.front() == ')' )
 		{
+			abc     = false ;
 			body    = false ;
 			init    = false ;
+			abcinit = false ;
 			reinit  = false ;
 			proc    = false ;
+			abcproc = false ;
 			help    = false ;
 			ispnts  = false ;
 			isfield = false ;
+		}
+		if ( w1 == ")ABC" )
+		{
+			abc_name = parseString( err, pline, "DESC()" ) ;
+			if ( err.error() )
+			{
+				err.setsrc( oline ) ;
+				return ;
+			}
+			if ( abc_name == "" )
+			{
+				err.seterrid( "PSYE011G" ) ;
+				err.setsrc( oline ) ;
+				return ;
+			}
+			abc = true ;
+			continue ;
 		}
 		if ( w1 == ")PANEL" )
 		{
@@ -212,21 +236,46 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			body = true ;
 			continue ;
 		}
-		else if ( w1 == ")PROC" )   { proc    = true ; continue ; }
-		else if ( w1 == ")INIT" )   { init    = true ; continue ; }
-		else if ( w1 == ")REINIT" ) { reinit  = true ; continue ; }
-		else if ( w1 == ")HELP" )   { help    = true ; continue ; }
-		else if ( w1 == ")PNTS" )   { ispnts  = true ; continue ; }
-		else if ( w1 == ")FIELD" )  { isfield = true ; continue ; }
+		else if ( w1 == ")ABCINIT" ) { abcinit = true ; continue ; }
+		else if ( w1 == ")ABCPROC" ) { abcproc = true ; continue ; }
+		else if ( w1 == ")PROC" )    { proc    = true ; continue ; }
+		else if ( w1 == ")INIT" )    { init    = true ; continue ; }
+		else if ( w1 == ")REINIT" )  { reinit  = true ; continue ; }
+		else if ( w1 == ")HELP" )    { help    = true ; continue ; }
+		else if ( w1 == ")PNTS" )    { ispnts  = true ; continue ; }
+		else if ( w1 == ")FIELD" )   { isfield = true ; continue ; }
 
-		if ( init || reinit || proc )
+		if ( abc )
+		{
+			if ( w1 == "PDC" )
+			{
+				debug2( "Creating pdc" << endl ) ;
+				create_pdc( err, abc_name, pline ) ;
+				if ( err.error() )
+				{
+					err.setsrc( oline ) ;
+					return ;
+				}
+				continue ;
+			}
+			else
+			{
+				err.seterrid( "PSYE041D", w1 ) ;
+				err.setsrc( oline ) ;
+				return ;
+			}
+		}
+		if ( init || abcinit || reinit || proc || abcproc )
 		{
 			panstmnt * m_stmnt = new panstmnt ;
 			m_stmnt->ps_column = pline.find_first_not_of( ' ' ) ;
 			vector<panstmnt* >* p_stmnt ;
-			if ( init )        { p_stmnt = &initstmnts ; }
-			else if ( reinit ) { p_stmnt = &reinstmnts ; }
-			else               { p_stmnt = &procstmnts ; }
+			if      ( init )    { p_stmnt = &initstmnts ; }
+			else if ( abcinit ) { p_stmnt = &abc_initstmnts[ abc_name ] ; }
+			else if ( abcproc ) { p_stmnt = &abc_procstmnts[ abc_name ] ; }
+			else if ( reinit )  { p_stmnt = &reinstmnts ; }
+			else if ( reinit )  { p_stmnt = &reinstmnts ; }
+			else                { p_stmnt = &procstmnts ; }
 			if ( w1.back() == ':' )
 			{
 				w1.pop_back() ;
@@ -275,7 +324,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				break ;
 
 			case ST_IF:
-				createPanel_If( err, panelLang, m_stmnt, init ) ;
+				createPanel_If( err, panelLang, m_stmnt, init || abcinit ) ;
 				if ( err.error() )
 				{
 					err.setsrc( oline ) ;
@@ -286,7 +335,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				break ;
 
 			case ST_ELSE:
-				createPanel_Else( err, panelLang, m_stmnt, p_stmnt, init ) ;
+				createPanel_Else( err, panelLang, m_stmnt, p_stmnt, init || abcinit ) ;
 				if ( err.error() )
 				{
 					err.setsrc( oline ) ;
@@ -296,7 +345,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				break ;
 
 			case ST_REFRESH:
-				if ( init )
+				if ( init || abcinit )
 				{
 					err.seterrid( "PSYE041U" ) ;
 					err.setsrc( oline ) ;
@@ -598,17 +647,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			boxes.push_back( m_box ) ;
 			continue ;
 		}
-		else if ( w1 == "PDC" )
-		{
-			debug2( "Creating pdc" << endl ) ;
-			create_pdc( err, pline ) ;
-			if ( err.error() )
-			{
-				err.setsrc( oline ) ;
-				return ;
-			}
-			continue ;
-		}
 		else if ( w1 == "TBMODEL" )
 		{
 			debug2( "Creating tbmodel" << endl ) ;
@@ -762,10 +800,12 @@ void pPanel::readPanel( errblock& err, vector<string>& src, const string& name, 
 	string w2    ;
 	string w3    ;
 	string type  ;
-	string temp  ;
+	string temp1 ;
+	string temp2 ;
 
 	bool comment ;
-	bool split   ;
+	bool split1  ;
+	bool abc     ;
 
 	std::ifstream panl ;
 
@@ -798,7 +838,9 @@ void pPanel::readPanel( errblock& err, vector<string>& src, const string& name, 
 	}
 
 	comment = false ;
-	split   = false ;
+	abc     = false ;
+	split1  = false ;
+	temp2   = ""    ;
 	while ( getline( panl, pline ) )
 	{
 		p1 = pline.find( "/*" ) ;
@@ -809,30 +851,67 @@ void pPanel::readPanel( errblock& err, vector<string>& src, const string& name, 
 		}
 		trim_right( pline ) ;
 		if ( pline == "" ) { continue ; }
-		if ( split )
+		if ( split1 )
 		{
-			temp += " " + trim_left( pline ) ;
+			temp1 += " " + trim_left( pline ) ;
 			if ( pline.back() == ')' )
 			{
-				src.push_back( temp ) ;
-				split = false ;
+				src.push_back( temp1 ) ;
+				split1 = false ;
 			}
 			continue ;
 		}
 		w1 = upper( word( pline, 1 ) ) ;
 		if ( w1.compare( 0, 2, "--" ) == 0 || w1.front() == '#' ) { continue ; }
+		if ( w1.front() == ')' ) { abc = false ; }
+		if ( abc )
+		{
+			if ( w1 == "PDC" )
+			{
+				if ( temp2 != "" )
+				{
+					err.seterrid( "PSYE041V", name, w2 ) ;
+					err.setsrc( trim( pline ) ) ;
+					panl.close() ;
+					return ;
+				}
+				temp2 = pline ;
+				continue ;
+			}
+			if ( w1 == "ACTION" )
+			{
+				if ( temp2 == "" )
+				{
+					err.seterrid( "PSYE042Q", name, w2 ) ;
+					err.setsrc( trim( pline ) ) ;
+					panl.close() ;
+					return ;
+				}
+				temp2 = temp2 + " " + trim( pline ) ;
+				src.push_back( temp2 ) ;
+				temp2 = "" ;
+				continue ;
+			}
+		}
+		else if ( temp2 != "" )
+		{
+			err.seterrid( "PSYE041V", name, w2 ) ;
+			err.setsrc( trim( pline ) ) ;
+			panl.close() ;
+		}
 		w2 = word( pline, 2 ) ;
 		w3 = word( pline, 3 ) ;
 		if ( w2 == "=" && w3.compare( 0, 5, "TRANS" ) == 0 && pline.back() != ')' )
 		{
-			split = true  ;
-			temp  = pline ;
-			continue      ;
+			split1 = true  ;
+			temp1  = pline ;
+			continue       ;
 		}
 		if ( w1 == ")END" )        { break                      ; }
 		if ( w1 == ")COMMENT" )    { comment = true  ; continue ; }
 		if ( w1 == ")ENDCOMMENT" ) { comment = false ; continue ; }
 		if ( comment )             { continue                   ; }
+		if ( w1 == ")ABC" )        { abc = true                 ; }
 		if ( w1 == ")INCLUDE" )
 		{
 			if ( wordpos( w2, slist ) )

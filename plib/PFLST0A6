@@ -4,6 +4,9 @@
  Modify attributes
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 PanelTitle "Modify File Attributes"
 
@@ -64,9 +67,6 @@ literal 27 8  ET "Cancel"
 literal 27 15 NT "or"
 literal 27 18 ET "END"
 literal 27 22 NT "to cancel changes"
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 
 )PROC

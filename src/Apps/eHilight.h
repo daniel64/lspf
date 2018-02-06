@@ -289,6 +289,9 @@ map<string, keyw> keywList2 = {
 
 map<string, keyw> keywList3 = {
   { ")PANEL",          { 6,  N_WHITE } },
+  { ")ABC",            { 4,  N_WHITE } },
+  { ")ABCINIT",        { 8,  N_WHITE } },
+  { ")ABCPROC",        { 8,  N_WHITE } },
   { ")INCLUDE",        { 8,  N_WHITE } },
   { ")BODY",           { 5,  N_WHITE } },
   { ")INIT",           { 5,  N_WHITE } },
@@ -301,6 +304,8 @@ map<string, keyw> keywList3 = {
   { ")END",            { 4,  N_WHITE } },
   { ")COMMENT",        { 8,  N_TURQ  } },
   { ")ENDCOMMENT",     { 11, N_TURQ  } },
+  { "PDC",             { 3,  N_RED   } },
+  { "ACTION",          { 6,  N_RED   } },
   { "IF",              { 2,  N_RED   } },
   { "ELSE",            { 4,  N_RED   } },
   { "VGET",            { 4,  N_RED   } },

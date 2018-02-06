@@ -5,6 +5,9 @@
 
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 PanelTitle "Test Non-Keyed Table and TB Functions"
@@ -104,9 +107,6 @@ literal   38  41        FP  "                 TBSARG Cond Pairs . . . . :"
 field     38  86    30   VOI   NONE  TBQ9
 literal   39  41        FP  "                 TBSARG Search Direction . :"
 field     39  86    10   VOI   NONE  TBQ10
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 
 

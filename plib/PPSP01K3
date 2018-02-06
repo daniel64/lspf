@@ -3,6 +3,9 @@
  Keylist Utilit Panel 3
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 PanelTitle "&ZZTABL Keylist &KEYLISTN Change"
@@ -26,9 +29,6 @@ tbfield    2   8    VOI   NONE KEYNUM
 tbfield  ++2   40   LEF   NONE KEYDEF
 tbfield  ++2   5    LEF   NONE KEYATTR
 tbfield  ++2   8    LEF   NONE KEYLAB
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 )INIT
 VGET ZSCROLL PROFILE

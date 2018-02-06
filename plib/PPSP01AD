@@ -3,6 +3,9 @@
  Command tables display
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 PanelTitle "Command Tables"
@@ -46,9 +49,6 @@ tbmodel  13   MAX
 tbfield  2    8    VOI   NONE ZCTVERB
 tbfield  ++1  1    VOI   NONE ZCTTRUNC
 tbfield  +2   MAX  VOI   NONE ZCTACT
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 
 )INIT

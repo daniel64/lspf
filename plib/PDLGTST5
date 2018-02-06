@@ -2,6 +2,10 @@
 )COMMENT
 
 )ENDCOMMENT
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 PanelTitle "Display Dialogue Variables"
@@ -25,9 +29,6 @@ field     11   11    10     VOI   NONE  ZCURFLD
 
 literal   12   2     FP     "ZCURPOS:"
 field     12   11    10     VOI   NONE  ZCURPOS
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 )INIT
 VGET FLD1

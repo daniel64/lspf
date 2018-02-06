@@ -2,6 +2,10 @@
 )COMMENT
  Panel to display path search order
 )ENDCOMMENT
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 PanelTitle "Path Searches"
 
@@ -24,10 +28,6 @@ tbfield  4    8    VOI  NONE PVAR
 tbfield  13   50   VOI  NONE PATH
 tbfield  63   15   VOI  NONE MESSAGE
 tbfield  79   MAX  VOI  NONE DESCRIPT
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
-
 
 )INIT
 VGET ZSCROLL PROFILE

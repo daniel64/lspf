@@ -74,20 +74,17 @@ pPanel::pPanel()
 pPanel::~pPanel()
 {
 	// iterate over the 4 panel widget types, literal, field, dynArea, boxes and delete them.
+	// Delete panel language statements in )INIT, )REINIT, )PROC, )ABCINIT and )ABCPROC sections.
 	// Delete the main window/panel, popup panel and any message windows/panels created (free any userdata first)
 
-	map<string, field *>::iterator it1;
-	map<string, dynArea *>::iterator it2;
-
-
-	for ( it1 = fieldList.begin() ; it1 != fieldList.end() ; it1++ )
+	for ( auto it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
-		delete it1->second ;
+		delete it->second ;
 	}
 
-	for ( it2 = dynAreaList.begin() ; it2 != dynAreaList.end() ; it2++ )
+	for ( auto it = dynAreaList.begin() ; it != dynAreaList.end() ; it++ )
 	{
-		delete it2->second ;
+		delete it->second ;
 	}
 
 	for_each( literalList.begin(), literalList.end(),
@@ -116,6 +113,23 @@ pPanel::~pPanel()
 		{
 			delete a ;
 		} ) ;
+	for ( auto it = abc_initstmnts.begin() ; it != abc_initstmnts.end() ; it++ )
+	{
+		for_each( it->second.begin(), it->second.end(),
+			[](panstmnt * a)
+			{
+				delete a ;
+			} ) ;
+	}
+	for ( auto it = abc_procstmnts.begin() ; it != abc_procstmnts.end() ; it++ )
+	{
+		for_each( it->second.begin(), it->second.end(),
+			[](panstmnt * a)
+			{
+				delete a ;
+			} ) ;
+	}
+
 	if ( bwin )
 	{
 		panel_cleanup( bpanel ) ;
@@ -813,6 +827,22 @@ void pPanel::display_panel_proc( errblock& err, int ln )
 			if ( err.error() ) { return ; }
 		}
 	}
+}
+
+
+void pPanel::abc_panel_init( errblock& err, const string& abc_desc )
+{
+	// Perform panel )ABCINIT processing
+
+	process_panel_stmnts( err, 0, abc_initstmnts[ abc_desc ] ) ;
+}
+
+
+void pPanel::abc_panel_proc( errblock& err, const string& abc_desc )
+{
+	// Perform panel )ABCPROC processing
+
+	process_panel_stmnts( err, 0, abc_procstmnts[ abc_desc ] ) ;
 }
 
 
@@ -1960,15 +1990,12 @@ void pPanel::create_tbfield( errblock& err, const string& pline )
 }
 
 
-void pPanel::create_pdc( errblock& err, const string& pline )
+void pPanel::create_pdc( errblock& err, const string& abc_name, const string& pline )
 {
 	// ab is a vector list of action-bar-choices (abc objects)
 	// Each action-bar-choice is a vector list of pull-down-choices (pdc objects)
 
 	int i  ;
-	int p1 ;
-
-	string abc_name ;
 
 	string pdc_name ;
 	string pdc_run  ;
@@ -1976,27 +2003,12 @@ void pPanel::create_pdc( errblock& err, const string& pline )
 	string pdc_unavail ;
 	string rest ;
 
-	abc t_abc ;
+	abc t_abc( p_funcPOOL, selectPanel, taskId ) ;
 
-	abc_name = word( pline, 2 ) ;
-	rest     = subword( pline, 3 ) ;
+	rest = subword( pline, 2 ) ;
 
-	if ( rest.size() > 1 && rest.front() == '\"' )
-	{
-		p1 = rest.find( '\"', 1 ) ;
-		if ( p1 == string::npos )
-		{
-			err.seterrid( "PSYE033F" ) ;
-			return ;
-		}
-		pdc_name = rest.substr( 1, p1-1 ) ;
-		rest.erase( 0, p1+1 ) ;
-	}
-	else
-	{
-		pdc_name = word( rest, 1 ) ;
-		idelword( rest, 1, 1 ) ;
-	}
+	pdc_name = extractKWord( err, rest, "DESC()" ) ;
+	if ( err.error() ) { return ; }
 
 	if ( word( rest, 1 ) != "ACTION" )
 	{
@@ -2836,10 +2848,25 @@ void pPanel::set_tb_fields_act_inact( errblock& err )
 }
 
 
-bool pPanel::display_pd( uint col )
+void pPanel::get_pd_home( uint& row, uint& col )
 {
-	// col is the pysical position on the screen.  Correct by subtracting the window column position
+	// Return the physical home position of a pull-down
 
+	row = win_row + 2 ;
+	col = win_col + 2 + ab[ abIndex ].get_pd_col() ;
+}
+
+
+bool pPanel::display_pd( uint row, uint col )
+{
+	// row/col is the pysical position on the screen.  Correct by subtracting the window column position
+
+	// Call relevant )ABCINIT and display the pull-down at the cursor position.
+
+	errblock err ;
+	err.taskid = taskId ;
+
+	row = row - win_row ;
 	col = col - win_col ;
 	hide_pd() ;
 
@@ -2849,7 +2876,8 @@ bool pPanel::display_pd( uint col )
 		{
 			abIndex  = i ;
 			ab[ abIndex ].display_abc_sel( win ) ;
-			ab[ abIndex ].display_pd( win_row, win_col ) ;
+			abc_panel_init( err, ab[ abIndex ].get_abc_name() ) ;
+			ab[ abIndex ].display_pd( win_row, win_col, row ) ;
 			pdActive = true ;
 			p_col    = ab[ abIndex ].abc_col + 2 ;
 			p_row    = 2 ;
@@ -2860,24 +2888,44 @@ bool pPanel::display_pd( uint col )
 }
 
 
+void pPanel::display_current_pd( uint row, uint col )
+{
+	// row/col is the pysical position on the screen.  Correct by subtracting the window column position
+
+	// Re-display the pull-down if the cursor is placed on it (to update current choice and hilite)
+
+	row = row - win_row ;
+	col = col - win_col ;
+
+	if ( col >= ab[ abIndex ].abc_col && col < ( ab[ abIndex ].abc_col + ab[ abIndex ].abc_maxw + 10 ) )
+	{
+		ab[ abIndex ].display_pd( win_row, win_col, row ) ;
+	}
+}
+
+
 void pPanel::display_pd()
 {
 	if ( !pdActive ) { return ; }
 
 	ab.at( abIndex ).display_abc_sel( win ) ;
-	ab.at( abIndex ).display_pd( win_row, win_col ) ;
+	ab.at( abIndex ).display_pd( win_row, win_col, 0 ) ;
 }
 
 
 void pPanel::display_next_pd()
 {
+	errblock err ;
+	err.taskid = taskId ;
+
 	if ( ab.size() == 0 ) { return ; }
 	if ( !pdActive || ++abIndex == ab.size() ) { abIndex = 0 ; }
 
 	pdActive = true ;
 
 	ab.at( abIndex ).display_abc_sel( win ) ;
-	ab.at( abIndex ).display_pd( win_row, win_col ) ;
+	abc_panel_init( err, ab.at( abIndex ).get_abc_name() ) ;
+	ab.at( abIndex ).display_pd( win_row, win_col, 2 ) ;
 	p_col = ab.at( abIndex ).abc_col + 2 ;
 	p_row = 2 ;
 }
@@ -2899,15 +2947,18 @@ void pPanel::hide_pd()
 }
 
 
-pdc pPanel::retrieve_pdChoice( int row, int col )
+pdc pPanel::retrieve_choice()
 {
+	errblock err ;
+
 	if ( !pdActive ) { return pdc() ; }
 
 	ab.at( abIndex ).hide_pd() ;
 	ab.at( abIndex ).display_abc_unsel( win ) ;
 	pdActive = false ;
 
-	return ab.at( abIndex ).retrieve_pdChoice( row-win_row, col-win_col ) ;
+	abc_panel_proc( err, ab.at( abIndex ).get_abc_name() ) ;
+	return ab.at( abIndex ).retrieve_choice() ;
 }
 
 

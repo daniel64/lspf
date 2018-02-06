@@ -3,6 +3,13 @@
  Panel for Issuing commands
 )ENDCOMMENT
 
+)ABC DESC(Commands)
+PDC DESC("Clear Output")
+ACTION RUN(>:CLEAR)
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY CMD(ZCMD) SCROLL(ZSCROLL)
 
 ScrollOn
@@ -17,13 +24,9 @@ field     MAX-2  6   MAX-17 NEF CAPS(OFF),PAD(USER) ZCMD
 literal   MAX-2  MAX-15     FP  "Scroll ===>"
 field     MAX-2  MAX-3   4  NEF  NONE  ZSCROLL
 
-pdc  Commmands "Clear Output"  ACTION RUN(>:CLEAR)
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
-
 )INIT
 .CURSOR = ZCMD
+&ZUS5 = 1
 
 )PROC
 

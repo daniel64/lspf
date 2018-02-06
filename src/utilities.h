@@ -152,3 +152,4 @@ string& getNameList( errblock& err, string& s ) ;
 
 void   extractWord( errblock& err, string& s, string& p ) ;
 void   extractWord( errblock& err, string& s, string& p, bool& ) ;
+string extractKWord( errblock& err, string& s, string p ) ;

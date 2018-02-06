@@ -5,6 +5,10 @@ Panel for editor PEDIT01
 COMPARE files panel
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE RFL_PDC
+)INCLUDE HLP_PDC
+
 )BODY HOME(ZCMD3) CMD(ZCMD3)
 
 PanelTitle "Compare File"
@@ -38,10 +42,6 @@ literal 19 2  NT "Enter file name and press"
 literal 19 28 ET "ENTER"
 literal 19 34 NT "to compare files"
 
-
-)INCLUDE STD_PDC
-)INCLUDE RFL_PDC
-)INCLUDE HLP_PDC
 
 )INIT
 

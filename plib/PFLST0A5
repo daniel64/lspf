@@ -2,6 +2,10 @@
 )COMMENT
  Copy file
 )ENDCOMMENT
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 PanelTitle "Copy File"
 
@@ -45,9 +49,6 @@ literal 23 8  ET "Cancel"
 literal 23 15 NT "or"
 literal 23 18 ET "END"
 literal 23 22 NT "to cancel copy"
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 )INIT
   &NEWENTRY = &ENTRY

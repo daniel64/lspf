@@ -1,4 +1,8 @@
 )PANEL VERSION=1 FORMAT=1
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 scrollOn
@@ -19,9 +23,6 @@ literal  6  17   FP "OF"
 field    6  20   8  VOI  NONE    ZROW2
 
 dynArea 7 2 MAX MAX ZAREA ZSHADOW
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 
 )INIT

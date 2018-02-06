@@ -3,6 +3,9 @@
  Keylist Utility Panel 1
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 PanelTitle "Keylist Utility"
@@ -24,10 +27,8 @@ tbfield ++2   8    VOI   NONE TBK1TAB
 tbfield ++2   7    VOI   NONE TBK1TYP
 tbfield ++2   20   VOI   NONE TBK1MSG
 
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
-
 )INIT
+&ZPS5 = 1
 VGET ZSCROLL PROFILE
 IF (&ZSCROLL = &Z) &ZSCROLL = 'HALF'
 

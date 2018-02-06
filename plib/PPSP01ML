@@ -2,6 +2,10 @@
 )COMMENT
  Panel to display/delete pool variables
 )ENDCOMMENT
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 PanelTitle "Display/Reload Application Modules (Dynamically Loaded Classes)"
 
@@ -20,10 +24,6 @@ tbfield  ++1  8    VOI NONE APPL
 tbfield  ++4  16   VOI NONE STATUS
 tbfield  ++1  20   VOI NONE MOD
 tbfield  ++1  40   VOI NONE MODPATH
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
-
 
 )INIT
 VGET ZSCROLL PROFILE

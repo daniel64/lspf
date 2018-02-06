@@ -2,5 +2,11 @@
  Common help pull down choices
 )ENDCOMMENT
 
-pdc  Help  "Main Help"  ACTION RUN(HELP)
-pdc  Help   Tutorial    ACTION RUN(HELP)
+)ABC DESC(Help)
+
+PDC  DESC("Main Help")
+ACTION RUN(HELP)
+PDC  DESC("Tutorial")
+ACTION RUN(HELP)
+
+)ABCINIT

@@ -4,6 +4,34 @@
 Panel for editor PEDIT01
 )ENDCOMMENT
 
+)ABC DESC(File)
+PDC DESC(Save)
+ACTION RUN(>SAVE)
+PDC DESC(Cancel)
+ACTION RUN(>CANCEL)
+PDC DESC(Exit)
+ACTION RUN(END)
+
+)ABC DESC(Edit)
+PDC DESC(Reset)
+ACTION RUN(>RESET)
+PDC DESC(Undo)
+ACTION RUN(>UNDO)
+PDC DESC(Redo)
+ACTION RUN(>REDO)
+PDC DESC(Cut)
+ACTION RUN(>CUT)
+PDC DESC(Paste)
+ACTION RUN(>PASTE)
+
+)ABC DESC(Edit_Settings)
+PDC DESC('Edit Settings')
+ACTION RUN(>EDITSET)
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+
 )BODY SCROLL(ZSCROLL)
 PanelDescr "Edit &ZEDALT"
 scrollOn
@@ -22,22 +50,6 @@ field     3   MAX-10  5     VOI  NONE ZCOL1
 field     3   MAX-4   5     VOI  NONE ZCOL2
 
 dynArea   5 1 MAX MAX ZAREA ZSHADOW DATAIN(01) DATAOUT(02) USERMOD(03) DATAMOD(04)
-
-pdc File          "Save"             ACTION RUN(>SAVE)
-pdc File          "Cancel"           ACTION RUN(>CANCEL)
-pdc File          "Exit"             ACTION RUN(END)
-
-pdc Edit          "Reset"            ACTION RUN(>RESET)
-pdc Edit          "Undo"             ACTION RUN(>UNDO)
-pdc Edit          "Redo"             ACTION RUN(>REDO)
-pdc Edit          "Cut"              ACTION RUN(>CUT)
-pdc Edit          "Paste"            ACTION RUN(>PASTE)
-
-pdc Edit_Settings "Edit Settings"    ACTION RUN(>EDITSET)
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
-
 
 )INIT
 .EDIT = YES

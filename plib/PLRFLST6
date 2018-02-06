@@ -3,6 +3,9 @@
  Personal reflist for dslist filter
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 PanelTitle "Personal File Lists"
@@ -26,9 +29,6 @@ tbfield  ++1  8       VOI   NONE ACURTB
 tbfield  ++1  MAX-32  VOI   NONE AFLDESCP
 tbfield  ++1  MAX-20  VOI   NONE AFLCTIME
 tbfield  ++1  MAX     VOI   NONE AFLUTIME
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 )INIT
 VGET ZSCROLL PROFILE

@@ -2,6 +2,10 @@
 )COMMENT
  Panel to display simple TODO list
 )ENDCOMMENT
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
  PanelTitle "TODO List"
@@ -26,10 +30,6 @@
  field    23  3  80      NEF NONE TODO13
 
 box  10 2 82 15 B_YELLOW "TO DO List"
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
-
 
 )INIT
 &ZCMD = &Z

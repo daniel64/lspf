@@ -4,6 +4,9 @@
  Panel to display running tasks
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY   HOME(ZCMD)
 PanelTitle "Task Display"
 
@@ -23,9 +26,6 @@ tbfield  ++1   8   VOI NONE PID
 tbfield  ++1   5   VOI NONE CPU
 tbfield  ++1   5   VOI NONE MEM
 tbfield  ++1   MAX VOI NONE CMD
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 )INIT
 IF (&ZSCROLL = &Z) VGET ZSCROLL PROFILE

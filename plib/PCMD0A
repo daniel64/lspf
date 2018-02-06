@@ -3,6 +3,48 @@
  Panel for Issuing commands
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+
+)ABC DESC(List)
+PDC  DESC("Update On")
+ACTION RUN(>CMDUPN) UNAVAIL(ZCU0)
+PDC  DESC("Update Off")
+ACTION RUN(>CMDUPF) UNAVAIL(ZCU1)
+
+)ABCINIT
+IF (&LIST EQ ON)
+   &ZCU0 = 1
+   &ZCU1 = 0
+ELSE
+   &ZCU0 = 0
+   &ZCU1 = 1
+
+
+)ABC DESC(Mode)
+PDC  DESC("Retrieve")
+ACTION RUN(>CMDRET) UNAVAIL(ZMD0)
+PDC  DESC("Execute")
+ACTION RUN(>CMDEXE) UNAVAIL(ZMD1)
+PDC  DESC("Delete")
+ACTION RUN(>CMDDEL) UNAVAIL(ZMD2)
+
+)ABCINIT
+IF (&MODE EQ CMDRET)
+   &ZMD0 = 1
+   &ZMD1 = 0
+   &ZMD2 = 0
+ELSE
+  IF (&MODE EQ CMDEXE)
+     &ZMD0 = 0
+     &ZMD1 = 1
+     &ZMD2 = 0
+  ELSE
+     &ZMD0 = 0
+     &ZMD1 = 0
+     &ZMD2 = 1
+
+)INCLUDE HLP_PDC
+
 )BODY CMD(ZCMD)
 
 PanelTitle "Execute Command"
@@ -14,54 +56,47 @@ field     6  7   MAX  NEF CAPS(OFF),PAD(USER) ZCMD
 
 literal   8   2       NT  "Place cursor on choice and press enter to &TYPE command"
 literal  10   2       FP  "=>"
-field    10   5  MAX NEF CAPS(OFF),PAD(USER) ZCMD1
+field    10   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD1
 literal  11   2       FP  "=>"
-field    11   5  MAX NEF CAPS(OFF),PAD(USER) ZCMD2
+field    11   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD2
 literal  12   2       FP  "=>"
-field    12   5  MAX NEF CAPS(OFF),PAD(USER) ZCMD3
+field    12   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD3
 literal  13   2       FP  "=>"
-field    13   5  MAX NEF CAPS(OFF),PAD(USER) ZCMD4
+field    13   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD4
 literal  14   2       FP  "=>"
-field    14   5  MAX NEF CAPS(OFF),PAD(USER) ZCMD5
+field    14   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD5
 literal  15   2       FP  "=>"
-field    15   5  MAX NEF CAPS(OFF),PAD(USER) ZCMD6
+field    15   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD6
 literal  16   2       FP  "=>"
-field    16   5  MAX NEF CAPS(OFF),PAD(USER) ZCMD7
+field    16   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD7
 literal  17   2       FP  "=>"
-field    17   5  MAX NEF CAPS(OFF),PAD(USER) ZCMD8
+field    17   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD8
 literal  18   2       FP  "=>"
-field    18   5  MAX NEF CAPS(OFF),PAD(USER) ZCMD9
+field    18   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD9
 literal  19   2       FP  "=>"
-field    19   5  MAX NEF CAPS(OFF),PAD(USER) ZCMD10
+field    19   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD10
 literal  20   2       FP  "=>"
-field    20   5  MAX NEF CAPS(OFF),PAD(USER) ZCMD11
+field    20   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD11
 literal  21   2       FP  "=>"
-field    21   5  MAX NEF CAPS(OFF),PAD(USER) ZCMD12
-
-)INCLUDE STD_PDC
-
-pdc  List  "Update On"   ACTION RUN(>CMDUPN)
-pdc  List  "Update Off"  ACTION RUN(>CMDUPF)
-
-pdc  Mode  "Retrieve"  ACTION RUN(>CMDRET)
-pdc  Mode  "Execute"   ACTION RUN(>CMDEXE)
-pdc  Mode  "Delete"    ACTION RUN(>CMDDEL)
-
-)INCLUDE HLP_PDC
+field    21   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD12
 
 )INIT
 .CURSOR = ZCMD
+&ZUS4   = 1
 
-VGET (LIST,MODE,ZCMD1,ZCMD2,ZCMD3,ZCMD4,ZCMD5,ZCMD6) PROFILE
-VGET (ZCMD7,ZCMD8,ZCMD9,ZCMD10,ZCMD11,ZCMD12) PROFILE
+VGET (LIST,MODE,ZKMD1,ZKMD2,ZKMD3,ZKMD4,ZKMD5,ZKMD6) PROFILE
+VGET (ZKMD7,ZKMD8,ZKMD9,ZKMD10,ZKMD11,ZKMD12) PROFILE
 
 IF (&LIST EQ &Z) &LIST = ON
 IF (&MODE EQ &Z) &MODE = CMDRET
 
-IF (&MODE EQ CMDRET) &TYPE = 'retreive'
+IF (&MODE EQ CMDRET)
+   &TYPE = 'retreive'
 ELSE
-  IF (&MODE EQ CMDEXE) &TYPE = 'execute'
-  ELSE                 &TYPE = 'delete'
+  IF (&MODE EQ CMDEXE)
+     &TYPE = 'execute'
+  ELSE
+     &TYPE = 'delete'
 
 )REINIT
 REFRESH(*)
@@ -83,142 +118,142 @@ ELSE
      &ZCMD = &Z
      VPUT LIST PROFILE
 
-IF (.CURSOR EQ ZCMD1)
+IF (.CURSOR EQ ZKMD1)
    IF (&MODE EQ CMDDEL)
-      &ZCMD1 = &Z
-      VPUT ZCMD1 PROFILE
+      &ZKMD1 = &Z
+      VPUT ZKMD1 PROFILE
       EXIT
-   &ZCMD = &ZCMD1
+   &ZCMD = &ZKMD1
    IF (&MODE EQ CMDRET)
       .MSG = PSYS011V
       EXIT
 ELSE
-   IF (.CURSOR EQ ZCMD2)
+   IF (.CURSOR EQ ZKMD2)
       IF (&MODE EQ CMDDEL)
-         &ZCMD2 = &Z
-         VPUT ZCMD2 PROFILE
+         &ZKMD2 = &Z
+         VPUT ZKMD2 PROFILE
          EXIT
-      &ZCMD = &ZCMD2
+      &ZCMD = &ZKMD2
       IF (&MODE EQ CMDRET)
          .MSG = PSYS011V
          EXIT
    ELSE
-      IF (.CURSOR EQ ZCMD3)
+      IF (.CURSOR EQ ZKMD3)
          IF (&MODE EQ CMDDEL)
-            &ZCMD3 = &Z
-            VPUT ZCMD3 PROFILE
+            &ZKMD3 = &Z
+            VPUT ZKMD3 PROFILE
             EXIT
-         &ZCMD = &ZCMD3
+         &ZCMD = &ZKMD3
          IF (&MODE EQ CMDRET)
             .MSG = PSYS011V
             EXIT
       ELSE
-         IF (.CURSOR EQ ZCMD4)
+         IF (.CURSOR EQ ZKMD4)
             IF (&MODE EQ CMDDEL)
-               &ZCMD4 = &Z
-               VPUT ZCMD4 PROFILE
+               &ZKMD4 = &Z
+               VPUT ZKMD4 PROFILE
                EXIT
-            &ZCMD = &ZCMD4
+            &ZCMD = &ZKMD4
             IF (&MODE EQ CMDRET)
                .MSG = PSYS011V
                EXIT
          ELSE
-            IF (.CURSOR EQ ZCMD5)
+            IF (.CURSOR EQ ZKMD5)
                IF (&MODE EQ CMDDEL)
-                  &ZCMD5 = &Z
-                  VPUT ZCMD5 PROFILE
+                  &ZKMD5 = &Z
+                  VPUT ZKMD5 PROFILE
                   EXIT
-               &ZCMD = &ZCMD5
+               &ZCMD = &ZKMD5
                IF (&MODE EQ CMDRET)
                   .MSG = PSYS011V
                   EXIT
             ELSE
-               IF (.CURSOR EQ ZCMD6)
+               IF (.CURSOR EQ ZKMD6)
                   IF (&MODE EQ CMDDEL)
-                     &ZCMD6 = &Z
-                     VPUT ZCMD6 PROFILE
+                     &ZKMD6 = &Z
+                     VPUT ZKMD6 PROFILE
                      EXIT
-                  &ZCMD = &ZCMD6
+                  &ZCMD = &ZKMD6
                   IF (&MODE EQ CMDRET)
                      .MSG = PSYS011V
                      EXIT
                ELSE
-                  IF (.CURSOR EQ ZCMD7)
+                  IF (.CURSOR EQ ZKMD7)
                      IF (&MODE EQ CMDDEL)
-                        &ZCMD7 = &Z
-                        VPUT ZCMD7 PROFILE
+                        &ZKMD7 = &Z
+                        VPUT ZKMD7 PROFILE
                         EXIT
-                     &ZCMD = &ZCMD7
+                     &ZCMD = &ZKMD7
                      IF (&MODE EQ CMDRET)
                         .MSG = PSYS011V
                         EXIT
                   ELSE
-                     IF (.CURSOR EQ ZCMD8)
+                     IF (.CURSOR EQ ZKMD8)
                         IF (&MODE EQ CMDDEL)
-                           &ZCMD8 = &Z
-                           VPUT ZCMD8 PROFILE
+                           &ZKMD8 = &Z
+                           VPUT ZKMD8 PROFILE
                            EXIT
-                        &ZCMD = &ZCMD8
+                        &ZCMD = &ZKMD8
                         IF (&MODE EQ CMDRET)
                            .MSG = PSYS011V
                            EXIT
                      ELSE
-                        IF (.CURSOR EQ ZCMD9)
+                        IF (.CURSOR EQ ZKMD9)
                            IF (&MODE EQ CMDDEL)
-                              &ZCMD9 = &Z
-                              VPUT ZCMD9 PROFILE
+                              &ZKMD9 = &Z
+                              VPUT ZKMD9 PROFILE
                               EXIT
-                           &ZCMD = &ZCMD9
+                           &ZCMD = &ZKMD9
                            IF (&MODE EQ CMDRET)
                               .MSG = PSYS011V
                               EXIT
                         ELSE
-                           IF (.CURSOR EQ ZCMD10)
+                           IF (.CURSOR EQ ZKMD10)
                               IF (&MODE EQ CMDDEL)
-                                 &ZCMD10 = &Z
-                                 VPUT ZCMD10 PROFILE
+                                 &ZKMD10 = &Z
+                                 VPUT ZKMD10 PROFILE
                                  EXIT
-                              &ZCMD = &ZCMD10
+                              &ZCMD = &ZKMD10
                               IF (&MODE EQ CMDRET)
                                  .MSG = PSYS011V
                                  EXIT
                            ELSE
-                              IF (.CURSOR EQ ZCMD11)
+                              IF (.CURSOR EQ ZKMD11)
                                  IF (&MODE EQ CMDDEL)
-                                    &ZCMD11 = &Z
-                                    VPUT ZCMD11 PROFILE
+                                    &ZKMD11 = &Z
+                                    VPUT ZKMD11 PROFILE
                                     EXIT
-                                 &ZCMD = &ZCMD11
+                                 &ZCMD = &ZKMD11
                                  IF (&MODE EQ CMDRET)
                                     .MSG = PSYS011V
                                     EXIT
                               ELSE
-                                 IF (.CURSOR EQ ZCMD12)
+                                 IF (.CURSOR EQ ZKMD12)
                                     IF (&MODE EQ CMDDEL)
-                                       &ZCMD12 = &Z
-                                       VPUT ZCMD12 PROFILE
+                                       &ZKMD12 = &Z
+                                       VPUT ZKMD12 PROFILE
                                        EXIT
-                                    &ZCMD = &ZCMD12
+                                    &ZCMD = &ZKMD12
                                     IF (&MODE EQ CMDRET)
                                        .MSG = PSYS011V
                                        EXIT
 
-IF (&LIST EQ ON AND &ZCMD NE &Z AND &ZCMD1 NE &ZCMD)
-   IF (&ZCMD11 NE &Z) &ZCMD12 = &ZCMD11
-   IF (&ZCMD10 NE &Z) &ZCMD11 = &ZCMD10
-   IF (&ZCMD9  NE &Z) &ZCMD10 = &ZCMD9
-   IF (&ZCMD8  NE &Z) &ZCMD9  = &ZCMD8
-   IF (&ZCMD7  NE &Z) &ZCMD8  = &ZCMD7
-   IF (&ZCMD6  NE &Z) &ZCMD7  = &ZCMD6
-   IF (&ZCMD5  NE &Z) &ZCMD6  = &ZCMD5
-   IF (&ZCMD4  NE &Z) &ZCMD5  = &ZCMD4
-   IF (&ZCMD3  NE &Z) &ZCMD4  = &ZCMD3
-   IF (&ZCMD2  NE &Z) &ZCMD3  = &ZCMD2
-   IF (&ZCMD1  NE &Z) &ZCMD2  = &ZCMD1
-   &ZCMD1 = &ZCMD
+IF (&LIST EQ ON AND &ZCMD NE &Z AND &ZKMD1 NE &ZCMD)
+   IF (&ZKMD11 NE &Z) &ZKMD12 = &ZKMD11
+   IF (&ZKMD10 NE &Z) &ZKMD11 = &ZKMD10
+   IF (&ZKMD9  NE &Z) &ZKMD10 = &ZKMD9
+   IF (&ZKMD8  NE &Z) &ZKMD9  = &ZKMD8
+   IF (&ZKMD7  NE &Z) &ZKMD8  = &ZKMD7
+   IF (&ZKMD6  NE &Z) &ZKMD7  = &ZKMD6
+   IF (&ZKMD5  NE &Z) &ZKMD6  = &ZKMD5
+   IF (&ZKMD4  NE &Z) &ZKMD5  = &ZKMD4
+   IF (&ZKMD3  NE &Z) &ZKMD4  = &ZKMD3
+   IF (&ZKMD2  NE &Z) &ZKMD3  = &ZKMD2
+   IF (&ZKMD1  NE &Z) &ZKMD2  = &ZKMD1
+   &ZKMD1 = &ZCMD
 
-VPUT (ZCMD1,ZCMD2,ZCMD3,ZCMD4,ZCMD5,ZCMD6) PROFILE
-VPUT (ZCMD7,ZCMD8,ZCMD9,ZCMD10,ZCMD11,ZCMD12) PROFILE
+VPUT (ZKMD1,ZKMD2,ZKMD3,ZKMD4,ZKMD5,ZKMD6) PROFILE
+VPUT (ZKMD7,ZKMD8,ZKMD9,ZKMD10,ZKMD11,ZKMD12) PROFILE
 
 IF ( &ZCMD EQ &Z ) .CURSOR = ZCMD
 

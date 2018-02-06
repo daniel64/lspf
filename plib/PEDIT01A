@@ -4,6 +4,9 @@
 EDIT colour settings panel
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY HOME(ZCMDA) CMD(ZCMDA) WINDOW(80,20)
 
 PanelTitle "Edit Colour Settings"
@@ -46,9 +49,6 @@ literal 18 12 NT "to save changes"
 literal 19 2  NT "Enter"
 literal 19 8  ET "CANCEL"
 literal 19 15 NT "to cancel changes"
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 )INIT
 &ZCMDA  = &Z

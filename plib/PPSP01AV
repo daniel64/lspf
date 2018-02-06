@@ -2,6 +2,10 @@
 )COMMENT
  Panel to display/delete pool variables
 )ENDCOMMENT
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 PanelTitle "Shared and Profile Variables (&ZAPPLID)"
 
@@ -21,9 +25,6 @@ tbfield  14   1   VOI  NONE VPOOL
 tbfield  16   1   VOI  NONE VPLVL
 tbfield  18   15  RP   NONE MESSAGE
 tbfield  34   80  VOI  NONE VAL
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 
 )INIT

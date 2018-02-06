@@ -6,6 +6,9 @@ Panel for displaying variables from various pools.  Used in Dialogue Test option
 )ENDCOMMENT
 
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 PanelTitle "Display System Variables from Pools"
@@ -136,9 +139,6 @@ literal   33   22     FP     "ZHELPPGM:"
 field     34   32     8     VOI   NONE  ZFLSTPGM
 literal   34   22     FP     "ZFLSTPGM:"
 
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 
 )INIT

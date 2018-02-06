@@ -2,6 +2,10 @@
 )COMMENT
 
 )ENDCOMMENT
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 PanelTitle "Display Panel"
 
@@ -16,10 +20,6 @@ field     6   MAX-14    8    VOI  NONE  ZDATE
 
 literal   8   21    FP  "Panel name. . . ."
 field     8   39    8    NEF   CAPS(ON),JUST(LEFT),PAD(USER) NAME
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
-
 
 )PROC
 IF (&NAME = &Z)

@@ -8,6 +8,10 @@
 **************************************************************************
 
 )ENDCOMMENT
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 PanelTitle "Test Popup Panels"
@@ -28,9 +32,6 @@ literal   9   6     FP  "FIELD FLD2: "
 field     9   18    10   NEF   PAD(USER) FLD2
 
 literal   11  6     FP  "Press ENTER to create popup"
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 
 )INIT

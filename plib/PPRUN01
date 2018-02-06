@@ -2,6 +2,10 @@
 )COMMENT
  Panel to run an application or rexx procedure with parameters
 )ENDCOMMENT
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 PanelTitle "Invoke Dialogue Functions or Selection Panel"
 
@@ -44,9 +48,6 @@ literal 23 46  ET "ENTER"
 literal 23 52  NT "to invoke function"
 literal 25 2   NT "These fields support expansion using command"
 literal 25 47  ET "FIELDEXC"
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 
 )INIT

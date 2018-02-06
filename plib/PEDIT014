@@ -4,6 +4,10 @@
 Edit recovery panel for editor PEDIT01
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE RFL_PDC
+)INCLUDE HLP_PDC
+
 )BODY HOME(ZCMD4) CMD(ZCMD4)
 
 PanelTitle "Edit Recovery Panel"
@@ -36,11 +40,6 @@ literal 23 8  ET "DEFER"
 literal 23 14 NT "to defer recovery or"
 literal 23 35 ET "CANCEL"
 literal 23 42 NT "to cancel recovery of the file"
-
-
-)INCLUDE STD_PDC
-)INCLUDE RFL_PDC
-)INCLUDE HLP_PDC
 
 )INIT
 

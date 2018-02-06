@@ -1,6 +1,10 @@
 )PANEL VERSION=1 FORMAT=1
 )COMMENT
 )ENDCOMMENT
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 PanelTitle "CUA Colour Attributes"
@@ -194,9 +198,9 @@ literal  31  23    PIN "to save/restore a copy of these variables to the current
 literal  33   2   CT "These variables are saved to the ISPS system profile.  Re-running the setup"
 literal  34   2   CT "program will overwrite these variables"
 
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
+)INIT
+&ZPS2 = 1
 
 )PROC
 &ZCMD = TRANS( &ZCMD CAN,CANCEL

@@ -2,6 +2,15 @@
 )COMMENT
  Browse entry panel
 )ENDCOMMENT
+
+)INCLUDE STD_PDC
+
+)ABC DESC(Options)
+PDC  DESC('Personal Settings')
+ACTION RUN(ISRROUTE) PARM("SELECT PGM(PLRFLST1) PARM(US1) NEWAPPL(ISP)")
+
+)INCLUDE HLP_PDC
+
 )BODY CMD(ZCMD1) HOME(ZCMD1)
 
 PanelTitle "Personal File List"
@@ -25,11 +34,6 @@ literal  10  2      CH    EXPAND "-"
 tbmodel  11   MAX
 tbfield  2    1       NEF   PAD('.'),CAPS(ON) CSEL
 tbfield  ++1  MAX     VOI   NONE CFILE
-
-)INCLUDE STD_PDC
-pdc  Options  "Personal Settings"     ACTION RUN(ISRROUTE) PARM("SELECT PGM(PLRFLST1) PARM(US1) NEWAPPL(ISP)")
-
-)INCLUDE HLP_PDC
 
 
 )INIT

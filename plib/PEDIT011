@@ -4,6 +4,10 @@
 Edit Entry panel for editor PEDIT01
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE RFL_PDC
+)INCLUDE HLP_PDC
+
 )BODY HOME(ZCMD1) CMD(ZCMD1)
 
 PanelTitle "Edit Entry Panel"
@@ -43,12 +47,7 @@ literal 23 28 ET "ENTER"
 literal 23 34 NT "to edit file"
 
 
-)INCLUDE STD_PDC
-)INCLUDE RFL_PDC
-)INCLUDE HLP_PDC
-
 )INIT
-
 .NRET = ON
 .NRET = ZFILE
 

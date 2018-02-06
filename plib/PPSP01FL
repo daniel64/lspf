@@ -7,6 +7,10 @@
  Retrieve list is cursor sensitive.
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE RFL_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
  PanelTitle "Saved File List"
@@ -50,12 +54,9 @@
  field     19  2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL8
  field     19  4  MAX NEF CAPS(OFF),PAD(USER) ZFILE8
 
-)INCLUDE STD_PDC
-)INCLUDE RFL_PDC
-)INCLUDE HLP_PDC
-
 
 )INIT
+&ZUS3 = 1
 .NRET = ON
 .NRET = ZFILE
 

@@ -20,6 +20,9 @@ PSYE011E 'WINDOW() statement error'
 PSYE011F 'WINDOW() statement error'
 'Window depth must be at least 2 less than the physical screen width of &ZSCRMAXD'
 
+PSYE011G 'No )ABC descrption'
+'Action bar choice must have a description defined'
+
 /*  */
 PSYE013A 'Invalid variable name on a &ZVAL1'
 'Variable ''&ZVAL2'' has an invalid format'

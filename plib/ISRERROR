@@ -7,6 +7,9 @@
 
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 PanelTitle "Edit Macro Error"
@@ -90,9 +93,6 @@ field   18 25  MAX-2 ET NONE ZERR3
 literal 21 4   NT "Press"
 literal 21 10  ET "ENTER"
 literal 21 16  NT "to terminate the macro"
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 )INIT
 .CURSOR = ZCMD

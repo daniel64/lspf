@@ -4,6 +4,9 @@
 
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 PanelTitle "Dialogue Services Selection Menu"
@@ -44,9 +47,6 @@ literal  12 20   NT   "Start Tutorial"
 literal  13  2    SAC  "X"
 literal  13  5    PS   "Terminate"
 literal  13  20   NT   "Terminate Dialogue Services"
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 )INIT
 .CURSOR = ZCMD

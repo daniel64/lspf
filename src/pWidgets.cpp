@@ -1405,6 +1405,84 @@ void dynArea::setsize( int row, int col, int width, int depth )
 }
 
 
+void pdc::display_pdc_avail( WINDOW* win, cuaType type, int pos )
+{
+	string t = d2ds( pos+1 ) + ". " + pdc_name ;
+
+	wattrset( win, cuaAttr[ type ] ) ;
+	mvwaddstr( win, pos + 1, 4, t.c_str() ) ;
+	wattroff( win, cuaAttr[ type ] ) ;
+}
+
+
+void pdc::display_pdc_unavail( WINDOW* win, cuaType type, int pos )
+{
+	string t = "*. " + pdc_name ;
+
+	wattrset( win, cuaAttr[ type ] ) ;
+	mvwaddstr( win, pos + 1, 4, t.c_str() ) ;
+	wattroff( win, cuaAttr[ type ] ) ;
+}
+
+
+string abc::getDialogueVar( errblock& err, const string& var )
+{
+	// Return the value of a dialogue variable (always as a string so convert int->string if necessary)
+	// Search order is:
+	//   Function pool defined
+	//   Function pool implicit
+	//   SHARED pool
+	//   PROFILE pool
+	// Function pool variables of type int are converted to string
+
+	// Selection panels do not use the function pool.  Retrieve from shared or profile pools only
+
+	// If the variable is not found, create a null implicit entry in the function pool
+
+	// RC =  0 Normal completion
+	// RC =  8 Variable not found
+	// RC = 20 Severe error
+
+	string * p_str    ;
+	dataType var_type ;
+
+	if ( selPanel )
+	{
+		return p_poolMGR->get( err, var, ASIS ) ;
+	}
+
+	var_type = p_funcPOOL->getType( err, var, NOCHECK ) ;
+	if ( err.error() ) { return "" ; }
+
+	if ( err.RC0() )
+	{
+		if ( var_type == INTEGER )
+		{
+			return d2ds( p_funcPOOL->get( err, 0, var_type, var ) ) ;
+		}
+		else
+		{
+			return p_funcPOOL->get( err, 0, var, NOCHECK ) ;
+		}
+	}
+	else
+	{
+		p_str = p_poolMGR->vlocate( err, var ) ;
+		if ( err.error() ) { return "" ; }
+		switch ( err.getRC() )
+		{
+			case 0:
+				 return *p_str ;
+			case 4:
+				 return p_poolMGR->get( err, var ) ;
+			case 8:
+				 p_funcPOOL->put( err, var, "" ) ;
+		}
+	}
+	return "" ;
+}
+
+
 bool abc::pdc_exists( const string& p )
 {
 	for ( int i = 0 ; i < pdcList.size() ; i++ )
@@ -1440,32 +1518,42 @@ void abc::display_abc_unsel( WINDOW * win )
 }
 
 
-void abc::display_pd( uint prow, uint pcol )
+void abc::display_pd( uint prow, uint pcol, uint row )
 {
-	string t ;
+	// Display pull-down and highlight choice cursor is placed on if not unavailable.
+
+	errblock err ;
+	err.taskid = taskId ;
+
 	int    i ;
+	string t ;
+
+	if ( row > 1 && row < pdcList.size() + 2 )
+	{
+		currChoice = row - 2 ;
+	}
 
 	if ( !pd_created )
 	{
 		win = newwin( abc_maxh + 2, abc_maxw + 10, prow+1, pcol+abc_col ) ;
 		wattrset( win, cuaAttr[ AB ] ) ;
 		box( win, 0, 0 ) ;
-		panel = new_panel( win ) ;
-		for ( i = 0 ; i < pdcList.size() ; i++ )
-		{
-			t = d2ds( i+1 ) + ". " + pdcList.at( i ).pdc_name ;
-			wattrset( win, cuaAttr[ PAC ] ) ;
-			mvwaddstr( win, i + 1, 4 , t.c_str() ) ;
-			wattroff( win, cuaAttr[ PAC ] ) ;
-		}
 		wattroff( win, cuaAttr[ AB ] ) ;
+		panel = new_panel( win ) ;
 		pd_created = true ;
 	}
-	else
+
+	i = 0 ;
+	for ( auto it = pdcList.begin() ; it != pdcList.end() ; it++, i++ )
 	{
-		mvwin( win, prow+1, pcol+abc_col ) ;
-		show_panel( panel ) ;
+		if ( it->pdc_unavail != "" && getDialogueVar( err, it->pdc_unavail ) == "1" )
+		{
+			it->display_pdc_unavail( win, PUC, i ) ;
+			continue ;
+		}
+		it->display_pdc_avail( win, i == currChoice ? AMT : PAC, i ) ;
 	}
+	show_panel( panel ) ;
 }
 
 
@@ -1475,16 +1563,29 @@ void abc::hide_pd()
 }
 
 
-pdc abc::retrieve_pdChoice( uint row, uint col )
+pdc abc::retrieve_choice()
 {
-	uint y ;
+	errblock err ;
+	err.taskid = taskId ;
 
-	y = row - 2 ;
+	if ( pdcList[ currChoice ].pdc_unavail != "" &&
+	     getDialogueVar( err, pdcList[ currChoice ].pdc_unavail ) == "1" )
+	{
+		return pdc() ;
+	}
+	return pdcList.at( currChoice ) ;
+}
 
-	if ( y > (pdcList.size() - 1) ) { return pdc() ; }
-	if ( (col < (abc_col + 2 )) || (col > ( abc_col + abc_maxw + 6 )) ) { return pdc() ; }
 
-	return pdcList.at( y ) ;
+int abc::get_pd_col()
+{
+	return abc_col ;
+}
+
+
+const string& abc::get_abc_name()
+{
+	return abc_name ;
 }
 
 

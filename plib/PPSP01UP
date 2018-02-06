@@ -2,6 +2,10 @@
 )COMMENT
  Panel for viewing and changing various utility programs
 )ENDCOMMENT
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
  PanelTitle "Utility Program Definitions"
@@ -59,9 +63,6 @@
  literal  22  2     CT  "Warning"
  literal  23  2     CT  "Incorrect values can render lspf unusable.  Rerun setup program to recreate ISPSPROF in this case"
 
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 
 )PROC

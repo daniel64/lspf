@@ -53,15 +53,17 @@ class pPanel
 		void   set_cursor( uint row, uint col )   { p_row = row - win_row   ; p_col = col - win_col   ; }
 
 		int    get_abline()      { if ( ab.size() > 0 ) return win_row ; else return -1 ; }
-		bool   pd_Active()       { return pdActive ; }
-		bool   display_pd( uint col ) ;
+		bool   pd_active()       { return pdActive ; }
+		void   get_pd_home( uint& row, uint& col ) ;
+		bool   display_pd( uint row, uint col ) ;
 		void   display_pd()       ;
+		void   display_current_pd( uint row, uint col ) ;
 		void   hide_popup()       ;
 		void   hide_pd()          ;
 		void   remove_pd()        ;
 		void   display_next_pd()  ;
 		void   display_msg( errblock& ) ;
-		pdc    retrieve_pdChoice( int row, int col ) ;
+		pdc    retrieve_choice() ;
 		void   toggle_fscreen( bool, int, int ) ;
 
 		void   display_panel( errblock& ) ;
@@ -183,6 +185,9 @@ class pPanel
 		void   display_panel_reinit( errblock&, int ln=0 ) ;
 		void   display_panel_proc( errblock&, int ln )     ;
 
+		void   abc_panel_init( errblock&, const string& ) ;
+		void   abc_panel_proc( errblock&, const string& ) ;
+
 		void   display_id( errblock& ) ;
 
 		void   set_cursor( const string&, int ) ;
@@ -239,7 +244,7 @@ class pPanel
 
 		void   create_tbfield( errblock&, int col, int size, cuaType cuaFT, const string& name, const string& opts ) ;
 		void   create_tbfield( errblock&, const string& ) ;
-		void   create_pdc( errblock&, const string& ) ;
+		void   create_pdc( errblock&, const string&, const string& ) ;
 
 		void   display_boxes()  ;
 
@@ -261,6 +266,9 @@ class pPanel
 		map<int, string> Keylistl          ;
 
 		map<string, fieldExc> fieldExcTable ;
+
+		map<string, vector<panstmnt*>> abc_initstmnts ;
+		map<string, vector<panstmnt*>> abc_procstmnts ;
 
 		vector<panstmnt* > procstmnts ;
 		vector<panstmnt* > initstmnts ;

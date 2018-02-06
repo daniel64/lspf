@@ -4,6 +4,9 @@
  Panel for PFKEY settings
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
  PanelTitle "PFKEY Settings"
@@ -97,12 +100,9 @@
  literal  23  23    PIN "or"
  literal  23  26    PS  "Cancel"
 
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
-
 
 )INIT
-
+&ZPS1 = 1
 VGET (ZKLUSE) PROFILE
 
 IF ( &ZKLUSE EQ Y ) &ZZMSG = 'Warning.  Keylists active.  Some function keys may be overwridden'

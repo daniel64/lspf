@@ -3,6 +3,9 @@
  Keylist Utilit Panel 6
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 PanelTitle "&ZZTABL Keylist &KEYLISTN View"
@@ -25,9 +28,6 @@ tbfield    2   8    VOI   NONE KEYNUM
 tbfield  ++2   40   VOI   NONE KEYDEF
 tbfield  ++2   5    VOI   NONE KEYATTR
 tbfield  ++2   8    VOI   NONE KEYLAB
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 )INIT
 

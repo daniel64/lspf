@@ -1,6 +1,3 @@
-/*  Compile with ::                                                                                                                                          */
-/* g++ -O0 -std=c++11 -rdynamic -Wunused-variable -ltinfo -lncurses -lpanel -lboost_thread -lboost_filesystem -lboost_system -ldl -lpthread -o lspf lspf.cpp */
-
 /*
   Copyright (c) 2015 Daniel John Erdos
 

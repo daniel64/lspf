@@ -1,6 +1,10 @@
 )PANEL VERSION=1 FORMAT=1
 )COMMENT
 )ENDCOMMENT
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY WINDOW(78,24)
 
 PanelTitle "Global Colours"
@@ -38,11 +42,9 @@ literal  22  2     PIN "Enter"
 literal  22  8     PS  "Defaults"
 literal  22  17    PIN "to restore global colours to their original"
 
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
-
 )INIT
 &ZCMD   = &Z
+&ZPS3   = 1
 .CURSOR = COLOUR01
 
 .ATTR(COLOUR01) = 'COLOUR(BLUE)'

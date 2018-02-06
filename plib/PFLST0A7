@@ -4,6 +4,10 @@
  File and Directory Selection list panel
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE RFL_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 PanelTitle "File/Directory Selection List"
 
@@ -37,10 +41,6 @@ tbmodel  16    MAX
 tbfield  2     1   NEF  SKIP(OFF),CAPS(ON),PAD(USER),JUST(LEFT) SEL
 tbfield  ++1   60  VOI   NONE ENTRY
 tbfield  ++1   8   VOI   NONE TYPE
-
-)INCLUDE STD_PDC
-)INCLUDE RFL_PDC
-)INCLUDE HLP_PDC
 
 
 )INIT

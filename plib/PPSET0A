@@ -7,6 +7,9 @@ Dialogue variables for selection panels reside in the shared/profile pools
 
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 PanelTitle "Primary Settings and Information Panel"
@@ -63,9 +66,6 @@ literal  16  17   NT   "Start Tutorial"
 literal  17  2    SAC  "X"
 literal  17  5    PS   "Terminate"
 literal  17  17   NT   "Terminate Settings"
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 )INIT
 .CURSOR = ZCMD

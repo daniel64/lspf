@@ -3,6 +3,9 @@
  Keylist Utilit Panel 2
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 
 PanelTitle "Keylists For &ZZTABL"
@@ -21,9 +24,6 @@ tbmodel   10   MAX
 tbfield    2   1    NEF   caps(on),PAD(USER) TBK2SEL
 tbfield  ++2   8    VOI   NONE TBK2LST
 tbfield  ++2   20   VOI   NONE TBK2MSG
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 )INIT
 VGET ZSCROLL PROFILE

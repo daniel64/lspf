@@ -29,7 +29,11 @@ TBFIELD column length cuaFieldType name
         (column of '+n'  is n relative to the start of the previous field)
         (column of '++n' is n relative to the end of the previous field)
 
-PDC     abc_name pdc_name ACTION RUN(command)
+ABC    DESC(abc_name)
+PDC    DESC(pdc_name)
+ACTION RUN(command)
+ABCINIT / ABCPROC
+
 BOX     row column width depth colour title
 
 LITERAL, PANELTITLE and PANELDESCR can contain dialogue variables
@@ -108,6 +112,9 @@ FIELD :
 
 
 )ENDCOMMENT
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
 
 )BODY CMD(ZCMD) HOME(ZCMD)
 
@@ -214,9 +221,6 @@ literal   26    8    PS     "HELP"
 literal   26    13   FP     "to display basic information, or"
 literal   26    46   PS     "X"
 literal   26    48   FP     "to exit"
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 )INIT
 &ZPRIM  = YES

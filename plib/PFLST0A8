@@ -4,6 +4,9 @@
  File and Directory tree
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 PanelTitle "File/Directory Tree"
 
@@ -22,9 +25,6 @@ literal  9  2 CH  EXPAND  "-"
 tbmodel  10    MAX
 tbfield  2     1   NEF  CAPS(ON),PAD(USER),JUST(LEFT) TSEL
 tbfield  ++1   MAX VOI  NONE  TENTRY
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 
 )INIT

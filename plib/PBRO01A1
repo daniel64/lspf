@@ -2,6 +2,10 @@
 )COMMENT
 Panel for ...
 )ENDCOMMENT
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
 )BODY
 scrollOn
 PanelDescr "Browse &ZBRALT"
@@ -24,9 +28,6 @@ field     3   MAX-4  5  VOI  NONE ZCOL2
 
 dynArea  5  2  MAX  MAX  ZAREA  ZSHADOW
 
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 )INIT
 .BROWSE = YES

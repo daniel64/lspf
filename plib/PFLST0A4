@@ -4,6 +4,8 @@
  Rename file
 )ENDCOMMENT
 
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
 
 )BODY CMD(ZCMD) HOME(ZCMD)
 
@@ -40,9 +42,6 @@ literal 19 8  ET "Cancel"
 literal 19 15 NT "or"
 literal 19 18 ET "END"
 literal 19 22 NT "to cancel rename"
-
-)INCLUDE STD_PDC
-)INCLUDE HLP_PDC
 
 
 )INIT
