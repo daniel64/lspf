@@ -1790,7 +1790,7 @@ void PEDIT01::processNewInserts()
 		else
 		{
 			(*it)->convert_to_file( Level ) ;
-			if ( (*it)->il_URID == aURID )
+			if ( (*it)->il_URID == aURID && !aLCMD )
 			{
 				k = (*it)->get_idata_ptr()->find_first_not_of( ' ', startCol-1 ) ;
 				if ( k == string::npos )

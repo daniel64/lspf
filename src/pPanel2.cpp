@@ -81,7 +81,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		}
 		if ( w1 == ")ABC" )
 		{
-			abc_name = parseString( err, pline, "DESC()" ) ;
+			abc_name = extractKWord( err, pline, "DESC()" ) ;
 			if ( err.error() )
 			{
 				err.setsrc( oline ) ;

@@ -30,6 +30,7 @@ literal 15  8  ET "Enter"
 literal 15 14  NT "to save Personal List options"
 
 )INIT
+&ZRF3   = 1
 .CURSOR = ZCMD1
 
 VGET (ZRFURL ZRFFEX ZRFNEX) PROFILE

@@ -39,7 +39,7 @@ pLScreen::pLScreen()
 		}
 		maxrow = maxrow - 2 ;
 		start_color();
-		cbreak() ;
+		raw()    ;
 		noecho() ;
 		nonl()   ;
 		intrflush( stdscr, FALSE ) ;

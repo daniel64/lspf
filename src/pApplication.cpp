@@ -3616,7 +3616,7 @@ void pApplication::checkRCode( const string& s )
 
 	if ( !ControlErrorsReturn && RC >= 12 )
 	{
-		llog( "E", "RC="<< RC <<" CONTROL ERRORS CANCEL is in effect.  Aborting" << endl ) ;
+		llog( "E", "RC="<< RC <<" CONTROL ERRORS CANCEL is in effect.  Aborting"<< endl ) ;
 		vreplace( "ZAPPNAME", ZAPPNAME ) ;
 		vreplace( "ZERR1",  s     ) ;
 		vreplace( "ZERR2",  ZERR2 ) ;
@@ -3632,7 +3632,7 @@ void pApplication::checkRCode( const string& s )
 		selPanel            = false ;
 		if ( addpop_active ) { rempop( "ALL" ) ; }
 		display( "PSYSER1" )  ;
-		errPanelissued = true ;
+		if ( RC <= 8 ) { errPanelissued = true ; }
 		abend() ;
 	}
 }
@@ -3730,7 +3730,7 @@ void pApplication::checkRCode( errblock err )
 	if ( addpop_active ) { rempop( "ALL" ) ; }
 	errBlock.clear() ;
 	display( "PSYSER2" )  ;
-	errPanelissued = true ;
+	if ( RC <= 8 ) { errPanelissued = true ; }
 	abend() ;
 }
 
@@ -3824,7 +3824,7 @@ void pApplication::xabend( const string& msgid, int callno )
 
 	getmsg( msgid, "ZERRSM", "ZERRLM" ) ;
 
-	llog( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskId << " due to a user abend" << endl ) ;
+	llog( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: "<< taskId <<" due to a user abend" << endl ) ;
 
 	vreplace( "ZAPPNAME", ZAPPNAME ) ;
 	vreplace( "ZERRMSG", msgid ) ;

@@ -52,10 +52,10 @@
 #include "classes.h"
 #include "classes.cpp"
 
-#include "pWidgets.h"
-
 #include "pVPOOL.h"
 #include "pVPOOL.cpp"
+
+#include "pWidgets.h"
 
 #include "pTable.h"
 #include "pTable.cpp"
@@ -473,6 +473,33 @@ void createSYSPROF()
 	p_poolMGR->put( err, "ZGCLT", "T", PROFILE ) ;
 	p_poolMGR->put( err, "ZGCLY", "Y", PROFILE ) ;
 	p_poolMGR->put( err, "ZGCLW", "W", PROFILE ) ;
+
+	p_poolMGR->put( err, "ZCTRLA", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLB", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLC", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLD", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLE", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLF", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLG", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLH", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLI", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLJ", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLK", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLL", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLM", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLN", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLO", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLP", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLQ", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLR", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLS", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLT", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLU", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLV", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLW", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLX", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLY", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZCTRLZ", "", PROFILE ) ;
 
 	setCUAcolours( "AB",   KAB   ) ;
 	setCUAcolours( "ABSL", KABSL ) ;
