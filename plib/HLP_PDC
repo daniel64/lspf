@@ -4,9 +4,5 @@
 
 )ABC DESC(Help)
 
-PDC  DESC("Main Help")
-ACTION RUN(HELP)
-PDC  DESC("Tutorial")
-ACTION RUN(HELP)
-
-)ABCINIT
+PDC DESC("Main Help") ACTION RUN(HELP)
+PDC DESC("Tutorial")  ACTION RUN(HELP)

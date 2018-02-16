@@ -182,21 +182,21 @@ field    24   86   6  NEF CAPS(ON) COLOUR33
 field    24   93   4  NEF CAPS(ON) INTENS33
 field    24   103  7  NEF CAPS(ON) HILITE33
 
-literal  27  2    CH "Instructions"
+literal  28  2    CH "Instructions"
 
-literal  29  2     PIN "Enter"
-literal  29  8     PS "Defaults"
-literal  29  17    PIN "or"
-literal  29  20    PS "Cancel"
+literal  30  2     PIN "Enter"
+literal  30  8     PS  "Defaults"
+literal  30  17    PIN "or"
+literal  30  20    PS  "Cancel"
 
-literal  31  2     PIN "Use"
-literal  31  6     PS "SAVE"
-literal  31  11    PIN "and"
-literal  31  15    PS "RESTORE"
-literal  31  23    PIN "to save/restore a copy of these variables to the current profile"
+literal  32  2     PIN "Use"
+literal  32  6     PS  "Save"
+literal  32  11    PIN "and"
+literal  32  15    PS  "Restore"
+literal  32  23    PIN "to save/restore a copy of these variables to the current profile"
 
-literal  33   2   CT "These variables are saved to the ISPS system profile.  Re-running the setup"
-literal  34   2   CT "program will overwrite these variables"
+literal  34   2   CT "These variables are saved to the ISPS system profile."
+literal  35   2   CT "Re-running the setup program will overwrite these variables"
 
 
 )INIT

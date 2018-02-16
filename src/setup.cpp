@@ -55,8 +55,6 @@
 #include "pVPOOL.h"
 #include "pVPOOL.cpp"
 
-#include "pWidgets.h"
-
 #include "pTable.h"
 #include "pTable.cpp"
 
@@ -106,6 +104,12 @@ main()
 	ZCTTRUNC = "0"    ;
 	ZCTACT   = "SCRNAME" ;
 	ZCTDESC  = "Set screen name for session" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	ZCTVERB  = "ACTIONS" ;
+	ZCTTRUNC = "0"    ;
+	ZCTACT   = "ACTIONS" ;
+	ZCTDESC  = "Switch to first or next action bar choice" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
 	ZCTVERB  = "SWAP" ;
@@ -234,10 +238,16 @@ main()
 	ZCTDESC  = "PFKEY UTILITY" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
+	ZCTVERB  = "CTRL" ;
+	ZCTTRUNC = "0"    ;
+	ZCTACT   = "SELECT PGM(PPSP01A) PARM(CTLKEYS) NEWPOOL SCRNAME(CTLKEYS) SUSPEND" ;
+	ZCTDESC  = "Control key utility" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
 	ZCTVERB  = "RECENT" ;
 	ZCTTRUNC = "0"      ;
 	ZCTACT   = "ALIAS DSLIST REFLIST" ;
-	ZCTDESC  = "File list utility"  ;
+	ZCTDESC  = "Recent file list utility"  ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
 	ZCTVERB  = "RUN" ;

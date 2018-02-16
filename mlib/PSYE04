@@ -5,8 +5,8 @@
 PSYE041A 'Duplicate table display field ''&ZVAL1'''
 ''
 
-PSYE041B 'Duplicate pull down choice ''&ZVAL1'''
-'Action bar choice ''&ZVAL2'' contains a duplicate pull down choice'
+PSYE041B 'Spare'
+'Spare'
 
 PSYE041C 'Duplicate &ZVAL1 name ''&ZVAL2'''
 ''
@@ -65,8 +65,8 @@ PSYE041T 'No matching IF statement found for ELSE at column ''&ZVAL1'''
 PSYE041U 'REFRESH statement is invalid within the )INIT section'
 ''
 
-PSYE041V 'PDC found with no ACTION'
-'Missing ACTION statement after PDC statement'
+PSYE041V 'ACTION found with no PDC'
+'Missing PDC statement before ACTION statement'
 
 PSYE041W 'Invalid field name ''&ZVAL1'' on REFRESH statement'
 ''
@@ -127,7 +127,4 @@ PSYE042O 'Invalid value for .AUTOSEL control variable.  Must be YES, NO or blank
 
 PSYE042P 'Invalid command field name'
 'Selection panels must have a command field name of ZCMD'
-
-PSYE042Q 'ACTION found with no PDC'
-'Missing PDC statement before ACTION statement'
 

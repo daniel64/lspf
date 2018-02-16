@@ -57,15 +57,19 @@ literal  13  17   NT   "Display/Reload Application Modules"
 
 literal  14  2    SAC  "8"
 literal  14  5    PS   "Programs"
-literal  14  17   NT   "View/change utility programs"
+literal  14  17   NT   "Display and alter utility programs"
 
-literal  16  2    SAC  "T"
-literal  16  5    PS   "Tutorial"
-literal  16  17   NT   "Start Tutorial"
+literal  15  2    SAC  "9"
+literal  15  5    PS   "Ctrl keys"
+literal  15  17   NT   "Display and alter keyboard control key functions"
 
-literal  17  2    SAC  "X"
-literal  17  5    PS   "Terminate"
-literal  17  17   NT   "Terminate Settings"
+literal  17  2    SAC  "T"
+literal  17  5    PS   "Tutorial"
+literal  17  17   NT   "Start Tutorial"
+
+literal  18  2    SAC  "X"
+literal  18  5    PS   "Terminate"
+literal  18  17   NT   "Terminate Settings"
 
 )INIT
 .CURSOR = ZCMD
@@ -73,15 +77,16 @@ literal  17  17   NT   "Terminate Settings"
 
 )PROC
 &ZSEL = TRANS( TRUNC( &ZCMD,'.' ) ,
-                     0,'PGM(PPSP01A) PARM(GOPTS)   NEWPOOL SCRNAME(SETTINGS)'
-                     1,'PGM(PPSP01A) PARM(KEYS)    NEWPOOL SCRNAME(PFKEYS)'
-                     2,'PGM(PPSP01A) PARM(COLOURS) NEWPOOL SCRNAME(CUA)'
-                     3,'PGM(PPSP01A) PARM(GCL)     NEWPOOL SCRNAME(CUA)'
-                     4,'PGM(PPSP01A) PARM(CMDS)    NEWPOOL SCRNAME(COMMANDS)'
-                     5,'PGM(PPSP01A) PARM(PATHS)   NEWPOOL SCRNAME(PATHS)'
-                     6,'PGM(PPSP01A) PARM(VARS)    SCRNAME(VARS)'
-                     7,'PGM(PPSP01A) PARM(MODS)    NEWPOOL SCRNAME(MODULES)'
-                     8,'PGM(PPSP01A) PARM(UTPGMS)  NEWPOOL SCRNAME(UTILS)'
+                     0,'PGM(PPSP01A) PARM(GOPTS)    NEWPOOL SCRNAME(SETTINGS)'
+                     1,'PGM(PPSP01A) PARM(KEYS)     NEWPOOL SCRNAME(PFKEYS)'
+                     2,'PGM(PPSP01A) PARM(COLOURS)  NEWPOOL SCRNAME(CUA)'
+                     3,'PGM(PPSP01A) PARM(GCL)      NEWPOOL SCRNAME(CUA)'
+                     4,'PGM(PPSP01A) PARM(CMDS)     NEWPOOL SCRNAME(COMMANDS)'
+                     5,'PGM(PPSP01A) PARM(PATHS)    NEWPOOL SCRNAME(PATHS)'
+                     6,'PGM(PPSP01A) PARM(VARS)     SCRNAME(VARS)'
+                     7,'PGM(PPSP01A) PARM(MODS)     NEWPOOL SCRNAME(MODULES)'
+                     8,'PGM(PPSP01A) PARM(UTPGMS)   NEWPOOL SCRNAME(UTILS)'
+                     9,'PGM(PPSP01A) PARM(CTLKEYS)  NEWPOOL SCRNAME(CONTROL)'
                      T,'PGM(&ZHELPPGM) PARM(T)'
                      X,EXIT
                     &Z,&Z
@@ -97,7 +102,9 @@ FIELD( ZPS01005 ) VAR(ZCMD)  VAL(4)
 FIELD( ZPS01006 ) VAR(ZCMD)  VAL(5)
 FIELD( ZPS01007 ) VAR(ZCMD)  VAL(6)
 FIELD( ZPS01008 ) VAR(ZCMD)  VAL(7)
-FIELD( ZPS01009 ) VAR(ZCMD)  VAL(T)
-FIELD( ZPS01010 ) VAR(ZCMD)  VAL(X)
+FIELD( ZPS01009 ) VAR(ZCMD)  VAL(8)
+FIELD( ZPS01010 ) VAR(ZCMD)  VAL(9)
+FIELD( ZPS01011 ) VAR(ZCMD)  VAL(T)
+FIELD( ZPS01012 ) VAR(ZCMD)  VAL(X)
 
 )END

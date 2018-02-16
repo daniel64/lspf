@@ -168,3 +168,6 @@ PSYS012R 'Invalid .HIDE parameter' .TYPE=W
 
 PSYS012S 'Timeout occured' .TYPE=W
 'Timeout waiting for a command response'
+
+PSYS012T '' .TYPE=N
+'The selected pull-down choice is unavailable'

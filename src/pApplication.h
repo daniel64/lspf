@@ -173,7 +173,7 @@ class pApplication
 
 		bool   inputInhibited() ;
 		bool   msgInhibited()   ;
-		void   display_pd()     ;
+		void   display_pd( errblock& ) ;
 		void   display_id()     ;
 		void   toggle_fscreen() ;
 		bool   isprimMenu()     ;

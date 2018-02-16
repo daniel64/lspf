@@ -26,7 +26,16 @@ PPSP019 'No saved cua list' .TYPE=W
 'Use command SAVE to save the cua colours before trying to use RESTORE'
 
 PPSP011A 'Colours saved' .TYPE=N
-'CUA colours have been saved to the current profile'
+'CUA colours have been saved to the current profile (&ZAPPLID)'
 
 PPSP011B 'Colours retored' .TYPE=N
-'CUA colours have been restored from the list in the current profile'
+'CUA colours have been restored from the list in the current profile (&ZAPPLID)'
+
+PPSP011C 'No saved action list' .TYPE=W
+'Use command SAVE to save the control key actions before trying to use RESTORE'
+
+PPSP011D 'Actions saved' .TYPE=N
+'Control key actions have been saved to the current profile (&ZAPPLID)'
+
+PPSP011E 'Actions retored' .TYPE=N
+'Control key actions have been restored from the list in the current profile (&ZAPPLID)'

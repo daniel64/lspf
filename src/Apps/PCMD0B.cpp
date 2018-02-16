@@ -74,6 +74,7 @@ void PCMD0B::application()
 	zasize       = zareaw * zaread ;
 	msg          = "" ;
 	topLine      = 0  ;
+	startCol     = 1  ;
 	rebuildZAREA = true ;
 
 	sdr.assign( zareaw, N_RED )    ;
@@ -174,7 +175,10 @@ void PCMD0B::fill_dynamic_area()
 	zshadow = "" ;
 	maxCol  = 1  ;
 
-	if ( topLine >= lines.size() ) { topLine = lines.size() - 1 ; }
+	if ( topLine >= lines.size() )
+	{
+		topLine = ( lines.size() > 0 ) ? lines.size() - 1 : 0 ;
+	}
 
 	for ( dl = topLine, i = 0 ; i < zaread && dl < lines.size() ; i++, dl++ )
 	{

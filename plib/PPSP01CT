@@ -1,0 +1,71 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Control key alter/display
+)ENDCOMMENT
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)BODY
+
+PanelTitle "Control Key Actions"
+
+literal  4   2         FP    "Command ===> "
+field    4  15  max-17 nef caps(on),pad(user) zcmd
+
+literal  4  MAX-15  FP "Scroll ===> "
+field    4  MAX-3  4 NEF  NONE ZSCROLL
+
+literal  6  2      CH    "Key"
+literal  6  13     CH    "Action"
+literal  7  2      CH    EXPAND "-"
+
+tbmodel  8  MAX-12
+tbfield  2      9      VOI   NONE CTKEY2
+tbfield  13     MAX    NEF   NONE CTACT
+
+literal  MAX-10 2  CH "Instructions"
+
+literal  MAX-8  2   PIN "Press"
+literal  MAX-8  8   PS  "Enter"
+literal  MAX-8  14  PIN "to make changes available"
+
+literal  MAX-7  2   PIN "Enter"
+literal  MAX-7  8   PS  "Reset"
+literal  MAX-7  14  PIN "for original values or"
+literal  MAX-7  37  PS  "Cancel"
+
+literal  MAX-5  2   PIN "Use"
+literal  MAX-5  6   PS  "Save"
+literal  MAX-5  11  PIN "and"
+literal  MAX-5  15  PS  "Restore"
+literal  MAX-5  23  PIN "to save/restore a copy of these variables to the current profile"
+
+literal  MAX-3   2   CT "These variables are saved to the ISPS system profile."
+literal  MAX-2   2   CT "Re-running the setup program will overwrite these variables"
+
+)INIT
+&ZPS6 = 1
+
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = 'HALF'
+
+.ATTR(CTKEY2) ='COLOUR(GREEN)'
+
+)PROC
+
+&ZCMD = TRANS( &ZCMD RES,RESET
+                     CAN,CANCEL
+                     SAV,SAVE
+                     REST,RESTORE
+                     *,*
+             )
+
+IF (&ZCMD NE CANCEL,RESET,RESTORE,SAVE,&Z)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+
+)END

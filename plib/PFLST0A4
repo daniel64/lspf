@@ -30,7 +30,7 @@ field    12   25  MAX  NEF PAD(USER) NEWENTRY
 
 literal 15 2  CH "Instructions"
 literal 16 2  NT "Enter"
-literal 16 8  ET "."
+literal 16 8  ET "="
 literal 16 10 NT "in Newpath Name field to retrieve full path name"
 
 literal 18 2  NT "Press"
@@ -62,7 +62,7 @@ ELSE
       .CURSOR = ZCMD
       EXIT
 
-IF (&NEWENTRY EQ '.' )
+IF ( TRUNC(&NEWENTRY,1) EQ '=' )
   &NEWENTRY = '&ZPATH/&ENTRY '
   .CURSOR   = NEWENTRY
   .CSRPOS   = length(NEWENTRY)

@@ -154,8 +154,8 @@ PSYE035B 'Attribute &ZVAL1 is invalid'
 '&ZVAL1 is not a valid value for keyword &ZVAL2'
 
 /* PDC  */
-PSYE035J 'Missing ACTION on pulldown choice'
-''
+PSYE035J 'Spare'
+'Spare'
 
 /* Field options        */
 PSYE035K 'Invalid CAPS option ''&ZVAL1'''

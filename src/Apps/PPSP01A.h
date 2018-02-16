@@ -111,5 +111,6 @@ class PPSP01A : public pApplication
 		void editKeylist( const string&, const string& ) ;
 		void viewKeylist( const string&, const string& ) ;
 		void createKeyTable( string )  ;
+		void controlKeys()             ;
 
 } ;

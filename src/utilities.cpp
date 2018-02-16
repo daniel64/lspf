@@ -1719,6 +1719,7 @@ string extractKWord( errblock& err, string& s, string p )
 		err.seterrid( "PSYE037H" ) ;
 		return "" ;
 	}
+
 	if ( s[ p2 ] == '"' || s[ p2 ] == '\'' )
 	{
 		quote  = true ;
@@ -1734,6 +1735,12 @@ string extractKWord( errblock& err, string& s, string p )
 	}
 
 	p2 = s.find_first_not_of( ' ', p2 ) ;
+	if ( quote && p2 == string::npos )
+	{
+		err.seterrid( "PSYE033F" ) ;
+		return "" ;
+	}
+
 	if ( p2 == string::npos || s[ p2 ] != ')' )
 	{
 		err.seterrid( "PSYE037H" ) ;

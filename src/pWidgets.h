@@ -46,7 +46,7 @@ class dynArea
 		string dynArea_FieldIn   ;
 		string dynArea_shadow_name ;
 
-		void dynArea_init( errblock& err, int MAXW, int MAXD, const string& line ) ;
+		void dynArea_init( errblock& err, int maxw, int maxd, const string& line ) ;
 		void setsize( int, int, int, int ) ;
 
        friend class pPanel ;
@@ -101,7 +101,7 @@ class field
 		unsigned int field_scroll_start ;
 		string       field_shadow_value ;
 
-		void field_init( errblock& err, int MAXW, int MAXD, const string& line ) ;
+		void field_init( errblock& err, int maxw, int maxd, const string& line ) ;
 		void field_opts( errblock& err, string& )  ;
 		bool cursor_on_field( uint row, uint col ) ;
 		void display_field( WINDOW *, char, bool ) ;
@@ -133,6 +133,7 @@ class literal
 		literal() {
 				literal_colour = 0  ;
 				literal_name   = "" ;
+				literal_dvars  = true ;
 			  }
 		int     literal_row    ;
 		int     literal_col    ;
@@ -140,10 +141,12 @@ class literal
 		cuaType literal_cua    ;
 		uint    literal_colour ;
 		string  literal_value  ;
+		string  literal_xvalue ;
 		string  literal_name   ;
+		bool    literal_dvars  ;
 
-		void literal_init( errblock& err, int MAXW, int MAXD, int& opt_field, const string& line ) ;
-		void literal_display( WINDOW *, const string& ) ;
+		void literal_init( errblock& err, int maxw, int maxd, int& opt_field, const string& line ) ;
+		void literal_display( WINDOW * ) ;
 		bool cursor_on_literal( uint row, uint col ) ;
        friend class pPanel ;
 } ;
@@ -153,23 +156,32 @@ class pdc
 {
 	public:
 		pdc()   {
-				pdc_name    = "" ;
+				pdc_desc    = "" ;
+				pdc_xdesc   = "" ;
+				pdc_dvars   = true ;
 				pdc_run     = "" ;
 				pdc_parm    = "" ;
 				pdc_unavail = "" ;
+				pdc_inact   = true ;
 			} ;
 		~pdc() {} ;
 		pdc( const string& a, const string& b, const string& c, const string& d )
 			{
-				pdc_name    = a ;
-				pdc_run     = b ;
-				pdc_parm    = c ;
-				pdc_unavail = d ;
+				pdc_desc    = a  ;
+				pdc_xdesc   = "" ;
+				pdc_dvars   = true ;
+				pdc_run     = b  ;
+				pdc_parm    = c  ;
+				pdc_unavail = d  ;
+				pdc_inact   = false ;
 			} ;
-		string pdc_name ;
-		string pdc_run  ;
-		string pdc_parm ;
+		string pdc_desc  ;
+		string pdc_xdesc ;
+		bool   pdc_dvars ;
+		string pdc_run   ;
+		string pdc_parm  ;
 		string pdc_unavail ;
+		bool   pdc_inact ;
 		void   display_pdc_avail( WINDOW *, cuaType, int ) ;
 		void   display_pdc_unavail( WINDOW *, cuaType, int ) ;
 } ;
@@ -178,28 +190,22 @@ class pdc
 class abc
 {
 	public:
-		string       abc_name ;
-		unsigned int abc_col  ;
-		unsigned int abc_maxh ;
-		unsigned int abc_maxw ;
-
-		static poolMGR * p_poolMGR ;
-
 		abc()   {
-				abc_maxh   = 0 ;
-				abc_maxw   = 0 ;
-				currChoice = 0 ;
+				abc_maxh   = 0  ;
+				abc_maxw   = 0  ;
+				currChoice = 0  ;
+				choiceVar  = "" ;
 				pd_created = false ;
 			} ;
 
-		abc( fPOOL* p, bool b, int i )
+		abc( fPOOL* p, bool b )
 			{
-				p_funcPOOL = p ;
-				selPanel   = b ;
-				taskId     = i ;
-				abc_maxh   = 0 ;
-				abc_maxw   = 0 ;
-				currChoice = 0 ;
+				p_funcPOOL = p  ;
+				selPanel   = b  ;
+				abc_maxh   = 0  ;
+				abc_maxw   = 0  ;
+				currChoice = 0  ;
+				choiceVar  = "" ;
 				pd_created = false ;
 			} ;
 
@@ -211,23 +217,35 @@ class abc
 			}
 			} ;
 
-		bool  pdc_exists( const string& )   ;
-		void  add_pdc( const pdc& ) ;
-		void  display_abc_sel( WINDOW * )    ;
-		void  display_abc_unsel( WINDOW * )  ;
-		void  display_pd( uint, uint, uint ) ;
-		void  hide_pd()    ;
-		int   get_pd_col() ;
-		const string& get_abc_name() ;
-		pdc   retrieve_choice() ;
-		string getDialogueVar( errblock&, const string& ) ;
+		string       abc_desc ;
+		unsigned int abc_col  ;
+		unsigned int abc_maxh ;
+		unsigned int abc_maxw ;
+
+		static poolMGR * p_poolMGR ;
+
+		void   add_pdc( const pdc& )          ;
+		void   display_abc_sel( WINDOW * )    ;
+		void   display_abc_unsel( WINDOW * )  ;
+		void   display_pd( errblock&, uint, uint, uint ) ;
+		void   hide_pd()    ;
+		int    get_pd_col() ;
+		void   get_msg_position( int&, int& ) ;
+		const  string& get_abc_desc() ;
+		pdc    retrieve_choice( errblock& ) ;
+		bool   cursor_on_pulldown( uint, uint ) ;
 
 	private:
 		fPOOL* p_funcPOOL ;
 		bool   pd_created ;
 		bool   selPanel   ;
-		int    taskId     ;
 		int    currChoice ;
+		string choiceVar  ;
+
+		void   putDialogueVar( errblock&, const string&, const string& ) ;
+		string getDialogueVar( errblock&, const string& ) ;
+		string sub_vars( errblock&, string, bool& ) ;
+		void   create_window( uint, uint ) ;
 
 		vector<pdc> pdcList ;
 		WINDOW * win   ;
@@ -242,16 +260,15 @@ class Box
 				box_title = "" ;
 			}
 
-		void box_init( errblock& err, int MAXW, int MAXD, const string& line ) ;
-		void display_box( WINDOW * ) ;
+		void box_init( errblock& err, int maxw, int maxd, const string& line ) ;
+		void display_box( WINDOW *, string ) ;
 
+		string box_title  ;
 	private:
 		int    box_row    ;
 		int    box_col    ;
 		int    box_width  ;
 		int    box_depth  ;
 		uint   box_colour ;
-		string box_title  ;
-		int    box_title_offset ;
 } ;
 

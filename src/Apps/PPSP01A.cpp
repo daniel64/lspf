@@ -113,6 +113,7 @@ void PPSP01A::application()
 	else if ( PARM == "UTPGMS"  ) { utilityPrograms() ; }
 	else if ( PARM == "KLISTS"  ) { keylistTables()   ; }
 	else if ( PARM == "KLIST"   ) { keylistTable()    ; }
+	else if ( PARM == "CTLKEYS" ) { controlKeys()     ; }
 	else if ( w1   == "SETVAR"  )
 	{
 		vreplace( w2, word( PARM, 3 ) ) ;
@@ -857,44 +858,167 @@ void PPSP01A::lspfSettings()
 }
 
 
+void PPSP01A::controlKeys()
+{
+	int i ;
+
+	string key1  ;
+	string key2  ;
+	string table ;
+	string zcmd  ;
+	string msg   ;
+
+	string* t1   ;
+	string* t2   ;
+
+	const string alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" ;
+	vector<string>oldValues ;
+
+	vdefine( "ZCMD", &zcmd ) ;
+	table = "CTKEYS" + d2ds( taskid(), 2 ) ;
+
+	tbcreate( table, "CTKEY1", "(CTKEY2,CTACT)", NOWRITE ) ;
+
+	for ( i = 0 ; i < 26 ; i++ )
+	{
+		key1 = "ZCTRL"    ;
+		key2 = "Control-" ;
+		key1.push_back( alpha[ i ] ) ;
+		key2.push_back( alpha[ i ] ) ;
+		vcopy( key1, t1, LOCATE )  ;
+		oldValues.push_back( *t1 ) ;
+		vreplace( "CTKEY1", key1 ) ;
+		vreplace( "CTKEY2", key2 ) ;
+		vreplace( "CTACT", *t1 ) ;
+		tbadd( table ) ;
+	}
+
+	ZTDTOP = 1  ;
+	msg    = "" ;
+	while ( true )
+	{
+		tbtop( table ) ;
+		tbskip( table, ZTDTOP ) ;
+		zcmd = "" ;
+		tbdispl( table, "PPSP01CT", msg, "ZCMD" ) ;
+		if ( RC == 8 ) { break ; }
+		msg = "" ;
+		if ( zcmd == "RESET" || zcmd == "CANCEL" )
+		{
+			for ( i = 0 ; i < 26 ; i++ )
+			{
+				key1 = "ZCTRL" ;
+				key2 = "Control-" ;
+				key1.push_back( alpha[ i ] ) ;
+				key2.push_back( alpha[ i ] ) ;
+				vreplace( "CTKEY1", key1 ) ;
+				vreplace( "CTKEY2", key2 ) ;
+				vreplace( "CTACT", oldValues[ i ] ) ;
+				tbmod( table ) ;
+				vreplace( key1, oldValues[ i ] ) ;
+				vput( key1, PROFILE ) ;
+			}
+			if ( zcmd == "CANCEL" ) { break ; }
+			continue ;
+		}
+		if ( zcmd == "RESTORE" )
+		{
+			msg = "PPSP011E" ;
+			for ( i = 0 ; i < 26 ; i++ )
+			{
+				key1 = "ZCTRL" ;
+				key2 = "ACTRL" ;
+				key1.push_back( alpha[ i ] ) ;
+				key2.push_back( alpha[ i ] ) ;
+				vget( key2, PROFILE ) ;
+				if ( RC > 0 )
+				{
+					msg = "PPSP011C" ;
+					break ;
+				}
+				vcopy( key2, t1, LOCATE ) ;
+				vreplace( key1, *t1 ) ;
+				vput( key1, PROFILE ) ;
+				key2 = "Control-" ;
+				key2.push_back( alpha[ i ] ) ;
+				vreplace( "CTKEY1", key1 ) ;
+				vreplace( "CTKEY2", key2 ) ;
+				vreplace( "CTACT", *t1 ) ;
+				tbmod( table ) ;
+			}
+			continue ;
+		}
+		while ( ZTDSELS > 0 )
+		{
+			vcopy( "CTKEY1", t1, LOCATE ) ;
+			vcopy( "CTACT", t2, LOCATE ) ;
+			vreplace( *t1, *t2 ) ;
+			vput( *t1, PROFILE ) ;
+			tbmod( table ) ;
+			if ( ZTDSELS > 1 )
+			{
+				tbdispl( table ) ;
+				if ( RC > 4 ) { break ; }
+			}
+			else { ZTDSELS = 0 ; }
+		}
+		if ( zcmd == "SAVE" )
+		{
+			for ( i = 0 ; i < 26 ; i++ )
+			{
+				key1 = "ZCTRL" ;
+				key2 = "ACTRL" ;
+				key1.push_back( alpha[ i ] ) ;
+				key2.push_back( alpha[ i ] ) ;
+				vget( key1, PROFILE ) ;
+				vcopy( key1, t1, LOCATE ) ;
+				vreplace( key2, *t1 ) ;
+				vput( key2, PROFILE ) ;
+			}
+			msg = "PPSP011D" ;
+		}
+	}
+
+	tbend( table ) ;
+	vdelete( "ZCMD" ) ;
+}
+
+
 void PPSP01A::pfkeySettings()
 {
 	int RCode ;
 
-	map<int,string> pfKeyDefaults = { {  1, "HELP"      },
-					  {  2, "SPLIT NEW" },
-					  {  3, "END"       },
-					  {  4, "RETURN"    },
-					  {  5, "RFIND"     },
-					  {  6, "RCHANGE"   },
-					  {  7, "UP"        },
-					  {  8, "DOWN"      },
-					  {  9, "SWAP"      },
-					  { 10, "LEFT"      },
-					  { 11, "RIGHT"     },
-					  { 12, "RETRIEVE"  },
-					  { 13, "HELP"      },
-					  { 14, "SPLIT NEW" },
-					  { 15, "END"       },
-					  { 16, "RETURN"    },
-					  { 17, "RFIND"     },
-					  { 18, "RCHANGE"   },
-					  { 19, "UP"        },
-					  { 20, "DOWN"      },
-					  { 21, "SWAP"      },
-					  { 22, "SWAP PREV" },
-					  { 23, "SWAP NEXT" },
-					  { 24, "HELP"      } } ;
+	string* t ;
 
-	string ZPF01, ZPF02, ZPF03, ZPF04, ZPF05, ZPF06, ZPF07, ZPF08, ZPF09, ZPF10, ZPF11, ZPF12 ;
-	string ZPF13, ZPF14, ZPF15, ZPF16, ZPF17, ZPF18, ZPF19, ZPF20, ZPF21, ZPF22, ZPF23, ZPF24 ;
+	vector<string> pfKeyDefaults = { { "HELP"      },
+					 { "SPLIT NEW" },
+					 { "END"       },
+					 { "RETURN"    },
+					 { "RFIND"     },
+					 { "RCHANGE"   },
+					 { "UP"        },
+					 { "DOWN"      },
+					 { "SWAP"      },
+					 { "LEFT"      },
+					 { "RIGHT"     },
+					 { "RETRIEVE"  },
+					 { "HELP"      },
+					 { "SPLIT NEW" },
+					 { "END"       },
+					 { "RETURN"    },
+					 { "RFIND"     },
+					 { "RCHANGE"   },
+					 { "UP"        },
+					 { "DOWN"      },
+					 { "SWAP"      },
+					 { "SWAP PREV" },
+					 { "SWAP NEXT" },
+					 { "HELP"      } } ;
 
-	vdefine ( "ZPF01 ZPF02 ZPF03 ZPF04 ZPF05 ZPF06 ZPF07 ZPF08", &ZPF01, &ZPF02, &ZPF03, &ZPF04, &ZPF05, &ZPF06, &ZPF07, &ZPF08 ) ;
-	vdefine ( "ZPF09 ZPF10 ZPF11 ZPF12 ZPF13 ZPF14 ZPF15 ZPF16", &ZPF09, &ZPF10, &ZPF11, &ZPF12, &ZPF13, &ZPF14, &ZPF15, &ZPF16 ) ;
-	vdefine ( "ZPF17 ZPF18 ZPF19 ZPF20 ZPF21 ZPF22 ZPF23 ZPF24", &ZPF17, &ZPF18, &ZPF19, &ZPF20, &ZPF21, &ZPF22, &ZPF23, &ZPF24 ) ;
-
-	vget( "ZPF01 ZPF02 ZPF03 ZPF04 ZPF05 ZPF06 ZPF07 ZPF08 ZPF09 ZPF10 ZPF11 ZPF12", PROFILE ) ;
-	vget( "ZPF13 ZPF14 ZPF15 ZPF16 ZPF17 ZPF18 ZPF19 ZPF20 ZPF21 ZPF22 ZPF23 ZPF24", PROFILE ) ;
+	for ( int i = 0 ; i < 24 ; i++ )
+	{
+		vget( "ZPF"+d2ds( i+1, 2 ), PROFILE ) ;
+	}
 
 	while ( true )
 	{
@@ -905,67 +1029,30 @@ void PPSP01A::pfkeySettings()
 		if ( zcmd == "CANCEL" ) { break ; }
 		if ( zcmd == "DEFAULTS" )
 		{
-			ZPF01 = "" ;
-			ZPF02 = "" ;
-			ZPF03 = "" ;
-			ZPF04 = "" ;
-			ZPF05 = "" ;
-			ZPF06 = "" ;
-			ZPF07 = "" ;
-			ZPF08 = "" ;
-			ZPF09 = "" ;
-			ZPF10 = "" ;
-			ZPF11 = "" ;
-			ZPF12 = "" ;
-			ZPF13 = "" ;
-			ZPF14 = "" ;
-			ZPF15 = "" ;
-			ZPF16 = "" ;
-			ZPF17 = "" ;
-			ZPF18 = "" ;
-			ZPF19 = "" ;
-			ZPF20 = "" ;
-			ZPF21 = "" ;
-			ZPF22 = "" ;
-			ZPF23 = "" ;
-			ZPF24 = "" ;
+			for ( int i = 0 ; i < 24 ; i++ )
+			{
+				vreplace( "ZPF"+d2ds( i+1, 2 ), "" ) ;
+			}
 		}
 
-		if ( ZPF01 == "" ) { ZPF01 = pfKeyDefaults[  1 ] ; }
-		if ( ZPF02 == "" ) { ZPF02 = pfKeyDefaults[  2 ] ; }
-		if ( ZPF03 == "" ) { ZPF03 = pfKeyDefaults[  3 ] ; }
-		if ( ZPF04 == "" ) { ZPF04 = pfKeyDefaults[  4 ] ; }
-		if ( ZPF05 == "" ) { ZPF05 = pfKeyDefaults[  5 ] ; }
-		if ( ZPF06 == "" ) { ZPF06 = pfKeyDefaults[  6 ] ; }
-		if ( ZPF07 == "" ) { ZPF07 = pfKeyDefaults[  7 ] ; }
-		if ( ZPF08 == "" ) { ZPF08 = pfKeyDefaults[  8 ] ; }
-		if ( ZPF09 == "" ) { ZPF09 = pfKeyDefaults[  9 ] ; }
-		if ( ZPF10 == "" ) { ZPF10 = pfKeyDefaults[ 10 ] ; }
-		if ( ZPF11 == "" ) { ZPF11 = pfKeyDefaults[ 11 ] ; }
-		if ( ZPF12 == "" ) { ZPF12 = pfKeyDefaults[ 12 ] ; }
-		if ( ZPF13 == "" ) { ZPF13 = pfKeyDefaults[ 13 ] ; }
-		if ( ZPF14 == "" ) { ZPF14 = pfKeyDefaults[ 14 ] ; }
-		if ( ZPF15 == "" ) { ZPF15 = pfKeyDefaults[ 15 ] ; }
-		if ( ZPF16 == "" ) { ZPF16 = pfKeyDefaults[ 16 ] ; }
-		if ( ZPF17 == "" ) { ZPF17 = pfKeyDefaults[ 17 ] ; }
-		if ( ZPF18 == "" ) { ZPF18 = pfKeyDefaults[ 18 ] ; }
-		if ( ZPF19 == "" ) { ZPF19 = pfKeyDefaults[ 19 ] ; }
-		if ( ZPF20 == "" ) { ZPF20 = pfKeyDefaults[ 20 ] ; }
-		if ( ZPF21 == "" ) { ZPF21 = pfKeyDefaults[ 21 ] ; }
-		if ( ZPF22 == "" ) { ZPF22 = pfKeyDefaults[ 22 ] ; }
-		if ( ZPF23 == "" ) { ZPF23 = pfKeyDefaults[ 23 ] ; }
-		if ( ZPF24 == "" ) { ZPF24 = pfKeyDefaults[ 24 ] ; }
+		for ( int i = 0 ; i < 24 ; i++ )
+		{
+			vcopy( "ZPF"+d2ds( i+1, 2 ), t, LOCATE ) ;
+			if ( *t == "" )
+			{
+				vreplace( "ZPF"+d2ds( i+1, 2 ), pfKeyDefaults[ i ] ) ;
+			}
+		}
 
 		if ( RCode == 8 || zcmd == "SAVE" )
 		{
-			vput( "ZPF01 ZPF02 ZPF03 ZPF04 ZPF05 ZPF06 ZPF07 ZPF08 ZPF09 ZPF10 ZPF11 ZPF12", PROFILE ) ;
-			vput( "ZPF13 ZPF14 ZPF15 ZPF16 ZPF17 ZPF18 ZPF19 ZPF20 ZPF21 ZPF22 ZPF23 ZPF24", PROFILE ) ;
+			for ( int i = 0 ; i < 24 ; i++ )
+			{
+				vput( "ZPF"+d2ds( i+1, 2 ), PROFILE ) ;
+			}
 			if ( RCode == 8 )  { break ; }
 		}
 	}
-	vdelete( "ZPF01 ZPF02 ZPF03 ZPF04 ZPF05 ZPF06 ZPF07 ZPF08" ) ;
-	vdelete( "ZPF09 ZPF10 ZPF11 ZPF12 ZPF13 ZPF14 ZPF15 ZPF16" ) ;
-	vdelete( "ZPF17 ZPF18 ZPF19 ZPF20 ZPF21 ZPF22 ZPF23 ZPF24" ) ;
 }
 
 
@@ -1414,11 +1501,13 @@ void PPSP01A::setISPSVar( const string& var, string val )
 
 void PPSP01A::todoList()
 {
+	addpop( "", 5, 5 ) ;
 	while ( true )
 	{
 		display( "PPSP01TD", "", "ZCMD" );
 		if ( RC == 8 ) { break ; }
 	}
+	rempop() ;
 	return ;
 }
 
@@ -2148,10 +2237,11 @@ void PPSP01A::updateTasks( const string& table, const string& uf, const string& 
 		C_NI,
 		C_VIRT,
 		C_RES,
+		C_SIZE,
+		C_STATUS,
 		C_CPU,
 		C_MEM,
 		C_TIME,
-		C_S,
 		C_CMD
 	} ;
 
@@ -2163,7 +2253,7 @@ void PPSP01A::updateTasks( const string& table, const string& uf, const string& 
 	boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( zuser + "-" + zscreen + "-%%%%-%%%%" ) ;
 	tname = temp.native() ;
 
-  //    cname = "ps ax  -o pid,user,pri,ni,vsz,drs,%cpu,%mem,time,stat,cmd > " + tname ;
+  //    cname = "ps ax  -o pid,user,pri,ni,vsz,drs,size,stat,%cpu,%mem,time,stat,cmd > " + tname ;
 	cname = "top -b -n 1 > " + tname ;
 
 	tbcreate( table, "", "(SEL,USER,PID,CPU,CPUX,MEM,MEMX,CMD)", NOWRITE ) ;

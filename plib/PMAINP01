@@ -31,7 +31,9 @@ TBFIELD column length cuaFieldType name
 
 ABC    DESC(abc_name)
 PDC    DESC(pdc_name)
+PDC    DESC(pdc_name)
 ACTION RUN(command)
+PDC    DESC(pdc_name) ACTION RUN(command)
 ABCINIT / ABCPROC
 
 BOX     row column width depth colour title

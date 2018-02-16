@@ -287,7 +287,7 @@ void field::field_opts( errblock& err, string& opts )
 
 void dynArea::dynArea_init( errblock& err, int MAXW, int MAXD, const string& line )
 {
-	// Format of OPTION entry in panels (FORMAT 1 VERSION 1 )
+	// Format of DYNAREA entry in panels (FORMAT 1 VERSION 1 )
 	// DYNAREA row col width depth   A-name S-name DATAIN() DATAOUT() USERMOD() DATAMOD()
 
 	// w1      w2         w3   w4    w5     w6     w7      <-----------------keywords------------------>
@@ -1380,10 +1380,10 @@ void literal::literal_init( errblock& err, int MAXW, int MAXD, int& opt_field, c
 }
 
 
-void literal::literal_display( WINDOW * win, const string& s  )
+void literal::literal_display( WINDOW * win )
 {
 	wattrset( win, cuaAttr[ literal_cua ] ) ;
-	mvwaddstr( win, literal_row, literal_col, s.c_str() ) ;
+	mvwaddstr( win, literal_row, literal_col, literal_xvalue.c_str() ) ;
 	wattroff( win, cuaAttr[ literal_cua ] ) ;
 }
 
@@ -1407,42 +1407,35 @@ void dynArea::setsize( int row, int col, int width, int depth )
 
 void pdc::display_pdc_avail( WINDOW* win, cuaType type, int pos )
 {
-	string t = d2ds( pos+1 ) + ". " + pdc_name ;
+	string t = d2ds( pos ) + ". " + pdc_xdesc ;
 
 	wattrset( win, cuaAttr[ type ] ) ;
-	mvwaddstr( win, pos + 1, 4, t.c_str() ) ;
+	mvwaddstr( win, pos, 4, t.c_str() ) ;
 	wattroff( win, cuaAttr[ type ] ) ;
 }
 
 
 void pdc::display_pdc_unavail( WINDOW* win, cuaType type, int pos )
 {
-	string t = "*. " + pdc_name ;
+	string t = "*. " + pdc_xdesc ;
 
 	wattrset( win, cuaAttr[ type ] ) ;
-	mvwaddstr( win, pos + 1, 4, t.c_str() ) ;
+	mvwaddstr( win, pos, 4, t.c_str() ) ;
 	wattroff( win, cuaAttr[ type ] ) ;
+}
+
+
+void abc::create_window( uint row, uint col )
+{
+	win = newwin( abc_maxh + 2, abc_maxw + 10, row+1, col+abc_col ) ;
+	wattrset( win, cuaAttr[ AB ] ) ;
+	box( win, 0, 0 ) ;
+	wattroff( win, cuaAttr[ AB ] ) ;
 }
 
 
 string abc::getDialogueVar( errblock& err, const string& var )
 {
-	// Return the value of a dialogue variable (always as a string so convert int->string if necessary)
-	// Search order is:
-	//   Function pool defined
-	//   Function pool implicit
-	//   SHARED pool
-	//   PROFILE pool
-	// Function pool variables of type int are converted to string
-
-	// Selection panels do not use the function pool.  Retrieve from shared or profile pools only
-
-	// If the variable is not found, create a null implicit entry in the function pool
-
-	// RC =  0 Normal completion
-	// RC =  8 Variable not found
-	// RC = 20 Severe error
-
 	string * p_str    ;
 	dataType var_type ;
 
@@ -1483,21 +1476,78 @@ string abc::getDialogueVar( errblock& err, const string& var )
 }
 
 
-bool abc::pdc_exists( const string& p )
+void abc::putDialogueVar( errblock& err, const string& var, const string& val )
 {
-	for ( int i = 0 ; i < pdcList.size() ; i++ )
+	if ( selPanel )
 	{
-		if ( pdcList.at( i ).pdc_name == p ) { return true ; }
+		p_poolMGR->put( err, var, val, ASIS ) ;
 	}
-	return false ;
+	else
+	{
+		p_funcPOOL->put( err, var, val ) ;
+	}
+}
+
+
+string abc::sub_vars( errblock& err, string s, bool& dvars )
+{
+	// In string, s, substitute variables starting with '&' for their dialogue value
+	// The variable is delimited by any non-valid variable characters.
+	// Rules: A '.' at the end of a variable, concatinates the value with the string following the dot
+	//        .. reduces to .
+	//        && reduces to & with no variable substitution
+
+	// Set dvars to true if the string contains dialogue variables, else false
+
+	int p1 ;
+	int p2 ;
+
+	string var ;
+	string val ;
+
+	const string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$@" ;
+	p1 = 0 ;
+
+	dvars = false ;
+	while ( true )
+	{
+		p1 = s.find( '&', p1 ) ;
+		if ( p1 == string::npos || p1 == s.size() - 1 ) { break ; }
+		p1++ ;
+		if ( s[ p1 ] == '&' )
+		{
+			s.erase( p1, 1 ) ;
+			p1 = s.find_first_not_of( '&', p1 ) ;
+			continue ;
+		}
+		p2  = s.find_first_not_of( validChars, p1 ) ;
+		if ( p2 == string::npos ) { p2 = s.size() ; }
+		var = upper( s.substr( p1, p2-p1 ) ) ;
+		if ( isvalidName( var ) )
+		{
+			val = getDialogueVar( err, var ) ;
+			if ( !err.error() )
+			{
+				if ( p2 < s.size() && s[ p2 ] == '.' )
+				{
+					s.replace( p1-1, var.size()+2, val ) ;
+				}
+				else
+				{
+					s.replace( p1-1, var.size()+1, val ) ;
+				}
+				p1 = p1 + val.size() - 1 ;
+				dvars = true ;
+			}
+		}
+	}
+	return s ;
 }
 
 
 void abc::add_pdc( const pdc& m_pdc )
 {
 	++abc_maxh ;
-	if ( abc_maxw < m_pdc.pdc_name.size() ) { abc_maxw = m_pdc.pdc_name.size() ; }
-
 	pdcList.push_back( m_pdc ) ;
 }
 
@@ -1505,7 +1555,7 @@ void abc::add_pdc( const pdc& m_pdc )
 void abc::display_abc_sel( WINDOW * win )
 {
 	wattrset( win, cuaAttr[ AB ] ) ;
-	mvwaddstr( win, 0, abc_col, abc_name.c_str() ) ;
+	mvwaddstr( win, 0, abc_col, abc_desc.c_str() ) ;
 	wattroff( win, cuaAttr[ AB ] ) ;
 }
 
@@ -1513,46 +1563,77 @@ void abc::display_abc_sel( WINDOW * win )
 void abc::display_abc_unsel( WINDOW * win )
 {
 	wattrset( win, cuaAttr[ ABU ] ) ;
-	mvwaddstr( win, 0, abc_col, abc_name.c_str() ) ;
+	mvwaddstr( win, 0, abc_col, abc_desc.c_str() ) ;
 	wattroff( win, cuaAttr[ ABU ] ) ;
 }
 
 
-void abc::display_pd( uint prow, uint pcol, uint row )
+void abc::display_pd( errblock& err, uint p_row, uint p_col, uint row )
 {
 	// Display pull-down and highlight choice cursor is placed on if not unavailable.
+	// Resize pull-down window if necessary
 
-	errblock err ;
-	err.taskid = taskId ;
-
-	int    i ;
-	string t ;
+	int i ;
+	int w_row ;
+	int w_col ;
+	int maxw = 0 ;
 
 	if ( row > 1 && row < pdcList.size() + 2 )
 	{
 		currChoice = row - 2 ;
 	}
 
+
+	for ( auto it = pdcList.begin() ; it != pdcList.end() ; it++ )
+	{
+		if ( it->pdc_dvars )
+		{
+			it->pdc_xdesc = sub_vars( err, it->pdc_desc, it->pdc_dvars ) ;
+			if ( !it->pdc_dvars )
+			{
+				it->pdc_desc = "" ;
+			}
+		}
+		maxw = max( int( it->pdc_xdesc.size() ), maxw ) ;
+	}
+
 	if ( !pd_created )
 	{
-		win = newwin( abc_maxh + 2, abc_maxw + 10, prow+1, pcol+abc_col ) ;
-		wattrset( win, cuaAttr[ AB ] ) ;
-		box( win, 0, 0 ) ;
-		wattroff( win, cuaAttr[ AB ] ) ;
+		abc_maxw = maxw ;
+		create_window( p_row, p_col ) ;
 		panel = new_panel( win ) ;
 		pd_created = true ;
 	}
+	else if ( abc_maxw != maxw )
+	{
+		abc_maxw = maxw ;
+		WINDOW * win1 = win ;
+		create_window( p_row, p_col ) ;
+		replace_panel( panel, win ) ;
+		delwin( win1 ) ;
+	}
+	else
+	{
+		getbegyx( win, w_row, w_col ) ;
+		if ( w_row != p_row+1 || w_col != p_col+abc_col )
+		{
+			mvwin( win, p_row+1, p_col+abc_col ) ;
+		}
+	}
 
-	i = 0 ;
+	i = 1 ;
 	for ( auto it = pdcList.begin() ; it != pdcList.end() ; it++, i++ )
 	{
 		if ( it->pdc_unavail != "" && getDialogueVar( err, it->pdc_unavail ) == "1" )
 		{
 			it->display_pdc_unavail( win, PUC, i ) ;
-			continue ;
 		}
-		it->display_pdc_avail( win, i == currChoice ? AMT : PAC, i ) ;
+		else
+		{
+			it->display_pdc_avail( win, (i-1) == currChoice ? AMT : PAC, i ) ;
+		}
 	}
+	choiceVar = p_funcPOOL->get( err, 8, ".ZVARS", NOCHECK ) ;
 	show_panel( panel ) ;
 }
 
@@ -1563,16 +1644,22 @@ void abc::hide_pd()
 }
 
 
-pdc abc::retrieve_choice()
+pdc abc::retrieve_choice( errblock& err )
 {
-	errblock err ;
-	err.taskid = taskId ;
-
 	if ( pdcList[ currChoice ].pdc_unavail != "" &&
 	     getDialogueVar( err, pdcList[ currChoice ].pdc_unavail ) == "1" )
 	{
+		if ( choiceVar != "" )
+		{
+			putDialogueVar( err, choiceVar, "" ) ;
+		}
 		return pdc() ;
 	}
+	if ( choiceVar != "" )
+	{
+		putDialogueVar( err, choiceVar, d2ds( currChoice + 1 ) ) ;
+	}
+
 	return pdcList.at( currChoice ) ;
 }
 
@@ -1583,9 +1670,28 @@ int abc::get_pd_col()
 }
 
 
-const string& abc::get_abc_name()
+void abc::get_msg_position( int& row, int& col )
 {
-	return abc_name ;
+	row = abc_maxh + 2 ;
+	col = abc_col ;
+}
+
+
+const string& abc::get_abc_desc()
+{
+	return abc_desc ;
+}
+
+
+bool abc::cursor_on_pulldown( uint row, uint col )
+{
+	int w_row ;
+	int w_col ;
+
+	getbegyx( win, w_row, w_col ) ;
+
+	return ( ( row >  w_row && row < ( w_row + abc_maxh + 1  ) )  &&
+		 ( col >= w_col && col < ( w_col + abc_maxw + 10 ) ) ) ;
 }
 
 
@@ -1657,21 +1763,22 @@ void Box::box_init( errblock& err, int MAXW, int MAXD, const string& line )
 	box_width  = width   ;
 	box_depth  = depth   ;
 	box_colour = usrAttr[ colour ] ;
-
-	if ( title.size() > width-4 )
-	{
-		title.erase( width-4 ) ;
-	}
 	if ( title != "" )
 	{
 		box_title = " " + title + " "  ;
 	}
-	box_title_offset = ( box_width - box_title.size() ) / 2 ;
 }
 
 
-void Box::display_box( WINDOW * win )
+void Box::display_box( WINDOW * win, string title )
 {
+	int offset ;
+
+	if ( title.size() > box_width-4 )
+	{
+		title.erase( box_width-4 ) ;
+	}
+
 	wattrset( win, box_colour ) ;
 
 	mvwaddch( win, box_row, box_col, ACS_ULCORNER ) ;
@@ -1686,7 +1793,8 @@ void Box::display_box( WINDOW * win )
 	mvwvline( win, (box_row + 1), box_col, ACS_VLINE, (box_depth - 2) ) ;
 	mvwvline( win, (box_row + 1), (box_col + box_width - 1 ), ACS_VLINE, (box_depth - 2) ) ;
 
-	mvwaddstr( win, box_row, (box_col + box_title_offset), box_title.c_str() ) ;
+	offset = ( box_width - title.size() ) / 2 ;
+	mvwaddstr( win, box_row, (box_col + offset), title.c_str() ) ;
 
 	wattroff( win, box_colour ) ;
 }

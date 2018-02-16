@@ -31,7 +31,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 	string pline      ;
 	string oline      ;
 	string fld, hlp   ;
-	string abc_name   ;
+	string abc_desc   ;
 
 	bool abc     = false ;
 	bool body    = false ;
@@ -81,16 +81,21 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		}
 		if ( w1 == ")ABC" )
 		{
-			abc_name = extractKWord( err, pline, "DESC()" ) ;
+			abc_desc = extractKWord( err, pline, "DESC()" ) ;
 			if ( err.error() )
 			{
 				err.setsrc( oline ) ;
 				return ;
 			}
-			if ( abc_name == "" )
+			if ( abc_desc == "" )
 			{
 				err.seterrid( "PSYE011G" ) ;
 				err.setsrc( oline ) ;
+				return ;
+			}
+			if ( pline != ")ABC" )
+			{
+				err.seterrid( "PSYE032H", subword( pline, 2  ) ) ;
 				return ;
 			}
 			abc = true ;
@@ -250,7 +255,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			if ( w1 == "PDC" )
 			{
 				debug2( "Creating pdc" << endl ) ;
-				create_pdc( err, abc_name, pline ) ;
+				create_pdc( err, abc_desc, pline ) ;
 				if ( err.error() )
 				{
 					err.setsrc( oline ) ;
@@ -271,8 +276,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			m_stmnt->ps_column = pline.find_first_not_of( ' ' ) ;
 			vector<panstmnt* >* p_stmnt ;
 			if      ( init )    { p_stmnt = &initstmnts ; }
-			else if ( abcinit ) { p_stmnt = &abc_initstmnts[ abc_name ] ; }
-			else if ( abcproc ) { p_stmnt = &abc_procstmnts[ abc_name ] ; }
+			else if ( abcinit ) { p_stmnt = &abc_initstmnts[ abc_desc ] ; }
+			else if ( abcproc ) { p_stmnt = &abc_procstmnts[ abc_desc ] ; }
 			else if ( reinit )  { p_stmnt = &reinstmnts ; }
 			else if ( reinit )  { p_stmnt = &reinstmnts ; }
 			else                { p_stmnt = &procstmnts ; }
@@ -870,10 +875,7 @@ void pPanel::readPanel( errblock& err, vector<string>& src, const string& name, 
 			{
 				if ( temp2 != "" )
 				{
-					err.seterrid( "PSYE041V", name, w2 ) ;
-					err.setsrc( trim( pline ) ) ;
-					panl.close() ;
-					return ;
+					src.push_back( temp2 ) ;
 				}
 				temp2 = pline ;
 				continue ;
@@ -882,7 +884,7 @@ void pPanel::readPanel( errblock& err, vector<string>& src, const string& name, 
 			{
 				if ( temp2 == "" )
 				{
-					err.seterrid( "PSYE042Q", name, w2 ) ;
+					err.seterrid( "PSYE041V", name, w2 ) ;
 					err.setsrc( trim( pline ) ) ;
 					panl.close() ;
 					return ;
@@ -895,9 +897,8 @@ void pPanel::readPanel( errblock& err, vector<string>& src, const string& name, 
 		}
 		else if ( temp2 != "" )
 		{
-			err.seterrid( "PSYE041V", name, w2 ) ;
-			err.setsrc( trim( pline ) ) ;
-			panl.close() ;
+			src.push_back( temp2 ) ;
+			temp2 = "" ;
 		}
 		w2 = word( pline, 2 ) ;
 		w3 = word( pline, 3 ) ;
@@ -930,6 +931,11 @@ void pPanel::readPanel( errblock& err, vector<string>& src, const string& name, 
 			continue ;
 		}
 		src.push_back( pline ) ;
+	}
+
+	if ( temp2 != "" )
+	{
+		src.push_back( temp2 ) ;
 	}
 
 	if ( panl.bad() )

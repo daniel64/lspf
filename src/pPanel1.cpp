@@ -404,7 +404,7 @@ void pPanel::display_panel( errblock& err )
 		{
 			replace_panel( panel, win ) ;
 		}
-		top_panel( panel ) ;
+		top_panel( panel )  ;
 		WSCRMAXW = ZSCRMAXW ;
 		WSCRMAXD = ZSCRMAXD ;
 	}
@@ -422,12 +422,12 @@ void pPanel::display_panel( errblock& err )
 		set_tb_fields_act_inact( err ) ;
 	}
 
-	display_ab()     ;
+	display_ab() ;
 	display_literals()    ;
 	display_fields( err ) ;
-	display_boxes()  ;
-	hide_pd()        ;
-	display_pd()     ;
+	display_boxes() ;
+	hide_pd()       ;
+	display_pd( err )  ;
 	display_msg( err ) ;
 	display_id( err )  ;
 
@@ -834,6 +834,11 @@ void pPanel::abc_panel_init( errblock& err, const string& abc_desc )
 {
 	// Perform panel )ABCINIT processing
 
+	cursor_set  = false ;
+	message_set = false ;
+	msgid       = ""    ;
+	setControlVar( err, 0, ".ZVARS", "" ) ;
+
 	process_panel_stmnts( err, 0, abc_initstmnts[ abc_desc ] ) ;
 }
 
@@ -841,6 +846,10 @@ void pPanel::abc_panel_init( errblock& err, const string& abc_desc )
 void pPanel::abc_panel_proc( errblock& err, const string& abc_desc )
 {
 	// Perform panel )ABCPROC processing
+
+	cursor_set  = false ;
+	message_set = false ;
+	msgid       = ""    ;
 
 	process_panel_stmnts( err, 0, abc_procstmnts[ abc_desc ] ) ;
 }
@@ -872,13 +881,11 @@ void pPanel::process_panel_stmnts( errblock& err, int ln, vector<panstmnt* >& pa
 
 	bool if_skip    ;
 
-	vector<panstmnt* >::iterator ips ;
-
 	g_label     = ""    ;
 	if_column   = 0     ;
 	if_skip     = false ;
 
-	for ( ips = panstmnts.begin() ; ips != panstmnts.end() ; ips++ )
+	for ( auto ips = panstmnts.begin() ; ips != panstmnts.end() ; ips++ )
 	{
 		if ( if_skip )
 		{
@@ -1412,14 +1419,16 @@ void pPanel::process_panel_vputget( errblock& err, VPUTGET* vputget )
 					p_poolMGR->put( err, var, "", PROFILE ) ;
 					if ( err.error() ) { return ; }
 				}
-				continue ;
 			}
-			val = p_funcPOOL->get( err, 8, var ) ;
-			if ( err.RC0() )
+			else
 			{
-				p_poolMGR->put( err, var, val, vputget->vpg_pool ) ;
+				val = p_funcPOOL->get( err, 8, var ) ;
+				if ( err.RC0() )
+				{
+					p_poolMGR->put( err, var, val, vputget->vpg_pool ) ;
+				}
+				if ( err.error() ) { return ; }
 			}
-			if ( err.error() ) { return ; }
 		}
 	}
 	else
@@ -1434,13 +1443,15 @@ void pPanel::process_panel_vputget( errblock& err, VPUTGET* vputget )
 					p_poolMGR->erase( err, var, SHARED ) ;
 					if ( err.error() ) { return ; }
 				}
-				continue ;
 			}
-			val = p_poolMGR->get( err, var, vputget->vpg_pool ) ;
-			if ( err.error() ) { return ; }
-			if ( err.RC0() )
+			else
 			{
-				p_funcPOOL->put( err, var, val ) ;
+				val = p_poolMGR->get( err, var, vputget->vpg_pool ) ;
+				if ( err.error() ) { return ; }
+				if ( err.RC0() )
+				{
+					p_funcPOOL->put( err, var, val ) ;
+				}
 			}
 		}
 	}
@@ -1600,6 +1611,10 @@ string pPanel::getControlVar( errblock& err, const string& svar )
 	{
 		return p_funcPOOL->get( err, 8, ".TRAIL", NOCHECK ) ;
 	}
+	else if ( svar == ".ZVARS" )
+	{
+		return p_funcPOOL->get( err, 8, ".ZVARS", NOCHECK ) ;
+	}
 	return svar ;
 }
 
@@ -1714,6 +1729,15 @@ void pPanel::setControlVar( errblock& err, int ln, const string& svar, const str
 	{
 		p_funcPOOL->put( err, ".TRAIL", sval, NOCHECK ) ;
 	}
+	else if ( svar == ".ZVARS" )
+	{
+		if ( sval != "" && !isvalidName( sval ) )
+		{
+			err.seterrid( "PSYE013A", sval, ".ZVARS )ABCINIT statement" ) ;
+			return  ;
+		}
+		p_funcPOOL->put( err, ".ZVARS", sval, NOCHECK ) ;
+	}
 }
 
 
@@ -1765,10 +1789,7 @@ string pPanel::get_cursor()
 	{
 		return curfld + "." + d2ds( curidx ) ;
 	}
-	else
-	{
-		return curfld ;
-	}
+	return curfld ;
 }
 
 
@@ -1778,10 +1799,7 @@ string pPanel::get_msgloc()
 	{
 		return msgloc + "." + d2ds( curidx ) ;
 	}
-	else
-	{
-		return msgloc ;
-	}
+	return msgloc ;
 }
 
 
@@ -1990,53 +2008,40 @@ void pPanel::create_tbfield( errblock& err, const string& pline )
 }
 
 
-void pPanel::create_pdc( errblock& err, const string& abc_name, const string& pline )
+void pPanel::create_pdc( errblock& err, const string& abc_desc, const string& pline )
 {
 	// ab is a vector list of action-bar-choices (abc objects)
 	// Each action-bar-choice is a vector list of pull-down-choices (pdc objects)
 
 	int i  ;
 
-	string pdc_name ;
+	string pdc_desc ;
 	string pdc_run  ;
 	string pdc_parm ;
 	string pdc_unavail ;
+
 	string rest ;
 
-	abc t_abc( p_funcPOOL, selectPanel, taskId ) ;
+	abc t_abc( p_funcPOOL, selectPanel ) ;
 
 	rest = subword( pline, 2 ) ;
 
-	pdc_name = extractKWord( err, rest, "DESC()" ) ;
+	pdc_desc = extractKWord( err, rest, "DESC()" ) ;
 	if ( err.error() ) { return ; }
 
-	if ( word( rest, 1 ) != "ACTION" )
+	pdc_run     = "" ;
+	pdc_parm    = "" ;
+	pdc_unavail = "" ;
+	if ( word( rest, 1 ) == "ACTION" )
 	{
-		err.seterrid( "PSYE035J" ) ;
-		return ;
+		idelword( rest, 1, 1 ) ;
+		pdc_run = parseString( err, rest, "RUN()" ) ;
+		if ( err.error() ) { return ; }
+		pdc_parm = extractKWord( err, rest, "PARM()" ) ;
+		if ( err.error() ) { return ; }
+		pdc_unavail = parseString( err, rest, "UNAVAIL()" ) ;
+		if ( err.error() ) { return ; }
 	}
-
-	idelword( rest, 1, 1 ) ;
-
-	pdc_run = parseString( err, rest, "RUN()" ) ;
-	if ( err.error() ) { return ; }
-
-	pdc_parm = parseString( err, rest, "PARM()" ) ;
-	if ( err.error() ) { return ; }
-
-	if ( pdc_parm.size() > 1 && pdc_parm.front() == '"' )
-	{
-		if ( pdc_parm.back() != '"' )
-		{
-			err.seterrid( "PSYE033F" ) ;
-			return ;
-		}
-		pdc_parm.erase( 0, 1 ) ;
-		pdc_parm.pop_back()    ;
-	}
-
-	pdc_unavail = parseString( err, rest, "UNAVAIL()" ) ;
-	if ( err.error() ) { return ; }
 
 	if ( rest != "" )
 	{
@@ -2046,26 +2051,18 @@ void pPanel::create_pdc( errblock& err, const string& abc_name, const string& pl
 
 	for ( i = 0 ; i < ab.size() ; i++ )
 	{
-		if ( ab.at( i ).abc_name == abc_name )
-		{
-			if ( ab.at( i ).pdc_exists( pdc_name ) )
-			{
-				err.seterrid( "PSYE041B", pdc_name, abc_name ) ;
-				return ;
-			}
-			break ;
-		}
+		if ( ab.at( i ).abc_desc == abc_desc ) { break ; }
 	}
 
 	if ( i == ab.size() )
 	{
-		t_abc.abc_name = abc_name ;
+		t_abc.abc_desc = abc_desc ;
 		t_abc.abc_col  = abc_pos  ;
-		abc_pos        = abc_pos + abc_name.size() + 2 ;
+		abc_pos        = abc_pos + abc_desc.size() + 2 ;
 		ab.push_back( t_abc ) ;
 	}
 
-	ab.at( i ).add_pdc( pdc( pdc_name, pdc_run, pdc_parm, pdc_unavail ) ) ;
+	ab.at( i ).add_pdc( pdc( pdc_desc, pdc_run, pdc_parm, pdc_unavail ) ) ;
 }
 
 
@@ -2136,13 +2133,21 @@ void pPanel::update_field_values( errblock& err )
 
 void pPanel::display_literals()
 {
-	vector<literal *>::iterator it ;
+	// Substitute dialogue variables and place result in literal_xvalue.  If there are no
+	// dialogue variables present, set literal_dvars to false and clear literal_value ;
 
-	for ( it = literalList.begin() ; it != literalList.end() ; it++ )
+	for ( auto it = literalList.begin() ; it != literalList.end() ; it++ )
 	{
-		(*it)->literal_display( win, sub_vars( (*it)->literal_value ) ) ;
+		if ( (*it)->literal_dvars )
+		{
+			(*it)->literal_xvalue = sub_vars( (*it)->literal_value, (*it)->literal_dvars ) ;
+			if ( !(*it)->literal_dvars )
+			{
+				(*it)->literal_value = "" ;
+			}
+		}
+		(*it)->literal_display( win ) ;
 	}
-
 }
 
 
@@ -2377,17 +2382,29 @@ bool pPanel::field_get_row_col( const string& fld, uint& row, uint& col )
 	// If field found on panel (by name), return true and its position, else return false
 	// Return the physical position on the screen, so add the window offsets to field_row/col
 
-	map<string, field *>::iterator it ;
-
-	it = fieldList.find( fld ) ;
-	if ( it == fieldList.end() ) { return false ; }
-
-	if ( !it->second->field_active ) { return false ; }
+	auto it = fieldList.find( fld ) ;
+	if ( it == fieldList.end() || !it->second->field_active ) { return false ; }
 
 	row = it->second->field_row + win_row ;
 	col = it->second->field_col + win_col ;
 
 	return true ;
+}
+
+
+void pPanel::field_get_col( const string& fld, uint& col )
+{
+	// If field found on panel (by name), return column position.
+	// Return the physical position on the screen, so add the window offsets to field_row/col
+
+	auto it = fieldList.find( fld ) ;
+	if ( it != fieldList.end() )
+	{
+		if ( it->second->field_active )
+		{
+			col = it->second->field_col + win_col ;
+		}
+	}
 }
 
 
@@ -2857,29 +2874,45 @@ void pPanel::get_pd_home( uint& row, uint& col )
 }
 
 
-bool pPanel::display_pd( uint row, uint col )
+bool pPanel::cursor_on_pulldown( uint row, uint col )
+{
+	// row/col is the pysical position on the screen.
+
+	return ab[ abIndex ].cursor_on_pulldown( row, col ) ;
+}
+
+
+bool pPanel::display_pd( errblock& err, uint row, uint col, string& msg )
 {
 	// row/col is the pysical position on the screen.  Correct by subtracting the window column position
 
 	// Call relevant )ABCINIT and display the pull-down at the cursor position.
 
-	errblock err ;
-	err.taskid = taskId ;
-
 	row = row - win_row ;
 	col = col - win_col ;
 	hide_pd() ;
 
+	err.setRC( 0 ) ;
+
 	for ( int i = 0 ; i < ab.size() ; i++ )
 	{
-		if ( col >= ab[ i ].abc_col && col < ( ab[ i ].abc_col + ab[ i ].abc_name.size() ) )
+		if ( col >= ab[ i ].abc_col && col < ( ab[ i ].abc_col + ab[ i ].abc_desc.size() ) )
 		{
-			abIndex  = i ;
-			ab[ abIndex ].display_abc_sel( win ) ;
-			abc_panel_init( err, ab[ abIndex ].get_abc_name() ) ;
-			ab[ abIndex ].display_pd( win_row, win_col, row ) ;
+			abIndex = i ;
+			auto it = ab.begin() ;
+			advance( it, abIndex ) ;
+			clear_msg() ;
+			abc_panel_init( err, it->get_abc_desc() ) ;
+			if ( err.error() )
+			{
+				pdActive = false ;
+				return false ;
+			}
+			msg = msgid ;
+			it->display_abc_sel( win ) ;
+			it->display_pd( err, win_row, win_col, row ) ;
 			pdActive = true ;
-			p_col    = ab[ abIndex ].abc_col + 2 ;
+			p_col    = it->abc_col + 2 ;
 			p_row    = 2 ;
 			return true  ;
 		}
@@ -2888,45 +2921,60 @@ bool pPanel::display_pd( uint row, uint col )
 }
 
 
-void pPanel::display_current_pd( uint row, uint col )
+void pPanel::display_pd( errblock& err )
+{
+	if ( !pdActive ) { return ; }
+
+	ab.at( abIndex ).display_abc_sel( win ) ;
+	ab.at( abIndex ).display_pd( err, win_row, win_col, 0 ) ;
+}
+
+
+void pPanel::display_current_pd( errblock& err, uint row, uint col )
 {
 	// row/col is the pysical position on the screen.  Correct by subtracting the window column position
 
 	// Re-display the pull-down if the cursor is placed on it (to update current choice and hilite)
 
-	row = row - win_row ;
-	col = col - win_col ;
+	auto it = ab.begin() ;
+	advance( it, abIndex ) ;
 
-	if ( col >= ab[ abIndex ].abc_col && col < ( ab[ abIndex ].abc_col + ab[ abIndex ].abc_maxw + 10 ) )
+	row -= win_row ;
+	col -= win_col ;
+
+	if ( col >= it->abc_col && col < ( it->abc_col + it->abc_maxw + 10 ) )
 	{
-		ab[ abIndex ].display_pd( win_row, win_col, row ) ;
+		it->display_pd( err, win_row, win_col, row ) ;
 	}
 }
 
 
-void pPanel::display_pd()
+void pPanel::display_next_pd( errblock& err, string& msg )
 {
-	if ( !pdActive ) { return ; }
-
-	ab.at( abIndex ).display_abc_sel( win ) ;
-	ab.at( abIndex ).display_pd( win_row, win_col, 0 ) ;
-}
-
-
-void pPanel::display_next_pd()
-{
-	errblock err ;
-	err.taskid = taskId ;
+	err.setRC( 0 ) ;
 
 	if ( ab.size() == 0 ) { return ; }
+
+	hide_pd() ;
 	if ( !pdActive || ++abIndex == ab.size() ) { abIndex = 0 ; }
+
+	auto it = ab.begin() ;
+	advance( it, abIndex ) ;
+
+	clear_msg() ;
 
 	pdActive = true ;
 
-	ab.at( abIndex ).display_abc_sel( win ) ;
-	abc_panel_init( err, ab.at( abIndex ).get_abc_name() ) ;
-	ab.at( abIndex ).display_pd( win_row, win_col, 2 ) ;
-	p_col = ab.at( abIndex ).abc_col + 2 ;
+	abc_panel_init( err, it->get_abc_desc() ) ;
+	if ( err.error() )
+	{
+		pdActive = false ;
+		return ;
+	}
+	msg = msgid ;
+	it->display_abc_sel( win ) ;
+	it->display_pd( err, win_row, win_col, 2 ) ;
+	p_col = it->abc_col + 2 ;
 	p_row = 2 ;
 }
 
@@ -2947,28 +2995,23 @@ void pPanel::hide_pd()
 }
 
 
-pdc pPanel::retrieve_choice()
+pdc pPanel::retrieve_choice( errblock& err, string& msg )
 {
-	errblock err ;
+	auto it = ab.begin() ;
+	advance( it, abIndex ) ;
 
-	if ( !pdActive ) { return pdc() ; }
+	abc_panel_proc( err, it->get_abc_desc() ) ;
+	msg = msgid ;
 
-	ab.at( abIndex ).hide_pd() ;
-	ab.at( abIndex ).display_abc_unsel( win ) ;
-	pdActive = false ;
-
-	abc_panel_proc( err, ab.at( abIndex ).get_abc_name() ) ;
-	return ab.at( abIndex ).retrieve_choice() ;
+	return it->retrieve_choice( err ) ;
 }
 
 
 void pPanel::display_boxes()
 {
-	vector<Box *>::iterator it ;
-
-	for ( it = boxes.begin() ; it != boxes.end() ; it++ )
+	for ( auto it = boxes.begin() ; it != boxes.end() ; it++ )
 	{
-		(*it)->display_box( win ) ;
+		(*it)->display_box( win, sub_vars( (*it)->box_title ) ) ;
 	}
 }
 
@@ -3055,7 +3098,7 @@ void pPanel::display_msg( errblock& err )
 			del_panel( smpanel ) ;
 			delwin( smwin )      ;
 		}
-		if ( MSG.smwin )
+		if ( MSG.smwin || pd_active() )
 		{
 			get_msgwin( MSG.smsg, w_row, w_col, w_depth, w_width, v ) ;
 			smwin = newwin( w_depth, w_width, w_row+win_row, w_col+win_col ) ;
@@ -3091,7 +3134,7 @@ void pPanel::display_msg( errblock& err )
 			del_panel( lmpanel ) ;
 			delwin( lmwin )      ;
 		}
-		if ( MSG.lmwin || p_poolMGR->get( err, "ZLMSGW", PROFILE ) == "Y" )
+		if ( MSG.lmwin || p_poolMGR->get( err, "ZLMSGW", PROFILE ) == "Y" || pd_active() )
 		{
 			get_msgwin( MSG.lmsg, w_row, w_col, w_depth, w_width, v ) ;
 			lmwin = newwin( w_depth, w_width, w_row+win_row, w_col+win_col ) ;
@@ -3160,7 +3203,12 @@ void pPanel::get_msgwin( string m, int& t_row, int& t_col, int& t_depth, int& t_
 	t_depth = v.size() + 2 ;
 	t_width = mw + 4       ;
 
-	if ( it != fieldList.end() )
+	if ( pd_active() )
+	{
+		ab.at( abIndex ).get_msg_position( t_row, t_col ) ;
+		t_row += 1 ;
+	}
+	else if ( it != fieldList.end() )
 	{
 		t_row = it->second->field_row + 1 ;
 		t_col = it->second->field_col - 2 ;
@@ -3322,9 +3370,9 @@ bool pPanel::hide_msg_window( uint r, uint c )
 		getmaxyx( smwin, len, ht ) ;
 		if ( ht > 1 )
 		{
-			getbegyx( smwin, w_col, w_row ) ;
-			if ( ( r >= w_col && r < (w_col + len) )  &&
-			     ( c >= w_row && c < (w_row + ht ) ) )
+			getbegyx( smwin, w_row, w_col ) ;
+			if ( ( r >= w_row && r < (w_row + len) )  &&
+			     ( c >= w_col && c < (w_col + ht ) ) )
 			{
 				hide_panel( smpanel ) ;
 				return true ;
@@ -3336,9 +3384,9 @@ bool pPanel::hide_msg_window( uint r, uint c )
 		getmaxyx( lmwin, len, ht ) ;
 		if ( ht > 1 )
 		{
-			getbegyx( lmwin, w_col, w_row ) ;
-			if ( ( r >= w_col && r < (w_col + len) )  &&
-			     ( c >= w_row && c < (w_row + ht ) ) )
+			getbegyx( lmwin, w_row, w_col ) ;
+			if ( ( r >= w_row && r < (w_row + len) )  &&
+			     ( c >= w_col && c < (w_col + ht ) ) )
 			{
 				hide_panel( lmpanel ) ;
 				return true ;
@@ -3396,6 +3444,62 @@ string pPanel::sub_vars( string s )
 					s.replace( p1-1, var.size()+1, val ) ;
 				}
 				p1 = p1 + val.size() - 1 ;
+			}
+		}
+	}
+	return s ;
+}
+
+
+string pPanel::sub_vars( string s, bool& dvars )
+{
+	// In string, s, substitute variables starting with '&' for their dialogue value
+	// The variable is delimited by any non-valid variable characters.
+	// Rules: A '.' at the end of a variable, concatinates the value with the string following the dot
+	//        .. reduces to .
+	//        && reduces to & with no variable substitution
+
+	int p1 ;
+	int p2 ;
+
+	string var ;
+	string val ;
+
+	errblock err ;
+
+	const string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$@" ;
+	p1 = 0 ;
+
+	dvars = false ;
+	while ( true )
+	{
+		p1 = s.find( '&', p1 ) ;
+		if ( p1 == string::npos || p1 == s.size() - 1 ) { break ; }
+		p1++ ;
+		if ( s[ p1 ] == '&' )
+		{
+			s.erase( p1, 1 ) ;
+			p1 = s.find_first_not_of( '&', p1 ) ;
+			continue ;
+		}
+		p2  = s.find_first_not_of( validChars, p1 ) ;
+		if ( p2 == string::npos ) { p2 = s.size() ; }
+		var = upper( s.substr( p1, p2-p1 ) ) ;
+		if ( isvalidName( var ) )
+		{
+			val = getDialogueVar( err, var ) ;
+			if ( !err.error() )
+			{
+				if ( p2 < s.size() && s[ p2 ] == '.' )
+				{
+					s.replace( p1-1, var.size()+2, val ) ;
+				}
+				else
+				{
+					s.replace( p1-1, var.size()+1, val ) ;
+				}
+				p1 = p1 + val.size() - 1 ;
+				dvars = true ;
 			}
 		}
 	}

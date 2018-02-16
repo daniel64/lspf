@@ -170,7 +170,8 @@ class parser
 					  { ".PFKEY"   },
 					  { ".RESP"    },
 					  { ".TRUE"    },
-					  { ".TRAIL"   } } ;
+					  { ".TRAIL"   },
+					  { ".ZVARS"   } } ;
 		token current_token ;
 		vector<token>tokens ;
 } ;

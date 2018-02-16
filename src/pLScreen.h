@@ -35,7 +35,7 @@ class pLScreen
 	int   get_row()                    { return row ; }
 	int   get_col()                    { return col ; }
 
-	void  set_row_col( int a, int b )  { row = a ; col = b ; }
+	void  set_cursor( int a, int b )   { row = a ; col = b ; }
 
 	void  cursor_left()                { col == 0 ? col = maxcol-1 : --col ; }
 	void  cursor_right()               { col == maxcol-1 ? col = 0 : ++col ; }

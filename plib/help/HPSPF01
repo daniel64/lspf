@@ -7,7 +7,7 @@ Primary Commands:
 
 Builtin:
 *------*
-ACTION    Move cursor to the action bar, or the next entry if already on the action bar
+ACTIONS   Move cursor to the action bar, or the next entry if already on the action bar
 DISCARD   Discard the screen updates and refresh from the previous output
 FIELDEXC  Execute the file-level command (if the cursor is on the field) defined in the panel )FIELD section
 RESIZE    Expand a pop-up to full screen (and toggles back)
@@ -25,6 +25,9 @@ SWAP      Swap logical screen
            SWAP can also be initiated with the SWAP Character and the ENTER key if the option is enabled.
            (SWAP Char must be the first non-blank character, and the cursor must remain on the command field.  Only
             characters up to, but not including the cursor position, are taken into account)
+           LISTN - show logical sessions when switching to next screen
+           LISTP - show logical sessions when switching to previous screen
+           NOTE: SWAP LISTN and SWAP LISTP only work when assigned to a control key between 'a' and 'z'
 SWAP LIST Show the Active Logical Sessions screen (the ESC key does the same)
 !nnn xx   Execute program nnn with parameter xx (application defaults are NEWAPPL, NEWPOOL)
 @nnn xx   Execute oorexx  nnn with parameter xx (application defaults are NEWAPPL, NEWPOOL)
@@ -54,6 +57,7 @@ Command Table Entries:
 SYSTEM
 *----*
 CMDS     List of commands (USER, APPLICATION and SYSTEM command tables)
+CTRL     List/modify global control key actions
 CUA      View/change cua attribute settings
 DSLIST   Show a file list
          Without parms, shows the Personal File Lists screen where you can select an entry
@@ -97,3 +101,20 @@ it has no other use outside of this panel.  Other keys will remain as before.
 
 In the lspf General Settings (opt 0.0), it is possible to set the application not to fail if a keylist is missing.
 
+
+Keys:
+=====
+Tab key displays the next pull-down menu, when one is already displayed.  If a pull-down is not displayed,
+the tab key invokes field execution when on a field that supports it, and is not on the first character.
+This allows file name completion using the tab key.
+
+If on the first character or for other fields, it acts as a normal tab.
+
+The ESC key does the following:
+ a) Terminates .AUTO mode if active.
+ b) Removes a pull-down if one is displayed
+ c) Removes the Active Logical Sessions display.
+ d) Displayes Active Logical Sessions display if none of the above.
+
+Keyboard control keys are supported and can be customised in option 0.9 (command CTRL).
+These are global definitions stored in the system profile, not local profile definitions, unlike PFKEYS.

@@ -67,12 +67,12 @@ field    15  90  1 CEF    CAPS(ON) GOPADC
 
 literal 23 2  CH "Instructions"
 literal 25 2  NT "Press"
-literal 25 8  PS "ENTER"
+literal 25 8  PS "Enter"
 literal 25 14 NT "to make changes, enter"
-literal 25 37 PS "DEFAULTS"
+literal 25 37 PS "Defaults"
 literal 25 46 NT "to restore defaults"
 literal 26 2  NT "Enter"
-literal 26 8  PS "RESET"
+literal 26 8  PS "Reset"
 literal 26 14 NT "for original values"
 
 

@@ -44,6 +44,7 @@ class pPanel
 		void   field_setvalue( errblock&, const string& field, const string& value ) ;
 		string field_getname( uint row, uint col ) ;
 		bool   field_get_row_col( const string& fld, uint& row, uint& col ) ;
+		void   field_get_col( const string& fld, uint& col ) ;
 
 		void   cursor_to_field( int& RC, string ="", int =1 ) ;
 		void   cursor_to_cmdField( int& RC, int =1 ) ;
@@ -55,15 +56,16 @@ class pPanel
 		int    get_abline()      { if ( ab.size() > 0 ) return win_row ; else return -1 ; }
 		bool   pd_active()       { return pdActive ; }
 		void   get_pd_home( uint& row, uint& col ) ;
-		bool   display_pd( uint row, uint col ) ;
-		void   display_pd()       ;
-		void   display_current_pd( uint row, uint col ) ;
+		bool   display_pd( errblock&, uint row, uint col, string& ) ;
+		void   display_pd( errblock& ) ;
+		void   display_current_pd( errblock&, uint row, uint col ) ;
 		void   hide_popup()       ;
 		void   hide_pd()          ;
 		void   remove_pd()        ;
-		void   display_next_pd()  ;
+		bool   cursor_on_pulldown( uint, uint ) ;
+		void   display_next_pd( errblock&, string& ) ;
 		void   display_msg( errblock& ) ;
-		pdc    retrieve_choice() ;
+		pdc    retrieve_choice( errblock&, string& ) ;
 		void   toggle_fscreen( bool, int, int ) ;
 
 		void   display_panel( errblock& ) ;
@@ -80,7 +82,7 @@ class pPanel
 
 		bool   is_cmd_inactive( const string& value ) ;
 
-		bool   cmdFieldDefined()               { return fieldList.count( cmdField ) > 0 ; }
+		bool   has_command_field()             { return fieldList.count( cmdField ) > 0 ; }
 		bool   on_border_line( uint, uint )  ;
 		bool   hide_msg_window( uint, uint ) ;
 		void   selPanel( bool x ) { selectPanel = x ; }
@@ -252,6 +254,7 @@ class pPanel
 		void   set_tb_fields_act_inact( errblock& ) ;
 
 		string sub_vars( string s ) ;
+		string sub_vars( string s, bool& ) ;
 
 		vector<string>attrList ;
 		map<int, string> tb_linesChanged ;

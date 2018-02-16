@@ -37,7 +37,7 @@ literal  16   4       SAC    "Recursively copy sub-directories"
 literal 19 2  CH "Instructions"
 
 literal 20 2  NT "Enter"
-literal 20 8  ET "."
+literal 20 8  ET "="
 literal 20 10 NT "in New File Name field to retrieve full path name"
 
 literal 22 2  NT "Press"
@@ -67,7 +67,7 @@ ELSE
       .CURSOR = ZCMD
       EXIT
 
-IF (&NEWENTRY EQ '.' )
+IF (TRUNC(&NEWENTRY,1) EQ '=' )
   &NEWENTRY = '&ZPATH/&ENTRY '
   .CURSOR   = NEWENTRY
   .CSRPOS   = length(NEWENTRY)

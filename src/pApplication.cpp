@@ -241,9 +241,9 @@ bool pApplication::msgInhibited()
 }
 
 
-void pApplication::display_pd()
+void pApplication::display_pd( errblock& err )
 {
-	if ( currPanel ) { currPanel->display_pd() ; }
+	if ( currPanel ) { currPanel->display_pd( err ) ; }
 }
 
 

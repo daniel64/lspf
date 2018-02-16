@@ -38,9 +38,12 @@ literal  15   6       SAC    "Ignore changes due to tab expansion"
 
 
 literal 18 2  CH "Instructions"
-literal 19 2  NT "Enter file name and press"
-literal 19 28 ET "ENTER"
-literal 19 34 NT "to compare files"
+literal 19 2  NT "Enter"
+literal 19 8  ET "="
+literal 19 10 NT "in file name to retrieve full path name of current file"
+literal 21 2  NT "Enter file name and press"
+literal 21 28 ET "ENTER"
+literal 21 34 NT "to compare files"
 
 
 )INIT
@@ -58,6 +61,12 @@ if ( &ZCMD3 NE &Z)
   .CURSOR = ZCMD3
   EXIT
 
+IF (TRUNC(&CFILE,1) EQ '=' )
+   &CFILE = &ZFILE
+   .MSG   = PSYS011V
+   REFRESH(CFILE)
+   EXIT
+
 VER (&CFILE NB)
 
 &ECPBRDF = TRANS( &ECPBRDF &Z,&Z *,/ )
@@ -71,10 +80,10 @@ VPUT (ECPBRDF,ECPICAS,ECPIREF,ECPIBLK,ECPITBE) PROFILE
 &ISFILE = FILE( CFILE )
 
 IF ( &ISFILE EQ .FALSE )
-    .CURSOR = CFILE
-    &ZSTR1  = &CFILE
-    .MSG    = PEDT011R
-     EXIT
+   .CURSOR = CFILE
+   &ZSTR1  = &CFILE
+   .MSG    = PEDT011R
+   EXIT
 
 VPUT CFILE PROFILE
 
