@@ -1147,7 +1147,7 @@ void Table::tbskip( errblock& err,
 		    int num,
 		    string tb_savenm,
 		    string tb_rowid_vn,
-		    string tb_rowid,
+		    const string& tb_rowid,
 		    string tb_noread,
 		    string tb_crp_name )
 {

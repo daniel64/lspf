@@ -313,7 +313,7 @@ void pApplication::set_msg( const string& msg_id )
 }
 
 
-void pApplication::set_msg1( const slmsg& t, string msgid, bool Immed )
+void pApplication::set_msg1( const slmsg& t, const string& msgid, bool Immed )
 {
 	// Propogate setmsg() to the current panel using the short-long-message object.
 	// If immed, display the message now rather than allow the application DISPLAY()/TBDISPL() service to it.
@@ -335,7 +335,7 @@ void pApplication::set_msg1( const slmsg& t, string msgid, bool Immed )
 
 void pApplication::clear_msg()
 {
-	currPanel->clear_msg() ;
+	if ( currPanel ) { currPanel->clear_msg() ; }
 }
 
 
@@ -2813,7 +2813,7 @@ void pApplication::select( const string& cmd )
 }
 
 
-void pApplication::select( selobj sel )
+void pApplication::select( const selobj& sel )
 {
 	// SELECT a function or panel using a SELECT object (internal use only)
 

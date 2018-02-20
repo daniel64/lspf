@@ -279,7 +279,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			else if ( abcinit ) { p_stmnt = &abc_initstmnts[ abc_desc ] ; }
 			else if ( abcproc ) { p_stmnt = &abc_procstmnts[ abc_desc ] ; }
 			else if ( reinit )  { p_stmnt = &reinstmnts ; }
-			else if ( reinit )  { p_stmnt = &reinstmnts ; }
 			else                { p_stmnt = &procstmnts ; }
 			if ( w1.back() == ':' )
 			{

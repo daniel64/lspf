@@ -340,6 +340,7 @@ int main( void )
 		llog( "I", "lspf and LOG terminating" << endl ) ;
 		lg->close() ;
 		delete lg   ;
+		delete bThread ;
 		return 0    ;
 	}
 	llog( "I", "First thread "+ GMAINPGM +" started and initialised.  ID=" << pThread->get_id() << endl ) ;
@@ -1747,6 +1748,10 @@ void startApplication( selobj SEL, bool nScreen )
 	{
 		currAppl->set_msg1( oldAppl->getmsg1(), oldAppl->getmsgid1() ) ;
 	}
+	else if ( !nScreen )
+	{
+		oldAppl->clear_msg() ;
+	}
 
 	pThread = new boost::thread( boost::bind( &pApplication::application, currAppl ) ) ;
 
@@ -1816,9 +1821,6 @@ void startApplicationBack( selobj SEL, bool pgmselect )
 
 	int spool ;
 
-	string opt   ;
-	string rest  ;
-	string sname ;
 	string applid ;
 
 	errblock err1 ;
@@ -1905,7 +1907,7 @@ void startApplicationBack( selobj SEL, bool pgmselect )
 
 void processBackgroundTasks()
 {
-	// This routine is invoked every 100ms from a separate thread to check if there are any
+	// This routine runs every 100ms in a separate thread to check if there are any
 	// background tasks waiting for action:
 	//    cleanup application if ended
 	//    start application if SELECT() done in the background program
@@ -1959,8 +1961,8 @@ void terminateApplication()
 	int tRC  ;
 	int tRSN ;
 
-	uint row  ;
-	uint col  ;
+	uint row ;
+	uint col ;
 
 	string ZAPPNAME ;
 	string tRESULT  ;
@@ -2199,10 +2201,6 @@ void terminateApplication()
 		{
 			currAppl->set_msg1( tMSG1, tMSGID1, true ) ;
 		}
-		else
-		{
-			currAppl->clear_msg() ;
-		}
 		if ( setCursor )
 		{
 			currAppl->get_home( row, col )   ;
@@ -2404,13 +2402,13 @@ void setColourPair( const string& name )
 
 	switch  ( t[ 0 ] )
 	{
-		case 'R': (*it).second = RED     ; break ;
-		case 'G': (*it).second = GREEN   ; break ;
-		case 'Y': (*it).second = YELLOW  ; break ;
-		case 'B': (*it).second = BLUE    ; break ;
-		case 'M': (*it).second = MAGENTA ; break ;
-		case 'T': (*it).second = TURQ    ; break ;
-		case 'W': (*it).second = WHITE   ; break ;
+		case 'R': it->second = RED     ; break ;
+		case 'G': it->second = GREEN   ; break ;
+		case 'Y': it->second = YELLOW  ; break ;
+		case 'B': it->second = BLUE    ; break ;
+		case 'M': it->second = MAGENTA ; break ;
+		case 'T': it->second = TURQ    ; break ;
+		case 'W': it->second = WHITE   ; break ;
 
 		default :  llog( "E", "Variable ZC"+ name +" has invalid value[0] "+ t << endl ) ;
 			   llog( "C", "Rerun setup program to re-initialise ISPS profile" << endl ) ;
@@ -2419,8 +2417,8 @@ void setColourPair( const string& name )
 
 	switch  ( t[ 1 ] )
 	{
-		case 'L':  (*it).second = (*it).second | A_NORMAL ; break ;
-		case 'H':  (*it).second = (*it).second | A_BOLD   ; break ;
+		case 'L':  it->second = it->second | A_NORMAL ; break ;
+		case 'H':  it->second = it->second | A_BOLD   ; break ;
 
 		default :  llog( "E", "Variable ZC"+ name +" has invalid value[1] "+ t << endl ) ;
 			   llog( "C", "Rerun setup program to re-initialise ISPS profile" << endl ) ;
@@ -2430,9 +2428,9 @@ void setColourPair( const string& name )
 	switch  ( t[ 2 ] )
 	{
 		case 'N':  break ;
-		case 'B':  (*it).second = (*it).second | A_BLINK     ; break ;
-		case 'R':  (*it).second = (*it).second | A_REVERSE   ; break ;
-		case 'U':  (*it).second = (*it).second | A_UNDERLINE ; break ;
+		case 'B':  it->second = it->second | A_BLINK     ; break ;
+		case 'R':  it->second = it->second | A_REVERSE   ; break ;
+		case 'U':  it->second = it->second | A_UNDERLINE ; break ;
 
 		default :  llog( "E", "Variable ZC"+ name +" has invalid value[2] "+ t << endl ) ;
 			   llog( "C", "Rerun setup program to re-initialise ISPS profile" << endl ) ;
@@ -2496,7 +2494,7 @@ void loadDefaultPools()
 	p_poolMGR->sysput( err, "ZSCREENW", d2ds( pLScreen::maxcol ), SHARED ) ;
 	p_poolMGR->sysput( err, "ZSCRMAXW", d2ds( pLScreen::maxcol ), SHARED ) ;
 	p_poolMGR->sysput( err, "ZUSER", getenv( "LOGNAME" ), SHARED ) ;
-	p_poolMGR->sysput( err, "ZHOME", getenv( "HOME" )  , SHARED )  ;
+	p_poolMGR->sysput( err, "ZHOME", getenv( "HOME" ), SHARED )    ;
 	p_poolMGR->sysput( err, "ZSHELL", getenv( "SHELL" ), SHARED )  ;
 
 	p_poolMGR->createProfilePool( err, "ISPS", ZSPROF ) ;
@@ -2798,7 +2796,7 @@ string listLogicalScreens()
 		for ( i = 0, it = lslist.begin() ; it != lslist.end() ; it++, i++ )
 		{
 			wattron( swwin, cuaAttr[  i == m ? PT : VOI ] ) ;
-			mvwaddstr( swwin, i+4, 2, (*it).c_str() )       ;
+			mvwaddstr( swwin, i+4, 2, it->c_str() )         ;
 			wattroff( swwin, cuaAttr[ i == m ? PT : VOI ] ) ;
 		}
 		update_panels() ;
@@ -2899,7 +2897,7 @@ void listRetrieveBuffer()
 		for ( i = 0, it = lslist.begin() ; it != lslist.end() ; it++, i++ )
 		{
 			wattron( rbwin, cuaAttr[  i == m ? PT : VOI ] ) ;
-			mvwaddstr( rbwin, i+3, 3, (*it).c_str() )       ;
+			mvwaddstr( rbwin, i+3, 3, it->c_str() )         ;
 			wattroff( rbwin, cuaAttr[ i == m ? PT : VOI ] ) ;
 		}
 		update_panels() ;
@@ -3419,7 +3417,7 @@ void executeFieldCommand( const string& field_name, const fieldExc& fxc, uint co
 	for( ws = words( fxc.fieldExc_passed ), i = 1 ; i <= ws ; i++ )
 	{
 		w1 = word( fxc.fieldExc_passed, i ) ;
-		p_poolMGR->put( err, "ZFEDATA" + d2ds( i ), currAppl->currPanel->field_getvalue( w1 ) , SHARED ) ;
+		p_poolMGR->put( err, "ZFEDATA" + d2ds( i ), currAppl->currPanel->field_getvalue( w1 ), SHARED ) ;
 	}
 
 	startApplication( SELCT ) ;

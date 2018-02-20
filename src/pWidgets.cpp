@@ -1670,7 +1670,7 @@ int abc::get_pd_col()
 }
 
 
-void abc::get_msg_position( int& row, int& col )
+void abc::get_msg_position( uint& row, uint& col )
 {
 	row = abc_maxh + 2 ;
 	col = abc_col ;

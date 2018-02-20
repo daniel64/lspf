@@ -226,7 +226,7 @@ class pPanel
 		bool    get_nretriev()  { return nretriev  ; }
 		string& get_nretfield() { return nretfield ; }
 
-		void   set_panel_msg( slmsg, const string& ) ;
+		void   set_panel_msg( const slmsg&, const string& ) ;
 		void   clear_msg() ;
 		void   clear_msg_loc()  { msgloc = ""     ; }
 		bool   inputInhibited() { return ( pdActive || msgResp ) ; }
@@ -290,7 +290,7 @@ class pPanel
 		string process_panel_trunc( errblock& err, TRUNC* trunc ) ;
 		string process_panel_trans( errblock& err, int ln, TRANS* trans, const string& )  ;
 
-		void   get_msgwin( string, int&, int&, int&, int&, vector<string>& ) ;
+		void   get_msgwin( string, uint&, uint&, uint&, uint&, vector<string>& ) ;
 		void   panel_cleanup( PANEL * ) ;
 
 		void   update_keylist_vars( errblock& ) ;

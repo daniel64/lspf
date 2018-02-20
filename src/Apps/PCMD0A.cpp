@@ -155,7 +155,8 @@ bool PCMD0A::invoke_task_wait( const string& cmd, string& comm1, const string& c
 
 void PCMD0A::run_command( string cmd, const string& fname1, const string& fname2 )
 {
-	// Run command in the background and detach from the terminal in case it hangs or messes with ncurses.
+	// Run command in the background and detach from the terminal (unless pipes are used)
+	// in case it hangs or messes with ncurses.
 
 	// Output goes to fname1
 	// Errors go to fname2
@@ -166,7 +167,8 @@ void PCMD0A::run_command( string cmd, const string& fname1, const string& fname2
 
 	std::ofstream of ;
 
-	cmd += " </dev/null 2> "+ fname2 ;
+	if ( cmd.find( '|' ) == string::npos ) { cmd += " </dev/null 2> "+ fname2 ; }
+	else                                   { cmd += " 2> "+ fname2            ; }
 
 	of.open( fname1 ) ;
 	FILE* pipe{ popen( cmd.c_str(), "r" ) } ;

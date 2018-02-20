@@ -116,7 +116,7 @@ class pApplication
 		void   display( string p_name, const string& p_msg = "", const string& p_cursor = "", int p_curpos = 0 ) ;
 		void   pquery( const string& p_name, const string& a_name, const string& t = "", const string& w = "", const string& d = "", const string& r = "", const string& c = "" ) ;
 		void   select( const string& ) ;
-		void   select( selobj ) ;
+		void   select( const selobj& ) ;
 		void   attr( const string&, const string& ) ;
 
 		void   vcopy( const string&, string&, vcMODE=MOVE ) ;
@@ -180,7 +180,7 @@ class pApplication
 		void   get_home( uint & row, uint & col ) ;
 		void   get_cursor( uint & row, uint & col ) ;
 		void   set_msg( const string& ) ;
-		void   set_msg1( const slmsg &, string, bool =false ) ;
+		void   set_msg1( const slmsg&, const string&, bool =false ) ;
 		void   clear_msg() ;
 		slmsg  getmsg1()   { return MSG1   ; }
 		string getmsgid1() { return MSGID1 ; }

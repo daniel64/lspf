@@ -6,6 +6,9 @@
 )ABC DESC(Commands)
 PDC DESC("Clear Output") ACTION RUN(>:CLEAR)
 
+)ABCINIT
+.ZVARS = PD0SEL
+
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
 
@@ -25,7 +28,7 @@ field     MAX-2  MAX-3   4  NEF  NONE  ZSCROLL
 
 )INIT
 .CURSOR = ZCMD
-&ZUS5 = 1
+&ZUS5   = 1
 
 )PROC
 

@@ -1377,8 +1377,8 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 void pPanel::process_panel_vputget( errblock& err, VPUTGET* vputget )
 {
 	// For select panels: VGET from PROFILE deletes from SHARED, otherwise has no effect
-	//                    VPUT to SHARED  copies from PROFILE to SHARED (or null if not found)
-	//                    VPUT to PROFILE copies from SHARED to PROFILE (or null if not found) and deletes SHARED
+	//                    VPUT to SHARED  copies from PROFILE to SHARED (or null if not found in either)
+	//                    VPUT to PROFILE copies from SHARED to PROFILE (or null) and deletes SHARED
 	//                    BUG: VPUT has been a bit of a guess - probably not correct!
 
 	int j  ;
@@ -1395,12 +1395,21 @@ void pPanel::process_panel_vputget( errblock& err, VPUTGET* vputget )
 			var = sub_vars( word( vputget->vpg_vars, j ) ) ;
 			if ( selectPanel )
 			{
-				if ( vputget->vpg_pool == SHARED ||
-				   ( vputget->vpg_pool == ASIS && p_poolMGR->vlocate( err, var, SHARED ) != NULL ) )
+				if ( vputget->vpg_pool == SHARED )
 				{
 					val = p_poolMGR->get( err, var, PROFILE ) ;
-					if ( err.error() ) { return ; }
-					p_poolMGR->put( err, var, val, SHARED ) ;
+					if ( err.RC0() )
+					{
+						p_poolMGR->put( err, var, val, SHARED ) ;
+					}
+					else if ( err.RC8() )
+					{
+						p_poolMGR->vlocate( err, var, SHARED ) ;
+						if ( err.RC8() )
+						{
+							p_poolMGR->put( err, var, "", SHARED ) ;
+						}
+					}
 					if ( err.error() ) { return ; }
 				}
 				else if ( vputget->vpg_pool == PROFILE )
@@ -1408,15 +1417,25 @@ void pPanel::process_panel_vputget( errblock& err, VPUTGET* vputget )
 					val = p_poolMGR->get( err, var, SHARED ) ;
 					if ( err.RC0() )
 					{
-						p_poolMGR->erase( err, var, SHARED ) ;
+						p_poolMGR->put( err, var, val, PROFILE ) ;
+					}
+					else if ( err.RC8() )
+					{
+						p_poolMGR->vlocate( err, var, PROFILE ) ;
+						if ( err.RC8() )
+						{
+							p_poolMGR->put( err, var, "", PROFILE ) ;
+						}
 					}
 					if ( err.error() ) { return ; }
-					p_poolMGR->put( err, var, val, PROFILE ) ;
-					if ( err.error() ) { return ; }
 				}
-				else if ( vputget->vpg_pool == ASIS && p_poolMGR->vlocate( err, var, SHARED ) == NULL )
+				else if ( vputget->vpg_pool == ASIS )
 				{
-					p_poolMGR->put( err, var, "", PROFILE ) ;
+					p_poolMGR->vlocate( err, var, ASIS ) ;
+					if ( err.RC8() )
+					{
+						p_poolMGR->put( err, var, "", SHARED ) ;
+					}
 					if ( err.error() ) { return ; }
 				}
 			}
@@ -1461,10 +1480,8 @@ void pPanel::process_panel_vputget( errblock& err, VPUTGET* vputget )
 
 void pPanel::process_panel_assignment( errblock& err, int ln, ASSGN* assgn )
 {
-
 	string t ;
 	string fieldNam ;
-
 
 	if ( assgn->as_function == AS_TRANS )
 	{
@@ -2013,39 +2030,56 @@ void pPanel::create_pdc( errblock& err, const string& abc_desc, const string& pl
 	// ab is a vector list of action-bar-choices (abc objects)
 	// Each action-bar-choice is a vector list of pull-down-choices (pdc objects)
 
-	int i  ;
+	int i ;
+	int p ;
+
+	string head ;
+	string tail ;
 
 	string pdc_desc ;
 	string pdc_run  ;
 	string pdc_parm ;
 	string pdc_unavail ;
 
-	string rest ;
-
 	abc t_abc( p_funcPOOL, selectPanel ) ;
 
-	rest = subword( pline, 2 ) ;
-
-	pdc_desc = extractKWord( err, rest, "DESC()" ) ;
-	if ( err.error() ) { return ; }
-
-	pdc_run     = "" ;
-	pdc_parm    = "" ;
-	pdc_unavail = "" ;
-	if ( word( rest, 1 ) == "ACTION" )
+	p = wordpos( "ACTION", pline ) ;
+	if ( p > 0 )
 	{
-		idelword( rest, 1, 1 ) ;
-		pdc_run = parseString( err, rest, "RUN()" ) ;
-		if ( err.error() ) { return ; }
-		pdc_parm = extractKWord( err, rest, "PARM()" ) ;
-		if ( err.error() ) { return ; }
-		pdc_unavail = parseString( err, rest, "UNAVAIL()" ) ;
-		if ( err.error() ) { return ; }
+		head = subword( pline, 2, p-2 ) ;
+		tail = subword( pline, p+1 ) ;
+	}
+	else
+	{
+		head = subword( pline, 2 ) ;
 	}
 
-	if ( rest != "" )
+	pdc_desc = extractKWord( err, head, "DESC()" ) ;
+	if ( err.error() ) { return ; }
+
+	pdc_unavail = parseString( err, head, "UNAVAIL()" ) ;
+	if ( err.error() ) { return ; }
+
+	if ( pdc_unavail != "" && !isvalidName( pdc_unavail ) )
 	{
-		err.seterrid( "PSYE032H", rest ) ;
+		err.seterrid( "PSYE031D", pdc_unavail ) ;
+		return ;
+	}
+
+	if ( head != "" )
+	{
+		err.seterrid( "PSYE032H", head ) ;
+		return ;
+	}
+
+	pdc_run = parseString( err, tail, "RUN()" ) ;
+	if ( err.error() ) { return ; }
+	pdc_parm = extractKWord( err, tail, "PARM()" ) ;
+	if ( err.error() ) { return ; }
+
+	if ( tail != "" )
+	{
+		err.seterrid( "PSYE032H", tail ) ;
 		return ;
 	}
 
@@ -2230,7 +2264,6 @@ void pPanel::cursor_to_field( int& RC1, string f_name, int f_pos )
 			p_col = 0 ;
 			p_row = 0 ;
 			RC1   = !isvalidName( f_name ) ? 20 : 12 ;
-			llog( "E", "Internal cursor value "<< f_name << " not found"<<endl ) ;
 		}
 		else
 		{
@@ -2273,8 +2306,8 @@ void pPanel::get_home( uint& row, uint& col )
 		row = it->second->field_row ;
 		col = it->second->field_col ;
 	}
-	row = row + win_row ;
-	col = col + win_col ;
+	row += win_row ;
+	col += win_col ;
 }
 
 
@@ -2362,8 +2395,8 @@ string pPanel::field_getname( uint row, uint col )
 
 	map<string, field *>::iterator it ;
 
-	row = row - win_row ;
-	col = col - win_col ;
+	row -= win_row ;
+	col -= win_col ;
 
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
@@ -2395,7 +2428,7 @@ bool pPanel::field_get_row_col( const string& fld, uint& row, uint& col )
 void pPanel::field_get_col( const string& fld, uint& col )
 {
 	// If field found on panel (by name), return column position.
-	// Return the physical position on the screen, so add the window offsets to field_row/col
+	// Return the physical position on the screen, so add the window offsets to field_col
 
 	auto it = fieldList.find( fld ) ;
 	if ( it != fieldList.end() )
@@ -2428,8 +2461,8 @@ void pPanel::field_edit( errblock& err, uint row, uint col, char ch, bool Isrt, 
 	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
 	if ( err.error() ) { return ; }
 
-	row   = row - win_row ;
-	col   = col - win_col ;
+	row  -= win_row ;
+	col  -= win_col ;
 	p_row = row ;
 	p_col = col ;
 
@@ -2551,8 +2584,8 @@ void pPanel::field_erase_eof( errblock& err, uint row, uint col, bool& prot )
 	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
 	if ( err.error() ) { return ; }
 
-	row = row - win_row ;
-	col = col - win_col ;
+	row -= win_row ;
+	col -= win_col ;
 
 	prot = true ;
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
@@ -2845,6 +2878,7 @@ void pPanel::set_tb_fields_act_inact( errblock& err )
 	int j    ;
 
 	string s ;
+	string suf ;
 
 	rows = p_funcPOOL->get( err, 0, INTEGER, "ZTDROWS" ) ;
 	if ( err.error() ) { return ; }
@@ -2853,12 +2887,12 @@ void pPanel::set_tb_fields_act_inact( errblock& err )
 
 	size = rows - top + 1 ;
 
-	ws = words( tb_fields ) ;
-	for ( i = 0 ; i < tb_depth ; i++ )
+	for ( ws = words( tb_fields ), i = 0 ; i < tb_depth ; i++ )
 	{
+		suf = "." + d2ds( i ) ;
 		for ( j = 1 ; j <= ws ; j++ )
 		{
-			s = word( tb_fields, j ) +"."+ d2ds( i ) ;
+			s = word( tb_fields, j ) + suf ;
 			fieldList[ s ]->field_active = ( i < size ) ;
 		}
 	}
@@ -2888,8 +2922,8 @@ bool pPanel::display_pd( errblock& err, uint row, uint col, string& msg )
 
 	// Call relevant )ABCINIT and display the pull-down at the cursor position.
 
-	row = row - win_row ;
-	col = col - win_col ;
+	row -= win_row ;
+	col -= win_col ;
 	hide_pd() ;
 
 	err.setRC( 0 ) ;
@@ -2997,13 +3031,20 @@ void pPanel::hide_pd()
 
 pdc pPanel::retrieve_choice( errblock& err, string& msg )
 {
+	pdc t_pdc ;
+
 	auto it = ab.begin() ;
 	advance( it, abIndex ) ;
 
-	abc_panel_proc( err, it->get_abc_desc() ) ;
-	msg = msgid ;
+	t_pdc = it->retrieve_choice( err ) ;
 
-	return it->retrieve_choice( err ) ;
+	if ( !t_pdc.pdc_inact )
+	{
+		abc_panel_proc( err, it->get_abc_desc() ) ;
+		msg = msgid ;
+	}
+
+	return t_pdc ;
 }
 
 
@@ -3016,7 +3057,7 @@ void pPanel::display_boxes()
 }
 
 
-void pPanel::set_panel_msg( slmsg t, const string& m )
+void pPanel::set_panel_msg( const slmsg& t, const string& m )
 {
 	errblock err ;
 
@@ -3040,6 +3081,7 @@ void pPanel::clear_msg()
 	MSG.clear() ;
 	msgid    = "" ;
 	showLMSG = false ;
+
 	if ( smwin )
 	{
 		panel_cleanup( smpanel ) ;
@@ -3047,6 +3089,7 @@ void pPanel::clear_msg()
 		delwin( smwin )      ;
 		smwin = NULL         ;
 	}
+
 	if ( lmwin )
 	{
 		panel_cleanup( lmpanel ) ;
@@ -3072,12 +3115,12 @@ string pPanel::get_keylist( int entry )
 
 void pPanel::display_msg( errblock& err )
 {
-	int i     ;
-	int x_row ;
-	int w_row ;
-	int w_col ;
-	int w_depth ;
-	int w_width ;
+	uint i     ;
+	uint x_row ;
+	uint w_row ;
+	uint w_col ;
+	uint w_depth ;
+	uint w_width ;
 
 	vector<string> v ;
 
@@ -3158,7 +3201,7 @@ void pPanel::display_msg( errblock& err )
 }
 
 
-void pPanel::get_msgwin( string m, int& t_row, int& t_col, int& t_depth, int& t_width, vector<string>& v )
+void pPanel::get_msgwin( string m, uint& t_row, uint& t_col, uint& t_depth, uint& t_width, vector<string>& v )
 {
 	// Split message into separate lines if necessary and put into vector v.
 	// Calculate the message window position and size.
