@@ -39,7 +39,7 @@ literal  MAX-5  2   PIN "Use"
 literal  MAX-5  6   PS  "Save"
 literal  MAX-5  11  PIN "and"
 literal  MAX-5  15  PS  "Restore"
-literal  MAX-5  23  PIN "to save/restore a copy of these variables to the current profile"
+literal  MAX-5  23  PIN "to save/restore a copy of these variables to the current profile (&ZAPPLID)"
 
 literal  MAX-3   2   CT "These variables are saved to the ISPS system profile."
 literal  MAX-2   2   CT "Re-running the setup program will overwrite these variables"

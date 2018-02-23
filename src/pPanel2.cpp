@@ -192,10 +192,10 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			}
 			if ( ws != "" )
 			{
-				cmdField = ws ;
-				if ( !isvalidName( cmdField ) )
+				cmdfield = ws ;
+				if ( !isvalidName( cmdfield ) )
 				{
-					err.seterrid( "PSYE022J", "COMMAND field", cmdField ) ;
+					err.seterrid( "PSYE022J", "COMMAND field", cmdfield ) ;
 					err.setsrc( oline ) ;
 					return ;
 				}
@@ -560,6 +560,10 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				return ;
 			}
 			literalList.push_back( m_lit ) ;
+			if ( m_lit->literal_cua == PS )
+			{
+				literalPS.push_back( m_lit ) ;
+			}
 			continue ;
 		}
 		else if ( w1 == "FIELD" )
@@ -746,29 +750,29 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		return ;
 	}
 
-	if ( cmdField != "" && fieldList.count( cmdField ) == 0 )
+	if ( cmdfield != "" && fieldList.count( cmdfield ) == 0 )
 	{
-		err.seterrid( "PSYE042M", cmdField ) ;
+		err.seterrid( "PSYE042M", cmdfield ) ;
 		return ;
 	}
 
-	if ( cmdField == "" && fieldList.count( "ZCMD" ) > 0 )
+	if ( cmdfield == "" && fieldList.count( "ZCMD" ) > 0 )
 	{
-		cmdField = "ZCMD" ;
+		cmdfield = "ZCMD" ;
 	}
 
-	if ( Home == "" && cmdField != "" )
+	if ( Home == "" && cmdfield != "" )
 	{
-		Home = cmdField ;
+		Home = cmdfield ;
 	}
 
-	if ( scrollOn && cmdField == "" )
+	if ( scrollOn && cmdfield == "" )
 	{
-		err.seterrid( "PSYE042N", cmdField ) ;
+		err.seterrid( "PSYE042N", cmdfield ) ;
 		return ;
 	}
 
-	if ( selectPanel && cmdField != "ZCMD" )
+	if ( selectPanel && cmdfield != "ZCMD" )
 	{
 		err.seterrid( "PSYE042P" ) ;
 		return ;

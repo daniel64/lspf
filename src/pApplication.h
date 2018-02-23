@@ -224,6 +224,8 @@ class pApplication
 		bool   line_output_pending()     { return lineOutPending ; }
 		void   set_output_done( bool b ) { lineOutDone = b       ; }
 
+		bool   msg_issued_with_cmd() ;
+
 		void   save_errblock()    ;
 		void   restore_errblock() ;
 		void   ispexec( const string& ) ;

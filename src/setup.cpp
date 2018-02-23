@@ -88,7 +88,7 @@ main()
 	lg->open( ALOG ) ;
 
 	systemPath = ZSPROF ;
-	if ( systemPath.back() != '/' ) { systemPath = systemPath + '/' ; }
+	if ( systemPath.back() != '/' ) { systemPath += "/" ; }
 
 	string ZCTVERB, ZCTACT, ZCTDESC, ZCTTRUNC ;
 

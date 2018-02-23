@@ -230,7 +230,7 @@ class abc
 		void   display_pd( errblock&, uint, uint, uint ) ;
 		void   hide_pd()    ;
 		int    get_pd_col() ;
-		void   get_msg_position( uint&, uint& ) ;
+		void   get_msg_position( int&, int& ) ;
 		const  string& get_abc_desc() ;
 		pdc    retrieve_choice( errblock& ) ;
 		bool   cursor_on_pulldown( uint, uint ) ;

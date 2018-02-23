@@ -2213,7 +2213,7 @@ void PPSP01A::showTasks()
 
 void PPSP01A::updateTasks( const string& table, const string& uf, const string& of )
 {
-	// Columns for top: PID, user, priority, NI, virt, RES, %CPU, %MEM, time, S, Command
+	// Columns for top: PID, user, priority, NI, virt, RES, Size, Status, %CPU, %MEM, time, Command
 
 	// Procedure can use 'top' or 'ps'
 	// top gives a better representation of CPU percentage but there is a delay
@@ -2253,7 +2253,7 @@ void PPSP01A::updateTasks( const string& table, const string& uf, const string& 
 	boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( zuser + "-" + zscreen + "-%%%%-%%%%" ) ;
 	tname = temp.native() ;
 
-  //    cname = "ps ax  -o pid,user,pri,ni,vsz,drs,size,stat,%cpu,%mem,time,stat,cmd > " + tname ;
+  //    cname = "ps ax -o pid,user,pri,ni,vsz,drs,size,stat,%cpu,%mem,time,cmd > " + tname ;
 	cname = "top -b -n 1 > " + tname ;
 
 	tbcreate( table, "", "(SEL,USER,PID,CPU,CPUX,MEM,MEMX,CMD)", NOWRITE ) ;

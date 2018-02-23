@@ -21,7 +21,7 @@ class pPanel
 {
 	public:
 		string msgid    ;
-		string cmdField ;
+		string cmdfield ;
 		bool   showLMSG ;
 
 		static poolMGR * p_poolMGR ;
@@ -47,7 +47,7 @@ class pPanel
 		void   field_get_col( const string& fld, uint& col ) ;
 
 		void   cursor_to_field( int& RC, string ="", int =1 ) ;
-		void   cursor_to_cmdField( int& RC, int =1 ) ;
+		void   cursor_to_cmdfield( int& RC, int =1 ) ;
 		void   cursor_to_next_field ( const string& name, uint& row, uint& col )  ;
 		void   cursor_eof( uint& row, uint& col )  ;
 		void   get_cursor( uint& row, uint& col ) { row   = p_row + win_row ; col   = p_col + win_col ; }
@@ -82,7 +82,7 @@ class pPanel
 
 		bool   is_cmd_inactive( const string& value ) ;
 
-		bool   has_command_field()             { return fieldList.count( cmdField ) > 0 ; }
+		bool   has_command_field()             { return fieldList.count( cmdfield ) > 0 ; }
 		bool   on_border_line( uint, uint )  ;
 		bool   hide_msg_window( uint, uint ) ;
 		void   selPanel( bool x ) { selectPanel = x ; }
@@ -153,6 +153,7 @@ class pPanel
 		bool   message_set ;
 		bool   cursor_set  ;
 		bool   full_screen ;
+		bool   msg_and_cmd ;
 		int    win_width   ;
 		int    win_depth   ;
 		int    win_row     ;
@@ -260,6 +261,7 @@ class pPanel
 		map<int, string> tb_linesChanged ;
 
 		vector<literal *> literalList      ;
+		vector<literal *> literalPS        ;
 		vector<abc> ab                     ;
 		vector<Box *> boxes                ;
 		map<string, field *> fieldList     ;
@@ -290,7 +292,9 @@ class pPanel
 		string process_panel_trunc( errblock& err, TRUNC* trunc ) ;
 		string process_panel_trans( errblock& err, int ln, TRANS* trans, const string& )  ;
 
-		void   get_msgwin( string, uint&, uint&, uint&, uint&, vector<string>& ) ;
+		bool   msg_issued_with_cmd()    { return msg_and_cmd ; }
+
+		void   get_msgwin( string, int&, int&, int&, int&, vector<string>& ) ;
 		void   panel_cleanup( PANEL * ) ;
 
 		void   update_keylist_vars( errblock& ) ;

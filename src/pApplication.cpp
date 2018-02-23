@@ -253,6 +253,13 @@ void pApplication::msgResponseOK()
 }
 
 
+bool pApplication::msg_issued_with_cmd()
+{
+	if ( currPanel ) { return currPanel->msg_issued_with_cmd() ; }
+	return false ;
+}
+
+
 void pApplication::store_scrname()
 {
 	ZSCRNAME = p_poolMGR->get( errBlock, "ZSCRNAME", SHARED ) ;

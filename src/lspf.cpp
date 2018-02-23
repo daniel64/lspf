@@ -804,6 +804,10 @@ void mainLoop()
 				}
 				else if ( ZCOMMAND == "SPLIT" )
 				{
+					if ( currAppl->msg_issued_with_cmd() )
+					{
+						currAppl->clear_msg() ;
+					}
 					SELCT.clear() ;
 					SELCT.PGM     = GMAINPGM ;
 					SELCT.PARM    = ""    ;
@@ -1188,7 +1192,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 	     p_poolMGR->sysget( err, "ZSWAPC", PROFILE ) == ZCOMMAND.substr( 0, 1 ) &&
 	     p_poolMGR->sysget( err, "ZSWAP",  PROFILE ) == "Y" )
 	{
-		currAppl->currPanel->field_get_row_col( currAppl->currPanel->cmdField, rw, cl ) ;
+		currAppl->currPanel->field_get_row_col( currAppl->currPanel->cmdfield, rw, cl ) ;
 		if ( rw == row && cl < col )
 		{
 			ZPARM    = upper( ZCOMMAND.substr( 1, col-cl-1 ) ) ;
@@ -1369,7 +1373,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		commandStack = ""    ;
 		ZCOMMAND     = "NOP" ;
 		passthru     = false ;
-		fld          = currAppl->currPanel->cmdField ;
+		fld          = currAppl->currPanel->cmdfield ;
 		if ( !retrieveBuffer.empty() )
 		{
 			currAppl->currPanel->cmd_setvalue( err, retrieveBuffer[ retPos ] ) ;
@@ -1634,6 +1638,7 @@ void startApplication( selobj SEL, bool nScreen )
 
 	if ( SEL.PGM == "ISPSTRT" )
 	{
+		currAppl->clear_msg() ;
 		nScreen = true ;
 		opt     = upper( SEL.PARM ) ;
 		rest    = ""                ;
@@ -2818,7 +2823,7 @@ string listLogicalScreens()
 		{
 			m == 0 ? m = lslist.size() - 1 : m-- ;
 		}
-		else if ( c == KEY_DOWN || c == 9 )
+		else if ( c == KEY_DOWN || c == CTRL( 'i' ) )
 		{
 			m == lslist.size()-1 ? m = 0 : m++ ;
 		}
@@ -2832,6 +2837,7 @@ string listLogicalScreens()
 	del_panel( swpanel ) ;
 	delwin( swwin )      ;
 	curs_set( 1 )        ;
+	currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
 
 	return d2ds( m+1 )   ;
 }
@@ -2906,20 +2912,20 @@ void listRetrieveBuffer()
 		if ( c == KEY_ENTER || c == 13 )
 		{
 			currAppl->currPanel->cmd_setvalue( err, retrieveBuffer[ m ] ) ;
-			currAppl->currPanel->cursor_to_cmdField( RC, retrieveBuffer[ m ].size()+1 ) ;
+			currAppl->currPanel->cursor_to_cmdfield( RC, retrieveBuffer[ m ].size()+1 ) ;
 			break ;
 		}
 		else if ( c == KEY_UP )
 		{
 			m == 0 ? m = lslist.size() - 1 : m-- ;
 		}
-		else if ( c == KEY_DOWN || c == 9 )
+		else if ( c == KEY_DOWN || c == CTRL( 'i' ) )
 		{
 			m == lslist.size() - 1 ? m = 0 : m++ ;
 		}
 		else if ( isActionKey( c ) )
 		{
-			currAppl->currPanel->cursor_to_cmdField( RC ) ;
+			currAppl->currPanel->cursor_to_cmdfield( RC ) ;
 			break ;
 		}
 	}
@@ -2930,6 +2936,8 @@ void listRetrieveBuffer()
 
 	currAppl->currPanel->get_cursor( row, col ) ;
 	currScrn->set_cursor( row, col ) ;
+	currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
+
 	return ;
 }
 
@@ -2996,7 +3004,7 @@ void autoUpdate()
 			do
 			{
 				c = getch() ;
-				if ( c == 27 ) { end_auto = true ; }
+				if ( c == CTRL( '[' ) ) { end_auto = true ; }
 			} while ( c != -1 ) ;
 		}
 	}
@@ -3013,21 +3021,28 @@ void autoUpdate()
 int getScreenNameNum( const string& s )
 {
 	// Return the screen number of screen name 's'.  If not found, return 0.
+	// If a full match is not found, try to match an abbreviation.
 
-	int l ;
+	int i ;
+	int j ;
 
 	vector<pLScreen *>::iterator its ;
 	pApplication * appl ;
 
-	for ( l = 1, its = screenList.begin() ; its != screenList.end() ; its++, l++ )
+	for ( i = 1, j = 0, its = screenList.begin() ; its != screenList.end() ; its++, i++ )
 	{
 		appl = (*its)->application_get_current() ;
 		if ( appl->get_current_screenName() == s )
 		{
-			return l ;
+			return i ;
+		}
+		else if ( abbrev( appl->get_current_screenName(), s ) )
+		{
+			j = i ;
 		}
 	}
-	return 0 ;
+
+	return j ;
 }
 
 
@@ -3211,11 +3226,12 @@ void serviceCallError( errblock& err )
 
 bool isActionKey( int c )
 {
-	return ( ( c >= KEY_F(1) && c <= KEY_F(24) ) ||
-		   c == KEY_NPAGE ||
-		   c == KEY_PPAGE ||
-		   c == KEY_ENTER ||
-		   c == 27        ||
+	return ( ( c >= KEY_F(1)    && c <= KEY_F(24) )   ||
+		 ( c >= CTRL( 'a' ) && c <= CTRL( 'z' ) ) ||
+		   c == CTRL( '[' ) ||
+		   c == KEY_NPAGE   ||
+		   c == KEY_PPAGE   ||
+		   c == KEY_ENTER   ||
 		   c == 13        ) ;
 }
 
@@ -3234,7 +3250,7 @@ void actionSwap( uint& row, uint& col )
 
 	if ( ZPARM != "" && ZPARM != "NEXT" && ZPARM != "PREV" )
 	{
-		currAppl->currPanel->cursor_to_cmdField( RC ) ;
+		currAppl->currPanel->cursor_to_cmdfield( RC ) ;
 		currAppl->currPanel->get_cursor( row, col ) ;
 		currScrn->set_cursor( row, col ) ;
 	}
@@ -3242,6 +3258,11 @@ void actionSwap( uint& row, uint& col )
 	if ( findword( w1, "LIST LISTN LISTP" ) )
 	{
 		w1 = listLogicalScreens() ;
+	}
+
+	if ( currAppl->msg_issued_with_cmd() )
+	{
+		currAppl->clear_msg() ;
 	}
 
 	if ( pLScreen::screensTotal == 1 ) { return ; }

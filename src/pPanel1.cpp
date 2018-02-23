@@ -53,13 +53,14 @@ pPanel::pPanel()
 	tb_lsz      = 0      ;
 	full_screen = false  ;
 	win_addpop  = false  ;
+	msg_and_cmd = false  ;
 	win_row     = 0      ;
 	win_col     = 0      ;
 	win_width   = 0      ;
 	win_depth   = 0      ;
 	dyn_depth   = 0      ;
 	ZPHELP      = ""     ;
-	cmdField    = ""     ;
+	cmdfield    = ""     ;
 	Home        = ""     ;
 	scroll      = "ZSCROLL" ;
 	fwin        = NULL   ;
@@ -431,6 +432,8 @@ void pPanel::display_panel( errblock& err )
 	display_msg( err ) ;
 	display_id( err )  ;
 
+	msg_and_cmd = ( msgid != "" && cmd_getvalue() != "" ) ;
+
 	if ( ALARM ) { beep() ; }
 }
 
@@ -630,7 +633,7 @@ void pPanel::display_panel_update( errblock& err )
 	if ( scrollOn && findword( CMDVerb, "UP DOWN LEFT RIGHT" ) )
 	{
 		CMD    = upper( cmd_getvalue() ) ;
-		msgfld = cmdField ;
+		msgfld = cmdfield ;
 		if ( CMD == "" || ( !findword( CMD, "M MAX C CSR D DATA H HALF P PAGE" ) && !isnumeric( CMD ) ) )
 		{
 			CMD    = fieldList[ scroll ]->field_value ;
@@ -639,7 +642,7 @@ void pPanel::display_panel_update( errblock& err )
 		else
 		{
 			cmd_setvalue( err, "" ) ;
-			p_funcPOOL->put( err, cmdField, "" )  ;
+			p_funcPOOL->put( err, cmdfield, "" )  ;
 			if ( err.error() ) { return ; }
 		}
 		if      ( tb_model )                          { maxAmount = tb_depth  ; }
@@ -764,44 +767,40 @@ void pPanel::display_panel_proc( errblock& err, int ln )
 	// If cursor on a point-and-shoot field (PS), set variable as in the )PNTS panel section if defined there
 	// If a selection panel, check .TRAIL if not NOCHECK on the ZSEL variable and issue error
 
-	int i ;
 	int p ;
 
 	string zsel     ;
 	string fieldNam ;
 
-	map<string, field *>::iterator it;
-
 	err.setRC( 0 ) ;
 
 	fieldNam = p_funcPOOL->get( err, 0, "ZCURFLD" ) ;
 	if ( err.error() ) { return ; }
+
+	auto it2 = pntsTable.end() ;
 	if ( fieldNam != "" )
 	{
-		it = fieldList.find( fieldNam ) ;
-		if ( it != fieldList.end() )
+		auto it = fieldList.find( fieldNam ) ;
+		if ( it != fieldList.end() && it->second->field_cua == PS )
 		{
-			if ( it->second->field_cua == PS && pntsTable.count( fieldNam ) > 0 )
-			{
-				putDialogueVar( err, pntsTable[ fieldNam ].pnts_var, pntsTable[ fieldNam ].pnts_val ) ;
-				if ( err.error() ) { return ; }
-			}
+			it2 = pntsTable.find( fieldNam ) ;
 		}
 	}
 	else
 	{
-		for ( i = 0 ; i < literalList.size() ; i++ )
+		for ( auto it = literalPS.begin() ; it != literalPS.end() ; it++ )
 		{
-			if ( !literalList.at( i )->cursor_on_literal( p_row, p_col ) ) { continue ; }
-			fieldNam = literalList.at( i )->literal_name ;
-			if ( fieldNam == "" ) { break ; }
-			if ( pntsTable.count( fieldNam ) > 0 )
+			if ( (*it)->cursor_on_literal( p_row, p_col ) )
 			{
-				putDialogueVar( err, pntsTable[ fieldNam ].pnts_var, pntsTable[ fieldNam ].pnts_val ) ;
-				if ( err.error() ) { return ; }
+				it2 = pntsTable.find( (*it)->literal_name ) ;
+				break ;
 			}
-			break ;
 		}
+	}
+	if ( it2 != pntsTable.end() )
+	{
+		putDialogueVar( err, it2->second.pnts_var, it2->second.pnts_val ) ;
+		if ( err.error() ) { return ; }
 	}
 
 	process_panel_stmnts( err, ln, procstmnts ) ;
@@ -2232,9 +2231,9 @@ void pPanel::resetAttrs()
 }
 
 
-void pPanel::cursor_to_cmdField( int& RC1, int f_pos )
+void pPanel::cursor_to_cmdfield( int& RC1, int f_pos )
 {
-	if ( cmdField != "" ) { cursor_to_field( RC1, cmdField, f_pos ) ; }
+	if ( cmdfield != "" ) { cursor_to_field( RC1, cmdfield, f_pos ) ; }
 }
 
 
@@ -2340,23 +2339,23 @@ void pPanel::field_setvalue( errblock& err, const string& f_name, const string& 
 
 string& pPanel::cmd_getvalue()
 {
-	if ( fieldList.find( cmdField ) == fieldList.end() )
+	if ( fieldList.find( cmdfield ) == fieldList.end() )
 	{
 		return ZZCMD ;
 	}
-	return field_getvalue( cmdField ) ;
+	return field_getvalue( cmdfield ) ;
 }
 
 
 void pPanel::cmd_setvalue( errblock& err, const string& v )
 {
-	if ( fieldList.find( cmdField ) == fieldList.end() )
+	if ( fieldList.find( cmdfield ) == fieldList.end() )
 	{
 		ZZCMD = v ;
 	}
 	else
 	{
-		field_setvalue( err, cmdField, v ) ;
+		field_setvalue( err, cmdfield, v ) ;
 	}
 }
 
@@ -3115,12 +3114,12 @@ string pPanel::get_keylist( int entry )
 
 void pPanel::display_msg( errblock& err )
 {
-	uint i     ;
-	uint x_row ;
-	uint w_row ;
-	uint w_col ;
-	uint w_depth ;
-	uint w_width ;
+	int i     ;
+	int x_row ;
+	int w_row ;
+	int w_col ;
+	int w_depth ;
+	int w_width ;
 
 	vector<string> v ;
 
@@ -3201,7 +3200,7 @@ void pPanel::display_msg( errblock& err )
 }
 
 
-void pPanel::get_msgwin( string m, uint& t_row, uint& t_col, uint& t_depth, uint& t_width, vector<string>& v )
+void pPanel::get_msgwin( string m, int& t_row, int& t_col, int& t_depth, int& t_width, vector<string>& v )
 {
 	// Split message into separate lines if necessary and put into vector v.
 	// Calculate the message window position and size.
