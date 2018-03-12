@@ -134,14 +134,14 @@ void parser::eraseTokens( int i )
 
 	tokens.erase( tokens.begin(), tokens.begin() + i + 1 ) ;
 
-	for ( int j = 0 ; j < tokens.size() ; j++ )
+	for ( unsigned int j = 0 ; j < tokens.size() ; j++ )
 	{
 		tokens[ j ].idx = j ;
 	}
 }
 
 
-token parser::getToken( int i )
+token parser::getToken( unsigned int i )
 {
 	if ( i < tokens.size() )
 	{
@@ -171,7 +171,7 @@ token parser::getNextToken()
 
 string parser::peekNextValue()
 {
-	int i = idx + 1 ;
+	unsigned int i = idx + 1 ;
 
 	return tokens.size() > i ? tokens[ i ].value : "" ;
 }
@@ -1315,8 +1315,9 @@ bool slmsg::parse( const string& s, const string& l )
 	// Parse message and fill the slmsg object.
 	// .TYPE overrides .WINDOW and .ALARM
 
-	int p1 ;
-	int p2 ;
+	size_t p1 ;
+	size_t p2 ;
+
 	int ln ;
 
 	char c ;
@@ -1494,8 +1495,9 @@ bool selobj::parse( errblock& err, string SELSTR )
 	// double quotes if needed, that are then removed.
 
 	int ob ;
-	int p1 ;
-	int p2 ;
+
+	size_t p1 ;
+	size_t p2 ;
 
 	bool oquote ;
 

@@ -29,12 +29,10 @@ class PMAIN0A : public pApplication
 
 		int  offset ;
 
-		string zcmd    ;
-
-		string ZAREA   ;
-		string ZSHADOW ;
-		string ZDATEL  ;
-		string ZDATE   ;
-		string ZTIME   ;
-		string ZJDATE  ;
+		string zarea   ;
+		string zshadow ;
+		string zdatel  ;
+		string zdate   ;
+		string ztime   ;
+		string zjdate  ;
 };

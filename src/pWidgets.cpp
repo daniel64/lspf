@@ -113,8 +113,8 @@ void field::field_opts( errblock& err, string& opts )
 	// PAD(char,NULLS,USER)
 	// SKIP(ON,OFF)
 
-	int p1 ;
-	int p2 ;
+	size_t p1 ;
+	size_t p2 ;
 
 	char quote ;
 
@@ -308,8 +308,9 @@ void dynArea::dynArea_init( errblock& err, int MAXW, int MAXD, const string& lin
 	int col   ;
 	int width ;
 	int depth ;
-	int p1    ;
-	int p2    ;
+
+	size_t p1 ;
+	size_t p2 ;
 
 	string w2 ;
 	string w3 ;
@@ -490,8 +491,8 @@ bool field::edit_field_insert( WINDOW * win, char ch, int col, char pad, bool sn
 
 	uint pos ;
 
-	int p1  ;
-	int p2  ;
+	size_t p1  ;
+	size_t p2  ;
 
 	dynArea * da ;
 	const char nulls(0x00) ;
@@ -573,7 +574,7 @@ bool field::edit_field_replace( WINDOW * win, char ch, int col, char pad, bool s
 	// Use the null character (x'00') to fill fields when the cursor is past the end if the field value
 	// These are then removed before further processing by the application
 
-	int p1   ;
+	size_t p1 ;
 
 	uint pos ;
 
@@ -628,8 +629,8 @@ void field::edit_field_delete( WINDOW * win, int col, char pad, bool snulls )
 
 	uint pos ;
 
-	int p1 ;
-	int p2 ;
+	size_t p1 ;
+	size_t p2 ;
 
 	const char nulls(0x00) ;
 
@@ -678,7 +679,7 @@ int field::edit_field_backspace( WINDOW * win, int col, char pad, bool snulls )
 {
 	// If this is a dynamic area, we know it is an input field so pos > 0 (to allow for the input attribute byte)
 
-	int pos ;
+	size_t pos ;
 
 	pos = col - field_col ;
 	if ( pos > field_value.size() ) { return --col ; }
@@ -703,8 +704,8 @@ void field::field_erase_eof( WINDOW * win, uint col, char pad, bool snulls )
 	// and there is an input attribute byte at the start of the field
 
 	int pos ;
-	int p1  ;
-	int p2  ;
+	size_t p1 ;
+	size_t p2 ;
 
 	dynArea * da ;
 
@@ -755,7 +756,7 @@ void field::field_blank( WINDOW * win, char pad )
 	char * blanks = new char[ field_length+1 ] ;
 
 	upad = field_paduser ? pad : field_padchar ;
-	for ( int i = 0 ; i < field_length ; i++ )
+	for ( unsigned int i = 0 ; i < field_length ; i++ )
 	{
 		blanks[ i ] = upad ;
 	}
@@ -783,9 +784,10 @@ void field::field_remove_nulls_da()
 	// BUG: Nulls not removed from a touched/changed field with no USERMOD/DATAMOD parameter specified
 	// (as we cannot determine if the field has been touched/changed without these)
 
-	int p1 ;
-	int p2 ;
-	int p3 ;
+	size_t p1 ;
+	size_t p2 ;
+	size_t p3 ;
+
 	int pattr ;
 
 	bool changed ;
@@ -861,9 +863,9 @@ int field::end_of_field( WINDOW * win, uint col )
 	// If this is a dynamic area, we know at this point this is an input field.
 	// Strip trailing nulls if not a dynamic area
 
-	int pos ;
-	int p1  ;
-	int p2  ;
+	size_t pos ;
+	size_t p1  ;
+	size_t p2  ;
 
 	string padc = "" ;
 
@@ -913,8 +915,8 @@ bool field::field_dyna_input( uint col )
 	// Find the previous field attribute.
 	// If found, test to see if it is an input attribute
 
-	uint pos ;
-	int p1   ;
+	size_t pos ;
+	size_t p1  ;
 
 	dynArea * da = field_dynArea ;
 
@@ -938,8 +940,8 @@ int field::field_dyna_input_offset( uint col )
 {
 	// When this routine is called, we know the field is a dynamic area
 
-	uint pos ;
-	int  p1  ;
+	size_t pos ;
+	size_t p1  ;
 
 	pos = ( col < field_col ) ? 0 : (col - field_col) ;
 
@@ -1075,8 +1077,8 @@ void field::field_prep_input()
 	//    JUST(LEFT/RIGHT) leading and trailing spaces are removed
 	//    JUST(ASIS) Only trailing spaces are removed
 
-	int p1 ;
-	int p2 ;
+	size_t p1 ;
+	size_t p2 ;
 
 	const char nulls(0x00) ;
 
@@ -1149,8 +1151,8 @@ void field::field_DataMod_to_UserMod( string * darea, int offset )
 	// When this is called, we know dynDataIn and dynDataMod have been specified (but not necessarily dynUserMod,
 	// or dynDataOut).  If no change to the field, attr=dynUserMod if specified, else dynDataIn
 
-	int p1 ;
-	int p2 ;
+	size_t p1 ;
+	size_t p2 ;
 
 	dynArea * da = field_dynArea ;
 
@@ -1499,8 +1501,8 @@ string abc::sub_vars( errblock& err, string s, bool& dvars )
 
 	// Set dvars to true if the string contains dialogue variables, else false
 
-	int p1 ;
-	int p2 ;
+	size_t p1 ;
+	size_t p2 ;
 
 	string var ;
 	string val ;
@@ -1574,9 +1576,11 @@ void abc::display_pd( errblock& err, uint p_row, uint p_col, uint row )
 	// Resize pull-down window if necessary
 
 	int i ;
-	int w_row ;
-	int w_col ;
-	int maxw = 0 ;
+
+	uint w_row ;
+	uint w_col ;
+
+	size_t maxw = 0 ;
 
 	if ( row > 1 && row < pdcList.size() + 2 )
 	{
@@ -1594,7 +1598,7 @@ void abc::display_pd( errblock& err, uint p_row, uint p_col, uint row )
 				it->pdc_desc = "" ;
 			}
 		}
-		maxw = max( int( it->pdc_xdesc.size() ), maxw ) ;
+		maxw = max( it->pdc_xdesc.size(), maxw ) ;
 	}
 
 	if ( !pd_created )
@@ -1670,7 +1674,7 @@ int abc::get_pd_col()
 }
 
 
-void abc::get_msg_position( int& row, int& col )
+void abc::get_msg_position( uint& row, uint& col )
 {
 	row = abc_maxh + 2 ;
 	col = abc_col ;
@@ -1685,8 +1689,8 @@ const string& abc::get_abc_desc()
 
 bool abc::cursor_on_pulldown( uint row, uint col )
 {
-	int w_row ;
-	int w_col ;
+	uint w_row ;
+	uint w_col ;
 
 	getbegyx( win, w_row, w_col ) ;
 

@@ -28,8 +28,12 @@ class PTUTORA : public pApplication
 		void read_file( string ) ;
 		void fill_dynamic_area() ;
 
-		int firstLine, maxLines ;
-		int startCol, maxCol    ;
+		int  firstLine ;
+		int  startCol  ;
+
+		uint maxLines  ;
+		uint maxCol    ;
+
 		vector<string> data ;
 
 		string ZROW1 ;

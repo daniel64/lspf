@@ -62,7 +62,7 @@ vector<vector<string>*>::iterator Table::getKeyItr( errblock& err,
 
 	// Set CRPX to the found row, in case the position is required (eg to set the CRP)
 
-	int i ;
+	uint i ;
 
 	string var ;
 
@@ -102,8 +102,8 @@ void Table::loadfuncPOOL( errblock& err,
 {
 	// Set row variables (including extension variables) in function pool from row pointed to by the CRP
 
-	int i  ;
-	int ws ;
+	uint i  ;
+	uint ws ;
 
 	string tbelst = "" ;
 
@@ -143,7 +143,7 @@ void Table::saveExtensionVarNames( errblock& err,
 				   const string& tb_savenm )
 {
 	// Save extension variable names in tb_savenm function pool variable.  (Null if there are none)
-	// For use when NOREAD specified with tb_savenm, otherwise it is set by loadfuncPool().
+	// For use when NOREAD specified with tb_savenm, otherwise they are set by loadfuncPool().
 
 	vector<vector<string>*>::iterator it ;
 
@@ -170,8 +170,8 @@ void Table::loadFields( errblock& err,
 {
 	// Load row fields (including namelist but not the URID) from the function pool into string vector row
 
-	int i  ;
-	int ws ;
+	uint i  ;
+	uint ws ;
 
 	string var ;
 
@@ -263,7 +263,7 @@ void Table::tbadd( errblock& err,
 
 	err.setRC( 0 ) ;
 
-	if ( table.size() > 65535 )
+	if ( table.size() > 262144 )
 	{
 		err.seterrid( "PSYE013F" ) ;
 		return ;
@@ -625,8 +625,6 @@ void Table::tbput( errblock& err,
 
 	// If ORDER specified on a sorted table, sort again in case tbput has changed the order and reset CRP
 
-	int i ;
-
 	string key  ;
 	string val  ;
 	string URID ;
@@ -654,7 +652,7 @@ void Table::tbput( errblock& err,
 	loadFields( err, funcPOOL, tb_namelst, row ) ;
 	if ( err.error() ) { delete row ; return ; }
 
-	for ( i = 1 ; i <= num_keys ; i++ )
+	for ( uint i = 1 ; i <= num_keys ; i++ )
 	{
 		if ( row->at( i ) != (*it)->at( i ) )
 		{
@@ -792,8 +790,8 @@ void Table::tbsets( errblock& err,
 
 	// TBSCAN: Only use variables from nl_namelst (any type).  Don't ignore nulls.
 
-	int i  ;
-	int ws ;
+	uint i  ;
+	uint ws ;
 
 	string var  ;
 	string val  ;
@@ -887,8 +885,9 @@ void Table::tbscan( errblock& err,
 	int i    ;
 	int ws   ;
 	int p1   ;
-	int size ;
-	int s_match ;
+
+	uint size    ;
+	uint s_match ;
 
 	bool s_next  ;
 	bool found   ;
@@ -1160,7 +1159,7 @@ void Table::tbskip( errblock& err,
 	// RC = 16 Truncation has occured
 	// RC = 20 Severe error
 
-	int i ;
+	uint i ;
 
 	string val ;
 	string var ;
@@ -1358,7 +1357,7 @@ void Table::tbtop( errblock& err )
 void Table::tbvclear( errblock& err,
 		      fPOOL& funcPOOL )
 {
-	for ( int i = 1 ; i <= num_all ; i++ )
+	for ( unsigned int i = 1 ; i <= num_all ; i++ )
 	{
 		funcPOOL.put( err, word( tab_all, i ), "" ) ;
 		if ( err.error() ) { return ; }
@@ -1370,9 +1369,9 @@ void Table::fillfVARs( errblock& err,
 		       fPOOL& funcPOOL,
 		       const string& clear_flds,
 		       bool scan,
-		       int  depth,
+		       uint depth,
 		       int  posn,
-		       int  csrrow,
+		       uint csrrow,
 		       int& idx,
 		       string& asURID )
 {
@@ -1385,10 +1384,10 @@ void Table::fillfVARs( errblock& err,
 	// BUGS:  Should only do fields on the tbmodel statement instead of all fields in the row (inc. extension variables)
 	//        SCAN not supported yet
 
-	int j    ;
-	int k    ;
-	int l    ;
-	int size ;
+	uint j    ;
+	uint k    ;
+	uint l    ;
+	uint size ;
 
 	string var    ;
 	string enames ;
@@ -1475,11 +1474,13 @@ void Table::saveTable( errblock& err,
 	// Version 2 file format adds extension variable support and record/file end markers, 0xFF.
 
 	string s ;
-	int i    ;
-	int j    ;
-	int k    ;
-	int size ;
-	int evar ;
+
+	uint i    ;
+	uint j    ;
+	uint k    ;
+	uint size ;
+	uint evar ;
+
 	std::ofstream otable ;
 
 	err.setRC( 0 ) ;
@@ -1734,16 +1735,18 @@ void tableMGR::loadTable( errblock& err,
 
 	// TODO: Clean up dynamic storage (rows) if table fails to fully load
 
-	int  i        ;
-	int  j        ;
-	int  k        ;
-	int  l        ;
-	int  ver      ;
-	int  num_rows ;
-	int  num_keys ;
-	int  num_flds ;
-	int  all_flds ;
-	int  n1, n2   ;
+	uint i        ;
+	uint j        ;
+	uint k        ;
+	uint l        ;
+	uint num_rows ;
+	uint num_keys ;
+	uint num_flds ;
+	uint all_flds ;
+
+	uint  n1      ;
+	uint  n2      ;
+	uint  ver     ;
 
 	char x           ;
 	char buf1[ 256 ] ;
@@ -1834,7 +1837,7 @@ void tableMGR::loadTable( errblock& err,
 	}
 
 	table.get( x ) ;
-	ver = static_cast< int >( x ) ;
+	ver = (unsigned char)x ;
 	if ( ver > 2 )
 	{
 		err.seterrid( "PSYE014F", d2ds( ver ), filename ) ;
@@ -1843,18 +1846,15 @@ void tableMGR::loadTable( errblock& err,
 	}
 
 	table.get( x ) ;
-	i = static_cast< int >( x ) ;
-	if ( i < 0 ) { i = 256 + i ; }
+	i = (unsigned char)x ;
 	table.read( buf1, i ) ;
 	hdr.assign( buf1, i ) ;
 	table.get( x ) ;
-	i = static_cast< int >( x ) ;
-	if ( i < 0 ) { i = 256 + i ; }
+	i = (unsigned char)x ;
 	for ( j = 0 ; j < i ; j++ )
 	{
 		table.get( x ) ;
-		k = static_cast< int >( x ) ;
-		if ( k < 0 ) { k = 256 + k ; }
+		k = ( unsigned char)x ;
 		table.read( buf1, k ) ;
 		switch ( j )
 		{
@@ -1867,19 +1867,15 @@ void tableMGR::loadTable( errblock& err,
 		}
 	}
 	table.read( z, 2 ) ;
-	n1 = static_cast< int >( z[ 0 ] ) ;
-	n2 = static_cast< int >( z[ 1 ] ) ;
-	if ( n1 < 0 ) { n1 = 256 + n1 ; }
-	if ( n2 < 0 ) { n2 = 256 + n2 ; }
+	n1 = ( unsigned char)z[ 0 ] ;
+	n2 = ( unsigned char)z[ 1 ] ;
 	num_rows = n1 * 256 + n2 ;
 
 	table.get( x ) ;
-	n1 = static_cast< int >( x ) ;
-	if ( n1 < 0 ) { n1 = 256 + n1 ; }
+	n1 = ( unsigned char)x ;
 	num_keys = n1  ;
 	table.get( x ) ;
-	n1 = static_cast< int >( x ) ;
-	if ( n1 < 0 ) { n1 = 256 + n1 ; }
+	n1 = ( unsigned char)x ;
 	num_flds = n1 ;
 	all_flds = num_keys + num_flds ;
 
@@ -1895,8 +1891,7 @@ void tableMGR::loadTable( errblock& err,
 			table.close() ;
 			return ;
 		}
-		i = static_cast< int >( x ) ;
-		if ( i < 0 ) { i = 256 + i ; }
+		i = ( unsigned char)x ;
 		table.read( buf1, i ) ;
 		keys = keys + s.assign( buf1, i ) + " " ;
 	}
@@ -1909,8 +1904,7 @@ void tableMGR::loadTable( errblock& err,
 			table.close() ;
 			return ;
 		}
-		i = static_cast< int >( x ) ;
-		if ( i < 0 ) { i = 256 + i ; }
+		i = ( unsigned char)x ;
 		table.read( buf1, i ) ;
 		flds = flds + s.assign( buf1, i ) + " " ;
 	}
@@ -1948,10 +1942,8 @@ void tableMGR::loadTable( errblock& err,
 				delete row    ;
 				return ;
 			}
-			n1 = static_cast< int >( z[ 0 ] ) ;
-			n2 = static_cast< int >( z[ 1 ] ) ;
-			if ( n1 < 0 ) { n1 = 256 + n1 ; }
-			if ( n2 < 0 ) { n2 = 256 + n2 ; }
+			n1 = ( unsigned char )z[ 0 ] ;
+			n2 = ( unsigned char )z[ 1 ] ;
 			i = n1 * 256 + n2 ;
 			if ( i > buf2Size )
 			{
@@ -1983,10 +1975,8 @@ void tableMGR::loadTable( errblock& err,
 				delete row    ;
 				return ;
 			}
-			n1 = static_cast< int >( z[ 0 ] ) ;
-			n2 = static_cast< int >( z[ 1 ] ) ;
-			if ( n1 < 0 ) { n1 = 256 + n1 ; }
-			if ( n2 < 0 ) { n2 = 256 + n2 ; }
+			n1 = ( unsigned char)z[ 0 ] ;
+			n2 = ( unsigned char)z[ 1 ] ;
 			i = n1 * 256 + n2 ;
 			for ( j = 0 ; j < i ; j++ )
 			{
@@ -1999,10 +1989,8 @@ void tableMGR::loadTable( errblock& err,
 					delete row    ;
 					return ;
 				}
-				n1 = static_cast< int >( z[ 0 ] ) ;
-				n2 = static_cast< int >( z[ 1 ] ) ;
-				if ( n1 < 0 ) { n1 = 256 + n1 ; }
-				if ( n2 < 0 ) { n2 = 256 + n2 ; }
+				n1 = ( unsigned char)z[ 0 ] ;
+				n2 = ( unsigned char)z[ 1 ] ;
 				k = n1 * 256 + n2 ;
 				if ( k > buf2Size )
 				{

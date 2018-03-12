@@ -143,8 +143,8 @@ string delword( string s, unsigned int w )
 {
 	// Delete all words starting at w.  Keep leading spaces
 
-	int i = 0 ;
-	int j = 0 ;
+	size_t i = 0 ;
+	size_t j = 0 ;
 
 	for ( ; w > 0 ; w-- )
 	{
@@ -167,9 +167,9 @@ string delword( string s, unsigned int w, unsigned int n )
 	// Delete words starting at w for n words.  Keep leading spaces but remove
 	// trailing spaces on last word deleted
 
-	int i = 0 ;
-	int j = 0 ;
-	int k = 0 ;
+	size_t i = 0 ;
+	size_t j = 0 ;
+	size_t k = 0 ;
 
 	if ( n == 0 ) { return s ; }
 
@@ -197,7 +197,7 @@ string delword( string s, unsigned int w, unsigned int n )
 
 
 
-string insert( const string& s1, string s2, int n, char c )
+string insert( const string& s1, string s2, unsigned int n, char c )
 {
 	// Insert s1 into s2 at n
 
@@ -406,8 +406,8 @@ string substr( const string& s, unsigned int n, unsigned int l, char c )
 
 string subword( const string& s, unsigned int w )
 {
-	int i = 0 ;
-	int j = 0 ;
+	size_t i = 0 ;
+	size_t j = 0 ;
 
 	for ( ; w > 0 ; w-- )
 	{
@@ -427,9 +427,9 @@ string subword( const string& s, unsigned int w )
 
 string subword( const string& s, unsigned int w, unsigned int n )
 {
-	int i = 0 ;
-	int j = 0 ;
-	int k = 0 ;
+	size_t i = 0 ;
+	size_t j = 0 ;
+	size_t k = 0 ;
 
 	for ( ; w > 0 ; w-- )
 	{
@@ -457,8 +457,8 @@ string subword( const string& s, unsigned int w, unsigned int n )
 
 string word( const string& s, unsigned int w )
 {
-	int i = 0 ;
-	int j = 0 ;
+	size_t i = 0 ;
+	size_t j = 0 ;
 
 	for ( ; w > 0 ; w-- )
 	{
@@ -478,8 +478,8 @@ string word( const string& s, unsigned int w )
 
 int wordindex( const string& s, unsigned int w )
 {
-	int i = 0 ;
-	int j = 0 ;
+	size_t i = 0 ;
+	size_t j = 0 ;
 
 	for ( ; w > 0 ; w-- )
 	{
@@ -510,13 +510,15 @@ int wordpos( const string& s1, const string& s2 )
 	// in string s2 in the same sequence, else return 0
 	// The number of spaces in and around words in s1 and s2 is not relevant
 
-	int i  = 0 ;
-	int j  = 0 ;
-	int k  = 0 ;
+	size_t i = 0 ;
+	size_t j = 0 ;
+
 	int l  = 0 ;
 	int w  = 0 ;
 	int sj = 0 ;
 	int sl = 0 ;
+
+	uint k = 0 ;
 
 	string s  ;
 
@@ -581,8 +583,8 @@ int wordpos( const string& s1, const string& s2 )
 
 int words( const string& s )
 {
-	int i( 0 )  ;
-	unsigned int w( 0 ) ;
+	size_t i = 0 ;
+	unsigned int w = 0 ;
 
 	for ( ; ; w++ )
 	{
@@ -599,7 +601,6 @@ int words( const string& s )
 
 string bs2xs( string s )
 {
-	int i ;
 	int l ;
 
 	string reslt ;
@@ -611,7 +612,7 @@ string bs2xs( string s )
 	reslt.clear()        ;
 	reslt.reserve( l/4 ) ;
 
-	for ( i = 0 ; i < s.length() ; i += 4 )
+	for ( unsigned int i = 0 ; i < s.length() ; i += 4 )
 	{
 		t = s.substr( i, 4 ) ;
 		if      ( t == "0000" ) { reslt.push_back( '0' ) ; }
@@ -643,7 +644,7 @@ string cs2bs( const string& s )
 
 	reslt.reserve( 8*s.size() ) ;
 	reslt = "" ;
-	for ( int i = 0 ; i < s.size() ; i++ )
+	for ( unsigned int i = 0 ; i < s.size() ; i++ )
 	{
 		for ( int j = 7; j >= 0; --j)
 		{
@@ -657,12 +658,11 @@ string cs2bs( const string& s )
 
 int cs2d( const string& s )
 {
-	int i ;
 	int j ;
 	int k ;
 
 	k = 0 ;
-	for ( i = 0 ; i < s.size() ; i++ )
+	for ( unsigned int i = 0 ; i < s.size() ; i++ )
 	{
 		j = static_cast< int >( s[ i ] ) ;
 		if ( j < 0 ) { j = 256 + j ; }
@@ -676,8 +676,12 @@ int cs2d( const string& s )
 string cs2xs( const string& s )
 {
 	const char hexdigits[] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F' } ;
-	char x, y ;
-	int  i, j ;
+
+	char x ;
+	char y ;
+
+	int  j ;
+
 	string reslt ;
 
 	unsigned int l = s.length()  ;
@@ -685,7 +689,7 @@ string cs2xs( const string& s )
 	reslt.resize( 2*l ) ;
 
 	j = 0 ;
-	for ( i = 0 ; i < l ; i++ )
+	for ( unsigned int i = 0 ; i < l ; i++ )
 	{
 		x = hexdigits[ s[ i ] >> 4 & 0x0F ] ;
 		y = hexdigits[ s[ i ] & 0x0F ] ;
@@ -768,12 +772,11 @@ int ds2d( const string& s )
 
 string xs2bs( const string& s )
 {
-	int i ;
 	string reslt("") ;
 
 	reslt.reserve( 4*s.size() ) ;
 
-	for ( i = 0 ; i < s.size() ; i++ )
+	for ( unsigned int i = 0 ; i < s.size() ; i++ )
 	{
 		switch ( s[ i ] )
 		{
@@ -808,7 +811,6 @@ string xs2bs( const string& s )
 
 string xs2cs( const string& s )
 {
-	int i ;
 	int j ;
 	int k ;
 
@@ -817,7 +819,7 @@ string xs2cs( const string& s )
 
 	j = 0 ;
 	k = 0 ;
-	for ( i = 0 ; i < s.size() ; i++ )
+	for ( unsigned int i = 0 ; i < s.size() ; i++ )
 	{
 		switch ( s[ i ] )
 		{
@@ -899,7 +901,8 @@ string& dquote( char c, string& s )
 	// Reduce repeated sequence of quotes to single quote
 	// Return string& so it can be used in expressions
 
-	int p ;
+	size_t p ;
+
 	string dq ;
 
 	p = 0 ;
@@ -1034,8 +1037,8 @@ string& idelword( string& s, unsigned int w )
 	// Delete word w to end of string in-place and return reference
 	// Keep leading spaces on word w, but remove spaces at end of string
 
-	int i = 0 ;
-	int j = 0 ;
+	size_t i = 0 ;
+	size_t j = 0 ;
 
 	for ( ; w > 0 ; w-- )
 	{
@@ -1058,9 +1061,9 @@ string& idelword( string& s, unsigned int w, unsigned int n )
 	// Delete word w for n words, in-place and return reference
 	// Keep leading spaces on word w, but remove trailing spaces on last word
 
-	int i = 0 ;
-	int j = 0 ;
-	int k = 0 ;
+	size_t i = 0 ;
+	size_t j = 0 ;
+	size_t k = 0 ;
 
 	if ( n == 0 ) { return s ; }
 
@@ -1137,12 +1140,11 @@ string d2size( int size )
 
 string hex2print( const string& t )
 {
-	string s ;
+	string s = "" ;
 
 	unsigned int l = t.length() ;
-	s     = ""         ;
 
-	for ( int i = 0 ; i < l ; i++ )
+	for ( unsigned int i = 0 ; i < l ; i++ )
 	{
 		if ( isprint( t[ i ] ) ) s = s + t[ i ] ;
 		else                     s = s + ' '    ;
@@ -1156,7 +1158,8 @@ string addCommas( string t )
 	string nsign("") ;
 
 	int i ;
-	int j ;
+
+	size_t j ;
 
 	if ( t == "" ) { return 0 ; }
 
@@ -1182,7 +1185,8 @@ string addCommas( string t, int prec )
 	string nsign("") ;
 
 	int i ;
-	int j ;
+
+	size_t j ;
 
 	if ( t[ 0 ] == '-' ) { t.erase( 0, 1 ) ; nsign = "-" ; }
 	j = t.find( '.' ) ;
@@ -1378,7 +1382,7 @@ bool ispict( const string& s, const string& picts )
 
 	if ( l1 != l2 ) { return false ; }
 
-	for ( int i = 0 ; i < l1 ; i++ )
+	for ( unsigned int i = 0 ; i < l1 ; i++ )
 	{
 		switch ( picts[ i ] )
 		{
@@ -1444,6 +1448,12 @@ string mergepaths( const string& p1, const string& p2 )
 }
 
 
+string mergepaths( const string& p1, const string& p2, const string& p3 )
+{
+	return mergepaths( mergepaths( p1, p2 ), p3 ) ;
+}
+
+
 string parseString( errblock& err, string& s, string p )
 {
 	// return value of keyword parameter p, or null if not entered
@@ -1456,8 +1466,9 @@ string parseString( errblock& err, string& s, string p )
 	// p   - parameter to find (case insensitive)
 
 	int ob ;
-	int p1 ;
-	int p2 ;
+
+	size_t p1 ;
+	size_t p2 ;
 
 	string us ;
 	string t  ;
@@ -1560,105 +1571,6 @@ string& getNameList( errblock& err, string& s )
 }
 
 
-void extractWord( errblock& err, string& s, string& p )
-{
-	// Get the next word in list s and remove from the list.  Place in p.
-	// Words can be delimited by space or "()=,".  "()=," are also returned as words.
-
-	int p1 ;
-
-	char c ;
-
-	err.setRC( 0 ) ;
-
-	trim_left( s ) ;
-	if ( s.size() == 0 )
-	{
-		p = "" ;
-		return ;
-	}
-	c = s.front() ;
-	if ( c == ',' || c == '(' || c == ')' || c == '=' )
-	{
-		p = c ;
-		s = s.erase( 0, 1 ) ;
-	}
-	else if ( c == '\'' )
-	{
-		err.seterrid( "PSYE031H" ) ;
-	}
-	else
-	{
-		p1 = s.find_first_of( " ,()=" ) ;
-		if ( p1 == string::npos )
-		{
-			p = s   ;
-			s = ""  ;
-		}
-		else
-		{
-			p = s.substr( 0, p1 ) ;
-			s.erase( 0, p1 ) ;
-		}
-	}
-}
-
-
-void extractWord( errblock& err, string& s, string& p, bool& quoted )
-{
-	// Allow quoted strings and set quoted parameter accordingly
-
-	// Get the next word in list s and remove from the list.  Place in p.
-	// Words can be delimited by space or "()=,".  "()=," are also returned as words.
-
-	int p1 ;
-
-	char c ;
-
-	err.setRC( 0 ) ;
-	quoted = false ;
-
-	trim_left( s ) ;
-	if ( s.size() == 0 )
-	{
-		p = "" ;
-		return ;
-	}
-	c = s.front() ;
-	if ( c == ',' || c == '(' || c == ')' || c == '=' )
-	{
-		p = c ;
-		s = s.erase( 0, 1 ) ;
-	}
-	else if ( c == '\'' )
-	{
-		p1     = s.find( '\'', 1 ) ;
-		quoted = true ;
-		if ( p1 == string::npos )
-		{
-			err.seterrid( "PSYE033F" ) ;
-			return ;
-		}
-		p = s.substr( 1, p1-1 ) ;
-		s.erase( 0, p1+1 ) ;
-	}
-	else
-	{
-		p1 = s.find_first_of( " ,()=" ) ;
-		if ( p1 == string::npos )
-		{
-			p = s   ;
-			s = ""  ;
-		}
-		else
-		{
-			p = s.substr( 0, p1 ) ;
-			s.erase( 0, p1 ) ;
-		}
-	}
-}
-
-
 string extractKWord( errblock& err, string& s, string p )
 {
 	// return value of keyword parameter p, or null if not entered.  Value can be quoted (removed).
@@ -1667,8 +1579,8 @@ string extractKWord( errblock& err, string& s, string p )
 	// s   - entered string (on exit, minus the keyword parameter, p and trimmed)
 	// p   - parameter to find (case insensitive)
 
-	int p1 ;
-	int p2 ;
+	size_t p1 ;
+	size_t p2 ;
 
 	char q ;
 

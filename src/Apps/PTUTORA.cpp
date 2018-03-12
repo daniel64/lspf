@@ -61,8 +61,6 @@ void PTUTORA::application()
 {
 	llog( "I", "Application PTUTORA starting.  Parms are " << PARM << endl ) ;
 
-	int p1 ;
-	int p2 ;
 	int i  ;
 	int j  ;
 	int k  ;
@@ -87,7 +85,11 @@ void PTUTORA::application()
 	helplst  = ZSHELP ;
 	helptype = 'S'    ;
 
-	if ( PARM == "" ) { ps = ZPLIB ; }
+	if ( PARM == "" )
+	{
+		vget( "ZPLIB", PROFILE ) ;
+		vcopy( "ZPLIB", ps, MOVE ) ;
+	}
 
 	ah = parseString( err, PARM, "A()" ) ;
 	if ( ah != "" )
@@ -273,8 +275,12 @@ void PTUTORA::application()
 
 void PTUTORA::read_file( string file )
 {
+	int j  ;
+
+	size_t pos    ;
+
 	string inLine ;
-	int pos, i, j ;
+
 	std::ifstream fin( file.c_str() ) ;
 
 	if ( !fin.is_open() )
@@ -303,11 +309,11 @@ void PTUTORA::read_file( string file )
 
 void PTUTORA::fill_dynamic_area()
 {
+	size_t Area ;
+
 	string w ;
 	string t1, t2, t3, t4 ;
 	string s1g, s1y, s1w, div ;
-	int    i, l, wI, wL, ln   ;
-	int    Area ;
 
 	s1g = "" ;
 	s1y = "" ;
@@ -332,20 +338,20 @@ void PTUTORA::fill_dynamic_area()
 	ZAREA   = "" ;
 	ZSHADOW = string( Area, N_GREEN ) ;
 
-	for( int k = firstLine ; k < (firstLine + ZAREAD) ; k++ )
+	for( uint k = firstLine ; k < (firstLine + ZAREAD) ; k++ )
 	{
-		if ( k >  0 & k < data.size()-1 )  t1 = substr( data[ k ] , startCol, ZAREAW ) ;
+		if ( k > 0 && k < data.size()-1 )  t1 = substr( data[ k ] , startCol, ZAREAW ) ;
 		else                               t1 = substr( data[ k ] , 1, ZAREAW ) ;
-		for ( i = 0 ; i < t1.size() ; i++ )
+		for ( uint i = 0 ; i < t1.size() ; i++ )
 		{
 			if ( !isprint( t1[ i ] ) )
 			{
 				t1[ i ] = '.' ;
 			}
 		}
-		ZAREA   = ZAREA   + t1 ;
-		if ( ZAREA.size() >= Area ) break ;
-		if ( k == data.size() - 1 ) { break ; } ;
+		ZAREA += t1 ;
+		if ( ZAREA.size() >= Area ) { break ; }
+		if ( k == data.size() - 1 ) { break ; }
 	}
 }
 

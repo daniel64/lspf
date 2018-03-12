@@ -18,14 +18,13 @@ field    4  MAX-3   4  NEF  NONE ZSCROLL
 literal  6 2 CH "C Variable  P S Message         Value"
 literal  7 2 CH EXPAND "-"
 
-tbmodel  8   MAX
-tbfield  2    1   NEF  PAD(USER),CAPS(ON),JUST(LEFT) SEL
-tbfield  4    8   VOI  NONE VAR
-tbfield  14   1   VOI  NONE VPOOL
-tbfield  16   1   VOI  NONE VPLVL
-tbfield  18   15  RP   NONE MESSAGE
-tbfield  34   80  VOI  NONE VAL
-
+tbmodel    8  MAX
+tbfield    2  1   NEF  PAD(USER),CAPS(ON),JUST(LEFT) SEL
+tbfield  ++1  8   VOI  NONE VAR
+tbfield  ++2  1   VOI  NONE VPOOL
+tbfield  ++1  1   VOI  NONE VPLVL
+tbfield  ++1  15  RP   NONE MESSAGE
+tbfield  ++1  MAX VOI  NONE VAL
 
 )INIT
 VGET ZSCROLL PROFILE
@@ -38,6 +37,12 @@ IF (&ZSCROLL = &Z) &ZSCROLL = 'HALF'
 )REINIT
 
 )PROC
+
+IF (TRUNC(&ZCMD,' ') NE O,REF,RES,&Z)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
 VER (&SEL,LIST,D)
 
 IF (.MSG = &Z ) VPUT ZSCROLL PROFILE

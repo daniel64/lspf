@@ -136,10 +136,10 @@ class parser
 			optUpper = false ;
 		}
 		void   parseStatement( errblock&, const string& ) ;
-		token  getFirstToken() ;
-		token  getNextToken()  ;
-		token  getToken( int ) ;
-		int    getEntries()    ;
+		token  getFirstToken()  ;
+		token  getNextToken()   ;
+		token  getToken( uint ) ;
+		int    getEntries()     ;
 		void   eraseTokens( int ) ;
 		void   optionUpper()   { optUpper = true ; }
 		bool   getNextIfCurrent( TOKEN_TYPES    ) ;
@@ -154,7 +154,7 @@ class parser
 		STATEMENT_TYPE getStatementType() ;
 
 	private:
-		int   idx ;
+		uint  idx ;
 		bool  optUpper ;
 		set<string> ctl_valid = { { ".ALARM"   },
 					  { ".AUTOSEL" },

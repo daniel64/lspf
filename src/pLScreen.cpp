@@ -72,9 +72,7 @@ pLScreen::~pLScreen()
 
 void pLScreen::clear()
 {
-	int i ;
-
-	for ( i = 0 ; i < maxrow ; i++ )
+	for ( unsigned int i = 0 ; i < maxrow ; i++ )
 	{
 		move( i, 0 ) ;
 		clrtoeol()   ;
@@ -132,13 +130,21 @@ void pLScreen::refresh_panel_stack()
 }
 
 
+void pLScreen::set_cursor( pApplication* appl )
+{
+	// Set the logical screen cursor to that held by the application
+
+	appl->get_cursor( row, col ) ;
+}
+
+
 void pLScreen::OIA_setup()
 {
 	mvwaddch( OIA, 0, 0, ACS_CKBOARD ) ;
 	wattrset( OIA, YELLOW ) ;
 	mvwaddstr( OIA, 0, 2,  "Screen[        ]" ) ;
-	mvwaddstr( OIA, 0, 31, "Elapsed:" ) ;
-	mvwaddstr( OIA, 0, 51, "Screen:" ) ;
+	mvwaddstr( OIA, 0, 30, "Elapsed:" ) ;
+	mvwaddstr( OIA, 0, 50, "Screen:" ) ;
 	wattroff( OIA, YELLOW ) ;
 }
 
@@ -156,10 +162,10 @@ void pLScreen::OIA_update( int screen, int altscreen, boost::posix_time::ptime e
 	wattrset( OIA, YELLOW ) ;
 	mvwaddstr( OIA, 0, 9,  "        " ) ;
 	mvwaddstr( OIA, 0, 9, substr( "12345678", 1, screensTotal).c_str() ) ;
-	mvwaddstr( OIA, 0, 27, "   " ) ;
-	mvwaddstr( OIA, 0, 40, respTime.c_str() ) ;
-	mvwprintw( OIA, 0, 59, "%d-%d   ", screenId, application_stack_size() );
-	mvwaddstr( OIA, 0, maxcol-23, Insert ? "Insert" : "      " ) ;
+	mvwaddstr( OIA, 0, 26, "   " ) ;
+	mvwaddstr( OIA, 0, 39, respTime.c_str() ) ;
+	mvwprintw( OIA, 0, 58, "%d-%d   ", screenId, application_stack_size() );
+	mvwaddstr( OIA, 0, maxcol-22, Insert ? "Insert" : "      " ) ;
 	mvwprintw( OIA, 0, maxcol-14, "Row %d Col %d  ", row+1, col+1 ) ;
 
 	if ( screen < 8 )
@@ -183,7 +189,7 @@ void pLScreen::OIA_update( int screen, int altscreen, boost::posix_time::ptime e
 void pLScreen::show_enter()
 {
 	wattron( OIA, RED ) ;
-	mvwaddstr( OIA, 0, 20, "X-Enter" ) ;
+	mvwaddstr( OIA, 0, 19, "X-Enter" ) ;
 	wattroff( OIA, RED ) ;
 	wmove( OIA, 0, 0 ) ;
 	wrefresh( OIA )    ;
@@ -193,7 +199,7 @@ void pLScreen::show_enter()
 void pLScreen::show_busy()
 {
 	wattron( OIA, RED ) ;
-	mvwaddstr( OIA, 0, 20, "X-Busy " ) ;
+	mvwaddstr( OIA, 0, 19, "X-Busy " ) ;
 	wattroff( OIA, RED ) ;
 	wmove( OIA, 0, 0 ) ;
 	wrefresh( OIA )    ;
@@ -203,7 +209,7 @@ void pLScreen::show_busy()
 void pLScreen::show_wait()
 {
 	wattron( OIA, RED ) ;
-	mvwaddstr( OIA, 0, 20, "X-Wait " ) ;
+	mvwaddstr( OIA, 0, 19, "X-Wait " ) ;
 	wattroff( OIA, RED ) ;
 	wmove( OIA, 0, 0 ) ;
 	wrefresh( OIA )    ;
@@ -213,7 +219,7 @@ void pLScreen::show_wait()
 void pLScreen::show_auto()
 {
 	wattron( OIA, RED ) ;
-	mvwaddstr( OIA, 0, 20, "X-Auto " ) ;
+	mvwaddstr( OIA, 0, 19, "X-Auto " ) ;
 	wattroff( OIA, RED ) ;
 	wmove( OIA, 0, 0 ) ;
 	wrefresh( OIA )    ;
@@ -225,7 +231,7 @@ void pLScreen::show_lock( bool showLock )
 	if ( showLock )
 	{
 		wattrset( OIA,  RED ) ;
-		mvwaddstr( OIA, 0, 27, "|X|" ) ;
+		mvwaddstr( OIA, 0, 26, "|X|" ) ;
 		wattroff( OIA,  RED ) ;
 	}
 }
@@ -233,5 +239,5 @@ void pLScreen::show_lock( bool showLock )
 
 void pLScreen::clear_status()
 {
-	mvwaddstr( OIA, 0, 20, "       " ) ;
+	mvwaddstr( OIA, 0, 19, "       " ) ;
 }

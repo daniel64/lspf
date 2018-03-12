@@ -5,9 +5,24 @@
 
 )ABC DESC(Commands)
 PDC DESC("Clear Output") ACTION RUN(>:CLEAR)
+PDC DESC(&DTIME1)        ACTION RUN(>:LOG &DTIME2)
+
 
 )ABCINIT
 .ZVARS = PD0SEL
+
+IF (&TIMEOUT EQ 'NO') &DTIME1 = 'Enable Timeout'
+ELSE                  &DTIME1 = 'Disable Timeout'
+
+
+)ABCPROC
+IF (&PD0SEL EQ 2)
+   IF (&TIMEOUT EQ 'NO')
+      &TIMEOUT = 'YES'
+      &DTIME2  = 'Timeout has been set to 10 seconds'
+   ELSE
+      &TIMEOUT = 'NO'
+      &DTIME2  = 'Timeout has been disabled'
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
@@ -29,6 +44,8 @@ field     MAX-2  MAX-3   4  NEF  NONE  ZSCROLL
 )INIT
 .CURSOR = ZCMD
 &ZUS5   = 1
+
+IF (&TIMEOUT EQ &Z) &TIMEOUT = YES
 
 )PROC
 

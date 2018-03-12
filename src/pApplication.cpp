@@ -52,11 +52,9 @@ pApplication::pApplication()
 	refreshlScreen         = false  ;
 	rexxName               = ""     ;
 	NEWPOOL                = false  ;
+	NEWAPPL                = ""     ;
 	PASSLIB                = false  ;
 	SUSPEND                = true   ;
-	libdef_muser           = false  ;
-	libdef_puser           = false  ;
-	libdef_tuser           = false  ;
 	SEL                    = false  ;
 	selPanel               = false  ;
 	setMSG                 = false  ;
@@ -67,28 +65,28 @@ pApplication::pApplication()
 	ppanelid               = ""     ;
 	currPanel              = NULL   ;
 	currtbPanel            = NULL   ;
-	ZAHELP                 = ""     ;
+	zahelp                 = ""     ;
 	ZTDROWS                = 0      ;
 	ZTDTOP                 = 0      ;
 	ZRC                    = 0      ;
 	ZRSN                   = 0      ;
 	ZRESULT                = ""     ;
-	ZERR1                  = ""     ;
-	ZERR2                  = ""     ;
-	ZERR3                  = ""     ;
-	ZERR4                  = ""     ;
-	ZERR5                  = ""     ;
-	ZERR6                  = ""     ;
-	ZERR7                  = ""     ;
-	ZERR8                  = ""     ;
-	funcPOOL.define( errBlock, "ZCURFLD",  &ZCURFLD ) ;
-	funcPOOL.define( errBlock, "ZCURPOS",  &ZCURPOS ) ;
-	funcPOOL.define( errBlock, "ZCURINX",  &ZCURINX ) ;
-	funcPOOL.define( errBlock, "ZTDDEPTH", &ZTDDEPTH) ;
-	funcPOOL.define( errBlock, "ZTDROWS",  &ZTDROWS ) ;
-	funcPOOL.define( errBlock, "ZTDSELS",  &ZTDSELS ) ;
-	funcPOOL.define( errBlock, "ZTDTOP",   &ZTDTOP  ) ;
-	funcPOOL.define( errBlock, "ZTDVROWS", &ZTDVROWS) ;
+	zerr1                  = ""     ;
+	zerr2                  = ""     ;
+	zerr3                  = ""     ;
+	zerr4                  = ""     ;
+	zerr5                  = ""     ;
+	zerr6                  = ""     ;
+	zerr7                  = ""     ;
+	zerr8                  = ""     ;
+	funcPOOL.define( errBlock, "ZCURFLD",  &ZCURFLD  ) ;
+	funcPOOL.define( errBlock, "ZCURPOS",  &ZCURPOS  ) ;
+	funcPOOL.define( errBlock, "ZCURINX",  &ZCURINX  ) ;
+	funcPOOL.define( errBlock, "ZTDDEPTH", &ZTDDEPTH ) ;
+	funcPOOL.define( errBlock, "ZTDROWS",  &ZTDROWS  ) ;
+	funcPOOL.define( errBlock, "ZTDSELS",  &ZTDSELS  ) ;
+	funcPOOL.define( errBlock, "ZTDTOP",   &ZTDTOP   ) ;
+	funcPOOL.define( errBlock, "ZTDVROWS", &ZTDVROWS ) ;
 }
 
 
@@ -105,8 +103,9 @@ pApplication::~pApplication()
 
 void pApplication::startSelect( selobj& s )
 {
-	ZAPPNAME = s.PGM     ;
+	zappname = s.PGM     ;
 	PASSLIB  = s.PASSLIB ;
+	NEWAPPL  = s.NEWAPPL ;
 	SUSPEND  = s.SUSPEND ;
 	PARM     = s.PARM    ;
 	selPanel = s.selPanel() ;
@@ -124,10 +123,9 @@ void pApplication::init()
 {
 	// Before being dispatched in its own thread, set the search paths.
 
-	ZPLIB    = p_poolMGR->get( errBlock, "ZPLIB", PROFILE ) ;
-	ZTLIB    = p_poolMGR->get( errBlock, "ZTLIB", PROFILE ) ;
-	ZMLIB    = p_poolMGR->get( errBlock, "ZMLIB", PROFILE ) ;
-	ZORXPATH = p_poolMGR->get( errBlock, "ZORXPATH", PROFILE ) ;
+	zzplib   = p_poolMGR->get( errBlock, "ZPLIB", PROFILE ) ;
+	zztlib   = p_poolMGR->get( errBlock, "ZTLIB", PROFILE ) ;
+	zzmlib   = p_poolMGR->get( errBlock, "ZMLIB", PROFILE ) ;
 
 	llog( "I", "Initialisation complete" << endl ; )
 }
@@ -262,7 +260,7 @@ bool pApplication::msg_issued_with_cmd()
 
 void pApplication::store_scrname()
 {
-	ZSCRNAME = p_poolMGR->get( errBlock, "ZSCRNAME", SHARED ) ;
+	zscrname = p_poolMGR->get( errBlock, "ZSCRNAME", SHARED ) ;
 }
 
 
@@ -291,10 +289,10 @@ void pApplication::restore_Zvars( int screenid )
 
 	if ( p_poolMGR->get( errBlock, screenid, "ZSCRNAM2" ) == "PERM" )
 	{
-		ZSCRNAME = p_poolMGR->get( errBlock, screenid, "ZSCRNAME" ) ;
+		zscrname = p_poolMGR->get( errBlock, screenid, "ZSCRNAME" ) ;
 	}
 
-	p_poolMGR->put( errBlock, "ZSCRNAME", ZSCRNAME, SHARED ) ;
+	p_poolMGR->put( errBlock, "ZSCRNAME", zscrname, SHARED ) ;
 }
 
 
@@ -574,67 +572,82 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 void pApplication::libdef( const string& lib, const string& type, const string& id, const string& procopt )
 {
 	// libdef - Add/remove a list of paths to the search order for panels, messages and tables
-	// Format: LIBDEF ZxLIB                    - remove LIBDEF for search
-	//         LIBDEF ZxLIB FILE ID(path-list) - add path-list to the search path
 
-	// To do:
-	//         processing options
+	// Format:
+	//         Application-level libraries
+	//         LIBDEF ZxLIB                    - remove LIBDEF for search
+	//         LIBDEF ZxLIB FILE ID(path-list) - add path-list to the search path
+	//
+	//         User-level libraries
+	//         LIBDEF ZxUSR                    - remove LIBDEF for search
+	//         LIBDEF ZxUSR FILE ID(path-list) - add path-list to the search path
+	// X - M, P or T
+	// Path-list is a colon-separated list of directory names
+
+	// Search order, user-level, then application-level
 
 	// RC = 0   Normal completion
 	// RC = 4   Removing a LIBDEF that was not in effect
+	//          STKADD specified but no stack in effect
+	// RC = 8   COND specified but a LIBDEF is already in effect
 	// RC = 16  No paths in the ID() parameter
 	// RC = 20  Severe error
 
 	const string e1 = "LIBDEF error" ;
 
+	int  i ;
+	int  p ;
+
+	bool proc_cond   ;
+	bool proc_uncond ;
+	bool proc_stack  ;
+	bool proc_stkadd ;
+
+	string filename  ;
+
+	stack<string>* zxlib ;
+
 	RC = 0 ;
 
-	if ( !findword( lib, "ZMLIB ZPLIB ZTLIB" ) )
-	{
-		errBlock.setcall( e1, "PSYE022H", lib ) ;
-		checkRCode( errBlock ) ;
-		return ;
-	}
-
-	if ( !findword( procopt, "COND UNCOND STACK STKADD" ) )
+	if ( procopt != "" && !findword( procopt, "COND UNCOND STACK STKADD" ) )
 	{
 		errBlock.setcall( e1, "PSYE022I", procopt ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
 
+	if      ( lib == "ZMLIB" ) { zxlib = &zmlib ; }
+	else if ( lib == "ZPLIB" ) { zxlib = &zplib ; }
+	else if ( lib == "ZTLIB" ) { zxlib = &ztlib ; }
+	else if ( lib == "ZMUSR" ) { zxlib = &ztusr ; }
+	else if ( lib == "ZPUSR" ) { zxlib = &zpusr ; }
+	else if ( lib == "ZTUSR" ) { zxlib = &ztusr ; }
+	else
+	{
+		errBlock.setcall( e1, "PSYE022H", lib ) ;
+		checkRCode( errBlock ) ;
+		return ;
+	}
+
+	proc_cond   = ( procopt == "COND"   ) ;
+	proc_uncond = ( procopt == "UNCOND" ) ;
+	proc_stack  = ( procopt == "STACK" || procopt == "" ) ;
+	proc_stkadd = ( procopt == "STKADD" ) ;
+
 	if ( type == "" )
 	{
-		if ( lib == "ZMLIB" )
+		if ( id != "" || procopt != "" )
 		{
-			if ( !libdef_muser )
-			{
-				RC = 4 ;
-				return ;
-			}
-			libdef_muser = false ;
-			zmuser.pop() ;
+			errBlock.setcall( e1, "PSYE023K" ) ;
+			checkRCode( errBlock ) ;
+			return ;
 		}
-		else if ( lib == "ZPLIB" )
+		if ( zxlib->empty() )
 		{
-			if ( !libdef_puser )
-			{
-				RC = 4 ;
-				return ;
-			}
-			libdef_puser = false ;
-			zpuser.pop() ;
+			RC = 4 ;
+			return ;
 		}
-		else
-		{
-			if ( !libdef_tuser )
-			{
-				RC = 4 ;
-				return ;
-			}
-			libdef_tuser = false ;
-			ztuser.pop() ;
-		}
+		zxlib->pop() ;
 	}
 	else if ( type == "FILE" )
 	{
@@ -644,23 +657,38 @@ void pApplication::libdef( const string& lib, const string& type, const string& 
 			checkRCode( errBlock ) ;
 			return ;
 		}
-		if ( lib == "ZMLIB" )
+		for ( p = getpaths( id ), i = 1 ; i <= p ; i++ )
 		{
-			if ( zmuser.empty() ) { zmuser.push( id ) ; }
-			else                  { zmuser.top() = id ; }
-			libdef_muser = true ;
+			filename = getpath( id, i ) ;
+			if ( !exists( filename ) || !is_directory( filename ) )
+			{
+				errBlock.setcall( e1, "PSYE023L", filename ) ;
+				checkRCode( errBlock ) ;
+				return ;
+			}
 		}
-		else if ( lib == "ZPLIB" )
+		if ( proc_cond && !zxlib->empty() )
 		{
-			if ( zpuser.empty() ) { zpuser.push( id ) ; }
-			else                  { zpuser.top() = id ; }
-			libdef_puser = true ;
+			RC = 8 ;
+			return ;
 		}
-		else if ( lib == "ZTLIB" )
+		else if ( proc_stkadd && zxlib->empty() )
 		{
-			if ( ztuser.empty() ) { ztuser.push( id ) ; }
-			else                  { ztuser.top() = id ; }
-			libdef_tuser = true ;
+			RC = 4 ;
+			return ;
+		}
+		if ( proc_cond || proc_uncond )
+		{
+			if ( zxlib->empty() ) { zxlib->push( id ) ; }
+			else                  { zxlib->top() = id ; }
+		}
+		else if ( proc_stack )
+		{
+			zxlib->push( id ) ;
+		}
+		else
+		{
+			zxlib->top() = mergepaths( id, zxlib->top() ) ;
 		}
 	}
 	else
@@ -671,24 +699,109 @@ void pApplication::libdef( const string& lib, const string& type, const string& 
 }
 
 
+void pApplication::qlibdef( const string& lib, const string& type_var, const string& id_var )
+{
+	// query libdef status for lib-type lib
+
+	const string e1 = "QLIBDEF error" ;
+
+	string t ;
+
+	stack<string>* zxlib ;
+
+	RC = 0 ;
+
+	if      ( lib == "ZMLIB" ) { zxlib = &zmlib ; }
+	else if ( lib == "ZPLIB" ) { zxlib = &zplib ; }
+	else if ( lib == "ZTLIB" ) { zxlib = &ztlib ; }
+	else if ( lib == "ZMUSR" ) { zxlib = &ztusr ; }
+	else if ( lib == "ZPUSR" ) { zxlib = &zpusr ; }
+	else if ( lib == "ZTUSR" ) { zxlib = &ztusr ; }
+	else
+	{
+		errBlock.setcall( e1, "PSYE022H", lib ) ;
+		checkRCode( errBlock ) ;
+		return ;
+	}
+
+	if ( zxlib->empty() )
+	{
+		RC = 4 ;
+		return ;
+	}
+
+	if ( type_var != "" )
+	{
+		funcPOOL.put( errBlock, type_var, "FILE" ) ;
+		if ( errBlock.error() )
+		{
+			errBlock.setcall( e1 ) ;
+			checkRCode( errBlock ) ;
+		}
+	}
+
+	if ( id_var != "" )
+	{
+		funcPOOL.put( errBlock, id_var, zxlib->top() ) ;
+		if ( errBlock.error() )
+		{
+			errBlock.setcall( e1 ) ;
+			checkRCode( errBlock ) ;
+		}
+	}
+}
+
+
 string pApplication::get_search_path( s_paths p )
 {
+	// Return the search path depending on the LIBDEFs in effect
+	// Order is zxuser, zxlib zzxlib
+
+	stack<string>* zxusr ;
+	stack<string>* zxlib ;
+
+	string* zzxlib ;
+
 	switch ( p )
 	{
 	case s_ZMLIB:
-		if ( libdef_muser ) { return mergepaths( zmuser.top(), ZMLIB ) ; }
-		else                { return ZMLIB                             ; }
+		zxusr  = &zmusr  ;
+		zxlib  = &zmlib  ;
+		zzxlib = &zzmlib ;
 		break ;
+
 	case s_ZPLIB:
-		if ( libdef_puser ) { return mergepaths( zpuser.top(), ZPLIB ) ; }
-		else                { return ZPLIB                             ; }
+		zxusr  = &zpusr  ;
+		zxlib  = &zplib  ;
+		zzxlib = &zzplib ;
 		break ;
+
 	case s_ZTLIB:
-		if ( libdef_tuser ) { return mergepaths( ztuser.top(), ZTLIB ) ; }
-		else                { return ZTLIB                             ; }
+		zxusr  = &ztusr  ;
+		zxlib  = &ztlib  ;
+		zzxlib = &zztlib ;
 		break ;
 	}
-	return "" ;
+
+	if ( zxusr->empty() )
+	{
+		if ( zxlib->empty() )
+		{
+			return *zzxlib ;
+		}
+		else
+		{
+			return mergepaths( zxlib->top(), *zzxlib ) ;
+		}
+	}
+	else if ( zxlib->empty() )
+	{
+		return mergepaths( zxusr->top(), *zzxlib ) ;
+	}
+	else
+	{
+		return mergepaths( zxusr->top(), zxlib->top(), *zzxlib ) ;
+	}
 }
 
 
@@ -722,6 +835,12 @@ string pApplication::get_dTRAIL()
 void pApplication::set_cursor( int row, int col )
 {
 	if ( currPanel ) { currPanel->set_cursor( row, col ) ; }
+}
+
+
+void pApplication::set_cursor_home()
+{
+	if ( currPanel ) { currPanel->set_cursor_home() ; }
 }
 
 
@@ -1000,8 +1119,6 @@ void pApplication::vmask( const string& name, const string& type, const string& 
 	// RC = 20 Severe error
 	// (funcPOOL.setmask returns 0, 8 or 20)
 
-	int i ;
-
 	const string e1    = "VMASK error" ;
 	const string fmask = "IDATE STDDATE ITIME STDTIME JDATE JSTD" ;
 
@@ -1024,7 +1141,7 @@ void pApplication::vmask( const string& name, const string& type, const string& 
 		}
 		else
 		{
-			for ( i = 0 ; i < mask.size() ; i++ )
+			for ( unsigned int i = 0 ; i < mask.size() ; i++ )
 			{
 				if ( mask[i] != 'A' && mask[i] != 'B' && mask[i] != '9' &&
 				     mask[i] != 'H' && mask[i] != 'N' && mask[i] != 'V' &&
@@ -1937,7 +2054,7 @@ void pApplication::tbcreate( const string& tb_name, string keys, string names, t
 
 	if ( m_WRITE == WRITE )
 	{
-		if ( m_path == "" ) { m_path = getpath( ZTLIB, 1 ) ; }
+		if ( m_path == "" ) { m_path = getpath( zztlib, 1 ) ; }
 	}
 
 	getNameList( errBlock, keys ) ;
@@ -2260,7 +2377,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		exitRC = 0  ;
 		if ( currPanel->tb_curidx > -1 )
 		{
-			URID = funcPOOL.get( errBlock, 0, ".ZURID."+d2ds( currPanel->tb_curidx), NOCHECK ) ;
+			URID = funcPOOL.get( errBlock, 0, ".ZURID."+d2ds( currPanel->tb_curidx ), NOCHECK ) ;
 			tbskip( tb_name, 0, "", "", URID, "NOREAD", "ZCURINX" ) ;
 		}
 		else
@@ -2324,28 +2441,28 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		{
 			if ( ZZVERB == "UP" )
 			{
-				ZSCROLLA = p_poolMGR->get( errBlock, "ZSCROLLA", SHARED ) ;
-				if ( ZSCROLLA == "MAX" )
+				zscrolla = p_poolMGR->get( errBlock, "ZSCROLLA", SHARED ) ;
+				if ( zscrolla == "MAX" )
 				{
 					ZTDTOP = 1 ;
 				}
 				else
 				{
-					ZSCROLLN = ds2d( p_poolMGR->get( errBlock, "ZSCROLLN", SHARED ) ) ;
-					ZTDTOP = ( ZTDTOP > ZSCROLLN ) ? ( ZTDTOP - ZSCROLLN ) : 1 ;
+					zscrolln = ds2d( p_poolMGR->get( errBlock, "ZSCROLLN", SHARED ) ) ;
+					ZTDTOP = ( ZTDTOP > zscrolln ) ? ( ZTDTOP - zscrolln ) : 1 ;
 				}
 			}
 			else
 			{
-				ZSCROLLA = p_poolMGR->get( errBlock, "ZSCROLLA", SHARED ) ;
-				if ( ZSCROLLA == "MAX" )
+				zscrolla = p_poolMGR->get( errBlock, "ZSCROLLA", SHARED ) ;
+				if ( zscrolla == "MAX" )
 				{
 					ZTDTOP = ZTDROWS + 1 ;
 				}
 				else
 				{
-					ZSCROLLN = ds2d( p_poolMGR->get( errBlock, "ZSCROLLN", SHARED ) ) ;
-					ZTDTOP = ( ZSCROLLN + ZTDTOP > ZTDROWS ) ? ( ZTDROWS + 1 ) : ZTDTOP + ZSCROLLN ;
+					zscrolln = ds2d( p_poolMGR->get( errBlock, "ZSCROLLN", SHARED ) ) ;
+					ZTDTOP = ( zscrolln + ZTDTOP > ZTDROWS ) ? ( ZTDROWS + 1 ) : ZTDTOP + zscrolln ;
 				}
 			}
 			p_tableMGR->fillfVARs( errBlock, funcPOOL, tb_name, currPanel->get_tb_clear(), tbscan, currPanel->tb_depth, ZTDTOP, 0, idx, asURID ) ;
@@ -2423,7 +2540,7 @@ void pApplication::tberase( const string& tb_name, string tb_path )
 		return ;
 	}
 
-	if ( tb_path == "" ) { tb_path = ZTLIB ; }
+	if ( tb_path == "" ) { tb_path = zztlib ; }
 	p_tableMGR->tberase( errBlock, tb_name, tb_path ) ;
 	if ( errBlock.error() )
 	{
@@ -3138,7 +3255,7 @@ string pApplication::get_help_member( int row, int col )
 	return "M("+ MSG.hlp+ ") " +
 	       "F("+ currPanel->get_field_help( row, col )+ ") " +
 	       "P("+ currPanel->ZPHELP +") " +
-	       "A("+ ZAHELP +") " +
+	       "A("+ zahelp +") " +
 	       "K("+ currPanel->KEYHELPN +") "+
 	       "PATHS("+ get_search_path( s_ZPLIB ) +")" ;
 }
@@ -3464,8 +3581,8 @@ string pApplication::sub_vars( string s )
 	//        .. reduces to .
 	//        && reduces to & with no variable substitution
 
-	int p1 ;
-	int p2 ;
+	size_t p1 ;
+	size_t p2 ;
 
 	string var ;
 	string val ;
@@ -3512,16 +3629,15 @@ string pApplication::sub_vars( string s )
 
 void pApplication::info()
 {
-	int i ;
 	int p ;
 
 	llog( "-", "*************************************************************************************************************" << endl ) ;
-	llog( "-", "Application Information for "<< ZAPPNAME << endl ) ;
+	llog( "-", "Application Information for "<< zappname << endl ) ;
 	llog( "-", "                   Task ID: "<< taskId << endl ) ;
 	llog( "-", "          Shared Pool Name: "<< d2ds( shrdPool, 8 ) << endl ) ;
 	llog( "-", "         Profile Pool Name: "<< p_poolMGR->get( errBlock, "ZAPPLID", SHARED ) << endl ) ;
 	llog( "-", " " << endl ) ;
-	llog( "-", "Application Description . : "<< ZAPPDESC << endl ) ;
+	llog( "-", "Application Description . : "<< zappdesc << endl ) ;
 	llog( "-", "Last Panel Displayed. . . : "<< panelid << endl ) ;
 	llog( "-", "Last Message Displayed. . : "<< MSGID << endl )   ;
 	llog( "-", "Number of Panels Loaded . : "<< panelList.size() << endl )  ;
@@ -3547,32 +3663,31 @@ void pApplication::info()
 	{
 		llog( "-", "Application started with NEWPOOL option"<< endl ) ;
 	}
-	if ( libdef_muser )
+	if ( !zmlib.empty() )
 	{
 		llog( "-", "LIBDEF active for user message search"<< endl ) ;
-		p = getpaths( zmuser.top() ) ;
-		for ( i = 1 ; i <= p ; i++ )
+		p = getpaths( zmlib.top() ) ;
+		for ( int j = 1 ; j <= p ; j++ )
 		{
-			llog( "-", "       Path. . . . . . . "<< getpath( zmuser.top(), i ) << endl ) ;
+			llog( "-", "                Path. . . : " << getpath( zmlib.top(), j ) << endl ) ;
 		}
-
 	}
-	if ( libdef_puser )
+	if ( !zplib.empty() )
 	{
 		llog( "-", "LIBDEF active for user panel search"<< endl ) ;
-		p = getpaths( zpuser.top() ) ;
-		for ( i = 1 ; i <= p ; i++ )
+		p = getpaths( zplib.top() ) ;
+		for ( int j = 1 ; j <= p ; j++ )
 		{
-			llog( "-", "       Path. . . . . . . "<< getpath( zpuser.top(), i ) << endl ) ;
+			llog( "-", "                Path. . . : " << getpath( zplib.top(), j ) << endl ) ;
 		}
 	}
-	if ( libdef_tuser )
+	if ( !ztlib.empty() )
 	{
 		llog( "-", "LIBDEF active for user table search"<< endl ) ;
-		p = getpaths( ztuser.top() ) ;
-		for ( i = 1 ; i <= p ; i++ )
+		p = getpaths( ztlib.top() ) ;
+		for ( int j = 1 ; j <= p ; j++ )
 		{
-			llog( "-", "       Path. . . . . . . "<< getpath( ztuser.top(), i ) << endl ) ;
+			llog( "-", "                Path. . . : " << getpath( ztlib.top(), j ) << endl ) ;
 		}
 	}
 	llog( "-", "*************************************************************************************************************" << endl ) ;
@@ -3619,20 +3734,20 @@ void pApplication::checkRCode( const string& s )
 	RC1 = RC ;
 
 	llog( "E", s << endl ) ;
-	if ( ZERR2 != "" ) { llog( "E", ZERR2 << endl ) ; }
+	if ( zerr2 != "" ) { llog( "E", zerr2 << endl ) ; }
 
 	if ( !ControlErrorsReturn && RC >= 12 )
 	{
 		llog( "E", "RC="<< RC <<" CONTROL ERRORS CANCEL is in effect.  Aborting"<< endl ) ;
-		vreplace( "ZAPPNAME", ZAPPNAME ) ;
+		vreplace( "ZAPPNAME", zappname ) ;
 		vreplace( "ZERR1",  s     ) ;
-		vreplace( "ZERR2",  ZERR2 ) ;
-		vreplace( "ZERR3",  ZERR3 ) ;
-		vreplace( "ZERR4",  ZERR4 ) ;
-		vreplace( "ZERR5",  ZERR5 ) ;
-		vreplace( "ZERR6",  ZERR6 ) ;
-		vreplace( "ZERR7",  ZERR7 ) ;
-		vreplace( "ZERR8",  ZERR8 ) ;
+		vreplace( "ZERR2",  zerr2 ) ;
+		vreplace( "ZERR3",  zerr3 ) ;
+		vreplace( "ZERR4",  zerr4 ) ;
+		vreplace( "ZERR5",  zerr5 ) ;
+		vreplace( "ZERR6",  zerr6 ) ;
+		vreplace( "ZERR7",  zerr7 ) ;
+		vreplace( "ZERR8",  zerr8 ) ;
 		vreplace( "ZERRRC", d2ds( RC1 ) ) ;
 		ControlDisplayLock  = false ;
 		ControlErrorsReturn = true  ;
@@ -3710,7 +3825,7 @@ void pApplication::checkRCode( errblock err )
 
 	llog( "E", "RC="<< err.getRC() <<" CONTROL ERRORS CANCEL is in effect.  Aborting" << endl ) ;
 
-	vreplace( "ZAPPNAME", ZAPPNAME ) ;
+	vreplace( "ZAPPNAME", zappname ) ;
 	vreplace( "ZERR1",  err.msg1  ) ;
 
 	if ( err.sline == "" )
@@ -3760,11 +3875,11 @@ void pApplication::cleanup()
 	busyAppl      = false ;
 	if ( background )
 	{
-		llog( "I", "Shutting down background application: " + ZAPPNAME +" Taskid: " << taskId << endl ) ;
+		llog( "I", "Shutting down background application: " + zappname +" Taskid: " << taskId << endl ) ;
 	}
 	else
 	{
-		llog( "I", "Shutting down application: " + ZAPPNAME +" Taskid: " << taskId << endl ) ;
+		llog( "I", "Shutting down application: " + zappname +" Taskid: " << taskId << endl ) ;
 		llog( "I", "Returning to calling program." << endl ) ;
 	}
 }
@@ -3772,7 +3887,7 @@ void pApplication::cleanup()
 
 void pApplication::abend()
 {
-	llog( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskId << " due to an abnormal condition" << endl ) ;
+	llog( "E", "Shutting down application: "+ zappname +" Taskid: " << taskId << " due to an abnormal condition" << endl ) ;
 	abnormalEnd   = true  ;
 	terminateAppl = true  ;
 	SEL           = false ;
@@ -3826,14 +3941,14 @@ void pApplication::xabend( const string& msgid, int callno )
 {
 	string t ;
 
-	t = "A user abend has occured in application "+ ZAPPNAME ;
+	t = "A user abend has occured in application "+ zappname ;
 	if ( callno != -1 ) { t += " at call number " + d2ds( callno ) ; }
 
 	getmsg( msgid, "ZERRSM", "ZERRLM" ) ;
 
-	llog( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: "<< taskId <<" due to a user abend" << endl ) ;
+	llog( "E", "Shutting down application: "+ zappname +" Taskid: "<< taskId <<" due to a user abend" << endl ) ;
 
-	vreplace( "ZAPPNAME", ZAPPNAME ) ;
+	vreplace( "ZAPPNAME", zappname ) ;
 	vreplace( "ZERRMSG", msgid ) ;
 	vreplace( "ZERR1",  t  ) ;
 	vreplace( "ZERR2",  "" ) ;
@@ -3856,7 +3971,7 @@ void pApplication::xabend( const string& msgid, int callno )
 
 void pApplication::abendexc()
 {
-	llog( "E", "An unhandled exception has occured in application: "+ ZAPPNAME +" Taskid: " << taskId << endl ) ;
+	llog( "E", "An unhandled exception has occured in application: "+ zappname +" Taskid: " << taskId << endl ) ;
 	if ( !abending )
 	{
 		abending = true     ;
@@ -3868,7 +3983,7 @@ void pApplication::abendexc()
 	}
 	exception_ptr ptr = current_exception() ;
 	llog( "E", "Exception: " << (ptr ? ptr.__cxa_exception_type()->name() : "Unknown" ) << endl ) ;
-	llog( "E", "Shutting down application: " << ZAPPNAME << " Taskid: " << taskId << endl ) ;
+	llog( "E", "Shutting down application: " << zappname << " Taskid: " << taskId << endl ) ;
 	abnormalEnd   = true  ;
 	terminateAppl = true  ;
 	busyAppl      = false ;
@@ -3881,7 +3996,7 @@ void pApplication::abendexc()
 
 void pApplication::set_forced_abend()
 {
-	llog( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskId << " due to a forced condition" << endl ) ;
+	llog( "E", "Shutting down application: "+ zappname +" Taskid: " << taskId << " due to a forced condition" << endl ) ;
 	abnormalEnd       = true  ;
 	abnormalEndForced = true  ;
 	terminateAppl     = true  ;
@@ -3894,7 +4009,7 @@ void pApplication::set_forced_abend()
 
 void pApplication::set_timeout_abend()
 {
-	llog( "E", "Shutting down application: "+ ZAPPNAME +" Taskid: " << taskId << " due to a timeout condition" << endl ) ;
+	llog( "E", "Shutting down application: "+ zappname +" Taskid: " << taskId << " due to a timeout condition" << endl ) ;
 	abnormalEnd       = true  ;
 	abnormalEndForced = true  ;
 	abnormalTimeout   = true  ;
@@ -3906,6 +4021,6 @@ void pApplication::set_timeout_abend()
 }
 
 
-void pApplication::isredit( const string& s)
+void pApplication::isredit( const string& s )
 {
 }

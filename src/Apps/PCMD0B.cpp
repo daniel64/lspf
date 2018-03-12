@@ -1,8 +1,8 @@
-/*  Compile with ::                                                                 */
+/* Compile with ::                                                                  */
 /* g++ -shared -fPIC -std=c++11 -Wl,-soname,libPCMD0B.so -o libPCMD0B.so PCMD0B.cpp */
 
 /*
-  Copyright (c) 2015 Daniel John Erdos
+  Copyright (c) 2018 Daniel John Erdos
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -80,6 +80,7 @@ void PCMD0B::application()
 	sdr.assign( zareaw, N_RED )    ;
 	sdw.assign( zareaw, N_WHITE )  ;
 	sdy.assign( zareaw, N_YELLOW ) ;
+	sdg.assign( zareaw, N_GREEN )  ;
 
 	while ( true )
 	{
@@ -89,6 +90,7 @@ void PCMD0B::application()
 		if ( RC == 8 ) { break ; }
 
 		msg = "" ;
+		vget( "ZVERB ZSCROLLA ZSCROLLN", SHARED ) ;
 		if ( zcmd != "" )
 		{
 			if ( zcmd.front() == ':' )
@@ -111,10 +113,15 @@ void PCMD0B::application()
 				zcmd = "" ;
 			}
 		}
+		else if ( zverb != "" )
+		{
+			actionZVERB() ;
+		}
 		else
 		{
-			vget( "ZVERB ZSCROLLA ZSCROLLN", SHARED ) ;
-			actionZVERB() ;
+			lines.push_back( "" ) ;
+			bottom_of_data() ;
+			rebuildZAREA = true ;
 		}
 	}
 
@@ -145,9 +152,7 @@ void PCMD0B::copy_output( const string& fname, const string& ename )
 	}
 	fin.close() ;
 
-	topLine  = lines.size() - zaread ;
-	startCol = 1                     ;
-	if ( topLine < 0 ) { topLine = 0 ; }
+	bottom_of_data() ;
 
 	lines.push_back( "" ) ;
 	lines.push_back( "" ) ;
@@ -161,15 +166,60 @@ void PCMD0B::timeout_output()
 {
 	lines.push_back( "" ) ;
 	lines.push_back( ":> "+zcmd ) ;
-	lines.push_back( ":  Command has timeout waiting for a response" ) ;
+	lines.push_back( ":  Command has timed out waiting for a response" ) ;
 	lines.push_back( "" ) ;
+	bottom_of_data() ;
+}
+
+
+void PCMD0B::actionCommand()
+{
+	string cmd  ;
+	string rest ;
+
+	cmd  = upper( word( zcmd, 1 ) ) ;
+	rest = subword( zcmd, 2 ) ;
+	if ( cmd == ":CLEAR" )
+	{
+		lines.clear() ;
+		topLine      = 0  ;
+		startCol     = 1  ;
+		zcmd         = "" ;
+		rebuildZAREA = true ;
+	}
+	else if ( cmd == ":LOG" )
+	{
+		if ( rest.front() == '&' && isvalidName( rest.substr( 1 ) ) )
+		{
+			vcopy( rest.substr( 1 ), rest, MOVE ) ;
+		}
+		lines.push_back( "" ) ;
+		lines.push_back( "l> "+rest ) ;
+		lines.push_back( "" ) ;
+		zcmd         = ""   ;
+		rebuildZAREA = true ;
+		bottom_of_data() ;
+	}
+	else
+	{
+		msg = "PSYS018" ;
+	}
+}
+
+
+void PCMD0B::bottom_of_data()
+{
+	topLine  = lines.size() - zaread ;
+	startCol = 1                     ;
+	if ( topLine < 0 ) { topLine = 0 ; }
 }
 
 
 void PCMD0B::fill_dynamic_area()
 {
-	int dl ;
-	int i  ;
+	int i ;
+
+	size_t dl ;
 
 	zarea   = "" ;
 	zshadow = "" ;
@@ -183,37 +233,18 @@ void PCMD0B::fill_dynamic_area()
 	for ( dl = topLine, i = 0 ; i < zaread && dl < lines.size() ; i++, dl++ )
 	{
 		string& pstr = lines[ dl ] ;
-		maxCol = max( maxCol, int( pstr.size() ) ) ;
+		maxCol = max( maxCol, uint( pstr.size() ) ) ;
 		zarea += substr( pstr, startCol, zareaw ) ;
 		if ( pstr.compare( 0, 2, ":>" ) == 0 )      { zshadow += sdw ; }
 		else if ( pstr.compare( 0, 2, "e>" ) == 0 ) { zshadow += sdr ; }
+		else if ( pstr.compare( 0, 2, "l>" ) == 0 ) { zshadow += sdg ; }
 		else if ( pstr.compare( 0, 2, ": " ) == 0 ) { zshadow += sdr ; }
-		else { zshadow += sdy ; }
+		else                                        { zshadow += sdy ; }
 	}
 
 	zarea.resize( zasize, ' ' ) ;
 	zshadow.resize( zasize, N_YELLOW ) ;
 	rebuildZAREA = false ;
-}
-
-
-void PCMD0B::actionCommand()
-{
-	string cmd ;
-
-	cmd = upper( zcmd ) ;
-	if ( cmd == ":CLEAR" )
-	{
-		lines.clear()  ;
-		topLine      = 0  ;
-		startCol     = 1  ;
-		zcmd         = "" ;
-		rebuildZAREA = true ;
-	}
-	else
-	{
-		msg = "PSYS018" ;
-	}
 }
 
 
@@ -267,6 +298,7 @@ void PCMD0B::actionZVERB()
 			startCol += ZSCROLLN ;
 		}
 	}
+
 	if ( topLine  < 0 ) { topLine  = 0 ; }
 	if ( startCol < 1 ) { startCol = 1 ; }
 }
@@ -275,25 +307,35 @@ void PCMD0B::actionZVERB()
 bool PCMD0B::invoke_task_wait( const string& cmd, string& comm1, const string& comm2 )
 {
 	// Invoke a background task and wait for a reponse (using PCMD0A application)
-	// Timeout after 10seconds
+	// Timeout after 10seconds unless notimeout specified.
 
 	int elapsed ;
 
+	string timeout ;
+
+	vcopy( "TIMEOUT", timeout, MOVE ) ;
 	vput( "COMM1 COMM2", SHARED ) ;
 
 	select( "PGM(PCMD0A) PARM("+cmd+") BACK" ) ;
+
+	if ( timeout == "NO" )
+	{
+		control( "TIMEOUT", "DISABLE" ) ;
+	}
 
 	elapsed = 0 ;
 	while ( comm1 != "" )
 	{
 		boost::this_thread::sleep_for(boost::chrono::milliseconds( 5 ) ) ;
-		if ( ++elapsed > 2000 )
+		if ( timeout == "YES" && ++elapsed > 2000 )
 		{
 			return false ;
 		}
 		vget( "COMM1", SHARED ) ;
 		if ( RC > 0 ) { comm1 = "" ; }
 	}
+
+	control( "TIMEOUT", "ENABLE" ) ;
 	return true ;
 }
 

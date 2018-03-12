@@ -15,19 +15,15 @@ field    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
 literal  4  MAX-15  FP "Scroll ===> "
 field    4  MAX-3   4 NEF  NONE ZSCROLL
 
-field    6  2     50 VOI  NONE LIBDEFM
-field    7  2     50 VOI  NONE LIBDEFP
-field    8 2     50 VOI  NONE LIBDEFT
+literal  6  4 CH  "Name     Path                                              Message         Description"
+literal  7  2 CH  EXPAND "-"
 
-literal  10 2 CH  "C Name     Path                                              Message         Description"
-literal  11 2 CH  EXPAND "-"
-
-tbmodel  12   MAX
+tbmodel  8    MAX
 tbfield  2    1    NEF  CAPS(ON),PAD(USER),JUST(LEFT) SEL
 tbfield  4    8    VOI  NONE PVAR
 tbfield  13   50   VOI  NONE PATH
 tbfield  63   15   VOI  NONE MESSAGE
-tbfield  79   MAX  VOI  NONE DESCRIPT
+tbfield  79   MAX  VOI  NONE DESC
 
 )INIT
 VGET ZSCROLL PROFILE
@@ -43,7 +39,9 @@ IF (&ZCMD NE &Z)
    .CURSOR = ZCMD
    EXIT
 
-VER (&SEL LIST,B,L,S)
+&SEL = TRANS(&SEL B,S L,S *,*)
+
+VER (&SEL LIST,S)
 
 IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
 

@@ -31,13 +31,15 @@ class PCMD0B : public pApplication
 		void actionCommand()     ;
 		void actionZVERB()       ;
 		bool invoke_task_wait( const string&, string&, const string& ) ;
+		void bottom_of_data() ;
+
+		int zaread     ;
+		int zareaw     ;
 
 		int topLine    ;
 		int startCol   ;
-		int maxCol     ;
-		int zaread     ;
-		int zareaw     ;
-		int zasize     ;
+		uint maxCol    ;
+		uint zasize    ;
 
 		string msg     ;
 		string inLine  ;
@@ -53,6 +55,7 @@ class PCMD0B : public pApplication
 		string sdr  ;
 		string sdw  ;
 		string sdy  ;
+		string sdg  ;
 
 		string ZSCROLLA  ;
 		int    ZSCROLLN  ;

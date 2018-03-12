@@ -57,11 +57,11 @@ bool addHilight( string lang )
 
 void addCppHilight( hilight& h, const string& line, string& shadow )
 {
-	int ln ;
-	int p1 ;
-	int start ;
+	uint j  ;
+	uint start ;
 
-	uint j ;
+	size_t ln ;
+	size_t p1 ;
 
 	string w ;
 	const string delims( " (){}=;><+-*[]&," ) ;
@@ -194,21 +194,17 @@ void addCppHilight( hilight& h, const string& line, string& shadow )
 
 void addASMHilight( hilight& h, const string& line, string& shadow )
 {
-	int i  ;
-	int ln ;
-	int wd ;
-	int p1 ;
-	int start ;
-
-	uint j ;
+	uint i  ;
+	uint wd ;
+	uint start ;
+	uint j  ;
+	uint p1 ;
+	uint ln ;
 
 	string w ;
 
 	char Quote    = h.hl_Quote    ;
 	bool oQuote   = h.hl_oQuote   ;
-	int  oBrac1   = h.hl_oBrac1   ;
-	int  oBrac2   = h.hl_oBrac2   ;
-	bool oComment = h.hl_oComment ;
 
 	ln = line.size() ;
 	if ( ln == 0 ) { shadow = "" ; return ; }
@@ -320,11 +316,11 @@ void addASMHilight( hilight& h, const string& line, string& shadow )
 
 void addRxxHilight( hilight& h, const string& line, string& shadow )
 {
-	int ln ;
-	int p1 ;
-	int start ;
+	uint ln    ;
+	uint start ;
+	uint j     ;
 
-	uint j ;
+	size_t p1 ;
 
 	string w ;
 	const string delims( " ()=;><+-*[]\"'" ) ;
@@ -465,7 +461,7 @@ void addOthHilight( hilight& h, const string& line, string& shadow )
 {
 	// Highlight as a pseudo-PL/1 language (TODO)
 
-	int ln ;
+	size_t ln ;
 
 	ln = line.size() ;
 	if ( ln == 0 ) { shadow = "" ; return ; }
@@ -477,7 +473,7 @@ void addDefHilight( hilight& h, const string& line, string& shadow )
 {
 	// Highlight in a single colour
 
-	int ln ;
+	size_t ln ;
 
 	ln = line.size() ;
 	if ( ln == 0 ) { shadow = "" ; return ; }
@@ -487,11 +483,11 @@ void addDefHilight( hilight& h, const string& line, string& shadow )
 
 void addPanHilight( hilight& h, const string& line, string& shadow )
 {
-	int ln ;
-	int p1 ;
-	int start ;
-
+	uint start ;
 	uint j ;
+
+	size_t ln ;
+	size_t p1 ;
 
 	string w ;
 	const string delims( " ,()=><+-*\"'" ) ;

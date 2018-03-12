@@ -14,8 +14,8 @@ Dialogue variables for selection panels reside in the shared/profile pools
 
 PanelTitle "Primary Settings and Information Panel"
 
-literal  4    2       FP  "Command ===> "
-field    4   15   MAX  NEF     CAPS(ON),PAD(USER)  ZCMD
+literal  4    2       FP  "Option ===>"
+field    4   14   MAX  NEF     CAPS(ON),PAD(USER)  ZCMD
 
 literal  6   MAX-20        FP  "Date: "
 field    6   MAX-14    8   VOI   NONE  ZDATE

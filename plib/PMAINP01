@@ -122,8 +122,8 @@ FIELD :
 
 PanelTitle "Primary Menu Panel"
 
-LITERAL   4    2    FP  "Options ===> "
-FIELD     4   15   MAX   NEF   CAPS(On),pad(USER),just(left),numeric(off),skip(on) ZCMD
+LITERAL   4    2    FP  "Option ===> "
+FIELD     4   14   MAX   NEF   CAPS(On),pad(USER),just(left),numeric(off),skip(on) ZCMD
 
 literal  6  2    SAC  "0"
 literal  6  5    PS   "Settings"
@@ -232,7 +232,7 @@ literal   26    48   FP     "to exit"
 IF (&ZCMD EQ DATE)
    &ZCMD = 'DATE MM/YYYY'
    REFRESH ZCMD
-   .MSG = PSYS011O
+   .MSG = MAIN011
    EXIT
 
 &W1  = TRUNC(&ZCMD,' ')

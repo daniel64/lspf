@@ -68,8 +68,8 @@ void PDPANLA::application()
 	}
 
 	pan  = word( PARM, 1 ) ;
-	msg  = "" ;
 	zcmd = subword( PARM, 2 ) ;
+	msg  = "" ;
 	zsel = "" ;
 
 	vdefine( "ZCMD ZSEL ZPRIM", &zcmd, &zsel, &zprim ) ;

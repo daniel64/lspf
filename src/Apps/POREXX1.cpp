@@ -82,6 +82,7 @@ void POREXX1::application()
 
 	size_t version  ;
 	string rxsource ;
+	string rxpath   ;
 	string msg      ;
 
 	RexxInstance *instance   ;
@@ -123,10 +124,12 @@ void POREXX1::application()
 	if ( rxsource[ 0 ] == '/' ) { rexxName = rxsource ; }
 	else
 	{
-		j = getpaths( ZORXPATH ) ;
+		vget( "ZORXPATH", PROFILE ) ;
+		vcopy( "ZORXPATH", rxpath, MOVE ) ;
+		j = getpaths( rxpath ) ;
 		for ( i = 1 ; i <= j ; i++ )
 		{
-			rexxName = getpath( ZORXPATH, i ) + rxsource ;
+			rexxName = getpath( rxpath, i ) + rxsource ;
 			if ( !exists( rexxName ) ) { continue ; }
 			if ( is_regular_file( rexxName ) ) { found = true ; break ; }
 			llog( "E", "POREXX1 error. " << rxsource << " found but is not a regular file" << endl ) ;

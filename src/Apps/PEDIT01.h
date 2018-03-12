@@ -1735,8 +1735,9 @@ class miblock
 	void parseMACRO()
 	{
 		int i  ;
-		int p1 ;
 		int ws ;
+
+		size_t p1 ;
 
 		string t ;
 
@@ -1779,9 +1780,10 @@ class miblock
 	void parseStatement( const string& s, map<string,stack<defName>>& defNames )
 	{
 		int  i     ;
-		int  p1    ;
 		int  miss  ;
 		char qt    ;
+
+		size_t p1  ;
 
 		string var ;
 		string w   ;
@@ -2225,13 +2227,13 @@ class PEDIT01 : public pApplication
 		void setNotFoundMsg()          ;
 		bool setCommandRange( string, cmd_range& ) ;
 		int  getNextSpecial( int, int, char, char ) ;
-		bool getLabelItr( const string&, vector<iline * >::iterator &, int& ) ;
+		bool getLabelItr( const string&, vector<iline * >::iterator &, uint& ) ;
 		int  getLabelLine( const string& )  ;
 		int  getLabelIndex( const string& ) ;
 		bool checkLabel1( const string&, int =0 ) ;
 		bool checkLabel2( const string&, int =0 ) ;
 
-		bool getTabLocation( int& ) ;
+		bool getTabLocation( size_t& ) ;
 		void copyPrefix( ipline &, iline *& ) ;
 		void copyPrefix( iline * &,ipline&, bool =false ) ;
 		void addSpecial( char, int, vector<string>& ) ;
@@ -2251,8 +2253,8 @@ class PEDIT01 : public pApplication
 
 		uint topLine             ;
 		uint ptopLine            ;
-		int  startCol            ;
-		int  maxCol              ;
+		uint maxCol              ;
+		int startCol             ;
 		int  mRow                ;
 		int  mCol                ;
 		int  aRow                ;
@@ -2366,10 +2368,10 @@ class PEDIT01 : public pApplication
 		string ZAREA   ;
 		string ZSHADOW ;
 		string ZAREAT  ;
-		int    ZAREAW  ;
-		int    ZAREAD  ;
-		int    ZDATAW  ;
-		int    ZASIZE  ;
+		int    zareaw  ;
+		int    zaread  ;
+		uint   zdataw  ;
+		uint   zasize  ;
 		string CAREA   ;
 		string CSHADOW ;
 		string XAREA   ;

@@ -74,10 +74,9 @@ void PBRO01A::application()
 {
 	llog( "I", "Application PBRO01A starting.  Parms are " << PARM << endl ) ;
 
-	int i  ;
-	int j  ;
-	int offset ;
-	int curpos ;
+	uint i      ;
+	uint offset ;
+	uint curpos ;
 
 	string w2     ;
 	string w3     ;
@@ -171,7 +170,7 @@ void PBRO01A::application()
 		find_parms = Global_bfind_parms ;
 	}
 
-	ZASIZE = ZAREAW*ZAREAD ;
+	zasize = ZAREAW*ZAREAD ;
 
 	vget( "ZBRALT", SHARED ) ;
 	vcopy( "ZBRALT", zbralt, MOVE ) ;
@@ -183,7 +182,7 @@ void PBRO01A::application()
 		else                { ZSHADOW = CSHADOW   ; }
 		if ( curfld == "ZAREA" )
 		{
-			for ( i = curpos-1 ; i < ZASIZE ; i++ )
+			for ( i = curpos-1 ; i < zasize ; i++ )
 			{
 				if ( ZAREA[ i ] == ' ' ) { break ; }
 				ZSHADOW[ i ] = B_WHITE ;
@@ -442,10 +441,12 @@ void PBRO01A::read_file( string file )
 
 	b_shadow t    ;
 
-	int p1 ;
 	int rc ;
 	int i   ;
 	int j   ;
+
+	size_t p1 ;
+
 	char x  ;
 
 	topLine = 0 ;
@@ -612,8 +613,6 @@ void PBRO01A::fill_dynamic_area()
 	int i  ;
 	int l  ;
 	int t  ;
-	int wI ;
-	int wL ;
 	int ln ;
 
 	s1b = string( ZAREAW, B_BLUE   ) ;
@@ -644,7 +643,7 @@ void PBRO01A::fill_dynamic_area()
 
 	if ( hexOn )
 	{
-		for( int k = topLine ; k < (topLine + ZAREAD) ; k++ )
+		for( uint k = topLine ; k < (topLine + ZAREAD) ; k++ )
 		{
 			t3 = string( ZAREAW, ' ' ) ;
 			t4 = string( ZAREAW, ' ' ) ;
@@ -673,7 +672,7 @@ void PBRO01A::fill_dynamic_area()
 				ZAREA   += substr( data.at( k ), 1, ZAREAW ) ;
 				ZSHADOW += s1b ;
 			}
-			if ( ZAREA.size() >= ZASIZE ) { break ; }
+			if ( ZAREA.size() >= zasize ) { break ; }
 			if ( k >= data.size() - 1 )   { break ; }
 		}
 	}
@@ -684,13 +683,13 @@ void PBRO01A::fill_dynamic_area()
 			if ( k >  0 && k < data.size()-1 ) { t1 = substr( data.at( k ), startCol, ZAREAW ) ; }
 			else                               { t1 = substr( data.at( k ), 1, ZAREAW )        ; }
 			ZAREA += t1 ;
-			if ( ZAREA.size() >= ZASIZE ) { break ; }
+			if ( ZAREA.size() >= zasize ) { break ; }
 			if ( k == data.size() - 1 )   { break ; }
 		}
 
 	}
-	ZAREA.resize( ZASIZE, ' ' ) ;
-	ZSHADOW.resize( ZASIZE, B_BLUE ) ;
+	ZAREA.resize( zasize, ' ' ) ;
+	ZSHADOW.resize( zasize, B_BLUE ) ;
 	if ( hilightOn && !hlight.hl_abend )
 	{
 		fill_hilight_shadow() ;
@@ -764,8 +763,6 @@ int PBRO01A::setFind()
 {
 	int i        ;
 	int j        ;
-	int p1       ;
-	int p2       ;
 	int ws       ;
 	char c1      ;
 	char c2      ;
@@ -774,6 +771,9 @@ int PBRO01A::setFind()
 	string ucmd  ;
 	string w1    ;
 	string pic   ;
+
+	size_t p1    ;
+	size_t p2    ;
 
 	vector<string>::iterator it ;
 
@@ -793,7 +793,7 @@ int PBRO01A::setFind()
 	else if ( p1 < p2 )            { delim = string( 1, quote ) ; }
 	else                           { delim = string( 1, apost ) ; }
 
-	if ( p1 = pos( delim, cmd  ) )
+	if ( ( p1 = pos( delim, cmd ) ) )
 	{
 		p2  = pos( delim, cmd,  p1+1 ) ;
 		if ( p2 == 0 ) { MSG = "PBRO011H" ; return 20 ; }
@@ -828,31 +828,31 @@ int PBRO01A::setFind()
 	if ( t.f_rreg ) { t.f_regreq = true ; }
 
 	ucmd = upper( cmd ) ;
-	if ( p1 = wordpos( "NEXT", ucmd ) )
+	if ( ( p1 = wordpos( "NEXT", ucmd ) ) )
 	{
 		t.f_dir = 'N' ;
 		p1   = wordindex( ucmd, p1 ) ;
 		ucmd = delstr( ucmd, p1, 4 ) ;
 	}
-	else if ( p1 = wordpos( "PREV", ucmd ) )
+	else if ( ( p1 = wordpos( "PREV", ucmd ) ) )
 	{
 		t.f_dir = 'P' ;
 		p1   = wordindex( ucmd, p1 ) ;
 		ucmd = delstr( ucmd, p1, 4 ) ;
 	}
-	else if ( p1 = wordpos( "FIRST", ucmd ) )
+	else if ( ( p1 = wordpos( "FIRST", ucmd ) ) )
 	{
 		t.f_dir = 'F' ;
 		p1   = wordindex( ucmd, p1 ) ;
 		ucmd = delstr( ucmd, p1, 5 ) ;
 	}
-	else if ( p1 = wordpos( "LAST", ucmd ) )
+	else if ( ( p1 = wordpos( "LAST", ucmd ) ) )
 	{
 		t.f_dir = 'L' ;
 		p1   = wordindex( ucmd, p1 ) ;
 		ucmd = delstr( ucmd, p1, 4 ) ;
 	}
-	else if ( p1 = wordpos( "ALL", ucmd ) )
+	else if ( ( p1 = wordpos( "ALL", ucmd ) ) )
 	{
 		t.f_dir = 'A' ;
 		p1   = wordindex( ucmd, p1 ) ;
@@ -861,41 +861,41 @@ int PBRO01A::setFind()
 
 	if ( !t.f_rreg )
 	{
-		if ( p1 = wordpos( "CHARS", ucmd ) )
+		if ( ( p1 = wordpos( "CHARS", ucmd ) ) )
 		{
 			t.f_mtch  = 'C'  ;
 			p1   = wordindex( ucmd, p1 ) ;
 			ucmd = delstr( ucmd, p1, 5 ) ;
 		}
-		else if ( p1 = wordpos( "PRE", ucmd ) )
+		else if ( ( p1 = wordpos( "PRE", ucmd ) ) )
 		{
 			t.f_mtch   = 'P'  ;
 			t.f_regreq = true ;
 			p1   = wordindex( ucmd, p1 ) ;
 			ucmd = delstr( ucmd, p1, 3 ) ;
 		}
-		else if ( p1 = wordpos( "PREFIX", ucmd ) )
+		else if ( ( p1 = wordpos( "PREFIX", ucmd ) ) )
 		{
 			t.f_mtch   = 'P'  ;
 			t.f_regreq = true ;
 			p1   = wordindex( ucmd, p1 ) ;
 			ucmd = delstr( ucmd, p1, 6 ) ;
 		}
-		else if ( p1 = wordpos( "SUF", ucmd ) )
+		else if ( ( p1 = wordpos( "SUF", ucmd ) ) )
 		{
 			t.f_mtch   = 'S'  ;
 			t.f_regreq = true ;
 			p1   = wordindex( ucmd, p1 ) ;
 			ucmd = delstr( ucmd, p1, 3 ) ;
 		}
-		else if ( p1 = wordpos( "SUFFIX", ucmd ) )
+		else if ( ( p1 = wordpos( "SUFFIX", ucmd ) ) )
 		{
 			t.f_mtch   = 'S'  ;
 			t.f_regreq = true ;
 			p1   = wordindex( ucmd, p1 ) ;
 			ucmd = delstr( ucmd, p1, 6 ) ;
 		}
-		else if ( p1 = wordpos( "WORD", ucmd ) )
+		else if ( ( p1 = wordpos( "WORD", ucmd ) ) )
 		{
 			t.f_mtch   = 'W'  ;
 			t.f_regreq = true ;
@@ -1031,11 +1031,10 @@ void PBRO01A::actionFind( int spos, int offset )
 	int dl ;
 	int c1 ;
 	int c2 ;
-	int i  ;
-	int j  ;
-	int p1 ;
 	int oX ;
 	int oY ;
+
+	size_t p1 ;
 
 	bool found  ;
 	bool found1 ;
@@ -1051,8 +1050,6 @@ void PBRO01A::actionFind( int spos, int offset )
 
 	regex regexp ;
 	smatch results ;
-
-	j = 0 ;
 
 	find_parms.f_occurs = 0 ;
 	find_parms.f_line   = 0 ;
@@ -1228,8 +1225,9 @@ string PBRO01A::determineLang( string ZFILE )
 
 	// Returned language must exist in eHilight (hiRoutine function map) or an exception will occur
 
-	int p ;
 	int i ;
+
+	size_t p ;
 
 	string s ;
 	string t ;

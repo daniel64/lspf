@@ -111,7 +111,7 @@ void PLRFLST1::setup()
 
 	vcopy( "ZUPROF", UPROF, MOVE ) ;
 	vcopy( "ZRFLTBL", RFLTABLE, MOVE ) ;
-	ZAHELP = "HPSP01A" ;
+	set_apphelp( "HPSP01A" ) ;
 	ZRC    = 4         ;
 }
 
@@ -426,7 +426,6 @@ void PLRFLST1::EditFileList( const string& curtb )
 				if ( RC > 4 ) { break ; }
 			}
 			else { ZTDSELS = 0 ; }
-			BSEL = "" ;
 		}
 	}
 	if ( modified )
@@ -625,6 +624,7 @@ void PLRFLST1::RetrieveEntry( string list )
 	if ( w1.size() > 0 && w1.size() < 3 && datatype( w1, 'W' ) )
 	{
 		list = w2 ;
+		pos  = 1  ;
 		if ( datatype( w1, 'W' ) ) { pos = ds2d( w1 ) - 1 ; }
 		if ( pos < 30 )
 		{
@@ -775,15 +775,15 @@ void PLRFLST1::AddReflistEntry( string& ent )
 
 	vreplace( "FLAPET01", ent ) ;
 
-	for ( i = 2 ; i <= 30 ; i++ )
+	for ( uint j = 2 ; j <= 30 ; j++ )
 	{
-		if ( i <= list.size()+1 )
+		if ( j <= list.size()+1 )
 		{
-			vreplace( "FLAPET" + d2ds( i, 2 ), list.at( i-2 ) ) ;
+			vreplace( "FLAPET" + d2ds( j, 2 ), list.at( j-2 ) ) ;
 		}
 		else
 		{
-			vreplace( "FLAPET" + d2ds( i, 2 ), "" ) ;
+			vreplace( "FLAPET" + d2ds( j, 2 ), "" ) ;
 		}
 	}
 

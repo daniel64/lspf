@@ -30,10 +30,10 @@ class dynArea
 			 }
 
 	private:
-		int    dynArea_row       ;
-		int    dynArea_col       ;
-		int    dynArea_width     ;
-		int    dynArea_depth     ;
+		uint   dynArea_row       ;
+		uint   dynArea_col       ;
+		uint   dynArea_width     ;
+		uint   dynArea_depth     ;
 		bool   dynArea_DataInsp  ;
 		bool   dynArea_DataOutsp ;
 		bool   dynArea_UserModsp ;
@@ -135,9 +135,9 @@ class literal
 				literal_name   = "" ;
 				literal_dvars  = true ;
 			  }
-		int     literal_row    ;
-		int     literal_col    ;
-		int     literal_cole   ;
+		uint    literal_row    ;
+		uint    literal_col    ;
+		uint    literal_cole   ;
 		cuaType literal_cua    ;
 		uint    literal_colour ;
 		string  literal_value  ;
@@ -230,7 +230,7 @@ class abc
 		void   display_pd( errblock&, uint, uint, uint ) ;
 		void   hide_pd()    ;
 		int    get_pd_col() ;
-		void   get_msg_position( int&, int& ) ;
+		void   get_msg_position( uint&, uint& ) ;
 		const  string& get_abc_desc() ;
 		pdc    retrieve_choice( errblock& ) ;
 		bool   cursor_on_pulldown( uint, uint ) ;
@@ -265,10 +265,10 @@ class Box
 
 		string box_title  ;
 	private:
-		int    box_row    ;
-		int    box_col    ;
-		int    box_width  ;
-		int    box_depth  ;
+		uint   box_row    ;
+		uint   box_col    ;
+		uint   box_width  ;
+		uint   box_depth  ;
 		uint   box_colour ;
 } ;
 

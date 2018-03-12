@@ -38,7 +38,7 @@ string delstr( string s, unsigned int n, unsigned int l ) ;
 string delword( string s, unsigned int w ) ;
 string delword( string s, unsigned int w, unsigned int n ) ;
 
-string insert( const string& s1, string s2, int n = 0, char c = ' ' )           ;
+string insert( const string& s1, string s2, unsigned int n = 0, char c = ' ' )    ;
 string insert( string s1, string s2, unsigned int, unsigned int l, char c = ' ' ) ;
 
 int    lastpos( const string& s1, const string& s2 )                 ;
@@ -85,17 +85,17 @@ int words( const string& s ) ;
 // d2c d2x
 // x2b x2c x2d
 
-string bs2xs( string s ) ;             // eg "01000010" -> "42"     ( REXX B2X("11000011")    ->   "C3" )
+string bs2xs( string s ) ;            // eg "01000010" -> "42"     ( REXX B2X("11000011")    ->   "C3" )
 
 string cs2bs( const string& s ) ;     // eg "B" -> "01000010"
 int    cs2d( const string& s )  ;     // eg "B" -> int66           ( REXX C2D("a")        ->       97 )
 string cs2xs( const string& s ) ;     // eg "A" -> "41"            ( REXX C2X("0123"X)    ->    "0123" )
-string cs2xs( char c   ) ;             // eg "B" -> "42"            ( same )
+string cs2xs( char c   ) ;            // eg "B" -> "42"            ( same )
 
-string d2cs( int i ) ;                 // eg int66 -> "B"           ( REXX D2C(65)      ->   "A" )
-string d2ds( int i ) ;                 // eg int66 -> "66"          ( not required for REXX but is for C++)
-string d2ds( int i, int j ) ;          // eg int66 -> "66"          ( not required for REXX but is for C++)
-string d2xs( int i ) ;                 // eg int66 -> "42"          ( REXX D2X(129)       ->    "81" )
+string d2cs( int i ) ;                // eg int66 -> "B"           ( REXX D2C(65)      ->   "A" )
+string d2ds( int i ) ;                // eg int66 -> "66"          ( not required for REXX but is for C++)
+string d2ds( int i, int j ) ;         // eg int66 -> "66"          ( not required for REXX but is for C++)
+string d2xs( int i ) ;                // eg int66 -> "42"          ( REXX D2X(129)       ->    "81" )
 
 int    ds2d( const string& s )  ;     // eg "66"  -> int66         ( not required for REXX but is for C++)
 
@@ -146,10 +146,9 @@ bool   ispict( const string&, const string& ) ;
 int    getpaths( const string& p ) ;
 string getpath( const string& s, int p ) ;
 string mergepaths( const string& p1, const string& p2 ) ;
+string mergepaths( const string& p1, const string& p2, const string& p3 ) ;
 
 string  parseString( errblock& err, string& s, string p ) ;
 string& getNameList( errblock& err, string& s ) ;
 
-void   extractWord( errblock& err, string& s, string& p ) ;
-void   extractWord( errblock& err, string& s, string& p, bool& ) ;
 string extractKWord( errblock& err, string& s, string p ) ;

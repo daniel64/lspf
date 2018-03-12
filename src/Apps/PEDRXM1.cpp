@@ -66,6 +66,8 @@ void PEDRXM1::application()
 {
 	int nlvl ;
 
+	string rxpath ;
+
 	miblock tmiBlock   ;
 	PEDIT01 * editAppl ;
 
@@ -85,10 +87,12 @@ void PEDRXM1::application()
 	nlvl = mibptr->nestlvl + 1 ;
 	if ( nlvl > 1 )
 	{
+		vget( "ZORXPATH", PROFILE ) ;
+		vcopy( "ZORXPATH", rxpath, MOVE ) ;
 		tmiBlock = *mibptr ;
 		mibptr->clear() ;
 		mibptr->setMacro( word( editAppl->pcmd.get_cmd(), 1 ) )  ;
-		if ( !mibptr->getMacroFileName( ZORXPATH ) )
+		if ( !mibptr->getMacroFileName( rxpath ) )
 		{
 			mibptr->RC > 8 ? tmiBlock.seterror( "PEDM012Q", 20 ) : tmiBlock.seterror( "PEDT015A", 20 ) ;
 			*mibptr = tmiBlock ;

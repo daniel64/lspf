@@ -117,8 +117,8 @@ void PFLST0A::application()
 	int    i        ;
 	int    RCode    ;
 	int    num      ;
-	int    p1       ;
-	int    p2       ;
+
+	size_t p1       ;
 
 	bool   del      ;
 	bool   errs     ;
@@ -145,7 +145,7 @@ void PFLST0A::application()
 
 	char * buffer   ;
 	size_t bufferSize = 255 ;
-	size_t rc       ;
+	int    rc       ;
 
 	boost::system::error_code ec ;
 
@@ -803,8 +803,9 @@ void PFLST0A::application()
 
 void PFLST0A::createFileList1( string filter )
 {
-	int i    ;
-	int p1   ;
+	int i ;
+
+	size_t p1 ;
 
 	string p ;
 	string t ;
@@ -885,7 +886,7 @@ void PFLST0A::createFileList1( string filter )
 	if ( fGen )
 	{
 		pat = "" ;
-		for ( i = 0 ; i < filter.size() ; i++ )
+		for ( uint i = 0 ; i < filter.size() ; i++ )
 		{
 			c = toupper( filter[ i ] ) ;
 			if      ( c == '*' ) { pat += "[^[:blank:]]*" ; }
@@ -1002,7 +1003,7 @@ void PFLST0A::AddPath( const string& p, const string& f, vector<path>& v )
 	sort( vt.begin(), vt.end() ) ;
 
 	pat = "" ;
-	for ( int i = 0 ; i < f.size() ; i++ )
+	for ( uint i = 0 ; i < f.size() ; i++ )
 	{
 		c = toupper( f[ i ] ) ;
 		if      ( c == '*' ) { pat += "[^[:blank:]]*" ; }
@@ -1037,7 +1038,7 @@ void PFLST0A::AddPath( const string& p, const string& f, vector<path>& v )
 
 void PFLST0A::createSearchList( const string& w )
 {
-	int p1 ;
+	size_t p1 ;
 
 	string cmd ;
 	string result ;
@@ -1096,6 +1097,8 @@ void PFLST0A::createSearchList( const string& w )
 
 void PFLST0A::showInfo( const string& p )
 {
+	int rc ;
+
 	struct stat results   ;
 	struct tm * time_info ;
 
@@ -1103,7 +1106,6 @@ void PFLST0A::showInfo( const string& p )
 	char * buffer   ;
 
 	size_t bufferSize = 255 ;
-	size_t rc               ;
 
 	try
 	{
@@ -1282,7 +1284,7 @@ int PFLST0A::processPrimCMD()
 		}
 		return 0 ;
 	}
-	else if ( cw == "BACK" | cw == "S" )
+	else if ( cw == "BACK" || cw == "S" )
 	{
 		if ( zpath.back() == '/' ) { zpath = zpath.substr( 0, zpath.size()-1) ; }
 		zpath = substr( zpath, 1, lastpos( "/", zpath)-1 ) ;
@@ -1769,7 +1771,7 @@ string PFLST0A::expandDir( const string& parms )
 	// If first parameter is FO2, filter on files
 
 	int i        ;
-	int pos      ;
+	size_t pos   ;
 
 	bool showl   ;
 
@@ -1926,7 +1928,8 @@ string PFLST0A::expandFld1( const string& parms )
 
 	int i        ;
 	int n        ;
-	int pos      ;
+
+	size_t pos   ;
 
 	string Paths ;
 	string type  ;
@@ -2232,8 +2235,7 @@ string PFLST0A::expandName( const string& s )
 {
 	// Resolve name if contains *, ? or regex.  If more than one, return ""
 
-	int i  ;
-	int p1 ;
+	size_t p1 ;
 
 	char c ;
 
@@ -2255,7 +2257,7 @@ string PFLST0A::expandName( const string& s )
 	dir = s.substr( 0, p1 ) ;
 
 	pat = "" ;
-	for ( i = 0 ; i < s.size() ; i++ )
+	for ( uint i = 0 ; i < s.size() ; i++ )
 	{
 		c = s[ i ] ;
 		if      ( c == '*' ) { pat += "[^[:blank:]]*" ; }
@@ -2286,6 +2288,7 @@ string PFLST0A::expandName( const string& s )
 	v.erase( new_end, v.end() ) ;
 
 	dir1 = "" ;
+	uint i    ;
 	for ( i = 0, it = v.begin() ; it != v.end() ; ++it )
 	{
 		dir = (*it).string() ;

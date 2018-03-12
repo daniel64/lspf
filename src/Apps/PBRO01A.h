@@ -98,9 +98,12 @@ class PBRO01A : public pApplication
 
 		string determineLang( string ) ;
 
-		int topLine  ;
-		int maxLines ;
-		int startCol, maxCol    ;
+		int  topLine  ;
+		uint maxLines ;
+		int  startCol ;
+
+		uint maxCol  ;
+
 		vector<string> data     ;
 		vector<b_shadow> shadow ;
 		map< char, string > typList ;
@@ -129,7 +132,7 @@ class PBRO01A : public pApplication
 		string ZAREAT  ;
 		int    ZAREAW  ;
 		int    ZAREAD  ;
-		int    ZASIZE  ;
+		uint   zasize  ;
 		int    ZALINE  ;
 		string ZSCROLLA  ;
 		int    ZSCROLLN  ;

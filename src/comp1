@@ -1,1 +1,6 @@
-g++ -O0 -std=c++11 -rdynamic -Wall -lpanel -ltinfo -lncurses -lboost_thread -lboost_filesystem -lboost_system -ldl -lpthread -o lspf lspf.cpp  -Wno-sign-compare -Wno-switch -Wno-int-in-bool-context -Wunused-variable
+
+OPTS1="-O0 -Wall -Wno-switch -Wno-int-in-bool-context -Wunused-variable -Wtautological-compare "
+
+OPTS2="-std=c++11 -rdynamic "
+
+g++ $OPTS1 $OPTS2 -lpanel -ltinfo -lncurses -lboost_thread -lboost_filesystem -lboost_system -ldl -lpthread -o lspf lspf.cpp

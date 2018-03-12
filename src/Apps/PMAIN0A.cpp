@@ -43,37 +43,33 @@ void PMAIN0A::application()
 {
 	llog( "I", "Application PMAIN0A starting.  Displaying panel PMAINP01" << endl ) ;
 
-	int RC1  ;
-	int p1   ;
-	int y, m ;
-	int pmonth, pyear ;
+	int RC1    ;
+	int pmonth ;
+	int pyear  ;
 
-	selobj SEL ;
-
-	string pan ;
-	string msg ;
-	string w1  ;
-	string ws  ;
+	string zcmd ;
+	string pan  ;
+	string msg  ;
+	string w1   ;
+	string ws   ;
 	string zsel ;
 
-	string ZSYSNAME ;
-	string ZOSREL   ;
-	string ZSCRNAME ;
+	string zscrname ;
 
 	errblock err ;
 
-	ZAHELP = "HPMAIN1" ;
+	set_apphelp( "HPMAIN1" ) ;
 
-	vdefine( "ZCMD ZSEL ZDATEL ZJDATE ZTIME ZSCRNAME", &zcmd, &zsel, &ZDATEL, &ZJDATE, &ZTIME, &ZSCRNAME ) ;
-	vdefine( "ZAREA ZSHADOW", &ZAREA, &ZSHADOW ) ;
+	vdefine( "ZCMD ZSEL ZDATEL ZJDATE ZTIME ZSCRNAME", &zcmd, &zsel, &zdatel, &zjdate, &ztime, &zscrname ) ;
+	vdefine( "ZAREA ZSHADOW", &zarea, &zshadow ) ;
 
-	ZSCRNAME = "MAIN" ;
+	zscrname = "MAIN" ;
 	vput( "ZSCRNAME", SHARED ) ;
 	vget( "ZDATEL" ) ;
 
 	offset = 0 ;
-	pmonth = ds2d( substr( ZDATEL, 4, 2 ) ) ;
-	pyear  = ds2d( substr( ZDATEL, 7, 4 ) ) ;
+	pmonth = ds2d( substr( zdatel, 4, 2 ) ) ;
+	pyear  = ds2d( substr( zdatel, 7, 4 ) ) ;
 	zcmd   = PARM ;
 	msg    = ""   ;
 	create_calendar( pmonth, pyear ) ;
@@ -103,7 +99,7 @@ void PMAIN0A::application()
 		vget( "ZJDATE ZTIME", SHARED ) ;
 		msg = "" ;
 
-		ZAREA = ZAREA.replace( 204, 5, ZTIME ) ;
+		zarea = zarea.replace( 204, 5, ztime ) ;
 
 		w1 = word( zcmd, 1 ) ;
 		ws = subword( zcmd, 2 ) ;
@@ -112,47 +108,33 @@ void PMAIN0A::application()
 		{
 			if ( ZCURPOS == 1 )
 			{
-				offset = offset - 1 ;
+				--offset ;
 				create_calendar( pmonth, pyear ) ;
 			}
-			else
+			else if ( ZCURPOS == 20 )
 			{
-				if ( ZCURPOS == 20 )
-				{
-					offset = offset + 1;
-					create_calendar( pmonth, pyear )  ;
-				}
-				else
-				{
-					if ( ZCURPOS > 1 && ZCURPOS < 20 )
-					{
-						offset = 0 ;
-						pmonth = ds2d( substr( ZDATEL, 4, 2 ) ) ;
-						pyear  = ds2d( substr( ZDATEL, 7, 4 ) ) ;
-						create_calendar( pmonth, pyear ) ;
-					}
-				}
+				++offset ;
+				create_calendar( pmonth, pyear )  ;
+			}
+			else if ( ZCURPOS > 1 && ZCURPOS < 20 )
+			{
+				offset = 0 ;
+				pmonth = ds2d( substr( zdatel, 4, 2 ) ) ;
+				pyear  = ds2d( substr( zdatel, 7, 4 ) ) ;
+				create_calendar( pmonth, pyear ) ;
 			}
 		}
 		if ( w1 == "DATE")
 		{
-			if ( ws == "" )
+			pmonth = ds2d( substr( ws, 1, 2 ) ) ;
+			pyear  = ds2d( substr( ws, 4, 4 ) ) ;
+			if ( pmonth < 1 || pmonth > 12 || pyear < 1900 || pyear > 9999 )
 			{
 				msg = "MAIN011" ;
-				continue        ;
+				continue ;
 			}
-			else
-			{
-				pmonth = ds2d( substr( ws, 1, 2 ) ) ;
-				pyear  = ds2d( substr( ws, 4, 4 ) ) ;
-				if ( pmonth < 1 || pmonth > 12 || pyear < 1900 || pyear > 9999 )
-				{
-					msg = "MAIN011" ;
-					continue ;
-				}
-				offset = 0 ;
-				create_calendar( pmonth, pyear ) ;
-			}
+			offset = 0 ;
+			create_calendar( pmonth, pyear ) ;
 		}
 		zcmd = "" ;
 	}
@@ -168,9 +150,9 @@ void PMAIN0A::create_calendar( int pmonth, int pyear )
 	int i, eom_day, daypos  ;
 
 	vget( "ZJDATE ZTIME ZDATEL" ) ;
-	cday   = ds2d( substr( ZDATEL, 1, 2 ) ) ;
-	cmonth = ds2d( substr( ZDATEL, 4, 2 ) ) ;
-	cyear  = ds2d( substr( ZDATEL, 7, 4 ) ) ;
+	cday   = ds2d( substr( zdatel, 1, 2 ) ) ;
+	cmonth = ds2d( substr( zdatel, 4, 2 ) ) ;
+	cyear  = ds2d( substr( zdatel, 7, 4 ) ) ;
 
 	daypos = 0 ;
 	year   = pyear  + (offset / 12) ;
@@ -198,49 +180,49 @@ void PMAIN0A::create_calendar( int pmonth, int pyear )
 		case 12: m = "December " ; break ;
 	}
 
-	ZAREA  = "<     Calendar     > "               ;
-	ZAREA += centre( m + "  " + d2ds( year ), 21 ) ;
-	ZAREA += "Su Mo Tu We Th Fr Sa "               ;
-	ZAREA += string( 3*ditr->day_of_week(), ' ' )  ;
+	zarea  = "<     Calendar     > "               ;
+	zarea += centre( m + "  " + d2ds( year ), 21 ) ;
+	zarea += "Su Mo Tu We Th Fr Sa "               ;
+	zarea += string( 3*ditr->day_of_week(), ' ' )  ;
 
 	i = 1 ;
 	for ( ; ditr <= endOfMonth ; ++ditr )
 	{
 		if (     i == cday   &&
 		     month == cmonth &&
-		      year == cyear ) { daypos = ZAREA.size() ; }
-		ZAREA += centre( d2ds( i ), 3 ) ;
+		      year == cyear ) { daypos = zarea.size() ; }
+		zarea += centre( d2ds( i ), 3 ) ;
 		i++ ;
 	}
 
-	ZAREA.resize( 189, ' ' ) ;
-	ZAREA += left( "Time . . . . : " + ZTIME, 21 ) ;
-	ZAREA += left( "Day of Year. : " + substr( ZJDATE, 4, 3 ), 21 ) ;
+	zarea.resize( 189, ' ' ) ;
+	zarea += left( "Time . . . . : " + ztime, 21 ) ;
+	zarea += left( "Day of Year. : " + substr( zjdate, 4, 3 ), 21 ) ;
 
-	ZSHADOW = string( 231, N_WHITE ) ;
+	zshadow = string( 231, N_WHITE ) ;
 
-	ZSHADOW.replace(  21,  21,  21, B_RED   )  ;
-	ZSHADOW.replace(  42,  21,  21, B_YELLOW ) ;
+	zshadow.replace(  21,  21,  21, B_RED   )  ;
+	zshadow.replace(  42,  21,  21, B_YELLOW ) ;
 
-	ZSHADOW.replace(  63,   2,   2, N_TURQ ) ;
-	ZSHADOW.replace(  81,   2,   2, N_TURQ ) ;
+	zshadow.replace(  63,   2,   2, N_TURQ ) ;
+	zshadow.replace(  81,   2,   2, N_TURQ ) ;
 
-	ZSHADOW.replace(  84,   2,   2, N_TURQ ) ;
-	ZSHADOW.replace( 102,   2,   2, N_TURQ ) ;
+	zshadow.replace(  84,   2,   2, N_TURQ ) ;
+	zshadow.replace( 102,   2,   2, N_TURQ ) ;
 
-	ZSHADOW.replace( 105,   2,   2, N_TURQ ) ;
-	ZSHADOW.replace( 123,   2,   2, N_TURQ ) ;
+	zshadow.replace( 105,   2,   2, N_TURQ ) ;
+	zshadow.replace( 123,   2,   2, N_TURQ ) ;
 
-	ZSHADOW.replace( 126,   2,   2, N_TURQ ) ;
-	ZSHADOW.replace( 144,   2,   2, N_TURQ ) ;
+	zshadow.replace( 126,   2,   2, N_TURQ ) ;
+	zshadow.replace( 144,   2,   2, N_TURQ ) ;
 
-	ZSHADOW.replace( 147,   2,   2, N_TURQ ) ;
-	ZSHADOW.replace( 165,   2,   2, N_TURQ ) ;
+	zshadow.replace( 147,   2,   2, N_TURQ ) ;
+	zshadow.replace( 165,   2,   2, N_TURQ ) ;
 
-	ZSHADOW.replace( 168,   2,   2, N_TURQ ) ;
-	ZSHADOW.replace( 186,   2,   2, N_TURQ ) ;
+	zshadow.replace( 168,   2,   2, N_TURQ ) ;
+	zshadow.replace( 186,   2,   2, N_TURQ ) ;
 
-	if ( daypos > 0 ) { ZSHADOW.replace( daypos, 2, 2, R_TURQ ) ; }
+	if ( daypos > 0 ) { zshadow.replace( daypos, 2, 2, R_TURQ ) ; }
 }
 
 

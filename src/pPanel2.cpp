@@ -19,10 +19,12 @@
 
 void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths )
 {
-	int i ;
-	int j ;
-	int pVersion ;
-	int pFormat  ;
+	uint i ;
+	uint j ;
+	uint pVersion ;
+	uint pFormat  ;
+
+	size_t p1 ;
 
 	string ww         ;
 	string w1         ;
@@ -123,15 +125,15 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			}
 			if ( ws != "" )
 			{
-				j = ws.find( ',' ) ;
-				if ( j == string::npos )
+				p1 = ws.find( ',' ) ;
+				if ( p1 == string::npos )
 				{
 					err.seterrid( "PSYE011B" ) ;
 					err.setsrc( oline ) ;
 					return ;
 				}
-				KEYLISTN = strip( ws.substr( 0, j ) ) ;
-				KEYAPPL  = strip( ws.substr( j+1  ) ) ;
+				KEYLISTN = strip( ws.substr( 0, p1 ) ) ;
+				KEYAPPL  = strip( ws.substr( p1+1  ) ) ;
 				if ( !isvalidName( KEYLISTN ) || !isvalidName4( KEYAPPL ) )
 				{
 					err.seterrid( "PSYE011C" ) ;
@@ -153,15 +155,15 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			}
 			if ( ws != "" )
 			{
-				j = ws.find( ',' ) ;
-				if ( j == string::npos )
+				p1 = ws.find( ',' ) ;
+				if ( p1 == string::npos )
 				{
 					err.seterrid( "PSYE011D" ) ;
 					err.setsrc( oline ) ;
 					return ;
 				}
-				t1 = strip( ws.substr( 0, j ) ) ;
-				t2 = strip( ws.substr( j+1 ) )  ;
+				t1 = strip( ws.substr( 0, p1 ) ) ;
+				t2 = strip( ws.substr( p1+1  ) ) ;
 				win_width = ds2d( t1 ) ;
 				if ( win_width > ZSCRMAXW - 1 )
 				{
@@ -660,7 +662,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			debug2( "Creating tbmodel" << endl ) ;
 			iupper( pline ) ;
 			ww = word( pline, 3 ) ;
-			int start_row = ds2d( word( pline, 2 ) ) - 1 ;
+			uint start_row = ds2d( word( pline, 2 ) ) - 1 ;
 
 			if ( isnumeric( ww ) )                      { tb_depth = ds2d( ww ) ; }
 			else if ( ww == "MAX" )                     { tb_depth = WSCRMAXD - start_row ; }
@@ -799,8 +801,9 @@ void pPanel::readPanel( errblock& err, vector<string>& src, const string& name, 
 {
 	int i  ;
 	int p  ;
-	int p1 ;
-	int p2 ;
+
+	size_t p1 ;
+	size_t p2 ;
 
 	string filename ;
 	string pline ;

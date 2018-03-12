@@ -769,11 +769,14 @@ void pVPOOL::load( errblock& err,
 	string var   ;
 	string value ;
 
-	char x      ;
-	int  i, k   ;
-	int  n1, n2 ;
+	uint k  ;
+	uint i  ;
+	uint n1 ;
+	uint n2 ;
+
 	char * buf1 ;
 	char z[ 2 ] ;
+	char x      ;
 
 	size_t buf1Size = 1024  ;
 
@@ -799,7 +802,7 @@ void pVPOOL::load( errblock& err,
 	}
 
 	profile.get( x ) ;
-	i = static_cast< int >( x ) ;
+	i = ( unsigned char )x ;
 	if ( i > 1 )
 	{
 		err.seterrid( "PSYE015H", d2ds( i ), applid ) ;
@@ -809,8 +812,7 @@ void pVPOOL::load( errblock& err,
 	}
 
 	profile.get( x ) ;
-	i = static_cast< int >( x ) ;
-	if ( i < 0 ) { i = 256 + i ; }
+	i = ( unsigned char )x  ;
 	profile.read (buf1, i ) ;
 	hdr.assign( buf1, i )   ;
 
@@ -818,17 +820,14 @@ void pVPOOL::load( errblock& err,
 	{
 		profile.get( x ) ;
 		if ( profile.eof() ) { break ; }
-		i = static_cast< int >( x ) ;
-		if ( i < 0 ) { i = 256 + i ; }
+		i = ( unsigned char )x  ;
 		profile.read (buf1 , i) ;
 		if ( profile.fail() != 0 ) { err.seterror() ; break ; }
 		var.assign( buf1, i ) ;
 		profile.read( z, 2 )  ;
 		if ( profile.fail() != 0 ) { err.seterror() ; break ; }
-		n1 = static_cast< int >( z[ 0 ] ) ;
-		n2 = static_cast< int >( z[ 1 ] ) ;
-		if ( n1 < 0 ) { n1 = 256 + n1 ; }
-		if ( n2 < 0 ) { n2 = 256 + n2 ; }
+		n1 = ( unsigned char )z[ 0 ] ;
+		n2 = ( unsigned char )z[ 1 ] ;
 		k = 256 * n1 + n2 ;
 		if ( k > buf1Size )
 		{
@@ -1448,7 +1447,7 @@ void poolMGR::put( errblock& err,
 		   const string& name,
 		   const string& value )
 {
-	// Set a variable from the logical-screen pool
+	// Set a variable in the logical-screen pool
 	// Pool is created on first access
 
 	boost::lock_guard<boost::mutex> lock( mtx ) ;

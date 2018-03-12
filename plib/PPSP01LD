@@ -1,0 +1,40 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel to display current libdef status for this logical screen
+)ENDCOMMENT
+
+)BODY WINDOW(70,22) CMD(ZCMD)
+
+PanelTitle "LIBDEF Display Utility"
+
+literal  2   2         FP    "Command ===> "
+field    2  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
+
+literal  2  MAX-15  FP "Scroll ===> "
+field    2  MAX-3   4 NEF  NONE ZSCROLL
+
+literal  4  4 CH  "Library  Type     Identifier"
+
+tbmodel  5    MAX
+tbfield  2    1    LI  NONE LDSTK
+tbfield  ++1  8    LI  NONE LDLIB
+tbfield  ++1  8    LI  NONE LDTYP
+tbfield  ++1  MAX  LI  NONE LDID
+
+)INIT
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = 'HALF'
+
+&ZWINTTL = 'LIBDEF Utility'
+&ZTDMARK = ' **End**'
+
+)PROC
+
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+   EXIT
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+
+)END

@@ -458,7 +458,6 @@ void pPanel::refresh()
 	}
 	top_panel( panel ) ;
 	touchwin( win ) ;
-	return ;
 }
 
 
@@ -1018,7 +1017,7 @@ void pPanel::process_panel_if( errblock& err, int ln, IFSTMNT* ifstmnt )
 
 void pPanel::process_panel_if_cond( errblock& err, int ln, IFSTMNT* ifstmnt )
 {
-	int j ;
+	uint j ;
 
 	bool l_break ;
 
@@ -1144,7 +1143,7 @@ void pPanel::process_panel_if_cond( errblock& err, int ln, IFSTMNT* ifstmnt )
 
 string pPanel::process_panel_trunc( errblock& err, TRUNC* trunc )
 {
-	int p ;
+	size_t p ;
 
 	string t      ;
 	string dTrail ;
@@ -1252,7 +1251,7 @@ string pPanel::process_panel_trans( errblock& err, int ln, TRANS* trans, const s
 
 void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 {
-	int i ;
+	uint i ;
 
 	string fieldNam ;
 	string fieldVal ;
@@ -1792,13 +1791,6 @@ void pPanel::set_cursor( const string& csr, int p )
 }
 
 
-void pPanel::set_cursor_home()
-{
-	curfld = Home ;
-	curpos = 1    ;
-}
-
-
 string pPanel::get_cursor()
 {
 	if ( findword( curfld, tb_fields ) )
@@ -1851,7 +1843,7 @@ void pPanel::refresh_fields( errblock& err, const string& fields )
 		sname  = itd->second->dynArea_shadow_name ;
 		shadow = p_funcPOOL->vlocate( err, sname ) ;
 		if ( err.error() ) { return ; }
-		for ( int i = 0 ; i < itd->second->dynArea_depth ; i++ )
+		for ( unsigned int i = 0 ; i < itd->second->dynArea_depth ; i++ )
 		{
 			j   = i * itd->second->dynArea_width ;
 			itf = fieldList.find( itd->first +"."+ d2ds( i ) ) ;
@@ -1898,7 +1890,7 @@ void pPanel::refresh_fields( errblock& err )
 		sname  = itd->second->dynArea_shadow_name ;
 		shadow = p_funcPOOL->vlocate( err, sname ) ;
 		if ( err.error() ) { return ; }
-		for ( int i = 0 ; i < itd->second->dynArea_depth ; i++ )
+		for ( unsigned int i = 0 ; i < itd->second->dynArea_depth ; i++ )
 		{
 			j   = i * itd->second->dynArea_width ;
 			itf = fieldList.find( itd->first +"."+ d2ds( i ) ) ;
@@ -2029,8 +2021,8 @@ void pPanel::create_pdc( errblock& err, const string& abc_desc, const string& pl
 	// ab is a vector list of action-bar-choices (abc objects)
 	// Each action-bar-choice is a vector list of pull-down-choices (pdc objects)
 
-	int i ;
-	int p ;
+	uint i ;
+	uint p ;
 
 	string head ;
 	string tail ;
@@ -2153,7 +2145,7 @@ void pPanel::update_field_values( errblock& err )
 		darea->resize( itd->second->dynArea_width * itd->second->dynArea_depth, ' ' )   ;
 		shadow->resize( itd->second->dynArea_width * itd->second->dynArea_depth, 0xFF ) ;
 		k = itd->second->dynArea_width ;
-		for ( int i = 0 ; i < itd->second->dynArea_depth ; i++ )
+		for ( unsigned int i = 0 ; i < itd->second->dynArea_depth ; i++ )
 		{
 			j   = i * itd->second->dynArea_width ;
 			itf = fieldList.find( itd->first +"."+ d2ds( i ) ) ;
@@ -2208,7 +2200,7 @@ void pPanel::display_ab()
 {
 	if ( ab.size() == 0 ) { return ; }
 
-	for ( int i = 0 ; i < ab.size() ; i++ )
+	for ( unsigned int i = 0 ; i < ab.size() ; i++ )
 	{
 		ab[ i ].display_abc_unsel( win ) ;
 	}
@@ -2221,9 +2213,7 @@ void pPanel::display_ab()
 
 void pPanel::resetAttrs()
 {
-	int i ;
-
-	for ( i = 0 ; i < attrList.size() ; i++ )
+	for ( unsigned int i = 0 ; i < attrList.size() ; i++ )
 	{
 		fieldList[ attrList[ i ] ]->field_attr() ;
 	}
@@ -2237,10 +2227,10 @@ void pPanel::cursor_to_cmdfield( int& RC1, int f_pos )
 }
 
 
-void pPanel::cursor_to_field( int& RC1, string f_name, int f_pos )
+void pPanel::cursor_to_field( int& RC1, string f_name, unsigned int f_pos )
 {
-	int oX ;
-	int oY ;
+	uint oX ;
+	uint oY ;
 
 	map<string, field   *>::iterator itf ;
 	map<string, dynArea *>::iterator itd ;
@@ -2290,7 +2280,7 @@ void pPanel::cursor_to_field( int& RC1, string f_name, int f_pos )
 
 void pPanel::get_home( uint& row, uint& col )
 {
-	// Return the physical position on the screen
+	// Return the physical home position on the screen
 
 	map<string, field *>::iterator it ;
 
@@ -2307,6 +2297,29 @@ void pPanel::get_home( uint& row, uint& col )
 	}
 	row += win_row ;
 	col += win_col ;
+}
+
+
+void pPanel::set_cursor_home()
+{
+	// Set the cursor to the relative home position
+
+	map<string, field *>::iterator it ;
+
+	curfld = Home ;
+	curpos = 1    ;
+
+	it = fieldList.find( Home ) ;
+	if ( it == fieldList.end() )
+	{
+		p_row = 0 ;
+		p_col = 0 ;
+	}
+	else
+	{
+		p_row = it->second->field_row ;
+		p_col = it->second->field_col ;
+	}
 }
 
 
@@ -2639,7 +2652,8 @@ void pPanel::field_tab_down( uint& row, uint& col )
 	int m_offset ;
 	int c_offset ;
 	int d_offset ;
-	int o_row    ;
+
+	uint o_row   ;
 
 	uint trow ;
 	uint tcol ;
@@ -2688,7 +2702,8 @@ void pPanel::field_tab_next( uint& row, uint& col )
 	uint t_offset ;
 	uint m_offset ;
 	uint c_offset ;
-	uint d_offset ;
+	int  d_offset ;
+
 	uint o_row ;
 	uint o_col ;
 	uint trow  ;
@@ -2862,7 +2877,7 @@ void pPanel::display_tb_mark_posn( errblock& err )
 	{
 		posn = "Row "+ d2ds( top ) +" of "+ d2ds( rows ) ;
 	}
-	mvwaddstr( win, 2, WSCRMAXW - posn.length(), posn.c_str() ) ;
+	mvwaddstr( win, ab.size() > 0 ? 2 : 0, WSCRMAXW - posn.length(), posn.c_str() ) ;
 	wattroff( win, WHITE ) ;
 }
 
@@ -2927,7 +2942,7 @@ bool pPanel::display_pd( errblock& err, uint row, uint col, string& msg )
 
 	err.setRC( 0 ) ;
 
-	for ( int i = 0 ; i < ab.size() ; i++ )
+	for ( uint i = 0 ; i < ab.size() ; i++ )
 	{
 		if ( col >= ab[ i ].abc_col && col < ( ab[ i ].abc_col + ab[ i ].abc_desc.size() ) )
 		{
@@ -3114,12 +3129,13 @@ string pPanel::get_keylist( int entry )
 
 void pPanel::display_msg( errblock& err )
 {
-	int i     ;
 	int x_row ;
-	int w_row ;
-	int w_col ;
-	int w_depth ;
-	int w_width ;
+
+	uint i    ;
+	uint w_row ;
+	uint w_col ;
+	uint w_depth ;
+	uint w_width ;
 
 	vector<string> v ;
 
@@ -3200,15 +3216,16 @@ void pPanel::display_msg( errblock& err )
 }
 
 
-void pPanel::get_msgwin( string m, int& t_row, int& t_col, int& t_depth, int& t_width, vector<string>& v )
+void pPanel::get_msgwin( string m, uint& t_row, uint& t_col, uint& t_depth, uint& t_width, vector<string>& v )
 {
 	// Split message into separate lines if necessary and put into vector v.
 	// Calculate the message window position and size.
 
-	int w  ;
-	int mw ;
-	int h  ;
-	int p  ;
+	uint w  ;
+	uint mw ;
+	uint h  ;
+
+	size_t p ;
 
 	map<string, field *>::iterator it ;
 
@@ -3253,8 +3270,7 @@ void pPanel::get_msgwin( string m, int& t_row, int& t_col, int& t_depth, int& t_
 	else if ( it != fieldList.end() )
 	{
 		t_row = it->second->field_row + 1 ;
-		t_col = it->second->field_col - 2 ;
-		if ( t_col < 0 ) { t_col = 0 ; }
+		t_col = it->second->field_col > 2 ? it->second->field_col - 2 : 0 ;
 		if ( (t_row + t_depth) > WSCRMAXD )
 		{
 			t_row = WSCRMAXD - t_depth ;
@@ -3404,8 +3420,11 @@ bool pPanel::hide_msg_window( uint r, uint c )
 
 	int ht  ;
 	int len ;
-	int w_row ;
-	int w_col ;
+
+	bool reslt = false ;
+
+	uint w_row ;
+	uint w_col ;
 
 	if ( smwin && !panel_hidden( smpanel) )
 	{
@@ -3417,7 +3436,7 @@ bool pPanel::hide_msg_window( uint r, uint c )
 			     ( c >= w_col && c < (w_col + ht ) ) )
 			{
 				hide_panel( smpanel ) ;
-				return true ;
+				reslt = true ;
 			}
 		}
 	}
@@ -3431,11 +3450,11 @@ bool pPanel::hide_msg_window( uint r, uint c )
 			     ( c >= w_col && c < (w_col + ht ) ) )
 			{
 				hide_panel( lmpanel ) ;
-				return true ;
+				reslt = true ;
 			}
 		}
 	}
-	return false ;
+	return reslt ;
 }
 
 
@@ -3447,8 +3466,8 @@ string pPanel::sub_vars( string s )
 	//        .. reduces to .
 	//        && reduces to & with no variable substitution
 
-	int p1 ;
-	int p2 ;
+	size_t p1 ;
+	size_t p2 ;
 
 	string var ;
 	string val ;
@@ -3501,8 +3520,8 @@ string pPanel::sub_vars( string s, bool& dvars )
 	//        .. reduces to .
 	//        && reduces to & with no variable substitution
 
-	int p1 ;
-	int p2 ;
+	size_t p1 ;
+	size_t p2 ;
 
 	string var ;
 	string val ;

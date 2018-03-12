@@ -28,6 +28,7 @@
 /* COLOUR Settings                                                          */
 /* T0DO list                                                                */
 /* SHARED and PROFILE Variable display                                      */
+/* LIBDEF status                                                            */
 /* Display LIBDEF status and search paths                                   */
 /* Display loaded Modules (loaded Dynamic Classes)                          */
 /* Display Saved File List                                                  */
@@ -114,6 +115,7 @@ void PPSP01A::application()
 	else if ( PARM == "KLISTS"  ) { keylistTables()   ; }
 	else if ( PARM == "KLIST"   ) { keylistTable()    ; }
 	else if ( PARM == "CTLKEYS" ) { controlKeys()     ; }
+	else if ( PARM == "LIBDEFS" ) { libdefStatus()    ; }
 	else if ( w1   == "SETVAR"  )
 	{
 		vreplace( w2, word( PARM, 3 ) ) ;
@@ -129,7 +131,7 @@ void PPSP01A::application()
 void PPSP01A::show_log( const string& fileName )
 {
 	int fsize ;
-	int t     ;
+	uint t    ;
 
 	bool rebuildZAREA ;
 
@@ -147,7 +149,7 @@ void PPSP01A::show_log( const string& fileName )
 	firstLine = 0  ;
 	maxCol    = 1  ;
 
-	ZAHELP = "HPSP01A" ;
+	set_apphelp( "HPSP01A" ) ;
 
 	vget( "ZSCRMAXW ZSCRMAXD", SHARED ) ;
 	pquery( "PPSP01AL", "ZAREA", "ZAREAT", "ZAREAW", "ZAREAD" ) ;
@@ -415,9 +417,8 @@ bool PPSP01A::file_has_changed( const string& fileName, int& fsize )
 
 void PPSP01A::set_excludes()
 {
-	int i ;
 	int j ;
-	for ( i = 1 ; i < maxLines ; i++ )
+	for ( uint i = 1 ; i < maxLines ; i++ )
 	{
 		if ( task > 0 )
 		{
@@ -446,17 +447,14 @@ void PPSP01A::set_excludes()
 
 void PPSP01A::exclude_all()
 {
-	int i ;
-	for ( i = 1 ; i < (maxLines-1) ; i++ ) { excluded[ i ] = true ; }
+	for ( uint i = 1 ; i < (maxLines-1) ; i++ ) { excluded[ i ] = true ; }
 }
 
 
 void PPSP01A::find_lines( string fnd )
 {
-	int i ;
-
 	iupper( fnd ) ;
-	for ( i = 1 ; i < (maxLines-1) ; i++ )
+	for ( uint i = 1 ; i < (maxLines-1) ; i++ )
 	{
 		if ( upper( data[ i ] ).find( fnd ) == string::npos ) { excluded[ i ] = true ; }
 	}
@@ -480,7 +478,7 @@ void PPSP01A::fill_dynamic_area()
 		if ( excluded[ k ] ) continue ;
 		l++ ;
 		if ( l > ZAREAD ) break ;
-		if ( (k == 0) || (k == maxLines-1 ) )
+		if ( k == 0 || k == maxLines-1 )
 		{
 			ZAREA   = ZAREA + substr( data[ k ], 1, ZAREAW ) ;
 			ZSHADOW = ZSHADOW + s2 ;
@@ -1556,7 +1554,6 @@ void PPSP01A::poolVariables( const string& applid )
 			getpoolVariables( w2 ) ;
 			continue ;
 		}
-		if ( zcmd != "" ) { MSG = "PSYS018" ; continue ; }
 		while ( ZTDSELS > 0 )
 		{
 			if ( SEL == "D" )
@@ -1711,189 +1708,347 @@ void PPSP01A::getpoolVariables( const string& pattern )
 
 void PPSP01A::showPaths()
 {
+	// Display search paths for messages, panels, tables, REXX, profiles and load modules
+	// Include LIBDEF entries
+
 	int i ;
 
-	string PGM      ;
-	string LIBDEFM  ;
-	string LIBDEFP  ;
-	string LIBDEFT  ;
-	string PATHLST  ;
-	string PVAR     ;
-	string PATH     ;
-	string MESSAGE  ;
-	string DESCRIPT ;
-	string MSG      ;
+	string zmlib    ;
+	string zplib    ;
+	string ztlib    ;
+	string zorxpath ;
+	string zldpath  ;
+	string libs     ;
 
-	vdefine( "LIBDEFM LIBDEFP LIBDEFT", &LIBDEFM, &LIBDEFP, &LIBDEFT ) ;
+	string pgm      ;
+	string table    ;
+	string pvar     ;
+	string path     ;
+	string message  ;
+	string desc     ;
+	string sel      ;
+	string msg      ;
 
-	if ( libdef_muser ) { LIBDEFM = "LIBDEF active for user message search"     ; }
-	else                { LIBDEFM = "LIBDEF not active for user message search" ; }
-	if ( libdef_puser ) { LIBDEFP = "LIBDEF active for user panel search"       ; }
-	else                { LIBDEFP = "LIBDEF not active for user panel search"   ; }
-	if ( libdef_muser ) { LIBDEFT = "LIBDEF active for user table search"       ; }
-	else                { LIBDEFT = "LIBDEF not active for user table search"   ; }
+	vdefine( "LIBS", &libs ) ;
 
-	PATHLST = "PTHLST" + d2ds( taskid(), 2 ) ;
+	table = "PTHLST" + d2ds( taskid(), 2 ) ;
 
-	vdefine( "SEL PVAR PATH MESSAGE DESCRIPT", &SEL, &PVAR, &PATH, &MESSAGE, &DESCRIPT ) ;
+	vdefine( "SEL PVAR PATH MESSAGE DESC", &sel, &pvar, &path, &message, &desc ) ;
 
-	tbcreate( PATHLST, "", "(SEL,PVAR,PATH,MESSAGE,DESCRIPT)", NOWRITE ) ;
+	tbcreate( table, "", "(SEL,PVAR,PATH,MESSAGE,DESC)", NOWRITE ) ;
 
-	SEL      = ""        ;
-	PVAR     = "ZLDPATH" ;
-	DESCRIPT = "Path for application modules" ;
-	for ( i = 1 ; i <= getpaths( ZLDPATH ) ; i++)
+	vget( "ZMLIB ZPLIB ZTLIB ZORXPATH ZLDPATH", PROFILE ) ;
+	vcopy( "ZMLIB", zmlib, MOVE ) ;
+	vcopy( "ZPLIB", zplib, MOVE ) ;
+	vcopy( "ZTLIB", ztlib, MOVE ) ;
+	vcopy( "ZORXPATH", zorxpath, MOVE ) ;
+	vcopy( "LDPATH", zldpath, MOVE ) ;
+
+	sel = "" ;
+
+	libs = "" ;
+	qlibdef( "ZMUSR", "", "LIBS" ) ;
+	pvar = "ZMUSR" ;
+	desc = "LIBDEF user path for messages" ;
+	for ( i = 1 ; i <= getpaths( libs ) ; i++ )
 	{
-		PATH = getpath( ZLDPATH, i ) ;
-		MESSAGE = "" ;
-		if ( !is_directory( PATH ) ) MESSAGE = "Path not found" ;
-		tbadd( PATHLST ) ;
-		DESCRIPT = "" ;
-		PVAR     = "" ;
+		message = "" ;
+		path    = getpath( libs, i ) ;
+		if ( !is_directory( path ) ) { message = "Path not found" ; }
+		tbadd( table ) ;
+		desc = "" ;
+		pvar = "" ;
 	}
 
-   /*   if ( libdef_muser )
+	libs = "" ;
+	qlibdef( "ZMLIB", "", "LIBS" ) ;
+	pvar = "ZMLIB" ;
+	desc = "LIBDEF application path for messages" ;
+	for ( i = 1 ; i <= getpaths( libs ) ; i++ )
 	{
-		PVAR = "ZMUSER" ;
-		DESCRIPT = "LIBDEF search path for messages" ;
-		for ( i = 1 ; i <= getpaths( ZMUSER ) ; i++)
-		{
-			PATH = getpath( ZMUSER, i ) ;
-			MESSAGE = "" ;
-			if ( !is_directory( PATH ) ) MESSAGE = "Path not found" ;
-			tbadd( PATHLST ) ;
-			DESCRIPT = "" ;
-			PVAR     = "" ;
-		}
-	}   */
-
-	PVAR = "ZMLIB" ;
-	DESCRIPT = "Search for messages" ;
-	for ( i = 1 ; i <= getpaths( ZMLIB ) ; i++)
-	{
-		PATH = getpath( ZMLIB, i ) ;
-		MESSAGE = "" ;
-		if ( !is_directory( PATH ) ) MESSAGE = "Path not found" ;
-		tbadd( PATHLST ) ;
-		DESCRIPT = "" ;
-		PVAR     = "" ;
+		message = "" ;
+		path    = getpath( libs, i ) ;
+		if ( !is_directory( path ) ) { message = "Path not found" ; }
+		tbadd( table ) ;
+		desc = "" ;
+		pvar = "" ;
 	}
 
-  /*    if ( libdef_puser )
+	libs = "" ;
+	qlibdef( "ZPUSR", "", "LIBS" ) ;
+	sel  = "" ;
+	pvar = "ZPUSR" ;
+	desc = "LIBDEF user path for panels" ;
+	for ( i = 1 ; i <= getpaths( libs ) ; i++ )
 	{
-		PVAR = "ZPUSER" ;
-		DESCRIPT = "LIBDEF search path for panels" ;
-		for ( i = 1 ; i <= getpaths( ZPUSER ) ; i++)
-		{
-			PATH = getpath( ZPUSER, i ) ;
-			MESSAGE = "" ;
-			if ( !is_directory( PATH ) ) MESSAGE = "Path not found" ;
-			tbadd( PATHLST ) ;
-			DESCRIPT = "" ;
-			PVAR     = "" ;
-		}
-	}  */
-
-	PVAR = "ZPLIB" ;
-	DESCRIPT = "Search path for panels" ;
-	for ( i = 1 ; i <= getpaths( ZPLIB ) ; i++)
-	{
-		PATH = getpath( ZPLIB, i ) ;
-		MESSAGE = "" ;
-		if ( !is_directory( PATH ) ) MESSAGE = "Path not found" ;
-		tbadd( PATHLST ) ;
-		DESCRIPT = "" ;
-		PVAR     = "" ;
+		message = "" ;
+		path    = getpath( libs, i ) ;
+		if ( !is_directory( path ) ) { message = "Path not found" ; }
+		tbadd( table ) ;
+		desc = "" ;
+		pvar = "" ;
 	}
 
-  /*    if ( libdef_tuser )
+	libs = "" ;
+	qlibdef( "ZPLIB", "", "LIBS" ) ;
+	pvar = "ZPLIB" ;
+	desc = "LIBDEF application path for panels" ;
+	for ( i = 1 ; i <= getpaths( libs ) ; i++ )
 	{
-		PVAR = "ZTUSER" ;
-		DESCRIPT = "LIBDEF search path for tables" ;
-		for ( i = 1 ; i <= getpaths( ZTUSER ) ; i++)
-		{
-			PATH = getpath( ZTUSER, i ) ;
-			MESSAGE = "" ;
-			if ( !is_directory( PATH ) ) MESSAGE = "Path not found" ;
-			tbadd( PATHLST ) ;
-			DESCRIPT = "" ;
-			PVAR     = "" ;
-		}
-	}  */
-
-	PVAR     = "ZSPROF" ;
-	PATH     =  ZSPROF  ;
-	DESCRIPT = "Path for ISPS system profile" ;
-	tbadd( PATHLST )    ;
-
-	PVAR     = "ZSYSPATH" ;
-	PATH     =  ZSYSPATH  ;
-	DESCRIPT = "System Path" ;
-	tbadd( PATHLST )    ;
-
-	PVAR = "ZTLIB" ;
-	DESCRIPT = "Search path for tables" ;
-	for ( i = 1 ; i <= getpaths( ZTLIB ) ; i++)
-	{
-		PATH = getpath( ZTLIB, i ) ;
-		MESSAGE = "" ;
-		if ( !is_directory( PATH ) ) MESSAGE = "Path not found" ;
-		tbadd( PATHLST ) ;
-		DESCRIPT = "" ;
-		PVAR     = "" ;
+		message = "" ;
+		path    = getpath( libs, i ) ;
+		if ( !is_directory( path ) ) { message = "Path not found" ; }
+		tbadd( table ) ;
+		desc = "" ;
+		pvar = "" ;
 	}
 
-	PVAR     = "ZUPROF" ;
-	PATH     =  ZUPROF  ;
-	DESCRIPT = "User home profile path" ;
-	tbadd( PATHLST )    ;
-
-	PVAR     = "ZORXPATH" ;
-	DESCRIPT = "Object REXX EXEC search path" ;
-	for ( i = 1 ; i <= getpaths( ZORXPATH ) ; i++)
+	libs = "" ;
+	qlibdef( "ZTUSR", "", "LIBS" ) ;
+	sel  = "" ;
+	pvar = "ZTUSR" ;
+	desc = "LIBDEF user path for tables" ;
+	for ( i = 1 ; i <= getpaths( libs ) ; i++ )
 	{
-		PATH = getpath( ZORXPATH, i ) ;
-		MESSAGE = "" ;
-		if ( !is_directory( PATH ) ) { MESSAGE = "Path not found" ; }
-		tbadd( PATHLST ) ;
-		DESCRIPT = "" ;
-		PVAR     = "" ;
+		message = "" ;
+		path    = getpath( libs, i ) ;
+		if ( !is_directory( path ) ) { message = "Path not found" ; }
+		tbadd( table ) ;
+		desc = "" ;
+		pvar = "" ;
 	}
 
-	tbtop( PATHLST ) ;
-	MSG = "" ;
+	libs = "" ;
+	qlibdef( "ZTLIB", "", "LIBS" ) ;
+	pvar = "ZTLIB" ;
+	desc = "LIBDEF application path for tables" ;
+	for ( i = 1 ; i <= getpaths( libs ) ; i++ )
+	{
+		message = "" ;
+		path    = getpath( libs, i ) ;
+		if ( !is_directory( path ) ) { message = "Path not found" ; }
+		tbadd( table ) ;
+		desc = "" ;
+		pvar = "" ;
+	}
+
+	sel  = ""        ;
+	pvar = "ZLDPATH" ;
+	desc = "Path for application modules" ;
+	for ( i = 1 ; i <= getpaths( zldpath ) ; i++)
+	{
+		path = getpath( zldpath, i ) ;
+		message = "" ;
+		if ( !is_directory( path ) ) message = "Path not found" ;
+		tbadd( table ) ;
+		desc = "" ;
+		pvar = "" ;
+	}
+
+	pvar = "ZMLIB" ;
+	desc = "System search path for messages" ;
+	for ( i = 1 ; i <= getpaths( zmlib ) ; i++)
+	{
+		path = getpath( zmlib, i ) ;
+		message = "" ;
+		if ( !is_directory( path ) ) message = "Path not found" ;
+		tbadd( table ) ;
+		desc = "" ;
+		pvar = "" ;
+	}
+
+	pvar = "ZPLIB" ;
+	desc = "System search path for panels" ;
+	for ( i = 1 ; i <= getpaths( zplib ) ; i++)
+	{
+		path = getpath( zplib, i ) ;
+		message = "" ;
+		if ( !is_directory( path ) ) message = "Path not found" ;
+		tbadd( table ) ;
+		desc = "" ;
+		pvar = "" ;
+	}
+
+	pvar = "ZSPROF" ;
+	path =  ZSPROF  ;
+	desc = "System search path for ISPS profile" ;
+	tbadd( table )    ;
+
+	pvar = "ZSYSPATH" ;
+	path =  ZSYSPATH  ;
+	desc = "System Path" ;
+	tbadd( table )    ;
+
+	pvar = "ZTLIB" ;
+	desc = "System search path for tables" ;
+	for ( i = 1 ; i <= getpaths( ztlib ) ; i++)
+	{
+		path = getpath( ztlib, i ) ;
+		message = "" ;
+		if ( !is_directory( path ) ) message = "Path not found" ;
+		tbadd( table ) ;
+		desc = "" ;
+		pvar = "" ;
+	}
+
+	pvar = "ZUPROF" ;
+	path =  ZUPROF  ;
+	desc = "User home profile path" ;
+	tbadd( table )    ;
+
+	pvar = "ZORXPATH" ;
+	desc = "Object REXX EXEC search path" ;
+	for ( i = 1 ; i <= getpaths( zorxpath ) ; i++)
+	{
+		path = getpath( zorxpath, i ) ;
+		message = "" ;
+		if ( !is_directory( path ) ) { message = "Path not found" ; }
+		tbadd( table ) ;
+		desc = "" ;
+		pvar = "" ;
+	}
+
+	tbtop( table ) ;
+	msg = "" ;
 	ZTDTOP = 1 ;
 	while ( true )
 	{
-		tbtop( PATHLST ) ;
-		tbskip( PATHLST, ZTDTOP ) ;
-		if ( MSG == "" ) { zcmd  = "" ; }
-		tbdispl( PATHLST, "PPSP01AP", MSG, "ZCMD" ) ;
+		tbtop( table ) ;
+		tbskip( table, ZTDTOP ) ;
+		if ( msg == "" ) { zcmd  = "" ; }
+		tbdispl( table, "PPSP01AP", msg, "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
-		MSG = ""     ;
+		msg = ""     ;
+		if ( ZTDSELS == 0 && ZCURINX != 0 )
+		{
+			tbtop( table ) ;
+			tbskip( table, ZCURINX ) ;
+			ZTDSELS = 1   ;
+			sel     = "S" ;
+		}
 		while ( ZTDSELS > 0 )
 		{
-			if ( (SEL == "B") || (SEL == "L") || (SEL == "S"))
+			if ( sel == "B" || sel == "L" || sel == "S" )
 			{
-				if ( is_directory( PATH ) )
+				if ( is_directory( path ) )
 				{
-					MESSAGE = "*Listed*" ;
-					vcopy( "ZFLSTPGM", PGM, MOVE ) ;
-					select( "PGM(" + PGM + ") PARM(" + PATH + ")" ) ;
+					message = "*Listed*" ;
+					vcopy( "ZFLSTPGM", pgm, MOVE ) ;
+					select( "PGM(" + pgm + ") PARM(" + path + ")" ) ;
 				}
-				else MESSAGE = "*Error*" ;
+				else
+				{
+					message = "*Error*" ;
+				}
 			}
-			SEL = ""         ;
-			tbput( PATHLST ) ;
+			sel = ""       ;
+			tbput( table ) ;
 			if ( ZTDSELS > 1 )
 			{
-				tbdispl( PATHLST ) ;
+				tbdispl( table ) ;
 				if ( RC > 4 ) { break ; }
 			}
 			else { ZTDSELS = 0 ; }
 		}
 	}
-	tbclose( PATHLST ) ;
+	tbclose( table ) ;
+}
+
+
+void PPSP01A::libdefStatus()
+{
+	size_t p ;
+
+	bool stacked ;
+
+	string table ;
+	string msg   ;
+	string stk   ;
+	string libx  ;
+	string type  ;
+	string ident ;
+
+	vdefine( "LDSTK LDLIB LDTYP LDID", &stk, &libx, &type, &ident ) ;
+
+	table = "LIBDFS" + d2ds( taskid(), 2 ) ;
+
+	tbcreate( table, "", "(LDSTK,LDLIB,LDTYP,LDID)", NOWRITE ) ;
+
+	stack<string> libm = get_zmlib() ;
+	stack<string> libp = get_zplib() ;
+	stack<string> libt = get_ztlib() ;
+	stack<string> usrm = get_zmusr() ;
+	stack<string> usrp = get_zpusr() ;
+	stack<string> usrt = get_ztusr() ;
+
+	map<int, stack<string>*> libdefs ;
+	map<int, string> lib ;
+
+	libdefs[ 0 ] = &usrm ;
+	libdefs[ 1 ] = &libm ;
+	libdefs[ 2 ] = &usrp ;
+	libdefs[ 3 ] = &libp ;
+	libdefs[ 4 ] = &usrt ;
+	libdefs[ 5 ] = &libt ;
+
+	lib[ 0 ] = "ZMUSR" ;
+	lib[ 1 ] = "ZMLIB" ;
+	lib[ 2 ] = "ZPUSR" ;
+	lib[ 3 ] = "ZPLIB" ;
+	lib[ 4 ] = "ZTUSR" ;
+	lib[ 5 ] = "ZTLIB" ;
+
+	for ( int l = 0 ; l < 6 ; l++ )
+	{
+		stack<string>* libdef = libdefs[ l ] ;
+		if ( libdef->empty() )
+		{
+			if ( l % 2 == 1 )
+			{
+				stk   = "" ;
+				libx  = lib[ l ] ;
+				type  = "" ;
+				ident = "** LIBDEF not active **" ;
+				tbadd( table )   ;
+			}
+		}
+		else
+		{
+			stacked = false ;
+			while ( !libdef->empty() )
+			{
+				libx = lib[ l ] ;
+				type = "FILE"   ;
+				p    = getpaths( libdef->top() ) ;
+				for ( size_t i = 1 ; i <= p ; i++ )
+				{
+					ident = getpath( libdef->top(), i ) ;
+					stk   = (stacked && type != "" ) ? "S" : "" ;
+					tbadd( table ) ;
+					libx = "" ;
+					type = "" ;
+				}
+				stacked = true ;
+				libdef->pop() ;
+			}
+		}
+	}
+
+	ZTDTOP = 1 ;
+	addpop( "", 5, 5 ) ;
+
+	while ( true )
+	{
+		tbtop( table ) ;
+		tbskip( table, ZTDTOP ) ;
+		if ( msg == "" ) { zcmd  = "" ; }
+		tbdispl( table, "PPSP01LD", msg, "ZCMD" ) ;
+		if ( RC == 8 ) { break ; }
+	}
+
+	rempop() ;
+	tbend( table ) ;
+	vdelete( "LDSTK LDLIB LDTYP LDID" ) ;
 }
 
 
@@ -1981,8 +2136,7 @@ void PPSP01A::showCommandTables()
 
 void PPSP01A::showLoadedClasses()
 {
-	int j      ;
-	int ws     ;
+	uint j     ;
 
 	bool ref   ;
 
@@ -2031,7 +2185,6 @@ void PPSP01A::showLoadedClasses()
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 		if ( ZTDSELS == 0 && zcmd == "" ) { ref = true ; }
-		ws = words( zcmd )   ;
 		w1 = word( zcmd, 1 ) ;
 		w2 = word( zcmd, 2 ) ;
 		w3 = word( zcmd, 3 ) ;
@@ -2076,7 +2229,7 @@ void PPSP01A::showSavedFileList()
 	string ZFILN ;
 	string ZCURR ;
 	string ZDIR  ;
-	string PGM   ;
+	string pgm   ;
 	string MSG   ;
 
 	vdefine( "ZCURR ZFILE ZDIR", &ZCURR, &ZFILE, &ZDIR ) ;
@@ -2105,8 +2258,8 @@ void PPSP01A::showSavedFileList()
 			else { continue ; }
 			if ( is_directory( ZFILN ) )
 			{
-				vcopy( "ZFLSTPGM", PGM, MOVE ) ;
-				select( "PGM(" + PGM + ") PARM(" + ZFILN + ")" ) ;
+				vcopy( "ZFLSTPGM", pgm, MOVE ) ;
+				select( "PGM(" + pgm + ") PARM(" + ZFILN + ")" ) ;
 			}
 			else if ( is_regular_file( ZFILN ) )
 			{
@@ -2125,8 +2278,8 @@ void PPSP01A::showSavedFileList()
 			{
 				if ( is_directory( ZFILN ) )
 				{
-					vcopy( "ZFLSTPGM", PGM, MOVE ) ;
-					select( "PGM(" + PGM + ") PARM(" + ZFILN + ")" ) ;
+					vcopy( "ZFLSTPGM", pgm, MOVE ) ;
+					select( "PGM(" + pgm + ") PARM(" + ZFILN + ")" ) ;
 				}
 			}
 			else if ( SEL == "B" )
@@ -2218,7 +2371,7 @@ void PPSP01A::updateTasks( const string& table, const string& uf, const string& 
 	// Procedure can use 'top' or 'ps'
 	// top gives a better representation of CPU percentage but there is a delay
 
-	int p ;
+	size_t p ;
 
 	string inLine ;
 	string PID    ;

@@ -314,9 +314,9 @@ class errblock
 		string  val2   ;
 		string  val3   ;
 		string  udata  ;
-		int     taskid ;
-		int     RC     ;
-		int     maxRC  ;
+		uint    taskid ;
+		uint    RC     ;
+		uint    maxRC  ;
 		bool    debug  ;
 		bool    abend  ;
 		bool    sCall  ;

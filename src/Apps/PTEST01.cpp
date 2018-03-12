@@ -51,7 +51,6 @@ void PTEST01::application()
 {
 	llog( "I", "Application PTEST01 starting." << endl ) ;
 
-	char a ;
 	string abc ;
 
 //      verase( "ZPLIB ZMLIB ZTLIB ZHLIB" ) ;
@@ -91,7 +90,6 @@ void PTEST01::application()
 	else if ( zcmd == "EXCEPTION" )
 	{
 		debug1( "Generating an exception...." << endl ) ;
-		a = abc[ 4 ] ;
 	}
 
 	if      ( PARM == "0" ) opt0() ;
@@ -578,7 +576,6 @@ void PTEST01::opt3()
 	// opt3 - Test Table Display for keyed table
 
 	int i ;
-	int j ;
 	int TRC     ;
 	int YTDSELS ;
 	int CRP     ;
@@ -753,7 +750,6 @@ void PTEST01::opt4()
 	// opt4 - Test Table Display and other table functions for non-keyed table
 
 	int i ;
-	int j ;
 	int TRC     ;
 	int YTDSELS ;
 	int CRP     ;
@@ -940,7 +936,6 @@ void PTEST01::opt5()
 	string ZAREAT1  ;
 	int    ZAREAW1  ;
 	int    ZAREAD1  ;
-	int    ZSIZE1   ;
 	int    posn     ;
 
 	string ZAREA2   ;
@@ -971,7 +966,6 @@ void PTEST01::opt5()
 	usermd = string( 1, 0x03 ) ;
 	datamd = string( 1, 0x04 ) ;
 
-	ZSIZE1 = ZAREAW1 * ZAREAD1 ;
 	ZSIZE2 = ZAREAW2 * ZAREAD2 ;
 
 	//                 1234567890123456789012345678901234567890

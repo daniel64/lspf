@@ -46,15 +46,15 @@ class pPanel
 		bool   field_get_row_col( const string& fld, uint& row, uint& col ) ;
 		void   field_get_col( const string& fld, uint& col ) ;
 
-		void   cursor_to_field( int& RC, string ="", int =1 ) ;
+		void   cursor_to_field( int& RC, string ="", unsigned int =1 ) ;
 		void   cursor_to_cmdfield( int& RC, int =1 ) ;
 		void   cursor_to_next_field ( const string& name, uint& row, uint& col )  ;
 		void   cursor_eof( uint& row, uint& col )  ;
 		void   get_cursor( uint& row, uint& col ) { row   = p_row + win_row ; col   = p_col + win_col ; }
 		void   set_cursor( uint row, uint col )   { p_row = row - win_row   ; p_col = col - win_col   ; }
 
-		int    get_abline()      { if ( ab.size() > 0 ) return win_row ; else return -1 ; }
-		bool   pd_active()       { return pdActive ; }
+		int    on_abline( uint row ) { if ( ab.size() > 0 ) return (win_row == row) ; else return false ; }
+		bool   pd_active()           { return pdActive ; }
 		void   get_pd_home( uint& row, uint& col ) ;
 		bool   display_pd( errblock&, uint row, uint col, string& ) ;
 		void   display_pd( errblock& ) ;
@@ -126,7 +126,7 @@ class pPanel
 		bool   scrollOn    ;
 		string panelTitle  ;
 		string panelDescr  ;
-		int    abIndex     ;
+		uint   abIndex     ;
 		int    tb_row      ;
 		int    tb_lcol     ;
 		int    tb_lsz      ;
@@ -137,13 +137,13 @@ class pPanel
 		bool   forBrowse   ;
 		string nretfield   ;
 		int    opt_field   ;
-		int    dyn_depth   ;
-		int    dyn_width   ;
-		int    ZSCRNUM     ;
-		int    ZSCRMAXD    ;
-		int    ZSCRMAXW    ;
-		int    WSCRMAXD    ;
-		int    WSCRMAXW    ;
+		uint   dyn_depth   ;
+		uint   dyn_width   ;
+		uint   ZSCRNUM     ;
+		uint   ZSCRMAXD    ;
+		uint   ZSCRMAXW    ;
+		uint   WSCRMAXD    ;
+		uint   WSCRMAXW    ;
 		uint   p_row       ;
 		uint   p_col       ;
 		string msgloc      ;
@@ -154,10 +154,10 @@ class pPanel
 		bool   cursor_set  ;
 		bool   full_screen ;
 		bool   msg_and_cmd ;
-		int    win_width   ;
-		int    win_depth   ;
-		int    win_row     ;
-		int    win_col     ;
+		uint   win_width   ;
+		uint   win_depth   ;
+		uint   win_row     ;
+		uint   win_col     ;
 		WINDOW * win       ;
 		WINDOW * fwin      ;
 		WINDOW * pwin      ;
@@ -199,6 +199,7 @@ class pPanel
 
 		void   set_cursor_idx( int i ) { curidx = i ; }
 		void   set_cursor_home() ;
+		void   get_home( uint& row, uint& col ) ;
 
 		void   set_popup( int, int ) ;
 		void   remove_popup() ;
@@ -212,7 +213,7 @@ class pPanel
 
 		void   get_panel_info( int& RC, const string& a_name, const string& t = "", const string& w = "", const string& d = "", const string& r = "", const string& c = "" ) ;
 		void   attr( int& RC, const string& field, const string& attrs ) ;
-		void   get_home( uint& row, uint& col ) ;
+
 
 		void   tb_set_csrrow( int i )   { tb_csrrow  = i    ; }
 		int    tb_get_csrrow()          { return tb_csrrow  ; }
@@ -294,7 +295,7 @@ class pPanel
 
 		bool   msg_issued_with_cmd()    { return msg_and_cmd ; }
 
-		void   get_msgwin( string, int&, int&, int&, int&, vector<string>& ) ;
+		void   get_msgwin( string, uint&, uint&, uint&, uint&, vector<string>& ) ;
 		void   panel_cleanup( PANEL * ) ;
 
 		void   update_keylist_vars( errblock& ) ;

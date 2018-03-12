@@ -37,8 +37,8 @@ class PPSP01A : public pApplication
 		void find_lines( string );
 
 		int firstLine ;
-		int maxLines  ;
 		int startCol  ;
+		uint maxLines ;
 
 		void lock()   { mtx.lock()   ; }
 		void unlock() { mtx.unlock() ; }
@@ -54,7 +54,7 @@ class PPSP01A : public pApplication
 		int    ZAREAW  ;
 		int    ZAREAD  ;
 		string ZSHADOW ;
-		int    maxCol  ;
+		uint   maxCol  ;
 		int    task    ;
 		int    lprefix ;
 
@@ -112,5 +112,6 @@ class PPSP01A : public pApplication
 		void viewKeylist( const string&, const string& ) ;
 		void createKeyTable( string )  ;
 		void controlKeys()             ;
+		void libdefStatus()            ;
 
 } ;

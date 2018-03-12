@@ -36,7 +36,7 @@ class Table
 		}
 		~Table() ;
 	private:
-		int     ownerTask     ;
+		uint    ownerTask     ;
 		bool    tab_cmds      ;
 		string  tab_name      ;
 		string  tab_keys      ;
@@ -45,13 +45,13 @@ class Table
 		string  tab_path      ;
 		bool    firstMult     ;
 		bool    changed       ;
-		int     refCount      ;
-		int     maxURID       ;
-		int     num_keys      ;
-		int     num_flds      ;
-		int     num_all       ;
-		int     CRP           ;
-		int     CRPX          ;
+		uint    refCount      ;
+		uint    maxURID       ;
+		uint    num_keys      ;
+		uint    num_flds      ;
+		uint    num_all       ;
+		uint    CRP           ;
+		uint    CRPX          ;
 		string  sort_ir       ;
 		string  sa_namelst    ;
 		string  sa_cond_pairs ;
@@ -79,9 +79,9 @@ class Table
 				  fPOOL& funcPOOL,
 				  const string& clear_flds,
 				  bool scan,
-				  int  depth,
+				  uint depth,
 				  int  posn,
-				  int  csrrow,
+				  uint csrrow,
 				  int& idx,
 				  string& asURID ) ;
 

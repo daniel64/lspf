@@ -25,22 +25,24 @@ class pLScreen
 
 	static pLScreen * currScreen ;
 	static WINDOW   * OIA   ;
-	static int screensTotal ;
-	static int maxScreenId  ;
-	static int maxrow ;
-	static int maxcol ;
+	static unsigned int screensTotal ;
+	static unsigned int maxScreenId  ;
+	static unsigned int maxrow ;
+	static unsigned int maxcol ;
 
 	void  clear() ;
 
-	int   get_row()                    { return row ; }
-	int   get_col()                    { return col ; }
+	int   get_row()       { return row ; }
+	int   get_col()       { return col ; }
 
-	void  set_cursor( int a, int b )   { row = a ; col = b ; }
+	void  get_cursor( uint& a, uint& b ) { a = row ; b = col ; }
+	void  set_cursor( int a, int b )     { row = a ; col = b ; }
+	void  set_cursor( pApplication* ) ;
 
-	void  cursor_left()                { col == 0 ? col = maxcol-1 : --col ; }
-	void  cursor_right()               { col == maxcol-1 ? col = 0 : ++col ; }
-	void  cursor_up()                  { row == 0 ? row = maxrow-1 : --row ; }
-	void  cursor_down()                { row == maxrow-1 ? row = 0 : ++row ; }
+	void  cursor_left()   { col == 0 ? col = maxcol-1 : --col ; }
+	void  cursor_right()  { col == maxcol-1 ? col = 0 : ++col ; }
+	void  cursor_up()     { row == 0 ? row = maxrow-1 : --row ; }
+	void  cursor_down()   { row == maxrow-1 ? row = 0 : ++row ; }
 
 	void  application_add( pApplication * pApplication ) { pApplicationStack.push( pApplication ) ; }
 	void  application_remove_current()                   { pApplicationStack.pop() ; } ;
@@ -67,8 +69,8 @@ class pLScreen
 	int   screenId ;
 
 private:
-	int row ;
-	int col ;
+	unsigned int row ;
+	unsigned int col ;
 
 	bool Insert ;
 
@@ -77,6 +79,7 @@ private:
 	stack<pApplication *> pApplicationStack ;
 	stack<PANEL *> panelList ;
 } ;
+
 
 #undef  llog
 #undef  debug1

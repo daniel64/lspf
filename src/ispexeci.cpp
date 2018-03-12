@@ -30,6 +30,7 @@ void execiGetmsg( pApplication *, const string&, errblock& )   ;
 void execiLibdef( pApplication *, const string&, errblock& )   ;
 void execiLog( pApplication *, const string&, errblock& )      ;
 void execiPquery( pApplication *, const string&, errblock& )   ;
+void execiQlibdef( pApplication *, const string&, errblock& )  ;
 void execiRDisplay( pApplication *, const string&, errblock& ) ;
 void execiRempop( pApplication *, const string&, errblock& )   ;
 void execiSelect( pApplication *, const string&, errblock& )   ;
@@ -70,6 +71,7 @@ map<string, void(*)(pApplication *,const string&, errblock&)> execiServices = {
 		  { "LIBDEF",   execiLibdef   },
 		  { "LOG",      execiLog      },
 		  { "PQUERY",   execiPquery   },
+		  { "QLIBDEF",  execiQlibdef  },
 		  { "RDISPLAY", execiRDisplay },
 		  { "REMPOP",   execiRempop   },
 		  { "SELECT",   execiSelect   },
@@ -345,7 +347,6 @@ void execiLibdef( pApplication * thisAppl, const string& s, errblock& err )
 	iupper( str ) ;
 
 	procopt = word( str, 3 ) ;
-	if ( procopt == "" ) { procopt = "UNCOND" ; }
 
 	thisAppl->libdef( word( str, 1 ), word( str, 2 ), ld_files, procopt ) ;
 	return ;
@@ -412,6 +413,33 @@ void execiPquery( pApplication * thisAppl, const string& s, errblock& err )
 	}
 
 	thisAppl->pquery( pq_panel, pq_arean, pq_areat, pq_width, pq_depth, pq_row, pq_col ) ;
+	return ;
+}
+
+
+void execiQlibdef( pApplication * thisAppl, const string& s, errblock& err )
+{
+	string str     ;
+
+	string ql_lib  ;
+	string ql_type ;
+	string ql_id   ;
+
+	ql_lib  = upper( word( s, 2 ) ) ;
+	str     = upper( subword( s, 3 ) ) ;
+	ql_type = parseString( err, str, "TYPE()" ) ;
+	if ( err.error() ) { return ; }
+
+	ql_id = parseString( err, str, "ID()" ) ;
+	if ( err.error() ) { return ; }
+
+	if ( str != "" )
+	{
+		err.seterrid( "PSYE032H", str ) ;
+		return ;
+	}
+
+	thisAppl->qlibdef( ql_lib, ql_type, ql_id ) ;
 	return ;
 }
 

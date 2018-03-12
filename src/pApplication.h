@@ -49,25 +49,17 @@ class pApplication
 		bool   abnormalEndForced  ;
 		bool   abnormalTimeout    ;
 		bool   reloadCUATables    ;
-		bool   libdef_muser       ;
-		bool   libdef_puser       ;
-		bool   libdef_tuser       ;
 		int    shrdPool           ;
 		string rexxName           ;
 		selobj SELCT              ;
 		bool   SEL                ;
 		bool   NEWPOOL            ;
+		string NEWAPPL            ;
 		bool   PASSLIB            ;
 		bool   SUSPEND            ;
 		bool   setMSG             ;
 		string reffield           ;
 		string lineBuffer         ;
-
-		string ZMLIB              ;
-		string ZPLIB              ;
-		string ZTLIB              ;
-		string ZORXPATH           ;
-		string ZAHELP             ;
 
 		string ZCURFLD            ;
 		int    ZCURPOS            ;
@@ -102,12 +94,27 @@ class pApplication
 		string get_current_panelDescr() ;
 		string get_current_screenName() ;
 
+		void  set_zmlib( const stack<string>& libs ) { zmlib = libs ; }
+		void  set_zplib( const stack<string>& libs ) { zplib = libs ; }
+		void  set_ztlib( const stack<string>& libs ) { ztlib = libs ; }
+		void  set_zmusr( const stack<string>& libs ) { zpusr = libs ; }
+		void  set_zpusr( const stack<string>& libs ) { zpusr = libs ; }
+		void  set_ztusr( const stack<string>& libs ) { ztusr = libs ; }
+
+		const stack<string>& get_zmlib() { return zmlib ; }
+		const stack<string>& get_zplib() { return zplib ; }
+		const stack<string>& get_ztlib() { return ztlib ; }
+		const stack<string>& get_zmusr() { return zmusr ; }
+		const stack<string>& get_zpusr() { return zpusr ; }
+		const stack<string>& get_ztusr() { return ztusr ; }
+
 		string get_applid() ;
 
-		void   set_appname( const string& s )   { ZAPPNAME = s ; }
-		void   set_appdesc( const string& s )   { ZAPPDESC = s ; }
-		const string& get_appname()             { return ZAPPNAME ; }
-		const string& get_appdesc()             { return ZAPPDESC ; }
+		void   set_appname( const string& s )   { zappname = s ; }
+		void   set_appdesc( const string& s )   { zappdesc = s ; }
+		void   set_apphelp( const string& s )   { zahelp   = s ; }
+		const string& get_appname()             { return zappname ; }
+		const string& get_appdesc()             { return zappdesc ; }
 
 		void   control( const string&, const string&, const string& ="" ) ;
 		void   control( const string&, void (pApplication::*)() ) ;
@@ -118,6 +125,7 @@ class pApplication
 		void   select( const string& ) ;
 		void   select( const selobj& ) ;
 		void   attr( const string&, const string& ) ;
+		void   qlibdef( const string&, const string& ="" , const string& ="" ) ;
 
 		void   vcopy( const string&, string&, vcMODE=MOVE ) ;
 		void   vcopy( const string&, string * &, vcMODE=LOCATE ) ;
@@ -170,6 +178,7 @@ class pApplication
 		void   movepop() ;
 
 		void   set_cursor( int row, int col ) ;
+		void   set_cursor_home() ;
 
 		bool   inputInhibited() ;
 		bool   msgInhibited()   ;
@@ -258,24 +267,28 @@ class pApplication
 
 		string ppanelid ;
 
-		string ZAPPNAME ;
-		string ZAPPDESC ;
+		string zappname ;
+		string zappdesc ;
 
 		string MSGID     ;
 		string MSGID1    ;
 		slmsg  MSG       ;
 		slmsg  MSG1      ;
-		string ZSCROLLA  ;
-		int    ZSCROLLN  ;
-		string ZSCRNAME  ;
-		string ZERR1     ;
-		string ZERR2     ;
-		string ZERR3     ;
-		string ZERR4     ;
-		string ZERR5     ;
-		string ZERR6     ;
-		string ZERR7     ;
-		string ZERR8     ;
+		string zzmlib    ;
+		string zzplib    ;
+		string zztlib    ;
+		string zahelp    ;
+		string zscrolla  ;
+		int    zscrolln  ;
+		string zscrname  ;
+		string zerr1     ;
+		string zerr2     ;
+		string zerr3     ;
+		string zerr4     ;
+		string zerr5     ;
+		string zerr6     ;
+		string zerr7     ;
+		string zerr8     ;
 
 		void get_message( const string& )  ;
 		int  check_message_id( const string& ) ;
@@ -296,9 +309,13 @@ class pApplication
 		stack<int> stk_int    ;
 		stack<int> addpop_stk ;
 
-		stack<string> zmuser ;
-		stack<string> zpuser ;
-		stack<string> ztuser ;
+		stack<string> zmlib ;
+		stack<string> zplib ;
+		stack<string> ztlib ;
+
+		stack<string> zmusr ;
+		stack<string> zpusr ;
+		stack<string> ztusr ;
 
 		void load_keylist( pPanel * ) ;
 		void createPanel( const string& p_name ) ;
