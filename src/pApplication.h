@@ -53,10 +53,10 @@ class pApplication
 		string rexxName           ;
 		selobj SELCT              ;
 		bool   SEL                ;
-		bool   NEWPOOL            ;
-		string NEWAPPL            ;
-		bool   PASSLIB            ;
-		bool   SUSPEND            ;
+		bool   newpool            ;
+		string newappl            ;
+		bool   passlib            ;
+		bool   suspend            ;
 		bool   setMSG             ;
 		string reffield           ;
 		string lineBuffer         ;
@@ -91,13 +91,13 @@ class pApplication
 		string get_dTRAIL() ;
 		selobj get_select_cmd() { return SELCT ; }
 		string get_help_member( int, int ) ;
-		string get_current_panelDescr() ;
+		string get_current_panelDesc()  ;
 		string get_current_screenName() ;
 
 		void  set_zmlib( const stack<string>& libs ) { zmlib = libs ; }
 		void  set_zplib( const stack<string>& libs ) { zplib = libs ; }
 		void  set_ztlib( const stack<string>& libs ) { ztlib = libs ; }
-		void  set_zmusr( const stack<string>& libs ) { zpusr = libs ; }
+		void  set_zmusr( const stack<string>& libs ) { zmusr = libs ; }
 		void  set_zpusr( const stack<string>& libs ) { zpusr = libs ; }
 		void  set_ztusr( const stack<string>& libs ) { ztusr = libs ; }
 

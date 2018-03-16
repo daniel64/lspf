@@ -65,9 +65,11 @@ PSYE032I 'Dynamic area shadow variable ''&ZVAL1'' is not in the function pool'
 ''
 
 /* IF */
+PSYE032Z 'Boolean operator expected'
+'&ZVAL1 is not a valid boolean operator.  Expected AND, &, OR or |'
 
 PSYE033A 'MSGID not allowed'
-'MSGID is not allowed when VERIFY is used in an IF statement'
+'MSGID is not allowed when &ZVAL1 is used in an IF statement'
 
 PSYE033B 'Invalid IF statement'
 ''

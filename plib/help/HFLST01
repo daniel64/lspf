@@ -9,10 +9,10 @@ and pressing ENTER will show a file list if the entry is a directory name, or ed
 is a regular file.
 
 Place cursor on Path Name and execute primary command FIELDEXC for directory name completion.
-(Assign FIELDEXC to a PF key to make this easier).  This function is cursor sensitive, so only characters
-before the cursor will be taken into account (if cursor is on the first position, all the field is used).
-Partial directory names will be expanded to the first match and then the next directory entry in
-the list will be retrieved.
+(Tab key can also be used if not on the first field character, or assign FIELDEXC to a PF key to make this easier).
+This function is cursor sensitive, so only characters before the cursor will be taken into account
+(if cursor is on the first position, all the field is used). Partial directory names will be expanded to the
+first match and then the next directory entry in the list will be retrieved.
 
 A '?' on the first character of the directory name (and command FIELDEXC), will give a scrollable
 list to navigate the file system.

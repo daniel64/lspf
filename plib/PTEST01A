@@ -161,8 +161,7 @@ IF (&FLD8 EQ &Z)                    /*  NEF Change to hilight+NEF if error */
    .CURSOR = FLD8
    EXIT
 
-&L = LENGTH(FLD9)
-IF (&L NE 8)
+IF ( LENGTH(FLD9) NE 8)
    .ATTR(FLD9) = 'COLOUR(RED) INTENSE(HIGH)'
    .MSG    = PSYS019
    .CURSOR = FLD9

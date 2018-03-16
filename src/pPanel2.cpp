@@ -132,9 +132,9 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 					err.setsrc( oline ) ;
 					return ;
 				}
-				KEYLISTN = strip( ws.substr( 0, p1 ) ) ;
-				KEYAPPL  = strip( ws.substr( p1+1  ) ) ;
-				if ( !isvalidName( KEYLISTN ) || !isvalidName4( KEYAPPL ) )
+				keylistn = strip( ws.substr( 0, p1 ) ) ;
+				keyappl  = strip( ws.substr( p1+1  ) ) ;
+				if ( !isvalidName( keylistn ) || !isvalidName4( keyappl ) )
 				{
 					err.seterrid( "PSYE011C" ) ;
 					err.setsrc( oline ) ;
@@ -165,7 +165,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				t1 = strip( ws.substr( 0, p1 ) ) ;
 				t2 = strip( ws.substr( p1+1  ) ) ;
 				win_width = ds2d( t1 ) ;
-				if ( win_width > ZSCRMAXW - 1 )
+				if ( win_width > zscrmaxw - 1 )
 				{
 					err.seterrid( "PSYE011E" ) ;
 					err.setsrc( oline ) ;
@@ -173,7 +173,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				}
 				pwin = newwin( win_depth, win_width, 0, 0 ) ;
 				win_depth = ds2d( t2 ) ;
-				if ( win_depth > ZSCRMAXD - 2 )
+				if ( win_depth > zscrmaxd - 2 )
 				{
 					err.seterrid( "PSYE011F" ) ;
 					err.setsrc( oline ) ;
@@ -182,9 +182,9 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				pwin   = newwin( win_depth, win_width, 0, 0 ) ;
 				bwin   = newwin( win_depth+2, win_width+2, 0, 0 ) ;
 				bpanel = new_panel( bwin ) ;
-				set_panel_userptr( bpanel, new panel_data( ZSCRNUM ) ) ;
-				WSCRMAXW = win_width ;
-				WSCRMAXD = win_depth ;
+				set_panel_userptr( bpanel, new panel_data( zscrnum ) ) ;
+				wscrmaxw = win_width ;
+				wscrmaxd = win_depth ;
 			}
 			ws = parseString( err, pline, "CMD()" ) ;
 			if ( err.error() )
@@ -210,10 +210,10 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			}
 			if ( ws != "" )
 			{
-				Home = ws ;
-				if ( !isvalidName( Home ) )
+				home = ws ;
+				if ( !isvalidName( home ) )
 				{
-					err.seterrid( "PSYE022J", "HOME field", Home ) ;
+					err.seterrid( "PSYE022J", "HOME field", home ) ;
 					err.setsrc( oline ) ;
 					return ;
 				}
@@ -541,9 +541,9 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			panelTitle = strip( strip( subword( pline, 2 ) ), 'B', '"' ) ;
 			continue ;
 		}
-		else if ( w1 == "PANELDESCR" )
+		else if ( w1 == "PANELDESC" )
 		{
-			panelDescr = strip( strip( subword( pline, 2 ) ), 'B', '"' ) ;
+			panelDesc = strip( strip( subword( pline, 2 ) ), 'B', '"' ) ;
 			continue ;
 		}
 		else if ( w1 == "SCROLLON" )
@@ -554,7 +554,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		else if ( w1 == "LITERAL" )
 		{
 			literal * m_lit = new literal ;
-			m_lit->literal_init( err, WSCRMAXW, WSCRMAXD, opt_field, pline ) ;
+			m_lit->literal_init( err, wscrmaxw, wscrmaxd, opt_field, pline ) ;
 			if ( err.error() )
 			{
 				err.setsrc( oline ) ;
@@ -571,7 +571,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		else if ( w1 == "FIELD" )
 		{
 			field * fld = new field ;
-			fld->field_init( err, WSCRMAXW, WSCRMAXD, upper( pline ) ) ;
+			fld->field_init( err, wscrmaxw, wscrmaxd, upper( pline ) ) ;
 			if ( err.error() )
 			{
 				err.setsrc( oline ) ;
@@ -616,7 +616,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			}
 
 			dynArea * m_dynArea = new dynArea ;
-			m_dynArea->dynArea_init( err, WSCRMAXW, WSCRMAXD, upper( pline ) ) ;
+			m_dynArea->dynArea_init( err, wscrmaxw, wscrmaxd, upper( pline ) ) ;
 			if ( err.error() )
 			{
 				err.setsrc( oline ) ;
@@ -647,7 +647,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		{
 			debug2( "Creating box" << endl ) ;
 			Box * m_box = new Box ;
-			m_box->box_init( err, WSCRMAXW, WSCRMAXD, pline ) ;
+			m_box->box_init( err, wscrmaxw, wscrmaxd, pline ) ;
 			if ( err.error() )
 			{
 				err.setsrc( oline ) ;
@@ -665,8 +665,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			uint start_row = ds2d( word( pline, 2 ) ) - 1 ;
 
 			if ( isnumeric( ww ) )                      { tb_depth = ds2d( ww ) ; }
-			else if ( ww == "MAX" )                     { tb_depth = WSCRMAXD - start_row ; }
-			else if ( ww.compare( 0, 4, "MAX-" ) == 0 ) { tb_depth = WSCRMAXD - ds2d( substr( ww, 5 ) ) - start_row ; }
+			else if ( ww == "MAX" )                     { tb_depth = wscrmaxd - start_row ; }
+			else if ( ww.compare( 0, 4, "MAX-" ) == 0 ) { tb_depth = wscrmaxd - ds2d( substr( ww, 5 ) ) - start_row ; }
 			else
 			{
 				err.seterrid( "PSYE031B", ww ) ;
@@ -713,7 +713,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				err.setsrc( oline ) ;
 				return ;
 			}
-			if ( (start_row + tb_depth ) > WSCRMAXD ) { tb_depth = (WSCRMAXD - start_row) ; }
+			if ( (start_row + tb_depth ) > wscrmaxd ) { tb_depth = (wscrmaxd - start_row) ; }
 			p_funcPOOL->put( err, "ZTDDEPTH", tb_depth ) ;
 			continue ;
 		}
@@ -746,9 +746,9 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		fieldList[ scroll ]->field_caps = true ;
 	}
 
-	if ( Home != "" && fieldList.count( Home ) == 0 )
+	if ( home != "" && fieldList.count( home ) == 0 )
 	{
-		err.seterrid( "PSYE042L", Home ) ;
+		err.seterrid( "PSYE042L", home ) ;
 		return ;
 	}
 
@@ -763,9 +763,9 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		cmdfield = "ZCMD" ;
 	}
 
-	if ( Home == "" && cmdfield != "" )
+	if ( home == "" && cmdfield != "" )
 	{
-		Home = cmdfield ;
+		home = cmdfield ;
 	}
 
 	if ( scrollOn && cmdfield == "" )
@@ -780,7 +780,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		return ;
 	}
 
-	if ( REXX )
+	if ( Rexx )
 	{
 		for ( it1 = fieldList.begin() ; it1 != fieldList.end() ; it1++ )
 		{
@@ -788,9 +788,9 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		}
 	}
 
-	fwin  = newwin( ZSCRMAXD, ZSCRMAXW, 0, 0 ) ;
+	fwin  = newwin( zscrmaxd, zscrmaxw, 0, 0 ) ;
 	panel = new_panel( fwin ) ;
-	set_panel_userptr( panel, new panel_data( ZSCRNUM ) ) ;
+	set_panel_userptr( panel, new panel_data( zscrnum ) ) ;
 
 	panelid = p_name ;
 	return ;

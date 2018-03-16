@@ -1235,7 +1235,7 @@ void PEDIT01::fill_dynamic_area()
 
 void PEDIT01::protNonDisplayChars()
 {
-	// Protect non-display characters in ZAREA with by replacing with datain attribute and store original in XAREA.
+	// Protect non-display characters in ZAREA by replacing with datain attribute and store original in XAREA.
 	// lchar is the last line position to replace.  After this we may have nulls in ZAREA due to the NULLS command
 
 	int i ;
@@ -5637,10 +5637,10 @@ bool PEDIT01::setFindChangeExcl( char type )
 					pic += "[^[:digit:]]" ;
 					break ;
 				case '<':
-					pic += "[a-z]" ;
+					pic += "(?-i)[a-z](?i)" ;
 					break ;
 				case '>':
-					pic += "[A-Z]" ;
+					pic += "(?-i)[A-Z](?i)" ;
 					break ;
 				default:
 					pic += t.f_string[ i ] ;

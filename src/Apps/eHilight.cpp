@@ -49,7 +49,7 @@ void addHilight( logger* lg, hilight& h, const string& line, string& shadow )
 }
 
 
-bool addHilight( string lang )
+bool addHilight( const string& lang )
 {
 	return hiRoutine.count( lang ) > 0 ;
 }

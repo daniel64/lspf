@@ -51,10 +51,10 @@ pApplication::pApplication()
 	reloadCUATables        = false  ;
 	refreshlScreen         = false  ;
 	rexxName               = ""     ;
-	NEWPOOL                = false  ;
-	NEWAPPL                = ""     ;
-	PASSLIB                = false  ;
-	SUSPEND                = true   ;
+	newpool                = false  ;
+	newappl                = ""     ;
+	passlib                = false  ;
+	suspend                = true   ;
 	SEL                    = false  ;
 	selPanel               = false  ;
 	setMSG                 = false  ;
@@ -92,7 +92,7 @@ pApplication::pApplication()
 
 pApplication::~pApplication()
 {
-	map<string, pPanel *>::iterator it;
+	map<string, pPanel*>::iterator it;
 	for ( it = panelList.begin() ; it != panelList.end() ; it++ )
 	{
 		delete it->second ;
@@ -104,9 +104,9 @@ pApplication::~pApplication()
 void pApplication::startSelect( selobj& s )
 {
 	zappname = s.PGM     ;
-	PASSLIB  = s.PASSLIB ;
-	NEWAPPL  = s.NEWAPPL ;
-	SUSPEND  = s.SUSPEND ;
+	passlib  = s.PASSLIB ;
+	newappl  = s.NEWAPPL ;
+	suspend  = s.SUSPEND ;
 	PARM     = s.PARM    ;
 	selPanel = s.selPanel() ;
 }
@@ -165,7 +165,7 @@ void pApplication::createPanel( const string& p_name )
 	pPanel * p_panel    = new pPanel ;
 	p_panel->p_funcPOOL = &funcPOOL  ;
 	p_panel->LRScroll   = ControlPassLRScroll ;
-	p_panel->REXX       = ( rexxName != "" )  ;
+	p_panel->Rexx       = ( rexxName != "" )  ;
 	p_panel->selPanel( selPanel ) ;
 	p_panel->init( errBlock ) ;
 	if ( errBlock.error() ) { return ; }
@@ -212,9 +212,9 @@ void pApplication::get_cursor( uint& row, uint& col )
 }
 
 
-string pApplication::get_current_panelDescr()
+string pApplication::get_current_panelDesc()
 {
-	if ( currPanel ) { return currPanel->get_panelDescr() ; }
+	if ( currPanel ) { return currPanel->get_panelDesc() ; }
 	return "" ;
 }
 
@@ -3061,12 +3061,12 @@ void pApplication::load_keylist( pPanel * p  )
 
 	bool   klfail   ;
 
-	if ( p->KEYLISTN == "" || p_poolMGR->get( errBlock, "ZKLUSE", PROFILE ) != "Y" )
+	if ( p->keylistn == "" || p_poolMGR->get( errBlock, "ZKLUSE", PROFILE ) != "Y" )
 	{
 		return ;
 	}
 
-	tabName = p->KEYAPPL + "KEYP" ;
+	tabName = p->keyappl + "KEYP" ;
 	klfail  = ( p_poolMGR->get( errBlock, "ZKLFAIL", PROFILE ) == "Y" ) ;
 
 	vcopy( "ZUPROF", UPROF, MOVE ) ;
@@ -3085,7 +3085,7 @@ void pApplication::load_keylist( pPanel * p  )
 	}
 
 	tbvclear( tabName ) ;
-	vreplace( "KEYLISTN", p->KEYLISTN ) ;
+	vreplace( "KEYLISTN", p->keylistn ) ;
 	tbget( tabName ) ;
 	if ( RC > 0 )
 	{
@@ -3093,10 +3093,10 @@ void pApplication::load_keylist( pPanel * p  )
 		if ( !klfail )
 		{
 			RC = 0 ;
-			llog( "W", "Keylist '"+ p->KEYLISTN +"' not found in keylist table "+ tabName << endl ) ;
+			llog( "W", "Keylist '"+ p->keylistn +"' not found in keylist table "+ tabName << endl ) ;
 			return ;
 		}
-		errBlock.setcall( "KEYLIST error", "PSYE023F", p->KEYLISTN, tabName ) ;
+		errBlock.setcall( "KEYLIST error", "PSYE023F", p->keylistn, tabName ) ;
 		checkRCode( errBlock ) ;
 		return  ;
 	}
@@ -3125,7 +3125,7 @@ void pApplication::load_keylist( pPanel * p  )
 	vcopy( "KEY22DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(22), tabField ) ;
 	vcopy( "KEY23DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(23), tabField ) ;
 	vcopy( "KEY24DEF", tabField, MOVE ) ; p->put_keylist( KEY_F(24), tabField ) ;
-	vcopy( "KEYHELPN", p->KEYHELPN, MOVE ) ;
+	vcopy( "KEYHELPN", p->keyhelpn, MOVE ) ;
 
 	tbend( tabName ) ;
 }
@@ -3254,9 +3254,9 @@ string pApplication::get_help_member( int row, int col )
 
 	return "M("+ MSG.hlp+ ") " +
 	       "F("+ currPanel->get_field_help( row, col )+ ") " +
-	       "P("+ currPanel->ZPHELP +") " +
+	       "P("+ currPanel->zphelp +") " +
 	       "A("+ zahelp +") " +
-	       "K("+ currPanel->KEYHELPN +") "+
+	       "K("+ currPanel->keyhelpn +") "+
 	       "PATHS("+ get_search_path( s_ZPLIB ) +")" ;
 }
 
@@ -3629,8 +3629,6 @@ string pApplication::sub_vars( string s )
 
 void pApplication::info()
 {
-	int p ;
-
 	llog( "-", "*************************************************************************************************************" << endl ) ;
 	llog( "-", "Application Information for "<< zappname << endl ) ;
 	llog( "-", "                   Task ID: "<< taskId << endl ) ;
@@ -3655,40 +3653,13 @@ void pApplication::info()
 	{
 		llog( "-", "Application has disabled timeouts"<< endl ) ;
 	}
-	if ( PASSLIB )
+	if ( passlib )
 	{
 		llog( "-", "Application started with PASSLIB option"<< endl ) ;
 	}
-	if ( NEWPOOL )
+	if ( newpool )
 	{
 		llog( "-", "Application started with NEWPOOL option"<< endl ) ;
-	}
-	if ( !zmlib.empty() )
-	{
-		llog( "-", "LIBDEF active for user message search"<< endl ) ;
-		p = getpaths( zmlib.top() ) ;
-		for ( int j = 1 ; j <= p ; j++ )
-		{
-			llog( "-", "                Path. . . : " << getpath( zmlib.top(), j ) << endl ) ;
-		}
-	}
-	if ( !zplib.empty() )
-	{
-		llog( "-", "LIBDEF active for user panel search"<< endl ) ;
-		p = getpaths( zplib.top() ) ;
-		for ( int j = 1 ; j <= p ; j++ )
-		{
-			llog( "-", "                Path. . . : " << getpath( zplib.top(), j ) << endl ) ;
-		}
-	}
-	if ( !ztlib.empty() )
-	{
-		llog( "-", "LIBDEF active for user table search"<< endl ) ;
-		p = getpaths( ztlib.top() ) ;
-		for ( int j = 1 ; j <= p ; j++ )
-		{
-			llog( "-", "                Path. . . : " << getpath( ztlib.top(), j ) << endl ) ;
-		}
 	}
 	llog( "-", "*************************************************************************************************************" << endl ) ;
 }

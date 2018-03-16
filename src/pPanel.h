@@ -38,7 +38,7 @@ class pPanel
 		void   field_erase_eof( errblock&, uint row, uint col, bool& prot )   ;
 		void   field_tab_down( uint& row, uint& col ) ;
 		void   field_tab_next( uint& row, uint& col ) ;
-		string& field_getvalue( const string& field ) ;
+		const string& field_getvalue( const string& field ) ;
 		bool   field_valid( const string& field ) ;
 		fieldExc field_getexec( const string& )   ;
 		void   field_setvalue( errblock&, const string& field, const string& value ) ;
@@ -74,8 +74,8 @@ class pPanel
 		void   refresh_fields( errblock& ) ;
 		void   refresh_fields( errblock&, const string& ) ;
 
-		string& cmd_getvalue()                  ;
-		void    cmd_setvalue( errblock&, const string& ) ;
+		const string& cmd_getvalue() ;
+		void   cmd_setvalue( errblock&, const string& ) ;
 
 		bool    get_tbscan()                   { return tb_scan  ; }
 		string& get_tb_clear()                 { return tb_clear ; }
@@ -88,30 +88,30 @@ class pPanel
 		void   selPanel( bool x ) { selectPanel = x ; }
 
 		void   set_pfpressed( const string& s ) { pfkey = s    ; }
-		string get_pfpressed()                  { return pfkey ; }
+		const string& get_pfpressed()           { return pfkey ; }
 
 		string get_keylist( int ) ;
 
-		const string& get_zprim() { return ZPRIM ; }
+		const string& get_zprim() { return zprim ; }
 
 	private:
-		string Home        ;
+		string home        ;
 		string scroll      ;
 		string panelid     ;
-		bool   ALARM       ;
+		bool   alarm       ;
 		string curfld      ;
 		int    taskId      ;
 		int    curidx      ;
 		int    curpos      ;
 		slmsg  MSG         ;
 		string pfkey       ;
-		string KEYLISTN    ;
-		string KEYAPPL     ;
-		string KEYHELPN    ;
-		bool   REXX        ;
-		string ZPHELP      ;
-		string ZZCMD       ;
-		string ZPRIM       ;
+		string keylistn    ;
+		string keyappl     ;
+		string keyhelpn    ;
+		bool   Rexx        ;
+		string zphelp      ;
+		string zzcmd       ;
+		string zprim       ;
 		string tb_fields   ;
 		string tb_clear    ;
 		int    tb_depth    ;
@@ -125,7 +125,7 @@ class pPanel
 		bool   selectPanel ;
 		bool   scrollOn    ;
 		string panelTitle  ;
-		string panelDescr  ;
+		string panelDesc   ;
 		uint   abIndex     ;
 		int    tb_row      ;
 		int    tb_lcol     ;
@@ -139,11 +139,11 @@ class pPanel
 		int    opt_field   ;
 		uint   dyn_depth   ;
 		uint   dyn_width   ;
-		uint   ZSCRNUM     ;
-		uint   ZSCRMAXD    ;
-		uint   ZSCRMAXW    ;
-		uint   WSCRMAXD    ;
-		uint   WSCRMAXW    ;
+		uint   zscrnum     ;
+		uint   zscrmaxd    ;
+		uint   zscrmaxw    ;
+		uint   wscrmaxd    ;
+		uint   wscrmaxw    ;
 		uint   p_row       ;
 		uint   p_col       ;
 		string msgloc      ;
@@ -207,7 +207,7 @@ class pPanel
 		void   show_popup()   ;
 
 		void   put_keylist( int, const string& ) ;
-		string get_panelDescr()  { return panelDescr != "" ? sub_vars( panelDescr ) : sub_vars( panelTitle ) ; }
+		string get_panelDesc()  { return panelDesc != "" ? sub_vars( panelDesc ) : sub_vars( panelTitle ) ; }
 
 		void   update_field_values( errblock& ) ;
 
@@ -271,7 +271,8 @@ class pPanel
 		map<string, string> fieldHList     ;
 		map<int, string> Keylistl          ;
 
-		map<string, fieldExc> fieldExcTable ;
+		map<string, CV_CONTROL> control_vars ;
+		map<string, fieldExc> fieldExcTable  ;
 
 		map<string, vector<panstmnt*>> abc_initstmnts ;
 		map<string, vector<panstmnt*>> abc_procstmnts ;
@@ -292,6 +293,7 @@ class pPanel
 		void   process_panel_if_cond( errblock& err, int ln, IFSTMNT* ifstmnt ) ;
 		string process_panel_trunc( errblock& err, TRUNC* trunc ) ;
 		string process_panel_trans( errblock& err, int ln, TRANS* trans, const string& )  ;
+		void   process_panel_function( PN_FUNCTION, string& ) ;
 
 		bool   msg_issued_with_cmd()    { return msg_and_cmd ; }
 

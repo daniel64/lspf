@@ -32,13 +32,13 @@ pPanel::pPanel()
 	forEdit     = false  ;
 	forBrowse   = false  ;
 	nretfield   = ""     ;
-	KEYLISTN    = ""     ;
-	KEYAPPL     = ""     ;
-	KEYHELPN    = ""     ;
-	ALARM       = false  ;
-	ZPRIM       = ""     ;
+	keylistn    = ""     ;
+	keyappl     = ""     ;
+	keyhelpn    = ""     ;
+	alarm       = false  ;
+	zprim       = ""     ;
 	panelTitle  = ""     ;
-	panelDescr  = ""     ;
+	panelDesc   = ""     ;
 	abIndex     = 0      ;
 	opt_field   = 0      ;
 	tb_model    = false  ;
@@ -59,9 +59,9 @@ pPanel::pPanel()
 	win_width   = 0      ;
 	win_depth   = 0      ;
 	dyn_depth   = 0      ;
-	ZPHELP      = ""     ;
+	zphelp      = ""     ;
 	cmdfield    = ""     ;
-	Home        = ""     ;
+	home        = ""     ;
 	scroll      = "ZSCROLL" ;
 	fwin        = NULL   ;
 	pwin        = NULL   ;
@@ -69,6 +69,23 @@ pPanel::pPanel()
 	idwin       = NULL   ;
 	smwin       = NULL   ;
 	lmwin       = NULL   ;
+	control_vars = {
+	{ ".ALARM",   CV_ALARM   },
+	{ ".AUTOSEL", CV_AUTOSEL },
+	{ ".BROWSE",  CV_BROWSE  },
+	{ ".CSRPOS",  CV_CSRPOS  },
+	{ ".CSRROW",  CV_CSRROW  },
+	{ ".CURSOR",  CV_CURSOR  },
+	{ ".EDIT",    CV_EDIT    },
+	{ ".FALSE",   CV_FALSE   },
+	{ ".HELP",    CV_HELP    },
+	{ ".MSG",     CV_MSG     },
+	{ ".NRET",    CV_NRET    },
+	{ ".PFKEY",   CV_PFKEY   },
+	{ ".RESP",    CV_RESP    },
+	{ ".TRUE",    CV_TRUE    },
+	{ ".TRAIL",   CV_TRAIL   },
+	{ ".ZVARS",   CV_ZVARS   } } ;
 }
 
 
@@ -172,29 +189,29 @@ void pPanel::init( errblock& err )
 {
 	err.setRC( 0 ) ;
 
-	ZSCRMAXD = ds2d( p_poolMGR->get( err, "ZSCRMAXD", SHARED ) ) ;
+	zscrmaxd = ds2d( p_poolMGR->get( err, "ZSCRMAXD", SHARED ) ) ;
 	if ( err.getRC() > 0 )
 	{
 		err.seterrid( "PSYE015L", "GET", "ZSCRMAXD" ) ;
 		return ;
 	}
 
-	ZSCRMAXW = ds2d( p_poolMGR->get( err, "ZSCRMAXW", SHARED ) ) ;
+	zscrmaxw = ds2d( p_poolMGR->get( err, "ZSCRMAXW", SHARED ) ) ;
 	if ( err.getRC() > 0 )
 	{
 		err.seterrid( "PSYE015L", "GET", "ZSCRMAXW" ) ;
 		return ;
 	}
 
-	ZSCRNUM = ds2d(p_poolMGR->get( err, "ZSCRNUM", SHARED ) ) ;
+	zscrnum = ds2d(p_poolMGR->get( err, "ZSCRNUM", SHARED ) ) ;
 	if ( err.getRC() > 0 )
 	{
 		err.seterrid( "PSYE015L", "GET", "ZSCRNUM" ) ;
 		return ;
 	}
 
-	WSCRMAXD = ZSCRMAXD ;
-	WSCRMAXW = ZSCRMAXW ;
+	wscrmaxd = zscrmaxd ;
+	wscrmaxw = zscrmaxw ;
 	taskId   = err.taskid ;
 }
 
@@ -303,8 +320,8 @@ void pPanel::syncDialogueVar( errblock& err, const string& var )
 void pPanel::set_popup( int sp_row, int sp_col )
 {
 	win_addpop = true ;
-	win_row    = (sp_row + win_depth + 1) < ZSCRMAXD ? sp_row : (ZSCRMAXD - win_depth - 1) ;
-	win_col    = (sp_col + win_width + 1) < ZSCRMAXW ? sp_col : (ZSCRMAXW - win_width - 1) ;
+	win_row    = (sp_row + win_depth + 1) < zscrmaxd ? sp_row : (zscrmaxd - win_depth - 1) ;
+	win_col    = (sp_col + win_width + 1) < zscrmaxw ? sp_col : (zscrmaxw - win_width - 1) ;
 }
 
 
@@ -390,8 +407,8 @@ void pPanel::display_panel( errblock& err )
 		wattroff( bwin, cuaAttr[ AWF ] ) ;
 		top_panel( bpanel ) ;
 		top_panel( panel ) ;
-		WSCRMAXW = win_width ;
-		WSCRMAXD = win_depth ;
+		wscrmaxw = win_width ;
+		wscrmaxd = win_depth ;
 	}
 	else
 	{
@@ -406,15 +423,15 @@ void pPanel::display_panel( errblock& err )
 			replace_panel( panel, win ) ;
 		}
 		top_panel( panel )  ;
-		WSCRMAXW = ZSCRMAXW ;
-		WSCRMAXD = ZSCRMAXD ;
+		wscrmaxw = zscrmaxw ;
+		wscrmaxd = zscrmaxd ;
 	}
 
 	werase( win ) ;
 
 	panttl = sub_vars( panelTitle ) ;
 	wattrset( win, cuaAttr[ PT ] ) ;
-	mvwaddstr( win, ab.size() > 0 ? 2 : 0, ( WSCRMAXW - panttl.size() ) / 2, panttl.c_str() ) ;
+	mvwaddstr( win, ab.size() > 0 ? 2 : 0, ( wscrmaxw - panttl.size() ) / 2, panttl.c_str() ) ;
 	wattroff( win, cuaAttr[ PT ] ) ;
 
 	if ( tb_model )
@@ -434,7 +451,7 @@ void pPanel::display_panel( errblock& err )
 
 	msg_and_cmd = ( msgid != "" && cmd_getvalue() != "" ) ;
 
-	if ( ALARM ) { beep() ; }
+	if ( alarm ) { beep() ; }
 }
 
 
@@ -1030,12 +1047,7 @@ void pPanel::process_panel_if_cond( errblock& err, int ln, IFSTMNT* ifstmnt )
 
 	ifstmnt->if_true = ( ifstmnt->if_cond != IF_EQ ) ;
 
-	if ( ifstmnt->if_lhs.front() == '.' )
-	{
-		lhs_val = getControlVar( err, ifstmnt->if_lhs ) ;
-		if ( err.error() ) { return ; }
-	}
-	else if ( ifstmnt->if_verify )
+	if ( ifstmnt->if_verify )
 	{
 		fieldVal = getDialogueVar( err, ifstmnt->if_verify->ver_var ) ;
 		if ( err.error() ) { return ; }
@@ -1086,15 +1098,35 @@ void pPanel::process_panel_if_cond( errblock& err, int ln, IFSTMNT* ifstmnt )
 		}
 		return ;
 	}
-	else if ( ifstmnt->if_trunc )
+	if ( ifstmnt->if_func == PN_TRANS )
+	{
+		lhs_val = process_panel_trans( err, ln, ifstmnt->if_trans, ifstmnt->if_lhs ) ;
+		if ( err.error() ) { return ; }
+	}
+	else if ( ifstmnt->if_func == PN_TRUNC )
 	{
 		lhs_val = process_panel_trunc( err, ifstmnt->if_trunc ) ;
 		if ( err.error() ) { return ; }
 	}
 	else
 	{
-		lhs_val = sub_vars( ifstmnt->if_lhs ) ;
+		if ( ifstmnt->if_lhs.front() == '.' )
+		{
+			lhs_val = getControlVar( err, ifstmnt->if_lhs ) ;
+			if ( err.error() ) { return ; }
+		}
+		else if ( ifstmnt->if_isvar )
+		{
+			lhs_val = getDialogueVar( err, ifstmnt->if_lhs ) ;
+			if ( err.error() ) { return ; }
+		}
+		else
+		{
+			lhs_val = sub_vars( ifstmnt->if_lhs ) ;
+		}
+		process_panel_function( ifstmnt->if_func, lhs_val ) ;
 	}
+
 	for ( j = 0 ; j < ifstmnt->if_rhs.size() ; j++ )
 	{
 		l_break = false ;
@@ -1199,7 +1231,7 @@ string pPanel::process_panel_trans( errblock& err, int ln, TRANS* trans, const s
 	string fieldNam ;
 	string t ;
 
-	vector<pair<string,string>>::iterator itt ;
+	vector<pair<string,string>>::iterator it ;
 
 	if ( trans->trns_trunc )
 	{
@@ -1212,16 +1244,16 @@ string pPanel::process_panel_trans( errblock& err, int ln, TRANS* trans, const s
 	}
 	if ( err.error() ) { return "" ; }
 
-	for ( itt = trans->trns_list.begin() ; itt != trans->trns_list.end() ; itt++ )
+	for ( it = trans->trns_list.begin() ; it != trans->trns_list.end() ; it++ )
 	{
-		if ( t == sub_vars( itt->first ) )
+		if ( t == sub_vars( it->first ) )
 		{
-			t = sub_vars( itt->second ) ;
+			t = sub_vars( it->second ) ;
 			break ;
 		}
 	}
 
-	if ( itt == trans->trns_list.end() )
+	if ( it == trans->trns_list.end() )
 	{
 		if ( trans->trns_default == "" )
 		{
@@ -1481,12 +1513,12 @@ void pPanel::process_panel_assignment( errblock& err, int ln, ASSGN* assgn )
 	string t ;
 	string fieldNam ;
 
-	if ( assgn->as_function == AS_TRANS )
+	if ( assgn->as_func == PN_TRANS )
 	{
 		t = process_panel_trans( err, ln, assgn->as_trans, assgn->as_lhs ) ;
 		if ( err.error() ) { return ; }
 	}
-	else if ( assgn->as_function == AS_TRUNC )
+	else if ( assgn->as_func == PN_TRUNC )
 	{
 		t = process_panel_trunc( err, assgn->as_trunc ) ;
 		if ( err.error() ) { return ; }
@@ -1507,35 +1539,7 @@ void pPanel::process_panel_assignment( errblock& err, int ln, ASSGN* assgn )
 		{
 			t = sub_vars( assgn->as_rhs ) ;
 		}
-		switch ( assgn->as_function )
-		{
-		case AS_LENGTH:
-			t = d2ds( t.size() ) ;
-			break ;
-
-		case AS_REVERSE:
-			reverse( t.begin(), t.end() ) ;
-			break ;
-
-		case AS_UPPER:
-			iupper( t ) ;
-			break ;
-
-		case AS_WORDS:
-			t = d2ds( words( t ) ) ;
-			break ;
-
-		case AS_EXISTS:
-			t = exists( t ) ? "1" : "0" ;
-			break ;
-
-		case AS_FILE:
-			t = is_regular_file( t ) ? "1" : "0" ;
-			break ;
-
-		case AS_DIR:
-			t = is_directory( t ) ? "1" : "0" ;
-		}
+		process_panel_function( assgn->as_func, t ) ;
 	}
 
 	if ( assgn->as_lhs.front() == '.' )
@@ -1557,102 +1561,130 @@ void pPanel::process_panel_assignment( errblock& err, int ln, ASSGN* assgn )
 		if ( err.error() ) { return ; }
 		if ( assgn->as_lhs == "ZPRIM" )
 		{
-			ZPRIM = t ;
+			zprim = t ;
 			primaryMenu = ( t == "YES" ) ;
 		}
 	}
 }
 
 
+void pPanel::process_panel_function( PN_FUNCTION func, string& s )
+{
+	switch ( func )
+	{
+	case PN_LENGTH:
+		s = d2ds( s.size() ) ;
+		break ;
+
+	case PN_REVERSE:
+		reverse( s.begin(), s.end() ) ;
+		break ;
+
+	case PN_UPPER:
+		iupper( s ) ;
+		break ;
+
+	case PN_WORDS:
+		s = d2ds( words( s ) ) ;
+		break ;
+
+	case PN_EXISTS:
+		s = exists( s ) ? "1" : "0" ;
+		break ;
+
+	case PN_FILE:
+		s = is_regular_file( s ) ? "1" : "0" ;
+		break ;
+
+	case PN_DIR:
+		s = is_directory( s ) ? "1" : "0" ;
+	}
+}
+
+
 string pPanel::getControlVar( errblock& err, const string& svar )
 {
-	if ( svar == ".ALARM" )
+	auto it = control_vars.find( svar ) ;
+	if ( it == control_vars.end() ) { return svar ; }
+
+	switch ( it->second )
 	{
-		return ALARM ? "YES" : "NO" ;
-	}
-	else if ( svar == ".AUTOSEL" )
-	{
+	case CV_ALARM:
+		return alarm ? "YES" : "NO" ;
+
+	case CV_AUTOSEL:
 		return tb_autosel ? "YES" : "NO" ;
-	}
-	else if ( svar == ".BROWSE" )
-	{
+
+	case CV_BROWSE:
 		return forBrowse ? "YES" : "NO" ;
-	}
-	else if ( svar == ".CSRPOS" )
-	{
+
+	case CV_CSRPOS:
 		return d2ds( p_funcPOOL->get( err, 0, INTEGER, "ZCURPOS" ), 4 ) ;
-	}
-	else if ( svar == ".CSRROW" )
-	{
+
+	case CV_CSRROW:
 		return d2ds( p_funcPOOL->get( err, 0, INTEGER, "ZCURINX" ), 8 ) ;
-	}
-	else if ( svar == ".CURSOR" )
-	{
+
+	case CV_CURSOR:
 		return p_funcPOOL->get( err, 0, "ZCURFLD" ) ;
-	}
-	else if ( svar == ".EDIT" )
-	{
+
+	case CV_EDIT:
 		return forEdit ? "YES" : "NO" ;
-	}
-	else if ( svar == ".FALSE" )
-	{
+
+	case CV_FALSE:
 		return "0" ;
-	}
-	else if ( svar == ".HELP" )
-	{
-		return ZPHELP ;
-	}
-	else if ( svar == ".MSG" )
-	{
+
+	case CV_HELP:
+		return zphelp ;
+
+	case CV_MSG:
 		return msgid ;
-	}
-	else if ( svar == ".NRET" )
-	{
+
+	case CV_NRET:
 		return nretriev ? "ON" : "OFF" ;
-	}
-	else if ( svar == ".PFKEY" )
-	{
+
+	case CV_PFKEY:
 		return get_pfpressed() ;
-	}
-	else if ( svar == ".RESP" )
-	{
+
+	case CV_RESP:
 		return end_pressed ? "END" : "ENTER" ;
-	}
-	else if ( svar == ".TRUE" )
-	{
+
+	case CV_TRUE:
 		return "1" ;
-	}
-	else if ( svar == ".TRAIL" )
-	{
+
+	case CV_TRAIL:
 		return p_funcPOOL->get( err, 8, ".TRAIL", NOCHECK ) ;
-	}
-	else if ( svar == ".ZVARS" )
-	{
+
+	case CV_ZVARS:
 		return p_funcPOOL->get( err, 8, ".ZVARS", NOCHECK ) ;
 	}
+
 	return svar ;
 }
 
 
 void pPanel::setControlVar( errblock& err, int ln, const string& svar, const string& sval )
 {
-	if ( svar == ".ALARM" )
+	auto it = control_vars.find( svar ) ;
+	if ( it == control_vars.end() ) { return ; }
+
+	switch ( it->second )
 	{
+	case CV_ALARM:
 		if ( sval == "YES" )
 		{
-			ALARM = true ;
+			alarm = true ;
 		}
 		else if ( sval == "NO" || sval == "" )
 		{
-			ALARM = false ;
+			alarm = false ;
 		}
 		else
 		{
 			err.seterrid( "PSYE041G" ) ;
 		}
-	}
-	else if ( svar == ".AUTOSEL" )
-	{
+		break ;
+
+	case CV_AUTOSEL:
 		if ( sval == "YES" || sval == "" )
 		{
 			tb_autosel = true ;
@@ -1665,13 +1697,13 @@ void pPanel::setControlVar( errblock& err, int ln, const string& svar, const str
 		{
 			err.seterrid( "PSYE042O" ) ;
 		}
-	}
-	else if ( svar == ".BROWSE" )
-	{
+		break ;
+
+	case CV_BROWSE:
 		forBrowse = ( sval == "YES" ) ;
-	}
-	else if ( svar == ".CSRPOS" )
-	{
+		break ;
+
+	case CV_CSRPOS:
 		if ( !isnumeric( sval ) || ds2d( sval ) < 1 )
 		{
 			err.seterrid( "PSYE041J" ) ;
@@ -1680,9 +1712,9 @@ void pPanel::setControlVar( errblock& err, int ln, const string& svar, const str
 		curpos = ds2d( sval ) ;
 		p_funcPOOL->put( err, "ZCURPOS", curpos ) ;
 		if ( err.error() ) { return ; }
-	}
-	else if ( svar == ".CSRROW" )
-	{
+		break ;
+
+	case CV_CSRROW:
 		if ( !isnumeric( sval ) || ds2d( sval ) < 0 )
 		{
 			err.seterrid( "PSYE041H" ) ;
@@ -1691,9 +1723,9 @@ void pPanel::setControlVar( errblock& err, int ln, const string& svar, const str
 		tb_csrrow = ds2d( sval ) ;
 		p_funcPOOL->put( err, "ZCURINX", tb_csrrow ) ;
 		if ( err.error() ) { return ; }
-	}
-	else if ( svar == ".CURSOR" )
-	{
+		break ;
+
+	case CV_CURSOR:
 		if ( !cursor_set )
 		{
 			p_funcPOOL->put( err, "ZCURFLD", sval ) ;
@@ -1702,27 +1734,27 @@ void pPanel::setControlVar( errblock& err, int ln, const string& svar, const str
 			curpos = 1 ;
 			cursor_set = true ;
 		}
-	}
-	else if ( svar == ".EDIT" )
-	{
+		break ;
+
+	case CV_EDIT:
 		forEdit = ( sval == "YES" ) ;
-	}
-	else if ( svar == ".HELP" )
-	{
-		ZPHELP = sval ;
-	}
-	else if ( svar == ".NRET" )
-	{
+		break ;
+
+	case CV_HELP:
+		zphelp = sval ;
+		break ;
+
+	case CV_NRET:
 		if      ( sval == "ON" )        { nretriev  = true  ; }
 		else if ( isvalidName( sval ) ) { nretfield = sval  ; }
 		else                            { nretriev  = false ; }
-	}
-	else if ( svar == ".MSG" )
-	{
+		break ;
+
+	case CV_MSG:
 		set_message_cond( sval ) ;
-	}
-	else if ( svar == ".RESP" )
-	{
+		break ;
+
+	case CV_RESP:
 		if ( sval == "ENTER" )
 		{
 			p_poolMGR->put( err, "ZVERB", "", SHARED ) ;
@@ -1739,13 +1771,13 @@ void pPanel::setControlVar( errblock& err, int ln, const string& svar, const str
 		{
 			err.seterrid( "PSYE041I" ) ;
 		}
-	}
-	else if ( svar == ".TRAIL" )
-	{
+		break ;
+
+	case CV_TRAIL:
 		p_funcPOOL->put( err, ".TRAIL", sval, NOCHECK ) ;
-	}
-	else if ( svar == ".ZVARS" )
-	{
+		break ;
+
+	case CV_ZVARS:
 		if ( sval != "" && !isvalidName( sval ) )
 		{
 			err.seterrid( "PSYE013A", sval, ".ZVARS )ABCINIT statement" ) ;
@@ -1962,8 +1994,8 @@ void pPanel::create_tbfield( errblock& err, const string& pline )
 	else
 	{
 		if      ( isnumeric( w2 ) )                 { tcol = ds2d( w2 ) ; }
-		else if ( w2 == "MAX" )                     { tcol = WSCRMAXW   ; }
-		else if ( w2.compare( 0, 4, "MAX-" ) == 0 ) { tcol = WSCRMAXW - ds2d( substr( w2, 5 ) ) ; }
+		else if ( w2 == "MAX" )                     { tcol = wscrmaxw   ; }
+		else if ( w2.compare( 0, 4, "MAX-" ) == 0 ) { tcol = wscrmaxw - ds2d( substr( w2, 5 ) ) ; }
 		else
 		{
 			err.seterrid( "PSYE031B", w2 ) ;
@@ -1972,8 +2004,8 @@ void pPanel::create_tbfield( errblock& err, const string& pline )
 	}
 
 	if      ( isnumeric( w3 ) )                 { tlen = ds2d( w3 ) ; }
-	else if ( w3 == "MAX" )                     { tlen = WSCRMAXW - tcol + 1 ; }
-	else if ( w3.compare( 0, 4, "MAX-" ) == 0 ) { tlen = WSCRMAXW - tcol - ds2d( substr( w3, 5 ) ) + 1 ; }
+	else if ( w3 == "MAX" )                     { tlen = wscrmaxw - tcol + 1 ; }
+	else if ( w3.compare( 0, 4, "MAX-" ) == 0 ) { tlen = wscrmaxw - tcol - ds2d( substr( w3, 5 ) ) + 1 ; }
 	else
 	{
 		err.seterrid( "PSYE031B", w3 ) ;
@@ -2206,7 +2238,7 @@ void pPanel::display_ab()
 	}
 
 	wattrset( win, cuaAttr[ ABSL ] ) ;
-	mvwhline( win, 1, 0, ACS_HLINE, WSCRMAXW ) ;
+	mvwhline( win, 1, 0, ACS_HLINE, wscrmaxw ) ;
 	wattroff( win, cuaAttr[ ABSL ] ) ;
 }
 
@@ -2284,7 +2316,7 @@ void pPanel::get_home( uint& row, uint& col )
 
 	map<string, field *>::iterator it ;
 
-	it = fieldList.find( Home ) ;
+	it = fieldList.find( home ) ;
 	if ( it == fieldList.end() )
 	{
 		row = 0 ;
@@ -2306,10 +2338,10 @@ void pPanel::set_cursor_home()
 
 	map<string, field *>::iterator it ;
 
-	curfld = Home ;
+	curfld = home ;
 	curpos = 1    ;
 
-	it = fieldList.find( Home ) ;
+	it = fieldList.find( home ) ;
 	if ( it == fieldList.end() )
 	{
 		p_row = 0 ;
@@ -2323,7 +2355,7 @@ void pPanel::set_cursor_home()
 }
 
 
-string& pPanel::field_getvalue( const string& f_name )
+const string& pPanel::field_getvalue( const string& f_name )
 {
 	map<string, field *>::iterator it ;
 
@@ -2350,11 +2382,11 @@ void pPanel::field_setvalue( errblock& err, const string& f_name, const string& 
 }
 
 
-string& pPanel::cmd_getvalue()
+const string& pPanel::cmd_getvalue()
 {
 	if ( fieldList.find( cmdfield ) == fieldList.end() )
 	{
-		return ZZCMD ;
+		return zzcmd ;
 	}
 	return field_getvalue( cmdfield ) ;
 }
@@ -2364,7 +2396,7 @@ void pPanel::cmd_setvalue( errblock& err, const string& v )
 {
 	if ( fieldList.find( cmdfield ) == fieldList.end() )
 	{
-		ZZCMD = v ;
+		zzcmd = v ;
 	}
 	else
 	{
@@ -2664,8 +2696,8 @@ void pPanel::field_tab_down( uint& row, uint& col )
 	bool cursor_moved(false) ;
 	map<string, field *>::iterator it;
 
-	c_offset = trow * WSCRMAXW + tcol ;
-	m_offset = WSCRMAXD * WSCRMAXW    ;
+	c_offset = trow * wscrmaxw + tcol ;
+	m_offset = wscrmaxd * wscrmaxw    ;
 	o_row    = trow                   ;
 
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
@@ -2679,7 +2711,7 @@ void pPanel::field_tab_down( uint& row, uint& col )
 			d_offset = it->second->field_dyna_input_offset( 0 ) ;
 			if ( d_offset == -1 ) { continue ; }
 		}
-		t_offset = it->second->field_row * WSCRMAXW + it->second->field_col + d_offset ;
+		t_offset = it->second->field_row * wscrmaxw + it->second->field_col + d_offset ;
 		if ( (t_offset > c_offset) && (t_offset < m_offset) )
 		{
 			m_offset     = t_offset ;
@@ -2715,8 +2747,8 @@ void pPanel::field_tab_next( uint& row, uint& col )
 	bool cursor_moved(false) ;
 	map<string, field *>::iterator it;
 
-	c_offset = trow * WSCRMAXW + tcol ;
-	m_offset = WSCRMAXD * WSCRMAXW    ;
+	c_offset = trow * wscrmaxw + tcol ;
+	m_offset = wscrmaxd * wscrmaxw    ;
 	o_row    = trow                   ;
 	o_col    = tcol                   ;
 
@@ -2731,7 +2763,7 @@ void pPanel::field_tab_next( uint& row, uint& col )
 			else                                  { d_offset = it->second->field_dyna_input_offset( 0 )     ; }
 			if ( d_offset == -1 ) { continue ; }
 		}
-		t_offset = it->second->field_row * WSCRMAXW + it->second->field_col + d_offset ;
+		t_offset = it->second->field_row * wscrmaxw + it->second->field_col + d_offset ;
 		if ( (t_offset > c_offset) && (t_offset < m_offset) )
 		{
 			m_offset     = t_offset ;
@@ -2855,12 +2887,12 @@ void pPanel::display_tb_mark_posn( errblock& err )
 			if ( err.error() ) { return ; }
 			if ( err.RC8() )
 			{
-				mark = centre( " Bottom of Data ", WSCRMAXW, '*' ) ;
+				mark = centre( " Bottom of Data ", wscrmaxw, '*' ) ;
 			}
 		}
-		if ( mark.size() > WSCRMAXW )
+		if ( mark.size() > wscrmaxw )
 		{
-			mark.resize( WSCRMAXW ) ;
+			mark.resize( wscrmaxw ) ;
 		}
 		mvwaddstr( win, tb_row + size, 0, mark.c_str() ) ;
 		p_funcPOOL->put( err, "ZTDVROWS", size ) ;
@@ -2877,7 +2909,7 @@ void pPanel::display_tb_mark_posn( errblock& err )
 	{
 		posn = "Row "+ d2ds( top ) +" of "+ d2ds( rows ) ;
 	}
-	mvwaddstr( win, ab.size() > 0 ? 2 : 0, WSCRMAXW - posn.length(), posn.c_str() ) ;
+	mvwaddstr( win, ab.size() > 0 ? 2 : 0, wscrmaxw - posn.length(), posn.c_str() ) ;
 	wattroff( win, WHITE ) ;
 }
 
@@ -3084,7 +3116,7 @@ void pPanel::set_panel_msg( const slmsg& t, const string& m )
 		msgid = "" ;
 		return     ;
 	}
-	if ( p_poolMGR->get( err, ZSCRNUM, "ZSHMSGID" ) == "Y" ) { MSG.lmsg = msgid +" "+ MSG.lmsg ; }
+	if ( p_poolMGR->get( err, zscrnum, "ZSHMSGID" ) == "Y" ) { MSG.lmsg = msgid +" "+ MSG.lmsg ; }
 	if ( err.error() ) { return ; }
 	showLMSG = ( MSG.smsg == "" || MSG.lmsg == "" ) ;
 }
@@ -3122,7 +3154,7 @@ void pPanel::put_keylist( int entry, const string& keyv )
 
 string pPanel::get_keylist( int entry )
 {
-	if ( KEYLISTN == "" || Keylistl.count( entry ) == 0 ) { return "" ; }
+	if ( keylistn == "" || Keylistl.count( entry ) == 0 ) { return "" ; }
 	return Keylistl[ entry ] ;
 }
 
@@ -3144,7 +3176,7 @@ void pPanel::display_msg( errblock& err )
 	msgResp = MSG.resp ;
 	if ( msgid != "PSYS012L" )
 	{
-		p_poolMGR->put( err, ZSCRNUM, "ZMSGID", msgid ) ;
+		p_poolMGR->put( err, zscrnum, "ZMSGID", msgid ) ;
 		if ( err.error() ) { return ; }
 	}
 
@@ -3170,13 +3202,13 @@ void pPanel::display_msg( errblock& err )
 		else
 		{
 			x_row = ab.size() > 0 ? 2 : 0 ;
-			mvwaddstr( win, x_row, (WSCRMAXW - 25), "                         " ) ;
-			smwin = newwin( 1, MSG.smsg.size(), x_row+win_row, (WSCRMAXW - MSG.smsg.size() + win_col) ) ;
+			mvwaddstr( win, x_row, (wscrmaxw - 25), "                         " ) ;
+			smwin = newwin( 1, MSG.smsg.size(), x_row+win_row, (wscrmaxw - MSG.smsg.size() + win_col) ) ;
 			wattrset( smwin, cuaAttr[ MSG.type ] ) ;
 			mvwaddstr( smwin, 0, 0, MSG.smsg.c_str() ) ;
 		}
 		smpanel = new_panel( smwin )  ;
-		set_panel_userptr( smpanel, new panel_data( ZSCRNUM ) ) ;
+		set_panel_userptr( smpanel, new panel_data( zscrnum ) ) ;
 		wattroff( smwin, cuaAttr[ MSG.type ] ) ;
 		if ( MSG.alm )
 		{
@@ -3210,7 +3242,7 @@ void pPanel::display_msg( errblock& err )
 			mvwaddstr( lmwin, 0, 0, MSG.lmsg.c_str() ) ;
 		}
 		lmpanel = new_panel( lmwin )  ;
-		set_panel_userptr( lmpanel, new panel_data( ZSCRNUM ) ) ;
+		set_panel_userptr( lmpanel, new panel_data( zscrnum ) ) ;
 		wattroff( lmwin, cuaAttr[ MSG.type ] )  ;
 	}
 }
@@ -3231,13 +3263,13 @@ void pPanel::get_msgwin( string m, uint& t_row, uint& t_col, uint& t_depth, uint
 
 	it = fieldList.find( get_msgloc() ) ;
 
-	h = m.size() / WSCRMAXW + 1 ;
+	h = m.size() / wscrmaxw + 1 ;
 	w = m.size() / h            ;
-	if ( it != fieldList.end() && it->second->field_col > WSCRMAXW/2 )
+	if ( it != fieldList.end() && it->second->field_col > wscrmaxw/2 )
 	{
 		w = w / 3 ;
 	}
-	if ( w > WSCRMAXW - 6 ) { w = WSCRMAXW - 6 ; }
+	if ( w > wscrmaxw - 6 ) { w = wscrmaxw - 6 ; }
 
 	v.clear() ;
 	mw = 0    ;
@@ -3271,20 +3303,20 @@ void pPanel::get_msgwin( string m, uint& t_row, uint& t_col, uint& t_depth, uint
 	{
 		t_row = it->second->field_row + 1 ;
 		t_col = it->second->field_col > 2 ? it->second->field_col - 2 : 0 ;
-		if ( (t_row + t_depth) > WSCRMAXD )
+		if ( (t_row + t_depth) > wscrmaxd )
 		{
-			t_row = WSCRMAXD - t_depth ;
+			t_row = wscrmaxd - t_depth ;
 			t_col = t_col + it->second->field_length + 2 ;
 		}
-		if ( (t_col + t_width) > WSCRMAXW )
+		if ( (t_col + t_width) > wscrmaxw )
 		{
-			t_col = WSCRMAXW - t_width ;
+			t_col = wscrmaxw - t_width ;
 		}
 	}
 	else
 	{
-		t_row =  WSCRMAXD - t_depth    ;
-		t_col = (WSCRMAXW - t_width)/2 ;
+		t_row =  wscrmaxd - t_depth    ;
+		t_col = (wscrmaxw - t_width)/2 ;
 	}
 }
 
@@ -3304,12 +3336,12 @@ void pPanel::display_id( errblock& err )
 		idwin = NULL         ;
 	}
 
-	if ( p_poolMGR->get( err, ZSCRNUM, "ZSHUSRID" ) == "Y" )
+	if ( p_poolMGR->get( err, zscrnum, "ZSHUSRID" ) == "Y" )
 	{
 		panarea = p_poolMGR->get( err, "ZUSER", SHARED ) + " " ;
 	}
 
-	if ( p_poolMGR->get( err, ZSCRNUM, "ZSHPANID" ) == "Y" )
+	if ( p_poolMGR->get( err, zscrnum, "ZSHPANID" ) == "Y" )
 	{
 		panarea += panelid + " " ;
 	}
@@ -3327,7 +3359,7 @@ void pPanel::display_id( errblock& err )
 	{
 		idwin   = newwin( 1, panarea.size(), ab.size() > 0 ? win_row+2 : win_row, win_col+1 ) ;
 		idpanel = new_panel( idwin )  ;
-		set_panel_userptr( idpanel, new panel_data( ZSCRNUM ) ) ;
+		set_panel_userptr( idpanel, new panel_data( zscrnum ) ) ;
 		wattrset( idwin, cuaAttr[ PI ] ) ;
 		mvwaddstr( idwin, 0, 0, panarea.c_str() ) ;
 		wattroff( idwin, cuaAttr[ PI ] ) ;
@@ -3398,17 +3430,17 @@ bool pPanel::on_border_line( uint r, uint c )
 	// Return true if the cursor is on the window border (to start a window move)
 
 	if ( win != pwin ) { return false ; }
-	return ( ((r == win_row-1 || r == win_row+WSCRMAXD) &&
-		  (c >= win_col-1 && c <= win_col+WSCRMAXW))  ||
-		 ((c == win_col-1 || c == win_col+WSCRMAXW) &&
-		  (r >= win_row-1 && r <= win_row+WSCRMAXD)) ) ;
+	return ( ((r == win_row-1 || r == win_row+wscrmaxd) &&
+		  (c >= win_col-1 && c <= win_col+wscrmaxw))  ||
+		 ((c == win_col-1 || c == win_col+wscrmaxw) &&
+		  (r >= win_row-1 && r <= win_row+wscrmaxd)) ) ;
 }
 
 
 void pPanel::update_keylist_vars( errblock& err )
 {
-	p_poolMGR->put( err, "ZKLNAME", KEYLISTN, SHARED, SYSTEM ) ;
-	p_poolMGR->put( err, "ZKLAPPL", KEYAPPL,  SHARED, SYSTEM ) ;
+	p_poolMGR->put( err, "ZKLNAME", keylistn, SHARED, SYSTEM ) ;
+	p_poolMGR->put( err, "ZKLAPPL", keyappl,  SHARED, SYSTEM ) ;
 	p_poolMGR->put( err, "ZKLTYPE", "P",      SHARED, SYSTEM ) ;
 }
 

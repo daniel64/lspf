@@ -114,7 +114,8 @@ The ESC key does the following:
  a) Terminates .AUTO mode if active.
  b) Removes a pull-down if one is displayed
  c) Removes the Active Logical Sessions display.
- d) Displayes Active Logical Sessions display if none of the above.
+ d) Removes the Command Retrieve Panel (RETP) display.
+ e) Displayes Active Logical Sessions display if none of the above.
 
 Keyboard control keys are supported and can be customised in option 0.9 (command CTRL).
 These are global definitions stored in the system profile, not local profile definitions, unlike PFKEYS.

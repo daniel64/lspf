@@ -8,7 +8,7 @@ Panel for ...
 
 )BODY
 scrollOn
-PanelDescr "Browse &ZBRALT"
+PanelDesc "Browse &ZBRALT"
 
 literal  3   2    FP "BROWSE"
 field    3  10   MAX-30 VOI  NONE ZBRALT

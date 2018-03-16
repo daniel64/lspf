@@ -83,18 +83,39 @@ enum VER_TYPE
 } ;
 
 
-enum AS_FUNCTION
+enum PN_FUNCTION
 {
-	AS_DIR,
-	AS_EXISTS,
-	AS_FILE,
-	AS_LENGTH,
-	AS_TRANS,
-	AS_TRUNC,
-	AS_REVERSE,
-	AS_WORDS,
-	AS_UPPER,
-	AS_NONE
+	PN_DIR,
+	PN_EXISTS,
+	PN_FILE,
+	PN_LENGTH,
+	PN_TRANS,
+	PN_TRUNC,
+	PN_REVERSE,
+	PN_WORDS,
+	PN_UPPER,
+	PN_NONE
+} ;
+
+
+enum CV_CONTROL
+{
+	CV_ALARM,
+	CV_AUTOSEL,
+	CV_BROWSE,
+	CV_CSRPOS,
+	CV_CSRROW,
+	CV_CURSOR,
+	CV_EDIT,
+	CV_FALSE,
+	CV_HELP,
+	CV_MSG,
+	CV_NRET,
+	CV_PFKEY,
+	CV_RESP,
+	CV_TRUE,
+	CV_TRAIL,
+	CV_ZVARS
 } ;
 
 
@@ -220,7 +241,7 @@ class TRANS
 		{
 			delete trns_trunc ;
 		}
-		void parse( errblock&, parser& ) ;
+		void parse( errblock&, parser&, bool =true ) ;
 
 		TRUNC* trns_trunc   ;
 		string trns_field   ;
@@ -237,14 +258,14 @@ class ASSGN
 	public :
 		ASSGN()
 		{
-			as_lhs      = ""    ;
-			as_rhs      = ""    ;
-			as_isvar    = false ;
-			as_isattr   = false ;
-			as_istb     = false ;
-			as_trunc    = NULL  ;
-			as_trans    = NULL  ;
-			as_function = AS_NONE ;
+			as_lhs    = ""    ;
+			as_rhs    = ""    ;
+			as_isvar  = false ;
+			as_isattr = false ;
+			as_istb   = false ;
+			as_trunc  = NULL  ;
+			as_trans  = NULL  ;
+			as_func   = PN_NONE ;
 		}
 		~ASSGN()
 		{
@@ -258,10 +279,23 @@ class ASSGN
 		string as_rhs   ;
 		TRUNC* as_trunc ;
 		TRANS* as_trans ;
-		AS_FUNCTION as_function ;
+		PN_FUNCTION as_func ;
 		bool   as_isvar  ;
 		bool   as_isattr ;
 		bool   as_istb   ;
+
+	private:
+		map<string, PN_FUNCTION> assign_functions =
+		{ { "DIR",     PN_DIR     },
+		  { "EXISTS",  PN_EXISTS  },
+		  { "FILE",    PN_FILE    },
+		  { "LENGTH",  PN_LENGTH  },
+		  { "TRANS",   PN_TRANS   },
+		  { "TRUNC",   PN_TRUNC   },
+		  { "REVERSE", PN_REVERSE },
+		  { "WORDS",   PN_WORDS   },
+		  { "UPPER",   PN_UPPER   } } ;
+
 } ;
 
 
@@ -313,31 +347,73 @@ class IFSTMNT
 		{
 			if_lhs    = ""    ;
 			if_rhs.clear()    ;
+			if_isvar  = false ;
 			if_true   = false ;
 			if_AND    = false ;
 			if_else   = false ;
 			if_verify = NULL  ;
 			if_trunc  = NULL  ;
+			if_trans  = NULL  ;
+			if_func   = PN_NONE ;
 			if_next   = NULL  ;
 		}
 		~IFSTMNT()
 		{
 			delete if_verify ;
 			delete if_trunc  ;
+			delete if_trans  ;
 			delete if_next   ;
 		}
 		void parse( errblock&, parser& ) ;
-		void parse_cond( errblock&, parser& ) ;
 
-		string if_lhs      ;
+		string if_lhs       ;
 		vector<string> if_rhs ;
-		VERIFY*  if_verify ;
-		TRUNC*   if_trunc  ;
-		IFSTMNT* if_next   ;
-		bool     if_true   ;
-		bool     if_AND    ;
-		bool     if_else   ;
-		IF_COND  if_cond   ;
+		VERIFY*  if_verify  ;
+		TRUNC*   if_trunc   ;
+		TRANS*   if_trans   ;
+		IFSTMNT* if_next    ;
+		PN_FUNCTION if_func ;
+		bool     if_true    ;
+		bool     if_AND     ;
+		bool     if_else    ;
+		bool     if_isvar   ;
+		IF_COND  if_cond    ;
+
+	private:
+		void parse_cond( errblock&, parser& ) ;
+		void parse_cond_continue( errblock&, parser& ) ;
+
+		map<string, IF_COND> if_conds =
+		{ { "=",  IF_EQ },
+		  { "EQ", IF_EQ },
+		  { "!=", IF_NE },
+		  { "NE", IF_NE },
+		  { ">",  IF_GT },
+		  { "GT", IF_GT },
+		  { "<",  IF_LT },
+		  { "LT", IF_LT },
+		  { ">=", IF_GE },
+		  { "=>", IF_GE },
+		  { "GE", IF_GE },
+		  { "!<", IF_GE },
+		  { "NL", IF_GE },
+		  { "<=", IF_LE },
+		  { "=<", IF_LE },
+		  { "LE", IF_LE },
+		  { "!>", IF_LE },
+		  { "NG", IF_LE } } ;
+
+		map<string, PN_FUNCTION> if_functions =
+		{ { "DIR",     PN_DIR     },
+		  { "EXISTS",  PN_EXISTS  },
+		  { "FILE",    PN_FILE    },
+		  { "LENGTH",  PN_LENGTH  },
+		  { "TRANS",   PN_TRANS   },
+		  { "TRUNC",   PN_TRUNC   },
+		  { "REVERSE", PN_REVERSE },
+		  { "WORDS",   PN_WORDS   },
+		  { "UPPER",   PN_UPPER   } } ;
+
 } ;
 
 

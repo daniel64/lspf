@@ -31,6 +31,11 @@
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
+#define LSPF_VERSION "1.0.0"
+#define LSPF_VERSION_MAJ 1
+#define LSPF_VERSION_REV 0
+#define LSPF_VERSION_MOD 0
+
 typedef unsigned int uint ;
 
 using namespace std;

@@ -1738,11 +1738,12 @@ void PPSP01A::showPaths()
 	tbcreate( table, "", "(SEL,PVAR,PATH,MESSAGE,DESC)", NOWRITE ) ;
 
 	vget( "ZMLIB ZPLIB ZTLIB ZORXPATH ZLDPATH", PROFILE ) ;
+
 	vcopy( "ZMLIB", zmlib, MOVE ) ;
 	vcopy( "ZPLIB", zplib, MOVE ) ;
 	vcopy( "ZTLIB", ztlib, MOVE ) ;
 	vcopy( "ZORXPATH", zorxpath, MOVE ) ;
-	vcopy( "LDPATH", zldpath, MOVE ) ;
+	vcopy( "ZLDPATH", zldpath, MOVE ) ;
 
 	sel = "" ;
 
@@ -1928,7 +1929,7 @@ void PPSP01A::showPaths()
 		}
 		while ( ZTDSELS > 0 )
 		{
-			if ( sel == "B" || sel == "L" || sel == "S" )
+			if ( sel == "S" )
 			{
 				if ( is_directory( path ) )
 				{

@@ -13,8 +13,8 @@ Defaults for HOME() and CMD() on the BODY statement are ZCMD
 
 Format for fields, literals, proc, etc
 
-PANELTITLE Title of the panel that appears on screen.  Also appears in the task list if PANELDESCR is not defined.
-PANELDESCR Description of the panel.  Appears in the Task List (SWAP LIST) if defined.
+PANELTITLE Title of the panel that appears on screen.  Also appears in the task list if PANELDESC is not defined.
+PANELDESC  Description of the panel.  Appears in the Task List (SWAP LIST) if defined.
            At least one of these should be defined for a panel so a description appears in the Task List
            Variables are allowed.
 
@@ -38,7 +38,7 @@ ABCINIT / ABCPROC
 
 BOX     row column width depth colour title
 
-LITERAL, PANELTITLE and PANELDESCR can contain dialogue variables
+LITERAL, PANELTITLE and PANELDESC can contain dialogue variables
 
 PROC | INIT | REINIT :
 

@@ -33,7 +33,7 @@ PDC DESC('Edit Settings')
 
 
 )BODY SCROLL(ZSCROLL)
-PanelDescr "Edit &ZEDALT"
+PanelDesc "Edit &ZEDALT"
 scrollOn
 
 literal   3   2             FP  "EDIT"

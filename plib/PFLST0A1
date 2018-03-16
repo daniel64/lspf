@@ -20,7 +20,7 @@
 
 )BODY SCROLL(ZSCROLL)
 PanelTitle "File/Directory List"
-PanelDescr "List &ZPATH"
+PanelDesc  "List &ZPATH"
 
 literal  4   2           FP    "Command ===> "
 field    4  15   MAX-17  NEF PAD(USER) ZCMD
@@ -75,9 +75,7 @@ IF (&A EQ RES) &ZCMD = RESET
 ELSE
    IF (&A EQ REF) &ZCMD = REFRESH
 
-&APATH = EXISTS(ZPATH)
-
-IF (&APATH EQ .FALSE)
+IF ( EXISTS(ZPATH) EQ .FALSE)
    .MSG    = PSYS012A
    .CURSOR = ZPATH
    EXIT
