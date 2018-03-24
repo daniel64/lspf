@@ -921,7 +921,8 @@ poolMGR::poolMGR()
 	POOLs_profile[ "@DEFPROF" ] = new pVPOOL ;
 	POOLs_profile[ "@ROXPROF" ] = new pVPOOL ;
 
-	shrdPool = 0 ;
+	shrdPool = 0  ;
+	ppath    = "" ;
 }
 
 
@@ -1009,6 +1010,27 @@ void poolMGR::disconnect( int taskid )
 }
 
 
+void poolMGR::setProfilePath( errblock& err, const string& p )
+{
+	ppath = p ;
+	if ( ppath.back() != '/' ) { ppath += "/" ; }
+
+	if ( exists( ppath ) )
+	{
+		if ( !is_directory( ppath ) )
+		{
+			llog( "E", "Directory " << ppath << " is not a regular directory for profile load" <<  endl ) ;
+			err.seterror() ;
+		}
+	}
+	else
+	{
+		llog( "E", "Directory "<< ppath <<" does not exist for profile load" <<  endl ) ;
+		err.seterror() ;
+	}
+}
+
+
 void poolMGR::setPools( errblock& err )
 {
 	// Lock is held when this is called, so don't lock (most routines)
@@ -1047,8 +1069,7 @@ void poolMGR::setPOOLsReadOnly()
 
 
 void poolMGR::createProfilePool( errblock& err,
-				 const string& ppool,
-				 string path )
+				 const string& ppool )
 {
 	// RC = 0  Pool created and loaded from existing file if a PROFILE pool
 	// RC = 4  Pool created but not loaded as PROFILE file does not exist
@@ -1063,8 +1084,7 @@ void poolMGR::createProfilePool( errblock& err,
 
 	if ( POOLs_profile.count( ppool ) > 0 ) { return ; }
 
-	if ( path.back() != '/' ) { path += "/" ; }
-	fname = path + ppool + "PROF" ;
+	fname = ppath + ppool + "PROF" ;
 	if ( exists( fname ) )
 	{
 		if ( !is_regular_file( fname ) )
@@ -1075,37 +1095,24 @@ void poolMGR::createProfilePool( errblock& err,
 		else
 		{
 			pool       = new pVPOOL ;
-			pool->path = path ;
+			pool->path = ppath ;
 			POOLs_profile[ ppool ] = pool ;
 			llog( "I", "Pool " << ppool << " created okay.  Reading saved variables from profile dataset" << endl ) ;
-			POOLs_profile[ ppool ]->load( err, ppool, path ) ;
+			POOLs_profile[ ppool ]->load( err, ppool, ppath ) ;
 			if ( ppool == "ISPS" )
 			{
 				POOLs_profile[ "ISPS" ]->sysProfile() ;
 			}
 		}
 	}
-	else if ( exists( path ) )
-	{
-		if ( !is_directory( path ) )
-		{
-			llog( "E", "Directory " << path << " is not a regular directory for profile load" <<  endl ) ;
-			err.seterror() ;
-		}
-		else
-		{
-			llog( "I", "Profile "<< ppool+"PROF does not exist.  Creating default" <<endl ) ;
-			pool       = new pVPOOL ;
-			pool->path = path ;
-			POOLs_profile[ ppool ] = pool ;
-			llog( "I", "Profile Pool "<< ppool <<" created okay in path "<< path <<endl ) ;
-			err.setRC( 4 ) ;
-		}
-	}
 	else
 	{
-		llog( "E", "Directory "<< path <<" does not exist for profile load" <<  endl ) ;
-		err.seterror() ;
+		llog( "I", "Profile "<< ppool+"PROF does not exist.  Creating default" <<endl ) ;
+		pool       = new pVPOOL ;
+		pool->path = ppath ;
+		POOLs_profile[ ppool ] = pool ;
+		llog( "I", "Profile Pool "<< ppool <<" created okay in path "<< ppath <<endl ) ;
+		err.setRC( 4 ) ;
 	}
 }
 
@@ -1180,6 +1187,7 @@ void poolMGR::statistics()
 	llog( "-", "         Number of shared pools . . . . " << POOLs_shared.size() << endl ) ;
 	llog( "-", "         Number of profile pools. . . . " << POOLs_profile.size() << endl ) ;
 	llog( "-", "         Number of connected tasks. . . " << task_table.size() << endl ) ;
+	llog( "-", "         Profile directory. . . . . . . " << ppath << endl ) ;
 	llog( "-", endl ) ;
 	llog( "-", "         Shared pool details:" << endl ) ;
 

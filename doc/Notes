@@ -1,0 +1,40 @@
+Differences with ISPF:
+----------------------
+
+Loads! some good, and some bad but in no particular order...
+
+1)  No ISPLINK interface.  Use ISPEXEC or the pApplication methods that have the same parameters as ISPLINK.
+    Both set special variable RC to the return code of the service.
+2)  Panel body is defined differently with a simple list of FIELD, LITERAL, TBMODEL, TBFIELD etc, statements
+3)  Applications can be run in the background with SELECT .... BACK parameter.  ZTASKID contains the background taskid.
+4)  No ALTLIB function, but then this is really TSO not ISPF.
+    Maybe LIBDEF can be extended to provide something similar.
+5)  Keylists are kept in their own table, not in the PROFILE file as added table rows.  File name format is
+    applid+"KEYP" for private keys in ZUPROF.
+6)  No shared keylist keys.
+7)  Keylists override current PFKEYs only if there is a definition.  Otherwise the normal PFKEY will be in effect.
+    Real ISPF overrides all keys when a keylist is in use (which makes then almost useless)
+8)  No split line in split-screen mode.  Each logical screen gets the full screen.
+9)  Applications can be set to timeout.  No PA1 function, I'm afraid.
+10) If the application does an ADDPOP, it is ignored on a DISPLAY if there is no WINDOW() statement on the panel.
+    Real ISPF honours it and usually gives something a bit strange!
+11) Panels can have an INCLUDE directive to pull in common source.  Useful for pull-down definitions.
+12) SWAP can switch both primary and alt screens, including using the SCREEN NAME.
+13) Task list contains the panel description or panel title if no description set.  You can actually see
+    what files you are editing or browsing in the list instead of trying to guess which edit session you want.
+14) You can define fields that execute a program when the FIELDEXC command entered and cursor is on the field.
+    This is to provide a general way of providing field expansion.
+    If the tab key is pressed when the cursor is not on the first character of the field defined in this way, it acts
+    as FIELDEXC.  This way the tab key can be used to expand file names (or anything else depending on the
+    field execute program invoked)
+15) On returing from calling a program via a SELECT, special variables ZRC, ZRSN and ZRESULT are returned
+    ZRC and ZRSN are interger values.
+    ZRESULT is a string.
+16) Each application runs in its own thread so if an application fails and the exception is trapped, only that
+    thread is terminated, not the whole logical screen.  In a select stack, this is propagated back to the calling
+    program, unless the select is within a CONTROL ERRORS RETURN statement, in which case on return,
+    ZRC     = 20
+    ZRSN    = 999
+    ZRESULT = "Abended"
+17) lspf tables are open per thread, not per logical screen.
+

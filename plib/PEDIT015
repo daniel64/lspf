@@ -29,11 +29,14 @@ literal 15    5       FP     "Last Line. . .:"
 field   15   21  6    NEF     PAD(USER) LINE2
 
 literal 18 2  CH "Instructions"
-literal 19 2  NT "Enter file name and press"
-literal 19 28 ET "ENTER"
-literal 19 34 NT "to copy file or "
-literal 19 50 ET "END"
-literal 19 54 NT "to cancel copy"
+literal 20 2  NT "Enter"
+literal 20 8  ET "="
+literal 20 10 NT "in file name to copy to retrieve full path name of current file"
+literal 21 2  NT "Enter file name and press"
+literal 21 28 ET "ENTER"
+literal 21 34 NT "to copy file or "
+literal 21 50 ET "END"
+literal 21 54 NT "to cancel copy"
 
 )INIT
 
@@ -57,6 +60,14 @@ ELSE
       .CURSOR = ZCMD5
       EXIT
 
+
+IF (TRUNC(&ZFILE2,1) EQ '=' )
+   &ZFILE2 = '&ZFILE '
+   .CURSOR = ZFILE2
+   .CSRPOS = length(ZFILE2)
+   .MSG    = PSYS011V
+   REFRESH(ZFILE2)
+   EXIT
 
 VER (&ZFILE2,NB)
 VER (&LINE1,NUM)

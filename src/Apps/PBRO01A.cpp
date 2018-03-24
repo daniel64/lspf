@@ -172,8 +172,12 @@ void PBRO01A::application()
 
 	zasize = ZAREAW*ZAREAD ;
 
+	zbralt = "" ;
 	vget( "ZBRALT", SHARED ) ;
-	vcopy( "ZBRALT", zbralt, MOVE ) ;
+	if ( RC == 0 )
+	{
+		vcopy( "ZBRALT", zbralt, MOVE ) ;
+	}
 	if ( zbralt == "" ) { vreplace( "ZBRALT", zdsn ) ; }
 
 	while ( true )
@@ -423,9 +427,9 @@ void PBRO01A::application()
 			else { MSG = "PBRO011A" ; continue ; }
 		}
 		else  { MSG = "PBRO011" ; continue ; }
-
 		if ( topLine < 0 ) topLine = 0 ;
 	}
+	verase( "ZBRALT", SHARED ) ;
 	vput( "ZSCROLL", PROFILE ) ;
 	Global_bfind_parms = find_parms ;
 	return ;

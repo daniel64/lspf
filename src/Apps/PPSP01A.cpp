@@ -516,7 +516,7 @@ void PPSP01A::dsList( string parms )
 	bool reflist = false ;
 
 	string PGM ;
-	string UPROF    ;
+	string uprof    ;
 	string RFLTABLE ;
 
 	string fname ;
@@ -533,9 +533,9 @@ void PPSP01A::dsList( string parms )
 	}
 	else
 	{
-		vcopy( "ZUPROF", UPROF, MOVE ) ;
+		vcopy( "ZUPROF", uprof, MOVE ) ;
 		vcopy( "ZRFLTBL", RFLTABLE, MOVE ) ;
-		tbopen( RFLTABLE, NOWRITE, UPROF ) ;
+		tbopen( RFLTABLE, NOWRITE, uprof ) ;
 		if ( RC == 0 )
 		{
 			vreplace( "ZCURTB", upper( parms ) ) ;
@@ -1870,13 +1870,9 @@ void PPSP01A::showPaths()
 		pvar = "" ;
 	}
 
-	pvar = "ZSPROF" ;
-	path =  ZSPROF  ;
-	desc = "System search path for ISPS profile" ;
-	tbadd( table )    ;
-
 	pvar = "ZSYSPATH" ;
-	path =  ZSYSPATH  ;
+	vget( "ZSYSPATH", PROFILE ) ;
+	vcopy( "ZSYSPATH", path, MOVE ) ;
 	desc = "System Path" ;
 	tbadd( table )    ;
 
@@ -1893,7 +1889,8 @@ void PPSP01A::showPaths()
 	}
 
 	pvar = "ZUPROF" ;
-	path =  ZUPROF  ;
+	vget( "ZUPROF", PROFILE ) ;
+	vcopy( "ZUPROF", path, MOVE ) ;
 	desc = "User home profile path" ;
 	tbadd( table )    ;
 
@@ -2531,7 +2528,7 @@ void PPSP01A::keylistTables()
 	string TBK1TYP ;
 	string TBK1MSG ;
 	string KEYP    ;
-	string UPROF   ;
+	string uprof   ;
 	string NEWTAB  ;
 
 	string AKTAB   ;
@@ -2550,11 +2547,11 @@ void PPSP01A::keylistTables()
 
 	tbsort( KEYP, "(TBK1TAB,C,A)" ) ;
 
-	vcopy( "ZUPROF", UPROF, MOVE ) ;
+	vcopy( "ZUPROF", uprof, MOVE ) ;
 	vcopy( "ZKLNAME", AKLIST, MOVE ) ;
 	vcopy( "ZKLAPPL", AKTAB, MOVE ) ;
 
-	copy( directory_iterator( UPROF ), directory_iterator(), back_inserter( v ) ) ;
+	copy( directory_iterator( uprof ), directory_iterator(), back_inserter( v ) ) ;
 
 	for ( it = v.begin() ; it != v.end() ; ++it )
 	{
@@ -2606,7 +2603,7 @@ void PPSP01A::keylistTables()
 				rempop() ;
 				if ( RC1 == 0 )
 				{
-					remove( UPROF + "/" + TBK1TAB ) ;
+					remove( uprof + "/" + TBK1TAB ) ;
 					tbdelete( KEYP ) ;
 					if ( RC > 0 ) { abend() ; }
 				}
@@ -2668,7 +2665,7 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 	string TBK2MSG  ;
 	string KEYLISTN ;
 	string KLST     ;
-	string UPROF    ;
+	string uprof    ;
 	string NEWKEY   ;
 
 	bool   actTab   ;
@@ -2697,9 +2694,9 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 
 	vdefine( "TBK2SEL TBK2LST TBK2MSG KEYLISTN NEWKEY", &TBK2SEL, &TBK2LST, &TBK2MSG, &KEYLISTN, &NEWKEY ) ;
 	KLST = "KLT2" + d2ds( taskid(), 4 ) ;
-	vcopy( "ZUPROF", UPROF, MOVE ) ;
+	vcopy( "ZUPROF", uprof, MOVE ) ;
 
-	tbopen( tab, NOWRITE, UPROF ) ;
+	tbopen( tab, NOWRITE, uprof ) ;
 	if ( RC > 0 )
 	{
 		llog( "E", "Error opening Keylist table "<< tab << ".  RC="<< RC << endl ) ;
@@ -2718,7 +2715,7 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 	if ( RC > 0 )
 	{
 		tbend( tab ) ;
-		tbopen( tab, WRITE, UPROF ) ;
+		tbopen( tab, WRITE, uprof ) ;
 		if ( RC > 0 ) { abend() ; }
 		tbsort( tab, "(KEYLISTN,C,A)" ) ;
 		KEYLISTN = "ISPDEF" ;
@@ -2732,7 +2729,7 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 		tbadd( tab, "", "ORDER" ) ;
 		if ( RC > 0 ) { abend() ; }
 		tbclose( tab ) ;
-		tbopen( tab, NOWRITE, UPROF ) ;
+		tbopen( tab, NOWRITE, uprof ) ;
 		if ( RC > 0 ) { abend() ; }
 	}
 
@@ -2773,7 +2770,7 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 				rempop() ;
 				if ( RC1 == 0 )
 				{
-					tbopen( tab, WRITE, UPROF ) ;
+					tbopen( tab, WRITE, uprof ) ;
 					if ( RC > 0 ) { abend() ; }
 					KEYLISTN = TBK2LST ;
 					tbdelete( tab )   ;
@@ -2791,7 +2788,7 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 				rempop() ;
 				if ( RC1 == 0 )
 				{
-					tbopen( tab, NOWRITE, UPROF ) ;
+					tbopen( tab, NOWRITE, uprof ) ;
 					if ( RC > 0 ) { abend() ; }
 					tbvclear( tab ) ;
 					KEYLISTN = NEWKEY ;
@@ -2804,7 +2801,7 @@ void PPSP01A::keylistTable( string tab, string AKTAB, string AKLIST )
 					else
 					{
 						tbend( tab ) ;
-						tbopen( tab, WRITE, UPROF ) ;
+						tbopen( tab, WRITE, uprof ) ;
 						if ( RC > 0 ) { abend() ; }
 						tbsort( tab, "(KEYLISTN,C,A)" ) ;
 						KEYLISTN = NEWKEY ;
@@ -2879,14 +2876,14 @@ void PPSP01A::viewKeylist( const string& tab, const string& list )
 
 	string KEYLISTN ;
 	string KLST     ;
-	string UPROF    ;
+	string uprof    ;
 	string MSG      ;
 
 	KLST = "KLT4" + d2ds( taskid(), 4 ) ;
 
-	vcopy( "ZUPROF", UPROF, MOVE ) ;
+	vcopy( "ZUPROF", uprof, MOVE ) ;
 
-	tbopen( tab, NOWRITE, UPROF ) ;
+	tbopen( tab, NOWRITE, uprof ) ;
 	if ( RC > 0 ) { abend() ; }
 
 	vdefine( "KEYLISTN KEYNUM KEYDEF KEYATTR KEYLAB", &KEYLISTN, &KEYNUM, &KEYDEF, &KEYATTR, &KEYLAB ) ;
@@ -2945,14 +2942,14 @@ void PPSP01A::editKeylist( const string& tab, const string& list )
 
 	string KEYLISTN ;
 	string KLST     ;
-	string UPROF    ;
+	string uprof    ;
 	string MSG      ;
 
 	KLST = "KLT3" + d2ds( taskid(), 4 ) ;
 
-	vcopy( "ZUPROF", UPROF, MOVE ) ;
+	vcopy( "ZUPROF", uprof, MOVE ) ;
 
-	tbopen( tab, NOWRITE, UPROF ) ;
+	tbopen( tab, NOWRITE, uprof ) ;
 	if ( RC > 0 ) { abend() ; }
 
 	vdefine( "KEYLISTN KEYNUM KEYDEF KEYATTR KEYLAB", &KEYLISTN, &KEYNUM, &KEYDEF, &KEYATTR, &KEYLAB ) ;
@@ -3006,7 +3003,7 @@ void PPSP01A::editKeylist( const string& tab, const string& list )
 		}
 	}
 
-	tbopen( tab, WRITE, UPROF ) ;
+	tbopen( tab, WRITE, uprof ) ;
 	if ( RC > 0 ) { abend() ; }
 
 	tbvclear( tab ) ;
@@ -3044,10 +3041,10 @@ void PPSP01A::createKeyTable( string tab )
 
 	int i ;
 
-	string UPROF  ;
+	string uprof  ;
 	string flds   ;
 
-	vcopy( "ZUPROF", UPROF, MOVE ) ;
+	vcopy( "ZUPROF", uprof, MOVE ) ;
 	tab += "KEYP" ;
 	flds = ""     ;
 
@@ -3059,7 +3056,7 @@ void PPSP01A::createKeyTable( string tab )
 	}
 	flds += "KEYHELPN" ;
 
-	tbcreate( tab, "KEYLISTN", "("+flds+")", WRITE, NOREPLACE, UPROF ) ;
+	tbcreate( tab, "KEYLISTN", "("+flds+")", WRITE, NOREPLACE, uprof ) ;
 	if ( RC > 0 ) { abend() ; }
 
 	tbsave( tab ) ;

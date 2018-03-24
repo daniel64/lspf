@@ -82,13 +82,13 @@ main()
 	tableMGR::lg = lg ;
 	poolMGR::lg  = lg ;
 
-	string systemPath ;
 	string homePath   ;
 
 	lg->open( ALOG ) ;
 
-	systemPath = ZSPROF ;
-	if ( systemPath.back() != '/' ) { systemPath += "/" ; }
+	homePath  = getenv( "HOME" ) ;
+	homePath += ZUPROF ;
+	if ( homePath.back() != '/' ) { homePath += "/" ; }
 
 	string ZCTVERB, ZCTACT, ZCTDESC, ZCTTRUNC ;
 
@@ -383,24 +383,24 @@ main()
 
 	cout << endl ;
 	cout << "*******************************************************************************************" << endl ;
-	p_tableMGR->saveTable( err, "ISPCMDS", "" , systemPath + "tlib" ) ;
+	p_tableMGR->saveTable( err, "ISPCMDS", "" , homePath + "tlib" ) ;
 	if ( err.RC0() )
 	{
-		cout << "ISPCMDS table created successfully in " << systemPath << "tlib" << endl ;
+		cout << "ISPCMDS table created successfully in " << homePath << "tlib" << endl ;
 	}
 	else
 	{
-		cout << "ERROR saving ISPCMDS table in " << systemPath << "tlib  RC=" << err.getRC() << endl ;
+		cout << "ERROR saving ISPCMDS table in " << homePath << "tlib  RC=" << err.getRC() << endl ;
 		cout << "Message is " << err.msgid << endl ;
 	}
-	p_tableMGR->saveTable( err, "USRCMDS", "" , systemPath + "tlib" ) ;
+	p_tableMGR->saveTable( err, "USRCMDS", "" , homePath + "tlib" ) ;
 	if ( err.RC0() )
 	{
-		cout << "USRCMDS table created successfully in " << systemPath << "tlib" << endl ;
+		cout << "USRCMDS table created successfully in " << homePath << "tlib" << endl ;
 	}
 	else
 	{
-		cout << "ERROR saving USRCMDS table in " << systemPath << "tlib  RC=" << err.getRC() << endl ;
+		cout << "ERROR saving USRCMDS table in " << homePath << "tlib  RC=" << err.getRC() << endl ;
 		cout << "Message is " << err.msgid << endl ;
 	}
 
@@ -418,16 +418,20 @@ main()
 void createSYSPROF()
 {
 	string p ;
+	string zuprof ;
 
 	errblock err ;
 	err.settask( 1 ) ;
 
+	zuprof  = getenv( "HOME" ) ;
+	zuprof += ZUPROF ;
+	p_poolMGR->setProfilePath( err, zuprof ) ;
+
 	p_poolMGR->createSharedPool() ;
-	p_poolMGR->createProfilePool( err, "ISPS", ZSPROF ) ;
+	p_poolMGR->createProfilePool( err, "ISPS" ) ;
 	p_poolMGR->connect( 1, "ISPS", 1 ) ;
 
-	p_poolMGR->put( err, "ZSPROF", ZSPROF, PROFILE ) ;
-	p_poolMGR->put( err, "ZUPROF", ZUPROF, PROFILE ) ;
+	p_poolMGR->put( err, "ZUPROF", zuprof, PROFILE ) ;
 	p_poolMGR->put( err, "ZSYSPATH", ZSYSPATH, PROFILE ) ;
 	p_poolMGR->put( err, "ZORXPATH", ZREXPATH, PROFILE ) ;
 
@@ -566,11 +570,11 @@ void createSYSPROF()
 	p_poolMGR->disconnect( 1 ) ;
 	if ( err.RC0() )
 	{
-		cout << "SYSTEM profile ISPSPROF created successfully in " << ZSPROF << endl ;
+		cout << "SYSTEM profile ISPSPROF created successfully in " << zuprof << endl ;
 	}
 	else
 	{
-		cout << "ERROR saving profile ISPSPROF in "<< ZSPROF <<"  RC="<< err.getRC() << endl ;
+		cout << "ERROR saving profile ISPSPROF in "<< zuprof <<"  RC="<< err.getRC() << endl ;
 		cout << "Message is " << err.msgid << endl ;
 	}
 

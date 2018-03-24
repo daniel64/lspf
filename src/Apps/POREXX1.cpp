@@ -27,14 +27,24 @@
 /* PARM word 1 is the rexx to invloke                                                                   */
 /* PARM words 2 onwards are the parameters for the rexx (Arg(1))                                        */
 /*                                                                                                      */
-/* ZORXPATH is used to find the exec if a fully qualified name not passed                               */
+/* Search order:                                                                                        */
+/*     Directory of REXX being run                                                                      */
+/*     ZORXPATH                                                                                         */
+/*     REXX_PATH env variable                                                                           */
+/*     PATH      env variable                                                                           */
+/*                                                                                                      */
+/* Note that OOREXX will add extensions .rex and .REX when searching for the rexx to execute even       */
+/* when a fully qualified name has been passed, and this will have precedence over the file name        */
+/* without the extension ie. Search order is repeated without the extension.                            */
 /*                                                                                                      */
 /* Use system variable ZOREXPGM to refer to this module rather than the name, to allow different        */
 /* rexx implementations to co-exist.                                                                    */
 
-/* RC/RSN codes returned                                                                                */
-/*   0/0  Okay                                                                                          */
+/*  RC/RSN codes returned                                                                               */
+/*   0/0  Okay and ZRESULT set to result if not numeric                                                 */
+/*  16/4  Missing rexx name                                                                             */
 /*  20/condition.code ZRESULT is set to condition.message                                               */
+/*  result/0 if no condition set and result is numeric                                                  */
 /*                                                                                                      */
 /* Take class-scope mutex lock around create interpreter and terminate() as these seem to hang when     */
 /* they run together in background tasks (first terminate() hangs then everything attempting to         */
@@ -53,6 +63,7 @@
 #include "POREXX1.h"
 
 #include <oorexxapi.h>
+#include <oorexxerrors.h>
 
 
 using namespace std ;
@@ -75,15 +86,28 @@ void POREXX1::application()
 {
 	llog( "I", "Application POREXX1 starting." << endl ) ;
 
-	int i ;
-	int j ;
+	size_t version ;
 
-	bool found ;
+	string rxpath  ;
+	string msg     ;
 
-	size_t version  ;
-	string rxsource ;
-	string rxpath   ;
-	string msg      ;
+	vget( "ZORXPATH", PROFILE ) ;
+	vcopy( "ZORXPATH", rxpath, MOVE ) ;
+
+	rexxName = word( PARM, 1 )    ;
+	PARM     = subword( PARM, 2 ) ;
+
+	if ( rexxName.size() > 0 && rexxName.front() == '%' ) { rexxName.erase( 0, 1 ) ; }
+
+	if ( rexxName == "" )
+	{
+		llog( "E", "POREXX1 error. No REXX passed" << endl ) ;
+		ZRC     = 16 ;
+		ZRSN    = 4  ;
+		ZRESULT = "No REXX passed" ;
+		cleanup() ;
+		return    ;
+	}
 
 	RexxInstance *instance   ;
 	RexxThreadContext *threadContext ;
@@ -93,7 +117,7 @@ void POREXX1::application()
 	RexxObjectPtr result     ;
 
 	RexxContextEnvironment environments[ 2 ] ;
-	RexxOption             options[ 3 ]      ;
+	RexxOption             options[ 4 ]      ;
 
 	environments[ 0 ].handler = lspfServiceHandler ;
 	environments[ 0 ].name    = "ISPEXEC" ;
@@ -104,53 +128,9 @@ void POREXX1::application()
 	options[ 0 ].option     = (void *)this     ;
 	options[ 1 ].optionName = DIRECT_ENVIRONMENTS  ;
 	options[ 1 ].option     = (void *)environments ;
-	options[ 2 ].optionName = ""  ;
-
-	rxsource = word( PARM, 1 )    ;
-	PARM     = subword( PARM, 2 ) ;
-	found    = false              ;
-
-	if ( rxsource.size() > 0 && rxsource[ 0 ] == '%' ) { rxsource.erase( 0, 1 ) ; }
-	if ( rxsource == "" )
-	{
-		llog( "E", "POREXX1 error. No REXX passed" << endl ) ;
-		ZRC     = 16 ;
-		ZRSN    = 4  ;
-		ZRESULT = "No REXX passed" ;
-		cleanup() ;
-		return    ;
-	}
-
-	if ( rxsource[ 0 ] == '/' ) { rexxName = rxsource ; }
-	else
-	{
-		vget( "ZORXPATH", PROFILE ) ;
-		vcopy( "ZORXPATH", rxpath, MOVE ) ;
-		j = getpaths( rxpath ) ;
-		for ( i = 1 ; i <= j ; i++ )
-		{
-			rexxName = getpath( rxpath, i ) + rxsource ;
-			if ( !exists( rexxName ) ) { continue ; }
-			if ( is_regular_file( rexxName ) ) { found = true ; break ; }
-			llog( "E", "POREXX1 error. " << rxsource << " found but is not a regular file" << endl ) ;
-			setmsg( "PSYS012B" ) ;
-			ZRC     = 16 ;
-			ZRSN    = 12 ;
-			ZRESULT = "Invalid REXX passed" ;
-			cleanup() ;
-			return    ;
-		}
-		if ( !found )
-		{
-			llog( "E", "POREXX1 error. " << rxsource << " not found in ZORXPATH concatination" << endl ) ;
-			setmsg( "PSYS012C" ) ;
-			ZRC     = 16 ;
-			ZRSN    = 8  ;
-			ZRESULT = "REXX not found" ;
-			cleanup() ;
-			return    ;
-		}
-	}
+	options[ 2 ].optionName = EXTERNAL_CALL_PATH   ;
+	options[ 2 ].option     = rxpath.c_str()       ;
+	options[ 3 ].optionName = ""  ;
 
 	lock() ;
 	if ( RexxCreateInterpreter( &instance, &threadContext, options ) )
@@ -163,7 +143,7 @@ void POREXX1::application()
 		if ( testMode )
 		{
 			llog( "I", "Starting OOREXX Interpreter Version. .: "<< version << endl ) ;
-			llog( "I", "Running program. . . . . . . . . . . .: "<< rxsource << endl ) ;
+			llog( "I", "Running program. . . . . . . . . . . .: "<< rexxName << endl ) ;
 			llog( "I", "With parameters. . . . . . . . . . . .: "<< PARM << endl ) ;
 		}
 
@@ -173,7 +153,7 @@ void POREXX1::application()
 		{
 			cond = threadContext->GetConditionInfo() ;
 			threadContext->DecodeConditionInfo( cond, &condition ) ;
-			llog( "E", "POREXX1 error running REXX.: " << rxsource << endl ) ;
+			llog( "E", "POREXX1 error running REXX.: " << rexxName << endl ) ;
 			llog( "E", "   Condition Code . . . . .: " << condition.code << endl ) ;
 			llog( "E", "   Condition Error Text . .: " << threadContext->CString( condition.errortext ) << endl ) ;
 			llog( "E", "   Condition Message. . . .: " << threadContext->CString( condition.message ) << endl ) ;
@@ -184,7 +164,14 @@ void POREXX1::application()
 			msg = msg +".  Message: "+ threadContext->CString( condition.message ) ;
 			if ( msg.size() > 512 ) { msg.erase( 512 ) ; }
 			vreplace( "STR", msg ) ;
-			setmsg( "PSYS011M" ) ;
+			if ( condition.code == Rexx_Error_Program_unreadable_notfound )
+			{
+				setmsg( "PSYS012C" ) ;
+			}
+			else
+			{
+				setmsg( "PSYS011M" ) ;
+			}
 			ZRC     = 20 ;
 			ZRSN    = condition.code ;
 			ZRESULT = threadContext->CString( condition.message ) ;

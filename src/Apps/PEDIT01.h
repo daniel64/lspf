@@ -1542,6 +1542,7 @@ class miblock
 	public:
 		string emacro    ;
 		string mfile     ;
+		string rxpath    ;
 		pApplication * editAppl ;
 		pApplication * macAppl  ;
 		string sttment   ;
@@ -1581,6 +1582,7 @@ class miblock
 	{
 		emacro    = ""    ;
 		mfile     = ""    ;
+		rxpath    = ""    ;
 		editAppl  = NULL  ;
 		macAppl   = NULL  ;
 		sttment   = ""    ;

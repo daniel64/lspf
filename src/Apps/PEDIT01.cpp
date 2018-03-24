@@ -135,9 +135,17 @@ void PEDIT01::application()
 			uabend( "PEDT015", PARM ) ;
 			return  ;
 		}
-		if ( ZFILE != "" && is_directory( ZFILE ) )
+		if ( ZFILE != "" )
 		{
-			vput( "ZFILE", PROFILE ) ;
+			if ( is_directory( ZFILE ) )
+			{
+				vput( "ZFILE", PROFILE ) ;
+			}
+			else if ( ZFILE.find( '/' ) == string::npos )
+			{
+				select( "PGM(PLRFLST1) PARM(MTC " + ZFILE + ")" ) ;
+				if ( ZRESULT != "" ) { ZFILE = ZRESULT ; }
+			}
 		}
 		panel = parseString( err, PARM, "PANEL()" ) ;
 		if ( err.error() )
@@ -6174,7 +6182,11 @@ void PEDIT01::actionFind()
 				{
 					if ( fcx_parms.f_ocol )
 					{
-						if ( p1 == fcx_parms.f_scol-1 ) { found = true ; }
+						if ( p1 == fcx_parms.f_scol-1 )
+						{
+							found = true ;
+							fcx_parms.f_occurs++ ;
+						}
 					}
 					else if ( fcx_parms.findReverse() )
 					{
@@ -6210,7 +6222,10 @@ void PEDIT01::actionFind()
 						fcx_parms.f_rstring = data[ dl ]->get_idata_ptr()->substr( p1, fcx_parms.f_ssize ) ;
 					}
 				}
-				if ( fcx_parms.f_dir != 'A' || !found ) { break ; }
+				if ( fcx_parms.f_ocol || fcx_parms.f_dir != 'A' || !found )
+				{
+					break ;
+				}
 				fcx_parms.f_occurs++ ;
 				if ( fline )
 				{
@@ -6242,6 +6257,10 @@ void PEDIT01::actionFind()
 	if ( fcx_parms.f_dir == 'A' && fcx_parms.f_occurs == 0 )
 	{
 		fcx_parms.f_dir = 'N' ;
+	}
+	if ( fcx_parms.f_dir == 'A' && fcx_parms.f_occurs > 0 && fcx_parms.f_ocol )
+	{
+		fcx_parms.f_success = false ;
 	}
 }
 
@@ -7134,7 +7153,7 @@ int PEDIT01::getDataBlockSize( uint dl )
 	for ( i = dl ; i > 0 ; i-- )
 	{
 		if ( data.at( i )->il_deleted ||
-			   data.at( i )->il_excl )    { continue ; }
+		     data.at( i )->il_excl ) { continue ; }
 		break ;
 	}
 	i = getNextDataLine( i ) ;
@@ -7342,7 +7361,6 @@ void PEDIT01::moveTopline( int URID )
 		topLine = getLine( fcx_parms.f_URID ) ;
 		topLine = getPrevDataLine( topLine ) ;
 	}
-	return ;
 }
 
 
@@ -9808,8 +9826,6 @@ void PEDIT01::run_macro( bool imacro )
 
 	uint dl ;
 
-	string rxpath ;
-
 	miBlock.clear() ;
 
 	ApplUserData[ taskid() ] = (void *)&miBlock ;
@@ -9818,10 +9834,10 @@ void PEDIT01::run_macro( bool imacro )
 	miBlock.imacro           = imacro   ;
 
 	vget( "ZORXPATH", PROFILE ) ;
-	vcopy( "ZORXPATH", rxpath, MOVE ) ;
+	vcopy( "ZORXPATH", miBlock.rxpath, MOVE ) ;
 
 	miBlock.setMacro( word( pcmd.get_cmd(), 1 ) )  ;
-	if ( !miBlock.getMacroFileName( rxpath ) )
+	if ( !miBlock.getMacroFileName( miBlock.rxpath ) )
 	{
 		pcmd.set_msg( miBlock.RC > 8 ? "PEDM012Q" : "PEDT015A" ) ;
 		return ;

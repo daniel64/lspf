@@ -73,12 +73,13 @@ void PLRFLST1::application()
 	PF = subword( PARM, 2 )       ;
 
 	setup() ;
-	if      ( P1 == "PL1" ) { OpenActiveFList( P2 ) ; }
-	else if ( P1 == "PL2" ) { PersonalFList( "" )   ; }
-	else if ( P1 == "PL3" ) { PersonalFList( "DSL") ; }
-	else if ( P1 == "PLA" ) { AddReflistEntry( PF ) ; }
-	else if ( P1 == "NR1" ) { RetrieveEntry( PF )   ; }
-	else if ( P1 == "US1" ) { userSettings()        ; }
+	if      ( P1 == "PL1" ) { OpenActiveFList( P2 )    ; }
+	else if ( P1 == "PL2" ) { PersonalFList( "" )      ; }
+	else if ( P1 == "PL3" ) { PersonalFList( "DSL")    ; }
+	else if ( P1 == "PLA" ) { AddReflistEntry( PF )    ; }
+	else if ( P1 == "NR1" ) { RetrieveEntry( PF )      ; }
+	else if ( P1 == "MTC" ) { RetrieveMatchEntry( PF ) ; }
+	else if ( P1 == "US1" ) { userSettings()           ; }
 	else                    { llog( "E", "Invalid parameter passed to PLRFLST1: " << PARM << endl ) ; }
 
 	cleanup() ;
@@ -109,7 +110,7 @@ void PLRFLST1::setup()
 
 	TABFLDS = vlist1 + vlist2 + vlist3 + vlist4 + vlist5 ;
 
-	vcopy( "ZUPROF", UPROF, MOVE ) ;
+	vcopy( "ZUPROF", uprof, MOVE ) ;
 	vcopy( "ZRFLTBL", RFLTABLE, MOVE ) ;
 	set_apphelp( "HPSP01A" ) ;
 	ZRC    = 4         ;
@@ -716,6 +717,35 @@ void PLRFLST1::RetrieveEntry( string list )
 }
 
 
+void PLRFLST1::RetrieveMatchEntry( string mfile )
+{
+	// Retrieve entry from the reference list that matches file name 'mfile'
+
+	size_t p ;
+
+	ZCURTB = "REFLIST" ;
+	OpenTableRO()      ;
+	tbget( RFLTABLE )  ;
+	if ( RC > 0 ) { CloseTable() ; return ; }
+
+	CloseTable() ;
+	for ( int i = 1 ; i <= 30 ; i++ )
+	{
+		vcopy( "FLAPET" + d2ds( i, 2 ), ZRESULT, MOVE ) ;
+		if ( ZRESULT == "" )
+		{
+			continue ;
+		}
+		p = ZRESULT.find_last_of( '/' ) ;
+		if ( p != string::npos && ZRESULT.compare( p + 1, mfile.size(), mfile ) == 0 )
+		{
+			return ;
+		}
+	}
+	ZRESULT = "" ;
+}
+
+
 void PLRFLST1::AddReflistEntry( string& ent )
 {
 	int i ;
@@ -798,7 +828,7 @@ void PLRFLST1::createDefaultTable()
 	string ldate ;
 	string ltime ;
 
-	tbcreate( RFLTABLE, "ZCURTB", "("+subword( TABFLDS, 2 )+")", WRITE, NOREPLACE, UPROF ) ;
+	tbcreate( RFLTABLE, "ZCURTB", "("+subword( TABFLDS, 2 )+")", WRITE, NOREPLACE, uprof ) ;
 	if ( RC > 0 ) { return ; }
 
 	tbvclear( RFLTABLE ) ;
@@ -832,14 +862,14 @@ void PLRFLST1::userSettings()
 
 void PLRFLST1::OpenTableRO()
 {
-	tbopen( RFLTABLE, NOWRITE, UPROF ) ;
+	tbopen( RFLTABLE, NOWRITE, uprof ) ;
 	return ;
 }
 
 
 void PLRFLST1::OpenTableUP()
 {
-	tbopen( RFLTABLE, WRITE, UPROF ) ;
+	tbopen( RFLTABLE, WRITE, uprof ) ;
 	return ;
 }
 

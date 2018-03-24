@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 Daniel John Erdos
+  Copyright (c) 2018 daniel John Erdos
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -17,19 +17,17 @@
 
 */
 
-using namespace std ;
+/* Re-direct say ouput and error messages to a temporary file or it'll mess up lspf output */
+"rm /tmp/tabsopen.say 2> /dev/null"
+"rm /tmp/tabsopen.err 2> /dev/null"
+.output~destination(.stream~new("/tmp/tabsopen.say"))
+.error~destination(.stream~new("/tmp/tabsopen.err"))
+/**********************************************************************************************/
 
-class PEDRXM1 : public pApplication
-{
-	public:
-		void application() ;
-		void macroError()  ;
+address ISPEXEC
+"QTABOPEN LIST(A)"
+"RDISPLAY Number of open tables is &A0"
 
-	private:
-		miblock * mibptr   ;
-
-		void initialise()  ;
-		void start_rexx()  ;
-
-	friend class PEDIT01 ;
-} ;
+do i = 1 to A0
+   "RDISPLAY "value( "A" || i )
+end

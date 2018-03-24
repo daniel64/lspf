@@ -234,6 +234,10 @@ class tableMGR
 				  const string& m_newname,
 				  const string& m_path ) ;
 
+		void   qtabopen( errblock& err,
+				 fPOOL& funcPOOL,
+				 const string& tb_list ) ;
+
 		void   tbadd( errblock& err,
 			      fPOOL& funcPOOL,
 			      const string& tb_name,

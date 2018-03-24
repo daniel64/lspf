@@ -31,24 +31,26 @@
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
-#define LSPF_VERSION "1.0.0"
+#define LSPF_VERSION "1.0.1"
 #define LSPF_VERSION_MAJ 1
 #define LSPF_VERSION_REV 0
-#define LSPF_VERSION_MOD 0
+#define LSPF_VERSION_MOD 1
 
 typedef unsigned int uint ;
 
 using namespace std;
 using namespace boost::posix_time;
 
-// Customisable values below.  Also included in the setup.cpp program for the ISPS profile pool.  Recompile setup.cpp and run after changes
-// HOME     - Home directory of the user
-// ZSPROF   - Where the user's ISPS profile is found.  Needs to be fully qualified.  All other variables are contained in this member
-// ZUPROF   - Where the user-specific files are found (profiles, tables, panels etc)
+// Customisable values below.  Also included in the setup.cpp program for the ISPS profile pool.
+// Recompile setup.cpp and run after changes
+
+// HOME     - Home directory of the user.  Not used in compiling lspf.cpp, just the default ISPSPROF member
+// ZUPROF   - User subdirectory where the lspf user-specific profiles/tables are found (ISPS, profiles, cmds, clipboard)
+//            ZUPROF will be prefixed with the user's home directory at runtime (ZUPROF in ISPSPROF contains the prefix)
 // ZSYSPATH - Where the system-specific files are found.
 // ZLDPATH  - Where the application classes are located (concatenation allowed)
-// SLOG     - Location of the system log file (fully qualified)
-// ALOG     - Location of the application log file (fully qualified)
+// SLOG     - Location of the user's system log file (fully qualified)
+// ALOG     - Location of the user's application log file (fully qualified)
 // ZREXPATH - Location of the rexx execs (conatenation allowed)
 // ZMAINPGM - Name of the initial program to invoke.  This is treated as a SELECT PANEL()
 // ZMAINPAN - Name of the initial selection panel to invoke ( ie. SELECT PANEL(ZMAINPAN) )
@@ -65,13 +67,12 @@ using namespace boost::posix_time;
 // ZMAXWAIT - Max wait time to terminate the application if it has not gone into a wait-for-user-response (application may be looping)
 
 #define HOME            "/home/daniel"
-#define ZSPROF          HOME "/.lspf"
-#define ZUPROF          HOME "/.lspf"
+#define ZUPROF          "/.lspf"
 #define ZSYSPATH        HOME "/lspf"
 #define ZLDPATH         ZSYSPATH "/Apps:" ZSYSPATH "/Apps2"
-#define MLIB            ZUPROF "/mlib:" ZSYSPATH "/mlib"
-#define PLIB            ZUPROF "/plib:" ZSYSPATH "/plib"
-#define TLIB            ZUPROF "/tlib:" ZSYSPATH "/tlib"
+#define MLIB            HOME ZUPROF "/mlib:" ZSYSPATH "/mlib"
+#define PLIB            HOME ZUPROF "/plib:" ZSYSPATH "/plib"
+#define TLIB            HOME ZUPROF "/tlib:" ZSYSPATH "/tlib"
 #define ZREXPATH        HOME "/rexx:" ZSYSPATH "/rexx"
 #define SLOG            HOME "/.lspf/lspflog"
 #define ALOG            HOME "/.lspf/appllog"

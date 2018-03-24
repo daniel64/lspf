@@ -116,9 +116,10 @@ class fPOOL
 				       { "ZAPPNAME" } } ;
 
 	friend class pApplication ;
-	friend class Table  ;
-	friend class pPanel ;
-	friend class abc    ;
+	friend class tableMGR ;
+	friend class Table    ;
+	friend class pPanel   ;
+	friend class abc      ;
 } ;
 
 
@@ -224,12 +225,13 @@ class poolMGR
 
 		void   connect( int taskid, const string&, int ) ;
 		void   disconnect( int taskid ) ;
+		void   setProfilePath( errblock& err,
+				       const string& ) ;
 
 		void   setPools( errblock& ) ;
 
 		void   createProfilePool( errblock& err,
-					  const string& appl,
-					  string path="" ) ;
+					  const string& appl ) ;
 
 		int    createSharedPool() ;
 
@@ -304,6 +306,7 @@ class poolMGR
 		int    _shared  ;
 		string _applid  ;
 		string varList  ;
+		string ppath    ;
 
 		map<int, pair<string,int>> task_table ;
 

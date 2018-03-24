@@ -36,6 +36,7 @@ class PLRFLST1 : public pApplication
 		void   OpenFileList( const string& )  ;
 		string StoreFileList( const string& ) ;
 		void   EditFileList( const string& )  ;
+		void   RetrieveMatchEntry( string )   ;
 		void   RetrieveEntry( string ) ;
 		void   createDefaultTable() ;
 
@@ -44,6 +45,7 @@ class PLRFLST1 : public pApplication
 		string zuser    ;
 		string zcmd     ;
 		string zscreen  ;
+		string uprof    ;
 
 		string ZCURTB   ;
 		string FLADESCP ;
@@ -81,6 +83,5 @@ class PLRFLST1 : public pApplication
 		string FLAUTIME ;
 
 		string RFLTABLE ;
-		string UPROF    ;
 		string TABFLDS  ;
 } ;

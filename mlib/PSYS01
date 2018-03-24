@@ -113,11 +113,11 @@ PSYS011Z 'Invalid .NRET field name' .TYPE=W
 PSYS012A 'Invalid path specified' .TYPE=W
 'Path specified is not valid'
 
-PSYS012B 'REXX procedure not valid' .TYPE=W
-'File does not contain a valid REXX procedure'
+PSYS012B 'Spare' .TYPE=W
+'Spare'
 
-PSYS012C 'REXX procedure not found' .TYPE=W
-'REXX procedure has not been found in the ZORXPATH concatination'
+PSYS012C 'REXX procedure not found/unreadable' .TYPE=W
+'REXX procedure has not been found or is unreadable in the ZORXPATH concatination'
 
 PSYS012D 'Error in SELECT' .TYPE=W
 'Entered SELECT is not valid.  Check log for details'

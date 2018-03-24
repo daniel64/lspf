@@ -144,6 +144,7 @@ class pApplication
 		void   vreset() ;
 
 		void   log( const string& msg ) ;
+		void   qtabopen( const string& tb_list ) ;
 
 		void   tbadd( const string& tb_name, string tb_namelst="", const string& tb_order="", int tb_num_of_rows=0 ) ;
 		void   tbbottom( const string& tb_name, const string& tb_savenm="", const string& tb_rowid_vn="", const string& tb_noread="", const string& tb_crp_name="" ) ;
@@ -208,6 +209,8 @@ class pApplication
 		void   set_forced_abend()  ;
 		void   set_timeout_abend() ;
 		void   closeTables() ;
+		void   loadCommandTable()   ;
+		void   unloadCommandTable() ;
 		void   store_scrname() ;
 		void   restore_Zvars( int ) ;
 		void   reload_keylist( pPanel * ) ;
@@ -317,6 +320,8 @@ class pApplication
 		stack<string> zpusr ;
 		stack<string> ztusr ;
 
+		string get_search_path( s_paths ) ;
+
 		void load_keylist( pPanel * ) ;
 		void createPanel( const string& p_name ) ;
 		void actionSelect()   ;
@@ -325,8 +330,7 @@ class pApplication
 		void checkRCode( errblock )            ;
 		void xabend( const string&, int = -1 ) ;
 		void cleanup_default()                 ;
-		string get_search_path( s_paths )      ;
-		bool   isTableOpen( const string& tb_name, const string& func ) ;
+		bool isTableOpen( const string& tb_name, const string& func ) ;
 
 		void wait_event() ;
 } ;

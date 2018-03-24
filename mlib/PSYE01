@@ -23,7 +23,7 @@ PSYE011F 'WINDOW() statement error'
 PSYE011G 'No )ABC descrption'
 'Action bar choice must have a description defined'
 
-/*  */
+/*  Table manager */
 PSYE013A 'Invalid variable name on a &ZVAL1'
 'Variable ''&ZVAL2'' has an invalid format'
 
@@ -158,6 +158,9 @@ PSYE014R 'Inconsistent WRITE/NOWRITE parameter for open of table &ZVAL1'
 
 PSYE014S 'TBSAVE issued for table &ZVAL1 not opened in WRITE mode'
 'Table must be opened or created in WRITE mode'
+
+PSYE014T 'Variable prefix too long'
+'List variable must be 7 characters or less'
 
 /* variable pool messages */
 PSYE015A 'Variable &ZVAL1 has been truncated'

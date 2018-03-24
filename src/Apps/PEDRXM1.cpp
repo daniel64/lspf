@@ -66,8 +66,6 @@ void PEDRXM1::application()
 {
 	int nlvl ;
 
-	string rxpath ;
-
 	miblock tmiBlock   ;
 	PEDIT01 * editAppl ;
 
@@ -87,12 +85,10 @@ void PEDRXM1::application()
 	nlvl = mibptr->nestlvl + 1 ;
 	if ( nlvl > 1 )
 	{
-		vget( "ZORXPATH", PROFILE ) ;
-		vcopy( "ZORXPATH", rxpath, MOVE ) ;
 		tmiBlock = *mibptr ;
 		mibptr->clear() ;
 		mibptr->setMacro( word( editAppl->pcmd.get_cmd(), 1 ) )  ;
-		if ( !mibptr->getMacroFileName( rxpath ) )
+		if ( !mibptr->getMacroFileName( mibptr->rxpath ) )
 		{
 			mibptr->RC > 8 ? tmiBlock.seterror( "PEDM012Q", 20 ) : tmiBlock.seterror( "PEDT015A", 20 ) ;
 			*mibptr = tmiBlock ;
@@ -167,7 +163,7 @@ void PEDRXM1::start_rexx()
 	RexxObjectPtr result     ;
 
 	RexxContextEnvironment environments[ 3 ] ;
-	RexxOption             options[ 3 ]      ;
+	RexxOption             options[ 4 ]      ;
 
 	environments[ 0 ].handler = lspfServiceHandler ;
 	environments[ 0 ].name    = "ISPEXEC" ;
@@ -180,7 +176,9 @@ void PEDRXM1::start_rexx()
 	options[ 0 ].option     = (void *)mibptr   ;
 	options[ 1 ].optionName = DIRECT_ENVIRONMENTS  ;
 	options[ 1 ].option     = (void *)environments ;
-	options[ 2 ].optionName = "" ;
+	options[ 2 ].optionName = EXTERNAL_CALL_PATH   ;
+	options[ 2 ].option     = mibptr->rxpath.c_str() ;
+	options[ 3 ].optionName = "" ;
 
 	rexxName = mibptr->mfile ;
 
@@ -477,8 +475,6 @@ int setRexxVariable( string n, string v )
 	var.shvvaluelen = v.size()      ;    /* set value length              */
 	return RexxVariablePool( &var ) ;
 }
-
-/* **************** END REXX EDIT MACRO SUPPORT ************************ */
 
 // ============================================================================================ //
 

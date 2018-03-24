@@ -2066,6 +2066,47 @@ void tableMGR::loadTable( errblock& err,
 }
 
 
+void tableMGR::qtabopen( errblock& err,
+			 fPOOL& funcPOOL,
+			 const string& tb_list )
+{
+	// RC = 0   Normal completion
+	// RC = 12  Variable name prefix too long (max 7 characters)
+	// RC = 20  Severe error
+
+	int i ;
+
+	string var ;
+
+	map<string, Table*>::iterator it ;
+
+	err.setRC( 0 ) ;
+
+	if ( !isvalidName( tb_list ) )
+	{
+		err.seterrid( "PSYE013A", "QTABOPEN", tb_list ) ;
+		return ;
+	}
+
+	if ( tb_list.size() > 7 )
+	{
+		err.seterrid( "PSYE014T" ) ;
+		return ;
+	}
+
+	funcPOOL.put( err, tb_list+"0", tables.size() ) ;
+	if ( err.error() ) { return ; }
+
+	for ( i = 1, it = tables.begin() ; it != tables.end() ; it++, i++ )
+	{
+		var = tb_list + d2ds( i ) ;
+		if ( var.size() > 8 ) { return ; }
+		funcPOOL.put( err, var, it->first ) ;
+		if ( err.error() ) { return ; }
+	}
+}
+
+
 void tableMGR::saveTable( errblock& err,
 			  const string& tb_name,
 			  const string& m_newname,
@@ -2446,7 +2487,9 @@ void tableMGR::cmdsearch( errblock& err,
 			  const string& cmd,
 			  const string& paths )
 {
-	// Search table for command 'cmd'.  Load table if not already in storage.
+	// Search table 'tb_name' for command 'cmd'.  Load table if not already in storage.
+	// Application command tables should already be loaded by SELECT processing so it is not
+	// necessary to add LIBDEF ZTLIB/ZTUSR paths to 'paths'
 
 	// RC = 0  Okay
 	// RC = 8  Command not found

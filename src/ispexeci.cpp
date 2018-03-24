@@ -31,6 +31,7 @@ void execiLibdef( pApplication *, const string&, errblock& )   ;
 void execiLog( pApplication *, const string&, errblock& )      ;
 void execiPquery( pApplication *, const string&, errblock& )   ;
 void execiQlibdef( pApplication *, const string&, errblock& )  ;
+void execiQtabopen( pApplication *, const string&, errblock& ) ;
 void execiRDisplay( pApplication *, const string&, errblock& ) ;
 void execiRempop( pApplication *, const string&, errblock& )   ;
 void execiSelect( pApplication *, const string&, errblock& )   ;
@@ -72,6 +73,7 @@ map<string, void(*)(pApplication *,const string&, errblock&)> execiServices = {
 		  { "LOG",      execiLog      },
 		  { "PQUERY",   execiPquery   },
 		  { "QLIBDEF",  execiQlibdef  },
+		  { "QTABOPEN", execiQtabopen },
 		  { "RDISPLAY", execiRDisplay },
 		  { "REMPOP",   execiRempop   },
 		  { "SELECT",   execiSelect   },
@@ -440,6 +442,26 @@ void execiQlibdef( pApplication * thisAppl, const string& s, errblock& err )
 	}
 
 	thisAppl->qlibdef( ql_lib, ql_type, ql_id ) ;
+	return ;
+}
+
+
+void execiQtabopen( pApplication * thisAppl, const string& s, errblock& err )
+{
+	string str     ;
+	string qt_list ;
+
+	str     = upper( subword( s, 2 ) ) ;
+	qt_list = parseString( err, str, "LIST()" ) ;
+	if ( err.error() ) { return ; }
+
+	if ( str != "" )
+	{
+		err.seterrid( "PSYE032H", str ) ;
+		return ;
+	}
+
+	thisAppl->qtabopen( qt_list ) ;
 	return ;
 }
 

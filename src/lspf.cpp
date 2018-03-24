@@ -219,7 +219,6 @@ errblock err    ;
 
 string zcommand ;
 string zparm    ;
-string ztlib    ;
 
 string zctverb  ;
 string zcttrunc ;
@@ -358,7 +357,7 @@ int main( void )
 	currAppl->lspfCallback = lspfCallbackHandler ;
 	err.settask( currAppl->taskid() ) ;
 
-	p_poolMGR->createProfilePool( err, "ISP", ZSPROF ) ;
+	p_poolMGR->createProfilePool( err, "ISP" ) ;
 	p_poolMGR->connect( currAppl->taskid(), "ISP", 1 ) ;
 	if ( err.RC4() ) { createpfKeyDefaults() ; }
 
@@ -1579,6 +1578,7 @@ bool resolveZCTEntry( string& cmdVerb, string& cmdParm )
 	bool siteBefore ;
 	bool found      ;
 
+	string ztlib   ;
 	string cmdtlst ;
 
 	err.clear() ;
@@ -1609,9 +1609,8 @@ bool resolveZCTEntry( string& cmdVerb, string& cmdParm )
 		  cmdtlst += "ISP" ;
 	}
 
-	ws = words( cmdtlst ) ;
-
-	for ( i = 0 ; i < 8 ; i++ )
+	ztlib = p_poolMGR->sysget( err, "ZTLIB", PROFILE ) ;
+	for ( ws = words( cmdtlst ), i = 0 ; i < 8 ; i++ )
 	{
 		for ( j = 1 ; j <= ws ; j++ )
 		{
@@ -1788,7 +1787,7 @@ void startApplication( selobj SEL, bool nScreen )
 		spool = p_poolMGR->createSharedPool() ;
 	}
 
-	p_poolMGR->createProfilePool( err, applid, ZSPROF ) ;
+	p_poolMGR->createProfilePool( err, applid ) ;
 	p_poolMGR->connect( currAppl->taskid(), applid, spool ) ;
 	if ( err.RC4() ) { createpfKeyDefaults() ; }
 
@@ -1823,6 +1822,7 @@ void startApplication( selobj SEL, bool nScreen )
 		oldAppl->clear_msg() ;
 	}
 
+	currAppl->loadCommandTable() ;
 	pThread = new boost::thread( boost::bind( &pApplication::application, currAppl ) ) ;
 
 	currAppl->pThread = pThread ;
@@ -1945,7 +1945,7 @@ void startApplicationBack( selobj SEL, bool pgmselect )
 		oldAppl->ZTASKID = Appl->taskid() ;
 	}
 
-	p_poolMGR->createProfilePool( err1, applid, ZSPROF ) ;
+	p_poolMGR->createProfilePool( err1, applid ) ;
 	p_poolMGR->connect( Appl->taskid(), applid, spool ) ;
 	if ( err1.RC4() ) { createpfKeyDefaults() ; }
 
@@ -2059,6 +2059,7 @@ void terminateApplication()
 	ZAPPNAME = currAppl->get_appname() ;
 
 	currAppl->closeTables()  ;
+	currAppl->unloadCommandTable() ;
 	tRC     = currAppl->ZRC  ;
 	tRSN    = currAppl->ZRSN ;
 	tRESULT = currAppl->ZRESULT ;
@@ -2561,13 +2562,19 @@ void loadDefaultPools()
 	// Default vars go in @DEFPROF (RO) for PROFILE and @DEFSHAR (UP) for SHARE
 	// These have the SYSTEM attibute set on the variable
 
-	string log  ;
+	string log    ;
+	string ztlib  ;
+	string zuprof ;
 
 	err.clear() ;
 
 	struct utsname buf ;
 
 	uname( &buf ) ;
+
+	zuprof  = getenv( "HOME" ) ;
+	zuprof += ZUPROF ;
+	p_poolMGR->setProfilePath( err, zuprof ) ;
 
 	p_poolMGR->sysput( err, "ZSCREEND", d2ds( pLScreen::maxrow ), SHARED ) ;
 	p_poolMGR->sysput( err, "ZSCRMAXD", d2ds( pLScreen::maxrow ), SHARED ) ;
@@ -2577,11 +2584,11 @@ void loadDefaultPools()
 	p_poolMGR->sysput( err, "ZHOME", getenv( "HOME" ), SHARED )    ;
 	p_poolMGR->sysput( err, "ZSHELL", getenv( "SHELL" ), SHARED )  ;
 
-	p_poolMGR->createProfilePool( err, "ISPS", ZSPROF ) ;
+	p_poolMGR->createProfilePool( err, "ISPS" ) ;
 	if ( !err.RC0() )
 	{
 		llog( "C", "Loading of system profile ISPSPROF failed.  RC="<< err.getRC() << endl ) ;
-		llog( "C", "Aborting startup.  Check path " ZSPROF << endl ) ;
+		llog( "C", "Aborting startup.  Check profile pool path" << endl ) ;
 		abortStartup() ;
 	}
 
@@ -2624,8 +2631,11 @@ void loadSystemCommandTable()
 {
 	// Terminate if ISPCMDS not found
 
+	string ztlib ;
+
 	err.clear() ;
 
+	ztlib = p_poolMGR->sysget( err, "ZTLIB", PROFILE ) ;
 	p_tableMGR->loadTable( err, "ISPCMDS", NOWRITE, ztlib, SHARE ) ;
 	if ( !err.RC0() )
 	{

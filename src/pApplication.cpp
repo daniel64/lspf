@@ -123,9 +123,9 @@ void pApplication::init()
 {
 	// Before being dispatched in its own thread, set the search paths.
 
-	zzplib   = p_poolMGR->get( errBlock, "ZPLIB", PROFILE ) ;
-	zztlib   = p_poolMGR->get( errBlock, "ZTLIB", PROFILE ) ;
-	zzmlib   = p_poolMGR->get( errBlock, "ZMLIB", PROFILE ) ;
+	zzplib = p_poolMGR->get( errBlock, "ZPLIB", PROFILE ) ;
+	zztlib = p_poolMGR->get( errBlock, "ZTLIB", PROFILE ) ;
+	zzmlib = p_poolMGR->get( errBlock, "ZMLIB", PROFILE ) ;
 
 	llog( "I", "Initialisation complete" << endl ; )
 }
@@ -1918,6 +1918,21 @@ void pApplication::log( const string& msgid )
 }
 
 
+void pApplication::qtabopen( const string& tb_list )
+{
+	// RC = 0   Normal completion
+	// RC = 12  Variable name prefix too long (max 7 characters)
+	// RC = 20  Severe error
+
+	p_tableMGR->qtabopen( errBlock, funcPOOL, tb_list ) ;
+	if ( errBlock.error() )
+	{
+		errBlock.setcall( "QTABOPEN error" ) ;
+		checkRCode( errBlock ) ;
+	}
+}
+
+
 void pApplication::tbadd( const string& tb_name, string tb_namelst, const string& tb_order, int tb_num_of_rows )
 {
 	// Add a row to a table
@@ -3133,12 +3148,16 @@ void pApplication::load_keylist( pPanel * p  )
 
 void pApplication::rdisplay( const string& msg, bool subVars )
 {
+	// Display line mode output on the screen.  Cancel any screen refreshes as this will be done
+	// as part of returning to full screen mode.
+
 	RC = 0 ;
 
 	lineBuffer = subVars ? sub_vars( msg ) : msg ;
 
-	lineOutDone    = true ;
-	lineOutPending = true ;
+	lineOutDone    = true  ;
+	lineOutPending = true  ;
+	refreshlScreen = false ;
 	wait_event() ;
 	lineOutPending = false ;
 }
@@ -3662,6 +3681,24 @@ void pApplication::info()
 		llog( "-", "Application started with NEWPOOL option"<< endl ) ;
 	}
 	llog( "-", "*************************************************************************************************************" << endl ) ;
+}
+
+
+void pApplication::loadCommandTable()
+{
+	//  Load application command table in the application task so it can be unloaded on task termination
+	//  This is done during SELECT processing so LIBDEFs must be active at this point if being used
+	//  to find the table
+
+	p_tableMGR->loadTable( errBlock, get_applid() + "CMDS", NOWRITE, get_search_path( s_ZTLIB ), SHARE ) ;
+}
+
+
+void pApplication::unloadCommandTable()
+{
+	//  Unload application command table
+
+	p_tableMGR->destroyTable( errBlock, get_applid() + "CMDS" ) ;
 }
 
 
