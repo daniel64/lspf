@@ -70,33 +70,34 @@ void PPSP01A::application()
 
 	set_appdesc( "General utilities to display logs, PF Key settings, variables, etc." ) ;
 
-	string LOGTYPE ;
-	string ZALOG   ;
-	string ZSLOG   ;
-	string LOGLOC  ;
+	string logtype ;
+	string zalog   ;
+	string zslog   ;
+	string logloc  ;
 	string w1      ;
 	string w2      ;
 
 	w1 = upper( word( PARM, 1 ) ) ;
 	w2 = upper( word( PARM, 2 ) ) ;
 
-	vdefine( "ZCMD ZVERB ZROW1 ZROW2 ZAREA ZSHADOW ZAREAT ZSCROLLA", &zcmd, &zverb, &ZROW1, &ZROW2, &ZAREA, &ZSHADOW, &ZAREAT, &ZSCROLLA ) ;
-	vdefine( "ZSCROLLN ZAREAW ZAREAD", &ZSCROLLN, &ZAREAW, &ZAREAD ) ;
-	vdefine( "ZALOG ZSLOG LOGTYPE LOGLOC ZCOL1", &ZALOG, &ZSLOG, &LOGTYPE, &LOGLOC, &ZCOL1 ) ;
+	vdefine( "ZCMD ZVERB ZROW1 ZROW2", &zcmd, &zverb, &zrow1, &zrow2 ) ;
+	vdefine( "ZAREA ZSHADOW ZAREAT ZSCROLLA", &zarea, &zshadow, &zareat, &zscrolla ) ;
+	vdefine( "ZSCROLLN ZAREAW ZAREAD", &zscrolln, &zareaw, &zaread ) ;
+	vdefine( "ZALOG ZSLOG LOGTYPE LOGLOC ZCOL1", &zalog, &zslog, &logtype, &logloc, &zcol1 ) ;
 
 	vget( "ZALOG ZSLOG", PROFILE ) ;
 
 	if ( PARM == "AL" )
 	{
-		LOGTYPE = "Application" ;
-		LOGLOC  = ZALOG   ;
-		show_log( ZALOG ) ;
+		logtype = "Application" ;
+		logloc  = zalog   ;
+		show_log( zalog ) ;
 	}
 	else if ( PARM == "SL" )
 	{
-		LOGTYPE = "LSPF"  ;
-		LOGLOC  = ZSLOG   ;
-		show_log( ZSLOG ) ;
+		logtype = "LSPF"  ;
+		logloc  = zslog   ;
+		show_log( zslog ) ;
 	}
 	else if ( w1   == "DSL"     ) { dsList( word( PARM, 2 ) ) ; }
 	else if ( PARM == "GOPTS"   ) { lspfSettings()       ; }
@@ -154,12 +155,13 @@ void PPSP01A::show_log( const string& fileName )
 	vget( "ZSCRMAXW ZSCRMAXD", SHARED ) ;
 	pquery( "PPSP01AL", "ZAREA", "ZAREAT", "ZAREAW", "ZAREAD" ) ;
 
-	startCol     = 48     ;
-	task         = 0      ;
-	showDate     = false  ;
-	showTime     = true   ;
-	showMod      = true   ;
-	showTask     = true   ;
+	zasize   = zareaw * zaread  ;
+	startCol = 48     ;
+	task     = 0      ;
+	showDate = false  ;
+	showTime = true   ;
+	showMod  = true   ;
+	showTask = true   ;
 
 	read_file( fileName ) ;
 	fill_dynamic_area()   ;
@@ -172,9 +174,9 @@ void PPSP01A::show_log( const string& fileName )
 
 	while ( true )
 	{
-		ZCOL1 = d2ds( startCol-47, 7 ) ;
-		ZROW1 = d2ds( firstLine, 8 )   ;
-		ZROW2 = d2ds( maxLines, 8 )    ;
+		zcol1 = d2ds( startCol-47, 7 ) ;
+		zrow1 = d2ds( firstLine, 8 )   ;
+		zrow2 = d2ds( maxLines, 8 )    ;
 		if ( MSG == "" ) { zcmd = "" ; }
 
 		display( "PPSP01AL", MSG, "ZCMD" ) ;
@@ -295,9 +297,9 @@ void PPSP01A::show_log( const string& fileName )
 		if ( zverb == "DOWN" )
 		{
 			rebuildZAREA = true ;
-			if ( ZSCROLLA == "MAX" )
+			if ( zscrolla == "MAX" )
 			{
-				firstLine = maxLines - ZAREAD ;
+				firstLine = maxLines - zaread ;
 				if ( firstLine < 0 ) firstLine = 0 ;
 			}
 			else
@@ -307,14 +309,14 @@ void PPSP01A::show_log( const string& fileName )
 				{
 					if ( excluded[ firstLine ] ) continue ;
 					t++ ;
-					if ( t > ZSCROLLN ) break ;
+					if ( t > zscrolln ) break ;
 				}
 			}
 		}
 		else if ( zverb == "UP" )
 		{
 			rebuildZAREA = true ;
-			if ( ZSCROLLA == "MAX" )
+			if ( zscrolla == "MAX" )
 			{
 				firstLine = 0 ;
 			}
@@ -325,46 +327,46 @@ void PPSP01A::show_log( const string& fileName )
 				{
 					if ( excluded[ firstLine ] ) continue ;
 					t++ ;
-					if ( t > ZSCROLLN ) break ;
+					if ( t > zscrolln ) break ;
 				}
 			}
 		}
 		else if ( zverb == "LEFT" )
 		{
 			rebuildZAREA = true ;
-			if ( ZSCROLLA == "MAX" )
+			if ( zscrolla == "MAX" )
 			{
 				startCol = 48 ;
 			}
 			else
 			{
-				startCol = startCol - ZSCROLLN ;
+				startCol = startCol - zscrolln ;
 				if ( startCol < 48 ) { startCol = 48 ; }
 			}
 		}
 		else if ( zverb == "RIGHT" )
 		{
 			rebuildZAREA = true ;
-			if ( ZSCROLLA == "MAX" )
+			if ( zscrolla == "MAX" )
 			{
-				startCol = maxCol - ZAREAW + 41 ;
+				startCol = maxCol - zareaw + 41 ;
 			}
 			else
 			{
-				if ( ZSCROLLA == "CSR" )
+				if ( zscrolla == "CSR" )
 				{
-					if ( ZSCROLLN == lprefix )
+					if ( zscrolln == lprefix )
 					{
-						startCol += ZAREAW - lprefix ;
+						startCol += zareaw - lprefix ;
 					}
 					else
 					{
-						startCol += ZSCROLLN - lprefix ;
+						startCol += zscrolln - lprefix ;
 					}
 				}
 				else
 				{
-					startCol += ZSCROLLN ;
+					startCol += zscrolln ;
 				}
 			}
 			if ( startCol < 1 ) { startCol = 1 ; }
@@ -383,7 +385,7 @@ void PPSP01A::read_file( const string& fileName )
 
 	data.clear()  ;
 
-	data.push_back( centre( " Top of Log ", ZAREAW, '*' ) ) ;
+	data.push_back( centre( " Top of Log ", zareaw, '*' ) ) ;
 	excluded.push_back( false ) ;
 	while ( getline( fin, inLine ) )
 	{
@@ -392,7 +394,7 @@ void PPSP01A::read_file( const string& fileName )
 		if ( maxCol < inLine.size() ) { maxCol = inLine.size() ; }
 	}
 	maxCol++ ;
-	data.push_back( centre( " Bottom of Log ", ZAREAW, '*' ) ) ;
+	data.push_back( centre( " Bottom of Log ", zareaw, '*' ) ) ;
 	excluded.push_back( false ) ;
 	maxLines = data.size() ;
 	fin.close() ;
@@ -401,11 +403,14 @@ void PPSP01A::read_file( const string& fileName )
 
 bool PPSP01A::file_has_changed( const string& fileName, int& fsize )
 {
-	struct stat results   ;
+	struct stat results ;
 
 	lstat( fileName.c_str(), &results ) ;
 
-	if ( fsize == 0 ) { fsize = results.st_size ; }
+	if ( fsize == 0 )
+	{
+		fsize = results.st_size ;
+	}
 	else if ( fsize != results.st_size )
 	{
 		fsize = results.st_size ;
@@ -465,11 +470,14 @@ void PPSP01A::fill_dynamic_area()
 {
 	int p ;
 
-	ZAREA   = "" ;
-	ZSHADOW = "" ;
 	string s     ;
-	string s2( ZAREAW, N_TURQ ) ;
+	string s2( zareaw, N_TURQ ) ;
 	string t     ;
+
+	zarea   = "" ;
+	zshadow = "" ;
+	zarea.reserve( zasize )   ;
+	zshadow.reserve( zasize ) ;
 
 	int l = 0 ;
 
@@ -477,31 +485,33 @@ void PPSP01A::fill_dynamic_area()
 	{
 		if ( excluded[ k ] ) continue ;
 		l++ ;
-		if ( l > ZAREAD ) break ;
+		if ( l > zaread ) break ;
 		if ( k == 0 || k == maxLines-1 )
 		{
-			ZAREA   = ZAREA + substr( data[ k ], 1, ZAREAW ) ;
-			ZSHADOW = ZSHADOW + s2 ;
+			zarea   += substr( data[ k ], 1, zareaw ) ;
+			zshadow += s2 ;
 		}
 		else
 		{
 			t = "" ;
-			s = string( ZAREAW, N_GREEN ) ;
+			s = string( zareaw, N_GREEN ) ;
 			p = 0 ;
 			if ( showDate ) { t = data[ k ].substr( 0,  12 )     ; s.replace( p, 12, 12, N_TURQ   ) ; p = 12     ; }
 			if ( showTime ) { t = t + data[ k ].substr( 12, 16 ) ; s.replace( p, 16, 16, N_TURQ   ) ; p = p + 16 ; }
 			if ( showMod  ) { t = t + data[ k ].substr( 28, 11 ) ; s.replace( p, 11, 11, N_YELLOW ) ; p = p + 11 ; }
 			t += data[ k ].substr( 39, 8 ) ;
-			t += substr( data[ k ], startCol, ZAREAW ) ;
-			t.resize( ZAREAW, ' ' ) ;
-			ZAREA   += t ;
+			t += substr( data[ k ], startCol, zareaw ) ;
+			t.resize( zareaw, ' ' ) ;
+			zarea += t ;
 			s.replace( p, 5, 5, N_WHITE ) ;
 			p += 6 ;
 			s.replace( p, 2, 2, N_TURQ  ) ;
-			ZSHADOW += s ;
+			zshadow += s ;
 			lprefix  = p + 2 ;
 		}
 	}
+	zarea.resize( zasize, ' ' ) ;
+	zshadow.resize( zasize, N_TURQ ) ;
 }
 
 
@@ -2340,12 +2350,17 @@ void PPSP01A::showTasks()
 		{
 			if ( SEL == "K")
 			{
-				retc = kill( ds2d(PID), 9 ) ;
+				retc = kill( ds2d(PID), SIGKILL ) ;
 				llog( "I", "Kill signal sent to PID " << PID << ".  RC=" << retc << endl ) ;
+			}
+			if ( SEL == "T")
+			{
+				retc = kill( ds2d(PID), SIGTERM ) ;
+				llog( "I", "Terminate signal sent to PID " << PID << ".  RC=" << retc << endl ) ;
 			}
 			else if ( SEL == "S")
 			{
-				select( "PGM(PCMD0A) PARM( systemctl status "+ PID +" )" ) ;
+				select( "PGM(PCMD0A) PARM(systemctl status "+ PID +" )" ) ;
 			}
 			if ( ZTDSELS > 1 )
 			{

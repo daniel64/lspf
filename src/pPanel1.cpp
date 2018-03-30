@@ -751,6 +751,7 @@ void pPanel::display_panel_init( errblock& err )
 
 	set_pfpressed( "" ) ;
 	putDialogueVar( err, "ZPRIM", "" ) ;
+	if ( err.error() ) { return ; }
 
 	err.setRC( 0 ) ;
 	do

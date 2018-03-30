@@ -362,11 +362,11 @@ string space( const string& s, unsigned int n, char c )
 
 string strip( string s, char opt, char c )
 {
-	if ( (opt == 'B') || (opt == 'L') )
+	if ( opt == 'B' || opt == 'L' )
 	{
 		s.erase( 0, s.find_first_not_of( c ) ) ;
 	}
-	if ( (opt == 'B') || (opt == 'T') )
+	if ( opt == 'B' || opt == 'T' )
 	{
 		s.erase( s.find_last_not_of( c ) + 1 ) ;
 	}
@@ -772,7 +772,7 @@ int ds2d( const string& s )
 
 string xs2bs( const string& s )
 {
-	string reslt("") ;
+	string reslt = "" ;
 
 	reslt.reserve( 4*s.size() ) ;
 
@@ -814,7 +814,7 @@ string xs2cs( const string& s )
 	int j ;
 	int k ;
 
-	string reslt("") ;
+	string reslt = "" ;
 	reslt.reserve( s.size()/2 ) ;
 
 	j = 0 ;
@@ -928,7 +928,7 @@ bool findword( const string& s1, const string& s2 )
 int countc( const string& s, char c )
 {
 	unsigned int l = s.length() ;
-	int n( 0 ) ;
+	int n = 0 ;
 
 	for ( unsigned int i = 0 ; i < l ; i++ )
 	{
@@ -1444,13 +1444,31 @@ string mergepaths( const string& p1, const string& p2 )
 {
 	if      ( p1 == "" ) { return p2 ; }
 	else if ( p2 == "" ) { return p1 ; }
-	else                 { return p1 + ':' + p2 ; }
+
+	return p1 + ':' + p2 ;
 }
 
 
 string mergepaths( const string& p1, const string& p2, const string& p3 )
 {
 	return mergepaths( mergepaths( p1, p2 ), p3 ) ;
+}
+
+
+string mergepaths( const string& p1, const char* c1 )
+{
+	if ( c1 )
+	{
+		return mergepaths( p1, string( c1 ) ) ;
+	}
+
+	return p1 ;
+}
+
+
+string mergepaths( const string& p1, const char* c1, const char* c2 )
+{
+	return mergepaths( mergepaths( p1, c1 ), c2 ) ;
 }
 
 
@@ -1475,7 +1493,7 @@ string parseString( errblock& err, string& s, string p )
 
 	err.setRC( 0 ) ;
 
-	p = iupper( trim( p ) ) ;
+	iupper( trim( p ) ) ;
 
 	if ( p.size() == 0 )
 	{
@@ -1591,7 +1609,7 @@ string extractKWord( errblock& err, string& s, string p )
 
 	err.setRC( 0 ) ;
 
-	p = iupper( trim( p ) ) ;
+	iupper( trim( p ) ) ;
 
 	if ( p.size() == 0 )
 	{

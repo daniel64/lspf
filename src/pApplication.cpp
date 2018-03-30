@@ -19,7 +19,7 @@
 
 void ispexeci( pApplication *, const string&, errblock& ) ;
 
-map<int, void *>pApplication::ApplUserData  ;
+map<int, void *>pApplication::ApplUserData ;
 
 pApplication::pApplication()
 {
@@ -57,7 +57,7 @@ pApplication::pApplication()
 	suspend                = true   ;
 	SEL                    = false  ;
 	selPanel               = false  ;
-	setMSG                 = false  ;
+	setMessage             = false  ;
 	lineBuffer             = ""     ;
 	reffield               = ""     ;
 	PARM                   = ""     ;
@@ -101,14 +101,14 @@ pApplication::~pApplication()
 }
 
 
-void pApplication::startSelect( selobj& s )
+void pApplication::startSelect( selobj& sel )
 {
-	zappname = s.PGM     ;
-	passlib  = s.PASSLIB ;
-	newappl  = s.NEWAPPL ;
-	suspend  = s.SUSPEND ;
-	PARM     = s.PARM    ;
-	selPanel = s.selPanel() ;
+	zappname = sel.PGM   ;
+	passlib  = sel.PASSLIB ;
+	newappl  = sel.NEWAPPL ;
+	suspend  = sel.SUSPEND ;
+	PARM     = sel.PARM  ;
+	selPanel = sel.selPanel() ;
 }
 
 
@@ -325,15 +325,15 @@ void pApplication::set_msg1( const slmsg& t, const string& msgid, bool Immed )
 
 	// MSG1 and MSGID1 are used to store messages issued by the setmsg() service after variable substitution.
 
-	MSG1   = t     ;
-	MSGID1 = msgid ;
-	setMSG = true  ;
+	MSG1       = t     ;
+	MSGID1     = msgid ;
+	setMessage = true  ;
 
 	if ( Immed && currPanel )
 	{
 		currPanel->set_panel_msg( MSG1, MSGID1 ) ;
 		currPanel->display_msg( errBlock ) ;
-		setMSG = false ;
+		setMessage = false ;
 	}
 }
 
@@ -382,7 +382,7 @@ void pApplication::toggle_fscreen()
 
 void pApplication::display( string p_name, const string& p_msg, const string& p_cursor, int p_curpos )
 {
-	string ZZVERB ;
+	string zzverb ;
 
 	const string e1 = "Error during DISPLAY of panel " + p_name ;
 	const string e2 = "Error processing )INIT section of panel "   ;
@@ -439,24 +439,7 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 
 	currPanel = panelList[ p_name ] ;
 
-	if ( setMSG )
-	{
-		if ( !ControlNonDispl )
-		{
-			currPanel->set_panel_msg( MSG1, MSGID1 ) ;
-			setMSG = false ;
-		}
-	}
-	else if ( p_msg != "" )
-	{
-		get_message( p_msg ) ;
-		if ( RC > 0 ) { return ; }
-		currPanel->set_panel_msg( MSG, MSGID ) ;
-	}
-	else
-	{
-		currPanel->clear_msg() ;
-	}
+	currPanel->msgid = p_msg ;
 
 	panelid = p_name ;
 	currPanel->set_cursor( p_cursor, p_curpos ) ;
@@ -485,20 +468,33 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 			checkRCode( errBlock ) ;
 			return ;
 		}
-		if ( currPanel->msgid != "" )
-		{
-			get_message( currPanel->msgid ) ;
-			if ( RC > 0 ) { return ; }
-			currPanel->set_panel_msg( MSG, MSGID ) ;
-		}
 		currPanel->update_field_values( errBlock ) ;
-		RC = errBlock.RC ;
 		if ( errBlock.error() )
 		{
 			errBlock.setcall( e6 + p_name ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
+		RC = errBlock.getRC() ;
+	}
+
+	if ( setMessage )
+	{
+		if ( !ControlNonDispl )
+		{
+			currPanel->set_panel_msg( MSG1, MSGID1 ) ;
+			setMessage = false ;
+		}
+	}
+	else if ( currPanel->msgid != "" )
+	{
+		get_message( currPanel->msgid ) ;
+		if ( RC > 0 ) { return ; }
+		currPanel->set_panel_msg( MSG, MSGID ) ;
+	}
+	else
+	{
+		currPanel->clear_msg() ;
 	}
 
 	set_screenName() ;
@@ -540,15 +536,15 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 			return ;
 		}
 
-		ZZVERB = p_poolMGR->get( errBlock, "ZVERB", SHARED ) ;
+		zzverb = p_poolMGR->get( errBlock, "ZVERB", SHARED ) ;
 		if ( !errBlock.RC0() )
 		{
 			errBlock.setcall( e1, "PSYE015L", "GET", "ZVERB" ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
-		if ( ZZVERB == "RETURN" ) { propagateEnd = true ; }
-		if ( findword( ZZVERB, "END EXIT RETURN" ) ) { RC = 8 ; return ; }
+		if ( zzverb == "RETURN" ) { propagateEnd = true ; }
+		if ( findword( zzverb, "END EXIT RETURN" ) ) { RC = 8 ; return ; }
 
 		if ( currPanel->msgid == "" ) { break ; }
 
@@ -737,6 +733,7 @@ void pApplication::qlibdef( const string& lib, const string& type_var, const str
 		{
 			errBlock.setcall( e1 ) ;
 			checkRCode( errBlock ) ;
+			return ;
 		}
 	}
 
@@ -747,6 +744,7 @@ void pApplication::qlibdef( const string& lib, const string& type_var, const str
 		{
 			errBlock.setcall( e1 ) ;
 			checkRCode( errBlock ) ;
+			return ;
 		}
 	}
 }
@@ -817,12 +815,12 @@ void pApplication::set_screenName()
 
 string pApplication::get_zsel()
 {
-	string ZSEL ;
+	string zsel ;
 
-	ZSEL = p_poolMGR->get( errBlock, "ZSEL" ) ;
+	zsel = p_poolMGR->get( errBlock, "ZSEL" ) ;
 	p_poolMGR->put( errBlock, "ZSEL", "" ) ;
 
-	return ZSEL ;
+	return zsel ;
 }
 
 
@@ -1168,6 +1166,7 @@ void pApplication::vmask( const string& name, const string& type, const string& 
 	{
 		errBlock.setcall( e1 ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -1195,6 +1194,7 @@ void pApplication::vreplace( const string& name, const string& s_val )
 	{
 		errBlock.setcall( "VREPLACE failed" ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -1211,6 +1211,7 @@ void pApplication::vreplace( const string& name, int i_val )
 	{
 		errBlock.setcall( "VREPLACE failed" ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -1371,7 +1372,7 @@ void pApplication::vcopy( const string& var, string& val, vcMODE mode )
 			{
 				errBlock.setcall( e1 ) ;
 				checkRCode( errBlock ) ;
-				break ;
+				return ;
 			}
 		}
 		else if ( errBlock.RC8() )
@@ -1388,6 +1389,7 @@ void pApplication::vcopy( const string& var, string& val, vcMODE mode )
 		{
 			errBlock.setcall( e1 ) ;
 			checkRCode( errBlock ) ;
+			return ;
 		}
 	}
 	RC = errBlock.getRC() ;
@@ -1433,6 +1435,7 @@ void pApplication::vcopy( const string& var, string * & p_val, vcMODE mode )
 			{
 				errBlock.setcall( e1 ) ;
 				checkRCode( errBlock ) ;
+				return ;
 			}
 		}
 		else if ( errBlock.RC8() )
@@ -1442,6 +1445,7 @@ void pApplication::vcopy( const string& var, string * & p_val, vcMODE mode )
 			{
 				errBlock.setcall( e1 ) ;
 				checkRCode( errBlock ) ;
+				return ;
 			}
 		}
 		else
@@ -1454,6 +1458,7 @@ void pApplication::vcopy( const string& var, string * & p_val, vcMODE mode )
 	case MOVE:
 		errBlock.setcall( e1, "PSYE022B" ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -1972,6 +1977,7 @@ void pApplication::tbadd( const string& tb_name, string tb_namelst, const string
 	{
 		errBlock.setcall( e1 ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -1993,6 +1999,7 @@ void pApplication::tbbottom( const string& tb_name, const string& tb_savenm, con
 	{
 		errBlock.setcall( "TBBOTTOM error" ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -2028,6 +2035,7 @@ void pApplication::tbclose( const string& tb_name, const string& tb_newname, con
 	{
 		errBlock.setcall( "TBCLOSE error" ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -2114,11 +2122,9 @@ void pApplication::tbcreate( const string& tb_name, string keys, string names, t
 	{
 		errBlock.setcall( e1 ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
-	else
-	{
-		tablesOpen.insert( tb_name ) ;
-	}
+	tablesOpen.insert( tb_name ) ;
 	RC = errBlock.getRC() ;
 }
 
@@ -2139,6 +2145,7 @@ void pApplication::tbdelete( const string& tb_name )
 	{
 		errBlock.setcall( "TBDELETE error" ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -2174,7 +2181,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 
 	bool tbscan  ;
 
-	string ZZVERB ;
+	string zzverb ;
 	string URID   ;
 	string asURID ;
 	string s      ;
@@ -2290,25 +2297,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 
 	currtbPanel = currPanel ;
 
-	if ( setMSG )
-	{
-		if ( !ControlNonDispl && p_name != "" )
-		{
-			currPanel->set_panel_msg( MSG1, MSGID1 ) ;
-			setMSG = false ;
-		}
-	}
-	else if ( p_msg != "" )
-	{
-		get_message( p_msg ) ;
-		if ( RC > 0 ) { RC = 12 ; return ; }
-		currPanel->set_panel_msg( MSG, MSGID ) ;
-	}
-	else
-	{
-		currPanel->clear_msg() ;
-	}
-
+	currPanel->msgid = p_msg ;
 	currPanel->set_cursor( p_cursor, p_curpos ) ;
 
 	currPanel->tb_set_autosel( p_autosel == "YES" || p_autosel == "" ) ;
@@ -2324,11 +2313,24 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		checkRCode( errBlock ) ;
 		return ;
 	}
-	if ( currPanel->msgid != "" )
+
+	if ( setMessage )
+	{
+		if ( !ControlNonDispl && p_name != "" )
+		{
+			currPanel->set_panel_msg( MSG1, MSGID1 ) ;
+			setMessage = false ;
+		}
+	}
+	else if ( currPanel->msgid != "" )
 	{
 		get_message( currPanel->msgid ) ;
-		if ( RC > 0 ) { return ; }
+		if ( RC > 0 ) { RC = 12 ; return ; }
 		currPanel->set_panel_msg( MSG, MSGID ) ;
+	}
+	else
+	{
+		currPanel->clear_msg() ;
 	}
 
 	if ( p_name != "" )
@@ -2393,6 +2395,11 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		if ( currPanel->tb_curidx > -1 )
 		{
 			URID = funcPOOL.get( errBlock, 0, ".ZURID."+d2ds( currPanel->tb_curidx ), NOCHECK ) ;
+			if ( errBlock.error() )
+			{
+				checkRCode( errBlock ) ;
+				return ;
+			}
 			tbskip( tb_name, 0, "", "", URID, "NOREAD", "ZCURINX" ) ;
 		}
 		else
@@ -2422,15 +2429,15 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 			checkRCode( errBlock ) ;
 			return ;
 		}
-		ZZVERB = p_poolMGR->get( errBlock, "ZVERB" ) ;
+		zzverb = p_poolMGR->get( errBlock, "ZVERB" ) ;
 		if ( !errBlock.RC0() )
 		{
 			errBlock.setcall( e1, "PSYE015L", "GET", "ZVERB" ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
-		if ( ZZVERB == "RETURN" ) { propagateEnd = true ; }
-		if ( findword( ZZVERB, "END EXIT RETURN" ) ) { RC = 8 ; return ; }
+		if ( zzverb == "RETURN" ) { propagateEnd = true ; }
+		if ( findword( zzverb, "END EXIT RETURN" ) ) { RC = 8 ; return ; }
 
 		if ( currPanel->msgid != "" )
 		{
@@ -2452,9 +2459,9 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 			}
 			continue ;
 		}
-		if ( ZTDSELS == 0 && ( ZZVERB == "UP" || ZZVERB == "DOWN" ) )
+		if ( ZTDSELS == 0 && ( zzverb == "UP" || zzverb == "DOWN" ) )
 		{
-			if ( ZZVERB == "UP" )
+			if ( zzverb == "UP" )
 			{
 				zscrolla = p_poolMGR->get( errBlock, "ZSCROLLA", SHARED ) ;
 				if ( zscrolla == "MAX" )
@@ -2502,8 +2509,26 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 	if ( ZTDSELS == 0 )
 	{
 		tbtop( tb_name ) ;
-		if ( p_crp_name != "" ) { funcPOOL.put( errBlock, p_crp_name, 0  ) ; }
-		if ( p_rowid_nm != "" ) { funcPOOL.put( errBlock, p_rowid_nm, "" ) ; }
+		if ( p_crp_name != "" )
+		{
+			funcPOOL.put( errBlock, p_crp_name, 0 ) ;
+			if ( errBlock.error() )
+			{
+				errBlock.setcall( e1 ) ;
+				checkRCode( errBlock ) ;
+				return ;
+			}
+		}
+		if ( p_rowid_nm != "" )
+		{
+			funcPOOL.put( errBlock, p_rowid_nm, "" ) ;
+			if ( errBlock.error() )
+			{
+				errBlock.setcall( e1 ) ;
+				checkRCode( errBlock ) ;
+				return ;
+			}
+		}
 	}
 
 	currPanel->resetAttrs() ;
@@ -2527,11 +2552,9 @@ void pApplication::tbend( const string& tb_name )
 	{
 		errBlock.setcall( "TBEND error" ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
-	else
-	{
-		tablesOpen.erase( tb_name ) ;
-	}
+	tablesOpen.erase( tb_name ) ;
 	RC = errBlock.getRC() ;
 }
 
@@ -2561,6 +2584,7 @@ void pApplication::tberase( const string& tb_name, string tb_path )
 	{
 		errBlock.setcall( e1 ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -2582,6 +2606,7 @@ void pApplication::tbexist( const string& tb_name )
 	{
 		errBlock.setcall( "TBEXISTS error" ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -2597,6 +2622,7 @@ void pApplication::tbget( const string& tb_name, const string& tb_savenm, const 
 	{
 		errBlock.setcall( "TBGET error" ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -2634,6 +2660,7 @@ void pApplication::tbmod( const string& tb_name, string tb_namelst, const string
 	{
 		errBlock.setcall( e1 ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -2676,8 +2703,9 @@ void pApplication::tbopen( const string& tb_name, tbWRITE m_WRITE, string m_path
 	{
 		errBlock.setcall( e1 ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
-	else if ( errBlock.RC0() )
+	if ( errBlock.RC0() )
 	{
 		tablesOpen.insert( tb_name ) ;
 	}
@@ -2721,6 +2749,7 @@ void pApplication::tbput( const string& tb_name, string tb_namelst, const string
 	{
 		errBlock.setcall( e1 ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -2735,6 +2764,7 @@ void pApplication::tbquery( const string& tb_name, const string& tb_keyn, const 
 	{
 		errBlock.setcall( "TBQUERY error" ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -2749,6 +2779,7 @@ void pApplication::tbsarg( const string& tb_name, const string& tb_namelst, cons
 	{
 		errBlock.setcall( "TBSARG error" ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -2786,6 +2817,7 @@ void pApplication::tbsave( const string& tb_name, const string& tb_newname, cons
 	{
 		errBlock.setcall( e1 ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -2800,6 +2832,7 @@ void pApplication::tbscan( const string& tb_name, const string& tb_namelst, cons
 	{
 		errBlock.setcall( "TBSCAN error" ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -2815,6 +2848,7 @@ void pApplication::tbskip( const string& tb_name, int num, const string& tb_save
 	{
 		errBlock.setcall( "TBSKIP error" ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -2837,6 +2871,7 @@ void pApplication::tbsort( const string& tb_name, string tb_fields )
 	{
 		errBlock.setcall( "TBSORT error" ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -2852,6 +2887,7 @@ void pApplication::tbtop( const string& tb_name )
 	{
 		errBlock.setcall( "TBTOP error" ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -2866,6 +2902,7 @@ void pApplication::tbvclear( const string& tb_name )
 	{
 		errBlock.setcall( "TBVCLEAR error" ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -3169,13 +3206,18 @@ void pApplication::setmsg( const string& msg, msgSET sType )
 
 	RC = 0 ;
 
-	if ( ( sType == COND ) && setMSG ) { return ; }
+	if ( ( sType == COND ) && setMessage ) { return ; }
 
 	get_message( msg ) ;
-	if ( RC > 0 ) { RC = 20 ; return ; }
-	MSG1   = MSG   ;
-	MSGID1 = msg   ;
-	setMSG = true  ;
+	if ( RC > 0 )
+	{
+		RC = 20 ;
+		return  ;
+	}
+
+	MSG1       = MSG   ;
+	MSGID1     = msg   ;
+	setMessage = true  ;
 }
 
 
@@ -3241,27 +3283,74 @@ void pApplication::getmsg( const string& msg, const string& smsg, const string& 
 		return ;
 	}
 
-	if ( smsg != "" ) { funcPOOL.put( errBlock, smsg, tmsg.smsg ) ; }
-	if ( lmsg != "" ) { funcPOOL.put( errBlock, lmsg, tmsg.lmsg ) ; }
+	if ( smsg != "" )
+	{
+		funcPOOL.put( errBlock, smsg, tmsg.smsg ) ;
+		if ( errBlock.error() )
+		{
+			errBlock.seterror( e1 ) ;
+			checkRCode( errBlock )  ;
+			return ;
+		}
+	}
+	if ( lmsg != "" )
+	{
+		funcPOOL.put( errBlock, lmsg, tmsg.lmsg ) ;
+		if ( errBlock.error() )
+		{
+			errBlock.seterror( e1 ) ;
+			checkRCode( errBlock )  ;
+			return ;
+		}
+	}
 	if (  alm != "" )
 	{
 		funcPOOL.put( errBlock, alm, tmsg.alm ? "YES" : "NO" ) ;
+		if ( errBlock.error() )
+		{
+			errBlock.seterror( e1 ) ;
+			checkRCode( errBlock )  ;
+			return ;
+		}
 	}
 	if (  typ != "" )
 	{
 		switch ( tmsg.type )
 		{
-			case IMT: funcPOOL.put( errBlock, typ, "NOTIFY" )   ;
-				  break ;
-			case WMT: funcPOOL.put( errBlock, typ, "WARNING" )  ;
-				  break ;
-			case AMT: funcPOOL.put( errBlock, typ, "CRITICAL" ) ;
+		case IMT: funcPOOL.put( errBlock, typ, "NOTIFY" )   ;
+				break ;
+
+		case WMT: funcPOOL.put( errBlock, typ, "WARNING" )  ;
+				break ;
+
+		case AMT: funcPOOL.put( errBlock, typ, "CRITICAL" ) ;
+		}
+		if ( errBlock.error() )
+		{
+			errBlock.seterror( e1 ) ;
+			checkRCode( errBlock )  ;
+			return ;
 		}
 	}
-	if ( hlp  != "" ) { funcPOOL.put( errBlock, hlp, tmsg.hlp ) ; }
+	if ( hlp != "" )
+	{
+		funcPOOL.put( errBlock, hlp, tmsg.hlp ) ;
+		if ( errBlock.error() )
+		{
+			errBlock.seterror( e1 ) ;
+			checkRCode( errBlock )  ;
+			return ;
+		}
+	}
 	if ( wndo != "" )
 	{
 		funcPOOL.put( errBlock, wndo, tmsg.resp ? "RESP" : "NORESP" ) ;
+		if ( errBlock.error() )
+		{
+			errBlock.seterror( e1 ) ;
+			checkRCode( errBlock )  ;
+			return ;
+		}
 	}
 	RC = errBlock.getRC() ;
 }
@@ -3687,8 +3776,8 @@ void pApplication::info()
 void pApplication::loadCommandTable()
 {
 	//  Load application command table in the application task so it can be unloaded on task termination
-	//  This is done during SELECT processing so LIBDEFs must be active at this point if being used
-	//  to find the table
+	//  This is done during SELECT processing so LIBDEFs must be active with PASSLIB specified,
+	//  if being used to find the table.
 
 	p_tableMGR->loadTable( errBlock, get_applid() + "CMDS", NOWRITE, get_search_path( s_ZTLIB ), SHARE ) ;
 }
@@ -3719,6 +3808,7 @@ void pApplication::ispexec( const string& s )
 	{
 		errBlock.setcall( "ISPEXEC interface error" ) ;
 		checkRCode( errBlock ) ;
+		return ;
 	}
 	errBlock.clearsrc() ;
 }

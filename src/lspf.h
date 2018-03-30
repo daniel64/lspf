@@ -31,10 +31,10 @@
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
-#define LSPF_VERSION "1.0.1"
+#define LSPF_VERSION "1.0.2"
 #define LSPF_VERSION_MAJ 1
 #define LSPF_VERSION_REV 0
-#define LSPF_VERSION_MOD 1
+#define LSPF_VERSION_MOD 2
 
 typedef unsigned int uint ;
 
@@ -76,6 +76,8 @@ using namespace boost::posix_time;
 #define ZREXPATH        HOME "/rexx:" ZSYSPATH "/rexx"
 #define SLOG            HOME "/.lspf/lspflog"
 #define ALOG            HOME "/.lspf/appllog"
+//#define SLOG            "/root/.lspf/lspflog"
+//#define ALOG            "/root/.lspf/appllog"
 #define ZRFLTBL         "LSRPLIST"
 #define ZMAINPGM        "PMAIN0A"
 #define ZMAINPAN        "PMAINP01"

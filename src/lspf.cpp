@@ -108,7 +108,8 @@ unsigned int pLScreen::maxScreenId  = 0 ;
 unsigned int pLScreen::maxrow       = 0 ;
 unsigned int pLScreen::maxcol       = 0 ;
 
-WINDOW * pLScreen::OIA = NULL ;
+WINDOW * pLScreen::OIA       = NULL ;
+PANEL  * pLScreen::OIA_panel = NULL ;
 
 pLScreen     * pLScreen::currScreen = NULL ;
 pApplication * currAppl ;
@@ -1385,9 +1386,9 @@ void processZCOMMAND( uint row, uint col )
 		break  ;
 
 	case ZC_REFRESH:
-		currAppl->currPanel->refresh() ;
-		reset_prog_mode() ;
-		refresh() ;
+		currScrn->refresh_panel_stack() ;
+		currScrn->OIA_refresh() ;
+		redrawwin( stdscr ) ;
 		break  ;
 
 	case ZC_RETP:
@@ -1694,7 +1695,7 @@ void startApplication( selobj SEL, bool nScreen )
 	string libs  ;
 	string applid ;
 
-	bool setMSG ;
+	bool setMessage ;
 
 	err.clear() ;
 
@@ -1756,12 +1757,12 @@ void startApplication( selobj SEL, bool nScreen )
 	if ( nScreen && !createLogicalScreen() ) { return ; }
 
 	currAppl->store_scrname()   ;
-	spool  = currAppl->shrdPool ;
-	setMSG = currAppl->setMSG   ;
-	sname  = p_poolMGR->get( err, "ZSCRNAME", SHARED ) ;
-	if ( setMSG )
+	spool      = currAppl->shrdPool ;
+	setMessage = currAppl->setMessage ;
+	sname      = p_poolMGR->get( err, "ZSCRNAME", SHARED ) ;
+	if ( setMessage )
 	{
-		currAppl->setMSG = false ;
+		currAppl->setMessage = false ;
 	}
 
 	llog( "I", "Starting new application "+ SEL.PGM +" with parameters '"+ SEL.PARM +"'" << endl ) ;
@@ -1813,7 +1814,7 @@ void startApplication( selobj SEL, bool nScreen )
 		currAppl->set_ztusr( oldAppl->get_ztusr() ) ;
 	}
 
-	if ( setMSG )
+	if ( setMessage )
 	{
 		currAppl->set_msg1( oldAppl->getmsg1(), oldAppl->getmsgid1() ) ;
 	}
@@ -2043,7 +2044,7 @@ void terminateApplication()
 	bool abnormalEnd   ;
 	bool jumpEntered   ;
 	bool setCursorHome ;
-	bool setMSG        ;
+	bool setMessage    ;
 	bool lineOutput    ;
 
 	slmsg tMSG1 ;
@@ -2067,8 +2068,8 @@ void terminateApplication()
 
 	refList = ( currAppl->reffield == "#REFLIST" ) ;
 
-	setMSG = currAppl->setMSG ;
-	if ( setMSG ) { tMSGID1 = currAppl->getmsgid1() ; tMSG1 = currAppl->getmsg1() ; }
+	setMessage = currAppl->setMessage ;
+	if ( setMessage ) { tMSGID1 = currAppl->getmsgid1() ; tMSG1 = currAppl->getmsg1() ; }
 
 	jumpEntered  = currAppl->jumpEntered ;
 	propagateEnd = currAppl->propagateEnd && ( currScrn->application_stack_size() > 1 ) ;
@@ -2255,7 +2256,7 @@ void terminateApplication()
 			currAppl->ZRESULT = tRESULT ;
 		}
 		currAppl->SEL = false ;
-		if ( setMSG ) { currAppl->set_msg1( tMSG1, tMSGID1 ) ; }
+		if ( setMessage ) { currAppl->set_msg1( tMSG1, tMSGID1 ) ; }
 		currAppl->set_output_done( lineOutput ) ;
 		ResumeApplicationAndWait() ;
 		while ( currAppl->terminateAppl )
@@ -2277,7 +2278,7 @@ void terminateApplication()
 			terminateApplication() ;
 			if ( pLScreen::screensTotal == 0 ) { return ; }
 		}
-		if ( setMSG )
+		if ( setMessage )
 		{
 			currAppl->set_msg1( tMSG1, tMSGID1, true ) ;
 		}

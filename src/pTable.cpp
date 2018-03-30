@@ -387,7 +387,8 @@ void Table::tbbottom( errblock& err,
 void Table::tbdelete( errblock& err,
 		      fPOOL& funcPOOL )
 {
-	// Delete a row in the table.  For keyed tables, this is the row pointed to by the current contents of the key variables
+	// Delete a row in the table.
+	// For keyed tables, this is the row pointed to by the current contents of the key variables
 	// For non-keyed tables, this is the row pointed to by the CRP
 
 	// CRP always points to the row before the one deleted
@@ -438,7 +439,10 @@ void Table::tbdelete( errblock& err,
 void Table::tbexist( errblock& err,
 		     fPOOL& funcPOOL )
 {
-	// Test for the existance of a row in a keyed table using the current value of the key variables.
+	// Test for the existance of a row
+	// For keyed tables, use the current value of the key variables.
+	// For non-keyed tables, call not valid
+	//
 	// CRP is positioned at this row if found else TOP.
 
 	// RC = 0  Okay
@@ -468,7 +472,8 @@ void Table::tbget( errblock& err,
 		   string tb_noread,
 		   string tb_crp_name )
 {
-	// Access row in the table.  For table with keys, use the current value of the key in the dialogue variable.
+	// Access row in the table.
+	// For table with keys, use the current value of the key in the dialogue variable.
 	// For non-keyed tables, use the CRP
 
 	// RC = 0  Okay
@@ -542,7 +547,7 @@ void Table::tbmod( errblock& err,
 {
 	// Unconditionally update the current row in a table using the CRP.
 
-	// tbmod - update row if match found on key (keyed tables),  else perform tbadd at the bottom of the table
+	// tbmod - Update row if match found on key (keyed tables),  else perform tbadd at the bottom of the table
 	//         Non-keyed tables always same as a tbadd
 	//         CRP always points to the row added/updated
 
@@ -1349,6 +1354,11 @@ void Table::tbsort( errblock& err,
 
 void Table::tbtop( errblock& err )
 {
+	// Set the CRP to the top of the table, before the first row
+
+	// RC = 0   Normal completion
+	// RC = 20  Severe error
+
 	err.setRC( 0 ) ;
 	CRP = 0 ;
 }
@@ -1357,6 +1367,11 @@ void Table::tbtop( errblock& err )
 void Table::tbvclear( errblock& err,
 		      fPOOL& funcPOOL )
 {
+	// Set all dialogue variables corresponding to the table rows when table created, to null
+
+	// RC = 0   Normal completion
+	// RC = 20  Severe error
+
 	for ( unsigned int i = 1 ; i <= num_all ; i++ )
 	{
 		funcPOOL.put( err, word( tab_all, i ), "" ) ;
@@ -2090,7 +2105,7 @@ void tableMGR::qtabopen( errblock& err,
 
 	if ( tb_list.size() > 7 )
 	{
-		err.seterrid( "PSYE014T" ) ;
+		err.seterrid( "PSYE014T", 12 ) ;
 		return ;
 	}
 

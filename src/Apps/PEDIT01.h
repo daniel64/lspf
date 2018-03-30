@@ -1542,7 +1542,8 @@ class miblock
 	public:
 		string emacro    ;
 		string mfile     ;
-		string rxpath    ;
+		string rxpath1   ;
+		string rxpath2   ;
 		pApplication * editAppl ;
 		pApplication * macAppl  ;
 		string sttment   ;
@@ -1582,7 +1583,8 @@ class miblock
 	{
 		emacro    = ""    ;
 		mfile     = ""    ;
-		rxpath    = ""    ;
+		rxpath1   = ""    ;
+		rxpath2   = ""    ;
 		editAppl  = NULL  ;
 		macAppl   = NULL  ;
 		sttment   = ""    ;
@@ -2211,12 +2213,13 @@ class PEDIT01 : public pApplication
 		void createFile( uint, uint ) ;
 
 		void clearCursor() ;
+		void fixCursor()   ;
 		void storeCursor(  int, int=0 ) ;
 		void placeCursor(  int, int, int=0 ) ;
 		void placeCursor( uint, int, int=0 ) ;
-		void restoreCursor()   ;
 		void positionCursor()  ;
 		void moveColumn( int ) ;
+		void moveCursorEnter() ;
 
 		vector<iline * >::iterator getLineItr( int )  ;
 		vector<iline * >::iterator getLineItr( uint ) ;
@@ -2274,6 +2277,7 @@ class PEDIT01 : public pApplication
 		bool abendComplete       ;
 
 		bool cursorPlaceHome     ;
+		bool cursorFixed         ;
 		int  cursorPlaceUsing    ;
 		int  cursorPlaceURID     ;
 		int  cursorPlaceURIDO    ;

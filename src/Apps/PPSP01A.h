@@ -46,20 +46,21 @@ class PPSP01A : public pApplication
 		vector<string> data     ;
 		vector<bool>   excluded ;
 
-		string ZCOL1   ;
-		string ZROW1   ;
-		string ZROW2   ;
-		string ZAREA   ;
-		string ZAREAT  ;
-		int    ZAREAW  ;
-		int    ZAREAD  ;
-		string ZSHADOW ;
+		string zcol1   ;
+		string zrow1   ;
+		string zrow2   ;
+		string zarea   ;
+		string zareat  ;
+		int    zareaw  ;
+		int    zaread  ;
+		uint   zasize  ;
+		string zshadow ;
 		uint   maxCol  ;
 		int    task    ;
 		int    lprefix ;
 
-		string ZSCROLLA  ;
-		int    ZSCROLLN  ;
+		string zscrolla ;
+		int    zscrolln ;
 
 		string VARLST  ;
 		string SEL     ;
@@ -80,13 +81,13 @@ class PPSP01A : public pApplication
 		string zuser   ;
 		string zscreen ;
 
-		char   filteri  ;
-		char   filterx  ;
-		bool   Xon      ;
-		bool   showDate ;
-		bool   showTime ;
-		bool   showMod  ;
-		bool   showTask ;
+		char filteri  ;
+		char filterx  ;
+		bool Xon      ;
+		bool showDate ;
+		bool showTime ;
+		bool showMod  ;
+		bool showTask ;
 
 		void dsList( string ) ;
 		void lspfSettings()   ;

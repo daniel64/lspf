@@ -24,6 +24,11 @@
 /* Call ISREDIT procedure of the EDITOR.  MIB pointer is passed via the ApplUserData[] map     */
 /* to this routine, and via the APPLICATION_DATA field for the rexx environment hanlders.      */
 /*                                                                                             */
+/* Search order:                                                                               */
+/*     ZORXPATH                                                                                */
+/*     REXX_PATH env variable                                                                  */
+/*     PATH      env variable                                                                  */
+/*                                                                                             */
 /* Macro functions running in the EDITOR application, use the macro application function pool. */
 /* Addressibility is via the miblock.macAppl field.                                            */
 /*                                                                                             */
@@ -88,7 +93,7 @@ void PEDRXM1::application()
 		tmiBlock = *mibptr ;
 		mibptr->clear() ;
 		mibptr->setMacro( word( editAppl->pcmd.get_cmd(), 1 ) )  ;
-		if ( !mibptr->getMacroFileName( mibptr->rxpath ) )
+		if ( !mibptr->getMacroFileName( mibptr->rxpath2 ) )
 		{
 			mibptr->RC > 8 ? tmiBlock.seterror( "PEDM012Q", 20 ) : tmiBlock.seterror( "PEDT015A", 20 ) ;
 			*mibptr = tmiBlock ;
@@ -177,7 +182,7 @@ void PEDRXM1::start_rexx()
 	options[ 1 ].optionName = DIRECT_ENVIRONMENTS  ;
 	options[ 1 ].option     = (void *)environments ;
 	options[ 2 ].optionName = EXTERNAL_CALL_PATH   ;
-	options[ 2 ].option     = mibptr->rxpath.c_str() ;
+	options[ 2 ].option     = mibptr->rxpath1.c_str() ;
 	options[ 3 ].optionName = "" ;
 
 	rexxName = mibptr->mfile ;

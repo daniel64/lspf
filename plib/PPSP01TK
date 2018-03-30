@@ -58,7 +58,7 @@ ELSE
             .CURSOR  = ZCMD
             EXIT
 
-VER (&SEL,LIST,K,S)
+VER (&SEL,LIST,K,S,T)
 
 IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
 )END

@@ -57,7 +57,7 @@ class pApplication
 		string newappl            ;
 		bool   passlib            ;
 		bool   suspend            ;
-		bool   setMSG             ;
+		bool   setMessage         ;
 		string reffield           ;
 		string lineBuffer         ;
 

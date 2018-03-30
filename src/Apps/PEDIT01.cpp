@@ -22,7 +22,7 @@
 /*                                                                                           */
 /* Current status:                                                                           */
 /* Most basic functions work okay                                                            */
-/* Very basic and incomplete rexx edit macro support                                         */
+/* Basic and incomplete rexx edit macro support                                              */
 /*                                                                                           */
 /*                                                                                           */
 /* ZRC/ZRSN codes returned                                                                   */
@@ -30,7 +30,6 @@
 /*   0/4  Okay - Data saved on at least one occation                                         */
 /*   0/8  Okay - Data saved to an alternate name due to an abnormal termination              */
 /*   4/0  File is currently being edited.  Edit aborted.                                     */
-/*   4/4  Tabs found but option is not to convert.  Edit aborted.                            */
 /*   8/4  Cannot use edit on file.  Browse instead (not yet implemented)                     */
 /*   8/8  Error saving data                                                                  */
 
@@ -487,6 +486,8 @@ void PEDIT01::Edit()
 		{
 			if ( !termOK() ) { termEdit = false ; }
 		}
+
+		moveCursorEnter() ;
 
 		cleanupRedoStacks() ;
 	}
@@ -2284,7 +2285,7 @@ void PEDIT01::actionPrimCommand2()
 	string lab1 ;
 	string lab2 ;
 
-	bool firstc ;
+	bool firstChange ;
 
 	bool delAll ;
 	bool delX   ;
@@ -2385,10 +2386,10 @@ void PEDIT01::actionPrimCommand2()
 			pcmd.setActioned() ;
 			if ( !setFindChangeExcl( 'C' ) ) { break ; }
 			Level++ ;
-			tTop   = topLine  ;
-			tCol   = startCol ;
-			firstc = true     ;
-			i      = 0        ;
+			tTop = topLine  ;
+			tCol = startCol ;
+			i    = 0        ;
+			firstChange = true ;
 			fcx_parms.f_ch_occs = 0 ;
 			fcx_parms.f_ch_errs = 0 ;
 			while ( true )
@@ -2396,7 +2397,7 @@ void PEDIT01::actionPrimCommand2()
 				actionFind() ;
 				if ( fcx_parms.f_error || !fcx_parms.f_success ) { break  ; }
 				i++ ;
-				if ( firstc )
+				if ( firstChange )
 				{
 					moveColumn( fcx_parms.f_offset ) ;
 					tCol = startCol                  ;
@@ -2416,7 +2417,7 @@ void PEDIT01::actionPrimCommand2()
 						mCol = fcx_parms.f_offset + 1 ;
 						miBlock.setcursor = true ;
 					}
-					firstc = false ;
+					firstChange = false ;
 				}
 				actionChange() ;
 				if ( !fcx_parms.f_chngall ) { break  ; }
@@ -2760,7 +2761,22 @@ void PEDIT01::actionPrimCommand2()
 			fcx_parms.f_excl = 'N' ;
 			actionFind() ;
 			if ( fcx_parms.f_error ) { break ; }
-			if ( fcx_parms.f_success )
+			if ( fcx_parms.f_occurs > 0 && fcx_parms.f_dir == 'A' )
+			{
+				fcx_parms.f_ex_occs = fcx_parms.f_occurs ;
+				fcx_parms.f_ex_lnes = fcx_parms.f_lines  ;
+				moveColumn( fcx_parms.f_offset ) ;
+				placeCursor( fcx_parms.f_URID, 4, fcx_parms.f_offset ) ;
+				moveTopline( fcx_parms.f_URID ) ;
+				setExcludedMsg() ;
+				if ( macroRunning )
+				{
+					mRow = getFileLine( fcx_parms.f_dl ) + 1 ;
+					mCol = fcx_parms.f_offset + 1 ;
+					miBlock.setcursor = true ;
+				}
+			}
+			else if ( fcx_parms.f_success )
 			{
 				moveColumn( fcx_parms.f_offset ) ;
 				placeCursor( fcx_parms.f_URID, 4, fcx_parms.f_offset ) ;
@@ -2770,21 +2786,6 @@ void PEDIT01::actionPrimCommand2()
 				setExcludedMsg() ;
 				fcx_parms.f_ex_occs = 1 ;
 				fcx_parms.f_ex_lnes = 1 ;
-				if ( macroRunning )
-				{
-					mRow = getFileLine( fcx_parms.f_dl ) + 1 ;
-					mCol = fcx_parms.f_offset + 1 ;
-					miBlock.setcursor = true ;
-				}
-			}
-			else if ( fcx_parms.f_occurs > 0 && fcx_parms.f_dir == 'A' )
-			{
-				fcx_parms.f_ex_occs = fcx_parms.f_occurs ;
-				fcx_parms.f_ex_lnes = fcx_parms.f_lines  ;
-				moveColumn( fcx_parms.f_offset ) ;
-				placeCursor( fcx_parms.f_URID, 4, fcx_parms.f_offset ) ;
-				moveTopline( fcx_parms.f_URID ) ;
-				setExcludedMsg() ;
 				if ( macroRunning )
 				{
 					mRow = getFileLine( fcx_parms.f_dl ) + 1 ;
@@ -2807,30 +2808,7 @@ void PEDIT01::actionPrimCommand2()
 			actionFind()       ;
 			if ( fcx_parms.f_error ) { break ; }
 			if ( pcmd.msgset() ) { break ; }
-			if ( fcx_parms.f_success )
-			{
-				moveColumn( fcx_parms.f_offset ) ;
-				placeCursor( fcx_parms.f_URID, 4, fcx_parms.f_offset ) ;
-				moveTopline( fcx_parms.f_URID ) ;
-				setFoundMsg() ;
-				if ( pcmd.isSeek() )
-				{
-					fcx_parms.f_sk_occs = 1 ;
-					fcx_parms.f_sk_lnes = 1 ;
-				}
-				else
-				{
-					fcx_parms.f_fd_occs = 1 ;
-					fcx_parms.f_fd_lnes = 1 ;
-				}
-				if ( macroRunning )
-				{
-					mRow = getFileLine( fcx_parms.f_dl ) + 1 ;
-					mCol = fcx_parms.f_offset + 1 ;
-					miBlock.setcursor = true ;
-				}
-			}
-			else if ( fcx_parms.f_occurs > 0 && fcx_parms.f_dir == 'A' )
+			if ( fcx_parms.f_occurs > 0 && fcx_parms.f_dir == 'A' )
 			{
 				if ( pcmd.isSeek() )
 				{
@@ -2848,6 +2826,29 @@ void PEDIT01::actionPrimCommand2()
 				setFoundMsg() ;
 				fcx_parms.f_dir     = 'N'  ;
 				fcx_parms.f_success = true ;
+				if ( macroRunning )
+				{
+					mRow = getFileLine( fcx_parms.f_dl ) + 1 ;
+					mCol = fcx_parms.f_offset + 1 ;
+					miBlock.setcursor = true ;
+				}
+			}
+			else if ( fcx_parms.f_success )
+			{
+				moveColumn( fcx_parms.f_offset ) ;
+				placeCursor( fcx_parms.f_URID, 4, fcx_parms.f_offset ) ;
+				moveTopline( fcx_parms.f_URID ) ;
+				setFoundMsg() ;
+				if ( pcmd.isSeek() )
+				{
+					fcx_parms.f_sk_occs = 1 ;
+					fcx_parms.f_sk_lnes = 1 ;
+				}
+				else
+				{
+					fcx_parms.f_fd_occs = 1 ;
+					fcx_parms.f_fd_lnes = 1 ;
+				}
 				if ( macroRunning )
 				{
 					mRow = getFileLine( fcx_parms.f_dl ) + 1 ;
@@ -4146,7 +4147,7 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 			il_its++ ;
 			il_its = data.insert( il_its, p_iline ) ;
 		}
-		restoreCursor()     ;
+		fixCursor() ;
 		rebuildZAREA = true ;
 		break ;
 
@@ -4486,18 +4487,13 @@ void PEDIT01::actionZVERB()
 {
 	int t  ;
 
-	uint dl  ;
-	uint row ;
-
-	size_t p1 ;
-	size_t p2 ;
-
 	string w1 ;
 
 	if ( zverb == "DOWN" )
 	{
 		t = 0 ;
 		rebuildZAREA = true ;
+		fixCursor() ;
 		if ( ZSCROLLA == "MAX" )
 		{
 			topLine = data.size() - 1 ;
@@ -4551,6 +4547,7 @@ void PEDIT01::actionZVERB()
 	else if ( zverb == "UP" )
 	{
 		rebuildZAREA = true ;
+		fixCursor() ;
 		if ( ZSCROLLA == "MAX" )
 		{
 			topLine = 0 ;
@@ -4584,6 +4581,7 @@ void PEDIT01::actionZVERB()
 	else if ( zverb == "LEFT" )
 	{
 		rebuildZAREA = true ;
+		fixCursor() ;
 		if ( ZSCROLLA == "MAX" )
 		{
 			startCol = 1 ;
@@ -4597,6 +4595,7 @@ void PEDIT01::actionZVERB()
 	else if ( zverb == "RIGHT" )
 	{
 		rebuildZAREA = true ;
+		fixCursor() ;
 		if ( ZSCROLLA == "MAX" )
 		{
 			startCol = maxCol - zareaw ;
@@ -4697,7 +4696,23 @@ void PEDIT01::actionZVERB()
 		}
 		rebuildZAREA = true ;
 	}
-	else if ( aRow > 0 && s2data.at( aRow-1 ).ipos_URID == 0 )
+}
+
+
+void PEDIT01::moveCursorEnter()
+{
+	// If cursor has not been positioned, move to first word on the next line down, next tab position,
+	// or home position if not on data.
+
+	uint dl  ;
+	uint row ;
+
+	size_t p1 ;
+	size_t p2 ;
+
+	if ( cursorFixed ) { return ; }
+
+	if ( aRow > 0 && s2data.at( aRow-1 ).ipos_URID == 0 )
 	{
 		placeCursor( 0, 0 ) ;
 	}
@@ -4884,7 +4899,6 @@ bool PEDIT01::checkLineCommands()
 	bool abo_k        ;
 
 	vector<iline * >::iterator it  ;
-	vector<iline * >::iterator itt ;
 
 	lcmds.clear() ;
 
@@ -6185,7 +6199,6 @@ void PEDIT01::actionFind()
 						if ( p1 == fcx_parms.f_scol-1 )
 						{
 							found = true ;
-							fcx_parms.f_occurs++ ;
 						}
 					}
 					else if ( fcx_parms.findReverse() )
@@ -6222,7 +6235,7 @@ void PEDIT01::actionFind()
 						fcx_parms.f_rstring = data[ dl ]->get_idata_ptr()->substr( p1, fcx_parms.f_ssize ) ;
 					}
 				}
-				if ( fcx_parms.f_ocol || fcx_parms.f_dir != 'A' || !found )
+				if ( fcx_parms.f_dir != 'A' || !found )
 				{
 					break ;
 				}
@@ -6231,6 +6244,10 @@ void PEDIT01::actionFind()
 				{
 					fline = false ;
 					fcx_parms.f_lines++ ;
+				}
+				if ( fcx_parms.f_ocol )
+				{
+					break ;
 				}
 			}
 		}
@@ -6257,10 +6274,6 @@ void PEDIT01::actionFind()
 	if ( fcx_parms.f_dir == 'A' && fcx_parms.f_occurs == 0 )
 	{
 		fcx_parms.f_dir = 'N' ;
-	}
-	if ( fcx_parms.f_dir == 'A' && fcx_parms.f_occurs > 0 && fcx_parms.f_ocol )
-	{
-		fcx_parms.f_success = false ;
 	}
 }
 
@@ -6490,6 +6503,7 @@ void PEDIT01::clearCursor()
 	// cursorPlaceOff    Offset from start of the data line (adjust for line command and startCol later)
 
 	cursorPlaceHome = false ;
+	cursorFixed     = false ;
 	cursorPlaceURID = 0     ;
 	cursorPlaceRow  = 0     ;
 }
@@ -6497,6 +6511,7 @@ void PEDIT01::clearCursor()
 
 void PEDIT01::placeCursor( int URID, int pt, int offset )
 {
+	cursorFixed = true ;
 	if ( URID == 0 )
 	{
 		cursorPlaceHome = true ;
@@ -6511,8 +6526,15 @@ void PEDIT01::placeCursor( int URID, int pt, int offset )
 }
 
 
+void PEDIT01::fixCursor()
+{
+	cursorFixed = true ;
+}
+
+
 void PEDIT01::placeCursor( uint Row, int pt, int offset )
 {
+	cursorFixed = true ;
 	if ( Row > zaread || s2data.at( Row-1 ).ipos_URID == 0 )
 	{
 		cursorPlaceHome = true ;
@@ -6538,21 +6560,6 @@ void PEDIT01::storeCursor( int URID, int offset )
 	cursorPlaceType  = 4      ;
 	cursorPlaceOff   = offset ;
 	cursorPlaceOffO  = offset ;
-}
-
-
-void PEDIT01::restoreCursor()
-{
-	// Restore current cursor position using PlaceType=4 (position in cursorPlaceOff) and
-	// data stored by storeCursor()
-
-	if ( cursorPlaceURIDO == 0 ) { cursorPlaceHome = true ; return ; }
-	cursorPlaceUsing = 1      ;
-	cursorPlaceHome  = false  ;
-	cursorPlaceRow   = 0      ;
-	cursorPlaceType  = 4      ;
-	cursorPlaceOff   = cursorPlaceOffO  ;
-	cursorPlaceURID  = cursorPlaceURIDO ;
 }
 
 
@@ -8989,6 +8996,8 @@ void PEDIT01::setNotFoundMsg()
 
 	STR = setFoundString() ;
 
+	fixCursor() ;
+
 	if ( !fcx_parms.f_searched && ( fcx_parms.f_top || fcx_parms.f_bottom ) )
 	{
 		if      ( fcx_parms.f_excl == 'X' ) { pcmd.set_msg( "PEDT016B", 4 ) ; }
@@ -9815,6 +9824,11 @@ void PEDIT01::run_macro( bool imacro )
 	// Set the initial values for mRow and mCol, macro CURSOR position
 	// Process screen changes and line commands if no PROCESS has been done when last macro terminates.
 
+	// REXX search order:
+	//       ZORXPATH  use for EXTERNAL_CALL_PATH
+	//       REXX_PATH env variable (don't add to miBlock.rxpath1 as OOREXX searches this automatically)
+	//       PATH      env variable (as above)
+
 	// Return from the macro is in miBlock.exitRC
 	// 0    Normal completion, command line blanked and cursor as set by the macro
 	// 1    Cursor placed on command line, and command line is blanked
@@ -9833,11 +9847,13 @@ void PEDIT01::run_macro( bool imacro )
 	miBlock.etaskid          = taskid() ;
 	miBlock.imacro           = imacro   ;
 
-	vget( "ZORXPATH", PROFILE ) ;
-	vcopy( "ZORXPATH", miBlock.rxpath, MOVE ) ;
-
 	miBlock.setMacro( word( pcmd.get_cmd(), 1 ) )  ;
-	if ( !miBlock.getMacroFileName( miBlock.rxpath ) )
+
+	vget( "ZORXPATH", PROFILE ) ;
+	vcopy( "ZORXPATH", miBlock.rxpath1, MOVE ) ;
+
+	miBlock.rxpath2 = mergepaths( miBlock.rxpath1, getenv( "REXX_PATH" ), getenv( "PATH" ) ) ;
+	if ( !miBlock.getMacroFileName( miBlock.rxpath2 ) )
 	{
 		pcmd.set_msg( miBlock.RC > 8 ? "PEDM012Q" : "PEDT015A" ) ;
 		return ;

@@ -24,7 +24,9 @@ class pLScreen
 		~pLScreen() ;
 
 	static pLScreen * currScreen ;
-	static WINDOW   * OIA   ;
+	static WINDOW   * OIA        ;
+	static PANEL    * OIA_panel  ;
+
 	static unsigned int screensTotal ;
 	static unsigned int maxScreenId  ;
 	static unsigned int maxrow ;
@@ -55,10 +57,11 @@ class pLScreen
 	void  OIA_setup()  ;
 	void  OIA_update( int, int, boost::posix_time::ptime ) ;
 	void  OIA_startTime( boost::posix_time::ptime st )   { startTime = st ; }
-	void  show_enter() ;
-	void  show_busy()  ;
-	void  show_wait()  ;
-	void  show_auto()  ;
+	void  OIA_refresh() ;
+	void  show_enter()  ;
+	void  show_busy()   ;
+	void  show_wait()   ;
+	void  show_auto()   ;
 	void  show_lock( bool ) ;
 	void  clear_status() ;
 

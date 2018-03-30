@@ -285,7 +285,7 @@ PEDT014Z 'SPARE' .TYPE=W
 'SPARE'
 
 PEDT015A 'Invalid command or macro' .TYPE=W
-'Command is not valid, or macro not found in the ZORXPATH concatination'
+'Command is not valid, or macro not found in the OOREXX concatination'
 
 PEDT015B 'Invalid command' .TYPE=W
 'Command entered is not valid (Macro support is not available)'

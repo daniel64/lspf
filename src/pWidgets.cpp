@@ -1180,6 +1180,7 @@ void field::display_field( WINDOW * win, char pad, bool snulls )
 	// display field size bytes and leave field value unchanged (necessary for table display fields)
 
 	// Display the null character as the field pad character and pad the field with the same character
+	// usrAttr map takes an int value so use (unsiged char)attr to access to avoid a negative value.
 
 	// Call ncurses touchline() for the field row as the update does not always appear without it
 
@@ -1210,7 +1211,7 @@ void field::display_field( WINDOW * win, char pad, bool snulls )
 			it2  = field_shadow_value.begin() ;
 			i    = 0 ;
 			attr = (*it2) ;
-			wattrset( win, usrAttr[ attr ] ) ;
+			wattrset( win, usrAttr[ (unsigned char)attr ] ) ;
 			for ( it1 = field_value.begin() ; it1 != field_value.end() ; it1++, it2++, i++ )
 			{
 				if ( attr != (*it2) ) { wattrset( win, usrAttr[ (*it2) ] ) ; attr = (*it2) ; }
@@ -1237,7 +1238,7 @@ void field::display_field( WINDOW * win, char pad, bool snulls )
 			it2  = field_shadow_value.begin() ;
 			i    = 0 ;
 			attr = (*it2) ;
-			wattrset( win, usrAttr[ attr ] ) ;
+			wattrset( win, usrAttr[ (unsigned char)attr ] ) ;
 			for ( it1 = field_value.begin() ; it1 != field_value.end() ; it1++, it2++, i++ )
 			{
 				if ( attr != (*it2) ) { wattrset( win, usrAttr[ (*it2) ] ) ; attr = (*it2) ; }

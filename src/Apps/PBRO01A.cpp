@@ -135,8 +135,8 @@ void PBRO01A::application()
 	vdefine( "ZSCROLLA ZCOL1 ZCOL2 TYPE STR", &ZSCROLLA, &ZCOL1, &ZCOL2, &TYPE, &STR ) ;
 	vdefine( "OCC LINES CMD ZZSTR1", &OCC, &LINES, &CMD, &zzstr1 ) ;
 
-	startCol  = 1 ;
-	maxCol    = 1 ;
+	startCol = 1 ;
+	maxCol   = 1 ;
 
 	pquery( "PBRO01A1", "ZAREA", "ZAREAT", "ZAREAW", "ZAREAD" ) ;
 
