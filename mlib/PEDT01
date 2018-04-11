@@ -281,8 +281,8 @@ PEDT014X '&ZSTR1 macro error' .TYPE=W
 PEDT014Y 'No clipboard found' .TYPE=W
 ''
 
-PEDT014Z 'SPARE' .TYPE=W
-'SPARE'
+PEDT014Z 'Open failed' .TYPE=W
+'Error is: ''&ZSTR1'''
 
 PEDT015A 'Invalid command or macro' .TYPE=W
 'Command is not valid, or macro not found in the OOREXX concatination'

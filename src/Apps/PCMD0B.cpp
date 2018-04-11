@@ -54,8 +54,8 @@ void PCMD0B::application()
 	string tname2 ;
 
 	vdefine( "ZCMD ZVERB COMM1 COMM2", &zcmd, &zverb, &comm1, &comm2 ) ;
-	vdefine( "ZAREA ZSHADOW ZAREAT ZSCROLLA", &zarea, &zshadow, &zareat, &ZSCROLLA ) ;
-	vdefine( "ZSCROLLN ZAREAW ZAREAD", &ZSCROLLN, &zareaw, &zaread ) ;
+	vdefine( "ZAREA ZSHADOW ZAREAT ZSCROLLA", &zarea, &zshadow, &zareat, &zscrolla ) ;
+	vdefine( "ZSCROLLN ZAREAW ZAREAD", &zscrolln, &zareaw, &zaread ) ;
 
 	vget( "COMM1 COMM2", SHARED ) ;
 
@@ -253,49 +253,49 @@ void PCMD0B::actionZVERB()
 	if ( zverb == "DOWN" )
 	{
 		rebuildZAREA = true ;
-		if ( ZSCROLLA == "MAX" )
+		if ( zscrolla == "MAX" )
 		{
 			topLine = lines.size() - 1 - zaread ;
 		}
 		else
 		{
-			topLine += ZSCROLLN ;
+			topLine += zscrolln ;
 		}
 	}
 	else if ( zverb == "UP" )
 	{
 		rebuildZAREA = true ;
-		if ( ZSCROLLA == "MAX" )
+		if ( zscrolla == "MAX" )
 		{
 			topLine = 0 ;
 		}
 		else
 		{
-			topLine -= ZSCROLLN ;
+			topLine -= zscrolln ;
 		}
 	}
 	else if ( zverb == "LEFT" )
 	{
 		rebuildZAREA = true ;
-		if ( ZSCROLLA == "MAX" )
+		if ( zscrolla == "MAX" )
 		{
 			startCol = 1 ;
 		}
 		else
 		{
-			startCol = startCol - ZSCROLLN ;
+			startCol = startCol - zscrolln ;
 		}
 	}
 	else if ( zverb == "RIGHT" )
 	{
 		rebuildZAREA = true ;
-		if ( ZSCROLLA == "MAX" )
+		if ( zscrolla == "MAX" )
 		{
 			startCol = maxCol - zareaw - 1 ;
 		}
 		else
 		{
-			startCol += ZSCROLLN ;
+			startCol += zscrolln ;
 		}
 	}
 

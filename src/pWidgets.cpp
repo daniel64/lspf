@@ -951,7 +951,7 @@ int field::field_dyna_input_offset( uint col )
 }
 
 
-void field::field_attr( errblock& err, string attrs )
+void field::field_attr( errblock& err, string attrs, bool chng_once )
 {
 	// Format:
 
@@ -1055,7 +1055,8 @@ void field::field_attr( errblock& err, string attrs )
 		err.seterrid( "PSYE032H", attrs ) ;
 		return ;
 	}
-	field_usecua = false ;
+	field_usecua    = false ;
+	field_attr_once = chng_once ;
 	return ;
 }
 
@@ -1064,7 +1065,8 @@ void field::field_attr()
 {
 	// Reset field attribute to use the CUA value
 
-	field_usecua = true ;
+	field_usecua    = true  ;
+	field_attr_once = false ;
 }
 
 

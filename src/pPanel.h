@@ -70,9 +70,9 @@ class pPanel
 
 		void   display_panel( errblock& ) ;
 		void   redraw_fields( errblock& ) ;
-		void   refresh()         ;
+		void   refresh() ;
 		void   refresh_fields( errblock& ) ;
-		void   refresh_fields( errblock&, const string& ) ;
+		void   refresh_fields( errblock&, int, const string& ) ;
 
 		const string& cmd_getvalue() ;
 		void   cmd_setvalue( errblock&, const string& ) ;
@@ -101,7 +101,7 @@ class pPanel
 		bool   alarm       ;
 		string curfld      ;
 		int    taskId      ;
-		int    curidx      ;
+		int    curidr      ;
 		int    curpos      ;
 		slmsg  MSG         ;
 		string pfkey       ;
@@ -197,7 +197,7 @@ class pPanel
 		string get_cursor() ;
 		string get_msgloc() ;
 
-		void   set_cursor_idx( int i ) { curidx = i ; }
+		void   set_cursor_idr( int i ) { curidr = i ; }
 		void   set_cursor_home() ;
 		void   get_home( uint& row, uint& col ) ;
 
@@ -239,6 +239,7 @@ class pPanel
 		void   set_cursor_cond( const string&, int =0 ) ;
 
 		void   resetAttrs() ;
+		void   resetAttrs_once() ;
 
 		void   syncDialogueVar( errblock&, const string& ) ;
 		string getDialogueVar( errblock&, const string& )   ;
@@ -257,6 +258,8 @@ class pPanel
 
 		string sub_vars( string s ) ;
 		string sub_vars( string s, bool& ) ;
+
+		bool   is_tb_field( const string& ) ;
 
 		vector<string>attrList ;
 		map<int, string> tb_linesChanged ;
@@ -285,8 +288,8 @@ class pPanel
 		void   display_ab()       ;
 		void   display_fields( errblock& ) ;
 
-		void   process_panel_stmnts( errblock& err, int ln, vector<panstmnt* >& stmnts ) ;
-		void   process_panel_assignment( errblock& err, int ln, ASSGN* assgn ) ;
+		void   process_panel_stmnts( errblock& err, int ln, vector<panstmnt* >& stmnts, bool =false ) ;
+		void   process_panel_assignment( errblock& err, int ln, ASSGN* assgn, bool =false ) ;
 		void   process_panel_vputget( errblock& err, VPUTGET* vputget ) ;
 		void   process_panel_verify( errblock& err, int ln, VERIFY* verify ) ;
 		void   process_panel_if( errblock& err, int ln, IFSTMNT* ifstmnt ) ;

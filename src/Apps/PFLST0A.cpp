@@ -110,6 +110,13 @@ using namespace boost::filesystem ;
 #define MOD_NAME PFLST0A
 
 
+PFLST0A::PFLST0A()
+{
+	vdefine( "ZCURFLD", &zcurfld ) ;
+	vdefine( "ZCURINX ZTDTOP ZTDVROWS ZTDSELS ZTDDEPTH", &zcurinx, &ztdtop, &ztdvrows, &ztdsels, &ztddepth ) ;
+}
+
+
 void PFLST0A::application()
 {
 	llog( "I", "Application PFLST0A starting with PARM of " << PARM << endl ) ;
@@ -122,14 +129,15 @@ void PFLST0A::application()
 
 	bool   del      ;
 	bool   errs     ;
+	bool   e_loop   ;
 
 	string entry    ;
-	string OPATH    ;
-	string OHIDDEN  ;
-	string OEXGEN   ;
-	string OSEL     ;
+	string opath    ;
+	string ohidden  ;
+	string oexgen   ;
+	string osel     ;
 	string lp       ;
-	string PGM      ;
+	string pgm      ;
 	string w1       ;
 	string w2       ;
 	string w3       ;
@@ -137,11 +145,11 @@ void PFLST0A::application()
 	string filter   ;
 	string panl     ;
 
-	string CONDOFF  ;
-	string NEMPTOK  ;
-	string DIRREC   ;
-	string NEWENTRY ;
-	string FREPL    ;
+	string condoff  ;
+	string nemptok  ;
+	string dirrec   ;
+	string newentry ;
+	string frepl    ;
 
 	char * buffer   ;
 	size_t bufferSize = 255 ;
@@ -149,16 +157,16 @@ void PFLST0A::application()
 
 	boost::system::error_code ec ;
 
+	vdefine( "SEL ENTRY MESSAGE TYPE PERMISS SIZE STCDATE MODDATE", &sel, &ENTRY, &message, &TYPE, &permiss, &size, &stcdate, &moddate ) ;
+	vdefine( "MODDATES ZVERB ZHOME ZCMD ZPATH CONDOFF NEWENTRY FREPL", &moddates, &zverb, &zhome, &zcmd, &zpath, &condoff, &newentry, &frepl ) ;
+	vdefine( "RSN NEMPTOK DIRREC AFHIDDEN", &rsn, &nemptok, &dirrec, &afhidden ) ;
+	vdefine( "EXGEN OEXGEN", &exgen, &oexgen ) ;
+	vdefine( "CRP", &crp ) ;
+
 	vcopy( "ZUSER", zuser, MOVE ) ;
 	vcopy( "ZSCREEN", zscreen, MOVE ) ;
 
 	std::ofstream of ;
-
-	vdefine( "SEL ENTRY MESSAGE TYPE PERMISS SIZE STCDATE MODDATE", &SEL, &ENTRY, &MESSAGE, &TYPE, &PERMISS, &SIZE, &STCDATE, &MODDATE ) ;
-	vdefine( "MODDATES ZVERB ZHOME ZCMD ZPATH CONDOFF NEWENTRY FREPL", &MODDATES, &zverb, &zhome, &zcmd, &zpath, &CONDOFF, &NEWENTRY, &FREPL ) ;
-	vdefine( "RSN NEMPTOK DIRREC AFHIDDEN", &RSN, &NEMPTOK, &DIRREC, &AFHIDDEN ) ;
-	vdefine( "EXGEN OEXGEN", &EXGEN, &OEXGEN ) ;
-	vdefine( "CRP", &CRP ) ;
 
 	vget( "ZHOME", SHARED ) ;
 	vget( "AFHIDDEN EXGEN", PROFILE ) ;
@@ -237,14 +245,15 @@ void PFLST0A::application()
 	}
 	if ( !is_directory( zpath ) ) { zpath = zhome ; }
 
-	OSEL   = ""   ;
-	DSLIST = "DSLST" + d2ds( taskid(), 3 ) ;
-	MSG    = ""  ;
+	osel   = ""   ;
+	dslist = "DSLST" + d2ds( taskid(), 3 ) ;
+	msg    = ""  ;
 
 	RC        = 0 ;
 	i         = 1 ;
-	ZTDVROWS  = 1 ;
+	ztdvrows  = 1 ;
 	UseSearch = false ;
+	e_loop    = false ;
 
 	createFileList1( filter ) ;
 	if ( RC > 0 ) { setmsg( "FLST015" ) ; }
@@ -253,24 +262,24 @@ void PFLST0A::application()
 
 	while ( true )
 	{
-		if ( ZTDVROWS > 0 )
+		if ( ztdvrows > 0 )
 		{
-			tbtop( DSLIST )     ;
-			tbskip( DSLIST, i ) ;
+			tbtop( dslist )     ;
+			tbskip( dslist, i ) ;
 		}
 		else
 		{
-			tbbottom( DSLIST ) ;
-			tbskip( DSLIST, - (ZTDDEPTH-2) ) ;
-			if ( RC > 0 ) { tbtop( DSLIST ) ; }
+			tbbottom( dslist ) ;
+			tbskip( dslist, - (ztddepth-2) ) ;
+			if ( RC > 0 ) { tbtop( dslist ) ; }
 		}
-		OPATH   = zpath    ;
-		OHIDDEN = AFHIDDEN ;
-		OEXGEN  = EXGEN    ;
-		if ( MSG == "" ) { zcmd  = "" ; }
-		tbdispl( DSLIST, panl, MSG, "ZCMD" ) ;
+		opath   = zpath    ;
+		ohidden = afhidden ;
+		oexgen  = exgen    ;
+		if ( msg == "" ) { zcmd  = "" ; }
+		tbdispl( dslist, panl, msg, "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
-		MSG = "" ;
+		msg = "" ;
 		w1  = upper( word( zcmd, 1 ) ) ;
 		w2  = word( zcmd, 2 ) ;
 		w3  = word( zcmd, 3 ) ;
@@ -279,7 +288,7 @@ void PFLST0A::application()
 			if ( w1 == "RESET" ) { filter = "" ; UseSearch = false ; }
 			if ( filter == "" )  { vreplace( "FMSG1", "" ) ; }
 			if ( !UseSearch   )  { vreplace( "FMSG2", "" ) ; }
-			tbend( DSLIST ) ;
+			tbend( dslist ) ;
 			createFileList1( filter ) ;
 			continue ;
 		}
@@ -287,7 +296,7 @@ void PFLST0A::application()
 		{
 			filter = w2 ;
 			vreplace( "FMSG1", "Filtered on file name" ) ;
-			tbend( DSLIST ) ;
+			tbend( dslist ) ;
 			createFileList1( filter ) ;
 			continue ;
 		}
@@ -296,48 +305,48 @@ void PFLST0A::application()
 			UseSearch = true ;
 			vreplace( "FMSG2", "Filtered on contents" ) ;
 			createSearchList( w2 ) ;
-			tbend( DSLIST ) ;
+			tbend( dslist ) ;
 			createFileList1( filter ) ;
 			continue ;
 		}
-		i = ZTDTOP ;
+		i = ztdtop ;
 		vget( "ZVERB", SHARED ) ;
-		CRP   = 0 ;
+		crp   = 0 ;
 		RCode = processPrimCMD() ;
-		if ( RCode == 8 )  { MSG = "PSYS018" ; continue ; }
-		if ( CRP > 0 )     { i = CRP       ; }
+		if ( RCode == 8 )  { msg = "PSYS018" ; continue ; }
+		if ( crp > 0 )     { i = crp       ; }
 		if ( RCode == 4 )  { continue      ; }
 		if ( zpath == "" ) { zpath = zhome ; }
-		if ( OHIDDEN != AFHIDDEN || OEXGEN != EXGEN )
+		if ( ohidden != afhidden || oexgen != exgen )
 		{
 			filter = ""       ;
-			tbend( DSLIST )   ;
+			tbend( dslist )   ;
 			createFileList1() ;
 			i = 1    ;
 			continue ;
 		}
-		if ( OPATH != zpath )
+		if ( opath != zpath )
 		{
 			if ( ( !exists( zpath ) || !is_directory( zpath ) ) )
 			{
-				MSG = "PSYS012A" ;
+				msg = "PSYS012A" ;
 			}
 			else
 			{
 				filter = ""       ;
-				tbend( DSLIST )   ;
+				tbend( dslist )   ;
 				createFileList1() ;
 				i = 1 ;
 			}
 			continue ;
 		}
-		CONDOFF = "" ;
-		NEMPTOK = "" ;
-		DIRREC  = "" ;
-		if ( ZTDSELS == 0 && ZCURINX != 0 )
+		condoff = "" ;
+		nemptok = "" ;
+		dirrec  = "" ;
+		if ( ztdsels == 0 && zcurinx != 0 )
 		{
-			tbtop( DSLIST ) ;
-			tbskip( DSLIST, ZCURINX ) ;
+			tbtop( dslist ) ;
+			tbskip( dslist, zcurinx ) ;
 			if ( UseList )
 			{
 				entry = ENTRY ;
@@ -346,36 +355,36 @@ void PFLST0A::application()
 			{
 				entry = createEntry( zpath, ENTRY ) ;
 			}
-			if ( ZCURFLD == "ENTRY" )
+			if ( zcurfld == "ENTRY" )
 			{
 				if ( is_directory( entry ) )
 				{
-					SEL = "L" ;
+					sel = "L" ;
 				}
 				else if ( is_regular_file( entry ) )
 				{
-					SEL = "E" ;
+					sel = "E" ;
 				}
 				else
 				{
 					continue ;
 				}
 			}
-			else if ( ZCURFLD == "TYPE" )
+			else if ( zcurfld == "TYPE" )
 			{
-				SEL = "I" ;
+				sel = "I" ;
 			}
 			else
 			{
 				continue ;
 			}
-			ZTDSELS = 1 ;
+			ztdsels = 1 ;
 		}
-		while ( ZTDSELS > 0 )
+		while ( ztdsels > 0 )
 		{
-			MSG = "" ;
-			if ( SEL == "=" && OSEL != "" ) { SEL = OSEL ; }
-			OSEL = SEL ;
+			msg = "" ;
+			if ( sel == "=" && osel != "" ) { sel = osel ; }
+			osel = sel ;
 			if ( UseList )
 			{
 				entry = ENTRY ;
@@ -384,42 +393,42 @@ void PFLST0A::application()
 			{
 				entry = createEntry( zpath, ENTRY ) ;
 			}
-			if ( SEL != "" && !exists( entry ) )
+			if ( sel != "" && !exists( entry ) )
 			{
-				MSG     = "FLST012L"  ;
-				MESSAGE = "Not Found" ;
-				SEL     = ""          ;
-				tbput( DSLIST )       ;
+				msg     = "FLST012L"  ;
+				message = "Not Found" ;
+				sel     = ""          ;
+				tbput( dslist )       ;
 			}
-			else if ( SEL == "I" )
+			else if ( sel == "I" )
 			{
 				showInfo( entry )       ;
-				SEL     = ""            ;
-				MESSAGE = "Information" ;
-				tbput( DSLIST )         ;
+				sel     = ""            ;
+				message = "Information" ;
+				tbput( dslist )         ;
 			}
-			else if ( SEL == "EX" )
+			else if ( sel == "EX" )
 			{
-				vcopy( "ZOREXPGM", PGM, MOVE ) ;
+				vcopy( "ZOREXPGM", pgm, MOVE ) ;
 				control( "ERRORS", "RETURN" ) ;
-				select( "PGM(" + PGM + ") PARM(" + entry + ")" ) ;
+				select( "PGM(" + pgm + ") PARM(" + entry + ")" ) ;
 				control( "ERRORS", "CANCEL" ) ;
-				SEL = "" ;
+				sel = "" ;
 				if ( ZRESULT != "" )
 				{
-					MESSAGE = ZRESULT    ;
-					MSG     = "PSYS011M" ;
+					message = ZRESULT    ;
+					msg     = "PSYS011M" ;
 					vreplace( "STR", "RC="+ d2ds( ZRC ) +"  RSN="+ d2ds( ZRSN ) ) ;
 				}
 				else
 				{
-					MESSAGE = "Executed" ;
+					message = "Executed" ;
 				}
-				tbput( DSLIST ) ;
+				tbput( dslist ) ;
 			}
-			else if ( SEL == "X" )
+			else if ( sel == "X" )
 			{
-				SEL = "" ;
+				sel = "" ;
 				lp  = "" ;
 				while ( true )
 				{
@@ -434,7 +443,7 @@ void PFLST0A::application()
 						}
 						else
 						{
-							MESSAGE = "Not a link" ;
+							message = "Not a link" ;
 							break ;
 						}
 					}
@@ -445,141 +454,141 @@ void PFLST0A::application()
 						if ( substr( lp, 1, 1 ) != "/" ) { lp = zpath + lp ; }
 						if ( !is_directory( lp ) )
 						{
-							MESSAGE = "Not a directory" ;
+							message = "Not a directory" ;
 							lp      = ""    ;
 						}
 						break ;
 					}
 				}
-				if ( lp == "" ) { tbput( DSLIST ) ; continue ; }
-				vcopy( "ZFLSTPGM", PGM, MOVE ) ;
-				select( "PGM(" + PGM + ") PARM(" + lp + ")" ) ;
-				if ( ZRESULT != "" ) { MESSAGE = ZRESULT  ; }
-				else                 { MESSAGE = "Linked" ; }
-				tbput( DSLIST ) ;
+				if ( lp == "" ) { tbput( dslist ) ; continue ; }
+				vcopy( "ZFLSTPGM", pgm, MOVE ) ;
+				select( "PGM(" + pgm + ") PARM(" + lp + ")" ) ;
+				if ( ZRESULT != "" ) { message = ZRESULT  ; }
+				else                 { message = "Linked" ; }
+				tbput( dslist ) ;
 				continue        ;
 			}
-			else if ( SEL == "C" )
+			else if ( sel == "C" )
 			{
 				zcmd     = "" ;
-				SEL      = "" ;
-				NEWENTRY = "" ;
-				FREPL    = "" ;
+				sel      = "" ;
+				newentry = "" ;
+				frepl    = "" ;
 				if ( !is_directory( entry ) && !is_symlink( entry ) && !is_regular_file( entry ) )
 				{
-					MSG     = "FLST012A"     ;
-					MESSAGE = "Invalid Type" ;
-					tbput( DSLIST ) ;
+					msg     = "FLST012A"     ;
+					message = "Invalid Type" ;
+					tbput( dslist ) ;
 					continue        ;
 				}
-				display( "PFLST0A5", MSG, "ZCMD" ) ;
+				display( "PFLST0A5", msg, "ZCMD" ) ;
 				if ( RC == 8 )
 				{
 					zcmd    = ""          ;
-					MSG     = "FLST011W"  ;
-					MESSAGE = "Cancelled" ;
+					msg     = "FLST011W"  ;
+					message = "Cancelled" ;
 				}
 				else
 				{
-					if ( NEWENTRY[ 0 ] != '/' ) { NEWENTRY = substr( entry, 1, lastpos( "/", entry ) ) + NEWENTRY ; }
-					if ( exists( NEWENTRY ) )
+					if ( newentry[ 0 ] != '/' ) { newentry = substr( entry, 1, lastpos( "/", entry ) ) + newentry ; }
+					if ( exists( newentry ) )
 					{
 						if ( is_directory( entry ) || is_symlink( entry ) )
 						{
-							MSG     = "FLST011Y" ;
-							MESSAGE = "Invalid"  ;
-							tbput( DSLIST ) ;
+							msg     = "FLST011Y" ;
+							message = "Invalid"  ;
+							tbput( dslist ) ;
 							continue        ;
 						}
-						if ( FREPL != "/" )
+						if ( frepl != "/" )
 						{
-							MSG     = "FLST011X"    ;
-							MESSAGE = "File Exists" ;
-							tbput( DSLIST ) ;
+							msg     = "FLST011X"    ;
+							message = "File Exists" ;
+							tbput( dslist ) ;
 							continue        ;
 						}
-						if ( !is_regular_file( NEWENTRY ) )
+						if ( !is_regular_file( newentry ) )
 						{
-							MSG     = "FLST011Y"     ;
-							MESSAGE = "Invalid Type" ;
-							tbput( DSLIST ) ;
+							msg     = "FLST011Y"     ;
+							message = "Invalid Type" ;
+							tbput( dslist ) ;
 							continue        ;
 						}
 					}
 					if ( is_directory( entry ) )
 					{
 						errs = false ;
-						copyDirs( entry, NEWENTRY, DIRREC, errs ) ;
+						copyDirs( entry, newentry, dirrec, errs ) ;
 						if ( errs )
 						{
-							MSG     = "FLST012G" ;
-							MESSAGE = "Errors"   ;
+							msg     = "FLST012G" ;
+							message = "Errors"   ;
 						}
 						else
 						{
-							MSG     = "FLST011U" ;
-							MESSAGE = "Copied"   ;
+							msg     = "FLST011U" ;
+							message = "Copied"   ;
 						}
-						tbput( DSLIST ) ;
+						tbput( dslist ) ;
 						continue ;
 					}
 					else if  ( is_regular_file( entry ) )
 					{
-						copy_file( entry, NEWENTRY, copy_option::overwrite_if_exists, ec ) ;
+						copy_file( entry, newentry, copy_option::overwrite_if_exists, ec ) ;
 					}
 					else if  ( is_symlink( entry ) )
 					{
-						copy_symlink( entry, NEWENTRY, ec ) ;
+						copy_symlink( entry, newentry, ec ) ;
 					}
 					if ( ec.value() == boost::system::errc::success )
 					{
-						MSG     = "FLST011U" ;
-						MESSAGE = "Copied"   ;
+						msg     = "FLST011U" ;
+						message = "Copied"   ;
 					}
 					else
 					{
-						MSG     = "FLST011V"   ;
-						RSN     = ec.message() ;
-						MESSAGE = ec.message() ;
-						llog( "E", "Copy of " + entry + " to " + NEWENTRY + " failed with " + ec.message() << endl ) ;
+						msg     = "FLST011V"   ;
+						rsn     = ec.message() ;
+						message = ec.message() ;
+						llog( "E", "Copy of " + entry + " to " + newentry + " failed with " + ec.message() << endl ) ;
 					}
 				}
-				tbput( DSLIST ) ;
+				tbput( dslist ) ;
 			}
-			else if ( SEL == "D" )
+			else if ( sel == "D" )
 			{
 				zcmd = "" ;
-				SEL  = "" ;
-				del  = ( CONDOFF == "/" ) ;
+				sel  = "" ;
+				del  = ( condoff == "/" ) ;
 				if ( !del )
 				{
 					addpop( "", 5, 5 ) ;
-					display( "PFLST0A3", MSG, "ZCMD" ) ;
+					display( "PFLST0A3", msg, "ZCMD" ) ;
 					if ( RC == 8 )
 					{
 						zcmd    = ""          ;
-						MSG     = "FLST011P"  ;
-						MESSAGE = "Cancelled" ;
+						msg     = "FLST011P"  ;
+						message = "Cancelled" ;
 					}
 					else { del = true ; }
 					rempop() ;
 				}
 				if ( del )
 				{
-					if ( NEMPTOK == "/" )
+					if ( nemptok == "/" )
 					{
 						num = remove_all( entry.c_str( ), ec ) ;
 						if ( ec.value() == boost::system::errc::success )
 						{
-							MSG     = "FLST011N" ;
-							RSN     = d2ds( num ) + " files deleted" ;
-							MESSAGE = "Deleted" ;
+							msg     = "FLST011N" ;
+							rsn     = d2ds( num ) + " files deleted" ;
+							message = "Deleted" ;
 						}
 						else
 						{
-							MSG     = "FLST011O"   ;
-							RSN     = ec.message() ;
-							MESSAGE = ec.message() ;
+							msg     = "FLST011O"   ;
+							rsn     = ec.message() ;
+							message = ec.message() ;
 							llog( "E", "Delete of " + entry + " failed with " + ec.message() << " " << num <<" messages deleted "<< endl ) ;
 						}
 					}
@@ -588,119 +597,119 @@ void PFLST0A::application()
 						remove( entry.c_str( ), ec ) ;
 						if ( ec.value() == boost::system::errc::success )
 						{
-							MSG     = "FLST011N"        ;
-							RSN     = "1 entry deleted" ;
-							MESSAGE = "Deleted"         ;
+							msg     = "FLST011N"        ;
+							rsn     = "1 entry deleted" ;
+							message = "Deleted"         ;
 						}
 						else
 						{
-							MSG     = "FLST011O"   ;
-							RSN     = ec.message() ;
-							MESSAGE = ec.message() ;
+							msg     = "FLST011O"   ;
+							rsn     = ec.message() ;
+							message = ec.message() ;
 							llog( "E", "Delete of " + entry + " failed with " + ec.message() << endl ) ;
 						}
 					}
 				}
-				tbput( DSLIST ) ;
+				tbput( dslist ) ;
 			}
-			else if ( SEL == "M" )
+			else if ( sel == "M" )
 			{
 				zcmd     = "" ;
-				SEL      = "" ;
+				sel      = "" ;
 				modifyAttrs( entry ) ;
-				tbput( DSLIST ) ;
+				tbput( dslist ) ;
 			}
-			else if ( SEL == "R" )
+			else if ( sel == "R" )
 			{
 				zcmd     = "" ;
-				SEL      = "" ;
-				NEWENTRY = "" ;
-				display( "PFLST0A4", MSG, "ZCMD" ) ;
+				sel      = "" ;
+				newentry = "" ;
+				display( "PFLST0A4", msg, "ZCMD" ) ;
 				if ( RC == 8 )
 				{
 					zcmd    = ""          ;
-					MSG     = "FLST011S"  ;
-					MESSAGE = "Cancelled" ;
+					msg     = "FLST011S"  ;
+					message = "Cancelled" ;
 				}
 				else
 				{
-					if ( NEWENTRY[ 0 ] != '/' ) { NEWENTRY = substr( entry, 1, lastpos( "/", entry ) ) + NEWENTRY ; }
-					if ( rename( entry.c_str(), NEWENTRY.c_str() ) == 0 )
+					if ( newentry[ 0 ] != '/' ) { newentry = substr( entry, 1, lastpos( "/", entry ) ) + newentry ; }
+					if ( rename( entry.c_str(), newentry.c_str() ) == 0 )
 					{
-						MSG     = "FLST011Q" ;
-						MESSAGE = "Renamed"  ;
+						msg     = "FLST011Q" ;
+						message = "Renamed"  ;
 					}
 					else
 					{
 						if ( errno == EXDEV )
 						{
-							MSG     = "FLST011Z" ;
-							MESSAGE = "Use COPY" ;
+							msg     = "FLST011Z" ;
+							message = "Use COPY" ;
 						}
 						else
 						{
-							MSG     = "FLST011R"        ;
-							RSN     = strerror( errno ) ;
-							MESSAGE = strerror( errno ) ;
+							msg     = "FLST011R"        ;
+							rsn     = strerror( errno ) ;
+							message = strerror( errno ) ;
 						}
-						llog( "E", "Rename of " + entry + " to " + NEWENTRY + " failed with " + strerror( errno ) << endl ) ;
+						llog( "E", "Rename of " + entry + " to " + newentry + " failed with " + strerror( errno ) << endl ) ;
 					}
 				}
-				tbput( DSLIST ) ;
+				tbput( dslist ) ;
 			}
-			else if ( is_regular_file( entry ) && findword( SEL, "B S E L V" ) )
+			else if ( is_regular_file( entry ) && findword( sel, "B S E L V" ) )
 			{
-				if ( SEL == "E" )
+				vcopy( "ZRFURL", t, MOVE ) ;
+				if ( t == "YES" )
+				{
+					vcopy( "ZRFLPGM", pgm, MOVE ) ;
+					select( "PGM("+pgm+") PARM(PLA "+entry+") BACK" ) ;
+				}
+				if ( sel == "E" )
 				{
 					edit( entry ) ;
-					SEL = "" ;
-					if ( ZRESULT != "" ) { MESSAGE = ZRESULT  ; }
-					else                 { MESSAGE = "Edited" ; }
-					tbput( DSLIST )     ;
+					sel = "" ;
+					if ( ZRESULT != "" ) { message = ZRESULT  ; }
+					else                 { message = "Edited" ; }
+					tbput( dslist ) ;
 				}
-				else if ( SEL == "V" )
+				else if ( sel == "V" )
 				{
 					view( entry ) ;
-					SEL = "" ;
-					if ( ZRESULT != "" ) { MESSAGE = ZRESULT  ; }
-					else                 { MESSAGE = "Viewed" ; }
-					tbput( DSLIST )     ;
+					sel = "" ;
+					if ( ZRESULT != "" ) { message = ZRESULT  ; }
+					else                 { message = "Viewed" ; }
+					tbput( dslist ) ;
 				}
 				else
 				{
 					browse( entry ) ;
-					SEL = "" ;
-					if ( ZRESULT != "" ) { MESSAGE = ZRESULT   ; }
-					else                 { MESSAGE = "Browsed" ; }
-					tbput( DSLIST )     ;
-				}
-				vcopy( "ZRFURL", t, MOVE ) ;
-				if ( t == "YES" )
-				{
-					vcopy( "ZRFLPGM", PGM, MOVE ) ;
-					select( "PGM("+PGM+") PARM(PLA "+entry+")" ) ;
+					sel = "" ;
+					if ( ZRESULT != "" ) { message = ZRESULT   ; }
+					else                 { message = "Browsed" ; }
+					tbput( dslist ) ;
 				}
 			}
-			else if ( findword( SEL, "S B L") )
+			else if ( findword( sel, "S B L") )
 			{
-				vcopy( "ZFLSTPGM", PGM, MOVE ) ;
-				select( "PGM(" + PGM + ") PARM(" + entry + ")" ) ;
-				SEL = "" ;
-				if ( ZRESULT != "" ) { MESSAGE = ZRESULT  ; }
-				else                 { MESSAGE = "Listed" ; }
-				tbput( DSLIST )     ;
+				vcopy( "ZFLSTPGM", pgm, MOVE ) ;
+				select( "PGM(" + pgm + ") PARM(" + entry + ")" ) ;
+				sel = "" ;
+				if ( ZRESULT != "" ) { message = ZRESULT  ; }
+				else                 { message = "Listed" ; }
+				tbput( dslist )     ;
 			}
-			else if ( is_regular_file( entry ) && SEL == "FMT" )
+			else if ( is_regular_file( entry ) && sel == "FMT" )
 			{
-				vcopy( "ZOREXPGM", PGM, MOVE ) ;
-				select( "PGM(" + PGM + ") PARM(porexx2 " + entry + ")" ) ;
-				SEL = "" ;
-				if ( ZRESULT != "" ) { MESSAGE = ZRESULT    ; MSG = "FLST01M" ; }
-				else                 { MESSAGE = "Executed" ;                   }
+				vcopy( "ZOREXPGM", pgm, MOVE ) ;
+				select( "PGM(" + pgm + ") PARM(porexx2 " + entry + ")" ) ;
+				sel = "" ;
+				if ( ZRESULT != "" ) { message = ZRESULT    ; msg = "FLST01M" ; }
+				else                 { message = "Executed" ;                   }
 				if ( ZRC == 0 ) { browse( "/tmp/porexx2.say" ) ; }
-				tbput( DSLIST ) ;
+				tbput( dslist ) ;
 			}
-			else if ( is_regular_file( entry ) && SEL == "NANO" )
+			else if ( is_regular_file( entry ) && sel == "NANO" )
 			{
 				t = "nano " + entry ;
 				control( "TIMEOUT", "DISABLE" ) ;
@@ -710,11 +719,11 @@ void PFLST0A::application()
 				reset_prog_mode()   ;
 				refresh()           ;
 				control( "TIMEOUT", "ENABLE" ) ;
-				SEL     = ""        ;
-				MESSAGE = "nano"    ;
-				tbput( DSLIST )     ;
+				sel     = ""        ;
+				message = "nano"    ;
+				tbput( dslist )     ;
 			}
-			else if ( is_regular_file( entry ) && SEL == "VI" )
+			else if ( is_regular_file( entry ) && sel == "VI" )
 			{
 				t = "vi " + entry   ;
 				control( "TIMEOUT", "DISABLE" ) ;
@@ -724,11 +733,11 @@ void PFLST0A::application()
 				reset_prog_mode()   ;
 				refresh()           ;
 				control( "TIMEOUT", "ENABLE" ) ;
-				SEL     = ""        ;
-				MESSAGE = "vi"      ;
-				tbput( DSLIST )     ;
+				sel     = ""        ;
+				message = "vi"      ;
+				tbput( dslist )     ;
 			}
-			else if ( SEL == "T" || SEL == "TT" )
+			else if ( sel == "T" || sel == "TT" )
 			{
 				RC = 0 ;
 				boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( zuser + "-" + zscreen + "-%%%%-%%%%" ) ;
@@ -738,11 +747,11 @@ void PFLST0A::application()
 				recursive_directory_iterator dIt( entry, ec ) ;
 				if ( ec.value() != boost::system::errc::success )
 				{
-					MSG     = "FLST012H"   ;
-					RSN     = ec.message() ;
-					MESSAGE = ec.message() ;
-					SEL     = ""           ;
-					tbput( DSLIST )        ;
+					msg     = "FLST012H"   ;
+					rsn     = ec.message() ;
+					message = ec.message() ;
+					sel     = ""           ;
+					tbput( dslist )        ;
 					of.close()             ;
 					remove( tname )        ;
 					continue               ;
@@ -757,7 +766,7 @@ void PFLST0A::application()
 						{
 							of << copies( "|   ", dIt.level()) << "|-- " ;
 							of << strip( current.filename().string(), 'B', '"' ) << endl ;
-							if ( SEL == "T" )
+							if ( sel == "T" )
 							{
 								of << strip( current.string(), 'B', '"' ) << endl ;
 							}
@@ -766,34 +775,35 @@ void PFLST0A::application()
 				}
 				catch ( const filesystem_error& ex )
 				{
-					MSG     = "FLST012H" ;
-					RSN     = ex.what()  ;
-					MESSAGE = ex.what()  ;
-					SEL     = ""         ;
-					tbput( DSLIST )      ;
+					msg     = "FLST012H" ;
+					rsn     = ex.what()  ;
+					message = ex.what()  ;
+					sel     = ""         ;
+					tbput( dslist )      ;
 					of.close()           ;
 					remove( tname )      ;
 					continue             ;
 				}
 				of.close()      ;
-				( SEL == "T" ) ? browseTree( tname ) : browse( tname ) ;
+				( sel == "T" ) ? browseTree( tname ) : browse( tname ) ;
 				if ( RC > 0 )
 				{
-					MSG     = "FLST012H"      ;
-					MESSAGE = "Unknown Error" ;
-					tbput( DSLIST )           ;
+					msg     = "FLST012H"      ;
+					message = "Unknown Error" ;
+					tbput( dslist )           ;
 				}
 				remove( tname ) ;
 			}
-			if ( ZTDSELS > 1 )
+			if ( ztdsels > 1 )
 			{
-				tbdispl( DSLIST ) ;
-				if ( RC > 4 ) { break ; }
+				tbdispl( dslist ) ;
+				if ( RC > 4 ) { e_loop = true ; break ; }
 			}
-			else { ZTDSELS = 0 ; }
+			else { ztdsels = 0 ; }
 		}
+		if ( e_loop ) { break ; }
 	}
-	tbend( DSLIST ) ;
+	tbend( dslist ) ;
 	if ( UseList ) { remove( PssList ) ; }
 
 	cleanup() ;
@@ -823,10 +833,10 @@ void PFLST0A::createFileList1( string filter )
 
 	regex expression ;
 
-	tbcreate( DSLIST, "", "(MESSAGE,SEL,ENTRY,TYPE,PERMISS,SIZE,STCDATE,MODDATE,MODDATES)", NOWRITE ) ;
+	tbcreate( dslist, "", "(MESSAGE,SEL,ENTRY,TYPE,PERMISS,SIZE,STCDATE,MODDATE,MODDATES)", NOWRITE ) ;
 
-	MESSAGE = ""  ;
-	SEL     = ""  ;
+	message = ""  ;
+	sel     = ""  ;
 
 	iupper( filter ) ;
 
@@ -840,7 +850,7 @@ void PFLST0A::createFileList1( string filter )
 		std::ifstream fin( PssList.c_str() ) ;
 		while ( getline( fin, t ) )
 		{
-			if ( EXGEN == "/" )
+			if ( exgen == "/" )
 			{
 				p1 = t.find_last_of( '/' ) ;
 				if ( p1 != string::npos )
@@ -906,13 +916,13 @@ void PFLST0A::createFileList1( string filter )
 
 	for ( it = v.begin() ; it != v.end() ; ++it )
 	{
-		tbvclear( DSLIST ) ;
+		tbvclear( dslist ) ;
 		ENTRY = (*it).string() ;
 		p     = ENTRY          ;
 		i     = lastpos( "/", ENTRY ) + 1 ;
 		rest  = ENTRY.substr( 0, i-1 ) ;
 		ENTRY = substr( ENTRY, i )   ;
-		if ( AFHIDDEN != "/" && ENTRY[ 0 ] == '.' ) { continue ; }
+		if ( afhidden != "/" && ENTRY[ 0 ] == '.' ) { continue ; }
 		if ( fGen )
 		{
 			str = upper( ENTRY ) ;
@@ -939,7 +949,7 @@ void PFLST0A::createFileList1( string filter )
 		if ( lstat( p.c_str(), &results ) != 0 )
 		{
 			TYPE    = "----" ;
-			PERMISS = string( 10, '-' ) ;
+			permiss = string( 10, '-' ) ;
 		}
 		else
 		{
@@ -951,29 +961,29 @@ void PFLST0A::createFileList1( string filter )
 			else if ( S_ISSOCK( results.st_mode ) ) { TYPE = "Socket"  ; }
 			else if ( S_ISLNK(results.st_mode ) )   { TYPE = "Syml"    ; }
 			else                                    { TYPE = "Unknown" ; }
-			PERMISS = string( 10, '-' ) ;
-			if ( S_ISDIR(results.st_mode) )  { PERMISS[ 0 ] = 'd' ; }
-			if ( S_ISLNK(results.st_mode) )  { PERMISS[ 0 ] = 'l' ; }
-			if ( results.st_mode & S_IRUSR ) { PERMISS[ 1 ] = 'r' ; }
-			if ( results.st_mode & S_IWUSR ) { PERMISS[ 2 ] = 'w' ; }
-			if ( results.st_mode & S_IXUSR ) { PERMISS[ 3 ] = 'x' ; }
-			if ( results.st_mode & S_IRGRP ) { PERMISS[ 4 ] = 'r' ; }
-			if ( results.st_mode & S_IWGRP ) { PERMISS[ 5 ] = 'w' ; }
-			if ( results.st_mode & S_IXGRP ) { PERMISS[ 6 ] = 'x' ; }
-			if ( results.st_mode & S_IROTH ) { PERMISS[ 7 ] = 'r' ; }
-			if ( results.st_mode & S_IWOTH ) { PERMISS[ 8 ] = 'w' ; }
-			if ( results.st_mode & S_IXOTH ) { PERMISS[ 9 ] = 'x' ; }
-			SIZE      = d2ds( results.st_size )   ;
-			MODDATES  = d2ds( results.st_mtime )  ;
+			permiss = string( 10, '-' ) ;
+			if ( S_ISDIR(results.st_mode) )  { permiss[ 0 ] = 'd' ; }
+			if ( S_ISLNK(results.st_mode) )  { permiss[ 0 ] = 'l' ; }
+			if ( results.st_mode & S_IRUSR ) { permiss[ 1 ] = 'r' ; }
+			if ( results.st_mode & S_IWUSR ) { permiss[ 2 ] = 'w' ; }
+			if ( results.st_mode & S_IXUSR ) { permiss[ 3 ] = 'x' ; }
+			if ( results.st_mode & S_IRGRP ) { permiss[ 4 ] = 'r' ; }
+			if ( results.st_mode & S_IWGRP ) { permiss[ 5 ] = 'w' ; }
+			if ( results.st_mode & S_IXGRP ) { permiss[ 6 ] = 'x' ; }
+			if ( results.st_mode & S_IROTH ) { permiss[ 7 ] = 'r' ; }
+			if ( results.st_mode & S_IWOTH ) { permiss[ 8 ] = 'w' ; }
+			if ( results.st_mode & S_IXOTH ) { permiss[ 9 ] = 'x' ; }
+			size      = d2ds( results.st_size )   ;
+			moddates  = d2ds( results.st_mtime )  ;
 			time_info = gmtime( &(results.st_mtime) ) ;
 			strftime( buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", time_info )  ;
 			buf[ 19 ] = 0x00 ;
-			MODDATE   = buf ;
+			moddate   = buf ;
 		}
 		if ( UseList ) { ENTRY = rest + ENTRY ; }
-		tbadd( DSLIST ) ;
+		tbadd( dslist ) ;
 	}
-	tbtop( DSLIST ) ;
+	tbtop( dslist ) ;
 }
 
 
@@ -1131,68 +1141,68 @@ void PFLST0A::showInfo( const string& p )
 		return    ;
 	}
 
-	vdefine( "IENTRY ITYPE  IINODE INLNKS IPERMISS ISIZE    ISTCDATE IMODDATE", &IENTRY, &ITYPE,  &IINODE, &INLNKS, &IPERMISS, &ISIZE,    &ISTCDATE, &IMODDATE ) ;
-	vdefine( "IRLNK  IOWNER IGROUP IMAJ   IMIN     IBLKSIZE IACCDATE ISETUID",  &IRLNK,  &IOWNER, &IGROUP, &IMAJ,   &IMIN,     &IBLKSIZE, &IACCDATE, &ISETUID  ) ;
-	vdefine( "ISETGID ISTICKY", &ISETGID, &ISTICKY ) ;
+	vdefine( "IENTRY ITYPE  IINODE INLNKS IPERMISS ISIZE    ISTCDATE IMODDATE", &ientry, &itype,  &iinode, &inlnks, &ipermiss, &isize,    &istcdate, &imoddate ) ;
+	vdefine( "IRLNK  IOWNER IGROUP IMAJ   IMIN     IBLKSIZE IACCDATE ISETUID",  &irlnk,  &iowner, &igroup, &imaj,   &imin,     &iblksize, &iaccdate, &isetuid  ) ;
+	vdefine( "ISETGID ISTICKY", &isetgid, &isticky ) ;
 
-	IENTRY = p ;
-	if ( S_ISDIR( results.st_mode ) )       { ITYPE = "Directory"     ; }
-	else if ( S_ISREG( results.st_mode ) )  { ITYPE = "File"          ; }
-	else if ( S_ISCHR( results.st_mode ) )  { ITYPE = "Character"     ; }
-	else if ( S_ISBLK( results.st_mode ) )  { ITYPE = "Block"         ; }
-	else if ( S_ISFIFO( results.st_mode ) ) { ITYPE = "Fifo"          ; }
-	else if ( S_ISSOCK( results.st_mode ) ) { ITYPE = "Socket"        ; }
-	else if ( S_ISLNK(results.st_mode ) )   { ITYPE = "Symbolic link" ; }
-	else                                    { ITYPE = "Unknown"       ; }
+	ientry = p ;
+	if ( S_ISDIR( results.st_mode ) )       { itype = "Directory"     ; }
+	else if ( S_ISREG( results.st_mode ) )  { itype = "File"          ; }
+	else if ( S_ISCHR( results.st_mode ) )  { itype = "Character"     ; }
+	else if ( S_ISBLK( results.st_mode ) )  { itype = "Block"         ; }
+	else if ( S_ISFIFO( results.st_mode ) ) { itype = "Fifo"          ; }
+	else if ( S_ISSOCK( results.st_mode ) ) { itype = "Socket"        ; }
+	else if ( S_ISLNK(results.st_mode ) )   { itype = "Symbolic link" ; }
+	else                                    { itype = "Unknown"       ; }
 
-	IOWNER = "" ;
-	IGROUP = "" ;
+	iowner = "" ;
+	igroup = "" ;
 
 	struct passwd *pw = getpwuid( results.st_uid ) ;
 	if ( pw )
 	{
-		IOWNER = pw->pw_name ;
+		iowner = pw->pw_name ;
 	}
 
 	struct group  *gr = getgrgid( results.st_gid ) ;
 	if ( gr )
 	{
-		IGROUP = gr->gr_name ;
+		igroup = gr->gr_name ;
 	}
 
-	IPERMISS = string( 9, '-' ) ;
-	if ( results.st_mode & S_IRUSR ) { IPERMISS[ 0 ] = 'r' ; }
-	if ( results.st_mode & S_IWUSR ) { IPERMISS[ 1 ] = 'w' ; }
-	if ( results.st_mode & S_IXUSR ) { IPERMISS[ 2 ] = 'x' ; }
-	if ( results.st_mode & S_IRGRP ) { IPERMISS[ 3 ] = 'r' ; }
-	if ( results.st_mode & S_IWGRP ) { IPERMISS[ 4 ] = 'w' ; }
-	if ( results.st_mode & S_IXGRP ) { IPERMISS[ 5 ] = 'x' ; }
-	if ( results.st_mode & S_IROTH ) { IPERMISS[ 6 ] = 'r' ; }
-	if ( results.st_mode & S_IWOTH ) { IPERMISS[ 7 ] = 'w' ; }
-	if ( results.st_mode & S_IXOTH ) { IPERMISS[ 8 ] = 'x' ; }
+	ipermiss = string( 9, '-' ) ;
+	if ( results.st_mode & S_IRUSR ) { ipermiss[ 0 ] = 'r' ; }
+	if ( results.st_mode & S_IWUSR ) { ipermiss[ 1 ] = 'w' ; }
+	if ( results.st_mode & S_IXUSR ) { ipermiss[ 2 ] = 'x' ; }
+	if ( results.st_mode & S_IRGRP ) { ipermiss[ 3 ] = 'r' ; }
+	if ( results.st_mode & S_IWGRP ) { ipermiss[ 4 ] = 'w' ; }
+	if ( results.st_mode & S_IXGRP ) { ipermiss[ 5 ] = 'x' ; }
+	if ( results.st_mode & S_IROTH ) { ipermiss[ 6 ] = 'r' ; }
+	if ( results.st_mode & S_IWOTH ) { ipermiss[ 7 ] = 'w' ; }
+	if ( results.st_mode & S_IXOTH ) { ipermiss[ 8 ] = 'x' ; }
 
-	if ( results.st_mode & S_ISUID ) { ISETUID = "YES"; }
-	else                             { ISETUID = "NO "; }
-	if ( results.st_mode & S_ISGID ) { ISETGID = "YES"; }
-	else                             { ISETGID = "NO "; }
-	if ( results.st_mode & S_ISVTX ) { ISTICKY = "YES"; }
-	else                             { ISTICKY = "NO "; }
+	if ( results.st_mode & S_ISUID ) { isetuid = "YES"; }
+	else                             { isetuid = "NO "; }
+	if ( results.st_mode & S_ISGID ) { isetgid = "YES"; }
+	else                             { isetgid = "NO "; }
+	if ( results.st_mode & S_ISVTX ) { isticky = "YES"; }
+	else                             { isticky = "NO "; }
 
-	IINODE = d2ds( results.st_ino )   ;
-	INLNKS = d2ds( results.st_nlink ) ;
-	ISIZE  = d2ds( results.st_size )  ;
+	iinode = d2ds( results.st_ino )   ;
+	inlnks = d2ds( results.st_nlink ) ;
+	isize  = d2ds( results.st_size )  ;
 
 	time_info = gmtime( &(results.st_ctime) ) ;
-	strftime( buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", time_info ) ; buf[ 19 ]  = 0x00 ; ISTCDATE = buf ;
+	strftime( buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", time_info ) ; buf[ 19 ]  = 0x00 ; istcdate = buf ;
 
 	time_info = gmtime( &(results.st_mtime) ) ;
-	strftime( buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", time_info ) ; buf[ 19 ]  = 0x00 ; IMODDATE = buf ;
+	strftime( buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", time_info ) ; buf[ 19 ]  = 0x00 ; imoddate = buf ;
 
 	time_info = gmtime( &(results.st_atime) ) ;
-	strftime( buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", time_info ) ; buf[ 19 ]  = 0x00 ; IACCDATE = buf ;
+	strftime( buf, sizeof(buf), "%d/%m/%Y %H:%M:%S", time_info ) ; buf[ 19 ]  = 0x00 ; iaccdate = buf ;
 
 
-	IRLNK = "" ;
+	irlnk = "" ;
 	if ( S_ISLNK(results.st_mode ) )
 	{
 		while ( true )
@@ -1207,16 +1217,16 @@ void PFLST0A::showInfo( const string& p )
 			}
 			else
 			{
-				IRLNK = string( buffer, rc ) ;
+				irlnk = string( buffer, rc ) ;
 				delete[] buffer ;
 				break           ;
 			}
 		}
 	}
 
-	IMAJ     = d2ds( major( results.st_dev ) ) ;
-	IMIN     = d2ds( minor( results.st_dev ) ) ;
-	IBLKSIZE = d2ds( results.st_blksize )      ;
+	imaj     = d2ds( major( results.st_dev ) ) ;
+	imin     = d2ds( minor( results.st_dev ) ) ;
+	iblksize = d2ds( results.st_blksize )      ;
 
 	while ( true )
 	{
@@ -1235,7 +1245,7 @@ int PFLST0A::processPrimCMD()
 	string ws  ;
 	string w2  ;
 	string w3  ;
-	string PGM ;
+	string pgm ;
 	string p   ;
 	string t   ;
 
@@ -1257,14 +1267,14 @@ int PFLST0A::processPrimCMD()
 		iupper( w3 ) ;
 		if ( w2 == "" ) { w2 = "ENTRY" ; }
 		if ( w3 == "" ) { w3 = "A"     ; }
-		if      ( w2 == "ENTRY"   ) { tbsort( DSLIST, "(ENTRY,C,"+w3+")"   )  ; }
-		else if ( w2 == "TYPE"    ) { tbsort( DSLIST, "(TYPE,C,"+w3+")"    )  ; }
-		else if ( w2 == "PERMISS" ) { tbsort( DSLIST, "(PERMISS,C,"+w3+")" )  ; }
-		else if ( w2 == "SIZE"    ) { tbsort( DSLIST, "(SIZE,N,"+w3+")"    )  ; }
-		else if ( w2 == "MOD"     ) { tbsort( DSLIST, "(MODDATES,N,"+w3+")" ) ; }
-		else if ( w2 == "CHA"     ) { tbsort( DSLIST, "(MODDATES,N,"+w3+")" ) ; }
+		if      ( w2 == "ENTRY"   ) { tbsort( dslist, "(ENTRY,C,"+w3+")"   )  ; }
+		else if ( w2 == "TYPE"    ) { tbsort( dslist, "(TYPE,C,"+w3+")"    )  ; }
+		else if ( w2 == "PERMISS" ) { tbsort( dslist, "(PERMISS,C,"+w3+")" )  ; }
+		else if ( w2 == "SIZE"    ) { tbsort( dslist, "(SIZE,N,"+w3+")"    )  ; }
+		else if ( w2 == "MOD"     ) { tbsort( dslist, "(MODDATES,N,"+w3+")" ) ; }
+		else if ( w2 == "CHA"     ) { tbsort( dslist, "(MODDATES,N,"+w3+")" ) ; }
 		else                        { return 8 ;                                }
-		if ( RC > 0 ) { MSG = "FLST016" ; return 4 ; }
+		if ( RC > 0 ) { msg = "FLST016" ; return 4 ; }
 		return 0 ;
 	}
 	else if ( findword( cw, "S B E EDIT" ) && ws != "" )
@@ -1272,8 +1282,8 @@ int PFLST0A::processPrimCMD()
 		p = zpath + "/" + ws ;
 		if ( is_directory( p ) && (cw == "S" || cw == "B" ) )
 		{
-			vcopy( "ZFLSTPGM", PGM, MOVE ) ;
-			select( "PGM(" + PGM + ") PARM(" + p + ")" ) ;
+			vcopy( "ZFLSTPGM", pgm, MOVE ) ;
+			select( "PGM(" + pgm + ") PARM(" + p + ")" ) ;
 			zcmd = "" ;
 		}
 		else if ( is_regular_file( p ) )
@@ -1304,34 +1314,34 @@ int PFLST0A::processPrimCMD()
 	}
 	else if ( cw == "L" )
 	{
-		tbvclear( DSLIST ) ;
+		tbvclear( dslist ) ;
 		ENTRY = word( ws, 1 ) ;
 		if ( ENTRY.back() != '*' ) { ENTRY.push_back( '*' ) ; }
 		if ( w3 == "PREV" )
 		{
-			tbsarg( DSLIST, "", "PREVIOUS", "(ENTRY,LE)" ) ;
-			tbscan( DSLIST, "", "", "", "", "", "CRP"  ) ;
+			tbsarg( dslist, "", "PREVIOUS", "(ENTRY,LE)" ) ;
+			tbscan( dslist, "", "", "", "", "", "CRP"  ) ;
 		}
 		else
 		{
 			if ( w3 == "FIRST" )
 			{
-				tbsarg( DSLIST, "", "NEXT", "(ENTRY,GE)" ) ;
-				tbtop( DSLIST )  ;
-				tbscan( DSLIST, "", "", "", "", "", "CRP" ) ;
+				tbsarg( dslist, "", "NEXT", "(ENTRY,GE)" ) ;
+				tbtop( dslist )  ;
+				tbscan( dslist, "", "", "", "", "", "CRP" ) ;
 			}
 			else
 			{
 				if ( w3 == "LAST" )
 				{
-					tbsarg( DSLIST, "", "PREVIOUS", "(ENTRY,LE)" ) ;
-					tbtop( DSLIST ) ;
-					tbscan( DSLIST, "", "", "", "", "", "CRP"  ) ;
+					tbsarg( dslist, "", "PREVIOUS", "(ENTRY,LE)" ) ;
+					tbtop( dslist ) ;
+					tbscan( dslist, "", "", "", "", "", "CRP"  ) ;
 				}
 				else
 				{
-					tbsarg( DSLIST, "", "NEXT", "(ENTRY,GE)" ) ;
-					tbscan( DSLIST, "", "", "", "", "", "CRP" ) ;
+					tbsarg( dslist, "", "NEXT", "(ENTRY,GE)" ) ;
+					tbscan( dslist, "", "", "", "", "", "CRP" ) ;
 				}
 			}
 		}
@@ -1343,12 +1353,12 @@ int PFLST0A::processPrimCMD()
 		create_directory( ws, ec ) ;
 		if ( ec.value() == boost::system::errc::success )
 		{
-			MSG = "FLST012B" ;
+			msg = "FLST012B" ;
 		}
 		else
 		{
-			MSG = "FLST012C"   ;
-			RSN = ec.message() ;
+			msg = "FLST012C"   ;
+			rsn = ec.message() ;
 			llog( "E", "Create of directory " + ws + " failed with " + ec.message() << endl ) ;
 		}
 		zcmd = "" ;
@@ -1364,13 +1374,13 @@ int PFLST0A::processPrimCMD()
 			{
 				of << endl ;
 				of.close() ;
-				MSG = "FLST012E" ;
+				msg = "FLST012E" ;
 			}
-			else { MSG = "FLST012F" ; }
+			else { msg = "FLST012F" ; }
 		}
 		else
 		{
-			MSG = "FLST012D" ;
+			msg = "FLST012D" ;
 		}
 		zcmd = "" ;
 		return 4  ;
@@ -1379,7 +1389,7 @@ int PFLST0A::processPrimCMD()
 }
 
 
-void PFLST0A::copyDirs( const string& src, const string& dest, const string& DIRREC, bool& errs )
+void PFLST0A::copyDirs( const string& src, const string& dest, const string& dirrec, bool& errs )
 {
 	boost::system::error_code ec ;
 
@@ -1387,9 +1397,9 @@ void PFLST0A::copyDirs( const string& src, const string& dest, const string& DIR
 	if ( ec.value() != boost::system::errc::success )
 	{
 		errs    = true         ;
-		MSG     = "FLST011V"   ;
-		RSN     = ec.message() ;
-		MESSAGE = ec.message() ;
+		msg     = "FLST011V"   ;
+		rsn     = ec.message() ;
+		message = ec.message() ;
 		llog( "E", "Copy of directory" + src + " to " + dest + " failed with " + ec.message() << endl ) ;
 		return ;
 	}
@@ -1405,9 +1415,9 @@ void PFLST0A::copyDirs( const string& src, const string& dest, const string& DIR
 		path current( file->path() ) ;
 		if( is_directory( current ) )
 		{
-			if ( DIRREC == "/" )
+			if ( dirrec == "/" )
 			{
-				copyDirs( current.string(), dest + "/" + current.filename().string(), DIRREC, errs ) ;
+				copyDirs( current.string(), dest + "/" + current.filename().string(), dirrec, errs ) ;
 			}
 			else
 			{
@@ -1455,14 +1465,14 @@ void PFLST0A::modifyAttrs( const string& p )
 
 	bool changed    ;
 
-	string OPERMISS ;
-	string OSETUID  ;
-	string OSETGID  ;
-	string OSTICKY  ;
-	string OOWNER   ;
-	string OGROUP   ;
-	string OOWNERN  ;
-	string OGROUPN  ;
+	string opermiss ;
+	string osetuid  ;
+	string osetgid  ;
+	string osticky  ;
+	string oowner   ;
+	string ogroup   ;
+	string oownern  ;
+	string ogroupn  ;
 
 	mode_t t  ;
 	uid_t uid ;
@@ -1470,41 +1480,41 @@ void PFLST0A::modifyAttrs( const string& p )
 
 	struct stat results ;
 
-	vdefine( "IENTRY ITYPE  IPERMISS ", &IENTRY, &ITYPE, &IPERMISS ) ;
-	vdefine( "IOWNER IGROUP ISETUID", &IOWNER, &IGROUP, &ISETUID  ) ;
-	vdefine( "ISETGID ISTICKY IOWNERN IGROUPN", &ISETGID, &ISTICKY, &IOWNERN, &IGROUPN ) ;
+	vdefine( "IENTRY ITYPE  IPERMISS ", &ientry, &itype, &ipermiss ) ;
+	vdefine( "IOWNER IGROUP ISETUID", &iowner, &igroup, &isetuid  ) ;
+	vdefine( "ISETGID ISTICKY IOWNERN IGROUPN", &isetgid, &isticky, &iownern, &igroupn ) ;
 
 	lstat( p.c_str(), &results ) ;
 
-	IENTRY = p ;
-	if ( S_ISDIR( results.st_mode ) )       { ITYPE = "Directory"     ; }
-	else if ( S_ISREG( results.st_mode ) )  { ITYPE = "File"          ; }
-	else if ( S_ISCHR( results.st_mode ) )  { ITYPE = "Character"     ; }
-	else if ( S_ISBLK( results.st_mode ) )  { ITYPE = "Block"         ; }
-	else if ( S_ISFIFO( results.st_mode ) ) { ITYPE = "Fifo"          ; }
-	else if ( S_ISSOCK( results.st_mode ) ) { ITYPE = "Socket"        ; }
-	else if ( S_ISLNK(results.st_mode ) )   { ITYPE = "Symbolic link" ; }
-	else                                    { ITYPE = "Unknown"       ; }
+	ientry = p ;
+	if ( S_ISDIR( results.st_mode ) )       { itype = "Directory"     ; }
+	else if ( S_ISREG( results.st_mode ) )  { itype = "File"          ; }
+	else if ( S_ISCHR( results.st_mode ) )  { itype = "Character"     ; }
+	else if ( S_ISBLK( results.st_mode ) )  { itype = "Block"         ; }
+	else if ( S_ISFIFO( results.st_mode ) ) { itype = "Fifo"          ; }
+	else if ( S_ISSOCK( results.st_mode ) ) { itype = "Socket"        ; }
+	else if ( S_ISLNK(results.st_mode ) )   { itype = "Symbolic link" ; }
+	else                                    { itype = "Unknown"       ; }
 
 	struct passwd *pwd ;
 	struct group  *grp ;
 
-	IOWNER  = "" ;
-	IOWNERN = "" ;
+	iowner  = "" ;
+	iownern = "" ;
 	pwd = getpwuid( results.st_uid ) ;
 	if ( pwd )
 	{
-		IOWNER  = pwd->pw_name ;
-		IOWNERN = d2ds( pwd->pw_uid ) ;
+		iowner  = pwd->pw_name ;
+		iownern = d2ds( pwd->pw_uid ) ;
 	}
 
-	IGROUP  = "" ;
-	IGROUPN = "" ;
+	igroup  = "" ;
+	igroupn = "" ;
 	grp = getgrgid( results.st_gid ) ;
 	if ( grp )
 	{
-		IGROUP  = grp->gr_name ;
-		IGROUPN = d2ds( grp->gr_gid ) ;
+		igroup  = grp->gr_name ;
+		igroupn = d2ds( grp->gr_gid ) ;
 	}
 
 	i1 = 0 ;
@@ -1521,53 +1531,53 @@ void PFLST0A::modifyAttrs( const string& p )
 	if ( results.st_mode & S_IWOTH ) { i3 = i3 + 2 ; }
 	if ( results.st_mode & S_IXOTH ) { i3 = i3 + 1 ; }
 
-	IPERMISS = d2ds( i1 ) + d2ds( i2 ) + d2ds( i3 ) ;
+	ipermiss = d2ds( i1 ) + d2ds( i2 ) + d2ds( i3 ) ;
 
-	if ( results.st_mode & S_ISUID ) { ISETUID = "/" ; }
-	else                             { ISETUID = ""  ; }
-	if ( results.st_mode & S_ISGID ) { ISETGID = "/" ; }
-	else                             { ISETGID = ""  ; }
-	if ( results.st_mode & S_ISVTX ) { ISTICKY = "/" ; }
-	else                             { ISTICKY = ""  ; }
+	if ( results.st_mode & S_ISUID ) { isetuid = "/" ; }
+	else                             { isetuid = ""  ; }
+	if ( results.st_mode & S_ISGID ) { isetgid = "/" ; }
+	else                             { isetgid = ""  ; }
+	if ( results.st_mode & S_ISVTX ) { isticky = "/" ; }
+	else                             { isticky = ""  ; }
 
-	OSETUID  = ISETUID  ;
-	OSETGID  = ISETGID  ;
-	OSTICKY  = ISTICKY  ;
-	OPERMISS = IPERMISS ;
-	OOWNER   = IOWNER   ;
-	OGROUP   = IGROUP   ;
-	OOWNERN  = IOWNERN  ;
-	OGROUPN  = IGROUPN  ;
-	MSG      = ""       ;
+	osetuid  = isetuid  ;
+	osetgid  = isetgid  ;
+	osticky  = isticky  ;
+	opermiss = ipermiss ;
+	oowner   = iowner   ;
+	ogroup   = igroup   ;
+	oownern  = iownern  ;
+	ogroupn  = igroupn  ;
+	msg      = ""       ;
 	t        = results.st_mode ;
 	changed  = false    ;
 
-	display( "PFLST0A6", MSG, "ZCMD" ) ;
+	display( "PFLST0A6", msg, "ZCMD" ) ;
 	if ( RC == 8 )
 	{
 		zcmd    = ""          ;
-		MSG     = "FLST017"   ;
-		MESSAGE = "Cancelled" ;
+		msg     = "FLST017"   ;
+		message = "Cancelled" ;
 	}
 	else
 	{
-		if ( IPERMISS != OPERMISS )
+		if ( ipermiss != opermiss )
 		{
-			i = ds2d( string( 1, IPERMISS[ 0 ] ) ) ;
+			i = ds2d( string( 1, ipermiss[ 0 ] ) ) ;
 			if ( i >= 4 ) { t = t |  S_IRUSR ; i = i - 4 ; }
 			else          { t = t & ~S_IRUSR ;             }
 			if ( i >= 2 ) { t = t |  S_IWUSR ; i = i - 2 ; }
 			else          { t = t & ~S_IWUSR ;             }
 			if ( i == 1 ) { t = t |  S_IXUSR ; }
 			else          { t = t & ~S_IXUSR ; }
-			i = ds2d( string( 1, IPERMISS[ 1 ] ) ) ;
+			i = ds2d( string( 1, ipermiss[ 1 ] ) ) ;
 			if ( i >= 4 ) { t = t |  S_IRGRP ; i = i - 4 ; }
 			else          { t = t & ~S_IRGRP ;             }
 			if ( i >= 2 ) { t = t |  S_IWGRP ; i = i - 2 ; }
 			else          { t = t & ~S_IWGRP ;             }
 			if ( i == 1 ) { t = t |  S_IXGRP ; }
 			else          { t = t & ~S_IXGRP ; }
-			i = ds2d( string( 1, IPERMISS[ 2 ] ) ) ;
+			i = ds2d( string( 1, ipermiss[ 2 ] ) ) ;
 			if ( i >= 4 ) { t = t |  S_IROTH ; i = i - 4 ; }
 			else          { t = t & ~S_IROTH ;             }
 			if ( i >= 2 ) { t = t |  S_IWOTH ; i = i - 2 ; }
@@ -1575,88 +1585,88 @@ void PFLST0A::modifyAttrs( const string& p )
 			if ( i == 1 ) { t = t |  S_IXOTH ; }
 			else          { t = t & ~S_IXOTH ; }
 		}
-		if ( ISETUID != OSETUID )
+		if ( isetuid != osetuid )
 		{
-			if ( ISETUID == "/" ) { t = t |  S_ISUID ; }
+			if ( isetuid == "/" ) { t = t |  S_ISUID ; }
 			else                  { t = t & ~S_ISUID ; }
 		}
-		if ( ISETGID != OSETGID )
+		if ( isetgid != osetgid )
 		{
-			if ( ISETGID == "/" ) { t = t |  S_ISGID ; }
+			if ( isetgid == "/" ) { t = t |  S_ISGID ; }
 			else                  { t = t & ~S_ISGID ; }
 		}
-		if ( ISTICKY != OSTICKY )
+		if ( isticky != osticky )
 		{
-			if ( ISTICKY == "/" ) { t = t |  S_ISVTX ; }
+			if ( isticky == "/" ) { t = t |  S_ISVTX ; }
 			else                  { t = t & ~S_ISVTX ; }
 		}
 		if ( t != results.st_mode )
 		{
 			changed = true ;
-			if ( chmod( p.c_str(), t ) != 0 ) { MSG = "FLST018" ; }
+			if ( chmod( p.c_str(), t ) != 0 ) { msg = "FLST018" ; }
 		}
-		if ( MSG == "" && (IOWNERN != OOWNERN) )
+		if ( msg == "" && (iownern != oownern) )
 		{
 			changed = true ;
-			pwd = getpwuid( ds2d( IOWNERN ) ) ;
+			pwd = getpwuid( ds2d( iownern ) ) ;
 			if ( pwd == NULL )
 			{
-				MSG = "FLST019" ;
+				msg = "FLST019" ;
 			}
 			else
 			{
 				changed = true    ;
 				uid = pwd->pw_uid ;
-				if ( chown( p.c_str(), uid, -1 ) == -1 ) { MSG = "FLST012I" ; }
+				if ( chown( p.c_str(), uid, -1 ) == -1 ) { msg = "FLST012I" ; }
 			}
 		}
-		else if ( MSG == "" && (IOWNER != OOWNER) )
+		else if ( msg == "" && (iowner != oowner) )
 		{
 			changed = true ;
-			pwd = getpwnam( IOWNER.c_str() ) ;
+			pwd = getpwnam( iowner.c_str() ) ;
 			if ( pwd == NULL )
 			{
-				MSG = "FLST011B" ;
+				msg = "FLST011B" ;
 			}
 			else
 			{
 				uid = pwd->pw_uid ;
-				if ( chown( p.c_str(), uid, -1 ) == -1 ) { MSG = "FLST012I" ; }
+				if ( chown( p.c_str(), uid, -1 ) == -1 ) { msg = "FLST012I" ; }
 			}
 		}
-		if ( MSG == "" && (IGROUPN != OGROUPN) )
+		if ( msg == "" && (igroupn != ogroupn) )
 		{
 			changed = true ;
-			grp = getgrgid( ds2d( IGROUPN ) ) ;
+			grp = getgrgid( ds2d( igroupn ) ) ;
 			if ( grp == NULL )
 			{
-				MSG = "FLST011L" ;
+				msg = "FLST011L" ;
 			}
 			else
 			{
 				gid = grp->gr_gid ;
-				if ( chown( p.c_str(), -1, gid ) == -1 ) { MSG = "FLST012J" ; }
+				if ( chown( p.c_str(), -1, gid ) == -1 ) { msg = "FLST012J" ; }
 			}
 		}
-		else if ( MSG == "" && (IGROUP != OGROUP) )
+		else if ( msg == "" && (igroup != ogroup) )
 		{
 			changed = true ;
-			grp = getgrnam( IGROUP.c_str() ) ;
+			grp = getgrnam( igroup.c_str() ) ;
 			if ( grp == NULL )
 			{
-				MSG = "FLST011C" ;
+				msg = "FLST011C" ;
 			}
 			else
 			{
 				gid = grp->gr_gid ;
-				if ( chown( p.c_str(), -1, gid ) == -1 ) { MSG = "FLST012J" ; }
+				if ( chown( p.c_str(), -1, gid ) == -1 ) { msg = "FLST012J" ; }
 			}
 		}
 		stat( p.c_str(), &results ) ;
 		if ( changed )
 		{
-			if ( MSG != "" ) { MESSAGE = "Modify Failed" ; }
-			else             { MESSAGE = "Modified"      ; MSG = "FLST011A" ; }
+			if ( msg != "" ) { message = "Modify Failed" ; }
+			else             { message = "Modified"      ; msg = "FLST011A" ; }
 		}
 	}
 	vdelete( "IENTRY ITYPE  IPERMISS IOWNER IGROUP IOWNERN IGROUPN ISETUID ISETGID ISTICKY" ) ;
@@ -1667,13 +1677,15 @@ void PFLST0A::browseTree( const string& tname )
 {
 	int i ;
 
-	string TSEL   ;
-	string TFILE  ;
-	string TENTRY ;
+	bool e_loop ;
+
+	string tsel   ;
+	string tfile  ;
+	string tentry ;
 
 	string tab    ;
 	string line   ;
-	string PGM    ;
+	string pgm    ;
 
 	std::ifstream fin ;
 	fin.open( tname.c_str() ) ;
@@ -1684,14 +1696,15 @@ void PFLST0A::browseTree( const string& tname )
 		return    ;
 	}
 
-	vdefine( "TSEL TFILE TENTRY ZDIR", &TSEL, &TFILE, &TENTRY, &zdir ) ;
-	vcopy( "ZFLSTPGM", PGM, MOVE ) ;
+	vdefine( "TSEL TFILE TENTRY ZDIR", &tsel, &tfile, &tentry, &zdir ) ;
+	vcopy( "ZFLSTPGM", pgm, MOVE ) ;
 	tab = "FTREE" + d2ds( taskid(), 3 ) ;
 
 	tbcreate( tab, "", "(TSEL,TFILE,TENTRY)", NOWRITE ) ;
 
-	TSEL = "" ;
-	i    = 1  ;
+	tsel   = "" ;
+	i      = 1  ;
+	e_loop = false ;
 	while ( getline( fin, line ) )
 	{
 		if ( i == 1 )
@@ -1700,12 +1713,12 @@ void PFLST0A::browseTree( const string& tname )
 		}
 		else if ( i % 2 )
 		{
-			TFILE = strip( line ) ;
+			tfile = strip( line ) ;
 			tbadd( tab ) ;
 		}
 		else
 		{
-			TENTRY  = strip( line ) ;
+			tentry  = strip( line ) ;
 		}
 		i++ ;
 
@@ -1714,7 +1727,7 @@ void PFLST0A::browseTree( const string& tname )
 
 	while ( true )
 	{
-		if ( ZTDVROWS > 0 )
+		if ( ztdvrows > 0 )
 		{
 			tbtop( tab )     ;
 			tbskip( tab, i ) ;
@@ -1722,31 +1735,32 @@ void PFLST0A::browseTree( const string& tname )
 		else
 		{
 			tbbottom( tab ) ;
-			tbskip( tab, - (ZTDDEPTH-2) ) ;
+			tbskip( tab, - (ztddepth-2) ) ;
 			if ( RC > 0 ) { tbtop( tab ) ; }
 		}
-		if ( MSG == "" ) { zcmd = "" ; }
-		tbdispl( tab, "PFLST0A8", MSG, "ZCMD" ) ;
+		if ( msg == "" ) { zcmd = "" ; }
+		tbdispl( tab, "PFLST0A8", msg, "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
-		MSG = "" ;
-		i = ZTDTOP ;
-		while ( ZTDSELS > 0 )
+		msg = "" ;
+		i = ztdtop ;
+		while ( ztdsels > 0 )
 		{
-			if ( TSEL == "S" )
+			if ( tsel == "S" )
 			{
-				select( "PGM(" + PGM + ") PARM(BROWSE " + TFILE + ")" ) ;
+				select( "PGM(" + pgm + ") PARM(BROWSE " + tfile + ")" ) ;
 			}
-			else if ( TSEL == "I" )
+			else if ( tsel == "I" )
 			{
-				select( "PGM(" + PGM + ") PARM(INFO " + TFILE + ")" ) ;
+				select( "PGM(" + pgm + ") PARM(INFO " + tfile + ")" ) ;
 			}
-			if ( ZTDSELS > 1 )
+			if ( ztdsels > 1 )
 			{
 				tbdispl( tab ) ;
-				if ( RC > 4 ) break ;
+				if ( RC > 4 ) { e_loop = true ; break ; }
 			}
-			else { ZTDSELS = 0 ; }
+			else { ztdsels = 0 ; }
 		}
+		if ( e_loop ) { break ; }
 	}
 	tbend( tab ) ;
 	return       ;
@@ -2036,56 +2050,59 @@ string PFLST0A::expandFld1( const string& parms )
 
 string PFLST0A::showListing()
 {
+	bool e_loop     ;
+
 	string w1       ;
 	string w2       ;
 	string ws       ;
-	string OPATH    ;
-	string FLDIRS   ;
-	string OFLDIRS  ;
-	string FLHIDDEN ;
-	string OHIDDEN  ;
+	string opath    ;
+	string fldirs   ;
+	string ofldirs  ;
+	string flhidden ;
+	string ohidden  ;
 
-	vdefine( "SEL ENTRY TYPE FLDIRS FLHIDDEN", &SEL, &ENTRY, &TYPE, &FLDIRS, &FLHIDDEN ) ;
+	vdefine( "SEL ENTRY TYPE FLDIRS FLHIDDEN", &sel, &ENTRY, &TYPE, &fldirs, &flhidden ) ;
 	vget( "FLDIRS FLHIDDEN", PROFILE ) ;
 
-	DSLIST = "DSLST" + d2ds( taskid(), 3 ) ;
-	createFileList2( FLDIRS ) ;
+	dslist = "DSLST" + d2ds( taskid(), 3 ) ;
+	createFileList2( fldirs ) ;
 
 	RC       = 0 ;
-	ZTDVROWS = 1 ;
+	ztdvrows = 1 ;
 	ZRC      = 0 ;
+	e_loop   = false ;
 
 	while ( true )
 	{
-		if ( ZTDVROWS > 0 )
+		if ( ztdvrows > 0 )
 		{
-			tbtop( DSLIST ) ;
-			tbskip( DSLIST, ZTDTOP ) ;
+			tbtop( dslist ) ;
+			tbskip( dslist, ztdtop ) ;
 		}
 		else
 		{
-			tbbottom( DSLIST ) ;
-			tbskip( DSLIST, - (ZTDDEPTH-2) ) ;
-			if ( RC > 0 ) { tbtop( DSLIST ) ; }
+			tbbottom( dslist ) ;
+			tbskip( dslist, - (ztddepth-2) ) ;
+			if ( RC > 0 ) { tbtop( dslist ) ; }
 		}
-		OPATH   = zpath    ;
-		OFLDIRS = FLDIRS   ;
-		OHIDDEN = FLHIDDEN ;
-		if ( MSG == "" ) { zcmd  = "" ; }
-		tbdispl( DSLIST, "PFLST0A7", MSG, "ZCMD" ) ;
+		opath   = zpath    ;
+		ofldirs = fldirs   ;
+		ohidden = flhidden ;
+		if ( msg == "" ) { zcmd  = "" ; }
+		tbdispl( dslist, "PFLST0A7", msg, "ZCMD" ) ;
 		if ( RC == 8 ) { ZRC = 8 ; break ; }
-		MSG = "" ;
+		msg = "" ;
 		w1  = upper( word( zcmd, 1 ) ) ;
 		w2  = word( zcmd, 2 )    ;
 		ws  = subword( zcmd, 2 ) ;
-		if ( w1 == "REFRESH" ) { tbend( DSLIST ) ; createFileList2( FLDIRS )     ; continue ; }
-		if ( w1 == "O" )       { tbend( DSLIST ) ; createFileList2( FLDIRS, w2 ) ; continue ; }
+		if ( w1 == "REFRESH" ) { tbend( dslist ) ; createFileList2( fldirs )     ; continue ; }
+		if ( w1 == "O" )       { tbend( dslist ) ; createFileList2( fldirs, w2 ) ; continue ; }
 		if ( w1 == "S" && zpath != "/" )
 		{
 			if ( zpath.back() == '/' ) { zpath = zpath.substr( 0, zpath.size()-1) ; }
 			zpath = substr( zpath, 1, lastpos( "/", zpath)-1 ) ;
-			tbend( DSLIST )   ;
-			createFileList2( FLDIRS ) ;
+			tbend( dslist )   ;
+			createFileList2( fldirs ) ;
 			continue ;
 		}
 		if ( w1 == "CD" )
@@ -2094,62 +2111,63 @@ string PFLST0A::showListing()
 			if ( zpath.back() == '/' ) { zpath = zpath.substr( 0, zpath.size()-1) ; }
 			if ( substr( ws, 1, 1 ) != "/" ) { zpath += "/" + ws ; }
 			else                             { zpath  = ws       ; }
-			tbend( DSLIST ) ; createFileList2( FLDIRS ) ; continue ;
+			tbend( dslist ) ; createFileList2( fldirs ) ; continue ;
 		}
 		vget( "ZVERB", SHARED ) ;
-		if ( OFLDIRS != FLDIRS )
+		if ( ofldirs != fldirs )
 		{
-			tbend( DSLIST ) ;
-			createFileList2( FLDIRS ) ;
+			tbend( dslist ) ;
+			createFileList2( fldirs ) ;
 			continue ;
 		}
-		if ( OHIDDEN != FLHIDDEN )
+		if ( ohidden != flhidden )
 		{
-			tbend( DSLIST ) ;
-			createFileList2( FLDIRS ) ;
+			tbend( dslist ) ;
+			createFileList2( fldirs ) ;
 			continue ;
 		}
-		if ( OPATH != zpath )
+		if ( opath != zpath )
 		{
 			if ( ( !exists( zpath ) || !is_directory( zpath ) ) )
 			{
-				MSG = "PSYS012A" ;
+				msg = "PSYS012A" ;
 			}
 			else
 			{
-				tbend( DSLIST ) ;
-				createFileList2( FLDIRS ) ;
+				tbend( dslist ) ;
+				createFileList2( fldirs ) ;
 			}
 			continue ;
 		}
-		while ( ZTDSELS > 0 )
+		while ( ztdsels > 0 )
 		{
-			if ( SEL == "S" )
+			if ( sel == "S" )
 			{
 				zpath = createEntry( zpath, ENTRY ) ;
-				tbend( DSLIST )   ;
-				createFileList2( FLDIRS ) ;
+				tbend( dslist )   ;
+				createFileList2( fldirs ) ;
 			}
-			else if ( SEL == "/" )
+			else if ( sel == "/" )
 			{
 				zpath = createEntry( zpath, ENTRY ) ;
-				tbend( DSLIST ) ;
+				tbend( dslist ) ;
 				return zpath    ;
 			}
-			if ( ZTDSELS > 1 )
+			if ( ztdsels > 1 )
 			{
-				tbdispl( DSLIST ) ;
-				if ( RC > 4 ) break ;
+				tbdispl( dslist ) ;
+				if ( RC > 4 ) { e_loop = true ; break ; }
 			}
-			else { ZTDSELS = 0 ; }
+			else { ztdsels = 0 ; }
 		}
+		if ( e_loop ) { break ; }
 	}
-	tbend( DSLIST ) ;
+	tbend( dslist ) ;
 	return ""       ;
 }
 
 
-void PFLST0A::createFileList2( const string& FLDIRS, string filter )
+void PFLST0A::createFileList2( const string& fldirs, string filter )
 {
 	int i    ;
 
@@ -2159,7 +2177,7 @@ void PFLST0A::createFileList2( const string& FLDIRS, string filter )
 	struct stat results ;
 	typedef vector< path > vec ;
 
-	tbcreate( DSLIST, "", "(SEL,ENTRY,TYPE)", NOWRITE ) ;
+	tbcreate( dslist, "", "(SEL,ENTRY,TYPE)", NOWRITE ) ;
 
 	vec v;
 
@@ -2183,7 +2201,7 @@ void PFLST0A::createFileList2( const string& FLDIRS, string filter )
 	sort( v.begin(), v.end() ) ;
 	for ( vec::const_iterator it (v.begin()) ; it != v.end() ; ++it )
 	{
-		SEL   = "" ;
+		sel   = "" ;
 		ENTRY = (*it).string() ;
 		p     = ENTRY          ;
 		i     = lastpos( "/", ENTRY ) + 1 ;
@@ -2193,7 +2211,7 @@ void PFLST0A::createFileList2( const string& FLDIRS, string filter )
 		if ( lstat( p.c_str(), &results ) != 0 )
 		{
 			TYPE = "----" ;
-			tbadd( DSLIST ) ;
+			tbadd( dslist ) ;
 			continue ;
 		}
 		if ( S_ISDIR( results.st_mode ) )       { TYPE = "Dir"     ; }
@@ -2204,10 +2222,10 @@ void PFLST0A::createFileList2( const string& FLDIRS, string filter )
 		else if ( S_ISSOCK( results.st_mode ) ) { TYPE = "Socket"  ; }
 		else if ( S_ISLNK(results.st_mode ) )   { TYPE = "Syml"    ; }
 		else                                    { TYPE = "Unknown" ; }
-		if ( FLDIRS == "/" && TYPE != "Dir" ) { continue ; }
-		tbadd( DSLIST ) ;
+		if ( fldirs == "/" && TYPE != "Dir" ) { continue ; }
+		tbadd( dslist ) ;
 	}
-	tbtop( DSLIST ) ;
+	tbtop( dslist ) ;
 }
 
 

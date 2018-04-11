@@ -68,16 +68,16 @@ void PTUTORA::application()
 	string tfile      ;
 	string filename   ;
 	string panel      ;
-	string ZDSN       ;
-	string ZSCRNAME   ;
+	string zdsn       ;
+	string zscrname   ;
 
 	bool rebuildZAREA ;
 
 	errblock err      ;
 
-	vdefine( "ZZSTR1 ZSCRNAME", &help, &ZSCRNAME ) ;
+	vdefine( "ZZSTR1 ZSCRNAME", &help, &zscrname ) ;
 
-	ZSCRNAME = "Help" ;
+	zscrname = "Help" ;
 	vput( "ZSCRNAME", SHARED ) ;
 
 	sh       = ZSHELP ;
@@ -135,9 +135,9 @@ void PTUTORA::application()
 
 	rebuildZAREA = true  ;
 
-	vdefine( "ZCMD ZVERB ZROW1 ZROW2 ZAREA ZSHADOW ZAREAT ZDSN", &zcmd, &zverb, &ZROW1, &ZROW2, &ZAREA, &ZSHADOW, &ZAREAT, &ZDSN ) ;
-	vdefine( "ZSCROLLN ZAREAW ZAREAD", &ZSCROLLN, &ZAREAW, &ZAREAD ) ;
-	vdefine( "ZSCROLLA ZCOL1", &ZSCROLLA, &ZCOL1 ) ;
+	vdefine( "ZCMD ZVERB ZROW1 ZROW2 ZAREA ZSHADOW ZAREAT ZDSN", &zcmd, &zverb, &zrow1, &zrow2, &zarea, &zshadow, &zareat, &zdsn ) ;
+	vdefine( "ZSCROLLN ZAREAW ZAREAD", &zscrolln, &zareaw, &zaread ) ;
+	vdefine( "ZSCROLLA ZCOL1", &zscrolla, &zcol1 ) ;
 
 	firstLine = 0 ;
 	startCol  = 1 ;
@@ -147,7 +147,7 @@ void PTUTORA::application()
 	if ( RC > 0 )  { abend() ; return ; }
 
 	maxLines = 6 ;
-	data.push_back( centre( " Top of Help ", ZAREAW, '*' ) ) ;
+	data.push_back( centre( " Top of Help ", zareaw, '*' ) ) ;
 	data.push_back( " System level Help . . . : " + sh ) ;
 	data.push_back( " Application level Help. : " + ah ) ;
 	data.push_back( " Panel Help. . . . . . . : " + ph ) ;
@@ -185,14 +185,14 @@ void PTUTORA::application()
 			return    ;
 		}
 		data.push_back( " " ) ;
-		data.push_back( copies( "-", ZAREAW ) ) ;
+		data.push_back( copies( "-", zareaw ) ) ;
 		data.push_back( "Help member " + help ) ;
-		data.push_back( copies( "-", ZAREAW ) ) ;
+		data.push_back( copies( "-", zareaw ) ) ;
 		maxLines = maxLines + 4 ;
 		read_file( tfile ) ;
 	}
 
-	data.push_back( centre( " Bottom of Help ", ZAREAW, '*' ) ) ;
+	data.push_back( centre( " Bottom of Help ", zareaw, '*' ) ) ;
 	maxLines++ ;
 
 	while ( true )
@@ -202,9 +202,9 @@ void PTUTORA::application()
 
 		if ( rebuildZAREA ) fill_dynamic_area() ;
 
-		ZROW1 = d2ds( firstLine, 8 )    ;
-		ZROW2 = d2ds( maxLines - 2, 8 ) ;
-		ZCOL1 = d2ds( startCol, 7 )     ;
+		zrow1 = d2ds( firstLine, 8 )    ;
+		zrow2 = d2ds( maxLines - 2, 8 ) ;
+		zcol1 = d2ds( startCol, 7 )     ;
 
 		display( "PTUTORA1", "", "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
@@ -217,52 +217,52 @@ void PTUTORA::application()
 		if ( zverb == "DOWN" )
 		{
 			rebuildZAREA = true ;
-			if ( ZSCROLLA == "MAX" )
+			if ( zscrolla == "MAX" )
 			{
-				firstLine = maxLines - ZAREAD ;
+				firstLine = maxLines - zaread ;
 			}
 			else
 			{
-				firstLine = firstLine + ZSCROLLN  ;
+				firstLine = firstLine + zscrolln  ;
 				if ( firstLine >= maxLines ) { firstLine = maxLines - 1 ; }
 			}
 		}
 		else if ( zverb == "UP" )
 		{
 			rebuildZAREA = true ;
-			if ( ZSCROLLA == "MAX" )
+			if ( zscrolla == "MAX" )
 			{
 				firstLine = 0 ;
 			}
 			else
 			{
-				firstLine = firstLine - ZSCROLLN  ;
+				firstLine = firstLine - zscrolln  ;
 			}
 		}
 		else if ( zverb == "LEFT" )
 		{
 			rebuildZAREA = true ;
-			if ( ZSCROLLA == "MAX" )
+			if ( zscrolla == "MAX" )
 			{
 				startCol = 1 ;
 			}
 			else
 			{
-				startCol = startCol - ZSCROLLN ;
+				startCol = startCol - zscrolln ;
 				if ( startCol < 1 ) { startCol = 1 ; }
 			}
 		}
 		else if ( zverb == "RIGHT" )
 		{
 			rebuildZAREA = true ;
-			if ( ZSCROLLA == "MAX" )
+			if ( zscrolla == "MAX" )
 			{
-				startCol = maxCol - ZAREAW ;
+				startCol = maxCol - zareaw ;
 				if ( startCol < 1 ) { startCol = 1 ; }
 			}
 			else
 			{
-				startCol = startCol + ZSCROLLN ;
+				startCol = startCol + zscrolln ;
 			}
 		}
 		if ( firstLine < 0 ) firstLine = 0 ;
@@ -319,29 +319,29 @@ void PTUTORA::fill_dynamic_area()
 	s1y = "" ;
 	s1w = "" ;
 	div = "" ;
-	s1g.resize( ZAREAW ) ;
-	s1y.resize( ZAREAW ) ;
-	s1w.resize( ZAREAW ) ;
-	div.resize( ZAREAW ) ;
-	s1g.replace( 0, ZAREAW, ZAREAW, N_GREEN  ) ;
-	s1y.replace( 0, ZAREAW, ZAREAW, N_YELLOW ) ;
-	s1w.replace( 0, ZAREAW, ZAREAW, N_WHITE  ) ;
-	div.replace( 0, ZAREAW, ZAREAW, '-' )      ;
+	s1g.resize( zareaw ) ;
+	s1y.resize( zareaw ) ;
+	s1w.resize( zareaw ) ;
+	div.resize( zareaw ) ;
+	s1g.replace( 0, zareaw, zareaw, N_GREEN  ) ;
+	s1y.replace( 0, zareaw, zareaw, N_YELLOW ) ;
+	s1w.replace( 0, zareaw, zareaw, N_WHITE  ) ;
+	div.replace( 0, zareaw, zareaw, '-' )      ;
 
 	t3 = "" ;
 	t4 = "" ;
-	t3.resize( ZAREAW ) ;
-	t4.resize( ZAREAW ) ;
+	t3.resize( zareaw ) ;
+	t4.resize( zareaw ) ;
 
-	Area = ZAREAW * ZAREAD ;
+	Area = zareaw * zaread ;
 
-	ZAREA   = "" ;
-	ZSHADOW = string( Area, N_GREEN ) ;
+	zarea   = "" ;
+	zshadow = string( Area, N_GREEN ) ;
 
-	for( uint k = firstLine ; k < (firstLine + ZAREAD) ; k++ )
+	for( uint k = firstLine ; k < (firstLine + zaread) ; k++ )
 	{
-		if ( k > 0 && k < data.size()-1 )  t1 = substr( data[ k ] , startCol, ZAREAW ) ;
-		else                               t1 = substr( data[ k ] , 1, ZAREAW ) ;
+		if ( k > 0 && k < data.size()-1 )  t1 = substr( data[ k ] , startCol, zareaw ) ;
+		else                               t1 = substr( data[ k ] , 1, zareaw ) ;
 		for ( uint i = 0 ; i < t1.size() ; i++ )
 		{
 			if ( !isprint( t1[ i ] ) )
@@ -349,8 +349,8 @@ void PTUTORA::fill_dynamic_area()
 				t1[ i ] = '.' ;
 			}
 		}
-		ZAREA += t1 ;
-		if ( ZAREA.size() >= Area ) { break ; }
+		zarea += t1 ;
+		if ( zarea.size() >= Area ) { break ; }
 		if ( k == data.size() - 1 ) { break ; }
 	}
 }

@@ -70,6 +70,17 @@ using namespace boost::filesystem ;
 
 b_find PBRO01A::Global_bfind_parms ;
 
+
+PBRO01A::PBRO01A()
+{
+	vdefine( "ZCMD ZVERB ZROW1 ZCURFLD", &zcmd, &zverb, &zrow1, &zcurfld ) ;
+	vdefine( "ZAREA ZSHADOW ZAREAT ZDSN", &zarea, &zshadow, &zareat, &zdsn ) ;
+	vdefine( "ZSCROLLN ZAREAW ZAREAD ZCURPOS", &zscrolln, &zareaw, &zaread, &zcurpos ) ;
+	vdefine( "ZSCROLLA ZCOL1 ZCOL2 TYPE STR", &zscrolla, &zcol1, &zcol2, &type, &str ) ;
+	vdefine( "OCC LINES CMD ZZSTR1", &occ, &lines, &cmd, &zzstr1 ) ;
+}
+
+
 void PBRO01A::application()
 {
 	llog( "I", "Application PBRO01A starting.  Parms are " << PARM << endl ) ;
@@ -82,9 +93,7 @@ void PBRO01A::application()
 	string w3     ;
 	string file   ;
 	string panel  ;
-	string zdsn   ;
 	string curfld ;
-	string zzstr1 ;
 	string zbralt ;
 
 	bool rebuildZAREA ;
@@ -94,7 +103,7 @@ void PBRO01A::application()
 	errblock err ;
 
 	panel = "" ;
-	MSG   = "" ;
+	msg   = "" ;
 
 	file = parseString( err, PARM, "FILE()" ) ;
 	if ( err.error() || file == "" )
@@ -129,12 +138,6 @@ void PBRO01A::application()
 	typList[ 'S' ] = "SUFFIX" ;
 	typList[ 'W' ] = "WORD"   ;
 
-	vdefine( "ZCMD  ZVERB   ZROW1", &zcmd, &zverb, &ZROW1 ) ;
-	vdefine( "ZAREA ZSHADOW ZAREAT ZDSN", &ZAREA, &ZSHADOW, &ZAREAT, &zdsn ) ;
-	vdefine( "ZSCROLLN ZAREAW ZAREAD", &ZSCROLLN, &ZAREAW, &ZAREAD ) ;
-	vdefine( "ZSCROLLA ZCOL1 ZCOL2 TYPE STR", &ZSCROLLA, &ZCOL1, &ZCOL2, &TYPE, &STR ) ;
-	vdefine( "OCC LINES CMD ZZSTR1", &OCC, &LINES, &CMD, &zzstr1 ) ;
-
 	startCol = 1 ;
 	maxCol   = 1 ;
 
@@ -161,7 +164,7 @@ void PBRO01A::application()
 		cleanup() ; return ;
 	}
 
-	MSG    = ""     ;
+	msg    = ""     ;
 	curfld = "ZCMD" ;
 	curpos = 1      ;
 
@@ -170,7 +173,7 @@ void PBRO01A::application()
 		find_parms = Global_bfind_parms ;
 	}
 
-	zasize = ZAREAW*ZAREAD ;
+	zasize = zareaw * zaread ;
 
 	zbralt = "" ;
 	vget( "ZBRALT", SHARED ) ;
@@ -183,43 +186,43 @@ void PBRO01A::application()
 	while ( true )
 	{
 		if ( rebuildZAREA ) { fill_dynamic_area() ; }
-		else                { ZSHADOW = CSHADOW   ; }
+		else                { zshadow = cshadow   ; }
 		if ( curfld == "ZAREA" )
 		{
 			for ( i = curpos-1 ; i < zasize ; i++ )
 			{
-				if ( ZAREA[ i ] == ' ' ) { break ; }
-				ZSHADOW[ i ] = B_WHITE ;
+				if ( zarea[ i ] == ' ' ) { break ; }
+				zshadow[ i ] = B_WHITE ;
 			}
 			for ( i = curpos-1 ; i > 0 ; i-- )
 			{
-				if ( ZAREA[ i ] == ' ' ) { break ; }
-				ZSHADOW[ i ] = B_WHITE ;
+				if ( zarea[ i ] == ' ' ) { break ; }
+				zshadow[ i ] = B_WHITE ;
 			}
 		}
 
-		ZROW1 = d2ds( topLine, 8 )  ;
-		ZCOL1 = d2ds( startCol, 5 ) ;
-		ZCOL2 = d2ds( startCol+ZAREAW-1, 5 ) ;
-		if ( MSG == "" ) { zcmd = "" ; }
+		zrow1 = d2ds( topLine, 8 )  ;
+		zcol1 = d2ds( startCol, 5 ) ;
+		zcol2 = d2ds( startCol+zareaw-1, 5 ) ;
+		if ( msg == "" ) { zcmd = "" ; }
 
-		display( "PBRO01A1", MSG, curfld, curpos ) ;
+		display( "PBRO01A1", msg, curfld, curpos ) ;
 		if ( RC == 8 ) { cleanup() ; break ; }
 
-		MSG          = ""    ;
+		msg          = ""    ;
 		rebuildZAREA = false ;
 
 		vget( "ZVERB ZSCROLLA ZSCROLLN", SHARED ) ;
 
-		CMD  = upper( word( zcmd, 1 ) ) ;
+		cmd  = upper( word( zcmd, 1 ) ) ;
 		w2   = upper( word( zcmd, 2 ) ) ;
 		w3   = upper( word( zcmd, 3 ) ) ;
 
-		if ( ZCURFLD == "ZAREA" )
+		if ( zcurfld == "ZAREA" )
 		{
-			if ( (colsOn && ZCURPOS <= ZAREAW) ) { curfld = "ZCMD" ; curpos = 1 ; }
-			else if ( topLine == 0 && ( ZCURPOS <= ZAREAW || (colsOn && ZCURPOS <= 2*ZAREAW))) { curfld = "ZCMD" ; curpos = 1 ; }
-			else { curfld = "ZAREA" ; curpos = ZCURPOS ; }
+			if ( (colsOn && zcurpos <= zareaw) ) { curfld = "ZCMD" ; curpos = 1 ; }
+			else if ( topLine == 0 && ( zcurpos <= zareaw || (colsOn && zcurpos <= 2*zareaw))) { curfld = "ZCMD" ; curpos = 1 ; }
+			else { curfld = "ZAREA" ; curpos = zcurpos ; }
 		}
 		else
 		{
@@ -227,10 +230,10 @@ void PBRO01A::application()
 			curpos = 1      ;
 		}
 
-		if ( CMD == "" ) {}
-		else if ( CMD == "BIN" || CMD == "BINARY" )
+		if ( cmd == "" ) {}
+		else if ( cmd == "BIN" || cmd == "BINARY" )
 		{
-			if ( w2 != "" ) { MSG = "PBRO013" ; continue ; }
+			if ( w2 != "" ) { msg = "PBRO013" ; continue ; }
 			Asbin        = true  ;
 			binOn        = true  ;
 			textOn       = false ;
@@ -238,16 +241,16 @@ void PBRO01A::application()
 			read_file( file ) ;
 			if ( RC > 0 ) { setmsg( "PSYS011E" ) ; cleanup() ; return ; }
 		}
-		else if ( CMD == "HEX" )
+		else if ( cmd == "HEX" )
 		{
 			if      ( (w2 == "" ) || (w2 == "ON" && w3 == "") ) { hexOn = true  ; rebuildZAREA = true ; }
 			else if ( (w2 == "OFF" && w3 == "") )               { hexOn = false ; rebuildZAREA = true ; }
-			else    { MSG = "PBRO012" ; continue ; }
+			else    { msg = "PBRO012" ; continue ; }
 		}
-		else if ( findword( CMD, "HILITE HILIGHT HI" ) )
+		else if ( findword( cmd, "HILITE HILIGHT HI" ) )
 		{
 			if ( w3 == "" ) { w3 = "AUTO" ; }
-			if ( w3 != "AUTO" && !addHilight( w3 ) ) { MSG = "PBRO011M" ; continue ; }
+			if ( w3 != "AUTO" && !addHilight( w3 ) ) { msg = "PBRO011M" ; continue ; }
 			entLang = w3 ;
 			if      ( w3 == "AUTO"  ) { detLang = determineLang( file ) ; }
 			else                      { detLang = w3                    ; }
@@ -264,59 +267,59 @@ void PBRO01A::application()
 				hilightOn = false ; rebuildZAREA = true ;
 			}
 		}
-		else if ( CMD == "COLS" )
+		else if ( cmd == "COLS" )
 		{
 			if      ( (w2 == "" ) || (w2 == "ON" && w3 == "") ) { colsOn = true  ; rebuildZAREA = true ; }
 			else if ( (w2 == "OFF" && w3 == "") )               { colsOn = false ; rebuildZAREA = true ; }
-			else    { MSG = "PBRO012" ; continue ; }
+			else    { msg = "PBRO012" ; continue ; }
 		}
-		else if ( CMD == "F" || CMD == "FIND" )
+		else if ( cmd == "F" || cmd == "FIND" )
 		{
 			if ( setFind() > 0 ) { continue ; }
 			zcmd = ""  ;
-			if ( ZCURFLD == "ZAREA" ) { offset = ZCURPOS ; if ( ( offset % ZAREAW ) == 1  ) { offset++ ; } }
+			if ( zcurfld == "ZAREA" ) { offset = zcurpos ; if ( ( offset % zareaw ) == 1  ) { offset++ ; } }
 			else                      { offset = 0       ; }
 			actionFind( topLine, offset ) ;
 			if ( find_parms.f_line > 0 )
 			{
-				ZALINE = find_parms.f_line - topLine ;
-				if ( ZALINE < 0 || ZALINE > ZAREAD-1 )
+				zaline = find_parms.f_line - topLine ;
+				if ( zaline < 0 || zaline > zaread-1 )
 				{
 					topLine = find_parms.f_line - 1 ;
 				}
 				curfld = "ZAREA" ;
-				curpos = ( find_parms.f_line - topLine ) * ZAREAW + find_parms.f_offset + 1 ;
-				if ( colsOn ) { curpos += ZAREAW ; }
-				TYPE   = typList[ find_parms.f_mtch ] ;
-				STR    = find_parms.f_estring ;
-				OCC    = d2ds( find_parms.f_occurs ) ;
-				LINES  = d2ds( find_parms.f_lines  ) ;
-				if ( find_parms.f_dir == 'A' ) { MSG = "PBRO011G" ; find_parms.f_dir = 'N' ; }
-				else                           { MSG = "PBRO011F" ;                          }
+				curpos = ( find_parms.f_line - topLine ) * zareaw + find_parms.f_offset + 1 ;
+				if ( colsOn ) { curpos += zareaw ; }
+				type   = typList[ find_parms.f_mtch ] ;
+				str    = find_parms.f_estring ;
+				occ    = d2ds( find_parms.f_occurs ) ;
+				lines  = d2ds( find_parms.f_lines  ) ;
+				if ( find_parms.f_dir == 'A' ) { msg = "PBRO011G" ; find_parms.f_dir = 'N' ; }
+				else                           { msg = "PBRO011F" ;                          }
 			}
 			else
 			{
 				curfld = "ZCMD" ;
 				curpos = 1 ;
-				TYPE = typList[ find_parms.f_mtch ] ;
-				STR = find_parms.f_estring ;
-				MSG = "PBRO011E" ;
+				type = typList[ find_parms.f_mtch ] ;
+				str = find_parms.f_estring ;
+				msg = "PBRO011E" ;
 				continue         ;
 			}
 			rebuildZAREA = true ;
 			continue            ;
 		}
-		else if ( CMD == "RES" || CMD == "RESET" )
+		else if ( cmd == "RES" || cmd == "RESET" )
 		{
-			if ( w2 != "" ) { MSG = "PBRO013" ; continue ; }
+			if ( w2 != "" ) { msg = "PBRO013" ; continue ; }
 			colsOn       = false ;
 			binOn        = false ;
 			textOn       = false ;
 			rebuildZAREA = true  ;
 		}
-		else if ( CMD == "TEXT" )
+		else if ( cmd == "TEXT" )
 		{
-			if ( w2 != "" ) { MSG = "PBRO013" ; continue ; }
+			if ( w2 != "" ) { msg = "PBRO013" ; continue ; }
 			Asbin        = false ;
 			binOn        = false ;
 			textOn       = true  ;
@@ -324,11 +327,11 @@ void PBRO01A::application()
 			read_file( file )    ;
 			if ( RC > 0 ) { setmsg( "PSYS011E" ) ; cleanup() ; return ; }
 		}
-		else if ( CMD.size() > 1 && CMD[ 0 ] == '.' )
+		else if ( cmd.size() > 1 && cmd[ 0 ] == '.' )
 		{
-			labelList[ CMD ] = topLine ;
+			labelList[ cmd ] = topLine ;
 		}
-		else if ( findword( CMD, "L LOC LOCATE" ) && w2.size() > 1 && w2[ 0 ] == '.' )
+		else if ( findword( cmd, "L LOC LOCATE" ) && w2.size() > 1 && w2[ 0 ] == '.' )
 		{
 			if ( labelList.count( w2 ) > 0 )
 			{
@@ -338,7 +341,7 @@ void PBRO01A::application()
 		}
 		else
 		{
-			MSG = "PBRO011" ;
+			msg = "PBRO011" ;
 			continue ;
 		}
 
@@ -346,87 +349,87 @@ void PBRO01A::application()
 		else if ( zverb == "DOWN" )
 		{
 			rebuildZAREA = true ;
-			if ( ZSCROLLA == "MAX" )
+			if ( zscrolla == "MAX" )
 			{
-				topLine = maxLines - ZAREAD ;
+				topLine = maxLines - zaread ;
 			}
 			else
 			{
-				topLine = topLine + ZSCROLLN  ;
+				topLine = topLine + zscrolln  ;
 				if ( topLine >= maxLines ) { topLine = maxLines - 1 ; }
 			}
 		}
 		else if ( zverb == "UP" )
 		{
 			rebuildZAREA = true ;
-			if ( ZSCROLLA == "MAX" )
+			if ( zscrolla == "MAX" )
 			{
 				topLine = 0 ;
 			}
 			else
 			{
-				topLine = topLine - ZSCROLLN  ;
+				topLine = topLine - zscrolln  ;
 			}
 		}
 		else if ( zverb == "LEFT" )
 		{
 			rebuildZAREA = true ;
-			if ( ZSCROLLA == "MAX" )
+			if ( zscrolla == "MAX" )
 			{
 				startCol = 1 ;
 			}
 			else
 			{
-				startCol = startCol - ZSCROLLN ;
+				startCol = startCol - zscrolln ;
 				if ( startCol < 1 ) { startCol = 1 ; }
 			}
 		}
 		else if ( zverb == "RIGHT" )
 		{
 			rebuildZAREA = true ;
-			if ( ZSCROLLA == "MAX" )
+			if ( zscrolla == "MAX" )
 			{
-				startCol = maxCol - ZAREAW ;
+				startCol = maxCol - zareaw ;
 				if ( startCol < 1 ) { startCol = 1 ; }
 			}
 			else
 			{
-				startCol = startCol + ZSCROLLN ;
+				startCol = startCol + zscrolln ;
 			}
 		}
 		else if ( zverb == "RFIND" )
 		{
 			if ( find_parms.f_fset )
 			{
-				if ( ZCURFLD == "ZAREA" ) { offset = ZCURPOS ; if ( ( offset % ZAREAW ) == 1  ) { offset++ ; } }
+				if ( zcurfld == "ZAREA" ) { offset = zcurpos ; if ( ( offset % zareaw ) == 1  ) { offset++ ; } }
 				else                      { offset = 0       ; }
 				actionFind( topLine, offset ) ;
 				if ( find_parms.f_line > 0 )
 				{
-					ZALINE = find_parms.f_line - topLine ;
-					if ( ZALINE < 0 || ZALINE > ZAREAD-1 )
+					zaline = find_parms.f_line - topLine ;
+					if ( zaline < 0 || zaline > zaread-1 )
 					{
 						topLine = find_parms.f_line - 1 ;
 					}
 					curfld  = "ZAREA" ;
-					curpos  = ( find_parms.f_line - topLine ) * ZAREAW + find_parms.f_offset + 1 ;
-					if ( colsOn ) { curpos += ZAREAW ; }
-					TYPE    = typList[ find_parms.f_mtch ] ;
-					STR     = find_parms.f_estring ;
-					MSG     = "PBRO011F" ;
+					curpos  = ( find_parms.f_line - topLine ) * zareaw + find_parms.f_offset + 1 ;
+					if ( colsOn ) { curpos += zareaw ; }
+					type    = typList[ find_parms.f_mtch ] ;
+					str     = find_parms.f_estring ;
+					msg     = "PBRO011F" ;
 				}
 				else
 				{
 					if ( find_parms.f_dir == 'N' ||
-					     find_parms.f_dir == 'F' ) { find_parms.f_dir = 'F' ; MSG = "PBRO016" ; }
-					else                           { find_parms.f_dir = 'L' ; MSG = "PBRO017" ; }
+					     find_parms.f_dir == 'F' ) { find_parms.f_dir = 'F' ; msg = "PBRO016" ; }
+					else                           { find_parms.f_dir = 'L' ; msg = "PBRO017" ; }
 					continue ;
 				}
 				rebuildZAREA = true ;
 			}
-			else { MSG = "PBRO011A" ; continue ; }
+			else { msg = "PBRO011A" ; continue ; }
 		}
-		else  { MSG = "PBRO011" ; continue ; }
+		else  { msg = "PBRO011" ; continue ; }
 		if ( topLine < 0 ) topLine = 0 ;
 	}
 	verase( "ZBRALT", SHARED ) ;
@@ -521,7 +524,7 @@ void PBRO01A::read_file( string file )
 	maxLines = 1 ;
 	data.clear()   ;
 	shadow.clear() ;
-	data.push_back( centre( " Top of Data ", ZAREAW, '*' ) ) ;
+	data.push_back( centre( " Top of Data ", zareaw, '*' ) ) ;
 	shadow.push_back( t ) ;
 
 	if      ( binOn )  { Asbin = true ; }
@@ -529,8 +532,8 @@ void PBRO01A::read_file( string file )
 
 	if ( Asbin )
 	{
-		inLine = string( ZAREAW, ' ' ) ;
-		maxCol = ZAREAW ;
+		inLine = string( zareaw, ' ' ) ;
+		maxCol = zareaw ;
 		i      = 0      ;
 		while ( true )
 		{
@@ -538,10 +541,10 @@ void PBRO01A::read_file( string file )
 			if ( fin.fail() != 0 ) { break ; } ;
 			inLine[ i ] = x ;
 			i++ ;
-			if ( i == ZAREAW )
+			if ( i == zareaw )
 			{
 				data.push_back( inLine )       ;
-				inLine = string( ZAREAW, ' ' ) ;
+				inLine = string( zareaw, ' ' ) ;
 				shadow.push_back( t ) ;
 				maxLines++ ;
 				i = 0      ;
@@ -594,7 +597,7 @@ void PBRO01A::read_file( string file )
 	}
 	maxCol++   ;
 	maxLines++ ;
-	data.push_back( centre( " Bottom of Data ", ZAREAW, '*' ) ) ;
+	data.push_back( centre( " Bottom of Data ", zareaw, '*' ) ) ;
 	shadow.push_back( t ) ;
 	fin.close() ;
 }
@@ -619,43 +622,43 @@ void PBRO01A::fill_dynamic_area()
 	int t  ;
 	int ln ;
 
-	s1b = string( ZAREAW, B_BLUE   ) ;
-	s1g = string( ZAREAW, N_GREEN  ) ;
-	s1y = string( ZAREAW, N_YELLOW ) ;
-	s1w = string( ZAREAW, N_WHITE  ) ;
-	div = string( ZAREAW, '-' )      ;
+	s1b = string( zareaw, B_BLUE   ) ;
+	s1g = string( zareaw, N_GREEN  ) ;
+	s1y = string( zareaw, N_YELLOW ) ;
+	s1w = string( zareaw, N_WHITE  ) ;
+	div = string( zareaw, '-' )      ;
 
 	if ( colsOn )
 	{
 		col = substr( "+----+----+----+---", startCol%10+1, 10-startCol%10 ) ;
 		if ( startCol%10 == 0 ) { col = "" ; t = startCol / 10 ; }
 		else t = startCol / 10 + 1 ;
-		for ( i = 0 ; i < (ZAREAW/10+1) ; i++ )
+		for ( i = 0 ; i < (zareaw/10+1) ; i++ )
 		{
 			col = col + d2ds( t%10 ) + "----+----" ;
 			t++ ;
 		}
-		col = substr( col, 1, ZAREAW ) ;
-		ZAREA   = col ;
-		ZSHADOW = s1w ;
+		col = substr( col, 1, zareaw ) ;
+		zarea   = col ;
+		zshadow = s1w ;
 	}
 	else
 	{
-		ZAREA   = "" ;
-		ZSHADOW = "" ;
+		zarea   = "" ;
+		zshadow = "" ;
 	}
 
 	if ( hexOn )
 	{
-		for( uint k = topLine ; k < (topLine + ZAREAD) ; k++ )
+		for( uint k = topLine ; k < (topLine + zaread) ; k++ )
 		{
-			t3 = string( ZAREAW, ' ' ) ;
-			t4 = string( ZAREAW, ' ' ) ;
+			t3 = string( zareaw, ' ' ) ;
+			t4 = string( zareaw, ' ' ) ;
 			if ( k > 0 && k < data.size()-1 )
 			{
 				ln = data.at( k ).size() - startCol + 1 ;
-				if ( ln > ZAREAW ) ln = ZAREAW       ;
-				t1 = substr( data.at( k ), startCol, ZAREAW ) ;
+				if ( ln > zareaw ) ln = zareaw       ;
+				t1 = substr( data.at( k ), startCol, zareaw ) ;
 				t2 = cs2xs( t1 ) ;
 				if ( ln > 0 )
 				{
@@ -668,37 +671,37 @@ void PBRO01A::fill_dynamic_area()
 						i++ ;
 					}
 				}
-				ZAREA   += t1  + t3  + t4  + div ;
-				ZSHADOW += s1y + s1b + s1b + s1w ;
+				zarea   += t1  + t3  + t4  + div ;
+				zshadow += s1y + s1b + s1b + s1w ;
 			}
 			else
 			{
-				ZAREA   += substr( data.at( k ), 1, ZAREAW ) ;
-				ZSHADOW += s1b ;
+				zarea   += substr( data.at( k ), 1, zareaw ) ;
+				zshadow += s1b ;
 			}
-			if ( ZAREA.size() >= zasize ) { break ; }
+			if ( zarea.size() >= zasize ) { break ; }
 			if ( k >= data.size() - 1 )   { break ; }
 		}
 	}
 	else
 	{
-		for( int k = topLine ; k < (topLine + ZAREAD) ; k++ )
+		for( int k = topLine ; k < (topLine + zaread) ; k++ )
 		{
-			if ( k >  0 && k < data.size()-1 ) { t1 = substr( data.at( k ), startCol, ZAREAW ) ; }
-			else                               { t1 = substr( data.at( k ), 1, ZAREAW )        ; }
-			ZAREA += t1 ;
-			if ( ZAREA.size() >= zasize ) { break ; }
+			if ( k >  0 && k < data.size()-1 ) { t1 = substr( data.at( k ), startCol, zareaw ) ; }
+			else                               { t1 = substr( data.at( k ), 1, zareaw )        ; }
+			zarea += t1 ;
+			if ( zarea.size() >= zasize ) { break ; }
 			if ( k == data.size() - 1 )   { break ; }
 		}
 
 	}
-	ZAREA.resize( zasize, ' ' ) ;
-	ZSHADOW.resize( zasize, B_BLUE ) ;
+	zarea.resize( zasize, ' ' ) ;
+	zshadow.resize( zasize, B_BLUE ) ;
 	if ( hilightOn && !hlight.hl_abend )
 	{
 		fill_hilight_shadow() ;
 	}
-	CSHADOW = ZSHADOW ;
+	cshadow = zshadow ;
 }
 
 
@@ -714,12 +717,12 @@ void PBRO01A::fill_hilight_shadow()
 	int l  ;
 	int w  ;
 
-	string ZTEMP ;
+	string ztemp ;
 
 	hlight.hl_language = detLang ;
 
 	ll = data.size()-2 ;
-	if ( topLine+ZAREAD < ll ) { ll = topLine+ZAREAD ; }
+	if ( topLine+zaread < ll ) { ll = topLine+zaread ; }
 
 	for ( w = 0, dl = 1 ; dl <= ll ; dl++ )
 	{
@@ -751,14 +754,14 @@ void PBRO01A::fill_hilight_shadow()
 						   !hlight.hl_oComment ) ;
 		}
 	}
-	for ( i = 0 ; i < ZAREAD ; i++ )
+	for ( i = 0 ; i < zaread ; i++ )
 	{
 		l = topLine + i ;
 		if ( l > data.size() - 2 ) { break ; }
-		ZTEMP = shadow.at( l ).bs_Shadow ;
-		if ( startCol > 1 ) { ZTEMP.erase( 0, startCol-1 ) ; }
-		ZTEMP.resize( ZAREAW, B_BLUE ) ;
-		ZSHADOW.replace( ZAREAW*(i), ZAREAW, ZTEMP ) ;
+		ztemp = shadow.at( l ).bs_Shadow ;
+		if ( startCol > 1 ) { ztemp.erase( 0, startCol-1 ) ; }
+		ztemp.resize( zareaw, B_BLUE ) ;
+		zshadow.replace( zareaw*(i), zareaw, ztemp ) ;
 	}
 }
 
@@ -771,7 +774,7 @@ int PBRO01A::setFind()
 	char c1      ;
 	char c2      ;
 	string delim ;
-	string cmd   ;
+	string com   ;
 	string ucmd  ;
 	string w1    ;
 	string pic   ;
@@ -779,30 +782,28 @@ int PBRO01A::setFind()
 	size_t p1    ;
 	size_t p2    ;
 
-	vector<string>::iterator it ;
-
 	const char quote('\"') ;
 	const char apost('\'') ;
 
 	b_find t ;
 
-	MSG = ""  ;
-	cmd = " " + subword( zcmd, 2 ) + " " ;
+	msg = ""  ;
+	com = " " + subword( zcmd, 2 ) + " " ;
 
-	p1 = cmd.find( quote ) ;
-	p2 = cmd.find( apost ) ;
+	p1 = com.find( quote ) ;
+	p2 = com.find( apost ) ;
 
 	if      ( p1 == string::npos ) { delim = string( 1, apost ) ; }
 	else if ( p2 == string::npos ) { delim = string( 1, quote ) ; }
 	else if ( p1 < p2 )            { delim = string( 1, quote ) ; }
 	else                           { delim = string( 1, apost ) ; }
 
-	if ( ( p1 = pos( delim, cmd ) ) )
+	if ( ( p1 = pos( delim, com ) ) )
 	{
-		p2  = pos( delim, cmd,  p1+1 ) ;
-		if ( p2 == 0 ) { MSG = "PBRO011H" ; return 20 ; }
-		c1 = toupper( cmd[ p1-2 ] ) ;
-		c2 = toupper( cmd[ p2   ] ) ;
+		p2  = pos( delim, com,  p1+1 ) ;
+		if ( p2 == 0 ) { msg = "PBRO011H" ; return 20 ; }
+		c1 = toupper( com[ p1-2 ] ) ;
+		c2 = toupper( com[ p2   ] ) ;
 		if ( c1 == ' ' && c2 == ' ' ) { t.f_text = true ; }
 		else if ( c1 == 'T' && c2 == ' ' ) { t.f_text   = true ; }
 		else if ( c1 == 'C' && c2 == ' ' ) { t.f_asis   = true ; }
@@ -814,24 +815,24 @@ int PBRO01A::setFind()
 		else if ( c2 == 'X' && c1 == ' ' ) { t.f_hex    = true ; }
 		else if ( c2 == 'P' && c1 == ' ' ) { t.f_pic    = true ; }
 		else if ( c2 == 'R' && c1 == ' ' ) { t.f_rreg   = true ; }
-		else                               { MSG = "PBRO011I" ; return 20 ; }
+		else                               { msg = "PBRO011I" ; return 20 ; }
 		if ( t.f_text )
 		{
-			t.f_estring = substr( cmd, (p1+1), (p2-p1-1) ) ;
+			t.f_estring = substr( com, (p1+1), (p2-p1-1) ) ;
 			t.f_string  = upper( t.f_estring )             ;
 		}
 		else
 		{
-			t.f_estring = substr( cmd, (p1+1), (p2-p1-1) ) ;
+			t.f_estring = substr( com, (p1+1), (p2-p1-1) ) ;
 			t.f_string  = t.f_estring ;
 			t.f_asis    = true        ;
 		}
-		cmd = delstr( cmd, (p1-1), (p2-p1+3) ) ;
+		com = delstr( com, (p1-1), (p2-p1+3) ) ;
 	}
 
 	if ( t.f_rreg ) { t.f_regreq = true ; }
 
-	ucmd = upper( cmd ) ;
+	ucmd = upper( com ) ;
 	if ( ( p1 = wordpos( "NEXT", ucmd ) ) )
 	{
 		t.f_dir = 'N' ;
@@ -914,9 +915,9 @@ int PBRO01A::setFind()
 		w1 = word( ucmd, i ) ;
 		if ( datatype( w1, 'W' ) )
 		{
-			if ( t.f_scol != 0 && t.f_ecol != 0 ) { MSG = "PBRO019" ; return 20 ; }
+			if ( t.f_scol != 0 && t.f_ecol != 0 ) { msg = "PBRO019" ; return 20 ; }
 			j = ds2d( w1 ) ;
-			if ( j < 1 || j > 65535 ) { MSG = "PBRO011J" ; return 20 ; }
+			if ( j < 1 || j > 65535 ) { msg = "PBRO011J" ; return 20 ; }
 			if ( t.f_scol == 0 ) { t.f_scol = j ; }
 			else                 { t.f_ecol = j ; }
 		}
@@ -924,14 +925,14 @@ int PBRO01A::setFind()
 		{
 			if ( w1 == "*" )
 			{
-				if ( find_parms.f_string == "" ) { MSG = "PBRO011C" ; return 20 ; }
+				if ( find_parms.f_string == "" ) { msg = "PBRO011C" ; return 20 ; }
 				else
 				{
-					if ( t.f_string != "" )  { MSG = "PBRO015"  ; return 20 ; }
+					if ( t.f_string != "" )  { msg = "PBRO015"  ; return 20 ; }
 					w1 = find_parms.f_string ;
 				}
 			}
-			if ( t.f_string != "" ) { STR = w1 ; MSG = "PBRO018" ; return 20 ; }
+			if ( t.f_string != "" ) { str = w1 ; msg = "PBRO018" ; return 20 ; }
 			t.f_text    = true ;
 			t.f_estring = w1   ;
 			t.f_string  = upper( w1 ) ;
@@ -945,13 +946,13 @@ int PBRO01A::setFind()
 		t.f_ecol = i ;
 	}
 
-	if ( t.f_scol>0 && t.f_ecol>0 && ((t.f_ecol - t.f_scol) < t.f_estring.size()) ) { MSG = "PBRO014" ; return 20 ; }
+	if ( t.f_scol>0 && t.f_ecol>0 && ((t.f_ecol - t.f_scol) < t.f_estring.size()) ) { msg = "PBRO014" ; return 20 ; }
 
 	if ( t.f_scol>0 && t.f_ecol==0 ) { t.f_oncol = true ; }
 
 	if ( t.f_hex )
 	{
-		if ( !ishex( t.f_string ) )  { MSG = "PBRO011K" ; return 20 ; }
+		if ( !ishex( t.f_string ) )  { msg = "PBRO011K" ; return 20 ; }
 		t.f_string = xs2cs( t.f_string ) ;
 		t.f_asis   = true                ;
 	}
@@ -1044,11 +1045,6 @@ void PBRO01A::actionFind( int spos, int offset )
 	bool found1 ;
 	bool skip   ;
 
-	vector<string>::iterator it  ;
-	vector<string>::iterator itt ;
-	vector<string>::iterator its ;
-	vector<string>::iterator ite ;
-
 	string::const_iterator itss ;
 	string::const_iterator itse ;
 
@@ -1062,10 +1058,10 @@ void PBRO01A::actionFind( int spos, int offset )
 
 	if ( find_parms.f_dir == 'F' || find_parms.f_dir == 'A' || find_parms.f_dir == 'L' ) { offset = 0 ; }
 
-	if ( offset > ZAREAW && colsOn ) { offset = offset - ZAREAW ; }
-	if ( offset > 0 ) { oX = (offset % ZAREAW)-1 ; oY = offset / ZAREAW ; }
+	if ( offset > zareaw && colsOn ) { offset = offset - zareaw ; }
+	if ( offset > 0 ) { oX = (offset % zareaw)-1 ; oY = offset / zareaw ; }
 	else              { oX = 0        ; oY = 0 ; }
-	if ( oX == -1 )   { oX = ZAREAW-1 ; oY--   ; }
+	if ( oX == -1 )   { oX = zareaw-1 ; oY--   ; }
 
 	try
 	{
@@ -1085,7 +1081,7 @@ void PBRO01A::actionFind( int spos, int offset )
 	{
 		if ( find_parms.f_regreq )
 		{
-			MSG = "PBRO011N" ;
+			msg = "PBRO011N" ;
 			return           ;
 		}
 	}
@@ -1135,10 +1131,8 @@ void PBRO01A::actionFind( int spos, int offset )
 		{
 			found1 = true  ;
 			found  = false ;
-			itss   = data.at( dl ).begin() ;
-			std::advance( itss, c1 ) ;
-			itse   = itss    ;
-			std::advance( itse, c2-c1+1 ) ;
+			itss   = data.at( dl ).begin() + c1 ;
+			itse   = itss + ( c2 - c1 + 1 ) ;
 			if ( find_parms.f_oncol )
 			{
 				if ( regex_search( itss, itse, results, regexp ) )
@@ -1221,7 +1215,7 @@ void PBRO01A::actionFind( int spos, int offset )
 	}
 }
 
-string PBRO01A::determineLang( string ZFILE )
+string PBRO01A::determineLang( string zfile )
 {
 	// Try to determine the language, first from the extension, then the directory containing the source,
 	// then the contents of the file.
@@ -1237,16 +1231,16 @@ string PBRO01A::determineLang( string ZFILE )
 	string t ;
 	string w ;
 
-	p = ZFILE.find_last_of( '.' ) ;
+	p = zfile.find_last_of( '.' ) ;
 	if ( p != string::npos )
 	{
-		s = ZFILE.substr( p+1 ) ;
+		s = zfile.substr( p+1 ) ;
 		if ( findword( s, "c cpp h hpp" ) ) { return "CPP"  ; }
 		if ( findword( s, "rex rexx rx" ) ) { return "REXX" ; }
 	}
 
-	if ( ZFILE.find( "/rexx/" ) != string::npos ) { return "REXX"  ; }
-	if ( ZFILE.find( "/tmp/"  ) != string::npos ) { return "OTHER" ; }
+	if ( zfile.find( "/rexx/" ) != string::npos ) { return "REXX"  ; }
+	if ( zfile.find( "/tmp/"  ) != string::npos ) { return "OTHER" ; }
 
 	for ( i = 1 ; i < data.size() && i < 100 ; i++ )
 	{

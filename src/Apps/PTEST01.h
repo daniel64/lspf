@@ -22,6 +22,7 @@ using namespace std;
 class PTEST01 : public pApplication
 {
 	public:
+		PTEST01()          ;
 		void application() ;
 
 	private:
@@ -34,5 +35,8 @@ class PTEST01 : public pApplication
 		void opt6() ;
 		void opt7() ;
 
-		string zcmd ;
+		string zcmd    ;
+		int    ztdtop  ;
+		int    ztdsels ;
+		int    zcurpos ;
 };

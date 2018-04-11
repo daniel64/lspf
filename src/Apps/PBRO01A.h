@@ -84,6 +84,7 @@ class b_find
 class PBRO01A : public pApplication
 {
 	public:
+		PBRO01A() ;
 		void application() ;
 
 	private:
@@ -120,28 +121,32 @@ class PBRO01A : public pApplication
 
 		string zcmd    ;
 		string zverb   ;
+		string zcurfld ;
+		int    zcurpos ;
 
-		string MSG     ;
-		string CMD     ;
-		string ZROW1   ;
-		string ZCOL1   ;
-		string ZCOL2   ;
-		string ZAREA   ;
-		string ZSHADOW ;
-		string CSHADOW ;
-		string ZAREAT  ;
-		int    ZAREAW  ;
-		int    ZAREAD  ;
+		string msg     ;
+		string cmd     ;
+		string zrow1   ;
+		string zcol1   ;
+		string zcol2   ;
+		string zarea   ;
+		string zshadow ;
+		string cshadow ;
+		string zareat  ;
+		int    zareaw  ;
+		int    zaread  ;
 		uint   zasize  ;
-		int    ZALINE  ;
-		string ZSCROLLA  ;
-		int    ZSCROLLN  ;
+		int    zaline  ;
+		string zscrolla ;
+		int    zscrolln ;
 
-		string TYPE  ;
-		string STR   ;
-		string OCC   ;
-		string LINES ;
+		string type  ;
+		string str   ;
+		string occ   ;
+		string lines ;
 
+		string zzstr1 ;
+		string zdsn   ;
 		string fileType ;
 		string detLang  ;
 		string entLang  ;

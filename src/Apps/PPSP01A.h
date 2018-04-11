@@ -22,6 +22,7 @@ using namespace std;
 class PPSP01A : public pApplication
 {
 	public:
+		PPSP01A()          ;
 		void application() ;
 
 	private:
@@ -61,19 +62,16 @@ class PPSP01A : public pApplication
 
 		string zscrolla ;
 		int    zscrolln ;
+		int    zcurinx  ;
+		int    ztdtop   ;
+		int    ztdsels  ;
 
-		string VARLST  ;
-		string SEL     ;
-		string VAR     ;
-		string VAL     ;
-		string VPOOL   ;
-		string VPLVL   ;
-		string MESSAGE ;
-
-		string MODLST  ;
-		string APPL    ;
-		string MOD     ;
-		string MODPATH ;
+		string sel     ;
+		string var     ;
+		string val     ;
+		string vpool   ;
+		string vplvl   ;
+		string message ;
 
 		string zcmd    ;
 		string zverb   ;
@@ -97,9 +95,9 @@ class PPSP01A : public pApplication
 		int  setScreenAttrs( const string&, int, string, string, string ) ;
 		void setISPSVar( const string&, string ) ;
 		void todoList()       ;
-		void poolVariables( const string& )    ;
-		void getpoolVariables( const string& ) ;
-		void runApplication( const string& )   ;
+		void poolVariables( const string& )  ;
+		void runApplication( const string& ) ;
+		void getpoolVariables( const string&, const string& ) ;
 		void showPaths()         ;
 		void showCommandTables() ;
 		void showLoadedClasses() ;

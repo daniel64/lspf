@@ -61,15 +61,6 @@ class pApplication
 		string reffield           ;
 		string lineBuffer         ;
 
-		string ZCURFLD            ;
-		int    ZCURPOS            ;
-		int    ZCURINX            ;
-		int    ZTDDEPTH           ;
-		int    ZTDROWS            ;
-		int    ZTDSELS            ;
-		int    ZTDTOP             ;
-		int    ZTDVROWS           ;
-
 		int    ZRC                ;
 		int    ZRSN               ;
 		int    ZTASKID            ;
@@ -281,8 +272,6 @@ class pApplication
 		string zzplib    ;
 		string zztlib    ;
 		string zahelp    ;
-		string zscrolla  ;
-		int    zscrolln  ;
 		string zscrname  ;
 		string zerr1     ;
 		string zerr2     ;
@@ -311,6 +300,7 @@ class pApplication
 		stack<string> stk_str ;
 		stack<int> stk_int    ;
 		stack<int> addpop_stk ;
+		stack<stack<string>> urid_stk ;
 
 		stack<string> zmlib ;
 		stack<string> zplib ;

@@ -138,8 +138,10 @@ bool loadDynamicClass( const string& ) ;
 bool unloadDynamicClass( void * )   ;
 void reloadDynamicClasses( string ) ;
 void loadSystemCommandTable() ;
-void loadCUATables()          ;
-void setGlobalColours()       ;
+void loadRetrieveBuffer() ;
+void saveRetrieveBuffer() ;
+void loadCUATables()      ;
+void setGlobalColours()   ;
 void setColourPair( const string& ) ;
 void updateDefaultVars()      ;
 void createSharedPoolVars( const string& ) ;
@@ -198,10 +200,11 @@ struct appInfo
 
 map<string, appInfo> apps ;
 
-boost::circular_buffer<string> retrieveBuffer( 20 ) ;
+boost::circular_buffer<string> retrieveBuffer( 99 ) ;
 
 int    linePosn  = -1 ;
 int    maxtaskID = 0  ;
+uint   retPos    = 0  ;
 uint   screenNum = 0  ;
 uint   altScreen = 0  ;
 string ctlAction      ;
@@ -318,6 +321,7 @@ int main( void )
 	commandStack = ""    ;
 	wmPending    = false ;
 	lspfStatus   = 'R'   ;
+	err.settask( 1 )     ;
 
 	screenList.push_back( new pLScreen ) ;
 	currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
@@ -344,6 +348,8 @@ int main( void )
 	llog( "I", "Calling loadSystemCommandTable" << endl ) ;
 	loadSystemCommandTable() ;
 
+	loadRetrieveBuffer() ;
+
 	updateDefaultVars() ;
 
 	llog( "I", "Starting new "+ gmainpgm +" thread" << endl ) ;
@@ -356,7 +362,6 @@ int main( void )
 	currAppl->newpool  = true       ;
 	currAppl->setSelectPanel()      ;
 	currAppl->lspfCallback = lspfCallbackHandler ;
-	err.settask( currAppl->taskid() ) ;
 
 	p_poolMGR->createProfilePool( err, "ISP" ) ;
 	p_poolMGR->connect( currAppl->taskid(), "ISP", 1 ) ;
@@ -403,11 +408,20 @@ int main( void )
 
 	mainLoop() ;
 
-	lspfStatus = 'S'  ;
+	llog( "I", "Closing ISPS profile and application log as last application program has terminated" << endl ) ;
+
+	lspfStatus = 'S' ;
+	saveRetrieveBuffer() ;
+
+	p_poolMGR->destroySystemPool( err ) ;
+	p_poolMGR->statistics()  ;
+	p_tableMGR->statistics() ;
 
 	delete p_poolMGR  ;
 	delete p_tableMGR ;
-	delete lgx        ;
+
+	llog( "I", "Closing application log" << endl ) ;
+	delete lgx ;
 
 	for ( auto it = apps.begin() ; it != apps.end() ; it++ )
 	{
@@ -794,8 +808,6 @@ void processAction( uint row, uint col, int c, bool& passthru )
 	string msg     ;
 	string t       ;
 
-	static uint retPos(0) ;
-
 	boost::circular_buffer<string>::iterator itt ;
 
 	err.clear() ;
@@ -839,7 +851,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 			currAppl->clear_msg() ;
 			currScrn->save_panel_stack() ;
 			currAppl->rempop() ;
-			currAppl->addpop( "", row-1, col-3 ) ;
+			currAppl->addpop( "", row-currAppl->get_addpop_row()-1, col-currAppl->get_addpop_col()-3 ) ;
 			currAppl->movepop() ;
 			currScrn->restore_panel_stack() ;
 			wmPending = false ;
@@ -2119,12 +2131,6 @@ void terminateApplication()
 		if ( pLScreen::screensTotal == 1 )
 		{
 			delete currScrn ;
-			llog( "I", "Closing ISPS profile and application log as last application program is terminating" << endl ) ;
-			err.settask( 0 ) ;
-			p_poolMGR->destroySystemPool( err ) ;
-			p_poolMGR->statistics()  ;
-			p_tableMGR->statistics() ;
-			llog( "I", "Closing application log" << endl ) ;
 			return ;
 		}
 		deleteLogicalScreen() ;
@@ -2649,6 +2655,64 @@ void loadSystemCommandTable()
 }
 
 
+void loadRetrieveBuffer()
+{
+	uint rbsize ;
+
+	string ifile  ;
+	string inLine ;
+
+	if ( p_poolMGR->sysget( err, "ZSRETP", PROFILE ) == "N" ) { return ; }
+
+	ifile  = getenv( "HOME" ) ;
+	ifile += ZUPROF      ;
+	ifile += "/RETPLIST" ;
+
+	std::ifstream fin( ifile.c_str() ) ;
+	if ( !fin.is_open() ) { return ; }
+
+	rbsize = ds2d( p_poolMGR->sysget( err, "ZRBSIZE", PROFILE ) ) ;
+	if ( retrieveBuffer.capacity() != rbsize )
+	{
+		retrieveBuffer.rset_capacity( rbsize ) ;
+	}
+
+	llog( "I", "Reloading retrieve buffer" << endl ) ;
+
+	while ( getline( fin, inLine ) )
+	{
+		retrieveBuffer.push_back( inLine ) ;
+		if ( retrieveBuffer.size() == retrieveBuffer.capacity() ) { break ; }
+	}
+	fin.close() ;
+}
+
+
+void saveRetrieveBuffer()
+{
+	string ofile   ;
+	string outLine ;
+
+	if ( retrieveBuffer.empty() || p_poolMGR->sysget( err, "ZSRETP", PROFILE ) == "N" ) { return ; }
+
+	ofile  = getenv( "HOME" ) ;
+	ofile += ZUPROF      ;
+	ofile += "/RETPLIST" ;
+
+	std::ofstream fout( ofile.c_str() ) ;
+
+	if ( !fout.is_open() ) { return ; }
+
+	llog( "I", "Saving retrieve buffer" << endl ) ;
+
+	for ( size_t i = 0 ; i < retrieveBuffer.size() ; i++ )
+	{
+		fout << retrieveBuffer[ i ] << endl ;
+	}
+	fout.close() ;
+}
+
+
 string pfKeyValue( int c )
 {
 	// Return the value of a pfkey stored in the profile pool.  If it does not exist, VPUT a null value.
@@ -2966,7 +3030,8 @@ void listRetrieveBuffer()
 	err.clear() ;
 	if ( retrieveBuffer.empty() )
 	{
-		retrieveBuffer.push_front( "RETP" ) ;
+		issueMessage( "PSYS012B" ) ;
+		return ;
 	}
 
 	mx = (retrieveBuffer.size() > pLScreen::maxrow-6) ? pLScreen::maxrow-6 : retrieveBuffer.size() ;
@@ -3034,8 +3099,6 @@ void listRetrieveBuffer()
 
 	currScrn->set_cursor( currAppl ) ;
 	currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
-
-	return ;
 }
 
 

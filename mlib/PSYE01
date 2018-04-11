@@ -23,6 +23,16 @@ PSYE011F 'WINDOW() statement error'
 PSYE011G 'No )ABC descrption'
 'Action bar choice must have a description defined'
 
+/*  Function pool */
+PSYE012A 'Function pool definition of &ZVAL1 is not of type STRING'
+''
+
+PSYE012B 'Function pool definition of &ZVAL1 is not of type INT'
+''
+
+PSYE012C 'Call type must be INTEGER'
+''
+
 /*  Table manager */
 PSYE013A 'Invalid variable name on a &ZVAL1'
 'Variable ''&ZVAL2'' has an invalid format'
@@ -30,11 +40,11 @@ PSYE013A 'Invalid variable name on a &ZVAL1'
 PSYE013B 'Maximum return code of &ZVAL1 exceeded for function pool GET of &ZVAL2'
 ''
 
-PSYE013C 'Function pool definition of &ZVAL1 is not of type STRING'
-''
+PSYE013C 'Spare'
+'Spare'
 
-PSYE013D 'Function pool definition of &ZVAL1 is not of type INT'
-''
+PSYE013D 'Spare'
+'Spare'
 
 PSYE013E 'Function &ZVAL1 gave non-zero return code'
 ''
@@ -94,7 +104,7 @@ PSYE013W 'Invalid condition'
 'Condition has to be EQ, NE, LE, LT, GE or GT'
 
 PSYE013X 'Invalid TBSORT argument'
-''
+'Invalid argument is ''&ZVAL1'''
 
 PSYE013Y 'Inconsistent WRITE/NOWRITE parameter for create of table &ZVAL1'
 'WRITE/NOWRITE must be consistent with the existing table'
@@ -162,6 +172,7 @@ PSYE014S 'TBSAVE issued for table &ZVAL1 not opened in WRITE mode'
 PSYE014T 'Variable prefix too long'
 'List variable must be 7 characters or less'
 
+
 /* variable pool messages */
 PSYE015A 'Variable &ZVAL1 has been truncated'
 'Maximum length of 32,765 has been exceeded.  Variable truncated.'
@@ -199,7 +210,6 @@ PSYE015K 'Directory &ZVAL1 does not exist for profile save'
 PSYE015L 'Pool manager &ZVAL1 of &ZVAL2 failed'
 ''
 
-
 /* pool manager messages */
 PSYE017A 'poolMGR has invalid Applid (&ZVAL1).  Logic error'
 ''
@@ -211,11 +221,12 @@ PSYE017B 'poolMGR locateSubPool() function passed invalid POOL TYPE'
 PSYE017C 'poolMGR get() function passed invalid POOL TYPE'
 'Internal logic error.  POOL TYPE must be ASIS, PROFILE or SHARED'
 
-PSYE017D 'poolMGR defaultVars() function passed invalid POOL TYPE'
+PSYE017D 'poolMGR sysput()/sysget() function passed invalid POOL TYPE'
 'Internal logic error.  POOL TYPE must be PROFILE or SHARED'
 
 PSYE017E 'poolMGR cannot find pool &ZVAL1'
 'Internal logic error'
+
 
 /* ISPEXEC interface messages */
 PSYE019A '&ZVAL1 srvice invalid with this interface'

@@ -47,6 +47,12 @@ using namespace std ;
 #undef  MOD_NAME
 #define MOD_NAME PTEST01
 
+
+PTEST01::PTEST01()
+{
+	vdefine( "ZTDTOP ZTDSELS", &ztdtop, &ztdsels ) ;
+}
+
 void PTEST01::application()
 {
 	llog( "I", "Application PTEST01 starting." << endl ) ;
@@ -160,10 +166,10 @@ void PTEST01::opt1()
 	tberase( "TABK" ) ;
 	llog( "A", "TBERASE TABK RC=" << RC << endl ) ;
 
-	tbcreate( "TABK", "TABA1", "TABA2 TABA3 TABA4 TABA5", WRITE ) ;
+	tbcreate( "TABK", "TABA1", "(TABA2,TABA3,TABA4,TABA5)", WRITE ) ;
 	llog( "A", "TBCREATE TABK with WRITE option RC=" << RC << endl ) ;
 
-	tbsort( "TABK", "TABA1,C,D" ) ;
+	tbsort( "TABK", "(TABA1,C,D)" ) ;
 	llog( "A", "TBSORT TABK RC=" << RC << endl ) ;
 
 	tbvclear( "TABK" ) ;
@@ -215,7 +221,7 @@ void PTEST01::opt1()
 		llog( "A", "TBSKIP TABK VAR VALUES: TABA1 " << TABA1 << " TABA2 " << TABA2  << " TABA3 " << TABA3  << " TABA4 " << TABA4  << " TABA5 " << TABA5 << endl ) ;
 	}
 
-	tbsort( "TABK", "TABA2,C,D" ) ;
+	tbsort( "TABK", "(TABA2,C,D)" ) ;
 
 	TABA1 = "TABKEY999" ;
 	tbdelete( "TABK" ) ;
@@ -285,7 +291,7 @@ void PTEST01::opt1()
 	tbput( "TABK" ) ;
 	llog( "A", "TBPUT TABK KEY IS KEY2 (should be okay) RC=" << RC << endl ) ;
 
-	tbsort( "TABK", "TABA2,C,D" ) ;
+	tbsort( "TABK", "(TABA2,C,D)" ) ;
 	tbsarg( "TABK", "", "NEXT", "(TABA5,EQ)" ) ;
 
 
@@ -324,7 +330,7 @@ void PTEST01::opt2()
 	string TABB1, TABB2, TABB3, TABB4, TABB5 ;
 	vdefine( "TABB1 TABB2 TABB3 TABB4 TABB5", &TABB1, &TABB2, &TABB3, &TABB4, &TABB5 ) ;
 
-	tbcreate( "TABN", "", "TABB1 TABB2 TABB3 TABB4 TABB5", WRITE ) ;
+	tbcreate( "TABN", "", "(TABB1,TABB2,TABB3,TABB4,TABB5)", WRITE ) ;
 	llog( "A", "TBCREATE TABN RC=" << RC << endl ) ;
 
 	tbvclear( "TABN" ) ;
@@ -349,7 +355,7 @@ void PTEST01::opt2()
 	EXTV3 = "EXTENSION VAR 3 " ;
 	EXTV4 = "EXTENSION VAR 4 " ;
 
-	tbadd( "TABN", "EXTV1 EXTV2 EXTV3 EXTV4" ) ;
+	tbadd( "TABN", "(EXTV1,EXTV2,EXTV3,EXTV4)" ) ;
 	llog( "A", "TBADD TABN RC=" << RC << " Record number being loaded is custom" << endl ) ;
 
 	TABB1 = "NOTAKEY" ; TABB2 = "VALUE3" ; TABB3 = "VALUE3"  ; TABB4 = "VALUE3" ; TABB5 = "VALUE3"  ;
@@ -522,8 +528,8 @@ void PTEST01::opt2()
 		llog( "A", "TBGET TABN VAR VALUES: TABB1 " << TABB1 << " TABB2 " << TABB2  << " TABB3 " << TABB3  << " TABB4 " << TABB4  << " TABB5 " << TABB5 << endl ) ;
 	}
 
-	tbsort( "TABN", "TABB6" ) ;
-	llog( "A", "TBSORT TABN RC=" << RC << endl ) ;
+ //     tbsort( "TABN", "TABB6" ) ;
+ //     llog( "A", "TBSORT TABN RC=" << RC << endl ) ;
 
 	tbtop( "TABN" ) ;
 	tbskip( "TABN", 4 ) ;
@@ -581,6 +587,8 @@ void PTEST01::opt3()
 	int CRP     ;
 	int CSRROW  ;
 
+	bool e_loop ;
+
 	string YKEY1, YFLD1, YFLD2, YFLD3, YFLD4, YROWID ;
 
 	string w1 ;
@@ -614,7 +622,7 @@ void PTEST01::opt3()
 	TRC     = 0  ;
 	vector< string >ops ;
 
-	tbcreate( "TABKD", "KEY1", "SEL FLD1 FLD2 FLD3 FLD4", NOWRITE ) ;
+	tbcreate( "TABKD", "KEY1", "(SEL,FLD1,FLD2,FLD3,FLD4)", NOWRITE ) ;
 	llog( "A", "TBCREATE TABN RC=" << RC << endl ) ;
 	ops.push_back( "TBCREATE " + d2ds(RC) ) ;
 	if ( RC > TRC ) { TRC = RC ; }
@@ -643,7 +651,8 @@ void PTEST01::opt3()
 	CRP    = 0  ;
 	CSRROW = 0  ;
 	ROWID  = "" ;
-	ZTDTOP = 1  ;
+	ztdtop = 1  ;
+	e_loop = false ;
 
 	while ( true )
 	{
@@ -656,13 +665,13 @@ void PTEST01::opt3()
 		if ( i >= 0 ) { TOPR4 = word( ops[i], 1 ) ; TRC4 = word( ops[i], 2 ) ; i-- ; }
 		if ( i >= 0 ) { TOPR5 = word( ops[i], 1 ) ; TRC5 = word( ops[i], 2 ) ; i-- ; }
 		tbtop( "TABKD" ) ;
-		tbskip( "TABKD", ZTDTOP ) ;
+		tbskip( "TABKD", ztdtop ) ;
 		tbquery( "TABKD", "TBQ1","TBQ2", "TBQ3", "TBQ4", "TBQ5", "TBQ6", "TBQ7", "TBQ8", "TBQ9", "TBQ10" ) ;
 		tbdispl( "TABKD", "PTEST01D", MSG, "ZCMD", CSRROW, 0, "NO", "CRP", "ROWID" ) ;
 		if ( RC == 8 ) { cleanup() ; break ; }
 		TRC   = 0  ;
 		if ( RC > TRC ) { TRC = RC ; }
-		YTDSELS = ZTDSELS ;
+		YTDSELS = ztdsels ;
 		YFLD1   = FLD1    ;
 		YFLD2   = FLD2    ;
 		YFLD3   = FLD3    ;
@@ -677,7 +686,7 @@ void PTEST01::opt3()
 		if ( w1 == "SORT" )
 		{
 			control( "ERRORS", "RETURN" ) ;
-			tbsort( "TABKD", upper( w2 ) ) ;
+			tbsort( "TABKD", "("+upper( w2 )+")" ) ;
 			ops.push_back( "TBSORT " + d2ds(RC) ) ;
 			if ( RC > TRC ) { TRC = RC ; }
 			control( "ERRORS", "CANCEL" ) ;
@@ -696,8 +705,8 @@ void PTEST01::opt3()
 			ops.push_back( "TBADD " + d2ds(RC) ) ;
 			if ( RC > TRC ) { TRC = RC ; }
 		}
-		i = ZTDTOP ;
-		while ( ZTDSELS > 0 )
+		i = ztdtop ;
+		while ( ztdsels > 0 )
 		{
 			if ( SEL == "D" )
 			{
@@ -731,14 +740,15 @@ void PTEST01::opt3()
 				YFLD3   = FLD3    ;
 				YFLD4   = FLD4    ;
 			}
-			if ( ZTDSELS > 1 )
+			if ( ztdsels > 1 )
 			{
 				tbdispl( "TABKD" ) ;
 				if ( RC > TRC ) { TRC = RC ; }
-				if ( RC > 4 ) break ;
+				if ( RC > 4 ) { e_loop = true ; break ; }
 			}
-			else { ZTDSELS = 0 ; }
+			else { ztdsels = 0 ; }
 		}
+		if ( e_loop ) { break ; }
 	}
 	tbend( "TABKD" ) ;
 
@@ -754,6 +764,8 @@ void PTEST01::opt4()
 	int YTDSELS ;
 	int CRP     ;
 	int CSRROW  ;
+
+	bool e_loop ;
 
 	string YFLD1, YFLD2, YFLD3, YFLD4, YROWID ;
 
@@ -787,7 +799,7 @@ void PTEST01::opt4()
 	TRC     = 0  ;
 	vector< string >ops ;
 
-	tbcreate( "TABND", "", "SEL FLD1 FLD2 FLD3 FLD4", NOWRITE ) ;
+	tbcreate( "TABND", "", "(SEL,FLD1,FLD2,FLD3,FLD4)", NOWRITE ) ;
 	llog( "A", "TBCREATE TABN RC=" << RC << endl ) ;
 	ops.push_back( "TBCREATE " + d2ds(RC) ) ;
 	if ( RC > TRC ) { TRC = RC ; }
@@ -817,7 +829,8 @@ void PTEST01::opt4()
 	CRP    = 0  ;
 	CSRROW = 0  ;
 	ROWID  = "" ;
-	ZTDTOP = 1  ;
+	ztdtop = 1  ;
+	e_loop = false ;
 	while ( true )
 	{
 		TOPR1 = "" ; TRC1 = "" ; TOPR2 = "" ; TRC2 = "" ; TOPR3 = "" ; TRC3 = "" ; TOPR4 = "" ; TRC4 = "" ; TOPR5 = "" ; TRC5 = "" ;
@@ -829,13 +842,13 @@ void PTEST01::opt4()
 		if ( i >= 0 ) { TOPR4 = word( ops[i], 1 ) ; TRC4 = word( ops[i], 2 ) ; i-- ; }
 		if ( i >= 0 ) { TOPR5 = word( ops[i], 1 ) ; TRC5 = word( ops[i], 2 ) ; i-- ; }
 		tbtop( "TABND" ) ;
-		tbskip( "TABND", ZTDTOP ) ;
+		tbskip( "TABND", ztdtop ) ;
 		tbquery( "TABND", "TBQ1","TBQ2", "TBQ3", "TBQ4", "TBQ5", "TBQ6", "TBQ7", "TBQ8", "TBQ9", "TBQ10" ) ;
 		tbdispl( "TABND", "PTEST01B", MSG, "ZCMD", CSRROW, 0, "NO", "CRP", "ROWID" ) ;
 		if ( RC == 8 ) { cleanup() ; break ; }
 		TRC   = 0  ;
 		if ( RC > TRC ) { TRC = RC ; }
-		YTDSELS = ZTDSELS ;
+		YTDSELS = ztdsels ;
 		YFLD1   = FLD1    ;
 		YFLD2   = FLD2    ;
 		YFLD3   = FLD3    ;
@@ -850,7 +863,7 @@ void PTEST01::opt4()
 		if ( w1 == "SORT" )
 		{
 			control( "ERRORS", "RETURN" ) ;
-			tbsort( "TABND", upper( w2 ) ) ;
+			tbsort( "TABND", "("+upper( w2 )+")" ) ;
 			ops.push_back( "TBSORT " + d2ds(RC) ) ;
 			if ( RC > TRC ) { TRC = RC ; }
 			control( "ERRORS", "CANCEL" ) ;
@@ -869,8 +882,8 @@ void PTEST01::opt4()
 			ops.push_back( "TBADD " + d2ds(RC) ) ;
 			if ( RC > TRC ) { TRC = RC ; }
 		}
-		i = ZTDTOP ;
-		while ( ZTDSELS > 0 )
+		i = ztdtop ;
+		while ( ztdsels > 0 )
 		{
 			if ( SEL == "D" )
 			{
@@ -903,14 +916,15 @@ void PTEST01::opt4()
 				YFLD3   = FLD3    ;
 				YFLD4   = FLD4    ;
 			}
-			if ( ZTDSELS > 1 )
+			if ( ztdsels > 1 )
 			{
 				tbdispl( "TABND" ) ;
 				if ( RC > TRC ) { TRC = RC ; }
-				if ( RC > 4 ) break ;
+				if ( RC > 4 ) { e_loop = true ; break ; }
 			}
-			else { ZTDSELS = 0 ; }
+			else { ztdsels = 0 ; }
 		}
+		if ( e_loop ) { break ; }
 	}
 	tbend( "TABND" ) ;
 }

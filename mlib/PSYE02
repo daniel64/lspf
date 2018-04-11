@@ -11,8 +11,8 @@ PSYE021B 'Panel not found'
 PSYE021C 'No panel specified'
 "Neither a panel nor previous panel have been specified"
 
-PSYE021D 'Invalid panel type'
-"No panel specified and previous panel is invalid for TBDISPL"
+PSYE021D 'Spare'
+"Spare"
 
 PSYE022A 'LOCATE invalid.  Pointer parameter required, string passed'
 ''

@@ -32,7 +32,6 @@ class fVAR
 		int      fVAR_int        ;
 		dataType fVAR_type       ;
 		bool     fVAR_defined    ;
-		bool     fVAR_system     ;
 	friend class fPOOL ;
 } ;
 
@@ -104,16 +103,6 @@ class fPOOL
 				      vdType defn ) ;
 
 		map<string, stack<fVAR*>> POOL ;
-
-		set<string> sysvar = { { "ZCURFLD"  },
-				       { "ZCURPOS"  },
-				       { "ZTDMARK"  },
-				       { "ZTDDEPTH" },
-				       { "ZTDROWS"  },
-				       { "ZTDSELS"  },
-				       { "ZTDTOP"   },
-				       { "ZTDVROWS" },
-				       { "ZAPPNAME" } } ;
 
 	friend class pApplication ;
 	friend class tableMGR ;

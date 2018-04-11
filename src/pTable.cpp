@@ -109,8 +109,7 @@ void Table::loadfuncPOOL( errblock& err,
 
 	vector<vector<string>*>::iterator it ;
 
-	it = table.begin()   ;
-	advance( it, CRP-1 ) ;
+	it = table.begin() + CRP - 1 ;
 
 	for ( i = 1 ; i <= num_all ; i++ )
 	{
@@ -147,8 +146,7 @@ void Table::saveExtensionVarNames( errblock& err,
 
 	vector<vector<string>*>::iterator it ;
 
-	it = table.begin()   ;
-	advance( it, CRP-1 ) ;
+	it = table.begin() + CRP - 1 ;
 
 	if ( (*it)->size() > num_all+1 )
 	{
@@ -299,8 +297,7 @@ void Table::tbadd( errblock& err,
 	loadFields( err, funcPOOL, tb_namelst, row ) ;
 	if ( err.error() ) { delete row ; return ; }
 
-	it = table.begin() ;
-	advance( it, CRP ) ;
+	it = table.begin() + CRP ;
 	it = table.insert( it, row ) ;
 	CRP++ ;
 
@@ -426,8 +423,7 @@ void Table::tbdelete( errblock& err,
 		else
 		{
 			CRP-- ;
-			it = table.begin() ;
-			advance( it, CRP ) ;
+			it = table.begin() + CRP ;
 			delete (*it)       ;
 			table.erase( it )  ;
 		}
@@ -646,8 +642,7 @@ void Table::tbput( errblock& err,
 
 	if ( CRP == 0 ) { err.setRC( 8 ) ; return ; }
 
-	it = table.begin() ;
-	advance( it, CRP-1 ) ;
+	it = table.begin() + CRP - 1 ;
 
 	row = new vector<string> ;
 
@@ -1274,10 +1269,10 @@ void Table::tbsort( errblock& err,
 		if ( s_parm.size() == 0 ) { break ; }
 		s_temp   = s_parm.front() ;
 		s_fields = s_temp + " " + s_fields ;
-		f1  = wordpos( s_temp, tab_all ) ;
+		f1 = wordpos( s_temp, tab_all ) ;
 		if ( f1 == 0 )
 		{
-			err.seterrid( "PSYE013X" ) ;
+			err.seterrid( "PSYE013X", temp ) ;
 			return ;
 		}
 		s_field.push_back( f1 ) ;
@@ -1287,7 +1282,7 @@ void Table::tbsort( errblock& err,
 		s_temp = s_parm.front() ;
 		if ( s_temp != "C" && s_temp != "N" )
 		{
-			err.seterrid( "PSYE013X" ) ;
+			err.seterrid( "PSYE013X", temp ) ;
 			return ;
 		}
 		s_char.push_back( (s_temp == "C") ) ;
@@ -1297,7 +1292,7 @@ void Table::tbsort( errblock& err,
 		s_temp = s_parm.front() ;
 		if ( s_temp != "A" && s_temp != "D" )
 		{
-			err.seterrid( "PSYE013X" ) ;
+			err.seterrid( "PSYE013X", temp ) ;
 			return ;
 		}
 		s_asc.push_back( (s_temp == "A") ) ;
@@ -1387,14 +1382,15 @@ void Table::fillfVARs( errblock& err,
 		       uint depth,
 		       int  posn,
 		       uint csrrow,
-		       int& idx,
+		       int& idr,
 		       string& asURID )
 {
 	// Fill the function pool variables ( of the form table_fieldname.line ) from the table for depth lines
 	// starting as table position posn. (Use CRP position if posn not specified)
 	// Create function pool variable .ZURID.line to hold the URID of the table row corresponding to that screen line
 
-	// Also pass back the csrrow matching tb line index and the URID, if there is one.
+	// Also pass back the relative line index, idr, and URID for the line matching the passed csrrow (if any).
+	// (Passed csrrow is the panel CSRROW() parameter or .CSRROW control variable)
 
 	// BUGS:  Should only do fields on the tbmodel statement instead of all fields in the row (inc. extension variables)
 	//        SCAN not supported yet
@@ -1438,11 +1434,10 @@ void Table::fillfVARs( errblock& err,
 		row.push_back( word( tab_all, k ) ) ;
 	}
 
-	it = table.begin() ;
-	advance( it, posn-1 ) ;
+	it = table.begin() + posn - 1 ;
 
 	csrrow -= posn ;
-	idx     = 0    ;
+	idr     = -1   ;
 	asURID  = ""   ;
 
 	for ( k = 0 ; k < depth && it != table.end() ; k++, it++ )
@@ -1464,7 +1459,7 @@ void Table::fillfVARs( errblock& err,
 		}
 		if ( k == csrrow )
 		{
-			idx    = k ;
+			idr    = k ;
 			asURID = (*it)->at( 0 ) ;
 		}
 	}
@@ -2241,7 +2236,7 @@ void tableMGR::fillfVARs( errblock& err,
 			  int  depth,
 			  int  posn,
 			  int  csrrow,
-			  int& idx,
+			  int& idr,
 			  string& asURID )
 {
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
@@ -2252,7 +2247,7 @@ void tableMGR::fillfVARs( errblock& err,
 		err.seterrid( "PSYE013G", "FILLVARS", tb_name, 12 ) ;
 		return ;
 	}
-	it->second->fillfVARs( err, funcPOOL, clear_flds, scan, depth, posn, csrrow, idx, asURID ) ;
+	it->second->fillfVARs( err, funcPOOL, clear_flds, scan, depth, posn, csrrow, idr, asURID ) ;
 }
 
 

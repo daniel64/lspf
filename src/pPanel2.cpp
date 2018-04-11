@@ -378,12 +378,12 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				tx = panelLang.getToken( 1 ) ;
 				if ( tx.subtype != TS_NAME )
 				{
-					err.seterrid( "PSYE041Z", tx.value ) ;
+					err.seterrid( "PSYE041Z", tx.value1 ) ;
 					err.setsrc( oline ) ;
 					delete m_stmnt ;
 					return ;
 				}
-				m_stmnt->ps_label = tx.value  ;
+				m_stmnt->ps_label = tx.value1 ;
 				p_stmnt->push_back( m_stmnt ) ;
 				break ;
 
@@ -992,12 +992,12 @@ void pPanel::createPanel_If( errblock& err, parser& v, panstmnt* m_stmnt, bool i
 	case ST_GOTO:
 		t = v.getToken( 1 ) ;
 		m_stmnt->ps_goto = true ;
-		if ( !isvalidName( t.value ) )
+		if ( !isvalidName( t.value1 ) )
 		{
-			err.seterrid( "PSYE041Z", t.value ) ;
+			err.seterrid( "PSYE041Z", t.value1 ) ;
 			break ;
 		}
-		m_stmnt->ps_label = t.value ;
+		m_stmnt->ps_label = t.value1 ;
 		break ;
 
 	case ST_VERIFY:
@@ -1042,8 +1042,7 @@ void pPanel::createPanel_Else( errblock& err, parser& v, panstmnt* m_stmnt, vect
 		return ;
 	}
 
-	ips = p_stmnt->begin() ;
-	advance( ips, p_stmnt->size() ) ;
+	ips = p_stmnt->begin() + p_stmnt->size() ;
 
 	do
 	{
@@ -1097,13 +1096,13 @@ void pPanel::createPanel_Else( errblock& err, parser& v, panstmnt* m_stmnt, vect
 
 	case ST_GOTO:
 		t = v.getToken( 1 ) ;
-		if ( !isvalidName( t.value ) )
+		if ( !isvalidName( t.value1 ) )
 		{
-			err.seterrid( "PSYE041Z", t.value ) ;
+			err.seterrid( "PSYE041Z", t.value1 ) ;
 			break ;
 		}
 		m_stmnt->ps_goto  = true ;
-		m_stmnt->ps_label = t.value ;
+		m_stmnt->ps_label = t.value1 ;
 		break ;
 
 	case ST_VERIFY:
@@ -1128,19 +1127,19 @@ void pPanel::createPanel_Assign( errblock& err, parser& v, panstmnt* m_stmnt )
 		delete m_assgn ;
 		return ;
 	}
-	if ( m_assgn->as_isattr && ( fieldList.find( m_assgn->as_lhs ) == fieldList.end() ) )
+
+	if ( findword( m_assgn->as_lhs, tb_fields ) )
 	{
-		if ( wordpos( m_assgn->as_lhs, tb_fields ) == 0 )
-		{
-			err.seterrid( "PSYE041S", m_assgn->as_lhs ) ;
-			delete m_assgn ;
-			return ;
-		}
-		else
-		{
-			m_assgn->as_istb = true ;
-		}
+		m_assgn->as_istb = true ;
 	}
+
+	if ( m_assgn->as_isattr && ( fieldList.find( m_assgn->as_lhs ) == fieldList.end() ) && !m_assgn->as_istb )
+	{
+		err.seterrid( "PSYE041S", m_assgn->as_lhs ) ;
+		delete m_assgn ;
+		return ;
+	}
+
 	m_stmnt->ps_assgn = m_assgn ;
 }
 
@@ -1155,7 +1154,7 @@ void pPanel::createPanel_Verify( errblock& err, parser& v, panstmnt* m_stmnt )
 		delete m_VER ;
 		return ;
 	}
-	if ( wordpos( m_VER->ver_var, tb_fields ) > 0 )
+	if ( findword( m_VER->ver_var, tb_fields ) )
 	{
 		m_VER->ver_tbfield = true ;
 	}
@@ -1205,21 +1204,21 @@ void pPanel::createPanel_Refresh( errblock& err, parser& v, panstmnt* m_stmnt )
 			t = v.getCurrentToken() ;
 			if ( t.subtype == TS_NAME )
 			{
-				if ( fieldList.count( t.value ) == 0 )
+				if ( fieldList.count( t.value1 ) == 0 && !findword( t.value1, tb_fields ) )
 				{
-					err.seterrid( "PSYE041X", t.value ) ;
+					err.seterrid( "PSYE041X", t.value1 ) ;
 					return ;
 				}
 				if ( m_stmnt->ps_rlist != "*" )
 				{
-					m_stmnt->ps_rlist += " " + t.value ;
+					m_stmnt->ps_rlist += " " + t.value1 ;
 				}
 			}
 			else
 			{
-				if ( t.value != "*" )
+				if ( t.value1 != "*" )
 				{
-					err.seterrid( "PSYE041W", t.value ) ;
+					err.seterrid( "PSYE041W", t.value1 ) ;
 					return ;
 				}
 				m_stmnt->ps_rlist = "*" ;
@@ -1232,25 +1231,25 @@ void pPanel::createPanel_Refresh( errblock& err, parser& v, panstmnt* m_stmnt )
 		t = v.getCurrentToken() ;
 		if ( t.subtype == TS_NAME )
 		{
-			if ( fieldList.count( t.value ) == 0 )
+			if ( fieldList.count( t.value1 ) == 0 && !findword( t.value1, tb_fields ) )
 			{
-				err.seterrid( "PSYE041X", t.value ) ;
+				err.seterrid( "PSYE041X", t.value1 ) ;
 				return ;
 			}
 		}
-		else if ( t.value != "*" )
+		else if ( t.value1 != "*" )
 		{
-			err.seterrid( "PSYE041W", t.value ) ;
+			err.seterrid( "PSYE041W", t.value1 ) ;
 			return ;
 		}
-		m_stmnt->ps_rlist = t.value ;
+		m_stmnt->ps_rlist = t.value1 ;
 		v.getNextToken() ;
 	}
 
 	if ( !v.isCurrentType( TT_EOT ) )
 	{
 		t = v.getCurrentToken() ;
-		err.seterrid( "PSYE032H", t.value ) ;
+		err.seterrid( "PSYE032H", t.value1 ) ;
 		return ;
 	}
 	m_stmnt->ps_refresh = true ;

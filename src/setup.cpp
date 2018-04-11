@@ -22,11 +22,12 @@
 
 /* Amend and run to create initial ISPCMDS and USRCMDS command tables           */
 /* and ISPSPROF default profile.  Values taken from lspf.h                      */
+/*                                                                              */
 /* *NOTE* Any changes to ISPSPROF done online, will be lost                     */
-
+/*                                                                              */
 /* USRCMDS is the default user command table 1 (ZUCMDT1)                        */
 /* This can be changed in option 0.0, General lspf Settings                     */
-
+/*                                                                              */
 /* Create function pool, pool manager and table manager                         */
 
 #include <iostream>
@@ -72,8 +73,9 @@ logger* lg = new logger ;
 logger * tableMGR::lg = NULL ;
 logger * poolMGR::lg  = NULL ;
 
-void createSYSPROF() ;
-void setCUAcolours( const string&, const string& ) ;
+void   createSYSPROF() ;
+void   setCUAcolours( const string&, const string& ) ;
+string subHomePath( string ) ;
 
 main()
 {
@@ -82,9 +84,9 @@ main()
 	tableMGR::lg = lg ;
 	poolMGR::lg  = lg ;
 
-	string homePath   ;
+	string homePath  ;
 
-	lg->open( ALOG ) ;
+	lg->open( subHomePath( ALOG ) ) ;
 
 	homePath  = getenv( "HOME" ) ;
 	homePath += ZUPROF ;
@@ -383,6 +385,7 @@ main()
 
 	cout << endl ;
 	cout << "*******************************************************************************************" << endl ;
+
 	p_tableMGR->saveTable( err, "ISPCMDS", "" , homePath + "tlib" ) ;
 	if ( err.RC0() )
 	{
@@ -393,6 +396,7 @@ main()
 		cout << "ERROR saving ISPCMDS table in " << homePath << "tlib  RC=" << err.getRC() << endl ;
 		cout << "Message is " << err.msgid << endl ;
 	}
+
 	p_tableMGR->saveTable( err, "USRCMDS", "" , homePath + "tlib" ) ;
 	if ( err.RC0() )
 	{
@@ -406,7 +410,9 @@ main()
 
 	createSYSPROF() ;
 
-	cout << "See application log in ZALOG if any errors have been encountered" << endl ;
+	cout << "See application log in "<< subHomePath( ALOG ) << endl ;
+	cout << "if any errors have been encountered" << endl ;
+	cout << "*******************************************************************************************" << endl ;
 	lg->close() ;
 
 	delete p_poolMGR  ;
@@ -433,23 +439,25 @@ void createSYSPROF()
 
 	p_poolMGR->put( err, "ZUPROF", zuprof, PROFILE ) ;
 	p_poolMGR->put( err, "ZSYSPATH", ZSYSPATH, PROFILE ) ;
-	p_poolMGR->put( err, "ZORXPATH", ZREXPATH, PROFILE ) ;
+	p_poolMGR->put( err, "ZORXPATH", subHomePath( ZREXPATH ), PROFILE ) ;
 
 	p_poolMGR->put( err, "ZLDPATH", ZLDPATH, PROFILE ) ;
 
-	p_poolMGR->put( err, "ZSLOG", SLOG, PROFILE ) ;
-	p_poolMGR->put( err, "ZALOG", ALOG, PROFILE ) ;
+	p_poolMGR->put( err, "ZSLOG", subHomePath( SLOG ), PROFILE ) ;
+	p_poolMGR->put( err, "ZALOG", subHomePath( ALOG ), PROFILE ) ;
 
-	p_poolMGR->put( err, "ZPADC",   "_", PROFILE ) ;
-	p_poolMGR->put( err, "ZDEL",    ";", PROFILE ) ;
-	p_poolMGR->put( err, "ZSWAP",   "Y", PROFILE ) ;
-	p_poolMGR->put( err, "ZSWAPC",  "'", PROFILE ) ;
-	p_poolMGR->put( err, "ZKLUSE",  "N", PROFILE ) ;
-	p_poolMGR->put( err, "ZKLPRIV", "Y", PROFILE ) ;
-	p_poolMGR->put( err, "ZKLFAIL", "Y", PROFILE ) ;
-	p_poolMGR->put( err, "ZRTSIZE", "3", PROFILE ) ;
-	p_poolMGR->put( err, "ZRBSIZE", "20", PROFILE ) ;
-	p_poolMGR->put( err, "ZLMSGW",  "N", PROFILE ) ;
+	p_poolMGR->put( err, "ZPADC",    "_",    PROFILE ) ;
+	p_poolMGR->put( err, "ZDEL",     ";",    PROFILE ) ;
+	p_poolMGR->put( err, "ZSWAP",    "Y",    PROFILE ) ;
+	p_poolMGR->put( err, "ZSWAPC",   "'",    PROFILE ) ;
+	p_poolMGR->put( err, "ZKLUSE",   "N",    PROFILE ) ;
+	p_poolMGR->put( err, "ZKLPRIV",  "Y",    PROFILE ) ;
+	p_poolMGR->put( err, "ZKLFAIL",  "Y",    PROFILE ) ;
+	p_poolMGR->put( err, "ZRTSIZE",  "3",    PROFILE ) ;
+	p_poolMGR->put( err, "ZRBSIZE",  "20",   PROFILE ) ;
+	p_poolMGR->put( err, "ZLMSGW",   "N",    PROFILE ) ;
+	p_poolMGR->put( err, "ZSCROLLD", "HALF", PROFILE ) ;
+	p_poolMGR->put( err, "ZSRETP",   "N",    PROFILE ) ;
 
 	p_poolMGR->put( err, "ZUCMDT1", "USR", PROFILE ) ;
 	p_poolMGR->put( err, "ZUCMDT2", "", PROFILE ) ;
@@ -461,9 +469,9 @@ void createSYSPROF()
 
 	p_poolMGR->put( err, "ZSCMDTF", "Y", PROFILE ) ;
 
-	p_poolMGR->put( err, "ZMLIB", MLIB, PROFILE ) ;
-	p_poolMGR->put( err, "ZPLIB", PLIB, PROFILE ) ;
-	p_poolMGR->put( err, "ZTLIB", TLIB, PROFILE ) ;
+	p_poolMGR->put( err, "ZMLIB", subHomePath( MLIB ), PROFILE ) ;
+	p_poolMGR->put( err, "ZPLIB", subHomePath( PLIB ), PROFILE ) ;
+	p_poolMGR->put( err, "ZTLIB", subHomePath( TLIB ), PROFILE ) ;
 
 	p_poolMGR->put( err, "ZMAINPGM", ZMAINPGM, PROFILE ) ;
 	p_poolMGR->put( err, "ZMAINPAN", ZMAINPAN, PROFILE ) ;
@@ -615,5 +623,21 @@ void setCUAcolours( const string& var, const string& val )
 	}
 
 	p_poolMGR->put( err, var1, val, PROFILE ) ;
+}
+
+
+string subHomePath( string var )
+{
+	size_t p ;
+
+	string homePath = getenv( "HOME" ) ;
+
+	p = var.find( '~' ) ;
+	while ( p != string::npos )
+	{
+		var.replace( p, 1, homePath ) ;
+		p = var.find( '~' ) ;
+	}
+	return var ;
 }
 

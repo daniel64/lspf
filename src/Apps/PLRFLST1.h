@@ -22,6 +22,7 @@ using namespace std;
 class PLRFLST1 : public pApplication
 {
 	public:
+		PLRFLST1()         ;
 		void application() ;
 
 	private:
@@ -47,41 +48,45 @@ class PLRFLST1 : public pApplication
 		string zscreen  ;
 		string uprof    ;
 
-		string ZCURTB   ;
-		string FLADESCP ;
-		string FLAPET01 ;
-		string FLAPET02 ;
-		string FLAPET03 ;
-		string FLAPET04 ;
-		string FLAPET05 ;
-		string FLAPET06 ;
-		string FLAPET07 ;
-		string FLAPET08 ;
-		string FLAPET09 ;
-		string FLAPET10 ;
-		string FLAPET11 ;
-		string FLAPET12 ;
-		string FLAPET13 ;
-		string FLAPET14 ;
-		string FLAPET15 ;
-		string FLAPET16 ;
-		string FLAPET17 ;
-		string FLAPET18 ;
-		string FLAPET19 ;
-		string FLAPET20 ;
-		string FLAPET21 ;
-		string FLAPET22 ;
-		string FLAPET23 ;
-		string FLAPET24 ;
-		string FLAPET25 ;
-		string FLAPET26 ;
-		string FLAPET27 ;
-		string FLAPET28 ;
-		string FLAPET29 ;
-		string FLAPET30 ;
-		string FLACTIME ;
-		string FLAUTIME ;
+		int    zcurinx  ;
+		int    ztdtop   ;
+		int    ztdsels  ;
 
-		string RFLTABLE ;
-		string TABFLDS  ;
+		string zcurtb   ;
+		string fladescp ;
+		string flapet01 ;
+		string flapet02 ;
+		string flapet03 ;
+		string flapet04 ;
+		string flapet05 ;
+		string flapet06 ;
+		string flapet07 ;
+		string flapet08 ;
+		string flapet09 ;
+		string flapet10 ;
+		string flapet11 ;
+		string flapet12 ;
+		string flapet13 ;
+		string flapet14 ;
+		string flapet15 ;
+		string flapet16 ;
+		string flapet17 ;
+		string flapet18 ;
+		string flapet19 ;
+		string flapet20 ;
+		string flapet21 ;
+		string flapet22 ;
+		string flapet23 ;
+		string flapet24 ;
+		string flapet25 ;
+		string flapet26 ;
+		string flapet27 ;
+		string flapet28 ;
+		string flapet29 ;
+		string flapet30 ;
+		string flactime ;
+		string flautime ;
+
+		string table    ;
+		string tabflds  ;
 } ;

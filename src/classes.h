@@ -124,25 +124,29 @@ class token
 	public:
 		token()
 		{
-			value   = ""       ;
+			value1  = ""       ;
+			value2  = ""       ;
 			idx     = -1       ;
 			type    = TT_OTHER ;
 			subtype = TS_NONE  ;
 		}
 		explicit token( TOKEN_TYPES tt )
 		{
-			value   = ""       ;
+			value1  = ""       ;
+			value2  = ""       ;
 			type    = tt       ;
 			subtype = TS_NONE  ;
 		}
 		void clear()
 		{
-			value   = ""       ;
+			value1  = ""       ;
+			value2  = ""       ;
 			type    = TT_OTHER ;
 			subtype = TS_NONE  ;
 		}
-		string value ;
-		int    idx   ;
+		string value1 ;
+		string value2 ;
+		int    idx    ;
 		TOKEN_TYPES    type    ;
 		TOKEN_SUBTYPES subtype ;
 } ;
@@ -175,8 +179,8 @@ class parser
 		STATEMENT_TYPE getStatementType() ;
 
 	private:
-		uint  idx ;
-		bool  optUpper ;
+		uint idx ;
+		bool optUpper ;
 		set<string> ctl_valid = { { ".ALARM"   },
 					  { ".AUTOSEL" },
 					  { ".BROWSE"  },

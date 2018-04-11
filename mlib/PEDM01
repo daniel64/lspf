@@ -119,8 +119,8 @@ PEDM012L '&ZSTR1 returned invalid number' .T=W
 PEDM012M 'Primary command not properly actioned'
 'Logic error.  IMACRO primary command ''&ZSTR1'' has not set the actioned flag.'
 
-PEDM012N 'spare'
-'spare'
+PEDM012N 'Browse substituted' .TYPE=W
+'File cannot be edited. Reason: ''&ZSTR1'''
 
 PEDM012O 'spare'
 'spare'

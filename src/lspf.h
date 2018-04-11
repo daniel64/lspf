@@ -31,10 +31,10 @@
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
-#define LSPF_VERSION "1.0.2"
+#define LSPF_VERSION "1.0.3"
 #define LSPF_VERSION_MAJ 1
 #define LSPF_VERSION_REV 0
-#define LSPF_VERSION_MOD 2
+#define LSPF_VERSION_MOD 3
 
 typedef unsigned int uint ;
 
@@ -44,14 +44,18 @@ using namespace boost::posix_time;
 // Customisable values below.  Also included in the setup.cpp program for the ISPS profile pool.
 // Recompile setup.cpp and run after changes
 
-// HOME     - Home directory of the user.  Not used in compiling lspf.cpp, just the default ISPSPROF member
-// ZUPROF   - User subdirectory where the lspf user-specific profiles/tables are found (ISPS, profiles, cmds, clipboard)
+// ~ character represents the user's home directory and will be resolved at setup run time
+
+// ZUPROF   - User subdirectory where the lspf user-specific profiles/tables are found (ISPS, profiles, clipboard)
 //            ZUPROF will be prefixed with the user's home directory at runtime (ZUPROF in ISPSPROF contains the prefix)
 // ZSYSPATH - Where the system-specific files are found.
 // ZLDPATH  - Where the application classes are located (concatenation allowed)
-// SLOG     - Location of the user's system log file (fully qualified)
-// ALOG     - Location of the user's application log file (fully qualified)
-// ZREXPATH - Location of the rexx execs (conatenation allowed)
+// SLOG     - Location of the user's system log file.  Can use ~ character.
+// ALOG     - Location of the user's application log file. Can use ~ character.
+// MLIB     - Search path for messages. Can use ~ character.
+// PLIB     - Search path for panels. Can use ~ character.
+// TLIB     - Search path for tables. Can use ~ character.
+// ZREXPATH - Location of the rexx execs (conatenation allowed).  Can use ~ character
 // ZMAINPGM - Name of the initial program to invoke.  This is treated as a SELECT PANEL()
 // ZMAINPAN - Name of the initial selection panel to invoke ( ie. SELECT PANEL(ZMAINPAN) )
 // ZPANLPGM - Name of the program invoked on the SELECT PANEL service
@@ -66,18 +70,15 @@ using namespace boost::posix_time;
 // ZWAIT    - Wait time to check if the application has gone into a wait-for-user-response (normally a few ms)
 // ZMAXWAIT - Max wait time to terminate the application if it has not gone into a wait-for-user-response (application may be looping)
 
-#define HOME            "/home/daniel"
 #define ZUPROF          "/.lspf"
-#define ZSYSPATH        HOME "/lspf"
+#define ZSYSPATH        "/home/daniel/lspf"
 #define ZLDPATH         ZSYSPATH "/Apps:" ZSYSPATH "/Apps2"
-#define MLIB            HOME ZUPROF "/mlib:" ZSYSPATH "/mlib"
-#define PLIB            HOME ZUPROF "/plib:" ZSYSPATH "/plib"
-#define TLIB            HOME ZUPROF "/tlib:" ZSYSPATH "/tlib"
-#define ZREXPATH        HOME "/rexx:" ZSYSPATH "/rexx"
-#define SLOG            HOME "/.lspf/lspflog"
-#define ALOG            HOME "/.lspf/appllog"
-//#define SLOG            "/root/.lspf/lspflog"
-//#define ALOG            "/root/.lspf/appllog"
+#define MLIB            "~" ZUPROF "/mlib:" ZSYSPATH "/mlib"
+#define PLIB            "~" ZUPROF "/plib:" ZSYSPATH "/plib"
+#define TLIB            "~" ZUPROF "/tlib:" ZSYSPATH "/tlib"
+#define ZREXPATH        "~/rexx:" ZSYSPATH "/rexx"
+#define SLOG            "~/.lspf/lspflog"
+#define ALOG            "~/.lspf/appllog"
 #define ZRFLTBL         "LSRPLIST"
 #define ZMAINPGM        "PMAIN0A"
 #define ZMAINPAN        "PMAINP01"
@@ -545,7 +546,7 @@ class errblock
 	{
 		udata = s ;
 	}
-	string& getUserData()
+	const string& getUserData()
 	{
 		return udata ;
 	}

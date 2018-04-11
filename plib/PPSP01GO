@@ -20,60 +20,64 @@ field    4  15     MAX NEF CAPS(ON),PAD(USER) ZCMD
 literal  6   2     ET    "Options"
 literal  7   4     PIN "Enter / to select option"
 
-field    8   4     1   CEF PAD(USER) GOKLUSE
 literal  8   6         SAC "Turn on keylists"
-field    9   4     1   CEF PAD(USER) GOKLFAL
+field    8   4     1   CEF PAD(USER) GOKLUSE
 literal  9   6         SAC "Fail on missing panel keylist or table"
-field    10  4     1   CEF PAD(USER) GOSTFST
+field    9   4     1   CEF PAD(USER) GOKLFAL
 literal  10  6         SAC "Search site command tables before ISPCMDS"
-field    11  4     1   CEF PAD(USER) GOLMSGW
+field    10  4     1   CEF PAD(USER) GOSTFST
 literal  11  6         SAC "Always display long message in a pop-up"
-field    12  4     1   CEF PAD(USER) GOSWAP
+field    11  4     1   CEF PAD(USER) GOLMSGW
 literal  12  6         SAC "Allow swapping screens with the swap character"
+field    12  4     1   CEF PAD(USER) GOSWAP
+literal  13  6         SAC "Save retrieve buffer across sessions"
+field    13  4     1   CEF PAD(USER) GOSRETP
 
 literal  6   60    ET    "Application"
-literal  7   62    FP    "Application Timeout ."
-field    7   84  4 CEF NUMERIC(ON),PAD(USER) GOATIMO
-literal  7   89    FP    "seconds"
+literal  7   62    FP    "Application Timeout. . ."
+field    7   87  4 CEF NUMERIC(ON),PAD(USER) GOATIMO
+literal  7   92    FP    "seconds"
+literal  8   62    FP    "Default scroll amount. ."
+field    8   87  4 CEF PAD(USER),CAPS(ON) GOSCRLD
 
 
-literal  14  2     ET    "General"
+literal  15  2     ET    "General"
 
-literal  15  4     FP    "Command delimiter . . ."
-field    15  28  1 CEF PAD(USER) GODEL
+literal  16  4     FP    "Command delimiter . . ."
+field    16  28  1 CEF PAD(USER) GODEL
 
-literal  16  4     FP    "Swap character. . . . ."
-field    16  28  1 CEF PAD(USER) GOSWAPC
+literal  17  4     FP    "Swap character. . . . ."
+field    17  28  1 CEF PAD(USER) GOSWAPC
 
-literal  17  4     FP    "Retrieve command size ."
-field    17  28  2 CEF NUMERIC(ON),PAD(USER) GORTSIZE
+literal  18  4     FP    "Retrieve command size ."
+field    18  28  2 CEF NUMERIC(ON),PAD(USER) GORTSIZE
 
-literal  18  4     FP    "Retrieve buffer size. ."
-field    18  28  2 CEF NUMERIC(ON),PAD(USER) GORBSIZE
+literal  19  4     FP    "Retrieve buffer size. ."
+field    19  28  2 CEF NUMERIC(ON),PAD(USER) GORBSIZE
 
-literal  19  4     FP    "User command tables . ."
-field    19  28  4 CEF PAD(USER),CAPS(ON) GOUCMD1
-field    19  33  4 CEF PAD(USER),CAPS(ON) GOUCMD2
-field    19  38  4 CEF PAD(USER),CAPS(ON) GOUCMD3
+literal  20  4     FP    "User command tables . ."
+field    20  28  4 CEF PAD(USER),CAPS(ON) GOUCMD1
+field    20  33  4 CEF PAD(USER),CAPS(ON) GOUCMD2
+field    20  38  4 CEF PAD(USER),CAPS(ON) GOUCMD3
 
-literal  20  4     FP    "Site command tables . ."
-field    20  28  4 CEF PAD(USER),CAPS(ON) GOSCMD1
-field    20  33  4 CEF PAD(USER),CAPS(ON) GOSCMD2
-field    20  38  4 CEF PAD(USER),CAPS(ON) GOSCMD3
+literal  21  4     FP    "Site command tables . ."
+field    21  28  4 CEF PAD(USER),CAPS(ON) GOSCMD1
+field    21  33  4 CEF PAD(USER),CAPS(ON) GOSCMD2
+field    21  38  4 CEF PAD(USER),CAPS(ON) GOSCMD3
 
-literal  14  60    ET    "Screen"
-literal  15  62    FP    "Input field pad character ."
-field    15  90  1 CEF    CAPS(ON) GOPADC
+literal  15  60    ET    "Screen"
+literal  16  62    FP    "Input field pad character ."
+field    16  90  1 CEF    CAPS(ON) GOPADC
 
-literal 23 2  CH "Instructions"
-literal 25 2  NT "Press"
-literal 25 8  PS "Enter"
-literal 25 14 NT "to make changes, enter"
-literal 25 37 PS "Defaults"
-literal 25 46 NT "to restore defaults"
-literal 26 2  NT "Enter"
-literal 26 8  PS "Reset"
-literal 26 14 NT "for original values"
+literal 24 2  CH "Instructions"
+literal 26 2  NT "Press"
+literal 26 8  PS "Enter"
+literal 26 14 NT "to make changes, enter"
+literal 26 37 PS "Defaults"
+literal 26 46 NT "to restore defaults"
+literal 27 2  NT "Enter"
+literal 27 8  PS "Reset"
+literal 27 14 NT "for original values"
 
 
 )INIT
@@ -81,7 +85,10 @@ literal 26 14 NT "for original values"
 
 )PROC
 
-&ZCMD = TRANS( &ZCMD DEF,DEFAULTS RES,RESET *,* )
+&ZCMD    = TRANS( &ZCMD DEF,DEFAULTS RES,RESET *,* )
+&GOSCRLD = TRANS( TRUNC(&GOSCRLD,1) H,HALF P,PAGE, C,CSR, D,DATA *,&GOSCRLD )
+
+IF (&GOSCRLD NE HALF,PAGE,CSR,DATA) VER(&GOSCRLD,NB,NUM)
 
 IF (VER(&ZCMD,LIST,DEFAULTS,RESET))
 ELSE
@@ -96,6 +103,7 @@ IF ( &ZCMD EQ RESET ) EXIT
 &GOSTFST = TRANS( &GOSTFST &Z,&Z *,/ )
 &GOLMSGW = TRANS( &GOLMSGW &Z,&Z *,/ )
 &GOSWAP  = TRANS( &GOSWAP  &Z,&Z *,/ )
+&GOSRETP = TRANS( &GOSRETP &Z,&Z *,/ )
 
 VER (&GODEL NB)
 VER (&GOSWAPC NB)

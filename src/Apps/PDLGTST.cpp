@@ -63,15 +63,16 @@ void PDLGTST::application()
 
 void PDLGTST::displayPanel()
 {
-	string MSG, NAME ;
+	string msg  ;
+	string name ;
 
-	vdefine( "NAME", &NAME ) ;
+	vdefine( "NAME", &name ) ;
 	vget( "NAME", PROFILE ) ;
 	zcmd = "" ;
 
 	while ( true )
 	{
-		display( "PDLGTST2", MSG, "ZCMD" );
+		display( "PDLGTST2", msg, "ZCMD" );
 		if (RC > 8 )
 		{
 			debug1( "Displaying panel PSTEST02 gave error.  Terminating application" << endl ) ;
@@ -82,23 +83,23 @@ void PDLGTST::displayPanel()
 			return    ;
 		}
 		vput ( "NAME", PROFILE ) ;
-		MSG  = "" ;
-		if ( zcmd != "" ) { MSG = "DLGT011" ; continue ; }
-		if ( NAME == "" ) continue ;
+		msg  = "" ;
+		if ( zcmd != "" ) { msg = "DLGT011" ; continue ; }
+		if ( name == "" ) continue ;
 		while ( true )
 		{
-			display( NAME, "", "ZCMD" );
+			display( name, "", "ZCMD" );
 			if (RC > 8 )
 			{
-				debug1( "Displaying panel " << NAME << " gave an error" << endl ) ;
-				MSG = "DLGT012" ;
+				debug1( "Displaying panel " << name << " gave an error" << endl ) ;
+				msg = "DLGT012" ;
 				break ;
 			}
 			if ( RC == 8 )
 			{
 				break ;
 			}
-			MSG  = "" ;
+			msg  = "" ;
 			zcmd = "" ;
 		}
 	}
@@ -107,20 +108,18 @@ void PDLGTST::displayPanel()
 
 void PDLGTST::displaySystemVars()
 {
-	string MSG ;
+	string msg ;
 
 	zcmd = "" ;
-	MSG  = "" ;
+	msg  = "" ;
 
 	while ( true )
 	{
-		display( "PDLGTST3", MSG, "ZCMD" );
+		display( "PDLGTST3", msg, "ZCMD" );
 		if ( RC == 8 ) { return ; }
-
-		MSG  = "" ;
-		if ( zcmd != "" ) { MSG = "DLGT011" ; continue ; }
+		msg = "" ;
+		if ( zcmd != "" ) { msg = "DLGT011" ; continue ; }
 	}
-	return ;
 }
 
 

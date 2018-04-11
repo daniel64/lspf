@@ -39,6 +39,13 @@ using namespace boost::gregorian;
 #define MOD_NAME PMAIN0A
 
 
+PMAIN0A::PMAIN0A()
+{
+	vdefine( "ZCURFLD", &zcurfld ) ;
+	vdefine( "ZCURPOS", &zcurpos ) ;
+}
+
+
 void PMAIN0A::application()
 {
 	llog( "I", "Application PMAIN0A starting.  Displaying panel PMAINP01" << endl ) ;
@@ -104,19 +111,19 @@ void PMAIN0A::application()
 		w1 = word( zcmd, 1 ) ;
 		ws = subword( zcmd, 2 ) ;
 
-		if ( ZCURFLD == "ZAREA")
+		if ( zcurfld == "ZAREA")
 		{
-			if ( ZCURPOS == 1 )
+			if ( zcurpos == 1 )
 			{
 				--offset ;
 				create_calendar( pmonth, pyear ) ;
 			}
-			else if ( ZCURPOS == 20 )
+			else if ( zcurpos == 20 )
 			{
 				++offset ;
 				create_calendar( pmonth, pyear )  ;
 			}
-			else if ( ZCURPOS > 1 && ZCURPOS < 20 )
+			else if ( zcurpos > 1 && zcurpos < 20 )
 			{
 				offset = 0 ;
 				pmonth = ds2d( substr( zdatel, 4, 2 ) ) ;

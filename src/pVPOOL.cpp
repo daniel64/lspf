@@ -59,7 +59,6 @@ void fPOOL::define( errblock& err,
 	var->fVAR_string_ptr = addr     ;
 	var->fVAR_type       = STRING   ;
 	var->fVAR_defined    = true     ;
-	var->fVAR_system     = ( sysvar.count( name ) > 0 ) ;
 	POOL[ name ].push( var )        ;
 }
 
@@ -80,7 +79,6 @@ void fPOOL::define( errblock& err,
 	var->fVAR_int_ptr = addr     ;
 	var->fVAR_type    = INTEGER  ;
 	var->fVAR_defined = true     ;
-	var->fVAR_system  = ( sysvar.count( name ) > 0 ) ;
 	POOL[ name ].push( var )     ;
 }
 
@@ -91,8 +89,7 @@ void fPOOL::dlete( errblock& err,
 {
 	// Remove the vdefine for a variable from the function pool (delete dynamic storage for fVAR first)
 
-	// Use * for all vdefined variables (except system variables that have been defined in the
-	// pApplication constructor)
+	// Use '*' for all vdefined variables.  Implicitly defined variables are not affected.
 
 	// RC =  0 OK
 	// RC =  8 Variable not found in the defined area of the function pool
@@ -104,17 +101,20 @@ void fPOOL::dlete( errblock& err,
 
 	if ( name == "*")
 	{
-		for ( it = POOL.begin() ; it != POOL.end() ; it++ )
+		for ( it = POOL.begin() ; it != POOL.end() ; )
 		{
-			while ( !it->second.top()->fVAR_system && it->second.top()->fVAR_defined )
+			while ( !it->second.empty() && it->second.top()->fVAR_defined )
 			{
-				while ( !it->second.empty() )
-				{
-					delete it->second.top() ;
-					it->second.pop() ;
-				}
+				delete it->second.top() ;
+				it->second.pop() ;
+			}
+			if ( it->second.empty() )
+			{
 				it = POOL.erase( it ) ;
-				if ( it == POOL.end() ) { return ; }
+			}
+			else
+			{
+				it++ ;
 			}
 		}
 		return ;
@@ -169,7 +169,7 @@ const string& fPOOL::get( errblock& err,
 
 	if ( it->second.top()->fVAR_type != STRING )
 	{
-		err.seterrid( "PSYE013C", name ) ;
+		err.seterrid( "PSYE012A", name ) ;
 		return nullstr ;
 	}
 
@@ -192,6 +192,12 @@ int fPOOL::get( errblock& err,
 		return 0 ;
 	}
 
+	if ( type != INTEGER )
+	{
+		err.seterrid( "PSYE012C", name ) ;
+		return 0 ;
+	}
+
 	it = POOL.find( name ) ;
 	if ( it == POOL.end() )
 	{
@@ -203,9 +209,9 @@ int fPOOL::get( errblock& err,
 		return 0 ;
 	}
 
-	if ( it->second.top()->fVAR_type != type )
+	if ( it->second.top()->fVAR_type != INTEGER )
 	{
-		err.seterrid( "PSYE013D", name ) ;
+		err.seterrid( "PSYE012B", name ) ;
 		return 0 ;
 	}
 	return *it->second.top()->fVAR_int_ptr ;
@@ -278,14 +284,13 @@ void fPOOL::put( errblock& err,
 		var->fVAR_string  = value    ;
 		var->fVAR_type    = STRING   ;
 		var->fVAR_defined = false    ;
-		var->fVAR_system  = ( sysvar.count( name ) > 0 ) ;
 		POOL[ name ].push( var )     ;
 		return ;
 	}
 
 	if ( it->second.top()->fVAR_type != STRING )
 	{
-		err.seterrid( "PSYE013C", name ) ;
+		err.seterrid( "PSYE012A", name ) ;
 		return ;
 	}
 
@@ -317,14 +322,13 @@ void fPOOL::put( errblock& err,
 		var->fVAR_int     = value    ;
 		var->fVAR_type    = INTEGER  ;
 		var->fVAR_defined = false    ;
-		var->fVAR_system  = ( sysvar.count( name ) > 0 ) ;
 		POOL[ name ].push( var )     ;
 		return ;
 	}
 
 	if ( it->second.top()->fVAR_type != INTEGER )
 	{
-		err.seterrid( "PSYE013D", name ) ;
+		err.seterrid( "PSYE012B", name ) ;
 		return ;
 	}
 
@@ -456,7 +460,7 @@ string * fPOOL::vlocate( errblock& err,
 
 	if ( it->second.top()->fVAR_type != STRING )
 	{
-		err.seterrid( "PSYE013C", name ) ;
+		err.seterrid( "PSYE012A", name ) ;
 		return NULL ;
 	}
 

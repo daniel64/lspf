@@ -25,6 +25,7 @@ using namespace boost::filesystem ;
 class PFLST0A : public pApplication
 {
 	public:
+		PFLST0A()          ;
 		void application() ;
 
 	private:
@@ -49,9 +50,9 @@ class PFLST0A : public pApplication
 		bool   UseSearch ;
 		bool   UseList   ;
 
-		int    CRP ;
-		string MSG ;
-		string RSN ;
+		int    crp ;
+		string msg ;
+		string rsn ;
 		string PssList ;
 
 		string zcmd    ;
@@ -62,10 +63,44 @@ class PFLST0A : public pApplication
 		string zpath   ;
 		string zdir    ;
 
-		string DSLIST ;
-		string EXGEN  ;
-		string AFHIDDEN ;
-		string SEL, ENTRY, MESSAGE, TYPE, PERMISS, SIZE, STCDATE, MODDATE, MODDATES ;
-		string IENTRY, ITYPE, IOWNER, IGROUP, IINODE, INLNKS, IRLNK, IPERMISS, ISIZE, ISTCDATE, IMODDATE, IACCDATE, IMAJ, IMIN, IBLKSIZE ;
-		string ISETUID, ISETGID, ISTICKY, IOWNERN, IGROUPN ;
+		string zcurfld  ;
+		int    zcurinx  ;
+		int    ztdtop   ;
+		int    ztdvrows ;
+		int    ztdsels  ;
+		int    ztddepth ;
+
+		string dslist ;
+		string exgen  ;
+		string afhidden ;
+
+		string sel      ;
+		string ENTRY    ;
+		string message  ;
+		string TYPE     ;
+		string permiss  ;
+		string size     ;
+		string stcdate  ;
+		string moddate  ;
+		string moddates ;
+		string ientry   ;
+		string itype    ;
+		string iowner   ;
+		string igroup   ;
+		string iinode   ;
+		string inlnks   ;
+		string irlnk    ;
+		string ipermiss ;
+		string isize    ;
+		string istcdate ;
+		string imoddate ;
+		string iaccdate ;
+		string imaj     ;
+		string imin     ;
+		string iblksize ;
+		string isetuid  ;
+		string isetgid  ;
+		string isticky  ;
+		string iownern  ;
+		string igroupn  ;
 } ;

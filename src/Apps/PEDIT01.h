@@ -1136,6 +1136,7 @@ class edit_find
 		bool   f_fset    ;
 		bool   f_cset    ;
 		bool   f_chngall ;
+		int    f_chnincr ;
 		int    f_fd_occs ;
 		int    f_fd_lnes ;
 		int    f_ch_occs ;
@@ -1187,6 +1188,7 @@ class edit_find
 		f_fset     = false ;
 		f_cset     = false ;
 		f_chngall  = false ;
+		f_chnincr  = 0     ;
 		f_fd_occs  = 0     ;
 		f_fd_lnes  = 0     ;
 		f_ch_occs  = 0     ;
@@ -1205,6 +1207,7 @@ class edit_find
 		f_searched = false ;
 		f_rstring  = "" ;
 		f_occurs   = 0  ;
+		f_chnincr  = 0  ;
 		f_URID     = 0  ;
 		f_dl       = 0  ;
 		f_lines    = 0  ;
@@ -2093,6 +2096,8 @@ class miblock
 class PEDIT01 : public pApplication
 {
 	public:
+		PEDIT01()  ;
+
 		void application()   ;
 
 		void actionService() ;
@@ -2217,9 +2222,9 @@ class PEDIT01 : public pApplication
 		void storeCursor(  int, int=0 ) ;
 		void placeCursor(  int, int, int=0 ) ;
 		void placeCursor( uint, int, int=0 ) ;
-		void positionCursor()  ;
-		void moveColumn( int ) ;
-		void moveCursorEnter() ;
+		void positionCursor()     ;
+		void moveColumn( int =0 ) ;
+		void moveCursorEnter()    ;
 
 		vector<iline * >::iterator getLineItr( int )  ;
 		vector<iline * >::iterator getLineItr( uint ) ;
@@ -2259,7 +2264,7 @@ class PEDIT01 : public pApplication
 		uint topLine             ;
 		uint ptopLine            ;
 		uint maxCol              ;
-		int startCol             ;
+		int  startCol            ;
 		int  mRow                ;
 		int  mCol                ;
 		int  aRow                ;
@@ -2368,45 +2373,47 @@ class PEDIT01 : public pApplication
 		string curfld  ;
 		int    curpos  ;
 
-		string ZFILE   ;
-		string ZCOL1   ;
-		string ZCOL2   ;
-		string ZAREA   ;
-		string ZSHADOW ;
-		string ZAREAT  ;
+		string zfile   ;
+		string zcol1   ;
+		string zcol2   ;
+		string zarea   ;
+		string zshadow ;
+		string zareat  ;
 		int    zareaw  ;
 		int    zaread  ;
 		uint   zdataw  ;
 		uint   zasize  ;
-		string CAREA   ;
-		string CSHADOW ;
-		string XAREA   ;
+		string carea   ;
+		string cshadow ;
+		string xarea   ;
 
-		string ZSCROLLA  ;
-		int    ZSCROLLN  ;
+		string zscrolla ;
+		int    zscrolln ;
+		string zcurfld  ;
+		int    zcurpos  ;
 
-		string ZEDPROF  ;
-		string ZEDPROFT ;
+		string zedprof  ;
+		string zedproft ;
 
-		string ZEDPTYPE ;
-		string ZEDPFLAG ;
-		string ZEDPMASK ;
-		string ZEDPBNDL ;
-		string ZEDPBNDR ;
-		string ZEDPTABC ;
-		string ZEDPTABS ;
-		string ZEDPTABZ ;
-		string ZEDPRCLC ;
-		string ZEDPHLLG ;
-		string ZEDPIMAC ;
-		string ZEDPFLG2 ;
-		string ZEDPFLG3 ;
+		string zedptype ;
+		string zedpflag ;
+		string zedpmask ;
+		string zedpbndl ;
+		string zedpbndr ;
+		string zedptabc ;
+		string zedptabs ;
+		string zedptabz ;
+		string zedprclc ;
+		string zedphllg ;
+		string zedpimac ;
+		string zedpflg2 ;
+		string zedpflg3 ;
 
-		string EEIMAC   ;
-		string EEPROF   ;
-		string EETABSS  ;
-		string EEPRSPS  ;
-		string EECCAN   ;
+		string eeimac   ;
+		string eeprof   ;
+		string eetabss  ;
+		string eeprsps  ;
+		string eeccan   ;
 
 		string fileType  ;
 		string clipBoard ;
@@ -2431,10 +2438,10 @@ class PEDIT01 : public pApplication
 		string slrh ;
 		string slb  ;
 
-		string TYPE ;
-		string STR  ;
-		string OCC  ;
-		string LINES;
+		string type ;
+		string str  ;
+		string occ  ;
+		string lines;
 
 		map<char, string>typList    = { { 'C', "CHARS"  },
 						{ 'P', "PREFIX" },

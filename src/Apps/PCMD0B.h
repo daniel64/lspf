@@ -33,9 +33,6 @@ class PCMD0B : public pApplication
 		bool invoke_task_wait( const string&, string&, const string& ) ;
 		void bottom_of_data() ;
 
-		int zaread     ;
-		int zareaw     ;
-
 		int topLine    ;
 		int startCol   ;
 		uint maxCol    ;
@@ -44,6 +41,8 @@ class PCMD0B : public pApplication
 		string msg     ;
 		string inLine  ;
 
+		int    zaread  ;
+		int    zareaw  ;
 		string zcmd    ;
 		string zverb   ;
 		string zscreen ;
@@ -52,15 +51,15 @@ class PCMD0B : public pApplication
 		string zshadow ;
 		string zareat  ;
 
-		string sdr  ;
-		string sdw  ;
-		string sdy  ;
-		string sdg  ;
+		string sdr ;
+		string sdw ;
+		string sdy ;
+		string sdg ;
 
-		string ZSCROLLA  ;
-		int    ZSCROLLN  ;
+		string zscrolla ;
+		int    zscrolln ;
 
 		bool rebuildZAREA ;
 
-		vector<string> lines  ;
+		vector<string> lines ;
 };

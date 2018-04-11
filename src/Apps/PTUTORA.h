@@ -36,22 +36,22 @@ class PTUTORA : public pApplication
 
 		vector<string> data ;
 
-		string ZROW1 ;
-		string ZROW2 ;
-		string ZCOL1 ;
-		string ZAREA ;
-		string ZSHADOW ;
-		string ZAREAT  ;
-		int    ZAREAW  ;
-		int    ZAREAD  ;
+		string zrow1 ;
+		string zrow2 ;
+		string zcol1 ;
+		string zarea ;
+		string zshadow ;
+		string zareat  ;
+		int    zareaw  ;
+		int    zaread  ;
 
 		string fileType ;
 
 		string zcmd  ;
 		string zverb ;
 
-		string ZSCROLLA  ;
-		int    ZSCROLLN  ;
+		string zscrolla ;
+		int    zscrolln ;
 
 		string mh ;
 		string fh ;

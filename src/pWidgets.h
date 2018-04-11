@@ -63,6 +63,7 @@ class field
 				field_active       = true  ;
 				field_usecua       = true  ;
 				field_colour       = 0     ;
+				field_attr_once    = false ;
 				field_skip         = true  ;
 				field_caps         = false ;
 				field_paduser      = false ;
@@ -88,6 +89,7 @@ class field
 		cuaType      field_cua          ;
 		bool         field_usecua       ;
 		uint         field_colour       ;
+		bool         field_attr_once    ;
 		bool         field_skip         ;
 		bool         field_caps         ;
 		bool         field_paduser      ;
@@ -116,7 +118,7 @@ class field
 		bool field_dyna_input( uint col )  ;
 		int  field_dyna_input_offset( uint col )  ;
 		void field_DataMod_to_UserMod( string *, int ) ;
-		void field_attr( errblock& err, string attrs ) ;
+		void field_attr( errblock& err, string attrs, bool =false ) ;
 		void field_attr() ;
 		void field_prep_input()   ;
 		void field_prep_display() ;

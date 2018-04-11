@@ -22,6 +22,7 @@ using namespace std;
 class PMAIN0A : public pApplication
 {
 	public:
+		PMAIN0A()          ;
 		void application() ;
 
 	private:
@@ -35,4 +36,6 @@ class PMAIN0A : public pApplication
 		string zdate   ;
 		string ztime   ;
 		string zjdate  ;
+		string zcurfld ;
+		int    zcurpos ;
 };
