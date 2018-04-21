@@ -95,7 +95,7 @@ void PEDIT01::application()
 
 	errblock err ;
 
-	string * pt  ;
+	string* pt   ;
 
 	string panel ;
 	string rfile ;
@@ -226,7 +226,7 @@ void PEDIT01::application()
 
 void PEDIT01::initialise()
 {
-	string * pt ;
+	string* pt ;
 
 	control( "ABENDRTN", static_cast<void (pApplication::*)()>(&PEDIT01::cleanup_custom) ) ;
 	control( "TIMEOUT", "DISABLE" ) ;
@@ -589,7 +589,7 @@ void PEDIT01::readFile()
 	string inLine ;
 	string fname  ;
 
-	iline * p_iline ;
+	iline* p_iline ;
 
 	const string tod = " Top of Data **********" ;
 	const string bod = " Bottom of Data **********" ;
@@ -597,7 +597,7 @@ void PEDIT01::readFile()
 	vector<string> Notes ;
 	vector<string> Msgs  ;
 
-	vector<iline *>::iterator it ;
+	vector<iline*>::iterator it ;
 
 	boost::system::error_code ec ;
 
@@ -862,13 +862,13 @@ bool PEDIT01::saveFile()
 {
 	uint i ;
 
-	string * pt ;
+	string* pt ;
 
 	string t1 ;
 	string f  ;
 
 	f = zfile ;
-	vector<iline *>::iterator it ;
+	vector<iline*>::iterator it ;
 	std::ofstream fout( f.c_str() ) ;
 
 	if ( !fout.is_open() )
@@ -960,14 +960,14 @@ void PEDIT01::fill_dynamic_area()
 	string t4 ;
 	string lcc ;
 
-	string * pt1 ;
+	string* pt1 ;
 
 	const char nulls( 0x00 ) ;
 
 	const string  din( 1, 0x01 ) ;
 	const string dout( 1, 0x02 ) ;
 
-	vector<iline * >::iterator it ;
+	vector<iline* >::iterator it ;
 
 	zarea   = "" ;
 	zshadow = "" ;
@@ -1407,7 +1407,7 @@ void PEDIT01::fill_hilight_shadow()
 void PEDIT01::clr_hilight_shadow()
 {
 	for_each( data.begin(), data.end(),
-		[](iline *& a)
+		[](iline*& a)
 		{
 			a->il_vShadow = false ;
 			a->il_wShadow = false ;
@@ -1620,7 +1620,7 @@ void PEDIT01::updateData()
 
 	const char din(0x01) ;
 
-	vector<iline *>::iterator it ;
+	vector<iline*>::iterator it ;
 
 	Level++ ;
 	for ( i = 0 ; i < zaread ; i++ )
@@ -1830,10 +1830,10 @@ void PEDIT01::processNewInserts()
 
 	size_t k ;
 
-	iline * p_iline ;
+	iline* p_iline ;
 
-	vector<iline * >::iterator it  ;
-	vector<iline * >::iterator itt ;
+	vector<iline*>::iterator it  ;
+	vector<iline*>::iterator itt ;
 
 	Level++ ;
 	for ( i = zaread-1 ; i >= 0 ; i-- )
@@ -1917,9 +1917,9 @@ void PEDIT01::actionPrimCommand1()
 	queue<string> rlist ;
 	vector<string> Info ;
 
-	vector<iline * >::iterator it  ;
-	vector<iline * >::iterator its ;
-	vector<iline * >::iterator ite ;
+	vector<iline*>::iterator it  ;
+	vector<iline*>::iterator its ;
+	vector<iline*>::iterator ite ;
 
 	vector<ipline> vip ;
 	ipline ip ;
@@ -2176,7 +2176,7 @@ void PEDIT01::actionPrimCommand1()
 			{
 				removeSpecialLines( its, ite ) ;
 				for_each( its, ite,
-					[](iline *& a)
+					[](iline*& a)
 					{
 						a->resetFilePrefix() ;
 						a->clearLcc() ;
@@ -2195,7 +2195,7 @@ void PEDIT01::actionPrimCommand1()
 				{
 					removeSpecialLines( its, ite ) ;
 					for_each( its, ite,
-						[](iline *& a)
+						[](iline*& a)
 						{
 							a->resetFilePrefix() ;
 							a->clearLcc() ;
@@ -2207,7 +2207,7 @@ void PEDIT01::actionPrimCommand1()
 				{
 					removeSpecialLines( its, ite ) ;
 					for_each( its, ite,
-						[](iline *& a)
+						[](iline*& a)
 						{
 							a->resetFilePrefix() ;
 							a->clearLcc() ;
@@ -2219,7 +2219,7 @@ void PEDIT01::actionPrimCommand1()
 				else if ( w == "CMD" )
 				{
 					for_each( its, ite,
-						[](iline *& a)
+						[](iline*& a)
 						{
 							a->clearLcc() ;
 						} ) ;
@@ -2227,7 +2227,7 @@ void PEDIT01::actionPrimCommand1()
 				else if ( w == "CHA" )
 				{
 					for_each( its, ite,
-						[](iline *& a)
+						[](iline*& a)
 						{
 							a->clrChngStatus() ;
 						} ) ;
@@ -2235,7 +2235,7 @@ void PEDIT01::actionPrimCommand1()
 				else if ( w == "ERR" )
 				{
 					for_each( its, ite,
-						[](iline *& a)
+						[](iline*& a)
 						{
 							a->clrErrorStatus() ;
 						} ) ;
@@ -2243,7 +2243,7 @@ void PEDIT01::actionPrimCommand1()
 				else if ( w == "LAB" )
 				{
 					for_each( its, ite,
-						[](iline *& a)
+						[](iline*& a)
 						{
 							a->clearLabel() ;
 						} ) ;
@@ -2259,7 +2259,7 @@ void PEDIT01::actionPrimCommand1()
 				else if ( w == "T" )
 				{
 					for_each( its, ite,
-						[](iline *& a)
+						[](iline*& a)
 						{
 							a->resetMarked() ;
 						} ) ;
@@ -2267,7 +2267,7 @@ void PEDIT01::actionPrimCommand1()
 				else if ( w == "UNDO" )
 				{
 					for_each( its, ite,
-						[](iline *& a)
+						[](iline*& a)
 						{
 							a->clrUndoStatus() ;
 						} ) ;
@@ -2275,7 +2275,7 @@ void PEDIT01::actionPrimCommand1()
 				else if ( w == "REDO" )
 				{
 					for_each( its, ite,
-						[](iline *& a)
+						[](iline*& a)
 						{
 							a->clrRedoStatus() ;
 						} ) ;
@@ -2287,7 +2287,7 @@ void PEDIT01::actionPrimCommand1()
 				else if ( w == "X" )
 				{
 					for_each( its, ite,
-						[](iline *& a)
+						[](iline*& a)
 						{
 							a->il_excl = false ;
 						} ) ;
@@ -2353,9 +2353,9 @@ void PEDIT01::actionPrimCommand2()
 
 	vector<bool>srt_asc ;
 
-	vector<iline *>::iterator it  ;
-	vector<iline *>::iterator its ;
-	vector<iline *>::iterator ite ;
+	vector<iline*>::iterator it  ;
+	vector<iline*>::iterator its ;
+	vector<iline*>::iterator ite ;
 
 	map<string,stack<defName>>::iterator ita ;
 	map<string,stack<defName>>::iterator itb ;
@@ -2794,7 +2794,7 @@ void PEDIT01::actionPrimCommand2()
 			if ( w2 == "ALL" && ws == 2 )
 			{
 				for_each( data.begin(), data.end(),
-					[](iline *& a)
+					[](iline*& a)
 					{
 						if ( !a->is_bod() && !a->is_tod() && !a->il_deleted )
 						{
@@ -2954,7 +2954,7 @@ void PEDIT01::actionPrimCommand2()
 				break ;
 			}
 			for_each( its, ite,
-				[](iline *& a)
+				[](iline*& a)
 				{
 					if ( !a->is_bod() && !a->is_tod() && !a->il_deleted )
 					{
@@ -2972,7 +2972,7 @@ void PEDIT01::actionPrimCommand2()
 				profHex  = false ;
 				profVert = true  ;
 				for_each( data.begin(), data.end(),
-					[](iline *& a)
+					[](iline*& a)
 					{
 						a->il_hex = false ;
 					} ) ;
@@ -3612,7 +3612,7 @@ void PEDIT01::actionLineCommands()
 	if ( !checkLineCommands() ) { return ; }
 
 	for_each( data.begin(), data.end(),
-		[](iline *& a)
+		[](iline*& a)
 		{
 			a->clearLcc() ;
 		} ) ;
@@ -3665,14 +3665,14 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 	vector<ipline> vip ;
 	ipline ip ;
 
-	iline * p_iline ;
+	iline* p_iline ;
 
 	vector<string> tdata ;
 
 	vector<ipline>::iterator new_end  ;
-	vector<iline * >::iterator il_it  ;
-	vector<iline * >::iterator il_its ;
-	vector<iline * >::iterator il_ite ;
+	vector<iline*>::iterator il_it  ;
+	vector<iline*>::iterator il_its ;
+	vector<iline*>::iterator il_ite ;
 
 	if ( itc->lcmd_Rpt == -1 )
 	{
@@ -4946,7 +4946,7 @@ bool PEDIT01::checkLineCommands()
 	bool abo_block    ;
 	bool abo_k        ;
 
-	vector<iline * >::iterator it  ;
+	vector<iline*>::iterator it  ;
 
 	lcmds.clear() ;
 
@@ -5277,7 +5277,7 @@ bool PEDIT01::checkLineCommands()
 	if ( pasteActive )
 	{
 		if ( !any_of( data.begin(), data.end(),
-			[](iline *& a)
+			[](iline*& a)
 			{
 				return !a->il_deleted && a->is_file() ;
 			} ) )
@@ -5297,7 +5297,7 @@ bool PEDIT01::checkLineCommands()
 	if ( copyActive )
 	{
 		if ( !any_of( data.begin(), data.end(),
-			[](iline *& a)
+			[](iline*& a)
 			{
 				return !a->il_deleted && a->is_file() ;
 			} ) )
@@ -6775,7 +6775,7 @@ uint PEDIT01::getLine( int URID )
 
 	uint dl ;
 
-	vector<iline *>::iterator it ;
+	vector<iline*>::iterator it ;
 
 	for ( dl = 0, it = data.begin() ; it != data.end() ; it++, dl++ )
 	{
@@ -6792,7 +6792,7 @@ int PEDIT01::getFileLine( uint dl )
 
 	int fl ;
 
-	vector<iline *>::iterator it ;
+	vector<iline*>::iterator it ;
 
 	for ( fl = 0, it = data.begin() ; it != data.end() && dl > 0 ; it++, dl-- )
 	{
@@ -6849,7 +6849,7 @@ uint PEDIT01::getNextDataLine( uint l )
 }
 
 
-vector<iline * >::iterator PEDIT01::getNextDataLine( vector<iline * >::iterator it )
+vector<iline*>::iterator PEDIT01::getNextDataLine( vector<iline*>::iterator it )
 {
 	// Return the next valid (ie. non-deleted) data line iterator after iterator it
 
@@ -6877,7 +6877,7 @@ uint PEDIT01::getNextFileLine( uint l )
 }
 
 
-vector<iline * >::iterator PEDIT01::getNextFileLine( vector<iline * >::iterator it )
+vector<iline*>::iterator PEDIT01::getNextFileLine( vector<iline*>::iterator it )
 {
 	// Return the next non-deleted data vector line iterator that corresponts to the line after iterator it.
 	// *File lines only*.  Return data.end() if end of data or bottom of data reached
@@ -6904,7 +6904,7 @@ uint PEDIT01::getValidFileLinePrev( uint l )
 }
 
 
-vector<iline * >::iterator PEDIT01::getValidDataLineNext( vector<iline * >::iterator it )
+vector<iline*>::iterator PEDIT01::getValidDataLineNext( vector<iline*>::iterator it )
 {
 	// Return a valid (ie. non-deleted) data vector iterator on or after iterator it
 
@@ -6945,7 +6945,7 @@ uint PEDIT01::getPrevFileLine( uint l )
 }
 
 
-vector<iline *>::iterator PEDIT01::getPrevFileLine( vector<iline * >::iterator it )
+vector<iline*>::iterator PEDIT01::getPrevFileLine( vector<iline*>::iterator it )
 {
 	// Return the previous non-deleted data vector iterator that corresponts to the file line before iterator it.
 	// *File lines only*.  If not found, return data.end()
@@ -6961,7 +6961,7 @@ vector<iline *>::iterator PEDIT01::getPrevFileLine( vector<iline * >::iterator i
 }
 
 
-vector<iline *>::iterator PEDIT01::getLineItr( uint dl )
+vector<iline*>::iterator PEDIT01::getLineItr( uint dl )
 {
 	// Return the iterator for a data index
 
@@ -6969,7 +6969,7 @@ vector<iline *>::iterator PEDIT01::getLineItr( uint dl )
 }
 
 
-vector<iline *>::iterator PEDIT01::getLineItr( int URID )
+vector<iline*>::iterator PEDIT01::getLineItr( int URID )
 {
 	// Return the iterator for a URID.  URID must exist.
 
@@ -6983,7 +6983,7 @@ vector<iline *>::iterator PEDIT01::getLineItr( int URID )
 }
 
 
-vector<iline *>::iterator PEDIT01::getLineItr( int URID, vector<iline * >::iterator it )
+vector<iline*>::iterator PEDIT01::getLineItr( int URID, vector<iline*>::iterator it )
 {
 	// Return the iterator for a URID, on or after iterator 'it' (eg. for finding eURID after sURID)
 	// URID must come on or after the passed iterator position.
@@ -6998,18 +6998,18 @@ vector<iline *>::iterator PEDIT01::getLineItr( int URID, vector<iline * >::itera
 }
 
 
-bool PEDIT01::getLabelItr( const string& label, vector<iline * >::iterator& it, uint& posn )
+bool PEDIT01::getLabelItr( const string& label, vector<iline*>::iterator& it, uint& posn )
 {
 	// Return false for .ZFIRST, and .ZLAST if the data has no valid file lines
 
 	int lvl ;
 
-	vector<iline *>::iterator itt ;
+	vector<iline*>::iterator itt ;
 
 	if ( findword( label, ".ZFIRST .ZF .ZLAST .ZL" ) )
 	{
 		if ( any_of( data.begin(), data.end(),
-			[](iline *& a)
+			[](iline*& a)
 			{
 				return a->isValidFile() ;
 			} ) )
@@ -7058,12 +7058,12 @@ int PEDIT01::getLabelIndex( const string& label )
 	int posn  ;
 	int lvl   ;
 
-	vector<iline *>::iterator it ;
+	vector<iline*>::iterator it ;
 
 	if ( findword( label, ".ZFIRST .ZF .ZLAST .ZL" ) )
 	{
 		if ( any_of( data.begin(), data.end(),
-			[](iline *& a )
+			[](iline*& a )
 			{
 				return a->isValidFile() ;
 			} ) )
@@ -7120,7 +7120,7 @@ int PEDIT01::getLabelLine( const string& s )
 		if ( s == ".ZCSR" )
 		{
 			if ( any_of( data.begin(), data.end(),
-				[](iline *& a )
+				[](iline*& a )
 				{
 					return a->isValidFile() ;
 				} ) )
@@ -7242,7 +7242,7 @@ uint PEDIT01::getFirstEX( uint dl )
 }
 
 
-int PEDIT01::getLastEX( vector<iline * >::iterator it )
+int PEDIT01::getLastEX( vector<iline*>::iterator it )
 {
 	// Return the URID of the last excluded line in a block given the iterator
 	// ('it' always points to a non-deleted, excluded line)
@@ -7363,7 +7363,7 @@ int PEDIT01::getNextSpecial( int sidx, int eidx, char dir, char t )
 }
 
 
-int PEDIT01::getLastURID( vector<iline * >::iterator it, int Rpt )
+int PEDIT01::getLastURID( vector<iline*>::iterator it, int Rpt )
 {
 	// Get the last URID for a repeat value, given an iterator and the repeat value
 
@@ -7587,7 +7587,7 @@ string PEDIT01::templat( string s1, string s2 )
 }
 
 
-void PEDIT01::copyPrefix( ipline& d, iline *& s )
+void PEDIT01::copyPrefix( ipline& d, iline*& s )
 {
 	// Don't copy file line status (changed, error, undo, redo and marked )
 
@@ -7599,7 +7599,7 @@ void PEDIT01::copyPrefix( ipline& d, iline *& s )
 }
 
 
-void PEDIT01::copyPrefix( iline *& d, ipline& s, bool l )
+void PEDIT01::copyPrefix( iline*& d, ipline& s, bool l )
 {
 	// Don't copy file line status (changed, error, undo, redo and marked )
 	// Copy label back for a move request
@@ -7619,8 +7619,8 @@ void PEDIT01::addSpecial( char t, int p, vector<string>& s )
 {
 	int i ;
 
-	vector<iline * >::iterator it ;
-	iline * p_iline ;
+	vector<iline*>::iterator it ;
+	iline* p_iline ;
 
 	if ( p == 0 ) { p = 1 ; }
 	it = data.begin() + p ;
@@ -7645,8 +7645,8 @@ void PEDIT01::addSpecial( char t, int p, vector<string>& s )
 
 void PEDIT01::addSpecial( char t, int p, const string& s )
 {
-	vector<iline * >::iterator it ;
-	iline * p_iline ;
+	vector<iline*>::iterator it ;
+	iline* p_iline ;
 
 	if ( p == 0 ) { p = 1 ; }
 	it = data.begin() + p ;
@@ -7663,9 +7663,9 @@ void PEDIT01::addSpecial( char t, int p, const string& s )
 }
 
 
-void PEDIT01::addSpecial( char t, vector<iline * >::iterator it, const string& s )
+void PEDIT01::addSpecial( char t, vector<iline*>::iterator it, const string& s )
 {
-	iline * p_iline ;
+	iline* p_iline ;
 
 	it++ ;
 	p_iline = new iline( taskid() ) ;
@@ -7736,7 +7736,7 @@ void PEDIT01::buildProfLines( vector<string>& Prof )
 
 void PEDIT01::updateProfLines( vector<string>& Prof )
 {
-	vector<iline * >::iterator it ;
+	vector<iline*>::iterator it ;
 
 	for ( it = data.begin() ; it != data.end() ; it++ )
 	{
@@ -7756,7 +7756,7 @@ void PEDIT01::cleanupRedoStacks()
 	if ( (*it)->is_Redo_data() && (*it)->get_Global_Redo_level() == 0 )
 	{
 		for_each( data.begin(), data.end(),
-			[](iline *& a)
+			[](iline*& a)
 			{
 				a->remove_redo_idata() ;
 			} ) ;
@@ -7779,9 +7779,9 @@ void PEDIT01::removeRecoveryData()
 
 	int topURID ;
 
-	vector<iline * >::iterator it      ;
-	vector<iline * >::iterator new_end ;
-	vector<iline * >tdata              ;
+	vector<iline*>::iterator it      ;
+	vector<iline*>::iterator new_end ;
+	vector<iline*>tdata              ;
 
 	if ( data.at( topLine )->il_deleted )
 	{
@@ -7790,25 +7790,25 @@ void PEDIT01::removeRecoveryData()
 	topURID = data.at( topLine )->il_URID ;
 
 	copy_if( data.begin(), data.end(), back_inserter( tdata ),
-		[](iline *& a)
+		[](iline*& a)
 		{
 			return a->il_deleted ;
 		} ) ;
 
 	new_end = remove_if( data.begin(), data.end(),
-		[](iline *& a)
+		[](iline*& a)
 		{
 			return a->il_deleted ;
 		} ) ;
 	data.erase( new_end, data.end() ) ;
 
 	for_each( tdata.begin(), tdata.end(),
-		[](iline *& a)
+		[](iline*& a)
 		{
 			delete a ;
 		} ) ;
 	for_each( data.begin(), data.end(),
-		[](iline *& a)
+		[](iline*& a)
 		{
 			a->flatten_idata() ;
 		} ) ;
@@ -7837,9 +7837,9 @@ void PEDIT01::cleanupData()
 
 	int topURID ;
 
-	vector<iline * >::iterator it      ;
-	vector<iline * >::iterator new_end ;
-	vector<iline * >tdata              ;
+	vector<iline*>::iterator it      ;
+	vector<iline*>::iterator new_end ;
+	vector<iline*>tdata              ;
 
 	if ( data.at( topLine )->il_deleted )
 	{
@@ -7848,25 +7848,25 @@ void PEDIT01::cleanupData()
 	topURID = data.at( topLine )->il_URID ;
 
 	copy_if( data.begin(), data.end(), back_inserter( tdata ),
-		[](iline *& a)
+		[](iline*& a)
 		{
 			return ( a->il_deleted && !a->is_file() ) ;
 		} ) ;
 
 	new_end = remove_if( data.begin(), data.end(),
-		[](iline *& a)
+		[](iline*& a)
 		{
 			return ( a->il_deleted && !a->is_file() ) ;
 		} ) ;
 	data.erase( new_end, data.end() ) ;
 
 	for_each( tdata.begin(), tdata.end(),
-		[](iline *& a)
+		[](iline*& a)
 		{
 			delete a ;
 		} ) ;
 	for_each( data.begin(), data.end(),
-		[](iline *& a)
+		[](iline*& a)
 		{
 			a->remove_redo_idata() ;
 		} ) ;
@@ -7885,8 +7885,8 @@ void PEDIT01::removeProfLines()
 	// Reposition topLine as lines before may have been removed or topLine itself, deleted
 
 	int topURID ;
-	vector<iline * >::iterator new_end ;
-	vector<iline * >tdata              ;
+	vector<iline*>::iterator new_end ;
+	vector<iline*>tdata              ;
 
 	while ( data.at( topLine )->is_prof() )
 	{
@@ -7895,20 +7895,20 @@ void PEDIT01::removeProfLines()
 	topURID = data.at( topLine )->il_URID ;
 
 	copy_if( data.begin(), data.end(), back_inserter( tdata ),
-		[](iline *& a)
+		[](iline*& a)
 		{
 			return a->is_prof() ;
 		} ) ;
 
 	new_end = remove_if( data.begin(), data.end(),
-		[](iline *& a)
+		[](iline*& a)
 		{
 			return a->is_prof() ;
 		} ) ;
 	data.erase( new_end, data.end() ) ;
 
 	for_each( tdata.begin(), tdata.end(),
-		[](iline *& a)
+		[](iline*& a)
 		{
 			delete a ;
 		} ) ;
@@ -7916,7 +7916,7 @@ void PEDIT01::removeProfLines()
 }
 
 
-void PEDIT01::removeSpecialLines( vector<iline * >::iterator its, vector<iline * >::iterator ite )
+void PEDIT01::removeSpecialLines( vector<iline*>::iterator its, vector<iline*>::iterator ite )
 {
 	// Logically delete all temporary lines from the Data vector (can be undone)
 	// (col,prof,tabs,mask,bnds,msg,info and note)
@@ -7925,7 +7925,7 @@ void PEDIT01::removeSpecialLines( vector<iline * >::iterator its, vector<iline *
 
 	lvl = ++Level ;
 	for_each( its, ite,
-		[ &lvl ](iline *& a)
+		[ &lvl ](iline*& a)
 		{
 			if ( a->isSpecial() ) { a->set_deleted( lvl ) ; }
 		} ) ;
@@ -8468,7 +8468,7 @@ void PEDIT01::cleanup_custom()
 	// Release storage and clear the data vector
 
 	string f ;
-	vector<iline * >::iterator it ;
+	vector<iline*>::iterator it ;
 
 	llog( "E", "Control given to EDIT cleanup procedure due to an abnormal event" <<endl ) ;
 //      std::ofstream fout( "/tmp/editorsession", ios::binary ) ;
@@ -8544,7 +8544,7 @@ void PEDIT01::cleanup_custom()
 void PEDIT01::releaseDynamicStorage()
 {
 	for_each( data.begin(), data.end(),
-		[](iline *& a)
+		[](iline*& a)
 		{
 			delete a ;
 		} ) ;
@@ -8609,11 +8609,11 @@ void PEDIT01::compareFiles( const string& s )
 	string ecpiblk ;
 	string ecpitbe ;
 
-	string * pt ;
+	string* pt ;
 
 	char buffer[256] ;
 
-	vector<iline * >::iterator it ;
+	vector<iline*>::iterator it ;
 	vector<string>Changes ;
 
 	v_list = "CFILE ECPBRDF ECPICAS ECPIREF ECPIBLK ECPITBE" ;
@@ -8772,7 +8772,7 @@ void PEDIT01::createFile( uint sidx, uint eidx )
 
 	string t1 ;
 
-	string * pt ;
+	string* pt ;
 
 	std::ofstream fout( creFile.c_str() ) ;
 	if ( !fout.is_open() ) { vreplace( "ZSTR1", creFile ) ; pcmd.set_msg( "PEDT014S" ) ; return ; }
@@ -8846,7 +8846,7 @@ string PEDIT01::getMaskLine()
 }
 
 
-string PEDIT01::rshiftCols( int n, const string * p_s )
+string PEDIT01::rshiftCols( int n, const string* p_s )
 {
 	string s = *p_s ;
 
@@ -8858,7 +8858,7 @@ string PEDIT01::rshiftCols( int n, const string * p_s )
 }
 
 
-string PEDIT01::lshiftCols( int n, const string * p_s )
+string PEDIT01::lshiftCols( int n, const string* p_s )
 {
 	string s = *p_s ;
 
@@ -8872,7 +8872,7 @@ string PEDIT01::lshiftCols( int n, const string * p_s )
 }
 
 
-bool PEDIT01::rshiftData( int n, const string * s, string& t )
+bool PEDIT01::rshiftData( int n, const string* s, string& t )
 {
 	//  > Right shifting rules:
 	//  1) scanning starts at left column
@@ -8925,7 +8925,7 @@ bool PEDIT01::rshiftData( int n, const string * s, string& t )
 }
 
 
-bool PEDIT01::lshiftData( int n, const string * s, string& t )
+bool PEDIT01::lshiftData( int n, const string* s, string& t )
 {
 	//  < Left shifting rules:
 	//  1) scanning starts at left column
@@ -9601,7 +9601,7 @@ string PEDIT01::getColumnLine( int s )
 }
 
 
-void PEDIT01::getLineData( vector<iline *>::iterator it )
+void PEDIT01::getLineData( vector<iline*>::iterator it )
 {
 	// Get the data for macro command MASKLINE, TABSLINE, LINE(_BEFORE/_AFTER) = data
 
@@ -9613,7 +9613,7 @@ void PEDIT01::getLineData( vector<iline *>::iterator it )
 }
 
 
-string PEDIT01::mergeLine( const string& s, vector<iline *>::iterator it )
+string PEDIT01::mergeLine( const string& s, vector<iline*>::iterator it )
 {
 	// Expand the last parameter passed and call ourselves again for the rest until
 	// no more parameters, then merge or overlay the results on return.
@@ -9828,9 +9828,9 @@ string PEDIT01::determineLang()
 	string s ;
 	string w ;
 
-	string * t ;
+	string* t ;
 
-	vector<iline * >::iterator it ;
+	vector<iline*>::iterator it ;
 
 	p = zfile.find_last_of( '.' ) ;
 	if ( p != string::npos )
@@ -10043,7 +10043,7 @@ void PEDIT01::querySetting()
 	string lab ;
 
 	kw2 = word( miBlock.kphrase, 2 ) ;
-	pApplication * macAppl = miBlock.macAppl ;
+	pApplication* macAppl = miBlock.macAppl ;
 
 	switch ( miBlock.m_cmd )
 	{
@@ -10349,10 +10349,10 @@ void PEDIT01::actionService()
 	string kw3 ;
 	string opt ;
 
-	iline * p_iline ;
-	vector<iline * >::iterator it ;
+	iline* p_iline ;
+	vector<iline*>::iterator it ;
 
-	pApplication * macAppl = miBlock.macAppl ;
+	pApplication* macAppl = miBlock.macAppl ;
 
 	vw1 = word( miBlock.value, 1 ) ;
 	vw2 = word( miBlock.value, 2 ) ;
@@ -10796,5 +10796,5 @@ void PEDIT01::actionService()
 
 // ============================================================================================ //
 
-extern "C" { pApplication *maker() { return new PEDIT01 ; } }
-extern "C" { void destroy(pApplication *p) { delete p ; } }
+extern "C" { pApplication* maker() { return new PEDIT01 ; } }
+extern "C" { void destroy(pApplication* p) { delete p ; } }

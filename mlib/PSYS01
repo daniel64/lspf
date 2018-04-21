@@ -56,7 +56,7 @@ PSYS011H 'Field must be valid hex' .TYPE=W .W=NORESP
 
 PSYS011I 'Invalid Scroll Amount' .TYPE=W
 'Invalid entry.  Valid scroll values are H(half), P(page), C(cursor),' +
-'D(data) or a maximum numeric value of 6 digits'
+'D(data) or a maximum numeric value of 6 digits (4 digits within the scroll field)'
 
 PSYS011J 'Help Member Not Found' .TYPE=W
 'Help member &ZZSTR1 was not found in the ZPLIB search'

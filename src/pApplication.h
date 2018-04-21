@@ -26,14 +26,13 @@ class pApplication
 		virtual void application() = 0 ;
 		virtual void isredit( const string& ) ;
 
-		static map<int, void *>ApplUserData ;
-		static poolMGR  * p_poolMGR  ;
-		static tableMGR * p_tableMGR ;
-		static logger   * lg         ;
+		static map<int, void*>ApplUserData ;
+		static poolMGR*  p_poolMGR  ;
+		static tableMGR* p_tableMGR ;
+		static logger*   lg         ;
 
 		int    RC                 ;
 		string PARM               ;
-		string panelid            ;
 		bool   ControlDisplayLock ;
 		bool   ControlNonDispl    ;
 		bool   ControlSplitEnable ;
@@ -66,12 +65,12 @@ class pApplication
 		int    ZTASKID            ;
 		string ZRESULT            ;
 
-		boost::thread * pThread   ;
+		boost::thread* pThread    ;
 
 		void (* lspfCallback)( lspfCommand& ) ;
 
-		pPanel * currPanel   ;
-		pPanel * currtbPanel ;
+		pPanel* currPanel   ;
+		pPanel* currtbPanel ;
 
 		int    taskid()      { return taskId ; }
 		void   taskid( int ) ;
@@ -84,6 +83,7 @@ class pApplication
 		string get_help_member( int, int ) ;
 		string get_current_panelDesc()  ;
 		string get_current_screenName() ;
+		string get_panelid() ;
 
 		void  set_zmlib( const stack<string>& libs ) { zmlib = libs ; }
 		void  set_zplib( const stack<string>& libs ) { zplib = libs ; }
@@ -119,9 +119,9 @@ class pApplication
 		void   qlibdef( const string&, const string& ="" , const string& ="" ) ;
 
 		void   vcopy( const string&, string&, vcMODE=MOVE ) ;
-		void   vcopy( const string&, string * &, vcMODE=LOCATE ) ;
-		void   vdefine( const string&, string *, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL ) ;
-		void   vdefine( const string&, int *, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL ) ;
+		void   vcopy( const string&, string* &, vcMODE=LOCATE ) ;
+		void   vdefine( const string&, string*, string* =NULL, string* =NULL, string* =NULL, string* =NULL, string* =NULL, string* =NULL, string* =NULL ) ;
+		void   vdefine( const string&, int*, int* =NULL, int* =NULL, int* =NULL, int* =NULL, int* =NULL, int* =NULL, int* =NULL ) ;
 		void   vdelete( const string& ) ;
 		void   verase( const string& var, poolType =ASIS ) ;
 		void   vget( const string& var, poolType =ASIS )   ;
@@ -204,7 +204,7 @@ class pApplication
 		void   unloadCommandTable() ;
 		void   store_scrname() ;
 		void   restore_Zvars( int ) ;
-		void   reload_keylist( pPanel * ) ;
+		void   reload_keylist( pPanel* ) ;
 		bool   errorsReturn() ;
 		void   setTestMode()  ;
 		bool   selectPanel()     { return selPanel ; }
@@ -242,6 +242,8 @@ class pApplication
 
 		fPOOL funcPOOL   ;
 
+		pPanel* prevPanel ;
+
 		int  addpop_row  ;
 		int  addpop_col  ;
 		int  lscreen_num ;
@@ -258,8 +260,6 @@ class pApplication
 		bool abended  ;
 		bool lineOutDone    ;
 		bool lineOutPending ;
-
-		string ppanelid ;
 
 		string zappname ;
 		string zappdesc ;
@@ -293,10 +293,9 @@ class pApplication
 
 		map<string, slmsg> msgList ;
 		set<string> tablesOpen     ;
-		map<string, pPanel *> panelList ;
+		map<string, pPanel*> panelList ;
 
-		stack<pPanel *> SRpanelStack ;
-
+		stack<pPanel*> tbpanel_stk ;
 		stack<string> stk_str ;
 		stack<int> stk_int    ;
 		stack<int> addpop_stk ;
@@ -312,7 +311,7 @@ class pApplication
 
 		string get_search_path( s_paths ) ;
 
-		void load_keylist( pPanel * ) ;
+		void load_keylist( pPanel* ) ;
 		void createPanel( const string& p_name ) ;
 		void actionSelect()   ;
 

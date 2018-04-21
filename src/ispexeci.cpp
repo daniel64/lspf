@@ -21,48 +21,48 @@
 /* ispexeci - ISPEXEC interface module  */
 /*                                      */
 
-void execiAddpop( pApplication *, const string&, errblock& )   ;
-void execiBrowse( pApplication *, const string&, errblock& )   ;
-void execiDisplay( pApplication *, const string&, errblock& )  ;
-void execiControl( pApplication *, const string&, errblock& )  ;
-void execiEdit( pApplication *, const string&, errblock& )     ;
-void execiGetmsg( pApplication *, const string&, errblock& )   ;
-void execiLibdef( pApplication *, const string&, errblock& )   ;
-void execiLog( pApplication *, const string&, errblock& )      ;
-void execiPquery( pApplication *, const string&, errblock& )   ;
-void execiQlibdef( pApplication *, const string&, errblock& )  ;
-void execiQtabopen( pApplication *, const string&, errblock& ) ;
-void execiRDisplay( pApplication *, const string&, errblock& ) ;
-void execiRempop( pApplication *, const string&, errblock& )   ;
-void execiSelect( pApplication *, const string&, errblock& )   ;
-void execiSetmsg( pApplication *, const string&, errblock& )   ;
-void execiTBAdd( pApplication *, const string&, errblock& )    ;
-void execiTBBottom( pApplication *, const string&, errblock& ) ;
-void execiTBCreate( pApplication *, const string&, errblock& ) ;
-void execiTBClose( pApplication *, const string&, errblock& )  ;
-void execiTBDelete( pApplication *, const string&, errblock& ) ;
-void execiTBDispl( pApplication *, const string&, errblock& )  ;
-void execiTBEnd( pApplication *, const string&, errblock& )    ;
-void execiTBErase( pApplication *, const string&, errblock& )  ;
-void execiTBExist( pApplication *, const string&, errblock& )  ;
-void execiTBGet( pApplication *, const string&, errblock& )    ;
-void execiTBMod( pApplication *, const string&, errblock& )    ;
-void execiTBPut( pApplication *, const string&, errblock& )    ;
-void execiTBOpen( pApplication *, const string&, errblock& )   ;
-void execiTBQuery( pApplication *, const string&, errblock& )  ;
-void execiTBSarg( pApplication *, const string&, errblock& )   ;
-void execiTBSave( pApplication *, const string&, errblock& )   ;
-void execiTBScan( pApplication *, const string&, errblock& )   ;
-void execiTBSkip( pApplication *, const string&, errblock& )   ;
-void execiTBSort( pApplication *, const string&, errblock& )   ;
-void execiTBTop( pApplication *, const string&, errblock& )    ;
-void execiTBVClear( pApplication *, const string&, errblock& ) ;
-void execiVerase( pApplication *, const string&, errblock& )   ;
-void execiVget( pApplication *, const string&, errblock& )     ;
-void execiView( pApplication *, const string&, errblock& )     ;
-void execiVput( pApplication *, const string&, errblock& )     ;
+void execiAddpop( pApplication*, const string&, errblock& )   ;
+void execiBrowse( pApplication*, const string&, errblock& )   ;
+void execiDisplay( pApplication*, const string&, errblock& )  ;
+void execiControl( pApplication*, const string&, errblock& )  ;
+void execiEdit( pApplication*, const string&, errblock& )     ;
+void execiGetmsg( pApplication*, const string&, errblock& )   ;
+void execiLibdef( pApplication*, const string&, errblock& )   ;
+void execiLog( pApplication*, const string&, errblock& )      ;
+void execiPquery( pApplication*, const string&, errblock& )   ;
+void execiQlibdef( pApplication*, const string&, errblock& )  ;
+void execiQtabopen( pApplication*, const string&, errblock& ) ;
+void execiRDisplay( pApplication*, const string&, errblock& ) ;
+void execiRempop( pApplication*, const string&, errblock& )   ;
+void execiSelect( pApplication*, const string&, errblock& )   ;
+void execiSetmsg( pApplication*, const string&, errblock& )   ;
+void execiTBAdd( pApplication*, const string&, errblock& )    ;
+void execiTBBottom( pApplication*, const string&, errblock& ) ;
+void execiTBCreate( pApplication*, const string&, errblock& ) ;
+void execiTBClose( pApplication*, const string&, errblock& )  ;
+void execiTBDelete( pApplication*, const string&, errblock& ) ;
+void execiTBDispl( pApplication*, const string&, errblock& )  ;
+void execiTBEnd( pApplication*, const string&, errblock& )    ;
+void execiTBErase( pApplication*, const string&, errblock& )  ;
+void execiTBExist( pApplication*, const string&, errblock& )  ;
+void execiTBGet( pApplication*, const string&, errblock& )    ;
+void execiTBMod( pApplication*, const string&, errblock& )    ;
+void execiTBPut( pApplication*, const string&, errblock& )    ;
+void execiTBOpen( pApplication*, const string&, errblock& )   ;
+void execiTBQuery( pApplication*, const string&, errblock& )  ;
+void execiTBSarg( pApplication*, const string&, errblock& )   ;
+void execiTBSave( pApplication*, const string&, errblock& )   ;
+void execiTBScan( pApplication*, const string&, errblock& )   ;
+void execiTBSkip( pApplication*, const string&, errblock& )   ;
+void execiTBSort( pApplication*, const string&, errblock& )   ;
+void execiTBTop( pApplication*, const string&, errblock& )    ;
+void execiTBVClear( pApplication*, const string&, errblock& ) ;
+void execiVerase( pApplication*, const string&, errblock& )   ;
+void execiVget( pApplication*, const string&, errblock& )     ;
+void execiView( pApplication*, const string&, errblock& )     ;
+void execiVput( pApplication*, const string&, errblock& )     ;
 
-map<string, void(*)(pApplication *,const string&, errblock&)> execiServices = {
+map<string, void(*)(pApplication*,const string&, errblock&)> execiServices = {
 		  { "ADDPOP",   execiAddpop   },
 		  { "BROWSE",   execiBrowse   },
 		  { "DISPLAY",  execiDisplay  },
@@ -105,7 +105,7 @@ map<string, void(*)(pApplication *,const string&, errblock&)> execiServices = {
 		  { "VPUT",     execiVput     } } ;
 
 
-void ispexeci( pApplication * thisAppl, const string& s, errblock& err )
+void ispexeci( pApplication* thisAppl, const string& s, errblock& err )
 {
 	// Call sub_vars to resolve all dialogue variables in string 's' first
 	// Then parse string to call the correct pApplication method for the service
@@ -117,13 +117,13 @@ void ispexeci( pApplication * thisAppl, const string& s, errblock& err )
 
 	const string InvalidServices = "VDEFINE VDELETE VCOPY VMASK VREPLACE VRESET" ;
 
-	map<string, void(*)(pApplication *, const string&, errblock&)>::iterator it ;
-
-	err.setRC( 0 )   ;
-	err.setsrc( &s ) ;
+	map<string, void(*)(pApplication*, const string&, errblock&)>::iterator it ;
 
 	s1 = thisAppl->sub_vars( s ) ;
 	w1 = upper( word( s1, 1 ) )  ;
+
+	err.setRC( 0 ) ;
+	err.setsrc( s1 ) ;
 
 	if ( findword( w1, InvalidServices ) )
 	{
@@ -143,7 +143,7 @@ void ispexeci( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiAddpop( pApplication * thisAppl, const string& s, errblock& err )
+void execiAddpop( pApplication* thisAppl, const string& s, errblock& err )
 {
 	int i_row ;
 	int i_col ;
@@ -181,7 +181,7 @@ void execiAddpop( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiBrowse( pApplication * thisAppl, const string& s, errblock& err )
+void execiBrowse( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str ;
 	string pan ;
@@ -206,7 +206,7 @@ void execiBrowse( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiControl( pApplication * thisAppl, const string& s, errblock& err )
+void execiControl( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string s1 ;
 
@@ -216,7 +216,7 @@ void execiControl( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiDisplay( pApplication * thisAppl, const string& s, errblock& err )
+void execiDisplay( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str ;
 	string pan ;
@@ -251,7 +251,7 @@ void execiDisplay( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiEdit( pApplication * thisAppl, const string& s, errblock& err )
+void execiEdit( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str  ;
 	string pan  ;
@@ -284,7 +284,7 @@ void execiEdit( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiGetmsg( pApplication * thisAppl, const string& s, errblock& err )
+void execiGetmsg( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string msg  ;
 	string smsg ;
@@ -330,7 +330,7 @@ void execiGetmsg( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiLibdef( pApplication * thisAppl, const string& s, errblock& err )
+void execiLibdef( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string ld_files ;
 	string str      ;
@@ -355,7 +355,7 @@ void execiLibdef( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiLog( pApplication * thisAppl, const string& s, errblock& err )
+void execiLog( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string msgid ;
 	string str   ;
@@ -375,7 +375,7 @@ void execiLog( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiPquery( pApplication * thisAppl, const string& s, errblock& err )
+void execiPquery( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str      ;
 	string pq_panel ;
@@ -419,7 +419,7 @@ void execiPquery( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiQlibdef( pApplication * thisAppl, const string& s, errblock& err )
+void execiQlibdef( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str     ;
 
@@ -446,7 +446,7 @@ void execiQlibdef( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiQtabopen( pApplication * thisAppl, const string& s, errblock& err )
+void execiQtabopen( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str     ;
 	string qt_list ;
@@ -466,7 +466,7 @@ void execiQtabopen( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiRDisplay( pApplication * thisAppl, const string& s, errblock& err )
+void execiRDisplay( pApplication* thisAppl, const string& s, errblock& err )
 {
 	// Call rdisplay(s,false) which does not do dialogue variable substitution as this has
 	// already been done.
@@ -476,14 +476,14 @@ void execiRDisplay( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiRempop( pApplication * thisAppl, const string& s, errblock& err )
+void execiRempop( pApplication* thisAppl, const string& s, errblock& err )
 {
 	thisAppl->rempop( upper( subword( s, 2 ) ) ) ;
 	return ;
 }
 
 
-void execiSelect( pApplication * thisAppl, const string& s, errblock& err )
+void execiSelect( pApplication* thisAppl, const string& s, errblock& err )
 {
 	// The SELECT parser may replace PGM with a variable name (eg. for a REXX command), so
 	// substitute with its dialogue variable value
@@ -503,7 +503,7 @@ void execiSelect( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiSetmsg( pApplication * thisAppl, const string& s, errblock& err )
+void execiSetmsg( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str   ;
 	string s_msg ;
@@ -528,7 +528,7 @@ void execiSetmsg( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiTBAdd( pApplication * thisAppl, const string& s, errblock& err )
+void execiTBAdd( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str        ;
 	string tb_name    ;
@@ -551,7 +551,7 @@ void execiTBAdd( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiTBBottom( pApplication * thisAppl, const string& s, errblock& err )
+void execiTBBottom( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str       ;
 	string tb_name   ;
@@ -576,7 +576,7 @@ void execiTBBottom( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiTBClose( pApplication * thisAppl, const string& s, errblock& err )
+void execiTBClose( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str      ;
 	string tb_name  ;
@@ -603,7 +603,7 @@ void execiTBClose( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiTBCreate( pApplication * thisAppl, const string& s, errblock& err )
+void execiTBCreate( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str      ;
 	string t        ;
@@ -663,7 +663,7 @@ void execiTBCreate( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiTBDelete( pApplication * thisAppl, const string& s, errblock& err )
+void execiTBDelete( pApplication* thisAppl, const string& s, errblock& err )
 {
 	if ( words( s ) != 2 )
 	{
@@ -676,7 +676,7 @@ void execiTBDelete( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiTBDispl( pApplication * thisAppl, const string& s, errblock& err )
+void execiTBDispl( pApplication* thisAppl, const string& s, errblock& err )
 {
 	int i_csrpos ;
 	int i_csrrow ;
@@ -706,7 +706,7 @@ void execiTBDispl( pApplication * thisAppl, const string& s, errblock& err )
 
 	tb_csrrow = parseString( err, str, "CSRROW()" ) ;
 	if ( err.error() ) { return ; }
-	if ( tb_csrrow == "" ) { i_csrrow = 0                ; }
+	if ( tb_csrrow == "" ) { i_csrrow = 0                 ; }
 	else                   { i_csrrow = ds2d( tb_csrrow ) ; }
 
 	tb_csrpos = parseString( err, str, "CSRPOS()" ) ;
@@ -734,7 +734,7 @@ void execiTBDispl( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiTBEnd( pApplication * thisAppl, const string& s, errblock& err )
+void execiTBEnd( pApplication* thisAppl, const string& s, errblock& err )
 {
 	if ( words( s ) != 2 )
 	{
@@ -747,7 +747,7 @@ void execiTBEnd( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiTBErase( pApplication * thisAppl, const string& s, errblock& err )
+void execiTBErase( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str     ;
 	string tb_name ;
@@ -770,7 +770,7 @@ void execiTBErase( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiTBExist( pApplication * thisAppl, const string& s, errblock& err )
+void execiTBExist( pApplication* thisAppl, const string& s, errblock& err )
 {
 	if ( words( s ) != 2 )
 	{
@@ -783,7 +783,7 @@ void execiTBExist( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiTBGet( pApplication * thisAppl, const string& s, errblock& err )
+void execiTBGet( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str       ;
 	string tb_name   ;
@@ -808,7 +808,7 @@ void execiTBGet( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiTBMod( pApplication * thisAppl, const string& s, errblock& err )
+void execiTBMod( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str       ;
 	string tb_name   ;
@@ -826,7 +826,7 @@ void execiTBMod( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiTBPut( pApplication * thisAppl, const string& s, errblock& err )
+void execiTBPut( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str       ;
 	string tb_name   ;
@@ -844,7 +844,7 @@ void execiTBPut( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiTBOpen( pApplication * thisAppl, const string& s, errblock& err )
+void execiTBOpen( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str      ;
 	string t        ;
@@ -885,7 +885,7 @@ void execiTBOpen( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiTBQuery( pApplication * thisAppl, const string& s, errblock& err )
+void execiTBQuery( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str        ;
 	string tb_name    ;
@@ -948,7 +948,7 @@ void execiTBQuery( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiTBSarg( pApplication * thisAppl, const string& s, errblock& err )
+void execiTBSarg( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str ;
 	string tb_name  ;
@@ -971,7 +971,7 @@ void execiTBSarg( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiTBSave( pApplication * thisAppl, const string& s, errblock& err )
+void execiTBSave( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str      ;
 	string tb_name  ;
@@ -998,7 +998,7 @@ void execiTBSave( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiTBScan( pApplication * thisAppl, const string& s, errblock& err )
+void execiTBScan( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str ;
 	string t   ;
@@ -1045,7 +1045,7 @@ void execiTBScan( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiTBSkip( pApplication * thisAppl, const string& s, errblock& err )
+void execiTBSkip( pApplication* thisAppl, const string& s, errblock& err )
 {
 	int i_num ;
 
@@ -1084,7 +1084,7 @@ void execiTBSkip( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiTBSort( pApplication * thisAppl, const string& s, errblock& err )
+void execiTBSort( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str     ;
 	string tb_name ;
@@ -1108,7 +1108,7 @@ void execiTBSort( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiTBTop( pApplication * thisAppl, const string& s, errblock& err )
+void execiTBTop( pApplication* thisAppl, const string& s, errblock& err )
 {
 	if ( words( s ) != 2 )
 	{
@@ -1121,7 +1121,7 @@ void execiTBTop( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiTBVClear( pApplication * thisAppl, const string& s, errblock& err )
+void execiTBVClear( pApplication* thisAppl, const string& s, errblock& err )
 {
 	if ( words( s ) != 2 )
 	{
@@ -1134,7 +1134,7 @@ void execiTBVClear( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiVerase( pApplication * thisAppl, const string& s, errblock& err )
+void execiVerase( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str  ;
 	string vars ;
@@ -1169,7 +1169,7 @@ void execiVerase( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiVget( pApplication * thisAppl, const string& s, errblock& err )
+void execiVget( pApplication* thisAppl, const string& s, errblock& err )
 {
 	// If this is called from the REXX interface module, VREPLACE first with nulls so a variable not found
 	// results in a blank value, instead of the variable name.
@@ -1224,7 +1224,7 @@ void execiVget( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiView( pApplication * thisAppl, const string& s, errblock& err )
+void execiView( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str ;
 	string pan ;
@@ -1249,7 +1249,7 @@ void execiView( pApplication * thisAppl, const string& s, errblock& err )
 }
 
 
-void execiVput( pApplication * thisAppl, const string& s, errblock& err )
+void execiVput( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str  ;
 	string vars ;

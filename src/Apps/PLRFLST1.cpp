@@ -119,15 +119,14 @@ void PLRFLST1::setup()
 	vcopy( "ZUPROF", uprof, MOVE ) ;
 	vcopy( "ZRFLTBL", table, MOVE ) ;
 	set_apphelp( "HPSP01A" ) ;
-	ZRC    = 4         ;
+	ZRC = 4 ;
 }
 
 
 void PLRFLST1::PersonalFList( const string& p )
 {
-	int RC1 ;
-
-	bool e_loop   ;
+	int crp ;
+	int csrrow ;
 
 	string pgm    ;
 	string msg    ;
@@ -136,6 +135,7 @@ void PLRFLST1::PersonalFList( const string& p )
 	string vlist  ;
 	string ldate  ;
 	string ltime  ;
+	string csr    ;
 
 	string acurtb   ;
 	string asel     ;
@@ -146,10 +146,9 @@ void PLRFLST1::PersonalFList( const string& p )
 	string newdesc  ;
 	string lcurtb   ;
 
-	panl = ( p == "" ) ? "PLRFLST1" : "PLRFLST6" ;
-
 	vlist = "ASEL ACURTB AFLDESCP AFLCTIME AFLUTIME NEWNAME NEWDESC LCURTB " ;
 	vdefine( vlist, &asel, &acurtb, &afldescp, &aflctime, &aflutime, &newname, &newdesc, &lcurtb ) ;
+	vdefine( "CRP", &crp ) ;
 
 	vget( "ZCURTB", PROFILE ) ;
 	lcurtb = zcurtb ;
@@ -185,15 +184,32 @@ void PLRFLST1::PersonalFList( const string& p )
 	}
 	CloseTable() ;
 
-	e_loop = false ;
+	ztdsels = 0  ;
+	ztdtop  = 0  ;
+	csrrow  = 0  ;
+	csr     = "" ;
+	msg     = "" ;
+
 	while ( true )
 	{
-		tbtop( flist1 ) ;
-		tbskip( flist1, ztdtop ) ;
-		if ( msg == "" ) { zcmd = "" ; }
-		tbdispl( flist1, panl, msg, "ZCMD" ) ;
+		if ( msg == "" && ztdsels > 0 )
+		{
+			ztdsels-- ;
+		}
+		if ( ztdsels == 0 )
+		{
+			tbtop( flist1 ) ;
+			tbskip( flist1, ztdtop ) ;
+			panl = ( p == "" ) ? "PLRFLST1" : "PLRFLST6" ;
+		}
+		else
+		{
+			panl = "" ;
+		}
+		tbdispl( flist1, panl, msg, csr, csrrow, 1, "YES", "CRP" ) ;
 		if ( RC == 8 ) { break ; }
 		msg = "" ;
+		csr = "" ;
 		if ( ztdsels == 0 && p != "" && zcurinx != 0 )
 		{
 			tbtop( flist1 ) ;
@@ -201,105 +217,94 @@ void PLRFLST1::PersonalFList( const string& p )
 			ztdsels = 1   ;
 			asel    = "L" ;
 		}
-		while ( ztdsels > 0 )
+		if ( asel == "A" )
 		{
-			if ( asel == "A" )
+			addpop( "", 9, 9 ) ;
+			display( "PLRFLST4", "", "ZCMD1" ) ;
+			if ( RC == 0 )
 			{
-				addpop( "", 9, 9 ) ;
-				display( "PLRFLST4", msg, "ZCMD1" ) ;
+				vcopy( "ZDATEL", ldate, MOVE ) ;
+				vcopy( "ZTIMEL", ltime, MOVE ) ;
+				zcurtb = acurtb     ;
+				OpenTableRO()       ;
+				tbget( table )      ;
+				CloseTable()        ;
+				zcurtb   = newname  ;
+				lcurtb   = newname  ;
+				vput( "ZCURTB", PROFILE ) ;
+				fladescp = newdesc  ;
+				flactime = ldate    ;
+				flautime = ldate + " " + ltime ;
+				OpenTableUP()       ;
+				tbsort( table, "(ZCURTB,C,A)" ) ;
+				tbadd( table, "", "ORDER" ) ;
+				CloseTable()        ;
+				acurtb   = zcurtb   ;
+				asel     = ""       ;
+				afldescp = fladescp ;
+				aflctime = flactime ;
+				aflutime = flautime ;
+				tbadd( flist1, "", "ORDER" ) ;
+			}
+			rempop() ;
+		}
+		else if ( asel == "D" )
+		{
+			if ( acurtb != "REFLIST" )
+			{
+				addpop( "", 9, 5 ) ;
+				display( "PLRFLST7" ) ;
 				if ( RC == 0 )
 				{
-					vcopy( "ZDATEL", ldate, MOVE ) ;
-					vcopy( "ZTIMEL", ltime, MOVE ) ;
-					zcurtb = acurtb     ;
-					OpenTableRO()       ;
-					tbget( table )      ;
-					CloseTable()        ;
-					zcurtb   = newname  ;
-					lcurtb   = newname  ;
-					vput( "ZCURTB", PROFILE ) ;
-					fladescp = newdesc  ;
-					flactime = ldate    ;
-					flautime = ldate + " " + ltime ;
-					OpenTableUP()       ;
-					tbsort( table, "(ZCURTB,C,A)" ) ;
-					tbadd( table, "", "ORDER" ) ;
-					CloseTable()        ;
-					acurtb   = zcurtb   ;
-					asel     = ""       ;
-					afldescp = fladescp ;
-					aflctime = flactime ;
-					aflutime = flautime ;
-					tbadd( flist1, "", "ORDER" ) ;
+					vget( "ZCURTB", PROFILE ) ;
+					if ( zcurtb == acurtb )
+					{
+						zcurtb = "REFLIST" ;
+						lcurtb = zcurtb    ;
+						vput( "ZCURTB", PROFILE ) ;
+					}
+					zcurtb = acurtb    ;
+					OpenTableUP()      ;
+					tbdelete( table )  ;
+					CloseTable()       ;
+					tbdelete( flist1 ) ;
 				}
 				rempop() ;
 			}
-			else if ( asel == "D" )
-			{
-				if ( acurtb != "REFLIST" )
-				{
-					addpop( "", 9, 5 ) ;
-					display( "PLRFLST7", msg, "ZCMD" ) ;
-					RC1 = RC ;
-					rempop() ;
-					if ( RC1 == 0 )
-					{
-						vget( "ZCURTB", PROFILE ) ;
-						if ( zcurtb == acurtb )
-						{
-							zcurtb = "REFLIST" ;
-							lcurtb = zcurtb    ;
-							vput( "ZCURTB", PROFILE ) ;
-						}
-						zcurtb = acurtb      ;
-						OpenTableUP()        ;
-						tbdelete( table ) ;
-						CloseTable()         ;
-						tbdelete( flist1 )   ;
-					}
-				}
-
-			}
-			else if ( asel == "E" )
-			{
-				control( "DISPLAY", "SAVE" )    ;
-				EditFileList( acurtb )          ;
-				control( "DISPLAY", "RESTORE" ) ;
-			}
-			else if ( asel == "L" )
-			{
-				vcopy( "ZFLSTPGM", pgm, MOVE ) ;
-				select( "PGM(" + pgm + ") PARM(LIST " + acurtb + " " + StoreFileList( acurtb ) + ")" ) ;
-				ZRC = 4 ;
-			}
-			else if ( asel == "O" )
-			{
-				lcurtb = acurtb ;
-				control( "DISPLAY", "SAVE" )    ;
-				OpenFileList( acurtb )          ;
-				control( "DISPLAY", "RESTORE" ) ;
-				vput( "ZCURTB", PROFILE )       ;
-				if ( ZRC == 0 ) { break ; }     ;
-			}
-			else if ( asel == "S" )
-			{
-				lcurtb = acurtb           ;
-				zcurtb = acurtb           ;
-				vput( "ZCURTB", PROFILE ) ;
-			}
-			asel = "" ;
-			tbput( flist1, "", "ORDER" ) ;
-			if ( ztdsels > 1 )
-			{
-				tbdispl( flist1 ) ;
-				if ( RC > 4 ) { e_loop = true ; break ; }
-			}
-			else { ztdsels = 0 ; }
 		}
-		if ( e_loop || ZRC == 0 ) { break ; } ;
+		else if ( asel == "E" )
+		{
+			control( "DISPLAY", "SAVE" )    ;
+			EditFileList( acurtb )          ;
+			control( "DISPLAY", "RESTORE" ) ;
+		}
+		else if ( asel == "L" )
+		{
+			vcopy( "ZFLSTPGM", pgm, MOVE ) ;
+			select( "PGM(" + pgm + ") PARM(LIST " + acurtb + " " + StoreFileList( acurtb ) + ")" ) ;
+			ZRC = 4 ;
+		}
+		else if ( asel == "O" )
+		{
+			lcurtb = acurtb ;
+			control( "DISPLAY", "SAVE" )    ;
+			OpenFileList( acurtb )          ;
+			control( "DISPLAY", "RESTORE" ) ;
+			vput( "ZCURTB", PROFILE )       ;
+			if ( ZRC == 0 ) { break ; }     ;
+		}
+		else if ( asel == "S" )
+		{
+			lcurtb = acurtb           ;
+			zcurtb = acurtb           ;
+			vput( "ZCURTB", PROFILE ) ;
+		}
+		asel = "" ;
+		tbput( flist1, "", "ORDER" ) ;
 	}
 	tbend( flist1 )  ;
 	vdelete( vlist ) ;
+	vdelete( "CRP" ) ;
 }
 
 
@@ -356,11 +361,13 @@ void PLRFLST1::OpenActiveFList( const string& list )
 void PLRFLST1::EditFileList( const string& curtb )
 {
 	int i ;
-
-	bool e_loop  ;
+	int crp ;
+	int csrrow ;
 
 	string msg   ;
 	string zcmd1 ;
+	string csr   ;
+	string panl  ;
 
 	string flist2 ;
 	string bsel   ;
@@ -373,7 +380,7 @@ void PLRFLST1::EditFileList( const string& curtb )
 
 	vlist = "BSEL BFILE ZCMD1" ;
 	vdefine( vlist, &bsel, &bfile, &zcmd1 ) ;
-
+	vdefine( "CRP", &crp ) ;
 
 	flist2 = "FLST2" + d2ds( taskid(), 3 ) ;
 	tbcreate( flist2, "", "(BSEL,BFILE)", NOWRITE ) ;
@@ -398,53 +405,59 @@ void PLRFLST1::EditFileList( const string& curtb )
 	CloseTable() ;
 
 	modified = false ;
-	e_loop   = false ;
+	ztdsels  = 0  ;
+	ztdtop   = 0  ;
+	csrrow   = 0  ;
+	csr      = "" ;
+	msg      = "" ;
 	while ( true )
 	{
-		tbtop( flist2 ) ;
-		tbskip( flist2, ztdtop ) ;
-		if ( msg == "" ) { zcmd1 = "" ; }
-		tbdispl( flist2, "PLRFLST2", msg, "ZCMD1" ) ;
+		if ( msg == "" && ztdsels > 0 )
+		{
+			ztdsels-- ;
+		}
+		if ( ztdsels == 0 )
+		{
+			tbtop( flist2 ) ;
+			tbskip( flist2, ztdtop ) ;
+			panl = "PLRFLST2" ;
+		}
+		else
+		{
+			panl = "" ;
+		}
+		tbdispl( flist2, panl, msg, csr, csrrow, 1, "YES", "CRP" ) ;
 		if ( zcmd1 == "CANCEL" ) { modified = false ; break ; }
 		if ( RC == 8 ) { break ; }
 		msg = "" ;
-		while ( ztdsels > 0 )
+		csr = "" ;
+		if ( bsel == "" )
 		{
-			if ( bsel == "" )
-			{
-				tbput( flist2 ) ;
-				modified = true ;
-			}
-			else if ( bsel == "I" )
-			{
-				bsel  = "" ;
-				bfile = "" ;
-				tbadd( flist2 ) ;
-				modified = true ;
-			}
-			else if ( bsel == "R" )
-			{
-				bsel = "" ;
-				tbadd( flist2 ) ;
-				modified = true ;
-			}
-			else if ( bsel == "D" )
-			{
-				tbdelete( flist2 ) ;
-				modified = true ;
-			}
-			if ( ztdsels > 1 )
-			{
-				tbdispl( flist2 ) ;
-				if ( RC > 4 ) { e_loop = true ; break ; }
-			}
-			else { ztdsels = 0 ; }
+			tbput( flist2 ) ;
+			modified = true ;
 		}
-		if ( e_loop ) { break ; }
+		else if ( bsel == "I" )
+		{
+			bsel  = "" ;
+			bfile = "" ;
+			tbadd( flist2 ) ;
+			modified = true ;
+		}
+		else if ( bsel == "R" )
+		{
+			bsel = "" ;
+			tbadd( flist2 ) ;
+			modified = true ;
+		}
+		else if ( bsel == "D" )
+		{
+			tbdelete( flist2 ) ;
+			modified = true ;
+		}
 	}
 	if ( modified )
 	{
-		OpenTableUP() ;
+		OpenTableUP()  ;
 		tbget( table ) ;
 		tbtop( flist2 ) ;
 		for ( i = 1 ; i <= 30 ; i++ )
@@ -461,11 +474,12 @@ void PLRFLST1::EditFileList( const string& curtb )
 		vcopy( "ZDATEL", ldate, MOVE ) ;
 		vcopy( "ZTIMEL", ltime, MOVE ) ;
 		flautime = ldate + " " + ltime ;
-		tbmod( table, "", "ORDER" ) ;
+		tbmod( flist2, "", "ORDER" ) ;
 		CloseTable() ;
 	}
-	tbend( flist2 )  ;
+	tbend( flist2 )   ;
 	vdelete( vlist ) ;
+	vdelete( "CRP" ) ;
 }
 
 
@@ -473,20 +487,21 @@ void PLRFLST1::OpenFileList( const string& curtb )
 {
 	int i ;
 	int j ;
+	int crp ;
+	int csrrow ;
 
-	bool e_loop   ;
+	string msg   ;
+	string csr   ;
+	string zcmd1 ;
+	string panl  ;
+	string flist3;
+	string csel  ;
+	string cfile ;
+	string cnum  ;
+	string vlist ;
 
-	string msg    ;
-	string zcmd1  ;
-
-	string table  ;
-	string csel   ;
-	string cfile  ;
-	string cnum   ;
-	string vlist  ;
-
-	table = "FLST3" + d2ds( taskid(), 3 ) ;
-	tbcreate( table, "", "(CSEL,CFILE,CNUM)", NOWRITE ) ;
+	flist3 = "FLST3" + d2ds( taskid(), 3 ) ;
+	tbcreate( flist3, "", "(CSEL,CFILE,CNUM)", NOWRITE ) ;
 
 	zcurtb = curtb ;
 	OpenTableRO()  ;
@@ -509,6 +524,7 @@ void PLRFLST1::OpenFileList( const string& curtb )
 
 	vlist = "CSEL CFILE CNUM ZCMD1" ;
 	vdefine( vlist, &csel, &cfile, &cnum, &zcmd1 ) ;
+	vdefine( "CRP", &crp ) ;
 
 	csel = "" ;
 
@@ -518,48 +534,55 @@ void PLRFLST1::OpenFileList( const string& curtb )
 		if ( i > 1 && cfile == "" ) { continue ; }
 		j++ ;
 		cnum = d2ds( j ) ;
-		tbadd( table )   ;
+		tbadd( flist3 )  ;
 	}
 
-	e_loop = false ;
+	ztdsels  = 0  ;
+	ztdtop   = 0  ;
+	csrrow   = 0  ;
+	csr      = "" ;
+	msg      = "" ;
 	while ( true )
 	{
-		tbtop( table ) ;
-		tbskip( table, ztdtop ) ;
-		if ( msg == "" ) { zcmd1 = "" ; }
-		tbdispl( table, "PLRFLST3", msg, "ZCMD1" ) ;
+		if ( msg == "" && ztdsels > 0 )
+		{
+			ztdsels-- ;
+		}
+		if ( ztdsels == 0 )
+		{
+			tbtop( flist3 ) ;
+			tbskip( flist3, ztdtop ) ;
+			panl = "PLRFLST3" ;
+		}
+		else
+		{
+			panl = "" ;
+		}
+		tbdispl( flist3, panl, msg, csr, csrrow, 1, "YES", "CRP" ) ;
 		if ( RC == 8 ) { break ; }
 		msg = "" ;
+		csr = "" ;
 		if ( ztdsels == 0 && zcurinx != 0 )
 		{
-			tbtop( table ) ;
-			tbskip( table, zcurinx ) ;
+			tbtop( flist3 ) ;
+			tbskip( flist3, zcurinx ) ;
 			csel    = "S" ;
 			ztdsels = 1   ;
 		}
-		while ( ztdsels > 0 )
+		if ( csel == "S" )
 		{
-			if ( csel == "S" )
-			{
-				reffield = "#REFLIST" ;
-				ZRESULT  = cfile      ;
-				ZRC      = 0          ;
-				vreplace( "ZCURTB", zcurtb ) ;
-				vreplace( "ZRFNPOS", cnum )  ;
-				vput( "ZCURTB ZRFNPOS", SHARED ) ;
-				break ;
-			}
-			if ( ztdsels > 1 )
-			{
-				tbdispl( table ) ;
-				if ( RC > 4 ) { e_loop = true ; break ; }
-			}
-			else { ztdsels = 0 ; }
+			reffield = "#REFLIST" ;
+			ZRESULT  = cfile      ;
+			ZRC      = 0          ;
+			vreplace( "ZCURTB", zcurtb ) ;
+			vreplace( "ZRFNPOS", cnum )  ;
+			vput( "ZCURTB ZRFNPOS", SHARED ) ;
+			break ;
 		}
-		if ( e_loop || ZRC == 0 ) { break ; }
 	}
-	tbend( table )   ;
+	tbend( flist3 )  ;
 	vdelete( vlist ) ;
+	vdelete( "CRP" ) ;
 }
 
 
@@ -899,5 +922,5 @@ void PLRFLST1::CloseTable()
 
 // ============================================================================================ //
 
-extern "C" { pApplication *maker() { return new PLRFLST1 ; } }
-extern "C" { void destroy(pApplication *p) { delete p ; } }
+extern "C" { pApplication* maker() { return new PLRFLST1 ; } }
+extern "C" { void destroy(pApplication* p) { delete p ; } }

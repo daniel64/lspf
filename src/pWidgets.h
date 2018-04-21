@@ -97,7 +97,7 @@ class field
 		char         field_just         ;
 		bool         field_numeric      ;
 		bool         field_input        ;
-		dynArea *    field_dynArea      ;
+		dynArea*     field_dynArea      ;
 		bool         field_tb           ;
 		bool         field_scrollable   ;
 		unsigned int field_scroll_start ;
@@ -106,24 +106,24 @@ class field
 		void field_init( errblock& err, int maxw, int maxd, const string& line ) ;
 		void field_opts( errblock& err, string& )  ;
 		bool cursor_on_field( uint row, uint col ) ;
-		void display_field( WINDOW *, char, bool ) ;
-		bool edit_field_insert( WINDOW * win, char ch, int row, char, bool ) ;
-		bool edit_field_replace( WINDOW * win, char ch, int row, char, bool ) ;
-		void edit_field_delete( WINDOW * win, int row, char, bool ) ;
-		int  edit_field_backspace( WINDOW * win, int col, char, bool ) ;
+		void display_field( WINDOW*, char, bool ) ;
+		bool edit_field_insert( WINDOW* win, char ch, int row, char, bool ) ;
+		bool edit_field_replace( WINDOW* win, char ch, int row, char, bool ) ;
+		void edit_field_delete( WINDOW* win, int row, char, bool ) ;
+		int  edit_field_backspace( WINDOW* win, int col, char, bool ) ;
 		void field_remove_nulls_da()     ;
-		void field_blank( WINDOW * win, char ) ;
-		void field_clear( WINDOW * win, char ) ;
-		void field_erase_eof( WINDOW * win, unsigned int col, char, bool ) ;
+		void field_blank( WINDOW* win, char ) ;
+		void field_clear( WINDOW* win, char ) ;
+		void field_erase_eof( WINDOW* win, unsigned int col, char, bool ) ;
 		bool field_dyna_input( uint col )  ;
 		int  field_dyna_input_offset( uint col )  ;
-		void field_DataMod_to_UserMod( string *, int ) ;
+		void field_DataMod_to_UserMod( string*, int ) ;
 		void field_attr( errblock& err, string attrs, bool =false ) ;
 		void field_attr() ;
 		void field_prep_input()   ;
 		void field_prep_display() ;
 		void field_set_caps()     ;
-		int  end_of_field( WINDOW * win, uint col )   ;
+		int  end_of_field( WINDOW* win, uint col )   ;
 
        friend class pPanel ;
 } ;
@@ -148,7 +148,7 @@ class literal
 		bool    literal_dvars  ;
 
 		void literal_init( errblock& err, int maxw, int maxd, int& opt_field, const string& line ) ;
-		void literal_display( WINDOW * ) ;
+		void literal_display( WINDOW* ) ;
 		bool cursor_on_literal( uint row, uint col ) ;
        friend class pPanel ;
 } ;
@@ -184,8 +184,8 @@ class pdc
 		string pdc_parm  ;
 		string pdc_unavail ;
 		bool   pdc_inact ;
-		void   display_pdc_avail( WINDOW *, cuaType, int ) ;
-		void   display_pdc_unavail( WINDOW *, cuaType, int ) ;
+		void   display_pdc_avail( WINDOW*, cuaType, int ) ;
+		void   display_pdc_unavail( WINDOW*, cuaType, int ) ;
 } ;
 
 
@@ -224,11 +224,11 @@ class abc
 		unsigned int abc_maxh ;
 		unsigned int abc_maxw ;
 
-		static poolMGR * p_poolMGR ;
+		static poolMGR* p_poolMGR ;
 
-		void   add_pdc( const pdc& )          ;
-		void   display_abc_sel( WINDOW * )    ;
-		void   display_abc_unsel( WINDOW * )  ;
+		void   add_pdc( const pdc& )         ;
+		void   display_abc_sel( WINDOW* )    ;
+		void   display_abc_unsel( WINDOW* )  ;
 		void   display_pd( errblock&, uint, uint, uint ) ;
 		void   hide_pd()    ;
 		int    get_pd_col() ;
@@ -250,8 +250,8 @@ class abc
 		void   create_window( uint, uint ) ;
 
 		vector<pdc> pdcList ;
-		WINDOW * win   ;
-		PANEL  * panel ;
+		WINDOW* win  ;
+		PANEL* panel ;
 } ;
 
 
@@ -263,7 +263,7 @@ class Box
 			}
 
 		void box_init( errblock& err, int maxw, int maxd, const string& line ) ;
-		void display_box( WINDOW *, string ) ;
+		void display_box( WINDOW*, string ) ;
 
 		string box_title  ;
 	private:

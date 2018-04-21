@@ -342,5 +342,5 @@ bool PCMD0B::invoke_task_wait( const string& cmd, string& comm1, const string& c
 
 // ============================================================================================ //
 
-extern "C" { pApplication *maker() { return new PCMD0B ; } }
-extern "C" { void destroy(pApplication *p) { delete p ; } }
+extern "C" { pApplication* maker() { return new PCMD0B ; } }
+extern "C" { void destroy(pApplication* p) { delete p ; } }

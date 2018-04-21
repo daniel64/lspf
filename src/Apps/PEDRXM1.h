@@ -26,7 +26,7 @@ class PEDRXM1 : public pApplication
 		void macroError()  ;
 
 	private:
-		miblock * mibptr   ;
+		miblock* mibptr    ;
 
 		void initialise()  ;
 		void start_rexx()  ;

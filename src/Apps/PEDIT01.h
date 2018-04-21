@@ -891,7 +891,7 @@ class iline
 		{
 			return il_idata.top().id_data.end() ;
 		}
-		string * get_idata_ptr()
+		string* get_idata_ptr()
 		{
 			return &il_idata.top().id_data ;
 		}
@@ -1547,8 +1547,8 @@ class miblock
 		string mfile     ;
 		string rxpath1   ;
 		string rxpath2   ;
-		pApplication * editAppl ;
-		pApplication * macAppl  ;
+		pApplication* editAppl ;
+		pApplication* macAppl  ;
 		string sttment   ;
 		M_CMDS m_cmd     ;
 		string keyword   ;
@@ -2158,38 +2158,38 @@ class PEDIT01 : public pApplication
 
 		uint getLine( int )       ;
 		uint getFirstEX( uint )   ;
-		int  getLastEX( vector<iline *>::iterator ) ;
+		int  getLastEX( vector<iline*>::iterator ) ;
 		uint getLastEX( uint )    ;
 		int  getExBlockSize( uint )   ;
 		int  getDataBlockSize( uint ) ;
 		bool URIDOnScreen( int, int ) ;
 		void moveTopline( int )  ;
-		int  getLastURID( vector<iline *>::iterator, int ) ;
+		int  getLastURID( vector<iline*>::iterator, int ) ;
 
 		int  getFileLine( uint ) ;
 		uint getDataLine( int )  ;
 
-		vector<iline * >::iterator getValidDataLineNext( vector<iline * >::iterator ) ;
+		vector<iline*>::iterator getValidDataLineNext( vector<iline*>::iterator ) ;
 		uint getValidFileLinePrev( uint ) ;
 		uint getValidFileLineNext( uint ) ;
 
 		uint getNextDataLine( uint ) ;
-		vector<iline * >::iterator getNextDataLine( vector<iline * >::iterator ) ;
+		vector<iline*>::iterator getNextDataLine( vector<iline*>::iterator ) ;
 		uint getNextFileLine( uint ) ;
-		vector<iline * >::iterator getNextFileLine( vector<iline * >::iterator ) ;
+		vector<iline*>::iterator getNextFileLine( vector<iline*>::iterator ) ;
 
 		uint getPrevDataLine( uint ) ;
 		uint getPrevFileLine( uint ) ;
-		vector<iline * >::iterator getPrevFileLine( vector<iline * >::iterator ) ;
-		void getLineData( vector<iline *>::iterator ) ;
-		string mergeLine( const string&, vector<iline *>::iterator ) ;
+		vector<iline*>::iterator getPrevFileLine( vector<iline*>::iterator ) ;
+		void getLineData( vector<iline*>::iterator ) ;
+		string mergeLine( const string&, vector<iline*>::iterator ) ;
 
 		void cleanupData()       ;
 		void cleanupRedoStacks() ;
 		void updateProfLines( vector<string>& ) ;
 		void buildProfLines( vector<string>& )  ;
 		void removeProfLines( )  ;
-		void removeSpecialLines( vector<iline * >::iterator, vector<iline * >::iterator ) ;
+		void removeSpecialLines( vector<iline*>::iterator, vector<iline*>::iterator ) ;
 		void processNewInserts() ;
 
 		string removeTabs( string )  ;
@@ -2226,9 +2226,9 @@ class PEDIT01 : public pApplication
 		void moveColumn( int =0 ) ;
 		void moveCursorEnter()    ;
 
-		vector<iline * >::iterator getLineItr( int )  ;
-		vector<iline * >::iterator getLineItr( uint ) ;
-		vector<iline * >::iterator getLineItr( int, vector<iline *>::iterator ) ;
+		vector<iline*>::iterator getLineItr( int )  ;
+		vector<iline*>::iterator getLineItr( uint ) ;
+		vector<iline*>::iterator getLineItr( int, vector<iline*>::iterator ) ;
 
 		bool setFindChangeExcl( char ) ;
 		void setFoundMsg()             ;
@@ -2237,24 +2237,24 @@ class PEDIT01 : public pApplication
 		void setNotFoundMsg()          ;
 		bool setCommandRange( string, cmd_range& ) ;
 		int  getNextSpecial( int, int, char, char ) ;
-		bool getLabelItr( const string&, vector<iline * >::iterator &, uint& ) ;
+		bool getLabelItr( const string&, vector<iline*>::iterator &, uint& ) ;
 		int  getLabelLine( const string& )  ;
 		int  getLabelIndex( const string& ) ;
 		bool checkLabel1( const string&, int =0 ) ;
 		bool checkLabel2( const string&, int =0 ) ;
 
 		bool getTabLocation( size_t& ) ;
-		void copyPrefix( ipline &, iline *& ) ;
-		void copyPrefix( iline * &,ipline&, bool =false ) ;
+		void copyPrefix( ipline &, iline*& ) ;
+		void copyPrefix( iline* &,ipline&, bool =false ) ;
 		void addSpecial( char, int, vector<string>& ) ;
 		void addSpecial( char, int, const string& ) ;
-		void addSpecial( char, vector<iline * >::iterator, const string& ) ;
+		void addSpecial( char, vector<iline*>::iterator, const string& ) ;
 
 		string getMaskLine() ;
-		string rshiftCols( int, const string * ) ;
-		string lshiftCols( int, const string * ) ;
-		bool   rshiftData( int, const string *, string& ) ;
-		bool   lshiftData( int, const string *, string& ) ;
+		string rshiftCols( int, const string* ) ;
+		string lshiftCols( int, const string* ) ;
+		bool   rshiftData( int, const string*, string& ) ;
+		bool   lshiftData( int, const string*, string& ) ;
 		bool   textSplitData( const string&, string&, string& ) ;
 
 		void   compareFiles( const string& ) ;
@@ -2356,7 +2356,7 @@ class PEDIT01 : public pApplication
 		char   tabsChar          ;
 		string recoverLoc        ;
 
-		vector<iline *> data     ;
+		vector<iline*> data      ;
 		map<int, ipos> s2data    ;
 		map<int, bool> sChanged  ;
 		map<int, bool> sTouched  ;

@@ -358,5 +358,5 @@ void PTUTORA::fill_dynamic_area()
 
 // ============================================================================================ //
 
-extern "C" { pApplication *maker() { return new PTUTORA ; } }
-extern "C" void destroy(pApplication *p) { delete p ; }
+extern "C" { pApplication* maker() { return new PTUTORA ; } }
+extern "C" void destroy(pApplication* p) { delete p ; }

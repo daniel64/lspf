@@ -58,8 +58,8 @@ FLST011R 'Rename failed' .TYPE=W
 FLST011S 'Rename cancelled' .TYPE=N
 'Rename of file has been cancelled.'
 
-FLST011T 'SPARE' .TYPE=W
-'SPARE'
+FLST011T 'Error' .TYPE=W
+''
 
 FLST011U 'Copy successful' .TYPE=N
 'Copy of file has been successful'
@@ -114,4 +114,7 @@ FLST012K 'Not a directory' .TYPE=W
 
 FLST012L 'Entry does not exist' .TYPE=W
 ''
+
+FLST012M 'Entry is not valid' .TYPE=W
+'Entry must be a valid file type'
 

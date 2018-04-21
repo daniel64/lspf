@@ -31,10 +31,10 @@
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
-#define LSPF_VERSION "1.0.3"
+#define LSPF_VERSION "1.0.4"
 #define LSPF_VERSION_MAJ 1
 #define LSPF_VERSION_REV 0
-#define LSPF_VERSION_MOD 3
+#define LSPF_VERSION_MOD 4
 
 typedef unsigned int uint ;
 
@@ -512,7 +512,7 @@ class errblock
 		sline = s ;
 		dline = NULL ;
 	}
-	void setsrc( const string * p )
+	void setsrc( const string* p )
 	{
 		dline = p  ;
 		sline = "" ;

@@ -82,8 +82,7 @@ class Table
 				  uint depth,
 				  int  posn,
 				  uint csrrow,
-				  int& idx,
-				  string& asURID ) ;
+				  int& idx ) ;
 
 		void   cmdsearch( errblock& err,
 				  fPOOL& funcPOOL,
@@ -212,7 +211,7 @@ class tableMGR
 		}
 		~tableMGR() ;
 
-		static logger * lg ;
+		static logger* lg ;
 
 		void   createTable( errblock& err,
 				    const string& tb_name,
@@ -266,8 +265,7 @@ class tableMGR
 				  int  depth,
 				  int  posn,
 				  int  csrrow,
-				  int& idx,
-				  string& asURID ) ;
+				  int& idx ) ;
 
 		void   destroyTable( errblock& err,
 				     const string& tb_name ) ;

@@ -186,5 +186,5 @@ void PCMD0A::run_command( string cmd, const string& fname1, const string& fname2
 
 // ============================================================================================ //
 
-extern "C" { pApplication *maker() { return new PCMD0A ; } }
-extern "C" { void destroy(pApplication *p) { delete p ; } }
+extern "C" { pApplication* maker() { return new PCMD0A ; } }
+extern "C" { void destroy(pApplication* p) { delete p ; } }

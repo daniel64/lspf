@@ -6,11 +6,11 @@
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
 
-)BODY
+)BODY CMD(ZCMD2)
 PanelTitle "Copy File"
 
 literal  4   2        FP    "Command ===> "
-field    4  15   MAX  NEF CAPS(ON),PAD(USER) ZCMD
+field    4  15   MAX  NEF CAPS(ON),PAD(USER) ZCMD2
 
 literal  6   2   FP   "Pathname . . . . . . ."
 field    6   25  MAX  VOI  NONE ENTRY
@@ -56,15 +56,16 @@ literal 23 22 NT "to cancel copy"
 
 )PROC
 
-&ZCMD = TRANS( &ZCMD CAN,CANCEL *,* )
+&ZCMD2 = TRANS( &ZCMD2 CAN,CANCEL *,* )
 
-IF ( &ZCMD = CANCEL )
-   .RESP = END
+IF ( &ZCMD2 = CANCEL )
+   .RESP  = END
+   &ZCMD2 = &Z
    EXIT
 ELSE
-   IF (&ZCMD NE &Z )
+   IF (&ZCMD2 NE &Z )
       .MSG    = PSYS018
-      .CURSOR = ZCMD
+      .CURSOR = ZCMD2
       EXIT
 
 IF (TRUNC(&NEWENTRY,1) EQ '=' )
@@ -74,6 +75,7 @@ IF (TRUNC(&NEWENTRY,1) EQ '=' )
   .MSG      = FLST012
   REFRESH (NEWENTRY)
   EXIT
+
 IF ( '&ZPATH/&ENTRY' EQ '&ZPATH/&NEWENTRY',&NEWENTRY )
   .CURSOR = NEWENTRY
   .MSG    = FLST013
@@ -86,6 +88,5 @@ VER (&NEWENTRY NB)
 
 )FIELD
  FIELD(NEWENTRY) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL)')
-
 
 )END

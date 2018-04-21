@@ -481,7 +481,7 @@ void dynArea::dynArea_init( errblock& err, int MAXW, int MAXD, const string& lin
 }
 
 
-bool field::edit_field_insert( WINDOW * win, char ch, int col, char pad, bool snulls )
+bool field::edit_field_insert( WINDOW* win, char ch, int col, char pad, bool snulls )
 {
 	// If this is a dynamic area, we know at this point this is an input field, so dynArea_DataInsp is true and
 	// there is an input attribute byte at the start of the field
@@ -494,7 +494,7 @@ bool field::edit_field_insert( WINDOW * win, char ch, int col, char pad, bool sn
 	size_t p1  ;
 	size_t p2  ;
 
-	dynArea * da ;
+	dynArea* da ;
 	const char nulls(0x00) ;
 
 	pos = (col - field_col ) ;
@@ -566,7 +566,7 @@ bool field::edit_field_insert( WINDOW * win, char ch, int col, char pad, bool sn
 }
 
 
-bool field::edit_field_replace( WINDOW * win, char ch, int col, char pad, bool snulls )
+bool field::edit_field_replace( WINDOW* win, char ch, int col, char pad, bool snulls )
 {
 	// If this is a dynamic area, we know at this point this is an input field, so dynArea_DataInsp is true and
 	// there is an input attribute byte at the start of the field
@@ -578,7 +578,7 @@ bool field::edit_field_replace( WINDOW * win, char ch, int col, char pad, bool s
 
 	uint pos ;
 
-	dynArea * da ;
+	dynArea* da ;
 
 	const char nulls(0x00) ;
 
@@ -622,7 +622,7 @@ bool field::edit_field_replace( WINDOW * win, char ch, int col, char pad, bool s
 }
 
 
-void field::edit_field_delete( WINDOW * win, int col, char pad, bool snulls )
+void field::edit_field_delete( WINDOW* win, int col, char pad, bool snulls )
 {
 	// If this is a dynamic area, we know at this point this is an input field, so dynArea_DataInsp is true
 	// and there is an input attribute byte at the start of the field.
@@ -634,7 +634,7 @@ void field::edit_field_delete( WINDOW * win, int col, char pad, bool snulls )
 
 	const char nulls(0x00) ;
 
-	dynArea * da ;
+	dynArea* da ;
 
 	pos = col - field_col ;
 	if ( pos > field_value.size() ) { return ; }
@@ -675,7 +675,7 @@ void field::edit_field_delete( WINDOW * win, int col, char pad, bool snulls )
 }
 
 
-int field::edit_field_backspace( WINDOW * win, int col, char pad, bool snulls )
+int field::edit_field_backspace( WINDOW* win, int col, char pad, bool snulls )
 {
 	// If this is a dynamic area, we know it is an input field so pos > 0 (to allow for the input attribute byte)
 
@@ -698,7 +698,7 @@ int field::edit_field_backspace( WINDOW * win, int col, char pad, bool snulls )
 }
 
 
-void field::field_erase_eof( WINDOW * win, uint col, char pad, bool snulls )
+void field::field_erase_eof( WINDOW* win, uint col, char pad, bool snulls )
 {
 	// If this is a dynamic area, we know at this point this is an input field, so dynArea_DataInsp is true,
 	// and there is an input attribute byte at the start of the field
@@ -707,7 +707,7 @@ void field::field_erase_eof( WINDOW * win, uint col, char pad, bool snulls )
 	size_t p1 ;
 	size_t p2 ;
 
-	dynArea * da ;
+	dynArea* da ;
 
 	if ( ( field_col + field_value.size() ) < col ) return ;
 	pos = (col - field_col) ;
@@ -750,10 +750,10 @@ void field::field_erase_eof( WINDOW * win, uint col, char pad, bool snulls )
 }
 
 
-void field::field_blank( WINDOW * win, char pad )
+void field::field_blank( WINDOW* win, char pad )
 {
-	char upad ;
-	char * blanks = new char[ field_length+1 ] ;
+	char  upad ;
+	char* blanks = new char[ field_length+1 ] ;
 
 	upad = field_paduser ? pad : field_padchar ;
 	for ( unsigned int i = 0 ; i < field_length ; i++ )
@@ -794,7 +794,7 @@ void field::field_remove_nulls_da()
 
 	const char nulls(0x00) ;
 
-	dynArea * da ;
+	dynArea* da ;
 
 	p1 = 0 ;
 	da = field_dynArea ;
@@ -850,7 +850,7 @@ void field::field_remove_nulls_da()
 }
 
 
-void field::field_clear( WINDOW * win, char pad )
+void field::field_clear( WINDOW* win, char pad )
 {
 	field_value = ""     ;
 	field_blank( win, pad ) ;
@@ -858,7 +858,7 @@ void field::field_clear( WINDOW * win, char pad )
 }
 
 
-int field::end_of_field( WINDOW * win, uint col )
+int field::end_of_field( WINDOW* win, uint col )
 {
 	// If this is a dynamic area, we know at this point this is an input field.
 	// Strip trailing nulls if not a dynamic area
@@ -918,7 +918,7 @@ bool field::field_dyna_input( uint col )
 	size_t pos ;
 	size_t p1  ;
 
-	dynArea * da = field_dynArea ;
+	dynArea* da = field_dynArea ;
 
 	if ( !da->dynArea_DataInsp ) { return false ; }
 
@@ -1144,7 +1144,7 @@ void field::field_set_caps()
 }
 
 
-void field::field_DataMod_to_UserMod( string * darea, int offset )
+void field::field_DataMod_to_UserMod( string* darea, int offset )
 {
 	// Reset any dynArea_DataMod attributes to dynArea_UserMod or field_dynDataIn, for dynamic fields that
 	// have not changed. This is for fields that have been changed, then changed back to the original.
@@ -1156,7 +1156,7 @@ void field::field_DataMod_to_UserMod( string * darea, int offset )
 	size_t p1 ;
 	size_t p2 ;
 
-	dynArea * da = field_dynArea ;
+	dynArea* da = field_dynArea ;
 
 	p1 = 0 ;
 	while ( true )
@@ -1176,7 +1176,7 @@ void field::field_DataMod_to_UserMod( string * darea, int offset )
 }
 
 
-void field::display_field( WINDOW * win, char pad, bool snulls )
+void field::display_field( WINDOW* win, char pad, bool snulls )
 {
 	// For non-dynamic area fields: if an input field, truncate if value size > field size else for output fields
 	// display field size bytes and leave field value unchanged (necessary for table display fields)
@@ -1197,7 +1197,7 @@ void field::display_field( WINDOW * win, char pad, bool snulls )
 	string::iterator it1 ;
 	string::iterator it2 ;
 
-	dynArea * da ;
+	dynArea* da ;
 
 	if ( !field_active ) { return ; }
 
@@ -1385,7 +1385,7 @@ void literal::literal_init( errblock& err, int MAXW, int MAXD, int& opt_field, c
 }
 
 
-void literal::literal_display( WINDOW * win )
+void literal::literal_display( WINDOW* win )
 {
 	wattrset( win, cuaAttr[ literal_cua ] ) ;
 	mvwaddstr( win, literal_row, literal_col, literal_xvalue.c_str() ) ;
@@ -1441,7 +1441,7 @@ void abc::create_window( uint row, uint col )
 
 string abc::getDialogueVar( errblock& err, const string& var )
 {
-	string * p_str    ;
+	string*  p_str    ;
 	dataType var_type ;
 
 	if ( selPanel )
@@ -1557,7 +1557,7 @@ void abc::add_pdc( const pdc& m_pdc )
 }
 
 
-void abc::display_abc_sel( WINDOW * win )
+void abc::display_abc_sel( WINDOW* win )
 {
 	wattrset( win, cuaAttr[ AB ] ) ;
 	mvwaddstr( win, 0, abc_col, abc_desc.c_str() ) ;
@@ -1565,7 +1565,7 @@ void abc::display_abc_sel( WINDOW * win )
 }
 
 
-void abc::display_abc_unsel( WINDOW * win )
+void abc::display_abc_unsel( WINDOW* win )
 {
 	wattrset( win, cuaAttr[ ABU ] ) ;
 	mvwaddstr( win, 0, abc_col, abc_desc.c_str() ) ;
@@ -1614,7 +1614,7 @@ void abc::display_pd( errblock& err, uint p_row, uint p_col, uint row )
 	else if ( abc_maxw != maxw )
 	{
 		abc_maxw = maxw ;
-		WINDOW * win1 = win ;
+		WINDOW* win1 = win ;
 		create_window( p_row, p_col ) ;
 		replace_panel( panel, win ) ;
 		delwin( win1 ) ;
@@ -1777,7 +1777,7 @@ void Box::box_init( errblock& err, int MAXW, int MAXD, const string& line )
 }
 
 
-void Box::display_box( WINDOW * win, string title )
+void Box::display_box( WINDOW* win, string title )
 {
 	int offset ;
 

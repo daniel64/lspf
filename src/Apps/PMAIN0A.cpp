@@ -235,6 +235,6 @@ void PMAIN0A::create_calendar( int pmonth, int pyear )
 
 // ============================================================================================ //
 
-extern "C" { pApplication *maker() { return new PMAIN0A ; } }
-extern "C" { void destroy(pApplication *p) { delete p ; } }
+extern "C" { pApplication* maker() { return new PMAIN0A ; } }
+extern "C" { void destroy(pApplication* p) { delete p ; } }
 

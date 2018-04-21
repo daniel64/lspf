@@ -53,6 +53,14 @@ IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
 .NRET = ON           /* Enable NRETRIEV and REFLIST */
 .NRET = ZPATH        /* Use this field for NRETRIEV and REFLIST */
 
+)REINIT
+
+IF (.MSG EQ &Z)
+   &SEL = &Z
+   REFRESH(SEL)
+ELSE
+   IF (&SEL NE &Z) .ATTR(SEL) = 'COLOUR(RED)'
+
 )PROC
 
 &ZCMDU = UPPER( ZCMD )

@@ -119,6 +119,16 @@ enum CV_CONTROL
 } ;
 
 
+enum PS_SECT
+{
+	PS_INIT,
+	PS_REINIT,
+	PS_PROC,
+	PS_ABCINIT,
+	PS_ABCPROC
+} ;
+
+
 class token
 {
 	public:

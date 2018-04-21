@@ -91,10 +91,10 @@ void pLScreen::save_panel_stack()
 	// Panel user data : object panel_data
 	//                   1 int field, screenId
 
-	PANEL * pnl ;
+	PANEL* pnl ;
 
-	const void * vptr ;
-	const panel_data * pd ;
+	const void* vptr ;
+	const panel_data* pd ;
 
 	while ( !panelList.empty() )
 	{
@@ -107,7 +107,7 @@ void pLScreen::save_panel_stack()
 		if ( pnl == NULL ) { break ; }
 		vptr = panel_userptr( pnl ) ;
 		if ( vptr == NULL ) { continue ; }
-		pd = static_cast<const panel_data *>(vptr) ;
+		pd = static_cast<const panel_data*>(vptr) ;
 		if ( pd->screenId != screenId ) { continue ; }
 		panelList.push( pnl ) ;
 	}

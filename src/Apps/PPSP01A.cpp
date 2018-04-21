@@ -602,7 +602,7 @@ void PPSP01A::lspfSettings()
 
 	string nulls   ;
 
-	string *t1     ;
+	string* t1     ;
 
 	string godel   ;
 	string goswap  ;
@@ -3142,5 +3142,5 @@ void PPSP01A::runApplication( const string& xappl )
 
 // ============================================================================================ //
 
-extern "C" { pApplication *maker() { return new PPSP01A ; } }
-extern "C" { void destroy(pApplication *p) { delete p ; } }
+extern "C" { pApplication* maker() { return new PPSP01A ; } }
+extern "C" { void destroy(pApplication* p) { delete p ; } }

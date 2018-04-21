@@ -40,6 +40,14 @@ IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
 
 .HELP=HPSP01A
 
+)REINIT
+
+IF (.MSG EQ &Z)
+   &SEL = &Z
+   REFRESH(SEL)
+ELSE
+   IF (&SEL NE &Z) .ATTR(SEL) = 'COLOUR(RED)'
+
 )PROC
 &W1 = TRUNC( &ZCMD, ' ' )
 

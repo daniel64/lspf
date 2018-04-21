@@ -112,7 +112,6 @@ literal   39  41        FP  "                 TBSARG Search Direction . :"
 field     39  86    10   VOI   NONE  TBQ10
 
 
-
 )INIT
 VGET ZSCROLL PROFILE
 IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
@@ -122,6 +121,12 @@ IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
 
 )REINIT
 .AUTOSEL =YES
+
+IF (.MSG EQ &Z)
+   &SEL = &Z
+   REFRESH(SEL)
+ELSE
+   IF (&SEL NE &Z) .ATTR(SEL) = 'COLOUR(RED)'
 
 )PROC
 

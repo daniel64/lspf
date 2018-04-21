@@ -3,12 +3,12 @@
  Confirm delete panel
 )ENDCOMMENT
 
-)BODY WINDOW(70,17)
+)BODY WINDOW(70,17) CMD(ZCMD1)
 
 PanelTitle "Confirm Delete of File"
 
 literal  2   2       FP  "Command ===> "
-field    2  15   MAX NEF CAPS(ON),PAD(USER) ZCMD
+field    2  15   MAX NEF CAPS(ON),PAD(USER) ZCMD1
 
 literal  4   2   FP      "Pathname . . . . . . ."
 field    4   25  MAX  VOI  NONE ENTRY
@@ -40,17 +40,19 @@ literal 15 22 NT "to cancel delete."
 
 )INIT
 &ZWINTTL = &Z
+.CURSOR  = 'ZCMD1'
 )PROC
 
-&ZCMD = TRANS( &ZCMD CAN,CANCEL *,* )
+&ZCMD1 = TRANS( &ZCMD1 CAN,CANCEL *,* )
 
-IF ( &ZCMD = CANCEL )
-   .RESP = END
+IF ( &ZCMD1 = CANCEL )
+   .RESP  = END
+   &ZCMD1 = &Z
    EXIT
 ELSE
-   IF (&ZCMD NE &Z )
-      .MSG    = PSYS018
-      .CURSOR = ZCMD
+   IF (&ZCMD1 NE &Z )
+      .MSG    = 'PSYS018'
+      .CURSOR = 'ZCMD1'
       EXIT
 
 &NEWPTOK = TRANS( &NEWPTOK  &Z,&Z *,/ )

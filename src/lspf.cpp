@@ -108,25 +108,25 @@ unsigned int pLScreen::maxScreenId  = 0 ;
 unsigned int pLScreen::maxrow       = 0 ;
 unsigned int pLScreen::maxcol       = 0 ;
 
-WINDOW * pLScreen::OIA       = NULL ;
-PANEL  * pLScreen::OIA_panel = NULL ;
+WINDOW* pLScreen::OIA       = NULL ;
+PANEL*  pLScreen::OIA_panel = NULL ;
 
-pLScreen     * pLScreen::currScreen = NULL ;
-pApplication * currAppl ;
+pLScreen*     pLScreen::currScreen = NULL ;
+pApplication* currAppl ;
 
-poolMGR  * p_poolMGR  = new poolMGR  ;
-tableMGR * p_tableMGR = new tableMGR ;
-logger   * lg         = new logger   ;
-logger   * lgx        = new logger   ;
+poolMGR*  p_poolMGR  = new poolMGR  ;
+tableMGR* p_tableMGR = new tableMGR ;
+logger*   lg         = new logger   ;
+logger*   lgx        = new logger   ;
 
-tableMGR * pApplication::p_tableMGR = NULL ;
-poolMGR  * pApplication::p_poolMGR  = NULL ;
-logger   * pApplication::lg         = NULL ;
-poolMGR  * pPanel::p_poolMGR        = NULL ;
-poolMGR  * abc::p_poolMGR           = NULL ;
-logger   * pPanel::lg               = NULL ;
-logger   * tableMGR::lg             = NULL ;
-logger   * poolMGR::lg              = NULL ;
+tableMGR* pApplication::p_tableMGR = NULL ;
+poolMGR*  pApplication::p_poolMGR  = NULL ;
+logger*   pApplication::lg         = NULL ;
+poolMGR*  pPanel::p_poolMGR        = NULL ;
+poolMGR*  abc::p_poolMGR           = NULL ;
+logger*   pPanel::lg               = NULL ;
+logger*   tableMGR::lg             = NULL ;
+logger*   poolMGR::lg              = NULL ;
 
 fPOOL funcPOOL ;
 
@@ -135,7 +135,7 @@ void initialSetup()       ;
 void loadDefaultPools()   ;
 void getDynamicClasses()  ;
 bool loadDynamicClass( const string& ) ;
-bool unloadDynamicClass( void * )   ;
+bool unloadDynamicClass( void* )    ;
 void reloadDynamicClasses( string ) ;
 void loadSystemCommandTable() ;
 void loadRetrieveBuffer() ;
@@ -182,15 +182,16 @@ int  getScreenNameNum( const string& ) ;
 void serviceCallError( errblock& )     ;
 void mainLoop() ;
 
-vector<pLScreen *> screenList ;
+vector<pLScreen*> screenList ;
+map<int,int> openedByList    ;
 
 struct appInfo
 {
 	string file       ;
 	string module     ;
-	void * dlib       ;
-	void * maker_ep   ;
-	void * destroyer_ep ;
+	void* dlib        ;
+	void* maker_ep    ;
+	void* destroyer_ep ;
 	bool   mainpgm    ;
 	bool   dlopened   ;
 	bool   errors     ;
@@ -216,8 +217,8 @@ bool   wmPending      ;
 char   lspfStatus     ;
 char   backStatus     ;
 
-vector<pApplication *> pApplicationBackground ;
-vector<pApplication *> pApplicationTimeout    ;
+vector<pApplication*> pApplicationBackground ;
+vector<pApplication*> pApplicationTimeout    ;
 
 errblock err    ;
 
@@ -314,8 +315,8 @@ int main( void )
 
 	err.clear() ;
 
-	boost::thread * pThread ;
-	boost::thread * bThread ;
+	boost::thread* pThread ;
+	boost::thread* bThread ;
 	set_terminate ( threadErrorHandler ) ;
 
 	commandStack = ""    ;
@@ -324,6 +325,7 @@ int main( void )
 	err.settask( 1 )     ;
 
 	screenList.push_back( new pLScreen ) ;
+	openedByList[ 1 ] = 0 ;
 	currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
 
 	llog( "I", "lspf startup in progress" << endl ) ;
@@ -804,7 +806,6 @@ void processAction( uint row, uint col, int c, bool& passthru )
 	string PFCMD   ;
 	string delm    ;
 	string aVerb   ;
-	string fld     ;
 	string msg     ;
 	string t       ;
 
@@ -1162,17 +1163,16 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		commandStack = ""    ;
 		zcommand     = "NOP" ;
 		passthru     = false ;
-		fld          = currAppl->currPanel->cmdfield ;
 		if ( !retrieveBuffer.empty() )
 		{
 			currAppl->currPanel->cmd_setvalue( err, retrieveBuffer[ retPos ] ) ;
-			currAppl->currPanel->cursor_to_field( RC, fld, retrieveBuffer[ retPos ].size()+1 ) ;
+			currAppl->currPanel->cursor_to_cmdfield( RC, retrieveBuffer[ retPos ].size()+1 ) ;
 			if ( ++retPos >= retrieveBuffer.size() ) { retPos = 0 ; }
 		}
 		else
 		{
 			currAppl->currPanel->cmd_setvalue( err, "" ) ;
-			currAppl->currPanel->cursor_to_field( RC, fld ) ;
+			currAppl->currPanel->cursor_to_cmdfield( RC ) ;
 		}
 		currScrn->set_cursor( currAppl ) ;
 		currAppl->currPanel->remove_pd() ;
@@ -1711,9 +1711,9 @@ void startApplication( selobj SEL, bool nScreen )
 
 	err.clear() ;
 
-	pApplication * oldAppl = currAppl ;
+	pApplication* oldAppl = currAppl ;
 
-	boost::thread * pThread ;
+	boost::thread* pThread ;
 
 	if ( SEL.PGM == "ISPSTRT" )
 	{
@@ -1907,10 +1907,10 @@ void startApplicationBack( selobj SEL, bool pgmselect )
 
 	errblock err1 ;
 
-	pApplication * oldAppl = currAppl ;
-	pApplication * Appl ;
+	pApplication* oldAppl = currAppl ;
+	pApplication* Appl ;
 
-	boost::thread * pThread ;
+	boost::thread* pThread ;
 
 	if ( apps.find( SEL.PGM ) == apps.end() )
 	{
@@ -1994,7 +1994,7 @@ void processBackgroundTasks()
 
 	backStatus = 'R' ;
 
-	boost::thread * pThread ;
+	boost::thread* pThread ;
 
 	while ( lspfStatus == 'R' )
 	{
@@ -2019,7 +2019,7 @@ void processBackgroundTasks()
 		mtx.unlock() ;
 
 		mtx.lock() ;
-		vector<pApplication *> temp = pApplicationBackground ;
+		vector<pApplication*> temp = pApplicationBackground ;
 
 		for ( auto it = temp.begin() ; it != temp.end() ; it++ )
 		{
@@ -2063,9 +2063,9 @@ void terminateApplication()
 
 	err.clear() ;
 
-	pApplication * prvAppl ;
+	pApplication* prvAppl ;
 
-	boost::thread * pThread ;
+	boost::thread* pThread ;
 
 	llog( "I", "Application terminating "+ currAppl->get_appname() +" ID: "<< currAppl->taskid() << endl ) ;
 
@@ -2141,7 +2141,7 @@ void terminateApplication()
 
 	currAppl->display_pd( err ) ;
 
-	p_poolMGR->put( err, "ZPANELID", currAppl->panelid, SHARED, SYSTEM ) ;
+	p_poolMGR->put( err, "ZPANELID", currAppl->get_panelid(), SHARED, SYSTEM ) ;
 
 	if ( apps[ ZAPPNAME ].refCount == 0 && apps[ ZAPPNAME ].relPending )
 	{
@@ -2311,6 +2311,8 @@ void terminateApplication()
 
 bool createLogicalScreen()
 {
+	int openedBy_lscreen ;
+
 	err.clear() ;
 
 	if ( !currAppl->ControlSplitEnable )
@@ -2324,37 +2326,58 @@ bool createLogicalScreen()
 		issueMessage( "PSYS011D" ) ;
 		return false ;
 	}
+
+	openedBy_lscreen = currScrn->screenId ;
+
 	currScrn->save_panel_stack()  ;
 	updateDefaultVars()           ;
 	altScreen = screenNum         ;
 	screenNum = screenList.size() ;
 	screenList.push_back( new pLScreen ) ;
 	currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
+	openedByList[ currScrn->screenId ] = openedBy_lscreen ;
 	return true ;
 }
 
 
 void deleteLogicalScreen()
 {
-	delete currScrn ;
+	// Delete a logical screen and set the active screen to the one that opened it.
+	// Update the openedByList so any screen opened by the deleted screen, appears opened by its predecesor.
 
-	screenList.erase( screenList.begin() + screenNum ) ;
-	if ( altScreen > screenNum ) { altScreen-- ; }
-	if ( screenNum == 0 )
+	int screenId = currScrn->screenId ;
+	int openedBy = openedByList[ screenId ] ;
+
+	delete currScrn ;
+	openedByList.erase( screenId ) ;
+
+	for ( auto it = openedByList.begin() ; it != openedByList.end() ; it++ )
 	{
-		screenNum = pLScreen::screensTotal - 1 ;
-	}
-	else
-	{
-		screenNum-- ;
-	}
-	if ( pLScreen::screensTotal > 1 )
-	{
-		if ( altScreen == screenNum )
+		if ( it->second == screenId )
 		{
-			altScreen = (altScreen == pLScreen::screensTotal - 1) ? 0 : (altScreen + 1) ;
+			it->second = openedBy ;
 		}
 	}
+
+	screenList.erase( screenList.begin() + screenNum ) ;
+
+	if ( altScreen > screenNum ) { altScreen-- ; }
+
+	screenNum = 0 ;
+	if ( openedBy != 0 )
+	{
+		for ( auto it = openedByList.begin() ; it != openedByList.end() ; it++, screenNum++ )
+		{
+			if ( it->first == openedBy ) { break ; }
+		}
+	}
+
+	if ( screenNum == altScreen )
+	{
+		altScreen = ( screenNum == 0 ) ? pLScreen::screensTotal - 1 : 0 ;
+
+	}
+
 	currScrn = screenList[ screenNum ] ;
 	currScrn->restore_panel_stack()    ;
 	currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
@@ -2911,12 +2934,12 @@ string listLogicalScreens()
 
 	err.clear() ;
 
-	WINDOW * swwin   ;
-	PANEL  * swpanel ;
+	WINDOW* swwin   ;
+	PANEL*  swpanel ;
 
-	pApplication * appl ;
+	pApplication* appl ;
 
-	vector<pLScreen *>::iterator its ;
+	vector<pLScreen*>::iterator its ;
 	vector<string>::iterator it ;
 	vector<string> lslist ;
 
@@ -3021,8 +3044,8 @@ void listRetrieveBuffer()
 	string t  ;
 	string ln ;
 
-	WINDOW * rbwin   ;
-	PANEL  * rbpanel ;
+	WINDOW* rbwin   ;
+	PANEL*  rbpanel ;
 
 	vector<string> lslist ;
 	vector<string>::iterator it ;
@@ -3182,8 +3205,8 @@ int getScreenNameNum( const string& s )
 	int i ;
 	int j ;
 
-	vector<pLScreen *>::iterator its ;
-	pApplication * appl ;
+	vector<pLScreen*>::iterator its ;
+	pApplication* appl ;
 
 	for ( i = 1, j = 0, its = screenList.begin() ; its != screenList.end() ; its++, i++ )
 	{
@@ -3225,9 +3248,9 @@ void lspfCallbackHandler( lspfCommand& lc )
 	string w1 ;
 	string w2 ;
 
-	vector<pLScreen *>::iterator its   ;
+	vector<pLScreen*>::iterator its    ;
 	map<string, appInfo>::iterator ita ;
-	pApplication * appl                ;
+	pApplication* appl                 ;
 
 	lc.reply.clear() ;
 
@@ -3481,7 +3504,7 @@ void actionSwap( uint& row, uint& col )
 		if ( datatype( w2, 'W' ) && w1 != w2 )
 		{
 			i = ds2d( w2 ) - 1 ;
-			if ( i > 0 && i != screenNum && i < pLScreen::screensTotal )
+			if ( i >= 0 && i != screenNum && i < pLScreen::screensTotal )
 			{
 				altScreen = i ;
 			}
@@ -3497,7 +3520,7 @@ void actionSwap( uint& row, uint& col )
 	currAppl = currScrn->application_get_current() ;
 
 	err.settask( currAppl->taskid() ) ;
-	p_poolMGR->put( err, "ZPANELID", currAppl->panelid, SHARED, SYSTEM )  ;
+	p_poolMGR->put( err, "ZPANELID", currAppl->get_panelid(), SHARED, SYSTEM ) ;
 	currScrn->restore_panel_stack() ;
 	currAppl->display_pd( err ) ;
 }
@@ -3559,12 +3582,9 @@ void displayNextPullDown( uint& row, uint& col )
 		serviceCallError( err ) ;
 		currAppl->set_cursor_home() ;
 	}
-	else
+	else if ( msg != "" )
 	{
-		if ( msg != "" )
-		{
-			issueMessage( msg ) ;
-		}
+		issueMessage( msg ) ;
 	}
 	currScrn->set_cursor( currAppl ) ;
 }
@@ -3817,9 +3837,9 @@ bool loadDynamicClass( const string& appl )
 	string mod   ;
 	string fname ;
 
-	void *dlib  ;
-	void *maker ;
-	void *destr ;
+	void* dlib  ;
+	void* maker ;
+	void* destr ;
 
 	const char* dlsym_err ;
 
@@ -3888,7 +3908,7 @@ bool loadDynamicClass( const string& appl )
 }
 
 
-bool unloadDynamicClass( void * dlib )
+bool unloadDynamicClass( void* dlib )
 {
 	int i  ;
 	int rc ;

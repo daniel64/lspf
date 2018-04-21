@@ -207,7 +207,7 @@ void Table::storeIntValue( errblock& err,
 			   int val )
 {
 	// Store an integer value in the function pool.  If the entry has been defined as a string,
-	// or is not defined, convert to a string and pad on the left with zeroes, length 8.
+	// convert to a string and pad on the left with zeroes, length 8.
 
 	dataType var_type ;
 
@@ -225,7 +225,7 @@ void Table::storeIntValue( errblock& err,
 	}
 	else if ( err.RC8() )
 	{
-		funcPOOL.put( err, var, d2ds( val, 8 ) ) ;
+		funcPOOL.put( err, var, val ) ;
 	}
 }
 
@@ -1382,8 +1382,7 @@ void Table::fillfVARs( errblock& err,
 		       uint depth,
 		       int  posn,
 		       uint csrrow,
-		       int& idr,
-		       string& asURID )
+		       int& idr )
 {
 	// Fill the function pool variables ( of the form table_fieldname.line ) from the table for depth lines
 	// starting as table position posn. (Use CRP position if posn not specified)
@@ -1438,7 +1437,6 @@ void Table::fillfVARs( errblock& err,
 
 	csrrow -= posn ;
 	idr     = -1   ;
-	asURID  = ""   ;
 
 	for ( k = 0 ; k < depth && it != table.end() ; k++, it++ )
 	{
@@ -1459,8 +1457,7 @@ void Table::fillfVARs( errblock& err,
 		}
 		if ( k == csrrow )
 		{
-			idr    = k ;
-			asURID = (*it)->at( 0 ) ;
+			idr = k ;
 		}
 	}
 
@@ -1708,7 +1705,7 @@ void tableMGR::createTable( errblock& err,
 			return ;
 		}
 	}
-	Table * t = new Table ;
+	Table* t = new Table ;
 
 	if ( getpaths( m_path ) > 0 ) { t->tab_path = getpath( m_path, 1 ) ; }
 	t->ownerTask = err.taskid ;
@@ -1758,10 +1755,10 @@ void tableMGR::loadTable( errblock& err,
 	uint  n2      ;
 	uint  ver     ;
 
-	char x           ;
-	char buf1[ 256 ] ;
-	char * buf2      ;
-	char z[ 2 ]      ;
+	char  x           ;
+	char  buf1[ 256 ] ;
+	char* buf2        ;
+	char  z[ 2 ]      ;
 
 	string filename ;
 	string path  ;
@@ -2236,8 +2233,7 @@ void tableMGR::fillfVARs( errblock& err,
 			  int  depth,
 			  int  posn,
 			  int  csrrow,
-			  int& idr,
-			  string& asURID )
+			  int& idr )
 {
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
@@ -2247,7 +2243,7 @@ void tableMGR::fillfVARs( errblock& err,
 		err.seterrid( "PSYE013G", "FILLVARS", tb_name, 12 ) ;
 		return ;
 	}
-	it->second->fillfVARs( err, funcPOOL, clear_flds, scan, depth, posn, csrrow, idr, asURID ) ;
+	it->second->fillfVARs( err, funcPOOL, clear_flds, scan, depth, posn, csrrow, idr ) ;
 }
 
 

@@ -23,9 +23,9 @@ class pLScreen
 		 pLScreen() ;
 		~pLScreen() ;
 
-	static pLScreen * currScreen ;
-	static WINDOW   * OIA        ;
-	static PANEL    * OIA_panel  ;
+	static pLScreen* currScreen ;
+	static WINDOW*   OIA        ;
+	static PANEL*    OIA_panel  ;
 
 	static unsigned int screensTotal ;
 	static unsigned int maxScreenId  ;
@@ -46,9 +46,9 @@ class pLScreen
 	void  cursor_up()     { row == 0 ? row = maxrow-1 : --row ; }
 	void  cursor_down()   { row == maxrow-1 ? row = 0 : ++row ; }
 
-	void  application_add( pApplication * pApplication ) { pApplicationStack.push( pApplication ) ; }
+	void  application_add( pApplication* pApplication )  { pApplicationStack.push( pApplication ) ; }
 	void  application_remove_current()                   { pApplicationStack.pop() ; } ;
-	pApplication * application_get_current()             { return pApplicationStack.top()   ; }
+	pApplication* application_get_current()              { return pApplicationStack.top()   ; }
 	int   application_stack_size()                       { return pApplicationStack.size()  ; }
 	bool  application_stack_empty()                      { return pApplicationStack.empty() ; }
 
@@ -79,8 +79,8 @@ private:
 
 	boost::posix_time::ptime startTime ;
 
-	stack<pApplication *> pApplicationStack ;
-	stack<PANEL *> panelList ;
+	stack<pApplication*> pApplicationStack ;
+	stack<PANEL*> panelList ;
 } ;
 
 

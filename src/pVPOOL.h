@@ -25,8 +25,8 @@ class fVAR
 		fVAR_int_ptr    = &fVAR_int    ;
 	}
 	private:
-		string * fVAR_string_ptr ;
-		int    * fVAR_int_ptr    ;
+		string*  fVAR_string_ptr ;
+		int*     fVAR_int_ptr    ;
 		string   fVAR_string     ;
 		string   fVAR_mask       ;
 		int      fVAR_int        ;
@@ -46,12 +46,12 @@ class fPOOL
 	~fPOOL() ;
 		void     define( errblock& err,
 				 const string& name ,
-				 string * addr,
+				 string* addr,
 				 nameCHCK check=CHECK ) ;
 
 		void     define( errblock& err,
 				 const string& name,
-				 int * addr ) ;
+				 int* addr ) ;
 	private:
 		string nullstr  ;
 		string varList  ;
@@ -63,9 +63,9 @@ class fPOOL
 				  const string& name,
 				  nameCHCK check=CHECK )  ;
 
-		string * vlocate( errblock& err,
-				  const string& name,
-				  nameCHCK check=CHECK )  ;
+		string* vlocate( errblock& err,
+				 const string& name,
+				 nameCHCK check=CHECK )  ;
 
 		void     put( errblock& err,
 			      const string& name,
@@ -176,8 +176,8 @@ class pVPOOL
 		string get( errblock& err,
 			    map<string, pVAR*>::iterator v_it ) ;
 
-		string * vlocate( errblock& err,
-				  map<string, pVAR*>::iterator v_it ) ;
+		string* vlocate( errblock& err,
+				 map<string, pVAR*>::iterator v_it ) ;
 
 		void   load( errblock& err,
 			     const string& applid,
@@ -210,7 +210,7 @@ class poolMGR
 		poolMGR()  ;
 		~poolMGR() ;
 
-		static logger * lg ;
+		static logger* lg ;
 
 		void   connect( int taskid, const string&, int ) ;
 		void   disconnect( int taskid ) ;
@@ -271,9 +271,9 @@ class poolMGR
 
 		void   createPool( int ls ) ;
 
-		string * vlocate( errblock& err,
-				  const string& name,
-				  poolType=ASIS ) ;
+		string* vlocate( errblock& err,
+				 const string& name,
+				 poolType=ASIS ) ;
 
 		void   locateSubPool( errblock& err,
 				      map<string, pVPOOL*>::iterator& p_it,

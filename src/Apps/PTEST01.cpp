@@ -1132,5 +1132,5 @@ void PTEST01::opt7()
 
 // ============================================================================================ //
 
-extern "C" { pApplication *maker() { return new PTEST01 ; } }
-extern "C" { void destroy(pApplication *p) { delete p ; } }
+extern "C" { pApplication* maker() { return new PTEST01 ; } }
+extern "C" { void destroy(pApplication* p) { delete p ; } }

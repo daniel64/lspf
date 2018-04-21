@@ -58,25 +58,25 @@ using namespace boost::filesystem ;
 #undef  MOD_NAME
 #define MOD_NAME PEDRXM1
 
-RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext *, RexxStringObject, RexxStringObject ) ;
-RexxObjectPtr RexxEntry editServiceHandler( RexxExitContext *, RexxStringObject, RexxStringObject ) ;
+RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext*, RexxStringObject, RexxStringObject ) ;
+RexxObjectPtr RexxEntry editServiceHandler( RexxExitContext*, RexxStringObject, RexxStringObject ) ;
 
-int getRexxVariable( pApplication *, string, string & ) ;
-int setRexxVariable( string, string )     ;
-int getAllRexxVariables( pApplication * ) ;
-int setAllRexxVariables( pApplication * ) ;
+int getRexxVariable( pApplication*, string, string & ) ;
+int setRexxVariable( string, string )    ;
+int getAllRexxVariables( pApplication* ) ;
+int setAllRexxVariables( pApplication* ) ;
 
 
 void PEDRXM1::application()
 {
 	int nlvl ;
 
-	miblock tmiBlock   ;
-	PEDIT01 * editAppl ;
+	miblock tmiBlock  ;
+	PEDIT01* editAppl ;
 
-	void * vptr = ApplUserData[ ds2d( word( PARM, 1 ) ) ] ;
-	mibptr      = static_cast<miblock *>( vptr ) ;
-	editAppl    = static_cast<PEDIT01 *>( mibptr->editAppl ) ;
+	void* vptr = ApplUserData[ ds2d( word( PARM, 1 ) ) ] ;
+	mibptr     = static_cast<miblock*>( vptr ) ;
+	editAppl   = static_cast<PEDIT01*>( mibptr->editAppl ) ;
 
 	if ( mibptr->nestlvl == 255 )
 	{
@@ -134,7 +134,7 @@ void PEDRXM1::application()
 	}
 
 	for_each( editAppl->data.begin(), editAppl->data.end(),
-		[ nlvl ](iline *& a)
+		[ nlvl ](iline*& a)
 		{
 			a->clearLabel( nlvl ) ;
 		} ) ;
@@ -160,8 +160,8 @@ void PEDRXM1::application()
 
 void PEDRXM1::start_rexx()
 {
-	RexxInstance *instance   ;
-	RexxThreadContext *threadContext ;
+	RexxInstance* instance   ;
+	RexxThreadContext* threadContext ;
 	RexxArrayObject args     ;
 	RexxCondition condition  ;
 	RexxDirectoryObject cond ;
@@ -178,10 +178,10 @@ void PEDRXM1::start_rexx()
 	environments[ 2 ].name    = ""   ;
 
 	options[ 0 ].optionName = APPLICATION_DATA ;
-	options[ 0 ].option     = (void *)mibptr   ;
-	options[ 1 ].optionName = DIRECT_ENVIRONMENTS  ;
-	options[ 1 ].option     = (void *)environments ;
-	options[ 2 ].optionName = EXTERNAL_CALL_PATH   ;
+	options[ 0 ].option     = (void*)mibptr    ;
+	options[ 1 ].optionName = DIRECT_ENVIRONMENTS ;
+	options[ 1 ].option     = (void*)environments ;
+	options[ 2 ].optionName = EXTERNAL_CALL_PATH  ;
 	options[ 2 ].option     = mibptr->rxpath1.c_str() ;
 	options[ 3 ].optionName = "" ;
 
@@ -253,7 +253,7 @@ void PEDRXM1::macroError()
 }
 
 
-RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext *context,
+RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext* context,
 					    RexxStringObject address,
 					    RexxStringObject command )
 {
@@ -265,14 +265,14 @@ RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext *context,
 
 	int sRC  ;
 
-	void * vptr ;
-	miblock * mibptr ;
+	void* vptr ;
+	miblock* mibptr ;
 
 	string s = context->CString( command ) ;
 
 	vptr   = context->GetApplicationData() ;
-	mibptr = static_cast<miblock *>( vptr ) ;
-	PEDRXM1 * macAppl = static_cast<PEDRXM1 *>( mibptr->macAppl  ) ;
+	mibptr = static_cast<miblock*>( vptr ) ;
+	PEDRXM1* macAppl = static_cast<PEDRXM1*>( mibptr->macAppl ) ;
 
 	if ( mibptr->fatal )
 	{
@@ -289,7 +289,7 @@ RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext *context,
 }
 
 
-RexxObjectPtr RexxEntry editServiceHandler( RexxExitContext *context,
+RexxObjectPtr RexxEntry editServiceHandler( RexxExitContext* context,
 					    RexxStringObject address,
 					    RexxStringObject command )
 {
@@ -301,15 +301,15 @@ RexxObjectPtr RexxEntry editServiceHandler( RexxExitContext *context,
 
 	int sRC ;
 
-	void * vptr ;
-	miblock * mibptr ;
+	void* vptr ;
+	miblock* mibptr ;
 
 	string s = context->CString( command ) ;
 
 	vptr   = context->GetApplicationData() ;
-	mibptr = static_cast<miblock *>( vptr ) ;
-	PEDIT01 * editAppl = static_cast<PEDIT01 *>( mibptr->editAppl ) ;
-	PEDRXM1 * macAppl  = static_cast<PEDRXM1 *>( mibptr->macAppl  ) ;
+	mibptr = static_cast<miblock*>( vptr ) ;
+	PEDIT01* editAppl = static_cast<PEDIT01*>( mibptr->editAppl ) ;
+	PEDRXM1* macAppl  = static_cast<PEDRXM1*>( mibptr->macAppl  ) ;
 
 	if ( mibptr->fatal )
 	{
@@ -346,7 +346,7 @@ RexxObjectPtr RexxEntry editServiceHandler( RexxExitContext *context,
 }
 
 
-int getAllRexxVariables( pApplication * macAppl )
+int getAllRexxVariables( pApplication* macAppl )
 {
 	// For all variables in the rexx variable pool, set the lspf function pool variable.
 	// Executed on entry to the command handler from a REXX procedure before any lspf
@@ -388,15 +388,15 @@ int getAllRexxVariables( pApplication * macAppl )
 				macAppl->vreplace( n, v ) ;
 			}
 		}
-		RexxFreeMemory( (void *)var.shvname.strptr )  ;
-		RexxFreeMemory( (void *)var.shvvalue.strptr ) ;
+		RexxFreeMemory( (void*)var.shvname.strptr )  ;
+		RexxFreeMemory( (void*)var.shvvalue.strptr ) ;
 		if ( var.shvret & RXSHV_LVAR ) { break ; }
 	}
 	return rc ;
 }
 
 
-int setAllRexxVariables( pApplication * macAppl )
+int setAllRexxVariables( pApplication* macAppl )
 {
 	// For all variables in the application function pool, set the rexx variable.
 	// Executed before returning to the REXX procedure after a call to the command handler
@@ -412,7 +412,7 @@ int setAllRexxVariables( pApplication * macAppl )
 
 	string w  ;
 	string vi ;
-	string * vs ;
+	string* vs ;
 
 	ws = words( vl ) ;
 	for ( i = 1 ; i <= ws ; i++ )
@@ -434,13 +434,13 @@ int setAllRexxVariables( pApplication * macAppl )
 }
 
 
-int getRexxVariable( pApplication * macAppl, string n, string & v )
+int getRexxVariable( pApplication* macAppl, string n, string & v )
 {
 	// Get variable value from Rexx variable pool and update the application function pool
 
 	int rc ;
 
-	const char * name = n.c_str() ;
+	const char* name = n.c_str() ;
 
 	SHVBLOCK var ;                       /* variable pool control block   */
 	var.shvcode = RXSHV_SYFET ;          /* do a symbolic fetch operation */
@@ -459,15 +459,15 @@ int getRexxVariable( pApplication * macAppl, string n, string & v )
 		macAppl->vreplace( n, v ) ;
 		rc = macAppl->RC          ;
 	}
-	RexxFreeMemory( (void *)var.shvvalue.strptr ) ;
+	RexxFreeMemory( (void*)var.shvvalue.strptr ) ;
 	return rc ;
 }
 
 
 int setRexxVariable( string n, string v )
 {
-	const char * name = n.c_str() ;
-	char * value      = (char *)v.c_str() ;
+	const char* name = n.c_str() ;
+	char* value      = (char*)v.c_str() ;
 
 	SHVBLOCK var ;                       /* variable pool control block   */
 	var.shvcode = RXSHV_SYSET  ;         /* do a symbolic set operation   */
@@ -483,5 +483,5 @@ int setRexxVariable( string n, string v )
 
 // ============================================================================================ //
 
-extern "C" { pApplication *maker() { return new PEDRXM1 ; } }
-extern "C" { void destroy(pApplication *p) { delete p ; } }
+extern "C" { pApplication* maker() { return new PEDRXM1 ; } }
+extern "C" { void destroy(pApplication* p) { delete p ; } }

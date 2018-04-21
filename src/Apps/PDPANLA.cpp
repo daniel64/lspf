@@ -115,5 +115,5 @@ void PDPANLA::application()
 
 // ============================================================================================ //
 
-extern "C" { pApplication *maker() { return new PDPANLA ; } }
-extern "C" { void destroy(pApplication *p) { delete p ; } }
+extern "C" { pApplication* maker() { return new PDPANLA ; } }
+extern "C" { void destroy(pApplication* p) { delete p ; } }

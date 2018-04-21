@@ -1263,5 +1263,5 @@ string PBRO01A::determineLang( string zfile )
 }
 // ============================================================================================ //
 
-extern "C" { pApplication *maker() { return new PBRO01A ; } }
-extern "C" { void destroy(pApplication *p) { delete p ; } }
+extern "C" { pApplication* maker() { return new PBRO01A ; } }
+extern "C" { void destroy(pApplication* p) { delete p ; } }

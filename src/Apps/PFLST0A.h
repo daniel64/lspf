@@ -19,6 +19,27 @@
 
 using namespace std;
 
+enum LN_CMDS
+{
+	LN_BROWSE,
+	LN_COPY,
+	LN_CONV,
+	LN_DELETE,
+	LN_EDIT,
+	LN_EXECUTE,
+	LN_FORMAT,
+	LN_INFO,
+	LN_LIST,
+	LN_MODIFY,
+	LN_NANO,
+	LN_RENAME,
+	LN_TREE,
+	LN_TTREE,
+	LN_VIEW,
+	LN_VI,
+	LN_LINK
+} ;
+
 
 using namespace boost::filesystem ;
 
@@ -103,4 +124,23 @@ class PFLST0A : public pApplication
 		string isticky  ;
 		string iownern  ;
 		string igroupn  ;
+
+		map<string,LN_CMDS> line_cmds  = { { "B",        LN_BROWSE  },
+						   { "C",        LN_COPY    },
+						   { "CONV",     LN_CONV    },
+						   { "D",        LN_DELETE  },
+						   { "E",        LN_EDIT    },
+						   { "EX",       LN_EXECUTE },
+						   { "FMT",      LN_FORMAT  },
+						   { "I",        LN_INFO    },
+						   { "L",        LN_LIST    },
+						   { "M",        LN_MODIFY  },
+						   { "NANO",     LN_NANO    },
+						   { "R",        LN_RENAME  },
+						   { "T",        LN_TREE    },
+						   { "TT",       LN_TTREE   },
+						   { "V",        LN_VIEW    },
+						   { "VI",       LN_VI      },
+						   { "X",        LN_LINK    } } ;
+
 } ;

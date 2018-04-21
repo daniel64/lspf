@@ -47,6 +47,14 @@ IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
 
 .HELP = HFLST01
 
+)REINIT
+
+IF (.MSG EQ &Z)
+   &SEL = &Z
+   REFRESH(SEL)
+ELSE
+   IF (&SEL NE &Z) .ATTR(SEL) = 'COLOUR(RED)'
+
 )PROC
 
 &A = upper(ZCMD)
@@ -55,7 +63,14 @@ IF (&A EQ RES) &ZCMD = RESET
 ELSE
    IF (&A EQ REF) &ZCMD = REFRESH
 
-VER (&SEL LIST,=,B,C,CONV,D,E,EX,FMT,I,L,M,NANO,R,S,T,TT,V,VI,X)
+IF (&SEL EQ '=')
+   IF (&OSEL NE &Z) &SEL  = &OSEL
+ELSE
+   IF (&SEL NE &Z)  &OSEL = &SEL
+
+VER (&SEL LIST,B,C,CONV,D,E,EX,FMT,I,L,M,NANO,R,S,T,TT,V,VI,X)
+
+IF (&SEL EQ 'S' ) &SEL = TRANS(&TYPE, 'Dir','L' 'File','B' *,* )
 
 &EXGEN = TRANS( &EXGEN &Z,&Z *,/ )
 VPUT (EXGEN) PROFILE

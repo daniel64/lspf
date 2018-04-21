@@ -49,7 +49,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 	vector<string> pSource      ;
 	vector<string>::iterator it ;
 
-	map<string, field *>::iterator it1;
+	map<string, field*>::iterator it1;
 
 	parser panelLang ;
 	panelLang.optionUpper() ;
@@ -274,7 +274,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		}
 		if ( init || abcinit || reinit || proc || abcproc )
 		{
-			panstmnt * m_stmnt = new panstmnt ;
+			panstmnt* m_stmnt = new panstmnt ;
 			m_stmnt->ps_column = pline.find_first_not_of( ' ' ) ;
 			vector<panstmnt* >* p_stmnt ;
 			if      ( init )    { p_stmnt = &initstmnts ; }
@@ -553,7 +553,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		}
 		else if ( w1 == "LITERAL" )
 		{
-			literal * m_lit = new literal ;
+			literal* m_lit = new literal ;
 			m_lit->literal_init( err, wscrmaxw, wscrmaxd, opt_field, pline ) ;
 			if ( err.error() )
 			{
@@ -570,7 +570,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		}
 		else if ( w1 == "FIELD" )
 		{
-			field * fld = new field ;
+			field* fld = new field ;
 			fld->field_init( err, wscrmaxw, wscrmaxd, upper( pline ) ) ;
 			if ( err.error() )
 			{
@@ -615,7 +615,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				return ;
 			}
 
-			dynArea * m_dynArea = new dynArea ;
+			dynArea* m_dynArea = new dynArea ;
 			m_dynArea->dynArea_init( err, wscrmaxw, wscrmaxd, upper( pline ) ) ;
 			if ( err.error() )
 			{
@@ -646,7 +646,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		else if ( w1 == "BOX" )
 		{
 			debug2( "Creating box" << endl ) ;
-			Box * m_box = new Box ;
+			Box* m_box = new Box ;
 			m_box->box_init( err, wscrmaxw, wscrmaxd, pline ) ;
 			if ( err.error() )
 			{

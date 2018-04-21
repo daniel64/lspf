@@ -37,4 +37,7 @@ Loads! some good, and some bad but in no particular order...
     ZRSN    = 999
     ZRESULT = "Abended"
 17) lspf tables are open per thread, not per logical screen.
+18) .ATTR() can be used to change the CUA field attribute colour/hilight/intensity.  ISPF does not allow this.
+19) No .ATTRCHA() function.  Characters aren't used to determine field attributes.
+20) Dynamic areas can only have one DATAIN and one DATAOUT attribute.
 

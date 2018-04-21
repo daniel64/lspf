@@ -73,12 +73,12 @@ using namespace boost::filesystem ;
 #define MOD_NAME POREXX1
 
 
-RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext *, RexxStringObject, RexxStringObject ) ;
+RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext*, RexxStringObject, RexxStringObject ) ;
 
-int getRexxVariable( pApplication *, string, string & ) ;
+int getRexxVariable( pApplication*, string, string & ) ;
 int setRexxVariable( string, string ) ;
-int getAllRexxVariables( pApplication * ) ;
-int setAllRexxVariables( pApplication * ) ;
+int getAllRexxVariables( pApplication* ) ;
+int setAllRexxVariables( pApplication* ) ;
 
 boost::mutex POREXX1::mtx ;
 
@@ -109,8 +109,8 @@ void POREXX1::application()
 		return    ;
 	}
 
-	RexxInstance *instance   ;
-	RexxThreadContext *threadContext ;
+	RexxInstance* instance   ;
+	RexxThreadContext* threadContext ;
 	RexxArrayObject args     ;
 	RexxCondition condition  ;
 	RexxDirectoryObject cond ;
@@ -125,11 +125,11 @@ void POREXX1::application()
 	environments[ 1 ].name    = ""   ;
 
 	options[ 0 ].optionName = APPLICATION_DATA ;
-	options[ 0 ].option     = (void *)this     ;
-	options[ 1 ].optionName = DIRECT_ENVIRONMENTS  ;
-	options[ 1 ].option     = (void *)environments ;
-	options[ 2 ].optionName = EXTERNAL_CALL_PATH   ;
-	options[ 2 ].option     = rxpath.c_str()       ;
+	options[ 0 ].option     = (void*)this      ;
+	options[ 1 ].optionName = DIRECT_ENVIRONMENTS ;
+	options[ 1 ].option     = (void*)environments ;
+	options[ 2 ].optionName = EXTERNAL_CALL_PATH  ;
+	options[ 2 ].option     = rxpath.c_str()      ;
 	options[ 3 ].optionName = ""  ;
 
 	lock() ;
@@ -195,7 +195,7 @@ void POREXX1::application()
 }
 
 
-RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext *context,
+RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext* context,
 					    RexxStringObject address,
 					    RexxStringObject command )
 {
@@ -207,12 +207,12 @@ RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext *context,
 
 	int sRC   ;
 
-	void * vptr ;
+	void* vptr ;
 
 	string s = context->CString( command ) ;
 
 	vptr = context->GetApplicationData() ;
-	pApplication * thisAppl = static_cast<pApplication *>(vptr) ;
+	pApplication* thisAppl = static_cast<pApplication*>(vptr) ;
 
 	getAllRexxVariables( thisAppl ) ;
 
@@ -224,7 +224,7 @@ RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext *context,
 }
 
 
-int getAllRexxVariables( pApplication * thisAppl )
+int getAllRexxVariables( pApplication* thisAppl )
 {
 	// For all variables in the rexx variable pool, set the lspf function pool variable.
 	// Executed on entry to the command handler from a REXX procedure before any lspf
@@ -266,15 +266,15 @@ int getAllRexxVariables( pApplication * thisAppl )
 				thisAppl->vreplace( n, v ) ;
 			}
 		}
-		RexxFreeMemory( (void *)var.shvname.strptr )  ;
-		RexxFreeMemory( (void *)var.shvvalue.strptr ) ;
+		RexxFreeMemory( (void*)var.shvname.strptr )  ;
+		RexxFreeMemory( (void*)var.shvvalue.strptr ) ;
 		if ( var.shvret & RXSHV_LVAR ) { break ; }
 	}
 	return rc ;
 }
 
 
-int setAllRexxVariables( pApplication * thisAppl )
+int setAllRexxVariables( pApplication* thisAppl )
 {
 	// For all variables in the application function pool, set the rexx variable.
 	// Executed before returning to the REXX procedure after a call to the command handler
@@ -290,7 +290,7 @@ int setAllRexxVariables( pApplication * thisAppl )
 
 	string w  ;
 	string vi ;
-	string * vs ;
+	string* vs ;
 
 	ws = words( vl ) ;
 	for ( i = 1 ; i <= ws ; i++ )
@@ -313,13 +313,13 @@ int setAllRexxVariables( pApplication * thisAppl )
 }
 
 
-int getRexxVariable( pApplication * thisAppl, string n, string & v )
+int getRexxVariable( pApplication* thisAppl, string n, string & v )
 {
 	// Get variable value from Rexx variable pool and update the application function pool
 
 	int rc ;
 
-	const char * name = n.c_str() ;
+	const char* name = n.c_str() ;
 
 	SHVBLOCK var ;                       /* variable pool control block   */
 	var.shvcode = RXSHV_SYFET ;          /* do a symbolic fetch operation */
@@ -338,15 +338,15 @@ int getRexxVariable( pApplication * thisAppl, string n, string & v )
 		thisAppl->vreplace( n, v ) ;
 		rc = thisAppl->RC          ;
 	}
-	RexxFreeMemory( (void *)var.shvvalue.strptr ) ;
+	RexxFreeMemory( (void*)var.shvvalue.strptr ) ;
 	return rc ;
 }
 
 
 int setRexxVariable( string n, string v )
 {
-	const char * name = n.c_str() ;
-	char * value      = (char *)v.c_str() ;
+	const char* name = n.c_str() ;
+	char* value      = (char*)v.c_str() ;
 
 	SHVBLOCK var ;                       /* variable pool control block   */
 	var.shvcode = RXSHV_SYSET  ;         /* do a symbolic set operation   */
@@ -363,6 +363,6 @@ int setRexxVariable( string n, string v )
 
 // ============================================================================================ //
 
-extern "C" { pApplication *maker() { return new POREXX1 ; } }
-extern "C" { void destroy(pApplication *p) { delete p ; } }
+extern "C" { pApplication* maker() { return new POREXX1 ; } }
+extern "C" { void destroy(pApplication* p) { delete p ; } }
 

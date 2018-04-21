@@ -136,5 +136,5 @@ void PDLGTST::prepPanels()
 
 // ============================================================================================ //
 
-extern "C" { pApplication *maker() { return new PDLGTST ; } }
-extern "C" { void destroy(pApplication *p) { delete p ; } }
+extern "C" { pApplication* maker() { return new PDLGTST ; } }
+extern "C" { void destroy(pApplication* p) { delete p ; } }
