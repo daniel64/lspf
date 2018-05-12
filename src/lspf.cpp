@@ -108,6 +108,9 @@ unsigned int pLScreen::maxScreenId  = 0 ;
 unsigned int pLScreen::maxrow       = 0 ;
 unsigned int pLScreen::maxcol       = 0 ;
 
+set<int> pLScreen::screenNums ;
+map<int,int> pLScreen::openedByList ;
+
 WINDOW* pLScreen::OIA       = NULL ;
 PANEL*  pLScreen::OIA_panel = NULL ;
 
@@ -183,7 +186,6 @@ void serviceCallError( errblock& )     ;
 void mainLoop() ;
 
 vector<pLScreen*> screenList ;
-map<int,int> openedByList    ;
 
 struct appInfo
 {
@@ -192,11 +194,11 @@ struct appInfo
 	void* dlib        ;
 	void* maker_ep    ;
 	void* destroyer_ep ;
-	bool   mainpgm    ;
-	bool   dlopened   ;
-	bool   errors     ;
-	bool   relPending ;
-	int    refCount   ;
+	bool  mainpgm     ;
+	bool  dlopened    ;
+	bool  errors      ;
+	bool  relPending  ;
+	int   refCount    ;
 } ;
 
 map<string, appInfo> apps ;
@@ -206,7 +208,7 @@ boost::circular_buffer<string> retrieveBuffer( 99 ) ;
 int    linePosn  = -1 ;
 int    maxtaskID = 0  ;
 uint   retPos    = 0  ;
-uint   screenNum = 0  ;
+uint   priScreen = 0  ;
 uint   altScreen = 0  ;
 string ctlAction      ;
 string commandStack   ;
@@ -324,8 +326,8 @@ int main( void )
 	lspfStatus   = 'R'   ;
 	err.settask( 1 )     ;
 
-	screenList.push_back( new pLScreen ) ;
-	openedByList[ 1 ] = 0 ;
+	screenList.push_back( new pLScreen( 0, ZMAXSCRN ) ) ;
+
 	currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
 
 	llog( "I", "lspf startup in progress" << endl ) ;
@@ -478,7 +480,7 @@ void mainLoop()
 		currScrn->clear_status() ;
 		currScrn->get_cursor( row, col ) ;
 
-		currScrn->OIA_update( screenNum, altScreen, boost::posix_time::microsec_clock::universal_time() ) ;
+		currScrn->OIA_update( priScreen, altScreen, boost::posix_time::microsec_clock::universal_time() ) ;
 		currScrn->show_lock( showLock ) ;
 
 		showLock      = false ;
@@ -1496,7 +1498,7 @@ void processZCOMMAND( uint row, uint col )
 			terminateApplication() ;
 			if ( pLScreen::screensTotal == 0 ) { return ; }
 		}
-		break ;
+		return ;
 
 	case ZC_DOT_AUTO:
 		currAppl->set_cursor( row, col ) ;
@@ -2044,7 +2046,7 @@ void terminateApplication()
 	uint row ;
 	uint col ;
 
-	string ZAPPNAME ;
+	string zappname ;
 	string tRESULT  ;
 	string tMSGID1  ;
 	string fname    ;
@@ -2069,7 +2071,7 @@ void terminateApplication()
 
 	llog( "I", "Application terminating "+ currAppl->get_appname() +" ID: "<< currAppl->taskid() << endl ) ;
 
-	ZAPPNAME = currAppl->get_appname() ;
+	zappname = currAppl->get_appname() ;
 
 	currAppl->closeTables()  ;
 	currAppl->unloadCommandTable() ;
@@ -2114,14 +2116,14 @@ void terminateApplication()
 
 	if ( currAppl->abnormalTimeout )
 	{
-		llog( "I", "Moving application instance of "+ ZAPPNAME +" to timeout queue" << endl ) ;
+		llog( "I", "Moving application instance of "+ zappname +" to timeout queue" << endl ) ;
 		pApplicationTimeout.push_back( currAppl ) ;
 	}
 	else
 	{
-		llog( "I", "Removing application instance of "+ ZAPPNAME << endl ) ;
-		apps[ ZAPPNAME ].refCount-- ;
-		((void (*)(pApplication*))(apps[ ZAPPNAME ].destroyer_ep))( currAppl ) ;
+		llog( "I", "Removing application instance of "+ zappname << endl ) ;
+		apps[ zappname ].refCount-- ;
+		((void (*)(pApplication*))(apps[ zappname ].destroyer_ep))( currAppl ) ;
 		delete pThread ;
 	}
 
@@ -2143,17 +2145,17 @@ void terminateApplication()
 
 	p_poolMGR->put( err, "ZPANELID", currAppl->get_panelid(), SHARED, SYSTEM ) ;
 
-	if ( apps[ ZAPPNAME ].refCount == 0 && apps[ ZAPPNAME ].relPending )
+	if ( apps[ zappname ].refCount == 0 && apps[ zappname ].relPending )
 	{
-		apps[ ZAPPNAME ].relPending = false ;
-		llog( "I", "Reloading module "+ ZAPPNAME +" (pending reload status)" << endl ) ;
-		if ( loadDynamicClass( ZAPPNAME ) )
+		apps[ zappname ].relPending = false ;
+		llog( "I", "Reloading module "+ zappname +" (pending reload status)" << endl ) ;
+		if ( loadDynamicClass( zappname ) )
 		{
-			llog( "I", "Loaded "+ ZAPPNAME +" (module "+ apps[ ZAPPNAME ].module +") from "+ apps[ ZAPPNAME ].file << endl ) ;
+			llog( "I", "Loaded "+ zappname +" (module "+ apps[ zappname ].module +") from "+ apps[ zappname ].file << endl ) ;
 		}
 		else
 		{
-			llog( "W", "Errors occured loading "+ ZAPPNAME +"  Module removed" << endl ) ;
+			llog( "W", "Errors occured loading "+ zappname +"  Module removed" << endl ) ;
 		}
 	}
 
@@ -2302,7 +2304,7 @@ void terminateApplication()
 		}
 	}
 
-	llog( "I", "Application terminatation of "+ ZAPPNAME +" completed.  Current application is "+ currAppl->get_appname() << endl ) ;
+	llog( "I", "Application terminatation of "+ zappname +" completed.  Current application is "+ currAppl->get_appname() << endl ) ;
 	currAppl->restore_Zvars( currScrn->screenId ) ;
 	currAppl->display_id() ;
 	currScrn->set_cursor( currAppl ) ;
@@ -2311,8 +2313,6 @@ void terminateApplication()
 
 bool createLogicalScreen()
 {
-	int openedBy_lscreen ;
-
 	err.clear() ;
 
 	if ( !currAppl->ControlSplitEnable )
@@ -2321,64 +2321,47 @@ bool createLogicalScreen()
 		issueMessage( "PSYS011" ) ;
 		return false ;
 	}
+
 	if ( pLScreen::screensTotal == ZMAXSCRN )
 	{
 		issueMessage( "PSYS011D" ) ;
 		return false ;
 	}
 
-	openedBy_lscreen = currScrn->screenId ;
-
 	currScrn->save_panel_stack()  ;
 	updateDefaultVars()           ;
-	altScreen = screenNum         ;
-	screenNum = screenList.size() ;
-	screenList.push_back( new pLScreen ) ;
+	altScreen = priScreen         ;
+	priScreen = screenList.size() ;
+
+	screenList.push_back( new pLScreen( currScrn->screenId, ZMAXSCRN ) ) ;
 	currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
-	openedByList[ currScrn->screenId ] = openedBy_lscreen ;
 	return true ;
 }
 
 
 void deleteLogicalScreen()
 {
-	// Delete a logical screen and set the active screen to the one that opened it.
-	// Update the openedByList so any screen opened by the deleted screen, appears opened by its predecesor.
+	// Delete a logical screen and set the active screen to the one that opened it (or its predecessor if
+	// that too has been closed)
 
-	int screenId = currScrn->screenId ;
-	int openedBy = openedByList[ screenId ] ;
+	int openedBy = currScrn->get_openedBy() ;
 
 	delete currScrn ;
-	openedByList.erase( screenId ) ;
 
-	for ( auto it = openedByList.begin() ; it != openedByList.end() ; it++ )
+	screenList.erase( screenList.begin() + priScreen ) ;
+
+	if ( altScreen > priScreen ) { altScreen-- ; }
+
+	auto it   = screenList.begin() ;
+	priScreen = (*it)->get_priScreen( openedBy ) ;
+
+	if ( priScreen == altScreen )
 	{
-		if ( it->second == screenId )
-		{
-			it->second = openedBy ;
-		}
-	}
-
-	screenList.erase( screenList.begin() + screenNum ) ;
-
-	if ( altScreen > screenNum ) { altScreen-- ; }
-
-	screenNum = 0 ;
-	if ( openedBy != 0 )
-	{
-		for ( auto it = openedByList.begin() ; it != openedByList.end() ; it++, screenNum++ )
-		{
-			if ( it->first == openedBy ) { break ; }
-		}
-	}
-
-	if ( screenNum == altScreen )
-	{
-		altScreen = ( screenNum == 0 ) ? pLScreen::screensTotal - 1 : 0 ;
+		altScreen = ( priScreen == 0 ) ? pLScreen::screensTotal - 1 : 0 ;
 
 	}
 
-	currScrn = screenList[ screenNum ] ;
+	currScrn = screenList[ priScreen ] ;
 	currScrn->restore_panel_stack()    ;
 	currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
 }
@@ -2804,7 +2787,7 @@ void createSharedPoolVars( const string& applid )
 {
 	err.clear() ;
 
-	p_poolMGR->put( err, "ZSCREEN", string( 1, zscreen[ screenNum ] ), SHARED, SYSTEM ) ;
+	p_poolMGR->put( err, "ZSCREEN", string( 1, zscreen[ priScreen ] ), SHARED, SYSTEM ) ;
 	p_poolMGR->put( err, "ZSCRNUM", d2ds( currScrn->screenId ), SHARED, SYSTEM ) ;
 	p_poolMGR->put( err, "ZAPPLID", applid, SHARED, SYSTEM ) ;
 	p_poolMGR->put( err, "ZPFKEY", "PF00", SHARED, SYSTEM ) ;
@@ -2860,6 +2843,7 @@ void lineOutput()
 		currScrn->save_panel_stack() ;
 		currScrn->clear() ;
 		linePosn = 0 ;
+		beep() ;
 	}
 
 	currScrn->show_busy() ;
@@ -2887,7 +2871,7 @@ void lineOutput()
 		}
 	} while ( t.size() > 0 ) ;
 
-	currScrn->OIA_update( screenNum, altScreen, boost::posix_time::microsec_clock::universal_time() ) ;
+	currScrn->OIA_update( priScreen, altScreen, boost::posix_time::microsec_clock::universal_time() ) ;
 
 	wnoutrefresh( stdscr ) ;
 	wnoutrefresh( OIA ) ;
@@ -2964,8 +2948,8 @@ string listLogicalScreens()
 	for ( i = 0, its = screenList.begin() ; its != screenList.end() ; its++, i++ )
 	{
 		appl = (*its)->application_get_current() ;
-		ln   = d2ds( (*its)->screenId )          ;
-		if      ( i == screenNum ) { ln += "*" ; m = i ; }
+		ln   = d2ds( (*its)->get_screenNum() )         ;
+		if      ( i == priScreen ) { ln += "*" ; m = i ; }
 		else if ( i == altScreen ) { ln += "-"         ; }
 		else                       { ln += " "         ; }
 		t = appl->get_current_panelDesc() ;
@@ -3173,7 +3157,7 @@ void autoUpdate()
 	{
 		currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
 		ResumeApplicationAndWait() ;
-		currScrn->OIA_update( screenNum, altScreen, boost::posix_time::microsec_clock::universal_time() ) ;
+		currScrn->OIA_update( priScreen, altScreen, boost::posix_time::microsec_clock::universal_time() ) ;
 		wnoutrefresh( stdscr ) ;
 		wnoutrefresh( OIA ) ;
 		update_panels() ;
@@ -3262,7 +3246,7 @@ void lspfCallbackHandler( lspfCommand& lc )
 		for ( its = screenList.begin() ; its != screenList.end() ; its++ )
 		{
 			appl = (*its)->application_get_current()       ;
-			lc.reply.push_back( d2ds( (*its)->screenId ) ) ;
+			lc.reply.push_back( d2ds( (*its)->get_screenNum() ) ) ;
 			lc.reply.push_back( appl->get_appname()   )    ;
 		}
 		lc.RC = 0 ;
@@ -3351,6 +3335,7 @@ void errorScreen( int etype, const string& msg )
 	currScrn->clear() ;
 	currScrn->show_enter() ;
 
+	beep() ;
 	attrset( WHITE | A_BOLD ) ;
 	mvaddstr( 0, 0, msg.c_str() ) ;
 	mvaddstr( 1, 0, "See lspf and application logs for possible further details of the error" ) ;
@@ -3447,7 +3432,7 @@ void actionSwap( uint& row, uint& col )
 
 	currScrn->save_panel_stack() ;
 	currAppl->store_scrname()    ;
-	if ( w1 =="*" ) { w1 = d2ds( screenNum+1 ) ; }
+	if ( w1 =="*" ) { w1 = d2ds( priScreen+1 ) ; }
 	if ( w1 != "" && w1 != "NEXT" && w1 != "PREV" && isvalidName( w1 ) )
 	{
 		l = getScreenNameNum( w1 ) ;
@@ -3461,24 +3446,24 @@ void actionSwap( uint& row, uint& col )
 
 	if ( w1 == "NEXT" )
 	{
-		screenNum++ ;
-		screenNum = (screenNum == pLScreen::screensTotal ? 0 : screenNum) ;
-		if ( altScreen == screenNum )
+		priScreen++ ;
+		priScreen = (priScreen == pLScreen::screensTotal ? 0 : priScreen) ;
+		if ( altScreen == priScreen )
 		{
 			altScreen = (altScreen == 0 ? (pLScreen::screensTotal - 1) : (altScreen - 1) ) ;
 		}
 	}
 	else if ( w1 == "PREV" )
 	{
-		if ( screenNum == 0 )
+		if ( priScreen == 0 )
 		{
-			screenNum = pLScreen::screensTotal - 1 ;
+			priScreen = pLScreen::screensTotal - 1 ;
 		}
 		else
 		{
-			screenNum-- ;
+			priScreen-- ;
 		}
-		if ( altScreen == screenNum )
+		if ( altScreen == priScreen )
 		{
 			altScreen = ((altScreen == pLScreen::screensTotal - 1) ? 0 : (altScreen + 1) ) ;
 		}
@@ -3488,23 +3473,23 @@ void actionSwap( uint& row, uint& col )
 		i = ds2d( w1 ) - 1 ;
 		if ( i < pLScreen::screensTotal )
 		{
-			if ( i != screenNum )
+			if ( i != priScreen )
 			{
 				if ( w2 == "*" || i == altScreen )
 				{
-					altScreen = screenNum ;
+					altScreen = priScreen ;
 				}
-				screenNum = i ;
+				priScreen = i ;
 			}
 		}
 		else
 		{
-			swap( screenNum, altScreen ) ;
+			swap( priScreen, altScreen ) ;
 		}
 		if ( datatype( w2, 'W' ) && w1 != w2 )
 		{
 			i = ds2d( w2 ) - 1 ;
-			if ( i >= 0 && i != screenNum && i < pLScreen::screensTotal )
+			if ( i >= 0 && i != priScreen && i < pLScreen::screensTotal )
 			{
 				altScreen = i ;
 			}
@@ -3512,10 +3497,10 @@ void actionSwap( uint& row, uint& col )
 	}
 	else
 	{
-		swap( screenNum, altScreen ) ;
+		swap( priScreen, altScreen ) ;
 	}
 
-	currScrn = screenList[ screenNum ] ;
+	currScrn = screenList[ priScreen ] ;
 	currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
 	currAppl = currScrn->application_get_current() ;
 
@@ -3613,8 +3598,8 @@ void executeFieldCommand( const string& field_name, const fieldExc& fxc, uint co
 
 	SELCT.PARM += " " + currAppl->currPanel->field_getvalue( field_name ) ;
 	currAppl->reffield = field_name ;
-	currAppl->currPanel->field_get_col( field_name, cl ) ;
-	p_poolMGR->put( err, "ZFECSRP", d2ds( col - cl + 1 ), SHARED )  ;
+	cl = currAppl->currPanel->field_get_col( field_name ) ;
+	p_poolMGR->put( err, "ZFECSRP", d2ds( col - cl + 1 ), SHARED ) ;
 
 	for( ws = words( fxc.fieldExc_passed ), i = 1 ; i <= ws ; i++ )
 	{

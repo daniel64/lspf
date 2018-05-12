@@ -26,14 +26,17 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 
 	size_t p1 ;
 
-	string ww         ;
-	string w1         ;
-	string w6, w7, ws ;
-	string t1, t2     ;
-	string pline      ;
-	string oline      ;
-	string fld, hlp   ;
-	string abc_desc   ;
+	string ww ;
+	string w1 ;
+	string w6 ;
+	string w7 ;
+	string ws ;
+	string t1 ;
+	string t2 ;
+	string pline    ;
+	string oline    ;
+	string fld, hlp ;
+	string abc_desc ;
 
 	bool abc     = false ;
 	bool body    = false ;
@@ -673,9 +676,9 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				err.setsrc( oline ) ;
 				return ;
 			}
-			scrollOn = true      ;
-			tb_model = true      ;
-			tb_row   = start_row ;
+			scrollOn  = true      ;
+			tb_model  = true      ;
+			tb_toprow = start_row ;
 			t1 = subword( pline, 4 ) ;
 			t2 = parseString( err, t1, "ROWS()" ) ;
 			if ( err.error() )
@@ -797,7 +800,11 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 }
 
 
-void pPanel::readPanel( errblock& err, vector<string>& src, const string& name, const string& paths, string slist )
+void pPanel::readPanel( errblock& err,
+			vector<string>& src,
+			const string& name,
+			const string& paths,
+			string slist )
 {
 	int i  ;
 	int p  ;
@@ -1026,7 +1033,11 @@ void pPanel::createPanel_If( errblock& err, parser& v, panstmnt* m_stmnt, bool i
 }
 
 
-void pPanel::createPanel_Else( errblock& err, parser& v, panstmnt* m_stmnt, vector<panstmnt* >* p_stmnt, bool init )
+void pPanel::createPanel_Else( errblock& err,
+			       parser& v,
+			       panstmnt* m_stmnt,
+			       vector<panstmnt* >* p_stmnt,
+			       bool init )
 {
 	// The else-statement may have an inline statement but the address is in the same location.
 

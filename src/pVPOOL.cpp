@@ -29,7 +29,7 @@ fPOOL::~fPOOL()
 {
 	// Free dynamic storage for all variables in the function pool when the pool is deleted
 
-	map<string, stack<fVAR*> >::iterator it ;
+	map<string, stack<fVAR*>>::iterator it ;
 
 	for ( it = POOL.begin() ; it!= POOL.end() ; it++ )
 	{
@@ -95,7 +95,7 @@ void fPOOL::dlete( errblock& err,
 	// RC =  8 Variable not found in the defined area of the function pool
 	// RC = 20 Severe error
 
-	map<string, stack<fVAR*> >::iterator it ;
+	map<string, stack<fVAR*>>::iterator it ;
 
 	err.setRC( 0 ) ;
 
@@ -146,7 +146,7 @@ const string& fPOOL::get( errblock& err,
 			  const string& name,
 			  nameCHCK check )
 {
-	map<string, stack<fVAR*> >::iterator it ;
+	map<string, stack<fVAR*>>::iterator it ;
 
 	err.setRC( 0 ) ;
 
@@ -182,7 +182,7 @@ int fPOOL::get( errblock& err,
 		dataType type,
 		const string& name )
 {
-	map<string, stack<fVAR*> >::iterator it ;
+	map<string, stack<fVAR*>>::iterator it ;
 
 	err.setRC( 0 ) ;
 
@@ -222,7 +222,7 @@ dataType fPOOL::getType( errblock& err,
 			 const string& name,
 			 nameCHCK check )
 {
-	map<string, stack<fVAR*> >::iterator it ;
+	map<string, stack<fVAR*>>::iterator it ;
 
 	err.setRC( 0 ) ;
 
@@ -267,7 +267,7 @@ void fPOOL::put( errblock& err,
 	// RC =  0 OK
 	// RC = 20 Severe error
 
-	map<string, stack<fVAR*> >::iterator it ;
+	map<string, stack<fVAR*>>::iterator it ;
 
 	err.setRC( 0 ) ;
 
@@ -305,7 +305,7 @@ void fPOOL::put( errblock& err,
 	// RC =  0 OK
 	// RC = 20 Severe error
 
-	map<string, stack<fVAR*> >::iterator it ;
+	map<string, stack<fVAR*>>::iterator it ;
 
 	err.setRC( 0 ) ;
 
@@ -340,7 +340,7 @@ void fPOOL::reset( errblock& err )
 {
 	// Free dynamic storage for all variables in the function pool and clear the pool
 
-	map<string, stack<fVAR*> >::iterator it ;
+	map<string, stack<fVAR*>>::iterator it ;
 
 	err.setRC( 0 ) ;
 
@@ -360,7 +360,7 @@ void fPOOL::setmask( errblock& err,
 		     const string& name,
 		     const string& mask )
 {
-	map<string, stack<fVAR*> >::iterator it ;
+	map<string, stack<fVAR*>>::iterator it ;
 
 	err.setRC( 0 ) ;
 
@@ -383,7 +383,7 @@ void fPOOL::setmask( errblock& err,
 const string& fPOOL::vilist( int& RC,
 			     vdType defn )
 {
-	map<string, stack<fVAR*> >::iterator it ;
+	map<string, stack<fVAR*>>::iterator it ;
 
 	varList = "" ;
 	varList.reserve( 9*POOL.size() ) ;
@@ -411,7 +411,7 @@ const string& fPOOL::vilist( int& RC,
 const string& fPOOL::vslist( int& RC,
 			     vdType defn )
 {
-	map<string, stack<fVAR*> >::iterator it ;
+	map<string, stack<fVAR*>>::iterator it ;
 
 	varList = "" ;
 	varList.reserve( 9*POOL.size() ) ;
@@ -440,7 +440,7 @@ string * fPOOL::vlocate( errblock& err,
 			 const string& name,
 			 nameCHCK check )
 {
-	map<string, stack<fVAR*> >::iterator it ;
+	map<string, stack<fVAR*>>::iterator it ;
 
 	err.setRC( 0 ) ;
 
@@ -477,7 +477,7 @@ pVPOOL::~pVPOOL()
 {
 	// Free dynamic storage for all variables in the pool when the pool is deleted
 
-	map< string, pVAR*>::iterator it ;
+	map<string, pVAR*>::iterator it ;
 
 	for ( it = POOL.begin() ; it != POOL.end() ; it++ )
 	{
@@ -893,7 +893,7 @@ void pVPOOL::save( errblock& err,
 	profile << (char)44  ;  // Header length
 	profile << "HDR                                         " ;
 
-	map< string, pVAR*>::iterator it ;
+	map<string, pVAR*>::iterator it ;
 	for ( it = POOL.begin() ; it != POOL.end() ; it++ )
 	{
 		i = it->first.size() ;

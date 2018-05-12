@@ -12,7 +12,7 @@ Loads! some good, and some bad but in no particular order...
 5)  Keylists are kept in their own table, not in the PROFILE file as added table rows.  File name format is
     applid+"KEYP" for private keys in ZUPROF.
 6)  No shared keylist keys.
-7)  Keylists override current PFKEYs only if there is a definition.  Otherwise the normal PFKEY will be in effect.
+7)  Keylists override current PFKEYs only if there is a definition, otherwise the normal PFKEY will be in effect.
     Real ISPF overrides all keys when a keylist is in use (which makes then almost useless)
 8)  No split line in split-screen mode.  Each logical screen gets the full screen.
 9)  Applications can be set to timeout.  No PA1 function, I'm afraid.
@@ -24,7 +24,7 @@ Loads! some good, and some bad but in no particular order...
     what files you are editing or browsing in the list instead of trying to guess which edit session you want.
 14) You can define fields that execute a program when the FIELDEXC command entered and cursor is on the field.
     This is to provide a general way of providing field expansion.
-    If the tab key is pressed when the cursor is not on the first character of the field defined in this way, it acts
+    If the tab key is pressed when the cursor is not on the first character of a field defined in this way, it acts
     as FIELDEXC.  This way the tab key can be used to expand file names (or anything else depending on the
     field execute program invoked)
 15) On returing from calling a program via a SELECT, special variables ZRC, ZRSN and ZRESULT are returned
@@ -40,4 +40,6 @@ Loads! some good, and some bad but in no particular order...
 18) .ATTR() can be used to change the CUA field attribute colour/hilight/intensity.  ISPF does not allow this.
 19) No .ATTRCHA() function.  Characters aren't used to determine field attributes.
 20) Dynamic areas can only have one DATAIN and one DATAOUT attribute.
+21) Pull down menus don't have an input field - select by placing curson on the option and pressing ENTER.
+    Variable specified in .ZVARS in the )ABCINIT will automatically be set the the option number selected.
 

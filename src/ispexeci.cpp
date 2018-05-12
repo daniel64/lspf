@@ -139,7 +139,6 @@ void ispexeci( pApplication* thisAppl, const string& s, errblock& err )
 	}
 
 	it->second( thisAppl, s1, err ) ;
-	return ;
 }
 
 
@@ -149,6 +148,7 @@ void execiAddpop( pApplication* thisAppl, const string& s, errblock& err )
 	int i_col ;
 
 	string str    ;
+
 	string ap_loc ;
 	string ap_row ;
 	string ap_col ;
@@ -177,22 +177,22 @@ void execiAddpop( pApplication* thisAppl, const string& s, errblock& err )
 	}
 
 	thisAppl->addpop( ap_loc, i_row, i_col ) ;
-	return ;
 }
 
 
 void execiBrowse( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str ;
-	string pan ;
-	string fl  ;
+
+	string br_panel ;
+	string br_file  ;
 
 	str = subword( s, 2 ) ;
 
-	fl = parseString( err, str, "FILE()" ) ;
+	br_file = parseString( err, str, "FILE()" ) ;
 	if ( err.error() ) { return ; }
 
-	pan = parseString( err, str, "PANEL()" ) ;
+	br_panel = parseString( err, str, "PANEL()" ) ;
 	if ( err.error() ) { return ; }
 
 	if ( str != "" )
@@ -201,8 +201,7 @@ void execiBrowse( pApplication* thisAppl, const string& s, errblock& err )
 		return ;
 	}
 
-	thisAppl->browse( fl, iupper( pan ) ) ;
-	return ;
+	thisAppl->browse( br_file, iupper( br_panel ) ) ;
 }
 
 
@@ -212,30 +211,30 @@ void execiControl( pApplication* thisAppl, const string& s, errblock& err )
 
 	s1 = upper( s ) ;
 	thisAppl->control( word( s1, 2 ), word( s1, 3 ), subword( s1, 4 ) ) ;
-	return ;
 }
 
 
 void execiDisplay( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str ;
-	string pan ;
-	string msg ;
-	string cursor ;
-	string csrpos ;
+
+	string di_panel ;
+	string di_msg   ;
+	string di_cursor ;
+	string di_csrpos ;
 
 	str = upper( subword( s, 2 ) ) ;
 
-	pan = parseString( err, str, "PANEL()" ) ;
+	di_panel = parseString( err, str, "PANEL()" ) ;
 	if ( err.error() ) { return ; }
 
-	msg = parseString( err, str, "MSG()" ) ;
+	di_msg = parseString( err, str, "MSG()" ) ;
 	if ( err.error() ) { return ; }
 
-	cursor = parseString( err, str, "CURSOR()" ) ;
+	di_cursor = parseString( err, str, "CURSOR()" ) ;
 	if ( err.error() ) { return ; }
 
-	csrpos = parseString( err, str, "CSRPOS()" ) ;
+	di_csrpos = parseString( err, str, "CSRPOS()" ) ;
 	if ( err.error() ) { return ; }
 
 	if ( str != "" )
@@ -244,33 +243,33 @@ void execiDisplay( pApplication* thisAppl, const string& s, errblock& err )
 		return ;
 	}
 
-	if ( csrpos == "" ) { csrpos = "1" ; }
+	if ( di_csrpos == "" ) { di_csrpos = "1" ; }
 
-	thisAppl->display( pan, msg, cursor, ds2d( csrpos ) ) ;
-	return ;
+	thisAppl->display( di_panel, di_msg, di_cursor, ds2d( di_csrpos ) ) ;
 }
 
 
 void execiEdit( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str  ;
-	string pan  ;
-	string mac  ;
-	string prof ;
-	string fl   ;
+
+	string ed_panel ;
+	string ed_macro ;
+	string ed_profile ;
+	string ed_file ;
 
 	str = subword( s, 2 ) ;
 
-	fl = parseString( err, str, "FILE()" ) ;
+	ed_file = parseString( err, str, "FILE()" ) ;
 	if ( err.error() ) { return ; }
 
-	pan = parseString( err, str, "PANEL()" ) ;
+	ed_panel = parseString( err, str, "PANEL()" ) ;
 	if ( err.error() ) { return ; }
 
-	mac = parseString( err, str, "MACRO()" ) ;
+	ed_macro = parseString( err, str, "MACRO()" ) ;
 	if ( err.error() ) { return ; }
 
-	prof = parseString( err, str, "PROFILE()" ) ;
+	ed_profile = parseString( err, str, "PROFILE()" ) ;
 	if ( err.error() ) { return ; }
 
 	if ( str != "" )
@@ -279,44 +278,43 @@ void execiEdit( pApplication* thisAppl, const string& s, errblock& err )
 		return ;
 	}
 
-	thisAppl->edit( fl, iupper( pan ), iupper( mac ), iupper( prof ) ) ;
-	return ;
+	thisAppl->edit( ed_file, iupper( ed_panel ), iupper( ed_macro ), iupper( ed_profile ) ) ;
 }
 
 
 void execiGetmsg( pApplication* thisAppl, const string& s, errblock& err )
 {
-	string msg  ;
-	string smsg ;
-	string lmsg ;
-	string alm  ;
-	string hlp  ;
-	string typ  ;
-	string wndo ;
+	string gm_msg  ;
+	string gm_smsg ;
+	string gm_lmsg ;
+	string gm_alarm ;
+	string gm_help ;
+	string gm_type ;
+	string gm_window ;
 
-	string str  ;
+	string str ;
 
 	str = upper( subword( s, 2 ) ) ;
 
-	msg = parseString( err, str, "MSG()" ) ;
+	gm_msg = parseString( err, str, "MSG()" ) ;
 	if ( err.error() ) { return ; }
 
-	smsg = parseString( err, str, "SHORTMSG()" ) ;
+	gm_smsg = parseString( err, str, "SHORTMSG()" ) ;
 	if ( err.error() ) { return ; }
 
-	lmsg = parseString( err, str, "LONGMSG()" ) ;
+	gm_lmsg = parseString( err, str, "LONGMSG()" ) ;
 	if ( err.error() ) { return ; }
 
-	alm = parseString( err, str, "ALARM()" ) ;
+	gm_alarm = parseString( err, str, "ALARM()" ) ;
 	if ( err.error() ) { return ; }
 
-	hlp = parseString( err, str, "HELP()" ) ;
+	gm_help = parseString( err, str, "HELP()" ) ;
 	if ( err.error() ) { return ; }
 
-	typ = parseString( err, str, "TYPE()" ) ;
+	gm_type = parseString( err, str, "TYPE()" ) ;
 	if ( err.error() ) { return ; }
 
-	wndo = parseString( err, str, "WINDOW()" ) ;
+	gm_window = parseString( err, str, "WINDOW()" ) ;
 	if ( err.error() ) { return ; }
 
 	if ( str != "" )
@@ -325,16 +323,16 @@ void execiGetmsg( pApplication* thisAppl, const string& s, errblock& err )
 		return ;
 	}
 
-	thisAppl->getmsg( msg, smsg, lmsg, alm, hlp, typ, wndo ) ;
-	return ;
+	thisAppl->getmsg( gm_msg, gm_smsg, gm_lmsg, gm_alarm, gm_help, gm_type, gm_window ) ;
 }
 
 
 void execiLibdef( pApplication* thisAppl, const string& s, errblock& err )
 {
-	string ld_files ;
 	string str      ;
-	string procopt  ;
+
+	string ld_files ;
+	string ld_procopt ;
 
 	str      = subword( s, 2 ) ;
 	ld_files = parseString( err, str, "ID()" ) ;
@@ -348,20 +346,20 @@ void execiLibdef( pApplication* thisAppl, const string& s, errblock& err )
 
 	iupper( str ) ;
 
-	procopt = word( str, 3 ) ;
+	ld_procopt = word( str, 3 ) ;
 
-	thisAppl->libdef( word( str, 1 ), word( str, 2 ), ld_files, procopt ) ;
-	return ;
+	thisAppl->libdef( word( str, 1 ), word( str, 2 ), ld_files, ld_procopt ) ;
 }
 
 
 void execiLog( pApplication* thisAppl, const string& s, errblock& err )
 {
-	string msgid ;
 	string str   ;
 
-	str   = upper( subword( s, 2 ) ) ;
-	msgid = parseString( err, str, "MSG()" ) ;
+	string lg_msgid ;
+
+	str = upper( subword( s, 2 ) ) ;
+	lg_msgid = parseString( err, str, "MSG()" ) ;
 	if ( err.error() ) { return ; }
 
 	if ( words( str ) > 0 )
@@ -370,14 +368,14 @@ void execiLog( pApplication* thisAppl, const string& s, errblock& err )
 		return ;
 	}
 
-	thisAppl->log( msgid ) ;
-	return ;
+	thisAppl->log( lg_msgid ) ;
 }
 
 
 void execiPquery( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str      ;
+
 	string pq_panel ;
 	string pq_arean ;
 	string pq_areat ;
@@ -414,8 +412,13 @@ void execiPquery( pApplication* thisAppl, const string& s, errblock& err )
 		return ;
 	}
 
-	thisAppl->pquery( pq_panel, pq_arean, pq_areat, pq_width, pq_depth, pq_row, pq_col ) ;
-	return ;
+	thisAppl->pquery( pq_panel,
+			  pq_arean,
+			  pq_areat,
+			  pq_width,
+			  pq_depth,
+			  pq_row,
+			  pq_col ) ;
 }
 
 
@@ -442,7 +445,6 @@ void execiQlibdef( pApplication* thisAppl, const string& s, errblock& err )
 	}
 
 	thisAppl->qlibdef( ql_lib, ql_type, ql_id ) ;
-	return ;
 }
 
 
@@ -462,7 +464,6 @@ void execiQtabopen( pApplication* thisAppl, const string& s, errblock& err )
 	}
 
 	thisAppl->qtabopen( qt_list ) ;
-	return ;
 }
 
 
@@ -472,14 +473,12 @@ void execiRDisplay( pApplication* thisAppl, const string& s, errblock& err )
 	// already been done.
 
 	thisAppl->rdisplay( substr( s, 10 ), false ) ;
-	return ;
 }
 
 
 void execiRempop( pApplication* thisAppl, const string& s, errblock& err )
 {
 	thisAppl->rempop( upper( subword( s, 2 ) ) ) ;
-	return ;
 }
 
 
@@ -493,13 +492,12 @@ void execiSelect( pApplication* thisAppl, const string& s, errblock& err )
 	if ( !SEL.parse( err, subword( s, 2 ) ) ) { return ; }
 
 
-	if ( SEL.PGM[ 0 ] == '&' )
+	if ( SEL.PGM.front() == '&' )
 	{
 		thisAppl->vcopy( SEL.PGM.erase( 0, 1 ), SEL.PGM, MOVE ) ;
 	}
 
 	thisAppl->select( SEL ) ;
-	return ;
 }
 
 
@@ -524,13 +522,13 @@ void execiSetmsg( pApplication* thisAppl, const string& s, errblock& err )
 	}
 
 	thisAppl->setmsg( s_msg, t ) ;
-	return ;
 }
 
 
 void execiTBAdd( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str        ;
+
 	string tb_name    ;
 	string tb_namelst ;
 	string tb_numrows ;
@@ -547,13 +545,13 @@ void execiTBAdd( pApplication* thisAppl, const string& s, errblock& err )
 	if ( tb_numrows == "" ) { tb_numrows = "0" ; }
 
 	thisAppl->tbadd( tb_name, tb_namelst, str, ds2d( tb_numrows ) ) ;
-	return ;
 }
 
 
 void execiTBBottom( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str       ;
+
 	string tb_name   ;
 	string tb_savenm ;
 	string tb_crpnm  ;
@@ -572,13 +570,13 @@ void execiTBBottom( pApplication* thisAppl, const string& s, errblock& err )
 	if ( err.error() ) { return ; }
 
 	thisAppl->tbbottom( tb_name, tb_savenm, tb_rowid, str, tb_crpnm ) ;
-	return ;
 }
 
 
 void execiTBClose( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str      ;
+
 	string tb_name  ;
 	string tb_nname ;
 	string tb_path  ;
@@ -599,7 +597,6 @@ void execiTBClose( pApplication* thisAppl, const string& s, errblock& err )
 	}
 
 	thisAppl->tbclose( tb_name, tb_nname, tb_path ) ;
-	return ;
 }
 
 
@@ -607,6 +604,7 @@ void execiTBCreate( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str      ;
 	string t        ;
+
 	string tb_name  ;
 	string tb_keys  ;
 	string tb_names ;
@@ -658,8 +656,13 @@ void execiTBCreate( pApplication* thisAppl, const string& s, errblock& err )
 		return ;
 	}
 
-	thisAppl->tbcreate( tb_name, tb_keys, tb_names, tb_write, tb_rep, tb_paths, tb_disp ) ;
-	return ;
+	thisAppl->tbcreate( tb_name,
+			    tb_keys,
+			    tb_names,
+			    tb_write,
+			    tb_rep,
+			    tb_paths,
+			    tb_disp ) ;
 }
 
 
@@ -672,7 +675,6 @@ void execiTBDelete( pApplication* thisAppl, const string& s, errblock& err )
 	}
 
 	thisAppl->tbdelete( upper( word( s, 2 ) ) ) ;
-	return ;
 }
 
 
@@ -682,20 +684,22 @@ void execiTBDispl( pApplication* thisAppl, const string& s, errblock& err )
 	int i_csrrow ;
 
 	string str  ;
-	string tb_name ;
-	string tb_pan  ;
-	string tb_msg  ;
+
+	string tb_name  ;
+	string tb_panel ;
+	string tb_msg   ;
 	string tb_cursor  ;
 	string tb_csrrow  ;
 	string tb_csrpos  ;
 	string tb_autosel ;
 	string tb_posn    ;
 	string tb_rowid   ;
+	string tb_msgloc  ;
 
 	tb_name = upper( word( s, 2 ) ) ;
 	str = upper( subword( s, 3 ) ) ;
 
-	tb_pan = parseString( err, str, "PANEL()" ) ;
+	tb_panel = parseString( err, str, "PANEL()" ) ;
 	if ( err.error() ) { return ; }
 
 	tb_msg = parseString( err, str, "MSG()" ) ;
@@ -723,14 +727,25 @@ void execiTBDispl( pApplication* thisAppl, const string& s, errblock& err )
 	tb_rowid = parseString( err, str, "ROWID()" ) ;
 	if ( err.error() ) { return ; }
 
+	tb_msgloc = parseString( err, str, "MSGLOC()" ) ;
+	if ( err.error() ) { return ; }
+
 	if ( str != "" )
 	{
 		err.seterrid( "PSYE032H", str ) ;
 		return ;
 	}
 
-	thisAppl->tbdispl( tb_name, tb_pan, tb_msg, tb_cursor, i_csrrow, i_csrpos, tb_autosel, tb_posn, tb_rowid ) ;
-	return ;
+	thisAppl->tbdispl( tb_name,
+			   tb_panel,
+			   tb_msg,
+			   tb_cursor,
+			   i_csrrow,
+			   i_csrpos,
+			   tb_autosel,
+			   tb_posn,
+			   tb_rowid,
+			   tb_msgloc ) ;
 }
 
 
@@ -743,13 +758,13 @@ void execiTBEnd( pApplication* thisAppl, const string& s, errblock& err )
 	}
 
 	thisAppl->tbend( upper( word( s, 2 ) ) ) ;
-	return ;
 }
 
 
 void execiTBErase( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str     ;
+
 	string tb_name ;
 	string tb_path ;
 
@@ -766,7 +781,6 @@ void execiTBErase( pApplication* thisAppl, const string& s, errblock& err )
 	}
 
 	thisAppl->tberase( tb_name, tb_path ) ;
-	return ;
 }
 
 
@@ -779,13 +793,13 @@ void execiTBExist( pApplication* thisAppl, const string& s, errblock& err )
 	}
 
 	thisAppl->tbexist( upper( word( s, 2 ) ) ) ;
-	return ;
 }
 
 
 void execiTBGet( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str       ;
+
 	string tb_name   ;
 	string tb_savenm ;
 	string tb_crpnm  ;
@@ -803,14 +817,18 @@ void execiTBGet( pApplication* thisAppl, const string& s, errblock& err )
 	tb_crpnm = parseString( err, str, "POSITION()" ) ;
 	if ( err.error() ) { return ; }
 
-	thisAppl->tbget( tb_name, tb_savenm, tb_rowid, str, tb_crpnm ) ;
-	return ;
+	thisAppl->tbget( tb_name,
+			 tb_savenm,
+			 tb_rowid,
+			 str,
+			 tb_crpnm ) ;
 }
 
 
 void execiTBMod( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str       ;
+
 	string tb_name   ;
 	string tb_savenm ;
 
@@ -822,13 +840,13 @@ void execiTBMod( pApplication* thisAppl, const string& s, errblock& err )
 	if ( tb_savenm != "" ) { tb_savenm = "(" + tb_savenm + ")" ; }
 
 	thisAppl->tbmod( tb_name, tb_savenm, str ) ;
-	return ;
 }
 
 
 void execiTBPut( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str       ;
+
 	string tb_name   ;
 	string tb_savenm ;
 
@@ -840,7 +858,6 @@ void execiTBPut( pApplication* thisAppl, const string& s, errblock& err )
 	if ( tb_savenm != "" ) { tb_savenm = "(" + tb_savenm + ")" ; }
 
 	thisAppl->tbput( tb_name, tb_savenm, str ) ;
-	return ;
 }
 
 
@@ -848,6 +865,7 @@ void execiTBOpen( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str      ;
 	string t        ;
+
 	string tb_name  ;
 	string tb_paths ;
 
@@ -881,13 +899,13 @@ void execiTBOpen( pApplication* thisAppl, const string& s, errblock& err )
 	}
 
 	thisAppl->tbopen( tb_name, tb_write, tb_paths, tb_disp ) ;
-	return ;
 }
 
 
 void execiTBQuery( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str        ;
+
 	string tb_name    ;
 	string tb_keys    ;
 	string tb_names   ;
@@ -943,14 +961,24 @@ void execiTBQuery( pApplication* thisAppl, const string& s, errblock& err )
 		return ;
 	}
 
-	thisAppl->tbquery( tb_name, tb_keys, tb_names, tb_rownum, tb_keynum, tb_namenum, tb_pos, tb_srtflds, tb_sarglst, tb_sargcnd, tb_sargdir ) ;
-	return ;
+	thisAppl->tbquery( tb_name,
+			   tb_keys,
+			   tb_names,
+			   tb_rownum,
+			   tb_keynum,
+			   tb_namenum,
+			   tb_pos,
+			   tb_srtflds,
+			   tb_sarglst,
+			   tb_sargcnd,
+			   tb_sargdir ) ;
 }
 
 
 void execiTBSarg( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str ;
+
 	string tb_name  ;
 	string tb_arglst  ;
 	string tb_namecnd ;
@@ -967,13 +995,13 @@ void execiTBSarg( pApplication* thisAppl, const string& s, errblock& err )
 	if ( tb_namecnd != "" ) { tb_namecnd = "(" + tb_namecnd + ")" ; }
 
 	thisAppl->tbsarg( tb_name, tb_arglst, str, tb_namecnd ) ;
-	return ;
 }
 
 
 void execiTBSave( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str      ;
+
 	string tb_name  ;
 	string tb_nname ;
 	string tb_path  ;
@@ -994,7 +1022,6 @@ void execiTBSave( pApplication* thisAppl, const string& s, errblock& err )
 	}
 
 	thisAppl->tbsave( tb_name, tb_nname, tb_path ) ;
-	return ;
 }
 
 
@@ -1002,6 +1029,7 @@ void execiTBScan( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str ;
 	string t   ;
+
 	string tb_name    ;
 	string tb_arglst  ;
 	string tb_savenm  ;
@@ -1040,8 +1068,14 @@ void execiTBScan( pApplication* thisAppl, const string& s, errblock& err )
 		if ( t != "" ) { tb_dir = "PREVIOUS" ; }
 	}
 
-	thisAppl->tbscan( tb_name, tb_arglst, tb_savenm, tb_rowid, tb_dir, str, tb_crpnm, tb_condlst ) ;
-	return ;
+	thisAppl->tbscan( tb_name,
+			  tb_arglst,
+			  tb_savenm,
+			  tb_rowid,
+			  tb_dir,
+			  str,
+			  tb_crpnm,
+			  tb_condlst ) ;
 }
 
 
@@ -1049,7 +1083,7 @@ void execiTBSkip( pApplication* thisAppl, const string& s, errblock& err )
 {
 	int i_num ;
 
-	string str       ;
+	string str ;
 
 	string tb_name   ;
 	string tb_num    ;
@@ -1079,14 +1113,20 @@ void execiTBSkip( pApplication* thisAppl, const string& s, errblock& err )
 	tb_crpnm = parseString( err, str, "POSITION()" ) ;
 	if ( err.error() ) { return ; }
 
-	thisAppl->tbskip( tb_name, i_num, tb_savenm, tb_rowid, tb_row, str, tb_crpnm ) ;
-	return ;
+	thisAppl->tbskip( tb_name,
+			  i_num,
+			  tb_savenm,
+			  tb_rowid,
+			  tb_row,
+			  str,
+			  tb_crpnm ) ;
 }
 
 
 void execiTBSort( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str     ;
+
 	string tb_name ;
 	string tb_flds ;
 
@@ -1104,7 +1144,6 @@ void execiTBSort( pApplication* thisAppl, const string& s, errblock& err )
 	if ( tb_flds != "" ) { tb_flds = "(" + tb_flds + ")" ; }
 
 	thisAppl->tbsort( tb_name, tb_flds ) ;
-	return ;
 }
 
 
@@ -1117,7 +1156,6 @@ void execiTBTop( pApplication* thisAppl, const string& s, errblock& err )
 	}
 
 	thisAppl->tbtop( upper( word( s, 2 ) ) ) ;
-	return ;
 }
 
 
@@ -1130,7 +1168,6 @@ void execiTBVClear( pApplication* thisAppl, const string& s, errblock& err )
 	}
 
 	thisAppl->tbvclear( upper( word( s, 2 ) ) ) ;
-	return ;
 }
 
 
@@ -1165,7 +1202,6 @@ void execiVerase( pApplication* thisAppl, const string& s, errblock& err )
 	}
 
 	thisAppl->verase( vars, pType ) ;
-	return ;
 }
 
 
@@ -1220,22 +1256,22 @@ void execiVget( pApplication* thisAppl, const string& s, errblock& err )
 	}
 
 	thisAppl->vget( vars, pType )  ;
-	return ;
 }
 
 
 void execiView( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str ;
-	string pan ;
-	string fl  ;
+
+	string vi_panel ;
+	string vi_file  ;
 
 	str = subword( s, 2 ) ;
 
-	fl = parseString( err, str, "FILE()" ) ;
+	vi_file = parseString( err, str, "FILE()" ) ;
 	if ( err.error() ) { return ; }
 
-	pan = parseString( err, str, "PANEL()" ) ;
+	vi_panel = parseString( err, str, "PANEL()" ) ;
 	if ( err.error() ) { return ; }
 
 	if ( str != "" )
@@ -1244,8 +1280,7 @@ void execiView( pApplication* thisAppl, const string& s, errblock& err )
 		return ;
 	}
 
-	thisAppl->view( fl, iupper( pan ) ) ;
-	return ;
+	thisAppl->view( vi_file, iupper( vi_panel ) ) ;
 }
 
 
@@ -1279,5 +1314,4 @@ void execiVput( pApplication* thisAppl, const string& s, errblock& err )
 	}
 
 	thisAppl->vput( vars, pType ) ;
-	return ;
 }

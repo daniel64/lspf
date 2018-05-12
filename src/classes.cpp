@@ -1509,7 +1509,7 @@ bool slmsg::parse( const string& s, const string& l )
 
 	if ( trim( rest ) != "" ) { return false ; }
 
-	if ( smwin && smsg != "" ) { lmsg = smsg +" - "+ lmsg ; }
+	if ( smwin && smsg != "" && lmsg != "" ) { lmsg = smsg +" - "+ lmsg ; }
 
 	trim_right( smsg ) ;
 	trim_right( lmsg ) ;

@@ -166,7 +166,7 @@ void Table::loadFields( errblock& err,
 			const string& tb_namelst,
 			vector<string>* row )
 {
-	// Load row fields (including namelist but not the URID) from the function pool into string vector row
+	// Load row fields (including namelst but not the URID) from the function pool into string vector row
 
 	uint i  ;
 	uint ws ;
@@ -212,18 +212,13 @@ void Table::storeIntValue( errblock& err,
 	dataType var_type ;
 
 	var_type = funcPOOL.getType( err, var ) ;
-	if ( err.RC0() )
+	if ( err.error() ) { return ; }
+
+	if ( var_type == STRING )
 	{
-		if ( var_type == INTEGER )
-		{
-			funcPOOL.put( err, var, val ) ;
-		}
-		else
-		{
-			funcPOOL.put( err, var, d2ds( val, 8 ) ) ;
-		}
+		funcPOOL.put( err, var, d2ds( val, 8 ) ) ;
 	}
-	else if ( err.RC8() )
+	else
 	{
 		funcPOOL.put( err, var, val ) ;
 	}
@@ -297,8 +292,7 @@ void Table::tbadd( errblock& err,
 	loadFields( err, funcPOOL, tb_namelst, row ) ;
 	if ( err.error() ) { delete row ; return ; }
 
-	it = table.begin() + CRP ;
-	it = table.insert( it, row ) ;
+	it = table.insert( table.begin() + CRP, row ) ;
 	CRP++ ;
 
 	if ( tb_order == "ORDER" && sort_ir != "" )
@@ -349,7 +343,6 @@ void Table::tbbottom( errblock& err,
 		if ( tb_crp_name != "" )
 		{
 			storeIntValue( err, funcPOOL, tb_crp_name, CRP ) ;
-			if ( err.error() ) { return ; }
 		}
 		return  ;
 	}
@@ -388,7 +381,7 @@ void Table::tbdelete( errblock& err,
 	// For keyed tables, this is the row pointed to by the current contents of the key variables
 	// For non-keyed tables, this is the row pointed to by the CRP
 
-	// CRP always points to the row before the one deleted
+	// After deletion, the CRP always points to the row before the one deleted
 
 	// RC = 0  Okay
 	// RC = 8  Keyed tables.  Row with key value does not exist.  CRP set to TOP
@@ -412,23 +405,20 @@ void Table::tbdelete( errblock& err,
 		delete (*it) ;
 		table.erase( it ) ;
 		CRP = CRPX - 1    ;
+		changed = true ;
+	}
+	else if ( CRP == 0 )
+	{
+		err.setRC( 8 ) ;
 	}
 	else
 	{
-		if ( CRP == 0 )
-		{
-			err.setRC( 8 ) ;
-			return ;
-		}
-		else
-		{
-			CRP-- ;
-			it = table.begin() + CRP ;
-			delete (*it)       ;
-			table.erase( it )  ;
-		}
+		CRP-- ;
+		it = table.begin() + CRP ;
+		delete (*it)       ;
+		table.erase( it )  ;
+		changed = true ;
 	}
-	changed = true ;
 }
 
 
@@ -1388,7 +1378,7 @@ void Table::fillfVARs( errblock& err,
 	// starting as table position posn. (Use CRP position if posn not specified)
 	// Create function pool variable .ZURID.line to hold the URID of the table row corresponding to that screen line
 
-	// Also pass back the relative line index, idr, and URID for the line matching the passed csrrow (if any).
+	// Also pass back the relative line index, idr, for the line matching the passed csrrow (if any).
 	// (Passed csrrow is the panel CSRROW() parameter or .CSRROW control variable)
 
 	// BUGS:  Should only do fields on the tbmodel statement instead of all fields in the row (inc. extension variables)
@@ -1861,7 +1851,7 @@ void tableMGR::loadTable( errblock& err,
 	for ( j = 0 ; j < i ; j++ )
 	{
 		table.get( x ) ;
-		k = ( unsigned char)x ;
+		k = (unsigned char)x ;
 		table.read( buf1, k ) ;
 		switch ( j )
 		{
@@ -1874,15 +1864,15 @@ void tableMGR::loadTable( errblock& err,
 		}
 	}
 	table.read( z, 2 ) ;
-	n1 = ( unsigned char)z[ 0 ] ;
-	n2 = ( unsigned char)z[ 1 ] ;
+	n1 = (unsigned char)z[ 0 ] ;
+	n2 = (unsigned char)z[ 1 ] ;
 	num_rows = n1 * 256 + n2 ;
 
 	table.get( x ) ;
-	n1 = ( unsigned char)x ;
+	n1 = (unsigned char)x ;
 	num_keys = n1  ;
 	table.get( x ) ;
-	n1 = ( unsigned char)x ;
+	n1 = (unsigned char)x ;
 	num_flds = n1 ;
 	all_flds = num_keys + num_flds ;
 
@@ -1898,7 +1888,7 @@ void tableMGR::loadTable( errblock& err,
 			table.close() ;
 			return ;
 		}
-		i = ( unsigned char)x ;
+		i = (unsigned char)x ;
 		table.read( buf1, i ) ;
 		keys = keys + s.assign( buf1, i ) + " " ;
 	}
@@ -1911,7 +1901,7 @@ void tableMGR::loadTable( errblock& err,
 			table.close() ;
 			return ;
 		}
-		i = ( unsigned char)x ;
+		i = (unsigned char)x ;
 		table.read( buf1, i ) ;
 		flds = flds + s.assign( buf1, i ) + " " ;
 	}
@@ -1949,8 +1939,8 @@ void tableMGR::loadTable( errblock& err,
 				delete row    ;
 				return ;
 			}
-			n1 = ( unsigned char )z[ 0 ] ;
-			n2 = ( unsigned char )z[ 1 ] ;
+			n1 = (unsigned char)z[ 0 ] ;
+			n2 = (unsigned char)z[ 1 ] ;
 			i = n1 * 256 + n2 ;
 			if ( i > buf2Size )
 			{
@@ -1982,8 +1972,8 @@ void tableMGR::loadTable( errblock& err,
 				delete row    ;
 				return ;
 			}
-			n1 = ( unsigned char)z[ 0 ] ;
-			n2 = ( unsigned char)z[ 1 ] ;
+			n1 = (unsigned char)z[ 0 ] ;
+			n2 = (unsigned char)z[ 1 ] ;
 			i = n1 * 256 + n2 ;
 			for ( j = 0 ; j < i ; j++ )
 			{
@@ -1996,8 +1986,8 @@ void tableMGR::loadTable( errblock& err,
 					delete row    ;
 					return ;
 				}
-				n1 = ( unsigned char)z[ 0 ] ;
-				n2 = ( unsigned char)z[ 1 ] ;
+				n1 = (unsigned char)z[ 0 ] ;
+				n2 = (unsigned char)z[ 1 ] ;
 				k = n1 * 256 + n2 ;
 				if ( k > buf2Size )
 				{

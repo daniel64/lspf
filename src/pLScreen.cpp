@@ -21,13 +21,14 @@
 #define MOD_NAME SCREEN
 
 
-pLScreen::pLScreen()
+pLScreen::pLScreen( int openedBy, int maxscrn )
 {
 	row = 0 ;
 	col = 0 ;
+
 	if ( screensTotal == 0 )
 	{
-		initscr();
+		initscr() ;
 		getmaxyx( stdscr, maxrow, maxcol ) ;
 		if ( maxrow < 24 || maxcol < 80 )
 		{
@@ -56,21 +57,47 @@ pLScreen::pLScreen()
 		OIA       = newwin( 2, maxcol, maxrow, 0 ) ;
 		OIA_panel = new_panel( OIA ) ;
 	}
-	++screensTotal    ;
-	currScreen = this ;
+
+	++screensTotal ;
+	currScreen = this  ;
+	Insert     = false ;
 	screenId   = ++maxScreenId ;
-	Insert     = false         ;
+	openedByList[ screenId ] = openedBy ;
+
+	for ( int i = 1 ; i <= maxscrn ; i++ )
+	{
+		if ( screenNums.count( i ) == 0 )
+		{
+			screenNum = i ;
+			screenNums.insert( i ) ;
+			break ;
+		}
+	}
 }
 
 
 pLScreen::~pLScreen()
 {
+	// Update the openedByList so any screen opened by the deleted screen, appears opened by its predecesor.
+
 	screensTotal-- ;
 	if ( screensTotal == 0 )
 	{
 		del_panel( OIA_panel ) ;
 		delwin( OIA ) ;
 		endwin() ;
+	}
+	else
+	{
+		for ( auto it = openedByList.begin() ; it != openedByList.end() ; it++ )
+		{
+			if ( it->second == screenId )
+			{
+				it->second = openedByList[ screenId ] ;
+			}
+		}
+		openedByList.erase( screenId ) ;
+		screenNums.erase( screenNum ) ;
 	}
 }
 
@@ -135,6 +162,20 @@ void pLScreen::refresh_panel_stack()
 }
 
 
+int pLScreen::get_priScreen( int openedBy )
+{
+	int i = 0 ;
+
+	if ( openedBy == 0 ) { return 0 ; }
+
+	for ( auto it = openedByList.begin() ; it != openedByList.end() ; it++, i++ )
+	{
+		if ( it->first == openedBy ) { return i ; }
+	}
+	return 0 ;
+}
+
+
 void pLScreen::set_cursor( pApplication* appl )
 {
 	// Set the logical screen cursor to that held by the application
@@ -155,7 +196,7 @@ void pLScreen::OIA_setup()
 }
 
 
-void pLScreen::OIA_update( int screen, int altscreen, boost::posix_time::ptime et )
+void pLScreen::OIA_update( int priScreen, int altScreen, boost::posix_time::ptime et )
 {
 	int pos ;
 
@@ -174,17 +215,17 @@ void pLScreen::OIA_update( int screen, int altscreen, boost::posix_time::ptime e
 	mvwaddstr( OIA, 1, maxcol-22, Insert ? "Insert" : "      " ) ;
 	mvwprintw( OIA, 1, maxcol-14, "Row %d Col %d  ", row+1, col+1 ) ;
 
-	if ( screen < 8 )
+	if ( priScreen < 8 )
 	{
 		wattrset( OIA, RED | A_REVERSE ) ;
-		mvwaddch( OIA, 1, screen+9, d2ds( screen+1 ).front() ) ;
+		mvwaddch( OIA, 1, priScreen+9, d2ds( priScreen+1 ).front() ) ;
 		wattroff( OIA, RED | A_REVERSE ) ;
 	}
 
-	if ( altscreen < 8 && altscreen != screen )
+	if ( altScreen < 8 && altScreen != priScreen )
 	{
 		wattrset( OIA, YELLOW | A_BOLD | A_UNDERLINE ) ;
-		mvwaddch( OIA, 1, altscreen+9, d2ds( altscreen+1 ).front() ) ;
+		mvwaddch( OIA, 1, altScreen+9, d2ds( altScreen+1 ).front() ) ;
 		wattroff( OIA, YELLOW | A_BOLD | A_UNDERLINE ) ;
 	}
 

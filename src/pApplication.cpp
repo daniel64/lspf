@@ -163,7 +163,7 @@ void pApplication::createPanel( const string& p_name )
 		return ;
 	}
 
-	pPanel*  p_panel    = new pPanel ;
+	pPanel* p_panel     = new pPanel ;
 	p_panel->p_funcPOOL = &funcPOOL  ;
 	p_panel->lrScroll   = ControlPassLRScroll ;
 	p_panel->Rexx       = ( rexxName != "" )  ;
@@ -177,7 +177,6 @@ void pApplication::createPanel( const string& p_name )
 	{
 		panelList[ p_name ] = p_panel ;
 		load_keylist( p_panel ) ;
-
 	}
 	else
 	{
@@ -287,7 +286,7 @@ void pApplication::setTestMode()
 
 void pApplication::restore_Zvars( int screenid )
 {
-	// Restore various variables after application has terminated
+	// Restore various variables after stacked application has terminated
 
 	if ( currPanel )
 	{
@@ -388,7 +387,10 @@ void pApplication::toggle_fscreen()
 }
 
 
-void pApplication::display( string p_name, const string& p_msg, const string& p_cursor, int p_curpos )
+void pApplication::display( string p_name,
+			    const string& p_msg,
+			    const string& p_cursor,
+			    int p_curpos )
 {
 	string zzverb ;
 
@@ -449,6 +451,7 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 	currPanel->msgid = p_msg ;
 
 	currPanel->set_cursor( p_cursor, p_curpos ) ;
+	currPanel->set_msgloc( "" ) ;
 
 	if ( addpop_active ) { currPanel->set_popup( addpop_row, addpop_col ) ; }
 	else                 { currPanel->remove_popup()                      ; }
@@ -578,7 +581,10 @@ void pApplication::display( string p_name, const string& p_msg, const string& p_
 }
 
 
-void pApplication::libdef( const string& lib, const string& type, const string& id, const string& procopt )
+void pApplication::libdef( const string& lib,
+			   const string& type,
+			   const string& id,
+			   const string& procopt )
 {
 	// libdef - Add/remove a list of paths to the search order for panels, messages and tables
 
@@ -855,7 +861,15 @@ void pApplication::set_cursor_home()
 }
 
 
-void pApplication::vdefine( const string& names, int* i_ad1, int* i_ad2, int* i_ad3, int* i_ad4, int* i_ad5, int* i_ad6, int* i_ad7, int* i_ad8 )
+void pApplication::vdefine( const string& names,
+			    int* i_ad1,
+			    int* i_ad2,
+			    int* i_ad3,
+			    int* i_ad4,
+			    int* i_ad5,
+			    int* i_ad6,
+			    int* i_ad7,
+			    int* i_ad8 )
 {
 	// RC = 0  Normal completion
 	// RC = 20 Severe Error
@@ -975,7 +989,15 @@ void pApplication::vdefine( const string& names, int* i_ad1, int* i_ad2, int* i_
 
 
 
-void pApplication::vdefine( const string& names, string* s_ad1, string* s_ad2, string* s_ad3, string* s_ad4, string* s_ad5, string* s_ad6, string* s_ad7, string* s_ad8 )
+void pApplication::vdefine( const string& names,
+			    string* s_ad1,
+			    string* s_ad2,
+			    string* s_ad3,
+			    string* s_ad4,
+			    string* s_ad5,
+			    string* s_ad6,
+			    string* s_ad7,
+			    string* s_ad8 )
 {
 	// RC = 0  Normal completion
 	// RC = 20 Severe Error
@@ -1702,7 +1724,7 @@ void pApplication::control( const string& parm1, const string& parm2, const stri
 		}
 		else if ( parm2 == "REFRESH" )
 		{
-			refresh() ;
+			refreshlScreen = true ;
 		}
 		else if ( parm2 == "SAVE" )
 		{
@@ -1971,7 +1993,10 @@ void pApplication::qtabopen( const string& tb_list )
 }
 
 
-void pApplication::tbadd( const string& tb_name, string tb_namelst, const string& tb_order, int tb_num_of_rows )
+void pApplication::tbadd( const string& tb_name,
+			  string tb_namelst,
+			  const string& tb_order,
+			  int tb_num_of_rows )
 {
 	// Add a row to a table
 
@@ -2016,7 +2041,11 @@ void pApplication::tbadd( const string& tb_name, string tb_namelst, const string
 }
 
 
-void pApplication::tbbottom( const string& tb_name, const string& tb_savenm, const string& tb_rowid_vn, const string& tb_noread, const string& tb_crp_name )
+void pApplication::tbbottom( const string& tb_name,
+			     const string& tb_savenm,
+			     const string& tb_rowid_vn,
+			     const string& tb_noread,
+			     const string& tb_crp_name )
 {
 	// Move row pointer to the bottom
 
@@ -2074,7 +2103,13 @@ void pApplication::tbclose( const string& tb_name, const string& tb_newname, con
 }
 
 
-void pApplication::tbcreate( const string& tb_name, string keys, string names, tbWRITE m_WRITE, tbREP m_REP, string m_path, tbDISP m_DISP )
+void pApplication::tbcreate( const string& tb_name,
+			     string keys,
+			     string names,
+			     tbWRITE m_WRITE,
+			     tbREP m_REP,
+			     string m_path,
+			     tbDISP m_DISP )
 {
 	// Create a new table.
 	// For tables without a path specified and the WRITE option, default to the first path entry in ZTLIB
@@ -2184,7 +2219,16 @@ void pApplication::tbdelete( const string& tb_name )
 }
 
 
-void pApplication::tbdispl( const string& tb_name, string p_name, const string& p_msg, string p_cursor, int p_csrrow, int p_curpos, string p_autosel, const string& p_crp_name, const string& p_rowid_nm )
+void pApplication::tbdispl( const string& tb_name,
+			    string p_name,
+			    const string& p_msg,
+			    string p_cursor,
+			    int p_csrrow,
+			    int p_curpos,
+			    string p_autosel,
+			    const string& p_crp_name,
+			    const string& p_rowid_nm,
+			    const string& p_msgloc )
 {
 	// tbdispl with panel, no message - clear pending lines, rebuild scrollable area and display panel
 	// tbdispl with panel, message    - clear pending lines, rebuild scrollable area and display panel and message
@@ -2282,6 +2326,12 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 		checkRCode( errBlock ) ;
 		return ;
 	}
+	if ( p_msgloc != "" && !isvalidName( p_msgloc ) )
+	{
+		errBlock.setcall( e1, "PSYE031L", p_msgloc, "MSGLOC()" ) ;
+		checkRCode( errBlock ) ;
+		return ;
+	}
 
 	if ( p_name != "" )
 	{
@@ -2319,6 +2369,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 	currPanel->msgid = p_msg ;
 	currPanel->tb_set_autosel( p_autosel == "YES" || p_autosel == "" ) ;
 	currPanel->tb_set_csrrow( p_csrrow ) ;
+	currPanel->set_msgloc( p_msgloc ) ;
 	currPanel->set_cursor( p_cursor, p_curpos ) ;
 
 	if ( addpop_active ) { currPanel->set_popup( addpop_row, addpop_col ) ; }
@@ -2529,7 +2580,7 @@ void pApplication::tbdispl( const string& tb_name, string p_name, const string& 
 			currPanel->set_panel_msg( MSG, MSGID ) ;
 			if ( p_name == "" )
 			{
-				p_name    = currPanel->panelid ;
+				p_name = currPanel->panelid ;
 				p_poolMGR->put( errBlock, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 			}
 			currPanel->display_panel_reinit( errBlock, ln ) ;
@@ -2699,7 +2750,11 @@ void pApplication::tbexist( const string& tb_name )
 
 
 
-void pApplication::tbget( const string& tb_name, const string& tb_savenm, const string& tb_rowid_vn, const string& tb_noread, const string& tb_crp_name )
+void pApplication::tbget( const string& tb_name,
+			  const string& tb_savenm,
+			  const string& tb_rowid_vn,
+			  const string& tb_noread,
+			  const string& tb_crp_name )
 {
 	if ( !isTableOpen( tb_name, "TBGET" ) ) { return ; }
 
@@ -2714,7 +2769,9 @@ void pApplication::tbget( const string& tb_name, const string& tb_savenm, const 
 }
 
 
-void pApplication::tbmod( const string& tb_name, string tb_namelst, const string& tb_order )
+void pApplication::tbmod( const string& tb_name,
+			  string tb_namelst,
+			  const string& tb_order )
 {
 	// Update/add a row in a table
 
@@ -2752,7 +2809,10 @@ void pApplication::tbmod( const string& tb_name, string tb_namelst, const string
 }
 
 
-void pApplication::tbopen( const string& tb_name, tbWRITE m_WRITE, string m_paths, tbDISP m_DISP )
+void pApplication::tbopen( const string& tb_name,
+			   tbWRITE m_WRITE,
+			   string m_paths,
+			   tbDISP m_DISP )
 {
 	// Open an existing table, reading it from a file.  If aleady opened in SHARE/NOWRITE, increment use count
 
@@ -2841,7 +2901,17 @@ void pApplication::tbput( const string& tb_name, string tb_namelst, const string
 }
 
 
-void pApplication::tbquery( const string& tb_name, const string& tb_keyn, const string& tb_varn, const string& tb_rownn, const string& tb_keynn, const string& tb_namenn, const string& tb_crpn, const string& tb_sirn, const string& tb_lstn, const string& tb_condn, const string& tb_dirn )
+void pApplication::tbquery( const string& tb_name,
+			    const string& tb_keyn,
+			    const string& tb_varn,
+			    const string& tb_rownn,
+			    const string& tb_keynn,
+			    const string& tb_namenn,
+			    const string& tb_crpn,
+			    const string& tb_sirn,
+			    const string& tb_lstn,
+			    const string& tb_condn,
+			    const string& tb_dirn )
 {
 	if ( !isTableOpen( tb_name, "TBQUERY" ) ) { return ; }
 
@@ -2856,7 +2926,10 @@ void pApplication::tbquery( const string& tb_name, const string& tb_keyn, const 
 }
 
 
-void pApplication::tbsarg( const string& tb_name, const string& tb_namelst, const string& tb_dir, const string& tb_cond_pairs )
+void pApplication::tbsarg( const string& tb_name,
+			   const string& tb_namelst,
+			   const string& tb_dir,
+			   const string& tb_cond_pairs )
 {
 	if ( !isTableOpen( tb_name, "TBSARG" ) ) { return ; }
 
@@ -2909,7 +2982,14 @@ void pApplication::tbsave( const string& tb_name, const string& tb_newname, cons
 }
 
 
-void pApplication::tbscan( const string& tb_name, const string& tb_namelst, const string& tb_savenm, const string& tb_rowid_vn, const string& tb_dir, const string& tb_read, const string& tb_crp_name, const string& tb_condlst )
+void pApplication::tbscan( const string& tb_name,
+			   const string& tb_namelst,
+			   const string& tb_savenm,
+			   const string& tb_rowid_vn,
+			   const string& tb_dir,
+			   const string& tb_read,
+			   const string& tb_crp_name,
+			   const string& tb_condlst )
 {
 	if ( !isTableOpen( tb_name, "TBSCAN" ) ) { return ; }
 
@@ -2925,7 +3005,13 @@ void pApplication::tbscan( const string& tb_name, const string& tb_namelst, cons
 
 
 
-void pApplication::tbskip( const string& tb_name, int num, const string& tb_savenm, const string& tb_rowid_vn, const string& tb_rowid, const string& tb_noread, const string& tb_crp_name )
+void pApplication::tbskip( const string& tb_name,
+			   int num,
+			   const string& tb_savenm,
+			   const string& tb_rowid_vn,
+			   const string& tb_rowid,
+			   const string& tb_noread,
+			   const string& tb_crp_name )
 {
 	if ( !isTableOpen( tb_name, "TBSKIP" ) ) { return ; }
 
@@ -3017,7 +3103,10 @@ bool pApplication::isTableOpen( const string& tb_name, const string& func )
 }
 
 
-void pApplication::edit( const string& m_file, const string& m_panel, const string& m_macro, const string& m_profile )
+void pApplication::edit( const string& m_file,
+			 const string& m_panel,
+			 const string& m_macro,
+			 const string& m_profile )
 {
 	SELCT.clear() ;
 	SELCT.PGM     = p_poolMGR->get( errBlock, "ZEDITPGM", PROFILE ) ;
@@ -3111,7 +3200,13 @@ void pApplication::actionSelect()
 }
 
 
-void pApplication::pquery( const string& p_name, const string& a_name, const string& t_name, const string& w_name, const string& d_name, const string& r_name, const string& c_name )
+void pApplication::pquery( const string& p_name,
+			   const string& a_name,
+			   const string& t_name,
+			   const string& w_name,
+			   const string& d_name,
+			   const string& r_name,
+			   const string& c_name )
 {
 	const string e1 = "PQUERY error for panel "+p_name ;
 
@@ -3161,12 +3256,13 @@ void pApplication::pquery( const string& p_name, const string& a_name, const str
 	}
 
 	createPanel( p_name ) ;
-	if ( panelList.count( p_name ) == 0 )
+	if ( !errBlock.RC0() )
 	{
 		errBlock.setcall( e1 ) ;
 		checkRCode( errBlock ) ;
-		return  ;
+		return ;
 	}
+
 	panelList[ p_name ]->get_panel_info( RC, a_name, t_name, w_name, d_name, r_name, c_name ) ;
 }
 
@@ -3308,7 +3404,13 @@ void pApplication::setmsg( const string& msg, msgSET sType )
 }
 
 
-void pApplication::getmsg( const string& msg, const string& smsg, const string& lmsg, const string& alm, const string& hlp, const string& typ, const string& wndo )
+void pApplication::getmsg( const string& msg,
+			   const string& smsg,
+			   const string& lmsg,
+			   const string& alm,
+			   const string& hlp,
+			   const string& typ,
+			   const string& wndo )
 {
 	// Load message msg and substitute variables
 

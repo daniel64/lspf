@@ -36,6 +36,9 @@ PSYE031J 'Unexpected '')'''
 PSYE031K 'Incomplete comparison statement'
 ''
 
+PSYE031L 'Invalid field name ''&ZVAL1'' on &ZVAL2 parameter'
+''
+
 /* dynamic areas */
 PSYE032A 'Dynamic Area outside panel area'
 'ROW=&ZVAL1 ZSCRMAXD=&ZVAL2'

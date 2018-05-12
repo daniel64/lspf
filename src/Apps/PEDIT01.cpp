@@ -833,10 +833,13 @@ void PEDIT01::readFile()
 		vcopy( "ZJ4DATE", zdate, MOVE ) ;
 		vcopy( "ZTIMEL", ztimel, MOVE ) ;
 		p = zfile.find_last_of( '/' )   ;
-		copy_file( zfile, recoverLoc + zfile.substr( p+1 ) + "-" + zdate + "-" + ztimel, ec ) ;
-		if ( ec.value() != boost::system::errc::success )
+		if ( recoverLoc != zfile.substr( 0, p+1 ) )
 		{
-			pcmd.set_msg( "PEDT012F" ) ;
+			copy_file( zfile, recoverLoc + zfile.substr( p+1 ) + "-" + zdate + "-" + ztimel, ec ) ;
+			if ( ec.value() != boost::system::errc::success )
+			{
+				pcmd.set_msg( "PEDT012F" ) ;
+			}
 		}
 	}
 
@@ -1827,6 +1830,7 @@ void PEDIT01::processNewInserts()
 	// BUG: Still used in various places after this routine!!
 
 	int i ;
+	int URID ;
 
 	size_t k ;
 
@@ -1844,10 +1848,14 @@ void PEDIT01::processNewInserts()
 		if ( !sTouched[ i ] && !sChanged[ i ] )
 		{
 			if ( (*it)->il_lcc != "" ) { continue ; }
+			URID = (*it)->il_URID ;
 			delete *it ;
 			it = data.erase( it ) ;
 			it = getValidDataLineNext( it ) ;
-			placeCursor( (*it)->il_URID, 3 ) ;
+			if ( URID == aURID )
+			{
+				placeCursor( (*it)->il_URID, 3 ) ;
+			}
 		}
 		else
 		{

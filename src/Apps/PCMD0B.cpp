@@ -235,7 +235,7 @@ void PCMD0B::fill_dynamic_area()
 		string& pstr = lines[ dl ] ;
 		maxCol = max( maxCol, uint( pstr.size() ) ) ;
 		zarea += substr( pstr, startCol, zareaw ) ;
-		if ( pstr.compare( 0, 2, ":>" ) == 0 )      { zshadow += sdw ; }
+		if      ( pstr.compare( 0, 2, ":>" ) == 0 ) { zshadow += sdw ; }
 		else if ( pstr.compare( 0, 2, "e>" ) == 0 ) { zshadow += sdr ; }
 		else if ( pstr.compare( 0, 2, "l>" ) == 0 ) { zshadow += sdg ; }
 		else if ( pstr.compare( 0, 2, ": " ) == 0 ) { zshadow += sdr ; }

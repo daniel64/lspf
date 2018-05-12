@@ -62,11 +62,12 @@ ELSE
       .CURSOR = ZCMD
       EXIT
 
-IF ( TRUNC(&NEWENTRY,1) EQ '=' )
-  &NEWENTRY = '&ZPATH/&ENTRY '
-  .CURSOR   = NEWENTRY
-  .CSRPOS   = length(NEWENTRY)
-  .MSG      = FLST012
+IF (TRUNC(&NEWENTRY,1) EQ '=')
+  IF (TRUNC(&ENTRY,1) NE '/') &NEWENTRY = '&ZPATH/&ENTRY '
+  ELSE                        &NEWENTRY = '&ENTRY '
+  .CURSOR = NEWENTRY
+  .CSRPOS = length(NEWENTRY)
+  .MSG    = FLST012
   REFRESH (NEWENTRY)
   EXIT
 

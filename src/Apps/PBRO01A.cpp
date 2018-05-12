@@ -816,17 +816,9 @@ int PBRO01A::setFind()
 		else if ( c2 == 'P' && c1 == ' ' ) { t.f_pic    = true ; }
 		else if ( c2 == 'R' && c1 == ' ' ) { t.f_rreg   = true ; }
 		else                               { msg = "PBRO011I" ; return 20 ; }
-		if ( t.f_text )
-		{
-			t.f_estring = substr( com, (p1+1), (p2-p1-1) ) ;
-			t.f_string  = upper( t.f_estring )             ;
-		}
-		else
-		{
-			t.f_estring = substr( com, (p1+1), (p2-p1-1) ) ;
-			t.f_string  = t.f_estring ;
-			t.f_asis    = true        ;
-		}
+		t.f_estring = substr( com, (p1+1), (p2-p1-1) ) ;
+		t.f_string  = t.f_estring ;
+		if ( t.f_text ) { t.f_string = upper( t.f_estring ) ; }
 		com = delstr( com, (p1-1), (p2-p1+3) ) ;
 	}
 
@@ -995,13 +987,13 @@ int PBRO01A::setFind()
 					pic = pic + "[^[:digit:]]" ;
 					break ;
 				case '<':
-					pic = pic + "[a-z]" ;
+					pic += "(?-i)[a-z](?i)" ;
 					break ;
 				case '>':
-					pic = pic + "[A-Z]" ;
+					pic += "(?-i)[A-Z](?i)" ;
 					break ;
 				default:
-					pic = pic + t.f_string[ i ] ;
+					pic += t.f_string[ i ] ;
 					break ;
 			}
 		}

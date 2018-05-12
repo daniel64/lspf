@@ -20,7 +20,7 @@
 class pLScreen
 {
 	public:
-		 pLScreen() ;
+		 pLScreen( int, int ) ;
 		~pLScreen() ;
 
 	static pLScreen* currScreen ;
@@ -28,9 +28,9 @@ class pLScreen
 	static PANEL*    OIA_panel  ;
 
 	static unsigned int screensTotal ;
-	static unsigned int maxScreenId  ;
 	static unsigned int maxrow ;
 	static unsigned int maxcol ;
+	static map<int,int> openedByList ;
 
 	void  clear() ;
 
@@ -40,6 +40,10 @@ class pLScreen
 	void  get_cursor( uint& a, uint& b ) { a = row ; b = col ; }
 	void  set_cursor( int a, int b )     { row = a ; col = b ; }
 	void  set_cursor( pApplication* ) ;
+
+	int   get_openedBy()                 { return openedByList[ screenId ] ; }
+	int   get_screenNum()                { return screenNum ; }
+	int   get_priScreen( int ) ;
 
 	void  cursor_left()   { col == 0 ? col = maxcol-1 : --col ; }
 	void  cursor_right()  { col == maxcol-1 ? col = 0 : ++col ; }
@@ -69,11 +73,16 @@ class pLScreen
 	void  restore_panel_stack() ;
 	void  refresh_panel_stack() ;
 
-	int   screenId ;
+	int   screenId  ;
 
 private:
+	static unsigned int maxScreenId  ;
+	static set<int> screenNums ;
+
 	unsigned int row ;
 	unsigned int col ;
+
+	int  screenNum ;
 
 	bool Insert ;
 

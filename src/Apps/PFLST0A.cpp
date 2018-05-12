@@ -144,8 +144,9 @@ void PFLST0A::application()
 	string w3       ;
 	string t        ;
 	string filter   ;
-	string panl     ;
+	string panel    ;
 	string csr      ;
+	string msgloc   ;
 
 	string condoff  ;
 	string nemptok  ;
@@ -256,6 +257,7 @@ void PFLST0A::application()
 	csrrow    = 0 ;
 	crpx      = 0 ;
 	csr       = "ZCMD" ;
+	msgloc    = ""    ;
 	msg       = ""    ;
 	UseSearch = false ;
 
@@ -281,11 +283,11 @@ void PFLST0A::application()
 				tbskip( dslist, - (ztddepth-2) ) ;
 				if ( RC > 0 ) { tbtop( dslist ) ; }
 			}
-			panl = UseList ? "PFLST0A9" : "PFLST0A1" ;
+			panel = UseList ? "PFLST0A9" : "PFLST0A1" ;
 		}
 		else
 		{
-			panl = "" ;
+			panel = "" ;
 		}
 		opath   = zpath    ;
 		ohidden = afhidden ;
@@ -293,6 +295,7 @@ void PFLST0A::application()
 		if ( msg != "" && csr == "" )
 		{
 			csr    = "SEL" ;
+			msgloc = "SEL" ;
 			csrrow = crpx  ;
 		}
 		else
@@ -300,11 +303,12 @@ void PFLST0A::application()
 			csr    = "ZCMD" ;
 		}
 
-		tbdispl( dslist, panl, msg, csr, csrrow, 1, "YES", "CRP" ) ;
+		tbdispl( dslist, panel, msg, csr, csrrow, 1, "YES", "CRP", "", msgloc ) ;
 		if ( RC == 8 ) { break ; }
 
 		msg    = "" ;
 		csr    = "ZCMD" ;
+		msgloc = "" ;
 		csrrow = 0  ;
 		w1  = upper( word( zcmd, 1 ) ) ;
 		w2  = word( zcmd, 2 ) ;
@@ -407,6 +411,7 @@ void PFLST0A::application()
 		entry = UseList ? ENTRY : createEntry( zpath, ENTRY ) ;
 		if ( sel != "" && !exists( entry ) )
 		{
+			sel     = ""          ;
 			msg     = "FLST012L"  ;
 			message = "Not Found" ;
 			tbput( dslist )       ;
@@ -482,8 +487,10 @@ void PFLST0A::application()
 					else
 					{
 						message = "Not a link" ;
-						msg     = "FLST011T"   ;
-						lp      = ""    ;
+						vreplace( "ZEDSMSG", message ) ;
+						vreplace( "ZEDLMSG", ""      ) ;
+						msg     = "PSYZ002" ;
+						lp      = "" ;
 						break ;
 					}
 				}
@@ -495,8 +502,10 @@ void PFLST0A::application()
 					if ( !is_directory( lp ) )
 					{
 						message = "Not a directory" ;
-						msg     = "FLST011T" ;
-						lp      = ""    ;
+						vreplace( "ZEDSMSG", message ) ;
+						vreplace( "ZEDLMSG", ""      ) ;
+						msg     = "PSYZ002" ;
+						lp      = "" ;
 					}
 					break ;
 				}
@@ -507,7 +516,9 @@ void PFLST0A::application()
 			if ( ZRESULT != "" )
 			{
 				message = ZRESULT ;
-				msg     = "FLST011T" ;
+				vreplace( "ZEDSMSG", message ) ;
+				vreplace( "ZEDLMSG", ""      ) ;
+				msg     = "PSYZ002" ;
 			}
 			else
 			{
@@ -1729,7 +1740,7 @@ void PFLST0A::browseTree( const string& tname )
 	string tsel   ;
 	string tfile  ;
 	string tentry ;
-	string panl   ;
+	string panel  ;
 	string csr    ;
 	string tab    ;
 	string line   ;
@@ -1797,14 +1808,14 @@ void PFLST0A::browseTree( const string& tname )
 				tbskip( tab, - (ztddepth-2) ) ;
 				if ( RC > 0 ) { tbtop( tab ) ; }
 			}
-			panl = "PFLST0A8" ;
+			panel = "PFLST0A8" ;
 		}
 		else
 		{
-			panl = "" ;
+			panel = "" ;
 		}
 		if ( msg == "" ) { zcmd = "" ; }
-		tbdispl( tab, panl, msg, csr, csrrow, 1, "YES", "CRP" ) ;
+		tbdispl( tab, panel, msg, csr, csrrow, 1, "YES", "CRP" ) ;
 		if ( RC == 8 ) { break ; }
 		msg = "" ;
 		if ( tsel == "S" )
@@ -2044,7 +2055,10 @@ string PFLST0A::expandFld1( const string& parms )
 	{
 		vcopy( "ZLDPATH", Paths, MOVE ) ;
 	}
-	else { return "" ; }
+	else
+	{
+		return "" ;
+	}
 
 
 	n = getpaths( Paths ) ;
@@ -2100,7 +2114,10 @@ string PFLST0A::expandFld1( const string& parms )
 				return dir ;
 			}
 		}
-		else { return entry ; }
+		else
+		{
+			return entry ;
+		}
 	}
 	return entry ;
 }
@@ -2119,7 +2136,7 @@ string PFLST0A::showListing()
 	string flhidden ;
 	string ohidden  ;
 
-	string panl     ;
+	string panel    ;
 	string csr      ;
 
 	vdefine( "SEL ENTRY TYPE FLDIRS FLHIDDEN", &sel, &ENTRY, &TYPE, &fldirs, &flhidden ) ;
@@ -2156,16 +2173,16 @@ string PFLST0A::showListing()
 				tbskip( dslist, - (ztddepth-2) ) ;
 				if ( RC > 0 ) { tbtop( dslist ) ; }
 			}
-			panl = "PFLST0A7" ;
+			panel = "PFLST0A7" ;
 		}
 		else
 		{
-			panl = "" ;
+			panel = "" ;
 		}
 		opath   = zpath    ;
 		ofldirs = fldirs   ;
 		ohidden = flhidden ;
-		tbdispl( dslist, panl, msg, csr, csrrow, 1, "YES", "CRP" ) ;
+		tbdispl( dslist, panel, msg, csr, csrrow, 1, "YES", "CRP" ) ;
 		if ( RC == 8 ) { ZRC = 8 ; break ; }
 		msg = "" ;
 		csr = "ZCMD" ;
