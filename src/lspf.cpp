@@ -2722,7 +2722,6 @@ void saveRetrieveBuffer()
 string pfKeyValue( int c )
 {
 	// Return the value of a pfkey stored in the profile pool.  If it does not exist, VPUT a null value.
-	// Also set ZPFKEY in the shared pool to the pfkey pressed
 
 	int keyn ;
 

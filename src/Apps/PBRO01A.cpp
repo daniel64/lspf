@@ -85,9 +85,10 @@ void PBRO01A::application()
 {
 	llog( "I", "Application PBRO01A starting.  Parms are " << PARM << endl ) ;
 
-	uint i      ;
+	int i       ;
+	int lchng   ;
+	int curpos  ;
 	uint offset ;
-	uint curpos ;
 
 	string w2     ;
 	string w3     ;
@@ -192,11 +193,13 @@ void PBRO01A::application()
 			for ( i = curpos-1 ; i < zasize ; i++ )
 			{
 				if ( zarea[ i ] == ' ' ) { break ; }
+				if ( ( i / zareaw ) > ( data.size() - topLine - 2 ) ) { break ; }
 				zshadow[ i ] = B_WHITE ;
 			}
-			for ( i = curpos-1 ; i > 0 ; i-- )
+			for ( i = curpos-1 ; i >= 0 ; i-- )
 			{
 				if ( zarea[ i ] == ' ' ) { break ; }
+				if ( topLine == 0 && ( i / zareaw ) == 0 ) { break ; }
 				zshadow[ i ] = B_WHITE ;
 			}
 		}
@@ -288,7 +291,12 @@ void PBRO01A::application()
 					topLine = find_parms.f_line - 1 ;
 				}
 				curfld = "ZAREA" ;
-				curpos = ( find_parms.f_line - topLine ) * zareaw + find_parms.f_offset + 1 ;
+				if ( find_parms.f_offset < startCol-1 || find_parms.f_offset > zareaw + startCol - 1 )
+				{
+					startCol = find_parms.f_offset - 13 ;
+					if ( startCol < 1 ) { startCol = 1 ; }
+				}
+				curpos = ( find_parms.f_line - topLine ) * zareaw + find_parms.f_offset - startCol + 2 ;
 				if ( colsOn ) { curpos += zareaw ; }
 				type   = typList[ find_parms.f_mtch ] ;
 				str    = find_parms.f_estring ;
@@ -348,6 +356,7 @@ void PBRO01A::application()
 		if ( zverb == "" ) {}
 		else if ( zverb == "DOWN" )
 		{
+			lchng = topLine ;
 			rebuildZAREA = true ;
 			if ( zscrolla == "MAX" )
 			{
@@ -358,9 +367,16 @@ void PBRO01A::application()
 				topLine = topLine + zscrolln  ;
 				if ( topLine >= maxLines ) { topLine = maxLines - 1 ; }
 			}
+			if ( curfld == "ZAREA" && lchng != topLine )
+			{
+				lchng  = topLine - lchng ;
+				curpos = curpos - lchng * zareaw ;
+				if ( curpos < 0 ) { curpos = 1 ; curfld = "ZCMD" ; }
+			}
 		}
 		else if ( zverb == "UP" )
 		{
+			lchng = topLine ;
 			rebuildZAREA = true ;
 			if ( zscrolla == "MAX" )
 			{
@@ -369,6 +385,13 @@ void PBRO01A::application()
 			else
 			{
 				topLine = topLine - zscrolln  ;
+				if ( topLine < 0 ) { topLine = 0 ; }
+			}
+			if ( curfld == "ZAREA" && lchng != topLine )
+			{
+				lchng  = topLine - lchng ;
+				curpos = curpos - lchng * zareaw ;
+				if ( curpos > zasize ) { curpos = 1 ; curfld = "ZCMD" ; }
 			}
 		}
 		else if ( zverb == "LEFT" )
@@ -412,7 +435,12 @@ void PBRO01A::application()
 						topLine = find_parms.f_line - 1 ;
 					}
 					curfld  = "ZAREA" ;
-					curpos  = ( find_parms.f_line - topLine ) * zareaw + find_parms.f_offset + 1 ;
+					if ( find_parms.f_offset < startCol-1 || find_parms.f_offset > zareaw + startCol - 1 )
+					{
+						startCol = find_parms.f_offset - 13 ;
+						if ( startCol < 1 ) { startCol = 1 ; }
+					}
+					curpos = ( find_parms.f_line - topLine ) * zareaw + find_parms.f_offset - startCol + 2 ;
 					if ( colsOn ) { curpos += zareaw ; }
 					type    = typList[ find_parms.f_mtch ] ;
 					str     = find_parms.f_estring ;
@@ -429,7 +457,11 @@ void PBRO01A::application()
 			}
 			else { msg = "PBRO011A" ; continue ; }
 		}
-		else  { msg = "PBRO011" ; continue ; }
+		else
+		{
+			msg = "PBRO011" ;
+			continue ;
+		}
 		if ( topLine < 0 ) topLine = 0 ;
 	}
 	verase( "ZBRALT", SHARED ) ;
@@ -1051,7 +1083,7 @@ void PBRO01A::actionFind( int spos, int offset )
 	if ( find_parms.f_dir == 'F' || find_parms.f_dir == 'A' || find_parms.f_dir == 'L' ) { offset = 0 ; }
 
 	if ( offset > zareaw && colsOn ) { offset = offset - zareaw ; }
-	if ( offset > 0 ) { oX = (offset % zareaw)-1 ; oY = offset / zareaw ; }
+	if ( offset > 0 ) { oX = (offset % zareaw)+startCol-2 ; oY = offset / zareaw ; }
 	else              { oX = 0        ; oY = 0 ; }
 	if ( oX == -1 )   { oX = zareaw-1 ; oY--   ; }
 
@@ -1088,7 +1120,6 @@ void PBRO01A::actionFind( int spos, int offset )
 
 	while ( true )
 	{
-
 		skip = false ;
 		c1   = 0 ;
 		c2   = data.at( dl ).size() -1 ;

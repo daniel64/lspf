@@ -212,8 +212,8 @@ void pLScreen::OIA_update( int priScreen, int altScreen, boost::posix_time::ptim
 	mvwaddstr( OIA, 1, 26, "   " ) ;
 	mvwaddstr( OIA, 1, 39, respTime.c_str() ) ;
 	mvwprintw( OIA, 1, 58, "%d-%d   ", screenId, application_stack_size() );
-	mvwaddstr( OIA, 1, maxcol-22, Insert ? "Insert" : "      " ) ;
-	mvwprintw( OIA, 1, maxcol-14, "Row %d Col %d  ", row+1, col+1 ) ;
+	mvwaddstr( OIA, 1, maxcol-23, Insert ? "Insert" : "      " ) ;
+	mvwprintw( OIA, 1, maxcol-15, "Row %d Col %d  ", row+1, col+1 ) ;
 
 	if ( priScreen < 8 )
 	{

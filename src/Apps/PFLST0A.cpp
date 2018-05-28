@@ -981,7 +981,7 @@ void PFLST0A::createFileList1( string filter )
 		i     = lastpos( "/", ENTRY ) + 1 ;
 		rest  = ENTRY.substr( 0, i-1 ) ;
 		ENTRY = substr( ENTRY, i )   ;
-		if ( afhidden != "/" && ENTRY[ 0 ] == '.' ) { continue ; }
+		if ( !UseList && afhidden != "/" && ENTRY[ 0 ] == '.' ) { continue ; }
 		if ( fGen )
 		{
 			str = upper( ENTRY ) ;

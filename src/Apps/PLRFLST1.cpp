@@ -474,10 +474,10 @@ void PLRFLST1::EditFileList( const string& curtb )
 		vcopy( "ZDATEL", ldate, MOVE ) ;
 		vcopy( "ZTIMEL", ltime, MOVE ) ;
 		flautime = ldate + " " + ltime ;
-		tbmod( flist2, "", "ORDER" ) ;
+		tbmod( table ) ;
 		CloseTable() ;
 	}
-	tbend( flist2 )   ;
+	tbend( flist2 )  ;
 	vdelete( vlist ) ;
 	vdelete( "CRP" ) ;
 }

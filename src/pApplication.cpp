@@ -610,8 +610,8 @@ void pApplication::libdef( const string& lib,
 
 	const string e1 = "LIBDEF error" ;
 
-	int  i ;
-	int  p ;
+	int i ;
+	int p ;
 
 	bool proc_cond   ;
 	bool proc_uncond ;

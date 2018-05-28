@@ -374,7 +374,7 @@ void PPSP01A::show_log( const string& fileName )
 					startCol += zscrolln ;
 				}
 			}
-			if ( startCol < 1 ) { startCol = 1 ; }
+			if ( startCol < 48 ) { startCol = 48 ; }
 		}
 
 		if ( rebuildZAREA ) fill_dynamic_area() ;

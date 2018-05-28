@@ -796,7 +796,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 	set_panel_userptr( panel, new panel_data( zscrnum ) ) ;
 
 	panelid = p_name ;
-	return ;
 }
 
 
@@ -1029,7 +1028,6 @@ void pPanel::createPanel_If( errblock& err, parser& v, panstmnt* m_stmnt, bool i
 	{
 		m_stmnt->ps_if = m_if ;
 	}
-	return ;
 }
 
 

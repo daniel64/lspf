@@ -299,7 +299,7 @@ class pPanel
 		void   process_panel_if( errblock& err, int ln, IFSTMNT* ifstmnt ) ;
 		void   process_panel_if_cond( errblock& err, int ln, IFSTMNT* ifstmnt ) ;
 		string process_panel_trunc( errblock& err, TRUNC* trunc ) ;
-		string process_panel_trans( errblock& err, int ln, TRANS* trans, const string& )  ;
+		string process_panel_trans( errblock& err, int ln, TRANS* trans, const string& ) ;
 		void   process_panel_function( PN_FUNCTION, string& ) ;
 
 		bool   msg_issued_with_cmd()    { return msg_and_cmd ; }

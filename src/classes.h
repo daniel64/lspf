@@ -170,22 +170,22 @@ class parser
 			idx      = 0     ;
 			optUpper = false ;
 		}
-		void   parseStatement( errblock&, const string& ) ;
-		token  getFirstToken()  ;
-		token  getNextToken()   ;
-		token  getToken( uint ) ;
-		int    getEntries()     ;
-		void   eraseTokens( int ) ;
-		void   optionUpper()   { optUpper = true ; }
-		bool   getNextIfCurrent( TOKEN_TYPES    ) ;
-		bool   getNextIfCurrent( TOKEN_SUBTYPES ) ;
-		string peekNextValue()   ;
-		token  getCurrentToken() ;
-		string getCurrentValue() ;
-		void   getNameList( errblock&, string& )  ;
-		bool   isCurrentType( TOKEN_TYPES )       ;
-		bool   isCurrentSubType( TOKEN_SUBTYPES ) ;
-		void   getNextString( errblock& err, string::const_iterator&, const string& s, string& r, bool& ) ;
+		void    parseStatement( errblock&, const string& ) ;
+		token&  getFirstToken()  ;
+		token&  getNextToken()   ;
+		token   getToken( uint ) ;
+		int     getEntries()     ;
+		void    eraseTokens( int ) ;
+		void    optionUpper()   { optUpper = true ; }
+		bool    getNextIfCurrent( TOKEN_TYPES    ) ;
+		bool    getNextIfCurrent( TOKEN_SUBTYPES ) ;
+		string  peekNextValue()   ;
+		token&  getCurrentToken() ;
+		string& getCurrentValue() ;
+		void    getNameList( errblock&, string& )  ;
+		bool    isCurrentType( TOKEN_TYPES )       ;
+		bool    isCurrentSubType( TOKEN_SUBTYPES ) ;
+		void    getNextString( errblock& err, string::const_iterator&, const string& s, string& r, bool& ) ;
 		STATEMENT_TYPE getStatementType() ;
 
 	private:

@@ -152,7 +152,7 @@ token parser::getToken( unsigned int i )
 }
 
 
-token parser::getFirstToken()
+token& parser::getFirstToken()
 {
 	idx = 0 ;
 
@@ -161,7 +161,7 @@ token parser::getFirstToken()
 }
 
 
-token parser::getNextToken()
+token& parser::getNextToken()
 {
 	idx++ ;
 
@@ -178,13 +178,13 @@ string parser::peekNextValue()
 }
 
 
-token parser::getCurrentToken()
+token& parser::getCurrentToken()
 {
 	return current_token ;
 }
 
 
-string parser::getCurrentValue()
+string& parser::getCurrentValue()
 {
 	return current_token.value1 ;
 }
@@ -800,7 +800,7 @@ void ASSGN::parse( errblock& err, parser& v )
 			break ;
 
 		default:
-			t = v.getNextToken() ;
+			v.getNextToken() ;
 			t = v.getNextToken() ;
 			if ( v.isCurrentSubType( TS_CLOSE_BRACKET ) )
 			{

@@ -99,9 +99,6 @@ void field::field_init( errblock& err, int MAXW, int MAXD, const string& line )
 	field_input  = ( cuaAttrUnprot.count( fType ) > 0 ) ;
 
 	field_opts( err, opts ) ;
-	if ( err.error() ) { return ; }
-
-	return ;
 }
 
 
@@ -476,8 +473,6 @@ void dynArea::dynArea_init( errblock& err, int MAXW, int MAXD, const string& lin
 
 	dynArea_Field = dynArea_FieldIn ;
 	if ( dynArea_DataOutsp ) { dynArea_Field.push_back( dynArea_DataOut   ) ; }
-
-	return ;
 }
 
 
@@ -1057,7 +1052,6 @@ void field::field_attr( errblock& err, string attrs, bool chng_once )
 	}
 	field_usecua    = false ;
 	field_attr_once = chng_once ;
-	return ;
 }
 
 
@@ -1381,7 +1375,6 @@ void literal::literal_init( errblock& err, int MAXW, int MAXD, int& opt_field, c
 	{
 		literal_name = "ZPS01" + d2ds( ++opt_field, 3 ) ;
 	}
-	return ;
 }
 
 

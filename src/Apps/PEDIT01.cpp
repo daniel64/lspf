@@ -9974,7 +9974,7 @@ void PEDIT01::run_macro( bool imacro )
 	if ( miBlock.fatal )
 	{
 		pcmd.cond_reset() ;
-		pcmd.setRC( 20 ) ;
+		pcmd.setRC( 20 )  ;
 		placeCursor( 0, 0 ) ;
 		vreplace( "ZSTR1", miBlock.emacro ) ;
 	}

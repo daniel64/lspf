@@ -3610,6 +3610,10 @@ void pPanel::get_msgwin( errblock& err,
 	{
 		ab.at( abIndex ).get_msg_position( t_row, t_col ) ;
 		t_row++ ;
+		if ( (t_row + t_depth + win_row ) > zscrmaxd )
+		{
+			t_row = zscrmaxd - win_row - t_depth ;
+		}
 	}
 	else if ( win == pwin )
 	{
