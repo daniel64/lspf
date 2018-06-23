@@ -171,3 +171,6 @@ PSYS012S 'Timeout occured' .TYPE=W
 
 PSYS012T '' .TYPE=N
 'The selected pull-down choice is unavailable'
+
+PSYS012U 'Invalid name' .TYPE=W
+'Enter an alphabetic character follwed by up to 7 alphanumeric characters'

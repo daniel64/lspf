@@ -31,10 +31,10 @@
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
-#define LSPF_VERSION "1.0.6"
+#define LSPF_VERSION "1.0.7"
 #define LSPF_VERSION_MAJ 1
 #define LSPF_VERSION_REV 0
-#define LSPF_VERSION_MOD 6
+#define LSPF_VERSION_MOD 7
 
 typedef unsigned int uint ;
 
@@ -55,6 +55,7 @@ using namespace boost::posix_time;
 // MLIB     - Search path for messages. Can use ~ character.
 // PLIB     - Search path for panels. Can use ~ character.
 // TLIB     - Search path for tables. Can use ~ character.
+// TABL     - Table ouput path (no concatination allowed)
 // ZREXPATH - Location of the rexx execs (conatenation allowed).  Can use ~ character
 // ZMAINPGM - Name of the initial program to invoke.  This is treated as a SELECT PANEL()
 // ZMAINPAN - Name of the initial selection panel to invoke ( ie. SELECT PANEL(ZMAINPAN) )
@@ -75,7 +76,8 @@ using namespace boost::posix_time;
 #define ZLDPATH         ZSYSPATH "/Apps:" ZSYSPATH "/Apps2"
 #define MLIB            "~" ZUPROF "/mlib:" ZSYSPATH "/mlib"
 #define PLIB            "~" ZUPROF "/plib:" ZSYSPATH "/plib"
-#define TLIB            "~" ZUPROF "/tlib:" ZSYSPATH "/tlib"
+#define TLIB            "~" ZUPROF ":~" ZUPROF "/tlib:" ZSYSPATH "/tlib"
+#define TABL            "~" ZUPROF "/tlib"
 #define ZREXPATH        "~/rexx:" ZSYSPATH "/rexx"
 #define SLOG            "~/.lspf/lspflog"
 #define ALOG            "~/.lspf/appllog"
@@ -191,7 +193,8 @@ enum s_paths
 {
 	s_ZMLIB,
 	s_ZPLIB,
-	s_ZTLIB
+	s_ZTLIB,
+	s_ZTABL
 } ;
 
 enum tbWRITE

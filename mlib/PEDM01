@@ -5,8 +5,8 @@
 PEDM011A 'Service not currently supported'
 ''
 
-PEDM011B 'Too many MACRO statements found'
-'Only one MACRO statement is allowed'
+PEDM011B 'MACRO command is invalid'
+'Only one MACRO statement is allowed in a macro'
 
 PEDM011C 'Missing closing bracket on statement found'
 ''
@@ -50,8 +50,8 @@ PEDM011O 'Invalid command'
 PEDM011P 'Parameter not recognised'
 'Check for misspelled, missing or extraneous parameters'
 
-PEDM011Q 'Invalid label'
-'Label is not currently assigned to a line'
+PEDM011Q '&ZVAL1 label invalid'
+'Label &ZVAL1 is not currently assigned to a line.'
 
 PEDM011R 'Invalid label'
 'Label is missing or not of the correct format'
@@ -111,7 +111,7 @@ PEDM012J 'Command Invalid'
 '&STR not valid.  BUILTIN must be followed by a valid edit command'
 
 PEDM012K 'Invalid process request'
-'End user input previously processed.  Specify NOPROCESS on macro command'
+'End user input previously processed.  Specify NOPROCESS on macro command.'
 
 PEDM012L '&ZSTR1 returned invalid number' .T=W
 '&ZSTR1 has set an invalid return that is not a whole number'
@@ -173,3 +173,8 @@ PEDM013D 'Statements after CANCEL or END'
 PEDM013E 'Initial macro error'
 'Macro command entered is not allowed from an initial macro'
 
+PEDM013F 'Unrecognised parameter'
+'PROCESS parameter is not DEST or RANGE.'
+
+PEDM013G 'Range name is missing'
+'PROCESS RANGE requires one line command to be specified.'

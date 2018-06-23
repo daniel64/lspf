@@ -915,7 +915,7 @@ void PLRFLST1::OpenTableUP()
 
 void PLRFLST1::CloseTable()
 {
-	tbclose( table ) ;
+	tbclose( table, "", uprof ) ;
 	return ;
 }
 

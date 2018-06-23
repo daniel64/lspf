@@ -44,20 +44,20 @@ class fPOOL
 		nullstr = "" ;
 	}
 	~fPOOL() ;
-		void     define( errblock& err,
-				 const string& name ,
-				 string* addr,
-				 nameCHCK check=CHECK ) ;
+		void define( errblock& err,
+			     const string& name ,
+			     string* addr,
+			     nameCHCK check=CHECK ) ;
 
-		void     define( errblock& err,
-				 const string& name,
-				 int* addr ) ;
+		void define( errblock& err,
+			     const string& name,
+			     int* addr ) ;
 	private:
 		string nullstr  ;
 		string varList  ;
-		bool     ifexists( errblock& err,
-				   const string& name,
-				   nameCHCK check=CHECK ) ;
+		bool ifexists( errblock& err,
+			       const string& name,
+			       nameCHCK check=CHECK ) ;
 
 		dataType getType( errblock& err,
 				  const string& name,
@@ -67,34 +67,34 @@ class fPOOL
 				 const string& name,
 				 nameCHCK check=CHECK )  ;
 
-		void     put( errblock& err,
-			      const string& name,
-			      const string& value,
-			      nameCHCK check=CHECK ) ;
+		void put( errblock& err,
+			  const string& name,
+			  const string& value,
+			  nameCHCK check=CHECK ) ;
 
-		void     put( errblock& err,
-			      const string& name,
-			      int value ) ;
+		void put( errblock& err,
+			  const string& name,
+			  int value ) ;
 
 		const string& get( errblock& err,
 				   int maxRC,
 				   const string& name,
 				   nameCHCK check=CHECK ) ;
 
-		int      get( errblock& err,
-			      int maxRC,
-			      dataType dataType,
-			      const string& name ) ;
+		int  get( errblock& err,
+			  int maxRC,
+			  dataType dataType,
+			  const string& name ) ;
 
-		void     setmask( errblock& err,
-				  const string& name,
-				  const string& mask ) ;
+		void setmask( errblock& err,
+			      const string& name,
+			      const string& mask ) ;
 
-		void     dlete( errblock& err,
-				const string& name,
-				nameCHCK check=CHECK ) ;
+		void dlete( errblock& err,
+			    const string& name,
+			    nameCHCK check=CHECK ) ;
 
-		void     reset( errblock& err ) ;
+		void reset( errblock& err ) ;
 
 		const string& vilist( int& RC,
 				      vdType defn ) ;
@@ -197,7 +197,7 @@ class pVPOOL
 		void   sysProfile()   { sysProf = true      ; }
 		bool   issysProfile() { return sysProf      ; }
 		bool   inUse()        { return refCount > 0 ; }
-		void   resetChanged() { changed  = false    ; }
+		void   resetChanged() { changed = false     ; }
 		void   createGenEntries() ;
 
 	friend class poolMGR ;
@@ -269,19 +269,21 @@ class poolMGR
 				     poolType pType,
 				     int lvl )  ;
 
-		void   createPool( int ls ) ;
+		map<int, pVPOOL*>::iterator createPool( int ls ) ;
 
 		string* vlocate( errblock& err,
 				 const string& name,
 				 poolType=ASIS ) ;
 
 		void   locateSubPool( errblock& err,
+				      map<string, pVPOOL*>::iterator& pp_it,
 				      map<string, pVPOOL*>::iterator& p_it,
 				      map<string, pVAR*>::iterator& v_it,
 				      const string& pool,
 				      const string& name ) ;
 
 		void   locateSubPool( errblock& err,
+				      map<string, pVPOOL*>::iterator& sp_it,
 				      map<string, pVPOOL*>::iterator& p_it,
 				      map<string, pVAR*>::iterator& v_it,
 				      int pool,

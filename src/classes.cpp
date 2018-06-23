@@ -929,6 +929,7 @@ void VERIFY::parse( errblock& err, parser& v, bool check )
 	else if ( t.value1 == "LISTX" ) { ver_type = VER_LISTX ; ver_nblank = true ; }
 	else if ( t.value1 == "PICT"  ) { ver_type = VER_PICT ; }
 	else if ( t.value1 == "HEX"   ) { ver_type = VER_HEX  ; }
+	else if ( t.value1 == "NAME"  ) { ver_type = VER_NAME ; }
 	else if ( t.value1 == "OCT"   ) { ver_type = VER_OCT  ; }
 	else if ( t.value1 == "MSG"   ) {                     ; }
 	else

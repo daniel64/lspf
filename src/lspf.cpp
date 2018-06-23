@@ -1576,7 +1576,6 @@ void processZCOMMAND( uint row, uint col )
 		currAppl->setTestMode() ;
 		llog( "W", "Application is now running in test mode" << endl ) ;
 		break  ;
-
 	}
 
 	currAppl->set_cursor_home() ;
@@ -1586,6 +1585,9 @@ void processZCOMMAND( uint row, uint col )
 
 bool resolveZCTEntry( string& cmdVerb, string& cmdParm )
 {
+	// Search for command tables in ZTLIB
+	// System commands should be in ZUPROF but user commands might not be
+
 	int i ;
 	int j ;
 	int ws ;
@@ -1625,6 +1627,7 @@ bool resolveZCTEntry( string& cmdVerb, string& cmdParm )
 	}
 
 	ztlib = p_poolMGR->sysget( err, "ZTLIB", PROFILE ) ;
+
 	for ( ws = words( cmdtlst ), i = 0 ; i < 8 ; i++ )
 	{
 		for ( j = 1 ; j <= ws ; j++ )
@@ -1823,6 +1826,7 @@ void startApplication( selobj SEL, bool nScreen )
 		currAppl->set_zmlib( oldAppl->get_zmlib() ) ;
 		currAppl->set_zplib( oldAppl->get_zplib() ) ;
 		currAppl->set_ztlib( oldAppl->get_ztlib() ) ;
+		currAppl->set_ztabl( oldAppl->get_ztabl() ) ;
 		currAppl->set_zmusr( oldAppl->get_zmusr() ) ;
 		currAppl->set_zpusr( oldAppl->get_zpusr() ) ;
 		currAppl->set_ztusr( oldAppl->get_ztusr() ) ;
@@ -1974,6 +1978,7 @@ void startApplicationBack( selobj SEL, bool pgmselect )
 		Appl->set_zmlib( oldAppl->get_zmlib() ) ;
 		Appl->set_zplib( oldAppl->get_zplib() ) ;
 		Appl->set_ztlib( oldAppl->get_ztlib() ) ;
+		Appl->set_ztabl( oldAppl->get_ztabl() ) ;
 		Appl->set_zmusr( oldAppl->get_zmusr() ) ;
 		Appl->set_zpusr( oldAppl->get_zpusr() ) ;
 		Appl->set_ztusr( oldAppl->get_ztusr() ) ;
@@ -2109,6 +2114,7 @@ void terminateApplication()
 		prvAppl->set_zmlib( currAppl->get_zmlib() ) ;
 		prvAppl->set_zplib( currAppl->get_zplib() ) ;
 		prvAppl->set_ztlib( currAppl->get_ztlib() ) ;
+		prvAppl->set_ztabl( currAppl->get_ztabl() ) ;
 		prvAppl->set_zmusr( currAppl->get_zmusr() ) ;
 		prvAppl->set_zpusr( currAppl->get_zpusr() ) ;
 		prvAppl->set_ztusr( currAppl->get_ztusr() ) ;
@@ -2642,19 +2648,20 @@ void loadDefaultPools()
 
 void loadSystemCommandTable()
 {
-	// Terminate if ISPCMDS not found
+	// Terminate if ISPCMDS not found in ZUPROF
 
-	string ztlib ;
+	string zuprof ;
 
 	err.clear() ;
 
-	ztlib = p_poolMGR->sysget( err, "ZTLIB", PROFILE ) ;
-	p_tableMGR->loadTable( err, "ISPCMDS", NOWRITE, ztlib, SHARE ) ;
+	zuprof  = getenv( "HOME" ) ;
+	zuprof += ZUPROF ;
+	p_tableMGR->loadTable( err, "ISPCMDS", NOWRITE, zuprof, SHARE ) ;
 	if ( !err.RC0() )
 	{
 		llog( "C", "Loading of system command table ISPCMDS failed" <<endl ) ;
 		llog( "C", "RC="<< err.getRC() <<"  Aborting startup" <<endl ) ;
-		llog( "C", "Check path "+ ztlib << endl ) ;
+		llog( "C", "Check path "+ zuprof << endl ) ;
 		abortStartup() ;
 	}
 	llog( "I", "Loaded system command table ISPCMDS" << endl ) ;

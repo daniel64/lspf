@@ -284,6 +284,9 @@ void PFLST0A::application()
 				if ( RC > 0 ) { tbtop( dslist ) ; }
 			}
 			panel = UseList ? "PFLST0A9" : "PFLST0A1" ;
+			condoff = "" ;
+			nemptok = "" ;
+			dirrec  = "" ;
 		}
 		else
 		{
@@ -375,10 +378,7 @@ void PFLST0A::application()
 			}
 			continue ;
 		}
-		condoff = "" ;
-		nemptok = "" ;
-		dirrec  = "" ;
-		csr     = "" ;
+		csr = "" ;
 		if ( ztdsels == 0 && zcurinx != 0 )
 		{
 			tbtop( dslist ) ;
@@ -1324,7 +1324,8 @@ int PFLST0A::processPrimCMD()
 		iupper( w2 ) ;
 		iupper( w3 ) ;
 		if ( w2 == "" ) { w2 = "ENTRY" ; }
-		if ( w3 == "" ) { w3 = "A"     ; }
+		if ( w3 == "" && w2 == "CHA" ) { w3 = "D" ; }
+		else if ( w3 == "" ) { w3 = "A"     ; }
 		if      ( w2 == "ENTRY"   ) { tbsort( dslist, "(ENTRY,C,"+w3+")"   )  ; }
 		else if ( w2 == "TYPE"    ) { tbsort( dslist, "(TYPE,C,"+w3+")"    )  ; }
 		else if ( w2 == "PERMISS" ) { tbsort( dslist, "(PERMISS,C,"+w3+")" )  ; }
@@ -1958,7 +1959,10 @@ string PFLST0A::expandDir( const string& parms )
 
 	try
 	{
-		if ( type == "ALL" ) {}
+		if ( type == "ALL" )
+		{
+			;
+		}
 		else if ( type == "DO1" )
 		{
 			new_end = remove_if( v.begin(), v.end(), [](const path& a) { return !is_directory( a.string() ) ; } ) ;

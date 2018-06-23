@@ -1,0 +1,96 @@
+/*
+  Copyright (c) 2015 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+/* Re-direct say ouput and error messages to a temporary file or it'll mess up lspf output */
+"rm /tmp/edittab1.say 2> /dev/null"
+"rm /tmp/edittab1.err 2> /dev/null"
+.output~destination(.stream~new("/tmp/edittab1.say"))
+.error~destination(.stream~new("/tmp/edittab1.err"))
+/**********************************************************************************************/
+
+/* Create Edit Line Command Table for IBM REXX POSLINE    */
+
+/* The posline example rexx adds Editor line commands:    */
+/* CE  - Center text                                      */
+/* RV  - Reverse text                                     */
+/* LEF - Left justify text                                */
+/* RIT - Right justify text                               */
+
+/* NOTES:                                                 */
+/* Commands can be entered with a multiplier or in        */
+/* block format by repeating the last character of        */
+/* the command.  See IBM documentation for details.       */
+
+/* Run this exec in lspf on any command line:             */
+/* Command ===> EXEC edittab1                             */
+
+/* Table is loaded by the Editor on startup.  Enter       */
+/* the created table name, EDITTAB1, on the edit entry    */
+/* panel, field Line Command Table.                       */
+
+/* edittab1 uses the default path on TBSAVE so            */
+/* make sure ZTABL is assigned a path in lspf.h           */
+/* that is also in the input library path ZTLIB           */
+/* so the Editor can find it (usually ~/.lspf/tlib)       */
+
+address ISPEXEC
+
+"TBCREATE EDITTAB1 KEYS(ZELCNAM)  NAMES(ZELCMAC ZELCPGM ZELCBLK ZELCMLT ZELCDST)"
+if RC > 0 then
+  do
+    rdisplay "TBCREATE failed.  RC=&RC"
+    RETURN
+  end
+
+/* parm 1 - Line command name (max 6 characters)                  */
+/* parm 2 - rexx/pgm to run                                       */
+/* parm 3 - program macro (not supported, defaults to REXX)       */
+/* parm 4 - can be entered as a block command                     */
+/* parm 5 - multiplier can be entered                             */
+/* parm 6 - destination can be entered                            */
+
+y = addrow( "CE",  "posline", "N", "Y", "Y", "N" )
+y = addrow( "RV",  "posline", "N", "Y", "Y", "N" )
+y = addrow( "LEF", "posline", "N", "Y", "Y", "N" )
+y = addrow( "RIT", "posline", "N", "Y", "Y", "N" )
+
+"tbsave EDITTAB1"
+if RC > 0 then
+  do
+    rdisplay "TBSAVE failed.  RC=&RC"
+  end
+
+"tbend EDITTAB1"
+rdisplay "EDITTAB1 created successfully"
+RETURN
+
+
+addrow:
+ZELCNAM = arg(1)
+ZELCMAC = arg(2)
+ZELCPGM = arg(3)
+ZELCBLK = arg(4)
+ZELCMLT = arg(5)
+ZELCDST = arg(6)
+"tbadd EDITTAB1"
+if RC > 0 then
+  do
+    rdisplay "TBADD failed.  RC=&RC"
+  end
+return 0

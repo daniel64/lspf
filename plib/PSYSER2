@@ -3,7 +3,7 @@
 )COMMENT
 
    Error panel displayed on RC >= 12 from any DM service when CONROL ERRORS CANCEL is in effect.
-   Used when ZERRMSG set.  ZERR1, 3, 4, 9 and 10 are shown on the panel.  Set in function pool to display.
+   Used when ZERRMSG set.  ZERR1, 2 and 3 are shown on the panel.  Set in function pool to display.
 
 )ENDCOMMENT
 
@@ -12,7 +12,7 @@
 
 )BODY
 
-PanelTitle "Dialogue Error in application &ZAPPNAME"
+PanelTitle "Dialogue Error in &ZERRTTL"
 
 literal 4   2      FP  "Command ===>"
 field   4  15 MAX  NEF  CAPS(ON),PAD(USER) ZCMD
@@ -102,6 +102,11 @@ literal 26 16  NT "to terminate dialogue"
 )INIT
 .CURSOR = ZCMD
 &ZCMD   = &Z
+
+IF (&ZERRRX EQ &Z)
+   &ZERRTTL = 'application &ZAPPNAME'
+ELSE
+   &ZERRTTL = 'REXX application &ZERRRX'
 
 )PROC
 

@@ -233,7 +233,10 @@ void PBRO01A::application()
 			curpos = 1      ;
 		}
 
-		if ( cmd == "" ) {}
+		if ( cmd == "" )
+		{
+			;
+		}
 		else if ( cmd == "BIN" || cmd == "BINARY" )
 		{
 			if ( w2 != "" ) { msg = "PBRO013" ; continue ; }
@@ -353,7 +356,10 @@ void PBRO01A::application()
 			continue ;
 		}
 
-		if ( zverb == "" ) {}
+		if ( zverb == "" )
+		{
+			;
+		}
 		else if ( zverb == "DOWN" )
 		{
 			lchng = topLine ;

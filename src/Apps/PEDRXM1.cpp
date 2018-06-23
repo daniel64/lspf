@@ -71,7 +71,7 @@ void PEDRXM1::application()
 {
 	int nlvl ;
 
-	miblock tmiBlock  ;
+	miblock  tmiBlock ;
 	PEDIT01* editAppl ;
 
 	void* vptr = ApplUserData[ ds2d( word( PARM, 1 ) ) ] ;
@@ -103,10 +103,6 @@ void PEDRXM1::application()
 			cleanup() ;
 			return ;
 		}
-		mibptr->processed = tmiBlock.processed ;
-		mibptr->editAppl  = tmiBlock.editAppl  ;
-		mibptr->etaskid   = tmiBlock.etaskid   ;
-		mibptr->imacro    = tmiBlock.imacro    ;
 	}
 
 	mibptr->parms   = subword( editAppl->pcmd.get_cmd(), 2 ) ;
@@ -332,7 +328,7 @@ RexxObjectPtr RexxEntry editServiceHandler( RexxExitContext* context,
 		{
 			return context->WholeNumber( 20 ) ;
 		}
-		macAppl->select( "PGM(PEDRXM1) PARM( "+ d2ds( mibptr->etaskid ) +" ) NEWPOOL" ) ;
+		macAppl->select( "PGM(PEDRXM1) PARM( "+ d2ds( mibptr->etaskid ) +" )" ) ;
 		sRC = mibptr->getExitRC() ;
 	}
 	else

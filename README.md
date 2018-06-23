@@ -5,9 +5,9 @@ Application programs wishing to use DM Services, can be written in C++ or rexx (
 
 Most services are supported (missing services are mostly file tailoring, and LM*) as are dynamic input/output areas, tables and a large subset of the ISPF panel language.  See doc directory for more details.
 
-This as been written as an exercise whilst learning C++ and OOP and I've put it on GitHub in case anyone wants to use/contribute to it.  There is a lack of applications, but there is a browser, an editor similar to the mainframe PDF editor that also supports macros written in OOREXX and syntax hilighting and a file list application.
+This as been written as an exercise whilst learning C++ and OOP and I've put it on GitHub in case anyone wants to use/contribute to it.  There is a lack of applications, but there is a browser, an editor similar to the mainframe PDF editor that also supports macros (including line command macros) written in OOREXX and syntax hilighting and a file list application.
 
-Other features include split screen, application stacking, keylists, reflists, command tables, field expansion, command retrieve, cursor-sensitive help, keylist help etc. (see Help)
+Other features include split screen, application stacking, keylists, reflists, command tables, field expansion, command retrieve, cursor-sensitive help, keylist help etc.
 
 Screenshots:
 

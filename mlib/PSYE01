@@ -40,8 +40,8 @@ PSYE013A 'Invalid variable name on a &ZVAL1'
 PSYE013B 'Maximum return code of &ZVAL1 exceeded for function pool GET of &ZVAL2'
 ''
 
-PSYE013C 'Spare'
-'Spare'
+PSYE013C 'Outpt destination not specified'
+'No destination specified and ZTABL is null'
 
 PSYE013D 'Spare'
 'Spare'

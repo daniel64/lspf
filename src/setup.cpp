@@ -60,6 +60,8 @@
 #include "pTable.cpp"
 
 
+#define check true
+
 using namespace std ;
 using namespace boost::filesystem ;
 
@@ -75,9 +77,9 @@ logger * poolMGR::lg  = NULL ;
 
 void   createSYSPROF() ;
 void   setCUAcolours( const string&, const string& ) ;
-string subHomePath( string ) ;
+string subHomePath( string, bool =false ) ;
 
-main()
+int main()
 {
 	errblock err ;
 
@@ -386,25 +388,29 @@ main()
 	cout << endl ;
 	cout << "*******************************************************************************************" << endl ;
 
-	p_tableMGR->saveTable( err, "ISPCMDS", "" , homePath + "tlib" ) ;
+	p_tableMGR->saveTable( err, "ISPCMDS", "" , homePath  ) ;
 	if ( err.RC0() )
 	{
-		cout << "ISPCMDS table created successfully in " << homePath << "tlib" << endl ;
+		cout << endl ;
+		cout << "ISPCMDS table created successfully in " << homePath << endl ;
 	}
 	else
 	{
-		cout << "ERROR saving ISPCMDS table in " << homePath << "tlib  RC=" << err.getRC() << endl ;
+		cout << endl ;
+		cout << "ERROR saving ISPCMDS table in " << homePath << "  RC=" << err.getRC() << endl ;
 		cout << "Message is " << err.msgid << endl ;
 	}
 
-	p_tableMGR->saveTable( err, "USRCMDS", "" , homePath + "tlib" ) ;
+	p_tableMGR->saveTable( err, "USRCMDS", "" , homePath ) ;
 	if ( err.RC0() )
 	{
-		cout << "USRCMDS table created successfully in " << homePath << "tlib" << endl ;
+		cout << endl ;
+		cout << "USRCMDS table created successfully in " << homePath << endl ;
 	}
 	else
 	{
-		cout << "ERROR saving USRCMDS table in " << homePath << "tlib  RC=" << err.getRC() << endl ;
+		cout << endl ;
+		cout << "ERROR saving USRCMDS table in " << homePath << "  RC=" << err.getRC() << endl ;
 		cout << "Message is " << err.msgid << endl ;
 	}
 
@@ -439,7 +445,7 @@ void createSYSPROF()
 
 	p_poolMGR->put( err, "ZUPROF", zuprof, PROFILE ) ;
 	p_poolMGR->put( err, "ZSYSPATH", ZSYSPATH, PROFILE ) ;
-	p_poolMGR->put( err, "ZORXPATH", subHomePath( ZREXPATH ), PROFILE ) ;
+	p_poolMGR->put( err, "ZORXPATH", subHomePath( ZREXPATH, check ), PROFILE ) ;
 
 	p_poolMGR->put( err, "ZLDPATH", ZLDPATH, PROFILE ) ;
 
@@ -469,9 +475,15 @@ void createSYSPROF()
 
 	p_poolMGR->put( err, "ZSCMDTF", "Y", PROFILE ) ;
 
-	p_poolMGR->put( err, "ZMLIB", subHomePath( MLIB ), PROFILE ) ;
-	p_poolMGR->put( err, "ZPLIB", subHomePath( PLIB ), PROFILE ) ;
-	p_poolMGR->put( err, "ZTLIB", subHomePath( TLIB ), PROFILE ) ;
+	p_poolMGR->put( err, "ZMLIB", subHomePath( MLIB, check ), PROFILE ) ;
+	p_poolMGR->put( err, "ZPLIB", subHomePath( PLIB, check ), PROFILE ) ;
+	p_poolMGR->put( err, "ZTLIB", subHomePath( TLIB, check ), PROFILE ) ;
+	p_poolMGR->put( err, "ZTABL", subHomePath( TABL, check ), PROFILE ) ;
+	if ( getpaths( subHomePath( TABL ) ) > 1 )
+	{
+		cout << endl ;
+		cout << "ERROR: ZTABL must contain at most 1 path.  Concatination not allowed" << endl ;
+	}
 
 	p_poolMGR->put( err, "ZMAINPGM", ZMAINPGM, PROFILE ) ;
 	p_poolMGR->put( err, "ZMAINPAN", ZMAINPAN, PROFILE ) ;
@@ -582,6 +594,7 @@ void createSYSPROF()
 	}
 	else
 	{
+		cout << endl ;
 		cout << "ERROR saving profile ISPSPROF in "<< zuprof <<"  RC="<< err.getRC() << endl ;
 		cout << "Message is " << err.msgid << endl ;
 	}
@@ -607,28 +620,35 @@ void setCUAcolours( const string& var, const string& val )
 	     val[0] != 'T' &&
 	     val[0] != 'W' )
 	{
-		cout << "ERROR:: Invalid colour value of " << val[0] << " in setting " << var << endl ;
+		cout << endl ;
+		cout << "ERROR: Invalid colour value of " << val[0] << " in setting " << var << endl ;
 	}
 	if ( val[1] != 'L' &&
 	     val[1] != 'H' )
 	{
-		cout << "ERROR:: Invalid colour intensity of " << val[1] << " in setting " << var << endl ;
+		cout << endl ;
+		cout << "ERROR: Invalid colour intensity of " << val[1] << " in setting " << var << endl ;
 	}
 	if ( val[2] != 'N' &&
 	     val[2] != 'B' &&
 	     val[2] != 'R' &&
 	     val[2] != 'U')
 	{
-		cout << "ERROR:: Invalid colour hilight of " << val[2] << " in setting " << var << endl ;
+		cout << endl ;
+		cout << "ERROR: Invalid colour hilight of " << val[2] << " in setting " << var << endl ;
 	}
 
 	p_poolMGR->put( err, var1, val, PROFILE ) ;
 }
 
 
-string subHomePath( string var )
+string subHomePath( string var, bool do_check )
 {
+	int    i ;
+	int    j ;
 	size_t p ;
+
+	string pathname ;
 
 	string homePath = getenv( "HOME" ) ;
 
@@ -638,6 +658,20 @@ string subHomePath( string var )
 		var.replace( p, 1, homePath ) ;
 		p = var.find( '~' ) ;
 	}
+
+	if ( do_check )
+	{
+		for ( j = getpaths( var ), i = 1 ; i <= j ; i++ )
+		{
+			pathname = getpath( var, i ) ;
+			if ( !exists( pathname ) )
+			{
+				cout << endl ;
+				cout << "WARNING: Path " << pathname << " does not exist" << endl ;
+			}
+		}
+	}
+
 	return var ;
 }
 

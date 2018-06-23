@@ -88,6 +88,7 @@ class pApplication
 		void  set_zmlib( const stack<string>& libs ) { zmlib = libs ; }
 		void  set_zplib( const stack<string>& libs ) { zplib = libs ; }
 		void  set_ztlib( const stack<string>& libs ) { ztlib = libs ; }
+		void  set_ztabl( const stack<string>& libs ) { ztabl = libs ; }
 		void  set_zmusr( const stack<string>& libs ) { zmusr = libs ; }
 		void  set_zpusr( const stack<string>& libs ) { zpusr = libs ; }
 		void  set_ztusr( const stack<string>& libs ) { ztusr = libs ; }
@@ -95,6 +96,7 @@ class pApplication
 		const stack<string>& get_zmlib() { return zmlib ; }
 		const stack<string>& get_zplib() { return zplib ; }
 		const stack<string>& get_ztlib() { return ztlib ; }
+		const stack<string>& get_ztabl() { return ztabl ; }
 		const stack<string>& get_zmusr() { return zmusr ; }
 		const stack<string>& get_zpusr() { return zpusr ; }
 		const stack<string>& get_ztusr() { return ztusr ; }
@@ -179,7 +181,7 @@ class pApplication
 				 const string& tb_noread="",
 				 const string& tb_crp_name="" ) ;
 
-		void   tbclose( const string& tb_name, const string& new_name="", const string& path="" ) ;
+		void   tbclose( const string& tb_name, const string& new_name="", string path="" ) ;
 
 		void   tbcreate( const string& tb_name,
 				 string keys,
@@ -235,7 +237,7 @@ class pApplication
 			       const string& tb_dir="NEXT",
 			       const string& tb_cond_pairs="" ) ;
 
-		void   tbsave( const string& tb_name, const string& new_name="", const string& path="") ;
+		void   tbsave( const string& tb_name, const string& new_name="", string path="" ) ;
 
 		void   tbscan( const string& tb_name,
 			       const string& tb_namelst="",
@@ -363,6 +365,7 @@ class pApplication
 		string zzmlib    ;
 		string zzplib    ;
 		string zztlib    ;
+		string zztabl    ;
 		string zahelp    ;
 		string zscrname  ;
 		string zerr1     ;
@@ -396,6 +399,7 @@ class pApplication
 		stack<string> zmlib ;
 		stack<string> zplib ;
 		stack<string> ztlib ;
+		stack<string> ztabl ;
 
 		stack<string> zmusr ;
 		stack<string> zpusr ;

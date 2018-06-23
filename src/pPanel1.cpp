@@ -1129,6 +1129,10 @@ void pPanel::process_panel_if_cond( errblock& err, int ln, IFSTMNT* ifstmnt )
 				}
 				break ;
 
+			case VER_NAME:
+				ifstmnt->if_true = isvalidName( fieldVal ) ;
+				break ;
+
 			case VER_PICT:
 				ifstmnt->if_true = ispict( fieldVal, ifstmnt->if_verify->ver_vlist[ 0 ] ) ;
 				break ;
@@ -1403,6 +1407,17 @@ void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
 				p_poolMGR->put( err, "ZZSTR1", t, SHARED ) ;
 				if ( err.error() ) { return ; }
 			}
+			if ( verify->ver_pnfield )
+			{
+				set_cursor_cond( fieldNam, ln ) ;
+			}
+		}
+		break ;
+
+	case VER_NAME:
+		if ( !isvalidName( fieldVal ) )
+		{
+			set_message_cond( verify->ver_msgid == "" ? "PSYS012U" : sub_vars( verify->ver_msgid ) ) ;
 			if ( verify->ver_pnfield )
 			{
 				set_cursor_cond( fieldNam, ln ) ;

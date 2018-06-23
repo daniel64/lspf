@@ -1465,7 +1465,7 @@ void Table::fillfVARs( errblock& err,
 
 void Table::saveTable( errblock& err,
 		       const string& m_name,
-		       const string& m_path )
+		       const string& m_opath )
 {
 	// Save table to disk.
 	// Version 2 file format adds extension variable support and record/file end markers, 0xFF.
@@ -1482,7 +1482,7 @@ void Table::saveTable( errblock& err,
 
 	err.setRC( 0 ) ;
 
-	s = m_path != "" ? m_path : tab_path ;
+	s = m_opath ;
 
 	if ( s.back() != '/' ) { s += "/" ; }
 
@@ -1499,6 +1499,8 @@ void Table::saveTable( errblock& err,
 		err.seterrid( "PSYE013K", s, 16 ) ;
 		return  ;
 	}
+
+	tab_opath = s ;
 
 	s += m_name ;
 	if ( exists( s ) )
@@ -1553,6 +1555,7 @@ void Table::saveTable( errblock& err,
 	}
 	otable << (char)0xFF ;
 	otable.close() ;
+
 	resetChanged() ;
 }
 
@@ -1634,7 +1637,7 @@ void tableMGR::createTable( errblock& err,
 			    string keys, string flds,
 			    tbREP m_REP,
 			    tbWRITE m_WRITE,
-			    const string& m_path,
+			    const string& m_spath,
 			    tbDISP m_DISP )
 {
 	// RC =  0 Normal
@@ -1655,7 +1658,7 @@ void tableMGR::createTable( errblock& err,
 		debug1( "Creating table >>"+ tb_name +"<<" <<endl ) ;
 		debug1( "     with keys >>"+ keys    +"<<" <<endl ) ;
 		debug1( "    and fields >>"+ flds    +"<<" <<endl ) ;
-		debug1( "          path >>"+ m_path  +"<<" <<endl ) ;
+		debug1( "    Input path >>"+ m_spath +"<<" <<endl ) ;
 	}
 
 	map<string, Table*>::iterator it ;
@@ -1697,18 +1700,18 @@ void tableMGR::createTable( errblock& err,
 	}
 	Table* t = new Table ;
 
-	if ( getpaths( m_path ) > 0 ) { t->tab_path = getpath( m_path, 1 ) ; }
 	t->ownerTask = err.taskid ;
 	t->tab_WRITE = m_WRITE ;
 	t->tab_DISP  = m_DISP  ;
 	t->changed   = true    ;
 	t->tab_name  = tb_name ;
+	t->tab_spath = m_spath ;
 	t->tab_keys  = space( keys ) ;
 	t->num_keys  = words( keys ) ;
 	t->tab_flds  = space( flds ) ;
 	t->num_flds  = words( flds ) ;
 	t->tab_all   = t->tab_keys + " " + t->tab_flds ;
-	t->num_all   = t->num_keys + t->num_flds      ;
+	t->num_all   = t->num_keys + t->num_flds ;
 	t->tab_cmds  = ( t->tab_all == "ZCTVERB ZCTTRUNC ZCTACT ZCTDESC" ) ;
 	tables[ tb_name ] = t ;
 }
@@ -1717,7 +1720,7 @@ void tableMGR::createTable( errblock& err,
 void tableMGR::loadTable( errblock& err,
 			  const string& tb_name,
 			  tbWRITE m_WRITE,
-			  const string& m_path,
+			  const string& m_spath,
 			  tbDISP m_DISP )
 {
 	// RC = 0   Normal completion
@@ -1728,7 +1731,7 @@ void tableMGR::loadTable( errblock& err,
 	// If table already loaded, EXCLUSIVE can be changed to SHARE by the same task.
 	// Any other combination is not valid.
 
-	// Routine to load V1 and V2 format tables
+	// Routine to load V1 and V2 format tables from a disk file
 
 	// TODO: Clean up dynamic storage (rows) if table fails to fully load
 
@@ -1795,9 +1798,9 @@ void tableMGR::loadTable( errblock& err,
 		return ;
 	}
 
-	for ( i = getpaths( m_path ), j = 1 ; j <= i ; j++ )
+	for ( i = getpaths( m_spath ), j = 1 ; j <= i ; j++ )
 	{
-		path     = getpath( m_path, j ) ;
+		path     = getpath( m_spath, j ) ;
 		filename = path + tb_name       ;
 		if ( exists( filename ) )
 		{
@@ -1806,10 +1809,7 @@ void tableMGR::loadTable( errblock& err,
 				err.seterrid( "PSYE014B", tb_name ) ;
 				return ;
 			}
-			else
-			{
-				break ;
-			}
+			break ;
 		}
 	}
 	if ( j > i )
@@ -2052,7 +2052,10 @@ void tableMGR::loadTable( errblock& err,
 			return ;
 		}
 	}
+
+	it->second->tab_ipath = path ;
 	it->second->resetChanged() ;
+
 	debug2( "Number of rows loaded from table " << l <<endl ) ;
 	if ( l != num_rows )
 	{
@@ -2107,7 +2110,7 @@ void tableMGR::qtabopen( errblock& err,
 void tableMGR::saveTable( errblock& err,
 			  const string& tb_name,
 			  const string& m_newname,
-			  const string& m_path )
+			  const string& m_opath )
 {
 	// This can be called by tbclose() or tbsave().
 
@@ -2119,7 +2122,7 @@ void tableMGR::saveTable( errblock& err,
 		err.seterrid( "PSYE013G", "SAVETABLE", tb_name, 12 ) ;
 		return ;
 	}
-	it->second->saveTable( err, ( m_newname == "" ? tb_name : m_newname ), m_path ) ;
+	it->second->saveTable( err, ( m_newname == "" ? tb_name : m_newname ), m_opath ) ;
 }
 
 
@@ -2184,7 +2187,14 @@ void tableMGR::statistics()
 		}
 		llog( "-", "                 Fields: " << it->second->tab_flds <<endl ) ;
 		llog( "-", "         Number of rows: " << it->second->table.size() <<endl ) ;
-		llog( "-", "                   Path: " << it->second->tab_path <<endl ) ;
+		if ( it->second->tab_ipath != "" )
+		{
+			llog( "-", "             Input Path: " << it->second->tab_ipath <<endl ) ;
+		}
+		if ( it->second->tab_opath != "" )
+		{
+			llog( "-", "            Output Path: " << it->second->tab_opath <<endl ) ;
+		}
 		llog( "-", "   Current Row Position: " << it->second->CRP <<endl ) ;
 		if ( it->second->sarg.size() > 0 )
 		{

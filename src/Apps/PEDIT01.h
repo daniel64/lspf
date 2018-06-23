@@ -84,6 +84,7 @@ enum L_CMDS
 	LC_L,
 	LC_LC,
 	LC_LCC,
+	LC_LMAC,
 	LC_M,
 	LC_MM,
 	LC_MASK,
@@ -91,6 +92,7 @@ enum L_CMDS
 	LC_MDD,
 	LC_MN,
 	LC_MNN,
+	LC_NOP,
 	LC_O,
 	LC_OK,
 	LC_OO,
@@ -171,6 +173,7 @@ enum M_CMDS
 	EM_CURSOR,
 	EM_DATASET,
 	EM_DATA_CHANGED,
+	EM_DATA_WIDTH,
 	EM_DEFINE,
 	EM_DELETE,
 	EM_DISPLAY_COLS,
@@ -197,6 +200,7 @@ enum M_CMDS
 	EM_NULLS,
 	EM_PROCESS,
 	EM_PROFILE,
+	EM_RANGE_CMD,
 	EM_RCHANGE,
 	EM_RFIND,
 	EM_SAVE,
@@ -261,6 +265,7 @@ map<string,mcmd_format> EMServ =  //       ~~~~~   ~~~~~   ~~~~~   ~~~~~~
   { "CHANGE_COUNTS",  { EM_CHANGE_COUNTS,  1,  2,  0,  0, -1, -1, -1, -1  } },
   { "CURSOR",         { EM_CURSOR,         1,  2,  0,  0,  0,  0,  1,  2  } },
   { "DATA_CHANGED",   { EM_DATA_CHANGED,   1,  1,  0,  0, -1, -1, -1, -1  } },
+  { "DATA_WIDTH",     { EM_DATA_WIDTH,     1,  1,  0,  0, -1, -1, -1, -1  } },
   { "DATASET",        { EM_DATASET,        1,  1,  0,  0, -1, -1, -1, -1  } },
   { "DISPLAY_COLS",   { EM_DISPLAY_COLS,   1,  2,  0,  0, -1, -1, -1, -1  } },
   { "DISPLAY_LINES",  { EM_DISPLAY_LINES,  1,  2,  0,  0, -1, -1, -1, -1  } },
@@ -277,6 +282,7 @@ map<string,mcmd_format> EMServ =  //       ~~~~~   ~~~~~   ~~~~~   ~~~~~~
   { "MASKLINE",       { EM_MASKLINE,       1,  1,  0,  0,  0,  0, -1, -1  } },
   { "NULLS",          { EM_NULLS,          1,  2,  0,  0, -1, -1, -1, -1  } },
   { "PROFILE",        { EM_PROFILE,        1,  2,  0,  0, -1, -1, -1, -1  } },
+  { "RANGE_CMD",      { EM_RANGE_CMD,      1,  1,  0,  0, -1, -1, -1, -1  } },
   { "SCAN",           { EM_SCAN,           1,  1,  0,  0,  0,  0,  1,  1  } },
   { "SEEK_COUNTS",    { EM_SEEK_COUNTS,    1,  2,  0,  0, -1, -1, -1, -1  } },
   { "TABSLINE",       { EM_TABSLINE,       1,  1,  0,  0,  0,  0, -1, -1  } },
@@ -402,39 +408,48 @@ map<string,D_PARMS> DefParms =
 class lcmd
 {
 	private:
-		L_CMDS lcmd_CMD    ;
-		string lcmd_CMDSTR ;
+		L_CMDS lcmd_cmd    ;
+		string lcmd_cmdstr ;
+		string lcmd_lcname ;
 		int    lcmd_sURID  ;
 		int    lcmd_eURID  ;
 		int    lcmd_dURID  ;
 		int    lcmd_lURID  ;
 		int    lcmd_Rpt    ;
+		int    lcmd_ABRpt  ;
 		char   lcmd_ABOW   ;
+		bool   lcmd_procd  ;
 		bool   lcmd_swap   ;
 		bool   lcmd_cut    ;
 		bool   lcmd_create ;
 		lcmd()
 		{
-			lcmd_CMDSTR  = " "   ;
+			lcmd_cmdstr  = " "   ;
+			lcmd_lcname  = ""    ;
 			lcmd_sURID   = 0     ;
 			lcmd_eURID   = 0     ;
 			lcmd_dURID   = 0     ;
 			lcmd_lURID   = 0     ;
 			lcmd_ABOW    = ' '   ;
+			lcmd_ABRpt   = 0     ;
 			lcmd_Rpt     = 0     ;
+			lcmd_procd   = false ;
 			lcmd_swap    = false ;
 			lcmd_cut     = false ;
 			lcmd_create  = false ;
 		}
 		void lcmd_clear()
 		{
-			lcmd_CMDSTR  = " "   ;
+			lcmd_cmdstr  = " "   ;
+			lcmd_lcname  = ""    ;
 			lcmd_sURID   = 0     ;
 			lcmd_eURID   = 0     ;
 			lcmd_dURID   = 0     ;
 			lcmd_lURID   = 0     ;
 			lcmd_ABOW    = ' '   ;
+			lcmd_ABRpt   = 0     ;
 			lcmd_Rpt     = 0     ;
+			lcmd_procd   = false ;
 			lcmd_swap    = false ;
 			lcmd_cut     = false ;
 			lcmd_create  = false ;
@@ -456,30 +471,6 @@ class idata
 			id_data    = ""    ;
 		}
 	friend class iline ;
-} ;
-
-
-class ipos
-{
-	public:
-		uint   ipos_dl   ;
-		uint   ipos_hex  ;
-		int    ipos_URID ;
-		bool   ipos_div  ;
-		ipos()
-		{
-			ipos_dl   = 0 ;
-			ipos_hex  = 0 ;
-			ipos_URID = 0 ;
-			ipos_div  = false ;
-		}
-		void clear()
-		{
-			ipos_dl   = 0 ;
-			ipos_hex  = 0 ;
-			ipos_URID = 0 ;
-			ipos_div  = false ;
-		}
 } ;
 
 
@@ -1051,6 +1042,33 @@ class iline
 } ;
 
 
+class ipos
+{
+	public:
+		uint   ipos_dl   ;
+		uint   ipos_hex  ;
+		int    ipos_URID ;
+		bool   ipos_div  ;
+		iline* ipos_addr ;
+		ipos()
+		{
+			ipos_dl   = 0 ;
+			ipos_hex  = 0 ;
+			ipos_URID = 0 ;
+			ipos_div  = false ;
+			ipos_addr = NULL  ;
+		}
+		void clear()
+		{
+			ipos_dl   = 0 ;
+			ipos_hex  = 0 ;
+			ipos_URID = 0 ;
+			ipos_div  = false ;
+			ipos_addr = NULL  ;
+		}
+} ;
+
+
 class cmd_range
 {
 	private:
@@ -1562,6 +1580,7 @@ class miblock
 		string val1      ;
 		bool   mfound    ;
 		bool   macro     ;
+		bool   lcmacro   ;
 		bool   imacro    ;
 		bool   process   ;
 		bool   processed ;
@@ -1603,6 +1622,7 @@ class miblock
 		val1      = ""    ;
 		mfound    = false ;
 		macro     = false ;
+		lcmacro   = false ;
 		imacro    = false ;
 		process   = true  ;
 		processed = false ;
@@ -1623,7 +1643,7 @@ class miblock
 		RSN       = 0     ;
 		exitRC    = 0     ;
 	}
-	void clear()
+	void clear_all()
 	{
 		emacro    = ""    ;
 		mfile     = ""    ;
@@ -1642,6 +1662,7 @@ class miblock
 		val1      = ""    ;
 		mfound    = false ;
 		macro     = false ;
+		lcmacro   = false ;
 		imacro    = false ;
 		process   = true  ;
 		processed = false ;
@@ -1652,6 +1673,39 @@ class miblock
 		scan      = true  ;
 		runmacro  = false ;
 		etaskid   = 0     ;
+		sttwds    = 0     ;
+		nestlvl   = 0     ;
+		nvars     = 0     ;
+		nkeyopts  = 0     ;
+		nvalopts  = 0     ;
+		RC        = 0     ;
+		RSN       = 0     ;
+		exitRC    = 0     ;
+	}
+	void clear()
+	{
+		emacro    = ""    ;
+		mfile     = ""    ;
+		macAppl   = NULL  ;
+		sttment   = ""    ;
+		m_cmd     = EM_INVCMD ;
+		kphrase   = ""    ;
+		keyword   = ""    ;
+		keyopts   = ""    ;
+		value     = ""    ;
+		parms     = ""    ;
+		var1      = ""    ;
+		var2      = ""    ;
+		msgid     = ""    ;
+		val1      = ""    ;
+		mfound    = false ;
+		macro     = false ;
+		process   = true  ;
+		setcursor = false ;
+		assign    = false ;
+		query     = false ;
+		scan      = true  ;
+		runmacro  = false ;
 		sttwds    = 0     ;
 		nestlvl   = 0     ;
 		nvars     = 0     ;
@@ -1730,6 +1784,15 @@ class miblock
 		RC = i ;
 		if ( RC >= 12 ) { fatal = true ; }
 		else
+		{
+			fatal = false ;
+			msgid = "" ;
+		}
+	}
+	void addRCnoError( int i )
+	{
+		setRC( RC + i ) ;
+		if ( RC <= 12 )
 		{
 			fatal = false ;
 			msgid = "" ;
@@ -1880,8 +1943,11 @@ class miblock
 		{
 			p1      = t.find( '=' ) ;
 			keyword = word( t, 1 )  ;
-			if ( p1 != string::npos ) { assign  = true ; }
-			if ( PrimCMDS.count( keyword ) > 0 ) { keyword = PrimCMDS[ keyword ].truename ; }
+			if ( p1 != string::npos ) { assign = true ; }
+			if ( PrimCMDS.count( keyword ) > 0 )
+			{
+				keyword = PrimCMDS[ keyword ].truename ;
+			}
 			if ( assign && !builtin )
 			{
 				ita = defNames.find( keyword ) ;
@@ -1911,9 +1977,9 @@ class miblock
 					return ;
 				}
 				m_cmd = EMCmds[ keyword ] ;
-				if ( m_cmd == EM_PROCESS && processed && !imacro )
+				if ( m_cmd == EM_PROCESS && words( sttment ) > 5 )
 				{
-					seterror( "PEDM012K" ) ;
+					seterror( "PEDM011P" ) ;
 				}
 				return ;
 			}
@@ -1926,10 +1992,6 @@ class miblock
 				}
 				keyopts = subword( t, 2 ) ;
 				m_cmd   = EMCmds[ keyword ] ;
-				if ( m_cmd == EM_PROCESS && processed && !imacro )
-				{
-					seterror( "PEDM012K" ) ;
-				}
 				return ;
 			}
 			kphrase = t.substr( 0, p1 ) ;
@@ -1940,7 +2002,10 @@ class miblock
 		isvar    = false ;
 		m_cmd    = EMServ[ keyword ].m_cmd ;
 		trim( value )    ;
-		if ( !query && (m_cmd == EM_LINE || m_cmd == EM_LINE_BEFORE || m_cmd == EM_LINE_AFTER ) ) {}
+		if ( !query && (m_cmd == EM_LINE || m_cmd == EM_LINE_BEFORE || m_cmd == EM_LINE_AFTER ) )
+		{
+			;
+		}
 		else if ( value.front() == '(' )
 		{
 			isvar = true ;
@@ -2093,12 +2158,27 @@ class miblock
 } ;
 
 
+class lmac
+{
+	public:
+		string lcname  ;
+		string lcmac   ;
+		bool   lcpgm   ;
+	lmac()
+	{
+		lcname = ""    ;
+		lcmac  = ""    ;
+		lcpgm  = false ;
+	}
+} ;
+
+
 class PEDIT01 : public pApplication
 {
 	public:
-		PEDIT01()  ;
+		PEDIT01() ;
 
-		void application()   ;
+		void application() ;
 
 		void actionService() ;
 		void querySetting()  ;
@@ -2120,7 +2200,8 @@ class PEDIT01 : public pApplication
 		void delEditProfile( const string& )  ;
 		void saveEditProfile( const string& ) ;
 		void createEditProfile( const string&, const string& ) ;
-		void resetEditProfile()   ;
+		void resetEditProfile()     ;
+		void readLineCommandTable() ;
 		void cleanup_custom()     ;
 		void initialise()         ;
 		bool termOK()             ;
@@ -2147,7 +2228,7 @@ class PEDIT01 : public pApplication
 		void actionLineCommands() ;
 		void actionLineCommand( vector<lcmd>::iterator ) ;
 
-		void run_macro( bool =false ) ;
+		void run_macro( const string&, bool =false, bool =false ) ;
 
 		void actionZVERB()        ;
 		void setLineLabels()      ;
@@ -2156,22 +2237,23 @@ class PEDIT01 : public pApplication
 		bool actionREDO()         ;
 		void removeRecoveryData() ;
 
-		uint getLine( int )       ;
-		uint getFirstEX( uint )   ;
+		uint getLine( int, uint =0 ) ;
+		uint getFirstEX( uint ) ;
 		int  getLastEX( vector<iline*>::iterator ) ;
 		uint getLastEX( uint )    ;
-		int  getExBlockSize( uint )   ;
+		int  getExclBlockSize( uint ) ;
 		int  getDataBlockSize( uint ) ;
 		bool URIDOnScreen( int, int ) ;
 		void moveTopline( int )  ;
 		int  getLastURID( vector<iline*>::iterator, int ) ;
 
-		int  getFileLine( uint ) ;
 		uint getDataLine( int )  ;
+		int  getFileLine( uint ) ;
+		int  getFileLine4URID( int ) ;
 
 		vector<iline*>::iterator getValidDataLineNext( vector<iline*>::iterator ) ;
-		uint getValidFileLinePrev( uint ) ;
-		uint getValidFileLineNext( uint ) ;
+		uint getFileLinePrev( uint ) ;
+		uint getFileLineNext( uint ) ;
 
 		uint getNextDataLine( uint ) ;
 		vector<iline*>::iterator getNextDataLine( vector<iline*>::iterator ) ;
@@ -2182,6 +2264,8 @@ class PEDIT01 : public pApplication
 		uint getPrevFileLine( uint ) ;
 		vector<iline*>::iterator getPrevFileLine( vector<iline*>::iterator ) ;
 		void getLineData( vector<iline*>::iterator ) ;
+
+		int  getNextValidURID( vector<iline*>::iterator ) ;
 		string mergeLine( const string&, vector<iline*>::iterator ) ;
 
 		void cleanupData()       ;
@@ -2392,6 +2476,11 @@ class PEDIT01 : public pApplication
 		string zcurfld  ;
 		int    zcurpos  ;
 
+		int    zdest    ;
+		int    zfrange  ;
+		int    zlrange  ;
+		string zrange_cmd ;
+
 		string zedprof  ;
 		string zedproft ;
 
@@ -2411,6 +2500,7 @@ class PEDIT01 : public pApplication
 
 		string eeimac   ;
 		string eeprof   ;
+		string eelmac   ;
 		string eetabss  ;
 		string eeprsps  ;
 		string eeccan   ;
@@ -2453,7 +2543,6 @@ class PEDIT01 : public pApplication
 
 		map<bool, char>ZeroOne      = { { true,  '1'    },
 						{ false, '0'    } } ;
-
 
 						      //
 						      //               +----------Minimum number of parameters
@@ -2500,67 +2589,67 @@ class PEDIT01 : public pApplication
 						     { PC_XTABS,    {  0,  1 } } } ;
 
 
-		map<string,L_CMDS> LineCMDS = { { "A",        LC_A        },
-						{ "AK",       LC_AK       },
-						{ "B",        LC_B        },
-						{ "BK",       LC_BK       },
-						{ "BNDS",     LC_BOUNDS   },
-						{ "C",        LC_C        },
-						{ "CC",       LC_CC       },
-						{ "COLS",     LC_COLS     },
-						{ "D",        LC_D        },
-						{ "DD",       LC_DD       },
-						{ "F",        LC_F        },
-						{ "HX",       LC_HX       },
-						{ "HXX",      LC_HXX      },
-						{ "I",        LC_I        },
-						{ "L",        LC_L        },
-						{ "LC",       LC_LC       },
-						{ "LCC",      LC_LCC      },
-						{ "M",        LC_M        },
-						{ "MM",       LC_MM       },
-						{ "MASK",     LC_MASK     },
-						{ "MD",       LC_MD       },
-						{ "MDD",      LC_MDD      },
-						{ "MN",       LC_MN       },
-						{ "MNN",      LC_MNN      },
-						{ "O",        LC_O        },
-						{ "OK",       LC_OK       },
-						{ "OO",       LC_OO       },
-						{ "OOK",      LC_OOK      },
-						{ "R",        LC_R        },
-						{ "RR",       LC_RR       },
-						{ "S",        LC_S        },
-						{ "SI",       LC_SI       },
-						{ "TABS",     LC_TABS     },
-						{ "TJ",       LC_TJ       },
-						{ "TJJ",      LC_TJJ      },
-						{ "TR",       LC_TR       },
-						{ "TRR",      LC_TRR      },
-						{ "TS",       LC_TS       },
-						{ "T",        LC_T        },
-						{ "TT",       LC_TT       },
-						{ "TX",       LC_TX       },
-						{ "TXX",      LC_TXX      },
-						{ "UC",       LC_UC       },
-						{ "UCC",      LC_UCC      },
-						{ "W",        LC_W        },
-						{ "WW",       LC_WW       },
-						{ "X",        LC_X        },
-						{ "XX",       LC_XX       },
-						{ "XI",       LC_XI       },
-						{ ")",        LC_SRC      },
-						{ "))",       LC_SRCC     },
-						{ "(",        LC_SLC      },
-						{ "((",       LC_SLCC     },
-						{ ">",        LC_SRD      },
-						{ ">>",       LC_SRDD     },
-						{ "<",        LC_SLD      },
-						{ "<<",       LC_SLDD     },
-						{ "]",        LC_SRTC     },
-						{ "]]",       LC_SRTCC    },
-						{ "[",        LC_SLTC     },
-						{ "[[",       LC_SLTCC    } } ;
+		map<string,L_CMDS> t1lineCmds = { { "A",        LC_A        },
+						  { "AK",       LC_AK       },
+						  { "B",        LC_B        },
+						  { "BK",       LC_BK       },
+						  { "BNDS",     LC_BOUNDS   },
+						  { "C",        LC_C        },
+						  { "CC",       LC_CC       },
+						  { "COLS",     LC_COLS     },
+						  { "D",        LC_D        },
+						  { "DD",       LC_DD       },
+						  { "F",        LC_F        },
+						  { "HX",       LC_HX       },
+						  { "HXX",      LC_HXX      },
+						  { "I",        LC_I        },
+						  { "L",        LC_L        },
+						  { "LC",       LC_LC       },
+						  { "LCC",      LC_LCC      },
+						  { "M",        LC_M        },
+						  { "MM",       LC_MM       },
+						  { "MASK",     LC_MASK     },
+						  { "MD",       LC_MD       },
+						  { "MDD",      LC_MDD      },
+						  { "MN",       LC_MN       },
+						  { "MNN",      LC_MNN      },
+						  { "O",        LC_O        },
+						  { "OK",       LC_OK       },
+						  { "OO",       LC_OO       },
+						  { "OOK",      LC_OOK      },
+						  { "R",        LC_R        },
+						  { "RR",       LC_RR       },
+						  { "S",        LC_S        },
+						  { "SI",       LC_SI       },
+						  { "TABS",     LC_TABS     },
+						  { "TJ",       LC_TJ       },
+						  { "TJJ",      LC_TJJ      },
+						  { "TR",       LC_TR       },
+						  { "TRR",      LC_TRR      },
+						  { "TS",       LC_TS       },
+						  { "T",        LC_T        },
+						  { "TT",       LC_TT       },
+						  { "TX",       LC_TX       },
+						  { "TXX",      LC_TXX      },
+						  { "UC",       LC_UC       },
+						  { "UCC",      LC_UCC      },
+						  { "W",        LC_W        },
+						  { "WW",       LC_WW       },
+						  { "X",        LC_X        },
+						  { "XX",       LC_XX       },
+						  { "XI",       LC_XI       },
+						  { ")",        LC_SRC      },
+						  { "))",       LC_SRCC     },
+						  { "(",        LC_SLC      },
+						  { "((",       LC_SLCC     },
+						  { ">",        LC_SRD      },
+						  { ">>",       LC_SRDD     },
+						  { "<",        LC_SLD      },
+						  { "<<",       LC_SLDD     },
+						  { "]",        LC_SRTC     },
+						  { "]]",       LC_SRTCC    },
+						  { "[",        LC_SLTC     },
+						  { "[[",       LC_SLTCC    } } ;
 
 		map<string,string> aliasLCMDS = { { "COL",    "COLS" },
 						  { "BND",    "BNDS" },
@@ -2632,31 +2721,31 @@ class PEDIT01 : public pApplication
 						  { "OK",  "O"  },
 						  { "OOK", "OO" } } ;
 
-		set<string> BLKcmds  = { { "CC"   },
-					 { "DD"   },
-					 { "MM"   },
-					 { "HXX"  },
-					 { "LCC"  },
-					 { "MDD"  },
-					 { "MNN"  },
-					 { "OO"   },
-					 { "OOK"  },
-					 { "RR"   },
-					 { "TJJ"  },
-					 { "TRR"  },
-					 { "TT"   },
-					 { "TXX"  },
-					 { "XX"   },
-					 { "WW"   },
-					 { "UCC"  },
-					 { "(("   },
-					 { "))"   },
-					 { "<<"   },
-					 { ">>"   },
-					 { "[["   },
-					 { "]]"   } } ;
+		set<string> t1blkCmds = { { "CC"   },
+					  { "DD"   },
+					  { "MM"   },
+					  { "HXX"  },
+					  { "LCC"  },
+					  { "MDD"  },
+					  { "MNN"  },
+					  { "OO"   },
+					  { "OOK"  },
+					  { "RR"   },
+					  { "TJJ"  },
+					  { "TRR"  },
+					  { "TT"   },
+					  { "TXX"  },
+					  { "XX"   },
+					  { "WW"   },
+					  { "UCC"  },
+					  { "(("   },
+					  { "))"   },
+					  { "<<"   },
+					  { ">>"   },
+					  { "[["   },
+					  { "]]"   } } ;
 
-		set<string> SPLcmds  = { { "A"    },
+		set<string> splCmds  = { { "A"    },
 					 { "AK"   },
 					 { "B"    },
 					 { "BK"   },
@@ -2684,21 +2773,21 @@ class PEDIT01 : public pApplication
 					 { "XX"   },
 					 { "XI"   } } ;
 
-		set<string> TODcmds  = { { "A"    },
+		set<string> todCmds  = { { "A"    },
 					 { "I"    } } ;
 
-		set<string> BODcmds  = { { "B"    },
+		set<string> bodCmds  = { { "B"    },
 					 { "COLS" },
 					 { "BNDS" },
 					 { "MASK" },
 					 { "TABS" } } ;
 
-		set<string> ABOKReq  = { { "C"    },
-					 { "CC"   },
-					 { "M"    },
-					 { "MM"   } } ;
+		set<string> t1abokReq = { { "C"    },
+					  { "CC"   },
+					  { "M"    },
+					  { "MM"   } } ;
 
-		set<string> Chkdist  = { { "C"    },
+		set<string> checkDst = { { "C"    },
 					 { "D"    },
 					 { "M"    },
 					 { "HX"   },
@@ -2714,7 +2803,7 @@ class PEDIT01 : public pApplication
 					 { "W"    },
 					 { "X"    } } ;
 
-		set<string> ABOWList = { { "A"    },
+		set<string> abowList = { { "A"    },
 					 { "AK"   },
 					 { "B"    },
 					 { "BK"   },
@@ -2725,10 +2814,14 @@ class PEDIT01 : public pApplication
 					 { "W"    },
 					 { "WW"   } } ;
 
-		set<string> OWBlock  = { { "OO"   },
+		set<string> owBlock  = { { "OO"   },
 					 { "WW"   } } ;
 
-		set<string> ReptOK   = { { "C"    },
+		set<string> t1reptOk = { { "A"    },
+					 { "AK"   },
+					 { "B"    },
+					 { "BK"   },
+					 { "C"    },
 					 { "D"    },
 					 { "F"    },
 					 { "HX"   },
@@ -2776,6 +2869,21 @@ class PEDIT01 : public pApplication
 					 { "]]"   },
 					 { "["    },
 					 { "]"    } } ;
+
+		map<string,L_CMDS>* lineCmds ;
+
+		set<string>* blkCmds ;
+		set<string>* abokReq ;
+		set<string>* reptOk  ;
+
+		map<string,L_CMDS> t2lineCmds ;
+
+		set<string> t2blkCmds ;
+		set<string> t2abokReq ;
+		set<string> t2reptOk  ;
+
+		map<string,lmac> lmacs ;
+
 
 		friend class PEDRXM1 ;
 } ;

@@ -116,8 +116,9 @@ void pApplication::init()
 	// ZZ variables are for internal use only.  Don't use in applications.
 
 	zzplib = p_poolMGR->get( errBlock, "ZPLIB", PROFILE ) ;
-	zztlib = p_poolMGR->get( errBlock, "ZTLIB", PROFILE ) ;
 	zzmlib = p_poolMGR->get( errBlock, "ZMLIB", PROFILE ) ;
+	zztlib = p_poolMGR->get( errBlock, "ZTLIB", PROFILE ) ;
+	zztabl = p_poolMGR->get( errBlock, "ZTABL", PROFILE ) ;
 
 	funcPOOL.put( errBlock, "ZTDTOP",   0 ) ;
 	funcPOOL.put( errBlock, "ZTDSELS",  0 ) ;
@@ -634,6 +635,7 @@ void pApplication::libdef( const string& lib,
 	if      ( lib == "ZMLIB" ) { zxlib = &zmlib ; }
 	else if ( lib == "ZPLIB" ) { zxlib = &zplib ; }
 	else if ( lib == "ZTLIB" ) { zxlib = &ztlib ; }
+	else if ( lib == "ZTABL" ) { zxlib = &ztabl ; }
 	else if ( lib == "ZMUSR" ) { zxlib = &ztusr ; }
 	else if ( lib == "ZPUSR" ) { zxlib = &zpusr ; }
 	else if ( lib == "ZTUSR" ) { zxlib = &ztusr ; }
@@ -729,6 +731,7 @@ void pApplication::qlibdef( const string& lib, const string& type_var, const str
 	if      ( lib == "ZMLIB" ) { zxlib = &zmlib ; }
 	else if ( lib == "ZPLIB" ) { zxlib = &zplib ; }
 	else if ( lib == "ZTLIB" ) { zxlib = &ztlib ; }
+	else if ( lib == "ZTABL" ) { zxlib = &ztabl ; }
 	else if ( lib == "ZMUSR" ) { zxlib = &ztusr ; }
 	else if ( lib == "ZPUSR" ) { zxlib = &zpusr ; }
 	else if ( lib == "ZTUSR" ) { zxlib = &ztusr ; }
@@ -774,6 +777,8 @@ string pApplication::get_search_path( s_paths p )
 	// Return the search path depending on the LIBDEFs in effect
 	// Order is zxuser, zxlib zzxlib
 
+	// Note: ZTABL is not a concatination
+
 	stack<string>* zxusr ;
 	stack<string>* zxlib ;
 
@@ -797,6 +802,17 @@ string pApplication::get_search_path( s_paths p )
 		zxusr  = &ztusr  ;
 		zxlib  = &ztlib  ;
 		zzxlib = &zztlib ;
+		break ;
+
+	case s_ZTABL:
+		if ( ztabl.empty() )
+		{
+			return zztabl ;
+		}
+		else
+		{
+			return ztabl.top() ;
+		}
 		break ;
 	}
 
@@ -877,6 +893,8 @@ void pApplication::vdefine( const string& names,
 
 	int w ;
 
+	const string e1 = "VDEFINE error" ;
+
 	string name ;
 
 	RC = 0 ;
@@ -884,14 +902,14 @@ void pApplication::vdefine( const string& names,
 	w = words( names ) ;
 	if ( ( w > 8 ) || ( w < 1 ) )
 	{
-		errBlock.seterrid( "PSYE022D" ) ;
+		errBlock.setcall( e1, "PSYE022D" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
 
 	if ( i_ad1 == NULL )
 	{
-		errBlock.seterrid( "PSYE022E" ) ;
+		errBlock.setcall( e1, "PSYE022E" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -903,7 +921,7 @@ void pApplication::vdefine( const string& names,
 	{
 		if ( i_ad2 == NULL )
 		{
-			errBlock.seterrid( "PSYE022E" ) ;
+			errBlock.setcall( e1, "PSYE022E" ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -915,7 +933,7 @@ void pApplication::vdefine( const string& names,
 	{
 		if ( i_ad3 == NULL )
 		{
-			errBlock.seterrid( "PSYE022E" ) ;
+			errBlock.setcall( e1, "PSYE022E" ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -927,7 +945,7 @@ void pApplication::vdefine( const string& names,
 	{
 		if ( i_ad4 == NULL )
 		{
-			errBlock.seterrid( "PSYE022E" ) ;
+			errBlock.setcall( e1, "PSYE022E" ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -939,7 +957,7 @@ void pApplication::vdefine( const string& names,
 	{
 		if ( i_ad5 == NULL )
 		{
-			errBlock.seterrid( "PSYE022E" ) ;
+			errBlock.setcall( e1, "PSYE022E" ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -951,7 +969,7 @@ void pApplication::vdefine( const string& names,
 	{
 		if ( i_ad6 == NULL )
 		{
-			errBlock.seterrid( "PSYE022E" ) ;
+			errBlock.setcall( e1, "PSYE022E" ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -964,7 +982,7 @@ void pApplication::vdefine( const string& names,
 	{
 		if ( i_ad7 == NULL )
 		{
-			errBlock.seterrid( "PSYE022E" ) ;
+			errBlock.setcall( e1, "PSYE022E" ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -977,7 +995,7 @@ void pApplication::vdefine( const string& names,
 	{
 		if ( i_ad8 == NULL )
 		{
-			errBlock.seterrid( "PSYE022E" ) ;
+			errBlock.setcall( e1, "PSYE022E" ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -1006,20 +1024,21 @@ void pApplication::vdefine( const string& names,
 	int w  ;
 
 	string name ;
+	const string e1 = "VDEFINE error" ;
 
 	RC = 0 ;
 
 	w = words( names ) ;
 	if ( ( w > 8 ) || ( w < 1 ) )
 	{
-		errBlock.seterrid( "PSYE022D" ) ;
+		errBlock.setcall( e1, "PSYE022D" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
 
 	if ( s_ad1 == NULL )
 	{
-		errBlock.seterrid( "PSYE022E" ) ;
+		errBlock.setcall( e1, "PSYE022E" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -1031,7 +1050,7 @@ void pApplication::vdefine( const string& names,
 	{
 		if ( s_ad2 == NULL )
 		{
-			errBlock.seterrid( "PSYE022E" ) ;
+			errBlock.setcall( e1, "PSYE022E" ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -1043,7 +1062,7 @@ void pApplication::vdefine( const string& names,
 	{
 		if ( s_ad3 == NULL )
 		{
-			errBlock.seterrid( "PSYE022E" ) ;
+			errBlock.setcall( e1, "PSYE022E" ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -1055,7 +1074,7 @@ void pApplication::vdefine( const string& names,
 	{
 		if ( s_ad4 == NULL )
 		{
-			errBlock.seterrid( "PSYE022E" ) ;
+			errBlock.setcall( e1, "PSYE022E" ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -1067,7 +1086,7 @@ void pApplication::vdefine( const string& names,
 	{
 		if ( s_ad5 == NULL )
 		{
-			errBlock.seterrid( "PSYE022E" ) ;
+			errBlock.setcall( e1, "PSYE022E" ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -1079,7 +1098,7 @@ void pApplication::vdefine( const string& names,
 	{
 		if ( s_ad6 == NULL )
 		{
-			errBlock.seterrid( "PSYE022E" ) ;
+			errBlock.setcall( e1, "PSYE022E" ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -1091,7 +1110,7 @@ void pApplication::vdefine( const string& names,
 	{
 		if ( s_ad7 == NULL )
 		{
-			errBlock.seterrid( "PSYE022E" ) ;
+			errBlock.setcall( e1, "PSYE022E" ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -1103,7 +1122,7 @@ void pApplication::vdefine( const string& names,
 	{
 		if ( s_ad8 == NULL )
 		{
-			errBlock.seterrid( "PSYE022E" ) ;
+			errBlock.setcall( e1, "PSYE022E" ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -2067,22 +2086,41 @@ void pApplication::tbbottom( const string& tb_name,
 }
 
 
-void pApplication::tbclose( const string& tb_name, const string& tb_newname, const string& tb_path )
+void pApplication::tbclose( const string& tb_name, const string& tb_newname, string tb_path )
 {
 	// Save and close the table (calls saveTable and destroyTable routines).
 	// If table opened in NOWRITE mode, just remove table from storage.
+
+	// If path is not specified, use ZTABL as the output path or, if blank, the first path in ZTLIB
 
 	// RC = 0   Normal completion
 	// RC = 12  Table not open
 	// RC = 16  Path error
 	// RC = 20  Severe error
 
+	const string e1 = "TBCLOSE error" ;
+
 	errBlock.setRC( 0 ) ;
 
 	if ( !isTableOpen( tb_name, "TBCLOSE" ) ) { return ; }
 
+	if ( tb_newname != "" && !isvalidName( tb_newname ) )
+	{
+		errBlock.setcall( e1, "PSYE022J", "table", tb_newname ) ;
+		checkRCode( errBlock ) ;
+		return ;
+	}
+
 	if ( p_tableMGR->writeableTable( errBlock, tb_name ) )
 	{
+		if ( tb_path == "" )
+		{
+			tb_path = get_search_path( s_ZTABL ) ;
+			if ( tb_path == "" )
+			{
+				errBlock.setcall( e1, "PSYE013C", 16 ) ;
+			}
+		}
 		p_tableMGR->saveTable( errBlock, tb_name, tb_newname, tb_path ) ;
 	}
 	if ( errBlock.RC0() )
@@ -2095,7 +2133,7 @@ void pApplication::tbclose( const string& tb_name, const string& tb_newname, con
 	}
 	if ( errBlock.error() )
 	{
-		errBlock.setcall( "TBCLOSE error" ) ;
+		errBlock.setcall( e1 ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -2112,7 +2150,7 @@ void pApplication::tbcreate( const string& tb_name,
 			     tbDISP m_DISP )
 {
 	// Create a new table.
-	// For tables without a path specified and the WRITE option, default to the first path entry in ZTLIB
+	// m_path is an input library.  Default to ZTLIB if blank (not sure what this is used for - todo)
 
 	// RC = 0   Normal completion
 	// RC = 4   Normal completion - Table exists and REPLACE speified
@@ -2143,9 +2181,9 @@ void pApplication::tbcreate( const string& tb_name,
 		return ;
 	}
 
-	if ( m_WRITE == WRITE )
+	if ( m_path == "" )
 	{
-		if ( m_path == "" ) { m_path = getpath( zztlib, 1 ) ; }
+		m_path = get_search_path( s_ZTABL ) ;
 	}
 
 	getNameList( errBlock, keys ) ;
@@ -2944,10 +2982,12 @@ void pApplication::tbsarg( const string& tb_name,
 }
 
 
-void pApplication::tbsave( const string& tb_name, const string& tb_newname, const string& path )
+void pApplication::tbsave( const string& tb_name, const string& tb_newname, string path )
 {
 	// Save the table to disk (calls saveTable routine).  Table remains open for processing.
 	// Table must be open in WRITE mode.
+
+	// If path is not specified, use ZTABL as the output path.  Error if blank
 
 	// RC = 0   Normal completion
 	// RC = 12  Table not open or not open WRITE
@@ -2960,6 +3000,13 @@ void pApplication::tbsave( const string& tb_name, const string& tb_newname, cons
 
 	if ( !isTableOpen( tb_name, "TBSAVE" ) ) { return ; }
 
+	if ( tb_newname != "" && !isvalidName( tb_newname ) )
+	{
+		errBlock.setcall( e1, "PSYE022J", "table", tb_newname ) ;
+		checkRCode( errBlock ) ;
+		return ;
+	}
+
 	if ( !p_tableMGR->writeableTable( errBlock, tb_name ) )
 	{
 		errBlock.setcall( e1 ) ;
@@ -2969,6 +3016,15 @@ void pApplication::tbsave( const string& tb_name, const string& tb_newname, cons
 		}
 		checkRCode( errBlock ) ;
 		return ;
+	}
+
+	if ( path == "" )
+	{
+		path = get_search_path( s_ZTABL ) ;
+		if ( path == "" )
+		{
+			errBlock.setcall( e1, "PSYE013C", 16 ) ;
+		}
 	}
 
 	p_tableMGR->saveTable( errBlock, tb_name, tb_newname, path ) ;
@@ -4027,6 +4083,7 @@ void pApplication::checkRCode( const string& s )
 	{
 		llog( "E", "RC="<< RC <<" CONTROL ERRORS CANCEL is in effect.  Aborting"<< endl ) ;
 		vreplace( "ZAPPNAME", zappname ) ;
+		vreplace( "ZERRRX", rexxName ) ;
 		vreplace( "ZERR1",  s     ) ;
 		vreplace( "ZERR2",  zerr2 ) ;
 		vreplace( "ZERR3",  zerr3 ) ;
@@ -4075,6 +4132,8 @@ void pApplication::checkRCode( errblock err )
 	if ( err.abending() )
 	{
 		llog( "E", "Errors have occured during error processing.  Terminating application."<<endl ) ;
+		llog( "E", "Error Appl : "<< zappname << endl )  ;
+		llog( "E", "Error REXX : "<< rexxName << endl )  ;
 		llog( "E", "Error msg  : "<< err.msg1 << endl )  ;
 		llog( "E", "Error RC   : "<< err.getRC() << endl ) ;
 		llog( "E", "Error id   : "<< err.msgid << endl ) ;
@@ -4113,6 +4172,7 @@ void pApplication::checkRCode( errblock err )
 	llog( "E", "RC="<< err.getRC() <<" CONTROL ERRORS CANCEL is in effect.  Aborting" << endl ) ;
 
 	vreplace( "ZAPPNAME", zappname ) ;
+	vreplace( "ZERRRX", rexxName )  ;
 	vreplace( "ZERR1",  err.msg1  ) ;
 
 	if ( err.sline == "" )
@@ -4147,7 +4207,7 @@ void pApplication::checkRCode( errblock err )
 void pApplication::cleanup_default()
 {
 	// Dummy routine.  Override in the application so the customised one is called on an exception condition.
-	// Use CONTROL ABENDRTN ptr_to_routine
+	// Use CONTROL ABENDRTN ptr_to_routine to set
 
 	// Called on: abend()
 	//            abendexc()
@@ -4236,6 +4296,7 @@ void pApplication::xabend( const string& msgid, int callno )
 	llog( "E", "Shutting down application: "+ zappname +" Taskid: "<< taskId <<" due to a user abend" << endl ) ;
 
 	vreplace( "ZAPPNAME", zappname ) ;
+	vreplace( "ZERRRX", rexxName ) ;
 	vreplace( "ZERRMSG", msgid ) ;
 	vreplace( "ZERR1",  t  ) ;
 	vreplace( "ZERR2",  "" ) ;
@@ -4283,7 +4344,7 @@ void pApplication::abendexc()
 
 void pApplication::set_forced_abend()
 {
-	llog( "E", "Shutting down application: "+ zappname +" Taskid: " << taskId << " due to a forced condition" << endl ) ;
+	llog( "E", "Shutting down application: "+ zappname +" Taskid: "<< taskId <<" due to a forced condition" << endl ) ;
 	abnormalEnd       = true  ;
 	abnormalEndForced = true  ;
 	terminateAppl     = true  ;
@@ -4296,7 +4357,7 @@ void pApplication::set_forced_abend()
 
 void pApplication::set_timeout_abend()
 {
-	llog( "E", "Shutting down application: "+ zappname +" Taskid: " << taskId << " due to a timeout condition" << endl ) ;
+	llog( "E", "Shutting down application: "+ zappname +" Taskid: "<< taskId <<" due to a timeout condition" << endl ) ;
 	abnormalEnd       = true  ;
 	abnormalEndForced = true  ;
 	abnormalTimeout   = true  ;

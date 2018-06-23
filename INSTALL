@@ -10,6 +10,8 @@ To install:
 You can use comp1 to compile lspf.cpp, compsetup to compile setup.cpp and compapps for all applications in directory Apps
 This has been developed on Arch Linux - link options may vary (eg. if ncurses is built with --with-termlib add -ltinfo )
 
+Recompile and rerun setup on an upgrade in case variables have been added to the ISPS profile.
+
 Boost and ncurses required to compile lspf.cpp
 
 OOREXX required for POREXX1.cpp (OOREXX interface module for writing lspf applications in REXX) and PEDRXM1.cpp (edit
@@ -20,7 +22,7 @@ file required for PBRO01A.cpp as it is linked with -lmagic
 Run lspf in a terminal
 
 Works with:
-gcc 8.1.0
+gcc 8.1.1
 ncurses 6.1
-boost 1.66.0
+boost 1.67.0
 

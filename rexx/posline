@@ -1,0 +1,43 @@
+/* REXX implement CE, RV, LEF, and RIT line commands                */
+/*                                                                  */
+/* CE : Center text on a line                                       */
+/* RV : Reverse text on a line                                      */
+/* LEF: Move text all the way left                                  */
+/* RIT: Move text all the way right                                 */
+Address isredit                              /*  Start of macro     */
+"MACRO (PARM) NOPROCESS"                     /*  Get line command   */
+/* Parm contains the value exactly as entered in the line cmd area  */
+/* If user enters a block or multi-line format it would be easier   */
+/* to have the table entry handy                                    */
+Address ispexec "VGET (ZLMACENT) SHARED"     /* Get the line command*/
+Address ispexec "CONTROL ERRORS RETURN"      /*  Return ISPF errors */
+If wordpos(zlmacent,"CE RV LEF RIT") = 0 Then/*  If not an expected */
+    Do                                       /*   command           */
+      zinfo=parm                             /*  Set up for message */
+      Address ispexec "SETMSG MSG(PEDT012)"  /*    Invalid command  */
+      Exit  8                /* let ISPF handle the error           */
+    End                      /*                                     */
+"PROCESS RANGE" zlmacent     /* Get range for command               */
+If rc>0  Then                /* If an error occurred                */
+  Do                         /*                                     */
+    Address ispexec  "SETMSG MSG(PSYZ002)"   /* Set ISPF's message  */
+    Exit  8                  /* Let ISPF handle the error           */
+  End                        /*                                     */
+parmin = parm                /* Actual value might be needed later  */
+parm = zlmacent              /* just keeping the comments in line   */
+"(START) = LINENUM .ZFRANGE" /* Get 1st line number in the range    */
+"(STOP)  = LINENUM .ZLRANGE" /* Get last line number in the range   */
+"(DW)  = DATA_WIDTH"         /* Get the width of the editable data  */
+Do a = start to stop         /* Loop through the range of lines     */
+  "(LINE) = LINE "a          /* Get old line value                  */
+  SELECT                     /* process the command for this line   */
+    When(parm = "CE")  Then line=center(strip(line),dw) /* Center   */
+    When(parm = "RV")  Then line=reverse(line)          /* Reverse  */
+    When(parm = "LEF") Then line=strip(line,"L")    /* Left justify */
+    When(parm = "RIT") Then line=right(strip(line,"T"),dw) /* Right */
+			     /*                            Justify  */
+    Otherwise  Nop           /* Otherwise, no op (should not occur) */
+  End                        /*                                     */
+  "LINE "a" = (LINE)"        /* Set new line value                  */
+End                          /* End of loop through lines           */
+exit 0                       /* Return to ISPF                      */

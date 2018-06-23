@@ -1039,7 +1039,7 @@ void field::field_attr( errblock& err, string attrs, bool chng_once )
 		if ( p2 == 0 ) { err.seterrid( "PSYE032D" ) ; return ; }
 		hilite = strip( substr( attrs, (p1 + 7), (p2 - (p1 + 7)) ) ) ;
 		attrs  = delstr( attrs, p1, (p2 - p1 + 1) ) ;
-		if      ( hilite == "NONE"    ) {}
+		if      ( hilite == "NONE"    ) { ; }
 		else if ( hilite == "BLINK"   ) { field_colour = field_colour | A_BLINK     ; }
 		else if ( hilite == "REVERSE" ) { field_colour = field_colour | A_REVERSE   ; }
 		else if ( hilite == "USCORE"  ) { field_colour = field_colour | A_UNDERLINE ; }

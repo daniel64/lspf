@@ -28,7 +28,9 @@ class Table
 			firstMult     = true  ;
 			changed       = false ;
 			tab_cmds      = false ;
-			tab_path      = ""    ;
+			tab_ipath     = ""    ;
+			tab_opath     = ""    ;
+			tab_spath     = ""    ;
 			sa_namelst    = ""    ;
 			sa_cond_pairs = ""    ;
 			sa_dir        = ""    ;
@@ -42,7 +44,9 @@ class Table
 		string  tab_keys      ;
 		string  tab_flds      ;
 		string  tab_all       ;
-		string  tab_path      ;
+		string  tab_ipath     ;
+		string  tab_opath     ;
+		string  tab_spath     ;
 		bool    firstMult     ;
 		bool    changed       ;
 		uint    refCount      ;

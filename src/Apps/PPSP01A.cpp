@@ -205,7 +205,10 @@ void PPSP01A::show_log( const string& fileName )
 			set_excludes() ;
 		}
 
-		if ( w1 == "" ) {}
+		if ( w1 == "" )
+		{
+			;
+		}
 		else if ( w1 == "ONLY" || w1 == "O" )
 		{
 			if ( Rest.size() == 1 )
@@ -582,13 +585,13 @@ void PPSP01A::dsList( string parms )
 				fout << fname << endl ;
 			}
 			fout.close() ;
-			tbclose( rfltable ) ;
+			tbclose( rfltable, "", uprof ) ;
 			vcopy( "ZFLSTPGM", pgm, MOVE ) ;
 			select( "PGM(" + pgm + ") PARM(LIST " + upper( parms ) + " " + tname + ")" ) ;
 		}
 		else
 		{
-			tbclose( rfltable ) ;
+			tbclose( rfltable, "", uprof ) ;
 			vcopy( "ZFLSTPGM", pgm, MOVE ) ;
 			select( "PGM(" + pgm + ") PARM(" + parms + ")" ) ;
 		}
@@ -1222,7 +1225,10 @@ void PPSP01A::colourSettings()
 		display( "PPSP01CL", msg, curfld ) ;
 		if (RC == 8 ) { cleanup() ; break  ; }
 
-		if ( zcmd == "" ) {}
+		if ( zcmd == "" )
+		{
+			;
+		}
 		else if ( zcmd == "CANCEL" )
 		{
 			for ( i = 1 ; i < 34 ; i++ )
@@ -1910,12 +1916,6 @@ void PPSP01A::showPaths()
 		pvar = "" ;
 	}
 
-	pvar = "ZSYSPATH" ;
-	vget( "ZSYSPATH", PROFILE ) ;
-	vcopy( "ZSYSPATH", path, MOVE ) ;
-	desc = "System Path" ;
-	tbadd( table )    ;
-
 	pvar = "ZTLIB" ;
 	desc = "System search path for tables" ;
 	for ( i = 1 ; i <= getpaths( ztlib ) ; i++)
@@ -1928,10 +1928,22 @@ void PPSP01A::showPaths()
 		pvar = "" ;
 	}
 
+	pvar = "ZTABL" ;
+	vget( "ZTABL", PROFILE ) ;
+	vcopy( "ZTABL", path, MOVE ) ;
+	desc = "Table output directory" ;
+	tbadd( table )    ;
+
+	pvar = "ZSYSPATH" ;
+	vget( "ZSYSPATH", PROFILE ) ;
+	vcopy( "ZSYSPATH", path, MOVE ) ;
+	desc = "System Path" ;
+	tbadd( table )    ;
+
 	pvar = "ZUPROF" ;
 	vget( "ZUPROF", PROFILE ) ;
 	vcopy( "ZUPROF", path, MOVE ) ;
-	desc = "User home profile path" ;
+	desc = "User home profile directory" ;
 	tbadd( table )    ;
 
 	pvar = "ZORXPATH" ;
@@ -1991,7 +2003,7 @@ void PPSP01A::showPaths()
 		}
 		if ( e_loop ) { break ; }
 	}
-	tbclose( table ) ;
+	tbend( table ) ;
 }
 
 
@@ -2017,6 +2029,7 @@ void PPSP01A::libdefStatus()
 	stack<string> libm = get_zmlib() ;
 	stack<string> libp = get_zplib() ;
 	stack<string> libt = get_ztlib() ;
+	stack<string> tabl = get_ztabl() ;
 	stack<string> usrm = get_zmusr() ;
 	stack<string> usrp = get_zpusr() ;
 	stack<string> usrt = get_ztusr() ;
@@ -2030,6 +2043,7 @@ void PPSP01A::libdefStatus()
 	libdefs[ 3 ] = &libp ;
 	libdefs[ 4 ] = &usrt ;
 	libdefs[ 5 ] = &libt ;
+	libdefs[ 6 ] = &tabl ;
 
 	lib[ 0 ] = "ZMUSR" ;
 	lib[ 1 ] = "ZMLIB" ;
@@ -2037,13 +2051,14 @@ void PPSP01A::libdefStatus()
 	lib[ 3 ] = "ZPLIB" ;
 	lib[ 4 ] = "ZTUSR" ;
 	lib[ 5 ] = "ZTLIB" ;
+	lib[ 6 ] = "ZTABL" ;
 
-	for ( int l = 0 ; l < 6 ; l++ )
+	for ( int l = 0 ; l < 7 ; l++ )
 	{
 		stack<string>* libdef = libdefs[ l ] ;
 		if ( libdef->empty() )
 		{
-			if ( l % 2 == 1 )
+			if ( l % 2 == 1 || l == 6 )
 			{
 				stk   = "" ;
 				libx  = lib[ l ] ;
@@ -2790,7 +2805,7 @@ void PPSP01A::keylistTable( string tab, string aktab, string aklist )
 		vreplace( "KEYHELPN", "" ) ;
 		tbadd( tab, "", "ORDER" ) ;
 		if ( RC > 0 ) { abend() ; }
-		tbclose( tab ) ;
+		tbclose( tab, "", uprof ) ;
 		tbopen( tab, NOWRITE, uprof ) ;
 		if ( RC > 0 ) { abend() ; }
 	}
@@ -2840,7 +2855,7 @@ void PPSP01A::keylistTable( string tab, string aktab, string aklist )
 					if ( RC > 0 ) { abend() ; }
 					tbdelete( table ) ;
 					if ( RC > 0 ) { abend() ; }
-					tbclose( tab ) ;
+					tbclose( tab, "", uprof ) ;
 				}
 			}
 			else if ( tbk2sel == "N" )
@@ -2878,7 +2893,7 @@ void PPSP01A::keylistTable( string tab, string aktab, string aklist )
 						vreplace( "KEYHELPN", t ) ;
 						tbadd( tab, "", "ORDER" ) ;
 						if ( RC > 0 ) { abend() ; }
-						tbclose( tab ) ;
+						tbclose( tab, "", uprof ) ;
 						tbk2lst = newkey ;
 						tbk2msg = "*Added*" ;
 						tbadd( table, "", "ORDER" ) ;
@@ -3094,7 +3109,7 @@ void PPSP01A::editKeylist( const string& tab, const string& list )
 	tbmod( tab ) ;
 	if ( RC > 0 ) { abend() ; }
 
-	tbclose( tab ) ;
+	tbclose( tab, "", uprof ) ;
 	if ( RC > 0 ) { abend() ; }
 
 	tbend( table ) ;
@@ -3105,7 +3120,7 @@ void PPSP01A::editKeylist( const string& tab, const string& list )
 
 void PPSP01A::createKeyTable( string table )
 {
-	// Create an empty keylist table entry
+	// Create an empty keylist table entry.  Keylists reside in the ZUPROF directory.
 
 	int i ;
 
@@ -3127,7 +3142,7 @@ void PPSP01A::createKeyTable( string table )
 	tbcreate( table, "KEYLISTN", "("+flds+")", WRITE, NOREPLACE, uprof ) ;
 	if ( RC > 0 ) { abend() ; }
 
-	tbsave( table ) ;
+	tbsave( table, "", uprof ) ;
 	if ( RC > 0 ) { abend() ; }
 
 	tbend( table ) ;

@@ -100,16 +100,57 @@ string copies( const string& s, unsigned int n )
 
 bool datatype( const string& s, char type )
 {
-	if ( type == 'W' )
+	// A - only alphanumeric characters (a-z, A-Z, 0-9)
+	// L - only lower case alpha characters (a-z)
+	// M - only mixed case characters (a-z, A-Z)
+	// W - only whole numbers
+	// U - only upper case alpha characters (A-Z)
+
+	if ( s == "" ) { return false ; }
+
+	switch ( type )
 	{
-		if ( s == "" ) { return false ; }
+	case 'A':
+		for( unsigned int i = 0 ; i < s.length() ; i++ )
+		{
+			if ( !isalnum( s[ i ] ) ) { return false ; }
+		}
+		break ;
+
+	case 'L':
+		for( unsigned int i = 0 ; i < s.length() ; i++ )
+		{
+			if ( !islower( s[ i ] ) ) { return false ; }
+		}
+		break ;
+
+	case 'M':
+		for( unsigned int i = 0 ; i < s.length() ; i++ )
+		{
+			if ( !islower( s[ i ] ) &&
+			     !isupper( s[ i ] ) ) { return false ; }
+		}
+		break ;
+
+	case 'W':
 		for( unsigned int i = 0 ; i < s.length() ; i++ )
 		{
 			if ( !isdigit( s[ i ] ) ) { return false ; }
 		}
-		return true ;
+		break ;
+
+	case 'U':
+		for( unsigned int i = 0 ; i < s.length() ; i++ )
+		{
+			if ( !isupper( s[ i ] ) ) { return false ; }
+		}
+		break ;
+
+	default:
+		return false ;
 	}
-	return false ;
+
+	return true ;
 }
 
 
@@ -1417,16 +1458,16 @@ int getpaths( const string& p )
 
 string getpath( const string& s, int p )
 {
-	// Return path p in a concatenation.  Add ending '/' if missing
+	// Return path p in a concatenation.  Add ending '/' if missing and remove surrounding spaces
 
-	int i  ;
 	int p1 ;
 	int p2 ;
+
 	string path ;
 
 	p1 = 1 ;
 
-	for ( i = 1 ; i < p ; i++ )
+	for ( int i = 1 ; i < p ; i++ )
 	{
 		p1 = pos( ":", s, p1 ) ;
 		if ( p1 == 0 ) { return "" ; }
@@ -1435,8 +1476,10 @@ string getpath( const string& s, int p )
 	p2 = pos( ":", s, p1 ) ;
 	if ( p2 == 0 ) { path = substr( s, p1, s.size()-p1+1 ) ; }
 	else           { path = substr( s, p1, p2-p1 )         ; }
+
 	if ( path.back() != '/' ) { path.push_back( '/' ) ; }
-	return path ;
+
+	return trim( path ) ;
 }
 
 

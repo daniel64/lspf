@@ -345,7 +345,7 @@ PEDT015T 'Invalid DEFINE request' .TYPE=W
 'RESET attempted for a name not currently DEFINED'
 
 PEDT015U 'Invalid DEFINE request' .TYPE=W
-'DEFINE ALIAS attempted for a name that is currently NOP'ed or DISABLED'
+'DEFINE ALIAS attempted for a name that is currently NOP''ed or DISABLED'
 
 PEDT015V '&ZEDCLIP is read-only' .TYPE=W
 'Use clipboard manager, line command ''O'', to unlock clipboard'
@@ -382,4 +382,10 @@ PEDT016F '*Top of range reached*' .TYPE=W
 
 PEDT016G 'No &TYPE &STR found' .TYPE=W
 'Search for &TYPE &STR was not successful from &ZVAL1 to &ZVAL2'
+
+PEDT016H 'No Line Command Table' .TYPE=W
+'Table &EELMAC has not been found in the ZTLIB search path'
+
+PEDT016I 'Destination pending' .TYPE=N
+'Macro line command &ZSTR1, requires a destination of A/B'
 
