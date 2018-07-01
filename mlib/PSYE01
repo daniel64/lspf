@@ -40,7 +40,7 @@ PSYE013A 'Invalid variable name on a &ZVAL1'
 PSYE013B 'Maximum return code of &ZVAL1 exceeded for function pool GET of &ZVAL2'
 ''
 
-PSYE013C 'Outpt destination not specified'
+PSYE013C 'Output destination not specified'
 'No destination specified and ZTABL is null'
 
 PSYE013D 'Spare'
@@ -64,8 +64,8 @@ PSYE013I 'Table &ZVAL1 is a temporary table.  Cannot be saved'
 PSYE013J 'Entry &ZVAL1 is not a regular directory'
 ''
 
-PSYE013K 'Entry &ZVAL1 does not exist for table save'
-''
+PSYE013K 'Spare'
+'Spare'
 
 PSYE013L 'Entry &ZVAL1 is not a regular file'
 ''

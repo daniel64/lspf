@@ -12,7 +12,7 @@ PEDT013 'Line Command Invalid Here' .TYPE=W
 'Line command entered is not valid on this line'
 
 PEDT014 'Invalid label name' .TYPE=W
-'Label must be between 1 and 5 alphanumeric characters and not starting with a ''Z'''
+'Label must be between 1 and 5 alphabetic characters, not starting with a ''Z'''
 
 PEDT015 'Invalid parameter format passed to PEDIT01'
 '&ZVAL1'
@@ -388,4 +388,7 @@ PEDT016H 'No Line Command Table' .TYPE=W
 
 PEDT016I 'Destination pending' .TYPE=N
 'Macro line command &ZSTR1, requires a destination of A/B'
+
+PEDT016J 'Invalid destination' .TYPE=W
+'Multiple destinations cannot be entered with a line command macro'
 

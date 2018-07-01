@@ -37,7 +37,7 @@ PSYE022G 'Invalid user search type ''&ZVAL1'''
 'Valid type is FILE'
 
 PSYE022H 'Invalid search library name ''&ZVAL1'''
-'Valid application libraries are ZMLIB, ZPLIB and ZTLIB and user libraries are ZMUSR, ZPUSR and ZTUSR'
+'Valid application libraries are ZMLIB, ZPLIB and ZTLIB'
 
 PSYE022I 'Invalid processing option ''&ZVAL1'''
 'Valid processing options are COND, UNCOND, STACK and STKADD'
@@ -125,4 +125,3 @@ PSYE023K 'Invalid parameters'
 
 PSYE023L 'Directory invalid'
 'Entry ''&ZVAL1'' is invalid or does not exist'
-

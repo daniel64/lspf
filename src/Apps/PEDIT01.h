@@ -745,6 +745,13 @@ class iline
 			}
 			return false ;
 		}
+		void clearSpecialLabel( int lvl=0 )
+		{
+			if ( il_label.count( lvl ) > 0 && il_label[ lvl ].compare( 0, 2, ".O" ) == 0 )
+			{
+				il_label.erase( lvl ) ;
+			}
+		}
 		bool compareLabel( const string& s, int lvl )
 		{
 			if ( il_label.count( lvl ) > 0 && il_label[ lvl ] == s ) { return true ; }
@@ -2002,7 +2009,7 @@ class miblock
 		isvar    = false ;
 		m_cmd    = EMServ[ keyword ].m_cmd ;
 		trim( value )    ;
-		if ( !query && (m_cmd == EM_LINE || m_cmd == EM_LINE_BEFORE || m_cmd == EM_LINE_AFTER ) )
+		if ( !query && ( m_cmd == EM_LINE || m_cmd == EM_LINE_BEFORE || m_cmd == EM_LINE_AFTER ) )
 		{
 			;
 		}
@@ -2127,16 +2134,24 @@ class miblock
 	}
 	bool getMacroFileName( const string& paths )
 	{
-		int i ;
-		int j ;
+		int j = getpaths( paths ) ;
 		setRC( 0 ) ;
-		for ( j = getpaths( paths ), i = 1 ; i <= j ; i++ )
+		while ( true )
 		{
-			mfile = getpath( paths, i ) + emacro ;
-			if ( !exists( mfile ) ) { continue ; }
-			if ( is_regular_file( mfile ) ) { mfound = true ; return true ; }
-			setRC( 28 )  ;
-			return false ;
+			for ( int i = 1 ; i <= j ; i++ )
+			{
+				mfile = getpath( paths, i ) + emacro ;
+				if ( !exists( mfile ) ) { continue ; }
+				if ( is_regular_file( mfile ) )
+				{
+					mfound = true ;
+					return true ;
+				}
+				setRC( 28 )  ;
+				return false ;
+			}
+			if ( emacro == lower( emacro ) ) { break ; }
+			ilower( emacro ) ;
 		}
 		setRC( 8 )   ;
 		return false ;
@@ -2180,22 +2195,20 @@ class PEDIT01 : public pApplication
 
 		void application() ;
 
-		void actionService() ;
-		void querySetting()  ;
 		void isredit( const string& ) ;
 
-		miblock miBlock ;
-		cmdblock pcmd   ;
-
 		map<string,stack<defName>> defNames ;
+		cmdblock pcmd ;
 
 	private:
-		static set<string>EditList       ;
+		static set<string>EditList ;
 		static edit_find Global_efind_parms ;
 
+		miblock miBlock ;
+
+		void Edit()               ;
 		void showEditEntry()      ;
 		void showEditRecovery()   ;
-		void Edit()               ;
 		void getEditProfile( const string& )  ;
 		void delEditProfile( const string& )  ;
 		void saveEditProfile( const string& ) ;
@@ -2222,7 +2235,7 @@ class PEDIT01 : public pApplication
 		void actionFind()         ;
 		void actionChange()       ;
 
-		bool checkLineCommands()  ;
+		bool storeLineCommands()  ;
 		void actionPrimCommand1() ;
 		void actionPrimCommand2() ;
 		void actionLineCommands() ;
@@ -2230,11 +2243,15 @@ class PEDIT01 : public pApplication
 
 		void run_macro( const string&, bool =false, bool =false ) ;
 
-		void actionZVERB()        ;
-		void setLineLabels()      ;
+		void actionService() ;
+		void querySetting()  ;
 
-		bool actionUNDO()         ;
-		bool actionREDO()         ;
+		void actionZVERB()   ;
+		void setLineLabels() ;
+		string genNextLabel( const string& ) ;
+
+		bool actionUNDO()    ;
+		bool actionREDO()    ;
 		void removeRecoveryData() ;
 
 		uint getLine( int, uint =0 ) ;
@@ -2330,9 +2347,9 @@ class PEDIT01 : public pApplication
 		bool getTabLocation( size_t& ) ;
 		void copyPrefix( ipline &, iline*& ) ;
 		void copyPrefix( iline* &,ipline&, bool =false ) ;
-		void addSpecial( char, int, vector<string>& ) ;
-		void addSpecial( char, int, const string& ) ;
-		void addSpecial( char, vector<iline*>::iterator, const string& ) ;
+		void addSpecial( LN_TYPE, int, vector<string>& ) ;
+		void addSpecial( LN_TYPE, int, const string& ) ;
+		void addSpecial( LN_TYPE, vector<iline*>::iterator, const string& ) ;
 
 		string getMaskLine() ;
 		string rshiftCols( int, const string* ) ;
@@ -2416,8 +2433,6 @@ class PEDIT01 : public pApplication
 		bool optPreserve         ;
 		bool optConfCancel       ;
 		bool optFindPhrase       ;
-		string optProfile        ;
-		string optMacro          ;
 
 		bool termEdit            ;
 		bool stripST             ;

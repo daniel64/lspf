@@ -256,7 +256,8 @@ void execiEdit( pApplication* thisAppl, const string& s, errblock& err )
 	string ed_panel ;
 	string ed_macro ;
 	string ed_profile ;
-	string ed_file ;
+	string ed_file  ;
+	string ed_lcmds ;
 
 	str = subword( s, 2 ) ;
 
@@ -272,13 +273,20 @@ void execiEdit( pApplication* thisAppl, const string& s, errblock& err )
 	ed_profile = parseString( err, str, "PROFILE()" ) ;
 	if ( err.error() ) { return ; }
 
+	ed_lcmds = parseString( err, str, "LINECMDS()" ) ;
+	if ( err.error() ) { return ; }
+
 	if ( str != "" )
 	{
 		err.seterrid( "PSYE032H", str ) ;
 		return ;
 	}
 
-	thisAppl->edit( ed_file, iupper( ed_panel ), iupper( ed_macro ), iupper( ed_profile ) ) ;
+	thisAppl->edit( ed_file,
+			iupper( ed_panel ),
+			iupper( ed_macro ),
+			iupper( ed_profile ),
+			iupper( ed_lcmds ) ) ;
 }
 
 
@@ -323,7 +331,13 @@ void execiGetmsg( pApplication* thisAppl, const string& s, errblock& err )
 		return ;
 	}
 
-	thisAppl->getmsg( gm_msg, gm_smsg, gm_lmsg, gm_alarm, gm_help, gm_type, gm_window ) ;
+	thisAppl->getmsg( gm_msg,
+			  gm_smsg,
+			  gm_lmsg,
+			  gm_alarm,
+			  gm_help,
+			  gm_type,
+			  gm_window ) ;
 }
 
 
@@ -898,7 +912,10 @@ void execiTBOpen( pApplication* thisAppl, const string& s, errblock& err )
 		return ;
 	}
 
-	thisAppl->tbopen( tb_name, tb_write, tb_paths, tb_disp ) ;
+	thisAppl->tbopen( tb_name,
+			  tb_write,
+			  tb_paths,
+			  tb_disp ) ;
 }
 
 

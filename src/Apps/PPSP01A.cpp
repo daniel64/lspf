@@ -2018,74 +2018,89 @@ void PPSP01A::libdefStatus()
 	string stk   ;
 	string libx  ;
 	string type  ;
+	string usr   ;
 	string ident ;
+	string musr  ;
+	string pusr  ;
+	string tusr  ;
+	string tabu  ;
 
-	vdefine( "LDSTK LDLIB LDTYP LDID", &stk, &libx, &type, &ident ) ;
+	vdefine( "LDSTK LDLIB LDTYP LDUSR LDID", &stk, &libx, &type, &usr, &ident ) ;
+	vdefine( "ZMUSR ZPUSR ZTUSR ZTABU", &musr, &pusr, &tusr, &tabu ) ;
 
 	table = "LIBDFS" + d2ds( taskid(), 2 ) ;
 
-	tbcreate( table, "", "(LDSTK,LDLIB,LDTYP,LDID)", NOWRITE ) ;
+	tbcreate( table, "", "(LDSTK,LDLIB,LDTYP,LDUSR,LDID)", NOWRITE ) ;
 
-	stack<string> libm = get_zmlib() ;
-	stack<string> libp = get_zplib() ;
-	stack<string> libt = get_ztlib() ;
-	stack<string> tabl = get_ztabl() ;
-	stack<string> usrm = get_zmusr() ;
-	stack<string> usrp = get_zpusr() ;
-	stack<string> usrt = get_ztusr() ;
+	map<string,stack<string>> zlibd = get_zlibd() ;
 
 	map<int, stack<string>*> libdefs ;
-	map<int, string> lib ;
+	map<int, string>   lib ;
+	map<int, string*> ulib ;
 
-	libdefs[ 0 ] = &usrm ;
-	libdefs[ 1 ] = &libm ;
-	libdefs[ 2 ] = &usrp ;
-	libdefs[ 3 ] = &libp ;
-	libdefs[ 4 ] = &usrt ;
-	libdefs[ 5 ] = &libt ;
-	libdefs[ 6 ] = &tabl ;
+	libdefs[ 0 ] = &zlibd[ "ZMLIB" ] ;
+	libdefs[ 1 ] = &zlibd[ "ZPLIB" ] ;
+	libdefs[ 2 ] = &zlibd[ "ZTLIB" ] ;
+	libdefs[ 3 ] = &zlibd[ "ZTABL" ] ;
 
-	lib[ 0 ] = "ZMUSR" ;
-	lib[ 1 ] = "ZMLIB" ;
-	lib[ 2 ] = "ZPUSR" ;
-	lib[ 3 ] = "ZPLIB" ;
-	lib[ 4 ] = "ZTUSR" ;
-	lib[ 5 ] = "ZTLIB" ;
-	lib[ 6 ] = "ZTABL" ;
+	lib[ 0 ] = "ZMLIB" ;
+	lib[ 1 ] = "ZPLIB" ;
+	lib[ 2 ] = "ZTLIB" ;
+	lib[ 3 ] = "ZTABL" ;
 
-	for ( int l = 0 ; l < 7 ; l++ )
+	ulib[ 0 ] = &musr ;
+	ulib[ 1 ] = &pusr ;
+	ulib[ 2 ] = &tusr ;
+	ulib[ 3 ] = &tabu ;
+
+	vget( "ZMUSR ZPUSR ZTUSR ZTABU", PROFILE ) ;
+
+	for ( int l = 0 ; l < libdefs.size() ; l++ )
 	{
 		stack<string>* libdef = libdefs[ l ] ;
 		if ( libdef->empty() )
 		{
-			if ( l % 2 == 1 || l == 6 )
+			stk   = "" ;
+			libx  = lib[ l ] ;
+			type  = "" ;
+			usr   = "" ;
+			ident = "** LIBDEF not active **" ;
+			tbadd( table ) ;
+			continue ;
+		}
+		libx = lib[ l ] ;
+		if ( !libdef->empty() )
+		{
+			usr  = "X"    ;
+			type = "FILE" ;
+			stk  = ""     ;
+			p    = getpaths( *ulib[ l ] ) ;
+			for ( size_t i = 1 ; i <= p ; i++ )
 			{
-				stk   = "" ;
-				libx  = lib[ l ] ;
-				type  = "" ;
-				ident = "** LIBDEF not active **" ;
-				tbadd( table )   ;
+				ident = getpath( *ulib[ l ], i ) ;
+				tbadd( table ) ;
+				libx = "" ;
+				type = "" ;
+				libx = "" ;
 			}
 		}
-		else
+		stacked = false ;
+		while ( !libdef->empty() )
 		{
-			stacked = false ;
-			while ( !libdef->empty() )
+			usr  = ""     ;
+			type = "FILE" ;
+			p    = getpaths( libdef->top() ) ;
+			for ( size_t i = 1 ; i <= p ; i++ )
 			{
-				libx = lib[ l ] ;
-				type = "FILE"   ;
-				p    = getpaths( libdef->top() ) ;
-				for ( size_t i = 1 ; i <= p ; i++ )
-				{
-					ident = getpath( libdef->top(), i ) ;
-					stk   = (stacked && type != "" ) ? "S" : "" ;
-					tbadd( table ) ;
-					libx = "" ;
-					type = "" ;
-				}
-				stacked = true ;
-				libdef->pop() ;
+				ident = getpath( libdef->top(), i ) ;
+				stk   = (stacked && type != "" ) ? "S" : "" ;
+				tbadd( table ) ;
+				libx = "" ;
+				type = "" ;
 			}
+			stacked = true ;
+			libx = lib[ l ] ;
+			libdef->pop() ;
 		}
 	}
 
@@ -2103,7 +2118,8 @@ void PPSP01A::libdefStatus()
 
 	rempop() ;
 	tbend( table ) ;
-	vdelete( "LDSTK LDLIB LDTYP LDID" ) ;
+	vdelete( "LDSTK LDLIB LDTYP LDUSR LDID" ) ;
+	vdelete( "ZMUSR ZPUSR ZTUSR ZTABU" ) ;
 }
 
 

@@ -13,13 +13,14 @@ field    2  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
 literal  2  MAX-15  FP "Scroll ===> "
 field    2  MAX-3   4 NEF  NONE ZSCROLL
 
-literal  4  4 CH  "Library  Type     Identifier"
+literal  4  4 CH  "Library  Type     USR Identifier"
 
 tbmodel  5    MAX
 tbfield  2    1    LI  NONE LDSTK
 tbfield  ++1  8    LI  NONE LDLIB
 tbfield  ++1  8    LI  NONE LDTYP
-tbfield  ++1  MAX  LI  NONE LDID
+tbfield  ++2  1    LI  NONE LDUSR
+tbfield  ++2  MAX  LI  NONE LDID
 
 )INIT
 VGET ZSCROLL PROFILE

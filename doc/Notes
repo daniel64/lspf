@@ -42,4 +42,17 @@ Loads! some good, and some bad but in no particular order...
 20) Dynamic areas can only have one DATAIN and one DATAOUT attribute.
 21) Pull down menus don't have an input field - select by placing curson on the option and pressing ENTER.
     Variable specified in .ZVARS in the )ABCINIT will automatically be set the the option number selected.
+22) Search library names are different:
+    ISPF      lspf    Description
+    ----------------------------------------
+    ISPMLIB   ZMLIB   Message library
+    ISPPLIB   ZPLIB   Panel library
+    ISPTLIB   ZTLIB   Table input library
+    ISPTABL   ZTABL   Table output library
 
+    ISPMUSR   ZMUSR   User message library
+    ISPPUSR   ZPUSR   User panel library
+    ISPTUSR   ZTUSR   User table input library
+    ISPTABU   ZTABU   User table output library
+
+    The other names are not implemented.

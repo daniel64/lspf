@@ -11,6 +11,7 @@ ACTIONS   Move cursor to the action bar, or the next entry if already on the act
 DISCARD   Discard the screen updates and refresh from the previous output
 FIELDEXC  Execute the file-level command (if the cursor is on the field) defined in the panel )FIELD section
 RESIZE    Expand a pop-up to full screen (and toggles back)
+RETF      Forward retrieve.
 RETP      Show the retrieve stack screen.
 RETRIEVE  Retrieve next entry from the retrieve stack (RETRIEVE n retrieves nth entry)
 SPLIT     Split the screen

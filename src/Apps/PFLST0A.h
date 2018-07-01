@@ -102,6 +102,9 @@ class PFLST0A : public pApplication
 		string permiss  ;
 		string size     ;
 		string stcdate  ;
+		string lcmtab   ;
+		string eprof    ;
+		string eimac    ;
 		string moddate  ;
 		string moddates ;
 		string ientry   ;

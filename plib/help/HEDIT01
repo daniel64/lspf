@@ -18,6 +18,11 @@ PROFILE USE TYPE - Determine profile name from the file type (eg, REXX, ASM, CPP
                    (PROFILE name switches this off and reverts to an explicit profile name)
                    Explicit profile names are in red (as is the explicit hilight language)
 
+PROFILE DELETE abc - Delete edit profile abc
+
+RECOVER ON PATH pathname - Set the path to save a copy of the file on edit entry
+                           (default home directory - should be changed to a backup directory eg ~/isr/)
+
 UNDO ALL - Undo all changes on the undo stack
 REDO     - Redo the last undo
 REDO ALL - Redo all changes on the redo stack

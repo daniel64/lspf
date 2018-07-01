@@ -124,14 +124,20 @@ int main()
 
 	ZCTVERB  = "SPLIT" ;
 	ZCTTRUNC = "0"     ;
-	ZCTACT   = "SPLIT"  ;
+	ZCTACT   = "SPLIT" ;
 	ZCTDESC  = "Split screen" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
 	ZCTVERB  = "RETRIEVE" ;
 	ZCTTRUNC = "0"        ;
-	ZCTACT   = "RETRIEVE"  ;
+	ZCTACT   = "RETRIEVE" ;
 	ZCTDESC  = "Retrieve command" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	ZCTVERB  = "RETF" ;
+	ZCTTRUNC = "0"    ;
+	ZCTACT   = "RETF" ;
+	ZCTDESC  = "Forward retrieve command" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
 	ZCTVERB  = "RETURN"  ;
@@ -463,7 +469,7 @@ void createSYSPROF()
 	p_poolMGR->put( err, "ZRBSIZE",  "20",   PROFILE ) ;
 	p_poolMGR->put( err, "ZLMSGW",   "N",    PROFILE ) ;
 	p_poolMGR->put( err, "ZSCROLLD", "HALF", PROFILE ) ;
-	p_poolMGR->put( err, "ZSRETP",   "N",    PROFILE ) ;
+	p_poolMGR->put( err, "ZSRETP",   "Y",    PROFILE ) ;
 
 	p_poolMGR->put( err, "ZUCMDT1", "USR", PROFILE ) ;
 	p_poolMGR->put( err, "ZUCMDT2", "", PROFILE ) ;
@@ -479,11 +485,11 @@ void createSYSPROF()
 	p_poolMGR->put( err, "ZPLIB", subHomePath( PLIB, check ), PROFILE ) ;
 	p_poolMGR->put( err, "ZTLIB", subHomePath( TLIB, check ), PROFILE ) ;
 	p_poolMGR->put( err, "ZTABL", subHomePath( TABL, check ), PROFILE ) ;
-	if ( getpaths( subHomePath( TABL ) ) > 1 )
-	{
-		cout << endl ;
-		cout << "ERROR: ZTABL must contain at most 1 path.  Concatination not allowed" << endl ;
-	}
+
+	p_poolMGR->put( err, "ZMUSR", subHomePath( MUSR, check ), PROFILE ) ;
+	p_poolMGR->put( err, "ZPUSR", subHomePath( PUSR, check ), PROFILE ) ;
+	p_poolMGR->put( err, "ZTUSR", subHomePath( TUSR, check ), PROFILE ) ;
+	p_poolMGR->put( err, "ZTABU", subHomePath( TABU, check ), PROFILE ) ;
 
 	p_poolMGR->put( err, "ZMAINPGM", ZMAINPGM, PROFILE ) ;
 	p_poolMGR->put( err, "ZMAINPAN", ZMAINPAN, PROFILE ) ;

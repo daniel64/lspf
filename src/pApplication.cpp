@@ -120,6 +120,11 @@ void pApplication::init()
 	zztlib = p_poolMGR->get( errBlock, "ZTLIB", PROFILE ) ;
 	zztabl = p_poolMGR->get( errBlock, "ZTABL", PROFILE ) ;
 
+	zzpusr = p_poolMGR->get( errBlock, "ZPUSR", PROFILE ) ;
+	zzmusr = p_poolMGR->get( errBlock, "ZMUSR", PROFILE ) ;
+	zztusr = p_poolMGR->get( errBlock, "ZTUSR", PROFILE ) ;
+	zztabu = p_poolMGR->get( errBlock, "ZTABU", PROFILE ) ;
+
 	funcPOOL.put( errBlock, "ZTDTOP",   0 ) ;
 	funcPOOL.put( errBlock, "ZTDSELS",  0 ) ;
 	funcPOOL.put( errBlock, "ZTDDEPTH", 0 ) ;
@@ -594,13 +599,13 @@ void pApplication::libdef( const string& lib,
 	//         LIBDEF ZxLIB                    - remove LIBDEF for search
 	//         LIBDEF ZxLIB FILE ID(path-list) - add path-list to the search path
 	//
-	//         User-level libraries
-	//         LIBDEF ZxUSR                    - remove LIBDEF for search
-	//         LIBDEF ZxUSR FILE ID(path-list) - add path-list to the search path
+	//         LIBDEF ZTABL                    - remove LIBDEF
+	//         LIBDEF ZTABL FILE ID(path-list) - add path to LIBDEF output lib-type
+	//
 	// X - M, P or T
 	// Path-list is a colon-separated list of directory names
 
-	// Search order, user-level, then application-level
+	// Search order, user-level, application-level, system-level
 
 	// RC = 0   Normal completion
 	// RC = 4   Removing a LIBDEF that was not in effect
@@ -632,19 +637,14 @@ void pApplication::libdef( const string& lib,
 		return ;
 	}
 
-	if      ( lib == "ZMLIB" ) { zxlib = &zmlib ; }
-	else if ( lib == "ZPLIB" ) { zxlib = &zplib ; }
-	else if ( lib == "ZTLIB" ) { zxlib = &ztlib ; }
-	else if ( lib == "ZTABL" ) { zxlib = &ztabl ; }
-	else if ( lib == "ZMUSR" ) { zxlib = &ztusr ; }
-	else if ( lib == "ZPUSR" ) { zxlib = &zpusr ; }
-	else if ( lib == "ZTUSR" ) { zxlib = &ztusr ; }
-	else
+	if ( not findword( lib, "ZMLIB ZPLIB ZTLIB ZTABL" ) )
 	{
 		errBlock.setcall( e1, "PSYE022H", lib ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
+
+	zxlib = &zlibd[ lib ] ;
 
 	proc_cond   = ( procopt == "COND"   ) ;
 	proc_uncond = ( procopt == "UNCOND" ) ;
@@ -728,19 +728,14 @@ void pApplication::qlibdef( const string& lib, const string& type_var, const str
 
 	RC = 0 ;
 
-	if      ( lib == "ZMLIB" ) { zxlib = &zmlib ; }
-	else if ( lib == "ZPLIB" ) { zxlib = &zplib ; }
-	else if ( lib == "ZTLIB" ) { zxlib = &ztlib ; }
-	else if ( lib == "ZTABL" ) { zxlib = &ztabl ; }
-	else if ( lib == "ZMUSR" ) { zxlib = &ztusr ; }
-	else if ( lib == "ZPUSR" ) { zxlib = &zpusr ; }
-	else if ( lib == "ZTUSR" ) { zxlib = &ztusr ; }
-	else
+	if ( not findword( lib, "ZMLIB ZPLIB ZTLIB ZTABL" ) )
 	{
 		errBlock.setcall( e1, "PSYE022H", lib ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
+
+	zxlib = &zlibd[ lib ] ;
 
 	if ( zxlib->empty() )
 	{
@@ -775,65 +770,70 @@ void pApplication::qlibdef( const string& lib, const string& type_var, const str
 string pApplication::get_search_path( s_paths p )
 {
 	// Return the search path depending on the LIBDEFs in effect
-	// Order is zxuser, zxlib zzxlib
 
-	// Note: ZTABL is not a concatination
+	// Search Order:
+	//                No LIBDEF       LIBDEF
+	//                ----------------------
+	//                                ZMUSR
+	// Messages       ZMLIB           LIBDEF
+	//                                ZMLIB
+	//                ----------------------
+	//                                ZPUSR
+	// Panels         ZPLIB           LIBDEF
+	//                                ZPLIB
+	//                ----------------------
+	//                                ZTUSR
+	// Table Input    ZTLIB           LIBDEF
+	//                                ZTLIB
+	//                ----------------------
+	//                                ZTABU
+	// Table Output   ZTABL           LIBDEF
+	//                                ZTABL
+	//                ----------------------
 
-	stack<string>* zxusr ;
-	stack<string>* zxlib ;
-
+	string* zzxusr ;
 	string* zzxlib ;
+
+	stack<string>* zxlib ;
 
 	switch ( p )
 	{
 	case s_ZMLIB:
-		zxusr  = &zmusr  ;
-		zxlib  = &zmlib  ;
+		zzxusr = &zzmusr ;
+		zxlib  = &zlibd[ "ZMLIB" ] ;
 		zzxlib = &zzmlib ;
 		break ;
 
 	case s_ZPLIB:
-		zxusr  = &zpusr  ;
-		zxlib  = &zplib  ;
+		zzxusr = &zzpusr ;
+		zxlib  = &zlibd[ "ZPLIB" ] ;
 		zzxlib = &zzplib ;
 		break ;
 
 	case s_ZTLIB:
-		zxusr  = &ztusr  ;
-		zxlib  = &ztlib  ;
+		zzxusr = &zztusr ;
+		zxlib  = &zlibd[ "ZTLIB" ] ;
 		zzxlib = &zztlib ;
 		break ;
 
 	case s_ZTABL:
-		if ( ztabl.empty() )
-		{
-			return zztabl ;
-		}
-		else
-		{
-			return ztabl.top() ;
-		}
+		zzxusr = &zztabu ;
+		zxlib  = &zlibd[ "ZTABL" ] ;
+		zzxlib = &zztabl ;
 		break ;
 	}
 
-	if ( zxusr->empty() )
+	if ( zxlib->empty() )
 	{
-		if ( zxlib->empty() )
-		{
-			return *zzxlib ;
-		}
-		else
-		{
-			return mergepaths( zxlib->top(), *zzxlib ) ;
-		}
+		return *zzxlib ;
 	}
-	else if ( zxlib->empty() )
+	else if ( *zzxusr == "" )
 	{
-		return mergepaths( zxusr->top(), *zzxlib ) ;
+		return mergepaths( zxlib->top(), *zzxlib ) ;
 	}
 	else
 	{
-		return mergepaths( zxusr->top(), zxlib->top(), *zzxlib ) ;
+		return mergepaths( *zzxusr, zxlib->top(), *zzxlib ) ;
 	}
 }
 
@@ -2736,7 +2736,9 @@ void pApplication::tbend( const string& tb_name )
 
 void pApplication::tberase( const string& tb_name, string tb_path )
 {
-	// Erase a table file from path
+	// Erase a table file from the table output library
+
+	// If tb_path is not specified, use ZTABL as the output library.  Error if blank.
 
 	// RC = 0   Normal completion
 	// RC = 8   Table does not exist
@@ -2753,7 +2755,15 @@ void pApplication::tberase( const string& tb_name, string tb_path )
 		return ;
 	}
 
-	if ( tb_path == "" ) { tb_path = zztlib ; }
+	if ( tb_path == "" )
+	{
+		tb_path = get_search_path( s_ZTABL ) ;
+		if ( tb_path == "" )
+		{
+			errBlock.setcall( e1, "PSYE013C", 16 ) ;
+		}
+	}
+
 	p_tableMGR->tberase( errBlock, tb_name, tb_path ) ;
 	if ( errBlock.error() )
 	{
@@ -2982,12 +2992,12 @@ void pApplication::tbsarg( const string& tb_name,
 }
 
 
-void pApplication::tbsave( const string& tb_name, const string& tb_newname, string path )
+void pApplication::tbsave( const string& tb_name, const string& tb_newname, string tb_path )
 {
 	// Save the table to disk (calls saveTable routine).  Table remains open for processing.
 	// Table must be open in WRITE mode.
 
-	// If path is not specified, use ZTABL as the output path.  Error if blank
+	// If tb_path is not specified, use ZTABL as the output path.  Error if blank.
 
 	// RC = 0   Normal completion
 	// RC = 12  Table not open or not open WRITE
@@ -3018,16 +3028,16 @@ void pApplication::tbsave( const string& tb_name, const string& tb_newname, stri
 		return ;
 	}
 
-	if ( path == "" )
+	if ( tb_path == "" )
 	{
-		path = get_search_path( s_ZTABL ) ;
-		if ( path == "" )
+		tb_path = get_search_path( s_ZTABL ) ;
+		if ( tb_path == "" )
 		{
 			errBlock.setcall( e1, "PSYE013C", 16 ) ;
 		}
 	}
 
-	p_tableMGR->saveTable( errBlock, tb_name, tb_newname, path ) ;
+	p_tableMGR->saveTable( errBlock, tb_name, tb_newname, tb_path ) ;
 	if ( errBlock.error() )
 	{
 		errBlock.setcall( e1 ) ;
@@ -3162,11 +3172,16 @@ bool pApplication::isTableOpen( const string& tb_name, const string& func )
 void pApplication::edit( const string& m_file,
 			 const string& m_panel,
 			 const string& m_macro,
-			 const string& m_profile )
+			 const string& m_profile,
+			 const string& m_lcmds )
 {
 	SELCT.clear() ;
 	SELCT.PGM     = p_poolMGR->get( errBlock, "ZEDITPGM", PROFILE ) ;
-	SELCT.PARM    = "FILE("+ m_file +") PANEL("+ m_panel +") MACRO("+ m_macro +") PROFILE("+ m_profile+ ")" ;
+	SELCT.PARM    = "FILE("+ m_file +") "+
+			"PANEL("+ m_panel +") "+
+			"MACRO("+ m_macro +") "+
+			"PROFILE("+ m_profile+ ") "+
+			"LINECMDS("+ m_lcmds+ ")" ;
 	SELCT.NEWAPPL = ""      ;
 	SELCT.NEWPOOL = false   ;
 	SELCT.PASSLIB = false   ;

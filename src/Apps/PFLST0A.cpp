@@ -113,7 +113,8 @@ using namespace boost::filesystem ;
 PFLST0A::PFLST0A()
 {
 	vdefine( "ZCURFLD", &zcurfld ) ;
-	vdefine( "ZCURINX ZTDTOP ZTDVROWS ZTDSELS ZTDDEPTH", &zcurinx, &ztdtop, &ztdvrows, &ztdsels, &ztddepth ) ;
+	vdefine( "ZCURINX  ZTDTOP ZTDVROWS ZTDSELS ZTDDEPTH", &zcurinx, &ztdtop, &ztdvrows, &ztdsels, &ztddepth ) ;
+	vdefine( "ZEDLMACT ZEDEPROF ZEDIMACA", &lcmtab, &eprof, &eimac ) ;
 }
 
 
@@ -170,7 +171,7 @@ void PFLST0A::application()
 
 	std::ofstream of ;
 
-	vget( "ZHOME", SHARED ) ;
+	vget( "ZHOME ZEDLMACT ZEDEPROF ZEDIMACA", SHARED ) ;
 	vget( "AFHIDDEN EXGEN", PROFILE ) ;
 
 	UseList = false ;
@@ -189,9 +190,24 @@ void PFLST0A::application()
 			{
 				if ( is_regular_file( zpath ) )
 				{
-					if      ( w1 == "BROWSE" ) { browse( zpath ) ; cleanup() ; return ; }
-					else if ( w1 == "VIEW"   ) { view( zpath )   ; cleanup() ; return ; }
-					else                       { edit( zpath )   ; cleanup() ; return ; }
+					if ( w1 == "BROWSE" )
+					{
+						browse( zpath ) ;
+						cleanup() ;
+						return ;
+					}
+					else if ( w1 == "VIEW" )
+					{
+						view( zpath ) ;
+						cleanup() ;
+						return ;
+					}
+					else
+					{
+						edit( zpath, "", eimac, eprof, lcmtab ) ;
+						cleanup() ;
+						return ;
+					}
 				}
 			}
 			catch ( const filesystem_error& ex )
@@ -710,7 +726,7 @@ void PFLST0A::application()
 			break ;
 
 		case LN_EDIT:
-			edit( entry ) ;
+			edit( entry, "", eimac, eprof, lcmtab ) ;
 			if ( ZRESULT != "" )
 			{
 				message = ZRESULT ;
@@ -1347,8 +1363,14 @@ int PFLST0A::processPrimCMD()
 		}
 		else if ( is_regular_file( p ) )
 		{
-			if ( findword( cw, "E EDIT" ) ) { edit( p )   ; }
-			else                            { browse( p ) ; }
+			if ( findword( cw, "E EDIT" ) )
+			{
+				edit( p, "", eimac, eprof, lcmtab ) ;
+			}
+			else
+			{
+				browse( p ) ;
+			}
 			zcmd = "" ;
 		}
 		return 0 ;

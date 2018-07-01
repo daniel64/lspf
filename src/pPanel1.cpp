@@ -2981,13 +2981,17 @@ void pPanel::field_tab_down( uint& row, uint& col )
 		if ( !it->second->field_dynArea && !it->second->field_input ) { continue ; }
 		if (  it->second->field_row <= o_row ) { continue ; }
 		d_offset = 0 ;
-		if ( it->second->field_dynArea && it->second->field_dynArea->dynArea_DataInsp )
+		if ( it->second->field_dynArea )
 		{
+			if ( !it->second->field_dynArea->dynArea_DataInsp )
+			{
+				continue ;
+			}
 			d_offset = it->second->field_dyna_input_offset( 0 ) ;
 			if ( d_offset == -1 ) { continue ; }
 		}
 		t_offset = it->second->field_row * wscrmaxw + it->second->field_col + d_offset ;
-		if ( (t_offset > c_offset) && (t_offset < m_offset) )
+		if ( t_offset > c_offset && t_offset < m_offset )
 		{
 			m_offset     = t_offset ;
 			row          = it->second->field_row + win_row ;
@@ -3032,14 +3036,24 @@ void pPanel::field_tab_next( uint& row, uint& col )
 		if ( !it->second->field_active) { continue ; }
 		if ( !it->second->field_dynArea && !it->second->field_input ) { continue ; }
 		d_offset = 0 ;
-		if ( it->second->field_dynArea && it->second->field_dynArea->dynArea_DataInsp )
+		if ( it->second->field_dynArea )
 		{
-			if ( o_row == it->second->field_row ) { d_offset = it->second->field_dyna_input_offset( o_col ) ; }
-			else                                  { d_offset = it->second->field_dyna_input_offset( 0 )     ; }
+			if ( !it->second->field_dynArea->dynArea_DataInsp )
+			{
+				continue ;
+			}
+			if ( o_row == it->second->field_row )
+			{
+				d_offset = it->second->field_dyna_input_offset( o_col ) ;
+			}
+			else
+			{
+				d_offset = it->second->field_dyna_input_offset( 0 ) ;
+			}
 			if ( d_offset == -1 ) { continue ; }
 		}
 		t_offset = it->second->field_row * wscrmaxw + it->second->field_col + d_offset ;
-		if ( (t_offset > c_offset) && (t_offset < m_offset) )
+		if ( t_offset > c_offset && t_offset < m_offset )
 		{
 			m_offset     = t_offset ;
 			row          = it->second->field_row + win_row ;

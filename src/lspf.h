@@ -31,10 +31,10 @@
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
-#define LSPF_VERSION "1.0.7"
+#define LSPF_VERSION "1.0.8"
 #define LSPF_VERSION_MAJ 1
 #define LSPF_VERSION_REV 0
-#define LSPF_VERSION_MOD 7
+#define LSPF_VERSION_MOD 8
 
 typedef unsigned int uint ;
 
@@ -55,7 +55,11 @@ using namespace boost::posix_time;
 // MLIB     - Search path for messages. Can use ~ character.
 // PLIB     - Search path for panels. Can use ~ character.
 // TLIB     - Search path for tables. Can use ~ character.
-// TABL     - Table ouput path (no concatination allowed)
+// TABL     - Table ouput path. Can use the ~ character (concatination allowed).
+// MUSR     - User search path for messages. Can use ~ character (concatination allowed).
+// PUSR     - User search path for panels. Can use ~ character (concatination allowed).
+// TUSR     - User search path for tables. Can use ~ character (concatination allowed).
+// TABU     - User table ouput path. Can use the ~ character (concatination allowed).
 // ZREXPATH - Location of the rexx execs (conatenation allowed).  Can use ~ character
 // ZMAINPGM - Name of the initial program to invoke.  This is treated as a SELECT PANEL()
 // ZMAINPAN - Name of the initial selection panel to invoke ( ie. SELECT PANEL(ZMAINPAN) )
@@ -78,6 +82,10 @@ using namespace boost::posix_time;
 #define PLIB            "~" ZUPROF "/plib:" ZSYSPATH "/plib"
 #define TLIB            "~" ZUPROF ":~" ZUPROF "/tlib:" ZSYSPATH "/tlib"
 #define TABL            "~" ZUPROF "/tlib"
+#define MUSR            ""
+#define PUSR            ""
+#define TUSR            ""
+#define TABU            ""
 #define ZREXPATH        "~/rexx:" ZSYSPATH "/rexx"
 #define SLOG            "~/.lspf/lspflog"
 #define ALOG            "~/.lspf/appllog"

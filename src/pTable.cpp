@@ -1470,7 +1470,12 @@ void Table::saveTable( errblock& err,
 	// Save table to disk.
 	// Version 2 file format adds extension variable support and record/file end markers, 0xFF.
 
-	string s ;
+	// m_opath can be a concatination.  Save to path where table is located or if not found,
+	// the first file in the list.
+
+	string filename ;
+	string path   ;
+	string s = "" ;
 
 	uint i    ;
 	uint j    ;
@@ -1482,34 +1487,27 @@ void Table::saveTable( errblock& err,
 
 	err.setRC( 0 ) ;
 
-	s = m_opath ;
-
-	if ( s.back() != '/' ) { s += "/" ; }
-
-	if ( exists( s ) )
+	for ( i = getpaths( m_opath ), j = 1 ; j <= i ; j++ )
 	{
-		if ( !is_directory( s ) )
+		path     = getpath( m_opath, j ) ;
+		filename = path + m_name ;
+		if ( exists( filename ) )
 		{
-			err.seterrid( "PSYE013J", s ) ;
-			return  ;
+			if ( !is_regular_file( filename ) )
+			{
+				err.seterrid( "PSYE013L", filename ) ;
+				return ;
+			}
+			tab_opath = path ;
+			s         = filename ;
+			break ;
 		}
 	}
-	else
-	{
-		err.seterrid( "PSYE013K", s, 16 ) ;
-		return  ;
-	}
 
-	tab_opath = s ;
-
-	s += m_name ;
-	if ( exists( s ) )
+	if ( s == "" )
 	{
-		if ( !is_regular_file( s ) )
-		{
-			err.seterrid( "PSYE013L", s ) ;
-			return  ;
-		}
+		tab_opath = getpath( m_opath, 1 ) ;
+		s         = tab_opath + m_name ;
 	}
 
 	size = table.size() ;
@@ -2385,21 +2383,15 @@ void tableMGR::tberase( errblock& err,
 		{
 			if ( !is_regular_file( filename ) )
 			{
-				err.seterrid( "PSYE014B", filename, 16 ) ;
+				err.seterrid( "PSYE013L", filename, 16 ) ;
 				return ;
 			}
-			else
-			{
-				break ;
-			}
+			remove( filename ) ;
+			return ;
 		}
 	}
-	if ( j > i )
-	{
-		err.setRC( 8 ) ;
-		return ;
-	}
-	remove( filename ) ;
+
+	err.setRC( 8 ) ;
 }
 
 

@@ -786,7 +786,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 	// application/user/site/system command table entry?
 	// BUILTIN command
 	// System command
-	// RETRIEVE
+	// RETRIEVE/RETF
 	// Jump command entered
 	// !abc run abc as a program
 	// @abc run abc as a REXX procedure
@@ -1058,8 +1058,8 @@ void processAction( uint row, uint col, int c, bool& passthru )
 			retrieveBuffer.rset_capacity( rbsize ) ;
 		}
 		if (  zcommand.size() >= rtsize &&
-		     !findword( word( upper( zcommand ), 1 ), "RETRIEVE RETP" ) &&
-		     !findword( word( upper( PFCMD ), 1 ), "RETRIEVE RETP" ) )
+		     !findword( word( upper( zcommand ), 1 ), "RETRIEVE RETF RETP" ) &&
+		     !findword( word( upper( PFCMD ), 1 ), "RETRIEVE RETF RETP" ) )
 		{
 			itt = find( retrieveBuffer.begin(), retrieveBuffer.end(), zcommand ) ;
 			if ( itt != retrieveBuffer.end() )
@@ -1154,7 +1154,7 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		currAppl->currPanel->cmd_setvalue( err, zcommand ) ;
 	}
 
-	if ( cmdVerb == "RETRIEVE" )
+	if ( cmdVerb == "RETRIEVE" || cmdVerb == "RETF" )
 	{
 		if ( !currAppl->currPanel->has_command_field() ) { return ; }
 		if ( datatype( cmdParm, 'W' ) )
@@ -1167,9 +1167,16 @@ void processAction( uint row, uint col, int c, bool& passthru )
 		passthru     = false ;
 		if ( !retrieveBuffer.empty() )
 		{
-			currAppl->currPanel->cmd_setvalue( err, retrieveBuffer[ retPos ] ) ;
-			currAppl->currPanel->cursor_to_cmdfield( RC, retrieveBuffer[ retPos ].size()+1 ) ;
-			if ( ++retPos >= retrieveBuffer.size() ) { retPos = 0 ; }
+			if ( cmdVerb == "RETF" )
+			{
+				retPos = ( retPos < 2 ) ? retrieveBuffer.size() : retPos - 1 ;
+			}
+			else
+			{
+				if ( ++retPos > retrieveBuffer.size() ) { retPos = 1 ; }
+			}
+			currAppl->currPanel->cmd_setvalue( err, retrieveBuffer[ retPos-1 ] ) ;
+			currAppl->currPanel->cursor_to_cmdfield( RC, retrieveBuffer[ retPos-1 ].size()+1 ) ;
 		}
 		else
 		{
@@ -1823,13 +1830,7 @@ void startApplication( selobj SEL, bool nScreen )
 
 	if ( !nScreen && ( SEL.PASSLIB || SEL.NEWAPPL == "" ) )
 	{
-		currAppl->set_zmlib( oldAppl->get_zmlib() ) ;
-		currAppl->set_zplib( oldAppl->get_zplib() ) ;
-		currAppl->set_ztlib( oldAppl->get_ztlib() ) ;
-		currAppl->set_ztabl( oldAppl->get_ztabl() ) ;
-		currAppl->set_zmusr( oldAppl->get_zmusr() ) ;
-		currAppl->set_zpusr( oldAppl->get_zpusr() ) ;
-		currAppl->set_ztusr( oldAppl->get_ztusr() ) ;
+		currAppl->set_zlibd( oldAppl->get_zlibd() ) ;
 	}
 
 	if ( setMessage )
@@ -1975,13 +1976,7 @@ void startApplicationBack( selobj SEL, bool pgmselect )
 
 	if ( SEL.PASSLIB || SEL.NEWAPPL == "" )
 	{
-		Appl->set_zmlib( oldAppl->get_zmlib() ) ;
-		Appl->set_zplib( oldAppl->get_zplib() ) ;
-		Appl->set_ztlib( oldAppl->get_ztlib() ) ;
-		Appl->set_ztabl( oldAppl->get_ztabl() ) ;
-		Appl->set_zmusr( oldAppl->get_zmusr() ) ;
-		Appl->set_zpusr( oldAppl->get_zpusr() ) ;
-		Appl->set_ztusr( oldAppl->get_ztusr() ) ;
+		Appl->set_zlibd( oldAppl->get_zlibd() ) ;
 	}
 
 	pThread = new boost::thread( boost::bind( &pApplication::application, Appl ) ) ;
@@ -2111,13 +2106,7 @@ void terminateApplication()
 	if ( !currScrn->application_stack_empty() && currAppl->newappl == "" )
 	{
 		prvAppl = currScrn->application_get_current() ;
-		prvAppl->set_zmlib( currAppl->get_zmlib() ) ;
-		prvAppl->set_zplib( currAppl->get_zplib() ) ;
-		prvAppl->set_ztlib( currAppl->get_ztlib() ) ;
-		prvAppl->set_ztabl( currAppl->get_ztabl() ) ;
-		prvAppl->set_zmusr( currAppl->get_zmusr() ) ;
-		prvAppl->set_zpusr( currAppl->get_zpusr() ) ;
-		prvAppl->set_ztusr( currAppl->get_ztusr() ) ;
+		prvAppl->set_zlibd( currAppl->get_zlibd() ) ;
 	}
 
 	if ( currAppl->abnormalTimeout )

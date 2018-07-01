@@ -1162,8 +1162,7 @@ void field::field_DataMod_to_UserMod( string* darea, int offset )
 		if ( p2 == string::npos ) { p2 = field_value.size() ; }
 		if ( field_value.compare( p1, p2-p1, (*darea), offset+p1, p2-p1 ) == 0 )
 		{
-			if ( da->dynArea_UserModsp ) { field_value[ p1-1 ] = da->dynArea_UserMod ; }
-			else                         { field_value[ p1-1 ] = da->dynArea_DataIn  ; }
+			field_value[ p1-1 ] = da->dynArea_UserModsp ? da->dynArea_UserMod : da->dynArea_DataIn ;
 		}
 		p1 = p2 ;
 	}

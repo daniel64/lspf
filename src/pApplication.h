@@ -85,21 +85,8 @@ class pApplication
 		string get_current_screenName() ;
 		string get_panelid() ;
 
-		void  set_zmlib( const stack<string>& libs ) { zmlib = libs ; }
-		void  set_zplib( const stack<string>& libs ) { zplib = libs ; }
-		void  set_ztlib( const stack<string>& libs ) { ztlib = libs ; }
-		void  set_ztabl( const stack<string>& libs ) { ztabl = libs ; }
-		void  set_zmusr( const stack<string>& libs ) { zmusr = libs ; }
-		void  set_zpusr( const stack<string>& libs ) { zpusr = libs ; }
-		void  set_ztusr( const stack<string>& libs ) { ztusr = libs ; }
-
-		const stack<string>& get_zmlib() { return zmlib ; }
-		const stack<string>& get_zplib() { return zplib ; }
-		const stack<string>& get_ztlib() { return ztlib ; }
-		const stack<string>& get_ztabl() { return ztabl ; }
-		const stack<string>& get_zmusr() { return zmusr ; }
-		const stack<string>& get_zpusr() { return zpusr ; }
-		const stack<string>& get_ztusr() { return ztusr ; }
+		void  set_zlibd( const map<string,stack<string>>& libs ) { zlibd = libs ; }
+		const map<string,stack<string>>& get_zlibd()             { return zlibd ; }
 
 		string get_applid() ;
 
@@ -237,7 +224,9 @@ class pApplication
 			       const string& tb_dir="NEXT",
 			       const string& tb_cond_pairs="" ) ;
 
-		void   tbsave( const string& tb_name, const string& new_name="", string path="" ) ;
+		void   tbsave( const string& tb_name,
+			       const string& new_name="",
+			       string path="" ) ;
 
 		void   tbscan( const string& tb_name,
 			       const string& tb_namelst="",
@@ -248,16 +237,38 @@ class pApplication
 			       const string& tb_crp_name="",
 			       const string& tb_condlst="" ) ;
 
-		void   tbskip( const string& tb_name, int num=1, const string& tb_savenm="", const string& tb_rowid_vn="", const string& tb_rowid="", const string& tb_noread="", const string& tb_crp_name=""  ) ;
+		void   tbskip( const string& tb_name,
+			       int num=1,
+			       const string& tb_savenm="",
+			       const string& tb_rowid_vn="",
+			       const string& tb_rowid="",
+			       const string& tb_noread="",
+			       const string& tb_crp_name=""  ) ;
+
 		void   tbsort( const string& tb_name, string tb_fields ) ;
 		void   tbtop( const string& tb_name ) ;
 		void   tbvclear( const string& tb_name ) ;
 
-		void   browse( const string& m_file, const string& m_panel="" ) ;
-		void   edit( const string& m_file, const string& m_panel="", const string& m_macro ="", const string& m_profile="" ) ;
-		void   view( const string& m_file, const string& m_panel=""   ) ;
+		void   browse( const string& m_file,
+			       const string& m_panel="" ) ;
+
+		void   edit( const string& m_file,
+			     const string& m_panel="",
+			     const string& m_macro ="",
+			     const string& m_profile="",
+			     const string& m_lcmds="" ) ;
+
+		void   view( const string& m_file,
+			     const string& m_panel=""   ) ;
+
 		void   setmsg( const string& msg, msgSET sType=UNCOND  ) ;
-		void   getmsg( const string&, const string&, const string& ="", const string& ="", const string& ="",const string& ="", const string& ="" ) ;
+		void   getmsg( const string&,
+			       const string&,
+			       const string& ="",
+			       const string& ="",
+			       const string& ="",
+			       const string& ="",
+			       const string& ="" ) ;
 
 		void   addpop( const string& ="", int =0, int =0 ) ;
 		void   rempop( const string& ="" ) ;
@@ -366,6 +377,10 @@ class pApplication
 		string zzplib    ;
 		string zztlib    ;
 		string zztabl    ;
+		string zzmusr    ;
+		string zzpusr    ;
+		string zztusr    ;
+		string zztabu    ;
 		string zahelp    ;
 		string zscrname  ;
 		string zerr1     ;
@@ -396,14 +411,7 @@ class pApplication
 		stack<int> addpop_stk ;
 		stack<stack<string>> urid_stk ;
 
-		stack<string> zmlib ;
-		stack<string> zplib ;
-		stack<string> ztlib ;
-		stack<string> ztabl ;
-
-		stack<string> zmusr ;
-		stack<string> zpusr ;
-		stack<string> ztusr ;
+		map<string,stack<string>> zlibd ;
 
 		string get_search_path( s_paths ) ;
 
