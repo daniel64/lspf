@@ -1764,6 +1764,11 @@ void PPSP01A::showPaths()
 	string zmlib    ;
 	string zplib    ;
 	string ztlib    ;
+	string ztabl    ;
+	string zmusr    ;
+	string zpusr    ;
+	string ztusr    ;
+	string ztabu    ;
 	string zorxpath ;
 	string zldpath  ;
 	string libs     ;
@@ -1788,44 +1793,19 @@ void PPSP01A::showPaths()
 	vcopy( "ZMLIB", zmlib, MOVE ) ;
 	vcopy( "ZPLIB", zplib, MOVE ) ;
 	vcopy( "ZTLIB", ztlib, MOVE ) ;
+	vcopy( "ZTABL", ztabl, MOVE ) ;
+	vcopy( "ZMUSR", zmusr, MOVE ) ;
+	vcopy( "ZPUSR", zpusr, MOVE ) ;
+	vcopy( "ZTUSR", ztusr, MOVE ) ;
+	vcopy( "ZTABU", ztabu, MOVE ) ;
 	vcopy( "ZORXPATH", zorxpath, MOVE ) ;
 	vcopy( "ZLDPATH", zldpath, MOVE ) ;
 
-	sel = "" ;
-
-	libs = "" ;
-	qlibdef( "ZMUSR", "", "LIBS" ) ;
-	pvar = "ZMUSR" ;
-	desc = "LIBDEF user path for messages" ;
-	for ( i = 1 ; i <= getpaths( libs ) ; i++ )
-	{
-		message = "" ;
-		path    = getpath( libs, i ) ;
-		if ( !is_directory( path ) ) { message = "Path not found" ; }
-		tbadd( table ) ;
-		desc = "" ;
-		pvar = "" ;
-	}
 
 	libs = "" ;
 	qlibdef( "ZMLIB", "", "LIBS" ) ;
 	pvar = "ZMLIB" ;
 	desc = "LIBDEF application path for messages" ;
-	for ( i = 1 ; i <= getpaths( libs ) ; i++ )
-	{
-		message = "" ;
-		path    = getpath( libs, i ) ;
-		if ( !is_directory( path ) ) { message = "Path not found" ; }
-		tbadd( table ) ;
-		desc = "" ;
-		pvar = "" ;
-	}
-
-	libs = "" ;
-	qlibdef( "ZPUSR", "", "LIBS" ) ;
-	sel  = "" ;
-	pvar = "ZPUSR" ;
-	desc = "LIBDEF user path for panels" ;
 	for ( i = 1 ; i <= getpaths( libs ) ; i++ )
 	{
 		message = "" ;
@@ -1851,10 +1831,9 @@ void PPSP01A::showPaths()
 	}
 
 	libs = "" ;
-	qlibdef( "ZTUSR", "", "LIBS" ) ;
-	sel  = "" ;
-	pvar = "ZTUSR" ;
-	desc = "LIBDEF user path for tables" ;
+	qlibdef( "ZTLIB", "", "LIBS" ) ;
+	pvar = "ZTLIB" ;
+	desc = "LIBDEF application path for tables" ;
 	for ( i = 1 ; i <= getpaths( libs ) ; i++ )
 	{
 		message = "" ;
@@ -1866,9 +1845,9 @@ void PPSP01A::showPaths()
 	}
 
 	libs = "" ;
-	qlibdef( "ZTLIB", "", "LIBS" ) ;
-	pvar = "ZTLIB" ;
-	desc = "LIBDEF application path for tables" ;
+	qlibdef( "ZTABL", "", "LIBS" ) ;
+	pvar = "ZTABL" ;
+	desc = "LIBDEF application path for table output" ;
 	for ( i = 1 ; i <= getpaths( libs ) ; i++ )
 	{
 		message = "" ;
@@ -1929,10 +1908,64 @@ void PPSP01A::showPaths()
 	}
 
 	pvar = "ZTABL" ;
-	vget( "ZTABL", PROFILE ) ;
-	vcopy( "ZTABL", path, MOVE ) ;
-	desc = "Table output directory" ;
-	tbadd( table )    ;
+	desc = "System search path for table output" ;
+	for ( i = 1 ; i <= getpaths( ztabl ) ; i++)
+	{
+		path = getpath( ztabl, i ) ;
+		message = "" ;
+		if ( !is_directory( path ) ) message = "Path not found" ;
+		tbadd( table ) ;
+		desc = "" ;
+		pvar = "" ;
+	}
+
+	pvar = "ZMUSR" ;
+	desc = "User search path for messages" ;
+	for ( i = 1 ; i <= getpaths( zmusr ) ; i++)
+	{
+		path = getpath( zmusr, i ) ;
+		message = "" ;
+		if ( !is_directory( path ) ) message = "Path not found" ;
+		tbadd( table ) ;
+		desc = "" ;
+		pvar = "" ;
+	}
+
+	pvar = "ZPUSR" ;
+	desc = "User search path for panels" ;
+	for ( i = 1 ; i <= getpaths( zpusr ) ; i++)
+	{
+		path = getpath( zpusr, i ) ;
+		message = "" ;
+		if ( !is_directory( path ) ) message = "Path not found" ;
+		tbadd( table ) ;
+		desc = "" ;
+		pvar = "" ;
+	}
+
+	pvar = "ZTUSR" ;
+	desc = "User search path for tables" ;
+	for ( i = 1 ; i <= getpaths( ztusr ) ; i++)
+	{
+		path = getpath( ztusr, i ) ;
+		message = "" ;
+		if ( !is_directory( path ) ) message = "Path not found" ;
+		tbadd( table ) ;
+		desc = "" ;
+		pvar = "" ;
+	}
+
+	pvar = "ZTABU" ;
+	desc = "User search path for table output" ;
+	for ( i = 1 ; i <= getpaths( ztabu ) ; i++)
+	{
+		path = getpath( ztabu, i ) ;
+		message = "" ;
+		if ( !is_directory( path ) ) message = "Path not found" ;
+		tbadd( table ) ;
+		desc = "" ;
+		pvar = "" ;
+	}
 
 	pvar = "ZSYSPATH" ;
 	vget( "ZSYSPATH", PROFILE ) ;
