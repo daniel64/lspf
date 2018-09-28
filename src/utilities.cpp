@@ -111,21 +111,21 @@ bool datatype( const string& s, char type )
 	switch ( type )
 	{
 	case 'A':
-		for( unsigned int i = 0 ; i < s.length() ; i++ )
+		for ( unsigned int i = 0 ; i < s.length() ; i++ )
 		{
 			if ( !isalnum( s[ i ] ) ) { return false ; }
 		}
 		break ;
 
 	case 'L':
-		for( unsigned int i = 0 ; i < s.length() ; i++ )
+		for ( unsigned int i = 0 ; i < s.length() ; i++ )
 		{
 			if ( !islower( s[ i ] ) ) { return false ; }
 		}
 		break ;
 
 	case 'M':
-		for( unsigned int i = 0 ; i < s.length() ; i++ )
+		for ( unsigned int i = 0 ; i < s.length() ; i++ )
 		{
 			if ( !islower( s[ i ] ) &&
 			     !isupper( s[ i ] ) ) { return false ; }
@@ -133,14 +133,14 @@ bool datatype( const string& s, char type )
 		break ;
 
 	case 'W':
-		for( unsigned int i = 0 ; i < s.length() ; i++ )
+		for ( unsigned int i = 0 ; i < s.length() ; i++ )
 		{
 			if ( !isdigit( s[ i ] ) ) { return false ; }
 		}
 		break ;
 
 	case 'U':
-		for( unsigned int i = 0 ; i < s.length() ; i++ )
+		for ( unsigned int i = 0 ; i < s.length() ; i++ )
 		{
 			if ( !isupper( s[ i ] ) ) { return false ; }
 		}
@@ -984,7 +984,7 @@ string& iupper( string& s )
 {
 	// Convert to upper case in-place
 
-	for( unsigned int i = 0 ; i < s.length() ; i++ )
+	for ( unsigned int i = 0 ; i < s.length() ; i++ )
 	{
 		s[ i ] = toupper( s[ i ] ) ;
 	}
@@ -1007,7 +1007,7 @@ string& ilower( string& s )
 {
 	// Convert to lower case in-place
 
-	for( unsigned int i = 0 ; i < s.length() ; i++ )
+	for ( unsigned int i = 0 ; i < s.length() ; i++ )
 	{
 		s[ i ] = tolower( s[ i ] ) ;
 	}
@@ -1028,7 +1028,7 @@ char& ilower( char& c )
 
 string upper( string s )
 {
-	for( unsigned int i = 0 ; i < s.length() ; i++ )
+	for ( unsigned int i = 0 ; i < s.length() ; i++ )
 	{
 		s[ i ] = toupper( s[ i ] ) ;
 	}
@@ -1039,7 +1039,7 @@ string upper( string s )
 
 string lower( string s )
 {
-	for( unsigned int i = 0 ; i < s.length() ; i++ )
+	for ( unsigned int i = 0 ; i < s.length() ; i++ )
 	{
 		s[ i ] = tolower( s[ i ] ) ;
 	}
@@ -1151,7 +1151,7 @@ bool isnumeric( const string& s )
 {
 	if ( s.length() == 0 ) { return false ; }
 
-	for( unsigned int i = 0 ; i < s.length() ; i++ )
+	for ( unsigned int i = 0 ; i < s.length() ; i++ )
 	{
 		if ( !isdigit( s[ i ] ) ) { return false ; }
 	}

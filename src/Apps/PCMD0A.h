@@ -28,6 +28,8 @@ class PCMD0A : public pApplication
 		void run_command( string, const string&, const string& ) ;
 		bool invoke_task_wait( const string&, string&, const string& ) ;
 
+		bool isRexx( string ) ;
+
 		string zscreen ;
 		string zuser   ;
 

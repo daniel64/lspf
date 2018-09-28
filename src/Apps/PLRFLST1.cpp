@@ -73,6 +73,7 @@ void PLRFLST1::application()
 	llog( "I", "Application PLRFLST1 starting" << endl ) ;
 
 	set_appdesc( "Personal File List application" ) ;
+	set_appver( "1.0.0" ) ;
 
 	p1 = word( PARM, 1 )          ;
 	p2 = upper( word( PARM, 2 ) ) ;

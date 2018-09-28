@@ -107,7 +107,7 @@ PSYE033K 'Missing MSG= value'
 'Missing message-id on statement'
 
 PSYE033L 'Invalid VERIFY type'
-'Must be NUM, LIST, PICT, HEX or OCT'
+'Must be HEX, LIST, LISTX, NAME, NUM, OCT or PICT'
 
 PSYE033M 'Too many brackets'
 'VERIFY statement contains too many close brackets'

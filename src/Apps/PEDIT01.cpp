@@ -47,7 +47,6 @@
 #include "../pPanel.h"
 #include "../pApplication.h"
 #include "eHilight.cpp"
-#include <oorexxapi.h>
 #include "PEDIT01.h"
 
 
@@ -273,6 +272,8 @@ void PEDIT01::initialise()
 
 	clipBoard = "DEFAULT"  ;
 	clipTable = "EDITCLIP" ;
+	set_appdesc( "SPF-like editor for lspf" ) ;
+	set_appver( "1.0.0" )  ;
 	set_apphelp( "HEDIT01" ) ;
 
 	maxURID[ taskid() ] = 0 ;

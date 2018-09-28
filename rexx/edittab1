@@ -39,6 +39,10 @@
 
 /* Run this exec in lspf on any command line:             */
 /* Command ===> EXEC edittab1                             */
+/* or                                                     */
+/* Command ===> @edittab1                                 */
+/* or option 6, Command, from the main menu               */
+/* ===> edittab1                                          */
 
 /* Table is loaded by the Editor on startup.  Enter       */
 /* the created table name, EDITTAB1, on the edit entry    */

@@ -328,7 +328,7 @@ int main( void )
 
 	screenList.push_back( new pLScreen( 0, ZMAXSCRN ) ) ;
 
-	currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
+	currScrn->OIA_startTime() ;
 
 	llog( "I", "lspf startup in progress" << endl ) ;
 	llog( "I", "Starting background job monitor task" << endl ) ;
@@ -480,7 +480,7 @@ void mainLoop()
 		currScrn->clear_status() ;
 		currScrn->get_cursor( row, col ) ;
 
-		currScrn->OIA_update( priScreen, altScreen, boost::posix_time::microsec_clock::universal_time() ) ;
+		currScrn->OIA_update( priScreen, altScreen ) ;
 		currScrn->show_lock( showLock ) ;
 
 		showLock      = false ;
@@ -513,7 +513,7 @@ void mainLoop()
 			}
 			c = KEY_ENTER ;
 		}
-		currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
+		currScrn->OIA_startTime() ;
 
 		if ( c < 256 && isprint( c ) )
 		{
@@ -592,7 +592,7 @@ void mainLoop()
 				break ;
 
 			case KEY_IC:
-				Insert = !Insert ;
+				Insert = not Insert ;
 				currScrn->set_Insert( Insert ) ;
 				break ;
 
@@ -1669,6 +1669,11 @@ void processPGMSelect()
 
 	SELCT = currAppl->get_select_cmd() ;
 
+	if ( SELCT.PGM == "&ZOREXPGM" )
+	{
+		currAppl->vcopy( "ZOREXPGM", SELCT.PGM, MOVE ) ;
+	}
+
 	if ( apps.find( SELCT.PGM ) != apps.end() )
 	{
 		updateDefaultVars() ;
@@ -2329,7 +2334,7 @@ bool createLogicalScreen()
 	priScreen = screenList.size() ;
 
 	screenList.push_back( new pLScreen( currScrn->screenId, ZMAXSCRN ) ) ;
-	currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
+	currScrn->OIA_startTime() ;
 	return true ;
 }
 
@@ -2358,7 +2363,7 @@ void deleteLogicalScreen()
 
 	currScrn = screenList[ priScreen ] ;
 	currScrn->restore_panel_stack()    ;
-	currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
+	currScrn->OIA_startTime() ;
 }
 
 
@@ -2866,7 +2871,7 @@ void lineOutput()
 		}
 	} while ( t.size() > 0 ) ;
 
-	currScrn->OIA_update( priScreen, altScreen, boost::posix_time::microsec_clock::universal_time() ) ;
+	currScrn->OIA_update( priScreen, altScreen ) ;
 
 	wnoutrefresh( stdscr ) ;
 	wnoutrefresh( OIA ) ;
@@ -2893,7 +2898,7 @@ void lineOutput_end()
 	linePosn = 0 ;
 	currScrn->clear() ;
 	currScrn->clear_status() ;
-	currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
+	currScrn->OIA_startTime() ;
 }
 
 
@@ -3003,7 +3008,7 @@ string listLogicalScreens()
 	del_panel( swpanel ) ;
 	delwin( swwin )      ;
 	curs_set( 1 )        ;
-	currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
+	currScrn->OIA_startTime() ;
 
 	return d2ds( m+1 )   ;
 }
@@ -3100,7 +3105,7 @@ void listRetrieveBuffer()
 	curs_set( 1 )        ;
 
 	currScrn->set_cursor( currAppl ) ;
-	currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
+	currScrn->OIA_startTime() ;
 }
 
 
@@ -3150,9 +3155,9 @@ void autoUpdate()
 
 	while ( !end_auto )
 	{
-		currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
+		currScrn->OIA_startTime() ;
 		ResumeApplicationAndWait() ;
-		currScrn->OIA_update( priScreen, altScreen, boost::posix_time::microsec_clock::universal_time() ) ;
+		currScrn->OIA_update( priScreen, altScreen ) ;
 		wnoutrefresh( stdscr ) ;
 		wnoutrefresh( OIA ) ;
 		update_panels() ;
@@ -3496,7 +3501,7 @@ void actionSwap( uint& row, uint& col )
 	}
 
 	currScrn = screenList[ priScreen ] ;
-	currScrn->OIA_startTime( boost::posix_time::microsec_clock::universal_time() ) ;
+	currScrn->OIA_startTime() ;
 	currAppl = currScrn->application_get_current() ;
 
 	err.settask( currAppl->taskid() ) ;
@@ -3596,7 +3601,7 @@ void executeFieldCommand( const string& field_name, const fieldExc& fxc, uint co
 	cl = currAppl->currPanel->field_get_col( field_name ) ;
 	p_poolMGR->put( err, "ZFECSRP", d2ds( col - cl + 1 ), SHARED ) ;
 
-	for( ws = words( fxc.fieldExc_passed ), i = 1 ; i <= ws ; i++ )
+	for ( ws = words( fxc.fieldExc_passed ), i = 1 ; i <= ws ; i++ )
 	{
 		w1 = word( fxc.fieldExc_passed, i ) ;
 		p_poolMGR->put( err, "ZFEDATA" + d2ds( i ), currAppl->currPanel->field_getvalue( w1 ), SHARED ) ;

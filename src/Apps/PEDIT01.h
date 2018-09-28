@@ -1832,7 +1832,7 @@ class miblock
 			trim( t.erase( 0, p1+2 ) ) ;
 			replace( keyopts.begin(), keyopts.end(), ',', ' ' ) ;
 			iupper( keyopts ) ;
-			for( ws = words( keyopts ), i = 1 ; i <= ws ; i++ )
+			for ( ws = words( keyopts ), i = 1 ; i <= ws ; i++ )
 			{
 				var1 = word( keyopts, i ) ;
 				if ( !isvalidName( var1 ) )

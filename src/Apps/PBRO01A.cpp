@@ -688,7 +688,7 @@ void PBRO01A::fill_dynamic_area()
 
 	if ( hexOn )
 	{
-		for( uint k = topLine ; k < (topLine + zaread) ; k++ )
+		for ( uint k = topLine ; k < (topLine + zaread) ; k++ )
 		{
 			t3 = string( zareaw, ' ' ) ;
 			t4 = string( zareaw, ' ' ) ;
@@ -723,7 +723,7 @@ void PBRO01A::fill_dynamic_area()
 	}
 	else
 	{
-		for( int k = topLine ; k < (topLine + zaread) ; k++ )
+		for ( int k = topLine ; k < (topLine + zaread) ; k++ )
 		{
 			if ( k >  0 && k < data.size()-1 ) { t1 = substr( data.at( k ), startCol, zareaw ) ; }
 			else                               { t1 = substr( data.at( k ), 1, zareaw )        ; }

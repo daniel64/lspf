@@ -64,7 +64,8 @@ pApplication::pApplication()
 	currPanel           = NULL   ;
 	prevPanel           = NULL   ;
 	currtbPanel         = NULL   ;
-	zahelp              = ""     ;
+	zappver             = ""     ;
+	zapphelp            = ""     ;
 	ZRC                 = 0      ;
 	ZRSN                = 0      ;
 	ZRESULT             = ""     ;
@@ -175,7 +176,11 @@ void pApplication::createPanel( const string& p_name )
 	p_panel->Rexx       = ( rexxName != "" )  ;
 	p_panel->selPanel( selPanel ) ;
 	p_panel->init( errBlock ) ;
-	if ( errBlock.error() ) { return ; }
+	if ( errBlock.error() )
+	{
+		delete p_panel ;
+		return ;
+	}
 
 	p_panel->loadPanel( errBlock, p_name, get_search_path( s_ZPLIB ) ) ;
 
@@ -3250,7 +3255,7 @@ void pApplication::actionSelect()
 	// RC =  0  Normal completion of the selection panel or function.  END was entered.
 	// RC =  4  Normal completion.  RETURN was entered or EXIT specified on the selection panel
 
-	// If the application has abended, propogate back.
+	// If the application has abended, propogate back (only set if not controlErrorsReturn).
 
 	RC  = 0    ;
 	SEL = true ;
@@ -3262,7 +3267,7 @@ void pApplication::actionSelect()
 	SEL = false   ;
 	SELCT.clear() ;
 
-	if ( abnormalEnd && !ControlErrorsReturn )
+	if ( abnormalEnd )
 	{
 		llog( "E", "Percolating abend to calling application.  Taskid: "<< taskId <<endl ) ;
 		errPanelissued = true ;
@@ -3623,7 +3628,7 @@ string pApplication::get_help_member( int row, int col )
 	return "M("+ MSG.hlp+ ") " +
 	       "F("+ currPanel->get_field_help( row, col )+ ") " +
 	       "P("+ currPanel->zphelp +") " +
-	       "A("+ zahelp +") " +
+	       "A("+ zapphelp +") " +
 	       "K("+ currPanel->keyhelpn +") "+
 	       "PATHS("+ get_search_path( s_ZPLIB ) +")" ;
 }
@@ -4004,6 +4009,7 @@ void pApplication::info()
 	llog( "-", "         Profile Pool Name: "<< p_poolMGR->get( errBlock, "ZAPPLID", SHARED ) << endl ) ;
 	llog( "-", " " << endl ) ;
 	llog( "-", "Application Description . : "<< zappdesc << endl ) ;
+	llog( "-", "Application Version . . . : "<< zappver  << endl ) ;
 	llog( "-", "Last Panel Displayed. . . : "<< currPanel->panelid << endl ) ;
 	llog( "-", "Last Message Displayed. . : "<< MSGID << endl ) ;
 	llog( "-", "Number of Panels Loaded . : "<< panelList.size() << endl )  ;

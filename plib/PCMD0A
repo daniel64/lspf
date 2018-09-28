@@ -56,7 +56,7 @@ VPUT MODE PROFILE
 
 PanelTitle "Execute Command"
 
-literal   4  2        CH  "Enter command below"
+literal   4  2        CH  "Enter rexx or system command below"
 
 literal   6  2        FP  "===>"
 field     6  7   MAX  NEF CAPS(OFF),PAD(USER) ZCMD

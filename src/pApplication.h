@@ -92,9 +92,11 @@ class pApplication
 
 		void   set_appname( const string& s )   { zappname = s ; }
 		void   set_appdesc( const string& s )   { zappdesc = s ; }
-		void   set_apphelp( const string& s )   { zahelp   = s ; }
+		void   set_appver(  const string& s )   { zappver  = s ; }
+		void   set_apphelp( const string& s )   { zapphelp = s ; }
 		const string& get_appname()             { return zappname ; }
 		const string& get_appdesc()             { return zappdesc ; }
+		const string& get_appver()              { return zappver  ; }
 
 		void   control( const string&, const string&, const string& ="" ) ;
 		void   control( const string&, void (pApplication::*)() ) ;
@@ -368,6 +370,8 @@ class pApplication
 
 		string zappname ;
 		string zappdesc ;
+		string zappver  ;
+		string zapphelp ;
 
 		string MSGID     ;
 		string MSGID1    ;
@@ -381,7 +385,6 @@ class pApplication
 		string zzpusr    ;
 		string zztusr    ;
 		string zztabu    ;
-		string zahelp    ;
 		string zscrname  ;
 		string zerr1     ;
 		string zerr2     ;

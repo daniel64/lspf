@@ -47,6 +47,7 @@ void PCMD0A::application()
 	llog( "I", "Application PCMD0A starting" << endl ) ;
 
 	set_appdesc( "Invoke a command and display the output" ) ;
+	set_appver( "1.0.0" ) ;
 
 	string zcmd   ;
 	string msg    ;
@@ -104,19 +105,38 @@ void PCMD0A::application()
 		msg = "" ;
 		if ( zcmd != "" )
 		{
-			comm1 = tname1 ;
-			comm2 = tname2 ;
-			if ( invoke_task_wait( zcmd, comm1, comm2 ) )
+			if ( isRexx( word( zcmd, 1 ) ) )
 			{
-				vreplace( "ZBRALT", "COMMAND:"+ zcmd ) ;
-				vput( "ZBRALT", SHARED ) ;
-				browse( tname1 ) ;
-				if ( ZRC == 4 && ZRSN == 4 ) { browse( tname2 ) ; }
-				zcmd = "" ;
+				control( "ERRORS", "RETURN" ) ;
+				select( "CMD(%" + zcmd + ") LANG(REXX) NEWPOOL" ) ;
+				if ( ZRC == 20 && ZRSN == 999 && ZRESULT == "Abended" )
+				{
+					vreplace( "ZEDSMSG", "Abended" ) ;
+					vreplace( "ZEDLMSG", "Command '"+zcmd+ "' has abended" ) ;
+					setmsg( "PSYZ001" ) ;
+				}
+				else
+				{
+					zcmd = "" ;
+				}
+				control( "ERRORS", "CANCEL" ) ;
 			}
 			else
 			{
-				msg = "PSYS012S" ;
+				comm1 = tname1 ;
+				comm2 = tname2 ;
+				if ( invoke_task_wait( zcmd, comm1, comm2 ) )
+				{
+					vreplace( "ZBRALT", "COMMAND:"+ zcmd ) ;
+					vput( "ZBRALT", SHARED ) ;
+					browse( tname1 ) ;
+					if ( ZRC == 4 && ZRSN == 4 ) { browse( tname2 ) ; }
+					zcmd = "" ;
+				}
+				else
+				{
+					msg = "PSYS012S" ;
+				}
 			}
 		}
 	}
@@ -181,6 +201,36 @@ void PCMD0A::run_command( string cmd, const string& fname1, const string& fname2
 
 	pclose( pipe )  ;
 	of.close()      ;
+}
+
+
+bool PCMD0A::isRexx( string orexx )
+{
+	int i ;
+	int j ;
+
+	string rxfile ;
+	string paths  ;
+
+	vget( "ZORXPATH", PROFILE ) ;
+	vcopy( "ZORXPATH", paths, MOVE ) ;
+
+	while ( true )
+	{
+		for ( j = getpaths( paths ), i = 1 ; i <= j ; i++ )
+		{
+			rxfile = getpath( paths, i ) + orexx ;
+			if ( !exists( rxfile ) ) { continue ; }
+			if ( is_regular_file( rxfile ) )
+			{
+				return true ;
+			}
+			return false ;
+		}
+		if ( orexx == lower( orexx ) ) { break ; }
+		ilower( orexx ) ;
+	}
+	return false ;
 }
 
 

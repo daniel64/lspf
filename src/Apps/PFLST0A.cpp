@@ -470,9 +470,8 @@ void PFLST0A::application()
 			break ;
 
 		case LN_EXECUTE:
-			vcopy( "ZOREXPGM", pgm, MOVE ) ;
 			control( "ERRORS", "RETURN" ) ;
-			select( "PGM(" + pgm + ") PARM(" + entry + ")" ) ;
+			select( "CMD(%" + entry + ") LANG(REXX)" ) ;
 			control( "ERRORS", "CANCEL" ) ;
 			if ( ZRESULT != "" )
 			{
@@ -730,7 +729,6 @@ void PFLST0A::application()
 			if ( ZRESULT != "" )
 			{
 				message = ZRESULT ;
-				msg     = "FLST011Z" ;
 			}
 			else
 			{
@@ -780,8 +778,7 @@ void PFLST0A::application()
 			break ;
 
 		case LN_FORMAT:
-			vcopy( "ZOREXPGM", pgm, MOVE ) ;
-			select( "PGM(" + pgm + ") PARM(porexx2 " + entry + ")" ) ;
+			select( "CMD(%porexx2 " + entry + ") LANG(REXX)" ) ;
 			if ( ZRESULT != "" )
 			{
 				message = ZRESULT ;
@@ -842,7 +839,7 @@ void PFLST0A::application()
 			of << substr( entry, lastpos( "/", entry )+1 ) << endl ;
 			try
 			{
-				for( ; dIt != eIt ; ++dIt )
+				for ( ; dIt != eIt ; ++dIt )
 				{
 					path current( (*dIt) ) ;
 					if ( is_regular_file( current ) || is_directory( current ) )
@@ -1485,7 +1482,7 @@ void PFLST0A::copyDirs( const string& src, const string& dest, const string& dir
 		return ;
 	}
 
-	for( directory_iterator file( src, ec ) ; file != directory_iterator() ; ++file )
+	for ( directory_iterator file( src, ec ) ; file != directory_iterator() ; ++file )
 	{
 		if ( ec.value() != boost::system::errc::success )
 		{

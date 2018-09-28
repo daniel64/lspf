@@ -196,13 +196,13 @@ void pLScreen::OIA_setup()
 }
 
 
-void pLScreen::OIA_update( int priScreen, int altScreen, boost::posix_time::ptime et )
+void pLScreen::OIA_update( int priScreen, int altScreen )
 {
 	int pos ;
 
 	string respTime ;
 
-	respTime = to_iso_string( et - startTime )  ;
+	respTime = to_iso_string( boost::posix_time::microsec_clock::universal_time() - startTime ) ;
 	pos      = respTime.find_last_of( '.' ) - 1 ;
 	respTime = substr( respTime, pos, 6 ) + " s" ;
 

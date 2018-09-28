@@ -59,9 +59,10 @@ class pLScreen
 	void  set_Insert( bool ins )       { Insert = ins ; Insert ? curs_set(2) : curs_set(1)  ; }
 
 	void  OIA_setup()  ;
-	void  OIA_update( int, int, boost::posix_time::ptime ) ;
-	void  OIA_startTime( boost::posix_time::ptime st )   { startTime = st ; }
+	void  OIA_update( int, int ) ;
+	void  OIA_startTime() { startTime = boost::posix_time::microsec_clock::universal_time() ; }
 	void  OIA_refresh() ;
+
 	void  show_enter()  ;
 	void  show_busy()   ;
 	void  show_wait()   ;
@@ -76,7 +77,7 @@ class pLScreen
 	int   screenId  ;
 
 private:
-	static unsigned int maxScreenId  ;
+	static unsigned int maxScreenId ;
 	static set<int> screenNums ;
 
 	unsigned int row ;

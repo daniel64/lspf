@@ -338,7 +338,7 @@ void PTUTORA::fill_dynamic_area()
 	zarea   = "" ;
 	zshadow = string( Area, N_GREEN ) ;
 
-	for( uint k = firstLine ; k < (firstLine + zaread) ; k++ )
+	for ( uint k = firstLine ; k < (firstLine + zaread) ; k++ )
 	{
 		if ( k > 0 && k < data.size()-1 )  t1 = substr( data[ k ] , startCol, zareaw ) ;
 		else                               t1 = substr( data[ k ] , 1, zareaw ) ;

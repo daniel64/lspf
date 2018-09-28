@@ -92,10 +92,10 @@ PSYE042C 'Invalid HELP statement.  Field ''&ZVAL1'' does not exist'
 PSYE042D 'Invalid HELP entry name ''&ZVAL1'''
 ''
 
-PSYE042E 'Field ''&ZVAL1'' not found in panel'
+PSYE042E 'Point-and-shoot field ''&ZVAL1'' not found in panel'
 ''
 
-PSYE042F 'Variable ''&ZVAL1'' not found in panel'
+PSYE042F 'Point-and-shoot variable ''&ZVAL1'' not found in panel'
 ''
 
 PSYE042G 'Invalid format of FIELD() definition'

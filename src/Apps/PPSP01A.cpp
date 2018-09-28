@@ -76,6 +76,7 @@ void PPSP01A::application()
 	llog( "I", "Application PPSP01A starting" << endl ) ;
 
 	set_appdesc( "General utilities to display logs, PF Key settings, variables, etc." ) ;
+	set_appver( "1.0.0" ) ;
 
 	string logtype ;
 	string logloc  ;
@@ -489,7 +490,7 @@ void PPSP01A::fill_dynamic_area()
 
 	int l = 0 ;
 
-	for( unsigned int k = firstLine ; k < data.size() ; k++ )
+	for ( unsigned int k = firstLine ; k < data.size() ; k++ )
 	{
 		if ( excluded[ k ] ) continue ;
 		l++ ;
