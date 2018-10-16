@@ -47,16 +47,16 @@ class pApplication
 		bool   abnormalEnd        ;
 		bool   abnormalEndForced  ;
 		bool   abnormalTimeout    ;
+		bool   abnormalNoMsg      ;
 		bool   reloadCUATables    ;
 		int    shrdPool           ;
-		string rexxName           ;
-		selobj SELCT              ;
 		bool   SEL                ;
 		bool   newpool            ;
 		string newappl            ;
 		bool   passlib            ;
 		bool   suspend            ;
 		bool   setMessage         ;
+		string rexxName           ;
 		string reffield           ;
 		string lineBuffer         ;
 
@@ -72,14 +72,14 @@ class pApplication
 		pPanel* currPanel   ;
 		pPanel* currtbPanel ;
 
-		int    taskid()      { return taskId ; }
-		void   taskid( int ) ;
-		void   init() ;
+		int    taskid()         { return taskId ; }
+		void   init_phase1( selobj&, int, void (* lspfCallback)( lspfCommand& ) ) ;
+		void   init_phase2() ;
 		void   info() ;
 
 		string get_zsel()   ;
 		string get_dTRAIL() ;
-		selobj get_select_cmd() { return SELCT ; }
+		selobj get_select_cmd() { return selct ; }
 		string get_help_member( int, int ) ;
 		string get_current_panelDesc()  ;
 		string get_current_screenName() ;
@@ -90,7 +90,6 @@ class pApplication
 
 		string get_applid() ;
 
-		void   set_appname( const string& s )   { zappname = s ; }
 		void   set_appdesc( const string& s )   { zappdesc = s ; }
 		void   set_appver(  const string& s )   { zappver  = s ; }
 		void   set_apphelp( const string& s )   { zapphelp = s ; }
@@ -245,7 +244,7 @@ class pApplication
 			       const string& tb_rowid_vn="",
 			       const string& tb_rowid="",
 			       const string& tb_noread="",
-			       const string& tb_crp_name=""  ) ;
+			       const string& tb_crp_name="" ) ;
 
 		void   tbsort( const string& tb_name, string tb_fields ) ;
 		void   tbtop( const string& tb_name ) ;
@@ -256,12 +255,12 @@ class pApplication
 
 		void   edit( const string& m_file,
 			     const string& m_panel="",
-			     const string& m_macro ="",
+			     const string& m_macro="",
 			     const string& m_profile="",
 			     const string& m_lcmds="" ) ;
 
 		void   view( const string& m_file,
-			     const string& m_panel=""   ) ;
+			     const string& m_panel="" ) ;
 
 		void   setmsg( const string& msg, msgSET sType=UNCOND  ) ;
 		void   getmsg( const string&,
@@ -290,15 +289,16 @@ class pApplication
 		void   set_msg( const string& ) ;
 		void   set_msg1( const slmsg&, const string&, bool =false ) ;
 		void   clear_msg() ;
-		slmsg  getmsg1()   { return MSG1   ; }
-		string getmsgid1() { return MSGID1 ; }
+		slmsg  getmsg1()                 { return zmsg1   ; }
+		string getmsgid1()               { return zmsgid1 ; }
 		void   msgResponseOK() ;
 		bool   nretriev_on()   ;
 		string get_nretfield() ;
 		void   cleanup()       ;
 		void   (pApplication::*pcleanup)() = &pApplication::cleanup_default ;
-		bool   cleanupRunning() { return !abended ; }
-		void   abend() ;
+		bool   cleanupRunning()          { return !abended ; }
+		void   abend()  ;
+		void   uabend() ;
 		void   uabend( const string&, int = -1 ) ;
 		void   uabend( const string&, const string&, int = -1 ) ;
 		void   uabend( const string&, const string&, const string&, int = -1 ) ;
@@ -314,25 +314,23 @@ class pApplication
 		void   reload_keylist( pPanel* ) ;
 		bool   errorsReturn() ;
 		void   setTestMode()  ;
-		bool   selectPanel()     { return selPanel ; }
-		void   setSelectPanel()  { selPanel = true ; }
-		void   startSelect( selobj& ) ;
+		bool   selectPanel()             { return selPanel ; }
 
-		int    get_addpop_row() { return addpop_row    ; }
-		int    get_addpop_col() { return addpop_col    ; }
-		bool   get_addpop_act() { return addpop_active ; }
+		int    get_addpop_row()          { return addpop_row    ; }
+		int    get_addpop_col()          { return addpop_col    ; }
+		bool   get_addpop_act()          { return addpop_active ; }
 
 		void   set_addpop_row( int  i )  { addpop_row = i    ; }
 		void   set_addpop_col( int  i )  { addpop_col = i    ; }
 		void   set_addpop_act( bool b )  { addpop_active = b ; }
 
-		void   set_background()          { background = true ; }
-		bool   is_background()           { return background ; }
-
 		bool   do_refresh_lscreen()      { return refreshlScreen ; }
 		bool   line_output_done()        { return lineOutDone    ; }
 		bool   line_output_pending()     { return lineOutPending ; }
 		void   set_output_done( bool b ) { lineOutDone = b       ; }
+
+		bool   get_nested()              { return nested  ; }
+		void*  get_options()             { return options ; }
 
 		bool   msg_issued_with_cmd() ;
 
@@ -340,14 +338,14 @@ class pApplication
 		void   restore_errblock() ;
 		void   ispexec( const string& ) ;
 
-		errblock get_errblock()         { return errBlock ; }
+		errblock get_errblock()          { return errBlock ; }
 
 		string sub_vars( string ) ;
 
 	private:
 		boost::mutex mutex ;
 
-		fPOOL funcPOOL   ;
+		fPOOL funcPOOL    ;
 
 		pPanel* prevPanel ;
 
@@ -357,9 +355,9 @@ class pApplication
 
 		int  taskId      ;
 
-		bool background          ;
-		bool addpop_active       ;
-		bool refreshlScreen      ;
+		bool backgrd ;
+		bool addpop_active  ;
+		bool refreshlScreen ;
 		bool ControlErrorsReturn ;
 		bool ControlPassLRScroll ;
 		bool selPanel ;
@@ -367,33 +365,37 @@ class pApplication
 		bool abended  ;
 		bool lineOutDone    ;
 		bool lineOutPending ;
+		bool nested         ;
+		void* options       ;
+
+		selobj selct    ;
 
 		string zappname ;
 		string zappdesc ;
 		string zappver  ;
 		string zapphelp ;
 
-		string MSGID     ;
-		string MSGID1    ;
-		slmsg  MSG       ;
-		slmsg  MSG1      ;
-		string zzmlib    ;
-		string zzplib    ;
-		string zztlib    ;
-		string zztabl    ;
-		string zzmusr    ;
-		string zzpusr    ;
-		string zztusr    ;
-		string zztabu    ;
-		string zscrname  ;
-		string zerr1     ;
-		string zerr2     ;
-		string zerr3     ;
-		string zerr4     ;
-		string zerr5     ;
-		string zerr6     ;
-		string zerr7     ;
-		string zerr8     ;
+		string zmsgid   ;
+		string zmsgid1  ;
+		slmsg  zmsg     ;
+		slmsg  zmsg1    ;
+		string zzmlib   ;
+		string zzplib   ;
+		string zztlib   ;
+		string zztabl   ;
+		string zzmusr   ;
+		string zzpusr   ;
+		string zztusr   ;
+		string zztabu   ;
+		string zscrname ;
+		string zerr1    ;
+		string zerr2    ;
+		string zerr3    ;
+		string zerr4    ;
+		string zerr5    ;
+		string zerr6    ;
+		string zerr7    ;
+		string zerr8    ;
 
 		void get_message( const string& )  ;
 		int  check_message_id( const string& ) ;
@@ -422,10 +424,11 @@ class pApplication
 		void createPanel( const string& p_name ) ;
 		void actionSelect()   ;
 
-		void checkRCode( const string& ="" )   ;
-		void checkRCode( errblock )            ;
+		void checkRCode() ;
+		void checkRCode( errblock ) ;
+		void splitZerrlm( string )  ;
 		void xabend( const string&, int = -1 ) ;
-		void cleanup_default()                 ;
+		void cleanup_default()      ;
 		bool isTableOpen( const string& tb_name, const string& func ) ;
 
 		void wait_event() ;

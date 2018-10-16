@@ -22,6 +22,7 @@ using namespace std;
 class PDLGTST : public pApplication
 {
 	public:
+		PDLGTST() ;
 		void application() ;
 	private:
 		void displayPanel() ;

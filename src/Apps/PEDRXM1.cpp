@@ -67,6 +67,13 @@ int getAllRexxVariables( pApplication* ) ;
 int setAllRexxVariables( pApplication* ) ;
 
 
+PEDRXM1::PEDRXM1()
+{
+	set_appdesc( "OOREXX Edit macro interface program" ) ;
+	set_appver( "1.0.0" ) ;
+}
+
+
 void PEDRXM1::application()
 {
 	int nlvl ;

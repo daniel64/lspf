@@ -608,11 +608,11 @@ void Table::tbput( errblock& err,
 	// For non-keyed tables, use row pointed to by the CRP
 	// For keyed tables, key variables must match row at CRP
 
-	// RC = 0   OK
-	// RC = 8   Keyed tables - keys do not match current row or CRP was set to top.  CRP set to top (0)
-	//          Non-keyed tables - CRP was at top
-	// RC = 16  Numeric conversion error for sorted tables
-	// RC = 20  Severe error
+	// RC = 0  OK
+	// RC = 8  Keyed tables - keys do not match current row or CRP was set to top.  CRP set to top (0)
+	//         Non-keyed tables - CRP was at top
+	// RC = 16 Numeric conversion error for sorted tables
+	// RC = 20 Severe error
 
 	// If ORDER specified on a sorted table, sort again in case tbput has changed the order and reset CRP
 
@@ -1341,8 +1341,8 @@ void Table::tbtop( errblock& err )
 {
 	// Set the CRP to the top of the table, before the first row
 
-	// RC = 0   Normal completion
-	// RC = 20  Severe error
+	// RC = 0  Normal completion
+	// RC = 20 Severe error
 
 	err.setRC( 0 ) ;
 	CRP = 0 ;
@@ -1354,8 +1354,8 @@ void Table::tbvclear( errblock& err,
 {
 	// Set all dialogue variables corresponding to the table rows when table created, to null
 
-	// RC = 0   Normal completion
-	// RC = 20  Severe error
+	// RC = 0  Normal completion
+	// RC = 20 Severe error
 
 	for ( unsigned int i = 1 ; i <= num_all ; i++ )
 	{
@@ -1381,8 +1381,8 @@ void Table::fillfVARs( errblock& err,
 	// Also pass back the relative line index, idr, for the line matching the passed csrrow (if any).
 	// (Passed csrrow is the panel CSRROW() parameter or .CSRROW control variable)
 
-	// BUGS:  Should only do fields on the tbmodel statement instead of all fields in the row (inc. extension variables)
-	//        SCAN not supported yet
+	// BUG:  Should only do fields on the tbmodel statement instead of all fields in the row (inc. extension variables)
+	// BUG:  SCAN not supported yet
 
 	uint j    ;
 	uint k    ;
@@ -1464,18 +1464,13 @@ void Table::fillfVARs( errblock& err,
 
 
 void Table::saveTable( errblock& err,
-		       const string& m_name,
-		       const string& m_opath )
+		       const string& tb_name,
+		       const string& filename )
 {
 	// Save table to disk.
 	// Version 2 file format adds extension variable support and record/file end markers, 0xFF.
 
-	// m_opath can be a concatination.  Save to path where table is located or if not found,
-	// the first file in the list.
-
-	string filename ;
-	string path   ;
-	string s = "" ;
+	// Filename is the location of the table, or the first path if not found in the concatination.
 
 	uint i    ;
 	uint j    ;
@@ -1487,31 +1482,8 @@ void Table::saveTable( errblock& err,
 
 	err.setRC( 0 ) ;
 
-	for ( i = getpaths( m_opath ), j = 1 ; j <= i ; j++ )
-	{
-		path     = getpath( m_opath, j ) ;
-		filename = path + m_name ;
-		if ( exists( filename ) )
-		{
-			if ( !is_regular_file( filename ) )
-			{
-				err.seterrid( "PSYE013L", filename ) ;
-				return ;
-			}
-			tab_opath = path ;
-			s         = filename ;
-			break ;
-		}
-	}
-
-	if ( s == "" )
-	{
-		tab_opath = getpath( m_opath, 1 ) ;
-		s         = tab_opath + m_name ;
-	}
-
 	size = table.size() ;
-	otable.open( s.c_str(), ios::binary | ios::out ) ;
+	otable.open( filename.c_str(), ios::binary | ios::out ) ;
 
 	otable << (char)00  ;  //
 	otable << (char)133 ;  // x085 denotes a table
@@ -1555,6 +1527,7 @@ void Table::saveTable( errblock& err,
 	otable.close() ;
 
 	resetChanged() ;
+	tab_opath = filename.substr( 0, filename.find_last_of( '/' ) ) ;
 }
 
 
@@ -1567,7 +1540,7 @@ void Table::cmdsearch( errblock& err,
 	// Use tbsarg/tbscan for normal applications
 
 	// RC = 0  Okay
-	// RC = 8  Commmand not found
+	// RC = 4  Commmand not found
 	// RC = 20 Severe error
 
 	int trunc ;
@@ -1597,7 +1570,7 @@ void Table::cmdsearch( errblock& err,
 
 	if ( it == table.end() )
 	{
-		err.setRC( 8 ) ;
+		err.setRC( 4 ) ;
 		return ;
 	}
 
@@ -1633,16 +1606,24 @@ tableMGR::~tableMGR()
 void tableMGR::createTable( errblock& err,
 			    const string& tb_name,
 			    string keys, string flds,
-			    tbREP m_REP,
-			    tbWRITE m_WRITE,
-			    const string& m_spath,
-			    tbDISP m_DISP )
+			    tbREP tb_REP,
+			    tbWRITE tb_WRITE,
+			    const string& tb_paths,
+			    tbDISP tb_DISP,
+			    bool tb_open )
 {
 	// RC =  0 Normal
 	// RC =  4 Normal - duplicate table replaced
 	// RC =  8 REPLACE not specified and table exists, or REPLACE specified with table open in SHARE
-	// RC = 12 Table in use
+	// RC = 12 Table in use or inconsistent WRITE/NOWRITE parmameters
 	// RC = 20 Severe error
+
+	// Exists => With WRITE   - In storage and/or on disk
+	//                NOWRITE - In storage only
+
+	// Don't check table exists on disk for a TBOPEN request
+
+	string filename ;
 
 	err.setRC( 0 ) ;
 
@@ -1653,10 +1634,10 @@ void tableMGR::createTable( errblock& err,
 
 	if ( err.debugMode() )
 	{
-		debug1( "Creating table >>"+ tb_name +"<<" <<endl ) ;
-		debug1( "     with keys >>"+ keys    +"<<" <<endl ) ;
-		debug1( "    and fields >>"+ flds    +"<<" <<endl ) ;
-		debug1( "    Input path >>"+ m_spath +"<<" <<endl ) ;
+		debug1( "Creating table >>"+ tb_name  +"<<" <<endl ) ;
+		debug1( "     with keys >>"+ keys     +"<<" <<endl ) ;
+		debug1( "    and fields >>"+ flds     +"<<" <<endl ) ;
+		debug1( "    Input path >>"+ tb_paths +"<<" <<endl ) ;
 	}
 
 	map<string, Table*>::iterator it ;
@@ -1664,9 +1645,22 @@ void tableMGR::createTable( errblock& err,
 	it = tables.find( tb_name ) ;
 	if ( it != tables.end() )
 	{
-		if ( m_REP == REPLACE )
+		if ( it->second->tab_DISP == SHARE && tb_DISP == SHARE )
 		{
-			if ( m_DISP == SHARE )
+			if ( it->second->tab_WRITE != tb_WRITE )
+			{
+				err.seterrid( "PSYE014R", tb_name, 12 ) ;
+				return ;
+			}
+		}
+		else
+		{
+			err.seterrid( "PSYE013Z", tb_name, 12 ) ;
+			return ;
+		}
+		if ( tb_REP == REPLACE )
+		{
+			if ( tb_DISP == SHARE )
 			{
 				err.setRC( 8 ) ;
 				return ;
@@ -1676,11 +1670,6 @@ void tableMGR::createTable( errblock& err,
 				if ( it->second->ownerTask != err.taskid )
 				{
 					err.setRC( 8 ) ;
-					return ;
-				}
-				else if ( it->second->tab_WRITE != m_WRITE )
-				{
-					err.seterrid( "PSYE014R", tb_name ) ;
 					return ;
 				}
 				else
@@ -1696,14 +1685,39 @@ void tableMGR::createTable( errblock& err,
 			return ;
 		}
 	}
+	else if ( tb_WRITE == WRITE && not tb_open )
+	{
+		filename = locate( err, tb_name, tb_paths ) ;
+		if ( err.error() ) { return ; }
+		if ( filename != "" )
+		{
+			if ( tb_REP == REPLACE )
+			{
+				if ( tb_DISP == SHARE )
+				{
+					err.setRC( 8 ) ;
+					return ;
+				}
+				else
+				{
+					err.setRC( 4 ) ;
+				}
+			}
+			else
+			{
+				err.setRC( 8 ) ;
+				return ;
+			}
+		}
+	}
+
 	Table* t = new Table ;
 
 	t->ownerTask = err.taskid ;
-	t->tab_WRITE = m_WRITE ;
-	t->tab_DISP  = m_DISP  ;
-	t->changed   = true    ;
-	t->tab_name  = tb_name ;
-	t->tab_spath = m_spath ;
+	t->tab_WRITE = tb_WRITE ;
+	t->tab_DISP  = tb_DISP  ;
+	t->changed   = true     ;
+	t->tab_name  = tb_name  ;
 	t->tab_keys  = space( keys ) ;
 	t->num_keys  = words( keys ) ;
 	t->tab_flds  = space( flds ) ;
@@ -1711,27 +1725,27 @@ void tableMGR::createTable( errblock& err,
 	t->tab_all   = t->tab_keys + " " + t->tab_flds ;
 	t->num_all   = t->num_keys + t->num_flds ;
 	t->tab_cmds  = ( t->tab_all == "ZCTVERB ZCTTRUNC ZCTACT ZCTDESC" ) ;
+
 	tables[ tb_name ] = t ;
 }
 
 
 void tableMGR::loadTable( errblock& err,
 			  const string& tb_name,
-			  tbWRITE m_WRITE,
-			  const string& m_spath,
-			  tbDISP m_DISP )
+			  tbWRITE tb_WRITE,
+			  const string& tb_paths,
+			  tbDISP tb_DISP,
+			  bool tb_open )
 {
-	// RC = 0   Normal completion
-	// RC = 8   Table does not exist in search path
-	// RC = 12  Inconsistent WRITE options
-	// RC = 20  Severe error
-
-	// If table already loaded, EXCLUSIVE can be changed to SHARE by the same task.
-	// Any other combination is not valid.
-
 	// Routine to load V1 and V2 format tables from a disk file
 
-	// TODO: Clean up dynamic storage (rows) if table fails to fully load
+	// RC = 0  Normal completion
+	// RC = 8  Table does not exist in search path
+	// RC = 12 Table already open by this or another task or inconsistent WRITE/NOWRITE parmameters
+	// RC = 20 Severe error
+
+	// If table already loaded, use count can be increased only if the request
+	// is SHARE when loaded SHARE. Any other combination is invalid.
 
 	uint i        ;
 	uint j        ;
@@ -1759,7 +1773,6 @@ void tableMGR::loadTable( errblock& err,
 	string val   ;
 	string keys  ;
 	string flds  ;
-	string err1  ;
 
 	size_t buf2Size = 1024 ;
 
@@ -1769,6 +1782,8 @@ void tableMGR::loadTable( errblock& err,
 
 	map<string, Table*>::iterator it ;
 
+	errblock err1 ;
+
 	err.setRC( 0 ) ;
 
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
@@ -1776,41 +1791,28 @@ void tableMGR::loadTable( errblock& err,
 	it = tables.find( tb_name ) ;
 	if ( it != tables.end() )
 	{
-		if ( it->second->tab_DISP == SHARE && m_DISP == EXCLUSIVE )
+		if ( it->second->tab_DISP == SHARE && tb_DISP == SHARE )
 		{
-			err.seterrid( "PSYE013Z", tb_name ) ;
-			return ;
+			if ( it->second->tab_WRITE == tb_WRITE )
+			{
+				it->second->incRefCount() ;
+			}
+			else
+			{
+				err.seterrid( "PSYE014R", tb_name, 12 ) ;
+			}
 		}
-		if ( it->second->tab_DISP == EXCLUSIVE && it->second->ownerTask != err.taskid )
+		else
 		{
-			err.seterrid( "PSYE014A", tb_name, d2ds( it->second->ownerTask ) ) ;
-			return ;
+			err.seterrid( "PSYE013Z", tb_name, 12 ) ;
 		}
-		if ( it->second->tab_WRITE != m_WRITE )
-		{
-			err.seterrid( "PSYE014R", tb_name, 12 ) ;
-			return ;
-		}
-		it->second->incRefCount() ;
-		it->second->tab_DISP = m_DISP ;
 		return ;
 	}
 
-	for ( i = getpaths( m_spath ), j = 1 ; j <= i ; j++ )
-	{
-		path     = getpath( m_spath, j ) ;
-		filename = path + tb_name       ;
-		if ( exists( filename ) )
-		{
-			if ( !is_regular_file( filename ) )
-			{
-				err.seterrid( "PSYE014B", tb_name ) ;
-				return ;
-			}
-			break ;
-		}
-	}
-	if ( j > i )
+	filename = locate( err, tb_name, tb_paths ) ;
+	if ( err.error() ) { return ; }
+
+	if ( filename == "" )
 	{
 		err.setRC( 8 ) ;
 		return ;
@@ -1904,7 +1906,8 @@ void tableMGR::loadTable( errblock& err,
 		flds = flds + s.assign( buf1, i ) + " " ;
 	}
 
-	createTable( err, tb_name, keys, flds, NOREPLACE, m_WRITE, path, m_DISP ) ;
+
+	createTable( err, tb_name, keys, flds, NOREPLACE, tb_WRITE, path, tb_DISP, tb_open ) ;
 	if ( err.getRC() > 0 )
 	{
 		table.close() ;
@@ -1919,6 +1922,7 @@ void tableMGR::loadTable( errblock& err,
 		if ( err.error() )
 		{
 			err.seterrid( "PSYE013N", sir ) ;
+			destroyTable( err1, tb_name ) ;
 			return  ;
 		}
 	}
@@ -1935,6 +1939,7 @@ void tableMGR::loadTable( errblock& err,
 				table.close() ;
 				delete[] buf2 ;
 				delete row    ;
+				destroyTable( err1, tb_name ) ;
 				return ;
 			}
 			n1 = (unsigned char)z[ 0 ] ;
@@ -1953,6 +1958,7 @@ void tableMGR::loadTable( errblock& err,
 				table.close() ;
 				delete[] buf2 ;
 				delete row    ;
+				destroyTable( err1, tb_name ) ;
 				return ;
 			}
 			val.assign( buf2, i ) ;
@@ -1968,6 +1974,7 @@ void tableMGR::loadTable( errblock& err,
 				table.close() ;
 				delete[] buf2 ;
 				delete row    ;
+				destroyTable( err1, tb_name ) ;
 				return ;
 			}
 			n1 = (unsigned char)z[ 0 ] ;
@@ -1982,6 +1989,7 @@ void tableMGR::loadTable( errblock& err,
 					table.close() ;
 					delete[] buf2 ;
 					delete row    ;
+					destroyTable( err1, tb_name ) ;
 					return ;
 				}
 				n1 = (unsigned char)z[ 0 ] ;
@@ -2000,6 +2008,7 @@ void tableMGR::loadTable( errblock& err,
 					table.close() ;
 					delete[] buf2 ;
 					delete row    ;
+					destroyTable( err1, tb_name ) ;
 					return ;
 				}
 				val.assign( buf2, k ) ;
@@ -2012,6 +2021,7 @@ void tableMGR::loadTable( errblock& err,
 				table.close() ;
 				delete[] buf2 ;
 				delete row    ;
+				destroyTable( err1, tb_name ) ;
 				return ;
 			}
 			if ( z[ 0 ] != char(0xFF) )
@@ -2020,6 +2030,7 @@ void tableMGR::loadTable( errblock& err,
 				table.close() ;
 				delete[] buf2 ;
 				delete row    ;
+				destroyTable( err1, tb_name ) ;
 				return ;
 			}
 		}
@@ -2029,6 +2040,7 @@ void tableMGR::loadTable( errblock& err,
 			table.close() ;
 			delete[] buf2 ;
 			delete row    ;
+			destroyTable( err1, tb_name ) ;
 			return ;
 		}
 	}
@@ -2040,6 +2052,7 @@ void tableMGR::loadTable( errblock& err,
 			err.seterrid( "PSYE014M", tb_name, filename ) ;
 			table.close() ;
 			delete[] buf2 ;
+			destroyTable( err1, tb_name ) ;
 			return ;
 		}
 		if ( z[ 0 ] != char(0xFF) )
@@ -2047,17 +2060,19 @@ void tableMGR::loadTable( errblock& err,
 			err.seterrid( "PSYE014K", filename ) ;
 			table.close() ;
 			delete[] buf2 ;
+			destroyTable( err1, tb_name ) ;
 			return ;
 		}
 	}
 
-	it->second->tab_ipath = path ;
+	it->second->tab_ipath = filename.substr( 0, filename.find_last_of( '/' ) ) ;
 	it->second->resetChanged() ;
 
 	debug2( "Number of rows loaded from table " << l <<endl ) ;
 	if ( l != num_rows )
 	{
 		err.seterrid( "PSYE014L", d2ds( l ), d2ds( num_rows ) ) ;
+		destroyTable( err1, tb_name ) ;
 	}
 	table.close() ;
 	delete[] buf2 ;
@@ -2068,9 +2083,9 @@ void tableMGR::qtabopen( errblock& err,
 			 fPOOL& funcPOOL,
 			 const string& tb_list )
 {
-	// RC = 0   Normal completion
-	// RC = 12  Variable name prefix too long (max 7 characters)
-	// RC = 20  Severe error
+	// RC = 0  Normal completion
+	// RC = 12 Variable name prefix too long (max 7 characters)
+	// RC = 20 Severe error
 
 	int i ;
 
@@ -2107,10 +2122,15 @@ void tableMGR::qtabopen( errblock& err,
 
 void tableMGR::saveTable( errblock& err,
 			  const string& tb_name,
-			  const string& m_newname,
-			  const string& m_opath )
+			  const string& tb_newname,
+			  const string& tb_paths )
 {
 	// This can be called by tbclose() or tbsave().
+
+	// tb_paths can be a concatination.  Save to path where table is located or, if not found,
+	// the first file in the list.
+
+	string filename ;
 
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
@@ -2120,7 +2140,16 @@ void tableMGR::saveTable( errblock& err,
 		err.seterrid( "PSYE013G", "SAVETABLE", tb_name, 12 ) ;
 		return ;
 	}
-	it->second->saveTable( err, ( m_newname == "" ? tb_name : m_newname ), m_opath ) ;
+
+	filename = locate( err, tb_name, tb_paths ) ;
+	if ( err.error() ) { return ; }
+
+	if ( filename == "" )
+	{
+		filename = getpath( tb_paths, 1 ) + tb_name ;
+	}
+
+	it->second->saveTable( err, ( tb_newname == "" ? tb_name : tb_newname ), filename ) ;
 }
 
 
@@ -2128,6 +2157,7 @@ void tableMGR::destroyTable( errblock& err,
 			     const string& tb_name )
 {
 	// RC =  0 Normal completion
+	// RC =  4 Normal completion - use count decremented
 	// RC = 12 Table not open
 
 	err.setRC( 0 ) ;
@@ -2147,11 +2177,17 @@ void tableMGR::destroyTable( errblock& err,
 		delete it->second  ;
 		tables.erase( it ) ;
 	}
+	else
+	{
+		err.setRC( 4 ) ;
+	}
 }
 
 
 void tableMGR::statistics()
 {
+	string t ;
+
 	map<string, Table*>::iterator it    ;
 	map<string, tbsearch>::iterator its ;
 
@@ -2166,19 +2202,12 @@ void tableMGR::statistics()
 	{
 		llog( "-", "" <<endl ) ;
 		llog( "-", "                  Table: "+ it->first <<endl ) ;
-		if ( it->second->tab_WRITE == WRITE )
-		{
-			llog( "-", "                 Status: Open in WRITE mode" <<endl ) ;
-		}
-		else
-		{
-			llog( "-", "                 Status: Open in NOWRITE mode" <<endl ) ;
-		}
-		if ( it->second->changed )
-		{
-			llog( "-", "                       : Modified since load or last save" <<endl ) ;
-		}
+		t  = ( it->second->tab_WRITE == WRITE ) ? "WRITE," : "NOWRITE," ;
+		t += ( it->second->tab_DISP  == SHARE ) ? "SHARE " : "EXCLUSIVE " ;
+		t += ( it->second->changed ) ? "mode (Modified)"   : "mode" ;
+		llog( "-", "                 Status: Open in "+ t <<endl ) ;
 		llog( "-", "            Owning Task: " << it->second->ownerTask <<endl ) ;
+		llog( "-", "              Use Count: " << it->second->refCount <<endl ) ;
 		if ( it->second->num_keys > 0 )
 		{
 			llog( "-", "                   Keys: " << setw(3) << it->second->tab_keys <<endl ) ;
@@ -2193,7 +2222,7 @@ void tableMGR::statistics()
 		{
 			llog( "-", "            Output Path: " << it->second->tab_opath <<endl ) ;
 		}
-		llog( "-", "   Current Row Position: " << it->second->CRP <<endl ) ;
+		llog( "-", "    Current Row Pointer: " << it->second->CRP <<endl ) ;
 		if ( it->second->sarg.size() > 0 )
 		{
 			llog( "-", "Current Search Argument: " <<endl ) ;
@@ -2202,15 +2231,9 @@ void tableMGR::statistics()
 			llog( "-", "    Extension Variables: " << it->second->sa_namelst <<endl ) ;
 			for ( its = it->second->sarg.begin() ; its != it->second->sarg.end() ; its++ )
 			{
+				t = ( its->second.tbs_gen ) ? " (generic search)" : "" ;
 				llog( "-", "             Field Name: "+ its->first <<endl ) ;
-				if ( its->second.tbs_gen )
-				{
-					llog( "-", "            Field Value: "+ its->second.tbs_val +" (generic search)" <<endl ) ;
-				}
-				else
-				{
-					llog( "-", "            Field Value: "+ its->second.tbs_val <<endl ) ;
-				}
+				llog( "-", "            Field Value: "+ its->second.tbs_val + t <<endl ) ;
 				llog( "-", "        Field Condition: "+ its->second.tbs_scond <<endl ) ;
 			}
 		}
@@ -2218,6 +2241,7 @@ void tableMGR::statistics()
 		{
 			llog( "-", "Sort Information Record: "+ it->second->sort_ir <<endl ) ;
 		}
+		llog( "-", "------------------------ " <<endl ) ;
 	}
 	llog( "-", "*************************************************************************************************************" <<endl ) ;
 }
@@ -2358,10 +2382,12 @@ void tableMGR::tbdelete( errblock& err,
 
 void tableMGR::tberase( errblock& err,
 			const string& tb_name,
-			const string& tb_path )
+			const string& tb_paths )
 {
-	int i ;
-	int j ;
+	// RC =  0 Normal completion
+	// RC =  8 Table not found
+	// RC = 12 Table open
+	// RC = 20 Severe error
 
 	string filename ;
 
@@ -2376,22 +2402,24 @@ void tableMGR::tberase( errblock& err,
 		return ;
 	}
 
-	for ( i = getpaths( tb_path ), j = 1 ; j <= i ; j++ )
+	filename = locate( err, tb_name, tb_paths ) ;
+	if ( err.error() ) { return ; }
+
+	if ( filename != "" )
 	{
-		filename = getpath( tb_path, j ) + tb_name ;
-		if ( exists( filename ) )
+		try
 		{
-			if ( !is_regular_file( filename ) )
-			{
-				err.seterrid( "PSYE013L", filename, 16 ) ;
-				return ;
-			}
 			remove( filename ) ;
-			return ;
+		}
+		catch (...)
+		{
+			err.seterrid( "PSYE013K", filename ) ;
 		}
 	}
-
-	err.setRC( 8 ) ;
+	else
+	{
+		err.setRC( 8 ) ;
+	}
 }
 
 
@@ -2483,15 +2511,17 @@ void tableMGR::cmdsearch( errblock& err,
 			  fPOOL& funcPOOL,
 			  string tb_name,
 			  const string& cmd,
-			  const string& paths )
+			  const string& paths,
+			  bool  try_load )
 {
-	// Search table 'tb_name' for command 'cmd'.  Load table if not already in storage.
+	// Search table 'tb_name' for command 'cmd'.  Load table if not already in storage and try_load set.
+
 	// Application command tables should already be loaded by SELECT processing so it is not
-	// necessary to add LIBDEF ZTLIB/ZTUSR paths to 'paths'
+	// necessary to add LIBDEF ZTLIB/ZTUSR paths to 'paths' or to try to load these tables.
 
 	// RC = 0  Okay
-	// RC = 8  Command not found
-	// RC = 12 Table not found (RC=8 from loadTable)
+	// RC = 4  Command not found (from Table::cmdsearch() routine)
+	// RC = 8  Table not found (loadTable() routine)
 	// RC = 20 Severe error
 
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
@@ -2500,16 +2530,14 @@ void tableMGR::cmdsearch( errblock& err,
 	auto it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
-		loadTable( err, tb_name, NOWRITE, paths, SHARE ) ;
-		if ( err.error() )
+		if ( not try_load )
 		{
-			llog( "E", "Command table "+ tb_name +" failed to load" <<endl ) ;
-			err.setRC( 20 ) ;
+			err.setRC( 4 ) ;
 			return ;
 		}
-		else if ( !err.RC0() )
+		loadTable( err, tb_name, NOWRITE, paths, SHARE ) ;
+		if ( not err.RC0() )
 		{
-			err.setRC( 12 ) ;
 			return ;
 		}
 		it = tables.find( tb_name ) ;
@@ -2601,4 +2629,48 @@ bool tableMGR::writeableTable( errblock& err,
 		return false ;
 	}
 	return ( it->second->tab_WRITE == WRITE ) ;
+}
+
+
+string tableMGR::locate( errblock& err,
+			 const string& tb_name,
+			 const string& tb_paths )
+{
+	int i ;
+	int j ;
+
+	string filename ;
+
+	err.setRC( 0 ) ;
+
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
+
+	for ( i = getpaths( tb_paths ), j = 1 ; j <= i ; j++ )
+	{
+		filename = getpath( tb_paths, j ) + tb_name ;
+		try
+		{
+			if ( exists( filename ) )
+			{
+				if ( !is_regular_file( filename ) )
+				{
+					err.seterrid( "PSYE013L", filename ) ;
+					return "" ;
+				}
+				return filename ;
+			}
+		}
+		catch ( boost::filesystem::filesystem_error &e )
+		{
+			err.seterrid( "PSYS012C", e.what() ) ;
+			return "" ;
+		}
+		catch (...)
+		{
+			err.seterrid( "PSYS012C", "Entry: "+ filename ) ;
+			return "" ;
+		}
+	}
+
+	return "" ;
 }

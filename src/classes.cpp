@@ -1519,7 +1519,7 @@ bool slmsg::parse( const string& s, const string& l )
 }
 
 
-bool selobj::parse( errblock& err, string SELSTR )
+bool selobj::parse( errblock& err, string selstr )
 {
 	// Case insensitive except for PARM() and CMD()
 
@@ -1550,60 +1550,65 @@ bool selobj::parse( errblock& err, string SELSTR )
 	err.setRC( 0 ) ;
 
 	clear() ;
-	str = upper( SELSTR ) ;
+	str = upper( selstr ) ;
 	p1  = pos( "PARM(", str ) ;
 	if ( p1 > 0 )
 	{
 		ob     = 1 ;
 		oquote = false ;
-		for ( p2 = p1+4 ; p2 < SELSTR.size() ; p2++ )
+		for ( p2 = p1+4 ; p2 < selstr.size() ; p2++ )
 		{
-			if ( SELSTR.at( p2 ) == '"' ) { oquote = !oquote ; }
+			if ( selstr.at( p2 ) == '"' ) { oquote = !oquote ; }
 			if ( oquote ) { continue ; }
-			if ( SELSTR.at( p2 ) == '(' ) { ob++  ; }
-			if ( SELSTR.at( p2 ) == ')' )
+			if ( selstr.at( p2 ) == '(' ) { ob++  ; }
+			if ( selstr.at( p2 ) == ')' )
 			{
 				ob-- ;
 				if ( ob == 0 ) { break ; }
 			}
 		}
-		if ( ob != 0 || oquote )
+		if ( ob != 0 )
+		{
+			err.seterrid( "PSYE032D" ) ;
+			return false ;
+		}
+		if ( oquote )
 		{
 			err.seterrid( "PSYE033F" ) ;
 			return false ;
 		}
 		p2++ ;
-		PARM   = strip( substr( SELSTR, (p1 + 5), (p2 - (p1 + 5)) ) ) ;
-		PARM   = strip( PARM, 'B', '"' ) ;
-		SELSTR = delstr( SELSTR, p1, (p2 - p1 + 1) ) ;
-		str    = upper( SELSTR ) ;
+		parm   = strip( substr( selstr, (p1 + 5), (p2 - (p1 + 5)) ) ) ;
+		parm   = strip( parm, 'B', '"' ) ;
+		selstr = delstr( selstr, p1, (p2 - p1 + 1) ) ;
+		str    = upper( selstr ) ;
 	}
 
 	p1 = pos( "PGM(", str ) ;
 	if ( p1 > 0 )
 	{
-		p2 = pos( ")", SELSTR, p1 ) ;
+		p2 = pos( ")", selstr, p1 ) ;
 		if ( p2 == 0 )
 		{
 			err.seterrid( "PSYE032D" ) ;
 			return false ;
 		}
-		PGM    = strip( substr( str, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
-		SELSTR = delstr( SELSTR, p1, (p2 - p1 + 1) ) ;
-		str    = upper( SELSTR ) ;
-		if ( !PGM.empty() && PGM.front() == '&' )
+		pgm    = strip( substr( str, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
+		selstr = delstr( selstr, p1, (p2 - p1 + 1) ) ;
+		str    = upper( selstr ) ;
+		if ( !pgm.empty() && pgm.front() == '&' )
 		{
-			if ( !isvalidName( substr( PGM, 2 ) ) )
+			if ( !isvalidName( substr( pgm, 2 ) ) )
 			{
-				err.seterrid( "PSYE031D", substr( PGM, 2 ) ) ;
+				err.seterrid( "PSYE031D", substr( pgm, 2 ) ) ;
 				return false ;
 			}
 		}
 		else
 		{
-			if ( !isvalidName( PGM ) )
+			if ( !isvalidName( pgm ) )
 			{
-				err.seterrid( "PSYE031E", "PROGRAM", PGM ) ;
+				err.seterrid( "PSYE031E", "PROGRAM", pgm ) ;
 				return false ;
 			}
 		}
@@ -1613,38 +1618,38 @@ bool selobj::parse( errblock& err, string SELSTR )
 		p1 = pos( "PANEL(", str ) ;
 		if ( p1 > 0 )
 		{
-			if ( PARM != "" )
+			if ( parm != "" )
 			{
 				err.seterrid( "PSYE039M", "PANEL" ) ;
 				return false ;
 			}
-			p2 = pos( ")", SELSTR, p1 ) ;
+			p2 = pos( ")", selstr, p1 ) ;
 			if ( p2 == 0 )
 			{
 				err.seterrid( "PSYE032D" ) ;
 				return false ;
 			}
-			PARM = strip( substr( str, (p1 + 6), (p2 - (p1 + 6)) ) ) ;
-			if ( !isvalidName( PARM ) )
+			parm = strip( substr( str, (p1 + 6), (p2 - (p1 + 6)) ) ) ;
+			if ( !isvalidName( parm ) )
 			{
-				err.seterrid( "PSYE031E", "PANEL", PARM ) ;
+				err.seterrid( "PSYE031E", "PANEL", parm ) ;
 				return false ;
 			}
-			PGM    = "&ZPANLPGM" ;
-			SELSTR = delstr( SELSTR, p1, (p2 - p1 + 1) ) ;
-			str    = upper( SELSTR ) ;
+			panpgm = true ;
+			selstr = delstr( selstr, p1, (p2 - p1 + 1) ) ;
+			str    = upper( selstr ) ;
 			p1 = pos( "OPT(", str ) ;
 			if ( p1 > 0 )
 			{
-				p2 = pos( ")", SELSTR, p1 ) ;
+				p2 = pos( ")", selstr, p1 ) ;
 				if ( p2 == 0 )
 				{
 					err.seterrid( "PSYE032D" ) ;
 					return false ;
 				}
-				PARM  += " " + strip( substr( str, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
-				SELSTR = delstr( SELSTR, p1, (p2 - p1 + 1) ) ;
-				str    = upper( SELSTR ) ;
+				parm  += " " + strip( substr( str, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
+				selstr = delstr( selstr, p1, (p2 - p1 + 1) ) ;
+				str    = upper( selstr ) ;
 			}
 			selPanl = true ;
 		}
@@ -1653,51 +1658,56 @@ bool selobj::parse( errblock& err, string SELSTR )
 			p1 = pos( "CMD(", str ) ;
 			if ( p1 > 0 )
 			{
-				if ( PARM != "" )
+				if ( parm != "" )
 				{
 					err.seterrid( "PSYE039M", "CMD" ) ;
 					return false ;
 				}
 				ob     = 1 ;
 				oquote = false ;
-				for ( p2 = p1+3 ; p2 < SELSTR.size() ; p2++ )
+				for ( p2 = p1+3 ; p2 < selstr.size() ; p2++ )
 				{
-					if ( SELSTR.at( p2 ) == '"' ) { oquote = !oquote ; }
+					if ( selstr.at( p2 ) == '"' ) { oquote = !oquote ; }
 					if ( oquote ) { continue ; }
-					if ( SELSTR.at( p2 ) == '(' ) { ob++  ; }
-					if ( SELSTR.at( p2 ) == ')' )
+					if ( selstr.at( p2 ) == '(' ) { ob++  ; }
+					if ( selstr.at( p2 ) == ')' )
 					{
 						ob-- ;
 						if ( ob == 0 ) { break ; }
 					}
 				}
-				if ( ob != 0 || oquote )
+				if ( ob != 0 )
+				{
+					err.seterrid( "PSYE032D" ) ;
+					return false ;
+				}
+				if ( oquote )
 				{
 					err.seterrid( "PSYE033F" ) ;
 					return false ;
 				}
 				p2++ ;
-				PARM   = strip( substr( SELSTR, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
-				PARM   = strip( PARM, 'B', '"' ) ;
-				SELSTR = delstr( SELSTR, p1, (p2 - p1 + 1) ) ;
-				str    = upper( SELSTR ) ;
+				parm   = strip( substr( selstr, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
+				parm   = strip( parm, 'B', '"' ) ;
+				selstr = delstr( selstr, p1, (p2 - p1 + 1) ) ;
+				str    = upper( selstr ) ;
 				lang   = "" ;
 				p1     = pos( "LANG(", str ) ;
 				if ( p1 > 0 )
 				{
-					p2 = pos( ")", SELSTR, p1 ) ;
+					p2 = pos( ")", selstr, p1 ) ;
 					if ( p2 == 0 )
 					{
 						err.seterrid( "PSYE032D" ) ;
 						return false ;
 					}
 					lang   = strip( substr( str, (p1 + 5), (p2 - (p1 + 5)) ) ) ;
-					SELSTR = delstr( SELSTR, p1, (p2 - p1 + 1) ) ;
-					str    = upper( SELSTR ) ;
+					selstr = delstr( selstr, p1, (p2 - p1 + 1) ) ;
+					str    = upper( selstr ) ;
 				}
 				if ( lang == "" || lang == "REXX" )
 				{
-					PGM = "&ZOREXPGM"  ;
+					rexpgm = true ;
 				}
 				else
 				{
@@ -1717,16 +1727,16 @@ bool selobj::parse( errblock& err, string SELSTR )
 			err.seterrid( "PSYE032D" ) ;
 			return false ;
 		}
-		SCRNAME = strip( substr( str, (p1 + 8), (p2 - (p1 + 8)) ) ) ;
+		scrname = strip( substr( str, (p1 + 8), (p2 - (p1 + 8)) ) ) ;
 		str     = delstr( str, p1, (p2 - p1 + 1) ) ;
-		if ( findword( SCRNAME, "LIST NEXT PREV" ) )
+		if ( findword( scrname, "LIST NEXT PREV" ) )
 		{
 			err.seterrid( "PSYE039O" ) ;
 			return false ;
 		}
-		if ( !isvalidName( SCRNAME ) )
+		if ( !isvalidName( scrname ) )
 		{
-			err.seterrid( "PSYE039P", SCRNAME ) ;
+			err.seterrid( "PSYE039P", scrname ) ;
 			return false ;
 		}
 	}
@@ -1740,15 +1750,15 @@ bool selobj::parse( errblock& err, string SELSTR )
 			err.seterrid( "PSYE032D" ) ;
 			return false ;
 		}
-		NEWAPPL = strip( substr( str, (p1 + 8), (p2 - (p1 + 8)) ) ) ;
-		NEWPOOL = true ;
+		newappl = strip( substr( str, (p1 + 8), (p2 - (p1 + 8)) ) ) ;
+		newpool = true ;
 		str     = delstr( str, p1, (p2 - p1 + 1) ) ;
-		if ( !isvalidName4( NEWAPPL ) )
+		if ( !isvalidName4( newappl ) )
 		{
-			err.seterrid( "PSYE031E", "NEWAPPL", NEWAPPL ) ;
+			err.seterrid( "PSYE031E", "NEWAPPL", newappl ) ;
 			return false ;
 		}
-		if ( NEWAPPL == "ISPS" )
+		if ( newappl == "ISPS" )
 		{
 			err.seterrid( "PSYE039S" ) ;
 			return false ;
@@ -1759,8 +1769,8 @@ bool selobj::parse( errblock& err, string SELSTR )
 		p1 = wordpos( "NEWAPPL", str ) ;
 		if ( p1 > 0 )
 		{
-			NEWAPPL = "ISP";
-			NEWPOOL = true ;
+			newappl = "ISP";
+			newpool = true ;
 			idelword( str, p1, 1 ) ;
 		}
 	}
@@ -1768,14 +1778,14 @@ bool selobj::parse( errblock& err, string SELSTR )
 	p1 = wordpos( "NEWPOOL", str ) ;
 	if ( p1 > 0 )
 	{
-		NEWPOOL = true ;
+		newpool = true ;
 		idelword( str, p1, 1 ) ;
 	}
 
 	p1 = wordpos( "SUSPEND", str ) ;
 	if ( p1 > 0 )
 	{
-		SUSPEND = true ;
+		suspend = true ;
 		idelword( str, p1, 1 ) ;
 	}
 
@@ -1789,16 +1799,16 @@ bool selobj::parse( errblock& err, string SELSTR )
 	p1 = wordpos( "PASSLIB", str ) ;
 	if ( p1 > 0 )
 	{
-		if ( NEWAPPL == "" )
+		if ( newappl == "" )
 		{
 			err.seterrid( "PSYE039Q" ) ;
 			return false ;
 		}
-		PASSLIB = true ;
+		passlib = true ;
 		idelword( str, p1, 1 ) ;
 	}
 
-	if ( PGM == "" )
+	if ( pgm == "" && !panpgm && !rexpgm )
 	{
 		err.seterrid( "PSYE039R" ) ;
 		return false ;

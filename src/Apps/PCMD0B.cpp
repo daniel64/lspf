@@ -42,12 +42,16 @@ using namespace boost::filesystem ;
 #define MOD_NAME PCMD0B
 
 
+PCMD0B::PCMD0B()
+{
+	set_appdesc( "Invoke a command and display the output" ) ;
+	set_appver( "1.0.0" ) ;
+}
+
+
 void PCMD0B::application()
 {
 	llog( "I", "Application PCMD0B starting" << endl ) ;
-
-	set_appdesc( "Invoke a command and display the output" ) ;
-	set_appver( "1.0.0" ) ;
 
 	string comm1  ;
 	string comm2  ;

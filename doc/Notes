@@ -36,6 +36,7 @@ Loads! some good, and some bad but in no particular order...
     ZRC     = 20
     ZRSN    = 999
     ZRESULT = "Abended"
+    If ZRSN has been set to greater than 900, ZRSN and ZRESULT are percolated back to the calling program.
 17) lspf tables are open per thread, not per logical screen.
 18) .ATTR() can be used to change the CUA field attribute colour/hilight/intensity.  ISPF does not allow this.
 19) No .ATTRCHA() function.  Characters aren't used to determine field attributes.
@@ -56,3 +57,6 @@ Loads! some good, and some bad but in no particular order...
     ISPTABU   ZTABU   User table output library
 
     The other names are not implemented.
+23) If LIBRARY specified on TBSAVE or TBCLOSE, or for the ZTABL default, a search is made of the
+    concatination and the table added to where it is found.  If not found, the first directory is used.
+    Real ISPF just adds the table to the first dataset in the concatination.

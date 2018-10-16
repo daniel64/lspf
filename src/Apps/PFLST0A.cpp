@@ -39,6 +39,7 @@
 /*                SUBPARM of PNL  - panel files in ZPLIB                                                    */
 /*                SUBPARM of REXX - REXX programs in ZORXPATH                                               */
 /*                SUBPARM of PGM  - C++ programs in ZDLPATH                                                 */
+/*                SUBPARM of CMD  - commands in ZORXPATH and PATH                                           */
 
 /* Primary Commands:                                                                                        */
 /* CD /xxx to change to directory /xxx                                                                      */
@@ -782,7 +783,6 @@ void PFLST0A::application()
 			if ( ZRESULT != "" )
 			{
 				message = ZRESULT ;
-				msg     = "FLST01M" ;
 			}
 			else
 			{
@@ -1148,7 +1148,7 @@ void PFLST0A::createSearchList( const string& w )
 	of.open( tname ) ;
 	FILE* pipe { popen( cmd.c_str(), "r" ) } ;
 
-	while( fgets( buffer, sizeof( buffer ), pipe ) != nullptr )
+	while ( fgets( buffer, sizeof( buffer ), pipe ) != nullptr )
 	{
 		file   = buffer ;
 		result = file.substr(0, file.size() - 1 ) ;
@@ -1844,7 +1844,7 @@ void PFLST0A::browseTree( const string& tname )
 		}
 		else if ( tsel == "I" )
 		{
-			select( "PGM(" + pgm + ") PARM(INFO " + tfile + ")" ) ;
+			showInfo( tfile ) ;
 		}
 		else if ( tsel == "E" )
 		{
@@ -2023,7 +2023,7 @@ string PFLST0A::expandDir( const string& parms )
 
 string PFLST0A::expandFld1( const string& parms )
 {
-	// Expand field from listing of ZPLIB, ZORXPATH or ZLDPATH
+	// Expand field from listing of ZPLIB, ZORXPATH, ZLDPATH, REXX_PATH or PATH
 
 	// Cursor sensitive.  Only characters before the current cursor position (if > 1) in the field (ZFECSRP) will
 	// be taken into account
@@ -2031,6 +2031,7 @@ string PFLST0A::expandFld1( const string& parms )
 	// If first parameter is PNL, panel files
 	// If first parameter is REXX, rexx programs
 	// If first parameter is PGM, programs (strip off "lib" and ".so" before comparison)
+	// If first parameter is CMD, files in ZORXPATH, REXX_PATH and PATH
 
 	int i        ;
 	int n        ;
@@ -2053,6 +2054,8 @@ string PFLST0A::expandFld1( const string& parms )
 	vector<string> mod ;
 	vector<string>::iterator it ;
 	vector<string>::iterator mod_end ;
+
+	set<string>processed ;
 
 	type = word( parms, 1 )    ;
 	dir  = subword( parms, 2 ) ;
@@ -2078,17 +2081,29 @@ string PFLST0A::expandFld1( const string& parms )
 	{
 		vcopy( "ZLDPATH", Paths, MOVE ) ;
 	}
+	else if ( type == "CMD" )
+	{
+		vcopy( "ZORXPATH", Paths, MOVE ) ;
+		Paths = mergepaths( Paths, getenv( "REXX_PATH" ), getenv( "PATH" ) ) ;
+	}
 	else
 	{
 		return "" ;
 	}
 
-
-	n = getpaths( Paths ) ;
 	v.clear() ;
-	for ( i = 1 ; i <= n ; i++ )
+	for ( n = getpaths( Paths ), i = 1 ; i <= n ; i++ )
 	{
 		dir1 = getpath( Paths, i ) ;
+		if ( processed.count( dir1 ) > 0 )
+		{
+			continue ;
+		}
+		processed.insert( dir1 ) ;
+		if ( ( !exists( dir1 ) || !is_directory( dir1 ) ) )
+		{
+			continue ;
+		}
 		try
 		{
 			copy( directory_iterator( dir1 ), directory_iterator(), back_inserter( v ) ) ;
@@ -2102,7 +2117,8 @@ string PFLST0A::expandFld1( const string& parms )
 		}
 	}
 
-	vec_end = remove_if( v.begin(), v.end(), [](const path& a) { return !is_regular_file( a.string() ) ; } ) ;
+	vec_end = remove_if( v.begin(), v.end(),
+		[](const path& a) { return !is_regular_file( a.string() ) ; } ) ;
 
 	for_each( v.begin(), vec_end,
 		[&mod](const path& a) { mod.push_back( substr( a.string(), lastpos( "/", a.string())+1 ) ) ; } ) ;

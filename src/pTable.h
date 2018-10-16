@@ -30,7 +30,6 @@ class Table
 			tab_cmds      = false ;
 			tab_ipath     = ""    ;
 			tab_opath     = ""    ;
-			tab_spath     = ""    ;
 			sa_namelst    = ""    ;
 			sa_cond_pairs = ""    ;
 			sa_dir        = ""    ;
@@ -46,7 +45,6 @@ class Table
 		string  tab_all       ;
 		string  tab_ipath     ;
 		string  tab_opath     ;
-		string  tab_spath     ;
 		bool    firstMult     ;
 		bool    changed       ;
 		uint    refCount      ;
@@ -224,13 +222,15 @@ class tableMGR
 				    tbREP m_REP,
 				    tbWRITE m_WRITE,
 				    const string& m_path,
-				    tbDISP m_DISP ) ;
+				    tbDISP m_DISP,
+				    bool tb_open=false ) ;
 
 		void   loadTable( errblock& err,
 				  const string& tb_name,
 				  tbWRITE=WRITE,
 				  const string& src="",
-				  tbDISP=EXCLUSIVE ) ;
+				  tbDISP=EXCLUSIVE,
+				  bool =false ) ;
 
 		void   saveTable( errblock& err,
 				  const string& tb_name,
@@ -258,7 +258,8 @@ class tableMGR
 				  fPOOL& funcPOOL,
 				  string tb_name,
 				  const string& cmd,
-				  const string& paths ) ;
+				  const string& paths,
+				  bool  try_load ) ;
 
 	private:
 		void   fillfVARs( errblock& err,
@@ -365,6 +366,10 @@ class tableMGR
 
 		bool   writeableTable( errblock& err,
 				       const string& tb_name ) ;
+
+		string locate( errblock& err,
+			       const string& tb_name,
+			       const string& tb_path ) ;
 
 		map<string, Table*> tables ;
 

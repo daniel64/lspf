@@ -14,27 +14,26 @@ PSYE021C 'No panel specified'
 PSYE021D 'Message window error'
 'MSGLOC field ''&ZVAL1'' not defined on the panel'
 
-PSYE022A 'LOCATE invalid.  Pointer parameter required, string passed'
-''
+PSYE022A 'LOCATE invalid'
+'Pointer parameter required, string passed.'
 
-PSYE022B 'MOVE invalid.  String parameter required, pointer passed'
-''
+PSYE022B 'MOVE invalid'
+'String parameter required, pointer passed'
 
-PSYE022C 'LOCATE option invalid for integer values'
-''
+PSYE022C 'LOCATE option invalid'
+'LOCATE cannot be used for integer values'
 
-''
 PSYE022D 'Too many variables on VDEFINE statement'
 'A maximum of 8 variables are allowed on a VDEFINE statement'
 
 PSYE022E 'Address is NULL on VDEFINE statement'
 'Address cannot be NULL'
 
-PSYE022F 'LIBDEF FILE ID() does not contain any paths'
+PSYE022F 'LIBDEF PATH ID() does not contain any paths'
 ''
 
 PSYE022G 'Invalid user search type ''&ZVAL1'''
-'Valid type is FILE'
+'Valid type is PATH'
 
 PSYE022H 'Invalid search library name ''&ZVAL1'''
 'Valid application libraries are ZMLIB, ZPLIB, ZTLIB and ZTABL'
@@ -45,8 +44,8 @@ PSYE022I 'Invalid processing option ''&ZVAL1'''
 PSYE022J 'Invalid &ZVAL1 name ''&ZVAL2'''
 '&ZVAL1 name has an invalid format'
 
-PSYE022K 'Table &ZVAL1 already open'
-'This task has already opened table &ZVAL1'
+PSYE022K 'Library path not specified'
+'Specifiy a table input library when WRITE specified'
 
 PSYE022L 'No prior DISPLAY PANEL before ADDPOP'
 ''

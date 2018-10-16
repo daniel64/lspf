@@ -41,6 +41,10 @@ using namespace boost::gregorian;
 
 PMAIN0A::PMAIN0A()
 {
+	set_appdesc( "Default main program for lspf" ) ;
+	set_appver( "1.0.0" )  ;
+	set_apphelp( "HPMAIN1" ) ;
+
 	vdefine( "ZCURFLD", &zcurfld ) ;
 	vdefine( "ZCURPOS", &zcurpos ) ;
 }
@@ -64,8 +68,6 @@ void PMAIN0A::application()
 	string zscrname ;
 
 	errblock err ;
-
-	set_apphelp( "HPMAIN1" ) ;
 
 	vdefine( "ZCMD ZSEL ZDATEL ZJDATE ZTIME ZSCRNAME", &zcmd, &zsel, &zdatel, &zjdate, &ztime, &zscrname ) ;
 	vdefine( "ZAREA ZSHADOW", &zarea, &zshadow ) ;

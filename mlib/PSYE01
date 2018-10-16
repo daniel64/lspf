@@ -43,8 +43,8 @@ PSYE013B 'Maximum return code of &ZVAL1 exceeded for function pool GET of &ZVAL2
 PSYE013C 'Output destination not specified'
 'No destination specified and ZTABL is null'
 
-PSYE013D 'Spare'
-'Spare'
+PSYE013D 'Input library not specified'
+'No input library specified and ZTLIB is null'
 
 PSYE013E 'Function &ZVAL1 gave non-zero return code'
 ''
@@ -52,8 +52,8 @@ PSYE013E 'Function &ZVAL1 gave non-zero return code'
 PSYE013F 'Max size of 262,144 rows exceeded'
 ''
 
-PSYE013G '&ZVAL1 issued for table &ZVAL2 that is not open'
-''
+PSYE013G 'Table not open'
+'&ZVAL1 issued for table &ZVAL2 that is not open'
 
 PSYE013H '&ZVAL1 issued for table &ZVAL2 that is open in read-only mode'
 ''
@@ -64,10 +64,10 @@ PSYE013I 'Table &ZVAL1 is a temporary table.  Cannot be saved'
 PSYE013J 'Entry &ZVAL1 is not a regular directory'
 ''
 
-PSYE013K 'Spare'
-'Spare'
+PSYE013K 'Entry cannot be deleted'
+'Error occured deleting entry &ZVAL1'
 
-PSYE013L 'Entry &ZVAL1 is not a regular file'
+PSYE013L 'Table load file name &ZVAL1 is not a regular file'
 ''
 
 PSYE013M 'Invalid &ZVAL1 parameter specified.  Invalid specification is &ZVAL2'
@@ -106,53 +106,53 @@ PSYE013W 'Spare'
 PSYE013X 'Invalid TBSORT argument'
 'Invalid argument is ''&ZVAL1'''
 
-PSYE013Y 'Inconsistent WRITE/NOWRITE parameter for create of table &ZVAL1'
-'WRITE/NOWRITE must be consistent with the existing table'
+PSYE013Y 'Spare'
+'Spare'
 
-PSYE013Z 'Table &ZVAL1 is already open in SHARE mode.  EXCLUSIVE requested'
-''
+PSYE013Z 'Table already open'
+'TBOPEN issued for table &ZVAL1 that is already open'
 
-PSYE014A 'Table &ZVAL1 is already open in EXCLUSIVE mode'
-'Task &ZVAL2 already has this table opened EXCLUSIVE'
+PSYE014A 'Spare'
+'Spare'
 
-PSYE014B 'Table load file name &ZVAL1 is not a regular file'
-''
+PSYE014B 'Spare'
+'Spare'
 
 PSYE014C 'More conditions specified than table fields'
 'There must be at least as many table fields in arglist as conditions'
 
-PSYE014D 'Table open for &ZVAL1 gave an error.  Filename &ZVAL2'
-''
+PSYE014D 'Table open for &ZVAL1 gave an error'
+'File: &ZVAL2'
 
 PSYE014E 'Not a valid table file for table &ZVAL1'
-'Appears corrupt.  Filename &ZVAL2'
+'File: &ZVAL2'
 
 PSYE014F 'Invalid table prefix'
-'Version &ZVAL1 not supported or table is corrupt.  Filename &ZVAL2'
+'Version &ZVAL1 not supported or table is corrupt.  File: &ZVAL2'
 
-PSYE014G 'Invalid number of table information fields found.  Only 1 expected.  Found &ZVAL1'
-''
+PSYE014G 'Invalid number of table information fields found'
+'Only 1 expected.  Found &ZVAL1'
 
 PSYE014H 'Unexpected EOF reading keys'
-'Table &ZVAL1 appears to be corrupt. Filename &ZVAL2'
+'Table &ZVAL1 appears to be corrupt. File: &ZVAL2'
 
 PSYE014I 'Unexpected EOF reading fields'
-'Table &ZVAL1 appears to be corrupt.  Filename &ZVAL2'
+'Table &ZVAL1 appears to be corrupt.  File: &ZVAL2'
 
-PSYE014J 'End of record marker not found.  File corrupt: &ZVAL1'
-''
+PSYE014J 'End of record marker not found'
+'File: &ZVAL1'
 
-PSYE014K 'End of file marker not found.  File corrupt: &ZVAL1'
-''
+PSYE014K 'End of file marker not found'
+'File: &ZVAL1'
 
 PSYE014L 'Inconsistent number of records found with saved total'
 'Found=&ZVAL1 Saved Total=&ZVAL2'
 
-PSYE014M 'Unexpected EOF reading table values.  Table &ZVAL1 appears to be corrupt'
-'Filename &ZVAL2'
+PSYE014M 'Unexpected EOF reading table values for table &ZVAL1'
+'File: &ZVAL2'
 
-PSYE014N 'Table &ZVAL1 in use. Cannot be erased unless closed'
-''
+PSYE014N 'Table &ZVAL1 in use'
+'Table cannot be erased while in use.'
 
 PSYE014O 'Variable &ZVAL1 is a system variable'
 ''
@@ -163,8 +163,8 @@ PSYE014P 'Variable &ZVAL1 is unknown but has a dynamically created value'
 PSYE014Q 'Invalid table name ''&ZVAL1'' on &ZVAL2'
 ''
 
-PSYE014R 'Inconsistent WRITE/NOWRITE parameter for open of table &ZVAL1'
-'WRITE/NOWRITE must be consistent across all tasks opening a SHARED table'
+PSYE014R 'WRITE/NOWRITE conflict'
+'Parameter must be consistent across all tasks opening SHARED table &ZVAL1'
 
 PSYE014S 'TBSAVE issued for table &ZVAL1 not opened in WRITE mode'
 'Table must be opened or created in WRITE mode'
@@ -173,27 +173,27 @@ PSYE014T 'Variable prefix too long'
 'List variable must be 7 characters or less'
 
 
-/* variable pool messages */
-PSYE015A 'Variable &ZVAL1 has been truncated'
+/* function pool messages */
+PSYE015A 'Variable ''&ZVAL1'' truncated'
 'Maximum length of 32,765 has been exceeded.  Variable truncated.'
 
-PSYE015B 'Pool is read-only'
-''
+PSYE015B 'Invalid action'
+'Pool is read-only'
 
-PSYE015C 'Cannot erase from the system profile pool'
-''
+PSYE015C 'Invalid action'
+'Cannot erase from the system profile pool'
 
-PSYE015D 'Cannot modify a system variable'
-'''&ZVAL1'' cannot be modified'
+PSYE015D 'Invalid action'
+'''&ZVAL1'' cannot be modified as it is a system variable'
 
-PSYE015E 'Cannot erase a system variable'
-'''&ZVAL1'' cannot be erased'
+PSYE015E 'Invalid action'
+'''&ZVAL1'' cannot be erased as it is a system variable'
 
 PSYE015F 'Profile open for &ZVAL1 gave an error'
-'Filename &ZVAL2'
+'File: &ZVAL2'
 
 PSYE015G 'Not a valid PROFILE file for &ZVAL1.  Appears corrupt'
-'Filename &ZVAL2'
+'File: &ZVAL2'
 
 PSYE015H 'Invalid profile format version'
 'Version &ZVAL1 not supported or profile is corrupt for &ZVAL2'
@@ -201,11 +201,11 @@ PSYE015H 'Invalid profile format version'
 PSYE015I 'Unexpected EOF reading saved profile variables'
 'Profile &ZVAL1 appears corrupt'
 
-PSYE015J 'Directory &ZVAL1 is not a regular directory for profile save'
-''
+PSYE015J 'Invalid directory'
+'Directory &ZVAL1 is not a regular directory for profile save'
 
-PSYE015K 'Directory &ZVAL1 does not exist for profile save'
-''
+PSYE015K 'Invalid directory'
+'Directory &ZVAL1 does not exist for profile save'
 
 PSYE015L 'Pool manager &ZVAL1 of &ZVAL2 failed'
 ''

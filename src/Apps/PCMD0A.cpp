@@ -42,12 +42,16 @@ using namespace boost::filesystem ;
 #define MOD_NAME PCMD0A
 
 
+PCMD0A::PCMD0A()
+{
+	set_appdesc( "Invoke a command and display the output" ) ;
+	set_appver( "1.0.0" ) ;
+}
+
+
 void PCMD0A::application()
 {
 	llog( "I", "Application PCMD0A starting" << endl ) ;
-
-	set_appdesc( "Invoke a command and display the output" ) ;
-	set_appver( "1.0.0" ) ;
 
 	string zcmd   ;
 	string msg    ;
@@ -193,7 +197,7 @@ void PCMD0A::run_command( string cmd, const string& fname1, const string& fname2
 	of.open( fname1 ) ;
 	FILE* pipe{ popen( cmd.c_str(), "r" ) } ;
 
-	while( fgets( buffer, sizeof( buffer ), pipe) != nullptr )
+	while ( fgets( buffer, sizeof( buffer ), pipe) != nullptr )
 	{
 		file = buffer ;
 		of << file.substr( 0, file.size() - 1 ) << endl ;

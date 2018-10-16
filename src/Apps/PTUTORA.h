@@ -22,6 +22,7 @@ using namespace std;
 class PTUTORA : public pApplication
 {
 	public:
+		PTUTORA() ;
 		void application() ;
 
 	private:

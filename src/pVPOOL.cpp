@@ -869,19 +869,33 @@ void pVPOOL::save( errblock& err,
 
 	if ( readOnly || !changed ) { err.setRC( 4 ) ; return ; }
 
-	if ( exists( path ) )
+	try
 	{
-		if ( !is_directory( path ) )
+		if ( exists( path ) )
 		{
-			err.seterrid( "PSYE015J", path ) ;
+			if ( !is_directory( path ) )
+			{
+				err.seterrid( "PSYE015J", path ) ;
+				return ;
+			}
+		}
+		else
+		{
+			err.seterrid( "PSYE015K", path ) ;
 			return ;
 		}
 	}
-	else
+	catch ( boost::filesystem::filesystem_error &e )
 	{
-		err.seterrid( "PSYE015K", path ) ;
+		err.seterrid( "PSYS012C", e.what() ) ;
 		return ;
 	}
+	catch (...)
+	{
+		err.seterrid( "PSYS012C", "Entry: "+ path ) ;
+		return ;
+	}
+
 	if ( path.back() != '/' ) { path += "/" ; }
 	fname = path + applid + "PROF" ;
 
@@ -1019,18 +1033,30 @@ void poolMGR::setProfilePath( errblock& err, const string& p )
 	ppath = p ;
 	if ( ppath.back() != '/' ) { ppath += "/" ; }
 
-	if ( exists( ppath ) )
+	try
 	{
-		if ( !is_directory( ppath ) )
+		if ( exists( ppath ) )
 		{
-			llog( "E", "Directory " << ppath << " is not a regular directory for profile load" <<  endl ) ;
+			if ( !is_directory( ppath ) )
+			{
+				llog( "E", "Directory " << ppath <<
+				      " is not a regular directory for profile load" <<  endl ) ;
+				err.seterror() ;
+			}
+		}
+		else
+		{
+			llog( "E", "Directory "<< ppath <<" does not exist for profile load" <<  endl ) ;
 			err.seterror() ;
 		}
 	}
-	else
+	catch ( boost::filesystem::filesystem_error &e )
 	{
-		llog( "E", "Directory "<< ppath <<" does not exist for profile load" <<  endl ) ;
-		err.seterror() ;
+		err.seterrid( "PSYS012C", e.what() ) ;
+	}
+	catch (...)
+	{
+		err.seterrid( "PSYS012C", "Entry: "+ ppath ) ;
 	}
 }
 
@@ -1079,6 +1105,9 @@ void poolMGR::createProfilePool( errblock& err,
 	// RC = 4  Pool created but not loaded as PROFILE file does not exist
 	// RC = 20 Severe error
 
+	bool f_exists = false ;
+	bool f_okay   = false ;
+
 	string fname ;
 
 	pVPOOL* pool   ;
@@ -1089,9 +1118,31 @@ void poolMGR::createProfilePool( errblock& err,
 	if ( POOLs_profile.count( ppool ) > 0 ) { return ; }
 
 	fname = ppath + ppool + "PROF" ;
-	if ( exists( fname ) )
+	try
 	{
-		if ( !is_regular_file( fname ) )
+		if ( exists( fname ) )
+		{
+			f_exists = true ;
+			if ( is_regular_file( fname ) )
+			{
+				f_okay = true ;
+			}
+		}
+	}
+	catch ( boost::filesystem::filesystem_error &e )
+	{
+		err.seterrid( "PSYS012C", e.what() ) ;
+		return ;
+	}
+	catch (...)
+	{
+		err.seterrid( "PSYS012C", "Entry: "+ fname ) ;
+		return ;
+	}
+
+	if ( f_exists )
+	{
+		if ( not f_okay )
 		{
 			llog( "E", "File "<< fname <<" is not a regular file for profile load"<< endl ) ;
 			err.seterror() ;

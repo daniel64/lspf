@@ -45,6 +45,13 @@ using namespace std ;
 #define MOD_NAME PDLGTST
 
 
+PDLGTST::PDLGTST()
+{
+	set_appdesc( "Dialogue testing application for lspf" ) ;
+	set_appver( "1.0.0" )  ;
+}
+
+
 void PDLGTST::application()
 {
 	llog( "I", "Application PDLGTST starting." << endl ) ;

@@ -54,6 +54,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 
 	map<string, field*>::iterator it1;
 
+	err.setpanelsrc() ;
+
 	parser panelLang ;
 	panelLang.optionUpper() ;
 
@@ -831,14 +833,27 @@ void pPanel::readPanel( errblock& err,
 	for ( p = getpaths( paths ), i = 1 ; i <= p ; i++ )
 	{
 		filename = getpath( paths, i ) + name ;
-		if ( exists( filename ) )
+		try
 		{
-			if ( !is_regular_file( filename ) )
+			if ( exists( filename ) )
 			{
-				err.seterrid( "PSYE041L", type, filename ) ;
-				return ;
+				if ( !is_regular_file( filename ) )
+				{
+					err.seterrid( "PSYE041L", type, filename ) ;
+					return ;
+				}
+				break ;
 			}
-			break ;
+		}
+		catch ( boost::filesystem::filesystem_error &e )
+		{
+			err.seterrid( "PSYS012C", e.what() ) ;
+			return ;
+		}
+		catch (...)
+		{
+			err.seterrid( "PSYS012C", "Entry: "+ filename ) ;
+			return ;
 		}
 	}
 	if ( i > p )
@@ -860,14 +875,16 @@ void pPanel::readPanel( errblock& err,
 	temp2   = ""    ;
 	while ( getline( panl, pline ) )
 	{
-		p1 = pline.find( "/*" ) ;
+		p1 = pline.find_first_not_of( ' ' ) ;
+		if ( p1 == string::npos ) { continue ; }
+		if ( pline.compare( p1, 2, "--" ) == 0 || pline.compare( p1, 1, "#" ) == 0 ) { continue ; }
+		p1 = pline.find( "/*", p1 ) ;
 		if ( p1 != string::npos )
 		{
 			p2 = pline.find( "*/" ) ;
 			if ( p2 != string::npos ) { pline.replace( p1, p2-p1+2, p2-p1+2, ' ' ) ; }
 		}
 		trim_right( pline ) ;
-		if ( pline == "" ) { continue ; }
 		if ( split1 )
 		{
 			temp1 += " " + trim_left( pline ) ;
@@ -879,7 +896,6 @@ void pPanel::readPanel( errblock& err,
 			continue ;
 		}
 		w1 = upper( word( pline, 1 ) ) ;
-		if ( w1.compare( 0, 2, "--" ) == 0 || w1.front() == '#' ) { continue ; }
 		if ( w1.front() == ')' ) { abc = false ; }
 		if ( abc )
 		{

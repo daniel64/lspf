@@ -55,10 +55,15 @@
 
 address ISPEXEC
 
-"TBCREATE EDITTAB1 KEYS(ZELCNAM)  NAMES(ZELCMAC ZELCPGM ZELCBLK ZELCMLT ZELCDST)"
-if RC > 0 then
+"TBCREATE EDITTAB1 KEYS(ZELCNAM) NAMES(ZELCMAC ZELCPGM ZELCBLK ZELCMLT ZELCDST) REPLACE"
+if RC = 4 then
   do
-    rdisplay "TBCREATE failed.  RC=&RC"
+    "RDISPLAY Table EDITTAB1 aleady exists.  Current table will be replaced"
+    "RDISPLAY "
+  end
+else if RC > 7 then
+  do
+    "RDISPLAY TBCREATE failed.  RC=&RC"
     RETURN
   end
 
@@ -74,14 +79,16 @@ y = addrow( "RV",  "posline", "N", "Y", "Y", "N" )
 y = addrow( "LEF", "posline", "N", "Y", "Y", "N" )
 y = addrow( "RIT", "posline", "N", "Y", "Y", "N" )
 
-"tbsave EDITTAB1"
+"TBSAVE EDITTAB1"
 if RC > 0 then
   do
-    rdisplay "TBSAVE failed.  RC=&RC"
+    "RDISPLAY TBSAVE failed.  RC=&RC"
+    "TBEND EDITTAB1"
+    RETURN
   end
 
-"tbend EDITTAB1"
-rdisplay "EDITTAB1 created successfully"
+"TBEND EDITTAB1"
+"RDISPLAY EDITTAB1 created successfully"
 RETURN
 
 
@@ -92,9 +99,9 @@ ZELCPGM = arg(3)
 ZELCBLK = arg(4)
 ZELCMLT = arg(5)
 ZELCDST = arg(6)
-"tbadd EDITTAB1"
+"TBADD EDITTAB1"
 if RC > 0 then
   do
-    rdisplay "TBADD failed.  RC=&RC"
+    "RDISPLAY TBADD failed.  RC=&RC"
   end
 return 0

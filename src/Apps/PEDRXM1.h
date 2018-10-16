@@ -22,6 +22,7 @@ using namespace std ;
 class PEDRXM1 : public pApplication
 {
 	public:
+		PEDRXM1() ;
 		void application() ;
 		void macroError()  ;
 

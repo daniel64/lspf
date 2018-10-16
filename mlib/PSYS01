@@ -116,8 +116,8 @@ PSYS012A 'Invalid path specified' .TYPE=W
 PSYS012B 'Retrieve buffer empty' .TYPE=W
 ''
 
-PSYS012C 'REXX not found/unreadable' .TYPE=W
-'REXX procedure has not been found or is unreadable in the OOREXX search path'
+PSYS012C 'I/O error accessing entry' .TYPE=W
+'&ZVAL1'
 
 PSYS012D 'Error in SELECT' .TYPE=W
 'Entered SELECT is not valid.  Check log for details'
@@ -174,3 +174,15 @@ PSYS012T '' .TYPE=N
 
 PSYS012U 'Invalid name' .TYPE=W
 'Enter an alphabetic character follwed by up to 7 alphanumeric characters'
+
+PSYS012V 'Invalid name' .TYPE=W
+'Enter an alphabetic character follwed by up to 3 alphanumeric characters'
+
+PSYS012W 'Invalid program name' .TYPE=W
+'Load of ''&ZVAL1'' failed.  Module not found.'
+
+PSYS012X 'Invalid command' .TYPE=W
+'Command ''&ZVAL1'' not found'
+
+PSYS012Y 'Command missing' .TYPE=W
+''

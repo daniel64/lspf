@@ -57,6 +57,13 @@ using namespace boost::filesystem ;
 #define MOD_NAME PTUTORA
 
 
+PTUTORA::PTUTORA()
+{
+	set_appdesc( "Default help/tutorial program for lspf" ) ;
+	set_appver( "1.0.0" )  ;
+}
+
+
 void PTUTORA::application()
 {
 	llog( "I", "Application PTUTORA starting.  Parms are " << PARM << endl ) ;

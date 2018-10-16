@@ -22,7 +22,7 @@ address ISPEXEC
 
 if zapplid \= "ISP" then
   do
-    "SELECT CMD(%ishell) NEWAPPL(ISP)"
+    "SELECT PGM(PCMD0A) NEWAPPL(ISP)"
   end
 else
   do

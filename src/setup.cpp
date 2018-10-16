@@ -65,15 +65,15 @@
 using namespace std ;
 using namespace boost::filesystem ;
 
-poolMGR  * p_poolMGR  = new poolMGR  ;
-tableMGR * p_tableMGR = new tableMGR ;
+poolMGR*  p_poolMGR  = new poolMGR  ;
+tableMGR* p_tableMGR = new tableMGR ;
 
 fPOOL funcPOOL ;
 
 logger* lg = new logger ;
 
-logger * tableMGR::lg = NULL ;
-logger * poolMGR::lg  = NULL ;
+logger* tableMGR::lg = NULL ;
+logger* poolMGR::lg  = NULL ;
 
 void   createSYSPROF() ;
 void   setCUAcolours( const string&, const string& ) ;
@@ -320,7 +320,6 @@ int main()
 	ZCTDESC  = "Retrieve next entry from active referral list" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-
 	// ========================= USRCMDS ======================================
 	ZCTVERB  = "ED" ;
 	ZCTTRUNC = "0" ;
@@ -366,7 +365,7 @@ int main()
 
 	ZCTVERB  = "EXEC" ;
 	ZCTTRUNC = "3"     ;
-	ZCTACT   = "SELECT PGM(&ZOREXPGM) PARM(&ZPARM) NEWPOOL SUSPEND"    ;
+	ZCTACT   = "SELECT CMD(&ZPARM) LANG(REXX) NEWPOOL SUSPEND"    ;
 	ZCTDESC  = "Run OOREXX EXEC" ;
 	p_tableMGR->tbadd( err, funcPOOL, "USRCMDS", "", "", 0 ) ;
 

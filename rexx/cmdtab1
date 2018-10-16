@@ -1,0 +1,234 @@
+/*
+  Copyright (c) 2018 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+/* Re-direct say ouput and error messages to a temporary file or it'll mess up lspf output */
+"rm /tmp/cmdtab1.say 2> /dev/null"
+"rm /tmp/cmdtab1.err 2> /dev/null"
+.output~destination(.stream~new("/tmp/cmdtab1.say"))
+.error~destination(.stream~new("/tmp/cmdtab1.err"))
+/**********************************************************************************************/
+
+/* Create lspf Command Table                               */
+/* -------------------------                               */
+/*                                                         */
+/* Set command table name in variable tabName              */
+/* (must be of the form xxxxCMDS where xxxx is 1-4         */
+/* characters in length)                                   */
+/* Add command entries in addrow() routine                 */
+
+/* NOTES:                                                  */
+/* Run this exec in lspf on any command line:              */
+/* Command ===> EXEC cmdtab1                               */
+/* or                                                      */
+/* Command ===> @cmdtab1                                   */
+/* or option 6, Command, from the main menu                */
+/* ===> cmdtab1                                            */
+
+/* Make sure table is not in use when running this exec    */
+/* or TBCREATE will fail.                                  */
+
+/* A command table is located in the following way:        */
+/* Application command table...                            */
+/* ZTLIB/LIBDEF during SELECT processing                   */
+/* Non-application command table...                        */
+/* ZTLIB                                                   */
+
+/* cmdtab1 saves to the default location of ZTABL          */
+/* (usually ~/.lspf/tlib) so ZTLIB should also contain     */
+/* this path if not using LIBDEF to locate the table.      */
+
+/* If table name prefix corresponds to an application id,  */
+/* table will be automatically loaded and be available     */
+/* during SELECT processing and unloaded when the          */
+/* application ends.                                       */
+
+/* Otherwise add table in option 0.0 General lspf Settings */
+/* User command tables or                                  */
+/* Site command tables                                     */
+/* to make it permanently available to all applications.   */
+
+address ISPEXEC
+
+tabName = "TESTCMDS"
+
+tabName = upper( strip( tabName ) )
+
+parse var tabName head "CMDS" tail .
+
+if wordpos( head, "ISP USR" ) > 0 then
+  do
+    "RDISPLAY ERROR.  Invalid name.  Prefix cannot be ISP or USR"
+    RETURN
+  end
+
+if \validName( tabName ) | pos( "CMDS", tabName ) = 0 | head = "" | tail \= "" then
+  do
+    "RDISPLAY ERROR.  Invalid name.  Should be of the form xxxxCMDS"
+    "RDISPLAY         where xxxx is 1-4 alphanumeric chars in length with the first alphabetic"
+    "RDISPLAY         Entered value is &tabName"
+    RETURN
+  end
+
+"TBCREATE &tabName KEYS(ZCTVERB) NAMES(ZCTTRUNC ZCTACT ZCTDESC) REPLACE"
+if RC = 4 then
+  do
+    "RDISPLAY Table &tabName already exists.  Current table will be replaced"
+    "RDISPLAY "
+  end
+else if RC > 7 then
+  do
+    "RDISPLAY TBCREATE failed.  RC=&RC"
+    RETURN
+  end
+
+/* parm 1 - Command name                                          */
+/* parm 2 - Truncation value                                      */
+/* parm 3 - Command                                               */
+/* parm 4 - Description                                           */
+
+
+/* ************** ************************* ********************* */
+/* ************** Add Command Table Entries ********************* */
+/* ************** ************************* ********************* */
+y = addrow( "DMESG", ,
+            "0", ,
+            "ALIAS SHELL dmesg", ,
+            "Show system log" )
+
+y = addrow( "JOURNAL", ,
+            "3", ,
+            "SELECT PGM(PCMD0A) PARM(journalctl &ZPARM) NEWPOOL SCRNAME(JOURNAL)", ,
+            "Show systemd journal" )
+
+y = addrow( "MAN", ,
+            "0", ,
+            "SELECT PGM(PCMD0A) PARM(man &ZPARM) NEWPOOL SCRNAME(MAN)", ,
+            "Show man page" )
+
+y = addrow( "TIME", ,
+            "0", ,
+            "ALIAS EXEC time", ,
+            "Show time" )
+/* ************** ************************* ********************* */
+/* ************** End Command Table Entries ********************* */
+/* ************** ************************* ********************* */
+
+
+"TBSORT &tabName FIELDS(ZCTVERB,C,A)"
+"TBSAVE &tabName"
+if RC > 0 then
+  do
+    "RDISPLAY TBSAVE failed.  RC=&RC"
+    "TBEND &tabName"
+    RETURN
+  end
+
+"TBEND &tabName"
+"RDISPLAY "
+"RDISPLAY &tabName created successfully"
+RETURN
+
+
+addrow:
+ZCTVERB  = upper( arg(1) )
+ZCTTRUNC = arg(2)
+ZCTACT   = arg(3)
+ZCTDESC  = arg(4)
+
+if \validName( ZCTVERB ) then
+  do
+    "RDISPLAY ZCTVERB parameter incorrect.  Must be 1-8 characters.  Entered &ZCTVERB"
+    "RDISPLAY Ignoring entry"
+    "RDISPLAY "
+    RETURN 12
+  end
+
+if length( ZCTTRUNC ) > 1 | ZCTTRUNC = "" | \datatype( ZCTTRUNC, "W" ) then
+  do
+    "RDISPLAY ZCTTRUNC parameter incorrect.  Must be one numeric character.  Entered &ZCTTRUNC"
+    "RDISPLAY Ignoring entry"
+    "RDISPLAY "
+    RETURN 12
+  end
+
+if \checkAction( ZCTACT ) then
+  do
+    "RDISPLAY Ignoring entry &ZCTVERB"
+    "RDISPLAY "
+    RETURN 12
+  end
+
+"RDISPLAY Adding entry &ZCTVERB"
+"TBADD &tabName"
+if RC = 8 then
+  do
+    "RDISPLAY TBADD failed.  Duplicate entry &ZCTVERB not added"
+  end
+else if RC > 0 then
+  do
+    "RDISPLAY TBADD failed.  RC=&RC"
+  end
+RETURN 0
+
+
+validName:
+/* Check ZCTVERB or variable name is of the correct format */
+n = arg( 1 )
+
+if n = "" | length( n ) > 8 then return 0
+
+if \datatype( substr( n, 1, 1 ), "U" ) then return 0
+
+do i = 2 to length( n )
+  c = substr( n, i, 1 )
+  if \datatype( c, "U" ) & c \= "#" & c \= "$" & c \= "@" then return 0
+end
+RETURN 1
+
+
+checkAction:
+/* Check ZCTACT name is of the correct format */
+act = strip( arg( 1 ) )
+if act \= "" then
+  do
+    act1 = substr( act, 1, 1 )
+    if act1 = "&" then
+      do
+        if \validName( substr( act, 2 ) ) then
+          do
+            "RDISPLAY Invalid variable name ''&ACT''"
+            RETURN 0
+          end
+      end
+    else
+      do
+        act = word( arg( 1 ), 1 )
+        if act \= "SELECT"    & ,
+           act \= "ALIAS"     & ,
+           act \= "PASSTHRU"  & ,
+           act \= "SETVERB"   & ,
+           act \= "NOP" then
+          do
+            "RDISPLAY Invalid action.  Must be SELECT, ALIAS, PASSTHRU, SETVERB or NOP"
+            "RDISPLAY Entered value is &ACT"
+            RETURN 0
+          end
+      end
+  end
+RETURN 1

@@ -22,6 +22,7 @@ using namespace std;
 class PCMD0A : public pApplication
 {
 	public:
+		PCMD0A() ;
 		void application() ;
 
 	private:

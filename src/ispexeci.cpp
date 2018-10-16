@@ -124,6 +124,7 @@ void ispexeci( pApplication* thisAppl, const string& s, errblock& err )
 
 	err.setRC( 0 ) ;
 	err.setsrc( s1 ) ;
+	err.setdialogsrc() ;
 
 	if ( findword( w1, InvalidServices ) )
 	{
@@ -498,18 +499,9 @@ void execiRempop( pApplication* thisAppl, const string& s, errblock& err )
 
 void execiSelect( pApplication* thisAppl, const string& s, errblock& err )
 {
-	// The SELECT parser may replace PGM with a variable name (eg. for a REXX command), so
-	// substitute with its dialogue variable value
-
 	selobj SEL ;
 
 	if ( !SEL.parse( err, subword( s, 2 ) ) ) { return ; }
-
-
-	if ( SEL.PGM.front() == '&' )
-	{
-		thisAppl->vcopy( SEL.PGM.erase( 0, 1 ), SEL.PGM, MOVE ) ;
-	}
 
 	thisAppl->select( SEL ) ;
 }
@@ -531,7 +523,7 @@ void execiSetmsg( pApplication* thisAppl, const string& s, errblock& err )
 	else if ( str == "" )     { t = UNCOND ; }
 	else
 	{
-		err.seterrid( "PSYE019C" ) ;
+		err.seterrid( "PSYE032H", str ) ;
 		return ;
 	}
 
@@ -908,7 +900,7 @@ void execiTBOpen( pApplication* thisAppl, const string& s, errblock& err )
 	else if ( str == ""      ) { tb_disp = EXCLUSIVE ; }
 	else
 	{
-		err.seterrid( "PSYE019C" ) ;
+		err.seterrid( "PSYE032H", str ) ;
 		return ;
 	}
 
@@ -966,11 +958,7 @@ void execiTBQuery( pApplication* thisAppl, const string& s, errblock& err )
 	if ( err.error() ) { return ; }
 
 	tb_sargdir = parseString( err, str, "SARGDIR()" ) ;
-	if ( err.error() )
-	{
-		err.seterrid( "PSYE019C" ) ;
-		return ;
-	}
+	if ( err.error() ) { return ; }
 
 	if ( words( str ) > 0 )
 	{
@@ -1214,7 +1202,7 @@ void execiVerase( pApplication* thisAppl, const string& s, errblock& err )
 	else if ( str == "BOTH"    ) { pType = BOTH    ; }
 	else
 	{
-		err.seterrid( "PSYE019C" ) ;
+		err.seterrid( "PSYE032H", str ) ;
 		return ;
 	}
 
@@ -1268,11 +1256,11 @@ void execiVget( pApplication* thisAppl, const string& s, errblock& err )
 	else if ( str == ""        ) { pType = ASIS    ; }
 	else
 	{
-		err.seterrid( "PSYE019C" ) ;
+		err.seterrid( "PSYE032H", str ) ;
 		return ;
 	}
 
-	thisAppl->vget( vars, pType )  ;
+	thisAppl->vget( vars, pType ) ;
 }
 
 
@@ -1326,7 +1314,7 @@ void execiVput( pApplication* thisAppl, const string& s, errblock& err )
 	else if ( str == ""        ) { pType = ASIS    ; }
 	else
 	{
-		err.seterrid( "PSYE019C" ) ;
+		err.seterrid( "PSYE032H", str ) ;
 		return ;
 	}
 

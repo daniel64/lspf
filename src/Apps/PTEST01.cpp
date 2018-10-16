@@ -50,6 +50,9 @@ using namespace std ;
 
 PTEST01::PTEST01()
 {
+	set_appdesc( "Testing program for lspf" ) ;
+	set_appver( "1.0.0" ) ;
+
 	vdefine( "ZTDTOP ZTDSELS", &ztdtop, &ztdsels ) ;
 }
 
@@ -1104,7 +1107,7 @@ void PTEST01::opt7()
 
 	i = 7 ;
 
-	while( true )
+	while ( true )
 	{
 		CURFLD = "ZCMD" ;
 		CURPOS = 1      ;
@@ -1113,7 +1116,7 @@ void PTEST01::opt7()
 		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 		addpop( "", i, i ) ;
-		while( true )
+		while ( true )
 		{
 			CURFLD = "ZCMD1" ;
 			CURPOS = 1       ;

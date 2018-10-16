@@ -535,7 +535,7 @@ void addPanHilight( hilight& h, const string& line, string& shadow )
 				j++ ;
 				continue ;
 			}
-			if ( line.compare( j, 2, "--" ) == 0 )
+			if ( line.compare( j, 2, "--" ) == 0 || line.compare( j, 1, "#" ) == 0 )
 			{
 				oComment = false ;
 				shadow.replace( j, ln-j, ln-j, N_TURQ ) ;

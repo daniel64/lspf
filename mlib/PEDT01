@@ -279,7 +279,7 @@ PEDT014X '&ZSTR1 macro error' .TYPE=W
 '&ZSTR1 has set a return code of &ZSTR2'
 
 PEDT014Y 'No clipboard found' .TYPE=W
-''
+'Use the CUT command to create a clipboard'
 
 PEDT014Z 'Open failed' .TYPE=W
 'Error is: ''&ZSTR1'''

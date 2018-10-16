@@ -22,6 +22,7 @@ using namespace std;
 class POREXX1 : public pApplication
 {
 	public:
+		POREXX1() ;
 		void application() ;
 
 	private:

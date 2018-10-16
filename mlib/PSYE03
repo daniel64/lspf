@@ -266,7 +266,7 @@ PSYE039P 'Invalid SCREEN NAME format'
 '''&ZVAL1'' has an invalid format'
 
 PSYE039Q 'PASSLIB entered without NEWAPPL'
-''
+'NEWAPPL is a required option with PASSLIB'
 
 PSYE039R 'PANEL, CMD or PGM must be entered'
 ''

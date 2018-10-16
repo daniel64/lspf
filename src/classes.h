@@ -563,18 +563,7 @@ class slmsg
 	public:
 		slmsg()
 		{
-			smsg   = ""    ;
-			lmsg   = ""    ;
-			hlp    = ""    ;
-			dvwin  = ""    ;
-			dvtype = ""    ;
-			dvalm  = ""    ;
-			dvhlp  = ""    ;
-			type   = IMT   ;
-			alm    = false ;
-			resp   = false ;
-			smwin  = false ;
-			lmwin  = false ;
+			clear() ;
 		}
 		void clear()
 		{
@@ -614,40 +603,54 @@ class selobj
 	public:
 		selobj()
 		{
-			PGM     = "" ;
-			PARM    = "" ;
-			NEWAPPL = "" ;
-			NEWPOOL = false ;
-			PASSLIB = false ;
-			SUSPEND = false ;
-			SCRNAME = "" ;
-			selPanl = false ;
-			backgrd = false ;
+			clear() ;
 		}
 		void clear()
 		{
-			PGM     = "" ;
-			PARM    = "" ;
-			NEWAPPL = "" ;
-			NEWPOOL = false ;
-			PASSLIB = false ;
-			SUSPEND = false ;
-			SCRNAME = "" ;
+			pgm     = "" ;
+			parm    = "" ;
+			newappl = "" ;
+			newpool = false ;
+			passlib = false ;
+			suspend = false ;
+			scrname = ""    ;
 			selPanl = false ;
 			backgrd = false ;
+			nested  = false ;
+			panpgm  = false ;
+			rexpgm  = false ;
+			quiet   = false ;
+			errors  = false ;
+			options = NULL  ;
+		}
+		void def( const string& p )
+		{
+			clear() ;
+			pgm     = p ;
+			newappl = "ISP" ;
+			newpool = true  ;
+			suspend = true  ;
+			selPanl = true  ;
+			nested  = true  ;
 		}
 		bool parse( errblock&, string ) ;
 		bool selPanel() { return selPanl ; }
 
-		string PGM     ;
-		string PARM    ;
-		string NEWAPPL ;
-		bool   NEWPOOL ;
-		bool   PASSLIB ;
-		bool   SUSPEND ;
-		string SCRNAME ;
+		string pgm     ;
+		string parm    ;
+		string newappl ;
+		bool   newpool ;
+		bool   passlib ;
+		bool   suspend ;
+		string scrname ;
 		bool   selPanl ;
 		bool   backgrd ;
+		bool   nested  ;
+		bool   panpgm  ;
+		bool   rexpgm  ;
+		bool   quiet   ;
+		bool   errors  ;
+		void*  options ;
 
 	private:
 } ;

@@ -39,3 +39,6 @@ PPSP011D 'Actions saved' .TYPE=N
 
 PPSP011E 'Actions retored' .TYPE=N
 'Control key actions have been restored from the list in the current profile (&ZAPPLID)'
+
+PPSP011F 'No keylist table' .TYPE=W
+'Keylist table not found for application &ZAPPLID'

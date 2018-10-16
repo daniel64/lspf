@@ -73,6 +73,9 @@ b_find PBRO01A::Global_bfind_parms ;
 
 PBRO01A::PBRO01A()
 {
+	set_appdesc( "Browser for lspf" ) ;
+	set_appver( "1.0.0" ) ;
+
 	vdefine( "ZCMD ZVERB ZROW1 ZCURFLD", &zcmd, &zverb, &zrow1, &zcurfld ) ;
 	vdefine( "ZAREA ZSHADOW ZAREAT ZDSN", &zarea, &zshadow, &zareat, &zdsn ) ;
 	vdefine( "ZSCROLLN ZAREAW ZAREAD ZCURPOS", &zscrolln, &zareaw, &zaread, &zcurpos ) ;

@@ -2,8 +2,8 @@
 
 )COMMENT
 
-   Error panel displayed on RC >= 12 from any DM service when CONROL ERRORS CANCEL is in effect.
-   Used when ZERRMSG set.  ZERR1, 2 and 3 are shown on the panel.  Set in function pool to display.
+   Error panel to display a message.
+   Also ZERRDSC and ZERRSRC for the description of the source and the statement in error
 
 )ENDCOMMENT
 
@@ -81,20 +81,18 @@ literal 27  MAX ET "*"
 
 literal 28      2 ET EXPAND "*"
 
-field    9 4  MAX-2 ET NONE ZERR1
+field    9 4  MAX-2 ET NONE ZERRMSG
 field   11 4  MAX-2 ET NONE ZERRSM
 field   12 4  MAX-2 ET NONE ZERRLM1
 field   13 4  MAX-2 ET NONE ZERRLM2
 field   14 4  MAX-2 ET NONE ZERRLM3
 field   15 4  MAX-2 ET NONE ZERRLM4
-field   16 4  MAX-2 ET NONE ZERR2
-field   17 4  MAX-2 ET NONE ZERR3
-
-literal 19 4  NT "Error message id:"
-field   19 22 MAX-2 ET NONE ZERRMSG
-
-literal 21 4  NT "Last return code:"
-field   21 22 MAX-2 ET NONE ZERRRC
+field   16 4  MAX-2 ET NONE ZERRLM5
+field   17 4  MAX-2 ET NONE ZERRLM6
+field   18 4  MAX-2 ET NONE ZERRLM7
+field   19 4  MAX-2 ET NONE ZERRLM8
+field   20 4  MAX-2 ET NONE ZERRDS1
+field   21 4  MAX-2 ET NONE ZERRSRC
 
 literal 24 4   NT "See application and lspf logs for more messages"
 
@@ -105,6 +103,14 @@ literal 26 16  NT "to terminate dialogue"
 )INIT
 .CURSOR = ZCMD
 &ZCMD   = &Z
+
+IF ( &ZERRDSC EQ 'P' )
+   &ZERRDS1 = 'Panel line where error was detected:'
+ELSE
+   IF ( &ZERRDSC EQ 'D' )
+      &ZERRDS1 = 'Current dialogue statement:'
+   ELSE
+      &ZERRDS1 = &ZERRDSC
 
 IF (&ZERRRX EQ &Z)
    &ZERRTTL = 'application &ZAPPNAME'

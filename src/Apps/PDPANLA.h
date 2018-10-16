@@ -22,6 +22,7 @@ using namespace std;
 class PDPANLA : public pApplication
 {
 	public:
+		PDPANLA() ;
 		void application() ;
 
 

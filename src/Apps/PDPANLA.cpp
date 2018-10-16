@@ -46,6 +46,13 @@ using namespace std ;
 #define MOD_NAME PDPANLA
 
 
+PDPANLA::PDPANLA()
+{
+	set_appdesc( "Default select panel program for lspf" ) ;
+	set_appver( "1.0.0" )  ;
+}
+
+
 void PDPANLA::application()
 {
 	int RC1 ;

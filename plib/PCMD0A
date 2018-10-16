@@ -1,7 +1,12 @@
 )PANEL VERSION=1 FORMAT=1
+
 )COMMENT
  Panel for Issuing commands
  Keep command history
+ Command line supports command name expansion using the TAB key
+   Names are expanded from ZORXPATH,
+                           REXX_PATH and
+                           PATH
 )ENDCOMMENT
 
 )INCLUDE STD_PDC
@@ -288,5 +293,8 @@ VPUT (ZKMD1,ZKMD2,ZKMD3,ZKMD4,ZKMD5,ZKMD6) PROFILE
 VPUT (ZKMD7,ZKMD8,ZKMD9,ZKMD10,ZKMD11,ZKMD12) PROFILE
 
 IF ( &ZCMD EQ &Z ) .CURSOR = ZCMD
+
+)FIELD
+FIELD(ZCMD) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND1 CMD)')
 
 )END

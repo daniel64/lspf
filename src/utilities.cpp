@@ -1551,7 +1551,7 @@ string parseString( errblock& err, string& s, string p )
 		p1 = wordpos( p, us ) ;
 		if ( p1 > 0 )
 		{
-			idelword( s, p1, 1 ) ;
+			trim( idelword( s, p1, 1 ) ) ;
 			return "OK" ;
 		}
 		return "" ;

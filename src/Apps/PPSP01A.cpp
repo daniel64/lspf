@@ -67,6 +67,9 @@ boost::mutex PPSP01A::mtx ;
 
 PPSP01A::PPSP01A()
 {
+	set_appdesc( "General utilities to display logs, PF Key settings, variables, etc." ) ;
+	set_appver( "1.0.0" ) ;
+
 	vdefine( "ZCURINX ZTDTOP ZTDSELS", &zcurinx, &ztdtop, &ztdsels ) ;
 }
 
@@ -74,9 +77,6 @@ PPSP01A::PPSP01A()
 void PPSP01A::application()
 {
 	llog( "I", "Application PPSP01A starting" << endl ) ;
-
-	set_appdesc( "General utilities to display logs, PF Key settings, variables, etc." ) ;
-	set_appver( "1.0.0" ) ;
 
 	string logtype ;
 	string logloc  ;
@@ -118,11 +118,13 @@ void PPSP01A::application()
 	else if ( w1   == "RUN"     ) { runApplication( w2 ) ; }
 	else if ( PARM == "SAVELST" ) { showSavedFileList()  ; }
 	else if ( PARM == "TASKS"   ) { showTasks()          ; }
-	else if ( PARM == "UTPGMS"  ) { utilityPrograms() ; }
-	else if ( PARM == "KLISTS"  ) { keylistTables()   ; }
-	else if ( PARM == "KLIST"   ) { keylistTable()    ; }
-	else if ( PARM == "CTLKEYS" ) { controlKeys()     ; }
-	else if ( PARM == "LIBDEFS" ) { libdefStatus()    ; }
+	else if ( PARM == "UTPGMS"  ) { utilityPrograms()    ; }
+	else if ( PARM == "KLISTS"  ) { keylistTables()      ; }
+	else if ( PARM == "KLIST"   ) { keylistTable()       ; }
+	else if ( PARM == "CTLKEYS" ) { controlKeys()        ; }
+	else if ( PARM == "LIBDEFS" ) { libdefStatus()       ; }
+	else if ( PARM == "PSYSER2" ) { showErrorScreen1()   ; }
+	else if ( w1   == "PSYSER3" ) { showErrorScreen2( w2 ) ; }
 	else if ( w1   == "SETVAR"  )
 	{
 		vreplace( w2, word( PARM, 3 ) ) ;
@@ -941,7 +943,7 @@ void PPSP01A::controlKeys()
 		tbskip( table, ztdtop ) ;
 		zcmd = "" ;
 		tbdispl( table, "PPSP01CT", msg, "ZCMD" ) ;
-		if ( RC == 8 ) { break ; }
+		if ( RC == 8 ) { e_loop = true ; }
 		msg = "" ;
 		if ( zcmd == "RESET" || zcmd == "CANCEL" )
 		{
@@ -1477,36 +1479,51 @@ void PPSP01A::globalColours()
 int PPSP01A::setScreenAttrs( const string& name, int itr, string colour, string intens, string hilite )
 {
 	string t ;
-	char   c ;
 
 	string var1 ;
 	string var2 ;
 	string var3 ;
 
 	vcopy( "ZC" + name, t, MOVE ) ;
-	if ( RC > 0 ) { llog( "E", "Variable ZC" << name << " not found in ISPS profile" << endl ) ; return 8 ; }
-	else
+	if ( RC > 0 )
 	{
-		if ( t.size() != 3 ) { llog( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ; return 8 ; }
-		c = t[ 0 ] ;
-		if      ( c == 'R' ) colour = "RED"     ;
-		else if ( c == 'G' ) colour = "GREEN"   ;
-		else if ( c == 'Y' ) colour = "YELLOW"  ;
-		else if ( c == 'B' ) colour = "BLUE"    ;
-		else if ( c == 'M' ) colour = "MAGENTA" ;
-		else if ( c == 'T' ) colour = "TURQ"    ;
-		else if ( c == 'W' ) colour = "WHITE"   ;
-		else { llog( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ; }
-		c = t[ 1 ] ;
-		if      ( c == 'H' ) intens = "HIGH" ;
-		else if ( c == 'L' ) intens = "LOW" ;
-		else { llog( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ; }
-		c = t[ 2 ] ;
-		if      ( c == 'N' ) hilite = "NONE"    ;
-		else if ( c == 'B' ) hilite = "BLINK"   ;
-		else if ( c == 'R' ) hilite = "REVERSE" ;
-		else if ( c == 'U' ) hilite = "USCORE"  ;
-		else { llog( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ; }
+		llog( "E", "Variable ZC" << name << " not found in ISPS profile" << endl ) ;
+		return 8 ;
+	}
+
+	if ( t.size() != 3 )
+	{
+		llog( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ;
+		return 8 ;
+	}
+
+	switch ( t[ 0 ] )
+	{
+		case 'R': colour = "RED"     ; break ;
+		case 'G': colour = "GREEN"   ; break ;
+		case 'Y': colour = "YELLOW"  ; break ;
+		case 'B': colour = "BLUE"    ; break ;
+		case 'M': colour = "MAGENTA" ; break ;
+		case 'T': colour = "TURQ"    ; break ;
+		case 'W': colour = "WHITE"   ; break ;
+		default :
+			  llog( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ;
+	}
+	switch ( t[ 1 ] )
+	{
+		case 'H': intens = "HIGH" ; break ;
+		case 'L': intens = "LOW"  ; break ;
+		default :
+			  llog( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ;
+	}
+	switch ( t[ 2 ] )
+	{
+		case 'N': hilite = "NONE"    ; break ;
+		case 'B': hilite = "BLINK"   ; break ;
+		case 'R': hilite = "REVERSE" ; break ;
+		case 'U': hilite = "USCORE"  ; break ;
+		default :
+			  llog( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ;
 	}
 
 	var1 = "COLOUR" + d2ds( itr, 2 ) ;
@@ -1514,13 +1531,22 @@ int PPSP01A::setScreenAttrs( const string& name, int itr, string colour, string 
 	var3 = "HILITE" + d2ds( itr, 2 ) ;
 
 	attr( var1, "COLOUR(" + colour + ")" ) ;
-	if ( RC > 0 ) { llog( "E", "Colour change for field " << var1 << " has failed." << endl ) ; }
+	if ( RC > 0 )
+	{
+		llog( "E", "Colour change for field " << var1 << " has failed." << endl ) ;
+	}
 
 	attr( var2, "COLOUR(" + colour + ") INTENSE(" + intens + ")" ) ;
-	if ( RC > 0 ) { llog( "E", "Colour/intense change for field " << var2 << " has failed." << endl ) ; }
+	if ( RC > 0 )
+	{
+		llog( "E", "Colour/intense change for field " << var2 << " has failed." << endl ) ;
+	}
 
-	attr( var3,  "COLOUR(" + colour + ") INTENSE(" + intens + ") HILITE(" + hilite + ")" ) ;
-	if ( RC > 0 ) { llog( "E", "Colour/intense/hilite change for field " << var3 << " has failed." << endl ) ; }
+	attr( var3, "COLOUR(" + colour + ") INTENSE(" + intens + ") HILITE(" + hilite + ")" ) ;
+	if ( RC > 0 )
+	{
+		llog( "E", "Colour/intense/hilite change for field " << var3 << " has failed." << endl ) ;
+	}
 
 	vreplace( var1, colour ) ;
 	vreplace( var2, intens ) ;
@@ -2089,7 +2115,7 @@ void PPSP01A::libdefStatus()
 
 	vget( "ZMUSR ZPUSR ZTUSR ZTABU", PROFILE ) ;
 
-	for ( int l = 0 ; l < libdefs.size() ; l++ )
+	for ( size_t l = 0 ; l < libdefs.size() ; l++ )
 	{
 		stack<string>* libdef = libdefs[ l ] ;
 		if ( libdef->empty() )
@@ -2279,11 +2305,11 @@ void PPSP01A::showLoadedClasses()
 			lspfCallback( lc ) ;
 			for ( j = 0 ; j < lc.reply.size() ; j++ )
 			{
-				sel     = ""              ;
+				sel     = "" ;
 				appl    = lc.reply[   j ] ;
 				mod     = lc.reply[ ++j ] ;
 				modpath = lc.reply[ ++j ] ;
-				modpath = substr( modpath, 1, (lastpos( "/", modpath ) - 1) ) ;
+				modpath = modpath.substr( 0, modpath.find_last_of( '/' ) ) ;
 				status  = lc.reply[ ++j ] ;
 				tbadd( modlst, "", "ORDER" ) ;
 			}
@@ -2679,13 +2705,13 @@ void PPSP01A::keylistTables()
 	for ( it = v.begin() ; it != v.end() ; ++it )
 	{
 		fname = (*it).string() ;
-		p     = substr( fname, 1, (lastpos( "/", fname ) - 1) ) ;
-		tab   = substr( fname, (lastpos( "/", fname ) + 1) )    ;
-		if ( tab.size() < 5 ) { continue ; }
+		p     = fname.substr( 0, fname.find_last_of( '/' ) )  ;
+		tab   = fname.substr( fname.find_last_of( '/' ) + 1 ) ;
+		if ( tab.size() < 6 ) { continue ; }
 		if ( tab.compare( tab.size()-4, 4, "KEYP" ) == 0 )
 		{
 			tbvclear( table ) ;
-			tbk1tab = tab    ;
+			tbk1tab = tab     ;
 			if ( tbk1tab == aktab+"KEYP" )
 			{
 				tbk1msg = "*Active*" ;
@@ -2824,7 +2850,12 @@ void PPSP01A::keylistTable( string tab, string aktab, string aklist )
 	vcopy( "ZUPROF", uprof, MOVE ) ;
 
 	tbopen( tab, NOWRITE, uprof ) ;
-	if ( RC > 0 )
+	if ( RC == 8 )
+	{
+		setmsg ( "PPSP011F" ) ;
+		return ;
+	}
+	else if ( RC > 8 )
 	{
 		llog( "E", "Error opening Keylist table "<< tab << ".  RC="<< RC << endl ) ;
 		abend() ;
@@ -2833,7 +2864,7 @@ void PPSP01A::keylistTable( string tab, string aktab, string aklist )
 	tbcreate( table, "", "(TBK2SEL,TBK2LST,TBK2MSG)", NOWRITE ) ;
 	if ( RC > 0 )
 	{
-		llog( "E", "Error creating Keylist table "<< table << ".  RC="<< RC << endl ) ;
+		llog( "E", "Error creating temporary table "<< table << ".  RC="<< RC << endl ) ;
 		abend() ;
 	}
 
@@ -2843,7 +2874,11 @@ void PPSP01A::keylistTable( string tab, string aktab, string aklist )
 	{
 		tbend( tab ) ;
 		tbopen( tab, WRITE, uprof ) ;
-		if ( RC > 0 ) { abend() ; }
+		if ( RC > 0 )
+		{
+			llog( "E", "Error opening Keylist table "<< tab << " for update.  RC="<< RC << endl ) ;
+			abend() ;
+		}
 		tbsort( tab, "(KEYLISTN,C,A)" ) ;
 		keylistn = "ISPDEF" ;
 		for ( i = 1 ; i < 25 ; i++ )
@@ -3121,7 +3156,7 @@ void PPSP01A::editKeylist( const string& tab, const string& list )
 			if ( RC > 0 ) { abend() ; }
 			return ;
 		}
-		if ( RC == 8 ) { break ; }
+		if ( RC == 8 ) { e_loop = true ; }
 		msg = "" ;
 		while ( ztdsels > 0 )
 		{
@@ -3170,7 +3205,8 @@ void PPSP01A::editKeylist( const string& tab, const string& list )
 
 void PPSP01A::createKeyTable( string table )
 {
-	// Create an empty keylist table entry.  Keylists reside in the ZUPROF directory.
+	// Create an empty keylist table entry.
+	// Keylists reside in the ZUPROF directory.
 
 	int i ;
 
@@ -3202,6 +3238,120 @@ void PPSP01A::createKeyTable( string table )
 void PPSP01A::runApplication( const string& xappl )
 {
 	select( "PGM("+xappl+") NEWAPPL(ISP) NEWPOOL PASSLIB" ) ;
+}
+
+
+void PPSP01A::showErrorScreen1()
+{
+	// Show error screen PSYSER2 for message err.msgid and with variables:
+	// ZERR1
+	// ZERRSM
+	// ZERRLM
+	// ZERR2
+	// ZERR3
+	// ZERRMSG
+	// ZERRRC
+
+	// Note: options structure only valid during application startup in this case
+	// as it then goes out of scope.
+
+	size_t i ;
+
+	int l    ;
+	int maxw ;
+
+	string t ;
+
+	struct err_struct
+	{
+		string title ;
+		string src   ;
+		errblock err ;
+	} ;
+
+	err_struct* errs = static_cast<err_struct*>( get_options() ) ;
+
+	vdefine( "ZSCRMAXW", &maxw ) ;
+	vget( "ZSCRMAXW", SHARED ) ;
+
+	control( "ERRORS", "RETURN" ) ;
+
+	vreplace( "ZERRMSG", errs->err.msgid ) ;
+	vreplace( "ZVAL1",   errs->err.val1  ) ;
+	vreplace( "ZVAL2",   errs->err.val2  ) ;
+	vreplace( "ZVAL3",   errs->err.val3  ) ;
+	vreplace( "ZERRRC",  "20"        ) ;
+	vreplace( "ZERR1",   errs->title ) ;
+	vreplace( "ZERR2",   "Panel line where error was detected:" ) ;
+	vreplace( "ZERR3",   errs->src   ) ;
+
+	getmsg( errs->err.msgid, "ZERRSM", "ZERRLM" ) ;
+
+	vcopy( "ZERRLM", t, MOVE ) ;
+
+	maxw = maxw - 6 ;
+	l    = 0 ;
+	do
+	{
+		l++ ;
+		if ( t.size() > maxw )
+		{
+			i = t.find_last_of( ' ', maxw ) ;
+			i = ( i == string::npos ) ? maxw : i + 1 ;
+			vreplace( "ZERRLM"+ d2ds( l ), t.substr( 0, i ) ) ;
+			t.erase( 0, i ) ;
+		}
+		else
+		{
+			vreplace( "ZERRLM"+d2ds( l ), t ) ;
+			t = "" ;
+		}
+	} while ( t.size() > 0 && l < 5 ) ;
+
+	display( "PSYSER2" ) ;
+}
+
+
+void PPSP01A::showErrorScreen2( string& msg )
+{
+	// Show error screen PSYSER3 for message 'msg':
+
+	size_t i ;
+
+	int l    ;
+	int maxw ;
+
+	string t ;
+
+	vdefine( "ZSCRMAXW", &maxw ) ;
+	vdefine( "ZERRMSG", &msg ) ;
+	control( "ERRORS", "RETURN" ) ;
+
+	vget( "ZSCRMAXW ZERRDSC ZERRSRC ZVAL1 ZVAL2 VAL3", SHARED ) ;
+	getmsg( msg, "ZERRSM", "ZERRLM" ) ;
+
+	vcopy( "ZERRLM", t, MOVE ) ;
+
+	maxw = maxw - 6 ;
+	l    = 0 ;
+	do
+	{
+		l++ ;
+		if ( t.size() > maxw )
+		{
+			i = t.find_last_of( ' ', maxw ) ;
+			i = ( i == string::npos ) ? maxw : i + 1 ;
+			vreplace( "ZERRLM"+ d2ds( l ), t.substr( 0, i ) ) ;
+			t.erase( 0, i ) ;
+		}
+		else
+		{
+			vreplace( "ZERRLM"+d2ds( l ), t ) ;
+			t = "" ;
+		}
+	} while ( t.size() > 0 ) ;
+
+	display( "PSYSER3" ) ;
 }
 
 

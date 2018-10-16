@@ -82,6 +82,14 @@ int setAllRexxVariables( pApplication* ) ;
 
 boost::mutex POREXX1::mtx ;
 
+
+POREXX1::POREXX1()
+{
+	set_appdesc( "OOREXX-lspf interface module" ) ;
+	set_appver( "1.0.0" ) ;
+}
+
+
 void POREXX1::application()
 {
 	llog( "I", "Application POREXX1 starting." << endl ) ;
@@ -90,6 +98,8 @@ void POREXX1::application()
 
 	string rxpath  ;
 	string msg     ;
+
+	bool call_uabend = false ;
 
 	vget( "ZORXPATH", PROFILE ) ;
 	vcopy( "ZORXPATH", rxpath, MOVE ) ;
@@ -105,6 +115,7 @@ void POREXX1::application()
 		ZRC     = 16 ;
 		ZRSN    = 4  ;
 		ZRESULT = "No REXX passed" ;
+		setmsg( "PSYS012Y" ) ;
 		cleanup() ;
 		return    ;
 	}
@@ -158,23 +169,26 @@ void POREXX1::application()
 			llog( "E", "   Condition Error Text . .: " << threadContext->CString( condition.errortext ) << endl ) ;
 			llog( "E", "   Condition Message. . . .: " << threadContext->CString( condition.message ) << endl ) ;
 			llog( "E", "   Line Error Occured . . .: " << condition.position << endl ) ;
-			msg = "Error on line: "+ d2ds( condition.position ) ;
-			msg = msg +".  Condition code: "+ d2ds( condition.code ) ;
-			msg = msg +".  Error Text: "+ threadContext->CString( condition.errortext ) ;
-			msg = msg +".  Message: "+ threadContext->CString( condition.message ) ;
-			if ( msg.size() > 512 ) { msg.erase( 512 ) ; }
-			vreplace( "STR", msg ) ;
-			if ( condition.code == Rexx_Error_Program_unreadable_notfound )
-			{
-				setmsg( "PSYS012C" ) ;
-			}
-			else
-			{
-				setmsg( "PSYS011M" ) ;
-			}
 			ZRC     = 20 ;
 			ZRSN    = condition.code ;
 			ZRESULT = threadContext->CString( condition.message ) ;
+			if ( condition.code == Rexx_Error_Program_unreadable_notfound )
+			{
+				rdisplay( "COMMAND "+ rexxName + " NOT FOUND" ) ;
+				call_uabend = true ;
+				ZRSN        = 997  ;
+				ZRESULT     = "Not Found" ;
+			}
+			else
+			{
+				msg = "Error on line: "+ d2ds( condition.position ) ;
+				msg = msg +".  Condition code: "+ d2ds( condition.code ) ;
+				msg = msg +".  Error Text: "+ threadContext->CString( condition.errortext ) ;
+				msg = msg +".  Message: "+ threadContext->CString( condition.message ) ;
+				if ( msg.size() > 512 ) { msg.erase( 512 ) ; }
+				vreplace( "STR", msg ) ;
+				setmsg( "PSYS011M" ) ;
+			}
 		}
 		else if ( result != NULLOBJECT )
 		{
@@ -190,8 +204,10 @@ void POREXX1::application()
 	}
 	unlock()  ;
 
+	if ( call_uabend ) { uabend() ; }
+
 	cleanup() ;
-	return    ;
+	return ;
 }
 
 

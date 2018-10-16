@@ -26,7 +26,6 @@ class PLRFLST1 : public pApplication
 		void application() ;
 
 	private:
-		void setup()       ;
 		void OpenTableRO() ;
 		void OpenTableUP() ;
 		void CloseTable()  ;

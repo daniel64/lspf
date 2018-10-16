@@ -31,10 +31,10 @@
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
-#define LSPF_VERSION "1.0.9"
+#define LSPF_VERSION "1.0.10"
 #define LSPF_VERSION_MAJ 1
 #define LSPF_VERSION_REV 0
-#define LSPF_VERSION_MOD 9
+#define LSPF_VERSION_MOD 10
 
 typedef unsigned int uint ;
 
@@ -70,7 +70,7 @@ using namespace boost::posix_time;
 // ZFLSTPGM - Name of the file list program to invoke
 // ZHELPPGM - Name of the tutorial/help program to invoke
 // ZOREXPGM - Name of the oorexx interpreter call program to invoke
-// ZSHELP   - Name of the system help member (ZPLIB/help concatenatin searched for this)
+// ZSHELP   - Name of the system help member (ZPLIB/help concatenation searched for this)
 // ZMAXSCRN - Maximum number of split screens allowed (Greater than 8 and the screen will not be displayed in the Screen[] status area.)
 // ZWAIT    - Wait time to check if the application has gone into a wait-for-user-response (normally a few ms)
 // ZMAXWAIT - Max wait time to terminate the application if it has not gone into a wait-for-user-response (application may be looping)
@@ -340,6 +340,8 @@ class errblock
 		bool    debug  ;
 		bool    abend  ;
 		bool    sCall  ;
+		bool    panel  ;
+		bool    dialog ;
 	errblock()
 	{
 		msgid  = "" ;
@@ -356,6 +358,8 @@ class errblock
 		debug  = false ;
 		abend  = false ;
 		sCall  = false ;
+		panel  = false ;
+		dialog = false ;
 	}
 	void clear()
 	{
@@ -370,7 +374,8 @@ class errblock
 		RC     = 0  ;
 		maxRC  = 0  ;
 		debug  = false ;
-		abend  = false ;
+		panel  = false ;
+		dialog = false ;
 	}
 	void setRC( int i )
 	{
@@ -532,6 +537,22 @@ class errblock
 	{
 		if ( dline ) { return *dline ; }
 		else         { return  sline ; }
+	}
+	void setpanelsrc()
+	{
+		panel = true ;
+	}
+	bool panelsrc()
+	{
+		return panel ;
+	}
+	void setdialogsrc()
+	{
+		dialog = true ;
+	}
+	bool dialogsrc()
+	{
+		return dialog ;
 	}
 	void clearsrc()
 	{

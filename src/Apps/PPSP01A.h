@@ -112,5 +112,7 @@ class PPSP01A : public pApplication
 		void createKeyTable( string )  ;
 		void controlKeys()             ;
 		void libdefStatus()            ;
+		void showErrorScreen1()        ;
+		void showErrorScreen2( string& ) ;
 
 } ;

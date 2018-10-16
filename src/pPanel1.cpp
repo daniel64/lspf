@@ -94,7 +94,7 @@ pPanel::pPanel()
 
 pPanel::~pPanel()
 {
-	// iterate over the 4 panel widget types, literal, field, dynArea, boxes and delete them.
+	// Iterate over the 4 panel widget types, literal, field, dynArea, boxes and delete them.
 	// Delete panel language statements in )INIT, )REINIT, )PROC, )ABCINIT and )ABCPROC sections.
 	// Delete the main window/panel, popup panel and any message windows/panels created (free any userdata first)
 
@@ -436,7 +436,7 @@ void pPanel::display_panel( errblock& err )
 
 	panttl = sub_vars( panelTitle ) ;
 	wattrset( win, cuaAttr[ PT ] ) ;
-	mvwaddstr( win, ab.size() > 0 ? 2 : 0, ( wscrmaxw - panttl.size() ) / 2, panttl.c_str() ) ;
+	mvwaddstr( win, ( ab.size() > 0 ) ? 2 : 0, ( wscrmaxw - panttl.size() ) / 2, panttl.c_str() ) ;
 	wattroff( win, cuaAttr[ PT ] ) ;
 
 	if ( tb_model )
@@ -738,7 +738,7 @@ void pPanel::display_panel_update( errblock& err )
 			{
 				Amnt = posn - 1 ;
 			}
-			p_poolMGR->put( err, "ZSCROLLN", Amnt == 0 ? d2ds( maxAmount ) : d2ds( Amnt ), SHARED ) ;
+			p_poolMGR->put( err, "ZSCROLLN", ( Amnt == 0 ) ? d2ds( maxAmount ) : d2ds( Amnt ), SHARED ) ;
 			if ( err.error() ) { return ; }
 			p_poolMGR->put( err, "ZSCROLLA", "CSR", SHARED ) ;
 			if ( err.error() ) { return ; }
@@ -3220,7 +3220,7 @@ void pPanel::display_tb_mark_posn( errblock& err )
 	{
 		posn = "Row "+ d2ds( top ) +" of "+ d2ds( rows ) ;
 	}
-	mvwaddstr( win, ab.size() > 0 ? 2 : 0, wscrmaxw - posn.length(), posn.c_str() ) ;
+	mvwaddstr( win, ( ab.size() > 0 ) ? 2 : 0, wscrmaxw - posn.length(), posn.c_str() ) ;
 	wattroff( win, WHITE ) ;
 }
 
@@ -3510,7 +3510,7 @@ void pPanel::display_msg( errblock& err )
 		}
 		else
 		{
-			x_row = ab.size() > 0 ? 2 : 0 ;
+			x_row = ( ab.size() > 0 ) ? 2 : 0 ;
 			mvwaddstr( win, x_row, (wscrmaxw - 25), "                         " ) ;
 			smwin = newwin( 1, MSG.smsg.size(), x_row+win_row, (wscrmaxw - MSG.smsg.size() + win_col) ) ;
 			wattrset( smwin, cuaAttr[ MSG.type ] ) ;
@@ -3709,7 +3709,7 @@ void pPanel::display_id( errblock& err )
 
 	if ( panarea != "" )
 	{
-		idwin   = newwin( 1, panarea.size(), ab.size() > 0 ? win_row+2 : win_row, win_col+1 ) ;
+		idwin   = newwin( 1, panarea.size(), ( ab.size() > 0 ) ? win_row+2 : win_row, win_col+1 ) ;
 		idpanel = new_panel( idwin )  ;
 		set_panel_userptr( idpanel, new panel_data( zscrnum ) ) ;
 		wattrset( idwin, cuaAttr[ PI ] ) ;

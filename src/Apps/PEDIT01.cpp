@@ -77,6 +77,10 @@ edit_find PEDIT01::Global_efind_parms ;
 
 PEDIT01::PEDIT01()
 {
+	set_appdesc( "PDF-like editor for lspf" ) ;
+	set_appver( "1.0.0" )  ;
+	set_apphelp( "HEDIT01" ) ;
+
 	vdefine( "ZCMD ZVERB ZCURFLD", &zcmd, &zverb, &zcurfld ) ;
 	vdefine( "ZAREA ZSHADOW ZAREAT ZFILE", &zarea, &zshadow, &zareat, &zfile ) ;
 	vdefine( "ZSCROLLN ZAREAW ZAREAD ZCURPOS", &zscrolln, &zareaw, &zaread, &zcurpos ) ;
@@ -272,9 +276,6 @@ void PEDIT01::initialise()
 
 	clipBoard = "DEFAULT"  ;
 	clipTable = "EDITCLIP" ;
-	set_appdesc( "SPF-like editor for lspf" ) ;
-	set_appver( "1.0.0" )  ;
-	set_apphelp( "HEDIT01" ) ;
 
 	maxURID[ taskid() ] = 0 ;
 
@@ -5345,6 +5346,7 @@ bool PEDIT01::storeLineCommands()
 					break ;
 				}
 				cmd.lcmd_ABOW  = 'B'   ;
+				cmd.lcmd_ABRpt = 1     ;
 				lcmds.push_back( cmd ) ;
 				cmd.lcmd_dURID = cmd.lcmd_sURID ;
 				cmd.lcmd_lURID = cmd.lcmd_eURID ;
@@ -8370,7 +8372,7 @@ void PEDIT01::manageClipboard()
 {
 	int i ;
 
-	bool rebuild ;
+	bool rebuild = false ;
 
 	string suf  ;
 	string desc ;
@@ -8381,7 +8383,7 @@ void PEDIT01::manageClipboard()
 	vector<string> descr ;
 
 	manageClipboard_create( descr ) ;
-	rebuild = false ;
+	if ( pcmd.msgset() ) { return ; }
 
 	addpop( "", 4, 5 ) ;
 	while ( true )
@@ -8430,6 +8432,7 @@ void PEDIT01::manageClipboard()
 		if ( rebuild )
 		{
 			manageClipboard_create( descr ) ;
+			if ( pcmd.msgset() ) { return ; }
 			rebuild = false ;
 		}
 	}
@@ -8468,8 +8471,8 @@ void PEDIT01::manageClipboard_create( vector<string>& descr )
 	}
 
 	t = "" ;
-	i = 0 ;
-	l = 0 ;
+	i = 0  ;
+	l = 0  ;
 
 	tbtop( clipTable ) ;
 	while ( i < 11 )
@@ -8500,6 +8503,13 @@ void PEDIT01::manageClipboard_create( vector<string>& descr )
 	}
 
 	tbend( clipTable ) ;
+	if ( t == "" )
+	{
+		vdelete( vlist ) ;
+		pcmd.set_msg( "PEDT014Y" ) ;
+		return ;
+	}
+
 	if ( l > 0 )
 	{
 		vreplace( "CLPLN"+ d2ds( i + 1 ), d2ds( l ) ) ;
@@ -8949,7 +8959,7 @@ void PEDIT01::compareFiles( const string& s )
 	cmd = "diff " + dparms + cfile + " " + tname1 + " 2>&1" ;
 	of.open( tname2 ) ;
 	FILE* pipe{popen( cmd.c_str(), "r" ) } ;
-	while( fgets( buffer, sizeof( buffer ), pipe ) != nullptr )
+	while ( fgets( buffer, sizeof( buffer ), pipe ) != nullptr )
 	{
 		file   = buffer ;
 		result = file.substr(0, file.size() - 1 ) ;

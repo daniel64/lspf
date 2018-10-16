@@ -23,8 +23,8 @@
 
 /* Personal File List application                                                 */
 
-/* On exit, if reffield is set to #REFLIST and ZRC = 0                            */
-/* then ZRESULT will be placed in the field specified by the .NRET panel variable */
+/* On exit, if CONTROL REFLIST ON and ZRC = 0 then                                */
+/* ZRESULT will be placed in the field specified by the .NRET panel variable      */
 /* eg:                                                                            */
 /* .NRET = ON                                                                     */
 /* .NRET = ZFILE                                                                  */
@@ -60,48 +60,15 @@ using namespace boost::filesystem ;
 
 PLRFLST1::PLRFLST1()
 {
-	vdefine( "ZCURINX ZTDTOP ZTDSELS", &zcurinx, &ztdtop, &ztdsels ) ;
-}
-
-
-void PLRFLST1::application()
-{
-	string p1 ;
-	string p2 ;
-	string pf ;
-
-	llog( "I", "Application PLRFLST1 starting" << endl ) ;
-
-	set_appdesc( "Personal File List application" ) ;
-	set_appver( "1.0.0" ) ;
-
-	p1 = word( PARM, 1 )          ;
-	p2 = upper( word( PARM, 2 ) ) ;
-	pf = subword( PARM, 2 )       ;
-
-	setup() ;
-	if      ( p1 == "PL1" ) { OpenActiveFList( p2 )    ; }
-	else if ( p1 == "PL2" ) { PersonalFList( "" )      ; }
-	else if ( p1 == "PL3" ) { PersonalFList( "DSL")    ; }
-	else if ( p1 == "PLA" ) { AddReflistEntry( pf )    ; }
-	else if ( p1 == "NR1" ) { RetrieveEntry( pf )      ; }
-	else if ( p1 == "MTC" ) { RetrieveMatchEntry( pf ) ; }
-	else if ( p1 == "US1" ) { userSettings()           ; }
-	else                    { llog( "E", "Invalid parameter passed to PLRFLST1: " << PARM << endl ) ; }
-
-	cleanup() ;
-	return    ;
-}
-
-
-
-void PLRFLST1::setup()
-{
 	string vlist1 ;
 	string vlist2 ;
 	string vlist3 ;
 	string vlist4 ;
 	string vlist5 ;
+
+	set_appdesc( "Personal File List application" ) ;
+	set_appver( "1.0.0" ) ;
+	set_apphelp( "HPSP01A" ) ;
 
 	vlist1 = "ZCURTB   FLADESCP FLAPET01 FLAPET02 FLAPET03 FLAPET04 FLAPET05 FLAPET06 " ;
 	vlist2 = "FLAPET07 FLAPET08 FLAPET09 FLAPET10 FLAPET11 FLAPET12 FLAPET13 FLAPET14 " ;
@@ -117,10 +84,38 @@ void PLRFLST1::setup()
 
 	tabflds = vlist1 + vlist2 + vlist3 + vlist4 + vlist5 ;
 
-	vcopy( "ZUPROF", uprof, MOVE ) ;
+	vdefine( "ZCURINX ZTDTOP ZTDSELS", &zcurinx, &ztdtop, &ztdsels ) ;
+}
+
+
+void PLRFLST1::application()
+{
+	string p1 ;
+	string p2 ;
+	string pf ;
+
+	llog( "I", "Application PLRFLST1 starting" << endl ) ;
+
+	p1 = word( PARM, 1 )          ;
+	p2 = upper( word( PARM, 2 ) ) ;
+	pf = subword( PARM, 2 )       ;
+
+	vcopy( "ZUPROF", uprof, MOVE )  ;
 	vcopy( "ZRFLTBL", table, MOVE ) ;
-	set_apphelp( "HPSP01A" ) ;
+
 	ZRC = 4 ;
+
+	if      ( p1 == "PL1" ) { OpenActiveFList( p2 )    ; }
+	else if ( p1 == "PL2" ) { PersonalFList( "" )      ; }
+	else if ( p1 == "PL3" ) { PersonalFList( "DSL")    ; }
+	else if ( p1 == "PLA" ) { AddReflistEntry( pf )    ; }
+	else if ( p1 == "NR1" ) { RetrieveEntry( pf )      ; }
+	else if ( p1 == "MTC" ) { RetrieveMatchEntry( pf ) ; }
+	else if ( p1 == "US1" ) { userSettings()           ; }
+	else                    { llog( "E", "Invalid parameter passed to PLRFLST1: " << PARM << endl ) ; }
+
+	cleanup() ;
+	return    ;
 }
 
 
@@ -572,7 +567,7 @@ void PLRFLST1::OpenFileList( const string& curtb )
 		}
 		if ( csel == "S" )
 		{
-			reffield = "#REFLIST" ;
+			control( "REFLIST", "ON" ) ;
 			ZRESULT  = cfile      ;
 			ZRC      = 0          ;
 			vreplace( "ZCURTB", zcurtb ) ;
@@ -749,7 +744,7 @@ void PLRFLST1::RetrieveEntry( string list )
 	}
 
 	zrfnpos  = d2ds( p )  ;
-	reffield = "#REFLIST" ;
+	control( "REFLIST", "ON" ) ;
 	ZRC      = ( ZRESULT == "" ) ? 8 : 0 ;
 
 	vput( "ZRFNPOS", SHARED )   ;
