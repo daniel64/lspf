@@ -175,8 +175,7 @@ void PTUTORA::application()
 				if ( !is_regular_file( tfile ) )
 				{
 					llog( "E", "Help file " << tfile << " is not a regular file" << endl ) ;
-					cleanup() ;
-					return    ;
+					return ;
 				}
 				else
 				{
@@ -188,8 +187,7 @@ void PTUTORA::application()
 		if ( filename == "" )
 		{
 			setmsg( "PSYS011J" ) ;
-			cleanup() ;
-			return    ;
+			return ;
 		}
 		data.push_back( " " ) ;
 		data.push_back( copies( "-", zareaw ) ) ;
@@ -275,7 +273,6 @@ void PTUTORA::application()
 		if ( firstLine < 0 ) firstLine = 0 ;
 	}
 	vput( "ZSCROLL", PROFILE ) ;
-	cleanup() ;
 	return ;
 }
 

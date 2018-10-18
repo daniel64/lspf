@@ -29,8 +29,8 @@ PSYE022D 'Too many variables on VDEFINE statement'
 PSYE022E 'Address is NULL on VDEFINE statement'
 'Address cannot be NULL'
 
-PSYE022F 'LIBDEF PATH ID() does not contain any paths'
-''
+PSYE022F 'Invalid ID()'
+'LIBDEF PATH ID() does not contain any paths'
 
 PSYE022G 'Invalid user search type ''&ZVAL1'''
 'Valid type is PATH'

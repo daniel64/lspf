@@ -63,7 +63,6 @@ void PTEST01::application()
 	string abc ;
 
 //      verase( "ZPLIB ZMLIB ZTLIB ZHLIB" ) ;
-//      cleanup() ;
 //      return ;
 
 //      ZTUSER = "/home/daniel/.lspf/" ;
@@ -115,8 +114,7 @@ void PTEST01::application()
 		abend() ;
 	}
 
-	cleanup() ;
-	return    ;
+	return ;
 }
 
 
@@ -131,7 +129,7 @@ void PTEST01::opt0()
 	{
 		zcmd = "" ;
 		display( "PTEST01A", MSG, "ZCMD" );
-		if ( RC == 8 ) { cleanup() ; break ; }
+		if ( RC == 8 ) { break ; }
 		MSG  = "" ;
 	}
 
@@ -671,7 +669,7 @@ void PTEST01::opt3()
 		tbskip( "TABKD", ztdtop ) ;
 		tbquery( "TABKD", "TBQ1","TBQ2", "TBQ3", "TBQ4", "TBQ5", "TBQ6", "TBQ7", "TBQ8", "TBQ9", "TBQ10" ) ;
 		tbdispl( "TABKD", "PTEST01D", MSG, "ZCMD", CSRROW, 0, "NO", "CRP", "ROWID" ) ;
-		if ( RC == 8 ) { cleanup() ; break ; }
+		if ( RC == 8 ) { break ; }
 		TRC   = 0  ;
 		if ( RC > TRC ) { TRC = RC ; }
 		YTDSELS = ztdsels ;
@@ -848,7 +846,7 @@ void PTEST01::opt4()
 		tbskip( "TABND", ztdtop ) ;
 		tbquery( "TABND", "TBQ1","TBQ2", "TBQ3", "TBQ4", "TBQ5", "TBQ6", "TBQ7", "TBQ8", "TBQ9", "TBQ10" ) ;
 		tbdispl( "TABND", "PTEST01B", MSG, "ZCMD", CSRROW, 0, "NO", "CRP", "ROWID" ) ;
-		if ( RC == 8 ) { cleanup() ; break ; }
+		if ( RC == 8 ) { break ; }
 		TRC   = 0  ;
 		if ( RC > TRC ) { TRC = RC ; }
 		YTDSELS = ztdsels ;
@@ -1030,7 +1028,7 @@ void PTEST01::opt5()
 	{
 		if ( MSG == "" ) { zcmd = "" ; }
 		display( "PTEST01C", MSG, CURFLD, CURPOS );
-		if ( RC == 8 ) { cleanup() ; break ; }
+		if ( RC == 8 ) { break ; }
 		MSG = "" ;
 		if ( zcmd == "SHOW" )
 		{

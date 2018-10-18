@@ -194,8 +194,7 @@ void PEDIT01::application()
 		}
 		if ( zfile != "" && rfile == zfile )
 		{
-			cleanup() ;
-			return    ;
+			return ;
 		}
 		skipEEntry = true ;
 	}
@@ -233,7 +232,6 @@ void PEDIT01::application()
 	{
 		Edit() ;
 	}
-	cleanup() ;
 }
 
 

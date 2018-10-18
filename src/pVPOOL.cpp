@@ -901,6 +901,12 @@ void pVPOOL::save( errblock& err,
 
 	std::ofstream profile ;
 	profile.open( fname.c_str(), ios::binary | ios::out ) ;
+	if ( not profile.is_open() )
+	{
+		err.seterrid( "PSYE041M", "PROFILE", fname ) ;
+		return ;
+	}
+
 	profile << (char)00  ;  //
 	profile << (char)132 ;  // x084 denotes a profile
 	profile << (char)1   ;  // PROFILE format version 1
@@ -1110,6 +1116,8 @@ void poolMGR::createProfilePool( errblock& err,
 
 	string fname ;
 
+	pair<map<string, pVPOOL*>::iterator, bool> result ;
+
 	pVPOOL* pool   ;
 	err.setRC( 0 ) ;
 
@@ -1144,29 +1152,29 @@ void poolMGR::createProfilePool( errblock& err,
 	{
 		if ( not f_okay )
 		{
-			llog( "E", "File "<< fname <<" is not a regular file for profile load"<< endl ) ;
+			llog( "E", "File "+ fname +" is not a regular file for profile load"<< endl ) ;
 			err.seterror() ;
 		}
 		else
 		{
-			pool       = new pVPOOL ;
+			result = POOLs_profile.insert( pair<string, pVPOOL*>( ppool, new pVPOOL ) ) ;
+			pool   = result.first->second ;
 			pool->path = ppath ;
-			POOLs_profile[ ppool ] = pool ;
-			llog( "I", "Pool " << ppool << " created okay.  Reading saved variables from profile dataset" << endl ) ;
-			POOLs_profile[ ppool ]->load( err, ppool, ppath ) ;
+			llog( "I", "Pool "+ ppool +" created okay.  Reading saved variables from profile dataset" << endl ) ;
+			pool->load( err, ppool, ppath ) ;
 			if ( ppool == "ISPS" )
 			{
-				POOLs_profile[ "ISPS" ]->sysProfile() ;
+				pool->sysProfile() ;
 			}
 		}
 	}
 	else
 	{
-		llog( "I", "Profile "<< ppool+"PROF does not exist.  Creating default" <<endl ) ;
-		pool       = new pVPOOL ;
+		llog( "I", "Profile "+ ppool +"PROF does not exist.  Creating default" <<endl ) ;
+		result = POOLs_profile.insert( pair<string, pVPOOL*>( ppool, new pVPOOL ) ) ;
+		pool   = result.first->second ;
 		pool->path = ppath ;
-		POOLs_profile[ ppool ] = pool ;
-		llog( "I", "Profile Pool "<< ppool <<" created okay in path "<< ppath <<endl ) ;
+		llog( "I", "Profile Pool "+ ppool +" created okay in path "+ ppath <<endl ) ;
 		err.setRC( 4 ) ;
 	}
 }

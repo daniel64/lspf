@@ -1655,7 +1655,7 @@ void tableMGR::createTable( errblock& err,
 		}
 		else
 		{
-			err.seterrid( "PSYE013Z", tb_name, 12 ) ;
+			err.seterrid( "PSYE013Z", "TBCREATE", tb_name, 12 ) ;
 			return ;
 		}
 		if ( tb_REP == REPLACE )
@@ -1804,7 +1804,7 @@ void tableMGR::loadTable( errblock& err,
 		}
 		else
 		{
-			err.seterrid( "PSYE013Z", tb_name, 12 ) ;
+			err.seterrid( "PSYE013Z", "TBOPEN", tb_name, 12 ) ;
 		}
 		return ;
 	}

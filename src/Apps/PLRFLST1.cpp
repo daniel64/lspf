@@ -114,8 +114,7 @@ void PLRFLST1::application()
 	else if ( p1 == "US1" ) { userSettings()           ; }
 	else                    { llog( "E", "Invalid parameter passed to PLRFLST1: " << PARM << endl ) ; }
 
-	cleanup() ;
-	return    ;
+	return ;
 }
 
 

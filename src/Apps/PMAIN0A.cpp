@@ -147,7 +147,6 @@ void PMAIN0A::application()
 		}
 		zcmd = "" ;
 	}
-	cleanup() ;
 }
 
 

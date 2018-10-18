@@ -130,8 +130,7 @@ void PCMD0B::application()
 		}
 	}
 
-	cleanup() ;
-	return    ;
+	return ;
 }
 
 

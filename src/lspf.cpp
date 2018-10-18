@@ -163,27 +163,26 @@ void processZSEL()              ;
 void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru ) ;
 void processZCOMMAND( uint row, uint col, bool doSelect ) ;
 void issueMessage( const string& ) ;
-void lineOutput()         ;
-void lineOutput_end()     ;
-void threadErrorHandler() ;
+void lineOutput()     ;
+void lineOutput_end() ;
 void errorScreen( int, const string& ) ;
 void errorScreen( const string&, const string& ) ;
 void errorScreen( const string& ) ;
 void abortStartup()  ;
 void lspfCallbackHandler( lspfCommand& ) ;
-void createpfKeyDefaults()  ;
-string pfKeyValue( int )    ;
+void createpfKeyDefaults() ;
+string pfKeyValue( int )   ;
 string ControlKeyAction( char c ) ;
 string listLogicalScreens() ;
 void actionSwap( uint&, uint& )   ;
 void actionTabKey( uint&, uint& ) ;
 void displayNextPullDown( uint&, uint& ) ;
 void executeFieldCommand( const string&, const fieldExc&, uint ) ;
-void listBackTasks()        ;
-void autoUpdate()           ;
+void listBackTasks()      ;
+void autoUpdate()         ;
 bool resolveZCTEntry( string&, string& ) ;
-bool isActionKey( int c )   ;
-void listRetrieveBuffer()   ;
+bool isActionKey( int c ) ;
+void listRetrieveBuffer() ;
 int  getScreenNameNum( const string& ) ;
 void serviceCallError( errblock& ) ;
 void listErrorBlock( errblock& ) ;
@@ -333,7 +332,6 @@ int main( void )
 
 	boost::thread* pThread ;
 	boost::thread* bThread ;
-	set_terminate ( threadErrorHandler ) ;
 
 	commandStack = "" ;
 	lspfStatus   = LSPF_RUNNING ;
@@ -387,7 +385,7 @@ int main( void )
 	createSharedPoolVars( "ISP" ) ;
 	currAppl->init_phase2() ;
 
-	pThread = new boost::thread( boost::bind( &pApplication::application, currAppl ) ) ;
+	pThread = new boost::thread( &pApplication::run, currAppl ) ;
 	currAppl->pThread = pThread ;
 	apps[ gmainpgm ].refCount++ ;
 	apps[ gmainpgm ].mainpgm = true ;
@@ -404,7 +402,6 @@ int main( void )
 	{
 		errorScreen( 1, "An error has occured initialising the first "+ gmainpgm +" main task.  lspf cannot continue." ) ;
 		currAppl->info() ;
-		currAppl->closeTables() ;
 		p_poolMGR->disconnect( currAppl->taskid() ) ;
 		llog( "I", "Removing application instance of "+ currAppl->get_appname() << endl ) ;
 		((void (*)(pApplication*))(apps[ currAppl->get_appname() ].destroyer_ep))( currAppl )  ;
@@ -1914,7 +1911,7 @@ void startApplication( selobj& sSelect, bool nScreen )
 	}
 
 	currAppl->loadCommandTable() ;
-	pThread = new boost::thread( boost::bind( &pApplication::application, currAppl ) ) ;
+	pThread = new boost::thread( &pApplication::run, currAppl ) ;
 
 	currAppl->pThread = pThread ;
 
@@ -2034,7 +2031,6 @@ void startApplicationBack( selobj sSelect, bool pgmselect )
 
 	p_poolMGR->createProfilePool( err1, applid ) ;
 	p_poolMGR->connect( Appl->taskid(), applid, spool ) ;
-	if ( err1.RC4() ) { createpfKeyDefaults() ; }
 
 	createSharedPoolVars( applid ) ;
 
@@ -2046,7 +2042,7 @@ void startApplicationBack( selobj sSelect, bool pgmselect )
 		Appl->set_zlibd( oldAppl->get_zlibd() ) ;
 	}
 
-	pThread = new boost::thread( boost::bind( &pApplication::application, Appl ) ) ;
+	pThread = new boost::thread( &pApplication::run, Appl ) ;
 
 	Appl->pThread = pThread ;
 
@@ -2141,8 +2137,6 @@ void terminateApplication()
 
 	zappname = currAppl->get_appname() ;
 
-	currAppl->closeTables()  ;
-	currAppl->unloadCommandTable() ;
 	tRC     = currAppl->ZRC  ;
 	tRSN    = currAppl->ZRSN ;
 	tRESULT = currAppl->ZRESULT ;
@@ -3280,21 +3274,6 @@ int getScreenNameNum( const string& s )
 	}
 
 	return j ;
-}
-
-
-void threadErrorHandler()
-{
-	llog( "E", "An exception has occured in an application thread.  See application log for details.  Task ending" << endl ) ;
-	try
-	{
-		currAppl->abendexc() ;
-	}
-	catch (...)
-	{
-		llog( "E", "An abend has occured during abend processing.  Calling abend() only to terminate application" << endl ) ;
-		currAppl->abend() ;
-	}
 }
 
 

@@ -165,7 +165,7 @@ void PBRO01A::application()
 			else if  ( ZRSN == 20 ) { setmsg( "PSYS011U" ) ; }
 		}
 		setmsg( "PSYS011U", COND ) ;
-		cleanup() ; return ;
+		return ;
 	}
 
 	msg    = ""     ;
@@ -213,7 +213,7 @@ void PBRO01A::application()
 		if ( msg == "" ) { zcmd = "" ; }
 
 		display( "PBRO01A1", msg, curfld, curpos ) ;
-		if ( RC == 8 ) { cleanup() ; break ; }
+		if ( RC == 8 ) { break ; }
 
 		msg          = ""    ;
 		rebuildZAREA = false ;
@@ -248,7 +248,7 @@ void PBRO01A::application()
 			textOn       = false ;
 			rebuildZAREA = true  ;
 			read_file( file ) ;
-			if ( RC > 0 ) { setmsg( "PSYS011E" ) ; cleanup() ; return ; }
+			if ( RC > 0 ) { setmsg( "PSYS011E" ) ; return ; }
 		}
 		else if ( cmd == "HEX" )
 		{
@@ -339,7 +339,7 @@ void PBRO01A::application()
 			textOn       = true  ;
 			rebuildZAREA = true  ;
 			read_file( file )    ;
-			if ( RC > 0 ) { setmsg( "PSYS011E" ) ; cleanup() ; return ; }
+			if ( RC > 0 ) { setmsg( "PSYS011E" ) ; return ; }
 		}
 		else if ( cmd.size() > 1 && cmd[ 0 ] == '.' )
 		{

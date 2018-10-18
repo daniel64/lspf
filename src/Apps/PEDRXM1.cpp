@@ -90,7 +90,6 @@ void PEDRXM1::application()
 		mibptr->seterror( "PEDM012H", 24 ) ;
 		macroError()            ;
 		mibptr->setExitRC( 24 ) ;
-		cleanup() ;
 		return ;
 	}
 
@@ -107,7 +106,6 @@ void PEDRXM1::application()
 			macroError() ;
 			editAppl->pcmd.clear() ;
 			mibptr->setExitRC( 20 ) ;
-			cleanup() ;
 			return ;
 		}
 	}
@@ -157,7 +155,6 @@ void PEDRXM1::application()
 	}
 	editAppl->nestLevel = mibptr->nestlvl ;
 	editAppl->pcmd.clear_msg() ;
-	cleanup() ;
 }
 
 

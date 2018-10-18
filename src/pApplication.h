@@ -23,8 +23,9 @@ class pApplication
 		pApplication()  ;
 		virtual ~pApplication() ;
 
+		virtual void run() ;
 		virtual void application() = 0 ;
-		virtual void isredit( const string& ) ;
+		virtual void isredit( const string& ) {} ;
 
 		static map<int, void*>ApplUserData ;
 		static poolMGR*  p_poolMGR  ;
@@ -294,7 +295,6 @@ class pApplication
 		void   msgResponseOK() ;
 		bool   nretriev_on()   ;
 		string get_nretfield() ;
-		void   cleanup()       ;
 		void   (pApplication::*pcleanup)() = &pApplication::cleanup_default ;
 		bool   cleanupRunning()          { return !abended ; }
 		void   abend()  ;
@@ -303,12 +303,9 @@ class pApplication
 		void   uabend( const string&, const string&, int = -1 ) ;
 		void   uabend( const string&, const string&, const string&, int = -1 ) ;
 		void   uabend( const string&, const string&, const string&, const string&, int = -1 ) ;
-		void   abendexc() ;
 		void   set_forced_abend()  ;
 		void   set_timeout_abend() ;
-		void   closeTables() ;
-		void   loadCommandTable()   ;
-		void   unloadCommandTable() ;
+		void   loadCommandTable()  ;
 		void   store_scrname() ;
 		void   restore_Zvars( int ) ;
 		void   reload_keylist( pPanel* ) ;
@@ -430,6 +427,11 @@ class pApplication
 		void xabend( const string&, int = -1 ) ;
 		void cleanup_default()      ;
 		bool isTableOpen( const string& tb_name, const string& func ) ;
+
+		class xTerminate {} ;
+
+		void abendexc() ;
+		void abend_nothrow() ;
 
 		void wait_event() ;
 } ;

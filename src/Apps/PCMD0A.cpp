@@ -66,7 +66,6 @@ void PCMD0A::application()
 	{
 		run_command( PARM, comm1, comm2 ) ;
 		verase( "COMM1 COMM2", SHARED ) ;
-		cleanup() ;
 		return    ;
 	}
 
@@ -98,7 +97,6 @@ void PCMD0A::application()
 		}
 		remove( tname1 ) ;
 		remove( tname2 ) ;
-		cleanup() ;
 		return ;
 	}
 
@@ -146,7 +144,6 @@ void PCMD0A::application()
 	}
 
 	verase( "ZBRALT", SHARED ) ;
-	cleanup() ;
 	return    ;
 }
 

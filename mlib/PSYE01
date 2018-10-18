@@ -24,21 +24,21 @@ PSYE011G 'No )ABC descrption'
 'Action bar choice must have a description defined'
 
 /*  Function pool */
-PSYE012A 'Function pool definition of &ZVAL1 is not of type STRING'
-''
+PSYE012A 'Invalid definition'
+'Function pool definition of &ZVAL1 is not of type STRING'
 
-PSYE012B 'Function pool definition of &ZVAL1 is not of type INT'
-''
+PSYE012B 'Invalid definition'
+'Function pool definition of &ZVAL1 is not of type INT'
 
-PSYE012C 'Call type must be INTEGER'
-''
+PSYE012C 'Invalid call type'
+'Call type must be INTEGER'
 
 /*  Table manager */
 PSYE013A 'Invalid variable name on a &ZVAL1'
 'Variable ''&ZVAL2'' has an invalid format'
 
-PSYE013B 'Maximum return code of &ZVAL1 exceeded for function pool GET of &ZVAL2'
-''
+PSYE013B 'Maximum return code exceeded'
+'Maximum return code of &ZVAL1 exceeded for function pool GET of &ZVAL2'
 
 PSYE013C 'Output destination not specified'
 'No destination specified and ZTABL is null'
@@ -46,38 +46,38 @@ PSYE013C 'Output destination not specified'
 PSYE013D 'Input library not specified'
 'No input library specified and ZTLIB is null'
 
-PSYE013E 'Function &ZVAL1 gave non-zero return code'
-''
+PSYE013E 'Non-zero return code'
+'Function &ZVAL1 gave non-zero return code'
 
-PSYE013F 'Max size of 262,144 rows exceeded'
-''
+PSYE013F 'Max rows exceeded'
+'Maximum of 262,144 rows exceeded'
 
 PSYE013G 'Table not open'
 '&ZVAL1 issued for table &ZVAL2 that is not open'
 
-PSYE013H '&ZVAL1 issued for table &ZVAL2 that is open in read-only mode'
-''
+PSYE013H 'Spare'
+'Spare'
 
-PSYE013I 'Table &ZVAL1 is a temporary table.  Cannot be saved'
-''
+PSYE013I 'Invalid save'
+'Table &ZVAL1 is a temporary table.  Cannot be saved'
 
-PSYE013J 'Entry &ZVAL1 is not a regular directory'
-''
+PSYE013J 'Invalid directory'
+'Entry &ZVAL1 is not a regular directory'
 
 PSYE013K 'Entry cannot be deleted'
 'Error occured deleting entry &ZVAL1'
 
-PSYE013L 'Table load file name &ZVAL1 is not a regular file'
-''
+PSYE013L 'Invalid file'
+'Table load file name &ZVAL1 is not a regular file'
 
-PSYE013M 'Invalid &ZVAL1 parameter specified.  Invalid specification is &ZVAL2'
-''
+PSYE013M 'Invalid parameter'
+'Invalid &ZVAL1 parameter specified.  Invalid specification is &ZVAL2'
 
 PSYE013N 'Bad return code from TBSORT'
 'Sort Information Record found is &ZVAL1'
 
-PSYE013O 'Invalid COND PAIRS specified. &ZVAL1'
-''
+PSYE013O 'Invalid COND PAIRS specified'
+'Entered: ''&ZVAL1'''
 
 PSYE013P 'Invalid keyword'
 '''&ZVAL1'' is not a valid keyword for this service'
@@ -110,7 +110,7 @@ PSYE013Y 'Spare'
 'Spare'
 
 PSYE013Z 'Table already open'
-'TBOPEN issued for table &ZVAL1 that is already open'
+'&ZVAL1 issued for table &ZVAL2 that is already open'
 
 PSYE014A 'Spare'
 'Spare'
@@ -211,29 +211,28 @@ PSYE015L 'Pool manager &ZVAL1 of &ZVAL2 failed'
 ''
 
 /* pool manager messages */
-PSYE017A 'poolMGR has invalid Applid (&ZVAL1).  Logic error'
-''
+PSYE017A 'Internal logic error'
+'poolMGR has invalid Applid (&ZVAL1).'
 
-PSYE017B 'poolMGR locateSubPool() function passed invalid POOL TYPE'
-'Internal logic error.  POOL TYPE must be PROFILE or SHARED'
+PSYE017B 'Internal logic error'
+'locateSubPool POOL TYPE must be PROFILE or SHARED'
 
 
-PSYE017C 'poolMGR get() function passed invalid POOL TYPE'
-'Internal logic error.  POOL TYPE must be ASIS, PROFILE or SHARED'
+PSYE017C 'Internal logic error'
+'poolMGR get() POOL TYPE must be ASIS, PROFILE or SHARED'
 
-PSYE017D 'poolMGR sysput()/sysget() function passed invalid POOL TYPE'
-'Internal logic error.  POOL TYPE must be PROFILE or SHARED'
+PSYE017D 'Internal logic error'
+'poolMGR sysput()/sysget() function passed invalid POOL TYPE. Must be PROFILE or SHARED'
 
-PSYE017E 'poolMGR cannot find pool &ZVAL1'
-'Internal logic error'
-
+PSYE017E 'Internal logic error'
+'poolMGR cannot find pool &ZVAL1'
 
 /* ISPEXEC interface messages */
-PSYE019A '&ZVAL1 service invalid with this interface'
-''
+PSYE019A 'Invalid Service'
+'&ZVAL1 service invalid with this interface'
 
-PSYE019B '&ZVAL1 not a recognised service name'
-''
+PSYE019B 'Invalid service'
+'&ZVAL1 not a recognised service name'
 
 PSYE019C 'Syntax error in service'
 ''
@@ -244,6 +243,6 @@ PSYE019D '&ZVAL1'
 PSYE019E 'Value must be numeric'
 '''&ZVAL1'' is not a numeric value'
 
-PSYE019F 'Numeric value must be greater than 0'
-''
+PSYE019F 'Numeric value incorrect'
+'Numeric value must be greater than 0'
 

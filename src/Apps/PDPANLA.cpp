@@ -116,7 +116,6 @@ void PDPANLA::application()
 	}
 
 	vdelete( "ZCMD ZSEL ZPRIM" ) ;
-	cleanup() ;
 }
 
 

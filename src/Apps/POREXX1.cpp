@@ -62,6 +62,7 @@
 #include "../pApplication.h"
 #include "POREXX1.h"
 
+#include <csignal>
 #include <oorexxapi.h>
 #include <oorexxerrors.h>
 
@@ -116,7 +117,6 @@ void POREXX1::application()
 		ZRSN    = 4  ;
 		ZRESULT = "No REXX passed" ;
 		setmsg( "PSYS012Y" ) ;
-		cleanup() ;
 		return    ;
 	}
 
@@ -202,12 +202,9 @@ void POREXX1::application()
 		lock() ;
 		instance->Terminate() ;
 	}
-	unlock()  ;
+	unlock() ;
 
 	if ( call_uabend ) { uabend() ; }
-
-	cleanup() ;
-	return ;
 }
 
 

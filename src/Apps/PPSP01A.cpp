@@ -132,8 +132,7 @@ void PPSP01A::application()
 	}
 	else { llog( "E", "Invalid parameter passed to PPSP01A: " << PARM << endl ) ; }
 
-	cleanup() ;
-	return    ;
+	return ;
 }
 
 
@@ -1226,7 +1225,7 @@ void PPSP01A::colourSettings()
 	{
 		if ( msg == "" ) { curfld = "ZCMD" ; }
 		display( "PPSP01CL", msg, curfld ) ;
-		if (RC == 8 ) { cleanup() ; break  ; }
+		if (RC == 8 ) { break  ; }
 
 		if ( zcmd == "" )
 		{
@@ -1462,7 +1461,7 @@ void PPSP01A::globalColours()
 	while ( true )
 	{
 		display( "PPSP01CR" ) ;
-		if (RC == 8 ) { cleanup() ; break ; }
+		if (RC == 8 ) {  break ; }
 		for ( i = 1 ; i < 8 ; i++ )
 		{
 			vcopy( "COLOUR"+ d2ds( i, 2 ), colour, MOVE ) ;

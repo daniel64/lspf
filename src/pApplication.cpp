@@ -143,6 +143,60 @@ void pApplication::init_phase2()
 }
 
 
+void pApplication::run()
+{
+	// Start running the user application and catch any exceptions.
+	// Not all exceptions are caught - eg. segmentation faults
+
+	// Cleanup during termination:
+	// 1) Close any tables opened by this application
+	// 2) Unload the application command table
+
+	try
+	{
+		application() ;
+	}
+	catch( pApplication::xTerminate )
+	{
+		llog( "E", "Application "+ zappname +" aborting..." << endl ) ;
+	}
+	catch(...)
+	{
+		try
+		{
+			abendexc() ;
+		}
+		catch (...)
+		{
+			llog( "E", "An abend has occured during abend processing" << endl ) ;
+			llog( "E", "Calling abend() only to terminate application" << endl ) ;
+			abend_nothrow() ;
+		}
+	}
+
+	for ( auto it = tablesOpen.begin() ; it != tablesOpen.end() ; it++ )
+	{
+		debug1( "Closing table " << *it << endl ) ;
+		p_tableMGR->destroyTable( errBlock, *it ) ;
+	}
+
+	p_tableMGR->destroyTable( errBlock, get_applid() + "CMDS" ) ;
+
+	if ( backgrd )
+	{
+		llog( "I", "Shutting down background application: " + zappname +" Taskid: " << taskId << endl ) ;
+	}
+	else
+	{
+		llog( "I", "Shutting down application: " + zappname +" Taskid: " << taskId << endl ) ;
+		llog( "I", "Returning to calling program." << endl ) ;
+	}
+
+	terminateAppl = true  ;
+	busyAppl      = false ;
+}
+
+
 void pApplication::wait_event()
 {
 	busyAppl = false ;
@@ -3800,7 +3854,7 @@ bool pApplication::load_message( const string& p_msg )
 		catch ( boost::filesystem::filesystem_error &e )
 		{
 			RC = 20 ;
-			zerr1 = "I/O error access entry" ;
+			zerr1 = "I/O error accessing entry" ;
 			zerr2 = e.what() ;
 			checkRCode() ;
 			return false ;
@@ -3808,7 +3862,7 @@ bool pApplication::load_message( const string& p_msg )
 		catch (...)
 		{
 			RC = 20 ;
-			zerr1 = "I/O error access entry" ;
+			zerr1 = "I/O error accessing entry" ;
 			zerr2 = filename ;
 			checkRCode() ;
 			return false ;
@@ -4150,24 +4204,6 @@ void pApplication::loadCommandTable()
 }
 
 
-void pApplication::unloadCommandTable()
-{
-	//  Unload application command table
-
-	p_tableMGR->destroyTable( errBlock, get_applid() + "CMDS" ) ;
-}
-
-
-void pApplication::closeTables()
-{
-	for ( auto it = tablesOpen.begin() ; it != tablesOpen.end() ; it++ )
-	{
-		debug1( "Closing table " << *it << endl ) ;
-		p_tableMGR->destroyTable( errBlock, *it ) ;
-	}
-}
-
-
 void pApplication::ispexec( const string& s )
 {
 	ispexeci( this, s, errBlock ) ;
@@ -4365,6 +4401,10 @@ void pApplication::splitZerrlm( string t )
 }
 
 
+/* ************************************ ***************************** ********************************* */
+/* ************************************ Abnormal Termination Routines ********************************* */
+/* ************************************ ***************************** ********************************* */
+
 void pApplication::cleanup_default()
 {
 	// Dummy routine.  Override in the application so the customised one is called on an exception condition.
@@ -4377,23 +4417,14 @@ void pApplication::cleanup_default()
 }
 
 
-void pApplication::cleanup()
+void pApplication::abend()
 {
-	terminateAppl = true ;
-	if ( backgrd )
-	{
-		llog( "I", "Shutting down background application: " + zappname +" Taskid: " << taskId << endl ) ;
-	}
-	else
-	{
-		llog( "I", "Shutting down application: " + zappname +" Taskid: " << taskId << endl ) ;
-		llog( "I", "Returning to calling program." << endl ) ;
-	}
-	busyAppl = false ;
+	abend_nothrow() ;
+	throw( pApplication::xTerminate() ) ;
 }
 
 
-void pApplication::abend()
+void pApplication::abend_nothrow()
 {
 	llog( "E", "Shutting down application: "+ zappname +" Taskid: " << taskId << " due to an abnormal condition" << endl ) ;
 	abnormalEnd   = true  ;
@@ -4401,9 +4432,6 @@ void pApplication::abend()
 	SEL           = false ;
 	(this->*pcleanup)()   ;
 	abended       = true  ;
-	llog( "E", "Application entering wait state" << endl ) ;
-	busyAppl      = false ;
-	boost::this_thread::sleep_for(boost::chrono::seconds(31536000)) ;
 }
 
 
@@ -4417,9 +4445,7 @@ void pApplication::uabend()
 	SEL           = false ;
 	(this->*pcleanup)()   ;
 	abended       = true  ;
-	llog( "E", "Application entering wait state" << endl ) ;
-	busyAppl      = false ;
-	boost::this_thread::sleep_for(boost::chrono::seconds(31536000)) ;
+	throw( pApplication::xTerminate() ) ;
 }
 
 
@@ -4492,9 +4518,7 @@ void pApplication::xabend( const string& msgid, int callno )
 	SEL           = false ;
 	(this->*pcleanup)()   ;
 	abended       = true  ;
-	llog( "E", "Application entering wait state" << endl ) ;
-	busyAppl      = false ;
-	boost::this_thread::sleep_for(boost::chrono::seconds(31536000)) ;
+	throw( pApplication::xTerminate() ) ;
 }
 
 
@@ -4517,9 +4541,6 @@ void pApplication::abendexc()
 	terminateAppl = true  ;
 	SEL           = false ;
 	abended       = true  ;
-	llog( "E", "Application entering wait state" << endl ) ;
-	busyAppl      = false ;
-	boost::this_thread::sleep_for(boost::chrono::seconds(31536000)) ;
 }
 
 
@@ -4532,7 +4553,6 @@ void pApplication::set_forced_abend()
 	SEL               = false ;
 	(this->*pcleanup)()       ;
 	abended           = true  ;
-	busyAppl          = false ;
 }
 
 
@@ -4547,9 +4567,4 @@ void pApplication::set_timeout_abend()
 	(this->*pcleanup)()       ;
 	abended           = true  ;
 	busyAppl          = false ;
-}
-
-
-void pApplication::isredit( const string& s )
-{
 }

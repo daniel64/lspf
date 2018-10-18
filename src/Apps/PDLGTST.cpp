@@ -63,8 +63,7 @@ void PDLGTST::application()
 	else if ( PARM == "2"  ) { checkAlgo()  ; }
 	else if ( PARM == "3"  ) { prepPanels() ; }
 
-	cleanup() ;
-	return    ;
+	return ;
 }
 
 

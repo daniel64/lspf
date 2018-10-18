@@ -194,19 +194,16 @@ void PFLST0A::application()
 					if ( w1 == "BROWSE" )
 					{
 						browse( zpath ) ;
-						cleanup() ;
 						return ;
 					}
 					else if ( w1 == "VIEW" )
 					{
 						view( zpath ) ;
-						cleanup() ;
 						return ;
 					}
 					else
 					{
 						edit( zpath, "", eimac, eprof, lcmtab ) ;
-						cleanup() ;
 						return ;
 					}
 				}
@@ -214,14 +211,11 @@ void PFLST0A::application()
 			catch ( const filesystem_error& ex )
 			{
 				setmsg( "FLST011" ) ;
-				cleanup() ;
-				return    ;
 			}
 		}
 		else if ( w1 == "INFO" )
 		{
 			showInfo( subword( PARM, 2 ) ) ;
-			cleanup() ;
 			return    ;
 		}
 		else if ( w1 == "EXPAND" )
@@ -231,13 +225,11 @@ void PFLST0A::application()
 			{
 				ZRESULT = substr( ZRESULT, lastpos( "/", ZRESULT)+1 ) ;
 			}
-			cleanup() ;
 			return    ;
 		}
 		else if ( w1 == "EXPAND1" )
 		{
 			ZRESULT = expandFld1( subword( PARM, 2 ) ) ;
-			cleanup() ;
 			return    ;
 		}
 		else if ( w1 == "LIST" )
@@ -878,8 +870,7 @@ void PFLST0A::application()
 	tbend( dslist ) ;
 	if ( UseList ) { remove( PssList ) ; }
 
-	cleanup() ;
-	return    ;
+	return ;
 }
 
 
