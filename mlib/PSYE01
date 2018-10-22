@@ -33,7 +33,7 @@ PSYE012B 'Invalid definition'
 PSYE012C 'Invalid call type'
 'Call type must be INTEGER'
 
-/*  Table manager */
+/*  Table and Table Manager */
 PSYE013A 'Invalid variable name on a &ZVAL1'
 'Variable ''&ZVAL2'' has an invalid format'
 
@@ -55,8 +55,8 @@ PSYE013F 'Max rows exceeded'
 PSYE013G 'Table not open'
 '&ZVAL1 issued for table &ZVAL2 that is not open'
 
-PSYE013H 'Spare'
-'Spare'
+PSYE013H 'Table name missing'
+'Table name must be specified on a &ZVAL1 call'
 
 PSYE013I 'Invalid save'
 'Table &ZVAL1 is a temporary table.  Cannot be saved'
@@ -64,8 +64,8 @@ PSYE013I 'Invalid save'
 PSYE013J 'Invalid directory'
 'Entry &ZVAL1 is not a regular directory'
 
-PSYE013K 'Entry cannot be deleted'
-'Error occured deleting entry &ZVAL1'
+PSYE013K 'Namelist missing'
+'If the table has no keys or fields, extension variables must be specified on a &ZVAL1'
 
 PSYE013L 'Invalid file'
 'Table load file name &ZVAL1 is not a regular file'
@@ -154,14 +154,14 @@ PSYE014M 'Unexpected EOF reading table values for table &ZVAL1'
 PSYE014N 'Table &ZVAL1 in use'
 'Table cannot be erased while in use.'
 
-PSYE014O 'Variable &ZVAL1 is a system variable'
-''
+PSYE014O 'Invalid operation'
+'Operation not valid for system variable &ZVAL1'
 
-PSYE014P 'Variable &ZVAL1 is unknown but has a dynamically created value'
-''
+PSYE014P 'Internal logic error'
+'Variable &ZVAL1 is unknown but has a dynamically created value'
 
-PSYE014Q 'Invalid table name ''&ZVAL1'' on &ZVAL2'
-''
+PSYE014Q 'Invalid table name'
+'Table name ''&ZVAL1'' is not of a valid format'
 
 PSYE014R 'WRITE/NOWRITE conflict'
 'Parameter must be consistent across all tasks opening SHARED table &ZVAL1'
@@ -207,8 +207,8 @@ PSYE015J 'Invalid directory'
 PSYE015K 'Invalid directory'
 'Directory &ZVAL1 does not exist for profile save'
 
-PSYE015L 'Pool manager &ZVAL1 of &ZVAL2 failed'
-''
+PSYE015L 'Pool manager error'
+'&ZVAL1 of &ZVAL2 failed'
 
 /* pool manager messages */
 PSYE017A 'Internal logic error'
@@ -234,8 +234,8 @@ PSYE019A 'Invalid Service'
 PSYE019B 'Invalid service'
 '&ZVAL1 not a recognised service name'
 
-PSYE019C 'Syntax error in service'
-''
+PSYE019C 'Spare'
+'Spare'
 
 PSYE019D '&ZVAL1'
 '&ZVAL2'

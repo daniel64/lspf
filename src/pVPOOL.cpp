@@ -1081,15 +1081,16 @@ void poolMGR::setPools( errblock& err )
 		return ;
 	}
 
-	if ( task_table.count( err.taskid ) == 0 )
+	auto it = task_table.find( err.taskid ) ;
+	if ( it == task_table.end() )
 	{
 		llog( "E", "Logic error.  Task "<< err.taskid <<" not connected to pool manager"<< endl ) ;
 		err.seterror() ;
 		return ;
 	}
 
-	_applid = task_table[ err.taskid ].first  ;
-	_shared = task_table[ err.taskid ].second ;
+	_applid = it->second.first  ;
+	_shared = it->second.second ;
 }
 
 

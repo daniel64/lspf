@@ -333,6 +333,7 @@ void PFLST0A::application()
 			tbend( dslist ) ;
 			createFileList1( filter ) ;
 			zcmd = "" ;
+			i    = 1  ;
 			continue  ;
 		}
 		if ( w1 == "O" && w2 != "" && w3 == "" )
@@ -342,6 +343,7 @@ void PFLST0A::application()
 			tbend( dslist ) ;
 			createFileList1( filter ) ;
 			zcmd = "" ;
+			i    = 1  ;
 			continue  ;
 		}
 		if ( ( w1 == "SEARCH" || w1 == "SRCHFOR" ) && w2 != "" && w3 == "" )
@@ -352,6 +354,7 @@ void PFLST0A::application()
 			tbend( dslist ) ;
 			createFileList1( filter ) ;
 			zcmd = "" ;
+			i    = 1  ;
 			continue  ;
 		}
 		i = ztdtop ;
@@ -662,7 +665,7 @@ void PFLST0A::application()
 					{
 						rsn     = "1 entry deleted" ;
 						setmsg( "FLST011N" ) ;
-						message = "Deleted"         ;
+						message = "Deleted"  ;
 					}
 					else
 					{
@@ -972,6 +975,7 @@ void PFLST0A::createFileList1( string filter )
 		}
 		catch  ( boost::regex_error& e )
 		{
+			vreplace( "ZZSTR", filter ) ;
 			setmsg( "PSYS012P" ) ;
 			return ;
 		}

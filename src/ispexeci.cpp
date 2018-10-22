@@ -674,9 +674,9 @@ void execiTBCreate( pApplication* thisAppl, const string& s, errblock& err )
 
 void execiTBDelete( pApplication* thisAppl, const string& s, errblock& err )
 {
-	if ( words( s ) != 2 )
+	if ( words( s ) > 2 )
 	{
-		err.seterrid( "PSYE019C" ) ;
+		err.seterrid( "PSYE032H", subword( s, 3 ) ) ;
 		return ;
 	}
 
@@ -757,7 +757,7 @@ void execiTBDispl( pApplication* thisAppl, const string& s, errblock& err )
 
 void execiTBEnd( pApplication* thisAppl, const string& s, errblock& err )
 {
-	if ( words( s ) != 2 )
+	if ( words( s ) > 2 )
 	{
 		err.seterrid( "PSYE032H", subword( s, 3 ) ) ;
 		return ;
@@ -792,7 +792,7 @@ void execiTBErase( pApplication* thisAppl, const string& s, errblock& err )
 
 void execiTBExist( pApplication* thisAppl, const string& s, errblock& err )
 {
-	if ( words( s ) != 2 )
+	if ( words( s ) > 2 )
 	{
 		err.seterrid( "PSYE032H", subword( s, 3 ) ) ;
 		return ;
@@ -1154,7 +1154,7 @@ void execiTBSort( pApplication* thisAppl, const string& s, errblock& err )
 
 void execiTBTop( pApplication* thisAppl, const string& s, errblock& err )
 {
-	if ( words( s ) != 2 )
+	if ( words( s ) > 2 )
 	{
 		err.seterrid( "PSYE032H", subword( s, 3 ) ) ;
 		return ;
@@ -1166,7 +1166,7 @@ void execiTBTop( pApplication* thisAppl, const string& s, errblock& err )
 
 void execiTBVClear( pApplication* thisAppl, const string& s, errblock& err )
 {
-	if ( words( s ) != 2 )
+	if ( words( s ) > 2 )
 	{
 		err.seterrid( "PSYE032H", subword( s, 3 ) ) ;
 		return ;

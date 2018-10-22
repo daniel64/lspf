@@ -191,7 +191,6 @@ void PEDRXM1::start_rexx()
 	{
 		args   = threadContext->NewArray( 0 ) ;
 		result = threadContext->CallProgram( rexxName.c_str(), args ) ;
-
 		if ( threadContext->CheckCondition() )
 		{
 			cond = threadContext->GetConditionInfo() ;

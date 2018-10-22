@@ -98,7 +98,7 @@ void POREXX1::application()
 	size_t version ;
 
 	string rxpath  ;
-	string msg     ;
+	string val1    ;
 
 	bool call_uabend = false ;
 
@@ -117,7 +117,7 @@ void POREXX1::application()
 		ZRSN    = 4  ;
 		ZRESULT = "No REXX passed" ;
 		setmsg( "PSYS012Y" ) ;
-		return    ;
+		return ;
 	}
 
 	RexxInstance* instance   ;
@@ -169,26 +169,27 @@ void POREXX1::application()
 			llog( "E", "   Condition Error Text . .: " << threadContext->CString( condition.errortext ) << endl ) ;
 			llog( "E", "   Condition Message. . . .: " << threadContext->CString( condition.message ) << endl ) ;
 			llog( "E", "   Line Error Occured . . .: " << condition.position << endl ) ;
-			ZRC     = 20 ;
-			ZRSN    = condition.code ;
-			ZRESULT = threadContext->CString( condition.message ) ;
+			ZRC = 20 ;
 			if ( condition.code == Rexx_Error_Program_unreadable_notfound )
 			{
 				rdisplay( "COMMAND "+ rexxName + " NOT FOUND" ) ;
-				call_uabend = true ;
-				ZRSN        = 997  ;
-				ZRESULT     = "Not Found" ;
+				ZRSN    = 997 ;
+				ZRESULT = "Not Found" ;
 			}
 			else
 			{
-				msg = "Error on line: "+ d2ds( condition.position ) ;
-				msg = msg +".  Condition code: "+ d2ds( condition.code ) ;
-				msg = msg +".  Error Text: "+ threadContext->CString( condition.errortext ) ;
-				msg = msg +".  Message: "+ threadContext->CString( condition.message ) ;
-				if ( msg.size() > 512 ) { msg.erase( 512 ) ; }
-				vreplace( "STR", msg ) ;
-				setmsg( "PSYS011M" ) ;
+				ZRSN  = condition.code ;
+				val1  = "Error on line: "+ d2ds( condition.position ) ;
+				val1 += ".  Condition code: " ;
+				val1 += d2ds( ZRSN ) ;
+				val1 += ".  Error Text: " ;
+				val1 += threadContext->CString( condition.errortext ) ;
+				val1 += ".  Message: " ;
+				val1 += threadContext->CString( condition.message ) ;
+				if ( val1.size() > 512 ) { val1.erase( 512 ) ; }
+				showErrorScreen( "PSYS012Z", val1 ) ;
 			}
+			call_uabend = true ;
 		}
 		else if ( result != NULLOBJECT )
 		{
@@ -205,6 +206,51 @@ void POREXX1::application()
 	unlock() ;
 
 	if ( call_uabend ) { uabend() ; }
+}
+
+
+void POREXX1::showErrorScreen( const string& msg, string& val1 )
+{
+	// Show error screen PSYSER3 for message 'msg' and ZVAL1 val1.
+
+	size_t i ;
+
+	int l    ;
+	int maxw ;
+
+	string* t ;
+
+	vdefine( "ZSCRMAXW", &maxw ) ;
+	vdefine( "ZVAL1", &val1 ) ;
+	vreplace( "ZERRMSG", msg ) ;
+	vreplace( "ZERRDSC", "" ) ;
+	vreplace( "ZERRSRC", "" ) ;
+
+	vget( "ZSCRMAXW", SHARED ) ;
+	getmsg( msg, "ZERRSM", "ZERRLM" ) ;
+
+	vcopy( "ZERRLM", t, LOCATE ) ;
+
+	maxw = maxw - 6 ;
+	l    = 0 ;
+	do
+	{
+		l++ ;
+		if ( t->size() > maxw )
+		{
+			i = t->find_last_of( ' ', maxw ) ;
+			i = ( i == string::npos ) ? maxw : i + 1 ;
+			vreplace( "ZERRLM"+ d2ds( l ), t->substr( 0, i ) ) ;
+			t->erase( 0, i ) ;
+		}
+		else
+		{
+			vreplace( "ZERRLM"+d2ds( l ), *t ) ;
+			*t = "" ;
+		}
+	} while ( t->size() > 0 ) ;
+
+	display( "PSYSER3" ) ;
 }
 
 

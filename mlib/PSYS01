@@ -158,7 +158,7 @@ PSYS012O 'Invalid PAD value' .TYPE=W
 'and B for blank. It must also be different from the command delimiter'
 
 PSYS012P 'Invalid REGEX entered' .TYPE=W
-''
+'''&ZZSTR'' is not a valid regular expression'
 
 PSYS012Q 'Invalid value entered' .TYPE=W .W=NORESP
 'Invalid &ZZSTR1'
@@ -185,4 +185,7 @@ PSYS012X 'Invalid command' .TYPE=W
 'Command ''&ZVAL1'' not found'
 
 PSYS012Y 'Command missing' .TYPE=W
-''
+'Enter missing command'
+
+PSYS012Z 'REXX interpreter error' .TYPE=W
+'&ZVAL1'

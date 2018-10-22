@@ -243,6 +243,8 @@ void Table::tbadd( errblock& err,
 
 	// If ORDER specified on a sorted table, sort the table again after adding the record and reset CRP
 
+	// If the table has no fields, tb_namelst must be specified.
+
 	string key  ;
 	string val  ;
 	string URID ;
@@ -283,6 +285,12 @@ void Table::tbadd( errblock& err,
 			err.setRC( 8 ) ;
 			return ;
 		}
+	}
+
+	if ( num_all == 0 && tb_namelst == "" )
+	{
+		err.seterrid( "PSYE013K", "TBADD" ) ;
+		return ;
 	}
 
 	row = new vector<string> ;
@@ -560,6 +568,12 @@ void Table::tbmod( errblock& err,
 	iupper( tb_namelst ) ;
 	iupper( tb_order )   ;
 
+	if ( num_all == 0 && tb_namelst == "" )
+	{
+		err.seterrid( "PSYE013K", "TBMOD" ) ;
+		return ;
+	}
+
 	if ( num_keys == 0 )
 	{
 		tbadd( err, funcPOOL, tb_namelst, tb_order, 0 ) ;
@@ -631,6 +645,12 @@ void Table::tbput( errblock& err,
 	iupper( tb_order )   ;
 
 	if ( CRP == 0 ) { err.setRC( 8 ) ; return ; }
+
+	if ( num_all == 0 && tb_namelst == "" )
+	{
+		err.seterrid( "PSYE013K", "TBPUT" ) ;
+		return ;
+	}
 
 	it = table.begin() + CRP - 1 ;
 
@@ -731,6 +751,8 @@ void Table::tbsarg( errblock& err,
 
 	string nl_namelst ;
 	string nl_cond_pairs ;
+
+	err.setRC( 0 ) ;
 
 	iupper( tb_dir ) ;
 
@@ -1603,20 +1625,24 @@ tableMGR::~tableMGR()
 }
 
 
-void tableMGR::createTable( errblock& err,
-			    const string& tb_name,
-			    string keys, string flds,
-			    tbREP tb_REP,
-			    tbWRITE tb_WRITE,
-			    const string& tb_paths,
-			    tbDISP tb_DISP,
-			    bool tb_open )
+map<string, Table*>::iterator tableMGR::createTable( errblock& err,
+						     const string& tb_name,
+						     string keys, string flds,
+						     tbREP tb_REP,
+						     tbWRITE tb_WRITE,
+						     const string& tb_paths,
+						     tbDISP tb_DISP,
+						     bool tb_open )
 {
 	// RC =  0 Normal
 	// RC =  4 Normal - duplicate table replaced
-	// RC =  8 REPLACE not specified and table exists, or REPLACE specified with table open in SHARE
+	// RC =  8 REPLACE not specified and table exists,
+	//         or REPLACE specified with table open in SHARE
+	//         or REPLACE specified but a different task has it open EXCLUSIVE.
 	// RC = 12 Table in use or inconsistent WRITE/NOWRITE parmameters
 	// RC = 20 Severe error
+
+	// Returns: Iterator to the inserted table entry.
 
 	// Exists => With WRITE   - In storage and/or on disk
 	//                NOWRITE - In storage only
@@ -1650,27 +1676,27 @@ void tableMGR::createTable( errblock& err,
 			if ( it->second->tab_WRITE != tb_WRITE )
 			{
 				err.seterrid( "PSYE014R", tb_name, 12 ) ;
-				return ;
+				return it ;
 			}
 		}
 		else
 		{
 			err.seterrid( "PSYE013Z", "TBCREATE", tb_name, 12 ) ;
-			return ;
+			return it ;
 		}
 		if ( tb_REP == REPLACE )
 		{
 			if ( tb_DISP == SHARE )
 			{
 				err.setRC( 8 ) ;
-				return ;
+				return it ;
 			}
 			else
 			{
 				if ( it->second->ownerTask != err.taskid )
 				{
 					err.setRC( 8 ) ;
-					return ;
+					return it ;
 				}
 				else
 				{
@@ -1682,13 +1708,13 @@ void tableMGR::createTable( errblock& err,
 		else
 		{
 			err.setRC( 8 ) ;
-			return ;
+			return it ;
 		}
 	}
 	else if ( tb_WRITE == WRITE && not tb_open )
 	{
 		filename = locate( err, tb_name, tb_paths ) ;
-		if ( err.error() ) { return ; }
+		if ( err.error() ) { return it ; }
 		if ( filename != "" )
 		{
 			if ( tb_REP == REPLACE )
@@ -1696,7 +1722,7 @@ void tableMGR::createTable( errblock& err,
 				if ( tb_DISP == SHARE )
 				{
 					err.setRC( 8 ) ;
-					return ;
+					return it ;
 				}
 				else
 				{
@@ -1706,7 +1732,7 @@ void tableMGR::createTable( errblock& err,
 			else
 			{
 				err.setRC( 8 ) ;
-				return ;
+				return it ;
 			}
 		}
 	}
@@ -1726,16 +1752,19 @@ void tableMGR::createTable( errblock& err,
 	t->num_all   = t->num_keys + t->num_flds ;
 	t->tab_cmds  = ( t->tab_all == "ZCTVERB ZCTTRUNC ZCTACT ZCTDESC" ) ;
 
-	tables[ tb_name ] = t ;
+	pair<map<string, Table*>::iterator, bool> result ;
+	result = tables.insert( pair<string, Table*>( tb_name, t ) ) ;
+
+	return result.first ;
 }
 
 
-void tableMGR::loadTable( errblock& err,
-			  const string& tb_name,
-			  tbWRITE tb_WRITE,
-			  const string& tb_paths,
-			  tbDISP tb_DISP,
-			  bool tb_open )
+map<string, Table*>::iterator tableMGR::loadTable( errblock& err,
+						   const string& tb_name,
+						   tbWRITE tb_WRITE,
+						   const string& tb_paths,
+						   tbDISP tb_DISP,
+						   bool tb_open )
 {
 	// Routine to load V1 and V2 format tables from a disk file
 
@@ -1743,6 +1772,8 @@ void tableMGR::loadTable( errblock& err,
 	// RC = 8  Table does not exist in search path
 	// RC = 12 Table already open by this or another task or inconsistent WRITE/NOWRITE parmameters
 	// RC = 20 Severe error
+
+	// Returns: Iterator to the table entry.
 
 	// If table already loaded, use count can be increased only if the request
 	// is SHARE when loaded SHARE. Any other combination is invalid.
@@ -1766,13 +1797,13 @@ void tableMGR::loadTable( errblock& err,
 	char  z[ 2 ]      ;
 
 	string filename ;
-	string path  ;
-	string s     ;
-	string hdr   ;
-	string sir   ;
-	string val   ;
-	string keys  ;
-	string flds  ;
+	string path ;
+	string s    ;
+	string hdr  ;
+	string sir  ;
+	string val  ;
+	string keys ;
+	string flds ;
 
 	size_t buf2Size = 1024 ;
 
@@ -1806,23 +1837,23 @@ void tableMGR::loadTable( errblock& err,
 		{
 			err.seterrid( "PSYE013Z", "TBOPEN", tb_name, 12 ) ;
 		}
-		return ;
+		return it ;
 	}
 
 	filename = locate( err, tb_name, tb_paths ) ;
-	if ( err.error() ) { return ; }
+	if ( err.error() ) { return it ; }
 
 	if ( filename == "" )
 	{
 		err.setRC( 8 ) ;
-		return ;
+		return it ;
 	}
 
 	table.open( filename.c_str() , ios::binary | ios::in ) ;
 	if ( !table.is_open() )
 	{
 		err.seterrid( "PSYE014D", tb_name, filename ) ;
-		return ;
+		return it ;
 	}
 
 	table.read( buf1, 2);
@@ -1830,7 +1861,7 @@ void tableMGR::loadTable( errblock& err,
 	{
 		err.seterrid( "PSYE014E", tb_name, filename ) ;
 		table.close() ;
-		return ;
+		return it ;
 	}
 
 	table.get( x ) ;
@@ -1839,7 +1870,7 @@ void tableMGR::loadTable( errblock& err,
 	{
 		err.seterrid( "PSYE014F", d2ds( ver ), filename ) ;
 		table.close() ;
-		return ;
+		return it ;
 	}
 
 	table.get( x ) ;
@@ -1860,7 +1891,7 @@ void tableMGR::loadTable( errblock& err,
 		default:
 			err.seterrid( "PSYE014G", d2ds( j+1 ) ) ;
 			table.close() ;
-			return ;
+			return it ;
 		}
 	}
 	table.read( z, 2 ) ;
@@ -1886,7 +1917,7 @@ void tableMGR::loadTable( errblock& err,
 		{
 			err.seterrid( "PSYE014H", tb_name, filename ) ;
 			table.close() ;
-			return ;
+			return it ;
 		}
 		i = (unsigned char)x ;
 		table.read( buf1, i ) ;
@@ -1899,7 +1930,7 @@ void tableMGR::loadTable( errblock& err,
 		{
 			err.seterrid( "PSYE014I", tb_name, filename ) ;
 			table.close() ;
-			return ;
+			return it ;
 		}
 		i = (unsigned char)x ;
 		table.read( buf1, i ) ;
@@ -1907,14 +1938,13 @@ void tableMGR::loadTable( errblock& err,
 	}
 
 
-	createTable( err, tb_name, keys, flds, NOREPLACE, tb_WRITE, path, tb_DISP, tb_open ) ;
+	it = createTable( err, tb_name, keys, flds, NOREPLACE, tb_WRITE, path, tb_DISP, tb_open ) ;
 	if ( err.getRC() > 0 )
 	{
 		table.close() ;
-		return ;
+		return it ;
 	}
 
-	it = tables.find( tb_name ) ;
 	it->second->reserveSpace( num_rows ) ;
 	if ( sir != "" )
 	{
@@ -1923,7 +1953,7 @@ void tableMGR::loadTable( errblock& err,
 		{
 			err.seterrid( "PSYE013N", sir ) ;
 			destroyTable( err1, tb_name ) ;
-			return  ;
+			return it ;
 		}
 	}
 	buf2 = new char[ buf2Size ] ;
@@ -1940,7 +1970,7 @@ void tableMGR::loadTable( errblock& err,
 				delete[] buf2 ;
 				delete row    ;
 				destroyTable( err1, tb_name ) ;
-				return ;
+				return it ;
 			}
 			n1 = (unsigned char)z[ 0 ] ;
 			n2 = (unsigned char)z[ 1 ] ;
@@ -1959,7 +1989,7 @@ void tableMGR::loadTable( errblock& err,
 				delete[] buf2 ;
 				delete row    ;
 				destroyTable( err1, tb_name ) ;
-				return ;
+				return it ;
 			}
 			val.assign( buf2, i ) ;
 			debug2( "Value read for row "<< l <<" position "<< j <<" '"+ val +"'" <<endl ) ;
@@ -1975,7 +2005,7 @@ void tableMGR::loadTable( errblock& err,
 				delete[] buf2 ;
 				delete row    ;
 				destroyTable( err1, tb_name ) ;
-				return ;
+				return it ;
 			}
 			n1 = (unsigned char)z[ 0 ] ;
 			n2 = (unsigned char)z[ 1 ] ;
@@ -1990,7 +2020,7 @@ void tableMGR::loadTable( errblock& err,
 					delete[] buf2 ;
 					delete row    ;
 					destroyTable( err1, tb_name ) ;
-					return ;
+					return it ;
 				}
 				n1 = (unsigned char)z[ 0 ] ;
 				n2 = (unsigned char)z[ 1 ] ;
@@ -2009,7 +2039,7 @@ void tableMGR::loadTable( errblock& err,
 					delete[] buf2 ;
 					delete row    ;
 					destroyTable( err1, tb_name ) ;
-					return ;
+					return it ;
 				}
 				val.assign( buf2, k ) ;
 				row->push_back( val ) ;
@@ -2022,7 +2052,7 @@ void tableMGR::loadTable( errblock& err,
 				delete[] buf2 ;
 				delete row    ;
 				destroyTable( err1, tb_name ) ;
-				return ;
+				return it ;
 			}
 			if ( z[ 0 ] != char(0xFF) )
 			{
@@ -2031,7 +2061,7 @@ void tableMGR::loadTable( errblock& err,
 				delete[] buf2 ;
 				delete row    ;
 				destroyTable( err1, tb_name ) ;
-				return ;
+				return it ;
 			}
 		}
 		it->second->loadRow( err, row ) ;
@@ -2041,7 +2071,7 @@ void tableMGR::loadTable( errblock& err,
 			delete[] buf2 ;
 			delete row    ;
 			destroyTable( err1, tb_name ) ;
-			return ;
+			return it ;
 		}
 	}
 	if ( ver > 1 )
@@ -2053,7 +2083,7 @@ void tableMGR::loadTable( errblock& err,
 			table.close() ;
 			delete[] buf2 ;
 			destroyTable( err1, tb_name ) ;
-			return ;
+			return it ;
 		}
 		if ( z[ 0 ] != char(0xFF) )
 		{
@@ -2061,7 +2091,7 @@ void tableMGR::loadTable( errblock& err,
 			table.close() ;
 			delete[] buf2 ;
 			destroyTable( err1, tb_name ) ;
-			return ;
+			return it ;
 		}
 	}
 
@@ -2076,6 +2106,8 @@ void tableMGR::loadTable( errblock& err,
 	}
 	table.close() ;
 	delete[] buf2 ;
+
+	return it ;
 }
 
 
@@ -2131,6 +2163,8 @@ void tableMGR::saveTable( errblock& err,
 	// the first file in the list.
 
 	string filename ;
+
+	err.setRC( 0 ) ;
 
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
@@ -2262,7 +2296,7 @@ void tableMGR::fillfVARs( errblock& err,
 	auto it = tables.find( tb_name ) ;
 	if ( it == tables.end() )
 	{
-		err.seterrid( "PSYE013G", "FILLVARS", tb_name, 12 ) ;
+		err.seterrid( "PSYE013G", "FILLFVARS", tb_name, 12 ) ;
 		return ;
 	}
 	it->second->fillfVARs( err, funcPOOL, clear_flds, scan, depth, posn, csrrow, idr ) ;
@@ -2411,9 +2445,14 @@ void tableMGR::tberase( errblock& err,
 		{
 			remove( filename ) ;
 		}
+		catch ( boost::filesystem::filesystem_error &e )
+		{
+			err.seterrid( "PSYS012C", e.what() ) ;
+			return ;
+		}
 		catch (...)
 		{
-			err.seterrid( "PSYE013K", filename ) ;
+			err.seterrid( "PSYS012C", "Entry: "+ filename ) ;
 		}
 	}
 	else
@@ -2535,12 +2574,11 @@ void tableMGR::cmdsearch( errblock& err,
 			err.setRC( 4 ) ;
 			return ;
 		}
-		loadTable( err, tb_name, NOWRITE, paths, SHARE ) ;
-		if ( not err.RC0() )
+		it = loadTable( err, tb_name, NOWRITE, paths, SHARE ) ;
+		if ( it == tables.end() )
 		{
 			return ;
 		}
-		it = tables.find( tb_name ) ;
 	}
 	it->second->cmdsearch( err, funcPOOL, cmd ) ;
 }

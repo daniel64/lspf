@@ -745,7 +745,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 	{
 		if ( fieldList.count( scroll ) == 0 )
 		{
-			err.seterrid( "PSYE042K" ) ;
+			err.seterrid( "PSYE042K", scroll ) ;
 			return ;
 		}
 		fieldList[ scroll ]->field_caps = true ;

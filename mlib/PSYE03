@@ -18,8 +18,8 @@ PSYE031D 'Invalid variable name ''&ZVAL1'''
 PSYE031E 'Invalid &ZVAL1 name'
 '&ZVAL1 name ''&ZVAL2'' has an invalid format'
 
-PSYE031F 'Invalid field name ''&ZVAL1'' on &ZVAL2 statement'
-''
+PSYE031F 'Invalid field name'
+'Field name ''&ZVAL1'' on &ZVAL2 statement is invalid'
 
 PSYE031G 'No parameter value coded'
 'No value found between ''('' and '')'''
@@ -58,14 +58,14 @@ PSYE032E 'Missing shadow variable name'
 PSYE032F 'Invalid CUA attribute specified'
 'CUA attribute &ZVAL1 is invalid'
 
-PSYE032G 'Dynamic area variable ''&ZVAL1'' is not in the function pool'
-''
+PSYE032G 'Dynamic area variable not defined'
+'Dynamic area variable ''&ZVAL1'' is not in the function pool'
 
 PSYE032H 'Extraeneous data'
 'Data ''&ZVAL1'' found on statement not recognised as a valid parameter'
 
-PSYE032I 'Dynamic area shadow variable ''&ZVAL1'' is not in the function pool'
-''
+PSYE032I 'Shadow variable not defined'
+'Shadow variable ''&ZVAL1'' is not in the function pool'
 
 /* IF */
 PSYE032Z 'Boolean operator expected'
@@ -89,8 +89,8 @@ PSYE033E 'Invalid comparison operator'
 PSYE033F 'Missing ending quote'
 'String starts with a quote but no ending quote found'
 
-PSYE033G 'Unrecognised control variable ''&ZVAL1'''
-''
+PSYE033G 'Unrecognised control variable'
+'''&ZVAL1'' is not recognied as a panel control variable'
 
 PSYE033H 'List not allowed'
 'A value list is allowed on the right hand side only for EQ and NE comparisons'
@@ -136,7 +136,7 @@ PSYE033T 'Missing parameter after the ''='' sign'
 ''
 
 PSYE033U 'Unknown function &ZVAL1'
-''
+'&ZVAL1 is not recognised as a valid panel function'
 
 /* VPUT/VGET */
 

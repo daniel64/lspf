@@ -68,35 +68,35 @@ PSYE041U 'Invalid statement'
 PSYE041V 'ACTION found with no PDC'
 'Missing PDC statement before ACTION statement'
 
-PSYE041W 'Invalid field name ''&ZVAL1'' on REFRESH statement'
-''
+PSYE041W 'Invalid REFRESH statement'
+'Invalid field name ''&ZVAL1'' on REFRESH statement'
 
-PSYE041X 'REFRESH field ''&ZVAL1'' not on the panel'
-''
+PSYE041X 'Invalid REFRESH field ''&ZVAL1'''
+'REFRESH field ''&ZVAL1'' not on the panel'
 
-PSYE041Y 'Variable name or name-list not coded for ''REFRESH'' statement'
-''
+PSYE041Y 'Invalid REFRESH statement'
+'Variable name or name-list not coded for ''REFRESH'' statement'
 
-PSYE041Z 'Invalid label ''&ZVAL1'' on GOTO statement'
-''
+PSYE041Z 'Invalid label ''&ZVAL1'''
+'Invalid label ''&ZVAL1'' on GOTO statement'
 
-PSYE042A 'Invalid FIELD help entry in )HELP section.  Missing bracket'
-''
+PSYE042A 'Missing bracket'
+'Invalid FIELD help entry in )HELP section.  Missing bracket'
 
 PSYE042B 'Invalid HELP entry field name ''&ZVAL1'''
 ''
 
-PSYE042C 'Invalid HELP statement.  Field ''&ZVAL1'' does not exist'
-''
+PSYE042C 'Invalid HELP statement'
+'Field ''&ZVAL1'' does not exist'
 
 PSYE042D 'Invalid HELP entry name ''&ZVAL1'''
 ''
 
-PSYE042E 'Point-and-shoot field ''&ZVAL1'' not found in panel'
-''
+PSYE042E 'Invalid point-and-shoot field'
+'Point-and-shoot field ''&ZVAL1'' not found in panel'
 
-PSYE042F 'Point-and-shoot variable ''&ZVAL1'' not found in panel'
-''
+PSYE042F 'Invalid point-and-shoot variable'
+'Point-and-shoot variable ''&ZVAL1'' not found in panel'
 
 PSYE042G 'Invalid format of FIELD() definition'
 ''
@@ -104,26 +104,26 @@ PSYE042G 'Invalid format of FIELD() definition'
 PSYE042H 'Invalid format of EXEC() definition'
 ''
 
-PSYE042I 'Field ''&ZVAL1'' passed on field command for ''&ZVAL2'' is not defined in panel body'
-''
+PSYE042I 'Field ''&ZVAL1'' not defined'
+'Field ''&ZVAL1'' passed on field command for ''&ZVAL2'' is not defined in panel body'
 
-PSYE042J 'Duplicate field command entry in )FIELD panel section for ''&ZVAL1'''
-''
+PSYE042J 'Duplicate field command entry'
+'Duplicate field command entry in )FIELD panel section for ''&ZVAL1'''
 
-PSYE042K 'Field ZSCROLL not defined for scrollable panel'
-''
+PSYE042K 'Field &ZVAL1 not found'
+'Scroll field ''&ZVAL1'' not defined in panel body'
 
-PSYE042L 'Home field ''&ZVAL1'' not defined in panel body'
-''
+PSYE042L 'Field ''&ZVAL1'' not found'
+'Home field ''&ZVAL1'' not defined in panel body'
 
-PSYE042M 'Command field ''&ZVAL1'' not defined in panel body'
-''
+PSYE042M 'Field ''&ZVAL1'' not found'
+'Command field ''&ZVAL1'' not defined in panel body'
 
 PSYE042N 'No command field defined'
 'Scrollable panels must have a command field defined'
 
-PSYE042O 'Invalid value for .AUTOSEL control variable.  Must be YES, NO or blank'
-''
+PSYE042O 'Invalid value for .AUTOSEL control variable'
+'Value for .AUTOSEL control variable must be YES, NO or blank'
 
 PSYE042P 'Invalid command field name'
 'Selection panels must have a command field name of ZCMD'

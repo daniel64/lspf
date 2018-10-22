@@ -14,8 +14,8 @@ PEDM011C 'Missing closing bracket on statement found'
 PEDM011D 'Invalid variable name'
 'Variable name ''&ZVAL1'' is not valid'
 
-PEDM011E 'The MACRO statement must precede any other edit macro statement'
-''
+PEDM011E 'Invalid MACRO statement'
+'The MACRO statement must precede any other edit macro statement'
 
 PEDM011F 'Invalid variable format'
 'The ending '')'' was not found'

@@ -28,6 +28,8 @@ class POREXX1 : public pApplication
 	private:
 		static boost::mutex mtx ;
 
+		void   showErrorScreen( const string&, string& ) ;
+
 		void lock()   { mtx.lock()   ; }
 		void unlock() { mtx.unlock() ; }
 } ;

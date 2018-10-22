@@ -76,6 +76,10 @@ literal  18  17   NT   "Terminate Settings"
 &ZPRIM  = YES
 
 )PROC
+IF ( TRUNC( &ZCMD, 1 ) EQ '.' )
+   .MSG = PSYS016
+   EXIT
+
 &ZSEL = TRANS( TRUNC( &ZCMD,'.' ) ,
                      0,'PGM(PPSP01A) PARM(GOPTS)    NEWPOOL SCRNAME(SETTINGS)'
                      1,'PGM(PPSP01A) PARM(KEYS)     NEWPOOL SCRNAME(PFKEYS)'

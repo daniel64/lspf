@@ -95,7 +95,8 @@ pApplication::~pApplication()
 
 void pApplication::init_phase1( selobj& sel, int taskid, void (* Callback)( lspfCommand& ) )
 {
-	// Setup various program parameters.  Variable services are not available at this time.
+	// Setup various program parameters.
+	// Variable services are not available at this time.
 
 	zappname = sel.pgm  ;
 	PARM     = sel.parm ;
@@ -679,7 +680,7 @@ void pApplication::libdef( const string& lib,
 	// RC = 16  No paths in the ID() parameter
 	// RC = 20  Severe error
 
-	const string e1 = "LIBDEF error" ;
+	const string e1 = "LIBDEF Error" ;
 
 	int i ;
 	int p ;
@@ -800,7 +801,7 @@ void pApplication::qlibdef( const string& lib, const string& type_var, const str
 {
 	// query libdef status for lib-type lib
 
-	const string e1 = "QLIBDEF error" ;
+	const string e1 = "QLIBDEF Error" ;
 
 	string t ;
 
@@ -973,7 +974,7 @@ void pApplication::vdefine( const string& names,
 
 	int w ;
 
-	const string e1 = "VDEFINE error" ;
+	const string e1 = "VDEFINE Error" ;
 
 	string name ;
 
@@ -1104,7 +1105,7 @@ void pApplication::vdefine( const string& names,
 	int w  ;
 
 	string name ;
-	const string e1 = "VDEFINE error" ;
+	const string e1 = "VDEFINE Error" ;
 
 	RC = 0 ;
 
@@ -1251,7 +1252,7 @@ void pApplication::vmask( const string& name, const string& type, const string& 
 	// RC = 20 Severe error
 	// (funcPOOL.setmask returns 0, 8 or 20)
 
-	const string e1    = "VMASK error" ;
+	const string e1    = "VMASK Error" ;
 	const string fmask = "IDATE STDDATE ITIME STDTIME JDATE JSTD" ;
 
 	if ( type == "FORMAT" )
@@ -1365,7 +1366,7 @@ void pApplication::vget( const string& names, poolType pType )
 	string val  ;
 	string name ;
 
-	const string e1 = "VGET failed" ;
+	const string e1 = "VGET Error" ;
 
 	dataType var_type ;
 
@@ -1424,7 +1425,7 @@ void pApplication::vput( const string& names, poolType pType )
 	string s_val ;
 	string name  ;
 
-	const string e1 = "VPUT failed" ;
+	const string e1 = "VPUT Error" ;
 
 	dataType var_type ;
 
@@ -1482,13 +1483,14 @@ void pApplication::vcopy( const string& var, string& val, vcMODE mode )
 
 	dataType var_type ;
 
-	const string e1 = "VCOPY failed" ;
+	const string e1 = "VCOPY Error" ;
 
 	switch ( mode )
 	{
 	case LOCATE:
 		errBlock.setcall( e1, "PSYE022A" ) ;
-		break ;
+		checkRCode( errBlock ) ;
+		return ;
 
 	case MOVE:
 		var_type = funcPOOL.getType( errBlock, var ) ;
@@ -1549,7 +1551,7 @@ void pApplication::vcopy( const string& var, string* & p_val, vcMODE mode )
 
 	dataType var_type  ;
 
-	const string e1 = "VCOPY failed" ;
+	const string e1 = "VCOPY Error" ;
 
 	switch ( mode )
 	{
@@ -1664,7 +1666,7 @@ void pApplication::addpop( const string& a_fld, int a_row, int a_col )
 	//  RC = 12 No panel displayed before addpop() service when using field parameter
 	//  RC = 20 Severe error
 
-	const string e1 = "ADDPOP error" ;
+	const string e1 = "ADDPOP Error" ;
 
 	uint p_row = 0 ;
 	uint p_col = 0 ;
@@ -1714,7 +1716,7 @@ void pApplication::rempop( const string& r_all )
 	//  RC = 16 No pop-up window exists at this level
 	//  RC = 20 Severe error
 
-	const string e1 = "REMPOP error" ;
+	const string e1 = "REMPOP Error" ;
 
 	RC = 0 ;
 
@@ -1801,7 +1803,7 @@ void pApplication::control( const string& parm1, const string& parm2, const stri
 
 	int i ;
 
-	const string e1 = "CONTROL error" ;
+	const string e1 = "CONTROL Error" ;
 
 	map<string, pPanel*>::iterator it;
 
@@ -2049,7 +2051,7 @@ void pApplication::control( const string& parm1, void (pApplication::*pFunc)() )
 	//
 	// CONTROL ABENDRTN ptr_to_routine - Set the routine to get control during an abend
 
-	const string e1 = "CONTROL error" ;
+	const string e1 = "CONTROL Error" ;
 
 	errBlock.setRC( 0 ) ;
 
@@ -2115,7 +2117,7 @@ void pApplication::tbadd( const string& tb_name,
 	// RC = 12  Table not open
 	// RC = 20  Severe error
 
-	const string e1 = "TBADD error" ;
+	const string e1 = "TBADD Error" ;
 
 	if ( tb_order != "" && tb_order != "ORDER" )
 	{
@@ -2189,9 +2191,7 @@ void pApplication::tbclose( const string& tb_name, const string& tb_newname, str
 	// RC = 16  Path error
 	// RC = 20  Severe error
 
-	const string e1 = "TBCLOSE error" ;
-
-	errBlock.setRC( 0 ) ;
+	const string e1 = "TBCLOSE Error" ;
 
 	if ( !isTableOpen( tb_name, "TBCLOSE" ) ) { return ; }
 
@@ -2210,6 +2210,8 @@ void pApplication::tbclose( const string& tb_name, const string& tb_newname, str
 			if ( tb_paths == "" )
 			{
 				errBlock.setcall( e1, "PSYE013C", 16 ) ;
+				checkRCode( errBlock ) ;
+				return ;
 			}
 		}
 		p_tableMGR->saveTable( errBlock, tb_name, tb_newname, tb_paths ) ;
@@ -2264,10 +2266,9 @@ void pApplication::tbcreate( const string& tb_name,
 
 	string w ;
 
-	const string e1 = "TBCREATE error" ;
+	const string e1 = "TBCREATE Error" ;
 
 	RC = 0 ;
-	errBlock.clear() ;
 
 	if ( !isvalidName( tb_name ) )
 	{
@@ -2283,6 +2284,7 @@ void pApplication::tbcreate( const string& tb_name,
 		{
 			errBlock.setcall( e1, "PSYE022K", 16 ) ;
 			checkRCode( errBlock ) ;
+			return ;
 		}
 	}
 
@@ -2852,7 +2854,7 @@ void pApplication::tberase( const string& tb_name, string tb_paths )
 	// RC = 16  Path does not exist
 	// RC = 20  Severe error
 
-	const string e1 = "TBERASE error" ;
+	const string e1 = "TBERASE Error" ;
 
 	if ( !isvalidName( tb_name ) )
 	{
@@ -2867,6 +2869,8 @@ void pApplication::tberase( const string& tb_name, string tb_paths )
 		if ( tb_paths == "" )
 		{
 			errBlock.setcall( e1, "PSYE013C", 16 ) ;
+			checkRCode( errBlock ) ;
+			return ;
 		}
 	}
 
@@ -2934,7 +2938,7 @@ void pApplication::tbmod( const string& tb_name,
 	// RC = 16  Numeric conversion error
 	// RC = 20  Severe error
 
-	const string e1 = "TBMOD error" ;
+	const string e1 = "TBMOD Error" ;
 
 	if ( tb_order != "" && tb_order != "ORDER" )
 	{
@@ -2977,7 +2981,7 @@ void pApplication::tbopen( const string& tb_name,
 	// RC = 16  paths not allocated
 	// RC = 20  Severe error
 
-	const string e1 = "TBOPEN error" ;
+	const string e1 = "TBOPEN Error" ;
 
 	if ( !isvalidName( tb_name ) )
 	{
@@ -2993,6 +2997,7 @@ void pApplication::tbopen( const string& tb_name,
 		{
 			errBlock.setcall( e1, "PSYE013D", 16 ) ;
 			checkRCode( errBlock ) ;
+			return ;
 		}
 	}
 
@@ -3023,7 +3028,7 @@ void pApplication::tbput( const string& tb_name, string tb_namelst, const string
 	// RC = 16  Numeric conversion error for sorted tables
 	// RC = 20  Severe error
 
-	const string e1 = "TBPUT error" ;
+	const string e1 = "TBPUT Error" ;
 
 	RC = 0 ;
 
@@ -3111,7 +3116,7 @@ void pApplication::tbsave( const string& tb_name, const string& tb_newname, stri
 
 	RC = 0 ;
 
-	const string e1 = "TBSAVE error" ;
+	const string e1 = "TBSAVE Error" ;
 
 	if ( !isTableOpen( tb_name, "TBSAVE" ) ) { return ; }
 
@@ -3139,6 +3144,8 @@ void pApplication::tbsave( const string& tb_name, const string& tb_newname, stri
 		if ( tb_paths == "" )
 		{
 			errBlock.setcall( e1, "PSYE013C", 16 ) ;
+			checkRCode( errBlock ) ;
+			return ;
 		}
 	}
 
@@ -3256,9 +3263,13 @@ bool pApplication::isTableOpen( const string& tb_name, const string& func )
 	RC = 0 ;
 	errBlock.setRC( 0 ) ;
 
-	if ( !isvalidName( tb_name ) )
+	if ( tb_name == "" )
 	{
-		errBlock.seterrid( "PSYE014Q", tb_name, func ) ;
+		errBlock.seterrid( "PSYE013H", func ) ;
+	}
+	else if ( !isvalidName( tb_name ) )
+	{
+		errBlock.seterrid( "PSYE014Q", tb_name ) ;
 	}
 	else if ( tablesOpen.count( tb_name ) == 0 )
 	{
@@ -3404,7 +3415,7 @@ void pApplication::pquery( const string& p_name,
 			   const string& r_name,
 			   const string& c_name )
 {
-	const string e1 = "PQUERY error for panel "+p_name ;
+	const string e1 = "PQUERY Error for panel "+p_name ;
 
 	RC = 0 ;
 
@@ -3615,7 +3626,7 @@ void pApplication::getmsg( const string& msg,
 	// RC = 12  Message not found or message syntax error
 	// RC = 20  Severe error
 
-	const string e1 = "GETMSG error" ;
+	const string e1 = "GETMSG Error" ;
 
 	slmsg tmsg ;
 

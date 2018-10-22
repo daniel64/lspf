@@ -215,22 +215,22 @@ class tableMGR
 
 		static logger* lg ;
 
-		void   createTable( errblock& err,
-				    const string& tb_name,
-				    string keys,
-				    string flds,
-				    tbREP m_REP,
-				    tbWRITE m_WRITE,
-				    const string& m_path,
-				    tbDISP m_DISP,
-				    bool tb_open=false ) ;
+		map<string, Table*>::iterator createTable( errblock& err,
+							   const string& tb_name,
+							   string keys,
+							   string flds,
+							   tbREP m_REP,
+							   tbWRITE m_WRITE,
+							   const string& m_path,
+							   tbDISP m_DISP,
+							   bool tb_open=false ) ;
 
-		void   loadTable( errblock& err,
-				  const string& tb_name,
-				  tbWRITE=WRITE,
-				  const string& src="",
-				  tbDISP=EXCLUSIVE,
-				  bool =false ) ;
+		map<string, Table*>::iterator loadTable( errblock& err,
+							 const string& tb_name,
+							 tbWRITE=WRITE,
+							 const string& src="",
+							 tbDISP=EXCLUSIVE,
+							 bool =false ) ;
 
 		void   saveTable( errblock& err,
 				  const string& tb_name,

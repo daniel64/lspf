@@ -476,7 +476,7 @@ void dynArea::dynArea_init( errblock& err, int MAXW, int MAXD, const string& lin
 }
 
 
-bool field::edit_field_insert( WINDOW* win, char ch, int col, char pad, bool snulls )
+bool field::edit_field_insert( WINDOW* win, char ch, int col )
 {
 	// If this is a dynamic area, we know at this point this is an input field, so dynArea_DataInsp is true and
 	// there is an input attribute byte at the start of the field
@@ -495,7 +495,7 @@ bool field::edit_field_insert( WINDOW* win, char ch, int col, char pad, bool snu
 	pos = (col - field_col ) ;
 	if ( pos >= field_value.size() )
 	{
-		field_value.resize( pos+1, nulls ) ;
+		field_value.resize( pos+1 ) ;
 	}
 
 	if ( field_dynArea )
@@ -555,13 +555,13 @@ bool field::edit_field_insert( WINDOW* win, char ch, int col, char pad, bool snu
 		}
 	}
 
-	display_field( win, pad, snulls ) ;
+	display_field( win ) ;
 	field_changed = true ;
 	return true ;
 }
 
 
-bool field::edit_field_replace( WINDOW* win, char ch, int col, char pad, bool snulls )
+bool field::edit_field_replace( WINDOW* win, char ch, int col )
 {
 	// If this is a dynamic area, we know at this point this is an input field, so dynArea_DataInsp is true and
 	// there is an input attribute byte at the start of the field
@@ -611,13 +611,13 @@ bool field::edit_field_replace( WINDOW* win, char ch, int col, char pad, bool sn
 	}
 	field_value[ pos ] = ch ;
 
-	display_field( win, pad, snulls ) ;
+	display_field( win ) ;
 	field_changed = true ;
 	return true ;
 }
 
 
-void field::edit_field_delete( WINDOW* win, int col, char pad, bool snulls )
+void field::edit_field_delete( WINDOW* win, int col )
 {
 	// If this is a dynamic area, we know at this point this is an input field, so dynArea_DataInsp is true
 	// and there is an input attribute byte at the start of the field.
@@ -665,12 +665,12 @@ void field::edit_field_delete( WINDOW* win, int col, char pad, bool snulls )
 	}
 
 	field_value.erase( pos, 1 ) ;
-	display_field( win, pad, snulls ) ;
+	display_field( win ) ;
 	field_changed = true ;
 }
 
 
-int field::edit_field_backspace( WINDOW* win, int col, char pad, bool snulls )
+int field::edit_field_backspace( WINDOW* win, int col )
 {
 	// If this is a dynamic area, we know it is an input field so pos > 0 (to allow for the input attribute byte)
 
@@ -688,12 +688,12 @@ int field::edit_field_backspace( WINDOW* win, int col, char pad, bool snulls )
 	}
 
 	col-- ;
-	edit_field_delete( win, col, pad, snulls ) ;
+	edit_field_delete( win, col ) ;
 	return col ;
 }
 
 
-void field::field_erase_eof( WINDOW* win, uint col, char pad, bool snulls )
+void field::field_erase_eof( WINDOW* win, uint col )
 {
 	// If this is a dynamic area, we know at this point this is an input field, so dynArea_DataInsp is true,
 	// and there is an input attribute byte at the start of the field
@@ -736,21 +736,21 @@ void field::field_erase_eof( WINDOW* win, uint col, char pad, bool snulls )
 	}
 	else
 	{
-		field_blank( win, pad ) ;
+		field_blank( win ) ;
 		field_value.erase( pos+1 ) ;
 	}
 
-	display_field( win, pad, snulls ) ;
+	display_field( win ) ;
 	field_changed = true ;
 }
 
 
-void field::field_blank( WINDOW* win, char pad )
+void field::field_blank( WINDOW* win )
 {
 	char  upad ;
 	char* blanks = new char[ field_length+1 ] ;
 
-	upad = field_paduser ? pad : field_padchar ;
+	upad = field_paduser ? field_paduchar : field_padchar ;
 	for ( unsigned int i = 0 ; i < field_length ; i++ )
 	{
 		blanks[ i ] = upad ;
@@ -845,10 +845,10 @@ void field::field_remove_nulls_da()
 }
 
 
-void field::field_clear( WINDOW* win, char pad )
+void field::field_clear( WINDOW* win )
 {
-	field_value = ""     ;
-	field_blank( win, pad ) ;
+	field_value = ""   ;
+	field_blank( win ) ;
 	field_changed = true ;
 }
 
@@ -1169,7 +1169,7 @@ void field::field_DataMod_to_UserMod( string* darea, int offset )
 }
 
 
-void field::display_field( WINDOW* win, char pad, bool snulls )
+void field::display_field( WINDOW* win )
 {
 	// For non-dynamic area fields: if an input field, truncate if value size > field size else for output fields
 	// display field size bytes and leave field value unchanged (necessary for table display fields)
@@ -1194,9 +1194,9 @@ void field::display_field( WINDOW* win, char pad, bool snulls )
 
 	if ( !field_active ) { return ; }
 
-	nullc = snulls ? '.' : ' ' ;
+	nullc = field_nulls ? '.' : ' ' ;
 
-	upad  = field_paduser ? pad : field_padchar ;
+	upad  = field_paduser ? field_paduchar : field_padchar ;
 
 	if ( field_dynArea )
 	{

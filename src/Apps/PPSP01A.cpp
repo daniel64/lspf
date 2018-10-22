@@ -3259,7 +3259,7 @@ void PPSP01A::showErrorScreen1()
 	int l    ;
 	int maxw ;
 
-	string t ;
+	string* t ;
 
 	struct err_struct
 	{
@@ -3286,26 +3286,26 @@ void PPSP01A::showErrorScreen1()
 
 	getmsg( errs->err.msgid, "ZERRSM", "ZERRLM" ) ;
 
-	vcopy( "ZERRLM", t, MOVE ) ;
+	vcopy( "ZERRLM", t, LOCATE ) ;
 
 	maxw = maxw - 6 ;
 	l    = 0 ;
 	do
 	{
 		l++ ;
-		if ( t.size() > maxw )
+		if ( t->size() > maxw )
 		{
-			i = t.find_last_of( ' ', maxw ) ;
+			i = t->find_last_of( ' ', maxw ) ;
 			i = ( i == string::npos ) ? maxw : i + 1 ;
-			vreplace( "ZERRLM"+ d2ds( l ), t.substr( 0, i ) ) ;
-			t.erase( 0, i ) ;
+			vreplace( "ZERRLM"+ d2ds( l ), t->substr( 0, i ) ) ;
+			t->erase( 0, i ) ;
 		}
 		else
 		{
-			vreplace( "ZERRLM"+d2ds( l ), t ) ;
-			t = "" ;
+			vreplace( "ZERRLM"+d2ds( l ), *t ) ;
+			*t = "" ;
 		}
-	} while ( t.size() > 0 && l < 5 ) ;
+	} while ( t->size() > 0 && l < 5 ) ;
 
 	display( "PSYSER2" ) ;
 }
@@ -3320,7 +3320,7 @@ void PPSP01A::showErrorScreen2( string& msg )
 	int l    ;
 	int maxw ;
 
-	string t ;
+	string* t ;
 
 	vdefine( "ZSCRMAXW", &maxw ) ;
 	vdefine( "ZERRMSG", &msg ) ;
@@ -3329,26 +3329,26 @@ void PPSP01A::showErrorScreen2( string& msg )
 	vget( "ZSCRMAXW ZERRDSC ZERRSRC ZVAL1 ZVAL2 VAL3", SHARED ) ;
 	getmsg( msg, "ZERRSM", "ZERRLM" ) ;
 
-	vcopy( "ZERRLM", t, MOVE ) ;
+	vcopy( "ZERRLM", t, LOCATE ) ;
 
 	maxw = maxw - 6 ;
 	l    = 0 ;
 	do
 	{
 		l++ ;
-		if ( t.size() > maxw )
+		if ( t->size() > maxw )
 		{
-			i = t.find_last_of( ' ', maxw ) ;
+			i = t->find_last_of( ' ', maxw ) ;
 			i = ( i == string::npos ) ? maxw : i + 1 ;
-			vreplace( "ZERRLM"+ d2ds( l ), t.substr( 0, i ) ) ;
-			t.erase( 0, i ) ;
+			vreplace( "ZERRLM"+ d2ds( l ), t->substr( 0, i ) ) ;
+			t->erase( 0, i ) ;
 		}
 		else
 		{
-			vreplace( "ZERRLM"+d2ds( l ), t ) ;
-			t = "" ;
+			vreplace( "ZERRLM"+d2ds( l ), *t ) ;
+			*t = "" ;
 		}
-	} while ( t.size() > 0 ) ;
+	} while ( t->size() > 0 ) ;
 
 	display( "PSYSER3" ) ;
 }

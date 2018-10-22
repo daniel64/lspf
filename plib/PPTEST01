@@ -69,6 +69,10 @@ literal  17  22    NT   "Terminate Dialogue Services"
 .CURSOR = ZCMD
 
 )PROC
+IF ( TRUNC( &ZCMD, 1 ) EQ '.' )
+   .MSG = PSYS016
+   EXIT
+
 &ZSEL = TRANS( TRUNC( &ZCMD,'.' ) ,
                0,'PGM(PTEST01) PARM(0)'
                1,'PGM(PTEST01) PARM(1)'

@@ -2,8 +2,8 @@
 /* System error message file for lspf        */
 
 /* Application messages */
-PSYE021A 'Invalid panel name ''&ZVAL1'''
-''
+PSYE021A 'Invalid panel name'
+'Panel name ''&ZVAL1'' is not of the correct format'
 
 PSYE021B 'Panel not found'
 'Panel ''&ZVAL1'' has not been found'
@@ -47,17 +47,17 @@ PSYE022J 'Invalid &ZVAL1 name ''&ZVAL2'''
 PSYE022K 'Library path not specified'
 'Specifiy a table input library when WRITE specified'
 
-PSYE022L 'No prior DISPLAY PANEL before ADDPOP'
-''
+PSYE022L 'No prior DISPLAY PANEL'
+'ADDPOP specifying a field value must be preceeded by a DISPLAY PANEL'
 
-PSYE022M 'Field &ZVAL1 not found on panel &ZVAL2'
-''
+PSYE022M 'Field not found'
+'Field &ZVAL1 not found on panel &ZVAL2'
 
-PSYE022N 'Cursor field ''&ZVAL1'' not found or invalid'
-''
+PSYE022N 'Field not found'
+'Cursor field ''&ZVAL1'' not found or invalid'
 
 PSYE022O 'Invalid &ZVAL1 variable name ''&ZVAL2'''
-''
+'Variable name is not of the correct format'
 
 PSYE022P 'Invalid parameter ''&ZVAL1'''
 'Must be one of: &ZVAL2'
@@ -68,11 +68,11 @@ PSYE022Q 'Invalid mask size'
 PSYE022R 'Invalid mask type &ZVAL1'
 'Must be FORMAT or USER'
 
-PSYE022S 'Mask ''&ZVAL1'' contains invalid character'
-''
+PSYE022S 'Mask invalid'
+'Mask ''&ZVAL1'' contains invalid character'
 
-PSYE022T 'No pop-up window exists at this level'
-''
+PSYE022T 'No pop-up window exists'
+'REMPOP performed when no pop-up window exists at this level'
 
 PSYE022U 'Invalid parameter ''&ZVAL1'' on REMPOP service'
 'Must be ALL or blank'
@@ -80,14 +80,14 @@ PSYE022U 'Invalid parameter ''&ZVAL1'' on REMPOP service'
 PSYE022V 'Invalid parameter ''&ZVAL1'' on CONTROL service'
 'Must be PASSTHRU'
 
-PSYE022W 'No previous CONTROL DISPLAY SAVE performed'
-''
+PSYE022W 'No prior CONTROL DISPLAY SAVE'
+'CONTROL DISPLAY RESTORE attempted before SAVE'
 
 PSYE022X 'Invalid CONTROL &ZVAL1 parameter'
 '&ZVAL2 is not a valid CONTROL &ZVAL1 parameter'
 
 PSYE022Y 'Invalid CONTROL parameter'
-'&ZVAL1 is invalid'
+'&ZVAL1 is not a valid CONTROL parameter'
 
 PSYE023A 'Invalid ORDER parameter specified on &ZVAL1'
 '&ZVAL2 is invalid'
@@ -98,14 +98,14 @@ PSYE023B 'Invalid number-of-rows parameter specified on &ZVAL1'
 PSYE023C 'Invalid &ZVAL1 name ''&ZVAL2'''
 ''
 
-PSYE023D 'No panel has yet been loaded to change field attributes'
-''
+PSYE023D 'Change field attributes invalid'
+'No panel has yet been displayed to change field attributes'
 
-PSYE023E 'Open of &ZVAL1 keylist table failed'
-''
+PSYE023E 'Open failed'
+'Open of &ZVAL1 keylist table failed'
 
-PSYE023F 'Keylist &ZVAL1 not found in keylist table &ZVAL2'
-''
+PSYE023F 'Keylist &ZVAL1 not found'
+'Keylist &ZVAL1 not found in keylist table &ZVAL2'
 
 PSYE023G 'Message ''&ZVAL1'' not found'
 ''
@@ -113,8 +113,8 @@ PSYE023G 'Message ''&ZVAL1'' not found'
 PSYE023H 'Error loading keylist'
 'Error loading keylist.  See lspf log for details'
 
-PSYE023I 'Invalid CURSOR field name ''&ZVAL1'''
-''
+PSYE023I 'Invalid CURSOR field name'
+'CURSOR field name ''&ZVAL1'' is not of a valid format'
 
 PSYE023J 'Invalid AUTOSEL parameter ''&ZVAL1'''
 'Must be YES, NO or blank'

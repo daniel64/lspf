@@ -56,6 +56,10 @@ class dynArea
 
 class field
 {
+	public:
+		static char field_paduchar ;
+		static bool field_nulls    ;
+
 	private:
 		field() {
 				field_pwd          = false ;
@@ -106,15 +110,15 @@ class field
 		void field_init( errblock& err, int maxw, int maxd, const string& line ) ;
 		void field_opts( errblock& err, string& )  ;
 		bool cursor_on_field( uint row, uint col ) ;
-		void display_field( WINDOW*, char, bool ) ;
-		bool edit_field_insert( WINDOW* win, char ch, int row, char, bool ) ;
-		bool edit_field_replace( WINDOW* win, char ch, int row, char, bool ) ;
-		void edit_field_delete( WINDOW* win, int row, char, bool ) ;
-		int  edit_field_backspace( WINDOW* win, int col, char, bool ) ;
+		void display_field( WINDOW* ) ;
+		bool edit_field_insert( WINDOW* win, char ch, int row ) ;
+		bool edit_field_replace( WINDOW* win, char ch, int row ) ;
+		void edit_field_delete( WINDOW* win, int row ) ;
+		int  edit_field_backspace( WINDOW* win, int col ) ;
 		void field_remove_nulls_da()     ;
-		void field_blank( WINDOW* win, char ) ;
-		void field_clear( WINDOW* win, char ) ;
-		void field_erase_eof( WINDOW* win, unsigned int col, char, bool ) ;
+		void field_blank( WINDOW* win ) ;
+		void field_clear( WINDOW* win ) ;
+		void field_erase_eof( WINDOW* win, unsigned int col ) ;
 		bool field_dyna_input( uint col )  ;
 		int  field_dyna_input_offset( uint col )  ;
 		void field_DataMod_to_UserMod( string*, int ) ;
@@ -123,7 +127,7 @@ class field
 		void field_prep_input()   ;
 		void field_prep_display() ;
 		void field_set_caps()     ;
-		int  end_of_field( WINDOW* win, uint col )   ;
+		int  end_of_field( WINDOW* win, uint col ) ;
 
        friend class pPanel ;
 } ;

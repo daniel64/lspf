@@ -229,6 +229,10 @@ literal   26    48   FP     "to exit"
 .CURSOR = ZCMD
 
 )PROC
+IF ( TRUNC( &ZCMD, 1 ) EQ '.' )
+   .MSG = PSYS016
+   EXIT
+
 IF (&ZCMD EQ DATE)
    &ZCMD = 'DATE MM/YYYY'
    REFRESH ZCMD

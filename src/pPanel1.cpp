@@ -513,7 +513,6 @@ void pPanel::display_panel_update( errblock& err )
 	string CMDVerb  ;
 	string CMD      ;
 	string fieldNam ;
-	string sname    ;
 	string msgfld   ;
 
 	string* darea   ;
@@ -598,8 +597,7 @@ void pPanel::display_panel_update( errblock& err )
 					it->second->field_DataMod_to_UserMod( darea, offset ) ;
 				}
 				darea->replace( offset, it->second->field_length, it->second->field_value ) ;
-				sname    = it->second->field_dynArea->dynArea_shadow_name ;
-				shadow   = p_funcPOOL->vlocate( err, sname ) ;
+				shadow = p_funcPOOL->vlocate( err, it->second->field_dynArea->dynArea_shadow_name ) ;
 				if ( err.error() ) { return ; }
 				shadow->replace( offset, it->second->field_length, it->second->field_shadow_value ) ;
 			}
@@ -2005,7 +2003,6 @@ void pPanel::refresh_fields( errblock& err, int ln, const string& fields )
 	int ws ;
 
 	string temp    ;
-	string sname   ;
 	string* darea  ;
 	string* shadow ;
 
@@ -2049,8 +2046,7 @@ void pPanel::refresh_fields( errblock& err, int ln, const string& fields )
 		k      = itd->second->dynArea_width ;
 		darea  = p_funcPOOL->vlocate( err, itd->first ) ;
 		if ( err.error() ) { return ; }
-		sname  = itd->second->dynArea_shadow_name ;
-		shadow = p_funcPOOL->vlocate( err, sname ) ;
+		shadow = p_funcPOOL->vlocate( err, itd->second->dynArea_shadow_name ) ;
 		if ( err.error() ) { return ; }
 		for ( unsigned int i = 0 ; i < itd->second->dynArea_depth ; i++ )
 		{
@@ -2067,20 +2063,14 @@ void pPanel::refresh_fields( errblock& err )
 {
 	// Update all field values from their dialogue variables and display.
 
-	int j   ;
-	int k   ;
+	int j ;
+	int k ;
 
-	string  sname  ;
 	string* darea  ;
 	string* shadow ;
 
 	map<string, field*>::iterator   itf ;
 	map<string, dynArea*>::iterator itd ;
-
-	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
-	if ( err.error() ) { return ; }
-	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
-	if ( err.error() ) { return ; }
 
 	for ( itf = fieldList.begin() ; itf != fieldList.end() ; itf++ )
 	{
@@ -2089,7 +2079,7 @@ void pPanel::refresh_fields( errblock& err )
 		if ( err.error() ) { return ; }
 		itf->second->field_prep_display() ;
 		itf->second->field_set_caps()     ;
-		itf->second->display_field( win, pad, snulls ) ;
+		itf->second->display_field( win ) ;
 	}
 
 	for ( itd = dynAreaList.begin() ; itd != dynAreaList.end() ; itd++ )
@@ -2097,8 +2087,7 @@ void pPanel::refresh_fields( errblock& err )
 		k      = itd->second->dynArea_width ;
 		darea  = p_funcPOOL->vlocate( err, itd->first ) ;
 		if ( err.error() ) { return ; }
-		sname  = itd->second->dynArea_shadow_name ;
-		shadow = p_funcPOOL->vlocate( err, sname ) ;
+		shadow = p_funcPOOL->vlocate( err, itd->second->dynArea_shadow_name  ) ;
 		if ( err.error() ) { return ; }
 		for ( unsigned int i = 0 ; i < itd->second->dynArea_depth ; i++ )
 		{
@@ -2106,7 +2095,7 @@ void pPanel::refresh_fields( errblock& err )
 			itf = fieldList.find( itd->first +"."+ d2ds( i ) ) ;
 			itf->second->field_value        = darea->substr( j, k )  ;
 			itf->second->field_shadow_value = shadow->substr( j, k ) ;
-			itf->second->display_field( win, pad, snulls ) ;
+			itf->second->display_field( win ) ;
 		}
 	}
 }
@@ -2390,11 +2379,6 @@ void pPanel::display_fields( errblock& err )
 {
 	map<string, field*>::iterator it ;
 
-	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
-	if ( err.error() ) { return ; }
-	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
-	if ( err.error() ) { return ; }
-
 	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
 	{
 		if ( !it->second->field_dynArea )
@@ -2402,7 +2386,7 @@ void pPanel::display_fields( errblock& err )
 			it->second->field_prep_display() ;
 			it->second->field_set_caps()     ;
 		}
-		it->second->display_field( win, pad, snulls ) ;
+		it->second->display_field( win ) ;
 	}
 }
 
@@ -2633,18 +2617,13 @@ const string& pPanel::field_getvalue( const string& f_name )
 
 void pPanel::field_setvalue( errblock& err, const string& f_name, const string& f_value )
 {
-	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
-	if ( err.error() ) { return ; }
-	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
-	if ( err.error() ) { return ; }
-
 	map<string, field*>::iterator it ;
 
 	it = fieldList.find( f_name ) ;
 	it->second->field_value   = f_value ;
-	it->second->field_changed = true    ;
-	it->second->field_prep_display()    ;
-	it->second->display_field( win, pad, snulls ) ;
+	it->second->field_changed = true ;
+	it->second->field_prep_display() ;
+	it->second->display_field( win ) ;
 }
 
 
@@ -2772,11 +2751,6 @@ void pPanel::field_edit( errblock& err,
 	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
 	// field_tab_next also needs the physical position, so addjust before and after the call.
 
-	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
-	if ( err.error() ) { return ; }
-	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
-	if ( err.error() ) { return ; }
-
 	row  -= win_row ;
 	col  -= win_col ;
 	p_row = row ;
@@ -2793,11 +2767,11 @@ void pPanel::field_edit( errblock& err,
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( col ) ) { return ; }
 			if ( Isrt )
 			{
-				if ( !it->second->edit_field_insert( win, ch, col, pad, snulls ) ) { return ; }
+				if ( !it->second->edit_field_insert( win, ch, col ) ) { return ; }
 			}
 			else
 			{
-				if ( !it->second->edit_field_replace( win, ch, col, pad, snulls ) ) { return ; }
+				if ( !it->second->edit_field_replace( win, ch, col ) ) { return ; }
 			}
 			prot = false ;
 			++p_col ;
@@ -2827,11 +2801,6 @@ void pPanel::field_backspace( errblock& err,
 	uint tcol ;
 	uint p    ;
 
-	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
-	if ( err.error() ) { return ; }
-	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
-	if ( err.error() ) { return ; }
-
 	map<string, field*>::iterator it;
 
 	trow = row - win_row ;
@@ -2847,7 +2816,7 @@ void pPanel::field_backspace( errblock& err,
 			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( tcol ) ) { return ; }
 			p    = tcol  ;
-			tcol = it->second->edit_field_backspace( win, tcol, pad, snulls ) ;
+			tcol = it->second->edit_field_backspace( win, tcol ) ;
 			if ( p == tcol ) { return ; }
 			prot = false ;
 			row  = trow + win_row ;
@@ -2868,11 +2837,6 @@ void pPanel::field_delete_char( errblock& err, uint row, uint col, bool& prot )
 
 	map<string, field*>::iterator it ;
 
-	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
-	if ( err.error() ) { return ; }
-	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
-	if ( err.error() ) { return ; }
-
 	trow = row - win_row ;
 	tcol = col - win_col ;
 
@@ -2884,7 +2848,7 @@ void pPanel::field_delete_char( errblock& err, uint row, uint col, bool& prot )
 			if ( !it->second->field_active ) { return ; }
 			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( tcol ) ) { return ; }
-			it->second->edit_field_delete( win, tcol, pad, snulls ) ;
+			it->second->edit_field_delete( win, tcol ) ;
 			prot = false ;
 			return ;
 		}
@@ -2898,11 +2862,6 @@ void pPanel::field_erase_eof( errblock& err, uint row, uint col, bool& prot )
 
 	map<string, field*>::iterator it;
 
-	bool snulls = ( p_poolMGR->get( err, "ZNULLS", SHARED ) == "YES" ) ;
-	if ( err.error() ) { return ; }
-	char pad    = p_poolMGR->get( err, "ZPADC", PROFILE ).front() ;
-	if ( err.error() ) { return ; }
-
 	row -= win_row ;
 	col -= win_col ;
 
@@ -2914,7 +2873,7 @@ void pPanel::field_erase_eof( errblock& err, uint row, uint col, bool& prot )
 			if ( !it->second->field_active ) { return ; }
 			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( col ) ) { return ; }
-			it->second->field_erase_eof( win, col, pad, snulls ) ;
+			it->second->field_erase_eof( win, col ) ;
 			prot = false ;
 			return ;
 		}

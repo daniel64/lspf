@@ -124,12 +124,15 @@ logger*   lgx        = new logger   ;
 
 tableMGR* pApplication::p_tableMGR = NULL ;
 poolMGR*  pApplication::p_poolMGR  = NULL ;
-logger*   pApplication::lg         = NULL ;
-poolMGR*  pPanel::p_poolMGR        = NULL ;
-poolMGR*  abc::p_poolMGR           = NULL ;
-logger*   pPanel::lg               = NULL ;
-logger*   tableMGR::lg             = NULL ;
-logger*   poolMGR::lg              = NULL ;
+logger*   pApplication::lg  = NULL ;
+poolMGR*  pPanel::p_poolMGR = NULL ;
+poolMGR*  abc::p_poolMGR    = NULL ;
+logger*   pPanel::lg        = NULL ;
+logger*   tableMGR::lg      = NULL ;
+logger*   poolMGR::lg       = NULL ;
+
+char  field::field_paduchar = ' '   ;
+bool  field::field_nulls    = false ;
 
 fPOOL funcPOOL ;
 
@@ -1533,6 +1536,7 @@ void processZCOMMAND( uint row, uint col, bool doSelect )
 		if ( zparm == "NULLS" )
 		{
 			p_poolMGR->sysput( err, "ZNULLS", "NO", SHARED ) ;
+			field::field_nulls = false ;
 			currAppl->currPanel->redraw_fields( err ) ;
 		}
 		else
@@ -1579,6 +1583,7 @@ void processZCOMMAND( uint row, uint col, bool doSelect )
 		if ( zparm == "NULLS" )
 		{
 			p_poolMGR->sysput( err, "ZNULLS", "YES", SHARED ) ;
+			field::field_nulls = true ;
 			currAppl->currPanel->redraw_fields( err ) ;
 		}
 		break  ;
@@ -2849,6 +2854,8 @@ void updateDefaultVars()
 	gmaxwait = ds2d( p_poolMGR->sysget( err, "ZMAXWAIT", PROFILE ) ) ;
 	gmainpgm = p_poolMGR->sysget( err, "ZMAINPGM", PROFILE ) ;
 	p_poolMGR->sysput( err, "ZSPLIT", pLScreen::screensTotal > 1 ? "YES" : "NO", SHARED ) ;
+	field::field_paduchar = p_poolMGR->sysget( err, "ZPADC", PROFILE ).front() ;
+	field::field_nulls    = ( p_poolMGR->sysget( err, "ZNULLS", SHARED ) == "YES" ) ;
 }
 
 
