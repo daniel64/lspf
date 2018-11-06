@@ -39,6 +39,7 @@ class fVAR
 class fPOOL
 {
 	public:
+
 	fPOOL()
 	{
 		nullstr = "" ;
@@ -53,8 +54,11 @@ class fPOOL
 			     const string& name,
 			     int* addr ) ;
 	private:
-		string nullstr  ;
-		string varList  ;
+		map<string, stack<fVAR*>> POOL ;
+
+		string nullstr ;
+		set<string> varList ;
+
 		bool ifexists( errblock& err,
 			       const string& name,
 			       nameCHCK check=CHECK ) ;
@@ -96,13 +100,11 @@ class fPOOL
 
 		void reset( errblock& err ) ;
 
-		const string& vilist( int& RC,
-				      vdType defn ) ;
+		set<string>& vilist( int& RC,
+				     vdType defn ) ;
 
-		const string& vslist( int&RC,
-				      vdType defn ) ;
-
-		map<string, stack<fVAR*>> POOL ;
+		set<string>& vslist( int&RC,
+				     vdType defn ) ;
 
 	friend class pApplication ;
 	friend class tableMGR ;
@@ -261,13 +263,27 @@ class poolMGR
 		void   statistics() ;
 
 	private:
+		int    shrdPool ;
+		int    _shared  ;
+		string _applid  ;
+		string ppath    ;
+
+		set<string> varList ;
+		map<int, pair<string,int>> task_table ;
+
+		map<string, pVPOOL*> POOLs_shared  ;
+		map<string, pVPOOL*> POOLs_profile ;
+		map<int,    pVPOOL*> POOLs_lscreen ;
+
+		boost::mutex mtx ;
+
 		void lock()    { mtx.lock()   ; }
 		void unlock()  { mtx.unlock() ; }
 
-		const string& vlist( errblock& err,
-				     int& RC,
-				     poolType pType,
-				     int lvl )  ;
+		set<string>& vlist( errblock& err,
+				    int& RC,
+				    poolType pType,
+				    int lvl ) ;
 
 		map<int, pVPOOL*>::iterator createPool( int ls ) ;
 
@@ -292,20 +308,6 @@ class poolMGR
 		void   erase( errblock& err,
 			      const string& name,
 			      poolType=ASIS ) ;
-
-		int    shrdPool ;
-		int    _shared  ;
-		string _applid  ;
-		string varList  ;
-		string ppath    ;
-
-		map<int, pair<string,int>> task_table ;
-
-		map<string, pVPOOL*> POOLs_shared  ;
-		map<string, pVPOOL*> POOLs_profile ;
-		map<int,    pVPOOL*> POOLs_lscreen ;
-
-		boost::mutex mtx ;
 
 	friend class pApplication ;
 	friend class pPanel       ;

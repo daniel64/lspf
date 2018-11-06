@@ -383,7 +383,7 @@ int main()
 
 	ZCTVERB  = "CUA" ;
 	ZCTTRUNC = "0"   ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(COLOURS) NEWAPPL(ISP) SCRNAME(CUA) SUSPEND"  ;
+	ZCTACT   = "SELECT PGM(PPSP01A) PARM(COLOURS) SCRNAME(CUA) SUSPEND"  ;
 	ZCTDESC  = "Display/change CUA colours" ;
 	p_tableMGR->tbadd( err, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
@@ -457,16 +457,18 @@ void createSYSPROF()
 	p_poolMGR->put( err, "ZSLOG", subHomePath( SLOG ), PROFILE ) ;
 	p_poolMGR->put( err, "ZALOG", subHomePath( ALOG ), PROFILE ) ;
 
-	p_poolMGR->put( err, "ZPADC",    "_",    PROFILE ) ;
+	p_poolMGR->put( err, "ZDEFM",    "N",    PROFILE ) ;
 	p_poolMGR->put( err, "ZDEL",     ";",    PROFILE ) ;
-	p_poolMGR->put( err, "ZSWAP",    "Y",    PROFILE ) ;
-	p_poolMGR->put( err, "ZSWAPC",   "'",    PROFILE ) ;
 	p_poolMGR->put( err, "ZKLUSE",   "N",    PROFILE ) ;
 	p_poolMGR->put( err, "ZKLPRIV",  "Y",    PROFILE ) ;
 	p_poolMGR->put( err, "ZKLFAIL",  "Y",    PROFILE ) ;
+	p_poolMGR->put( err, "ZHIGH",    "Y",    PROFILE ) ;
+	p_poolMGR->put( err, "ZLMSGW",   "N",    PROFILE ) ;
+	p_poolMGR->put( err, "ZPADC",    "_",    PROFILE ) ;
 	p_poolMGR->put( err, "ZRTSIZE",  "3",    PROFILE ) ;
 	p_poolMGR->put( err, "ZRBSIZE",  "20",   PROFILE ) ;
-	p_poolMGR->put( err, "ZLMSGW",   "N",    PROFILE ) ;
+	p_poolMGR->put( err, "ZSWAP",    "Y",    PROFILE ) ;
+	p_poolMGR->put( err, "ZSWAPC",   "'",    PROFILE ) ;
 	p_poolMGR->put( err, "ZSCROLLD", "HALF", PROFILE ) ;
 	p_poolMGR->put( err, "ZSRETP",   "Y",    PROFILE ) ;
 

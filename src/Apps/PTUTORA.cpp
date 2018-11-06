@@ -56,6 +56,13 @@ using namespace boost::filesystem ;
 #undef  MOD_NAME
 #define MOD_NAME PTUTORA
 
+#define E_RED      3
+#define E_GREEN    4
+#define E_YELLOW   5
+#define E_BLUE     6
+#define E_MAGENTA  7
+#define E_TURQ     8
+#define E_WHITE    9
 
 PTUTORA::PTUTORA()
 {
@@ -327,9 +334,9 @@ void PTUTORA::fill_dynamic_area()
 	s1y.resize( zareaw ) ;
 	s1w.resize( zareaw ) ;
 	div.resize( zareaw ) ;
-	s1g.replace( 0, zareaw, zareaw, N_GREEN  ) ;
-	s1y.replace( 0, zareaw, zareaw, N_YELLOW ) ;
-	s1w.replace( 0, zareaw, zareaw, N_WHITE  ) ;
+	s1g.replace( 0, zareaw, zareaw, E_GREEN  ) ;
+	s1y.replace( 0, zareaw, zareaw, E_YELLOW ) ;
+	s1w.replace( 0, zareaw, zareaw, E_WHITE  ) ;
 	div.replace( 0, zareaw, zareaw, '-' )      ;
 
 	t3 = "" ;
@@ -340,7 +347,7 @@ void PTUTORA::fill_dynamic_area()
 	Area = zareaw * zaread ;
 
 	zarea   = "" ;
-	zshadow = string( Area, N_GREEN ) ;
+	zshadow = string( Area, E_GREEN ) ;
 
 	for ( uint k = firstLine ; k < (firstLine + zaread) ; k++ )
 	{

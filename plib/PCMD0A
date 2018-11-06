@@ -1,7 +1,7 @@
 )PANEL VERSION=1 FORMAT=1
 
 )COMMENT
- Panel for Issuing commands
+ Panel for issuing commands
  Keep command history
  Command line supports command name expansion using the TAB key
    Names are expanded from ZORXPATH,

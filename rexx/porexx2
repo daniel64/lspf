@@ -69,14 +69,14 @@ do while Zfile~chars > 0
 end
 Zfile~close
 
-if substr(data,1,2) = '0084'x then
+if getCValue( 1,2 ) = '0084'x then
   do
     say "Variable profile file found"
     Call ListVariables
   end
 else
   do
-    if substr(data,1,2) = '0085'x then
+    if getCValue( 1,2 ) = '0085'x then
       do
         say "lspf table file found"
         call ListTable
@@ -92,7 +92,7 @@ EXIT 0
 
 ListVariables:
 
-ver = c2d(substr(data,3,1))
+ver = getNvalue1( 3 )
 if ver \= 01 then
   do
     say "Profile version not supported.  Found" ver
@@ -102,9 +102,9 @@ if ver \= 01 then
 say "Found version" ver "profile file"
 say
 
-hdrlen = c2d(substr(data,4,1))
+hdrlen = getNvalue1( 4 )
 say "Header length is" hdrlen
-say "Header is "substr(data,5,hdrlen)
+say "Header is "getCValue( 5, hdrlen )
 say
 
 offset = hdrlen + 5
@@ -113,7 +113,7 @@ errs   = 0
 tot    = 0
 
 do forever
-    l      = c2d(substr(data,offset,1))
+    l      = getNvalue1( offset )
     if l > 8 then
       do
         errs = errs + 1
@@ -122,11 +122,11 @@ do forever
         say
       end
     offset = offset + 1
-    var    = substr(data,offset,l)
+    var    = getCValue(offset,l)
     offset = offset + l
-    l      = c2d(substr(data,offset,2))
+    l      = getNvalue2( offset )
     offset = offset + 2
-    val    = substr(data,offset,l)
+    val    = getCValue(offset,l)
     say "Variable:" left(var,8) " Value:" val
     offset = offset + l
     tot = tot + 1
@@ -141,9 +141,9 @@ RETURN
 
 
 ListTable:
-ver = c2d(substr(data,3,1))
+ver = getNvalue1( 3 )
 
-if ver > 2 then
+if ver > 3 then
   do
     say "Table version not supported.  Found" ver
     exit 0
@@ -152,34 +152,43 @@ if ver > 2 then
 say "Found version" ver "table file"
 say
 
-hdrlen = c2d(substr(data,4,1))
+hdrlen = getNvalue1( 4 )
 say "Header length is" hdrlen
-say "Header is "substr(data,5,hdrlen)
+say "Header is "getCvalue( 5, hdrlen )
 say
 
-offset = hdrlen + 5
-hdrflds = c2d(substr(data,offset,1))
+offset  = hdrlen + 5
+hdrflds = getNvalue1( offset )
 say "Number of header fields is" hdrflds
 
 do hdrflds
    offset = offset + 1
-   l = c2d(substr(data,offset,1))
+   l      = getNvalue1( offset )
    offset = offset + 1
-   fld    = substr(data,offset,l)
+   fld    = getCvalue( offset, l )
    offset = offset + l
    say "Header field. . . . . . . . . . .:" fld
 end
 say
 
-rows = c2d(substr(data,offset,2))
-say "Number of rows in the table. . . :" rows
+if ver > 2 then
+  do
+    rows = getNvalue3( offset )
+    say "Number of rows in the table. . . :" rows
+    offset = offset + 3
+  end
+else
+  do
+    rows = getNvalue2( offset )
+    say "Number of rows in the table. . . :" rows
+    offset = offset + 2
+  end
 
-offset = offset + 2
-keys = c2d(substr(data,offset,1))
+keys   = getNvalue1( offset )
 say "Number of keys in the table. . . :" keys
 
 offset = offset + 1
-flds = c2d(substr(data,offset,1))
+flds   = getNvalue1( offset )
 say "Number of fields in the table. . :" flds
 say
 offset = offset + 1
@@ -190,7 +199,7 @@ name.  = ""
 n      = 1
 
 do keys
-   klen   = c2d(substr(data,offset,1))
+   klen = getNvalue1( offset )
     if klen > 8 then
       do
         errs = errs + 1
@@ -199,7 +208,7 @@ do keys
         say
       end
    offset = offset + 1
-   key    = substr(data,offset,klen)
+   key    = getCvalue( offset, klen )
    name.n = key
    max.n  = klen
    n = n + 1
@@ -208,7 +217,7 @@ do keys
 end
 
 do flds
-   flen   = c2d(substr(data,offset,1))
+   flen = getNvalue1( offset )
     if flen > 8 then
       do
         errs = errs + 1
@@ -217,7 +226,7 @@ do flds
         say
       end
    offset = offset + 1
-   fld    = substr(data,offset,flen)
+   fld    = getCvalue( offset, flen )
    name.n = fld
    max.n  = flen
    n = n + 1
@@ -238,30 +247,33 @@ n     = 1
 
 do forever
     if offset >= datal-1 then leave
-    l      = c2d(substr(data,offset,2))
-    offset = offset + 2
-    v      = substr(data,offset,l)
-    offset = offset + l
-    say right(row, 4) right(col, 3) left(name.n,8) " :" v
+    if cols > 0 then
+      do
+        l      = getNvalue2( offset )
+        offset = offset + 2
+        v      = getCvalue( offset, l )
+        offset = offset + l
+        say right(row, 4) right(col, 3) left(name.n,8) " :" v
+        tot = tot + 1
+      end
     n = n + 1
     if n > name.0 then n = 1
     val.row.col = v
     if length(v) > max.col then max.col = length(v)
     col = col + 1
-    tot = tot + 1
     if col > cols then
       do
         if ver > 1 then
           do
-            l = c2d(substr(data,offset,2))
+            l = getNvalue2( offset )
             if l > 0 then
               do
                 say
                 say "       * Number of extension variables on row:" l-1
                 offset = offset + 2
-                l = c2d(substr(data,offset,2))
+                l = getNvalue2( offset )
                 offset = offset + 2
-                v = substr(data,offset,l)
+                v = getCvalue( offset, l )
                 say "       * Extension variable names:" v
                 evr.row.0 = words( v )
                 do i = 1 to evr.row.0
@@ -269,9 +281,9 @@ do forever
                 end
                 do i = 1 to evr.row.0
                    offset = offset + l
-                   l = c2d(substr(data,offset,2))
+                   l = getNvalue2( offset )
                    offset = offset + 2
-                   v = substr(data,offset,l)
+                   v = getCvalue( offset, l )
                    say right(row, 4) "X"||right(i, 2) left(evr.row.i,8) " :" v
                    evl.row.i = v
                 end
@@ -281,7 +293,7 @@ do forever
               do
                 offset = offset + 2
               end
-            if substr(data,offset,1) \= 'FF'x then errs = errs + 1
+            if getCvalue( offset, 1 ) \= 'FF'x then errs = errs + 1
             offset = offset + 1
           end
         col = 1
@@ -292,14 +304,14 @@ end
 
 if ver > 1 then
   do
-    if substr(data,datal,1) \= 'FF'x then errs = errs + 1
+    if getCvalue( datal, 1 ) \= 'FF'x then errs = errs + 1
   end
 
 say
-say "Total values found in table is" Tot
+say "Total values found in table excluding extension variables is" Tot
 if ( tot \= cols * rows ) then
   do
-    say "Error.  Found "tot" values.  Expected " cols * rows
+    say "Error.  Found "tot" values.  Expected "cols * rows
     errs = errs + 1
     say
   end
@@ -329,3 +341,19 @@ do i = 1 to rows
    l = ""
 end
 RETURN
+
+
+getNValue1:
+RETURN c2d( substr( data,arg(1),1 ) )
+
+
+getNValue2:
+RETURN c2d( substr( data,arg(1),2 ) )
+
+
+getNValue3:
+RETURN c2d( substr( data,arg(1),3 ) )
+
+
+getCValue:
+RETURN substr( data,arg(1),arg(2) )

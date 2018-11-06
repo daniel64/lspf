@@ -2,6 +2,7 @@
 /* System error message file for lspf        */
 /*                                           */
 
+/*  Panel load errors */
 PSYE011A 'Tabs found in panel file'
 'Panel files cannot contain tabs. Please remove'
 
@@ -22,6 +23,12 @@ PSYE011F 'WINDOW() statement error'
 
 PSYE011G 'No )ABC descrption'
 'Action bar choice must have a description defined'
+
+PSYE011H 'Attribute already defined'
+'Character ''&ZVAL1'' has already been defined in a TYPE statement'
+
+PSYE011I 'Maximum TYPE(CHAR) exceeded'
+'The maximum number of TYPE(CHAR) attribute statements is 250'
 
 /*  Function pool */
 PSYE012A 'Invalid definition'
@@ -50,7 +57,7 @@ PSYE013E 'Non-zero return code'
 'Function &ZVAL1 gave non-zero return code'
 
 PSYE013F 'Max rows exceeded'
-'Maximum of 262,144 rows exceeded'
+'Maximum of 500,000 rows exceeded'
 
 PSYE013G 'Table not open'
 '&ZVAL1 issued for table &ZVAL2 that is not open'

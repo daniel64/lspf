@@ -4,6 +4,10 @@
 EDIT colour settings panel
 )ENDCOMMENT
 
+)ABC DESC(Colour)
+PDC DESC(Overtype Colour)
+ ACTION RUN(>EDOCLR)
+
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
 
@@ -51,8 +55,9 @@ literal 19 8  ET "CANCEL"
 literal 19 15 NT "to cancel changes"
 
 )INIT
-&ZCMDA  = &Z
-.CURSOR = ZCMDA
+&ZCMDA   = &Z
+&ZWINTTL = &Z
+.CURSOR  = ZCMDA
 
 &ZHILANG = TRANS( &ZPROFLG,
                   'AUTO',1
@@ -89,10 +94,13 @@ IF (&ZCMDA EQ CANCEL)
    .RESP = END
    EXIT
 ELSE
-   IF (&ZCMDA NE &Z)
-      .MSG    = PSYS018
-      .CURSOR = ZCMDA
+   IF (&ZCMDA EQ 'EDOCLR' )
       EXIT
+   ELSE
+      IF (&ZCMDA NE &Z)
+         .MSG    = PSYS018
+         .CURSOR = ZCMDA
+         EXIT
 
 VER(&ZHILANG,NB,LIST,1,2,3,4,5,6,7)
 VER(&ZCOLOUR,NB,LIST,1,2,3,4,5)

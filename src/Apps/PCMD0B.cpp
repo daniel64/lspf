@@ -41,6 +41,13 @@ using namespace boost::filesystem ;
 #undef  MOD_NAME
 #define MOD_NAME PCMD0B
 
+#define E_RED      3
+#define E_GREEN    4
+#define E_YELLOW   5
+#define E_BLUE     6
+#define E_MAGENTA  7
+#define E_TURQ     8
+#define E_WHITE    9
 
 PCMD0B::PCMD0B()
 {
@@ -82,10 +89,10 @@ void PCMD0B::application()
 	startCol     = 1  ;
 	rebuildZAREA = true ;
 
-	sdr.assign( zareaw, N_RED )    ;
-	sdw.assign( zareaw, N_WHITE )  ;
-	sdy.assign( zareaw, N_YELLOW ) ;
-	sdg.assign( zareaw, N_GREEN )  ;
+	sdr.assign( zareaw, E_RED )    ;
+	sdw.assign( zareaw, E_WHITE )  ;
+	sdy.assign( zareaw, E_YELLOW ) ;
+	sdg.assign( zareaw, E_GREEN )  ;
 
 	while ( true )
 	{
@@ -247,7 +254,7 @@ void PCMD0B::fill_dynamic_area()
 	}
 
 	zarea.resize( zasize, ' ' ) ;
-	zshadow.resize( zasize, N_YELLOW ) ;
+	zshadow.resize( zasize, E_YELLOW ) ;
 	rebuildZAREA = false ;
 }
 

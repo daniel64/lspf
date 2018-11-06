@@ -31,10 +31,10 @@
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
-#define LSPF_VERSION "1.0.12"
+#define LSPF_VERSION "1.0.13"
 #define LSPF_VERSION_MAJ 1
 #define LSPF_VERSION_REV 0
-#define LSPF_VERSION_MOD 12
+#define LSPF_VERSION_MOD 13
 
 typedef unsigned int uint ;
 
@@ -160,6 +160,7 @@ using namespace boost::posix_time;
 #define N_MAGENTA       5
 #define N_TURQ          6
 #define N_WHITE         7
+
 #define B_RED           8
 #define B_GREEN         9
 #define B_YELLOW        10
@@ -167,6 +168,7 @@ using namespace boost::posix_time;
 #define B_MAGENTA       12
 #define B_TURQ          13
 #define B_WHITE         14
+
 #define R_RED           15
 #define R_GREEN         16
 #define R_YELLOW        17
@@ -174,13 +176,23 @@ using namespace boost::posix_time;
 #define R_MAGENTA       19
 #define R_TURQ          20
 #define R_WHITE         21
-#define U_RED           22
-#define U_GREEN         23
-#define U_YELLOW        24
-#define U_BLUE          25
-#define U_MAGENTA       26
-#define U_TURQ          27
-#define U_WHITE         28
+
+#define BR_RED          22
+#define BR_GREEN        23
+#define BR_YELLOW       24
+#define BR_BLUE         25
+#define BR_MAGENTA      26
+#define BR_TURQ         27
+#define BR_WHITE        28
+
+#define U_RED           29
+#define U_GREEN         30
+#define U_YELLOW        31
+#define U_BLUE          32
+#define U_MAGENTA       33
+#define U_TURQ          34
+#define U_WHITE         35
+
 #define P_FE            254
 #define P_FF            255
 
@@ -279,7 +291,7 @@ enum vTYPE
 	USER
 } ;
 
-enum cuaType
+enum attType
 {
 	AB,
 	ABSL,
@@ -295,10 +307,12 @@ enum cuaType
 	FP,
 	FK,
 	IMT,
+	INPUT,
 	LEF,
 	LID,
 	LI,
 	NEF,
+	NONE,
 	NT,
 	PI,
 	PIN,
@@ -317,7 +331,6 @@ enum cuaType
 	CHAR,
 	DATAIN,
 	DATAOUT,
-	GRPBOX,
 	OUTPUT,
 	TEXT
 } ;

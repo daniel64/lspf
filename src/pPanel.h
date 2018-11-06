@@ -24,6 +24,7 @@ class pPanel
 		string cmdfield ;
 		bool   showLMSG ;
 
+		static uint panel_intens  ;
 		static poolMGR* p_poolMGR ;
 		static logger* lg         ;
 
@@ -41,7 +42,7 @@ class pPanel
 		const string& field_getvalue( const string& field ) ;
 		bool   field_valid( const string& field ) ;
 		fieldExc field_getexec( const string& )   ;
-		void   field_setvalue( errblock&, const string& field, const string& value ) ;
+		void   field_setvalue( const string& field, const string& value ) ;
 		string field_getname( uint row, uint col ) ;
 		bool   field_get_row_col( const string& fld, uint& row, uint& col ) ;
 		int    field_get_col( const string& fld ) ;
@@ -68,14 +69,11 @@ class pPanel
 		pdc    retrieve_choice( errblock&, string& ) ;
 		void   toggle_fscreen( bool, int, int ) ;
 
-		void   display_panel( errblock& ) ;
 		void   redraw_fields( errblock& ) ;
-		void   refresh() ;
 		void   refresh_fields( errblock& ) ;
-		void   refresh_fields( errblock&, int, const string& ) ;
 
 		const string& cmd_getvalue() ;
-		void   cmd_setvalue( errblock&, const string& ) ;
+		void   cmd_setvalue( const string& ) ;
 
 		bool    get_tbscan()                   { return tb_scan  ; }
 		string& get_tb_clear()                 { return tb_clear ; }
@@ -112,7 +110,8 @@ class pPanel
 		string zphelp      ;
 		string zzcmd       ;
 		string zprim       ;
-		string tb_fields   ;
+		string da_dataIn   ;
+		string da_dataOut  ;
 		string tb_clear    ;
 		int    tb_start    ;
 		int    tb_depth    ;
@@ -160,6 +159,7 @@ class pPanel
 		uint   win_depth   ;
 		uint   win_row     ;
 		uint   win_col     ;
+		char   def_schar   ;
 		WINDOW* win        ;
 		WINDOW* fwin       ;
 		WINDOW* pwin       ;
@@ -180,15 +180,20 @@ class pPanel
 
 		void   createPanel_Refresh( errblock&, parser&, panstmnt* ) ;
 		void   createPanel_Vputget( errblock&, parser&, panstmnt* ) ;
-		void   createPanel_Assign( errblock&, parser&, panstmnt* ) ;
+		void   createPanel_Assign( errblock&, parser&, panstmnt*, bool ) ;
 		void   createPanel_Verify( errblock&, parser&, panstmnt* ) ;
-		void   createPanel_If( errblock&, parser&, panstmnt*, bool ) ;
-		void   createPanel_Else( errblock&, parser&, panstmnt*, vector<panstmnt*>*, bool )  ;
+		void   createPanel_If( errblock&, parser&, panstmnt*, bool, bool ) ;
+		void   createPanel_Else( errblock&, parser&, panstmnt*, vector<panstmnt*>*, bool, bool ) ;
 
+		void   display_panel( errblock& ) ;
 		void   display_panel_update( errblock& ) ;
 		void   display_panel_init( errblock& )   ;
+		void   display_panel_attrs( errblock& )  ;
 		void   display_panel_reinit( errblock&, int ln=0 ) ;
 		void   display_panel_proc( errblock&, int ln )     ;
+
+		void   refresh() ;
+		void   refresh_fields( errblock&, int, const string& ) ;
 
 		void   abc_panel_init( errblock&, const string& ) ;
 		void   abc_panel_proc( errblock&, const string& ) ;
@@ -215,7 +220,8 @@ class pPanel
 		void   update_field_values( errblock& ) ;
 
 		void   get_panel_info( int& RC, const string& a_name, const string& t = "", const string& w = "", const string& d = "", const string& r = "", const string& c = "" ) ;
-		void   attr( int& RC, const string& field, const string& attrs ) ;
+		void   attr( errblock&, const string& field, const string& attrs ) ;
+		void   attrchar( errblock&, const char, string& attrs ) ;
 
 
 		void   tb_set_csrrow( int i )   { tb_csrrow  = i    ; }
@@ -242,7 +248,7 @@ class pPanel
 		void   set_message_cond( const string& ) ;
 		void   set_cursor_cond( const string&, int =-1 ) ;
 
-		void   resetAttrs() ;
+		void   resetAttrs()  ;
 		void   resetAttrs_once() ;
 
 		void   syncDialogueVar( errblock&, const string& ) ;
@@ -251,11 +257,11 @@ class pPanel
 		string getControlVar( errblock&, const string& ) ;
 		void   setControlVar( errblock&, int, const string&, const string&, PS_SECT ) ;
 
-		void   create_tbfield( errblock&, int col, int size, cuaType cuaFT, const string& name, const string& opts ) ;
+		void   create_tbfield( errblock&, int col, int size, attType cuaFT, const string& name, const string& opts ) ;
 		void   create_tbfield( errblock&, const string& ) ;
 		void   create_pdc( errblock&, const string&, const string& ) ;
 
-		void   display_boxes()  ;
+		void   display_boxes() ;
 
 		void   display_tb_mark_posn( errblock& )    ;
 		void   set_tb_fields_act_inact( errblock& ) ;
@@ -263,7 +269,7 @@ class pPanel
 		string sub_vars( string s ) ;
 		string sub_vars( string s, bool& ) ;
 
-		bool   is_tb_field( const string& ) ;
+		bool   tb_field( const string& ) ;
 
 		vector<string>attrList ;
 		map<int, string> tb_linesChanged ;
@@ -288,9 +294,15 @@ class pPanel
 		vector<panstmnt*> initstmnts ;
 		vector<panstmnt*> reinstmnts ;
 
+		set<string> tb_fields ;
+		map<unsigned char, char_attrs> char_attrlist ;
+		map<unsigned char, unsigned int> colour_attrlist ;
+		map<unsigned char, unsigned int> ddata_map ;
+		map<unsigned char, unsigned int> schar_map ;
+
 		void   display_literals() ;
 		void   display_ab()       ;
-		void   display_fields( errblock& ) ;
+		void   display_fields( errblock&, bool =false ) ;
 
 		void   process_panel_stmnts( errblock& err, int ln, vector<panstmnt*>& stmnts, PS_SECT ) ;
 		void   process_panel_assignment( errblock& err, int ln, ASSGN* assgn, PS_SECT ) ;
@@ -311,6 +323,7 @@ class pPanel
 				   uint&,
 				   uint&,
 				   vector<string>& ) ;
+
 		void   panel_cleanup( PANEL* ) ;
 
 		void   update_keylist_vars( errblock& ) ;

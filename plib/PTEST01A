@@ -35,7 +35,7 @@ field     8   18    10    NEF   NONE  FLD1
 
 literal   9   6     FP  "FIELD FLD2: "
 literal   9   30    FP  "VER FLD2 NB NUM"
-field     9   18    10    NEF   NONE  FLD2
+field     9   18    10    INPUT NONE  FLD2
 
 literal   9   66    FP  "FIELD FLD11:"
 field     9   79    3    NEF   NONE  FLD11
@@ -72,7 +72,7 @@ literal   14   30    FP  "VER NB PICT CAN9OX/\=B"
 field     14   18   10    NEF   NONE  FLD7
 
 literal   15   6    FP  "FIELD FLD8: "
-literal   15   30    FP  "IF &Z .ATTR = 'INTENSE(HIGH)' and keep rest"
+literal   15   30    FP  "IF &Z .ATTR = 'INTENS(HIGH)' and keep rest"
 field     15   18   10    NEF   NONE  FLD8
 
 literal   16   6    FP  "FIELD FLD9: "
@@ -113,7 +113,7 @@ field     22   84   8    NEF   pad(user),JUST(ASIS)  FLDF
 )INIT
 
 VGET (FLD1 FLD2) PROFILE
-.ATTR(FLD1) = 'COLOUR(TURQ) INTENSE(HIGH)'
+.ATTR(FLD1) = 'COLOUR(TURQ) INTENS(HIGH)'
 
 &ATRF1 = NEF
 &ATRF2 = NEF
@@ -132,11 +132,19 @@ VGET (FLD1 FLD2) PROFILE
 
 )PROC
 .HELP=THELP01
-.ATTR(FLD3) = 'COLOUR(TURQ) INTENSE(HIGH)'
-.ATTR(ATRF6) = 'COLOUR(TURQ) INTENSE(HIGH) HILITE(NONE)'
+.ATTR(FLD3) = 'COLOUR(TURQ) INTENS(HIGH)'
+.ATTR(ATRF6) = 'COLOUR(TURQ) INTENS(HIGH)'
 
 VER (&FLD1 NB LIST AAA BBB CCC DDD EEE FFF)
+IF (.MSG NE &Z)
+    .ATTR(FLD1) = 'COLOR(RED)'
+    EXIT
+
 VER ( &FLD2 NB NUM )
+IF (.MSG NE &Z)
+    .ATTR(FLD2) = 'COLOR(RED) HILITE(BLINK)'
+    EXIT
+
 VER (  &FLD3 LIST AAA BBB CCC DDD EEE   )
 VER(&FLD5      HEX)
 VER( &FLD6   NB OCT    )
@@ -155,14 +163,14 @@ VER(  &FLD7,NB,PICT,'CAN9OX/\=B',MSG=PSYS011N  )
 -- --------------------------------------------
 
 IF (&FLD8 EQ &Z)                    /*  NEF Change to hilight+NEF if error */
-   .ATTR(FLD8) = ' INTENSE(HIGH)'   /*  then back to NEF when okay         */
+   .ATTR(FLD8) = ' INTENS(HIGH)'   /*  then back to NEF when okay         */
 --   .ATTR(FLD8) = ' COLOUR(RED)'   /*  then back to NEF when okay         */
    .MSG    = PSYS019
    .CURSOR = FLD8
    EXIT
 
 IF ( LENGTH(FLD9) NE 8)
-   .ATTR(FLD9) = 'COLOUR(RED) INTENSE(HIGH)'
+   .ATTR(FLD9) = 'COLOUR(RED) INTENS(HIGH)'
    .MSG    = PSYS019
    .CURSOR = FLD9
    EXIT

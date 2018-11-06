@@ -1,14 +1,14 @@
 )PANEL VERSION=1 FORMAT=1
 
-
 )COMMENT
  Panel for General Option Settings
 )ENDCOMMENT
 
-
 )INCLUDE STD_PDC
 )INCLUDE RFS_PDC
 )INCLUDE HLP_PDC
+
+)ATTR
 
 )BODY
 
@@ -66,8 +66,14 @@ field    21  33  4 CEF PAD(USER),CAPS(ON) GOSCMD2
 field    21  38  4 CEF PAD(USER),CAPS(ON) GOSCMD3
 
 literal  15  60    ET    "Screen"
-literal  16  62    FP    "Input field pad character ."
-field    16  90  1 CEF    CAPS(ON) GOPADC
+literal  16  64    SAC   "Use high intensity for all colours"
+field    16  62    1     CEF PAD(USER) GOHIGH
+literal  18  62    FP    "Input field pad character ."
+field    18  90  1 CEF    CAPS(ON) GOPADC
+literal  20  62    FP    "Default for message identifier"
+field    21  62  1 CEF    CAPS(ON),PAD(USER),NUMERIC(ON) GODEFM
+literal  21  65    SAC    "1. On"
+literal  22  65    SAC    "2. Off"
 
 literal 24 2  CH "Instructions"
 literal 26 2  NT "Press"
@@ -104,12 +110,14 @@ IF ( &ZCMD EQ RESET ) EXIT
 &GOLMSGW = TRANS( &GOLMSGW &Z,&Z *,/ )
 &GOSWAP  = TRANS( &GOSWAP  &Z,&Z *,/ )
 &GOSRETP = TRANS( &GOSRETP &Z,&Z *,/ )
+&GOHIGH  = TRANS( &GOHIGH  &Z,&Z *,/ )
 
 VER (&GODEL NB)
 VER (&GOSWAPC NB)
 VER (&GOATIMO  NB)
 VER (&GORTSIZE NB)
 VER (&GORBSIZE NB)
+VER (&GODEFM,NB,LIST,1,2)
 
 IF (VER (&GODEL NB,LIST,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,0,1,2,3,4,5,6,7,8,9,=,.) )
    .MSG    = PSYS012N

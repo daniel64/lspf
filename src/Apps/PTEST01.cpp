@@ -47,6 +47,13 @@ using namespace std ;
 #undef  MOD_NAME
 #define MOD_NAME PTEST01
 
+#define E_RED      3
+#define E_GREEN    4
+#define E_YELLOW   5
+#define E_BLUE     6
+#define E_MAGENTA  7
+#define E_TURQ     8
+#define E_WHITE    9
 
 PTEST01::PTEST01()
 {
@@ -935,9 +942,12 @@ void PTEST01::opt5()
 {
 	// opt5 - Test Dynamic Areas (Input & Output)
 
+	// Copy back the din/dout attributes bytes if not a reload
+
 	string MSG      ;
 	string din      ;
 	string dout     ;
+	string attrs    ;
 	string usermd   ;
 	string datamd   ;
 	string sl1      ;
@@ -981,6 +991,8 @@ void PTEST01::opt5()
 	usermd = string( 1, 0x03 ) ;
 	datamd = string( 1, 0x04 ) ;
 
+	attrs  = usermd + datamd ;
+
 	ZSIZE2 = ZAREAW2 * ZAREAD2 ;
 
 	//                 1234567890123456789012345678901234567890
@@ -998,13 +1010,13 @@ void PTEST01::opt5()
 	ZAREA1 = ZAREA1 + "ZooooooooooooooooooooooooooooooooooooooZ" ;
 
 	CAREA1 = ZAREA1 ;
-	sl2 = string( ZAREAW1, N_TURQ ) ;
-	sl1 = string( ZAREAW1, N_GREEN ) ;
-	sl1.replace( 0,  10, 10, N_WHITE ) ;
-	sl1.replace( 10, 10, 10, N_BLUE ) ;
-	sl1.replace( 20, 10, 10, N_YELLOW ) ;
+	sl2 = string( ZAREAW1, E_TURQ ) ;
+	sl1 = string( ZAREAW1, E_GREEN ) ;
+	sl1.replace( 0,  10, 10, E_WHITE ) ;
+	sl1.replace( 10, 10, 10, E_BLUE ) ;
+	sl1.replace( 20, 10, 10, E_YELLOW ) ;
 
-	sl3 = string( ZSIZE2, N_TURQ ) ;
+	sl3 = string( ZSIZE2, E_TURQ ) ;
 
 	ZSHADOW1 = sl2 ;
 	ZSHADOW1 = ZSHADOW1 + sl1 ;
@@ -1033,7 +1045,8 @@ void PTEST01::opt5()
 		if ( zcmd == "SHOW" )
 		{
 			zcmd = "" ;
-			llog( "A", "ZAREA >>" << ZAREA1 << "<<" << endl ; )
+			llog( "A", "ZAREA   >>" << ZAREA1   << "<<" << endl ; )
+			llog( "A", "CAREA   >>" << CAREA1   << "<<" << endl ; )
 			llog( "A", "ZSHADOW >>" << ZSHADOW1 << "<<" << endl ; )
 		}
 		iupper( zcmd ) ;
@@ -1048,6 +1061,7 @@ void PTEST01::opt5()
 			CURFLD = "ZCMD" ;
 			CURPOS = 1      ;
 		}
+
 		if ( word( zcmd, 1 ) == "RELOAD" )
 		{
 			ZAREA1 = CAREA1 ;
@@ -1084,6 +1098,14 @@ void PTEST01::opt5()
 		else if ( ZAREA1.substr( posn-1, 1 ) == datamd ) { llog( "A", "ZAREA1 FLD at posn " << posn <<" has been changed by the user " << endl ; ) }
 		else                                             { llog( "A", "ZAREA1 FLD at posn " << posn <<" has not been changed or touched by the user " << endl ; ) }
 
+		posn = 0 ;
+		while ( true )
+		{
+			posn = ZAREA1.find_first_of( attrs, posn ) ;
+			if ( posn == string::npos ) { break ; }
+			ZAREA1[ posn ] = din.front() ;
+			posn++ ;
+		}
 
 		if ( zcmd != "" ) { MSG = "PSYS018" ; }
 	}

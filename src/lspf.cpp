@@ -36,7 +36,7 @@
 
 boost::condition cond_appl ;
 
-map<cuaType, unsigned int> cuaAttr ;
+map<attType, unsigned int> cuaAttr ;
 
 #include "utilities.h"
 #include "utilities.cpp"
@@ -133,6 +133,12 @@ logger*   poolMGR::lg       = NULL ;
 
 char  field::field_paduchar = ' '   ;
 bool  field::field_nulls    = false ;
+uint  pPanel::panel_intens    = 0   ;
+uint  field::field_intens     = 0   ;
+uint  literal::literal_intens = 0   ;
+uint  pdc::pdc_intens         = 0   ;
+uint  abc::abc_intens         = 0   ;
+uint  Box::box_intens         = 0   ;
 
 fPOOL funcPOOL ;
 
@@ -149,6 +155,7 @@ void saveRetrieveBuffer() ;
 void loadCUATables()      ;
 void setGlobalColours()   ;
 void setColourPair( const string& ) ;
+void lScreenDefaultSettings() ;
 void updateDefaultVars()      ;
 void createSharedPoolVars( const string& ) ;
 void updateReflist()          ;
@@ -354,6 +361,8 @@ int main( void )
 
 	llog( "I", "Calling loadDefaultPools" << endl ) ;
 	loadDefaultPools() ;
+
+	lScreenDefaultSettings() ;
 
 	llog( "I", "Calling getDynamicClasses" << endl ) ;
 	getDynamicClasses() ;
@@ -1007,7 +1016,7 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 			zparm    = upper( zcommand.substr( 1, col-cl-1 ) ) ;
 			zcommand = "SWAP" ;
 			passthru = false  ;
-			currAppl->currPanel->cmd_setvalue( err, "" ) ;
+			currAppl->currPanel->cmd_setvalue( "" ) ;
 			return ;
 		}
 	}
@@ -1021,7 +1030,7 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 	{
 		if ( zcommand != "" )
 		{
-			currAppl->currPanel->cmd_setvalue( err, zcommand + commandStack ) ;
+			currAppl->currPanel->cmd_setvalue( zcommand + commandStack ) ;
 			commandStack = "" ;
 			return ;
 		}
@@ -1110,13 +1119,13 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 	{
 		commandStack = zcommand.substr( 1 ) ;
 		zcommand     = ""                   ;
-		currAppl->currPanel->cmd_setvalue( err, "" ) ;
+		currAppl->currPanel->cmd_setvalue( "" ) ;
 		return ;
 	}
 	else if ( zcommand.compare( 0, 1, delm ) == 0 )
 	{
 		zcommand.erase( 0, 1 ) ;
-		currAppl->currPanel->cmd_setvalue( err, zcommand ) ;
+		currAppl->currPanel->cmd_setvalue( zcommand ) ;
 	}
 
 	p1 = zcommand.find( delm.front() ) ;
@@ -1124,7 +1133,7 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 	{
 		commandStack = zcommand.substr( p1 ) ;
 		zcommand.erase( p1 )                 ;
-		currAppl->currPanel->cmd_setvalue( err, zcommand ) ;
+		currAppl->currPanel->cmd_setvalue( zcommand ) ;
 	}
 
 	cmdVerb = upper( word( zcommand, 1 ) ) ;
@@ -1143,7 +1152,7 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 		selct.suspend = true  ;
 		doSelect      = true  ;
 		passthru      = false ;
-		currAppl->currPanel->cmd_setvalue( err, "" ) ;
+		currAppl->currPanel->cmd_setvalue( "" ) ;
 		return ;
 	}
 	else if ( cmdVerb.front() == '!' )
@@ -1157,7 +1166,7 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 		selct.suspend = true    ;
 		doSelect      = true    ;
 		passthru      = false   ;
-		currAppl->currPanel->cmd_setvalue( err, "" ) ;
+		currAppl->currPanel->cmd_setvalue( "" ) ;
 		return ;
 	}
 
@@ -1169,10 +1178,10 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 		{
 			currAppl->jumpEntered = true ;
 			p_poolMGR->put( err, "ZVERB", "RETURN", SHARED ) ;
-			currAppl->currPanel->cmd_setvalue( err, "" ) ;
+			currAppl->currPanel->cmd_setvalue( "" ) ;
 			return ;
 		}
-		currAppl->currPanel->cmd_setvalue( err, zcommand ) ;
+		currAppl->currPanel->cmd_setvalue( zcommand ) ;
 	}
 
 	if ( cmdVerb == "RETRIEVE" || cmdVerb == "RETF" )
@@ -1196,12 +1205,12 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 			{
 				if ( ++retPos > retrieveBuffer.size() ) { retPos = 1 ; }
 			}
-			currAppl->currPanel->cmd_setvalue( err, retrieveBuffer[ retPos-1 ] ) ;
+			currAppl->currPanel->cmd_setvalue( retrieveBuffer[ retPos-1 ] ) ;
 			currAppl->currPanel->cursor_to_cmdfield( RC, retrieveBuffer[ retPos-1 ].size()+1 ) ;
 		}
 		else
 		{
-			currAppl->currPanel->cmd_setvalue( err, "" ) ;
+			currAppl->currPanel->cmd_setvalue( "" ) ;
 			currAppl->currPanel->cursor_to_cmdfield( RC ) ;
 		}
 		currScrn->set_cursor( currAppl ) ;
@@ -1216,7 +1225,7 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 		commandStack = "" ;
 		if ( currAppl->currPanel->msgid == "" || currAppl->currPanel->showLMSG )
 		{
-			currAppl->currPanel->cmd_setvalue( err, "" ) ;
+			currAppl->currPanel->cmd_setvalue( "" ) ;
 			zparm   = currAppl->get_help_member( row, col ) ;
 			cmdParm = zparm ;
 		}
@@ -1238,7 +1247,7 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 		{
 			p_poolMGR->put( err, "ZCTMVAR", left( aVerb, 8 ), SHARED ) ;
 			issueMessage( "PSYS011" ) ;
-			currAppl->currPanel->cmd_setvalue( err, "" ) ;
+			currAppl->currPanel->cmd_setvalue( "" ) ;
 			passthru = false ;
 			return ;
 		}
@@ -1276,7 +1285,7 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 			{
 				p_poolMGR->put( err, "ZCTMVAR", left( aVerb, 8 ), SHARED ) ;
 				issueMessage( "PSYS011" ) ;
-				currAppl->currPanel->cmd_setvalue( err, "" ) ;
+				currAppl->currPanel->cmd_setvalue( "" ) ;
 				passthru = false ;
 				zcommand = "NOP" ;
 				return ;
@@ -1323,7 +1332,7 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 		passthru = false ;
 	}
 
-	currAppl->currPanel->cmd_setvalue( err, passthru ? zcommand : "" ) ;
+	currAppl->currPanel->cmd_setvalue( passthru ? zcommand : "" ) ;
 	debug1( "Primary command '"+ zcommand +"'  Passthru = " << passthru << endl ) ;
 }
 
@@ -1792,7 +1801,6 @@ void startApplication( selobj& sSelect, bool nScreen )
 	string opt   ;
 	string rest  ;
 	string sname ;
-	string libs  ;
 	string applid ;
 
 	bool setMessage ;
@@ -2266,7 +2274,7 @@ void terminateApplication()
 		{
 			if ( currAppl->currPanel->field_get_row_col( currAppl->reffield, row, col ) )
 			{
-				currAppl->currPanel->field_setvalue( err, currAppl->reffield, tRESULT ) ;
+				currAppl->currPanel->field_setvalue( currAppl->reffield, tRESULT ) ;
 				currAppl->currPanel->cursor_eof( row, col ) ;
 				currAppl->currPanel->set_cursor( row, col ) ;
 				if ( refList )
@@ -2349,7 +2357,7 @@ void terminateApplication()
 		{
 			p_poolMGR->put( err, "ZVERB", "RETURN", SHARED ) ;
 			currAppl->jumpEntered = jumpEntered ;
-			ResumeApplicationAndWait()   ;
+			ResumeApplicationAndWait() ;
 			while ( currAppl->terminateAppl )
 			{
 				terminateApplication() ;
@@ -2405,6 +2413,8 @@ bool createLogicalScreen()
 
 	screenList.push_back( new pLScreen( currScrn->screenId, ZMAXSCRN ) ) ;
 	currScrn->OIA_startTime() ;
+
+	lScreenDefaultSettings() ;
 	return true ;
 }
 
@@ -2440,6 +2450,8 @@ void deleteLogicalScreen()
 void ResumeApplicationAndWait()
 {
 	int elapsed ;
+
+	if ( currAppl->applicationEnded ) { return ; }
 
 	elapsed = 0               ;
 	currAppl->busyAppl = true ;
@@ -2528,7 +2540,6 @@ void loadCUATables()
 	cuaAttr[ CHAR   ] = BLUE   | A_BOLD   | A_PROTECT ;
 	cuaAttr[ DATAIN ] = GREEN  | A_NORMAL             ;
 	cuaAttr[ DATAOUT] = GREEN  | A_NORMAL | A_PROTECT ;
-	cuaAttr[ GRPBOX ] = GREEN  | A_NORMAL | A_PROTECT ;
 	cuaAttr[ OUTPUT ] = GREEN  | A_NORMAL | A_PROTECT ;
 	cuaAttr[ TEXT   ] = BLUE   | A_NORMAL | A_PROTECT ;
 
@@ -2542,11 +2553,11 @@ void setColourPair( const string& name )
 
 	err.clear() ;
 
-	pair<map<cuaType, unsigned int>::iterator, bool> result ;
+	pair<map<attType, unsigned int>::iterator, bool> result ;
 
-	result = cuaAttr.insert( pair<cuaType, unsigned int>( cuaAttrName[ name ], WHITE ) ) ;
+	result = cuaAttr.insert( pair<attType, unsigned int>( cuaAttrName[ name ], WHITE ) ) ;
 
-	map<cuaType, unsigned int>::iterator it = result.first ;
+	map<attType, unsigned int>::iterator it = result.first ;
 
 	t = p_poolMGR->sysget( err, "ZC"+ name, PROFILE ) ;
 	if ( !err.RC0() )
@@ -2770,8 +2781,7 @@ void loadRetrieveBuffer()
 
 void saveRetrieveBuffer()
 {
-	string ofile   ;
-	string outLine ;
+	string ofile ;
 
 	if ( retrieveBuffer.empty() || p_poolMGR->sysget( err, "ZSRETP", PROFILE ) == "N" ) { return ; }
 
@@ -2847,6 +2857,16 @@ string ControlKeyAction( char c )
 }
 
 
+void lScreenDefaultSettings()
+{
+	// Set the default message setting for this logical screen
+	// ZDEFM = Y show message id on messages
+	//         N don't show message id on messages
+
+	p_poolMGR->put( err, currScrn->screenId, "ZSHMSGID", p_poolMGR->sysget( err, "ZDEFM", PROFILE ) ) ;
+}
+
+
 void updateDefaultVars()
 {
 	err.clear() ;
@@ -2854,8 +2874,17 @@ void updateDefaultVars()
 	gmaxwait = ds2d( p_poolMGR->sysget( err, "ZMAXWAIT", PROFILE ) ) ;
 	gmainpgm = p_poolMGR->sysget( err, "ZMAINPGM", PROFILE ) ;
 	p_poolMGR->sysput( err, "ZSPLIT", pLScreen::screensTotal > 1 ? "YES" : "NO", SHARED ) ;
+
 	field::field_paduchar = p_poolMGR->sysget( err, "ZPADC", PROFILE ).front() ;
+
 	field::field_nulls    = ( p_poolMGR->sysget( err, "ZNULLS", SHARED ) == "YES" ) ;
+
+	field::field_intens   = ( p_poolMGR->sysget( err, "ZHIGH", PROFILE ) == "Y" ) ? A_BOLD : 0 ;
+	pPanel::panel_intens  = field::field_intens ;
+	literal::literal_intens = field::field_intens ;
+	pdc::pdc_intens       = field::field_intens ;
+	abc::abc_intens       = field::field_intens ;
+	Box::box_intens       = field::field_intens ;
 }
 
 
@@ -3156,7 +3185,7 @@ void listRetrieveBuffer()
 		c = getch() ;
 		if ( c == KEY_ENTER || c == 13 )
 		{
-			currAppl->currPanel->cmd_setvalue( err, retrieveBuffer[ m ] ) ;
+			currAppl->currPanel->cmd_setvalue( retrieveBuffer[ m ] ) ;
 			currAppl->currPanel->cursor_to_cmdfield( RC, retrieveBuffer[ m ].size()+1 ) ;
 			break ;
 		}
@@ -3610,7 +3639,7 @@ void actionSwap( uint& row, uint& col )
 		if ( datatype( w2, 'W' ) && w1 != w2 )
 		{
 			i = ds2d( w2 ) - 1 ;
-			if ( i >= 0 && i != priScreen && i < pLScreen::screensTotal )
+			if ( i != priScreen && i < pLScreen::screensTotal )
 			{
 				altScreen = i ;
 			}

@@ -45,6 +45,7 @@ class pApplication
 		bool   noTimeOut          ;
 		bool   busyAppl           ;
 		bool   terminateAppl      ;
+		bool   applicationEnded   ;
 		bool   abnormalEnd        ;
 		bool   abnormalEndForced  ;
 		bool   abnormalTimeout    ;
@@ -148,9 +149,9 @@ class pApplication
 		void   verase( const string& var, poolType =ASIS ) ;
 		void   vget( const string& var, poolType =ASIS )   ;
 		void   vput( const string& var, poolType =ASIS )   ;
-		const string& vlist( poolType pType, int lvl ) ;
-		const string& vilist( vdType =ALL ) ;
-		const string& vslist( vdType =ALL ) ;
+		set<string>& vlist( poolType pType, int lvl ) ;
+		set<string>& vilist( vdType =ALL ) ;
+		set<string>& vslist( vdType =ALL ) ;
 		void   vmask( const string& var, const string& type, const string& mask ) ;
 		void   vreplace( const string&, const string& ) ;
 		void   vreplace( const string&, int )           ;

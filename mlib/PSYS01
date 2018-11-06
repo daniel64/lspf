@@ -48,14 +48,14 @@ PSYS011F 'Invalid octal number' .TYPE=W .W=NORESP
 'Number entered is not a valid octal number'
 
 PSYS011G 'Non-integer data entered' .TYPE=W .W=NORESP
-'Field is an integer via the function pool definition, but non-integer data has been entered. ' +
+'Field is an integer via the function pool definition, but non-integer data has been entered.  ' +
 'Change ignored'
 
 PSYS011H 'Field must be valid hex' .TYPE=W .W=NORESP
 'Enter only hex data in the field at the cursor position'
 
 PSYS011I 'Invalid Scroll Amount' .TYPE=W
-'Invalid entry.  Valid scroll values are H(half), P(page), C(cursor),' +
+'Invalid entry.  Valid scroll values are H(half), P(page), C(cursor), ' +
 'D(data) or a maximum numeric value of 6 digits (4 digits within the scroll field)'
 
 PSYS011J 'Help Member Not Found' .TYPE=W
@@ -101,7 +101,7 @@ PSYS011W 'Entry &ZRFNPOS retrieved from &ZCURTB' .TYPE=N
 'Entry &ZRFNPOS has been retrieved from personal list &ZCURTB'
 
 PSYS011X 'File retrieve not active' .TYPE=W
-'File retrieve is not active on this panel via reflists or NRETRIEV. ' +
+'File retrieve is not active on this panel via reflists or NRETRIEV.  ' +
 'Set .NRET in the panel if this is required'
 
 PSYS011Y 'No .NRET field name set in panel' .TYPE=W
@@ -150,11 +150,11 @@ PSYS012M 'Invalid MSGID parameter' .TYPE=W
 'Valid MSGID parameters are ON, OFF or blank.'
 
 PSYS012N 'Invalid command delimiter' .TYPE=W
-'Command delimiter value cannot be a-z, A-Z, 0-9, = and .' +
+'Command delimiter value cannot be a-z, A-Z, 0-9, = and .  ' +
 'It must also be different from the pad character'
 
 PSYS012O 'Invalid PAD value' .TYPE=W
-'PAD value cannot be a-z, A-Z, 0-9 and / except N for nulls' +
+'PAD value cannot be a-z, A-Z, 0-9 and / except N for nulls ' +
 'and B for blank. It must also be different from the command delimiter'
 
 PSYS012P 'Invalid REGEX entered' .TYPE=W

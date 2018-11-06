@@ -62,6 +62,14 @@ using namespace boost::filesystem ;
 #undef  MOD_NAME
 #define MOD_NAME PPSP01A
 
+#define E_RED      3
+#define E_GREEN    4
+#define E_YELLOW   5
+#define E_BLUE     6
+#define E_MAGENTA  7
+#define E_TURQ     8
+#define E_WHITE    9
+
 boost::mutex PPSP01A::mtx ;
 
 
@@ -78,10 +86,10 @@ void PPSP01A::application()
 {
 	llog( "I", "Application PPSP01A starting" << endl ) ;
 
-	string logtype ;
-	string logloc  ;
-	string w1      ;
-	string w2      ;
+	string ltype  ;
+	string logloc ;
+	string w1 ;
+	string w2 ;
 
 	w1 = upper( word( PARM, 1 ) ) ;
 	w2 = upper( word( PARM, 2 ) ) ;
@@ -89,19 +97,19 @@ void PPSP01A::application()
 	vdefine( "ZCMD ZVERB ZROW1 ZROW2", &zcmd, &zverb, &zrow1, &zrow2 ) ;
 	vdefine( "ZAREA ZSHADOW ZAREAT ZSCROLLA", &zarea, &zshadow, &zareat, &zscrolla ) ;
 	vdefine( "ZSCROLLN ZAREAW ZAREAD", &zscrolln, &zareaw, &zaread ) ;
-	vdefine( "LOGTYPE LOGLOC ZCOL1", &logtype, &logloc, &zcol1 ) ;
+	vdefine( "LTYPE LOGLOC ZCOL1", &ltype, &logloc, &zcol1 ) ;
 
 	vget( "ZALOG ZSLOG", PROFILE ) ;
 
 	if ( PARM == "AL" )
 	{
-		logtype = "Application" ;
+		ltype = "Application" ;
 		vcopy( "ZALOG", logloc, MOVE ) ;
 		show_log( logloc ) ;
 	}
 	else if ( PARM == "SL" )
 	{
-		logtype = "LSPF"  ;
+		ltype = "lspf" ;
 		vcopy( "ZSLOG", logloc, MOVE ) ;
 		show_log( logloc ) ;
 	}
@@ -181,7 +189,7 @@ void PPSP01A::show_log( const string& fileName )
 
 	while ( true )
 	{
-		zcol1 = d2ds( startCol-47, 7 ) ;
+		zcol1 = d2ds( startCol-47, 5 ) ;
 		zrow1 = d2ds( firstLine, 8 )   ;
 		zrow2 = d2ds( maxLines, 8 )    ;
 		if ( msg == "" ) { zcmd = "" ; }
@@ -481,7 +489,7 @@ void PPSP01A::fill_dynamic_area()
 	int p ;
 
 	string s     ;
-	string s2( zareaw, N_TURQ ) ;
+	string s2( zareaw, E_TURQ ) ;
 	string t     ;
 
 	zarea   = "" ;
@@ -504,24 +512,24 @@ void PPSP01A::fill_dynamic_area()
 		else
 		{
 			t = "" ;
-			s = string( zareaw, N_GREEN ) ;
+			s = string( zareaw, E_GREEN ) ;
 			p = 0 ;
-			if ( showDate ) { t = data[ k ].substr( 0,  12 )     ; s.replace( p, 12, 12, N_TURQ   ) ; p = 12     ; }
-			if ( showTime ) { t = t + data[ k ].substr( 12, 16 ) ; s.replace( p, 16, 16, N_TURQ   ) ; p = p + 16 ; }
-			if ( showMod  ) { t = t + data[ k ].substr( 28, 11 ) ; s.replace( p, 11, 11, N_YELLOW ) ; p = p + 11 ; }
+			if ( showDate ) { t = data[ k ].substr( 0,  12 )     ; s.replace( p, 12, 12, E_TURQ   ) ; p = 12     ; }
+			if ( showTime ) { t = t + data[ k ].substr( 12, 16 ) ; s.replace( p, 16, 16, E_TURQ   ) ; p = p + 16 ; }
+			if ( showMod  ) { t = t + data[ k ].substr( 28, 11 ) ; s.replace( p, 11, 11, E_YELLOW ) ; p = p + 11 ; }
 			t += data[ k ].substr( 39, 8 ) ;
 			t += substr( data[ k ], startCol, zareaw ) ;
 			t.resize( zareaw, ' ' ) ;
 			zarea += t ;
-			s.replace( p, 5, 5, N_WHITE ) ;
+			s.replace( p, 5, 5, E_WHITE ) ;
 			p += 6 ;
-			s.replace( p, 2, 2, N_TURQ  ) ;
+			s.replace( p, 2, 2, E_TURQ  ) ;
 			zshadow += s ;
 			lprefix  = p + 2 ;
 		}
 	}
 	zarea.resize( zasize, ' ' ) ;
-	zshadow.resize( zasize, N_TURQ ) ;
+	zshadow.resize( zasize, E_TURQ ) ;
 }
 
 
@@ -609,6 +617,7 @@ void PPSP01A::lspfSettings()
 
 	string* t1     ;
 
+	string godefm  ;
 	string godel   ;
 	string goswap  ;
 	string goswapc ;
@@ -618,7 +627,9 @@ void PPSP01A::lspfSettings()
 	string gopadc  ;
 	string gosretp ;
 	string goscrld ;
+	string gohigh  ;
 
+	string rodefm  ;
 	string rodel   ;
 	string roswap  ;
 	string roswapc ;
@@ -628,7 +639,9 @@ void PPSP01A::lspfSettings()
 	string ropadc  ;
 	string rosretp ;
 	string roscrld ;
+	string rohigh  ;
 
+	string zdefm   ;
 	string zdel    ;
 	string zswap   ;
 	string zswapc  ;
@@ -638,6 +651,7 @@ void PPSP01A::lspfSettings()
 	string zpadc   ;
 	string zsretp  ;
 	string zscrolld;
+	string zhigh   ;
 
 	string goucmd1 ;
 	string goucmd2 ;
@@ -710,6 +724,10 @@ void PPSP01A::lspfSettings()
 	if ( RC > 0 ) { abend() ; }
 	vdefine( "GOSCRLD ROSCRLD ZSCROLLD", &goscrld, &roscrld, &zscrolld ) ;
 	if ( RC > 0 ) { abend() ; }
+	vdefine( "GODEFM RODEFM ZDEFM", &godefm, &rodefm, &zdefm ) ;
+	if ( RC > 0 ) { abend() ; }
+	vdefine( "GOHIGH ROHIGH ZHIGH", &gohigh, &rohigh, &zhigh ) ;
+	if ( RC > 0 ) { abend() ; }
 
 	vget( "ZUCMDT1 ZUCMDT2 ZUCMDT3", PROFILE ) ;
 	if ( RC > 0 ) { abend() ; }
@@ -717,7 +735,7 @@ void PPSP01A::lspfSettings()
 	if ( RC > 0 ) { abend() ; }
 	vget( "ZSWAP ZSWAPC ZKLUSE ZKLFAIL ZSCROLLD", PROFILE ) ;
 	if ( RC > 0 ) { abend() ; }
-	vget( "ZDEL ZKLUSE  ZLMSGW ZPADC ZSRETP", PROFILE ) ;
+	vget( "ZDEFM ZDEL ZKLUSE ZLMSGW ZPADC ZSRETP ZHIGH", PROFILE ) ;
 	if ( RC > 0 ) { abend() ; }
 
 	gokluse = zkluse  == "Y" ? "/" : "" ;
@@ -726,6 +744,8 @@ void PPSP01A::lspfSettings()
 	golmsgw = zlmsgw  == "Y" ? "/" : "" ;
 	goswap  = zswap   == "Y" ? "/" : "" ;
 	gosretp = zsretp  == "Y" ? "/" : "" ;
+	gohigh  = zhigh   == "Y" ? "/" : "" ;
+	godefm  = zdefm   == "Y" ? "1" : "2" ;
 
 	godel   = zdel   ;
 	goswapc = zswapc ;
@@ -750,6 +770,7 @@ void PPSP01A::lspfSettings()
 	gortsize = zrtsize ;
 	gorbsize = zrbsize ;
 
+	rodefm   = godefm   ;
 	rodel    = godel    ;
 	roswap   = goswap   ;
 	roswapc  = goswapc  ;
@@ -769,6 +790,7 @@ void PPSP01A::lspfSettings()
 	roatimo  = goatimo  ;
 	rortsize = gortsize ;
 	rorbsize = gorbsize ;
+	rohigh   = gohigh   ;
 
 	while ( true )
 	{
@@ -781,6 +803,7 @@ void PPSP01A::lspfSettings()
 			goklfal  = "/" ;
 			gostfst  = "/" ;
 			golmsgw  = ""  ;
+			godefm   = "2" ;
 			godel    = ";" ;
 			goswap   = "/" ;
 			goswapc  = "'" ;
@@ -796,9 +819,11 @@ void PPSP01A::lspfSettings()
 			goatimo  = d2ds( ZMAXWAIT * ds2d( *t1 ) / 1000 ) ;
 			gortsize = "3"  ;
 			gorbsize = "20" ;
+			gohigh   = ""   ;
 		}
 		else if ( zcmd == "RESET" )
 		{
+			godefm   = rodefm   ;
 			godel    = rodel    ;
 			goswap   = roswap   ;
 			goswapc  = roswapc  ;
@@ -818,6 +843,7 @@ void PPSP01A::lspfSettings()
 			goatimo  = roatimo  ;
 			gortsize = rortsize ;
 			gorbsize = rorbsize ;
+			gohigh   = rohigh   ;
 		}
 		zkluse   = gokluse == "/" ? "Y" : "N" ;
 		zklfail  = goklfal == "/" ? "Y" : "N" ;
@@ -825,6 +851,7 @@ void PPSP01A::lspfSettings()
 		zlmsgw   = golmsgw == "/" ? "Y" : "N" ;
 		zswap    = goswap  == "/" ? "Y" : "N" ;
 		zsretp   = gosretp == "/" ? "Y" : "N" ;
+		zhigh    = gohigh  == "/" ? "Y" : "N" ;
 		zucmdt1  = goucmd1 ;
 		zucmdt2  = goucmd2 ;
 		zucmdt3  = goucmd3 ;
@@ -832,9 +859,14 @@ void PPSP01A::lspfSettings()
 		zscmdt2  = goscmd2 ;
 		zscmdt3  = goscmd3 ;
 		zscrolld = goscrld ;
-		vput( "ZKLUSE  ZKLFAIL ZLMSGW  ZSWAP   ZSRETP", PROFILE ) ;
+		vput( "ZKLUSE  ZKLFAIL ZLMSGW  ZSWAP ZSRETP ZHIGH", PROFILE ) ;
 		vput( "ZUCMDT1 ZUCMDT2 ZUCMDT3", PROFILE ) ;
 		vput( "ZSCMDT1 ZSCMDT2 ZSCMDT3 ZSCMDTF ZSCROLLD", PROFILE ) ;
+		if ( godefm != "" )
+		{
+			zdefm = ( godefm == "1" ) ? "Y" : "N" ;
+			vput( "ZDEFM", PROFILE ) ;
+		}
 		if ( godel != "" && godel != zdel )
 		{
 			zdel = godel ;
@@ -893,6 +925,10 @@ void PPSP01A::lspfSettings()
 	if ( RC > 0 ) { abend() ; }
 	vdelete( "GOSCRLD ROSCRLD ZSCROLLD" ) ;
 	if ( RC > 0 ) { abend() ; }
+	vdelete( "GODEFM RODEFM ZDEFM" ) ;
+	if ( RC > 0 ) { abend() ; }
+	vdelete( "GOHIGH ROHIGH ZHIGH" ) ;
+	if ( RC > 0 ) { abend() ; }
 }
 
 
@@ -904,6 +940,7 @@ void PPSP01A::controlKeys()
 
 	string key1  ;
 	string key2  ;
+	string key3  ;
 	string table ;
 	string zcmd  ;
 	string msg   ;
@@ -919,12 +956,14 @@ void PPSP01A::controlKeys()
 
 	tbcreate( table, "CTKEY1", "(CTKEY2,CTACT)", NOWRITE ) ;
 
+	key1 = "ZCTRL?"    ;
+	key2 = "Control-?" ;
+	key3 = "ACTRL?"    ;
+
 	for ( i = 0 ; i < 26 ; i++ )
 	{
-		key1 = "ZCTRL"    ;
-		key2 = "Control-" ;
-		key1.push_back( alpha[ i ] ) ;
-		key2.push_back( alpha[ i ] ) ;
+		key1.replace( 5, 1, 1, alpha[ i ] ) ;
+		key2.replace( 8, 1, 1, alpha[ i ] ) ;
 		vcopy( key1, t1, LOCATE )  ;
 		oldValues.push_back( *t1 ) ;
 		vreplace( "CTKEY1", key1 ) ;
@@ -948,10 +987,8 @@ void PPSP01A::controlKeys()
 		{
 			for ( i = 0 ; i < 26 ; i++ )
 			{
-				key1 = "ZCTRL" ;
-				key2 = "Control-" ;
-				key1.push_back( alpha[ i ] ) ;
-				key2.push_back( alpha[ i ] ) ;
+				key1.replace( 5, 1, 1, alpha[ i ] ) ;
+				key2.replace( 8, 1, 1, alpha[ i ] ) ;
 				vreplace( "CTKEY1", key1 ) ;
 				vreplace( "CTKEY2", key2 ) ;
 				vreplace( "CTACT", oldValues[ i ] ) ;
@@ -967,21 +1004,18 @@ void PPSP01A::controlKeys()
 			msg = "PPSP011E" ;
 			for ( i = 0 ; i < 26 ; i++ )
 			{
-				key1 = "ZCTRL" ;
-				key2 = "ACTRL" ;
-				key1.push_back( alpha[ i ] ) ;
-				key2.push_back( alpha[ i ] ) ;
-				vget( key2, PROFILE ) ;
+				key1.replace( 5, 1, 1, alpha[ i ] ) ;
+				key2.replace( 8, 1, 1, alpha[ i ] ) ;
+				key3.replace( 5, 1, 1, alpha[ i ] ) ;
+				vget( key3, PROFILE ) ;
 				if ( RC > 0 )
 				{
 					msg = "PPSP011C" ;
 					break ;
 				}
-				vcopy( key2, t1, LOCATE ) ;
+				vcopy( key3, t1, LOCATE ) ;
 				vreplace( key1, *t1 ) ;
 				vput( key1, PROFILE ) ;
-				key2 = "Control-" ;
-				key2.push_back( alpha[ i ] ) ;
 				vreplace( "CTKEY1", key1 ) ;
 				vreplace( "CTKEY2", key2 ) ;
 				vreplace( "CTACT", *t1 ) ;
@@ -1008,14 +1042,12 @@ void PPSP01A::controlKeys()
 		{
 			for ( i = 0 ; i < 26 ; i++ )
 			{
-				key1 = "ZCTRL" ;
-				key2 = "ACTRL" ;
-				key1.push_back( alpha[ i ] ) ;
-				key2.push_back( alpha[ i ] ) ;
+				key1.replace( 5, 1, 1, alpha[ i ] ) ;
+				key3.replace( 5, 1, 1, alpha[ i ] ) ;
 				vget( key1, PROFILE ) ;
 				vcopy( key1, t1, LOCATE ) ;
-				vreplace( key2, *t1 ) ;
-				vput( key2, PROFILE ) ;
+				vreplace( key3, *t1 ) ;
+				vput( key3, PROFILE ) ;
 			}
 			msg = "PPSP011D" ;
 		}
@@ -1101,7 +1133,7 @@ void PPSP01A::pfkeySettings()
 void PPSP01A::colourSettings()
 {
 
-	int  i ;
+	int i ;
 
 	string msg    ;
 	string curfld ;
@@ -1117,9 +1149,9 @@ void PPSP01A::colourSettings()
 	string intens ;
 	string hilite ;
 
-	map< int, string>VarList ;
-	map< int, string>DefList ;
-	map< int, string>OrigList ;
+	map<int, string>VarList  ;
+	map<int, string>DefList  ;
+	map<int, string>OrigList ;
 
 	VarList[ 1  ] = "AB"   ;
 	VarList[ 2  ] = "ABSL" ;
@@ -1329,36 +1361,44 @@ void PPSP01A::colourSettings()
 				val[ 0 ] = 'R'          ;
 				attr1 = "COLOUR(RED)"   ;
 				break ;
+
 			case 'G':
 				vreplace( var1, "GREEN" ) ;
 				val[ 0 ] = 'G'            ;
 				attr1 = "COLOUR(GREEN)"   ;
 				break ;
+
 			case 'Y':
 				vreplace( var1, "YELLOW" ) ;
 				val[ 0 ] = 'Y'             ;
 				attr1 = "COLOUR(YELLOW)"   ;
 				break ;
+
 			case 'B':
 				vreplace( var1, "BLUE" ) ;
 				val[ 0 ] = 'B'           ;
 				attr1 = "COLOUR(BLUE)"   ;
 				break ;
+
+			case 'P':
 			case 'M':
 				vreplace( var1, "MAGENTA" ) ;
 				val[ 0 ] = 'M'              ;
 				attr1 = "COLOUR(MAGENTA)"   ;
 				break ;
+
 			case 'T':
 				vreplace( var1, "TURQ" ) ;
 				val[ 0 ] = 'T'           ;
 				attr1 = "COLOUR(TURQ)"   ;
 				break ;
+
 			case 'W':
 				vreplace( var1, "WHITE" ) ;
 				val[ 0 ] = 'W'            ;
 				attr1 = "COLOUR(WHITE)"   ;
 				break ;
+
 			default:
 				msg    = "PPSP016" ;
 				curfld = var1      ;
@@ -1368,13 +1408,15 @@ void PPSP01A::colourSettings()
 			case 'H':
 				vreplace( var2, "HIGH" ) ;
 				val[ 1 ] = 'H'           ;
-				attr2 = "INTENSE(HIGH)"  ;
+				attr2 = "INTENS(HIGH)"   ;
 				break ;
+
 			case 'L':
 				vreplace( var2, "LOW"  ) ;
 				val[ 1 ] = 'L'           ;
-				attr2 = "INTENSE(LOW)"   ;
+				attr2 = "INTENS(LOW)"    ;
 				break ;
+
 			default:
 				msg    = "PPSP017" ;
 				curfld = var2      ;
@@ -1386,21 +1428,25 @@ void PPSP01A::colourSettings()
 				val[ 2 ] = 'N'           ;
 				attr3 = "HILITE(NONE)"   ;
 				break ;
+
 			case 'B':
 				vreplace( var3, "BLINK" ) ;
 				val[ 2 ] = 'B'            ;
 				attr3 = "HILITE(BLINK)"   ;
-					break ;
+				break ;
+
 			case 'R':
 				vreplace( var3, "REVERSE" ) ;
 				val[ 2 ] = 'R'              ;
 				attr3 = "HILITE(REVERSE)"   ;
 				break ;
+
 			case 'U':
 				vreplace( var3, "USCORE" ) ;
 				val[ 2 ] = 'U'             ;
 				attr3 = "HILITE(USCORE)"   ;
 				break ;
+
 			default:
 				msg    = "PPSP018" ;
 				curfld = var3      ;
@@ -1535,13 +1581,13 @@ int PPSP01A::setScreenAttrs( const string& name, int itr, string colour, string 
 		llog( "E", "Colour change for field " << var1 << " has failed." << endl ) ;
 	}
 
-	attr( var2, "COLOUR(" + colour + ") INTENSE(" + intens + ")" ) ;
+	attr( var2, "COLOUR(" + colour + ") INTENS(" + intens + ")" ) ;
 	if ( RC > 0 )
 	{
 		llog( "E", "Colour/intense change for field " << var2 << " has failed." << endl ) ;
 	}
 
-	attr( var3, "COLOUR(" + colour + ") INTENSE(" + intens + ") HILITE(" + hilite + ")" ) ;
+	attr( var3, "COLOUR(" + colour + ") INTENS(" + intens + ") HILITE(" + hilite + ")" ) ;
 	if ( RC > 0 )
 	{
 		llog( "E", "Colour/intense/hilite change for field " << var3 << " has failed." << endl ) ;
@@ -1630,8 +1676,7 @@ void PPSP01A::poolVariables( const string& applid )
 			if ( sel == "D" )
 			{
 				control( "ERRORS", "RETURN" ) ;
-				if ( vpool == "S" ) { verase( var, SHARED  ) ; }
-				else                { verase( var, PROFILE ) ; }
+				verase( var, ( vpool == "S" ) ? SHARED : PROFILE ) ;
 				message = "*Delete RC=" + d2ds(RC) + "*" ;
 				control( "ERRORS", "CANCEL" ) ;
 				sel = "" ;
@@ -1659,11 +1704,6 @@ void PPSP01A::getpoolVariables( const string& table, const string& pattern )
 	// PROFILE 2 - Read-only extention pool
 	// PROFILE 3 - default read-only profile pool (@DEFPROF)
 	// PROFILE 4 - System profile (ISPSPROF)
-
-	int i  ;
-	int ws ;
-
-	string varlist ;
 
 	tbcreate( table, "", "(SEL,VAR,VPOOL,VPLVL,MESSAGE,VAL)", NOWRITE ) ;
 
@@ -1695,13 +1735,14 @@ void PPSP01A::getpoolVariables( const string& table, const string& pattern )
 		tbadd( table )    ;
 	}
 	*/
+
 	found.clear() ;
-	varlist = vlist( SHARED, 1 ) ;
-	vpool   = "S" ;
-	vplvl   = "1" ;
-	for ( ws = words( varlist ), i = 1 ; i <= ws ; i++ )
+	set<string>& varlist = vlist( SHARED, 1 ) ;
+	vpool = "S" ;
+	vplvl = "1" ;
+	for ( auto it = varlist.begin() ; it != varlist.end() ; it++ )
 	{
-		var = word( varlist, i ) ;
+		var = *it ;
 		if ( pattern != "" && pos( pattern, var ) == 0 ) { continue ; }
 		vget( var, SHARED ) ;
 		vcopy( var, val, MOVE ) ;
@@ -1709,11 +1750,11 @@ void PPSP01A::getpoolVariables( const string& table, const string& pattern )
 		found.insert( var ) ;
 	}
 
-	varlist = vlist( SHARED, 2 ) ;
-	vplvl   = "2" ;
-	for ( ws = words( varlist ), i = 1 ; i <= ws ; i++ )
+	vlist( SHARED, 2 ) ;
+	vplvl = "2" ;
+	for ( auto it = varlist.begin() ; it != varlist.end() ; it++ )
 	{
-		var = word( varlist, i ) ;
+		var = *it ;
 		if ( found.count( var ) > 0 ) { continue ; }
 		if ( pattern != "" && pos( pattern, var ) == 0 ) { continue ; }
 		vget( var, SHARED ) ;
@@ -1723,12 +1764,12 @@ void PPSP01A::getpoolVariables( const string& table, const string& pattern )
 	}
 
 	found.clear() ;
-	vpool   = "P" ;
-	vplvl   = "1" ;
-	varlist = vlist( PROFILE, 1 ) ;
-	for ( ws = words( varlist ), i = 1 ; i <= ws ; i++ )
+	vpool = "P" ;
+	vplvl = "1" ;
+	vlist( PROFILE, 1 ) ;
+	for ( auto it = varlist.begin() ; it != varlist.end() ; it++ )
 	{
-		var = word( varlist, i ) ;
+		var = *it ;
 		if ( pattern != "" && pos( pattern, var ) == 0 ) { continue ; }
 		vget( var, PROFILE ) ;
 		vcopy( var, val, MOVE ) ;
@@ -1736,11 +1777,11 @@ void PPSP01A::getpoolVariables( const string& table, const string& pattern )
 		found.insert( var ) ;
 	}
 
-	varlist = vlist( PROFILE, 2 ) ;
-	vplvl   = "2"                 ;
-	for ( ws = words( varlist ), i = 1 ; i <= ws ; i++ )
+	vlist( PROFILE, 2 ) ;
+	vplvl = "2" ;
+	for ( auto it = varlist.begin() ; it != varlist.end() ; it++ )
 	{
-		var = word( varlist, i ) ;
+		var = *it ;
 		if ( found.count( var ) > 0 ) { continue ; }
 		if ( pattern != "" && pos( pattern, var ) == 0 ) { continue ; }
 		vget( var, PROFILE ) ;
@@ -1749,11 +1790,11 @@ void PPSP01A::getpoolVariables( const string& table, const string& pattern )
 		found.insert( var ) ;
 	}
 
-	varlist = vlist( PROFILE, 3 ) ;
-	vplvl   = "3"                 ;
-	for ( ws = words( varlist ), i = 1 ; i <= ws ; i++ )
+	vlist( PROFILE, 3 ) ;
+	vplvl = "3" ;
+	for ( auto it = varlist.begin() ; it != varlist.end() ; it++ )
 	{
-		var = word( varlist, i ) ;
+		var = *it ;
 		if ( found.count( var ) > 0 ) { continue ; }
 		if ( pattern != "" && pos( pattern, var ) == 0 ) { continue ; }
 		vget( var, PROFILE ) ;
@@ -1762,16 +1803,16 @@ void PPSP01A::getpoolVariables( const string& table, const string& pattern )
 		found.insert( var ) ;
 	}
 
-	varlist = vlist( PROFILE, 4 ) ;
-	vplvl   = "4"                 ;
-	for ( ws = words( varlist ), i = 1 ; i <= ws ; i++ )
+	vlist( PROFILE, 4 ) ;
+	vplvl = "4" ;
+	for ( auto it = varlist.begin() ; it != varlist.end() ; it++ )
 	{
-		var = word( varlist, i ) ;
+		var = *it ;
 		if ( found.count( var ) > 0 ) { continue ; }
 		if ( pattern != "" && pos( pattern, var ) == 0 ) { continue ; }
 		vget( var, PROFILE ) ;
 		vcopy( var, val, MOVE ) ;
-		tbadd( table ) ;
+		tbadd( table )       ;
 	}
 
 	tbtop( table ) ;
@@ -2131,7 +2172,7 @@ void PPSP01A::libdefStatus()
 		if ( !libdef->empty() )
 		{
 			usr  = "X"    ;
-			type = "FILE" ;
+			type = "PATH" ;
 			stk  = ""     ;
 			p    = getpaths( *ulib[ l ] ) ;
 			for ( size_t i = 1 ; i <= p ; i++ )
@@ -2147,7 +2188,7 @@ void PPSP01A::libdefStatus()
 		while ( !libdef->empty() )
 		{
 			usr  = ""     ;
-			type = "FILE" ;
+			type = "PATH" ;
 			p    = getpaths( libdef->top() ) ;
 			for ( size_t i = 1 ; i <= p ; i++ )
 			{
@@ -2255,7 +2296,7 @@ void PPSP01A::showCommandTables()
 		vget( "ZVERB", SHARED ) ;
 		if ( zverb == "LEFT" || zverb == "RIGHT" )
 		{
-			panel == "PPSP01AC" ? panel = "PPSP01AD" : panel = "PPSP01AC" ;
+			panel = ( panel == "PPSP01AC" ) ? "PPSP01AD" : "PPSP01AC" ;
 		}
 	}
 	tbend( cmdtab+"CMDS" ) ;
@@ -2657,7 +2698,7 @@ void PPSP01A::utilityPrograms()
 
 void PPSP01A::keylistTables()
 {
-	// Show a list of all key list tables in the ZUPROF path
+	// Show a list of all keylist tables in the ZUPROF path
 	// If there are no tables found, create an empty ISPKEYP
 
 	int RC1 ;

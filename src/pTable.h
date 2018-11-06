@@ -61,6 +61,13 @@ class Table
 		tbDISP  tab_DISP      ;
 		tbWRITE tab_WRITE     ;
 
+		vector<vector<string>*> table ;
+
+		map<string, tbsearch> sarg ;
+
+		vector<string> tab_vkeys   ;
+		vector<string> tab_vall    ;
+
 		void   saveTable( errblock& err,
 				  const string& m_name,
 				  const string& m_path ) ;
@@ -194,9 +201,6 @@ class Table
 		void   tbvclear( errblock& err,
 				 fPOOL& funcPOOL ) ;
 
-		vector<vector<string>*> table  ;
-		map<string, tbsearch> sarg     ;
-
 		void incRefCount() { refCount++           ; }
 		void decRefCount() { refCount--           ; }
 		bool notInUse()    { return refCount == 0 ; }
@@ -262,6 +266,10 @@ class tableMGR
 				  bool  try_load ) ;
 
 	private:
+		map<string, Table*> tables ;
+
+		boost::recursive_mutex mtx ;
+
 		void   fillfVARs( errblock& err,
 				  fPOOL& funcPOOL,
 				  const string& tb_name,
@@ -370,10 +378,6 @@ class tableMGR
 		string locate( errblock& err,
 			       const string& tb_name,
 			       const string& tb_path ) ;
-
-		map<string, Table*> tables ;
-
-		boost::recursive_mutex mtx ;
 
 		friend class pApplication ;
 } ;

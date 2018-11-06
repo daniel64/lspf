@@ -30,6 +30,15 @@ using namespace std ;
 #undef  MOD_NAME
 #define MOD_NAME HILIGHT
 
+#define E_RED      10
+#define E_GREEN    11
+#define E_YELLOW   12
+#define E_BLUE     13
+#define E_MAGENTA  14
+#define E_TURQ     15
+#define E_WHITE    16
+
+
 int taskid() { return 0 ; }
 
 void addHilight( logger* lg, hilight& h, const string& line, string& shadow )
@@ -80,7 +89,7 @@ void addCppHilight( hilight& h, const string& line, string& shadow )
 	ln = line.size() ;
 	if ( ln == 0 ) { shadow = "" ; return ; }
 
-	shadow = string( ln, N_GREEN ) ;
+	shadow = string( ln, E_GREEN ) ;
 	start  = 0 ;
 	p1     = 0 ;
 
@@ -91,20 +100,20 @@ void addCppHilight( hilight& h, const string& line, string& shadow )
 			if ( line.compare( j, 2, "/*" ) == 0 )
 			{
 				oComment = true ;
-				shadow.replace( j, 2, 2, N_TURQ ) ;
+				shadow.replace( j, 2, 2, E_TURQ ) ;
 				j++ ;
 				continue ;
 			}
 			if ( oComment && line.compare( j, 2, "*/" ) == 0 )
 			{
 				oComment = false ;
-				shadow.replace( j, 2, 2, N_TURQ ) ;
+				shadow.replace( j, 2, 2, E_TURQ ) ;
 				j++ ;
 				continue ;
 			}
 			if ( !oComment && line.compare( j, 2, "//" ) == 0 )
 			{
-				shadow.replace( j, ln-j, ln-j, N_TURQ ) ;
+				shadow.replace( j, ln-j, ln-j, E_TURQ ) ;
 				break ;
 			}
 		}
@@ -117,7 +126,7 @@ void addCppHilight( hilight& h, const string& line, string& shadow )
 
 		if ( oComment )
 		{
-			shadow[ j ] = N_TURQ ;
+			shadow[ j ] = E_TURQ ;
 			continue ;
 		}
 
@@ -135,7 +144,7 @@ void addCppHilight( hilight& h, const string& line, string& shadow )
 		else if ( line[ j ] == Quote )
 		{
 			oQuote = false ;
-			shadow.replace( start, j-start+1, j-start+1, N_WHITE ) ;
+			shadow.replace( start, j-start+1, j-start+1, E_WHITE ) ;
 			continue ;
 		}
 		if ( oQuote ) { continue ; }
@@ -159,7 +168,7 @@ void addCppHilight( hilight& h, const string& line, string& shadow )
 				{
 					if ( h.hl_oIf == 0 )
 					{
-						shadow.replace( j, 4, 4, R_WHITE ) ;
+						shadow.replace( j, 4, 4, G_WHITE ) ;
 					}
 					else { h.hl_oIf-- ; }
 				}
@@ -167,24 +176,29 @@ void addCppHilight( hilight& h, const string& line, string& shadow )
 			j = p1 - 1 ;
 			continue   ;
 		}
-		if ( line[ j ] == '(' ) { oBrac1++ ; shadow[ j ] = oBrac1 % 7 + 7 ; continue ; }
+		if ( line[ j ] == '(' ) { oBrac1++ ; shadow[ j ] = ( oBrac1 + 3 ) % 7 + 7 ; continue ; }
 		if ( line[ j ] == ')' )
 		{
-			if ( oBrac1 == 0 ) { shadow[ j ] = R_WHITE ; }
-			else               { shadow[ j ] = oBrac1 % 7 + 7 ; oBrac1-- ; }
+			if ( oBrac1 == 0 ) { shadow[ j ] = G_WHITE ; }
+			else               { shadow[ j ] = ( oBrac1 + 3 ) % 7 + 7 ; oBrac1-- ; }
 			continue ;
 		}
-		if ( line[ j ] == '{' ) { oBrac2++ ; shadow[ j ] = oBrac2 % 7 + 7 ; continue ; }
-		if ( line[ j ] == '}' )
+		if ( h.hl_doLogic )
 		{
-			if ( h.hl_doLogic )
+			if ( line[ j ] == '{' )
 			{
-				if ( oBrac2 == 0 ) { shadow[ j ] = R_WHITE ; }
-				else               { shadow[ j ] = oBrac2 % 7 + 7 ; oBrac2-- ; }
+				oBrac2++ ;
+				shadow[ j ] = ( oBrac2 + 3 ) % 7 + 7 ;
+				continue ;
 			}
-			continue ;
+			else if ( line[ j ] == '}' )
+			{
+				if ( oBrac2 == 0 ) { shadow[ j ] = G_WHITE ; }
+				else               { shadow[ j ] = ( oBrac2 + 3 ) % 7 + 7 ; oBrac2-- ; }
+				continue ;
+			}
 		}
-		if ( line[ j ] == '=' ) { shadow[ j ] = B_YELLOW ; }
+		if ( line[ j ] == '=' ) { shadow[ j ] = E_YELLOW ; }
 	}
 	h.hl_oBrac1   = oBrac1 ;
 	h.hl_oBrac2   = oBrac2 ;
@@ -214,10 +228,10 @@ void addASMHilight( hilight& h, const string& line, string& shadow )
 
 	if ( line[ 0 ] == '*' )
 	{
-		shadow = string( ln, N_TURQ ) ;
+		shadow = string( ln, E_TURQ ) ;
 		return ;
 	}
-	shadow = string( ln, N_GREEN ) ;
+	shadow = string( ln, E_GREEN ) ;
 
 	j = 0 ;
 	if ( h.hl_continue )
@@ -230,7 +244,7 @@ void addASMHilight( hilight& h, const string& line, string& shadow )
 			i  = ( ln < 16 ) ? ( ln - p1 ) : ( 16 - p1 ) ;
 			if ( p1 < 15 )
 			{
-				shadow.replace( p1, i, i, R_RED ) ;
+				shadow.replace( p1, i, i, G_RED ) ;
 				j     = 15 ;
 				start = 15 ;
 			}
@@ -247,7 +261,7 @@ void addASMHilight( hilight& h, const string& line, string& shadow )
 	{
 		if ( wd == 4 )
 		{
-			shadow.replace( j, ln-j, ln-j, N_TURQ ) ;
+			shadow.replace( j, ln-j, ln-j, E_TURQ ) ;
 			break ;
 		}
 		if ( ln > 1 && j < ln-2 && line.compare( j, 2, "\\'" ) == 0 )
@@ -260,7 +274,7 @@ void addASMHilight( hilight& h, const string& line, string& shadow )
 		{
 			if ( line.compare( j, 2, "L\'" ) == 0 )
 			{
-				shadow.replace( j, 2, 2, N_WHITE ) ;
+				shadow.replace( j, 2, 2, E_WHITE ) ;
 				j++ ;
 				continue ;
 			}
@@ -284,28 +298,28 @@ void addASMHilight( hilight& h, const string& line, string& shadow )
 		else if ( line[ j ] == Quote )
 		{
 			oQuote = false ;
-			shadow.replace( start, j-start+1, j-start+1, N_WHITE ) ;
+			shadow.replace( start, j-start+1, j-start+1, E_WHITE ) ;
 			continue ;
 		}
 		if ( oQuote )  { continue ; }
 		if ( wd == 1 )
 		{
-			shadow[ j ] = N_TURQ ;
+			shadow[ j ] = E_TURQ ;
 		}
 		else if ( wd == 2 )
 		{
-			shadow[ j ] = N_RED ;
+			shadow[ j ] = E_RED ;
 		}
 	}
 	if ( ln > 71 )
 	{
-		shadow.replace( 71, ln-71, ln-71, B_RED ) ;
+		shadow.replace( 71, ln-71, ln-71, E_RED ) ;
 		if ( line[ 71 ] != ' ' )
 		{
 			h.hl_continue = true ;
 			if ( oQuote )
 			{
-				shadow.replace( start, 71-start, 71-start, N_WHITE ) ;
+				shadow.replace( start, 71-start, 71-start, E_WHITE ) ;
 			}
 		}
 	}
@@ -339,7 +353,7 @@ void addRxxHilight( hilight& h, const string& line, string& shadow )
 	ln = line.size() ;
 	if ( ln == 0 ) { shadow = "" ; return ; }
 
-	shadow = string( ln, N_GREEN ) ;
+	shadow = string( ln, E_GREEN ) ;
 	start  = 0 ;
 	p1     = 0 ;
 
@@ -350,21 +364,21 @@ void addRxxHilight( hilight& h, const string& line, string& shadow )
 			if ( line.compare( j, 2, "/*" ) == 0 )
 			{
 				oComment = true ;
-				shadow.replace( j, 2, 2, N_TURQ ) ;
+				shadow.replace( j, 2, 2, E_TURQ ) ;
 				j++ ;
 				continue ;
 			}
 			if ( oComment && line.compare( j, 2, "*/" ) == 0 )
 			{
 				oComment = false ;
-				shadow.replace( j, 2, 2, N_TURQ ) ;
+				shadow.replace( j, 2, 2, E_TURQ ) ;
 				j++ ;
 				continue ;
 			}
 			if ( line.compare( j, 2, "--" ) == 0 )
 			{
 				oComment = false ;
-				shadow.replace( j, ln-j, ln-j, N_TURQ ) ;
+				shadow.replace( j, ln-j, ln-j, E_TURQ ) ;
 				break ;
 			}
 		}
@@ -377,7 +391,7 @@ void addRxxHilight( hilight& h, const string& line, string& shadow )
 
 		if ( oComment )
 		{
-			shadow[ j ] = N_TURQ ;
+			shadow[ j ] = E_TURQ ;
 			continue ;
 		}
 
@@ -395,7 +409,7 @@ void addRxxHilight( hilight& h, const string& line, string& shadow )
 		else if ( line[ j ] == Quote )
 		{
 			oQuote = false ;
-			shadow.replace( start, j-start+1, j-start+1, N_WHITE ) ;
+			shadow.replace( start, j-start+1, j-start+1, E_WHITE ) ;
 			continue ;
 		}
 		if ( oQuote )   { continue ; }
@@ -419,7 +433,7 @@ void addRxxHilight( hilight& h, const string& line, string& shadow )
 				{
 					if ( h.hl_oIf == 0 )
 					{
-						shadow.replace( j, 4, 4, R_WHITE ) ;
+						shadow.replace( j, 4, 4, G_WHITE ) ;
 					}
 					else { h.hl_oIf-- ; }
 				}
@@ -434,7 +448,7 @@ void addRxxHilight( hilight& h, const string& line, string& shadow )
 				{
 					if ( h.hl_oDo == 0 )
 					{
-						shadow.replace( j, 3, 3, R_WHITE ) ;
+						shadow.replace( j, 3, 3, G_WHITE ) ;
 					}
 					else { h.hl_oDo-- ; }
 				}
@@ -442,14 +456,14 @@ void addRxxHilight( hilight& h, const string& line, string& shadow )
 			j = p1 - 1 ;
 			continue ;
 		}
-		if ( line[ j ] == '(' ) { oBrac1++ ; shadow[ j ] = oBrac1 % 7 + 7 ; continue ; }
+		if ( line[ j ] == '(' ) { oBrac1++ ; shadow[ j ] = ( oBrac1 + 3 ) % 7 + 7 ; continue ; }
 		if ( line[ j ] == ')' )
 		{
-			if ( oBrac1 == 0 ) { shadow[ j ] = R_WHITE ; }
-			else               { shadow[ j ] = oBrac1 % 7 + 7 ; oBrac1-- ; }
+			if ( oBrac1 == 0 ) { shadow[ j ] = G_WHITE ; }
+			else               { shadow[ j ] = ( oBrac1 + 3 ) % 7 + 7 ; oBrac1-- ; }
 			continue ;
 		}
-		if ( line[ j ] == '=' ) { shadow[ j ] = B_YELLOW ; continue ; }
+		if ( line[ j ] == '=' ) { shadow[ j ] = E_YELLOW ; continue ; }
 	}
 	h.hl_oBrac1   = oBrac1 ;
 	h.hl_oBrac2   = oBrac2 ;
@@ -465,7 +479,7 @@ void addOthHilight( hilight& h, const string& line, string& shadow )
 
 	ln = line.size() ;
 	if ( ln == 0 ) { shadow = "" ; return ; }
-	shadow = string( ln, N_GREEN ) ;
+	shadow = string( ln, E_GREEN ) ;
 }
 
 
@@ -477,7 +491,7 @@ void addDefHilight( hilight& h, const string& line, string& shadow )
 
 	ln = line.size() ;
 	if ( ln == 0 ) { shadow = "" ; return ; }
-	shadow = string( ln, N_GREEN ) ;
+	shadow = string( ln, E_GREEN ) ;
 }
 
 
@@ -506,7 +520,7 @@ void addPanHilight( hilight& h, const string& line, string& shadow )
 	ln = line.size() ;
 	if ( ln == 0 ) { shadow = "" ; return ; }
 
-	shadow = string( ln, N_GREEN ) ;
+	shadow = string( ln, E_GREEN ) ;
 	start  = 0 ;
 	p1     = 0 ;
 
@@ -517,28 +531,28 @@ void addPanHilight( hilight& h, const string& line, string& shadow )
 			if ( line.compare( j, 2, "/*" ) == 0 )
 			{
 				oComment = true ;
-				shadow.replace( j, 2, 2, N_TURQ ) ;
+				shadow.replace( j, 2, 2, E_TURQ ) ;
 				j++ ;
 				continue ;
 			}
 			if ( oComment && line.compare( j, 2, "*/" ) == 0 )
 			{
 				oComment = false ;
-				shadow.replace( j, 2, 2, N_TURQ ) ;
+				shadow.replace( j, 2, 2, E_TURQ ) ;
 				j++ ;
 				continue ;
 			}
 			if ( oComment && j == 0 && upper(line).compare( 0, 11, ")ENDCOMMENT" ) == 0 )
 			{
 				oComment = false ;
-				shadow.replace( 0, 11, 11, N_TURQ ) ;
+				shadow.replace( 0, 11, 11, E_TURQ ) ;
 				j++ ;
 				continue ;
 			}
 			if ( line.compare( j, 2, "--" ) == 0 || line.compare( j, 1, "#" ) == 0 )
 			{
 				oComment = false ;
-				shadow.replace( j, ln-j, ln-j, N_TURQ ) ;
+				shadow.replace( j, ln-j, ln-j, E_TURQ ) ;
 				break ;
 			}
 		}
@@ -551,7 +565,7 @@ void addPanHilight( hilight& h, const string& line, string& shadow )
 
 		if ( oComment )
 		{
-			shadow[ j ] = N_TURQ ;
+			shadow[ j ] = E_TURQ ;
 			continue ;
 		}
 
@@ -569,7 +583,7 @@ void addPanHilight( hilight& h, const string& line, string& shadow )
 		else if ( line[ j ] == Quote )
 		{
 			oQuote = false ;
-			shadow.replace( start, j-start+1, j-start+1, N_WHITE ) ;
+			shadow.replace( start, j-start+1, j-start+1, E_WHITE ) ;
 			continue ;
 		}
 		if ( oQuote )   { continue ; }
@@ -586,7 +600,7 @@ void addPanHilight( hilight& h, const string& line, string& shadow )
 			if ( w == ")COMMENT" ) { oComment = true ; }
 			continue ;
 		}
-		if ( line[ j ] == '&' ) { shadow[ j ] = B_YELLOW ; continue ; }
+		if ( line[ j ] == '&' ) { shadow[ j ] = E_YELLOW ; continue ; }
 		p1 = line.find_first_of( delims, j ) ;
 		if ( p1 != j || p1 == string::npos )
 		{
@@ -607,7 +621,7 @@ void addPanHilight( hilight& h, const string& line, string& shadow )
 				{
 					if ( h.hl_oIf == 0 )
 					{
-						shadow.replace( j, 4, 4, R_WHITE ) ;
+						shadow.replace( j, 4, 4, G_WHITE ) ;
 					}
 					else { h.hl_oIf-- ; }
 				}
@@ -615,18 +629,16 @@ void addPanHilight( hilight& h, const string& line, string& shadow )
 			j = p1 - 1 ;
 			continue ;
 		}
-		if ( line[ j ] == '(' ) { oBrac1++ ; shadow[ j ] = oBrac1 % 7 + 7 ; continue ; }
+		if ( line[ j ] == '(' ) { oBrac1++ ; shadow[ j ] = ( oBrac1 + 3 ) % 7 + 7 ; continue ; }
 		if ( line[ j ] == ')' )
 		{
-			if ( oBrac1 == 0 ) { shadow[ j ] = R_WHITE ; }
-			else               { shadow[ j ] = oBrac1 % 7 + 7 ; oBrac1-- ; }
+			if ( oBrac1 == 0 ) { shadow[ j ] = G_WHITE ; }
+			else               { shadow[ j ] = ( oBrac1 + 3 ) % 7 + 7 ; oBrac1-- ; }
 			continue ;
 		}
-		if ( line[ j ] == '=' ) { shadow[ j ] = B_YELLOW ; continue ; }
+		if ( line[ j ] == '=' ) { shadow[ j ] = E_YELLOW ; continue ; }
 	}
 	h.hl_oBrac1   = oBrac1 ;
 	h.hl_oBrac2   = oBrac2 ;
 	h.hl_oComment = oComment ;
 }
-
-

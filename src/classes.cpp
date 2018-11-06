@@ -245,7 +245,7 @@ STATEMENT_TYPE parser::getStatementType()
 	else if ( t.value1 == "EXIT" )    { return ST_EXIT    ; }
 	else if ( t.value1 == "VER" )     { return ST_VERIFY  ; }
 	else if ( t.value1 == "REFRESH" ) { return ST_REFRESH ; }
-	else if ( t.value1 == ".ATTR" )
+	else if ( t.value1 == ".ATTR" || t.value1 == ".ATTRCHAR" )
 	{
 		if ( tokens.size() < 6 ) { return ST_ERROR ; }
 		if ( tokens[ 4 ].subtype == TS_EQUALS ) { return ST_ASSIGN ; }
@@ -506,7 +506,7 @@ void IFSTMNT::parse_cond( errblock& err, parser& v )
 			case PN_FILE:
 				comp_opt = true ;
 			default:
-				t = v.getNextToken() ;
+				v.getNextToken() ;
 				t = v.getNextToken() ;
 				if ( v.isCurrentSubType( TS_CLOSE_BRACKET ) )
 				{
@@ -670,7 +670,8 @@ void ASSGN::parse( errblock& err, parser& v )
 {
 	// Format of the assignment panel statement
 
-	// .ATTR(ZCMD) = 'xxxx'
+	// .ATTR(ZCMD)  = 'xxxx'
+	// .ATTRCHAR(+) = 'xxxx'
 	// &AAA = &BBBB
 	// &AAA = VALUE
 	// &AAA = 'Quoted Value'
@@ -728,6 +729,40 @@ void ASSGN::parse( errblock& err, parser& v )
 			return ;
 		}
 		as_isattr = true ;
+	}
+	else if ( t.value1 == ".ATTRCHAR" )
+	{
+		v.getNextToken() ;
+		if ( !v.getNextIfCurrent( TS_OPEN_BRACKET ) )
+		{
+			err.seterrid( "PSYE033D" ) ;
+			return ;
+		}
+		if ( v.isCurrentSubType( TS_CLOSE_BRACKET ) )
+		{
+			err.seterrid( "PSYE031G" ) ;
+			return ;
+		}
+		as_lhs = v.getCurrentValue() ;
+		if ( as_lhs.size() > 2 || ( as_lhs.size() == 2 && not ishex( as_lhs ) ) )
+		{
+			err.seterrid( "PSYE041B" ) ;
+			return ;
+		}
+		v.getNextToken() ;
+		if ( !v.getNextIfCurrent( TS_CLOSE_BRACKET ) )
+		{
+			err.seterrid( "PSYE032D" ) ;
+			return ;
+		}
+		if ( t.value1 == ".ATTR" )
+		{
+			as_isattr = true ;
+		}
+		else
+		{
+			as_isattc = true ;
+		}
 	}
 	else if ( findword( t.value1, ".FALSE .PFKEY .TRUE .TRAIL" ) )
 	{
@@ -824,7 +859,7 @@ void ASSGN::parse( errblock& err, parser& v )
 	else
 	{
 		as_rhs = ( t.type == TT_STRING_UNQUOTED ) ? t.value2 : t.value1 ;
-		if ( as_isattr ) { iupper( as_rhs ) ; }
+		if ( as_isattr || as_isattc ) { iupper( as_rhs ) ; }
 		v.getNextToken() ;
 	}
 
@@ -1185,7 +1220,7 @@ void TRANS::parse( errblock& err, parser& v, bool check )
 		}
 		if ( first && t.value1 == "MSG" && v.peekNextValue() == "=" )
 		{
-			t = v.getNextToken() ;
+			v.getNextToken() ;
 			t = v.getNextToken() ;
 			if ( v.getNextIfCurrent( TS_NAME ) ||
 			     v.getNextIfCurrent( TS_AMPR_VAR_VALID ) )
@@ -1821,6 +1856,174 @@ bool selobj::parse( errblock& err, string selstr )
 	}
 
 	return true ;
+}
+
+
+void char_attrs::setattr( errblock& err, string& attrs )
+{
+	err.setRC( 0 ) ;
+	char_attrs_clear() ;
+
+	dvars = ( attrs.find( '&' ) != string::npos ) ;
+	if ( dvars ) { entry = attrs ; }
+
+	parse( err, attrs ) ;
+}
+
+
+void char_attrs::update( errblock& err, string& attrs )
+{
+	err.setRC( 0 ) ;
+
+	parse( err, attrs ) ;
+}
+
+
+const string& char_attrs::get()
+{
+	// Return the entry only if it contains substitutable variables
+
+	return dvars ? entry : nullstr ;
+}
+
+
+void char_attrs::parse( errblock& err, string& attrs )
+{
+	// Parse the attribute type statement
+	// Currently supported parameters:
+	// 1) TYPE
+	// 2) COLOUR
+	// 3) INTENS
+	// 4) HILITE
+
+	// CUA types cannot have COLOUR, INTENS or HILITE parameters coded
+
+	string temp ;
+
+	iupper( attrs ) ;
+
+	temp = parseString( err, attrs, "TYPE()" ) ;
+	if ( err.error() ) { return ; }
+
+	if ( temp != "" )
+	{
+		auto it = type_map.find( temp ) ;
+		if ( it == type_map.end() )
+		{
+			err.seterrid( "PSYE035B", temp, "TYPE" ) ;
+			return ;
+		}
+		if ( none_cua_map.count( temp ) == 0 )
+		{
+			if ( attrs != "" )
+			{
+				err.seterrid( "PSYE035D", attrs ) ;
+				return ;
+			}
+			typecua = true ;
+		}
+		type       = it->second ;
+		typeChange = true ;
+	}
+
+	temp = parseString( err, attrs, "COLOUR()" ) ;
+	if ( err.error() ) { return ; }
+	if ( temp == "" )
+	{
+		temp = parseString( err, attrs, "COLOR()" ) ;
+		if ( err.error() ) { return ; }
+	}
+
+
+	if ( temp != "" )
+	{
+		if ( temp.front() == '&' )
+		{
+			if ( not isvalidName( temp.substr( 1 ) ) )
+			{
+				err.seterrid( "PSYE031D", temp.substr( 1 ) ) ;
+				return ;
+			}
+		}
+		else
+		{
+			auto it = colour_map.find( temp ) ;
+			if ( it == colour_map.end() )
+			{
+				err.seterrid( "PSYE035B", temp, "COLOUR" ) ;
+				return ;
+			}
+			colour = it->second ;
+		}
+	}
+
+	temp = parseString( err, attrs, "INTENS()" ) ;
+	if ( err.error() ) { return ; }
+
+	if ( temp != "" )
+	{
+		if ( temp.front() == '&' )
+		{
+			if ( not isvalidName( temp.substr( 1 ) ) )
+			{
+				err.seterrid( "PSYE031D", temp.substr( 1 ) ) ;
+				return ;
+			}
+		}
+		else
+		{
+			auto it = intens_map.find( temp ) ;
+			if ( it == intens_map.end() )
+			{
+				err.seterrid( "PSYE035B", temp, "INTENSE" ) ;
+				return ;
+			}
+			intens = it->second ;
+		}
+	}
+
+	temp = parseString( err, attrs, "HILITE()" ) ;
+	if ( err.error() ) { return ; }
+
+	if ( temp != "" && temp != "NONE" )
+	{
+		if ( temp.front() == '&' )
+		{
+			if ( not isvalidName( temp.substr( 1 ) ) )
+			{
+				err.seterrid( "PSYE031D", temp.substr( 1 ) ) ;
+				return ;
+			}
+		}
+		else
+		{
+			auto it = hilite_map.find( temp ) ;
+			if ( it == hilite_map.end() )
+			{
+				err.seterrid( "PSYE035B", temp, "HILITE" ) ;
+				return ;
+			}
+			hilite = it->second ;
+		}
+	}
+
+	if ( trim( attrs ) != "" )
+	{
+		err.seterrid( "PSYE032H", attrs ) ;
+		return ;
+	}
+}
+
+
+uint char_attrs::get_colour()
+{
+	return colour | intens | hilite ;
+}
+
+
+attType char_attrs::get_type()
+{
+	return type ;
 }
 
 

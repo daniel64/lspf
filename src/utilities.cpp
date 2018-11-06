@@ -644,13 +644,12 @@ string bs2xs( string s )
 {
 	int l ;
 
-	string reslt ;
+	string reslt = "" ;
 	string t     ;
 
-	l = s.length() % 8 ;
-	if ( l > 0 ) { s = string( 8-l, '0' ) + s ; }
+	l = s.length() % CHAR_BIT ;
+	if ( l > 0 ) { s = string( CHAR_BIT-l, '0' ) + s ; }
 
-	reslt.clear()        ;
 	reslt.reserve( l/4 ) ;
 
 	for ( unsigned int i = 0 ; i < s.length() ; i += 4 )
@@ -848,6 +847,36 @@ string xs2bs( const string& s )
 	return reslt ;
 }
 
+
+
+string i2bs( uint i )
+{
+	string reslt = "" ;
+
+	reslt.reserve( CHAR_BIT * sizeof( i ) ) ;
+
+	for ( int j = CHAR_BIT * sizeof( i ) - 1 ; j >= 0 ; j-- )
+	{
+		if ( ( i >> j ) & 1 )
+		{
+			reslt += "1" ;
+		}
+		else
+		{
+			reslt += "0" ;
+		}
+	}
+	return reslt ;
+}
+
+
+string i2xs( uint i )
+{
+	stringstream ss ;
+
+	ss << setfill( '0' ) << setw( sizeof( i ) * 2 ) << hex << i ;
+	return ss.str() ;
+}
 
 
 string xs2cs( const string& s )

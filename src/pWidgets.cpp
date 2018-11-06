@@ -17,6 +17,8 @@
 
 */
 
+using namespace lspfc ;
+
 void field::field_init( errblock& err, int MAXW, int MAXD, const string& line )
 {
 	// Format of field entry in panels (FORMAT 1 VERSION 1 )
@@ -36,7 +38,7 @@ void field::field_init( errblock& err, int MAXW, int MAXD, const string& line )
 	string w5 ;
 	string opts ;
 
-	cuaType fType  ;
+	attType fType  ;
 
 	err.setRC( 0 ) ;
 
@@ -47,10 +49,10 @@ void field::field_init( errblock& err, int MAXW, int MAXD, const string& line )
 		return ;
 	}
 
-	w2   = word( line, 2 ) ;
-	w3   = word( line, 3 ) ;
-	w4   = word( line, 4 ) ;
-	w5   = word( line, 5 ) ;
+	w2 = word( line, 2 ) ;
+	w3 = word( line, 3 ) ;
+	w4 = word( line, 4 ) ;
+	w5 = word( line, 5 ) ;
 
 	opts = subword( line, 6, ws-6 ) ;
 	err.setUserData( word( line, ws ) ) ;
@@ -81,22 +83,30 @@ void field::field_init( errblock& err, int MAXW, int MAXD, const string& line )
 		fType     = NEF  ;
 		field_pwd = true ;
 	}
-	else
+	else if ( cuaAttrName.count( w5 ) == 0 )
 	{
-		if ( cuaAttrName.count( w5 ) == 0 )
+		if ( noncuaAttrName.count( w5 ) == 0 )
 		{
 			err.seterrid( "PSYE032F", w5 ) ;
 			return ;
 		}
-		fType = cuaAttrName[ w5 ] ;
+		fType         = noncuaAttrName[ w5 ] ;
+		field_cua     = NONE ;
+		field_colour1 = ( w5 == "INPUT" ) ? N_RED : N_WHITE ;
+		field_colour2 = field_colour1 ;
+	}
+	else
+	{
+		fType         = cuaAttrName[ w5 ] ;
+		field_cua     = fType ;
+		field_colour1 = cuaAttr[ fType ] ;
 	}
 
-	field_cua    = fType ;
 	field_row    = row-1 ;
 	field_col    = col-1 ;
 	field_length = len   ;
 	field_cole   = field_col + field_length ;
-	field_input  = ( cuaAttrUnprot.count( fType ) > 0 ) ;
+	field_input  = ( attrUnprot.count( fType ) > 0 ) ;
 
 	field_opts( err, opts ) ;
 }
@@ -282,23 +292,28 @@ void field::field_opts( errblock& err, string& opts )
 }
 
 
-void dynArea::dynArea_init( errblock& err, int MAXW, int MAXD, const string& line )
+void dynArea::dynArea_init( errblock& err,
+			    int MAXW,
+			    int MAXD,
+			    const string& line,
+			    const string& da_dataIn,
+			    const string& da_dataOut )
 {
 	// Format of DYNAREA entry in panels (FORMAT 1 VERSION 1 )
-	// DYNAREA row col width depth   A-name S-name DATAIN() DATAOUT() USERMOD() DATAMOD()
+	// DYNAREA row col width depth   A-name S-name USERMOD() DATAMOD()
 
-	// w1      w2         w3   w4    w5     w6     w7      <-----------------keywords------------------>
-	// DYNAREA MAX-10 MAX-20   MAX   MAX-6  ZAREA  ZSHADOW DATAIN(01) DATAOUT(02) USERMOD(03) DATAMOD(04)
+	// w1      w2         w3   w4    w5     w6     w7      <-------keywords------>
+	// DYNAREA MAX-10 MAX-20   MAX   MAX-6  ZAREA  ZSHADOW USERMOD(03) DATAMOD(04)
 
 	// if width=MAX  width=MAXW-col+1
 	// if depth=MAX  depth=MAXD-row+1
 
-	// UserMod - field touched
-	// DataMod - field changed
+	// USERMOD - field touched
+	// DATAMOD - field changed
 
-	// UserMod but not DataMod - Attr changed to UserMod even if the field was changed
-	// DataMod but not UserMod - Attr changed to DataMod only if the field value has changed
-	// UserMod and DataMod     - Attr changed to UserMod if no change to field value, else DataMod
+	// USERMOD but not DATAMOD - Attr changed to USERMOD even if the field was changed
+	// DATAMOD but not USERMOD - Attr changed to DATAMOD only if the field value has changed
+	// USERMOD and DATAMOD     - Attr changed to USERMOD if no change to field value, else DATAMOD
 	// Neither                 - Attr unchanged
 
 	int row   ;
@@ -360,50 +375,11 @@ void dynArea::dynArea_init( errblock& err, int MAXW, int MAXD, const string& lin
 		return ;
 	}
 
-	p1 = rest.find( " DATAIN(" ) ;
-	if ( p1 != string::npos )
+	if ( da_dataIn != "" )
 	{
-		p2 = rest.find( ')', p1 ) ;
-		if ( p2 == string::npos )
-		{
-			err.seterrid( "PSYE032D" ) ;
-			return ;
-		}
-		t = rest.substr( p1+8, p2-p1-8 ) ;
-		trim( t ) ;
-		if ( t.size() == 0 )
-		{
-			err.seterrid( "PSYE031G" ) ;
-			return ;
-		}
-		dynArea_DataInsp = true ;
-		if      ( t.size() == 1 ) { dynArea_DataIn = t[0]          ; }
-		else if ( t.size() == 2 ) { dynArea_DataIn = xs2cs( t )[0] ; }
-		else                      { err.seterrid( "PSYE032B" )     ; return  ; }
-		rest = rest.erase( p1, p2-p1+1 ) ;
+		dynArea_dataInsp = true ;
 	}
-	p1 = rest.find( " DATAOUT(" ) ;
-	if ( p1 != string::npos )
-	{
-		p2 = rest.find( ')', p1 ) ;
-		if ( p2 == string::npos )
-		{
-			err.seterrid( "PSYE032D" ) ;
-			return ;
-		}
-		t = rest.substr( p1+9, p2-p1-9 ) ;
-		trim( t ) ;
-		if ( t.size() == 0 )
-		{
-			err.seterrid( "PSYE031G" ) ;
-			return ;
-		}
-		dynArea_DataOutsp = true ;
-		if      ( t.size() == 1 ) { dynArea_DataOut = t[0]          ; }
-		else if ( t.size() == 2 ) { dynArea_DataOut = xs2cs( t )[0] ; }
-		else                      { err.seterrid( "PSYE032B" )      ; return ; }
-		rest = rest.erase( p1, p2-p1+1 ) ;
-	}
+
 	p1 = rest.find( " USERMOD(" ) ;
 	if ( p1 != string::npos )
 	{
@@ -420,12 +396,13 @@ void dynArea::dynArea_init( errblock& err, int MAXW, int MAXD, const string& lin
 			err.seterrid( "PSYE031G" ) ;
 			return ;
 		}
-		dynArea_UserModsp = true ;
+		dynArea_userModsp = true ;
 		if      ( t.size() == 1 ) { dynArea_UserMod = t[0]          ; }
 		else if ( t.size() == 2 ) { dynArea_UserMod = xs2cs( t )[0] ; }
 		else                      { err.seterrid( "PSYE032B" )      ; return ; }
 		rest = rest.erase( p1, p2-p1+1 ) ;
 	}
+
 	p1 = rest.find( " DATAMOD(" ) ;
 	if ( p1 != string::npos )
 	{
@@ -442,17 +419,11 @@ void dynArea::dynArea_init( errblock& err, int MAXW, int MAXD, const string& lin
 			err.seterrid( "PSYE031G" ) ;
 			return ;
 		}
-		dynArea_DataModsp = true ;
+		dynArea_dataModsp = true ;
 		if      ( t.size() == 1 ) { dynArea_DataMod = t[0]          ; }
 		else if ( t.size() == 2 ) { dynArea_DataMod = xs2cs( t )[0] ; }
 		else                      { err.seterrid( "PSYE032B" )      ; return ; }
 		rest = rest.erase( p1, p2-p1+1 ) ;
-	}
-
-	if ( (dynArea_UserModsp || dynArea_DataModsp) && !dynArea_DataInsp )
-	{
-		err.seterrid( "PSYE032C" ) ;
-		return ;
 	}
 
 	if ( trim( rest ) != "" )
@@ -461,24 +432,33 @@ void dynArea::dynArea_init( errblock& err, int MAXW, int MAXD, const string& lin
 		return ;
 	}
 
-	dynArea_row         = row-1 ;
-	dynArea_col         = col-1 ;
-	dynArea_width       = width ;
-	dynArea_depth       = depth ;
-	dynArea_shadow_name = w7    ;
+	dynArea_row   = row-1 ;
+	dynArea_col   = col-1 ;
+	dynArea_width = width ;
+	dynArea_depth = depth ;
+	dynArea_shadow_name = w7 ;
 
-	if ( dynArea_DataInsp  ) { dynArea_FieldIn.push_back( dynArea_DataIn  ) ; }
-	if ( dynArea_UserModsp ) { dynArea_FieldIn.push_back( dynArea_UserMod ) ; }
-	if ( dynArea_DataModsp ) { dynArea_FieldIn.push_back( dynArea_DataMod ) ; }
-
-	dynArea_Field = dynArea_FieldIn ;
-	if ( dynArea_DataOutsp ) { dynArea_Field.push_back( dynArea_DataOut   ) ; }
+	dynArea_inAttrs = da_dataIn ;
+	dynArea_Attrs   = da_dataIn + da_dataOut ;
 }
 
 
-bool field::edit_field_insert( WINDOW* win, char ch, int col )
+void field::field_reset()
 {
-	// If this is a dynamic area, we know at this point this is an input field, so dynArea_DataInsp is true and
+	// Clear the list of touched attribute positions before a panel display
+
+	field_usermod.clear() ;
+}
+
+
+bool field::edit_field_insert( WINDOW* win,
+			       char ch,
+			       char def_schar,
+			       int col,
+			       map<unsigned char, uint>& ddata_map,
+			       map<unsigned char, uint>& schar_map )
+{
+	// If this is a dynamic area, we know at this point this is an input field, so dynArea_dataInsp is true and
 	// there is an input attribute byte at the start of the field
 
 	// Use the null character (x'00') to fill fields when the cursor is past the end if the field value
@@ -501,46 +481,25 @@ bool field::edit_field_insert( WINDOW* win, char ch, int col )
 	if ( field_dynArea )
 	{
 		da = field_dynArea ;
-		p2 = field_value.find_first_of( da->dynArea_Field, pos ) ;
-		if ( p2 == string::npos ) { p2 = field_value.size()-1 ; }
-		else                      { p2--                      ; }
+		p2 = field_value.find_first_of( da->dynArea_Attrs, pos ) ;
+		p2 = ( p2 == string::npos ) ? field_value.size() - 1 : p2 - 1 ;
 		if ( field_value[ p2 ] != ' '  &&
 		     field_value[ p2 ] != nulls ) { return false ; }
 		field_value.erase( p2, 1 ) ;
 		field_shadow_value.erase( p2, 1 ) ;
-		p1 = field_value.find_last_of( da->dynArea_FieldIn, pos ) ;
-		if ( da->dynArea_DataModsp )
-		{
-			if ( field_value[ p1 ] != da->dynArea_DataMod )
-			{
-				if ( ch != ' ' )
-				{
-					field_value[ p1 ] = da->dynArea_DataMod ;
-				}
-				else if ( field_value.substr( pos, p2-pos ) != string( p2-pos, ' ' ) )
-				{
-					field_value[ p1 ] = da->dynArea_DataMod ;
-				}
-				else if ( da->dynArea_UserModsp )
-				{
-					field_value[ p1 ] = da->dynArea_UserMod ;
-				}
-			}
-		}
-		else if ( da->dynArea_UserModsp )
-		{
-			field_value[ p1 ] = da->dynArea_UserMod ;
-		}
+		p1 = field_value.find_last_of( da->dynArea_inAttrs, pos ) ;
+		field_usermod.insert( p1 ) ;
 		if ( field_value[ pos ] == nulls )
 		{
-			field_value[ pos ]        = ch       ;
-			field_shadow_value[ pos ] = B_YELLOW ;
+			field_value[ pos ]        = ch ;
+			field_shadow_value[ pos ] = def_schar ;
 		}
 		else
 		{
 			field_value.insert( pos, 1, ch ) ;
-			field_shadow_value.insert( pos, 1, B_YELLOW ) ;
+			field_shadow_value.insert( pos, 1, def_schar ) ;
 		}
+		schar_map[ def_schar ] = ddata_map[ field_value[ p1 ] ] ;
 	}
 	else
 	{
@@ -555,15 +514,20 @@ bool field::edit_field_insert( WINDOW* win, char ch, int col )
 		}
 	}
 
-	display_field( win ) ;
+	display_field( win, ddata_map, schar_map ) ;
 	field_changed = true ;
 	return true ;
 }
 
 
-bool field::edit_field_replace( WINDOW* win, char ch, int col )
+bool field::edit_field_replace( WINDOW* win,
+				char ch,
+				char def_schar,
+				int col,
+				map<unsigned char, uint>& ddata_map,
+				map<unsigned char, uint>& schar_map )
 {
-	// If this is a dynamic area, we know at this point this is an input field, so dynArea_DataInsp is true and
+	// If this is a dynamic area, we know at this point this is an input field, so dynArea_dataInsp is true and
 	// there is an input attribute byte at the start of the field
 
 	// Use the null character (x'00') to fill fields when the cursor is past the end if the field value
@@ -572,8 +536,6 @@ bool field::edit_field_replace( WINDOW* win, char ch, int col )
 	size_t p1 ;
 
 	uint pos ;
-
-	dynArea* da ;
 
 	const char nulls(0x00) ;
 
@@ -585,41 +547,29 @@ bool field::edit_field_replace( WINDOW* win, char ch, int col )
 
 	if ( field_dynArea )
 	{
-		if ( field_value[ pos ] != nulls && !isprint( field_value[ pos ] ) ) { return false ; }
-		da = field_dynArea ;
-		field_shadow_value[ pos ] = B_YELLOW ;
-		p1 = field_value.find_last_of( da->dynArea_FieldIn, pos ) ;
-		if ( da->dynArea_DataModsp )
+		if ( field_value[ pos ] != nulls && !isprint( field_value[ pos ] ) )
 		{
-			if ( field_value[ p1 ] != da->dynArea_DataMod )
-			{
-				if ( field_value[ pos ] != ch )
-				{
-					field_value[ p1 ] = da->dynArea_DataMod ;
-				}
-				else if ( da->dynArea_UserModsp )
-				{
-					field_value[ p1 ] = da->dynArea_UserMod ;
-				}
-			}
+			return false ;
 		}
-		else if ( da->dynArea_UserModsp )
-		{
-			field_value[ p1 ] = da->dynArea_UserMod ;
-		}
-
+		field_shadow_value[ pos ] = def_schar ;
+		p1 = field_value.find_last_of( field_dynArea->dynArea_inAttrs, pos ) ;
+		field_usermod.insert( p1 ) ;
+		schar_map[ def_schar ] = ddata_map[ field_value[ p1 ] ] ;
 	}
 	field_value[ pos ] = ch ;
 
-	display_field( win ) ;
+	display_field( win, ddata_map, schar_map ) ;
 	field_changed = true ;
 	return true ;
 }
 
 
-void field::edit_field_delete( WINDOW* win, int col )
+void field::edit_field_delete( WINDOW* win,
+			       int col,
+			       map<unsigned char, uint>& ddata_map,
+			       map<unsigned char, uint>& schar_map )
 {
-	// If this is a dynamic area, we know at this point this is an input field, so dynArea_DataInsp is true
+	// If this is a dynamic area, we know at this point this is an input field, so dynArea_dataInsp is true
 	// and there is an input attribute byte at the start of the field.
 
 	uint pos ;
@@ -638,39 +588,25 @@ void field::edit_field_delete( WINDOW* win, int col )
 	if ( field_dynArea )
 	{
 		da = field_dynArea ;
-		p1 = field_value.find_last_of( da->dynArea_FieldIn, pos ) ;
-		p2 = field_value.find_first_of( da->dynArea_Field, pos )  ;
+		p1 = field_value.find_last_of( da->dynArea_inAttrs, pos ) ;
+		field_usermod.insert( p1 ) ;
+		p2 = field_value.find_first_of( da->dynArea_Attrs, pos )  ;
 		if ( p2 == string::npos ) { p2 = field_value.size() ; }
-		if ( da->dynArea_DataModsp )
-		{
-			if ( field_value[ p1 ] != da->dynArea_DataMod )
-			{
-				if ( field_value.substr( pos, p2-pos ) != string( p2-pos, ' ' ) )
-				{
-					field_value[ p1 ] = da->dynArea_DataMod ;
-				}
-				else if ( da->dynArea_UserModsp )
-				{
-					field_value[ p1 ] = da->dynArea_UserMod ;
-				}
-			}
-		}
-		else if ( da->dynArea_UserModsp )
-		{
-			field_value[ p1 ] = da->dynArea_UserMod ;
-		}
 		field_value.insert( p2, 1, ' ' ) ;
 		field_shadow_value.insert( p2, 1, 0xFE ) ;
 		field_shadow_value.erase( pos, 1 ) ;
 	}
 
 	field_value.erase( pos, 1 ) ;
-	display_field( win ) ;
+	display_field( win, ddata_map, schar_map ) ;
 	field_changed = true ;
 }
 
 
-int field::edit_field_backspace( WINDOW* win, int col )
+int field::edit_field_backspace( WINDOW* win,
+				 int col,
+				 map<unsigned char, uint>& ddata_map,
+				 map<unsigned char, uint>& schar_map )
 {
 	// If this is a dynamic area, we know it is an input field so pos > 0 (to allow for the input attribute byte)
 
@@ -681,21 +617,24 @@ int field::edit_field_backspace( WINDOW* win, int col )
 
 	if ( field_dynArea )
 	{
-		if ( field_dynArea->dynArea_Field.find_first_of( field_value[ pos-1 ] ) != string::npos )
+		if ( field_dynArea->dynArea_Attrs.find_first_of( field_value[ pos-1 ] ) != string::npos )
 		{
 			return col ;
 		}
 	}
 
 	col-- ;
-	edit_field_delete( win, col ) ;
+	edit_field_delete( win, col, ddata_map, schar_map ) ;
 	return col ;
 }
 
 
-void field::field_erase_eof( WINDOW* win, uint col )
+void field::field_erase_eof( WINDOW* win,
+			     uint col,
+			     map<unsigned char, uint>& ddata_map,
+			     map<unsigned char, uint>& schar_map )
 {
-	// If this is a dynamic area, we know at this point this is an input field, so dynArea_DataInsp is true,
+	// If this is a dynamic area, we know at this point this is an input field, so dynArea_dataInsp is true,
 	// and there is an input attribute byte at the start of the field
 
 	int pos ;
@@ -710,27 +649,10 @@ void field::field_erase_eof( WINDOW* win, uint col )
 	if ( field_dynArea )
 	{
 		da = field_dynArea ;
-		p1 = field_value.find_last_of( da->dynArea_FieldIn, pos ) ;
-		p2 = field_value.find_first_of( da->dynArea_Field, pos ) ;
+		p1 = field_value.find_last_of( da->dynArea_inAttrs, pos ) ;
+		field_usermod.insert( p1 ) ;
+		p2 = field_value.find_first_of( da->dynArea_Attrs, pos ) ;
 		if ( p2 == string::npos ) { p2 = field_value.size() ; }
-		if ( da->dynArea_DataModsp )
-		{
-			if ( field_value[ p1 ] != da->dynArea_DataMod )
-			{
-				if ( field_value.substr( pos, p2-pos ) != string( p2-pos, ' ' ) )
-				{
-					field_value[ p1 ] = da->dynArea_DataMod ;
-				}
-				else if ( da->dynArea_UserModsp )
-				{
-					field_value[ p1 ] = da->dynArea_UserMod ;
-				}
-			}
-		}
-		else if ( da->dynArea_UserModsp )
-		{
-			field_value[ p1 ] = da->dynArea_UserMod ;
-		}
 		field_value.replace( pos, p2-pos, p2-pos, ' ' )  ;
 		field_shadow_value.replace( pos, p2-pos, p2-pos, 0xFE ) ;
 	}
@@ -740,7 +662,7 @@ void field::field_erase_eof( WINDOW* win, uint col )
 		field_value.erase( pos+1 ) ;
 	}
 
-	display_field( win ) ;
+	display_field( win, ddata_map, schar_map ) ;
 	field_changed = true ;
 }
 
@@ -772,62 +694,39 @@ void field::field_remove_nulls_da()
 	// the end of the input field when removing nulls.  In this case, change shadow variable to 0xFF
 	// so we know where the real data ends.
 
-	// If a field that has only been touched, changes, change DataIn to DataMod (if specified)
-
 	// Keep shadow variable in sync
-
-	// BUG: Nulls not removed from a touched/changed field with no USERMOD/DATAMOD parameter specified
-	// (as we cannot determine if the field has been touched/changed without these)
 
 	size_t p1 ;
 	size_t p2 ;
 	size_t p3 ;
 
-	int pattr ;
-
-	bool changed ;
-
 	const char nulls(0x00) ;
 
-	dynArea* da ;
+	dynArea* da = field_dynArea ;
 
 	p1 = 0 ;
-	da = field_dynArea ;
-	if ( !da->dynArea_DataInsp ) { return ; }
 
-	while ( true )
+	for ( auto it = field_usermod.begin() ; it != field_usermod.end() ; it++ )
 	{
-		p1 = field_value.find_first_of( da->dynArea_FieldIn, p1 ) ;
-		if ( p1 == string::npos ) { return ; }
-		pattr = p1 ;
-		p1++ ;
-		p3 = field_value.find_first_of( da->dynArea_Field, p1 ) ;
-		if ( p3 == string::npos ) { p3 = field_value.size() - 1 ; }
-		else                      { p3--                        ; }
+		p1 = *it + 1 ;
+		p3 = field_value.find_first_of( da->dynArea_Attrs, p1 ) ;
+		p3 = ( p3 == string::npos ) ? field_value.size() - 1 : p3 - 1 ;
 		p2 = field_value.find_last_not_of( nulls, p3 ) ;
 		if ( p2 == string::npos )
 		{
 			field_value.replace( p1, p3-p1+1, p3-p1+1, ' ' ) ;
 			field_shadow_value.replace( p1, p3-p1+1, p3-p1+1, 0xFF ) ;
-			if ( da->dynArea_DataModsp )
-			{
-				field_value[ pattr ] = da->dynArea_DataMod ;
-			}
 			break ;
 		}
-		changed = false ;
 		if ( p3 > p2 )
 		{
 			field_value.replace( p2+1, p3-p2, p3-p2, ' ' ) ;
 			field_shadow_value.replace( p2+1, p3-p2, p3-p2, 0xFF ) ;
-			changed = true ;
 		}
-		while ( true )
+		while ( p1 < p2 )
 		{
-			if ( p1 >= p2 ) { break ; }
 			if ( field_value[ p1 ] == nulls )
 			{
-				changed = true ;
 				field_value.erase( p1, 1 ) ;
 				field_value.insert( p3, 1, ' ' ) ;
 				field_shadow_value.erase( p1, 1 ) ;
@@ -836,10 +735,6 @@ void field::field_remove_nulls_da()
 				continue ;
 			}
 			p1++ ;
-		}
-		if ( changed && da->dynArea_DataModsp )
-		{
-			field_value[ pattr ] = da->dynArea_DataMod ;
 		}
 	}
 }
@@ -872,7 +767,7 @@ int field::end_of_field( WINDOW* win, uint col )
 	if ( field_dynArea )
 	{
 		pos = (col - field_col) ;
-		p2  = field_value.find_first_of( field_dynArea->dynArea_Field, pos ) ;
+		p2  = field_value.find_first_of( field_dynArea->dynArea_Attrs, pos ) ;
 		if ( p2 == string::npos ) { p2 = field_value.size() ; }
 		p1  = field_value.find_last_not_of( padc, p2-1 ) ;
 		if ( p1 == p2 - 1 ) { return p1 + field_col     ; }
@@ -915,16 +810,16 @@ bool field::field_dyna_input( uint col )
 
 	dynArea* da = field_dynArea ;
 
-	if ( !da->dynArea_DataInsp ) { return false ; }
+	if ( !da->dynArea_dataInsp ) { return false ; }
 
 	pos = col - field_col ;
 
-	if ( da->dynArea_Field.find_first_of( field_value[ pos ] ) != string::npos ) { return false ; }
+	if ( da->dynArea_Attrs.find_first_of( field_value[ pos ] ) != string::npos ) { return false ; }
 
-	p1 = field_value.find_last_of( da->dynArea_Field, pos ) ;
+	p1 = field_value.find_last_of( da->dynArea_Attrs, pos ) ;
 	if ( p1 == string::npos ) { return false ; }
 
-	p1 = da->dynArea_FieldIn.find_first_of( field_value[ p1 ] ) ;
+	p1 = da->dynArea_inAttrs.find_first_of( field_value[ p1 ] ) ;
 	if ( p1 == string::npos ) { return false ; }
 
 	return true ;
@@ -940,7 +835,7 @@ int field::field_dyna_input_offset( uint col )
 
 	pos = ( col < field_col ) ? 0 : (col - field_col) ;
 
-	p1 = field_value.find_first_of( field_dynArea->dynArea_FieldIn, pos ) ;
+	p1 = field_value.find_first_of( field_dynArea->dynArea_inAttrs, pos ) ;
 	if ( p1 == string::npos ) { return -1 ; }
 	return p1+1 ;
 }
@@ -948,118 +843,79 @@ int field::field_dyna_input_offset( uint col )
 
 void field::field_attr( errblock& err, string attrs, bool chng_once )
 {
+	// Change field attributes.  Only parameters specified are changed, other
+	// attributes are left unchanged.
+	// Used for .ATTR() panel function.
+
 	// Format:
 
 	// TYPE(CUA) (change to/from PS not allowed)
-
 	// COLOUR(RED/GREEN/YELLOW/BLUE/MAGENTA/TURQ/WHITE)
-	// INTENSE(LOW/HIGH)
+	// INTENS(LOW/HIGH)
 	// HILITE(NONE/BLINK/REVERSE/USCORE)
 
-	// For NON-CUA field_colour, default to the current CUA value in case only one attribute is changed
-	// Hex format for field_colour:
+	// For NON-CUA field_colour1, default to the current CUA value in case only one attribute is changed
+	// Hex format for field_colour1:
 	// 00 X0 00 00   - X is the INTENSITY
 	// 00 0X 00 00   - X is the HILITE
 	// 00 00 XX 00   - X is the COLOUR
 
-	int p1 ;
-	int p2 ;
+	char_attrs temp ;
 
-	string cua    ;
-	string col    ;
-	string hilite ;
-	string intens ;
+	temp.setattr( err, attrs ) ;
+	if ( err.error() ) { return ; }
 
-	err.setRC( 0 ) ;
-
-	cua    = "" ;
-	col    = "" ;
-	intens = "" ;
-	hilite = "" ;
-
-	p1 = pos( "TYPE(", attrs ) ;
-	if ( p1 > 0 )
+	if ( temp.typeChange )
 	{
-		p2    = pos( ")", attrs, p1 ) ;
-		if ( p2 == 0 ) { err.seterrid( "PSYE032D" ) ; return ; }
-		cua   = strip( substr( attrs, (p1 + 5), (p2 - (p1 + 5)) ) ) ;
-		attrs = delstr( attrs, p1, (p2 - p1 + 1) ) ;
-		if      ( cua == "TEXT"    ) { field_input  = false ; }
-		else if ( cua == "OUTPUT"  ) { field_input  = false ; }
-		else if ( cua == "INPUT"   ) { field_input  = true  ; }
+		if      ( temp.type == TEXT   ) { field_input  = false ; }
+		else if ( temp.type == OUTPUT ) { field_input  = false ; }
+		else if ( temp.type == INPUT  ) { field_input  = true  ; }
 		else
 		{
-			if ( trim( attrs ) != "" ) { err.seterrid( "PSYE032H", attrs ) ; return ; }
-			if ( cuaAttrName.count( cua ) == 0 )  { err.seterrid( "PSYE032F", cua ) ; return ; }
-			if ( cua == "PS" || field_cua == PS ) { err.seterrid( "PSYE035A" ) ; return ; }
-			field_cua    = cuaAttrName[ cua ] ;
-			field_input  = ( cuaAttrUnprot.count( field_cua ) > 0 ) ;
-			field_usecua = true ;
+			if ( temp.type == PS || field_cua == PS )
+			{
+				err.seterrid( "PSYE035A" ) ;
+				return ;
+			}
+			if ( temp.typecua )
+			{
+				field_cua     = temp.type ;
+				field_colour1 = cuaAttr[ field_cua ] ;
+			}
+			else
+			{
+				field_cua = NONE ;
+			}
+			field_input = ( attrUnprot.count( field_cua ) > 0 ) ;
 			return ;
 		}
 	}
-	if ( field_usecua )
-	{
-		field_colour = cuaAttr[ field_cua ] ;
-	}
-	p1 = pos( "COLOUR(", attrs ) ;
-	if ( p1 > 0 )
-	{
-		p2    = pos( ")", attrs, p1 ) ;
-		if ( p2 == 0 ) { err.seterrid( "PSYE032D" ) ; return ; }
-		col   = strip( substr( attrs, (p1 + 7), (p2 - (p1 + 7)) ) ) ;
-		attrs = delstr( attrs, p1, (p2 - p1 + 1) ) ;
-		field_colour = field_colour & 0XFFFF00FF ;
-		if      ( col == "RED"     ) { field_colour = field_colour | RED     ; }
-		else if ( col == "GREEN"   ) { field_colour = field_colour | GREEN   ; }
-		else if ( col == "YELLOW"  ) { field_colour = field_colour | YELLOW  ; }
-		else if ( col == "BLUE"    ) { field_colour = field_colour | BLUE    ; }
-		else if ( col == "MAGENTA" ) { field_colour = field_colour | MAGENTA ; }
-		else if ( col == "TURQ"    ) { field_colour = field_colour | TURQ    ; }
-		else if ( col == "WHITE"   ) { field_colour = field_colour | WHITE   ; }
-		else                         { err.seterrid( "PSYE035B", col, "COLOUR" ) ; return ; }
-	}
-	p1 = pos( "INTENSE(", attrs ) ;
-	if ( p1 > 0 )
-	{
-		field_colour = field_colour & 0XFF0FFFFF ;
-		p2     = pos( ")", attrs, p1 ) ;
-		if ( p2 == 0 ) { err.seterrid( "PSYE032D" ) ; return ; }
-		intens = strip( substr( attrs, (p1 + 8), (p2 - (p1 + 8)) ) ) ;
-		attrs  = delstr( attrs, p1, (p2 - p1 + 1) ) ;
-		if      ( intens == "HIGH" ) { field_colour = field_colour | A_BOLD   ; }
-		else if ( intens == "LOW"  ) { field_colour = field_colour | A_NORMAL ; }
-		else                         { err.seterrid( "PSYE035B", intens, "INTENSE" ) ; return ; }
-	}
-	p1 = pos( "HILITE(", attrs ) ;
-	if ( p1 > 0 )
-	{
-		field_colour = field_colour & 0XFFF0FFFF ;
-		p2     = pos( ")", attrs, p1 ) ;
-		if ( p2 == 0 ) { err.seterrid( "PSYE032D" ) ; return ; }
-		hilite = strip( substr( attrs, (p1 + 7), (p2 - (p1 + 7)) ) ) ;
-		attrs  = delstr( attrs, p1, (p2 - p1 + 1) ) ;
-		if      ( hilite == "NONE"    ) { ; }
-		else if ( hilite == "BLINK"   ) { field_colour = field_colour | A_BLINK     ; }
-		else if ( hilite == "REVERSE" ) { field_colour = field_colour | A_REVERSE   ; }
-		else if ( hilite == "USCORE"  ) { field_colour = field_colour | A_UNDERLINE ; }
-		else                            { err.seterrid( "PSYE035B", hilite, "HILITE" ) ; return ; }
-	}
-	if ( trim( attrs ) != "" )
-	{
-		err.seterrid( "PSYE032H", attrs ) ;
-		return ;
-	}
-	field_usecua    = false ;
+
+	field_colour1 &= 0XFFFF00FF  ;
+	field_colour1 |= temp.colour ;
+
+	field_colour1 &= 0XFF0FFFFF  ;
+	field_colour1 |= temp.intens ;
+
+	field_colour1 &= 0XFFF0FFFF  ;
+	field_colour1 |= temp.hilite ;
+
 	field_attr_once = chng_once ;
 }
 
 
 void field::field_attr()
 {
-	// Reset field attribute to use the CUA value
+	// Reset field attribute to use the CUA value or original non-CUA value
 
-	field_usecua    = true  ;
+	if ( field_cua == NONE )
+	{
+		field_colour1 = field_colour2 ;
+	}
+	else
+	{
+		field_colour1 = cuaAttr[ field_cua ] ;
+	}
 	field_attr_once = false ;
 }
 
@@ -1138,59 +994,75 @@ void field::field_set_caps()
 }
 
 
-void field::field_DataMod_to_UserMod( string* darea, int offset )
+void field::field_update_datamod_usermod( string* darea, int offset )
 {
-	// Reset any dynArea_DataMod attributes to dynArea_UserMod or field_dynDataIn, for dynamic fields that
-	// have not changed. This is for fields that have been changed, then changed back to the original.
-	// (This has to show as touched/input attr, not changed).
+	// Set the DATAIN attribute to DATAMOD for any dynamic area input field that has changed.
+	// Set the DATAIN attribute to USERMOD for any dynamic area input field that has been touched.
 
-	// When this is called, we know dynDataIn and dynDataMod have been specified (but not necessarily dynUserMod,
-	// or dynDataOut).  If no change to the field, attr=dynUserMod if specified, else dynDataIn
+	// USERMOD but not DATAMOD - Attr changed to USERMOD even if the field was changed
+	// DATAMOD but not USERMOD - Attr changed to DATAMOD only if the field value has changed
+	// USERMOD and DATAMOD     - Attr changed to USERMOD if no change to field value, else DATAMOD
+	// Neither                 - Attr unchanged
 
 	size_t p1 ;
 	size_t p2 ;
 
 	dynArea* da = field_dynArea ;
 
-	p1 = 0 ;
-	while ( true )
+	if ( not da->dynArea_dataModsp && not da->dynArea_userModsp ) { return ; }
+
+	for ( auto it = field_usermod.begin() ; it != field_usermod.end() ; it++ )
 	{
-		p1 = field_value.find_first_of( da->dynArea_DataMod, p1 ) ;
-		if ( p1 == string::npos ) { break ; }
-		p1++ ;
-		p2 = field_value.find_first_of( da->dynArea_Field, p1 ) ;
-		if ( p2 == string::npos ) { p2 = field_value.size() ; }
-		if ( field_value.compare( p1, p2-p1, (*darea), offset+p1, p2-p1 ) == 0 )
+		if ( da->dynArea_userModsp )
 		{
-			field_value[ p1-1 ] = da->dynArea_UserModsp ? da->dynArea_UserMod : da->dynArea_DataIn ;
+			field_value[ *it ] = da->dynArea_UserMod ;
 		}
-		p1 = p2 ;
+		if ( da->dynArea_dataModsp )
+		{
+			p1 = *it + 1 ;
+			p2 = field_value.find_first_of( da->dynArea_Attrs, p1 ) ;
+			if ( p2 == string::npos ) { p2 = field_value.size() ; }
+			if ( field_value.compare( p1, p2-p1, (*darea), offset+p1, p2-p1 ) != 0 )
+			{
+				field_value[ *it ] = da->dynArea_DataMod ;
+			}
+		}
 	}
 }
 
 
-void field::display_field( WINDOW* win )
+void field::display_field( WINDOW* win,
+			   map<unsigned char, uint>& ddata_map,
+			   map<unsigned char, uint>& schar_map )
 {
 	// For non-dynamic area fields: if an input field, truncate if value size > field size else for output fields
 	// display field size bytes and leave field value unchanged (necessary for table display fields)
 
 	// Display the null character as the field pad character and pad the field with the same character
-	// usrAttr map takes an int value so use (unsiged char)attr to access to avoid a negative value.
+
+	// Colour/hilite taken from the shadow byte
+	// Intensity taken from the datain/dataout byte
+
+	// 00 X0 00 00   - X is the INTENSITY
+	// 00 0X 00 00   - X is the HILITE
+	// 00 00 XX 00   - X is the COLOUR
 
 	// Call ncurses touchline() for the field row as the update does not always appear without it
 
-	uint i     ;
+	uint i ;
+	uint intens = 0 ;
+	uint attr2  = 0 ;
+
 	char nullc ;
-	char attr  ;
+	char attr1 ;
+	char upad  ;
+
 	string t   ;
 
 	const char nulls(0x00) ;
-	char upad  ;
 
 	string::iterator it1 ;
 	string::iterator it2 ;
-
-	dynArea* da ;
 
 	if ( !field_active ) { return ; }
 
@@ -1200,23 +1072,29 @@ void field::display_field( WINDOW* win )
 
 	if ( field_dynArea )
 	{
-		da = field_dynArea ;
-		if ( da->dynArea_DataInsp || da->dynArea_DataOutsp )
+		dynArea* da = field_dynArea ;
+		if ( da->dynArea_Attrs != "" )
 		{
-			it2  = field_shadow_value.begin() ;
-			i    = 0 ;
-			attr = (*it2) ;
-			wattrset( win, usrAttr[ (unsigned char)attr ] ) ;
+			it2   = field_shadow_value.begin() ;
+			i     = 0 ;
+			attr1 = (*it2) ;
+			wattrset( win, schar_map[ attr1 ] | field_intens ) ;
 			for ( it1 = field_value.begin() ; it1 != field_value.end() ; it1++, it2++, i++ )
 			{
-				if ( attr != (*it2) ) { wattrset( win, usrAttr[ (*it2) ] ) ; attr = (*it2) ; }
-				if (  (*it1) == nulls )
+				if ( attr1 != (*it2) || attr2 != intens )
+				{
+					wattrset( win, schar_map[ (*it2) ] | field_intens | intens ) ;
+					attr1 = (*it2) ;
+					attr2 = intens ;
+				}
+				if ( (*it1) == nulls )
 				{
 					mvwaddch( win, field_row, field_col+i, nullc ) ;
 				}
-				else if (  da->dynArea_Field.find_first_of( (*it1) ) != string::npos )
+				else if ( da->dynArea_Attrs.find_first_of( (*it1) ) != string::npos )
 				{
 					mvwaddch( win, field_row, field_col+i, ' ' ) ;
+					intens = ddata_map[ *it1 ] & A_BOLD ;
 				}
 				else if ( isprint( (*it1) ) )
 				{
@@ -1232,11 +1110,15 @@ void field::display_field( WINDOW* win )
 		{
 			it2  = field_shadow_value.begin() ;
 			i    = 0 ;
-			attr = (*it2) ;
-			wattrset( win, usrAttr[ (unsigned char)attr ] ) ;
+			attr1 = (*it2) ;
+			wattrset( win, schar_map[ attr1 ] | field_intens ) ;
 			for ( it1 = field_value.begin() ; it1 != field_value.end() ; it1++, it2++, i++ )
 			{
-				if ( attr != (*it2) ) { wattrset( win, usrAttr[ (*it2) ] ) ; attr = (*it2) ; }
+				if ( attr1 != (*it2) )
+				{
+					wattrset( win, schar_map[ (*it2) ] | field_intens ) ;
+					attr1 = (*it2) ;
+				}
 				if (  (*it1) == nulls )
 				{
 					mvwaddch( win, field_row, field_col+i, nullc ) ;
@@ -1254,7 +1136,7 @@ void field::display_field( WINDOW* win )
 	}
 	else
 	{
-		wattrset( win, field_usecua ? cuaAttr[ field_cua ] : field_colour ) ;
+		wattrset( win, field_colour1 | field_intens ) ;
 		if ( field_input )
 		{
 			if ( field_value.size() > field_length )
@@ -1312,7 +1194,7 @@ void literal::literal_init( errblock& err, int MAXW, int MAXD, int& opt_field, c
 	string w4 ;
 	string w5 ;
 
-	cuaType fType ;
+	attType fType ;
 
 	w2 = word( line, 2 ) ;
 	w3 = word( line, 3 ) ;
@@ -1379,7 +1261,7 @@ void literal::literal_init( errblock& err, int MAXW, int MAXD, int& opt_field, c
 
 void literal::literal_display( WINDOW* win )
 {
-	wattrset( win, cuaAttr[ literal_cua ] ) ;
+	wattrset( win, cuaAttr[ literal_cua ] | literal_intens ) ;
 	mvwaddstr( win, literal_row, literal_col, literal_xvalue.c_str() ) ;
 	wattroff( win, cuaAttr[ literal_cua ] ) ;
 }
@@ -1402,21 +1284,21 @@ void dynArea::setsize( int row, int col, int width, int depth )
 }
 
 
-void pdc::display_pdc_avail( WINDOW* win, cuaType type, int pos )
+void pdc::display_pdc_avail( WINDOW* win, attType type, int pos )
 {
 	string t = d2ds( pos ) + ". " + pdc_xdesc ;
 
-	wattrset( win, cuaAttr[ type ] ) ;
+	wattrset( win, cuaAttr[ type ] | pdc_intens ) ;
 	mvwaddstr( win, pos, 4, t.c_str() ) ;
 	wattroff( win, cuaAttr[ type ] ) ;
 }
 
 
-void pdc::display_pdc_unavail( WINDOW* win, cuaType type, int pos )
+void pdc::display_pdc_unavail( WINDOW* win, attType type, int pos )
 {
 	string t = "*. " + pdc_xdesc ;
 
-	wattrset( win, cuaAttr[ type ] ) ;
+	wattrset( win, cuaAttr[ type ] | pdc_intens ) ;
 	mvwaddstr( win, pos, 4, t.c_str() ) ;
 	wattroff( win, cuaAttr[ type ] ) ;
 }
@@ -1425,7 +1307,7 @@ void pdc::display_pdc_unavail( WINDOW* win, cuaType type, int pos )
 void abc::create_window( uint row, uint col )
 {
 	win = newwin( abc_maxh + 2, abc_maxw + 10, row+1, col+abc_col ) ;
-	wattrset( win, cuaAttr[ AB ] ) ;
+	wattrset( win, cuaAttr[ AB ] | abc_intens ) ;
 	box( win, 0, 0 ) ;
 	wattroff( win, cuaAttr[ AB ] ) ;
 }
@@ -1551,7 +1433,7 @@ void abc::add_pdc( const pdc& m_pdc )
 
 void abc::display_abc_sel( WINDOW* win )
 {
-	wattrset( win, cuaAttr[ AB ] ) ;
+	wattrset( win, cuaAttr[ AB ] | abc_intens ) ;
 	mvwaddstr( win, 0, abc_col, abc_desc.c_str() ) ;
 	wattroff( win, cuaAttr[ AB ] ) ;
 }
@@ -1559,7 +1441,7 @@ void abc::display_abc_sel( WINDOW* win )
 
 void abc::display_abc_unsel( WINDOW* win )
 {
-	wattrset( win, cuaAttr[ ABU ] ) ;
+	wattrset( win, cuaAttr[ ABU ] | abc_intens ) ;
 	mvwaddstr( win, 0, abc_col, abc_desc.c_str() ) ;
 	wattroff( win, cuaAttr[ ABU ] ) ;
 }
@@ -1697,7 +1579,7 @@ bool abc::cursor_on_pulldown( uint row, uint col )
 void Box::box_init( errblock& err, int MAXW, int MAXD, const string& line )
 {
 	// Format of BOX entry in panels (FORMAT 1 VERSION 1 )
-	// BOX  row col width depth cuaAttr  B-title
+	// BOX  row col width depth Attr     B-title
 	// w1   w2  w3  w4    w5    w6       w7
 	// BOX  7   7   41    22    N_WHITE  "Test Dynamic Area 1"
 
@@ -1705,7 +1587,6 @@ void Box::box_init( errblock& err, int MAXW, int MAXD, const string& line )
 	int col    ;
 	int width  ;
 	int depth  ;
-	int colour ;
 
 	string w2 ;
 	string w3 ;
@@ -1755,13 +1636,11 @@ void Box::box_init( errblock& err, int MAXW, int MAXD, const string& line )
 	if ( width > (MAXW - col+1) ) { width = (MAXW - col+1) ; } ;
 	if ( depth > (MAXD - row+1) ) { depth = (MAXD - row+1) ; } ;
 
-	colour = ( usrAttrNames.count( w6 ) > 0 ) ? usrAttrNames[ w6 ] : B_GREEN ;
-
 	box_row    = row - 1 ;
 	box_col    = col - 1 ;
 	box_width  = width   ;
 	box_depth  = depth   ;
-	box_colour = usrAttr[ colour ] ;
+	box_colour = usrAttrNames[ w6 ] ;
 	if ( title != "" )
 	{
 		box_title = " " + title + " "  ;
@@ -1778,7 +1657,7 @@ void Box::display_box( WINDOW* win, string title )
 		title.erase( box_width-4 ) ;
 	}
 
-	wattrset( win, box_colour ) ;
+	wattrset( win, box_colour | box_intens ) ;
 
 	mvwaddch( win, box_row, box_col, ACS_ULCORNER ) ;
 	mvwaddch( win, box_row, box_col + box_width - 1, ACS_URCORNER ) ;

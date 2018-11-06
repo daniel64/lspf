@@ -39,6 +39,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 	string abc_desc ;
 
 	bool abc     = false ;
+	bool attr    = false ;
 	bool body    = false ;
 	bool init    = false ;
 	bool abcinit = false ;
@@ -53,6 +54,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 	vector<string>::iterator it ;
 
 	map<string, field*>::iterator it1;
+
+	char_attrs attrchar ;
 
 	err.setpanelsrc() ;
 
@@ -76,6 +79,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		if ( w1.front() == ')' )
 		{
 			abc     = false ;
+			attr    = false ;
 			body    = false ;
 			init    = false ;
 			abcinit = false ;
@@ -103,9 +107,21 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			if ( pline != ")ABC" )
 			{
 				err.seterrid( "PSYE032H", subword( pline, 2  ) ) ;
+				err.setsrc( oline ) ;
 				return ;
 			}
 			abc = true ;
+			continue ;
+		}
+		if ( w1 == ")ATTR" )
+		{
+			if ( words( pline ) > 1 )
+			{
+				err.seterrid( "PSYE032H", subword( pline, 2  ) ) ;
+				err.setsrc( oline ) ;
+				return ;
+			}
+			attr = true ;
 			continue ;
 		}
 		if ( w1 == ")PANEL" )
@@ -324,7 +340,10 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				break ;
 
 			case ST_ASSIGN:
-				createPanel_Assign( err, panelLang, m_stmnt ) ;
+				createPanel_Assign( err,
+						    panelLang,
+						    m_stmnt,
+						    ( init || reinit || proc ) ) ;
 				if ( err.error() )
 				{
 					err.setsrc( oline ) ;
@@ -335,7 +354,11 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				break ;
 
 			case ST_IF:
-				createPanel_If( err, panelLang, m_stmnt, init || abcinit ) ;
+				createPanel_If( err,
+						panelLang,
+						m_stmnt,
+						( init || abcinit ),
+						( init || reinit || proc ) ) ;
 				if ( err.error() )
 				{
 					err.setsrc( oline ) ;
@@ -346,7 +369,12 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				break ;
 
 			case ST_ELSE:
-				createPanel_Else( err, panelLang, m_stmnt, p_stmnt, init || abcinit ) ;
+				createPanel_Else( err,
+						  panelLang,
+						  m_stmnt,
+						  p_stmnt,
+						  ( init || abcinit ),
+						  ( init || reinit || proc ) ) ;
 				if ( err.error() )
 				{
 					err.setsrc( oline ) ;
@@ -535,6 +563,57 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			continue ;
 		}
 
+		if ( attr )
+		{
+			if ( w1.size() > 2 || ( w1.size() == 2 && not ishex( w1 ) ) )
+			{
+				err.seterrid( "PSYE041B" ) ;
+				err.setsrc( oline ) ;
+				return ;
+			}
+			ww = subword( pline, 2 ) ;
+			attrchar.setattr( err, ww ) ;
+			if ( err.error() )
+			{
+				err.setsrc( oline ) ;
+				return ;
+			}
+			char c = ( w1.size() == 2 ) ? xs2cs( w1 ).front() : w1.front() ;
+			if ( char_attrlist.count( c ) > 0 )
+			{
+				err.seterrid( "PSYE011H", isprint( c ) ? string( 1, c ) : cs2xs( c ) ) ;
+				err.setsrc( oline ) ;
+				return ;
+			}
+			char_attrlist[ c ]   = attrchar ;
+			colour_attrlist[ c ] = attrchar.get_colour() ;
+			switch ( attrchar.get_type() )
+			{
+			case DATAIN:
+				da_dataIn += string( 1, c ) ;
+				ddata_map[ c ] = attrchar.get_colour() ;
+				break ;
+
+			case DATAOUT:
+				da_dataOut += string( 1, c ) ;
+				ddata_map[ c ] = attrchar.get_colour() ;
+				break ;
+
+			case CHAR:
+				schar_map[ c ] = attrchar.get_colour() ;
+				if ( schar_map.size() > 250 )
+				{
+					err.seterrid( "PSYE011I" ) ;
+					err.setsrc( oline ) ;
+					return ;
+				}
+				break ;
+			default:
+				break ;
+			}
+			continue ;
+		}
+
 		if ( !body )
 		{
 			err.seterrid( "PSYE041E" ) ;
@@ -621,7 +700,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			}
 
 			dynArea* m_dynArea = new dynArea ;
-			m_dynArea->dynArea_init( err, wscrmaxw, wscrmaxd, upper( pline ) ) ;
+			m_dynArea->dynArea_init( err, wscrmaxw, wscrmaxd, upper( pline ), da_dataIn, da_dataOut ) ;
 			if ( err.error() )
 			{
 				err.setsrc( oline ) ;
@@ -790,6 +869,16 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		for ( it1 = fieldList.begin() ; it1 != fieldList.end() ; it1++ )
 		{
 			if ( !p_funcPOOL->ifexists( err, it1->first ) ) { syncDialogueVar( err, it1->first ) ; }
+		}
+	}
+
+	for ( i = 0 ; i < 251 ; i++ )
+	{
+		unsigned char c = i ;
+		if ( schar_map.count( c ) == 0 )
+		{
+			def_schar = c ;
+			break ;
 		}
 	}
 
@@ -974,7 +1063,11 @@ void pPanel::readPanel( errblock& err,
 }
 
 
-void pPanel::createPanel_If( errblock& err, parser& v, panstmnt* m_stmnt, bool init )
+void pPanel::createPanel_If( errblock& err,
+			     parser& v,
+			     panstmnt* m_stmnt,
+			     bool init,
+			     bool init_reinit_proc )
 {
 	// The if-statement may have an inline statement but the address is in the same location.
 
@@ -992,7 +1085,7 @@ void pPanel::createPanel_If( errblock& err, parser& v, panstmnt* m_stmnt, bool i
 	switch ( v.getStatementType() )
 	{
 	case ST_ASSIGN:
-		createPanel_Assign( err, v, m_stmnt ) ;
+		createPanel_Assign( err, v, m_stmnt, init_reinit_proc ) ;
 		break ;
 
 	case ST_EOF:
@@ -1051,7 +1144,8 @@ void pPanel::createPanel_Else( errblock& err,
 			       parser& v,
 			       panstmnt* m_stmnt,
 			       vector<panstmnt* >* p_stmnt,
-			       bool init )
+			       bool init,
+			       bool init_reinit_proc )
 {
 	// The else-statement may have an inline statement but the address is in the same location.
 
@@ -1103,7 +1197,7 @@ void pPanel::createPanel_Else( errblock& err,
 		break ;
 
 	case ST_ASSIGN:
-		createPanel_Assign( err, v, m_stmnt ) ;
+		createPanel_Assign( err, v, m_stmnt, init_reinit_proc ) ;
 		break ;
 
 	case ST_REFRESH:
@@ -1142,7 +1236,10 @@ void pPanel::createPanel_Else( errblock& err,
 }
 
 
-void pPanel::createPanel_Assign( errblock& err, parser& v, panstmnt* m_stmnt )
+void pPanel::createPanel_Assign( errblock& err,
+				 parser& v,
+				 panstmnt* m_stmnt,
+				 bool init_reinit_proc )
 {
 	ASSGN* m_assgn = new ASSGN ;
 
@@ -1153,10 +1250,7 @@ void pPanel::createPanel_Assign( errblock& err, parser& v, panstmnt* m_stmnt )
 		return ;
 	}
 
-	if ( findword( m_assgn->as_lhs, tb_fields ) )
-	{
-		m_assgn->as_istb = true ;
-	}
+	m_assgn->as_istb = ( tb_fields.count( m_assgn->as_lhs ) > 0 ) ;
 
 	if ( m_assgn->as_isattr && ( fieldList.find( m_assgn->as_lhs ) == fieldList.end() ) && !m_assgn->as_istb )
 	{
@@ -1165,6 +1259,12 @@ void pPanel::createPanel_Assign( errblock& err, parser& v, panstmnt* m_stmnt )
 		return ;
 	}
 
+	if ( m_assgn->as_isattc && not init_reinit_proc )
+	{
+		err.seterrid( "PSYE042Q", m_assgn->as_lhs ) ;
+		delete m_assgn ;
+		return ;
+	}
 	m_stmnt->ps_assgn = m_assgn ;
 }
 
@@ -1179,10 +1279,8 @@ void pPanel::createPanel_Verify( errblock& err, parser& v, panstmnt* m_stmnt )
 		delete m_VER ;
 		return ;
 	}
-	if ( findword( m_VER->ver_var, tb_fields ) )
-	{
-		m_VER->ver_tbfield = true ;
-	}
+
+	m_VER->ver_tbfield = ( tb_fields.count( m_VER->ver_var ) > 0 ) ;
 	m_VER->ver_pnfield = ( fieldList.count( m_VER->ver_var ) > 0 || m_VER->ver_tbfield ) ;
 	m_stmnt->ps_ver    = m_VER ;
 }
@@ -1229,7 +1327,7 @@ void pPanel::createPanel_Refresh( errblock& err, parser& v, panstmnt* m_stmnt )
 			t = v.getCurrentToken() ;
 			if ( t.subtype == TS_NAME )
 			{
-				if ( fieldList.count( t.value1 ) == 0 && !findword( t.value1, tb_fields ) )
+				if ( fieldList.count( t.value1 ) == 0 && tb_fields.count( t.value1 ) == 0 )
 				{
 					err.seterrid( "PSYE041X", t.value1 ) ;
 					return ;
@@ -1256,7 +1354,7 @@ void pPanel::createPanel_Refresh( errblock& err, parser& v, panstmnt* m_stmnt )
 		t = v.getCurrentToken() ;
 		if ( t.subtype == TS_NAME )
 		{
-			if ( fieldList.count( t.value1 ) == 0 && !findword( t.value1, tb_fields ) )
+			if ( fieldList.count( t.value1 ) == 0 && tb_fields.count( t.value1 ) == 0 )
 			{
 				err.seterrid( "PSYE041X", t.value1 ) ;
 				return ;

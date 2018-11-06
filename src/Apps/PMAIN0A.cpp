@@ -38,6 +38,15 @@ using namespace boost::gregorian;
 #undef  MOD_NAME
 #define MOD_NAME PMAIN0A
 
+#define E_RED      3
+#define E_GREEN    4
+#define E_YELLOW   5
+#define E_BLUE     6
+#define E_MAGENTA  7
+#define E_TURQ     8
+#define E_WHITE    9
+
+#define G_TURQ     10
 
 PMAIN0A::PMAIN0A()
 {
@@ -152,10 +161,18 @@ void PMAIN0A::application()
 
 void PMAIN0A::create_calendar( int pmonth, int pyear )
 {
-	string m;
-	int year, month ;
-	int cday, cmonth, cyear ;
-	int i, eom_day, daypos  ;
+	// Build the dynamic area variables for the calendar.
+
+	int i      ;
+	int year   ;
+	int month  ;
+	int cday   ;
+	int cmonth ;
+	int cyear  ;
+	int eom_day ;
+	int daypos  ;
+
+	string  m ;
 
 	vget( "ZJDATE ZTIME ZDATEL" ) ;
 	cday   = ds2d( substr( zdatel, 1, 2 ) ) ;
@@ -168,7 +185,7 @@ void PMAIN0A::create_calendar( int pmonth, int pyear )
 	if ( month > 12 ) { month -= 12 ; year++ ; }
 	if ( month < 1  ) { month += 12 ; year-- ; }
 
-	eom_day = gregorian_calendar::end_of_month_day(year,month);
+	eom_day = gregorian_calendar::end_of_month_day( year,month ) ;
 	date endOfMonth( year, month, eom_day ) ;
 	day_iterator ditr( date(year, month, 1 ) ) ;
 
@@ -207,30 +224,30 @@ void PMAIN0A::create_calendar( int pmonth, int pyear )
 	zarea += left( "Time . . . . : " + ztime, 21 ) ;
 	zarea += left( "Day of Year. : " + substr( zjdate, 4, 3 ), 21 ) ;
 
-	zshadow = string( 231, N_WHITE ) ;
+	zshadow = string( 231, E_WHITE ) ;
 
-	zshadow.replace(  21,  21,  21, B_RED   )  ;
-	zshadow.replace(  42,  21,  21, B_YELLOW ) ;
+	zshadow.replace(  21,  21,  21, E_RED   )  ;
+	zshadow.replace(  42,  21,  21, E_YELLOW ) ;
 
-	zshadow.replace(  63,   2,   2, N_TURQ ) ;
-	zshadow.replace(  81,   2,   2, N_TURQ ) ;
+	zshadow.replace(  63,   2,   2, E_TURQ ) ;
+	zshadow.replace(  81,   2,   2, E_TURQ ) ;
 
-	zshadow.replace(  84,   2,   2, N_TURQ ) ;
-	zshadow.replace( 102,   2,   2, N_TURQ ) ;
+	zshadow.replace(  84,   2,   2, E_TURQ ) ;
+	zshadow.replace( 102,   2,   2, E_TURQ ) ;
 
-	zshadow.replace( 105,   2,   2, N_TURQ ) ;
-	zshadow.replace( 123,   2,   2, N_TURQ ) ;
+	zshadow.replace( 105,   2,   2, E_TURQ ) ;
+	zshadow.replace( 123,   2,   2, E_TURQ ) ;
 
-	zshadow.replace( 126,   2,   2, N_TURQ ) ;
-	zshadow.replace( 144,   2,   2, N_TURQ ) ;
+	zshadow.replace( 126,   2,   2, E_TURQ ) ;
+	zshadow.replace( 144,   2,   2, E_TURQ ) ;
 
-	zshadow.replace( 147,   2,   2, N_TURQ ) ;
-	zshadow.replace( 165,   2,   2, N_TURQ ) ;
+	zshadow.replace( 147,   2,   2, E_TURQ ) ;
+	zshadow.replace( 165,   2,   2, E_TURQ ) ;
 
-	zshadow.replace( 168,   2,   2, N_TURQ ) ;
-	zshadow.replace( 186,   2,   2, N_TURQ ) ;
+	zshadow.replace( 168,   2,   2, E_TURQ ) ;
+	zshadow.replace( 186,   2,   2, E_TURQ ) ;
 
-	if ( daypos > 0 ) { zshadow.replace( daypos, 2, 2, R_TURQ ) ; }
+	if ( daypos > 0 ) { zshadow.replace( daypos, 2, 2, G_TURQ ) ; }
 }
 
 

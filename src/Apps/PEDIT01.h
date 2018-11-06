@@ -2223,6 +2223,7 @@ class PEDIT01 : public pApplication
 		bool showConfirmCancel()  ;
 		void fill_dynamic_area()  ;
 		void fill_hilight_shadow();
+		void replace_datain()     ;
 		void clr_hilight_shadow() ;
 		void protNonDisplayChars();
 		void releaseDynamicStorage() ;
@@ -2321,7 +2322,7 @@ class PEDIT01 : public pApplication
 		void clearCursor() ;
 		void fixCursor()   ;
 		void storeCursor(  int, int=0 ) ;
-		void placeCursor(  int, int, int=0 ) ;
+		void placeCursor(  int, int, int=0, bool= false ) ;
 		void placeCursor( uint, int, int=0 ) ;
 		void positionCursor()     ;
 		void moveColumn( int =0 ) ;
@@ -2377,6 +2378,14 @@ class PEDIT01 : public pApplication
 		int  saveLevel           ;
 		int  nestLevel           ;
 		int  XTabz               ;
+
+		uint C_RED               ;
+		uint C_GREEN             ;
+		uint C_YELLOW            ;
+		uint C_BLUE              ;
+		uint C_MAGENTA           ;
+		uint C_TURQ              ;
+		uint C_WHITE             ;
 
 		bool tabsOnRead          ;
 		bool abendRecovery       ;
@@ -2450,6 +2459,7 @@ class PEDIT01 : public pApplication
 		int  RightBnd            ;
 
 		string maskLine          ;
+		bool   ztouched          ;
 		bool   colsOn            ;
 		string tabsLine          ;
 		char   tabsChar          ;
@@ -2457,8 +2467,9 @@ class PEDIT01 : public pApplication
 
 		vector<iline*> data      ;
 		map<int, ipos> s2data    ;
-		map<int, bool> sChanged  ;
-		map<int, bool> sTouched  ;
+		map<int, bool> lChanged  ;
+		map<int, bool> dChanged  ;
+		map<int, bool> dTouched  ;
 		map<int, int>lchar       ;
 		vector<lcmd> lcmds       ;
 

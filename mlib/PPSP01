@@ -14,7 +14,8 @@ PPSP015 'Invalid Command Entered' .TYPE=W
 'Enter CANCEL to discard changes or DEFAULTS to restore defaults'
 
 PPSP016 'Invalid Colour Entered' .TYPE=W
-'Enter R, G, Y, B, M, T, W or blank for the default colour'
+'Enter R(ED), G(REEN), Y(ELLOW), B(LUE), M(AGENTA) ( or P(INK) ), ' +
+'T(URQ), W(HITE) or blank for the default colour'
 
 PPSP017 'Invalid Intensity Entered' .TYPE=W
 'Enter H, L or blank for the default intensity'
@@ -32,7 +33,8 @@ PPSP011B 'Colours retored' .TYPE=N
 'CUA colours have been restored from the list in the current profile (&ZAPPLID)'
 
 PPSP011C 'No saved action list' .TYPE=W
-'Use command SAVE to save the control key actions before trying to use RESTORE'
+'Use command SAVE to save the control key actions to profile &ZAPPLID ' +
+'before trying to use the RESTORE command'
 
 PPSP011D 'Actions saved' .TYPE=N
 'Control key actions have been saved to the current profile (&ZAPPLID)'

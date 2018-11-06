@@ -107,7 +107,7 @@ void PLRFLST1::application()
 
 	if      ( p1 == "PL1" ) { OpenActiveFList( p2 )    ; }
 	else if ( p1 == "PL2" ) { PersonalFList( "" )      ; }
-	else if ( p1 == "PL3" ) { PersonalFList( "DSL")    ; }
+	else if ( p1 == "PL3" ) { PersonalFList( "DSL" )   ; }
 	else if ( p1 == "PLA" ) { AddReflistEntry( pf )    ; }
 	else if ( p1 == "NR1" ) { RetrieveEntry( pf )      ; }
 	else if ( p1 == "MTC" ) { RetrieveMatchEntry( pf ) ; }

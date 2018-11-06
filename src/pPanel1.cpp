@@ -42,13 +42,14 @@ pPanel::pPanel()
 	msgloc      = ""     ;
 	abIndex     = 0      ;
 	opt_field   = 0      ;
+	da_dataIn   = ""     ;
+	da_dataOut  = ""     ;
 	tb_model    = false  ;
 	tb_depth    = 0      ;
 	tb_curidr   = -1     ;
 	tb_curidx   = -1     ;
 	tb_csrrow   = 0      ;
 	tb_crp      = -1     ;
-	tb_fields   = ""     ;
 	tb_clear    = ""     ;
 	tb_scan     = false  ;
 	tb_autosel  = false  ;
@@ -219,7 +220,8 @@ void pPanel::init( errblock& err )
 }
 
 
-string pPanel::getDialogueVar( errblock& err, const string& var )
+string pPanel::getDialogueVar( errblock& err,
+			       const string& var )
 {
 	// Return the value of a dialogue variable (always as a string so convert int->string if necessary)
 	// Search order is:
@@ -279,7 +281,9 @@ string pPanel::getDialogueVar( errblock& err, const string& var )
 }
 
 
-void pPanel::putDialogueVar( errblock& err, const string& var, const string& val )
+void pPanel::putDialogueVar( errblock& err,
+			     const string& var,
+			     const string& val )
 {
 	// Store data for a dialogue variable in the function pool.
 	// Creates an implicit function pool variable if one does not already exist.
@@ -301,7 +305,8 @@ void pPanel::putDialogueVar( errblock& err, const string& var, const string& val
 }
 
 
-void pPanel::syncDialogueVar( errblock& err, const string& var )
+void pPanel::syncDialogueVar( errblock& err,
+			      const string& var )
 {
 	// Relevant for REXX procedures only and called for panel variables not in the function pool
 
@@ -361,7 +366,9 @@ void pPanel::hide_popup()
 }
 
 
-void pPanel::toggle_fscreen( bool sp_popup, int sp_row, int sp_col )
+void pPanel::toggle_fscreen( bool sp_popup,
+			     int sp_row,
+			     int sp_col )
 {
 	full_screen = !full_screen ;
 
@@ -400,7 +407,7 @@ void pPanel::display_panel( errblock& err )
 		}
 		mvwin( win, win_row, win_col )      ;
 		mvwin( bwin, win_row-1, win_col-1 ) ;
-		wattrset( bwin, cuaAttr[ AWF ] ) ;
+		wattrset( bwin, cuaAttr[ AWF ] | panel_intens ) ;
 		box( bwin, 0, 0 ) ;
 		winttl = getDialogueVar( err, "ZWINTTL" ) ;
 		if ( err.error() ) { return ; }
@@ -435,7 +442,7 @@ void pPanel::display_panel( errblock& err )
 	werase( win ) ;
 
 	panttl = sub_vars( panelTitle ) ;
-	wattrset( win, cuaAttr[ PT ] ) ;
+	wattrset( win, cuaAttr[ PT ] | panel_intens ) ;
 	mvwaddstr( win, ( ab.size() > 0 ) ? 2 : 0, ( wscrmaxw - panttl.size() ) / 2, panttl.c_str() ) ;
 	wattroff( win, cuaAttr[ PT ] ) ;
 
@@ -450,7 +457,7 @@ void pPanel::display_panel( errblock& err )
 	display_ab() ;
 	display_literals() ;
 
-	display_fields( err ) ;
+	display_fields( err, true ) ;
 	if ( err.error() ) { return ; }
 
 	display_boxes() ;
@@ -592,10 +599,7 @@ void pPanel::display_panel_update( errblock& err )
 				darea    = p_funcPOOL->vlocate( err, fieldNam ) ;
 				if ( err.error() ) { return ; }
 				offset   = fieldNum*it->second->field_length      ;
-				if ( it->second->field_dynArea->dynArea_DataModsp )
-				{
-					it->second->field_DataMod_to_UserMod( darea, offset ) ;
-				}
+				it->second->field_update_datamod_usermod( darea, offset ) ;
 				darea->replace( offset, it->second->field_length, it->second->field_value ) ;
 				shadow = p_funcPOOL->vlocate( err, it->second->field_dynArea->dynArea_shadow_name ) ;
 				if ( err.error() ) { return ; }
@@ -687,7 +691,7 @@ void pPanel::display_panel_update( errblock& err )
 		}
 		else
 		{
-			cmd_setvalue( err, "" ) ;
+			cmd_setvalue( "" ) ;
 			p_funcPOOL->put( err, cmdfield, "" )  ;
 			if ( err.error() ) { return ; }
 		}
@@ -766,7 +770,6 @@ void pPanel::display_panel_update( errblock& err )
 }
 
 
-
 void pPanel::display_panel_init( errblock& err )
 {
 	// Perform panel )INIT processing
@@ -793,6 +796,36 @@ void pPanel::display_panel_init( errblock& err )
 		if ( err.error() ) { break ; }
 		ln++ ;
 	} while ( ln < tb_depth ) ;
+
+}
+
+
+void pPanel::display_panel_attrs( errblock& err )
+{
+	// Go through the list of character attributes and perform any
+	// variable substitution after )INIT processing has completed.
+
+	string t ;
+
+	for ( auto it = char_attrlist.begin() ; it != char_attrlist.end() ; it++ )
+	{
+		t = it->second.get() ;
+		if ( t != "" )
+		{
+			t = sub_vars( it->second.get() ) ;
+			it->second.update( err, t ) ;
+			if ( err.error() ) { return ; }
+			colour_attrlist[ it->first ] = it->second.get_colour() ;
+			if ( ddata_map.count( it->first ) > 0 )
+			{
+				ddata_map[ it->first ] = it->second.get_colour() ;
+			}
+			else if ( schar_map.count( it->first ) > 0 )
+			{
+				schar_map[ it->first ] = it->second.get_colour() ;
+			}
+		}
+	}
 }
 
 
@@ -806,7 +839,10 @@ void pPanel::display_panel_reinit( errblock& err, int ln )
 	set_pfpressed( "" ) ;
 
 	err.setRC( 0 ) ;
-	process_panel_stmnts( err, ln, reinstmnts, PS_REINIT ) ;
+	process_panel_stmnts( err,
+			      ln,
+			      reinstmnts,
+			      PS_REINIT ) ;
 }
 
 
@@ -879,7 +915,8 @@ void pPanel::display_panel_proc( errblock& err, int ln )
 }
 
 
-void pPanel::abc_panel_init( errblock& err, const string& abc_desc )
+void pPanel::abc_panel_init( errblock& err,
+			     const string& abc_desc )
 {
 	// Perform panel )ABCINIT processing
 
@@ -890,11 +927,15 @@ void pPanel::abc_panel_init( errblock& err, const string& abc_desc )
 	msgid       = ""    ;
 	setControlVar( err, 0, ".ZVARS", "", PS_ABCINIT ) ;
 
-	process_panel_stmnts( err, 0, abc_initstmnts[ abc_desc ], PS_ABCINIT ) ;
+	process_panel_stmnts( err,
+			      0,
+			      abc_initstmnts[ abc_desc ],
+			      PS_ABCINIT ) ;
 }
 
 
-void pPanel::abc_panel_proc( errblock& err, const string& abc_desc )
+void pPanel::abc_panel_proc( errblock& err,
+			     const string& abc_desc )
 {
 	// Perform panel )ABCPROC processing
 
@@ -904,7 +945,10 @@ void pPanel::abc_panel_proc( errblock& err, const string& abc_desc )
 	message_set = false ;
 	msgid       = ""    ;
 
-	process_panel_stmnts( err, 0, abc_procstmnts[ abc_desc ], PS_ABCPROC ) ;
+	process_panel_stmnts( err,
+			      0,
+			      abc_procstmnts[ abc_desc ],
+			      PS_ABCPROC ) ;
 }
 
 
@@ -1033,7 +1077,9 @@ void pPanel::process_panel_stmnts( errblock& err,
 }
 
 
-void pPanel::process_panel_if( errblock& err, int ln, IFSTMNT* ifstmnt )
+void pPanel::process_panel_if( errblock& err,
+			       int ln,
+			       IFSTMNT* ifstmnt )
 {
 	// Group AND statements as these have a higher precedence than OR
 
@@ -1075,7 +1121,9 @@ void pPanel::process_panel_if( errblock& err, int ln, IFSTMNT* ifstmnt )
 }
 
 
-void pPanel::process_panel_if_cond( errblock& err, int ln, IFSTMNT* ifstmnt )
+void pPanel::process_panel_if_cond( errblock& err,
+				    int ln,
+				    IFSTMNT* ifstmnt )
 {
 	uint j ;
 
@@ -1274,7 +1322,10 @@ string pPanel::process_panel_trunc( errblock& err, TRUNC* trunc )
 }
 
 
-string pPanel::process_panel_trans( errblock& err, int ln, TRANS* trans, const string& as_lhs )
+string pPanel::process_panel_trans( errblock& err,
+				    int ln,
+				    TRANS* trans,
+				    const string& as_lhs )
 {
 	string fieldNam ;
 	string t ;
@@ -1328,7 +1379,9 @@ string pPanel::process_panel_trans( errblock& err, int ln, TRANS* trans, const s
 }
 
 
-void pPanel::process_panel_verify( errblock& err, int ln, VERIFY* verify )
+void pPanel::process_panel_verify( errblock& err,
+				   int ln,
+				   VERIFY* verify )
 {
 	uint i ;
 
@@ -1567,7 +1620,10 @@ void pPanel::process_panel_vputget( errblock& err, VPUTGET* vputget )
 }
 
 
-void pPanel::process_panel_assignment( errblock& err, int ln, ASSGN* assgn, PS_SECT ps_sect )
+void pPanel::process_panel_assignment( errblock& err,
+				       int ln,
+				       ASSGN* assgn,
+				       PS_SECT ps_sect )
 {
 	// Assignment processing.  If the variable being assigned is part of a table display model,
 	// update the function pool for internal variable var.ln
@@ -1617,6 +1673,11 @@ void pPanel::process_panel_assignment( errblock& err, int ln, ASSGN* assgn, PS_S
 		if ( err.error() ) { return ; }
 		attrList.push_back( fieldNam ) ;
 	}
+	else if ( assgn->as_isattc )
+	{
+		attrchar( err, assgn->as_lhs.front(), t ) ;
+		if ( err.error() ) { return ; }
+	}
 	else
 	{
 		putDialogueVar( err, assgn->as_lhs, t ) ;
@@ -1626,7 +1687,7 @@ void pPanel::process_panel_assignment( errblock& err, int ln, ASSGN* assgn, PS_S
 			zprim = t ;
 			primaryMenu = ( t == "YES" ) ;
 		}
-		if ( is_tb_field( assgn->as_lhs ) )
+		if ( tb_field( assgn->as_lhs ) )
 		{
 			p_funcPOOL->put( err, assgn->as_lhs + "." + d2ds( ln ), t, NOCHECK ) ;
 			if ( err.error() ) { return ; }
@@ -1924,7 +1985,7 @@ void pPanel::set_cursor( const string& csr, int p )
 
 string pPanel::get_cursor()
 {
-	// Return cursor position as set by curfld, curidx and csrrow
+	// Return cursor position as set by curfld, tb_curidx and tb_csrrow
 
 	// For table displays: Use tb_curidr if set, else csrrow
 	// If visible, return the internal field name otherwise the command field.
@@ -1934,7 +1995,7 @@ string pPanel::get_cursor()
 
 	errblock err ;
 
-	if ( is_tb_field( curfld ) )
+	if ( tb_field( curfld ) )
 	{
 		if ( tb_curidr > -1 )
 		{
@@ -1957,9 +2018,9 @@ string pPanel::get_cursor()
 }
 
 
-bool pPanel::is_tb_field( const string& f )
+bool pPanel::tb_field( const string& f )
 {
-	return findword( f, tb_fields ) ;
+	return ( tb_fields.count( f ) > 0 ) ;
 }
 
 
@@ -1970,7 +2031,7 @@ string pPanel::get_msgloc()
 
 	errblock err ;
 
-	if ( is_tb_field( msgloc ) )
+	if ( tb_field( msgloc ) )
 	{
 		if ( tb_curidr > -1 )
 		{
@@ -2016,7 +2077,7 @@ void pPanel::refresh_fields( errblock& err, int ln, const string& fields )
 		for ( ws = words( fields ), i = 1 ; i <= ws ; i++ )
 		{
 			temp = word( fields, i ) ;
-			if ( is_tb_field( temp ) )
+			if ( tb_field( temp ) )
 			{
 				fconv[ temp ] = temp + "." + d2ds( ln ) ;
 			}
@@ -2079,7 +2140,7 @@ void pPanel::refresh_fields( errblock& err )
 		if ( err.error() ) { return ; }
 		itf->second->field_prep_display() ;
 		itf->second->field_set_caps()     ;
-		itf->second->display_field( win ) ;
+		itf->second->display_field( win, ddata_map, schar_map ) ;
 	}
 
 	for ( itd = dynAreaList.begin() ; itd != dynAreaList.end() ; itd++ )
@@ -2095,7 +2156,7 @@ void pPanel::refresh_fields( errblock& err )
 			itf = fieldList.find( itd->first +"."+ d2ds( i ) ) ;
 			itf->second->field_value        = darea->substr( j, k )  ;
 			itf->second->field_shadow_value = shadow->substr( j, k ) ;
-			itf->second->display_field( win ) ;
+			itf->second->display_field( win, ddata_map, schar_map ) ;
 		}
 	}
 }
@@ -2117,7 +2178,7 @@ void pPanel::create_tbfield( errblock& err, const string& pline )
 	string name ;
 	string nidx ;
 
-	cuaType fType ;
+	attType fType ;
 
 	field  a   ;
 	field* fld ;
@@ -2141,7 +2202,7 @@ void pPanel::create_tbfield( errblock& err, const string& pline )
 		return  ;
 	}
 
-	if ( is_tb_field( name ) )
+	if ( tb_field( name ) )
 	{
 		err.seterrid( "PSYE041A", name ) ;
 		return  ;
@@ -2182,7 +2243,7 @@ void pPanel::create_tbfield( errblock& err, const string& pline )
 	tb_lcol = tcol ;
 	tb_lsz  = tlen ;
 
-	if ( cuaAttrName.count( w4 ) == 0 )
+	if ( cuaAttrName.count( w4 ) == 0 && noncuaAttrName.count( w4 ) == 0 )
 	{
 		err.seterrid( "PSYE032F", w4 ) ;
 		return ;
@@ -2193,12 +2254,21 @@ void pPanel::create_tbfield( errblock& err, const string& pline )
 	a.field_opts( err, opts ) ;
 	if ( err.error() ) { return ; }
 
-	a.field_cua    = fType    ;
-	a.field_col    = tcol - 1 ;
-	a.field_length = tlen     ;
-	a.field_cole   = tcol - 1 + tlen ;
-	a.field_input  = ( cuaAttrUnprot.count( fType ) > 0 ) ;
-	a.field_tb     = true ;
+	if ( cuaAttrName.count( w4 ) > 0 )
+	{
+		a.field_cua     = fType ;
+		a.field_colour1 = cuaAttr[ fType ] ;
+	}
+	else
+	{
+		a.field_cua     = NONE ;
+		a.field_colour1 = ( w4 == "INPUT" ) ? N_RED : N_WHITE ;
+	}
+	a.field_col     = tcol - 1 ;
+	a.field_length  = tlen     ;
+	a.field_cole    = tcol - 1 + tlen ;
+	a.field_input   = ( attrUnprot.count( fType ) > 0 ) ;
+	a.field_tb      = true ;
 
 	for ( int i = 0 ; i < tb_depth ; i++ )
 	{
@@ -2210,7 +2280,7 @@ void pPanel::create_tbfield( errblock& err, const string& pline )
 		p_funcPOOL->put( err, nidx, "", NOCHECK ) ;
 		if ( err.error() ) { return ; }
 	}
-	tb_fields += " " + name ;
+	tb_fields.insert( name ) ;
 
 }
 
@@ -2375,7 +2445,7 @@ void pPanel::display_literals()
 }
 
 
-void pPanel::display_fields( errblock& err )
+void pPanel::display_fields( errblock& err, bool reset )
 {
 	map<string, field*>::iterator it ;
 
@@ -2386,7 +2456,11 @@ void pPanel::display_fields( errblock& err )
 			it->second->field_prep_display() ;
 			it->second->field_set_caps()     ;
 		}
-		it->second->display_field( win ) ;
+		else if ( reset )
+		{
+			it->second->field_reset() ;
+		}
+		it->second->display_field( win, ddata_map, schar_map ) ;
 	}
 }
 
@@ -2400,10 +2474,11 @@ void pPanel::display_ab()
 		ab[ i ].display_abc_unsel( win ) ;
 	}
 
-	wattrset( win, cuaAttr[ ABSL ] ) ;
+	wattrset( win, cuaAttr[ ABSL ] | panel_intens ) ;
 	mvwhline( win, 1, 0, ACS_HLINE, wscrmaxw ) ;
 	wattroff( win, cuaAttr[ ABSL ] ) ;
 }
+
 
 
 void pPanel::resetAttrs()
@@ -2447,7 +2522,7 @@ void pPanel::cursor_placement( errblock& err )
 	//     no CURSOR/CSRROW    - First field of row
 	//     no CURSOR/no CSRROW - Place on the command line
 
-	uint   f_pos  ;
+	uint   f_pos = 1 ;
 	string f_name ;
 
 	uint oX ;
@@ -2465,7 +2540,7 @@ void pPanel::cursor_placement( errblock& err )
 		{
 			if ( tb_csrrow > 0 )
 			{
-				curfld = word( tb_fields, 1 ) ;
+				curfld = *tb_fields.begin() ;
 				f_name = get_cursor() ;
 			}
 			else
@@ -2615,7 +2690,7 @@ const string& pPanel::field_getvalue( const string& f_name )
 }
 
 
-void pPanel::field_setvalue( errblock& err, const string& f_name, const string& f_value )
+void pPanel::field_setvalue( const string& f_name, const string& f_value )
 {
 	map<string, field*>::iterator it ;
 
@@ -2623,7 +2698,7 @@ void pPanel::field_setvalue( errblock& err, const string& f_name, const string& 
 	it->second->field_value   = f_value ;
 	it->second->field_changed = true ;
 	it->second->field_prep_display() ;
-	it->second->display_field( win ) ;
+	it->second->display_field( win, ddata_map, schar_map ) ;
 }
 
 
@@ -2637,7 +2712,7 @@ const string& pPanel::cmd_getvalue()
 }
 
 
-void pPanel::cmd_setvalue( errblock& err, const string& v )
+void pPanel::cmd_setvalue( const string& v )
 {
 	if ( fieldList.find( cmdfield ) == fieldList.end() )
 	{
@@ -2645,7 +2720,7 @@ void pPanel::cmd_setvalue( errblock& err, const string& v )
 	}
 	else
 	{
-		field_setvalue( err, cmdfield, v ) ;
+		field_setvalue( cmdfield, v ) ;
 	}
 }
 
@@ -2767,11 +2842,17 @@ void pPanel::field_edit( errblock& err,
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( col ) ) { return ; }
 			if ( Isrt )
 			{
-				if ( !it->second->edit_field_insert( win, ch, col ) ) { return ; }
+				if ( !it->second->edit_field_insert( win, ch, def_schar, col, ddata_map, schar_map ) )
+				{
+					return ;
+				}
 			}
 			else
 			{
-				if ( !it->second->edit_field_replace( win, ch, col ) ) { return ; }
+				if ( !it->second->edit_field_replace( win, ch, def_schar, col, ddata_map, schar_map ) )
+				{
+					return ;
+				}
 			}
 			prot = false ;
 			++p_col ;
@@ -2816,7 +2897,7 @@ void pPanel::field_backspace( errblock& err,
 			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( tcol ) ) { return ; }
 			p    = tcol  ;
-			tcol = it->second->edit_field_backspace( win, tcol ) ;
+			tcol = it->second->edit_field_backspace( win, tcol, ddata_map, schar_map ) ;
 			if ( p == tcol ) { return ; }
 			prot = false ;
 			row  = trow + win_row ;
@@ -2848,7 +2929,7 @@ void pPanel::field_delete_char( errblock& err, uint row, uint col, bool& prot )
 			if ( !it->second->field_active ) { return ; }
 			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( tcol ) ) { return ; }
-			it->second->edit_field_delete( win, tcol ) ;
+			it->second->edit_field_delete( win, tcol, ddata_map, schar_map ) ;
 			prot = false ;
 			return ;
 		}
@@ -2873,7 +2954,7 @@ void pPanel::field_erase_eof( errblock& err, uint row, uint col, bool& prot )
 			if ( !it->second->field_active ) { return ; }
 			if ( !it->second->field_dynArea && !it->second->field_input ) { return ; }
 			if (  it->second->field_dynArea && !it->second->field_dyna_input( col ) ) { return ; }
-			it->second->field_erase_eof( win, col ) ;
+			it->second->field_erase_eof( win, col, ddata_map, schar_map ) ;
 			prot = false ;
 			return ;
 		}
@@ -2942,7 +3023,7 @@ void pPanel::field_tab_down( uint& row, uint& col )
 		d_offset = 0 ;
 		if ( it->second->field_dynArea )
 		{
-			if ( !it->second->field_dynArea->dynArea_DataInsp )
+			if ( !it->second->field_dynArea->dynArea_dataInsp )
 			{
 				continue ;
 			}
@@ -2997,7 +3078,7 @@ void pPanel::field_tab_next( uint& row, uint& col )
 		d_offset = 0 ;
 		if ( it->second->field_dynArea )
 		{
-			if ( !it->second->field_dynArea->dynArea_DataInsp )
+			if ( !it->second->field_dynArea->dynArea_dataInsp )
 			{
 				continue ;
 			}
@@ -3146,7 +3227,7 @@ void pPanel::display_tb_mark_posn( errblock& err )
 	if ( err.error() ) { return ; }
 	size = rows - top + 1 ;
 
-	wattrset( win, WHITE ) ;
+	wattrset( win, cuaAttr[ SI ] | panel_intens ) ;
 	if ( size < tb_depth )
 	{
 		mark = p_funcPOOL->get( err, 8, "ZTDMARK" ) ;
@@ -3180,7 +3261,7 @@ void pPanel::display_tb_mark_posn( errblock& err )
 		posn = "Row "+ d2ds( top ) +" of "+ d2ds( rows ) ;
 	}
 	mvwaddstr( win, ( ab.size() > 0 ) ? 2 : 0, wscrmaxw - posn.length(), posn.c_str() ) ;
-	wattroff( win, WHITE ) ;
+	wattroff( win, cuaAttr[ SI ] ) ;
 }
 
 
@@ -3189,12 +3270,11 @@ void pPanel::set_tb_fields_act_inact( errblock& err )
 	int rows ;
 	int top  ;
 	int size ;
-	int ws   ;
 	int i    ;
-	int j    ;
 
-	string s ;
 	string suf ;
+
+	set<string>::iterator it ;
 
 	rows = p_funcPOOL->get( err, 0, INTEGER, "ZTDROWS" ) ;
 	if ( err.error() ) { return ; }
@@ -3203,13 +3283,12 @@ void pPanel::set_tb_fields_act_inact( errblock& err )
 
 	size = rows - top + 1 ;
 
-	for ( ws = words( tb_fields ), i = 0 ; i < tb_depth ; i++ )
+	for ( i = 0 ; i < tb_depth ; i++ )
 	{
 		suf = "." + d2ds( i ) ;
-		for ( j = 1 ; j <= ws ; j++ )
+		for ( it = tb_fields.begin() ; it != tb_fields.end() ; it++ )
 		{
-			s = word( tb_fields, j ) + suf ;
-			fieldList[ s ]->field_active = ( i < size ) ;
+			fieldList[ *it + suf ]->field_active = ( i < size ) ;
 		}
 	}
 }
@@ -3383,8 +3462,13 @@ void pPanel::set_panel_msg( const slmsg& t, const string& m )
 		msgid = "" ;
 		return     ;
 	}
-	if ( p_poolMGR->get( err, zscrnum, "ZSHMSGID" ) == "Y" ) { MSG.lmsg = msgid +" "+ MSG.lmsg ; }
+
+	if ( p_poolMGR->get( err, zscrnum, "ZSHMSGID" ) == "Y" )
+	{
+		MSG.lmsg = msgid +" "+ MSG.lmsg ;
+	}
 	if ( err.error() ) { return ; }
+
 	showLMSG = ( MSG.smsg == "" || MSG.lmsg == "" ) ;
 }
 
@@ -3460,7 +3544,7 @@ void pPanel::display_msg( errblock& err )
 			get_msgwin( err, MSG.smsg, w_row, w_col, w_depth, w_width, v ) ;
 			if ( err.error() ) { return ; }
 			smwin = newwin( w_depth, w_width, w_row+win_row, w_col+win_col ) ;
-			wattrset( smwin, cuaAttr[ MSG.type ] ) ;
+			wattrset( smwin, cuaAttr[ MSG.type ] | panel_intens ) ;
 			box( smwin, 0, 0 ) ;
 			for ( i = 0 ; i < v.size() ; i++ )
 			{
@@ -3472,7 +3556,7 @@ void pPanel::display_msg( errblock& err )
 			x_row = ( ab.size() > 0 ) ? 2 : 0 ;
 			mvwaddstr( win, x_row, (wscrmaxw - 25), "                         " ) ;
 			smwin = newwin( 1, MSG.smsg.size(), x_row+win_row, (wscrmaxw - MSG.smsg.size() + win_col) ) ;
-			wattrset( smwin, cuaAttr[ MSG.type ] ) ;
+			wattrset( smwin, cuaAttr[ MSG.type ] | panel_intens ) ;
 			mvwaddstr( smwin, 0, 0, MSG.smsg.c_str() ) ;
 		}
 		smpanel = new_panel( smwin )  ;
@@ -3498,7 +3582,7 @@ void pPanel::display_msg( errblock& err )
 			get_msgwin( err, MSG.lmsg, w_row, w_col, w_depth, w_width, v ) ;
 			if ( err.error() ) { return ; }
 			lmwin = newwin( w_depth, w_width, w_row+win_row, w_col+win_col ) ;
-			wattrset( lmwin, cuaAttr[ MSG.type ] )  ;
+			wattrset( lmwin, cuaAttr[ MSG.type ] | panel_intens ) ;
 			box( lmwin, 0, 0 ) ;
 			for ( i = 0 ; i < v.size() ; i++ )
 			{
@@ -3508,7 +3592,7 @@ void pPanel::display_msg( errblock& err )
 		else
 		{
 			lmwin = newwin( 1, min( MSG.lmsg.size(), size_t( wscrmaxw-1) ), win_row+4, win_col+1 ) ;
-			wattrset( lmwin, cuaAttr[ MSG.type ] )  ;
+			wattrset( lmwin, cuaAttr[ MSG.type ] | panel_intens ) ;
 			mvwaddstr( lmwin, 0, 0, MSG.lmsg.c_str() ) ;
 		}
 		lmpanel = new_panel( lmwin ) ;
@@ -3671,7 +3755,7 @@ void pPanel::display_id( errblock& err )
 		idwin   = newwin( 1, panarea.size(), ( ab.size() > 0 ) ? win_row+2 : win_row, win_col+1 ) ;
 		idpanel = new_panel( idwin )  ;
 		set_panel_userptr( idpanel, new panel_data( zscrnum ) ) ;
-		wattrset( idwin, cuaAttr[ PI ] ) ;
+		wattrset( idwin, cuaAttr[ PI ] | panel_intens ) ;
 		mvwaddstr( idwin, 0, 0, panarea.c_str() ) ;
 		wattroff( idwin, cuaAttr[ PI ] ) ;
 		top_panel( idpanel ) ;
@@ -3709,27 +3793,35 @@ void pPanel::get_panel_info( int& RC,
 }
 
 
-void pPanel::attr( int& RC, const string& field, const string& attrs )
+void pPanel::attr( errblock& err, const string& field, const string& attrs )
 {
-	RC = 0 ;
-
-	errblock err ;
+	err.setRC( 0 ) ;
 
 	auto it = fieldList.find( field ) ;
 
 	if ( it == fieldList.end() )
 	{
-		llog( "E", "ATTR.  Field '"+ field +"' not found" << endl ) ;
-		RC = 8 ;
+		err.seterrid( "PSYE031M", field ) ;
+		return ;
 	}
-	else
+	it->second->field_attr( err, attrs ) ;
+}
+
+
+void pPanel::attrchar( errblock& err, const char ch, string& attrs )
+{
+	err.setRC( 0 ) ;
+
+	char_attrs attrchar ;
+
+	auto it = char_attrlist.find( ch ) ;
+
+	if ( it == char_attrlist.end() )
 	{
-		it->second->field_attr( err, attrs ) ;
-		if ( err.error() )
-		{
-			RC = 20 ;
-		}
+		err.seterrid( "PSYE031N" ) ;
+		return ;
 	}
+	attrchar.update( err, attrs ) ;
 }
 
 

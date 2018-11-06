@@ -197,13 +197,13 @@ void PBRO01A::application()
 			{
 				if ( zarea[ i ] == ' ' ) { break ; }
 				if ( ( i / zareaw ) > ( data.size() - topLine - 2 ) ) { break ; }
-				zshadow[ i ] = B_WHITE ;
+				zshadow[ i ] = E_WHITE ;
 			}
 			for ( i = curpos-1 ; i >= 0 ; i-- )
 			{
 				if ( zarea[ i ] == ' ' ) { break ; }
 				if ( topLine == 0 && ( i / zareaw ) == 0 ) { break ; }
-				zshadow[ i ] = B_WHITE ;
+				zshadow[ i ] = E_WHITE ;
 			}
 		}
 
@@ -663,10 +663,10 @@ void PBRO01A::fill_dynamic_area()
 	int t  ;
 	int ln ;
 
-	s1b = string( zareaw, B_BLUE   ) ;
-	s1g = string( zareaw, N_GREEN  ) ;
-	s1y = string( zareaw, N_YELLOW ) ;
-	s1w = string( zareaw, N_WHITE  ) ;
+	s1b = string( zareaw, E_BLUE   ) ;
+	s1g = string( zareaw, E_GREEN  ) ;
+	s1y = string( zareaw, E_YELLOW ) ;
+	s1w = string( zareaw, E_WHITE  ) ;
 	div = string( zareaw, '-' )      ;
 
 	if ( colsOn )
@@ -737,7 +737,7 @@ void PBRO01A::fill_dynamic_area()
 
 	}
 	zarea.resize( zasize, ' ' ) ;
-	zshadow.resize( zasize, B_BLUE ) ;
+	zshadow.resize( zasize, E_BLUE ) ;
 	if ( hilightOn && !hlight.hl_abend )
 	{
 		fill_hilight_shadow() ;
@@ -801,7 +801,7 @@ void PBRO01A::fill_hilight_shadow()
 		if ( l > data.size() - 2 ) { break ; }
 		ztemp = shadow.at( l ).bs_Shadow ;
 		if ( startCol > 1 ) { ztemp.erase( 0, startCol-1 ) ; }
-		ztemp.resize( zareaw, B_BLUE ) ;
+		ztemp.resize( zareaw, E_BLUE ) ;
 		zshadow.replace( zareaw*(i), zareaw, ztemp ) ;
 	}
 }

@@ -774,7 +774,9 @@ void PFLST0A::application()
 			break ;
 
 		case LN_FORMAT:
+			control( "ERRORS", "RETURN" ) ;
 			select( "CMD(%porexx2 " + entry + ") LANG(REXX)" ) ;
+			control( "ERRORS", "CANCEL" ) ;
 			if ( ZRESULT != "" )
 			{
 				message = ZRESULT ;

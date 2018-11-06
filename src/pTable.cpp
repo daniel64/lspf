@@ -37,7 +37,7 @@ void Table::loadRow( errblock& err,
 {
 	err.setRC( 0 ) ;
 
-	if ( table.size() > 262144 )
+	if ( table.size() > 500000 )
 	{
 		err.seterrid( "PSYE013F" ) ;
 		return ;
@@ -71,13 +71,12 @@ vector<vector<string>*>::iterator Table::getKeyItr( errblock& err,
 
 	keys.reserve( num_keys ) ;
 
-	for ( i = 1 ; i <= num_keys ; i++ )
+	for ( auto pt = tab_vkeys.begin() ; pt != tab_vkeys.end() ; pt++ )
 	{
-		var = word( tab_keys, i ) ;
-		keys.push_back( funcPOOL.get( err, 8, var ) ) ;
+		keys.push_back( funcPOOL.get( err, 8, *pt ) ) ;
 		if ( err.RC8() )
 		{
-			funcPOOL.put( err, var, "" ) ;
+			funcPOOL.put( err, *pt, "" ) ;
 		}
 		if ( err.error() ) { return table.end() ; }
 	}
@@ -108,12 +107,13 @@ void Table::loadfuncPOOL( errblock& err,
 	string tbelst = "" ;
 
 	vector<vector<string>*>::iterator it ;
+	vector<string>::iterator pt ;
 
 	it = table.begin() + CRP - 1 ;
 
-	for ( i = 1 ; i <= num_all ; i++ )
+	for ( i = 1, pt = tab_vall.begin() ; pt != tab_vall.end() ; pt++, i++ )
 	{
-		funcPOOL.put( err, word( tab_all, i ), (*it)->at( i ) ) ;
+		funcPOOL.put( err, *pt, (*it)->at( i ) ) ;
 		if ( err.error() ) { return ; }
 	}
 
@@ -173,13 +173,14 @@ void Table::loadFields( errblock& err,
 
 	string var ;
 
-	for ( i = 1 ; i <= num_all ; i++ )
+	vector<string>::iterator pt ;
+
+	for ( pt = tab_vall.begin() ; pt != tab_vall.end() ; pt++ )
 	{
-		var = word( tab_all, i ) ;
-		row->push_back( funcPOOL.get( err, 8, var ) ) ;
+		row->push_back( funcPOOL.get( err, 8, *pt ) ) ;
 		if ( err.RC8() )
 		{
-			funcPOOL.put( err, var, "" ) ;
+			funcPOOL.put( err, *pt, "" ) ;
 		}
 		if ( err.error() ) { return ; }
 	}
@@ -258,7 +259,7 @@ void Table::tbadd( errblock& err,
 
 	err.setRC( 0 ) ;
 
-	if ( table.size() > 262144 )
+	if ( table.size() > 500000 )
 	{
 		err.seterrid( "PSYE013F" ) ;
 		return ;
@@ -811,6 +812,7 @@ void Table::tbsets( errblock& err,
 	string flds ;
 
 	map<string, tbsearch>::iterator it ;
+	vector<string>::iterator pt ;
 
 	err.setRC( 0 ) ;
 
@@ -823,16 +825,15 @@ void Table::tbsets( errblock& err,
 
 	if ( for_tbsarg )
 	{
-		for ( i = 1 ; i <= num_all ; i++ )
+		for ( pt = tab_vall.begin() ; pt != tab_vall.end() ; pt++ )
 		{
-			var = word( tab_all, i ) ;
-			val = funcPOOL.get( err, 8, var ) ;
+			val = funcPOOL.get( err, 8, *pt ) ;
 			if ( err.error() ) { return ; }
 			if ( val == "" )
 			{
 				continue ;
 			}
-			scan[ var ] = tbsearch( val ) ;
+			scan[ *pt ] = tbsearch( val ) ;
 		}
 	}
 
@@ -1379,9 +1380,9 @@ void Table::tbvclear( errblock& err,
 	// RC = 0  Normal completion
 	// RC = 20 Severe error
 
-	for ( unsigned int i = 1 ; i <= num_all ; i++ )
+	for ( auto pt = tab_vall.begin() ; pt != tab_vall.end() ; pt++ )
 	{
-		funcPOOL.put( err, word( tab_all, i ), "" ) ;
+		funcPOOL.put( err, *pt, "" ) ;
 		if ( err.error() ) { return ; }
 	}
 }
@@ -1440,9 +1441,9 @@ void Table::fillfVARs( errblock& err,
 	}
 
 	row.push_back( ".ZURID" ) ;
-	for ( k = 1 ; k <= num_all ; k++ )
+	for ( auto pt = tab_vall.begin() ; pt != tab_vall.end() ; pt++ )
 	{
-		row.push_back( word( tab_all, k ) ) ;
+		row.push_back( *pt ) ;
 	}
 
 	it = table.begin() + posn - 1 ;
@@ -1491,6 +1492,7 @@ void Table::saveTable( errblock& err,
 {
 	// Save table to disk.
 	// Version 2 file format adds extension variable support and record/file end markers, 0xFF.
+	// Version 3 file format increases size field from 2-bytes to 3-bytes
 
 	// Filename is the location of the table, or the first path if not found in the concatination.
 
@@ -1509,20 +1511,21 @@ void Table::saveTable( errblock& err,
 
 	otable << (char)00  ;  //
 	otable << (char)133 ;  // x085 denotes a table
-	otable << (char)2   ;  // Table file format.  Version 2 (extension variable support)
+	otable << (char)3   ;  // Table file format.  Version 3 (3-byte size field)
 	otable << (char)44  ;  // Header length
 	otable << "HDR                                         " ;
 	otable << (char)01  ;  // Number of fields following the header record (only the Sort Information Record for now)
 	otable << (char)sort_ir.size() ;
 	otable << sort_ir              ;
+	otable << (char)( size >> 16 ) ;
 	otable << (char)( size >> 8 )  ;
 	otable << (char)( size )       ;
 	otable << (char)num_keys       ;
 	otable << (char)num_flds       ;
-	for ( j = 1 ; j <= num_all ; j ++ )
+	for ( auto pt = tab_vall.begin() ; pt != tab_vall.end() ; pt++ )
 	{
-		otable << (char)word( tab_all, j ).size() ;
-		otable << word( tab_all, j ) ;
+		otable << (char)pt->size() ;
+		otable << *pt ;
 	}
 	for ( i = 0 ; i < size ; i++ )
 	{
@@ -1649,6 +1652,9 @@ map<string, Table*>::iterator tableMGR::createTable( errblock& err,
 
 	// Don't check table exists on disk for a TBOPEN request
 
+	uint i ;
+
+	string temp ;
 	string filename ;
 
 	err.setRC( 0 ) ;
@@ -1752,6 +1758,18 @@ map<string, Table*>::iterator tableMGR::createTable( errblock& err,
 	t->num_all   = t->num_keys + t->num_flds ;
 	t->tab_cmds  = ( t->tab_all == "ZCTVERB ZCTTRUNC ZCTACT ZCTDESC" ) ;
 
+	for ( i = 1 ; i <= t->num_keys ; i++ )
+	{
+		temp = word( t->tab_keys, i ) ;
+		t->tab_vall.push_back( temp ) ;
+		t->tab_vkeys.push_back( temp ) ;
+	}
+
+	for ( i = 1 ; i <= t->num_flds ; i++ )
+	{
+		t->tab_vall.push_back( word( t->tab_flds, i ) ) ;
+	}
+
 	pair<map<string, Table*>::iterator, bool> result ;
 	result = tables.insert( pair<string, Table*>( tb_name, t ) ) ;
 
@@ -1766,7 +1784,7 @@ map<string, Table*>::iterator tableMGR::loadTable( errblock& err,
 						   tbDISP tb_DISP,
 						   bool tb_open )
 {
-	// Routine to load V1 and V2 format tables from a disk file
+	// Routine to load V1, V2 and V3 format tables from a disk file
 
 	// RC = 0  Normal completion
 	// RC = 8  Table does not exist in search path
@@ -1789,12 +1807,13 @@ map<string, Table*>::iterator tableMGR::loadTable( errblock& err,
 
 	uint  n1      ;
 	uint  n2      ;
+	uint  n3      ;
 	uint  ver     ;
 
 	char  x           ;
 	char  buf1[ 256 ] ;
 	char* buf2        ;
-	char  z[ 2 ]      ;
+	char  z[ 3 ]      ;
 
 	string filename ;
 	string path ;
@@ -1866,7 +1885,7 @@ map<string, Table*>::iterator tableMGR::loadTable( errblock& err,
 
 	table.get( x ) ;
 	ver = (unsigned char)x ;
-	if ( ver > 2 )
+	if ( ver > 3 )
 	{
 		err.seterrid( "PSYE014F", d2ds( ver ), filename ) ;
 		table.close() ;
@@ -1894,10 +1913,21 @@ map<string, Table*>::iterator tableMGR::loadTable( errblock& err,
 			return it ;
 		}
 	}
-	table.read( z, 2 ) ;
-	n1 = (unsigned char)z[ 0 ] ;
-	n2 = (unsigned char)z[ 1 ] ;
-	num_rows = n1 * 256 + n2 ;
+	if ( ver > 2 )
+	{
+		table.read( z, 3 ) ;
+		n1 = (unsigned char)z[ 0 ] ;
+		n2 = (unsigned char)z[ 1 ] ;
+		n3 = (unsigned char)z[ 2 ] ;
+		num_rows = n1 * 65536 + n2 * 256 + n3 ;
+	}
+	else
+	{
+		table.read( z, 2 ) ;
+		n1 = (unsigned char)z[ 0 ] ;
+		n2 = (unsigned char)z[ 1 ] ;
+		num_rows = n1 * 256 + n2 ;
+	}
 
 	table.get( x ) ;
 	n1 = (unsigned char)x ;

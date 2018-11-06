@@ -39,6 +39,12 @@ PSYE031K 'Incomplete comparison statement'
 PSYE031L 'Invalid field name ''&ZVAL1'' on &ZVAL2 parameter'
 ''
 
+PSYE031M '.ATTR field not found'
+'Field &ZVAL1 is not on the panel'
+
+PSYE031N '.ATTRCHAR character not defined'
+'Define character in the )ATTR section before using .ATTRCHAR'
+
 /* dynamic areas */
 PSYE032A 'Dynamic Area outside panel area'
 'ROW=&ZVAL1 ZSCRMAXD=&ZVAL2'
@@ -46,8 +52,8 @@ PSYE032A 'Dynamic Area outside panel area'
 PSYE032B 'Invalid hex or character value'
 'Value must be a single character or valid hex value representing a single character'
 
-PSYE032C 'No DATAIN specified'
-'DATAIN must be specified if DATAMOD or USERMOD is specified'
+PSYE032C 'Spare'
+'Spare'
 
 PSYE032D 'Missing '')'''
 'Missing closing bracket on keyword'
@@ -55,8 +61,8 @@ PSYE032D 'Missing '')'''
 PSYE032E 'Missing shadow variable name'
 'The shadow variable for a dynamic area must be specified'
 
-PSYE032F 'Invalid CUA attribute specified'
-'CUA attribute &ZVAL1 is invalid'
+PSYE032F '''&ZVAL1'' attribute invalid'
+'Attribute must be a CUA attribute or INPUT, OUTPUT or TEXT.'
 
 PSYE032G 'Dynamic area variable not defined'
 'Dynamic area variable ''&ZVAL1'' is not in the function pool'
@@ -157,6 +163,13 @@ PSYE035A 'Cannot alter a point-and-shoot field'
 
 PSYE035B 'Attribute &ZVAL1 is invalid'
 '&ZVAL1 is not a valid value for keyword &ZVAL2'
+
+PSYE035C 'Type &ZVAL1 not supported'
+'Only TYPE(CHAR) is currently supported'
+
+PSYE035D 'Invalid for CUA attributes'
+'CUA attributes cannot contain COLOUR, INTENS or HILITE parameters.  ' +
+'Invalid parameters are &ZVAL1'
 
 /* PDC  */
 PSYE035J 'Spare'

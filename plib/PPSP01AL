@@ -3,42 +3,49 @@
  Panel for application and lspf log viewer
 )ENDCOMMENT
 
+)ATTR
+
+01 TYPE(DATAIN)  INTENS(HIGH)
+02 TYPE(DATAOUT) INTENS(HIGH)
+
+03 TYPE(CHAR) COLOUR(RED)
+04 TYPE(CHAR) COLOUR(GREEN)
+05 TYPE(CHAR) COLOUR(YELLOW)
+06 TYPE(CHAR) COLOUR(BLUE)
+07 TYPE(CHAR) COLOUR(MAGENTA)
+08 TYPE(CHAR) COLOUR(TURQ)
+09 TYPE(CHAR) COLOUR(WHITE)
+
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
 
 )BODY
 
-PanelTitle   "lspf/Application Log Viewer"
+PanelTitle   "&LTYPE Log Viewer"
 scrollOn
 
 literal   4    2   FP    "Command ===> "
 field     4   15   MAX-17  NEF  PAD(USER) ZCMD
 
-literal   4  MAX-15    FP  "Scroll ===> "
-field     4  MAX-3    4   NEF  NONE  ZSCROLL
+literal   4  MAX-15   FP  "Scroll ===> "
+field     4  MAX-3     4   NEF  NONE  ZSCROLL
 
-literal   6    2    FP  "Current log:"
-field     6   15    11  VOI   NONE  LOGTYPE
+literal   3   MAX-34  FP  "Col"
+field     3   MAX-30   5 VOI  NONE ZCOL1
 
-literal   7    2    FP  "Log file location:"
-field     7   21    MAX  VOI   NONE  LOGLOC
+literal   3   MAX-24  FP  "Line "
+field     3   MAX-19   8   VOI   NONE  ZROW1
 
-literal   3   MAX-36      FP  "COL"
-field     3   MAX-32    7 VOI  NONE ZCOL1
+literal   3   MAX-10  FP  "of"
+field     3   MAX-7    8   VOI   NONE  ZROW2
 
-literal   3   MAX-24        FP  "LINE "
-field     3   MAX-19    8   VOI   NONE  ZROW1
+literal   6   2    FP  "Log file location:"
+field     6   21    MAX  VOI   NONE  LOGLOC
 
-literal   3   MAX-10    FP  "OF"
-field     3   MAX-7     8   VOI   NONE  ZROW2
-
-field     8   2  MAX   FP  NONE  HEADER
-
-dynArea  9  2  MAX MAX ZAREA ZSHADOW
+dynArea   7   2  MAX MAX ZAREA ZSHADOW
 
 )INIT
 IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
-
 )PROC
 IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
 

@@ -46,6 +46,7 @@ pApplication::pApplication()
 	noTimeOut           = false  ;
 	busyAppl            = true   ;
 	terminateAppl       = false  ;
+	applicationEnded    = false  ;
 	abnormalEnd         = false  ;
 	abnormalEndForced   = false  ;
 	abnormalTimeout     = false  ;
@@ -157,11 +158,11 @@ void pApplication::run()
 	{
 		application() ;
 	}
-	catch( pApplication::xTerminate )
+	catch ( pApplication::xTerminate )
 	{
 		llog( "E", "Application "+ zappname +" aborting..." << endl ) ;
 	}
-	catch(...)
+	catch (...)
 	{
 		try
 		{
@@ -193,8 +194,9 @@ void pApplication::run()
 		llog( "I", "Returning to calling program." << endl ) ;
 	}
 
-	terminateAppl = true  ;
-	busyAppl      = false ;
+	terminateAppl    = true  ;
+	applicationEnded = true  ;
+	busyAppl         = false ;
 }
 
 
@@ -472,6 +474,7 @@ void pApplication::display( string p_name,
 	const string e4 = "Error processing )PROC section of panel "   ;
 	const string e5 = "Error during update of panel " ;
 	const string e6 = "Error updating field values of panel " ;
+	const string e7 = "Error processing )ATTR section of panel " ;
 
 	bool doReinit = false ;
 
@@ -504,6 +507,9 @@ void pApplication::display( string p_name,
 		return ;
 	}
 
+	prevPanel = currPanel ;
+	currPanel = panelList[ p_name ] ;
+
 	if ( propagateEnd )
 	{
 		if ( prevPanel && prevPanel->panelid == p_name )
@@ -512,13 +518,9 @@ void pApplication::display( string p_name,
 		}
 		else
 		{
-			prevPanel = currPanel ;
-			RC = 8 ;
-			return ;
+			ControlNonDispl = true ;
 		}
 	}
-
-	currPanel = panelList[ p_name ] ;
 
 	currPanel->msgid = p_msg ;
 
@@ -546,6 +548,13 @@ void pApplication::display( string p_name,
 		if ( errBlock.error() )
 		{
 			errBlock.setcall( e2 + p_name ) ;
+			checkRCode( errBlock ) ;
+			return ;
+		}
+		currPanel->display_panel_attrs( errBlock ) ;
+		if ( errBlock.error() )
+		{
+			errBlock.setcall( e7 + p_name ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -632,8 +641,12 @@ void pApplication::display( string p_name,
 			checkRCode( errBlock ) ;
 			return ;
 		}
-		if ( zzverb == "RETURN" ) { propagateEnd = true ; }
-		if ( findword( zzverb, "END EXIT RETURN" ) ) { RC = 8 ; return ; }
+		if ( propagateEnd || findword( zzverb, "END EXIT RETURN" ) )
+		{
+			if ( zzverb == "RETURN" ) { propagateEnd = true ; }
+			RC = 8 ;
+			return ;
+		}
 
 		if ( currPanel->msgid == "" ) { break ; }
 
@@ -802,8 +815,6 @@ void pApplication::qlibdef( const string& lib, const string& type_var, const str
 	// query libdef status for lib-type lib
 
 	const string e1 = "QLIBDEF Error" ;
-
-	string t ;
 
 	stack<string>* zxlib ;
 
@@ -1633,19 +1644,19 @@ void pApplication::verase( const string& names, poolType pType )
 }
 
 
-const string& pApplication::vlist( poolType pType, int lvl )
+set<string>& pApplication::vlist( poolType pType, int lvl )
 {
 	return p_poolMGR->vlist( errBlock, RC, pType, lvl ) ;
 }
 
 
-const string& pApplication::vilist( vdType defn )
+set<string>& pApplication::vilist( vdType defn )
 {
 	return funcPOOL.vilist( RC, defn ) ;
 }
 
 
-const string& pApplication::vslist( vdType defn )
+set<string>& pApplication::vslist( vdType defn )
 {
 	return funcPOOL.vslist( RC, defn ) ;
 }
@@ -2110,7 +2121,7 @@ void pApplication::tbadd( const string& tb_name,
 			  const string& tb_order,
 			  int tb_num_of_rows )
 {
-	// Add a row to a table
+	// Add a new row to a table
 
 	// RC = 0   Normal completion
 	// RC = 8   For keyed tables only, row already exists
@@ -2398,7 +2409,6 @@ void pApplication::tbdispl( const string& tb_name,
 	int ztdrows ;
 	int ztdsels ;
 	int exitRC  ;
-	int ws      ;
 	int i       ;
 	int ln      ;
 	int idr     ;
@@ -2420,17 +2430,18 @@ void pApplication::tbdispl( const string& tb_name,
 	const string e4 = "Error processing )PROC section of panel "   ;
 	const string e5 = "Error during update of panel " ;
 	const string e6 = "Error updating field values of panel " ;
+	const string e7 = "Error processing )ATTR section of panel " ;
 
 	RC = 0 ;
 	ln = 0 ;
+
+	prevPanel = currPanel ;
 
 	if ( propagateEnd )
 	{
 		if ( !currtbPanel )
 		{
 			propagateEnd = false ;
-			RC = 8 ;
-			return ;
 		}
 		if ( prevPanel && prevPanel->panelid == p_name )
 		{
@@ -2438,9 +2449,7 @@ void pApplication::tbdispl( const string& tb_name,
 		}
 		else
 		{
-			prevPanel = currPanel ;
-			RC = 8 ;
-			return ;
+			ControlNonDispl = true ;
 		}
 	}
 
@@ -2528,15 +2537,22 @@ void pApplication::tbdispl( const string& tb_name,
 			checkRCode( errBlock ) ;
 			return ;
 		}
+		currPanel->display_panel_attrs( errBlock ) ;
+		if ( errBlock.error() )
+		{
+			errBlock.setcall( e7 + p_name ) ;
+			checkRCode( errBlock ) ;
+			return ;
+		}
 	}
 	else
 	{
 		if ( currPanel->tb_get_lineChanged( errBlock, ln, URID ) )
 		{
 			tbskip( tb_name, 0, "", p_rowid_nm, URID, "", p_crp_name ) ;
-			for ( ws = words( currPanel->tb_fields ), i = 1 ; i <= ws ; i++ )
+			for ( auto it = currPanel->tb_fields.begin() ; it != currPanel->tb_fields.end() ; it++ )
 			{
-				s = word( currPanel->tb_fields, i ) ;
+				s = *it ;
 				funcPOOL.put( errBlock, s, funcPOOL.get( errBlock, 0, s+"."+ d2ds( ln ), NOCHECK ) ) ;
 				if ( errBlock.error() )
 				{
@@ -2686,9 +2702,9 @@ void pApplication::tbdispl( const string& tb_name,
 		if ( currPanel->tb_get_lineChanged( errBlock, ln, URID ) )
 		{
 			tbskip( tb_name, 0, "", p_rowid_nm, URID, "", p_crp_name ) ;
-			for ( ws = words( currPanel->tb_fields ), i = 1 ; i <= ws ; i++ )
+			for ( auto it = currPanel->tb_fields.begin() ; it != currPanel->tb_fields.end() ; it++ )
 			{
-				s = word( currPanel->tb_fields, i ) ;
+				s = *it ;
 				funcPOOL.put( errBlock, s, funcPOOL.get( errBlock, 0, s+"."+ d2ds( ln ), NOCHECK ) ) ;
 				if ( errBlock.error() )
 				{
@@ -2714,8 +2730,12 @@ void pApplication::tbdispl( const string& tb_name,
 			checkRCode( errBlock ) ;
 			return ;
 		}
-		if ( zzverb == "RETURN" ) { propagateEnd = true ; }
-		if ( findword( zzverb, "END EXIT RETURN" ) ) { RC = 8 ; return ; }
+		if ( propagateEnd || findword( zzverb, "END EXIT RETURN" ) )
+		{
+			if ( zzverb == "RETURN" ) { propagateEnd = true ; }
+			RC = 8 ;
+			return ;
+		}
 
 		if ( currPanel->msgid != "" )
 		{
@@ -2932,6 +2952,8 @@ void pApplication::tbmod( const string& tb_name,
 			  const string& tb_order )
 {
 	// Update/add a row in a table
+	// Tables with keys        : Same as tbadd if row not found
+	// Tables with without keys: Same as tbadd
 
 	// RC = 0   Okay.  Keyed tables - row updated.  Non-keyed tables new row added
 	// RC = 8   Row did not match - row added for keyed tables
@@ -3020,6 +3042,8 @@ void pApplication::tbopen( const string& tb_name,
 void pApplication::tbput( const string& tb_name, string tb_namelst, const string& tb_order )
 {
 	// Update the current row in a table
+	// Tables with keys        : Keys must match CRP row
+	// Tables with without keys: CRP row updated
 
 	// RC = 0   Normal completion
 	// RC = 8   Keyed tables - key does not match current row.  CRP set to top (0)
@@ -3380,7 +3404,11 @@ void pApplication::actionSelect()
 
 	wait_event() ;
 
-	if ( RC == 4 ) { propagateEnd = true ; }
+	if ( RC == 4 )
+	{
+		propagateEnd = true ;
+		currPanel    = NULL ;
+	}
 
 	SEL = false ;
 
@@ -3482,7 +3510,14 @@ void pApplication::attr( const string& field, const string& attrs )
 		checkRCode( errBlock ) ;
 		return  ;
 	}
-	currPanel->attr( RC, field, attrs ) ;
+	currPanel->attr( errBlock, field, attrs ) ;
+	if ( errBlock.error() )
+	{
+		errBlock.setcall( "ATTR change error" ) ;
+		checkRCode( errBlock ) ;
+		return ;
+	}
+	RC = errBlock.getRC() ;
 }
 
 
@@ -3784,7 +3819,7 @@ void pApplication::get_message( const string& p_msg )
 
 	if ( !sub_message_vars( zmsg ) ) { RC = 20 ; return ; }
 
-	zmsgid   = p_msg ;
+	zmsgid = p_msg ;
 }
 
 
@@ -3983,7 +4018,7 @@ bool pApplication::load_message( const string& p_msg )
 				}
 				tmp = mline ;
 			}
-			lmsg = ( lmsg != "" ) ? lmsg + " " + tmp : tmp ;
+			lmsg = lmsg + tmp ;
 			if ( lmsg.size() > 512 )
 			{
 				RC = 12 ;
@@ -4220,7 +4255,7 @@ void pApplication::ispexec( const string& s )
 	ispexeci( this, s, errBlock ) ;
 	if ( errBlock.error() )
 	{
-		errBlock.setcall( "ISPEXEC interface error" ) ;
+		errBlock.setcall( "ISPEXEC Interface Error" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}

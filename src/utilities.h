@@ -91,6 +91,8 @@ string cs2bs( const string& s ) ;     // eg "B" -> "01000010"
 int    cs2d( const string& s )  ;     // eg "B" -> int66           ( REXX C2D("a")        ->       97 )
 string cs2xs( const string& s ) ;     // eg "A" -> "41"            ( REXX C2X("0123"X)    ->    "0123" )
 string cs2xs( char c   ) ;            // eg "B" -> "42"            ( same )
+string i2bs( uint i ) ;               // eg 1   -> 00000000000000000000000000000001
+string i2xs( uint i ) ;               // eg 1   -> 00000001
 
 string d2cs( int i ) ;                // eg int66 -> "B"           ( REXX D2C(65)      ->   "A" )
 string d2ds( int i ) ;                // eg int66 -> "66"          ( not required for REXX but is for C++)

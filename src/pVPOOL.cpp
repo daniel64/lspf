@@ -380,13 +380,12 @@ void fPOOL::setmask( errblock& err,
 }
 
 
-const string& fPOOL::vilist( int& RC,
-			     vdType defn )
+set<string>& fPOOL::vilist( int& RC,
+			    vdType defn )
 {
 	map<string, stack<fVAR*>>::iterator it ;
 
-	varList = "" ;
-	varList.reserve( 9*POOL.size() ) ;
+	varList.clear() ;
 
 	RC = 8 ;
 	for ( it = POOL.begin() ; it != POOL.end() ; it++ )
@@ -401,20 +400,19 @@ const string& fPOOL::vilist( int& RC,
 		{
 			if ( defn == DEFINED  ) { continue ; }
 		}
-		varList += " " + it->first ;
+		varList.insert( it->first ) ;
 		RC = 0 ;
 	}
 	return varList ;
 }
 
 
-const string& fPOOL::vslist( int& RC,
-			     vdType defn )
+set<string>& fPOOL::vslist( int& RC,
+			    vdType defn )
 {
 	map<string, stack<fVAR*>>::iterator it ;
 
-	varList = "" ;
-	varList.reserve( 9*POOL.size() ) ;
+	varList.clear() ;
 
 	RC = 8 ;
 	for ( it = POOL.begin() ; it != POOL.end() ; it++ )
@@ -429,7 +427,7 @@ const string& fPOOL::vslist( int& RC,
 		{
 			if ( defn == DEFINED  ) { continue ; }
 		}
-		varList += " " + it->first ;
+		varList.insert( it->first ) ;
 		RC = 0 ;
 	}
 	return varList ;
@@ -1337,16 +1335,16 @@ void poolMGR::snap()
 }
 
 
-const string& poolMGR::vlist( errblock& err,
-			      int& RC,
-			      poolType pType,
-			      int lvl )
+set<string>& poolMGR::vlist( errblock& err,
+			     int& RC,
+			     poolType pType,
+			     int lvl )
 {
 	map<string, pVPOOL*>::iterator p_it ;
 	map<string, pVAR*>::iterator   v_it ;
 
-	RC      = 0  ;
-	varList = "" ;
+	RC = 0 ;
+	varList.clear() ;
 
 	boost::lock_guard<boost::mutex> lock( mtx ) ;
 
@@ -1404,10 +1402,9 @@ const string& poolMGR::vlist( errblock& err,
 		return varList ;
 	}
 
-	varList.reserve( 9*p_it->second->POOL.size() ) ;
 	for ( v_it = p_it->second->POOL.begin() ; v_it != p_it->second->POOL.end() ; v_it++ )
 	{
-		varList += " " + v_it->first ;
+		varList.insert( v_it->first ) ;
 	}
 
 	return varList ;

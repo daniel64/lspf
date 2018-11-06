@@ -277,6 +277,7 @@ class ASSGN
 			as_rhs    = ""    ;
 			as_isvar  = false ;
 			as_isattr = false ;
+			as_isattc = false ;
 			as_istb   = false ;
 			as_trunc  = NULL  ;
 			as_trans  = NULL  ;
@@ -297,6 +298,7 @@ class ASSGN
 		PN_FUNCTION as_func ;
 		bool   as_isvar  ;
 		bool   as_isattr ;
+		bool   as_isattc ;
 		bool   as_istb   ;
 
 	private:
@@ -590,7 +592,7 @@ class slmsg
 		string  dvtype ;
 		string  dvalm  ;
 		string  dvhlp  ;
-		cuaType type   ;
+		attType type   ;
 		bool    alm    ;
 		bool    resp   ;
 		bool    smwin  ;
@@ -653,6 +655,119 @@ class selobj
 		void*  options ;
 
 	private:
+} ;
+
+
+class char_attrs
+{
+	public:
+		char_attrs()
+		{
+			char_attrs_clear() ;
+		}
+
+		void char_attrs_clear()
+		{
+			nullstr = "" ;
+			type    = INPUT ;
+			colour  = 0 ;
+			intens  = 0 ;
+			hilite  = 0 ;
+			typeChange   = false ;
+			colourChange = false ;
+			intensChange = false ;
+			hiliteChange = false ;
+			typecua      = false ;
+			dvars        = false ;
+		}
+
+		string entry ;
+		string nullstr ;
+
+		attType type ;
+
+		unsigned int colour ;
+		unsigned int intens ;
+		unsigned int hilite ;
+
+		bool typeChange     ;
+		bool colourChange   ;
+		bool intensChange   ;
+		bool hiliteChange   ;
+		bool typecua        ;
+		bool dvars          ;
+
+		void setattr( errblock&, string& ) ;
+		void update( errblock&, string& ) ;
+		const string& get() ;
+		uint get_colour()  ;
+		attType get_type() ;
+
+	private:
+
+		map<string, unsigned int> colour_map =
+		{ { "RED",     RED     },
+		  { "GREEN",   GREEN   },
+		  { "YELLOW",  YELLOW  },
+		  { "BLUE",    BLUE    },
+		  { "MAGENTA", MAGENTA },
+		  { "PINK",    MAGENTA },
+		  { "TURQ",    TURQ    },
+		  { "WHITE",   WHITE   } } ;
+
+		map<string, unsigned int> intens_map =
+		{ { "HIGH",    A_BOLD   },
+		  { "LOW",     A_NORMAL } } ;
+
+		map<string, unsigned int> hilite_map =
+		{ { "BLINK",    A_BLINK     },
+		  { "REVERSE",  A_REVERSE   },
+		  { "USCORE",   A_UNDERLINE } } ;
+
+		map<string, attType> type_map =
+		{ { "AB",      AB     },
+		  { "ABSL",    ABSL   },
+		  { "ABU",     ABU    },
+		  { "AMT",     AMT    },
+		  { "AWF",     AWF    },
+		  { "CEF",     CEF    },
+		  { "CH",      CH     },
+		  { "CHAR",    CHAR   },
+		  { "CT",      CT     },
+		  { "DATAIN",  DATAIN },
+		  { "DATAOUT", DATAOUT},
+		  { "DT",      DT     },
+		  { "EE",      EE     },
+		  { "ET",      ET     },
+		  { "FK",      FK     },
+		  { "FP",      FP     },
+		  { "IMT",     IMT    },
+		  { "INPUT",   INPUT  },
+		  { "LEF",     LEF    },
+		  { "LID",     LID    },
+		  { "LI",      LI     },
+		  { "NEF",     NEF    },
+		  { "NT",      NT     },
+		  { "OUTPUT",  OUTPUT },
+		  { "PAC",     PAC    },
+		  { "PI",      PI     },
+		  { "PIN",     PIN    },
+		  { "PS",      PS     },
+		  { "PT",      PT     },
+		  { "PUC",     PUC    },
+		  { "RP",      RP     },
+		  { "SAC",     SAC    },
+		  { "SI",      SI     },
+		  { "SUC",     SUC    },
+		  { "TEXT",    TEXT   },
+		  { "VOI",     VOI    },
+		  { "WASL",    WASL   },
+		  { "WMT",     WMT    },
+		  { "WT",      WT     } } ;
+
+		set<string> none_cua_map = { "CHAR", "DATAIN", "DATAOUT", "INPUT", "OUTPUT", "TEXT" } ;
+
+		void parse( errblock&, string& ) ;
 } ;
 
 

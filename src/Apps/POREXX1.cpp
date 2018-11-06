@@ -188,6 +188,7 @@ void POREXX1::application()
 				val1 += threadContext->CString( condition.message ) ;
 				if ( val1.size() > 512 ) { val1.erase( 512 ) ; }
 				showErrorScreen( "PSYS012Z", val1 ) ;
+				ZRESULT = "Abended" ;
 			}
 			call_uabend = true ;
 		}
@@ -225,6 +226,7 @@ void POREXX1::showErrorScreen( const string& msg, string& val1 )
 	vreplace( "ZERRMSG", msg ) ;
 	vreplace( "ZERRDSC", "" ) ;
 	vreplace( "ZERRSRC", "" ) ;
+	vreplace( "ZERRRX", rexxName ) ;
 
 	vget( "ZSCRMAXW", SHARED ) ;
 	getmsg( msg, "ZERRSM", "ZERRLM" ) ;
@@ -296,7 +298,7 @@ int getAllRexxVariables( pApplication* thisAppl )
 	string n ;
 	string v ;
 
-	const string& vl = thisAppl->vilist() ;
+	set<string>& vl = thisAppl->vilist() ;
 
 	SHVBLOCK var ;
 	while ( true )
@@ -316,7 +318,7 @@ int getAllRexxVariables( pApplication* thisAppl )
 		v = string( var.shvvalue.strptr, var.shvvalue.strlength ) ;
 		if ( isvalidName( n ) )
 		{
-			if ( findword( n, vl ) )
+			if ( vl.count( n ) > 0 )
 			{
 				thisAppl->vreplace( n, ds2d( v ) ) ;
 			}
@@ -341,33 +343,25 @@ int setAllRexxVariables( pApplication* thisAppl )
 
 	// Note: vslist and vilist return the same variable reference
 
-	int i  ;
-	int ws ;
-	int rc ;
+	int rc   ;
 
-	const string& vl = thisAppl->vslist() ;
+	set<string>& vl = thisAppl->vslist() ;
 
-	string w  ;
-	string vi ;
-	string* vs ;
+	string* val1 ;
+	string  val2 ;
 
-	ws = words( vl ) ;
-	for ( i = 1 ; i <= ws ; i++ )
+	for ( auto it = vl.begin() ; it != vl.end() ; it++ )
 	{
-		w = word( vl, i ) ;
-		thisAppl->vcopy( w, vs, LOCATE ) ;
-		rc = setRexxVariable( w, (*vs) ) ;
+		thisAppl->vcopy( *it, val1, LOCATE ) ;
+		rc = setRexxVariable( *it, *val1 )  ;
 	}
 
 	thisAppl->vilist() ;
-	ws = words( vl ) ;
-	for ( i = 1 ; i <= ws ; i++ )
+	for ( auto it = vl.begin() ; it != vl.end() ; it++ )
 	{
-		w = word( vl, i ) ;
-		thisAppl->vcopy( w, vi, MOVE ) ;
-		rc = setRexxVariable( w, vi ) ;
+		thisAppl->vcopy( *it, val2, MOVE ) ;
+		rc = setRexxVariable( *it, val2 ) ;
 	}
-
 	return rc ;
 }
 

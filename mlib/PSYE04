@@ -5,8 +5,8 @@
 PSYE041A 'Duplicate table display field ''&ZVAL1'''
 ''
 
-PSYE041B 'Spare'
-'Spare'
+PSYE041B 'Invalid character attribute'
+'Character attribute must be a single character or a valid 2-digit hex value'
 
 PSYE041C 'Duplicate &ZVAL1 name ''&ZVAL2'''
 ''
@@ -127,4 +127,7 @@ PSYE042O 'Invalid value for .AUTOSEL control variable'
 
 PSYE042P 'Invalid command field name'
 'Selection panels must have a command field name of ZCMD'
+
+PSYE042Q 'Invalid .ATTRCHAR'
+'.ATTRCHAR is only valid in the INIT, REINIT and PROC panel sections'
 

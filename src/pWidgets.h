@@ -21,12 +21,11 @@ class dynArea
 {
 	public:
 		dynArea(){
-				dynArea_DataInsp  = false ;
-				dynArea_DataOutsp = false ;
-				dynArea_UserModsp = false ;
-				dynArea_DataModsp = false ;
-				dynArea_Field     = ""    ;
-				dynArea_FieldIn   = ""    ;
+				dynArea_dataInsp  = false ;
+				dynArea_userModsp = false ;
+				dynArea_dataModsp = false ;
+				dynArea_Attrs     = ""    ;
+				dynArea_inAttrs   = ""    ;
 			 }
 
 	private:
@@ -34,19 +33,22 @@ class dynArea
 		uint   dynArea_col       ;
 		uint   dynArea_width     ;
 		uint   dynArea_depth     ;
-		bool   dynArea_DataInsp  ;
-		bool   dynArea_DataOutsp ;
-		bool   dynArea_UserModsp ;
-		bool   dynArea_DataModsp ;
-		char   dynArea_DataIn    ;
-		char   dynArea_DataOut   ;
+		bool   dynArea_dataInsp  ;
+		bool   dynArea_userModsp ;
+		bool   dynArea_dataModsp ;
 		char   dynArea_UserMod   ;
 		char   dynArea_DataMod   ;
-		string dynArea_Field     ;
-		string dynArea_FieldIn   ;
+		string dynArea_Attrs     ;
+		string dynArea_inAttrs   ;
 		string dynArea_shadow_name ;
 
-		void dynArea_init( errblock& err, int maxw, int maxd, const string& line ) ;
+		void dynArea_init( errblock& err,
+				   int maxw,
+				   int maxd,
+				   const string& line,
+				   const string& da_dataIn,
+				   const string& da_dataOut ) ;
+
 		void setsize( int, int, int, int ) ;
 
        friend class pPanel ;
@@ -59,14 +61,15 @@ class field
 	public:
 		static char field_paduchar ;
 		static bool field_nulls    ;
+		static uint field_intens   ;
 
 	private:
 		field() {
 				field_pwd          = false ;
 				field_changed      = false ;
 				field_active       = true  ;
-				field_usecua       = true  ;
-				field_colour       = 0     ;
+				field_colour1      = 0     ;
+				field_colour2      = 0     ;
 				field_attr_once    = false ;
 				field_skip         = true  ;
 				field_caps         = false ;
@@ -90,9 +93,9 @@ class field
 		bool         field_pwd          ;
 		bool         field_changed      ;
 		bool         field_active       ;
-		cuaType      field_cua          ;
-		bool         field_usecua       ;
-		uint         field_colour       ;
+		attType      field_cua          ;
+		uint         field_colour1      ;
+		uint         field_colour2      ;
 		bool         field_attr_once    ;
 		bool         field_skip         ;
 		bool         field_caps         ;
@@ -106,22 +109,45 @@ class field
 		bool         field_scrollable   ;
 		unsigned int field_scroll_start ;
 		string       field_shadow_value ;
+		set<size_t>  field_usermod      ;
 
 		void field_init( errblock& err, int maxw, int maxd, const string& line ) ;
 		void field_opts( errblock& err, string& )  ;
+		void field_reset() ;
 		bool cursor_on_field( uint row, uint col ) ;
-		void display_field( WINDOW* ) ;
-		bool edit_field_insert( WINDOW* win, char ch, int row ) ;
-		bool edit_field_replace( WINDOW* win, char ch, int row ) ;
-		void edit_field_delete( WINDOW* win, int row ) ;
-		int  edit_field_backspace( WINDOW* win, int col ) ;
+		void display_field( WINDOW*,
+				    map<unsigned char, uint>&,
+				    map<unsigned char, uint>& ) ;
+		bool edit_field_insert( WINDOW* win,
+					char ch,
+					char schar,
+					int row,
+					map<unsigned char, uint>&,
+					map<unsigned char, uint>& ) ;
+		bool edit_field_replace( WINDOW* win,
+					 char ch,
+					 char schar,
+					 int row,
+					 map<unsigned char, uint>&,
+					 map<unsigned char, uint>& ) ;
+		void edit_field_delete( WINDOW* win,
+					int row,
+					map<unsigned char, uint>&,
+					map<unsigned char, uint>& ) ;
+		int  edit_field_backspace( WINDOW* win,
+					   int row,
+					   map<unsigned char, uint>&,
+					   map<unsigned char, uint>& ) ;
 		void field_remove_nulls_da()     ;
 		void field_blank( WINDOW* win ) ;
 		void field_clear( WINDOW* win ) ;
-		void field_erase_eof( WINDOW* win, unsigned int col ) ;
+		void field_erase_eof( WINDOW* win,
+				      unsigned int col,
+				      map<unsigned char, uint>&,
+				      map<unsigned char, uint>& ) ;
 		bool field_dyna_input( uint col )  ;
 		int  field_dyna_input_offset( uint col )  ;
-		void field_DataMod_to_UserMod( string*, int ) ;
+		void field_update_datamod_usermod( string*, int ) ;
 		void field_attr( errblock& err, string attrs, bool =false ) ;
 		void field_attr() ;
 		void field_prep_input()   ;
@@ -135,6 +161,9 @@ class field
 
 class literal
 {
+	public:
+		static uint literal_intens ;
+
 	private:
 		literal() {
 				literal_colour = 0  ;
@@ -144,7 +173,7 @@ class literal
 		uint    literal_row    ;
 		uint    literal_col    ;
 		uint    literal_cole   ;
-		cuaType literal_cua    ;
+		attType literal_cua    ;
 		uint    literal_colour ;
 		string  literal_value  ;
 		string  literal_xvalue ;
@@ -154,6 +183,7 @@ class literal
 		void literal_init( errblock& err, int maxw, int maxd, int& opt_field, const string& line ) ;
 		void literal_display( WINDOW* ) ;
 		bool cursor_on_literal( uint row, uint col ) ;
+
        friend class pPanel ;
 } ;
 
@@ -161,6 +191,8 @@ class literal
 class pdc
 {
 	public:
+		static uint pdc_intens ;
+
 		pdc()   {
 				pdc_desc    = "" ;
 				pdc_xdesc   = "" ;
@@ -188,14 +220,15 @@ class pdc
 		string pdc_parm  ;
 		string pdc_unavail ;
 		bool   pdc_inact ;
-		void   display_pdc_avail( WINDOW*, cuaType, int ) ;
-		void   display_pdc_unavail( WINDOW*, cuaType, int ) ;
+		void   display_pdc_avail( WINDOW*, attType, int ) ;
+		void   display_pdc_unavail( WINDOW*, attType, int ) ;
 } ;
 
 
 class abc
 {
 	public:
+		static uint abc_intens ;
 		abc()   {
 				abc_maxh   = 0  ;
 				abc_maxw   = 0  ;
@@ -262,6 +295,7 @@ class abc
 class Box
 {
 	public:
+		static uint box_intens ;
 		Box()   {
 				box_title = "" ;
 			}
