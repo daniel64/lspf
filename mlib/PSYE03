@@ -164,12 +164,13 @@ PSYE035A 'Cannot alter a point-and-shoot field'
 PSYE035B 'Attribute &ZVAL1 is invalid'
 '&ZVAL1 is not a valid value for keyword &ZVAL2'
 
-PSYE035C 'Type &ZVAL1 not supported'
-'Only TYPE(CHAR) is currently supported'
+PSYE035C 'Spare'
+'Spare'
 
 PSYE035D 'Invalid for CUA attributes'
 'CUA attributes cannot contain COLOUR, INTENS or HILITE parameters.  ' +
 'Invalid parameters are &ZVAL1'
+
 
 /* PDC  */
 PSYE035J 'Spare'

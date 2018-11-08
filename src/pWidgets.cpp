@@ -92,7 +92,7 @@ void field::field_init( errblock& err, int MAXW, int MAXD, const string& line )
 		}
 		fType         = noncuaAttrName[ w5 ] ;
 		field_cua     = NONE ;
-		field_colour1 = ( w5 == "INPUT" ) ? N_RED : N_WHITE ;
+		field_colour1 = ( w5 == "INPUT" ) ? RED : WHITE ;
 		field_colour2 = field_colour1 ;
 	}
 	else
@@ -679,6 +679,7 @@ void field::field_blank( WINDOW* win )
 	}
 
 	blanks[ field_length ] = 0x00 ;
+	wstandend( win ) ;
 	mvwaddstr( win, field_row, field_col, blanks ) ;
 
 	delete[] blanks ;
@@ -1263,7 +1264,6 @@ void literal::literal_display( WINDOW* win )
 {
 	wattrset( win, cuaAttr[ literal_cua ] | literal_intens ) ;
 	mvwaddstr( win, literal_row, literal_col, literal_xvalue.c_str() ) ;
-	wattroff( win, cuaAttr[ literal_cua ] ) ;
 }
 
 
@@ -1290,7 +1290,6 @@ void pdc::display_pdc_avail( WINDOW* win, attType type, int pos )
 
 	wattrset( win, cuaAttr[ type ] | pdc_intens ) ;
 	mvwaddstr( win, pos, 4, t.c_str() ) ;
-	wattroff( win, cuaAttr[ type ] ) ;
 }
 
 
@@ -1300,7 +1299,6 @@ void pdc::display_pdc_unavail( WINDOW* win, attType type, int pos )
 
 	wattrset( win, cuaAttr[ type ] | pdc_intens ) ;
 	mvwaddstr( win, pos, 4, t.c_str() ) ;
-	wattroff( win, cuaAttr[ type ] ) ;
 }
 
 
@@ -1309,7 +1307,6 @@ void abc::create_window( uint row, uint col )
 	win = newwin( abc_maxh + 2, abc_maxw + 10, row+1, col+abc_col ) ;
 	wattrset( win, cuaAttr[ AB ] | abc_intens ) ;
 	box( win, 0, 0 ) ;
-	wattroff( win, cuaAttr[ AB ] ) ;
 }
 
 
@@ -1435,7 +1432,6 @@ void abc::display_abc_sel( WINDOW* win )
 {
 	wattrset( win, cuaAttr[ AB ] | abc_intens ) ;
 	mvwaddstr( win, 0, abc_col, abc_desc.c_str() ) ;
-	wattroff( win, cuaAttr[ AB ] ) ;
 }
 
 
@@ -1443,7 +1439,6 @@ void abc::display_abc_unsel( WINDOW* win )
 {
 	wattrset( win, cuaAttr[ ABU ] | abc_intens ) ;
 	mvwaddstr( win, 0, abc_col, abc_desc.c_str() ) ;
-	wattroff( win, cuaAttr[ ABU ] ) ;
 }
 
 
@@ -1579,9 +1574,9 @@ bool abc::cursor_on_pulldown( uint row, uint col )
 void Box::box_init( errblock& err, int MAXW, int MAXD, const string& line )
 {
 	// Format of BOX entry in panels (FORMAT 1 VERSION 1 )
-	// BOX  row col width depth Attr     B-title
+	// BOX  row col width depth Colour   B-title
 	// w1   w2  w3  w4    w5    w6       w7
-	// BOX  7   7   41    22    N_WHITE  "Test Dynamic Area 1"
+	// BOX  7   7   41    22    WHITE    "Test Dynamic Area 1"
 
 	int row    ;
 	int col    ;
@@ -1640,7 +1635,7 @@ void Box::box_init( errblock& err, int MAXW, int MAXD, const string& line )
 	box_col    = col - 1 ;
 	box_width  = width   ;
 	box_depth  = depth   ;
-	box_colour = usrAttrNames[ w6 ] ;
+	box_colour = colourName[ w6 ] ;
 	if ( title != "" )
 	{
 		box_title = " " + title + " "  ;
@@ -1674,5 +1669,4 @@ void Box::display_box( WINDOW* win, string title )
 	offset = ( box_width - title.size() ) / 2 ;
 	mvwaddstr( win, box_row, (box_col + offset), title.c_str() ) ;
 
-	wattroff( win, box_colour ) ;
 }

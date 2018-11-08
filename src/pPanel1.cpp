@@ -416,7 +416,6 @@ void pPanel::display_panel( errblock& err )
 			winttl = " "+ winttl +" " ;
 			mvwaddstr( bwin, 0, ( win_width - winttl.size() ) / 2, winttl.c_str() ) ;
 		}
-		wattroff( bwin, cuaAttr[ AWF ] ) ;
 		top_panel( bpanel ) ;
 		top_panel( panel ) ;
 		wscrmaxw = win_width ;
@@ -444,7 +443,6 @@ void pPanel::display_panel( errblock& err )
 	panttl = sub_vars( panelTitle ) ;
 	wattrset( win, cuaAttr[ PT ] | panel_intens ) ;
 	mvwaddstr( win, ( ab.size() > 0 ) ? 2 : 0, ( wscrmaxw - panttl.size() ) / 2, panttl.c_str() ) ;
-	wattroff( win, cuaAttr[ PT ] ) ;
 
 	if ( tb_model )
 	{
@@ -2262,7 +2260,7 @@ void pPanel::create_tbfield( errblock& err, const string& pline )
 	else
 	{
 		a.field_cua     = NONE ;
-		a.field_colour1 = ( w4 == "INPUT" ) ? N_RED : N_WHITE ;
+		a.field_colour1 = ( w4 == "INPUT" ) ? RED : WHITE ;
 	}
 	a.field_col     = tcol - 1 ;
 	a.field_length  = tlen     ;
@@ -2476,7 +2474,6 @@ void pPanel::display_ab()
 
 	wattrset( win, cuaAttr[ ABSL ] | panel_intens ) ;
 	mvwhline( win, 1, 0, ACS_HLINE, wscrmaxw ) ;
-	wattroff( win, cuaAttr[ ABSL ] ) ;
 }
 
 
@@ -3261,7 +3258,6 @@ void pPanel::display_tb_mark_posn( errblock& err )
 		posn = "Row "+ d2ds( top ) +" of "+ d2ds( rows ) ;
 	}
 	mvwaddstr( win, ( ab.size() > 0 ) ? 2 : 0, wscrmaxw - posn.length(), posn.c_str() ) ;
-	wattroff( win, cuaAttr[ SI ] ) ;
 }
 
 
@@ -3554,6 +3550,7 @@ void pPanel::display_msg( errblock& err )
 		else
 		{
 			x_row = ( ab.size() > 0 ) ? 2 : 0 ;
+			wstandend( win ) ;
 			mvwaddstr( win, x_row, (wscrmaxw - 25), "                         " ) ;
 			smwin = newwin( 1, MSG.smsg.size(), x_row+win_row, (wscrmaxw - MSG.smsg.size() + win_col) ) ;
 			wattrset( smwin, cuaAttr[ MSG.type ] | panel_intens ) ;
@@ -3561,7 +3558,6 @@ void pPanel::display_msg( errblock& err )
 		}
 		smpanel = new_panel( smwin )  ;
 		set_panel_userptr( smpanel, new panel_data( zscrnum ) ) ;
-		wattroff( smwin, cuaAttr[ MSG.type ] ) ;
 		if ( MSG.alm )
 		{
 			beep() ;
@@ -3597,7 +3593,6 @@ void pPanel::display_msg( errblock& err )
 		}
 		lmpanel = new_panel( lmwin ) ;
 		set_panel_userptr( lmpanel, new panel_data( zscrnum ) ) ;
-		wattroff( lmwin, cuaAttr[ MSG.type ] )  ;
 	}
 }
 
@@ -3757,7 +3752,6 @@ void pPanel::display_id( errblock& err )
 		set_panel_userptr( idpanel, new panel_data( zscrnum ) ) ;
 		wattrset( idwin, cuaAttr[ PI ] | panel_intens ) ;
 		mvwaddstr( idwin, 0, 0, panarea.c_str() ) ;
-		wattroff( idwin, cuaAttr[ PI ] ) ;
 		top_panel( idpanel ) ;
 	}
 }

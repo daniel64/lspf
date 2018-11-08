@@ -31,10 +31,10 @@
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
-#define LSPF_VERSION "1.0.13"
+#define LSPF_VERSION "1.0.14"
 #define LSPF_VERSION_MAJ 1
 #define LSPF_VERSION_REV 0
-#define LSPF_VERSION_MOD 13
+#define LSPF_VERSION_MOD 14
 
 typedef unsigned int uint ;
 
@@ -151,50 +151,6 @@ using namespace boost::posix_time;
 #define MAGENTA         COLOR_PAIR(5)
 #define TURQ            COLOR_PAIR(6)
 #define WHITE           COLOR_PAIR(7)
-
-#define N_BLACK         0
-#define N_RED           1
-#define N_GREEN         2
-#define N_YELLOW        3
-#define N_BLUE          4
-#define N_MAGENTA       5
-#define N_TURQ          6
-#define N_WHITE         7
-
-#define B_RED           8
-#define B_GREEN         9
-#define B_YELLOW        10
-#define B_BLUE          11
-#define B_MAGENTA       12
-#define B_TURQ          13
-#define B_WHITE         14
-
-#define R_RED           15
-#define R_GREEN         16
-#define R_YELLOW        17
-#define R_BLUE          18
-#define R_MAGENTA       19
-#define R_TURQ          20
-#define R_WHITE         21
-
-#define BR_RED          22
-#define BR_GREEN        23
-#define BR_YELLOW       24
-#define BR_BLUE         25
-#define BR_MAGENTA      26
-#define BR_TURQ         27
-#define BR_WHITE        28
-
-#define U_RED           29
-#define U_GREEN         30
-#define U_YELLOW        31
-#define U_BLUE          32
-#define U_MAGENTA       33
-#define U_TURQ          34
-#define U_WHITE         35
-
-#define P_FE            254
-#define P_FF            255
 
 struct lspfCommand
 {

@@ -34,6 +34,7 @@ pApplication::pApplication()
 	ControlRefUpdate    = true   ;
 	lineOutDone         = false  ;
 	lineOutPending      = false  ;
+	cmdTableLoaded      = false  ;
 	nested              = false  ;
 	errPanelissued      = false  ;
 	abending            = false  ;
@@ -152,7 +153,7 @@ void pApplication::run()
 
 	// Cleanup during termination:
 	// 1) Close any tables opened by this application
-	// 2) Unload the application command table
+	// 2) Unload the application command table if loaded by this application
 
 	try
 	{
@@ -182,7 +183,10 @@ void pApplication::run()
 		p_tableMGR->destroyTable( errBlock, *it ) ;
 	}
 
-	p_tableMGR->destroyTable( errBlock, get_applid() + "CMDS" ) ;
+	if ( cmdTableLoaded )
+	{
+		p_tableMGR->destroyTable( errBlock, get_applid() + "CMDS" ) ;
+	}
 
 	if ( backgrd )
 	{
@@ -2197,7 +2201,7 @@ void pApplication::tbclose( const string& tb_name, const string& tb_newname, str
 
 	// If path is not specified, use ZTABL as the output path or, if blank, the first path in ZTLIB
 
-	// RC = 0   Normal completion (RC=0 or RC=4 from destroyTable() )
+	// RC = 0   Normal completion.  Remove from tablesOpen.
 	// RC = 12  Table not open
 	// RC = 16  Path error
 	// RC = 20  Severe error
@@ -2242,11 +2246,7 @@ void pApplication::tbclose( const string& tb_name, const string& tb_newname, str
 			checkRCode( errBlock ) ;
 			return ;
 		}
-		else if ( errBlock.RC0() )
-		{
-			tablesOpen.erase( tb_name ) ;
-		}
-		errBlock.setRC( 0 ) ;
+		tablesOpen.erase( tb_name ) ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -2443,7 +2443,7 @@ void pApplication::tbdispl( const string& tb_name,
 		{
 			propagateEnd = false ;
 		}
-		if ( prevPanel && prevPanel->panelid == p_name )
+		else if ( prevPanel && prevPanel->panelid == p_name )
 		{
 			propagateEnd = false ;
 		}
@@ -2517,7 +2517,6 @@ void pApplication::tbdispl( const string& tb_name,
 		}
 		currPanel = currtbPanel ;
 	}
-
 
 	currPanel->msgid = p_msg ;
 	currPanel->tb_set_autosel( p_autosel == "YES" || p_autosel == "" ) ;
@@ -2839,9 +2838,9 @@ void pApplication::tbdispl( const string& tb_name,
 void pApplication::tbend( const string& tb_name )
 {
 	// Close a table without saving (calls destroyTable routine).
-	// If opened share, use count is reduced and table deleted when use count = 0.
+	// If opened share, use count is reduced and table removed from storage when use count = 0.
 
-	// RC = 0   Normal completion (RC=0 or RC=4 from destroyTable() )
+	// RC = 0   Normal completion.  Remove from tablesOpen.
 	// RC = 12  Table not open
 	// RC = 20  Severe error
 
@@ -2854,10 +2853,7 @@ void pApplication::tbend( const string& tb_name )
 		checkRCode( errBlock ) ;
 		return ;
 	}
-	else if ( errBlock.RC0() )
-	{
-		tablesOpen.erase( tb_name ) ;
-	}
+	tablesOpen.erase( tb_name ) ;
 	RC = 0 ;
 }
 
@@ -4247,6 +4243,10 @@ void pApplication::loadCommandTable()
 	//  if being used to find the table.
 
 	p_tableMGR->loadTable( errBlock, get_applid() + "CMDS", NOWRITE, get_search_path( s_ZTLIB ), SHARE ) ;
+	if ( errBlock.RC0() )
+	{
+		cmdTableLoaded = true ;
+	}
 }
 
 
@@ -4597,7 +4597,6 @@ void pApplication::set_forced_abend()
 	abnormalEndForced = true  ;
 	terminateAppl     = true  ;
 	SEL               = false ;
-	(this->*pcleanup)()       ;
 	abended           = true  ;
 }
 

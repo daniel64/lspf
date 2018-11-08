@@ -76,7 +76,7 @@ literal   3   MAX-18        FP  "Columns"
 field     3   MAX-10  5     VOI  NONE ZCOL1
 field     3   MAX-4   5     VOI  NONE ZCOL2
 
-dynArea   5 1 MAX MAX ZAREA ZSHADOW USERMOD(04) DATAMOD(05)
+dynArea   5 1 MAX MAX ZAREA ZSHADOW USERMOD(05) DATAMOD(06)
 
 )INIT
 .EDIT = YES

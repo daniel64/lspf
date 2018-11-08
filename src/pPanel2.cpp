@@ -323,7 +323,11 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				}
 			}
 			panelLang.parseStatement( err, pline ) ;
-			if ( err.error() ) { return ; }
+			if ( err.error() )
+			{
+				err.setsrc( oline ) ;
+				return ;
+			}
 			token tx ;
 			switch ( panelLang.getStatementType() )
 			{

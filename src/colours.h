@@ -19,6 +19,20 @@
 
 namespace lspfc
 {
+
+map<attType, unsigned int> cuaAttr ;
+
+
+map<string, int> colourName =
+{ { "RED",     RED     },
+  { "GREEN",   GREEN   },
+  { "YELLOW",  YELLOW  },
+  { "BLUE",    BLUE    },
+  { "MAGENTA", MAGENTA },
+  { "TURQ",    TURQ    },
+  { "WHITE",   WHITE   } } ;
+
+
 map<string, attType> cuaAttrName =
 { { "AB",      AB     },
   { "ABSL",    ABSL   },
@@ -62,44 +76,6 @@ map<string, attType> noncuaAttrName =
   { "INPUT",   INPUT   },
   { "OUTPUT",  OUTPUT  },
   { "TEXT",    TEXT    } } ;
-
-
-map<string, unsigned int> usrAttrNames =
-{ { "N_RED",      N_RED      },
-  { "N_GREEN",    N_GREEN    },
-  { "N_YELLOW",   N_YELLOW   },
-  { "N_BLUE",     N_BLUE     },
-  { "N_MAGENTA",  N_MAGENTA  },
-  { "N_TURQ",     N_TURQ     },
-  { "N_WHITE",    N_WHITE    },
-  { "B_RED",      B_RED      },
-  { "B_GREEN",    B_GREEN    },
-  { "B_YELLOW",   B_YELLOW   },
-  { "B_BLUE",     B_BLUE     },
-  { "B_MAGENTA",  B_MAGENTA  },
-  { "B_TURQ",     B_TURQ     },
-  { "B_WHITE",    B_WHITE    },
-  { "R_RED",      R_RED      },
-  { "R_GREEN",    R_GREEN    },
-  { "R_YELLOW",   R_YELLOW   },
-  { "R_BLUE",     R_BLUE     },
-  { "R_MAGENTA",  R_MAGENTA  },
-  { "R_TURQ",     R_TURQ     },
-  { "R_WHITE",    R_WHITE    },
-  { "BR_RED",     BR_RED     },
-  { "BR_GREEN",   BR_GREEN   },
-  { "BR_YELLOW",  BR_YELLOW  },
-  { "BR_BLUE",    BR_BLUE    },
-  { "BR_MAGENTA", BR_MAGENTA },
-  { "BR_TURQ",    BR_TURQ    },
-  { "BR_WHITE",   BR_WHITE   },
-  { "U_RED",      U_RED      },
-  { "U_GREEN",    U_GREEN    },
-  { "U_YELLOW",   U_YELLOW   },
-  { "U_BLUE",     U_BLUE     },
-  { "U_MAGENTA",  U_MAGENTA  },
-  { "U_TURQ",     U_TURQ     },
-  { "U_WHITE",    U_WHITE    } } ;
 
 
 set<attType> attrUnprot = { INPUT, LEF, CEF, NEF, DATAIN } ;

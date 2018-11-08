@@ -363,6 +363,7 @@ class pApplication
 		bool abended  ;
 		bool lineOutDone    ;
 		bool lineOutPending ;
+		bool cmdTableLoaded ;
 		bool nested         ;
 		void* options       ;
 

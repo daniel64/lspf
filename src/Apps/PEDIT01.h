@@ -2224,6 +2224,7 @@ class PEDIT01 : public pApplication
 		void fill_dynamic_area()  ;
 		void fill_hilight_shadow();
 		void replace_datain()     ;
+		void replace_usermods()   ;
 		void clr_hilight_shadow() ;
 		void protNonDisplayChars();
 		void releaseDynamicStorage() ;
@@ -2239,6 +2240,7 @@ class PEDIT01 : public pApplication
 		bool storeLineCommands()  ;
 		void actionPrimCommand1() ;
 		void actionPrimCommand2() ;
+		void actionPrimCommand3() ;
 		void actionLineCommands() ;
 		void actionLineCommand( vector<lcmd>::iterator ) ;
 
@@ -2379,14 +2381,6 @@ class PEDIT01 : public pApplication
 		int  nestLevel           ;
 		int  XTabz               ;
 
-		uint C_RED               ;
-		uint C_GREEN             ;
-		uint C_YELLOW            ;
-		uint C_BLUE              ;
-		uint C_MAGENTA           ;
-		uint C_TURQ              ;
-		uint C_WHITE             ;
-
 		bool tabsOnRead          ;
 		bool abendRecovery       ;
 		bool abendComplete       ;
@@ -2460,6 +2454,8 @@ class PEDIT01 : public pApplication
 
 		string maskLine          ;
 		bool   ztouched          ;
+		bool   zchanged          ;
+		bool   dataUpdated       ;
 		bool   colsOn            ;
 		string tabsLine          ;
 		char   tabsChar          ;
@@ -2496,6 +2492,7 @@ class PEDIT01 : public pApplication
 		string carea   ;
 		string cshadow ;
 		string xarea   ;
+		string uarea   ;
 
 		string zscrolla ;
 		int    zscrolln ;

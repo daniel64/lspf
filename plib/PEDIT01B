@@ -44,15 +44,14 @@ IF (&ZCMDB NE &Z)
 
 VER(&OCLR,NB,LIST,1,2,3,4,5,6,7)
 
-&ZEDOCLR = TRANS( TRUNC(&OCLR, 1) ,
+&ZEDOCLR = TRANS( &OCLR
                1,'RED'
                2,'GREEN'
                3,'YELLOW'
                4,'BLUE'
                5,'MAGENTA'
                6,'TURQ'
-               7,'WHITE'
-               *,'YELLOW' )
+               7,'WHITE' )
 
 VPUT ZEDOCLR PROFILE
 

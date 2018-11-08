@@ -717,7 +717,8 @@ class char_attrs
 
 		map<string, unsigned int> intens_map =
 		{ { "HIGH",    A_BOLD   },
-		  { "LOW",     A_NORMAL } } ;
+		  { "LOW",     A_NORMAL },
+		  { "NON",     A_INVIS  } } ;
 
 		map<string, unsigned int> hilite_map =
 		{ { "BLINK",    A_BLINK     },
@@ -759,13 +760,12 @@ class char_attrs
 		  { "SAC",     SAC    },
 		  { "SI",      SI     },
 		  { "SUC",     SUC    },
-		  { "TEXT",    TEXT   },
 		  { "VOI",     VOI    },
 		  { "WASL",    WASL   },
 		  { "WMT",     WMT    },
 		  { "WT",      WT     } } ;
 
-		set<string> none_cua_map = { "CHAR", "DATAIN", "DATAOUT", "INPUT", "OUTPUT", "TEXT" } ;
+		set<string> none_cua_map = { "CHAR", "DATAIN", "DATAOUT", "INPUT", "OUTPUT" } ;
 
 		void parse( errblock&, string& ) ;
 } ;

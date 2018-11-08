@@ -36,8 +36,6 @@
 
 boost::condition cond_appl ;
 
-map<attType, unsigned int> cuaAttr ;
-
 #include "utilities.h"
 #include "utilities.cpp"
 
@@ -67,6 +65,15 @@ map<attType, unsigned int> cuaAttr ;
 #include "pLScreen.h"
 #include "pLScreen.cpp"
 
+#undef  MOD_NAME
+#define MOD_NAME lspf
+
+#define currScrn pLScreen::currScreen
+#define OIA      pLScreen::OIA
+
+#define CTRL(c) ((c) & 037)
+
+namespace {
 map<int, string> pfKeyDefaults = { {  1, "HELP"      },
 				   {  2, "SPLIT NEW" },
 				   {  3, "END"       },
@@ -92,29 +99,6 @@ map<int, string> pfKeyDefaults = { {  1, "HELP"      },
 				   { 23, "SWAP NEXT" },
 				   { 24, "HELP"      } } ;
 
-#undef  MOD_NAME
-#define MOD_NAME lspf
-
-#define currScrn pLScreen::currScreen
-#define OIA      pLScreen::OIA
-
-#define CTRL(c) ((c) & 037)
-
-using namespace std ;
-using namespace boost::filesystem ;
-
-unsigned int pLScreen::screensTotal = 0 ;
-unsigned int pLScreen::maxScreenId  = 0 ;
-unsigned int pLScreen::maxrow       = 0 ;
-unsigned int pLScreen::maxcol       = 0 ;
-
-set<int> pLScreen::screenNums ;
-map<int,int> pLScreen::openedByList ;
-
-WINDOW* pLScreen::OIA       = NULL ;
-PANEL*  pLScreen::OIA_panel = NULL ;
-
-pLScreen*     pLScreen::currScreen = NULL ;
 pApplication* currAppl ;
 
 poolMGR*  p_poolMGR  = new poolMGR  ;
@@ -122,81 +106,7 @@ tableMGR* p_tableMGR = new tableMGR ;
 logger*   lg         = new logger   ;
 logger*   lgx        = new logger   ;
 
-tableMGR* pApplication::p_tableMGR = NULL ;
-poolMGR*  pApplication::p_poolMGR  = NULL ;
-logger*   pApplication::lg  = NULL ;
-poolMGR*  pPanel::p_poolMGR = NULL ;
-poolMGR*  abc::p_poolMGR    = NULL ;
-logger*   pPanel::lg        = NULL ;
-logger*   tableMGR::lg      = NULL ;
-logger*   poolMGR::lg       = NULL ;
-
-char  field::field_paduchar = ' '   ;
-bool  field::field_nulls    = false ;
-uint  pPanel::panel_intens    = 0   ;
-uint  field::field_intens     = 0   ;
-uint  literal::literal_intens = 0   ;
-uint  pdc::pdc_intens         = 0   ;
-uint  abc::abc_intens         = 0   ;
-uint  Box::box_intens         = 0   ;
-
 fPOOL funcPOOL ;
-
-void setGlobalClassVars() ;
-void initialSetup()       ;
-void loadDefaultPools()   ;
-void getDynamicClasses()  ;
-bool loadDynamicClass( const string& ) ;
-bool unloadDynamicClass( void* )    ;
-void reloadDynamicClasses( string ) ;
-void loadSystemCommandTable() ;
-void loadRetrieveBuffer() ;
-void saveRetrieveBuffer() ;
-void loadCUATables()      ;
-void setGlobalColours()   ;
-void setColourPair( const string& ) ;
-void lScreenDefaultSettings() ;
-void updateDefaultVars()      ;
-void createSharedPoolVars( const string& ) ;
-void updateReflist()          ;
-void startApplication( selobj&, bool =false ) ;
-void startApplicationBack( selobj, bool =false ) ;
-void terminateApplication()     ;
-void abnormalTermMessage()      ;
-void processBackgroundTasks()   ;
-void ResumeApplicationAndWait() ;
-bool createLogicalScreen()      ;
-void deleteLogicalScreen()      ;
-void resolvePGM()               ;
-void processPGMSelect()         ;
-void processZSEL()              ;
-void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru ) ;
-void processZCOMMAND( uint row, uint col, bool doSelect ) ;
-void issueMessage( const string& ) ;
-void lineOutput()     ;
-void lineOutput_end() ;
-void errorScreen( int, const string& ) ;
-void errorScreen( const string&, const string& ) ;
-void errorScreen( const string& ) ;
-void abortStartup()  ;
-void lspfCallbackHandler( lspfCommand& ) ;
-void createpfKeyDefaults() ;
-string pfKeyValue( int )   ;
-string ControlKeyAction( char c ) ;
-string listLogicalScreens() ;
-void actionSwap( uint&, uint& )   ;
-void actionTabKey( uint&, uint& ) ;
-void displayNextPullDown( uint&, uint& ) ;
-void executeFieldCommand( const string&, const fieldExc&, uint ) ;
-void listBackTasks()      ;
-void autoUpdate()         ;
-bool resolveZCTEntry( string&, string& ) ;
-bool isActionKey( int c ) ;
-void listRetrieveBuffer() ;
-int  getScreenNameNum( const string& ) ;
-void serviceCallError( errblock& ) ;
-void listErrorBlock( errblock& ) ;
-void mainLoop() ;
 
 vector<pLScreen*> screenList ;
 
@@ -223,6 +133,7 @@ int    maxtaskID = 0  ;
 uint   retPos    = 0  ;
 uint   priScreen = 0  ;
 uint   altScreen = 0  ;
+uint   intens    = 0  ;
 string ctlAction      ;
 string commandStack   ;
 string jumpOption     ;
@@ -234,6 +145,7 @@ vector<pApplication*> pApplicationBackground ;
 vector<pApplication*> pApplicationTimeout    ;
 
 errblock err    ;
+
 
 string zcommand ;
 string zparm    ;
@@ -260,6 +172,7 @@ enum LSPF_STATUS
 enum BACK_STATUS
 {
      BACK_RUNNING,
+     BACK_STOPPING,
      BACK_STOPPED
 } ;
 
@@ -327,6 +240,96 @@ LSPF_STATUS lspfStatus ;
 BACK_STATUS backStatus ;
 
 boost::recursive_mutex mtx ;
+
+}
+
+unsigned int pLScreen::screensTotal = 0 ;
+unsigned int pLScreen::maxScreenId  = 0 ;
+unsigned int pLScreen::maxrow       = 0 ;
+unsigned int pLScreen::maxcol       = 0 ;
+
+set<int> pLScreen::screenNums ;
+map<int,int> pLScreen::openedByList ;
+
+WINDOW* pLScreen::OIA       = NULL ;
+PANEL*  pLScreen::OIA_panel = NULL ;
+
+pLScreen*  pLScreen::currScreen = NULL ;
+
+tableMGR* pApplication::p_tableMGR = NULL ;
+poolMGR*  pApplication::p_poolMGR  = NULL ;
+logger*   pApplication::lg  = NULL ;
+poolMGR*  pPanel::p_poolMGR = NULL ;
+poolMGR*  abc::p_poolMGR    = NULL ;
+logger*   pPanel::lg        = NULL ;
+logger*   tableMGR::lg      = NULL ;
+logger*   poolMGR::lg       = NULL ;
+
+char  field::field_paduchar = ' '   ;
+bool  field::field_nulls    = false ;
+uint  pPanel::panel_intens    = 0   ;
+uint  field::field_intens     = 0   ;
+uint  literal::literal_intens = 0   ;
+uint  pdc::pdc_intens         = 0   ;
+uint  abc::abc_intens         = 0   ;
+uint  Box::box_intens         = 0   ;
+
+void setGlobalClassVars() ;
+void initialSetup()       ;
+void loadDefaultPools()   ;
+void getDynamicClasses()  ;
+bool loadDynamicClass( const string& ) ;
+bool unloadDynamicClass( void* )    ;
+void reloadDynamicClasses( string ) ;
+void loadSystemCommandTable() ;
+void loadRetrieveBuffer() ;
+void saveRetrieveBuffer() ;
+void loadCUATables()      ;
+void setGlobalColours()   ;
+void setColourPair( const string& ) ;
+void lScreenDefaultSettings() ;
+void updateDefaultVars()      ;
+void createSharedPoolVars( const string& ) ;
+void updateReflist()          ;
+void startApplication( selobj&, bool =false ) ;
+void startApplicationBack( selobj, bool =false ) ;
+void terminateApplication()     ;
+void abnormalTermMessage()      ;
+void processBackgroundTasks()   ;
+void ResumeApplicationAndWait() ;
+bool createLogicalScreen()      ;
+void deleteLogicalScreen()      ;
+void resolvePGM()               ;
+void processPGMSelect()         ;
+void processZSEL()              ;
+void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru ) ;
+void processZCOMMAND( uint row, uint col, bool doSelect ) ;
+void issueMessage( const string& ) ;
+void lineOutput()     ;
+void lineOutput_end() ;
+void errorScreen( int, const string& ) ;
+void errorScreen( const string&, const string& ) ;
+void errorScreen( const string& ) ;
+void abortStartup()  ;
+void lspfCallbackHandler( lspfCommand& ) ;
+void createpfKeyDefaults() ;
+string pfKeyValue( int )   ;
+string ControlKeyAction( char c ) ;
+string listLogicalScreens() ;
+void actionSwap( uint&, uint& )   ;
+void actionTabKey( uint&, uint& ) ;
+void displayNextPullDown( uint&, uint& ) ;
+void executeFieldCommand( const string&, const fieldExc&, uint ) ;
+void listBackTasks()      ;
+void autoUpdate()         ;
+bool resolveZCTEntry( string&, string& ) ;
+bool isActionKey( int c ) ;
+void listRetrieveBuffer() ;
+int  getScreenNameNum( const string& ) ;
+void serviceCallError( errblock& ) ;
+void listErrorBlock( errblock& ) ;
+void mainLoop() ;
+
 
 
 int main( void )
@@ -434,7 +437,7 @@ int main( void )
 
 	mainLoop() ;
 
-	llog( "I", "Closing ISPS profile and application log as last application program has terminated" << endl ) ;
+	llog( "I", "Closing ISPS profile as last application program has terminated" << endl ) ;
 
 	lspfStatus = LSPF_STOPPING ;
 	saveRetrieveBuffer() ;
@@ -442,6 +445,15 @@ int main( void )
 	p_poolMGR->destroySystemPool( err ) ;
 	p_poolMGR->statistics()  ;
 	p_tableMGR->statistics() ;
+
+	llog( "I", "Stopping background job monitor task" << endl ) ;
+	backStatus = BACK_STOPPING ;
+	while ( backStatus != BACK_STOPPED )
+	{
+		boost::this_thread::sleep_for( boost::chrono::milliseconds( ZWAIT ) ) ;
+	}
+
+	delete bThread ;
 
 	delete p_poolMGR  ;
 	delete p_tableMGR ;
@@ -457,13 +469,6 @@ int main( void )
 			unloadDynamicClass( it->second.dlib ) ;
 		}
 	}
-
-	llog( "I", "Terminating background job monitor task" << endl ) ;
-	while ( backStatus == BACK_RUNNING )
-	{
-		boost::this_thread::sleep_for( boost::chrono::milliseconds( ZWAIT ) ) ;
-	}
-	delete bThread ;
 
 	llog( "I", "lspf and LOG terminating" << endl ) ;
 	lg->close() ;
@@ -1113,8 +1118,6 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 
 	if ( pfcmd != "" ) { zcommand = pfcmd + " " + zcommand ; }
 
-	jumpOption = zcommand ;
-
 	if ( zcommand.compare( 0, 2, delm+delm ) == 0 )
 	{
 		commandStack = zcommand.substr( 1 ) ;
@@ -1173,7 +1176,8 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 	if ( zcommand.size() > 1 && zcommand.front() == '=' && ( pfcmd == "" || pfcmd == "RETURN" ) )
 	{
 		zcommand.erase( 0, 1 ) ;
-		passthru = true ;
+		jumpOption = zcommand + commandStack ;
+		passthru   = true ;
 		if ( !currAppl->isprimMenu() )
 		{
 			currAppl->jumpEntered = true ;
@@ -2109,8 +2113,24 @@ void processBackgroundTasks()
 			}
 		}
 		mtx.unlock() ;
+
+		if ( backStatus == BACK_STOPPING )
+		{
+			for ( auto it = pApplicationBackground.begin() ; it != pApplicationBackground.end() ; it++ )
+			{
+				llog( "I", "lspf shutting down.  Removing background application instance of "+
+					(*it)->get_appname() << " taskid: " << (*it)->taskid() << endl ) ;
+				p_poolMGR->disconnect( (*it)->taskid() ) ;
+				pThread = (*it)->pThread ;
+				apps[ (*it)->get_appname() ].refCount-- ;
+				((void (*)(pApplication*))(apps[ (*it)->get_appname() ].destroyer_ep))( (*it) ) ;
+				delete pThread ;
+			}
+		}
 	}
+
 	backStatus = BACK_STOPPED ;
+	llog( "I", "Background job monitor task stopped" << endl ) ;
 }
 
 
@@ -2537,12 +2557,6 @@ void loadCUATables()
 	setColourPair( "WT" )   ;
 	setColourPair( "WASL" ) ;
 
-	cuaAttr[ CHAR   ] = BLUE   | A_BOLD   | A_PROTECT ;
-	cuaAttr[ DATAIN ] = GREEN  | A_NORMAL             ;
-	cuaAttr[ DATAOUT] = GREEN  | A_NORMAL | A_PROTECT ;
-	cuaAttr[ OUTPUT ] = GREEN  | A_NORMAL | A_PROTECT ;
-	cuaAttr[ TEXT   ] = BLUE   | A_NORMAL | A_PROTECT ;
-
 	setGlobalColours() ;
 }
 
@@ -2879,12 +2893,13 @@ void updateDefaultVars()
 
 	field::field_nulls    = ( p_poolMGR->sysget( err, "ZNULLS", SHARED ) == "YES" ) ;
 
-	field::field_intens   = ( p_poolMGR->sysget( err, "ZHIGH", PROFILE ) == "Y" ) ? A_BOLD : 0 ;
-	pPanel::panel_intens  = field::field_intens ;
-	literal::literal_intens = field::field_intens ;
-	pdc::pdc_intens       = field::field_intens ;
-	abc::abc_intens       = field::field_intens ;
-	Box::box_intens       = field::field_intens ;
+	intens                = ( p_poolMGR->sysget( err, "ZHIGH", PROFILE ) == "Y" ) ? A_BOLD : 0 ;
+	field::field_intens   = intens ;
+	pPanel::panel_intens  = intens ;
+	pdc::pdc_intens       = intens ;
+	abc::abc_intens       = intens ;
+	Box::box_intens       = intens ;
+	literal::literal_intens = intens ;
 }
 
 
@@ -3033,18 +3048,15 @@ string listLogicalScreens()
 
 	swwin   = newwin( screenList.size() + 6, 80, 1, 1 ) ;
 	swpanel = new_panel( swwin )  ;
-	wattrset( swwin, cuaAttr[ AWF ] ) ;
+	wattrset( swwin, cuaAttr[ AWF ] | intens ) ;
 	box( swwin, 0, 0 ) ;
 	mvwaddstr( swwin, 0, 34, " Task List " ) ;
-	wattroff( swwin, cuaAttr[ AWF ] ) ;
 
-	wattrset( swwin, cuaAttr[ PT ] ) ;
+	wattrset( swwin, cuaAttr[ PT ] | intens ) ;
 	mvwaddstr( swwin, 1, 28, "Active Logical Sessions" ) ;
-	wattroff( swwin, cuaAttr[ PT ] ) ;
 
-	wattrset( swwin, cuaAttr[ PIN ] ) ;
+	wattrset( swwin, cuaAttr[ PIN ] | intens ) ;
 	mvwaddstr( swwin, 3, 2, "ID  Name      Application  Applid  Panel Title/Description" ) ;
-	wattroff( swwin, cuaAttr[ PIN ] ) ;
 
 	currScrn->show_wait() ;
 
@@ -3075,9 +3087,8 @@ string listLogicalScreens()
 	{
 		for ( i = 0, it = lslist.begin() ; it != lslist.end() ; it++, i++ )
 		{
-			wattron( swwin, cuaAttr[  i == m ? PT : VOI ] ) ;
+			wattrset( swwin, cuaAttr[  i == m ? PT : VOI ] | intens ) ;
 			mvwaddstr( swwin, i+4, 2, it->c_str() )         ;
-			wattroff( swwin, cuaAttr[ i == m ? PT : VOI ] ) ;
 		}
 		update_panels() ;
 		doupdate()  ;
@@ -3149,14 +3160,12 @@ void listRetrieveBuffer()
 
 	rbwin   = newwin( mx+5, 60, 1, 1 ) ;
 	rbpanel = new_panel( rbwin )  ;
-	wattrset( rbwin, cuaAttr[ AWF ] ) ;
+	wattrset( rbwin, cuaAttr[ AWF ] | intens ) ;
 	box( rbwin, 0, 0 ) ;
 	mvwaddstr( rbwin, 0, 25, " Retrieve " ) ;
-	wattroff( rbwin, cuaAttr[ AWF ] ) ;
 
-	wattrset( rbwin, cuaAttr[ PT ] ) ;
+	wattrset( rbwin, cuaAttr[ PT ] | intens ) ;
 	mvwaddstr( rbwin, 1, 17, "lspf Command Retrieve Panel" ) ;
-	wattroff( rbwin, cuaAttr[ PT ] ) ;
 
 	currScrn->show_wait() ;
 	for ( i = 0 ; i < mx ; i++ )
@@ -3176,9 +3185,8 @@ void listRetrieveBuffer()
 	{
 		for ( i = 0, it = lslist.begin() ; it != lslist.end() ; it++, i++ )
 		{
-			wattron( rbwin, cuaAttr[  i == m ? PT : VOI ] ) ;
+			wattrset( rbwin, cuaAttr[  i == m ? PT : VOI ] | intens ) ;
 			mvwaddstr( rbwin, i+3, 3, it->c_str() )         ;
-			wattroff( rbwin, cuaAttr[ i == m ? PT : VOI ] ) ;
 		}
 		update_panels() ;
 		doupdate()  ;
@@ -3442,7 +3450,6 @@ void errorScreen( int etype, const string& msg )
 	{
 		if ( isActionKey( getch() ) ) { break ; }
 	}
-	attroff( WHITE | A_BOLD ) ;
 
 	linePosn = -1 ;
 	currScrn->restore_panel_stack() ;

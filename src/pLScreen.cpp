@@ -186,13 +186,13 @@ void pLScreen::set_cursor( pApplication* appl )
 
 void pLScreen::OIA_setup()
 {
+	wattrset( OIA, WHITE ) ;
 	mvwhline( OIA, 0, 0, ACS_HLINE, maxcol ) ;
 	mvwaddch( OIA, 1, 0, ACS_CKBOARD ) ;
 	wattrset( OIA, YELLOW ) ;
 	mvwaddstr( OIA, 1, 2,  "Screen[        ]" ) ;
 	mvwaddstr( OIA, 1, 30, "Elapsed:" ) ;
 	mvwaddstr( OIA, 1, 50, "Screen:" ) ;
-	wattroff( OIA, YELLOW ) ;
 }
 
 
@@ -219,17 +219,13 @@ void pLScreen::OIA_update( int priScreen, int altScreen )
 	{
 		wattrset( OIA, RED | A_REVERSE ) ;
 		mvwaddch( OIA, 1, priScreen+9, d2ds( priScreen+1 ).front() ) ;
-		wattroff( OIA, RED | A_REVERSE ) ;
 	}
 
 	if ( altScreen < 8 && altScreen != priScreen )
 	{
 		wattrset( OIA, YELLOW | A_BOLD | A_UNDERLINE ) ;
 		mvwaddch( OIA, 1, altScreen+9, d2ds( altScreen+1 ).front() ) ;
-		wattroff( OIA, YELLOW | A_BOLD | A_UNDERLINE ) ;
 	}
-
-	wattroff( OIA, YELLOW ) ;
 }
 
 
@@ -242,9 +238,8 @@ void pLScreen::OIA_refresh()
 
 void pLScreen::show_enter()
 {
-	wattron( OIA, RED ) ;
+	wattrset( OIA, RED ) ;
 	mvwaddstr( OIA, 1, 19, "X-Enter" ) ;
-	wattroff( OIA, RED ) ;
 	wmove( OIA, 1, 0 ) ;
 	wrefresh( OIA )    ;
 }
@@ -252,9 +247,8 @@ void pLScreen::show_enter()
 
 void pLScreen::show_busy()
 {
-	wattron( OIA, RED ) ;
+	wattrset( OIA, RED ) ;
 	mvwaddstr( OIA, 1, 19, "X-Busy " ) ;
-	wattroff( OIA, RED ) ;
 	wmove( OIA, 1, 0 ) ;
 	wrefresh( OIA )    ;
 }
@@ -262,9 +256,8 @@ void pLScreen::show_busy()
 
 void pLScreen::show_wait()
 {
-	wattron( OIA, RED ) ;
+	wattrset( OIA, RED ) ;
 	mvwaddstr( OIA, 1, 19, "X-Wait " ) ;
-	wattroff( OIA, RED ) ;
 	wmove( OIA, 1, 0 ) ;
 	wrefresh( OIA )    ;
 }
@@ -272,9 +265,8 @@ void pLScreen::show_wait()
 
 void pLScreen::show_auto()
 {
-	wattron( OIA, RED ) ;
+	wattrset( OIA, RED ) ;
 	mvwaddstr( OIA, 1, 19, "X-Auto " ) ;
-	wattroff( OIA, RED ) ;
 	wmove( OIA, 1, 0 ) ;
 	wrefresh( OIA )    ;
 }
@@ -286,12 +278,12 @@ void pLScreen::show_lock( bool showLock )
 	{
 		wattrset( OIA,  RED ) ;
 		mvwaddstr( OIA, 1, 26, "|X|" ) ;
-		wattroff( OIA,  RED ) ;
 	}
 }
 
 
 void pLScreen::clear_status()
 {
+	wstandend( OIA ) ;
 	mvwaddstr( OIA, 1, 19, "       " ) ;
 }

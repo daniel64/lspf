@@ -1975,7 +1975,7 @@ void char_attrs::parse( errblock& err, string& attrs )
 			auto it = intens_map.find( temp ) ;
 			if ( it == intens_map.end() )
 			{
-				err.seterrid( "PSYE035B", temp, "INTENSE" ) ;
+				err.seterrid( "PSYE035B", temp, "INTENS" ) ;
 				return ;
 			}
 			intens = it->second ;

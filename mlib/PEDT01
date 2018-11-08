@@ -392,3 +392,6 @@ PEDT016I 'Destination pending' .TYPE=N
 PEDT016J 'Invalid destination' .TYPE=W
 'Multiple destinations cannot be entered with a line command macro'
 
+PEDT016K 'Changes pending' .TYPE=W
+'Cannot UNDO/REDO when line commands and/or data changes have also been specified'
+

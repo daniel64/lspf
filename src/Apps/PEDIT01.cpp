@@ -64,6 +64,13 @@ using namespace boost::filesystem ;
 #define profUndoOn  iline::setUNDO[ taskid() ]
 #define Global_File_level iline::Global_File_level
 
+#define DATAIN1    0x01
+#define DATAIN2    0x02
+#define DATAOUT1   0x03
+#define DATAOUT2   0x04
+#define USERMOD    0x05
+#define DATAMOD    0x06
+
 #define E_RED      10
 #define E_GREEN    11
 #define E_YELLOW   12
@@ -373,7 +380,9 @@ void PEDIT01::Edit()
 
 	rebuildZAREA  = true  ;
 	rebuildShadow = false ;
+	dataUpdated   = true  ;
 	ztouched      = false ;
+	zchanged      = false ;
 	macroRunning  = false ;
 	creActive     = false ;
 	cutActive     = false ;
@@ -414,10 +423,10 @@ void PEDIT01::Edit()
 		}
 		else
 		{
-			actionPrimCommand1() ;
+			actionPrimCommand2() ;
 			if ( !pcmd.error() && !pcmd.isActioned() )
 			{
-				actionPrimCommand2() ;
+				actionPrimCommand3() ;
 				if ( !pcmd.isActioned() )
 				{
 					vreplace( "ZSTR1", pcmd.get_cmd() ) ;
@@ -431,14 +440,20 @@ void PEDIT01::Edit()
 
 	while ( !termEdit )
 	{
-		if ( rebuildZAREA  ) { fill_dynamic_area() ; }
+		if ( rebuildZAREA ) { fill_dynamic_area() ; }
 		else
 		{
 			if ( rebuildShadow ) { zshadow = cshadow ; }
-			if ( ztouched )      { replace_datain()  ; }
+			if ( ztouched || zchanged )
+			{
+				replace_datain() ;
+			}
 		}
 
 		rebuildShadow = false ;
+		ztouched      = false ;
+		zchanged      = false ;
+
 		protNonDisplayChars() ;
 
 		vreplace( "ZEDALT", zedalt ) ;
@@ -462,6 +477,8 @@ void PEDIT01::Edit()
 		pcmd.reset() ;
 
 		display( "PEDIT012", pcmd.get_msg(), curfld, curpos ) ;
+
+		if ( !dataUpdated ) { replace_usermods() ; }
 
 		if ( RC == 8 )
 		{
@@ -505,31 +522,61 @@ void PEDIT01::Edit()
 		storeCursor( aURID, aCol-CLINESZ+startCol-2 ) ;
 
 		pcmd.set_cmd( zcmd, defNames ) ;
-		if ( pcmd.error() || pcmd.deactive() ) { continue ; }
+		if ( pcmd.error() || pcmd.deactive() )
+		{
+			uarea       = zarea ;
+			dataUpdated = false ;
+			continue ;
+		}
 
 		getZAREAchanges() ;
 
-		setLineLabels() ;
-		if ( pcmd.error() )  { termEdit = false ; continue ; }
-
 		if ( pcmd.isMacro() )
 		{
+			uarea = zarea ;
 			run_macro( word( pcmd.get_cmd(), 1 ) ) ;
 			if ( termEdit && !pcmd.error() )
 			{
 				break ;
 			}
 			termEdit = false ;
+			if ( pcmd.error() )
+			{
+				dataUpdated  = false ;
+				rebuildZAREA = false ;
+			}
+			continue ;
+		}
+
+		actionPrimCommand1() ;
+		if ( pcmd.error() )
+		{
+			termEdit    = false ;
+			dataUpdated = false ;
+			uarea       = zarea ;
 			continue ;
 		}
 
 		updateData() ;
-		if ( pcmd.error() )  { termEdit = false ; continue ; }
+		if ( pcmd.error() )
+		{
+			termEdit    = false ;
+			dataUpdated = false ;
+			uarea       = zarea ;
+			continue ;
+		}
+
+		setLineLabels() ;
+		if ( pcmd.error() )
+		{
+			termEdit = false ;
+			continue ;
+		}
 
 		actionZVERB() ;
 		if ( pcmd.msgset() ) { continue ; }
 
-		actionPrimCommand1() ;
+		actionPrimCommand2() ;
 		if ( pcmd.error() )  { termEdit = false ; continue ; }
 
 		processNewInserts()  ;
@@ -537,7 +584,7 @@ void PEDIT01::Edit()
 		actionLineCommands() ;
 		if ( pcmd.error() )  { termEdit = false ; }
 
-		actionPrimCommand2() ;
+		actionPrimCommand3() ;
 		if ( pcmd.error() )  { termEdit = false ; continue ; }
 
 		if ( termEdit && !pcmd.error() )
@@ -1016,11 +1063,11 @@ void PEDIT01::fill_dynamic_area()
 
 	const char nulls( 0x00 ) ;
 
-	const string din1( 1, 0x01 ) ;
-	const string din2( 1, 0x02 ) ;
+	const string din1( 1, DATAIN1 ) ;
+	const string din2( 1, DATAIN2 ) ;
 
-	const string dout1( 1, 0x03 ) ;
-	const string dout2( 1, 0x04 ) ;
+	const string dout1( 1, DATAOUT1 ) ;
+	const string dout2( 1, DATAOUT2 ) ;
 
 	vector<iline* >::iterator it ;
 
@@ -1366,7 +1413,7 @@ void PEDIT01::protNonDisplayChars()
 	int j ;
 	int k ;
 
-	const char din1(0x01) ;
+	const char din1( DATAIN1 ) ;
 
 	xarea = string( zasize, ' ' ) ;
 	for ( i = 0 ; i < zaread ; i++ )
@@ -1386,26 +1433,57 @@ void PEDIT01::protNonDisplayChars()
 
 void PEDIT01::replace_datain()
 {
-	// Reset any datain bytes that have changed to USERMOD (touched) when we are not rebuilding zarea.
-	// Also update the shadow variable to remove overtyping hilight.
+	// Reset any datain bytes that have changed to USERMOD (touched) or DATAMOD (changed) when
+	// we are not rebuilding zarea.  Also update the shadow variable to remove overtyping hilight.
 
 	uint off ;
 
-	const char duserMod(0x04) ;
+	const char duserMod(USERMOD) ;
+	const char ddataMod(DATAMOD) ;
 
 	for ( int i = 0 ; i < zaread ; i++ )
 	{
 		off = i * zareaw ;
-		if ( zarea[ off ] == duserMod )
+		if ( zarea[ off ] == duserMod ||
+		     zarea[ off ] == ddataMod )
 		{
 			zarea[ off ] = carea[ off ] ;
 			zshadow.replace( off, 6, cshadow, off, 6 ) ;
 		}
 		off = off + 7 ;
-		if ( zarea[ off ] == duserMod )
+		if ( zarea[ off ] == duserMod ||
+		     zarea[ off ] == ddataMod )
 		{
 			zarea[ off ] = carea[ off ] ;
 			zshadow.replace( off, zdataw, cshadow, off, zdataw ) ;
+		}
+	}
+}
+
+
+void PEDIT01::replace_usermods()
+{
+	// If the screen data has not been processed due to an error, replace usermod/datamod bytes
+	// in zarea from uarea on display return so we don't lose any screen updates.
+
+	uint off ;
+
+	const char duserMod(USERMOD) ;
+	const char ddataMod(DATAMOD) ;
+
+	for ( int i = 0 ; i < zaread ; i++ )
+	{
+		off = i * zareaw ;
+		if ( uarea[ off ] == duserMod ||
+		     uarea[ off ] == ddataMod )
+		{
+			zarea[ off ] = uarea[ off ] ;
+		}
+		off = off + 7 ;
+		if ( uarea[ off ] == duserMod ||
+		     uarea[ off ] == ddataMod )
+		{
+			zarea[ off ] = uarea[ off ] ;
 		}
 	}
 }
@@ -1548,10 +1626,8 @@ void PEDIT01::getZAREAchanges()
 	string lcc ;
 	string lab ;
 
-	const char duserMod(0x04) ;
-	const char ddataMod(0x05) ;
-
-	ztouched = false ;
+	const char duserMod(USERMOD) ;
+	const char ddataMod(DATAMOD) ;
 
 	for ( i = 0 ; i < zaread ; i++ )
 	{
@@ -1570,7 +1646,7 @@ void PEDIT01::getZAREAchanges()
 		if ( changed )
 		{
 			zarea[ off ] = ddataMod ;
-			ztouched     = true     ;
+			zchanged     = true     ;
 		}
 		else if ( touched )
 		{
@@ -1593,7 +1669,7 @@ void PEDIT01::getZAREAchanges()
 		if ( zarea[ off ] == ddataMod )
 		{
 			lChanged[ i ] = true ;
-			ztouched      = true ;
+			zchanged      = true ;
 			lcc = "" ;
 			if ( dlx->il_lcc == "" && !dlx->hasLabel() )
 			{
@@ -1691,7 +1767,7 @@ void PEDIT01::getZAREAchanges()
 			}
 			rebuildZAREA = true ;
 		}
-		if ( zarea[ off ] == duserMod )
+		else if ( zarea[ off ] == duserMod )
 		{
 			ztouched = true ;
 		}
@@ -1703,7 +1779,7 @@ void PEDIT01::getZAREAchanges()
 		else if ( zarea[ off + 7 ] == ddataMod )
 		{
 			dChanged[ i ] = true ;
-			ztouched      = true ;
+			zchanged      = true ;
 		}
 	}
 
@@ -1794,7 +1870,7 @@ void PEDIT01::updateData()
 				t = carea.substr( j, 2 ) ;
 				if ( s[ 0 ] == ' ' ) { s[ 0 ] = t[ 0 ] ; }
 				if ( s[ 1 ] == ' ' ) { s[ 1 ] = t[ 1 ] ; }
-				if ( !ishex( s ) ) { pcmd.set_msg( "PEDT011K" ) ; return  ; }
+				if ( !ishex( s ) ) { pcmd.set_msg( "PEDT011K" ) ; return ; }
 				if ( s == t ) { continue ; }
 				zarea[ k ] = xs2cs( s )[ 0 ] ;
 				m          = k - l1 ;
@@ -1939,6 +2015,7 @@ void PEDIT01::updateData()
 		}
 		rebuildZAREA = true ;
 	}
+	dataUpdated = true ;
 }
 
 
@@ -2037,7 +2114,53 @@ void PEDIT01::processNewInserts()
 
 void PEDIT01::actionPrimCommand1()
 {
-	// Action primary command.  These commands are executed before line command processing
+	// Action primary command.
+	// These commands are executed after finding data changes but before updating the data
+
+	if ( pcmd.get_cmd_words() == 0 ) { return ; }
+
+	string w1 = upper( word( pcmd.get_cmd(), 2 ) ) ;
+
+	switch ( pcmd.p_cmd )
+	{
+	case PC_REDO:
+			if ( w1 == "" )
+			{
+				actionREDO() ;
+			}
+			else if ( w1 == "ALL" )
+			{
+				while ( actionREDO() ) ;
+			}
+			else
+			{
+				pcmd.set_msg( "PEDT011" ) ;
+			}
+			break ;
+
+	case PC_UNDO:
+			if ( w1 == "" )
+			{
+			actionUNDO() ;
+			}
+			else if ( w1 == "ALL" )
+			{
+				while ( actionUNDO() ) ;
+			}
+			else
+			{
+				pcmd.set_msg( "PEDT011" ) ;
+			}
+			break ;
+
+	}
+}
+
+
+void PEDIT01::actionPrimCommand2()
+{
+	// Action primary command.
+	// These commands are executed before line command processing
 
 	uint i  ;
 	uint j  ;
@@ -2446,9 +2569,10 @@ void PEDIT01::actionPrimCommand1()
 }
 
 
-void PEDIT01::actionPrimCommand2()
+void PEDIT01::actionPrimCommand3()
 {
-	// Action primary command.  These commands are executed after line command processing
+	// Action primary command.
+	// These commands are executed after line command processing
 
 	int RC1 ;
 	int ws  ;
@@ -3533,15 +3657,6 @@ void PEDIT01::actionPrimCommand2()
 			updateProfLines( Prof ) ;
 			break ;
 
-	case PC_REDO:
-			if ( w2 == "" ) { actionREDO() ; }
-			else if ( w2 == "ALL" )
-			{
-				while ( actionREDO() ) ;
-			}
-			else { pcmd.set_msg( "PEDT011" ) ; break ; }
-			break ;
-
 	case PC_SAVE:
 			pcmd.setActioned() ;
 			if ( !saveFile() ) { break                         ; }
@@ -3715,15 +3830,6 @@ void PEDIT01::actionPrimCommand2()
 			}
 			buildProfLines( Prof )  ;
 			updateProfLines( Prof ) ;
-			break ;
-
-	case PC_UNDO:
-			if ( w2 == "" ) { actionUNDO() ; }
-			else if ( w2 == "ALL" )
-			{
-				while ( actionUNDO() ) ;
-			}
-			else { pcmd.set_msg( "PEDT011" ) ; break ; }
 			break ;
 
 	case PC_XTABS:
@@ -5612,7 +5718,17 @@ bool PEDIT01::actionUNDO()
 
 	bool isFile  ;
 
-	if ( !profUndoOn ) { pcmd.set_msg( "PEDT011U" ) ; return false ; }
+	if ( !profUndoOn )
+	{
+		pcmd.set_msg( "PEDT011U" ) ;
+		return false ;
+	}
+
+	if ( zchanged )
+	{
+		pcmd.set_msg( "PEDT016K" ) ;
+		return false ;
+	}
 
 	auto it = data.begin() ;
 	lvl = (*it)->get_Global_Undo_level() ;
@@ -5672,7 +5788,17 @@ bool PEDIT01::actionREDO()
 
 	bool isFile ;
 
-	if ( !profUndoOn ) { pcmd.set_msg( "PEDT011U" ) ; return false ; }
+	if ( !profUndoOn )
+	{
+		pcmd.set_msg( "PEDT011U" ) ;
+		return false ;
+	}
+
+	if ( zchanged )
+	{
+		pcmd.set_msg( "PEDT016K" ) ;
+		return false ;
+	}
 
 	auto it = data.begin() ;
 	lvl = (*it)->get_Global_Redo_level() ;
@@ -6143,7 +6269,7 @@ void PEDIT01::hiliteFindPhrase()
 					if ( ln <= 0 ) { continue ; }
 					s1 = 0 ;
 				}
-				zshadow.replace( (zareaw*i + CLINESZ + s1 ), ln, string( ln, R_WHITE ) ) ;
+				zshadow.replace( (zareaw*i + CLINESZ + s1 ), ln, string( ln, G_WHITE ) ) ;
 				if ( fcx_parms.f_ocol ) { break ; }
 			}
 		}
@@ -6181,7 +6307,7 @@ void PEDIT01::hiliteFindPhrase()
 					if ( ln <= 0 ) { continue ; }
 					s1 = 0 ;
 				}
-				zshadow.replace( (zareaw*i + CLINESZ + s1 ), ln, string( ln, R_WHITE ) ) ;
+				zshadow.replace( (zareaw*i + CLINESZ + s1 ), ln, string( ln, G_WHITE ) ) ;
 				if ( fcx_parms.f_ocol ) { break ; }
 			}
 		}
@@ -10336,6 +10462,7 @@ void PEDIT01::run_macro( const string& macro, bool imacro, bool lcmacro )
 	if ( !miBlock.getMacroFileName( miBlock.rxpath2 ) )
 	{
 		pcmd.set_msg( miBlock.RC > 8 ? "PEDM012Q" : "PEDT015A" ) ;
+		placeCursor( 0, 0 ) ;
 		return ;
 	}
 
@@ -11290,10 +11417,10 @@ void PEDIT01::actionService()
 			else                   { pcmd.set_cmd( miBlock.sttment, defNames )                       ; }
 			if ( !pcmd.error() )
 			{
-				actionPrimCommand1() ;
+				actionPrimCommand2() ;
 				if ( !pcmd.error() && !pcmd.isActioned() )
 				{
-					actionPrimCommand2() ;
+					actionPrimCommand3() ;
 					if ( !pcmd.isActioned() )
 					{
 						macAppl->vreplace( "ZSTR1", pcmd.get_cmd() ) ;

@@ -2221,7 +2221,6 @@ void tableMGR::destroyTable( errblock& err,
 			     const string& tb_name )
 {
 	// RC =  0 Normal completion
-	// RC =  4 Normal completion - use count decremented
 	// RC = 12 Table not open
 
 	err.setRC( 0 ) ;
@@ -2240,10 +2239,6 @@ void tableMGR::destroyTable( errblock& err,
 	{
 		delete it->second  ;
 		tables.erase( it ) ;
-	}
-	else
-	{
-		err.setRC( 4 ) ;
 	}
 }
 
@@ -2686,6 +2681,9 @@ void tableMGR::tbvclear( errblock& err,
 bool tableMGR::writeableTable( errblock& err,
 			       const string& tb_name )
 {
+	// RC =  0 Normal completion
+	// RC = 12 Table not open
+
 	err.setRC( 0 ) ;
 
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
