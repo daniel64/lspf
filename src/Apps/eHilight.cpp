@@ -176,11 +176,11 @@ void addCppHilight( hilight& h, const string& line, string& shadow )
 			j = p1 - 1 ;
 			continue   ;
 		}
-		if ( line[ j ] == '(' ) { oBrac1++ ; shadow[ j ] = ( oBrac1 + 3 ) % 7 + 7 ; continue ; }
+		if ( line[ j ] == '(' ) { oBrac1++ ; shadow[ j ] = oBrac1 % 7 + 11 ; continue ; }
 		if ( line[ j ] == ')' )
 		{
 			if ( oBrac1 == 0 ) { shadow[ j ] = G_WHITE ; }
-			else               { shadow[ j ] = ( oBrac1 + 3 ) % 7 + 7 ; oBrac1-- ; }
+			else               { shadow[ j ] = oBrac1 % 7 + 11 ; oBrac1-- ; }
 			continue ;
 		}
 		if ( h.hl_doLogic )
@@ -188,13 +188,13 @@ void addCppHilight( hilight& h, const string& line, string& shadow )
 			if ( line[ j ] == '{' )
 			{
 				oBrac2++ ;
-				shadow[ j ] = ( oBrac2 + 3 ) % 7 + 7 ;
+				shadow[ j ] = oBrac2 % 7 + 11 ;
 				continue ;
 			}
 			else if ( line[ j ] == '}' )
 			{
 				if ( oBrac2 == 0 ) { shadow[ j ] = G_WHITE ; }
-				else               { shadow[ j ] = ( oBrac2 + 3 ) % 7 + 7 ; oBrac2-- ; }
+				else               { shadow[ j ] = oBrac2 % 7 + 11 ; oBrac2-- ; }
 				continue ;
 			}
 		}
@@ -456,11 +456,11 @@ void addRxxHilight( hilight& h, const string& line, string& shadow )
 			j = p1 - 1 ;
 			continue ;
 		}
-		if ( line[ j ] == '(' ) { oBrac1++ ; shadow[ j ] = ( oBrac1 + 3 ) % 7 + 7 ; continue ; }
+		if ( line[ j ] == '(' ) { oBrac1++ ; shadow[ j ] = oBrac1 % 7 + 11 ; continue ; }
 		if ( line[ j ] == ')' )
 		{
 			if ( oBrac1 == 0 ) { shadow[ j ] = G_WHITE ; }
-			else               { shadow[ j ] = ( oBrac1 + 3 ) % 7 + 7 ; oBrac1-- ; }
+			else               { shadow[ j ] = oBrac1 % 7 + 11 ; oBrac1-- ; }
 			continue ;
 		}
 		if ( line[ j ] == '=' ) { shadow[ j ] = E_YELLOW ; continue ; }
@@ -629,11 +629,11 @@ void addPanHilight( hilight& h, const string& line, string& shadow )
 			j = p1 - 1 ;
 			continue ;
 		}
-		if ( line[ j ] == '(' ) { oBrac1++ ; shadow[ j ] = ( oBrac1 + 3 ) % 7 + 7 ; continue ; }
+		if ( line[ j ] == '(' ) { oBrac1++ ; shadow[ j ] = oBrac1 % 7 + 11 ; continue ; }
 		if ( line[ j ] == ')' )
 		{
 			if ( oBrac1 == 0 ) { shadow[ j ] = G_WHITE ; }
-			else               { shadow[ j ] = ( oBrac1 + 3 ) % 7 + 7 ; oBrac1-- ; }
+			else               { shadow[ j ] = oBrac1 % 7 + 11 ; oBrac1-- ; }
 			continue ;
 		}
 		if ( line[ j ] == '=' ) { shadow[ j ] = E_YELLOW ; continue ; }

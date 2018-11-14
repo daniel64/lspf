@@ -78,8 +78,9 @@ using namespace boost::filesystem ;
 #define E_MAGENTA  14
 #define E_TURQ     15
 #define E_WHITE    16
-#define G_RED      17
-#define G_WHITE    18
+
+#define G_RED      19
+#define G_WHITE    20
 
 map<int, int> maxURID ;
 map<int, bool> iline::setUNDO   ;
@@ -270,17 +271,16 @@ void PEDIT01::initialise()
 	zdataw = zareaw - CLINESZ ;
 	zasize = zareaw * zaread  ;
 
-	sdg.assign( zdataw,  E_GREEN )  ;
-	sdy.assign( zdataw,  E_YELLOW ) ;
-	sdw.assign( zdataw,  E_WHITE )  ;
-	sdr.assign( zdataw,  E_RED )    ;
+	sdg.assign( zdataw, E_GREEN )  ;
+	sdy.assign( zdataw, E_YELLOW ) ;
+	sdw.assign( zdataw, E_WHITE )  ;
+	sdr.assign( zdataw, E_RED )    ;
+	sdb.assign( zdataw, E_BLUE )   ;
 
 	slg.assign( CLINESZ, E_GREEN )  ;
 	sly.assign( CLINESZ, E_YELLOW ) ;
 	slw.assign( CLINESZ, E_WHITE )  ;
 	slr.assign( CLINESZ, E_RED )    ;
-
-	sdb.assign( zdataw, E_BLUE )    ;
 
 	div.assign( zareaw-1, '-' )     ;
 
@@ -391,6 +391,7 @@ void PEDIT01::Edit()
 	colsOn        = false ;
 	hideExcl      = false ;
 	abendComplete = false ;
+	scrollData    = false ;
 	termEdit      = false ;
 	XTabz         = 0     ;
 	ptopLine      = 0     ;
@@ -451,8 +452,6 @@ void PEDIT01::Edit()
 		}
 
 		rebuildShadow = false ;
-		ztouched      = false ;
-		zchanged      = false ;
 
 		protNonDisplayChars() ;
 
@@ -462,6 +461,8 @@ void PEDIT01::Edit()
 		zcol2 = d2ds( startCol+zdataw-1, 5 ) ;
 
 		positionCursor() ;
+
+		if ( profNulls ) { addNulls() ; }
 
 		if ( optFindPhrase && profFindPhrase && fcx_parms.f_fset )
 		{
@@ -491,10 +492,13 @@ void PEDIT01::Edit()
 		pcmd.clear_msg() ;
 		clearCursor()    ;
 
+		ztouched    = false ;
+		zchanged    = false ;
 		creActive   = false ;
 		cutActive   = false ;
 		copyActive  = false ;
 		pasteActive = false ;
+		scrollData  = false ;
 
 		if ( wordpos( upper( zcmd ), "CAN CANCEL" ) )
 		{
@@ -505,10 +509,10 @@ void PEDIT01::Edit()
 		{
 			curfld = zcurfld ;
 			curpos = zcurpos ;
-			aRow   = ((curpos-1) / zareaw + 1)    ;
-			aCol   = ((curpos-1) % zareaw + 1)    ;
+			aRow   = ((curpos-1) / zareaw + 1) ;
+			aCol   = ((curpos-1) % zareaw + 1) ;
 			aURID  = s2data.at( aRow-1 ).ipos_URID ;
-			aLCMD  = ( aCol > 0 && aCol < 9 )     ;
+			aLCMD  = ( aCol > 0 && aCol < 9 )  ;
 		}
 		else
 		{
@@ -560,9 +564,10 @@ void PEDIT01::Edit()
 		updateData() ;
 		if ( pcmd.error() )
 		{
-			termEdit    = false ;
-			dataUpdated = false ;
-			uarea       = zarea ;
+			termEdit     = false ;
+			dataUpdated  = false ;
+			uarea        = zarea ;
+			rebuildZAREA = false ;
 			continue ;
 		}
 
@@ -590,6 +595,7 @@ void PEDIT01::Edit()
 		if ( termEdit && !pcmd.error() )
 		{
 			if ( !termOK() ) { termEdit = false ; }
+			else             { continue         ; }
 		}
 
 		moveCursorEnter() ;
@@ -1037,9 +1043,6 @@ void PEDIT01::fill_dynamic_area()
 	// ipos_dl of s2data is only valid while the data vector has not changed since building the screen
 	// ie. after fill_dynamic_area until the end of procedure processNewInserts()
 
-	// BUG:  NULLS ON should put nulls at the end-of-data to the right margin, even if there is more
-	//       data after.
-
 	int i  ;
 	int j  ;
 	int ln ;
@@ -1051,7 +1054,7 @@ void PEDIT01::fill_dynamic_area()
 	uint l  ;
 
 
-	ipos ip ;
+	ipos ip( zdataw ) ;
 
 	string t1 ;
 	string t2 ;
@@ -1087,7 +1090,7 @@ void PEDIT01::fill_dynamic_area()
 	if ( data.at( topLine )->il_deleted ) { topLine = getNextDataLine( topLine ) ; }
 
 	fl = getFileLine( topLine ) - 1 ;
-	for ( i = 0 ; i < zaread ; i++ ) { s2data[ i ] = ip ; lchar[ i ] = zdataw ; }
+	for ( i = 0 ; i < zaread ; i++ ) { s2data[ i ] = ip ; }
 
 	for ( sl = 0, dl = topLine ; dl < data.size() ; dl++ )
 	{
@@ -1108,7 +1111,7 @@ void PEDIT01::fill_dynamic_area()
 			fl = getFileLine( dl ) ;
 			continue ;
 		}
-		ip.clear() ;
+		ip.clear( zdataw ) ;
 		if ( (*it)->il_excl )
 		{
 			elines          = getExclBlockSize( dl ) ;
@@ -1189,38 +1192,33 @@ void PEDIT01::fill_dynamic_area()
 		}
 		if ( (*it)->is_file() || (*it)->is_isrt() )
 		{
-			if ( (*it)->il_hex || profHex )
+			t1 = (*it)->get_idata() ;
+			ln = (*it)->get_idata_len() - startCol + 1 ;
+			if      ( ln < 0 )      { ln = 0      ; }
+			else if ( ln > zdataw ) { ln = zdataw ; }
+			if ( !profNulls )
 			{
-				t1 = (*it)->get_idata() ;
-				ln = (*it)->get_idata_len() - startCol + 1 ;
-				if      ( ln < 0 )      { ln = 0      ; }
-				else if ( ln > zdataw ) { ln = zdataw ; }
-				if ( !profNulls )
+				t1 = substr( t1, startCol, zdataw ) ;
+			}
+			else
+			{
+				if ( t1.size() > (startCol - 1) )
 				{
-					t1 = substr( t1, startCol, zdataw ) ;
+					t1.erase( 0, startCol-1 ) ;
+					if ( !profNullA && t1.size() > 0 && t1.size() < zdataw && t1.back() != ' ' )
+					{
+						ln++ ;
+					}
 				}
 				else
 				{
-					if ( t1.size() > (startCol - 1) )
-					{
-						t1.erase( 0, startCol-1 ) ;
-					}
-					else
-					{
-						if ( profNullA ) { t1 = ""                    ; }
-						else             { t1 = string( zdataw, ' ' ) ; }
-					}
-					if ( !profNullA && t1.size() < zdataw )
-					{
-						if ( t1 == "" || t1.back() != ' ' )
-						{
-							t1.push_back( ' ' ) ;
-							ln++ ;
-						}
-					}
-					t1.resize( zdataw, nulls ) ;
-					lchar[ zarea.size() / zareaw ] = ln ;
+					t1 = string( zdataw, ' ' ) ;
 				}
+				t1.resize( zdataw, ' ' ) ;
+				ip.ipos_lchar = ln ;
+			}
+			if ( (*it)->il_hex || profHex )
+			{
 				zarea += din1 + lcc + din1 + t1 ;
 				if      ( (*it)->is_isrt() ) { zshadow += sdy                          ; }
 				else if ( (*it)->il_mark   ) { zshadow.back() = G_RED ; zshadow += sdw ; }
@@ -1244,8 +1242,8 @@ void PEDIT01::fill_dynamic_area()
 				}
 				else
 				{
-					t3  = cs2xs( t1.substr( 0, t1.find( nulls ) ) ) ;
-					t3 += copies( "20", (zdataw*2-t3.size())/2 ) ;
+					t3  = cs2xs( t1.substr( 0, ln ) ) ;
+					t3 += copies( "20", ( zdataw*2-t3.size() )/2 ) ;
 					t4  = t3.substr( zdataw ) ;
 					t3.erase( zdataw ) ;
 				}
@@ -1272,36 +1270,6 @@ void PEDIT01::fill_dynamic_area()
 			}
 			else
 			{
-				if ( !profNulls )
-				{
-					t1 = substr( (*it)->get_idata(), startCol, zdataw ) ;
-				}
-				else
-				{
-					t1 = (*it)->get_idata() ;
-					ln = (*it)->get_idata_len() - startCol + 1 ;
-					if      ( ln < 0 )      { ln = 0      ; }
-					else if ( ln > zdataw ) { ln = zdataw ; }
-					if ( t1.size() > (startCol - 1) )
-					{
-						t1.erase( 0, startCol-1 ) ;
-					}
-					else
-					{
-						if ( profNullA ) { t1 = ""                    ; }
-						else             { t1 = string( zdataw, ' ' ) ; }
-					}
-					if ( !profNullA && t1.size() < zdataw )
-					{
-						if ( t1 != "" && t1.back() != ' ' )
-						{
-							t1.push_back( ' ' ) ;
-							ln++ ;
-						}
-					}
-					t1.resize( zdataw, nulls ) ;
-					lchar[ zarea.size() / zareaw ] = ln ;
-				}
 				zarea += din1 + lcc + din1 + t1 ;
 				if      ( (*it)->is_isrt() ) { zshadow += sdy                          ; }
 				else if ( (*it)->il_mark   ) { zshadow.back() = G_RED ; zshadow += sdw ; }
@@ -1404,6 +1372,63 @@ void PEDIT01::fill_dynamic_area()
 }
 
 
+void PEDIT01::addNulls()
+{
+	// Convert trailing spaces to nulls, or from the cursor position
+
+	int i = 0 ;
+	int j ;
+	int k ;
+	int dl  ;
+	int row ;
+	int col ;
+	int prc = -1 ;
+
+	if ( curfld == "ZAREA" )
+	{
+		row = ((curpos-1) / zareaw + 1)  ;
+		col = ((curpos-1) % zareaw + 1)  ;
+		dl  = s2data.at( row-1 ).ipos_dl ;
+		if ( col > 8                            &&
+		     ( data.at( dl )->isValidFile( ) ||
+		       data.at( dl )->is_isrt() )       &&
+		      !data.at( dl )->il_excl           &&
+		       s2data.at( row-1 ).ipos_hex == 0 &&
+		      !s2data.at( row-1 ).ipos_div      &&
+		       (col - 9) > s2data.at( row-1 ).ipos_lchar )
+		{
+			j = col - 9 - s2data.at( row-1 ).ipos_lchar ;
+			k = s2data.at( row-1 ).ipos_lchar + 8 ;
+			zarea.replace( (row-1)*zareaw + k, j, j, 0x20 ) ;
+			zarea.replace( curpos-1, zareaw-col+1, zareaw-col+1, 0x00 ) ;
+			prc = dl ;
+		}
+	}
+
+	for ( auto it = s2data.begin() ; it != s2data.end() ; it++, i++ )
+	{
+
+		if ( ( not data.at( it->second.ipos_dl )->isValidFile() &&
+		       not data.at( it->second.ipos_dl )->is_isrt() )   ||
+			   it->second.ipos_hex > 0                      ||
+			   it->second.ipos_div                          ||
+			   data.at( it->second.ipos_dl )->il_excl       ||
+			   prc == it->second.ipos_dl )   { continue ; }
+
+		if ( not profNullA && it->second.ipos_lchar == 0 )
+		{
+			zarea.replace( i*zareaw + 8, zdataw, zdataw, 0x20 ) ;
+		}
+		else
+		{
+			j = zdataw - it->second.ipos_lchar ;
+			k = it->second.ipos_lchar + 8 ;
+			zarea.replace( i*zareaw + k, j, j, 0x00 ) ;
+		}
+	}
+}
+
+
 void PEDIT01::protNonDisplayChars()
 {
 	// Protect non-display characters in ZAREA by replacing with datain attribute and store original in XAREA.
@@ -1412,6 +1437,7 @@ void PEDIT01::protNonDisplayChars()
 	int i ;
 	int j ;
 	int k ;
+	int l ;
 
 	const char din1( DATAIN1 ) ;
 
@@ -1419,7 +1445,8 @@ void PEDIT01::protNonDisplayChars()
 	for ( i = 0 ; i < zaread ; i++ )
 	{
 		k = i * zareaw + 8 ;
-		for ( j = 0 ; j < lchar[ i ] ; j++, k++ )
+		l = s2data[ i ].ipos_lchar ;
+		for ( j = 0 ; j < l ; j++, k++ )
 		{
 			if ( !isprint( zarea[ k ] ) )
 			{
@@ -1764,6 +1791,8 @@ void PEDIT01::getZAREAchanges()
 			else
 			{
 				dlx->il_lcc = lcc ;
+				zarea.replace( off+1, 6, left( lcc, 6 ) ) ;
+				cshadow.replace( off, 8, slr ) ;
 			}
 			rebuildZAREA = true ;
 		}
@@ -1794,20 +1823,18 @@ void PEDIT01::updateData()
 	// If only one of the hex lines is visible, use the low 4-bits from the character data (for HEX VERT)
 
 	// Update shadow variable (0x00 until EOD, then 0xFF) and convert nulls to spaces in ZAREA for
-	// any changes past the old EOD (old EOD is max of lchar,shadow0xFF).  This is in case NULLS is ON.
+	// any changes past the old EOD (old EOD is max of ipos_lchar,shadow0xFF).  This is in case NULLS is ON.
 
 	// In the shadow variable, 0xFE indicates a character delete, 0xFF indicates nulls->spaces conversion.
 
-	// BUG: Does not work correctly for adding nulls in hex display with NULLS ON
-
 	int d ;
-	int i ;
 	int p ;
 
 	size_t p1  ;
 	size_t k   ;
 	size_t m   ;
 	size_t n   ;
+	size_t l   ;
 	size_t ln  ;
 	size_t l1  ;
 	size_t l1e ;
@@ -1815,17 +1842,23 @@ void PEDIT01::updateData()
 	size_t l2  ;
 	size_t l3  ;
 
-	uint j  ;
+	uint i ;
+	uint j ;
 
 	string s ;
 	string t ;
 
 	iline* dlx ;
 
+	set<int> isrt_set ;
+
 	Level++ ;
 	for ( i = 0 ; i < zaread ; i++ )
 	{
-		if ( !dChanged[ i ] || s2data.at( i ).ipos_hex == 0 ) { continue ; }
+		if ( !dChanged[ i ] || s2data.at( i ).ipos_hex == 0 )
+		{
+			continue ;
+		}
 		ln  = i - s2data.at(i).ipos_hex ;
 		l1  = ln * zareaw + CLINESZ ;
 		l1h = l1 + zdataw/2 - 1     ;
@@ -1836,11 +1869,14 @@ void PEDIT01::updateData()
 		dChanged[ ln ] = true ;
 		if ( profVert )
 		{
-			if ( s2data.at( i ).ipos_hex == 1 ) { dChanged[ i+1 ] = false ; }
+			if ( s2data.at( i ).ipos_hex == 1 )
+			{
+				dChanged[ i+1 ] = false ;
+			}
 			for ( j = l2, k = l1 ; k <= l1e ; j++, k++ )
 			{
-				s = zarea[ j ] ;
-				t = carea[ j ] ;
+				s = string( 1, zarea[ j ] ) ;
+				t = string( 1, carea[ j ] ) ;
 				if ( s == " " ) { s = t ; }
 				if ( j+zareaw < zasize )
 				{
@@ -1853,45 +1889,73 @@ void PEDIT01::updateData()
 					s.push_back( cs2xs( zarea[ k ] )[ 1 ] ) ;
 					t.push_back( cs2xs( carea[ k ] )[ 1 ] ) ;
 				}
-				if ( !ishex( s ) ) { pcmd.set_msg( "PEDT011K" ) ; return  ; }
-				if ( s == t ) { continue ; }
+				if ( !ishex( s ) )
+				{
+					iupper( zarea, l2, l2+zdataw-1 ) ;
+					iupper( zarea, l3, l3+zdataw-1 ) ;
+					pcmd.set_msg( "PEDT011K" ) ;
+					placeCursor( ishex( s.front() ) ? i+2 : i+1, 5, k-l1 ) ;
+					return ;
+				}
+				if ( ( ( k-l1 <= s2data[ ln ].ipos_lchar ) && s == t ) ||
+				     ( ( k-l1 >  s2data[ ln ].ipos_lchar ) && s == t && s != "00" ) ) { continue ; }
 				zarea[ k ] = xs2cs( s )[ 0 ] ;
-				m          = k - l1 ;
-				rebuildZAREA = true ;
+				isrt_set.insert( k ) ;
+				m = k - l1 ;
 			}
 		}
 		else
 		{
-			if ( s2data.at( i ).ipos_hex == 1 ) { j = l2 ; k = l1    ; n = l1h ; }
-			else                                { j = l3 ; k = l1h+1 ; n = l1e ; }
-			for ( ; k <= n ; j=j+2, k++ )
+			if ( s2data.at( i ).ipos_hex == 1 )
+			{
+				l = l2  ;
+				j = l2  ;
+				k = l1  ;
+				n = l1h ;
+			}
+			else
+			{
+				l = l3    ;
+				j = l3    ;
+				k = l1h+1 ;
+				n = l1e   ;
+			}
+			for ( ; k <= n ; j += 2, k++ )
 			{
 				s = zarea.substr( j, 2 ) ;
 				t = carea.substr( j, 2 ) ;
 				if ( s[ 0 ] == ' ' ) { s[ 0 ] = t[ 0 ] ; }
 				if ( s[ 1 ] == ' ' ) { s[ 1 ] = t[ 1 ] ; }
-				if ( !ishex( s ) ) { pcmd.set_msg( "PEDT011K" ) ; return ; }
-				if ( s == t ) { continue ; }
+				if ( !ishex( s ) )
+				{
+					iupper( zarea, l2, l2+zdataw-1 ) ;
+					iupper( zarea, l3, l3+zdataw-1 ) ;
+					pcmd.set_msg( "PEDT011K" ) ;
+					placeCursor( i+1, 5, ishex( s.front() ) ? j-l+1 : j-l ) ;
+					return ;
+				}
+				if ( ( ( k-l1 <= s2data[ ln ].ipos_lchar ) && s == t ) ||
+				     ( ( k-l1 >  s2data[ ln ].ipos_lchar ) && s == t && s != "00" ) ) { continue ; }
 				zarea[ k ] = xs2cs( s )[ 0 ] ;
-				m          = k - l1 ;
-				rebuildZAREA = true ;
+				isrt_set.insert( k ) ;
+				m = k - l1 ;
 			}
 		}
 		n = zshadow.find_last_not_of( 0xFF, l1e ) ;
 		if ( n == string::npos || n < l1 )
 		{
-			n = lchar[ ln ] ;
+			n = s2data[ ln ].ipos_lchar ;
 		}
 		else
 		{
-			n = n - l1 + 1  ;
-			if ( n == zdataw ) { n = lchar[ ln ] ; }
+			n = n - l1 + 1 ;
+			if ( n == zdataw ) { n = s2data[ ln ].ipos_lchar ; }
 		}
 		if ( m >= n )
 		{
-			for ( j = n ; j < m ; j++ )
+			for ( j = n ; j <= m ; j++ )
 			{
-				if ( zarea[ l1+j ] == 0x00 )
+				if ( isrt_set.count( l1+j ) == 0 )
 				{
 					zarea[ l1+j ] = 0x20 ;
 				}
@@ -1900,11 +1964,16 @@ void PEDIT01::updateData()
 		}
 		zshadow.replace( l1, n, n, 0x00 ) ;
 		zshadow.replace( l1+n, zdataw-n, zdataw-n, 0xFF ) ;
+		rebuildZAREA = true ;
 	}
 
 	for ( i = 0 ; i < zaread ; i++ )
 	{
-		if ( s2data.at( i ).ipos_URID == 0 || s2data.at( i ).ipos_hex > 0 ) { continue ; }
+		if ( ( s2data.at( i ).ipos_URID == 0 || s2data.at( i ).ipos_hex > 0 ) ||
+		     ( !dTouched[ i ] && !dChanged[ i ] ) )
+		{
+			continue ;
+		}
 		dlx = s2data.at( i ).ipos_addr ;
 		if ( dTouched[ i ] )
 		{
@@ -1926,8 +1995,8 @@ void PEDIT01::updateData()
 			}
 			continue ;
 		}
-		if ( !dChanged[ i ] ) { continue ; }
-		if (  dlx->is_bnds() )
+
+		if ( dlx->is_bnds() )
 		{
 			t = zarea.substr( CLINESZ+(i*zareaw), zdataw ) ;
 			p = LeftBnd - startCol ;
@@ -2025,17 +2094,17 @@ void PEDIT01::processNewInserts()
 	// has been entered or command field changed.
 
 	// Update ipos_URID of the deleted line in s2data, to the URID of the next valid file line.
-
 	// Add a new line below inserted lines when changed/touched and cursor is on the line still
+	// Delete any new inserts before topLine.
 
 	// ipos_dl no longer valid after this routine as it potentially changes the data vector.
 	// Use ipos_addr (preferred) or ipos_URID instead.
 
 	// BUG: May still be used in various places after this routine!!
-	// BUG: Only deletes lines displayed on the screen.  Should do all, above and below the display area.
 
 	int i ;
-	int URID ;
+	int URID  ;
+	int tURID ;
 
 	size_t k ;
 
@@ -2045,14 +2114,17 @@ void PEDIT01::processNewInserts()
 	vector<iline*>::iterator itt ;
 
 	Level++ ;
+
 	for ( i = zaread-1 ; i >= 0 ; i-- )
 	{
-		if ( s2data.at( i ).ipos_URID == 0 || s2data.at( i ).ipos_hex > 0 ) { continue ; }
+		if ( s2data.at( i ).ipos_URID == 0 ||
+		     s2data.at( i ).ipos_div       ||
+		     s2data.at( i ).ipos_hex > 0 ) { continue ; }
 		it = getLineItr( s2data.at( i ).ipos_dl ) ;
 		if ( !(*it)->is_isrt() ) { continue ; }
 		if ( !dTouched[ i ] && !dChanged[ i ] )
 		{
-			if ( !lChanged[ i ] )
+			if ( !lChanged[ i ] && !scrollData )
 			{
 				if ( (*it)->il_lcc != "" ) { continue ; }
 				URID = (*it)->il_URID ;
@@ -2108,6 +2180,20 @@ void PEDIT01::processNewInserts()
 			fileChanged = true ;
 		}
 		rebuildZAREA = true ;
+	}
+
+	for ( tURID = data[ topLine ]->il_URID, it = data.begin() ; (*it)->il_URID != tURID && it != data.end() ; )
+	{
+		if ( (*it)->is_isrt() )
+		{
+			delete *it ;
+			it = data.erase( it ) ;
+			topLine-- ;
+		}
+		else
+		{
+			it++ ;
+		}
 	}
 }
 
@@ -3880,6 +3966,7 @@ void PEDIT01::actionLineCommands()
 			a->clearLcc() ;
 		} ) ;
 
+	Level++ ;
 	for ( auto itc = lcmds.begin() ; itc != lcmds.end() ; itc++ )
 	{
 		actionLineCommand( itc ) ;
@@ -3905,10 +3992,11 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 
 	// Treat an excluded block as though it were just one line for the purposes of the Rpt value
 
-	int i  ;
-	int l  ;
-	int j  ;
-	int k  ;
+	int i ;
+	int l ;
+	int j ;
+	int k ;
+	int vis ;
 
 	uint dl ;
 
@@ -3948,7 +4036,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 	switch ( itc->lcmd_cmd )
 	{
 	case LC_BOUNDS:
-		Level++ ;
 		il_its  = getLineItr( itc->lcmd_sURID ) ;
 		p_iline = new iline( taskid() ) ;
 		p_iline->il_type = LN_BNDS ;
@@ -3959,7 +4046,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 		break ;
 
 	case LC_COLS:
-		Level++ ;
 		il_its  = getLineItr( itc->lcmd_sURID ) ;
 		p_iline = new iline( taskid() ) ;
 		p_iline->il_type = LN_COL ;
@@ -3974,10 +4060,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 	case LC_M:
 	case LC_CC:
 	case LC_MM:
-		if ( !itc->lcmd_swap )
-		{
-			Level++ ;
-		}
 		vip.clear() ;
 		il_its = getLineItr( itc->lcmd_sURID ) ;
 		il_ite = getLineItr( itc->lcmd_eURID, il_its ) ;
@@ -4013,8 +4095,8 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 				il_its = getLineItr( itc->lcmd_dURID ) ;
 				il_ite = getLineItr( itc->lcmd_lURID, il_its ) ;
 				il_ite++ ;
-				j = 0    ;
-				k = 0    ;
+				j = 0 ;
+				k = 0 ;
 				if ( aLCMD ) { placeCursor( (*il_its)->il_URID, 1 ) ; }
 				for ( ; il_its != il_ite ; il_its++ )
 				{
@@ -4075,7 +4157,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 
 	case LC_D:
 	case LC_DD:
-		Level++ ;
 		il_its = getLineItr( itc->lcmd_sURID ) ;
 		il_ite = getLineItr( itc->lcmd_eURID, il_its ) ;
 		il_ite++ ;
@@ -4120,6 +4201,33 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 
 	case LC_I:
 		il_its = getLineItr( itc->lcmd_sURID ) ;
+		vis    = countVisibleLines( il_its ) ;
+		if ( vis == 0 )
+		{
+			for ( i = 0 ; topLine < ( data.size() - 1 ) ; topLine++ )
+			{
+				if ( data.at( topLine )->il_deleted ) { continue ; }
+				if ( data.at( topLine )->il_excl )
+				{
+					topLine = getLastEX( topLine ) ;
+					if ( hideExcl ) { topLine = getNextDataLine( topLine ) ; }
+					if ( topLine == data.size() - 1 ) { break ; }
+				}
+				if ( data.at( topLine )->isValidFile()       &&
+				    (data.at( topLine )->il_hex || profHex ) &&
+				    !datatype( zscrolla, 'W' ) )
+				{
+					break ;
+				}
+				i++ ;
+				if ( i > 1 ) { break ; }
+			}
+			if ( data.at( topLine )->il_excl )
+			{
+				topLine = getFirstEX( topLine ) ;
+			}
+			vis = 1 ;
+		}
 		k = (*il_its)->get_idata_ptr()->find_first_not_of( ' ', startCol-1 ) ;
 		if ( k == string::npos )
 		{
@@ -4143,7 +4251,7 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 			}
 		}
 		csrPlaced = false ;
-		for ( j = 0 ; j < itc->lcmd_Rpt ; j++ )
+		for ( j = 0 ; j < itc->lcmd_Rpt && j < vis ; j++ )
 		{
 			p_iline = new iline( taskid() ) ;
 			p_iline->il_type = LN_ISRT ;
@@ -4176,7 +4284,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 
 	case LC_LC:
 	case LC_LCC:
-		Level++ ;
 		il_its = getLineItr( itc->lcmd_sURID ) ;
 		il_ite = getLineItr( itc->lcmd_eURID, il_its ) ;
 		il_ite++ ;
@@ -4200,7 +4307,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 		break ;
 
 	case LC_MASK:
-		Level++ ;
 		il_its = getLineItr( itc->lcmd_sURID ) ;
 		if ( aLCMD ) { placeCursor( (*il_its)->il_URID, 1 ) ; }
 		p_iline          = new iline( taskid() ) ;
@@ -4212,7 +4318,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 
 	case LC_MD:
 	case LC_MDD:
-		Level++ ;
 		il_its = getLineItr( itc->lcmd_sURID ) ;
 		il_ite = getLineItr( itc->lcmd_eURID, il_its ) ;
 		il_ite++ ;
@@ -4256,7 +4361,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 
 	case LC_MN:
 	case LC_MNN:
-		Level++ ;
 		il_its = getLineItr( itc->lcmd_sURID ) ;
 		il_ite = getLineItr( itc->lcmd_eURID, il_its ) ;
 		il_ite++ ;
@@ -4290,7 +4394,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 		break ;
 
 	case LC_R:
-		Level++ ;
 		il_its = getLineItr( itc->lcmd_sURID ) ;
 		il_it  = il_its ;
 		tmp1   = (*il_it)->get_idata() ;
@@ -4314,7 +4417,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 		break ;
 
 	case LC_RR:
-		Level++ ;
 		vip.clear() ;
 		il_its = getLineItr( itc->lcmd_sURID ) ;
 		il_ite = getLineItr( itc->lcmd_eURID, il_its ) ;
@@ -4388,7 +4490,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 		break ;
 
 	case LC_TABS:
-		Level++ ;
 		il_its  = getLineItr( itc->lcmd_sURID ) ;
 		p_iline = new iline( taskid() ) ;
 		p_iline->il_type = LN_TABS      ;
@@ -4400,7 +4501,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 
 	case LC_TJ:
 	case LC_TJJ:
-		Level++ ;
 		il_its = getLineItr( itc->lcmd_sURID ) ;
 		il_ite = getLineItr( itc->lcmd_eURID, il_its ) ;
 		tmp1   = (*il_its)->get_idata() ;
@@ -4427,7 +4527,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 
 	case LC_TR:
 	case LC_TRR:
-		Level++ ;
 		il_its = getLineItr( itc->lcmd_sURID ) ;
 		il_ite = getLineItr( itc->lcmd_eURID, il_its ) ;
 		il_ite++ ;
@@ -4444,7 +4543,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 		break ;
 
 	case LC_TS:
-		Level++ ;
 		il_its  = getLineItr( itc->lcmd_sURID ) ;
 		splitOK = textSplitData( *(*il_its)->get_idata_ptr(), tmp1, tmp2 ) ;
 		if ( aURID == (*il_its)->il_URID && aCol > CLINESZ )
@@ -4512,7 +4610,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 
 	case LC_UC:
 	case LC_UCC:
-		Level++ ;
 		il_its = getLineItr( itc->lcmd_sURID ) ;
 		il_ite = getLineItr( itc->lcmd_eURID, il_its ) ;
 		il_ite++ ;
@@ -4562,7 +4659,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 		k = (*il_its)->get_idata_ptr()->find_first_not_of( ' ' ) ;
 		itc->lcmd_Rpt = (itc->lcmd_Rpt-1) * profXTabz + (profXTabz - k % profXTabz) ;
 	case LC_SRC:
-		Level++ ;
 		il_its = getLineItr( itc->lcmd_sURID ) ;
 		if ( aLCMD ) { placeCursor( (*il_its)->il_URID, 1 ) ; }
 		(*il_its)->put_idata( rshiftCols( itc->lcmd_Rpt, (*il_its)->get_idata_ptr()), Level ) ;
@@ -4571,7 +4667,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 		break ;
 
 	case LC_SRCC:
-		Level++ ;
 		il_its = getLineItr( itc->lcmd_sURID ) ;
 		il_ite = getLineItr( itc->lcmd_eURID, il_its ) ;
 		il_ite++ ;
@@ -4586,7 +4681,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 		break ;
 
 	case LC_SRTCC:
-		Level++ ;
 		il_its = getLineItr( itc->lcmd_sURID ) ;
 		il_ite = getLineItr( itc->lcmd_eURID, il_its ) ;
 		il_ite++ ;
@@ -4609,7 +4703,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 		else                      { itc->lcmd_Rpt = (itc->lcmd_Rpt-1) * profXTabz + (k % profXTabz) ; }
 		itc->lcmd_Rpt = min( itc->lcmd_Rpt, k ) ;
 	case LC_SLC:
-		Level++ ;
 		il_its = getLineItr( itc->lcmd_sURID ) ;
 		(*il_its)->put_idata( lshiftCols( itc->lcmd_Rpt, (*il_its)->get_idata_ptr()), Level ) ;
 		if ( aLCMD ) { placeCursor( (*il_its)->il_URID, 1 ) ; }
@@ -4618,7 +4711,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 		break ;
 
 	case LC_SLCC:
-		Level++ ;
 		il_its = getLineItr( itc->lcmd_sURID ) ;
 		il_ite = getLineItr( itc->lcmd_eURID, il_its ) ;
 		il_ite++ ;
@@ -4633,7 +4725,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 		break ;
 
 	case LC_SLTCC:
-		Level++ ;
 		il_its = getLineItr( itc->lcmd_sURID ) ;
 		il_ite = getLineItr( itc->lcmd_eURID, il_its ) ;
 		il_ite++ ;
@@ -4652,7 +4743,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 		break ;
 
 	case LC_SRD:
-		Level++ ;
 		il_its  = getLineItr( itc->lcmd_sURID ) ;
 		if ( aLCMD ) { placeCursor( (*il_its)->il_URID, 1 ) ; }
 		shiftOK = rshiftData( itc->lcmd_Rpt, (*il_its)->get_idata_ptr(), tmp1 ) ;
@@ -4665,7 +4755,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 		break ;
 
 	case LC_SRDD:
-		Level++ ;
 		il_its = getLineItr( itc->lcmd_sURID ) ;
 		il_ite = getLineItr( itc->lcmd_eURID, il_its ) ;
 		il_ite++ ;
@@ -4684,7 +4773,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 		break ;
 
 	case LC_SLD:
-		Level++ ;
 		il_its = getLineItr( itc->lcmd_sURID ) ;
 		if ( aLCMD ) { placeCursor( (*il_its)->il_URID, 1 ) ; }
 		shiftOK = lshiftData( itc->lcmd_Rpt, (*il_its)->get_idata_ptr(), tmp1 ) ;
@@ -4697,7 +4785,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 		break ;
 
 	case LC_SLDD:
-		Level++ ;
 		il_its = getLineItr( itc->lcmd_sURID ) ;
 		il_ite = getLineItr( itc->lcmd_eURID, il_its ) ;
 		il_ite++ ;
@@ -4716,7 +4803,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 		break ;
 
 	case LC_COPY:
-		Level++;
 		i = 0  ;
 		j = -1 ;
 		k = -1 ;
@@ -4783,7 +4869,6 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 		break ;
 
 	case LC_PASTE:
-		Level++;
 		getClipboard( vip ) ;
 		if ( vip.size() == 0 )
 		{
@@ -4816,7 +4901,7 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc )
 
 void PEDIT01::actionZVERB()
 {
-	int t  ;
+	int t ;
 
 	string w1 ;
 
@@ -4824,6 +4909,7 @@ void PEDIT01::actionZVERB()
 	{
 		t = 0 ;
 		rebuildZAREA = true ;
+		scrollData   = true ;
 		fixCursor() ;
 		if ( zscrolla == "MAX" )
 		{
@@ -4859,7 +4945,7 @@ void PEDIT01::actionZVERB()
 				{
 					topLine = getLastEX( topLine ) ;
 					if ( hideExcl ) { topLine = getNextDataLine( topLine ) ; }
-					if ( topLine == data.size() -1 ) { break ; }
+					if ( topLine == data.size() - 1 ) { break ; }
 				}
 				if ( data.at( topLine )->isValidFile()       &&
 				    (data.at( topLine )->il_hex || profHex ) &&
@@ -4874,10 +4960,15 @@ void PEDIT01::actionZVERB()
 				if ( t > zscrolln ) { break ; }
 			}
 		}
+		if ( data.at( topLine )->il_excl )
+		{
+			topLine = getFirstEX( topLine ) ;
+		}
 	}
 	else if ( zverb == "UP" )
 	{
 		rebuildZAREA = true ;
+		scrollData   = true ;
 		fixCursor() ;
 		if ( zscrolla == "MAX" )
 		{
@@ -4907,11 +4998,16 @@ void PEDIT01::actionZVERB()
 				}
 				if ( t > zscrolln ) { break ; }
 			}
+			if ( data.at( topLine )->il_excl )
+			{
+				topLine = getFirstEX( topLine ) ;
+			}
 		}
 	}
 	else if ( zverb == "LEFT" )
 	{
 		rebuildZAREA = true ;
+		scrollData   = true ;
 		fixCursor() ;
 		if ( zscrolla == "MAX" )
 		{
@@ -4926,6 +5022,7 @@ void PEDIT01::actionZVERB()
 	else if ( zverb == "RIGHT" )
 	{
 		rebuildZAREA = true ;
+		scrollData   = true ;
 		fixCursor() ;
 		if ( zscrolla == "MAX" )
 		{
@@ -5260,7 +5357,7 @@ bool PEDIT01::storeLineCommands()
 
 	// Check for overlapping commands (eg. Cn, Dn, Mn, On ... don't conflict with the next command)
 
-	// Translate a swap (W/WW) into two move commands (done at the same Level for UNDO/REDO)
+	// Translate a swap (W/WW) into two move commands.
 
 	lcmd cmd  ;
 	lcmd tcmd ;
@@ -5553,7 +5650,6 @@ bool PEDIT01::storeLineCommands()
 				cmd.lcmd_lURID = cmd.lcmd_eURID ;
 				cmd.lcmd_sURID = abo.lcmd_sURID ;
 				cmd.lcmd_eURID = abo.lcmd_eURID ;
-				cmd.lcmd_swap  = true  ;
 				cmd.lcmd_ABOW  = 'A'   ;
 			}
 			lcmds.push_back( cmd ) ;
@@ -6960,8 +7056,7 @@ void PEDIT01::clearCursor()
 
 void PEDIT01::placeCursor( int URID, int pt, int offset, bool lcmd )
 {
-	// cursorPlaceUsing: 1 Use URID to place cursor
-	//                   2 Use screen row to place cursor
+	// cursorPlaceUsing: Use URID to place cursor
 
 	// cursorPlaceType   1 First char of the line command area
 	//                   2 First char of data area
@@ -6969,6 +7064,7 @@ void PEDIT01::placeCursor( int URID, int pt, int offset, bool lcmd )
 	//                   4 Use position in cursorPlaceOff as start of data line
 	//                   5 Use position in cursorPlaceOff as start of zdataw
 	//                   6 First char of line command or data area depeding on where the cursor is
+
 	// cursorPlaceOff    Offset from start of the data line (adjust for line command and startCol later)
 
 	cursorFixed = true ;
@@ -6993,14 +7089,10 @@ void PEDIT01::placeCursor( int URID, int pt, int offset, bool lcmd )
 }
 
 
-void PEDIT01::fixCursor()
-{
-	cursorFixed = true ;
-}
-
-
 void PEDIT01::placeCursor( uint Row, int pt, int offset )
 {
+	// cursorPlaceUsing: Use screen row to place cursor ( first row = 1 )
+
 	cursorFixed = true ;
 	if ( Row > zaread || s2data.at( Row-1 ).ipos_URID == 0 )
 	{
@@ -7013,6 +7105,12 @@ void PEDIT01::placeCursor( uint Row, int pt, int offset )
 	cursorPlaceRow   = Row    ;
 	cursorPlaceType  = pt     ;
 	cursorPlaceOff   = offset ;
+}
+
+
+void PEDIT01::fixCursor()
+{
+	cursorFixed = true ;
 }
 
 
@@ -7691,6 +7789,22 @@ int PEDIT01::getDataBlockSize( uint dl )
 }
 
 
+vector<iline*>::iterator PEDIT01::getFirstEX( vector<iline*>::iterator it )
+{
+	// Return the iterator of the first excluded line in a block
+
+	vector<iline*>::iterator its ;
+
+	for ( ; it != data.begin() ; it-- )
+	{
+		if ( (*it)->il_deleted ) { continue ; }
+		if ( (*it)->il_excl )    { its = it ; }
+		else                     { break    ; }
+	}
+	return its ;
+}
+
+
 uint PEDIT01::getFirstEX( uint dl )
 {
 	// Return the data index of the first excluded line in a block
@@ -7928,6 +8042,25 @@ bool PEDIT01::URIDOnScreen( int URID, int top )
 		if ( n > zaread ) { return false ; }
 	}
 	return ( i != j && n <= zaread ) ;
+}
+
+
+int PEDIT01::countVisibleLines( vector<iline*>::iterator it )
+{
+	// Count the number of visible lines on the screen from iterator to the bottom the screen.
+
+	int i ;
+
+	if ( (*it)->il_excl )
+	{
+		it = getFirstEX( it ) ;
+	}
+
+	for ( i = 0 ; i < zaread ; i++ )
+	{
+		if ( s2data.at( i ).ipos_URID == (*it)->il_URID ) { break ; }
+	}
+	return zaread - i - 1 ;
 }
 
 

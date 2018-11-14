@@ -491,15 +491,13 @@ bool field::edit_field_insert( WINDOW* win,
 		field_usermod.insert( p1 ) ;
 		if ( field_value[ pos ] == nulls )
 		{
-			field_value[ pos ]        = ch ;
-			field_shadow_value[ pos ] = def_schar ;
+			field_value[ pos ] = ch ;
 		}
 		else
 		{
 			field_value.insert( pos, 1, ch ) ;
 			field_shadow_value.insert( pos, 1, def_schar ) ;
 		}
-		schar_map[ def_schar ] = ddata_map[ field_value[ p1 ] ] ;
 	}
 	else
 	{
@@ -551,10 +549,9 @@ bool field::edit_field_replace( WINDOW* win,
 		{
 			return false ;
 		}
-		field_shadow_value[ pos ] = def_schar ;
 		p1 = field_value.find_last_of( field_dynArea->dynArea_inAttrs, pos ) ;
 		field_usermod.insert( p1 ) ;
-		schar_map[ def_schar ] = ddata_map[ field_value[ p1 ] ] ;
+		field_shadow_value[ pos ] = def_schar ;
 	}
 	field_value[ pos ] = ch ;
 
@@ -1000,6 +997,7 @@ void field::field_update_datamod_usermod( string* darea, int offset )
 	// Set the DATAIN attribute to DATAMOD for any dynamic area input field that has changed.
 	// Set the DATAIN attribute to USERMOD for any dynamic area input field that has been touched.
 
+	// Specified on DYNAREA...
 	// USERMOD but not DATAMOD - Attr changed to USERMOD even if the field was changed
 	// DATAMOD but not USERMOD - Attr changed to DATAMOD only if the field value has changed
 	// USERMOD and DATAMOD     - Attr changed to USERMOD if no change to field value, else DATAMOD
@@ -1041,19 +1039,25 @@ void field::display_field( WINDOW* win,
 
 	// Display the null character as the field pad character and pad the field with the same character
 
-	// Colour/hilite taken from the shadow byte
-	// Intensity taken from the datain/dataout byte
+	// Colour/hilite taken from the shadow byte if valid (ie. corresponds to a TYPE(CHAR) ATTR entry)
+	// Intensity and default colour/hilite taken from DATAIN/DATAOUT.
+	// If no DATAIN/DATAOUT and shadow byte is not valid, default to colour WHITE.
 
-	// 00 X0 00 00   - X is the INTENSITY
-	// 00 0X 00 00   - X is the HILITE
-	// 00 00 XX 00   - X is the COLOUR
+	// 00 X0 00 00 - X is the INTENSITY
+	// 00 0X 00 00 - X is the HILITE
+	// 00 00 XX 00 - X is the COLOUR
 
 	// Call ncurses touchline() for the field row as the update does not always appear without it
 
 	uint i ;
+
 	uint intens = 0 ;
 	uint attr2  = 0 ;
+	uint attrd  = 0 ;
+	uint colour = 0 ;
 
+	const uint clmask = RED  | GREEN | YELLOW  | BLUE      | MAGENTA     |
+			    TURQ | WHITE | A_BLINK | A_REVERSE | A_UNDERLINE ;
 	char nullc ;
 	char attr1 ;
 	char upad  ;
@@ -1062,8 +1066,8 @@ void field::display_field( WINDOW* win,
 
 	const char nulls(0x00) ;
 
-	string::iterator it1 ;
-	string::iterator it2 ;
+	string::iterator ita ;
+	string::iterator its ;
 
 	if ( !field_active ) { return ; }
 
@@ -1076,30 +1080,55 @@ void field::display_field( WINDOW* win,
 		dynArea* da = field_dynArea ;
 		if ( da->dynArea_Attrs != "" )
 		{
-			it2   = field_shadow_value.begin() ;
-			i     = 0 ;
-			attr1 = (*it2) ;
-			wattrset( win, schar_map[ attr1 ] | field_intens ) ;
-			for ( it1 = field_value.begin() ; it1 != field_value.end() ; it1++, it2++, i++ )
+			its = field_shadow_value.begin() ;
+			i   = 0 ;
+			auto itc = schar_map.find( (*its) ) ;
+			if ( itc == schar_map.end() )
 			{
-				if ( attr1 != (*it2) || attr2 != intens )
+				wattrset( win, WHITE | field_intens ) ;
+			}
+			else
+			{
+				wattrset( win, itc->second | field_intens ) ;
+			}
+			attr1 = (*its) ;
+			for ( ita = field_value.begin() ; ita != field_value.end() ; ita++, its++, i++ )
+			{
+				if ( attr1 != (*its) || attr2 != attrd )
 				{
-					wattrset( win, schar_map[ (*it2) ] | field_intens | intens ) ;
-					attr1 = (*it2) ;
-					attr2 = intens ;
+					itc = schar_map.find( (*its) ) ;
+					if ( itc == schar_map.end() )
+					{
+						if ( colour == 0 )
+						{
+							wattrset( win, WHITE | field_intens ) ;
+						}
+						else
+						{
+							wattrset( win, colour | field_intens | intens ) ;
+						}
+					}
+					else
+					{
+						wattrset( win, itc->second | field_intens | intens ) ;
+					}
+					attr1 = (*its) ;
+					attr2 = attrd  ;
 				}
-				if ( (*it1) == nulls )
+				if ( (*ita) == nulls )
 				{
 					mvwaddch( win, field_row, field_col+i, nullc ) ;
 				}
-				else if ( da->dynArea_Attrs.find_first_of( (*it1) ) != string::npos )
+				else if ( da->dynArea_Attrs.find_first_of( (*ita) ) != string::npos )
 				{
 					mvwaddch( win, field_row, field_col+i, ' ' ) ;
-					intens = ddata_map[ *it1 ] & A_BOLD ;
+					attrd  = ddata_map[ *ita ] ;
+					intens = attrd & A_BOLD ;
+					colour = attrd & clmask ;
 				}
-				else if ( isprint( (*it1) ) )
+				else if ( isprint( (*ita) ) )
 				{
-					mvwaddch( win, field_row, field_col+i, (*it1) ) ;
+					mvwaddch( win, field_row, field_col+i, (*ita) ) ;
 				}
 				else
 				{
@@ -1109,24 +1138,40 @@ void field::display_field( WINDOW* win,
 		}
 		else
 		{
-			it2  = field_shadow_value.begin() ;
+			its  = field_shadow_value.begin() ;
 			i    = 0 ;
-			attr1 = (*it2) ;
-			wattrset( win, schar_map[ attr1 ] | field_intens ) ;
-			for ( it1 = field_value.begin() ; it1 != field_value.end() ; it1++, it2++, i++ )
+			auto itc = schar_map.find( (*its) ) ;
+			if ( itc == schar_map.end() )
 			{
-				if ( attr1 != (*it2) )
+				wattrset( win, WHITE | field_intens ) ;
+			}
+			else
+			{
+				wattrset( win, itc->second | field_intens ) ;
+			}
+			attr1 = (*its) ;
+			for ( ita = field_value.begin() ; ita != field_value.end() ; ita++, its++, i++ )
+			{
+				if ( attr1 != (*its) )
 				{
-					wattrset( win, schar_map[ (*it2) ] | field_intens ) ;
-					attr1 = (*it2) ;
+					itc = schar_map.find( (*its) ) ;
+					if ( itc == schar_map.end() )
+					{
+						wattrset( win, WHITE | field_intens ) ;
+					}
+					else
+					{
+						wattrset( win, itc->second | field_intens ) ;
+					}
+					attr1 = (*its) ;
 				}
-				if (  (*it1) == nulls )
+				if (  (*ita) == nulls )
 				{
 					mvwaddch( win, field_row, field_col+i, nullc ) ;
 				}
-				else if ( isprint( (*it1) ) )
+				else if ( isprint( (*ita) ) )
 				{
-					mvwaddch( win, field_row, field_col+i, (*it1) ) ;
+					mvwaddch( win, field_row, field_col+i, (*ita) ) ;
 				}
 				else
 				{
@@ -1151,10 +1196,10 @@ void field::display_field( WINDOW* win,
 			if ( field_value.size() > field_length ) { t = field_value.substr( 0, field_length ) ; }
 			else                                     { t = field_value                           ; }
 		}
-		for ( it1 = t.begin() ; it1 != t.end() ; it1++ )
+		for ( ita = t.begin() ; ita != t.end() ; ita++ )
 		{
-			if      ( (*it1) == nulls   ) { (*it1) = upad ; }
-			else if ( !isprint( (*it1)) ) { (*it1) = '.'  ; }
+			if      ( (*ita) == nulls   ) { (*ita) = upad ; }
+			else if ( !isprint( (*ita)) ) { (*ita) = '.'  ; }
 		}
 		if ( field_pwd )
 		{

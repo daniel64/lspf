@@ -31,10 +31,10 @@
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
-#define LSPF_VERSION "1.0.14"
+#define LSPF_VERSION "1.0.15"
 #define LSPF_VERSION_MAJ 1
 #define LSPF_VERSION_REV 0
-#define LSPF_VERSION_MOD 14
+#define LSPF_VERSION_MOD 15
 
 typedef unsigned int uint ;
 

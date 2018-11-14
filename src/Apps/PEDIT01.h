@@ -419,7 +419,6 @@ class lcmd
 		int    lcmd_ABRpt  ;
 		char   lcmd_ABOW   ;
 		bool   lcmd_procd  ;
-		bool   lcmd_swap   ;
 		bool   lcmd_cut    ;
 		bool   lcmd_create ;
 		lcmd()
@@ -434,7 +433,6 @@ class lcmd
 			lcmd_ABRpt   = 0     ;
 			lcmd_Rpt     = 0     ;
 			lcmd_procd   = false ;
-			lcmd_swap    = false ;
 			lcmd_cut     = false ;
 			lcmd_create  = false ;
 		}
@@ -450,7 +448,6 @@ class lcmd
 			lcmd_ABRpt   = 0     ;
 			lcmd_Rpt     = 0     ;
 			lcmd_procd   = false ;
-			lcmd_swap    = false ;
 			lcmd_cut     = false ;
 			lcmd_create  = false ;
 		}
@@ -1052,26 +1049,38 @@ class iline
 class ipos
 {
 	public:
-		uint   ipos_dl   ;
-		uint   ipos_hex  ;
-		int    ipos_URID ;
-		bool   ipos_div  ;
-		iline* ipos_addr ;
+		uint   ipos_dl    ;
+		uint   ipos_hex   ;
+		int    ipos_URID  ;
+		uint   ipos_lchar ;
+		bool   ipos_div   ;
+		iline* ipos_addr  ;
 		ipos()
 		{
-			ipos_dl   = 0 ;
-			ipos_hex  = 0 ;
-			ipos_URID = 0 ;
-			ipos_div  = false ;
-			ipos_addr = NULL  ;
+			ipos_dl    = 0 ;
+			ipos_hex   = 0 ;
+			ipos_URID  = 0 ;
+			ipos_lchar = 0 ;
+			ipos_div   = false ;
+			ipos_addr  = NULL  ;
 		}
-		void clear()
+		ipos( uint w )
 		{
-			ipos_dl   = 0 ;
-			ipos_hex  = 0 ;
-			ipos_URID = 0 ;
-			ipos_div  = false ;
-			ipos_addr = NULL  ;
+			ipos_dl    = 0 ;
+			ipos_hex   = 0 ;
+			ipos_URID  = 0 ;
+			ipos_lchar = w ;
+			ipos_div   = false ;
+			ipos_addr  = NULL  ;
+		}
+		void clear( uint w )
+		{
+			ipos_dl    = 0 ;
+			ipos_hex   = 0 ;
+			ipos_URID  = 0 ;
+			ipos_lchar = w ;
+			ipos_div   = false ;
+			ipos_addr  = NULL  ;
 		}
 } ;
 
@@ -2227,6 +2236,7 @@ class PEDIT01 : public pApplication
 		void replace_usermods()   ;
 		void clr_hilight_shadow() ;
 		void protNonDisplayChars();
+		void addNulls()           ;
 		void releaseDynamicStorage() ;
 		void getZAREAchanges()    ;
 		void updateData()         ;
@@ -2258,6 +2268,7 @@ class PEDIT01 : public pApplication
 		void removeRecoveryData() ;
 
 		uint getLine( int, uint =0 ) ;
+		vector<iline*>::iterator getFirstEX( vector<iline*>::iterator ) ;
 		uint getFirstEX( uint ) ;
 		int  getLastEX( vector<iline*>::iterator ) ;
 		uint getLastEX( uint )    ;
@@ -2265,6 +2276,7 @@ class PEDIT01 : public pApplication
 		int  getDataBlockSize( uint ) ;
 		bool URIDOnScreen( int, int ) ;
 		void moveTopline( int )  ;
+		int  countVisibleLines( vector<iline*>::iterator ) ;
 		int  getLastURID( vector<iline*>::iterator, int ) ;
 
 		uint getDataLine( int )  ;
@@ -2448,6 +2460,7 @@ class PEDIT01 : public pApplication
 		bool copyActive          ;
 		bool pasteKeep           ;
 		bool hideExcl            ;
+		bool scrollData          ;
 
 		int  LeftBnd             ;
 		int  RightBnd            ;
@@ -2466,7 +2479,6 @@ class PEDIT01 : public pApplication
 		map<int, bool> lChanged  ;
 		map<int, bool> dChanged  ;
 		map<int, bool> dTouched  ;
-		map<int, int>lchar       ;
 		vector<lcmd> lcmds       ;
 
 		edit_find fcx_parms ;

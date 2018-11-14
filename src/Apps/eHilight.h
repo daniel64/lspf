@@ -24,8 +24,9 @@
 #define E_MAGENTA  14
 #define E_TURQ     15
 #define E_WHITE    16
-#define G_RED      17
-#define G_WHITE    18
+
+#define G_RED      19
+#define G_WHITE    20
 
 using namespace std ;
 
@@ -308,7 +309,6 @@ map<string, keyw> keywList3 = {
   { ")INIT",           { 5,  E_WHITE } },
   { ")REINIT",         { 7,  E_WHITE } },
   { ")PROC",           { 5,  E_WHITE } },
-  { ")COMMAND",        { 8,  E_WHITE } },
   { ")FIELD",          { 6,  E_WHITE } },
   { ")HELP",           { 5,  E_WHITE } },
   { ")PNTS",           { 5,  E_WHITE } },

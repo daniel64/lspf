@@ -68,6 +68,7 @@ class field
 				field_pwd          = false ;
 				field_changed      = false ;
 				field_active       = true  ;
+				field_cua          = NONE  ;
 				field_colour1      = 0     ;
 				field_colour2      = 0     ;
 				field_attr_once    = false ;
@@ -115,45 +116,58 @@ class field
 		void field_opts( errblock& err, string& )  ;
 		void field_reset() ;
 		bool cursor_on_field( uint row, uint col ) ;
+
 		void display_field( WINDOW*,
 				    map<unsigned char, uint>&,
 				    map<unsigned char, uint>& ) ;
+
 		bool edit_field_insert( WINDOW* win,
 					char ch,
 					char schar,
 					int row,
 					map<unsigned char, uint>&,
 					map<unsigned char, uint>& ) ;
+
 		bool edit_field_replace( WINDOW* win,
 					 char ch,
 					 char schar,
 					 int row,
 					 map<unsigned char, uint>&,
 					 map<unsigned char, uint>& ) ;
+
 		void edit_field_delete( WINDOW* win,
 					int row,
 					map<unsigned char, uint>&,
 					map<unsigned char, uint>& ) ;
+
 		int  edit_field_backspace( WINDOW* win,
 					   int row,
 					   map<unsigned char, uint>&,
 					   map<unsigned char, uint>& ) ;
-		void field_remove_nulls_da()     ;
+
+		void field_remove_nulls_da()    ;
 		void field_blank( WINDOW* win ) ;
 		void field_clear( WINDOW* win ) ;
+
 		void field_erase_eof( WINDOW* win,
 				      unsigned int col,
 				      map<unsigned char, uint>&,
 				      map<unsigned char, uint>& ) ;
+
 		bool field_dyna_input( uint col )  ;
 		int  field_dyna_input_offset( uint col )  ;
-		void field_update_datamod_usermod( string*, int ) ;
-		void field_attr( errblock& err, string attrs, bool =false ) ;
+		void field_update_datamod_usermod( string*,
+						   int ) ;
+		void field_attr( errblock& err,
+				 string attrs,
+				 bool =false ) ;
+
 		void field_attr() ;
 		void field_prep_input()   ;
 		void field_prep_display() ;
 		void field_set_caps()     ;
-		int  end_of_field( WINDOW* win, uint col ) ;
+		int  end_of_field( WINDOW* win,
+				   uint col ) ;
 
        friend class pPanel ;
 } ;
@@ -303,12 +317,12 @@ class Box
 		void box_init( errblock& err, int maxw, int maxd, const string& line ) ;
 		void display_box( WINDOW*, string ) ;
 
-		string box_title  ;
+		string box_title ;
 	private:
-		uint   box_row    ;
-		uint   box_col    ;
-		uint   box_width  ;
-		uint   box_depth  ;
-		uint   box_colour ;
+		uint box_row    ;
+		uint box_col    ;
+		uint box_width  ;
+		uint box_depth  ;
+		uint box_colour ;
 } ;
 

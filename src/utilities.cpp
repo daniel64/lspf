@@ -1022,6 +1022,19 @@ string& iupper( string& s )
 
 
 
+string& iupper( string& s, unsigned int i, unsigned int e )
+{
+	// Convert to upper case in-place between range (start pos, end pos)
+
+	for ( ; i < s.length() && i <= e ; i++ )
+	{
+		s[ i ] = toupper( s[ i ] ) ;
+	}
+	return s ;
+}
+
+
+
 char& iupper( char& c )
 {
 	// Convert to upper case in-place

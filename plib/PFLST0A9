@@ -70,7 +70,7 @@ ELSE
 
 VER (&SEL LIST,B,C,CONV,D,E,EX,FMT,I,L,M,NANO,R,S,T,TT,V,VI,X)
 
-IF (&SEL EQ 'S' ) &SEL = TRANS(&TYPE, 'Dir','L' 'File','B' *,* )
+IF (&SEL EQ 'S' ) &SEL = TRANS(&TYPE, 'Dir','L' 'File','B' *,'S' )
 
 &EXGEN = TRANS( &EXGEN &Z,&Z *,/ )
 VPUT (EXGEN) PROFILE

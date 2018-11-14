@@ -38,15 +38,15 @@ using namespace boost::gregorian;
 #undef  MOD_NAME
 #define MOD_NAME PMAIN0A
 
-#define E_RED      3
-#define E_GREEN    4
-#define E_YELLOW   5
-#define E_BLUE     6
-#define E_MAGENTA  7
-#define E_TURQ     8
-#define E_WHITE    9
+#define E_RED      1
+#define E_GREEN    2
+#define E_YELLOW   3
+#define E_BLUE     4
+#define E_MAGENTA  5
+#define E_TURQ     6
+#define E_WHITE    7
 
-#define G_TURQ     10
+#define G_TURQ     8
 
 PMAIN0A::PMAIN0A()
 {

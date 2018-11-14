@@ -442,10 +442,6 @@ int main( void )
 	lspfStatus = LSPF_STOPPING ;
 	saveRetrieveBuffer() ;
 
-	p_poolMGR->destroySystemPool( err ) ;
-	p_poolMGR->statistics()  ;
-	p_tableMGR->statistics() ;
-
 	llog( "I", "Stopping background job monitor task" << endl ) ;
 	backStatus = BACK_STOPPING ;
 	while ( backStatus != BACK_STOPPED )
@@ -454,6 +450,10 @@ int main( void )
 	}
 
 	delete bThread ;
+
+	p_poolMGR->destroySystemPool( err ) ;
+	p_poolMGR->statistics()  ;
+	p_tableMGR->statistics() ;
 
 	delete p_poolMGR  ;
 	delete p_tableMGR ;
@@ -3087,7 +3087,7 @@ string listLogicalScreens()
 	{
 		for ( i = 0, it = lslist.begin() ; it != lslist.end() ; it++, i++ )
 		{
-			wattrset( swwin, cuaAttr[  i == m ? PT : VOI ] | intens ) ;
+			wattrset( swwin, cuaAttr[ i == m ? PT : VOI ] | intens ) ;
 			mvwaddstr( swwin, i+4, 2, it->c_str() )         ;
 		}
 		update_panels() ;
@@ -3185,8 +3185,8 @@ void listRetrieveBuffer()
 	{
 		for ( i = 0, it = lslist.begin() ; it != lslist.end() ; it++, i++ )
 		{
-			wattrset( rbwin, cuaAttr[  i == m ? PT : VOI ] | intens ) ;
-			mvwaddstr( rbwin, i+3, 3, it->c_str() )         ;
+			wattrset( rbwin, cuaAttr[ i == m ? PT : VOI ] | intens ) ;
+			mvwaddstr( rbwin, i+3, 3, it->c_str() ) ;
 		}
 		update_panels() ;
 		doupdate()  ;
