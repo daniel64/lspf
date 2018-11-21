@@ -16,19 +16,19 @@
 
 PanelTitle "Test Popup Panels - POPUP 1"
 
-literal   4    2   FP  "Command ===> "
+text      4    2   FP  "Command ===> "
 field     4   15  MAX   NEF     CAPS(ON),PAD(USER) ZCMD1
 
-literal   6   40    FP  "TIME: "
+text      6   40    FP  "TIME: "
 field     6   46   8    VOI   NONE  ZTIME
 
-literal   7   40    FP  "DATE: "
+text      7   40    FP  "DATE: "
 field     7   46    8    VOI   NONE  ZDATE
 
-literal   8   6     FP  "PATH . . . :"
+text      8   6     FP  "PATH . . . :"
 field     8   19    MAX   NEF   CAPS(OFF),PAD(USER) ZPATH
 
-literal   9   6     FP  "NEXT FIELD :"
+text      9   6     FP  "NEXT FIELD :"
 field     9   19    MAX   NEF   CAPS(OFF),PAD(USER) TFLD1
 
 

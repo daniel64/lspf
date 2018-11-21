@@ -119,7 +119,6 @@ class pApplication
 
 		void   select( const string& ) ;
 		void   select( const selobj& ) ;
-		void   attr( const string&, const string& ) ;
 		void   qlibdef( const string&, const string& ="" , const string& ="" ) ;
 
 		void   vcopy( const string&, string&, vcMODE=MOVE ) ;

@@ -11,23 +11,23 @@
 
 PanelTitle "Referral List and NRETRIEV Personal Settings"
 
-literal  4   2         FP    "Command ===> "
+text     4   2         FP    "Command ===> "
 field    4  15  MAX NEF CAPS(ON),PAD(USER) ZCMD1
 
 field    7   2   1   CEF     PAD(USER) RFURL
-literal  7   4       SAC    "Automatically update reference list"
+text     7   4       SAC    "Automatically update reference list"
 
 field    8   2   1   CEF     PAD(USER) RFFEX
-literal  8   4       SAC    "Verify file exists before adding to reference list"
+text     8   4       SAC    "Verify file exists before adding to reference list"
 
 field    10  2   1   CEF     PAD(USER) RFNEX
-literal  10  4       SAC    "NRETRIEV verifies file exists"
+text     10  4       SAC    "NRETRIEV verifies file exists"
 
 
-literal 13  2  CH "Instructions"
-literal 15  2  NT "Press"
-literal 15  8  ET "Enter"
-literal 15 14  NT "to save Personal List options"
+text    13  2  CH "Instructions"
+text    15  2  NT "Press"
+text    15  8  ET "Enter"
+text    15 14  NT "to save Personal List options"
 
 )INIT
 &ZRF3   = 1

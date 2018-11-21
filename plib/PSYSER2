@@ -14,72 +14,72 @@
 
 PanelTitle "Dialogue Error in &ZERRTTL"
 
-literal 4   2      FP  "Command ===>"
+text    4   2      FP  "Command ===>"
 field   4  15 MAX  NEF  CAPS(ON),PAD(USER) ZCMD
 
-literal 7     2 ET EXPAND "*"
+text    7     2 ET EXPAND "*"
 
-literal 8       2 ET "*"
-literal 8  MAX ET "*"
+text    8       2 ET "*"
+text    8  MAX ET "*"
 
-literal 9       2 ET "*"
-literal 9  MAX ET "*"
+text    9       2 ET "*"
+text    9  MAX ET "*"
 
-literal 10      2 ET "*"
-literal 10 MAX ET "*"
+text    10      2 ET "*"
+text    10 MAX ET "*"
 
-literal 11       2 ET "*"
-literal 11  MAX ET "*"
+text    11       2 ET "*"
+text    11  MAX ET "*"
 
-literal 12       2 ET "*"
-literal 12  MAX ET "*"
+text    12       2 ET "*"
+text    12  MAX ET "*"
 
-literal 13       2 ET "*"
-literal 13  MAX ET "*"
+text    13       2 ET "*"
+text    13  MAX ET "*"
 
-literal 14       2 ET "*"
-literal 14  MAX ET "*"
+text    14       2 ET "*"
+text    14  MAX ET "*"
 
-literal 15       2 ET "*"
-literal 15  MAX ET "*"
+text    15       2 ET "*"
+text    15  MAX ET "*"
 
-literal 16       2 ET "*"
-literal 16  MAX ET "*"
+text    16       2 ET "*"
+text    16  MAX ET "*"
 
-literal 17       2 ET "*"
-literal 17  MAX ET "*"
+text    17       2 ET "*"
+text    17  MAX ET "*"
 
-literal 18       2 ET "*"
-literal 18  MAX ET "*"
+text    18       2 ET "*"
+text    18  MAX ET "*"
 
-literal 19       2 ET "*"
-literal 19  MAX ET "*"
+text    19       2 ET "*"
+text    19  MAX ET "*"
 
-literal 20       2 ET "*"
-literal 20  MAX ET "*"
+text    20       2 ET "*"
+text    20  MAX ET "*"
 
-literal 21       2 ET "*"
-literal 21  MAX ET "*"
+text    21       2 ET "*"
+text    21  MAX ET "*"
 
-literal 22       2 ET "*"
-literal 22  MAX ET "*"
+text    22       2 ET "*"
+text    22  MAX ET "*"
 
-literal 23       2 ET "*"
-literal 23  MAX ET "*"
+text    23       2 ET "*"
+text    23  MAX ET "*"
 
-literal 24       2 ET "*"
-literal 24  MAX ET "*"
+text    24       2 ET "*"
+text    24  MAX ET "*"
 
-literal 25       2 ET "*"
-literal 25  MAX ET "*"
+text    25       2 ET "*"
+text    25  MAX ET "*"
 
-literal 26       2 ET "*"
-literal 26  MAX ET "*"
+text    26       2 ET "*"
+text    26  MAX ET "*"
 
-literal 27       2 ET "*"
-literal 27  MAX ET "*"
+text    27       2 ET "*"
+text    27  MAX ET "*"
 
-literal 28      2 ET EXPAND "*"
+text    28      2 ET EXPAND "*"
 
 field    9 4  MAX-2 ET NONE ZERR1
 field   11 4  MAX-2 ET NONE ZERRSM
@@ -90,17 +90,17 @@ field   15 4  MAX-2 ET NONE ZERRLM4
 field   16 4  MAX-2 ET NONE ZERR2
 field   17 4  MAX-2 ET NONE ZERR3
 
-literal 19 4  NT "Error message id:"
+text    19 4  NT "Error message id:"
 field   19 22 MAX-2 ET NONE ZERRMSG
 
-literal 21 4  NT "Last return code:"
+text    21 4  NT "Last return code:"
 field   21 22 MAX-2 ET NONE ZERRRC
 
-literal 24 4   NT "See application and lspf logs for more messages"
+text    24 4   NT "See application and lspf logs for more messages"
 
-literal 26 4   NT "Press"
-literal 26 10  ET "ENTER"
-literal 26 16  NT "to terminate dialogue"
+text    26 4   NT "Press"
+text    26 10  ET "ENTER"
+text    26 16  NT "to terminate dialogue"
 
 )INIT
 .CURSOR = ZCMD

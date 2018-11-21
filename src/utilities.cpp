@@ -191,7 +191,7 @@ string delword( string s, unsigned int w )
 	{
 		i = s.find_first_not_of( ' ', j ) ;
 		if ( i == string::npos ) { return s ; }
-		j = s.find_first_of( ' ', i ) ;
+		j = s.find( ' ', i ) ;
 		if ( j == string::npos )
 		{
 			if ( w == 1 ) { return s.substr( 0, i ) ; }
@@ -218,7 +218,7 @@ string delword( string s, unsigned int w, unsigned int n )
 	{
 		i = s.find_first_not_of( ' ', j ) ;
 		if ( i == string::npos ) { return s ; }
-		j = s.find_first_of( ' ', i ) ;
+		j = s.find( ' ', i ) ;
 		if ( j == string::npos )
 		{
 			if ( w == 1 ) { return s.substr( 0, i ) ; }
@@ -230,7 +230,7 @@ string delword( string s, unsigned int w, unsigned int n )
 	{
 		k = s.find_first_not_of( ' ', j ) ;
 		if ( k == string::npos ) { return s.erase( i ) ; }
-		j = s.find_first_of( ' ', k ) ;
+		j = s.find( ' ', k ) ;
 		if ( j == string::npos ) { return s.erase( i, k-i ) ; }
 	}
 	return s.erase( i, k-i ) ;
@@ -454,7 +454,7 @@ string subword( const string& s, unsigned int w )
 	{
 		i = s.find_first_not_of( ' ', j ) ;
 		if ( i == string::npos ) { return "" ; }
-		j = s.find_first_of( ' ', i ) ;
+		j = s.find( ' ', i ) ;
 		if ( j == string::npos )
 		{
 			if ( w == 1 ) { return s.substr( i ) ; }
@@ -476,7 +476,7 @@ string subword( const string& s, unsigned int w, unsigned int n )
 	{
 		i = s.find_first_not_of( ' ', j ) ;
 		if ( i == string::npos ) { return "" ; }
-		j = s.find_first_of( ' ', i ) ;
+		j = s.find( ' ', i ) ;
 		if ( j == string::npos )
 		{
 			if ( w == 1 ) { return s.substr( i ) ; }
@@ -488,7 +488,7 @@ string subword( const string& s, unsigned int w, unsigned int n )
 	{
 		k = s.find_first_not_of( ' ', j ) ;
 		if ( k == string::npos ) { return strip( s.substr( i ) ) ; }
-		j = s.find_first_of( ' ', k ) ;
+		j = s.find( ' ', k ) ;
 		if ( j == string::npos ) { return s.substr( i ) ; }
 	}
 	return strip( s.substr( i, j-i ) ) ;
@@ -505,7 +505,7 @@ string word( const string& s, unsigned int w )
 	{
 		i = s.find_first_not_of( ' ', j ) ;
 		if ( i == string::npos ) { return "" ; }
-		j = s.find_first_of( ' ', i ) ;
+		j = s.find( ' ', i ) ;
 		if ( j == string::npos )
 		{
 			if ( w == 1 ) { return s.substr( i ) ; }
@@ -526,7 +526,7 @@ int wordindex( const string& s, unsigned int w )
 	{
 		i = s.find_first_not_of( ' ', j ) ;
 		if ( i == string::npos ) { return 0 ; }
-		j = s.find_first_of( ' ', i ) ;
+		j = s.find( ' ', i ) ;
 		if ( j == string::npos )
 		{
 			if ( w == 1 ) { break    ; }
@@ -576,7 +576,7 @@ int wordpos( const string& s1, const string& s2 )
 		{
 			i = s2.find_first_not_of( ' ', j ) ;
 			if ( i == string::npos ) { return 0 ; }
-			j = s2.find_first_of( ' ', i ) ;
+			j = s2.find( ' ', i ) ;
 			k++ ;
 			if ( j == string::npos )
 			{
@@ -599,7 +599,7 @@ int wordpos( const string& s1, const string& s2 )
 		{
 			i = s2.find_first_not_of( ' ', j ) ;
 			if ( i == string::npos ) { return 0 ; }
-			j = s2.find_first_of( ' ', i ) ;
+			j = s2.find( ' ', i ) ;
 			if ( j == string::npos )
 			{
 				if ( s2.compare( i, s2.length()-1, ws1.at( k ) ) == 0 ) { k++ ; }
@@ -631,7 +631,7 @@ int words( const string& s )
 	{
 		i = s.find_first_not_of( ' ', i ) ;
 		if ( i == string::npos ) { break ; }
-		i = s.find_first_of( ' ', i ) ;
+		i = s.find( ' ', i ) ;
 	}
 	return w ;
 }
@@ -1127,7 +1127,7 @@ string& idelword( string& s, unsigned int w )
 	{
 		i = s.find_first_not_of( ' ', j ) ;
 		if ( i == string::npos ) { return s ; }
-		j = s.find_first_of( ' ', i ) ;
+		j = s.find( ' ', i ) ;
 		if ( j == string::npos )
 		{
 			if ( w == 1 ) { return s.erase( i ) ; }
@@ -1154,7 +1154,7 @@ string& idelword( string& s, unsigned int w, unsigned int n )
 	{
 		i = s.find_first_not_of( ' ', j ) ;
 		if ( i == string::npos ) { return s ; }
-		j = s.find_first_of( ' ', i ) ;
+		j = s.find( ' ', i ) ;
 		if ( j == string::npos )
 		{
 			if ( w == 1 ) { return s.erase( i ) ; }
@@ -1166,7 +1166,7 @@ string& idelword( string& s, unsigned int w, unsigned int n )
 	{
 		k = s.find_first_not_of( ' ', j ) ;
 		if ( k == string::npos ) { return s.erase( i ) ; }
-		j = s.find_first_of( ' ', k ) ;
+		j = s.find( ' ', k ) ;
 		if ( j == string::npos ) { return s.erase( i, k-i ) ; }
 	}
 	return s.erase( i, k-i ) ;
@@ -1779,4 +1779,52 @@ string extractKWord( errblock& err, string& s, string p )
 	}
 
 	return t ;
+}
+
+
+void qwords( errblock& err, const string& s, vector<string>& v )
+{
+	// Split a string up into words and place into string vector v.
+	// Quotes can be used (single or double) if words contain spaces (quotes are removed)
+
+	size_t i = 0 ;
+	size_t j = 0 ;
+
+	char quote ;
+
+	v.clear() ;
+
+	while ( true )
+	{
+		i = s.find_first_not_of( ' ', j ) ;
+		if ( i == string::npos ) { return ; }
+		if ( s[ i ] == '\'' || s[ i ] == '"' )
+		{
+			quote = s[ i ] ;
+			i++ ;
+			j = s.find( quote, i ) ;
+			if ( j == string::npos )
+			{
+				err.seterrid( "PSYE033F" ) ;
+				return ;
+			}
+			j++ ;
+			if ( j < s.size() && s[ j ] != ' ' )
+			{
+				err.seterrid( "PSYE037G" ) ;
+				return ;
+			}
+			v.push_back( s.substr( i, j-i-1 ) ) ;
+		}
+		else
+		{
+			j = s.find( ' ', i ) ;
+			if ( j == string::npos )
+			{
+				v.push_back( s.substr( i ) ) ;
+				return ;
+			}
+			v.push_back( s.substr( i, j-i ) ) ;
+		}
+	}
 }

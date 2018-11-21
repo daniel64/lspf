@@ -89,14 +89,15 @@ map<int, stack<int>>Global_Undo ;
 map<int, stack<int>>Global_Redo ;
 map<int, stack<int>>Global_File_level ;
 
-set<string>PEDIT01::EditList          ;
-edit_find PEDIT01::Global_efind_parms ;
+set<string>PEDIT01::EditList     ;
+set<string>PEDIT01::RecoveryList ;
+edit_find  PEDIT01::Global_efind_parms ;
 
 
 PEDIT01::PEDIT01()
 {
 	set_appdesc( "PDF-like editor for lspf" ) ;
-	set_appver( "1.0.0" )  ;
+	set_appver( "1.0.1" )  ;
 	set_apphelp( "HEDIT01" ) ;
 
 	vdefine( "ZCMD ZVERB ZCURFLD", &zcmd, &zverb, &zcurfld ) ;
@@ -104,7 +105,7 @@ PEDIT01::PEDIT01()
 	vdefine( "ZSCROLLN ZAREAW ZAREAD ZCURPOS", &zscrolln, &zareaw, &zaread, &zcurpos ) ;
 	vdefine( "ZSCROLLA ZCOL1 ZCOL2", &zscrolla, &zcol1, &zcol2 ) ;
 	vdefine( "ZAPPLID ZEDPROF ZEDPROFT ZHOME", &zapplid, &zedprof, &zedproft, &zhome ) ;
-	vdefine( "TYPE STR OCC LINES ", &type, &str, &occ, &lines ) ;
+	vdefine( "ZUPROF TYPE STR OCC LINES ", &zuprof, &type, &str, &occ, &lines ) ;
 	vdefine( "EEIMAC EEPROF EELMAC", &eeimac, &eeprof, &eelmac ) ;
 	vdefine( "EETABSS EEPRSPS EECCAN", &eetabss, &eeprsps, &eeccan ) ;
 }
@@ -114,52 +115,14 @@ void PEDIT01::application()
 {
 	llog( "I", "Application PEDIT01 starting.  Parms are "+ PARM <<endl ) ;
 
-	errblock err ;
+	string panel ;
+	string* pt ;
 
 	bool skipEEntry = false ;
 
-	string* pt   ;
-
-	string panel ;
-	string rfile ;
-	string w1    ;
-	string w2    ;
+	errblock err ;
 
 	initialise() ;
-
-	rfile = ""   ;
-
-	vcopy( "ZEDABRC", zfile, MOVE ) ;
-	if ( zfile != "" )
-	{
-		rfile = zfile ;
-		zfile = zfile.erase( zfile.size()-8 ) ;
-		showEditRecovery() ;
-		if ( ZRC == 0 )
-		{
-			vcopy( "ZCMD4", pt, LOCATE ) ;
-			if ( (*pt) == "CANCEL" )
-			{
-				remove( rfile ) ;
-				verase( "ZEDABRC", PROFILE ) ;
-			}
-			else if ( (*pt) != "DEFER" )
-			{
-				abendRecovery = true ;
-				Edit() ;
-				remove( rfile ) ;
-				verase( "ZEDABRC", PROFILE ) ;
-				abendRecovery = false ;
-				rfile = zfile ;
-			}
-			else
-			{
-				rfile = zfile ;
-			}
-		}
-	}
-
-	zfile = "" ;
 
 	if ( PARM != "" )
 	{
@@ -241,6 +204,7 @@ void PEDIT01::application()
 			}
 			else
 			{
+				checkEditRecovery() ;
 				Edit() ;
 			}
 			vput( "ZFILE", PROFILE ) ;
@@ -248,6 +212,7 @@ void PEDIT01::application()
 	}
 	else
 	{
+		checkEditRecovery() ;
 		Edit() ;
 	}
 }
@@ -260,7 +225,7 @@ void PEDIT01::initialise()
 	control( "ABENDRTN", static_cast<void (pApplication::*)()>(&PEDIT01::cleanup_custom) ) ;
 	control( "TIMEOUT", "DISABLE" ) ;
 
-	vget( "ZEDPROF ZEDPROFT", PROFILE ) ;
+	vget( "ZEDPROF ZEDPROFT ZUPROF", PROFILE ) ;
 	vget( "ZAPPLID ZHOME", SHARED ) ;
 
 	pquery( "PEDIT012", "ZAREA", "ZAREAT", "ZAREAW", "ZAREAD" ) ;
@@ -293,6 +258,7 @@ void PEDIT01::initialise()
 	optPreserve   = false ;
 	optNoConvTabs = false ;
 	optConfCancel = false ;
+	zfile         = ""    ;
 
 	vget( "ZEDPRSPS ZEDTABSS", SHARED ) ;
 	vget( "EECCAN", PROFILE ) ;
@@ -311,6 +277,7 @@ void PEDIT01::Edit()
 	string zedalt ;
 
 	RC = 0 ;
+
 	pcmd.clear() ;
 	defNames.clear() ;
 
@@ -638,6 +605,148 @@ void PEDIT01::showEditRecovery()
 }
 
 
+void PEDIT01::addEditRecovery()
+{
+	// Add a record to the Edit Recovery Table.
+	// File being edited is zfile and saved to rfile.
+	// This routine is run from cleanup_custom, so runs with CONTROL ERRORS RETURN
+
+	// zedafile - file being edited (zfile)
+	// zedbfile - backup destination (rfile - set during error recovery)
+
+	string tabName = zapplid + "EDRT" ;
+	string v_list  = "ZEDAFILE ZEDBFILE" ;
+
+	string zedafile ;
+	string zedbfile ;
+
+	vdefine( v_list, &zedafile, &zedbfile ) ;
+	if ( RC != 0 )
+	{
+		llog( "E", "VDEFINE failed.  RC="<<RC<<endl );
+		return ;
+	}
+
+	tbopen( tabName, WRITE, zuprof ) ;
+	if ( RC == 8 )
+	{
+		tbcreate( tabName, "ZEDAFILE", "(ZEDBFILE)", WRITE, NOREPLACE, zuprof ) ;
+		if ( RC != 0 )
+		{
+			llog( "E", "TBCREATE failed.  RC="<<RC<<endl );
+			vdelete( v_list ) ;
+			return ;
+		}
+	}
+	else if ( RC != 0 )
+	{
+		llog( "E", "TBOPEN failed.  RC="<<RC<<endl );
+		vdelete( v_list ) ;
+		return ;
+	}
+
+	zedafile = zfile ;
+	zedbfile = rfile ;
+
+	tbadd( tabName ) ;
+	if ( RC != 0 )
+	{
+		llog( "E", "TBADD failed.  RC="<<RC<<endl );
+		vdelete( v_list ) ;
+		return ;
+	}
+
+	tbclose( tabName, "", zuprof ) ;
+	if ( RC != 0 )
+	{
+		llog( "E", "TBCLOSE failed.  RC="<<RC<<endl );
+	}
+
+	vdelete( v_list ) ;
+	if ( RC != 0 )
+	{
+		llog( "E", "VDELETE failed.  RC="<<RC<<endl );
+	}
+}
+
+
+void PEDIT01::checkEditRecovery()
+{
+	// Perform edit recovery for each entry in the Edit Recovery Table
+
+	string tabName = zapplid + "EDRT" ;
+	string sfile   = zfile ;
+	string v_list  = "ZEDAFILE ZEDBFILE" ;
+
+	string zedafile ;
+	string zedbfile ;
+
+	string* pt ;
+
+	set<string>processed ;
+
+	vdefine( v_list, &zedafile, &zedbfile ) ;
+
+	tbopen( tabName, WRITE, zuprof ) ;
+	if ( RC == 8 ) { return ; }
+
+	tbtop( tabName ) ;
+	while ( true )
+	{
+		tbskip( tabName, 1 ) ;
+		if ( RC > 0 ) { break ; }
+		if ( processed.count( zedafile ) > 0 ) { continue ; }
+		processed.insert( zedafile ) ;
+		tbend( tabName ) ;
+		if ( RecoveryList.count( zedafile ) == 0 )
+		{
+			RecoveryList.insert( zedafile ) ;
+			zfile = zedafile   ;
+			showEditRecovery() ;
+			if ( ZRC == 0 )
+			{
+				vcopy( "ZCMD4", pt, LOCATE ) ;
+				if ( (*pt) == "CANCEL" )
+				{
+					remove( zedbfile ) ;
+					deleteEditRecoveryRecord( tabName ) ;
+				}
+				else if ( (*pt) != "DEFER" )
+				{
+					abendRecovery = true ;
+					rfile = zedafile ;
+					zfile = zedbfile ;
+					Edit() ;
+					remove( zedbfile ) ;
+					deleteEditRecoveryRecord( tabName ) ;
+					abendRecovery = false ;
+				}
+			}
+			RecoveryList.erase( zedafile ) ;
+		}
+		tbopen( tabName, NOWRITE, zuprof ) ;
+		tbtop( tabName ) ;
+	}
+	tbend( tabName ) ;
+
+	vdelete( v_list ) ;
+
+	zfile = sfile ;
+}
+
+
+void PEDIT01::deleteEditRecoveryRecord( const string& tabName )
+{
+	tbopen( tabName, WRITE, zuprof ) ;
+	tbget( tabName ) ;
+	if ( RC == 0 )
+	{
+		tbdelete( tabName ) ;
+	}
+	tbclose( tabName, "", zuprof ) ;
+}
+
+
 bool PEDIT01::showConfirmCancel()
 {
 	if ( !optConfCancel || !fileChanged ) { return true ; }
@@ -671,9 +780,14 @@ bool PEDIT01::termOK()
 
 void PEDIT01::readFile()
 {
+	// zfile - file to be read
+	// rfile - edit recovery destination file (original file name being edited)
+
 	int i ;
 	int j ;
 	int p ;
+
+	string fname ;
 
 	size_t pos ;
 
@@ -684,7 +798,6 @@ void PEDIT01::readFile()
 	string zdate  ;
 	string ztimel ;
 	string inLine ;
-	string fname  ;
 
 	iline* p_iline ;
 
@@ -701,8 +814,8 @@ void PEDIT01::readFile()
 	fname = zfile ;
 	if ( abendRecovery )
 	{
-		fname      += ".##abend" ;
-		fileChanged = true ;
+		zfile       = rfile ;
+		fileChanged = true  ;
 	}
 	else
 	{
@@ -719,13 +832,13 @@ void PEDIT01::readFile()
 		return       ;
 	}
 
-	topLine      = 0 ;
-	startCol     = 1 ;
-	maxCol       = 1 ;
-	Level        = 0 ;
-	tabsOnRead   = false ;
-	lowrOnRead   = false ;
-	invChars     = false ;
+	topLine    = 0 ;
+	startCol   = 1 ;
+	maxCol     = 1 ;
+	Level      = 0 ;
+	tabsOnRead = false ;
+	lowrOnRead = false ;
+	invChars   = false ;
 
 	data.clear() ;
 	maxURID[ taskid() ] = 0 ;
@@ -1063,8 +1176,6 @@ void PEDIT01::fill_dynamic_area()
 	string lcc ;
 
 	string* pt1 ;
-
-	const char nulls( 0x00 ) ;
 
 	const string din1( 1, DATAIN1 ) ;
 	const string din2( 1, DATAIN2 ) ;
@@ -2182,7 +2293,7 @@ void PEDIT01::processNewInserts()
 		rebuildZAREA = true ;
 	}
 
-	for ( tURID = data[ topLine ]->il_URID, it = data.begin() ; (*it)->il_URID != tURID && it != data.end() ; )
+	for ( tURID = data[ topLine ]->il_URID, it = data.begin() ; it != data.end() && (*it)->il_URID != tURID ; )
 	{
 		if ( (*it)->is_isrt() )
 		{
@@ -8582,8 +8693,6 @@ bool PEDIT01::copyToClipboard( vector<ipline>& vip )
 	int pos ;
 	int sz  ;
 
-	string uprof    ;
-
 	string zedcname ;
 	string zedcstat ;
 	string zedcdesc ;
@@ -8593,12 +8702,11 @@ bool PEDIT01::copyToClipboard( vector<ipline>& vip )
 
 	vdefine( vlist, &zedcname, &zedcstat, &zedcdesc, &zedctext ) ;
 	vdefine( "CRP", &CRP ) ;
-	vcopy( "ZUPROF", uprof, MOVE ) ;
 
-	tbopen( clipTable, WRITE, uprof ) ;
+	tbopen( clipTable, WRITE, zuprof ) ;
 	if ( RC == 8 )
 	{
-		tbcreate( clipTable, "", "(ZEDCNAME,ZEDCTEXT)", WRITE, NOREPLACE, uprof ) ;
+		tbcreate( clipTable, "", "(ZEDCNAME,ZEDCTEXT)", WRITE, NOREPLACE, zuprof ) ;
 		if ( RC > 0 ) { uabend( "PEDT015W", "TBCREATE" ) ; }
 	}
 
@@ -8612,7 +8720,7 @@ bool PEDIT01::copyToClipboard( vector<ipline>& vip )
 	{
 		if ( zedcstat == "RO" )
 		{
-			tbclose( clipTable, "", uprof ) ;
+			tbclose( clipTable, "", zuprof ) ;
 			vdelete( vlist ) ;
 			vdelete( "CRP" ) ;
 			vreplace( "ZEDCLIP", zedcname ) ;
@@ -8654,7 +8762,7 @@ bool PEDIT01::copyToClipboard( vector<ipline>& vip )
 		t++ ;
 	}
 
-	tbclose( clipTable, "", uprof ) ;
+	tbclose( clipTable, "", zuprof ) ;
 
 	pcmd.set_msg( "PEDT013C", 4 )  ;
 	vdelete( vlist ) ;
@@ -8670,7 +8778,6 @@ void PEDIT01::getClipboard( vector<ipline>& vip )
 	// Get lines from clipBoard and put them in vector vip
 	// pasteKeep - don't clear clipBoard after paste (A locked clipboard will always be kept)
 
-	string uprof    ;
 	string zedcname ;
 	string zedctext ;
 	ipline t        ;
@@ -8678,9 +8785,8 @@ void PEDIT01::getClipboard( vector<ipline>& vip )
 	vip.clear() ;
 
 	vdefine( "ZEDCNAME ZEDCTEXT", &zedcname, &zedctext ) ;
-	vcopy( "ZUPROF", uprof, MOVE ) ;
 
-	tbopen( clipTable, WRITE, uprof ) ;
+	tbopen( clipTable, WRITE, zuprof ) ;
 	if ( RC > 0 ) { uabend( "PEDT015W", "TBOPEN" ) ; }
 
 	tbvclear( clipTable ) ;
@@ -8699,7 +8805,7 @@ void PEDIT01::getClipboard( vector<ipline>& vip )
 
 	if ( !pasteKeep ) { clearClipboard( zedcname ) ; }
 
-	tbclose( clipTable, "", uprof ) ;
+	tbclose( clipTable, "", zuprof ) ;
 	vdelete( "ZEDCNAME ZEDCTEXT" ) ;
 }
 
@@ -8820,7 +8926,6 @@ void PEDIT01::manageClipboard_create( vector<string>& descr )
 	string t ;
 
 	string suf      ;
-	string uprof    ;
 	string zedcname ;
 	string zedcstat ;
 	string zedcdesc ;
@@ -8832,9 +8937,7 @@ void PEDIT01::manageClipboard_create( vector<string>& descr )
 
 	vdefine( vlist, &zedcname, &zedcstat, &zedcdesc, &zedctext ) ;
 
-	vcopy( "ZUPROF", uprof, MOVE ) ;
-
-	tbopen( clipTable, NOWRITE, uprof ) ;
+	tbopen( clipTable, NOWRITE, zuprof ) ;
 	if ( RC > 0 )
 	{
 		vdelete( vlist ) ;
@@ -8903,11 +9006,7 @@ void PEDIT01::manageClipboard_create( vector<string>& descr )
 
 void PEDIT01::manageClipboard_descr( const string& name, const string& desc )
 {
-	string uprof ;
-
-	vcopy( "ZUPROF", uprof, MOVE ) ;
-
-	tbopen( clipTable, WRITE, uprof ) ;
+	tbopen( clipTable, WRITE, zuprof ) ;
 	if ( RC > 0 ) { uabend( "PEDT015W", "TBOPEN" ) ; }
 
 	tbvclear( clipTable ) ;
@@ -8919,7 +9018,7 @@ void PEDIT01::manageClipboard_descr( const string& name, const string& desc )
 	tbscan( clipTable ) ;
 	if ( RC > 0 )
 	{
-		tbclose( clipTable, "", uprof ) ;
+		tbclose( clipTable, "", zuprof ) ;
 		return ;
 	}
 
@@ -8928,7 +9027,7 @@ void PEDIT01::manageClipboard_descr( const string& name, const string& desc )
 	tbput( clipTable, "(ZEDCDESC,ZEDCSTAT)" ) ;
 	if ( RC > 0 ) { uabend( "PEDT015W", "TBPUT" ) ; }
 
-	tbclose( clipTable, "", uprof ) ;
+	tbclose( clipTable, "", zuprof ) ;
 }
 
 
@@ -9009,12 +9108,9 @@ void PEDIT01::manageClipboard_edit( const string& name, const string& desc )
 
 void PEDIT01::manageClipboard_toggle( int i, const string& name )
 {
-	string uprof ;
-	string t     ;
+	string t ;
 
-	vcopy( "ZUPROF", uprof, MOVE ) ;
-
-	tbopen( clipTable, WRITE, uprof ) ;
+	tbopen( clipTable, WRITE, zuprof ) ;
 	if ( RC > 0 ) { uabend( "PEDT015W", "TBOPEN" ) ; }
 
 	tbvclear( clipTable ) ;
@@ -9027,7 +9123,7 @@ void PEDIT01::manageClipboard_toggle( int i, const string& name )
 	tbscan( clipTable ) ;
 	if ( RC > 0 )
 	{
-		tbclose( clipTable, "", uprof ) ;
+		tbclose( clipTable, "", zuprof ) ;
 		return ;
 	}
 
@@ -9039,7 +9135,7 @@ void PEDIT01::manageClipboard_toggle( int i, const string& name )
 	tbput( clipTable, "(ZEDCDESC,ZEDCSTAT)" ) ;
 	if ( RC > 0 ) { uabend( "PEDT015W", "TBPUT" ) ; }
 
-	tbclose( clipTable, "", uprof ) ;
+	tbclose( clipTable, "", zuprof ) ;
 }
 
 
@@ -9048,15 +9144,11 @@ void PEDIT01::manageClipboard_rename( const string& name, const string& desc )
 	string newname ;
 	string newdesc ;
 
-	string uprof ;
-
 	vector<ipline> vip ;
 
 	vreplace( "OLDNAME", name ) ;
 	vreplace( "NEWNAME", name ) ;
 	vreplace( "NEWDESC", desc ) ;
-
-	vcopy( "ZUPROF", uprof, MOVE ) ;
 
 	addpop( "", 4, 5 ) ;
 	display( "PEDIT018" ) ;
@@ -9077,16 +9169,12 @@ void PEDIT01::manageClipboard_rename( const string& name, const string& desc )
 
 void PEDIT01::manageClipboard_delete( const string& name )
 {
-	string uprof ;
-
-	vcopy( "ZUPROF", uprof, MOVE ) ;
-
-	tbopen( clipTable, WRITE, uprof ) ;
+	tbopen( clipTable, WRITE, zuprof ) ;
 	if ( RC > 0 ) { uabend( "PEDT015W", "TBOPEN" ) ; }
 
 	clearClipboard( name ) ;
 
-	tbclose( clipTable, "", uprof ) ;
+	tbclose( clipTable, "", zuprof ) ;
 }
 
 
@@ -9096,8 +9184,13 @@ void PEDIT01::cleanup_custom()
 	// Try writing out the data to a file so we can reload later (if file has been changed)
 	// Release storage and clear the data vector
 
-	string f ;
+	// Note: By default, cleanup_custom runs with CONTROL ERRORS RETURN
+
 	vector<iline*>::iterator it ;
+
+	path temp ;
+	temp  = unique_path( recoverLoc +"isr-%%%%%" ) ;
+	rfile = temp.native() ;
 
 	llog( "E", "Control given to EDIT cleanup procedure due to an abnormal event" <<endl ) ;
 //      std::ofstream fout( "/tmp/editorsession", ios::binary ) ;
@@ -9137,8 +9230,7 @@ void PEDIT01::cleanup_custom()
 		return   ;
 	}
 
-	f = zfile + ".##abend" ;
-	std::ofstream fout( f.c_str() ) ;
+	std::ofstream fout( rfile.c_str() ) ;
 
 	if ( !fout.is_open() )
 	{
@@ -9157,15 +9249,16 @@ void PEDIT01::cleanup_custom()
 	}
 
 	fout.close() ;
-	llog( "I", "File saved to "<< f <<endl ) ;
+	llog( "I", "File saved to "<< rfile <<endl ) ;
 	ZRC  = 0 ;
 	ZRSN = 8 ;
+
+	addEditRecovery() ;
 	releaseDynamicStorage() ;
 	EditList.erase( zfile ) ;
 	Global_efind_parms = fcx_parms ;
-	vreplace( "ZEDABRC", f ) ;
-	vput( "ZEDABRC", PROFILE ) ;
 	abendComplete = true ;
+
 	llog( "I", "Edit cleanup complete" <<endl ) ;
 }
 
@@ -9376,8 +9469,8 @@ void PEDIT01::compareFiles( const string& s )
 				Changes.clear() ;
 			}
 			pos = inLine.find_first_of( "acd" ) ;
-			t1  = inLine.substr( pos+1 )  ;
-			pos = t1.find_first_of( ',' ) ;
+			t1  = inLine.substr( pos+1 ) ;
+			pos = t1.find( ',' ) ;
 			if ( pos == string::npos ) { d1 = ds2d( t1 ) ; }
 			else                       { d1 = ds2d( t1.substr( 0, pos ) ) ; }
 		}
@@ -9871,7 +9964,6 @@ void PEDIT01::getEditProfile( const string& prof )
 
 	// If RECOV is OFF, set saveLevel = -1 to de-activate this function
 
-	string uprof    ;
 	string tabName  ;
 	string flds     ;
 	string v_list   ;
@@ -9890,12 +9982,10 @@ void PEDIT01::getEditProfile( const string& prof )
 	vdefine( v_list1, &zedpflag, &zedpmask, &zedpbndl, &zedpbndr, &zedptabc, &zedptabs, &zedptabz, &zedprclc ) ;
 	vdefine( v_list2, &zedptype, &zedphllg, &zedpimac, &zedpflg2, &zedpflg3 ) ;
 
-	vcopy( "ZUPROF", uprof, MOVE ) ;
-
-	tbopen( tabName, NOWRITE, uprof, SHARE ) ;
+	tbopen( tabName, NOWRITE, zuprof, SHARE ) ;
 	if ( RC == 8 )
 	{
-		tbcreate( tabName, "ZEDPTYPE", flds, WRITE, NOREPLACE, uprof ) ;
+		tbcreate( tabName, "ZEDPTYPE", flds, WRITE, NOREPLACE, zuprof ) ;
 		if ( RC > 0 ) { uabend( "PEDT015W", "TBCREATE" ) ; }
 	}
 
@@ -9905,14 +9995,14 @@ void PEDIT01::getEditProfile( const string& prof )
 	tbget( tabName ) ;
 	if ( RC == 8 )
 	{
-		tbclose( tabName, "", uprof ) ;
-		tbopen( tabName, WRITE, uprof ) ;
+		tbclose( tabName, "", zuprof ) ;
+		tbopen( tabName, WRITE, zuprof ) ;
 		if ( RC > 0 ) { uabend( "PEDT015W", "TBOPEN" ) ; }
 		createEditProfile( tabName, prof ) ;
 		pcmd.set_msg( "PEDT014D", 4 ) ;
 	}
 
-	tbclose( tabName, "", uprof ) ;
+	tbclose( tabName, "", zuprof ) ;
 
 	zedpflag.resize( 32, '0' ) ;
 
@@ -9980,7 +10070,6 @@ void PEDIT01::saveEditProfile( const string& prof )
 	//      [6]: Recover On        [14]: Hilight Do logic on               [22]: Undo keep
 	//      [7]: SETUNDO On        [15]: Hilight Parenthesis on
 
-	string uprof    ;
 	string tabName  ;
 	string v_list   ;
 	string v_list1  ;
@@ -9995,9 +10084,7 @@ void PEDIT01::saveEditProfile( const string& prof )
 	vdefine( v_list1, &zedpflag, &zedpmask, &zedpbndl, &zedpbndr, &zedptabc, &zedptabs, &zedptabz, &zedprclc ) ;
 	vdefine( v_list2, &zedptype, &zedphllg, &zedpimac, &zedpflg2, &zedpflg3 ) ;
 
-	vcopy( "ZUPROF", uprof, MOVE ) ;
-
-	tbopen( tabName, WRITE, uprof ) ;
+	tbopen( tabName, WRITE, zuprof ) ;
 	if ( RC > 0 ) { uabend( "PEDT015W", "TBOPEN" ) ; }
 
 	tbvclear( tabName ) ;
@@ -10054,7 +10141,7 @@ void PEDIT01::saveEditProfile( const string& prof )
 
 	tbsort( tabName, "(ZEDPTYPE,C,A)" ) ;
 
-	tbclose( tabName, "", uprof ) ;
+	tbclose( tabName, "", zuprof ) ;
 
 	vdelete( v_list ) ;
 }
@@ -10065,7 +10152,6 @@ void PEDIT01::delEditProfile( const string& prof )
 	// Delete an edit profile.  'ALL' deletes all profiles and then resets DEFAULT.
 	// If the one being deleted is in use, switch the session to DEFAULT
 
-	string uprof   ;
 	string tabName ;
 	string v_list  ;
 	string v_list1 ;
@@ -10079,9 +10165,8 @@ void PEDIT01::delEditProfile( const string& prof )
 
 	vdefine( v_list1, &zedpflag, &zedpmask, &zedpbndl, &zedpbndr, &zedptabc, &zedptabs, &zedptabz, &zedprclc ) ;
 	vdefine( v_list2, &zedptype, &zedphllg, &zedpimac, &zedpflg2, &zedpflg3 ) ;
-	vcopy( "ZUPROF", uprof, MOVE ) ;
 
-	tbopen( tabName, WRITE, uprof ) ;
+	tbopen( tabName, WRITE, zuprof ) ;
 	if ( RC > 0 ) { uabend( "PEDT015W", "TBOPEN" ) ; }
 
 	if ( prof == "ALL" )
@@ -10104,7 +10189,7 @@ void PEDIT01::delEditProfile( const string& prof )
 		tbdelete( tabName ) ;
 		if ( RC > 0 )
 		{
-			tbclose( tabName, "", uprof ) ;
+			tbclose( tabName, "", zuprof ) ;
 			pcmd.set_msg( "PEDT014J" )  ;
 			vdelete( v_list )  ;
 			return             ;
@@ -10112,12 +10197,12 @@ void PEDIT01::delEditProfile( const string& prof )
 		pcmd.set_msg( "PEDT014M", 4 ) ;
 		if ( prof != "DEFAULT" && prof != zedprof )
 		{
-			tbclose( tabName, "", uprof ) ;
+			tbclose( tabName, "", zuprof ) ;
 			vdelete( v_list )  ;
 			return ;
 		}
 	}
-	tbclose( tabName, "", uprof ) ;
+	tbclose( tabName, "", zuprof ) ;
 
 	getEditProfile( "DEFAULT" ) ;
 
@@ -10129,7 +10214,6 @@ void PEDIT01::resetEditProfile()
 {
 	// Resest DEFAULT edit profile to its default values
 
-	string uprof   ;
 	string tabName ;
 	string oProf   ;
 	string v_list  ;
@@ -10145,9 +10229,7 @@ void PEDIT01::resetEditProfile()
 	vdefine( v_list1, &zedpflag, &zedpmask, &zedpbndl, &zedpbndr, &zedptabc, &zedptabs, &zedptabz, &zedprclc ) ;
 	vdefine( v_list2, &zedptype, &zedphllg, &zedpimac, &zedpflg2, &zedpflg3 ) ;
 
-	vcopy( "ZUPROF", uprof, MOVE ) ;
-
-	tbopen( tabName, WRITE, uprof ) ;
+	tbopen( tabName, WRITE, zuprof ) ;
 	if ( RC > 0 ) { uabend( "PEDT015W", "TBOPEN" ) ; }
 
 	tbvclear( tabName )  ;
@@ -10156,7 +10238,7 @@ void PEDIT01::resetEditProfile()
 	tbdelete( tabName )  ;
 	if ( RC > 0 ) { uabend( "PEDT015W", "TBDELETE" ) ; }
 
-	tbclose( tabName, "", uprof ) ;
+	tbclose( tabName, "", zuprof ) ;
 
 	oProf = zedprof ;
 

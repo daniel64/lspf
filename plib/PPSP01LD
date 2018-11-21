@@ -7,13 +7,13 @@
 
 PanelTitle "LIBDEF Display Utility"
 
-literal  2   2         FP    "Command ===> "
+text     2   2         FP    "Command ===>"
 field    2  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
 
-literal  2  MAX-15  FP "Scroll ===> "
+text     2  MAX-15  FP "Scroll ===>"
 field    2  MAX-3   4 NEF  NONE ZSCROLL
 
-literal  4  4 CH  "Library  Type     USR Identifier"
+text     4  4 CH  "Library  Type     USR Identifier"
 
 tbmodel  5    MAX
 tbfield  2    1    LI  NONE LDSTK

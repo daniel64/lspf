@@ -39,10 +39,10 @@ boost::condition cond_appl ;
 #include "utilities.h"
 #include "utilities.cpp"
 
+#include "colours.h"
+
 #include "classes.h"
 #include "classes.cpp"
-
-#include "colours.h"
 
 #include "pVPOOL.h"
 #include "pVPOOL.cpp"
@@ -265,14 +265,14 @@ logger*   pPanel::lg        = NULL ;
 logger*   tableMGR::lg      = NULL ;
 logger*   poolMGR::lg       = NULL ;
 
-char  field::field_paduchar = ' '   ;
+char  field::field_paduchar = ' ' ;
 bool  field::field_nulls    = false ;
-uint  pPanel::panel_intens    = 0   ;
-uint  field::field_intens     = 0   ;
-uint  literal::literal_intens = 0   ;
-uint  pdc::pdc_intens         = 0   ;
-uint  abc::abc_intens         = 0   ;
-uint  Box::box_intens         = 0   ;
+uint  pPanel::panel_intens  = 0   ;
+uint  field::field_intens   = 0   ;
+uint  text::text_intens     = 0   ;
+uint  pdc::pdc_intens       = 0   ;
+uint  abc::abc_intens       = 0   ;
+uint  Box::box_intens       = 0   ;
 
 void setGlobalClassVars() ;
 void initialSetup()       ;
@@ -439,10 +439,10 @@ int main( void )
 
 	llog( "I", "Closing ISPS profile as last application program has terminated" << endl ) ;
 
-	lspfStatus = LSPF_STOPPING ;
 	saveRetrieveBuffer() ;
 
 	llog( "I", "Stopping background job monitor task" << endl ) ;
+	lspfStatus = LSPF_STOPPING ;
 	backStatus = BACK_STOPPING ;
 	while ( backStatus != BACK_STOPPED )
 	{
@@ -912,6 +912,10 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 			zcommand  = "NOP" ;
 			passthru  = false ;
 			return ;
+		}
+		else if ( currAppl->currPanel->jump_field( row, col, t ) )
+		{
+			currAppl->currPanel->cmd_setvalue( t ) ;
 		}
 		else if ( currAppl->currPanel->on_abline( row ) )
 		{
@@ -1599,6 +1603,10 @@ void processZCOMMAND( uint row, uint col, bool doSelect )
 			field::field_nulls = true ;
 			currAppl->currPanel->redraw_fields( err ) ;
 		}
+		else
+		{
+			issueMessage( "PSYS013A" ) ;
+		}
 		break  ;
 
 	case ZC_DOT_STATS:
@@ -2129,8 +2137,8 @@ void processBackgroundTasks()
 		}
 	}
 
-	backStatus = BACK_STOPPED ;
 	llog( "I", "Background job monitor task stopped" << endl ) ;
+	backStatus = BACK_STOPPED ;
 }
 
 
@@ -2899,7 +2907,7 @@ void updateDefaultVars()
 	pdc::pdc_intens       = intens ;
 	abc::abc_intens       = intens ;
 	Box::box_intens       = intens ;
-	literal::literal_intens = intens ;
+	text::text_intens     = intens ;
 }
 
 

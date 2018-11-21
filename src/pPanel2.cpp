@@ -19,6 +19,8 @@
 
 void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths )
 {
+	int k  ;
+
 	uint i ;
 	uint j ;
 	uint pVersion ;
@@ -38,7 +40,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 	string fld, hlp ;
 	string abc_desc ;
 
-	bool abc     = false ;
+	bool abar    = false ;
 	bool attr    = false ;
 	bool body    = false ;
 	bool init    = false ;
@@ -78,7 +80,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		w1 = upper( word( pline, 1 ) ) ;
 		if ( w1.front() == ')' )
 		{
-			abc     = false ;
+			abar    = false ;
 			attr    = false ;
 			body    = false ;
 			init    = false ;
@@ -110,7 +112,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				err.setsrc( oline ) ;
 				return ;
 			}
-			abc = true ;
+			abar = true ;
 			continue ;
 		}
 		if ( w1 == ")ATTR" )
@@ -273,11 +275,10 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		else if ( w1 == ")PNTS" )    { ispnts  = true ; continue ; }
 		else if ( w1 == ")FIELD" )   { isfield = true ; continue ; }
 
-		if ( abc )
+		if ( abar )
 		{
 			if ( w1 == "PDC" )
 			{
-				debug2( "Creating pdc" << endl ) ;
 				create_pdc( err, abc_desc, pline ) ;
 				if ( err.error() )
 				{
@@ -508,14 +509,14 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			}
 			if ( fieldList.find( m_pnts.pnts_field ) == fieldList.end() )
 			{
-				for ( i = 0 ; i < literalList.size() ; i++ )
+				for ( i = 0 ; i < textList.size() ; i++ )
 				{
-					if ( m_pnts.pnts_field == literalList.at( i )->literal_name )
+					if ( m_pnts.pnts_field == textList.at( i )->text_name )
 					{
 						break ;
 					}
 				}
-				if ( i == literalList.size() )
+				if ( i == textList.size() )
 				{
 					err.seterrid( "PSYE042E", m_pnts.pnts_field ) ;
 					err.setsrc( oline ) ;
@@ -604,14 +605,21 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				break ;
 
 			case CHAR:
-				schar_map[ c ] = attrchar.get_colour() ;
-				if ( schar_map.size() > 250 )
+				if ( (unsigned char)c > 250 )
 				{
 					err.seterrid( "PSYE011I" ) ;
 					err.setsrc( oline ) ;
 					return ;
 				}
+				if ( schar_map.size() > 127 )
+				{
+					err.seterrid( "PSYE011J" ) ;
+					err.setsrc( oline ) ;
+					return ;
+				}
+				schar_map[ c ] = attrchar.get_colour() ;
 				break ;
+
 			default:
 				break ;
 			}
@@ -624,7 +632,45 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			err.setsrc( oline ) ;
 			return ;
 		}
-		if ( w1 == "PANELTITLE" )
+		if ( w1 == "ACTIONBAR" )
+		{
+			vector<abc*> temp ;
+			vector<abc*>::iterator it ;
+			vector<string> vec ;
+			qwords( err, pline, vec ) ;
+			if ( err.error() )
+			{
+				err.setsrc( oline ) ;
+				return ;
+			}
+			abc_pos = 2 ;
+			for ( i = 1 ; i < vec.size() ; i++ )
+			{
+				for ( it = ab.begin() ; it != ab.end() ; it++ )
+				{
+					if ( (*it)->get_abc_desc() != vec[ i ] ) { continue ; }
+					(*it)->abc_col = abc_pos ;
+					abc_pos += (*it)->abc_desc.size() + 2 ;
+					temp.push_back( *it ) ;
+					break ;
+				}
+				if ( it == ab.end() )
+				{
+					err.seterrid( "PSYE011K", vec[ i ] ) ;
+					err.setsrc( oline ) ;
+					return ;
+				}
+				ab.erase( it ) ;
+			}
+			for_each( ab.begin(), ab.end(),
+				[](abc* a)
+				{
+					delete a ;
+				} ) ;
+			ab = temp ;
+			continue ;
+		}
+		else if ( w1 == "PANELTITLE" )
 		{
 			panelTitle = strip( strip( subword( pline, 2 ) ), 'B', '"' ) ;
 			continue ;
@@ -634,25 +680,20 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			panelDesc = strip( strip( subword( pline, 2 ) ), 'B', '"' ) ;
 			continue ;
 		}
-		else if ( w1 == "SCROLLON" )
+		else if ( w1 == "LITERAL" || w1 == "TEXT" )
 		{
-			scrollOn = true ;
-			continue ;
-		}
-		else if ( w1 == "LITERAL" )
-		{
-			literal* m_lit = new literal ;
-			m_lit->literal_init( err, wscrmaxw, wscrmaxd, opt_field, pline ) ;
+			text* m_lit = new text ;
+			m_lit->text_init( err, wscrmaxw, wscrmaxd, opt_field, pline ) ;
 			if ( err.error() )
 			{
 				err.setsrc( oline ) ;
 				delete m_lit ;
 				return ;
 			}
-			literalList.push_back( m_lit ) ;
-			if ( m_lit->literal_cua == PS )
+			textList.push_back( m_lit ) ;
+			if ( m_lit->text_cua == PS )
 			{
-				literalPS.push_back( m_lit ) ;
+				textPS.push_back( m_lit ) ;
 			}
 			continue ;
 		}
@@ -683,11 +724,14 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				return ;
 			}
 			fieldList[ w7 ] = fld ;
+			if ( not jump_fields )
+			{
+				jump_fields = fld->field_jump ;
+			}
 			continue ;
 		}
 		else if ( w1 == "DYNAREA" )
 		{
-			debug2( "Creating dynArea" << endl ) ;
 			w6 = word( pline, 6 ) ;
 			if ( !isvalidName( w6 ) )
 			{
@@ -712,6 +756,19 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				return ;
 			}
 
+			if ( scrollOn && m_dynArea->dynArea_scroll )
+			{
+				err.seterrid( "PSYE042R" ) ;
+				err.setsrc( oline ) ;
+				delete m_dynArea ;
+				return ;
+			}
+
+			if ( not scrollOn )
+			{
+				scrollOn = m_dynArea->dynArea_scroll ;
+			}
+
 			dyn_width = m_dynArea->dynArea_width ;
 			dyn_depth = m_dynArea->dynArea_depth ;
 
@@ -733,7 +790,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		}
 		else if ( w1 == "BOX" )
 		{
-			debug2( "Creating box" << endl ) ;
 			Box* m_box = new Box ;
 			m_box->box_init( err, wscrmaxw, wscrmaxd, pline ) ;
 			if ( err.error() )
@@ -747,7 +803,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		}
 		else if ( w1 == "TBMODEL" )
 		{
-			debug2( "Creating tbmodel" << endl ) ;
 			iupper( pline ) ;
 			ww = word( pline, 3 ) ;
 			uint start_row = ds2d( word( pline, 2 ) ) - 1 ;
@@ -761,8 +816,14 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				err.setsrc( oline ) ;
 				return ;
 			}
-			scrollOn  = true      ;
-			tb_model  = true      ;
+			if ( scrollOn )
+			{
+				err.seterrid( "PSYE042S" ) ;
+				err.setsrc( oline ) ;
+				return ;
+			}
+			scrollOn  = true ;
+			tb_model  = true ;
 			tb_toprow = start_row ;
 			t1 = subword( pline, 4 ) ;
 			t2 = parseString( err, t1, "ROWS()" ) ;
@@ -883,6 +944,40 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		{
 			def_schar = c ;
 			break ;
+		}
+	}
+
+	for ( auto ita = fieldList.begin() ; ita != fieldList.end() ; ita++ )
+	{
+		if ( not ita->second->field_dynArea &&
+		     not ita->second->field_tb      &&
+		     not ita->second->field_nojump  &&
+			 ita->second->field_input   &&
+			 cmdfield != ita->first     &&
+			 ita->second->field_length > 1 )
+		{
+			for ( auto itb = textList.begin() ; itb != textList.end() ; itb++ )
+			{
+				if ( ita->second->field_row == (*itb)->text_row     &&
+				     ita->second->field_col == (*itb)->text_cole + 1 )
+				{
+					k = (*itb)->text_value.size() - 3 ;
+					if ( k > 0 )
+					{
+						t1 = (*itb)->text_value.substr( k, 3 ) ;
+						if ( t1 == "..." ||
+						     t1 == ". ." ||
+						     t1 == " .:" ||
+						     t1 == ". :" ||
+						     t1 == "==>" )
+						{
+							ita->second->field_jump = true ;
+							jump_fields             = true ;
+						}
+					}
+					break ;
+				}
+			}
 		}
 	}
 
@@ -1036,7 +1131,7 @@ void pPanel::readPanel( errblock& err,
 		if ( w1 == ")ABC" )        { abc = true                 ; }
 		if ( w1 == ")INCLUDE" )
 		{
-			if ( wordpos( w2, slist ) )
+			if ( findword( w2, slist ) )
 			{
 				err.seterrid( "PSYE041O", name, w2 ) ;
 				err.setsrc( trim( pline ) ) ;

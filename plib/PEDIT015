@@ -12,31 +12,31 @@ Edit copy panel for editor PEDIT01
 
 PanelTitle "Edit Copy"
 
-literal  4    2       FP     "Command ===> "
+text     4    2       FP     "Command ===> "
 field    4   15  MAX  NEF     PAD(USER) ZCMD5
 
-literal  7    2       FP     "Current File Name:"
+text     7    2       FP     "Current File Name:"
 field    7   21  MAX  VOI     NONE ZFILE
 
-literal 10    2       FP     "Enter file name to copy"
-literal 11    5       FP     "File Name. . .:"
+text    10    2       FP     "Enter file name to copy"
+text    11    5       FP     "File Name. . .:"
 field   11   21  MAX  NEF     PAD(USER) ZFILE2
 
-literal 13    2       FP     "Line numbers (Blank for entire file)"
-literal 14    5       FP     "First Line . .:"
+text    13    2       FP     "Line numbers (Blank for entire file)"
+text    14    5       FP     "First Line . .:"
 field   14   21  6    NEF     PAD(USER) LINE1
-literal 15    5       FP     "Last Line. . .:"
+text    15    5       FP     "Last Line. . .:"
 field   15   21  6    NEF     PAD(USER) LINE2
 
-literal 18 2  CH "Instructions"
-literal 20 2  NT "Enter"
-literal 20 8  ET "="
-literal 20 10 NT "in file name to copy to retrieve full path name of current file"
-literal 21 2  NT "Enter file name and press"
-literal 21 28 ET "ENTER"
-literal 21 34 NT "to copy file or "
-literal 21 50 ET "END"
-literal 21 54 NT "to cancel copy"
+text    18 2  CH "Instructions"
+text    20 2  NT "Enter"
+text    20 8  ET "="
+text    20 10 NT "in file name to copy to retrieve full path name of current file"
+text    21 2  NT "Enter file name and press"
+text    21 28 ET "ENTER"
+text    21 34 NT "to copy file or "
+text    21 50 ET "END"
+text    21 54 NT "to cancel copy"
 
 )INIT
 

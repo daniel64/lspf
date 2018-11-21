@@ -13,37 +13,37 @@ COMPARE files panel
 
 PanelTitle "Compare File"
 
-literal  4    2       FP     "Command ===> "
+text     4    2       FP     "Command ===> "
 field    4  15   MAX  NEF     PAD(USER) ZCMD3
 
-literal  6    2       FP     "Compare File Name. . .:"
+text     6    2       FP     "Compare File Name. . .:"
 field    6   26      MAX     NEF  PAD(USER) CFILE
 
-literal  9    2       ET     "Options"
-literal  10   4       PIN    "Enter / to select option"
+text     9    2       ET     "Options"
+text     10   4       PIN    "Enter / to select option"
 field    11   4    1  CEF     PAD(USER) ECPBRDF
-literal  11   6       SAC    "Browse output instead of adding EDIT INFO lines"
+text     11   6       SAC    "Browse output instead of adding EDIT INFO lines"
 
 field    12   4   1   CEF     PAD(USER) ECPICAS
-literal  12   6       SAC    "Case insensitive compare"
+text     12   6       SAC    "Case insensitive compare"
 
 field    13   4   1   CEF     PAD(USER) ECPIREF
-literal  13   6       SAC    "Ignore reformat differences"
+text     13   6       SAC    "Ignore reformat differences"
 
 field    14   4   1   CEF     PAD(USER) ECPIBLK
-literal  14   6       SAC    "Ignore blank lines"
+text     14   6       SAC    "Ignore blank lines"
 
 field    15   4   1   CEF     PAD(USER) ECPITBE
-literal  15   6       SAC    "Ignore changes due to tab expansion"
+text     15   6       SAC    "Ignore changes due to tab expansion"
 
 
-literal 18 2  CH "Instructions"
-literal 19 2  NT "Enter"
-literal 19 8  ET "="
-literal 19 10 NT "in file name to retrieve full path name of current file"
-literal 21 2  NT "Enter file name and press"
-literal 21 28 ET "ENTER"
-literal 21 34 NT "to compare files"
+text    18 2  CH "Instructions"
+text    19 2  NT "Enter"
+text    19 8  ET "="
+text    19 10 NT "in file name to retrieve full path name of current file"
+text    21 2  NT "Enter file name and press"
+text    21 28 ET "ENTER"
+text    21 34 NT "to compare files"
 
 
 )INIT

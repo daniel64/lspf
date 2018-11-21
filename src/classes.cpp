@@ -1861,6 +1861,9 @@ bool selobj::parse( errblock& err, string selstr )
 
 void char_attrs::setattr( errblock& err, string& attrs )
 {
+	// Create new values using attrs.
+	// Keep a copy of the original string if it contains dialogue variables.
+
 	err.setRC( 0 ) ;
 	char_attrs_clear() ;
 
@@ -1873,6 +1876,9 @@ void char_attrs::setattr( errblock& err, string& attrs )
 
 void char_attrs::update( errblock& err, string& attrs )
 {
+	// Update existing values with what is in attrs.
+	// Used for attrchar() and variable substitution after )INIT processing
+
 	err.setRC( 0 ) ;
 
 	parse( err, attrs ) ;
@@ -1881,9 +1887,9 @@ void char_attrs::update( errblock& err, string& attrs )
 
 const string& char_attrs::get()
 {
-	// Return the entry only if it contains substitutable variables
+	// Return the entry (only set if it contains substitutable variables).
 
-	return dvars ? entry : nullstr ;
+	return entry ;
 }
 
 
@@ -1895,8 +1901,10 @@ void char_attrs::parse( errblock& err, string& attrs )
 	// 2) COLOUR
 	// 3) INTENS
 	// 4) HILITE
+	// 5) CUATYPE - syntax checked but only used on types DATAIN/DATAOUT
 
 	// CUA types cannot have COLOUR, INTENS or HILITE parameters coded
+	// CUATYPE for DATAIN/DATAOUT. Ignored for everything else.
 
 	string temp ;
 
@@ -1985,7 +1993,7 @@ void char_attrs::parse( errblock& err, string& attrs )
 	temp = parseString( err, attrs, "HILITE()" ) ;
 	if ( err.error() ) { return ; }
 
-	if ( temp != "" && temp != "NONE" )
+	if ( temp != "" )
 	{
 		if ( temp.front() == '&' )
 		{
@@ -2007,6 +2015,64 @@ void char_attrs::parse( errblock& err, string& attrs )
 		}
 	}
 
+	temp = parseString( err, attrs, "CUADYN()" ) ;
+	if ( err.error() ) { return ; }
+
+	if ( temp != "" )
+	{
+		if ( temp.front() == '&' )
+		{
+			if ( not isvalidName( temp.substr( 1 ) ) )
+			{
+				err.seterrid( "PSYE031D", temp.substr( 1 ) ) ;
+				return ;
+			}
+		}
+		else
+		{
+			auto it1 = type_map.find( temp ) ;
+			auto it2 = none_cua_map.find( temp ) ;
+			if ( it1 == type_map.end() || it2 != none_cua_map.end() )
+			{
+				err.seterrid( "PSYE035B", temp, "HILITE" ) ;
+				return ;
+			}
+			if ( type == DATAIN )
+			{
+				if ( it1->second == CEF ||
+				     it1->second == EE  ||
+				     it1->second == LEF ||
+				     it1->second == NEF )
+				{
+					cuadyn = it1->second ;
+				}
+			}
+			else if ( type == DATAOUT )
+			{
+				if ( it1->second == CH   ||
+				     it1->second == CT   ||
+				     it1->second == DT   ||
+				     it1->second == ET   ||
+				     it1->second == FP   ||
+				     it1->second == LI   ||
+				     it1->second == LID  ||
+				     it1->second == NT   ||
+				     it1->second == PIN  ||
+				     it1->second == PT   ||
+				     it1->second == SAC  ||
+				     it1->second == SI   ||
+				     it1->second == SUC  ||
+				     it1->second == VOI  ||
+				     it1->second == WASL ||
+				     it1->second == WT )
+				{
+					cuadyn = it1->second ;
+				}
+			}
+
+		}
+	}
+
 	if ( trim( attrs ) != "" )
 	{
 		err.seterrid( "PSYE032H", attrs ) ;
@@ -2017,7 +2083,14 @@ void char_attrs::parse( errblock& err, string& attrs )
 
 uint char_attrs::get_colour()
 {
-	return colour | intens | hilite ;
+	if ( cuadyn == NONE )
+	{
+		return colour | intens | hilite ;
+	}
+	else
+	{
+		return lspfc::cuaAttr[ cuadyn ] ;
+	}
 }
 
 

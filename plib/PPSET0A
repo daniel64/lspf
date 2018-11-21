@@ -14,62 +14,62 @@ Dialogue variables for selection panels reside in the shared/profile pools
 
 PanelTitle "Primary Settings and Information Panel"
 
-literal  4    2       FP  "Option ===>"
+text     4    2       FP  "Option ===>"
 field    4   14   MAX  NEF     CAPS(ON),PAD(USER)  ZCMD
 
-literal  6   MAX-20        FP  "Date: "
+text     6   MAX-20        FP  "Date: "
 field    6   MAX-14    8   VOI   NONE  ZDATE
 
-literal  7   MAX-20         FP  "Time: "
+text     7   MAX-20         FP  "Time: "
 field    7   MAX-14    8    VOI   NONE  ZTIME
 
-literal  6   2    SAC  "0"
-literal  6   5    PS   "General"
-literal  6   17   NT   "Display and alter general lspf option settings"
+text     6   2    SAC  "0"
+text     6   5    PS   "General"
+text     6   17   NT   "Display and alter general lspf option settings"
 
-literal  7   2    SAC  "1"
-literal  7   5    PS   "PF Keys"
-literal  7   17   NT   "Display and alter function key settings"
+text     7   2    SAC  "1"
+text     7   5    PS   "PF Keys"
+text     7   17   NT   "Display and alter function key settings"
 
-literal  8   2    SAC  "2"
-literal  8   5    PS   "CUA Colours"
-literal  8   17   NT   "Display and alter screen colours"
+text     8   2    SAC  "2"
+text     8   5    PS   "CUA Colours"
+text     8   17   NT   "Display and alter screen colours"
 
-literal  9   2    SAC  "3"
-literal  9   5    PS   "Colours"
-literal  9   17   NT   "Display and alter lspf global colours"
+text     9   2    SAC  "3"
+text     9   5    PS   "Colours"
+text     9   17   NT   "Display and alter lspf global colours"
 
-literal  10  2    SAC  "4"
-literal  10  5    PS   "Commands"
-literal  10  17   NT   "Display command tables"
+text     10  2    SAC  "4"
+text     10  5    PS   "Commands"
+text     10  17   NT   "Display command tables"
 
-literal  11  2    SAC  "5"
-literal  11  5    PS   "Paths"
-literal  11  17   NT   "Display search paths and LIBDEF status"
+text     11  2    SAC  "5"
+text     11  5    PS   "Paths"
+text     11  17   NT   "Display search paths and LIBDEF status"
 
-literal  12  2    SAC  "6"
-literal  12  5    PS   "Variables"
-literal  12  17   NT   "Display and delete shared and profile pool variables"
+text     12  2    SAC  "6"
+text     12  5    PS   "Variables"
+text     12  17   NT   "Display and delete shared and profile pool variables"
 
-literal  13  2    SAC  "7"
-literal  13  5    PS   "Modules"
-literal  13  17   NT   "Display/Reload Application Modules"
+text     13  2    SAC  "7"
+text     13  5    PS   "Modules"
+text     13  17   NT   "Display/Reload Application Modules"
 
-literal  14  2    SAC  "8"
-literal  14  5    PS   "Programs"
-literal  14  17   NT   "Display and alter utility programs"
+text     14  2    SAC  "8"
+text     14  5    PS   "Programs"
+text     14  17   NT   "Display and alter utility programs"
 
-literal  15  2    SAC  "9"
-literal  15  5    PS   "Ctrl keys"
-literal  15  17   NT   "Display and alter keyboard control key functions"
+text     15  2    SAC  "9"
+text     15  5    PS   "Ctrl keys"
+text     15  17   NT   "Display and alter keyboard control key functions"
 
-literal  17  2    SAC  "T"
-literal  17  5    PS   "Tutorial"
-literal  17  17   NT   "Start Tutorial"
+text     17  2    SAC  "T"
+text     17  5    PS   "Tutorial"
+text     17  17   NT   "Start Tutorial"
 
-literal  18  2    SAC  "X"
-literal  18  5    PS   "Terminate"
-literal  18  17   NT   "Terminate Settings"
+text     18  2    SAC  "X"
+text     18  5    PS   "Terminate"
+text     18  17   NT   "Terminate Settings"
 
 )INIT
 .CURSOR = ZCMD

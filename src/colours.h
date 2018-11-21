@@ -29,6 +29,7 @@ map<string, int> colourName =
   { "YELLOW",  YELLOW  },
   { "BLUE",    BLUE    },
   { "MAGENTA", MAGENTA },
+  { "PINK",    MAGENTA },
   { "TURQ",    TURQ    },
   { "WHITE",   WHITE   } } ;
 

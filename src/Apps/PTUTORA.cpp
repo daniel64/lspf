@@ -302,12 +302,12 @@ void PTUTORA::read_file( string file )
 
 	while ( getline( fin, inLine ) )
 	{
-		pos = inLine.find_first_of( '\t' ) ;
+		pos = inLine.find( '\t' ) ;
 		while ( pos != string::npos )
 		{
 			j = 8 - (pos % 8 ) ;
 			inLine.replace( pos, 1,  j, ' ' ) ;
-			pos = inLine.find_first_of( '\t', pos + 1 );
+			pos = inLine.find( '\t', pos + 1 );
 		}
 		if ( maxCol < inLine.size() ) maxCol = inLine.size() ;
 		data.push_back( inLine ) ;

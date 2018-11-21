@@ -9,38 +9,38 @@
 
 PanelTitle "Global Colours"
 
-literal   4   2   FP "Command ===> "
+text      4   2   FP "Command ===> "
 field    4  15  MAX  NEF CAPS(ON),PAD(USER) ZCMD
 
-literal  7   2   CH "lspf default colours"
+text     7   2   CH "lspf default colours"
 
-literal  9   2   FP  "Blue . . . ."
+text     9   2   FP  "Blue . . . ."
 field    9   15  6  NEF CAPS(ON),PAD(USER) COLOUR01
 
-literal  10  2   FP  "Red. . . . ."
+text     10  2   FP  "Red. . . . ."
 field    10  15  6  NEF CAPS(ON),PAD(USER) COLOUR02
 
-literal  11  2   FP  "Magenta. . ."
+text     11  2   FP  "Magenta. . ."
 field    11  15  6  NEF CAPS(ON),PAD(USER) COLOUR03
 
-literal  12  2   FP  "Green. . . ."
+text     12  2   FP  "Green. . . ."
 field    12  15  6  NEF CAPS(ON),PAD(USER) COLOUR04
 
-literal  13  2   FP  "Turquoise. ."
+text     13  2   FP  "Turquoise. ."
 field    13  15  6  NEF CAPS(ON),PAD(USER) COLOUR05
 
-literal  14  2   FP  "Yellow . . ."
+text     14  2   FP  "Yellow . . ."
 field    14  15  6  NEF CAPS(ON),PAD(USER) COLOUR06
 
-literal  15  2   FP  "White. . . ."
+text     15  2   FP  "White. . . ."
 field    15  15  6  NEF CAPS(ON),PAD(USER) COLOUR07
 
-literal  18  2    CH "Instructions"
+text     18  2    CH "Instructions"
 
-literal  20  2     PIN "Enter first letter of the colour or blank field for default colour"
-literal  22  2     PIN "Enter"
-literal  22  8     PS  "Defaults"
-literal  22  17    PIN "to restore global colours to their original"
+text     20  2     PIN "Enter first letter of the colour or blank field for default colour"
+text     22  2     PIN "Enter"
+text     22  8     PS  "Defaults"
+text     22  17    PIN "to restore global colours to their original"
 
 )INIT
 &ZCMD   = &Z

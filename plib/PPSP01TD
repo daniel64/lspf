@@ -6,7 +6,7 @@
 )BODY WINDOW(82,15) CMD(ZCMD)
 
 PanelTitle "TODO List"
-literal   1  2   FP "Command ===> "
+text      1  2   FP "Command ===> "
 field     1 15  MAX  NEF CAPS(ON),PAD(USER) ZCMD
 field     3  2  80      NEF NONE TODO1
 field     4  2  80      NEF NONE TODO2

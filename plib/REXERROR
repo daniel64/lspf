@@ -14,89 +14,89 @@
 
 PanelTitle "REXX Error"
 
-literal 4   2      FP  "Command ===> "
+text    4   2      FP  "Command ===> "
 field   4  15 MAX  NEF  CAPS(ON),PAD(USER) ZCMD
 
-literal 7     2 ET EXPAND "*"
+text    7     2 ET EXPAND "*"
 
-literal 8       2 ET "*"
-literal 8  MAX ET "*"
+text    8       2 ET "*"
+text    8  MAX ET "*"
 
-literal 9       2 ET "*"
-literal 9  MAX ET "*"
+text    9       2 ET "*"
+text    9  MAX ET "*"
 
-literal 10      2 ET "*"
-literal 10 MAX ET "*"
+text    10      2 ET "*"
+text    10 MAX ET "*"
 
-literal 11       2 ET "*"
-literal 11  MAX ET "*"
+text    11       2 ET "*"
+text    11  MAX ET "*"
 
-literal 12       2 ET "*"
-literal 12  MAX ET "*"
+text    12       2 ET "*"
+text    12  MAX ET "*"
 
-literal 13       2 ET "*"
-literal 13  MAX ET "*"
+text    13       2 ET "*"
+text    13  MAX ET "*"
 
-literal 14       2 ET "*"
-literal 14  MAX ET "*"
+text    14       2 ET "*"
+text    14  MAX ET "*"
 
-literal 15       2 ET "*"
-literal 15  MAX ET "*"
+text    15       2 ET "*"
+text    15  MAX ET "*"
 
-literal 16       2 ET "*"
-literal 16  MAX ET "*"
+text    16       2 ET "*"
+text    16  MAX ET "*"
 
-literal 17       2 ET "*"
-literal 17  MAX ET "*"
+text    17       2 ET "*"
+text    17  MAX ET "*"
 
-literal 18       2 ET "*"
-literal 18  MAX ET "*"
+text    18       2 ET "*"
+text    18  MAX ET "*"
 
-literal 19       2 ET "*"
-literal 19  MAX ET "*"
+text    19       2 ET "*"
+text    19  MAX ET "*"
 
-literal 20       2 ET "*"
-literal 20  MAX ET "*"
+text    20       2 ET "*"
+text    20  MAX ET "*"
 
-literal 21       2 ET "*"
-literal 21  MAX ET "*"
+text    21       2 ET "*"
+text    21  MAX ET "*"
 
-literal 22       2 ET "*"
-literal 22  MAX ET "*"
+text    22       2 ET "*"
+text    22  MAX ET "*"
 
-literal 23       2 ET "*"
-literal 23  MAX ET "*"
+text    23       2 ET "*"
+text    23  MAX ET "*"
 
-literal 24       2 ET "*"
-literal 24  MAX ET "*"
+text    24       2 ET "*"
+text    24  MAX ET "*"
 
-literal 25       2 ET "*"
-literal 25  MAX ET "*"
+text    25       2 ET "*"
+text    25  MAX ET "*"
 
-literal 26       2 ET "*"
-literal 26  MAX ET "*"
+text    26       2 ET "*"
+text    26  MAX ET "*"
 
-literal 27       2 ET "*"
-literal 27  MAX ET "*"
+text    27       2 ET "*"
+text    27  MAX ET "*"
 
-literal 28      2 ET EXPAND "*"
+text    28      2 ET EXPAND "*"
 
-literal  9 4   WMT "An error has occured running a REXX procedure:"
-literal 11 4   NT "Condition code. . . . :"
+text     9 4   WMT "An error has occured running a REXX procedure:"
+text    11 4   NT "Condition code. . . . :"
 field   11 28  MAX-2 ET NONE ZERR1
-literal 12 4   NT "Condition Error Text .:"
+text    12 4   NT "Condition Error Text .:"
 field   12 28  MAX-2 ET NONE ZERR2
-literal 13 4   NT "Condition Message. . .:"
+text    13 4   NT "Condition Message. . .:"
 field   13 28  MAX-2 ET NONE ZERR3
-literal 14 4   NT "Error Occured On Line :"
+text    14 4   NT "Error Occured On Line :"
 field   14 28  MAX-2 ET NONE ZERR4
 
-literal 16 4   NT "Macro executing . . . :"
+text    16 4   NT "Macro executing . . . :"
 field   16 28  MAX-2 ET NONE ZERR5
 
-literal 20 4   NT "Press"
-literal 20 10  ET "ENTER"
-literal 20 16  NT "to terminate the macro"
+text    20 4   NT "Press"
+text    20 10  ET "ENTER"
+text    20 16  NT "to terminate the macro"
 
 )INIT
 .CURSOR = ZCMD

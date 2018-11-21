@@ -11,14 +11,14 @@ Defaults for HOME() and CMD() on the BODY statement are ZCMD
              Define the scroll field to be used.  It must also be defined as a field in the panel body
              Default is ZSCROLL
 
-Format for fields, literals, proc, etc
+Format for fields, text, proc, etc
 
 PANELTITLE Title of the panel that appears on screen.  Also appears in the task list if PANELDESC is not defined.
 PANELDESC  Description of the panel.  Appears in the Task List (SWAP LIST) if defined.
            At least one of these should be defined for a panel so a description appears in the Task List
            Variables are allowed.
 
-LITERAL row column cuaFieldType display_literal
+TEXT | LITERAL row column cuaFieldType display_text
 FIELD   row column length cuaFieldType name
 DYNAREA row column width depth name shadow_name DATAIN(xx) DATAOUT(xx) USERMOD(xx) DATAMOD(xx)
 
@@ -38,7 +38,7 @@ ABCINIT / ABCPROC
 
 BOX     row column width depth colour title
 
-LITERAL, PANELTITLE and PANELDESC can contain dialogue variables
+TEXT, PANELTITLE and PANELDESC can contain dialogue variables
 
 PROC | INIT | REINIT :
 
@@ -134,107 +134,107 @@ FIELD :
 
 PanelTitle "Primary Menu Panel"
 
-LITERAL   4    2    FP  "Option ===> "
-FIELD     4   14   MAX   NEF   CAPS(On),pad(USER),just(left),numeric(off),skip(on) ZCMD
+text   4    2    FP  "Option ===>"
+field     4   14   MAX   NEF   CAPS(On),pad(USER),just(left),numeric(off),skip(on) ZCMD
 
-literal  6  2    SAC  "0"
-literal  6  5    PS   "Settings"
-literal  6  16   NT   "Display and alter user settings"
+text  6  2    SAC  "0"
+text  6  5    PS   "Settings"
+text  6  16   NT   "Display and alter user settings"
 
-literal  7  2    SAC  "1"
-literal  7  5    PS   "Browse"
-literal  7  16   NT   "Browse files"
+text  7  2    SAC  "1"
+text  7  5    PS   "Browse"
+text  7  16   NT   "Browse files"
 
-literal  8  2    SAC  "2"
-literal  8  5    PS   "Edit"
-literal  8  16   NT   "Edit files"
+text  8  2    SAC  "2"
+text  8  5    PS   "Edit"
+text  8  16   NT   "Edit files"
 
-literal  9  2    SAC  "3"
-literal  9  5    PS   "Utilities"
-literal  9  16   NT   "File Utilities"
+text  9  2    SAC  "3"
+text  9  5    PS   "Utilities"
+text  9  16   NT   "File Utilities"
 
-literal  10  2    SAC  "4"
-literal  10  5    PS   "Testing"
-literal  10  16   NT   "Invoke Testing Program"
+text  10  2    SAC  "4"
+text  10  5    PS   "Testing"
+text  10  16   NT   "Invoke Testing Program"
 
-literal  11  2    SAC  "5"
-literal  11  5    PS   "Tasks"
-literal  11  16   NT   "Display Tasks and System Resource Usage"
+text  11  2    SAC  "5"
+text  11  5    PS   "Tasks"
+text  11  16   NT   "Display Tasks and System Resource Usage"
 
-literal  12  2    SAC  "6"
-literal  12  5    PS   "Command"
-literal  12  16   NT   "Enter Commands"
+text  12  2    SAC  "6"
+text  12  5    PS   "Command"
+text  12  16   NT   "Enter Commands"
 
-literal  13  2    SAC  "7"
-literal  13  5    PS   "Dialogue"
-literal  13  16   NT   "Dialogue Testing"
+text  13  2    SAC  "7"
+text  13  5    PS   "Dialogue"
+text  13  16   NT   "Dialogue Testing"
 
-literal  14  2    SAC  "8"
-literal  14  5    PS   "Lspf Log"
-literal  14  16   NT   "Browse Lspf Log"
+text  14  2    SAC  "8"
+text  14  5    PS   "Lspf Log"
+text  14  16   NT   "Browse Lspf Log"
 
-literal  15  2    SAC  "9"
-literal  15  5    PS   "Appl Log"
-literal  15  16   NT   "Browse Application Log"
+text  15  2    SAC  "9"
+text  15  5    PS   "Appl Log"
+text  15  16   NT   "Browse Application Log"
 
-literal  16  2    SAC  "10"
-literal  16  5    PS   "Functions"
-literal  16  16   NT   "Invoke dialogue functions or selection panel"
+text  16  2    SAC  "10"
+text  16  5    PS   "Functions"
+text  16  16   NT   "Invoke dialogue functions or selection panel"
 
-literal  18  2    SAC  "D"
-literal  18  5    PS   "MySQL"
-literal  18  16   NT   "MySQL Database Actions"
+text  18  2    SAC  "D"
+text  18  5    PS   "MySQL"
+text  18  16   NT   "MySQL Database Actions"
 
-literal  19  2    SAC  "U"
-literal  19  5    PS   "User Menu"
-literal  19  16   NT   "User Actions"
+text  19  2    SAC  "U"
+text  19  5    PS   "User Menu"
+text  19  16   NT   "User Actions"
 
-literal  20  2    SAC  "S"
-literal  20  5    PS   "System"
-literal  20  16   NT   "System Utilities"
+text  20  2    SAC  "S"
+text  20  5    PS   "System"
+text  20  16   NT   "System Utilities"
 
-literal  22  2    SAC  "T"
-literal  22  5    PS   "Tutorial"
-literal  22  16   NT   "Start Tutorial"
+text  22  2    SAC  "T"
+text  22  5    PS   "Tutorial"
+text  22  16   NT   "Start Tutorial"
 
-literal  23  2    SAC  "X"
-literal  23  5    PS   "Terminate"
-literal  23  16   NT   "Terminate Session"
+text  23  2    SAC  "X"
+text  23  5    PS   "Terminate"
+text  23  16   NT   "Terminate Session"
 
 dynArea  7  MAX-60   21  11  ZAREA  ZSHADOW
 
-Literal  7  MAX-35   FP  "User       :"
-Field    7  MAX-22   8    VOI     NONE  ZUSER
+text  7  MAX-35   FP  "User       :"
+field    7  MAX-22   8    VOI     NONE  ZUSER
 
-literal  8  MAX-35   FP  "Home       :"
+text  8  MAX-35   FP  "Home       :"
 field    8  MAX-22   15    VOI     NONE  ZHOME
 
-literal  9  MAX-35   FP  "Node Name  :"
+text  9  MAX-35   FP  "Node Name  :"
 field    9  MAX-22   10   VOI     NONE  ZNODNAME
 
-literal  10  MAX-35  FP  "Machine    :"
+text  10  MAX-35  FP  "Machine    :"
 field    10  MAX-22  8    VOI     NONE  ZMACHINE
 
-literal  11  MAX-35  FP  "Environment:"
+text  11  MAX-35  FP  "Environment:"
 field    11  MAX-22  15   VOI     NONE  ZENVIR
 
-literal  12  MAX-35  FP  "System Name:"
+text  12  MAX-35  FP  "System Name:"
 field    12  MAX-22  10    VOI     NONE  ZSYSNAME
 
-literal  13  MAX-35  FP  "OS Release :"
+text  13  MAX-35  FP  "OS Release :"
 field    13  MAX-22  15    VOI    NONE  ZOSREL
 
-literal  15  MAX-35  FP  "Date       :"
+text  15  MAX-35  FP  "Date       :"
 field    15  MAX-22  11   VOI     NONE  ZDATEL
 
-literal  16  MAX-35  FP  "Time       :"
+text  16  MAX-35  FP  "Time       :"
 field    16  MAX-22  8    VOI     NONE  ZTIMEL
 
-literal   26    2    FP     "Enter"
-literal   26    8    PS     "HELP"
-literal   26    13   FP     "to display basic information, or"
-literal   26    46   PS     "X"
-literal   26    48   FP     "to exit"
+text   26    2    FP     "Enter"
+text   26    8    PS     "HELP"
+text   26    13   FP     "to display basic information, or"
+text   26    46   PS     "X"
+text   26    48   FP     "to exit"
 
 )INIT
 &ZPRIM  = YES

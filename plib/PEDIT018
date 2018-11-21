@@ -7,26 +7,26 @@ Rename Clipboard
 )BODY HOME(NEWNAME) WINDOW(65,11)
 PanelTitle "Rename Clipboard"
 
-literal  3  2         FP  "Original Name. . . .:"
+text     3  2         FP  "Original Name. . . .:"
 field    3  24   8    NEF  CAPS(ON),PAD(' ') OLDNAME
-literal  4  2         FP  "New Name . . . . . .:"
+text     4  2         FP  "New Name . . . . . .:"
 field    4  24   8    NEF  CAPS(ON),PAD(USER) NEWNAME
 
-literal  5  2         FP  "Description. . . . .:"
+text     5  2         FP  "Description. . . . .:"
 field    5  24   40   NEF  CAPS(OFF),PAD(USER) NEWDESC
 
-literal 7  2  CH "Instructions"
-literal 9  2  NT "Press"
-literal 9  8  ET "Enter"
-literal 9  14 NT "to confirm or"
-literal 9  28 ET "END"
-literal 9  32 NT "to cancel operation"
+text    7  2  CH "Instructions"
+text    9  2  NT "Press"
+text    9  8  ET "Enter"
+text    9  14 NT "to confirm or"
+text    9  28 ET "END"
+text    9  32 NT "to cancel operation"
 
 
 )INIT
 .CURSOR  = NEWNAME
 &ZWINTTL = &Z
-.ATTR(OLDNAME) = 'TYPE(TEXT)'
+.ATTR(OLDNAME) = 'TYPE(OUTPUT)'
 
 )PROC
 IF ( &NEWNAME EQ &OLDNAME )

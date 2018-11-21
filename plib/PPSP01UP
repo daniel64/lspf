@@ -8,60 +8,60 @@
 
 )BODY
 
- PanelTitle "Utility Program Definitions"
+PanelTitle "Utility Program Definitions"
 
- literal  4   2    FP "Command ===> "
- field    4  15    MAX NEF CAPS(ON),PAD(USER) ZCMD
+text     4   2    FP "Command ===> "
+field    4  15    MAX NEF CAPS(ON),PAD(USER) ZCMD
 
- literal  6   2       FP "ZMAINPGM. . ."
- field    6   16   8  NEF CAPS(ON),PAD(USER) ZMAINPGM
- literal  6   26      FP "Initial program to run"
+text     6   2       FP "ZMAINPGM. . ."
+field    6   16   8  NEF CAPS(ON),PAD(USER) ZMAINPGM
+text     6   26      FP "Initial program to run"
 
- literal  7   2       FP "ZMAINPAN. . ."
- field    7   16   8  NEF CAPS(ON),PAD(USER) ZMAINPAN
- literal  7   26      FP "Initial panel to display"
+text     7   2       FP "ZMAINPAN. . ."
+field    7   16   8  NEF CAPS(ON),PAD(USER) ZMAINPAN
+text     7   26      FP "Initial panel to display"
 
- literal  8   2       FP "ZPANLPGM. . ."
- field    8   16   8  NEF CAPS(ON),PAD(USER) ZPANLPGM
- literal  8   26      FP "Program to run on SELECT PANEL command"
+text     8   2       FP "ZPANLPGM. . ."
+field    8   16   8  NEF CAPS(ON),PAD(USER) ZPANLPGM
+text     8   26      FP "Program to run on SELECT PANEL command"
 
- literal  9   2       FP "ZEDITPGM. . ."
- field    9   16   8  NEF CAPS(ON),PAD(USER) ZEDITPGM
- literal  9   26      FP "Editor program"
+text     9   2       FP "ZEDITPGM. . ."
+field    9   16   8  NEF CAPS(ON),PAD(USER) ZEDITPGM
+text     9   26      FP "Editor program"
 
- literal  10  2       FP "ZBRPGM. . . ."
- field    10  16   8  NEF CAPS(ON),PAD(USER) ZBRPGM
- literal  10  26      FP "Browse program"
+text     10  2       FP "ZBRPGM. . . ."
+field    10  16   8  NEF CAPS(ON),PAD(USER) ZBRPGM
+text     10  26      FP "Browse program"
 
- literal  11  2       FP "ZVIEWPGM. . ."
- field    11  16   8  NEF CAPS(ON),PAD(USER) ZVIEWPGM
- literal  11  26      FP "View program"
+text     11  2       FP "ZVIEWPGM. . ."
+field    11  16   8  NEF CAPS(ON),PAD(USER) ZVIEWPGM
+text     11  26      FP "View program"
 
- literal  12  2       FP "ZFLSTPGM. . ."
- field    12  16   8  NEF CAPS(ON),PAD(USER) ZFLSTPGM
- literal  12  26      FP "File list program"
+text     12  2       FP "ZFLSTPGM. . ."
+field    12  16   8  NEF CAPS(ON),PAD(USER) ZFLSTPGM
+text     12  26      FP "File list program"
 
- literal  13  2       FP "ZHELPPGM. . ."
- field    13  16   8  NEF CAPS(ON),PAD(USER) ZHELPPGM
- literal  13  26      FP "Program to run on selecting HELP"
+text     13  2       FP "ZHELPPGM. . ."
+field    13  16   8  NEF CAPS(ON),PAD(USER) ZHELPPGM
+text     13  26      FP "Program to run on selecting HELP"
 
- literal  14  2       FP "ZOREXPGM. . ."
- field    14  16   8  NEF CAPS(ON),PAD(USER) ZOREXPGM
- literal  14  26      FP "REXX interpreter stub and default SELECT CMD() language parameter
+text     14  2       FP "ZOREXPGM. . ."
+field    14  16   8  NEF CAPS(ON),PAD(USER) ZOREXPGM
+text     14  26      FP "REXX interpreter stub and default SELECT CMD() language parameter
 
- literal  16  2     CH  "Instructions"
+text     16  2     CH  "Instructions"
 
- literal  18  2     PIN "Enter"
- literal  18  8     PS  "Defaults"
- literal  18  16    PIN ","
- literal  18  18    PS  "Save"
- literal  18  23    PIN "or"
- literal  18  26    PS  "Cancel"
+text     18  2     PIN "Enter"
+text     18  8     PS  "Defaults"
+text     18  16    PIN ","
+text     18  18    PS  "Save"
+text     18  23    PIN "or"
+text     18  26    PS  "Cancel"
 
- literal  20  2     PIN "Defaults are those defined in the lspf.h #define values for these variable names"
+text     20  2     PIN "Defaults are those defined in the lspf.h #define values for these variable names"
 
- literal  22  2     CT  "Warning"
- literal  23  2     CT  "Incorrect values can render lspf unusable.  Rerun setup program to recreate ISPSPROF in this case"
+text     22  2     CT  "Warning"
+text     23  2     CT  "Incorrect values can render lspf unusable.  Rerun setup program to recreate ISPSPROF in this case"
 
 
 

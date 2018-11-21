@@ -16,22 +16,22 @@
 
 PanelTitle "Test Popup Panels"
 
-literal   4    2   FP  "Command ===> "
+text      4    2   FP  "Command ===> "
 field     4   15  MAX   NEF     CAPS(ON),PAD(USER) ZCMD
 
-literal   6   MAX-36    FP  "TIME: "
+text      6   MAX-36    FP  "TIME: "
 field     6   MAX-30    8    VOI   NONE  ZTIME
 
-literal   6   MAX-20    FP  "DATE: "
+text      6   MAX-20    FP  "DATE: "
 field     6   MAX-14    8    VOI   NONE  ZDATE
 
-literal   8   6     FP  "FIELD FLD1: "
+text      8   6     FP  "FIELD FLD1: "
 field     8   18    10   NEF   PAD(USER) FLD1
 
-literal   9   6     FP  "FIELD FLD2: "
+text      9   6     FP  "FIELD FLD2: "
 field     9   18    10   NEF   PAD(USER) FLD2
 
-literal   11  6     FP  "Press ENTER to create popup"
+text      11  6     FP  "Press ENTER to create popup"
 
 
 )INIT

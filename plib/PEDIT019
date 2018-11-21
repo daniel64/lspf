@@ -8,32 +8,32 @@ EDITSET panel
 
 PanelTitle "Edit Settings"
 
-literal  3    2       FP     "Command ===>"
+text     3    2       FP     "Command ===>"
 field    3   15   MAX NEF     PAD(USER),CAPS(ON) ZCMD9
 
-literal  5    2       PIN    "Enter / to select option"
+text     5    2       PIN    "Enter / to select option"
 
 field    6    2   1   CEF     PAD(USER) ZPOSFCX
-literal  6    4       SAC    "Always position Find/Change/Exclude string to target line"
+text     6    4       SAC    "Always position Find/Change/Exclude string to target line"
 
-literal  9    2       NT     "CUT default. . "
-literal  9    35      NT     "PASTE default. . "
-literal  9    20      SAC    "1. Append"
-literal 10    20      SAC    "2. Replace"
+text     9    2       NT     "CUT default. . "
+text     9    35      NT     "PASTE default. . "
+text     9    20      SAC    "1. Append"
+text    10    20      SAC    "2. Replace"
 field    9    17  1   CEF     PAD(USER) ZCUTDEF
 field    9    52  1   CEF     PAD(USER) ZPSTDEF
 
-literal  9    55      SAC    "1. Delete"
-literal 10    55      SAC    "2. Keep"
+text     9    55      SAC    "1. Delete"
+text    10    55      SAC    "2. Keep"
 
-literal 12 2  CH "Instructions"
-literal 14 2  NT "Press"
-literal 14 8  ET "END"
-literal 14 12 NT "to save changes"
+text    12 2  CH "Instructions"
+text    14 2  NT "Press"
+text    14 8  ET "END"
+text    14 12 NT "to save changes"
 
-literal 15 2  NT "Enter"
-literal 15 8  ET "CANCEL"
-literal 15 15 NT "to cancel changes"
+text    15 2  NT "Enter"
+text    15 8  ET "CANCEL"
+text    15 15 NT "to cancel changes"
 
 
 )INIT

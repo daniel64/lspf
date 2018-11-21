@@ -24,6 +24,7 @@ class dynArea
 				dynArea_dataInsp  = false ;
 				dynArea_userModsp = false ;
 				dynArea_dataModsp = false ;
+				dynArea_scroll    = false ;
 				dynArea_Attrs     = ""    ;
 				dynArea_inAttrs   = ""    ;
 			 }
@@ -36,6 +37,7 @@ class dynArea
 		bool   dynArea_dataInsp  ;
 		bool   dynArea_userModsp ;
 		bool   dynArea_dataModsp ;
+		bool   dynArea_scroll    ;
 		char   dynArea_UserMod   ;
 		char   dynArea_DataMod   ;
 		string dynArea_Attrs     ;
@@ -74,6 +76,8 @@ class field
 				field_attr_once    = false ;
 				field_skip         = true  ;
 				field_caps         = false ;
+				field_nojump       = false ;
+				field_jump         = false ;
 				field_paduser      = false ;
 				field_padchar      = ' '   ;
 				field_just         = 'L'   ;
@@ -100,6 +104,8 @@ class field
 		bool         field_attr_once    ;
 		bool         field_skip         ;
 		bool         field_caps         ;
+		bool         field_nojump       ;
+		bool         field_jump         ;
 		bool         field_paduser      ;
 		char         field_padchar      ;
 		char         field_just         ;
@@ -173,30 +179,30 @@ class field
 } ;
 
 
-class literal
+class text
 {
 	public:
-		static uint literal_intens ;
+		static uint text_intens ;
 
 	private:
-		literal() {
-				literal_colour = 0  ;
-				literal_name   = "" ;
-				literal_dvars  = true ;
-			  }
-		uint    literal_row    ;
-		uint    literal_col    ;
-		uint    literal_cole   ;
-		attType literal_cua    ;
-		uint    literal_colour ;
-		string  literal_value  ;
-		string  literal_xvalue ;
-		string  literal_name   ;
-		bool    literal_dvars  ;
+		text() {
+			     text_colour = 0  ;
+			     text_name   = "" ;
+			     text_dvars  = true ;
+		       }
+		uint    text_row    ;
+		uint    text_col    ;
+		uint    text_cole   ;
+		attType text_cua    ;
+		uint    text_colour ;
+		string  text_value  ;
+		string  text_xvalue ;
+		string  text_name   ;
+		bool    text_dvars  ;
 
-		void literal_init( errblock& err, int maxw, int maxd, int& opt_field, const string& line ) ;
-		void literal_display( WINDOW* ) ;
-		bool cursor_on_literal( uint row, uint col ) ;
+		void text_init( errblock& err, int maxw, int maxd, int& opt_field, const string& line ) ;
+		void text_display( WINDOW* ) ;
+		bool cursor_on_text( uint row, uint col ) ;
 
        friend class pPanel ;
 } ;

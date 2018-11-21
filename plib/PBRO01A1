@@ -19,26 +19,25 @@ Panel for ...
 )INCLUDE HLP_PDC
 
 )BODY
-scrollOn
 PanelDesc "Browse &ZBRALT"
 
-literal  3   2    FP "BROWSE"
-field    3  10   MAX-30 VOI  NONE ZBRALT
+text  3   2    FP "BROWSE"
+field 3  10   MAX-30 VOI  NONE ZBRALT
 
-literal  4   2         FP  "Command ===> "
-field    4  15 MAX-17  NEF PAD(USER) ZCMD
+text  4   2         FP  "Command ===>"
+field 4  15 MAX-17  NEF PAD(USER) ZCMD
 
-literal  4 MAX-15     FP  "Scroll ===> "
-field    4 MAX-3   4  NEF NONE ZSCROLL
+text  4 MAX-15     FP  "Scroll ===>"
+field 4 MAX-3   4  NEF NONE ZSCROLL
 
-literal   3   MAX-28     FP  "Line"
-field     3   MAX-23  8  VOI  NONE ZROW1
+text   3   MAX-28     FP  "Line"
+field  3   MAX-23  8  VOI  NONE ZROW1
 
-literal   3   MAX-14     FP  "Col"
-field     3   MAX-10 5  VOI  NONE ZCOL1
-field     3   MAX-4  5  VOI  NONE ZCOL2
+text   3   MAX-14     FP  "Col"
+field  3   MAX-10 5  VOI  NONE ZCOL1
+field  3   MAX-4  5  VOI  NONE ZCOL2
 
-dynArea  5  2  MAX  MAX  ZAREA  ZSHADOW
+dynArea  5  2  MAX  MAX  ZAREA  ZSHADOW SCROLL(ON)
 
 
 )INIT

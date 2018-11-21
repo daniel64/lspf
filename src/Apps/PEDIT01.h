@@ -2211,6 +2211,7 @@ class PEDIT01 : public pApplication
 
 	private:
 		static set<string>EditList ;
+		static set<string>RecoveryList ;
 		static edit_find Global_efind_parms ;
 
 		miblock miBlock ;
@@ -2218,6 +2219,9 @@ class PEDIT01 : public pApplication
 		void Edit()               ;
 		void showEditEntry()      ;
 		void showEditRecovery()   ;
+		void addEditRecovery()    ;
+		void checkEditRecovery()  ;
+		void deleteEditRecoveryRecord( const string& ) ;
 		void getEditProfile( const string& )  ;
 		void delEditProfile( const string& )  ;
 		void saveEditProfile( const string& ) ;
@@ -2443,6 +2447,7 @@ class PEDIT01 : public pApplication
 		string zuser             ;
 		string zscreen           ;
 		string zhome             ;
+		string zuprof            ;
 
 		bool optNoConvTabs       ;
 		bool optPreserve         ;
@@ -2492,6 +2497,7 @@ class PEDIT01 : public pApplication
 		int    curpos  ;
 
 		string zfile   ;
+		string rfile   ;
 		string zcol1   ;
 		string zcol2   ;
 		string zarea   ;

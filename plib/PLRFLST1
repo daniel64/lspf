@@ -15,20 +15,20 @@ PDC  DESC('Personal Settings')
 
 PanelTitle "Personal File List"
 
-literal  4   2         FP    "Command ===> "
-field    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
+text    4   2         FP    "Command ===>"
+field   4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
 
-literal  4  MAX-15  FP "Scroll ===> "
-field    4  MAX-3  4 NEF  NONE ZSCROLL
+text    4  MAX-15  FP "Scroll ===>"
+field   4  MAX-3  4 NEF  NONE ZSCROLL
 
-literal  6  2       FP "Active:"
-field    6  10  8 VOI  NONE LCURTB
+text    6  2       FP "Active:"
+field   6  10  8 VOI  NONE LCURTB
 
-literal  7  2       FP  "Action: O=Open A=Save As D=Delete E=Edit L=DSLIST S=Set Active"
+text    7  2       FP  "Action: O=Open A=Save As D=Delete E=Edit L=DSLIST S=Set Active"
 
-literal  9   2      CH    "S Name     Description"
-literal  9   MAX-30 CH    "Created     Updated"
-literal  10  2      CH    EXPAND "-"
+text    9   2      CH    "S Name     Description"
+text    9   MAX-30 CH    "Created     Updated"
+text    10  2      CH    EXPAND "-"
 
 tbmodel  11   MAX
 tbfield  2    1       NEF   PAD(USER),CAPS(ON) ASEL

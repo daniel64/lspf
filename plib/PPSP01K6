@@ -10,18 +10,18 @@
 
 PanelTitle "&ZZTABL Keylist &KEYLISTN View"
 
-literal  3   2        CH   "&ZZTYP"
-literal  4   2         FP  "Command ===> "
+text     3   2        CH   "&ZZTYP"
+text     4   2         FP  "Command ===>"
 field    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
 
-literal  4  MAX-15  FP     "Scroll ===> "
+text     4  MAX-15  FP     "Scroll ===>"
 field    4  MAX-3   4 NEF  NONE ZSCROLL
 
-literal   6  2      FP    "Keylist Help Panel Name . . :"
+text      6  2      FP    "Keylist Help Panel Name . . :"
 field     6  32   8 VOI  CAPS(ON) KEYHELP
 
-literal   8  2      CH    "Key       Definition                                Format Label"
-literal   9  2      CH    EXPAND "-"
+text      8  2      CH    "Key       Definition                                Format Label"
+text      9  2      CH    EXPAND "-"
 
 tbmodel   10   MAX
 tbfield    2   8    VOI   NONE KEYNUM

@@ -606,12 +606,12 @@ void PBRO01A::read_file( string file )
 		while ( getline( fin, inLine ) )
 		{
 			if ( maxLines == 1 ) { line1 = inLine ; }
-			p1 = inLine.find_first_of( '\t' ) ;
+			p1 = inLine.find( '\t' ) ;
 			while ( p1 != string::npos )
 			{
 				j = 8 - (p1 % 8 ) ;
 				inLine.replace( p1, 1, j, ' ' ) ;
-				p1 = inLine.find_first_of( '\t', p1 + 1 ) ;
+				p1 = inLine.find( '\t', p1 + 1 ) ;
 			}
 			if ( maxCol < inLine.size() ) maxCol = inLine.size() ;
 			data.push_back( inLine ) ;

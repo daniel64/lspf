@@ -11,58 +11,58 @@
 
 PanelTitle "Testing Services Selection Menu"
 
-literal   4    2    FP  "Option ===> "
+text      4    2    FP  "Option ===>"
 field     4   14   MAX  NEF     CAPS(ON),PAD(USER) ZCMD
 
-literal   6   MAX-20    FP  "Date: "
+text      6   MAX-20    FP  "Date: "
 field     6   MAX-14    8    VOI   NONE  ZDATE
 
-literal   7   MAX-20    FP  "Time: "
+text      7   MAX-20    FP  "Time: "
 field     7   MAX-14    8    VOI   NONE  ZTIME
 
-literal  6  2    SAC  "0"
-literal  6  5    PS   "Panel"
-literal  6  22   NT   "Check Panel Functions"
+text     6  2    SAC  "0"
+text     6  5    PS   "Panel"
+text     6  22   NT   "Check Panel Functions"
 
-literal  7  2    SAC  "1"
-literal  7  5    PS   "Keyed Table"
-literal  7  22   NT   "Check tables with keys"
+text     7  2    SAC  "1"
+text     7  5    PS   "Keyed Table"
+text     7  22   NT   "Check tables with keys"
 
-literal  8  2    SAC  "2"
-literal  8  5    PS   "Non-Keyed Table"
-literal  8  22   NT   "Check tables without keys"
+text     8  2    SAC  "2"
+text     8  5    PS   "Non-Keyed Table"
+text     8  22   NT   "Check tables without keys"
 
-literal  9  2    SAC  "3"
-literal  9  5    PS   "Table Display"
-literal  9  22   NT   "Keyed"
+text     9  2    SAC  "3"
+text     9  5    PS   "Table Display"
+text     9  22   NT   "Keyed"
 
-literal  10  2    SAC  "4"
-literal  10  5    PS   "Table Display"
-literal  10  22    NT   "Non-keyed"
+text     10  2    SAC  "4"
+text     10  5    PS   "Table Display"
+text     10  22    NT   "Non-keyed"
 
-literal  11  2    SAC  "5"
-literal  11  5    PS   "Dynamic Areas"
-literal  11  22   NT   "Check Functioning of Dynamic Areas"
+text     11  2    SAC  "5"
+text     11  5    PS   "Dynamic Areas"
+text     11  22   NT   "Check Functioning of Dynamic Areas"
 
-literal  12  2    SAC  "6"
-literal  12  5    PS   "Utilities"
-literal  12  22   NT   "Check Utilities"
+text     12  2    SAC  "6"
+text     12  5    PS   "Utilities"
+text     12  22   NT   "Check Utilities"
 
-literal  13  2    SAC  "7"
-literal  13  5    PS   "POPUPS"
-literal  13  22   NT   "Test ADDPOP/REMPOP and popup windows"
+text     13  2    SAC  "7"
+text     13  5    PS   "POPUPS"
+text     13  22   NT   "Test ADDPOP/REMPOP and popup windows"
 
-literal  14  2    SAC  "8"
-literal  14  5    PS   "Background"
-literal  14  22   NT   "Run a task in the background"
+text     14  2    SAC  "8"
+text     14  5    PS   "Background"
+text     14  22   NT   "Run a task in the background"
 
-literal  16  2    SAC  "T"
-literal  16  5    PS   "Tutorial"
-literal  16  22    NT   "Start Tutorial"
+text     16  2    SAC  "T"
+text     16  5    PS   "Tutorial"
+text     16  22    NT   "Start Tutorial"
 
-literal  17  2    SAC  "X"
-literal  17  5    PS   "Terminate"
-literal  17  22    NT   "Terminate Dialogue Services"
+text     17  2    SAC  "X"
+text     17  5    PS   "Terminate"
+text     17  22    NT   "Terminate Dialogue Services"
 
 
 )INIT

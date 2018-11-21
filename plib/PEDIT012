@@ -8,7 +8,7 @@ Panel for editor PEDIT01
 
 # COLOUR() and HILITE() only are recognised for TYPE(CHAR)
 # HILITE - BLINK/REVERSE/USCORE
-# INTENS - HIGH/LOW
+# INTENS - HIGH/LOW/NON
 # COLOUR - WHITE/RED/BLUE/GREEN/PINK(MAGENTA)/YELLOW/TURQ
 
 01 TYPE(DATAIN)  INTENS(LOW)  COLOUR(&ZEDOCLR)
@@ -63,22 +63,21 @@ PDC DESC('Edit Settings')
 
 )BODY SCROLL(ZSCROLL)
 PanelDesc "Edit &ZEDALT"
-scrollOn
 
-literal   3   2             VOI  "EDIT"
+text      3   2             VOI  "EDIT"
 field     3   10    MAX-20  VOI  NONE ZEDALT
 
-literal   4   2             FP "Command ===>"
+text      4   2             FP "Command ===>"
 field     4   15    MAX-17  NEF PAD(USER) ZCMD
 
-literal   4   MAX-15        FP  "Scroll ===>"
+text      4   MAX-15        FP  "Scroll ===>"
 field     4   MAX-3   4     NEF  NONE  ZSCROLL
 
-literal   3   MAX-18        FP  "Columns"
+text      3   MAX-18        FP  "Columns"
 field     3   MAX-10  5     VOI  NONE ZCOL1
 field     3   MAX-4   5     VOI  NONE ZCOL2
 
-dynArea   5 1 MAX MAX ZAREA ZSHADOW USERMOD(05) DATAMOD(06)
+dynArea   5 1 MAX MAX ZAREA ZSHADOW USERMOD(05) DATAMOD(06) SCROLL(ON)
 
 )INIT
 .EDIT = YES

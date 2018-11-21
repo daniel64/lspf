@@ -795,7 +795,7 @@ void PPSP01A::lspfSettings()
 	while ( true )
 	{
 		zcmd = "" ;
-		display( "PPSP01GO", "", "ZCMD" );
+		display( "PPSP01GO", "", "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
 		if ( zcmd == "DEFAULTS" )
 		{
@@ -1142,9 +1142,6 @@ void PPSP01A::colourSettings()
 	string var3   ;
 	string isps_var ;
 	string prof_var ;
-	string attr1  ;
-	string attr2  ;
-	string attr3  ;
 	string colour ;
 	string intens ;
 	string hilite ;
@@ -1223,16 +1220,9 @@ void PPSP01A::colourSettings()
 
 	control( "RELOAD", "CUA" ) ;
 
-	attr1 = "" ;
-	attr2 = "" ;
-	attr3 = "" ;
-
-	control( "DISPLAY", "LOCK" ) ;
-	display( "PPSP01CL" )        ;
-
 	for ( i = 1 ; i < 34 ; i++ )
 	{
-		if ( setScreenAttrs( VarList[ i ], i, colour, intens, hilite ) > 0 )
+		if ( not setScreenAttrs( VarList[ i ], i ) )
 		{
 			llog( "E", "ISPS variable " << "ZC" + VarList[ i ] << " not found.  Re-run setup program to create" << endl ) ;
 			abend() ;
@@ -1241,7 +1231,7 @@ void PPSP01A::colourSettings()
 
 	for ( i = 1 ; i < 34 ; i++ )
 	{
-		isps_var = "ZC" + VarList[i] ;
+		isps_var = "ZC" + VarList[ i ] ;
 		vcopy( isps_var, val, MOVE ) ;
 		if ( RC > 0 )
 		{
@@ -1257,7 +1247,7 @@ void PPSP01A::colourSettings()
 	{
 		if ( msg == "" ) { curfld = "ZCMD" ; }
 		display( "PPSP01CL", msg, curfld ) ;
-		if (RC == 8 ) { break  ; }
+		if (RC == 8 ) { break ; }
 
 		if ( zcmd == "" )
 		{
@@ -1286,7 +1276,7 @@ void PPSP01A::colourSettings()
 			}
 			for ( i = 1 ; i < 34 ; i++ )
 			{
-				setScreenAttrs( VarList[ i ],  i, colour, intens, hilite ) ;
+				if ( not setScreenAttrs( VarList[ i ], i ) ) { abend() ; }
 			}
 		}
 		else if ( zcmd == "SAVE" )
@@ -1294,7 +1284,7 @@ void PPSP01A::colourSettings()
 			zcmd = "" ;
 			for ( i = 1 ; i < 34 ; i++ )
 			{
-				isps_var = "ZC" + VarList[i] ;
+				isps_var = "ZC" + VarList[ i ] ;
 				vcopy( isps_var, val, MOVE ) ;
 				if ( RC > 0 )
 				{
@@ -1315,7 +1305,7 @@ void PPSP01A::colourSettings()
 			zcmd = "" ;
 			for ( i = 1 ; i < 34 ; i++ )
 			{
-				prof_var = "AC" + VarList[i] ;
+				prof_var = "AC" + VarList[ i ] ;
 				vcopy( prof_var, val, MOVE ) ;
 				if ( RC > 0 ) { msg = "PPSP019" ; break ; }
 				isps_var      = prof_var  ;
@@ -1323,7 +1313,7 @@ void PPSP01A::colourSettings()
 				vdefine( isps_var, &val ) ;
 				vput( isps_var, PROFILE ) ;
 				vdelete( isps_var ) ;
-				if ( setScreenAttrs( VarList[i],  i, colour, intens, hilite ) > 0 ) { abend() ; }
+				if ( not setScreenAttrs( VarList[ i ], i ) ) { abend() ; }
 			}
 			if ( RC == 0 ) { msg = "PPSP011B" ; }
 			continue ;
@@ -1342,7 +1332,7 @@ void PPSP01A::colourSettings()
 			if ( colour == "" ) { colour = DefList[ i ][ 0 ] ; }
 			if ( intens == "" ) { intens = DefList[ i ][ 1 ] ; }
 			if ( hilite == "" ) { hilite = DefList[ i ][ 2 ] ; }
-			isps_var = "ZC" + VarList[i] ;
+			isps_var = "ZC" + VarList[ i ] ;
 			vcopy( isps_var, val, MOVE ) ;
 			if ( RC > 0 )
 			{
@@ -1358,110 +1348,151 @@ void PPSP01A::colourSettings()
 			{
 			case 'R':
 				vreplace( var1, "RED" ) ;
-				val[ 0 ] = 'R'          ;
-				attr1 = "COLOUR(RED)"   ;
+				val[ 0 ] = 'R' ;
 				break ;
 
 			case 'G':
 				vreplace( var1, "GREEN" ) ;
-				val[ 0 ] = 'G'            ;
-				attr1 = "COLOUR(GREEN)"   ;
+				val[ 0 ] = 'G' ;
 				break ;
 
 			case 'Y':
 				vreplace( var1, "YELLOW" ) ;
-				val[ 0 ] = 'Y'             ;
-				attr1 = "COLOUR(YELLOW)"   ;
+				val[ 0 ] = 'Y' ;
 				break ;
 
 			case 'B':
 				vreplace( var1, "BLUE" ) ;
-				val[ 0 ] = 'B'           ;
-				attr1 = "COLOUR(BLUE)"   ;
+				val[ 0 ] = 'B' ;
 				break ;
 
 			case 'P':
 			case 'M':
 				vreplace( var1, "MAGENTA" ) ;
-				val[ 0 ] = 'M'              ;
-				attr1 = "COLOUR(MAGENTA)"   ;
+				val[ 0 ] = 'M' ;
 				break ;
 
 			case 'T':
 				vreplace( var1, "TURQ" ) ;
-				val[ 0 ] = 'T'           ;
-				attr1 = "COLOUR(TURQ)"   ;
+				val[ 0 ] = 'T' ;
 				break ;
 
 			case 'W':
 				vreplace( var1, "WHITE" ) ;
-				val[ 0 ] = 'W'            ;
-				attr1 = "COLOUR(WHITE)"   ;
+				val[ 0 ] = 'W' ;
 				break ;
-
-			default:
-				msg    = "PPSP016" ;
-				curfld = var1      ;
 			}
+
 			switch ( intens[ 0 ] )
 			{
 			case 'H':
 				vreplace( var2, "HIGH" ) ;
-				val[ 1 ] = 'H'           ;
-				attr2 = "INTENS(HIGH)"   ;
+				val[ 1 ] = 'H' ;
 				break ;
 
 			case 'L':
 				vreplace( var2, "LOW"  ) ;
-				val[ 1 ] = 'L'           ;
-				attr2 = "INTENS(LOW)"    ;
+				val[ 1 ] = 'L' ;
 				break ;
-
-			default:
-				msg    = "PPSP017" ;
-				curfld = var2      ;
 			}
+
 			switch ( hilite[ 0 ] )
 			{
 			case 'N':
 				vreplace( var3, "NONE" ) ;
-				val[ 2 ] = 'N'           ;
-				attr3 = "HILITE(NONE)"   ;
+				val[ 2 ] = 'N' ;
 				break ;
 
 			case 'B':
 				vreplace( var3, "BLINK" ) ;
-				val[ 2 ] = 'B'            ;
-				attr3 = "HILITE(BLINK)"   ;
+				val[ 2 ] = 'B' ;
 				break ;
 
 			case 'R':
 				vreplace( var3, "REVERSE" ) ;
-				val[ 2 ] = 'R'              ;
-				attr3 = "HILITE(REVERSE)"   ;
+				val[ 2 ] = 'R' ;
 				break ;
 
 			case 'U':
 				vreplace( var3, "USCORE" ) ;
-				val[ 2 ] = 'U'             ;
-				attr3 = "HILITE(USCORE)"   ;
+				val[ 2 ] = 'U' ;
 				break ;
-
-			default:
-				msg    = "PPSP018" ;
-				curfld = var3      ;
 			}
+
 			vdefine( isps_var, &val ) ;
 			vput( isps_var, PROFILE ) ;
 			vdelete( isps_var )       ;
-			attr( var1, attr1 )       ;
-			if ( RC > 0 ) { llog( "E", "Colour change for field " << var1 << " has failed." << endl ) ; }
-			attr( var2, attr1 + " " + attr2 ) ;
-			if ( RC > 0 ) { llog( "E", "Colour/intense change for field " << var2 << " has failed." << endl ) ; }
-			attr( var3, attr1 + " " + attr2 + " " + attr3 ) ;
-			if ( RC > 0 ) { llog( "E", "Colour/intense/hilite change for field " << var3 << " has failed." << endl ) ; }
 		}
 	}
+}
+
+
+bool PPSP01A::setScreenAttrs( const string& name, int itr )
+{
+	string t ;
+
+	string colour ;
+	string intens ;
+	string hilite ;
+
+	vcopy( "ZC" + name, t, MOVE ) ;
+	if ( RC > 0 )
+	{
+		llog( "E", "Variable ZC" << name << " not found in ISPS profile" << endl ) ;
+		return false ;
+	}
+
+	if ( t.size() != 3 )
+	{
+		llog( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ;
+		return false ;
+	}
+
+	switch ( t[ 0 ] )
+	{
+		case 'R': colour = "RED"     ; break ;
+		case 'G': colour = "GREEN"   ; break ;
+		case 'Y': colour = "YELLOW"  ; break ;
+		case 'B': colour = "BLUE"    ; break ;
+		case 'M': colour = "MAGENTA" ; break ;
+		case 'T': colour = "TURQ"    ; break ;
+		case 'W': colour = "WHITE"   ; break ;
+		default :
+			  llog( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ;
+	}
+	switch ( t[ 1 ] )
+	{
+		case 'H': intens = "HIGH" ; break ;
+		case 'L': intens = "LOW"  ; break ;
+		default :
+			  llog( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ;
+	}
+	switch ( t[ 2 ] )
+	{
+		case 'N': hilite = "NONE"    ; break ;
+		case 'B': hilite = "BLINK"   ; break ;
+		case 'R': hilite = "REVERSE" ; break ;
+		case 'U': hilite = "USCORE"  ; break ;
+		default :
+			  llog( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ;
+	}
+
+	vreplace( "COLOUR" + d2ds( itr, 2 ), colour ) ;
+	vreplace( "INTENS" + d2ds( itr, 2 ), intens ) ;
+	vreplace( "HILITE" + d2ds( itr, 2 ), hilite ) ;
+
+	return true ;
+}
+
+
+void PPSP01A::setISPSVar( const string& xvar, string xval )
+{
+	string isps_var ;
+
+	isps_var = "ZC" + xvar     ;
+	vdefine( isps_var, &xval ) ;
+	vput( isps_var, PROFILE )  ;
+	vdelete( isps_var )        ;
 }
 
 
@@ -1518,96 +1549,6 @@ void PPSP01A::globalColours()
 		}
 	}
 	rempop() ;
-}
-
-
-int PPSP01A::setScreenAttrs( const string& name, int itr, string colour, string intens, string hilite )
-{
-	string t ;
-
-	string var1 ;
-	string var2 ;
-	string var3 ;
-
-	vcopy( "ZC" + name, t, MOVE ) ;
-	if ( RC > 0 )
-	{
-		llog( "E", "Variable ZC" << name << " not found in ISPS profile" << endl ) ;
-		return 8 ;
-	}
-
-	if ( t.size() != 3 )
-	{
-		llog( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ;
-		return 8 ;
-	}
-
-	switch ( t[ 0 ] )
-	{
-		case 'R': colour = "RED"     ; break ;
-		case 'G': colour = "GREEN"   ; break ;
-		case 'Y': colour = "YELLOW"  ; break ;
-		case 'B': colour = "BLUE"    ; break ;
-		case 'M': colour = "MAGENTA" ; break ;
-		case 'T': colour = "TURQ"    ; break ;
-		case 'W': colour = "WHITE"   ; break ;
-		default :
-			  llog( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ;
-	}
-	switch ( t[ 1 ] )
-	{
-		case 'H': intens = "HIGH" ; break ;
-		case 'L': intens = "LOW"  ; break ;
-		default :
-			  llog( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ;
-	}
-	switch ( t[ 2 ] )
-	{
-		case 'N': hilite = "NONE"    ; break ;
-		case 'B': hilite = "BLINK"   ; break ;
-		case 'R': hilite = "REVERSE" ; break ;
-		case 'U': hilite = "USCORE"  ; break ;
-		default :
-			  llog( "E", "Variable ZC" << name << " has invalid value " << t << endl ) ;
-	}
-
-	var1 = "COLOUR" + d2ds( itr, 2 ) ;
-	var2 = "INTENS" + d2ds( itr, 2 ) ;
-	var3 = "HILITE" + d2ds( itr, 2 ) ;
-
-	attr( var1, "COLOUR(" + colour + ")" ) ;
-	if ( RC > 0 )
-	{
-		llog( "E", "Colour change for field " << var1 << " has failed." << endl ) ;
-	}
-
-	attr( var2, "COLOUR(" + colour + ") INTENS(" + intens + ")" ) ;
-	if ( RC > 0 )
-	{
-		llog( "E", "Colour/intense change for field " << var2 << " has failed." << endl ) ;
-	}
-
-	attr( var3, "COLOUR(" + colour + ") INTENS(" + intens + ") HILITE(" + hilite + ")" ) ;
-	if ( RC > 0 )
-	{
-		llog( "E", "Colour/intense/hilite change for field " << var3 << " has failed." << endl ) ;
-	}
-
-	vreplace( var1, colour ) ;
-	vreplace( var2, intens ) ;
-	vreplace( var3, hilite ) ;
-	return 0 ;
-}
-
-
-void PPSP01A::setISPSVar( const string& xvar, string xval )
-{
-	string isps_var ;
-
-	isps_var = "ZC" + xvar     ;
-	vdefine( isps_var, &xval ) ;
-	vput( isps_var, PROFILE )  ;
-	vdelete( isps_var )        ;
 }
 
 

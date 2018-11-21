@@ -12,42 +12,42 @@ Edit Entry panel for editor PEDIT01
 
 PanelTitle "Edit Entry Panel"
 
-literal  4    2       FP     "Command ===>"
+text     4    2       FP     "Command ===>"
 field    4   15   MAX NEF     PAD(USER) ZCMD1
 
-literal  7    2       FP     "File Name. . .:"
+text     7    2       FP     "File Name. . .:"
 field    7   18   MAX NEF     PAD(USER) ZFILE
 
-literal  9    2       FP     "Initial Macro. . . . ."
+text     9    2       FP     "Initial Macro. . . . ."
 field    9    25  8   CEF     PAD(USER),caps(off) EEIMAC
-literal  10   2       FP     "Profile Name . . . . ."
+text     10   2       FP     "Profile Name . . . . ."
 field    10   25  8   CEF     PAD(USER),caps(on) EEPROF
 
-literal  11   2       FP     "Line Command Table . ."
+text     11   2       FP     "Line Command Table . ."
 field    11   25  8   CEF     PAD(USER),caps(on) EELMAC
 
-literal  13   2       ET     "Options"
-literal  14   4       PIN    "Enter / to select option"
+text     13   2       ET     "Options"
+text     14   4       PIN    "Enter / to select option"
 
 field    15   4   1   CEF     PAD(USER) EECCAN
-literal  15   6       SAC    "Confirm Cancel"
+text     15   6       SAC    "Confirm Cancel"
 field    16   4   1   CEF     PAD(USER) EEPRSPS
-literal  16   6       SAC    "Preserve trailing spaces on file save"
+text     16   6       SAC    "Preserve trailing spaces on file save"
 
 field    17   4   1   CEF     PAD(USER) EETABSS
-literal  17   6       SAC    "Override XTABS setting to prevent tabs being converted to spaces"
+text     17   6       SAC    "Override XTABS setting to prevent tabs being converted to spaces"
 
 field    18   4   1   CEF     PAD(USER) EEDIRLST
-literal  18   6       SAC    "Show directory list if valid directory entered"
+text     18   6       SAC    "Show directory list if valid directory entered"
 
 field    19   4   1   CEF     PAD(USER) EENEWFLS
-literal  19   6       SAC    "Allow edit of new files"
+text     19   6       SAC    "Allow edit of new files"
 
 
-literal 22 2  CH "Instructions"
-literal 24 2  NT "Enter file name and press"
-literal 24 28 ET "ENTER"
-literal 24 34 NT "to edit file"
+text    22 2  CH "Instructions"
+text    24 2  NT "Enter file name and press"
+text    24 28 ET "ENTER"
+text    24 34 NT "to edit file"
 
 
 )INIT

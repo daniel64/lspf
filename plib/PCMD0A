@@ -61,36 +61,36 @@ VPUT MODE PROFILE
 
 PanelTitle "Execute Command"
 
-literal   4  2        CH  "Enter rexx or system command below"
+text   4  2        CH  "Enter rexx or system command below"
 
-literal   6  2        FP  "===>"
-field     6  7   MAX  NEF CAPS(OFF),PAD(USER) ZCMD
+text   6  2        FP  "===>"
+field  6  7   MAX  NEF CAPS(OFF),PAD(USER) ZCMD
 
-literal   8   2       NT  "Place cursor on choice and press enter to &TYPE command"
-literal  10   2       FP  "=>"
-field    10   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD1
-literal  11   2       FP  "=>"
-field    11   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD2
-literal  12   2       FP  "=>"
-field    12   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD3
-literal  13   2       FP  "=>"
-field    13   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD4
-literal  14   2       FP  "=>"
-field    14   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD5
-literal  15   2       FP  "=>"
-field    15   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD6
-literal  16   2       FP  "=>"
-field    16   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD7
-literal  17   2       FP  "=>"
-field    17   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD8
-literal  18   2       FP  "=>"
-field    18   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD9
-literal  19   2       FP  "=>"
-field    19   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD10
-literal  20   2       FP  "=>"
-field    20   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD11
-literal  21   2       FP  "=>"
-field    21   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD12
+text   8   2       NT  "Place cursor on choice and press enter to &TYPE command"
+text  10   2       FP  "=>"
+field 10   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD1
+text  11   2       FP  "=>"
+field 11   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD2
+text  12   2       FP  "=>"
+field 12   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD3
+text  13   2       FP  "=>"
+field 13   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD4
+text  14   2       FP  "=>"
+field 14   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD5
+text  15   2       FP  "=>"
+field 15   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD6
+text  16   2       FP  "=>"
+field 16   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD7
+text  17   2       FP  "=>"
+field 17   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD8
+text  18   2       FP  "=>"
+field 18   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD9
+text  19   2       FP  "=>"
+field 19   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD10
+text  20   2       FP  "=>"
+field 20   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD11
+text  21   2       FP  "=>"
+field 21   5  MAX NEF CAPS(OFF),PAD(USER) ZKMD12
 
 )INIT
 .CURSOR = ZCMD

@@ -11,37 +11,37 @@
 
 PanelTitle "Rename File"
 
-literal  4   2       FP    "Command ===> "
+text     4   2       FP    "Command ===> "
 field    4  15   MAX NEF CAPS(ON),PAD(USER) ZCMD
 
-literal  6   2   FP    "Pathname . . . . . . ."
+text     6   2   FP    "Pathname . . . . . . ."
 field    6   25  MAX VOI  NONE ENTRY
 
-literal  7   2   FP    "Type . . . . . . . . ."
+text     7   2   FP    "Type . . . . . . . . ."
 field    7   25  20  VOI  NONE TYPE
 
-literal  8   2   FP    "Last Modified Date . ."
+text     8   2   FP    "Last Modified Date . ."
 field    8   25  20  VOI  NONE MODDATE
 
-literal  10   2  CH "Enter new name below"
+text     10   2  CH "Enter new name below"
 
-literal  12   2   FP    "Newpath Name . . . . ."
+text     12   2   FP    "Newpath Name . . . . ."
 field    12   25  MAX  NEF PAD(USER) NEWENTRY
 
-literal 15 2  CH "Instructions"
-literal 16 2  NT "Enter"
-literal 16 8  ET "="
-literal 16 10 NT "in Newpath Name field to retrieve full path name"
+text    15 2  CH "Instructions"
+text    16 2  NT "Enter"
+text    16 8  ET "="
+text    16 10 NT "in Newpath Name field to retrieve full path name"
 
-literal 18 2  NT "Press"
-literal 18 8  ET "Enter"
-literal 18 14 NT "to confirm rename"
+text    18 2  NT "Press"
+text    18 8  ET "Enter"
+text    18 14 NT "to confirm rename"
 
-literal 19 2  NT "Press"
-literal 19 8  ET "Cancel"
-literal 19 15 NT "or"
-literal 19 18 ET "END"
-literal 19 22 NT "to cancel rename"
+text    19 2  NT "Press"
+text    19 8  ET "Cancel"
+text    19 15 NT "or"
+text    19 18 ET "END"
+text    19 22 NT "to cancel rename"
 
 
 )INIT

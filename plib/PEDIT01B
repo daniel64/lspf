@@ -7,18 +7,18 @@ Set overtype colour
 )BODY HOME(ZCMDB) CMD(ZCMDB) WINDOW(48,11)
 PanelDesc "Set Overtype Colour"
 
-literal  2    2       FP     "Command ===> "
+text     2    2       FP     "Command ===> "
 field    2   15  MAX  NEF     PAD(USER) ZCMDB
 
-literal  4    2       FP     "Colour:"
+text     4    2       FP     "Colour:"
 field    4    10  1   CEF     PAD(USER) OCLR
-literal  4    13      SAC    "1. Red"
-literal  5    13      SAC    "2. Green"
-literal  6    13      SAC    "3. Yellow"
-literal  7    13      SAC    "4. Blue"
-literal  8    13      SAC    "5. Magenta"
-literal  9    13      SAC    "6. Turquoise"
-literal 10    13      SAC    "7. White"
+text     4    13      SAC    "1. Red"
+text     5    13      SAC    "2. Green"
+text     6    13      SAC    "3. Yellow"
+text     7    13      SAC    "4. Blue"
+text     8    13      SAC    "5. Magenta"
+text     9    13      SAC    "6. Turquoise"
+text    10    13      SAC    "7. White"
 
 )INIT
 

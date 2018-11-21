@@ -10,39 +10,39 @@
 
 PanelTitle "Control Key Actions"
 
-literal  4   2         FP    "Command ===> "
+text     4   2         FP    "Command ===>"
 field    4  15  max-17 nef caps(on),pad(user) zcmd
 
-literal  4  MAX-15  FP "Scroll ===> "
+text     4  MAX-15  FP "Scroll ===>"
 field    4  MAX-3  4 NEF  NONE ZSCROLL
 
-literal  6  2      CH    "Key"
-literal  6  13     CH    "Action"
-literal  7  2      CH    EXPAND "-"
+text     6  2      CH    "Key"
+text     6  13     CH    "Action"
+text     7  2      CH    EXPAND "-"
 
 tbmodel  8  MAX-12
 tbfield  2      9      VOI   NONE CTKEY2
 tbfield  13     MAX    NEF   NONE CTACT
 
-literal  MAX-10 2  CH "Instructions"
+text     MAX-10 2  CH "Instructions"
 
-literal  MAX-8  2   PIN "Press"
-literal  MAX-8  8   PS  "Enter"
-literal  MAX-8  14  PIN "to make changes available"
+text     MAX-8  2   PIN "Press"
+text     MAX-8  8   PS  "Enter"
+text     MAX-8  14  PIN "to make changes available"
 
-literal  MAX-7  2   PIN "Enter"
-literal  MAX-7  8   PS  "Reset"
-literal  MAX-7  14  PIN "for original values or"
-literal  MAX-7  37  PS  "Cancel"
+text     MAX-7  2   PIN "Enter"
+text     MAX-7  8   PS  "Reset"
+text     MAX-7  14  PIN "for original values or"
+text     MAX-7  37  PS  "Cancel"
 
-literal  MAX-5  2   PIN "Use"
-literal  MAX-5  6   PS  "Save"
-literal  MAX-5  11  PIN "and"
-literal  MAX-5  15  PS  "Restore"
-literal  MAX-5  23  PIN "to save/restore a copy of these variables to the current profile (&ZAPPLID)"
+text     MAX-5  2   PIN "Use"
+text     MAX-5  6   PS  "Save"
+text     MAX-5  11  PIN "and"
+text     MAX-5  15  PS  "Restore"
+text     MAX-5  23  PIN "to save/restore a copy of these variables to the current profile (&ZAPPLID)"
 
-literal  MAX-3   2   CT "These variables are saved to the ISPS system profile."
-literal  MAX-2   2   CT "Re-running the setup program will overwrite these variables"
+text     MAX-3   2   CT "These variables are saved to the ISPS system profile."
+text     MAX-2   2   CT "Re-running the setup program will overwrite these variables"
 
 )INIT
 &ZPS6 = 1

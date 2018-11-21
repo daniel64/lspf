@@ -42,17 +42,15 @@ IF (&PD0SEL EQ 2)
 
 )BODY CMD(ZCMD) SCROLL(ZSCROLL)
 
-ScrollOn
-
 PanelTitle "Execute Command"
 
-dynArea   5 1 MAX MAX-4 ZAREA ZSHADOW
+dynArea   5 1 MAX MAX-4 ZAREA ZSHADOW SCROLL(ON)
 
-literal   MAX-2  1          FP  "===>"
-field     MAX-2  6   MAX-17 NEF CAPS(OFF),PAD(USER) ZCMD
+text   MAX-2  1          FP  "===>"
+field  MAX-2  6   MAX-17 NEF CAPS(OFF),PAD(USER) ZCMD
 
-literal   MAX-2  MAX-15     FP  "Scroll ===>"
-field     MAX-2  MAX-3   4  NEF  NONE  ZSCROLL
+text   MAX-2  MAX-15     FP  "Scroll ===>"
+field  MAX-2  MAX-3   4  NEF  NONE  ZSCROLL
 
 )INIT
 .CURSOR = ZCMD

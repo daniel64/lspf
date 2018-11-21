@@ -27,8 +27,14 @@ PSYE011G 'No )ABC descrption'
 PSYE011H 'Attribute already defined'
 'Character ''&ZVAL1'' has already been defined in a TYPE statement'
 
-PSYE011I 'Maximum TYPE(CHAR) exceeded'
-'The maximum number of TYPE(CHAR) attribute statements is 250'
+PSYE011I 'Invalid attribute character'
+'The maximum hex value for a TYPE(CHAR) attribute character is 250'
+
+PSYE011J 'Maximum TYPE(CHAR) exceeded'
+'The maximum number of TYPE(CHAR) attribute statements is 127'
+
+PSYE011K 'Invalid action bar choice'
+'Action bar choice ''&ZVAL1'' has no associated )ABC statement'
 
 /*  Function pool */
 PSYE012A 'Invalid definition'

@@ -60,3 +60,10 @@ Loads! some good, and some bad but in no particular order...
 23) If LIBRARY specified on TBSAVE or TBCLOSE, or for the ZTABL default, a search is made of the
     concatination and the table added to where it is found.  If not found, the first directory is used.
     Real ISPF just adds the table to the first dataset in the concatination.
+24) Panels can have an ACTIONBAR statement in the BODY section to order or display only certain pull down
+    menus.  A pull down menu not in the ACTIONBAR statement will be deleted.  If there is no ACTIONBAR statement,
+    the default is to use all pull down menus in the order they were defined in the panel.
+25) Entering a jump command from fields other than the command line, is cursor sensitive.
+    The cursor must be left on the field, and only characters up to, but not including, the cursor (or first space)
+    are used in the jump command - a space is not required after the command.
+    Literals (last 3 characters) used to determine a jump-capable field are "...", ". .", " .:", ". :" and "==>"

@@ -1,0 +1,60 @@
+/*
+  Copyright (c) 2018 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+"rm /tmp/emac.say 2> /dev/null"
+"rm /tmp/emac.err 2> /dev/null"
+.output~destination(.stream~new("/tmp/emac.say"))
+/**********************************************************************************************/
+
+/**********************************************************************************************/
+/* Example edit macro to change literal to text in the panels directory                       */
+/* Run from REXX runemac                                                                      */
+/**********************************************************************************************/
+
+address ISREDIT
+
+"MACRO (A) PROCESS"
+
+"FIND ')BODY' 1 FIRST"
+if ( RC \= 0 ) then
+  do
+    address ISPEXEC "RDISPLAY )BODY statement not found.  Exiting..."
+    "BUILTIN END"
+    EXIT
+  end
+
+"(ROW) = LINENUM .ZCSR"
+"LABEL "ROW" = .A"
+
+"FIND ')' 1 NEXT"
+if ( RC \= 0 ) then
+  do
+    address ISPEXEC "RDISPLAY Next section after )BODY statement not found.  Exiting..."
+    "BUILTIN END"
+    EXIT
+  end
+
+"(ROW) = LINENUM .ZCSR"
+"LABEL "ROW" = .B"
+
+"CHANGE LITERAL 'text   ' 1 .A .B ALL"
+
+"BUILTIN SAVE"
+"BUILTIN END"
+
+EXIT

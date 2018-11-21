@@ -15,44 +15,46 @@ PDC DESC(Overtype Colour)
 
 PanelTitle "Edit Colour Settings"
 
-literal  4    2       FP     "Command ===>"
+actionBar 'Display' 'Settings' 'Utilities' 'Colour' 'Help'
+
+text     4    2       FP     "Command ===>"
 field    4   15   MAX NEF     PAD(USER),CAPS(ON) ZCMDA
 
-literal  6    2       FP     "Language:"
+text     6    2       FP     "Language:"
 field    6    12  1   CEF     PAD(USER) ZHILANG
-literal  6    15      SAC    "1. Automatic"
-literal  7    15      SAC    "2. Assembler"
-literal  8    15      SAC    "3. Panel"
-literal  9    15      SAC    "4. C++"
-literal 10    15      SAC    "5. REXX"
-literal 11    15      SAC    "6. Default"
-literal 12    15      SAC    "7. Other"
+text     6    15      SAC    "1. Automatic"
+text     7    15      SAC    "2. Assembler"
+text     8    15      SAC    "3. Panel"
+text     9    15      SAC    "4. C++"
+text    10    15      SAC    "5. REXX"
+text    11    15      SAC    "6. Default"
+text    12    15      SAC    "7. Other"
 
-literal  6    36      FP     "Colouring:"
+text     6    36      FP     "Colouring:"
 field    6    47  1   CEF     PAD(USER) ZCOLOUR
-literal  6    50      SAC    "1. Do not colour program"
-literal  7    50      SAC    "2. Colour program"
-literal  8    50      SAC    "3. Both IF and DO logic"
-literal  9    50      SAC    "4. DO logic"
-literal 10    50      SAC    "5. IF logic"
+text     6    50      SAC    "1. Do not colour program"
+text     7    50      SAC    "2. Colour program"
+text     8    50      SAC    "3. Both IF and DO logic"
+text     9    50      SAC    "4. DO logic"
+text    10    50      SAC    "5. IF logic"
 
-literal 12    36      PIN    "Enter / to select option"
+text    12    36      PIN    "Enter / to select option"
 field   13    36  1   CEF     PAD(USER) ZPARMTC
-literal 13    39      SAC    "Parentheses matching"
+text    13    39      SAC    "Parentheses matching"
 field   14    36  1   CEF     PAD(USER) ZHIFIND
-literal 14    39      SAC    "Highlight FIND strings"
+text    14    39      SAC    "Highlight FIND strings"
 field   15    36  1   CEF     PAD(USER) ZHICURS
-literal 15    39      SAC    "Highlight cursor phrase"
+text    15    39      SAC    "Highlight cursor phrase"
 
 
-literal 16 2  CH "Instructions"
-literal 18 2  NT "Press"
-literal 18 8  ET "END"
-literal 18 12 NT "to save changes"
+text    16 2  CH "Instructions"
+text    18 2  NT "Press"
+text    18 8  ET "END"
+text    18 12 NT "to save changes"
 
-literal 19 2  NT "Enter"
-literal 19 8  ET "CANCEL"
-literal 19 15 NT "to cancel changes"
+text    19 2  NT "Enter"
+text    19 8  ET "CANCEL"
+text    19 15 NT "to cancel changes"
 
 )INIT
 &ZCMDA   = &Z

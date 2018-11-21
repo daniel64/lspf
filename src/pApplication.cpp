@@ -195,7 +195,6 @@ void pApplication::run()
 	else
 	{
 		llog( "I", "Shutting down application: " + zappname +" Taskid: " << taskId << endl ) ;
-		llog( "I", "Returning to calling program." << endl ) ;
 	}
 
 	terminateAppl    = true  ;
@@ -225,13 +224,16 @@ void pApplication::wait_event()
 
 void pApplication::createPanel( const string& p_name )
 {
+	const string e1 = "Error creating panel " + p_name ;
+
 	errBlock.setRC( 0 ) ;
 
 	if ( panelList.count( p_name ) > 0 ) { return ; }
 
 	if ( !isvalidName( p_name ) )
 	{
-		errBlock.seterrid( "PSYE021A", p_name ) ;
+		errBlock.setcall( e1, "PSYE021A", p_name ) ;
+		checkRCode( errBlock ) ;
 		return ;
 	}
 
@@ -244,6 +246,8 @@ void pApplication::createPanel( const string& p_name )
 	if ( errBlock.error() )
 	{
 		delete p_panel ;
+		errBlock.setcall( e1 ) ;
+		checkRCode( errBlock ) ;
 		return ;
 	}
 
@@ -257,7 +261,7 @@ void pApplication::createPanel( const string& p_name )
 	else
 	{
 		delete p_panel ;
-		errBlock.setcall( "Error loading panel "+ p_name ) ;
+		errBlock.setcall( e1 ) ;
 		checkRCode( errBlock ) ;
 	}
 }
@@ -504,12 +508,7 @@ void pApplication::display( string p_name,
 	}
 
 	createPanel( p_name ) ;
-	if ( !errBlock.RC0() )
-	{
-		errBlock.setcall( e1 ) ;
-		checkRCode( errBlock ) ;
-		return ;
-	}
+	if ( RC >= 12 ) { return ; }
 
 	prevPanel = currPanel ;
 	currPanel = panelList[ p_name ] ;
@@ -1247,7 +1246,7 @@ void pApplication::vdelete( const string& names )
 		funcPOOL.dlete( errBlock, word( names, i ) ) ;
 		if ( errBlock.error() )
 		{
-			errBlock.setcall( "VDELETE failed" ) ;
+			errBlock.setcall( "VDELETE Error" ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -1342,7 +1341,7 @@ void pApplication::vreplace( const string& name, const string& s_val )
 	funcPOOL.put( errBlock, name, s_val ) ;
 	if ( errBlock.error() )
 	{
-		errBlock.setcall( "VREPLACE failed" ) ;
+		errBlock.setcall( "VREPLACE Error" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -1359,7 +1358,7 @@ void pApplication::vreplace( const string& name, int i_val )
 	funcPOOL.put( errBlock, name, i_val ) ;
 	if ( errBlock.error() )
 	{
-		errBlock.setcall( "VREPLACE failed" ) ;
+		errBlock.setcall( "VREPLACE Error" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -1638,7 +1637,7 @@ void pApplication::verase( const string& names, poolType pType )
 		p_poolMGR->erase( errBlock, name, pType ) ;
 		if ( errBlock.error() )
 		{
-			errBlock.setcall( "VERASE failed" ) ;
+			errBlock.setcall( "VERASE Error" ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -2489,12 +2488,7 @@ void pApplication::tbdispl( const string& tb_name,
 	if ( p_name != "" )
 	{
 		createPanel( p_name ) ;
-		if ( !errBlock.RC0() )
-		{
-			errBlock.setcall( e1 ) ;
-			checkRCode( errBlock ) ;
-			return ;
-		}
+		if ( RC >= 12 ) { return ; }
 		currPanel   = panelList[ p_name ] ;
 		currtbPanel = currPanel ;
 		currPanel->tb_clear_linesChanged( errBlock ) ;
@@ -3487,33 +3481,9 @@ void pApplication::pquery( const string& p_name,
 	}
 
 	createPanel( p_name ) ;
-	if ( !errBlock.RC0() )
-	{
-		errBlock.setcall( e1 ) ;
-		checkRCode( errBlock ) ;
-		return ;
-	}
+	if ( RC >= 12 ) { return ; }
 
 	panelList[ p_name ]->get_panel_info( RC, a_name, t_name, w_name, d_name, r_name, c_name ) ;
-}
-
-
-void pApplication::attr( const string& field, const string& attrs )
-{
-	if ( !currPanel )
-	{
-		errBlock.setcall( "ATTR change error", "PSYE023D" ) ;
-		checkRCode( errBlock ) ;
-		return  ;
-	}
-	currPanel->attr( errBlock, field, attrs ) ;
-	if ( errBlock.error() )
-	{
-		errBlock.setcall( "ATTR change error" ) ;
-		checkRCode( errBlock ) ;
-		return ;
-	}
-	RC = errBlock.getRC() ;
 }
 
 
@@ -4476,8 +4446,10 @@ void pApplication::abend_nothrow()
 	abnormalEnd   = true  ;
 	terminateAppl = true  ;
 	SEL           = false ;
-	(this->*pcleanup)()   ;
-	abended       = true  ;
+
+	ControlErrorsReturn = true ;
+	(this->*pcleanup)() ;
+	abended = true ;
 }
 
 
@@ -4489,8 +4461,10 @@ void pApplication::uabend()
 	abnormalNoMsg = true  ;
 	terminateAppl = true  ;
 	SEL           = false ;
-	(this->*pcleanup)()   ;
-	abended       = true  ;
+
+	ControlErrorsReturn = true ;
+	(this->*pcleanup)() ;
+	abended = true ;
 	throw( pApplication::xTerminate() ) ;
 }
 
@@ -4562,8 +4536,10 @@ void pApplication::xabend( const string& msgid, int callno )
 	abnormalEnd   = true  ;
 	terminateAppl = true  ;
 	SEL           = false ;
-	(this->*pcleanup)()   ;
-	abended       = true  ;
+
+	ControlErrorsReturn = true ;
+	(this->*pcleanup)() ;
+	abended = true ;
 	throw( pApplication::xTerminate() ) ;
 }
 
@@ -4573,6 +4549,7 @@ void pApplication::abendexc()
 	llog( "E", "An unhandled exception has occured in application: "+ zappname +" Taskid: " << taskId << endl ) ;
 	if ( !abending )
 	{
+		ControlErrorsReturn = true ;
 		abending = true     ;
 		(this->*pcleanup)() ;
 	}
@@ -4609,7 +4586,9 @@ void pApplication::set_timeout_abend()
 	abnormalTimeout   = true  ;
 	terminateAppl     = true  ;
 	SEL               = false ;
-	(this->*pcleanup)()       ;
-	abended           = true  ;
-	busyAppl          = false ;
+
+	ControlErrorsReturn = true ;
+	(this->*pcleanup)() ;
+	abended  = true  ;
+	busyAppl = false ;
 }

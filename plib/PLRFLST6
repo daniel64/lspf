@@ -10,19 +10,18 @@
 
 PanelTitle "Personal File Lists"
 
-literal  4   2         FP    "Command ===> "
+text     4   2         FP    "Command ===>"
 field    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
 
-literal  4  MAX-15  FP "Scroll ===> "
+text     4  MAX-15  FP "Scroll ===>"
 field    4  MAX-3  4 NEF  NONE ZSCROLL
 
-literal  6  2          FP  "Select personal file list for dslist"
+text     6  2          FP  "Select personal file list for dslist"
 
-literal  8   2      CH    "S Name     Description"
-literal  8   MAX-30 CH    "Created     Updated"
-literal   9  2      CH    EXPAND "-"
+text     8   2      CH    "S Name     Description"
+text     8   MAX-30 CH    "Created     Updated"
+text      9  2      CH    EXPAND "-"
 
-tbmodel  10   MAX
 tbmodel  10   MAX
 tbfield  2    1       NEF   PAD('.'),CAPS(ON) ASEL
 tbfield  ++1  8       VOI   NONE ACURTB

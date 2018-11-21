@@ -668,11 +668,11 @@ class char_attrs
 
 		void char_attrs_clear()
 		{
-			nullstr = "" ;
 			type    = INPUT ;
 			colour  = 0 ;
 			intens  = 0 ;
 			hilite  = 0 ;
+			cuadyn  = NONE ;
 			typeChange   = false ;
 			colourChange = false ;
 			intensChange = false ;
@@ -682,9 +682,9 @@ class char_attrs
 		}
 
 		string entry ;
-		string nullstr ;
 
 		attType type ;
+		attType cuadyn ;
 
 		unsigned int colour ;
 		unsigned int intens ;
@@ -702,6 +702,7 @@ class char_attrs
 		const string& get() ;
 		uint get_colour()  ;
 		attType get_type() ;
+		bool has_dvars()   { return dvars ; }
 
 	private:
 

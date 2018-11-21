@@ -10,64 +10,64 @@
 )BODY
 PanelTitle "File Information"
 
-literal  4   2        FP    "Command ===> "
+text     4   2        FP    "Command ===> "
 field    4  15   MAX  NEF PAD(USER) ZCMD
 
-literal  6   2        FP    "Entry Name . . ."
+text     6   2        FP    "Entry Name . . ."
 field    6  19   MAX  VOI NONE IENTRY
 
-literal  8   2    ET    "General Data"
+text     8   2    ET    "General Data"
 
-literal  9    3       FP   "File Type . . :"
+text     9    3       FP   "File Type . . :"
 field    9   19   16  VOI NONE ITYPE
 
-literal  10  3       FP    "File Size . . :"
+text     10  3       FP    "File Size . . :"
 field    10 19    10  VOI NONE ISIZE
 
-literal  11   3       FP  "Links . . . . :"
+text     11   3       FP  "Links . . . . :"
 field    11  19   10  VOI NONE INLNKS
 
-literal  12   3       FP  "Inode . . . . :"
+text     12   3       FP  "Inode . . . . :"
 field    12  19   10  VOI NONE IINODE
 
-literal  13   3       FP   "Last Modified :"
+text     13   3       FP   "Last Modified :"
 field    13  19   20  VOI NONE IMODDATE
 
-literal  14  3       FP    "Last Changed  :"
+text     14  3       FP    "Last Changed  :"
 field    14 19    20  VOI NONE ISTCDATE
 
-literal  15   3       FP   "Last Accessed :"
+text     15   3       FP   "Last Accessed :"
 field    15  19   20  VOI NONE IACCDATE
 
-literal  16    3       FP  "Blocksize . . :"
+text     16    3       FP  "Blocksize . . :"
 field    16   19   10  VOI NONE IBLKSIZE
 
-literal  17    3       FP  "Link Target . :"
+text     17    3       FP  "Link Target . :"
 field    17   19   MAX VOI NONE IRLNK
 
-literal  19   2       ET    "Owner"
+text     19   2       ET    "Owner"
 
-literal  20   3       FP   "File. . . . . :"
+text     20   3       FP   "File. . . . . :"
 field    20  19   10  VOI NONE IOWNER
 
-literal  21    3       FP  "Group . . . . :"
+text     21    3       FP  "Group . . . . :"
 field    21   19   10  VOI NONE IGROUP
 
-literal  8   42       ET    "Mode Fields"
+text     8   42       ET    "Mode Fields"
 
-literal  9   42       FP   "Permissions . :"
+text     9   42       FP   "Permissions . :"
 field    9   58   10  VOI NONE IPERMISS
-literal  10  42       FP   "Set User ID . :"
+text     10  42       FP   "Set User ID . :"
 field    10  58   10  VOI NONE ISETUID
-literal  11  42       FP   "Set Group ID. :"
+text     11  42       FP   "Set Group ID. :"
 field    11  58   10  VOI NONE ISETGID
-literal  12  42       FP   "Sticky Bit. . :"
+text     12  42       FP   "Sticky Bit. . :"
 field    12  58   10  VOI NONE ISTICKY
 
-literal  19   42       ET    "Device"
-literal  20   42       FP  "Minor Device. :"
+text     19   42       ET    "Device"
+text     20   42       FP  "Minor Device. :"
 field    20   58       5  VOI NONE IMIN
-literal  21   42       FP  "Major Device. :"
+text     21   42       FP  "Major Device. :"
 field    21   58       5  VOI NONE IMAJ
 
 

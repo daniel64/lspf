@@ -7,36 +7,36 @@
 
 PanelTitle "Confirm Delete of File"
 
-literal  2   2       FP  "Command ===> "
+text     2   2       FP  "Command ===> "
 field    2  15   MAX NEF CAPS(ON),PAD(USER) ZCMD1
 
-literal  4   2   FP      "Pathname . . . . . . ."
+text     4   2   FP      "Pathname . . . . . . ."
 field    4   25  MAX  VOI  NONE ENTRY
 
-literal  5   2   FP      "Type . . . . . . . . ."
+text     5   2   FP      "Type . . . . . . . . ."
 field    5   25  20   VOI  NONE TYPE
 
-literal  6   2   FP      "Last Modified Date . ."
+text     6   2   FP      "Last Modified Date . ."
 field    6   25  20  VOI  NONE MODDATE
 
-literal  8 2 PIN  "Enter / to select option"
+text     8 2 PIN  "Enter / to select option"
 
 field    9   2   1   CEF PAD(USER) NEMPTOK
-literal  9   4       SAC    "Allow delete of non-empty directories"
+text     9   4       SAC    "Allow delete of non-empty directories"
 
 field    10   2   1   CEF PAD(USER) CONDOFF
-literal  10   4       SAC    "Set file delete confirmation off"
+text     10   4       SAC    "Set file delete confirmation off"
 
-literal 12 2  CH "Instructions"
-literal 14 2  NT "Press"
-literal 14 8  ET "Enter"
-literal 14 14 NT "to confirm delete"
+text    12 2  CH "Instructions"
+text    14 2  NT "Press"
+text    14 8  ET "Enter"
+text    14 14 NT "to confirm delete"
 
-literal 15 2  NT "Press"
-literal 15 8  ET "Cancel"
-literal 15 15 NT "or"
-literal 15 18 ET "END"
-literal 15 22 NT "to cancel delete."
+text    15 2  NT "Press"
+text    15 8  ET "Cancel"
+text    15 15 NT "or"
+text    15 18 ET "END"
+text    15 22 NT "to cancel delete."
 
 )INIT
 &ZWINTTL = &Z

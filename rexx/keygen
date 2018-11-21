@@ -1,0 +1,178 @@
+/*
+  Copyright (c) 2018 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+/* Re-direct say ouput and error messages to a temporary file or it'll mess up lspf output */
+"rm /tmp/keygen.say 2> /dev/null"
+"rm /tmp/keygen.err 2> /dev/null"
+.output~destination(.stream~new("/tmp/keygen.say"))
+.error~destination(.stream~new("/tmp/keygen.err"))
+/**********************************************************************************************/
+
+/* REXX Keylist utility  */
+/* Keylist format:       */
+/*    Fields:  KEYLISTN (key), KEYnDEF KEYnLAB KEYnATR (names) n=1 to 24, KEYHELPN */
+
+
+/* Create the default editor keylist table ISRKEYP */
+/* and keylist ISRSAB                              */
+
+/* This can also be done only via commands         */
+/* keylists and keylist                            */
+
+/* Change tabName to the keylist table name        */
+/* Change KEYLISTN to the keylist entry name       */
+/* Assign values to relevant fields in 'names'     */
+
+Call Initialise
+
+address ISPEXEC
+"RDISPLAY Creating default keylists...."
+"RDISPLAY Keylist tables will be placed in ZUPROF (&zuprof)"
+"RDISPLAY "
+
+tabName = "ISRKEYP"
+
+"TBOPEN &tabName LIBRARY(&zuprof)"
+if RC = 8 then
+  do
+    CAll CreateDefault
+  end
+else if RC > 0 then
+  do
+     "RDISPLAY Error opening table &tabName.  RC=&RC.  Aborting..."
+     exit
+  end
+else
+  do
+     "RDISPLAY Table &tabName already exists.  Using existing table..."
+  end
+
+KEYLISTN = "ISRSAB"
+
+KEY1DEF  = "HELP"
+KEY5DEF  = "RFIND"
+KEY6DEF  = "RCHANGE"
+KEY16DEF = ":TS"
+
+"RDISPLAY Creating keylist entry &KEYLISTN (in table &tabName)"
+
+"TBSORT &tabName FIELDS(KEYLISTN,C,A)"
+if RC > 0 then
+  do
+     "RDISPLAY Error sorting table &tabName. RC=&RC  Aborting..."
+     "TBEND &tabName"
+     exit
+  end
+
+"TBADD &tabName ORDER"
+if RC = 8 then
+  do
+     "RDISPLAY Error adding row &keylistn to table &tabName.  Row already exists."
+     "RDISPLAY Use command keylist from any panel to delete"
+     "TBEND &tabName"
+     exit
+  end
+else if RC > 0 then
+  do
+     "RDISPLAY Error adding row to table &tabName. RC=&RC  Aborting..."
+     "TBEND &tabName"
+     exit
+  end
+
+"TBCLOSE &tabName LIBRARY(&zuprof)"
+if RC > 0 then
+  do
+     "RDISPLAY Error saving table &tabName. RC=&RC  Aborting..."
+     "TBEND &tabName"
+     exit
+  end
+
+"RDISPLAY "
+"RDISPLAY *********************************************************"
+"RDISPLAY Entry &keylistn in Table &tabName created and saved okay"
+"RDISPLAY *********************************************************"
+EXIT
+
+
+Initialise:
+key   = "KEYLISTN"
+names = "KEY1DEF  KEY1LAB  KEY1ATR ",
+        "KEY2DEF  KEY2LAB  KEY2ATR ",
+        "KEY3DEF  KEY3LAB  KEY3ATR ",
+        "KEY4DEF  KEY4LAB  KEY4ATR ",
+        "KEY5DEF  KEY5LAB  KEY5ATR ",
+        "KEY6DEF  KEY6LAB  KEY6ATR ",
+        "KEY7DEF  KEY7LAB  KEY7ATR ",
+        "KEY8DEF  KEY8LAB  KEY8ATR ",
+        "KEY9DEF  KEY9LAB  KEY9ATR ",
+        "KEY10DEF KEY10LAB KEY10ATR ",
+        "KEY11DEF KEY11LAB KEY11ATR ",
+        "KEY12DEF KEY12LAB KEY12ATR ",
+        "KEY13DEF KEY13LAB KEY13ATR ",
+        "KEY14DEF KEY14LAB KEY14ATR ",
+        "KEY15DEF KEY15LAB KEY15ATR ",
+        "KEY16DEF KEY16LAB KEY16ATR ",
+        "KEY17DEF KEY17LAB KEY17ATR ",
+        "KEY18DEF KEY18LAB KEY18ATR ",
+        "KEY19DEF KEY19LAB KEY19ATR ",
+        "KEY20DEF KEY20LAB KEY20ATR ",
+        "KEY21DEF KEY21LAB KEY21ATR ",
+        "KEY22DEF KEY22LAB KEY22ATR ",
+        "KEY23DEF KEY23LAB KEY23ATR ",
+        "KEY24DEF KEY24LAB KEY24ATR ",
+        "KEYHELPN"
+
+do i = 1 to words( names )
+   x = word( names, i ) "= ''"
+   interpret x
+end
+RETURN
+
+
+CreateDefault:
+"RDISPLAY Creating keylist table &tabName:"
+
+"TBCREATE &tabName KEYS(&key) NAMES(&names) WRITE LIBRARY(&zuprof)"
+if RC \= 0 then
+  do
+    "RDISPLAY Create for table &tabName failed.  RC=&RC"
+    "RDISPLAY "
+    EXIT
+  end
+
+"RDISPLAY Created &tabName okay"
+
+KEYLISTN = "ISRDEF"
+
+"TBSORT &tabName FIELDS(KEYLISTN,C,A)"
+if RC > 0 then
+  do
+     "RDISPLAY Error sorting table &tabName. RC=&RC  Aborting..."
+     "TBEND &tabName"
+     exit
+  end
+
+"TBADD &tabName ORDER"
+if RC > 0 then
+  do
+     "RDISPLAY Error adding row to table &tabName. RC=&RC  Aborting..."
+     "TBEND &tabName"
+     exit
+  end
+RETURN

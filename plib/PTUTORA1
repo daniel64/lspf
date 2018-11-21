@@ -18,24 +18,22 @@
 
 )BODY
 
-scrollOn
-
 panelDesc "Tutor"
 
-literal  4   2      FP "Command ===> "
+text     4   2      FP "Command ===>"
 field 4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
 
-literal  4 MAX-15      FP "Scroll ===> "
+text     4 MAX-15      FP "Scroll ===>"
 field    4 MAX-3    4  NEF NONE    ZSCROLL
 
 
-literal  6  3      FP "LINE "
+text     6  3      FP "LINE"
 field    6  8   8  VOI  NONE    ZROW1
 
-literal  6  17   FP "OF"
+text     6  17   FP "OF"
 field    6  20   8  VOI  NONE    ZROW2
 
-dynArea 7 2 MAX MAX ZAREA ZSHADOW
+dynArea 7 2 MAX MAX ZAREA ZSHADOW SCROLL(ON)
 
 
 )INIT

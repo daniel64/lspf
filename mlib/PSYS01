@@ -189,3 +189,7 @@ PSYS012Y 'Command missing' .TYPE=W
 
 PSYS012Z 'REXX interpreter error' .TYPE=W
 '&ZVAL1'
+
+PSYS013A 'Invalid .SHOW parameter' .TYPE=W
+'Valid .SHOW parameter is NULLS'
+

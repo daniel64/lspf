@@ -8,21 +8,21 @@ Clipboard Manager
 
 PanelTitle "Clipboard Manager"
 
-literal  3    4       ET     "B"
-literal  3    18      ET     "C"
-literal  3    30      ET     "O"
-literal  3    6       NT     "- Browse"
-literal  3    20      NT     "- clear"
-literal  3    32      NT     "- Toggle Read-only"
+text     3    4       ET     "B"
+text     3    18      ET     "C"
+text     3    30      ET     "O"
+text     3    6       NT     "- Browse"
+text     3    20      NT     "- clear"
+text     3    32      NT     "- Toggle Read-only"
 
-literal  4    4       ET     "E"
-literal  4    18      ET     "R"
-literal  4    30      ET     "D"
-literal  4    6       NT     "- Edit"
-literal  4    20      NT     "- Rename"
-literal  4    32      NT     "- Delete"
+text     4    4       ET     "E"
+text     4    18      ET     "R"
+text     4    30      ET     "D"
+text     4    6       NT     "- Edit"
+text     4    20      NT     "- Rename"
+text     4    32      NT     "- Delete"
 
-literal  7    2       NT     "  Name      Lines  Description"
+text     7    2       NT     "  Name      Lines  Description"
 
 field    9    2   1   NEF     SKIP(OFF),CAPS(ON),PAD(' ') CLPLC1
 field    9    4   8   NT      PAD(' ') CLPNM1
@@ -85,124 +85,124 @@ field    19   21  40  NEF     PAD(' ') CLPDS11
 .CURSOR  = CLPLC1
 
 IF ( &CLPNM1 EQ &Z )
-   .ATTR(CLPLC1) = 'TYPE(TEXT)'
-   .ATTR(CLPDS1) = 'TYPE(TEXT)'
+   .ATTR(CLPLC1) = 'TYPE(OUTPUT)'
+   .ATTR(CLPDS1) = 'TYPE(OUTPUT)'
 ELSE
    .ATTR(CLPLC1) = 'TYPE(NEF)'
 
 IF ( &CLPNM2 EQ &Z )
-   .ATTR(CLPLC2) = 'TYPE(TEXT)'
-   .ATTR(CLPDS2) = 'TYPE(TEXT)'
+   .ATTR(CLPLC2) = 'TYPE(OUTPUT)'
+   .ATTR(CLPDS2) = 'TYPE(OUTPUT)'
 ELSE
    .ATTR(CLPLC2) = 'TYPE(NEF)'
 
 IF ( &CLPNM3 EQ &Z )
-   .ATTR(CLPLC3) = 'TYPE(TEXT)'
-   .ATTR(CLPDS3) = 'TYPE(TEXT)'
+   .ATTR(CLPLC3) = 'TYPE(OUTPUT)'
+   .ATTR(CLPDS3) = 'TYPE(OUTPUT)'
 ELSE
    .ATTR(CLPLC3) = 'TYPE(NEF)'
 
 IF ( &CLPNM4 EQ &Z )
-   .ATTR(CLPLC4) = 'TYPE(TEXT)'
-   .ATTR(CLPDS4) = 'TYPE(TEXT)'
+   .ATTR(CLPLC4) = 'TYPE(OUTPUT)'
+   .ATTR(CLPDS4) = 'TYPE(OUTPUT)'
 ELSE
    .ATTR(CLPLC4) = 'TYPE(NEF)'
 
 IF ( &CLPNM5 EQ &Z )
-   .ATTR(CLPLC5) = 'TYPE(TEXT)'
-   .ATTR(CLPDS5) = 'TYPE(TEXT)'
+   .ATTR(CLPLC5) = 'TYPE(OUTPUT)'
+   .ATTR(CLPDS5) = 'TYPE(OUTPUT)'
 ELSE
    .ATTR(CLPLC5) = 'TYPE(NEF)'
 
 IF ( &CLPNM6 EQ &Z )
-   .ATTR(CLPLC6) = 'TYPE(TEXT)'
-   .ATTR(CLPDS6) = 'TYPE(TEXT)'
+   .ATTR(CLPLC6) = 'TYPE(OUTPUT)'
+   .ATTR(CLPDS6) = 'TYPE(OUTPUT)'
 ELSE
    .ATTR(CLPLC6) = 'TYPE(NEF)'
 
 IF ( &CLPNM7 EQ &Z )
-   .ATTR(CLPLC7) = 'TYPE(TEXT)'
-   .ATTR(CLPDS7) = 'TYPE(TEXT)'
+   .ATTR(CLPLC7) = 'TYPE(OUTPUT)'
+   .ATTR(CLPDS7) = 'TYPE(OUTPUT)'
 ELSE
    .ATTR(CLPLC7) = 'TYPE(NEF)'
 
 IF ( &CLPNM8 EQ &Z )
-   .ATTR(CLPLC8) = 'TYPE(TEXT)'
-   .ATTR(CLPDS8) = 'TYPE(TEXT)'
+   .ATTR(CLPLC8) = 'TYPE(OUTPUT)'
+   .ATTR(CLPDS8) = 'TYPE(OUTPUT)'
 ELSE
    .ATTR(CLPLC8) = 'TYPE(NEF)'
 
 IF ( &CLPNM9 EQ &Z )
-   .ATTR(CLPLC9) = 'TYPE(TEXT)'
-   .ATTR(CLPDS9) = 'TYPE(TEXT)'
+   .ATTR(CLPLC9) = 'TYPE(OUTPUT)'
+   .ATTR(CLPDS9) = 'TYPE(OUTPUT)'
 ELSE
    .ATTR(CLPLC9) = 'TYPE(NEF)'
 
 IF ( &CLPNM10 EQ &Z )
-   .ATTR(CLPLC10) = 'TYPE(TEXT)'
-   .ATTR(CLPDS10) = 'TYPE(TEXT)'
+   .ATTR(CLPLC10) = 'TYPE(OUTPUT)'
+   .ATTR(CLPDS10) = 'TYPE(OUTPUT)'
 ELSE
    .ATTR(CLPLC10) = 'TYPE(NEF)'
 
 IF ( &CLPNM11 EQ &Z )
-   .ATTR(CLPLC11) = 'TYPE(TEXT)'
-   .ATTR(CLPDS11) = 'TYPE(TEXT)'
+   .ATTR(CLPLC11) = 'TYPE(OUTPUT)'
+   .ATTR(CLPDS11) = 'TYPE(OUTPUT)'
 ELSE
    .ATTR(CLPLC11) = 'TYPE(NEF)'
 
 IF ( &CLPNM1 EQ &Z )  EXIT
 .ATTR(CLPNM1 ) = 'COLOUR(WHITE)'
-IF ( &CLPST1 EQ RO ) .ATTR(CLPDS1 ) = 'TYPE(TEXT)  COLOUR(TURQ)'
+IF ( &CLPST1 EQ RO ) .ATTR(CLPDS1 ) = 'TYPE(OUTPUT) COLOUR(TURQ)'
 ELSE                 .ATTR(CLPDS1 ) = 'TYPE(INPUT) COLOUR(RED)'
 
 IF ( &CLPNM2 EQ &Z )  EXIT
 .ATTR(CLPNM2 ) = 'COLOUR(WHITE)'
-IF ( &CLPST2 EQ RO ) .ATTR(CLPDS2 ) = 'TYPE(TEXT)  COLOUR(TURQ)'
+IF ( &CLPST2 EQ RO ) .ATTR(CLPDS2 ) = 'TYPE(OUTPUT) COLOUR(TURQ)'
 ELSE                 .ATTR(CLPDS2 ) = 'TYPE(INPUT) COLOUR(RED)'
 
 IF ( &CLPNM3 EQ &Z )  EXIT
 .ATTR(CLPNM3 ) = 'COLOUR(WHITE)'
-IF ( &CLPST3 EQ RO ) .ATTR(CLPDS3 ) = 'TYPE(TEXT)  COLOUR(TURQ)'
+IF ( &CLPST3 EQ RO ) .ATTR(CLPDS3 ) = 'TYPE(OUTPUT) COLOUR(TURQ)'
 ELSE                 .ATTR(CLPDS3 ) = 'TYPE(INPUT) COLOUR(RED)'
 
 IF ( &CLPNM4 EQ &Z )  EXIT
 .ATTR(CLPNM4 ) = 'COLOUR(WHITE)'
-IF ( &CLPST4 EQ RO ) .ATTR(CLPDS4 ) = 'TYPE(TEXT)  COLOUR(TURQ)'
+IF ( &CLPST4 EQ RO ) .ATTR(CLPDS4 ) = 'TYPE(OUTPUT) COLOUR(TURQ)'
 ELSE                 .ATTR(CLPDS4 ) = 'TYPE(INPUT) COLOUR(RED)'
 
 IF ( &CLPNM5 EQ &Z )  EXIT
 .ATTR(CLPNM5 ) = 'COLOUR(WHITE)'
-IF ( &CLPST5 EQ RO ) .ATTR(CLPDS5 ) = 'TYPE(TEXT)  COLOUR(TURQ)'
+IF ( &CLPST5 EQ RO ) .ATTR(CLPDS5 ) = 'TYPE(OUTPUT) COLOUR(TURQ)'
 ELSE                 .ATTR(CLPDS5 ) = 'TYPE(INPUT) COLOUR(RED)'
 
 IF ( &CLPNM6 EQ &Z )  EXIT
 .ATTR(CLPNM6 ) = 'COLOUR(WHITE)'
-IF ( &CLPST6 EQ RO ) .ATTR(CLPDS6 ) = 'TYPE(TEXT)  COLOUR(TURQ)'
+IF ( &CLPST6 EQ RO ) .ATTR(CLPDS6 ) = 'TYPE(OUTPUT) COLOUR(TURQ)'
 ELSE                 .ATTR(CLPDS6 ) = 'TYPE(INPUT) COLOUR(RED)'
 
 IF ( &CLPNM7 EQ &Z )  EXIT
 .ATTR(CLPNM7 ) = 'COLOUR(WHITE)'
-IF ( &CLPST7 EQ RO ) .ATTR(CLPDS7 ) = 'TYPE(TEXT)  COLOUR(TURQ)'
+IF ( &CLPST7 EQ RO ) .ATTR(CLPDS7 ) = 'TYPE(OUTPUT) COLOUR(TURQ)'
 ELSE                 .ATTR(CLPDS7 ) = 'TYPE(INPUT) COLOUR(RED)'
 
 IF ( &CLPNM8 EQ &Z )  EXIT
 .ATTR(CLPNM8 ) = 'COLOUR(WHITE)'
-IF ( &CLPST8 EQ RO ) .ATTR(CLPDS8 ) = 'TYPE(TEXT)  COLOUR(TURQ)'
+IF ( &CLPST8 EQ RO ) .ATTR(CLPDS8 ) = 'TYPE(OUTPUT) COLOUR(TURQ)'
 ELSE                 .ATTR(CLPDS8 ) = 'TYPE(INPUT) COLOUR(RED)'
 
 IF ( &CLPNM9 EQ &Z )  EXIT
 .ATTR(CLPNM9 ) = 'COLOUR(WHITE)'
-IF ( &CLPST9 EQ RO ) .ATTR(CLPDS9 ) = 'TYPE(TEXT)  COLOUR(TURQ)'
+IF ( &CLPST9 EQ RO ) .ATTR(CLPDS9 ) = 'TYPE(OUTPUT) COLOUR(TURQ)'
 ELSE                 .ATTR(CLPDS9 ) = 'TYPE(INPUT) COLOUR(RED)'
 
 IF ( &CLPNM10 EQ &Z )  EXIT
 .ATTR(CLPNM10 ) = 'COLOUR(WHITE)'
-IF ( &CLPST10 EQ RO ) .ATTR(CLPDS10 ) = 'TYPE(TEXT)  COLOUR(TURQ)'
+IF ( &CLPST10 EQ RO ) .ATTR(CLPDS10 ) = 'TYPE(OUTPUT) COLOUR(TURQ)'
 ELSE                  .ATTR(CLPDS10 ) = 'TYPE(INPUT) COLOUR(RED)'
 
 IF ( &CLPNM11 EQ &Z )  EXIT
 .ATTR(CLPNM11 ) = 'COLOUR(WHITE)'
-IF ( &CLPST11 EQ RO ) .ATTR(CLPDS11 ) = 'TYPE(TEXT)  COLOUR(TURQ)'
+IF ( &CLPST11 EQ RO ) .ATTR(CLPDS11 ) = 'TYPE(OUTPUT) COLOUR(TURQ)'
 ELSE                  .ATTR(CLPDS11 ) = 'TYPE(INPUT) COLOUR(RED)'
 
 )PROC

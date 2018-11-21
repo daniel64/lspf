@@ -7,21 +7,21 @@
 
 PanelTitle "Save Personal File List As"
 
-literal  2   2         FP    "Command ===> "
+text     2   2         FP    "Command ===> "
 field    2  15  MAX    NEF CAPS(ON),PAD(USER) ZCMD1
 
-literal  4  2         FP  "New Name. . . .:"
+text     4  2         FP  "New Name. . . .:"
 field    4  19   8    NEF  CAPS(ON),PAD(USER) NEWNAME
 
-literal  5  2         FP  "Description . .:"
+text     5  2         FP  "Description . .:"
 field    5  19   40   NEF  CAPS(OFF),PAD(USER) NEWDESC
 
-literal 7  2  CH "Instructions"
-literal 9  2  NT "Press"
-literal 9  8  ET "Enter"
-literal 9  14 NT "to confirm or"
-literal 9  28 ET "END"
-literal 9  32 NT "to cancel operation"
+text    7  2  CH "Instructions"
+text    9  2  NT "Press"
+text    9  8  ET "Enter"
+text    9  14 NT "to confirm or"
+text    9  28 ET "END"
+text    9  32 NT "to cancel operation"
 
 
 )INIT

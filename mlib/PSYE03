@@ -52,8 +52,8 @@ PSYE032A 'Dynamic Area outside panel area'
 PSYE032B 'Invalid hex or character value'
 'Value must be a single character or valid hex value representing a single character'
 
-PSYE032C 'Spare'
-'Spare'
+PSYE032C 'Invalid SCROLL parameter'
+'Scroll parameter value must be ON or OFF.  Entered value is ''&ZVAL1'''
 
 PSYE032D 'Missing '')'''
 'Missing closing bracket on keyword'
@@ -192,7 +192,10 @@ PSYE035N 'Invalid PAD value ''&ZVAL1'''
 PSYE035O 'Invalid SKIP option ''&ZVAL1'''
 'SKIP must be ON or OFF'
 
-PSYE035P 'Invalid number of parameters on the FIELD or TBFIELD statement'
+PSYE035P 'Invalid NOJUMP option ''&ZVAL1'''
+'NOJUMP must be ON or OFF'
+
+PSYE035Q 'Invalid number of parameters on the FIELD or TBFIELD statement'
 ''
 
 /* Literals */
@@ -211,8 +214,8 @@ PSYE037A 'Missing keyword'
 PSYE037F 'Null string'
 'Null string has been passed to parser'
 
-PSYE037G 'Spare'
-'Spare'
+PSYE037G 'Mis-placed or missing quote'
+'Quoted string is not valid'
 
 PSYE037H 'Format error'
 'Format of the string to be parsed is invalid'

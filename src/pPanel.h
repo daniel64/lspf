@@ -63,6 +63,7 @@ class pPanel
 		void   hide_popup() ;
 		void   hide_pd()    ;
 		void   remove_pd()  ;
+		bool   jump_field( uint, uint, string& ) ;
 		bool   cursor_on_pulldown( uint, uint ) ;
 		void   display_next_pd( errblock&, string& ) ;
 		void   display_msg( errblock& ) ;
@@ -155,6 +156,7 @@ class pPanel
 		bool   cursor_set  ;
 		bool   full_screen ;
 		bool   msg_and_cmd ;
+		bool   jump_fields ;
 		uint   win_width   ;
 		uint   win_depth   ;
 		uint   win_row     ;
@@ -274,9 +276,9 @@ class pPanel
 		vector<string>attrList ;
 		map<int, string> tb_linesChanged ;
 
-		vector<literal*> literalList      ;
-		vector<literal*> literalPS        ;
-		vector<abc> ab                    ;
+		vector<text*> textList ;
+		vector<text*> textPS   ;
+		vector<abc*> ab                   ;
 		vector<Box*> boxes                ;
 		map<string, field*> fieldList     ;
 		map<string, dynArea*> dynAreaList ;
@@ -300,8 +302,8 @@ class pPanel
 		map<unsigned char, unsigned int> ddata_map ;
 		map<unsigned char, unsigned int> schar_map ;
 
-		void   display_literals() ;
-		void   display_ab()       ;
+		void   display_text() ;
+		void   display_ab()   ;
 		void   display_fields( errblock&, bool =false ) ;
 
 		void   process_panel_stmnts( errblock& err, int ln, vector<panstmnt*>& stmnts, PS_SECT ) ;

@@ -9,94 +9,94 @@
 
 )BODY
 
- PanelTitle "PFKEY Settings for &ZAPPLID"
- literal  4   2    FP "Command ===> "
- field    4  15    MAX NEF CAPS(ON),PAD(USER) ZCMD
+PanelTitle "PFKEY Settings for &ZAPPLID"
+text     4   2    FP "Command ===> "
+field    4  15    MAX NEF CAPS(ON),PAD(USER) ZCMD
 
- literal  6   3    FP "PF01:"
- field    6   9    20      NEF NONE ZPF01
+text     6   3    FP "PF01:"
+field    6   9    20      NEF NONE ZPF01
 
- literal  7    3   FP "PF02:"
- field    7    9   20      NEF NONE ZPF02
+text     7    3   FP "PF02:"
+field    7    9   20      NEF NONE ZPF02
 
- literal  8    3   FP "PF03:"
- field    8    9   20      NEF NONE ZPF03
+text     8    3   FP "PF03:"
+field    8    9   20      NEF NONE ZPF03
 
- literal  9    3   FP "PF04:"
- field    9    9   20      NEF NONE ZPF04
+text     9    3   FP "PF04:"
+field    9    9   20      NEF NONE ZPF04
 
- literal  10   3   FP "PF05:"
- field    10   9   20      NEF NONE ZPF05
+text     10   3   FP "PF05:"
+field    10   9   20      NEF NONE ZPF05
 
- literal  11   3   FP "PF06:"
- field    11   9   20      NEF NONE ZPF06
+text     11   3   FP "PF06:"
+field    11   9   20      NEF NONE ZPF06
 
- literal  12   3   FP "PF07:"
- field    12   9   20      NEF NONE ZPF07
+text     12   3   FP "PF07:"
+field    12   9   20      NEF NONE ZPF07
 
- literal  13   3   FP "PF08:"
- field    13   9   20      NEF NONE ZPF08
+text     13   3   FP "PF08:"
+field    13   9   20      NEF NONE ZPF08
 
- literal  14   3   FP "PF09:"
- field    14   9   20      NEF NONE ZPF09
+text     14   3   FP "PF09:"
+field    14   9   20      NEF NONE ZPF09
 
- literal  15   3   FP "PF10:"
- field    15   9   20      NEF NONE ZPF10
+text     15   3   FP "PF10:"
+field    15   9   20      NEF NONE ZPF10
 
- literal  16   3   FP "PF11:"
- field    16   9   20      NEF NONE ZPF11
+text     16   3   FP "PF11:"
+field    16   9   20      NEF NONE ZPF11
 
- literal  17   3   FP "PF12:"
- field    17   9   20      NEF NONE ZPF12
+text     17   3   FP "PF12:"
+field    17   9   20      NEF NONE ZPF12
 
- literal   6   45   FP "PF13:"
- field     6   51   20      NEF NONE ZPF13
+text      6   45   FP "PF13:"
+field     6   51   20      NEF NONE ZPF13
 
- literal   7   45   FP "PF14:"
- field     7   51   20      NEF NONE ZPF14
+text      7   45   FP "PF14:"
+field     7   51   20      NEF NONE ZPF14
 
- literal   8   45   FP "PF15:"
- field     8   51   20      NEF NONE ZPF15
+text      8   45   FP "PF15:"
+field     8   51   20      NEF NONE ZPF15
 
- literal   9   45   FP "PF16:"
- field     9   51   20      NEF NONE ZPF16
+text      9   45   FP "PF16:"
+field     9   51   20      NEF NONE ZPF16
 
- literal  10   45   FP "PF17:"
- field    10   51   20      NEF NONE ZPF17
+text     10   45   FP "PF17:"
+field    10   51   20      NEF NONE ZPF17
 
- literal  11   45   FP "PF18:"
- field    11   51   20      NEF NONE ZPF18
+text     11   45   FP "PF18:"
+field    11   51   20      NEF NONE ZPF18
 
- literal  12   45   FP "PF19:"
- field    12   51   20      NEF NONE ZPF19
+text     12   45   FP "PF19:"
+field    12   51   20      NEF NONE ZPF19
 
- literal  13   45   FP "PF20:"
- field    13   51   20      NEF NONE ZPF20
+text     13   45   FP "PF20:"
+field    13   51   20      NEF NONE ZPF20
 
- literal  14   45   FP "PF21:"
- field    14   51   20      NEF NONE ZPF21
+text     14   45   FP "PF21:"
+field    14   51   20      NEF NONE ZPF21
 
- literal  15   45   FP "PF22:"
- field    15   51   20      NEF NONE ZPF22
+text     15   45   FP "PF22:"
+field    15   51   20      NEF NONE ZPF22
 
- literal  16   45   FP "PF23:"
- field    16   51   20      NEF NONE ZPF23
+text     16   45   FP "PF23:"
+field    16   51   20      NEF NONE ZPF23
 
- literal  17   45   FP "PF24:"
- field    17   51   20      NEF NONE ZPF24
+text     17   45   FP "PF24:"
+field    17   51   20      NEF NONE ZPF24
 
 
- literal  19  2     CH  "Instructions"
+text     19  2     CH  "Instructions"
 
- literal  21  2     PIN "Enter"
- literal  21  8     PS  "Defaults"
- literal  21  16    PIN ","
- literal  21  18    PS  "Save"
- literal  21  23    PIN "or"
- literal  21  26    PS  "Cancel"
+text     21  2     PIN "Enter"
+text     21  8     PS  "Defaults"
+text     21  16    PIN ","
+text     21  18    PS  "Save"
+text     21  23    PIN "or"
+text     21  26    PS  "Cancel"
 
- field    23  2     MAX CT NONE ZZMSG1
- field    24  2     MAX CT NONE ZZMSG2
+field    23  2     MAX CT NONE ZZMSG1
+field    24  2     MAX CT NONE ZZMSG2
 
 
 )INIT

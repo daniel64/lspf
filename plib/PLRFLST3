@@ -15,21 +15,21 @@ PDC  DESC('Personal Settings')
 
 PanelTitle "Personal File List"
 
-literal  4   2         FP    "Command ===> "
+text     4   2         FP    "Command ===>"
 field    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD1
 
-literal  4  MAX-15  FP "Scroll ===> "
+text     4  MAX-15  FP "Scroll ===>"
 field    4  MAX-3  4 NEF  NONE ZSCROLL
 
-literal  6  2      FP "Name     Description                              Created     Updated"
+text     6  2      FP "Name     Description                              Created     Updated"
 field    7  2       8      VOI  NONE ZCURTB
 field    7  11      40     VOI  NONE FLADESCP
 field    7  52      10     VOI  NONE FLACTIME
 field    7  64      19     VOI  NONE FLAUTIME
 
 
-literal  9   2      CH    "S File Name"
-literal  10  2      CH    EXPAND "-"
+text     9   2      CH    "S File Name"
+text     10  2      CH    EXPAND "-"
 
 tbmodel  11   MAX
 tbfield  2    1       NEF   PAD('.'),CAPS(ON) CSEL

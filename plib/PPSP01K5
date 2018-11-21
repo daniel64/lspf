@@ -7,22 +7,22 @@
 
 PanelTitle "Create Keylist Table"
 
-literal  2   2         FP  "Command ===> "
+text     2   2         FP  "Command ===> "
 field    2  15  MAX    NEF CAPS(ON),PAD(USER) ZCMD
 
-literal  4    2   FP    "New Table Name . . . . . ."
+text     4    2   FP    "New Table Name . . . . . ."
 field    4   29  4     NEF CAPS(ON),PAD(USER) NEWTAB
 
-literal 6 2  CH "Instructions"
-literal 8 2  NT "Press"
-literal 8 8  ET "Enter"
-literal 8 14 NT "to confirm"
+text    6 2  CH "Instructions"
+text    8 2  NT "Press"
+text    8 8  ET "Enter"
+text    8 14 NT "to confirm"
 
-literal 9 2  NT "Press"
-literal 9 8  ET "Cancel"
-literal 9 15 NT "or"
-literal 9 18 ET "END"
-literal 9 22 NT "to cancel"
+text    9 2  NT "Press"
+text    9 8  ET "Cancel"
+text    9 15 NT "or"
+text    9 18 ET "END"
+text    9 22 NT "to cancel"
 
 )INIT
 .cursor  = newtab

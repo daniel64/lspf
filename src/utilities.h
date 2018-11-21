@@ -157,3 +157,5 @@ string  parseString( errblock& err, string& s, string p ) ;
 string& getNameList( errblock& err, string& s ) ;
 
 string extractKWord( errblock& err, string& s, string p ) ;
+
+void qwords( errblock& err, const string& s, vector<string>& ) ;

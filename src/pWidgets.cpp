@@ -45,7 +45,7 @@ void field::field_init( errblock& err, int MAXW, int MAXD, const string& line )
 	ws = words( line ) ;
 	if ( ws < 7 )
 	{
-		err.seterrid( "PSYE035P" ) ;
+		err.seterrid( "PSYE035Q" ) ;
 		return ;
 	}
 
@@ -119,6 +119,7 @@ void field::field_opts( errblock& err, string& opts )
 	// NUMERIC(ON,OFF)
 	// PAD(char,NULLS,USER)
 	// SKIP(ON,OFF)
+	// NOJUMP(ON,OFF)
 
 	size_t p1 ;
 	size_t p2 ;
@@ -284,6 +285,32 @@ void field::field_opts( errblock& err, string& opts )
 		opts = opts.erase( p1, p2-p1+1 ) ;
 	}
 
+	p1 = opts.find( ",NOJUMP(" ) ;
+	if ( p1 != string::npos )
+	{
+		p2 = opts.find( ')', p1 ) ;
+		if ( p2 == string::npos )
+		{
+			err.seterrid( "PSYE032D" ) ;
+			return ;
+		}
+		t = opts.substr( p1+8, p2-p1-8 ) ;
+		trim( t ) ;
+		if ( t.size() == 0 )
+		{
+			err.seterrid( "PSYE031G" ) ;
+			return ;
+		}
+		if      ( t == "ON" )  { field_nojump = true  ; }
+		else if ( t == "OFF" ) { field_nojump = false ; }
+		else
+		{
+			err.seterrid( "PSYE035P", t ) ;
+			return ;
+		}
+		opts = opts.erase( p1, p2-p1+1 ) ;
+	}
+
 	if ( trim( opts ) != "" )
 	{
 		err.seterrid( "PSYE032H", opts ) ;
@@ -300,10 +327,10 @@ void dynArea::dynArea_init( errblock& err,
 			    const string& da_dataOut )
 {
 	// Format of DYNAREA entry in panels (FORMAT 1 VERSION 1 )
-	// DYNAREA row col width depth   A-name S-name USERMOD() DATAMOD()
+	// DYNAREA row col width depth   A-name S-name USERMOD() DATAMOD() SCROLL()
 
-	// w1      w2         w3   w4    w5     w6     w7      <-------keywords------>
-	// DYNAREA MAX-10 MAX-20   MAX   MAX-6  ZAREA  ZSHADOW USERMOD(03) DATAMOD(04)
+	// w1      w2         w3   w4    w5     w6     w7      <--------------keywords-------------->
+	// DYNAREA MAX-10 MAX-20   MAX   MAX-6  ZAREA  ZSHADOW USERMOD(03) DATAMOD(04) SCROLL(OFF|ON)
 
 	// if width=MAX  width=MAXW-col+1
 	// if depth=MAX  depth=MAXD-row+1
@@ -424,6 +451,22 @@ void dynArea::dynArea_init( errblock& err,
 		else if ( t.size() == 2 ) { dynArea_DataMod = xs2cs( t )[0] ; }
 		else                      { err.seterrid( "PSYE032B" )      ; return ; }
 		rest = rest.erase( p1, p2-p1+1 ) ;
+	}
+
+	t = parseString( err, rest, "SCROLL()" ) ;
+	if ( err.error() ) { return ; }
+	if ( t == "ON" )
+	{
+		dynArea_scroll = true ;
+	}
+	else if ( t == "OFF" || t == "" )
+	{
+		dynArea_scroll = false ;
+	}
+	else
+	{
+		err.seterrid( "PSYE032C", t ) ;
+		return ;
 	}
 
 	if ( trim( rest ) != "" )
@@ -614,7 +657,7 @@ int field::edit_field_backspace( WINDOW* win,
 
 	if ( field_dynArea )
 	{
-		if ( field_dynArea->dynArea_Attrs.find_first_of( field_value[ pos-1 ] ) != string::npos )
+		if ( field_dynArea->dynArea_Attrs.find( field_value[ pos-1 ] ) != string::npos )
 		{
 			return col ;
 		}
@@ -812,12 +855,12 @@ bool field::field_dyna_input( uint col )
 
 	pos = col - field_col ;
 
-	if ( da->dynArea_Attrs.find_first_of( field_value[ pos ] ) != string::npos ) { return false ; }
+	if ( da->dynArea_Attrs.find( field_value[ pos ] ) != string::npos ) { return false ; }
 
 	p1 = field_value.find_last_of( da->dynArea_Attrs, pos ) ;
 	if ( p1 == string::npos ) { return false ; }
 
-	p1 = da->dynArea_inAttrs.find_first_of( field_value[ p1 ] ) ;
+	p1 = da->dynArea_inAttrs.find( field_value[ p1 ] ) ;
 	if ( p1 == string::npos ) { return false ; }
 
 	return true ;
@@ -935,7 +978,7 @@ void field::field_prep_input()
 	p1 = 0 ;
 	while ( true )
 	{
-		p1 = field_value.find_first_of( nulls, p1 ) ;
+		p1 = field_value.find( nulls, p1 ) ;
 		if ( p1 == string::npos ) { break ; }
 		p2 = field_value.find_first_not_of( nulls, p1 ) ;
 		if ( p2 == string::npos )
@@ -1119,7 +1162,7 @@ void field::display_field( WINDOW* win,
 				{
 					mvwaddch( win, field_row, field_col+i, nullc ) ;
 				}
-				else if ( da->dynArea_Attrs.find_first_of( (*ita) ) != string::npos )
+				else if ( da->dynArea_Attrs.find( (*ita) ) != string::npos )
 				{
 					mvwaddch( win, field_row, field_col+i, ' ' ) ;
 					attrd  = ddata_map[ *ita ] ;
@@ -1220,15 +1263,15 @@ bool field::cursor_on_field( uint row, uint col )
 }
 
 
-void literal::literal_init( errblock& err, int MAXW, int MAXD, int& opt_field, const string& line )
+void text::text_init( errblock& err, int MAXW, int MAXD, int& opt_field, const string& line )
 {
-	// Format of literal entry in panels (FORMAT 1 VERSION 1 )
-	// LITERAL row col cuaAttr (EXPAND) value
-	// w1      w2  w3  w4      w5
-	// LITERAL 3   1   OUTPUT  "COMMAND ===> "
+	// Format of text entry in panels (FORMAT 1 VERSION 1 )
+	// text row col cuaAttr (EXPAND) value
+	// w1   w2  w3  w4      w5
+	// text 3   1   OUTPUT  "COMMAND ===> "
 	// OR
-	// w1      w2  w3  w4      w5     w6
-	// LITERAL 3   1   OUTPUT  EXPAND "-"
+	// w1   w2  w3  w4      w5     w6
+	// text 3   1   OUTPUT  EXPAND "-"
 	// Use EXPAND to repeat the value to end of the screen (MAXW)
 
 	int row   ;
@@ -1279,43 +1322,43 @@ void literal::literal_init( errblock& err, int MAXW, int MAXD, int& opt_field, c
 		return ;
 	}
 
-	literal_cua = fType   ;
-	literal_row = row - 1 ;
-	literal_col = col - 1 ;
+	text_cua = fType   ;
+	text_row = row - 1 ;
+	text_col = col - 1 ;
 	if ( upper( w5 ) == "EXPAND" )
 	{
-		literal_value = strip( strip( subword( line, 6 ) ), 'B', '"' ) ;
-		if ( literal_value.size() == 0 )
+		text_value = strip( strip( subword( line, 6 ) ), 'B', '"' ) ;
+		if ( text_value.size() == 0 )
 		{
 			err.seterrid( "PSYE041K" ) ;
 			return ;
 		}
-		l = (MAXW - col) / literal_value.size() + 1 ;
-		literal_value = substr( copies( literal_value, l ), 1, MAXW-col+1 ) ;
+		l = (MAXW - col) / text_value.size() + 1 ;
+		text_value = substr( copies( text_value, l ), 1, MAXW-col+1 ) ;
 	}
 	else
 	{
-		literal_value = strip( strip( subword( line, 5 ) ), 'B', '"' ) ;
+		text_value = strip( strip( subword( line, 5 ) ), 'B', '"' ) ;
 	}
-	literal_cole = literal_col + literal_value.size() ;
+	text_cole = text_col + text_value.size() ;
 	if ( fType == PS )
 	{
-		literal_name = "ZPS01" + d2ds( ++opt_field, 3 ) ;
+		text_name = "ZPS01" + d2ds( ++opt_field, 3 ) ;
 	}
 }
 
 
-void literal::literal_display( WINDOW* win )
+void text::text_display( WINDOW* win )
 {
-	wattrset( win, cuaAttr[ literal_cua ] | literal_intens ) ;
-	mvwaddstr( win, literal_row, literal_col, literal_xvalue.c_str() ) ;
+	wattrset( win, cuaAttr[ text_cua ] | text_intens ) ;
+	mvwaddstr( win, text_row, text_col, text_xvalue.c_str() ) ;
 }
 
 
-bool literal::cursor_on_literal( uint row, uint col )
+bool text::cursor_on_text( uint row, uint col )
 {
-	if ( literal_row != row) { return false ; } ;
-	if ( col >= literal_col && col < literal_cole ) { return true ; }
+	if ( text_row != row) { return false ; } ;
+	if ( col >= text_col && col < text_cole ) { return true ; }
 	return false ;
 }
 

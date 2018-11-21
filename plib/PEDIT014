@@ -12,34 +12,34 @@ Edit recovery panel for editor PEDIT01
 
 PanelTitle "Edit Recovery Panel"
 
-literal  4    2       FP     "Command ===> "
+text     4    2       FP     "Command ===> "
 field    4   15   MAX NEF     PAD(USER),CAPS(ON) ZCMD4
 
-literal  6   10       FP     "**********************************************"
-literal  7   10       FP     "*          EDIT AUTOMATIC RECOVERY           *"
-literal  8   10       FP     "**********************************************"
-literal  10   2       FP     "The following file was being edited when a failure occured"
-literal  12   2       FP     "File Name. . .:"
+text     6   10       FP     "**********************************************"
+text     7   10       FP     "*          EDIT AUTOMATIC RECOVERY           *"
+text     8   10       FP     "**********************************************"
+text     10   2       FP     "The following file was being edited when a failure occured"
+text     12   2       FP     "File Name. . .:"
 field    12  18       MAX     VOI  NONE ZFILE
 
-literal  14   2       ET     "Options"
-literal  15   4       PIN    "Enter / to select option"
+text     14   2       ET     "Options"
+text     15   4       PIN    "Enter / to select option"
 field    16   4   1   CEF     PAD(USER) EEPRSPS
-literal  16   6       SAC    "Preserve trailing spaces on file save"
+text     16   6       SAC    "Preserve trailing spaces on file save"
 
 field    17   4   1   CEF     PAD(USER) EETABSS
-literal  17   6       SAC    "Override XTABS setting to prevent tabs being converted to spaces"
+text     17   6       SAC    "Override XTABS setting to prevent tabs being converted to spaces"
 
 
-literal 20 2  CH "Instructions"
-literal 21 2  NT "Press"
-literal 21 8  ET "ENTER"
-literal 21 14 NT "to recover file"
-literal 23 2  NT "Enter"
-literal 23 8  ET "DEFER"
-literal 23 14 NT "to defer recovery or"
-literal 23 35 ET "CANCEL"
-literal 23 42 NT "to cancel recovery of the file"
+text    20 2  CH "Instructions"
+text    21 2  NT "Press"
+text    21 8  ET "ENTER"
+text    21 14 NT "to recover file"
+text    23 2  NT "Enter"
+text    23 8  ET "DEFER"
+text    23 14 NT "to defer recovery or"
+text    23 35 ET "CANCEL"
+text    23 42 NT "to cancel recovery of the file"
 
 )INIT
 

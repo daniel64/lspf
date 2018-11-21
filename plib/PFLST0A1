@@ -22,26 +22,26 @@
 PanelTitle "File/Directory List"
 PanelDesc  "List &ZPATH"
 
-literal  4   2           FP    "Command ===> "
+text     4   2           FP    "Command ===> "
 field    4  15   MAX-17  NEF PAD(USER) ZCMD
 
-literal  4  MAX-15  FP "Scroll ===>"
+text     4  MAX-15  FP "Scroll ===>"
 field    4  MAX-3   4  NEF  NONE ZSCROLL
 
-literal  6   2         FP  "Path Name . . ."
+text     6   2         FP  "Path Name . . ."
 field    6  18    MAX  NEF PAD(USER) ZPATH
 
 field    7  MAX-20 21  SAC NONE FMSG1
 field    8  MAX-20 21  SAC NONE FMSG2
 
 field    8   2   1   CEF     PAD(USER) AFHIDDEN
-literal  8   4       SAC    "Show hidden entries also"
+text     8   4       SAC    "Show hidden entries also"
 
 
-literal  10  2 CH       "CMD  Entry name"
-literal  10  MAX-64 CH  "Message         Type    Permission Size       Modified"
+text     10  2 CH       "CMD  Entry name"
+text     10  MAX-64 CH  "Message         Type    Permission Size       Modified"
 
-literal  11  2 CH  EXPAND  "-"
+text     11  2 CH  EXPAND  "-"
 
 tbmodel  12    MAX
 tbfield  2     4   NEF  CAPS(ON),PAD(USER),JUST(LEFT) SEL
