@@ -3579,16 +3579,24 @@ void pApplication::rdisplay( const string& msg, bool subVars )
 {
 	// Display line mode output on the screen.  Cancel any screen refreshes as this will be done
 	// as part of returning to full screen mode.
+	// If running in the background, log message to the application log.
 
 	RC = 0 ;
 
 	lineBuffer = subVars ? sub_vars( msg ) : msg ;
 
-	lineOutDone    = true  ;
-	lineOutPending = true  ;
-	refreshlScreen = false ;
-	wait_event() ;
-	lineOutPending = false ;
+	if ( backgrd )
+	{
+		llog( "B", lineBuffer << endl ) ;
+	}
+	else
+	{
+		lineOutDone    = true  ;
+		lineOutPending = true  ;
+		refreshlScreen = false ;
+		wait_event() ;
+		lineOutPending = false ;
+	}
 }
 
 

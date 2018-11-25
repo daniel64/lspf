@@ -822,15 +822,32 @@ class iline
 			}
 			return false ;
 		}
-		bool set_idata_lower( int Level )
+		bool set_idata_upper( int Level, int l, int r )
 		{
-			if ( any_of( il_idata.top().id_data.begin(), il_idata.top().id_data.end(),
-				   []( char c )
-				   {
-					return ( isupper( c ) ) ;
-				   } ) )
+			string t = il_idata.top().id_data ;
+			iupper( t, l-1, (r == 0) ? t.size()-1 : r-1 ) ;
+			if ( t == il_idata.top().id_data )
 			{
-				put_idata( lower( il_idata.top().id_data ), Level ) ;
+				return false ;
+			}
+			else
+			{
+				put_idata( t, Level ) ;
+				return il_type == LN_FILE ;
+			}
+			return false ;
+		}
+		bool set_idata_lower( int Level, int l, int r )
+		{
+			string t = il_idata.top().id_data ;
+			ilower( t, l-1, (r == 0) ? t.size()-1 : r-1 ) ;
+			if ( t == il_idata.top().id_data )
+			{
+				return false ;
+			}
+			else
+			{
+				put_idata( t, Level ) ;
 				return il_type == LN_FILE ;
 			}
 			return false ;
@@ -1167,6 +1184,8 @@ class edit_find
 		int    f_scol    ;
 		int    f_ecol    ;
 		int    f_ocol    ;
+		int    f_acol    ;
+		int    f_bcol    ;
 		bool   f_fset    ;
 		bool   f_cset    ;
 		bool   f_chngall ;
@@ -1219,6 +1238,8 @@ class edit_find
 		f_scol     = 0     ;
 		f_ecol     = 0     ;
 		f_ocol     = 0     ;
+		f_acol     = 0     ;
+		f_bcol     = 0     ;
 		f_fset     = false ;
 		f_cset     = false ;
 		f_chngall  = false ;
@@ -2351,10 +2372,13 @@ class PEDIT01 : public pApplication
 		vector<iline*>::iterator getLineItr( int, vector<iline*>::iterator ) ;
 
 		bool setFindChangeExcl( char ) ;
-		void setFoundMsg()             ;
-		void setChangedMsg()           ;
-		void setExcludedMsg()          ;
-		void setNotFoundMsg()          ;
+		void setFoundMsg()    ;
+		void setChangedMsg()  ;
+		void setExcludedMsg() ;
+		void setNotFoundMsg() ;
+		string getColumnsString() ;
+		string getXNXString() ;
+		string getRangeString() ;
 		bool setCommandRange( string, cmd_range& ) ;
 		int  getNextSpecial( int, int, char, char ) ;
 		bool getLabelItr( const string&, vector<iline*>::iterator &, uint& ) ;

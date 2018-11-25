@@ -119,6 +119,7 @@ string& iupper( string& s ) ;
 string& iupper( string& s, unsigned int, unsigned int ) ;
 char&   iupper( char& c   ) ;
 string& ilower( string& s ) ;
+string& ilower( string& s, unsigned int, unsigned int ) ;
 char&   ilower( char& c ) ;
 string  upper( string s ) ;
 string  lower( string s ) ;

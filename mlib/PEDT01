@@ -63,7 +63,7 @@ PEDT011K 'Invalid Hex String' .TYPE=W
 'Enter only valid hex characters 0-9, A-F with no spaces'
 
 PEDT011L '&LINES Line(s) Excluded' .TYPE=N
-'&TYPE &STR excluded &OCC times.  &LINES line(s) have been excluded'
+'&TYPE &STR excluded &OCC time(s)&ZSTR1..  &LINES line(s) have been excluded.'
 
 PEDT011M '&LINES Line(s) Deleted' .TYPE=N
 '&LINES line(s) have been deleted'
@@ -150,13 +150,13 @@ PEDT013F 'Paste Pending' .TYPE=W
 'Paste is pending.  Select position to paste lines with the A/B line commands'
 
 PEDT013G '&TYPE &STR found' .TYPE=N
-'Search for &TYPE &STR was successful'
+'Search for &TYPE &STR&ZVAL1 was successful&ZVAL2'
 
-PEDT013H 'No &TYPE &STR found' .TYPE=W
-'Search for &TYPE &STR was not successful'
+PEDT013H 'Spare' .TYPE=W
+'Spare'
 
 PEDT013I '&TYPE &STR found &OCC time(s)' .TYPE=N
-'Search for &TYPE &STR was successful.  Found &OCC time(s) on &LINES line(s)'
+'Search for &TYPE &STR&ZVAL1 was found &OCC time(s) on &LINES line(s)'
 
 PEDT013J 'Duplicate/Inconsistent parameter' .TYPE=W
 'Duplicate or inconsistent parameter entered on find or change command'
@@ -222,10 +222,10 @@ PEDT014E 'Already sorted' .TYPE=N
 'Records were already in sort order'
 
 PEDT014F 'Sort column out of range' .TYPE=W
-'If specified, start or end column cannot be before the left bound'
+'If specified, start or end column cannot be before the left bound (&ZSTR1)'
 
 PEDT014G 'Sort column out of range' .TYPE=W
-'If specified, start or end column cannot be after the right bound'
+'If specified, start or end column cannot be after the right bound (&ZSTR1)'
 
 PEDT014H 'Invalid swap command' .TYPE=W
 'W/WW can only be used with the M/MM line commands'
@@ -366,13 +366,13 @@ PEDT016A 'Invalid ''from'' regex' .T=W
 'The ''from'' string cannot be a regex if ''to'' picture string specified'
 
 PEDT016B 'No lines searched' .T=W
-'No excluded lines where found to search'
+'No&ZVAL1 lines where found to search&ZVAL2&ZVAL3'
 
-PEDT016C 'No lines searched' .T=W
-'No non-excluded lines where found to search'
+PEDT016C 'Spare' .T=W
+'Spare'
 
-PEDT016D 'No lines searched' .T=W
-'No lines where found to search'
+PEDT016D 'Spare' .T=W
+'Spare'
 
 PEDT016E '*Bottom of range reached*' .TYPE=W
 '&TYPE &STR not found from &ZVAL1 to &ZVAL2.  Press RFIND to continue'
@@ -381,7 +381,7 @@ PEDT016F '*Top of range reached*' .TYPE=W
 '&TYPE &STR not found from &ZVAL1 to &ZVAL2.  Press RFIND to continue'
 
 PEDT016G 'No &TYPE &STR found' .TYPE=W
-'Search for &TYPE &STR was not successful from &ZVAL1 to &ZVAL2'
+'&TYPE &STR not found on any&ZVAL1 lines&ZVAL2&ZVAL3'
 
 PEDT016H 'No Line Command Table' .TYPE=W
 'Table &EELMAC has not been found in the ZTLIB search path'

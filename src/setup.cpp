@@ -50,6 +50,8 @@
 #include "utilities.h"
 #include "utilities.cpp"
 
+#include "colours.h"
+
 #include "classes.h"
 #include "classes.cpp"
 

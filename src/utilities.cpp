@@ -1026,6 +1026,8 @@ string& iupper( string& s, unsigned int i, unsigned int e )
 {
 	// Convert to upper case in-place between range (start pos, end pos)
 
+	if ( e >= s.size() ) { e = s.size() - 1 ; }
+
 	for ( ; i < s.length() && i <= e ; i++ )
 	{
 		s[ i ] = toupper( s[ i ] ) ;
@@ -1050,6 +1052,21 @@ string& ilower( string& s )
 	// Convert to lower case in-place
 
 	for ( unsigned int i = 0 ; i < s.length() ; i++ )
+	{
+		s[ i ] = tolower( s[ i ] ) ;
+	}
+	return s ;
+}
+
+
+
+string& ilower( string& s, unsigned int i, unsigned int e )
+{
+	// Convert to lower case in-place between range (start pos, end pos)
+
+	if ( e >= s.size() ) { e = s.size() - 1 ; }
+
+	for ( ; i < s.length() && i <= e ; i++ )
 	{
 		s[ i ] = tolower( s[ i ] ) ;
 	}
