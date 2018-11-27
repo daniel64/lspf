@@ -617,7 +617,17 @@ string pVPOOL::get( errblock& err,
 	     v_it->second->pVAR_type != pV_ZTIMEL  )
 	{
 		time( &rawtime ) ;
+		if ( rawtime == -1 )
+		{
+			err.seterrid( "PSYS013B" ) ;
+			return "" ;
+		}
 		time_info = localtime( &rawtime ) ;
+		if ( time_info == NULL )
+		{
+			err.seterrid( "PSYS013C" ) ;
+			return "" ;
+		}
 	}
 
 	switch( v_it->second->pVAR_type )

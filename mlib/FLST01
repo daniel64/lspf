@@ -58,8 +58,8 @@ FLST011R 'Rename failed' .TYPE=W
 FLST011S 'Rename cancelled' .TYPE=N
 'Rename of file has been cancelled.'
 
-FLST011T 'Spare' .TYPE=W
-''
+FLST011T 'lstat error' .TYPE=W
+'lstat returned an error for file &file'
 
 FLST011U 'Copy successful' .TYPE=N
 'Copy of file has been successful'

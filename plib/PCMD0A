@@ -102,7 +102,7 @@ VGET (ZKMD7,ZKMD8,ZKMD9,ZKMD10,ZKMD11,ZKMD12) PROFILE
 IF (&LIST EQ &Z) &LIST = ON
 IF (&MODE EQ &Z) &MODE = CMDRET
 
-IF (&MODE EQ CMDRET) &TYPE = 'retreive'
+IF (&MODE EQ CMDRET) &TYPE = 'retrieve'
 ELSE
   IF (&MODE EQ CMDEXE) &TYPE = 'execute'
   ELSE                 &TYPE = 'delete'

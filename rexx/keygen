@@ -32,7 +32,7 @@
 /* Create the default editor keylist table ISRKEYP */
 /* and keylist ISRSAB                              */
 
-/* This can also be done only via commands         */
+/* This can also be done online via commands       */
 /* keylists and keylist                            */
 
 /* Change tabName to the keylist table name        */

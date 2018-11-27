@@ -794,8 +794,9 @@ class logger
 	void unlock()  { mtx.unlock() ; }
 
 	bool open( const string& ="", bool =false ) ;
-	void close() ;
 	bool set( const string& ) ;
+
+	const string& logname() { return *currfl ; }
 
 	private:
 	bool logOpen ;
@@ -803,6 +804,8 @@ class logger
 	string* currfl ;
 	string  tmpfl  ;
 	string  logfl  ;
+
+	void close() ;
 
 	ofstream of ;
 	boost::mutex mtx ;

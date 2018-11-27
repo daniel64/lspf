@@ -146,7 +146,6 @@ vector<pApplication*> pApplicationTimeout    ;
 
 errblock err    ;
 
-
 string zcommand ;
 string zparm    ;
 
@@ -165,6 +164,7 @@ string gmainpgm ;
 
 enum LSPF_STATUS
 {
+     LSPF_STARTING,
      LSPF_RUNNING,
      LSPF_STOPPING
 } ;
@@ -284,6 +284,7 @@ void reloadDynamicClasses( string ) ;
 void loadSystemCommandTable() ;
 void loadRetrieveBuffer() ;
 void saveRetrieveBuffer() ;
+void cleanup()            ;
 void loadCUATables()      ;
 void setGlobalColours()   ;
 void setColourPair( const string& ) ;
@@ -313,6 +314,7 @@ void errorScreen( const string& ) ;
 void abortStartup()  ;
 void lspfCallbackHandler( lspfCommand& ) ;
 void createpfKeyDefaults() ;
+string getEnvironmentVariable( const char* ) ;
 string pfKeyValue( int )   ;
 string ControlKeyAction( char c ) ;
 string listLogicalScreens() ;
@@ -347,17 +349,16 @@ int main( void )
 	boost::thread* bThread ;
 
 	commandStack = "" ;
-	lspfStatus   = LSPF_RUNNING ;
 	wmPending    = false ;
+	lspfStatus   = LSPF_STARTING ;
+	backStatus   = BACK_STOPPED  ;
 	err.settask( 1 ) ;
 
 	screenList.push_back( new pLScreen( 0, ZMAXSCRN ) ) ;
 
 	currScrn->OIA_startTime() ;
 
-	llog( "I", "lspf startup in progress" << endl ) ;
-	llog( "I", "Starting background job monitor task" << endl ) ;
-	bThread = new boost::thread( &processBackgroundTasks ) ;
+	llog( "I", "lspf version " LSPF_VERSION " startup in progress" << endl ) ;
 
 	llog( "I", "Calling initialSetup" << endl ) ;
 	initialSetup() ;
@@ -365,13 +366,24 @@ int main( void )
 	llog( "I", "Calling loadDefaultPools" << endl ) ;
 	loadDefaultPools() ;
 
+	lspfStatus = LSPF_RUNNING ;
+
+	llog( "I", "Starting background job monitor task" << endl ) ;
+	bThread = new boost::thread( &processBackgroundTasks ) ;
+
 	lScreenDefaultSettings() ;
 
 	llog( "I", "Calling getDynamicClasses" << endl ) ;
 	getDynamicClasses() ;
 
 	llog( "I", "Loading main "+ gmainpgm +" application" << endl ) ;
-	loadDynamicClass( gmainpgm ) ;
+	if ( not loadDynamicClass( gmainpgm ) )
+	{
+		llog( "C", "Main program "+ gmainpgm +" cannot be loaded or symbols resolved." << endl ) ;
+		cleanup() ;
+		delete bThread ;
+		return 0  ;
+	}
 
 	llog( "I", "Calling loadCUATables" << endl ) ;
 	loadCUATables() ;
@@ -415,29 +427,23 @@ int main( void )
 	}
 	if ( currAppl->terminateAppl )
 	{
-		errorScreen( 1, "An error has occured initialising the first "+ gmainpgm +" main task.  lspf cannot continue." ) ;
+		errorScreen( 1, "An error has occured initialising the first "+ gmainpgm +" main task." ) ;
+		llog( "C", "Main program "+ gmainpgm +" failed to initialise" << endl ) ;
 		currAppl->info() ;
 		p_poolMGR->disconnect( currAppl->taskid() ) ;
 		llog( "I", "Removing application instance of "+ currAppl->get_appname() << endl ) ;
-		((void (*)(pApplication*))(apps[ currAppl->get_appname() ].destroyer_ep))( currAppl )  ;
-		delete pThread    ;
-		delete p_poolMGR  ;
-		delete p_tableMGR ;
-		delete lgx        ;
-		delete currScrn   ;
-		llog( "I", "lspf and LOG terminating" << endl ) ;
-		lg->close() ;
-		delete lg   ;
+		((void (*)(pApplication*))(apps[ currAppl->get_appname() ].destroyer_ep))( currAppl ) ;
+		delete pThread ;
+		cleanup() ;
 		delete bThread ;
-		return 0    ;
+		return 0  ;
 	}
+
 	llog( "I", "First thread "+ gmainpgm +" started and initialised.  ID=" << pThread->get_id() << endl ) ;
 
 	currScrn->set_cursor( currAppl ) ;
 
 	mainLoop() ;
-
-	llog( "I", "Closing ISPS profile as last application program has terminated" << endl ) ;
 
 	saveRetrieveBuffer() ;
 
@@ -451,7 +457,9 @@ int main( void )
 
 	delete bThread ;
 
+	llog( "I", "Closing ISPS profile as last application program has terminated" << endl ) ;
 	p_poolMGR->destroySystemPool( err ) ;
+
 	p_poolMGR->statistics()  ;
 	p_tableMGR->statistics() ;
 
@@ -471,10 +479,40 @@ int main( void )
 	}
 
 	llog( "I", "lspf and LOG terminating" << endl ) ;
-	lg->close() ;
 	delete lg ;
 
 	return 0  ;
+}
+
+
+void cleanup()
+{
+	// Cleanup resources for early termination and inform the user, including log names.
+
+	delete p_poolMGR  ;
+	delete p_tableMGR ;
+	delete currScrn   ;
+
+	llog( "I", "Stopping background job monitor task" << endl ) ;
+	lspfStatus = LSPF_STOPPING ;
+	backStatus = BACK_STOPPING ;
+	while ( backStatus != BACK_STOPPED )
+	{
+		boost::this_thread::sleep_for( boost::chrono::milliseconds( ZWAIT ) ) ;
+	}
+
+	cout << "*********************************************************************" << endl ;
+	cout << "*********************************************************************" << endl ;
+	cout << "Aborting startup of lspf.  Check lspf and application logs for errors" << endl ;
+	cout << "lspf log name. . . . . :"<< lg->logname() << endl ;
+	cout << "Application log name . :"<< lgx->logname() << endl ;
+	cout << "*********************************************************************" << endl ;
+	cout << "*********************************************************************" << endl ;
+	cout << endl ;
+
+	llog( "I", "lspf and LOG terminating" << endl ) ;
+	delete lgx ;
+	delete lg  ;
 }
 
 
@@ -719,12 +757,12 @@ void setGlobalClassVars()
 {
 	pApplication::p_tableMGR = p_tableMGR ;
 	pApplication::p_poolMGR  = p_poolMGR  ;
-	pApplication::lg         = lgx        ;
-	pPanel::p_poolMGR        = p_poolMGR  ;
-	abc::p_poolMGR           = p_poolMGR  ;
-	pPanel::lg               = lgx        ;
-	tableMGR::lg             = lgx        ;
-	poolMGR::lg              = lgx        ;
+	pApplication::lg  = lgx       ;
+	pPanel::p_poolMGR = p_poolMGR ;
+	abc::p_poolMGR    = p_poolMGR ;
+	pPanel::lg        = lgx       ;
+	tableMGR::lg      = lgx       ;
+	poolMGR::lg       = lgx       ;
 }
 
 
@@ -2682,24 +2720,46 @@ void loadDefaultPools()
 	string log    ;
 	string ztlib  ;
 	string zuprof ;
+	string home   ;
+	string shell  ;
+	string logname ;
 
 	err.clear() ;
 
 	struct utsname buf ;
 
-	uname( &buf ) ;
+	if ( uname( &buf ) != 0 )
+	{
+		llog( "C", "System call uname has returned an error"<< endl ) ;
+		abortStartup() ;
+	}
 
-	zuprof  = getenv( "HOME" ) ;
-	zuprof += ZUPROF ;
+	home = getEnvironmentVariable( "HOME" ) ;
+	if ( home == "" )
+	{
+		llog( "C", "HOME variable is required and must be set"<< endl ) ;
+		abortStartup() ;
+	}
+	zuprof = home + ZUPROF ;
+
+	logname = getEnvironmentVariable( "LOGNAME" ) ;
+	if ( logname == "" )
+	{
+		llog( "C", "LOGNAME variable is required and must be set"<< endl ) ;
+		abortStartup() ;
+	}
+
+	shell = getEnvironmentVariable( "SHELL" ) ;
+
 	p_poolMGR->setProfilePath( err, zuprof ) ;
 
 	p_poolMGR->sysput( err, "ZSCREEND", d2ds( pLScreen::maxrow ), SHARED ) ;
 	p_poolMGR->sysput( err, "ZSCRMAXD", d2ds( pLScreen::maxrow ), SHARED ) ;
 	p_poolMGR->sysput( err, "ZSCREENW", d2ds( pLScreen::maxcol ), SHARED ) ;
 	p_poolMGR->sysput( err, "ZSCRMAXW", d2ds( pLScreen::maxcol ), SHARED ) ;
-	p_poolMGR->sysput( err, "ZUSER", getenv( "LOGNAME" ), SHARED ) ;
-	p_poolMGR->sysput( err, "ZHOME", getenv( "HOME" ), SHARED )    ;
-	p_poolMGR->sysput( err, "ZSHELL", getenv( "SHELL" ), SHARED )  ;
+	p_poolMGR->sysput( err, "ZUSER", logname, SHARED ) ;
+	p_poolMGR->sysput( err, "ZHOME", home, SHARED )    ;
+	p_poolMGR->sysput( err, "ZSHELL", shell, SHARED )  ;
 
 	p_poolMGR->createProfilePool( err, "ISPS" ) ;
 	if ( !err.RC0() )
@@ -2709,6 +2769,7 @@ void loadDefaultPools()
 		listErrorBlock( err ) ;
 		abortStartup() ;
 	}
+	llog( "I", "Loaded system profile ISPSPROF" << endl ) ;
 
 	log = p_poolMGR->sysget( err, "ZSLOG", PROFILE ) ;
 
@@ -2719,7 +2780,6 @@ void loadDefaultPools()
 	lgx->set( log ) ;
 	llog( "I", "Starting application logger on " << log << endl ) ;
 
-	llog( "I", "Loaded system profile ISPSPROF" << endl ) ;
 	p_poolMGR->createSharedPool() ;
 
 	ztlib = p_poolMGR->sysget( err, "ZTLIB", PROFILE ) ;
@@ -2742,6 +2802,19 @@ void loadDefaultPools()
 
 	p_poolMGR->setPOOLsReadOnly() ;
 	gmainpgm = p_poolMGR->sysget( err, "ZMAINPGM", PROFILE ) ;
+}
+
+
+string getEnvironmentVariable( const char* var )
+{
+	char* t = getenv( var ) ;
+
+	if ( t == NULL )
+	{
+		llog( "I", "Environment variable "+ string( var ) +" has not been set"<< endl ) ;
+		return "" ;
+	}
+	return t ;
 }
 
 
@@ -3405,8 +3478,18 @@ void lspfCallbackHandler( lspfCommand& lc )
 void abortStartup()
 {
 	delete screenList[ 0 ] ;
-	cout << "Aborting startup of lspf.  Check lspf and application logs for errors " << endl ;
-	lg->close() ;
+
+	cout << "*********************************************************************" << endl ;
+	cout << "*********************************************************************" << endl ;
+	cout << "Aborting startup of lspf.  Check lspf and application logs for errors" << endl ;
+	cout << "lspf log name. . . . . :"<< lg->logname() << endl ;
+	cout << "Application log name . :"<< lgx->logname() << endl ;
+	cout << "*********************************************************************" << endl ;
+	cout << "*********************************************************************" << endl ;
+	cout << endl ;
+
+	delete lg  ;
+	delete lgx ;
 	abort() ;
 }
 

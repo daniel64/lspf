@@ -1556,10 +1556,18 @@ void PFLST0A::modifyAttrs( const string& p )
 	struct stat results ;
 
 	vdefine( "IENTRY ITYPE  IPERMISS ", &ientry, &itype, &ipermiss ) ;
-	vdefine( "IOWNER IGROUP ISETUID", &iowner, &igroup, &isetuid  ) ;
+	vdefine( "IOWNER IGROUP ISETUID", &iowner, &igroup, &isetuid ) ;
 	vdefine( "ISETGID ISTICKY IOWNERN IGROUPN", &isetgid, &isticky, &iownern, &igroupn ) ;
 
-	lstat( p.c_str(), &results ) ;
+	if ( lstat( p.c_str(), &results ) != 0 )
+	{
+		zcmd    = ""          ;
+		message = "Failed"    ;
+		vreplace( "FILE", p ) ;
+		setmsg( "FLST011T" )  ;
+		vdelete( "IENTRY ITYPE IPERMISS IOWNER IGROUP IOWNERN IGROUPN ISETUID ISETGID ISTICKY" ) ;
+		return ;
+	}
 
 	ientry = p ;
 	if ( S_ISDIR( results.st_mode ) )       { itype = "Directory"     ; }

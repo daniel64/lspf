@@ -29,13 +29,10 @@ if RC = 12 then
     "RDISPLAY Message &msg Not Found"
     exit
   end
-else
+else if RC > 0 then
   do
-    if RC > 0 then
-      do
-        "RDISPLAY Error in message &msg or message file"
-        exit
-      end
+    "RDISPLAY Error in message &msg or message file"
+    exit
   end
 
 "RDISPLAY SMSG. . .: &A"

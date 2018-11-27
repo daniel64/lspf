@@ -504,8 +504,8 @@ bool field::edit_field_insert( WINDOW* win,
 	// If this is a dynamic area, we know at this point this is an input field, so dynArea_dataInsp is true and
 	// there is an input attribute byte at the start of the field
 
-	// Use the null character (x'00') to fill fields when the cursor is past the end if the field value
-	// These are then removed before further processing by the application
+	// Use the pad character to fill fields when the cursor is past the end if the field value.
+	// Nulls are removed from the field before further processing by the application.
 
 	uint pos ;
 
@@ -515,10 +515,12 @@ bool field::edit_field_insert( WINDOW* win,
 	dynArea* da ;
 	const char nulls(0x00) ;
 
+	char upad = field_paduser ? field_paduchar : field_padchar ;
+
 	pos = (col - field_col ) ;
 	if ( pos >= field_value.size() )
 	{
-		field_value.resize( pos+1 ) ;
+		field_value.resize( pos+1, ( upad == ' ' ) ? ' ' : nulls ) ;
 	}
 
 	if ( field_dynArea )
@@ -580,10 +582,12 @@ bool field::edit_field_replace( WINDOW* win,
 
 	const char nulls(0x00) ;
 
+	char upad = field_paduser ? field_paduchar : field_padchar ;
+
 	pos = (col - field_col ) ;
 	if ( pos >= field_value.size() )
 	{
-		field_value.resize( pos+1, nulls ) ;
+		field_value.resize( pos+1, ( upad == ' ' ) ? ' ' : nulls ) ;
 	}
 
 	if ( field_dynArea )
@@ -638,6 +642,7 @@ void field::edit_field_delete( WINDOW* win,
 	}
 
 	field_value.erase( pos, 1 ) ;
+	field_blank( win ) ;
 	display_field( win, ddata_map, schar_map ) ;
 	field_changed = true ;
 }
@@ -678,6 +683,7 @@ void field::field_erase_eof( WINDOW* win,
 	// and there is an input attribute byte at the start of the field
 
 	int pos ;
+
 	size_t p1 ;
 	size_t p2 ;
 
@@ -709,16 +715,17 @@ void field::field_erase_eof( WINDOW* win,
 
 void field::field_blank( WINDOW* win )
 {
-	char  upad ;
+	char  upad   = field_paduser ? field_paduchar : field_padchar ;
 	char* blanks = new char[ field_length+1 ] ;
 
-	upad = field_paduser ? field_paduchar : field_padchar ;
+	const char nulls(0x00) ;
+
 	for ( unsigned int i = 0 ; i < field_length ; i++ )
 	{
-		blanks[ i ] = upad ;
+		blanks[ i ] = ( upad == nulls ) ? ' ' : upad ;
 	}
 
-	blanks[ field_length ] = 0x00 ;
+	blanks[ field_length ] = nulls ;
 	wstandend( win ) ;
 	mvwaddstr( win, field_row, field_col, blanks ) ;
 
@@ -1101,9 +1108,10 @@ void field::display_field( WINDOW* win,
 
 	const uint clmask = RED  | GREEN | YELLOW  | BLUE      | MAGENTA     |
 			    TURQ | WHITE | A_BLINK | A_REVERSE | A_UNDERLINE ;
-	char nullc ;
+
+	char nullc = field_nulls ? '.' : ' ' ;
+	char upad  = field_paduser ? field_paduchar : field_padchar ;
 	char attr1 ;
-	char upad  ;
 
 	string t   ;
 
@@ -1113,10 +1121,6 @@ void field::display_field( WINDOW* win,
 	string::iterator its ;
 
 	if ( !field_active ) { return ; }
-
-	nullc = field_nulls ? '.' : ' ' ;
-
-	upad  = field_paduser ? field_paduchar : field_padchar ;
 
 	if ( field_dynArea )
 	{
@@ -1239,16 +1243,19 @@ void field::display_field( WINDOW* win,
 			if ( field_value.size() > field_length ) { t = field_value.substr( 0, field_length ) ; }
 			else                                     { t = field_value                           ; }
 		}
-		for ( ita = t.begin() ; ita != t.end() ; ita++ )
-		{
-			if      ( (*ita) == nulls   ) { (*ita) = upad ; }
-			else if ( !isprint( (*ita)) ) { (*ita) = '.'  ; }
-		}
 		if ( field_pwd )
 		{
 			t = string( field_value.size(), '*' ) ;
 		}
-		t.resize( field_length, upad ) ;
+		else
+		{
+			for ( ita = t.begin() ; ita != t.end() ; ita++ )
+			{
+				if      ( (*ita) == nulls   ) { (*ita) = ( upad == nulls ) ? ' ' : upad ; }
+				else if ( !isprint( (*ita)) ) { (*ita) = '.'  ; }
+			}
+		}
+		t.resize( field_length, ( upad == nulls ) ? ' ' : upad ) ;
 		mvwaddstr( win, field_row, field_col, t.c_str() ) ;
 	}
 	touchline( win, field_row, 1 ) ;

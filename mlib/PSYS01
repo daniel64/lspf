@@ -193,3 +193,9 @@ PSYS012Z 'REXX interpreter error' .TYPE=W
 PSYS013A 'Invalid .SHOW parameter' .TYPE=W
 'Valid .SHOW parameter is NULLS'
 
+PSYS013B 'System call time() failed' .TYPE=W
+'System call time() has returned an invalid value of -1'
+
+PSYS013C 'System call localtime() failed' .TYPE=W
+'System call localtime() has returned a NULL value'
+
