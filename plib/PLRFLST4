@@ -27,19 +27,14 @@ text    9  32 NT "to cancel operation"
 )INIT
 &NEWNAME = &ACURTB
 &NEWDESC = &AFLDESCP
+&ZCMD1   = &Z
 &ZWINTTL = &Z
 
 )PROC
-&ZCMD1 = TRANS( &ZCMD1 CAN,CANCEL *,* )
-
-IF ( &ZCMD1 = CANCEL )
-   .RESP = END
+IF (&ZCMD1 NE &Z )
+   .MSG    = PSYS018
+   .CURSOR = ZCMD1
    EXIT
-ELSE
-   IF (&ZCMD1 NE &Z )
-      .MSG    = PSYS018
-      .CURSOR = ZCMD1
-      EXIT
 
 &L = LENGTH( NEWNAME )
 IF (&NEWNAME EQ &ACURTB OR &L LE 2 )

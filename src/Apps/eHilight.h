@@ -17,16 +17,16 @@
 
 */
 
-#define E_RED      10
-#define E_GREEN    11
-#define E_YELLOW   12
-#define E_BLUE     13
-#define E_MAGENTA  14
-#define E_TURQ     15
-#define E_WHITE    16
+#define E_RED      0x05
+#define E_GREEN    0x06
+#define E_YELLOW   0x07
+#define E_BLUE     0x08
+#define E_MAGENTA  0x09
+#define E_TURQ     0x0A
+#define E_WHITE    0x0B
 
-#define G_RED      19
-#define G_WHITE    20
+#define G_RED      0x0E
+#define G_WHITE    0x0F
 
 using namespace std ;
 

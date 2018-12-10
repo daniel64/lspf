@@ -44,22 +44,18 @@ text    15 15 NT "to cancel changes"
 &ZCMD9  = &Z
 
 )PROC
-&ZCMD9 = TRANS(&ZCMD9 CAN,CANCEL *,* )
-
-IF (&ZCMD9 EQ CANCEL)
-   .RESP = END
+IF (&ZCMD9 NE &Z)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD9
    EXIT
-ELSE
-   IF (&ZCMD9 NE &Z)
-      .MSG    = PSYS018
-      .CURSOR = ZCMD9
-      EXIT
 
 &ZPOSFCX = TRANS( &ZPOSFCX  &Z,&Z *,/ )
 
 VER(&ZCUTDEF,NB,LIST,1,2)
 VER(&ZPSTDEF,NB,LIST,1,2)
 
-IF (.MSG NE &Z) &ZCMD9 = CANCEL
+IF (.RESP = END AND .MSG NE &Z )
+   &ZVERB = 'CANCEL'
+   VPUT ZVERB SHARED
 
 )END

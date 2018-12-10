@@ -256,6 +256,12 @@ int main()
 	ZCTDESC  = "Control key utility" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
+	ZCTVERB  = "NOP" ;
+	ZCTTRUNC = "0"    ;
+	ZCTACT   = "NOP" ;
+	ZCTDESC  = "No process" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
 	ZCTVERB  = "ISPLIBD" ;
 	ZCTTRUNC = "0"        ;
 	ZCTACT   = "SELECT PGM(PPSP01A) PARM(LIBDEFS) NEWPOOL SCRNAME(LIBDUTL) SUSPEND" ;
@@ -322,17 +328,47 @@ int main()
 	ZCTDESC  = "Retrieve next entry from active referral list" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
+	ZCTVERB  = "CANCEL" ;
+	ZCTTRUNC = "3"      ;
+	ZCTACT   = "CANCEL" ;
+	ZCTDESC  = "Cancel" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	ZCTVERB  = "EXIT" ;
+	ZCTTRUNC = "0"    ;
+	ZCTACT   = "EXIT" ;
+	ZCTDESC  = "Exit" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	ZCTVERB  = "USERID" ;
+	ZCTTRUNC = "0"      ;
+	ZCTACT   = "USERID" ;
+	ZCTDESC  = "Userid" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
 	// ========================= USRCMDS ======================================
 	ZCTVERB  = "ED" ;
 	ZCTTRUNC = "0" ;
-	ZCTACT   = "SELECT PGM(&ZEDITPGM) NEWAPPL(ISR) PARM(FILE(&ZPARM)) SCRNAME(EDIT) SUSPEND" ;
-	ZCTDESC  = "Invoke EDIT ENTRY panel" ;
+	ZCTACT   = "SELECT PGM(PPSP01A) NEWAPPL(ISR) PARM(EDITEE &ZPARM) SCRNAME(EDIT) SUSPEND" ;
+	ZCTDESC  = "Invoke EDIT Entry panel" ;
 	p_tableMGR->tbadd( err, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
 	ZCTVERB  = "BR" ;
 	ZCTTRUNC = "0" ;
-	ZCTACT   = "SELECT PGM(&ZFLSTPGM) NEWAPPL(ISRB) PARM(BROWSE &ZPARM) SCRNAME(FILES) SUSPEND" ;
+	ZCTACT   = "SELECT PGM(PPSP01A) NEWAPPL(ISR) PARM(BROWSEE &ZPARM) SCRNAME(VIEW) SUSPEND" ;
 	ZCTDESC  = "Invoke browse" ;
+	p_tableMGR->tbadd( err, funcPOOL, "USRCMDS", "", "", 0 ) ;
+
+	ZCTVERB  = "DIR" ;
+	ZCTTRUNC = "0" ;
+	ZCTACT   = "SELECT PGM(&ZFLSTPGM) NEWAPPL(ISP) PARM(BROWSE &ZPARM) SCRNAME(FILES) SUSPEND" ;
+	ZCTDESC  = "Show files/directories" ;
+	p_tableMGR->tbadd( err, funcPOOL, "USRCMDS", "", "", 0 ) ;
+
+	ZCTVERB  = "LS" ;
+	ZCTTRUNC = "0" ;
+	ZCTACT   = "ALIAS DIR" ;
+	ZCTDESC  = "Show files/directories" ;
 	p_tableMGR->tbadd( err, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
 	ZCTVERB  = "CMDS" ;
@@ -426,7 +462,6 @@ int main()
 	cout << "See application log in "<< subHomePath( ALOG ) << endl ;
 	cout << "if any errors have been encountered" << endl ;
 	cout << "*******************************************************************************************" << endl ;
-	lg->close() ;
 
 	delete p_poolMGR  ;
 	delete p_tableMGR ;
@@ -473,6 +508,14 @@ void createSYSPROF()
 	p_poolMGR->put( err, "ZSWAPC",   "'",    PROFILE ) ;
 	p_poolMGR->put( err, "ZSCROLLD", "HALF", PROFILE ) ;
 	p_poolMGR->put( err, "ZSRETP",   "Y",    PROFILE ) ;
+
+	p_poolMGR->put( err, "ZURGBR", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZURGBG", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZURGBY", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZURGBB", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZURGBM", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZURGBT", "", PROFILE ) ;
+	p_poolMGR->put( err, "ZURGBW", "", PROFILE ) ;
 
 	p_poolMGR->put( err, "ZUCMDT1", "USR", PROFILE ) ;
 	p_poolMGR->put( err, "ZUCMDT2", "", PROFILE ) ;

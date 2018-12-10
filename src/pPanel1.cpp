@@ -548,14 +548,14 @@ void pPanel::display_panel_update( errblock& err )
 	CMDVerb = p_poolMGR->get( err, "ZVERB", SHARED ) ;
 	if ( err.error() ) { return ; }
 
-	end_pressed = findword( CMDVerb, "END EXIT RETURN" ) ;
+	end_pressed = findword( CMDVerb, "CANCEL END EXIT RETURN" ) ;
 
 	if ( scrollOn )
 	{
 		it = fieldList.find( scroll ) ;
 		if ( trim( it->second->field_value ) == "" )
 		{
-			it->second->field_value = getDialogueVar( err, scroll ) ;
+			it->second->field_value = p_poolMGR->get( err, scroll, PROFILE ) ;
 			if ( err.error() ) { return ; }
 			if ( it->second->field_value == "" )
 			{
@@ -1131,6 +1131,7 @@ void pPanel::process_panel_if_cond( errblock& err,
 	uint j ;
 
 	bool l_break ;
+	bool numeric ;
 
 	string rhs_val  ;
 	string lhs_val  ;
@@ -1139,7 +1140,7 @@ void pPanel::process_panel_if_cond( errblock& err,
 
 	vector<string>::iterator it ;
 
-	ifstmnt->if_true = ( ifstmnt->if_cond != IF_EQ ) ;
+	ifstmnt->if_true = ( ifstmnt->if_cond == IF_NE ) ;
 
 	if ( ifstmnt->if_verify )
 	{
@@ -1237,32 +1238,75 @@ void pPanel::process_panel_if_cond( errblock& err,
 		{
 			rhs_val = sub_vars( ifstmnt->if_rhs[ j ] ) ;
 		}
+		numeric = isnumeric( lhs_val ) && isnumeric( rhs_val ) ;
 		switch ( ifstmnt->if_cond )
 		{
 		case IF_EQ:
-			ifstmnt->if_true = ifstmnt->if_true || ( lhs_val == rhs_val ) ;
+			if ( numeric )
+			{
+				ifstmnt->if_true = ifstmnt->if_true || ( ds2d( lhs_val ) == ds2d( rhs_val ) ) ;
+			}
+			else
+			{
+				ifstmnt->if_true = ifstmnt->if_true || ( lhs_val == rhs_val ) ;
+			}
 			l_break = ifstmnt->if_true ;
 			break ;
 
 		case IF_NE:
-			ifstmnt->if_true = ifstmnt->if_true && ( lhs_val != rhs_val ) ;
+			if ( numeric )
+			{
+				ifstmnt->if_true = ifstmnt->if_true && ( ds2d( lhs_val ) != ds2d( rhs_val ) ) ;
+			}
+			else
+			{
+				ifstmnt->if_true = ifstmnt->if_true && ( lhs_val != rhs_val ) ;
+			}
 			l_break = !ifstmnt->if_true ;
 			break ;
 
 		case IF_GT:
-			ifstmnt->if_true = ( lhs_val >  rhs_val ) ;
+			if ( numeric )
+			{
+				ifstmnt->if_true = ifstmnt->if_true || ( ds2d( lhs_val ) > ds2d( rhs_val ) ) ;
+			}
+			else
+			{
+				ifstmnt->if_true = ifstmnt->if_true || ( lhs_val > rhs_val ) ;
+			}
 			break ;
 
 		case IF_GE:
-			ifstmnt->if_true = ( lhs_val >= rhs_val ) ;
+			if ( numeric )
+			{
+				ifstmnt->if_true = ( ds2d( lhs_val ) >= ds2d( rhs_val ) ) ;
+			}
+			else
+			{
+				ifstmnt->if_true = ( lhs_val >= rhs_val ) ;
+			}
 			break ;
 
 		case IF_LE:
-			ifstmnt->if_true = ( lhs_val <= rhs_val ) ;
+			if ( numeric )
+			{
+				ifstmnt->if_true = ( ds2d( lhs_val ) <= ds2d( rhs_val ) ) ;
+			}
+			else
+			{
+				ifstmnt->if_true = ( lhs_val <= rhs_val ) ;
+			}
 			break ;
 
 		case IF_LT:
-			ifstmnt->if_true = ( lhs_val <  rhs_val ) ;
+			if ( numeric )
+			{
+				ifstmnt->if_true = ( ds2d( lhs_val ) < ds2d( rhs_val ) ) ;
+			}
+			else
+			{
+				ifstmnt->if_true = ( lhs_val < rhs_val ) ;
+			}
 			break ;
 
 		}

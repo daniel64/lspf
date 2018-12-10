@@ -61,8 +61,6 @@ PMAIN0A::PMAIN0A()
 
 void PMAIN0A::application()
 {
-	llog( "I", "Application PMAIN0A starting.  Displaying panel PMAINP01" << endl ) ;
-
 	int RC1    ;
 	int pmonth ;
 	int pyear  ;

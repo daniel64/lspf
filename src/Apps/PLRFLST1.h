@@ -32,6 +32,7 @@ class PLRFLST1 : public pApplication
 
 		void   OpenActiveFList( const string& ) ;
 		void   AddReflistEntry( string& )     ;
+		void   AddFilelistEntry( const string& ) ;
 		void   PersonalFList( const string& ) ;
 		void   OpenFileList( const string& )  ;
 		string StoreFileList( const string& ) ;

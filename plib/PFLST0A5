@@ -41,32 +41,25 @@ text    20 8  ET "="
 text    20 10 NT "in New File Name field to retrieve full path name"
 
 text    22 2  NT "Press"
-text    22 8  ET "Enter"
+text    22 8  ET "ENTER"
 text    22 14 NT "to confirm copy"
 
 text    23 2  NT "Press"
-text    23 8  ET "Cancel"
+text    23 8  ET "CANCEL"
 text    23 15 NT "or"
 text    23 18 ET "END"
 text    23 22 NT "to cancel copy"
 
 )INIT
-  &NEWENTRY = &ENTRY
-  .CURSOR   = NEWENTRY
+&NEWENTRY = &ENTRY
+.CURSOR   = NEWENTRY
 
 )PROC
 
-&ZCMD2 = TRANS( &ZCMD2 CAN,CANCEL *,* )
-
-IF ( &ZCMD2 = CANCEL )
-   .RESP  = END
-   &ZCMD2 = &Z
+IF (&ZCMD2 NE &Z )
+   .MSG    = PSYS018
+   .CURSOR = ZCMD2
    EXIT
-ELSE
-   IF (&ZCMD2 NE &Z )
-      .MSG    = PSYS018
-      .CURSOR = ZCMD2
-      EXIT
 
 IF (TRUNC(&NEWENTRY,1) EQ '=')
   IF (TRUNC(&ENTRY,1) NE '/') &NEWENTRY = '&ZPATH/&ENTRY '

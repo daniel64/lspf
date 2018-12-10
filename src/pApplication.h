@@ -27,7 +27,9 @@ class pApplication
 		virtual void application() = 0 ;
 		virtual void isredit( const string& ) {} ;
 
+		static boost::mutex mtx ;
 		static map<int, void*>ApplUserData ;
+		static vector<enqueue>g_enqueues ;
 		static poolMGR*  p_poolMGR  ;
 		static tableMGR* p_tableMGR ;
 		static logger*   lg         ;
@@ -258,7 +260,37 @@ class pApplication
 			     const string& m_panel="",
 			     const string& m_macro="",
 			     const string& m_profile="",
-			     const string& m_lcmds="" ) ;
+			     const string& m_lcmds="",
+			     const string& m_confirm="",
+			     const string& m_preserv="" ) ;
+
+		void   edrec( const string& m_parm ) ;
+		int    edrec_init( const string& m_parm,
+				   const string& qname,
+				   const string& rname,
+				   const string& uprof,
+				   const string& tabName,
+				   const string& v_list ) ;
+		int    edrec_query( const string& m_parm,
+				    const string& qname,
+				    const string& rname,
+				    const string& uprof,
+				    const string& tabName,
+				    const string& v_list ) ;
+		int    edrec_process( const string& m_parm,
+				      const string& qname,
+				      const string& rname,
+				      const string& uprof,
+				      const string& tabName,
+				      const string& v_list ) ;
+		int    edrec_cancel( const string& m_parm,
+				     const string& qname,
+				     const string& rname,
+				     const string& uprof,
+				     const string& tabName,
+				     const string& v_list ) ;
+		int    edrec_defer( const string& qname,
+				    const string& rname ) ;
 
 		void   view( const string& m_file,
 			     const string& m_panel="" ) ;
@@ -303,6 +335,12 @@ class pApplication
 		void   uabend( const string&, const string&, int = -1 ) ;
 		void   uabend( const string&, const string&, const string&, int = -1 ) ;
 		void   uabend( const string&, const string&, const string&, const string&, int = -1 ) ;
+
+		void   enq( const string&, const string&, enqDISP =EXC, enqSCOPE =GLOBAL ) ;
+		void   deq( const string&, const string&, enqSCOPE =GLOBAL ) ;
+		void   qscan( const string&, const string&, enqDISP =EXC, enqSCOPE =GLOBAL ) ;
+		void   check_qrname( const string&, const string&, const string&L ) ;
+
 		void   set_forced_abend()  ;
 		void   set_timeout_abend() ;
 		void   loadCommandTable()  ;
@@ -329,6 +367,8 @@ class pApplication
 		bool   get_nested()              { return nested  ; }
 		void*  get_options()             { return options ; }
 
+		void   show_enqueues() ;
+
 		bool   msg_issued_with_cmd() ;
 
 		void   save_errblock()    ;
@@ -341,6 +381,7 @@ class pApplication
 
 	private:
 		boost::mutex mutex ;
+		vector<enqueue>l_enqueues ;
 
 		fPOOL funcPOOL    ;
 
@@ -348,6 +389,7 @@ class pApplication
 
 		int  addpop_row  ;
 		int  addpop_col  ;
+		int  lscreen     ;
 		int  lscreen_num ;
 
 		int  taskId      ;
@@ -394,6 +436,11 @@ class pApplication
 		string zerr6    ;
 		string zerr7    ;
 		string zerr8    ;
+
+		string lspf_version     = LSPF_VERSION     ;
+		int    lspf_version_maj = LSPF_VERSION_MAJ ;
+		int    lspf_version_rev = LSPF_VERSION_REV ;
+		int    lspf_version_mod = LSPF_VERSION_MOD ;
 
 		void get_message( const string& )  ;
 		int  check_message_id( const string& ) ;

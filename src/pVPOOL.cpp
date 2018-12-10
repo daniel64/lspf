@@ -1215,7 +1215,6 @@ map<int, pVPOOL*>::iterator poolMGR::createPool( int ls )
 	pVPOOL* pool = result.first->second ;
 
 	pool->put( err, "ZMSGID",   "",  USER ) ;
-	pool->put( err, "ZMSGID",   "",  USER ) ;
 	pool->put( err, "ZSCRNAME", "",  USER ) ;
 	pool->put( err, "ZSCRNAM2", "",  USER ) ;
 	pool->put( err, "ZSHMSGID", "N", USER ) ;
@@ -1263,6 +1262,7 @@ void poolMGR::statistics()
 
 	boost::lock_guard<boost::mutex> lock( mtx ) ;
 
+	llog( "I", ".STATS" << endl ) ;
 	llog( "-", "Pool Statistics:" << endl ) ;
 	llog( "-", "         Number of shared pools . . . . " << POOLs_shared.size() << endl ) ;
 	llog( "-", "         Number of profile pools. . . . " << POOLs_profile.size() << endl ) ;
@@ -1312,6 +1312,7 @@ void poolMGR::snap()
 
 	boost::lock_guard<boost::mutex> lock( mtx ) ;
 
+	llog( "I", ".SNAP" << endl ) ;
 	llog( "-", "Pool Variables:" << endl ) ;
 	llog( "-", "         Shared pool details:" << endl ) ;
 

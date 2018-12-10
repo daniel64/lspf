@@ -49,16 +49,10 @@ text    21 54 NT "to cancel copy"
 VGET ZFILE2 PROFILE
 
 )PROC
-&ZCMD5 = TRANS( &ZCMD5 CAN,CANCEL *,* )
-
-IF ( &ZCMD5 = CANCEL )
-   .RESP = END
+IF (&ZCMD5 NE &Z )
+   .MSG    = PSYS018
+   .CURSOR = ZCMD5
    EXIT
-ELSE
-   IF (&ZCMD5 NE &Z )
-      .MSG    = PSYS018
-      .CURSOR = ZCMD5
-      EXIT
 
 
 IF (TRUNC(&ZFILE2,1) EQ '=' )

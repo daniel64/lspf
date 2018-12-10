@@ -152,8 +152,8 @@ PEDT013F 'Paste Pending' .TYPE=W
 PEDT013G '&TYPE &STR found' .TYPE=N
 'Search for &TYPE &STR&ZVAL1 was successful&ZVAL2'
 
-PEDT013H 'Spare' .TYPE=W
-'Spare'
+PEDT013H 'Entry not found' .TYPE=W
+'No entry for ''&ZVAL1'' found in the reference list and not a regular file or directory'
 
 PEDT013I '&TYPE &STR found &OCC time(s)' .TYPE=N
 'Search for &TYPE &STR&ZVAL1 was found &OCC time(s) on &LINES line(s)'
@@ -368,8 +368,8 @@ PEDT016A 'Invalid ''from'' regex' .T=W
 PEDT016B 'No lines searched' .T=W
 'No&ZVAL1 lines where found to search&ZVAL2&ZVAL3'
 
-PEDT016C 'Spare' .T=W
-'Spare'
+PEDT016C 'No parameters passed' .T=W
+'Edit has been invoked with no parameters'
 
 PEDT016D 'Spare' .T=W
 'Spare'

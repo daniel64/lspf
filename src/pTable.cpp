@@ -2254,6 +2254,7 @@ void tableMGR::statistics()
 
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
+	llog( "I", ".STATS" << endl ) ;                                                                                 
 	llog( "-", "Table Statistics:" <<endl ) ;
 	llog( "-", "         Number of tables loaded . . . " << tables.size() <<endl ) ;
 	llog( "-", "          Table details:" <<endl ) ;

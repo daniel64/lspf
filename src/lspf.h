@@ -31,10 +31,10 @@
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
-#define LSPF_VERSION "1.1.2"
+#define LSPF_VERSION "1.1.3"
 #define LSPF_VERSION_MAJ 1
 #define LSPF_VERSION_REV 1
-#define LSPF_VERSION_MOD 2
+#define LSPF_VERSION_MOD 3
 
 typedef unsigned int uint ;
 
@@ -74,6 +74,7 @@ using namespace boost::posix_time;
 // ZMAXSCRN - Maximum number of split screens allowed (Greater than 8 and the screen will not be displayed in the Screen[] status area.)
 // ZWAIT    - Wait time to check if the application has gone into a wait-for-user-response (normally a few ms)
 // ZMAXWAIT - Max wait time to terminate the application if it has not gone into a wait-for-user-response (application may be looping)
+// EDREC_SZ - Size of the edit recovery table
 
 #define ZUPROF          "/.lspf"
 #define ZSYSPATH        "/home/daniel/lspf"
@@ -104,6 +105,7 @@ using namespace boost::posix_time;
 #define ZMAXSCRN        8
 #define ZWAIT           5
 #define ZMAXWAIT        1000
+#define EDREC_SZ        8
 // ***************************************** End custom values **************************************
 
 // ***************************************** CUA defaults *******************************************
@@ -154,415 +156,427 @@ using namespace boost::posix_time;
 
 struct lspfCommand
 {
-	string Command       ;
-	int    RC            ;
-	vector<string> reply ;
+        string Command       ;
+        int    RC            ;
+        vector<string> reply ;
 } ;
 
 enum msgSET
 {
-	COND,
-	UNCOND
+        COND,
+        UNCOND
 } ;
 
 enum s_paths
 {
-	s_ZMLIB,
-	s_ZPLIB,
-	s_ZTLIB,
-	s_ZTABL
+        s_ZMLIB,
+        s_ZPLIB,
+        s_ZTLIB,
+        s_ZTABL
 } ;
 
 enum tbWRITE
 {
-	WRITE,
-	NOWRITE
+        WRITE,
+        NOWRITE
 } ;
 
 enum tbREP
 {
-	REPLACE,
-	NOREPLACE
+        REPLACE,
+        NOREPLACE
 } ;
 
 enum tbDISP
 {
-	SHARE,
-	EXCLUSIVE
+        SHARE,
+        EXCLUSIVE
+} ;
+
+enum enqDISP
+{
+        SHR,
+        EXC
+} ;
+
+enum enqSCOPE
+{
+        LOCAL,
+        GLOBAL
 } ;
 
 enum dataType
 {
-	INTEGER,
-	STRING,
-	ERROR
+        INTEGER,
+        STRING,
+        ERROR
 } ;
 
 enum nameCHCK
 {
-	CHECK,
-	NOCHECK
+        CHECK,
+        NOCHECK
 } ;
 
 enum vdType
 {
-	DEFINED,
-	IMPLICIT,
-	ALL
+        DEFINED,
+        IMPLICIT,
+        ALL
 } ;
 
 enum readCHCK
 {
-	ROCHECK,
-	NOROCHECK
+        ROCHECK,
+        NOROCHECK
 } ;
 
 enum vcMODE
 {
-	LOCATE,
-	MOVE
+        LOCATE,
+        MOVE
 } ;
 
 enum poolType
 {
-	SHARED,
-	PROFILE,
-	BOTH,
-	ASIS
+        SHARED,
+        PROFILE,
+        BOTH,
+        ASIS
 } ;
 
 enum srCOND
 {
-	s_EQ,
-	s_NE,
-	s_LE,
-	s_LT,
-	s_GE,
-	s_GT
+        s_EQ,
+        s_NE,
+        s_LE,
+        s_LT,
+        s_GE,
+        s_GT
 } ;
 
 enum vTYPE
 {
-	SYSTEM,
-	USER
+        SYSTEM,
+        USER
 } ;
 
 enum attType
 {
-	AB,
-	ABSL,
-	ABU,
-	AMT,
-	AWF,
-	CT,
-	CEF,
-	CH,
-	DT,
-	ET,
-	EE,
-	FP,
-	FK,
-	IMT,
-	INPUT,
-	LEF,
-	LID,
-	LI,
-	NEF,
-	NONE,
-	NT,
-	PI,
-	PIN,
-	PT,
-	PS,
-	PAC,
-	PUC,
-	RP,
-	SI,
-	SAC,
-	SUC,
-	VOI,
-	WMT,
-	WT,
-	WASL,
-	CHAR,
-	DATAIN,
-	DATAOUT,
-	OUTPUT,
-	TEXT
+        AB,
+        ABSL,
+        ABU,
+        AMT,
+        AWF,
+        CT,
+        CEF,
+        CH,
+        DT,
+        ET,
+        EE,
+        FP,
+        FK,
+        IMT,
+        INPUT,
+        LEF,
+        LID,
+        LI,
+        NEF,
+        NONE,
+        NT,
+        PI,
+        PIN,
+        PT,
+        PS,
+        PAC,
+        PUC,
+        RP,
+        SI,
+        SAC,
+        SUC,
+        VOI,
+        WMT,
+        WT,
+        WASL,
+        CHAR,
+        DATAIN,
+        DATAOUT,
+        OUTPUT,
+        TEXT
 } ;
 
 
 class errblock
 {
-	public:
-		string  msgid  ;
-		string  msg1   ;
-		string  sline  ;
-		const string* dline ;
-		string  val1   ;
-		string  val2   ;
-		string  val3   ;
-		string  udata  ;
-		uint    taskid ;
-		uint    RC     ;
-		uint    maxRC  ;
-		bool    debug  ;
-		bool    abend  ;
-		bool    sCall  ;
-		bool    panel  ;
-		bool    dialog ;
-	errblock()
-	{
-		msgid  = "" ;
-		msg1   = "" ;
-		sline  = "" ;
-		dline  = NULL ;
-		val1   = "" ;
-		val2   = "" ;
-		val3   = "" ;
-		udata  = "" ;
-		taskid = 0  ;
-		RC     = 0  ;
-		maxRC  = 0  ;
-		debug  = false ;
-		abend  = false ;
-		sCall  = false ;
-		panel  = false ;
-		dialog = false ;
-	}
-	void clear()
-	{
-		msgid  = "" ;
-		msg1   = "" ;
-		sline  = "" ;
-		dline  = NULL ;
-		val1   = "" ;
-		val2   = "" ;
-		val3   = "" ;
-		udata  = "" ;
-		RC     = 0  ;
-		maxRC  = 0  ;
-		debug  = false ;
-		panel  = false ;
-		dialog = false ;
-	}
-	void setRC( int i )
-	{
-		RC = i ;
-	}
-	int getRC()
-	{
-		return RC ;
-	}
-	bool RC0()
-	{
-		return ( RC == 0 ) ;
-	}
-	bool RC4()
-	{
-		return ( RC == 4 ) ;
-	}
-	bool RC8()
-	{
-		return ( RC == 8 ) ;
-	}
-	bool RC12()
-	{
-		return ( RC == 12 ) ;
-	}
-	void setmaxRC( int i )
-	{
-		maxRC = i ;
-	}
-	void setmaxRC()
-	{
-		maxRC = max( RC, maxRC ) ;
-	}
-	int getmaxRC()
-	{
-		return maxRC ;
-	}
-	void setDebugMode()
-	{
-		debug = true ;
-	}
-	bool debugMode()
-	{
-		return debug ;
-	}
-	void setAbending()
-	{
-		abend = true ;
-	}
-	bool abending()
-	{
-		return abend ;
-	}
-	bool error()
-	{
-		return RC > 8 ;
-	}
-	void setcall( const string& s )
-	{
-		msg1 = s ;
-	}
-	void setcall( const string& s1, const string& s2, int i=20 )
-	{
-		msg1  = s1 ;
-		msgid = s2 ;
-		val1  = "" ;
-		val2  = "" ;
-		val3  = "" ;
-		RC    = i  ;
-	}
-	void setcall( const string& s1, const string& s2, const string& s3, int i=20 )
-	{
-		msg1  = s1 ;
-		msgid = s2 ;
-		val1  = s3 ;
-		val2  = "" ;
-		val3  = "" ;
-		RC    = i  ;
-	}
-	void setcall( const string& s1, const string& s2, const string& s3, const string& s4, int i=20 )
-	{
-		msg1  = s1 ;
-		msgid = s2 ;
-		val1  = s3 ;
-		val2  = s4 ;
-		val3  = "" ;
-		RC    = i  ;
-	}
-	void setcall( const string& s1, const string& s2, const string& s3, const string& s4, const string& s5, int i=20 )
-	{
-		msg1  = s1 ;
-		msgid = s2 ;
-		val1  = s3 ;
-		val2  = s4 ;
-		val3  = s5 ;
-		RC    = i  ;
-	}
-	void seterror()
-	{
-		RC    = 20 ;
-	}
-	void seterror( const string& s1, int i=20 )
-	{
-		msgid = "PSYE019D" ;
-		val1  = s1 ;
-		val2  = "" ;
-		RC    = i  ;
-	}
-	void seterror( const string& s1, const string& s2, int i=20 )
-	{
-		msgid = "PSYE019D" ;
-		val1  = s1 ;
-		val2  = s2 ;
-		RC    = i  ;
-	}
-	void seterrid( const string& s, int i=20 )
-	{
-		msgid = s  ;
-		val1  = "" ;
-		val2  = "" ;
-		val3  = "" ;
-		RC    = i  ;
-	}
-	void seterrid( const string& s1, const string& s2, int i=20 )
-	{
-		msgid = s1 ;
-		val1  = s2 ;
-		val2  = "" ;
-		val3  = "" ;
-		RC    = i  ;
-	}
-	void seterrid( const string& s1, const string& s2, const string& s3, int i=20 )
-	{
-		msgid = s1 ;
-		val1  = s2 ;
-		val2  = s3 ;
-		val3  = "" ;
-		RC    = i  ;
-	}
-	void seterrid( const string& s1, const string& s2, const string& s3, const string& s4, int i=20 )
-	{
-		msgid = s1 ;
-		val1  = s2 ;
-		val2  = s3 ;
-		val3  = s4 ;
-		RC    = i  ;
-	}
-	void setsrc( const string& s )
-	{
-		sline = s ;
-		dline = NULL ;
-	}
-	void setsrc( const string* p )
-	{
-		dline = p  ;
-		sline = "" ;
-	}
-	string getsrc()
-	{
-		if ( dline ) { return *dline ; }
-		else         { return  sline ; }
-	}
-	void setpanelsrc()
-	{
-		panel = true ;
-	}
-	bool panelsrc()
-	{
-		return panel ;
-	}
-	void setdialogsrc()
-	{
-		dialog = true ;
-	}
-	bool dialogsrc()
-	{
-		return dialog ;
-	}
-	void clearsrc()
-	{
-		dline = NULL ;
-		sline = ""   ;
-	}
-	void setval( const string& s1 )
-	{
-		val1 = s1 ;
-	}
-	void setval( const string& s1, const string& s2 )
-	{
-		val1 = s1 ;
-		val2 = s2 ;
-	}
-	void setval( const string& s1, const string& s2, const string& s3 )
-	{
-		val1 = s1 ;
-		val2 = s2 ;
-		val3 = s3 ;
-	}
-	void setUserData( const string& s )
-	{
-		udata = s ;
-	}
-	const string& getUserData()
-	{
-		return udata ;
-	}
-	void setServiceCall()
-	{
-		sCall = true ;
-	}
-	bool ServiceCall()
-	{
-		return sCall ;
-	}
-	void settask( int i )
-	{
-		taskid = i ;
-	}
+        public:
+                string  msgid  ;
+                string  msg1   ;
+                string  sline  ;
+                const string* dline ;
+                string  val1   ;
+                string  val2   ;
+                string  val3   ;
+                string  udata  ;
+                uint    taskid ;
+                uint    RC     ;
+                uint    maxRC  ;
+                bool    debug  ;
+                bool    abend  ;
+                bool    sCall  ;
+                bool    panel  ;
+                bool    dialog ;
+        errblock()
+        {
+                msgid  = "" ;
+                msg1   = "" ;
+                sline  = "" ;
+                dline  = NULL ;
+                val1   = "" ;
+                val2   = "" ;
+                val3   = "" ;
+                udata  = "" ;
+                taskid = 0  ;
+                RC     = 0  ;
+                maxRC  = 0  ;
+                debug  = false ;
+                abend  = false ;
+                sCall  = false ;
+                panel  = false ;
+                dialog = false ;
+        }
+        void clear()
+        {
+                msgid  = "" ;
+                msg1   = "" ;
+                sline  = "" ;
+                dline  = NULL ;
+                val1   = "" ;
+                val2   = "" ;
+                val3   = "" ;
+                udata  = "" ;
+                RC     = 0  ;
+                maxRC  = 0  ;
+                debug  = false ;
+                panel  = false ;
+                dialog = false ;
+        }
+        void setRC( int i )
+        {
+                RC = i ;
+        }
+        int getRC()
+        {
+                return RC ;
+        }
+        bool RC0()
+        {
+                return ( RC == 0 ) ;
+        }
+        bool RC4()
+        {
+                return ( RC == 4 ) ;
+        }
+        bool RC8()
+        {
+                return ( RC == 8 ) ;
+        }
+        bool RC12()
+        {
+                return ( RC == 12 ) ;
+        }
+        void setmaxRC( int i )
+        {
+                maxRC = i ;
+        }
+        void setmaxRC()
+        {
+                maxRC = max( RC, maxRC ) ;
+        }
+        int getmaxRC()
+        {
+                return maxRC ;
+        }
+        void setDebugMode()
+        {
+                debug = true ;
+        }
+        bool debugMode()
+        {
+                return debug ;
+        }
+        void setAbending()
+        {
+                abend = true ;
+        }
+        bool abending()
+        {
+                return abend ;
+        }
+        bool error()
+        {
+                return RC > 8 ;
+        }
+        void setcall( const string& s )
+        {
+                msg1 = s ;
+        }
+        void setcall( const string& s1, const string& s2, int i=20 )
+        {
+                msg1  = s1 ;
+                msgid = s2 ;
+                val1  = "" ;
+                val2  = "" ;
+                val3  = "" ;
+                RC    = i  ;
+        }
+        void setcall( const string& s1, const string& s2, const string& s3, int i=20 )
+        {
+                msg1  = s1 ;
+                msgid = s2 ;
+                val1  = s3 ;
+                val2  = "" ;
+                val3  = "" ;
+                RC    = i  ;
+        }
+        void setcall( const string& s1, const string& s2, const string& s3, const string& s4, int i=20 )
+        {
+                msg1  = s1 ;
+                msgid = s2 ;
+                val1  = s3 ;
+                val2  = s4 ;
+                val3  = "" ;
+                RC    = i  ;
+        }
+        void setcall( const string& s1, const string& s2, const string& s3, const string& s4, const string& s5, int i=20 )
+        {
+                msg1  = s1 ;
+                msgid = s2 ;
+                val1  = s3 ;
+                val2  = s4 ;
+                val3  = s5 ;
+                RC    = i  ;
+        }
+        void seterror()
+        {
+                RC    = 20 ;
+        }
+        void seterror( const string& s1, int i=20 )
+        {
+                msgid = "PSYE019D" ;
+                val1  = s1 ;
+                val2  = "" ;
+                RC    = i  ;
+        }
+        void seterror( const string& s1, const string& s2, int i=20 )
+        {
+                msgid = "PSYE019D" ;
+                val1  = s1 ;
+                val2  = s2 ;
+                RC    = i  ;
+        }
+        void seterrid( const string& s, int i=20 )
+        {
+                msgid = s  ;
+                val1  = "" ;
+                val2  = "" ;
+                val3  = "" ;
+                RC    = i  ;
+        }
+        void seterrid( const string& s1, const string& s2, int i=20 )
+        {
+                msgid = s1 ;
+                val1  = s2 ;
+                val2  = "" ;
+                val3  = "" ;
+                RC    = i  ;
+        }
+        void seterrid( const string& s1, const string& s2, const string& s3, int i=20 )
+        {
+                msgid = s1 ;
+                val1  = s2 ;
+                val2  = s3 ;
+                val3  = "" ;
+                RC    = i  ;
+        }
+        void seterrid( const string& s1, const string& s2, const string& s3, const string& s4, int i=20 )
+        {
+                msgid = s1 ;
+                val1  = s2 ;
+                val2  = s3 ;
+                val3  = s4 ;
+                RC    = i  ;
+        }
+        void setsrc( const string& s )
+        {
+                sline = s ;
+                dline = NULL ;
+        }
+        void setsrc( const string* p )
+        {
+                dline = p  ;
+                sline = "" ;
+        }
+        string getsrc()
+        {
+                if ( dline ) { return *dline ; }
+                else         { return  sline ; }
+        }
+        void setpanelsrc()
+        {
+                panel = true ;
+        }
+        bool panelsrc()
+        {
+                return panel ;
+        }
+        void setdialogsrc()
+        {
+                dialog = true ;
+        }
+        bool dialogsrc()
+        {
+                return dialog ;
+        }
+        void clearsrc()
+        {
+                dline = NULL ;
+                sline = ""   ;
+        }
+        void setval( const string& s1 )
+        {
+                val1 = s1 ;
+        }
+        void setval( const string& s1, const string& s2 )
+        {
+                val1 = s1 ;
+                val2 = s2 ;
+        }
+        void setval( const string& s1, const string& s2, const string& s3 )
+        {
+                val1 = s1 ;
+                val2 = s2 ;
+                val3 = s3 ;
+        }
+        void setUserData( const string& s )
+        {
+                udata = s ;
+        }
+        const string& getUserData()
+        {
+                return udata ;
+        }
+        void setServiceCall()
+        {
+                sCall = true ;
+        }
+        bool ServiceCall()
+        {
+                return sCall ;
+        }
+        void settask( int i )
+        {
+                taskid = i ;
+        }
 } ;
 
 

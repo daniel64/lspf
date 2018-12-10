@@ -34,6 +34,26 @@ map<string, int> colourName =
   { "WHITE",   WHITE   } } ;
 
 
+map<int, string> colourName1 =
+{ { 1, "RED"     },
+  { 2, "GREEN"   },
+  { 3, "YELLOW"  },
+  { 4, "BLUE"    },
+  { 5, "MAGENTA" },
+  { 6, "TURQ"    },
+  { 7, "WHITE"   } } ;
+
+
+map<int, string> colourValue =
+{ { 1, "R" },
+  { 2, "G" },
+  { 3, "Y" },
+  { 4, "B" },
+  { 5, "M" },
+  { 6, "T" },
+  { 7, "W" } } ;
+
+
 map<string, attType> cuaAttrName =
 { { "AB",      AB     },
   { "ABSL",    ABSL   },

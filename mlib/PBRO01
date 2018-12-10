@@ -67,3 +67,6 @@ PBRO011M 'Invalid hilight language' .TYPE=W
 PBRO011N 'Invalid Regex' .TYPE=W
 'Regular expression entered is not valid'
 
+PBRO011O 'Entry not found' .TYPE=W
+'No entry for ''&ZVAL1'' found in the reference list and not a regular file or directory'
+

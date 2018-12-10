@@ -54,8 +54,6 @@ PDLGTST::PDLGTST()
 
 void PDLGTST::application()
 {
-	llog( "I", "Application PDLGTST starting." << endl ) ;
-
 	vdefine( "ZCMD", &zcmd ) ;
 
 	if      ( PARM == "0"  ) { displayPanel() ; }

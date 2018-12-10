@@ -8,12 +8,12 @@ Edit recovery panel for editor PEDIT01
 )INCLUDE RFL_PDC
 )INCLUDE HLP_PDC
 
-)BODY HOME(ZCMD4) CMD(ZCMD4)
+)BODY HOME(ZCMD) CMD(ZCMD)
 
 PanelTitle "Edit Recovery Panel"
 
 text     4    2       FP     "Command ===> "
-field    4   15   MAX NEF     PAD(USER),CAPS(ON) ZCMD4
+field    4   15   MAX NEF     PAD(USER),CAPS(ON) ZCMD
 
 text     6   10       FP     "**********************************************"
 text     7   10       FP     "*          EDIT AUTOMATIC RECOVERY           *"
@@ -22,41 +22,37 @@ text     10   2       FP     "The following file was being edited when a failure
 text     12   2       FP     "File Name. . .:"
 field    12  18       MAX     VOI  NONE ZFILE
 
-text     14   2       ET     "Options"
-text     15   4       PIN    "Enter / to select option"
-field    16   4   1   CEF     PAD(USER) EEPRSPS
-text     16   6       SAC    "Preserve trailing spaces on file save"
+text    15 2  CH "Instructions"
 
-field    17   4   1   CEF     PAD(USER) EETABSS
-text     17   6       SAC    "Override XTABS setting to prevent tabs being converted to spaces"
+text    17 5  NT "Press"
+text    17 11 ET "ENTER"
+text    17 17 NT "to continue editing the file"
 
+text    18 5  NT "Press"
+text    18 11 ET "END"
+text    18 15 NT "to return to the previous panel"
 
-text    20 2  CH "Instructions"
-text    21 2  NT "Press"
-text    21 8  ET "ENTER"
-text    21 14 NT "to recover file"
-text    23 2  NT "Enter"
-text    23 8  ET "DEFER"
-text    23 14 NT "to defer recovery or"
-text    23 35 ET "CANCEL"
-text    23 42 NT "to cancel recovery of the file"
+text    19 5  NT "Press"
+text    19 11 ET "DEFER"
+text    19 17 NT "to defer recovery of the specified file"
+
+text    20 5  NT "Press"
+text    20 11 ET "CANCEL"
+text    20 18 NT "to cancel recovery of the specified file"
 
 )INIT
 
-&ZCMD4 = &Z
-VGET (EETABSS,EEPRSPS) PROFILE
+&ZCMD = &Z
 
 )PROC
 
-&ZCMD4 = TRANS(&ZCMD4 DEF,DEFER CAN,CANCEL *,*)
-if ( &ZCMD4 NE DEFER,CANCEL,&Z)
+VGET ZVERB SHARED
+IF (&ZVERB EQ 'CANCEL' ) &ZCMD = 'CANCEL'
+
+&ZCMD = TRANS(&ZCMD DEF,DEFER *,*)
+if (&ZCMD NE DEFER,CANCEL,&Z)
   .MSG    = PSYS018
-  .CURSOR = ZCMD4
+  .CURSOR = ZCMD
   EXIT
-
-&EEPRSPS = TRANS( &EEPRSPS &Z,&Z *,/ )
-&EETABSS = TRANS( &EETABSS &Z,&Z *,/ )
-
-VPUT (EETABSS,EEPRSPS) PROFILE
 
 )END

@@ -19,7 +19,7 @@ text     8 8  ET "Enter"
 text     8 14 NT "to confirm delete"
 
 text     9 2  NT "Press"
-text     9 8  ET "Cancel"
+text     9 8  ET "CANCEL"
 text     9 15 NT "or"
 text     9 18 ET "END"
 text     9 22 NT "to cancel delete."
@@ -29,19 +29,13 @@ text     9 22 NT "to cancel delete."
 .CURSOR   = ENTRYDEL
 &ENTRYDEL = &Z
 &ZWINTTL  = &Z
+&ZCMD     = &Z
 
 )PROC
-
-&ZCMD = TRANS(&ZCMD CAN,CANCEL *,* )
-
-IF (&ZCMD EQ CANCEL )
-    .RESP = END
+IF (&ZCMD NE &Z)
+    .MSG    = PSYS018
+    .CURSOR = ZCMD
     EXIT
-ELSE
-   IF (&ZCMD NE &Z )
-       .MSG    = PSYS018
-       .CURSOR = ZCMD
-       EXIT
 
 VER (&ENTRYDEL NB,LIST,/)
 

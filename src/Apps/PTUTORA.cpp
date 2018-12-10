@@ -73,8 +73,6 @@ PTUTORA::PTUTORA()
 
 void PTUTORA::application()
 {
-	llog( "I", "Application PTUTORA starting.  Parms are " << PARM << endl ) ;
-
 	int i  ;
 	int j  ;
 	int k  ;

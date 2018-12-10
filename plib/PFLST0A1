@@ -93,7 +93,7 @@ IF (&SEL EQ '=')
 ELSE
    IF (&SEL NE &Z)  &OSEL = &SEL
 
-VER (&SEL LIST,B,C,CONV,D,E,EX,FMT,I,L,M,NANO,R,S,T,TT,V,VI,X)
+VER (&SEL LIST,ADD,B,C,D,E,EX,FMT,I,L,M,NANO,R,S,T,TT,V,VI,X)
 
 IF (&SEL EQ 'S' ) &SEL = TRANS(&TYPE, 'Dir','L' 'File','B' *,'S' )
 

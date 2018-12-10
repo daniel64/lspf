@@ -59,28 +59,21 @@ field    21   44   10  NEF PAD(USER) IGROUP
 text    24 2  CH "Instructions"
 
 text    25 2  NT "Press"
-text    25 8  ET "Enter"
+text    25 8  ET "ENTER"
 text    25 14 NT "to confirm changes"
 
 text    27 2  NT "Press"
-text    27 8  ET "Cancel"
+text    27 8  ET "CANCEL"
 text    27 15 NT "or"
 text    27 18 ET "END"
 text    27 22 NT "to cancel changes"
 
 
 )PROC
-
-&ZCMD = TRANS( &ZCMD CAN,CANCEL *,* )
-
-IF ( &ZCMD = CANCEL )
-   .RESP = END
+IF (&ZCMD NE &Z )
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
    EXIT
-ELSE
-   IF (&ZCMD NE &Z )
-      .MSG    = PSYS018
-      .CURSOR = ZCMD
-      EXIT
 
 VER (&IPERMISS NB,PICT,OOO)
 

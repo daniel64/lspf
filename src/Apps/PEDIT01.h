@@ -2237,12 +2237,8 @@ class PEDIT01 : public pApplication
 
 		miblock miBlock ;
 
-		void Edit()               ;
-		void showEditEntry()      ;
-		void showEditRecovery()   ;
-		void addEditRecovery()    ;
-		void checkEditRecovery()  ;
-		void deleteEditRecoveryRecord( const string& ) ;
+		void Edit()            ;
+		void addEditRecovery() ;
 		void getEditProfile( const string& )  ;
 		void delEditProfile( const string& )  ;
 		void saveEditProfile( const string& ) ;
@@ -2251,14 +2247,13 @@ class PEDIT01 : public pApplication
 		void readLineCommandTable() ;
 		void cleanup_custom()     ;
 		void initialise()         ;
+		void parse_parms()        ;
 		bool termOK()             ;
 		void readFile()           ;
 		bool saveFile()           ;
 		bool showConfirmCancel()  ;
 		void fill_dynamic_area()  ;
 		void fill_hilight_shadow();
-		void replace_datain()     ;
-		void replace_usermods()   ;
 		void clr_hilight_shadow() ;
 		void protNonDisplayChars();
 		void addNulls()           ;
@@ -2422,7 +2417,6 @@ class PEDIT01 : public pApplication
 		int  XTabz               ;
 
 		bool tabsOnRead          ;
-		bool abendRecovery       ;
 		bool abendComplete       ;
 
 		bool cursorPlaceHome     ;
@@ -2520,8 +2514,9 @@ class PEDIT01 : public pApplication
 		string curfld  ;
 		int    curpos  ;
 
+		string panel   ;
 		string zfile   ;
-		string rfile   ;
+		string bfile   ;
 		string zcol1   ;
 		string zcol2   ;
 		string zarea   ;
@@ -2563,12 +2558,9 @@ class PEDIT01 : public pApplication
 		string zedpflg2 ;
 		string zedpflg3 ;
 
-		string eeimac   ;
-		string eeprof   ;
-		string eelmac   ;
-		string eetabss  ;
-		string eeprsps  ;
-		string eeccan   ;
+		string edimac   ;
+		string edprof   ;
+		string edlmac   ;
 
 		string fileType  ;
 		string clipBoard ;

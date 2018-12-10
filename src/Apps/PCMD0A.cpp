@@ -51,8 +51,6 @@ PCMD0A::PCMD0A()
 
 void PCMD0A::application()
 {
-	llog( "I", "Application PCMD0A starting" << endl ) ;
-
 	string zcmd   ;
 	string msg    ;
 	string comm1  ;

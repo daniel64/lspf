@@ -23,14 +23,18 @@
 
 void execiAddpop( pApplication*, const string&, errblock& )   ;
 void execiBrowse( pApplication*, const string&, errblock& )   ;
+void execiDeq( pApplication*, const string&, errblock& )      ;
 void execiDisplay( pApplication*, const string&, errblock& )  ;
 void execiControl( pApplication*, const string&, errblock& )  ;
 void execiEdit( pApplication*, const string&, errblock& )     ;
+void execiEdrec( pApplication*, const string&, errblock& )    ;
+void execiEnq( pApplication*, const string&, errblock& )      ;
 void execiGetmsg( pApplication*, const string&, errblock& )   ;
 void execiLibdef( pApplication*, const string&, errblock& )   ;
 void execiLog( pApplication*, const string&, errblock& )      ;
 void execiPquery( pApplication*, const string&, errblock& )   ;
 void execiQlibdef( pApplication*, const string&, errblock& )  ;
+void execiQScan( pApplication*, const string&, errblock& )    ;
 void execiQtabopen( pApplication*, const string&, errblock& ) ;
 void execiRDisplay( pApplication*, const string&, errblock& ) ;
 void execiRempop( pApplication*, const string&, errblock& )   ;
@@ -65,14 +69,18 @@ void execiVput( pApplication*, const string&, errblock& )     ;
 map<string, void(*)(pApplication*,const string&, errblock&)> execiServices = {
 		  { "ADDPOP",   execiAddpop   },
 		  { "BROWSE",   execiBrowse   },
+		  { "DEQ",      execiDeq      },
 		  { "DISPLAY",  execiDisplay  },
 		  { "CONTROL",  execiControl  },
 		  { "EDIT",     execiEdit     },
+		  { "EDREC",    execiEdrec    },
+		  { "ENQ",      execiEnq      },
 		  { "GETMSG",   execiGetmsg   },
 		  { "LIBDEF",   execiLibdef   },
 		  { "LOG",      execiLog      },
 		  { "PQUERY",   execiPquery   },
 		  { "QLIBDEF",  execiQlibdef  },
+		  { "QSCAN",    execiQScan    },
 		  { "QTABOPEN", execiQtabopen },
 		  { "RDISPLAY", execiRDisplay },
 		  { "REMPOP",   execiRempop   },
@@ -206,6 +214,49 @@ void execiBrowse( pApplication* thisAppl, const string& s, errblock& err )
 }
 
 
+void execiDeq( pApplication* thisAppl, const string& s, errblock& err )
+{
+	string t   ;
+	string str ;
+	string deq_qname ;
+	string deq_rname ;
+
+	enqSCOPE deq_scope = GLOBAL ;
+
+	str = subword( s, 2 ) ;
+
+	deq_qname = extractKWord( err, str, "QNAME()" ) ;
+	if ( err.error() ) { return ; }
+
+	deq_rname = extractKWord( err, str, "RNAME()" ) ;
+	if ( err.error() ) { return ; }
+
+	t = parseString( err, str, "LOCAL" ) ;
+	if ( err.error() ) { return ; }
+	if ( t == "OK" )
+	{
+		deq_scope = LOCAL ;
+	}
+	else
+	{
+		t = parseString( err, str, "GLOBAL" ) ;
+		if ( err.error() ) { return ; }
+		if ( t == "OK" )
+		{
+			deq_scope = GLOBAL ;
+		}
+	}
+
+	if ( str != "" )
+	{
+		err.seterrid( "PSYE032H", str ) ;
+		return ;
+	}
+
+	thisAppl->deq( deq_qname, deq_rname, deq_scope ) ;
+}
+
+
 void execiControl( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string s1 ;
@@ -259,6 +310,8 @@ void execiEdit( pApplication* thisAppl, const string& s, errblock& err )
 	string ed_profile ;
 	string ed_file  ;
 	string ed_lcmds ;
+	string ed_confc ;
+	string ed_presv ;
 
 	str = subword( s, 2 ) ;
 
@@ -277,6 +330,14 @@ void execiEdit( pApplication* thisAppl, const string& s, errblock& err )
 	ed_lcmds = parseString( err, str, "LINECMDS()" ) ;
 	if ( err.error() ) { return ; }
 
+	ed_confc = parseString( err, str, "CONFIRM()" ) ;
+	if ( err.error() ) { return ; }
+
+	ed_presv = parseString( err, str, "PRESERVE" ) ;
+	if ( err.error() ) { return ; }
+
+	if ( ed_presv == "OK" ) { ed_presv = "PRESERVE" ; }
+
 	if ( str != "" )
 	{
 		err.seterrid( "PSYE032H", str ) ;
@@ -287,7 +348,68 @@ void execiEdit( pApplication* thisAppl, const string& s, errblock& err )
 			iupper( ed_panel ),
 			iupper( ed_macro ),
 			iupper( ed_profile ),
-			iupper( ed_lcmds ) ) ;
+			iupper( ed_lcmds ),
+			iupper( ed_confc ),
+			iupper( ed_presv ) ) ;
+}
+
+
+void execiEdrec( pApplication* thisAppl, const string& s, errblock& err )
+{
+	if ( words( s ) > 2 )
+	{
+		err.seterrid( "PSYE032H", subword( s, 3 ) ) ;
+		return ;
+	}
+
+	thisAppl->edrec( upper( word( s, 2 ) ) ) ;
+}
+
+
+void execiEnq( pApplication* thisAppl, const string& s, errblock& err )
+{
+	string t   ;
+	string str ;
+	string enq_qname ;
+	string enq_rname ;
+
+	enqDISP  enq_disp  = EXC    ;
+	enqSCOPE enq_scope = GLOBAL ;
+
+	str = subword( s, 2 ) ;
+
+	enq_qname = extractKWord( err, str, "QNAME()" ) ;
+	if ( err.error() ) { return ; }
+
+	enq_rname = extractKWord( err, str, "RNAME()" ) ;
+	if ( err.error() ) { return ; }
+
+	t = parseString( err, str, "LOCAL" ) ;
+	if ( err.error() ) { return ; }
+	if ( t == "OK" )
+	{
+		enq_scope = LOCAL ;
+	}
+	else
+	{
+		t = parseString( err, str, "GLOBAL" ) ;
+		if ( err.error() ) { return ; }
+		if ( t == "OK" )
+		{
+			enq_scope = GLOBAL ;
+		}
+	}
+
+	iupper( str ) ;
+	if      ( str == "SHR" ) { enq_disp = SHR ; }
+	else if ( str == ""    ) { enq_disp = EXC ; }
+	else
+	{
+		err.seterrid( "PSYE032H", str ) ;
+		return ;
+	}
+
+	thisAppl->enq( enq_qname, enq_rname, enq_disp, enq_scope ) ;
 }
 
 
@@ -460,6 +582,53 @@ void execiQlibdef( pApplication* thisAppl, const string& s, errblock& err )
 	}
 
 	thisAppl->qlibdef( ql_lib, ql_type, ql_id ) ;
+}
+
+
+void execiQScan( pApplication* thisAppl, const string& s, errblock& err )
+{
+	string t   ;
+	string str ;
+	string qsc_qname ;
+	string qsc_rname ;
+
+	enqDISP  qsc_disp  = EXC    ;
+	enqSCOPE qsc_scope = GLOBAL ;
+
+	str = subword( s, 2 ) ;
+
+	qsc_qname = extractKWord( err, str, "QNAME()" ) ;
+	if ( err.error() ) { return ; }
+
+	qsc_rname = extractKWord( err, str, "RNAME()" ) ;
+	if ( err.error() ) { return ; }
+
+	t = parseString( err, str, "LOCAL" ) ;
+	if ( err.error() ) { return ; }
+	if ( t == "OK" )
+	{
+		qsc_scope = LOCAL ;
+	}
+	else
+	{
+		t = parseString( err, str, "GLOBAL" ) ;
+		if ( err.error() ) { return ; }
+		if ( t == "OK" )
+		{
+			qsc_scope = GLOBAL ;
+		}
+	}
+
+	iupper( str ) ;
+	if      ( str == "SHR" ) { qsc_disp = SHR ; }
+	else if ( str == ""    ) { qsc_disp = EXC ; }
+	else
+	{
+		err.seterrid( "PSYE032H", str ) ;
+		return ;
+	}
+
+	thisAppl->qscan( qsc_qname, qsc_rname, qsc_disp, qsc_scope ) ;
 }
 
 

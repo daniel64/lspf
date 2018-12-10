@@ -5,9 +5,14 @@
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
 
+)ABC DESC(RGB_Colours)
+PDC DESC('Change RGB Colour Settings')
+ ACTION RUN(>RGBSET)
+
 )BODY WINDOW(78,24)
 
 PanelTitle "Global Colours"
+actionBar 'Display' 'Settings' 'Utilities' 'RGB_Colours' 'Help'
 
 text      4   2   FP "Command ===> "
 field    4  15  MAX  NEF CAPS(ON),PAD(USER) ZCMD
@@ -59,6 +64,7 @@ text     22  17    PIN "to restore global colours to their original"
 &ZCMD = TRANS( &ZCMD DEF,DEFAULTS
                      DEFAULT,DEFAULTS
                      DEFAULTS,DEFAULTS
+                     RGBSET,RGBSET
                      &Z,&Z
                      MSG=PSYS018
              )
@@ -71,12 +77,14 @@ IF ( &ZCMD EQ 'DEFAULTS' )
    &COLOUR05 = &Z
    &COLOUR06 = &Z
    &COLOUR07 = &Z
-   EXIT
+ELSE
+   IF ( &ZCMD EQ 'RGBSET' ) EXIT
 
 &COLOUR01 = TRANS( TRUNC( &COLOUR01, 1 ) ,
                    B,BLUE
                    R,RED
                    M,MAGENTA
+                   P,MAGENTA
                    G,GREEN
                    T,TURQ
                    Y,YELLOW
@@ -89,6 +97,7 @@ IF ( &ZCMD EQ 'DEFAULTS' )
                    B,BLUE
                    R,RED
                    M,MAGENTA
+                   P,MAGENTA
                    G,GREEN
                    T,TURQ
                    Y,YELLOW
@@ -101,6 +110,7 @@ IF ( &ZCMD EQ 'DEFAULTS' )
                    B,BLUE
                    R,RED
                    M,MAGENTA
+                   P,MAGENTA
                    G,GREEN
                    T,TURQ
                    Y,YELLOW
@@ -113,6 +123,7 @@ IF ( &ZCMD EQ 'DEFAULTS' )
                    B,BLUE
                    R,RED
                    M,MAGENTA
+                   P,MAGENTA
                    G,GREEN
                    T,TURQ
                    Y,YELLOW
@@ -125,6 +136,7 @@ IF ( &ZCMD EQ 'DEFAULTS' )
                    B,BLUE
                    R,RED
                    M,MAGENTA
+                   P,MAGENTA
                    G,GREEN
                    T,TURQ
                    Y,YELLOW
@@ -137,6 +149,7 @@ IF ( &ZCMD EQ 'DEFAULTS' )
                    B,BLUE
                    R,RED
                    M,MAGENTA
+                   P,MAGENTA
                    G,GREEN
                    T,TURQ
                    Y,YELLOW
@@ -149,6 +162,7 @@ IF ( &ZCMD EQ 'DEFAULTS' )
                    B,BLUE
                    R,RED
                    M,MAGENTA
+                   P,MAGENTA
                    G,GREEN
                    T,TURQ
                    Y,YELLOW

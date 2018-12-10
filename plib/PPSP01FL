@@ -13,46 +13,43 @@
 
 )BODY
 
-PanelTitle "Saved File List"
+PanelTitle "Saved File List (&ZAPPLID)"
 
 text      4   2   FP "Command ===> "
 field     4  15  MAX NEF CAPS(ON),PAD(USER) ZCMD
 
-text      6   2   FP "Profile:"
-field     6  11   4  VOI NONE ZAPPLID
+text      6   2   FP "File name. . .:"
+field     6  18   MAX  NEF PAD(USER) ZFILE
 
-text      8   2   FP "File name. . .:"
-field     8  18   MAX  NEF PAD(USER) ZFILE
+text      7   2   FP "Directory. . .:"
+field     7  18   MAX  NEF PAD(USER) ZDIR
 
-text      9   2   FP "Directory. . .:"
-field     9  18   MAX  NEF PAD(USER) ZDIR
+text      8   2   FP "Current. . . .:"
+field     8  18   MAX  VOI NONE ZCURR
 
-text     10   2   FP "Current. . . .:"
-field    10  18   MAX  VOI NONE ZCURR
+field    10   2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL1
+field    10   4  MAX NEF CAPS(OFF),PAD(USER) ZFILE1
 
-field    12   2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL1
-field    12   4  MAX NEF CAPS(OFF),PAD(USER) ZFILE1
+field    11   2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL2
+field    11   4  MAX NEF CAPS(OFF),PAD(USER) ZFILE2
 
-field    13   2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL2
-field    13   4  MAX NEF CAPS(OFF),PAD(USER) ZFILE2
+field     12  2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL3
+field     12  4  MAX NEF CAPS(OFF),PAD(USER) ZFILE3
 
-field     14  2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL3
-field     14  4  MAX NEF CAPS(OFF),PAD(USER) ZFILE3
+field     13  2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL4
+field     13  4  MAX NEF CAPS(OFF),PAD(USER) ZFILE4
 
-field     15  2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL4
-field     15  4  MAX NEF CAPS(OFF),PAD(USER) ZFILE4
+field     14  2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL5
+field     14  4  MAX NEF CAPS(OFF),PAD(USER) ZFILE5
 
-field     16  2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL5
-field     16  4  MAX NEF CAPS(OFF),PAD(USER) ZFILE5
+field     15  2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL6
+field     15  4  MAX NEF CAPS(OFF),PAD(USER) ZFILE6
 
-field     17  2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL6
-field     17  4  MAX NEF CAPS(OFF),PAD(USER) ZFILE6
+field     16  2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL7
+field     16  4  MAX NEF CAPS(OFF),PAD(USER) ZFILE7
 
-field     18  2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL7
-field     18  4  MAX NEF CAPS(OFF),PAD(USER) ZFILE7
-
-field     19  2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL8
-field     19  4  MAX NEF CAPS(OFF),PAD(USER) ZFILE8
+field     17  2  1   NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL8
+field     17  4  MAX NEF CAPS(OFF),PAD(USER) ZFILE8
 
 
 )INIT

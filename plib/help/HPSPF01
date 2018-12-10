@@ -38,16 +38,18 @@ System:
 *-----*
 .ABEND   Abend the current application
 .AUTO    Auto-update screen every 1second.  Press ESC to interrupt.
+.ENQ     Display enqueued resources.  Output goes to the application log.
 .HIDE    NULLS. Display field nulls as spaces.
 .INFO    Display current application information to the Application Log
 .LOAD    Load all applications not already loaded.
 .RELOAD  ALL | NEW | modname.  Reload application if not in use.
+.RGB     List RGB values of the in-use colours to the lspf log.
 .SCALE
-.SHELL   Suspends NCURSES and invokes the shell specified in the SHELL environment variable
+.SHELL   Suspends NCURSES and invokes the shell specified in the SHELL environment variable (if set)
 .SHOW    NULLS. Display field nulls as dots.
-.SNAP    Snap all SHARED and PROFILE pool variables to the application log.
+.SNAP    Snap all loaded SHARED and PROFILE pool variables to the application log.
 .STATS   Write table and pool statistics to the application log.
-.TASKS   Show background tasks
+.TASKS   Show background tasks - ouput goes to the lspf log.
 .TEST    Put application into test mode
          :: Read messages from disk every time
          :: Set testMode to true
@@ -57,12 +59,10 @@ Command Table Entries:
 *--------------------*
 SYSTEM
 *----*
-CMDS     List of commands (USER, APPLICATION and SYSTEM command tables)
 CTRL     List/modify global control key actions
-CUA      View/change cua attribute settings
 DSLIST   Show a file list
          Without parms, shows the Personal File Lists screen where you can select an entry
-         With a Personal File List, shows the list of files contained in that list
+         With a Personal File List, shows the list of files contained in that list (partial name allowed)
          With a file path, shows the entries for the path
          Anything invalid shows the home directory
          The file name can contain a valid regex, '*' or '?' with the option to expand the generic.
@@ -71,6 +71,7 @@ KEYLISTS Change/create keylist settings (displays all keylist tables)
 KEYS     Change pfkey settings
 ALOG     Display the Application Log
 LOG      Display the lspf Log
+ISPLIBD  Show LIBDEF status
 NRETRIEV Retrieve next entry from the active (or specified) referral list
          NRETRIEV
          NRETRIEV pos list   eg. NRETRIEV  4 MINE   get the 4th entry from list 'MINE'
@@ -84,11 +85,24 @@ REFOPENF Open a list of all referral lists
 
 USER
 *--*
+BR     No parameters - shows the view entry screen
+       Valid file name - goes straight to browse
+       Full or partial reflist entry - goes into browse on that entry (or file list if a directory)
+       Invalid - issues message PBRO011O
+CMDS   List of commands (USER, APPLICATION and SYSTEM command tables)
+CUA    View/change cua attribute settings
+DIR    Shows file list (same as opt 3.4)
+ED     No parameters - shows the edit entry screen (performs edit recovery actions)
+       Valid file name - goes straight to edit
+       Full or partial reflist entry - goes into edit on that entry (or file list if a directory)
+       Invalid - issues message PEDT013H
 EXEC   Execute OOREXX EXEC from the command line (similar to @ command character)
 FLIST  Display saved file names and execute line command
+LS     Alias of DIR - Shows file list (same as opt 3.4)
 MODS   List found application modules (Dynamically Loaded Classes) and their status
 RUN    Run application (similar to ! command character)
 PATHS  Display scrollable list of Path Searches and LIBDEF status
+TASKS  Display a simple task list
 TODO   Display a simple TODO list
 VARS   List of SHARED and PROFILE pool variables
 

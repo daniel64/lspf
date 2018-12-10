@@ -15,34 +15,26 @@ field    4   28   1   CEF PAD(USER) ENTRYDEL
 
 text     6 2  CH "Instructions"
 text     8 2  NT "Press"
-text     8 8  ET "Enter"
+text     8 8  ET "ENTER"
 text     8 14 NT "to confirm delete"
 
 text     9 2  NT "Press"
-text     9 8  ET "Cancel"
+text     9 8  ET "CANCEL"
 text     9 15 NT "or"
 text     9 18 ET "END"
 text     9 22 NT "to cancel delete."
 
 )INIT
-
 .CURSOR   = ENTRYDEL
 &ENTRYDEL = &Z
+&ZCMD     = &Z
 &ZWINTTL  = &Z
 
 )PROC
-
-&ZCMD = TRANS(&ZCMD CAN,CANCEL *,* )
-
-IF (&ZCMD EQ CANCEL )
-    .RESP = END
-    &ZCMD = &Z
+IF (&ZCMD NE &Z)
+    .MSG    = PSYS018
+    .CURSOR = ZCMD
     EXIT
-ELSE
-   IF (&ZCMD NE &Z )
-       .MSG    = PSYS018
-       .CURSOR = ZCMD
-       EXIT
 
 VER (&ENTRYDEL NB,LIST,/)
 

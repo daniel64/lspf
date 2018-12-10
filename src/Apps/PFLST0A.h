@@ -21,9 +21,9 @@ using namespace std;
 
 enum LN_CMDS
 {
+	LN_ADD,
 	LN_BROWSE,
 	LN_COPY,
-	LN_CONV,
 	LN_DELETE,
 	LN_EDIT,
 	LN_EXECUTE,
@@ -105,6 +105,8 @@ class PFLST0A : public pApplication
 		string lcmtab   ;
 		string eprof    ;
 		string eimac    ;
+		string eccan    ;
+		string epresv   ;
 		string moddate  ;
 		string moddates ;
 		string ientry   ;
@@ -128,22 +130,22 @@ class PFLST0A : public pApplication
 		string iownern  ;
 		string igroupn  ;
 
-		map<string,LN_CMDS> line_cmds  = { { "B",        LN_BROWSE  },
-						   { "C",        LN_COPY    },
-						   { "CONV",     LN_CONV    },
-						   { "D",        LN_DELETE  },
-						   { "E",        LN_EDIT    },
-						   { "EX",       LN_EXECUTE },
-						   { "FMT",      LN_FORMAT  },
-						   { "I",        LN_INFO    },
-						   { "L",        LN_LIST    },
-						   { "M",        LN_MODIFY  },
-						   { "NANO",     LN_NANO    },
-						   { "R",        LN_RENAME  },
-						   { "T",        LN_TREE    },
-						   { "TT",       LN_TTREE   },
-						   { "V",        LN_VIEW    },
-						   { "VI",       LN_VI      },
-						   { "X",        LN_LINK    } } ;
+		map<string,LN_CMDS> line_cmds  = { { "ADD",      LN_ADD       },
+						   { "B",        LN_BROWSE    },
+						   { "C",        LN_COPY      },
+						   { "D",        LN_DELETE    },
+						   { "E",        LN_EDIT      },
+						   { "EX",       LN_EXECUTE   },
+						   { "FMT",      LN_FORMAT    },
+						   { "I",        LN_INFO      },
+						   { "L",        LN_LIST      },
+						   { "M",        LN_MODIFY    },
+						   { "NANO",     LN_NANO      },
+						   { "R",        LN_RENAME    },
+						   { "T",        LN_TREE      },
+						   { "TT",       LN_TTREE     },
+						   { "V",        LN_VIEW      },
+						   { "VI",       LN_VI        },
+						   { "X",        LN_LINK      } } ;
 
 } ;

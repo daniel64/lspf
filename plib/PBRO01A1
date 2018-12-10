@@ -1,71 +1,124 @@
-)PANEL VERSION=1 FORMAT=1 KEYLIST(ISRSAB,ISR)
+)PANEL VERSION=1 FORMAT=1
+
 )COMMENT
-Panel for ...
+Browse/View Entry panel
 )ENDCOMMENT
 
-)ATTR
-
-01 TYPE(DATAOUT) INTENS(HIGH)
-
-0A TYPE(CHAR) COLOUR(RED)
-0B TYPE(CHAR) COLOUR(GREEN)
-0C TYPE(CHAR) COLOUR(YELLOW)
-0D TYPE(CHAR) COLOUR(BLUE)
-0E TYPE(CHAR) COLOUR(MAGENTA)
-0F TYPE(CHAR) COLOUR(TURQ)
-10 TYPE(CHAR) COLOUR(WHITE)
-
 )INCLUDE STD_PDC
+)INCLUDE RFL_PDC
 )INCLUDE HLP_PDC
 
-)BODY
-PanelDesc "Browse &ZBRALT"
+)BODY HOME(ZCMD) CMD(ZCMD)
 
-text  3   2    FP "BROWSE"
-field 3  10   MAX-30 VOI  NONE ZBRALT
+PanelTitle "View Entry Panel"
 
-text  4   2         FP  "Command ===>"
-field 4  15 MAX-17  NEF PAD(USER) ZCMD
+text     4    2       FP     "Command ===>"
+field    4   15   MAX NEF     PAD(USER) ZCMD
 
-text  4 MAX-15     FP  "Scroll ===>"
-field 4 MAX-3   4  NEF NONE ZSCROLL
+text     7    2       FP     "File Name. . .:"
+field    7   18   MAX NEF     PAD(USER) ZFILE
 
-text   3   MAX-28     FP  "Line"
-field  3   MAX-23  8  VOI  NONE ZROW1
+text     9    2       FP     "Initial Macro. . . . ."
+field    9    25  8   CEF     PAD(USER),caps(off) BEIMAC
+text     10   2       FP     "Profile Name . . . . ."
+field    10   25  8   CEF     PAD(USER),caps(on) BEPROF
 
-text   3   MAX-14     FP  "Col"
-field  3   MAX-10 5  VOI  NONE ZCOL1
-field  3   MAX-4  5  VOI  NONE ZCOL2
+text     11   2       FP     "Line Command Table . ."
+field    11   25  8   CEF     PAD(USER),caps(on) BELMAC
 
-dynArea  5  2  MAX  MAX  ZAREA  ZSHADOW SCROLL(ON)
+text     13   2       ET     "Options"
+text     14   4       PIN    "Enter / to select option"
+
+field    15   4   1   CEF     PAD(USER) BECCAN
+text     15   6       SAC    "Confirm Cancel"
+field    16   4   1   CEF     PAD(USER) BEBROM
+text     16   6       SAC    "Browse Mode"
+field    17   4   1   CEF     PAD(USER) BEPRSPS
+text     17   6       SAC    "Preserve trailing spaces on file save"
+
+field    18   4   1   CEF     PAD(USER) BETABSS
+text     18   6       SAC    "Override XTABS setting to prevent tabs being converted to spaces"
+
+field    19   4   1   CEF     PAD(USER) BEDIRLST
+text     19   6       SAC    "Show directory list if valid directory entered"
+
+
+text    22 2  CH "Instructions"
+text    24 2  NT "Enter file name and press"
+text    24 28 ET "ENTER"
+text    24 34 NT "to browse or view file"
 
 
 )INIT
-.BROWSE = YES
+.NRET = ON
+.NRET = ZFILE
 
-IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+VGET BEIMAC SHARED
+VGET ( ZFILE,BEPROF,BEBROM,BECCAN,BELMAC,BEPRSPS,BETABSS,BEDIRLST ) PROFILE
 
 )PROC
+if ( &ZCMD NE &Z)
+  .MSG    = PSYS018
+  .CURSOR = ZCMD
+  EXIT
 
-IF (&ZCMD = &Z) EXIT
+VER (&ZFILE,NB)
+VER (&BELMAC,NAME)
+&BEBROM   = TRANS( &BEBROM   &Z,&Z *,/ )
+&BECCAN   = TRANS( &BECCAN   &Z,&Z *,/ )
+&BEPRSPS  = TRANS( &BEPRSPS  &Z,&Z *,/ )
+&BETABSS  = TRANS( &BETABSS  &Z,&Z *,/ )
+&BEDIRLST = TRANS( &BEDIRLST &Z,&Z *,/ )
 
-&ZU  = UPPER(ZCMD)           /* Upper case      */
-&CMD = TRUNC(&ZU,' ')        /* Get first word  */
-&ZUS = .TRAIL                /*                 */
-&ZU2 = TRUNC(&ZUS,' ')       /* Get second word */
-&ZUS = .TRAIL                /* and the rest    */
-&ZU3 = TRUNC(&ZUS,' ')       /* Get third word  */
-&ZUS = .TRAIL                /* and the rest    */
+VPUT BEIMAC SHARED
+VPUT (BEBROM,BECCAN,BEPRSPS,BETABSS,BEDIRLST) PROFILE
+VPUT (ZFILE,BEPROF,BELMAC) PROFILE
 
-IF (&CMD EQ HILITE )
-  IF (&ZUS NE &Z,ON,OFF )           /* No third parameter */
-    .MSG    = PBRO013
-    .CURSOR = ZCMD
-    EXIT
-  ELSE
-    IF (&ZU3 NE REXX,C++,CPP,PANEL,OFF,&Z)
-       .MSG    = PSYS011O
-       .CURSOR = ZCMD
-       EXIT
+&SHOWDIR = NO
+
+&REV = REVERSE(ZFILE)
+&GEN = TRUNC( &REV, 1 )
+IF (&GEN EQ '*','?',']' )
+  &SHOWDIR = YES
+  EXIT
+ELSE
+  &RST = TRUNC( &REV, '/' )
+  &RST = REVERSE(RST)
+  &GEN = TRUNC( &RST, '*' )
+  &GEN = .TRAIL
+  IF (&GEN NE &Z )
+     &SHOWDIR = YES
+     EXIT
+  &GEN = TRUNC( &RST, '?' )
+  &GEN = .TRAIL
+  IF (&GEN NE &Z )
+     &SHOWDIR = YES
+     EXIT
+  &GEN = TRUNC( &RST, '[' )
+  &GEN = .TRAIL
+  IF (&GEN NE &Z )
+     &SHOWDIR = YES
+     EXIT
+
+&ISFILE = FILE( ZFILE )
+&ISDIR  = DIR( ZFILE )
+
+IF ( &BEDIRLST NE '/' )
+  IF ( &ISDIR EQ .TRUE )
+     .CURSOR = ZFILE
+     .MSG    = PEDT011T
+     EXIT
+  IF ( &ISFILE EQ .FALSE )
+     .CURSOR = ZFILE
+     &ZSTR1  = &ZFILE
+     .MSG    = PEDT011R
+     EXIT
+ELSE
+  IF ( &ISFILE EQ .FALSE )
+     IF ( &ISDIR NE .FALSE )
+        &SHOWDIR = YES
+
+)FIELD
+FIELD(ZFILE) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL)')
 
 )END

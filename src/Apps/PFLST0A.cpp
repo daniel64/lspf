@@ -24,9 +24,6 @@
 /* Display a file list for a directory and invoke browse if a file is selected or list the new directory    */
 /* Use system variable ZFLSTPGM to refer to this                                                            */
 
-/* If invoked with a PARM of BROWSE file, browse file                                                       */
-/* If invoked with a PARM of EDIT file, edit file                                                           */
-/* If invoked with a PARM of VIEW file, view file                                                           */
 /* If invoked with a PARM of path, list path                                                                */
 /* If invoked with a PARM of INFO, list info for entry                                                      */
 /* If invoked with a PARM of LIST, use passed list to create a file list instead of listing a directory     */
@@ -52,23 +49,25 @@
 /* MKDIR  - Make a directory (under current or specify full path)                                           */
 /* SEARCH - Show a list containing only files that match a search word (within the file).  Uses grep        */
 /* SRCHFOR- Same as SEARCH                                                                                  */
-/* TOUCH  - Make a file (under current or specify full path)                                                */
+/* TOUCH  - Make a file (under current directory or specify full path)                                      */
 
 /* Line Commands:                                                                                           */
-/* B  - Browse file                                                                                         */
-/* C  - Copy file/directory/symlink                                                                         */
-/* D  - Delete file                                                                                         */
-/* E  - Edit file                                                                                           */
-/* EX - Execute file as OOREXX EXEC                                                                         */
-/* I  - Information on the entry                                                                            */
-/* L  - List directory                                                                                      */
-/* M  - Modify entry attributes                                                                             */
-/* R  - Rename pathname                                                                                     */
-/* S  - Select directory or file (list or browse)                                                           */
-/* T  - Display a directory tree                                                                            */
-/* TT - Display a directory tree in BROWSE                                                                  */
-/* X  - List link directory                                                                                 */
-/* =  - repeat the last-entered line command                                                                */
+/* ADD - Add file the Personal File List                                                                    */
+/* B   - Browse file                                                                                        */
+/* C   - Copy file/directory/symlink                                                                        */
+/* D   - Delete file                                                                                        */
+/* E   - Edit file                                                                                          */
+/* EX  - Execute file as OOREXX EXEC                                                                        */
+/* FMT - Format variable or table file (REXX porexx2)                                                       */
+/* I   - Information on the entry                                                                           */
+/* L   - List directory                                                                                     */
+/* M   - Modify entry attributes                                                                            */
+/* R   - Rename pathname                                                                                    */
+/* S   - Select directory or file (list or browse)                                                          */
+/* T   - Display a directory tree                                                                           */
+/* TT  - Display a directory tree in BROWSE                                                                 */
+/* X   - List link directory                                                                                */
+/* =   - repeat the last-entered line command                                                               */
 
 /* nano - invoke nano editor on the file                                                                    */
 /* vi   - invoke vi editor on the file                                                                      */
@@ -115,14 +114,12 @@ PFLST0A::PFLST0A()
 {
 	vdefine( "ZCURFLD", &zcurfld ) ;
 	vdefine( "ZCURINX  ZTDTOP ZTDVROWS ZTDSELS ZTDDEPTH", &zcurinx, &ztdtop, &ztdvrows, &ztdsels, &ztddepth ) ;
-	vdefine( "ZEDLMACT ZEDEPROF ZEDIMACA", &lcmtab, &eprof, &eimac ) ;
+	vdefine( "ZEDLMACT ZEDEPROF ZEDIMACA ZEDECCAN ZEDPRSPS", &lcmtab, &eprof, &eimac, &eccan, &epresv ) ;
 }
 
 
 void PFLST0A::application()
 {
-	llog( "I", "Application PFLST0A starting with PARM of " << PARM << endl ) ;
-
 	int i      ;
 	int rc     ;
 	int RCode  ;
@@ -172,7 +169,7 @@ void PFLST0A::application()
 
 	std::ofstream of ;
 
-	vget( "ZHOME ZEDLMACT ZEDEPROF ZEDIMACA", SHARED ) ;
+	vget( "ZHOME ZEDLMACT ZEDEPROF ZEDIMACA ZEDECCAN ZEDPRSPS", SHARED ) ;
 	vget( "AFHIDDEN EXGEN", PROFILE ) ;
 
 	UseList = false ;
@@ -184,39 +181,10 @@ void PFLST0A::application()
 	else
 	{
 		w1 = word( PARM, 1 ) ;
-		if ( w1 == "BROWSE" || w1 == "EDIT" )
-		{
-			zpath = subword( PARM, 2 ) ;
-			try
-			{
-				if ( is_regular_file( zpath ) )
-				{
-					if ( w1 == "BROWSE" )
-					{
-						browse( zpath ) ;
-						return ;
-					}
-					else if ( w1 == "VIEW" )
-					{
-						view( zpath ) ;
-						return ;
-					}
-					else
-					{
-						edit( zpath, "", eimac, eprof, lcmtab ) ;
-						return ;
-					}
-				}
-			}
-			catch ( const filesystem_error& ex )
-			{
-				setmsg( "FLST011" ) ;
-			}
-		}
-		else if ( w1 == "INFO" )
+		if ( w1 == "INFO" )
 		{
 			showInfo( subword( PARM, 2 ) ) ;
-			return    ;
+			return ;
 		}
 		else if ( w1 == "EXPAND" )
 		{
@@ -225,12 +193,12 @@ void PFLST0A::application()
 			{
 				ZRESULT = substr( ZRESULT, lastpos( "/", ZRESULT)+1 ) ;
 			}
-			return    ;
+			return ;
 		}
 		else if ( w1 == "EXPAND1" )
 		{
 			ZRESULT = expandFld1( subword( PARM, 2 ) ) ;
-			return    ;
+			return ;
 		}
 		else if ( w1 == "LIST" )
 		{
@@ -459,6 +427,11 @@ void PFLST0A::application()
 
 		switch ( it->second )
 		{
+		case LN_ADD:
+			vcopy( "ZRFLPGM", pgm, MOVE ) ;
+			select( "PGM("+pgm+") PARM(PLF FAVOUR1 "+entry+") BACK" ) ;
+			break ;
+
 		case LN_INFO:
 			showInfo( entry )       ;
 			message = "Information" ;
@@ -721,7 +694,7 @@ void PFLST0A::application()
 			break ;
 
 		case LN_EDIT:
-			edit( entry, "", eimac, eprof, lcmtab ) ;
+			edit( entry, "", eimac, eprof, lcmtab, eccan, ( epresv == "YES" ? "PRESERVE" : "" ) ) ;
 			if ( ZRESULT != "" )
 			{
 				message = ZRESULT ;
@@ -1359,7 +1332,7 @@ int PFLST0A::processPrimCMD()
 		{
 			if ( findword( cw, "E EDIT" ) )
 			{
-				edit( p, "", eimac, eprof, lcmtab ) ;
+				edit( p, "", eimac, eprof, lcmtab, eccan, ( epresv == "YES" ? "PRESERVE" : "" ) ) ;
 			}
 			else
 			{
@@ -1845,7 +1818,7 @@ void PFLST0A::browseTree( const string& tname )
 		msg = "" ;
 		if ( tsel == "S" )
 		{
-			select( "PGM(" + pgm + ") PARM(BROWSE " + tfile + ")" ) ;
+			browse( tfile ) ;
 		}
 		else if ( tsel == "I" )
 		{
@@ -1853,7 +1826,7 @@ void PFLST0A::browseTree( const string& tname )
 		}
 		else if ( tsel == "E" )
 		{
-			select( "PGM(" + pgm + ") PARM(EDIT " + tfile + ")" ) ;
+			edit( tfile ) ;
 		}
 	}
 	tbend( tab ) ;

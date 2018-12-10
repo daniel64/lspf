@@ -34,11 +34,11 @@ text    16 8  ET "="
 text    16 10 NT "in Newpath Name field to retrieve full path name"
 
 text    18 2  NT "Press"
-text    18 8  ET "Enter"
+text    18 8  ET "ENTER"
 text    18 14 NT "to confirm rename"
 
 text    19 2  NT "Press"
-text    19 8  ET "Cancel"
+text    19 8  ET "CANCEL"
 text    19 15 NT "or"
 text    19 18 ET "END"
 text    19 22 NT "to cancel rename"
@@ -46,21 +46,15 @@ text    19 22 NT "to cancel rename"
 
 )INIT
 
-.CURSOR    = NEWENTRY
- &NEWENTRY = &ENTRY
+.CURSOR   = NEWENTRY
+&NEWENTRY = &ENTRY
 
 )PROC
 
-&ZCMD = TRANS( &ZCMD CAN,CANCEL *,* )
-
-IF ( &ZCMD = CANCEL )
-   .RESP = END
+IF (&ZCMD NE &Z )
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
    EXIT
-ELSE
-   IF (&ZCMD NE &Z )
-      .MSG    = PSYS018
-      .CURSOR = ZCMD
-      EXIT
 
 IF (TRUNC(&NEWENTRY,1) EQ '=')
   IF (TRUNC(&ENTRY,1) NE '/') &NEWENTRY = '&ZPATH/&ENTRY '

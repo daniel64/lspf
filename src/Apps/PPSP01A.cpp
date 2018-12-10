@@ -22,10 +22,13 @@
 
 
 /* General utilities:                                                       */
-/* lspf LOG                                                                 */
-/* Application LOG                                                          */
+
+/* lspf/Application log                                                     */
+/* Edit Entry function                                                      */
+/* Browse/View Entry function                                               */
 /* PFKEY Settings                                                           */
-/* COLOUR Settings                                                          */
+/* Colour settings                                                          */
+/* Global colours                                                           */
 /* T0DO list                                                                */
 /* SHARED and PROFILE Variable display                                      */
 /* LIBDEF status                                                            */
@@ -33,7 +36,11 @@
 /* Display loaded Modules (loaded Dynamic Classes)                          */
 /* Display Saved File List                                                  */
 /* Simple task list display (from ps aux output)                            */
+/* Keylists                                                                 */
+/* Control keys                                                             */
 /* RUN an application (default parameters)                                  */
+/* Show error screen                                                        */
+/* Set a profile variable                                                   */
 
 #include <iostream>
 #include <vector>
@@ -70,13 +77,11 @@ using namespace boost::filesystem ;
 #define E_TURQ     8
 #define E_WHITE    9
 
-boost::mutex PPSP01A::mtx ;
-
 
 PPSP01A::PPSP01A()
 {
 	set_appdesc( "General utilities to display logs, PF Key settings, variables, etc." ) ;
-	set_appver( "1.0.0" ) ;
+	set_appver( "1.0.1" ) ;
 
 	vdefine( "ZCURINX ZTDTOP ZTDSELS", &zcurinx, &ztdtop, &ztdsels ) ;
 }
@@ -84,15 +89,15 @@ PPSP01A::PPSP01A()
 
 void PPSP01A::application()
 {
-	llog( "I", "Application PPSP01A starting" << endl ) ;
-
 	string ltype  ;
 	string logloc ;
 	string w1 ;
 	string w2 ;
+	string wl ;
 
 	w1 = upper( word( PARM, 1 ) ) ;
-	w2 = upper( word( PARM, 2 ) ) ;
+	wl = word( PARM, 2 ) ;
+	w2 = upper( wl ) ;
 
 	vdefine( "ZCMD ZVERB ZROW1 ZROW2", &zcmd, &zverb, &zrow1, &zrow2 ) ;
 	vdefine( "ZAREA ZSHADOW ZAREAT ZSCROLLA", &zarea, &zshadow, &zareat, &zscrolla ) ;
@@ -132,6 +137,8 @@ void PPSP01A::application()
 	else if ( PARM == "CTLKEYS" ) { controlKeys()        ; }
 	else if ( PARM == "LIBDEFS" ) { libdefStatus()       ; }
 	else if ( PARM == "PSYSER2" ) { showErrorScreen1()   ; }
+	else if ( w1   == "BROWSEE" ) { browseEntry( wl )    ; }
+	else if ( w1   == "EDITEE"  ) { editEntry( wl )      ; }
 	else if ( w1   == "PSYSER3" ) { showErrorScreen2( w2 ) ; }
 	else if ( w1   == "SETVAR"  )
 	{
@@ -488,9 +495,9 @@ void PPSP01A::fill_dynamic_area()
 {
 	int p ;
 
-	string s     ;
+	string s ;
+	string t ;
 	string s2( zareaw, E_TURQ ) ;
-	string t     ;
 
 	zarea   = "" ;
 	zshadow = "" ;
@@ -557,7 +564,14 @@ void PPSP01A::dsList( string parms )
 	else if ( parms.front() == '/' )
 	{
 		vcopy( "ZFLSTPGM", pgm, MOVE ) ;
-		select( "PGM(" + pgm + ") PARM(BROWSE "+parms+") SCRNAME(FILES) SUSPEND" ) ;
+		if ( is_regular_file( parms ) )
+		{
+			browse( parms ) ;
+		}
+		else
+		{
+			select( "PGM(" + pgm + ") PARM("+parms+") SCRNAME(FILES) SUSPEND" ) ;
+		}
 	}
 	else
 	{
@@ -879,9 +893,9 @@ void PPSP01A::lspfSettings()
 		}
 		if ( gopadc != zpadc )
 		{
-			if      ( gopadc == "B" ) { zpadc = " "    ; }
-			else if ( gopadc == "N" ) { zpadc = nulls  ; }
-			else                      { zpadc = gopadc ; }
+			if      ( gopadc == "B" )  { zpadc = " "    ; }
+			else if ( gopadc == "N" )  { zpadc = nulls  ; }
+			else                       { zpadc = gopadc ; }
 			vput( "ZPADC", PROFILE ) ;
 			zpadc = gopadc ;
 		}
@@ -1099,7 +1113,6 @@ void PPSP01A::pfkeySettings()
 		zcmd  = "" ;
 		display( "PPSP01AK", "", "ZCMD" );
 		RCode = RC ;
-
 		if ( zcmd == "CANCEL" ) { break ; }
 		if ( zcmd == "DEFAULTS" )
 		{
@@ -1218,7 +1231,6 @@ void PPSP01A::colourSettings()
 	DefList[ 32 ] = KWT    ;
 	DefList[ 33 ] = KWASL  ;
 
-	control( "RELOAD", "CUA" ) ;
 
 	for ( i = 1 ; i < 34 ; i++ )
 	{
@@ -1241,14 +1253,14 @@ void PPSP01A::colourSettings()
 		OrigList[ i ] = val ;
 	}
 
-	msg    = "" ;
-	zcmd   = "" ;
+	msg  = "" ;
+	zcmd = "" ;
 	while ( true )
 	{
 		if ( msg == "" ) { curfld = "ZCMD" ; }
+		control( "CUA", "RELOAD" ) ;
 		display( "PPSP01CL", msg, curfld ) ;
-		if (RC == 8 ) { break ; }
-
+		if (RC == 8 && zcmd != "CANCEL" ) { break ; }
 		if ( zcmd == "" )
 		{
 			;
@@ -1266,7 +1278,7 @@ void PPSP01A::colourSettings()
 				}
 				setISPSVar( VarList[ i ], OrigList[ i ] ) ;
 			}
-			return ;
+			break ;
 		}
 		else if ( zcmd == "DEFAULTS" )
 		{
@@ -1501,6 +1513,9 @@ void PPSP01A::globalColours()
 	int i ;
 
 	string colour ;
+	string zcmd   ;
+
+	vdefine( "ZCMD", &zcmd ) ;
 
 	map<int, string> tab1 = { { 1, "B" } ,
 				  { 2, "R" } ,
@@ -1518,7 +1533,6 @@ void PPSP01A::globalColours()
 				     { "Y", "YELLOW"  } ,
 				     { "W", "WHITE"   } } ;
 
-	control( "RELOAD", "CUA" ) ;
 
 	for ( i = 1 ; i < 8 ; i++ )
 	{
@@ -1537,8 +1551,14 @@ void PPSP01A::globalColours()
 	addpop( "", 5, 5 ) ;
 	while ( true )
 	{
+		control( "CUA", "RELOAD" ) ;
 		display( "PPSP01CR" ) ;
 		if (RC == 8 ) {  break ; }
+		if ( zcmd == "RGBSET" )
+		{
+			setRGBValues() ;
+			continue ;
+		}
 		for ( i = 1 ; i < 8 ; i++ )
 		{
 			vcopy( "COLOUR"+ d2ds( i, 2 ), colour, MOVE ) ;
@@ -1549,6 +1569,99 @@ void PPSP01A::globalColours()
 		}
 	}
 	rempop() ;
+	vdelete( "ZCMD" ) ;
+}
+
+
+void PPSP01A::setRGBValues()
+{
+	short int r ;
+	short int g ;
+	short int b ;
+
+	string t ;
+	string zcmd ;
+	string n_rgb = "ZNRGB" ;
+	string u_rgb = "ZURGB" ;
+
+	map<int, string> suf =
+	{ { 1, "R" },
+	  { 2, "G" },
+	  { 3, "Y" },
+	  { 4, "B" },
+	  { 5, "M" },
+	  { 6, "T" },
+	  { 7, "W" } } ;
+
+	for ( uint i = 1 ; i < 8 ; i++ )
+	{
+		vget( u_rgb + suf[ i ], PROFILE ) ;
+		vcopy( u_rgb + suf[ i ], t, MOVE ) ;
+		if ( t.size() != 12 )
+		{
+			continue ;
+		}
+		r = ds2d( t.substr( 0, 4 ) ) * 51 / 200 + 0.5 ;
+		g = ds2d( t.substr( 4, 4 ) ) * 51 / 200 + 0.5 ;
+		b = ds2d( t.substr( 8, 4 ) ) * 51 / 200 + 0.5 ;
+		vreplace( "RGBR"+ d2ds( i ), d2ds( r ) ) ;
+		vreplace( "RGBG"+ d2ds( i ), d2ds( g ) ) ;
+		vreplace( "RGBB"+ d2ds( i ), d2ds( b ) ) ;
+	}
+
+	vdefine( "ZCMD", &zcmd ) ;
+
+	addpop( "", -1, -2 ) ;
+	while ( true )
+	{
+		control( "CUA", "RELOAD" ) ;
+		display( "PPSP01CG" ) ;
+		if (RC == 8 ) {  break ; }
+		if ( zcmd == "DEFAULTS" )
+		{
+			for ( uint i = 1 ; i < 8 ; i++ )
+			{
+				vget( n_rgb + suf[ i ], SHARED ) ;
+				vcopy( n_rgb + suf[ i ], t, MOVE ) ;
+				vreplace( u_rgb + suf[ i ], t ) ;
+				vput( u_rgb + suf[ i ], PROFILE ) ;
+			}
+			for ( uint i = 1 ; i < 8 ; i++ )
+			{
+				vget( u_rgb + suf[ i ], PROFILE ) ;
+				vcopy( u_rgb + suf[ i ], t, MOVE ) ;
+				if ( t.size() != 12 )
+				{
+					continue ;
+				}
+				r = ds2d( t.substr( 0, 4 ) ) * 51 / 200 + 0.5 ;
+				g = ds2d( t.substr( 4, 4 ) ) * 51 / 200 + 0.5 ;
+				b = ds2d( t.substr( 8, 4 ) ) * 51 / 200 + 0.5 ;
+				vreplace( "RGBR"+ d2ds( i ), d2ds( r ) ) ;
+				vreplace( "RGBG"+ d2ds( i ), d2ds( g ) ) ;
+				vreplace( "RGBB"+ d2ds( i ), d2ds( b ) ) ;
+				continue ;
+			}
+		}
+		for ( uint i = 1 ; i < 8 ; i++ )
+		{
+			vget( "RGBR" + d2ds( i ), PROFILE ) ;
+			vcopy( "RGBR" + d2ds( i ), t, MOVE ) ;
+			r = ds2d( t ) * 200 / 51 + 0.5 ;
+			vget( "RGBG" + d2ds( i ), PROFILE ) ;
+			vcopy( "RGBG" + d2ds( i ), t, MOVE ) ;
+			g = ds2d( t ) * 200 / 51 + 0.5 ;
+			vget( "RGBB" + d2ds( i ), PROFILE ) ;
+			vcopy( "RGBB" + d2ds( i ), t, MOVE ) ;
+			b = ds2d( t ) * 200 / 51 + 0.5 ;
+			t = d2ds( r, 4 ) + d2ds( g, 4 ) + d2ds( b, 4 ) ;
+			vreplace( u_rgb + suf[ i ], t ) ;
+			vput( u_rgb + suf[ i ], PROFILE ) ;
+		}
+	}
+
+	rempop() ;
+	vdelete( "ZCMD" ) ;
 }
 
 
@@ -3219,6 +3332,254 @@ void PPSP01A::createKeyTable( string table )
 void PPSP01A::runApplication( const string& xappl )
 {
 	select( "PGM("+xappl+") NEWAPPL(ISP) NEWPOOL PASSLIB" ) ;
+}
+
+
+void PPSP01A::browseEntry( string& file )
+{
+	string msg ;
+	string zfile   ;
+	string bebrom  ;
+	string showdir ;
+
+	boost::filesystem::path wd = boost::filesystem::current_path() ;
+
+	string vlist = "ZFILE BEBROM SHOWDIR" ;
+	vdefine( vlist, &zfile, &bebrom, &showdir ) ;
+
+	if ( file != "" )
+	{
+		if ( is_directory( file ) || file.back() == '*' )
+		{
+			if ( file.front() != '/' ) { file = wd.native() + '/' + file ; }
+			listDirectory( file ) ;
+			vdelete( vlist ) ;
+			return ;
+		}
+		else if ( file.find( '/' ) == string::npos )
+		{
+			select( "PGM(PLRFLST1) PARM(MTC " + file + ")" ) ;
+			if ( ZRESULT != "" )
+			{
+				if ( is_regular_file( ZRESULT ) )
+				{
+					updateReflist( ZRESULT ) ;
+					browse( ZRESULT ) ;
+				}
+				else
+				{
+					listDirectory( ZRESULT ) ;
+				}
+				vdelete( vlist ) ;
+				return ;
+			}
+			vreplace( "ZVAL1", file ) ;
+			vput( "ZVAL1", SHARED ) ;
+			setmsg( "PBRO011O" ) ;
+			vdelete( vlist ) ;
+			return ;
+		}
+		else if ( is_regular_file( file ) )
+		{
+			if ( file.front() != '/' ) { file = wd.native() + '/' + file ; }
+			updateReflist( file ) ;
+			browse( file ) ;
+			vdelete( vlist ) ;
+			return ;
+		}
+		else
+		{
+			vreplace( "ZVAL1", file ) ;
+			vput( "ZVAL1", SHARED ) ;
+			setmsg( "PBRO011O" ) ;
+			vdelete( vlist ) ;
+			return ;
+		}
+	}
+
+	while ( true )
+	{
+		display( "PBRO01A1", msg, "ZCMD" ) ;
+		if ( RC == 8 ) { break ; }
+		if ( showdir == "YES" )
+		{
+			listDirectory( zfile ) ;
+			continue ;
+		}
+		updateReflist( zfile ) ;
+		if ( bebrom == "/" )
+		{
+			browse( zfile ) ;
+		}
+		else
+		{
+			view( zfile ) ;
+		}
+	}
+
+	vdelete( vlist ) ;
+}
+
+
+void PPSP01A::editEntry( string& file )
+{
+	string zfile   ;
+	string showdir ;
+	string eeimac  ;
+	string eeprof  ;
+	string eelmac  ;
+	string eeccan  ;
+	string eeprsps ;
+	string eetabss ;
+
+	boost::filesystem::path wd = boost::filesystem::current_path() ;
+
+	string vlist = "ZFILE SHOWDIR EEIMAC EEPROF EELMAC EECCAN EEPRSPS EETABSS" ;
+	vdefine( vlist, &zfile, &showdir, &eeimac, &eeprof, &eelmac, &eeccan, &eeprsps, &eetabss ) ;
+
+	if ( file != "" )
+	{
+		if ( is_directory( file ) || file.back() == '*' )
+		{
+			if ( file.front() != '/' ) { file = wd.native() + '/' + file ; }
+			listDirectory( file ) ;
+			vdelete( vlist ) ;
+			return ;
+		}
+		else if ( file.find( '/' ) == string::npos )
+		{
+			select( "PGM(PLRFLST1) PARM(MTC " + file + ")" ) ;
+			if ( ZRESULT != "" )
+			{
+				if ( is_regular_file( ZRESULT ) )
+				{
+					updateReflist( ZRESULT ) ;
+					edit( ZRESULT ) ;
+				}
+				else
+				{
+					listDirectory( ZRESULT ) ;
+				}
+				vdelete( vlist ) ;
+				return ;
+			}
+			vreplace( "ZVAL1", file ) ;
+			vput( "ZVAL1", SHARED ) ;
+			setmsg( "PEDT013H" ) ;
+			vdelete( vlist ) ;
+			return ;
+		}
+		else if ( is_regular_file( file ) )
+		{
+			if ( file.front() != '/' ) { file = wd.native() + '/' + file ; }
+			updateReflist( file ) ;
+			edit( file ) ;
+			vdelete( vlist ) ;
+			return ;
+		}
+		else
+		{
+			vreplace( "ZVAL1", file ) ;
+			vput( "ZVAL1", SHARED ) ;
+			setmsg( "PEDT013H" ) ;
+			vdelete( vlist ) ;
+			return ;
+		}
+	}
+
+
+	if ( editRecovery() == 8 )
+	{
+		vdelete( vlist ) ;
+		return ;
+	}
+
+	while ( true )
+	{
+		display( "PEDIT011", "", "ZCMD1" ) ;
+		if ( RC == 8 ) { break ; }
+		vreplace( "ZEDTABSS", eetabss == "/" ? "YES" : "NO" ) ;
+		vput( "ZEDTABSS", SHARED ) ;
+		if ( showdir == "YES" )
+		{
+			vreplace( "ZEDPRSPS", eeprsps == "/" ? "YES" : "NO" ) ;
+			vreplace( "ZEDECCAN", eeccan  == "/" ? "YES" : "NO" ) ;
+			vreplace( "ZEDLMACT", eelmac ) ;
+			vreplace( "ZEDEPROF", eeprof ) ;
+			vreplace( "ZEDIMACA", eeimac ) ;
+			vput( "ZEDPRSPS ZEDECCAN ZEDLMACT ZEDEPROF ZEDIMACA", SHARED ) ;
+			listDirectory( zfile ) ;
+			continue ;
+		}
+		updateReflist( zfile ) ;
+		edit( zfile,
+		      "PEDIT012",
+		      eeimac,
+		      eeprof,
+		      eelmac,
+		      eeccan  == "/" ? "YES" : "NO",
+		      eeprsps == "/" ? "PRESERVE" : "" ) ;
+	}
+
+	vdelete( vlist ) ;
+}
+
+
+int PPSP01A::editRecovery()
+{
+	string zcmd  ;
+	string zfile ;
+	string zverb ;
+
+	const string vlist = "ZCMD ZVERB ZFILE" ;
+
+	vdefine( vlist, &zcmd, &zverb, &zfile ) ;
+
+	edrec( "INIT" ) ;
+
+	while ( true )
+	{
+		edrec( "QUERY" ) ;
+		if ( RC == 0 ) { break ; }
+		vcopy( "ZEDTFILE", zfile, MOVE ) ;
+		display( "PEDIT014", "", "ZCMD" ) ;
+		if ( RC == 8 && zcmd != "CANCEL" )
+		{
+			vdelete( vlist ) ;
+			return 8 ;
+		}
+		if ( zcmd == "" )
+		{
+			edrec( "PROCESS" ) ;
+		}
+		else if ( zcmd == "CANCEL" )
+		{
+			edrec( "CANCEL" ) ;
+		}
+		else
+		{
+			edrec( "DEFER" ) ;
+		}
+	}
+
+	vdelete( vlist ) ;
+
+	return 0 ;
+}
+
+
+void PPSP01A::updateReflist( const string& file )
+{
+	select( "PGM(PLRFLST1) PARM(PLA " + file + ") BACK" ) ;
+}
+
+
+void PPSP01A::listDirectory( const string& file )
+{
+	string* pt ;
+
+	vcopy( "ZFLSTPGM", pt, LOCATE ) ;
+	select( "PGM(" + (*pt) + ") PARM(" + file + ")" ) ;
 }
 
 

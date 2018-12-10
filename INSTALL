@@ -23,7 +23,7 @@ This will download and install both ooRexx and lspf.
 Boost and ncurses required to compile lspf.cpp
 
 Environmental variables HOME and LOGNAME are required to be setup.  lspf will fail to start without them.
-SHELL is also used, but not a requirement.
+SHELL is also used, but not a requirement.  .SHELL command will not work if this variable is not set.
 
 OOREXX required for POREXX1.cpp (OOREXX interface module for writing lspf applications in REXX) and PEDRXM1.cpp (edit
 macro interface module for writing edit macros in REXX)
@@ -33,7 +33,7 @@ file required for PBRO01A.cpp as it is linked with -lmagic
 Run lspf in a terminal
 
 Works with:
-linux 4.19.4
+linux 4.19.7
 gcc 8.2.1
 ncurses 6.1
 boost 1.68.0
@@ -45,5 +45,5 @@ On upgrade:
 Recompile application programs in case header files have changed (use applications that come with that
 version of lspf)
 
-Recompile and rerun setup in case variables have been added to the ISPS profile.  You may get segfaults
+Recompile and rerun setup in case variables have been added to the ISPS profile.  You will get segfaults
 if required variables are missing.

@@ -23,6 +23,7 @@
 
 /******************************************************************************************/
 /*  ZRC/ZRSN codes                                                                        */
+/*   0/0     Normal completion                                                            */
 /*   4/4     File empty                                                                   */
 /*   8/4     Cannot open file                                                             */
 /*   8/8     Not a regular file                                                           */
@@ -86,8 +87,6 @@ PBRO01A::PBRO01A()
 
 void PBRO01A::application()
 {
-	llog( "I", "Application PBRO01A starting.  Parms are " << PARM << endl ) ;
-
 	int i       ;
 	int lchng   ;
 	int curpos  ;
@@ -106,8 +105,7 @@ void PBRO01A::application()
 
 	errblock err ;
 
-	panel = "" ;
-	msg   = "" ;
+	msg = "" ;
 
 	file = parseString( err, PARM, "FILE()" ) ;
 	if ( err.error() || file == "" )
@@ -124,6 +122,7 @@ void PBRO01A::application()
 		abend() ;
 		return  ;
 	}
+	if ( panel == "" ) { panel = "PBRO01A2" ; }
 
 	zdsn = file ;
 	llog( "I", "Displaying file " << file << " using panel " << panel << endl ) ;
@@ -145,7 +144,8 @@ void PBRO01A::application()
 	startCol = 1 ;
 	maxCol   = 1 ;
 
-	pquery( "PBRO01A1", "ZAREA", "ZAREAT", "ZAREAW", "ZAREAD" ) ;
+	pquery( panel, "ZAREA", "ZAREAT", "ZAREAW", "ZAREAD" ) ;
+	if ( RC > 0 ) { abend() ; }
 
 	RC = 0 ;
 	read_file( file ) ;
@@ -212,7 +212,7 @@ void PBRO01A::application()
 		zcol2 = d2ds( startCol+zareaw-1, 5 ) ;
 		if ( msg == "" ) { zcmd = "" ; }
 
-		display( "PBRO01A1", msg, curfld, curpos ) ;
+		display( panel, msg, curfld, curpos ) ;
 		if ( RC == 8 ) { break ; }
 
 		msg          = ""    ;

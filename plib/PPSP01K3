@@ -46,7 +46,8 @@ else                   &ZZTYP = 'Shared'
 
 )PROC
 
-&ZCMD = TRANS(&ZCMD CAN,CANCEL *,* )
+VGET ZVERB SHARED
+IF (&ZVERB EQ 'CANCEL' ) &ZCMD = 'CANCEL'
 
 if (&ZCMD NE &Z,CANCEL )
     .MSG    = PSYS018

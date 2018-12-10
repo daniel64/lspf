@@ -1,0 +1,64 @@
+/*
+  Copyright (c) 2018 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+/* Re-direct say ouput and error messages to a temporary file or it'll mess up lspf output */
+"rm /tmp/edrecov.say 2> /dev/null"
+"rm /tmp/edrecov.err 2> /dev/null"
+.output~destination(.stream~new("/tmp/edrecov.say"))
+.error~destination(.stream~new("/tmp/edrecov.err"))
+
+/*****************************************************************************/
+/* REXX exec to perform edit recovery prior to edit                          */
+/*                                                                           */
+/*      This must be run in the same application as the failed edit session  */
+/*      ie.  If edit failed in applid ISR, this must be run in applid ISR    */
+/*           to find the Edit Recovery Table.                                */
+/*                                                                           */
+/*      Recovery is also done before the Edit Entry panel is displayed       */
+/*      so it is not necessary to run this REXX.                             */
+/*****************************************************************************/
+
+address ISPEXEC
+
+"EDREC INIT"
+
+do forever
+   "EDREC QUERY"
+   if RC \= 4 then leave
+   zfile=zedtfile
+   "DISPLAY PANEL(PEDIT014) CURSOR(ZCMD)"
+   if RC = 8 then
+     do
+       "VGET ZVERB SHARED"
+       if ZVERB \= "CANCEL" then leave
+       ZCMD = ZVERB
+     end
+   if ZCMD = "" then
+     do
+       "EDREC PROCESS"
+     end
+   else if ZCMD = "CANCEL" then
+     do
+       "EDREC CANCEL"
+     end
+   else
+     do
+       "EDREC DEFER"
+     end
+end

@@ -31,14 +31,14 @@ text     MAX-8  8   PS  "Enter"
 text     MAX-8  14  PIN "to make changes available"
 
 text     MAX-7  2   PIN "Enter"
-text     MAX-7  8   PS  "Reset"
+text     MAX-7  8   PS  "RESET"
 text     MAX-7  14  PIN "for original values or"
-text     MAX-7  37  PS  "Cancel"
+text     MAX-7  37  PS  "CANCEL"
 
 text     MAX-5  2   PIN "Use"
-text     MAX-5  6   PS  "Save"
+text     MAX-5  6   PS  "SAVE"
 text     MAX-5  11  PIN "and"
-text     MAX-5  15  PS  "Restore"
+text     MAX-5  15  PS  "RESTORE"
 text     MAX-5  23  PIN "to save/restore a copy of these variables to the current profile (&ZAPPLID)"
 
 text     MAX-3   2   CT "These variables are saved to the ISPS system profile."
@@ -53,9 +53,10 @@ IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
 .ATTR(CTKEY2) ='COLOUR(GREEN)'
 
 )PROC
+VGET ZVERB SHARED
+IF (&ZVERB EQ 'CANCEL' ) &ZCMD = 'CANCEL'
 
 &ZCMD = TRANS( &ZCMD RES,RESET
-                     CAN,CANCEL
                      SAV,SAVE
                      REST,RESTORE
                      *,*

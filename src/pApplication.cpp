@@ -17,9 +17,14 @@
 
 */
 
+boost::mutex pApplication::mtx ;
+
 void ispexeci( pApplication*, const string&, errblock& ) ;
 
 map<int, void*>pApplication::ApplUserData ;
+
+vector<enqueue>pApplication::g_enqueues ;
+
 
 pApplication::pApplication()
 {
@@ -142,6 +147,9 @@ void pApplication::init_phase2()
 	funcPOOL.put( errBlock, "ZCURINX",  0 ) ;
 	funcPOOL.put( errBlock, "ZZCRP",    0 ) ;
 
+	lscreen     = ds2d( p_poolMGR->get( errBlock, "ZSCREEN", SHARED ) ) ;
+	lscreen_num = ds2d( p_poolMGR->get( errBlock, "ZSCRNUM", SHARED ) ) ;
+
 	llog( "I", "Phase 2 initialisation complete" << endl ; )
 }
 
@@ -154,6 +162,10 @@ void pApplication::run()
 	// Cleanup during termination:
 	// 1) Close any tables opened by this application
 	// 2) Unload the application command table if loaded by this application
+	// 3) Release any global enqueues held by this task
+	// 4) Stop reloading CUA tables (can cause screen artifacts on exit)
+
+	string t ;
 
 	try
 	{
@@ -188,15 +200,26 @@ void pApplication::run()
 		p_tableMGR->destroyTable( errBlock, get_applid() + "CMDS" ) ;
 	}
 
-	if ( backgrd )
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
+
+	for ( auto it = g_enqueues.begin() ; it != g_enqueues.end() ; )
 	{
-		llog( "I", "Shutting down background application: " + zappname +" Taskid: " << taskId << endl ) ;
-	}
-	else
-	{
-		llog( "I", "Shutting down application: " + zappname +" Taskid: " << taskId << endl ) ;
+		if ( it->tasks.count( taskId ) > 0 )
+		{
+			it->tasks.erase( taskId ) ;
+			if ( it->tasks.size() == 0 )
+			{
+				it = g_enqueues.erase( it ) ;
+				continue ;
+			}
+		}
+		it++ ;
 	}
 
+	t = backgrd ? " background " : " " ;
+	llog( "I", "Shutting down"+ t +"application: " + zappname +" Taskid: " << taskId << endl ) ;
+
+	reloadCUATables  = false ;
 	terminateAppl    = true  ;
 	applicationEnded = true  ;
 	busyAppl         = false ;
@@ -508,7 +531,7 @@ void pApplication::display( string p_name,
 	}
 
 	createPanel( p_name ) ;
-	if ( RC >= 12 ) { return ; }
+	if ( errBlock.error() ) { return ; }
 
 	prevPanel = currPanel ;
 	currPanel = panelList[ p_name ] ;
@@ -619,6 +642,7 @@ void pApplication::display( string p_name,
 		ControlDisplayLock = false ;
 		ControlNonDispl    = false ;
 		refreshlScreen     = false ;
+		reloadCUATables    = false ;
 		currPanel->hide_popup()    ;
 		currPanel->resetAttrs_once() ;
 		currPanel->display_panel_update( errBlock ) ;
@@ -644,7 +668,7 @@ void pApplication::display( string p_name,
 			checkRCode( errBlock ) ;
 			return ;
 		}
-		if ( propagateEnd || findword( zzverb, "END EXIT RETURN" ) )
+		if ( propagateEnd || findword( zzverb, "CANCEL END EXIT RETURN" ) )
 		{
 			if ( zzverb == "RETURN" ) { propagateEnd = true ; }
 			RC = 8 ;
@@ -1808,12 +1832,13 @@ void pApplication::control( const string& parm1, const string& parm2, const stri
 	// lspf extensions:
 	// ----------------
 	//
-	// CONTROL ABENDRTN DEFAULT - Reset abend routine to the default, pApplication::cleanup_default
-	// CONTROL RELOAD   CUA     - Reload the CUA tables
-	// CONTROL TIMEOUT  ENABLE  - Enable application timeouts after ZWAITMAX ms (default).
-	// CONTROL TIMEOUT  DISABLE - Disable forced abend of applications if ZWAITMAX exceeded.
-	// CONTROL REFLIST  ON      - REFLIST retrieve is on for this application.  ZRESULT will replace field.
-	// CONTROL REFLIST  OFF     - REFLIST retrieve is off for this application.
+	// CONTROL CUA      RELOAD   - Reload the CUA tables
+	// CONTROL CUA      NORELOAD - Stop reloading the CUA tables
+	// CONTROL ABENDRTN DEFAULT  - Reset abend routine to the default, pApplication::cleanup_default
+	// CONTROL TIMEOUT  ENABLE   - Enable application timeouts after ZWAITMAX ms (default).
+	// CONTROL TIMEOUT  DISABLE  - Disable forced abend of applications if ZWAITMAX exceeded.
+	// CONTROL REFLIST  ON       - REFLIST retrieve is on for this application.  ZRESULT will replace field.
+	// CONTROL REFLIST  OFF      - REFLIST retrieve is off for this application.
 
 	int i ;
 
@@ -1830,7 +1855,24 @@ void pApplication::control( const string& parm1, const string& parm2, const stri
 		return ;
 	}
 
-	if ( parm1 == "DISPLAY" )
+	if ( parm1 == "CUA" )
+	{
+		if ( parm2 == "RELOAD" )
+		{
+			reloadCUATables = true ;
+		}
+		else if ( parm2 == "NORELOAD" )
+		{
+			reloadCUATables = false ;
+		}
+		else
+		{
+			errBlock.setcall( e1, "PSYE022X", "CUA", parm2 ) ;
+			checkRCode( errBlock ) ;
+			return ;
+		}
+	}
+	else if ( parm1 == "DISPLAY" )
 	{
 		if ( parm2 == "LOCK" )
 		{
@@ -1952,19 +1994,6 @@ void pApplication::control( const string& parm1, const string& parm2, const stri
 		else
 		{
 			errBlock.setcall( e1, "PSYE022X", "PASSTHRU", parm2 ) ;
-			checkRCode( errBlock ) ;
-			return ;
-		}
-	}
-	else if ( parm1 == "RELOAD" )
-	{
-		if ( parm2 == "CUA" )
-		{
-			reloadCUATables = true ;
-		}
-		else
-		{
-			errBlock.setcall( e1, "PSYE022X", "RELOAD", parm2 ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -2113,7 +2142,7 @@ void pApplication::qtabopen( const string& tb_list )
 	p_tableMGR->qtabopen( errBlock, funcPOOL, tb_list ) ;
 	if ( errBlock.error() )
 	{
-		errBlock.setcall( "QTABOPEN error" ) ;
+		errBlock.setcall( "QTABOPEN Error" ) ;
 		checkRCode( errBlock ) ;
 	}
 }
@@ -2185,7 +2214,7 @@ void pApplication::tbbottom( const string& tb_name,
 	p_tableMGR->tbbottom( errBlock, funcPOOL, tb_name, tb_savenm, tb_rowid_vn, tb_noread, tb_crp_name  ) ;
 	if ( errBlock.error() )
 	{
-		errBlock.setcall( "TBBOTTOM error" ) ;
+		errBlock.setcall( "TBBOTTOM Error" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -2365,7 +2394,7 @@ void pApplication::tbdelete( const string& tb_name )
 	p_tableMGR->tbdelete( errBlock, funcPOOL, tb_name ) ;
 	if ( errBlock.error() )
 	{
-		errBlock.setcall( "TBDELETE error" ) ;
+		errBlock.setcall( "TBDELETE Error" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -2488,7 +2517,7 @@ void pApplication::tbdispl( const string& tb_name,
 	if ( p_name != "" )
 	{
 		createPanel( p_name ) ;
-		if ( RC >= 12 ) { return ; }
+		if ( errBlock.error() ) { return ; }
 		currPanel   = panelList[ p_name ] ;
 		currtbPanel = currPanel ;
 		currPanel->tb_clear_linesChanged( errBlock ) ;
@@ -2723,7 +2752,7 @@ void pApplication::tbdispl( const string& tb_name,
 			checkRCode( errBlock ) ;
 			return ;
 		}
-		if ( propagateEnd || findword( zzverb, "END EXIT RETURN" ) )
+		if ( propagateEnd || findword( zzverb, "CANCEL END EXIT RETURN" ) )
 		{
 			if ( zzverb == "RETURN" ) { propagateEnd = true ; }
 			RC = 8 ;
@@ -2843,7 +2872,7 @@ void pApplication::tbend( const string& tb_name )
 	p_tableMGR->destroyTable( errBlock, tb_name ) ;
 	if ( errBlock.error() )
 	{
-		errBlock.setcall( "TBEND error" ) ;
+		errBlock.setcall( "TBEND Error" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -2909,7 +2938,7 @@ void pApplication::tbexist( const string& tb_name )
 	p_tableMGR->tbexist( errBlock, funcPOOL, tb_name ) ;
 	if ( errBlock.error() )
 	{
-		errBlock.setcall( "TBEXISTS error" ) ;
+		errBlock.setcall( "TBEXISTS Error" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -2929,7 +2958,7 @@ void pApplication::tbget( const string& tb_name,
 	p_tableMGR->tbget( errBlock, funcPOOL, tb_name, tb_savenm, tb_rowid_vn, tb_noread, tb_crp_name  ) ;
 	if ( errBlock.error() )
 	{
-		errBlock.setcall( "TBGET error" ) ;
+		errBlock.setcall( "TBGET Error" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -3090,7 +3119,7 @@ void pApplication::tbquery( const string& tb_name,
 	p_tableMGR->tbquery( errBlock, funcPOOL, tb_name, tb_keyn, tb_varn, tb_rownn, tb_keynn, tb_namenn, tb_crpn, tb_sirn, tb_lstn, tb_condn, tb_dirn ) ;
 	if ( errBlock.error() )
 	{
-		errBlock.setcall( "TBQUERY error" ) ;
+		errBlock.setcall( "TBQUERY Error" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -3108,7 +3137,7 @@ void pApplication::tbsarg( const string& tb_name,
 	p_tableMGR->tbsarg( errBlock, funcPOOL, tb_name, tb_namelst, tb_dir, tb_cond_pairs ) ;
 	if ( errBlock.error() )
 	{
-		errBlock.setcall( "TBSARG error" ) ;
+		errBlock.setcall( "TBSARG Error" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -3188,7 +3217,7 @@ void pApplication::tbscan( const string& tb_name,
 	p_tableMGR->tbscan( errBlock, funcPOOL, tb_name, tb_namelst, tb_savenm, tb_rowid_vn, tb_dir, tb_read, tb_crp_name, tb_condlst ) ;
 	if ( errBlock.error() )
 	{
-		errBlock.setcall( "TBSCAN error" ) ;
+		errBlock.setcall( "TBSCAN Error" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -3210,7 +3239,7 @@ void pApplication::tbskip( const string& tb_name,
 	p_tableMGR->tbskip( errBlock, funcPOOL, tb_name, num, tb_savenm, tb_rowid_vn, tb_rowid, tb_noread, tb_crp_name ) ;
 	if ( errBlock.error() )
 	{
-		errBlock.setcall( "TBSKIP error" ) ;
+		errBlock.setcall( "TBSKIP Error" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -3225,7 +3254,7 @@ void pApplication::tbsort( const string& tb_name, string tb_fields )
 	getNameList( errBlock, tb_fields ) ;
 	if ( errBlock.error() )
 	{
-		errBlock.setcall( "TBSORT error" ) ;
+		errBlock.setcall( "TBSORT Error" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -3233,7 +3262,7 @@ void pApplication::tbsort( const string& tb_name, string tb_fields )
 	p_tableMGR->tbsort( errBlock, tb_name, tb_fields ) ;
 	if ( errBlock.error() )
 	{
-		errBlock.setcall( "TBSORT error" ) ;
+		errBlock.setcall( "TBSORT Error" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -3249,7 +3278,7 @@ void pApplication::tbtop( const string& tb_name )
 	p_tableMGR->tbtop( errBlock, tb_name ) ;
 	if ( errBlock.error() )
 	{
-		errBlock.setcall( "TBTOP error" ) ;
+		errBlock.setcall( "TBTOP Error" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -3264,7 +3293,7 @@ void pApplication::tbvclear( const string& tb_name )
 	p_tableMGR->tbvclear( errBlock, funcPOOL, tb_name ) ;
 	if ( errBlock.error() )
 	{
-		errBlock.setcall( "TBVCLEAR error" ) ;
+		errBlock.setcall( "TBVCLEAR Error" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -3291,7 +3320,7 @@ bool pApplication::isTableOpen( const string& tb_name, const string& func )
 	}
 	if ( errBlock.error() )
 	{
-		errBlock.setcall( func + " error" ) ;
+		errBlock.setcall( func + " Error" ) ;
 		checkRCode( errBlock ) ;
 		return false ;
 	}
@@ -3299,19 +3328,457 @@ bool pApplication::isTableOpen( const string& tb_name, const string& func )
 }
 
 
+void pApplication::edrec( const string& m_parm )
+{
+	// RC =  0  INIT    - Edit recovery table created
+	//          QUERY   - Recovery not pending
+	//          PROCESS - Recovery completed and data saved
+	// RC =  4  INIT    - Edit recovery table already exists for this application
+	//          QUERY   - Entry found in the Edit Recovery Table, recovery pending
+	//          PROCESS - Recovery completed but user did not save data
+	// RC = 20  Severe error
+
+	int xRC ;
+
+	string uprof ;
+
+	const string qname   = "ISRRECOV" ;
+	const string rname   = "*in progress*" ;
+	const string tabName = get_applid() + "EDRT" ;
+	const string v_list  = "ZEDSTAT ZEDTFILE ZEDBFILE ZEDMODE ZEDOPTS ZEDUSER" ;
+
+	vcopy( "ZUPROF", uprof, MOVE ) ;
+
+	errBlock.setRC( 0 ) ;
+
+	if ( m_parm == "INIT" )
+	{
+		xRC = edrec_init( m_parm,
+				  qname,
+				  rname,
+				  uprof,
+				  tabName,
+				  v_list ) ;
+	}
+	else if ( m_parm == "QUERY" )
+	{
+		xRC = edrec_query( m_parm,
+				   qname,
+				   rname,
+				   uprof,
+				   tabName,
+				   v_list ) ;
+	}
+	else if ( m_parm == "PROCESS" )
+	{
+		xRC = edrec_process( m_parm,
+				     qname,
+				     rname,
+				     uprof,
+				     tabName,
+				     v_list ) ;
+	}
+	else if ( m_parm == "CANCEL" )
+	{
+		xRC = edrec_cancel( m_parm,
+				    qname,
+				    rname,
+				    uprof,
+				    tabName,
+				    v_list ) ;
+	}
+	else if ( m_parm == "DEFER" )
+	{
+		xRC = edrec_defer( qname, rname ) ;
+	}
+	else
+	{
+		errBlock.setcall( "EDREC Error" ) ;
+		errBlock.seterrid( "PSYE042T", m_parm ) ;
+		checkRCode( errBlock ) ;
+		xRC = RC ;
+	}
+
+	RC = xRC ;
+}
+
+
+int pApplication::edrec_init( const string& m_parm,
+			      const string& qname,
+			      const string& rname,
+			      const string& uprof,
+			      const string& tabName,
+			      const string& v_list )
+{
+	// RC =  0  Edit recovery table created
+	// RC =  4  Edit recovery table already exists for this application
+	// RC = 20  Severe error
+
+	int i ;
+	int xRC ;
+
+	string zedstat  ;
+	string zedtfile ;
+	string zedbfile ;
+	string zeduser  ;
+	string zedmode  ;
+	string zedopts  ;
+
+	const string e1 = "EDREC INIT Error" ;
+
+	qscan( qname, rname, EXC, LOCAL ) ;
+	if ( RC == 0 )
+	{
+		errBlock.setcall( e1, "PSYE042V", "INIT" ) ;
+		checkRCode( errBlock ) ;
+		return 20 ;
+	}
+
+	vdefine( v_list, &zedstat, &zedtfile, &zedbfile, &zedmode, &zedopts, &zeduser ) ;
+	if ( RC > 0 ) { return 20 ; }
+
+	tbopen( tabName, WRITE, uprof ) ;
+	if ( RC == 0 )
+	{
+		tbend( tabName ) ;
+		xRC = 4 ;
+	}
+	else if ( RC == 8 )
+	{
+		tbcreate( tabName, "", "(ZEDSTAT,ZEDTFILE,ZEDBFILE,ZEDMODE,ZEDOPTS,ZEDUSER)", WRITE, NOREPLACE, uprof ) ;
+		if ( RC > 0 )
+		{
+			vdelete( v_list ) ;
+			return 20 ;
+		}
+		tbvclear( tabName ) ;
+		zedstat = "0" ;
+		for ( i = 0 ; i < EDREC_SZ ; i++ )
+		{
+			tbadd( tabName ) ;
+			if ( RC > 0 )
+			{
+				tbend( tabName ) ;
+				vdelete( v_list ) ;
+				return 20 ;
+			}
+		}
+		tbclose( tabName, "", uprof ) ;
+		if ( RC > 0 )
+		{
+			vdelete( v_list ) ;
+			return 20 ;
+		}
+		xRC = 0 ;
+	}
+	else
+	{
+		xRC = 20 ;
+	}
+
+	vdelete( v_list ) ;
+	return xRC ;
+}
+
+
+int pApplication::edrec_query( const string& m_parm,
+			       const string& qname,
+			       const string& rname,
+			       const string& uprof,
+			       const string& tabName,
+			       const string& v_list )
+{
+	// RC =  0  Recovery not pending
+	// RC =  4  Entry found in the Edit Recovery Table, recovery pending
+	// RC = 20  Severe error
+
+	int row ;
+
+	string zedstat  ;
+	string zedtfile ;
+	string zedbfile ;
+	string zeduser  ;
+	string zedmode  ;
+	string zedopts  ;
+
+	const string e1 = "EDREC QUERY Error" ;
+
+	qscan( qname, rname, EXC, LOCAL ) ;
+	if ( RC == 0 )
+	{
+		errBlock.setcall( e1, "PSYE042V", "QUERY" ) ;
+		checkRCode( errBlock ) ;
+		return 20 ;
+	}
+
+	row = funcPOOL.get( errBlock, 8, INTEGER, "ZEDROW" ) ;
+
+	vdefine( v_list, &zedstat, &zedtfile, &zedbfile, &zedmode, &zedopts, &zeduser ) ;
+	if ( RC > 0 ) { return 20 ; }
+
+	tbopen( tabName, WRITE, uprof ) ;
+	if ( RC == 8 )
+	{
+		vdelete( v_list ) ;
+		return 0 ;
+	}
+
+	tbskip( tabName, row ) ;
+
+	while ( true )
+	{
+		tbskip( tabName, 1 ) ;
+		if ( RC > 0 ) { break ; }
+		row++ ;
+		if ( zedstat == "0" ) { continue ; }
+		enq( qname, zedtfile ) ;
+		if ( RC == 8 ) { continue ; }
+		tbend( tabName ) ;
+		vdelete( v_list ) ;
+		funcPOOL.put( errBlock, "ZEDTFILE", zedtfile ) ;
+		funcPOOL.put( errBlock, "ZEDBFILE", zedbfile ) ;
+		funcPOOL.put( errBlock, "ZEDOPTS",  zedopts  ) ;
+		funcPOOL.put( errBlock, "ZEDROW", row ) ;
+		enq( qname, rname, EXC, LOCAL ) ;
+		return 4 ;
+	}
+
+	tbend( tabName ) ;
+	vdelete( v_list ) ;
+	funcPOOL.put( errBlock, "ZEDROW", 0 ) ;
+
+	return 0 ;
+}
+
+
+int pApplication::edrec_process( const string& m_parm,
+				 const string& qname,
+				 const string& rname,
+				 const string& uprof,
+				 const string& tabName,
+				 const string& v_list )
+{
+	// RC =  0  PROCESS - Recovery completed and data saved
+	// RC =  4  PROCESS - Recovery completed but user did not save data
+	// RC = 20  Severe error
+
+	// ZEDOPTS  - byte 0 - confirm cancel
+	//          - byte 1 - preserve trailing spaces
+
+	int xRC = 4 ;
+
+	string zedstat  ;
+	string zedtfile ;
+	string zedbfile ;
+	string zeduser  ;
+	string zedmode  ;
+	string zedopts  ;
+	string confcan  = "NO" ;
+	string preserve ;
+
+	const string e1 = "EDREC PROCESS Error" ;
+
+	deq( qname, rname, LOCAL ) ;
+	if ( RC == 8 )
+	{
+		errBlock.setcall( e1, "PSYE042U", "PROCESS" ) ;
+		checkRCode( errBlock ) ;
+		return 20 ;
+	}
+
+	int row = funcPOOL.get( errBlock, 8, INTEGER, "ZEDROW" ) ;
+	zedtfile = funcPOOL.get( errBlock, 0, "ZEDTFILE" ) ;
+	zedbfile = funcPOOL.get( errBlock, 0, "ZEDBFILE" ) ;
+	zedopts  = funcPOOL.get( errBlock, 0, "ZEDOPTS"  ) ;
+	p_poolMGR->put( errBlock, "ZEDTFILE", zedtfile, SHARED ) ;
+	p_poolMGR->put( errBlock, "ZEDBFILE", zedbfile, SHARED ) ;
+
+	if ( zedopts.size() > 0 && zedopts[ 0 ] == '1' )
+	{
+		confcan = "YES" ;
+	}
+
+	if ( zedopts.size() > 1 && zedopts[ 1 ] == '1' )
+	{
+		preserve = "PRESERVE" ;
+	}
+
+	edit( zedbfile, "", "" ,"", "", confcan, preserve ) ;
+	if ( ZRC == 0 && ZRSN == 4 ) { xRC = 0 ; }
+
+	deq( qname, zedtfile ) ;
+
+	p_poolMGR->put( errBlock, "ZEDTFILE", "", SHARED ) ;
+	remove( zedbfile ) ;
+
+	vdefine( v_list, &zedstat, &zedtfile, &zedbfile, &zedmode, &zedopts, &zeduser ) ;
+	if ( RC > 0 ) { return 20 ; }
+
+	tbopen( tabName, WRITE, uprof ) ;
+	if ( RC > 0 )
+	{
+		vdelete( v_list ) ;
+		return 20 ;
+	}
+
+	tbskip( tabName, row ) ;
+	if ( RC > 0 )
+	{
+		tbend( tabName ) ;
+		vdelete( v_list ) ;
+		return 20 ;
+	}
+
+	tbvclear( tabName ) ;
+	zedstat = "0" ;
+	tbput( tabName ) ;
+	if ( RC > 0 )
+	{
+		tbend( tabName ) ;
+		vdelete( v_list ) ;
+		return 20 ;
+	}
+
+	tbclose( tabName, "", uprof ) ;
+	if ( RC > 0 )
+	{
+		vdelete( v_list ) ;
+		return 20 ;
+	}
+
+	vdelete( v_list ) ;
+
+	return xRC ;
+}
+
+
+int pApplication::edrec_cancel( const string& m_parm,
+				const string& qname,
+				const string& rname,
+				const string& uprof,
+				const string& tabName,
+				const string& v_list )
+{
+	// RC =  0  Normal completion
+	// RC = 20  Severe error
+
+	string zedstat  ;
+	string zedtfile ;
+	string zedbfile ;
+	string zeduser  ;
+	string zedmode  ;
+	string zedopts  ;
+
+	const string e1 = "EDREC CANCEL Error" ;
+
+	deq( qname, rname, LOCAL ) ;
+	if ( RC == 8 )
+	{
+		errBlock.setcall( e1, "PSYE042U", "CANCEL" ) ;
+		checkRCode( errBlock ) ;
+		return 20 ;
+	}
+
+	int row = funcPOOL.get( errBlock, 8, INTEGER, "ZEDROW" ) ;
+
+	zedtfile = funcPOOL.get( errBlock, 8, "ZEDTFILE" ) ;
+	zedbfile = funcPOOL.get( errBlock, 8, "ZEDBFILE" ) ;
+
+	deq( qname, zedtfile ) ;
+
+	remove( zedbfile ) ;
+
+	vdefine( v_list, &zedstat, &zedtfile, &zedbfile, &zedmode, &zedopts, &zeduser ) ;
+	if ( RC > 0 ) { return 20 ; }
+
+	tbopen( tabName, WRITE, uprof ) ;
+	if ( RC > 0 )
+	{
+		vdelete( v_list ) ;
+		return 20 ;
+	}
+
+	tbskip( tabName, row ) ;
+	if ( RC > 0 )
+	{
+		tbend( tabName ) ;
+		vdelete( v_list ) ;
+		return 20 ;
+	}
+
+	tbvclear( tabName ) ;
+	zedstat = "0" ;
+	tbput( tabName ) ;
+	if ( RC > 0 )
+	{
+		tbend( tabName ) ;
+		vdelete( v_list ) ;
+		return 20 ;
+	}
+
+	tbclose( tabName, "", uprof ) ;
+	if ( RC > 0 )
+	{
+		vdelete( v_list ) ;
+		return 20 ;
+	}
+
+	vdelete( v_list ) ;
+	if ( RC > 0 )
+	{
+		return 20 ;
+	}
+
+	funcPOOL.put( errBlock, "ZEDTFILE", "" ) ;
+	funcPOOL.put( errBlock, "ZEDBFILE", "" ) ;
+	funcPOOL.put( errBlock, "ZEDROW",   0  ) ;
+
+	return 0 ;
+}
+
+
+int pApplication::edrec_defer( const string& qname, const string& rname )
+{
+	// RC =  0  Normal completion
+	// RC = 20  Severe error
+
+	string zedtfile ;
+
+	const string e1 = "EDREC DEFER Error" ;
+
+	deq( qname, rname, LOCAL ) ;
+	if ( RC == 8 )
+	{
+		errBlock.setcall( e1, "PSYE042U", "DEFER" ) ;
+		checkRCode( errBlock ) ;
+		return 20 ;
+	}
+
+	zedtfile = funcPOOL.get( errBlock, 8, "ZEDTFILE" ) ;
+
+	deq( qname, zedtfile ) ;
+
+	return 0 ;
+}
+
+
 void pApplication::edit( const string& m_file,
 			 const string& m_panel,
 			 const string& m_macro,
 			 const string& m_profile,
-			 const string& m_lcmds )
+			 const string& m_lcmds,
+			 const string& m_confirm,
+			 const string& m_preserve )
 {
 	selct.clear() ;
 	selct.pgm     = p_poolMGR->get( errBlock, "ZEDITPGM", PROFILE ) ;
 	selct.parm    = "FILE("+ m_file +") "+
 			"PANEL("+ m_panel +") "+
 			"MACRO("+ m_macro +") "+
-			"PROFILE("+ m_profile+ ") "+
-			"LINECMDS("+ m_lcmds+ ")" ;
+			"PROFILE("+ m_profile +") "+
+			"LINECMDS("+ m_lcmds +") " +
+			"CONFIRM("+ m_confirm +") " +
+			 m_preserve ;
 	selct.newappl = ""      ;
 	selct.newpool = false   ;
 	selct.passlib = false   ;
@@ -3481,7 +3948,7 @@ void pApplication::pquery( const string& p_name,
 	}
 
 	createPanel( p_name ) ;
-	if ( RC >= 12 ) { return ; }
+	if ( errBlock.error() ) { return ; }
 
 	panelList[ p_name ]->get_panel_info( RC, a_name, t_name, w_name, d_name, r_name, c_name ) ;
 }
@@ -3523,7 +3990,7 @@ void pApplication::load_keylist( pPanel* p  )
 			llog( "W", "Open of keylist table '"+ tabName +"' failed" << endl ) ;
 			return ;
 		}
-		errBlock.setcall( "KEYLIST error", "PSYE023E", tabName ) ;
+		errBlock.setcall( "KEYLIST Error", "PSYE023E", tabName ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -3540,7 +4007,7 @@ void pApplication::load_keylist( pPanel* p  )
 			llog( "W", "Keylist '"+ p->keylistn +"' not found in keylist table "+ tabName << endl ) ;
 			return ;
 		}
-		errBlock.setcall( "KEYLIST error", "PSYE023F", p->keylistn, tabName ) ;
+		errBlock.setcall( "KEYLIST Error", "PSYE023F", p->keylistn, tabName ) ;
 		checkRCode( errBlock ) ;
 		return  ;
 	}
@@ -4175,11 +4642,182 @@ string pApplication::sub_vars( string s )
 }
 
 
+void pApplication::enq( const string& maj, const string& min, enqDISP disp, enqSCOPE scope )
+{
+	// RC =  0 Normal completion
+	// RC =  8 Enqueue already held by this, or another task if exclusive requested
+	// RC = 20 Severe error
+
+	vector<enqueue>* p_enqueues = ( scope == GLOBAL ) ? &g_enqueues : &l_enqueues ;
+
+	const string e1 = "ENQ Service Error" ;
+
+	RC = 0 ;
+
+	check_qrname( e1, maj, min ) ;
+	if ( errBlock.error() ) { return ; }
+
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
+
+	for ( auto it = p_enqueues->begin() ; it != p_enqueues->end() ; it++ )
+	{
+		if ( it->maj_name == maj && it->min_name == min )
+		{
+			if ( it->disp == SHR && disp == SHR && it->tasks.count( taskId ) == 0 )
+			{
+				it->tasks.insert( taskId ) ;
+				return ;
+			}
+			RC = 8 ;
+			return ;
+		}
+	}
+
+	p_enqueues->push_back( enqueue( maj, min, taskId, disp ) ) ;
+}
+
+
+void pApplication::deq( const string& maj, const string& min, enqSCOPE scope )
+{
+	// RC =  0 Normal completion
+	// RC =  8 Enqueue not held by this task
+	// RC = 20 Severe error
+
+	vector<enqueue>* p_enqueues = ( scope == GLOBAL ) ? &g_enqueues : &l_enqueues ;
+
+	const string e1 = "DEQ Service Error" ;
+
+	check_qrname( e1, maj, min ) ;
+	if ( errBlock.error() ) { return ; }
+
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
+
+	RC = 8 ;
+	for ( auto it = p_enqueues->begin() ; it != p_enqueues->end() ; it++ )
+	{
+		if ( it->maj_name == maj && it->min_name == min )
+		{
+			if ( it->tasks.count( taskId ) > 0 )
+			{
+				it->tasks.erase( taskId ) ;
+				if ( it->tasks.size() == 0 )
+				{
+					p_enqueues->erase( it ) ;
+				}
+				RC = 0 ;
+			}
+			break ;
+		}
+	}
+}
+
+
+void pApplication::qscan( const string& maj, const string& min, enqDISP disp, enqSCOPE scope )
+{
+	// Scan for an enqueue.  Match on qname, rname, disposition and scope
+
+	// RC =  0 Enqueue held
+	// RC =  8 Enqueue is not held
+	// RC = 20 Severe error
+
+	vector<enqueue>* p_enqueues = ( scope == GLOBAL ) ? &g_enqueues : &l_enqueues ;
+
+	const string e1 = "QSCAN Service Error" ;
+
+	RC = 8 ;
+
+	check_qrname( e1, maj, min ) ;
+	if ( errBlock.error() ) { return ; }
+
+	p_enqueues = ( scope == GLOBAL ) ? &g_enqueues : &l_enqueues ;
+
+	for ( auto it = p_enqueues->begin() ; it != p_enqueues->end() ; it++ )
+	{
+		if ( it->maj_name == maj && it->min_name == min )
+		{
+			if ( it->disp == disp && it->tasks.count( taskId ) > 0 )
+			{
+				RC = 0 ;
+			}
+			return ;
+		}
+	}
+}
+
+
+void pApplication::check_qrname( const string& e1, const string& maj, const string& min )
+{
+	if ( !isvalidName( maj ) )
+	{
+		errBlock.setcall( e1, "PSYS013F" ) ;
+		checkRCode( errBlock ) ;
+		return ;
+	}
+
+	if ( min == "" )
+	{
+		errBlock.setcall( e1, "PSYS013G" ) ;
+		checkRCode( errBlock ) ;
+		return ;
+	}
+}
+
+
+void pApplication::show_enqueues()
+{
+	boost::lock_guard<boost::mutex> lock( mtx ) ;
+
+	llog( "I", ".ENQ" << endl ) ;
+	llog( "-", "*************************************************************************************************************" << endl ) ;
+	llog( "-", "Global enqueue vector size is "<< g_enqueues.size() << endl ) ;
+	llog( "-", "" << endl ) ;
+	llog( "-", "Local enqueues held by task "<< d2ds( taskId, 8 ) << endl ) ;
+	llog( "-", "Exc/Share  Major Name  Minor Name "<< endl ) ;
+	llog( "-", "---------  ----------  ---------- "<< endl ) ;
+
+	for ( auto it = l_enqueues.begin() ; it != l_enqueues.end() ; it++ )
+	{
+		llog( "-", "" << setw( 11 ) << std::left << ( it->disp == EXC ? "EXCLUSIVE" : "SHARE" )
+			      << setw( 8 )  << std::left << it->maj_name << "    " << it->min_name << endl ) ;
+	}
+
+	llog( "-", "" << endl ) ;
+	llog( "-", "Global enqueues held by task "<< d2ds( taskId, 8 ) << endl ) ;
+	llog( "-", "Exc/Share  Major Name  Minor Name "<< endl ) ;
+	llog( "-", "---------  ----------  ---------- "<< endl ) ;
+
+	for ( auto it = g_enqueues.begin() ; it != g_enqueues.end() ; it++ )
+	{
+		if ( it->tasks.count( taskId ) == 0 ) { continue ; }
+		llog( "-", "" << setw( 11 ) << std::left << ( it->disp == EXC ? "EXCLUSIVE" : "SHARE" )
+			      << setw( 8 )  << std::left << it->maj_name << "    " << it->min_name << endl ) ;
+	}
+
+	llog( "-", ""<< endl ) ;
+	llog( "-", "All global enqueues"<< endl ) ;
+	llog( "-", "Task      Exc/Share  Major Name  Minor Name "<< endl ) ;
+	llog( "-", "--------  ---------  ----------  ---------- "<< endl ) ;
+
+	for ( auto it = g_enqueues.begin() ; it != g_enqueues.end() ; it++ )
+	{
+		for ( auto itt = it->tasks.begin() ; itt != it->tasks.end() ; itt++ )
+		{
+			llog( "-", "" << d2ds( *itt, 8 ) << "  "
+				      << setw( 11 ) << std::left << ( it->disp == EXC ? "EXCLUSIVE" : "SHARE" )
+				      << setw( 8 )  << it->maj_name << "    " << it->min_name << endl ) ;
+		}
+	}
+
+	llog( "-", "*************************************************************************************************************" << endl ) ;
+}
+
+
 void pApplication::info()
 {
+	llog( "I", ".INFO" << endl ) ;
 	llog( "-", "*************************************************************************************************************" << endl ) ;
 	llog( "-", "Application Information for "<< zappname << endl ) ;
-	llog( "-", "                   Task ID: "<< taskId << endl ) ;
+	llog( "-", "                   Task ID: "<< d2ds( taskId, 8 ) << endl ) ;
 	llog( "-", "          Shared Pool Name: "<< d2ds( shrdPool, 8 ) << endl ) ;
 	llog( "-", "         Profile Pool Name: "<< p_poolMGR->get( errBlock, "ZAPPLID", SHARED ) << endl ) ;
 	llog( "-", " " << endl ) ;
@@ -4210,6 +4848,7 @@ void pApplication::info()
 	{
 		llog( "-", "Application started with NEWPOOL option"<< endl ) ;
 	}
+	llog( "-", "Application compiled with lspf version "<< lspf_version << endl ) ;
 	llog( "-", "*************************************************************************************************************" << endl ) ;
 }
 
@@ -4294,8 +4933,7 @@ void pApplication::checkRCode( errblock err )
 	//         short  msg
 	//         longer description
 
-	// Set RC to the error code in the error block if we are returning to the program (CONTROL ERRORS RETURN)
-	// and clear errBlock (will have been re-used for services run from this routine)
+	// Set RC to the error code in the error block if we are returning to the program (CONTROL ERRORS RETURN).
 
 	// Terminate processing if this routing is called during error processing.
 
@@ -4327,7 +4965,6 @@ void pApplication::checkRCode( errblock err )
 	if ( ControlErrorsReturn )
 	{
 		RC = err.getRC() ;
-		errBlock.clear() ;
 		return ;
 	}
 

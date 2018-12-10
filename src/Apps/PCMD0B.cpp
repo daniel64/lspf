@@ -58,8 +58,6 @@ PCMD0B::PCMD0B()
 
 void PCMD0B::application()
 {
-	llog( "I", "Application PCMD0B starting" << endl ) ;
-
 	string comm1  ;
 	string comm2  ;
 	string tname1 ;

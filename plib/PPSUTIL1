@@ -1,0 +1,67 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+
+This is the selection panel for file utilities
+
+)ENDCOMMENT
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)BODY
+
+PanelTitle "Utility Selection Panel"
+
+text     4    2       FP  "Option ===>"
+field    4   14   MAX  NEF     CAPS(ON),PAD(USER)  ZCMD
+
+text     6   2    SAC  "1"
+text     6   5    PS   "......."
+text     6   17   NT   ""
+
+text     7   2    SAC  "2"
+text     7   5    PS   "......."
+text     7   17   NT   ""
+
+text     8   2    SAC  "3"
+text     8   5    PS   "......."
+text     8   17   NT   ""
+
+text     9   2    SAC  "4"
+text     9   5    PS   "File List"
+text     9   17   NT   "Display list of file and directory names"
+
+text     17  2    SAC  "T"
+text     17  5    PS   "Tutorial"
+text     17  17   NT   "Start Tutorial"
+
+text     18  2    SAC  "X"
+text     18  5    PS   "Terminate"
+text     18  17   NT   "Terminate Settings"
+
+)INIT
+.CURSOR = ZCMD
+
+)PROC
+IF ( TRUNC( &ZCMD, 1 ) EQ '.' )
+   .MSG = PSYS016
+   EXIT
+
+&ZSEL = TRANS( TRUNC( &ZCMD,'.' ) ,
+                     4,'PGM(&ZFLSTPGM) PARM("") NEWAPPL(ISR) PASSLIB SCRNAME(FILES)'
+                     T,'PGM(&ZHELPPGM) PARM(T)'
+                     X,EXIT
+                    &Z,&Z
+                     *,'?'
+             )
+
+)PNTS
+FIELD( ZPS01001 ) VAR(ZCMD) VAL(1)
+FIELD( ZPS01002 ) VAR(ZCMD) VAL(2)
+FIELD( ZPS01003 ) VAR(ZCMD) VAL(3)
+FIELD( ZPS01004 ) VAR(ZCMD) VAL(4)
+FIELD( ZPS01005 ) VAR(ZCMD) VAL(HELP)
+FIELD( ZPS01006 ) VAR(ZCMD) VAL(X)
+
+)END

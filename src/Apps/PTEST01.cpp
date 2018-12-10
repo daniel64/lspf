@@ -65,8 +65,6 @@ PTEST01::PTEST01()
 
 void PTEST01::application()
 {
-	llog( "I", "Application PTEST01 starting." << endl ) ;
-
 	string abc ;
 
 //      verase( "ZPLIB ZMLIB ZTLIB ZHLIB" ) ;

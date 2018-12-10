@@ -1,0 +1,258 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+)ENDCOMMENT
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)BODY WINDOW(78,24)
+
+PanelTitle "RGB Settings"
+
+text      4   2   FP "Command ===> "
+field    4  15  MAX  NEF CAPS(ON),PAD(USER) ZCMD
+
+text     7   2   CH "RGB values"
+
+text     9   2   FP  "Red. . . . . R:"
+field    9   18  3  NEF CAPS(ON),PAD(USER) RGBR1
+text     9   22  FP  "G:"
+field    9   25  3  NEF CAPS(ON),PAD(USER) RGBG1
+text     9   30  FP  "B:"
+field    9   32  3  NEF CAPS(ON),PAD(USER) RGBB1
+field    9   37  25  VOI CAPS(ON),PAD(' ') RGBX1
+
+text    10   2   FP  "Green. . . . R:"
+field   10   18  3  NEF CAPS(ON),PAD(USER) RGBR2
+text    10   22  FP  "G:"
+field   10   25  3  NEF CAPS(ON),PAD(USER) RGBG2
+text    10   30  FP  "B:"
+field   10   32  3  NEF CAPS(ON),PAD(USER) RGBB2
+field   10   37  25  VOI CAPS(ON),PAD(' ') RGBX2
+
+text    11   2   FP  "Yellow . . . R:"
+field   11   18  3  NEF CAPS(ON),PAD(USER) RGBR3
+text    11   22  FP  "G:"
+field   11   25  3  NEF CAPS(ON),PAD(USER) RGBG3
+text    11   30  FP  "B:"
+field   11   32  3  NEF CAPS(ON),PAD(USER) RGBB3
+field   11   37  25  VOI CAPS(ON),PAD(' ') RGBX3
+
+text    12   2   FP  "Blue . . . . R:"
+field   12   18  3  NEF CAPS(ON),PAD(USER) RGBR4
+text    12   22  FP  "G:"
+field   12   25  3  NEF CAPS(ON),PAD(USER) RGBG4
+text    12   30  FP  "B:"
+field   12   32  3  NEF CAPS(ON),PAD(USER) RGBB4
+field   12   37  25  VOI CAPS(ON),PAD(' ') RGBX4
+
+text    13   2   FP  "Magenta. . . R:"
+field   13   18  3  NEF CAPS(ON),PAD(USER) RGBR5
+text    13   22  FP  "G:"
+field   13   25  3  NEF CAPS(ON),PAD(USER) RGBG5
+text    13   30  FP  "B:"
+field   13   32  3  NEF CAPS(ON),PAD(USER) RGBB5
+field   13   37  25  VOI CAPS(ON),PAD(' ') RGBX5
+
+text    14   2   FP  "Turq . . . . R:"
+field   14   18  3  NEF CAPS(ON),PAD(USER) RGBR6
+text    14   22  FP  "G:"
+field   14   25  3  NEF CAPS(ON),PAD(USER) RGBG6
+text    14   30  FP  "B:"
+field   14   32  3  NEF CAPS(ON),PAD(USER) RGBB6
+field   14   37  25  VOI CAPS(ON),PAD(' ') RGBX6
+
+text    15   2   FP  "White. . . . R:"
+field   15   18  3  NEF CAPS(ON),PAD(USER) RGBR7
+text    15   22  FP  "G:"
+field   15   25  3  NEF CAPS(ON),PAD(USER) RGBG7
+text    15   30  FP  "B:"
+field   15   32  3  NEF CAPS(ON),PAD(USER) RGBB7
+field   15   37  25  VOI CAPS(ON),PAD(' ') RGBX7
+
+text     20  2     PIN "Enter RGB values for colours (0-255)"
+text     22  2     PIN "Enter"
+text     22  8     PS  "Defaults"
+text     22  17    PIN "to restore defaults"
+
+)INIT
+&ZCMD   = &Z
+&ZPS3   = 1
+.CURSOR = ZCMD
+
+.ATTR( RGBX1 ) = 'COLOUR(RED) HILITE(REVERSE)'
+.ATTR( RGBX2 ) = 'COLOUR(GREEN) HILITE(REVERSE)'
+.ATTR( RGBX3 ) = 'COLOUR(YELLOW) HILITE(REVERSE)'
+.ATTR( RGBX4 ) = 'COLOUR(BLUE) HILITE(REVERSE)'
+.ATTR( RGBX5 ) = 'COLOUR(MAGENTA) HILITE(REVERSE)'
+.ATTR( RGBX6 ) = 'COLOUR(TURQ) HILITE(REVERSE)'
+.ATTR( RGBX7 ) = 'COLOUR(WHITE) HILITE(REVERSE)'
+
+)PROC
+&ZCMD = TRANS( &ZCMD DEF,DEFAULTS
+                     DEFAULT,DEFAULTS
+                     DEFAULTS,DEFAULTS
+                     &Z,&Z
+                     MSG=PSYS018
+             )
+
+IF (&ZCMD EQ 'DEFAULTS' ) EXIT
+
+IF (&RGBR1 EQ &Z) &RGBR1 = '0'
+IF (&RGBG1 EQ &Z) &RGBG1 = '0'
+IF (&RGBB1 EQ &Z) &RGBB1 = '0'
+
+IF (&RGBR2 EQ &Z) &RGBR2 = '0'
+IF (&RGBG2 EQ &Z) &RGBG2 = '0'
+IF (&RGBB2 EQ &Z) &RGBB2 = '0'
+
+IF (&RGBR3 EQ &Z) &RGBR3 = '0'
+IF (&RGBG3 EQ &Z) &RGBG3 = '0'
+IF (&RGBB3 EQ &Z) &RGBB3 = '0'
+
+IF (&RGBR4 EQ &Z) &RGBR4 = '0'
+IF (&RGBG4 EQ &Z) &RGBG4 = '0'
+IF (&RGBB4 EQ &Z) &RGBB4 = '0'
+
+IF (&RGBR5 EQ &Z) &RGBR5 = '0'
+IF (&RGBG5 EQ &Z) &RGBG5 = '0'
+IF (&RGBB5 EQ &Z) &RGBB5 = '0'
+
+IF (&RGBR6 EQ &Z) &RGBR6 = '0'
+IF (&RGBG6 EQ &Z) &RGBG6 = '0'
+IF (&RGBB6 EQ &Z) &RGBB6 = '0'
+
+IF (&RGBR7 EQ &Z) &RGBR7 = '0'
+IF (&RGBG7 EQ &Z) &RGBG7 = '0'
+IF (&RGBB7 EQ &Z) &RGBB7 = '0'
+
+VER(&RGBR1,NUM)
+IF (&RGBR1 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBR1
+   EXIT
+
+VER(&RGBG1,NUM)
+IF (&RGBG1 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBG1
+   EXIT
+
+VER(&RGBB1,NUM)
+IF (&RGBB1 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBB1
+   EXIT
+
+VER(&RGBR2,NUM)
+IF (&RGBR2 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBR2
+   EXIT
+
+VER(&RGBG2,NUM)
+IF (&RGBG2 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBG2
+   EXIT
+
+VER(&RGBB2,NUM)
+IF (&RGBB2 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBB2
+   EXIT
+
+VER(&RGBR3,NUM)
+IF (&RGBR3 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBR3
+   EXIT
+
+VER(&RGBG3,NUM)
+IF (&RGBG3 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBG3
+   EXIT
+
+VER(&RGBB3,NUM)
+IF (&RGBB3 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBB3
+   EXIT
+
+VER(&RGBR4,NUM)
+IF (&RGBR4 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBR4
+   EXIT
+
+VER(&RGBG4,NUM)
+IF (&RGBG4 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBG4
+   EXIT
+
+VER(&RGBB4,NUM)
+IF (&RGBB4 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBB4
+   EXIT
+
+VER(&RGBR5,NUM)
+IF (&RGBR5 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBR5
+   EXIT
+
+VER(&RGBG5,NUM)
+IF (&RGBG5 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBG5
+   EXIT
+
+VER(&RGBB5,NUM)
+IF (&RGBB5 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBB5
+   EXIT
+
+VER(&RGBR6,NUM)
+IF (&RGBR6 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBR6
+   EXIT
+
+VER(&RGBG6,NUM)
+IF (&RGBG6 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBG6
+   EXIT
+
+VER(&RGBB6,NUM)
+IF (&RGBB6 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBB6
+   EXIT
+
+VER(&RGBR7,NUM)
+IF (&RGBR7 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBR7
+   EXIT
+
+VER(&RGBG7,NUM)
+IF (&RGBG7 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBG7
+   EXIT
+
+VER(&RGBB7,NUM)
+IF (&RGBB7 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBB7
+   EXIT
+
+)PNTS
+FIELD(ZPS01001) VAR(ZCMD) VAL(DEFAULTS)
+
+)END

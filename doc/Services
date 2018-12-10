@@ -2,9 +2,7 @@ See IBM's ISPF Services Guide and ISPF Reference Summary for a more complete des
 Detailed ISPF programming information can be found in IBM's Dialog Developer's Guide And Reference.
 
 Application programs running under lspf need to be implemented as a class inheriting from pApplication and
-implement pure virtual function application().  Control is given to this function after initialisation is complete
-and routine cleanup() must be called before returning from this function to indicate to lspf the application is
-terminating.
+implement pure virtual function application().  Control is given to this function after initialisation is complete.
 
 Application modules must reside in ZLDPATH defined in lspf.h
 

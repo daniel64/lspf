@@ -199,3 +199,15 @@ PSYS013B 'System call time() failed' .TYPE=W
 PSYS013C 'System call localtime() failed' .TYPE=W
 'System call localtime() has returned a NULL value'
 
+PSYS013D 'Invalid value' .TYPE=W
+'The maximum value for this field is 255'
+
+PSYS013E 'Shell not available' .TYPE=W
+'The SHELL environment variable has not been set.  Set if function is required'
+
+PSYS013F 'Invalid QNAME' .TYPE=W
+'QNAME must be an alphabetic character follwed by up to 7 alphanumeric characters'
+
+PSYS013G 'Invalid RNAME' .TYPE=W
+'The ENQ/DEQ service contains a blank RNAME.'
+

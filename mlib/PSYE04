@@ -137,3 +137,11 @@ PSYE042R 'Invalid DYNAMIC AREA SCROLL option'
 PSYE042S 'Invalid scrollable area'
 'A panel can only have one scrollable area, either for a dynamic area or a table display'
 
+PSYE042T 'Invalid EDREC option'
+'EDREC option ''&ZVAL1'' is invalid'
+
+PSYE042U 'EDREC service error'
+'EDREC &ZVAL1 issued but recovery is not pending'
+
+PSYE042V 'EDREC service error'
+'EDREC &ZVAL1 not allowed because recovery is pending'

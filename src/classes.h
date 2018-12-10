@@ -810,3 +810,28 @@ class logger
 	ofstream of ;
 	boost::mutex mtx ;
 } ;
+
+
+class enqueue
+{
+       public:
+       enqueue()
+       {
+	       maj_name = ""  ;
+	       min_name = ""  ;
+	       disp     = EXC ;
+       }
+       enqueue( const string& maj, const string& min, int t, enqDISP d =EXC )
+       {
+	       maj_name = maj ;
+	       min_name = min ;
+	       disp     = d   ;
+	       tasks.insert( t ) ;
+       }
+
+       set<int> tasks ;
+       enqDISP  disp  ;
+
+       string maj_name ;
+       string min_name ;
+} ;

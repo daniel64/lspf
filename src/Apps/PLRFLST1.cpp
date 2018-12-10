@@ -94,8 +94,6 @@ void PLRFLST1::application()
 	string p2 ;
 	string pf ;
 
-	llog( "I", "Application PLRFLST1 starting" << endl ) ;
-
 	p1 = word( PARM, 1 )          ;
 	p2 = upper( word( PARM, 2 ) ) ;
 	pf = subword( PARM, 2 )       ;
@@ -109,6 +107,7 @@ void PLRFLST1::application()
 	else if ( p1 == "PL2" ) { PersonalFList( "" )      ; }
 	else if ( p1 == "PL3" ) { PersonalFList( "DSL" )   ; }
 	else if ( p1 == "PLA" ) { AddReflistEntry( pf )    ; }
+	else if ( p1 == "PLF" ) { AddFilelistEntry( pf )   ; }
 	else if ( p1 == "NR1" ) { RetrieveEntry( pf )      ; }
 	else if ( p1 == "MTC" ) { RetrieveMatchEntry( pf ) ; }
 	else if ( p1 == "US1" ) { userSettings()           ; }
@@ -754,6 +753,7 @@ void PLRFLST1::RetrieveEntry( string list )
 void PLRFLST1::RetrieveMatchEntry( string mfile )
 {
 	// Retrieve entry from the reference list that matches file name 'mfile'
+	// If a match not found, retry case insensitive
 
 	size_t p ;
 
@@ -766,16 +766,26 @@ void PLRFLST1::RetrieveMatchEntry( string mfile )
 	for ( int i = 1 ; i <= 30 ; i++ )
 	{
 		vcopy( "FLAPET" + d2ds( i, 2 ), ZRESULT, MOVE ) ;
-		if ( ZRESULT == "" )
-		{
-			continue ;
-		}
+		if ( ZRESULT == "" ) { continue ; }
 		p = ZRESULT.find_last_of( '/' ) ;
 		if ( p != string::npos && ZRESULT.compare( p + 1, mfile.size(), mfile ) == 0 )
 		{
 			return ;
 		}
 	}
+
+	iupper( mfile ) ;
+	for ( int i = 1 ; i <= 30 ; i++ )
+	{
+		vcopy( "FLAPET" + d2ds( i, 2 ), ZRESULT, MOVE ) ;
+		if ( ZRESULT == "" ) { continue ; }
+		p = ZRESULT.find_last_of( '/' ) ;
+		if ( p != string::npos && upper( ZRESULT ).compare( p + 1, mfile.size(), mfile ) == 0 )
+		{
+			return ;
+		}
+	}
+
 	ZRESULT = "" ;
 }
 
@@ -821,6 +831,84 @@ void PLRFLST1::AddReflistEntry( string& ent )
 	zcurtb = "REFLIST" ;
 	tbget( table ) ;
 	if ( RC > 0 ) { CloseTable() ; return ; }
+
+	for ( i = 1 ; i <= 30 ; i++ )
+	{
+		vcopy( "FLAPET" + d2ds( i, 2 ), eent, LOCATE ) ;
+		if ( *eent == "" ) { continue ; }
+		list.push_back( *eent ) ;
+	}
+
+	if ( ent.back() == '/' ) { ent.pop_back() ; }
+
+	it = find( list.begin(), list.end(), ent ) ;
+	if ( it != list.end() )
+	{
+		list.erase( it ) ;
+	}
+
+	vreplace( "FLAPET01", ent ) ;
+
+	for ( uint j = 2 ; j <= 30 ; j++ )
+	{
+		if ( j <= list.size()+1 )
+		{
+			vreplace( "FLAPET" + d2ds( j, 2 ), list.at( j-2 ) ) ;
+		}
+		else
+		{
+			vreplace( "FLAPET" + d2ds( j, 2 ), "" ) ;
+		}
+	}
+
+	flautime = ldate + " " + ltime ;
+	tbmod( table, "", "ORDER" ) ;
+	CloseTable() ;
+}
+
+
+void PLRFLST1::AddFilelistEntry( const string& p )
+{
+	// Add file to a file list.  File list name is word one of parm p.
+	// Create the list if it does not exist.
+
+	int i ;
+
+	string  ent  ;
+	string* eent ;
+
+	string rffex ;
+	string ldate ;
+	string ltime ;
+
+	vector<string>list ;
+	vector<string>::iterator it ;
+
+	vcopy( "ZDATEL", ldate, MOVE ) ;
+	vcopy( "ZTIMEL", ltime, MOVE ) ;
+	vcopy( "ZRFFEX", rffex, MOVE ) ;
+
+	control( "ERRORS", "RETURN" ) ;
+	OpenTableUP() ;
+	if ( RC == 8 )
+	{
+		createDefaultTable() ;
+		OpenTableUP() ;
+		if ( RC > 0 ) { abend() ; }
+	}
+
+	tbvclear( table ) ;
+	zcurtb = upper( word( p, 1 ) ) ;
+	ent    = subword( p, 2 ) ;
+
+	tbget( table ) ;
+	if ( RC > 0 )
+	{
+		fladescp = "New Entry" ;
+		flactime = ldate ;
+		tbadd( table, "", "ORDER" ) ;
+		if ( RC > 0 ) { return ; }
+	}
 
 	for ( i = 1 ; i <= 30 ; i++ )
 	{

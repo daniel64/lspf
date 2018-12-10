@@ -1,6 +1,6 @@
 )PANEL VERSION=1 FORMAT=1
 )COMMENT
- Keylist Utilit Panel 4
+ Keylist Utility Panel 4
 )ENDCOMMENT
 
 )BODY WINDOW(60,11)
@@ -19,7 +19,7 @@ text    8 8  ET "Enter"
 text    8 14 NT "to confirm"
 
 text    9 2  NT "Press"
-text    9 8  ET "Cancel"
+text    9 8  ET "CANCEL"
 text    9 15 NT "or"
 text    9 18 ET "END"
 text    9 22 NT "to cancel"
@@ -31,16 +31,10 @@ text    9 22 NT "to cancel"
 &ZWINTTL= &Z
 
 )PROC
-&ZCMD = TRANS( &ZCMD CAN,CANCEL *,* )
-
-IF ( &ZCMD = CANCEL )
-   .RESP = END
+IF (&ZCMD NE &Z )
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
    EXIT
-ELSE
-   IF (&ZCMD NE &Z )
-      .MSG    = PSYS018
-      .CURSOR = ZCMD
-      EXIT
 
 VER (&NEWKEY,NB)
 

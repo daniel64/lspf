@@ -148,6 +148,8 @@ class pPanel
 		uint   wscrmaxw    ;
 		uint   p_row       ;
 		uint   p_col       ;
+		uint   p_version   ;
+		uint   p_format    ;
 		string msgloc      ;
 		bool   tb_model    ;
 		bool   win_addpop  ;

@@ -52,11 +52,11 @@ text     14  26      FP "REXX interpreter stub and default SELECT CMD() language
 text     16  2     CH  "Instructions"
 
 text     18  2     PIN "Enter"
-text     18  8     PS  "Defaults"
+text     18  8     PS  "DEFAULTS"
 text     18  16    PIN ","
-text     18  18    PS  "Save"
+text     18  18    PS  "SAVE"
 text     18  23    PIN "or"
-text     18  26    PS  "Cancel"
+text     18  26    PS  "CANCEL"
 
 text     20  2     PIN "Defaults are those defined in the lspf.h #define values for these variable names"
 
@@ -67,11 +67,10 @@ text     23  2     CT  "Incorrect values can render lspf unusable.  Rerun setup 
 
 )PROC
 
-&ZCMD = TRANS( &ZCMD
-               CAN,CANCEL
-               DEF,DEFAULTS
-               *,*
-             )
+VGET ZVERB SHARED
+IF (&ZVERB EQ 'CANCEL' ) &ZCMD = 'CANCEL'
+
+&ZCMD = TRANS( &ZCMD DEF,DEFAULTS *,* )
 
 VER (&ZCMD LIST,CANCEL,DEFAULTS,SAVE)
 

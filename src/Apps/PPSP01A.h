@@ -41,9 +41,6 @@ class PPSP01A : public pApplication
 		int startCol  ;
 		uint maxLines ;
 
-		void lock()   { mtx.lock()   ; }
-		void unlock() { mtx.unlock() ; }
-
 		vector<string> data     ;
 		vector<bool>   excluded ;
 
@@ -92,12 +89,16 @@ class PPSP01A : public pApplication
 		void pfkeySettings()  ;
 		void colourSettings() ;
 		void globalColours()  ;
+		void setRGBValues()   ;
 		bool setScreenAttrs( const string&, int ) ;
 		void setISPSVar( const string&, string ) ;
 		void todoList()       ;
 		void poolVariables( const string& )  ;
 		void runApplication( const string& ) ;
 		void getpoolVariables( const string&, const string& ) ;
+		void browseEntry( string& ) ;
+		void editEntry( string& )   ;
+		int  editRecovery()      ;                                                                              
 		void showPaths()         ;
 		void showCommandTables() ;
 		void showLoadedClasses() ;
@@ -109,6 +110,8 @@ class PPSP01A : public pApplication
 		void keylistTable( string="", string="", string="" ) ;
 		void editKeylist( const string&, const string& ) ;
 		void viewKeylist( const string&, const string& ) ;
+		void listDirectory( const string& ) ;                                                                   
+		void updateReflist( const string& ) ;                                                                   
 		void createKeyTable( string )  ;
 		void controlKeys()             ;
 		void libdefStatus()            ;

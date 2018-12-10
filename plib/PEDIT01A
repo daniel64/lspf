@@ -87,22 +87,15 @@ ELSE
          &ZCOLOUR = 3
 
 )REINIT
-&ZCMDA  = &Z
+&ZCMDA = &Z
 
 )PROC
-&ZCMDA = TRANS(&ZCMDA CAN,CANCEL *,* )
-
-IF (&ZCMDA EQ CANCEL)
-   .RESP = END
-   EXIT
+IF (&ZCMDA EQ 'EDOCLR' ) EXIT
 ELSE
-   IF (&ZCMDA EQ 'EDOCLR' )
+   IF (&ZCMDA NE &Z)
+      .MSG    = PSYS018
+      .CURSOR = ZCMDA
       EXIT
-   ELSE
-      IF (&ZCMDA NE &Z)
-         .MSG    = PSYS018
-         .CURSOR = ZCMDA
-         EXIT
 
 VER(&ZHILANG,NB,LIST,1,2,3,4,5,6,7)
 VER(&ZCOLOUR,NB,LIST,1,2,3,4,5)
@@ -144,5 +137,7 @@ ELSE
 &ZHIFIND = TRANS( &ZHIFIND  &Z,&Z *,/ )
 &ZHICURS = TRANS( &ZHICURS  &Z,&Z *,/ )
 
-IF (.MSG NE &Z) &ZCMDA = 'CANCEL'
+IF (.RESP = END AND .MSG NE &Z )
+   &ZVERB = 'CANCEL'
+   VPUT ZVERB SHARED
 )END

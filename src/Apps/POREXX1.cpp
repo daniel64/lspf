@@ -93,8 +93,6 @@ POREXX1::POREXX1()
 
 void POREXX1::application()
 {
-	llog( "I", "Application POREXX1 starting." << endl ) ;
-
 	size_t version ;
 
 	string rxpath  ;

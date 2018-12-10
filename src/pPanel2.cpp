@@ -23,8 +23,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 
 	uint i ;
 	uint j ;
-	uint pVersion ;
-	uint pFormat  ;
 
 	size_t p1 ;
 
@@ -137,9 +135,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				err.setsrc( oline ) ;
 				return ;
 			}
-			pVersion = ds2d( word( substr( pline, i+9 ), 1 ) ) ;
-			pFormat  = ds2d( word( substr( pline, j+8 ), 1 ) ) ;
-			llog( "I", "Panel format " << pFormat << " Panel version " << pVersion << endl ) ;
+			p_version = ds2d( word( substr( pline, i+9 ), 1 ) ) ;
+			p_format  = ds2d( word( substr( pline, j+8 ), 1 ) ) ;
 			ws = parseString( err, pline, "KEYLIST()" ) ;
 			if ( err.error() )
 			{
@@ -194,7 +191,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 					err.setsrc( oline ) ;
 					return ;
 				}
-				pwin = newwin( win_depth, win_width, 0, 0 ) ;
 				win_depth = ds2d( t2 ) ;
 				if ( win_depth > zscrmaxd - 2 )
 				{

@@ -504,7 +504,7 @@ bool field::edit_field_insert( WINDOW* win,
 	// If this is a dynamic area, we know at this point this is an input field, so dynArea_dataInsp is true and
 	// there is an input attribute byte at the start of the field
 
-	// Use the pad character to fill fields when the cursor is past the end if the field value.
+	// Use the pad character or nulls to fill fields when the cursor is past the end if the field value.
 	// Nulls are removed from the field before further processing by the application.
 
 	uint pos ;
@@ -573,7 +573,7 @@ bool field::edit_field_replace( WINDOW* win,
 	// If this is a dynamic area, we know at this point this is an input field, so dynArea_dataInsp is true and
 	// there is an input attribute byte at the start of the field
 
-	// Use the null character (x'00') to fill fields when the cursor is past the end if the field value
+	// Use the pad character or nulls to fill fields when the cursor is past the end if the field value
 	// These are then removed before further processing by the application
 
 	size_t p1 ;

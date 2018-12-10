@@ -185,14 +185,14 @@ field    24   103  7  NEF CAPS(ON) HILITE33
 text     28  2    CH "Instructions"
 
 text     30  2     PIN "Enter"
-text     30  8     PS  "Defaults"
+text     30  8     PS  "DEFAULTS"
 text     30  17    PIN "or"
-text     30  20    PS  "Cancel"
+text     30  20    PS  "CANCEL"
 
 text     32  2     PIN "Use"
-text     32  6     PS  "Save"
+text     32  6     PS  "SAVE"
 text     32  11    PIN "and"
-text     32  15    PS  "Restore"
+text     32  15    PS  "RESTORE"
 text     32  23    PIN "to save/restore a copy of these variables to the current profile (&ZAPPLID)"
 
 text     34   2   CT "These variables are saved to the ISPS system profile."
@@ -369,9 +369,12 @@ ELSE                      .ATTR(HILITE33) = 'COLOUR(&COLOUR33) INTENS(&INTENS33)
 
 
 )PROC
-&ZCMD = TRANS( &ZCMD CAN,CANCEL
-                     CANCEL,CANCEL
-                     DEF,DEFAULTS
+VGET ZVERB SHARED
+IF (&ZVERB EQ 'CANCEL' )
+   &ZCMD = 'CANCEL'
+   EXIT
+
+&ZCMD = TRANS( &ZCMD DEF,DEFAULTS
                      DEFAULTS,DEFAULTS
                      RES,RESTORE
                      REST,RESTORE
@@ -382,7 +385,7 @@ ELSE                      .ATTR(HILITE33) = 'COLOUR(&COLOUR33) INTENS(&INTENS33)
                      MSG=PPSP015
              )
 
-IF (&ZCMD EQ CANCEL,DEFAULTS,RESTORE) EXIT
+IF (&ZCMD EQ DEFAULTS,RESTORE) EXIT
 
 &COLOUR01 = TRANS(TRUNC(&COLOUR01,1) R,RED G,GREEN Y,YELLOW B,BLUE M,MAGENTA P,MAGENTA T,TURQ W,WHITE &Z,&Z MSG=PPSP016)
 &INTENS01 = TRANS(TRUNC(&INTENS01,1) H,HIGH L,LOW &Z,&Z MSG=PPSP017)

@@ -1,0 +1,76 @@
+)PANEL VERSION=1 FORMAT=1 KEYLIST(ISRSAB,ISR)
+)COMMENT
+Panel for ...
+)ENDCOMMENT
+
+)ATTR
+
+01 TYPE(DATAOUT) INTENS(HIGH)
+
+05 TYPE(CHAR) COLOUR(RED)
+06 TYPE(CHAR) COLOUR(GREEN)
+07 TYPE(CHAR) COLOUR(YELLOW)
+08 TYPE(CHAR) COLOUR(BLUE)
+09 TYPE(CHAR) COLOUR(MAGENTA)
+0A TYPE(CHAR) COLOUR(TURQ)
+0B TYPE(CHAR) COLOUR(WHITE)
+0C TYPE(CHAR) COLOUR(RED)
+0D TYPE(CHAR) COLOUR(GREEN)
+
+0E TYPE(CHAR) COLOUR(RED)   HILITE(REVERSE)
+0F TYPE(CHAR) COLOUR(WHITE) HILITE(REVERSE)
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)BODY
+PanelDesc "Browse &ZBRALT"
+
+text  3   2   VOI "BROWSE"
+field 3  10   MAX-30 VOI  NONE ZBRALT
+
+text  4   2         FP  "Command ===>"
+field 4  15 MAX-17  NEF PAD(USER) ZCMD
+
+text  4 MAX-15     FP  "Scroll ===>"
+field 4 MAX-3   4  NEF NONE ZSCROLL
+
+text   3   MAX-28     FP  "Line"
+field  3   MAX-23  8  VOI  NONE ZROW1
+
+text   3   MAX-14     FP  "Col"
+field  3   MAX-10 5  VOI  NONE ZCOL1
+field  3   MAX-4  5  VOI  NONE ZCOL2
+
+dynArea  5  2  MAX  MAX  ZAREA  ZSHADOW SCROLL(ON)
+
+
+)INIT
+.BROWSE = YES
+
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+)PROC
+
+IF (&ZCMD = &Z) EXIT
+
+&ZU  = UPPER(ZCMD)           /* Upper case      */
+&CMD = TRUNC(&ZU,' ')        /* Get first word  */
+&ZUS = .TRAIL                /*                 */
+&ZU2 = TRUNC(&ZUS,' ')       /* Get second word */
+&ZUS = .TRAIL                /* and the rest    */
+&ZU3 = TRUNC(&ZUS,' ')       /* Get third word  */
+&ZUS = .TRAIL                /* and the rest    */
+
+IF (&CMD EQ HILITE )
+  IF (&ZUS NE &Z,ON,OFF )           /* No third parameter */
+    .MSG    = PBRO013
+    .CURSOR = ZCMD
+    EXIT
+  ELSE
+    IF (&ZU3 NE REXX,C++,CPP,PANEL,OFF,&Z)
+       .MSG    = PSYS011O
+       .CURSOR = ZCMD
+       EXIT
+
+)END
