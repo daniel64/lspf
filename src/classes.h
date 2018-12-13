@@ -612,6 +612,7 @@ class selobj
 			pgm     = "" ;
 			parm    = "" ;
 			newappl = "" ;
+			rsn     = 0  ;
 			newpool = false ;
 			passlib = false ;
 			suspend = false ;
@@ -629,7 +630,7 @@ class selobj
 		{
 			clear() ;
 			pgm     = p ;
-			newappl = "ISP" ;
+			newappl = "ISR" ;
 			newpool = true  ;
 			suspend = true  ;
 			selPanl = true  ;
@@ -641,6 +642,7 @@ class selobj
 		string pgm     ;
 		string parm    ;
 		string newappl ;
+		int    rsn     ;
 		bool   newpool ;
 		bool   passlib ;
 		bool   suspend ;

@@ -1390,6 +1390,7 @@ void Table::tbvclear( errblock& err,
 
 void Table::fillfVARs( errblock& err,
 		       fPOOL& funcPOOL,
+		       set<string>& tb_fields,
 		       const string& clear_flds,
 		       bool scan,
 		       uint depth,
@@ -1399,36 +1400,37 @@ void Table::fillfVARs( errblock& err,
 {
 	// Fill the function pool variables ( of the form table_fieldname.line ) from the table for depth lines
 	// starting as table position posn. (Use CRP position if posn not specified)
+	// Only fill variables that are both on the tbmodel and in the table.
+
 	// Create function pool variable .ZURID.line to hold the URID of the table row corresponding to that screen line
 
 	// Also pass back the relative line index, idr, for the line matching the passed csrrow (if any).
 	// (Passed csrrow is the panel CSRROW() parameter or .CSRROW control variable)
 
-	// BUG:  Should only do fields on the tbmodel statement instead of all fields in the row (inc. extension variables)
 	// BUG:  SCAN not supported yet
 
-	uint j    ;
-	uint k    ;
-	uint l    ;
-	uint size ;
+	uint j ;
+	uint k ;
+	uint l ;
 
 	string var    ;
-	string enames ;
 	string sufx   ;
+	string enames ;
 
-	vector<string> row ;
-	vector<vector<string>*>::iterator it ;
+	vector<vector<string>*>::iterator itt ;
+	map<int,string>::iterator itf ;
+
+	map<int,string> tab2fields ;
 
 	err.setRC( 0 ) ;
-
-	size = table.size() ;
 
 	if ( posn == -1 ) { posn = CRP ; }
 	if ( posn == 0  ) { posn = 1   ; }
 
 	funcPOOL.put( err, "ZTDTOP", posn )  ;
 	if ( err.error() ) { return ; }
-	funcPOOL.put( err, "ZTDROWS", size ) ;
+
+	funcPOOL.put( err, "ZTDROWS", table.size() ) ;
 	if ( err.error() ) { return ; }
 
 	for ( l = words( clear_flds ), k = 1 ; k <= l ; k++ )
@@ -1440,47 +1442,40 @@ void Table::fillfVARs( errblock& err,
 		}
 	}
 
-	row.push_back( ".ZURID" ) ;
-	for ( auto pt = tab_vall.begin() ; pt != tab_vall.end() ; pt++ )
-	{
-		row.push_back( *pt ) ;
-	}
-
-	it = table.begin() + posn - 1 ;
-
 	csrrow -= posn ;
 	idr     = -1   ;
 
-	for ( k = 0 ; k < depth && it != table.end() ; k++, it++ )
+	for ( j = 0 ; j < num_all ; j++ )
+	{
+		if ( tb_fields.count( tab_vall[ j ] ) > 0 )
+		{
+			tab2fields[ j+1 ] = tab_vall[ j ] ;
+		}
+	}
+
+	for ( itt = table.begin() + posn - 1, k = 0 ; k < depth && itt != table.end() ; k++, itt++ )
 	{
 		sufx = "." + d2ds( k ) ;
-		for ( j = 0 ; j <= num_all ; j++ )
+		funcPOOL.put( err, ".ZURID" + sufx, (*itt)->at( 0 ), NOCHECK ) ;
+		for ( itf = tab2fields.begin() ; itf != tab2fields.end() ; itf++ )
 		{
-			funcPOOL.put( err, row.at( j ) + sufx, (*it)->at( j ), NOCHECK ) ;
+			funcPOOL.put( err, itf->second + sufx, (*itt)->at( itf->first ), NOCHECK ) ;
 			if ( err.error() ) { return ; }
 		}
-		if ( (*it)->size() > num_all+1 )
+		if ( (*itt)->size() > num_all+1 )
 		{
-			enames = (*it)->at( num_all+1 ) ;
-			for ( l = 1, j = num_all+2 ; j < (*it)->size() ; j++, l++ )
+			enames = (*itt)->at( num_all+1 ) ;
+			for ( l = 1, j = num_all+2 ; j < (*itt)->size() ; j++, l++ )
 			{
-				funcPOOL.put( err, word( enames, l ) + sufx, (*it)->at( j ), NOCHECK ) ;
+				var = word( enames, l ) ;
+				if ( tb_fields.count( var ) == 0 ) { continue ; }
+				funcPOOL.put( err, var + sufx, (*itt)->at( j ), NOCHECK ) ;
 				if ( err.error() ) { return ; }
 			}
 		}
 		if ( k == csrrow )
 		{
 			idr = k ;
-		}
-	}
-
-	for ( ; k < depth ; k++ )
-	{
-		sufx = "." + d2ds( k ) ;
-		for ( j = 0 ; j <= num_all ; j++ )
-		{
-			funcPOOL.put( err, row.at( j ) + sufx, "", NOCHECK ) ;
-			if ( err.error() ) { return ; }
 		}
 	}
 }
@@ -2254,7 +2249,7 @@ void tableMGR::statistics()
 
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	llog( "I", ".STATS" << endl ) ;                                                                                 
+	llog( "I", ".STATS" << endl ) ;
 	llog( "-", "Table Statistics:" <<endl ) ;
 	llog( "-", "         Number of tables loaded . . . " << tables.size() <<endl ) ;
 	llog( "-", "          Table details:" <<endl ) ;
@@ -2310,6 +2305,7 @@ void tableMGR::statistics()
 void tableMGR::fillfVARs( errblock& err,
 			  fPOOL& funcPOOL,
 			  const string& tb_name,
+			  set<string>& tb_fields,
 			  const string& clear_flds,
 			  bool scan,
 			  int  depth,
@@ -2325,7 +2321,7 @@ void tableMGR::fillfVARs( errblock& err,
 		err.seterrid( "PSYE013G", "FILLFVARS", tb_name, 12 ) ;
 		return ;
 	}
-	it->second->fillfVARs( err, funcPOOL, clear_flds, scan, depth, posn, csrrow, idr ) ;
+	it->second->fillfVARs( err, funcPOOL, tb_fields, clear_flds, scan, depth, posn, csrrow, idr ) ;
 }
 
 

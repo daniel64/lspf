@@ -86,6 +86,7 @@ class Table
 
 		void   fillfVARs( errblock& err,
 				  fPOOL& funcPOOL,
+				  set<string>& tb_fields,
 				  const string& clear_flds,
 				  bool scan,
 				  uint depth,
@@ -273,6 +274,7 @@ class tableMGR
 		void   fillfVARs( errblock& err,
 				  fPOOL& funcPOOL,
 				  const string& tb_name,
+				  set<string>& tb_fields,
 				  const string& clear_flds,
 				  bool scan,
 				  int  depth,

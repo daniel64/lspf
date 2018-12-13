@@ -1899,7 +1899,7 @@ void pApplication::control( const string& parm1, const string& parm2, const stri
 				urid_stk.push( stack<string>() ) ;
 				for ( i = 0 ; i < currtbPanel->tb_depth ; i++ )
 				{
-					urid_stk.top().push( funcPOOL.get( errBlock, 0, ".ZURID."+d2ds( i ), NOCHECK ) ) ;
+					urid_stk.top().push( funcPOOL.get( errBlock, 8, ".ZURID."+d2ds( i ), NOCHECK ) ) ;
 				}
 			}
 		}
@@ -2632,7 +2632,16 @@ void pApplication::tbdispl( const string& tb_name,
 	if ( rebuild && p_name != "" )
 	{
 		tbscan = currPanel->get_tbscan() ;
-		p_tableMGR->fillfVARs( errBlock, funcPOOL, tb_name, currPanel->get_tb_clear(), tbscan, currPanel->tb_depth, -1, currPanel->tb_get_csrrow(), idr ) ;
+		p_tableMGR->fillfVARs( errBlock,
+				       funcPOOL,
+				       tb_name,
+				       currPanel->get_tb_fields(),
+				       currPanel->get_tb_clear(),
+				       tbscan,
+				       currPanel->tb_depth,
+				       -1,
+				       currPanel->tb_get_csrrow(),
+				       idr ) ;
 		currPanel->set_cursor_idr( idr ) ;
 		if ( errBlock.error() )
 		{
@@ -2684,6 +2693,7 @@ void pApplication::tbdispl( const string& tb_name,
 			ControlDisplayLock = false ;
 			ControlNonDispl    = false ;
 			refreshlScreen     = false ;
+			reloadCUATables    = false ;
 			currPanel->hide_popup() ;
 			currPanel->clear_msg() ;
 			currPanel->curfld = "" ;
@@ -2809,7 +2819,16 @@ void pApplication::tbdispl( const string& tb_name,
 					ztdtop   = ( zscrolln + ztdtop > ztdrows ) ? ( ztdrows + 1 ) : ztdtop + zscrolln ;
 				}
 			}
-			p_tableMGR->fillfVARs( errBlock, funcPOOL, tb_name, currPanel->get_tb_clear(), tbscan, currPanel->tb_depth, ztdtop, 0, idr ) ;
+			p_tableMGR->fillfVARs( errBlock,
+					       funcPOOL,
+					       tb_name,
+					       currPanel->get_tb_fields(),
+					       currPanel->get_tb_clear(),
+					       tbscan,
+					       currPanel->tb_depth,
+					       ztdtop,
+					       0,
+					       idr ) ;
 			if ( errBlock.error() )
 			{
 				errBlock.setcall( e6 + p_name ) ;
@@ -3566,6 +3585,7 @@ int pApplication::edrec_process( const string& m_parm,
 	//          - byte 1 - preserve trailing spaces
 
 	int xRC = 4 ;
+	int row ;
 
 	string zedstat  ;
 	string zedtfile ;
@@ -3586,10 +3606,11 @@ int pApplication::edrec_process( const string& m_parm,
 		return 20 ;
 	}
 
-	int row = funcPOOL.get( errBlock, 8, INTEGER, "ZEDROW" ) ;
+	row      = funcPOOL.get( errBlock, 8, INTEGER, "ZEDROW" ) ;
 	zedtfile = funcPOOL.get( errBlock, 0, "ZEDTFILE" ) ;
 	zedbfile = funcPOOL.get( errBlock, 0, "ZEDBFILE" ) ;
 	zedopts  = funcPOOL.get( errBlock, 0, "ZEDOPTS"  ) ;
+
 	p_poolMGR->put( errBlock, "ZEDTFILE", zedtfile, SHARED ) ;
 	p_poolMGR->put( errBlock, "ZEDBFILE", zedbfile, SHARED ) ;
 
@@ -3854,6 +3875,7 @@ void pApplication::actionSelect()
 	// ZRC = 20  RSN = 999  Application program abended.
 	// ZRC = 20  RSN = 998  SELECT PGM not found.
 	// ZRC = 20  RSN = 997  SELECT CMD not found.
+	// ZRC = 20  RSN = 996  Errors loading program.
 	// (don't percolate these codes back to the calling program - ZRSN = 0)
 
 	RC  = 0    ;
@@ -3874,7 +3896,11 @@ void pApplication::actionSelect()
 		abnormalNoMsg = true ;
 		if ( ZRC == 20 && ZRESULT == "Not Found" )
 		{
-			if ( ZRSN == 997 )
+			if ( ZRSN == 996 )
+			{
+				errBlock.setcall( "Error in SELECT command", "PSYS013H", selct.pgm ) ;
+			}
+			else if ( ZRSN == 997 )
 			{
 				errBlock.setcall( "Error in SELECT command", "PSYS012X", word( selct.parm, 1 ) ) ;
 			}
@@ -4735,7 +4761,7 @@ void pApplication::qscan( const string& maj, const string& min, enqDISP disp, en
 	{
 		if ( it->maj_name == maj && it->min_name == min )
 		{
-			if ( it->disp == disp && it->tasks.count( taskId ) > 0 )
+			if ( it->disp == disp )
 			{
 				RC = 0 ;
 			}

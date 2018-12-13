@@ -299,6 +299,8 @@ class pPanel
 		vector<panstmnt*> reinstmnts ;
 
 		set<string> tb_fields ;
+		set<string>& get_tb_fields() { return tb_fields ; }
+
 		map<unsigned char, char_attrs> char_attrlist ;
 		map<unsigned char, unsigned int> colour_attrlist ;
 		map<unsigned char, unsigned int> ddata_map ;

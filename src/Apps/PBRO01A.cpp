@@ -125,7 +125,6 @@ void PBRO01A::application()
 	if ( panel == "" ) { panel = "PBRO01A2" ; }
 
 	zdsn = file ;
-	llog( "I", "Displaying file " << file << " using panel " << panel << endl ) ;
 
 	rebuildZAREA = true  ;
 	hexOn        = false ;

@@ -2489,7 +2489,6 @@ class PEDIT01 : public pApplication
 		int  RightBnd            ;
 
 		string maskLine          ;
-		bool   ztouched          ;
 		bool   zchanged          ;
 		bool   dataUpdated       ;
 		bool   colsOn            ;

@@ -285,7 +285,6 @@ void PEDIT01::Edit()
 	rebuildZAREA  = true  ;
 	rebuildShadow = false ;
 	dataUpdated   = true  ;
-	ztouched      = false ;
 	zchanged      = false ;
 	macroRunning  = false ;
 	creActive     = false ;
@@ -390,7 +389,6 @@ void PEDIT01::Edit()
 		pcmd.clear_msg() ;
 		clearCursor()    ;
 
-		ztouched    = false ;
 		zchanged    = false ;
 		creActive   = false ;
 		cutActive   = false ;
@@ -504,7 +502,7 @@ void PEDIT01::Edit()
 	releaseDynamicStorage() ;
 
 	saveEditProfile( zedprof ) ;
-	deq( "ISREDIT", zfile )    ;
+	deq( "SPFEDIT", zfile )    ;
 	Global_efind_parms = fcx_parms ;
 }
 
@@ -679,7 +677,7 @@ void PEDIT01::readFile()
 		fileChanged = false ;
 	}
 
-	enq( "ISREDIT", zfile ) ;
+	enq( "SPFEDIT", zfile ) ;
 	if ( RC == 8 )
 	{
 		pcmd.set_msg( "PEDT014A" ) ;
@@ -1592,7 +1590,6 @@ void PEDIT01::getZAREAchanges()
 		else if ( touched )
 		{
 			zarea[ off ] = duserMod ;
-			ztouched     = true     ;
 		}
 	}
 
@@ -1710,14 +1707,9 @@ void PEDIT01::getZAREAchanges()
 			}
 			rebuildZAREA = true ;
 		}
-		else if ( zarea[ off ] == duserMod )
-		{
-			ztouched = true ;
-		}
 		if ( zarea[ off + 7 ] == duserMod )
 		{
 			dTouched[ i ] = true ;
-			ztouched      = true ;
 		}
 		else if ( zarea[ off + 7 ] == ddataMod )
 		{
@@ -9119,7 +9111,7 @@ void PEDIT01::cleanup_custom()
 	{
 		llog( "W", "File not saved as RECOVER is set off" <<endl ) ;
 		releaseDynamicStorage() ;
-		deq( "ISREDIT", zfile ) ;
+		deq( "SPFEDIT", zfile ) ;
 		ZRC  = 0 ;
 		ZRSN = 0 ;
 		return   ;
@@ -9129,7 +9121,7 @@ void PEDIT01::cleanup_custom()
 	{
 		llog( "I", "File not saved as no changes made during edit session or since last save" <<endl ) ;
 		releaseDynamicStorage() ;
-		deq( "ISREDIT", zfile ) ;
+		deq( "SPFEDIT", zfile ) ;
 		ZRC  = 0 ;
 		ZRSN = 0 ;
 		return   ;
@@ -9160,7 +9152,7 @@ void PEDIT01::cleanup_custom()
 
 	addEditRecovery() ;
 	releaseDynamicStorage() ;
-	deq( "ISREDIT", zfile ) ;
+	deq( "SPFEDIT", zfile ) ;
 	Global_efind_parms = fcx_parms ;
 	abendComplete = true ;
 

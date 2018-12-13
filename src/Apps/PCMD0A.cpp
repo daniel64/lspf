@@ -45,56 +45,47 @@ using namespace boost::filesystem ;
 PCMD0A::PCMD0A()
 {
 	set_appdesc( "Invoke a command and display the output" ) ;
-	set_appver( "1.0.0" ) ;
+	set_appver( "1.0.1" ) ;
 }
 
 
 void PCMD0A::application()
 {
-	string zcmd   ;
-	string msg    ;
-	string comm1  ;
-	string comm2  ;
-	string tname1 ;
-	string tname2 ;
+	string zcmd  ;
+	string msg   ;
+	string comm1 ;
+	string comm2 ;
 
 	vdefine( "ZCMD COMM1 COMM2", &zcmd, &comm1, &comm2 ) ;
 	vget( "COMM1 COMM2", SHARED ) ;
 	if ( RC == 0 && PARM != "" )
 	{
+		enq( "CMD", comm1 ) ;
 		run_command( PARM, comm1, comm2 ) ;
-		verase( "COMM1 COMM2", SHARED ) ;
-		return    ;
+		deq( "CMD", comm1 ) ;
+		return ;
 	}
 
 	vcopy( "ZUSER", zuser, MOVE )     ;
 	vcopy( "ZSCREEN", zscreen, MOVE ) ;
 
-	boost::filesystem::path temp1 = boost::filesystem::temp_directory_path() /
-			   boost::filesystem::unique_path( zuser + "-" + zscreen + "-%%%%-%%%%" ) ;
-	tname1 = temp1.native() ;
-
-	boost::filesystem::path temp2 = boost::filesystem::temp_directory_path() /
-			   boost::filesystem::unique_path( zuser + "-" + zscreen + "-%%%%-%%%%" ) ;
-	tname2 = temp2.native() ;
-
 	if ( PARM != "" )
 	{
-		comm1 = tname1 ;
-		comm2 = tname2 ;
+		comm1 = get_tempname( "output" ) ;
+		comm2 = get_tempname( "errors" ) ;
 		if ( invoke_task_wait( PARM, comm1, comm2 ) )
 		{
 			vreplace( "ZBRALT", "COMMAND:"+ PARM ) ;
 			vput( "ZBRALT", SHARED ) ;
-			browse( tname1 ) ;
-			if ( ZRC == 4 && ZRSN == 4 ) { browse( tname2 ) ; }
+			browse( comm1 ) ;
+			if ( ZRC == 4 && ZRSN == 4 ) { browse( comm2 ) ; }
 		}
 		else
 		{
 			setmsg( "PSYS012S" ) ;
 		}
-		remove( tname1 ) ;
-		remove( tname2 ) ;
+		remove( comm1 ) ;
+		remove( comm2 ) ;
 		return ;
 	}
 
@@ -105,6 +96,8 @@ void PCMD0A::application()
 		msg = "" ;
 		if ( zcmd != "" )
 		{
+			comm1 = get_tempname( "output" ) ;
+			comm2 = get_tempname( "errors" ) ;
 			if ( isRexx( word( zcmd, 1 ) ) )
 			{
 				control( "ERRORS", "RETURN" ) ;
@@ -123,14 +116,12 @@ void PCMD0A::application()
 			}
 			else
 			{
-				comm1 = tname1 ;
-				comm2 = tname2 ;
 				if ( invoke_task_wait( zcmd, comm1, comm2 ) )
 				{
 					vreplace( "ZBRALT", "COMMAND:"+ zcmd ) ;
 					vput( "ZBRALT", SHARED ) ;
-					browse( tname1 ) ;
-					if ( ZRC == 4 && ZRSN == 4 ) { browse( tname2 ) ; }
+					browse( comm1 ) ;
+					if ( ZRC == 4 && ZRSN == 4 ) { browse( comm2 ) ; }
 					zcmd = "" ;
 				}
 				else
@@ -138,11 +129,13 @@ void PCMD0A::application()
 					msg = "PSYS012S" ;
 				}
 			}
+			remove( comm2 ) ;
+			remove( comm1 ) ;
 		}
 	}
 
 	verase( "ZBRALT", SHARED ) ;
-	return    ;
+	return ;
 }
 
 
@@ -158,15 +151,15 @@ bool PCMD0A::invoke_task_wait( const string& cmd, string& comm1, const string& c
 	select( "PGM(PCMD0A) PARM("+cmd+") BACK" ) ;
 
 	elapsed = 0 ;
-	while ( comm1 != "" )
+	while ( true )
 	{
 		boost::this_thread::sleep_for(boost::chrono::milliseconds( 5 ) ) ;
 		if ( ++elapsed > 2000 )
 		{
 			return false ;
 		}
-		vget( "COMM1", SHARED ) ;
-		if ( RC > 0 ) { comm1 = "" ; }
+		qscan( "CMD", comm1 ) ;
+		if ( RC == 8 ) { break ;}
 	}
 	return true ;
 }
@@ -230,6 +223,14 @@ bool PCMD0A::isRexx( string orexx )
 		ilower( orexx ) ;
 	}
 	return false ;
+}
+
+
+string PCMD0A::get_tempname( const string& suf )
+{
+	boost::filesystem::path temp = boost::filesystem::temp_directory_path() /
+			boost::filesystem::unique_path( zuser + "-" + zscreen + "-%%%%-%%%%" ) ;
+	return temp.native() + "." + suf ;
 }
 
 

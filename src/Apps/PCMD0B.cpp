@@ -49,35 +49,30 @@ using namespace boost::filesystem ;
 #define E_TURQ     8
 #define E_WHITE    9
 
+
 PCMD0B::PCMD0B()
 {
 	set_appdesc( "Invoke a command and display the output" ) ;
-	set_appver( "1.0.0" ) ;
+	set_appver( "1.0.1" ) ;
 }
-
 
 void PCMD0B::application()
 {
-	string comm1  ;
-	string comm2  ;
-	string tname1 ;
-	string tname2 ;
+	bool exit = false ;
 
-	vdefine( "ZCMD ZVERB COMM1 COMM2", &zcmd, &zverb, &comm1, &comm2 ) ;
+	string comm1 ;
+	string comm2 ;
+
+	vector<pair<string,string>> tnames ;
+
+	vdefine( "ZCMD ZVERB ZNODNAME COMM1 COMM2", &zcmd, &zverb, &znode, &comm1, &comm2 ) ;
 	vdefine( "ZAREA ZSHADOW ZAREAT ZSCROLLA", &zarea, &zshadow, &zareat, &zscrolla ) ;
 	vdefine( "ZSCROLLN ZAREAW ZAREAD", &zscrolln, &zareaw, &zaread ) ;
 
-	vget( "COMM1 COMM2", SHARED ) ;
+	vget( "COMM1 COMM2 ZNODNAME", SHARED ) ;
 
 	vcopy( "ZUSER", zuser, MOVE )     ;
 	vcopy( "ZSCREEN", zscreen, MOVE ) ;
-
-	boost::filesystem::path temp1 = boost::filesystem::temp_directory_path() /
-			   boost::filesystem::unique_path( zuser + "-" + zscreen + "-%%%%-%%%%" ) ;
-	tname1 = temp1.native() ;
-	boost::filesystem::path temp2 = boost::filesystem::temp_directory_path() /
-			   boost::filesystem::unique_path( zuser + "-" + zscreen + "-%%%%-%%%%" ) ;
-	tname2 = temp2.native() ;
 
 	pquery( "PCMD0B", "ZAREA", "ZAREAT", "ZAREAW", "ZAREAD" ) ;
 
@@ -91,34 +86,44 @@ void PCMD0B::application()
 	sdw.assign( zareaw, E_WHITE )  ;
 	sdy.assign( zareaw, E_YELLOW ) ;
 	sdg.assign( zareaw, E_GREEN )  ;
+	sdt.assign( zareaw, E_TURQ  )  ;
+
+	boost::filesystem::path p = boost::filesystem::current_path() ;
+	wd = p.native() ;
+
+	lines.push_back( command_prompt() ) ;
 
 	while ( true )
 	{
-		if ( rebuildZAREA ) { fill_dynamic_area() ; }
+		if ( rebuildZAREA ) { fill_dynamic_area( tnames.size() > 0 ) ; }
 
 		display( "PCMD0B", msg, "ZCMD" ) ;
-		if ( RC == 8 ) { break ; }
+		if ( RC == 8 )
+		{
+			if ( exit || tnames.size() == 0 ) { return ; }
+			vreplace( "ZEDSMSG", "Background tasks still running" ) ;
+			vreplace( "ZEDLMSG", "Press PF3 again to exit or ENTER to display output" ) ;
+			msg  = "PSYZ001" ;
+			exit = true ;
+			continue ;
+		}
+		exit = false ;
+		msg  = ""    ;
 
-		msg = "" ;
 		vget( "ZVERB ZSCROLLA ZSCROLLN", SHARED ) ;
 		if ( zcmd != "" )
 		{
-			if ( zcmd.front() == ':' )
+			if ( zcmd.front() == '-' )
 			{
-				actionCommand() ;
+				actioniCommand() ;
 			}
 			else
 			{
-				comm1 = tname1 ;
-				comm2 = tname2 ;
-				if ( invoke_task_wait( zcmd, comm1, comm2 ) )
-				{
-					copy_output( tname1, tname2 ) ;
-				}
-				else
-				{
-					timeout_output() ;
-				}
+				comm1 = get_tempname( "output" ) ;
+				comm2 = get_tempname( "errors" ) ;
+				tnames.push_back( make_pair( comm1, comm2 ) ) ;
+				cmds[ comm1 ] = zcmd ;
+				invoke_task( zcmd, comm1, comm2 ) ;
 				rebuildZAREA = true ;
 				zcmd = "" ;
 			}
@@ -129,9 +134,22 @@ void PCMD0B::application()
 		}
 		else
 		{
-			lines.push_back( "" ) ;
+			lines.push_back( command_prompt() ) ;
 			bottom_of_data() ;
 			rebuildZAREA = true ;
+		}
+		for ( auto it = tnames.begin() ; it != tnames.end() ; )
+		{
+			qscan( "CMD", it->first ) ;
+			if ( RC == 8 )
+			{
+				copy_output( cmds[ it->first ], it->first, it->second ) ;
+				cmds.erase( it->first ) ;
+				it = tnames.erase( it ) ;
+				rebuildZAREA = true ;
+				continue ;
+			}
+			it++ ;
 		}
 	}
 
@@ -139,18 +157,23 @@ void PCMD0B::application()
 }
 
 
-void PCMD0B::copy_output( const string& fname, const string& ename )
+void PCMD0B::copy_output( const string& cmd, const string& fname, const string& ename )
 {
+	bool errors = false ;
+
+	string t ;
+
 	std::ifstream fin ;
 
 	lines.push_back( "" ) ;
-	lines.push_back( ":> "+zcmd ) ;
+	lines.push_back( ":> "+cmd ) ;
 	lines.push_back( "" ) ;
 
 	fin.open( ename.c_str() ) ;
 	while ( getline( fin, inLine ) )
 	{
 		lines.push_back( "e> "+inLine ) ;
+		errors = true ;
 	}
 	fin.close() ;
 
@@ -161,51 +184,64 @@ void PCMD0B::copy_output( const string& fname, const string& ename )
 	}
 	fin.close() ;
 
-	bottom_of_data() ;
-
-	lines.push_back( "" ) ;
 	lines.push_back( "" ) ;
 
 	remove( fname ) ;
 	remove( ename ) ;
-}
 
+	if ( word( cmd, 1 ) == "cd" && not errors )
+	{
+		t = subword( cmd, 2 ) ;
+		if ( t.size() > 0 && t.front() == '/' )
+		{
+			wd = t ;
+		}
+		else
+		{
+			if ( wd.back() != '/' ) { wd += "/" ; }
+			wd += t ;
+		}
+	}
 
-void PCMD0B::timeout_output()
-{
-	lines.push_back( "" ) ;
-	lines.push_back( ":> "+zcmd ) ;
-	lines.push_back( ":  Command has timed out waiting for a response" ) ;
-	lines.push_back( "" ) ;
+	lines.push_back( command_prompt() ) ;
 	bottom_of_data() ;
 }
 
 
-void PCMD0B::actionCommand()
+void PCMD0B::actioniCommand()
 {
 	string cmd  ;
 	string rest ;
 
 	cmd  = upper( word( zcmd, 1 ) ) ;
 	rest = subword( zcmd, 2 ) ;
-	if ( cmd == ":CLEAR" )
+	if ( cmd == "-CLEAR" )
 	{
 		lines.clear() ;
 		topLine      = 0  ;
 		startCol     = 1  ;
 		zcmd         = "" ;
+		lines.push_back( command_prompt() ) ;
 		rebuildZAREA = true ;
 	}
-	else if ( cmd == ":LOG" )
+	else if ( cmd == "-LIST" )
 	{
-		if ( rest.front() == '&' && isvalidName( rest.substr( 1 ) ) )
+		lines.push_back( "" ) ;
+		lines.push_back( "b> Running background jobs" ) ;
+		lines.push_back( "" ) ;
+		if ( cmds.size() == 0 )
 		{
-			vcopy( rest.substr( 1 ), rest, MOVE ) ;
+			lines.push_back( "No jobs found" ) ;
+		}
+		else
+		{
+			for ( auto it = cmds.begin() ; it != cmds.end() ; it++ )
+			{
+				lines.push_back( it->second ) ;
+			}
 		}
 		lines.push_back( "" ) ;
-		lines.push_back( "l> "+rest ) ;
-		lines.push_back( "" ) ;
-		zcmd         = ""   ;
+		zcmd         = "" ;
 		rebuildZAREA = true ;
 		bottom_of_data() ;
 	}
@@ -224,11 +260,27 @@ void PCMD0B::bottom_of_data()
 }
 
 
-void PCMD0B::fill_dynamic_area()
+string PCMD0B::command_prompt()
+{
+	return zuser + "@" + znode + " " + wd + ">" ;
+}
+
+
+string PCMD0B::get_tempname( const string& suf )
+{
+	boost::filesystem::path temp = boost::filesystem::temp_directory_path() /
+			boost::filesystem::unique_path( zuser + "-" + zscreen + "-%%%%-%%%%" ) ;
+	return temp.native() + "." + suf ;
+}
+
+
+void PCMD0B::fill_dynamic_area( bool running )
 {
 	int i ;
 
 	size_t dl ;
+
+	string hostUser = zuser + "@" + znode ;
 
 	zarea   = "" ;
 	zshadow = "" ;
@@ -247,12 +299,24 @@ void PCMD0B::fill_dynamic_area()
 		if      ( pstr.compare( 0, 2, ":>" ) == 0 ) { zshadow += sdw ; }
 		else if ( pstr.compare( 0, 2, "e>" ) == 0 ) { zshadow += sdr ; }
 		else if ( pstr.compare( 0, 2, "l>" ) == 0 ) { zshadow += sdg ; }
+		else if ( pstr.compare( 0, 2, "b>" ) == 0 ) { zshadow += sdg ; }
+		else if ( pstr.compare( 0, hostUser.size(), hostUser ) == 0 )  { zshadow += sdt ; }
 		else if ( pstr.compare( 0, 2, ": " ) == 0 ) { zshadow += sdr ; }
 		else                                        { zshadow += sdy ; }
 	}
 
 	zarea.resize( zasize, ' ' ) ;
 	zshadow.resize( zasize, E_YELLOW ) ;
+	if ( running )
+	{
+		zarea.replace( zasize-8, 7, "RUNNING" ) ;
+		zshadow.replace( zasize-8, 7, 7, E_WHITE ) ;
+	}
+	else if ( ( topLine + zaread + 2 ) < lines.size() )
+	{
+		zarea.replace( zasize-8, 7, "MORE..." ) ;
+		zshadow.replace( zasize-8, 7, 7, E_WHITE ) ;
+	}
 	rebuildZAREA = false ;
 }
 
@@ -313,38 +377,34 @@ void PCMD0B::actionZVERB()
 }
 
 
-bool PCMD0B::invoke_task_wait( const string& cmd, string& comm1, const string& comm2 )
+bool PCMD0B::invoke_task( string cmd, string& comm1, const string& comm2 )
 {
 	// Invoke a background task and wait for a reponse (using PCMD0A application)
-	// Timeout after 10seconds unless notimeout specified.
+	// Wait for up to 0.5 second for the command to end, otherwise return.
+
+	// Return:  false - no reponse received within period.  Job running in the background.
+	//          true  - reponse received
 
 	int elapsed ;
 
-	string timeout ;
-
-	vcopy( "TIMEOUT", timeout, MOVE ) ;
 	vput( "COMM1 COMM2", SHARED ) ;
+
+	if ( wd != "" ) { cmd = "cd " + wd + " && " + cmd ; }
 
 	select( "PGM(PCMD0A) PARM("+cmd+") BACK" ) ;
 
-	if ( timeout == "NO" )
-	{
-		control( "TIMEOUT", "DISABLE" ) ;
-	}
-
+	boost::this_thread::sleep_for(boost::chrono::milliseconds( 50 ) ) ;
 	elapsed = 0 ;
-	while ( comm1 != "" )
+	while ( true )
 	{
 		boost::this_thread::sleep_for(boost::chrono::milliseconds( 5 ) ) ;
-		if ( timeout == "YES" && ++elapsed > 2000 )
+		if ( ++elapsed > 100 )
 		{
 			return false ;
 		}
-		vget( "COMM1", SHARED ) ;
-		if ( RC > 0 ) { comm1 = "" ; }
+		qscan( "CMD", comm1 ) ;
+		if ( RC == 8 ) { break ; }
 	}
-
-	control( "TIMEOUT", "ENABLE" ) ;
 	return true ;
 }
 

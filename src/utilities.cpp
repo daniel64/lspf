@@ -1666,6 +1666,8 @@ string& getNameList( errblock& err, string& s )
 
 	bool bracket = false ;
 
+	err.setRC( 0 ) ;
+
 	if ( s == "" ) { return s ; }
 
 	if ( s.front() == '(' )

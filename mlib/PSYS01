@@ -211,3 +211,6 @@ PSYS013F 'Invalid QNAME' .TYPE=W
 PSYS013G 'Invalid RNAME' .TYPE=W
 'The ENQ/DEQ service contains a blank RNAME.'
 
+PSYS013H 'Invalid program' .TYPE=W
+'Errors loading program ''&ZVAL1''.  See logs for unresolved symbol errors'
+

@@ -26,19 +26,21 @@ class PCMD0B : public pApplication
 		void application() ;
 
 	private:
-		void copy_output( const string&, const string& ) ;
-		void timeout_output()    ;
-		void fill_dynamic_area() ;
-		void actionCommand()     ;
-		void actionZVERB()       ;
-		bool invoke_task_wait( const string&, string&, const string& ) ;
+		void copy_output( const string&, const string&, const string& ) ;
+		void fill_dynamic_area( bool ) ;
+		void actioniCommand() ;
+		void actionZVERB()    ;
+		bool invoke_task( string, string&, const string& ) ;
 		void bottom_of_data() ;
+		string command_prompt() ;
+		string get_tempname( const string& ) ;
 
 		int topLine    ;
 		int startCol   ;
 		uint maxCol    ;
 		uint zasize    ;
 
+		string wd      ;
 		string msg     ;
 		string inLine  ;
 
@@ -46,6 +48,7 @@ class PCMD0B : public pApplication
 		int    zareaw  ;
 		string zcmd    ;
 		string zverb   ;
+		string znode   ;
 		string zscreen ;
 		string zuser   ;
 		string zarea   ;
@@ -56,11 +59,14 @@ class PCMD0B : public pApplication
 		string sdw ;
 		string sdy ;
 		string sdg ;
+		string sdt ;
 
 		string zscrolla ;
 		int    zscrolln ;
 
 		bool rebuildZAREA ;
+		bool running      ;
 
 		vector<string> lines ;
+		map<string,string> cmds ;
 };

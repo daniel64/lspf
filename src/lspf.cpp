@@ -324,6 +324,7 @@ void updateDefaultVars()      ;
 void createSharedPoolVars( const string& ) ;
 void updateReflist()          ;
 void startApplication( selobj&, bool =false ) ;
+void checkStartApplication( selobj& )         ;
 void startApplicationBack( selobj, bool =false ) ;
 void terminateApplication()     ;
 void abnormalTermMessage()      ;
@@ -878,7 +879,7 @@ void processZSEL()
 			p_poolMGR->put( err, "ZVAL1", selct.pgm ,SHARED ) ;
 			p_poolMGR->put( err, "ZERRDSC", "P", SHARED ) ;
 			p_poolMGR->put( err, "ZERRSRC", "ZSEL = "+ cmd ,SHARED ) ;
-			errorScreen( "PSYS012W" ) ;
+			errorScreen( ( selct.rsn == 998 ) ? "PSYS012W" : "PSYS013H" ) ;
 		}
 	}
 }
@@ -1266,15 +1267,15 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 	if ( cmdVerb == "HELP")
 	{
 		commandStack = "" ;
+		currAppl->currPanel->cmd_setvalue( "" ) ;
 		if ( currAppl->currPanel->msgid == "" || currAppl->currPanel->showLMSG )
 		{
-			currAppl->currPanel->cmd_setvalue( "" ) ;
 			zparm   = currAppl->get_help_member( row, col ) ;
 			cmdParm = zparm ;
 		}
 		else
 		{
-			zcommand = "NOP" ;
+			zcommand = ""    ;
 			passthru = false ;
 			currAppl->currPanel->showLMSG = true ;
 			currAppl->currPanel->display_msg( err ) ;
@@ -1302,7 +1303,7 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 			displayNextPullDown( row, col ) ;
 			passthru = false ;
 			zcommand = "NOP" ;
-			return ;
+			break ;
 
 		case ZCT_CANCEL:
 			if ( currAppl->currPanel->pd_active() &&
@@ -1338,6 +1339,7 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 			break ;
 
 		case ZCT_RETP:
+			currAppl->currPanel->cmd_setvalue( "" ) ;
 			listRetrieveBuffer() ;
 			passthru = false ;
 			zcommand = "NOP" ;
@@ -1879,35 +1881,18 @@ void processPGMSelect()
 
 	resolvePGM() ;
 
-	if ( apps.find( selct.pgm ) != apps.end() )
+	updateDefaultVars() ;
+
+	if ( selct.backgrd )
 	{
-		updateDefaultVars() ;
-		if ( selct.backgrd )
-		{
-			startApplicationBack( selct, true ) ;
-			ResumeApplicationAndWait() ;
-		}
-		else
-		{
-			startApplication( selct ) ;
-		}
+		startApplicationBack( selct, true ) ;
+		ResumeApplicationAndWait() ;
 	}
 	else
 	{
-		currAppl->RC      = 20  ;
-		currAppl->ZRC     = 20  ;
-		currAppl->ZRSN    = 998 ;
-		currAppl->ZRESULT = "Not Found" ;
-		if ( !currAppl->errorsReturn() )
-		{
-			currAppl->abnormalEnd = true ;
-		}
-		ResumeApplicationAndWait() ;
-		while ( currAppl->terminateAppl )
-		{
-			terminateApplication() ;
-			if ( pLScreen::screensTotal == 0 ) { return ; }
-		}
+		selct.quiet = true ;
+		startApplication( selct ) ;
+		checkStartApplication( selct ) ;
 	}
 }
 
@@ -1924,6 +1909,10 @@ void resolvePGM()
 	{
 		currAppl->vcopy( "ZPANLPGM", selct.pgm, MOVE ) ;
 	}
+	else if ( selct.pgm.size() > 0 && selct.pgm.front() == '&' )
+	{
+		currAppl->vcopy( substr( selct.pgm, 2 ), selct.pgm, MOVE ) ;
+	}
 }
 
 
@@ -1934,6 +1923,9 @@ void startApplication( selobj& sSelect, bool nScreen )
 	// If the program is ISPSTRT, start the application in the PARM field on a new logical screen
 	// or start GMAINPGM.  Force NEWPOOL option regardless of what is coded in the command.
 	// PARM can be a command table entry, a PGM()/CMD()/PANEL() statement or an option for GMAINPGM.
+
+	// Select errors.  RSN=998 Module not found
+	//                 RSN=996 Load errors
 
 	int elapsed ;
 	int spool   ;
@@ -1988,8 +1980,11 @@ void startApplication( selobj& sSelect, bool nScreen )
 	if ( apps.find( sSelect.pgm ) == apps.end() )
 	{
 		sSelect.errors = true ;
-		if ( sSelect.quiet ) { return ; }
-		errorScreen( 1, "Application '"+ sSelect.pgm +"' not found" ) ;
+		sSelect.rsn    = 998  ;
+		if ( not sSelect.quiet )
+		{
+			errorScreen( 1, "Application '"+ sSelect.pgm +"' not found" ) ;
+		}
 		return ;
 	}
 
@@ -1997,7 +1992,12 @@ void startApplication( selobj& sSelect, bool nScreen )
 	{
 		if ( !loadDynamicClass( sSelect.pgm ) )
 		{
-			errorScreen( 1, "Errors loading application "+ sSelect.pgm ) ;
+			sSelect.errors = true ;
+			sSelect.rsn    = 996  ;
+			if ( not sSelect.quiet )
+			{
+				errorScreen( 1, "Errors loading application "+ sSelect.pgm ) ;
+			}
 			return ;
 		}
 	}
@@ -2269,6 +2269,30 @@ void processBackgroundTasks()
 
 	llog( "I", "Background job monitor task stopped" << endl ) ;
 	backStatus = BACK_STOPPED ;
+}
+
+
+void checkStartApplication( selobj& sSelct )
+{
+	if ( not selct.errors ) { return ; }
+
+	currAppl->RC      = 20  ;
+	currAppl->ZRC     = 20  ;
+	currAppl->ZRSN    = sSelct.rsn ;
+	currAppl->ZRESULT = "Not Found" ;
+
+	if ( not currAppl->errorsReturn() )
+	{
+		currAppl->abnormalEnd = true ;
+	}
+
+	ResumeApplicationAndWait() ;
+	while ( currAppl->terminateAppl )
+	{
+		terminateApplication() ;
+		if ( pLScreen::screensTotal == 0 ) { return ; }
+	}
+	selct.errors = false ;
 }
 
 

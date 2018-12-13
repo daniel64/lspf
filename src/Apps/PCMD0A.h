@@ -28,6 +28,7 @@ class PCMD0A : public pApplication
 	private:
 		void run_command( string, const string&, const string& ) ;
 		bool invoke_task_wait( const string&, string&, const string& ) ;
+		string get_tempname( const string& ) ;
 
 		bool isRexx( string ) ;
 

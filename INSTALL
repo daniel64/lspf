@@ -9,6 +9,7 @@ Manually
 4)  Compile applications
 5)  Copy directories mlib, plib and tlib to the paths defined in MLIB, PLIB and TLIB in lspf.h if different.
     If using keylists, make sure key table file ISRKEYP in the tlib/ directory is in the ZUPROF directory (usually ~/.lspf/)
+    or run rexx keygen to create it.
 
 You can use comp1 to compile lspf.cpp, compsetup to compile setup.cpp and compapps for all applications in directory Apps
 This has been developed on Arch Linux - link options may vary (eg. if ncurses is built with --with-termlib add -ltinfo )
@@ -33,7 +34,7 @@ file required for PBRO01A.cpp as it is linked with -lmagic
 Run lspf in a terminal
 
 Works with:
-linux 4.19.7
+linux 4.19.8
 gcc 8.2.1
 ncurses 6.1
 boost 1.68.0
