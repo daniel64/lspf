@@ -1,0 +1,47 @@
+/*
+  Copyright (c) 2019 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+/* Set output and error destinations to the spool      */
+/* Called from other REXX programs so non-lspf         */
+/* output does not mess up lspf displays.              */
+
+/* format is jobkey+REXX+src+stream                    */
+/* Jobkey must match that in pApplication.get_jobkey() */
+
+address ISPEXEC "VGET ZSPOOL PROFILE"
+address ISPEXEC "VGET ZTASKID SHARED"
+
+parse arg src .
+
+if src = "" then
+  do
+    parse source . . src .
+  end
+src = substr( src, lastpos( "/", src ) + 1 )
+
+date = substr( date( "S" ), 1, 4 ) || right( date( "D" ), 3, "0" )
+time = time( "L" )
+
+var = zspool || "/" || date || "-" || substr( time, 1, 2 )  || ,
+				      substr( time, 4, 2 )  || ,
+				      substr( time, 7, 2 )  || ,
+				      substr( time, 10, 2 ) || "-"ZTASKID"-REXX-"src"-"
+
+.output~destination(.stream~new(var"output"))
+.error~destination(.stream~new(var"error"))

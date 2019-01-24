@@ -45,6 +45,11 @@ dynArea   7   2  MAX MAX ZAREA ZSHADOW SCROLL(ON)
 
 )INIT
 IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+&ZUS0 = 0
+&ZUS1 = 0
+IF (&LTYPE = 'lspf') &ZUS1 = 1
+ELSE                 &ZUS0 = 1
+
 )PROC
 IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
 

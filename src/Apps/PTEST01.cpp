@@ -47,13 +47,13 @@ using namespace std ;
 #undef  MOD_NAME
 #define MOD_NAME PTEST01
 
-#define E_RED      3
-#define E_GREEN    4
-#define E_YELLOW   5
-#define E_BLUE     6
-#define E_MAGENTA  7
-#define E_TURQ     8
-#define E_WHITE    9
+#define E_RED      0x03
+#define E_GREEN    0x04
+#define E_YELLOW   0x05
+#define E_BLUE     0x06
+#define E_MAGENTA  0x07
+#define E_TURQ     0x08
+#define E_WHITE    0x09
 
 PTEST01::PTEST01()
 {
@@ -1102,7 +1102,7 @@ void PTEST01::opt5()
 			posn = ZAREA1.find_first_of( attrs, posn ) ;
 			if ( posn == string::npos ) { break ; }
 			ZAREA1[ posn ] = din.front() ;
-			posn++ ;
+			++posn ;
 		}
 
 		if ( zcmd != "" ) { MSG = "PSYS018" ; }

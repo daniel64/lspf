@@ -32,6 +32,7 @@ void execiEnq( pApplication*, const string&, errblock& )      ;
 void execiGetmsg( pApplication*, const string&, errblock& )   ;
 void execiLibdef( pApplication*, const string&, errblock& )   ;
 void execiLog( pApplication*, const string&, errblock& )      ;
+void execiNotify( pApplication*, const string&, errblock& )   ;
 void execiPquery( pApplication*, const string&, errblock& )   ;
 void execiQlibdef( pApplication*, const string&, errblock& )  ;
 void execiQScan( pApplication*, const string&, errblock& )    ;
@@ -40,6 +41,7 @@ void execiRDisplay( pApplication*, const string&, errblock& ) ;
 void execiRempop( pApplication*, const string&, errblock& )   ;
 void execiSelect( pApplication*, const string&, errblock& )   ;
 void execiSetmsg( pApplication*, const string&, errblock& )   ;
+void execiSubmit( pApplication*, const string&, errblock& )   ;
 void execiTBAdd( pApplication*, const string&, errblock& )    ;
 void execiTBBottom( pApplication*, const string&, errblock& ) ;
 void execiTBCreate( pApplication*, const string&, errblock& ) ;
@@ -78,6 +80,7 @@ map<string, void(*)(pApplication*,const string&, errblock&)> execiServices = {
 		  { "GETMSG",   execiGetmsg   },
 		  { "LIBDEF",   execiLibdef   },
 		  { "LOG",      execiLog      },
+		  { "NOTIFY",   execiNotify   },
 		  { "PQUERY",   execiPquery   },
 		  { "QLIBDEF",  execiQlibdef  },
 		  { "QSCAN",    execiQScan    },
@@ -86,6 +89,7 @@ map<string, void(*)(pApplication*,const string&, errblock&)> execiServices = {
 		  { "REMPOP",   execiRempop   },
 		  { "SELECT",   execiSelect   },
 		  { "SETMSG",   execiSetmsg   },
+		  { "SUBMIT",   execiSubmit   },
 		  { "TBADD",    execiTBAdd    },
 		  { "TBBOTTOM", execiTBBottom },
 		  { "TBCREATE", execiTBCreate },
@@ -156,7 +160,7 @@ void execiAddpop( pApplication* thisAppl, const string& s, errblock& err )
 	int i_row ;
 	int i_col ;
 
-	string str    ;
+	string str ;
 
 	string ap_loc ;
 	string ap_row ;
@@ -218,6 +222,7 @@ void execiDeq( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string t   ;
 	string str ;
+
 	string deq_qname ;
 	string deq_rname ;
 
@@ -303,7 +308,7 @@ void execiDisplay( pApplication* thisAppl, const string& s, errblock& err )
 
 void execiEdit( pApplication* thisAppl, const string& s, errblock& err )
 {
-	string str  ;
+	string str ;
 
 	string ed_panel ;
 	string ed_macro ;
@@ -370,6 +375,7 @@ void execiEnq( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string t   ;
 	string str ;
+
 	string enq_qname ;
 	string enq_rname ;
 
@@ -466,10 +472,9 @@ void execiGetmsg( pApplication* thisAppl, const string& s, errblock& err )
 
 void execiLibdef( pApplication* thisAppl, const string& s, errblock& err )
 {
-	string str      ;
+	string str ;
 
 	string ld_files ;
-	string ld_procopt ;
 
 	str      = subword( s, 2 ) ;
 	ld_files = parseString( err, str, "ID()" ) ;
@@ -477,21 +482,19 @@ void execiLibdef( pApplication* thisAppl, const string& s, errblock& err )
 
 	if ( words( str ) > 3 )
 	{
-		err.seterrid( "PSYE032H", subword( str, 4 ) ) ;
+		err.seterrid( "PSYE022K" ) ;
 		return ;
 	}
 
 	iupper( str ) ;
 
-	ld_procopt = word( str, 3 ) ;
-
-	thisAppl->libdef( word( str, 1 ), word( str, 2 ), ld_files, ld_procopt ) ;
+	thisAppl->libdef( word( str, 1 ), word( str, 2 ), ld_files, word( str, 3 ) ) ;
 }
 
 
 void execiLog( pApplication* thisAppl, const string& s, errblock& err )
 {
-	string str   ;
+	string str ;
 
 	string lg_msgid ;
 
@@ -506,6 +509,38 @@ void execiLog( pApplication* thisAppl, const string& s, errblock& err )
 	}
 
 	thisAppl->log( lg_msgid ) ;
+}
+
+
+void execiNotify( pApplication* thisAppl, const string& s, errblock& err )
+{
+	size_t p ;
+
+	char quote ;
+
+	string msg ;
+
+	msg = subword( s, 2 ) ;
+	trim( msg ) ;
+
+	if ( msg.size() > 2 && ( msg.front() == '"' || msg.front() == '\'' ) )
+	{
+		quote = msg.front() ;
+		p     = msg.find( quote, 1 ) ;
+		if ( p == string::npos )
+		{
+			err.seterrid( "PSYE033F" ) ;
+			return ;
+		}
+		if ( p != msg.size() - 1 )
+		{
+			err.seterrid( "PSYE037G" ) ;
+			return ;
+		}
+		msg = msg.substr( 1, p-1 ) ;
+	}
+
+	thisAppl->notify( msg, false ) ;
 }
 
 
@@ -668,11 +703,11 @@ void execiRempop( pApplication* thisAppl, const string& s, errblock& err )
 
 void execiSelect( pApplication* thisAppl, const string& s, errblock& err )
 {
-	selobj SEL ;
+	selobj sel ;
 
-	if ( !SEL.parse( err, subword( s, 2 ) ) ) { return ; }
+	if ( !sel.parse( err, subword( s, 2 ) ) ) { return ; }
 
-	thisAppl->select( SEL ) ;
+	thisAppl->select( sel ) ;
 }
 
 
@@ -697,6 +732,16 @@ void execiSetmsg( pApplication* thisAppl, const string& s, errblock& err )
 	}
 
 	thisAppl->setmsg( s_msg, t ) ;
+}
+
+
+void execiSubmit( pApplication* thisAppl, const string& s, errblock& err )
+{
+	selobj sel ;
+
+	if ( !sel.parse( err, subword( s, 2 ) ) ) { return ; }
+
+	thisAppl->submit( sel ) ;
 }
 
 
@@ -756,13 +801,14 @@ void execiTBClose( pApplication* thisAppl, const string& s, errblock& err )
 	string tb_nname ;
 	string tb_path  ;
 
-	tb_name  = upper( word( s, 2 ) ) ;
-	str      = subword( s, 3 )       ;
-
-	tb_nname = parseString( err, str, "NAME()" ) ;
-	if ( err.error() ) { return ; }
+	tb_name  = word( s, 2 ) ;
+	str      = subword( s, 3 ) ;
 
 	tb_path = parseString( err, str, "LIBRARY()" ) ;
+	if ( err.error() ) { return ; }
+
+	iupper( str ) ;
+	tb_nname = parseString( err, str, "NAME()" ) ;
 	if ( err.error() ) { return ; }
 
 	if ( str != "" )
@@ -820,7 +866,7 @@ void execiTBCreate( pApplication* thisAppl, const string& s, errblock& err )
 
 	if ( t != "" ) { tb_rep = REPLACE ; }
 
-	tb_disp = EXCLUSIVE ;
+	tb_disp = NON_SHARE ;
 	t = parseString( err, str, "SHARE" ) ;
 	if ( err.error() ) { return ; }
 	if ( t != "" ) { tb_disp = SHARE ; }
@@ -1066,7 +1112,7 @@ void execiTBOpen( pApplication* thisAppl, const string& s, errblock& err )
 
 	iupper( str ) ;
 	if      ( str == "SHARE" ) { tb_disp = SHARE     ; }
-	else if ( str == ""      ) { tb_disp = EXCLUSIVE ; }
+	else if ( str == ""      ) { tb_disp = NON_SHARE ; }
 	else
 	{
 		err.seterrid( "PSYE032H", str ) ;
@@ -1174,13 +1220,13 @@ void execiTBSarg( pApplication* thisAppl, const string& s, errblock& err )
 
 void execiTBSave( pApplication* thisAppl, const string& s, errblock& err )
 {
-	string str      ;
+	string str ;
 
 	string tb_name  ;
 	string tb_nname ;
 	string tb_path  ;
 
-	tb_name  = upper( word( s, 2 ) ) ;
+	tb_name  = word( s, 2 ) ;
 	str      = subword( s, 3 ) ;
 
 	tb_nname = parseString( err, str, "NAME()" ) ;
@@ -1195,7 +1241,7 @@ void execiTBSave( pApplication* thisAppl, const string& s, errblock& err )
 		return ;
 	}
 
-	thisAppl->tbsave( tb_name, tb_nname, tb_path ) ;
+	thisAppl->tbsave( iupper( tb_name ), iupper( tb_nname ), tb_path ) ;
 }
 
 
@@ -1409,7 +1455,7 @@ void execiVget( pApplication* thisAppl, const string& s, errblock& err )
 
 	if ( thisAppl->rexxName != "" )
 	{
-		for ( i = 1 ; i <= n ; i++ )
+		for ( i = 1 ; i <= n ; ++i )
 		{
 			var = word( vars, i ) ;
 			if ( isvalidName( var ) )

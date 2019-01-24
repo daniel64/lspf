@@ -44,3 +44,6 @@ PPSP011E 'Actions retored' .TYPE=N
 
 PPSP011F 'No keylist table' .TYPE=W
 'Keylist table not found for application &ZAPPLID'
+
+PPSP011G 'No output found' .TYPE=W
+'There is no spooled output for this job'

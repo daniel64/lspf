@@ -17,6 +17,8 @@
 
 */
 
+using namespace lspf ;
+
 namespace lspfc
 {
 

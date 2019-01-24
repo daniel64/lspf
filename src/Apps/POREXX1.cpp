@@ -97,6 +97,7 @@ void POREXX1::application()
 
 	string rxpath  ;
 	string val1    ;
+	string msg     ;
 
 	bool call_uabend = false ;
 
@@ -170,7 +171,12 @@ void POREXX1::application()
 			ZRC = 20 ;
 			if ( condition.code == Rexx_Error_Program_unreadable_notfound )
 			{
-				rdisplay( "COMMAND "+ rexxName + " NOT FOUND" ) ;
+				msg = "COMMAND "+ rexxName + " NOT FOUND" ;
+				rdisplay( msg ) ;
+				if ( background() )
+				{
+					notify( msg ) ;
+				}
 				ZRSN    = 997 ;
 				ZRESULT = "Not Found" ;
 			}
@@ -219,6 +225,8 @@ void POREXX1::showErrorScreen( const string& msg, string& val1 )
 
 	string* t ;
 
+	if ( background() ) { return ; }
+
 	vdefine( "ZSCRMAXW", &maxw ) ;
 	vdefine( "ZVAL1", &val1 ) ;
 	vreplace( "ZERRMSG", msg ) ;
@@ -235,7 +243,7 @@ void POREXX1::showErrorScreen( const string& msg, string& val1 )
 	l    = 0 ;
 	do
 	{
-		l++ ;
+		++l ;
 		if ( t->size() > maxw )
 		{
 			i = t->find_last_of( ' ', maxw ) ;
@@ -341,21 +349,21 @@ int setAllRexxVariables( pApplication* thisAppl )
 
 	// Note: vslist and vilist return the same variable reference
 
-	int rc   ;
+	int rc = 0 ;
 
 	set<string>& vl = thisAppl->vslist() ;
 
 	string* val1 ;
 	string  val2 ;
 
-	for ( auto it = vl.begin() ; it != vl.end() ; it++ )
+	for ( auto it = vl.begin() ; it != vl.end() ; ++it )
 	{
 		thisAppl->vcopy( *it, val1, LOCATE ) ;
 		rc = setRexxVariable( *it, *val1 )  ;
 	}
 
 	thisAppl->vilist() ;
-	for ( auto it = vl.begin() ; it != vl.end() ; it++ )
+	for ( auto it = vl.begin() ; it != vl.end() ; ++it )
 	{
 		thisAppl->vcopy( *it, val2, MOVE ) ;
 		rc = setRexxVariable( *it, val2 ) ;

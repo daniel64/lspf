@@ -16,10 +16,11 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 */
-"rm /tmp/emac.say 2> /dev/null"
-"rm /tmp/emac.err 2> /dev/null"
-.output~destination(.stream~new("/tmp/emac.say"))
-/**********************************************************************************************/
+
+/* Re-direct say ouput and error messages to the spool or it'll mess up lspf output */
+parse source . . src .
+Call setdest src
+/************************************************************************************/
 
 /**********************************************************************************************/
 /* Example edit macro to change literal to text in the panels directory                       */

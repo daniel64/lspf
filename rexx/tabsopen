@@ -17,12 +17,10 @@
 
 */
 
-/* Re-direct say ouput and error messages to a temporary file or it'll mess up lspf output */
-"rm /tmp/tabsopen.say 2> /dev/null"
-"rm /tmp/tabsopen.err 2> /dev/null"
-.output~destination(.stream~new("/tmp/tabsopen.say"))
-.error~destination(.stream~new("/tmp/tabsopen.err"))
-/**********************************************************************************************/
+/* Re-direct say ouput and error messages to the spool or it'll mess up lspf output */
+parse source . . src .
+Call setdest src
+/************************************************************************************/
 
 address ISPEXEC
 "QTABOPEN LIST(A)"

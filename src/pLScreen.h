@@ -61,6 +61,7 @@ class pLScreen
 	void  OIA_setup()  ;
 	void  OIA_update( int, int ) ;
 	void  OIA_startTime() { startTime = boost::posix_time::microsec_clock::universal_time() ; }
+	void  OIA_endTime()   { endTime   = boost::posix_time::microsec_clock::universal_time() ; }
 	void  OIA_refresh() ;
 
 	void  show_enter()  ;
@@ -88,6 +89,7 @@ private:
 	bool Insert ;
 
 	boost::posix_time::ptime startTime ;
+	boost::posix_time::ptime endTime   ;
 
 	stack<pApplication*> pApplicationStack ;
 	stack<PANEL*> panelList ;

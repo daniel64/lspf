@@ -31,10 +31,10 @@
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
-#define LSPF_VERSION "1.1.4"
+#define LSPF_VERSION "1.1.5"
 #define LSPF_VERSION_MAJ 1
 #define LSPF_VERSION_REV 1
-#define LSPF_VERSION_MOD 4
+#define LSPF_VERSION_MOD 5
 
 typedef unsigned int uint ;
 
@@ -61,6 +61,7 @@ using namespace boost::posix_time ;
 // TUSR     - User search path for tables. Can use ~ character (concatination allowed).
 // TABU     - User table ouput path. Can use the ~ character (concatination allowed).
 // ZREXPATH - Location of the rexx execs (conatenation allowed).  Can use ~ character
+// ZSPOOL   - Name of the directory to store command and job output.  Can use ~ character.
 // ZMAINPGM - Name of the initial program to invoke.  This is treated as a SELECT PANEL()
 // ZMAINPAN - Name of the initial selection panel to invoke ( ie. SELECT PANEL(ZMAINPAN) )
 // ZPANLPGM - Name of the program invoked on the SELECT PANEL service
@@ -70,11 +71,11 @@ using namespace boost::posix_time ;
 // ZFLSTPGM - Name of the file list program to invoke
 // ZHELPPGM - Name of the tutorial/help program to invoke
 // ZOREXPGM - Name of the oorexx interpreter call program to invoke
+// ZSHELPGM - Name of the shell interpreter program to invoke
 // ZSHELP   - Name of the system help member (ZPLIB/help concatenation searched for this)
 // ZMAXSCRN - Maximum number of split screens allowed (Greater than 8 and the screen will not be displayed in the Screen[] status area.)
-// ZWAIT    - Wait time to check if the application has gone into a wait-for-user-response (normally a few ms)
-// ZMAXWAIT - Max wait time to terminate the application if it has not gone into a wait-for-user-response (application may be looping)
 // EDREC_SZ - Size of the edit recovery table
+// MXTAB_SZ - Maximum number of rows allowed in an lspf table
 
 #define ZUPROF          "/.lspf"
 #define ZSYSPATH        "/home/daniel/lspf"
@@ -88,6 +89,7 @@ using namespace boost::posix_time ;
 #define TUSR            ""
 #define TABU            ""
 #define ZREXPATH        "~/rexx:" ZSYSPATH "/rexx"
+#define ZSPOOL          "~" ZUPROF "/spool"
 #define SLOG            "~/.lspf/lspflog"
 #define ALOG            "~/.lspf/appllog"
 #define ZRFLTBL         "LSRPLIST"
@@ -100,12 +102,12 @@ using namespace boost::posix_time ;
 #define ZFLSTPGM        "PFLST0A"
 #define ZHELPPGM        "PTUTORA"
 #define ZOREXPGM        "POREXX1"
+#define ZSHELPGM        "PSHELL0"
 #define ZSHELP          "HPSPF01"
 #define ZRFLPGM         "PLRFLST1"
 #define ZMAXSCRN        8
-#define ZWAIT           5
-#define ZMAXWAIT        1000
 #define EDREC_SZ        8
+#define MXTAB_SZ        500000
 // ***************************************** End custom values **************************************
 
 // ***************************************** CUA defaults *******************************************
@@ -192,7 +194,7 @@ enum tbREP
 enum tbDISP
 {
 	SHARE,
-	EXCLUSIVE
+	NON_SHARE
 } ;
 
 enum enqDISP
@@ -205,6 +207,14 @@ enum enqSCOPE
 {
 	LOCAL,
 	GLOBAL
+} ;
+
+enum WAIT_REASON
+{
+	WAIT_NONE,
+	WAIT_OUTPUT,
+	WAIT_SELECT,
+	WAIT_USER
 } ;
 
 enum dataType
@@ -308,8 +318,6 @@ enum attType
 } ;
 
 }
-
-using namespace lspf ;
 
 
 class errblock

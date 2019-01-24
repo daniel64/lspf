@@ -32,6 +32,8 @@ class fVAR
 		int      fVAR_int        ;
 		dataType fVAR_type       ;
 		bool     fVAR_defined    ;
+		bool     fVAR_valid      ;
+
 	friend class fPOOL ;
 } ;
 
@@ -47,8 +49,7 @@ class fPOOL
 	~fPOOL() ;
 		void define( errblock& err,
 			     const string& name ,
-			     string* addr,
-			     nameCHCK check=CHECK ) ;
+			     string* addr ) ;
 
 		void define( errblock& err,
 			     const string& name,
@@ -60,16 +61,14 @@ class fPOOL
 		set<string> varList ;
 
 		bool ifexists( errblock& err,
-			       const string& name,
-			       nameCHCK check=CHECK ) ;
+			       const string& name ) ;
 
 		dataType getType( errblock& err,
 				  const string& name,
-				  nameCHCK check=CHECK )  ;
+				  nameCHCK check=CHECK ) ;
 
 		string* vlocate( errblock& err,
-				 const string& name,
-				 nameCHCK check=CHECK )  ;
+				 const string& name ) ;
 
 		void put( errblock& err,
 			  const string& name,
@@ -95,8 +94,7 @@ class fPOOL
 			      const string& mask ) ;
 
 		void dlete( errblock& err,
-			    const string& name,
-			    nameCHCK check=CHECK ) ;
+			    const string& name ) ;
 
 		void reset( errblock& err ) ;
 
@@ -128,6 +126,7 @@ enum pVType
 	pV_ZJDATE,
 	pV_ZJ4DATE,
 	pV_ZYEAR,
+	pV_ZTASKID,
 	pV_ZSTDYEAR
 } ;
 
@@ -194,8 +193,8 @@ class pVPOOL
 		bool   isSystem( map<string, pVAR*>::iterator v_it ) ;
 
 		void   setReadOnly()  { readOnly = true     ; }
-		void   incRefCount()  { refCount++          ; }
-		void   decRefCount()  { refCount--          ; }
+		void   incRefCount()  { ++refCount          ; }
+		void   decRefCount()  { --refCount          ; }
 		void   sysProfile()   { sysProf = true      ; }
 		bool   issysProfile() { return sysProf      ; }
 		bool   inUse()        { return refCount > 0 ; }

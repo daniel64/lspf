@@ -17,12 +17,10 @@
 
 */
 
-/* Re-direct say ouput and error messages to a temporary file or it'll mess up lspf output */
-"rm /tmp/cmdtab1.say 2> /dev/null"
-"rm /tmp/cmdtab1.err 2> /dev/null"
-.output~destination(.stream~new("/tmp/cmdtab1.say"))
-.error~destination(.stream~new("/tmp/cmdtab1.err"))
-/**********************************************************************************************/
+/* Re-direct say ouput and error messages to the spool or it'll mess up lspf output */
+parse source . . src .
+Call setdest src
+/************************************************************************************/
 
 /* Create lspf Command Table                               */
 /* -------------------------                               */
@@ -125,6 +123,11 @@ y = addrow( "TIME", ,
             "0", ,
             "ALIAS EXEC time", ,
             "Show time" )
+
+y = addrow( "SUBMIT", ,
+            "3", ,
+            "SELECT CMD(SUBMIT &ZPARM) LANG(REXX)", ,
+            "Submit background job" )
 /* ************** ************************* ********************* */
 /* ************** End Command Table Entries ********************* */
 /* ************** ************************* ********************* */

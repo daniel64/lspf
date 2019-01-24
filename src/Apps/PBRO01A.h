@@ -150,4 +150,4 @@ class PBRO01A : public pApplication
 		string fileType ;
 		string detLang  ;
 		string entLang  ;
-};
+} ;

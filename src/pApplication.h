@@ -27,9 +27,9 @@ class pApplication
 		virtual void application() = 0 ;
 		virtual void isredit( const string& ) {} ;
 
-		static boost::mutex mtx ;
 		static map<int, void*>ApplUserData ;
 		static vector<enqueue>g_enqueues ;
+		static vector<string>notifies ;
 		static poolMGR*  p_poolMGR  ;
 		static tableMGR* p_tableMGR ;
 		static logger*   lg         ;
@@ -44,7 +44,6 @@ class pApplication
 		bool   testMode           ;
 		bool   propagateEnd       ;
 		bool   jumpEntered        ;
-		bool   noTimeOut          ;
 		bool   busyAppl           ;
 		bool   terminateAppl      ;
 		bool   applicationEnded   ;
@@ -60,16 +59,18 @@ class pApplication
 		bool   passlib            ;
 		bool   suspend            ;
 		bool   setMessage         ;
+		string startDate          ;
+		string startTime          ;
 		string rexxName           ;
 		string reffield           ;
 		string lineBuffer         ;
 
 		int    ZRC                ;
 		int    ZRSN               ;
-		int    ZTASKID            ;
 		string ZRESULT            ;
 
 		boost::thread* pThread    ;
+		pApplication*  uAppl      ;
 
 		void (* lspfCallback)( lspfCommand& ) ;
 
@@ -89,10 +90,12 @@ class pApplication
 		string get_current_screenName() ;
 		string get_panelid() ;
 
-		void  set_zlibd( const map<string,stack<string>>& libs ) { zlibd = libs ; }
+		void  set_zlibd( bool, const map<string,stack<string>>& ) ;
 		const map<string,stack<string>>& get_zlibd()             { return zlibd ; }
 
 		string get_applid() ;
+
+		const string& get_jobkey() ;
 
 		void   set_appdesc( const string& s )   { zappdesc = s ; }
 		void   set_appver(  const string& s )   { zappver  = s ; }
@@ -119,8 +122,16 @@ class pApplication
 			       const string& r= "",
 			       const string& c = "" ) ;
 
+		bool   notify() ;
+		void   notify( const string&, bool =true ) ;
+		bool   notify_pending() ;
+
 		void   select( const string& ) ;
 		void   select( const selobj& ) ;
+
+		void   submit( const string& ) ;
+		void   submit( const selobj& ) ;
+
 		void   qlibdef( const string&, const string& ="" , const string& ="" ) ;
 
 		void   vcopy( const string&, string&, vcMODE=MOVE ) ;
@@ -134,10 +145,14 @@ class pApplication
 				string* =NULL,
 				string* =NULL,
 				string* =NULL,
+				string* =NULL,
+				string* =NULL,
 				string* =NULL ) ;
 
 		void   vdefine( const string&,
 				int*,
+				int* =NULL,
+				int* =NULL,
 				int* =NULL,
 				int* =NULL,
 				int* =NULL,
@@ -180,7 +195,7 @@ class pApplication
 				 tbWRITE =NOWRITE,
 				 tbREP =NOREPLACE,
 				 string path="",
-				 tbDISP =EXCLUSIVE ) ;
+				 tbDISP =NON_SHARE ) ;
 
 		void   tbdelete( const string& tb_name ) ;
 
@@ -207,9 +222,18 @@ class pApplication
 			      const string& tb_noread="",
 			      const string& tb_crp_name="" ) ;
 
-		void   tbmod( const string& tb_name, string tb_namelst="", const string& tb_order="" ) ;
-		void   tbopen( const string& tb_name, tbWRITE WRITE, string path="", tbDISP c=EXCLUSIVE ) ;
-		void   tbput( const string& tb_name, string tb_namelst="", const string& tb_order="" ) ;
+		void   tbmod( const string& tb_name,
+			      string tb_namelst="",
+			      const string& tb_order="" ) ;
+
+		void   tbopen( const string& tb_name,
+			       tbWRITE WRITE,
+			       string path="",
+			       tbDISP c=NON_SHARE ) ;
+
+		void   tbput( const string& tb_name,
+			      string tb_namelst="",
+			      const string& tb_order="" ) ;
 
 		void   tbquery( const string& tb_name,
 				const string& tb_keyn="",
@@ -249,8 +273,11 @@ class pApplication
 			       const string& tb_noread="",
 			       const string& tb_crp_name="" ) ;
 
-		void   tbsort( const string& tb_name, string tb_fields ) ;
+		void   tbsort( const string& tb_name,
+			       string tb_fields ) ;
+
 		void   tbtop( const string& tb_name ) ;
+
 		void   tbvclear( const string& tb_name ) ;
 
 		void   browse( const string& m_file,
@@ -265,6 +292,7 @@ class pApplication
 			     const string& m_preserv="" ) ;
 
 		void   edrec( const string& m_parm ) ;
+
 		int    edrec_init( const string& m_parm,
 				   const string& qname,
 				   const string& rname,
@@ -327,6 +355,7 @@ class pApplication
 		void   msgResponseOK() ;
 		bool   nretriev_on()   ;
 		string get_nretfield() ;
+		string& get_zparm()              { return zparm ; }
 		void   (pApplication::*pcleanup)() = &pApplication::cleanup_default ;
 		bool   cleanupRunning()          { return !abended ; }
 		void   abend()  ;
@@ -366,8 +395,11 @@ class pApplication
 
 		bool   get_nested()              { return nested  ; }
 		void*  get_options()             { return options ; }
+		string get_status() ;
 
 		void   show_enqueues() ;
+
+		bool   background()              { return backgrd ; }
 
 		bool   msg_issued_with_cmd() ;
 
@@ -379,7 +411,10 @@ class pApplication
 
 		string sub_vars( string ) ;
 
+
 	private:
+		static boost::mutex mtx ;
+
 		boost::mutex mutex ;
 		vector<enqueue>l_enqueues ;
 
@@ -395,6 +430,7 @@ class pApplication
 		int  taskId      ;
 
 		bool backgrd ;
+		bool notifyEnded ;
 		bool addpop_active  ;
 		bool refreshlScreen ;
 		bool ControlErrorsReturn ;
@@ -410,6 +446,9 @@ class pApplication
 
 		selobj selct    ;
 
+		string zjobkey  ;
+
+		string zparm    ;
 		string zappname ;
 		string zappdesc ;
 		string zappver  ;
@@ -437,10 +476,7 @@ class pApplication
 		string zerr7    ;
 		string zerr8    ;
 
-		string lspf_version     = LSPF_VERSION     ;
-		int    lspf_version_maj = LSPF_VERSION_MAJ ;
-		int    lspf_version_rev = LSPF_VERSION_REV ;
-		int    lspf_version_mod = LSPF_VERSION_MOD ;
+		WAIT_REASON waiting_on ;
 
 		void get_message( const string& )  ;
 		int  check_message_id( const string& ) ;
@@ -464,6 +500,7 @@ class pApplication
 		map<string,stack<string>> zlibd ;
 
 		string get_search_path( s_paths ) ;
+		string get_search_path( const string& ) ;
 
 		void load_keylist( pPanel* ) ;
 		void createPanel( const string& p_name ) ;

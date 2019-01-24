@@ -17,7 +17,9 @@
 
 */
 
+#include <boost/filesystem.hpp>
 using namespace std;
+using namespace boost::filesystem ;
 
 class PPSP01A : public pApplication
 {
@@ -61,7 +63,9 @@ class PPSP01A : public pApplication
 		int    zscrolln ;
 		int    zcurinx  ;
 		int    ztdtop   ;
+		int    ztdvrows ;
 		int    ztdsels  ;
+		int    ztddepth ;
 
 		string sel     ;
 		string var     ;
@@ -98,7 +102,7 @@ class PPSP01A : public pApplication
 		void getpoolVariables( const string&, const string& ) ;
 		void browseEntry( string& ) ;
 		void editEntry( string& )   ;
-		int  editRecovery()      ;                                                                              
+		int  editRecovery()      ;
 		void showPaths()         ;
 		void showCommandTables() ;
 		void showLoadedClasses() ;
@@ -110,12 +114,20 @@ class PPSP01A : public pApplication
 		void keylistTable( string="", string="", string="" ) ;
 		void editKeylist( const string&, const string& ) ;
 		void viewKeylist( const string&, const string& ) ;
-		void listDirectory( const string& ) ;                                                                   
-		void updateReflist( const string& ) ;                                                                   
+		void listDirectory( const string& ) ;
+		void updateReflist( const string& ) ;
 		void createKeyTable( string )  ;
 		void controlKeys()             ;
 		void libdefStatus()            ;
 		void showErrorScreen1()        ;
 		void showErrorScreen2( string& ) ;
+		void showHeldOutput()          ;
+		void showHeldOutput_build( const string&,
+					   vector<path>&,
+					   map<string, int>&,
+					   set<string>& ) ;
+		void showHeldOutput_display( const string&, vector<path>& ) ;
+		void showHeldOutput_purge( const string&, vector<path>& ) ;
+		string get_tempname() ;
 
 } ;

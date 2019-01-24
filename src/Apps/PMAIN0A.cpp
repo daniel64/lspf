@@ -38,15 +38,15 @@ using namespace boost::gregorian;
 #undef  MOD_NAME
 #define MOD_NAME PMAIN0A
 
-#define E_RED      1
-#define E_GREEN    2
-#define E_YELLOW   3
-#define E_BLUE     4
-#define E_MAGENTA  5
-#define E_TURQ     6
-#define E_WHITE    7
+#define E_RED      0x01
+#define E_GREEN    0x02
+#define E_YELLOW   0x03
+#define E_BLUE     0x04
+#define E_MAGENTA  0x05
+#define E_TURQ     0x06
+#define E_WHITE    0x07
 
-#define G_TURQ     8
+#define G_TURQ     0x08
 
 PMAIN0A::PMAIN0A()
 {
@@ -180,8 +180,8 @@ void PMAIN0A::create_calendar( int pmonth, int pyear )
 	daypos = 0 ;
 	year   = pyear  + (offset / 12) ;
 	month  = pmonth + (offset % 12) ;
-	if ( month > 12 ) { month -= 12 ; year++ ; }
-	if ( month < 1  ) { month += 12 ; year-- ; }
+	if ( month > 12 ) { month -= 12 ; ++year ; }
+	if ( month < 1  ) { month += 12 ; --year ; }
 
 	eom_day = gregorian_calendar::end_of_month_day( year,month ) ;
 	date endOfMonth( year, month, eom_day ) ;
@@ -215,16 +215,16 @@ void PMAIN0A::create_calendar( int pmonth, int pyear )
 		     month == cmonth &&
 		      year == cyear ) { daypos = zarea.size() ; }
 		zarea += centre( d2ds( i ), 3 ) ;
-		i++ ;
+		++i ;
 	}
 
 	zarea.resize( 189, ' ' ) ;
 	zarea += left( "Time . . . . : " + ztime, 21 ) ;
-	zarea += left( "Day of Year. : " + substr( zjdate, 4, 3 ), 21 ) ;
+	zarea += left( "Day of Year. :   " + substr( zjdate, 4, 3 ), 21 ) ;
 
 	zshadow = string( 231, E_WHITE ) ;
 
-	zshadow.replace(  21,  21,  21, E_RED   )  ;
+	zshadow.replace(  21,  21,  21, E_RED )  ;
 	zshadow.replace(  42,  21,  21, E_YELLOW ) ;
 
 	zshadow.replace(  63,   2,   2, E_TURQ ) ;

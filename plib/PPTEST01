@@ -82,7 +82,7 @@ IF ( TRUNC( &ZCMD, 1 ) EQ '.' )
                5,'PGM(PTEST01) PARM(5)'
                6,'PGM(PTEST01) PARM(6)'
                7,'PGM(PTEST01) PARM(7)'
-               8,'CMD(rtest2) BACK'
+               8,'CMD(rtest2)'
                A,'PGM(PTEST01) PARM(ABEND)'
                T,'PGM(&ZHELPPGM)  PARM(T)'
                X,EXIT

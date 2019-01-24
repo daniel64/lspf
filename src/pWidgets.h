@@ -53,8 +53,8 @@ class dynArea
 
 		void setsize( int, int, int, int ) ;
 
-       friend class pPanel ;
-       friend class field  ;
+	friend class pPanel ;
+	friend class field  ;
 } ;
 
 
@@ -175,7 +175,7 @@ class field
 		int  end_of_field( WINDOW* win,
 				   uint col ) ;
 
-       friend class pPanel ;
+	friend class pPanel ;
 } ;
 
 
@@ -204,7 +204,7 @@ class text
 		void text_display( WINDOW* ) ;
 		bool cursor_on_text( uint row, uint col ) ;
 
-       friend class pPanel ;
+	friend class pPanel ;
 } ;
 
 

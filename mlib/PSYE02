@@ -24,7 +24,7 @@ PSYE022C 'LOCATE option invalid'
 'LOCATE cannot be used for integer values'
 
 PSYE022D 'Too many variables on VDEFINE statement'
-'A maximum of 8 variables are allowed on a VDEFINE statement'
+'A maximum of 10 variables are allowed on a VDEFINE statement'
 
 PSYE022E 'Address is NULL on VDEFINE statement'
 'Address cannot be NULL'
@@ -35,8 +35,8 @@ PSYE022F 'Invalid ID()'
 PSYE022G 'Invalid user search type ''&ZVAL1'''
 'Valid type is PATH'
 
-PSYE022H 'Invalid search library name ''&ZVAL1'''
-'Valid application libraries are ZMLIB, ZPLIB, ZTLIB and ZTABL'
+PSYE022H '''&ZVAL1'' not found'
+'LIBDEF lib-type ''&ZVAL1'' does not exist'
 
 PSYE022I 'Invalid processing option ''&ZVAL1'''
 'Valid processing options are COND, UNCOND, STACK and STKADD'
@@ -44,8 +44,8 @@ PSYE022I 'Invalid processing option ''&ZVAL1'''
 PSYE022J 'Invalid &ZVAL1 name ''&ZVAL2'''
 '&ZVAL1 name has an invalid format'
 
-PSYE022K 'Library path not specified'
-'Specifiy a table input library when WRITE specified'
+PSYE022K 'Too many sub-parameters'
+'Only one of COND, UNCOND, STACK or STKADD allowed (default STACK)'
 
 PSYE022L 'No prior DISPLAY PANEL'
 'ADDPOP specifying a field value must be preceeded by a DISPLAY PANEL'
@@ -123,4 +123,4 @@ PSYE023K 'Invalid parameters'
 'Invalid combination of parameters on LIBDEF statement'
 
 PSYE023L 'Directory invalid'
-'Entry ''&ZVAL1'' is invalid or does not exist'
+'Entry ''&ZVAL1'' is invalid, is not a directory or does not exist'

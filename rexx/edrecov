@@ -17,11 +17,10 @@
 
 */
 
-/* Re-direct say ouput and error messages to a temporary file or it'll mess up lspf output */
-"rm /tmp/edrecov.say 2> /dev/null"
-"rm /tmp/edrecov.err 2> /dev/null"
-.output~destination(.stream~new("/tmp/edrecov.say"))
-.error~destination(.stream~new("/tmp/edrecov.err"))
+/* Re-direct say ouput and error messages to the spool or it'll mess up lspf output */
+parse source . . src .
+Call setdest src
+/************************************************************************************/
 
 /*****************************************************************************/
 /* REXX exec to perform edit recovery prior to edit                          */

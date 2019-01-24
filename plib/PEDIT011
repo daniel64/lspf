@@ -51,6 +51,7 @@ text    24 34 NT "to edit file"
 
 
 )INIT
+.HELP = HEDIT01
 .NRET = ON
 .NRET = ZFILE
 

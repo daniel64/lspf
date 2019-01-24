@@ -198,12 +198,14 @@ class Table
 
 		void   tbsort( errblock& err,
 			       string tb_fields ) ;
+
 		void   tbtop( errblock& err ) ;
+
 		void   tbvclear( errblock& err,
 				 fPOOL& funcPOOL ) ;
 
-		void incRefCount() { refCount++           ; }
-		void decRefCount() { refCount--           ; }
+		void incRefCount() { ++refCount           ; }
+		void decRefCount() { --refCount           ; }
 		bool notInUse()    { return refCount == 0 ; }
 
 		friend class tableMGR ;
@@ -213,31 +215,19 @@ class Table
 class tableMGR
 {
 	public:
-		tableMGR()
-		{
-		}
+		tableMGR() {} ;
 		~tableMGR() ;
 
 		static logger* lg ;
 
-		map<string, Table*>::iterator createTable( errblock& err,
-							   const string& tb_name,
-							   string keys,
-							   string flds,
-							   tbREP m_REP,
-							   tbWRITE m_WRITE,
-							   const string& m_path,
-							   tbDISP m_DISP,
-							   bool tb_open=false ) ;
-
-		map<string, Table*>::iterator loadTable( errblock& err,
-							 const string& tb_name,
-							 tbWRITE=WRITE,
-							 const string& src="",
-							 tbDISP=EXCLUSIVE,
-							 bool =false ) ;
+		multimap<string, Table*>::iterator loadTable( errblock& err,
+							      const string& tb_name,
+							      tbWRITE=WRITE,
+							      const string& src="",
+							      tbDISP=NON_SHARE ) ;
 
 		void   saveTable( errblock& err,
+				  const string& tb_func,
 				  const string& tb_name,
 				  const string& m_newname,
 				  const string& m_path ) ;
@@ -253,6 +243,15 @@ class tableMGR
 			      const string& tb_order,
 			      int tb_num_of_rows ) ;
 
+		void tbcreate( errblock& err,
+			       const string& tb_name,
+			       string keys,
+			       string flds,
+			       tbREP m_REP,
+			       tbWRITE m_WRITE,
+			       const string& m_path,
+			       tbDISP m_DISP ) ;
+
 		void   tbsort( errblock& err,
 			       const string& tb_name,
 			       const string& tb_fields ) ;
@@ -267,9 +266,28 @@ class tableMGR
 				  bool  try_load ) ;
 
 	private:
-		map<string, Table*> tables ;
+		multimap<string, Table*> tables ;
+
+		map<Table*, string> table_enqs ;
 
 		boost::recursive_mutex mtx ;
+
+		multimap<string, Table*>::iterator getTableIterator( errblock& err,
+								     const string& tb_name ) ;
+
+		multimap<string, Table*>::iterator createTable( errblock& err,
+								const string& tb_name,
+								string keys,
+								string flds,
+								tbWRITE m_WRITE,
+								tbDISP m_DISP ) ;
+
+		int    enq( Table* tab,
+			    const string& tb_name ) ;
+
+		int    deq( Table* tab ) ;
+
+		Table* qscan( const string& filename ) ;
 
 		void   fillfVARs( errblock& err,
 				  fPOOL& funcPOOL,

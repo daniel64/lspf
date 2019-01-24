@@ -56,13 +56,13 @@ using namespace boost::filesystem ;
 #undef  MOD_NAME
 #define MOD_NAME PTUTORA
 
-#define E_RED      3
-#define E_GREEN    4
-#define E_YELLOW   5
-#define E_BLUE     6
-#define E_MAGENTA  7
-#define E_TURQ     8
-#define E_WHITE    9
+#define E_RED      0x03
+#define E_GREEN    0x04
+#define E_YELLOW   0x05
+#define E_BLUE     0x06
+#define E_MAGENTA  0x07
+#define E_TURQ     0x08
+#define E_WHITE    0x09
 
 PTUTORA::PTUTORA()
 {
@@ -168,11 +168,11 @@ void PTUTORA::application()
 	data.push_back( " Keylist Help. . . . . . : " + kh ) ;
 
 	j = getpaths( ps ) ;
-	for ( i = 1 ; i <= words( helplst ) ; i++ )
+	for ( i = 1 ; i <= words( helplst ) ; ++i )
 	{
 		help     = word( helplst, i ) ;
 		filename = ""                 ;
-		for ( k = 1 ; k <= j ; k++ )
+		for ( k = 1 ; k <= j ; ++k )
 		{
 			tfile = getpath( ps, k ) + "help/" + help ;
 			if ( exists( tfile ) )
@@ -203,7 +203,7 @@ void PTUTORA::application()
 	}
 
 	data.push_back( centre( " Bottom of Help ", zareaw, '*' ) ) ;
-	maxLines++ ;
+	++maxLines ;
 
 	while ( true )
 	{
@@ -309,9 +309,9 @@ void PTUTORA::read_file( string file )
 		}
 		if ( maxCol < inLine.size() ) maxCol = inLine.size() ;
 		data.push_back( inLine ) ;
-		maxLines++ ;
+		++maxLines ;
 	}
-	maxCol++   ;
+	++maxCol ;
 	fin.close() ;
 }
 
@@ -347,11 +347,11 @@ void PTUTORA::fill_dynamic_area()
 	zarea   = "" ;
 	zshadow = string( Area, E_GREEN ) ;
 
-	for ( uint k = firstLine ; k < (firstLine + zaread) ; k++ )
+	for ( uint k = firstLine ; k < (firstLine + zaread) ; ++k )
 	{
 		if ( k > 0 && k < data.size()-1 )  t1 = substr( data[ k ] , startCol, zareaw ) ;
 		else                               t1 = substr( data[ k ] , 1, zareaw ) ;
-		for ( uint i = 0 ; i < t1.size() ; i++ )
+		for ( uint i = 0 ; i < t1.size() ; ++i )
 		{
 			if ( !isprint( t1[ i ] ) )
 			{

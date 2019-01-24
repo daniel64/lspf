@@ -17,20 +17,15 @@
 
 */
 
-using namespace std;
-
-class PCMD0A : public pApplication
+class PSHELL0 : public pApplication
 {
 	public:
-		PCMD0A() ;
+		PSHELL0() ;
 		void application() ;
 
 	private:
-		void run_command( string, const string&, const string& ) ;
-		bool invoke_task_wait( const string&, string&, const string& ) ;
-		string get_tempname( const string& ) ;
-
-		bool isRexx( string ) ;
+		void run_command( string ) ;
+		string get_tempname( const string&, const string& ) ;
 
 		string zscreen ;
 		string zuser   ;

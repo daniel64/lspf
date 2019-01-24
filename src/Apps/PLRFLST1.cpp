@@ -188,7 +188,7 @@ void PLRFLST1::PersonalFList( const string& p )
 	{
 		if ( msg == "" && ztdsels > 0 )
 		{
-			ztdsels-- ;
+			--ztdsels ;
 		}
 		if ( ztdsels == 0 )
 		{
@@ -390,7 +390,7 @@ void PLRFLST1::EditFileList( const string& curtb )
 	tbget( table ) ;
 
 	bsel = "" ;
-	for ( i = 1 ; i <= 30 ; i++ )
+	for ( i = 1 ; i <= 30 ; ++i )
 	{
 		vcopy( "FLAPET" + d2ds( i, 2 ), bfile, MOVE ) ;
 		if ( i > 1 && bfile == "" ) { continue ; }
@@ -408,7 +408,7 @@ void PLRFLST1::EditFileList( const string& curtb )
 	{
 		if ( msg == "" && ztdsels > 0 )
 		{
-			ztdsels-- ;
+			--ztdsels ;
 		}
 		if ( ztdsels == 0 )
 		{
@@ -454,14 +454,14 @@ void PLRFLST1::EditFileList( const string& curtb )
 		OpenTableUP()  ;
 		tbget( table ) ;
 		tbtop( flist2 ) ;
-		for ( i = 1 ; i <= 30 ; i++ )
+		for ( i = 1 ; i <= 30 ; ++i )
 		{
 			tbskip( flist2 ) ;
 			if ( RC > 0 ) { break ; }
-			if ( bfile == "" ) { i-- ; continue ; }
+			if ( bfile == "" ) { --i ; continue ; }
 			vreplace( "FLAPET" + d2ds( i, 2 ), bfile ) ;
 		}
-		for ( ; i <= 30 ; i++ )
+		for ( ; i <= 30 ; ++i )
 		{
 			vreplace( "FLAPET" + d2ds( i, 2 ), "" ) ;
 		}
@@ -522,11 +522,11 @@ void PLRFLST1::OpenFileList( const string& curtb )
 
 	csel = "" ;
 
-	for ( j = 0, i = 1 ; i <= 30 ; i++ )
+	for ( j = 0, i = 1 ; i <= 30 ; ++i )
 	{
 		vcopy( "FLAPET" + d2ds( i, 2 ), cfile, MOVE ) ;
 		if ( i > 1 && cfile == "" ) { continue ; }
-		j++ ;
+		++j ;
 		cnum = d2ds( j ) ;
 		tbadd( flist3 )  ;
 	}
@@ -540,7 +540,7 @@ void PLRFLST1::OpenFileList( const string& curtb )
 	{
 		if ( msg == "" && ztdsels > 0 )
 		{
-			ztdsels-- ;
+			--ztdsels ;
 		}
 		if ( ztdsels == 0 )
 		{
@@ -585,7 +585,6 @@ string PLRFLST1::StoreFileList( const string& curtb )
 	int i ;
 
 	string fname ;
-	string cname ;
 
 	std::ofstream fout ;
 
@@ -607,7 +606,7 @@ string PLRFLST1::StoreFileList( const string& curtb )
 	CloseTable()   ;
 
 	fout.open( tname ) ;
-	for ( i = 1 ; i <= 30 ; i++ )
+	for ( i = 1 ; i <= 30 ; ++i )
 	{
 		vcopy( "FLAPET" + d2ds( i, 2 ), fname, MOVE ) ;
 		if ( fname == "" ) { continue ; }
@@ -707,7 +706,7 @@ void PLRFLST1::RetrieveEntry( string list )
 	else           { p = ( zrfnpos == "30" ) ? 1 : ds2d( zrfnpos ) + 1 ; }
 
 	fp = p ;
-	for ( i = 1 ; i <= 30 ; i++ )
+	for ( i = 1 ; i <= 30 ; ++i )
 	{
 		if ( p > 30 ) { p = 1 ; }
 		vcopy( "FLAPET" + d2ds( p, 2 ), ZRESULT, MOVE ) ;
@@ -734,14 +733,14 @@ void PLRFLST1::RetrieveEntry( string list )
 				skip    = true ;
 			}
 			if ( !skip ) { break ; }
-			p++ ;
+			++p ;
 			if ( fp == p ) { break ; }
 			continue ;
 		}
 		break ;
 	}
 
-	zrfnpos  = d2ds( p )  ;
+	zrfnpos  = d2ds( p ) ;
 	control( "REFLIST", "ON" ) ;
 	ZRC      = ( ZRESULT == "" ) ? 8 : 0 ;
 
@@ -753,7 +752,8 @@ void PLRFLST1::RetrieveEntry( string list )
 void PLRFLST1::RetrieveMatchEntry( string mfile )
 {
 	// Retrieve entry from the reference list that matches file name 'mfile'
-	// If a match not found, retry case insensitive
+	// If a full match is not found, retry a partial match
+	// If still not found, retry case insensitive
 
 	size_t p ;
 
@@ -763,10 +763,20 @@ void PLRFLST1::RetrieveMatchEntry( string mfile )
 	if ( RC > 0 ) { CloseTable() ; return ; }
 
 	CloseTable() ;
-	for ( int i = 1 ; i <= 30 ; i++ )
+	for ( int i = 1 ; i <= 30 ; ++i )
 	{
 		vcopy( "FLAPET" + d2ds( i, 2 ), ZRESULT, MOVE ) ;
-		if ( ZRESULT == "" ) { continue ; }
+		p = ZRESULT.find_last_of( '/' ) ;
+		if ( p == string::npos ) { continue ; }
+		if ( ZRESULT.compare( p + 1, mfile.size(), mfile ) == 0 && ( p + mfile.size() + 1 ) == ZRESULT.size() )
+		{
+			return ;
+		}
+	}
+
+	for ( int i = 1 ; i <= 30 ; ++i )
+	{
+		vcopy( "FLAPET" + d2ds( i, 2 ), ZRESULT, MOVE ) ;
 		p = ZRESULT.find_last_of( '/' ) ;
 		if ( p != string::npos && ZRESULT.compare( p + 1, mfile.size(), mfile ) == 0 )
 		{
@@ -775,7 +785,7 @@ void PLRFLST1::RetrieveMatchEntry( string mfile )
 	}
 
 	iupper( mfile ) ;
-	for ( int i = 1 ; i <= 30 ; i++ )
+	for ( int i = 1 ; i <= 30 ; ++i )
 	{
 		vcopy( "FLAPET" + d2ds( i, 2 ), ZRESULT, MOVE ) ;
 		if ( ZRESULT == "" ) { continue ; }
@@ -832,7 +842,7 @@ void PLRFLST1::AddReflistEntry( string& ent )
 	tbget( table ) ;
 	if ( RC > 0 ) { CloseTable() ; return ; }
 
-	for ( i = 1 ; i <= 30 ; i++ )
+	for ( i = 1 ; i <= 30 ; ++i )
 	{
 		vcopy( "FLAPET" + d2ds( i, 2 ), eent, LOCATE ) ;
 		if ( *eent == "" ) { continue ; }
@@ -849,7 +859,7 @@ void PLRFLST1::AddReflistEntry( string& ent )
 
 	vreplace( "FLAPET01", ent ) ;
 
-	for ( uint j = 2 ; j <= 30 ; j++ )
+	for ( uint j = 2 ; j <= 30 ; ++j )
 	{
 		if ( j <= list.size()+1 )
 		{
@@ -910,7 +920,7 @@ void PLRFLST1::AddFilelistEntry( const string& p )
 		if ( RC > 0 ) { return ; }
 	}
 
-	for ( i = 1 ; i <= 30 ; i++ )
+	for ( i = 1 ; i <= 30 ; ++i )
 	{
 		vcopy( "FLAPET" + d2ds( i, 2 ), eent, LOCATE ) ;
 		if ( *eent == "" ) { continue ; }
@@ -927,7 +937,7 @@ void PLRFLST1::AddFilelistEntry( const string& p )
 
 	vreplace( "FLAPET01", ent ) ;
 
-	for ( uint j = 2 ; j <= 30 ; j++ )
+	for ( uint j = 2 ; j <= 30 ; ++j )
 	{
 		if ( j <= list.size()+1 )
 		{

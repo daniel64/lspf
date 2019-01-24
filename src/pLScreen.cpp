@@ -64,7 +64,7 @@ pLScreen::pLScreen( int openedBy, int maxscrn )
 	screenId   = ++maxScreenId ;
 	openedByList[ screenId ] = openedBy ;
 
-	for ( int i = 1 ; i <= maxscrn ; i++ )
+	for ( int i = 1 ; i <= maxscrn ; ++i )
 	{
 		if ( screenNums.count( i ) == 0 )
 		{
@@ -80,7 +80,7 @@ pLScreen::~pLScreen()
 {
 	// Update the openedByList so any screen opened by the deleted screen, appears opened by its predecesor.
 
-	screensTotal-- ;
+	--screensTotal ;
 	if ( screensTotal == 0 )
 	{
 		del_panel( OIA_panel ) ;
@@ -89,7 +89,7 @@ pLScreen::~pLScreen()
 	}
 	else
 	{
-		for ( auto it = openedByList.begin() ; it != openedByList.end() ; it++ )
+		for ( auto it = openedByList.begin() ; it != openedByList.end() ; ++it )
 		{
 			if ( it->second == screenId )
 			{
@@ -104,7 +104,7 @@ pLScreen::~pLScreen()
 
 void pLScreen::clear()
 {
-	for ( unsigned int i = 0 ; i < maxrow ; i++ )
+	for ( unsigned int i = 0 ; i < maxrow ; ++i )
 	{
 		move( i, 0 ) ;
 		clrtoeol()   ;
@@ -168,7 +168,7 @@ int pLScreen::get_priScreen( int openedBy )
 
 	if ( openedBy == 0 ) { return 0 ; }
 
-	for ( auto it = openedByList.begin() ; it != openedByList.end() ; it++, i++ )
+	for ( auto it = openedByList.begin() ; it != openedByList.end() ; ++it, ++i )
 	{
 		if ( it->first == openedBy ) { return i ; }
 	}
@@ -202,7 +202,7 @@ void pLScreen::OIA_update( int priScreen, int altScreen )
 
 	string respTime ;
 
-	respTime = to_iso_string( boost::posix_time::microsec_clock::universal_time() - startTime ) ;
+	respTime = to_iso_string( endTime - startTime ) ;
 	pos      = respTime.find_last_of( '.' ) - 1 ;
 	respTime = substr( respTime, pos, 6 ) + " s" ;
 

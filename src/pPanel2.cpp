@@ -65,7 +65,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 	readPanel( err, pSource, p_name, paths, p_name ) ;
 	if ( err.error() ) { return ; }
 
-	for ( it = pSource.begin() ; it != pSource.end() ; it++ )
+	for ( it = pSource.begin() ; it != pSource.end() ; ++it )
 	{
 		pline = *it   ;
 		oline = *it   ;
@@ -505,7 +505,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			}
 			if ( fieldList.find( m_pnts.pnts_field ) == fieldList.end() )
 			{
-				for ( i = 0 ; i < textList.size() ; i++ )
+				for ( i = 0 ; i < textList.size() ; ++i )
 				{
 					if ( m_pnts.pnts_field == textList.at( i )->text_name )
 					{
@@ -544,7 +544,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				err.setsrc( oline ) ;
 				return ;
 			}
-			for ( j = words( t_fe.fieldExc_passed ), i = 1 ; i <= j ; i++ )
+			for ( j = words( t_fe.fieldExc_passed ), i = 1 ; i <= j ; ++i )
 			{
 				ww = word( t_fe.fieldExc_passed, i ) ;
 				if ( fieldList.find( ww ) == fieldList.end() )
@@ -640,9 +640,9 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				return ;
 			}
 			abc_pos = 2 ;
-			for ( i = 1 ; i < vec.size() ; i++ )
+			for ( i = 1 ; i < vec.size() ; ++i )
 			{
-				for ( it = ab.begin() ; it != ab.end() ; it++ )
+				for ( it = ab.begin() ; it != ab.end() ; ++it )
 				{
 					if ( (*it)->get_abc_desc() != vec[ i ] ) { continue ; }
 					(*it)->abc_col = abc_pos ;
@@ -775,7 +775,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			a.field_length  = m_dynArea->dynArea_width ;
 			a.field_cole    = m_dynArea->dynArea_col + m_dynArea->dynArea_width ;
 			a.field_dynArea = m_dynArea ;
-			for ( i = 0 ; i < m_dynArea->dynArea_depth ; i++ )
+			for ( i = 0 ; i < m_dynArea->dynArea_depth ; ++i )
 			{
 				field * fld    = new field ;
 				*fld           = a         ;
@@ -842,7 +842,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				return ;
 			}
 			replace( tb_clear.begin(), tb_clear.end(), ',', ' ' ) ;
-			for ( j = words( tb_clear ), i = 1 ; i <= j ; i++ )
+			for ( j = words( tb_clear ), i = 1 ; i <= j ; ++i )
 			{
 				t2 = word( tb_clear, i ) ;
 				if ( !isvalidName( t2 ) )
@@ -927,13 +927,13 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 
 	if ( Rexx )
 	{
-		for ( it1 = fieldList.begin() ; it1 != fieldList.end() ; it1++ )
+		for ( it1 = fieldList.begin() ; it1 != fieldList.end() ; ++it1 )
 		{
 			if ( !p_funcPOOL->ifexists( err, it1->first ) ) { syncDialogueVar( err, it1->first ) ; }
 		}
 	}
 
-	for ( i = 0 ; i < 251 ; i++ )
+	for ( i = 0 ; i < 251 ; ++i )
 	{
 		unsigned char c = i ;
 		if ( schar_map.count( c ) == 0 )
@@ -943,7 +943,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		}
 	}
 
-	for ( auto ita = fieldList.begin() ; ita != fieldList.end() ; ita++ )
+	for ( auto ita = fieldList.begin() ; ita != fieldList.end() ; ++ita )
 	{
 		if ( not ita->second->field_dynArea &&
 		     not ita->second->field_tb      &&
@@ -952,7 +952,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			 cmdfield != ita->first     &&
 			 ita->second->field_length > 1 )
 		{
-			for ( auto itb = textList.begin() ; itb != textList.end() ; itb++ )
+			for ( auto itb = textList.begin() ; itb != textList.end() ; ++itb )
 			{
 				if ( ita->second->field_row == (*itb)->text_row     &&
 				     ita->second->field_col == (*itb)->text_cole + 1 )
@@ -1014,7 +1014,7 @@ void pPanel::readPanel( errblock& err,
 
 	type = ( words( slist ) == 1 ) ? "Panel" : "INCLUDE" ;
 
-	for ( p = getpaths( paths ), i = 1 ; i <= p ; i++ )
+	for ( p = getpaths( paths ), i = 1 ; i <= p ; ++i )
 	{
 		filename = getpath( paths, i ) + name ;
 		try
@@ -1260,7 +1260,7 @@ void pPanel::createPanel_Else( errblock& err,
 
 	do
 	{
-		ips-- ;
+		--ips ;
 		if ( (*ips)->ps_if && (*ips)->ps_column == m_stmnt->ps_column )
 		{
 			m_stmnt->ps_else = (*ips)->ps_if ;

@@ -100,12 +100,12 @@ pPanel::~pPanel()
 	// Delete panel language statements in )INIT, )REINIT, )PROC, )ABCINIT and )ABCPROC sections.
 	// Delete the main window/panel, popup panel and any message windows/panels created (free any userdata first)
 
-	for ( auto it = fieldList.begin() ; it != fieldList.end() ; it++ )
+	for ( auto it = fieldList.begin() ; it != fieldList.end() ; ++it )
 	{
 		delete it->second ;
 	}
 
-	for ( auto it = dynAreaList.begin() ; it != dynAreaList.end() ; it++ )
+	for ( auto it = dynAreaList.begin() ; it != dynAreaList.end() ; ++it )
 	{
 		delete it->second ;
 	}
@@ -141,7 +141,7 @@ pPanel::~pPanel()
 		{
 			delete a ;
 		} ) ;
-	for ( auto it = abc_initstmnts.begin() ; it != abc_initstmnts.end() ; it++ )
+	for ( auto it = abc_initstmnts.begin() ; it != abc_initstmnts.end() ; ++it )
 	{
 		for_each( it->second.begin(), it->second.end(),
 			[](panstmnt* a)
@@ -149,7 +149,7 @@ pPanel::~pPanel()
 				delete a ;
 			} ) ;
 	}
-	for ( auto it = abc_procstmnts.begin() ; it != abc_procstmnts.end() ; it++ )
+	for ( auto it = abc_procstmnts.begin() ; it != abc_procstmnts.end() ; ++it )
 	{
 		for_each( it->second.begin(), it->second.end(),
 			[](panstmnt* a)
@@ -590,7 +590,7 @@ void pPanel::display_panel_update( errblock& err )
 	tb_curidx = -1 ;
 	tb_curidr = -1 ;
 
-	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
+	for ( it = fieldList.begin() ; it != fieldList.end() ; ++it )
 	{
 		if ( it->second->field_changed )
 		{
@@ -602,7 +602,7 @@ void pPanel::display_panel_update( errblock& err )
 				fieldNum = ds2d( it->first.substr( p+1 ) ) ;
 				darea    = p_funcPOOL->vlocate( err, fieldNam ) ;
 				if ( err.error() ) { return ; }
-				offset   = fieldNum*it->second->field_length      ;
+				offset   = fieldNum*it->second->field_length ;
 				it->second->field_update_datamod_usermod( darea, offset ) ;
 				darea->replace( offset, it->second->field_length, it->second->field_value ) ;
 				shadow = p_funcPOOL->vlocate( err, it->second->field_dynArea->dynArea_shadow_name ) ;
@@ -798,7 +798,7 @@ void pPanel::display_panel_init( errblock& err )
 	{
 		process_panel_stmnts( err, ln, initstmnts, PS_INIT ) ;
 		if ( err.error() ) { break ; }
-		ln++ ;
+		++ln ;
 	} while ( ln < tb_depth ) ;
 
 }
@@ -811,7 +811,7 @@ void pPanel::display_panel_attrs( errblock& err )
 
 	string t ;
 
-	for ( auto it = char_attrlist.begin() ; it != char_attrlist.end() ; it++ )
+	for ( auto it = char_attrlist.begin() ; it != char_attrlist.end() ; ++it )
 	{
 		if ( it->second.has_dvars() )
 		{
@@ -877,7 +877,7 @@ void pPanel::display_panel_proc( errblock& err, int ln )
 	}
 	else
 	{
-		for ( auto it = textPS.begin() ; it != textPS.end() ; it++ )
+		for ( auto it = textPS.begin() ; it != textPS.end() ; ++it )
 		{
 			if ( (*it)->cursor_on_text( p_row, p_col ) )
 			{
@@ -988,7 +988,7 @@ void pPanel::process_panel_stmnts( errblock& err,
 	if_column = 0     ;
 	if_skip   = false ;
 
-	for ( auto ips = panstmnts.begin() ; ips != panstmnts.end() ; ips++ )
+	for ( auto ips = panstmnts.begin() ; ips != panstmnts.end() ; ++ips )
 	{
 		if ( if_skip )
 		{
@@ -1024,7 +1024,7 @@ void pPanel::process_panel_stmnts( errblock& err,
 		else if ( (*ips)->ps_goto )
 		{
 			g_label = (*ips)->ps_label ;
-			for ( ; ips != panstmnts.end() ; ips++ )
+			for ( ; ips != panstmnts.end() ; ++ips )
 			{
 				if ( !(*ips)->ps_goto && (*ips)->ps_label == g_label )
 				{
@@ -1165,7 +1165,7 @@ void pPanel::process_panel_if_cond( errblock& err,
 			case VER_LIST:
 			case VER_LISTX:
 				for ( it  = ifstmnt->if_verify->ver_vlist.begin() ;
-				      it != ifstmnt->if_verify->ver_vlist.end()  ; it++ )
+				      it != ifstmnt->if_verify->ver_vlist.end()  ; ++it )
 				{
 					if ( sub_vars( (*it) ) == fieldVal ) { break ; }
 				}
@@ -1226,7 +1226,7 @@ void pPanel::process_panel_if_cond( errblock& err,
 		process_panel_function( ifstmnt->if_func, lhs_val ) ;
 	}
 
-	for ( j = 0 ; j < ifstmnt->if_rhs.size() ; j++ )
+	for ( j = 0 ; j < ifstmnt->if_rhs.size() ; ++j )
 	{
 		l_break = false ;
 		if ( ifstmnt->if_rhs[ j ].front() == '.' )
@@ -1389,7 +1389,7 @@ string pPanel::process_panel_trans( errblock& err,
 	}
 	if ( err.error() ) { return "" ; }
 
-	for ( it = trans->trns_list.begin() ; it != trans->trns_list.end() ; it++ )
+	for ( it = trans->trns_list.begin() ; it != trans->trns_list.end() ; ++it )
 	{
 		if ( t == sub_vars( it->first ) )
 		{
@@ -1474,7 +1474,7 @@ void pPanel::process_panel_verify( errblock& err,
 
 	case VER_LIST:
 	case VER_LISTX:
-		for ( it = verify->ver_vlist.begin() ; it != verify->ver_vlist.end() ; it++ )
+		for ( it = verify->ver_vlist.begin() ; it != verify->ver_vlist.end() ; ++it )
 		{
 			if ( sub_vars( (*it) ) == fieldVal ) { break ; }
 		}
@@ -1489,13 +1489,13 @@ void pPanel::process_panel_verify( errblock& err,
 			else
 			{
 				t = "values are " ;
-				for ( i = 0 ; i < verify->ver_vlist.size() - 2 ; i++ )
+				for ( i = 0 ; i < verify->ver_vlist.size() - 2 ; ++i )
 				{
 					t += sub_vars( verify->ver_vlist[ i ] ) + ", " ;
 				}
 				t += sub_vars( verify->ver_vlist[ i ] ) ;
 				t += " and " ;
-				i++ ;
+				++i ;
 				t += sub_vars( verify->ver_vlist[ i ] ) ;
 			}
 			msg = ( verify->ver_type == VER_LIST ) ? "PSYS011B" : "PSYS012Q" ;
@@ -1578,7 +1578,7 @@ void pPanel::process_panel_vputget( errblock& err, VPUTGET* vputget )
 	ws = words( vputget->vpg_vars ) ;
 	if ( vputget->vpg_vput )
 	{
-		for ( j = 1 ; j <= ws ; j++ )
+		for ( j = 1 ; j <= ws ; ++j )
 		{
 			var = sub_vars( word( vputget->vpg_vars, j ) ) ;
 			if ( selectPanel )
@@ -1640,7 +1640,7 @@ void pPanel::process_panel_vputget( errblock& err, VPUTGET* vputget )
 	}
 	else
 	{
-		for ( j = 1 ; j <= ws ; j++ )
+		for ( j = 1 ; j <= ws ; ++j )
 		{
 			var = sub_vars( word( vputget->vpg_vars, j ) ) ;
 			if ( selectPanel )
@@ -2121,7 +2121,7 @@ void pPanel::refresh_fields( errblock& err, int ln, const string& fields )
 
 	if ( fields != "*" )
 	{
-		for ( ws = words( fields ), i = 1 ; i <= ws ; i++ )
+		for ( ws = words( fields ), i = 1 ; i <= ws ; ++i )
 		{
 			temp = word( fields, i ) ;
 			if ( tb_field( temp ) )
@@ -2131,7 +2131,7 @@ void pPanel::refresh_fields( errblock& err, int ln, const string& fields )
 		}
 	}
 
-	for ( itf = fieldList.begin() ; itf != fieldList.end() ; itf++ )
+	for ( itf = fieldList.begin() ; itf != fieldList.end() ; ++itf )
 	{
 		if ( fields != "*" && !findword( itf->first, fields ) ) { continue ; }
 		if ( itf->second->field_dynArea ) { continue ; }
@@ -2148,7 +2148,7 @@ void pPanel::refresh_fields( errblock& err, int ln, const string& fields )
 		itf->second->field_set_caps()     ;
 	}
 
-	for ( itd = dynAreaList.begin() ; itd != dynAreaList.end() ; itd++ )
+	for ( itd = dynAreaList.begin() ; itd != dynAreaList.end() ; ++itd )
 	{
 		if ( fields != "*" && !findword( itf->first, fields ) ) { continue ; }
 		k      = itd->second->dynArea_width ;
@@ -2156,7 +2156,7 @@ void pPanel::refresh_fields( errblock& err, int ln, const string& fields )
 		if ( err.error() ) { return ; }
 		shadow = p_funcPOOL->vlocate( err, itd->second->dynArea_shadow_name ) ;
 		if ( err.error() ) { return ; }
-		for ( unsigned int i = 0 ; i < itd->second->dynArea_depth ; i++ )
+		for ( unsigned int i = 0 ; i < itd->second->dynArea_depth ; ++i )
 		{
 			j   = i * itd->second->dynArea_width ;
 			itf = fieldList.find( itd->first +"."+ d2ds( i ) ) ;
@@ -2180,7 +2180,7 @@ void pPanel::refresh_fields( errblock& err )
 	map<string, field*>::iterator   itf ;
 	map<string, dynArea*>::iterator itd ;
 
-	for ( itf = fieldList.begin() ; itf != fieldList.end() ; itf++ )
+	for ( itf = fieldList.begin() ; itf != fieldList.end() ; ++itf )
 	{
 		if ( itf->second->field_dynArea ) { continue ; }
 		itf->second->field_value = getDialogueVar( err, itf->first ) ;
@@ -2190,14 +2190,14 @@ void pPanel::refresh_fields( errblock& err )
 		itf->second->display_field( win, ddata_map, schar_map ) ;
 	}
 
-	for ( itd = dynAreaList.begin() ; itd != dynAreaList.end() ; itd++ )
+	for ( itd = dynAreaList.begin() ; itd != dynAreaList.end() ; ++itd )
 	{
 		k      = itd->second->dynArea_width ;
 		darea  = p_funcPOOL->vlocate( err, itd->first ) ;
 		if ( err.error() ) { return ; }
 		shadow = p_funcPOOL->vlocate( err, itd->second->dynArea_shadow_name  ) ;
 		if ( err.error() ) { return ; }
-		for ( unsigned int i = 0 ; i < itd->second->dynArea_depth ; i++ )
+		for ( unsigned int i = 0 ; i < itd->second->dynArea_depth ; ++i )
 		{
 			j   = i * itd->second->dynArea_width ;
 			itf = fieldList.find( itd->first +"."+ d2ds( i ) ) ;
@@ -2317,7 +2317,7 @@ void pPanel::create_tbfield( errblock& err, const string& pline )
 	a.field_input   = ( attrUnprot.count( fType ) > 0 ) ;
 	a.field_tb      = true ;
 
-	for ( int i = 0 ; i < tb_depth ; i++ )
+	for ( int i = 0 ; i < tb_depth ; ++i )
 	{
 		fld  = new field ;
 		*fld = a ;
@@ -2391,7 +2391,7 @@ void pPanel::create_pdc( errblock& err, const string& abc_desc, const string& pl
 		return ;
 	}
 
-	for ( it = ab.begin() ; it != ab.end() ; it++ )
+	for ( it = ab.begin() ; it != ab.end() ; ++it )
 	{
 		if ( (*it)->abc_desc == abc_desc ) { break ; }
 	}
@@ -2429,7 +2429,7 @@ void pPanel::update_field_values( errblock& err )
 
 	err.setRC( 0 ) ;
 
-	for ( itf = fieldList.begin() ; itf != fieldList.end() ; itf++ )
+	for ( itf = fieldList.begin() ; itf != fieldList.end() ; ++itf )
 	{
 		if ( !itf->second->field_dynArea )
 		{
@@ -2440,7 +2440,7 @@ void pPanel::update_field_values( errblock& err )
 	}
 	if ( err.RC8() ) { err.setRC( 0 ) ; }
 
-	for ( itd = dynAreaList.begin() ; itd != dynAreaList.end() ; itd++ )
+	for ( itd = dynAreaList.begin() ; itd != dynAreaList.end() ; ++itd )
 	{
 		darea = p_funcPOOL->vlocate( err, itd->first ) ;
 		if ( !err.RC0() )
@@ -2464,7 +2464,7 @@ void pPanel::update_field_values( errblock& err )
 		darea->resize( itd->second->dynArea_width * itd->second->dynArea_depth, ' ' )   ;
 		shadow->resize( itd->second->dynArea_width * itd->second->dynArea_depth, 0xFF ) ;
 		k = itd->second->dynArea_width ;
-		for ( unsigned int i = 0 ; i < itd->second->dynArea_depth ; i++ )
+		for ( unsigned int i = 0 ; i < itd->second->dynArea_depth ; ++i )
 		{
 			j   = i * itd->second->dynArea_width ;
 			itf = fieldList.find( itd->first +"."+ d2ds( i ) ) ;
@@ -2480,7 +2480,7 @@ void pPanel::display_text()
 	// Substitute dialogue variables and place result in text_xvalue.  If there are no
 	// dialogue variables present, set text_dvars to false and clear text_value ;
 
-	for ( auto it = textList.begin() ; it != textList.end() ; it++ )
+	for ( auto it = textList.begin() ; it != textList.end() ; ++it )
 	{
 		if ( (*it)->text_dvars )
 		{
@@ -2499,7 +2499,7 @@ void pPanel::display_fields( errblock& err, bool reset )
 {
 	map<string, field*>::iterator it ;
 
-	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
+	for ( it = fieldList.begin() ; it != fieldList.end() ; ++it )
 	{
 		if ( !it->second->field_dynArea )
 		{
@@ -2519,7 +2519,7 @@ void pPanel::display_ab()
 {
 	if ( ab.size() == 0 ) { return ; }
 
-	for ( auto it = ab.begin() ; it != ab.end() ; it++ )
+	for ( auto it = ab.begin() ; it != ab.end() ; ++it )
 	{
 		(*it)->display_abc_unsel( win ) ;
 	}
@@ -2532,7 +2532,7 @@ void pPanel::display_ab()
 
 void pPanel::resetAttrs()
 {
-	for ( unsigned int i = 0 ; i < attrList.size() ; i++ )
+	for ( unsigned int i = 0 ; i < attrList.size() ; ++i )
 	{
 		fieldList[ attrList[ i ] ]->field_attr() ;
 	}
@@ -2555,7 +2555,7 @@ void pPanel::resetAttrs_once()
 		}
 		else
 		{
-			ita++ ;
+			++ita ;
 		}
 	}
 }
@@ -2638,7 +2638,7 @@ void pPanel::cursor_placement( errblock& err )
 		else
 		{
 			if ( f_pos < 1 ) { f_pos = 1 ; }
-			f_pos-- ;
+			--f_pos ;
 			oX = f_pos % itd->second->dynArea_width ;
 			oY = f_pos / itd->second->dynArea_width ;
 			if ( oY >= itd->second->dynArea_depth )
@@ -2753,7 +2753,7 @@ void pPanel::field_setvalue( const string& f_name, const string& f_value )
 
 const string& pPanel::cmd_getvalue()
 {
-	if ( fieldList.find( cmdfield ) == fieldList.end() )
+	if ( cmdfield == "" )
 	{
 		return zzcmd ;
 	}
@@ -2763,13 +2763,24 @@ const string& pPanel::cmd_getvalue()
 
 void pPanel::cmd_setvalue( const string& v )
 {
-	if ( fieldList.find( cmdfield ) == fieldList.end() )
+	if ( cmdfield == "" )
 	{
 		zzcmd = v ;
 	}
 	else
 	{
 		field_setvalue( cmdfield, v ) ;
+	}
+}
+
+
+void pPanel::reset_cmd()
+{
+	errblock err ;
+
+	if ( cmdfield != "" )
+	{
+		field_setvalue( cmdfield, p_funcPOOL->get( err, 8, cmdfield ) ) ;
 	}
 }
 
@@ -2811,7 +2822,7 @@ string pPanel::field_getname( uint row, uint col )
 	row -= win_row ;
 	col -= win_col ;
 
-	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
+	for ( it = fieldList.begin() ; it != fieldList.end() ; ++it )
 	{
 		if ( it->second->cursor_on_field( row, col ) )
 		{
@@ -2881,7 +2892,7 @@ void pPanel::field_edit( errblock& err,
 	p_col = col ;
 
 	prot = true ;
-	for ( auto it = fieldList.begin() ; it != fieldList.end() ; it++ )
+	for ( auto it = fieldList.begin() ; it != fieldList.end() ; ++it )
 	{
 		if ( it->second->cursor_on_field( p_row, p_col ) )
 		{
@@ -2937,7 +2948,7 @@ void pPanel::field_backspace( errblock& err,
 	tcol = col - win_col ;
 
 	prot = true ;
-	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
+	for ( it = fieldList.begin() ; it != fieldList.end() ; ++it )
 	{
 		if ( it->second->cursor_on_field( trow, tcol ) )
 		{
@@ -2971,7 +2982,7 @@ void pPanel::field_delete_char( errblock& err, uint row, uint col, bool& prot )
 	tcol = col - win_col ;
 
 	prot = true ;
-	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
+	for ( it = fieldList.begin() ; it != fieldList.end() ; ++it )
 	{
 		if ( it->second->cursor_on_field( trow, tcol ) )
 		{
@@ -2996,7 +3007,7 @@ void pPanel::field_erase_eof( errblock& err, uint row, uint col, bool& prot )
 	col -= win_col ;
 
 	prot = true ;
-	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
+	for ( it = fieldList.begin() ; it != fieldList.end() ; ++it )
 	{
 		if ( it->second->cursor_on_field( row, col ) )
 		{
@@ -3024,7 +3035,7 @@ void pPanel::cursor_eof( uint& row, uint& col )
 	trow = row - win_row ;
 	tcol = col - win_col ;
 
-	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
+	for ( it = fieldList.begin() ; it != fieldList.end() ; ++it )
 	{
 		if ( it->second->cursor_on_field( trow, tcol ) )
 		{
@@ -3064,7 +3075,7 @@ void pPanel::field_tab_down( uint& row, uint& col )
 	m_offset = wscrmaxd * wscrmaxw    ;
 	o_row    = trow                   ;
 
-	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
+	for ( it = fieldList.begin() ; it != fieldList.end() ; ++it )
 	{
 		if ( !it->second->field_active) { continue ; }
 		if ( !it->second->field_dynArea && !it->second->field_input ) { continue ; }
@@ -3120,7 +3131,7 @@ void pPanel::field_tab_next( uint& row, uint& col )
 	o_row    = trow                   ;
 	o_col    = tcol                   ;
 
-	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
+	for ( it = fieldList.begin() ; it != fieldList.end() ; ++it )
 	{
 		if ( !it->second->field_active) { continue ; }
 		if ( !it->second->field_dynArea && !it->second->field_input ) { continue ; }
@@ -3173,7 +3184,7 @@ void pPanel::tb_set_linesChanged( errblock& err )
 
 	map<string, field*>::iterator it ;
 
-	for ( it = fieldList.begin() ; it != fieldList.end() ; it++ )
+	for ( it = fieldList.begin() ; it != fieldList.end() ; ++it )
 	{
 		if ( !it->second->field_tb ) { continue ; }
 		idr = it->second->field_row - tb_toprow ;
@@ -3331,10 +3342,10 @@ void pPanel::set_tb_fields_act_inact( errblock& err )
 
 	size = rows - top + 1 ;
 
-	for ( i = 0 ; i < tb_depth ; i++ )
+	for ( i = 0 ; i < tb_depth ; ++i )
 	{
 		suf = "." + d2ds( i ) ;
-		for ( it = tb_fields.begin() ; it != tb_fields.end() ; it++ )
+		for ( it = tb_fields.begin() ; it != tb_fields.end() ; ++it )
 		{
 			fieldList[ *it + suf ]->field_active = ( i < size ) ;
 		}
@@ -3375,7 +3386,7 @@ bool pPanel::display_pd( errblock& err, uint row, uint col, string& msg )
 
 	err.setRC( 0 ) ;
 
-	for ( i = 0, it = ab.begin() ; it != ab.end() ; it++, i++ )
+	for ( i = 0, it = ab.begin() ; it != ab.end() ; ++it, ++i )
 	{
 		if ( col >= (*it)->abc_col && col < ( (*it)->abc_col + (*it)->abc_desc.size() ) )
 		{
@@ -3496,7 +3507,7 @@ bool pPanel::jump_field( uint row, uint col, string& fvalue )
 	row -= win_row ;
 	col -= win_col ;
 
-	for ( auto it = fieldList.begin() ; it != fieldList.end() ; it++ )
+	for ( auto it = fieldList.begin() ; it != fieldList.end() ; ++it )
 	{
 		if ( it->second->cursor_on_field( row, col ) )
 		{
@@ -3550,7 +3561,7 @@ pdc pPanel::retrieve_choice( errblock& err, string& msg )
 
 void pPanel::display_boxes()
 {
-	for ( auto it = boxes.begin() ; it != boxes.end() ; it++ )
+	for ( auto it = boxes.begin() ; it != boxes.end() ; ++it )
 	{
 		(*it)->display_box( win, sub_vars( (*it)->box_title ) ) ;
 	}
@@ -3654,7 +3665,7 @@ void pPanel::display_msg( errblock& err )
 			smwin = newwin( w_depth, w_width, w_row+win_row, w_col+win_col ) ;
 			wattrset( smwin, cuaAttr[ MSG.type ] | panel_intens ) ;
 			box( smwin, 0, 0 ) ;
-			for ( i = 0 ; i < v.size() ; i++ )
+			for ( i = 0 ; i < v.size() ; ++i )
 			{
 				mvwaddstr( smwin, i+1, 2, v[i].c_str() ) ;
 			}
@@ -3692,7 +3703,7 @@ void pPanel::display_msg( errblock& err )
 			lmwin = newwin( w_depth, w_width, w_row+win_row, w_col+win_col ) ;
 			wattrset( lmwin, cuaAttr[ MSG.type ] | panel_intens ) ;
 			box( lmwin, 0, 0 ) ;
-			for ( i = 0 ; i < v.size() ; i++ )
+			for ( i = 0 ; i < v.size() ; ++i )
 			{
 				mvwaddstr( lmwin, i+1, 2, v[i].c_str() ) ;
 			}
@@ -3788,7 +3799,7 @@ void pPanel::get_msgwin( errblock& err,
 	if ( pd_active() )
 	{
 		ab.at( abIndex )->get_msg_position( t_row, t_col ) ;
-		t_row++ ;
+		++t_row ;
 		if ( (t_row + t_depth + win_row ) > zscrmaxd )
 		{
 			t_row = zscrmaxd - win_row - t_depth ;
@@ -4030,7 +4041,7 @@ string pPanel::sub_vars( string s )
 	{
 		p1 = s.find( '&', p1 ) ;
 		if ( p1 == string::npos || p1 == s.size() - 1 ) { break ; }
-		p1++ ;
+		++p1 ;
 		if ( s[ p1 ] == '&' )
 		{
 			s.erase( p1, 1 ) ;
@@ -4085,7 +4096,7 @@ string pPanel::sub_vars( string s, bool& dvars )
 	{
 		p1 = s.find( '&', p1 ) ;
 		if ( p1 == string::npos || p1 == s.size() - 1 ) { break ; }
-		p1++ ;
+		++p1 ;
 		if ( s[ p1 ] == '&' )
 		{
 			s.erase( p1, 1 ) ;

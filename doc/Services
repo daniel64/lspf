@@ -79,3 +79,22 @@ vlist (extension to return a list of variables in a pool)
 Table handling:
 Not well tested. Any number of keys supported.
 
+
+Additional Services
+===================
+rdisplay() - Issue line output synchronously.  Control returns to the appliction after
+             each line issued.
+notify()   - Issue line output asynchronously.  Output is queued until user interaction.
+enq()      - Issue an enqueue with a major name and minor name (qname and rname)
+deq()      - Release an enqueue
+qscan()    - Search for an enqueue.
+submit()   - Start an application asynchronously.
+             If from a foreground task, new task runs in the background.
+             If from a background task, new task runs independently of the submitting task.
+             Note:
+             select() starts a new task synchronously.  If issued from a background task, old task waits
+             for the new task to terminate before resuming.  ZRC, ZRSN and ZRESULT are set and any abend
+             is percolated back until/unless within a CONTROL ERRORS RETURN statement.
+             Function pool variable ZSBTASK contains the submitted task id.
+
+control( "NOTIFY", "JOBEND" ) - Issue notify when background job ends or abends.

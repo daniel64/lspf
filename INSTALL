@@ -34,10 +34,10 @@ file required for PBRO01A.cpp as it is linked with -lmagic
 Run lspf in a terminal
 
 Works with:
-linux 4.19.8
+linux 4.20.4
 gcc 8.2.1
 ncurses 6.1
-boost 1.68.0
+boost 1.69.0
 
 
 On upgrade:

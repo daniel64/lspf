@@ -22,8 +22,8 @@ text     7   4     PIN "Enter / to select option"
 
 text     8   6         SAC "Turn on keylists"
 field    8   4     1   CEF PAD(USER) GOKLUSE
-text     9   6         SAC "Fail on missing panel keylist or table"
-field    9   4     1   CEF PAD(USER) GOKLFAL
+text     9   6         SAC "Accept notify messages"
+field    9   4     1   CEF PAD(USER) GONOTFY
 text     10  6         SAC "Search site command tables before ISPCMDS"
 field    10  4     1   CEF PAD(USER) GOSTFST
 text     11  6         SAC "Always display long message in a pop-up"
@@ -34,11 +34,8 @@ text     13  6         SAC "Save retrieve buffer across sessions"
 field    13  4     1   CEF PAD(USER) GOSRETP
 
 text     6   60    ET    "Application"
-text     7   62    FP    "Application Timeout. . ."
-field    7   87  4 CEF NUMERIC(ON),PAD(USER) GOATIMO
-text     7   92    FP    "seconds"
-text     8   62    FP    "Default scroll amount. ."
-field    8   87  4 CEF PAD(USER),CAPS(ON) GOSCRLD
+text     7   62    FP    "Default scroll amount. ."
+field    7   87  4 CEF PAD(USER),CAPS(ON) GOSCRLD
 
 
 text     15  2     ET    "General"
@@ -105,7 +102,7 @@ ELSE
 IF ( &ZCMD EQ RESET ) EXIT
 
 &GOKLUSE = TRANS( &GOKLUSE &Z,&Z *,/ )
-&GOKLFAL = TRANS( &GOKLFAL &Z,&Z *,/ )
+&GONOTFY = TRANS( &GONOTFY &Z,&Z *,/ )
 &GOSTFST = TRANS( &GOSTFST &Z,&Z *,/ )
 &GOLMSGW = TRANS( &GOLMSGW &Z,&Z *,/ )
 &GOSWAP  = TRANS( &GOSWAP  &Z,&Z *,/ )
@@ -115,7 +112,6 @@ IF ( &ZCMD EQ RESET ) EXIT
 VER (&GODEL NB)
 VER (&GOPADC NB)
 VER (&GOSWAPC NB)
-VER (&GOATIMO  NB)
 VER (&GORTSIZE NB)
 VER (&GORBSIZE NB)
 VER (&GODEFM,NB,LIST,1,2)

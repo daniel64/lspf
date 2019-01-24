@@ -17,12 +17,10 @@
 
 */
 
-/* Re-direct say ouput and error messages to a temporary file or it'll mess up lspf output */
-"rm /tmp/keygen.say 2> /dev/null"
-"rm /tmp/keygen.err 2> /dev/null"
-.output~destination(.stream~new("/tmp/keygen.say"))
-.error~destination(.stream~new("/tmp/keygen.err"))
-/**********************************************************************************************/
+/* Re-direct say ouput and error messages to the spool or it'll mess up lspf output */
+parse source . . src .
+Call setdest src
+/************************************************************************************/
 
 /* REXX Keylist utility  */
 /* Keylist format:       */
@@ -48,7 +46,8 @@ address ISPEXEC
 
 tabName = "ISRKEYP"
 
-"TBOPEN &tabName LIBRARY(&zuprof)"
+"LIBDEF TABLIB PATH ID(&zuprof)"
+"TBOPEN &tabName LIBRARY(TABLIB)"
 if RC = 8 then
   do
     CAll CreateDefault
@@ -56,7 +55,8 @@ if RC = 8 then
 else if RC > 0 then
   do
      "RDISPLAY Error opening table &tabName.  RC=&RC.  Aborting..."
-     exit
+     "LIBDEF TABLIB"
+     EXIT
   end
 else
   do
@@ -77,36 +77,42 @@ if RC > 0 then
   do
      "RDISPLAY Error sorting table &tabName. RC=&RC  Aborting..."
      "TBEND &tabName"
-     exit
+     "LIBDEF TABLIB"
+     EXIT
   end
 
 "TBADD &tabName ORDER"
 if RC = 8 then
   do
      "RDISPLAY Error adding row &keylistn to table &tabName.  Row already exists."
-     "RDISPLAY Use command keylist from any panel to delete"
+     "RDISPLAY Use command keylist from any panel to delete."
      "TBEND &tabName"
-     exit
+     "LIBDEF TABLIB"
+     EXIT
   end
 else if RC > 0 then
   do
      "RDISPLAY Error adding row to table &tabName. RC=&RC  Aborting..."
      "TBEND &tabName"
-     exit
+     "LIBDEF TABLIB"
+     EXIT
   end
 
-"TBCLOSE &tabName LIBRARY(&zuprof)"
+"TBCLOSE &tabName LIBRARY(TABLIB)"
 if RC > 0 then
   do
      "RDISPLAY Error saving table &tabName. RC=&RC  Aborting..."
      "TBEND &tabName"
-     exit
+     "LIBDEF TABLIB"
+     EXIT
   end
 
 "RDISPLAY "
 "RDISPLAY *********************************************************"
 "RDISPLAY Entry &keylistn in Table &tabName created and saved okay"
 "RDISPLAY *********************************************************"
+
+"LIBDEF TABLIB"
 EXIT
 
 
@@ -148,12 +154,13 @@ RETURN
 CreateDefault:
 "RDISPLAY Creating keylist table &tabName:"
 
-"TBCREATE &tabName KEYS(&key) NAMES(&names) WRITE LIBRARY(&zuprof)"
+"TBCREATE &tabName KEYS(&key) NAMES(&names) WRITE LIBRARY(TABLIB)"
 if RC \= 0 then
   do
-    "RDISPLAY Create for table &tabName failed.  RC=&RC"
-    "RDISPLAY "
-    EXIT
+     "RDISPLAY Create for table &tabName failed.  RC=&RC"
+     "RDISPLAY "
+     "LIBDEF TABLIB"
+     EXIT
   end
 
 "RDISPLAY Created &tabName okay"
@@ -165,7 +172,8 @@ if RC > 0 then
   do
      "RDISPLAY Error sorting table &tabName. RC=&RC  Aborting..."
      "TBEND &tabName"
-     exit
+     "LIBDEF TABLIB"
+     EXIT
   end
 
 "TBADD &tabName ORDER"
@@ -173,6 +181,7 @@ if RC > 0 then
   do
      "RDISPLAY Error adding row to table &tabName. RC=&RC  Aborting..."
      "TBEND &tabName"
-     exit
+     "LIBDEF TABLIB"
+     EXIT
   end
 RETURN

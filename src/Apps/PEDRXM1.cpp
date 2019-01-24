@@ -403,21 +403,21 @@ int setAllRexxVariables( pApplication* macAppl )
 
 	// Note: vslist and vilist return the same set<string> reference
 
-	int rc   ;
+	int rc = 0 ;
 
 	set<string>& vl = macAppl->vslist() ;
 
 	string* val1 ;
 	string  val2 ;
 
-	for ( auto it = vl.begin() ; it != vl.end() ; it++ )
+	for ( auto it = vl.begin() ; it != vl.end() ; ++it )
 	{
 		macAppl->vcopy( *it, val1, LOCATE ) ;
 		rc = setRexxVariable( *it, *val1 )  ;
 	}
 
 	macAppl->vilist() ;
-	for ( auto it = vl.begin() ; it != vl.end() ; it++ )
+	for ( auto it = vl.begin() ; it != vl.end() ; ++it )
 	{
 		macAppl->vcopy( *it, val2, MOVE ) ;
 		rc = setRexxVariable( *it, val2 ) ;

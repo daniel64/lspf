@@ -6,7 +6,8 @@ Loads! some good, and some bad but in no particular order...
 1)  No ISPLINK interface.  Use ISPEXEC or the pApplication methods that have the same parameters as ISPLINK.
     Both set special variable RC to the return code of the service.
 2)  Panel body is defined differently with a simple list of FIELD, TEXT, TBMODEL, TBFIELD etc, statements
-3)  Applications can be run in the background with SELECT .... BACK parameter.  ZTASKID contains the background taskid.
+3)  Applications can be run in the background/asynchronously using the submit method.
+    Function pool variable ZSBTASK contains the submitted background taskid.
 4)  No ALTLIB function, but then this is really TSO not ISPF.
     Maybe LIBDEF can be extended to provide something similar.
 5)  Keylists are kept in their own table, not in the PROFILE file as added table rows.  File name format is
@@ -15,7 +16,7 @@ Loads! some good, and some bad but in no particular order...
 7)  Keylists override current PFKEYs only if there is a definition, otherwise the normal PFKEY will be in effect.
     Real ISPF overrides all keys when a keylist is in use (which makes then almost useless)
 8)  No split line in split-screen mode.  Each logical screen gets the full screen.
-9)  Applications can be set to timeout.  No PA1 function, I'm afraid.
+9)  No PA1 function but if an application appears to be looping, press ESC to see options.
 10) If the application does an ADDPOP, it is ignored on a DISPLAY if there is no WINDOW() statement on the panel.
     Real ISPF honours it and usually gives something a bit strange!
 11) Panels can have an INCLUDE directive to pull in common source.  Useful for pull-down definitions.
@@ -58,13 +59,15 @@ Loads! some good, and some bad but in no particular order...
 21) If LIBRARY specified on TBSAVE or TBCLOSE, or for the ZTABL default, a search is made of the
     concatination and the table added to where it is found.  If not found, the first directory is used.
     Real ISPF just adds the table to the first dataset in the concatination.
-22) Panels can have an ACTIONBAR statement in the BODY section to order or display only certain pull down
+22) The LIBRARY statement on various services, accepts a path, concatination of paths, or a
+    LIBDEF lib-type (generic or non-generic).
+23) Panels can have an ACTIONBAR statement in the BODY section to order or display only certain pull down
     menus.  A pull down menu not in the ACTIONBAR statement will be deleted.  If there is no ACTIONBAR statement,
     the default is to use all pull down menus in the order they were defined in the panel.
-23) Entering a jump command from fields other than the command line, is cursor sensitive.
+24) Entering a jump command from fields other than the command line, is cursor sensitive.
     The cursor must be left on the field, and only characters up to, but not including, the cursor (or first space)
     are used in the jump command - a space is not required after the command.
     Literals (last 3 characters) used to determine a jump-capable field are "...", ". .", " .:", ". :" and "==>"
-24) Panels are automatically in CUA mode (in ISPF, panels that have a )PANEL section).  That is,
+25) Panels are automatically in CUA mode (in ISPF, panels that have a )PANEL section).  That is,
     CANCEL and EXIT commands behave as SETVERB entries in the command table, and special variables
     ZCURFLD, ZCURPOS and ZCURINX are set.  Other CUA characteristics are not implemented.

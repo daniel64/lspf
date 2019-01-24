@@ -54,7 +54,7 @@ PSYE013B 'Maximum return code exceeded'
 'Maximum return code of &ZVAL1 exceeded for function pool GET of &ZVAL2'
 
 PSYE013C 'Output destination not specified'
-'No destination specified and ZTABL is null'
+'No destination specified and both ZTABL and ZTLIB are null'
 
 PSYE013D 'Input library not specified'
 'No input library specified and ZTLIB is null'
@@ -63,7 +63,7 @@ PSYE013E 'Non-zero return code'
 'Function &ZVAL1 gave non-zero return code'
 
 PSYE013F 'Max rows exceeded'
-'Maximum of 500,000 rows exceeded'
+'Maximum table size of &ZMXTABSZ exceeded.  Check MXTAB_SZ.'
 
 PSYE013G 'Table not open'
 '&ZVAL1 issued for table &ZVAL2 that is not open'
@@ -113,8 +113,8 @@ PSYE013U 'No scan arguments have been set'
 PSYE013V 'Too many conditions on NAMELIST'
 'CONDLIST parameter has more conditions than names in the NAMELIST parameter (less defaults to EQ)'
 
-PSYE013W 'Spare'
-'Spare'
+PSYE013W 'Table in use'
+'&ZVAL1 issued for table &ZVAL2 that is in use. Cannot enqueue file'
 
 PSYE013X 'Invalid TBSORT argument'
 'Invalid argument is ''&ZVAL1'''
@@ -134,7 +134,7 @@ PSYE014B 'Spare'
 PSYE014C 'More conditions specified than table fields'
 'There must be at least as many table fields in arglist as conditions'
 
-PSYE014D 'Table open for &ZVAL1 gave an error'
+PSYE014D 'File open failed for &ZVAL1'
 'File: &ZVAL2'
 
 PSYE014E 'Not a valid table file for table &ZVAL1'

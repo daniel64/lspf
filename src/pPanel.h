@@ -91,6 +91,8 @@ class pPanel
 
 		string get_keylist( int ) ;
 
+		void   reset_cmd() ;
+
 		const string& get_zprim() { return zprim ; }
 
 	private:

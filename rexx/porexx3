@@ -19,63 +19,10 @@
 
 /* Execute exec against member */
 
-/* Re-direct say ouput and error messages to a temporary file or it'll mess up lspf output */
-"rm /tmp/porexx3.say 2> /dev/null"
-"rm /tmp/porexx3.err 2> /dev/null"
-.output~destination(.stream~new("/tmp/porexx3.say"))
-.error~destination(.stream~new("/tmp/porexx3.err"))
-/**********************************************************************************************/
+/* Re-direct say ouput and error messages to the spool or it'll mess up lspf output */
+parse source . . src .
+Call setdest src
+/************************************************************************************/
 
 exit
 
-Zfile = .stream~new(arg(1))
-Zfile~open("read")
-
-i = 0
-data. = ""
-do while Zfile~lines > 0
-   i = i + 1
-   data.i = Zfile~linein
-end
-data.0 = i
-Zfile~close
-
-do i = 1 to data.0
-   if UPPER(word(data.i,1)) = "FIELD" | UPPER(word(data.i,1)) = "LITERAL" | UPPER(word(data.i,1)) = "DYNAREA" then
-     do
-        row = word(data.i,2)
-        col = word(data.i,3)
-        if datatype(row,"W") then row = row + 1
-        if datatype(col,"W") then col = col + 1
-        wi2 = wordindex(data.i,2)
-        wi3 = wordindex(data.i,3)
-        wi4 = wordindex(data.i,4)
-        l2  = wi3 - wi2
-        l3 = wi4 - wi3
-        data.i = substr(data.i, 1, wi2-1) || left( row, l2 ) || left( col, l3 ) || substr( data.i, wi4)
-     end
-end
-
-do i = 1 to data.0
-   if UPPER(word(data.i,1)) = "TBFIELD" then
-     do
-        col = word(data.i,2)
-        if datatype(col,"W") then col = col + 1
-        wi2 = wordindex(data.i,2)
-        wi3 = wordindex(data.i,3)
-        l2  = wi3 - wi2
-        data.i = substr(data.i, 1, wi2-1) || left( col, l2 ) || substr( data.i, wi3)
-     end
-end
-
-
-Zfile = .stream~new(arg(1))
-Zfile~open("write replace")
-
-i = 0
-do i = 1 to data.0
-   Zfile~lineout(data.i)
-   say data.i
-end
-data.0 = i
-Zfile~close

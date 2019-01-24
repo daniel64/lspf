@@ -17,12 +17,10 @@
 
 */
 
-/* Re-direct say ouput and error messages to a temporary file or it'll mess up lspf output */
-"rm /tmp/edittab1.say 2> /dev/null"
-"rm /tmp/edittab1.err 2> /dev/null"
-.output~destination(.stream~new("/tmp/edittab1.say"))
-.error~destination(.stream~new("/tmp/edittab1.err"))
-/**********************************************************************************************/
+/* Re-direct say ouput and error messages to the spool or it'll mess up lspf output */
+parse source . . src .
+Call setdest src
+/************************************************************************************/
 
 /* Create Edit Line Command Table for IBM REXX POSLINE    */
 

@@ -47,21 +47,25 @@ text     13  26      FP "Program to run on selecting HELP"
 
 text     14  2       FP "ZOREXPGM. . ."
 field    14  16   8  NEF CAPS(ON),PAD(USER) ZOREXPGM
-text     14  26      FP "REXX interpreter stub and default SELECT CMD() language parameter
+text     14  26      FP "REXX interpreter stub and default SELECT CMD() language parameter"
 
-text     16  2     CH  "Instructions"
+text     15  2       FP "ZSHELPGM. . ."
+field    15  16   8  NEF CAPS(ON),PAD(USER) ZSHELPGM
+text     15  26      FP "Program used to run shell scripts ie. SELECT CMD() LANG(SHELL)"
 
-text     18  2     PIN "Enter"
-text     18  8     PS  "DEFAULTS"
-text     18  16    PIN ","
-text     18  18    PS  "SAVE"
-text     18  23    PIN "or"
-text     18  26    PS  "CANCEL"
+text     17  2     CH  "Instructions"
 
-text     20  2     PIN "Defaults are those defined in the lspf.h #define values for these variable names"
+text     19  2     PIN "Enter"
+text     19  8     PS  "DEFAULTS"
+text     19  16    PIN ","
+text     19  18    PS  "SAVE"
+text     19  23    PIN "or"
+text     19  26    PS  "CANCEL"
 
-text     22  2     CT  "Warning"
-text     23  2     CT  "Incorrect values can render lspf unusable.  Rerun setup program to recreate ISPSPROF in this case"
+text     21  2     PIN "Defaults are those defined in the lspf.h #define values for these variable names"
+
+text     23  2     CT  "Warning"
+text     24  2     CT  "Incorrect values can render lspf unusable.  Rerun setup program to recreate ISPSPROF in this case"
 
 
 

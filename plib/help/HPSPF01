@@ -41,6 +41,7 @@ System:
 .ENQ     Display enqueued resources.  Output goes to the application log.
 .HIDE    NULLS. Display field nulls as spaces.
 .INFO    Display current application information to the Application Log
+.JOBS    Same as .TASKS
 .LOAD    Load all applications not already loaded.
 .RELOAD  ALL | NEW | modname.  Reload application if not in use.
 .RGB     List RGB values of the in-use colours to the lspf log.
@@ -114,8 +115,6 @@ will cause the normal key definition to be used.  This is diffent from real ISPF
 definitions.  In this way, only certain keys need to be defined for a panel keylist, eg. RFIND in EDIT where
 it has no other use outside of this panel.  Other keys will remain as before.
 
-In the lspf General Settings (opt 0.0), it is possible to set the application not to fail if a keylist is missing.
-
 
 Keys:
 =====
@@ -130,7 +129,8 @@ The ESC key does the following:
  b) Removes a pull-down if one is displayed
  c) Removes the Active Logical Sessions display.
  d) Removes the Command Retrieve Panel (RETP) display.
- e) Displayes Active Logical Sessions display if none of the above.
+ e) Interrupts a busy program (status X-Busy) and displays the Program Interrupt Options screen
+ f) Displays Active Logical Sessions display if none of the above.
 
 Keyboard control keys are supported and can be customised in option 0.9 (command CTRL).
 These are global definitions stored in the system profile, not local profile definitions, unlike PFKEYS.

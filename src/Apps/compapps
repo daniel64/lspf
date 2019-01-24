@@ -15,5 +15,6 @@ g++ $OPTS1 $OPTS2 -Wl,-soname,libPTEST01.so  -o libPTEST01.so PTEST01.cpp
 g++ $OPTS1 $OPTS2 -Wl,-soname,libPDPANLA.so  -o libPDPANLA.so PDPANLA.cpp
 g++ $OPTS1 $OPTS2 -Wl,-soname,libPTUTORA.so  -o libPTUTORA.so PTUTORA.cpp
 g++ $OPTS1 $OPTS2 -Wl,-soname,libPOREXX1.so -lrexx -lrexxapi -o libPOREXX1.so POREXX1.cpp
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPCMD0A.so   -o libPCMD0A.so PCMD0A.cpp
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPCMD0B.so   -o libPCMD0B.so PCMD0B.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libPCMD0A.so   -o libPCMD0A.so  PCMD0A.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libPCMD0B.so   -o libPCMD0B.so  PCMD0B.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libPSHELL0.so  -o libPSHELL0.so PSHELL0.cpp

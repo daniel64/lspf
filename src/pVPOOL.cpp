@@ -31,7 +31,7 @@ fPOOL::~fPOOL()
 
 	map<string, stack<fVAR*>>::iterator it ;
 
-	for ( it = POOL.begin() ; it!= POOL.end() ; it++ )
+	for ( it = POOL.begin() ; it!= POOL.end() ; ++it )
 	{
 		while ( !it->second.empty() )
 		{
@@ -44,12 +44,11 @@ fPOOL::~fPOOL()
 
 void fPOOL::define( errblock& err,
 		    const string& name,
-		    string* addr,
-		    nameCHCK check )
+		    string* addr )
 {
 	err.setRC( 0 ) ;
 
-	if ( check == CHECK && !isvalidName( name ) )
+	if ( !isvalidName( name ) )
 	{
 		err.seterrid( "PSYE013A", "function pool DEFINE", name ) ;
 		return ;
@@ -59,6 +58,7 @@ void fPOOL::define( errblock& err,
 	var->fVAR_string_ptr = addr     ;
 	var->fVAR_type       = STRING   ;
 	var->fVAR_defined    = true     ;
+	var->fVAR_valid      = true     ;
 	POOL[ name ].push( var )        ;
 }
 
@@ -79,13 +79,13 @@ void fPOOL::define( errblock& err,
 	var->fVAR_int_ptr = addr     ;
 	var->fVAR_type    = INTEGER  ;
 	var->fVAR_defined = true     ;
+	var->fVAR_valid   = true     ;
 	POOL[ name ].push( var )     ;
 }
 
 
 void fPOOL::dlete( errblock& err,
-		   const string& name,
-		   nameCHCK check )
+		   const string& name )
 {
 	// Remove the vdefine for a variable from the function pool (delete dynamic storage for fVAR first)
 
@@ -114,13 +114,13 @@ void fPOOL::dlete( errblock& err,
 			}
 			else
 			{
-				it++ ;
+				++it ;
 			}
 		}
 		return ;
 	}
 
-	if ( check == CHECK && !isvalidName( name ) )
+	if ( !isvalidName( name ) )
 	{
 		err.seterrid( "PSYE013A", "function pool DELETE", name ) ;
 		return ;
@@ -244,12 +244,11 @@ dataType fPOOL::getType( errblock& err,
 
 
 bool fPOOL::ifexists( errblock& err,
-		      const string& name,
-		      nameCHCK check )
+		      const string& name )
 {
 	err.setRC( 0 ) ;
 
-	if ( check == CHECK && !isvalidName( name ) )
+	if ( !isvalidName( name ) )
 	{
 		err.seterrid( "PSYE013A", "function pool IFEXISTS", name ) ;
 		return false ;
@@ -267,11 +266,13 @@ void fPOOL::put( errblock& err,
 	// RC =  0 OK
 	// RC = 20 Severe error
 
+	bool valid = isvalidName( name ) ;
+
 	map<string, stack<fVAR*>>::iterator it ;
 
 	err.setRC( 0 ) ;
 
-	if ( check == CHECK && !isvalidName( name ) )
+	if ( check == CHECK && !valid )
 	{
 		err.seterrid( "PSYE013A", "function pool PUT", name ) ;
 		return ;
@@ -284,6 +285,7 @@ void fPOOL::put( errblock& err,
 		var->fVAR_string  = value    ;
 		var->fVAR_type    = STRING   ;
 		var->fVAR_defined = false    ;
+		var->fVAR_valid   = valid    ;
 		POOL[ name ].push( var )     ;
 		return ;
 	}
@@ -322,6 +324,7 @@ void fPOOL::put( errblock& err,
 		var->fVAR_int     = value    ;
 		var->fVAR_type    = INTEGER  ;
 		var->fVAR_defined = false    ;
+		var->fVAR_valid   = true     ;
 		POOL[ name ].push( var )     ;
 		return ;
 	}
@@ -344,7 +347,7 @@ void fPOOL::reset( errblock& err )
 
 	err.setRC( 0 ) ;
 
-	for ( it = POOL.begin() ; it!= POOL.end() ; it++ )
+	for ( it = POOL.begin() ; it!= POOL.end() ; ++it )
 	{
 		while ( !it->second.empty() )
 		{
@@ -388,10 +391,9 @@ set<string>& fPOOL::vilist( int& RC,
 	varList.clear() ;
 
 	RC = 8 ;
-	for ( it = POOL.begin() ; it != POOL.end() ; it++ )
+	for ( it = POOL.begin() ; it != POOL.end() ; ++it )
 	{
-		if ( !isvalidName( it->first ) ) { continue ; }
-		if ( it->second.top()->fVAR_type != INTEGER ) { continue ; }
+		if ( !it->second.top()->fVAR_valid || it->second.top()->fVAR_type != INTEGER ) { continue ; }
 		if ( it->second.top()->fVAR_defined )
 		{
 			if ( defn == IMPLICIT ) { continue ; }
@@ -415,10 +417,9 @@ set<string>& fPOOL::vslist( int& RC,
 	varList.clear() ;
 
 	RC = 8 ;
-	for ( it = POOL.begin() ; it != POOL.end() ; it++ )
+	for ( it = POOL.begin() ; it != POOL.end() ; ++it )
 	{
-		if ( !isvalidName( it->first ) ) { continue ; }
-		if ( it->second.top()->fVAR_type != STRING ) { continue ; }
+		if ( !it->second.top()->fVAR_valid || it->second.top()->fVAR_type != STRING ) { continue ; }
 		if ( it->second.top()->fVAR_defined )
 		{
 			if ( defn == IMPLICIT ) { continue ; }
@@ -435,21 +436,19 @@ set<string>& fPOOL::vslist( int& RC,
 
 
 string* fPOOL::vlocate( errblock& err,
-			const string& name,
-			nameCHCK check )
+			const string& name )
 {
 	map<string, stack<fVAR*>>::iterator it ;
 
 	err.setRC( 0 ) ;
 
-	if ( check == CHECK && !isvalidName( name ) )
+	if ( !isvalidName( name ) )
 	{
 		err.seterrid( "PSYE013A", "function pool VLOCATE", name ) ;
 		return NULL ;
 	}
 
 	it = POOL.find( name ) ;
-
 	if ( it == POOL.end() )
 	{
 		err.setRC( 8 ) ;
@@ -477,7 +476,7 @@ pVPOOL::~pVPOOL()
 
 	map<string, pVAR*>::iterator it ;
 
-	for ( it = POOL.begin() ; it != POOL.end() ; it++ )
+	for ( it = POOL.begin() ; it != POOL.end() ; ++it )
 	{
 		delete it->second ;
 	}
@@ -498,13 +497,8 @@ void pVPOOL::put( errblock& err,
 
 	map<string, pVAR*>::iterator it ;
 
+	pair<map<string, pVAR*>::iterator, bool> result ;
 	err.setRC( 0 ) ;
-
-	if ( !isvalidName( name ) )
-	{
-		err.seterrid( "PSYE013A", "variable pool PUT", name ) ;
-		return ;
-	}
 
 	if ( readOnly )
 	{
@@ -512,20 +506,19 @@ void pVPOOL::put( errblock& err,
 		return ;
 	}
 
-	if ( value.size() > 32767 )
-	{
-		err.seterrid( "PSYE015A", name, 16 ) ;
-	}
-
 	it = POOL.find( name ) ;
 	if ( it == POOL.end() )
 	{
-		var              = new pVAR ;
-		if ( value.size() > 32767 ) { var->pVAR_value.assign( value, 0, 32766 ) ; }
-		else                        { var->pVAR_value = value                   ; }
+		if ( !isvalidName( name ) )
+		{
+			err.seterrid( "PSYE013A", "variable pool PUT", name ) ;
+			return ;
+		}
+		var = new pVAR ;
 		var->pVAR_system = ( vtype == SYSTEM ) ;
 		var->pVAR_type   = pV_VALUE ;
-		POOL[ name ]     = var ;
+		result = POOL.insert( pair<string, pVAR*>( name, var ) ) ;
+		it = result.first ;
 	}
 	else
 	{
@@ -539,8 +532,15 @@ void pVPOOL::put( errblock& err,
 			err.seterrid( "PSYE014O", name ) ;
 			return ;
 		}
-		if ( value.size() > 32767 ) { it->second->pVAR_value.assign( value, 0, 32766 ) ; }
-		else                        { it->second->pVAR_value = value                   ; }
+	}
+	if ( value.size() > 32767 )
+	{
+		err.seterrid( "PSYE015A", name, 16 ) ;
+		it->second->pVAR_value.assign( value, 0, 32766 ) ;
+	}
+	else
+	{
+		it->second->pVAR_value = value ;
 	}
 	changed = true ;
 }
@@ -613,8 +613,9 @@ string pVPOOL::get( errblock& err,
 
 	std::stringstream stream;
 
-	if ( v_it->second->pVAR_type != pV_VALUE &&
-	     v_it->second->pVAR_type != pV_ZTIMEL  )
+	if ( v_it->second->pVAR_type != pV_VALUE  &&
+	     v_it->second->pVAR_type != pV_ZTIMEL &&
+	     v_it->second->pVAR_type != pV_ZTASKID )
 	{
 		time( &rawtime ) ;
 		if ( rawtime == -1 )
@@ -633,43 +634,58 @@ string pVPOOL::get( errblock& err,
 	switch( v_it->second->pVAR_type )
 	{
 		case pV_VALUE:    return v_it->second->pVAR_value ;
+
 		case pV_ZTIME:    strftime( buf, sizeof(buf), "%H:%M", time_info ) ;
 				  buf[ 5  ] = 0x00 ;
 				  return buf       ;
+
 		case pV_ZTIMEL:   stream << microsec_clock::local_time() ;
 				  t  = stream.str()  ;
 				  p1 = t.find( ' ' ) ;
 				  return t.substr( p1+1, 11 ) ;
+
 		case pV_ZDATE:    strftime( buf, sizeof(buf), "%d/%m/%y", time_info ) ;
 				  buf[ 8  ] = 0x00 ;
 				  return buf       ;
+
 		case pV_ZDATEL:   strftime( buf, sizeof(buf), "%d/%m/%Y", time_info ) ;
 				  buf[ 10 ] = 0x00 ;
 				  return buf       ;
+
 		case pV_ZDAY:     strftime( buf, sizeof(buf), "%d", time_info ) ;
 				  buf[ 2  ] = 0x00 ;
 				  return buf       ;
+
 		case pV_ZDAYOFWK: strftime( buf, sizeof(buf), "%A", time_info ) ;
 				  buf[ 9  ] = 0x00 ;
 				  return buf      ;
+
 		case pV_ZDATESTD: strftime( buf, sizeof(buf), "%Y/%m/%d", time_info ) ;
 				  buf[ 10 ] = 0x00 ;
 				  return buf       ;
+
 		case pV_ZMONTH:   strftime( buf, sizeof(buf), "%m", time_info ) ;
 				  buf[ 2  ] = 0x00 ;
 				  return buf       ;
+
 		case pV_ZJDATE:   strftime( buf, sizeof(buf), "%y.%j", time_info ) ;
 				  buf[ 6  ] = 0x00 ;
 				  return buf       ;
+
 		case pV_ZJ4DATE:  strftime( buf, sizeof(buf), "%Y.%j", time_info ) ;
 				  buf[ 8  ] = 0x00 ;
 				  return buf       ;
+
 		case pV_ZYEAR:    strftime( buf, sizeof(buf), "%y", time_info ) ;
 				  buf[ 2  ] = 0x00 ;
 				  return buf       ;
+
 		case pV_ZSTDYEAR: strftime( buf, sizeof(buf), "%Y", time_info ) ;
 				  buf[ 4  ] = 0x00 ;
 				  return buf       ;
+
+		case pV_ZTASKID:  return d2ds( err.taskid, 5 ) ;
+
 		default:          err.seterrid( "PSYE014P", v_it->first ) ;
 				  return "" ;
 	}
@@ -764,6 +780,7 @@ void pVPOOL::createGenEntries()
 	var = new pVAR ; *var = *val ; var->pVAR_type = pV_ZJ4DATE  ; POOL[ "ZJ4DATE"  ] = var ;
 	var = new pVAR ; *var = *val ; var->pVAR_type = pV_ZYEAR    ; POOL[ "ZYEAR"    ] = var ;
 	var = new pVAR ; *var = *val ; var->pVAR_type = pV_ZSTDYEAR ; POOL[ "ZSTDYEAR" ] = var ;
+	var = new pVAR ; *var = *val ; var->pVAR_type = pV_ZTASKID  ; POOL[ "ZTASKID"  ] = var ;
 
 	delete val ;
 }
@@ -790,13 +807,13 @@ void pVPOOL::load( errblock& err,
 	char z[ 2 ] ;
 	char x      ;
 
-	size_t buf1Size = 1024  ;
+	size_t buf1Size = 1024 ;
 
 	fname = path + applid + "PROF" ;
 
 	std::ifstream profile ;
-	profile.open( fname.c_str() , ios::binary ) ;
-	if ( !profile.is_open() )
+	profile.open( fname.c_str(), ios::binary ) ;
+	if ( not profile.is_open() )
 	{
 		err.seterrid( "PSYE015F", applid, fname ) ;
 		return ;
@@ -922,7 +939,7 @@ void pVPOOL::save( errblock& err,
 	profile << "HDR                                         " ;
 
 	map<string, pVAR*>::iterator it ;
-	for ( it = POOL.begin() ; it != POOL.end() ; it++ )
+	for ( it = POOL.begin() ; it != POOL.end() ; ++it )
 	{
 		i = it->first.size() ;
 		profile << (char)i ;
@@ -962,15 +979,15 @@ poolMGR::~poolMGR()
 {
 	// Iterate over all remaining variable pools and delete to release dynamic storage
 
-	for ( auto it = POOLs_shared.begin() ; it != POOLs_shared.end() ; it++ )
+	for ( auto it = POOLs_shared.begin() ; it != POOLs_shared.end() ; ++it )
 	{
 		delete it->second ;
 	}
-	for ( auto it = POOLs_profile.begin() ; it != POOLs_profile.end() ; it++ )
+	for ( auto it = POOLs_profile.begin() ; it != POOLs_profile.end() ; ++it )
 	{
 		delete it->second ;
 	}
-	for ( auto it = POOLs_lscreen.begin() ; it != POOLs_lscreen.end() ; it++ )
+	for ( auto it = POOLs_lscreen.begin() ; it != POOLs_lscreen.end() ; ++it )
 	{
 		delete it->second ;
 	}
@@ -1271,7 +1288,7 @@ void poolMGR::statistics()
 	llog( "-", endl ) ;
 	llog( "-", "         Shared pool details:" << endl ) ;
 
-	for ( auto sp_it = POOLs_shared.begin() ; sp_it != POOLs_shared.end() ; sp_it++ )
+	for ( auto sp_it = POOLs_shared.begin() ; sp_it != POOLs_shared.end() ; ++sp_it )
 	{
 		Mode = sp_it->second->readOnly ? "RO" : "UP" ;
 		llog( "-", "            Pool " << setw(8) << sp_it->first <<
@@ -1281,7 +1298,7 @@ void poolMGR::statistics()
 	llog( "-", endl ) ;
 	llog( "-", "         Profile pool details:" << endl ) ;
 
-	for ( auto pp_it = POOLs_profile.begin() ; pp_it != POOLs_profile.end() ; pp_it++ )
+	for ( auto pp_it = POOLs_profile.begin() ; pp_it != POOLs_profile.end() ; ++pp_it )
 	{
 		Mode = pp_it->second->readOnly ? Mode = "RO" : Mode = "UP" ;
 		llog( "-", "            Pool " << setw(8) << pp_it->first << "  use count: " << setw(4) << pp_it->second->refCount <<
@@ -1290,7 +1307,7 @@ void poolMGR::statistics()
 
 	llog( "-", endl ) ;
 	llog( "-", "         Connected Tasks:" << endl ) ;
-	for ( auto it = task_table.begin() ; it != task_table.end() ; it++ )
+	for ( auto it = task_table.begin() ; it != task_table.end() ; ++it )
 	{
 		llog( "-", "            Id   " << setw(5) << it->first <<
 		      " Profile: " << setw(4) << it->second.first <<
@@ -1316,12 +1333,12 @@ void poolMGR::snap()
 	llog( "-", "Pool Variables:" << endl ) ;
 	llog( "-", "         Shared pool details:" << endl ) ;
 
-	for ( sp_it = POOLs_shared.begin() ; sp_it != POOLs_shared.end() ; sp_it++ )
+	for ( sp_it = POOLs_shared.begin() ; sp_it != POOLs_shared.end() ; ++sp_it )
 	{
 		llog( "-", endl ) ;
 		llog( "-", "         Pool " << setw(8) << sp_it->first << " use count:" << setw(3) << sp_it->second->refCount <<
 			  " entries: " << sp_it->second->POOL.size() << endl ) ;
-		for ( v_it = sp_it->second->POOL.begin() ; v_it != sp_it->second->POOL.end() ; v_it++ )
+		for ( v_it = sp_it->second->POOL.begin() ; v_it != sp_it->second->POOL.end() ; ++v_it )
 		{
 			vtype = sp_it->second->isSystem( v_it ) ? vtype = " (SYS) " : vtype = " (USR) " ;
 			llog( "-", setw(8) << std::left << v_it->first << vtype << sp_it->second->get( err, v_it ) << "<< " << endl ) ;
@@ -1330,13 +1347,13 @@ void poolMGR::snap()
 	llog( "-", endl ) ;
 	llog( "-", "         Profile pool details:" << endl ) ;
 
-	for ( pp_it = POOLs_profile.begin() ; pp_it != POOLs_profile.end() ; pp_it++ )
+	for ( pp_it = POOLs_profile.begin() ; pp_it != POOLs_profile.end() ; ++pp_it )
 	{
 		llog( "-", endl ) ;
 		llog( "-", "         Pool " << setw(8) << pp_it->first << " use count: " << setw(3) << pp_it->second->refCount <<
 			  " entries: " << pp_it->second->POOL.size() << endl ) ;
 		llog( "-", "                            path: " << setw(3) << pp_it->second->path << endl ) ;
-		for ( v_it = pp_it->second->POOL.begin() ; v_it != pp_it->second->POOL.end() ; v_it++ )
+		for ( v_it = pp_it->second->POOL.begin() ; v_it != pp_it->second->POOL.end() ; ++v_it )
 		{
 			vtype = pp_it->second->isSystem( v_it ) ? vtype = " (SYS) " : vtype = " (USR) " ;
 			llog( "-", setw(8) << std::left << v_it->first << vtype << pp_it->second->get( err, v_it ) << "<< " << endl ) ;
@@ -1413,7 +1430,7 @@ set<string>& poolMGR::vlist( errblock& err,
 		return varList ;
 	}
 
-	for ( v_it = p_it->second->POOL.begin() ; v_it != p_it->second->POOL.end() ; v_it++ )
+	for ( v_it = p_it->second->POOL.begin() ; v_it != p_it->second->POOL.end() ; ++v_it )
 	{
 		varList.insert( v_it->first ) ;
 	}

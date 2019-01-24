@@ -201,34 +201,28 @@ text  23  2    SAC  "X"
 text  23  5    PS   "Terminate"
 text  23  16   NT   "Terminate Session"
 
-dynArea  7  MAX-60   21  11  ZAREA  ZSHADOW
+dynArea  7  MAX-58   21  11  ZAREA  ZSHADOW
 
-text  7  MAX-35   FP  "User       :"
-field    7  MAX-22   8    VOI     NONE  ZUSER
+text  7  MAX-35   FP  "User. . . .:"
+field    7  MAX-22   MAX  VOI     NONE  ZUSER
 
-text  8  MAX-35   FP  "Home       :"
-field    8  MAX-22   15    VOI     NONE  ZHOME
+text  8  MAX-35   FP  "Home. . . .:"
+field    8  MAX-22   MAX   VOI     NONE  ZHOME
 
-text  9  MAX-35   FP  "Node Name  :"
-field    9  MAX-22   10   VOI     NONE  ZNODNAME
+text  9  MAX-35   FP  "Node Name .:"
+field    9  MAX-22   MAX  VOI     NONE  ZNODNAME
 
-text  10  MAX-35  FP  "Machine    :"
-field    10  MAX-22  8    VOI     NONE  ZMACHINE
+text  10  MAX-35  FP  "Machine . .:"
+field    10  MAX-22  MAX  VOI     NONE  ZMACHINE
 
 text  11  MAX-35  FP  "Environment:"
-field    11  MAX-22  15   VOI     NONE  ZENVIR
+field    11  MAX-22  MAX  VOI     NONE  ZENVIR
 
 text  12  MAX-35  FP  "System Name:"
-field    12  MAX-22  10    VOI     NONE  ZSYSNAME
+field    12  MAX-22  MAX   VOI     NONE  ZSYSNAME
 
 text  13  MAX-35  FP  "OS Release :"
-field    13  MAX-22  15    VOI    NONE  ZOSREL
-
-text  15  MAX-35  FP  "Date       :"
-field    15  MAX-22  11   VOI     NONE  ZDATEL
-
-text  16  MAX-35  FP  "Time       :"
-field    16  MAX-22  8    VOI     NONE  ZTIMEL
+field    13  MAX-22  MAX   VOI    NONE  ZOSREL
 
 text   26    2    FP     "Enter"
 text   26    8    PS     "HELP"

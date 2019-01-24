@@ -33,4 +33,9 @@ field     12   11    10     VOI   NONE  ZCURPOS
 )INIT
 VGET FLD1
 .CURSOR = ZCMD
+)PROC
+if ( &ZCMD NE &Z)
+  .MSG    = PSYS011C
+  .CURSOR = ZCMD
+  EXIT
 )END

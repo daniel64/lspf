@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 Daniel John Erdos
+  Copyright (c) 2018 Daniel John Erdos
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -17,22 +17,13 @@
 
 */
 
-using namespace std;
+/************************************************************************************/
+/* Simple EXEC to submit a shell script passed as an argument, as a background job. */
+/* Output goes to the spool.                                                        */
+/* The shell script must be in the PATH environment variable.                       */
+/************************************************************************************/
 
-class PCMD0A : public pApplication
-{
-	public:
-		PCMD0A() ;
-		void application() ;
+address ISPEXEC
 
-	private:
-		void run_command( string, const string&, const string& ) ;
-		bool invoke_task_wait( const string&, string&, const string& ) ;
-		string get_tempname( const string& ) ;
-
-		bool isRexx( string ) ;
-
-		string zscreen ;
-		string zuser   ;
-
-} ;
+"SUBMIT CMD(" arg( 1 ) ") LANG(SHELL)"
+"RDISPLAY JOB" right( zsbtask, 5, "0" ) "SUBMITTED"

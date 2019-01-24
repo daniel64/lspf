@@ -1289,32 +1289,32 @@ class defName
 		bool   disabled ;
 		bool   cmd      ;
 		bool   pgm      ;
-       defName()
-       {
+	defName()
+	{
 		name     = ""    ;
 		alias    = false ;
 		nop      = false ;
 		disabled = false ;
 		cmd      = false ;
 		pgm      = false ;
-       }
-       void clear()
-       {
+	}
+	void clear()
+	{
 		name     = ""    ;
 		alias    = false ;
 		nop      = false ;
 		disabled = false ;
 		cmd      = false ;
 		pgm      = false ;
-       }
-       bool deactive() const
-       {
+	}
+	bool deactive() const
+	{
 		return ( nop || disabled ) ;
-       }
-       bool macro() const
-       {
+	}
+	bool macro() const
+	{
 		return ( pgm || cmd ) ;
-       }
+	}
 } ;
 
 
@@ -1862,7 +1862,7 @@ class miblock
 			trim( t.erase( 0, p1+2 ) ) ;
 			replace( keyopts.begin(), keyopts.end(), ',', ' ' ) ;
 			iupper( keyopts ) ;
-			for ( ws = words( keyopts ), i = 1 ; i <= ws ; i++ )
+			for ( ws = words( keyopts ), i = 1 ; i <= ws ; ++i )
 			{
 				var1 = word( keyopts, i ) ;
 				if ( !isvalidName( var1 ) )
@@ -1916,7 +1916,7 @@ class miblock
 		trim( sttment ) ;
 		t = sttment ;
 
-		for ( quote = false, its = t.begin() ; its != t.end() ; its++ )
+		for ( quote = false, its = t.begin() ; its != t.end() ; ++its )
 		{
 			if ( !quote && ((*its) == '"' || (*its) == '\'' ) ) { quote = true ; qt = (*its) ; continue ; }
 			if (  quote &&  (*its) == qt ) { quote = false ; continue ; }
@@ -2071,7 +2071,7 @@ class miblock
 			if ( value.front() == ',' ) { miss = 1 ; }
 			replace( value.begin(), value.end(), ',', ' ' ) ;
 			iupper( trim( value ) ) ;
-			for ( nvars = words( value ), i = 1 ; i <= nvars ; i++ )
+			for ( nvars = words( value ), i = 1 ; i <= nvars ; ++i )
 			{
 				var = word( value, i ) ;
 				if ( !isvalidName( var ) )
@@ -2168,7 +2168,7 @@ class miblock
 		setRC( 0 ) ;
 		while ( true )
 		{
-			for ( int i = 1 ; i <= j ; i++ )
+			for ( int i = 1 ; i <= j ; ++i )
 			{
 				mfile = getpath( paths, i ) + emacro ;
 				if ( !exists( mfile ) ) { continue ; }
@@ -2528,7 +2528,6 @@ class PEDIT01 : public pApplication
 		string carea   ;
 		string cshadow ;
 		string xarea   ;
-		string uarea   ;
 
 		string zscrolla ;
 		int    zscrolln ;

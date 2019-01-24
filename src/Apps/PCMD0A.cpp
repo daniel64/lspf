@@ -20,6 +20,15 @@
 
 */
 
+/* ************************************************************************ */
+/* Run a command and browse the output.                                     */
+/* If the procedure is a REXX in ZORXPATH, the SELECT service is used so    */
+/* will be able to use lspf services, and runs in the foreground, otherwise */
+/* popen is used and the procedure will not have access to lspf services.   */
+/* popen runs in the background.                                            */
+/*                                                                          */
+/* Output goes to the files specified in COMM1 and COMM2.                   */
+/* ************************************************************************ */
 
 #include <iostream>
 #include <boost/filesystem.hpp>
@@ -60,6 +69,7 @@ void PCMD0A::application()
 	vget( "COMM1 COMM2", SHARED ) ;
 	if ( RC == 0 && PARM != "" )
 	{
+		verase( "COMM1 COMM2", SHARED ) ;
 		enq( "CMD", comm1 ) ;
 		run_command( PARM, comm1, comm2 ) ;
 		deq( "CMD", comm1 ) ;
@@ -148,7 +158,7 @@ bool PCMD0A::invoke_task_wait( const string& cmd, string& comm1, const string& c
 
 	vput( "COMM1 COMM2", SHARED ) ;
 
-	select( "PGM(PCMD0A) PARM("+cmd+") BACK" ) ;
+	submit( "PGM(PCMD0A) PARM(" + cmd + ")" ) ;
 
 	elapsed = 0 ;
 	while ( true )
@@ -170,6 +180,8 @@ void PCMD0A::run_command( string cmd, const string& fname1, const string& fname2
 	// Run command in the background and detach from the terminal (unless pipes are used)
 	// in case it hangs or messes with ncurses.
 
+	// If command is a REXX in ZORXPATH, run using the SELECT service.
+
 	// Output goes to fname1
 	// Errors go to fname2
 
@@ -178,6 +190,12 @@ void PCMD0A::run_command( string cmd, const string& fname1, const string& fname2
 	char buffer[256] ;
 
 	std::ofstream of ;
+
+	if ( cmd.front() == '%' )
+	{
+		select( "CMD("+cmd+")" ) ;
+		return ;
+	}
 
 	if ( cmd.find( '|' ) == string::npos ) { cmd += " </dev/null 2> "+ fname2 ; }
 	else                                   { cmd += " 2> "+ fname2            ; }
@@ -209,7 +227,7 @@ bool PCMD0A::isRexx( string orexx )
 
 	while ( true )
 	{
-		for ( j = getpaths( paths ), i = 1 ; i <= j ; i++ )
+		for ( j = getpaths( paths ), i = 1 ; i <= j ; ++i )
 		{
 			rxfile = getpath( paths, i ) + orexx ;
 			if ( !exists( rxfile ) ) { continue ; }

@@ -18,6 +18,8 @@
 */
 
 
+using namespace lspf ;
+
 enum TOKEN_TYPES
 {
 	TT_STRING_QUOTED,
@@ -127,6 +129,15 @@ enum PS_SECT
 	PS_PROC,
 	PS_ABCINIT,
 	PS_ABCPROC
+} ;
+
+
+enum PGM_TYPE
+{
+	PGM_NONE,
+	PGM_PANEL,
+	PGM_REXX,
+	PGM_SHELL,
 } ;
 
 
@@ -620,10 +631,10 @@ class selobj
 			selPanl = false ;
 			backgrd = false ;
 			nested  = false ;
-			panpgm  = false ;
-			rexpgm  = false ;
+			pgmtype = PGM_NONE ;
 			quiet   = false ;
 			errors  = false ;
+			sync    = true  ;
 			options = NULL  ;
 		}
 		void def( const string& p )
@@ -650,10 +661,10 @@ class selobj
 		bool   selPanl ;
 		bool   backgrd ;
 		bool   nested  ;
-		bool   panpgm  ;
-		bool   rexpgm  ;
+		PGM_TYPE pgmtype ;
 		bool   quiet   ;
 		bool   errors  ;
+		bool   sync    ;
 		void*  options ;
 
 	private:
@@ -816,24 +827,24 @@ class logger
 
 class enqueue
 {
-       public:
-       enqueue()
-       {
-	       maj_name = ""  ;
-	       min_name = ""  ;
-	       disp     = EXC ;
-       }
-       enqueue( const string& maj, const string& min, int t, enqDISP d =EXC )
-       {
-	       maj_name = maj ;
-	       min_name = min ;
-	       disp     = d   ;
-	       tasks.insert( t ) ;
-       }
+	public:
+	enqueue()
+	{
+		maj_name = ""  ;
+		min_name = ""  ;
+		disp     = EXC ;
+	}
+	enqueue( const string& maj, const string& min, int t, enqDISP d =EXC )
+	{
+		maj_name = maj ;
+		min_name = min ;
+		disp     = d   ;
+		tasks.insert( t ) ;
+	}
 
-       set<int> tasks ;
-       enqDISP  disp  ;
+	set<int> tasks ;
+	enqDISP  disp  ;
 
-       string maj_name ;
-       string min_name ;
+	string maj_name ;
+	string min_name ;
 } ;

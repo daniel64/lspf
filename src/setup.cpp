@@ -96,6 +96,14 @@ int main()
 	homePath += ZUPROF ;
 	if ( homePath.back() != '/' ) { homePath += "/" ; }
 
+	if ( !exists( homePath ) || !is_directory( homePath ) )
+	{
+		cout << endl ;
+		cout << "ERROR: ZUPROF path " << homePath << " does not exist." << endl ;
+		cout << "       Please create before re-running setup." << endl ;
+		return 0 ;
+	}
+
 	string ZCTVERB, ZCTACT, ZCTDESC, ZCTTRUNC ;
 
 	funcPOOL.define( err, "ZCTVERB",  &ZCTVERB  ) ;
@@ -103,8 +111,8 @@ int main()
 	funcPOOL.define( err, "ZCTACT",   &ZCTACT   ) ;
 	funcPOOL.define( err, "ZCTDESC",  &ZCTDESC  ) ;
 
-	p_tableMGR->createTable( err, "ISPCMDS", "ZCTVERB" , "ZCTTRUNC ZCTACT ZCTDESC", NOREPLACE, WRITE, "", SHARE ) ;
-	p_tableMGR->createTable( err, "USRCMDS", "ZCTVERB" , "ZCTTRUNC ZCTACT ZCTDESC", NOREPLACE, WRITE, "", SHARE ) ;
+	p_tableMGR->tbcreate( err, "ISPCMDS", "ZCTVERB" , "ZCTTRUNC ZCTACT ZCTDESC", NOREPLACE, WRITE, "", SHARE ) ;
+	p_tableMGR->tbcreate( err, "USRCMDS", "ZCTVERB" , "ZCTTRUNC ZCTACT ZCTDESC", NOREPLACE, WRITE, "", SHARE ) ;
 
 	ZCTVERB  = "SCRNAME" ;
 	ZCTTRUNC = "0"    ;
@@ -361,7 +369,7 @@ int main()
 
 	ZCTVERB  = "DIR" ;
 	ZCTTRUNC = "0" ;
-	ZCTACT   = "SELECT PGM(&ZFLSTPGM) NEWAPPL(ISP) PARM(BROWSE &ZPARM) SCRNAME(FILES) SUSPEND" ;
+	ZCTACT   = "SELECT PGM(&ZFLSTPGM) NEWAPPL(ISP) PARM(&ZPARM) SCRNAME(FILES) SUSPEND" ;
 	ZCTDESC  = "Show files/directories" ;
 	p_tableMGR->tbadd( err, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
@@ -431,7 +439,7 @@ int main()
 	cout << endl ;
 	cout << "*******************************************************************************************" << endl ;
 
-	p_tableMGR->saveTable( err, "ISPCMDS", "" , homePath  ) ;
+	p_tableMGR->saveTable( err, "", "ISPCMDS", "" , homePath  ) ;
 	if ( err.RC0() )
 	{
 		cout << endl ;
@@ -444,7 +452,7 @@ int main()
 		cout << "Message is " << err.msgid << endl ;
 	}
 
-	p_tableMGR->saveTable( err, "USRCMDS", "" , homePath ) ;
+	p_tableMGR->saveTable( err, "", "USRCMDS", "" , homePath ) ;
 	if ( err.RC0() )
 	{
 		cout << endl ;
@@ -466,6 +474,8 @@ int main()
 	delete p_poolMGR  ;
 	delete p_tableMGR ;
 	delete lg         ;
+
+	return 0 ;
 }
 
 
@@ -498,7 +508,7 @@ void createSYSPROF()
 	p_poolMGR->put( err, "ZDEL",     ";",    PROFILE ) ;
 	p_poolMGR->put( err, "ZKLUSE",   "N",    PROFILE ) ;
 	p_poolMGR->put( err, "ZKLPRIV",  "Y",    PROFILE ) ;
-	p_poolMGR->put( err, "ZKLFAIL",  "Y",    PROFILE ) ;
+	p_poolMGR->put( err, "ZNOTIFY",  "Y",    PROFILE ) ;
 	p_poolMGR->put( err, "ZHIGH",    "Y",    PROFILE ) ;
 	p_poolMGR->put( err, "ZLMSGW",   "N",    PROFILE ) ;
 	p_poolMGR->put( err, "ZPADC",    "_",    PROFILE ) ;
@@ -546,10 +556,10 @@ void createSYSPROF()
 	p_poolMGR->put( err, "ZFLSTPGM", ZFLSTPGM, PROFILE ) ;
 	p_poolMGR->put( err, "ZHELPPGM", ZHELPPGM, PROFILE ) ;
 	p_poolMGR->put( err, "ZOREXPGM", ZOREXPGM, PROFILE ) ;
+	p_poolMGR->put( err, "ZSHELPGM", ZSHELPGM, PROFILE ) ;
 	p_poolMGR->put( err, "ZSHELP",   ZSHELP,   PROFILE ) ;
+	p_poolMGR->put( err, "ZSPOOL",   subHomePath( ZSPOOL, check ), PROFILE ) ;
 	p_poolMGR->put( err, "ZMAXSCRN", d2ds(ZMAXSCRN), PROFILE ) ;
-	p_poolMGR->put( err, "ZMAXWAIT", d2ds(ZMAXWAIT), PROFILE ) ;
-	p_poolMGR->put( err, "ZWAIT",    d2ds(ZWAIT),    PROFILE ) ;
 
 	p_poolMGR->put( err, "ZRFLPGM", ZRFLPGM, PROFILE ) ;
 	p_poolMGR->put( err, "ZRFLTBL", ZRFLTBL, PROFILE ) ;
@@ -713,7 +723,7 @@ string subHomePath( string var, bool do_check )
 
 	if ( do_check )
 	{
-		for ( j = getpaths( var ), i = 1 ; i <= j ; i++ )
+		for ( j = getpaths( var ), i = 1 ; i <= j ; ++i )
 		{
 			pathname = getpath( var, i ) ;
 			if ( !exists( pathname ) )

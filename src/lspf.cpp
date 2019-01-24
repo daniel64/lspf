@@ -35,6 +35,8 @@
 #include <boost/filesystem.hpp>
 
 boost::condition cond_appl ;
+boost::condition cond_lspf ;
+boost::condition cond_batch ;
 
 #include "utilities.h"
 #include "utilities.cpp"
@@ -129,7 +131,7 @@ map<string, appInfo> apps ;
 boost::circular_buffer<string> retrieveBuffer( 99 ) ;
 
 int    linePosn  = -1 ;
-int    maxtaskID = 0  ;
+int    maxTaskid = 0  ;
 uint   retPos    = 0  ;
 uint   priScreen = 0  ;
 uint   altScreen = 0  ;
@@ -157,23 +159,20 @@ string zctdesc  ;
 const char zscreen[] = { '1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G',
 			 'H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W' } ;
 
-selobj selct ;
-
-int    gmaxwait ;
 string gmainpgm ;
 
 enum LSPF_STATUS
 {
-     LSPF_STARTING,
-     LSPF_RUNNING,
-     LSPF_STOPPING
+	LSPF_STARTING,
+	LSPF_RUNNING,
+	LSPF_STOPPING
 } ;
 
 enum BACK_STATUS
 {
-     BACK_RUNNING,
-     BACK_STOPPING,
-     BACK_STOPPED
+	BACK_RUNNING,
+	BACK_STOPPING,
+	BACK_STOPPED
 } ;
 
 enum ZCT_VERBS
@@ -262,6 +261,7 @@ map<string, ZCMD_TYPES> zcommands =
   { ".SNAP",    ZC_DOT_SNAP   },
   { ".STATS",   ZC_DOT_STATS  },
   { ".TASKS",   ZC_DOT_TASKS  },
+  { ".JOBS",    ZC_DOT_TASKS  },
   { ".TEST",    ZC_DOT_TEST   }  } ;
 
 LSPF_STATUS lspfStatus ;
@@ -325,18 +325,19 @@ void createSharedPoolVars( const string& ) ;
 void updateReflist()          ;
 void startApplication( selobj&, bool =false ) ;
 void checkStartApplication( selobj& )         ;
-void startApplicationBack( selobj, bool =false ) ;
+void startApplicationBack( selobj, pApplication*, bool =true ) ;
 void terminateApplication()     ;
+void terminateApplicationBack( pApplication* ) ;
 void abnormalTermMessage()      ;
 void processBackgroundTasks()   ;
 void ResumeApplicationAndWait() ;
 bool createLogicalScreen()      ;
 void deleteLogicalScreen()      ;
-void resolvePGM()               ;
+void resolvePGM( selobj&, pApplication* ) ;
 void processPGMSelect()         ;
 void processZSEL()              ;
-void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru ) ;
-void processZCOMMAND( uint row, uint col, bool doSelect ) ;
+void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bool& passthru ) ;
+void processZCOMMAND( selobj& selct, uint row, uint col, bool doSelect ) ;
 void issueMessage( const string& ) ;
 void lineOutput()     ;
 void lineOutput_end() ;
@@ -347,28 +348,33 @@ void abortStartup()  ;
 void lspfCallbackHandler( lspfCommand& ) ;
 void createpfKeyDefaults() ;
 string getEnvironmentVariable( const char* ) ;
+void checkSystemVariable( const string& ) ;
 string pfKeyValue( int )   ;
 string ControlKeyAction( char c ) ;
 string listLogicalScreens() ;
+int  listInterruptOptions() ;
 void actionSwap( const string& ) ;
 void actionTabKey( uint&, uint& ) ;
 void displayNextPullDown( uint&, uint& ) ;
 void executeFieldCommand( const string&, const fieldExc&, uint ) ;
-void listBackTasks()      ;
-void autoUpdate()         ;
+void listBackTasks() ;
+void listTaskVector( vector<pApplication*>& p ) ;
+void autoUpdate()    ;
 bool resolveZCTEntry( string&, string& ) ;
 bool isActionKey( int c ) ;
+bool isEscapeKey() ;
 void listRetrieveBuffer() ;
 int  getScreenNameNum( const string& ) ;
 void serviceCallError( errblock& ) ;
 void listErrorBlock( errblock& ) ;
+void displayNotifies() ;
 void mainLoop() ;
 
 
 
 int main( void )
 {
-	int elapsed ;
+	selobj selct ;
 
 	setGlobalClassVars() ;
 
@@ -437,7 +443,7 @@ int main( void )
 
 	selct.def( gmainpgm ) ;
 
-	currAppl->init_phase1( selct, ++maxtaskID, lspfCallbackHandler ) ;
+	currAppl->init_phase1( selct, ++maxTaskid, lspfCallbackHandler ) ;
 	currAppl->shrdPool = 1 ;
 
 	p_poolMGR->createProfilePool( err, "ISR" ) ;
@@ -453,12 +459,12 @@ int main( void )
 	apps[ gmainpgm ].mainpgm = true ;
 
 	llog( "I", "Waiting for "+ gmainpgm +" to complete startup" << endl ) ;
-	elapsed = 0 ;
+	boost::mutex mutex ;
 	while ( currAppl->busyAppl )
 	{
-		if ( not currAppl->noTimeOut ) { elapsed++ ; }
-		boost::this_thread::sleep_for( boost::chrono::milliseconds( ZWAIT ) ) ;
-		if ( elapsed > gmaxwait ) { currAppl->set_timeout_abend() ; }
+		boost::mutex::scoped_lock lk( mutex ) ;
+		cond_lspf.wait_for( lk, boost::chrono::milliseconds( 200 ) ) ;
+		lk.unlock() ;
 	}
 	if ( currAppl->terminateAppl )
 	{
@@ -477,6 +483,7 @@ int main( void )
 	llog( "I", "First thread "+ gmainpgm +" started and initialised.  ID=" << pThread->get_id() << endl ) ;
 
 	currScrn->set_cursor( currAppl ) ;
+	currScrn->OIA_endTime() ;
 
 	mainLoop() ;
 
@@ -485,9 +492,10 @@ int main( void )
 	llog( "I", "Stopping background job monitor task" << endl ) ;
 	lspfStatus = LSPF_STOPPING ;
 	backStatus = BACK_STOPPING ;
+	cond_batch.notify_one()    ;
 	while ( backStatus != BACK_STOPPED )
 	{
-		boost::this_thread::sleep_for( boost::chrono::milliseconds( ZWAIT ) ) ;
+		boost::this_thread::sleep_for( boost::chrono::milliseconds( 5 ) ) ;
 	}
 
 	delete bThread ;
@@ -504,7 +512,7 @@ int main( void )
 	llog( "I", "Closing application log" << endl ) ;
 	delete lgx ;
 
-	for ( auto it = apps.begin() ; it != apps.end() ; it++ )
+	for ( auto it = apps.begin() ; it != apps.end() ; ++it )
 	{
 		if ( it->second.dlopened )
 		{
@@ -531,9 +539,10 @@ void cleanup()
 	llog( "I", "Stopping background job monitor task" << endl ) ;
 	lspfStatus = LSPF_STOPPING ;
 	backStatus = BACK_STOPPING ;
+	cond_batch.notify_one()    ;
 	while ( backStatus != BACK_STOPPED )
 	{
-		boost::this_thread::sleep_for( boost::chrono::milliseconds( ZWAIT ) ) ;
+		boost::this_thread::sleep_for( boost::chrono::milliseconds( 5 ) ) ;
 	}
 
 	cout << "*********************************************************************" << endl ;
@@ -563,6 +572,8 @@ void mainLoop()
 	bool showLock ;
 	bool Insert   ;
 	bool doSelect ;
+
+	selobj selct ;
 
 	MEVENT event ;
 
@@ -614,7 +625,6 @@ void mainLoop()
 			}
 			c = KEY_ENTER ;
 		}
-		currScrn->OIA_startTime() ;
 
 		if ( c < 256 && isprint( c ) )
 		{
@@ -743,7 +753,7 @@ void mainLoop()
 			case KEY_PPAGE:
 			case KEY_ENTER:
 			case CTRL( '[' ):       // Escape key
-
+				currScrn->OIA_startTime() ;
 				debug1( "Action key pressed.  Processing" << endl ) ;
 				if ( currAppl->msgInhibited() )
 				{
@@ -754,7 +764,7 @@ void mainLoop()
 				currScrn->set_Insert( Insert ) ;
 				currScrn->show_busy() ;
 				updateDefaultVars()   ;
-				processAction( row, col, c, doSelect, passthru ) ;
+				processAction( selct, row, col, c, doSelect, passthru ) ;
 				if ( passthru )
 				{
 					updateReflist() ;
@@ -777,8 +787,10 @@ void mainLoop()
 				}
 				else
 				{
-					processZCOMMAND( row, col, doSelect ) ;
+					processZCOMMAND( selct, row, col, doSelect ) ;
 				}
+				currScrn->OIA_endTime() ;
+
 				break ;
 
 			default:
@@ -824,6 +836,8 @@ void processZSEL()
 
 	bool addpop = false ;
 
+	selobj selct ;
+
 	err.clear() ;
 
 	currAppl->save_errblock()  ;
@@ -859,33 +873,26 @@ void processZSEL()
 		return ;
 	}
 
-	resolvePGM() ;
+	resolvePGM( selct, currAppl ) ;
 
 	if ( addpop )
 	{
 		selct.parm += " ADDPOP" ;
 	}
 
-	if ( selct.backgrd )
+	selct.quiet = true ;
+	startApplication( selct ) ;
+	if ( selct.errors )
 	{
-		startApplicationBack( selct ) ;
-	}
-	else
-	{
-		selct.quiet = true ;
-		startApplication( selct ) ;
-		if ( selct.errors )
-		{
-			p_poolMGR->put( err, "ZVAL1", selct.pgm ,SHARED ) ;
-			p_poolMGR->put( err, "ZERRDSC", "P", SHARED ) ;
-			p_poolMGR->put( err, "ZERRSRC", "ZSEL = "+ cmd ,SHARED ) ;
-			errorScreen( ( selct.rsn == 998 ) ? "PSYS012W" : "PSYS013H" ) ;
-		}
+		p_poolMGR->put( err, "ZVAL1", selct.pgm ,SHARED ) ;
+		p_poolMGR->put( err, "ZERRDSC", "P", SHARED ) ;
+		p_poolMGR->put( err, "ZERRSRC", "ZSEL = "+ cmd ,SHARED ) ;
+		errorScreen( ( selct.rsn == 998 ) ? "PSYS012W" : "PSYS013H" ) ;
 	}
 }
 
 
-void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
+void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bool& passthru )
 {
 	// Return if application is just doing line output
 	// perform lspf high-level functions - pfkey -> command
@@ -1046,7 +1053,7 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 							currAppl->setmsg( "PSYS011K" ) ;
 							return ;
 						}
-						resolvePGM()     ;
+						resolvePGM( selct, currAppl ) ;
 						doSelect = true  ;
 						passthru = false ;
 						return           ;
@@ -1108,6 +1115,10 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 		{
 			currAppl->currPanel->cmd_setvalue( zcommand + commandStack ) ;
 			commandStack = "" ;
+			if ( currAppl->msg_issued_with_cmd() )
+			{
+				passthru = false ;
+			}
 			return ;
 		}
 		else
@@ -1266,8 +1277,6 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 
 	if ( cmdVerb == "HELP")
 	{
-		commandStack = "" ;
-		currAppl->currPanel->cmd_setvalue( "" ) ;
 		if ( currAppl->currPanel->msgid == "" || currAppl->currPanel->showLMSG )
 		{
 			zparm   = currAppl->get_help_member( row, col ) ;
@@ -1275,10 +1284,11 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 		}
 		else
 		{
-			zcommand = ""    ;
+			zcommand = "NOP" ;
 			passthru = false ;
 			currAppl->currPanel->showLMSG = true ;
 			currAppl->currPanel->display_msg( err ) ;
+			currAppl->currPanel->reset_cmd() ;
 			return ;
 		}
 	}
@@ -1425,12 +1435,8 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 			{
 				selct.parm.replace( p1, 6, cmdParm ) ;
 			}
-			resolvePGM() ;
-			if ( selct.pgm.front() == '&' )
-			{
-				currAppl->vcopy( substr( selct.pgm, 2 ), selct.pgm, MOVE ) ;
-			}
-			zcommand     = word( zctact, 1 ) ;
+			resolvePGM( selct, currAppl ) ;
+			zcommand     = "" ;
 			doSelect     = true  ;
 			selct.nested = true  ;
 			passthru     = false ;
@@ -1521,7 +1527,7 @@ void processAction( uint row, uint col, int c, bool& doSelect, bool& passthru )
 }
 
 
-void processZCOMMAND( uint row, uint col, bool doSelect )
+void processZCOMMAND( selobj& selct, uint row, uint col, bool doSelect )
 {
 	// If the event is not being passed to the application, process ZCOMMAND or start application request
 
@@ -1544,15 +1550,8 @@ void processZCOMMAND( uint row, uint col, bool doSelect )
 		if ( doSelect )
 		{
 			updateDefaultVars() ;
-			if ( selct.backgrd )
-			{
-				startApplicationBack( selct ) ;
-			}
-			else
-			{
-				currAppl->currPanel->remove_pd() ;
-				startApplication( selct ) ;
-			}
+			currAppl->currPanel->remove_pd() ;
+			startApplication( selct ) ;
 		}
 		return ;
 	}
@@ -1678,7 +1677,7 @@ void processZCOMMAND( uint row, uint col, bool doSelect )
 		break  ;
 
 	case ZC_DOT_LOAD:
-		for ( auto ita = apps.begin() ; ita != apps.end() ; ita++ )
+		for ( auto ita = apps.begin() ; ita != apps.end() ; ++ita )
 		{
 			if ( !ita->second.errors && !ita->second.dlopened )
 			{
@@ -1696,7 +1695,7 @@ void processZCOMMAND( uint row, uint col, bool doSelect )
 		llog( "I", ".RGB" <<endl ) ;
 		llog( "-", "**************************************" <<endl ) ;
 		llog( "-", "Listing current RGB values:" <<endl) ;
-		for ( int i = 1 ; i < COLORS ; i++ )
+		for ( int i = 1 ; i < COLORS ; ++i )
 		{
 			color_content( i, &r, &g, &b ) ;
 			llog( "-", "   Colour "<< i << " R: " << d2ds( r, 4 ) <<
@@ -1798,7 +1797,7 @@ bool resolveZCTEntry( string& cmdVerb, string& cmdParm )
 	cmdtabls.push_back( cmdtabl ) ;
 	processed.insert( cmdtabl ) ;
 
-	for ( i = 1 ; i < 4 ; i++ )
+	for ( i = 1 ; i < 4 ; ++i )
 	{
 		cmdtabl = p_poolMGR->sysget( err, "ZUCMDT" + d2ds( i ), PROFILE ) ;
 		if ( cmdtabl != "" && processed.count( cmdtabl ) == 0 )
@@ -1814,7 +1813,7 @@ bool resolveZCTEntry( string& cmdVerb, string& cmdParm )
 		  processed.insert( "ISP" ) ;
 	}
 
-	for ( i = 1 ; i < 4 ; i++ )
+	for ( i = 1 ; i < 4 ; ++i )
 	{
 		cmdtabl = p_poolMGR->sysget( err, "ZSCMDT" + d2ds( i ), PROFILE ) ;
 		if ( cmdtabl != "" && processed.count( cmdtabl ) == 0 )
@@ -1831,9 +1830,9 @@ bool resolveZCTEntry( string& cmdVerb, string& cmdParm )
 
 	ztlib = p_poolMGR->sysget( err, "ZTLIB", PROFILE ) ;
 
-	for ( i = 0 ; i < 256 ; i++ )
+	for ( i = 0 ; i < 256 ; ++i )
 	{
-		for ( j = 0 ; j < cmdtabls.size() ; j++ )
+		for ( j = 0 ; j < cmdtabls.size() ; ++j )
 		{
 			err.clear() ;
 			p_tableMGR->cmdsearch( err, funcPOOL, cmdtabls[ j ], cmdVerb, ztlib, ( j > 0 ) ) ;
@@ -1877,15 +1876,15 @@ void processPGMSelect()
 {
 	// Called when an application program has invoked the SELECT service (also VIEW, EDIT, BROWSE)
 
-	selct = currAppl->get_select_cmd() ;
+	selobj selct = currAppl->get_select_cmd() ;
 
-	resolvePGM() ;
+	resolvePGM( selct, currAppl ) ;
 
 	updateDefaultVars() ;
 
 	if ( selct.backgrd )
 	{
-		startApplicationBack( selct, true ) ;
+		startApplicationBack( selct, currAppl ) ;
 		ResumeApplicationAndWait() ;
 	}
 	else
@@ -1897,26 +1896,34 @@ void processPGMSelect()
 }
 
 
-void resolvePGM()
+void resolvePGM( selobj& selct, pApplication* p )
 {
 	// Add application to run for SELECT PANEL() and SELECT CMD() services
 
-	if ( selct.rexpgm )
+	switch ( selct.pgmtype )
 	{
-		currAppl->vcopy( "ZOREXPGM", selct.pgm, MOVE ) ;
-	}
-	else if ( selct.panpgm )
-	{
-		currAppl->vcopy( "ZPANLPGM", selct.pgm, MOVE ) ;
-	}
-	else if ( selct.pgm.size() > 0 && selct.pgm.front() == '&' )
-	{
-		currAppl->vcopy( substr( selct.pgm, 2 ), selct.pgm, MOVE ) ;
+	case PGM_REXX:
+		p->vcopy( "ZOREXPGM", selct.pgm, MOVE ) ;
+		break ;
+
+	case PGM_PANEL:
+		p->vcopy( "ZPANLPGM", selct.pgm, MOVE ) ;
+		break ;
+
+	case PGM_SHELL:
+		p->vcopy( "ZSHELPGM", selct.pgm, MOVE ) ;
+		break ;
+
+	default:
+		if ( selct.pgm.size() > 0 && selct.pgm.front() == '&' )
+		{
+			p->vcopy( substr( selct.pgm, 2 ), selct.pgm, MOVE ) ;
+		}
 	}
 }
 
 
-void startApplication( selobj& sSelect, bool nScreen )
+void startApplication( selobj& selct, bool nScreen )
 {
 	// Start an application using the passed SELECT object, on a new logical screen if specified.
 
@@ -1927,10 +1934,10 @@ void startApplication( selobj& sSelect, bool nScreen )
 	// Select errors.  RSN=998 Module not found
 	//                 RSN=996 Load errors
 
-	int elapsed ;
-	int spool   ;
+	int spool ;
+	int iopt  ;
 
-	size_t p1   ;
+	size_t p1 ;
 
 	string opt   ;
 	string rest  ;
@@ -1945,58 +1952,58 @@ void startApplication( selobj& sSelect, bool nScreen )
 
 	boost::thread* pThread ;
 
-	if ( sSelect.pgm == "ISPSTRT" )
+	if ( selct.pgm == "ISPSTRT" )
 	{
 		currAppl->clear_msg() ;
 		nScreen = true ;
-		opt     = upper( sSelect.parm ) ;
+		opt     = upper( selct.parm ) ;
 		rest    = ""   ;
 		if ( isvalidName( opt ) && resolveZCTEntry( opt, rest ) && word( zctact, 1 ) == "SELECT" )
 		{
-			if ( !sSelect.parse( err, subword( zctact, 2 ) ) )
+			if ( !selct.parse( err, subword( zctact, 2 ) ) )
 			{
 				errorScreen( 1, "Error in ZCTACT command "+ zctact ) ;
 				return ;
 			}
-			resolvePGM() ;
-			p1 = sSelect.parm.find( "&ZPARM" ) ;
+			resolvePGM( selct, currAppl ) ;
+			p1 = selct.parm.find( "&ZPARM" ) ;
 			if ( p1 != string::npos )
 			{
-				sSelect.parm.replace( p1, 6, rest ) ;
+				selct.parm.replace( p1, 6, rest ) ;
 			}
 		}
-		else if ( !sSelect.parse( err, sSelect.parm ) )
+		else if ( !selct.parse( err, selct.parm ) )
 		{
-			sSelect.def( gmainpgm ) ;
-			sSelect.parm = opt ;
+			selct.def( gmainpgm ) ;
+			selct.parm = opt ;
 		}
-		if ( sSelect.pgm.front() == '&' )
+		else
 		{
-			currAppl->vcopy( substr( sSelect.pgm, 2 ), sSelect.pgm, MOVE ) ;
+			resolvePGM( selct, currAppl ) ;
 		}
-		sSelect.newpool = true ;
+		selct.newpool = true ;
 	}
 
-	if ( apps.find( sSelect.pgm ) == apps.end() )
+	if ( apps.find( selct.pgm ) == apps.end() )
 	{
-		sSelect.errors = true ;
-		sSelect.rsn    = 998  ;
-		if ( not sSelect.quiet )
+		selct.errors = true ;
+		selct.rsn    = 998  ;
+		if ( not selct.quiet )
 		{
-			errorScreen( 1, "Application '"+ sSelect.pgm +"' not found" ) ;
+			errorScreen( 1, "Application '"+ selct.pgm +"' not found" ) ;
 		}
 		return ;
 	}
 
-	if ( !apps[ sSelect.pgm ].dlopened )
+	if ( !apps[ selct.pgm ].dlopened )
 	{
-		if ( !loadDynamicClass( sSelect.pgm ) )
+		if ( !loadDynamicClass( selct.pgm ) )
 		{
-			sSelect.errors = true ;
-			sSelect.rsn    = 996  ;
-			if ( not sSelect.quiet )
+			selct.errors = true ;
+			selct.rsn    = 996  ;
+			if ( not selct.quiet )
 			{
-				errorScreen( 1, "Errors loading application "+ sSelect.pgm ) ;
+				errorScreen( 1, "Errors loading application "+ selct.pgm ) ;
 			}
 			return ;
 		}
@@ -2013,20 +2020,20 @@ void startApplication( selobj& sSelect, bool nScreen )
 		currAppl->setMessage = false ;
 	}
 
-	llog( "I", "Starting application "+ sSelect.pgm +" with parameters '"+ sSelect.parm +"'" << endl ) ;
-	currAppl = ((pApplication*(*)())( apps[ sSelect.pgm ].maker_ep))() ;
+	llog( "I", "Starting application "+ selct.pgm +" with parameters '"+ selct.parm +"'" << endl ) ;
+	currAppl = ((pApplication*(*)())( apps[ selct.pgm ].maker_ep))() ;
 
 	currScrn->application_add( currAppl ) ;
 
-	currAppl->init_phase1( sSelect, ++maxtaskID, lspfCallbackHandler ) ;
+	currAppl->init_phase1( selct, ++maxTaskid, lspfCallbackHandler ) ;
 	currAppl->set_output_done( oldAppl->line_output_done() ) ;
 
-	apps[ sSelect.pgm ].refCount++ ;
+	apps[ selct.pgm ].refCount++ ;
 
-	applid = ( sSelect.newappl == "" ) ? oldAppl->get_applid() : sSelect.newappl ;
+	applid = ( selct.newappl == "" ) ? oldAppl->get_applid() : selct.newappl ;
 	err.settask( currAppl->taskid() ) ;
 
-	if ( sSelect.newpool )
+	if ( selct.newpool )
 	{
 		if ( currScrn->application_stack_size() > 1 && selct.scrname == "" )
 		{
@@ -2044,16 +2051,16 @@ void startApplication( selobj& sSelect, bool nScreen )
 	currAppl->shrdPool = spool ;
 	currAppl->init_phase2() ;
 
-	if ( !sSelect.suspend )
+	if ( !selct.suspend )
 	{
 		currAppl->set_addpop_row( oldAppl->get_addpop_row() ) ;
 		currAppl->set_addpop_col( oldAppl->get_addpop_col() ) ;
 		currAppl->set_addpop_act( oldAppl->get_addpop_act() ) ;
 	}
 
-	if ( !nScreen && ( sSelect.passlib || sSelect.newappl == "" ) )
+	if ( !nScreen && ( selct.passlib || selct.newappl == "" ) )
 	{
-		currAppl->set_zlibd( oldAppl->get_zlibd() ) ;
+		currAppl->set_zlibd( selct.passlib, oldAppl->get_zlibd() ) ;
 	}
 
 	if ( setMessage )
@@ -2076,12 +2083,22 @@ void startApplication( selobj& sSelect, bool nScreen )
 	}
 
 	llog( "I", "Waiting for new application to complete startup.  ID=" << pThread->get_id() << endl ) ;
-	elapsed = 0 ;
+
+	boost::mutex mutex ;
 	while ( currAppl->busyAppl )
 	{
-		if ( not currAppl->noTimeOut ) { elapsed++ ; }
-		boost::this_thread::sleep_for( boost::chrono::milliseconds( ZWAIT ) ) ;
-		if ( elapsed > gmaxwait  ) { currAppl->set_timeout_abend() ; }
+		boost::mutex::scoped_lock lk( mutex ) ;
+		cond_lspf.wait_for( lk, boost::chrono::milliseconds( 200 ) ) ;
+		lk.unlock() ;
+		if ( currAppl->busyAppl && isEscapeKey() )
+		{
+			iopt = listInterruptOptions() ;
+			if ( iopt == 1 )
+			{
+				currAppl->set_timeout_abend() ;
+				break ;
+			}
+		}
 	}
 
 	if ( currAppl->do_refresh_lscreen() )
@@ -2126,51 +2143,59 @@ void startApplication( selobj& sSelect, bool nScreen )
 }
 
 
-void startApplicationBack( selobj sSelect, bool pgmselect )
+void startApplicationBack( selobj selct, pApplication* oldAppl, bool pgmselect )
 {
 	// Start a background application using the passed SELECT object
+	// Issue notify if application not found or errors loading program
+
+	// Background task can be started synchronously or asynchronously.
+	// If synchronous, parent needs to wait for the child to terminate before resuming.
 
 	int spool ;
 
 	string applid ;
+	string msg    ;
 
 	errblock err1 ;
 
-	pApplication* oldAppl = currAppl ;
 	pApplication* Appl ;
 
 	boost::thread* pThread ;
 
-	if ( apps.find( sSelect.pgm ) == apps.end() )
+	if ( apps.find( selct.pgm ) == apps.end() )
 	{
-		llog( "E", "Application '"+ sSelect.pgm +"' not found" <<endl ) ;
+		msg = "Application '"+ selct.pgm +"' not found" ;
+		oldAppl->notify( msg ) ;
+		llog( "E", msg <<endl ) ;
 		return ;
 	}
 
-	if ( !apps[ sSelect.pgm ].dlopened )
+	if ( !apps[ selct.pgm ].dlopened )
 	{
-		if ( !loadDynamicClass( sSelect.pgm ) )
+		if ( !loadDynamicClass( selct.pgm ) )
 		{
-			llog( "E", "Errors loading "+ sSelect.pgm <<endl ) ;
+			msg = "Errors loading '"+ selct.pgm ;
+			oldAppl->notify( msg ) ;
+			llog( "E", msg <<endl ) ;
 			return ;
 		}
 	}
 
-	llog( "I", "Starting background application "+ sSelect.pgm +" with parameters '"+ sSelect.parm +"'" <<endl ) ;
-	Appl = ((pApplication*(*)())( apps[ sSelect.pgm ].maker_ep))() ;
+	llog( "I", "Starting background application "+ selct.pgm +" with parameters '"+ selct.parm +"'" <<endl ) ;
+	Appl = ((pApplication*(*)())( apps[ selct.pgm ].maker_ep))() ;
 
-	Appl->init_phase1( sSelect, ++maxtaskID, lspfCallbackHandler ) ;
+	Appl->init_phase1( selct, ++maxTaskid, lspfCallbackHandler ) ;
 
-	apps[ sSelect.pgm ].refCount++ ;
+	apps[ selct.pgm ].refCount++ ;
 
 	mtx.lock() ;
 	pApplicationBackground.push_back( Appl ) ;
 	mtx.unlock() ;
 
-	applid = ( sSelect.newappl == "" ) ? oldAppl->get_applid() : sSelect.newappl ;
+	applid = ( selct.newappl == "" ) ? oldAppl->get_applid() : selct.newappl ;
 	err1.settask( Appl->taskid() ) ;
 
-	if ( sSelect.newpool )
+	if ( selct.newpool )
 	{
 		spool = p_poolMGR->createSharedPool() ;
 	}
@@ -2181,7 +2206,7 @@ void startApplicationBack( selobj sSelect, bool pgmselect )
 
 	if ( pgmselect )
 	{
-		oldAppl->ZTASKID = Appl->taskid() ;
+		oldAppl->vreplace( "ZSBTASK", Appl->taskid() ) ;
 	}
 
 	p_poolMGR->createProfilePool( err1, applid ) ;
@@ -2189,12 +2214,27 @@ void startApplicationBack( selobj sSelect, bool pgmselect )
 
 	createSharedPoolVars( applid ) ;
 
+	if ( oldAppl->background() )
+	{
+		if ( selct.sync )
+		{
+			oldAppl->busyAppl = false ;
+			oldAppl->SEL      = false ;
+			Appl->uAppl       = oldAppl ;
+		}
+		else
+		{
+			oldAppl->busyAppl = true ;
+			cond_appl.notify_all()   ;
+		}
+	}
+
 	Appl->shrdPool = spool ;
 	Appl->init_phase2() ;
 
-	if ( sSelect.passlib || sSelect.newappl == "" )
+	if ( selct.passlib || selct.newappl == "" )
 	{
-		Appl->set_zlibd( oldAppl->get_zlibd() ) ;
+		Appl->set_zlibd( selct.passlib, oldAppl->get_zlibd() ) ;
 	}
 
 	pThread = new boost::thread( &pApplication::run, Appl ) ;
@@ -2207,30 +2247,28 @@ void startApplicationBack( selobj sSelect, bool pgmselect )
 
 void processBackgroundTasks()
 {
-	// This routine runs every 100ms in a separate thread to check if there are any
+	// This routine runs in a separate thread to check if there are any
 	// background tasks waiting for action:
 	//    cleanup application if ended
-	//    start application if SELECT() done in the background program
+	//    start application if SELECT or SUBMIT done in the background program
+
+	// Any routine this procedure calls that uses the pApplication object, must have
+	// the address passed as it won't be currAppl.
 
 	backStatus = BACK_RUNNING ;
 
-	boost::thread* pThread ;
-
+	boost::mutex mutex ;
 	while ( lspfStatus == LSPF_RUNNING )
 	{
-		boost::this_thread::sleep_for( boost::chrono::milliseconds( 100 ) ) ;
+		boost::mutex::scoped_lock lk( mutex ) ;
+		cond_batch.wait_for( lk, boost::chrono::milliseconds( 200 ) ) ;
+		lk.unlock() ;
 		mtx.lock() ;
-		for ( auto it = pApplicationBackground.begin() ; it != pApplicationBackground.end() ; it++ )
+		for ( auto it = pApplicationBackground.begin() ; it != pApplicationBackground.end() ; ++it )
 		{
 			while ( (*it)->terminateAppl )
 			{
-				llog( "I", "Removing background application instance of "+
-					(*it)->get_appname() << " taskid: " << (*it)->taskid() << endl ) ;
-				p_poolMGR->disconnect( (*it)->taskid() ) ;
-				pThread = (*it)->pThread ;
-				apps[ (*it)->get_appname() ].refCount-- ;
-				((void (*)(pApplication*))(apps[ (*it)->get_appname() ].destroyer_ep))( (*it) ) ;
-				delete pThread ;
+				terminateApplicationBack( (*it) ) ;
 				it = pApplicationBackground.erase( it ) ;
 				if ( it == pApplicationBackground.end() ) { break ; }
 			}
@@ -2241,28 +2279,23 @@ void processBackgroundTasks()
 		mtx.lock() ;
 		vector<pApplication*> temp = pApplicationBackground ;
 
-		for ( auto it = temp.begin() ; it != temp.end() ; it++ )
+		for ( auto it = temp.begin() ; it != temp.end() ; ++it )
 		{
 			if ( (*it)->SEL && !currAppl->terminateAppl )
 			{
-				startApplicationBack( (*it)->get_select_cmd() ) ;
-				(*it)->busyAppl = true  ;
-				cond_appl.notify_all()  ;
+				selobj selct = (*it)->get_select_cmd() ;
+				resolvePGM( selct, (*it) ) ;
+				startApplicationBack( selct, (*it) ) ;
 			}
 		}
 		mtx.unlock() ;
 
 		if ( backStatus == BACK_STOPPING )
 		{
-			for ( auto it = pApplicationBackground.begin() ; it != pApplicationBackground.end() ; it++ )
+			llog( "I", "lspf shutting down.  Removing background applications" << endl ) ;
+			for ( auto it = pApplicationBackground.begin() ; it != pApplicationBackground.end() ; ++it )
 			{
-				llog( "I", "lspf shutting down.  Removing background application instance of "+
-					(*it)->get_appname() << " taskid: " << (*it)->taskid() << endl ) ;
-				p_poolMGR->disconnect( (*it)->taskid() ) ;
-				pThread = (*it)->pThread ;
-				apps[ (*it)->get_appname() ].refCount-- ;
-				((void (*)(pApplication*))(apps[ (*it)->get_appname() ].destroyer_ep))( (*it) ) ;
-				delete pThread ;
+				terminateApplicationBack( (*it) ) ;
 			}
 		}
 	}
@@ -2272,13 +2305,13 @@ void processBackgroundTasks()
 }
 
 
-void checkStartApplication( selobj& sSelct )
+void checkStartApplication( selobj& selct )
 {
 	if ( not selct.errors ) { return ; }
 
 	currAppl->RC      = 20  ;
 	currAppl->ZRC     = 20  ;
-	currAppl->ZRSN    = sSelct.rsn ;
+	currAppl->ZRSN    = selct.rsn ;
 	currAppl->ZRESULT = "Not Found" ;
 
 	if ( not currAppl->errorsReturn() )
@@ -2292,7 +2325,6 @@ void checkStartApplication( selobj& sSelct )
 		terminateApplication() ;
 		if ( pLScreen::screensTotal == 0 ) { return ; }
 	}
-	selct.errors = false ;
 }
 
 
@@ -2353,7 +2385,7 @@ void terminateApplication()
 	{
 		while ( currAppl->cleanupRunning() )
 		{
-			boost::this_thread::sleep_for( boost::chrono::milliseconds( ZWAIT ) ) ;
+			boost::this_thread::sleep_for( boost::chrono::milliseconds( 5 ) ) ;
 		}
 		pThread->detach() ;
 	}
@@ -2364,7 +2396,7 @@ void terminateApplication()
 	if ( !currScrn->application_stack_empty() && currAppl->newappl == "" )
 	{
 		prvAppl = currScrn->application_get_current() ;
-		prvAppl->set_zlibd( currAppl->get_zlibd() ) ;
+		prvAppl->set_zlibd( false, currAppl->get_zlibd() ) ;
 	}
 
 	if ( currAppl->abnormalTimeout )
@@ -2571,6 +2603,73 @@ void terminateApplication()
 }
 
 
+void terminateApplicationBack( pApplication* p )
+{
+	// If uAppl is set, the terminated application was started synchronously so the
+	// parent needs to resume processing.  Also pass back execution results.
+
+	int tRC  ;
+	int tRSN ;
+
+	string tRESULT ;
+
+	bool abnormalEnd ;
+
+	boost::thread* pThread ;
+	pApplication*  uAppl   ;
+
+	llog( "I", "Application terminating "+ p->get_appname() +" ID: "<< p->taskid() << endl ) ;
+	llog( "I", "Removing background application instance of "+
+		p->get_appname() << " taskid: " << p->taskid() << endl ) ;
+
+	pThread = p->pThread ;
+	uAppl   = p->uAppl   ;
+	tRC     = p->ZRC  ;
+	tRSN    = p->ZRSN ;
+	tRESULT = p->ZRESULT ;
+	abnormalEnd = p->abnormalEnd ;
+
+	p_poolMGR->disconnect( p->taskid() ) ;
+	apps[ p->get_appname() ].refCount-- ;
+
+	((void (*)(pApplication*))(apps[ p->get_appname() ].destroyer_ep))( p ) ;
+
+	delete pThread ;
+
+	if ( uAppl )
+	{
+		if ( abnormalEnd )
+		{
+			uAppl->RC  = 20 ;
+			uAppl->ZRC = 20 ;
+			if ( tRC == 20 && tRSN > 900 )
+			{
+				uAppl->ZRSN    = tRSN    ;
+				uAppl->ZRESULT = tRESULT ;
+			}
+			else
+			{
+				uAppl->ZRSN    = 999 ;
+				uAppl->ZRESULT = "Abended" ;
+			}
+			if ( !uAppl->errorsReturn() )
+			{
+				uAppl->abnormalEnd = true ;
+			}
+		}
+		else
+		{
+			uAppl->RC      = 0 ;
+			uAppl->ZRC     = tRC     ;
+			uAppl->ZRSN    = tRSN    ;
+			uAppl->ZRESULT = tRESULT ;
+		}
+		uAppl->busyAppl = true ;
+		cond_appl.notify_all() ;
+	}
+}
+
+
 bool createLogicalScreen()
 {
 	err.clear() ;
@@ -2612,7 +2711,7 @@ void deleteLogicalScreen()
 
 	screenList.erase( screenList.begin() + priScreen ) ;
 
-	if ( altScreen > priScreen ) { altScreen-- ; }
+	if ( altScreen > priScreen ) { --altScreen ; }
 
 	auto it   = screenList.begin() ;
 	priScreen = (*it)->get_priScreen( openedBy ) ;
@@ -2631,18 +2730,36 @@ void deleteLogicalScreen()
 
 void ResumeApplicationAndWait()
 {
-	int elapsed ;
+	int iopt ;
+
+	uint row ;
+	uint col ;
+
+	displayNotifies() ;
 
 	if ( currAppl->applicationEnded ) { return ; }
 
-	elapsed = 0               ;
 	currAppl->busyAppl = true ;
 	cond_appl.notify_all()    ;
+	boost::mutex mutex ;
 	while ( currAppl->busyAppl )
 	{
-		if ( not currAppl->noTimeOut ) { elapsed++ ; }
-		boost::this_thread::sleep_for( boost::chrono::milliseconds( ZWAIT ) ) ;
-		if ( elapsed > gmaxwait  ) { currAppl->set_timeout_abend() ; }
+		boost::mutex::scoped_lock lk( mutex ) ;
+		cond_lspf.wait_for( lk, boost::chrono::milliseconds( 200 ) ) ;
+		lk.unlock() ;
+		if ( currAppl->busyAppl && isEscapeKey() )
+		{
+			iopt = listInterruptOptions() ;
+			if ( iopt == 1 )
+			{
+				currAppl->set_timeout_abend() ;
+				break ;
+			}
+			currScrn->show_busy() ;
+			currScrn->set_cursor( currAppl ) ;
+			currScrn->get_cursor( row, col ) ;
+			move( row, col ) ;
+		}
 	}
 
 	if ( currAppl->reloadCUATables ) { loadCUATables() ; }
@@ -2839,14 +2956,14 @@ void setDefaultRGB()
 	string n_rgb = "ZNRGB" ;
 	string u_rgb = "ZURGB" ;
 
-	for ( int i = 1 ; i < COLORS ; i++ )
+	for ( int i = 1 ; i < COLORS ; ++i )
 	{
 		color_content( i, &r, &g, &b ) ;
 		t = d2ds( r, 4 ) + d2ds( g, 4 ) + d2ds( b, 4 ) ;
 		p_poolMGR->sysput( err, n_rgb + colourValue[ i ], t, SHARED ) ;
 	}
 
-	for ( uint i = 1 ; i < 8 ; i++ )
+	for ( uint i = 1 ; i < 8 ; ++i )
 	{
 		t = p_poolMGR->sysget( err, u_rgb + colourValue[ i ], PROFILE ) ;
 		if ( t.size() != 12 )
@@ -2872,7 +2989,7 @@ void setRGBValues()
 	string t ;
 	string u_rgb = "ZURGB" ;
 
-	for ( uint i = 1 ; i < 8 ; i++ )
+	for ( uint i = 1 ; i < 8 ; ++i )
 	{
 		t = p_poolMGR->sysget( err, u_rgb+colourValue[ i ], PROFILE ) ;
 		if ( t.size() != 12 )
@@ -2973,12 +3090,17 @@ void loadDefaultPools()
 	p_poolMGR->sysput( err, "ZSCALE", "OFF", SHARED )          ;
 	p_poolMGR->sysput( err, "ZSPLIT", "NO", SHARED )           ;
 	p_poolMGR->sysput( err, "ZNULLS", "NO", SHARED )           ;
-	p_poolMGR->sysput( err, "ZCMPDATE", string(__DATE__), SHARED ) ;
-	p_poolMGR->sysput( err, "ZCMPTIME", string(__TIME__), SHARED ) ;
-	p_poolMGR->sysput( err, "ZENVIR", "lspf " + string(LSPF_VERSION), SHARED ) ;
+	p_poolMGR->sysput( err, "ZCMPDATE", __DATE__, SHARED ) ;
+	p_poolMGR->sysput( err, "ZCMPTIME", __TIME__, SHARED ) ;
+	p_poolMGR->sysput( err, "ZENVIR", "lspf " LSPF_VERSION, SHARED ) ;
+	p_poolMGR->sysput( err, "ZMXTABSZ", d2ds( MXTAB_SZ ), SHARED ) ;
 
 	p_poolMGR->setPOOLsReadOnly() ;
 	gmainpgm = p_poolMGR->sysget( err, "ZMAINPGM", PROFILE ) ;
+
+	checkSystemVariable( "ZMLIB" ) ;
+	checkSystemVariable( "ZPLIB" ) ;
+	checkSystemVariable( "ZTLIB" ) ;
 }
 
 
@@ -2992,6 +3114,16 @@ string getEnvironmentVariable( const char* var )
 		return "" ;
 	}
 	return t ;
+}
+
+
+void checkSystemVariable( const string& var )
+{
+	if ( p_poolMGR->sysget( err, var, PROFILE ) == "" )
+	{
+		llog( "C", var + " has not been set.  Aborting startup."<< endl ) ;
+		abortStartup() ;
+	}
 }
 
 
@@ -3067,7 +3199,7 @@ void saveRetrieveBuffer()
 
 	llog( "I", "Saving retrieve buffer" << endl ) ;
 
-	for ( size_t i = 0 ; i < retrieveBuffer.size() ; i++ )
+	for ( size_t i = 0 ; i < retrieveBuffer.size() ; ++i )
 	{
 		fout << retrieveBuffer[ i ] << endl ;
 	}
@@ -3102,7 +3234,7 @@ void createpfKeyDefaults()
 {
 	err.clear() ;
 
-	for ( int i = 1 ; i < 25 ; i++ )
+	for ( int i = 1 ; i < 25 ; ++i )
 	{
 		p_poolMGR->put( err, "ZPF" + d2ds( i, 2 ), pfKeyDefaults[ i ], PROFILE ) ;
 		if ( !err.RC0() )
@@ -3143,7 +3275,6 @@ void updateDefaultVars()
 {
 	err.clear() ;
 
-	gmaxwait = ds2d( p_poolMGR->sysget( err, "ZMAXWAIT", PROFILE ) ) ;
 	gmainpgm = p_poolMGR->sysget( err, "ZMAINPGM", PROFILE ) ;
 	p_poolMGR->sysput( err, "ZSPLIT", pLScreen::screensTotal > 1 ? "YES" : "NO", SHARED ) ;
 
@@ -3183,6 +3314,8 @@ void updateReflist()
 
 	string fname = currAppl->get_nretfield() ;
 
+	selobj selct ;
+
 	err.clear() ;
 
 	if ( fname == "" || !currAppl->ControlRefUpdate || p_poolMGR->sysget( err, "ZRFURL", PROFILE ) != "YES" )
@@ -3198,7 +3331,9 @@ void updateReflist()
 		selct.newappl = ""    ;
 		selct.newpool = false ;
 		selct.passlib = false ;
-		startApplicationBack( selct ) ;
+		selct.backgrd = true  ;
+		selct.sync    = false ;
+		startApplicationBack( selct, currAppl, false ) ;
 	}
 	else
 	{
@@ -3261,6 +3396,9 @@ void lineOutput_end()
 	attrset( RED | A_BOLD ) ;
 	mvaddstr( linePosn, 0, "***" ) ;
 
+	currScrn->OIA_endTime() ;
+	currScrn->OIA_update( priScreen, altScreen ) ;
+
 	currScrn->show_enter() ;
 	wnoutrefresh( stdscr ) ;
 	wnoutrefresh( OIA ) ;
@@ -3276,6 +3414,21 @@ void lineOutput_end()
 	currScrn->clear() ;
 	currScrn->clear_status() ;
 	currScrn->OIA_startTime() ;
+
+	if ( currAppl->notify_pending() )
+	{
+		displayNotifies() ;
+		lineOutput_end() ;
+	}
+}
+
+
+void displayNotifies()
+{
+	while ( currAppl->notify() )
+	{
+		lineOutput() ;
+	}
 }
 
 
@@ -3319,7 +3472,7 @@ string listLogicalScreens()
 	currScrn->show_wait() ;
 
 	m = 0 ;
-	for ( i = 0, its = screenList.begin() ; its != screenList.end() ; its++, i++ )
+	for ( i = 0, its = screenList.begin() ; its != screenList.end() ; ++its, ++i )
 	{
 		appl = (*its)->application_get_current() ;
 		ln   = d2ds( (*its)->get_screenNum() )         ;
@@ -3343,7 +3496,7 @@ string listLogicalScreens()
 	curs_set( 0 ) ;
 	while ( true )
 	{
-		for ( i = 0, it = lslist.begin() ; it != lslist.end() ; it++, i++ )
+		for ( i = 0, it = lslist.begin() ; it != lslist.end() ; ++it, ++i )
 		{
 			wattrset( swwin, cuaAttr[ i == m ? PT : VOI ] | intens ) ;
 			mvwaddstr( swwin, i+4, 2, it->c_str() )         ;
@@ -3365,11 +3518,11 @@ string listLogicalScreens()
 		if ( c == KEY_ENTER || c == 13 ) { break ; }
 		if ( c == KEY_UP )
 		{
-			m == 0 ? m = lslist.size() - 1 : m-- ;
+			m == 0 ? m = lslist.size() - 1 : --m ;
 		}
 		else if ( c == KEY_DOWN || c == CTRL( 'i' ) )
 		{
-			m == lslist.size()-1 ? m = 0 : m++ ;
+			m == lslist.size()-1 ? m = 0 : ++m ;
 		}
 		else if ( isActionKey( c ) )
 		{
@@ -3379,11 +3532,84 @@ string listLogicalScreens()
 	}
 
 	del_panel( swpanel ) ;
-	delwin( swwin )      ;
-	curs_set( 1 )        ;
+	delwin( swwin ) ;
+	update_panels() ;
+	doupdate() ;
+
+	curs_set( 1 ) ;
 	currScrn->OIA_startTime() ;
 
-	return d2ds( m+1 )   ;
+	return d2ds( m+1 ) ;
+}
+
+
+int listInterruptOptions()
+{
+	// Mainline lspf cannot create application panels but let's make this as similar as possible
+
+	int c ;
+
+	uint i ;
+	uint m ;
+
+	err.clear() ;
+
+	WINDOW* swwin   ;
+	PANEL*  swpanel ;
+
+	vector<string>::iterator it ;
+	vector<string> lslist ;
+
+	lslist.push_back( "1. Continue running application (press ESC again to interrupt)" ) ;
+	lslist.push_back( "2. Abend application" ) ;
+
+	swwin   = newwin( lslist.size() + 5, 66, 1, 1 ) ;
+	swpanel = new_panel( swwin )  ;
+	wattrset( swwin, cuaAttr[ AWF ] | intens ) ;
+	box( swwin, 0, 0 ) ;
+
+	wattrset( swwin, cuaAttr[ PT ] | intens ) ;
+	mvwaddstr( swwin, 1, 21, "Program Interrupt Options" ) ;
+
+	currScrn->show_wait() ;
+
+	m = 0 ;
+	curs_set( 0 ) ;
+	while ( true )
+	{
+		for ( i = 0, it = lslist.begin() ; it != lslist.end() ; ++it, ++i )
+		{
+			wattrset( swwin, cuaAttr[ i == m ? PT : VOI ] | intens ) ;
+			mvwaddstr( swwin, i+3, 2, it->c_str() ) ;
+		}
+		update_panels() ;
+		doupdate()  ;
+		c = getch() ;
+		if ( c == KEY_ENTER || c == 13 ) { break ; }
+		if ( c == KEY_UP )
+		{
+			m == 0 ? m = lslist.size() - 1 : --m ;
+		}
+		else if ( c == KEY_DOWN || c == CTRL( 'i' ) )
+		{
+			m == lslist.size()-1 ? m = 0 : ++m ;
+		}
+		else if ( isActionKey( c ) )
+		{
+			m = 0 ;
+			break ;
+		}
+	}
+
+	del_panel( swpanel ) ;
+	delwin( swwin ) ;
+	update_panels() ;
+	doupdate() ;
+
+	curs_set( 1 ) ;
+	currScrn->OIA_startTime() ;
+
+	return m ;
 }
 
 
@@ -3426,7 +3652,7 @@ void listRetrieveBuffer()
 	mvwaddstr( rbwin, 1, 17, "lspf Command Retrieve Panel" ) ;
 
 	currScrn->show_wait() ;
-	for ( i = 0 ; i < mx ; i++ )
+	for ( i = 0 ; i < mx ; ++i )
 	{
 		t = retrieveBuffer[ i ] ;
 		if ( t.size() > 52 )
@@ -3441,7 +3667,7 @@ void listRetrieveBuffer()
 	m = 0 ;
 	while ( true )
 	{
-		for ( i = 0, it = lslist.begin() ; it != lslist.end() ; it++, i++ )
+		for ( i = 0, it = lslist.begin() ; it != lslist.end() ; ++it, ++i )
 		{
 			wattrset( rbwin, cuaAttr[ i == m ? PT : VOI ] | intens ) ;
 			mvwaddstr( rbwin, i+3, 3, it->c_str() ) ;
@@ -3457,11 +3683,11 @@ void listRetrieveBuffer()
 		}
 		else if ( c == KEY_UP )
 		{
-			m == 0 ? m = lslist.size() - 1 : m-- ;
+			m == 0 ? m = lslist.size() - 1 : --m ;
 		}
 		else if ( c == KEY_DOWN || c == CTRL( 'i' ) )
 		{
-			m == lslist.size() - 1 ? m = 0 : m++ ;
+			m == lslist.size() - 1 ? m = 0 : ++m ;
 		}
 		else if ( isActionKey( c ) )
 		{
@@ -3471,8 +3697,10 @@ void listRetrieveBuffer()
 	}
 
 	del_panel( rbpanel ) ;
-	delwin( rbwin )      ;
-	curs_set( 1 )        ;
+	delwin( rbwin ) ;
+	curs_set( 1 )   ;
+	update_panels() ;
+	doupdate() ;
 
 	currScrn->set_cursor( currAppl ) ;
 	currScrn->OIA_startTime() ;
@@ -3484,18 +3712,13 @@ void listBackTasks()
 	// List background tasks and tasks that have been moved to the timeout queue
 
 	llog( "I", ".TASKS" <<endl ) ;
-	llog( "-", "**************************************" <<endl ) ;
+	llog( "-", "****************************************************" <<endl ) ;
 	llog( "-", "Listing background tasks:" << endl ) ;
 	llog( "-", "         Number of tasks. . . . "<< pApplicationBackground.size()<< endl ) ;
 	llog( "-", " "<< endl ) ;
 
 	mtx.lock() ;
-	for ( auto it = pApplicationBackground.begin() ; it != pApplicationBackground.end() ; it++ )
-	{
-		llog( "-", "         "<< setw(8) << (*it)->get_appname() <<
-		      "   Id: "<< setw(5) << (*it)->taskid() <<
-		      "   Status: "<< ( (*it)->terminateAppl ? "Terminated" : "Running" ) <<endl ) ;
-	}
+	listTaskVector( pApplicationBackground ) ;
 	mtx.unlock() ;
 
 	llog( "-", " "<< endl ) ;
@@ -3503,12 +3726,26 @@ void listBackTasks()
 	llog( "-", "         Number of tasks. . . . "<< pApplicationTimeout.size()<< endl ) ;
 	llog( "-", " "<< endl ) ;
 
-	for ( auto it = pApplicationTimeout.begin() ; it != pApplicationTimeout.end() ; it++ )
+	listTaskVector( pApplicationTimeout ) ;
+
+	llog( "-", "****************************************************" <<endl ) ;
+}
+
+
+void listTaskVector( vector<pApplication*>& p )
+{
+	if ( p.size() == 0 ) { return ; }
+
+	llog( "-", "Program     Id       Status               Parameters" << endl);
+	llog( "-", "--------    -----    -----------------    ----------" << endl);
+
+	for ( auto it = p.begin() ; it != p.end() ; ++it )
 	{
-		llog( "-", "         "<< setw(8) << (*it)->get_appname() <<
-		      "   Id: "<< setw(5) << (*it)->taskid() << endl ) ;
+		llog( "-", "" << setw(12) << std::left << (*it)->get_appname() <<
+				 setw(9)  << std::left << d2ds( (*it)->taskid(), 5 ) <<
+				 setw(21) << std::left << (*it)->get_status() <<
+				 (*it)->get_zparm() <<endl ) ;
 	}
-	llog( "-", "**************************************" <<endl ) ;
 }
 
 
@@ -3522,19 +3759,20 @@ void autoUpdate()
 	bool end_auto = false ;
 
 	currScrn->show_auto() ;
-	nodelay( stdscr, true ) ;
 	curs_set( 0 ) ;
 
 	while ( !end_auto )
 	{
-		currScrn->OIA_startTime() ;
 		ResumeApplicationAndWait() ;
+		currScrn->OIA_endTime() ;
 		currScrn->OIA_update( priScreen, altScreen ) ;
 		wnoutrefresh( stdscr ) ;
 		wnoutrefresh( OIA ) ;
 		update_panels() ;
 		doupdate() ;
-		for ( int i = 0 ; i < 20 && !end_auto ; i++ )
+		nodelay( stdscr, true ) ;
+		currScrn->OIA_startTime() ;
+		for ( int i = 0 ; i < 20 && !end_auto ; ++i )
 		{
 			boost::this_thread::sleep_for( boost::chrono::milliseconds( 50 ) ) ;
 			do
@@ -3564,7 +3802,7 @@ int getScreenNameNum( const string& s )
 	vector<pLScreen*>::iterator its ;
 	pApplication* appl ;
 
-	for ( i = 1, j = 0, its = screenList.begin() ; its != screenList.end() ; its++, i++ )
+	for ( i = 1, j = 0, its = screenList.begin() ; its != screenList.end() ; ++its, ++i )
 	{
 		appl = (*its)->application_get_current() ;
 		if ( appl->get_current_screenName() == s )
@@ -3591,7 +3829,7 @@ void lspfCallbackHandler( lspfCommand& lc )
 
 	vector<pLScreen*>::iterator its    ;
 	map<string, appInfo>::iterator ita ;
-	pApplication* appl                 ;
+	pApplication* appl ;
 
 	lc.reply.clear() ;
 
@@ -3600,7 +3838,7 @@ void lspfCallbackHandler( lspfCommand& lc )
 
 	if ( lc.Command == "SWAP LIST" )
 	{
-		for ( its = screenList.begin() ; its != screenList.end() ; its++ )
+		for ( its = screenList.begin() ; its != screenList.end() ; ++its )
 		{
 			appl = (*its)->application_get_current()       ;
 			lc.reply.push_back( d2ds( (*its)->get_screenNum() ) ) ;
@@ -3608,9 +3846,19 @@ void lspfCallbackHandler( lspfCommand& lc )
 		}
 		lc.RC = 0 ;
 	}
+	else if ( lc.Command == "BATCH KEYS" )
+	{
+		mtx.lock() ;
+		for ( auto it = pApplicationBackground.begin() ; it != pApplicationBackground.end() ; ++it )
+		{
+			lc.reply.push_back( (*it)->get_jobkey() ) ;
+		}
+		mtx.unlock() ;
+		lc.RC = 0 ;
+	}
 	else if ( lc.Command == "MODULE STATUS" )
 	{
-		for ( ita = apps.begin() ; ita != apps.end() ; ita++ )
+		for ( ita = apps.begin() ; ita != apps.end() ; ++ita )
 		{
 			lc.reply.push_back( ita->first ) ;
 			lc.reply.push_back( ita->second.module ) ;
@@ -3669,6 +3917,7 @@ void abortStartup()
 
 	delete lg  ;
 	delete lgx ;
+
 	abort() ;
 }
 
@@ -3677,7 +3926,7 @@ void abnormalTermMessage()
 {
 	if ( currAppl->abnormalTimeout )
 	{
-		errorScreen( 2, "An application timeout has occured.  Increase ZMAXWAIT if necessary" ) ;
+		errorScreen( 2, "Application has been terminated at user request" ) ;
 	}
 	else if ( currAppl->abnormalEndForced )
 	{
@@ -3722,6 +3971,7 @@ void errorScreen( int etype, const string& msg )
 	}
 
 	linePosn = -1 ;
+	currScrn->clear() ;
 	currScrn->restore_panel_stack() ;
 }
 
@@ -3735,7 +3985,7 @@ void errorScreen( const string& title, const string& src )
 
 	// Make sure err_struct is the same in application PPSP01A.
 
-	selobj sel ;
+	selobj selct ;
 
 	struct err_struct
 	{
@@ -3748,15 +3998,15 @@ void errorScreen( const string& title, const string& src )
 	errs.title  = title ;
 	errs.src    = src   ;
 
-	sel.pgm     = "PPSP01A" ;
-	sel.parm    = "PSYSER2" ;
-	sel.newappl = ""    ;
-	sel.newpool = false ;
-	sel.passlib = false ;
-	sel.suspend = true  ;
-	sel.options = (void*)&errs ;
+	selct.pgm   = "PPSP01A" ;
+	selct.parm  = "PSYSER2" ;
+	selct.newappl = ""    ;
+	selct.newpool = false ;
+	selct.passlib = false ;
+	selct.suspend = true  ;
+	selct.options = (void*)&errs ;
 
-	startApplication( sel ) ;
+	startApplication( selct ) ;
 }
 
 
@@ -3767,16 +4017,16 @@ void errorScreen( const string& msg )
 	// This is done by starting application PPSP01A with a parm of PSYSER3 plus the message id.
 	// ZVAL1-ZVAL3 need to be put into the SHARED pool depending on the message issued.
 
-	selobj sel ;
+	selobj selct ;
 
-	sel.pgm     = "PPSP01A" ;
-	sel.parm    = "PSYSER3 "+ msg ;
-	sel.newappl = ""    ;
-	sel.newpool = false ;
-	sel.passlib = false ;
-	sel.suspend = true  ;
+	selct.pgm   = "PPSP01A" ;
+	selct.parm  = "PSYSER3 "+ msg ;
+	selct.newappl = ""    ;
+	selct.newpool = false ;
+	selct.passlib = false ;
+	selct.suspend = true  ;
 
-	startApplication( sel ) ;
+	startApplication( selct ) ;
 }
 
 
@@ -3823,6 +4073,24 @@ bool isActionKey( int c )
 		   c == KEY_NPAGE   ||
 		   c == KEY_PPAGE   ||
 		   c == KEY_ENTER ) ;
+}
+
+
+bool isEscapeKey()
+{
+	int c ;
+
+	bool esc_pressed = false ;
+
+	nodelay( stdscr, true ) ;
+	do
+	{
+		c = getch() ;
+		if ( c == CTRL( '[' ) ) { esc_pressed = true ; }
+	} while ( c != -1 ) ;
+
+	nodelay( stdscr, false ) ;
+	return esc_pressed ;
 }
 
 
@@ -3873,7 +4141,7 @@ void actionSwap( const string& parm )
 
 	if ( w1 == "NEXT" )
 	{
-		priScreen++ ;
+		++priScreen ;
 		priScreen = (priScreen == pLScreen::screensTotal ? 0 : priScreen) ;
 		if ( altScreen == priScreen )
 		{
@@ -3888,7 +4156,7 @@ void actionSwap( const string& parm )
 		}
 		else
 		{
-			priScreen-- ;
+			--priScreen ;
 		}
 		if ( altScreen == priScreen )
 		{
@@ -3945,8 +4213,8 @@ void actionTabKey( uint& row, uint& col )
 	//     If cursor on a field that supports field execution and is not on the first char, execute function
 	//     Else act as a tab key to the next input field
 
-	uint rw ;
-	uint cl ;
+	uint rw = 0 ;
+	uint cl = 0 ;
 
 	bool tab_next = true ;
 
@@ -4016,6 +4284,8 @@ void executeFieldCommand( const string& field_name, const fieldExc& fxc, uint co
 
 	string w1 ;
 
+	selobj selct ;
+
 	if ( !selct.parse( err, subword( fxc.fieldExc_command, 2 ) ) )
 	{
 		llog( "E", "Error in FIELD SELECT command "+ fxc.fieldExc_command << endl ) ;
@@ -4028,7 +4298,7 @@ void executeFieldCommand( const string& field_name, const fieldExc& fxc, uint co
 	cl = currAppl->currPanel->field_get_col( field_name ) ;
 	p_poolMGR->put( err, "ZFECSRP", d2ds( col - cl + 1 ), SHARED ) ;
 
-	for ( ws = words( fxc.fieldExc_passed ), i = 1 ; i <= ws ; i++ )
+	for ( ws = words( fxc.fieldExc_passed ), i = 1 ; i <= ws ; ++i )
 	{
 		w1 = word( fxc.fieldExc_passed, i ) ;
 		p_poolMGR->put( err, "ZFEDATA" + d2ds( i ), currAppl->currPanel->field_getvalue( w1 ), SHARED ) ;
@@ -4066,7 +4336,7 @@ void getDynamicClasses()
 
 	paths = p_poolMGR->sysget( err, "ZLDPATH", PROFILE ) ;
 	j     = getpaths( paths ) ;
-	for ( i = 1 ; i <= j ; i++ )
+	for ( i = 1 ; i <= j ; ++i )
 	{
 		p = getpath( paths, i ) ;
 		if ( is_directory( p ) )
@@ -4103,7 +4373,9 @@ void getDynamicClasses()
 		aI.refCount   = 0     ;
 		apps[ appl ]  = aI    ;
 	}
+
 	llog( "I", d2ds( apps.size() ) +" applications found and stored" << endl ) ;
+
 	if ( apps.find( gmainpgm ) == apps.end() )
 	{
 		llog( "C", e1 << endl ) ;
@@ -4140,7 +4412,7 @@ void reloadDynamicClasses( string parm )
 
 	paths = p_poolMGR->sysget( err, "ZLDPATH", PROFILE ) ;
 	j     = getpaths( paths ) ;
-	for ( i = 1 ; i <= j ; i++ )
+	for ( i = 1 ; i <= j ; ++i )
 	{
 		p = getpath( paths, i ) ;
 		if ( is_directory( p ) )
@@ -4192,12 +4464,12 @@ void reloadDynamicClasses( string parm )
 				if ( loadDynamicClass( appl ) )
 				{
 					llog( "I", "Loaded "+ appl +" (module "+ mod +") from "+ p << endl ) ;
-					i++ ;
+					++i ;
 				}
 				else
 				{
 					llog( "W", "Errors occured loading "+ appl << endl ) ;
-					k++ ;
+					++k ;
 				}
 			}
 		}
@@ -4212,7 +4484,7 @@ void reloadDynamicClasses( string parm )
 			aI.relPending  = false ;
 			aI.refCount    = 0     ;
 			apps[ appl ]   = aI    ;
-			j++ ;
+			++j ;
 		}
 		if ( parm == appl ) { break ; }
 	}
@@ -4325,7 +4597,7 @@ bool unloadDynamicClass( void* dlib )
 	int i  ;
 	int rc ;
 
-	for ( i = 0 ; i < 100 ; i++ )
+	for ( i = 0 ; i < 100 ; ++i )
 	{
 		try
 		{

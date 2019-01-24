@@ -135,7 +135,7 @@ void parser::eraseTokens( int i )
 
 	tokens.erase( tokens.begin(), tokens.begin() + i + 1 ) ;
 
-	for ( unsigned int j = 0 ; j < tokens.size() ; j++ )
+	for ( unsigned int j = 0 ; j < tokens.size() ; ++j )
 	{
 		tokens[ j ].idx = j ;
 	}
@@ -163,7 +163,7 @@ token& parser::getFirstToken()
 
 token& parser::getNextToken()
 {
-	idx++ ;
+	++idx ;
 
 	tokens.size() > idx ? current_token = tokens[ idx ] : current_token = token( TT_EOT ) ;
 	return current_token ;
@@ -206,7 +206,7 @@ bool parser::getNextIfCurrent( TOKEN_TYPES tok )
 {
 	if ( current_token.type == tok )
 	{
-		idx++ ;
+		++idx ;
 		idx < tokens.size() ? current_token = tokens[ idx ] : current_token = token( TT_EOT ) ;
 		return true ;
 	}
@@ -218,7 +218,7 @@ bool parser::getNextIfCurrent( TOKEN_SUBTYPES tok )
 {
 	if ( current_token.subtype == tok )
 	{
-		idx++ ;
+		++idx ;
 		idx < tokens.size() ? current_token = tokens[ idx ] : current_token = token( TT_EOT ) ;
 		return true ;
 	}
@@ -275,7 +275,7 @@ void parser::getNextString( errblock& err, string::const_iterator& it, const str
 	quoted = false ;
 	r      = ""    ;
 
-	while ( it != s.end() && (*it) == ' ' ) { it++ ; }
+	while ( it != s.end() && (*it) == ' ' ) { ++it ; }
 	if ( it == s.end() )
 	{
 		return ;
@@ -283,7 +283,7 @@ void parser::getNextString( errblock& err, string::const_iterator& it, const str
 
 	if ( (*it) == '=' )
 	{
-		it++ ;
+		++it ;
 		if ( it == s.end() || ( (*it) != '<' && (*it) !='>' && (*it) != '!' ) )
 		{
 			r = "=" ;
@@ -294,21 +294,21 @@ void parser::getNextString( errblock& err, string::const_iterator& it, const str
 	if ( (*it) == '=' || (*it) == '<' || (*it) =='>' || (*it) == '!' )
 	{
 		itt = it ;
-		it++ ;
-		while ( it != s.end() && ( compar.find( (*it) ) != string::npos ) ) { it++ ; }
+		++it ;
+		while ( it != s.end() && ( compar.find( (*it) ) != string::npos ) ) { ++it ; }
 		r.assign( itt, it ) ;
 		return ;
 	}
 	else if ( (*it) == ',' || (*it) == '(' || (*it) == ')' )
 	{
 		r = (*it) ;
-		it++ ;
+		++it ;
 	}
 	else if ( (*it) == '\'' )
 	{
-		it++ ;
+		++it ;
 		itt = it ;
-		while ( it != s.end() && (*it) != '\'' ) { it++ ; }
+		while ( it != s.end() && (*it) != '\'' ) { ++it ; }
 		if ( it == s.end() )
 		{
 			err.seterrid( "PSYE033F" ) ;
@@ -316,12 +316,12 @@ void parser::getNextString( errblock& err, string::const_iterator& it, const str
 		}
 		quoted = true ;
 		r.assign( itt, it ) ;
-		it++ ;
+		++it ;
 	}
 	else
 	{
 		itt = it ;
-		while ( it != s.end() && ( delims.find( (*it) ) == string::npos ) ) { it++ ; }
+		while ( it != s.end() && ( delims.find( (*it) ) == string::npos ) ) { ++it ; }
 		r.assign( itt, it ) ;
 	}
 }
@@ -1567,7 +1567,6 @@ bool selobj::parse( errblock& err, string selstr )
 
 	// + SCRNAME(ghi) - give the function a screen name (valid name but not LIST, NEXT, PREV)
 	// + SUSPEND      - Suspend any popup windows
-	// + BACK         - Run task in the background
 
 	// Match brackets for PARM and CMD as these may contain brackets.  These can also be enclosed in
 	// double quotes if needed, that are then removed.
@@ -1591,11 +1590,11 @@ bool selobj::parse( errblock& err, string selstr )
 	{
 		ob     = 1 ;
 		oquote = false ;
-		for ( p2 = p1+4 ; p2 < selstr.size() ; p2++ )
+		for ( p2 = p1+4 ; p2 < selstr.size() ; ++p2 )
 		{
 			if ( selstr.at( p2 ) == '"' ) { oquote = !oquote ; }
 			if ( oquote ) { continue ; }
-			if ( selstr.at( p2 ) == '(' ) { ob++  ; }
+			if ( selstr.at( p2 ) == '(' ) { ++ob  ; }
 			if ( selstr.at( p2 ) == ')' )
 			{
 				ob-- ;
@@ -1612,7 +1611,7 @@ bool selobj::parse( errblock& err, string selstr )
 			err.seterrid( "PSYE033F" ) ;
 			return false ;
 		}
-		p2++ ;
+		++p2 ;
 		parm   = strip( substr( selstr, (p1 + 5), (p2 - (p1 + 5)) ) ) ;
 		parm   = strip( parm, 'B', '"' ) ;
 		selstr = delstr( selstr, p1, (p2 - p1 + 1) ) ;
@@ -1670,9 +1669,9 @@ bool selobj::parse( errblock& err, string selstr )
 				err.seterrid( "PSYE031E", "PANEL", parm ) ;
 				return false ;
 			}
-			panpgm = true ;
-			selstr = delstr( selstr, p1, (p2 - p1 + 1) ) ;
-			str    = upper( selstr ) ;
+			pgmtype = PGM_PANEL ;
+			selstr  = delstr( selstr, p1, (p2 - p1 + 1) ) ;
+			str     = upper( selstr ) ;
 			p1 = pos( "OPT(", str ) ;
 			if ( p1 > 0 )
 			{
@@ -1700,11 +1699,11 @@ bool selobj::parse( errblock& err, string selstr )
 				}
 				ob     = 1 ;
 				oquote = false ;
-				for ( p2 = p1+3 ; p2 < selstr.size() ; p2++ )
+				for ( p2 = p1+3 ; p2 < selstr.size() ; ++p2 )
 				{
 					if ( selstr.at( p2 ) == '"' ) { oquote = !oquote ; }
 					if ( oquote ) { continue ; }
-					if ( selstr.at( p2 ) == '(' ) { ob++  ; }
+					if ( selstr.at( p2 ) == '(' ) { ++ob  ; }
 					if ( selstr.at( p2 ) == ')' )
 					{
 						ob-- ;
@@ -1721,7 +1720,7 @@ bool selobj::parse( errblock& err, string selstr )
 					err.seterrid( "PSYE033F" ) ;
 					return false ;
 				}
-				p2++ ;
+				++p2 ;
 				parm   = strip( substr( selstr, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
 				parm   = strip( parm, 'B', '"' ) ;
 				selstr = delstr( selstr, p1, (p2 - p1 + 1) ) ;
@@ -1742,7 +1741,11 @@ bool selobj::parse( errblock& err, string selstr )
 				}
 				if ( lang == "" || lang == "REXX" )
 				{
-					rexpgm = true ;
+					pgmtype = PGM_REXX ;
+				}
+				else if ( lang == "SHELL" )
+				{
+					pgmtype = PGM_SHELL ;
 				}
 				else
 				{
@@ -1824,13 +1827,6 @@ bool selobj::parse( errblock& err, string selstr )
 		idelword( str, p1, 1 ) ;
 	}
 
-	p1 = wordpos( "BACK", str ) ;
-	if ( p1 > 0 )
-	{
-		backgrd = true ;
-		idelword( str, p1, 1 ) ;
-	}
-
 	p1 = wordpos( "PASSLIB", str ) ;
 	if ( p1 > 0 )
 	{
@@ -1843,7 +1839,7 @@ bool selobj::parse( errblock& err, string selstr )
 		idelword( str, p1, 1 ) ;
 	}
 
-	if ( pgm == "" && !panpgm && !rexpgm )
+	if ( pgm == "" && pgmtype == PGM_NONE )
 	{
 		err.seterrid( "PSYE039R" ) ;
 		return false ;

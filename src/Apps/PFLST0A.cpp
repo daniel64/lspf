@@ -71,8 +71,6 @@
 
 /* nano - invoke nano editor on the file                                                                    */
 /* vi   - invoke vi editor on the file                                                                      */
-/*        CONTROL TIMEOUT DISABLE for nano and vi or lspf will chop the application after ZMAXWAIT          */
-/*        as it does not return until reset_prog_mode                                                       */
 /*                                                                                                          */
 /*                                                                                                          */
 
@@ -147,6 +145,7 @@ void PFLST0A::application()
 	string csr      ;
 	string msgloc   ;
 
+	string zsbtask  ;
 	string condoff  ;
 	string nemptok  ;
 	string dirrec   ;
@@ -245,7 +244,7 @@ void PFLST0A::application()
 	{
 		if ( msg == "" && ztdsels > 0 )
 		{
-			ztdsels-- ;
+			--ztdsels ;
 		}
 		if ( ztdsels == 0 )
 		{
@@ -298,17 +297,16 @@ void PFLST0A::application()
 			if ( w1 == "RESET" ) { filter = "" ; UseSearch = false ; }
 			if ( filter == "" )  { vreplace( "FMSG1", "" ) ; }
 			if ( !UseSearch   )  { vreplace( "FMSG2", "" ) ; }
-			tbend( dslist ) ;
 			createFileList1( filter ) ;
 			zcmd = "" ;
 			i    = 1  ;
+			ztdvrows = 1 ;
 			continue  ;
 		}
 		if ( w1 == "O" && w2 != "" && w3 == "" )
 		{
 			filter = w2 ;
 			vreplace( "FMSG1", "Filtered on file name" ) ;
-			tbend( dslist ) ;
 			createFileList1( filter ) ;
 			zcmd = "" ;
 			i    = 1  ;
@@ -319,7 +317,6 @@ void PFLST0A::application()
 			UseSearch = true ;
 			vreplace( "FMSG2", "Filtered on contents" ) ;
 			createSearchList( w2 ) ;
-			tbend( dslist ) ;
 			createFileList1( filter ) ;
 			zcmd = "" ;
 			i    = 1  ;
@@ -330,15 +327,14 @@ void PFLST0A::application()
 		crpx  = crp ;
 		crp   = 0 ;
 		RCode = processPrimCMD() ;
-		zcmd  = "" ;
 		if ( RCode == 8 )  { msg = "PSYS018" ; continue ; }
+		zcmd  = "" ;
 		if ( crp > 0 )     { i = crp       ; }
 		if ( RCode == 4 )  { continue      ; }
 		if ( zpath == "" ) { zpath = zhome ; }
 		if ( ohidden != afhidden || oexgen != exgen )
 		{
 			filter = ""       ;
-			tbend( dslist )   ;
 			createFileList1() ;
 			i = 1    ;
 			continue ;
@@ -352,7 +348,6 @@ void PFLST0A::application()
 			else
 			{
 				filter = ""       ;
-				tbend( dslist )   ;
 				createFileList1() ;
 				i = 1 ;
 			}
@@ -420,7 +415,7 @@ void PFLST0A::application()
 			if ( t == "YES" )
 			{
 				vcopy( "ZRFLPGM", pgm, MOVE ) ;
-				select( "PGM("+pgm+") PARM(PLA "+entry+") BACK" ) ;
+				submit( "PGM("+pgm+") PARM(PLA "+entry+")" ) ;
 			}
 			break ;
 		}
@@ -429,7 +424,7 @@ void PFLST0A::application()
 		{
 		case LN_ADD:
 			vcopy( "ZRFLPGM", pgm, MOVE ) ;
-			select( "PGM("+pgm+") PARM(PLF FAVOUR1 "+entry+") BACK" ) ;
+			submit( "PGM("+pgm+") PARM(PLF FAVOUR1 "+entry+")" ) ;
 			break ;
 
 		case LN_INFO:
@@ -721,7 +716,12 @@ void PFLST0A::application()
 
 		case LN_BROWSE:
 			browse( entry ) ;
-			if ( ZRESULT != "" )
+			if ( ZRC == 4 && ZRSN == 4 )
+			{
+				msg = "PPSP011P" ;
+				message = "File empty" ;
+			}
+			else if ( ZRESULT != "" )
 			{
 				message = ZRESULT ;
 			}
@@ -762,28 +762,32 @@ void PFLST0A::application()
 			tbput( dslist ) ;
 			break ;
 
+		case LN_SUBMIT:
+			submit( "CMD(%" + entry + ") LANG(REXX)" ) ;
+			vcopy( "ZSBTASK", zsbtask, MOVE ) ;
+			rdisplay( "JOB "+ right( zsbtask, 5, '0' ) + " SUBMITTED" ) ;
+			message = "Submitted" ;
+			tbput( dslist ) ;
+			break ;
+
 		case LN_NANO:
 			t = "nano " + entry ;
-			control( "TIMEOUT", "DISABLE" ) ;
 			def_prog_mode()     ;
 			endwin()            ;
 			std::system( t.c_str() ) ;
 			reset_prog_mode()   ;
 			refresh()           ;
-			control( "TIMEOUT", "ENABLE" ) ;
 			message = "nano"    ;
 			tbput( dslist )     ;
 			break ;
 
 		case LN_VI:
 			t = "vi " + entry   ;
-			control( "TIMEOUT", "DISABLE" ) ;
 			def_prog_mode()     ;
 			endwin()            ;
 			std::system( t.c_str() ) ;
 			reset_prog_mode()   ;
 			refresh()           ;
-			control( "TIMEOUT", "ENABLE" ) ;
 			message = "vi"      ;
 			tbput( dslist )     ;
 			break ;
@@ -874,7 +878,7 @@ void PFLST0A::createFileList1( string filter )
 
 	regex expression ;
 
-	tbcreate( dslist, "", "(MESSAGE,SEL,ENTRY,TYPE,PERMISS,SIZE,STCDATE,MODDATE,MODDATES)", NOWRITE ) ;
+	tbcreate( dslist, "", "(MESSAGE,SEL,ENTRY,TYPE,PERMISS,SIZE,STCDATE,MODDATE,MODDATES)", NOWRITE, REPLACE ) ;
 
 	message = ""  ;
 	sel     = ""  ;
@@ -937,7 +941,7 @@ void PFLST0A::createFileList1( string filter )
 	if ( fGen )
 	{
 		pat = "" ;
-		for ( uint i = 0 ; i < filter.size() ; i++ )
+		for ( uint i = 0 ; i < filter.size() ; ++i )
 		{
 			c = toupper( filter[ i ] ) ;
 			if      ( c == '*' ) { pat += "[^[:blank:]]*" ; }
@@ -959,7 +963,7 @@ void PFLST0A::createFileList1( string filter )
 	for ( it = v.begin() ; it != v.end() ; ++it )
 	{
 		tbvclear( dslist ) ;
-		ENTRY = (*it).string() ;
+		ENTRY = it->string() ;
 		p     = ENTRY          ;
 		i     = lastpos( "/", ENTRY ) + 1 ;
 		rest  = ENTRY.substr( 0, i-1 ) ;
@@ -983,7 +987,7 @@ void PFLST0A::createFileList1( string filter )
 		}
 		if ( UseSearch )
 		{
-			if ( find( SearchList.begin(), SearchList.end(), (*it).string() ) == SearchList.end() )
+			if ( find( SearchList.begin(), SearchList.end(), it->string() ) == SearchList.end() )
 			{
 				continue ;
 			}
@@ -1055,7 +1059,7 @@ void PFLST0A::AddPath( const string& p, const string& f, vector<path>& v )
 	sort( vt.begin(), vt.end() ) ;
 
 	pat = "" ;
-	for ( uint i = 0 ; i < f.size() ; i++ )
+	for ( uint i = 0 ; i < f.size() ; ++i )
 	{
 		c = toupper( f[ i ] ) ;
 		if      ( c == '*' ) { pat += "[^[:blank:]]*" ; }
@@ -1075,8 +1079,8 @@ void PFLST0A::AddPath( const string& p, const string& f, vector<path>& v )
 
 	for ( it = vt.begin() ; it != vt.end() ; ++it )
 	{
-		ent = (*it).string() ;
-		pth = ent            ;
+		ent = it->string() ;
+		pth = ent          ;
 		ent = substr( ent, lastpos( "/", ent ) + 1 ) ;
 		iupper( ent ) ;
 		if ( !regex_match( ent.begin(), ent.end(), expression ) ) { continue ; }
@@ -1776,7 +1780,7 @@ void PFLST0A::browseTree( const string& tname )
 		{
 			tentry  = strip( line ) ;
 		}
-		i++ ;
+		++i ;
 
 	}
 	tbtop( tab ) ;
@@ -1791,7 +1795,7 @@ void PFLST0A::browseTree( const string& tname )
 	{
 		if ( msg == "" && ztdsels > 0 )
 		{
-			ztdsels-- ;
+			--ztdsels ;
 		}
 		if ( ztdsels == 0 )
 		{
@@ -1900,14 +1904,14 @@ string PFLST0A::expandDir( const string& parms )
 			}
 			else
 			{
-				if ( data2.back() == '/' ) { dir = data2 + dir ; pos-- ; }
+				if ( data2.back() == '/' ) { dir = data2 + dir ; --pos ; }
 				else                       { dir = data2 + "/" + dir   ; }
 				pos = pos + data2.size() + 1 ;
 			}
 		}
 		else
 		{
-			if ( data1.back() == '/' ) { dir = data1 + dir ; pos-- ; }
+			if ( data1.back() == '/' ) { dir = data1 + dir ; --pos ; }
 			else                       { dir = data1 + "/" + dir   ; }
 			pos = pos + data1.size() + 1 ;
 		}
@@ -1984,14 +1988,14 @@ string PFLST0A::expandDir( const string& parms )
 
 	for ( vec::const_iterator it( v.begin() ) ; it != v.end() ; ++it )
 	{
-		entry = (*it).string() ;
+		entry = it->string() ;
 		if ( !abbrev( entry, dir ) ) { continue ; }
 		ZRC = 0 ;
 		if ( entry == dir )
 		{
-			it++ ;
-			if ( it != v.end() ) { return (*it).string() ; }
-			else                 { return dir            ; }
+			++it ;
+			if ( it != v.end() ) { return it->string() ; }
+			else                 { return dir          ; }
 		}
 		break ;
 	}
@@ -2070,7 +2074,7 @@ string PFLST0A::expandFld1( const string& parms )
 	}
 
 	v.clear() ;
-	for ( n = getpaths( Paths ), i = 1 ; i <= n ; i++ )
+	for ( n = getpaths( Paths ), i = 1 ; i <= n ; ++i )
 	{
 		dir1 = getpath( Paths, i ) ;
 		if ( processed.count( dir1 ) > 0 )
@@ -2120,7 +2124,7 @@ string PFLST0A::expandFld1( const string& parms )
 		ZRC = 0 ;
 		if ( entry == dir )
 		{
-			it++ ;
+			++it ;
 			if ( it != mod_end )
 			{
 				if ( type == "PGM" ) { return getAppName( (*it) ) ; }
@@ -2175,7 +2179,7 @@ string PFLST0A::showListing()
 	{
 		if ( msg == "" && ztdsels > 0 )
 		{
-			ztdsels-- ;
+			--ztdsels ;
 		}
 		if ( ztdsels == 0 )
 		{
@@ -2196,6 +2200,7 @@ string PFLST0A::showListing()
 		{
 			panel = "" ;
 		}
+		if ( msg == "" ) { zcmd = "" ; }
 		opath   = zpath    ;
 		ofldirs = fldirs   ;
 		ohidden = flhidden ;
@@ -2303,8 +2308,8 @@ void PFLST0A::createFileList2( const string& fldirs, string filter )
 	for ( vec::const_iterator it (v.begin()) ; it != v.end() ; ++it )
 	{
 		sel   = "" ;
-		ENTRY = (*it).string() ;
-		p     = ENTRY          ;
+		ENTRY = it->string() ;
+		p     = ENTRY        ;
 		i     = lastpos( "/", ENTRY ) + 1 ;
 		ENTRY = substr( ENTRY, i ) ;
 		if ( t != "/" && ENTRY[ 0 ] == '.' ) { continue ; }
@@ -2378,7 +2383,7 @@ string PFLST0A::expandName( const string& s )
 	dir = s.substr( 0, p1 ) ;
 
 	pat = "" ;
-	for ( uint i = 0 ; i < s.size() ; i++ )
+	for ( uint i = 0 ; i < s.size() ; ++i )
 	{
 		c = s[ i ] ;
 		if      ( c == '*' ) { pat += "[^[:blank:]]*" ; }
@@ -2411,9 +2416,9 @@ string PFLST0A::expandName( const string& s )
 	dir1 = "" ;
 	for ( i = 0, it = v.begin() ; it != v.end() ; ++it )
 	{
-		dir = (*it).string() ;
+		dir = it->string() ;
 		if ( !regex_match( dir.begin(), dir.end(), expression ) ) { continue ; }
-		i++ ;
+		++i ;
 		if ( i > 1 ) { return "" ; }
 		dir1 = dir ;
 	}

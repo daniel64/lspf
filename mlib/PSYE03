@@ -292,9 +292,13 @@ PSYE039S 'Profile ISPS invalid'
 'ISPS is the system profile and cannot be used as an application profile'
 
 
+PSYE039T 'Invalid request'
+'PANEL request cannot be run in the background'
+
+
 /* Name List Parser */
 
-PSYE039T 'Invalid name list'
+PSYE039U 'Invalid name list'
 'Name list must be enclosed in brackets if more than one name entered'
 
 

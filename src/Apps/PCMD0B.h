@@ -31,6 +31,7 @@ class PCMD0B : public pApplication
 		void actioniCommand() ;
 		void actionZVERB()    ;
 		bool invoke_task( string, string&, const string& ) ;
+		bool isRexx( string ) ;
 		void bottom_of_data() ;
 		string command_prompt() ;
 		string get_tempname( const string& ) ;
@@ -49,11 +50,13 @@ class PCMD0B : public pApplication
 		string zcmd    ;
 		string zverb   ;
 		string znode   ;
+		string zhome   ;
 		string zscreen ;
 		string zuser   ;
 		string zarea   ;
 		string zshadow ;
 		string zareat  ;
+		string zsbtask ;
 
 		string sdr ;
 		string sdw ;
@@ -68,5 +71,5 @@ class PCMD0B : public pApplication
 		bool running      ;
 
 		vector<string> lines ;
-		map<string,string> cmds ;
-};
+		map<string,pair<int,string>> cmds ;
+} ;

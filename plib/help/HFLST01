@@ -36,20 +36,21 @@ TOUCH    Make a file (under current or specify full path)
 
 Line Commands:
 --------------
-B  - Browse file or list directory
-E  - Edit file
-EX - Execute file as OOREXX
-C  - Copy file/directory/
-D  - Delete file/directory
-I  - Information on the entry
-L  - List directory
-M  - Modify file/directory attributes
-R  - Rename file/directory
-S  - Select file/directory
-T  - Display tree structure of files and directories (in a selectable display)
-TT - Display tree structure of files and directories (in BROWSE)
-X  - List link directory
-=  - Repeat the last entered line command
+B   - Browse file or list directory
+E   - Edit file
+EX  - Execute file as OOREXX
+C   - Copy file/directory/
+D   - Delete file/directory
+I   - Information on the entry
+L   - List directory
+M   - Modify file/directory attributes
+R   - Rename file/directory
+S   - Select file/directory
+SUB - Submit a background REXX job
+T   - Display tree structure of files and directories (in a selectable display)
+TT  - Display tree structure of files and directories (in BROWSE)
+X   - List link directory
+=   - Repeat the last entered line command
 
 FMT  - Format a variable or table file (requires OOREXX installed)
 nano - Invoke nano editor on the file

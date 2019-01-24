@@ -20,6 +20,10 @@
 
 */
 
+/* ************************************************************************ */
+/* OMVS-like shell.                                                         */
+/* Uses PCMD0A to run the commands entered.                                 */
+/* ************************************************************************ */
 
 #include <iostream>
 #include <boost/filesystem.hpp>
@@ -41,13 +45,13 @@ using namespace boost::filesystem ;
 #undef  MOD_NAME
 #define MOD_NAME PCMD0B
 
-#define E_RED      3
-#define E_GREEN    4
-#define E_YELLOW   5
-#define E_BLUE     6
-#define E_MAGENTA  7
-#define E_TURQ     8
-#define E_WHITE    9
+#define E_RED      0x03
+#define E_GREEN    0x04
+#define E_YELLOW   0x05
+#define E_BLUE     0x06
+#define E_MAGENTA  0x07
+#define E_TURQ     0x08
+#define E_WHITE    0x09
 
 
 PCMD0B::PCMD0B()
@@ -65,11 +69,11 @@ void PCMD0B::application()
 
 	vector<pair<string,string>> tnames ;
 
-	vdefine( "ZCMD ZVERB ZNODNAME COMM1 COMM2", &zcmd, &zverb, &znode, &comm1, &comm2 ) ;
+	vdefine( "ZCMD ZVERB ZNODNAME ZHOME COMM1 COMM2", &zcmd, &zverb, &znode, &zhome, &comm1, &comm2 ) ;
 	vdefine( "ZAREA ZSHADOW ZAREAT ZSCROLLA", &zarea, &zshadow, &zareat, &zscrolla ) ;
 	vdefine( "ZSCROLLN ZAREAW ZAREAD", &zscrolln, &zareaw, &zaread ) ;
 
-	vget( "COMM1 COMM2 ZNODNAME", SHARED ) ;
+	vget( "COMM1 COMM2 ZNODNAME ZHOME", SHARED ) ;
 
 	vcopy( "ZUSER", zuser, MOVE )     ;
 	vcopy( "ZSCREEN", zscreen, MOVE ) ;
@@ -122,8 +126,8 @@ void PCMD0B::application()
 				comm1 = get_tempname( "output" ) ;
 				comm2 = get_tempname( "errors" ) ;
 				tnames.push_back( make_pair( comm1, comm2 ) ) ;
-				cmds[ comm1 ] = zcmd ;
 				invoke_task( zcmd, comm1, comm2 ) ;
+				cmds[ comm1 ] = make_pair( ds2d( zsbtask ), zcmd ) ;
 				rebuildZAREA = true ;
 				zcmd = "" ;
 			}
@@ -143,17 +147,15 @@ void PCMD0B::application()
 			qscan( "CMD", it->first ) ;
 			if ( RC == 8 )
 			{
-				copy_output( cmds[ it->first ], it->first, it->second ) ;
+				copy_output( cmds[ it->first ].second, it->first, it->second ) ;
 				cmds.erase( it->first ) ;
 				it = tnames.erase( it ) ;
 				rebuildZAREA = true ;
 				continue ;
 			}
-			it++ ;
+			++it ;
 		}
 	}
-
-	return ;
 }
 
 
@@ -210,11 +212,9 @@ void PCMD0B::copy_output( const string& cmd, const string& fname, const string& 
 
 void PCMD0B::actioniCommand()
 {
-	string cmd  ;
-	string rest ;
+	string cmd ;
 
-	cmd  = upper( word( zcmd, 1 ) ) ;
-	rest = subword( zcmd, 2 ) ;
+	cmd = upper( word( zcmd, 1 ) ) ;
 	if ( cmd == "-CLEAR" )
 	{
 		lines.clear() ;
@@ -235,12 +235,18 @@ void PCMD0B::actioniCommand()
 		}
 		else
 		{
-			for ( auto it = cmds.begin() ; it != cmds.end() ; it++ )
+			map<int,string> temp ;
+			for ( auto it = cmds.begin() ; it != cmds.end() ; ++it )
 			{
-				lines.push_back( it->second ) ;
+				temp[ it->second.first ] = it->second.second ;
+			}
+			for ( auto it = temp.begin() ; it != temp.end() ; ++it )
+			{
+				lines.push_back( d2ds( it->first, 5 ) + "  " + it->second ) ;
 			}
 		}
 		lines.push_back( "" ) ;
+		lines.push_back( command_prompt() ) ;
 		zcmd         = "" ;
 		rebuildZAREA = true ;
 		bottom_of_data() ;
@@ -291,7 +297,7 @@ void PCMD0B::fill_dynamic_area( bool running )
 		topLine = ( lines.size() > 0 ) ? lines.size() - 1 : 0 ;
 	}
 
-	for ( dl = topLine, i = 0 ; i < zaread && dl < lines.size() ; i++, dl++ )
+	for ( dl = topLine, i = 0 ; i < zaread && dl < lines.size() ; ++i, ++dl )
 	{
 		string& pstr = lines[ dl ] ;
 		maxCol = max( maxCol, uint( pstr.size() ) ) ;
@@ -312,7 +318,7 @@ void PCMD0B::fill_dynamic_area( bool running )
 		zarea.replace( zasize-8, 7, "RUNNING" ) ;
 		zshadow.replace( zasize-8, 7, 7, E_WHITE ) ;
 	}
-	else if ( ( topLine + zaread + 2 ) < lines.size() )
+	else if ( ( topLine + zaread ) < lines.size() )
 	{
 		zarea.replace( zasize-8, 7, "MORE..." ) ;
 		zshadow.replace( zasize-8, 7, 7, E_WHITE ) ;
@@ -389,9 +395,18 @@ bool PCMD0B::invoke_task( string cmd, string& comm1, const string& comm2 )
 
 	vput( "COMM1 COMM2", SHARED ) ;
 
-	if ( wd != "" ) { cmd = "cd " + wd + " && " + cmd ; }
+	if ( isRexx( cmd ) )
+	{
+		cmd = "%" + cmd ;
+	}
+	else
+	{
+		if ( cmd == "cd" ) { cmd = "cd " + zhome ; wd = zhome ; }
+		else               { cmd = "cd " + wd + " && " + cmd  ; }
+	}
+	submit( "PGM(PCMD0A) PARM(" + cmd + ")" ) ;
 
-	select( "PGM(PCMD0A) PARM("+cmd+") BACK" ) ;
+	vcopy( "ZSBTASK", zsbtask, MOVE ) ;
 
 	boost::this_thread::sleep_for(boost::chrono::milliseconds( 50 ) ) ;
 	elapsed = 0 ;
@@ -406,6 +421,36 @@ bool PCMD0B::invoke_task( string cmd, string& comm1, const string& comm2 )
 		if ( RC == 8 ) { break ; }
 	}
 	return true ;
+}
+
+
+bool PCMD0B::isRexx( string orexx )
+{
+	int i ;
+	int j ;
+
+	string rxfile ;
+	string paths  ;
+
+	vget( "ZORXPATH", PROFILE ) ;
+	vcopy( "ZORXPATH", paths, MOVE ) ;
+
+	while ( true )
+	{
+		for ( j = getpaths( paths ), i = 1 ; i <= j ; ++i )
+		{
+			rxfile = getpath( paths, i ) + orexx ;
+			if ( !exists( rxfile ) ) { continue ; }
+			if ( is_regular_file( rxfile ) )
+			{
+				return true ;
+			}
+			return false ;
+		}
+		if ( orexx == lower( orexx ) ) { break ; }
+		ilower( orexx ) ;
+	}
+	return false ;
 }
 
 

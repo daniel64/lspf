@@ -668,7 +668,7 @@ int field::edit_field_backspace( WINDOW* win,
 		}
 	}
 
-	col-- ;
+	--col ;
 	edit_field_delete( win, col, ddata_map, schar_map ) ;
 	return col ;
 }
@@ -720,7 +720,7 @@ void field::field_blank( WINDOW* win )
 
 	const char nulls(0x00) ;
 
-	for ( unsigned int i = 0 ; i < field_length ; i++ )
+	for ( unsigned int i = 0 ; i < field_length ; ++i )
 	{
 		blanks[ i ] = ( upad == nulls ) ? ' ' : upad ;
 	}
@@ -754,7 +754,7 @@ void field::field_remove_nulls_da()
 
 	p1 = 0 ;
 
-	for ( auto it = field_usermod.begin() ; it != field_usermod.end() ; it++ )
+	for ( auto it = field_usermod.begin() ; it != field_usermod.end() ; ++it )
 	{
 		p1 = *it + 1 ;
 		p3 = field_value.find_first_of( da->dynArea_Attrs, p1 ) ;
@@ -779,10 +779,10 @@ void field::field_remove_nulls_da()
 				field_value.insert( p3, 1, ' ' ) ;
 				field_shadow_value.erase( p1, 1 ) ;
 				field_shadow_value.insert( p3, 1, 0xFF ) ;
-				p2-- ;
+				--p2 ;
 				continue ;
 			}
-			p1++ ;
+			++p1 ;
 		}
 	}
 }
@@ -1060,7 +1060,7 @@ void field::field_update_datamod_usermod( string* darea, int offset )
 
 	if ( not da->dynArea_dataModsp && not da->dynArea_userModsp ) { return ; }
 
-	for ( auto it = field_usermod.begin() ; it != field_usermod.end() ; it++ )
+	for ( auto it = field_usermod.begin() ; it != field_usermod.end() ; ++it )
 	{
 		if ( da->dynArea_userModsp )
 		{
@@ -1139,7 +1139,7 @@ void field::display_field( WINDOW* win,
 				wattrset( win, itc->second | field_intens ) ;
 			}
 			attr1 = (*its) ;
-			for ( ita = field_value.begin() ; ita != field_value.end() ; ita++, its++, i++ )
+			for ( ita = field_value.begin() ; ita != field_value.end() ; ++ita, ++its, ++i )
 			{
 				if ( attr1 != (*its) || attr2 != attrd )
 				{
@@ -1197,7 +1197,7 @@ void field::display_field( WINDOW* win,
 				wattrset( win, itc->second | field_intens ) ;
 			}
 			attr1 = (*its) ;
-			for ( ita = field_value.begin() ; ita != field_value.end() ; ita++, its++, i++ )
+			for ( ita = field_value.begin() ; ita != field_value.end() ; ++ita, ++its, ++i )
 			{
 				if ( attr1 != (*its) )
 				{
@@ -1249,7 +1249,7 @@ void field::display_field( WINDOW* win,
 		}
 		else
 		{
-			for ( ita = t.begin() ; ita != t.end() ; ita++ )
+			for ( ita = t.begin() ; ita != t.end() ; ++ita )
 			{
 				if      ( (*ita) == nulls   ) { (*ita) = ( upad == nulls ) ? ' ' : upad ; }
 				else if ( !isprint( (*ita)) ) { (*ita) = '.'  ; }
@@ -1415,7 +1415,7 @@ string abc::getDialogueVar( errblock& err, const string& var )
 		return p_poolMGR->get( err, var, ASIS ) ;
 	}
 
-	var_type = p_funcPOOL->getType( err, var, NOCHECK ) ;
+	var_type = p_funcPOOL->getType( err, var ) ;
 	if ( err.error() ) { return "" ; }
 
 	if ( err.RC0() )
@@ -1426,7 +1426,7 @@ string abc::getDialogueVar( errblock& err, const string& var )
 		}
 		else
 		{
-			return p_funcPOOL->get( err, 0, var, NOCHECK ) ;
+			return p_funcPOOL->get( err, 0, var ) ;
 		}
 	}
 	else
@@ -1484,7 +1484,7 @@ string abc::sub_vars( errblock& err, string s, bool& dvars )
 	{
 		p1 = s.find( '&', p1 ) ;
 		if ( p1 == string::npos || p1 == s.size() - 1 ) { break ; }
-		p1++ ;
+		++p1 ;
 		if ( s[ p1 ] == '&' )
 		{
 			s.erase( p1, 1 ) ;
@@ -1555,7 +1555,7 @@ void abc::display_pd( errblock& err, uint p_row, uint p_col, uint row )
 	}
 
 
-	for ( auto it = pdcList.begin() ; it != pdcList.end() ; it++ )
+	for ( auto it = pdcList.begin() ; it != pdcList.end() ; ++it )
 	{
 		if ( it->pdc_dvars )
 		{
@@ -1593,7 +1593,7 @@ void abc::display_pd( errblock& err, uint p_row, uint p_col, uint row )
 	}
 
 	i = 1 ;
-	for ( auto it = pdcList.begin() ; it != pdcList.end() ; it++, i++ )
+	for ( auto it = pdcList.begin() ; it != pdcList.end() ; ++it, ++i )
 	{
 		if ( it->pdc_unavail != "" && getDialogueVar( err, it->pdc_unavail ) == "1" )
 		{

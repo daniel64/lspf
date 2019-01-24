@@ -31,7 +31,7 @@
 /* Global colours                                                           */
 /* T0DO list                                                                */
 /* SHARED and PROFILE Variable display                                      */
-/* LIBDEF status                                                            */
+/* LIBDEF status (isplibd)                                                  */
 /* Display LIBDEF status and search paths                                   */
 /* Display loaded Modules (loaded Dynamic Classes)                          */
 /* Display Saved File List                                                  */
@@ -41,10 +41,10 @@
 /* RUN an application (default parameters)                                  */
 /* Show error screen                                                        */
 /* Set a profile variable                                                   */
+/* Show output held on the spool                                            */
 
 #include <iostream>
 #include <vector>
-#include <boost/filesystem.hpp>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -63,27 +63,24 @@
 
 #include "PPSP01A.h"
 
-using namespace std ;
-using namespace boost::filesystem ;
-
 #undef  MOD_NAME
 #define MOD_NAME PPSP01A
 
-#define E_RED      3
-#define E_GREEN    4
-#define E_YELLOW   5
-#define E_BLUE     6
-#define E_MAGENTA  7
-#define E_TURQ     8
-#define E_WHITE    9
+#define E_RED      0x03
+#define E_GREEN    0x04
+#define E_YELLOW   0x05
+#define E_BLUE     0x06
+#define E_MAGENTA  0x07
+#define E_TURQ     0x08
+#define E_WHITE    0x09
 
 
 PPSP01A::PPSP01A()
 {
 	set_appdesc( "General utilities to display logs, PF Key settings, variables, etc." ) ;
-	set_appver( "1.0.1" ) ;
+	set_appver( "1.0.2" ) ;
 
-	vdefine( "ZCURINX ZTDTOP ZTDSELS", &zcurinx, &ztdtop, &ztdsels ) ;
+	vdefine( "ZCURINX ZTDTOP ZTDVROWS ZTDSELS ZTDDEPTH", &zcurinx, &ztdtop, &ztdvrows, &ztdsels, &ztddepth ) ;
 }
 
 
@@ -105,6 +102,9 @@ void PPSP01A::application()
 	vdefine( "LTYPE LOGLOC ZCOL1", &ltype, &logloc, &zcol1 ) ;
 
 	vget( "ZALOG ZSLOG", PROFILE ) ;
+
+	vcopy( "ZUSER", zuser, MOVE )     ;
+	vcopy( "ZSCREEN", zscreen, MOVE ) ;
 
 	if ( PARM == "AL" )
 	{
@@ -140,6 +140,7 @@ void PPSP01A::application()
 	else if ( w1   == "BROWSEE" ) { browseEntry( wl )    ; }
 	else if ( w1   == "EDITEE"  ) { editEntry( wl )      ; }
 	else if ( w1   == "PSYSER3" ) { showErrorScreen2( w2 ) ; }
+	else if ( w1   == "OUTLIST" ) { showHeldOutput()     ; }
 	else if ( w1   == "SETVAR"  )
 	{
 		vreplace( w2, word( PARM, 3 ) ) ;
@@ -247,7 +248,7 @@ void PPSP01A::show_log( const string& fileName )
 				task = ds2d ( w2 ) ;
 			}
 			excluded.clear() ;
-			for ( t = 0 ; t <= maxLines ; t++ ) { excluded.push_back( false ) ; }
+			for ( t = 0 ; t <= maxLines ; ++t ) { excluded.push_back( false ) ; }
 			set_excludes() ;
 			rebuildZAREA = true ;
 		}
@@ -287,7 +288,7 @@ void PPSP01A::show_log( const string& fileName )
 			task    = 0      ;
 			rebuildZAREA = true ;
 			excluded.clear() ;
-			for ( t = 0 ; t <= maxLines ; t++ ) { excluded.push_back( false ) ; }
+			for ( t = 0 ; t <= maxLines ; ++t ) { excluded.push_back( false ) ; }
 		}
 		else if ( abbrev( "REFRESH", w1 ) )
 		{
@@ -330,10 +331,10 @@ void PPSP01A::show_log( const string& fileName )
 			else
 			{
 				t = 0 ;
-				for ( ; firstLine < ( maxLines - 1 ) ; firstLine++ )
+				for ( ; firstLine < ( maxLines - 1 ) ; ++firstLine )
 				{
 					if ( excluded[ firstLine ] ) continue ;
-					t++ ;
+					++t ;
 					if ( t > zscrolln ) break ;
 				}
 			}
@@ -348,10 +349,10 @@ void PPSP01A::show_log( const string& fileName )
 			else
 			{
 				t = 0 ;
-				for ( ; firstLine > 0 ; firstLine-- )
+				for ( ; firstLine > 0 ; --firstLine )
 				{
 					if ( excluded[ firstLine ] ) continue ;
-					t++ ;
+					++t ;
 					if ( t > zscrolln ) break ;
 				}
 			}
@@ -418,7 +419,7 @@ void PPSP01A::read_file( const string& fileName )
 		excluded.push_back( false ) ;
 		if ( maxCol < inLine.size() ) { maxCol = inLine.size() ; }
 	}
-	maxCol++ ;
+	++maxCol ;
 	data.push_back( centre( " Bottom of Log ", zareaw, '*' ) ) ;
 	excluded.push_back( false ) ;
 	maxLines = data.size() ;
@@ -448,7 +449,7 @@ bool PPSP01A::file_has_changed( const string& fileName, int& fsize )
 void PPSP01A::set_excludes()
 {
 	int j ;
-	for ( uint i = 1 ; i < maxLines ; i++ )
+	for ( uint i = 1 ; i < maxLines ; ++i )
 	{
 		if ( task > 0 )
 		{
@@ -477,14 +478,14 @@ void PPSP01A::set_excludes()
 
 void PPSP01A::exclude_all()
 {
-	for ( uint i = 1 ; i < (maxLines-1) ; i++ ) { excluded[ i ] = true ; }
+	for ( uint i = 1 ; i < (maxLines-1) ; ++i ) { excluded[ i ] = true ; }
 }
 
 
 void PPSP01A::find_lines( string fnd )
 {
 	iupper( fnd ) ;
-	for ( uint i = 1 ; i < (maxLines-1) ; i++ )
+	for ( uint i = 1 ; i < (maxLines-1) ; ++i )
 	{
 		if ( upper( data[ i ] ).find( fnd ) == string::npos ) { excluded[ i ] = true ; }
 	}
@@ -506,10 +507,10 @@ void PPSP01A::fill_dynamic_area()
 
 	int l = 0 ;
 
-	for ( unsigned int k = firstLine ; k < data.size() ; k++ )
+	for ( unsigned int k = firstLine ; k < data.size() ; ++k )
 	{
 		if ( excluded[ k ] ) continue ;
-		l++ ;
+		++l ;
 		if ( l > zaread ) break ;
 		if ( k == 0 || k == maxLines-1 )
 		{
@@ -597,12 +598,9 @@ void PPSP01A::dsList( string parms )
 		if ( reflist )
 		{
 			std::ofstream fout ;
-			vcopy( "ZUSER", zuser, MOVE )     ;
-			vcopy( "ZSCREEN", zscreen, MOVE ) ;
-			boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( zuser + "-" + zscreen + "-%%%%-%%%%" ) ;
-			string tname = temp.native() ;
+			string tname = get_tempname() ;
 			fout.open( tname ) ;
-			for ( i = 1 ; i <= 30 ; i++ )
+			for ( i = 1 ; i <= 30 ; ++i )
 			{
 				vcopy( "FLAPET" + d2ds( i, 2 ), fname, MOVE ) ;
 				if ( fname == "" ) { continue ; }
@@ -625,18 +623,14 @@ void PPSP01A::dsList( string parms )
 
 void PPSP01A::lspfSettings()
 {
-	int timeOut    ;
-
 	string nulls   ;
-
-	string* t1     ;
 
 	string godefm  ;
 	string godel   ;
 	string goswap  ;
 	string goswapc ;
 	string gokluse ;
-	string goklfal ;
+	string gonotfy ;
 	string golmsgw ;
 	string gopadc  ;
 	string gosretp ;
@@ -648,7 +642,7 @@ void PPSP01A::lspfSettings()
 	string roswap  ;
 	string roswapc ;
 	string rokluse ;
-	string roklfal ;
+	string ronotfy ;
 	string rolmsgw ;
 	string ropadc  ;
 	string rosretp ;
@@ -660,7 +654,7 @@ void PPSP01A::lspfSettings()
 	string zswap   ;
 	string zswapc  ;
 	string zkluse  ;
-	string zklfail ;
+	string znotify ;
 	string zlmsgw  ;
 	string zpadc   ;
 	string zsretp  ;
@@ -682,10 +676,6 @@ void PPSP01A::lspfSettings()
 	string roscmd2 ;
 	string roscmd3 ;
 	string rostfst ;
-
-	string goatimo  ;
-	string roatimo  ;
-	string kmaxwait ;
 
 	string gortsize ;
 	string gorbsize ;
@@ -710,50 +700,38 @@ void PPSP01A::lspfSettings()
 	if ( RC > 0 ) { abend() ; }
 	vdefine( "GOUCMD1 GOUCMD2 GOUCMD3", &goucmd1, &goucmd2, &goucmd3 ) ;
 	if ( RC > 0 ) { abend() ; }
-	vdefine( "ROUCMD1 ROUCMD2 ROUCMD3", &roucmd1, &roucmd2, &roucmd3 ) ;
-	if ( RC > 0 ) { abend() ; }
 	vdefine( "GOSCMD1 GOSCMD2 GOSCMD3 GOSTFST", &goscmd1, &goscmd2, &goscmd3, &gostfst ) ;
 	if ( RC > 0 ) { abend() ; }
-	vdefine( "ROSCMD1 ROSCMD2 ROSCMD3 ROSTFST", &roscmd1, &roscmd2, &roscmd3, &rostfst ) ;
-	if ( RC > 0 ) { abend() ; }
-	vdefine( "ZKLUSE  ZKLFAIL GOKLUSE GOKLFAL", &zkluse, &zklfail, &gokluse, &goklfal ) ;
-	if ( RC > 0 ) { abend() ; }
-	vdefine( "ROKLUSE ROKLFAL", &rokluse, &roklfal ) ;
+	vdefine( "ZKLUSE  ZNOTIFY GOKLUSE GONOTFY", &zkluse, &znotify, &gokluse, &gonotfy ) ;
 	if ( RC > 0 ) { abend() ; }
 	vdefine( "ZDEL    GODEL   ZLMSGW  GOLMSGW", &zdel, &godel, &zlmsgw, &golmsgw ) ;
 	if ( RC > 0 ) { abend() ; }
-	vdefine( "RODEL ROLMSGW", &rodel, &rolmsgw ) ;
-	if ( RC > 0 ) { abend() ; }
 	vdefine( "ZSWAP   GOSWAP   ZSWAPC  GOSWAPC",  &zswap, &goswap, &zswapc, &goswapc ) ;
-	if ( RC > 0 ) { abend() ; }
-	vdefine( "ROSWAP  ROSWAPC",  &roswap, &roswapc ) ;
 	if ( RC > 0 ) { abend() ; }
 	vdefine( "ZRTSIZE GORTSIZE ZRBSIZE GORBSIZE", &zrtsize, &gortsize, &zrbsize, &gorbsize ) ;
 	if ( RC > 0 ) { abend() ; }
-	vdefine( "RORTSIZE RORBSIZE", &rortsize, &rorbsize ) ;
+	vdefine( "ZPADC GOPADC", &zpadc, &gopadc ) ;
 	if ( RC > 0 ) { abend() ; }
-	vdefine( "ZMAXWAIT GOATIMO ZPADC GOPADC", &kmaxwait, &goatimo, &zpadc, &gopadc ) ;
+	vdefine( "ZSRETP GOSRETP", &zsretp, &gosretp ) ;
 	if ( RC > 0 ) { abend() ; }
-	vdefine( "ROATIMO ROPADC ZSRETP GOSRETP", &roatimo, &ropadc, &zsretp, &gosretp ) ;
+	vdefine( "GOSCRLD ZSCROLLD", &goscrld, &zscrolld ) ;
 	if ( RC > 0 ) { abend() ; }
-	vdefine( "GOSCRLD ROSCRLD ZSCROLLD", &goscrld, &roscrld, &zscrolld ) ;
+	vdefine( "GODEFM ZDEFM", &godefm, &zdefm ) ;
 	if ( RC > 0 ) { abend() ; }
-	vdefine( "GODEFM RODEFM ZDEFM", &godefm, &rodefm, &zdefm ) ;
-	if ( RC > 0 ) { abend() ; }
-	vdefine( "GOHIGH ROHIGH ZHIGH", &gohigh, &rohigh, &zhigh ) ;
+	vdefine( "GOHIGH ZHIGH", &gohigh, &zhigh ) ;
 	if ( RC > 0 ) { abend() ; }
 
 	vget( "ZUCMDT1 ZUCMDT2 ZUCMDT3", PROFILE ) ;
 	if ( RC > 0 ) { abend() ; }
 	vget( "ZSCMDT1 ZSCMDT2 ZSCMDT3 ZSCMDTF", PROFILE ) ;
 	if ( RC > 0 ) { abend() ; }
-	vget( "ZSWAP ZSWAPC ZKLUSE ZKLFAIL ZSCROLLD", PROFILE ) ;
+	vget( "ZSWAP ZSWAPC ZKLUSE ZNOTIFY ZSCROLLD", PROFILE ) ;
 	if ( RC > 0 ) { abend() ; }
 	vget( "ZDEFM ZDEL ZKLUSE ZLMSGW ZPADC ZSRETP ZHIGH", PROFILE ) ;
 	if ( RC > 0 ) { abend() ; }
 
 	gokluse = zkluse  == "Y" ? "/" : "" ;
-	goklfal = zklfail == "Y" ? "/" : "" ;
+	gonotfy = znotify == "Y" ? "/" : "" ;
 	gostfst = zscmdtf == "Y" ? "/" : "" ;
 	golmsgw = zlmsgw  == "Y" ? "/" : "" ;
 	goswap  = zswap   == "Y" ? "/" : "" ;
@@ -775,11 +753,7 @@ void PPSP01A::lspfSettings()
 	goscmd2 = zscmdt2 ;
 	goscmd3 = zscmdt3 ;
 
-	vcopy( "ZWAIT", t1, LOCATE ) ;
-	vget( "ZMAXWAIT ZRTSIZE ZRBSIZE", PROFILE ) ;
-
-	timeOut = ds2d( *t1 ) * ds2d( kmaxwait ) / 1000 ;
-	goatimo = d2ds( timeOut ) ;
+	vget( "ZRTSIZE ZRBSIZE", PROFILE ) ;
 
 	gortsize = zrtsize ;
 	gorbsize = zrbsize ;
@@ -789,7 +763,7 @@ void PPSP01A::lspfSettings()
 	roswap   = goswap   ;
 	roswapc  = goswapc  ;
 	rokluse  = gokluse  ;
-	roklfal  = goklfal  ;
+	ronotfy  = gonotfy  ;
 	rolmsgw  = golmsgw  ;
 	ropadc   = gopadc   ;
 	roscrld  = goscrld  ;
@@ -801,7 +775,6 @@ void PPSP01A::lspfSettings()
 	roscmd2  = goscmd2  ;
 	roscmd3  = goscmd3  ;
 	rostfst  = gostfst  ;
-	roatimo  = goatimo  ;
 	rortsize = gortsize ;
 	rorbsize = gorbsize ;
 	rohigh   = gohigh   ;
@@ -814,7 +787,7 @@ void PPSP01A::lspfSettings()
 		if ( zcmd == "DEFAULTS" )
 		{
 			gokluse  = ""  ;
-			goklfal  = "/" ;
+			gonotfy  = "/" ;
 			gostfst  = "/" ;
 			golmsgw  = ""  ;
 			godefm   = "2" ;
@@ -830,7 +803,6 @@ void PPSP01A::lspfSettings()
 			goscmd1  = ""  ;
 			goscmd2  = ""  ;
 			goscmd3  = ""  ;
-			goatimo  = d2ds( ZMAXWAIT * ds2d( *t1 ) / 1000 ) ;
 			gortsize = "3"  ;
 			gorbsize = "20" ;
 			gohigh   = ""   ;
@@ -842,7 +814,7 @@ void PPSP01A::lspfSettings()
 			goswap   = roswap   ;
 			goswapc  = roswapc  ;
 			gokluse  = rokluse  ;
-			goklfal  = roklfal  ;
+			gonotfy  = ronotfy  ;
 			golmsgw  = rolmsgw  ;
 			gopadc   = ropadc   ;
 			goscrld  = roscrld  ;
@@ -854,13 +826,12 @@ void PPSP01A::lspfSettings()
 			goscmd2  = roscmd2  ;
 			goscmd3  = roscmd3  ;
 			gostfst  = rostfst  ;
-			goatimo  = roatimo  ;
 			gortsize = rortsize ;
 			gorbsize = rorbsize ;
 			gohigh   = rohigh   ;
 		}
 		zkluse   = gokluse == "/" ? "Y" : "N" ;
-		zklfail  = goklfal == "/" ? "Y" : "N" ;
+		znotify  = gonotfy == "/" ? "Y" : "N" ;
 		zscmdtf  = gostfst == "/" ? "Y" : "N" ;
 		zlmsgw   = golmsgw == "/" ? "Y" : "N" ;
 		zswap    = goswap  == "/" ? "Y" : "N" ;
@@ -873,7 +844,7 @@ void PPSP01A::lspfSettings()
 		zscmdt2  = goscmd2 ;
 		zscmdt3  = goscmd3 ;
 		zscrolld = goscrld ;
-		vput( "ZKLUSE  ZKLFAIL ZLMSGW  ZSWAP ZSRETP ZHIGH", PROFILE ) ;
+		vput( "ZKLUSE  ZNOTIFY ZLMSGW  ZSWAP ZSRETP ZHIGH", PROFILE ) ;
 		vput( "ZUCMDT1 ZUCMDT2 ZUCMDT3", PROFILE ) ;
 		vput( "ZSCMDT1 ZSCMDT2 ZSCMDT3 ZSCMDTF ZSCROLLD", PROFILE ) ;
 		if ( godefm != "" )
@@ -899,11 +870,6 @@ void PPSP01A::lspfSettings()
 			vput( "ZPADC", PROFILE ) ;
 			zpadc = gopadc ;
 		}
-		if ( goatimo != "" )
-		{
-			kmaxwait = d2ds( ds2d( goatimo ) * 1000 / ds2d( *t1 ) ) ;
-			vput( "ZMAXWAIT", PROFILE ) ;
-		}
 		if ( gortsize != "" )
 		{
 			zrtsize = gortsize ;
@@ -923,7 +889,7 @@ void PPSP01A::lspfSettings()
 	if ( RC > 0 ) { abend() ; }
 	vdelete( "GOSCMD1 GOSCMD2 GOSCMD3 GOSTFST" ) ;
 	if ( RC > 0 ) { abend() ; }
-	vdelete( "ZKLUSE  ZKLFAIL GOKLUSE GOKLFAL" ) ;
+	vdelete( "ZKLUSE  ZNOTIFY GOKLUSE GONOTFY" ) ;
 	if ( RC > 0 ) { abend() ; }
 	vdelete( "ZDEL    GODEL   ZLMSGW  GOLMSGW"  ) ;
 	if ( RC > 0 ) { abend() ; }
@@ -931,17 +897,13 @@ void PPSP01A::lspfSettings()
 	if ( RC > 0 ) { abend() ; }
 	vdelete( "ZRTSIZE GORTSIZE ZRBSIZE GORBSIZE" ) ;
 	if ( RC > 0 ) { abend() ; }
-	vdelete( "ZMAXWAIT GOATIMO ZPADC GOPADC ZSRETP GOSRETP" ) ;
+	vdelete( "ZPADC GOPADC ZSRETP GOSRETP" ) ;
 	if ( RC > 0 ) { abend() ; }
-	vdelete( "RODEL ROSWAP ROSWAPC ROKLUSE ROKLFAL ROLMSGW ROPADC ROUCMD1 ROUCMD2" ) ;
+	vdelete( "GOSCRLD ZSCROLLD" ) ;
 	if ( RC > 0 ) { abend() ; }
-	vdelete( "ROUCMD3 ROSCMD1 ROSCMD2 ROSCMD3 ROSTFST ROATIMO RORTSIZE RORBSIZE" ) ;
+	vdelete( "GODEFM ZDEFM" ) ;
 	if ( RC > 0 ) { abend() ; }
-	vdelete( "GOSCRLD ROSCRLD ZSCROLLD" ) ;
-	if ( RC > 0 ) { abend() ; }
-	vdelete( "GODEFM RODEFM ZDEFM" ) ;
-	if ( RC > 0 ) { abend() ; }
-	vdelete( "GOHIGH ROHIGH ZHIGH" ) ;
+	vdelete( "GOHIGH ZHIGH" ) ;
 	if ( RC > 0 ) { abend() ; }
 }
 
@@ -974,7 +936,7 @@ void PPSP01A::controlKeys()
 	key2 = "Control-?" ;
 	key3 = "ACTRL?"    ;
 
-	for ( i = 0 ; i < 26 ; i++ )
+	for ( i = 0 ; i < 26 ; ++i )
 	{
 		key1.replace( 5, 1, 1, alpha[ i ] ) ;
 		key2.replace( 8, 1, 1, alpha[ i ] ) ;
@@ -999,7 +961,7 @@ void PPSP01A::controlKeys()
 		msg = "" ;
 		if ( zcmd == "RESET" || zcmd == "CANCEL" )
 		{
-			for ( i = 0 ; i < 26 ; i++ )
+			for ( i = 0 ; i < 26 ; ++i )
 			{
 				key1.replace( 5, 1, 1, alpha[ i ] ) ;
 				key2.replace( 8, 1, 1, alpha[ i ] ) ;
@@ -1016,7 +978,7 @@ void PPSP01A::controlKeys()
 		if ( zcmd == "RESTORE" )
 		{
 			msg = "PPSP011E" ;
-			for ( i = 0 ; i < 26 ; i++ )
+			for ( i = 0 ; i < 26 ; ++i )
 			{
 				key1.replace( 5, 1, 1, alpha[ i ] ) ;
 				key2.replace( 8, 1, 1, alpha[ i ] ) ;
@@ -1054,7 +1016,7 @@ void PPSP01A::controlKeys()
 		if ( e_loop ) { break ; }
 		if ( zcmd == "SAVE" )
 		{
-			for ( i = 0 ; i < 26 ; i++ )
+			for ( i = 0 ; i < 26 ; ++i )
 			{
 				key1.replace( 5, 1, 1, alpha[ i ] ) ;
 				key3.replace( 5, 1, 1, alpha[ i ] ) ;
@@ -1103,7 +1065,7 @@ void PPSP01A::pfkeySettings()
 					 { "SWAP NEXT" },
 					 { "HELP"      } } ;
 
-	for ( int i = 0 ; i < 24 ; i++ )
+	for ( int i = 0 ; i < 24 ; ++i )
 	{
 		vget( "ZPF"+d2ds( i+1, 2 ), PROFILE ) ;
 	}
@@ -1116,13 +1078,13 @@ void PPSP01A::pfkeySettings()
 		if ( zcmd == "CANCEL" ) { break ; }
 		if ( zcmd == "DEFAULTS" )
 		{
-			for ( int i = 0 ; i < 24 ; i++ )
+			for ( int i = 0 ; i < 24 ; ++i )
 			{
 				vreplace( "ZPF"+d2ds( i+1, 2 ), "" ) ;
 			}
 		}
 
-		for ( int i = 0 ; i < 24 ; i++ )
+		for ( int i = 0 ; i < 24 ; ++i )
 		{
 			vcopy( "ZPF"+d2ds( i+1, 2 ), t, LOCATE ) ;
 			if ( *t == "" )
@@ -1133,7 +1095,7 @@ void PPSP01A::pfkeySettings()
 
 		if ( RCode == 8 || zcmd == "SAVE" )
 		{
-			for ( int i = 0 ; i < 24 ; i++ )
+			for ( int i = 0 ; i < 24 ; ++i )
 			{
 				vput( "ZPF"+d2ds( i+1, 2 ), PROFILE ) ;
 			}
@@ -1232,7 +1194,7 @@ void PPSP01A::colourSettings()
 	DefList[ 33 ] = KWASL  ;
 
 
-	for ( i = 1 ; i < 34 ; i++ )
+	for ( i = 1 ; i < 34 ; ++i )
 	{
 		if ( not setScreenAttrs( VarList[ i ], i ) )
 		{
@@ -1241,7 +1203,7 @@ void PPSP01A::colourSettings()
 		}
 	}
 
-	for ( i = 1 ; i < 34 ; i++ )
+	for ( i = 1 ; i < 34 ; ++i )
 	{
 		isps_var = "ZC" + VarList[ i ] ;
 		vcopy( isps_var, val, MOVE ) ;
@@ -1267,7 +1229,7 @@ void PPSP01A::colourSettings()
 		}
 		else if ( zcmd == "CANCEL" )
 		{
-			for ( i = 1 ; i < 34 ; i++ )
+			for ( i = 1 ; i < 34 ; ++i )
 			{
 				isps_var = "ZC" + VarList[ i ] ;
 				vcopy( isps_var, val, MOVE )   ;
@@ -1282,11 +1244,11 @@ void PPSP01A::colourSettings()
 		}
 		else if ( zcmd == "DEFAULTS" )
 		{
-			for ( i = 1 ; i < 34 ; i++ )
+			for ( i = 1 ; i < 34 ; ++i )
 			{
 				setISPSVar( VarList[ i ], DefList[ i ]  ) ;
 			}
-			for ( i = 1 ; i < 34 ; i++ )
+			for ( i = 1 ; i < 34 ; ++i )
 			{
 				if ( not setScreenAttrs( VarList[ i ], i ) ) { abend() ; }
 			}
@@ -1294,7 +1256,7 @@ void PPSP01A::colourSettings()
 		else if ( zcmd == "SAVE" )
 		{
 			zcmd = "" ;
-			for ( i = 1 ; i < 34 ; i++ )
+			for ( i = 1 ; i < 34 ; ++i )
 			{
 				isps_var = "ZC" + VarList[ i ] ;
 				vcopy( isps_var, val, MOVE ) ;
@@ -1315,7 +1277,7 @@ void PPSP01A::colourSettings()
 		else if ( zcmd == "RESTORE" )
 		{
 			zcmd = "" ;
-			for ( i = 1 ; i < 34 ; i++ )
+			for ( i = 1 ; i < 34 ; ++i )
 			{
 				prof_var = "AC" + VarList[ i ] ;
 				vcopy( prof_var, val, MOVE ) ;
@@ -1333,7 +1295,7 @@ void PPSP01A::colourSettings()
 
 		msg  = "" ;
 		zcmd = "" ;
-		for ( i = 1 ; i < 34 ; i++)
+		for ( i = 1 ; i < 34 ; ++i )
 		{
 			var1 = "COLOUR" + d2ds( i, 2 ) ;
 			var2 = "INTENS" + d2ds( i, 2 ) ;
@@ -1534,7 +1496,7 @@ void PPSP01A::globalColours()
 				     { "W", "WHITE"   } } ;
 
 
-	for ( i = 1 ; i < 8 ; i++ )
+	for ( i = 1 ; i < 8 ; ++i )
 	{
 		var = "ZGCL" + tab1[ i ] ;
 		vcopy( var, colour, MOVE ) ;
@@ -1559,7 +1521,7 @@ void PPSP01A::globalColours()
 			setRGBValues() ;
 			continue ;
 		}
-		for ( i = 1 ; i < 8 ; i++ )
+		for ( i = 1 ; i < 8 ; ++i )
 		{
 			vcopy( "COLOUR"+ d2ds( i, 2 ), colour, MOVE ) ;
 			var = "ZGCL" + tab1[ i ] ;
@@ -1593,7 +1555,7 @@ void PPSP01A::setRGBValues()
 	  { 6, "T" },
 	  { 7, "W" } } ;
 
-	for ( uint i = 1 ; i < 8 ; i++ )
+	for ( uint i = 1 ; i < 8 ; ++i )
 	{
 		vget( u_rgb + suf[ i ], PROFILE ) ;
 		vcopy( u_rgb + suf[ i ], t, MOVE ) ;
@@ -1619,14 +1581,14 @@ void PPSP01A::setRGBValues()
 		if (RC == 8 ) {  break ; }
 		if ( zcmd == "DEFAULTS" )
 		{
-			for ( uint i = 1 ; i < 8 ; i++ )
+			for ( uint i = 1 ; i < 8 ; ++i )
 			{
 				vget( n_rgb + suf[ i ], SHARED ) ;
 				vcopy( n_rgb + suf[ i ], t, MOVE ) ;
 				vreplace( u_rgb + suf[ i ], t ) ;
 				vput( u_rgb + suf[ i ], PROFILE ) ;
 			}
-			for ( uint i = 1 ; i < 8 ; i++ )
+			for ( uint i = 1 ; i < 8 ; ++i )
 			{
 				vget( u_rgb + suf[ i ], PROFILE ) ;
 				vcopy( u_rgb + suf[ i ], t, MOVE ) ;
@@ -1643,7 +1605,7 @@ void PPSP01A::setRGBValues()
 				continue ;
 			}
 		}
-		for ( uint i = 1 ; i < 8 ; i++ )
+		for ( uint i = 1 ; i < 8 ; ++i )
 		{
 			vget( "RGBR" + d2ds( i ), PROFILE ) ;
 			vcopy( "RGBR" + d2ds( i ), t, MOVE ) ;
@@ -1713,7 +1675,6 @@ void PPSP01A::poolVariables( const string& applid )
 		msg = "" ;
 		if ( zcmd == "REF" || zcmd == "RES" )
 		{
-			tbend( table ) ;
 			getpoolVariables( table, "" ) ;
 			continue ;
 		}
@@ -1721,7 +1682,6 @@ void PPSP01A::poolVariables( const string& applid )
 		w2 = word( zcmd, 2 ) ;
 		if ( cw == "O" )
 		{
-			tbend( table ) ;
 			getpoolVariables( table, w2 ) ;
 			continue ;
 		}
@@ -1759,7 +1719,7 @@ void PPSP01A::getpoolVariables( const string& table, const string& pattern )
 	// PROFILE 3 - default read-only profile pool (@DEFPROF)
 	// PROFILE 4 - System profile (ISPSPROF)
 
-	tbcreate( table, "", "(SEL,VAR,VPOOL,VPLVL,MESSAGE,VAL)", NOWRITE ) ;
+	tbcreate( table, "", "(SEL,VAR,VPOOL,VPLVL,MESSAGE,VAL)", NOWRITE, REPLACE ) ;
 
 	sel     = "" ;
 	message = "" ;
@@ -1769,7 +1729,7 @@ void PPSP01A::getpoolVariables( const string& table, const string& pattern )
 	vpool = "F" ;
 	vplvl = "D" ;
 	ws    = words( varlist ) ;
-	for ( i = 1 ; i <= ws ; i++ )
+	for ( i = 1 ; i <= ws ; ++i )
 	{
 		var = word( varlist, i ) ;
 		if ( (pattern != "") && (pos( pattern, var ) == 0) ) { continue ; }
@@ -1781,7 +1741,7 @@ void PPSP01A::getpoolVariables( const string& table, const string& pattern )
 	vpool = "F" ;
 	vplvl = "I" ;
 	ws    = words( varlist ) ;
-	for ( i = 1 ; i <= ws ; i++ )
+	for ( i = 1 ; i <= ws ; ++i )
 	{
 		var = word( varlist, i ) ;
 		if ( (pattern != "") && (pos( pattern, var ) == 0) ) { continue ; }
@@ -1794,7 +1754,7 @@ void PPSP01A::getpoolVariables( const string& table, const string& pattern )
 	set<string>& varlist = vlist( SHARED, 1 ) ;
 	vpool = "S" ;
 	vplvl = "1" ;
-	for ( auto it = varlist.begin() ; it != varlist.end() ; it++ )
+	for ( auto it = varlist.begin() ; it != varlist.end() ; ++it )
 	{
 		var = *it ;
 		if ( pattern != "" && pos( pattern, var ) == 0 ) { continue ; }
@@ -1806,7 +1766,7 @@ void PPSP01A::getpoolVariables( const string& table, const string& pattern )
 
 	vlist( SHARED, 2 ) ;
 	vplvl = "2" ;
-	for ( auto it = varlist.begin() ; it != varlist.end() ; it++ )
+	for ( auto it = varlist.begin() ; it != varlist.end() ; ++it )
 	{
 		var = *it ;
 		if ( found.count( var ) > 0 ) { continue ; }
@@ -1821,7 +1781,7 @@ void PPSP01A::getpoolVariables( const string& table, const string& pattern )
 	vpool = "P" ;
 	vplvl = "1" ;
 	vlist( PROFILE, 1 ) ;
-	for ( auto it = varlist.begin() ; it != varlist.end() ; it++ )
+	for ( auto it = varlist.begin() ; it != varlist.end() ; ++it )
 	{
 		var = *it ;
 		if ( pattern != "" && pos( pattern, var ) == 0 ) { continue ; }
@@ -1833,7 +1793,7 @@ void PPSP01A::getpoolVariables( const string& table, const string& pattern )
 
 	vlist( PROFILE, 2 ) ;
 	vplvl = "2" ;
-	for ( auto it = varlist.begin() ; it != varlist.end() ; it++ )
+	for ( auto it = varlist.begin() ; it != varlist.end() ; ++it )
 	{
 		var = *it ;
 		if ( found.count( var ) > 0 ) { continue ; }
@@ -1846,7 +1806,7 @@ void PPSP01A::getpoolVariables( const string& table, const string& pattern )
 
 	vlist( PROFILE, 3 ) ;
 	vplvl = "3" ;
-	for ( auto it = varlist.begin() ; it != varlist.end() ; it++ )
+	for ( auto it = varlist.begin() ; it != varlist.end() ; ++it )
 	{
 		var = *it ;
 		if ( found.count( var ) > 0 ) { continue ; }
@@ -1859,7 +1819,7 @@ void PPSP01A::getpoolVariables( const string& table, const string& pattern )
 
 	vlist( PROFILE, 4 ) ;
 	vplvl = "4" ;
-	for ( auto it = varlist.begin() ; it != varlist.end() ; it++ )
+	for ( auto it = varlist.begin() ; it != varlist.end() ; ++it )
 	{
 		var = *it ;
 		if ( found.count( var ) > 0 ) { continue ; }
@@ -1927,7 +1887,7 @@ void PPSP01A::showPaths()
 	qlibdef( "ZMLIB", "", "LIBS" ) ;
 	pvar = "ZMLIB" ;
 	desc = "LIBDEF application path for messages" ;
-	for ( i = 1 ; i <= getpaths( libs ) ; i++ )
+	for ( i = 1 ; i <= getpaths( libs ) ; ++i )
 	{
 		message = "" ;
 		path    = getpath( libs, i ) ;
@@ -1941,7 +1901,7 @@ void PPSP01A::showPaths()
 	qlibdef( "ZPLIB", "", "LIBS" ) ;
 	pvar = "ZPLIB" ;
 	desc = "LIBDEF application path for panels" ;
-	for ( i = 1 ; i <= getpaths( libs ) ; i++ )
+	for ( i = 1 ; i <= getpaths( libs ) ; ++i )
 	{
 		message = "" ;
 		path    = getpath( libs, i ) ;
@@ -1955,7 +1915,7 @@ void PPSP01A::showPaths()
 	qlibdef( "ZTLIB", "", "LIBS" ) ;
 	pvar = "ZTLIB" ;
 	desc = "LIBDEF application path for tables" ;
-	for ( i = 1 ; i <= getpaths( libs ) ; i++ )
+	for ( i = 1 ; i <= getpaths( libs ) ; ++i )
 	{
 		message = "" ;
 		path    = getpath( libs, i ) ;
@@ -1969,7 +1929,7 @@ void PPSP01A::showPaths()
 	qlibdef( "ZTABL", "", "LIBS" ) ;
 	pvar = "ZTABL" ;
 	desc = "LIBDEF application path for table output" ;
-	for ( i = 1 ; i <= getpaths( libs ) ; i++ )
+	for ( i = 1 ; i <= getpaths( libs ) ; ++i )
 	{
 		message = "" ;
 		path    = getpath( libs, i ) ;
@@ -1982,7 +1942,7 @@ void PPSP01A::showPaths()
 	sel  = ""        ;
 	pvar = "ZLDPATH" ;
 	desc = "Path for application modules" ;
-	for ( i = 1 ; i <= getpaths( zldpath ) ; i++)
+	for ( i = 1 ; i <= getpaths( zldpath ) ; ++i )
 	{
 		path = getpath( zldpath, i ) ;
 		message = "" ;
@@ -1994,7 +1954,7 @@ void PPSP01A::showPaths()
 
 	pvar = "ZMLIB" ;
 	desc = "System search path for messages" ;
-	for ( i = 1 ; i <= getpaths( zmlib ) ; i++)
+	for ( i = 1 ; i <= getpaths( zmlib ) ; ++i )
 	{
 		path = getpath( zmlib, i ) ;
 		message = "" ;
@@ -2006,7 +1966,7 @@ void PPSP01A::showPaths()
 
 	pvar = "ZPLIB" ;
 	desc = "System search path for panels" ;
-	for ( i = 1 ; i <= getpaths( zplib ) ; i++)
+	for ( i = 1 ; i <= getpaths( zplib ) ; ++i )
 	{
 		path = getpath( zplib, i ) ;
 		message = "" ;
@@ -2018,7 +1978,7 @@ void PPSP01A::showPaths()
 
 	pvar = "ZTLIB" ;
 	desc = "System search path for tables" ;
-	for ( i = 1 ; i <= getpaths( ztlib ) ; i++)
+	for ( i = 1 ; i <= getpaths( ztlib ) ; ++i )
 	{
 		path = getpath( ztlib, i ) ;
 		message = "" ;
@@ -2030,7 +1990,7 @@ void PPSP01A::showPaths()
 
 	pvar = "ZTABL" ;
 	desc = "System search path for table output" ;
-	for ( i = 1 ; i <= getpaths( ztabl ) ; i++)
+	for ( i = 1 ; i <= getpaths( ztabl ) ; ++i )
 	{
 		path = getpath( ztabl, i ) ;
 		message = "" ;
@@ -2042,7 +2002,7 @@ void PPSP01A::showPaths()
 
 	pvar = "ZMUSR" ;
 	desc = "User search path for messages" ;
-	for ( i = 1 ; i <= getpaths( zmusr ) ; i++)
+	for ( i = 1 ; i <= getpaths( zmusr ) ; ++i )
 	{
 		path = getpath( zmusr, i ) ;
 		message = "" ;
@@ -2054,7 +2014,7 @@ void PPSP01A::showPaths()
 
 	pvar = "ZPUSR" ;
 	desc = "User search path for panels" ;
-	for ( i = 1 ; i <= getpaths( zpusr ) ; i++)
+	for ( i = 1 ; i <= getpaths( zpusr ) ; ++i )
 	{
 		path = getpath( zpusr, i ) ;
 		message = "" ;
@@ -2066,7 +2026,7 @@ void PPSP01A::showPaths()
 
 	pvar = "ZTUSR" ;
 	desc = "User search path for tables" ;
-	for ( i = 1 ; i <= getpaths( ztusr ) ; i++)
+	for ( i = 1 ; i <= getpaths( ztusr ) ; ++i )
 	{
 		path = getpath( ztusr, i ) ;
 		message = "" ;
@@ -2078,7 +2038,7 @@ void PPSP01A::showPaths()
 
 	pvar = "ZTABU" ;
 	desc = "User search path for table output" ;
-	for ( i = 1 ; i <= getpaths( ztabu ) ; i++)
+	for ( i = 1 ; i <= getpaths( ztabu ) ; ++i )
 	{
 		path = getpath( ztabu, i ) ;
 		message = "" ;
@@ -2102,7 +2062,7 @@ void PPSP01A::showPaths()
 
 	pvar = "ZORXPATH" ;
 	desc = "Object REXX EXEC search path" ;
-	for ( i = 1 ; i <= getpaths( zorxpath ) ; i++)
+	for ( i = 1 ; i <= getpaths( zorxpath ) ; ++i )
 	{
 		path = getpath( zorxpath, i ) ;
 		message = "" ;
@@ -2169,18 +2129,19 @@ void PPSP01A::libdefStatus()
 
 	string table ;
 	string msg   ;
+	string t     ;
+
 	string stk   ;
 	string libx  ;
 	string type  ;
 	string usr   ;
 	string ident ;
-	string musr  ;
-	string pusr  ;
-	string tusr  ;
-	string tabu  ;
+
+	const string sys_libdefs = "ZMLIB ZPLIB ZTLIB ZTABL" ;
+
+	vector<string> list ;
 
 	vdefine( "LDSTK LDLIB LDTYP LDUSR LDID", &stk, &libx, &type, &usr, &ident ) ;
-	vdefine( "ZMUSR ZPUSR ZTUSR ZTABU", &musr, &pusr, &tusr, &tabu ) ;
 
 	table = "LIBDFS" + d2ds( taskid(), 2 ) ;
 
@@ -2188,73 +2149,89 @@ void PPSP01A::libdefStatus()
 
 	map<string,stack<string>> zlibd = get_zlibd() ;
 
-	map<int, stack<string>*> libdefs ;
-	map<int, string>   lib ;
-	map<int, string*> ulib ;
+	list.push_back( "ZMLIB" ) ;
+	list.push_back( "ZPLIB" ) ;
+	list.push_back( "ZTLIB" ) ;
+	list.push_back( "ZTABL" ) ;
 
-	libdefs[ 0 ] = &zlibd[ "ZMLIB" ] ;
-	libdefs[ 1 ] = &zlibd[ "ZPLIB" ] ;
-	libdefs[ 2 ] = &zlibd[ "ZTLIB" ] ;
-	libdefs[ 3 ] = &zlibd[ "ZTABL" ] ;
-
-	lib[ 0 ] = "ZMLIB" ;
-	lib[ 1 ] = "ZPLIB" ;
-	lib[ 2 ] = "ZTLIB" ;
-	lib[ 3 ] = "ZTABL" ;
-
-	ulib[ 0 ] = &musr ;
-	ulib[ 1 ] = &pusr ;
-	ulib[ 2 ] = &tusr ;
-	ulib[ 3 ] = &tabu ;
-
-	vget( "ZMUSR ZPUSR ZTUSR ZTABU", PROFILE ) ;
-
-	for ( size_t l = 0 ; l < libdefs.size() ; l++ )
+	for ( auto it = zlibd.begin() ; it != zlibd.end() ; ++it )
 	{
-		stack<string>* libdef = libdefs[ l ] ;
-		if ( libdef->empty() )
+		if ( not findword( it->first, sys_libdefs ) )
+		{
+			list.push_back( it->first ) ;
+		}
+	}
+
+	for ( auto itx = list.begin() ; itx != list.end() ; ++itx )
+	{
+		auto it = zlibd.find( *itx ) ;
+		if ( it == zlibd.end() || it->second.empty() )
 		{
 			stk   = "" ;
-			libx  = lib[ l ] ;
+			libx  = *itx ;
 			type  = "" ;
 			usr   = "" ;
 			ident = "** LIBDEF not active **" ;
 			tbadd( table ) ;
 			continue ;
 		}
-		libx = lib[ l ] ;
-		if ( !libdef->empty() )
+		if ( findword( it->first, sys_libdefs ) )
 		{
+			libx = it->first ;
 			usr  = "X"    ;
 			type = "PATH" ;
 			stk  = ""     ;
-			p    = getpaths( *ulib[ l ] ) ;
-			for ( size_t i = 1 ; i <= p ; i++ )
+			vget( it->first, PROFILE ) ;
+			vcopy( it->first, t, MOVE ) ;
+			p    = getpaths( t ) ;
+			for ( size_t i = 1 ; i <= p ; ++i )
 			{
-				ident = getpath( *ulib[ l ], i ) ;
+				ident = getpath( t, i ) ;
 				tbadd( table ) ;
 				libx = "" ;
 				type = "" ;
 				libx = "" ;
+			}
+			stacked = false ;
+			while ( !it->second.empty() )
+			{
+				usr  = ""     ;
+				type = "PATH" ;
+				p    = getpaths( it->second.top() ) ;
+				for ( size_t i = 1 ; i <= p ; ++i )
+				{
+					ident = getpath( it->second.top(), i ) ;
+					stk   = (stacked && type != "" ) ? "S" : "" ;
+					tbadd( table ) ;
+					libx = "" ;
+					type = "" ;
+				}
+				stacked = true ;
+				libx = it->first ;
+				it->second.pop() ;
 			}
 		}
-		stacked = false ;
-		while ( !libdef->empty() )
+		else
 		{
-			usr  = ""     ;
-			type = "PATH" ;
-			p    = getpaths( libdef->top() ) ;
-			for ( size_t i = 1 ; i <= p ; i++ )
+			libx = it->first ;
+			while ( !it->second.empty() )
 			{
-				ident = getpath( libdef->top(), i ) ;
-				stk   = (stacked && type != "" ) ? "S" : "" ;
-				tbadd( table ) ;
-				libx = "" ;
-				type = "" ;
+				usr  = "" ;
+				stk  = "" ;
+				type = "PATH" ;
+				p    = getpaths( it->second.top() ) ;
+				for ( size_t i = 1 ; i <= p ; ++i )
+				{
+					ident = getpath( it->second.top(), i ) ;
+					stk   = (stacked && type != "" ) ? "S" : "" ;
+					tbadd( table ) ;
+					libx = "" ;
+					type = "" ;
+				}
+				stacked = true ;
+				libx = it->first ;
+				it->second.pop() ;
 			}
-			stacked = true ;
-			libx = lib[ l ] ;
-			libdef->pop() ;
 		}
 	}
 
@@ -2271,9 +2248,9 @@ void PPSP01A::libdefStatus()
 	}
 
 	rempop() ;
+
 	tbend( table ) ;
 	vdelete( "LDSTK LDLIB LDTYP LDUSR LDID" ) ;
-	vdelete( "ZMUSR ZPUSR ZTUSR ZTABU" ) ;
 }
 
 
@@ -2325,6 +2302,7 @@ void PPSP01A::showCommandTables()
 	ztdtop = 1 ;
 	panel = "PPSP01AC" ;
 	control( "PASSTHRU", "LRSCROLL", "PASON" ) ;
+
 	while ( true )
 	{
 		tbtop( cmdtab+"CMDS" ) ;
@@ -2353,6 +2331,7 @@ void PPSP01A::showCommandTables()
 			panel = ( panel == "PPSP01AC" ) ? "PPSP01AD" : "PPSP01AC" ;
 		}
 	}
+
 	tbend( cmdtab+"CMDS" ) ;
 	vput( "CMDTAB", PROFILE ) ;
 
@@ -2372,7 +2351,7 @@ void PPSP01A::showLoadedClasses()
 	string msg ;
 	string psort ;
 
-	string modlst  ;
+	string tabName ;
 	string appl    ;
 	string mod     ;
 	string modpath ;
@@ -2382,7 +2361,7 @@ void PPSP01A::showLoadedClasses()
 
 	vdefine( "SEL APPL MOD MODPATH STATUS", &sel, &appl, &mod, &modpath, &status ) ;
 
-	modlst = "MODLST" + d2ds( taskid(), 2 ) ;
+	tabName = "MODLST" + d2ds( taskid(), 2 ) ;
 
 	msg    = ""    ;
 	ztdtop = 1     ;
@@ -2393,11 +2372,11 @@ void PPSP01A::showLoadedClasses()
 	{
 		if ( ref )
 		{
-			tbcreate( modlst, "APPL", "(SEL,MOD,MODPATH,STATUS)", NOWRITE ) ;
-			tbsort( modlst, psort ) ;
+			tbcreate( tabName, "APPL", "(SEL,MOD,MODPATH,STATUS)", NOWRITE, REPLACE ) ;
+			tbsort( tabName, psort ) ;
 			lc.Command = "MODULE STATUS" ;
 			lspfCallback( lc ) ;
-			for ( j = 0 ; j < lc.reply.size() ; j++ )
+			for ( j = 0 ; j < lc.reply.size() ; ++j )
 			{
 				sel     = "" ;
 				appl    = lc.reply[   j ] ;
@@ -2405,14 +2384,14 @@ void PPSP01A::showLoadedClasses()
 				modpath = lc.reply[ ++j ] ;
 				modpath = modpath.substr( 0, modpath.find_last_of( '/' ) ) ;
 				status  = lc.reply[ ++j ] ;
-				tbadd( modlst, "", "ORDER" ) ;
+				tbadd( tabName, "", "ORDER" ) ;
 			}
 			ref = false ;
 		}
-		tbtop( modlst ) ;
-		tbskip( modlst, ztdtop ) ;
+		tbtop( tabName ) ;
+		tbskip( tabName, ztdtop ) ;
 		if ( msg == "" ) { zcmd = "" ; }
-		tbdispl( modlst, "PPSP01ML", msg, "ZCMD" ) ;
+		tbdispl( tabName, "PPSP01ML", msg, "ZCMD" ) ;
 		if ( RC == 8 ) { break ; }
 		msg = "" ;
 		if ( ztdsels == 0 && zcmd == "" ) { ref = true ; }
@@ -2428,7 +2407,7 @@ void PPSP01A::showLoadedClasses()
 			else if ( abbrev( "PATHS", w2, 3 ) )        { psort = "MODPATH,C,"+w3 ; }
 			else if ( abbrev( "STATUS", w2, 3 ) )       { psort = "STATUS,C,"+w3  ; }
 			else                                        { msg   = "PSYS011C" ; continue ; }
-			tbsort( modlst, psort ) ;
+			tbsort( tabName, psort ) ;
 			continue ;
 		}
 		while ( ztdsels > 0 )
@@ -2440,15 +2419,14 @@ void PPSP01A::showLoadedClasses()
 			}
 			if ( ztdsels > 1 )
 			{
-				tbdispl( modlst ) ;
+				tbdispl( tabName ) ;
 				if ( RC > 4 ) { e_loop = true ; break ; }
 			}
 			else { ztdsels = 0 ; }
 		}
 		if ( e_loop ) { break ; }
-		if ( ref ) { tbend( modlst ) ; }
 	}
-	tbend( modlst ) ;
+	tbend( tabName ) ;
 	return ;
 }
 
@@ -2456,6 +2434,7 @@ void PPSP01A::showLoadedClasses()
 void PPSP01A::showSavedFileList()
 {
 	int i ;
+
 	string zfile ;
 	string zfiln ;
 	string zcurr ;
@@ -2498,7 +2477,7 @@ void PPSP01A::showSavedFileList()
 			}
 			continue ;
 		}
-		for ( i = 1 ; i < 9 ; i++ )
+		for ( i = 1 ; i < 9 ; ++i )
 		{
 			vcopy( "SEL" + d2ds(i), sel, MOVE ) ;
 			if ( sel == "" || RC == 8 ) { continue ; }
@@ -2578,7 +2557,7 @@ void PPSP01A::showTasks()
 				retc = kill( ds2d( pid ), SIGKILL ) ;
 				llog( "I", "Kill signal sent to PID " << pid << ".  RC=" << retc << endl ) ;
 			}
-			if ( sel == "T")
+			else if ( sel == "T")
 			{
 				retc = kill( ds2d( pid ), SIGTERM ) ;
 				llog( "I", "Terminate signal sent to PID " << pid << ".  RC=" << retc << endl ) ;
@@ -2595,7 +2574,6 @@ void PPSP01A::showTasks()
 			else { ztdsels = 0 ; }
 		}
 		if ( e_loop ) { break ; }
-		tbend( table ) ;
 		updateTasks( table, uf, of ) ;
 	}
 	tbend( table ) ;
@@ -2639,16 +2617,12 @@ void PPSP01A::updateTasks( const string& table, const string& uf, const string& 
 
 	std::ifstream fin ;
 
-	vcopy( "ZUSER", zuser, MOVE )     ;
-	vcopy( "ZSCREEN", zscreen, MOVE ) ;
-
-	boost::filesystem::path temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path( zuser + "-" + zscreen + "-%%%%-%%%%" ) ;
-	tname = temp.native() ;
+	tname = get_tempname() ;
 
   //    cname = "ps ax -o pid,user,pri,ni,vsz,drs,size,stat,%cpu,%mem,time,cmd > " + tname ;
 	cname = "top -b -n 1 > " + tname ;
 
-	tbcreate( table, "", "(SEL,USER,PID,CPU,CPUX,MEM,MEMX,CMD)", NOWRITE ) ;
+	tbcreate( table, "", "(SEL,USER,PID,CPU,CPUX,MEM,MEMX,CMD)", NOWRITE, REPLACE ) ;
 
 	system( cname.c_str() ) ;
 	fin.open( tname ) ;
@@ -2699,14 +2673,15 @@ void PPSP01A::utilityPrograms()
 	string kflstpgm ;
 	string khelppgm ;
 	string korexpgm ;
+	string kshelpgm ;
 
 	string v_list1 = "ZMAINPGM ZMAINPAN ZPANLPGM ZEDITPGM ZBRPGM ZVIEWPGM ZFLSTPGM ZHELPPGM" ;
-	string v_list2 = "ZOREXPGM" ;
+	string v_list2 = "ZOREXPGM ZSHELPGM" ;
 
 	vdefine( v_list1, &kmainpgm, &kmainpan, &kpanlpgm, &keditpgm, &kbrpgm, &kviewpgm, &kflstpgm, &khelppgm ) ;
 	vget( v_list1, PROFILE ) ;
 
-	vdefine( v_list2, &korexpgm ) ;
+	vdefine( v_list2, &korexpgm, &kshelpgm ) ;
 	vget( v_list2, PROFILE ) ;
 
 	while ( true )
@@ -2724,6 +2699,7 @@ void PPSP01A::utilityPrograms()
 		if ( kflstpgm == "" ) { kflstpgm = ZFLSTPGM ; } ;
 		if ( khelppgm == "" ) { khelppgm = ZHELPPGM ; } ;
 		if ( korexpgm == "" ) { korexpgm = ZOREXPGM ; } ;
+		if ( kshelpgm == "" ) { kshelpgm = ZSHELPGM ; } ;
 
 		if ( zcmd == "CANCEL" ) { break ; }
 		if ( zcmd == "DEFAULTS" )
@@ -2737,6 +2713,7 @@ void PPSP01A::utilityPrograms()
 			kflstpgm = ZFLSTPGM ;
 			khelppgm = ZHELPPGM ;
 			korexpgm = ZOREXPGM ;
+			kshelpgm = ZSHELPGM ;
 		}
 
 		if ( RCode == 8 || zcmd == "SAVE" )
@@ -2749,6 +2726,7 @@ void PPSP01A::utilityPrograms()
 	vdelete( v_list1 ) ;
 	vdelete( v_list2 ) ;
 }
+
 
 void PPSP01A::keylistTables()
 {
@@ -2798,7 +2776,7 @@ void PPSP01A::keylistTables()
 
 	for ( it = v.begin() ; it != v.end() ; ++it )
 	{
-		fname = (*it).string() ;
+		fname = it->string() ;
 		p     = fname.substr( 0, fname.find_last_of( '/' ) )  ;
 		tab   = fname.substr( fname.find_last_of( '/' ) + 1 ) ;
 		if ( tab.size() < 6 ) { continue ; }
@@ -2975,7 +2953,7 @@ void PPSP01A::keylistTable( string tab, string aktab, string aklist )
 		}
 		tbsort( tab, "(KEYLISTN,C,A)" ) ;
 		keylistn = "ISPDEF" ;
-		for ( i = 1 ; i < 25 ; i++ )
+		for ( i = 1 ; i < 25 ; ++i )
 		{
 			vreplace( "KEY"+d2ds(i)+"DEF", "" ) ;
 			vreplace( "KEY"+d2ds(i)+"ATR", "" ) ;
@@ -3062,7 +3040,7 @@ void PPSP01A::keylistTable( string tab, string aktab, string aklist )
 						if ( RC > 0 ) { abend() ; }
 						tbsort( tab, "(KEYLISTN,C,A)" ) ;
 						keylistn = newkey ;
-						for ( i = 1 ; i < 25 ; i++ )
+						for ( i = 1 ; i < 25 ; ++i )
 						{
 							vreplace( "KEY"+d2ds(i)+"DEF", "" ) ;
 							vreplace( "KEY"+d2ds(i)+"ATR", "" ) ;
@@ -3156,7 +3134,7 @@ void PPSP01A::viewKeylist( const string& tab, const string& list )
 
 	vcopy( "KEYHELPN", t, MOVE ) ;
 	vreplace( "KEYHELP", t ) ;
-	for ( i = 1 ; i < 25 ; i++ )
+	for ( i = 1 ; i < 25 ; ++i )
 	{
 		keynum = "F"+left( d2ds( i ), 2 ) + ". . ." ;
 		vcopy( "KEY"+d2ds(i)+"DEF", keydef, MOVE ) ;
@@ -3224,7 +3202,7 @@ void PPSP01A::editKeylist( const string& tab, const string& list )
 
 	vcopy( "KEYHELPN", t, MOVE ) ;
 	vreplace( "KEYHELP", t ) ;
-	for ( i = 1 ; i < 25 ; i++ )
+	for ( i = 1 ; i < 25 ; ++i )
 	{
 		keynum = "F"+left( d2ds( i ), 2 ) + ". . ." ;
 		vcopy( "KEY"+d2ds(i)+"DEF", keydef, MOVE ) ;
@@ -3276,7 +3254,7 @@ void PPSP01A::editKeylist( const string& tab, const string& list )
 	vcopy( "KEYHELP", t, MOVE ) ;
 	vreplace( "KEYHELPN", t ) ;
 	tbtop( table ) ;
-	for ( i = 1 ; i < 25 ; i++ )
+	for ( i = 1 ; i < 25 ; ++i )
 	{
 		tbskip( table, 1 ) ;
 		if ( RC > 0 ) { break ; }
@@ -3311,7 +3289,7 @@ void PPSP01A::createKeyTable( string table )
 	table += "KEYP" ;
 	flds = ""     ;
 
-	for ( i = 1 ; i < 25 ; i++ )
+	for ( i = 1 ; i < 25 ; ++i )
 	{
 		flds += "KEY"+d2ds(i)+"DEF " ;
 		flds += "KEY"+d2ds(i)+"ATR " ;
@@ -3570,7 +3548,7 @@ int PPSP01A::editRecovery()
 
 void PPSP01A::updateReflist( const string& file )
 {
-	select( "PGM(PLRFLST1) PARM(PLA " + file + ") BACK" ) ;
+	submit( "PGM(PLRFLST1) PARM(PLA " + file + ")" ) ;
 }
 
 
@@ -3597,10 +3575,11 @@ void PPSP01A::showErrorScreen1()
 	// Note: options structure only valid during application startup in this case
 	// as it then goes out of scope.
 
-	size_t i ;
+	int l ;
+	int maxw1 ;
 
-	int l    ;
-	int maxw ;
+	size_t i ;
+	size_t maxw2 ;
 
 	string* t ;
 
@@ -3613,7 +3592,7 @@ void PPSP01A::showErrorScreen1()
 
 	err_struct* errs = static_cast<err_struct*>( get_options() ) ;
 
-	vdefine( "ZSCRMAXW", &maxw ) ;
+	vdefine( "ZSCRMAXW", &maxw1 ) ;
 	vget( "ZSCRMAXW", SHARED ) ;
 
 	control( "ERRORS", "RETURN" ) ;
@@ -3631,15 +3610,15 @@ void PPSP01A::showErrorScreen1()
 
 	vcopy( "ZERRLM", t, LOCATE ) ;
 
-	maxw = maxw - 6 ;
-	l    = 0 ;
+	maxw2 = maxw1 - 6 ;
+	l = 0 ;
 	do
 	{
-		l++ ;
-		if ( t->size() > maxw )
+		++l ;
+		if ( t->size() > maxw2 )
 		{
-			i = t->find_last_of( ' ', maxw ) ;
-			i = ( i == string::npos ) ? maxw : i + 1 ;
+			i = t->find_last_of( ' ', maxw2 ) ;
+			i = ( i == string::npos ) ? maxw2 : i + 1 ;
 			vreplace( "ZERRLM"+ d2ds( l ), t->substr( 0, i ) ) ;
 			t->erase( 0, i ) ;
 		}
@@ -3658,14 +3637,15 @@ void PPSP01A::showErrorScreen2( string& msg )
 {
 	// Show error screen PSYSER3 for message 'msg':
 
-	size_t i ;
+	int l ;
+	int maxw1 ;
 
-	int l    ;
-	int maxw ;
+	size_t i ;
+	size_t maxw2 ;
 
 	string* t ;
 
-	vdefine( "ZSCRMAXW", &maxw ) ;
+	vdefine( "ZSCRMAXW", &maxw1 ) ;
 	vdefine( "ZERRMSG", &msg ) ;
 	control( "ERRORS", "RETURN" ) ;
 
@@ -3674,15 +3654,15 @@ void PPSP01A::showErrorScreen2( string& msg )
 
 	vcopy( "ZERRLM", t, LOCATE ) ;
 
-	maxw = maxw - 6 ;
-	l    = 0 ;
+	maxw2 = maxw1 - 6 ;
+	l = 0 ;
 	do
 	{
-		l++ ;
-		if ( t->size() > maxw )
+		++l ;
+		if ( t->size() > maxw2 )
 		{
-			i = t->find_last_of( ' ', maxw ) ;
-			i = ( i == string::npos ) ? maxw : i + 1 ;
+			i = t->find_last_of( ' ', maxw2 ) ;
+			i = ( i == string::npos ) ? maxw2 : i + 1 ;
 			vreplace( "ZERRLM"+ d2ds( l ), t->substr( 0, i ) ) ;
 			t->erase( 0, i ) ;
 		}
@@ -3694,6 +3674,315 @@ void PPSP01A::showErrorScreen2( string& msg )
 	} while ( t->size() > 0 ) ;
 
 	display( "PSYSER3" ) ;
+}
+
+
+void PPSP01A::showHeldOutput()
+{
+	int csrrow ;
+	int crp    ;
+
+	string tabName ;
+	string panel   ;
+	string msg     ;
+	string msgloc  ;
+	string csr     ;
+
+	string jsel ;
+	string jkey ;
+
+	const string vlist = "JSEL JKEY" ;
+	const string names = "(JSEL,JNAME,JTYPE,JNUM,JDATE,JTIME,JSTATUS,JLINES)" ;
+
+	bool rebuild = false ;
+
+	map<string, int> keyLines ;
+	set<string> complete ;
+
+	vector<path> v ;
+
+	tabName = "OLT" + d2ds( taskid(), 5 ) ;
+
+	vdefine( vlist, &jsel, &jkey ) ;
+	vdefine( "CRP", &crp ) ;
+
+	tbcreate( tabName, "JKEY", names, NOWRITE ) ;
+
+	showHeldOutput_build( tabName, v, keyLines, complete ) ;
+
+	msg = "" ;
+	csr = "" ;
+	csrrow = 0 ;
+	while ( true )
+	{
+		if ( rebuild && ztdsels < 2 )
+		{
+			tbcreate( tabName, "JKEY", names, NOWRITE, REPLACE ) ;
+			showHeldOutput_build( tabName, v, keyLines, complete ) ;
+			rebuild = false ;
+		}
+		if ( msg == "" && ztdsels > 0 )
+		{
+			--ztdsels ;
+		}
+		if ( ztdsels == 0 )
+		{
+			if ( ztdvrows > 0 )
+			{
+				tbtop( tabName ) ;
+				tbskip( tabName, ztdtop ) ;
+			}
+			else
+			{
+				tbbottom( tabName ) ;
+				tbskip( tabName, - (ztddepth-2) ) ;
+				if ( RC > 0 ) { tbtop( tabName ) ; }
+			}
+			panel = "PPSP01O1" ;
+		}
+		else
+		{
+			panel = "" ;
+		}
+		if ( msg != "" && csr == "" )
+		{
+			csr    = "JSEL" ;
+			msgloc = "JSEL" ;
+			csrrow = crp    ;
+		}
+		else
+		{
+			csr    = "ZCMD" ;
+		}
+		if ( msg == "" ) { zcmd = "" ; }
+		tbdispl( tabName, panel, msg, csr, csrrow, 1, "YES", "CRP", "", msgloc ) ;
+		if ( RC == 8 ) { break ; }
+		msg  = "" ;
+		csr  = "" ;
+		if ( ztdsels == 0 && zcurinx != 0 )
+		{
+			tbtop( tabName ) ;
+			tbskip( tabName, zcurinx, "", "", "", "", "CRP" ) ;
+			showHeldOutput_display( jkey, v ) ;
+			if ( ZRC == 4 && ZRSN == 4 )
+			{
+				setmsg( "PPSP011G" ) ;
+				msgloc = "JSEL" ;
+				csrrow = crp    ;
+			}
+			continue ;
+		}
+		if ( jsel == "S" )
+		{
+			showHeldOutput_display( jkey, v ) ;
+			if ( ZRC == 4 && ZRSN == 4 )
+			{
+				msg = "PPSP011G" ;
+				setmsg( "PPSP011G" ) ;
+			}
+		}
+		else if ( jsel == "P" )
+		{
+			showHeldOutput_purge( jkey, v ) ;
+			rebuild = true ;
+		}
+		else
+		{
+			rebuild = true ;
+		}
+	}
+
+	tbend( tabName ) ;
+
+	vdelete( vlist ) ;
+	vdelete( "CRP" ) ;
+}
+
+
+void PPSP01A::showHeldOutput_build( const string& tabName,
+				    vector<path>& v,
+				    map<string, int>& keyLines,
+				    set<string>& complete )
+{
+	int total = 0 ;
+
+	size_t p1 ;
+	size_t p2 ;
+
+	string zspool ;
+	string tail   ;
+	string inLine ;
+
+	string entry  ;
+	string jkey   ;
+	string jname  ;
+	string jtype  ;
+	string jnum   ;
+	string jdate  ;
+	string jtime  ;
+	string jstatus;
+
+	std::ifstream fin ;
+
+	lspfCommand lc ;
+
+	set<string> batchKeys ;
+
+	vector<path>::const_iterator it ;
+
+	vget( "ZSPOOL", PROFILE ) ;
+	vcopy( "ZSPOOL", zspool, MOVE ) ;
+
+	v.clear() ;
+
+	try
+	{
+		copy( directory_iterator( zspool ), directory_iterator(), back_inserter( v ) ) ;
+	}
+	catch ( const filesystem_error& ex )
+	{
+		llog( "E", "Error listing directory " << ex.what() << endl ) ;
+		uabend( "PSYS013I" ) ;
+	}
+	sort( v.begin(), v.end() ) ;
+
+	lc.Command = "BATCH KEYS" ;
+	lspfCallback( lc ) ;
+	for ( size_t j = 0 ; j < lc.reply.size() ; ++j )
+	{
+		batchKeys.insert( lc.reply[ j ] ) ;
+	}
+
+	jkey = "" ;
+	for ( it = v.begin() ; it != v.end() ; ++it )
+	{
+		p1    = it->string().find_last_of( '/' ) ;
+		entry = it->string().substr( p1 + 1 ) ;
+		if ( entry.front() == '#' ) { continue ; }
+		if ( jkey != "" &&
+		     jkey != entry.substr( 0, 22 ) &&
+		   ( complete.count( jkey ) == 0 ) )
+		{
+			keyLines[ jkey ] = total ;
+			total = 0 ;
+			if ( batchKeys.count( jkey ) == 0 )
+			{
+				complete.insert( jkey )  ;
+			}
+		}
+		jkey = entry.substr( 0, 22 ) ;
+		if ( complete.count( jkey ) == 0 )
+		{
+			fin.open( it->string() ) ;
+			while ( getline( fin, inLine ) )
+			{
+				++total ;
+			}
+			fin.close() ;
+		}
+	}
+	if ( jkey != "" && complete.count( jkey ) == 0 )
+	{
+		keyLines[ jkey ] = total ;
+		if ( batchKeys.count( jkey ) == 0 )
+		{
+			complete.insert( jkey ) ;
+		}
+	}
+
+	jkey = "" ;
+	for ( it = v.begin() ; it != v.end() ; ++it )
+	{
+		p1    = it->string().find_last_of( '/' ) ;
+		entry = it->string().substr( p1 + 1 ) ;
+		if ( entry.front() == '#' || entry.compare( 0, 22, jkey ) == 0 ) { continue ; }
+		jkey  = entry.substr( 0, 22 ) ;
+		tail  = entry.substr( 23 ) ;
+		jdate = jkey.substr( 0, 7 ) ;
+		jtime = jkey.substr( 8, 8 ) ;
+		jnum  = jkey.substr( 17, 5 ) ;
+		p1    = tail.find( '-' ) ;
+		jtype = tail.substr( 0, p1 ) ;
+		p2    = tail.find( '-', p1+1 ) ;
+		jname = tail.substr( p1+1, p2-p1-1 ) ;
+		jdate.insert( 4, 1, '.' ) ;
+		jtime.insert( 6, 1, '.' ) ;
+		jtime.insert( 4, 1, ':' ) ;
+		jtime.insert( 2, 1, ':' ) ;
+		jstatus = ( batchKeys.count( jkey ) > 0 ) ? "EXECUTING" : "OUTPUT" ;
+		tbvclear( tabName ) ;
+		vreplace( "JNAME",   jname ) ;
+		vreplace( "JTYPE",   jtype ) ;
+		vreplace( "JNUM",    jnum  ) ;
+		vreplace( "JKEY",    jkey  ) ;
+		vreplace( "JDATE",   jdate ) ;
+		vreplace( "JTIME",   jtime ) ;
+		vreplace( "JSTATUS", jstatus ) ;
+		vreplace( "JLINES",  d2ds( keyLines[ jkey ] ) ) ;
+		tbadd( tabName ) ;
+	}
+}
+
+
+void PPSP01A::showHeldOutput_display( const string& jkey, vector<path>& v )
+{
+	size_t p ;
+
+	string inLine ;
+	string fname1 = get_tempname() ;
+
+	vector<path>::const_iterator it ;
+
+	std::ofstream fout ;
+	std::ifstream fin  ;
+
+	fout.open( fname1 ) ;
+	for ( it = v.begin() ; it != v.end() ; ++it )
+	{
+		p = it->string().find_last_of( '/' ) ;
+		if ( it->string().compare( p+1, 22, jkey ) == 0 )
+		{
+			fin.open( it->string() ) ;
+			while ( getline( fin, inLine ) )
+			{
+				fout << inLine << endl ;
+			}
+			fin.close() ;
+		}
+	}
+	fout.close() ;
+
+	vreplace( "ZBRALT", "Output for job " + jkey ) ;
+	vput( "ZBRALT", SHARED ) ;
+	browse( fname1 ) ;
+	remove( fname1 ) ;
+	verase( "ZBRALT", SHARED ) ;
+}
+
+
+void PPSP01A::showHeldOutput_purge( const string& jkey, vector<path>& v )
+{
+	size_t p ;
+
+	vector<path>::const_iterator it ;
+
+	for ( it = v.begin() ; it != v.end() ; ++it )
+	{
+		p = it->string().find_last_of( '/' ) ;
+		if ( it->string().compare( p+1, 22, jkey ) == 0 )
+		{
+			remove( it->string() ) ;
+		}
+	}
+}
+
+
+string PPSP01A::get_tempname()
+{
+	boost::filesystem::path temp = boost::filesystem::temp_directory_path() /
+	       boost::filesystem::unique_path( zuser + "-" + zscreen + "-%%%%-%%%%" ) ;
+
+	return temp.native() ;
 }
 
 

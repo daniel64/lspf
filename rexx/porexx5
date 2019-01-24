@@ -17,12 +17,10 @@
 
 */
 
-/* Re-direct say ouput and error messages to a temporary file or it'll mess up lspf output */
-"rm /tmp/porexx5.say 2> /dev/null"
-"rm /tmp/porexx5.err 2> /dev/null"
-.output~destination(.stream~new("/tmp/porexx5.say"))
-.error~destination(.stream~new("/tmp/porexx5.err"))
-/**********************************************************************************************/
+/* Re-direct say ouput and error messages to the spool or it'll mess up lspf output */
+parse source . . src .
+Call setdest src
+/************************************************************************************/
 
 address ISPEXEC
 

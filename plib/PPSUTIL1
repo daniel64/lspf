@@ -32,6 +32,10 @@ text     9   2    SAC  "4"
 text     9   5    PS   "File List"
 text     9   17   NT   "Display list of file and directory names"
 
+text    10   2    SAC  "5"
+text    10   5    PS   "Outlist"
+text    10   17   NT   "Display command and job output held on the spool"
+
 text     17  2    SAC  "T"
 text     17  5    PS   "Tutorial"
 text     17  17   NT   "Start Tutorial"
@@ -50,6 +54,7 @@ IF ( TRUNC( &ZCMD, 1 ) EQ '.' )
 
 &ZSEL = TRANS( TRUNC( &ZCMD,'.' ) ,
                      4,'PGM(&ZFLSTPGM) PARM("") NEWAPPL(ISR) PASSLIB SCRNAME(FILES)'
+                     5,'PGM(PPSP01A) PARM(OUTLIST) NEWAPPL(ISR) PASSLIB SCRNAME(OUTLIST)'
                      T,'PGM(&ZHELPPGM) PARM(T)'
                      X,EXIT
                     &Z,&Z
