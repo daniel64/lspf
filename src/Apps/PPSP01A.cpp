@@ -3325,8 +3325,22 @@ void PPSP01A::browseEntry( string& file )
 	string vlist = "ZFILE BEBROM SHOWDIR" ;
 	vdefine( vlist, &zfile, &bebrom, &showdir ) ;
 
+	vget( "BEIMAC", SHARED ) ;
+	vget( "ZFILE BEPROF BEBROM BECCAN BELMAC BEPRSPS BETABSS BEDIRLST", PROFILE ) ;
+
 	if ( file != "" )
 	{
+		try
+		{
+			exists( file ) ;
+		}
+		catch ( const filesystem_error& ex )
+		{
+			vreplace( "ZSTR1", ex.what() ) ;
+			setmsg( "PEDT014Z" ) ;
+			vdelete( vlist ) ;
+			return ;
+		}
 		if ( is_directory( file ) || file.back() == '*' )
 		{
 			if ( file.front() != '/' ) { file = wd.native() + '/' + file ; }
@@ -3375,9 +3389,11 @@ void PPSP01A::browseEntry( string& file )
 		}
 	}
 
+	msg = "" ;
 	while ( true )
 	{
 		display( "PBRO01A1", msg, "ZCMD" ) ;
+		msg = "" ;
 		if ( RC == 8 ) { break ; }
 		if ( showdir == "YES" )
 		{
@@ -3385,6 +3401,7 @@ void PPSP01A::browseEntry( string& file )
 			continue ;
 		}
 		updateReflist( zfile ) ;
+		control( "ERRORS", "RETURN" ) ;
 		if ( bebrom == "/" )
 		{
 			browse( zfile ) ;
@@ -3393,6 +3410,8 @@ void PPSP01A::browseEntry( string& file )
 		{
 			view( zfile ) ;
 		}
+		msg = ZRESULT ;
+		control( "ERRORS", "CANCEL" ) ;
 	}
 
 	vdelete( vlist ) ;
@@ -3402,6 +3421,7 @@ void PPSP01A::browseEntry( string& file )
 void PPSP01A::editEntry( string& file )
 {
 	string zfile   ;
+	string msg     ;
 	string showdir ;
 	string eeimac  ;
 	string eeprof  ;
@@ -3415,8 +3435,22 @@ void PPSP01A::editEntry( string& file )
 	string vlist = "ZFILE SHOWDIR EEIMAC EEPROF EELMAC EECCAN EEPRSPS EETABSS" ;
 	vdefine( vlist, &zfile, &showdir, &eeimac, &eeprof, &eelmac, &eeccan, &eeprsps, &eetabss ) ;
 
+	vget( "EEIMAC", SHARED ) ;
+	vget( "ZFILE EEPROF EECCAN EELMAC EEPRSPS EETABSS EEDIRLST EENEWFLS", PROFILE ) ;
+
 	if ( file != "" )
 	{
+		try
+		{
+			exists( file ) ;
+		}
+		catch ( const filesystem_error& ex )
+		{
+			vreplace( "ZSTR1", ex.what() ) ;
+			setmsg( "PEDT014Z" ) ;
+			vdelete( vlist ) ;
+			return ;
+		}
 		if ( is_directory( file ) || file.back() == '*' )
 		{
 			if ( file.front() != '/' ) { file = wd.native() + '/' + file ; }
@@ -3472,10 +3506,12 @@ void PPSP01A::editEntry( string& file )
 		return ;
 	}
 
+	msg = "" ;
 	while ( true )
 	{
-		display( "PEDIT011", "", "ZCMD1" ) ;
+		display( "PEDIT011", msg, "ZCMD1" ) ;
 		if ( RC == 8 ) { break ; }
+		msg = "" ;
 		vreplace( "ZEDTABSS", eetabss == "/" ? "YES" : "NO" ) ;
 		vput( "ZEDTABSS", SHARED ) ;
 		if ( showdir == "YES" )
@@ -3490,6 +3526,7 @@ void PPSP01A::editEntry( string& file )
 			continue ;
 		}
 		updateReflist( zfile ) ;
+		control( "ERRORS", "RETURN" ) ;
 		edit( zfile,
 		      "PEDIT012",
 		      eeimac,
@@ -3497,6 +3534,8 @@ void PPSP01A::editEntry( string& file )
 		      eelmac,
 		      eeccan  == "/" ? "YES" : "NO",
 		      eeprsps == "/" ? "PRESERVE" : "" ) ;
+		msg = ZRESULT ;
+		control( "ERRORS", "CANCEL" ) ;
 	}
 
 	vdelete( vlist ) ;
@@ -3507,11 +3546,10 @@ int PPSP01A::editRecovery()
 {
 	string zcmd  ;
 	string zfile ;
-	string zverb ;
 
-	const string vlist = "ZCMD ZVERB ZFILE" ;
+	const string vlist = "ZCMD ZFILE" ;
 
-	vdefine( vlist, &zcmd, &zverb, &zfile ) ;
+	vdefine( vlist, &zcmd, &zfile ) ;
 
 	edrec( "INIT" ) ;
 

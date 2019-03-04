@@ -25,9 +25,5 @@ class PSHELL0 : public pApplication
 
 	private:
 		void run_command( string ) ;
-		string get_tempname( const string&, const string& ) ;
-
-		string zscreen ;
-		string zuser   ;
-
+		string get_spool_filename( const string&, const string& ) ;
 } ;

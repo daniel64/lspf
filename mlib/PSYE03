@@ -1,8 +1,11 @@
 /*                                           */
 /* System error message file for lspf        */
+/*                                           */
 
-/* Low-level messages in pWidgets.cpp */
-/* General                            */
+/*                                           */
+/* Low-level messages in pWidgets.cpp        */
+/* General                                   */
+/*                                           */
 PSYE031A 'Field outside panel area'
 'ROW=&ZVAL1 ZSCRMAXD=&ZVAL2'
 
@@ -45,7 +48,9 @@ PSYE031M '.ATTR field not found'
 PSYE031N '.ATTRCHAR character not defined'
 'Define character in the )ATTR section before using .ATTRCHAR'
 
-/* dynamic areas */
+/*                                           */
+/* dynamic areas                             */
+/*                                           */
 PSYE032A 'Dynamic Area outside panel area'
 'ROW=&ZVAL1 ZSCRMAXD=&ZVAL2'
 
@@ -73,7 +78,9 @@ PSYE032H 'Extraeneous data'
 PSYE032I 'Shadow variable not defined'
 'Shadow variable ''&ZVAL1'' is not in the function pool'
 
-/* IF */
+/*                                           */
+/* IF                                        */
+/*                                           */
 PSYE032Z 'Boolean operator expected'
 '&ZVAL1 is not a valid boolean operator.  Expected AND, &, OR or |'
 
@@ -104,7 +111,9 @@ PSYE033H 'List not allowed'
 PSYE033I 'Invalid variable ''&ZVAL1'''
 'Variable has to begin with an ''&&'''
 
-/* VER */
+/*                                           */
+/* VER                                       */
+/*                                           */
 
 PSYE033J 'Missing variable'
 'VERIFY statement has no variable name'
@@ -121,7 +130,9 @@ PSYE033M 'Too many brackets'
 PSYE033N 'Verfiy value missing'
 'No verify value entered for LIST or PICT'
 
-/* ASSIGN */
+/*                                           */
+/* ASSIGN                                    */
+/*                                           */
 
 PSYE033O 'Missing ''='' in statement'
 ''
@@ -144,7 +155,9 @@ PSYE033T 'Missing parameter after the ''='' sign'
 PSYE033U 'Unknown function &ZVAL1'
 '&ZVAL1 is not recognised as a valid panel function'
 
-/* VPUT/VGET */
+/*                                           */
+/* VPUT/VGET                                 */
+/*                                           */
 
 PSYE033Y 'Invalid VPUT or VGET statement'
 'Missing parameters on statement'
@@ -157,7 +170,9 @@ PSYE034A 'Box outside panel area'
 ''
 
 
-/* Attr */
+/*                                           */
+/* Attr                                      */
+/*                                           */
 PSYE035A 'Cannot alter a point-and-shoot field'
 ''
 
@@ -172,11 +187,15 @@ PSYE035D 'Invalid for CUA attributes'
 'Invalid parameters are &ZVAL1'
 
 
-/* PDC  */
+/*                                           */
+/* PDC                                       */
+/*                                           */
 PSYE035J 'Spare'
 'Spare'
 
-/* Field options        */
+/*                                           */
+/* Field options                             */
+/*                                           */
 PSYE035K 'Invalid CAPS option ''&ZVAL1'''
 'CAPS must be ON or OFF'
 
@@ -198,19 +217,25 @@ PSYE035P 'Invalid NOJUMP option ''&ZVAL1'''
 PSYE035Q 'Invalid number of parameters on the FIELD or TBFIELD statement'
 ''
 
-/* Literals */
+/*                                           */
+/* Text                                      */
+/*                                           */
 PSYE036A 'Literal outside panel area'
 'row=&ZVAL1 ZSCRMAXD=&ZVAL2'
 
 PSYE036B 'Literal outside panel area'
 'col=&ZVAL1 ZSCRMAXW=&ZVAL2'
 
-/* Point-and-Shoot */
+/*                                           */
+/* Point-and-Shoot                           */
+/*                                           */
 PSYE037A 'Missing keyword'
 'Point and shoot entry must contain FIELD, VAR and VAL keywords'
 
 
-/* Parse string */
+/*                                           */
+/* Parse string                              */
+/*                                           */
 PSYE037F 'Null string'
 'Null string has been passed to parser'
 
@@ -220,7 +245,9 @@ PSYE037G 'Mis-placed or missing quote'
 PSYE037H 'Format error'
 'Format of the string to be parsed is invalid'
 
-/* TRUNC */
+/*                                           */
+/* TRUNC                                     */
+/*                                           */
 PSYE038A 'TRUNC variable name is blank'
 'Variable name must be entered'
 
@@ -242,7 +269,9 @@ PSYE038F 'Invalid value in TRUNC statement'
 PSYE038G 'Invalid TRUNC statement'
 '.TRAIL not allowed in a TRUNC statement'
 
-/* TRANS */
+/*                                           */
+/* TRANS                                     */
+/*                                           */
 
 PSYE039A 'TRANS variable name is blank'
 'Variable name must be entered'
@@ -268,7 +297,9 @@ PSYE039G 'MSG= parameter must be the last in the TRANS list'
 PSYE039H 'Missing translate-to entry'
 ''
 
-/* SELECT Parser */
+/*                                           */
+/* SELECT Parser                             */
+/*                                           */
 
 PSYE039M 'PARM entered with &ZVAL1 option'
 'PARM is not valid on a SELECT &ZVAL1 statement'
@@ -296,7 +327,9 @@ PSYE039T 'Invalid request'
 'PANEL request cannot be run in the background'
 
 
-/* Name List Parser */
+/*                                           */
+/* Name List Parser                          */
+/*                                           */
 
 PSYE039U 'Invalid name list'
 'Name list must be enclosed in brackets if more than one name entered'

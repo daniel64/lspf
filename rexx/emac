@@ -22,17 +22,17 @@ parse source . . src .
 Call setdest src
 /************************************************************************************/
 
-/**********************************************************************************************/
-/* Example edit macro to change literal to text in the panels directory                       */
-/* Run from REXX runemac                                                                      */
-/**********************************************************************************************/
+/************************************************************************************/
+/* Example edit macro to change literal to text in the panels directory             */
+/* Run from REXX runemac                                                            */
+/************************************************************************************/
 
 address ISREDIT
 
 "MACRO (A) PROCESS"
 
 "FIND ')BODY' 1 FIRST"
-if ( RC \= 0 ) then
+if RC \= 0 then
   do
     address ISPEXEC "RDISPLAY )BODY statement not found.  Exiting..."
     "BUILTIN END"
@@ -43,7 +43,7 @@ if ( RC \= 0 ) then
 "LABEL "ROW" = .A"
 
 "FIND ')' 1 NEXT"
-if ( RC \= 0 ) then
+if RC \= 0 then
   do
     address ISPEXEC "RDISPLAY Next section after )BODY statement not found.  Exiting..."
     "BUILTIN END"
@@ -55,7 +55,20 @@ if ( RC \= 0 ) then
 
 "CHANGE LITERAL 'text   ' 1 .A .B ALL"
 
-"BUILTIN SAVE"
+"(DCHA) = DATA_CHANGED"
+
+if dcha = "YES" then
+  do
+     "(MFILE) = DATASET"
+     "(CHG,ERR)  = CHANGE_COUNTS"
+     address ISPEXEC "RDISPLAY &CHG changes made with &ERR errors.  Saving file &MFILE"
+     "BUILTIN SAVE"
+  end
+else
+  do
+     address ISPEXEC "RDISPLAY No changes made."
+  end
+
 "BUILTIN END"
 
 EXIT

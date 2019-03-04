@@ -55,8 +55,7 @@ PDPANLA::PDPANLA()
 
 void PDPANLA::application()
 {
-	int RC1 ;
-	int p   ;
+	int p ;
 
 	bool passthru = false ;
 	bool addpop   = false ;
@@ -83,7 +82,7 @@ void PDPANLA::application()
 
 	if ( zcmd != "" )
 	{
-		control( "DISPLAY", "NONDISPL" ) ;
+		control( "NONDISPL", "ENTER" ) ;
 		passthru = true ;
 	}
 
@@ -91,16 +90,15 @@ void PDPANLA::application()
 	{
 		vput( "ZCMD ZSEL", SHARED ) ;
 		display( pan, msg ) ;
-		RC1 = RC ;
-		msg = "" ;
-		vget( "ZCMD ZSEL ZPRIM", SHARED ) ;
-		if ( zsel == "EXIT" || RC1 == 8 )
+		if ( RC == 8 )
 		{
 			zsel = "" ;
 			zcmd = "" ;
 			vput( "ZSEL ZCMD", SHARED ) ;
 			break ;
 		}
+		msg = "" ;
+		vget( "ZCMD ZSEL ZPRIM", SHARED ) ;
 		if ( zsel == "?" )
 		{
 			msg  = "PSYS016" ;

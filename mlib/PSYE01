@@ -2,7 +2,9 @@
 /* System error message file for lspf        */
 /*                                           */
 
-/*  Panel load errors */
+/*                                           */
+/*  Panel load errors                        */
+/*                                           */
 PSYE011A 'Tabs found in panel file'
 'Panel files cannot contain tabs. Please remove'
 
@@ -36,7 +38,9 @@ PSYE011J 'Maximum TYPE(CHAR) exceeded'
 PSYE011K 'Invalid action bar choice'
 'Action bar choice ''&ZVAL1'' has no associated )ABC statement'
 
-/*  Function pool */
+/*                                           */
+/*  Function pool                            */
+/*                                           */
 PSYE012A 'Invalid definition'
 'Function pool definition of &ZVAL1 is not of type STRING'
 
@@ -46,7 +50,9 @@ PSYE012B 'Invalid definition'
 PSYE012C 'Invalid call type'
 'Call type must be INTEGER'
 
-/*  Table and Table Manager */
+/*                                           */
+/*  Table and Table Manager                  */
+/*                                           */
 PSYE013A 'Invalid variable name on a &ZVAL1'
 'Variable ''&ZVAL2'' has an invalid format'
 
@@ -186,7 +192,9 @@ PSYE014T 'Variable prefix too long'
 'List variable must be 7 characters or less'
 
 
-/* function pool messages */
+/*                                           */
+/* function pool messages                    */
+/*                                           */
 PSYE015A 'Variable ''&ZVAL1'' truncated'
 'Maximum length of 32,765 has been exceeded.  Variable truncated.'
 
@@ -223,13 +231,14 @@ PSYE015K 'Invalid directory'
 PSYE015L 'Pool manager error'
 '&ZVAL1 of &ZVAL2 failed'
 
-/* pool manager messages */
+/*                                           */
+/* pool manager messages                     */
+/*                                           */
 PSYE017A 'Internal logic error'
 'poolMGR has invalid Applid (&ZVAL1).'
 
 PSYE017B 'Internal logic error'
 'locateSubPool POOL TYPE must be PROFILE or SHARED'
-
 
 PSYE017C 'Internal logic error'
 'poolMGR get() POOL TYPE must be ASIS, PROFILE or SHARED'
@@ -240,7 +249,9 @@ PSYE017D 'Internal logic error'
 PSYE017E 'Internal logic error'
 'poolMGR cannot find pool &ZVAL1'
 
-/* ISPEXEC interface messages */
+/*                                           */
+/* ISPEXEC interface messages                */
+/*                                           */
 PSYE019A 'Invalid Service'
 '&ZVAL1 service invalid with this interface'
 

@@ -1,7 +1,9 @@
 /*                                           */
 /* System error message file for lspf        */
 
-/* Panel definition statement errors */
+/*                                           */
+/* Panel definition statement errors         */
+/*                                           */
 PSYE041A 'Duplicate table display field ''&ZVAL1'''
 ''
 
@@ -110,14 +112,14 @@ PSYE042I 'Field ''&ZVAL1'' not defined'
 PSYE042J 'Duplicate field command entry'
 'Duplicate field command entry in )FIELD panel section for ''&ZVAL1'''
 
-PSYE042K 'Field &ZVAL1 not found'
-'Scroll field ''&ZVAL1'' not defined in panel body'
+PSYE042K 'Invalid attribute'
+'&ZVAL1 field must have an output CUA attribute byte specified'
 
-PSYE042L 'Field ''&ZVAL1'' not found'
-'Home field ''&ZVAL1'' not defined in panel body'
+PSYE042L 'Spare'
+'Spare'
 
 PSYE042M 'Field ''&ZVAL1'' not found'
-'Command field ''&ZVAL1'' not defined in panel body'
+'&ZVAL2 field ''&ZVAL1'' not defined in panel body'
 
 PSYE042N 'No command field defined'
 'Scrollable panels must have a command field defined'
@@ -137,11 +139,11 @@ PSYE042R 'Invalid DYNAMIC AREA SCROLL option'
 PSYE042S 'Invalid scrollable area'
 'A panel can only have one scrollable area, either for a dynamic area or a table display'
 
-PSYE042T 'Invalid EDREC option'
-'EDREC option ''&ZVAL1'' is invalid'
+PSYE042T 'Spare'
+'Spare'
 
-PSYE042U 'EDREC service error'
-'EDREC &ZVAL1 issued but recovery is not pending'
+PSYE042U 'Spare'
+'Spare'
 
-PSYE042V 'EDREC service error'
-'EDREC &ZVAL1 not allowed because recovery is pending'
+PSYE042V 'Spare'
+'Spare'

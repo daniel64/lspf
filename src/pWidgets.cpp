@@ -105,7 +105,7 @@ void field::field_init( errblock& err, int MAXW, int MAXD, const string& line )
 	field_row    = row-1 ;
 	field_col    = col-1 ;
 	field_length = len   ;
-	field_cole   = field_col + field_length ;
+	field_endcol = field_col + field_length ;
 	field_input  = ( attrUnprot.count( fType ) > 0 ) ;
 
 	field_opts( err, opts ) ;
@@ -1255,7 +1255,10 @@ void field::display_field( WINDOW* win,
 				else if ( !isprint( (*ita)) ) { (*ita) = '.'  ; }
 			}
 		}
-		t.resize( field_length, ( upad == nulls ) ? ' ' : upad ) ;
+		if ( field_input )
+		{
+			t.resize( field_length, ( upad == nulls ) ? ' ' : upad ) ;
+		}
 		mvwaddstr( win, field_row, field_col, t.c_str() ) ;
 	}
 	touchline( win, field_row, 1 ) ;
@@ -1265,7 +1268,7 @@ void field::display_field( WINDOW* win,
 bool field::cursor_on_field( uint row, uint col )
 {
 	if ( field_row != row) { return false ; } ;
-	if ( col >= field_col && col < field_cole ) { return true ; }
+	if ( col >= field_col && col < field_endcol ) { return true ; }
 	return false ;
 }
 
@@ -1347,7 +1350,7 @@ void text::text_init( errblock& err, int MAXW, int MAXD, int& opt_field, const s
 	{
 		text_value = strip( strip( subword( line, 5 ) ), 'B', '"' ) ;
 	}
-	text_cole = text_col + text_value.size() ;
+	text_endcol = text_col + text_value.size() ;
 	if ( fType == PS )
 	{
 		text_name = "ZPS01" + d2ds( ++opt_field, 3 ) ;
@@ -1365,7 +1368,7 @@ void text::text_display( WINDOW* win )
 bool text::cursor_on_text( uint row, uint col )
 {
 	if ( text_row != row) { return false ; } ;
-	if ( col >= text_col && col < text_cole ) { return true ; }
+	if ( col >= text_col && col < text_endcol ) { return true ; }
 	return false ;
 }
 

@@ -46,9 +46,10 @@ class pPanel
 		string field_getname( uint row, uint col ) ;
 		bool   field_get_row_col( const string& fld, uint& row, uint& col ) ;
 		int    field_get_col( const string& fld ) ;
+		bool   keep_cmd() ;
 
 		void   cursor_placement( errblock& ) ;
-		void   cursor_to_cmdfield( int& RC, unsigned int =1 ) ;
+		void   cursor_to_cmdfield( unsigned int =1 ) ;
 		void   cursor_to_next_field( const string& name, uint& row, uint& col ) ;
 		void   cursor_eof( uint& row, uint& col )  ;
 		void   get_cursor( uint& row, uint& col ) { row   = p_row + win_row ; col   = p_col + win_col ; }
@@ -90,6 +91,7 @@ class pPanel
 		const string& get_pfpressed()           { return pfkey ; }
 
 		string get_keylist( int ) ;
+		void   point_and_shoot( uint, uint ) ;
 
 		void   reset_cmd() ;
 
@@ -113,6 +115,8 @@ class pPanel
 		string zphelp      ;
 		string zzcmd       ;
 		string zprim       ;
+		string pos_smsg    ;
+		string pos_lmsg    ;
 		string da_dataIn   ;
 		string da_dataOut  ;
 		string tb_clear    ;
@@ -159,7 +163,7 @@ class pPanel
 		bool   message_set ;
 		bool   cursor_set  ;
 		bool   full_screen ;
-		bool   msg_and_cmd ;
+		bool   error_msg   ;
 		bool   jump_fields ;
 		uint   win_width   ;
 		uint   win_depth   ;
@@ -215,10 +219,12 @@ class pPanel
 		void   set_cursor_home() ;
 		void   get_home( uint& row, uint& col ) ;
 
-		void   set_popup( int, int ) ;
+		void   set_popup( bool, int, int ) ;
 		void   remove_popup() ;
 		void   move_popup()   ;
 		void   show_popup()   ;
+		void   create_panels( popup& ) ;
+		void   delete_panels( popup& ) ;
 
 		void   put_keylist( int, const string& ) ;
 		string get_panelDesc()  { return panelDesc != "" ? sub_vars( panelDesc ) : sub_vars( panelTitle ) ; }
@@ -285,6 +291,7 @@ class pPanel
 		vector<abc*> ab                   ;
 		vector<Box*> boxes                ;
 		map<string, field*> fieldList     ;
+		map<string, field*> fieldPS       ;
 		map<string, dynArea*> dynAreaList ;
 		map<string, pnts> pntsTable       ;
 		map<string, string> fieldHList    ;
@@ -322,7 +329,7 @@ class pPanel
 		string process_panel_trans( errblock& err, int ln, TRANS* trans, const string& ) ;
 		void   process_panel_function( PN_FUNCTION, string& ) ;
 
-		bool   msg_issued_with_cmd()    { return msg_and_cmd ; }
+		bool   error_msg_issued()    { return error_msg ; }
 
 		void   get_msgwin( errblock&,
 				   string,

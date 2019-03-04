@@ -20,14 +20,15 @@
 class dynArea
 {
 	public:
-		dynArea(){
-				dynArea_dataInsp  = false ;
-				dynArea_userModsp = false ;
-				dynArea_dataModsp = false ;
-				dynArea_scroll    = false ;
-				dynArea_Attrs     = ""    ;
-				dynArea_inAttrs   = ""    ;
-			 }
+		dynArea()
+		{
+			dynArea_dataInsp  = false ;
+			dynArea_userModsp = false ;
+			dynArea_dataModsp = false ;
+			dynArea_scroll    = false ;
+			dynArea_Attrs     = ""    ;
+			dynArea_inAttrs   = ""    ;
+		}
 
 	private:
 		uint   dynArea_row       ;
@@ -66,33 +67,34 @@ class field
 		static uint field_intens   ;
 
 	private:
-		field() {
-				field_pwd          = false ;
-				field_changed      = false ;
-				field_active       = true  ;
-				field_cua          = NONE  ;
-				field_colour1      = 0     ;
-				field_colour2      = 0     ;
-				field_attr_once    = false ;
-				field_skip         = true  ;
-				field_caps         = false ;
-				field_nojump       = false ;
-				field_jump         = false ;
-				field_paduser      = false ;
-				field_padchar      = ' '   ;
-				field_just         = 'L'   ;
-				field_numeric      = false ;
-				field_input        = false ;
-				field_dynArea      = NULL  ;
-				field_tb           = false ;
-				field_scrollable   = false ;
-				field_scroll_start = 1     ;
-				field_shadow_value = ""    ;
-			} ;
+		field()
+		{
+			field_pwd          = false ;
+			field_changed      = false ;
+			field_active       = true  ;
+			field_cua          = NONE  ;
+			field_colour1      = 0     ;
+			field_colour2      = 0     ;
+			field_attr_once    = false ;
+			field_skip         = true  ;
+			field_caps         = false ;
+			field_nojump       = false ;
+			field_jump         = false ;
+			field_paduser      = false ;
+			field_padchar      = ' '   ;
+			field_just         = 'L'   ;
+			field_numeric      = false ;
+			field_input        = false ;
+			field_dynArea      = NULL  ;
+			field_tb           = false ;
+			field_scrollable   = false ;
+			field_scroll_start = 1     ;
+			field_shadow_value = ""    ;
+		} ;
 
 		unsigned int field_row          ;
 		unsigned int field_col          ;
-		unsigned int field_cole         ;
+		unsigned int field_endcol       ;
 		unsigned int field_length       ;
 		string       field_value        ;
 		bool         field_pwd          ;
@@ -162,6 +164,7 @@ class field
 
 		bool field_dyna_input( uint col )  ;
 		int  field_dyna_input_offset( uint col )  ;
+
 		void field_update_datamod_usermod( string*,
 						   int ) ;
 		void field_attr( errblock& err,
@@ -172,6 +175,7 @@ class field
 		void field_prep_input()   ;
 		void field_prep_display() ;
 		void field_set_caps()     ;
+
 		int  end_of_field( WINDOW* win,
 				   uint col ) ;
 
@@ -185,14 +189,16 @@ class text
 		static uint text_intens ;
 
 	private:
-		text() {
-			     text_colour = 0  ;
-			     text_name   = "" ;
-			     text_dvars  = true ;
-		       }
+		text()
+		{
+			text_colour = 0  ;
+			text_name   = "" ;
+			text_dvars  = true ;
+		}
+
 		uint    text_row    ;
 		uint    text_col    ;
-		uint    text_cole   ;
+		uint    text_endcol ;
 		attType text_cua    ;
 		uint    text_colour ;
 		string  text_value  ;
@@ -213,26 +219,28 @@ class pdc
 	public:
 		static uint pdc_intens ;
 
-		pdc()   {
-				pdc_desc    = "" ;
-				pdc_xdesc   = "" ;
-				pdc_dvars   = true ;
-				pdc_run     = "" ;
-				pdc_parm    = "" ;
-				pdc_unavail = "" ;
-				pdc_inact   = true ;
-			} ;
-		~pdc() {} ;
+		pdc()
+		{
+			pdc_desc    = "" ;
+			pdc_xdesc   = "" ;
+			pdc_dvars   = true ;
+			pdc_run     = "" ;
+			pdc_parm    = "" ;
+			pdc_unavail = "" ;
+			pdc_inact   = true ;
+		} ;
+
 		pdc( const string& a, const string& b, const string& c, const string& d )
-			{
-				pdc_desc    = a  ;
-				pdc_xdesc   = "" ;
-				pdc_dvars   = true ;
-				pdc_run     = b  ;
-				pdc_parm    = c  ;
-				pdc_unavail = d  ;
-				pdc_inact   = false ;
-			} ;
+		{
+			pdc_desc    = a  ;
+			pdc_xdesc   = "" ;
+			pdc_dvars   = true ;
+			pdc_run     = b  ;
+			pdc_parm    = c  ;
+			pdc_unavail = d  ;
+			pdc_inact   = false ;
+		} ;
+
 		string pdc_desc  ;
 		string pdc_xdesc ;
 		bool   pdc_dvars ;
@@ -249,39 +257,42 @@ class abc
 {
 	public:
 		static uint abc_intens ;
-		abc()   {
-				abc_maxh   = 0  ;
-				abc_maxw   = 0  ;
-				currChoice = 0  ;
-				choiceVar  = "" ;
-				pd_created = false ;
-			} ;
+		static poolMGR* p_poolMGR ;
+
+		abc()
+		{
+			abc_maxh   = 0  ;
+			abc_maxw   = 0  ;
+			currChoice = 0  ;
+			choiceVar  = "" ;
+			pd_created = false ;
+		} ;
 
 		abc( fPOOL* p, bool b )
-			{
-				p_funcPOOL = p  ;
-				selPanel   = b  ;
-				abc_maxh   = 0  ;
-				abc_maxw   = 0  ;
-				currChoice = 0  ;
-				choiceVar  = "" ;
-				pd_created = false ;
-			} ;
+		{
+			p_funcPOOL = p  ;
+			selPanel   = b  ;
+			abc_maxh   = 0  ;
+			abc_maxw   = 0  ;
+			currChoice = 0  ;
+			choiceVar  = "" ;
+			pd_created = false ;
+		} ;
 
-		~abc()  {
+		~abc()
+		{
 			if ( pd_created )
 			{
 				del_panel( panel ) ;
 				delwin( win )      ;
 			}
-			} ;
+		} ;
 
 		string       abc_desc ;
 		unsigned int abc_col  ;
 		unsigned int abc_maxh ;
 		unsigned int abc_maxw ;
 
-		static poolMGR* p_poolMGR ;
 
 		void   add_pdc( const pdc& )         ;
 		void   display_abc_sel( WINDOW* )    ;
@@ -316,9 +327,11 @@ class Box
 {
 	public:
 		static uint box_intens ;
-		Box()   {
-				box_title = "" ;
-			}
+
+		Box()
+		{
+			box_title = "" ;
+		}
 
 		void box_init( errblock& err, int maxw, int maxd, const string& line ) ;
 		void display_box( WINDOW*, string ) ;

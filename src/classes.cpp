@@ -1350,7 +1350,7 @@ void pnts::parse( errblock& err, string s )
 		return ;
 	}
 
-	if ( trim( s ) != "" )
+	if ( s != "" )
 	{
 		err.seterrid( "PSYE032H", s ) ;
 		return ;

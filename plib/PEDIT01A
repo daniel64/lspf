@@ -87,7 +87,6 @@ ELSE
          &ZCOLOUR = 3
 
 )REINIT
-&ZCMDA = &Z
 
 )PROC
 IF (&ZCMDA EQ 'EDOCLR' ) EXIT

@@ -279,6 +279,8 @@ void execiDisplay( pApplication* thisAppl, const string& s, errblock& err )
 	string di_msg   ;
 	string di_cursor ;
 	string di_csrpos ;
+	string di_buffer ;
+	string di_retbuf ;
 
 	str = upper( subword( s, 2 ) ) ;
 
@@ -294,6 +296,12 @@ void execiDisplay( pApplication* thisAppl, const string& s, errblock& err )
 	di_csrpos = parseString( err, str, "CSRPOS()" ) ;
 	if ( err.error() ) { return ; }
 
+	di_buffer = parseString( err, str, "COMMAND()" ) ;
+	if ( err.error() ) { return ; }
+
+	di_retbuf = parseString( err, str, "RETBUFFR()" ) ;
+	if ( err.error() ) { return ; }
+
 	if ( str != "" )
 	{
 		err.seterrid( "PSYE032H", str ) ;
@@ -302,7 +310,7 @@ void execiDisplay( pApplication* thisAppl, const string& s, errblock& err )
 
 	if ( di_csrpos == "" ) { di_csrpos = "1" ; }
 
-	thisAppl->display( di_panel, di_msg, di_cursor, ds2d( di_csrpos ) ) ;
+	thisAppl->display( di_panel, di_msg, di_cursor, ds2d( di_csrpos ), di_buffer, di_retbuf ) ;
 }
 
 
@@ -518,12 +526,9 @@ void execiNotify( pApplication* thisAppl, const string& s, errblock& err )
 
 	char quote ;
 
-	string msg ;
+	string msg = strip( subword( s, 2 ) ) ;
 
-	msg = subword( s, 2 ) ;
-	trim( msg ) ;
-
-	if ( msg.size() > 2 && ( msg.front() == '"' || msg.front() == '\'' ) )
+	if ( msg.size() > 1 && ( msg.front() == '"' || msg.front() == '\'' ) )
 	{
 		quote = msg.front() ;
 		p     = msg.find( quote, 1 ) ;

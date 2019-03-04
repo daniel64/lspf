@@ -37,6 +37,8 @@ pPanel::pPanel()
 	keyhelpn    = ""     ;
 	alarm       = false  ;
 	zprim       = ""     ;
+	pos_smsg    = ""     ;
+	pos_lmsg    = ""     ;
 	panelTitle  = ""     ;
 	panelDesc   = ""     ;
 	msgloc      = ""     ;
@@ -57,7 +59,7 @@ pPanel::pPanel()
 	tb_lsz      = 0      ;
 	full_screen = false  ;
 	win_addpop  = false  ;
-	msg_and_cmd = false  ;
+	error_msg   = false  ;
 	jump_fields = false  ;
 	win_row     = 0      ;
 	win_col     = 0      ;
@@ -331,11 +333,18 @@ void pPanel::syncDialogueVar( errblock& err,
 }
 
 
-void pPanel::set_popup( int sp_row, int sp_col )
+void pPanel::set_popup( bool sp_active, int sp_row, int sp_col )
 {
-	win_addpop = true ;
-	win_row    = (sp_row + win_depth + 1) < zscrmaxd ? sp_row : (zscrmaxd - win_depth - 1) ;
-	win_col    = (sp_col + win_width + 1) < zscrmaxw ? sp_col : (zscrmaxw - win_width - 1) ;
+	if ( sp_active )
+	{
+		win_addpop = true ;
+		win_row    = (sp_row + win_depth + 1) < zscrmaxd ? sp_row : (zscrmaxd - win_depth - 1) ;
+		win_col    = (sp_col + win_width + 1) < zscrmaxw ? sp_col : (zscrmaxw - win_width - 1) ;
+	}
+	else
+	{
+		remove_popup() ;
+	}
 }
 
 
@@ -372,6 +381,48 @@ void pPanel::hide_popup()
 }
 
 
+void pPanel::create_panels( popup& p )
+{
+	// If we are being displayed in a popup, create another set of
+	// ncurses windows/panels on a subsequent ADDPOP call and store
+	// original windows/panels in the popup structure.
+
+	if ( win != pwin ) { return ; }
+
+	p.pan1 = panel ;
+	p.pan2 = bpanel ;
+	p.panl = this ;
+
+	pwin   = newwin( win_depth, win_width, 0, 0 ) ;
+	panel  = new_panel( pwin ) ;
+	set_panel_userptr( panel, new panel_data( zscrnum ) ) ;
+
+	bwin   = newwin( win_depth+2, win_width+2, 0, 0 ) ;
+	bpanel = new_panel( bwin ) ;
+	set_panel_userptr( bpanel, new panel_data( zscrnum ) ) ;
+
+	win = pwin ;
+}
+
+
+void pPanel::delete_panels( popup& p )
+{
+	// Delete the set of ncurses windows/panels in the popup structure on a REMPOP call
+
+	WINDOW* w ;
+
+	w = panel_window( p.pan1 ) ;
+	panel_cleanup( p.pan1 ) ;
+	del_panel( p.pan1 ) ;
+	delwin( w ) ;
+
+	w = panel_window( p.pan2 ) ;
+	panel_cleanup( p.pan2 ) ;
+	del_panel( p.pan2 ) ;
+	delwin( w ) ;
+}
+
+
 void pPanel::toggle_fscreen( bool sp_popup,
 			     int sp_row,
 			     int sp_col )
@@ -380,7 +431,7 @@ void pPanel::toggle_fscreen( bool sp_popup,
 
 	if ( !full_screen && sp_popup )
 	{
-		set_popup( sp_row, sp_col ) ;
+		set_popup( sp_popup, sp_row, sp_col ) ;
 	}
 	clear_msg() ;
 }
@@ -477,7 +528,7 @@ void pPanel::display_panel( errblock& err )
 	display_id( err )  ;
 	if ( err.error() ) { return ; }
 
-	msg_and_cmd = ( msgid != "" && cmd_getvalue() != "" ) ;
+	error_msg = ( msgid != "" && MSG.type != IMT ) ;
 
 	if ( alarm ) { beep() ; }
 }
@@ -521,8 +572,8 @@ void pPanel::display_panel_update( errblock& err )
 	int offset      ;
 	int posn        ;
 
-	string CMDVerb  ;
-	string CMD      ;
+	string cmdVerb  ;
+	string cmd      ;
 	string fieldNam ;
 	string msgfld   ;
 
@@ -538,6 +589,7 @@ void pPanel::display_panel_update( errblock& err )
 	fieldNum = -1 ;
 	posn     = 1  ;
 	msgid    = "" ;
+	MSG.clear()   ;
 
 	cursor_set  = false ;
 	message_set = false ;
@@ -545,10 +597,10 @@ void pPanel::display_panel_update( errblock& err )
 	p_funcPOOL->put( err, "ZERRMSG", "" ) ;
 	if ( err.error() ) { return ; }
 
-	CMDVerb = p_poolMGR->get( err, "ZVERB", SHARED ) ;
+	cmdVerb = p_poolMGR->get( err, "ZVERB", SHARED ) ;
 	if ( err.error() ) { return ; }
 
-	end_pressed = findword( CMDVerb, "CANCEL END EXIT RETURN" ) ;
+	end_pressed = findword( cmdVerb, "CANCEL END EXIT RETURN" ) ;
 
 	if ( scrollOn )
 	{
@@ -684,13 +736,13 @@ void pPanel::display_panel_update( errblock& err )
 	p_poolMGR->put( err, "ZSCROLLN", "0", SHARED ) ;
 	if ( err.error() ) { return ; }
 
-	if ( scrollOn && findword( CMDVerb, "UP DOWN LEFT RIGHT" ) )
+	if ( scrollOn && findword( cmdVerb, "UP DOWN LEFT RIGHT" ) )
 	{
-		CMD    = upper( cmd_getvalue() ) ;
+		cmd    = upper( cmd_getvalue() ) ;
 		msgfld = cmdfield ;
-		if ( CMD == "" || ( !findword( CMD, "M MAX C CSR D DATA H HALF P PAGE" ) && !isnumeric( CMD ) ) )
+		if ( cmd == "" || ( !findword( cmd, "M MAX C CSR D DATA H HALF P PAGE" ) && !isnumeric( cmd ) ) )
 		{
-			CMD    = fieldList[ scroll ]->field_value ;
+			cmd    = fieldList[ scroll ]->field_value ;
 			msgfld = scroll ;
 		}
 		else
@@ -700,43 +752,43 @@ void pPanel::display_panel_update( errblock& err )
 			if ( err.error() ) { return ; }
 		}
 		if      ( tb_model )                          { maxAmount = tb_depth  ; }
-		else if ( findword( CMDVerb, "LEFT RIGHT" ) ) { maxAmount = dyn_width ; }
+		else if ( findword( cmdVerb, "LEFT RIGHT" ) ) { maxAmount = dyn_width ; }
 		else                                          { maxAmount = dyn_depth ; }
-		if ( isnumeric( CMD ) )
+		if ( isnumeric( cmd ) )
 		{
-			if ( CMD.size() > 6 )
+			if ( cmd.size() > 6 )
 			{
 				set_message_cond( "PSYS011I" ) ;
 				set_cursor_cond( msgfld )      ;
 			}
 			else
 			{
-				p_poolMGR->put( err, "ZSCROLLA", CMD, SHARED ) ;
+				p_poolMGR->put( err, "ZSCROLLA", cmd, SHARED ) ;
 				if ( err.error() ) { return ; }
-				p_poolMGR->put( err, "ZSCROLLN", CMD, SHARED ) ;
+				p_poolMGR->put( err, "ZSCROLLN", cmd, SHARED ) ;
 				if ( err.error() ) { return ; }
 			}
 		}
-		else if ( CMD.front() == 'M' )
+		else if ( cmd.front() == 'M' )
 		{
 			p_poolMGR->put( err, "ZSCROLLA", "MAX", SHARED ) ;
 			if ( err.error() ) { return ; }
 		}
-		else if ( CMD.front() == 'C' )
+		else if ( cmd.front() == 'C' )
 		{
 			if ( fieldNum == -1 )
 			{
 				Amnt = maxAmount ;
 			}
-			else if ( CMDVerb.front() == 'U' )
+			else if ( cmdVerb.front() == 'U' )
 			{
 				Amnt = maxAmount - fieldNum - 1 ;
 			}
-			else if ( CMDVerb.front() == 'D' )
+			else if ( cmdVerb.front() == 'D' )
 			{
 				Amnt = fieldNum ;
 			}
-			else if ( CMDVerb.front() == 'L' )
+			else if ( cmdVerb.front() == 'L' )
 			{
 				Amnt = maxAmount - posn ;
 			}
@@ -749,14 +801,14 @@ void pPanel::display_panel_update( errblock& err )
 			p_poolMGR->put( err, "ZSCROLLA", "CSR", SHARED ) ;
 			if ( err.error() ) { return ; }
 		}
-		else if ( CMD.front() == 'D' )
+		else if ( cmd.front() == 'D' )
 		{
 			p_poolMGR->put( err, "ZSCROLLN", d2ds( maxAmount - 1 ), SHARED ) ;
 			if ( err.error() ) { return ; }
 			p_poolMGR->put( err, "ZSCROLLA", "DATA", SHARED ) ;
 			if ( err.error() ) { return ; }
 		}
-		else if ( CMD.front() == 'H' )
+		else if ( cmd.front() == 'H' )
 		{
 			p_poolMGR->put( err, "ZSCROLLN", d2ds( maxAmount/2 ), SHARED ) ;
 			if ( err.error() ) { return ; }
@@ -852,45 +904,13 @@ void pPanel::display_panel_reinit( errblock& err, int ln )
 void pPanel::display_panel_proc( errblock& err, int ln )
 {
 	// Perform panel )PROC processing
-
-	// If cursor on a point-and-shoot field (PS), set variable as in the )PNTS panel section if defined there
 	// If a selection panel, check .TRAIL if not NOCHECK on the ZSEL variable and issue error
 
 	int p ;
 
-	string zsel     ;
-	string fieldNam ;
+	string zsel ;
 
 	err.setRC( 0 ) ;
-
-	fieldNam = p_funcPOOL->get( err, 8, "ZCURFLD" ) ;
-	if ( err.error() ) { return ; }
-
-	auto it2 = pntsTable.end() ;
-	if ( fieldNam != "" )
-	{
-		auto it = fieldList.find( fieldNam ) ;
-		if ( it != fieldList.end() && it->second->field_cua == PS )
-		{
-			it2 = pntsTable.find( fieldNam ) ;
-		}
-	}
-	else
-	{
-		for ( auto it = textPS.begin() ; it != textPS.end() ; ++it )
-		{
-			if ( (*it)->cursor_on_text( p_row, p_col ) )
-			{
-				it2 = pntsTable.find( (*it)->text_name ) ;
-				break ;
-			}
-		}
-	}
-	if ( it2 != pntsTable.end() )
-	{
-		putDialogueVar( err, it2->second.pnts_var, it2->second.pnts_val ) ;
-		if ( err.error() ) { return ; }
-	}
 
 	process_panel_stmnts( err, ln, procstmnts, PS_PROC ) ;
 	if ( err.error() ) { return ; }
@@ -2071,6 +2091,50 @@ bool pPanel::tb_field( const string& f )
 }
 
 
+void pPanel::point_and_shoot( uint row, uint col )
+{
+	// If the cursor is on a point-and-shoot field or text, set the pnts field, if blank, to the pnts value.
+
+	bool found = false ;
+
+	map<string, pnts>::iterator itp = pntsTable.end() ;
+	map<string, field*>::iterator itf ;
+	vector<text*>::iterator itt ;
+
+	if ( fieldPS.empty() && textPS.empty() ) { return ; }
+
+	for ( itf = fieldPS.begin() ; !found && itf != fieldPS.end() ; ++itf )
+	{
+		if ( itf->second->cursor_on_field( row, col ) )
+		{
+			itp = pntsTable.find( itf->first ) ;
+			found = true ;
+		}
+	}
+
+	if ( not found )
+	{
+		for ( itt = textPS.begin() ; !found && itt != textPS.end() ; ++itt )
+		{
+			if ( (*itt)->cursor_on_text( row, col ) )
+			{
+				itp = pntsTable.find( (*itt)->text_name ) ;
+				found = true ;
+			}
+		}
+	}
+
+	if ( itp != pntsTable.end() )
+	{
+		itf = fieldList.find( itp->second.pnts_var ) ;
+		if ( strip( itf->second->field_value ) == "" )
+		{
+			itf->second->field_value = itp->second.pnts_val ;
+		}
+	}
+}
+
+
 string pPanel::get_msgloc()
 {
 	int p    ;
@@ -2133,35 +2197,38 @@ void pPanel::refresh_fields( errblock& err, int ln, const string& fields )
 
 	for ( itf = fieldList.begin() ; itf != fieldList.end() ; ++itf )
 	{
-		if ( fields != "*" && !findword( itf->first, fields ) ) { continue ; }
-		if ( itf->second->field_dynArea ) { continue ; }
-		if ( fconv.count( itf->first ) > 0 )
+		if ( not itf->second->field_dynArea && ( fields == "*" || findword( itf->first, fields ) ) )
 		{
-			itf->second->field_value = getDialogueVar( err, fconv[ itf->first ] ) ;
+			if ( fconv.count( itf->first ) > 0 )
+			{
+				itf->second->field_value = getDialogueVar( err, fconv[ itf->first ] ) ;
+			}
+			else
+			{
+				itf->second->field_value = getDialogueVar( err, itf->first ) ;
+			}
+			if ( err.error() ) { return ; }
+			itf->second->field_prep_display() ;
+			itf->second->field_set_caps()     ;
 		}
-		else
-		{
-			itf->second->field_value = getDialogueVar( err, itf->first ) ;
-		}
-		if ( err.error() ) { return ; }
-		itf->second->field_prep_display() ;
-		itf->second->field_set_caps()     ;
 	}
 
 	for ( itd = dynAreaList.begin() ; itd != dynAreaList.end() ; ++itd )
 	{
-		if ( fields != "*" && !findword( itf->first, fields ) ) { continue ; }
-		k      = itd->second->dynArea_width ;
-		darea  = p_funcPOOL->vlocate( err, itd->first ) ;
-		if ( err.error() ) { return ; }
-		shadow = p_funcPOOL->vlocate( err, itd->second->dynArea_shadow_name ) ;
-		if ( err.error() ) { return ; }
-		for ( unsigned int i = 0 ; i < itd->second->dynArea_depth ; ++i )
+		if ( fields == "*" || findword( itd->first, fields ) )
 		{
-			j   = i * itd->second->dynArea_width ;
-			itf = fieldList.find( itd->first +"."+ d2ds( i ) ) ;
-			itf->second->field_value        = darea->substr( j, k )  ;
-			itf->second->field_shadow_value = shadow->substr( j, k ) ;
+			k      = itd->second->dynArea_width ;
+			darea  = p_funcPOOL->vlocate( err, itd->first ) ;
+			if ( err.error() ) { return ; }
+			shadow = p_funcPOOL->vlocate( err, itd->second->dynArea_shadow_name ) ;
+			if ( err.error() ) { return ; }
+			for ( unsigned int i = 0 ; i < itd->second->dynArea_depth ; ++i )
+			{
+				j   = i * itd->second->dynArea_width ;
+				itf = fieldList.find( itd->first + "." + d2ds( i ) ) ;
+				itf->second->field_value        = darea->substr( j, k )  ;
+				itf->second->field_shadow_value = shadow->substr( j, k ) ;
+			}
 		}
 	}
 }
@@ -2182,12 +2249,14 @@ void pPanel::refresh_fields( errblock& err )
 
 	for ( itf = fieldList.begin() ; itf != fieldList.end() ; ++itf )
 	{
-		if ( itf->second->field_dynArea ) { continue ; }
-		itf->second->field_value = getDialogueVar( err, itf->first ) ;
-		if ( err.error() ) { return ; }
-		itf->second->field_prep_display() ;
-		itf->second->field_set_caps()     ;
-		itf->second->display_field( win, ddata_map, schar_map ) ;
+		if ( not itf->second->field_dynArea )
+		{
+			itf->second->field_value = getDialogueVar( err, itf->first ) ;
+			if ( err.error() ) { return ; }
+			itf->second->field_prep_display() ;
+			itf->second->field_set_caps()     ;
+			itf->second->display_field( win, ddata_map, schar_map ) ;
+		}
 	}
 
 	for ( itd = dynAreaList.begin() ; itd != dynAreaList.end() ; ++itd )
@@ -2313,7 +2382,7 @@ void pPanel::create_tbfield( errblock& err, const string& pline )
 	}
 	a.field_col     = tcol - 1 ;
 	a.field_length  = tlen     ;
-	a.field_cole    = tcol - 1 + tlen ;
+	a.field_endcol  = tcol - 1 + tlen ;
 	a.field_input   = ( attrUnprot.count( fType ) > 0 ) ;
 	a.field_tb      = true ;
 
@@ -2552,11 +2621,9 @@ void pPanel::resetAttrs_once()
 		{
 			itf->second->field_attr() ;
 			ita = attrList.erase( ita ) ;
+			continue ;
 		}
-		else
-		{
-			++ita ;
-		}
+		++ita ;
 	}
 }
 
@@ -2664,11 +2731,9 @@ void pPanel::cursor_placement( errblock& err )
 }
 
 
-void pPanel::cursor_to_cmdfield( int& RC, unsigned int f_pos )
+void pPanel::cursor_to_cmdfield( unsigned int f_pos )
 {
 	map<string, field*>::iterator it ;
-
-	RC = 0 ;
 
 	p_row = 0 ;
 	p_col = 0 ;
@@ -2774,13 +2839,37 @@ void pPanel::cmd_setvalue( const string& v )
 }
 
 
+bool pPanel::keep_cmd()
+{
+	map<string, field*>::iterator it ;
+
+	if ( cmdfield == "" )
+	{
+		return false ;
+	}
+
+	it = fieldList.find( cmdfield ) ;
+
+	it->second->field_prep_input() ;
+	if ( it->second->field_value.size() == 0 )
+	{
+		return true ;
+	}
+
+	it->second->field_set_caps() ;
+	it->second->display_field( win, ddata_map, schar_map ) ;
+
+	return ( it->second->field_value.front() == '&' ) ;
+}
+
+
 void pPanel::reset_cmd()
 {
 	errblock err ;
 
 	if ( cmdfield != "" )
 	{
-		field_setvalue( cmdfield, p_funcPOOL->get( err, 8, cmdfield ) ) ;
+		field_setvalue( cmdfield, getDialogueVar( err, cmdfield ) ) ;
 	}
 }
 
@@ -2916,7 +3005,7 @@ void pPanel::field_edit( errblock& err,
 			}
 			prot = false ;
 			++p_col ;
-			if ( p_col == it->second->field_cole && it->second->field_skip )
+			if ( p_col == it->second->field_endcol && it->second->field_skip )
 			{
 				p_row += win_row ;
 				p_col += win_col ;
@@ -3274,9 +3363,9 @@ void pPanel::tb_remove_lineChanged()
 
 void pPanel::display_tb_mark_posn( errblock& err )
 {
-	int rows  ;
-	int top   ;
-	int size  ;
+	int rows ;
+	int top  ;
+	int size ;
 
 	string mark ;
 	string posn ;
@@ -3582,7 +3671,7 @@ void pPanel::set_panel_msg( const slmsg& t, const string& m )
 		return     ;
 	}
 
-	if ( p_poolMGR->get( err, zscrnum, "ZSHMSGID" ) == "Y" )
+	if ( p_poolMGR->get( err, zscrnum, "ZSHMSGID" ) == "Y" && MSG.lmsg != "" )
 	{
 		MSG.lmsg = msgid +" "+ MSG.lmsg ;
 	}
@@ -3631,13 +3720,19 @@ string pPanel::get_keylist( int entry )
 
 void pPanel::display_msg( errblock& err )
 {
-	int x_row ;
+	uint i ;
 
-	uint i     ;
 	uint w_row ;
 	uint w_col ;
 	uint w_depth ;
 	uint w_width ;
+
+	uint m_row ;
+	uint m_col ;
+
+	string t ;
+
+	bool inWindow ;
 
 	vector<string> v ;
 
@@ -3658,7 +3753,21 @@ void pPanel::display_msg( errblock& err )
 			del_panel( smpanel ) ;
 			delwin( smwin )      ;
 		}
-		if ( MSG.smwin || pd_active() )
+		inWindow = ( MSG.smwin || pd_active() ) ;
+		if ( not inWindow && pos_smsg != "" )
+		{
+			auto it = fieldList.find( pos_smsg ) ;
+			if ( MSG.smsg.size() > it->second->field_length )
+			{
+				inWindow = true ;
+			}
+			else
+			{
+				m_row = it->second->field_row + win_row ;
+				m_col = it->second->field_col + win_col ;
+			}
+		}
+		if ( inWindow )
 		{
 			get_msgwin( err, MSG.smsg, w_row, w_col, w_depth, w_width, v ) ;
 			if ( err.error() ) { return ; }
@@ -3672,12 +3781,18 @@ void pPanel::display_msg( errblock& err )
 		}
 		else
 		{
-			x_row = ( ab.size() > 0 ) ? 2 : 0 ;
 			wstandend( win ) ;
-			mvwaddstr( win, x_row, (wscrmaxw - 25), "                         " ) ;
-			smwin = newwin( 1, MSG.smsg.size(), x_row+win_row, (wscrmaxw - MSG.smsg.size() + win_col) ) ;
+			t = MSG.smsg ;
+			if ( pos_smsg == "" )
+			{
+				if ( t.size() < 24 ) { t = right( t, 24 ) ; }
+				m_row = ( ab.size() > 0 ) ? 2 : 0 ;
+				m_row = win_row + m_row ;
+				m_col = win_col + wscrmaxw - t.size() ;
+			}
+			smwin = newwin( 1, t.size(), m_row, m_col) ;
 			wattrset( smwin, cuaAttr[ MSG.type ] | panel_intens ) ;
-			mvwaddstr( smwin, 0, 0, MSG.smsg.c_str() ) ;
+			mvwaddstr( smwin, 0, 0, t.c_str() ) ;
 		}
 		smpanel = new_panel( smwin )  ;
 		set_panel_userptr( smpanel, new panel_data( zscrnum ) ) ;
@@ -3696,7 +3811,21 @@ void pPanel::display_msg( errblock& err )
 			del_panel( lmpanel ) ;
 			delwin( lmwin )      ;
 		}
-		if ( MSG.lmwin || p_poolMGR->get( err, "ZLMSGW", PROFILE ) == "Y" || pd_active() )
+		inWindow = ( MSG.lmwin || p_poolMGR->get( err, "ZLMSGW", PROFILE ) == "Y" || pd_active() ) ;
+		if ( not inWindow && pos_lmsg != "" )
+		{
+			auto it = fieldList.find( pos_lmsg ) ;
+			if ( MSG.lmsg.size() > it->second->field_length )
+			{
+				inWindow = true ;
+			}
+			else
+			{
+				m_row = it->second->field_row + win_row ;
+				m_col = it->second->field_col + win_col ;
+			}
+		}
+		if ( inWindow )
 		{
 			get_msgwin( err, MSG.lmsg, w_row, w_col, w_depth, w_width, v ) ;
 			if ( err.error() ) { return ; }
@@ -3710,7 +3839,12 @@ void pPanel::display_msg( errblock& err )
 		}
 		else
 		{
-			lmwin = newwin( 1, min( MSG.lmsg.size(), size_t( wscrmaxw-1) ), win_row+4, win_col+1 ) ;
+			if ( pos_lmsg == "" )
+			{
+				m_row = win_row + 4 ;
+				m_col = win_col + 1 ;
+			}
+			lmwin = newwin( 1, min( MSG.lmsg.size(), size_t( wscrmaxw-1) ), m_row, m_col ) ;
 			wattrset( lmwin, cuaAttr[ MSG.type ] | panel_intens ) ;
 			mvwaddstr( lmwin, 0, 0, MSG.lmsg.c_str() ) ;
 		}

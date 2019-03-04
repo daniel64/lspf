@@ -1237,6 +1237,7 @@ map<int, pVPOOL*>::iterator poolMGR::createPool( int ls )
 	pool->put( err, "ZSHMSGID", "N", USER ) ;
 	pool->put( err, "ZSHPANID", "N", USER ) ;
 	pool->put( err, "ZSHUSRID", "N", USER ) ;
+	pool->put( err, "ZREFUPDT", "Y", USER ) ;
 
 	return result.first ;
 }

@@ -1,7 +1,10 @@
 /*                                           */
 /* System error message file for lspf        */
+/*                                           */
 
-/* Application messages */
+/*                                           */
+/* Application messages                      */
+/*                                           */
 PSYE021A 'Invalid panel name'
 'Panel name ''&ZVAL1'' is not of the correct format'
 
@@ -41,8 +44,8 @@ PSYE022H '''&ZVAL1'' not found'
 PSYE022I 'Invalid processing option ''&ZVAL1'''
 'Valid processing options are COND, UNCOND, STACK and STKADD'
 
-PSYE022J 'Invalid &ZVAL1 name ''&ZVAL2'''
-'&ZVAL1 name has an invalid format'
+PSYE022J 'Invalid field name ''&ZVAL1'''
+'&ZVAL2 name has an invalid format'
 
 PSYE022K 'Too many sub-parameters'
 'Only one of COND, UNCOND, STACK or STKADD allowed (default STACK)'
@@ -124,3 +127,12 @@ PSYE023K 'Invalid parameters'
 
 PSYE023L 'Directory invalid'
 'Entry ''&ZVAL1'' is invalid, is not a directory or does not exist'
+
+PSYE023M 'Invalid EDREC option'
+'EDREC option ''&ZVAL1'' is invalid'
+
+PSYE023N 'EDREC service error'
+'EDREC &ZVAL1 issued but recovery is not pending'
+
+PSYE023O 'EDREC service error'
+'EDREC &ZVAL1 not allowed because recovery is pending'

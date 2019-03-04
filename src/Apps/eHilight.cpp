@@ -110,6 +110,12 @@ void addCppHilight( hilight& h, const string& line, string& shadow )
 			}
 		}
 
+		if ( oQuote && ln > 1 && j < ln-1 && ( line.compare( j, 2, "\\\\" ) == 0 ) )
+		{
+			++j ;
+			continue ;
+		}
+
 		if ( ln > 1 && j < ln-1 && ( line.compare( j, 2, "\\'" ) == 0 || line.compare( j, 2, "\\\"" ) == 0 ) )
 		{
 			++j ;
@@ -139,7 +145,14 @@ void addCppHilight( hilight& h, const string& line, string& shadow )
 			shadow.replace( start, j-start+1, j-start+1, E_WHITE ) ;
 			continue ;
 		}
-		if ( oQuote ) { continue ; }
+		if ( oQuote )
+		{
+			if ( j == ln-1 )
+			{
+				shadow.replace( start, j-start+1, j-start+1, G_WHITE ) ;
+			}
+			continue ;
+		}
 		p1 = line.find_first_of( delims, j ) ;
 		if ( p1 != j || p1 == string::npos )
 		{
@@ -162,7 +175,10 @@ void addCppHilight( hilight& h, const string& line, string& shadow )
 					{
 						shadow.replace( j, 4, 4, G_WHITE ) ;
 					}
-					else { h.hl_oIf-- ; }
+					else if ( h.hl_oIf > 0 )
+					{
+						--h.hl_oIf ;
+					}
 				}
 			}
 			j = p1 - 1 ;
@@ -172,7 +188,7 @@ void addCppHilight( hilight& h, const string& line, string& shadow )
 		if ( line[ j ] == ')' )
 		{
 			if ( oBrac1 == 0 ) { shadow[ j ] = G_WHITE ; }
-			else               { shadow[ j ] = oBrac1 % 7 + 6 ; oBrac1-- ; }
+			else               { shadow[ j ] = oBrac1 % 7 + 6 ; --oBrac1 ; }
 			continue ;
 		}
 		if ( h.hl_doLogic )
@@ -185,8 +201,16 @@ void addCppHilight( hilight& h, const string& line, string& shadow )
 			}
 			else if ( line[ j ] == '}' )
 			{
-				if ( oBrac2 == 0 ) { shadow[ j ] = G_WHITE ; }
-				else               { shadow[ j ] = oBrac2 % 7 + 6 ; oBrac2-- ; }
+				if ( oBrac2 == 0 )
+				{
+					shadow[ j ] = G_WHITE ;
+				}
+				else if ( oBrac2 > 0 )
+				{
+					shadow[ j ] = oBrac2 % 7 + 6 ;
+					--oBrac2 ;
+					if ( oBrac2 == 0 ) { h.hl_oIf = 0 ; }
+				}
 				continue ;
 			}
 		}
@@ -293,7 +317,14 @@ void addASMHilight( hilight& h, const string& line, string& shadow )
 			shadow.replace( start, j-start+1, j-start+1, E_WHITE ) ;
 			continue ;
 		}
-		if ( oQuote )  { continue ; }
+		if ( oQuote )
+		{
+			if ( j == ln-1 )
+			{
+				shadow.replace( start, j-start+1, j-start+1, G_WHITE ) ;
+			}
+			continue ;
+		}
 		if ( wd == 1 )
 		{
 			shadow[ j ] = E_TURQ ;
@@ -404,7 +435,14 @@ void addRxxHilight( hilight& h, const string& line, string& shadow )
 			shadow.replace( start, j-start+1, j-start+1, E_WHITE ) ;
 			continue ;
 		}
-		if ( oQuote )   { continue ; }
+		if ( oQuote )
+		{
+			if ( j == ln-1 )
+			{
+				shadow.replace( start, j-start+1, j-start+1, G_WHITE ) ;
+			}
+			continue ;
+		}
 		p1 = line.find_first_of( delims, j ) ;
 		if ( p1 != j || p1 == string::npos )
 		{
@@ -427,7 +465,10 @@ void addRxxHilight( hilight& h, const string& line, string& shadow )
 					{
 						shadow.replace( j, 4, 4, G_WHITE ) ;
 					}
-					else { h.hl_oIf-- ; }
+					else if ( h.hl_oIf > 0 )
+					{
+						--h.hl_oIf ;
+					}
 				}
 			}
 			if ( h.hl_doLogic )
@@ -442,7 +483,10 @@ void addRxxHilight( hilight& h, const string& line, string& shadow )
 					{
 						shadow.replace( j, 3, 3, G_WHITE ) ;
 					}
-					else { h.hl_oDo-- ; }
+					else
+					{
+						--h.hl_oDo ;
+					}
 				}
 			}
 			j = p1 - 1 ;
@@ -452,7 +496,7 @@ void addRxxHilight( hilight& h, const string& line, string& shadow )
 		if ( line[ j ] == ')' )
 		{
 			if ( oBrac1 == 0 ) { shadow[ j ] = G_WHITE ; }
-			else               { shadow[ j ] = oBrac1 % 7 + 6 ; oBrac1-- ; }
+			else               { shadow[ j ] = oBrac1 % 7 + 6 ; --oBrac1 ; }
 			continue ;
 		}
 		if ( line[ j ] == '=' ) { shadow[ j ] = E_YELLOW ; continue ; }
@@ -578,7 +622,14 @@ void addPanHilight( hilight& h, const string& line, string& shadow )
 			shadow.replace( start, j-start+1, j-start+1, E_WHITE ) ;
 			continue ;
 		}
-		if ( oQuote )   { continue ; }
+		if ( oQuote )
+		{
+			if ( j == ln-1 )
+			{
+				shadow.replace( start, j-start+1, j-start+1, G_WHITE ) ;
+			}
+			continue ;
+		}
 		if ( j == 0 && line[ j ] == ')' )
 		{
 			w  = word( line, 1 ) ;
@@ -615,7 +666,10 @@ void addPanHilight( hilight& h, const string& line, string& shadow )
 					{
 						shadow.replace( j, 4, 4, G_WHITE ) ;
 					}
-					else { h.hl_oIf-- ; }
+					else if ( h.hl_oIf > 0 )
+					{
+						--h.hl_oIf ;
+					}
 				}
 			}
 			j = p1 - 1 ;
@@ -625,7 +679,7 @@ void addPanHilight( hilight& h, const string& line, string& shadow )
 		if ( line[ j ] == ')' )
 		{
 			if ( oBrac1 == 0 ) { shadow[ j ] = G_WHITE ; }
-			else               { shadow[ j ] = oBrac1 % 7 + 6 ; oBrac1-- ; }
+			else               { shadow[ j ] = oBrac1 % 7 + 6 ; --oBrac1 ; }
 			continue ;
 		}
 		if ( line[ j ] == '=' ) { shadow[ j ] = E_YELLOW ; continue ; }

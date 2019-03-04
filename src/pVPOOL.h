@@ -19,11 +19,13 @@
 
 class fVAR
 {
-	fVAR()
-	{
-		fVAR_string_ptr = &fVAR_string ;
-		fVAR_int_ptr    = &fVAR_int    ;
-	}
+	public:
+		fVAR()
+		{
+			fVAR_string_ptr = &fVAR_string ;
+			fVAR_int_ptr    = &fVAR_int    ;
+		}
+
 	private:
 		string*  fVAR_string_ptr ;
 		int*     fVAR_int_ptr    ;
@@ -42,11 +44,13 @@ class fPOOL
 {
 	public:
 
-	fPOOL()
-	{
-		nullstr = "" ;
-	}
-	~fPOOL() ;
+		fPOOL()
+		{
+			nullstr = "" ;
+		}
+
+		~fPOOL() ;
+
 		void define( errblock& err,
 			     const string& name ,
 			     string* addr ) ;
@@ -153,6 +157,7 @@ class pVPOOL
 			sysProf  = false ;
 			path     = ""    ;
 		}
+
 		~pVPOOL() ;
 
 	private:

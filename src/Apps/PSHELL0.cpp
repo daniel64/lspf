@@ -50,7 +50,7 @@ using namespace boost::filesystem ;
 PSHELL0::PSHELL0()
 {
 	set_appdesc( "Invoke a shell command" ) ;
-	set_appver( "1.0.0" ) ;
+	set_appver( "1.0.1" ) ;
 }
 
 
@@ -69,17 +69,13 @@ void PSHELL0::run_command( string cmd )
 	// Output goes to fname2
 	// Errors go to fname3
 
-	string t      ;
-	string file   ;
-	string fname1 ;
-	string fname2 ;
-	string fname3 ;
+	string file ;
 
-	t = word( cmd, 1 ) ;
+	string t = word( cmd, 1 ) ;
 
-	fname1 = get_tempname( t, "input" ) ;
-	fname2 = get_tempname( t, "output" ) ;
-	fname3 = get_tempname( t, "errors" ) ;
+	string fname1 = get_spool_filename( t, "input" ) ;
+	string fname2 = get_spool_filename( t, "output" ) ;
+	string fname3 = get_spool_filename( t, "errors" ) ;
 
 	std::ofstream fout( fname1.c_str() ) ;
 
@@ -110,7 +106,7 @@ void PSHELL0::run_command( string cmd )
 }
 
 
-string PSHELL0::get_tempname( const string& suf1, const string& suf2 )
+string PSHELL0::get_spool_filename( const string& suf1, const string& suf2 )
 {
 	// For command output, spool file name is of the form:
 	// jobkey-SHELL-cmd-stream

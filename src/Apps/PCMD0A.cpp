@@ -87,8 +87,10 @@ void PCMD0A::application()
 		{
 			vreplace( "ZBRALT", "COMMAND:"+ PARM ) ;
 			vput( "ZBRALT", SHARED ) ;
+			control( "ERRORS", "RETURN" ) ;
 			browse( comm1 ) ;
-			if ( ZRC == 4 && ZRSN == 4 ) { browse( comm2 ) ; }
+			if ( RC == 12 ) { browse( comm2 ) ; }
+			control( "ERRORS", "CANCEL" ) ;
 		}
 		else
 		{
@@ -130,8 +132,10 @@ void PCMD0A::application()
 				{
 					vreplace( "ZBRALT", "COMMAND:"+ zcmd ) ;
 					vput( "ZBRALT", SHARED ) ;
+					control( "ERRORS", "RETURN" ) ;
 					browse( comm1 ) ;
-					if ( ZRC == 4 && ZRSN == 4 ) { browse( comm2 ) ; }
+					if ( RC == 12 ) { browse( comm2 ) ; }
+					control( "ERRORS", "CANCEL" ) ;
 					zcmd = "" ;
 				}
 				else

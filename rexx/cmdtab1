@@ -157,7 +157,7 @@ ZCTDESC  = arg(4)
 if \validName( ZCTVERB ) then
   do
     "RDISPLAY ZCTVERB parameter incorrect.  Must be 1-8 characters.  Entered &ZCTVERB"
-    "RDISPLAY Ignoring entry"
+    "RDISPLAY Ignoring entry &ZCTVERB"
     "RDISPLAY "
     RETURN 12
   end
@@ -165,7 +165,7 @@ if \validName( ZCTVERB ) then
 if length( ZCTTRUNC ) > 1 | ZCTTRUNC = "" | \datatype( ZCTTRUNC, "W" ) then
   do
     "RDISPLAY ZCTTRUNC parameter incorrect.  Must be one numeric character.  Entered &ZCTTRUNC"
-    "RDISPLAY Ignoring entry"
+    "RDISPLAY Ignoring entry &ZCTVERB"
     "RDISPLAY "
     RETURN 12
   end

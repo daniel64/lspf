@@ -51,19 +51,20 @@ using namespace boost::gregorian;
 PMAIN0A::PMAIN0A()
 {
 	set_appdesc( "Default main program for lspf" ) ;
-	set_appver( "1.0.0" )  ;
+	set_appver( "1.0.1" )  ;
 	set_apphelp( "HPMAIN1" ) ;
 
-	vdefine( "ZCURFLD", &zcurfld ) ;
+	vdefine( "ZCURFLD ZAREA ZSHADOW", &zcurfld, &zarea, &zshadow ) ;
+	vdefine( "ZDATEL ZJDATE ZTIME", &zdatel, &zjdate, &ztime ) ;
 	vdefine( "ZCURPOS", &zcurpos ) ;
 }
 
 
 void PMAIN0A::application()
 {
-	int RC1    ;
 	int pmonth ;
 	int pyear  ;
+	int curpos ;
 
 	string zcmd ;
 	string pan  ;
@@ -71,40 +72,50 @@ void PMAIN0A::application()
 	string w1   ;
 	string ws   ;
 	string zsel ;
+	string odat ;
 
 	string zscrname ;
+	string curfld   ;
 
 	errblock err ;
 
-	vdefine( "ZCMD ZSEL ZDATEL ZJDATE ZTIME ZSCRNAME", &zcmd, &zsel, &zdatel, &zjdate, &ztime, &zscrname ) ;
-	vdefine( "ZAREA ZSHADOW", &zarea, &zshadow ) ;
+	vdefine( "ZCMD ZSEL ZSCRNAME", &zcmd, &zsel, &zscrname ) ;
 
 	zscrname = "MAIN" ;
 	vput( "ZSCRNAME", SHARED ) ;
-	vget( "ZDATEL" ) ;
+	vget( "ZDATEL ZJDATE", SHARED ) ;
 
 	offset = 0 ;
 	pmonth = ds2d( substr( zdatel, 4, 2 ) ) ;
 	pyear  = ds2d( substr( zdatel, 7, 4 ) ) ;
+	odat   = zjdate ;
 	zcmd   = PARM ;
 	msg    = ""   ;
+
 	create_calendar( pmonth, pyear ) ;
 
-	if ( zcmd != "" ) { control( "DISPLAY", "NONDISPL" ) ; }
+	if ( zcmd != "" )
+	{
+		control( "NONDISPL", "ENTER" ) ;
+	}
+
 	vcopy( "ZMAINPAN", pan, MOVE ) ;
 
+	curfld = "ZCMD" ;
+	curpos = 1      ;
 	while ( true )
 	{
 		vput( "ZCMD ZSEL", SHARED ) ;
-		display( pan, msg, "ZCMD" ) ;
-		RC1 = RC ;
-		vget( "ZCMD ZSEL", SHARED ) ;
-		if ( zsel == "EXIT" || RC1 == 8 )
+		display( pan, msg, curfld, curpos ) ;
+		if ( RC == 8 )
 		{
 			zsel = "" ;
 			vput( "ZSEL", SHARED ) ;
 			break ;
 		}
+		curpos = 1      ;
+		curfld = "ZCMD" ;
+		vget( "ZCMD ZSEL", SHARED ) ;
 		if ( zsel == "?" )
 		{
 			msg  = "PSYS016" ;
@@ -115,7 +126,15 @@ void PMAIN0A::application()
 		vget( "ZJDATE ZTIME", SHARED ) ;
 		msg = "" ;
 
-		zarea = zarea.replace( 204, 5, ztime ) ;
+		if ( odat != zjdate )
+		{
+			create_calendar( pmonth, pyear ) ;
+			odat = zjdate ;
+		}
+		else
+		{
+			zarea.replace( 204, 5, ztime ) ;
+		}
 
 		w1 = word( zcmd, 1 ) ;
 		ws = subword( zcmd, 2 ) ;
@@ -126,11 +145,15 @@ void PMAIN0A::application()
 			{
 				--offset ;
 				create_calendar( pmonth, pyear ) ;
+				curpos = 1 ;
+				curfld = "ZAREA" ;
 			}
 			else if ( zcurpos == 20 )
 			{
 				++offset ;
 				create_calendar( pmonth, pyear )  ;
+				curpos = 20 ;
+				curfld = "ZAREA" ;
 			}
 			else if ( zcurpos > 1 && zcurpos < 20 )
 			{
@@ -140,16 +163,11 @@ void PMAIN0A::application()
 				create_calendar( pmonth, pyear ) ;
 			}
 		}
-		if ( w1 == "DATE")
+		else if ( w1 == "DATE" )
 		{
+			offset = 0  ;
 			pmonth = ds2d( substr( ws, 1, 2 ) ) ;
 			pyear  = ds2d( substr( ws, 4, 4 ) ) ;
-			if ( pmonth < 1 || pmonth > 12 || pyear < 1900 || pyear > 9999 )
-			{
-				msg = "MAIN011" ;
-				continue ;
-			}
-			offset = 0 ;
 			create_calendar( pmonth, pyear ) ;
 		}
 		zcmd = "" ;
@@ -170,7 +188,7 @@ void PMAIN0A::create_calendar( int pmonth, int pyear )
 	int eom_day ;
 	int daypos  ;
 
-	string  m ;
+	string m ;
 
 	vget( "ZJDATE ZTIME ZDATEL" ) ;
 	cday   = ds2d( substr( zdatel, 1, 2 ) ) ;
@@ -183,9 +201,9 @@ void PMAIN0A::create_calendar( int pmonth, int pyear )
 	if ( month > 12 ) { month -= 12 ; ++year ; }
 	if ( month < 1  ) { month += 12 ; --year ; }
 
-	eom_day = gregorian_calendar::end_of_month_day( year,month ) ;
+	eom_day = gregorian_calendar::end_of_month_day( year, month ) ;
 	date endOfMonth( year, month, eom_day ) ;
-	day_iterator ditr( date(year, month, 1 ) ) ;
+	day_iterator ditr( date( year, month, 1 ) ) ;
 
 	switch ( month )
 	{
@@ -208,14 +226,12 @@ void PMAIN0A::create_calendar( int pmonth, int pyear )
 	zarea += "Su Mo Tu We Th Fr Sa "               ;
 	zarea += string( 3*ditr->day_of_week(), ' ' )  ;
 
-	i = 1 ;
-	for ( ; ditr <= endOfMonth ; ++ditr )
+	for ( i = 1 ; ditr <= endOfMonth ; ++ditr, ++i )
 	{
 		if (     i == cday   &&
 		     month == cmonth &&
 		      year == cyear ) { daypos = zarea.size() ; }
 		zarea += centre( d2ds( i ), 3 ) ;
-		++i ;
 	}
 
 	zarea.resize( 189, ' ' ) ;

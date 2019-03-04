@@ -38,7 +38,7 @@ PSYS011B 'Enter one of the listed values' .TYPE=W .W=NORESP
 PSYS011C 'Invalid primary command' .TYPE=W
 'There are no valid primary commands for this panel'
 
-PSYS011D 'Maximum Screens Reached' .TYPE=W
+PSYS011D 'Maximum screens reached' .TYPE=W
 'No more logical screens can be created as ZMAXSCRN has been reached'
 
 PSYS011E 'Open failed' .TYPE=W
@@ -54,17 +54,17 @@ PSYS011G 'Non-integer data entered' .TYPE=W .W=NORESP
 PSYS011H 'Field must be valid hex' .TYPE=W .W=NORESP
 'Enter only hex data in the field at the cursor position'
 
-PSYS011I 'Invalid Scroll Amount' .TYPE=W
+PSYS011I 'Invalid scroll amount' .TYPE=W
 'Invalid entry.  Valid scroll values are H(half), P(page), C(cursor), ' +
 'D(data) or a maximum numeric value of 6 digits (4 digits within the scroll field)'
 
-PSYS011J 'Help Member Not Found' .TYPE=W
+PSYS011J 'Help member not found' .TYPE=W
 'Help member &ZZSTR1 was not found in the ZPLIB search'
 
-PSYS011K 'Error In Command' .TYPE=W
+PSYS011K 'Error in command' .TYPE=W
 'Error in PDC, field or table command entry.  See lspf log for details'
 
-PSYS011L 'SPLIT Command Disabled' .TYPE=W
+PSYS011L 'SPLIT command disabled' .TYPE=W
 'SPLIT command has been disabled via the application-issued CONTROL SPLIT DISABLE service'
 
 PSYS011M 'Non-zero return code' .TYPE=W
@@ -76,25 +76,25 @@ PSYS011N 'Invalid data entered' .TYPE=W .W=NORESP
 PSYS011O 'Invalid command parameter' .TYPE=W
 'Command contains an invalid or missing parameter'
 
-PSYS011P 'File Empty' .TYPE=W
-'File ''&ZZSTR1'' is empty'
+PSYS011P 'Empty file requested' .TYPE=W
+'File ''&ZVAL1'' is empty'
 
-PSYS011Q 'Cannot Open File' .TYPE=W
-'Open failure for file ''&ZZSTR1'''
+PSYS011Q 'Cannot open file' .TYPE=W
+'Open failure for file ''&ZVAL1'''
 
-PSYS011R 'Not a Regular File' .TYPE=W
-'File ''&ZZSTR1'' is not a regular file'
+PSYS011R 'Not a regular file' .TYPE=W
+'File ''&ZVAL1'' is not a regular file'
 
-PSYS011S 'File Does Not Exist' .TYPE=W
-'File ''&ZZSTR1'' does not exist'
+PSYS011S 'File does not exist' .TYPE=W
+'File ''&ZVAL1'' does not exist'
 
-PSYS011T 'Permisison Denied' .TYPE=W
-'You do not have read access to file ''&ZZSTR1'''
+PSYS011T 'Permisison denied' .TYPE=W
+'You do not have read access to file ''&ZVAL1'''
 
-PSYS011U 'Unknown Error Occured' .TYPE=W
-'Unknown error occured opening file ''&ZZSTR1'''
+PSYS011U 'Unknown error occured' .TYPE=W
+'Unknown error occured opening file ''&ZVAL1'''
 
-PSYS011V 'Entry Retrieved' .TYPE=N
+PSYS011V 'Entry retrieved' .TYPE=N
 'Selected entry has been retrieved'
 
 PSYS011W 'Entry &ZRFNPOS retrieved from &ZCURTB' .TYPE=N
@@ -122,13 +122,13 @@ PSYS012C 'I/O error accessing entry' .TYPE=W
 PSYS012D 'Error in SELECT' .TYPE=W
 'Entered SELECT is not valid.  Check log for details'
 
-PSYS012E 'Entry Conflict' .TYPE=W
+PSYS012E 'Entry conflict' .TYPE=W
 'Fields entered in an invalid combination.  Leave field blank'
 
 PSYS012F 'Invalid USERID parameter' .TYPE=W
 'Valid parameters are ON, OFF or blank to toggle setting'
 
-PSYS012G 'Command Issued' .TYPE=W
+PSYS012G 'Command issued' .TYPE=W
 'Command has been issued.  Check log for details'
 
 PSYS012H 'Module reloaded' .TYPE=W

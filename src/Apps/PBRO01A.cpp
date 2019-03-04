@@ -22,14 +22,16 @@
 
 
 /******************************************************************************************/
-/*  ZRC/ZRSN codes                                                                        */
-/*   0/0     Normal completion                                                            */
-/*   4/4     File empty                                                                   */
-/*   8/4     Cannot open file                                                             */
-/*   8/8     Not a regular file                                                           */
-/*   8/12    File does not exists                                                         */
-/*   8/16    Permission error                                                             */
-/*   8/20    Unknown error                                                                */
+/*  ZRC/ZRSN exit codes (RC=ZRC in the calling program)                                   */
+/*    0/0     Normal completion                                                           */
+/*   12/0     File empty                                                                  */
+/*   14/0     File does not exist                                                         */
+/*   20/0     Severe error.                                                               */
+/*   20/4     Cannot open file.  Permission denied.                                       */
+/*   20/8     Cannot open file.  Invalid file type.                                       */
+/*   20/12    Cannot open file.  Unknown open error.                                      */
+
+/* ZRESULT contains the relevant message id for RC > 0                                    */
 
 /* Commands:                                                                              */
 /*  BIN/BINARY                                                                            */
@@ -75,17 +77,29 @@ b_find PBRO01A::Global_bfind_parms ;
 PBRO01A::PBRO01A()
 {
 	set_appdesc( "Browser for lspf" ) ;
-	set_appver( "1.0.0" ) ;
+	set_appver( "1.0.1" ) ;
 
 	vdefine( "ZCMD ZVERB ZROW1 ZCURFLD", &zcmd, &zverb, &zrow1, &zcurfld ) ;
 	vdefine( "ZAREA ZSHADOW ZAREAT ZDSN", &zarea, &zshadow, &zareat, &zdsn ) ;
 	vdefine( "ZSCROLLN ZAREAW ZAREAD ZCURPOS", &zscrolln, &zareaw, &zaread, &zcurpos ) ;
 	vdefine( "ZSCROLLA ZCOL1 ZCOL2 TYPE STR", &zscrolla, &zcol1, &zcol2, &type, &str ) ;
 	vdefine( "OCC LINES CMD ZZSTR1", &occ, &lines, &cmd, &zzstr1 ) ;
+
+	XRC  = 0 ;
+	XRSN = 0 ;
 }
 
 
 void PBRO01A::application()
+{
+	Browse() ;
+
+	ZRC  = XRC ;
+	ZRSN = XRSN ;
+}
+
+
+void PBRO01A::Browse()
 {
 	int i       ;
 	int lchng   ;
@@ -146,26 +160,8 @@ void PBRO01A::application()
 	pquery( panel, "ZAREA", "ZAREAT", "ZAREAW", "ZAREAD" ) ;
 	if ( RC > 0 ) { abend() ; }
 
-	RC = 0 ;
 	read_file( file ) ;
-	if ( RC > 0 )
-	{
-		zzstr1 = file ;
-		if ( ZRC == 4 )
-		{
-			if ( ZRSN == 4 ) { setmsg( "PSYS011P" ) ; }
-		}
-		else if ( ZRC == 8 )
-		{
-			if       ( ZRSN == 4  ) { setmsg( "PSYS011Q" ) ; }
-			else if  ( ZRSN == 8  ) { setmsg( "PSYS011R" ) ; }
-			else if  ( ZRSN == 12 ) { setmsg( "PSYS011S" ) ; }
-			else if  ( ZRSN == 16 ) { setmsg( "PSYS011T" ) ; }
-			else if  ( ZRSN == 20 ) { setmsg( "PSYS011U" ) ; }
-		}
-		setmsg( "PSYS011U", COND ) ;
-		return ;
-	}
+	if ( XRC > 0 ) { return ; }
 
 	msg    = ""     ;
 	curfld = "ZCMD" ;
@@ -247,7 +243,7 @@ void PBRO01A::application()
 			textOn       = false ;
 			rebuildZAREA = true  ;
 			read_file( file ) ;
-			if ( RC > 0 ) { setmsg( "PSYS011E" ) ; return ; }
+			if ( XRC > 0 ) { return ; }
 		}
 		else if ( cmd == "HEX" )
 		{
@@ -338,7 +334,7 @@ void PBRO01A::application()
 			textOn       = true  ;
 			rebuildZAREA = true  ;
 			read_file( file )    ;
-			if ( RC > 0 ) { setmsg( "PSYS011E" ) ; return ; }
+			if ( XRC > 0 ) { return ; }
 		}
 		else if ( cmd.size() > 1 && cmd[ 0 ] == '.' )
 		{
@@ -475,7 +471,6 @@ void PBRO01A::application()
 	verase( "ZBRALT", SHARED ) ;
 	vput( "ZSCROLL", PROFILE ) ;
 	Global_bfind_parms = find_parms ;
-	return ;
 }
 
 
@@ -496,35 +491,40 @@ void PBRO01A::read_file( string file )
 
 	char x  ;
 
+	RC      = 0 ;
 	topLine = 0 ;
+
 	std::ifstream fin ;
 
 	try
 	{
 		if ( !exists( file ) )
 		{
-			RC   = 16 ;
-			ZRC  = 8  ;
-			ZRSN = 12 ;
-			ZRESULT = "File does not exists" ;
+			vreplace( "ZVAL1", file ) ;
+			vput( "ZVAL1", SHARED ) ;
+			XRC  = 14 ;
+			XRSN = 0  ;
+			ZRESULT = "PSYS011S" ;
 			return    ;
 		}
 	}
 	catch ( const filesystem_error& ex )
 	{
-		RC   = 16 ;
-		ZRC  = 8  ;
-		ZRSN = 16 ;
-		ZRESULT = "Permission Error" ;
+		vreplace( "ZVAL1", file ) ;
+		vput( "ZVAL1", SHARED ) ;
+		XRC  = 20 ;
+		XRSN = 4  ;
+		ZRESULT = "PSYS011T" ;
 		return    ;
 	}
 
 	if ( !is_regular_file( file.c_str() ) )
 	{
-		RC   = 16 ;
-		ZRC  = 8  ;
-		ZRSN = 8  ;
-		ZRESULT = "Not a regular file" ;
+		vreplace( "ZVAL1", file ) ;
+		vput( "ZVAL1", SHARED ) ;
+		XRC  = 20 ;
+		XRSN = 8  ;
+		ZRESULT = "PSYS011R" ;
 		return    ;
 	}
 
@@ -532,10 +532,11 @@ void PBRO01A::read_file( string file )
 
 	if ( !fin.is_open() )
 	{
-		RC   = 16 ;
-		ZRC  = 8  ;
-		ZRSN = 4  ;
-		ZRESULT = "Open Error" ;
+		vreplace( "ZVAL1", file ) ;
+		vput( "ZVAL1", SHARED ) ;
+		XRC  = 20 ;
+		XRSN = 12 ;
+		ZRESULT = "PSYS011U" ;
 		return    ;
 	}
 
@@ -629,10 +630,11 @@ void PBRO01A::read_file( string file )
 	}
 	if ( maxLines == 1 )
 	{
-		RC   = 4  ;
-		ZRC  = 4  ;
-		ZRSN = 4  ;
-		ZRESULT = "File Empty" ;
+		vreplace( "ZVAL1", file ) ;
+		vput( "ZVAL1", SHARED ) ;
+		XRC  = 12 ;
+		XRSN = 0  ;
+		ZRESULT = "PSYS011P" ;
 		return    ;
 	}
 	++maxCol   ;
@@ -754,10 +756,15 @@ void PBRO01A::fill_hilight_shadow()
 	int i  ;
 	int dl ;
 	int ll ;
-	int l  ;
 	int w  ;
 
 	string ztemp ;
+
+	string::const_iterator it1 ;
+	string::const_iterator it2 ;
+
+	vector<b_shadow>::iterator its ;
+	vector<string>::iterator itd ;
 
 	hlight.hl_language = detLang ;
 
@@ -794,14 +801,20 @@ void PBRO01A::fill_hilight_shadow()
 						   !hlight.hl_oComment ) ;
 		}
 	}
-	for ( i = 0 ; i < zaread ; ++i )
+
+	itd = data.begin() + topLine ;
+	its = shadow.begin() + topLine ;
+	i   = ( colsOn ) ? 1 : 0 ;
+	for ( ; i < zaread && itd != data.end() ; ++i, ++its, ++itd )
 	{
-		l = topLine + i ;
-		if ( l > data.size() - 2 ) { break ; }
-		ztemp = shadow.at( l ).bs_Shadow ;
-		if ( startCol > 1 ) { ztemp.erase( 0, startCol-1 ) ; }
-		ztemp.resize( zareaw, E_BLUE ) ;
-		zshadow.replace( zareaw*(i), zareaw, ztemp ) ;
+		if ( its->bs_Shadow.size() >= startCol )
+		{
+			it1 = zshadow.begin() + ( zareaw * i ) ;
+			it2 = its->bs_Shadow.begin() + ( startCol - 1 ) ;
+			w = its->bs_Shadow.size() - ( startCol - 1 ) ;
+			if ( w > zareaw ) { w = zareaw ; }
+			zshadow.replace( it1, it1+w, it2, it2+w ) ;
+		}
 	}
 }
 

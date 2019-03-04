@@ -13,7 +13,7 @@ Edit Entry panel for editor PEDIT01
 PanelTitle "Edit Entry Panel"
 
 text     4    2       FP     "Command ===>"
-field    4   15   MAX NEF     PAD(USER) ZCMD1
+field    4   15   MAX NEF     PAD(USER),CAPS(ON) ZCMD1
 
 text     7    2       FP     "File Name. . .:"
 field    7   18   MAX NEF     PAD(USER) ZFILE
@@ -54,9 +54,6 @@ text    24 34 NT "to edit file"
 .HELP = HEDIT01
 .NRET = ON
 .NRET = ZFILE
-
-VGET EEIMAC SHARED
-VGET ( ZFILE,EEPROF,EECCAN,EELMAC,EEPRSPS,EETABSS,EEDIRLST,EENEWFLS ) PROFILE
 
 )PROC
 if ( &ZCMD1 NE &Z)

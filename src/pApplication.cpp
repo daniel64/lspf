@@ -34,13 +34,9 @@ pApplication::pApplication()
 	testMode            = false  ;
 	propagateEnd        = false  ;
 	jumpEntered         = false  ;
-	ControlDisplayLock  = false  ;
-	ControlNonDispl     = false  ;
 	ControlErrorsReturn = false  ;
 	ControlPassLRScroll = false  ;
-	ControlSplitEnable  = true   ;
-	ControlRefUpdate    = true   ;
-	lineOutDone         = false  ;
+	ControlNonDisplEnd  = false  ;
 	lineOutPending      = false  ;
 	cmdTableLoaded      = false  ;
 	nested              = false  ;
@@ -79,6 +75,7 @@ pApplication::pApplication()
 	currtbPanel         = NULL   ;
 	zappver             = ""     ;
 	zapphelp            = ""     ;
+	RC                  = 0      ;
 	ZRC                 = 0      ;
 	ZRSN                = 0      ;
 	ZRESULT             = ""     ;
@@ -100,11 +97,21 @@ pApplication::pApplication()
 pApplication::~pApplication()
 {
 	map<string, pPanel*>::iterator it;
+
+	while ( !popups.empty() )
+	{
+		pPanel* panl = static_cast<pPanel*>( popups.top().panl ) ;
+		if ( panl )
+		{
+			panl->delete_panels( popups.top() ) ;
+		}
+		popups.pop() ;
+	}
+
 	for ( it = panelList.begin() ; it != panelList.end() ; ++it )
 	{
 		delete it->second ;
 	}
-	busyAppl = false ;
 }
 
 
@@ -160,8 +167,10 @@ void pApplication::init_phase2()
 	lscreen     = ds2d( p_poolMGR->get( errBlock, "ZSCREEN", SHARED ) ) ;
 	lscreen_num = ds2d( p_poolMGR->get( errBlock, "ZSCRNUM", SHARED ) ) ;
 
-	startDate   = p_poolMGR->get( errBlock, "ZJ4DATE", SHARED ) ;
-	startTime   = p_poolMGR->get( errBlock, "ZTIMEL", SHARED ) ;
+	startDate = p_poolMGR->get( errBlock, "ZJ4DATE", SHARED ) ;
+	startTime = p_poolMGR->get( errBlock, "ZTIMEL", SHARED ) ;
+
+	cond_mstr = backgrd ? &cond_batch : &cond_lspf ;
 
 	llog( "I", "Phase 2 initialisation complete" << endl ; )
 }
@@ -247,29 +256,16 @@ void pApplication::run()
 	applicationEnded = true  ;
 	busyAppl         = false ;
 
-	if ( backgrd )
-	{
-		cond_batch.notify_all() ;
-	}
-	else
-	{
-		cond_lspf.notify_all() ;
-	}
+	cond_mstr->notify_all() ;
 }
 
 
-void pApplication::wait_event()
+void pApplication::wait_event( WAIT_REASON w )
 {
-	busyAppl = false ;
+	waiting_on = w ;
+	busyAppl   = false ;
 
-	if ( backgrd )
-	{
-		cond_batch.notify_all() ;
-	}
-	else
-	{
-		cond_lspf.notify_all() ;
-	}
+	cond_mstr->notify_all() ;
 
 	while ( !busyAppl )
 	{
@@ -360,9 +356,9 @@ void pApplication::msgResponseOK()
 }
 
 
-bool pApplication::msg_issued_with_cmd()
+bool pApplication::error_msg_issued()
 {
-	if ( currPanel ) { return currPanel->msg_issued_with_cmd() ; }
+	if ( currPanel ) { return currPanel->error_msg_issued() ; }
 	return false ;
 }
 
@@ -408,6 +404,27 @@ void pApplication::restore_Zvars( int screenid )
 void pApplication::display_id()
 {
 	if ( currPanel ) { currPanel->display_id( errBlock ) ; }
+}
+
+
+void pApplication::set_nondispl_enter()
+{
+	ControlNonDispl = true ;
+	ControlNonDisplEnd = false ;
+}
+
+
+void pApplication::set_nondispl_end()
+{
+	ControlNonDispl = true ;
+	ControlNonDisplEnd = true ;
+}
+
+
+void pApplication::clr_nondispl()
+{
+	ControlNonDispl = false ;
+	ControlNonDisplEnd = false ;
 }
 
 
@@ -485,19 +502,26 @@ void pApplication::toggle_fscreen()
 {
 	currPanel->toggle_fscreen( addpop_active, addpop_row, addpop_col ) ;
 	currPanel->display_panel( errBlock ) ;
-	return ;
 }
 
 
-void pApplication::set_zlibd( bool passlib, const map<string,stack<string>>& libs )
+void pApplication::set_addpop( pApplication* p )
+{
+	addpop_row    = p->addpop_row ;
+	addpop_col    = p->addpop_col ;
+	addpop_active = p->addpop_active ;
+}
+
+
+void pApplication::set_zlibd( bool passlib, pApplication* p )
 {
 	if ( not passlib )
 	{
-		zlibd = libs ;
+		zlibd = p->zlibd ;
 	}
 	else
 	{
-		for ( auto it = libs.begin() ; it != libs.end() ; ++it )
+		for ( auto it = p->zlibd.begin() ; it != p->zlibd.end() ; ++it )
 		{
 			if ( not it->second.empty() )
 			{
@@ -508,19 +532,23 @@ void pApplication::set_zlibd( bool passlib, const map<string,stack<string>>& lib
 }
 
 
-void pApplication::createPanel( const string& p_name )
+map<string, pPanel*>::iterator pApplication::createPanel( const string& p_name )
 {
+	map<string, pPanel*>::iterator it ;
+	pair<map<string, pPanel*>::iterator, bool> result ;
+
 	const string e1 = "Error creating panel " + p_name ;
 
 	errBlock.setRC( 0 ) ;
 
-	if ( panelList.count( p_name ) > 0 ) { return ; }
+	it = panelList.find( p_name ) ;
+	if ( it != panelList.end() ) { return it ; }
 
 	if ( !isvalidName( p_name ) )
 	{
 		errBlock.setcall( e1, "PSYE021A", p_name ) ;
 		checkRCode( errBlock ) ;
-		return ;
+		return it ;
 	}
 
 	pPanel* p_panel     = new pPanel ;
@@ -534,14 +562,15 @@ void pApplication::createPanel( const string& p_name )
 		delete p_panel ;
 		errBlock.setcall( e1 ) ;
 		checkRCode( errBlock ) ;
-		return ;
+		return it ;
 	}
 
 	p_panel->loadPanel( errBlock, p_name, get_search_path( s_ZPLIB ) ) ;
 
 	if ( errBlock.RC0() )
 	{
-		panelList[ p_name ] = p_panel ;
+		result = panelList.insert( pair<string, pPanel*>( p_name, p_panel ) ) ;
+		it = result.first ;
 		load_keylist( p_panel ) ;
 	}
 	else
@@ -550,15 +579,20 @@ void pApplication::createPanel( const string& p_name )
 		errBlock.setcall( e1 ) ;
 		checkRCode( errBlock ) ;
 	}
+	return it ;
 }
 
 
 void pApplication::display( string p_name,
 			    const string& p_msg,
 			    const string& p_cursor,
-			    int p_curpos )
+			    int p_curpos,
+			    const string& p_buffer,
+			    const string& p_retbuf )
 {
 	string zzverb ;
+
+	map<string,pPanel*>::iterator it ;
 
 	const string e1 = "Error during DISPLAY of panel " + p_name ;
 	const string e2 = "Error processing )INIT section of panel "   ;
@@ -580,6 +614,11 @@ void pApplication::display( string p_name,
 		return ;
 	}
 
+	if ( currPanel )
+	{
+		currPanel->hide_popup() ;
+	}
+
 	if ( p_name == "" )
 	{
 		if ( !currPanel )
@@ -599,11 +638,34 @@ void pApplication::display( string p_name,
 		return ;
 	}
 
-	createPanel( p_name ) ;
+	cbuffer = "" ;
+	if ( p_buffer != "" )
+	{
+		cbuffer = funcPOOL.get( errBlock, 8, p_buffer ) ;
+		if ( errBlock.error() )
+		{
+			errBlock.setcall( e1 ) ;
+			checkRCode( errBlock ) ;
+			return ;
+		}
+		if ( strip( cbuffer ) != "" )
+		{
+			set_nondispl_enter() ;
+		}
+	}
+
+	if ( p_retbuf != "" && !isvalidName( p_retbuf ) )
+	{
+		errBlock.setcall( e1, "PSYE031E", "return buffer", p_retbuf ) ;
+		checkRCode( errBlock ) ;
+		return ;
+	}
+
+	it = createPanel( p_name ) ;
 	if ( errBlock.error() ) { return ; }
 
 	prevPanel = currPanel ;
-	currPanel = panelList[ p_name ] ;
+	currPanel = it->second ;
 
 	if ( propagateEnd )
 	{
@@ -613,7 +675,7 @@ void pApplication::display( string p_name,
 		}
 		else
 		{
-			ControlNonDispl = true ;
+			set_nondispl_enter() ;
 		}
 	}
 
@@ -622,8 +684,7 @@ void pApplication::display( string p_name,
 	currPanel->set_cursor( p_cursor, p_curpos ) ;
 	currPanel->set_msgloc( "" ) ;
 
-	if ( addpop_active ) { currPanel->set_popup( addpop_row, addpop_col ) ; }
-	else                 { currPanel->remove_popup()                      ; }
+	currPanel->set_popup( addpop_active, addpop_row, addpop_col ) ;
 
 	p_poolMGR->put( errBlock, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 
@@ -686,14 +747,6 @@ void pApplication::display( string p_name,
 
 	while ( true )
 	{
-		if ( lineOutDone )
-		{
-			refreshlScreen = true ;
-			waiting_on     = WAIT_USER ;
-			wait_event() ;
-			lineOutDone    = false ;
-			refreshlScreen = false ;
-		}
 		currPanel->display_panel( errBlock ) ;
 		if ( errBlock.error() )
 		{
@@ -708,13 +761,17 @@ void pApplication::display( string p_name,
 			checkRCode( errBlock ) ;
 			return ;
 		}
-		waiting_on = WAIT_USER ;
-		wait_event() ;
+		if ( lineOutDone && not ControlNonDispl )
+		{
+			refreshlScreen = true ;
+			wait_event( WAIT_USER ) ;
+			lineOutDone    = false ;
+			refreshlScreen = false ;
+		}
+		wait_event( WAIT_USER ) ;
 		ControlDisplayLock = false ;
-		ControlNonDispl    = false ;
 		refreshlScreen     = false ;
 		reloadCUATables    = false ;
-		currPanel->hide_popup()    ;
 		currPanel->resetAttrs_once() ;
 		currPanel->display_panel_update( errBlock ) ;
 		if ( errBlock.error() )
@@ -725,6 +782,7 @@ void pApplication::display( string p_name,
 		}
 
 		currPanel->display_panel_proc( errBlock, 0 ) ;
+		clr_nondispl() ;
 		if ( errBlock.error() )
 		{
 			errBlock.setcall( e4 + p_name ) ;
@@ -808,7 +866,7 @@ void pApplication::libdef( const string& lib,
 	string dirname   ;
 
 	map<string,stack<string>>::iterator it ;
-	pair<map<string,stack<string>>::iterator, bool> result ;
+	pair<map<string, stack<string>>::iterator, bool> result ;
 
 	RC = 0 ;
 
@@ -898,7 +956,7 @@ void pApplication::libdef( const string& lib,
 		}
 		if ( it == zlibd.end() )
 		{
-			result = zlibd.insert( pair<string,stack<string>>( lib, stack<string>() ) ) ;
+			result = zlibd.insert( pair<string, stack<string>>( lib, stack<string>() ) ) ;
 			it = result.first ;
 		}
 		if ( proc_cond || proc_uncond )
@@ -1887,16 +1945,15 @@ void pApplication::addpop( const string& a_fld, int a_row, int a_col )
 	//  If addpop() is already active, store old values for next rempop()
 
 	//  Position of addpop is relative to row=1, col=3 or the previous addpop() position for this logical screen.
-	//  Defaults are 0,0 giving row=1, col=3 (or 2,4 when starting at 1,1)
-
-	//  Force a refresh of the screen in case the same window has been displayed after another addpop.  This can
-	//  leave parts of the old window on the screen. (save/restore panel stack by the logical screen)
+	//  Defaults are 0,0 giving row=1, col=3
 
 	//  RC = 0  Normal completion
 	//  RC = 12 No panel displayed before addpop() service when using field parameter
 	//  RC = 20 Severe error
 
 	const string e1 = "ADDPOP Error" ;
+
+	popup t ;
 
 	uint p_row = 0 ;
 	uint p_col = 0 ;
@@ -1923,8 +1980,13 @@ void pApplication::addpop( const string& a_fld, int a_row, int a_col )
 
 	if ( addpop_active )
 	{
-		addpop_stk.push( addpop_row ) ;
-		addpop_stk.push( addpop_col ) ;
+		if ( currPanel )
+		{
+			currPanel->create_panels( t ) ;
+		}
+		t.row  = addpop_row ;
+		t.col  = addpop_col ;
+		popups.push( t ) ;
 		a_row += addpop_row ;
 		a_col += addpop_col ;
 	}
@@ -1933,20 +1995,24 @@ void pApplication::addpop( const string& a_fld, int a_row, int a_col )
 	addpop_row = (a_row <  0 ) ? 1 : a_row + 2 ;
 	addpop_col = (a_col < -1 ) ? 2 : a_col + 4 ;
 
-	if ( currPanel ) { currPanel->show_popup() ; }
-	refreshlScreen = true ;
+	if ( currPanel )
+	{
+		currPanel->show_popup() ;
+	}
 }
 
 
 void pApplication::rempop( const string& r_all )
 {
-	//  Remove pop-up window.  Restore previous rempop() if there is one (push order row,col).
+	//  Remove pop-up window.  Restore previous addpop() if there is one.
 
 	//  RC = 0  Normal completion
 	//  RC = 16 No pop-up window exists at this level
 	//  RC = 20 Severe error
 
 	const string e1 = "REMPOP Error" ;
+
+	pPanel* panl ;
 
 	RC = 0 ;
 
@@ -1964,28 +2030,32 @@ void pApplication::rempop( const string& r_all )
 		return ;
 	}
 
-	if ( r_all == "" )
+	if ( r_all == "ALL" )
 	{
-		if ( !addpop_stk.empty() )
+		while ( !popups.empty() )
 		{
-			addpop_col = addpop_stk.top() ;
-			addpop_stk.pop() ;
-			addpop_row = addpop_stk.top() ;
-			addpop_stk.pop() ;
+			panl = static_cast<pPanel*>(popups.top().panl) ;
+			if ( panl )
+			{
+				panl->delete_panels( popups.top() ) ;
+			}
+			popups.pop() ;
 		}
-		else
+	}
+
+	if ( !popups.empty() )
+	{
+		addpop_col = popups.top().col ;
+		addpop_row = popups.top().row ;
+		panl = static_cast<pPanel*>( popups.top().panl ) ;
+		if ( panl )
 		{
-			addpop_active = false ;
-			addpop_row    = 0 ;
-			addpop_col    = 0 ;
+			panl->delete_panels( popups.top() ) ;
 		}
+		popups.pop() ;
 	}
 	else
 	{
-		while ( !addpop_stk.empty() )
-		{
-			addpop_stk.pop() ;
-		}
 		addpop_active = false ;
 		addpop_row    = 0 ;
 		addpop_col    = 0 ;
@@ -1993,11 +2063,15 @@ void pApplication::rempop( const string& r_all )
 }
 
 
-void pApplication::movepop()
+void pApplication::movepop( int row, int col )
 {
 	if ( addpop_active )
 	{
-		currPanel->set_popup( addpop_row, addpop_col ) ;
+		row = row - 1 ;
+		col = col - 3 ;
+		addpop_row = (row <  0 ) ? 1 : row + 2 ;
+		addpop_col = (col < -1 ) ? 2 : col + 4 ;
+		currPanel->set_popup( true, addpop_row, addpop_col ) ;
 		currPanel->move_popup() ;
 	}
 }
@@ -2069,10 +2143,6 @@ void pApplication::control( const string& parm1, const string& parm2, const stri
 		{
 			ControlDisplayLock = true ;
 		}
-		else if ( parm2 == "NONDISPL" )
-		{
-			ControlNonDispl = true ;
-		}
 		else if ( parm2 == "REFRESH" )
 		{
 			refreshlScreen = true ;
@@ -2130,6 +2200,23 @@ void pApplication::control( const string& parm1, const string& parm2, const stri
 		else
 		{
 			errBlock.setcall( e1, "PSYE022X", "DISPLAY", parm2 ) ;
+			checkRCode( errBlock ) ;
+			return ;
+		}
+	}
+	else if ( parm1 == "NONDISPL" )
+	{
+		if ( parm2 == "ENTER" || parm2 == "" )
+		{
+			set_nondispl_enter() ;
+		}
+		else if ( parm2 == "END" )
+		{
+			set_nondispl_end() ;
+		}
+		else
+		{
+			errBlock.setcall( e1, "PSYE022X", "NONDISPL", parm2 ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -2206,11 +2293,11 @@ void pApplication::control( const string& parm1, const string& parm2, const stri
 	{
 		if ( parm2 == "UPDATE" )
 		{
-			ControlRefUpdate = true ;
+			p_poolMGR->put( errBlock, lscreen_num, "ZREFUPDT", "Y" ) ;
 		}
 		else if ( parm2 == "NOUPDATE" )
 		{
-			ControlRefUpdate = false ;
+			p_poolMGR->put( errBlock, lscreen_num, "ZREFUPDT", "N" ) ;
 		}
 		else if ( parm2 == "ON" )
 		{
@@ -2427,7 +2514,7 @@ void pApplication::tbclose( const string& tb_name, const string& tb_newname, str
 
 	if ( tb_newname != "" && !isvalidName( tb_newname ) )
 	{
-		errBlock.setcall( e1, "PSYE022J", "table", tb_newname ) ;
+		errBlock.setcall( e1, "PSYE022J", tb_newname, "table" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -2503,7 +2590,7 @@ void pApplication::tbcreate( const string& tb_name,
 
 	if ( !isvalidName( tb_name ) )
 	{
-		errBlock.setcall( e1, "PSYE022J", "table", tb_name ) ;
+		errBlock.setcall( e1, "PSYE022J", tb_name, "table" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -2531,7 +2618,7 @@ void pApplication::tbcreate( const string& tb_name,
 		w = word( tb_keys, i ) ;
 		if ( !isvalidName( w ) )
 		{
-			errBlock.setcall( e1, "PSYE022J", "key", w ) ;
+			errBlock.setcall( e1, "PSYE022J", w, "key" ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -2549,7 +2636,7 @@ void pApplication::tbcreate( const string& tb_name,
 		w = word( tb_names, i ) ;
 		if ( !isvalidName( w ) )
 		{
-			errBlock.setcall( e1, "PSYE022J", "field", w ) ;
+			errBlock.setcall( e1, "PSYE022J", w, "field" ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
@@ -2643,6 +2730,8 @@ void pApplication::tbdispl( const string& tb_name,
 	string URID   ;
 	string s      ;
 
+	map<string,pPanel*>::iterator it ;
+
 	const string e1 = "Error during TBDISPL of panel "+ p_name ;
 	const string e2 = "Error processing )INIT section of panel "   ;
 	const string e3 = "Error processing )REINIT section of panel " ;
@@ -2662,6 +2751,11 @@ void pApplication::tbdispl( const string& tb_name,
 	RC = 0 ;
 	ln = 0 ;
 
+	if ( currPanel )
+	{
+		currPanel->hide_popup() ;
+	}
+
 	prevPanel = currPanel ;
 
 	if ( propagateEnd )
@@ -2676,7 +2770,7 @@ void pApplication::tbdispl( const string& tb_name,
 		}
 		else
 		{
-			ControlNonDispl = true ;
+			set_nondispl_enter() ;
 		}
 	}
 
@@ -2715,9 +2809,9 @@ void pApplication::tbdispl( const string& tb_name,
 
 	if ( p_name != "" )
 	{
-		createPanel( p_name ) ;
+		it = createPanel( p_name ) ;
 		if ( errBlock.error() ) { return ; }
-		currPanel   = panelList[ p_name ] ;
+		currPanel   = it->second ;
 		currtbPanel = currPanel ;
 		currPanel->tb_clear_linesChanged( errBlock ) ;
 		if ( errBlock.error() )
@@ -2746,8 +2840,7 @@ void pApplication::tbdispl( const string& tb_name,
 	currPanel->set_msgloc( p_msgloc ) ;
 	currPanel->set_cursor( p_cursor, p_curpos ) ;
 
-	if ( addpop_active ) { currPanel->set_popup( addpop_row, addpop_col ) ; }
-	else                 { currPanel->remove_popup()                      ; }
+	currPanel->set_popup( addpop_active, addpop_row, addpop_col ) ;
 
 	if ( wpanel )
 	{
@@ -2864,14 +2957,6 @@ void pApplication::tbdispl( const string& tb_name,
 	{
 		if ( p_name != "" )
 		{
-			if ( lineOutDone )
-			{
-				refreshlScreen = true ;
-				waiting_on     = WAIT_USER ;
-				wait_event() ;
-				lineOutDone    = false ;
-				refreshlScreen = false ;
-			}
 			p_poolMGR->put( errBlock, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 			tbquery( tb_name, "", "", "", "", "", "ZZCRP" ) ;
 			currPanel->tb_set_crp( funcPOOL.get( errBlock, 0, INTEGER, "ZZCRP" ) ) ;
@@ -2889,13 +2974,17 @@ void pApplication::tbdispl( const string& tb_name,
 				checkRCode( errBlock ) ;
 				return ;
 			}
-			waiting_on = WAIT_USER ;
-			wait_event() ;
+			if ( lineOutDone && not ControlNonDispl )
+			{
+				refreshlScreen = true ;
+				wait_event( WAIT_USER ) ;
+				lineOutDone    = false ;
+				refreshlScreen = false ;
+			}
+			wait_event( WAIT_USER ) ;
 			ControlDisplayLock = false ;
-			ControlNonDispl    = false ;
 			refreshlScreen     = false ;
 			reloadCUATables    = false ;
-			currPanel->hide_popup() ;
 			currPanel->clear_msg() ;
 			currPanel->curfld = "" ;
 			currPanel->resetAttrs_once() ;
@@ -2950,6 +3039,7 @@ void pApplication::tbdispl( const string& tb_name,
 		}
 
 		currPanel->display_panel_proc( errBlock, ln ) ;
+		clr_nondispl() ;
 		if ( errBlock.error() )
 		{
 			errBlock.setcall( e4 + p_name ) ;
@@ -3117,7 +3207,7 @@ void pApplication::tberase( const string& tb_name, string tb_paths )
 
 	if ( !isvalidName( tb_name ) )
 	{
-		errBlock.setcall( e1, "PSYE022J", "table", tb_name ) ;
+		errBlock.setcall( e1, "PSYE022J", tb_name, "table" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -3251,7 +3341,7 @@ void pApplication::tbopen( const string& tb_name,
 
 	if ( !isvalidName( tb_name ) )
 	{
-		errBlock.setcall( e1, "PSYE022J", "table", tb_name ) ;
+		errBlock.setcall( e1, "PSYE022J", tb_name, "table" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -3396,7 +3486,7 @@ void pApplication::tbsave( const string& tb_name, const string& tb_newname, stri
 
 	if ( tb_newname != "" && !isvalidName( tb_newname ) )
 	{
-		errBlock.setcall( e1, "PSYE022J", "table", tb_newname ) ;
+		errBlock.setcall( e1, "PSYE022J", tb_newname, "table" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -3630,7 +3720,7 @@ void pApplication::edrec( const string& m_parm )
 	else
 	{
 		errBlock.setcall( "EDREC Error" ) ;
-		errBlock.seterrid( "PSYE042T", m_parm ) ;
+		errBlock.seterrid( "PSYE023M", m_parm ) ;
 		checkRCode( errBlock ) ;
 		xRC = RC ;
 	}
@@ -3665,7 +3755,7 @@ int pApplication::edrec_init( const string& m_parm,
 	qscan( qname, rname, EXC, LOCAL ) ;
 	if ( RC == 0 )
 	{
-		errBlock.setcall( e1, "PSYE042V", "INIT" ) ;
+		errBlock.setcall( e1, "PSYE023O", "INIT" ) ;
 		checkRCode( errBlock ) ;
 		return 20 ;
 	}
@@ -3742,7 +3832,7 @@ int pApplication::edrec_query( const string& m_parm,
 	qscan( qname, rname, EXC, LOCAL ) ;
 	if ( RC == 0 )
 	{
-		errBlock.setcall( e1, "PSYE042V", "QUERY" ) ;
+		errBlock.setcall( e1, "PSYE023O", "QUERY" ) ;
 		checkRCode( errBlock ) ;
 		return 20 ;
 	}
@@ -3801,7 +3891,7 @@ int pApplication::edrec_process( const string& m_parm,
 	// ZEDOPTS  - byte 0 - confirm cancel
 	//          - byte 1 - preserve trailing spaces
 
-	int xRC = 4 ;
+	int xRC ;
 	int row ;
 
 	string zedstat  ;
@@ -3818,7 +3908,7 @@ int pApplication::edrec_process( const string& m_parm,
 	deq( qname, rname, LOCAL ) ;
 	if ( RC == 8 )
 	{
-		errBlock.setcall( e1, "PSYE042U", "PROCESS" ) ;
+		errBlock.setcall( e1, "PSYE023N", "PROCESS" ) ;
 		checkRCode( errBlock ) ;
 		return 20 ;
 	}
@@ -3842,7 +3932,7 @@ int pApplication::edrec_process( const string& m_parm,
 	}
 
 	edit( zedbfile, "", "" ,"", "", confcan, preserve ) ;
-	if ( ZRC == 0 && ZRSN == 4 ) { xRC = 0 ; }
+	xRC = ( RC < 5 ) ? RC : 20 ;
 
 	deq( qname, zedtfile ) ;
 
@@ -3912,7 +4002,7 @@ int pApplication::edrec_cancel( const string& m_parm,
 	deq( qname, rname, LOCAL ) ;
 	if ( RC == 8 )
 	{
-		errBlock.setcall( e1, "PSYE042U", "CANCEL" ) ;
+		errBlock.setcall( e1, "PSYE023N", "CANCEL" ) ;
 		checkRCode( errBlock ) ;
 		return 20 ;
 	}
@@ -3969,7 +4059,6 @@ int pApplication::edrec_cancel( const string& m_parm,
 
 	funcPOOL.put( errBlock, "ZEDTFILE", "" ) ;
 	funcPOOL.put( errBlock, "ZEDBFILE", "" ) ;
-	funcPOOL.put( errBlock, "ZEDROW",   0  ) ;
 
 	return 0 ;
 }
@@ -3987,7 +4076,7 @@ int pApplication::edrec_defer( const string& qname, const string& rname )
 	deq( qname, rname, LOCAL ) ;
 	if ( RC == 8 )
 	{
-		errBlock.setcall( e1, "PSYE042U", "DEFER" ) ;
+		errBlock.setcall( e1, "PSYE023N", "DEFER" ) ;
 		checkRCode( errBlock ) ;
 		return 20 ;
 	}
@@ -4008,6 +4097,14 @@ void pApplication::edit( const string& m_file,
 			 const string& m_confirm,
 			 const string& m_preserve )
 {
+	// RC =  0  Normal completion.  Data was saved.
+	// RC =  4  Normal completion.  Data was not saved.
+	//          No changes made or CANCEL entered.
+	// RC = 14  File in use
+	// RC = 20  Severe error
+
+	string t ;
+
 	selct.clear() ;
 	selct.pgm     = p_poolMGR->get( errBlock, "ZEDITPGM", PROFILE ) ;
 	selct.parm    = "FILE("+ m_file +") "+
@@ -4023,11 +4120,21 @@ void pApplication::edit( const string& m_file,
 	selct.suspend = true    ;
 	selct.scrname = "EDIT"  ;
 	actionSelect() ;
+
+	RC = ZRC ;
+	if ( ZRC > 11 && ZRESULT != "" )
+	{
+		t = p_poolMGR->get( errBlock, "ZVAL1", SHARED ) ;
+		errBlock.setcall( "EDIT Error", ZRESULT, t, ZRC ) ;
+		checkRCode( errBlock ) ;
+	}
 }
 
 
 void pApplication::browse( const string& m_file, const string& m_panel )
 {
+	string t ;
+
 	selct.clear() ;
 	selct.pgm     = p_poolMGR->get( errBlock, "ZBRPGM", PROFILE ) ;
 	selct.parm    = "FILE("+ m_file +") PANEL("+ m_panel +")" ;
@@ -4037,11 +4144,22 @@ void pApplication::browse( const string& m_file, const string& m_panel )
 	selct.suspend = true     ;
 	selct.scrname = "BROWSE" ;
 	actionSelect() ;
+
+	RC = ZRC ;
+	if ( ZRC > 11 && ZRESULT != "" )
+	{
+		t = p_poolMGR->get( errBlock, "ZVAL1", SHARED ) ;
+		errBlock.setcall( "BROWSE Error", ZRESULT, t, ZRC ) ;
+		checkRCode( errBlock ) ;
+		return ;
+	}
 }
 
 
 void pApplication::view( const string& m_file, const string& m_panel )
 {
+	string t ;
+
 	selct.clear() ;
 	selct.pgm     = p_poolMGR->get( errBlock, "ZVIEWPGM", PROFILE ) ;
 	selct.parm    = "FILE("+ m_file +") PANEL("+ m_panel +")" ;
@@ -4051,6 +4169,15 @@ void pApplication::view( const string& m_file, const string& m_panel )
 	selct.suspend = true    ;
 	selct.scrname = "VIEW"  ;
 	actionSelect() ;
+
+	RC = ZRC ;
+	if ( ZRC > 11 && ZRESULT != "" )
+	{
+		t = p_poolMGR->get( errBlock, "ZVAL1", SHARED ) ;
+		errBlock.setcall( "VIEW Error", ZRESULT, t, ZRC ) ;
+		checkRCode( errBlock ) ;
+		return ;
+	}
 }
 
 
@@ -4165,15 +4292,15 @@ void pApplication::actionSelect()
 	// ZRC = 20  ZRSN = 998  SELECT PGM not found.
 	// ZRC = 20  ZRSN = 997  SELECT CMD not found.
 	// ZRC = 20  ZRSN = 996  Errors loading program.
-	// (don't percolate these codes back to the calling program - ZRSN = 0)
+	// Don't percolate these codes back to the calling program (set ZRSN = 0) so it doesn't
+	// appear to be abending with these codes (20/999/Abended instead).
 
 	// BUG: selct.pgm will be blank for PANEL/CMD/SHELL in error messages (resolved in lspf.cpp)
 
 	RC  = 0    ;
 	SEL = true ;
-	waiting_on = WAIT_SELECT ;
 
-	wait_event() ;
+	wait_event( WAIT_SELECT ) ;
 
 	if ( RC == 4 )
 	{
@@ -4220,6 +4347,8 @@ void pApplication::pquery( const string& p_name,
 {
 	const string e1 = "PQUERY Error for panel "+p_name ;
 
+	map<string,pPanel*>::iterator it ;
+
 	RC = 0 ;
 
 	if ( !isvalidName( p_name ) )
@@ -4265,10 +4394,10 @@ void pApplication::pquery( const string& p_name,
 		return ;
 	}
 
-	createPanel( p_name ) ;
+	it = createPanel( p_name ) ;
 	if ( errBlock.error() ) { return ; }
 
-	panelList[ p_name ]->get_panel_info( RC, a_name, t_name, w_name, d_name, r_name, c_name ) ;
+	it->second->get_panel_info( RC, a_name, t_name, w_name, d_name, r_name, c_name ) ;
 }
 
 
@@ -4397,8 +4526,7 @@ void pApplication::rdisplay( const string& msg, bool subVars )
 		lineOutDone    = true  ;
 		lineOutPending = true  ;
 		refreshlScreen = false ;
-		waiting_on     = WAIT_OUTPUT ;
-		wait_event() ;
+		wait_event( WAIT_OUTPUT ) ;
 		lineOutPending = false ;
 	}
 }
@@ -5317,7 +5445,7 @@ void pApplication::checkRCode()
 
 void pApplication::checkRCode( errblock err )
 {
-	// If the error panel is to be displayed, cancel CONTROL DISPLAY LOCK and remove any popup's
+	// If the error panel is to be displayed, cancel CONTROL DISPLAY LOCK/NONDISPL and remove any popup's
 
 	// Format: msg1   header - call description resulting in the error
 	//         short  msg
@@ -5409,6 +5537,7 @@ void pApplication::checkRCode( errblock err )
 		}
 	}
 
+	clr_nondispl() ;
 	ControlDisplayLock  = false ;
 	ControlErrorsReturn = true  ;
 	selPanel            = false ;
@@ -5416,7 +5545,7 @@ void pApplication::checkRCode( errblock err )
 	if ( addpop_active ) { rempop( "ALL" ) ; }
 	errBlock.clear() ;
 
-	display( "PSYSER2" )  ;
+	display( "PSYSER2" ) ;
 	if ( RC <= 8 ) { errPanelissued = true ; }
 	abend() ;
 }

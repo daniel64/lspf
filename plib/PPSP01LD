@@ -3,12 +3,13 @@
  Panel to display current libdef status for this logical screen
 )ENDCOMMENT
 
-)BODY WINDOW(70,22) CMD(ZCMD)
+)BODY WINDOW(70,22) CMD(ZCMD) SMSG(LDMSG)
 
 PanelTitle "LIBDEF Display Utility"
 
 text     2   2         FP    "Command ===>"
 field    2  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
+field    3   2  24     VOI NONE LDMSG
 
 text     2  MAX-15  FP "Scroll ===>"
 field    2  MAX-3   4 NEF  NONE ZSCROLL

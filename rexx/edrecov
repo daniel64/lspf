@@ -30,7 +30,7 @@ Call setdest src
 /*           to find the Edit Recovery Table.                                */
 /*                                                                           */
 /*      Recovery is also done before the Edit Entry panel is displayed       */
-/*      so it is not necessary to run this REXX.                             */
+/*      or edit from the file list, so it is not necessary to run this REXX. */
 /*****************************************************************************/
 
 address ISPEXEC
@@ -42,11 +42,9 @@ do forever
    if RC \= 4 then leave
    zfile=zedtfile
    "DISPLAY PANEL(PEDIT014) CURSOR(ZCMD)"
-   if RC = 8 then
+   if RC = 8 & ZCMD \= "CANCEL" then
      do
-       "VGET ZVERB SHARED"
-       if ZVERB \= "CANCEL" then leave
-       ZCMD = ZVERB
+       leave
      end
    if ZCMD = "" then
      do

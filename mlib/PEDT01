@@ -1,6 +1,6 @@
-*
-* Message file for the PEDIT01 EDITOR
-*
+/*                                              */
+/* Message file for the PEDIT01 EDITOR          */
+/*                                              */
 
 PEDT011 'Invalid Command Parameter' .TYPE=W
 'Primary command contains an invalid parameter'
@@ -207,7 +207,7 @@ PEDT013Y 'Line command error' .TYPE=W
 'A command is already on the line command field'
 
 PEDT014A 'File in use' .TYPE=W
-'File ''&ZFILE'' is currently being edited in another session'
+'File ''&ZVAL1'' is currently being edited in another session'
 
 PEDT014B 'Data shifting incomplete' .TYPE=W
 'Data shifting was not completed on lines marked ==ERR>'
@@ -371,8 +371,8 @@ PEDT016B 'No lines searched' .T=W
 PEDT016C 'No parameters passed' .T=W
 'Edit has been invoked with no parameters'
 
-PEDT016D 'Spare' .T=W
-'Spare'
+PEDT016D 'Inconsistent parameters' .T=W
+'CHARS, PREFIX, SUFFIX and WORD cannot be used with a regular expression'
 
 PEDT016E '*Bottom of range reached*' .TYPE=W
 '&TYPE &STR not found from &ZVAL1 to &ZVAL2.  Press RFIND to continue'

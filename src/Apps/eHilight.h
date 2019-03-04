@@ -48,17 +48,7 @@ class hilight
 		bool     hl_Paren    ;
 		hilight()
 		{
-			hl_language = ""    ;
-			hl_abend    = false ;
-			hl_oBrac1   = 0     ;
-			hl_oBrac2   = 0     ;
-			hl_oComment = false ;
-			hl_Quote    = ' '   ;
-			hl_oQuote   = false ;
-			hl_continue = false ;
-			hl_ifLogic  = false ;
-			hl_doLogic  = false ;
-			hl_Paren    = false ;
+			hl_clear() ;
 		}
 		void hl_clear()
 		{
@@ -66,6 +56,8 @@ class hilight
 			hl_abend    = false ;
 			hl_oBrac1   = 0     ;
 			hl_oBrac2   = 0     ;
+			hl_oIf      = 0     ;
+			hl_oDo      = 0     ;
 			hl_oComment = false ;
 			hl_Quote    = ' '   ;
 			hl_oQuote   = false ;

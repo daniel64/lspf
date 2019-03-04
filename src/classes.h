@@ -611,6 +611,27 @@ class slmsg
 } ;
 
 
+class popup
+{
+	public:
+		popup()
+		{
+			row  = 0 ;
+			col  = 0 ;
+			panl = NULL ;
+			pan1 = NULL ;
+			pan2 = NULL ;
+		}
+
+		uint    row    ;
+		uint    col    ;
+		void*   panl   ;
+		PANEL*  pan1   ;
+		PANEL*  pan2   ;
+
+} ;
+
+
 class selobj
 {
 	public:

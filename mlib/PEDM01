@@ -1,6 +1,6 @@
-*
-* Message file for the PEDIT01 EDITOR macro error messages
-*
+/*                                                           */
+/* Message file for the PEDIT01 EDITOR macro error messages  */
+/*                                                           */
 
 PEDM011A 'Service not currently supported'
 ''

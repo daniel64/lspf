@@ -689,46 +689,48 @@ void PFLST0A::application()
 			break ;
 
 		case LN_EDIT:
+			if ( editRecovery() == 8 ) { break ; }
+			control( "ERRORS", "RETURN" ) ;
 			edit( entry, "", eimac, eprof, lcmtab, eccan, ( epresv == "YES" ? "PRESERVE" : "" ) ) ;
-			if ( ZRESULT != "" )
+			control( "ERRORS", "CANCEL" ) ;
+			if ( ZRESULT == "" )
 			{
-				message = ZRESULT ;
+				message = "Edited" ;
 			}
 			else
 			{
-				message = "Edited" ;
+				msg     = ZRESULT ;
+				message = "Error" ;
 			}
 			tbput( dslist ) ;
 			break ;
 
 		case LN_VIEW:
+			control( "ERRORS", "RETURN" ) ;
 			view( entry ) ;
-			if ( ZRESULT != "" )
-			{
-				message = ZRESULT ;
-			}
-			else
-			{
-				message = "Viewed" ;
-			}
+			control( "ERRORS", "CANCEL" ) ;
+			message = ( ZRESULT != "" ) ? "Error" : "Viewed" ;
 			tbput( dslist ) ;
 			break ;
 
 		case LN_BROWSE:
+			control( "ERRORS", "RETURN" ) ;
 			browse( entry ) ;
-			if ( ZRC == 4 && ZRSN == 4 )
-			{
-				msg = "PPSP011P" ;
-				message = "File empty" ;
-			}
-			else if ( ZRESULT != "" )
-			{
-				message = ZRESULT ;
-			}
-			else
+			if ( RC == 0 )
 			{
 				message = "Browsed" ;
 			}
+			else if ( RC == 12 )
+			{
+				message = "File empty" ;
+				msg     = ZRESULT      ;
+			}
+			else
+			{
+				message = "Error" ;
+				msg     = ZRESULT ;
+			}
+			control( "ERRORS", "CANCEL" ) ;
 			tbput( dslist ) ;
 			break ;
 
@@ -758,7 +760,9 @@ void PFLST0A::application()
 			{
 				message = "Executed" ;
 			}
+			control( "ERRORS", "RETURN" ) ;
 			if ( ZRC == 0 ) { browse( "/tmp/porexx2.say" ) ; }
+			control( "ERRORS", "CANCEL" ) ;
 			tbput( dslist ) ;
 			break ;
 
@@ -838,6 +842,7 @@ void PFLST0A::application()
 				continue             ;
 			}
 			of.close() ;
+			control( "ERRORS", "RETURN" ) ;
 			( it->second == LN_TREE ) ? browseTree( tname ) : browse( tname ) ;
 			if ( RC > 0 )
 			{
@@ -845,6 +850,7 @@ void PFLST0A::application()
 				message = "Unknown Error" ;
 				tbput( dslist )           ;
 			}
+			control( "ERRORS", "CANCEL" ) ;
 			remove( tname ) ;
 			break ;
 		}
@@ -1332,16 +1338,29 @@ int PFLST0A::processPrimCMD()
 			select( "PGM(" + pgm + ") PARM(" + p + ")" ) ;
 			zcmd = "" ;
 		}
-		else if ( is_regular_file( p ) )
+		else if ( is_regular_file( p ) || !exists( p ) )
 		{
+			control( "ERRORS", "RETURN" ) ;
 			if ( findword( cw, "E EDIT" ) )
 			{
+				if ( editRecovery() == 8 )
+				{
+					control( "ERRORS", "CANCEL" ) ;
+					return 0 ;
+				}
 				edit( p, "", eimac, eprof, lcmtab, eccan, ( epresv == "YES" ? "PRESERVE" : "" ) ) ;
+				if ( RC > 0 )
+				{
+					msg = ZRESULT ;
+					return 4 ;
+				}
 			}
 			else
 			{
 				browse( p ) ;
+				msg = ZRESULT ;
 			}
+			control( "ERRORS", "CANCEL" ) ;
 			zcmd = "" ;
 		}
 		return 0 ;
@@ -1822,7 +1841,10 @@ void PFLST0A::browseTree( const string& tname )
 		msg = "" ;
 		if ( tsel == "S" )
 		{
+			control( "ERRORS", "RETURN" ) ;
 			browse( tfile ) ;
+			msg = ZRESULT ;
+			control( "ERRORS", "CANCEL" ) ;
 		}
 		else if ( tsel == "I" )
 		{
@@ -1830,12 +1852,59 @@ void PFLST0A::browseTree( const string& tname )
 		}
 		else if ( tsel == "E" )
 		{
+			if ( editRecovery() == 8 ) { continue ; }
+			control( "ERRORS", "RETURN" ) ;
 			edit( tfile ) ;
+			msg = ZRESULT ;
+			control( "ERRORS", "CANCEL" ) ;
 		}
 	}
 	tbend( tab ) ;
 	return       ;
 
+}
+
+
+int PFLST0A::editRecovery()
+{
+	string zcmd  ;
+	string zfile ;
+
+	const string vlist = "ZCMD ZFILE" ;
+
+	vdefine( vlist, &zcmd, &zfile ) ;
+
+	edrec( "INIT" ) ;
+
+	while ( true )
+	{
+		edrec( "QUERY" ) ;
+		if ( RC == 0 ) { break ; }
+		vcopy( "ZEDTFILE", zfile, MOVE ) ;
+		display( "PEDIT014", "", "ZCMD" ) ;
+		if ( RC == 8 && zcmd != "CANCEL" )
+		{
+			edrec( "DEFER" ) ;
+			vdelete( vlist ) ;
+			return 8 ;
+		}
+		if ( zcmd == "" )
+		{
+			edrec( "PROCESS" ) ;
+		}
+		else if ( zcmd == "CANCEL" )
+		{
+			edrec( "CANCEL" ) ;
+		}
+		else
+		{
+			edrec( "DEFER" ) ;
+		}
+	}
+
+	vdelete( vlist ) ;
+
+	return 0 ;
 }
 
 

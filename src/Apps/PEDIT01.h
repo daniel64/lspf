@@ -1198,6 +1198,7 @@ class edit_find
 		int    f_sk_lnes ;
 		int    f_ex_occs ;
 		int    f_ex_lnes ;
+		boost::regex  f_regexp ;
 	edit_find()
 	{
 		f_string   = ""    ;
@@ -2288,24 +2289,25 @@ class PEDIT01 : public pApplication
 		void removeRecoveryData() ;
 
 		uint getLine( int, uint =0 ) ;
-		vector<iline*>::iterator getFirstEX( vector<iline*>::iterator ) ;
+		vector<iline*>::const_iterator getFirstEX( vector<iline*>::const_iterator ) ;
 		uint getFirstEX( uint ) ;
-		int  getLastEX( vector<iline*>::iterator ) ;
+		int  getLastEX( vector<iline*>::const_iterator ) ;
 		uint getLastEX( uint )    ;
 		int  getExclBlockSize( uint ) ;
 		int  getDataBlockSize( uint ) ;
 		bool URIDOnScreen( int, int ) ;
 		void moveTopline( int )  ;
-		int  countVisibleLines( vector<iline*>::iterator ) ;
-		int  getLastURID( vector<iline*>::iterator, int ) ;
+		int  countVisibleLines( vector<iline*>::const_iterator ) ;
+		int  getLastURID( vector<iline*>::const_iterator, int ) ;
 
 		uint getDataLine( int )  ;
 		int  getFileLine( uint ) ;
 		int  getFileLine4URID( int ) ;
 
 		vector<iline*>::iterator getValidDataLineNext( vector<iline*>::iterator ) ;
-		uint getFileLinePrev( uint ) ;
+		vector<iline*>::const_iterator getFileLineNext( vector<iline*>::const_iterator ) ;
 		uint getFileLineNext( uint ) ;
+		uint getFileLinePrev( uint ) ;
 
 		uint getNextDataLine( uint ) ;
 		vector<iline*>::iterator getNextDataLine( vector<iline*>::iterator ) ;
@@ -2315,10 +2317,10 @@ class PEDIT01 : public pApplication
 		uint getPrevDataLine( uint ) ;
 		uint getPrevFileLine( uint ) ;
 		vector<iline*>::iterator getPrevFileLine( vector<iline*>::iterator ) ;
-		void getLineData( vector<iline*>::iterator ) ;
+		void getLineData( vector<iline*>::const_iterator ) ;
 
-		int  getNextValidURID( vector<iline*>::iterator ) ;
-		string mergeLine( const string&, vector<iline*>::iterator ) ;
+		int  getNextValidURID( vector<iline*>::const_iterator ) ;
+		string mergeLine( const string&, vector<iline*>::const_iterator ) ;
 
 		void cleanupData()       ;
 		void cleanupRedoStacks() ;
@@ -2387,7 +2389,7 @@ class PEDIT01 : public pApplication
 		void copyPrefix( iline* &,ipline&, bool =false ) ;
 		void addSpecial( LN_TYPE, int, vector<string>& ) ;
 		void addSpecial( LN_TYPE, int, const string& ) ;
-		void addSpecial( LN_TYPE, vector<iline*>::iterator, const string& ) ;
+		vector<iline*>::iterator addSpecial( LN_TYPE, vector<iline*>::iterator, const string& ) ;
 
 		string getMaskLine() ;
 		string rshiftCols( int, const string* ) ;
@@ -2403,6 +2405,8 @@ class PEDIT01 : public pApplication
 		uint topLine             ;
 		uint ptopLine            ;
 		uint maxCol              ;
+		int  XRC                 ;
+		int  XRSN                ;
 		int  startCol            ;
 		int  mRow                ;
 		int  mCol                ;

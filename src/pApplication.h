@@ -23,7 +23,8 @@ class pApplication
 		pApplication()  ;
 		virtual ~pApplication() ;
 
-		virtual void run() ;
+		void run() ;
+
 		virtual void application() = 0 ;
 		virtual void isredit( const string& ) {} ;
 
@@ -34,12 +35,17 @@ class pApplication
 		static tableMGR* p_tableMGR ;
 		static logger*   lg         ;
 
+		static bool ControlNonDispl ;
+		static bool ControlDisplayLock ;
+		static bool ControlSplitEnable ;
+		static bool lineOutDone ;
+
 		int    RC                 ;
+		int    ZRC                ;
+		int    ZRSN               ;
+		string ZRESULT            ;
 		string PARM               ;
-		bool   ControlDisplayLock ;
-		bool   ControlNonDispl    ;
-		bool   ControlSplitEnable ;
-		bool   ControlRefUpdate   ;
+
 		bool   errPanelissued     ;
 		bool   testMode           ;
 		bool   propagateEnd       ;
@@ -59,15 +65,9 @@ class pApplication
 		bool   passlib            ;
 		bool   suspend            ;
 		bool   setMessage         ;
-		string startDate          ;
-		string startTime          ;
 		string rexxName           ;
 		string reffield           ;
 		string lineBuffer         ;
-
-		int    ZRC                ;
-		int    ZRSN               ;
-		string ZRESULT            ;
 
 		boost::thread* pThread    ;
 		pApplication*  uAppl      ;
@@ -89,17 +89,20 @@ class pApplication
 		string get_current_panelDesc()  ;
 		string get_current_screenName() ;
 		string get_panelid() ;
+		string get_command_buffer() { return cbuffer ; }
+		bool   simulate_enter()     { return ( ControlNonDispl || ControlDisplayLock ) ; }
+		bool   simulate_end()       { return ( ControlNonDispl && ControlNonDisplEnd ) ; }
 
-		void  set_zlibd( bool, const map<string,stack<string>>& ) ;
-		const map<string,stack<string>>& get_zlibd()             { return zlibd ; }
+		void  set_zlibd( bool, pApplication* ) ;
+		const map<string,stack<string>>& get_zlibd() { return zlibd ; }
 
 		string get_applid() ;
 
 		const string& get_jobkey() ;
 
-		void   set_appdesc( const string& s )   { zappdesc = s ; }
-		void   set_appver(  const string& s )   { zappver  = s ; }
-		void   set_apphelp( const string& s )   { zapphelp = s ; }
+		void  set_appdesc( const string& s )    { zappdesc = s ; }
+		void  set_appver(  const string& s )    { zappver  = s ; }
+		void  set_apphelp( const string& s )    { zapphelp = s ; }
 		const string& get_appname()             { return zappname ; }
 		const string& get_appdesc()             { return zappdesc ; }
 		const string& get_appver()              { return zappver  ; }
@@ -112,7 +115,9 @@ class pApplication
 		void   display( string p_name,
 				const string& p_msg = "",
 				const string& p_cursor = "",
-				int p_curpos = 0 ) ;
+				int p_curpos = 0,
+				const string& p_buffer = "",
+				const string& p_retbuf = "" ) ;
 
 		void   pquery( const string& p_name,
 			       const string& a_name,
@@ -293,33 +298,6 @@ class pApplication
 
 		void   edrec( const string& m_parm ) ;
 
-		int    edrec_init( const string& m_parm,
-				   const string& qname,
-				   const string& rname,
-				   const string& uprof,
-				   const string& tabName,
-				   const string& v_list ) ;
-		int    edrec_query( const string& m_parm,
-				    const string& qname,
-				    const string& rname,
-				    const string& uprof,
-				    const string& tabName,
-				    const string& v_list ) ;
-		int    edrec_process( const string& m_parm,
-				      const string& qname,
-				      const string& rname,
-				      const string& uprof,
-				      const string& tabName,
-				      const string& v_list ) ;
-		int    edrec_cancel( const string& m_parm,
-				     const string& qname,
-				     const string& rname,
-				     const string& uprof,
-				     const string& tabName,
-				     const string& v_list ) ;
-		int    edrec_defer( const string& qname,
-				    const string& rname ) ;
-
 		void   view( const string& m_file,
 			     const string& m_panel="" ) ;
 
@@ -334,7 +312,7 @@ class pApplication
 
 		void   addpop( const string& ="", int =0, int =0 ) ;
 		void   rempop( const string& ="" ) ;
-		void   movepop() ;
+		void   movepop( int, int ) ;
 
 		void   set_cursor( int row, int col ) ;
 		void   set_cursor_home() ;
@@ -380,20 +358,13 @@ class pApplication
 		void   setTestMode()  ;
 		bool   selectPanel()             { return selPanel ; }
 
-		int    get_addpop_row()          { return addpop_row    ; }
-		int    get_addpop_col()          { return addpop_col    ; }
-		bool   get_addpop_act()          { return addpop_active ; }
+		void   set_addpop( pApplication* ) ;
 
-		void   set_addpop_row( int  i )  { addpop_row = i    ; }
-		void   set_addpop_col( int  i )  { addpop_col = i    ; }
-		void   set_addpop_act( bool b )  { addpop_active = b ; }
+		bool   do_refresh_lscreen()      { return refreshlScreen  ; }
+		void   refresh_lscreen_done()    { refreshlScreen = false ; }
+		bool   line_output_pending()     { return lineOutPending  ; }
 
-		bool   do_refresh_lscreen()      { return refreshlScreen ; }
-		bool   line_output_done()        { return lineOutDone    ; }
-		bool   line_output_pending()     { return lineOutPending ; }
-		void   set_output_done( bool b ) { lineOutDone = b       ; }
-
-		bool   get_nested()              { return nested  ; }
+		bool   is_nested()               { return nested  ; }
 		void*  get_options()             { return options ; }
 		string get_status() ;
 
@@ -401,7 +372,7 @@ class pApplication
 
 		bool   background()              { return backgrd ; }
 
-		bool   msg_issued_with_cmd() ;
+		bool   error_msg_issued() ;
 
 		void   save_errblock()    ;
 		void   restore_errblock() ;
@@ -415,7 +386,9 @@ class pApplication
 	private:
 		static boost::mutex mtx ;
 
+		boost::condition* cond_mstr ;
 		boost::mutex mutex ;
+
 		vector<enqueue>l_enqueues ;
 
 		fPOOL funcPOOL    ;
@@ -435,14 +408,14 @@ class pApplication
 		bool refreshlScreen ;
 		bool ControlErrorsReturn ;
 		bool ControlPassLRScroll ;
+		bool ControlNonDisplEnd  ;
 		bool selPanel ;
 		bool abending ;
 		bool abended  ;
-		bool lineOutDone    ;
 		bool lineOutPending ;
 		bool cmdTableLoaded ;
-		bool nested         ;
-		void* options       ;
+		bool nested     ;
+		void* options   ;
 
 		selobj selct    ;
 
@@ -476,6 +449,10 @@ class pApplication
 		string zerr7    ;
 		string zerr8    ;
 
+		string startDate ;
+		string startTime ;
+		string cbuffer   ;
+
 		WAIT_REASON waiting_on ;
 
 		void get_message( const string& )  ;
@@ -483,6 +460,37 @@ class pApplication
 		bool load_message( const string& ) ;
 		bool sub_message_vars( slmsg & ) ;
 		void set_screenName() ;
+
+		void set_nondispl_enter() ;
+		void set_nondispl_end() ;
+		void clr_nondispl() ;
+
+		int    edrec_init( const string& m_parm,
+				   const string& qname,
+				   const string& rname,
+				   const string& uprof,
+				   const string& tabName,
+				   const string& v_list ) ;
+		int    edrec_query( const string& m_parm,
+				    const string& qname,
+				    const string& rname,
+				    const string& uprof,
+				    const string& tabName,
+				    const string& v_list ) ;
+		int    edrec_process( const string& m_parm,
+				      const string& qname,
+				      const string& rname,
+				      const string& uprof,
+				      const string& tabName,
+				      const string& v_list ) ;
+		int    edrec_cancel( const string& m_parm,
+				     const string& qname,
+				     const string& rname,
+				     const string& uprof,
+				     const string& tabName,
+				     const string& v_list ) ;
+		int    edrec_defer( const string& qname,
+				    const string& rname ) ;
 
 		errblock errBlock ;
 		errblock serBlock ;
@@ -493,8 +501,8 @@ class pApplication
 
 		stack<pPanel*> tbpanel_stk ;
 		stack<string> stk_str ;
-		stack<int> stk_int    ;
-		stack<int> addpop_stk ;
+		stack<int> stk_int  ;
+		stack<popup> popups ;
 		stack<stack<string>> urid_stk ;
 
 		map<string,stack<string>> zlibd ;
@@ -503,7 +511,7 @@ class pApplication
 		string get_search_path( const string& ) ;
 
 		void load_keylist( pPanel* ) ;
-		void createPanel( const string& p_name ) ;
+		map<string, pPanel*>::iterator createPanel( const string& p_name ) ;
 		void actionSelect()   ;
 
 		void checkRCode() ;
@@ -518,7 +526,7 @@ class pApplication
 		void abendexc() ;
 		void abend_nothrow() ;
 
-		void wait_event() ;
+		void wait_event( WAIT_REASON ) ;
 } ;
 
 #undef  MOD_NAME

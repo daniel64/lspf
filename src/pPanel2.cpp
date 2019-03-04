@@ -205,37 +205,29 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				wscrmaxw = win_width ;
 				wscrmaxd = win_depth ;
 			}
-			ws = parseString( err, pline, "CMD()" ) ;
+			cmdfield = parseString( err, pline, "CMD()" ) ;
 			if ( err.error() )
 			{
 				err.setsrc( oline ) ;
 				return ;
 			}
-			if ( ws != "" )
+			if ( cmdfield != "" && !isvalidName( cmdfield ) )
 			{
-				cmdfield = ws ;
-				if ( !isvalidName( cmdfield ) )
-				{
-					err.seterrid( "PSYE022J", "COMMAND field", cmdfield ) ;
-					err.setsrc( oline ) ;
-					return ;
-				}
+				err.seterrid( "PSYE022J", cmdfield, "CMD field" ) ;
+				err.setsrc( oline ) ;
+				return ;
 			}
-			ws = parseString( err, pline, "HOME()" ) ;
+			home = parseString( err, pline, "HOME()" ) ;
 			if ( err.error() )
 			{
 				err.setsrc( oline ) ;
 				return ;
 			}
-			if ( ws != "" )
+			if ( home != "" && !isvalidName( home ) )
 			{
-				home = ws ;
-				if ( !isvalidName( home ) )
-				{
-					err.seterrid( "PSYE022J", "HOME field", home ) ;
-					err.setsrc( oline ) ;
-					return ;
-				}
+				err.seterrid( "PSYE022J", home, "HOME field" ) ;
+				err.setsrc( oline ) ;
+				return ;
 			}
 			ws = parseString( err, pline, "SCROLL()" ) ;
 			if ( err.error() )
@@ -245,13 +237,37 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			}
 			if ( ws != "" )
 			{
-				scroll = ws ;
-				if ( !isvalidName( scroll ) )
+				if ( !isvalidName( ws ) )
 				{
-					err.seterrid( "PSYE022J", "SCROLL field", scroll ) ;
+					err.seterrid( "PSYE022J", ws, "SCROLL field" ) ;
 					err.setsrc( oline ) ;
 					return ;
 				}
+				scroll = ws ;
+			}
+			pos_smsg = parseString( err, pline, "SMSG()" ) ;
+			if ( err.error() )
+			{
+				err.setsrc( oline ) ;
+				return ;
+			}
+			if ( pos_smsg != "" && !isvalidName( pos_smsg ) )
+			{
+				err.seterrid( "PSYE022J", pos_smsg, "SMSG field" ) ;
+				err.setsrc( oline ) ;
+				return ;
+			}
+			pos_lmsg = parseString( err, pline, "LMSG()" ) ;
+			if ( err.error() )
+			{
+				err.setsrc( oline ) ;
+				return ;
+			}
+			if ( pos_lmsg != "" && !isvalidName( pos_lmsg ) )
+			{
+				err.seterrid( "PSYE022J", pos_lmsg, "LMSG field" ) ;
+				err.setsrc( oline ) ;
+				return ;
 			}
 			if ( pline != "" )
 			{
@@ -706,7 +722,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			w7 = err.getUserData() ;
 			if ( !isvalidName( w7 ) )
 			{
-				err.seterrid( "PSYE022J", "field", w7 ) ;
+				err.seterrid( "PSYE022J", w7, "field" ) ;
 				err.setsrc( oline ) ;
 				delete fld ;
 				return ;
@@ -719,11 +735,21 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				delete fld ;
 				return ;
 			}
-			fieldList[ w7 ] = fld ;
-			if ( not jump_fields )
+
+			if ( ( pos_smsg == w7 || pos_lmsg == w7 ) && attrUnprot.count( fld->field_cua ) > 0 )
 			{
-				jump_fields = fld->field_jump ;
+				err.seterrid( "PSYE042K", ( pos_smsg == w7 ) ? "SMSG" : "LMSG" ) ;
+				err.setsrc( oline ) ;
+				delete fld ;
+				return ;
 			}
+
+			if ( fld->field_cua == PS )
+			{
+				fieldPS[ w7 ] = fld ;
+			}
+
+			fieldList[ w7 ] = fld ;
 			continue ;
 		}
 		else if ( w1 == "DYNAREA" )
@@ -731,7 +757,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			w6 = word( pline, 6 ) ;
 			if ( !isvalidName( w6 ) )
 			{
-				err.seterrid( "PSYE022J", "dynamic area", w7 ) ;
+				err.seterrid( "PSYE022J", w7, "dynamic area" ) ;
 				err.setsrc( oline ) ;
 				return ;
 			}
@@ -773,11 +799,11 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			a.field_cua     = AB ;
 			a.field_col     = m_dynArea->dynArea_col   ;
 			a.field_length  = m_dynArea->dynArea_width ;
-			a.field_cole    = m_dynArea->dynArea_col + m_dynArea->dynArea_width ;
+			a.field_endcol  = m_dynArea->dynArea_col + m_dynArea->dynArea_width ;
 			a.field_dynArea = m_dynArea ;
 			for ( i = 0 ; i < m_dynArea->dynArea_depth ; ++i )
 			{
-				field * fld    = new field ;
+				field* fld     = new field ;
 				*fld           = a         ;
 				fld->field_row = m_dynArea->dynArea_row + i ;
 				fieldList[ w6 + "." + d2ds( i ) ] = fld ;
@@ -883,23 +909,36 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 
 	if ( scrollOn )
 	{
-		if ( fieldList.count( scroll ) == 0 )
+		it1 = fieldList.find( scroll ) ;
+		if ( it1 == fieldList.end() )
 		{
-			err.seterrid( "PSYE042K", scroll ) ;
+			err.seterrid( "PSYE042M", scroll, "Scroll" ) ;
 			return ;
 		}
-		fieldList[ scroll ]->field_caps = true ;
+		it1->second->field_caps = true ;
 	}
 
 	if ( home != "" && fieldList.count( home ) == 0 )
 	{
-		err.seterrid( "PSYE042L", home ) ;
+		err.seterrid( "PSYE042M", home, "Home" ) ;
 		return ;
 	}
 
 	if ( cmdfield != "" && fieldList.count( cmdfield ) == 0 )
 	{
-		err.seterrid( "PSYE042M", cmdfield ) ;
+		err.seterrid( "PSYE042M", cmdfield, "Command" ) ;
+		return ;
+	}
+
+	if ( pos_smsg != "" && fieldList.count( pos_smsg ) == 0 )
+	{
+		err.seterrid( "PSYE042M", pos_smsg, "Short message" ) ;
+		return ;
+	}
+
+	if ( pos_lmsg != "" && fieldList.count( pos_lmsg ) == 0 )
+	{
+		err.seterrid( "PSYE042M", pos_lmsg, "Long message" ) ;
 		return ;
 	}
 
@@ -954,8 +993,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		{
 			for ( auto itb = textList.begin() ; itb != textList.end() ; ++itb )
 			{
-				if ( ita->second->field_row == (*itb)->text_row     &&
-				     ita->second->field_col == (*itb)->text_cole + 1 )
+				if ( ita->second->field_row == (*itb)->text_row &&
+				     ita->second->field_col == (*itb)->text_endcol + 1 )
 				{
 					k = (*itb)->text_value.size() - 3 ;
 					if ( k > 0 )
@@ -991,8 +1030,8 @@ void pPanel::readPanel( errblock& err,
 			const string& paths,
 			string slist )
 {
-	int i  ;
-	int p  ;
+	int i ;
+	int p ;
 
 	size_t p1 ;
 	size_t p2 ;
@@ -1422,7 +1461,9 @@ void pPanel::createPanel_Refresh( errblock& err, parser& v, panstmnt* m_stmnt )
 			t = v.getCurrentToken() ;
 			if ( t.subtype == TS_NAME )
 			{
-				if ( fieldList.count( t.value1 ) == 0 && tb_fields.count( t.value1 ) == 0 )
+				if ( fieldList.count( t.value1 )   == 0 &&
+				     tb_fields.count( t.value1 )   == 0 &&
+				     dynAreaList.count( t.value1 ) == 0 )
 				{
 					err.seterrid( "PSYE041X", t.value1 ) ;
 					return ;
@@ -1449,7 +1490,9 @@ void pPanel::createPanel_Refresh( errblock& err, parser& v, panstmnt* m_stmnt )
 		t = v.getCurrentToken() ;
 		if ( t.subtype == TS_NAME )
 		{
-			if ( fieldList.count( t.value1 ) == 0 && tb_fields.count( t.value1 ) == 0 )
+			if ( fieldList.count( t.value1 )   == 0 &&
+			     tb_fields.count( t.value1 )   == 0 &&
+			     dynAreaList.count( t.value1 ) == 0 )
 			{
 				err.seterrid( "PSYE041X", t.value1 ) ;
 				return ;

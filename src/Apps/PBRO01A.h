@@ -90,6 +90,7 @@ class PBRO01A : public pApplication
 	private:
 		static b_find Global_bfind_parms ;
 
+		void Browse()               ;
 		void read_file( string )    ;
 		void fill_dynamic_area()    ;
 		void fill_hilight_shadow()  ;
@@ -111,6 +112,9 @@ class PBRO01A : public pApplication
 
 		b_find find_parms ;
 		hilight hlight    ;
+
+		int  XRC  ;
+		int  XRSN ;
 
 		bool hexOn  ;
 		bool colsOn ;
