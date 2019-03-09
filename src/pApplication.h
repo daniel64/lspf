@@ -326,7 +326,8 @@ class pApplication
 		void   get_home( uint & row, uint & col ) ;
 		void   get_cursor( uint & row, uint & col ) ;
 		void   set_msg( const string& ) ;
-		void   set_msg1( const slmsg&, const string&, bool =false ) ;
+		void   set_msg1( const slmsg&, const string& ) ;
+		void   display_setmsg() ;
 		void   clear_msg() ;
 		slmsg  getmsg1()                 { return zmsg1   ; }
 		string getmsgid1()               { return zmsgid1 ; }

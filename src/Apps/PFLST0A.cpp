@@ -692,16 +692,17 @@ void PFLST0A::application()
 			if ( editRecovery() == 8 ) { break ; }
 			control( "ERRORS", "RETURN" ) ;
 			edit( entry, "", eimac, eprof, lcmtab, eccan, ( epresv == "YES" ? "PRESERVE" : "" ) ) ;
-			control( "ERRORS", "CANCEL" ) ;
-			if ( ZRESULT == "" )
+			if ( RC == 0 || RC == 4 )
 			{
+				setmsg( ZRESULT != "" ? ZRESULT : "FLST012N" ) ;
 				message = "Edited" ;
 			}
-			else
+			else if ( RC > 11 )
 			{
-				msg     = ZRESULT ;
+				msg     = ( ZRESULT != "Abended" ) ? ZRESULT : "" ;
 				message = "Error" ;
 			}
+			control( "ERRORS", "CANCEL" ) ;
 			tbput( dslist ) ;
 			break ;
 
@@ -1349,9 +1350,13 @@ int PFLST0A::processPrimCMD()
 					return 0 ;
 				}
 				edit( p, "", eimac, eprof, lcmtab, eccan, ( epresv == "YES" ? "PRESERVE" : "" ) ) ;
-				if ( RC > 0 )
+				if ( RC == 0 || RC == 4 )
 				{
-					msg = ZRESULT ;
+					setmsg( ZRESULT != "" ? ZRESULT : "FLST012N" ) ;
+				}
+				else if ( RC > 11 )
+				{
+					msg = ( ZRESULT != "Abended" ) ? ZRESULT : "" ;
 					return 4 ;
 				}
 			}
@@ -1855,12 +1860,19 @@ void PFLST0A::browseTree( const string& tname )
 			if ( editRecovery() == 8 ) { continue ; }
 			control( "ERRORS", "RETURN" ) ;
 			edit( tfile ) ;
-			msg = ZRESULT ;
+			if ( RC == 0 || RC == 4 )
+			{
+				setmsg( ZRESULT != "" ? ZRESULT : "FLST012N" ) ;
+			}
+			else if ( RC > 11 )
+			{
+				msg = ( ZRESULT != "Abended" ) ? ZRESULT : "" ;
+			}
 			control( "ERRORS", "CANCEL" ) ;
 		}
 	}
 	tbend( tab ) ;
-	return       ;
+	return ;
 
 }
 

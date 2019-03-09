@@ -826,6 +826,34 @@ void pPanel::display_panel_update( errblock& err )
 }
 
 
+void pPanel::display_panel_attrs( errblock& err )
+{
+	// Go through the list of character attributes and perform any
+	// variable substitution after )INIT processing has completed.
+
+	string t ;
+
+	for ( auto it = char_attrlist.begin() ; it != char_attrlist.end() ; ++it )
+	{
+		if ( it->second.has_dvars() )
+		{
+			t = sub_vars( it->second.get() ) ;
+			it->second.update( err, t ) ;
+			if ( err.error() ) { return ; }
+			colour_attrlist[ it->first ] = it->second.get_colour() ;
+			if ( ddata_map.count( it->first ) > 0 )
+			{
+				ddata_map[ it->first ] = it->second.get_colour() ;
+			}
+			else if ( schar_map.count( it->first ) > 0 )
+			{
+				schar_map[ it->first ] = it->second.get_colour() ;
+			}
+		}
+	}
+}
+
+
 void pPanel::display_panel_init( errblock& err )
 {
 	// Perform panel )INIT processing
@@ -853,34 +881,6 @@ void pPanel::display_panel_init( errblock& err )
 		++ln ;
 	} while ( ln < tb_depth ) ;
 
-}
-
-
-void pPanel::display_panel_attrs( errblock& err )
-{
-	// Go through the list of character attributes and perform any
-	// variable substitution after )INIT processing has completed.
-
-	string t ;
-
-	for ( auto it = char_attrlist.begin() ; it != char_attrlist.end() ; ++it )
-	{
-		if ( it->second.has_dvars() )
-		{
-			t = sub_vars( it->second.get() ) ;
-			it->second.update( err, t ) ;
-			if ( err.error() ) { return ; }
-			colour_attrlist[ it->first ] = it->second.get_colour() ;
-			if ( ddata_map.count( it->first ) > 0 )
-			{
-				ddata_map[ it->first ] = it->second.get_colour() ;
-			}
-			else if ( schar_map.count( it->first ) > 0 )
-			{
-				schar_map[ it->first ] = it->second.get_colour() ;
-			}
-		}
-	}
 }
 
 
@@ -2845,7 +2845,7 @@ bool pPanel::keep_cmd()
 
 	if ( cmdfield == "" )
 	{
-		return false ;
+		return true ;
 	}
 
 	it = fieldList.find( cmdfield ) ;

@@ -51,10 +51,12 @@ enum P_CMDS
 	PC_PASTE,
 	PC_PROFILE,
 	PC_PRESERVE,
+	PC_RCHANGE,
 	PC_RECOVERY,
 	PC_REDO,
 	PC_REPLACE,
 	PC_RESET,
+	PC_RFIND,
 	PC_SAVE,
 	PC_SETUNDO,
 	PC_SORT,
@@ -253,9 +255,57 @@ class mcmd_format
 	       int anvalopts1 ;
 	       int anvalopts2 ;
 } ;
+
+namespace {
+					//               +----------Minimum number of parameters
+					//               |   +------Maximum number of parameters
+					//               |   |
+					//               |   |      value of -1 means don't check
+					//               V   V
+map<P_CMDS,pcmd_format> pcmdFormat = { { PC_AUTOSAVE, {  0,  2 } },
+				       { PC_BOUNDS,   {  0,  2 } },
+				       { PC_BROWSE,   { -1, -1 } },
+				       { PC_CANCEL,   {  0,  0 } },
+				       { PC_CHANGE,   { -1, -1 } },
+				       { PC_CAPS,     {  0,  2 } },
+				       { PC_COLUMN,   {  0,  1 } },
+				       { PC_COMPARE,  { -1, -1 } },
+				       { PC_COPY,     {  0,  1 } },
+				       { PC_CREATE,   { -1, -1 } },
+				       { PC_CUT,      { -1, -1 } },
+				       { PC_DEFINE,   {  2,  3 } },
+				       { PC_DELETE,   { -1, -1 } },
+				       { PC_EDIT,     { -1, -1 } },
+				       { PC_EDITSET,  {  0,  0 } },
+				       { PC_EXCLUDE,  { -1, -1 } },
+				       { PC_FIND,     { -1, -1 } },
+				       { PC_FLIP,     { -1, -1 } },
+				       { PC_HEX,      {  0,  2 } },
+				       { PC_HIDE,     {  1,  1 } },
+				       { PC_HILIGHT,  { -1, -1 } },
+				       { PC_IMACRO,   {  1,  1 } },
+				       { PC_LOCATE,   { -1, -1 } },
+				       { PC_NULLS,    {  0,  2 } },
+				       { PC_PASTE,    { -1, -1 } },
+				       { PC_PROFILE,  { -1, -1 } },
+				       { PC_PRESERVE, {  0,  1 } },
+				       { PC_RCHANGE,  {  0,  0 } },
+				       { PC_RECOVERY, { -1, -1 } },
+				       { PC_REDO,     {  0,  1 } },
+				       { PC_REPLACE,  { -1, -1 } },
+				       { PC_RESET,    { -1, -1 } },
+				       { PC_RFIND,    {  0,  0 } },
+				       { PC_SAVE,     {  0,  0 } },
+				       { PC_SETUNDO,  {  1,  1 } },
+				       { PC_SORT,     { -1, -1 } },
+				       { PC_TABS,     { -1, -1 } },
+				       { PC_UNDO,     {  0,  1 } },
+				       { PC_XTABS,    {  0,  1 } } } ;
+
+
 				  //       +----------------------------Query: # variables(min,max)
 				  //       |       +--------------------Query: # key options(min,max)
-				  //       |       |       +-----------Action: # key options(min,max
+				  //       |       |       +-----------Action: # key options(min,max)
 				  //       |       |       |       +---Action: # value options(min,max)
 				  //       |       |       |       |             -1 = don't check
 				  //       V       V       V       V
@@ -375,6 +425,7 @@ map<string,pcmd_entry> PrimCMDS =
   { "PROF",     { PC_PROFILE,  "PROFILE"  } },
   { "PRO",      { PC_PROFILE,  "PROFILE"  } },
   { "PR",       { PC_PROFILE,  "PROFILE"  } },
+  { "RCHANGE",  { PC_RCHANGE,  "RCHANGE"  } },
   { "RECVR",    { PC_RECOVERY, "RECOVERY" } },
   { "RECVRY",   { PC_RECOVERY, "RECOVERY" } },
   { "RECOV",    { PC_RECOVERY, "RECOVERY" } },
@@ -387,6 +438,7 @@ map<string,pcmd_entry> PrimCMDS =
   { "REPL",     { PC_CREATE,   "REPLACE"  } },
   { "RESET",    { PC_RESET,    "RESET"    } },
   { "RES",      { PC_RESET,    "RESET"    } },
+  { "RFIND",    { PC_RFIND,    "RFIND"    } },
   { "SAVE",     { PC_SAVE,     "SAVE"     } },
   { "SETUNDO",  { PC_SETUNDO,  "SETUNDO"  } },
   { "SETU",     { PC_SETUNDO,  "SETUNDO"  } },
@@ -397,13 +449,14 @@ map<string,pcmd_entry> PrimCMDS =
   { "XTABS",    { PC_XTABS,    "XTABS"    } }} ;
 
 
-map<string,D_PARMS> DefParms =
+map<string, D_PARMS> DefParms =
 { { "MACRO",        DF_MACRO    },
   { "ALIAS",        DF_ALIAS    },
   { "NOP",          DF_NOP      },
   { "DISABLED",     DF_DISABLED },
   { "RESET",        DF_RESET    } } ;
 
+}
 
 class lcmd
 {
@@ -421,6 +474,7 @@ class lcmd
 		bool   lcmd_procd  ;
 		bool   lcmd_cut    ;
 		bool   lcmd_create ;
+
 		lcmd()
 		{
 			lcmd_cmdstr  = " "   ;
@@ -436,6 +490,7 @@ class lcmd
 			lcmd_cut     = false ;
 			lcmd_create  = false ;
 		}
+
 		void lcmd_clear()
 		{
 			lcmd_cmdstr  = " "   ;
@@ -451,6 +506,7 @@ class lcmd
 			lcmd_cut     = false ;
 			lcmd_create  = false ;
 		}
+
 	friend class PEDIT01 ;
 } ;
 
@@ -461,12 +517,14 @@ class idata
 		int    id_level   ;
 		bool   id_deleted ;
 		string id_data    ;
+
 		idata()
 		{
 			id_level   = 0     ;
 			id_deleted = false ;
 			id_data    = ""    ;
 		}
+
 	friend class iline ;
 } ;
 
@@ -481,6 +539,7 @@ class ipline
 		int     ip_profln ;
 		string  ip_data   ;
 		string  ip_label  ;
+
 		ipline()
 		{
 			ip_type   = LN_INVALID ;
@@ -491,10 +550,12 @@ class ipline
 			ip_label  = ""    ;
 			ip_data   = ""    ;
 		}
+
 		bool is_file() const
 		{
 			return ( ip_type == LN_FILE ) ;
 		}
+
 		bool is_isrt() const
 		{
 			return ( ip_type == LN_ISRT ) ;
@@ -547,137 +608,170 @@ class iline
 			il_vShadow = false  ;
 			il_wShadow = false  ;
 		}
+
 		bool is_file() const
 		{
 			return ( il_type == LN_FILE ) ;
 		}
+
 		bool is_tod() const
 		{
 			return ( il_type == LN_TOD ) ;
 		}
+
 		bool is_bod() const
 		{
 			return ( il_type == LN_BOD ) ;
 		}
+
 		bool is_tod_or_bod() const
 		{
 			return ( il_type == LN_TOD || il_type == LN_BOD ) ;
 		}
+
 		bool is_note() const
 		{
 			return ( il_type == LN_NOTE ) ;
 		}
+
 		bool is_info() const
 		{
 			return ( il_type == LN_INFO ) ;
 		}
+
 		bool is_msg() const
 		{
 			return ( il_type == LN_MSG ) ;
 		}
+
 		bool is_col() const
 		{
 			return ( il_type == LN_COL ) ;
 		}
+
 		bool is_prof() const
 		{
 			return ( il_type == LN_PROF ) ;
 		}
+
 		bool is_tabs() const
 		{
 			return ( il_type == LN_TABS ) ;
 		}
+
 		bool is_mask() const
 		{
 			return ( il_type == LN_MASK ) ;
 		}
+
 		bool is_bnds() const
 		{
 			return ( il_type == LN_BNDS ) ;
 		}
+
 		bool is_isrt() const
 		{
 			return ( il_type == LN_ISRT ) ;
 		}
+
 		bool is_chng() const
 		{
 			return ( il_status == LS_CHNG ) ;
 		}
+
 		bool is_error() const
 		{
 			return ( il_status == LS_ERROR ) ;
 		}
+
 		bool is_undo() const
 		{
 			return ( il_status == LS_UNDO ) ;
 		}
+
 		bool is_redo() const
 		{
 			return ( il_status == LS_REDO ) ;
 		}
+
 		void resetFilePrefix()
 		{
 			il_status = LS_NONE ;
 			il_excl   = false ;
 			il_mark   = false ;
 		}
+
 		void resetFileStatus()
 		{
 			il_status = LS_NONE ;
 		}
+
 		void setChngStatus()
 		{
 			il_status = LS_CHNG ;
 		}
+
 		void clrChngStatus()
 		{
 			if ( il_status == LS_CHNG ) { il_status = LS_NONE ; }
 		}
+
 		void clrErrorStatus()
 		{
 			if ( il_status == LS_ERROR ) { il_status = LS_NONE ; }
 		}
+
 		void clrUndoStatus()
 		{
 			if ( il_status == LS_UNDO ) { il_status = LS_NONE ; }
 		}
+
 		void clrRedoStatus()
 		{
 			if ( il_status == LS_REDO ) { il_status = LS_NONE ; }
 		}
+
 		void setErrorStatus()
 		{
 			il_status = LS_ERROR ;
 		}
+
 		void setUndoStatus()
 		{
 			il_status = LS_UNDO ;
 		}
+
 		void setRedoStatus()
 		{
 			il_status = LS_REDO ;
 		}
+
 		void resetMarked()
 		{
 			il_mark = false ;
 		}
+
 		void toggleMarked()
 		{
 			il_mark = !il_mark ;
 		}
+
 		bool isValidFile() const
 		{
 			return il_type == LN_FILE && !il_deleted ;
 		}
+
 		bool isSpecial() const
 		{
 			return is_note() || is_prof() || is_col()  || is_bnds() ||
 			       is_mask() || is_tabs() || is_info() || is_msg()  ;
 		}
+
 		void clearLcc()
 		{
 			il_lcc = "" ;
 		}
+
 		bool hasLabel( int lvl=0 ) const
 		{
 			for ( int i = lvl ; i >= 0 ; i-- )
@@ -686,6 +780,7 @@ class iline
 			}
 			return false ;
 		}
+
 		bool specialLabel( int lvl=0 )
 		{
 			if ( il_label.count( lvl ) > 0 )
@@ -694,6 +789,7 @@ class iline
 			}
 			return false ;
 		}
+
 		string getLabel( int lvl=0 )
 		{
 			if ( il_label.count( lvl ) > 0 )
@@ -702,6 +798,7 @@ class iline
 			}
 			return "" ;
 		}
+
 		void getLabelInfo( int lvl, string& label, int& foundLvl )
 		{
 			label    = "" ;
@@ -718,6 +815,7 @@ class iline
 			}
 			return ;
 		}
+
 		int setLabel( const string& s, int lvl=0 )
 		{
 			int rc = 0 ;
@@ -726,6 +824,7 @@ class iline
 			il_label[ lvl ] = s ;
 			return rc ;
 		}
+
 		void clearLabel( int lvl=0 )
 		{
 			if ( il_label.count( lvl ) > 0 )
@@ -733,6 +832,7 @@ class iline
 				il_label.erase( lvl ) ;
 			}
 		}
+
 		bool clearLabel( const string& s, int lvl=0 )
 		{
 			if ( il_label.count( lvl ) > 0 && il_label[ lvl ] == s )
@@ -742,6 +842,7 @@ class iline
 			}
 			return false ;
 		}
+
 		void clearSpecialLabel( int lvl=0 )
 		{
 			if ( il_label.count( lvl ) > 0 && il_label[ lvl ].compare( 0, 2, ".O" ) == 0 )
@@ -749,11 +850,13 @@ class iline
 				il_label.erase( lvl ) ;
 			}
 		}
+
 		bool compareLabel( const string& s, int lvl )
 		{
 			if ( il_label.count( lvl ) > 0 && il_label[ lvl ] == s ) { return true ; }
 			return false ;
 		}
+
 		bool put_idata( const string& s, int level, bool comp = true )
 		{
 			idata d ;
@@ -788,6 +891,7 @@ class iline
 			remove_redo_idata() ;
 			return il_type == LN_FILE && !il_deleted ;
 		}
+
 		bool put_idata( const string& s )
 		{
 			idata d ;
@@ -805,10 +909,12 @@ class iline
 			il_vShadow = false  ;
 			return il_type == LN_FILE && !il_deleted ;
 		}
+
 		void set_idata_minsize( int i )
 		{
 			il_idata.top().id_data.resize( i, ' ' ) ;
 		}
+
 		bool set_idata_upper( int Level )
 		{
 			if ( any_of( il_idata.top().id_data.begin(), il_idata.top().id_data.end(),
@@ -822,6 +928,7 @@ class iline
 			}
 			return false ;
 		}
+
 		bool set_idata_upper( int Level, int l, int r )
 		{
 			string t = il_idata.top().id_data ;
@@ -837,6 +944,7 @@ class iline
 			}
 			return false ;
 		}
+
 		bool set_idata_lower( int Level, int l, int r )
 		{
 			string t = il_idata.top().id_data ;
@@ -852,6 +960,7 @@ class iline
 			}
 			return false ;
 		}
+
 		bool set_idata_trim( int Level )
 		{
 			if ( il_idata.top().id_data.size() > 0 && il_idata.top().id_data.back() == ' ' )
@@ -861,10 +970,12 @@ class iline
 			}
 			return false ;
 		}
+
 		void set_idata_trim()
 		{
 			trim_right( il_idata.top().id_data ) ;
 		}
+
 		void set_deleted( int Level )
 		{
 			if ( il_deleted ) { return ; }
@@ -873,6 +984,7 @@ class iline
 			il_idata.top().id_deleted = true ;
 			il_deleted                = true ;
 		}
+
 		void convert_to_file( int level )
 		{
 			il_type = LN_FILE ;
@@ -887,30 +999,37 @@ class iline
 			clear_Global_Redo() ;
 			remove_redo_idata() ;
 		}
+
 		const string& get_idata() const
 		{
 			return il_idata.top().id_data ;
 		}
+
 		int get_idata_len() const
 		{
 			return il_idata.top().id_data.size() ;
 		}
+
 		string::const_iterator get_idata_begin() const
 		{
 			return il_idata.top().id_data.begin() ;
 		}
+
 		string::const_iterator get_idata_end() const
 		{
 			return il_idata.top().id_data.end() ;
 		}
+
 		string* get_idata_ptr()
 		{
 			return &il_idata.top().id_data ;
 		}
+
 		bool idata_is_empty() const
 		{
 			return il_idata.empty() ;
 		}
+
 		void undo_idata()
 		{
 			if ( !setUNDO[ il_taskid ] ) { return ; }
@@ -927,6 +1046,7 @@ class iline
 			il_excl = false ;
 			Redo_data[ il_taskid ] = true ;
 		}
+
 		void redo_idata()
 		{
 			if ( !setUNDO[ il_taskid ] ) { return ; }
@@ -935,6 +1055,7 @@ class iline
 			il_idata_redo.pop() ;
 			il_excl = false ;
 		}
+
 		void clear_Global_Undo()
 		{
 			while ( !Global_Undo[ il_taskid ].empty() )
@@ -942,6 +1063,7 @@ class iline
 				Global_Undo[ il_taskid ].pop() ;
 			}
 		}
+
 		void clear_Global_Redo()
 		{
 			while ( !Global_Redo[ il_taskid ].empty() )
@@ -949,18 +1071,22 @@ class iline
 				Global_Redo[ il_taskid ].pop() ;
 			}
 		}
+
 		bool is_Redo_data()
 		{
 			return Redo_data[ il_taskid ] ;
 		}
+
 		void reset_Redo_data()
 		{
 			Redo_data[ il_taskid ] = false ;
 		}
+
 		void reset_Global_Undo()
 		{
 			Global_Undo[ il_taskid ] = Global_File_level[ il_taskid ] ;
 		}
+
 		void clear_Global_File_level()
 		{
 			while ( !Global_File_level[ il_taskid ].empty() )
@@ -968,6 +1094,7 @@ class iline
 				Global_File_level[ il_taskid ].pop() ;
 			}
 		}
+
 		int get_Global_File_level() const
 		{
 			if ( Global_File_level[ il_taskid ].empty() )
@@ -979,6 +1106,7 @@ class iline
 				return Global_File_level[ il_taskid ].top() ;
 			}
 		}
+
 		void set_Global_File_level()
 		{
 			if ( Global_File_level[ il_taskid ].empty() ||
@@ -987,34 +1115,40 @@ class iline
 				Global_File_level[ il_taskid ].push( Global_Undo[ il_taskid ].top() ) ;
 			}
 		}
+
 		void remove_Global_File_level()
 		{
 			Global_File_level[ il_taskid ].pop() ;
 		}
+
 		int get_Global_Undo_level() const
 		{
 			if ( !setUNDO[ il_taskid ] ||
 			     Global_Undo[ il_taskid ].empty() ) { return 0 ; }
 			return Global_Undo[ il_taskid ].top() ;
 		}
+
 		int get_Global_Redo_level() const
 		{
 			if ( !setUNDO[ il_taskid ] ||
 			     Global_Redo[ il_taskid ].empty() ) { return 0 ; }
 			return Global_Redo[ il_taskid ].top() ;
 		}
+
 		void move_Global_Undo2Redo()
 		{
 			if ( !setUNDO[ il_taskid ] ) { return ; }
 			Global_Redo[ il_taskid ].push ( Global_Undo[ il_taskid ].top() ) ;
 			Global_Undo[ il_taskid ].pop() ;
 		}
+
 		void move_Global_Redo2Undo()
 		{
 			if ( !setUNDO[ il_taskid ] ) { return ; }
 			Global_Undo[ il_taskid ].push( Global_Redo[ il_taskid ].top() ) ;
 			Global_Redo[ il_taskid ].pop() ;
 		}
+
 		void flatten_idata()
 		{
 			idata d = il_idata.top() ;
@@ -1028,6 +1162,7 @@ class iline
 			}
 			il_idata.push( d ) ;
 		}
+
 		void remove_redo_idata()
 		{
 			while ( !il_idata_redo.empty() )
@@ -1035,24 +1170,29 @@ class iline
 				il_idata_redo.pop() ;
 			}
 		}
+
 		int get_idata_level() const
 		{
 			if ( il_idata.empty() ) { return 0 ; }
 			return il_idata.top().id_level ;
 		}
+
 		int get_idata_Redo_level() const
 		{
 			if ( il_idata_redo.empty() ) { return 0 ; }
 			return il_idata_redo.top().id_level ;
 		}
+
 		int get_Global_Undo_Size() const
 		{
 			return Global_Undo[ il_taskid ].size() ;
 		}
+
 		int get_Global_Redo_Size() const
 		{
 			return Global_Redo[ il_taskid ].size() ;
 		}
+
 		int get_Global_File_Size() const
 		{
 			return Global_File_level[ il_taskid ].size() ;
@@ -1072,6 +1212,7 @@ class ipos
 		uint   ipos_lchar ;
 		bool   ipos_div   ;
 		iline* ipos_addr  ;
+
 		ipos()
 		{
 			ipos_dl    = 0 ;
@@ -1081,6 +1222,7 @@ class ipos
 			ipos_div   = false ;
 			ipos_addr  = NULL  ;
 		}
+
 		ipos( uint w )
 		{
 			ipos_dl    = 0 ;
@@ -1090,6 +1232,7 @@ class ipos
 			ipos_div   = false ;
 			ipos_addr  = NULL  ;
 		}
+
 		void clear( uint w )
 		{
 			ipos_dl    = 0 ;
@@ -1115,6 +1258,7 @@ class cmd_range
 		int    c_ecol  ;
 		bool   c_ocol  ;
 		string c_rest  ;
+
 	cmd_range()
 	{
 		c_vlab  = false ;
@@ -1128,6 +1272,7 @@ class cmd_range
 		c_ocol  = false ;
 		c_rest  = ""    ;
 	}
+
 	void cmd_range_clear()
 	{
 		c_slab  = ""    ;
@@ -1139,6 +1284,7 @@ class cmd_range
 		c_ocol  = false ;
 		c_rest  = ""    ;
 	}
+
 	friend class PEDIT01 ;
 } ;
 
@@ -1199,6 +1345,7 @@ class edit_find
 		int    f_ex_occs ;
 		int    f_ex_lnes ;
 		boost::regex  f_regexp ;
+
 	edit_find()
 	{
 		f_string   = ""    ;
@@ -1254,6 +1401,7 @@ class edit_find
 		f_ex_occs  = 0     ;
 		f_ex_lnes  = 0     ;
 	}
+
 	void reset()
 	{
 		f_success  = false ;
@@ -1269,14 +1417,17 @@ class edit_find
 		f_lines    = 0  ;
 		f_offset   = 0  ;
 	}
+
 	void setrstring( const string& s )
 	{
 		if ( f_rstring == "" ) { f_rstring = s ; }
 	}
+
 	bool findReverse() const
 	{
 		return ( f_dir == 'L' || f_dir == 'P' ) ;
 	}
+
 	friend class PEDIT01 ;
 } ;
 
@@ -1290,6 +1441,7 @@ class defName
 		bool   disabled ;
 		bool   cmd      ;
 		bool   pgm      ;
+
 	defName()
 	{
 		name     = ""    ;
@@ -1299,6 +1451,7 @@ class defName
 		cmd      = false ;
 		pgm      = false ;
 	}
+
 	void clear()
 	{
 		name     = ""    ;
@@ -1308,10 +1461,12 @@ class defName
 		cmd      = false ;
 		pgm      = false ;
 	}
+
 	bool deactive() const
 	{
 		return ( nop || disabled ) ;
 	}
+
 	bool macro() const
 	{
 		return ( pgm || cmd ) ;
@@ -1323,6 +1478,7 @@ class cmdblock
 {
 	public:
 		string CMD   ;
+		string CMDF  ;
 		string OCMD  ;
 		P_CMDS p_cmd ;
 		string MSG   ;
@@ -1343,6 +1499,7 @@ class cmdblock
 	cmdblock()
 	{
 		CMD      = "" ;
+		CMDF     = "" ;
 		OCMD     = "" ;
 		p_cmd    = PC_INVCMD ;
 		MSG      = "" ;
@@ -1360,9 +1517,11 @@ class cmdblock
 		keep     = false ;
 		deact    = false ;
 	}
+
 	void clear()
 	{
 		CMD      = "" ;
+		CMDF     = "" ;
 		OCMD     = "" ;
 		p_cmd    = PC_INVCMD ;
 		MSG      = "" ;
@@ -1380,26 +1539,29 @@ class cmdblock
 		keep     = false ;
 		deact    = false ;
 	}
+
 	void set_cmd( const string& s, map<string,stack<defName>>& defNames )
 	{
 		string w ;
+
 		map<string,stack<defName>>::iterator ita ;
+		map<P_CMDS,pcmd_format>::iterator itp ;
 
 		CMD = strip( s ) ;
 		if ( CMD == "" ) { clear() ; return ; }
 
-		MSG      = ""    ;
-		RC       = 0     ;
-		RSN      = 0     ;
-		cchar    = ""    ;
-		udata    = ""    ;
-		macro    = true  ;
-		expl     = false ;
-		seek     = false ;
-		lcmd     = false ;
-		keep     = false ;
-		alias    = false ;
-		deact    = false ;
+		MSG   = ""    ;
+		RC    = 0     ;
+		RSN   = 0     ;
+		cchar = ""    ;
+		udata = ""    ;
+		macro = true  ;
+		expl  = false ;
+		seek  = false ;
+		lcmd  = false ;
+		keep  = false ;
+		alias = false ;
+		deact = false ;
 		if ( CMD.front() == '&' )
 		{
 			CMD.erase( 0, 1 ) ;
@@ -1435,18 +1597,17 @@ class cmdblock
 					keep = true      ;
 					return ;
 				}
-				if ( PrimCMDS.count( w ) > 0 ) { w = PrimCMDS[ w ].truename ; }
-				w = upper( word( CMD, 1 ) ) ;
+				w = get_truename( upper( word( CMD, 1 ) ) ) ;
 			}
 			else
 			{
-				if ( PrimCMDS.count( w ) > 0 ) { w = PrimCMDS[ w ].truename ; }
+				w   = get_truename( w ) ;
 				ita = defNames.find( w ) ;
 				if ( ita != defNames.end() )
 				{
 					if ( ita->second.top().deactive() )
 					{
-						set_msg( "PEDT015R", 8 ) ;
+						set_msg( "PEDT015R", 12 ) ;
 						deact = true ;
 						return ;
 					}
@@ -1456,12 +1617,11 @@ class cmdblock
 					}
 					if ( ita->second.top().alias )
 					{
-						w   = ita->second.top().name ;
-						if ( PrimCMDS.count( w ) > 0 ) { w = PrimCMDS[ w ].truename ; }
+						w   = get_truename( ita->second.top().name ) ;
 						ita = defNames.find( w ) ;
 						if ( ita != defNames.end() && ita->second.top().deactive() )
 						{
-							set_msg( "PEDT015R", 8 ) ;
+							set_msg( "PEDT015R", 12 ) ;
 							deact = true ;
 							return ;
 						}
@@ -1487,46 +1647,79 @@ class cmdblock
 				}
 			}
 		}
-		cwds     = words( CMD ) ;
+		cwds = words( CMD ) ;
+		CMDF = upper( word( CMD, 1 ) ) ;
+		itp  = pcmdFormat.find( p_cmd ) ;
+		if ( itp->second.noptions1 != -1 && cwds < ( itp->second.noptions1 + 1 ) )
+		{
+			set_msg( "PEDT015E" ) ;
+			return ;
+		}
+
+		if ( itp->second.noptions2 != -1 && cwds > ( itp->second.noptions2 + 1 ) )
+		{
+			set_msg( "PEDT015D" ) ;
+			return ;
+		}
 		actioned = false ;
 	}
+
 	string condget_cmd() const
 	{
 		if ( error() || keep ) { return alias ? cchar+OCMD : cchar+CMD ; }
 		return "" ;
 	}
+
 	int get_cmd_words() const
 	{
 		return cwds ;
 	}
+
 	const string& get_cmd() const
 	{
 		return CMD ;
 	}
-	bool cmd_not( const string& s ) const
+
+	const string& get_cmdf() const
 	{
-		return ( CMD != s ) ;
+		return CMDF ;
 	}
+
+	bool cmdf_is( const string& s ) const
+	{
+		return ( CMDF == s ) ;
+	}
+
+	bool cmdf_is_not( const string& s ) const
+	{
+		return ( CMDF != s ) ;
+	}
+
 	int isMacro() const
 	{
 		return macro ;
 	}
+
 	void setActioned()
 	{
 		actioned = true ;
 	}
+
 	bool isActioned() const
 	{
 		return actioned ;
 	}
+
 	int isSeek() const
 	{
 		return seek ;
 	}
+
 	int isLine_cmd() const
 	{
 		return lcmd ;
 	}
+
 	void reset()
 	{
 		CMD      = ""    ;
@@ -1540,56 +1733,78 @@ class cmdblock
 		lcmd     = false ;
 		keep     = false ;
 	}
+
 	void cond_reset()
 	{
 		if ( !keep ) { reset() ; }
 	}
+
 	void clear_msg()
 	{
 		MSG = "" ;
 		RC  = 0  ;
 		RSN = 0  ;
 	}
+
 	void set_msg( const string& m, int rc =12 )
 	{
 		MSG = m  ;
 		RC  = rc ;
 	}
+
 	void setRC( int rc )
 	{
 		RC = rc ;
 	}
+
 	const string& get_msg() const
 	{
 		return MSG ;
 	}
+
 	bool msgset() const
 	{
 		return ( MSG != "" ) ;
 	}
+
 	bool cmdset() const
 	{
 		return ( CMD != "" ) ;
 	}
+
 	void set_userdata( const string& s )
 	{
 		udata = s ;
 	}
+
 	const string& get_userdata() const
 	{
 		return udata ;
 	}
+
 	bool error() const
 	{
 		return ( RC > 8 ) ;
 	}
+
 	bool info() const
 	{
 		return ( RC < 9 ) ;
 	}
+
 	bool deactive() const
 	{
 		return deact ;
+	}
+
+	const string& get_truename( const string& w ) const
+	{
+		auto it = PrimCMDS.find( w ) ;
+		if ( it != PrimCMDS.end() )
+		{
+			return it->second.truename ;
+		}
+		return w ;
 	}
 	friend class PEDIT01 ;
 	friend class PEDRXM1 ;
@@ -1681,6 +1896,7 @@ class miblock
 		RSN       = 0     ;
 		exitRC    = 0     ;
 	}
+
 	void clear_all()
 	{
 		emacro    = ""    ;
@@ -1720,6 +1936,7 @@ class miblock
 		RSN       = 0     ;
 		exitRC    = 0     ;
 	}
+
 	void clear()
 	{
 		emacro    = ""    ;
@@ -1753,6 +1970,7 @@ class miblock
 		RSN       = 0     ;
 		exitRC    = 0     ;
 	}
+
 	void reset()
 	{
 		m_cmd     = EM_INVCMD ;
@@ -1775,6 +1993,7 @@ class miblock
 		RC        = 0     ;
 		RSN       = 0     ;
 	}
+
 	void seterror( const string& e1, int i1=12, int i2 =0 )
 	{
 		msgid = e1 ;
@@ -1782,6 +2001,7 @@ class miblock
 		RSN   = i2 ;
 		fatal = ( RC >= 12 ) ;
 	}
+
 	void seterror( const string& e1, const string& e2, int i1 =12, int i2 =0 )
 	{
 		msgid = e1 ;
@@ -1790,6 +2010,7 @@ class miblock
 		RSN   = i2 ;
 		fatal = ( RC >= 12 ) ;
 	}
+
 	void seterror( cmdblock& cmd )
 	{
 		msgid = cmd.MSG ;
@@ -1797,6 +2018,7 @@ class miblock
 		RSN   = cmd.RSN ;
 		fatal = ( RC >= 12 ) ;
 	}
+
 	void setExitRC( const string& s )
 	{
 		if ( datatype( s, 'W' ) )
@@ -1809,14 +2031,17 @@ class miblock
 			exitRC = 28 ;
 		}
 	}
+
 	void setExitRC( int i )
 	{
 		exitRC = i ;
 	}
+
 	int getExitRC() const
 	{
 		return exitRC ;
 	}
+
 	void setRC( int i )
 	{
 		RC = i ;
@@ -1827,6 +2052,7 @@ class miblock
 			msgid = "" ;
 		}
 	}
+
 	void addRCnoError( int i )
 	{
 		setRC( RC + i ) ;
@@ -1836,10 +2062,12 @@ class miblock
 			msgid = "" ;
 		}
 	}
+
 	bool msgset() const
 	{
 		return ( msgid != "" ) ;
 	}
+
 	void parseMACRO()
 	{
 		int i  ;
@@ -1885,6 +2113,7 @@ class miblock
 		macro = true ;
 		return       ;
 	}
+
 	void parseStatement( const string& s, map<string,stack<defName>>& defNames )
 	{
 		int  i     ;
@@ -1919,9 +2148,21 @@ class miblock
 
 		for ( quote = false, its = t.begin() ; its != t.end() ; ++its )
 		{
-			if ( !quote && ((*its) == '"' || (*its) == '\'' ) ) { quote = true ; qt = (*its) ; continue ; }
-			if (  quote &&  (*its) == qt ) { quote = false ; continue ; }
-			if ( quote ) { continue  ; }
+			if ( !quote && ((*its) == '"' || (*its) == '\'' ) )
+			{
+				quote = true ;
+				qt = (*its) ;
+				continue ;
+			}
+			if (  quote && (*its) == qt )
+			{
+				quote = false ;
+				continue ;
+			}
+			if ( quote )
+			{
+				continue ;
+			}
 			(*its) = toupper( *its ) ;
 		}
 
@@ -1941,16 +2182,19 @@ class miblock
 			}
 			return ;
 		}
+
 		if ( !macro )
 		{
 			seterror( "PEDM011E" ) ;
 			return                 ;
 		}
+
 		if ( sttment == "" )
 		{
 			seterror( "PEDM012P" ) ;
 			return                 ;
 		}
+
 		if ( w == "BUILTIN" )
 		{
 			idelword( sttment, 1, 1 ) ;
@@ -2159,10 +2403,12 @@ class miblock
 			}
 		}
 	}
+
 	void setMacro( const string& s )
 	{
 		emacro = s ;
 	}
+
 	bool getMacroFileName( const string& paths )
 	{
 		int j = getpaths( paths ) ;
@@ -2187,18 +2433,22 @@ class miblock
 		setRC( 8 )   ;
 		return false ;
 	}
+
 	bool scanOn() const
 	{
 		return scan ;
 	}
+
 	bool editEnded() const
 	{
 		return eended ;
 	}
+
 	int get_sttment_words() const
 	{
 		return sttwds ;
 	}
+
 	friend class PEDIT01 ;
 	friend class PEDRXM1 ;
 } ;
@@ -2210,6 +2460,7 @@ class lmac
 		string lcname  ;
 		string lcmac   ;
 		bool   lcpgm   ;
+
 	lmac()
 	{
 		lcname = ""    ;
@@ -2602,51 +2853,6 @@ class PEDIT01 : public pApplication
 
 		map<bool, char>ZeroOne      = { { true,  '1'    },
 						{ false, '0'    } } ;
-
-						      //
-						      //               +----------Minimum number of parameters
-						      //               |   +------Maximum number of parameters
-						      //               |   |
-						      //               |   |      value of -1 means don't check
-						      //               V   V
-		map<P_CMDS,pcmd_format> PCMDform = { { PC_AUTOSAVE, {  0,  2 } },
-						     { PC_BOUNDS,   {  0,  2 } },
-						     { PC_BROWSE,   { -1, -1 } },
-						     { PC_CANCEL,   {  0,  0 } },
-						     { PC_CHANGE,   { -1, -1 } },
-						     { PC_CAPS,     {  0,  2 } },
-						     { PC_COLUMN,   {  0,  1 } },
-						     { PC_COMPARE,  { -1, -1 } },
-						     { PC_COPY,     {  0,  1 } },
-						     { PC_CREATE,   { -1, -1 } },
-						     { PC_CUT,      { -1, -1 } },
-						     { PC_DEFINE,   {  2,  3 } },
-						     { PC_DELETE,   { -1, -1 } },
-						     { PC_EDIT,     { -1, -1 } },
-						     { PC_EDITSET,  {  0,  0 } },
-						     { PC_EXCLUDE,  { -1, -1 } },
-						     { PC_FIND,     { -1, -1 } },
-						     { PC_FLIP,     { -1, -1 } },
-						     { PC_HEX,      {  0,  2 } },
-						     { PC_HIDE,     {  1,  1 } },
-						     { PC_HILIGHT,  { -1, -1 } },
-						     { PC_IMACRO,   {  1,  1 } },
-						     { PC_LOCATE,   { -1, -1 } },
-						     { PC_NULLS,    {  0,  2 } },
-						     { PC_PASTE,    { -1, -1 } },
-						     { PC_PROFILE,  { -1, -1 } },
-						     { PC_PRESERVE, {  0,  1 } },
-						     { PC_RECOVERY, { -1, -1 } },
-						     { PC_REDO,     {  0,  1 } },
-						     { PC_REPLACE,  { -1, -1 } },
-						     { PC_RESET,    { -1, -1 } },
-						     { PC_SAVE,     {  0,  0 } },
-						     { PC_SETUNDO,  {  1,  1 } },
-						     { PC_SORT,     { -1, -1 } },
-						     { PC_TABS,     { -1, -1 } },
-						     { PC_UNDO,     {  0,  1 } },
-						     { PC_XTABS,    {  0,  1 } } } ;
-
 
 		map<string,L_CMDS> t1lineCmds = { { "A",        LC_A        },
 						  { "AK",       LC_AK       },

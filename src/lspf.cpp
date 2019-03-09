@@ -139,6 +139,7 @@ uint   intens    = 0  ;
 string ctlAction      ;
 string commandStack   ;
 string jumpOption     ;
+string returnOption   ;
 bool   pfkeyPressed   ;
 bool   ctlkeyPressed  ;
 bool   wmPending      ;
@@ -609,6 +610,7 @@ void mainLoop()
 		     !pApplication::ControlNonDispl    &&
 		     !pApplication::lineOutDone )
 		{
+			currAppl->display_setmsg() ;
 			ncursesUpdate( row, col ) ;
 			c = getch() ;
 			if ( c == 13 ) { c = KEY_ENTER ; }
@@ -617,6 +619,7 @@ void mainLoop()
 		{
 			if ( pApplication::ControlDisplayLock && not pApplication::lineOutDone )
 			{
+				currAppl->display_setmsg() ;
 				ncursesUpdate( row, col ) ;
 			}
 			c = KEY_ENTER ;
@@ -823,6 +826,16 @@ void initialSetup()
 
 void ncursesUpdate( uint row, uint col )
 {
+	if ( pApplication::lineOutDone )
+	{
+		lineOutput_end() ;
+		currScrn->refresh_panel_stack() ;
+		pApplication::lineOutDone = false ;
+		update_panels() ;
+		doupdate() ;
+		linePosn = -1 ;
+	}
+
 	wnoutrefresh( stdscr ) ;
 	wnoutrefresh( OIA ) ;
 	update_panels() ;
@@ -957,15 +970,20 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 	{
 		if ( currAppl->currPanel->pd_active() )
 		{
-			currAppl->currPanel->remove_pd() ;
 			currAppl->clear_msg() ;
+			if ( currAppl->currPanel->cursor_on_pulldown( row, col ) )
+			{
+				currAppl->set_cursor_home() ;
+				currScrn->set_cursor( currAppl ) ;
+			}
+			currAppl->currPanel->remove_pd() ;
 		}
 		else
 		{
-			passthru = false ;
 			actionSwap( "LIST" ) ;
 		}
-		zcommand = "" ;
+		passthru = false ;
+		zcommand = "NOP" ;
 		return ;
 	}
 
@@ -1142,9 +1160,19 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 				}
 			}
 		}
-		zcommand     = commandStack ;
-		commandStack = ""    ;
-		addRetrieve  = false ;
+		else if ( currAppl->error_msg_issued() )
+		{
+			passthru = false ;
+			zcommand = "" ;
+			commandStack = "" ;
+			return ;
+		}
+		if ( not currAppl->propagateEnd )
+		{
+			zcommand = commandStack ;
+			commandStack = "" ;
+		}
+		addRetrieve = false ;
 	}
 
 	if ( pfkeyPressed )
@@ -1221,7 +1249,7 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 	if ( zcommand.compare( 0, 2, delm+delm ) == 0 )
 	{
 		commandStack = zcommand.substr( 1 ) ;
-		zcommand     = ""                   ;
+		zcommand     = "" ;
 		currAppl->currPanel->cmd_setvalue( "" ) ;
 		return ;
 	}
@@ -1235,7 +1263,7 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 	if ( p1 != string::npos )
 	{
 		commandStack = zcommand.substr( p1 ) ;
-		zcommand.erase( p1 )                 ;
+		zcommand.erase( p1 ) ;
 		currAppl->currPanel->cmd_setvalue( zcommand ) ;
 	}
 
@@ -1376,7 +1404,7 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 		case ZCT_RETRIEVE:
 		case ZCT_RETF:
 			if ( !currAppl->currPanel->has_command_field() ) { return ; }
-			if ( datatype( cmdParm, 'W' ) )
+			if ( commandStack == "" && datatype( cmdParm, 'W' ) )
 			{
 				p1 = ds2d( cmdParm ) ;
 				if ( p1 > 0 && p1 <= retrieveBuffer.size() ) { retPos = p1 - 1 ; }
@@ -1468,7 +1496,7 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 				listErrorBlock( err ) ;
 			}
 			zcommand = subword( zcommand, 2 ) ;
-			if ( cmdVerb == "NRETRIEV" )
+			if ( zctverb == "NRETRIEV" )
 			{
 				selct.clear() ;
 				currAppl->vcopy( "ZRFLPGM", selct.pgm, MOVE ) ;
@@ -1476,20 +1504,21 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 				doSelect   = true  ;
 				passthru   = false ;
 			}
+			else if ( zctverb == "RETURN" )
+			{
+				returnOption = commandStack ;
+				commandStack = "" ;
+			}
 			break ;
 
 		case ZCT_SPLIT:
-			t = strip( currAppl->currPanel->cmd_getvalue() ) ;
-			if ( t.size() > 0 )
+			if ( not currAppl->currPanel->keep_cmd() )
 			{
 				currAppl->clear_msg() ;
-				if ( t.front() != '&' )
-				{
-					currAppl->currPanel->cmd_setvalue( "" ) ;
-				}
+				currAppl->currPanel->cmd_setvalue( "" ) ;
+				currAppl->currPanel->cursor_to_cmdfield() ;
+				currScrn->set_cursor( currAppl ) ;
 			}
-			currAppl->currPanel->cursor_to_cmdfield() ;
-			currScrn->set_cursor( currAppl ) ;
 			selct.def( gmainpgm ) ;
 			startApplication( selct, true ) ;
 			passthru = false ;
@@ -2394,7 +2423,11 @@ void terminateApplication()
 	refList = ( currAppl->reffield == "#REFLIST" ) ;
 
 	setMessage = currAppl->setMessage ;
-	if ( setMessage ) { tMSGID1 = currAppl->getmsgid1() ; tMSG1 = currAppl->getmsg1() ; }
+	if ( setMessage )
+	{
+		tMSGID1 = currAppl->getmsgid1() ;
+		tMSG1   = currAppl->getmsg1() ;
+	}
 
 	jumpEntered  = currAppl->jumpEntered ;
 	propagateEnd = currAppl->propagateEnd && ( currScrn->application_stack_size() > 1 ) ;
@@ -2532,16 +2565,19 @@ void terminateApplication()
 		currAppl->reffield = "" ;
 	}
 
-	if ( currAppl->isprimMenu() )
+	if ( currAppl->isprimMenu() && propagateEnd )
 	{
 		propagateEnd = false ;
-		if ( jumpEntered ) { commandStack = jumpOption ; }
+		commandStack = ( jumpEntered ) ? jumpOption : returnOption ;
+		jumpOption   = "" ;
+		returnOption = "" ;
 	}
 
 	if ( currAppl->SEL )
 	{
 		if ( abnormalEnd )
 		{
+			propagateEnd  = false ;
 			currAppl->RC  = 20 ;
 			currAppl->ZRC = 20 ;
 			if ( tRC == 20 && tRSN > 900 )
@@ -2578,6 +2614,7 @@ void terminateApplication()
 		{
 			currAppl->set_msg1( tMSG1, tMSGID1 ) ;
 		}
+		currAppl->propagateEnd = propagateEnd ;
 		ResumeApplicationAndWait() ;
 		while ( currAppl->terminateAppl )
 		{
@@ -2587,10 +2624,11 @@ void terminateApplication()
 	}
 	else
 	{
+		currAppl->propagateEnd = false ;
 		if ( propagateEnd && ( not nested || jumpEntered ) )
 		{
-			p_poolMGR->put( err, "ZVERB", "RETURN", SHARED ) ;
-			currAppl->jumpEntered = jumpEntered ;
+			currAppl->jumpEntered  = jumpEntered ;
+			currAppl->propagateEnd = true ;
 			ResumeApplicationAndWait() ;
 			while ( currAppl->terminateAppl )
 			{
@@ -2598,15 +2636,20 @@ void terminateApplication()
 				if ( pLScreen::screensTotal == 0 ) { return ; }
 			}
 		}
+		else if ( propagateEnd && not jumpEntered )
+		{
+			commandStack = returnOption ;
+			returnOption = "" ;
+		}
 		if ( setMessage )
 		{
-			currAppl->set_msg1( tMSG1, tMSGID1, true ) ;
+			currAppl->set_msg1( tMSG1, tMSGID1 ) ;
 		}
 		if ( setCursorHome )
 		{
 			currAppl->set_cursor_home() ;
 		}
-		if ( pApplication::lineOutDone )
+		if ( not currAppl->propagateEnd && pApplication::lineOutDone )
 		{
 			lineOutput_end() ;
 			currScrn->refresh_panel_stack() ;
@@ -4122,30 +4165,24 @@ void actionSwap( const string& parm )
 
 	uint i ;
 
-	string t  ;
 	string w1 ;
 	string w2 ;
 
 	w1 = word( parm, 1 ) ;
 	w2 = word( parm, 2 ) ;
 
+	if ( not currAppl->currPanel->keep_cmd() )
+	{
+		currAppl->clear_msg() ;
+		currAppl->currPanel->cmd_setvalue( "" ) ;
+		currAppl->currPanel->cursor_to_cmdfield() ;
+		currScrn->set_cursor( currAppl ) ;
+	}
+
 	if ( findword( w1, "LIST LISTN LISTP" ) )
 	{
 		w1 = listLogicalScreens() ;
 		if ( w1 == d2ds( priScreen + 1 ) ) { return ; }
-	}
-
-	t = strip( currAppl->currPanel->cmd_getvalue() ) ;
-	if ( t.size() > 0 )
-	{
-		currAppl->clear_msg() ;
-	}
-
-	if ( not currAppl->currPanel->keep_cmd() )
-	{
-		currAppl->currPanel->cmd_setvalue( "" ) ;
-		currAppl->currPanel->cursor_to_cmdfield() ;
-		currScrn->set_cursor( currAppl ) ;
 	}
 
 	if ( pLScreen::screensTotal == 1 ) { return ; }

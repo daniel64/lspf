@@ -34,7 +34,6 @@
 /*  20/0  Severe error                                                                       */
 /*    /4  Open for output error                                                              */
 
-/* SETMSG performed for RC = 0                                                               */
 /* ZRESULT contains the relevant message id for RC 0, 14 and 20                              */
 
 #include <boost/filesystem.hpp>
@@ -429,6 +428,11 @@ void PEDIT01::Edit()
 			continue ;
 		}
 
+		if ( zverb == "" && ( pcmd.cmdf_is( "RFIND" ) || pcmd.cmdf_is( "RCHANGE" ) ) )
+		{
+			zverb = pcmd.get_cmdf() ;
+		}
+
 		getZAREAchanges() ;
 
 		if ( pcmd.isMacro() )
@@ -605,7 +609,7 @@ bool PEDIT01::termOK()
 	{
 		return true ;
 	}
-	if ( !profASave && pcmd.cmd_not( "SAVE" ) )
+	if ( !profASave && pcmd.cmdf_is_not( "SAVE" ) )
 	{
 		pcmd.set_msg( "PEDT011O" ) ;
 		return false ;
@@ -2229,8 +2233,6 @@ void PEDIT01::actionPrimCommand2()
 	vector<ipline> vip ;
 	ipline ip ;
 
-	map<P_CMDS,pcmd_format>::iterator itp ;
-
 	if ( zverb == "RFIND" || zverb == "RCHANGE" ) { return ; }
 
 	cmd = pcmd.get_cmd() ;
@@ -2248,24 +2250,10 @@ void PEDIT01::actionPrimCommand2()
 		return ;
 	}
 
-	w1 = upper( word( cmd, 1 ) ) ;
+	w1 = pcmd.get_cmdf() ;
 	w2 = upper( word( cmd, 2 ) ) ;
 	w3 = upper( word( cmd, 3 ) ) ;
 	w4 = upper( word( cmd, 4 ) ) ;
-
-	itp = PCMDform.find( pcmd.p_cmd ) ;
-
-	if ( itp->second.noptions1 != -1 && ws < itp->second.noptions1 + 1 )
-	{
-		pcmd.set_msg( "PEDT015E" ) ;
-		return ;
-	}
-
-	if ( itp->second.noptions2 != -1 && ws > itp->second.noptions2 + 1 )
-	{
-		pcmd.set_msg( "PEDT015D" ) ;
-		return ;
-	}
 
 	switch ( pcmd.p_cmd )
 	{
@@ -2374,14 +2362,25 @@ void PEDIT01::actionPrimCommand2()
 	case PC_EDIT:
 			control( "ERRORS", "RETURN" ) ;
 			w2 = word( cmd, 2 ) ;
-			if ( w2.front() == '/' )
+			if ( w2 == "" )
 			{
-				edit( w2 ) ;
+				select( "PGM(PPSP01A) PARM(EDITEE) SCRNAME(EDIT) SUSPEND" ) ;
 			}
 			else
 			{
-				p1 = zfile.find_last_of( '/' ) ;
-				edit( zfile.substr( 0, p1+1 ) + w2 ) ;
+				if ( w2.front() != '/' )
+				{
+					w2 = zfile.substr( 0, zfile.find_last_of( '/' ) + 1 ) + w2 ;
+				}
+				edit( w2 ) ;
+				if ( ZRESULT != "" && ( RC == 0 || RC == 4 ) )
+				{
+					setmsg( ZRESULT ) ;
+				}
+				else if ( RC > 11 && ZRESULT != "" && ZRESULT != "Abended" )
+				{
+					pcmd.set_msg( ZRESULT ) ;
+				}
 			}
 			control( "ERRORS", "CANCEL" ) ;
 			break ;
@@ -2679,7 +2678,7 @@ void PEDIT01::actionPrimCommand3()
 
 	if ( ws == 0 ) { return ; }
 
-	w1 = upper( word( cmd, 1 ) ) ;
+	w1 = pcmd.get_cmdf() ;
 	w2 = upper( word( cmd, 2 ) ) ;
 	w3 = upper( word( cmd, 3 ) ) ;
 	w4 = upper( word( cmd, 4 ) ) ;
@@ -2868,7 +2867,10 @@ void PEDIT01::actionPrimCommand3()
 						w4  = ita->second.top().name ;
 					}
 				}
-				if ( PrimCMDS.count( w4 ) > 0 ) { w4 = PrimCMDS[ w4 ].truename ; }
+				if ( PrimCMDS.count( w4 ) > 0 )
+				{
+					w4 = PrimCMDS[ w4 ].truename ;
+				}
 				itb = defNames.find( w4 ) ;
 				if ( itb != defNames.end() && itb->second.top().deactive() )
 				{
@@ -11625,8 +11627,15 @@ void PEDIT01::actionService()
 	case EM_RESET:
 	case EM_SAVE:
 	case EM_SEEK:
-			if (  miBlock.assign ) { pcmd.set_cmd( miBlock.keyword + " " + miBlock.value, defNames ) ; }
-			else                   { pcmd.set_cmd( miBlock.sttment, defNames )                       ; }
+			if (  miBlock.assign )
+			{
+				pcmd.set_cmd( miBlock.keyword + " " + miBlock.value, defNames ) ;
+			}
+			else
+			{
+				pcmd.set_cmd( miBlock.sttment, defNames ) ;
+			}
+
 			if ( !pcmd.error() )
 			{
 				actionPrimCommand2() ;

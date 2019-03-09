@@ -444,18 +444,22 @@ void pApplication::set_msg( const string& msg_id )
 }
 
 
-void pApplication::set_msg1( const slmsg& t, const string& msgid, bool Immed )
+void pApplication::set_msg1( const slmsg& t, const string& msgid )
 {
-	// Propogate setmsg() to the current panel using the short-long-message object.
-	// If immed, display the message now rather than allow the application DISPLAY()/TBDISPL() service to it.
-
+	// Propogate setmsg() to the current application using the short-long-message object.
 	// zmsg1 and zmsgid1 are used to store messages issued by the setmsg() service after variable substitution.
 
 	zmsg1      = t     ;
 	zmsgid1    = msgid ;
 	setMessage = true  ;
+}
 
-	if ( Immed && currPanel )
+
+void pApplication::display_setmsg()
+{
+	// Display the message stored by the setmsg() service.
+
+	if ( setMessage && currPanel )
 	{
 		currPanel->set_panel_msg( zmsg1, zmsgid1 ) ;
 		currPanel->display_msg( errBlock ) ;
@@ -724,15 +728,7 @@ void pApplication::display( string p_name,
 		RC = errBlock.getRC() ;
 	}
 
-	if ( setMessage )
-	{
-		if ( !ControlNonDispl )
-		{
-			currPanel->set_panel_msg( zmsg1, zmsgid1 ) ;
-			setMessage = false ;
-		}
-	}
-	else if ( currPanel->msgid != "" )
+	if ( currPanel->msgid != "" )
 	{
 		get_message( currPanel->msgid ) ;
 		if ( RC > 0 ) { return ; }
@@ -772,6 +768,10 @@ void pApplication::display( string p_name,
 		ControlDisplayLock = false ;
 		refreshlScreen     = false ;
 		reloadCUATables    = false ;
+		if ( propagateEnd )
+		{
+			p_poolMGR->put( errBlock, "ZVERB", "RETURN",  SHARED ) ;
+		}
 		currPanel->resetAttrs_once() ;
 		currPanel->display_panel_update( errBlock ) ;
 		if ( errBlock.error() )
@@ -2902,15 +2902,7 @@ void pApplication::tbdispl( const string& tb_name,
 		}
 	}
 
-	if ( setMessage )
-	{
-		if ( !ControlNonDispl && p_name != "" )
-		{
-			currPanel->set_panel_msg( zmsg1, zmsgid1 ) ;
-			setMessage = false ;
-		}
-	}
-	else if ( currPanel->msgid != "" )
+	if ( currPanel->msgid != "" )
 	{
 		get_message( currPanel->msgid ) ;
 		if ( RC > 0 ) { RC = 12 ; return ; }
@@ -2985,6 +2977,10 @@ void pApplication::tbdispl( const string& tb_name,
 			ControlDisplayLock = false ;
 			refreshlScreen     = false ;
 			reloadCUATables    = false ;
+			if ( propagateEnd )
+			{
+				p_poolMGR->put( errBlock, "ZVERB", "RETURN",  SHARED ) ;
+			}
 			currPanel->clear_msg() ;
 			currPanel->curfld = "" ;
 			currPanel->resetAttrs_once() ;
@@ -4122,7 +4118,7 @@ void pApplication::edit( const string& m_file,
 	actionSelect() ;
 
 	RC = ZRC ;
-	if ( ZRC > 11 && ZRESULT != "" )
+	if ( ZRC > 11 && ZRESULT != "" && ZRESULT != "Abended" )
 	{
 		t = p_poolMGR->get( errBlock, "ZVAL1", SHARED ) ;
 		errBlock.setcall( "EDIT Error", ZRESULT, t, ZRC ) ;
@@ -4146,12 +4142,11 @@ void pApplication::browse( const string& m_file, const string& m_panel )
 	actionSelect() ;
 
 	RC = ZRC ;
-	if ( ZRC > 11 && ZRESULT != "" )
+	if ( ZRC > 11 && ZRESULT != "" && ZRESULT != "Abended" )
 	{
 		t = p_poolMGR->get( errBlock, "ZVAL1", SHARED ) ;
 		errBlock.setcall( "BROWSE Error", ZRESULT, t, ZRC ) ;
 		checkRCode( errBlock ) ;
-		return ;
 	}
 }
 
@@ -4171,12 +4166,11 @@ void pApplication::view( const string& m_file, const string& m_panel )
 	actionSelect() ;
 
 	RC = ZRC ;
-	if ( ZRC > 11 && ZRESULT != "" )
+	if ( ZRC > 11 && ZRESULT != "" && ZRESULT != "Abended" )
 	{
 		t = p_poolMGR->get( errBlock, "ZVAL1", SHARED ) ;
 		errBlock.setcall( "VIEW Error", ZRESULT, t, ZRC ) ;
 		checkRCode( errBlock ) ;
-		return ;
 	}
 }
 

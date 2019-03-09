@@ -14,7 +14,7 @@ PEDT013 'Line Command Invalid Here' .TYPE=W
 PEDT014 'Invalid label name' .TYPE=W
 'Label must be between 1 and 5 alphabetic characters, not starting with a ''Z'''
 
-PEDT015 'Invalid parameter format passed to PEDIT01'
+PEDT015 'Invalid parameter format passed to PEDIT01' .TYPE=W
 '&ZVAL1'
 
 PEDT016 'Label missing or invalid' .TYPE=W
@@ -320,13 +320,13 @@ PEDT015K 'File does not exist' .TYPE=W
 PEDT015L 'No data added' .TYPE=N
 'No data found to add'
 
-PEDT015M 'Invalid DEFINE option'
+PEDT015M 'Invalid DEFINE option' .TYPE=W
 'DEFINE command contains an invalid option.  Must be MACRO, ALIAS, NOP, RESET or DISABLED'
 
-PEDT015N 'Missing DEFINE alias-to name'
+PEDT015N 'Missing DEFINE alias-to name' .TYPE=W
 'Missing alias-to name on 'DEFINE name ALIAS alias-to' command'
 
-PEDT015O 'Invalid keyword option'
+PEDT015O 'Invalid keyword option' .TYPE=W
 'Too many parameters following the 'DEFINE name keyword' command'
 
 PEDT015P 'DEFINE is not allowed' .TYPE=W
