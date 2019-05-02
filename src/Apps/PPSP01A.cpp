@@ -3410,7 +3410,10 @@ void PPSP01A::browseEntry( string& file )
 		{
 			view( zfile ) ;
 		}
-		msg = ZRESULT ;
+		if ( isvalidName( ZRESULT ) )
+		{
+			msg = ZRESULT ;
+		}
 		control( "ERRORS", "CANCEL" ) ;
 	}
 
@@ -3534,7 +3537,10 @@ void PPSP01A::editEntry( string& file )
 		      eelmac,
 		      eeccan  == "/" ? "YES" : "NO",
 		      eeprsps == "/" ? "PRESERVE" : "" ) ;
-		msg = ZRESULT ;
+		if ( isvalidName( ZRESULT ) )
+		{
+			msg = ZRESULT ;
+		}
 		control( "ERRORS", "CANCEL" ) ;
 	}
 
@@ -3992,7 +3998,13 @@ void PPSP01A::showHeldOutput_display( const string& jkey, vector<path>& v )
 
 	vreplace( "ZBRALT", "Output for job " + jkey ) ;
 	vput( "ZBRALT", SHARED ) ;
+	control( "ERRORS", "RETURN" ) ;
 	browse( fname1 ) ;
+	if ( RC == 12 )
+	{
+		setmsg( "PPSP011G" ) ;
+	}
+	control( "ERRORS", "CANCEL" ) ;
 	remove( fname1 ) ;
 	verase( "ZBRALT", SHARED ) ;
 }

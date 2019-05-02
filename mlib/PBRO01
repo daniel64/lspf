@@ -11,7 +11,7 @@ PBRO014 'Invalid columns specified' .TYPE=W
 'String ''&STR'' does not fit between the specified columns'
 
 PBRO015 'Cannot Enter ''*'' and a find string' .TYPE=W
-'Don't enter ''*'' for previous find string together with a new find string'
+'Don''t enter ''*'' for previous find string together with a new find string'
 
 PBRO016 '*Bottom of data reached*' .TYPE=W
 'Press RFIND to continue from the top of data'
@@ -23,7 +23,7 @@ PBRO018 'Unknown parameter on FIND' .TYPE=W
 'Find command contains an unknown parameter ''&STR'''
 
 PBRO019 'Too many columns specified' .TYPE=W
-'There appears to be more than two column delimiters specified.  Put string in quotes'
+'There appears to be more than two column delimiters specified'
 
 PBRO011A 'Enter a Find Command' .TYPE=W
 'RFIND cannot be used if no previous FIND command has been entered'
@@ -69,4 +69,26 @@ PBRO011N 'Invalid Regex' .TYPE=W
 
 PBRO011O 'Entry not found' .TYPE=W
 'No entry for ''&ZVAL1'' found in the reference list and not a regular file or directory'
+
+PBRO011P 'Invalid label' .TYPE=W
+'''.&ZVAL1'' is not a valid label.  Must be alphnumeric, maximum 8 characters ' +
+'including the period'
+
+PBRO011Q 'Missing parameter' .TYPE=W
+'Command is missing at least one parameter'
+
+PBRO011R 'Label ''.&ZVAL1'' located' .TYPE=N
+'Label ''.&ZVAL1'' located on line &ZVAL2'
+
+PBRO011S 'Label not defined' .TYPE=W
+'Label specified does not exist'
+
+PBRO011T 'Label ''.&ZVAL1'' assigned' .TYPE=N
+'Label ''.&ZVAL1'' assigned to line &ZVAL2'
+
+PBRO011U 'Label ''.&ZVAL1'' reassigned' .TYPE=N
+'Label ''.&ZVAL1'' reassigned to line &ZVAL2'
+
+PBRO011V 'Put string in quotes' .TYPE=W
+'Put single or double quotes around the find string'
 

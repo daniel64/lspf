@@ -12,31 +12,6 @@ Function pools are automatically created with entries for:
 	stirng ZAPPNAME
 
 
-Variables defined in Applications but not automatically in the function pool:
-	string ZAPPLID  ;
-	int    ZCURINX  ;
-	string ZCMD     ;
-	string ZEDLMSG  ;
-	string ZEDSMSG  ;
-	string ZHELP    ;
-	string ZHOME    ;
-	string ZPFKEY   ;
-	string ZSEL     ;
-	string ZSELPARM ;
-	string ZSCREEN  ;
-	string ZSCROLL  ;
-	int    ZSCRMAXD ;
-	int    ZSCRMAXW ;
-	int    ZSCROLLN ;
-	string ZSCROLLA ;
-	string ZSMSG    ;
-	string ZLMSG    ;
-	string ZUSER    ;
-	string ZVERB    ;
-	string ZMUSR    ;
-	string ZPUSR    ;
-	string ZTUSR    ;
-
 Variables pre-set when the application starts:
 ZAPPNAME
 ZZAPPLID

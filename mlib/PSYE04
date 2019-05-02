@@ -62,7 +62,7 @@ PSYE041S 'Invalid .ATTR statement'
 'Field ''&ZVAL1'' not found on panel'
 
 PSYE041T 'Missing IF statement'
-'No matching IF statement found for ELSE at column ''&ZVAL1'''
+'No matching IF statement found for ELSE at column &ZVAL1'
 
 PSYE041U 'Invalid statement'
 'REFRESH statement is invalid within the )INIT section'
@@ -115,8 +115,8 @@ PSYE042J 'Duplicate field command entry'
 PSYE042K 'Invalid attribute'
 '&ZVAL1 field must have an output CUA attribute byte specified'
 
-PSYE042L 'Spare'
-'Spare'
+PSYE042L 'Overlapping fields detected'
+'Fields &ZVAL1 and &ZVAL2 overlap'
 
 PSYE042M 'Field ''&ZVAL1'' not found'
 '&ZVAL2 field ''&ZVAL1'' not defined in panel body'

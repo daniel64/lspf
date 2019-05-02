@@ -110,6 +110,9 @@ using namespace boost::filesystem ;
 
 PFLST0A::PFLST0A()
 {
+	set_appdesc( "File list application for lspf" ) ;
+	set_appver( "1.0.0" ) ;
+
 	vdefine( "ZCURFLD", &zcurfld ) ;
 	vdefine( "ZCURINX  ZTDTOP ZTDVROWS ZTDSELS ZTDDEPTH", &zcurinx, &ztdtop, &ztdvrows, &ztdsels, &ztddepth ) ;
 	vdefine( "ZEDLMACT ZEDEPROF ZEDIMACA ZEDECCAN ZEDPRSPS", &lcmtab, &eprof, &eimac, &eccan, &epresv ) ;
@@ -276,10 +279,16 @@ void PFLST0A::application()
 			csr    = "SEL" ;
 			msgloc = "SEL" ;
 			csrrow = crpx  ;
+			panel  = ""    ;
+		}
+		else if ( msg != "" && csr == "ZCMD" )
+		{
+			csrrow = crpx ;
+			panel  = ""   ;
 		}
 		else
 		{
-			csr    = "ZCMD" ;
+			csr = "ZCMD" ;
 		}
 
 		tbdispl( dslist, panel, msg, csr, csrrow, 1, "YES", "CRP", "", msgloc ) ;
@@ -357,7 +366,8 @@ void PFLST0A::application()
 		if ( ztdsels == 0 && zcurinx != 0 )
 		{
 			tbtop( dslist ) ;
-			tbskip( dslist, zcurinx ) ;
+			tbskip( dslist, zcurinx, "", "", "", "", "CRP" ) ;
+			crpx  = crp ;
 			entry = UseList ? ENTRY : createEntry( zpath, ENTRY ) ;
 			if ( zcurfld == "ENTRY" )
 			{
@@ -699,7 +709,8 @@ void PFLST0A::application()
 			}
 			else if ( RC > 11 )
 			{
-				msg     = ( ZRESULT != "Abended" ) ? ZRESULT : "" ;
+				msg = isvalidName( ZRESULT ) ? ZRESULT : "" ;
+				i   = zcurinx ;
 				message = "Error" ;
 			}
 			control( "ERRORS", "CANCEL" ) ;
@@ -729,7 +740,10 @@ void PFLST0A::application()
 			else
 			{
 				message = "Error" ;
-				msg     = ZRESULT ;
+				if ( isvalidName( ZRESULT ) )
+				{
+					msg = ZRESULT ;
+				}
 			}
 			control( "ERRORS", "CANCEL" ) ;
 			tbput( dslist ) ;
@@ -858,8 +872,6 @@ void PFLST0A::application()
 	}
 	tbend( dslist ) ;
 	if ( UseList ) { remove( PssList ) ; }
-
-	return ;
 }
 
 
@@ -1356,14 +1368,17 @@ int PFLST0A::processPrimCMD()
 				}
 				else if ( RC > 11 )
 				{
-					msg = ( ZRESULT != "Abended" ) ? ZRESULT : "" ;
+					msg = isvalidName( ZRESULT ) ? ZRESULT : "" ;
 					return 4 ;
 				}
 			}
 			else
 			{
 				browse( p ) ;
-				msg = ZRESULT ;
+				if ( isvalidName( ZRESULT ) )
+				{
+					msg = ZRESULT ;
+				}
 			}
 			control( "ERRORS", "CANCEL" ) ;
 			zcmd = "" ;
@@ -1761,6 +1776,7 @@ void PFLST0A::browseTree( const string& tname )
 {
 	int i ;
 	int csrrow ;
+	int crpx   ;
 
 
 	string tsel   ;
@@ -1771,6 +1787,9 @@ void PFLST0A::browseTree( const string& tname )
 	string tab    ;
 	string line   ;
 	string pgm    ;
+	string msgloc ;
+
+	const string vlist = "TSEL TFILE TENTRY ZDIR CRP" ;
 
 	std::ifstream fin ;
 	fin.open( tname.c_str() ) ;
@@ -1782,6 +1801,7 @@ void PFLST0A::browseTree( const string& tname )
 	}
 
 	vdefine( "TSEL TFILE TENTRY ZDIR", &tsel, &tfile, &tentry, &zdir ) ;
+	vdefine( "CRP", &crp ) ;
 	vcopy( "ZFLSTPGM", pgm, MOVE ) ;
 	tab = "FTREE" + d2ds( taskid(), 3 ) ;
 
@@ -1813,6 +1833,7 @@ void PFLST0A::browseTree( const string& tname )
 	ztdsels   = 0 ;
 	ztdtop    = 0 ;
 	csrrow    = 0 ;
+	msgloc    = "" ;
 	csr       = "ZCMD" ;
 
 	while ( true )
@@ -1840,15 +1861,35 @@ void PFLST0A::browseTree( const string& tname )
 		{
 			panel = "" ;
 		}
-		if ( msg == "" ) { zcmd = "" ; }
-		tbdispl( tab, panel, msg, csr, csrrow, 1, "YES", "CRP" ) ;
+		if ( msg != "" && csr == "" )
+		{
+			csr    = "TSEL" ;
+			msgloc = "TSEL" ;
+			csrrow = crpx ;
+			panel  = ""   ;
+		}
+		else if ( msg != "" && csr == "ZCMD" )
+		{
+			csrrow = crpx ;
+			panel  = ""   ;
+		}
+		else
+		{
+			csr = "ZCMD" ;
+		}
+		tbdispl( tab, panel, msg, csr, csrrow, 1, "YES", "CRP", "", msgloc ) ;
 		if ( RC == 8 ) { break ; }
-		msg = "" ;
+		msg    = "" ;
+		msgloc = "" ;
+		crpx   = crp;
 		if ( tsel == "S" )
 		{
 			control( "ERRORS", "RETURN" ) ;
 			browse( tfile ) ;
-			msg = ZRESULT ;
+			if ( isvalidName( ZRESULT ) )
+			{
+				msg = ZRESULT ;
+			}
 			control( "ERRORS", "CANCEL" ) ;
 		}
 		else if ( tsel == "I" )
@@ -1866,14 +1907,13 @@ void PFLST0A::browseTree( const string& tname )
 			}
 			else if ( RC > 11 )
 			{
-				msg = ( ZRESULT != "Abended" ) ? ZRESULT : "" ;
+				msg = isvalidName( ZRESULT ) ? ZRESULT : "" ;
 			}
 			control( "ERRORS", "CANCEL" ) ;
 		}
 	}
 	tbend( tab ) ;
-	return ;
-
+	vdelete( vlist ) ;
 }
 
 
@@ -2228,6 +2268,7 @@ string PFLST0A::expandFld1( const string& parms )
 string PFLST0A::showListing()
 {
 	int csrrow ;
+	int crpx   ;
 
 	string w1       ;
 	string w2       ;
@@ -2237,11 +2278,15 @@ string PFLST0A::showListing()
 	string ofldirs  ;
 	string flhidden ;
 	string ohidden  ;
+	string msgloc   ;
 
 	string panel    ;
 	string csr      ;
 
+	const string vlist = "SEL ENTRY TYPE FLDIRS FLHIDDEN CRP" ;
+
 	vdefine( "SEL ENTRY TYPE FLDIRS FLHIDDEN", &sel, &ENTRY, &TYPE, &fldirs, &flhidden ) ;
+	vdefine( "CRP", &crp ) ;
 	vget( "FLDIRS FLHIDDEN", PROFILE ) ;
 
 	dslist = "DSLST" + d2ds( taskid(), 3 ) ;
@@ -2255,6 +2300,7 @@ string PFLST0A::showListing()
 	csrrow   = 0 ;
 	csr      = "ZCMD" ;
 	msg      = "" ;
+	msgloc   = "" ;
 
 	while ( true )
 	{
@@ -2281,14 +2327,31 @@ string PFLST0A::showListing()
 		{
 			panel = "" ;
 		}
-		if ( msg == "" ) { zcmd = "" ; }
+		if ( msg != "" && csr == "" )
+		{
+			csr    = "SEL" ;
+			msgloc = "SEL" ;
+			csrrow = crpx  ;
+			panel  = ""    ;
+		}
+		else if ( msg != "" && csr == "ZCMD" )
+		{
+			csrrow = crpx ;
+			panel  = ""   ;
+		}
+		else
+		{
+			csr = "ZCMD" ;
+		}
 		opath   = zpath    ;
 		ofldirs = fldirs   ;
 		ohidden = flhidden ;
-		tbdispl( dslist, panel, msg, csr, csrrow, 1, "YES", "CRP" ) ;
+		tbdispl( dslist, panel, msg, csr, csrrow, 1, "YES", "CRP", "", msgloc ) ;
 		if ( RC == 8 ) { ZRC = 8 ; break ; }
-		msg = "" ;
-		csr = "ZCMD" ;
+		msgloc = "" ;
+		msg    = "" ;
+		csr    = "ZCMD" ;
+		crpx   = crp ;
 		w1  = upper( word( zcmd, 1 ) ) ;
 		w2  = word( zcmd, 2 )    ;
 		ws  = subword( zcmd, 2 ) ;
@@ -2346,11 +2409,13 @@ string PFLST0A::showListing()
 		{
 			zpath = createEntry( zpath, ENTRY ) ;
 			tbend( dslist ) ;
+			vdelete( vlist ) ;
 			return zpath    ;
 		}
 	}
 	tbend( dslist ) ;
-	return ""       ;
+	vdelete( vlist ) ;
+	return "" ;
 }
 
 

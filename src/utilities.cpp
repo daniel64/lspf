@@ -966,23 +966,49 @@ string& trim( string& s )
 }
 
 
-string& dquote( char c, string& s )
+string dquote( errblock& err, char c, string s )
 {
-	// Reduce repeated sequence of quotes to single quote
-	// Return string& so it can be used in expressions
+	int i ;
+	int j ;
+	int quotes ;
 
-	size_t p ;
+	string r = "" ;
 
-	string dq ;
+	string::const_iterator it ;
 
-	p = 0 ;
-	dq.assign( 2, c ) ;
-	while ( p < s.size() && (p = s.find( dq, p) ) != std::string::npos )
+	trim( s ) ;
+	it = s.begin() + 1 ;
+
+	err.setRC( 0 ) ;
+	while ( it != s.end() )
 	{
-		s.erase( p, 1 ) ;
-		p += 2 ;
+		quotes = 0 ;
+		while ( it != s.end() && (*it) == c ) { ++quotes ; ++it ; }
+		if ( quotes == 0 && it != s.end() )
+		{
+			r.push_back( (*it) ) ;
+			++it ;
+			continue ;
+		}
+		i = quotes / 2 ;
+		j = quotes % 2 ;
+		r = r + string( i, c ) ;
+		if ( j == 1 )
+		{
+			if ( it != s.end() )
+			{
+				err.seterrid( "PSYE037G" ) ;
+				return "" ;
+			}
+			break ;
+		}
+		else if ( j == 0 && it == s.end() )
+		{
+			err.seterrid( "PSYE033F" ) ;
+			return "" ;
+		}
 	}
-	return s ;
+	return r ;
 }
 
 
@@ -1193,11 +1219,11 @@ string& idelword( string& s, unsigned int w, unsigned int n )
 
 string& istrip( string& s, char opt, char c )
 {
-	if ( (opt == 'B') || (opt == 'L') )
+	if ( opt == 'B' || opt == 'L' )
 	{
 		s.erase( 0, s.find_first_not_of( c ) ) ;
 	}
-	if ( (opt == 'B') || (opt == 'T') )
+	if ( opt == 'B' || opt == 'T' )
 	{
 		s.erase( s.find_last_not_of( c ) + 1 ) ;
 	}
@@ -1509,11 +1535,10 @@ bool ispict( const string& s, const string& picts )
 
 int getpaths( const string& p )
 {
-	if ( p == "" ) { return 0 ; }
+	if ( strip( p ) == "" ) { return 0 ; }
 
 	return countc( p, ':' ) + 1 ;
 }
-
 
 string getpath( const string& s, int p )
 {
@@ -1536,9 +1561,12 @@ string getpath( const string& s, int p )
 	if ( p2 == 0 ) { path = substr( s, p1, s.size()-p1+1 ) ; }
 	else           { path = substr( s, p1, p2-p1 )         ; }
 
-	if ( path.back() != '/' ) { path.push_back( '/' ) ; }
+	if ( trim( path ) != "" && path.back() != '/' )
+	{
+		path.push_back( '/' ) ;
+	}
 
-	return trim( path ) ;
+	return path ;
 }
 
 

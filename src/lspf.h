@@ -31,10 +31,10 @@
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
-#define LSPF_VERSION "1.1.7"
+#define LSPF_VERSION "1.1.8"
 #define LSPF_VERSION_MAJ 1
 #define LSPF_VERSION_REV 1
-#define LSPF_VERSION_MOD 7
+#define LSPF_VERSION_MOD 8
 
 typedef unsigned int uint ;
 
@@ -315,6 +315,15 @@ enum attType
 	DATAOUT,
 	OUTPUT,
 	TEXT
+} ;
+
+enum USR_ACTIONS
+{
+	USR_END,
+	USR_ENTER,
+	USR_EXIT,
+	USR_CANCEL,
+	USR_RETURN
 } ;
 
 }

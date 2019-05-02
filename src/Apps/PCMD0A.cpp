@@ -54,18 +54,34 @@ using namespace boost::filesystem ;
 PCMD0A::PCMD0A()
 {
 	set_appdesc( "Invoke a command and display the output" ) ;
-	set_appver( "1.0.1" ) ;
+	set_appver( "1.0.2" ) ;
 }
 
 
 void PCMD0A::application()
 {
+	int RC1 ;
+
+	size_t p ;
+
 	string zcmd  ;
+	string zverb ;
 	string msg   ;
 	string comm1 ;
 	string comm2 ;
+	string panel = "PCMD0A" ;
 
-	vdefine( "ZCMD COMM1 COMM2", &zcmd, &comm1, &comm2 ) ;
+	if ( PARM.compare( 0, 6, "PANEL(" ) == 0 )
+	{
+		p = PARM.find( ')', 5 ) ;
+		if ( p != string::npos )
+		{
+			panel = strip( PARM.substr( 6, p-6 ) ) ;
+			PARM  = "" ;
+		}
+	}
+
+	vdefine( "ZCMD ZVERB COMM1 COMM2", &zcmd, &zverb, &comm1, &comm2 ) ;
 	vget( "COMM1 COMM2", SHARED ) ;
 	if ( RC == 0 && PARM != "" )
 	{
@@ -103,8 +119,10 @@ void PCMD0A::application()
 
 	while ( true )
 	{
-		display( "PCMD0A", msg, "ZCMD" ) ;
-		if ( RC == 8 ) { break ; }
+		display( panel, msg, "ZCMD" ) ;
+		RC1 = RC ;
+		vget( "ZVERB", SHARED ) ;
+		if ( RC1 == 8 && findword( zverb, "END EXIT CANCEL RETURN" ) ) { break ; }
 		msg = "" ;
 		if ( zcmd != "" )
 		{

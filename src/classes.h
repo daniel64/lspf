@@ -141,6 +141,23 @@ enum PGM_TYPE
 } ;
 
 
+class vparm
+{
+	public:
+		vparm()
+		{
+			clear() ;
+		}
+		void clear()
+		{
+			value   = "" ;
+			subtype = TS_NONE ;
+		}
+		string value ;
+		TOKEN_SUBTYPES subtype ;
+} ;
+
+
 class token
 {
 	public:
@@ -189,6 +206,7 @@ class parser
 		int     getEntries()     ;
 		void    eraseTokens( int ) ;
 		void    optionUpper()   { optUpper = true ; }
+		bool    getNextIfCurrent( const string&  ) ;
 		bool    getNextIfCurrent( TOKEN_TYPES    ) ;
 		bool    getNextIfCurrent( TOKEN_SUBTYPES ) ;
 		string  peekNextValue()   ;
@@ -219,6 +237,29 @@ class parser
 					  { ".TRUE"    },
 					  { ".TRAIL"   },
 					  { ".ZVARS"   } } ;
+
+		map<string, STATEMENT_TYPE> statement_types =
+		{ { "IF",        ST_IF      },
+		  { "ELSE",      ST_ELSE    },
+		  { "VGET",      ST_VGET    },
+		  { "VPUT",      ST_VPUT    },
+		  { "GOTO",      ST_GOTO    },
+		  { "EXIT",      ST_EXIT    },
+		  { "VER",       ST_VERIFY  },
+		  { "REFRESH",   ST_REFRESH },
+		  { ".ATTR",     ST_ASSIGN  },
+		  { ".ATTRCHAR", ST_ASSIGN  },
+		  { "",          ST_EOF     } } ;
+
+		set<string> compare_ops =
+		{ { "!=" },
+		  { ">"  },
+		  { "<"  },
+		  { ">=" },
+		  { "!<" },
+		  { "<=" },
+		  { "!>" } } ;
+
 		token current_token ;
 		vector<token>tokens ;
 } ;
@@ -240,13 +281,14 @@ class TRUNC
 	public:
 		TRUNC()
 		{
+			trnc_field.clear() ;
 			trnc_char = ' ' ;
 			trnc_len  = 0   ;
 		} ;
 
 		void parse( errblock&, parser&, bool =true ) ;
 
-		string trnc_field ;
+		vparm  trnc_field ;
 		char   trnc_char  ;
 		int    trnc_len   ;
 
@@ -258,6 +300,7 @@ class TRANS
 	public:
 		TRANS()
 		{
+			trns_field.clear() ;
 			trns_msgid   = ""    ;
 			trns_default = ""    ;
 			trns_tbfield = false ;
@@ -270,7 +313,7 @@ class TRANS
 		void parse( errblock&, parser&, bool =true ) ;
 
 		TRUNC* trns_trunc   ;
-		string trns_field   ;
+		vparm  trns_field   ;
 		string trns_msgid   ;
 		string trns_default ;
 		bool   trns_tbfield ;
@@ -284,15 +327,13 @@ class ASSGN
 	public :
 		ASSGN()
 		{
-			as_lhs    = ""    ;
-			as_rhs    = ""    ;
-			as_isvar  = false ;
-			as_isattr = false ;
-			as_isattc = false ;
-			as_istb   = false ;
-			as_trunc  = NULL  ;
-			as_trans  = NULL  ;
-			as_func   = PN_NONE ;
+			as_lhs.clear() ;
+			as_rhs.clear() ;
+			as_isattr  = false ;
+			as_isattc  = false ;
+			as_trunc   = NULL  ;
+			as_trans   = NULL  ;
+			as_func    = PN_NONE ;
 		}
 		~ASSGN()
 		{
@@ -302,15 +343,13 @@ class ASSGN
 
 		void parse( errblock&, parser& ) ;
 
-		string as_lhs   ;
-		string as_rhs   ;
+		vparm  as_lhs ;
+		vparm  as_rhs ;
 		TRUNC* as_trunc ;
 		TRANS* as_trans ;
 		PN_FUNCTION as_func ;
-		bool   as_isvar  ;
-		bool   as_isattr ;
-		bool   as_isattc ;
-		bool   as_istb   ;
+		bool   as_isattr  ;
+		bool   as_isattc  ;
 
 	private:
 		map<string, PN_FUNCTION> assign_functions =
@@ -373,9 +412,8 @@ class IFSTMNT
 	public :
 		IFSTMNT()
 		{
-			if_lhs    = ""    ;
-			if_rhs.clear()    ;
-			if_isvar  = false ;
+			if_lhs.clear() ;
+			if_rhs.clear() ;
 			if_true   = false ;
 			if_AND    = false ;
 			if_else   = false ;
@@ -394,8 +432,8 @@ class IFSTMNT
 		}
 		void parse( errblock&, parser& ) ;
 
-		string if_lhs       ;
-		vector<string> if_rhs ;
+		vparm    if_lhs     ;
+		vector<vparm> if_rhs ;
 		VERIFY*  if_verify  ;
 		TRUNC*   if_trunc   ;
 		TRANS*   if_trans   ;
@@ -404,7 +442,6 @@ class IFSTMNT
 		bool     if_true    ;
 		bool     if_AND     ;
 		bool     if_else    ;
-		bool     if_isvar   ;
 		IF_COND  if_cond    ;
 
 	private:
@@ -421,12 +458,10 @@ class IFSTMNT
 		  { "<",  IF_LT },
 		  { "LT", IF_LT },
 		  { ">=", IF_GE },
-		  { "=>", IF_GE },
 		  { "GE", IF_GE },
 		  { "!<", IF_GE },
 		  { "NL", IF_GE },
 		  { "<=", IF_LE },
-		  { "=<", IF_LE },
 		  { "LE", IF_LE },
 		  { "!>", IF_LE },
 		  { "NG", IF_LE } } ;
@@ -656,6 +691,7 @@ class selobj
 			quiet   = false ;
 			errors  = false ;
 			sync    = true  ;
+			fstack  = false ;
 			options = NULL  ;
 		}
 		void def( const string& p )
@@ -667,6 +703,7 @@ class selobj
 			suspend = true  ;
 			selPanl = true  ;
 			nested  = true  ;
+			fstack  = false ;
 		}
 		bool parse( errblock&, string ) ;
 		bool selPanel() { return selPanl ; }
@@ -682,6 +719,7 @@ class selobj
 		bool   selPanl ;
 		bool   backgrd ;
 		bool   nested  ;
+		bool   fstack  ;
 		PGM_TYPE pgmtype ;
 		bool   quiet   ;
 		bool   errors  ;

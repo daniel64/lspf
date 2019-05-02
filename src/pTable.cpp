@@ -890,8 +890,9 @@ void Table::tbscan( errblock& err,
 	// tb_condlst contains the condidtions to use for variables in tb_namelst (1:1 between the two lists).
 	// Only use variables in tb_namelst not other table variables.
 
-	// RC = 0  Okay. Row found. CRP set to top.
-	// RC = 8  Row not found
+	// RC = 0   Okay.  CRP set to row found.
+	// RC = 8   Row not found.  CRP set to top (zero)
+	// RC = 20  Severe error
 
 	int i    ;
 	int ws   ;
@@ -2361,28 +2362,25 @@ void tableMGR::tbcreate( errblock& err,
 		tables.erase( it ) ;
 		err.setRC( 4 ) ;
 	}
-	else
+	else if ( tb_DISP == SHARE && tables.find( tb_name ) != tables.end() )
 	{
-		if ( tb_DISP == SHARE && tables.find( tb_name ) != tables.end() )
+		err.setRC( 8 ) ;
+		return ;
+	}
+	else if ( filename != "" )
+	{
+		if ( tb_REP == REPLACE )
+		{
+			err.setRC( 4 ) ;
+		}
+		else
 		{
 			err.setRC( 8 ) ;
 			return ;
 		}
-		if ( filename != "" )
-		{
-			if ( tb_REP == REPLACE )
-			{
-				err.setRC( 4 ) ;
-			}
-			else
-			{
-				err.setRC( 8 ) ;
-				return ;
-			}
-		}
 	}
 
-	if ( tb_WRITE == WRITE && filename == "" )
+	if ( tb_WRITE == WRITE && filename == "" && getpaths( tb_paths ) > 0 )
 	{
 		filename = getpath( tb_paths, 1 ) + tb_name ;
 	}

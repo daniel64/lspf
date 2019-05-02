@@ -40,7 +40,7 @@ text      7   2          FP  "ZTDROWS:"
 field     7   11    8    VOI   NONE  ZTDROWS
 
 text      8   2          FP  "Keyed Table (1 key).  Max RC from last operation is:"
-field     8   51    8    VOI   NONE  TRC
+field     8   55    8    VOI   NONE  TRC
 
 text      10  2          FP  "Last 5 operations:"
 field     10  21    8    VOI   NONE  TOPR1
@@ -126,16 +126,16 @@ IF (.MSG EQ &Z)
    &SEL = &Z
    REFRESH(SEL)
 ELSE
-   IF (&SEL NE &Z) .ATTR(SEL) = 'COLOUR(RED)'
+   IF (.CURSOR EQ 'SEL' ) .ATTR(.CURSOR) = 'COLOUR(RED)'
 
 )PROC
 
-IF (&SEL NE &Z,D,R,RO,G)
-   .ATTR(SEL) = 'COLOUR(RED) INTENS(HIGH)'
-   .CURSOR    = SEL
-   .MSG       = PSYS011B
-   &ZZSTR1    = 'D, R, RO and G'
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS011B
+   .CURSOR = 'ZCMD'
    EXIT
+
+VER(&SEL,LIST,D,R,RO,G)
 
 IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
 

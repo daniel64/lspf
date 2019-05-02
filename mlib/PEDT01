@@ -2,13 +2,13 @@
 /* Message file for the PEDIT01 EDITOR          */
 /*                                              */
 
-PEDT011 'Invalid Command Parameter' .TYPE=W
+PEDT011 'Invalid parameter' .TYPE=W
 'Primary command contains an invalid parameter'
 
-PEDT012 'Invalid Line Command' .TYPE=W
+PEDT012 'Invalid line command' .TYPE=W
 'Line command entered is not valid'
 
-PEDT013 'Line Command Invalid Here' .TYPE=W
+PEDT013 'Line command invalid here' .TYPE=W
 'Line command entered is not valid on this line'
 
 PEDT014 'Invalid label name' .TYPE=W
@@ -20,7 +20,7 @@ PEDT015 'Invalid parameter format passed to PEDIT01' .TYPE=W
 PEDT016 'Label missing or invalid' .TYPE=W
 'Enter both labels to delimit command.  Both labels must already exist'
 
-PEDT017 'No More UNDO''s' .TYPE=W
+PEDT017 'No more UNDO''s' .TYPE=W
 'All changes on the UNDO stack have been undone'
 
 PEDT018 'No REDO''s available' .TYPE=W
@@ -32,61 +32,61 @@ PEDT019 'Too many columns specified' .TYPE=W
 PEDT011A 'Too many labels specified' .TYPE=W
 'There appears to be more than two row label delimiters specified.  Put string in quotes'
 
-PEDT011B 'Extraeneous Data' .TYPE=W
+PEDT011B 'Extraeneous data' .TYPE=W
 'Extaeneous data specified on find or change command'
 
-PEDT011C 'No Previous Find Command' .TYPE=W
+PEDT011C 'No previous FIND command' .TYPE=W
 'No previous find command specified.  Cannot use * for the find string'
 
 PEDT011D 'Put string in quotes' .TYPE=W
-'No find or change string found in the command.  Put string in quotes'
+'Put single or double quotes around the find string'
 
-PEDT011E 'Label Not Valid' .TYPE=W
+PEDT011E 'Label not valid' .TYPE=W
 'A label is only valid on a data line, not a special line'
 
-PEDT011F 'Label Does Not Exist' .TYPE=W
+PEDT011F 'Label does not exist' .TYPE=W
 'Label does not Exist.  Please enter a valid line label'
 
-PEDT011G 'Labels Are The Same' .TYPE=W
+PEDT011G 'Labels are the same' .TYPE=W
 'Start label cannot be the same as the end label.'
 
-PEDT011H 'No End Quote' .TYPE=W
+PEDT011H 'No end quote' .TYPE=W
 'Start quote but no end quote specified'
 
-PEDT011I 'Invalid Quoted String' .TYPE=W
+PEDT011I 'Invalid quoted string' .TYPE=W
 'Valid types of quoted string are T, C, X, P, R and RC for FIND, and T, C, X and P for CHANGE'
 
-PEDT011J 'Column Out Of Range' .TYPE=W
+PEDT011J 'Column out of range' .TYPE=W
 'Entered column value cannot be less that 1 or greater than 65,535'
 
-PEDT011K 'Invalid Hex String' .TYPE=W
+PEDT011K 'Invalid hex string' .TYPE=W
 'Enter only valid hex characters 0-9, A-F with no spaces'
 
-PEDT011L '&LINES Line(s) Excluded' .TYPE=N
+PEDT011L '&LINES line(s) excluded' .TYPE=N
 '&TYPE &STR excluded &OCC time(s)&ZSTR1..  &LINES line(s) have been excluded.'
 
-PEDT011M '&LINES Line(s) Deleted' .TYPE=N
+PEDT011M '&LINES line(s) deleted' .TYPE=N
 '&LINES line(s) have been deleted'
 
-PEDT011N 'Invalid Regex' .TYPE=W
+PEDT011N 'Invalid REGEX' .TYPE=W
 'Regular expression entered is not valid'
 
 PEDT011O 'Data changed-SAVE/CANCEL' .TYPE=W
 'File has changed and no SAVE or CANCEL has been entered (AUTOSAVE is set OFF)'
 
-PEDT011P 'File Saved' .TYPE=N
+PEDT011P 'File saved' .TYPE=N
 'File has been successfully saved'
 
-PEDT011Q 'File Not Saved' .TYPE=W
+PEDT011Q 'File not saved' .TYPE=W
 'An error has occured saving the file.  Check file permissions for access rights'
 
-PEDT011R 'File Does Not Exist' .TYPE=W
+PEDT011R 'File does not exist' .TYPE=W
 'File ''&ZSTR1'' does not exist'
 
-PEDT011S 'File/Directory Does Not Exist' .TYPE=W
+PEDT011S 'File/directory does not exist' .TYPE=W
 '''&ZFILE'' is neither a valid file, nor a valid directory'
 
-PEDT011T 'Entry Is A Directory' .TYPE=W
+PEDT011T 'Entry is a directory' .TYPE=W
 '''&ZFILE'' is a directory entry'
 
 PEDT011U 'UNDO is set OFF' .TYPE=W
@@ -101,16 +101,16 @@ PEDT011W 'Block command incomplete' .TYPE=N
 PEDT011X 'Invalid A/B line command' .TYPE=W
 'A/B line command found within a block command'
 
-PEDT011Y 'Command Conflict' .TYPE=W
+PEDT011Y 'Command conflict' .TYPE=W
 'Line command conflict'
 
-PEDT011Z 'Incomplete Command' .TYPE=W
+PEDT011Z 'Incomplete command' .TYPE=W
 'Line command is incomplete'
 
-PEDT012A 'Number Not Allowed' .TYPE=W
+PEDT012A 'Number not allowed' .TYPE=W
 'A number is not allowed with this command.  Please blank it out'
 
-PEDT012B 'Number Conflict' .TYPE=W
+PEDT012B 'Number conflict' .TYPE=W
 'If entered twice, the numbers on a block command must match'
 
 PEDT012C 'Not all data copied' .TYPE=W
@@ -119,16 +119,16 @@ PEDT012C 'Not all data copied' .TYPE=W
 PEDT012D 'Lines not deleted' .TYPE=W
 'Data lines not deleted as not all data overlayed'
 
-PEDT012E 'Logic Error' .TYPE=W
+PEDT012E 'Logic error' .TYPE=W
 'A logic error has occured.  See application log for messages'
 
-PEDT012F 'Backup Failed' .TYPE=W
+PEDT012F 'Backup failed' .TYPE=W
 'Backup of file to be edited has failed.  Check BACKUP PATH and permissions'
 
 PEDT012G 'Invalid multiplier' .TYPE=W
 'Command multiplier entered is not a numeric integer'
 
-PEDT012H 'UNDO Data Removed' .TYPE=W
+PEDT012H 'UNDO data removed' .TYPE=W
 'UNDO data has been deleted.  UNDO/REDO not available before this time'
 
 PEDT013A 'Invalid CUT parameter' .TYPE=W
@@ -146,7 +146,7 @@ PEDT013D '&ZEDLNES lines pasted from &CLIPNAME' .TYPE=N
 PEDT013E 'Error in hilighter' .TYPE=W
 'An exception has occured in the hilighter program.  Hilighting has been disabled'
 
-PEDT013F 'Paste Pending' .TYPE=W
+PEDT013F 'Paste pending' .TYPE=W
 'Paste is pending.  Select position to paste lines with the A/B line commands'
 
 PEDT013G '&TYPE &STR found' .TYPE=N
@@ -158,8 +158,8 @@ PEDT013H 'Entry not found' .TYPE=W
 PEDT013I '&TYPE &STR found &OCC time(s)' .TYPE=N
 'Search for &TYPE &STR&ZVAL1 was found &OCC time(s) on &LINES line(s)'
 
-PEDT013J 'Duplicate/Inconsistent parameter' .TYPE=W
-'Duplicate or inconsistent parameter entered on find or change command'
+PEDT013J 'Invalid &STR parameter' .TYPE=W
+'Duplicate or inconsistent parameter entered on &STR command'
 
 PEDT013K '&TYPE &STR changed &OCC times(s)' .TYPE=N
 'Change was successful.  &TYPE &STR changed &OCC times(s)'
@@ -173,13 +173,13 @@ PEDT013M 'Enter a FIND command' .TYPE=W
 PEDT013N 'Enter a CHANGE command' .TYPE=W
 'Enter a CHANGE command before using RCHANGE'
 
-PEDT013O 'Compare File Does Not Exist' .TYPE=W
+PEDT013O 'Compare file does not exist' .TYPE=W
 'File ''&CFILE'' does not exist'
 
 PEDT013P 'Files are the same' .TYPE=W
 'There are no differences between the files'
 
-PEDT013Q 'Invalid Hilight Language' .TYPE=W
+PEDT013Q 'Invalid hilight language' .TYPE=W
 'Hilight language not supported.'
 
 PEDT013R 'Label ZLAST invalid' .TYPE=W
@@ -191,8 +191,8 @@ PEDT013S 'Labels not valid' .TYPE=W
 PEDT013T 'Columns not valid' .TYPE=W
 'Command does not support column delimiter parameters'
 
-PEDT013U 'Invalid FIND/CHANGE/EXCLUDE command' .TYPE=W
-'Find, change or exclude command does not contain a search string'
+PEDT013U 'Missing &STR string' .TYPE=W
+'&STR command does not contain a search string'
 
 PEDT013V '*Bottom of data reached*' .TYPE=W
 '&TYPE &STR not found.  Press RFIND to continue from the top of data'
@@ -212,10 +212,10 @@ PEDT014A 'File in use' .TYPE=W
 PEDT014B 'Data shifting incomplete' .TYPE=W
 'Data shifting was not completed on lines marked ==ERR>'
 
-PEDT014C 'Command Conflict' .TYPE=W
+PEDT014C 'Command conflict' .TYPE=W
 'Command is within the range of the previous command'
 
-PEDT014D 'Profile Created' .TYPE=N
+PEDT014D 'Profile created' .TYPE=N
 'New profile created'
 
 PEDT014E 'Already sorted' .TYPE=N
@@ -293,10 +293,10 @@ PEDT015B 'Invalid command' .TYPE=W
 PEDT015C '''&STR'' macro error' .TYPE=W
 'An error has occured in edit macro ''&STR'''
 
-PEDT015D 'Invalid command parameter' .TYPE=W
+PEDT015D 'Too many parameters' .TYPE=W
 'Primary command entered has too many parameters'
 
-PEDT015E 'Missing command parameter' .TYPE=W
+PEDT015E 'Missing parameter' .TYPE=W
 'Primary command entered has too few parameters'
 
 PEDT015F 'Missing command name' .TYPE=W
@@ -308,7 +308,7 @@ PEDT015G 'Line number out of range' .TYPE=W
 PEDT015H 'Rejected.  Profile locked' .TYPE=W
 'IMACRO change rejected as the profile is locked'
 
-PEDT015I 'Copy Pending' .TYPE=W
+PEDT015I 'Copy pending' .TYPE=W
 'Copy is pending.  Select position to insert lines with the A/B line commands'
 
 PEDT015J '&ZEDLNES lines copied' .TYPE=N
@@ -324,10 +324,10 @@ PEDT015M 'Invalid DEFINE option' .TYPE=W
 'DEFINE command contains an invalid option.  Must be MACRO, ALIAS, NOP, RESET or DISABLED'
 
 PEDT015N 'Missing DEFINE alias-to name' .TYPE=W
-'Missing alias-to name on 'DEFINE name ALIAS alias-to' command'
+'Missing alias-to name on ''DEFINE name ALIAS alias-to'' command'
 
 PEDT015O 'Invalid keyword option' .TYPE=W
-'Too many parameters following the 'DEFINE name keyword' command'
+'Too many parameters following the ''DEFINE name keyword'' command'
 
 PEDT015P 'DEFINE is not allowed' .TYPE=W
 'Command name has been disabled with the DEFINE DISABLED command'
@@ -383,7 +383,7 @@ PEDT016F '*Top of range reached*' .TYPE=W
 PEDT016G 'No &TYPE &STR found' .TYPE=W
 '&TYPE &STR not found on any&ZVAL1 lines&ZVAL2&ZVAL3'
 
-PEDT016H 'No Line Command Table' .TYPE=W
+PEDT016H 'No line command table' .TYPE=W
 'Table &EELMAC has not been found in the ZTLIB search path'
 
 PEDT016I 'Destination pending' .TYPE=N
@@ -394,4 +394,10 @@ PEDT016J 'Invalid destination' .TYPE=W
 
 PEDT016K 'Changes pending' .TYPE=W
 'Cannot UNDO/REDO when line commands and/or data changes have also been specified'
+
+PEDT016L 'Invalid columns specified' .TYPE=W
+'String ''&STR'' does not fit between the specified columns'
+
+PEDT016M 'Probable label error' .TYPE=W
+'Find string cannot be determined.  Put string in quotes'
 

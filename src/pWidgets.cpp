@@ -660,12 +660,9 @@ int field::edit_field_backspace( WINDOW* win,
 	pos = col - field_col ;
 	if ( pos > field_value.size() ) { return --col ; }
 
-	if ( field_dynArea )
+	if ( field_dynArea && field_dynArea->dynArea_Attrs.find( field_value[ pos-1 ] ) != string::npos )
 	{
-		if ( field_dynArea->dynArea_Attrs.find( field_value[ pos-1 ] ) != string::npos )
-		{
-			return col ;
-		}
+		return col ;
 	}
 
 	--col ;
@@ -956,14 +953,7 @@ void field::field_attr()
 {
 	// Reset field attribute to use the CUA value or original non-CUA value
 
-	if ( field_cua == NONE )
-	{
-		field_colour1 = field_colour2 ;
-	}
-	else
-	{
-		field_colour1 = cuaAttr[ field_cua ] ;
-	}
+	field_colour1 = ( field_cua == NONE ) ? field_colour2 : cuaAttr[ field_cua ] ;
 	field_attr_once = false ;
 }
 

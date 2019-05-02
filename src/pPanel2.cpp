@@ -19,8 +19,6 @@
 
 void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths )
 {
-	int k  ;
-
 	uint i ;
 	uint j ;
 
@@ -582,6 +580,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 
 		if ( attr )
 		{
+			w1 = word( pline, 1 ) ;
 			if ( w1.size() > 2 || ( w1.size() == 2 && not ishex( w1 ) ) )
 			{
 				err.seterrid( "PSYE041B" ) ;
@@ -705,7 +704,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			textList.push_back( m_lit ) ;
 			if ( m_lit->text_cua == PS )
 			{
-				textPS.push_back( m_lit ) ;
+				text_pas.push_back( m_lit ) ;
 			}
 			continue ;
 		}
@@ -746,7 +745,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 
 			if ( fld->field_cua == PS )
 			{
-				fieldPS[ w7 ] = fld ;
+				field_pas[ w7 ] = fld ;
 			}
 
 			fieldList[ w7 ] = fld ;
@@ -982,6 +981,77 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		}
 	}
 
+	build_fieldMap( err ) ;
+	if ( err.error() ) { return ; }
+
+	build_jumpList() ;
+
+	fwin  = newwin( zscrmaxd, zscrmaxw, 0, 0 ) ;
+	panel = new_panel( fwin ) ;
+	set_panel_userptr( panel, new panel_data( zscrnum ) ) ;
+
+	panelid = p_name ;
+}
+
+
+void pPanel::build_fieldMap( errblock& err )
+{
+	// FieldMap - 2 bytes for each screen byte (max fields per panel 65,535)
+	//            0 - no field at this position.
+	//            n - Index into fieldAddrs.
+
+	// FieldAddrs - pointer to array of field pointers indexed by fieldMap.
+	//              First member is NULL to indicate no field.
+
+	typedef field* fieldptr ;
+
+	int idx = 1 ;
+
+	uint i ;
+	uint j ;
+	uint k ;
+
+	string t ;
+
+	map<fieldptr, string>xref ;
+
+	fieldMap = new short int[ zscrmaxd * zscrmaxw ] ;
+
+	for ( i = 0 ; i < zscrmaxd*zscrmaxw ; ++i )
+	{
+		fieldMap[ i ] = 0 ;
+	}
+
+	fieldAddrs      = new fieldptr[ fieldList.size() + 1 ] ;
+	fieldAddrs[ 0 ] = NULL ;
+
+	for ( auto it = fieldList.begin() ; it != fieldList.end() ; ++it, ++idx )
+	{
+		fieldAddrs[ idx ]  = it->second ;
+		xref[ it->second ] = it->first ;
+		j = it->second->field_row * zscrmaxw + it->second->field_col ;
+		k = j + it->second->field_length ;
+		for ( i = j ; i < k ; ++i )
+		{
+			if ( fieldMap[ i ] != 0 )
+			{
+				t = xref[ fieldAddrs[ fieldMap [ i ] ] ] ;
+				t = t.substr( 0, t.find( '.' ) ) ;
+				err.seterrid( "PSYE042L", it->first.substr( 0, it->first.find( '.' ) ), t ) ;
+				return ;
+			}
+			fieldMap[ i ] = idx ;
+		}
+	}
+}
+
+
+void pPanel::build_jumpList()
+{
+	int k ;
+
+	string t1 ;
+
 	for ( auto ita = fieldList.begin() ; ita != fieldList.end() ; ++ita )
 	{
 		if ( not ita->second->field_dynArea &&
@@ -999,15 +1069,14 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 					k = (*itb)->text_value.size() - 3 ;
 					if ( k > 0 )
 					{
-						t1 = (*itb)->text_value.substr( k, 3 ) ;
+						t1 = (*itb)->text_value.substr( k ) ;
 						if ( t1 == "..." ||
 						     t1 == ". ." ||
 						     t1 == " .:" ||
 						     t1 == ". :" ||
 						     t1 == "==>" )
 						{
-							ita->second->field_jump = true ;
-							jump_fields             = true ;
+							jumpList[ ita->first ] = ita->second ;
 						}
 					}
 					break ;
@@ -1015,12 +1084,6 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			}
 		}
 	}
-
-	fwin  = newwin( zscrmaxd, zscrmaxw, 0, 0 ) ;
-	panel = new_panel( fwin ) ;
-	set_panel_userptr( panel, new panel_data( zscrnum ) ) ;
-
-	panelid = p_name ;
 }
 
 
@@ -1384,18 +1447,9 @@ void pPanel::createPanel_Assign( errblock& err,
 		return ;
 	}
 
-	m_assgn->as_istb = ( tb_fields.count( m_assgn->as_lhs ) > 0 ) ;
-
-	if ( m_assgn->as_isattr && ( fieldList.find( m_assgn->as_lhs ) == fieldList.end() ) && !m_assgn->as_istb )
-	{
-		err.seterrid( "PSYE041S", m_assgn->as_lhs ) ;
-		delete m_assgn ;
-		return ;
-	}
-
 	if ( m_assgn->as_isattc && not init_reinit_proc )
 	{
-		err.seterrid( "PSYE042Q", m_assgn->as_lhs ) ;
+		err.seterrid( "PSYE042Q", m_assgn->as_lhs.value ) ;
 		delete m_assgn ;
 		return ;
 	}

@@ -33,7 +33,7 @@
 #include "PMAIN0A.h"
 
 using namespace std ;
-using namespace boost::gregorian;
+using namespace boost::gregorian ;
 
 #undef  MOD_NAME
 #define MOD_NAME PMAIN0A
@@ -51,7 +51,7 @@ using namespace boost::gregorian;
 PMAIN0A::PMAIN0A()
 {
 	set_appdesc( "Default main program for lspf" ) ;
-	set_appver( "1.0.1" )  ;
+	set_appver( "1.0.1" ) ;
 	set_apphelp( "HPMAIN1" ) ;
 
 	vdefine( "ZCURFLD ZAREA ZSHADOW", &zcurfld, &zarea, &zshadow ) ;
@@ -76,8 +76,6 @@ void PMAIN0A::application()
 
 	string zscrname ;
 	string curfld   ;
-
-	errblock err ;
 
 	vdefine( "ZCMD ZSEL ZSCRNAME", &zcmd, &zsel, &zscrname ) ;
 
@@ -186,7 +184,7 @@ void PMAIN0A::create_calendar( int pmonth, int pyear )
 	int cmonth ;
 	int cyear  ;
 	int eom_day ;
-	int daypos  ;
+	int daypos ;
 
 	string m ;
 
@@ -240,26 +238,26 @@ void PMAIN0A::create_calendar( int pmonth, int pyear )
 
 	zshadow = string( 231, E_WHITE ) ;
 
-	zshadow.replace(  21,  21,  21, E_RED )  ;
-	zshadow.replace(  42,  21,  21, E_YELLOW ) ;
+	zshadow.replace(  21, 21, 21, E_RED )  ;
+	zshadow.replace(  42, 21, 21, E_YELLOW ) ;
 
-	zshadow.replace(  63,   2,   2, E_TURQ ) ;
-	zshadow.replace(  81,   2,   2, E_TURQ ) ;
+	zshadow.replace(  63,  2,  2, E_TURQ ) ;
+	zshadow.replace(  81,  2,  2, E_TURQ ) ;
 
-	zshadow.replace(  84,   2,   2, E_TURQ ) ;
-	zshadow.replace( 102,   2,   2, E_TURQ ) ;
+	zshadow.replace(  84,  2,  2, E_TURQ ) ;
+	zshadow.replace( 102,  2,  2, E_TURQ ) ;
 
-	zshadow.replace( 105,   2,   2, E_TURQ ) ;
-	zshadow.replace( 123,   2,   2, E_TURQ ) ;
+	zshadow.replace( 105,  2,  2, E_TURQ ) ;
+	zshadow.replace( 123,  2,  2, E_TURQ ) ;
 
-	zshadow.replace( 126,   2,   2, E_TURQ ) ;
-	zshadow.replace( 144,   2,   2, E_TURQ ) ;
+	zshadow.replace( 126,  2,  2, E_TURQ ) ;
+	zshadow.replace( 144,  2,  2, E_TURQ ) ;
 
-	zshadow.replace( 147,   2,   2, E_TURQ ) ;
-	zshadow.replace( 165,   2,   2, E_TURQ ) ;
+	zshadow.replace( 147,  2,  2, E_TURQ ) ;
+	zshadow.replace( 165,  2,  2, E_TURQ ) ;
 
-	zshadow.replace( 168,   2,   2, E_TURQ ) ;
-	zshadow.replace( 186,   2,   2, E_TURQ ) ;
+	zshadow.replace( 168,  2,  2, E_TURQ ) ;
+	zshadow.replace( 186,  2,  2, E_TURQ ) ;
 
 	if ( daypos > 0 ) { zshadow.replace( daypos, 2, 2, G_TURQ ) ; }
 }

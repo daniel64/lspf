@@ -226,6 +226,17 @@ enum D_PARMS
 } ;
 
 
+enum CSR_POS
+{
+	CSR_FC_LCMD,
+	CSR_FC_DATA,
+	CSR_FNB_DATA,
+	CSR_OFF_DATA,
+	CSR_OFF_LCMD,
+	CSR_LC_OR_DATA
+} ;
+
+
 class pcmd_entry
 {
 	public:
@@ -1291,7 +1302,7 @@ class cmd_range
 
 class edit_find
 {
-	private:
+	public:
 		string f_string  ;
 		string f_ostring ;
 		string f_cstring ;
@@ -1344,7 +1355,7 @@ class edit_find
 		int    f_sk_lnes ;
 		int    f_ex_occs ;
 		int    f_ex_lnes ;
-		boost::regex  f_regexp ;
+		boost::regex f_regexp ;
 
 	edit_find()
 	{
@@ -1427,8 +1438,6 @@ class edit_find
 	{
 		return ( f_dir == 'L' || f_dir == 'P' ) ;
 	}
-
-	friend class PEDIT01 ;
 } ;
 
 
@@ -1477,32 +1486,41 @@ class defName
 class cmdblock
 {
 	public:
-		string CMD   ;
-		string CMDF  ;
-		string OCMD  ;
+		string cmd   ;
+		string cmdf  ;
+		string ocmd  ;
+		string zverb ;
+		string parms ;
 		P_CMDS p_cmd ;
-		string MSG   ;
+		string msgid ;
 		string cchar ;
 		string udata ;
 		int    RC    ;
 		int    RSN   ;
 		int    cwds  ;
-		bool   alias    ;
-		bool   seek     ;
+		bool   alias ;
+		bool   seek  ;
 		bool   actioned ;
-		bool   macro    ;
-		bool   expl     ;
-		bool   lcmd     ;
-		bool   keep     ;
-		bool   deact    ;
+		bool   macro ;
+		bool   expl  ;
+		bool   lcmd  ;
+		bool   keep  ;
+		bool   deact ;
 
 	cmdblock()
 	{
-		CMD      = "" ;
-		CMDF     = "" ;
-		OCMD     = "" ;
+		clear_all() ;
+	}
+
+	void clear_all()
+	{
+		cmd      = "" ;
+		cmdf     = "" ;
+		ocmd     = "" ;
+		zverb    = "" ;
+		parms    = "" ;
 		p_cmd    = PC_INVCMD ;
-		MSG      = "" ;
+		msgid    = "" ;
 		cchar    = "" ;
 		udata    = "" ;
 		RC       = 0  ;
@@ -1520,39 +1538,11 @@ class cmdblock
 
 	void clear()
 	{
-		CMD      = "" ;
-		CMDF     = "" ;
-		OCMD     = "" ;
-		p_cmd    = PC_INVCMD ;
-		MSG      = "" ;
-		cchar    = "" ;
-		udata    = "" ;
-		RC       = 0  ;
-		RSN      = 0  ;
-		cwds     = 0  ;
-		alias    = false ;
-		seek     = false ;
-		actioned = false ;
-		macro    = false ;
-		expl     = false ;
-		lcmd     = false ;
-		keep     = false ;
-		deact    = false ;
-	}
-
-	void set_cmd( const string& s, map<string,stack<defName>>& defNames )
-	{
-		string w ;
-
-		map<string,stack<defName>>::iterator ita ;
-		map<P_CMDS,pcmd_format>::iterator itp ;
-
-		CMD = strip( s ) ;
-		if ( CMD == "" ) { clear() ; return ; }
-
-		MSG   = ""    ;
+		msgid = ""    ;
 		RC    = 0     ;
 		RSN   = 0     ;
+		zverb = ""    ;
+		parms = ""    ;
 		cchar = ""    ;
 		udata = ""    ;
 		macro = true  ;
@@ -1562,42 +1552,64 @@ class cmdblock
 		keep  = false ;
 		alias = false ;
 		deact = false ;
-		if ( CMD.front() == '&' )
+	}
+
+	void set_cmd( const string& s, map<string,stack<defName>>& defNames, const string& zzverb ="" )
+	{
+		string w ;
+
+		map<string,stack<defName>>::iterator ita ;
+		map<P_CMDS,pcmd_format>::iterator itp ;
+
+		if ( zzverb == "RFIND" || zzverb == "RCHANGE" )
 		{
-			CMD.erase( 0, 1 ) ;
-			if ( CMD == "" ) { return ; }
+			clear_all() ;
+			zverb = zzverb ;
+			parms = s ;
+			return ;
+		}
+
+		cmd = strip( s ) ;
+		if ( cmd == "" ) { clear_all() ; return ; }
+
+		clear() ;
+
+		if ( cmd.front() == '&' )
+		{
+			cmd.erase( 0, 1 ) ;
+			if ( cmd == "" ) { return ; }
 			keep  = true ;
 			cchar = "&"  ;
 		}
-		if ( CMD.front() == '%' )
+		if ( cmd.front() == '%' )
 		{
-			CMD.erase( 0, 1 ) ;
-			if ( CMD == "" ) { return ; }
+			cmd.erase( 0, 1 ) ;
+			if ( cmd == "" ) { return ; }
 			expl   = true ;
 			cchar += "%"  ;
 		}
-		else if ( CMD.front() == ':' && CMD.size() < 8 )
+		else if ( cmd.front() == ':' && cmd.size() < 8 )
 		{
-			iupper( CMD.erase( 0, 1 ) ) ;
-			if ( CMD == "" ) { return ; }
+			iupper( cmd.erase( 0, 1 ) ) ;
+			if ( cmd == "" ) { return ; }
 			lcmd  = true  ;
 			macro = false ;
 			cchar = ":"   ;
 		}
 		else
 		{
-			w = upper( word( CMD, 1 ) ) ;
+			w = upper( word( cmd, 1 ) ) ;
 			if ( w == "BUILTIN" )
 			{
-				idelword( CMD, 1, 1 ) ;
-				if ( trim( CMD ) == "" )
+				idelword( cmd, 1, 1 ) ;
+				if ( trim( cmd ) == "" )
 				{
 					set_msg( "PEDT015F" ) ;
-					CMD  = "BUILTIN" ;
+					cmd  = "BUILTIN" ;
 					keep = true      ;
 					return ;
 				}
-				w = get_truename( upper( word( CMD, 1 ) ) ) ;
+				w = get_truename( upper( word( cmd, 1 ) ) ) ;
 			}
 			else
 			{
@@ -1611,7 +1623,7 @@ class cmdblock
 						deact = true ;
 						return ;
 					}
-					else if ( ita->second.top().macro() )
+					if ( ita->second.top().macro() )
 					{
 						expl = true ;
 					}
@@ -1625,9 +1637,9 @@ class cmdblock
 							deact = true ;
 							return ;
 						}
-						OCMD  = CMD ;
-						CMD   = w + " " + idelword( CMD, 1, 1 ) ;
-						trim( CMD )  ;
+						ocmd  = cmd ;
+						cmd   = w + " " + idelword( cmd, 1, 1 ) ;
+						trim( cmd )  ;
 						alias = true ;
 					}
 				}
@@ -1647,26 +1659,52 @@ class cmdblock
 				}
 			}
 		}
-		cwds = words( CMD ) ;
-		CMDF = upper( word( CMD, 1 ) ) ;
+		cwds = words( cmd ) ;
+		cmdf = upper( word( cmd, 1 ) ) ;
 		itp  = pcmdFormat.find( p_cmd ) ;
-		if ( itp->second.noptions1 != -1 && cwds < ( itp->second.noptions1 + 1 ) )
+		if ( itp != pcmdFormat.end() )
 		{
-			set_msg( "PEDT015E" ) ;
-			return ;
-		}
-
-		if ( itp->second.noptions2 != -1 && cwds > ( itp->second.noptions2 + 1 ) )
-		{
-			set_msg( "PEDT015D" ) ;
-			return ;
+			if ( cwds < ( itp->second.noptions1 + 1 ) )
+			{
+				set_msg( "PEDT015E" ) ;
+				return ;
+			}
+			if ( itp->second.noptions2 != -1 && cwds > ( itp->second.noptions2 + 1 ) )
+			{
+				set_msg( "PEDT015D" ) ;
+				return ;
+			}
 		}
 		actioned = false ;
+		parms = subword( cmd, 2 ) ;
+	}
+
+	void set_cmd( const string& s )
+	{
+		cmd = s ;
+	}
+
+	void set_zverb_cmd()
+	{
+		if ( zverb != "" )
+		{
+			cmd = zverb + " " + parms ;
+		}
+	}
+
+	const string& get_parms()
+	{
+		return parms ;
+	}
+
+	void pop_parm1()
+	{
+		idelword( parms, 1, 1 ) ;
 	}
 
 	string condget_cmd() const
 	{
-		if ( error() || keep ) { return alias ? cchar+OCMD : cchar+CMD ; }
+		if ( error() || keep ) { return alias ? cchar+ocmd : cchar+cmd ; }
 		return "" ;
 	}
 
@@ -1677,22 +1715,22 @@ class cmdblock
 
 	const string& get_cmd() const
 	{
-		return CMD ;
+		return cmd ;
 	}
 
 	const string& get_cmdf() const
 	{
-		return CMDF ;
+		return cmdf ;
 	}
 
 	bool cmdf_is( const string& s ) const
 	{
-		return ( CMDF == s ) ;
+		return ( cmdf == s ) ;
 	}
 
 	bool cmdf_is_not( const string& s ) const
 	{
-		return ( CMDF != s ) ;
+		return ( cmdf != s ) ;
 	}
 
 	int isMacro() const
@@ -1722,7 +1760,7 @@ class cmdblock
 
 	void reset()
 	{
-		CMD      = ""    ;
+		cmd      = ""    ;
 		cchar    = ""    ;
 		udata    = ""    ;
 		p_cmd    = PC_INVCMD ;
@@ -1741,15 +1779,15 @@ class cmdblock
 
 	void clear_msg()
 	{
-		MSG = "" ;
-		RC  = 0  ;
-		RSN = 0  ;
+		msgid = "" ;
+		RC    = 0  ;
+		RSN   = 0  ;
 	}
 
 	void set_msg( const string& m, int rc =12 )
 	{
-		MSG = m  ;
-		RC  = rc ;
+		msgid = m  ;
+		RC    = rc ;
 	}
 
 	void setRC( int rc )
@@ -1759,17 +1797,17 @@ class cmdblock
 
 	const string& get_msg() const
 	{
-		return MSG ;
+		return msgid ;
 	}
 
 	bool msgset() const
 	{
-		return ( MSG != "" ) ;
+		return ( msgid != "" ) ;
 	}
 
 	bool cmdset() const
 	{
-		return ( CMD != "" ) ;
+		return ( cmd != "" ) ;
 	}
 
 	void set_userdata( const string& s )
@@ -2013,7 +2051,7 @@ class miblock
 
 	void seterror( cmdblock& cmd )
 	{
-		msgid = cmd.MSG ;
+		msgid = cmd.msgid ;
 		RC    = cmd.RC  ;
 		RSN   = cmd.RSN ;
 		fatal = ( RC >= 12 ) ;
@@ -2485,7 +2523,7 @@ class PEDIT01 : public pApplication
 	private:
 		static set<string>EditList ;
 		static set<string>RecoveryList ;
-		static edit_find Global_efind_parms ;
+		static map<int, edit_find>Global_efind_parms ;
 
 		miblock miBlock ;
 
@@ -2503,7 +2541,7 @@ class PEDIT01 : public pApplication
 		bool termOK()             ;
 		void readFile()           ;
 		bool saveFile()           ;
-		bool showConfirmCancel()  ;
+		bool ConfirmCancel()      ;
 		void fill_dynamic_area()  ;
 		void fill_hilight_shadow();
 		void clr_hilight_shadow() ;
@@ -2531,12 +2569,17 @@ class PEDIT01 : public pApplication
 		void actionService() ;
 		void querySetting()  ;
 
-		void actionZVERB()   ;
-		void setLineLabels() ;
+		void action_ScrollLeft()  ;
+		void action_ScrollRight() ;
+		void action_ScrollUp()   ;
+		void action_ScrollDown() ;
+		void action_RFIND()   ;
+		void action_RCHANGE() ;
+		void setLineLabels()  ;
 		string genNextLabel( const string& ) ;
 
-		bool actionUNDO()    ;
-		bool actionREDO()    ;
+		bool action_UNDO()    ;
+		bool action_REDO()    ;
 		void removeRecoveryData() ;
 
 		uint getLine( int, uint =0 ) ;
@@ -2609,8 +2652,9 @@ class PEDIT01 : public pApplication
 		void clearCursor() ;
 		void fixCursor()   ;
 		void storeCursor(  int, int=0 ) ;
-		void placeCursor(  int, int, int=0, bool= false ) ;
-		void placeCursor( uint, int, int=0 ) ;
+		void placeCursor(  int, CSR_POS, int=0, bool= false ) ;
+		void placeCursor( uint, CSR_POS, int=0 ) ;
+		void placeCursorHome() ;
 		void positionCursor()     ;
 		void moveColumn( int =0 ) ;
 		void moveCursorEnter()    ;
@@ -2619,7 +2663,7 @@ class PEDIT01 : public pApplication
 		vector<iline*>::iterator getLineItr( uint ) ;
 		vector<iline*>::iterator getLineItr( int, vector<iline*>::iterator ) ;
 
-		bool setFindChangeExcl( char ) ;
+		bool setFindChangeExcl( char, bool =false ) ;
 		void setFoundMsg()    ;
 		void setChangedMsg()  ;
 		void setExcludedMsg() ;
@@ -2680,7 +2724,7 @@ class PEDIT01 : public pApplication
 		int  cursorPlaceURID     ;
 		int  cursorPlaceURIDO    ;
 		int  cursorPlaceRow      ;
-		int  cursorPlaceType     ;
+		CSR_POS cursorPlaceType  ;
 		int  cursorPlaceOff      ;
 		int  cursorPlaceOffO     ;
 
@@ -2716,9 +2760,11 @@ class PEDIT01 : public pApplication
 
 		string zcmd              ;
 		string zverb             ;
+		string zpfkey            ;
 		string zapplid           ;
 		string zuser             ;
 		string zscreen           ;
+		string zscrnum           ;
 		string zhome             ;
 		string zuprof            ;
 
@@ -2727,6 +2773,7 @@ class PEDIT01 : public pApplication
 		bool optConfCancel       ;
 		bool optFindPhrase       ;
 
+		bool pfkeyPressed        ;
 		bool termEdit            ;
 		bool stripST             ;
 		bool convTabs            ;
@@ -2843,10 +2890,22 @@ class PEDIT01 : public pApplication
 		string occ  ;
 		string lines;
 
+		map<string, void(PEDIT01::*)()>scrollList = { { "UP",    &PEDIT01::action_ScrollUp    },
+							      { "DOWN",  &PEDIT01::action_ScrollDown  },
+							      { "LEFT",  &PEDIT01::action_ScrollLeft  },
+							      { "RIGHT", &PEDIT01::action_ScrollRight } } ;
+
+		map<string, void(PEDIT01::*)()>zverbList  = { { "RFIND",   &PEDIT01::action_RFIND   },
+							      { "RCHANGE", &PEDIT01::action_RCHANGE } } ;
+
 		map<char, string>typList    = { { 'C', "CHARS"  },
 						{ 'P', "PREFIX" },
 						{ 'S', "SUFFIX" },
 						{ 'W', "WORD"   } } ;
+
+		map<char, string>fcxList    = { { 'F', "FIND"    },
+						{ 'C', "CHANGE"  },
+						{ 'X', "EXCLUDE" } } ;
 
 		map<bool, string>OnOff      = { { true,  "ON"   },
 						{ false, "OFF"  } } ;
@@ -3148,7 +3207,6 @@ class PEDIT01 : public pApplication
 		set<string> t2reptOk  ;
 
 		map<string,lmac> lmacs ;
-
 
 		friend class PEDRXM1 ;
 } ;

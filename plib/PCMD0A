@@ -61,7 +61,7 @@ VPUT MODE PROFILE
 
 PanelTitle "Execute Command"
 
-text   4  2        CH  "Enter rexx or system command below"
+text   4  2        CH  "Enter REXX or system command below"
 
 text   6  2        FP  "===>"
 field  6  7   MAX  NEF CAPS(OFF),PAD(USER) ZCMD
@@ -108,6 +108,7 @@ ELSE
   ELSE                 &TYPE = 'delete'
 
 )REINIT
+.CURSOR = ZCMD
 REFRESH(*)
 
 )PROC

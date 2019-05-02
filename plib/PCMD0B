@@ -39,8 +39,6 @@ field  MAX-2  MAX-3   4  NEF  NONE  ZSCROLL
 .CURSOR = ZCMD
 &ZUS5   = 1
 
-IF (&TIMEOUT EQ &Z) &TIMEOUT = YES
-
 )PROC
 
 )END

@@ -37,7 +37,7 @@ PSYE031J 'Unexpected '')'''
 ''
 
 PSYE031K 'Incomplete comparison statement'
-''
+'&ZVAL1'
 
 PSYE031L 'Invalid field name ''&ZVAL1'' on &ZVAL2 parameter'
 ''
@@ -45,8 +45,20 @@ PSYE031L 'Invalid field name ''&ZVAL1'' on &ZVAL2 parameter'
 PSYE031M '.ATTR field not found'
 'Field &ZVAL1 is not on the panel'
 
-PSYE031N '.ATTRCHAR character not defined'
+PSYE031N '.ATTRCHAR ''&ZVAL1'' not defined'
 'Define character in the )ATTR section before using .ATTRCHAR'
+
+PSYE031O '.ATTR argument invalid'
+'.ATTR argument must be a field name, .CURSOR or a variable name'
+
+PSYE031P '.ATTRCHAR argument invalid'
+'.ATTRCHAR argument must be a single char, 2-digit hex value or a variable name'
+
+PSYE031Q 'Invalid built-in function variable'
+'Variable used with the built-in fuction must be a dialogue or control variable'
+
+PSYE031R 'Invalid built-in function parameter'
+'Invalid &ZVAL1 value - &ZVAL2 not a literal or dialogue variable'
 
 /*                                           */
 /* dynamic areas                             */
@@ -146,8 +158,8 @@ PSYE033Q 'Unknown parameter ''&ZVAL1'''
 PSYE033R 'Too many parameters after the ''='' sign'
 ''
 
-PSYE033S 'Panel control variable &ZVAL1 cannot be set by the dialogue'
-''
+PSYE033S 'Invalid action'
+'Panel control variable &ZVAL1 cannot be set by the dialogue'
 
 PSYE033T 'Missing parameter after the ''='' sign'
 ''
@@ -237,7 +249,7 @@ PSYE037A 'Missing keyword'
 /* Parse string                              */
 /*                                           */
 PSYE037F 'Null string'
-'Null string has been passed to parser'
+'Null string has been passed to the parser'
 
 PSYE037G 'Mis-placed or missing quote'
 'Quoted string is not valid'
@@ -279,7 +291,7 @@ PSYE039A 'TRANS variable name is blank'
 PSYE039B 'Missing TRANS keyword'
 ''
 
-PSYE039C 'Inalid format in the TRANS statement'
+PSYE039C 'Invalid format in the TRANS statement'
 ''
 
 PSYE039D 'Field missing in TRANS statement'
@@ -291,8 +303,8 @@ PSYE039E 'Value missing in TRANS statement'
 PSYE039F 'SPARE'
 ''
 
-PSYE039G 'MSG= parameter must be the last in the TRANS list'
-''
+PSYE039G 'MSG= parameter invalid'
+'Message parameter must be the last parameter in the TRANS list'
 
 PSYE039H 'Missing translate-to entry'
 ''

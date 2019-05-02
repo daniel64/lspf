@@ -119,10 +119,10 @@ it has no other use outside of this panel.  Other keys will remain as before.
 Keys:
 =====
 Tab key displays the next pull-down menu, when one is already displayed.  If a pull-down is not displayed,
-the tab key invokes field execution when on a field that supports it, and is not on the first character.
-This allows file name completion using the tab key.
+the tab key invokes field execution when on a field that supports it, and is not on the first character and
+there is a non-blank before the cursor position. This allows file name completion using the tab key.
 
-If on the first character or for other fields, it acts as a normal tab.
+If on the first character, blank before the cursor, or for other fields, it acts as a normal tab.
 
 The ESC key does the following:
  a) Terminates .AUTO mode if active.

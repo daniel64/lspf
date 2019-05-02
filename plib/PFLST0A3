@@ -49,7 +49,7 @@ IF (&ZCMD1 NE &Z )
    .CURSOR = 'ZCMD1'
    EXIT
 
-&NEWPTOK = TRANS( &NEWPTOK  &Z,&Z *,/ )
+&NEMPTOK = TRANS( &NEMPTOK  &Z,&Z *,/ )
 &CONDOFF = TRANS( &CONDOFF  &Z,&Z *,/ )
 
 )END

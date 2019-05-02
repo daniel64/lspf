@@ -33,7 +33,7 @@ Call sysfiletree dir, "file", "FO"
 do i = 1 to file.0
    f = word( file.i, 1)
    "RDISPLAY Editing file &f"
-   "EDIT FILE(&f) MACRO(emac)"
+   "EDIT FILE(&f) MACRO(emac) PROFILE(BATCH)"
    if RC = 14 then
      do
        "RDISPLAY Error.  File in use.  RC=&RC"

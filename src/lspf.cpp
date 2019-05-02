@@ -76,6 +76,7 @@ boost::condition cond_batch ;
 #define CTRL(c) ((c) & 037)
 
 namespace {
+
 map<int, string> pfKeyDefaults = { {  1, "HELP"      },
 				   {  2, "SPLIT NEW" },
 				   {  3, "END"       },
@@ -468,7 +469,7 @@ int main( void )
 	while ( currAppl->busyAppl )
 	{
 		boost::mutex::scoped_lock lk( mutex ) ;
-		cond_lspf.wait_for( lk, boost::chrono::milliseconds( 200 ) ) ;
+		cond_lspf.wait_for( lk, boost::chrono::milliseconds( 100 ) ) ;
 		lk.unlock() ;
 	}
 	if ( currAppl->terminateAppl )
@@ -628,7 +629,7 @@ void mainLoop()
 		if ( c < 256 && isprint( c ) )
 		{
 			if ( currAppl->inputInhibited() ) { continue ; }
-			currAppl->currPanel->field_edit( err, row, col, char( c ), Insert, showLock ) ;
+			currAppl->currPanel->field_edit( row, col, char( c ), Insert, showLock ) ;
 			currScrn->set_cursor( currAppl ) ;
 			continue ;
 		}
@@ -721,12 +722,12 @@ void mainLoop()
 
 			case KEY_DC:
 				if ( currAppl->inputInhibited() ) { break ; }
-				currAppl->currPanel->field_delete_char( err, row, col, showLock ) ;
+				currAppl->currPanel->field_delete_char( row, col, showLock ) ;
 				break ;
 
 			case KEY_SDC:
 				if ( currAppl->inputInhibited() ) { break ; }
-				currAppl->currPanel->field_erase_eof( err, row, col, showLock ) ;
+				currAppl->currPanel->field_erase_eof( row, col, showLock ) ;
 				break ;
 
 			case KEY_END:
@@ -737,7 +738,7 @@ void mainLoop()
 			case 127:
 			case KEY_BACKSPACE:
 				if ( currAppl->inputInhibited() ) { break ; }
-				currAppl->currPanel->field_backspace( err, row, col, showLock ) ;
+				currAppl->currPanel->field_backspace( row, col, showLock ) ;
 				currScrn->set_cursor( row, col ) ;
 				break ;
 
@@ -832,7 +833,6 @@ void ncursesUpdate( uint row, uint col )
 		currScrn->refresh_panel_stack() ;
 		pApplication::lineOutDone = false ;
 		update_panels() ;
-		doupdate() ;
 		linePosn = -1 ;
 	}
 
@@ -873,6 +873,7 @@ void processZSEL()
 
 	if ( upper( cmd ) == "EXIT" )
 	{
+		currAppl->set_userAction( USR_END ) ;
 		p_poolMGR->put( err, "ZVERB", "END", SHARED ) ;
 		ResumeApplicationAndWait() ;
 		return ;
@@ -880,7 +881,7 @@ void processZSEL()
 
 	if ( cmd.compare( 0, 5, "PANEL" ) == 0 )
 	{
-		opt = currAppl->get_dTRAIL() ;
+		opt = currAppl->get_trail() ;
 		if ( opt != "" ) { cmd += " OPT(" + opt + ")" ; }
 	}
 
@@ -940,6 +941,7 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 	uint rbsize ;
 
 	bool addRetrieve ;
+	bool fromStack   ;
 
 	string cmdVerb ;
 	string cmdParm ;
@@ -957,14 +959,15 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 
 	pdc t_pdc ;
 
-	doSelect = false ;
-	passthru = true  ;
-	pfcmd    = ""    ;
-	zcommand = ""    ;
+	doSelect  = false ;
+	fromStack = false ;
+	passthru  = true  ;
+	pfcmd     = ""    ;
+	zcommand  = ""    ;
 
 	if ( pApplication::lineOutDone ) { return ; }
 
-	p_poolMGR->put( err, "ZVERB", "", SHARED ) ;
+	currAppl->set_userAction( USR_ENTER ) ;
 
 	if ( c == CTRL( '[' ) )
 	{
@@ -1169,7 +1172,8 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 		}
 		if ( not currAppl->propagateEnd )
 		{
-			zcommand = commandStack ;
+			fromStack = true ;
+			zcommand  = commandStack ;
 			commandStack = "" ;
 		}
 		addRetrieve = false ;
@@ -1204,12 +1208,7 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 	else
 	{
 		p_poolMGR->put( err, "ZPFKEY", "PF00", SHARED, SYSTEM ) ;
-		if ( err.error() )
-		{
-			llog( "S", "VPUT for PF00 failed" << endl ) ;
-			listErrorBlock( err ) ;
-		}
-		currAppl->currPanel->set_pfpressed( "" ) ;
+		currAppl->currPanel->set_pfpressed() ;
 	}
 
 	if ( addRetrieve )
@@ -1236,11 +1235,14 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 
 	switch( c )
 	{
-		case KEY_NPAGE:
-			zcommand = "DOWN "+ zcommand ;
-			break ;
 		case KEY_PPAGE:
-			zcommand = "UP "+ zcommand  ;
+			pfcmd = "UP" ;
+			p_poolMGR->put( err, "ZPFKEY", "PF25", SHARED, SYSTEM ) ;
+			break ;
+
+		case KEY_NPAGE:
+			pfcmd = "DOWN" ;
+			p_poolMGR->put( err, "ZPFKEY", "PF26", SHARED, SYSTEM ) ;
 			break ;
 	}
 
@@ -1263,6 +1265,7 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 	if ( p1 != string::npos )
 	{
 		commandStack = zcommand.substr( p1 ) ;
+		if ( commandStack == delm ) { commandStack = "" ; }
 		zcommand.erase( p1 ) ;
 		currAppl->currPanel->cmd_setvalue( zcommand ) ;
 	}
@@ -1287,6 +1290,7 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 		selct.newpool = true  ;
 		selct.passlib = false ;
 		selct.suspend = true  ;
+		selct.fstack  = fromStack ;
 		doSelect      = true  ;
 		passthru      = false ;
 		currAppl->currPanel->cmd_setvalue( "" ) ;
@@ -1301,6 +1305,7 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 		selct.newpool = true    ;
 		selct.passlib = false   ;
 		selct.suspend = true    ;
+		selct.fstack  = fromStack ;
 		doSelect      = true    ;
 		passthru      = false   ;
 		currAppl->currPanel->cmd_setvalue( "" ) ;
@@ -1314,6 +1319,7 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 		if ( !currAppl->isprimMenu() )
 		{
 			currAppl->jumpEntered = true ;
+			currAppl->set_userAction( USR_RETURN ) ;
 			p_poolMGR->put( err, "ZVERB", "RETURN", SHARED ) ;
 			currAppl->currPanel->cmd_setvalue( "" ) ;
 			return ;
@@ -1323,7 +1329,7 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 
 	if ( cmdVerb == "HELP")
 	{
-		if ( currAppl->currPanel->msgid == "" || currAppl->currPanel->showLMSG )
+		if ( currAppl->show_help_member() )
 		{
 			zparm   = currAppl->get_help_member( row, col ) ;
 			cmdParm = zparm ;
@@ -1372,13 +1378,15 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 			}
 			else
 			{
-				p_poolMGR->put( err, "ZVERB", zctact, SHARED ) ;
+				currAppl->set_userAction( USR_CANCEL ) ;
+				p_poolMGR->put( err, "ZVERB", "CANCEL", SHARED ) ;
 				zcommand = cmdParm ;
 			}
 			break ;
 
 		case ZCT_EXIT:
-			p_poolMGR->put( err, "ZVERB", zctact, SHARED ) ;
+			currAppl->set_userAction( USR_EXIT ) ;
+			p_poolMGR->put( err, "ZVERB", "EXIT", SHARED ) ;
 			zcommand = cmdParm ;
 			break ;
 
@@ -1485,11 +1493,12 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 			zcommand     = "" ;
 			doSelect     = true  ;
 			selct.nested = true  ;
+			selct.fstack = fromStack ;
 			passthru     = false ;
 			break ;
 
 		case ZCT_SETVERB:
-			p_poolMGR->put( err, "ZVERB", zctverb, SHARED ) ;
+			p_poolMGR->put( err, "ZVERB", word( zctverb, 1 ), SHARED ) ;
 			if ( err.error() )
 			{
 				llog( "S", "VPUT for ZVERB failed" << endl ) ;
@@ -1506,8 +1515,13 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 			}
 			else if ( zctverb == "RETURN" )
 			{
+				currAppl->set_userAction( USR_RETURN ) ;
 				returnOption = commandStack ;
 				commandStack = "" ;
+			}
+			else if ( zctverb == "END" )
+			{
+				currAppl->set_userAction( USR_END ) ;
 			}
 			break ;
 
@@ -1993,6 +2007,7 @@ void startApplication( selobj& selct, bool nScreen )
 
 	size_t p1 ;
 
+	string t     ;
 	string opt   ;
 	string rest  ;
 	string sname ;
@@ -2042,9 +2057,14 @@ void startApplication( selobj& selct, bool nScreen )
 	{
 		selct.errors = true ;
 		selct.rsn    = 998  ;
+		t = "Application '"+ selct.pgm +"' not found" ;
 		if ( not selct.quiet )
 		{
-			errorScreen( 1, "Application '"+ selct.pgm +"' not found" ) ;
+			errorScreen( 1, t ) ;
+		}
+		else
+		{
+			llog( "E", t << endl ) ;
 		}
 		return ;
 	}
@@ -2055,9 +2075,14 @@ void startApplication( selobj& selct, bool nScreen )
 		{
 			selct.errors = true ;
 			selct.rsn    = 996  ;
+			t = "Errors loading application "+ selct.pgm ;
 			if ( not selct.quiet )
 			{
-				errorScreen( 1, "Errors loading application "+ selct.pgm ) ;
+				errorScreen( 1, t ) ;
+			}
+			else
+			{
+				llog( "E", t << endl ) ;
 			}
 			return ;
 		}
@@ -2085,6 +2110,9 @@ void startApplication( selobj& selct, bool nScreen )
 
 	applid = ( selct.newappl == "" ) ? oldAppl->get_applid() : selct.newappl ;
 	err.settask( currAppl->taskid() ) ;
+
+	currAppl->propagateEnd = oldAppl->propagateEnd ;
+	currAppl->jumpEntered  = oldAppl->jumpEntered  ;
 
 	if ( selct.newpool )
 	{
@@ -2118,7 +2146,7 @@ void startApplication( selobj& selct, bool nScreen )
 	{
 		currAppl->set_msg1( oldAppl->getmsg1(), oldAppl->getmsgid1() ) ;
 	}
-	else if ( !nScreen )
+	else if ( !nScreen && !selct.fstack )
 	{
 		oldAppl->clear_msg() ;
 	}
@@ -2139,7 +2167,7 @@ void startApplication( selobj& selct, bool nScreen )
 	while ( currAppl->busyAppl )
 	{
 		boost::mutex::scoped_lock lk( mutex ) ;
-		cond_lspf.wait_for( lk, boost::chrono::milliseconds( 200 ) ) ;
+		cond_lspf.wait_for( lk, boost::chrono::milliseconds( 100 ) ) ;
 		lk.unlock() ;
 		if ( currAppl->busyAppl && isEscapeKey() )
 		{
@@ -2313,7 +2341,7 @@ void processBackgroundTasks()
 	while ( lspfStatus == LSPF_RUNNING )
 	{
 		boost::mutex::scoped_lock lk( mutex ) ;
-		cond_batch.wait_for( lk, boost::chrono::milliseconds( 200 ) ) ;
+		cond_batch.wait_for( lk, boost::chrono::milliseconds( 100 ) ) ;
 		lk.unlock() ;
 		mtx.lock() ;
 		for ( auto it = pApplicationBackground.begin() ; it != pApplicationBackground.end() ; ++it )
@@ -2364,7 +2392,7 @@ void checkStartApplication( selobj& selct )
 	currAppl->RC      = 20  ;
 	currAppl->ZRC     = 20  ;
 	currAppl->ZRSN    = selct.rsn ;
-	currAppl->ZRESULT = "Not Found" ;
+	currAppl->ZRESULT = "PSYS013J" ;
 
 	if ( not currAppl->errorsReturn() )
 	{
@@ -2457,13 +2485,11 @@ void terminateApplication()
 	{
 		llog( "I", "Moving application instance of "+ zappname +" to timeout queue" << endl ) ;
 		pApplicationTimeout.push_back( currAppl ) ;
+		prvAppl = NULL ;
 	}
 	else
 	{
-		llog( "I", "Removing application instance of "+ zappname << endl ) ;
-		apps[ zappname ].refCount-- ;
-		((void (*)(pApplication*))(apps[ zappname ].destroyer_ep))( currAppl ) ;
-		delete pThread ;
+		prvAppl = currAppl ;
 	}
 
 	if ( currScrn->application_stack_empty() )
@@ -2625,6 +2651,7 @@ void terminateApplication()
 	else
 	{
 		currAppl->propagateEnd = false ;
+		currAppl->set_userAction( USR_ENTER ) ;
 		if ( propagateEnd && ( not nested || jumpEntered ) )
 		{
 			currAppl->jumpEntered  = jumpEntered ;
@@ -2658,6 +2685,14 @@ void terminateApplication()
 			doupdate() ;
 			linePosn = -1 ;
 		}
+	}
+
+	if ( prvAppl )
+	{
+		llog( "I", "Removing application instance of "+ zappname << endl ) ;
+		((void (*)(pApplication*))(apps[ zappname ].destroyer_ep))( prvAppl ) ;
+		delete pThread ;
+		apps[ zappname ].refCount-- ;
 	}
 
 	llog( "I", "Application terminatation of "+ zappname +" completed.  Current application is "+ currAppl->get_appname() << endl ) ;
@@ -2805,6 +2840,7 @@ void ResumeApplicationAndWait()
 
 	if ( currAppl->simulate_end() )
 	{
+		currAppl->set_userAction( USR_END ) ;
 		p_poolMGR->put( err, "ZVERB", "END", SHARED ) ;
 	}
 
@@ -2814,7 +2850,7 @@ void ResumeApplicationAndWait()
 	while ( currAppl->busyAppl )
 	{
 		boost::mutex::scoped_lock lk( mutex ) ;
-		cond_lspf.wait_for( lk, boost::chrono::milliseconds( 200 ) ) ;
+		cond_lspf.wait_for( lk, boost::chrono::milliseconds( 100 ) ) ;
 		lk.unlock() ;
 		if ( currAppl->busyAppl && isEscapeKey() )
 		{
@@ -3673,8 +3709,11 @@ int listInterruptOptions()
 
 	del_panel( swpanel ) ;
 	delwin( swwin ) ;
-
 	curs_set( 1 ) ;
+
+	update_panels() ;
+	doupdate()  ;
+
 	currScrn->OIA_startTime() ;
 
 	return m ;
@@ -4280,7 +4319,8 @@ void actionTabKey( uint& row, uint& col )
 {
 	// Tab processsing:
 	//     If a pull down is active, go to next pulldown
-	//     If cursor on a field that supports field execution and is not on the first char, execute function
+	//     If cursor on a field that supports field execution and is not on the first char, or space
+	//     before cursor, execute function
 	//     Else act as a tab key to the next input field
 
 	uint rw = 0 ;
@@ -4302,7 +4342,7 @@ void actionTabKey( uint& row, uint& col )
 		if ( field_name != "" )
 		{
 			currAppl->currPanel->field_get_row_col( field_name, rw, cl ) ;
-			if ( rw == row && cl < col )
+			if ( rw == row && cl < col && currAppl->currPanel->field_nonblank( field_name, col-cl-1 ) )
 			{
 				fxc = currAppl->currPanel->field_getexec( field_name ) ;
 				if ( fxc.fieldExc_command != "" )

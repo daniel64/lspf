@@ -82,8 +82,8 @@ class pApplication
 		void   init_phase2() ;
 		void   info() ;
 
-		string get_zsel()   ;
-		string get_dTRAIL() ;
+		string get_zsel() ;
+		const string get_trail() ;
 		selobj get_select_cmd() { return selct ; }
 		string get_help_member( int, int ) ;
 		string get_current_panelDesc()  ;
@@ -92,6 +92,9 @@ class pApplication
 		string get_command_buffer() { return cbuffer ; }
 		bool   simulate_enter()     { return ( ControlNonDispl || ControlDisplayLock ) ; }
 		bool   simulate_end()       { return ( ControlNonDispl && ControlNonDisplEnd ) ; }
+		bool   show_help_member() ;
+
+		void set_userAction( USR_ACTIONS a ) ;
 
 		void  set_zlibd( bool, pApplication* ) ;
 		const map<string,stack<string>>& get_zlibd() { return zlibd ; }
@@ -455,12 +458,17 @@ class pApplication
 		string cbuffer   ;
 
 		WAIT_REASON waiting_on ;
+		USR_ACTIONS usr_action ;
 
-		void get_message( const string& )  ;
+		void get_message( const string& ) ;
 		int  check_message_id( const string& ) ;
 		bool load_message( const string& ) ;
 		bool sub_message_vars( slmsg & ) ;
 		void set_screenName() ;
+		void set_ZVERB_panel_resp() ;
+		void set_ZVERB_panel_resp_re_init() ;
+		void set_panel_zvars() ;
+		bool end_pressed() ;
 
 		void set_nondispl_enter() ;
 		void set_nondispl_end() ;

@@ -79,7 +79,6 @@ class field
 			field_skip         = true  ;
 			field_caps         = false ;
 			field_nojump       = false ;
-			field_jump         = false ;
 			field_paduser      = false ;
 			field_padchar      = ' '   ;
 			field_just         = 'L'   ;
@@ -107,7 +106,6 @@ class field
 		bool         field_skip         ;
 		bool         field_caps         ;
 		bool         field_nojump       ;
-		bool         field_jump         ;
 		bool         field_paduser      ;
 		char         field_padchar      ;
 		char         field_just         ;
@@ -175,6 +173,8 @@ class field
 		void field_prep_input()   ;
 		void field_prep_display() ;
 		void field_set_caps()     ;
+		uint field_get_colour1()  { return field_colour1 ; }
+		uint field_get_row()      { return field_row     ; }
 
 		int  end_of_field( WINDOW* win,
 				   uint col ) ;

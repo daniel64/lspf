@@ -59,7 +59,7 @@ IF (.MSG EQ &Z)
    &SEL = &Z
    REFRESH(SEL)
 ELSE
-   IF (&SEL NE &Z) .ATTR(SEL) = 'COLOUR(RED)'
+   IF (.CURSOR EQ 'SEL' ) .ATTR(.CURSOR) = 'COLOUR(RED)'
 
 )PROC
 

@@ -80,6 +80,7 @@ logger* poolMGR::lg  = NULL ;
 void   createSYSPROF() ;
 void   setCUAcolours( const string&, const string& ) ;
 string subHomePath( string, bool =false ) ;
+string getHOME() ;
 
 int main()
 {
@@ -88,12 +89,11 @@ int main()
 	tableMGR::lg = lg ;
 	poolMGR::lg  = lg ;
 
-	string homePath  ;
+	string homePath ;
 
 	lg->open( subHomePath( ALOG ) ) ;
 
-	homePath  = getenv( "HOME" ) ;
-	homePath += ZUPROF ;
+	homePath = getHOME() + ZUPROF ;
 	if ( homePath.back() != '/' ) { homePath += "/" ; }
 
 	if ( !exists( homePath ) || !is_directory( homePath ) )
@@ -354,6 +354,12 @@ int main()
 	ZCTDESC  = "Userid" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
+	ZCTVERB  = "CMDE" ;
+	ZCTTRUNC = "0" ;
+	ZCTACT   = "SELECT PGM(PCMD0A) PARM(PANEL(PCMD0E)) SUSPEND" ;
+	ZCTDESC  = "Shell" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
 	// ========================= USRCMDS ======================================
 	ZCTVERB  = "ED" ;
 	ZCTTRUNC = "0" ;
@@ -439,7 +445,7 @@ int main()
 	cout << endl ;
 	cout << "*******************************************************************************************" << endl ;
 
-	p_tableMGR->saveTable( err, "", "ISPCMDS", "" , homePath  ) ;
+	p_tableMGR->saveTable( err, "", "ISPCMDS", "", homePath  ) ;
 	if ( err.RC0() )
 	{
 		cout << endl ;
@@ -452,7 +458,7 @@ int main()
 		cout << "Message is " << err.msgid << endl ;
 	}
 
-	p_tableMGR->saveTable( err, "", "USRCMDS", "" , homePath ) ;
+	p_tableMGR->saveTable( err, "", "USRCMDS", "", homePath ) ;
 	if ( err.RC0() )
 	{
 		cout << endl ;
@@ -487,8 +493,7 @@ void createSYSPROF()
 	errblock err ;
 	err.settask( 1 ) ;
 
-	zuprof  = getenv( "HOME" ) ;
-	zuprof += ZUPROF ;
+	zuprof = getHOME() + ZUPROF ;
 	p_poolMGR->setProfilePath( err, zuprof ) ;
 
 	p_poolMGR->createSharedPool() ;
@@ -712,7 +717,7 @@ string subHomePath( string var, bool do_check )
 
 	string pathname ;
 
-	string homePath = getenv( "HOME" ) ;
+	string homePath = getHOME() ;
 
 	p = var.find( '~' ) ;
 	while ( p != string::npos )
@@ -737,3 +742,22 @@ string subHomePath( string var, bool do_check )
 	return var ;
 }
 
+
+string getHOME()
+{
+	char* t = getenv( "HOME" ) ;
+
+	if ( t == NULL )
+	{
+		cout << "Environment variable HOME is not set.  This is a required variable"<< endl ;
+		abort() ;
+	}
+
+	string home = string( t ) ;
+	if ( home == "" )
+	{
+		cout << "Environment variable HOME is set to NULL.  This is a required variable"<< endl ;
+		abort() ;
+	}
+	return home ;
+}
