@@ -243,8 +243,10 @@ IF ( TRUNC( &ZCMD, 1 ) EQ '.' )
    EXIT
 
 IF (&ZCMD EQ 'DATE')
-   &ZCMD = 'DATE MM/YYYY'
-   .MSG  = 'MAIN011'
+   &ZCMD   = 'DATE MM/YYYY'
+   .MSG    = 'MAIN011'
+   .CSRPOS = 6
+   .CURSOR = ZCMD
    REFRESH ZCMD
    EXIT
 

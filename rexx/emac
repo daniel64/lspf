@@ -25,11 +25,18 @@ Call setdest src
 /************************************************************************************/
 /* Example edit macro to change literal to text in the panels directory             */
 /* Run from REXX runemac                                                            */
+/*                                                                                  */
+/* Switch off recovery as we should already have a backup of the directory before   */
+/* running this.                                                                    */
 /************************************************************************************/
 
 address ISREDIT
 
 "MACRO (A) PROCESS"
+
+"PROFILE UNLOCK"
+"RECOVERY OFF"
+"PROFILE LOCK"
 
 "FIND ')BODY' 1 FIRST"
 if RC \= 0 then

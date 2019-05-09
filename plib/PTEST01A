@@ -132,6 +132,14 @@ VGET (FLD1 FLD2) PROFILE
 )REINIT
 
 )PROC
+VPUT FLD1 PROFILE
+VPUT FLD2 PROFILE
+VPUT FLD3 PROFILE
+VPUT FLD5 PROFILE
+VPUT FLD6 PROFILE
+VPUT (FLD7 FLD8 FLD9) PROFILE
+
+
 .HELP=THELP01
 .ATTR(FLD3) = 'COLOUR(TURQ) INTENS(HIGH)'
 .ATTR(ATRF6) = 'COLOUR(TURQ) INTENS(HIGH)'
@@ -149,7 +157,8 @@ IF (.MSG NE &Z)
 VER (  &FLD3 LIST AAA BBB CCC DDD EEE   )
 VER(&FLD5      HEX)
 VER( &FLD6   NB OCT    )
-VER(  &FLD7,NB,PICT,'CAN9OX/\=B',MSG=PSYS011N  )
+VER(  &FLD7,NB  )
+VER(  &FLD7,PICT,'CAN9OX/\=B',MSG=PSYS011N  )
 
 -- Truncate field to 1 char before using TRANS
 &FLD111=TRUNC (  &FLD11,1)
@@ -163,26 +172,17 @@ VER(  &FLD7,NB,PICT,'CAN9OX/\=B',MSG=PSYS011N  )
 &FLD31= TRANS(&FLD311 Y,YES N,NO)
 -- --------------------------------------------
 
-IF (&FLD8 EQ &Z)                    /*  NEF Change to hilight+NEF if error */
-   .ATTR(FLD8) = ' INTENS(HIGH)'   /*  then back to NEF when okay         */
---   .ATTR(FLD8) = ' COLOUR(RED)'   /*  then back to NEF when okay         */
+IF (&FLD8 EQ &Z)                      /*  NEF Change to hilight+NEF if error */
    .MSG    = PSYS019
    .CURSOR = FLD8
+   .ATTR(.CURSOR) = ' INTENS(HIGH) COLOUR(RED)'     /*  then back to NEF when okay         */
    EXIT
 
-IF ( LENGTH(FLD9) NE 8)
+IF ( LENGTH(FLD9) NE '8')
    .ATTR(FLD9) = 'COLOUR(RED) INTENS(HIGH)'
    .MSG    = PSYS019
    .CURSOR = FLD9
    EXIT
-
-VPUT FLD1 PROFILE
-VPUT FLD2 PROFILE
-VPUT FLD3 PROFILE
-VPUT FLD5 PROFILE
-VPUT FLD6 PROFILE
-VPUT (FLD7 FLD8 FLD9) PROFILE
-
 
 )HELP
 FIELD(ZCMD)   HELP(TESTHP1)

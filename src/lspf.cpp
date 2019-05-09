@@ -277,6 +277,7 @@ unsigned int pLScreen::screensTotal = 0 ;
 unsigned int pLScreen::maxScreenId  = 0 ;
 unsigned int pLScreen::maxrow       = 0 ;
 unsigned int pLScreen::maxcol       = 0 ;
+unsigned int pLScreen::maxscrn      = ZMAXSCRN ;
 
 set<int> pLScreen::screenNums ;
 map<int,int> pLScreen::openedByList ;
@@ -398,7 +399,7 @@ int main( void )
 	backStatus   = BACK_STOPPED  ;
 	err.settask( 1 ) ;
 
-	screenList.push_back( new pLScreen( 0, ZMAXSCRN ) ) ;
+	screenList.push_back( new pLScreen( 0 ) ) ;
 
 	currScrn->OIA_startTime() ;
 
@@ -1327,7 +1328,7 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 		currAppl->currPanel->cmd_setvalue( zcommand ) ;
 	}
 
-	if ( cmdVerb == "HELP")
+	if ( cmdVerb == "HELP" )
 	{
 		if ( currAppl->show_help_member() )
 		{
@@ -2791,7 +2792,7 @@ bool createLogicalScreen()
 	altScreen = priScreen         ;
 	priScreen = screenList.size() ;
 
-	screenList.push_back( new pLScreen( currScrn->screenId, ZMAXSCRN ) ) ;
+	screenList.push_back( new pLScreen( currScrn->screenId ) ) ;
 	currScrn->OIA_startTime() ;
 
 	lScreenDefaultSettings() ;

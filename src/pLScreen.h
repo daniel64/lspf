@@ -20,7 +20,7 @@
 class pLScreen
 {
 	public:
-		 pLScreen( int, int ) ;
+		 pLScreen( int ) ;
 		~pLScreen() ;
 
 	static pLScreen* currScreen ;
@@ -30,6 +30,7 @@ class pLScreen
 	static unsigned int screensTotal ;
 	static unsigned int maxrow ;
 	static unsigned int maxcol ;
+	static unsigned int maxscrn ;
 	static map<int,int> openedByList ;
 
 	void  clear() ;

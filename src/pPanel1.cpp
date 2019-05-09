@@ -39,7 +39,6 @@ pPanel::pPanel()
 	pos_lmsg    = ""     ;
 	panelTitle  = ""     ;
 	panelDesc   = ""     ;
-	msgloc      = ""     ;
 	abIndex     = 0      ;
 	opt_field   = 0      ;
 	da_dataIn   = ""     ;
@@ -227,7 +226,7 @@ void pPanel::init( errblock& err )
 
 void pPanel::init_control_variables()
 {
-	// Initialise panel control variables when the display service first receives control
+	// Initialise panel control variables (and related) when the display service first receives control
 
 	dAlarm  = "NO" ;
 	dCursor = "" ;
@@ -239,12 +238,14 @@ void pPanel::init_control_variables()
 	iCursor = "" ;
 	iCsrpos = 1  ;
 	iMsg    = "" ;
+
+	msgloc  = "" ;
 }
 
 
 void pPanel::reset_control_variables()
 {
-	// Reset panel control variables before )PROC processing
+	// Reset panel control variables (and related) before )PROC processing
 
 	dCursor = "" ;
 	dCsrpos = 0  ;
@@ -254,6 +255,8 @@ void pPanel::reset_control_variables()
 	iCursor = "" ;
 	iCsrpos = 1  ;
 	iMsg    = "" ;
+
+	msgloc  = "" ;
 }
 
 
@@ -875,9 +878,6 @@ void pPanel::display_panel_init( errblock& err )
 {
 	// Perform panel )INIT processing
 
-	// Probably not correct, but call for each line on the screen if a table display,
-	// or just call once if not.
-
 	int ln = 0 ;
 
 	set_pfpressed( "" ) ;
@@ -888,13 +888,7 @@ void pPanel::display_panel_init( errblock& err )
 
 	resetAttrs() ;
 
-	do
-	{
-		process_panel_stmnts( err, ln, initstmnts, PS_INIT ) ;
-		if ( err.error() ) { break ; }
-		++ln ;
-	} while ( ln < tb_depth ) ;
-
+	process_panel_stmnts( err, ln, initstmnts, PS_INIT ) ;
 }
 
 
@@ -903,8 +897,8 @@ void pPanel::display_panel_reinit( errblock& err, int ln )
 	// Perform panel )REINIT processing
 
 	set_pfpressed( "" ) ;
-
 	err.setRC( 0 ) ;
+
 	process_panel_stmnts( err,
 			      ln,
 			      reinstmnts,
@@ -1226,6 +1220,7 @@ void pPanel::process_panel_if_cond( errblock& err,
 		}
 		return ;
 	}
+
 	if ( ifstmnt->if_func == PN_TRANS )
 	{
 		lhs_val = process_panel_trans( err, ln, ifstmnt->if_trans, ifstmnt->if_lhs.value ) ;
@@ -1236,29 +1231,16 @@ void pPanel::process_panel_if_cond( errblock& err,
 		lhs_val = process_panel_trunc( err, ifstmnt->if_trunc ) ;
 		if ( err.error() ) { return ; }
 	}
+	else if ( ifstmnt->if_lhs.subtype == TS_CTL_VAR_VALID ||
+		  ifstmnt->if_lhs.subtype == TS_AMPR_VAR_VALID )
+	{
+		lhs_val = getVariable( err, ifstmnt->if_lhs ) ;
+		if ( err.error() ) { return ; }
+		process_panel_function( ifstmnt->if_func, lhs_val ) ;
+	}
 	else
 	{
-		if ( ifstmnt->if_lhs.subtype == TS_CTL_VAR_VALID )
-		{
-			lhs_val = getControlVar( err, ifstmnt->if_lhs.value ) ;
-			if ( err.error() ) { return ; }
-			process_panel_function( ifstmnt->if_func, lhs_val ) ;
-		}
-		else if ( ifstmnt->if_lhs.subtype == TS_NAME )
-		{
-			lhs_val = getDialogueVar( err, ifstmnt->if_lhs.value ) ;
-			if ( err.error() ) { return ; }
-			process_panel_function( ifstmnt->if_func, lhs_val ) ;
-		}
-		else if ( ifstmnt->if_lhs.subtype == TS_AMPR_VAR_VALID )
-		{
-			lhs_val = getDialogueVar( err, ifstmnt->if_lhs.value ) ;
-			if ( err.error() ) { return ; }
-		}
-		else
-		{
-			lhs_val = sub_vars( ifstmnt->if_lhs.value ) ;
-		}
+		lhs_val = sub_vars( ifstmnt->if_lhs.value ) ;
 	}
 
 	for ( j = 0 ; j < ifstmnt->if_rhs.size() ; ++j )
@@ -1725,19 +1707,16 @@ void pPanel::process_panel_assignment( errblock& err,
 		rhs = process_panel_trunc( err, assgn->as_trunc ) ;
 		if ( err.error() ) { return ; }
 	}
+	else if ( assgn->as_rhs.subtype == TS_AMPR_VAR_VALID ||
+		  assgn->as_rhs.subtype == TS_CTL_VAR_VALID )
+	{
+		rhs = getVariable( err, assgn->as_rhs ) ;
+		if ( err.error() ) { return ; }
+		process_panel_function( assgn->as_func, rhs ) ;
+	}
 	else
 	{
-		if ( assgn->as_rhs.subtype == TS_AMPR_VAR_VALID ||
-		     assgn->as_rhs.subtype == TS_CTL_VAR_VALID )
-		{
-			rhs = getVariable( err, assgn->as_rhs ) ;
-			if ( err.error() ) { return ; }
-		}
-		else
-		{
-			rhs = sub_vars( assgn->as_rhs.value ) ;
-		}
-		process_panel_function( assgn->as_func, rhs ) ;
+		rhs = sub_vars( assgn->as_rhs.value ) ;
 	}
 
 	if ( !assgn->as_isattr && assgn->as_lhs.subtype == TS_CTL_VAR_VALID )
@@ -1747,61 +1726,21 @@ void pPanel::process_panel_assignment( errblock& err,
 	}
 	else if ( assgn->as_isattr )
 	{
-		lhs = assgn->as_lhs.value ;
-		if ( assgn->as_lhs.subtype == TS_AMPR_VAR_VALID )
-		{
-			lhs = getDialogueVar( err, lhs ) ;
-			if ( err.error() ) { return ; }
-		}
-		else if ( assgn->as_lhs.subtype == TS_CTL_VAR_VALID )
-		{
-			fieldNam = getControlVar( err, lhs ) ;
-			if ( err.error() ) { return ; }
-		}
-		else
-		{
-			fieldNam = lhs ;
-		}
-		if ( lhs != "" &&
-		     lhs != ".CURSOR" &&
-		     fieldList.count( lhs ) == 0 &&
-		     tb_fields.count( lhs ) == 0 )
-		{
-			err.seterrid( "PSYE041S", lhs ) ;
-			return ;
-		}
-		if ( tb_fields.count( fieldNam ) > 0 )
-		{
-			fieldNam += "." + d2ds( ln ) ;
-		}
-		if ( fieldNam != "" && attr_sect.count( fieldNam ) == 0 )
-		{
-			fieldList[ fieldNam ]->field_attr( err, rhs, ( ps_sect == PS_PROC || ps_sect == PS_REINIT ) ) ;
-			if ( err.error() ) { return ; }
-			attrList.push_back( fieldNam ) ;
-			attr_sect.insert( fieldNam ) ;
-		}
+		process_panel_attr( err,
+				    ln,
+				    rhs,
+				    assgn,
+				    attr_sect,
+				    ps_sect ) ;
+		if ( err.error() ) { return ; }
 	}
 	else if ( assgn->as_isattc )
 	{
-		lhs = assgn->as_lhs.value ;
-		if ( assgn->as_lhs.subtype == TS_AMPR_VAR_VALID )
-		{
-			lhs = getDialogueVar( err, lhs ) ;
-			if ( err.error() ) { return ; }
-			if ( lhs.size() > 2 || ( lhs.size() == 2 && not ishex( lhs ) ) )
-			{
-				err.seterrid( "PSYE041B" ) ;
-				return ;
-			}
-			if ( lhs.size() == 2 ) { lhs = xs2cs( lhs ) ; }
-		}
-		if ( lhs != "" && attrchar_sect.count( lhs ) == 0 )
-		{
-			attrchar( err, lhs.front(), rhs ) ;
-			if ( err.error() ) { return ; }
-			attrchar_sect.insert( lhs ) ;
-		}
+		process_panel_attrchar( err,
+					rhs,
+					assgn,
+					attrchar_sect ) ;
+		if ( err.error() ) { return ; }
 	}
 	else
 	{
@@ -1812,6 +1751,95 @@ void pPanel::process_panel_assignment( errblock& err,
 			primaryMenu = ( rhs == "YES" ) ;
 		}
 	}
+}
+
+
+void pPanel::process_panel_attr( errblock& err,
+				 int ln,
+				 const string& rhs,
+				 ASSGN* assgn,
+				 set<string>& attr_sect,
+				 PS_SECT ps_sect )
+{
+	// .ATTR() processing.  For a TB model field in the )INIT section, perform for every
+	// model line on the screen.
+
+	int i ;
+
+	string lhs ;
+	string t   ;
+
+	if ( assgn->as_lhs.subtype == TS_AMPR_VAR_VALID || assgn->as_lhs.subtype == TS_CTL_VAR_VALID )
+	{
+		lhs = getVariable( err, assgn->as_lhs ) ;
+		if ( lhs == "" || err.error() ) { return ; }
+	}
+	else
+	{
+		lhs = assgn->as_lhs.value ;
+	}
+
+	if ( fieldList.count( lhs ) == 0 && not tb_field( lhs ) )
+	{
+		err.seterrid( "PSYE041S", lhs ) ;
+		return ;
+	}
+
+	if ( attr_sect.count( lhs ) > 0 ) { return ; }
+
+	attr_sect.insert( lhs ) ;
+	if ( ps_sect == PS_INIT && tb_field( lhs ) )
+	{
+		i = 0 ;
+		do
+		{
+			t = lhs + "." + d2ds( i ) ;
+			fieldList[ t ]->field_attr( err, rhs, false ) ;
+			if ( err.error() ) { return ; }
+			attrList.push_back( t ) ;
+			++i ;
+		} while ( i < tb_depth ) ;
+	}
+	else
+	{
+		if ( tb_field( lhs ) )
+		{
+			lhs += "." + d2ds( ln ) ;
+		}
+		fieldList[ lhs ]->field_attr( err, rhs, ( ps_sect == PS_PROC || ps_sect == PS_REINIT ) ) ;
+		if ( err.error() ) { return ; }
+		attrList.push_back( lhs ) ;
+	}
+}
+
+
+void pPanel::process_panel_attrchar( errblock& err,
+				     string& rhs,
+				     ASSGN* assgn,
+				     set<string>& attrchar_sect )
+{
+	// .ATTRCHAR() processing.
+
+	string lhs ;
+
+	lhs = assgn->as_lhs.value ;
+	if ( assgn->as_lhs.subtype == TS_AMPR_VAR_VALID )
+	{
+		lhs = getDialogueVar( err, lhs ) ;
+		if ( lhs == "" || err.error() ) { return ; }
+		if ( lhs.size() > 2 || ( lhs.size() == 2 && not ishex( lhs ) ) )
+		{
+			err.seterrid( "PSYE041B" ) ;
+			return ;
+		}
+		if ( lhs.size() == 2 ) { lhs = xs2cs( lhs ) ; }
+	}
+
+	if ( attrchar_sect.count( lhs ) > 0 ) { return ; }
+
+	attrchar_sect.insert( lhs ) ;
+	attrchar( err, lhs.front(), rhs ) ;
+	if ( err.error() ) { return ; }
 }
 
 
@@ -2021,9 +2049,10 @@ void pPanel::setControlVar( errblock& err,
 		if ( dCursor == "" )
 		{
 			dCursor = sval ;
+			msgloc  = ""   ;
 			if ( dCsrpos == 0 )
 			{
-				dCsrpos = 1 ;
+				iCsrpos = 1 ;
 			}
 		}
 		break ;
@@ -2092,7 +2121,7 @@ void pPanel::set_cursor_cond( const string& csr, int i )
 	if ( dCursor == "" )
 	{
 		dCursor   = csr ;
-		dCsrpos   = 1   ;
+		iCsrpos   = 1   ;
 		msgloc    = csr ;
 		tb_curidr = i   ;
 	}
@@ -2775,7 +2804,7 @@ void pPanel::cursor_placement( errblock& err )
 			f_name = cursor ;
 			f_pos  = csrpos ;
 		}
-		else if ( tb_fields.count( cursor ) == 0 )
+		else if ( not tb_field( cursor ) )
 		{
 			err.seterrid( "PSYE022N", cursor, !isvalidName( cursor ) ? 20 : 12 ) ;
 			return ;

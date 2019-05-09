@@ -142,7 +142,7 @@ void Table::saveExtensionVarNames( errblock& err,
 				   const string& tb_savenm )
 {
 	// Save extension variable names in tb_savenm function pool variable.  (Null if there are none)
-	// For use when NOREAD specified with tb_savenm, otherwise they are set by loadfuncPool().
+	// For use when NOREAD specified with tb_savenm, otherwise it is set by loadfuncPool().
 
 	vector<vector<string>*>::iterator it ;
 
@@ -1397,9 +1397,9 @@ void Table::fillfVARs( errblock& err,
 		       uint csrrow,
 		       int& idr )
 {
-	// Fill the function pool variables ( of the form table_fieldname.line ) from the table for depth lines
+	// Fill the function pool variables ( of the form model_fieldname.line ) from the table for depth lines
 	// starting at table position posn. (Use CRP position if posn not specified)
-	// Only fill variables that are both on the tbmodel and in the table.
+	// Only fill variables that are on the tbmodel (either table or normal variables)
 
 	// Create function pool variable .ZURID.line to hold the URID of the table row corresponding to that screen line
 
@@ -1417,9 +1417,14 @@ void Table::fillfVARs( errblock& err,
 	string enames ;
 
 	vector<vector<string>*>::iterator itt ;
+
 	map<int, string>::iterator itf ;
+	map<string, string>::iterator itg ;
 
 	map<int, string> tab2fields ;
+	map<string, string> tab3fields ;
+
+	set<string> set2fields ;
 
 	err.setRC( 0 ) ;
 
@@ -1446,11 +1451,26 @@ void Table::fillfVARs( errblock& err,
 
 	for ( j = 0 ; j < num_all ; ++j )
 	{
-		if ( tb_fields.count( tab_vall[ j ] ) > 0 )
+		const string& t = tab_vall[ j ] ;
+		if ( tb_fields.count( t ) > 0 )
 		{
-			tab2fields[ j+1 ] = tab_vall[ j ] ;
+			tab2fields[ j+1 ] = t ;
+			set2fields.insert( t ) ;
 		}
 	}
+
+
+	if ( tb_fields.size() > set2fields.size() )
+	{
+		for ( auto it = tb_fields.begin() ; it != tb_fields.end() ; ++it )
+		{
+			if ( set2fields.count( *it ) == 0 )
+			{
+				tab3fields[ *it ] = funcPOOL.get( err, 8, *it ) ;
+			}
+		}
+	}
+
 
 	for ( itt = table.begin() + posn - 1, k = 0 ; k < depth && itt != table.end() ; ++k, ++itt )
 	{
@@ -1459,6 +1479,11 @@ void Table::fillfVARs( errblock& err,
 		for ( itf = tab2fields.begin() ; itf != tab2fields.end() ; ++itf )
 		{
 			funcPOOL.put( err, itf->second + sufx, (*itt)->at( itf->first ), NOCHECK ) ;
+			if ( err.error() ) { return ; }
+		}
+		for ( itg = tab3fields.begin() ; itg != tab3fields.end() ; ++itg )
+		{
+			funcPOOL.put( err, itg->first + sufx, itg->second, NOCHECK ) ;
 			if ( err.error() ) { return ; }
 		}
 		if ( (*itt)->size() > num_all+1 )
@@ -1483,7 +1508,7 @@ void Table::saveTable( errblock& err,
 {
 	// Save table to disk.
 	// Version 2 file format adds extension variable support and record/file end markers, 0xFF.
-	// Version 3 file format increases size field from 2-bytes to 3-bytes
+	// Version 3 file format increases num_of_rows field from 2-bytes to 3-bytes (max 16,777,215 rows)
 
 	// Maximum field value is 65,535 and limited to MXTAB_SZ rows.
 

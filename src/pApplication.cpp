@@ -3066,7 +3066,6 @@ void pApplication::tbdispl( const string& tb_name,
 		{
 			funcPOOL.put( errBlock, "ZCURINX", 0 ) ;
 		}
-		currPanel->tb_set_csrrow( funcPOOL.get( errBlock, 0, INTEGER, "ZCURINX" ) ) ;
 		if ( currPanel->tb_get_lineChanged( errBlock, ln, URID ) )
 		{
 			tbskip( tb_name, 0, "", p_rowid_nm, URID, "", p_crp_name ) ;
@@ -3154,7 +3153,7 @@ void pApplication::tbdispl( const string& tb_name,
 					ztdtop   = ( zscrolln + ztdtop > ztdrows ) ? ( ztdrows + 1 ) : ztdtop + zscrolln ;
 				}
 			}
-			p_poolMGR->put( errBlock, "ZVERB", "",  SHARED ) ;
+			p_poolMGR->put( errBlock, "ZVERB", "", SHARED ) ;
 			p_tableMGR->fillfVARs( errBlock,
 					       funcPOOL,
 					       tb_name,

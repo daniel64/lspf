@@ -22,9 +22,18 @@ parse source . . src .
 Call setdest src
 /************************************************************************************/
 
-/* Run edit macro emac against all files in directory dir */
+/* Run edit macro emac against all files in directory dir  */
+/* Run in applid BTCH so it does not interfer with online  */
 
 address ISPEXEC
+
+"VGET ZAPPLID SHARED"
+if zapplid \= "BTCH" then
+  do
+    "SELECT CMD(runemac) NEWAPPL(BTCH)"
+    EXIT
+  end
+
 dir = "/home/daniel/.lspf/plib/"
 Call sysfiletree dir, "file", "FO"
 

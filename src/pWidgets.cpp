@@ -900,10 +900,15 @@ void field::field_attr( errblock& err, string attrs, bool chng_once )
 	// HILITE(NONE/BLINK/REVERSE/USCORE)
 
 	// For NON-CUA field_colour1, default to the current CUA value in case only one attribute is changed
+
 	// Hex format for field_colour1:
-	// 00 X0 00 00   - X is the INTENSITY
-	// 00 0X 00 00   - X is the HILITE
-	// 00 00 XX 00   - X is the COLOUR
+	// 00 X0 00 00 - X is the INTENSITY (inmask)
+	// 00 0X 00 00 - X is the HILITE (himask)
+	// 00 00 XX 00 - X is the COLOUR (clmask)
+
+	const uint clmask = RED | GREEN | YELLOW | BLUE | MAGENTA | TURQ | WHITE ;
+	const uint himask = A_BLINK  | A_REVERSE | A_UNDERLINE ;
+	const uint inmask = A_NORMAL | A_BOLD    | A_INVIS ;
 
 	char_attrs temp ;
 
@@ -936,13 +941,13 @@ void field::field_attr( errblock& err, string attrs, bool chng_once )
 		}
 	}
 
-	field_colour1 &= 0XFFFF00FF  ;
+	field_colour1 &= ~clmask     ;
 	field_colour1 |= temp.colour ;
 
-	field_colour1 &= 0XFF0FFFFF  ;
+	field_colour1 &= ~inmask     ;
 	field_colour1 |= temp.intens ;
 
-	field_colour1 &= 0XFFF0FFFF  ;
+	field_colour1 &= ~himask     ;
 	field_colour1 |= temp.hilite ;
 
 	field_attr_once = chng_once ;
@@ -953,7 +958,7 @@ void field::field_attr()
 {
 	// Reset field attribute to use the CUA value or original non-CUA value
 
-	field_colour1 = ( field_cua == NONE ) ? field_colour2 : cuaAttr[ field_cua ] ;
+	field_colour1   = ( field_cua == NONE ) ? field_colour2 : cuaAttr[ field_cua ] ;
 	field_attr_once = false ;
 }
 

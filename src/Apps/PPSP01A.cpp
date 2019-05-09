@@ -3801,8 +3801,8 @@ void PPSP01A::showHeldOutput()
 		if ( msg == "" ) { zcmd = "" ; }
 		tbdispl( tabName, panel, msg, csr, csrrow, 1, "YES", "CRP", "", msgloc ) ;
 		if ( RC == 8 ) { break ; }
-		msg  = "" ;
-		csr  = "" ;
+		msg = "" ;
+		csr = "" ;
 		if ( ztdsels == 0 && zcurinx != 0 )
 		{
 			tbtop( tabName ) ;

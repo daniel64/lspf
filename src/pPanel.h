@@ -379,6 +379,18 @@ class pPanel
 						 set<string>& attrchar,
 						 PS_SECT ) ;
 
+		void   process_panel_attr( errblock& err,
+					   int ln,
+					   const string& rhs,
+					   ASSGN* assgn,
+					   set<string>& attr,
+					   PS_SECT ) ;
+
+		void   process_panel_attrchar( errblock& err,
+					       string& rhs,
+					       ASSGN* assgn,
+					       set<string>& attrchar ) ;
+
 		void   process_panel_vputget( errblock& err,
 					      VPUTGET* vputget ) ;
 

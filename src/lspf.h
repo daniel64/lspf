@@ -31,10 +31,10 @@
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
-#define LSPF_VERSION "1.1.8"
+#define LSPF_VERSION "1.1.9"
 #define LSPF_VERSION_MAJ 1
 #define LSPF_VERSION_REV 1
-#define LSPF_VERSION_MOD 8
+#define LSPF_VERSION_MOD 9
 
 typedef unsigned int uint ;
 
@@ -75,7 +75,7 @@ using namespace boost::posix_time ;
 // ZSHELP   - Name of the system help member (ZPLIB/help concatenation searched for this)
 // ZMAXSCRN - Maximum number of split screens allowed (Greater than 8 and the screen will not be displayed in the Screen[] status area.)
 // EDREC_SZ - Size of the edit recovery table
-// MXTAB_SZ - Maximum number of rows allowed in an lspf table
+// MXTAB_SZ - Maximum number of rows allowed in an lspf table (must be less than 16,777,216)
 
 #define ZUPROF          "/.lspf"
 #define ZSYSPATH        "/home/daniel/lspf"

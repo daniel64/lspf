@@ -96,7 +96,7 @@ PEDM012E 'Level out of range'
 'The optional level parameter must in the range 0 to 255'
 
 PEDM012F 'Invalid line pointer'
-'Line pointer must be numberic or a valid line label'
+'Line pointer must be numeric or a valid line label'
 
 PEDM012G 'Command not found'
 '&STR is not an edit command or macro'
@@ -122,8 +122,8 @@ PEDM012M 'Primary command not properly actioned'
 PEDM012N 'Browse substituted' .TYPE=W
 'File cannot be edited. Reason: ''&ZSTR1'''
 
-PEDM012O 'spare'
-'spare'
+PEDM012O 'Spare'
+'Spare'
 
 PEDM012P 'No macro name specified'
 'Macro name is blank.  Please specify a valid macro'
@@ -131,17 +131,17 @@ PEDM012P 'No macro name specified'
 PEDM012Q 'Invalid rexx file' .TYPE=W
 'Invalid file found in path ZORXPATH'
 
-PEDM012R 'spare'
-'spare'
+PEDM012R 'Syntax not valid'
+'Assignment statement syntax not valid.  Use macro command syntax.'
 
-PEDM012S 'spare'
-'spare'
+PEDM012S 'Syntax not valid'
+'Command syntax not valid.  Use assignment statement syntax.'
 
-PEDM012T 'spare'
-'spare'
+PEDM012T 'Spare'
+'Spare'
 
-PEDM012U 'spare'
-'spare'
+PEDM012U 'Spare'
+'Spare'
 
 PEDM012V 'Invalid LINE format' .TYPE=W
 'Format must be ''line-type data'''
@@ -149,8 +149,8 @@ PEDM012V 'Invalid LINE format' .TYPE=W
 PEDM012W 'Invalid quoted string' .TYPE=W
 'String must start and end with a single or double quote'
 
-PEDM012X 'Invalid command syntax'
-'Missing ''='' after command name'
+PEDM012X 'Spare'
+'Spare'
 
 PEDM012Y 'Invalid template format'
 'Missing ''>'' to indicate the end of the template'

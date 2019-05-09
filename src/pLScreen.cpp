@@ -21,7 +21,7 @@
 #define MOD_NAME SCREEN
 
 
-pLScreen::pLScreen( int openedBy, int maxscrn )
+pLScreen::pLScreen( int openedBy )
 {
 	row = 0 ;
 	col = 0 ;
@@ -64,7 +64,7 @@ pLScreen::pLScreen( int openedBy, int maxscrn )
 	screenId   = ++maxScreenId ;
 	openedByList[ screenId ] = openedBy ;
 
-	for ( int i = 1 ; i <= maxscrn ; ++i )
+	for ( uint i = 1 ; i <= maxscrn ; ++i )
 	{
 		if ( screenNums.count( i ) == 0 )
 		{

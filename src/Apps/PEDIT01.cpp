@@ -88,7 +88,7 @@ map<int, edit_find>PEDIT01::Global_efind_parms ;
 PEDIT01::PEDIT01()
 {
 	set_appdesc( "PDF-like editor for lspf" ) ;
-	set_appver( "1.0.7" ) ;
+	set_appver( "1.0.8" ) ;
 	set_apphelp( "HEDIT01" ) ;
 
 	vdefine( "ZCMD ZVERB ZCURFLD ZPFKEY", &zcmd, &zverb, &zcurfld, &zpfkey ) ;
@@ -452,10 +452,6 @@ void PEDIT01::Edit()
 				break ;
 			}
 			termEdit = false ;
-			if ( pcmd.error() )
-			{
-				rebuildZAREA = false ;
-			}
 			continue ;
 		}
 
@@ -3714,10 +3710,11 @@ void PEDIT01::actionPrimCommand3()
 			break ;
 
 	case PC_RECOVERY:
+			pcmd.setActioned() ;
 			if ( w2 == "OFF" )
 			{
 				if ( ws > 2 ) { pcmd.set_msg( "PEDT011" ) ; break ; }
-				profRecover  = false ;
+				profRecover = false ;
 			}
 			else
 			{
@@ -11241,6 +11238,17 @@ void PEDIT01::querySetting()
 			}
 			break ;
 
+	case EM_RECOVERY:
+			if ( miBlock.var1 != "" )
+			{
+				macAppl->vreplace( miBlock.var1, profRecover ? "ON" : "OFF" ) ;
+			}
+			if ( miBlock.var2 != "" )
+			{
+				macAppl->vreplace( miBlock.var2, "" ) ;
+			}
+			break ;
+
 	case EM_SCAN:
 			macAppl->vreplace( miBlock.var1, miBlock.scanOn() ? "ON" : "OFF" ) ;
 			break ;
@@ -11286,8 +11294,6 @@ void PEDIT01::actionService()
 	// For normal primary commands (macro command syntax and assignment syntax), just create the expected
 	// CMD and check the resulting cmdBlock object.
 
-	// For macro command syntax only commands (eg FIND, CHANGE, SEEK..), command must be in the EMCmds map
-
 	// TODO: PROCESS DEST RANGE currently only supported for line command macros
 
 	int p1    ;
@@ -11322,6 +11328,8 @@ void PEDIT01::actionService()
 	kw1 = word( miBlock.keyopts, 1 ) ;
 	kw2 = word( miBlock.keyopts, 2 ) ;
 	kw3 = word( miBlock.keyopts, 3 ) ;
+
+	rebuildZAREA = true ;
 
 	switch ( miBlock.m_cmd )
 	{
@@ -11449,7 +11457,6 @@ void PEDIT01::actionService()
 				if ( (*it)->il_URID == tURID )     { continue ; }
 				if ( (*it)->clearLabel( vw1, n ) ) { break    ; }
 			}
-			rebuildZAREA = true ;
 			break ;
 
 	case EM_LINE:
@@ -11472,7 +11479,6 @@ void PEDIT01::actionService()
 			{
 				fileChanged = true ;
 			}
-			rebuildZAREA = true ;
 			break ;
 
 	case EM_LINE_AFTER:
@@ -11519,7 +11525,6 @@ void PEDIT01::actionService()
 			else                          { p_iline->il_type = LN_NOTE ; }
 			p_iline->put_idata( miBlock.value, Level ) ;
 			it = data.insert( it, p_iline ) ;
-			rebuildZAREA = true ;
 			break ;
 
 	case EM_INSERT:
@@ -11765,7 +11770,6 @@ void PEDIT01::actionService()
 			p1 = getLabelLine( iupper( kw1 ) ) ;
 			if ( p1 < 1 ) { break ; }
 			data.at( p1 )->il_excl = ( vw1 == "X" ) ;
-			rebuildZAREA = true ;
 			break ;
 
 	case EM_LOCATE:
@@ -11787,6 +11791,7 @@ void PEDIT01::actionService()
 	case EM_IMACRO:
 	case EM_NULLS:
 	case EM_PROFILE:
+	case EM_RECOVERY:
 	case EM_RESET:
 	case EM_SAVE:
 	case EM_SEEK:

@@ -204,6 +204,7 @@ enum M_CMDS
 	EM_PROFILE,
 	EM_RANGE_CMD,
 	EM_RCHANGE,
+	EM_RECOVERY,
 	EM_RFIND,
 	EM_SAVE,
 	EM_SCAN,
@@ -256,23 +257,26 @@ class pcmd_format
 class mcmd_format
 {
 	public:
-	       M_CMDS m_cmd   ;
-	       int qnvars1    ;
-	       int qnvars2    ;
-	       int qnkeyopts1 ;
-	       int qnkeyopts2 ;
-	       int ankeyopts1 ;
-	       int ankeyopts2 ;
-	       int anvalopts1 ;
-	       int anvalopts2 ;
+	       M_CMDS m_cmd ;
+	       bool csvalid    ;
+	       bool qasvalid   ;
+	       bool aasvalid   ;
+	       int  qnvars1    ;
+	       int  qnvars2    ;
+	       int  qnkeyopts1 ;
+	       int  qnkeyopts2 ;
+	       int  ankeyopts1 ;
+	       int  ankeyopts2 ;
+	       int  anvalopts1 ;
+	       int  anvalopts2 ;
 } ;
 
 namespace {
-					//               +----------Minimum number of parameters
-					//               |   +------Maximum number of parameters
-					//               |   |
-					//               |   |      value of -1 means don't check
-					//               V   V
+//                                                       +----------Minimum number of parameters
+//                                                       |   +------Maximum number of parameters
+//                                                       |   |
+//                                                       |   |      value of -1 means don't check
+//                                                       V   V
 map<P_CMDS,pcmd_format> pcmdFormat = { { PC_AUTOSAVE, {  0,  2 } },
 				       { PC_BOUNDS,   {  0,  2 } },
 				       { PC_BROWSE,   { -1, -1 } },
@@ -313,69 +317,62 @@ map<P_CMDS,pcmd_format> pcmdFormat = { { PC_AUTOSAVE, {  0,  2 } },
 				       { PC_UNDO,     {  0,  1 } },
 				       { PC_XTABS,    {  0,  1 } } } ;
 
-
-				  //       +----------------------------Query: # variables(min,max)
-				  //       |       +--------------------Query: # key options(min,max)
-				  //       |       |       +-----------Action: # key options(min,max)
-				  //       |       |       |       +---Action: # value options(min,max)
-				  //       |       |       |       |             -1 = don't check
-				  //       V       V       V       V
-map<string,mcmd_format> EMServ =  //       ~~~~~   ~~~~~   ~~~~~   ~~~~~~
-{ { "AUTOSAVE",       { EM_AUTOSAVE,       1,  2,  0,  0,  0,  0,  0,  2  } },
-  { "CAPS",           { EM_CAPS,           1,  1,  0,  0,  0,  0,  1,  1  } },
-  { "CHANGE_COUNTS",  { EM_CHANGE_COUNTS,  1,  2,  0,  0, -1, -1, -1, -1  } },
-  { "CURSOR",         { EM_CURSOR,         1,  2,  0,  0,  0,  0,  1,  2  } },
-  { "DATA_CHANGED",   { EM_DATA_CHANGED,   1,  1,  0,  0, -1, -1, -1, -1  } },
-  { "DATA_WIDTH",     { EM_DATA_WIDTH,     1,  1,  0,  0, -1, -1, -1, -1  } },
-  { "DATASET",        { EM_DATASET,        1,  1,  0,  0, -1, -1, -1, -1  } },
-  { "DISPLAY_COLS",   { EM_DISPLAY_COLS,   1,  2,  0,  0, -1, -1, -1, -1  } },
-  { "DISPLAY_LINES",  { EM_DISPLAY_LINES,  1,  2,  0,  0, -1, -1, -1, -1  } },
-  { "EXCLUDE_COUNTS", { EM_EXCLUDE_COUNTS, 1,  2,  0,  0, -1, -1, -1, -1  } },
-  { "FIND_COUNTS",    { EM_FIND_COUNTS,    1,  2,  0,  0, -1, -1, -1, -1  } },
-  { "HEX",            { EM_HEX,            1,  2,  0,  0, -1, -1, -1, -1  } },
-  { "IMACRO",         { EM_IMACRO,         1,  1,  0,  0, -1, -1, -1, -1  } },
-  { "LABEL",          { EM_LABEL,          1,  2,  1,  1,  1,  1,  1,  2  } },
-  { "LINE",           { EM_LINE,           1,  1,  1,  1,  1,  1, -1, -1  } },
-  { "LINE_AFTER",     { EM_LINE_AFTER,    -1, -1, -1, -1,  1,  1, -1, -1  } },
-  { "LINE_BEFORE",    { EM_LINE_BEFORE,   -1, -1, -1, -1,  1,  1, -1, -1  } },
-  { "LINENUM",        { EM_LINENUM,        1,  1,  1,  1, -1, -1,  1, -1  } },
-  { "MACRO_LEVEL",    { EM_MACRO_LEVEL,    1,  1,  0,  0, -1, -1, -1, -1  } },
-  { "MASKLINE",       { EM_MASKLINE,       1,  1,  0,  0,  0,  0, -1, -1  } },
-  { "NULLS",          { EM_NULLS,          1,  2,  0,  0, -1, -1, -1, -1  } },
-  { "PROFILE",        { EM_PROFILE,        1,  2,  0,  0, -1, -1, -1, -1  } },
-  { "RANGE_CMD",      { EM_RANGE_CMD,      1,  1,  0,  0, -1, -1, -1, -1  } },
-  { "SCAN",           { EM_SCAN,           1,  1,  0,  0,  0,  0,  1,  1  } },
-  { "SEEK_COUNTS",    { EM_SEEK_COUNTS,    1,  2,  0,  0, -1, -1, -1, -1  } },
-  { "TABSLINE",       { EM_TABSLINE,       1,  1,  0,  0,  0,  0, -1, -1  } },
-  { "XSTATUS",        { EM_XSTATUS,        1,  1,  1,  1,  1,  1,  1,  1  } } } ;
-
-
-map<string,M_CMDS> EMCmds =
-{ { "AUTOSAVE",     EM_AUTOSAVE },
-  { "CANCEL",       EM_CANCEL   },
-  { "CAPS",         EM_CAPS     },
-  { "CHANGE",       EM_CHANGE   },
-  { "DEFINE",       EM_DEFINE   },
-  { "DELETE",       EM_DELETE   },
-  { "END",          EM_END      },
-  { "EXCLUDE",      EM_EXCLUDE  },
-  { "FIND",         EM_FIND     },
-  { "FLIP",         EM_FLIP     },
-  { "HEX",          EM_HEX      },
-  { "HIDE",         EM_HIDE     },
-  { "IMACRO",       EM_IMACRO   },
-  { "INSERT",       EM_INSERT   },
-  { "LOCATE",       EM_LOCATE   },
-  { "NULLS",        EM_NULLS    },
-  { "PROCESS",      EM_PROCESS  },
-  { "PROFILE",      EM_PROFILE  },
-  { "RCHANGE",      EM_RCHANGE  },
-  { "RESET",        EM_RESET    },
-  { "RFIND",        EM_RFIND    },
-  { "SAVE",         EM_SAVE     },
-  { "SCAN",         EM_SCAN,    },
-  { "SEEK",         EM_SEEK     },
-  { "SHIFT",        EM_SHIFT    } } ;
+//                                         +------------------Command syntax valid
+//                                         |      +-----------Query assignment syntax valid
+//                                         |      |      +----Action assignment syntax valid
+//                                         |      |      |       +------------Query: # variables(min,max)
+//                                         |      |      |       |       +----Query: # key options(min,max)
+//                                         |      |      |       |       |       +----Action: # key options(min,max)
+//                                         |      |      |       |       |       |       +--Action: # value options(min,max)
+//                                         |      |      |       |       |       |       |            -1 = don't check
+//                                         V      V      V       V       V       V       V
+map<string, mcmd_format> EMServ =  //      ~~~~   ~~~~~  ~~~~~   ~~~~~   ~~~~~   ~~~~~   ~~~~~~
+{ { "AUTOSAVE",       { EM_AUTOSAVE,       true,  true,  true,   1,  2,  0,  0,  0,  0,  0,  2 } },
+  { "CANCEL",         { EM_CANCEL,         true,  false, false, -1, -1, -1, -1, -1, -1, -1, -1 } },
+  { "CAPS",           { EM_CAPS,           true,  true,  true,   1,  1,  0,  0,  0,  0,  1,  1 } },
+  { "CHANGE",         { EM_CHANGE,         true,  false, false, -1, -1, -1, -1, -1, -1, -1, -1 } },
+  { "CHANGE_COUNTS",  { EM_CHANGE_COUNTS,  false, true,  false,  1,  2,  0,  0, -1, -1, -1, -1 } },
+  { "CURSOR",         { EM_CURSOR,         false, true,  true,   1,  2,  0,  0,  0,  0,  1,  2 } },
+  { "DATA_CHANGED",   { EM_DATA_CHANGED,   false, true,  false,  1,  1,  0,  0, -1, -1, -1, -1 } },
+  { "DATA_WIDTH",     { EM_DATA_WIDTH,     false, true,  false,  1,  1,  0,  0, -1, -1, -1, -1 } },
+  { "DATASET",        { EM_DATASET,        false, true,  false,  1,  1,  0,  0, -1, -1, -1, -1 } },
+  { "DEFINE",         { EM_DEFINE,         true,  false, false, -1, -1, -1, -1, -1, -1, -1, -1 } },
+  { "DELETE",         { EM_DELETE,         true,  false, false, -1, -1, -1, -1, -1, -1, -1, -1 } },
+  { "DISPLAY_COLS",   { EM_DISPLAY_COLS,   false, true,  false,  1,  2,  0,  0, -1, -1, -1, -1 } },
+  { "DISPLAY_LINES",  { EM_DISPLAY_LINES,  false, true,  false,  1,  2,  0,  0, -1, -1, -1, -1 } },
+  { "END",            { EM_END,            true,  false, false, -1, -1, -1, -1, -1, -1, -1, -1 } },
+  { "EXCLUDE",        { EM_EXCLUDE,        true,  false, false, -1, -1, -1, -1, -1, -1, -1, -1 } },
+  { "EXCLUDE_COUNTS", { EM_EXCLUDE_COUNTS, false, true,  false,  1,  2,  0,  0, -1, -1, -1, -1 } },
+  { "FIND",           { EM_FIND,           true,  false, false, -1, -1, -1, -1, -1, -1, -1, -1 } },
+  { "FIND_COUNTS",    { EM_FIND_COUNTS,    false, true,  false,  1,  2,  0,  0, -1, -1, -1, -1 } },
+  { "FLIP",           { EM_FLIP,           true,  false, false, -1, -1, -1, -1, -1, -1, -1, -1 } },
+  { "HEX",            { EM_HEX,            true,  true,  true,   1,  2,  0,  0, -1, -1, -1, -1 } },
+  { "HIDE",           { EM_HIDE,           true,  false, false, -1, -1, -1, -1, -1, -1, -1, -1 } },
+  { "IMACRO",         { EM_IMACRO,         true,  true,  true,   1,  1,  0,  0, -1, -1, -1, -1 } },
+  { "INSERT",         { EM_INSERT,         true,  false, false, -1, -1, -1, -1, -1, -1, -1, -1 } },
+  { "LABEL",          { EM_LABEL,          false, true,  true,   1,  2,  1,  1,  1,  1,  1,  2 } },
+  { "LINE",           { EM_LINE,           false, true,  true,   1,  1,  1,  1,  1,  1, -1, -1 } },
+  { "LINE_AFTER",     { EM_LINE_AFTER,     false, false, true,  -1, -1, -1, -1,  1,  1, -1, -1 } },
+  { "LINE_BEFORE",    { EM_LINE_BEFORE,    false, false, true,  -1, -1, -1, -1,  1,  1, -1, -1 } },
+  { "LINENUM",        { EM_LINENUM,        false, true,  false,  1,  1,  1,  1, -1, -1,  1, -1 } },
+  { "LOCATE",         { EM_LOCATE,         true,  false, false, -1, -1, -1, -1, -1, -1, -1, -1 } },
+  { "MACRO_LEVEL",    { EM_MACRO_LEVEL,    false, true,  false,  1,  1,  0,  0, -1, -1, -1, -1 } },
+  { "MASKLINE",       { EM_MASKLINE,       false, true,  true,   1,  1,  0,  0,  0,  0, -1, -1 } },
+  { "NULLS",          { EM_NULLS,          true,  true,  true,   1,  2,  0,  0, -1, -1, -1, -1 } },
+  { "PROCESS",        { EM_PROCESS,        true,  false, false, -1, -1, -1, -1, -1, -1, -1, -1 } },
+  { "PROFILE",        { EM_PROFILE,        true,  true,  false,  1,  2,  0,  0, -1, -1, -1, -1 } },
+  { "RANGE_CMD",      { EM_RANGE_CMD,      false, true,  false,  1,  1,  0,  0, -1, -1, -1, -1 } },
+  { "RCHANGE",        { EM_RCHANGE,        true,  false, false, -1, -1, -1, -1, -1, -1, -1, -1 } },
+  { "RECOVERY",       { EM_RECOVERY,       true,  true,  true,   1,  2,  0,  0, -1, -1, -1, -1 } },
+  { "RESET",          { EM_RESET,          true,  false, false, -1, -1, -1, -1, -1, -1, -1, -1 } },
+  { "RFIND",          { EM_RFIND,          true,  false, false, -1, -1, -1, -1, -1, -1, -1, -1 } },
+  { "SAVE",           { EM_SAVE,           true,  false, false, -1, -1, -1, -1, -1, -1, -1, -1 } },
+  { "SCAN",           { EM_SCAN,           true,  true,  true,   1,  1,  0,  0,  0,  0,  1,  1 } },
+  { "SEEK",           { EM_SEEK,           true,  false, false, -1, -1, -1, -1, -1, -1, -1, -1 } },
+  { "SEEK_COUNTS",    { EM_SEEK_COUNTS,    false, true,  false,  1,  2,  0,  0, -1, -1, -1, -1 } },
+  { "SHIFT",          { EM_SHIFT,          true,  false, false, -1, -1, -1, -1, -1, -1, -1, -1 } },
+  { "TABSLINE",       { EM_TABSLINE,       false, true,  true,   1,  1,  0,  0,  0,  0, -1, -1 } },
+  { "XSTATUS",        { EM_XSTATUS,        false, true,  true,   1,  1,  1,  1,  1,  1,  1,  1 } } } ;
 
 
 map<string,pcmd_entry> PrimCMDS =
@@ -2146,16 +2143,17 @@ class miblock
 		else if ( t != "" && t != "PROCESS" )
 		{
 			seterror( "PEDM011P" ) ;
-			return                 ;
+			return ;
 		}
 		macro = true ;
-		return       ;
+		return ;
 	}
 
 	void parseStatement( const string& s, map<string,stack<defName>>& defNames )
 	{
 		int  i     ;
 		int  miss  ;
+
 		char qt    ;
 
 		size_t p1  ;
@@ -2181,8 +2179,7 @@ class miblock
 		reset() ;
 
 		sttment = s ;
-		trim( sttment ) ;
-		t = sttment ;
+		t = trim( sttment ) ;
 
 		for ( quote = false, its = t.begin() ; its != t.end() ; ++its )
 		{
@@ -2192,7 +2189,7 @@ class miblock
 				qt = (*its) ;
 				continue ;
 			}
-			if (  quote && (*its) == qt )
+			if ( quote && (*its) == qt )
 			{
 				quote = false ;
 				continue ;
@@ -2239,31 +2236,43 @@ class miblock
 			idelword( t, 1, 1 )       ;
 			builtin = true ;
 		}
+
 		sttwds = words( sttment ) ;
+		p1     = t.find( '=' ) ;
+
 		if ( t.front() == '(' )
 		{
-			p1 = t.find( '=' ) ;
 			if ( p1 == string::npos )
 			{
 				seterror( "PEDM011K" ) ;
 				return ;
 			}
 			assign  = true ;
+			query   = true ;
 			value   = t.substr( 0, p1 ) ;
 			kphrase = t.substr( p1+1  ) ;
-			query   = true ;
 			keyword = word( kphrase, 1 ) ;
-			if ( EMServ.count( keyword ) == 0 )
+			it      = EMServ.find( keyword ) ;
+			if ( it == EMServ.end() )
 			{
 				seterror( "PEDM011N" ) ;
 				return ;
 			}
+			if ( not it->second.qasvalid )
+			{
+
+				seterror( "PEDM012R", 20 ) ;
+				return ;
+			}
+			m_cmd = it->second.m_cmd ;
 		}
 		else
 		{
-			p1      = t.find( '=' ) ;
+			if ( p1 != string::npos )
+			{
+				assign = true ;
+			}
 			keyword = word( t, 1 )  ;
-			if ( p1 != string::npos ) { assign = true ; }
 			if ( PrimCMDS.count( keyword ) > 0 )
 			{
 				keyword = PrimCMDS[ keyword ].truename ;
@@ -2282,50 +2291,57 @@ class miblock
 					sttment = keyword + " " + idelword( sttment, 1, 1 ) ;
 				}
 			}
-			if ( EMServ.count( keyword ) == 0 )
+			it = EMServ.find( keyword ) ;
+			if ( it == EMServ.end() )
 			{
-				if ( EMCmds.count( keyword ) == 0 )
+				if ( builtin )
 				{
-					if ( builtin )
-					{
-						seterror( "PEDM012J" ) ;
-					}
-					else
-					{
-						runmacro = true ;
-					}
-					return ;
+					seterror( "PEDM012J" ) ;
 				}
-				m_cmd = EMCmds[ keyword ] ;
-				if ( m_cmd == EM_PROCESS && words( sttment ) > 5 )
+				else
 				{
-					seterror( "PEDM011P" ) ;
+					runmacro = true ;
 				}
 				return ;
 			}
-			if ( !assign )
+			if ( assign && not it->second.aasvalid )
 			{
-				if ( EMServ.count( keyword ) > 0 && EMCmds.count( keyword ) == 0 )
+				seterror( "PEDM012R", 20 ) ;
+				return ;
+			}
+			if ( not assign && not it->second.csvalid )
+			{
+
+				if ( it->second.aasvalid )
 				{
-					seterror( "PEDM012X" ) ;
-					return ;
+					seterror( "PEDM012S", 20 ) ;
 				}
+				else
+				{
+					seterror( "PEDM011T", keyword, 12 ) ;
+				}
+				return ;
+			}
+			if ( it->second.m_cmd == EM_PROCESS && words( sttment ) > 5 )
+			{
+				seterror( "PEDM011P" ) ;
+			}
+			m_cmd = it->second.m_cmd ;
+			if ( not assign )
+			{
 				keyopts = subword( t, 2 ) ;
-				m_cmd   = EMCmds[ keyword ] ;
 				return ;
 			}
 			kphrase = t.substr( 0, p1 ) ;
 			value   = t.substr( p1+1  ) ;
 		}
+
 		keyopts  = subword( kphrase, 2 ) ;
 		nkeyopts = words( keyopts ) ;
 		isvar    = false ;
-		m_cmd    = EMServ[ keyword ].m_cmd ;
 		trim( value )    ;
-		if ( !query && ( m_cmd == EM_LINE || m_cmd == EM_LINE_BEFORE || m_cmd == EM_LINE_AFTER ) )
-		{
-			;
-		}
+
+		if ( !query && ( m_cmd == EM_LINE || m_cmd == EM_LINE_BEFORE || m_cmd == EM_LINE_AFTER ) ) {}
 		else if ( value.front() == '(' )
 		{
 			isvar = true ;
@@ -2353,7 +2369,7 @@ class miblock
 		{
 			if ( value.front() == ',' ) { miss = 1 ; }
 			replace( value.begin(), value.end(), ',', ' ' ) ;
-			iupper( trim( value ) ) ;
+			iupper( value ) ;
 			for ( nvars = words( value ), i = 1 ; i <= nvars ; ++i )
 			{
 				var = word( value, i ) ;
@@ -2368,12 +2384,11 @@ class miblock
 			}
 		}
 
-		it = EMServ.find( keyword ) ;
 		if ( query )
 		{
 			if ( (it->second.qnvars1 != -1 ) )
 			{
-				if ( (nvars + miss) < EMServ[ keyword ].qnvars1 )
+				if ( (nvars + miss) < it->second.qnvars1 )
 				{
 					seterror( "PEDM012B" ) ;
 					return ;
@@ -2381,7 +2396,7 @@ class miblock
 			}
 			if ( (it->second.qnvars2 != -1 ) )
 			{
-				if ( (nvars + miss) > EMServ[ keyword ].qnvars2 )
+				if ( (nvars + miss) > it->second.qnvars2 )
 				{
 					seterror( "PEDM012C", 20 ) ;
 					return ;
