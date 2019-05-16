@@ -63,7 +63,7 @@ using namespace boost::filesystem ;
 RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext*, RexxStringObject, RexxStringObject ) ;
 RexxObjectPtr RexxEntry editServiceHandler( RexxExitContext*, RexxStringObject, RexxStringObject ) ;
 
-int getRexxVariable( pApplication*, string, string & ) ;
+int getRexxVariable( pApplication*, string, string& ) ;
 int setRexxVariable( string, string )    ;
 int getAllRexxVariables( pApplication* ) ;
 int setAllRexxVariables( pApplication* ) ;

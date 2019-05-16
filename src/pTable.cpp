@@ -73,10 +73,10 @@ vector<vector<string>*>::iterator Table::getKeyItr( errblock& err,
 
 	for ( auto pt = tab_vkeys.begin() ; pt != tab_vkeys.end() ; ++pt )
 	{
-		keys.push_back( funcPOOL.get( err, 8, *pt ) ) ;
+		keys.push_back( funcPOOL.get( err, 8, *pt, NOCHECK ) ) ;
 		if ( err.RC8() )
 		{
-			funcPOOL.put( err, *pt, "" ) ;
+			funcPOOL.put2( err, *pt, "" ) ;
 		}
 		if ( err.error() ) { return table.end() ; }
 	}
@@ -113,7 +113,7 @@ void Table::loadfuncPOOL( errblock& err,
 
 	for ( i = 1, pt = tab_vall.begin() ; pt != tab_vall.end() ; ++pt, ++i )
 	{
-		funcPOOL.put( err, *pt, (*it)->at( i ) ) ;
+		funcPOOL.put2( err, *pt, (*it)->at( i ) ) ;
 		if ( err.error() ) { return ; }
 	}
 
@@ -122,7 +122,7 @@ void Table::loadfuncPOOL( errblock& err,
 		tbelst = (*it)->at( num_all+1 ) ;
 		for ( ws = words( tbelst ), i = 1 ; i <= ws ; ++i )
 		{
-			funcPOOL.put( err, word( tbelst, i ), (*it)->at( num_all+1+i ) ) ;
+			funcPOOL.put1( err, word( tbelst, i ), (*it)->at( num_all+1+i ) ) ;
 			if ( err.error() ) { return ; }
 		}
 		tbelst = "("+ tbelst +")" ;
@@ -130,7 +130,7 @@ void Table::loadfuncPOOL( errblock& err,
 
 	if ( tb_savenm != "" )
 	{
-		funcPOOL.put( err, tb_savenm, tbelst ) ;
+		funcPOOL.put1( err, tb_savenm, tbelst ) ;
 	}
 }
 
@@ -150,11 +150,11 @@ void Table::saveExtensionVarNames( errblock& err,
 
 	if ( (*it)->size() > num_all+1 )
 	{
-		funcPOOL.put( err, tb_savenm, "("+ (*it)->at( num_all+1 ) +")" ) ;
+		funcPOOL.put1( err, tb_savenm, "("+ (*it)->at( num_all+1 ) +")" ) ;
 	}
 	else
 	{
-		funcPOOL.put( err, tb_savenm, "" ) ;
+		funcPOOL.put1( err, tb_savenm, "" ) ;
 	}
 }
 
@@ -177,10 +177,10 @@ void Table::loadFields( errblock& err,
 
 	for ( pt = tab_vall.begin() ; pt != tab_vall.end() ; ++pt )
 	{
-		row->push_back( funcPOOL.get( err, 8, *pt ) ) ;
+		row->push_back( funcPOOL.get( err, 8, *pt, NOCHECK ) ) ;
 		if ( err.RC8() )
 		{
-			funcPOOL.put( err, *pt, "" ) ;
+			funcPOOL.put2( err, *pt, "" ) ;
 		}
 		if ( err.error() ) { return ; }
 	}
@@ -194,7 +194,7 @@ void Table::loadFields( errblock& err,
 			row->push_back( funcPOOL.get( err, 8, var ) ) ;
 			if ( err.RC8() )
 			{
-				funcPOOL.put( err, var, "" ) ;
+				funcPOOL.put1( err, var, "" ) ;
 			}
 			if ( err.error() ) { return ; }
 		}
@@ -217,11 +217,11 @@ void Table::storeIntValue( errblock& err,
 
 	if ( var_type == STRING )
 	{
-		funcPOOL.put( err, var, d2ds( val, 8 ) ) ;
+		funcPOOL.put1( err, var, d2ds( val, 8 ) ) ;
 	}
 	else
 	{
-		funcPOOL.put( err, var, val ) ;
+		funcPOOL.put1( err, var, val ) ;
 	}
 }
 
@@ -369,7 +369,7 @@ void Table::tbbottom( errblock& err,
 
 	if ( tb_rowid_vn != "" )
 	{
-		funcPOOL.put( err, tb_rowid_vn, table.at( CRP-1 )->at( 0 ) ) ;
+		funcPOOL.put1( err, tb_rowid_vn, table.at( CRP-1 )->at( 0 ) ) ;
 		if ( err.error() ) { return ; }
 	}
 
@@ -521,7 +521,7 @@ void Table::tbget( errblock& err,
 
 	if ( tb_rowid_vn != "" )
 	{
-		funcPOOL.put( err, tb_rowid_vn, table.at( CRP-1 )->at( 0 ) ) ;
+		funcPOOL.put1( err, tb_rowid_vn, table.at( CRP-1 )->at( 0 ) ) ;
 		if ( err.error() ) { return ; }
 	}
 
@@ -715,9 +715,9 @@ void Table::tbquery( errblock& err,
 	iupper( tb_condn )  ;
 	iupper( tb_dirn )   ;
 
-	if ( tb_keyn != "" )  { funcPOOL.put( err, tb_keyn, tab_keys ) ; }
+	if ( tb_keyn != "" )  { funcPOOL.put1( err, tb_keyn, tab_keys ) ; }
 	if ( err.error() ) { return ; }
-	if ( tb_varn != "" )  { funcPOOL.put( err, tb_varn, tab_flds ) ; }
+	if ( tb_varn != "" )  { funcPOOL.put1( err, tb_varn, tab_flds ) ; }
 	if ( err.error() ) { return ; }
 	if ( tb_rownn != "" ) { storeIntValue( err, funcPOOL, tb_rownn, table.size() ) ; }
 	if ( err.error() ) { return ; }
@@ -727,13 +727,13 @@ void Table::tbquery( errblock& err,
 	if ( err.error() ) { return ; }
 	if ( tb_crpn != "" )  { storeIntValue( err, funcPOOL, tb_crpn, CRP ) ; }
 	if ( err.error() ) { return ; }
-	if ( tb_sirn != "" ) { funcPOOL.put( err, tb_sirn, sort_ir ) ; }
+	if ( tb_sirn != "" ) { funcPOOL.put1( err, tb_sirn, sort_ir ) ; }
 	if ( err.error() ) { return ; }
-	if ( tb_lstn != "" ) { funcPOOL.put( err, tb_lstn, sa_namelst ) ; }
+	if ( tb_lstn != "" ) { funcPOOL.put1( err, tb_lstn, sa_namelst ) ; }
 	if ( err.error() ) { return ; }
-	if ( tb_condn != "" ) { funcPOOL.put( err, tb_condn, sa_cond_pairs ) ; }
+	if ( tb_condn != "" ) { funcPOOL.put1( err, tb_condn, sa_cond_pairs ) ; }
 	if ( err.error() ) { return ; }
-	if ( tb_dirn != "" ) { funcPOOL.put( err, tb_dirn, sa_dir ) ; }
+	if ( tb_dirn != "" ) { funcPOOL.put1( err, tb_dirn, sa_dir ) ; }
 	if ( err.error() ) { return ; }
 }
 
@@ -825,7 +825,7 @@ void Table::tbsets( errblock& err,
 	{
 		for ( pt = tab_vall.begin() ; pt != tab_vall.end() ; ++pt )
 		{
-			val = funcPOOL.get( err, 8, *pt ) ;
+			val = funcPOOL.get( err, 8, *pt, NOCHECK ) ;
 			if ( err.error() ) { return ; }
 			if ( val == "" )
 			{
@@ -842,7 +842,7 @@ void Table::tbsets( errblock& err,
 		if ( err.error() ) { return ; }
 		if ( err.RC8() )
 		{
-			funcPOOL.put( err, var, "" ) ;
+			funcPOOL.put1( err, var, "" ) ;
 			val = "" ;
 		}
 		scan[ var ] = tbsearch( val ) ;
@@ -1147,7 +1147,7 @@ void Table::tbscan( errblock& err,
 
 	if ( tb_rowid_vn != "" )
 	{
-		funcPOOL.put( err, tb_rowid_vn, table.at( CRP-1 )->at( 0 ) ) ;
+		funcPOOL.put1( err, tb_rowid_vn, table.at( CRP-1 )->at( 0 ) ) ;
 		if ( err.error() ) { return ; }
 	}
 }
@@ -1227,7 +1227,7 @@ void Table::tbskip( errblock& err,
 
 	if ( tb_rowid_vn != "" )
 	{
-		funcPOOL.put( err, tb_rowid_vn, table.at( CRP-1 )->at( 0 ) ) ;
+		funcPOOL.put1( err, tb_rowid_vn, table.at( CRP-1 )->at( 0 ) ) ;
 		if ( err.error() ) { return ; }
 	}
 
@@ -1381,7 +1381,7 @@ void Table::tbvclear( errblock& err,
 
 	for ( auto pt = tab_vall.begin() ; pt != tab_vall.end() ; ++pt )
 	{
-		funcPOOL.put( err, *pt, "" ) ;
+		funcPOOL.put2( err, *pt, "" ) ;
 		if ( err.error() ) { return ; }
 	}
 }
@@ -1389,8 +1389,8 @@ void Table::tbvclear( errblock& err,
 
 void Table::fillfVARs( errblock& err,
 		       fPOOL& funcPOOL,
-		       set<string>& tb_fields,
-		       const string& clear_flds,
+		       const set<string>& tb_fields,
+		       const set<string>& tb_clear,
 		       bool scan,
 		       uint depth,
 		       int  posn,
@@ -1406,6 +1406,8 @@ void Table::fillfVARs( errblock& err,
 	// Also pass back the relative line index, idr, for the line matching the passed csrrow (if any).
 	// (Passed csrrow is the panel CSRROW() parameter or .CSRROW control variable)
 
+	// tb_fields and tb_clear variable names have already been checked.
+
 	// BUG:  SCAN not supported yet
 
 	uint j ;
@@ -1419,11 +1421,11 @@ void Table::fillfVARs( errblock& err,
 	vector<vector<string>*>::iterator itt ;
 
 	map<int, string>::iterator itf ;
-	map<string, string>::iterator itg ;
+	set<string>::iterator itg ;
 
 	map<int, string> tab2fields ;
-	map<string, string> tab3fields ;
 
+	set<string> tab3fields ;
 	set<string> set2fields ;
 
 	err.setRC( 0 ) ;
@@ -1431,20 +1433,11 @@ void Table::fillfVARs( errblock& err,
 	if ( posn == -1 ) { posn = CRP ; }
 	if ( posn == 0  ) { posn = 1   ; }
 
-	funcPOOL.put( err, "ZTDTOP", posn )  ;
+	funcPOOL.put2( err, "ZTDTOP", posn ) ;
 	if ( err.error() ) { return ; }
 
-	funcPOOL.put( err, "ZTDROWS", table.size() ) ;
+	funcPOOL.put2( err, "ZTDROWS", table.size() ) ;
 	if ( err.error() ) { return ; }
-
-	for ( l = words( clear_flds ), k = 1 ; k <= l ; ++k )
-	{
-		for ( var = word( clear_flds, k ), j = 0 ; j < depth ; ++j )
-		{
-			funcPOOL.put( err, var + "." + d2ds( j ), "", NOCHECK ) ;
-			if ( err.error() ) { return ; }
-		}
-	}
 
 	csrrow -= posn ;
 	idr     = -1   ;
@@ -1459,14 +1452,13 @@ void Table::fillfVARs( errblock& err,
 		}
 	}
 
-
 	if ( tb_fields.size() > set2fields.size() )
 	{
 		for ( auto it = tb_fields.begin() ; it != tb_fields.end() ; ++it )
 		{
 			if ( set2fields.count( *it ) == 0 )
 			{
-				tab3fields[ *it ] = funcPOOL.get( err, 8, *it ) ;
+				tab3fields.insert( *it ) ;
 			}
 		}
 	}
@@ -1475,15 +1467,22 @@ void Table::fillfVARs( errblock& err,
 	for ( itt = table.begin() + posn - 1, k = 0 ; k < depth && itt != table.end() ; ++k, ++itt )
 	{
 		sufx = "." + d2ds( k ) ;
-		funcPOOL.put( err, ".ZURID" + sufx, (*itt)->at( 0 ), NOCHECK ) ;
+		for ( itg = tb_clear.begin() ; itg != tb_clear.end() ; ++itg )
+		{
+			funcPOOL.put2( err, *itg, "" ) ;
+			if ( err.error() ) { return ; }
+		}
+		funcPOOL.put3( err, ".ZURID" + sufx, (*itt)->at( 0 ) ) ;
 		for ( itf = tab2fields.begin() ; itf != tab2fields.end() ; ++itf )
 		{
-			funcPOOL.put( err, itf->second + sufx, (*itt)->at( itf->first ), NOCHECK ) ;
+			funcPOOL.put2( err, itf->second, (*itt)->at( itf->first ) ) ;
+			if ( err.error() ) { return ; }
+			funcPOOL.put3( err, itf->second + sufx, (*itt)->at( itf->first ) ) ;
 			if ( err.error() ) { return ; }
 		}
 		for ( itg = tab3fields.begin() ; itg != tab3fields.end() ; ++itg )
 		{
-			funcPOOL.put( err, itg->first + sufx, itg->second, NOCHECK ) ;
+			funcPOOL.put3( err, *itg + sufx, funcPOOL.get( err, 8, *itg ) ) ;
 			if ( err.error() ) { return ; }
 		}
 		if ( (*itt)->size() > num_all+1 )
@@ -1493,11 +1492,14 @@ void Table::fillfVARs( errblock& err,
 			{
 				var = word( enames, l ) ;
 				if ( tb_fields.count( var ) == 0 ) { continue ; }
-				funcPOOL.put( err, var + sufx, (*itt)->at( j ), NOCHECK ) ;
+				funcPOOL.put1( err, var, (*itt)->at( j ) ) ;
+				if ( err.error() ) { return ; }
+				funcPOOL.put3( err, var + sufx, (*itt)->at( j ) ) ;
 				if ( err.error() ) { return ; }
 			}
 		}
 	}
+
 	if ( k > csrrow ) { idr = csrrow ; }
 }
 
@@ -1642,16 +1644,16 @@ void Table::cmdsearch( errblock& err,
 		return ;
 	}
 
-	funcPOOL.put( err, "ZCTVERB", (*it)->at( 1 ) ) ;
+	funcPOOL.put2( err, "ZCTVERB", (*it)->at( 1 ) ) ;
 	if ( err.error() ) { return ; }
 
-	funcPOOL.put( err, "ZCTTRUNC", (*it)->at( 2 ) ) ;
+	funcPOOL.put2( err, "ZCTTRUNC", (*it)->at( 2 ) ) ;
 	if ( err.error() ) { return ; }
 
-	funcPOOL.put( err, "ZCTACT", (*it)->at( 3 ) ) ;
+	funcPOOL.put2( err, "ZCTACT", (*it)->at( 3 ) ) ;
 	if ( err.error() ) { return ; }
 
-	funcPOOL.put( err, "ZCTDESC", (*it)->at( 4 ) ) ;
+	funcPOOL.put2( err, "ZCTDESC", (*it)->at( 4 ) ) ;
 	if ( err.error() ) { return ; }
 }
 
@@ -2126,6 +2128,8 @@ void tableMGR::qtabopen( errblock& err,
 
 	err.setRC( 0 ) ;
 
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
+
 	if ( !isvalidName( tb_list ) )
 	{
 		err.seterrid( "PSYE013A", "QTABOPEN", tb_list ) ;
@@ -2138,14 +2142,14 @@ void tableMGR::qtabopen( errblock& err,
 		return ;
 	}
 
-	funcPOOL.put( err, tb_list+"0", tables.size() ) ;
+	funcPOOL.put2( err, tb_list+"0", tables.size() ) ;
 	if ( err.error() ) { return ; }
 
 	for ( i = 1, it = tables.begin() ; it != tables.end() ; ++it, ++i )
 	{
 		var = tb_list + d2ds( i ) ;
 		if ( var.size() > 8 ) { return ; }
-		funcPOOL.put( err, var, it->first ) ;
+		funcPOOL.put2( err, var, it->first ) ;
 		if ( err.error() ) { return ; }
 	}
 }
@@ -2313,8 +2317,8 @@ void tableMGR::statistics()
 void tableMGR::fillfVARs( errblock& err,
 			  fPOOL& funcPOOL,
 			  const string& tb_name,
-			  set<string>& tb_fields,
-			  const string& clear_flds,
+			  const set<string>& tb_fields,
+			  const set<string>& tb_clear,
 			  bool scan,
 			  int  depth,
 			  int  posn,
@@ -2329,7 +2333,7 @@ void tableMGR::fillfVARs( errblock& err,
 		err.seterrid( "PSYE013G", "FILLFVARS", tb_name, 12 ) ;
 		return ;
 	}
-	it->second->fillfVARs( err, funcPOOL, tb_fields, clear_flds, scan, depth, posn, csrrow, idr ) ;
+	it->second->fillfVARs( err, funcPOOL, tb_fields, tb_clear, scan, depth, posn, csrrow, idr ) ;
 }
 
 

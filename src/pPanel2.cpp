@@ -31,6 +31,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 	string ws ;
 	string t1 ;
 	string t2 ;
+	string t3 ;
 	string pline    ;
 	string oline    ;
 	string fld, hlp ;
@@ -65,8 +66,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 
 	for ( it = pSource.begin() ; it != pSource.end() ; ++it )
 	{
-		pline = *it   ;
-		oline = *it   ;
+		pline = *it ;
+		oline = *it ;
 		trim( oline ) ;
 		if ( pline.find( '\t' ) != string::npos )
 		{
@@ -756,7 +757,7 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 			w6 = word( pline, 6 ) ;
 			if ( !isvalidName( w6 ) )
 			{
-				err.seterrid( "PSYE022J", w7, "dynamic area" ) ;
+				err.seterrid( "PSYE022J", w6, "Dynamic area" ) ;
 				err.setsrc( oline ) ;
 				return ;
 			}
@@ -826,14 +827,20 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 		{
 			iupper( pline ) ;
 			ww = word( pline, 3 ) ;
-			uint start_row = ds2d( word( pline, 2 ) ) - 1 ;
+			tb_toprow = ds2d( word( pline, 2 ) ) - 1 ;
 
 			if ( isnumeric( ww ) )                      { tb_depth = ds2d( ww ) ; }
-			else if ( ww == "MAX" )                     { tb_depth = wscrmaxd - start_row ; }
-			else if ( ww.compare( 0, 4, "MAX-" ) == 0 ) { tb_depth = wscrmaxd - ds2d( substr( ww, 5 ) ) - start_row ; }
+			else if ( ww == "MAX" )                     { tb_depth = wscrmaxd - tb_toprow ; }
+			else if ( ww.compare( 0, 4, "MAX-" ) == 0 ) { tb_depth = wscrmaxd - ds2d( substr( ww, 5 ) ) - tb_toprow ; }
 			else
 			{
-				err.seterrid( "PSYE031B", ww ) ;
+				err.seterrid( "PSYE031S", ww ) ;
+				err.setsrc( oline ) ;
+				return ;
+			}
+			if ( tb_toprow > wscrmaxd )
+			{
+				err.seterrid( "PSYE031T", d2ds( tb_toprow ), d2ds( wscrmaxd ) ) ;
 				err.setsrc( oline ) ;
 				return ;
 			}
@@ -843,9 +850,8 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				err.setsrc( oline ) ;
 				return ;
 			}
-			scrollOn  = true ;
-			tb_model  = true ;
-			tb_toprow = start_row ;
+			scrollOn = true ;
+			tb_model = true ;
 			t1 = subword( pline, 4 ) ;
 			t2 = parseString( err, t1, "ROWS()" ) ;
 			if ( err.error() )
@@ -859,23 +865,24 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				err.setsrc( oline ) ;
 				return ;
 			}
-			tb_scan  = ( t2 == "SCAN" ) ;
-			tb_clear = parseString( err, t1, "CLEAR()" ) ;
+			tb_scan = ( t2 == "SCAN" ) ;
+			t2      = parseString( err, t1, "CLEAR()" ) ;
 			if ( err.error() )
 			{
 				err.setsrc( oline ) ;
 				return ;
 			}
-			replace( tb_clear.begin(), tb_clear.end(), ',', ' ' ) ;
-			for ( j = words( tb_clear ), i = 1 ; i <= j ; ++i )
+			replace( t2.begin(), t2.end(), ',', ' ' ) ;
+			for ( j = words( t2 ), i = 1 ; i <= j ; ++i )
 			{
-				t2 = word( tb_clear, i ) ;
-				if ( !isvalidName( t2 ) )
+				t3 = word( t2, i ) ;
+				if ( !isvalidName( t3 ) )
 				{
-					err.seterrid( "PSYE013A", "TBMODEL CLEAR", t2 ) ;
+					err.seterrid( "PSYE013A", "TBMODEL CLEAR", t3 ) ;
 					err.setsrc( oline ) ;
 					return ;
 				}
+				tb_clear.insert( t3 ) ;
 			}
 			if ( words( t1 ) > 0 )
 			{
@@ -883,8 +890,11 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 				err.setsrc( oline ) ;
 				return ;
 			}
-			if ( (start_row + tb_depth ) > wscrmaxd ) { tb_depth = (wscrmaxd - start_row) ; }
-			p_funcPOOL->put( err, "ZTDDEPTH", tb_depth ) ;
+			if ( (tb_toprow + tb_depth ) > wscrmaxd )
+			{
+				tb_depth = wscrmaxd - tb_toprow ;
+			}
+			p_funcPOOL->put2( err, "ZTDDEPTH", tb_depth ) ;
 			continue ;
 		}
 		else if ( w1 == "TBFIELD" )
@@ -967,7 +977,10 @@ void pPanel::loadPanel( errblock& err, const string& p_name, const string& paths
 	{
 		for ( it1 = fieldList.begin() ; it1 != fieldList.end() ; ++it1 )
 		{
-			if ( !p_funcPOOL->ifexists( err, it1->first ) ) { syncDialogueVar( err, it1->first ) ; }
+			if ( !p_funcPOOL->ifexists( err, it1->first ) )
+			{
+				syncDialogueVar( err, it1->first ) ;
+			}
 		}
 	}
 

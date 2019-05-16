@@ -31,10 +31,10 @@
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
-#define LSPF_VERSION "1.1.9"
+#define LSPF_VERSION "1.1.10"
 #define LSPF_VERSION_MAJ 1
 #define LSPF_VERSION_REV 1
-#define LSPF_VERSION_MOD 9
+#define LSPF_VERSION_MOD 10
 
 typedef unsigned int uint ;
 
@@ -158,6 +158,8 @@ using namespace boost::posix_time ;
 
 namespace lspf {
 
+const bool NOCHECK = false ;
+
 struct lspfCommand
 {
 	string Command       ;
@@ -222,12 +224,6 @@ enum dataType
 	INTEGER,
 	STRING,
 	ERROR
-} ;
-
-enum nameCHCK
-{
-	CHECK,
-	NOCHECK
 } ;
 
 enum vdType
@@ -546,7 +542,8 @@ class errblock
 	}
 	void setpanelsrc()
 	{
-		panel = true ;
+		panel  = true  ;
+		dialog = false ;
 	}
 	bool panelsrc()
 	{
@@ -554,7 +551,8 @@ class errblock
 	}
 	void setdialogsrc()
 	{
-		dialog = true ;
+		panel  = false ;
+		dialog = true  ;
 	}
 	bool dialogsrc()
 	{

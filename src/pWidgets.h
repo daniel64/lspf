@@ -297,7 +297,7 @@ class abc
 		void   add_pdc( const pdc& )         ;
 		void   display_abc_sel( WINDOW* )    ;
 		void   display_abc_unsel( WINDOW* )  ;
-		void   display_pd( errblock&, uint, uint, uint ) ;
+		void   display_pd( errblock&, const string&, uint, uint, uint ) ;
 		void   hide_pd()    ;
 		int    get_pd_col() ;
 		void   get_msg_position( uint&, uint& ) ;

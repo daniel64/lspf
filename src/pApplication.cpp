@@ -88,9 +88,9 @@ pApplication::pApplication()
 	zerr6               = ""     ;
 	zerr7               = ""     ;
 	zerr8               = ""     ;
-	funcPOOL.define( errBlock, "ZRC",     &ZRC ) ;
-	funcPOOL.define( errBlock, "ZRSN",    &ZRSN ) ;
-	funcPOOL.define( errBlock, "ZRESULT", &ZRESULT ) ;
+	funcPOOL.define( errBlock, "ZRC", &ZRC, NOCHECK ) ;
+	funcPOOL.define( errBlock, "ZRSN", &ZRSN, NOCHECK ) ;
+	funcPOOL.define( errBlock, "ZRESULT", &ZRESULT, NOCHECK ) ;
 }
 
 
@@ -154,15 +154,15 @@ void pApplication::init_phase2()
 	zztusr = p_poolMGR->get( errBlock, "ZTUSR", PROFILE ) ;
 	zztabu = p_poolMGR->get( errBlock, "ZTABU", PROFILE ) ;
 
-	funcPOOL.put( errBlock, "ZTDTOP",   0 ) ;
-	funcPOOL.put( errBlock, "ZTDSELS",  0 ) ;
-	funcPOOL.put( errBlock, "ZTDDEPTH", 0 ) ;
-	funcPOOL.put( errBlock, "ZTDROWS",  0 ) ;
-	funcPOOL.put( errBlock, "ZTDVROWS", 0 ) ;
-	funcPOOL.put( errBlock, "ZCURPOS",  1 ) ;
-	funcPOOL.put( errBlock, "ZCURINX",  0 ) ;
-	funcPOOL.put( errBlock, "ZZCRP",    0 ) ;
-	funcPOOL.put( errBlock, "ZSBTASK",  0 ) ;
+	funcPOOL.put2( errBlock, "ZTDTOP",   0 ) ;
+	funcPOOL.put2( errBlock, "ZTDSELS",  0 ) ;
+	funcPOOL.put2( errBlock, "ZTDDEPTH", 0 ) ;
+	funcPOOL.put2( errBlock, "ZTDROWS",  0 ) ;
+	funcPOOL.put2( errBlock, "ZTDVROWS", 0 ) ;
+	funcPOOL.put2( errBlock, "ZCURPOS",  1 ) ;
+	funcPOOL.put2( errBlock, "ZCURINX",  0 ) ;
+	funcPOOL.put2( errBlock, "ZZCRP",    0 ) ;
+	funcPOOL.put2( errBlock, "ZSBTASK",  0 ) ;
 
 	lscreen     = ds2d( p_poolMGR->get( errBlock, "ZSCREEN", SHARED ) ) ;
 	lscreen_num = ds2d( p_poolMGR->get( errBlock, "ZSCRNUM", SHARED ) ) ;
@@ -631,6 +631,14 @@ void pApplication::display( string p_name,
 
 	RC = 0 ;
 
+	if ( not busyAppl )
+	{
+		llog( "E", "Invalid method state" <<endl ) ;
+		llog( "E", "Application is in a wait state.  Method cannot invoke display services." <<endl ) ;
+		RC = 20 ;
+		return ;
+	}
+
 	if ( backgrd )
 	{
 		llog( "B", e8 + p_name <<endl ) ;
@@ -887,8 +895,8 @@ void pApplication::set_ZVERB_panel_resp()
 
 void pApplication::set_panel_zvars()
 {
-	funcPOOL.put( errBlock, "ZCURFLD", currPanel->get_cursor() ) ;
-	funcPOOL.put( errBlock, "ZCURPOS", currPanel->get_csrpos() ) ;
+	funcPOOL.put2( errBlock, "ZCURFLD", currPanel->get_cursor() ) ;
+	funcPOOL.put2( errBlock, "ZCURPOS", currPanel->get_csrpos() ) ;
 }
 
 
@@ -1083,7 +1091,7 @@ void pApplication::qlibdef( const string& lib, const string& type_var, const str
 
 	if ( type_var != "" )
 	{
-		funcPOOL.put( errBlock, type_var, "PATH" ) ;
+		funcPOOL.put1( errBlock, type_var, "PATH" ) ;
 		if ( errBlock.error() )
 		{
 			errBlock.setcall( e1 ) ;
@@ -1094,7 +1102,7 @@ void pApplication::qlibdef( const string& lib, const string& type_var, const str
 
 	if ( id_var != "" )
 	{
-		funcPOOL.put( errBlock, id_var, it->second.top() ) ;
+		funcPOOL.put1( errBlock, id_var, it->second.top() ) ;
 		if ( errBlock.error() )
 		{
 			errBlock.setcall( e1 ) ;
@@ -1664,18 +1672,19 @@ void pApplication::vreset()
 	funcPOOL.reset( errBlock ) ;
 	RC = errBlock.getRC() ;
 
-	funcPOOL.define( errBlock, "ZRC",     &ZRC ) ;
-	funcPOOL.define( errBlock, "ZRSN",    &ZRSN ) ;
-	funcPOOL.define( errBlock, "ZRESULT", &ZRESULT ) ;
-	funcPOOL.put( errBlock, "ZTDTOP",   0 ) ;
-	funcPOOL.put( errBlock, "ZTDSELS",  0 ) ;
-	funcPOOL.put( errBlock, "ZTDDEPTH", 0 ) ;
-	funcPOOL.put( errBlock, "ZTDROWS",  0 ) ;
-	funcPOOL.put( errBlock, "ZTDVROWS", 0 ) ;
-	funcPOOL.put( errBlock, "ZCURPOS",  1 ) ;
-	funcPOOL.put( errBlock, "ZCURINX",  0 ) ;
-	funcPOOL.put( errBlock, "ZZCRP",    0 ) ;
-	funcPOOL.put( errBlock, "ZSBTASK",  0 ) ;
+	funcPOOL.define( errBlock, "ZRC", &ZRC, NOCHECK ) ;
+	funcPOOL.define( errBlock, "ZRSN", &ZRSN, NOCHECK ) ;
+	funcPOOL.define( errBlock, "ZRESULT", &ZRESULT, NOCHECK ) ;
+
+	funcPOOL.put2( errBlock, "ZTDTOP",   0 ) ;
+	funcPOOL.put2( errBlock, "ZTDSELS",  0 ) ;
+	funcPOOL.put2( errBlock, "ZTDDEPTH", 0 ) ;
+	funcPOOL.put2( errBlock, "ZTDROWS",  0 ) ;
+	funcPOOL.put2( errBlock, "ZTDVROWS", 0 ) ;
+	funcPOOL.put2( errBlock, "ZCURPOS",  1 ) ;
+	funcPOOL.put2( errBlock, "ZCURINX",  0 ) ;
+	funcPOOL.put2( errBlock, "ZZCRP",    0 ) ;
+	funcPOOL.put2( errBlock, "ZSBTASK",  0 ) ;
 }
 
 
@@ -1685,7 +1694,7 @@ void pApplication::vreplace( const string& name, const string& s_val )
 	// RC = 20 Severe error
 	// (funcPOOL.put returns 0, 20)
 
-	funcPOOL.put( errBlock, name, s_val ) ;
+	funcPOOL.put1( errBlock, name, s_val ) ;
 	if ( errBlock.error() )
 	{
 		errBlock.setcall( "VREPLACE Error" ) ;
@@ -1702,7 +1711,7 @@ void pApplication::vreplace( const string& name, int i_val )
 	// RC = 20 Severe error
 	// (funcPOOL.put returns 0 or 20)
 
-	funcPOOL.put( errBlock, name, i_val ) ;
+	funcPOOL.put1( errBlock, name, i_val ) ;
 	if ( errBlock.error() )
 	{
 		errBlock.setcall( "VREPLACE Error" ) ;
@@ -1746,16 +1755,16 @@ void pApplication::vget( const string& names, poolType pType )
 			{
 				if ( var_type == INTEGER )
 				{
-					funcPOOL.put( errBlock, name, ds2d( val ) ) ;
+					funcPOOL.put1( errBlock, name, ds2d( val ) ) ;
 				}
 				else
 				{
-					funcPOOL.put( errBlock, name, val ) ;
+					funcPOOL.put1( errBlock, name, val ) ;
 				}
 			}
 			else if ( errBlock.RC8() )
 			{
-				funcPOOL.put( errBlock, name, val ) ;
+				funcPOOL.put1( errBlock, name, val ) ;
 			}
 		}
 		if ( errBlock.error() )
@@ -2223,11 +2232,11 @@ void pApplication::control( const string& parm1, const string& parm2, const stri
 		}
 		else if ( parm2 == "SAVE" )
 		{
-			stk_int.push( funcPOOL.get( errBlock, 0, INTEGER, "ZTDDEPTH" ) ) ;
-			stk_int.push( funcPOOL.get( errBlock, 0, INTEGER, "ZTDROWS"  ) ) ;
-			stk_int.push( funcPOOL.get( errBlock, 0, INTEGER, "ZTDSELS"  ) ) ;
-			stk_int.push( funcPOOL.get( errBlock, 0, INTEGER, "ZTDTOP"   ) ) ;
-			stk_int.push( funcPOOL.get( errBlock, 0, INTEGER, "ZTDVROWS" ) ) ;
+			stk_int.push( funcPOOL.get( errBlock, 0, INTEGER, "ZTDDEPTH", NOCHECK ) ) ;
+			stk_int.push( funcPOOL.get( errBlock, 0, INTEGER, "ZTDROWS",  NOCHECK ) ) ;
+			stk_int.push( funcPOOL.get( errBlock, 0, INTEGER, "ZTDSELS",  NOCHECK ) ) ;
+			stk_int.push( funcPOOL.get( errBlock, 0, INTEGER, "ZTDTOP",   NOCHECK ) ) ;
+			stk_int.push( funcPOOL.get( errBlock, 0, INTEGER, "ZTDVROWS", NOCHECK ) ) ;
 			tbpanel_stk.push( currtbPanel ) ;
 			if ( currtbPanel && currtbPanel->tb_depth > 0 )
 			{
@@ -2246,15 +2255,15 @@ void pApplication::control( const string& parm1, const string& parm2, const stri
 				checkRCode( errBlock ) ;
 				return ;
 			}
-			funcPOOL.put( errBlock, "ZTDVROWS", stk_int.top() ) ;
+			funcPOOL.put2( errBlock, "ZTDVROWS", stk_int.top() ) ;
 			stk_int.pop() ;
-			funcPOOL.put( errBlock, "ZTDTOP", stk_int.top() ) ;
+			funcPOOL.put2( errBlock, "ZTDTOP", stk_int.top() ) ;
 			stk_int.pop() ;
-			funcPOOL.put( errBlock, "ZTDSELS", stk_int.top() ) ;
+			funcPOOL.put2( errBlock, "ZTDSELS", stk_int.top() ) ;
 			stk_int.pop() ;
-			funcPOOL.put( errBlock, "ZTDROWS", stk_int.top() ) ;
+			funcPOOL.put2( errBlock, "ZTDROWS", stk_int.top() ) ;
 			stk_int.pop() ;
-			funcPOOL.put( errBlock, "ZTDDEPTH", stk_int.top() ) ;
+			funcPOOL.put2( errBlock, "ZTDDEPTH", stk_int.top() ) ;
 			stk_int.pop() ;
 			currtbPanel = tbpanel_stk.top() ;
 			tbpanel_stk.pop() ;
@@ -2265,7 +2274,7 @@ void pApplication::control( const string& parm1, const string& parm2, const stri
 				while ( !ptr_stk->empty() )
 				{
 					--i ;
-					funcPOOL.put( errBlock, ".ZURID."+d2ds( i ), ptr_stk->top(), NOCHECK ) ;
+					funcPOOL.put3( errBlock, ".ZURID."+d2ds( i ), ptr_stk->top() ) ;
 					ptr_stk->pop() ;
 				}
 				urid_stk.pop() ;
@@ -2559,7 +2568,7 @@ void pApplication::tbbottom( const string& tb_name,
 
 	if ( !isTableOpen( tb_name, "TBBOTTOM" ) ) { return ; }
 
-	p_tableMGR->tbbottom( errBlock, funcPOOL, tb_name, tb_savenm, tb_rowid_vn, tb_noread, tb_crp_name  ) ;
+	p_tableMGR->tbbottom( errBlock, funcPOOL, tb_name, tb_savenm, tb_rowid_vn, tb_noread, tb_crp_name ) ;
 	if ( errBlock.error() )
 	{
 		errBlock.setcall( "TBBOTTOM Error" ) ;
@@ -2814,6 +2823,14 @@ void pApplication::tbdispl( const string& tb_name,
 	const string e7 = "Error processing )ATTR section of panel " ;
 	const string e8 = "Background job attempted to display panel " ;
 
+	if ( not busyAppl )
+	{
+		llog( "E", "Invalid method state" <<endl ) ;
+		llog( "E", "Application is in a wait state.  Method cannot invoke display services." <<endl ) ;
+		RC = 20 ;
+		return ;
+	}
+
 	if ( backgrd )
 	{
 		llog( "B", e8 + p_name <<endl ) ;
@@ -2938,8 +2955,8 @@ void pApplication::tbdispl( const string& tb_name,
 	else
 	{
 		tbquery( tb_name, "", "", "", "", "", "ZZCRP" ) ;
-		i  = max( 1, funcPOOL.get( errBlock, 0, INTEGER, "ZZCRP" ) ) ;
-		ln = i - funcPOOL.get( errBlock, 0, INTEGER, "ZTDTOP" ) ;
+		i  = max( 1, funcPOOL.get( errBlock, 0, INTEGER, "ZZCRP", NOCHECK ) ) ;
+		ln = i - funcPOOL.get( errBlock, 0, INTEGER, "ZTDTOP", NOCHECK ) ;
 		currPanel->display_panel_reinit( errBlock, ln ) ;
 		if ( errBlock.error() )
 		{
@@ -3005,7 +3022,7 @@ void pApplication::tbdispl( const string& tb_name,
 		{
 			p_poolMGR->put( errBlock, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 			tbquery( tb_name, "", "", "", "", "", "ZZCRP" ) ;
-			currPanel->tb_set_crp( funcPOOL.get( errBlock, 0, INTEGER, "ZZCRP" ) ) ;
+			currPanel->tb_set_crp( funcPOOL.get( errBlock, 0, INTEGER, "ZZCRP", NOCHECK ) ) ;
 			currPanel->display_panel( errBlock ) ;
 			if ( errBlock.error() )
 			{
@@ -3059,12 +3076,12 @@ void pApplication::tbdispl( const string& tb_name,
 			}
 			else
 			{
-				funcPOOL.put( errBlock, "ZCURINX", 0 ) ;
+				funcPOOL.put2( errBlock, "ZCURINX", 0 ) ;
 			}
 		}
 		else
 		{
-			funcPOOL.put( errBlock, "ZCURINX", 0 ) ;
+			funcPOOL.put2( errBlock, "ZCURINX", 0 ) ;
 		}
 		if ( currPanel->tb_get_lineChanged( errBlock, ln, URID ) )
 		{
@@ -3072,14 +3089,14 @@ void pApplication::tbdispl( const string& tb_name,
 			for ( auto it = currPanel->tb_fields.begin() ; it != currPanel->tb_fields.end() ; ++it )
 			{
 				s = *it ;
-				funcPOOL.put( errBlock, s, funcPOOL.get( errBlock, 0, s+"."+ d2ds( ln ), NOCHECK ) ) ;
+				funcPOOL.put2( errBlock, s, funcPOOL.get( errBlock, 0, s+"."+ d2ds( ln ), NOCHECK ) ) ;
 				if ( errBlock.error() )
 				{
 					checkRCode( errBlock ) ;
 					return ;
 				}
 			}
-			ztdsels = funcPOOL.get( errBlock, 0, INTEGER, "ZTDSELS" ) ;
+			ztdsels = funcPOOL.get( errBlock, 0, INTEGER, "ZTDSELS", NOCHECK ) ;
 			if ( ztdsels > 1 ) { exitRC = 4; }
 		}
 
@@ -3122,7 +3139,7 @@ void pApplication::tbdispl( const string& tb_name,
 			set_panel_zvars() ;
 			continue ;
 		}
-		ztdsels = funcPOOL.get( errBlock, 0, INTEGER, "ZTDSELS" ) ;
+		ztdsels = funcPOOL.get( errBlock, 0, INTEGER, "ZTDSELS", NOCHECK ) ;
 		if ( ztdsels == 0 && ( zzverb == "UP" || zzverb == "DOWN" ) )
 		{
 			zscrolla = p_poolMGR->get( errBlock, "ZSCROLLA", SHARED ) ;
@@ -3134,7 +3151,7 @@ void pApplication::tbdispl( const string& tb_name,
 				}
 				else
 				{
-					ztdtop   = funcPOOL.get( errBlock, 0, INTEGER, "ZTDTOP" ) ;
+					ztdtop   = funcPOOL.get( errBlock, 0, INTEGER, "ZTDTOP", NOCHECK ) ;
 					zscrolln = ds2d( p_poolMGR->get( errBlock, "ZSCROLLN", SHARED ) ) ;
 					ztdtop   = ( ztdtop > zscrolln ) ? ( ztdtop - zscrolln ) : 1 ;
 				}
@@ -3143,12 +3160,12 @@ void pApplication::tbdispl( const string& tb_name,
 			{
 				if ( zscrolla == "MAX" )
 				{
-					ztdtop = funcPOOL.get( errBlock, 0, INTEGER, "ZTDROWS" ) + 1 ;
+					ztdtop = funcPOOL.get( errBlock, 0, INTEGER, "ZTDROWS", NOCHECK ) + 1 ;
 				}
 				else
 				{
-					ztdtop   = funcPOOL.get( errBlock, 0, INTEGER, "ZTDTOP"  ) ;
-					ztdrows  = funcPOOL.get( errBlock, 0, INTEGER, "ZTDROWS" ) ;
+					ztdtop   = funcPOOL.get( errBlock, 0, INTEGER, "ZTDTOP", NOCHECK ) ;
+					ztdrows  = funcPOOL.get( errBlock, 0, INTEGER, "ZTDROWS", NOCHECK ) ;
 					zscrolln = ds2d( p_poolMGR->get( errBlock, "ZSCROLLN", SHARED ) ) ;
 					ztdtop   = ( zscrolln + ztdtop > ztdrows ) ? ( ztdrows + 1 ) : ztdtop + zscrolln ;
 				}
@@ -3183,12 +3200,12 @@ void pApplication::tbdispl( const string& tb_name,
 		break ;
 	}
 
-	if ( funcPOOL.get( errBlock, 0, INTEGER, "ZTDSELS" ) == 0 )
+	if ( funcPOOL.get( errBlock, 0, INTEGER, "ZTDSELS", NOCHECK ) == 0 )
 	{
 		tbtop( tb_name ) ;
 		if ( p_crp_name != "" )
 		{
-			funcPOOL.put( errBlock, p_crp_name, 0 ) ;
+			funcPOOL.put2( errBlock, p_crp_name, 0 ) ;
 			if ( errBlock.error() )
 			{
 				errBlock.setcall( e1 ) ;
@@ -3198,7 +3215,7 @@ void pApplication::tbdispl( const string& tb_name,
 		}
 		if ( p_rowid_nm != "" )
 		{
-			funcPOOL.put( errBlock, p_rowid_nm, "" ) ;
+			funcPOOL.put2( errBlock, p_rowid_nm, "" ) ;
 			if ( errBlock.error() )
 			{
 				errBlock.setcall( e1 ) ;
@@ -3894,7 +3911,7 @@ int pApplication::edrec_query( const string& m_parm,
 		return 20 ;
 	}
 
-	row = funcPOOL.get( errBlock, 8, INTEGER, "ZEDROW" ) ;
+	row = funcPOOL.get( errBlock, 8, INTEGER, "ZEDROW", NOCHECK ) ;
 
 	vdefine( v_list, &zedstat, &zedtfile, &zedbfile, &zedmode, &zedopts, &zeduser ) ;
 	if ( RC > 0 ) { return 20 ; }
@@ -3918,17 +3935,17 @@ int pApplication::edrec_query( const string& m_parm,
 		if ( RC == 8 ) { continue ; }
 		tbend( tabName ) ;
 		vdelete( v_list ) ;
-		funcPOOL.put( errBlock, "ZEDTFILE", zedtfile ) ;
-		funcPOOL.put( errBlock, "ZEDBFILE", zedbfile ) ;
-		funcPOOL.put( errBlock, "ZEDOPTS",  zedopts  ) ;
-		funcPOOL.put( errBlock, "ZEDROW", row ) ;
+		funcPOOL.put2( errBlock, "ZEDTFILE", zedtfile ) ;
+		funcPOOL.put2( errBlock, "ZEDBFILE", zedbfile ) ;
+		funcPOOL.put2( errBlock, "ZEDOPTS",  zedopts ) ;
+		funcPOOL.put2( errBlock, "ZEDROW", row ) ;
 		enq( qname, rname, EXC, LOCAL ) ;
 		return 4 ;
 	}
 
 	tbend( tabName ) ;
 	vdelete( v_list ) ;
-	funcPOOL.put( errBlock, "ZEDROW", 0 ) ;
+	funcPOOL.put2( errBlock, "ZEDROW", 0 ) ;
 
 	return 0 ;
 }
@@ -3970,10 +3987,10 @@ int pApplication::edrec_process( const string& m_parm,
 		return 20 ;
 	}
 
-	row      = funcPOOL.get( errBlock, 8, INTEGER, "ZEDROW" ) ;
-	zedtfile = funcPOOL.get( errBlock, 0, "ZEDTFILE" ) ;
-	zedbfile = funcPOOL.get( errBlock, 0, "ZEDBFILE" ) ;
-	zedopts  = funcPOOL.get( errBlock, 0, "ZEDOPTS"  ) ;
+	row      = funcPOOL.get( errBlock, 8, INTEGER, "ZEDROW", NOCHECK ) ;
+	zedtfile = funcPOOL.get( errBlock, 0, "ZEDTFILE", NOCHECK ) ;
+	zedbfile = funcPOOL.get( errBlock, 0, "ZEDBFILE", NOCHECK ) ;
+	zedopts  = funcPOOL.get( errBlock, 0, "ZEDOPTS", NOCHECK  ) ;
 
 	p_poolMGR->put( errBlock, "ZEDTFILE", zedtfile, SHARED ) ;
 	p_poolMGR->put( errBlock, "ZEDBFILE", zedbfile, SHARED ) ;
@@ -4064,10 +4081,10 @@ int pApplication::edrec_cancel( const string& m_parm,
 		return 20 ;
 	}
 
-	int row = funcPOOL.get( errBlock, 8, INTEGER, "ZEDROW" ) ;
+	int row = funcPOOL.get( errBlock, 8, INTEGER, "ZEDROW", NOCHECK ) ;
 
-	zedtfile = funcPOOL.get( errBlock, 8, "ZEDTFILE" ) ;
-	zedbfile = funcPOOL.get( errBlock, 8, "ZEDBFILE" ) ;
+	zedtfile = funcPOOL.get( errBlock, 8, "ZEDTFILE", NOCHECK ) ;
+	zedbfile = funcPOOL.get( errBlock, 8, "ZEDBFILE", NOCHECK ) ;
 
 	deq( qname, zedtfile ) ;
 
@@ -4114,8 +4131,8 @@ int pApplication::edrec_cancel( const string& m_parm,
 		return 20 ;
 	}
 
-	funcPOOL.put( errBlock, "ZEDTFILE", "" ) ;
-	funcPOOL.put( errBlock, "ZEDBFILE", "" ) ;
+	funcPOOL.put2( errBlock, "ZEDTFILE", "" ) ;
+	funcPOOL.put2( errBlock, "ZEDBFILE", "" ) ;
 
 	return 0 ;
 }
@@ -4138,7 +4155,7 @@ int pApplication::edrec_defer( const string& qname, const string& rname )
 		return 20 ;
 	}
 
-	zedtfile = funcPOOL.get( errBlock, 8, "ZEDTFILE" ) ;
+	zedtfile = funcPOOL.get( errBlock, 8, "ZEDTFILE", NOCHECK ) ;
 
 	deq( qname, zedtfile ) ;
 
@@ -4354,6 +4371,14 @@ void pApplication::actionSelect()
 
 	RC  = 0    ;
 	SEL = true ;
+
+	if ( not busyAppl )
+	{
+		llog( "E", "Invalid method state" <<endl ) ;
+		llog( "E", "Application is in a wait state.  Method cannot invoke SELECT services." <<endl ) ;
+		RC = 20 ;
+		return ;
+	}
 
 	p_poolMGR->put( errBlock, "ZVERB", "",  SHARED ) ;
 
@@ -4609,6 +4634,13 @@ void pApplication::rdisplay( const string& msg, bool subVars )
 	}
 	else
 	{
+		if ( not busyAppl )
+		{
+			llog( "E", "Invalid method state" <<endl ) ;
+			llog( "E", "Application is in a wait state.  Method cannot issue line output" <<endl ) ;
+			RC = 20 ;
+			return ;
+		}
 		lineOutDone    = true  ;
 		lineOutPending = true  ;
 		refreshlScreen = false ;
@@ -4709,7 +4741,7 @@ void pApplication::getmsg( const string& msg,
 
 	if ( smsg != "" )
 	{
-		funcPOOL.put( errBlock, smsg, tmsg.smsg ) ;
+		funcPOOL.put1( errBlock, smsg, tmsg.smsg ) ;
 		if ( errBlock.error() )
 		{
 			errBlock.seterror( e1 ) ;
@@ -4719,7 +4751,7 @@ void pApplication::getmsg( const string& msg,
 	}
 	if ( lmsg != "" )
 	{
-		funcPOOL.put( errBlock, lmsg, tmsg.lmsg ) ;
+		funcPOOL.put1( errBlock, lmsg, tmsg.lmsg ) ;
 		if ( errBlock.error() )
 		{
 			errBlock.seterror( e1 ) ;
@@ -4729,7 +4761,7 @@ void pApplication::getmsg( const string& msg,
 	}
 	if ( alm != "" )
 	{
-		funcPOOL.put( errBlock, alm, tmsg.alm ? "YES" : "NO" ) ;
+		funcPOOL.put1( errBlock, alm, tmsg.alm ? "YES" : "NO" ) ;
 		if ( errBlock.error() )
 		{
 			errBlock.seterror( e1 ) ;
@@ -4741,13 +4773,13 @@ void pApplication::getmsg( const string& msg,
 	{
 		switch ( tmsg.type )
 		{
-		case IMT: funcPOOL.put( errBlock, typ, "NOTIFY" )   ;
+		case IMT: funcPOOL.put1( errBlock, typ, "NOTIFY" )   ;
 				break ;
 
-		case WMT: funcPOOL.put( errBlock, typ, "WARNING" )  ;
+		case WMT: funcPOOL.put1( errBlock, typ, "WARNING" )  ;
 				break ;
 
-		case AMT: funcPOOL.put( errBlock, typ, "CRITICAL" ) ;
+		case AMT: funcPOOL.put1( errBlock, typ, "CRITICAL" ) ;
 		}
 		if ( errBlock.error() )
 		{
@@ -4758,7 +4790,7 @@ void pApplication::getmsg( const string& msg,
 	}
 	if ( hlp != "" )
 	{
-		funcPOOL.put( errBlock, hlp, tmsg.hlp ) ;
+		funcPOOL.put1( errBlock, hlp, tmsg.hlp ) ;
 		if ( errBlock.error() )
 		{
 			errBlock.seterror( e1 ) ;
@@ -4768,7 +4800,7 @@ void pApplication::getmsg( const string& msg,
 	}
 	if ( wndo != "" )
 	{
-		funcPOOL.put( errBlock, wndo, tmsg.resp ? "RESP" : "NORESP" ) ;
+		funcPOOL.put1( errBlock, wndo, tmsg.resp ? "RESP" : "NORESP" ) ;
 		if ( errBlock.error() )
 		{
 			errBlock.seterror( e1 ) ;

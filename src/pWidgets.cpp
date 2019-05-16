@@ -60,7 +60,7 @@ void field::field_init( errblock& err, int MAXW, int MAXD, const string& line )
 	if ( isnumeric( w2 ) )                      { row = ds2d( w2 ) ; }
 	else if ( w2 == "MAX" )                     { row = MAXD       ; }
 	else if ( w2.compare( 0, 4, "MAX-" ) == 0 ) { row = MAXD - ds2d( substr( w2, 5 ) )    ; }
-	else                                        { err.seterrid( "PSYE031B", w2 ) ; return ; }
+	else                                        { err.seterrid( "PSYE031S", w2 ) ; return ; }
 
 	if ( row > MAXD )
 	{
@@ -71,12 +71,18 @@ void field::field_init( errblock& err, int MAXW, int MAXD, const string& line )
 	if ( isnumeric( w3 ) )                      { col = ds2d( w3 ) ; }
 	else if ( w3 == "MAX" )                     { col = MAXW       ; }
 	else if ( w3.compare( 0, 4, "MAX-" ) == 0 ) { col = MAXW - ds2d( substr( w3, 5 ) )    ; }
-	else                                        { err.seterrid( "PSYE031B", w3 ) ; return ; }
+	else                                        { err.seterrid( "PSYE031S", w3 ) ; return ; }
 
 	if ( isnumeric( w4 ) )                      { len = ds2d( w4 )     ; }
 	else if ( w4 == "MAX" )                     { len = MAXW - col + 1 ; }
 	else if ( w4.compare( 0, 4, "MAX-" ) == 0 ) { len = MAXW - col - ds2d( substr( w4, 5 ) ) + 1 ; }
-	else                                        { err.seterrid( "PSYE031B", w4 ) ; return        ; }
+	else                                        { err.seterrid( "PSYE031S", w4 ) ; return        ; }
+
+	if ( col > MAXW )
+	{
+		err.seterrid( "PSYE031B", d2ds( col ), d2ds( MAXW ) ) ;
+		return ;
+	}
 
 	if ( w5 == "PWD" )
 	{
@@ -371,22 +377,22 @@ void dynArea::dynArea_init( errblock& err,
 	if ( isnumeric( w2 ) )                      { row = ds2d( w2  ) ; }
 	else if ( w2 == "MAX" )                     { row = MAXD        ; }
 	else if ( w2.compare( 0, 4, "MAX-" ) == 0 ) { row = MAXD - ds2d( substr( w2, 5 ) )    ; }
-	else                                        { err.seterrid( "PSYE031B", w2 ) ; return ; }
+	else                                        { err.seterrid( "PSYE031S", w2 ) ; return ; }
 
 	if ( isnumeric( w3 ) )                      { col = ds2d( w3 )  ; }
 	else if ( w3 == "MAX" )                     { col = MAXW        ; }
 	else if ( w3.compare( 0, 4, "MAX-" ) == 0 ) { col = MAXW - ds2d( substr( w3, 5 ) )    ; }
-	else                                        { err.seterrid( "PSYE031B", w3 ) ; return ; }
+	else                                        { err.seterrid( "PSYE031S", w3 ) ; return ; }
 
 	if ( isnumeric( w4 ) )                      { width = ds2d( w4  )    ; }
 	else if ( w4 == "MAX" )                     { width = MAXW - col + 1 ; }
 	else if ( w4.compare( 0, 4, "MAX-" ) == 0 ) { width = MAXW - col - ds2d( substr( w4, 5 ) ) + 1 ; }
-	else                                        { err.seterrid( "PSYE031B", w4 ) ; return          ; }
+	else                                        { err.seterrid( "PSYE031S", w4 ) ; return          ; }
 
 	if ( isnumeric( w5 ) )                      { depth = ds2d( w5 )     ; }
 	else if ( w5 == "MAX" )                     { depth = MAXD - row + 1 ; }
 	else if ( w5.compare( 0, 4, "MAX-" ) == 0 ) { depth = MAXD - row - ds2d( substr( w5, 5 ) ) + 1 ; }
-	else                                        { err.seterrid( "PSYE031B", w5 ) ; return          ; }
+	else                                        { err.seterrid( "PSYE031S", w5 ) ; return          ; }
 
 	if ( row > MAXD )
 	{
@@ -399,6 +405,12 @@ void dynArea::dynArea_init( errblock& err,
 	if ( w7 == "" )
 	{
 		err.seterrid( "PSYE032E" ) ;
+		return ;
+	}
+
+	if ( !isvalidName( w7 ) )
+	{
+		err.seterrid( "PSYE022J", w7, "Dynamic area shadow" ) ;
 		return ;
 	}
 
@@ -1302,12 +1314,12 @@ void text::text_init( errblock& err, int MAXW, int MAXD, int& opt_field, const s
 	if ( isnumeric( w2 ) )                      { row = ds2d( w2 ) ; }
 	else if ( w2 == "MAX" )                     { row = MAXD       ; }
 	else if ( w2.compare( 0, 4, "MAX-" ) == 0 ) { row = MAXD - ds2d( substr( w2, 5 ) )    ; }
-	else                                        { err.seterrid( "PSYE031B", w2 ) ; return ; }
+	else                                        { err.seterrid( "PSYE031S", w2 ) ; return ; }
 
 	if ( isnumeric( w3 ) )                      { col = ds2d( w3 ) ; }
 	else if ( w3 == "MAX" )                     { col = MAXW       ; }
 	else if ( w3.compare( 0, 4, "MAX-" ) == 0 ) { col = MAXW - ds2d( substr( w3, 5 ) )    ; }
-	else                                        { err.seterrid( "PSYE031B", w3 ) ; return ; }
+	else                                        { err.seterrid( "PSYE031S", w3 ) ; return ; }
 
 	if ( cuaAttrName.count( w4 ) == 0 )
 	{
@@ -1438,7 +1450,7 @@ string abc::getDialogueVar( errblock& err, const string& var )
 			case 4:
 				 return p_poolMGR->get( err, var ) ;
 			case 8:
-				 p_funcPOOL->put( err, var, "" ) ;
+				 p_funcPOOL->put1( err, var, "" ) ;
 		}
 	}
 	return "" ;
@@ -1453,7 +1465,7 @@ void abc::putDialogueVar( errblock& err, const string& var, const string& val )
 	}
 	else
 	{
-		p_funcPOOL->put( err, var, val ) ;
+		p_funcPOOL->put1( err, var, val ) ;
 	}
 }
 
@@ -1535,7 +1547,7 @@ void abc::display_abc_unsel( WINDOW* win )
 }
 
 
-void abc::display_pd( errblock& err, uint p_row, uint p_col, uint row )
+void abc::display_pd( errblock& err, const string& zvars, uint p_row, uint p_col, uint row )
 {
 	// Display pull-down and highlight choice cursor is placed on if not unavailable.
 	// Resize pull-down window if necessary
@@ -1602,7 +1614,7 @@ void abc::display_pd( errblock& err, uint p_row, uint p_col, uint row )
 			it->display_pdc_avail( win, (i-1) == currChoice ? AMT : PAC, i ) ;
 		}
 	}
-	choiceVar = p_funcPOOL->get( err, 8, ".ZVARS", NOCHECK ) ;
+	choiceVar = zvars ;
 	show_panel( panel ) ;
 }
 

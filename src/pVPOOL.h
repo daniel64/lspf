@@ -53,11 +53,13 @@ class fPOOL
 
 		void define( errblock& err,
 			     const string& name ,
-			     string* addr ) ;
+			     string* addr,
+			     bool check=true ) ;
 
 		void define( errblock& err,
 			     const string& name,
-			     int* addr ) ;
+			     int* addr,
+			     bool check=true ) ;
 	private:
 		map<string, stack<fVAR*>> POOL ;
 
@@ -69,29 +71,46 @@ class fPOOL
 
 		dataType getType( errblock& err,
 				  const string& name,
-				  nameCHCK check=CHECK ) ;
+				  bool check=true ) ;
 
 		string* vlocate( errblock& err,
-				 const string& name ) ;
+				 const string& name,
+				 bool check=true ) ;
 
-		void put( errblock& err,
-			  const string& name,
-			  const string& value,
-			  nameCHCK check=CHECK ) ;
+		void put1( errblock& err,
+			   const string& name,
+			   const string& value ) ;
 
-		void put( errblock& err,
-			  const string& name,
-			  int value ) ;
+		void put1( errblock& err,
+			   const string& name,
+			   int value ) ;
+
+		void put2( errblock& err,
+			   const string& name,
+			   const string& value ) ;
+
+		void put2( errblock& err,
+			   const string& name,
+			   int value ) ;
+
+		void put3( errblock& err,
+			   const string& name,
+			   const string& value ) ;
+
+		void put3( errblock& err,
+			   const string& name,
+			   int value ) ;
 
 		const string& get( errblock& err,
 				   int maxRC,
 				   const string& name,
-				   nameCHCK check=CHECK ) ;
+				   bool check=true ) ;
 
 		int  get( errblock& err,
 			  int maxRC,
 			  dataType dataType,
-			  const string& name ) ;
+			  const string& name,
+			  bool check=true ) ;
 
 		void setmask( errblock& err,
 			      const string& name,

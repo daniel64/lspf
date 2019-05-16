@@ -88,7 +88,7 @@ map<int, edit_find>PEDIT01::Global_efind_parms ;
 PEDIT01::PEDIT01()
 {
 	set_appdesc( "PDF-like editor for lspf" ) ;
-	set_appver( "1.0.8" ) ;
+	set_appver( "1.0.9" ) ;
 	set_apphelp( "HEDIT01" ) ;
 
 	vdefine( "ZCMD ZVERB ZCURFLD ZPFKEY", &zcmd, &zverb, &zcurfld, &zpfkey ) ;
@@ -630,7 +630,7 @@ bool PEDIT01::termOK()
 
 bool PEDIT01::ConfirmCancel()
 {
-	if ( !optConfCancel || !fileChanged ) { return true ; }
+	if ( !optConfCancel || !fileChanged || macroRunning ) { return true ; }
 
 	addpop( "", 2, 4 ) ;
 
@@ -2206,7 +2206,7 @@ void PEDIT01::actionPrimCommand1()
 	case PC_UNDO:
 			if ( w1 == "" )
 			{
-			action_UNDO() ;
+				action_UNDO() ;
 			}
 			else if ( w1 == "ALL" )
 			{
@@ -7145,7 +7145,7 @@ bool PEDIT01::setCommandRange( string s, cmd_range& t )
 {
 	// Extract the command range ( start/end labels and start/end columns or on column ) from
 	// a command and return data in t.
-	// If there is a start label, but not end label, set to .ZLAST
+
 	// c_vlab true if labels can be entered on the command
 	// c_vcol true if columns can be entered on the command
 
@@ -10732,9 +10732,7 @@ bool PEDIT01::getVariables( int n, string& s, string& vars )
 
 string PEDIT01::createTempName()
 {
-	path temp ;
-
-	temp = temp_directory_path() / unique_path( zuser + "-" + zscreen + "-%%%%-%%%%" ) ;
+	path temp = temp_directory_path() / unique_path( zuser + "-" + zscreen + "-%%%%-%%%%" ) ;
 
 	return temp.native() ;
 }
@@ -10879,7 +10877,7 @@ void PEDIT01::run_macro( const string& macro, bool imacro, bool lcmacro )
 		mCol = data.at( dl )->get_idata_len() + 1 ;
 	}
 
-	macroRunning = true ;
+	setTrue t( macroRunning ) ;
 
 	control( "ERRORS", "RETURN" ) ;
 	select( "PGM(PEDRXM1) PARM("+d2ds( taskid() ) +")" ) ;
@@ -10889,10 +10887,24 @@ void PEDIT01::run_macro( const string& macro, bool imacro, bool lcmacro )
 	}
 	control( "ERRORS", "CANCEL" ) ;
 
-	if ( miBlock.mfound && !miBlock.processed && !miBlock.imacro && !miBlock.lcmacro )
+	if ( miBlock.mfound && !miBlock.processed && !miBlock.imacro && !miBlock.lcmacro && !miBlock.cancel )
 	{
-		miBlock.m_cmd = EM_PROCESS ;
-		actionService() ;
+		updateData() ;
+		if ( pcmd.error() )
+		{
+			termEdit = false ;
+			return ;
+		}
+		actionLineCommands() ;
+		if ( pcmd.error() )
+		{
+			termEdit = false ;
+			return ;
+		}
+		if ( miBlock.eended && termOK() )
+		{
+			return ;
+		}
 	}
 
 	if ( miBlock.fatal )
@@ -10930,6 +10942,7 @@ void PEDIT01::run_macro( const string& macro, bool imacro, bool lcmacro )
 		vreplace( "ZSTR2", d2ds( miBlock.getExitRC() ) ) ;
 		placeCursorHome() ;
 	}
+
 	ApplUserData[ taskid() ] = NULL ;
 	nestLevel  = 0  ;
 	zdest      = 0  ;
@@ -10937,8 +10950,7 @@ void PEDIT01::run_macro( const string& macro, bool imacro, bool lcmacro )
 	zlrange    = 0  ;
 	zrange_cmd = "" ;
 	miBlock.clear() ;
-	macroRunning = false ;
-	rebuildZAREA = true  ;
+	rebuildZAREA = true ;
 }
 
 
@@ -11340,6 +11352,7 @@ void PEDIT01::actionService()
 				break ;
 			}
 			miBlock.eended = true ;
+			miBlock.cancel = true ;
 			termEdit       = true ;
 			break ;
 
@@ -11417,6 +11430,10 @@ void PEDIT01::actionService()
 			{
 				miBlock.eended = true ;
 				termEdit       = true ;
+			}
+			else
+			{
+				miBlock.setRCnoError( 12 ) ;
 			}
 			break ;
 
@@ -11559,11 +11576,10 @@ void PEDIT01::actionService()
 			{
 				if ( !miBlock.processed && !miBlock.imacro && !miBlock.lcmacro )
 				{
-					updateData()  ;
+					updateData() ;
 					if ( pcmd.error() ) { break ; }
-					auto it = zverbList.find( zverb ) ;
-					if ( it != zverbList.end() ) { (this->*(it->second))() ; }
 					actionLineCommands() ;
+					if ( pcmd.error() ) { break ; }
 				}
 				miBlock.processed = true ;
 			}
@@ -11578,11 +11594,10 @@ void PEDIT01::actionService()
 			miBlock.processed = true ;
 			if ( !miBlock.imacro && !miBlock.lcmacro )
 			{
-				updateData()  ;
+				updateData() ;
 				if ( pcmd.error() ) { break ; }
-				auto it = zverbList.find( zverb ) ;
-				if ( it != zverbList.end() ) { (this->*(it->second))() ; }
 				actionLineCommands() ;
+				if ( pcmd.error() ) { break ; }
 			}
 
 			t  = miBlock.sttment ;

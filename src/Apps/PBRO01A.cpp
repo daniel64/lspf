@@ -292,11 +292,6 @@ void PBRO01A::Browse()
 
 	verase( "ZBRALT", SHARED ) ;
 	vput( "ZSCROLL", PROFILE ) ;
-
-	if ( find_parms.f_fset )
-	{
-		Global_bfind_parms[ ds2d( zscrnum ) ] = find_parms ;
-	}
 }
 
 
@@ -310,12 +305,12 @@ void PBRO01A::read_file()
 	b_shadow t    ;
 
 	int rc ;
-	int i   ;
-	int j   ;
+	int i  ;
+	int j  ;
 
 	size_t p1 ;
 
-	char x  ;
+	char x ;
 
 	RC      = 0 ;
 	topLine = 0 ;
@@ -1531,7 +1526,12 @@ int PBRO01A::setFind( a_parms& parms )
 	}
 
 	t.f_fset = true ;
+
 	find_parms = t  ;
+
+	if ( t.f_dir == 'A' ) { t.f_dir = 'F' ; }
+	Global_bfind_parms[ ds2d( zscrnum ) ] = t ;
+
 	return 0 ;
 }
 

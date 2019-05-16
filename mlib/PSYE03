@@ -9,8 +9,8 @@
 PSYE031A 'Field outside panel area'
 'ROW=&ZVAL1 ZSCRMAXD=&ZVAL2'
 
-PSYE031B 'Invalid value ''&ZVAL1'''
-'Value must be numeric, MAX or MAX-n'
+PSYE031B 'Field outside panel area'
+'COL=&ZVAL1 ZSCRMAXW=&ZVAL2'
 
 PSYE031C 'Keyword &ZVAL1 not found'
 '&ZVAL1 is a required keyword'
@@ -59,6 +59,12 @@ PSYE031Q 'Invalid built-in function variable'
 
 PSYE031R 'Invalid built-in function parameter'
 'Invalid &ZVAL1 value - &ZVAL2 not a literal or dialogue variable'
+
+PSYE031S 'Invalid value ''&ZVAL1'''
+'Value must be numeric, MAX or MAX-n'
+
+PSYE031T 'Scrollable area outside panel'
+'TBMODEL=&ZVAL1 ZSCRMAXD=&ZVAL2'
 
 /*                                           */
 /* dynamic areas                             */
@@ -232,10 +238,10 @@ PSYE035Q 'Invalid number of parameters on the FIELD or TBFIELD statement'
 /*                                           */
 /* Text                                      */
 /*                                           */
-PSYE036A 'Literal outside panel area'
+PSYE036A 'Text outside panel area'
 'row=&ZVAL1 ZSCRMAXD=&ZVAL2'
 
-PSYE036B 'Literal outside panel area'
+PSYE036B 'Text outside panel area'
 'col=&ZVAL1 ZSCRMAXW=&ZVAL2'
 
 /*                                           */

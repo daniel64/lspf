@@ -44,11 +44,12 @@ fPOOL::~fPOOL()
 
 void fPOOL::define( errblock& err,
 		    const string& name,
-		    string* addr )
+		    string* addr,
+		    bool check )
 {
 	err.setRC( 0 ) ;
 
-	if ( !isvalidName( name ) )
+	if ( check && !isvalidName( name ) )
 	{
 		err.seterrid( "PSYE013A", "function pool DEFINE", name ) ;
 		return ;
@@ -65,11 +66,12 @@ void fPOOL::define( errblock& err,
 
 void fPOOL::define( errblock& err,
 		    const string& name,
-		    int* addr )
+		    int* addr,
+		    bool check )
 {
 	err.setRC( 0 ) ;
 
-	if ( !isvalidName( name ) )
+	if ( check && !isvalidName( name ) )
 	{
 		err.seterrid( "PSYE013A", "function pool DEFINE", name ) ;
 		return ;
@@ -144,13 +146,13 @@ void fPOOL::dlete( errblock& err,
 const string& fPOOL::get( errblock& err,
 			  int maxRC,
 			  const string& name,
-			  nameCHCK check )
+			  bool check )
 {
 	map<string, stack<fVAR*>>::iterator it ;
 
 	err.setRC( 0 ) ;
 
-	if ( check == CHECK && !isvalidName( name ) )
+	if ( check && !isvalidName( name ) )
 	{
 		err.seterrid( "PSYE013A", "function pool GET", name ) ;
 		return nullstr ;
@@ -173,20 +175,21 @@ const string& fPOOL::get( errblock& err,
 		return nullstr ;
 	}
 
-	return *it->second.top()->fVAR_string_ptr ;
+	return *(it->second.top()->fVAR_string_ptr) ;
 }
 
 
 int fPOOL::get( errblock& err,
 		int maxRC,
 		dataType type,
-		const string& name )
+		const string& name,
+		bool check )
 {
 	map<string, stack<fVAR*>>::iterator it ;
 
 	err.setRC( 0 ) ;
 
-	if ( !isvalidName( name ) )
+	if ( check && !isvalidName( name ) )
 	{
 		err.seterrid( "PSYE013A", "function pool GET", name ) ;
 		return 0 ;
@@ -214,19 +217,19 @@ int fPOOL::get( errblock& err,
 		err.seterrid( "PSYE012B", name ) ;
 		return 0 ;
 	}
-	return *it->second.top()->fVAR_int_ptr ;
+	return *(it->second.top()->fVAR_int_ptr) ;
 }
 
 
 dataType fPOOL::getType( errblock& err,
 			 const string& name,
-			 nameCHCK check )
+			 bool check )
 {
 	map<string, stack<fVAR*>>::iterator it ;
 
 	err.setRC( 0 ) ;
 
-	if ( check == CHECK && !isvalidName( name ) )
+	if ( check && !isvalidName( name ) )
 	{
 		err.seterrid( "PSYE013A", "function pool GETTYPE", name ) ;
 		return ERROR ;
@@ -254,25 +257,24 @@ bool fPOOL::ifexists( errblock& err,
 		return false ;
 	}
 
-	return POOL.find( name ) != POOL.end() ;
+	return POOL.count( name ) > 0 ;
 }
 
 
-void fPOOL::put( errblock& err,
-		 const string& name,
-		 const string& value,
-		 nameCHCK check )
+void fPOOL::put1( errblock& err,
+		  const string& name,
+		  const string& value )
 {
 	// RC =  0 OK
 	// RC = 20 Severe error
 
-	bool valid = isvalidName( name ) ;
+	// Variable name needs to be checked.
 
 	map<string, stack<fVAR*>>::iterator it ;
 
 	err.setRC( 0 ) ;
 
-	if ( check == CHECK && !valid )
+	if ( !isvalidName( name ) )
 	{
 		err.seterrid( "PSYE013A", "function pool PUT", name ) ;
 		return ;
@@ -285,27 +287,29 @@ void fPOOL::put( errblock& err,
 		var->fVAR_string  = value    ;
 		var->fVAR_type    = STRING   ;
 		var->fVAR_defined = false    ;
-		var->fVAR_valid   = valid    ;
+		var->fVAR_valid   = true     ;
 		POOL[ name ].push( var )     ;
-		return ;
 	}
-
-	if ( it->second.top()->fVAR_type != STRING )
+	else
 	{
-		err.seterrid( "PSYE012A", name ) ;
-		return ;
+		if ( it->second.top()->fVAR_type != STRING )
+		{
+			err.seterrid( "PSYE012A", name ) ;
+			return ;
+		}
+		*(it->second.top()->fVAR_string_ptr) = value ;
 	}
-
-	*(it->second.top()->fVAR_string_ptr) = value ;
 }
 
 
-void fPOOL::put( errblock& err,
-		 const string& name,
-		 int value )
+void fPOOL::put1( errblock& err,
+		  const string& name,
+		  int value )
 {
 	// RC =  0 OK
 	// RC = 20 Severe error
+
+	// Variable name needs to be checked.
 
 	map<string, stack<fVAR*>>::iterator it ;
 
@@ -326,16 +330,152 @@ void fPOOL::put( errblock& err,
 		var->fVAR_defined = false    ;
 		var->fVAR_valid   = true     ;
 		POOL[ name ].push( var )     ;
-		return ;
 	}
-
-	if ( it->second.top()->fVAR_type != INTEGER )
+	else
 	{
-		err.seterrid( "PSYE012B", name ) ;
-		return ;
+		if ( it->second.top()->fVAR_type != INTEGER )
+		{
+			err.seterrid( "PSYE012B", name ) ;
+			return ;
+		}
+		*(it->second.top()->fVAR_int_ptr) = value ;
 	}
+}
 
-	*(it->second.top()->fVAR_int_ptr) = value ;
+
+void fPOOL::put2( errblock& err,
+		  const string& name,
+		  const string& value )
+{
+	// RC =  0 OK
+	// RC = 20 Severe error
+
+	// Variable name does not need to be checked.  It is known valid.
+
+	err.setRC( 0 ) ;
+
+	map<string, stack<fVAR*>>::iterator it = POOL.find( name ) ;
+
+	if ( it == POOL.end() )
+	{
+		fVAR* var         = new fVAR ;
+		var->fVAR_string  = value    ;
+		var->fVAR_type    = STRING   ;
+		var->fVAR_defined = false    ;
+		var->fVAR_valid   = true     ;
+		POOL[ name ].push( var )     ;
+	}
+	else
+	{
+		if ( it->second.top()->fVAR_type != STRING )
+		{
+			err.seterrid( "PSYE012A", name ) ;
+			return ;
+		}
+		*(it->second.top()->fVAR_string_ptr) = value ;
+	}
+}
+
+
+void fPOOL::put2( errblock& err,
+		  const string& name,
+		  int value )
+{
+	// RC =  0 OK
+	// RC = 20 Severe error
+
+	// Variable name does need not to be checked.  It is known valid.
+
+	err.setRC( 0 ) ;
+
+	map<string, stack<fVAR*>>::iterator it = POOL.find( name ) ;
+
+	if ( it == POOL.end() )
+	{
+		fVAR* var         = new fVAR ;
+		var->fVAR_int     = value    ;
+		var->fVAR_type    = INTEGER  ;
+		var->fVAR_defined = false    ;
+		var->fVAR_valid   = true     ;
+		POOL[ name ].push( var )     ;
+	}
+	else
+	{
+		if ( it->second.top()->fVAR_type != INTEGER )
+		{
+			err.seterrid( "PSYE012B", name ) ;
+			return ;
+		}
+		*(it->second.top()->fVAR_int_ptr) = value ;
+	}
+}
+
+
+void fPOOL::put3( errblock& err,
+		  const string& name,
+		  const string& value )
+{
+	// RC =  0 OK
+	// RC = 20 Severe error
+
+	// Variable name does not need to be checked.  It is known invalid.
+
+	err.setRC( 0 ) ;
+
+	map<string, stack<fVAR*>>::iterator it = POOL.find( name ) ;
+
+	if ( it == POOL.end() )
+	{
+		fVAR* var         = new fVAR ;
+		var->fVAR_string  = value    ;
+		var->fVAR_type    = STRING   ;
+		var->fVAR_defined = false    ;
+		var->fVAR_valid   = false    ;
+		POOL[ name ].push( var )     ;
+	}
+	else
+	{
+		if ( it->second.top()->fVAR_type != STRING )
+		{
+			err.seterrid( "PSYE012A", name ) ;
+			return ;
+		}
+		*(it->second.top()->fVAR_string_ptr) = value ;
+	}
+}
+
+
+void fPOOL::put3( errblock& err,
+		  const string& name,
+		  int value )
+{
+	// RC =  0 OK
+	// RC = 20 Severe error
+
+	// Variable name does not need to be checked.  It is known invalid.
+
+	err.setRC( 0 ) ;
+
+	map<string, stack<fVAR*>>::iterator it = POOL.find( name ) ;
+
+	if ( it == POOL.end() )
+	{
+		fVAR* var         = new fVAR ;
+		var->fVAR_int     = value    ;
+		var->fVAR_type    = INTEGER  ;
+		var->fVAR_defined = false    ;
+		var->fVAR_valid   = false    ;
+		POOL[ name ].push( var )     ;
+	}
+	else
+	{
+		if ( it->second.top()->fVAR_type != INTEGER )
+		{
+			err.seterrid( "PSYE012B", name ) ;
+			return ;
+		}
+		*(it->second.top()->fVAR_int_ptr) = value ;
+	}
 }
 
 
@@ -436,13 +576,14 @@ set<string>& fPOOL::vslist( int& RC,
 
 
 string* fPOOL::vlocate( errblock& err,
-			const string& name )
+			const string& name,
+			bool check )
 {
 	map<string, stack<fVAR*>>::iterator it ;
 
 	err.setRC( 0 ) ;
 
-	if ( !isvalidName( name ) )
+	if ( check && !isvalidName( name ) )
 	{
 		err.seterrid( "PSYE013A", "function pool VLOCATE", name ) ;
 		return NULL ;

@@ -28,8 +28,8 @@ enum P_CMDS
 	PC_BOUNDS,
 	PC_BROWSE,
 	PC_CANCEL,
-	PC_CHANGE,
 	PC_CAPS,
+	PC_CHANGE,
 	PC_COLUMN,
 	PC_COMPARE,
 	PC_COPY,
@@ -49,8 +49,8 @@ enum P_CMDS
 	PC_LOCATE,
 	PC_NULLS,
 	PC_PASTE,
-	PC_PROFILE,
 	PC_PRESERVE,
+	PC_PROFILE,
 	PC_RCHANGE,
 	PC_RECOVERY,
 	PC_REDO,
@@ -1789,7 +1789,7 @@ class cmdblock
 
 	void setRC( int rc )
 	{
-		RC = rc ;
+		RC  = rc ;
 	}
 
 	const string& get_msg() const
@@ -1819,12 +1819,7 @@ class cmdblock
 
 	bool error() const
 	{
-		return ( RC > 8 ) ;
-	}
-
-	bool info() const
-	{
-		return ( RC < 9 ) ;
+		return ( RC >= 12 ) ;
 	}
 
 	bool deactive() const
@@ -1879,6 +1874,7 @@ class miblock
 		bool   scan      ;
 		bool   runmacro  ;
 		bool   eended    ;
+		bool   cancel    ;
 		int    sttwds    ;
 		int    etaskid   ;
 		int    nestlvl   ;
@@ -1891,14 +1887,19 @@ class miblock
 
 	miblock()
 	{
+		clear_all() ;
+	}
+
+	void clear_all()
+	{
 		emacro    = ""    ;
 		mfile     = ""    ;
-		rxpath1   = ""    ;
-		rxpath2   = ""    ;
 		editAppl  = NULL  ;
 		macAppl   = NULL  ;
 		sttment   = ""    ;
 		m_cmd     = EM_INVCMD ;
+		rxpath1   = ""    ;
+		rxpath2   = ""    ;
 		kphrase   = ""    ;
 		keyword   = ""    ;
 		keyopts   = ""    ;
@@ -1921,46 +1922,7 @@ class miblock
 		scan      = true  ;
 		runmacro  = false ;
 		eended    = false ;
-		etaskid   = 0     ;
-		sttwds    = 0     ;
-		nestlvl   = 0     ;
-		nvars     = 0     ;
-		nkeyopts  = 0     ;
-		nvalopts  = 0     ;
-		RC        = 0     ;
-		RSN       = 0     ;
-		exitRC    = 0     ;
-	}
-
-	void clear_all()
-	{
-		emacro    = ""    ;
-		mfile     = ""    ;
-		editAppl  = NULL  ;
-		macAppl   = NULL  ;
-		sttment   = ""    ;
-		m_cmd     = EM_INVCMD ;
-		kphrase   = ""    ;
-		keyword   = ""    ;
-		keyopts   = ""    ;
-		value     = ""    ;
-		parms     = ""    ;
-		var1      = ""    ;
-		var2      = ""    ;
-		msgid     = ""    ;
-		val1      = ""    ;
-		mfound    = false ;
-		macro     = false ;
-		lcmacro   = false ;
-		imacro    = false ;
-		process   = true  ;
-		processed = false ;
-		setcursor = false ;
-		fatal     = false ;
-		assign    = false ;
-		query     = false ;
-		scan      = true  ;
-		runmacro  = false ;
+		cancel    = false ;
 		etaskid   = 0     ;
 		sttwds    = 0     ;
 		nestlvl   = 0     ;
@@ -2082,6 +2044,16 @@ class miblock
 		RC = i ;
 		if ( RC >= 12 ) { fatal = true ; }
 		else
+		{
+			fatal = false ;
+			msgid = "" ;
+		}
+	}
+
+	void setRCnoError( int i )
+	{
+		setRC( i ) ;
+		if ( RC <= 12 )
 		{
 			fatal = false ;
 			msgid = "" ;
@@ -2520,6 +2492,22 @@ class lmac
 		lcmac  = ""    ;
 		lcpgm  = false ;
 	}
+} ;
+
+
+class setTrue
+{
+	public:
+		setTrue( bool& b )
+		{
+			b = true ;
+			s = &b ;
+		}
+		~setTrue()
+		{
+			*s = false ;
+		}
+		bool* s ;
 } ;
 
 

@@ -49,7 +49,6 @@ pPanel::pPanel()
 	tb_curidx   = -1     ;
 	tb_csrrow   = 0      ;
 	tb_crp      = -1     ;
-	tb_clear    = ""     ;
 	tb_scan     = false  ;
 	tb_autosel  = false  ;
 	tb_lcol     = 0      ;
@@ -314,7 +313,7 @@ string pPanel::getDialogueVar( errblock& err,
 			case 4:
 				 return p_poolMGR->get( err, var ) ;
 			case 8:
-				 p_funcPOOL->put( err, var, "" ) ;
+				 p_funcPOOL->put1( err, var, "" ) ;
 		}
 	}
 	return "" ;
@@ -340,7 +339,7 @@ void pPanel::putDialogueVar( errblock& err,
 	}
 	else
 	{
-		p_funcPOOL->put( err, var, val ) ;
+		p_funcPOOL->put1( err, var, val ) ;
 	}
 }
 
@@ -361,7 +360,7 @@ void pPanel::syncDialogueVar( errblock& err,
 	// BUG:  ZPANELID and ZPFKEY are not sync'd as they are not in the SHARED pool at this point !!
 	//       Old values are therefore always blank !!
 
-	p_funcPOOL->put( err, var, p_poolMGR->get( err, var, ASIS ) ) ;
+	p_funcPOOL->put1( err, var, p_poolMGR->get( err, var, ASIS ) ) ;
 }
 
 
@@ -657,7 +656,7 @@ void pPanel::display_panel_update( errblock& err )
 					  set_cursor_cond( scroll )      ;
 			}
 		}
-		p_funcPOOL->put( err, it->first, it->second->field_value ) ;
+		p_funcPOOL->put2( err, it->first, it->second->field_value ) ;
 		if ( err.error() ) { return ; }
 	}
 
@@ -693,7 +692,7 @@ void pPanel::display_panel_update( errblock& err )
 				{
 					if ( datatype( it->second->field_value, 'W' ) )
 					{
-						p_funcPOOL->put( err, it->first, ds2d( it->second->field_value ) ) ;
+						p_funcPOOL->put1( err, it->first, ds2d( it->second->field_value ) ) ;
 						if ( err.error() ) { return ; }
 					}
 					else
@@ -706,9 +705,13 @@ void pPanel::display_panel_update( errblock& err )
 				{
 					p_poolMGR->put( err, it->first, it->second->field_value, ASIS ) ;
 				}
+				else if ( it->second->field_tb )
+				{
+					p_funcPOOL->put3( err, it->first, it->second->field_value ) ;
+				}
 				else
 				{
-					p_funcPOOL->put( err, it->first, it->second->field_value, NOCHECK ) ;
+					p_funcPOOL->put2( err, it->first, it->second->field_value ) ;
 				}
 				if ( err.error() ) { return ; }
 			}
@@ -768,7 +771,7 @@ void pPanel::display_panel_update( errblock& err )
 		else
 		{
 			cmd_setvalue( "" ) ;
-			p_funcPOOL->put( err, cmdfield, "" )  ;
+			p_funcPOOL->put2( err, cmdfield, "" ) ;
 			if ( err.error() ) { return ; }
 		}
 		if      ( tb_model )                          { maxAmount = tb_depth  ; }
@@ -950,6 +953,8 @@ void pPanel::abc_panel_init( errblock& err,
 
 	err.setRC( 0 ) ;
 
+	dCursor = "" ;
+	dMsg    = "" ;
 	setControlVar( err, ".ZVARS", "", PS_ABCINIT ) ;
 
 	process_panel_stmnts( err,
@@ -965,6 +970,9 @@ void pPanel::abc_panel_proc( errblock& err,
 	// Perform panel )ABCPROC processing
 
 	err.setRC( 0 ) ;
+
+	dCursor = "" ;
+	dMsg    = "" ;
 
 	process_panel_stmnts( err,
 			      0,
@@ -1673,7 +1681,7 @@ void pPanel::process_panel_vputget( errblock& err, VPUTGET* vputget )
 				if ( err.error() ) { return ; }
 				if ( err.RC0() )
 				{
-					p_funcPOOL->put( err, var, val ) ;
+					p_funcPOOL->put1( err, var, val ) ;
 					if ( err.error() ) { return ; }
 				}
 			}
@@ -2154,9 +2162,9 @@ string pPanel::get_tbCursor( const string& cursor )
 	}
 	else if ( tb_csrrow > 0 )
 	{
-		vrow = p_funcPOOL->get( err, 0, INTEGER, "ZTDVROWS" ) ;
+		vrow = p_funcPOOL->get( err, 0, INTEGER, "ZTDVROWS", NOCHECK ) ;
 		if ( err.error() ) { return "" ; }
-		p    = tb_csrrow - p_funcPOOL->get( err, 0, INTEGER, "ZTDTOP" ) ;
+		p    = tb_csrrow - p_funcPOOL->get( err, 0, INTEGER, "ZTDTOP", NOCHECK ) ;
 		if ( err.error() ) { return "" ; }
 		if ( p >= 0 && p <= vrow )
 		{
@@ -2181,9 +2189,9 @@ string pPanel::get_tbCursor( const string& cursor, int crp )
 
 	if ( crp > 0 )
 	{
-		vrow = p_funcPOOL->get( err, 0, INTEGER, "ZTDVROWS" ) ;
+		vrow = p_funcPOOL->get( err, 0, INTEGER, "ZTDVROWS", NOCHECK ) ;
 		if ( err.error() ) { return "" ; }
-		p    = crp - p_funcPOOL->get( err, 0, INTEGER, "ZTDTOP" ) ;
+		p    = crp - p_funcPOOL->get( err, 0, INTEGER, "ZTDTOP", NOCHECK ) ;
 		if ( err.error() ) { return "" ; }
 		if ( p >= 0 && p <= vrow )
 		{
@@ -2209,9 +2217,9 @@ string pPanel::get_msgloc()
 		}
 		else if ( tb_csrrow > 0 )
 		{
-			vrow = p_funcPOOL->get( err, 0, INTEGER, "ZTDVROWS" ) ;
+			vrow = p_funcPOOL->get( err, 0, INTEGER, "ZTDVROWS", NOCHECK ) ;
 			if ( err.error() ) { return "" ; }
-			p    = tb_csrrow - p_funcPOOL->get( err, 0, INTEGER, "ZTDTOP" ) ;
+			p    = tb_csrrow - p_funcPOOL->get( err, 0, INTEGER, "ZTDTOP", NOCHECK ) ;
 			if ( err.error() ) { return "" ; }
 			if ( p >= 0 && p <= vrow )
 			{
@@ -2383,7 +2391,7 @@ void pPanel::refresh_fields( errblock& err )
 		k      = itd->second->dynArea_width ;
 		darea  = p_funcPOOL->vlocate( err, itd->first ) ;
 		if ( err.error() ) { return ; }
-		shadow = p_funcPOOL->vlocate( err, itd->second->dynArea_shadow_name  ) ;
+		shadow = p_funcPOOL->vlocate( err, itd->second->dynArea_shadow_name ) ;
 		if ( err.error() ) { return ; }
 		for ( unsigned int i = 0 ; i < itd->second->dynArea_depth ; ++i )
 		{
@@ -2416,8 +2424,9 @@ void pPanel::create_tbfield( errblock& err, const string& pline )
 	// Create implicit function pool variables for the TB field.
 
 	int tlen ;
-	int tcol ;
 	int ws   ;
+
+	uint tcol ;
 
 	string w2   ;
 	string w3   ;
@@ -2474,7 +2483,7 @@ void pPanel::create_tbfield( errblock& err, const string& pline )
 		else if ( w2.compare( 0, 4, "MAX-" ) == 0 ) { tcol = wscrmaxw - ds2d( substr( w2, 5 ) ) ; }
 		else
 		{
-			err.seterrid( "PSYE031B", w2 ) ;
+			err.seterrid( "PSYE031S", w2 ) ;
 			return ;
 		}
 	}
@@ -2484,7 +2493,13 @@ void pPanel::create_tbfield( errblock& err, const string& pline )
 	else if ( w3.compare( 0, 4, "MAX-" ) == 0 ) { tlen = wscrmaxw - tcol - ds2d( substr( w3, 5 ) ) + 1 ; }
 	else
 	{
-		err.seterrid( "PSYE031B", w3 ) ;
+		err.seterrid( "PSYE031S", w3 ) ;
+		return ;
+	}
+
+	if ( tcol > wscrmaxw )
+	{
+		err.seterrid( "PSYE031B", d2ds( tcol ), d2ds( wscrmaxw ) ) ;
 		return ;
 	}
 
@@ -2525,7 +2540,7 @@ void pPanel::create_tbfield( errblock& err, const string& pline )
 		fld->field_row = tb_toprow + i ;
 		nidx = name +"."+ d2ds( i ) ;
 		fieldList[ nidx ] = fld ;
-		p_funcPOOL->put( err, nidx, "", NOCHECK ) ;
+		p_funcPOOL->put3( err, nidx, "" ) ;
 		if ( err.error() ) { return ; }
 	}
 	tb_fields.insert( name ) ;
@@ -2643,14 +2658,14 @@ void pPanel::update_field_values( errblock& err )
 
 	for ( itd = dynAreaList.begin() ; itd != dynAreaList.end() ; ++itd )
 	{
-		darea = p_funcPOOL->vlocate( err, itd->first ) ;
+		darea = p_funcPOOL->vlocate( err, itd->first, NOCHECK ) ;
 		if ( !err.RC0() )
 		{
 			err.seterrid( "PSYE032G", itd->first ) ;
 			return ;
 		}
 		sname  = itd->second->dynArea_shadow_name ;
-		shadow = p_funcPOOL->vlocate( err, sname ) ;
+		shadow = p_funcPOOL->vlocate( err, sname, NOCHECK ) ;
 		if ( !err.RC0() )
 		{
 			err.seterrid( "PSYE032I", sname ) ;
@@ -2791,8 +2806,7 @@ void pPanel::cursor_placement( errblock& err )
 		{
 			if ( tb_csrrow > 0 )
 			{
-				cursor = *tb_fields.begin() ;
-				f_name = get_tbCursor( cursor ) ;
+				f_name = get_tbCursor( get_first_tb_field() ) ;
 			}
 			else
 			{
@@ -2860,6 +2874,25 @@ void pPanel::cursor_placement( errblock& err )
 		p_col = itf->second->field_col + f_pos - 1 ;
 		p_row = itf->second->field_row ;
 	}
+}
+
+
+string pPanel::get_first_tb_field()
+{
+	uint i = wscrmaxw ;
+
+	string t = "" ;
+
+	for ( auto it1 = tb_fields.begin() ; it1 != tb_fields.end() ; ++it1 )
+	{
+		auto it2 = fieldList.find( *it1 + ".0" ) ;
+		if ( it2->second->field_col < i )
+		{
+			i = it2->second->field_col ;
+			t = *it1 ;
+		}
+	}
+	return t ;
 }
 
 
@@ -3414,7 +3447,7 @@ void pPanel::tb_set_linesChanged( errblock& err )
 			}
 		}
 	}
-	p_funcPOOL->put( err, "ZTDSELS", tb_linesChanged.size() ) ;
+	p_funcPOOL->put2( err, "ZTDSELS", tb_linesChanged.size() ) ;
 }
 
 
@@ -3430,7 +3463,7 @@ void pPanel::tb_add_autosel_line( errblock& err )
 
 	if ( tb_autosel && tb_csrrow > 0 )
 	{
-		idr = tb_csrrow - p_funcPOOL->get( err, 0, INTEGER, "ZTDTOP" ) ;
+		idr = tb_csrrow - p_funcPOOL->get( err, 0, INTEGER, "ZTDTOP", NOCHECK ) ;
 		if ( err.error() ) { return ; }
 		if ( idr >= 0 && idr < tb_depth && tb_linesChanged.count( idr ) == 0 )
 		{
@@ -3439,7 +3472,7 @@ void pPanel::tb_add_autosel_line( errblock& err )
 			if ( URID != "" )
 			{
 				tb_linesChanged[ idr ] = URID ;
-				p_funcPOOL->put( err, "ZTDSELS", tb_linesChanged.size() ) ;
+				p_funcPOOL->put2( err, "ZTDSELS", tb_linesChanged.size() ) ;
 			}
 		}
 	}
@@ -3464,7 +3497,7 @@ bool pPanel::tb_get_lineChanged( errblock& err, int& ln, string& URID )
 	ln   = it->first  ;
 	URID = it->second ;
 
-	p_funcPOOL->put( err, "ZTDSELS", tb_linesChanged.size() ) ;
+	p_funcPOOL->put2( err, "ZTDSELS", tb_linesChanged.size() ) ;
 	if ( err.error() ) { return false ; }
 	return true ;
 }
@@ -3481,7 +3514,7 @@ void pPanel::tb_clear_linesChanged( errblock& err )
 	//  Clear all stored changed lines on a tbdispl with panel name and set ZTDSELS to zero
 
 	tb_linesChanged.clear() ;
-	p_funcPOOL->put( err, "ZTDSELS", 0 ) ;
+	p_funcPOOL->put2( err, "ZTDSELS", 0 ) ;
 }
 
 
@@ -3505,10 +3538,10 @@ void pPanel::display_tb_mark_posn( errblock& err )
 	string mark ;
 	string posn ;
 
-	rows = p_funcPOOL->get( err, 0, INTEGER, "ZTDROWS" ) ;
+	rows = p_funcPOOL->get( err, 0, INTEGER, "ZTDROWS", NOCHECK ) ;
 	if ( err.error() ) { return ; }
 
-	top  = p_funcPOOL->get( err, 0, INTEGER, "ZTDTOP"  ) ;
+	top  = p_funcPOOL->get( err, 0, INTEGER, "ZTDTOP", NOCHECK ) ;
 	if ( err.error() ) { return ; }
 
 	size = rows - top + 1 ;
@@ -3516,7 +3549,7 @@ void pPanel::display_tb_mark_posn( errblock& err )
 	wattrset( win, cuaAttr[ SI ] | panel_intens ) ;
 	if ( size < tb_depth )
 	{
-		mark = p_funcPOOL->get( err, 8, "ZTDMARK" ) ;
+		mark = p_funcPOOL->get( err, 8, "ZTDMARK", NOCHECK ) ;
 		if ( err.error() ) { return ; }
 		if ( err.RC8() )
 		{
@@ -3532,12 +3565,12 @@ void pPanel::display_tb_mark_posn( errblock& err )
 			mark.resize( wscrmaxw ) ;
 		}
 		mvwaddstr( win, tb_toprow + size, 0, mark.c_str() ) ;
-		p_funcPOOL->put( err, "ZTDVROWS", size ) ;
+		p_funcPOOL->put2( err, "ZTDVROWS", size ) ;
 		if ( err.error() ) { return ; }
 	}
 	else
 	{
-		p_funcPOOL->put( err, "ZTDVROWS", tb_depth ) ;
+		p_funcPOOL->put2( err, "ZTDVROWS", tb_depth ) ;
 		if ( err.error() ) { return ; }
 	}
 
@@ -3561,9 +3594,9 @@ void pPanel::set_tb_fields_act_inact( errblock& err )
 
 	set<string>::iterator it ;
 
-	rows = p_funcPOOL->get( err, 0, INTEGER, "ZTDROWS" ) ;
+	rows = p_funcPOOL->get( err, 0, INTEGER, "ZTDROWS", NOCHECK ) ;
 	if ( err.error() ) { return ; }
-	top  = p_funcPOOL->get( err, 0, INTEGER, "ZTDTOP"  ) ;
+	top  = p_funcPOOL->get( err, 0, INTEGER, "ZTDTOP", NOCHECK ) ;
 	if ( err.error() ) { return ; }
 
 	size = rows - top + 1 ;
@@ -3626,7 +3659,7 @@ bool pPanel::display_pd( errblock& err, uint row, uint col, string& msg )
 			}
 			msg = dMsg ;
 			(*it)->display_abc_sel( win ) ;
-			(*it)->display_pd( err, win_row, win_col, row ) ;
+			(*it)->display_pd( err, dZvars, win_row, win_col, row ) ;
 			pdActive = true ;
 			p_col    = (*it)->abc_col + 2 ;
 			p_row    = 2 ;
@@ -3644,7 +3677,7 @@ void pPanel::display_pd( errblock& err )
 	auto it = ab.begin() + abIndex ;
 
 	(*it)->display_abc_sel( win ) ;
-	(*it)->display_pd( err, win_row, win_col, 0 ) ;
+	(*it)->display_pd( err, dZvars, win_row, win_col, 0 ) ;
 }
 
 
@@ -3661,7 +3694,7 @@ void pPanel::display_current_pd( errblock& err, uint row, uint col )
 
 	if ( col >= (*it)->abc_col && col < ( (*it)->abc_col + (*it)->abc_maxw + 10 ) )
 	{
-		(*it)->display_pd( err, win_row, win_col, row ) ;
+		(*it)->display_pd( err, dZvars, win_row, win_col, row ) ;
 	}
 }
 
@@ -3689,7 +3722,7 @@ void pPanel::display_next_pd( errblock& err, string& msg )
 	}
 	msg = dMsg ;
 	(*it)->display_abc_sel( win ) ;
-	(*it)->display_pd( err, win_row, win_col, 2 ) ;
+	(*it)->display_pd( err, dZvars, win_row, win_col, 2 ) ;
 	p_col = (*it)->abc_col + 2 ;
 	p_row = 2 ;
 }
@@ -4208,11 +4241,11 @@ void pPanel::get_panel_info( int& RC,
 		return ;
 	}
 
-	if ( t_name != "" ) { p_funcPOOL->put( err, t_name, "DYNAMIC" ) ; }
-	if ( w_name != "" ) { p_funcPOOL->put( err, w_name, it->second->dynArea_width ) ; }
-	if ( d_name != "" ) { p_funcPOOL->put( err, d_name, it->second->dynArea_depth ) ; }
-	if ( r_name != "" ) { p_funcPOOL->put( err, r_name, it->second->dynArea_row )   ; }
-	if ( c_name != "" ) { p_funcPOOL->put( err, c_name, it->second->dynArea_col )   ; }
+	if ( t_name != "" ) { p_funcPOOL->put2( err, t_name, "DYNAMIC" ) ; }
+	if ( w_name != "" ) { p_funcPOOL->put2( err, w_name, it->second->dynArea_width ) ; }
+	if ( d_name != "" ) { p_funcPOOL->put2( err, d_name, it->second->dynArea_depth ) ; }
+	if ( r_name != "" ) { p_funcPOOL->put2( err, r_name, it->second->dynArea_row )   ; }
+	if ( c_name != "" ) { p_funcPOOL->put2( err, c_name, it->second->dynArea_col )   ; }
 }
 
 

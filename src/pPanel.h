@@ -78,7 +78,6 @@ class pPanel
 		void   cmd_setvalue( const string& ) ;
 
 		bool    get_tbscan()                   { return tb_scan  ; }
-		string& get_tb_clear()                 { return tb_clear ; }
 
 		bool   is_cmd_inactive( const string& value ) ;
 
@@ -115,7 +114,6 @@ class pPanel
 		string pos_lmsg    ;
 		string da_dataIn   ;
 		string da_dataOut  ;
-		string tb_clear    ;
 		int    tb_start    ;
 		int    tb_depth    ;
 		int    tb_curidx   ;
@@ -356,7 +354,12 @@ class pPanel
 		vector<panstmnt*> reinstmnts ;
 
 		set<string> tb_fields ;
+		set<string> tb_clear  ;
+
 		set<string>& get_tb_fields() { return tb_fields ; }
+		set<string>& get_tb_clear()  { return tb_clear ; }
+
+		string get_first_tb_field() ;
 
 		map<unsigned char, char_attrs> char_attrlist ;
 		map<unsigned char, unsigned int> colour_attrlist ;

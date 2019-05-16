@@ -32,17 +32,24 @@ Call setdest src
 
 address ISREDIT
 
-"MACRO (A) PROCESS"
+"MACRO (A) NOPROCESS"
 
-"PROFILE UNLOCK"
-"RECOVERY OFF"
-"PROFILE LOCK"
+"(rec)   = RECOVERY"
+"(,lock) = PROFILE"
+
+if rec = "ON" then
+  do
+    if lock = "LOCK" then "PROFILE UNLOCK"
+    "RECOVERY OFF"
+    if var2 = "LOCK" then "PROFILE LOCK"
+  end
+
 
 "FIND ')BODY' 1 FIRST"
 if RC \= 0 then
   do
     address ISPEXEC "RDISPLAY )BODY statement not found.  Exiting..."
-    "BUILTIN END"
+    "BUILTIN CANCEL"
     EXIT
   end
 
@@ -53,7 +60,7 @@ if RC \= 0 then
 if RC \= 0 then
   do
     address ISPEXEC "RDISPLAY Next section after )BODY statement not found.  Exiting..."
-    "BUILTIN END"
+    "BUILTIN CANCEL"
     EXIT
   end
 
