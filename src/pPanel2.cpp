@@ -1028,12 +1028,7 @@ void pPanel::build_fieldMap( errblock& err )
 
 	map<fieldptr, string>xref ;
 
-	fieldMap = new short int[ zscrmaxd * zscrmaxw ] ;
-
-	for ( i = 0 ; i < zscrmaxd*zscrmaxw ; ++i )
-	{
-		fieldMap[ i ] = 0 ;
-	}
+	fieldMap = new short int[ zscrmaxd * zscrmaxw ]() ;
 
 	fieldAddrs      = new fieldptr[ fieldList.size() + 1 ] ;
 	fieldAddrs[ 0 ] = NULL ;

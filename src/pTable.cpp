@@ -205,9 +205,10 @@ void Table::loadFields( errblock& err,
 void Table::storeIntValue( errblock& err,
 			   fPOOL& funcPOOL,
 			   const string& var,
-			   int val )
+			   int val,
+			   int len )
 {
-	// Store an integer value in the function pool.  If the entry has been defined as a string,
+	// Store an integer value in the function pool.  If the entry has not been vdefined as an integer,
 	// convert to a string and pad on the left with zeroes, length 8.
 
 	dataType var_type ;
@@ -215,13 +216,51 @@ void Table::storeIntValue( errblock& err,
 	var_type = funcPOOL.getType( err, var ) ;
 	if ( err.error() ) { return ; }
 
-	if ( var_type == STRING )
+	if ( var_type == INTEGER )
 	{
-		funcPOOL.put1( err, var, d2ds( val, 8 ) ) ;
+		funcPOOL.put1( err, var, val ) ;
 	}
 	else
 	{
-		funcPOOL.put1( err, var, val ) ;
+		funcPOOL.put1( err, var, d2ds( val, len ) ) ;
+	}
+}
+
+
+void Table::loadFields_save( errblock& err,
+			     fPOOL& funcPOOL,
+			     const string& tb_savenm,
+			     const string& tb_rowid_vn,
+			     const string& tb_noread,
+			     const string& tb_crp_name )
+{
+	// If requested, load the table fields into the function pool.
+	// Also save (if specified)
+	//        1) extention variables into tb_savenm
+	//        2) row id into tb_rowid_vn
+	//        3) CRP into tb_crp_name
+
+	if ( tb_noread != "NOREAD" )
+	{
+		loadfuncPOOL( err, funcPOOL, tb_savenm ) ;
+		if ( err.error() ) { return ; }
+	}
+	else if ( tb_savenm != "" )
+	{
+		saveExtensionVarNames( err, funcPOOL, tb_savenm ) ;
+		if ( err.error() ) { return ; }
+	}
+
+	if ( tb_rowid_vn != "" )
+	{
+		funcPOOL.put1( err, tb_rowid_vn, table.at( CRP-1 )->at( 0 ) ) ;
+		if ( err.error() ) { return ; }
+	}
+
+	if ( tb_crp_name != "" )
+	{
+		storeIntValue( err, funcPOOL, tb_crp_name, CRP ) ;
+		if ( err.error() ) { return ; }
 	}
 }
 
@@ -351,33 +390,17 @@ void Table::tbbottom( errblock& err,
 		{
 			storeIntValue( err, funcPOOL, tb_crp_name, CRP ) ;
 		}
-		return  ;
+		return ;
 	}
 
 	CRP = table.size() ;
 
-	if ( tb_noread != "NOREAD" )
-	{
-		loadfuncPOOL( err, funcPOOL, tb_savenm ) ;
-		if ( err.error() ) { return ; }
-	}
-	else if ( tb_savenm != "" )
-	{
-		saveExtensionVarNames( err, funcPOOL, tb_savenm ) ;
-		if ( err.error() ) { return ; }
-	}
-
-	if ( tb_rowid_vn != "" )
-	{
-		funcPOOL.put1( err, tb_rowid_vn, table.at( CRP-1 )->at( 0 ) ) ;
-		if ( err.error() ) { return ; }
-	}
-
-	if ( tb_crp_name != "" )
-	{
-		storeIntValue( err, funcPOOL, tb_crp_name, CRP ) ;
-		if ( err.error() ) { return ; }
-	}
+	loadFields_save( err,
+			 funcPOOL,
+			 tb_savenm,
+			 tb_rowid_vn,
+			 tb_noread,
+			 tb_crp_name ) ;
 }
 
 
@@ -508,28 +531,12 @@ void Table::tbget( errblock& err,
 		return ;
 	}
 
-	if ( tb_noread != "NOREAD" )
-	{
-		loadfuncPOOL( err, funcPOOL, tb_savenm ) ;
-		if ( err.error() ) { return ; }
-	}
-	else if ( tb_savenm != "" )
-	{
-		saveExtensionVarNames( err, funcPOOL, tb_savenm ) ;
-		if ( err.error() ) { return ; }
-	}
-
-	if ( tb_rowid_vn != "" )
-	{
-		funcPOOL.put1( err, tb_rowid_vn, table.at( CRP-1 )->at( 0 ) ) ;
-		if ( err.error() ) { return ; }
-	}
-
-	if ( tb_crp_name != "" )
-	{
-		storeIntValue( err, funcPOOL, tb_crp_name, CRP ) ;
-		if ( err.error() ) { return ; }
-	}
+	loadFields_save( err,
+			 funcPOOL,
+			 tb_savenm,
+			 tb_rowid_vn,
+			 tb_noread,
+			 tb_crp_name ) ;
 }
 
 
@@ -745,18 +752,25 @@ void Table::tbsarg( errblock& err,
 		    string tb_cond_pairs )
 {
 
-	// RC = 0  Okay. Search arguments set
-	// RC = 8  No search arguments set (all column variables null and namelst not specified)
+	// RC =  0  Okay. Search arguments set
+	// RC =  8  No search arguments set (all column variables null and namelst not specified)
+	// RC = 20  Severe error
 
+	int i ;
+
+	string val ;
 	string nl_namelst ;
 	string nl_cond_pairs ;
+
+	vector<string>::iterator pt ;
+
+	set<string>names ;
 
 	err.setRC( 0 ) ;
 
 	iupper( tb_dir ) ;
 
-	if ( tb_dir == "" ) { tb_dir = "NEXT" ; }
-	if ( tb_dir != "NEXT" && tb_dir != "PREVIOUS" )
+	if ( tb_dir != "NEXT" && tb_dir != "PREVIOUS" && tb_dir != "" )
 	{
 		err.seterrid( "PSYE013P", tb_dir ) ;
 		return ;
@@ -772,44 +786,58 @@ void Table::tbsarg( errblock& err,
 	nl_namelst = getNameList( err, tb_namelst ) ;
 	if ( err.error() ) { return ; }
 
-	tbsets( err, funcPOOL, sarg, nl_namelst, nl_cond_pairs, true ) ;
+	sarg.clear() ;
+	for ( i = 1, pt = tab_vall.begin() ; pt != tab_vall.end() ; ++pt, ++i )
+	{
+		val = funcPOOL.get( err, 8, *pt, NOCHECK ) ;
+		if ( err.error() ) { return ; }
+		if ( val != "" )
+		{
+			sarg.push_back( tbsearch( *pt, val, i ) ) ;
+		}
+		names.insert( *pt ) ;
+	}
+
+	setscan( err, funcPOOL, sarg, names, nl_namelst, nl_cond_pairs ) ;
 	if ( err.error() ) { return ; }
 
 	if ( sarg.size() == 0 )
 	{
 		err.setRC( 8 ) ;
-		return         ;
+		return ;
 	}
 
-	sa_dir        = tb_dir ;
+	sa_dir        = ( tb_dir == "" ) ? "NEXT" : tb_dir ;
 	sa_namelst    = tb_namelst ;
 	sa_cond_pairs = tb_cond_pairs ;
 }
 
 
-void Table::tbsets( errblock& err,
-		    fPOOL& funcPOOL,
-		    map<string, tbsearch>& scan,
-		    string& nl_namelst,
-		    string& nl_cond_pairs,
-		    bool for_tbsarg )
+void Table::setscan( errblock& err,
+		     fPOOL& funcPOOL,
+		     vector<tbsearch>& scan,
+		     set<string>& names,
+		     string& nl_namelst,
+		     string& nl_cond_pairs )
 {
+	// Setup the search arguments in the scan vector for TBSCAN and TBSARG.
+
 	// Notes:
-	// TBSARG: Current value of all table variables.
-	//         nl_namelst is for extension variables, the values of which will be used in the search
-	//         Default condition is EQ.  Ignore nulls except for extension variables
+	// TBSARG: Current value of all table variables (already loaded into the scan vector)
+	//         nl_namelst is for extension variables, the values of which will be used in the search.
+	//         Default condition is EQ.  Ignore nulls except for extension variables.
 
 	// TBSCAN: Only use variables from nl_namelst (any type).  Don't ignore nulls.
 
 	uint i  ;
+	uint j  ;
 	uint ws ;
 
 	string var  ;
 	string val  ;
 	string cond ;
-	string flds ;
 
-	map<string, tbsearch>::iterator it ;
+	vector<tbsearch>::iterator it ;
 	vector<string>::iterator pt ;
 
 	err.setRC( 0 ) ;
@@ -817,35 +845,26 @@ void Table::tbsets( errblock& err,
 	iupper( nl_namelst ) ;
 	iupper( nl_cond_pairs ) ;
 
-	flds = tab_all + " " + nl_namelst ;
-
-	scan.clear() ;
-
-	if ( for_tbsarg )
-	{
-		for ( pt = tab_vall.begin() ; pt != tab_vall.end() ; ++pt )
-		{
-			val = funcPOOL.get( err, 8, *pt, NOCHECK ) ;
-			if ( err.error() ) { return ; }
-			if ( val == "" )
-			{
-				continue ;
-			}
-			scan[ *pt ] = tbsearch( val ) ;
-		}
-	}
-
 	for ( ws = words( nl_namelst ), i = 1 ; i <= ws ; ++i )
 	{
 		var = word( nl_namelst, i ) ;
+		if ( names.count( var ) > 0 )
+		{
+			err.seterrid( "PSYE013Y", var ) ;
+			return ;
+		}
 		val = funcPOOL.get( err, 8, var ) ;
 		if ( err.error() ) { return ; }
 		if ( err.RC8() )
 		{
 			funcPOOL.put1( err, var, "" ) ;
-			val = "" ;
 		}
-		scan[ var ] = tbsearch( val ) ;
+		for ( j = 1, pt = tab_vall.begin() ; pt != tab_vall.end() ; ++pt, ++j )
+		{
+			if ( var == *pt ) { break ; }
+		}
+		scan.push_back( tbsearch( var, val, ( j > tab_vall.size() ? -1 : j ) ) ) ;
+		names.insert( var ) ;
 	}
 
 	ws = words( nl_cond_pairs ) ;
@@ -859,13 +878,17 @@ void Table::tbsets( errblock& err,
 	{
 		var  = word( nl_cond_pairs, i ) ;
 		cond = word( nl_cond_pairs, i+1 ) ;
-		if ( !findword( var, flds ) && !findword( var, nl_namelst ) )
+		if ( !findword( var, tab_all ) && !findword( var, nl_namelst ) )
 		{
 			err.seterrid( "PSYE013S", var ) ;
 			return ;
 		}
-		it = scan.find( var ) ;
-		if ( it != scan.end() && !it->second.setCondition( cond ) )
+		it = find_if( scan.begin(), scan.end(),
+			[ &var ]( const tbsearch& tbs )
+			{
+				return ( var == tbs.tbs_var ) ;
+			} ) ;
+		if ( it != scan.end() && !it->setCondition( cond ) )
 		{
 			err.seterrid( "PSYE013T", cond ) ;
 			return ;
@@ -885,7 +908,7 @@ void Table::tbscan( errblock& err,
 		    string tb_condlst )
 {
 	// Scan table from current CRP according to parameters tb_namelst/tb_condlst/tb_dir if specified
-	// or the search parameters set by a previous tbsarg call.
+	// or the search parameters set by a previous TBSARG call.
 
 	// tb_condlst contains the condidtions to use for variables in tb_namelst (1:1 between the two lists).
 	// Only use variables in tb_namelst not other table variables.
@@ -894,9 +917,9 @@ void Table::tbscan( errblock& err,
 	// RC = 8   Row not found.  CRP set to top (zero)
 	// RC = 20  Severe error
 
-	int i    ;
-	int ws   ;
-	int p1   ;
+	int i  ;
+	int ws ;
+	int p1 ;
 
 	uint size    ;
 	uint s_match ;
@@ -905,18 +928,22 @@ void Table::tbscan( errblock& err,
 	bool found   ;
 	bool endloop ;
 
+	string s_dir = sa_dir ;
+
 	string val    ;
 	string var    ;
 	string cond   ;
 	string tbelst ;
-	string s_dir  ;
 
 	string nl_namelst ;
 	string nl_condlst ;
 	string nl_cond_pairs ;
 
-	map<string, tbsearch> scan ;
-	map<string, tbsearch>::iterator it ;
+	vector<tbsearch> scan ;
+	vector<tbsearch>* pscan ;
+	vector<tbsearch>::iterator it ;
+
+	set<string>names ;
 
 	err.setRC( 0 ) ;
 
@@ -948,6 +975,19 @@ void Table::tbscan( errblock& err,
 	nl_namelst = getNameList( err, tb_namelst ) ;
 	if ( err.error() ) { return ; }
 
+	if ( tb_dir != "" )
+	{
+		if ( nl_namelst == "" )
+		{
+			sa_dir = tb_dir ;
+		}
+		s_dir = tb_dir ;
+	}
+	else if ( nl_namelst != "" )
+	{
+		s_dir = "NEXT" ;
+	}
+
 	if ( nl_namelst == "" )
 	{
 		if ( sarg.size() == 0 )
@@ -955,8 +995,7 @@ void Table::tbscan( errblock& err,
 			err.seterrid( "PSYE013U", tab_name ) ;
 			return ;
 		}
-		scan  = sarg   ;
-		s_dir = sa_dir ;
+		pscan = &sarg ;
 	}
 	else
 	{
@@ -974,13 +1013,14 @@ void Table::tbscan( errblock& err,
 			if ( cond == "" ) { cond = "EQ" ; }
 			nl_cond_pairs += var + " " + cond + " " ;
 		}
-		tbsets( err, funcPOOL, scan, nl_namelst, nl_cond_pairs, false ) ;
+		scan.clear() ;
+		setscan( err, funcPOOL, scan, names, nl_namelst, nl_cond_pairs ) ;
 		if ( err.error() ) { return ; }
-		s_dir = tb_dir ;
+		pscan = &scan ;
 	}
 
 	found  = false ;
-	s_next = ( s_dir != "PREVIOUS" ) ;
+	s_next = ( s_dir == "NEXT" ) ;
 	size   = table.size() ;
 
 	while ( size > 0 )
@@ -990,72 +1030,69 @@ void Table::tbscan( errblock& err,
 			++CRP ;
 			if ( CRP > size ) { break ; }
 		}
+		else if ( CRP == 0 )
+		{
+			CRP = size ;
+		}
 		else
 		{
-			if ( CRP == 0 )
-			{
-				CRP = size ;
-			}
-			else
-			{
-				--CRP ;
-				if ( CRP < 1 ) { break ; }
-			}
+			--CRP ;
+			if ( CRP < 1 ) { break ; }
 		}
 		s_match = 0     ;
 		endloop = false ;
-		for ( it = scan.begin() ; it != scan.end() ; ++it )
+		for ( it = pscan->begin() ; it != pscan->end() ; ++it )
 		{
-			p1 = wordpos( it->first, tab_all ) ;
-			if ( p1 == 0 )
+			p1 = it->tbs_pos ;
+			if ( p1 == -1 )
 			{
 				if ( table.at( CRP-1 )->size() == num_all + 1 ) { break ; }
 				tbelst = table.at( CRP-1 )->at( num_all + 1 ) ;
-				p1 = wordpos( it->first, tbelst ) ;
+				p1 = wordpos( it->tbs_var, tbelst ) ;
 				if ( p1 == 0 ) { break ; }
-				p1 = p1 + num_all + 1 ;
+				p1 += num_all + 1 ;
 			}
-			if ( it->second.tbs_gen )
+			if ( it->tbs_gen )
 			{
-				switch ( it->second.tbs_cond )
+				switch ( it->tbs_cond )
 				{
 				case s_EQ:
-					if ( table.at( CRP-1 )->at( p1 ).compare( 0, it->second.tbs_size, it->second.tbs_val ) != 0 )
+					if ( table.at( CRP-1 )->at( p1 ).compare( 0, it->tbs_size, it->tbs_val ) != 0 )
 					{
 						endloop = true ;
 					}
 					break ;
 
 				case s_NE:
-					if ( table.at( CRP-1 )->at( p1 ).compare( 0, it->second.tbs_size, it->second.tbs_val ) == 0 )
+					if ( table.at( CRP-1 )->at( p1 ).compare( 0, it->tbs_size, it->tbs_val ) == 0 )
 					{
 						endloop = true ;
 					}
 					break ;
 
 				case s_LE:
-					if ( table.at( CRP-1 )->at( p1 ).compare( 0, it->second.tbs_size, it->second.tbs_val ) > 0 )
+					if ( table.at( CRP-1 )->at( p1 ).compare( 0, it->tbs_size, it->tbs_val ) > 0 )
 					{
 						endloop = true ;
 					}
 					break ;
 
 				case s_LT:
-					if ( table.at( CRP-1 )->at( p1 ).compare( 0, it->second.tbs_size, it->second.tbs_val ) >= 0 )
+					if ( table.at( CRP-1 )->at( p1 ).compare( 0, it->tbs_size, it->tbs_val ) >= 0 )
 					{
 						endloop = true ;
 					}
 					break ;
 
 				case s_GE:
-					if ( table.at( CRP-1 )->at( p1 ).compare( 0, it->second.tbs_size, it->second.tbs_val ) < 0 )
+					if ( table.at( CRP-1 )->at( p1 ).compare( 0, it->tbs_size, it->tbs_val ) < 0 )
 					{
 						endloop = true ;
 					}
 					break ;
 
 				case s_GT:
-					if ( table.at( CRP-1 )->at( p1 ).compare( 0, it->second.tbs_size, it->second.tbs_val ) <= 0 )
+					if ( table.at( CRP-1 )->at( p1 ).compare( 0, it->tbs_size, it->tbs_val ) <= 0 )
 					{
 						endloop = true ;
 					}
@@ -1063,45 +1100,45 @@ void Table::tbscan( errblock& err,
 			}
 			else
 			{
-				switch ( it->second.tbs_cond )
+				switch ( it->tbs_cond )
 				{
 				case s_EQ:
-					if ( table.at( CRP-1 )->at( p1 ) != it->second.tbs_val )
+					if ( table.at( CRP-1 )->at( p1 ) != it->tbs_val )
 					{
 						endloop = true ;
 					}
 					break ;
 
 				case s_NE:
-					if ( table.at( CRP-1 )->at( p1 ) == it->second.tbs_val )
+					if ( table.at( CRP-1 )->at( p1 ) == it->tbs_val )
 					{
 						endloop = true ;
 					}
 					break ;
 
 				case s_LE:
-					if ( table.at( CRP-1 )->at( p1 )  > it->second.tbs_val )
+					if ( table.at( CRP-1 )->at( p1 )  > it->tbs_val )
 					{
 						endloop = true ;
 					}
 					break ;
 
 				case s_LT:
-					if ( table.at( CRP-1 )->at( p1 ) >= it->second.tbs_val )
+					if ( table.at( CRP-1 )->at( p1 ) >= it->tbs_val )
 					{
 						endloop = true ;
 					}
 					break ;
 
 				case s_GE:
-					if ( table.at( CRP-1 )->at( p1 )  < it->second.tbs_val )
+					if ( table.at( CRP-1 )->at( p1 )  < it->tbs_val )
 					{
 						endloop = true ;
 					}
 					break ;
 
 				case s_GT:
-					if ( table.at( CRP-1 )->at( p1 ) <= it->second.tbs_val )
+					if ( table.at( CRP-1 )->at( p1 ) <= it->tbs_val )
 					{
 						endloop = true ;
 					}
@@ -1110,7 +1147,7 @@ void Table::tbscan( errblock& err,
 			if ( endloop ) { break ; }
 			++s_match ;
 		}
-		if ( s_match == scan.size() )
+		if ( s_match == pscan->size() )
 		{
 			found = true ;
 			break ;
@@ -1128,28 +1165,12 @@ void Table::tbscan( errblock& err,
 		return ;
 	}
 
-	if ( tb_noread != "NOREAD" )
-	{
-		loadfuncPOOL( err, funcPOOL, tb_savenm ) ;
-		if ( err.error() ) { return ; }
-	}
-	else if ( tb_savenm != "" )
-	{
-		saveExtensionVarNames( err, funcPOOL, tb_savenm ) ;
-		if ( err.error() ) { return ; }
-	}
-
-	if ( tb_crp_name != "" )
-	{
-		storeIntValue( err, funcPOOL, tb_crp_name, CRP ) ;
-		if ( err.error() ) { return ; }
-	}
-
-	if ( tb_rowid_vn != "" )
-	{
-		funcPOOL.put1( err, tb_rowid_vn, table.at( CRP-1 )->at( 0 ) ) ;
-		if ( err.error() ) { return ; }
-	}
+	loadFields_save( err,
+			 funcPOOL,
+			 tb_savenm,
+			 tb_rowid_vn,
+			 tb_noread,
+			 tb_crp_name ) ;
 }
 
 
@@ -1166,16 +1187,13 @@ void Table::tbskip( errblock& err,
 	// Position using tb_rowid (URID) if specified, else use num
 
 	// RC = 0  Okay
-	// RC = 8  CRP would be outside the table
+	// RC = 8  CRP would be outside the table. CRP set to top (zero)
 	// RC = 12 Table not open
 	// RC = 16 Truncation has occured
 	// RC = 20 Severe error
 
-	uint i ;
-
 	string val ;
 	string var ;
-
 
 	vector<vector<string>*>::iterator it ;
 
@@ -1203,39 +1221,37 @@ void Table::tbskip( errblock& err,
 		if ( it == table.end() )
 		{
 			CRP = 0 ;
+			if ( tb_crp_name != "" )
+			{
+				storeIntValue( err, funcPOOL, tb_crp_name, CRP ) ;
+				if ( err.error() ) { return ; }
+			}
 			err.setRC( 8 ) ;
 			return ;
 		}
 	}
 	else
 	{
-		i = CRP + num  ;
-		if ( ( i < 1 ) || ( i > table.size() ) ) { err.setRC( 8 ) ; return ; }
-		CRP = i ;
+                if ( ( ( CRP + num ) < 1 ) || ( ( CRP + num ) > table.size() ) )
+		{
+			CRP = 0 ;
+			if ( tb_crp_name != "" )
+			{
+				storeIntValue( err, funcPOOL, tb_crp_name, CRP ) ;
+				if ( err.error() ) { return ; }
+			}
+			err.setRC( 8 ) ;
+			return ;
+		}
+		CRP += num ;
 	}
 
-	if ( tb_noread != "NOREAD" )
-	{
-		loadfuncPOOL( err, funcPOOL, tb_savenm ) ;
-		if ( err.error() ) { return ; }
-	}
-	else if ( tb_savenm != "" )
-	{
-		saveExtensionVarNames( err, funcPOOL, tb_savenm ) ;
-		if ( err.error() ) { return ; }
-	}
-
-	if ( tb_rowid_vn != "" )
-	{
-		funcPOOL.put1( err, tb_rowid_vn, table.at( CRP-1 )->at( 0 ) ) ;
-		if ( err.error() ) { return ; }
-	}
-
-	if ( tb_crp_name != "" )
-	{
-		storeIntValue( err, funcPOOL, tb_crp_name, CRP ) ;
-		if ( err.error() ) { return ; }
-	}
+	loadFields_save( err,
+			 funcPOOL,
+			 tb_savenm,
+			 tb_rowid_vn,
+			 tb_noread,
+			 tb_crp_name ) ;
 }
 
 
@@ -1607,7 +1623,7 @@ void Table::cmdsearch( errblock& err,
 {
 	// cmdsearch is not part of the normal table services for applications.
 	// It's used for retrieving abbreviated commands from a command table.
-	// Use tbsarg/tbscan for normal applications
+	// Use TBSARG/TBSCAN for normal applications
 
 	// RC = 0  Okay
 	// RC = 4  Commmand not found
@@ -1683,7 +1699,7 @@ multimap<string, Table*>::iterator tableMGR::createTable( errblock& err,
 	// Lock mtx is held when this procedure is called so no need to hold it.
 	// This procedure does not set the return code.
 
-	// Returns: Iterator to the inserted table entry.
+	// Returns: Iterator to the inserted table.
 
 	string temp ;
 
@@ -2235,7 +2251,7 @@ void tableMGR::statistics()
 	string t ;
 
 	multimap<string, Table*>::iterator it ;
-	map<string, tbsearch>::iterator its ;
+	vector<tbsearch>::iterator its ;
 	map<Table*, string>::iterator ite ;
 
 	errblock err ;
@@ -2278,16 +2294,16 @@ void tableMGR::statistics()
 		llog( "-", "    Current Row Pointer: " << it->second->CRP <<endl ) ;
 		if ( it->second->sarg.size() > 0 )
 		{
-			llog( "-", "Current Search Argument: " <<endl ) ;
+			llog( "-", "Current Search Argument. " <<endl ) ;
 			llog( "-", "        Condition Pairs: " << it->second->sa_cond_pairs <<endl ) ;
 			llog( "-", "       Search Direction: " << it->second->sa_dir <<endl ) ;
 			llog( "-", "    Extension Variables: " << it->second->sa_namelst <<endl ) ;
 			for ( its = it->second->sarg.begin() ; its != it->second->sarg.end() ; ++its )
 			{
-				t = ( its->second.tbs_gen ) ? " (generic search)" : "" ;
-				llog( "-", "             Field Name: "+ its->first <<endl ) ;
-				llog( "-", "            Field Value: "+ its->second.tbs_val + t <<endl ) ;
-				llog( "-", "        Field Condition: "+ its->second.tbs_scond <<endl ) ;
+				t = ( its->tbs_gen ) ? " (generic)" : "" ;
+				llog( "-", "             Field Name: "+ its->tbs_var <<endl ) ;
+				llog( "-", "            Field Value: "+ its->tbs_val + t <<endl ) ;
+				llog( "-", "        Field Condition: "+ its->tbs_scond <<endl ) ;
 			}
 		}
 		if ( it->second->sort_ir != "" )

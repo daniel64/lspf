@@ -78,7 +78,7 @@
 PPSP01A::PPSP01A()
 {
 	set_appdesc( "General utilities to display logs, PF Key settings, variables, etc." ) ;
-	set_appver( "1.0.2" ) ;
+	set_appver( "1.0.3" ) ;
 
 	vdefine( "ZCURINX ZTDTOP ZTDVROWS ZTDSELS ZTDDEPTH", &zcurinx, &ztdtop, &ztdvrows, &ztdsels, &ztddepth ) ;
 }
@@ -97,7 +97,7 @@ void PPSP01A::application()
 	w2 = upper( wl ) ;
 
 	vdefine( "ZCMD ZVERB ZROW1 ZROW2", &zcmd, &zverb, &zrow1, &zrow2 ) ;
-	vdefine( "ZAREA ZSHADOW ZAREAT ZSCROLLA", &zarea, &zshadow, &zareat, &zscrolla ) ;
+	vdefine( "ZAREA ZSHADOW ZSCROLLA", &zarea, &zshadow, &zscrolla ) ;
 	vdefine( "ZSCROLLN ZAREAW ZAREAD", &zscrolln, &zareaw, &zaread ) ;
 	vdefine( "LTYPE LOGLOC ZCOL1", &ltype, &logloc, &zcol1 ) ;
 
@@ -176,7 +176,7 @@ void PPSP01A::show_log( const string& fileName )
 	set_apphelp( "HPSP01A" ) ;
 
 	vget( "ZSCRMAXW ZSCRMAXD", SHARED ) ;
-	pquery( "PPSP01AL", "ZAREA", "ZAREAT", "ZAREAW", "ZAREAD" ) ;
+	pquery( "PPSP01AL", "ZAREA", "", "ZAREAW", "ZAREAD" ) ;
 
 	zasize   = zareaw * zaread  ;
 	startCol = 48     ;
@@ -730,14 +730,14 @@ void PPSP01A::lspfSettings()
 	vget( "ZDEFM ZDEL ZKLUSE ZLMSGW ZPADC ZSRETP ZHIGH", PROFILE ) ;
 	if ( RC > 0 ) { abend() ; }
 
-	gokluse = zkluse  == "Y" ? "/" : "" ;
-	gonotfy = znotify == "Y" ? "/" : "" ;
-	gostfst = zscmdtf == "Y" ? "/" : "" ;
-	golmsgw = zlmsgw  == "Y" ? "/" : "" ;
-	goswap  = zswap   == "Y" ? "/" : "" ;
-	gosretp = zsretp  == "Y" ? "/" : "" ;
-	gohigh  = zhigh   == "Y" ? "/" : "" ;
-	godefm  = zdefm   == "Y" ? "1" : "2" ;
+	gokluse = ( zkluse  == "Y" ) ? "/" : "" ;
+	gonotfy = ( znotify == "Y" ) ? "/" : "" ;
+	gostfst = ( zscmdtf == "Y" ) ? "/" : "" ;
+	golmsgw = ( zlmsgw  == "Y" ) ? "/" : "" ;
+	goswap  = ( zswap   == "Y" ) ? "/" : "" ;
+	gosretp = ( zsretp  == "Y" ) ? "/" : "" ;
+	gohigh  = ( zhigh   == "Y" ) ? "/" : "" ;
+	godefm  = ( zdefm   == "Y" ) ? "1" : "2" ;
 
 	godel   = zdel   ;
 	goswapc = zswapc ;
@@ -830,13 +830,13 @@ void PPSP01A::lspfSettings()
 			gorbsize = rorbsize ;
 			gohigh   = rohigh   ;
 		}
-		zkluse   = gokluse == "/" ? "Y" : "N" ;
-		znotify  = gonotfy == "/" ? "Y" : "N" ;
-		zscmdtf  = gostfst == "/" ? "Y" : "N" ;
-		zlmsgw   = golmsgw == "/" ? "Y" : "N" ;
-		zswap    = goswap  == "/" ? "Y" : "N" ;
-		zsretp   = gosretp == "/" ? "Y" : "N" ;
-		zhigh    = gohigh  == "/" ? "Y" : "N" ;
+		zkluse   = ( gokluse == "/" ) ? "Y" : "N" ;
+		znotify  = ( gonotfy == "/" ) ? "Y" : "N" ;
+		zscmdtf  = ( gostfst == "/" ) ? "Y" : "N" ;
+		zlmsgw   = ( golmsgw == "/" ) ? "Y" : "N" ;
+		zswap    = ( goswap  == "/" ) ? "Y" : "N" ;
+		zsretp   = ( gosretp == "/" ) ? "Y" : "N" ;
+		zhigh    = ( gohigh  == "/" ) ? "Y" : "N" ;
 		zucmdt1  = goucmd1 ;
 		zucmdt2  = goucmd2 ;
 		zucmdt3  = goucmd3 ;
@@ -2201,7 +2201,7 @@ void PPSP01A::libdefStatus()
 				for ( size_t i = 1 ; i <= p ; ++i )
 				{
 					ident = getpath( it->second.top(), i ) ;
-					stk   = (stacked && type != "" ) ? "S" : "" ;
+					stk   = ( stacked && type != "" ) ? "S" : "" ;
 					tbadd( table ) ;
 					libx = "" ;
 					type = "" ;
@@ -2223,7 +2223,7 @@ void PPSP01A::libdefStatus()
 				for ( size_t i = 1 ; i <= p ; ++i )
 				{
 					ident = getpath( it->second.top(), i ) ;
-					stk   = (stacked && type != "" ) ? "S" : "" ;
+					stk   = ( stacked && type != "" ) ? "S" : "" ;
 					tbadd( table ) ;
 					libx = "" ;
 					type = "" ;
@@ -3317,16 +3317,26 @@ void PPSP01A::browseEntry( string& file )
 {
 	string msg ;
 	string zfile   ;
-	string bebrom  ;
+	string zvmode  ;
 	string showdir ;
+	string beimac  ;
+	string beprof  ;
+	string eelmac  ;
+	string bebrom  ;
+	string eeccan  ;
+	string becwarn ;
+	string betabss ;
 
 	boost::filesystem::path wd = boost::filesystem::current_path() ;
 
-	string vlist = "ZFILE BEBROM SHOWDIR" ;
-	vdefine( vlist, &zfile, &bebrom, &showdir ) ;
+	string vlist = "ZFILE SHOWDIR BEBROM BEIMAC BEPROF EELMAC EECCAN BECWARN BETABSS ZVMODE" ;
+	vdefine( vlist, &zfile, &showdir, &bebrom, &beimac, &beprof, &eelmac, &eeccan, &becwarn, &betabss, &zvmode ) ;
 
 	vget( "BEIMAC", SHARED ) ;
-	vget( "ZFILE BEPROF BEBROM BECCAN BELMAC BEPRSPS BETABSS BEDIRLST", PROFILE ) ;
+	vget( "ZFILE BEPROF BEBROM EECCAN EELMAC BECWARN BETABSS BEDIRLST", PROFILE ) ;
+
+	vreplace( "ZFLSDEF1", ( bebrom == "/" ) ? "BROWSE" : "VIEW" ) ;
+	vput( "ZFLSDEF1", SHARED ) ;
 
 	if ( file != "" )
 	{
@@ -3356,7 +3366,20 @@ void PPSP01A::browseEntry( string& file )
 				if ( is_regular_file( ZRESULT ) )
 				{
 					updateReflist( ZRESULT ) ;
-					browse( ZRESULT ) ;
+					if ( bebrom == "/" )
+					{
+						browse( ZRESULT ) ;
+					}
+					else
+					{
+						view( ZRESULT,
+						"PEDIT012",
+						beimac,
+						beprof,
+						eelmac,
+						( eeccan  == "/" ) ? "YES" : "NO",
+						( becwarn == "/" ) ? "YES" : "NO" ) ;
+					}
 				}
 				else
 				{
@@ -3375,7 +3398,20 @@ void PPSP01A::browseEntry( string& file )
 		{
 			if ( file.front() != '/' ) { file = wd.native() + '/' + file ; }
 			updateReflist( file ) ;
-			browse( file ) ;
+			if ( bebrom == "/" )
+			{
+				browse( file ) ;
+			}
+			else
+			{
+				view( file,
+				"PEDIT012",
+				beimac,
+				beprof,
+				eelmac,
+				( eeccan  == "/" ) ? "YES" : "NO",
+				( becwarn == "/" ) ? "YES" : "NO" ) ;
+			}
 			vdelete( vlist ) ;
 			return ;
 		}
@@ -3389,14 +3425,33 @@ void PPSP01A::browseEntry( string& file )
 		}
 	}
 
+	if ( bebrom != "/" )
+	{
+		zvmode = "VIEW" ;
+		if ( editRecovery( zvmode ) == 8 )
+		{
+			vdelete( vlist ) ;
+			return ;
+		}
+	}
+
 	msg = "" ;
 	while ( true )
 	{
 		display( "PBRO01A1", msg, "ZCMD" ) ;
-		msg = "" ;
 		if ( RC == 8 ) { break ; }
+		msg = "" ;
+		vreplace( "ZEDTABSS", ( betabss == "/" ) ? "YES" : "NO" ) ;
+		vput( "ZEDTABSS", SHARED ) ;
 		if ( showdir == "YES" )
 		{
+			vreplace( "ZEDECCAN", ( eeccan  == "/" ) ? "YES" : "NO" ) ;
+			vreplace( "ZEDECWRN", ( becwarn == "/" ) ? "YES" : "NO" ) ;
+			vreplace( "ZEDLMACT", eelmac ) ;
+			vreplace( "ZEDEPROF", beprof ) ;
+			vreplace( "ZEDIMACA", beimac ) ;
+			vreplace( "ZFLSDEF1", ( bebrom == "/" ) ? "BROWSE" : "VIEW" ) ;
+			vput( "ZEDECCAN ZEDLMACT ZEDEPROF ZEDIMACA ZFLSDEF1 ZEDECWRN", SHARED ) ;
 			listDirectory( zfile ) ;
 			continue ;
 		}
@@ -3408,7 +3463,13 @@ void PPSP01A::browseEntry( string& file )
 		}
 		else
 		{
-			view( zfile ) ;
+			view( zfile,
+			"PEDIT012",
+			beimac,
+			beprof,
+			eelmac,
+			( eeccan  == "/" ) ? "YES" : "NO",
+			( becwarn == "/" ) ? "YES" : "NO" ) ;
 		}
 		if ( isvalidName( ZRESULT ) )
 		{
@@ -3424,6 +3485,7 @@ void PPSP01A::browseEntry( string& file )
 void PPSP01A::editEntry( string& file )
 {
 	string zfile   ;
+	string zvmode  ;
 	string msg     ;
 	string showdir ;
 	string eeimac  ;
@@ -3435,11 +3497,14 @@ void PPSP01A::editEntry( string& file )
 
 	boost::filesystem::path wd = boost::filesystem::current_path() ;
 
-	string vlist = "ZFILE SHOWDIR EEIMAC EEPROF EELMAC EECCAN EEPRSPS EETABSS" ;
-	vdefine( vlist, &zfile, &showdir, &eeimac, &eeprof, &eelmac, &eeccan, &eeprsps, &eetabss ) ;
+	string vlist = "ZFILE SHOWDIR EEIMAC EEPROF EELMAC EECCAN EEPRSPS EETABSS ZVMODE" ;
+	vdefine( vlist, &zfile, &showdir, &eeimac, &eeprof, &eelmac, &eeccan, &eeprsps, &eetabss, &zvmode ) ;
 
 	vget( "EEIMAC", SHARED ) ;
 	vget( "ZFILE EEPROF EECCAN EELMAC EEPRSPS EETABSS EEDIRLST EENEWFLS", PROFILE ) ;
+
+	vreplace( "ZFLSDEF1", "EDIT" ) ;
+	vput( "ZFLSDEF1", SHARED ) ;
 
 	if ( file != "" )
 	{
@@ -3502,8 +3567,8 @@ void PPSP01A::editEntry( string& file )
 		}
 	}
 
-
-	if ( editRecovery() == 8 )
+	zvmode = "EDIT" ;
+	if ( editRecovery( zvmode ) == 8 )
 	{
 		vdelete( vlist ) ;
 		return ;
@@ -3515,12 +3580,12 @@ void PPSP01A::editEntry( string& file )
 		display( "PEDIT011", msg, "ZCMD1" ) ;
 		if ( RC == 8 ) { break ; }
 		msg = "" ;
-		vreplace( "ZEDTABSS", eetabss == "/" ? "YES" : "NO" ) ;
+		vreplace( "ZEDTABSS", ( eetabss == "/" ) ? "YES" : "NO" ) ;
 		vput( "ZEDTABSS", SHARED ) ;
 		if ( showdir == "YES" )
 		{
-			vreplace( "ZEDPRSPS", eeprsps == "/" ? "YES" : "NO" ) ;
-			vreplace( "ZEDECCAN", eeccan  == "/" ? "YES" : "NO" ) ;
+			vreplace( "ZEDPRSPS", ( eeprsps == "/" ) ? "YES" : "NO" ) ;
+			vreplace( "ZEDECCAN", ( eeccan  == "/" ) ? "YES" : "NO" ) ;
 			vreplace( "ZEDLMACT", eelmac ) ;
 			vreplace( "ZEDEPROF", eeprof ) ;
 			vreplace( "ZEDIMACA", eeimac ) ;
@@ -3535,8 +3600,8 @@ void PPSP01A::editEntry( string& file )
 		      eeimac,
 		      eeprof,
 		      eelmac,
-		      eeccan  == "/" ? "YES" : "NO",
-		      eeprsps == "/" ? "PRESERVE" : "" ) ;
+		      ( eeccan  == "/" ) ? "YES" : "NO",
+		      ( eeprsps == "/" ) ? "PRESERVE" : "" ) ;
 		if ( isvalidName( ZRESULT ) )
 		{
 			msg = ZRESULT ;
@@ -3548,10 +3613,12 @@ void PPSP01A::editEntry( string& file )
 }
 
 
-int PPSP01A::editRecovery()
+int PPSP01A::editRecovery( const string& zvmode )
 {
+	string msg   ;
 	string zcmd  ;
 	string zfile ;
+	string zedmode ;
 
 	const string vlist = "ZCMD ZFILE" ;
 
@@ -3561,18 +3628,34 @@ int PPSP01A::editRecovery()
 
 	while ( true )
 	{
-		edrec( "QUERY" ) ;
-		if ( RC == 0 ) { break ; }
+		if ( msg == "" )
+		{
+			edrec( "QUERY" ) ;
+			if ( RC == 0 ) { break ; }
+			vcopy( "ZEDMODE", zedmode, MOVE ) ;
+			if ( zvmode.compare( 0, 1, zedmode ) != 0 )
+			{
+				edrec( "DEFER" ) ;
+				continue ;
+			}
+		}
 		vcopy( "ZEDTFILE", zfile, MOVE ) ;
-		display( "PEDIT014", "", "ZCMD" ) ;
+		display( "PEDIT014", msg, "ZCMD" ) ;
 		if ( RC == 8 && zcmd != "CANCEL" )
 		{
 			vdelete( vlist ) ;
 			return 8 ;
 		}
+		msg = "" ;
 		if ( zcmd == "" )
 		{
+			control( "ERRORS", "RETURN" ) ;
 			edrec( "PROCESS" ) ;
+			if ( RC >= 12 )
+			{
+				vcopy( "ZERRMSG", msg, MOVE ) ;
+			}
+			control( "ERRORS", "CANCEL" ) ;
 		}
 		else if ( zcmd == "CANCEL" )
 		{

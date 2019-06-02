@@ -77,7 +77,7 @@ class pPanel
 		const string& cmd_getvalue() ;
 		void   cmd_setvalue( const string& ) ;
 
-		bool    get_tbscan()                   { return tb_scan  ; }
+		bool    get_tbscan()                   { return tb_scan    ; }
 
 		bool   is_cmd_inactive( const string& value ) ;
 
@@ -260,7 +260,7 @@ class pPanel
 
 		void   update_field_values( errblock& ) ;
 
-		void   get_panel_info( int& RC,
+		void   get_panel_info( errblock& err,
 				       const string& a_name,
 				       const string& t = "",
 				       const string& w = "",
@@ -299,8 +299,8 @@ class pPanel
 		void   set_message_cond( const string& ) ;
 		void   set_cursor_cond( const string&, int =-1 ) ;
 
-		void   resetAttrs()  ;
-		void   resetAttrs_once() ;
+		void   reset_attrs() ;
+		void   reset_attrs_once() ;
 
 		void   syncDialogueVar( errblock&, const string& ) ;
 		string getDialogueVar( errblock&, const string& )   ;

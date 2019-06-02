@@ -24,18 +24,17 @@ text     10   2       FP     "Profile Name . . . . ."
 field    10   25  8   CEF     PAD(USER),caps(on) BEPROF
 
 text     11   2       FP     "Line Command Table . ."
-field    11   25  8   CEF     PAD(USER),caps(on) BELMAC
+field    11   25  8   CEF     PAD(USER),caps(on) EELMAC
 
 text     13   2       ET     "Options"
 text     14   4       PIN    "Enter / to select option"
 
-field    15   4   1   CEF     PAD(USER) BECCAN
+field    15   4   1   CEF     PAD(USER) EECCAN
 text     15   6       SAC    "Confirm Cancel"
 field    16   4   1   CEF     PAD(USER) BEBROM
 text     16   6       SAC    "Browse Mode"
-field    17   4   1   CEF     PAD(USER) BEPRSPS
-text     17   6       SAC    "Preserve trailing spaces on file save"
-
+field    17   4   1   CEF     PAD(USER) BECWARN
+text     17   6       SAC    "Warn on first data change"
 field    18   4   1   CEF     PAD(USER) BETABSS
 text     18   6       SAC    "Override XTABS setting to prevent tabs being converted to spaces"
 
@@ -46,12 +45,15 @@ text     19   6       SAC    "Show directory list if valid directory entered"
 text    22 2  CH "Instructions"
 text    24 2  NT "Enter file name and press"
 text    24 28 ET "ENTER"
-text    24 34 NT "to browse or view file"
+text    24 34 NT "to &ZVMODE1 file"
 
 
 )INIT
 .NRET = ON
 .NRET = ZFILE
+
+IF (&BEBROM = '/') &ZVMODE1 = 'browse'
+ELSE               &ZVMODE1 = 'view'
 
 )PROC
 if ( &ZCMD NE &Z)
@@ -60,16 +62,16 @@ if ( &ZCMD NE &Z)
   EXIT
 
 VER (&ZFILE,NB)
-VER (&BELMAC,NAME)
+VER (&EELMAC,NAME)
 &BEBROM   = TRANS( &BEBROM   &Z,&Z *,/ )
-&BECCAN   = TRANS( &BECCAN   &Z,&Z *,/ )
-&BEPRSPS  = TRANS( &BEPRSPS  &Z,&Z *,/ )
+&EECCAN   = TRANS( &EECCAN   &Z,&Z *,/ )
+&BECWARN  = TRANS( &BECWARN  &Z,&Z *,/ )
 &BETABSS  = TRANS( &BETABSS  &Z,&Z *,/ )
 &BEDIRLST = TRANS( &BEDIRLST &Z,&Z *,/ )
 
 VPUT BEIMAC SHARED
-VPUT (BEBROM,BECCAN,BEPRSPS,BETABSS,BEDIRLST) PROFILE
-VPUT (ZFILE,BEPROF,BELMAC) PROFILE
+VPUT (BEBROM,EECCAN,BECWARN,BETABSS,BEDIRLST) PROFILE
+VPUT (ZFILE,BEPROF,EELMAC) PROFILE
 
 &SHOWDIR = NO
 

@@ -2,7 +2,6 @@
   Copyright (c) 2015 Daniel John Erdos
 
   This program is free software; you can redistribute it and/or modify
-
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
@@ -282,7 +281,7 @@ map<P_CMDS,pcmd_format> pcmdFormat = { { PC_AUTOSAVE, {  0,  2 } },
 				       { PC_BROWSE,   { -1, -1 } },
 				       { PC_CANCEL,   {  0,  0 } },
 				       { PC_CHANGE,   { -1, -1 } },
-				       { PC_CAPS,     {  0,  2 } },
+				       { PC_CAPS,     {  0,  1 } },
 				       { PC_COLUMN,   {  0,  1 } },
 				       { PC_COMPARE,  { -1, -1 } },
 				       { PC_COPY,     {  0,  1 } },
@@ -294,7 +293,7 @@ map<P_CMDS,pcmd_format> pcmdFormat = { { PC_AUTOSAVE, {  0,  2 } },
 				       { PC_EDITSET,  {  0,  0 } },
 				       { PC_EXCLUDE,  { -1, -1 } },
 				       { PC_FIND,     { -1, -1 } },
-				       { PC_FLIP,     { -1, -1 } },
+				       { PC_FLIP,     {  0,  2 } },
 				       { PC_HEX,      {  0,  2 } },
 				       { PC_HIDE,     {  1,  1 } },
 				       { PC_HILIGHT,  { -1, -1 } },
@@ -582,6 +581,146 @@ class iline
 		static map<int, int>maxURID    ;
 		static map<int, bool>setUNDO   ;
 		static map<int, bool>Redo_data ;
+		static map<int, bool>File_save ;
+		static map<int, string>src_file ;
+		static map<int, string>dst_file ;
+		static map<int, bool>changed   ;
+
+		static void init_Globals( int i, bool vmode, const string& f1 = "", const string& f2 = "" )
+		{
+			src_file[ i ]  = f1 ;
+			dst_file[ i ]  = f2 ;
+			File_save[ i ] = vmode ? true : false ;
+			changed[ i ]   = false ;
+		}
+
+		static bool is_File_save( int i )
+		{
+			return File_save[ i ] ;
+		}
+
+		static void copyFile( int i )
+		{
+			boost::system::error_code ec ;
+			if ( src_file[ i ] != "" && dst_file[ i ] != "" )
+			{
+				copy_file( src_file[ i ], dst_file[ i ], ec ) ;
+				File_save[ i ] = true ;
+			}
+		}
+
+		static int get_Global_Undo_Size( int i )
+		{
+			return Global_Undo[ i ].size() ;
+		}
+
+		static int get_Global_Redo_Size( int i )
+		{
+			return Global_Redo[ i ].size() ;
+		}
+
+		static int get_Global_File_Size( int i )
+		{
+			return Global_File_level[ i].size() ;
+		}
+
+		static void clear_Global_Undo( int i )
+		{
+			while ( !Global_Undo[ i ].empty() )
+			{
+				Global_Undo[ i ].pop() ;
+			}
+		}
+
+		static void clear_Global_Redo( int i )
+		{
+			while ( !Global_Redo[ i ].empty() )
+			{
+				Global_Redo[ i ].pop() ;
+			}
+		}
+
+		static bool has_Redo_data( int i )
+		{
+			return Redo_data[ i ] ;
+		}
+
+		static void reset_Redo_data( int i )
+		{
+			Redo_data[ i ] = false ;
+		}
+
+		static void reset_Global_Undo( int i )
+		{
+			Global_Undo[ i ] = Global_File_level[ i ] ;
+		}
+
+		static void clear_Global_File_level( int i )
+		{
+			while ( !Global_File_level[ i ].empty() )
+			{
+				Global_File_level[ i ].pop() ;
+			}
+		}
+
+		static int get_Global_File_level( int i )
+		{
+			if ( Global_File_level[ i ].empty() )
+			{
+				return 0 ;
+			}
+			else
+			{
+				return Global_File_level[ i ].top() ;
+			}
+		}
+
+		static void set_Global_File_level( int i )
+		{
+			if ( Global_File_level[ i ].empty() ||
+			     Global_File_level[ i ].top() != Global_Undo[ i ].top() )
+			{
+				Global_File_level[ i ].push( Global_Undo[ i ].top() ) ;
+			}
+		}
+
+		static void remove_Global_File_level( int i )
+		{
+			Global_File_level[ i ].pop() ;
+		}
+
+		static int get_Global_Undo_level( int i )
+		{
+			if ( !setUNDO[ i ] ||
+			     Global_Undo[ i ].empty() ) { return 0 ; }
+			return Global_Undo[ i ].top() ;
+		}
+
+		static int get_Global_Redo_level( int i )
+		{
+			if ( !setUNDO[ i ] ||
+			     Global_Redo[ i ].empty() ) { return 0 ; }
+			return Global_Redo[ i ].top() ;
+		}
+
+		static void move_Global_Undo2Redo( int i )
+		{
+			if ( !setUNDO[ i ] ) { return ; }
+			Global_Redo[ i ].push ( Global_Undo[ i ].top() ) ;
+			Global_Undo[ i ].pop() ;
+		}
+
+		static void move_Global_Redo2Undo( int i )
+		{
+			if ( !setUNDO[ i ] ) { return ; }
+			Global_Undo[ i ].push( Global_Redo[ i ].top() ) ;
+			Global_Redo[ i ].pop() ;
+		}
+
+		static bool data_Changed( int i )
+		{
+			return changed[ i ] ;
+		}
 
 		LN_TYPE il_type    ;
 		LS_TYPE il_status  ;
@@ -702,6 +841,11 @@ class iline
 			return ( il_status == LS_REDO ) ;
 		}
 
+		bool is_excl() const
+		{
+			return il_excl ;
+		}
+
 		void resetFilePrefix()
 		{
 			il_status = LS_NONE ;
@@ -766,7 +910,7 @@ class iline
 
 		bool isValidFile() const
 		{
-			return il_type == LN_FILE && !il_deleted ;
+			return is_file() && !il_deleted ;
 		}
 
 		bool isSpecial() const
@@ -873,6 +1017,14 @@ class iline
 			{
 				return false ;
 			}
+			if ( is_file() && !is_File_save( il_taskid ) )
+			{
+				copyFile( il_taskid ) ;
+			}
+			if ( is_file() )
+			{
+				changed[ il_taskid ] = true ;
+			}
 			if ( !setUNDO[ il_taskid ] )
 			{
 				d.id_data = s ;
@@ -889,15 +1041,15 @@ class iline
 				{
 					Global_Undo[ il_taskid ].push( level ) ;
 				}
-				if ( il_type == LN_FILE )
+				if ( is_file() )
 				{
-					set_Global_File_level() ;
+					set_Global_File_level( il_taskid) ;
 				}
 			}
 			il_vShadow = false  ;
-			clear_Global_Redo() ;
+			clear_Global_Redo( il_taskid ) ;
 			remove_redo_idata() ;
-			return il_type == LN_FILE && !il_deleted ;
+			return is_file() && !il_deleted ;
 		}
 
 		bool put_idata( const string& s )
@@ -915,7 +1067,7 @@ class iline
 				il_idata.top().id_data = s ;
 			}
 			il_vShadow = false  ;
-			return il_type == LN_FILE && !il_deleted ;
+			return is_file() && !il_deleted ;
 		}
 
 		void set_idata_minsize( int i )
@@ -932,7 +1084,7 @@ class iline
 				   } ) )
 			{
 				put_idata( upper( il_idata.top().id_data ), Level ) ;
-				return il_type == LN_FILE ;
+				return is_file() ;
 			}
 			return false ;
 		}
@@ -948,7 +1100,7 @@ class iline
 			else
 			{
 				put_idata( t, Level ) ;
-				return il_type == LN_FILE ;
+				return is_file() ;
 			}
 			return false ;
 		}
@@ -964,7 +1116,7 @@ class iline
 			else
 			{
 				put_idata( t, Level ) ;
-				return il_type == LN_FILE ;
+				return is_file() ;
 			}
 			return false ;
 		}
@@ -974,7 +1126,7 @@ class iline
 			if ( il_idata.top().id_data.size() > 0 && il_idata.top().id_data.back() == ' ' )
 			{
 				put_idata( strip( il_idata.top().id_data, 'T', ' ' ), Level ) ;
-				return il_type == LN_FILE ;
+				return is_file() ;
 			}
 			return false ;
 		}
@@ -996,6 +1148,11 @@ class iline
 		void convert_to_file( int level )
 		{
 			il_type = LN_FILE ;
+			if ( !is_File_save( il_taskid ) )
+			{
+				copyFile( il_taskid ) ;
+			}
+			changed[ il_taskid ] = true ;
 			if ( !setUNDO[ il_taskid ] ) { return ; }
 			il_idata.top().id_level = level ;
 			if ( Global_Undo[ il_taskid ].empty()     ||
@@ -1003,8 +1160,8 @@ class iline
 			{
 				Global_Undo[ il_taskid ].push( level ) ;
 			}
-			set_Global_File_level() ;
-			clear_Global_Redo() ;
+			set_Global_File_level( il_taskid ) ;
+			clear_Global_Redo( il_taskid ) ;
 			remove_redo_idata() ;
 		}
 
@@ -1064,99 +1221,6 @@ class iline
 			il_excl = false ;
 		}
 
-		void clear_Global_Undo()
-		{
-			while ( !Global_Undo[ il_taskid ].empty() )
-			{
-				Global_Undo[ il_taskid ].pop() ;
-			}
-		}
-
-		void clear_Global_Redo()
-		{
-			while ( !Global_Redo[ il_taskid ].empty() )
-			{
-				Global_Redo[ il_taskid ].pop() ;
-			}
-		}
-
-		bool is_Redo_data()
-		{
-			return Redo_data[ il_taskid ] ;
-		}
-
-		void reset_Redo_data()
-		{
-			Redo_data[ il_taskid ] = false ;
-		}
-
-		void reset_Global_Undo()
-		{
-			Global_Undo[ il_taskid ] = Global_File_level[ il_taskid ] ;
-		}
-
-		void clear_Global_File_level()
-		{
-			while ( !Global_File_level[ il_taskid ].empty() )
-			{
-				Global_File_level[ il_taskid ].pop() ;
-			}
-		}
-
-		int get_Global_File_level() const
-		{
-			if ( Global_File_level[ il_taskid ].empty() )
-			{
-				return 0 ;
-			}
-			else
-			{
-				return Global_File_level[ il_taskid ].top() ;
-			}
-		}
-
-		void set_Global_File_level()
-		{
-			if ( Global_File_level[ il_taskid ].empty() ||
-			     Global_File_level[ il_taskid ].top() != Global_Undo[ il_taskid ].top() )
-			{
-				Global_File_level[ il_taskid ].push( Global_Undo[ il_taskid ].top() ) ;
-			}
-		}
-
-		void remove_Global_File_level()
-		{
-			Global_File_level[ il_taskid ].pop() ;
-		}
-
-		int get_Global_Undo_level() const
-		{
-			if ( !setUNDO[ il_taskid ] ||
-			     Global_Undo[ il_taskid ].empty() ) { return 0 ; }
-			return Global_Undo[ il_taskid ].top() ;
-		}
-
-		int get_Global_Redo_level() const
-		{
-			if ( !setUNDO[ il_taskid ] ||
-			     Global_Redo[ il_taskid ].empty() ) { return 0 ; }
-			return Global_Redo[ il_taskid ].top() ;
-		}
-
-		void move_Global_Undo2Redo()
-		{
-			if ( !setUNDO[ il_taskid ] ) { return ; }
-			Global_Redo[ il_taskid ].push ( Global_Undo[ il_taskid ].top() ) ;
-			Global_Undo[ il_taskid ].pop() ;
-		}
-
-		void move_Global_Redo2Undo()
-		{
-			if ( !setUNDO[ il_taskid ] ) { return ; }
-			Global_Undo[ il_taskid ].push( Global_Redo[ il_taskid ].top() ) ;
-			Global_Redo[ il_taskid ].pop() ;
-		}
-
 		void flatten_idata()
 		{
 			idata d = il_idata.top() ;
@@ -1189,21 +1253,6 @@ class iline
 		{
 			if ( il_idata_redo.empty() ) { return 0 ; }
 			return il_idata_redo.top().id_level ;
-		}
-
-		int get_Global_Undo_Size() const
-		{
-			return Global_Undo[ il_taskid ].size() ;
-		}
-
-		int get_Global_Redo_Size() const
-		{
-			return Global_Redo[ il_taskid ].size() ;
-		}
-
-		int get_Global_File_Size() const
-		{
-			return Global_File_level[ il_taskid ].size() ;
 		}
 
 	friend class PEDIT01 ;
@@ -1827,6 +1876,16 @@ class cmdblock
 		return deact ;
 	}
 
+	void keep_cmd()
+	{
+		keep = true ;
+	}
+
+	void upper_cmdf()
+	{
+		cmd = cmdf + " " + subword( cmd, 2 ) ;
+	}
+
 	const string& get_truename( const string& w ) const
 	{
 		auto it = PrimCMDS.find( w ) ;
@@ -1836,6 +1895,7 @@ class cmdblock
 		}
 		return w ;
 	}
+
 	friend class PEDIT01 ;
 	friend class PEDRXM1 ;
 } ;
@@ -2540,8 +2600,9 @@ class PEDIT01 : public pApplication
 		void readLineCommandTable() ;
 		void cleanup_custom()     ;
 		void initialise()         ;
-		void parse_parms()        ;
 		bool termOK()             ;
+		void viewWarning1()       ;
+		bool viewWarning2()       ;
 		void readFile()           ;
 		bool saveFile()           ;
 		bool ConfirmCancel()      ;
@@ -2580,6 +2641,7 @@ class PEDIT01 : public pApplication
 		void action_RCHANGE() ;
 		void setLineLabels()  ;
 		string genNextLabel( const string& ) ;
+		const string& get_truename( const string& ) ;
 
 		bool action_UNDO()    ;
 		bool action_REDO()    ;
@@ -2699,6 +2761,7 @@ class PEDIT01 : public pApplication
 		void   compareFiles( const string& ) ;
 		string createTempName()  ;
 		string determineLang()   ;
+		void   store_zeduser()   ;
 
 		uint topLine             ;
 		uint ptopLine            ;
@@ -2770,6 +2833,11 @@ class PEDIT01 : public pApplication
 		string zscrnum           ;
 		string zhome             ;
 		string zuprof            ;
+		string zedbfile          ;
+		string zeduser           ;
+		string zvmode            ;
+		bool   zedvmode          ;
+		bool   zedcwarn          ;
 
 		bool optNoConvTabs       ;
 		bool optPreserve         ;
@@ -2789,12 +2857,14 @@ class PEDIT01 : public pApplication
 		bool pasteKeep           ;
 		bool hideExcl            ;
 		bool scrollData          ;
+		bool editRecovery        ;
 
 		int  LeftBnd             ;
 		int  RightBnd            ;
 
 		string maskLine          ;
 		bool   zchanged          ;
+		bool   ichgwarn          ;
 		bool   dataUpdated       ;
 		bool   colsOn            ;
 		string tabsLine          ;
@@ -2825,7 +2895,6 @@ class PEDIT01 : public pApplication
 		string zcol2   ;
 		string zarea   ;
 		string zshadow ;
-		string zareat  ;
 		int    zareaw  ;
 		int    zaread  ;
 		uint   zdataw  ;
@@ -2901,82 +2970,82 @@ class PEDIT01 : public pApplication
 		map<string, void(PEDIT01::*)()>zverbList  = { { "RFIND",   &PEDIT01::action_RFIND   },
 							      { "RCHANGE", &PEDIT01::action_RCHANGE } } ;
 
-		map<char, string>typList    = { { 'C', "CHARS"  },
-						{ 'P', "PREFIX" },
-						{ 'S', "SUFFIX" },
-						{ 'W', "WORD"   } } ;
+		map<char, string>typList = { { 'C', "CHARS"  },
+					     { 'P', "PREFIX" },
+					     { 'S', "SUFFIX" },
+					     { 'W', "WORD"   } } ;
 
-		map<char, string>fcxList    = { { 'F', "FIND"    },
-						{ 'C', "CHANGE"  },
-						{ 'X', "EXCLUDE" } } ;
+		map<char, string>fcxList = { { 'F', "FIND"    },
+					     { 'C', "CHANGE"  },
+					     { 'X', "EXCLUDE" } } ;
 
-		map<bool, string>OnOff      = { { true,  "ON"   },
-						{ false, "OFF"  } } ;
+		map<bool, string>OnOff   = { { true,  "ON"   },
+					     { false, "OFF"  } } ;
 
-		map<bool, char>ZeroOne      = { { true,  '1'    },
-						{ false, '0'    } } ;
+		map<bool, char>ZeroOne   = { { true,  '1'    },
+					     { false, '0'    } } ;
 
-		map<string,L_CMDS> t1lineCmds = { { "A",        LC_A        },
-						  { "AK",       LC_AK       },
-						  { "B",        LC_B        },
-						  { "BK",       LC_BK       },
-						  { "BNDS",     LC_BOUNDS   },
-						  { "C",        LC_C        },
-						  { "CC",       LC_CC       },
-						  { "COLS",     LC_COLS     },
-						  { "D",        LC_D        },
-						  { "DD",       LC_DD       },
-						  { "F",        LC_F        },
-						  { "HX",       LC_HX       },
-						  { "HXX",      LC_HXX      },
-						  { "I",        LC_I        },
-						  { "L",        LC_L        },
-						  { "LC",       LC_LC       },
-						  { "LCC",      LC_LCC      },
-						  { "M",        LC_M        },
-						  { "MM",       LC_MM       },
-						  { "MASK",     LC_MASK     },
-						  { "MD",       LC_MD       },
-						  { "MDD",      LC_MDD      },
-						  { "MN",       LC_MN       },
-						  { "MNN",      LC_MNN      },
-						  { "O",        LC_O        },
-						  { "OK",       LC_OK       },
-						  { "OO",       LC_OO       },
-						  { "OOK",      LC_OOK      },
-						  { "R",        LC_R        },
-						  { "RR",       LC_RR       },
-						  { "S",        LC_S        },
-						  { "SI",       LC_SI       },
-						  { "TABS",     LC_TABS     },
-						  { "TJ",       LC_TJ       },
-						  { "TJJ",      LC_TJJ      },
-						  { "TR",       LC_TR       },
-						  { "TRR",      LC_TRR      },
-						  { "TS",       LC_TS       },
-						  { "T",        LC_T        },
-						  { "TT",       LC_TT       },
-						  { "TX",       LC_TX       },
-						  { "TXX",      LC_TXX      },
-						  { "UC",       LC_UC       },
-						  { "UCC",      LC_UCC      },
-						  { "W",        LC_W        },
-						  { "WW",       LC_WW       },
-						  { "X",        LC_X        },
-						  { "XX",       LC_XX       },
-						  { "XI",       LC_XI       },
-						  { ")",        LC_SRC      },
-						  { "))",       LC_SRCC     },
-						  { "(",        LC_SLC      },
-						  { "((",       LC_SLCC     },
-						  { ">",        LC_SRD      },
-						  { ">>",       LC_SRDD     },
-						  { "<",        LC_SLD      },
-						  { "<<",       LC_SLDD     },
-						  { "]",        LC_SRTC     },
-						  { "]]",       LC_SRTCC    },
-						  { "[",        LC_SLTC     },
-						  { "[[",       LC_SLTCC    } } ;
+		map<string,L_CMDS> lineCmds  = { { "A",        LC_A        },
+						 { "AK",       LC_AK       },
+						 { "B",        LC_B        },
+						 { "BK",       LC_BK       },
+						 { "BNDS",     LC_BOUNDS   },
+						 { "C",        LC_C        },
+						 { "CC",       LC_CC       },
+						 { "COLS",     LC_COLS     },
+						 { "D",        LC_D        },
+						 { "DD",       LC_DD       },
+						 { "F",        LC_F        },
+						 { "HX",       LC_HX       },
+						 { "HXX",      LC_HXX      },
+						 { "I",        LC_I        },
+						 { "L",        LC_L        },
+						 { "LC",       LC_LC       },
+						 { "LCC",      LC_LCC      },
+						 { "M",        LC_M        },
+						 { "MM",       LC_MM       },
+						 { "MASK",     LC_MASK     },
+						 { "MD",       LC_MD       },
+						 { "MDD",      LC_MDD      },
+						 { "MN",       LC_MN       },
+						 { "MNN",      LC_MNN      },
+						 { "O",        LC_O        },
+						 { "OK",       LC_OK       },
+						 { "OO",       LC_OO       },
+						 { "OOK",      LC_OOK      },
+						 { "R",        LC_R        },
+						 { "RR",       LC_RR       },
+						 { "S",        LC_S        },
+						 { "SI",       LC_SI       },
+						 { "TABS",     LC_TABS     },
+						 { "TJ",       LC_TJ       },
+						 { "TJJ",      LC_TJJ      },
+						 { "TR",       LC_TR       },
+						 { "TRR",      LC_TRR      },
+						 { "TS",       LC_TS       },
+						 { "T",        LC_T        },
+						 { "TT",       LC_TT       },
+						 { "TX",       LC_TX       },
+						 { "TXX",      LC_TXX      },
+						 { "UC",       LC_UC       },
+						 { "UCC",      LC_UCC      },
+						 { "W",        LC_W        },
+						 { "WW",       LC_WW       },
+						 { "X",        LC_X        },
+						 { "XX",       LC_XX       },
+						 { "XI",       LC_XI       },
+						 { ")",        LC_SRC      },
+						 { "))",       LC_SRCC     },
+						 { "(",        LC_SLC      },
+						 { "((",       LC_SLCC     },
+						 { ">",        LC_SRD      },
+						 { ">>",       LC_SRDD     },
+						 { "<",        LC_SLD      },
+						 { "<<",       LC_SLDD     },
+						 { "]",        LC_SRTC     },
+						 { "]]",       LC_SRTCC    },
+						 { "[",        LC_SLTC     },
+						 { "[[",       LC_SLTCC    } } ;
 
 		map<string,string> aliasLCMDS = { { "COL",    "COLS" },
 						  { "BND",    "BNDS" },
@@ -3048,29 +3117,29 @@ class PEDIT01 : public pApplication
 						  { "OK",  "O"  },
 						  { "OOK", "OO" } } ;
 
-		set<string> t1blkCmds = { { "CC"   },
-					  { "DD"   },
-					  { "MM"   },
-					  { "HXX"  },
-					  { "LCC"  },
-					  { "MDD"  },
-					  { "MNN"  },
-					  { "OO"   },
-					  { "OOK"  },
-					  { "RR"   },
-					  { "TJJ"  },
-					  { "TRR"  },
-					  { "TT"   },
-					  { "TXX"  },
-					  { "XX"   },
-					  { "WW"   },
-					  { "UCC"  },
-					  { "(("   },
-					  { "))"   },
-					  { "<<"   },
-					  { ">>"   },
-					  { "[["   },
-					  { "]]"   } } ;
+		set<string> blkCmds  = { { "CC"   },
+					 { "DD"   },
+					 { "MM"   },
+					 { "HXX"  },
+					 { "LCC"  },
+					 { "MDD"  },
+					 { "MNN"  },
+					 { "OO"   },
+					 { "OOK"  },
+					 { "RR"   },
+					 { "TJJ"  },
+					 { "TRR"  },
+					 { "TT"   },
+					 { "TXX"  },
+					 { "XX"   },
+					 { "WW"   },
+					 { "UCC"  },
+					 { "(("   },
+					 { "))"   },
+					 { "<<"   },
+					 { ">>"   },
+					 { "[["   },
+					 { "]]"   } } ;
 
 		set<string> splCmds  = { { "A"    },
 					 { "AK"   },
@@ -3109,10 +3178,10 @@ class PEDIT01 : public pApplication
 					 { "MASK" },
 					 { "TABS" } } ;
 
-		set<string> t1abokReq = { { "C"    },
-					  { "CC"   },
-					  { "M"    },
-					  { "MM"   } } ;
+		set<string> abokReq  = { { "C"    },
+					 { "CC"   },
+					 { "M"    },
+					 { "MM"   } } ;
 
 		set<string> checkDst = { { "C"    },
 					 { "D"    },
@@ -3144,7 +3213,7 @@ class PEDIT01 : public pApplication
 		set<string> owBlock  = { { "OO"   },
 					 { "WW"   } } ;
 
-		set<string> t1reptOk = { { "A"    },
+		set<string> reptOk   = { { "A"    },
 					 { "AK"   },
 					 { "B"    },
 					 { "BK"   },
@@ -3196,18 +3265,6 @@ class PEDIT01 : public pApplication
 					 { "]]"   },
 					 { "["    },
 					 { "]"    } } ;
-
-		map<string,L_CMDS>* lineCmds ;
-
-		set<string>* blkCmds ;
-		set<string>* abokReq ;
-		set<string>* reptOk  ;
-
-		map<string,L_CMDS> t2lineCmds ;
-
-		set<string> t2blkCmds ;
-		set<string> t2abokReq ;
-		set<string> t2reptOk  ;
 
 		map<string,lmac> lmacs ;
 

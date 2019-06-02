@@ -30,10 +30,10 @@ pLScreen::pLScreen( int openedBy )
 	{
 		initscr() ;
 		getmaxyx( stdscr, maxrow, maxcol ) ;
-		if ( maxrow < 24 || maxcol < 80 )
+		if ( maxrow < 26 || maxcol < 80 )
 		{
 			endwin() ;
-			cout << "This program cannot run in a screen with fewer than 24 lines and 80 columns." << endl ;
+			cout << "This program cannot run in a screen with fewer than 26 lines and 80 columns." << endl ;
 			cout << "The size of this screen is " << maxrow << " lines by " << maxcol << " columns." << endl ;
 			cout << "Exiting..." << endl ;
 			return;

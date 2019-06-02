@@ -1604,9 +1604,8 @@ string mergepaths( const string& p1, const char* c1, const char* c2 )
 
 string parseString( errblock& err, string& s, string p )
 {
-	// return value of keyword parameter p, or null if not entered
-	// for a parameter p of (), return everything between the brackets
-	// for parameter without brackets, return "OK" if found else null
+	// Return value of keyword parameter p, or null if not entered
+	// Return everything between the brackets
 	// Leading and trailing spaces are removed from the parameter value
 
 	// err - errblock to hold any errors
@@ -1631,19 +1630,15 @@ string parseString( errblock& err, string& s, string p )
 		return "" ;
 	}
 
-	us = upper( s ) ;
-
 	if ( p.back() != ')' )
 	{
-		p1 = wordpos( p, us ) ;
-		if ( p1 > 0 )
-		{
-			trim( idelword( s, p1, 1 ) ) ;
-			return "OK" ;
-		}
+		err.seterrid( "PSYE037I", p ) ;
 		return "" ;
 	}
+
 	p.pop_back() ;
+	us = upper( s ) ;
+
 	if ( us.compare( 0, p.size(), p ) == 0 )
 	{
 		p1 = 0 ;
@@ -1680,6 +1675,37 @@ string parseString( errblock& err, string& s, string p )
 	trim( s.erase( p1, p2-p1+1 ) ) ;
 
 	return trim( t ) ;
+}
+
+
+bool parseString1( string& s, string p )
+{
+	// Return true if keyword p found in string s (keyword does not contain brackets).
+	// Remove keyword from string s and trim.
+
+	// s - entered string
+	// p - parameter to find (case insensitive)
+
+	size_t p1 ;
+
+	string us ;
+
+	iupper( trim( p ) ) ;
+
+	if ( p.size() == 0 )
+	{
+		return false ;
+	}
+
+	us = upper( s ) ;
+
+	p1 = wordpos( p, us ) ;
+	if ( p1 > 0 )
+	{
+		trim( idelword( s, p1, 1 ) ) ;
+		return true ;
+	}
+	return false ;
 }
 
 
@@ -1752,14 +1778,14 @@ string extractKWord( errblock& err, string& s, string p )
 	us = upper( s ) ;
 	if ( p.back() != ')' || p.size() < 3 )
 	{
-		err.seterrid( "PSYE037H" ) ;
+		err.seterrid( "PSYE037I" ) ;
 		return "" ;
 	}
 
 	p.pop_back() ;
 	if ( p.back() != '(' )
 	{
-		err.seterrid( "PSYE037H" ) ;
+		err.seterrid( "PSYE037I" ) ;
 		return "" ;
 	}
 

@@ -214,8 +214,8 @@ PSYS013G 'Invalid RNAME' .TYPE=W
 PSYS013H 'Invalid program' .TYPE=W
 'Errors loading program ''&ZVAL1''.  See logs for unresolved symbol errors'
 
-PSYS013I 'User abend has occured'
+PSYS013I 'User abend has occured' .TYPE=W
 'See application log for error details'
 
-PSYS013J 'An abend has occured'
+PSYS013J 'An abend has occured' .TYPE=W
 'See application log for error details'

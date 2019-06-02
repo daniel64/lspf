@@ -1,0 +1,39 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+VIEW warning on trying to save data
+)ENDCOMMENT
+
+)BODY HOME(ZCMD1) CMD(ZCMD1) WINDOW(57,12)
+PanelDesc "View Warning"
+
+text     2    2       FP     "Command ===> "
+field    2   15  MAX  NEF     PAD(USER) ZCMD1
+
+text     4   14       NT     "You are currently in VIEW mode"
+
+text    6   2   CH "Instructions"
+text    8   2   NT "Press"
+text    8   8   ET "ENTER"
+text    8   14  NT "or"
+text    8   17  ET "END"
+text    8   21  NT "to return to VIEW."
+text    10  2   NT "Use the"
+text    10  10  ET "CREATE"
+text    10  17  NT "or"
+text    10  20  ET "REPLACE"
+text    10  28  NT "VIEW primary command to"
+text    11  2   NT "save changes."
+
+)INIT
+
+&ZCMD1  = &Z
+&ZWINTTL = 'View Warning'
+
+)PROC
+if (&ZCMD1 NE &Z)
+  .MSG    = PSYS018
+  .CURSOR = ZCMD1
+  EXIT
+
+)END

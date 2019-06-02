@@ -111,11 +111,12 @@ using namespace boost::filesystem ;
 PFLST0A::PFLST0A()
 {
 	set_appdesc( "File list application for lspf" ) ;
-	set_appver( "1.0.0" ) ;
+	set_appver( "1.0.1" ) ;
 
 	vdefine( "ZCURFLD", &zcurfld ) ;
 	vdefine( "ZCURINX  ZTDTOP ZTDVROWS ZTDSELS ZTDDEPTH", &zcurinx, &ztdtop, &ztdvrows, &ztdsels, &ztddepth ) ;
 	vdefine( "ZEDLMACT ZEDEPROF ZEDIMACA ZEDECCAN ZEDPRSPS", &lcmtab, &eprof, &eimac, &eccan, &epresv ) ;
+	vdefine( "ZEDECWRN", &ecwarn ) ;
 }
 
 
@@ -147,6 +148,7 @@ void PFLST0A::application()
 	string panel    ;
 	string csr      ;
 	string msgloc   ;
+	string zdef1    ;
 
 	string zsbtask  ;
 	string condoff  ;
@@ -163,7 +165,7 @@ void PFLST0A::application()
 	vdefine( "SEL ENTRY MESSAGE TYPE PERMISS SIZE STCDATE MODDATE", &sel, &ENTRY, &message, &TYPE, &permiss, &size, &stcdate, &moddate ) ;
 	vdefine( "MODDATES ZVERB ZHOME ZCMD ZPATH CONDOFF NEWENTRY FREPL", &moddates, &zverb, &zhome, &zcmd, &zpath, &condoff, &newentry, &frepl ) ;
 	vdefine( "RSN NEMPTOK DIRREC AFHIDDEN", &rsn, &nemptok, &dirrec, &afhidden ) ;
-	vdefine( "EXGEN OEXGEN", &exgen, &oexgen ) ;
+	vdefine( "EXGEN OEXGEN ZFLSDEF1", &exgen, &oexgen, &zdef1 ) ;
 	vdefine( "CRP", &crp ) ;
 
 	vcopy( "ZUSER", zuser, MOVE ) ;
@@ -171,7 +173,7 @@ void PFLST0A::application()
 
 	std::ofstream of ;
 
-	vget( "ZHOME ZEDLMACT ZEDEPROF ZEDIMACA ZEDECCAN ZEDPRSPS", SHARED ) ;
+	vget( "ZHOME ZEDLMACT ZEDEPROF ZEDIMACA ZEDECCAN ZEDPRSPS ZFLSDEF1 ZEDECWRN", SHARED ) ;
 	vget( "AFHIDDEN EXGEN", PROFILE ) ;
 
 	UseList = false ;
@@ -377,7 +379,7 @@ void PFLST0A::application()
 				}
 				else if ( is_regular_file( entry ) )
 				{
-					sel = "E" ;
+					sel = ( zdef1 != "" ) ? string( 1, zdef1.front() ) : "E" ;
 				}
 				else
 				{
@@ -699,7 +701,7 @@ void PFLST0A::application()
 			break ;
 
 		case LN_EDIT:
-			if ( editRecovery() == 8 ) { break ; }
+			if ( editRecovery( "EDIT" ) == 8 ) { break ; }
 			control( "ERRORS", "RETURN" ) ;
 			edit( entry, "", eimac, eprof, lcmtab, eccan, ( epresv == "YES" ? "PRESERVE" : "" ) ) ;
 			if ( RC == 0 || RC == 4 )
@@ -718,10 +720,21 @@ void PFLST0A::application()
 			break ;
 
 		case LN_VIEW:
+			if ( editRecovery( "VIEW" ) == 8 ) { break ; }
 			control( "ERRORS", "RETURN" ) ;
-			view( entry ) ;
+			view( entry, "", eimac, eprof, lcmtab, eccan, ecwarn ) ;
+			if ( RC == 0 || RC == 4 )
+			{
+				setmsg( ZRESULT != "" ? ZRESULT : "FLST012O" ) ;
+				message = "Viewed" ;
+			}
+			else if ( RC > 11 )
+			{
+				msg = isvalidName( ZRESULT ) ? ZRESULT : "" ;
+				i   = zcurinx ;
+				message = "Error" ;
+			}
 			control( "ERRORS", "CANCEL" ) ;
-			message = ( ZRESULT != "" ) ? "Error" : "Viewed" ;
 			tbput( dslist ) ;
 			break ;
 
@@ -730,6 +743,7 @@ void PFLST0A::application()
 			browse( entry ) ;
 			if ( RC == 0 )
 			{
+				setmsg( "FLST012P" ) ;
 				message = "Browsed" ;
 			}
 			else if ( RC == 12 )
@@ -1314,8 +1328,9 @@ int PFLST0A::processPrimCMD()
 	string p   ;
 	string t   ;
 
-	std::ofstream of ;
 	boost::system::error_code ec ;
+
+	bool found ;
 
 	cw = upper( word( zcmd, 1 ) ) ;
 
@@ -1356,7 +1371,7 @@ int PFLST0A::processPrimCMD()
 			control( "ERRORS", "RETURN" ) ;
 			if ( findword( cw, "E EDIT" ) )
 			{
-				if ( editRecovery() == 8 )
+				if ( editRecovery( "EDIT" ) == 8 )
 				{
 					control( "ERRORS", "CANCEL" ) ;
 					return 0 ;
@@ -1440,7 +1455,7 @@ int PFLST0A::processPrimCMD()
 	}
 	else if ( cw == "MKDIR" )
 	{
-		if ( ws[ 0 ] != '/' ) { ws = zpath + "/" + ws ; }
+		if ( ws.front() != '/' ) { ws = zpath + "/" + ws ; }
 		create_directory( ws, ec ) ;
 		if ( ec.value() == boost::system::errc::success )
 		{
@@ -1457,17 +1472,31 @@ int PFLST0A::processPrimCMD()
 	}
 	else if ( cw == "TOUCH" )
 	{
-		if ( ws[ 0 ] != '/' ) { ws = zpath + "/" + ws ; }
-		if ( !exists( ws ) )
+		if ( ws.front() != '/' ) { ws = zpath + "/" + ws ; }
+		try
 		{
-			of.open( ws.c_str() ) ;
-			if ( !of.fail() )
+			found = exists( ws ) ;
+		}
+		catch ( const filesystem_error& ex )
+		{
+			msg  = "FLST012F" ;
+			zcmd = "" ;
+			llog( "E", "Error accessing file " << ex.what() << endl ) ;
+			return 4  ;
+		}
+		if ( not found)
+		{
+			try
 			{
-				of << endl ;
+				std::ofstream of( ws.c_str() ) ;
 				of.close() ;
 				msg = "FLST012E" ;
 			}
-			else { msg = "FLST012F" ; }
+			catch ( const filesystem_error& ex )
+			{
+				msg = "FLST012F" ;
+				llog( "E", "Error creating file " << ex.what() << endl ) ;
+			}
 		}
 		else
 		{
@@ -1898,7 +1927,7 @@ void PFLST0A::browseTree( const string& tname )
 		}
 		else if ( tsel == "E" )
 		{
-			if ( editRecovery() == 8 ) { continue ; }
+			if ( editRecovery( "EDIT" ) == 8 ) { continue ; }
 			control( "ERRORS", "RETURN" ) ;
 			edit( tfile ) ;
 			if ( RC == 0 || RC == 4 )
@@ -1917,32 +1946,52 @@ void PFLST0A::browseTree( const string& tname )
 }
 
 
-int PFLST0A::editRecovery()
+int PFLST0A::editRecovery( const string& zvmode )
 {
+	string msg   ;
 	string zcmd  ;
 	string zfile ;
+	string zedmode ;
 
 	const string vlist = "ZCMD ZFILE" ;
 
 	vdefine( vlist, &zcmd, &zfile ) ;
 
+	vreplace( "ZVMODE", zvmode ) ;
+
 	edrec( "INIT" ) ;
 
 	while ( true )
 	{
-		edrec( "QUERY" ) ;
-		if ( RC == 0 ) { break ; }
+		if ( msg == "" )
+		{
+			edrec( "QUERY" ) ;
+			if ( RC == 0 ) { break ; }
+			vcopy( "ZEDMODE", zedmode, MOVE ) ;
+			if ( zvmode.compare( 0, 1, zedmode ) != 0 )
+			{
+				edrec( "DEFER" ) ;
+				continue ;
+			}
+		}
 		vcopy( "ZEDTFILE", zfile, MOVE ) ;
-		display( "PEDIT014", "", "ZCMD" ) ;
+		display( "PEDIT014", msg, "ZCMD" ) ;
 		if ( RC == 8 && zcmd != "CANCEL" )
 		{
 			edrec( "DEFER" ) ;
 			vdelete( vlist ) ;
 			return 8 ;
 		}
+		msg = "" ;
 		if ( zcmd == "" )
 		{
+			control( "ERRORS", "RETURN" ) ;
 			edrec( "PROCESS" ) ;
+			if ( RC >= 12 )
+			{
+				vcopy( "ZERRMSG", msg, MOVE ) ;
+			}
+			control( "ERRORS", "CANCEL" ) ;
 		}
 		else if ( zcmd == "CANCEL" )
 		{
@@ -1987,11 +2036,9 @@ string PFLST0A::expandDir( const string& parms )
 	string dir   ;
 	string cpos  ;
 	string data1 ;
-	string data2 ;
 
 	ZRC   = 8  ;
 	data1 = "" ;
-	data2 = "" ;
 	showl = false ;
 
 	typedef vector< path > vec ;
@@ -2008,35 +2055,31 @@ string PFLST0A::expandDir( const string& parms )
 
 	if ( type == "FO2" )
 	{
-		if ( dir[ 0 ] == '?' )
+		if ( dir.front() == '?' )
 		{
 			showl = true ;
 			dir   = ""   ;
 		}
-		vget( "ZFEDATA1 ZFEDATA2", SHARED ) ;
-		vcopy( "ZFEDATA1", data1, MOVE )    ;
-		vcopy( "ZFEDATA2", data2, MOVE )    ;
+		vget( "ZFEDATA1", SHARED ) ;
+		vcopy( "ZFEDATA1", data1, MOVE ) ;
+		if ( trim( data1 ) == "" )
+		{
+			vget( "ZFEDATA2", SHARED ) ;
+			vcopy( "ZFEDATA2", data1, MOVE ) ;
+		}
 		if ( data1 == "" )
 		{
-			if ( data2 == "" )
-			{
-				RC = 8    ;
-				return "" ;
-			}
-			else
-			{
-				if ( data2.back() == '/' ) { dir = data2 + dir ; --pos ; }
-				else                       { dir = data2 + "/" + dir   ; }
-				pos = pos + data2.size() + 1 ;
-			}
+			RC = 8    ;
+			return "" ;
 		}
-		else
+		if ( data1.back() == '/' ) { dir = data1 + dir ; --pos ; }
+		else                       { dir = data1 + "/" + dir   ; }
+		pos = pos + data1.size() + 1 ;
+		if ( showl )
 		{
-			if ( data1.back() == '/' ) { dir = data1 + dir ; --pos ; }
-			else                       { dir = data1 + "/" + dir   ; }
-			pos = pos + data1.size() + 1 ;
+			zpath = dir ;
+			return showListing() ;
 		}
-		if ( showl ) { zpath = dir ; return showListing() ; }
 	}
 
 
@@ -2045,7 +2088,7 @@ string PFLST0A::expandDir( const string& parms )
 		dir = zhome ;
 		pos = zhome.size() ;
 	}
-	else if ( dir[ 0 ] == '?' )
+	else if ( dir.front() == '?' )
 	{
 		if ( dir.size() > 1 )
 		{
@@ -2081,11 +2124,7 @@ string PFLST0A::expandDir( const string& parms )
 
 	try
 	{
-		if ( type == "ALL" )
-		{
-			;
-		}
-		else if ( type == "DO1" )
+		if ( type == "DO1" )
 		{
 			new_end = remove_if( v.begin(), v.end(), [](const path& a) { return !is_directory( a.string() ) ; } ) ;
 			v.erase( new_end, v.end() ) ;
@@ -2095,7 +2134,11 @@ string PFLST0A::expandDir( const string& parms )
 			new_end = remove_if( v.begin(), v.end(), [](const path& a) { return !is_regular_file( a.string() ) ; } ) ;
 			v.erase( new_end, v.end() ) ;
 		}
-		else { RC = 16 ; return "" ; }
+		else if ( type != "ALL" )
+		{
+			RC = 16 ;
+			return "" ;
+		}
 	}
 	catch ( const filesystem_error& ex )
 	{

@@ -299,10 +299,15 @@ class pApplication
 			     const string& m_confirm="",
 			     const string& m_preserv="" ) ;
 
-		void   edrec( const string& m_parm ) ;
-
 		void   view( const string& m_file,
-			     const string& m_panel="" ) ;
+			     const string& m_panel="",
+			     const string& m_macro="",
+			     const string& m_profile="",
+			     const string& m_lcmds="",
+			     const string& m_confirm="",
+			     const string& m_preserv="" ) ;
+
+		void   edrec( const string& m_parm ) ;
 
 		void   setmsg( const string& msg, msgSET sType=UNCOND  ) ;
 		void   getmsg( const string&,
@@ -500,6 +505,8 @@ class pApplication
 				     const string& v_list ) ;
 		int    edrec_defer( const string& qname,
 				    const string& rname ) ;
+
+		void   edit_rec( const edit_parms& ) ;
 
 		errblock errBlock ;
 		errblock serBlock ;

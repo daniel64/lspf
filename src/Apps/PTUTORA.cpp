@@ -147,7 +147,7 @@ void PTUTORA::application()
 
 	rebuildZAREA = true  ;
 
-	vdefine( "ZCMD ZVERB ZROW1 ZROW2 ZAREA ZSHADOW ZAREAT ZDSN", &zcmd, &zverb, &zrow1, &zrow2, &zarea, &zshadow, &zareat, &zdsn ) ;
+	vdefine( "ZCMD ZVERB ZROW1 ZROW2 ZAREA ZSHADOW ZDSN", &zcmd, &zverb, &zrow1, &zrow2, &zarea, &zshadow, &zdsn ) ;
 	vdefine( "ZSCROLLN ZAREAW ZAREAD", &zscrolln, &zareaw, &zaread ) ;
 	vdefine( "ZSCROLLA ZCOL1", &zscrolla, &zcol1 ) ;
 
@@ -155,7 +155,7 @@ void PTUTORA::application()
 	startCol  = 1 ;
 	maxCol    = 1 ;
 
-	pquery( "PTUTORA1", "ZAREA", "ZAREAT", "ZAREAW", "ZAREAD" ) ;
+	pquery( "PTUTORA1", "ZAREA", "", "ZAREAW", "ZAREAD" ) ;
 	if ( RC > 0 )  { abend() ; return ; }
 
 	maxLines = 6 ;

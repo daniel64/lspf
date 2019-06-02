@@ -67,7 +67,7 @@ class PFLST0A : public pApplication
 		string expandName( const string& ) ;
 		void   AddPath( const string&, const string&, vector<path>& ) ;
 		string createEntry( const string&, const string& ) ;
-		int    editRecovery() ;
+		int    editRecovery( const string& ) ;
 
 		vector<string> SearchList ;
 		bool   UseSearch ;
@@ -109,6 +109,7 @@ class PFLST0A : public pApplication
 		string eimac    ;
 		string eccan    ;
 		string epresv   ;
+		string ecwarn   ;
 		string moddate  ;
 		string moddates ;
 		string ientry   ;

@@ -50,7 +50,6 @@ class PPSP01A : public pApplication
 		string zrow1   ;
 		string zrow2   ;
 		string zarea   ;
-		string zareat  ;
 		int    zareaw  ;
 		int    zaread  ;
 		uint   zasize  ;
@@ -102,7 +101,7 @@ class PPSP01A : public pApplication
 		void getpoolVariables( const string&, const string& ) ;
 		void browseEntry( string& ) ;
 		void editEntry( string& )   ;
-		int  editRecovery()      ;
+		int  editRecovery( const string& ) ;
 		void showPaths()         ;
 		void showCommandTables() ;
 		void showLoadedClasses() ;

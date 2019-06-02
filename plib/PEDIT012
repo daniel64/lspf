@@ -64,9 +64,9 @@ PDC DESC('Edit Settings')
 
 
 )BODY SCROLL(ZSCROLL)
-PanelDesc "Edit &ZEDALT"
+PanelDesc "&ZVMODE &ZEDALT"
 
-text      3   2             VOI  "EDIT"
+field     3   2     4       VOI  NONE ZVMODE
 field     3   10    MAX-20  VOI  NONE ZEDALT
 
 text      4   2             FP "Command ===>"

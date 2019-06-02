@@ -523,18 +523,22 @@ class tbsearch
 	public:
 		tbsearch()
 		{
+			tbs_var   = ""    ;
 			tbs_val   = ""    ;
+			tbs_pos   = -1    ;
 			tbs_gen   = false ;
 			tbs_cond  = s_EQ  ;
 			tbs_scond = "EQ"  ;
 			tbs_size  = 0     ;
 		} ;
 
-		explicit tbsearch( const string& val )
+		explicit tbsearch( const string& var, const string& val, int i )
 		{
+			tbs_var   = var   ;
+			tbs_pos   = i     ;
 			tbs_cond  = s_EQ  ;
 			tbs_scond = "EQ"  ;
-			if ( val.back() == '*' )
+			if ( val.size() > 0 && val.back() == '*' )
 			{
 				tbs_gen  = true ;
 				tbs_size = val.size() - 1 ;
@@ -567,10 +571,12 @@ class tbsearch
 			return true ;
 		} ;
 
+		string tbs_var   ;
 		string tbs_val   ;
 		string tbs_scond ;
 		srCOND tbs_cond  ;
 		bool   tbs_gen   ;
+		int    tbs_pos   ;
 		int    tbs_size  ;
 } ;
 
@@ -727,6 +733,29 @@ class selobj
 		void*  options ;
 
 	private:
+} ;
+
+
+class edit_parms
+{
+	public:
+		edit_parms()
+		{
+			edit_viewmode = false ;
+			edit_recovery = false ;
+		}
+
+		string edit_file     ;
+		string edit_panel    ;
+		string edit_macro    ;
+		string edit_profile  ;
+		string edit_lcmds    ;
+		string edit_bfile    ;
+		string edit_confirm  ;
+		string edit_preserve ;
+		string edit_chgwarn  ;
+		bool   edit_viewmode ;
+		bool   edit_recovery ;
 } ;
 
 

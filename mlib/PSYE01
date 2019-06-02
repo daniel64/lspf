@@ -5,268 +5,271 @@
 /*                                           */
 /*  Panel load errors                        */
 /*                                           */
-PSYE011A 'Tabs found in panel file'
+PSYE011A 'Tabs found in panel file' .TYPE=W
 'Panel files cannot contain tabs. Please remove'
 
-PSYE011B ')PANEL statement error'
+PSYE011B ')PANEL statement error' .TYPE=W
 'Check VERSION and FORMAT statements'
 
-PSYE011C ')PANEL statement error'
+PSYE011C ')PANEL statement error' .TYPE=W
 'Invalid Keylist parameters on )PANEL statement'
 
-PSYE011D ')BODY statement error'
+PSYE011D ')BODY statement error' .TYPE=W
 ''
 
-PSYE011E 'WINDOW() statement error'
+PSYE011E 'WINDOW() statement error' .TYPE=W
 'Window width must be at least 2 less than the physical screen width of &ZSCRMAXW'
 
-PSYE011F 'WINDOW() statement error'
+PSYE011F 'WINDOW() statement error' .TYPE=W
 'Window depth must be at least 2 less than the physical screen width of &ZSCRMAXD'
 
-PSYE011G 'No )ABC descrption'
+PSYE011G 'No )ABC descrption' .TYPE=W
 'Action bar choice must have a description defined'
 
-PSYE011H 'Attribute already defined'
+PSYE011H 'Attribute already defined' .TYPE=W
 'Character ''&ZVAL1'' has already been defined in a TYPE statement'
 
-PSYE011I 'Invalid attribute character'
+PSYE011I 'Invalid attribute character' .TYPE=W
 'The maximum hex value for a TYPE(CHAR) attribute character is 250'
 
-PSYE011J 'Maximum TYPE(CHAR) exceeded'
+PSYE011J 'Maximum TYPE(CHAR) exceeded' .TYPE=W
 'The maximum number of TYPE(CHAR) attribute statements is 127'
 
-PSYE011K 'Invalid action bar choice'
+PSYE011K 'Invalid action bar choice' .TYPE=W
 'Action bar choice ''&ZVAL1'' has no associated )ABC statement'
 
 /*                                           */
 /*  Function pool                            */
 /*                                           */
-PSYE012A 'Invalid definition'
+PSYE012A 'Invalid definition' .TYPE=W
 'Function pool definition of &ZVAL1 is not of type STRING'
 
-PSYE012B 'Invalid definition'
+PSYE012B 'Invalid definition' .TYPE=W
 'Function pool definition of &ZVAL1 is not of type INT'
 
-PSYE012C 'Invalid call type'
+PSYE012C 'Invalid call type' .TYPE=W
 'Call type must be INTEGER'
 
 /*                                           */
 /*  Table and Table Manager                  */
 /*                                           */
-PSYE013A 'Invalid variable name on a &ZVAL1'
+PSYE013A 'Invalid variable name on a &ZVAL1' .TYPE=W
 'Variable ''&ZVAL2'' has an invalid format'
 
-PSYE013B 'Maximum return code exceeded'
+PSYE013B 'Maximum return code exceeded' .TYPE=W
 'Maximum return code of &ZVAL1 exceeded for function pool GET of &ZVAL2'
 
-PSYE013C 'Output destination not specified'
+PSYE013C 'Output destination not specified' .TYPE=W
 'No destination specified and both ZTABL and ZTLIB are null'
 
-PSYE013D 'Input library not specified'
+PSYE013D 'Input library not specified' .TYPE=W
 'No input library specified and ZTLIB is null'
 
-PSYE013E 'Non-zero return code'
+PSYE013E 'Non-zero return code' .TYPE=W
 'Function &ZVAL1 gave non-zero return code'
 
-PSYE013F 'Max rows exceeded'
+PSYE013F 'Max rows exceeded' .TYPE=W
 'Maximum table size of &ZMXTABSZ exceeded.  Check MXTAB_SZ.'
 
-PSYE013G 'Table not open'
+PSYE013G 'Table not open' .TYPE=W
 '&ZVAL1 issued for table &ZVAL2 that is not open'
 
-PSYE013H 'Table name missing'
+PSYE013H 'Table name missing' .TYPE=W
 'Table name must be specified on a &ZVAL1 call'
 
-PSYE013I 'Invalid save'
+PSYE013I 'Invalid save' .TYPE=W
 'Table &ZVAL1 is a temporary table.  Cannot be saved'
 
-PSYE013J 'Invalid directory'
+PSYE013J 'Invalid directory' .TYPE=W
 'Entry &ZVAL1 is not a regular directory'
 
-PSYE013K 'Namelist missing'
+PSYE013K 'Namelist missing' .TYPE=W
 'If the table has no keys or fields, extension variables must be specified on a &ZVAL1'
 
-PSYE013L 'Invalid file'
+PSYE013L 'Invalid file' .TYPE=W
 'Table load file name &ZVAL1 is not a regular file'
 
-PSYE013M 'Invalid parameter'
+PSYE013M 'Invalid parameter' .TYPE=W
 'Invalid &ZVAL1 parameter specified.  Invalid specification is &ZVAL2'
 
-PSYE013N 'Bad return code from TBSORT'
+PSYE013N 'Bad return code from TBSORT' .TYPE=W
 'Sort Information Record found is &ZVAL1'
 
-PSYE013O 'Invalid COND PAIRS specified'
+PSYE013O 'Invalid COND PAIRS specified' .TYPE=W
 'Entered: ''&ZVAL1'''
 
-PSYE013P 'Invalid keyword'
+PSYE013P 'Invalid keyword' .TYPE=W
 '''&ZVAL1'' is not a valid keyword for this service'
 
-PSYE013Q 'Invalid condition list specified: &ZVAL1'
+PSYE013Q 'Invalid condition list specified: &ZVAL1' .TYPE=W
 'Condition list must be a list of conditions matching arglist'
 
-PSYE013R 'Invalid search pairs'
+PSYE013R 'Invalid search pairs' .TYPE=W
 'Search pairs must be of the form NAME,COND,NAME,COND....'
 
-PSYE013S 'Invalid NAME specifed on TBSARG request'
-'Must be a key, field or extension variable name.  Invalid specification is &ZVAL1'
+PSYE013S 'Invalid name specified' .TYPE=W
+'Must be a key, field or extension variable name.  Invalid entry is &ZVAL1'
 
-PSYE013T 'Invalid condition'
+PSYE013T 'Invalid condition' .TYPE=W
 'Has to be EQ, NE, LE, LT, GE or GT. Invalid specification is &ZVAL1'
 
-PSYE013U 'No scan arguments have been set'
-'Establish scan arguments for table &ZVAL1'
+PSYE013U 'No scan arguments set' .TYPE=W
+'Establish scan arguments for table &ZVAL1 using TBSARG or the ARGLIST parameter'
 
-PSYE013V 'Too many conditions on NAMELIST'
-'CONDLIST parameter has more conditions than names in the NAMELIST parameter (less defaults to EQ)'
+PSYE013V 'Spare' .TYPE=W
+'Spare'
 
-PSYE013W 'Table in use'
+PSYE013W 'Table in use' .TYPE=W
 '&ZVAL1 issued for table &ZVAL2 that is in use. Cannot enqueue file'
 
-PSYE013X 'Invalid TBSORT argument'
+PSYE013X 'Invalid TBSORT argument' .TYPE=W
 'Invalid argument is ''&ZVAL1'''
 
-PSYE013Y 'Spare'
-'Spare'
+PSYE013Y 'Duplicate field entry' .TYPE=W
+'Field &ZVAL1 appears twice in the search argument'
 
-PSYE013Z 'Table already open'
+PSYE013Z 'Table already open' .TYPE=W
 '&ZVAL1 issued for table &ZVAL2 that is already open'
 
-PSYE014A 'Spare'
+PSYE014A 'Spare' .TYPE=W
 'Spare'
 
-PSYE014B 'Spare'
+PSYE014B 'Spare' .TYPE=W
 'Spare'
 
-PSYE014C 'More conditions specified than table fields'
-'There must be at least as many table fields in arglist as conditions'
+PSYE014C 'Too many conditions' .TYPE=W
+'There must be at least as many fields in ARGLIST as conditions in CONDLIST'
 
-PSYE014D 'File open failed for &ZVAL1'
+PSYE014D 'File open failed for &ZVAL1' .TYPE=W
 'File: &ZVAL2'
 
-PSYE014E 'Not a valid table file for table &ZVAL1'
+PSYE014E 'Not a valid table file for table &ZVAL1' .TYPE=W
 'File: &ZVAL2'
 
-PSYE014F 'Invalid table prefix'
+PSYE014F 'Invalid table prefix' .TYPE=W
 'Version &ZVAL1 not supported or table is corrupt.  File: &ZVAL2'
 
-PSYE014G 'Invalid number of table information fields found'
+PSYE014G 'Invalid number of table information fields found' .TYPE=W
 'Only 1 expected.  Found &ZVAL1'
 
-PSYE014H 'Unexpected EOF reading keys'
+PSYE014H 'Unexpected EOF reading keys' .TYPE=W
 'Table &ZVAL1 appears to be corrupt. File: &ZVAL2'
 
-PSYE014I 'Unexpected EOF reading fields'
+PSYE014I 'Unexpected EOF reading fields' .TYPE=W
 'Table &ZVAL1 appears to be corrupt.  File: &ZVAL2'
 
-PSYE014J 'End of record marker not found'
+PSYE014J 'End of record marker not found' .TYPE=W
 'File: &ZVAL1'
 
-PSYE014K 'End of file marker not found'
+PSYE014K 'End of file marker not found' .TYPE=W
 'File: &ZVAL1'
 
-PSYE014L 'Inconsistent number of records found with saved total'
+PSYE014L 'Inconsistent number of records found with saved total' .TYPE=W
 'Found=&ZVAL1 Saved Total=&ZVAL2'
 
-PSYE014M 'Unexpected EOF reading table values for table &ZVAL1'
+PSYE014M 'Unexpected EOF reading table values for table &ZVAL1' .TYPE=W
 'File: &ZVAL2'
 
-PSYE014N 'Table &ZVAL1 in use'
+PSYE014N 'Table &ZVAL1 in use' .TYPE=W
 'Table cannot be erased while in use.'
 
-PSYE014O 'Invalid operation'
+PSYE014O 'Invalid operation' .TYPE=W
 'Operation not valid for system variable &ZVAL1'
 
-PSYE014P 'Internal logic error'
+PSYE014P 'Internal logic error' .TYPE=W
 'Variable &ZVAL1 is unknown but has a dynamically created value'
 
-PSYE014Q 'Invalid table name'
+PSYE014Q 'Invalid table name' .TYPE=W
 'Table name ''&ZVAL1'' is not of a valid format'
 
-PSYE014R 'WRITE/NOWRITE conflict'
+PSYE014R 'WRITE/NOWRITE conflict' .TYPE=W
 'Parameter must be consistent across all tasks opening SHARED table &ZVAL1'
 
-PSYE014S 'TBSAVE issued for table &ZVAL1 not opened in WRITE mode'
+PSYE014S 'TBSAVE issued for table &ZVAL1 not opened in WRITE mode' .TYPE=W
 'Table must be opened or created in WRITE mode'
 
-PSYE014T 'Variable prefix too long'
+PSYE014T 'Variable prefix too long' .TYPE=W
 'List variable must be 7 characters or less'
 
 
 /*                                           */
 /* function pool messages                    */
 /*                                           */
-PSYE015A 'Variable ''&ZVAL1'' truncated'
+PSYE015A 'Variable ''&ZVAL1'' truncated' .TYPE=W
 'Maximum length of 32,765 has been exceeded.  Variable truncated.'
 
-PSYE015B 'Invalid action'
+PSYE015B 'Invalid action' .TYPE=W
 'Pool is read-only'
 
-PSYE015C 'Invalid action'
+PSYE015C 'Invalid action' .TYPE=W
 'Cannot erase from the system profile pool'
 
-PSYE015D 'Invalid action'
+PSYE015D 'Invalid action' .TYPE=W
 '''&ZVAL1'' cannot be modified as it is a system variable'
 
-PSYE015E 'Invalid action'
+PSYE015E 'Invalid action' .TYPE=W
 '''&ZVAL1'' cannot be erased as it is a system variable'
 
-PSYE015F 'Profile open for &ZVAL1 gave an error'
+PSYE015F 'Profile open for &ZVAL1 gave an error' .TYPE=W
 'File: &ZVAL2'
 
-PSYE015G 'Not a valid PROFILE file for &ZVAL1.  Appears corrupt'
+PSYE015G 'Not a valid PROFILE file for &ZVAL1.  Appears corrupt' .TYPE=W
 'File: &ZVAL2'
 
-PSYE015H 'Invalid profile format version'
+PSYE015H 'Invalid profile format version' .TYPE=W
 'Version &ZVAL1 not supported or profile is corrupt for &ZVAL2'
 
-PSYE015I 'Unexpected EOF reading saved profile variables'
+PSYE015I 'Unexpected EOF reading saved profile variables' .TYPE=W
 'Profile &ZVAL1 appears corrupt'
 
-PSYE015J 'Invalid directory'
+PSYE015J 'Invalid directory' .TYPE=W
 'Directory &ZVAL1 is not a regular directory for profile save'
 
-PSYE015K 'Invalid directory'
+PSYE015K 'Invalid directory' .TYPE=W
 'Directory &ZVAL1 does not exist for profile save'
 
-PSYE015L 'Pool manager error'
+PSYE015L 'Pool manager error' .TYPE=W
 '&ZVAL1 of &ZVAL2 failed'
 
 /*                                           */
 /* pool manager messages                     */
 /*                                           */
-PSYE017A 'Internal logic error'
+PSYE017A 'Internal logic error' .TYPE=W
 'poolMGR has invalid Applid (&ZVAL1).'
 
-PSYE017B 'Internal logic error'
+PSYE017B 'Internal logic error' .TYPE=W
 'locateSubPool POOL TYPE must be PROFILE or SHARED'
 
-PSYE017C 'Internal logic error'
+PSYE017C 'Internal logic error' .TYPE=W
 'poolMGR get() POOL TYPE must be ASIS, PROFILE or SHARED'
 
-PSYE017D 'Internal logic error'
+PSYE017D 'Internal logic error' .TYPE=W
 'poolMGR sysput()/sysget() function passed invalid POOL TYPE. Must be PROFILE or SHARED'
 
-PSYE017E 'Internal logic error'
+PSYE017E 'Internal logic error' .TYPE=W
 'poolMGR cannot find pool &ZVAL1'
 
 /*                                           */
 /* ISPEXEC interface messages                */
 /*                                           */
-PSYE019A 'Invalid Service'
+PSYE019A 'Invalid Service' .TYPE=W
 '&ZVAL1 service invalid with this interface'
 
-PSYE019B 'Invalid service'
+PSYE019B 'Invalid service' .TYPE=W
 '&ZVAL1 not a recognised service name'
 
-PSYE019C 'Spare'
-'Spare'
+PSYE019C 'Missing parameter' .TYPE=W
+'Required parameter &ZVAL1 is missing'
 
-PSYE019D '&ZVAL1'
+PSYE019D '&ZVAL1' .TYPE=W
 '&ZVAL2'
 
-PSYE019E 'Value must be numeric'
+PSYE019E 'Value must be numeric' .TYPE=W
 '''&ZVAL1'' is not a numeric value'
 
-PSYE019F 'Numeric value incorrect'
+PSYE019F 'Numeric value incorrect' .TYPE=W
 'Numeric value must be greater than 0'
+
+PSYE019G 'Conflicting keywords' .TYPE=W
+'Cannot specify &ZVAL1 if &ZVAL2 also specified'
 

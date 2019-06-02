@@ -1,7 +1,7 @@
 )PANEL VERSION=1 FORMAT=1
 
 )COMMENT
-Edit recovery panel for editor PEDIT01
+EDIT/VIEW recovery panel for editor PEDIT01
 )ENDCOMMENT
 
 )INCLUDE STD_PDC
@@ -10,15 +10,15 @@ Edit recovery panel for editor PEDIT01
 
 )BODY HOME(ZCMD) CMD(ZCMD)
 
-PanelTitle "Edit Recovery Panel"
+PanelTitle "&ZVMODE Recovery Panel"
 
 text     4    2       FP     "Command ===> "
 field    4   15   MAX NEF     PAD(USER),CAPS(ON) ZCMD
 
 text     6   10       FP     "**********************************************"
-text     7   10       FP     "*          EDIT AUTOMATIC RECOVERY           *"
+text     7   10       FP     "&ZRTITLE"
 text     8   10       FP     "**********************************************"
-text     10   2       FP     "The following file was being edited when a failure occured"
+text     10   2       FP     "The following file was being edited or viewed when a failure occured"
 text     12   2       FP     "File Name. . .:"
 field    12  18       MAX     VOI  NONE ZFILE
 
@@ -41,6 +41,14 @@ text    20 11 ET "CANCEL"
 text    20 18 NT "to cancel recovery of the specified file"
 
 )INIT
+
+IF (&ZVMODE EQ 'EDIT')
+  &ZRTITLE = '*          EDIT AUTOMATIC RECOVERY           *'
+ELSE
+  IF (&ZVMODE EQ 'VIEW')
+    &ZRTITLE = '*          VIEW AUTOMATIC RECOVERY           *'
+  ELSE
+    &ZRTITLE = '*            AUTOMATIC RECOVERY              *'
 
 &ZCMD = &Z
 

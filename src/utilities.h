@@ -155,6 +155,7 @@ string mergepaths( const string& p1, const char* c1, const char* c2 ) ;
 string mergepaths( const string& p1, const string& p2, const string& p3 ) ;
 
 string  parseString( errblock& err, string& s, string p ) ;
+bool    parseString1( string& s, string p ) ;
 string& getNameList( errblock& err, string& s ) ;
 
 string extractKWord( errblock& err, string& s, string p ) ;

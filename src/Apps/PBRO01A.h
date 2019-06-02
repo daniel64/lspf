@@ -322,7 +322,6 @@ class PBRO01A : public pApplication
 		string zshadow ;
 		string cshadow ;
 		string zscrnum ;
-		string zareat  ;
 		int    zareaw  ;
 		int    zaread  ;
 		uint   zasize  ;

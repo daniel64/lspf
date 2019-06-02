@@ -31,10 +31,10 @@
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
-#define LSPF_VERSION "1.1.10"
+#define LSPF_VERSION "1.1.11"
 #define LSPF_VERSION_MAJ 1
 #define LSPF_VERSION_REV 1
-#define LSPF_VERSION_MOD 10
+#define LSPF_VERSION_MOD 11
 
 typedef unsigned int uint ;
 
@@ -67,7 +67,7 @@ using namespace boost::posix_time ;
 // ZPANLPGM - Name of the program invoked on the SELECT PANEL service
 // ZEDITPGM - Name of the editor program to invoke
 // ZBRPGM   - Name of the browser program to invoke
-// ZVIEWPGM - Name of the viewer program to invoke
+// ZVIEWPGM - Name of the viewer program to invoke (usually same as the default editor program)
 // ZFLSTPGM - Name of the file list program to invoke
 // ZHELPPGM - Name of the tutorial/help program to invoke
 // ZOREXPGM - Name of the oorexx interpreter call program to invoke
@@ -98,7 +98,7 @@ using namespace boost::posix_time ;
 #define ZPANLPGM        "PDPANLA"
 #define ZEDITPGM        "PEDIT01"
 #define ZBRPGM          "PBRO01A"
-#define ZVIEWPGM        "PVIEW0A"
+#define ZVIEWPGM        "PEDIT01"
 #define ZFLSTPGM        "PFLST0A"
 #define ZHELPPGM        "PTUTORA"
 #define ZOREXPGM        "POREXX1"

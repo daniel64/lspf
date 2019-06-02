@@ -70,7 +70,7 @@ void PCMD0B::application()
 	vector<pair<string,string>> tnames ;
 
 	vdefine( "ZCMD ZVERB ZNODNAME ZHOME COMM1 COMM2", &zcmd, &zverb, &znode, &zhome, &comm1, &comm2 ) ;
-	vdefine( "ZAREA ZSHADOW ZAREAT ZSCROLLA", &zarea, &zshadow, &zareat, &zscrolla ) ;
+	vdefine( "ZAREA ZSHADOW ZSCROLLA", &zarea, &zshadow, &zscrolla ) ;
 	vdefine( "ZSCROLLN ZAREAW ZAREAD", &zscrolln, &zareaw, &zaread ) ;
 
 	vget( "COMM1 COMM2 ZNODNAME ZHOME", SHARED ) ;
@@ -78,7 +78,7 @@ void PCMD0B::application()
 	vcopy( "ZUSER", zuser, MOVE )     ;
 	vcopy( "ZSCREEN", zscreen, MOVE ) ;
 
-	pquery( "PCMD0B", "ZAREA", "ZAREAT", "ZAREAW", "ZAREAD" ) ;
+	pquery( "PCMD0B", "ZAREA", "", "ZAREAW", "ZAREAD" ) ;
 
 	zasize       = zareaw * zaread ;
 	msg          = "" ;

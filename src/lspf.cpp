@@ -3659,6 +3659,8 @@ int listInterruptOptions()
 	uint i ;
 	uint m ;
 
+	string appl ;
+
 	err.clear() ;
 
 	WINDOW* swwin   ;
@@ -3667,16 +3669,20 @@ int listInterruptOptions()
 	vector<string>::iterator it ;
 	vector<string> lslist ;
 
+	appl = "Application: " + currAppl->get_appname() ;
+
 	lslist.push_back( "1. Continue running application (press ESC again to interrupt)" ) ;
 	lslist.push_back( "2. Abend application" ) ;
 
-	swwin   = newwin( lslist.size() + 5, 66, 1, 1 ) ;
+	swwin   = newwin( lslist.size() + 7, 66, 1, 1 ) ;
 	swpanel = new_panel( swwin )  ;
 	wattrset( swwin, cuaAttr[ AWF ] | intens ) ;
 	box( swwin, 0, 0 ) ;
 
 	wattrset( swwin, cuaAttr[ PT ] | intens ) ;
 	mvwaddstr( swwin, 1, 21, "Program Interrupt Options" ) ;
+	wattrset( swwin, cuaAttr[ PIN ] | intens ) ;
+	mvwaddstr( swwin, 3, 2, appl.c_str() ) ;
 
 	currScrn->show_wait() ;
 
@@ -3687,7 +3693,7 @@ int listInterruptOptions()
 		for ( i = 0, it = lslist.begin() ; it != lslist.end() ; ++it, ++i )
 		{
 			wattrset( swwin, cuaAttr[ i == m ? PT : VOI ] | intens ) ;
-			mvwaddstr( swwin, i+3, 2, it->c_str() ) ;
+			mvwaddstr( swwin, i+5, 2, it->c_str() ) ;
 		}
 		update_panels() ;
 		doupdate()  ;
@@ -3713,7 +3719,7 @@ int listInterruptOptions()
 	curs_set( 1 ) ;
 
 	update_panels() ;
-	doupdate()  ;
+	doupdate() ;
 
 	currScrn->OIA_startTime() ;
 

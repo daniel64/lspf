@@ -93,7 +93,7 @@ PBRO01A::PBRO01A()
 	set_appver( "1.0.2" ) ;
 
 	vdefine( "ZCMD ZVERB ZROW1 ZCURFLD", &zcmd, &zverb, &zrow1, &zcurfld ) ;
-	vdefine( "ZAREA ZSHADOW ZAREAT ZDSN", &zarea, &zshadow, &zareat, &zfile ) ;
+	vdefine( "ZAREA ZSHADOW ZDSN", &zarea, &zshadow, &zfile ) ;
 	vdefine( "ZSCROLLN ZAREAW ZAREAD ZCURPOS", &zscrolln, &zareaw, &zaread, &zcurpos ) ;
 	vdefine( "ZSCROLLA ZCOL1 ZCOL2 TYPE STR", &zscrolla, &zcol1, &zcol2, &type, &str ) ;
 	vdefine( "OCC LINES CMD ZZSTR1", &occ, &lines, &cmd, &zzstr1 ) ;
@@ -141,7 +141,7 @@ void PBRO01A::initialise()
 
 	if ( panel == "" ) { panel = "PBRO01A2" ; }
 
-	pquery( panel, "ZAREA", "ZAREAT", "ZAREAW", "ZAREAD" ) ;
+	pquery( panel, "ZAREA", "", "ZAREAW", "ZAREAD" ) ;
 	if ( RC > 0 ) { abend() ; }
 
 	zasize = zareaw * zaread ;

@@ -1,12 +1,12 @@
 )PANEL VERSION=1 FORMAT=1
 
 )COMMENT
-EDITSET panel
+EDITSET panel for EDIT and VIEW
 )ENDCOMMENT
 
 )BODY HOME(ZCMD9) CMD(ZCMD9) WINDOW(68,16)
 
-PanelTitle "Edit Settings"
+PanelTitle "Edit and View Settings"
 
 text     3    2       FP     "Command ===>"
 field    3   15   MAX NEF     PAD(USER),CAPS(ON) ZCMD9

@@ -4,146 +4,146 @@
 /*                                           */
 /* Panel definition statement errors         */
 /*                                           */
-PSYE041A 'Duplicate table display field ''&ZVAL1'''
+PSYE041A 'Duplicate table display field ''&ZVAL1''' .TYPE=W
 ''
 
-PSYE041B 'Invalid character attribute'
+PSYE041B 'Invalid character attribute' .TYPE=W
 'Character attribute must be a single character or a valid 2-digit hex value'
 
-PSYE041C 'Duplicate &ZVAL1 name ''&ZVAL2'''
+PSYE041C 'Duplicate &ZVAL1 name ''&ZVAL2''' .TYPE=W
 ''
 
-PSYE041D 'Invalid keyword ''&ZVAL1'''
+PSYE041D 'Invalid keyword ''&ZVAL1''' .TYPE=W
 ''
 
-PSYE041E 'Invalid statement detected'
+PSYE041E 'Invalid statement detected' .TYPE=W
 ''
 
-PSYE041F 'GOTO label ''&ZVAL1'' not found'
+PSYE041F 'GOTO label ''&ZVAL1'' not found' .TYPE=W
 ''
 
-PSYE041G 'Invalid value for .ALARM control variable.'
+PSYE041G 'Invalid value for .ALARM control variable.' .TYPE=W
 'Value mus be YES, NO or blank'
 
-PSYE041H 'Invalid .CSRROW value.'
+PSYE041H 'Invalid .CSRROW value.' .TYPE=W
 'Value for .CSRROW must be a valid numeric value'
 
-PSYE041I 'Invalid value for .RESP control variable.'
+PSYE041I 'Invalid value for .RESP control variable.' .TYPE=W
 'Value must be ENTER or END'
 
-PSYE041J 'Invalid .CSRPOS value.'
+PSYE041J 'Invalid .CSRPOS value.' .TYPE=W
 'Value for .CSRPOS must be a valid numeric value'
 
-PSYE041K 'EXPAND must be followed by a literal'
+PSYE041K 'EXPAND must be followed by a literal' .TYPE=W
 ''
 
-PSYE041L 'File error'
+PSYE041L 'File error' .TYPE=W
 '&ZVAL1 file ''&ZVAL2'' is not a regular file'
 
-PSYE041M 'File error'
+PSYE041M 'File error' .TYPE=W
 'Error opening &ZVAL1 file ''&ZVAL2'''
 
-PSYE041N 'File error'
+PSYE041N 'File error' .TYPE=W
 'Error reading &ZVAL1 file ''&ZVAL2'''
 
-PSYE041O 'Recursion error'
+PSYE041O 'Recursion error' .TYPE=W
 'INCLUDE file ''&ZVAL1'' contains a previously included file ''&ZVAL2'''
 
-PSYE041P 'File not found'
+PSYE041P 'File not found' .TYPE=W
 'INCLUDE file ''&ZVAL1'' not found'
 
-PSYE041Q 'Invalid ROWS parameter ''&ZVAL1'''
+PSYE041Q 'Invalid ROWS parameter ''&ZVAL1''' .TYPE=W
 'TBMODEL ROWS parameter must be ALL or SCAN'
 
-PSYE041R 'Invalid label ''&ZVAL1'''
+PSYE041R 'Invalid label ''&ZVAL1''' .TYPE=W
 ''
 
-PSYE041S 'Invalid .ATTR statement'
+PSYE041S 'Invalid .ATTR statement' .TYPE=W
 'Field ''&ZVAL1'' not found on panel'
 
-PSYE041T 'Missing IF statement'
+PSYE041T 'Missing IF statement' .TYPE=W
 'No matching IF statement found for ELSE at column &ZVAL1'
 
-PSYE041U 'Invalid statement'
+PSYE041U 'Invalid statement' .TYPE=W
 'REFRESH statement is invalid within the )INIT section'
 
-PSYE041V 'ACTION found with no PDC'
+PSYE041V 'ACTION found with no PDC' .TYPE=W
 'Missing PDC statement before ACTION statement'
 
-PSYE041W 'Invalid REFRESH statement'
+PSYE041W 'Invalid REFRESH statement' .TYPE=W
 'Invalid field name ''&ZVAL1'' on REFRESH statement'
 
-PSYE041X 'Invalid REFRESH field ''&ZVAL1'''
+PSYE041X 'Invalid REFRESH field ''&ZVAL1''' .TYPE=W
 'REFRESH field ''&ZVAL1'' not on the panel'
 
-PSYE041Y 'Invalid REFRESH statement'
+PSYE041Y 'Invalid REFRESH statement' .TYPE=W
 'Variable name or name-list not coded for ''REFRESH'' statement'
 
-PSYE041Z 'Invalid label ''&ZVAL1'''
+PSYE041Z 'Invalid label ''&ZVAL1''' .TYPE=W
 'Invalid label ''&ZVAL1'' on GOTO statement'
 
-PSYE042A 'Missing bracket'
+PSYE042A 'Missing bracket' .TYPE=W
 'Invalid FIELD help entry in )HELP section.  Missing bracket'
 
-PSYE042B 'Invalid HELP entry field name ''&ZVAL1'''
+PSYE042B 'Invalid HELP entry field name ''&ZVAL1''' .TYPE=W
 ''
 
-PSYE042C 'Invalid HELP statement'
+PSYE042C 'Invalid HELP statement' .TYPE=W
 'Field ''&ZVAL1'' does not exist'
 
-PSYE042D 'Invalid HELP entry name ''&ZVAL1'''
+PSYE042D 'Invalid HELP entry name ''&ZVAL1''' .TYPE=W
 ''
 
-PSYE042E 'Invalid point-and-shoot field'
+PSYE042E 'Invalid point-and-shoot field' .TYPE=W
 'Point-and-shoot field ''&ZVAL1'' not found in panel'
 
-PSYE042F 'Invalid point-and-shoot variable'
+PSYE042F 'Invalid point-and-shoot variable' .TYPE=W
 'Point-and-shoot variable ''&ZVAL1'' not found in panel'
 
-PSYE042G 'Invalid format of FIELD() definition'
+PSYE042G 'Invalid format of FIELD() definition' .TYPE=W
 ''
 
-PSYE042H 'Invalid format of EXEC() definition'
+PSYE042H 'Invalid format of EXEC() definition' .TYPE=W
 ''
 
-PSYE042I 'Field ''&ZVAL1'' not defined'
+PSYE042I 'Field ''&ZVAL1'' not defined' .TYPE=W
 'Field ''&ZVAL1'' passed on field command for ''&ZVAL2'' is not defined in panel body'
 
-PSYE042J 'Duplicate field command entry'
+PSYE042J 'Duplicate field command entry' .TYPE=W
 'Duplicate field command entry in )FIELD panel section for ''&ZVAL1'''
 
-PSYE042K 'Invalid attribute'
+PSYE042K 'Invalid attribute' .TYPE=W
 '&ZVAL1 field must have an output CUA attribute byte specified'
 
-PSYE042L 'Overlapping fields detected'
+PSYE042L 'Overlapping fields detected' .TYPE=W
 'Fields &ZVAL1 and &ZVAL2 overlap'
 
-PSYE042M 'Field ''&ZVAL1'' not found'
+PSYE042M 'Field ''&ZVAL1'' not found' .TYPE=W
 '&ZVAL2 field ''&ZVAL1'' not defined in panel body'
 
-PSYE042N 'No command field defined'
+PSYE042N 'No command field defined' .TYPE=W
 'Scrollable panels must have a command field defined'
 
-PSYE042O 'Invalid value for .AUTOSEL control variable'
+PSYE042O 'Invalid value for .AUTOSEL control variable' .TYPE=W
 'Value for .AUTOSEL control variable must be YES, NO or blank'
 
-PSYE042P 'Invalid command field name'
+PSYE042P 'Invalid command field name' .TYPE=W
 'Selection panels must have a command field name of ZCMD'
 
-PSYE042Q 'Invalid .ATTRCHAR'
+PSYE042Q 'Invalid .ATTRCHAR' .TYPE=W
 '.ATTRCHAR is only valid in the INIT, REINIT and PROC panel sections'
 
-PSYE042R 'Invalid DYNAMIC AREA SCROLL option'
+PSYE042R 'Invalid DYNAMIC AREA SCROLL option' .TYPE=W
 'A panel can only have one scrollable area, either for a dynamic area or a table display'
 
-PSYE042S 'Invalid scrollable area'
+PSYE042S 'Invalid scrollable area' .TYPE=W
 'A panel can only have one scrollable area, either for a dynamic area or a table display'
 
-PSYE042T 'Spare'
+PSYE042T 'Spare' .TYPE=W
 'Spare'
 
-PSYE042U 'Spare'
+PSYE042U 'Spare' .TYPE=W
 'Spare'
 
-PSYE042V 'Spare'
+PSYE042V 'Spare' .TYPE=W
 'Spare'

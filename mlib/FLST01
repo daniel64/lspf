@@ -118,6 +118,12 @@ FLST012L 'Entry does not exist' .TYPE=W
 FLST012M 'Entry is not valid' .TYPE=W
 'Entry must be a valid file type for this action'
 
-FLST012N 'File Edited' .TYPE=N
+FLST012N 'File edited' .TYPE=N
 'File has been edited'
+
+FLST012O 'File viewed' .TYPE=N
+'File has been viewed'
+
+FLST012P 'File browsed' .TYPE=N
+'File has been browsed'
 

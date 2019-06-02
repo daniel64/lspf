@@ -14,8 +14,8 @@ PEDT013 'Line command invalid here' .TYPE=W
 PEDT014 'Invalid label name' .TYPE=W
 'Label must be between 1 and 5 alphabetic characters, not starting with a ''Z'''
 
-PEDT015 'Invalid parameter format passed to PEDIT01' .TYPE=W
-'&ZVAL1'
+PEDT015 'Invalid parameter passed' .TYPE=W
+'Invalid parameter passed to PEDIT01'
 
 PEDT016 'Label missing or invalid' .TYPE=W
 'Enter both labels to delimit command.  Both labels must already exist'
@@ -41,8 +41,8 @@ PEDT011C 'No previous FIND command' .TYPE=W
 PEDT011D 'Put string in quotes' .TYPE=W
 'Put single or double quotes around the find string'
 
-PEDT011E 'Label not valid' .TYPE=W
-'A label is only valid on a data line, not a special line'
+PEDT011E 'Label not allowed' .TYPE=W
+'A label is only allowed on a data line, not a special or excluded line'
 
 PEDT011F 'Label does not exist' .TYPE=W
 'Label does not Exist.  Please enter a valid line label'
@@ -146,7 +146,7 @@ PEDT013D '&ZEDLNES lines pasted from &CLIPNAME' .TYPE=N
 PEDT013E 'Error in hilighter' .TYPE=W
 'An exception has occured in the hilighter program.  Hilighting has been disabled'
 
-PEDT013F 'Paste pending' .TYPE=W
+PEDT013F 'PASTE pending' .TYPE=W
 'Paste is pending.  Select position to paste lines with the A/B line commands'
 
 PEDT013G '&TYPE &STR found' .TYPE=N
@@ -258,7 +258,7 @@ PEDT014Q 'MOVE/COPY is pending' .TYPE=W
 'Enter M/MM or C/CC line commands'
 
 PEDT014R 'File exists' .TYPE=W
-'File entered on a CREATE command already exists'
+'File entered on a CREATE command already exists.  Use REPLACE command.'
 
 PEDT014S 'Open error' .TYPE=W
 'File &ZSTR1 cannot be opened.  Check permissions'
@@ -308,7 +308,7 @@ PEDT015G 'Line number out of range' .TYPE=W
 PEDT015H 'Rejected.  Profile locked' .TYPE=W
 'IMACRO change rejected as the profile is locked'
 
-PEDT015I 'Copy pending' .TYPE=W
+PEDT015I 'COPY pending' .TYPE=W
 'Copy is pending.  Select position to insert lines with the A/B line commands'
 
 PEDT015J '&ZEDLNES lines copied' .TYPE=N
@@ -401,3 +401,13 @@ PEDT016L 'Invalid columns specified' .TYPE=W
 PEDT016M 'Probable label error' .TYPE=W
 'Find string cannot be determined.  Put string in quotes'
 
+PEDT016N 'Not valid in view mode' .TYPE=W
+'Save command is not valid in VIEW mode'
+
+PEDT016O 'RETURN ignored' .TYPE=N
+'The RETURN command was ignored to allow the VIEW warning panel to be displayed'
+
+PEDT016P '' .TYPE=W
+'Data has been changed in VIEW mode.  You cannot save data from VIEW but you can ' +
+'use the CREATE and REPLACE primary commands to create a file from the data ' +
+'as well as the CUT primary to copy data to the clipboard.'

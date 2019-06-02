@@ -55,7 +55,6 @@ class PCMD0B : public pApplication
 		string zuser   ;
 		string zarea   ;
 		string zshadow ;
-		string zareat  ;
 		string zsbtask ;
 
 		string sdr ;

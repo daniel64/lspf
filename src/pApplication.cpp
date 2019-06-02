@@ -721,7 +721,7 @@ void pApplication::display( string p_name,
 
 	p_poolMGR->put( errBlock, "ZPANELID", p_name, SHARED, SYSTEM ) ;
 
-	p_poolMGR->put( errBlock, "ZVERB", "",  SHARED ) ;
+	p_poolMGR->put( errBlock, "ZVERB", propagateEnd ? "RETURN" : "", SHARED ) ;
 	usr_action = USR_ENTER ;
 
 	if ( doReinit )
@@ -804,7 +804,6 @@ void pApplication::display( string p_name,
 		ControlDisplayLock = false ;
 		refreshlScreen     = false ;
 		reloadCUATables    = false ;
-		currPanel->resetAttrs_once() ;
 		currPanel->display_panel_update( errBlock ) ;
 		if ( errBlock.error() )
 		{
@@ -853,9 +852,10 @@ void pApplication::display( string p_name,
 void pApplication::set_ZVERB_panel_resp_re_init()
 {
 
+	string dotResp = currPanel->get_resp() ;
+
 	if ( currPanel->get_msg() == "" )
 	{
-		string dotResp = currPanel->get_resp() ;
 		if ( dotResp == "ENTER" )
 		{
 			p_poolMGR->put( errBlock, "ZVERB", "", SHARED ) ;
@@ -870,6 +870,11 @@ void pApplication::set_ZVERB_panel_resp_re_init()
 			set_nondispl_end() ;
 			propagateEnd = false ;
 		}
+	}
+	else if ( dotResp == "ENTER" || dotResp == "END" )
+	{
+		clr_nondispl() ;
+		propagateEnd = false ;
 	}
 }
 
@@ -950,7 +955,7 @@ void pApplication::libdef( const string& lib,
 
 	if ( !isvalidName( lib ) )
 	{
-		errBlock.setcall( e1, "PSYE012U" ) ;
+		errBlock.setcall( e1, "PSYS012U" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -1077,7 +1082,7 @@ void pApplication::qlibdef( const string& lib, const string& type_var, const str
 
 	if ( !isvalidName( lib ) )
 	{
-		errBlock.setcall( e1, "PSYE012U" ) ;
+		errBlock.setcall( e1, "PSYS012U" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -1192,7 +1197,7 @@ string pApplication::get_search_path( const string& lib )
 
 	if ( !isvalidName( lib ) )
 	{
-		errBlock.setcall( e1, "PSYE012U" ) ;
+		errBlock.setcall( e1, "PSYS012U" ) ;
 		checkRCode( errBlock ) ;
 		return "" ;
 	}
@@ -3049,7 +3054,6 @@ void pApplication::tbdispl( const string& tb_name,
 			refreshlScreen     = false ;
 			reloadCUATables    = false ;
 			currPanel->clear_msg() ;
-			currPanel->resetAttrs_once() ;
 			currPanel->display_panel_update( errBlock ) ;
 			if ( errBlock.error() )
 			{
@@ -3799,6 +3803,13 @@ void pApplication::edrec( const string& m_parm )
 		xRC = RC ;
 	}
 
+	if ( xRC >= 12 )
+	{
+		errBlock.setcall( "EDREC Error" ) ;
+		checkRCode( errBlock ) ;
+		xRC = RC ;
+	}
+
 	RC = xRC ;
 }
 
@@ -3831,7 +3842,7 @@ int pApplication::edrec_init( const string& m_parm,
 	{
 		errBlock.setcall( e1, "PSYE023O", "INIT" ) ;
 		checkRCode( errBlock ) ;
-		return 20 ;
+		return RC ;
 	}
 
 	vdefine( v_list, &zedstat, &zedtfile, &zedbfile, &zedmode, &zedopts, &zeduser ) ;
@@ -3908,7 +3919,7 @@ int pApplication::edrec_query( const string& m_parm,
 	{
 		errBlock.setcall( e1, "PSYE023O", "QUERY" ) ;
 		checkRCode( errBlock ) ;
-		return 20 ;
+		return RC ;
 	}
 
 	row = funcPOOL.get( errBlock, 8, INTEGER, "ZEDROW", NOCHECK ) ;
@@ -3938,7 +3949,10 @@ int pApplication::edrec_query( const string& m_parm,
 		funcPOOL.put2( errBlock, "ZEDTFILE", zedtfile ) ;
 		funcPOOL.put2( errBlock, "ZEDBFILE", zedbfile ) ;
 		funcPOOL.put2( errBlock, "ZEDOPTS",  zedopts ) ;
-		funcPOOL.put2( errBlock, "ZEDROW", row ) ;
+		funcPOOL.put2( errBlock, "ZEDMODE",  zedmode ) ;
+		funcPOOL.put2( errBlock, "ZEDUSER",  zeduser ) ;
+		funcPOOL.put2( errBlock, "ZEDROW",   row ) ;
+		p_poolMGR->put( errBlock, "ZEDUSER", zeduser, SHARED ) ;
 		enq( qname, rname, EXC, LOCAL ) ;
 		return 4 ;
 	}
@@ -3974,43 +3988,54 @@ int pApplication::edrec_process( const string& m_parm,
 	string zeduser  ;
 	string zedmode  ;
 	string zedopts  ;
-	string confcan  = "NO" ;
-	string preserve ;
+
+	edit_parms e ;
 
 	const string e1 = "EDREC PROCESS Error" ;
 
-	deq( qname, rname, LOCAL ) ;
+	qscan( qname, rname, EXC, LOCAL ) ;
 	if ( RC == 8 )
 	{
 		errBlock.setcall( e1, "PSYE023N", "PROCESS" ) ;
 		checkRCode( errBlock ) ;
-		return 20 ;
+		return RC ;
 	}
 
-	row      = funcPOOL.get( errBlock, 8, INTEGER, "ZEDROW", NOCHECK ) ;
 	zedtfile = funcPOOL.get( errBlock, 0, "ZEDTFILE", NOCHECK ) ;
 	zedbfile = funcPOOL.get( errBlock, 0, "ZEDBFILE", NOCHECK ) ;
 	zedopts  = funcPOOL.get( errBlock, 0, "ZEDOPTS", NOCHECK  ) ;
+	zedmode  = funcPOOL.get( errBlock, 0, "ZEDMODE", NOCHECK  ) ;
+	row      = funcPOOL.get( errBlock, 0, INTEGER, "ZEDROW", NOCHECK ) ;
 
-	p_poolMGR->put( errBlock, "ZEDTFILE", zedtfile, SHARED ) ;
-	p_poolMGR->put( errBlock, "ZEDBFILE", zedbfile, SHARED ) ;
-
-	if ( zedopts.size() > 0 && zedopts[ 0 ] == '1' )
+	try
 	{
-		confcan = "YES" ;
+		if ( not exists( zedbfile ) )
+		{
+			throw runtime_error( "" ) ;
+		}
+	}
+	catch (...)
+	{
+		deq( qname, zedtfile ) ;
+		errBlock.setcall( e1, "PSYE023P", zedbfile ) ;
+		checkRCode( errBlock ) ;
+		return RC ;
 	}
 
-	if ( zedopts.size() > 1 && zedopts[ 1 ] == '1' )
-	{
-		preserve = "PRESERVE" ;
-	}
+	deq( qname, rname, LOCAL ) ;
 
-	edit( zedbfile, "", "" ,"", "", confcan, preserve ) ;
+	e.edit_recovery = true ;
+	e.edit_viewmode = ( zedmode == "V" ) ;
+	e.edit_file     = zedtfile ;
+	e.edit_bfile    = zedbfile ;
+	e.edit_confirm  = ( zedopts.size() > 0 && zedopts[ 0 ] == '1' ) ? "YES" : "NO" ;
+	e.edit_preserve = ( zedopts.size() > 1 && zedopts[ 1 ] == '1' ) ? "PRESERVE" : "" ;
+
+	edit_rec( e ) ;
 	xRC = ( RC < 5 ) ? RC : 20 ;
 
 	deq( qname, zedtfile ) ;
 
-	p_poolMGR->put( errBlock, "ZEDTFILE", "", SHARED ) ;
 	remove( zedbfile ) ;
 
 	vdefine( v_list, &zedstat, &zedtfile, &zedbfile, &zedmode, &zedopts, &zeduser ) ;
@@ -4078,7 +4103,7 @@ int pApplication::edrec_cancel( const string& m_parm,
 	{
 		errBlock.setcall( e1, "PSYE023N", "CANCEL" ) ;
 		checkRCode( errBlock ) ;
-		return 20 ;
+		return RC ;
 	}
 
 	int row = funcPOOL.get( errBlock, 8, INTEGER, "ZEDROW", NOCHECK ) ;
@@ -4152,7 +4177,7 @@ int pApplication::edrec_defer( const string& qname, const string& rname )
 	{
 		errBlock.setcall( e1, "PSYE023N", "DEFER" ) ;
 		checkRCode( errBlock ) ;
-		return 20 ;
+		return RC ;
 	}
 
 	zedtfile = funcPOOL.get( errBlock, 8, "ZEDTFILE", NOCHECK ) ;
@@ -4179,20 +4204,56 @@ void pApplication::edit( const string& m_file,
 
 	string t ;
 
+	edit_parms e ;
+
+	e.edit_file     = m_file ;
+	e.edit_panel    = m_panel ;
+	e.edit_macro    = m_macro ;
+	e.edit_profile  = m_profile ;
+	e.edit_lcmds    = m_lcmds   ;
+	e.edit_confirm  = m_confirm ;
+	e.edit_preserve = m_preserve ;
+
 	selct.clear() ;
 	selct.pgm     = p_poolMGR->get( errBlock, "ZEDITPGM", PROFILE ) ;
-	selct.parm    = "FILE("+ m_file +") "+
-			"PANEL("+ m_panel +") "+
-			"MACRO("+ m_macro +") "+
-			"PROFILE("+ m_profile +") "+
-			"LINECMDS("+ m_lcmds +") " +
-			"CONFIRM("+ m_confirm +") " +
-			 m_preserve ;
 	selct.newappl = ""      ;
 	selct.newpool = false   ;
 	selct.passlib = false   ;
 	selct.suspend = true    ;
 	selct.scrname = "EDIT"  ;
+	selct.options = (void*)&e ;
+	actionSelect() ;
+
+	RC = ZRC ;
+	if ( ZRC > 11 && isvalidName( ZRESULT ) )
+	{
+		t = p_poolMGR->get( errBlock, "ZVAL1", SHARED ) ;
+		errBlock.setcall( "EDIT Error", ZRESULT, t, ZRC ) ;
+		checkRCode( errBlock ) ;
+	}
+}
+
+
+void pApplication::edit_rec( const edit_parms& e )
+{
+	// Used internally to call edit or view during edit recovery.
+
+	// RC =  0  Normal completion.  Data was saved.
+	// RC =  4  Normal completion.  Data was not saved.
+	//          No changes made or CANCEL entered.
+	// RC = 14  File in use
+	// RC = 20  Severe error
+
+	string t ;
+
+	selct.clear() ;
+	selct.pgm     = p_poolMGR->get( errBlock, "ZEDITPGM", PROFILE ) ;
+	selct.newappl = ""      ;
+	selct.newpool = false   ;
+	selct.passlib = false   ;
+	selct.suspend = true    ;
+	selct.scrname = ( e.edit_viewmode ) ? "VIEW" : "EDIT" ;
+	selct.options = (void*)&e ;
 	actionSelect() ;
 
 	RC = ZRC ;
@@ -4229,18 +4290,35 @@ void pApplication::browse( const string& m_file, const string& m_panel )
 }
 
 
-void pApplication::view( const string& m_file, const string& m_panel )
+void pApplication::view( const string& m_file,
+			 const string& m_panel,
+			 const string& m_macro,
+			 const string& m_profile,
+			 const string& m_lcmds,
+			 const string& m_confirm,
+			 const string& m_chgwarn )
 {
 	string t ;
 
+	edit_parms e ;
+
+	e.edit_file     = m_file ;
+	e.edit_panel    = m_panel ;
+	e.edit_macro    = m_macro ;
+	e.edit_profile  = m_profile ;
+	e.edit_lcmds    = m_lcmds   ;
+	e.edit_confirm  = m_confirm ;
+	e.edit_chgwarn  = m_chgwarn ;
+	e.edit_viewmode = true      ;
+
 	selct.clear() ;
 	selct.pgm     = p_poolMGR->get( errBlock, "ZVIEWPGM", PROFILE ) ;
-	selct.parm    = "FILE("+ m_file +") PANEL("+ m_panel +")" ;
 	selct.newappl = ""      ;
 	selct.newpool = false   ;
 	selct.passlib = false   ;
 	selct.suspend = true    ;
 	selct.scrname = "VIEW"  ;
+	selct.options = (void*)&e ;
 	actionSelect() ;
 
 	RC = ZRC ;
@@ -4456,11 +4534,23 @@ void pApplication::pquery( const string& p_name,
 			   const string& r_name,
 			   const string& c_name )
 {
-	const string e1 = "PQUERY Error for panel "+p_name ;
+	// RC =  0  Normal completion
+	// RC =  8  Specified area not found on panel
+	// RC = 20  Severe error
+
+	const string e1 = "PQUERY Error" ;
+	const string e2 = "PQUERY Error for panel "+p_name ;
 
 	map<string,pPanel*>::iterator it ;
 
-	RC = 0 ;
+	errBlock.setRC( 0 ) ;
+
+	if ( p_name == "" )
+	{
+		errBlock.setcall( e1, "PSYE019C", "PANEL" ) ;
+		checkRCode( errBlock ) ;
+		return ;
+	}
 
 	if ( !isvalidName( p_name ) )
 	{
@@ -4468,39 +4558,52 @@ void pApplication::pquery( const string& p_name,
 		checkRCode( errBlock ) ;
 		return ;
 	}
-	if ( a_name != "" && !isvalidName( a_name ) )
+
+	if ( a_name == "" )
 	{
-		errBlock.setcall( e1, "PSYE023C", "area", a_name ) ;
+		errBlock.setcall( e2, "PSYE019C", "area name" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
+
+	if ( !isvalidName( a_name ) )
+	{
+		errBlock.setcall( e2, "PSYE023C", "area", a_name ) ;
+		checkRCode( errBlock ) ;
+		return ;
+	}
+
 	if ( t_name != "" && !isvalidName( t_name ) )
 	{
-		errBlock.setcall( e1, "PSYE023C", "area type", t_name ) ;
+		errBlock.setcall( e2, "PSYE023C", "area type", t_name ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
+
 	if ( w_name != "" && !isvalidName( w_name ) )
 	{
-		errBlock.setcall( e1, "PSYE023C", "area width", w_name ) ;
+		errBlock.setcall( e2, "PSYE023C", "area width", w_name ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
+
 	if ( d_name != "" && !isvalidName( d_name ) )
 	{
-		errBlock.setcall( e1, "PSYE023C", "area depth", d_name ) ;
+		errBlock.setcall( e2, "PSYE023C", "area depth", d_name ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
+
 	if ( r_name != "" && !isvalidName( r_name ) )
 	{
-		errBlock.setcall( e1, "PSYE023C", "area row number", r_name ) ;
+		errBlock.setcall( e2, "PSYE023C", "area row number", r_name ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
+
 	if ( c_name != "" && !isvalidName( c_name ) )
 	{
-		errBlock.setcall( e1, "PSYE023C", "area column number", c_name ) ;
+		errBlock.setcall( e2, "PSYE023C", "area column number", c_name ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -4508,7 +4611,14 @@ void pApplication::pquery( const string& p_name,
 	it = createPanel( p_name ) ;
 	if ( errBlock.error() ) { return ; }
 
-	it->second->get_panel_info( RC, a_name, t_name, w_name, d_name, r_name, c_name ) ;
+	it->second->get_panel_info( errBlock,
+				    a_name,
+				    t_name,
+				    w_name,
+				    d_name,
+				    r_name,
+				    c_name ) ;
+	RC = errBlock.getRC() ;
 }
 
 
@@ -4864,7 +4974,7 @@ bool pApplication::load_message( const string& p_msg )
 	// If in test mode, reload message each time it is requested
 	// Routine sets the return code:
 	// RC =  0  Normal completion
-	// RC = 12  Message not found or syntax error
+	// RC = 12  Message not found
 	// RC = 20  Severe error
 
 	int i  ;
@@ -4894,7 +5004,7 @@ bool pApplication::load_message( const string& p_msg )
 
 	if ( i == 0 || ( p_msg.size() - i > 3 && !isalpha( p_msg.back() ) ) )
 	{
-		RC = 12 ;
+		RC = 20 ;
 		zerr1 = "Message-id format invalid (1): "+ p_msg ;
 		checkRCode() ;
 		return false ;
@@ -4971,7 +5081,7 @@ bool pApplication::load_message( const string& p_msg )
 			{
 				if ( lcontinue || !t.parse( smsg, lmsg ) )
 				{
-					RC = 12 ;
+					RC = 20 ;
 					messages.close() ;
 					zerr1 = "Error (1) in message-id "+ msgid ;
 					checkRCode() ;
@@ -4994,7 +5104,7 @@ bool pApplication::load_message( const string& p_msg )
 			i = check_message_id( msgid ) ;
 			if ( i == 0 || ( msgid.size() - i > 3 && !isalpha( msgid.back() ) ) )
 			{
-				RC = 12 ;
+				RC = 20 ;
 				zerr1 = "Message-id format invalid (2): "+ msgid ;
 				checkRCode() ;
 				return false ;
@@ -5004,7 +5114,7 @@ bool pApplication::load_message( const string& p_msg )
 		{
 			if ( msgid == "" || ( lmsg != "" && !lcontinue ) )
 			{
-				RC = 12 ;
+				RC = 20 ;
 				messages.close() ;
 				zerr1 = "Extraeneous data: "+ mline ;
 				checkRCode() ;
@@ -5021,7 +5131,7 @@ bool pApplication::load_message( const string& p_msg )
 			{
 				if ( mline.back() != c )
 				{
-					RC = 12 ;
+					RC = 20 ;
 					messages.close() ;
 					zerr1 = "Error (2) in message-id "+ msgid ;
 					checkRCode() ;
@@ -5030,7 +5140,7 @@ bool pApplication::load_message( const string& p_msg )
 				tmp = dquote( errBlock, c, mline ) ;
 				if ( errBlock.error() )
 				{
-					RC = 12 ;
+					RC = 20 ;
 					messages.close() ;
 					zerr1 = "Error (3) in message-id "+ msgid ;
 					checkRCode() ;
@@ -5041,7 +5151,7 @@ bool pApplication::load_message( const string& p_msg )
 			{
 				if ( words( mline ) > 1 )
 				{
-					RC = 12 ;
+					RC = 20 ;
 					messages.close() ;
 					zerr1 = "Error (4) in message-id "+ msgid ;
 					checkRCode() ;
@@ -5052,7 +5162,7 @@ bool pApplication::load_message( const string& p_msg )
 			lmsg = lmsg + tmp ;
 			if ( lmsg.size() > 512 )
 			{
-				RC = 12 ;
+				RC = 20 ;
 				messages.close() ;
 				zerr1 = "Long message size exceeds 512 bytes for message-id "+ msgid ;
 				checkRCode() ;
@@ -5074,7 +5184,7 @@ bool pApplication::load_message( const string& p_msg )
 	{
 		if ( lcontinue || !t.parse( smsg, lmsg ) )
 		{
-			RC = 12 ;
+			RC = 20 ;
 			messages.close() ;
 			zerr1 = "Error (5) in message-id "+ msgid ;
 			checkRCode() ;
@@ -5238,6 +5348,7 @@ void pApplication::enq( const string& maj, const string& min, enqDISP disp, enqS
 	// RC =  8 Enqueue already held by this, or another task if exclusive requested
 	// RC = 20 Severe error
 
+	errBlock.setRC( 0 ) ;
 	vector<enqueue>* p_enqueues = ( scope == GLOBAL ) ? &g_enqueues : &l_enqueues ;
 
 	const string e1 = "ENQ Service Error" ;
@@ -5273,6 +5384,7 @@ void pApplication::deq( const string& maj, const string& min, enqSCOPE scope )
 	// RC =  8 Enqueue not held by this task
 	// RC = 20 Severe error
 
+	errBlock.setRC( 0 ) ;
 	vector<enqueue>* p_enqueues = ( scope == GLOBAL ) ? &g_enqueues : &l_enqueues ;
 
 	const string e1 = "DEQ Service Error" ;
@@ -5310,6 +5422,7 @@ void pApplication::qscan( const string& maj, const string& min, enqDISP disp, en
 	// RC =  8 Enqueue is not held
 	// RC = 20 Severe error
 
+	errBlock.setRC( 0 ) ;
 	vector<enqueue>* p_enqueues = ( scope == GLOBAL ) ? &g_enqueues : &l_enqueues ;
 
 	const string e1 = "QSCAN Service Error" ;
@@ -5685,6 +5798,7 @@ void pApplication::splitZerrlm( string t )
 
 	vdefine( "ZSCRMAXW", &maxw ) ;
 	vget( "ZSCRMAXW", SHARED ) ;
+	vdelete( "ZSCRMAXW" ) ;
 
 	maxw = maxw - 6 ;
 	l    = 0        ;
@@ -5704,6 +5818,7 @@ void pApplication::splitZerrlm( string t )
 			t = "" ;
 		}
 	} while ( t.size() > 0 ) ;
+
 }
 
 

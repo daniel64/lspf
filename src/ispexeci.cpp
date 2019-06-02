@@ -220,7 +220,6 @@ void execiBrowse( pApplication* thisAppl, const string& s, errblock& err )
 
 void execiDeq( pApplication* thisAppl, const string& s, errblock& err )
 {
-	string t   ;
 	string str ;
 
 	string deq_qname ;
@@ -236,20 +235,13 @@ void execiDeq( pApplication* thisAppl, const string& s, errblock& err )
 	deq_rname = extractKWord( err, str, "RNAME()" ) ;
 	if ( err.error() ) { return ; }
 
-	t = parseString( err, str, "LOCAL" ) ;
-	if ( err.error() ) { return ; }
-	if ( t == "OK" )
+	if ( parseString1( str, "LOCAL" ) )
 	{
 		deq_scope = LOCAL ;
 	}
-	else
+	else if ( parseString1( str, "GLOBAL" ) )
 	{
-		t = parseString( err, str, "GLOBAL" ) ;
-		if ( err.error() ) { return ; }
-		if ( t == "OK" )
-		{
-			deq_scope = GLOBAL ;
-		}
+		deq_scope = GLOBAL ;
 	}
 
 	if ( str != "" )
@@ -346,10 +338,10 @@ void execiEdit( pApplication* thisAppl, const string& s, errblock& err )
 	ed_confc = parseString( err, str, "CONFIRM()" ) ;
 	if ( err.error() ) { return ; }
 
-	ed_presv = parseString( err, str, "PRESERVE" ) ;
-	if ( err.error() ) { return ; }
-
-	if ( ed_presv == "OK" ) { ed_presv = "PRESERVE" ; }
+	if ( parseString1( str, "PRESERVE" ) )
+	{
+		ed_presv = "PRESERVE" ;
+	}
 
 	if ( str != "" )
 	{
@@ -363,7 +355,7 @@ void execiEdit( pApplication* thisAppl, const string& s, errblock& err )
 			iupper( ed_profile ),
 			iupper( ed_lcmds ),
 			iupper( ed_confc ),
-			iupper( ed_presv ) ) ;
+			ed_presv ) ;
 }
 
 
@@ -381,7 +373,6 @@ void execiEdrec( pApplication* thisAppl, const string& s, errblock& err )
 
 void execiEnq( pApplication* thisAppl, const string& s, errblock& err )
 {
-	string t   ;
 	string str ;
 
 	string enq_qname ;
@@ -398,20 +389,13 @@ void execiEnq( pApplication* thisAppl, const string& s, errblock& err )
 	enq_rname = extractKWord( err, str, "RNAME()" ) ;
 	if ( err.error() ) { return ; }
 
-	t = parseString( err, str, "LOCAL" ) ;
-	if ( err.error() ) { return ; }
-	if ( t == "OK" )
+	if ( parseString1( str, "LOCAL" ) )
 	{
 		enq_scope = LOCAL ;
 	}
-	else
+	else if ( parseString1( str, "GLOBAL" ) )
 	{
-		t = parseString( err, str, "GLOBAL" ) ;
-		if ( err.error() ) { return ; }
-		if ( t == "OK" )
-		{
-			enq_scope = GLOBAL ;
-		}
+		enq_scope = GLOBAL ;
 	}
 
 	iupper( str ) ;
@@ -627,7 +611,6 @@ void execiQlibdef( pApplication* thisAppl, const string& s, errblock& err )
 
 void execiQScan( pApplication* thisAppl, const string& s, errblock& err )
 {
-	string t   ;
 	string str ;
 	string qsc_qname ;
 	string qsc_rname ;
@@ -643,20 +626,13 @@ void execiQScan( pApplication* thisAppl, const string& s, errblock& err )
 	qsc_rname = extractKWord( err, str, "RNAME()" ) ;
 	if ( err.error() ) { return ; }
 
-	t = parseString( err, str, "LOCAL" ) ;
-	if ( err.error() ) { return ; }
-	if ( t == "OK" )
+	if ( parseString1( str, "LOCAL" ) )
 	{
 		qsc_scope = LOCAL ;
 	}
-	else
+	else if ( parseString1( str, "GLOBAL" ) )
 	{
-		t = parseString( err, str, "GLOBAL" ) ;
-		if ( err.error() ) { return ; }
-		if ( t == "OK" )
-		{
-			qsc_scope = GLOBAL ;
-		}
+		qsc_scope = GLOBAL ;
 	}
 
 	iupper( str ) ;
@@ -829,16 +805,15 @@ void execiTBClose( pApplication* thisAppl, const string& s, errblock& err )
 void execiTBCreate( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str      ;
-	string t        ;
 
 	string tb_name  ;
 	string tb_keys  ;
 	string tb_names ;
 	string tb_paths ;
 
-	tbWRITE tb_write ;
-	tbDISP  tb_disp  ;
-	tbREP   tb_rep   ;
+	tbWRITE tb_write = WRITE ;
+	tbDISP  tb_disp  = NON_SHARE ;
+	tbREP   tb_rep   = NOREPLACE ;
 
 	tb_name = upper( word( s, 2 ) ) ;
 	str     = subword( s, 3 ) ;
@@ -855,26 +830,23 @@ void execiTBCreate( pApplication* thisAppl, const string& s, errblock& err )
 	if ( err.error() ) { return ; }
 	if ( tb_names != "" ) { tb_names = "(" + tb_names + ")" ; }
 
-	tb_write = WRITE ;
-	t = parseString( err, str, "WRITE" ) ;
-	if ( err.error() ) { return ; }
-	if ( t == "" )
+	if ( not parseString1( str, "WRITE" ) )
 	{
-		t = parseString( err, str, "NOWRITE" ) ;
-		if ( err.error() ) { return ; }
-		if ( t != "" ) { tb_write = NOWRITE ; }
+		if ( parseString1( str, "NOWRITE" ) )
+		{
+			tb_write = NOWRITE ;
+		}
 	}
 
-	tb_rep = NOREPLACE ;
-	t = parseString( err, str, "REPLACE" ) ;
-	if ( err.error() ) { return ; }
+	if ( parseString1( str, "REPLACE" ) )
+	{
+		tb_rep = REPLACE ;
+	}
 
-	if ( t != "" ) { tb_rep = REPLACE ; }
-
-	tb_disp = NON_SHARE ;
-	t = parseString( err, str, "SHARE" ) ;
-	if ( err.error() ) { return ; }
-	if ( t != "" ) { tb_disp = SHARE ; }
+	if ( parseString1( str, "SHARE" ) )
+	{
+		tb_disp = SHARE ;
+	}
 
 	if ( words( str ) > 0 )
 	{
@@ -1090,35 +1062,34 @@ void execiTBPut( pApplication* thisAppl, const string& s, errblock& err )
 void execiTBOpen( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str      ;
-	string t        ;
 
 	string tb_name  ;
 	string tb_paths ;
 
-	tbWRITE tb_write ;
-	tbDISP  tb_disp  ;
+	tbWRITE tb_write = WRITE ;
+	tbDISP  tb_disp  = NON_SHARE ;
 
 	tb_name = upper( word( s, 2 ) ) ;
 	str     = subword( s, 3 ) ;
 
-	tb_write = WRITE ;
-	t = parseString( err, str, "WRITE" ) ;
-	if ( err.error() ) { return ; }
-
-	if ( t == "" )
+	if ( not parseString1( str, "WRITE" ) )
 	{
-		t = parseString( err, str, "NOWRITE" ) ;
-		if ( err.error() ) { return ; }
-		if ( t != "" ) { tb_write = NOWRITE ; }
+		if ( parseString1( str, "NOWRITE" ) )
+		{
+			tb_write = NOWRITE ;
+		}
 	}
 
 	tb_paths = parseString( err, str, "LIBRARY()" ) ;
 	if ( err.error() ) { return ; }
 
 	iupper( str ) ;
-	if      ( str == "SHARE" ) { tb_disp = SHARE     ; }
-	else if ( str == ""      ) { tb_disp = NON_SHARE ; }
-	else
+	if ( parseString1( str, "SHARE" ) )
+	{
+		tb_disp = SHARE ;
+	}
+
+	if ( str != "" )
 	{
 		err.seterrid( "PSYE032H", str ) ;
 		return ;
@@ -1202,9 +1173,13 @@ void execiTBQuery( pApplication* thisAppl, const string& s, errblock& err )
 
 void execiTBSarg( pApplication* thisAppl, const string& s, errblock& err )
 {
+	bool t1 ;
+	bool t2 ;
+
 	string str ;
 
-	string tb_name  ;
+	string tb_name ;
+	string tb_dir  ;
 	string tb_arglst  ;
 	string tb_namecnd ;
 
@@ -1219,7 +1194,26 @@ void execiTBSarg( pApplication* thisAppl, const string& s, errblock& err )
 	if ( err.error() ) { return ; }
 	if ( tb_namecnd != "" ) { tb_namecnd = "(" + tb_namecnd + ")" ; }
 
-	thisAppl->tbsarg( tb_name, tb_arglst, str, tb_namecnd ) ;
+	t1 = parseString1( str, "NEXT" ) ;
+	t2 = parseString1( str, "PREVIOUS" ) ;
+
+	if ( t1 && t2 )
+	{
+		err.seterrid( "PSYE019G", "NEXT", "PREVIOUS" ) ;
+		return ;
+	}
+	else
+	{
+		tb_dir = ( t2 ) ? "PREVIOUS" : "NEXT" ;
+	}
+
+	if ( words( str ) > 0 )
+	{
+		err.seterrid( "PSYE032H", str ) ;
+		return ;
+	}
+
+	thisAppl->tbsarg( tb_name, tb_arglst, tb_dir, tb_namecnd ) ;
 }
 
 
@@ -1252,11 +1246,13 @@ void execiTBSave( pApplication* thisAppl, const string& s, errblock& err )
 
 void execiTBScan( pApplication* thisAppl, const string& s, errblock& err )
 {
+	bool t1 ;
+	bool t2 ;
+
 	string str ;
-	string t   ;
 
 	string tb_name    ;
-	string tb_arglst  ;
+	string tb_namelst ;
 	string tb_savenm  ;
 	string tb_rowid   ;
 	string tb_crpnm   ;
@@ -1266,9 +1262,9 @@ void execiTBScan( pApplication* thisAppl, const string& s, errblock& err )
 	tb_name = upper( word( s, 2 ) )    ;
 	str     = upper( subword( s, 3 ) ) ;
 
-	tb_arglst = parseString( err, str, "ARGLIST()" ) ;
+	tb_namelst = parseString( err, str, "ARGLIST()" ) ;
 	if ( err.error() ) { return ; }
-	if ( tb_arglst != "" ) { tb_arglst = "(" + tb_arglst + ")" ; }
+	if ( tb_namelst != "" ) { tb_namelst = "(" + tb_namelst + ")" ; }
 
 	tb_savenm = parseString( err, str, "SAVENAME()" ) ;
 	if ( err.error() ) { return ; }
@@ -1283,18 +1279,25 @@ void execiTBScan( pApplication* thisAppl, const string& s, errblock& err )
 	if ( err.error() ) { return ; }
 	if ( tb_condlst != "" ) { tb_condlst = "(" + tb_condlst + ")" ; }
 
-	tb_dir = "NEXT" ;
-	t = parseString( err, str, "NEXT" ) ;
-	if ( err.error() ) { return ; }
-	if ( t == "" )
+	t1 = parseString1( str, "NEXT" ) ;
+	t2 = parseString1( str, "PREVIOUS" ) ;
+
+	if ( t1 && t2 )
 	{
-		t = parseString( err, str, "PREVIOUS" ) ;
-		if ( err.error() ) { return ; }
-		if ( t != "" ) { tb_dir = "PREVIOUS" ; }
+		err.seterrid( "PSYE019G", "NEXT", "PREVIOUS" ) ;
+		return ;
+	}
+	else if ( t1 )
+	{
+		tb_dir = "NEXT" ;
+	}
+	else if ( t2 )
+	{
+		tb_dir = "PREVIOUS" ;
 	}
 
 	thisAppl->tbscan( tb_name,
-			  tb_arglst,
+			  tb_namelst,
 			  tb_savenm,
 			  tb_rowid,
 			  tb_dir,
@@ -1488,15 +1491,35 @@ void execiView( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str ;
 
-	string vi_panel ;
-	string vi_file  ;
+	string vw_panel ;
+	string vw_macro ;
+	string vw_profile ;
+	string vw_file  ;
+	string vw_lcmds ;
+	string vw_confc ;
+	string vw_chgwarn ;
 
 	str = subword( s, 2 ) ;
 
-	vi_file = parseString( err, str, "FILE()" ) ;
+	vw_file = parseString( err, str, "FILE()" ) ;
 	if ( err.error() ) { return ; }
 
-	vi_panel = parseString( err, str, "PANEL()" ) ;
+	vw_panel = parseString( err, str, "PANEL()" ) ;
+	if ( err.error() ) { return ; }
+
+	vw_macro = parseString( err, str, "MACRO()" ) ;
+	if ( err.error() ) { return ; }
+
+	vw_profile = parseString( err, str, "PROFILE()" ) ;
+	if ( err.error() ) { return ; }
+
+	vw_lcmds = parseString( err, str, "LINECMDS()" ) ;
+	if ( err.error() ) { return ; }
+
+	vw_confc = parseString( err, str, "CONFIRM()" ) ;
+	if ( err.error() ) { return ; }
+
+	vw_chgwarn = parseString( err, str, "CHGWARN()" ) ;
 	if ( err.error() ) { return ; }
 
 	if ( str != "" )
@@ -1505,7 +1528,13 @@ void execiView( pApplication* thisAppl, const string& s, errblock& err )
 		return ;
 	}
 
-	thisAppl->view( vi_file, iupper( vi_panel ) ) ;
+	thisAppl->view( vw_file,
+			iupper( vw_panel ),
+			iupper( vw_macro ),
+			iupper( vw_profile ),
+			iupper( vw_lcmds ),
+			iupper( vw_confc ),
+			iupper( vw_chgwarn ) ) ;
 }
 
 

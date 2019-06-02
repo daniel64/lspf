@@ -92,7 +92,7 @@ void PDLGTST::displayPanel()
 		if ( name == "" ) continue ;
 		while ( true )
 		{
-			display( name, "", "ZCMD" );
+			display( name );
 			if (RC > 8 )
 			{
 				debug1( "Displaying panel " << name << " gave an error" << endl ) ;

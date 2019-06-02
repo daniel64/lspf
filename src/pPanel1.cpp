@@ -621,6 +621,7 @@ void pPanel::display_panel_update( errblock& err )
 	posn     = 1  ;
 	MSG.clear()   ;
 
+	reset_attrs_once() ;
 	reset_control_variables() ;
 
 	end_pressed = ( usr_action == USR_CANCEL ||
@@ -881,17 +882,15 @@ void pPanel::display_panel_init( errblock& err )
 {
 	// Perform panel )INIT processing
 
-	int ln = 0 ;
-
 	set_pfpressed( "" ) ;
 	err.setRC( 0 ) ;
 
 	putDialogueVar( err, "ZPRIM", "" ) ;
 	if ( err.error() ) { return ; }
 
-	resetAttrs() ;
+	reset_attrs() ;
 
-	process_panel_stmnts( err, ln, initstmnts, PS_INIT ) ;
+	process_panel_stmnts( err, 0, initstmnts, PS_INIT ) ;
 }
 
 
@@ -901,6 +900,12 @@ void pPanel::display_panel_reinit( errblock& err, int ln )
 
 	set_pfpressed( "" ) ;
 	err.setRC( 0 ) ;
+
+	if ( dCursor != "" )
+	{
+		iCursor = dCursor ;
+		dCursor = "" ;
+	}
 
 	process_panel_stmnts( err,
 			      ln,
@@ -994,24 +999,14 @@ void pPanel::process_panel_stmnts( errblock& err,
 	// If the panel statment has a ps_if address and a ps_xxx address, this is for statements coded
 	// inline on the if-statement so test and execute if the if-statement is true.
 
-	int if_column   ;
+	int if_column ;
 
-	string wd       ;
-	string l        ;
-	string s        ;
-	string t        ;
-	string u1       ;
-	string val      ;
-	string vars     ;
-	string var      ;
-	string fieldNam ;
-	string fieldVal ;
-	string g_label  ;
+	bool if_skip ;
 
-	bool if_skip    ;
+	string g_label ;
 
-	g_label   = ""    ;
-	if_column = 0     ;
+	g_label   = "" ;
+	if_column = 0  ;
 	if_skip   = false ;
 
 	set<string>attr_sect ;
@@ -1349,7 +1344,7 @@ string pPanel::process_panel_trunc( errblock& err, TRUNC* trunc )
 {
 	size_t p ;
 
-	string t    ;
+	string t ;
 	string rest ;
 
 	setControlVar( err, ".TRAIL", "", PS_PROC ) ;
@@ -1397,7 +1392,6 @@ string pPanel::process_panel_trans( errblock& err,
 				    TRANS* trans,
 				    const string& as_lhs )
 {
-	string fieldNam ;
 	string t ;
 
 	vector<pair<string,string>>::iterator it ;
@@ -1456,15 +1450,14 @@ void pPanel::process_panel_verify( errblock& err,
 {
 	uint i ;
 
+	string t   ;
+	string msg ;
 	string fieldNam ;
 	string fieldVal ;
-	string msg ;
-	string t   ;
 
 	vector<string>::iterator it ;
 
 	fieldNam = verify->ver_var ;
-
 	fieldVal = getDialogueVar( err, verify->ver_var ) ;
 	if ( err.error() ) { return ; }
 
@@ -1703,7 +1696,6 @@ void pPanel::process_panel_assignment( errblock& err,
 
 	string rhs ;
 	string lhs ;
-	string fieldNam ;
 
 	if ( assgn->as_func == PN_TRANS )
 	{
@@ -1774,8 +1766,8 @@ void pPanel::process_panel_attr( errblock& err,
 
 	int i ;
 
-	string lhs ;
 	string t   ;
+	string lhs ;
 
 	if ( assgn->as_lhs.subtype == TS_AMPR_VAR_VALID || assgn->as_lhs.subtype == TS_CTL_VAR_VALID )
 	{
@@ -2746,7 +2738,7 @@ void pPanel::display_ab()
 
 
 
-void pPanel::resetAttrs()
+void pPanel::reset_attrs()
 {
 	for ( unsigned int i = 0 ; i < attrList.size() ; ++i )
 	{
@@ -2756,7 +2748,7 @@ void pPanel::resetAttrs()
 }
 
 
-void pPanel::resetAttrs_once()
+void pPanel::reset_attrs_once()
 {
 	// Reset attributes for fields that have been marked as a temporary attribute change,
 	// ie. .ATTR() in the )REINIT and )PROC panel sections that are valid for only one redisplay
@@ -3081,6 +3073,8 @@ string pPanel::field_getname( uint row, uint col )
 
 	map<string, field*>::iterator it ;
 
+	if ( row < win_row || col < win_col ) { return "" ; }
+
 	row -= win_row ;
 	col -= win_col ;
 
@@ -3163,11 +3157,19 @@ void pPanel::field_edit( uint row,
 	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field.
 	// field_tab_next also needs the physical position, so addjust before and after the call.
 
+	prot = true ;
+
+	if ( row < win_row || col < win_col )
+	{
+		p_row = row - win_row ;
+		p_col = col - win_col ;
+		return ;
+	}
+
 	row  -= win_row ;
 	col  -= win_col ;
-	p_row = row  ;
-	p_col = col  ;
-	prot  = true ;
+	p_row = row ;
+	p_col = col ;
 
 	field* fld = get_field_address( row, col ) ;
 	if ( fld && fld->field_active )
@@ -3214,9 +3216,12 @@ void pPanel::field_backspace( uint& row,
 	uint tcol ;
 	uint p    ;
 
+	prot = true ;
+
+	if ( row < win_row || col < win_col ) { return ; }
+
 	trow = row - win_row ;
 	tcol = col - win_col ;
-	prot = true ;
 
 	field* fld = get_field_address( trow, tcol ) ;
 	if ( fld && fld->field_active && tcol != fld->field_col )
@@ -3243,9 +3248,12 @@ void pPanel::field_delete_char( uint row, uint col, bool& prot )
 	uint trow ;
 	uint tcol ;
 
+	prot = true ;
+
+	if ( row < win_row || col < win_col ) { return ; }
+
 	trow = row - win_row ;
 	tcol = col - win_col ;
-	prot = true ;
 
 	field* fld = get_field_address( trow, tcol ) ;
 	if ( fld && fld->field_active )
@@ -3262,9 +3270,12 @@ void pPanel::field_erase_eof( uint row, uint col, bool& prot )
 {
 	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find field
 
+	prot = true ;
+
+	if ( row < win_row || col < win_col ) { return ; }
+
 	row -= win_row ;
 	col -= win_col ;
-	prot = true ;
 
 	field* fld = get_field_address( row, col ) ;
 	if ( fld && fld->field_active )
@@ -3284,6 +3295,8 @@ void pPanel::cursor_eof( uint& row, uint& col )
 
 	uint trow ;
 	uint tcol ;
+
+	if ( row < win_row || col < win_col ) { return ; }
 
 	trow = row - win_row ;
 	tcol = col - win_col ;
@@ -4219,7 +4232,7 @@ void pPanel::display_id( errblock& err )
 }
 
 
-void pPanel::get_panel_info( int& RC,
+void pPanel::get_panel_info( errblock& err,
 			     const string& a_name,
 			     const string& t_name,
 			     const string& w_name,
@@ -4227,25 +4240,50 @@ void pPanel::get_panel_info( int& RC,
 			     const string& r_name,
 			     const string& c_name )
 {
+	// RC =  0  Normal completion
+	// RC =  8  Area type not found on panel
+	// RC = 20  Severe error
+
+	// Only AREATYPE DYNAMIC currently supported
+
 	map<string, dynArea*>::iterator it ;
-
-	errblock err ;
-
-	RC = 0 ;
 
 	it = dynAreaList.find( a_name ) ;
 	if ( it == dynAreaList.end() )
 	{
-		llog( "E", "PQUERY.  Dynamic area '"+ a_name +"' not found" << endl ) ;
-		RC = 8 ;
+		err.setRC( 8 ) ;
 		return ;
 	}
 
-	if ( t_name != "" ) { p_funcPOOL->put2( err, t_name, "DYNAMIC" ) ; }
-	if ( w_name != "" ) { p_funcPOOL->put2( err, w_name, it->second->dynArea_width ) ; }
-	if ( d_name != "" ) { p_funcPOOL->put2( err, d_name, it->second->dynArea_depth ) ; }
-	if ( r_name != "" ) { p_funcPOOL->put2( err, r_name, it->second->dynArea_row )   ; }
-	if ( c_name != "" ) { p_funcPOOL->put2( err, c_name, it->second->dynArea_col )   ; }
+	if ( t_name != "" )
+	{
+		p_funcPOOL->put2( err, t_name, "DYNAMIC" ) ;
+		if ( err.error() ) { return ; }
+	}
+
+	if ( w_name != "" )
+	{
+		p_funcPOOL->put2( err, w_name, it->second->dynArea_width ) ;
+		if ( err.error() ) { return ; }
+	}
+
+	if ( d_name != "" )
+	{
+		p_funcPOOL->put2( err, d_name, it->second->dynArea_depth ) ;
+		if ( err.error() ) { return ; }
+	}
+
+	if ( r_name != "" )
+	{
+		p_funcPOOL->put2( err, r_name, it->second->dynArea_row ) ;
+		if ( err.error() ) { return ; }
+	}
+
+	if ( c_name != "" )
+	{
+		p_funcPOOL->put2( err, c_name, it->second->dynArea_col ) ;
+		if ( err.error() ) { return ; }
+	}
 }
 
 

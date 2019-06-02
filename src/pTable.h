@@ -32,7 +32,7 @@ class Table
 			tab_opath     = ""    ;
 			sa_namelst    = ""    ;
 			sa_cond_pairs = ""    ;
-			sa_dir        = ""    ;
+			sa_dir        = "NEXT";
 			sort_ir       = ""    ;
 		}
 		~Table() ;
@@ -63,10 +63,10 @@ class Table
 
 		vector<vector<string>*> table ;
 
-		map<string, tbsearch> sarg ;
+		vector<tbsearch> sarg ;
 
-		vector<string> tab_vkeys   ;
-		vector<string> tab_vall    ;
+		vector<string> tab_vkeys ;
+		vector<string> tab_vall  ;
 
 		void   saveTable( errblock& err,
 				  const string& m_name,
@@ -82,7 +82,8 @@ class Table
 		void   storeIntValue( errblock& err,
 				      fPOOL& funcPOOL,
 				      const string&,
-				      int ) ;
+				      int,
+				      int =8 ) ;
 
 		void   fillfVARs( errblock& err,
 				  fPOOL& funcPOOL,
@@ -114,6 +115,13 @@ class Table
 				   fPOOL& funcPOOL,
 				   const string& tb_namelst,
 				   vector<string>* flds ) ;
+
+		void   loadFields_save( errblock& err,
+					fPOOL& funcPOOL,
+					const string& tb_savenm,
+					const string& tb_rowid_vn,
+					const string& tb_noread,
+					const string& tb_crp_name ) ;
 
 		void   tbadd( errblock& err,
 			      fPOOL& funcPOOL,
@@ -170,12 +178,12 @@ class Table
 			       string tb_next_prev,
 			       string tb_cond_pairs ) ;
 
-		void   tbsets( errblock& err,
-			       fPOOL& funcPOOL,
-			       map<string, tbsearch>& ,
-			       string& tb_namelst,
-			       string& tb_cond_pairs,
-			       bool for_tbsarg ) ;
+		void   setscan( errblock& err,
+				fPOOL& funcPOOL,
+				vector<tbsearch>& scan,
+				set<string>& names,
+				string& tb_namelst,
+				string& tb_cond_pairs ) ;
 
 		void   tbscan( errblock& err,
 			       fPOOL& funcPOOL,

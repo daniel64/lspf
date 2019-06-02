@@ -1703,17 +1703,24 @@ void Box::box_init( errblock& err, int MAXW, int MAXD, const string& line )
 	w6 = word( line, 6 ) ;
 
 	if ( !datatype( w2, 'W' ) ||
-	     !datatype( w3, 'W' ) ||
-	     !datatype( w4, 'W' ) ||
-	     !datatype( w5, 'W' ) )
+	     !datatype( w3, 'W' ) )
 	{
 		err.seterrid( "PSYE019E" ) ;
 		return ;
 	}
-	row   = ds2d( w2 ) ;
-	col   = ds2d( w3 ) ;
-	width = ds2d( w4 ) ;
-	depth = ds2d( w5 ) ;
+
+	row = ds2d( w2 ) ;
+	col = ds2d( w3 ) ;
+
+	if ( isnumeric( w4 ) )                      { width = ds2d( w4 )     ; }
+	else if ( w4 == "MAX" )                     { width = MAXW - col + 1 ; }
+	else if ( w4.compare( 0, 4, "MAX-" ) == 0 ) { width = MAXW - col - ds2d( substr( w4, 5 ) ) + 1 ; }
+	else                                        { err.seterrid( "PSYE019E", w4 ) ; return          ; }
+
+	if ( isnumeric( w5 ) )                      { depth = ds2d( w5 )     ; }
+	else if ( w5 == "MAX" )                     { depth = MAXD - row + 1 ; }
+	else if ( w5.compare( 0, 4, "MAX-" ) == 0 ) { depth = MAXD - row - ds2d( substr( w5, 5 ) ) + 1 ; }
+	else                                        { err.seterrid( "PSYE019E", w5 ) ; return          ; }
 
 	if ( row > (MAXD - 2) )
 	{
