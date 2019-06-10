@@ -299,7 +299,7 @@ logger*   poolMGR::lg       = NULL ;
 bool  pApplication::ControlNonDispl = false ;
 bool  pApplication::ControlDisplayLock = false ;
 bool  pApplication::ControlSplitEnable = true  ;
-bool  pApplication::lineOutDone = false ;
+bool  pApplication::lineInOutDone = false ;
 
 char  field::field_paduchar = ' ' ;
 bool  field::field_nulls    = false ;
@@ -349,6 +349,10 @@ void processZCOMMAND( selobj& selct, uint row, uint col, bool doSelect ) ;
 void issueMessage( const string& ) ;
 void lineOutput()     ;
 void lineOutput_end() ;
+void lineInput()      ;
+void updateScreenText( set<uint>&, uint, uint ) ;
+uint getTextLength( uint ) ;
+string getScreenText( uint ) ;
 void errorScreen( int, const string& ) ;
 void errorScreen( const string&, const string& ) ;
 void errorScreen( const string& ) ;
@@ -571,7 +575,8 @@ void mainLoop()
 {
 	llog( "I", "mainLoop() entered" << endl ) ;
 
-	uint c   ;
+	int c    ;
+
 	uint row ;
 	uint col ;
 
@@ -610,7 +615,7 @@ void mainLoop()
 		if ( commandStack == ""                &&
 		     !pApplication::ControlDisplayLock &&
 		     !pApplication::ControlNonDispl    &&
-		     !pApplication::lineOutDone )
+		     !pApplication::lineInOutDone )
 		{
 			currAppl->display_setmsg() ;
 			ncursesUpdate( row, col ) ;
@@ -619,7 +624,7 @@ void mainLoop()
 		}
 		else
 		{
-			if ( pApplication::ControlDisplayLock && not pApplication::lineOutDone )
+			if ( pApplication::ControlDisplayLock && not pApplication::lineInOutDone )
 			{
 				currAppl->display_setmsg() ;
 				ncursesUpdate( row, col ) ;
@@ -828,11 +833,11 @@ void initialSetup()
 
 void ncursesUpdate( uint row, uint col )
 {
-	if ( pApplication::lineOutDone )
+	if ( pApplication::lineInOutDone )
 	{
 		lineOutput_end() ;
 		currScrn->refresh_panel_stack() ;
-		pApplication::lineOutDone = false ;
+		pApplication::lineInOutDone = false ;
 		update_panels() ;
 		linePosn = -1 ;
 	}
@@ -966,7 +971,7 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 	pfcmd     = ""    ;
 	zcommand  = ""    ;
 
-	if ( pApplication::lineOutDone ) { return ; }
+	if ( pApplication::lineInOutDone ) { return ; }
 
 	currAppl->set_userAction( USR_ENTER ) ;
 
@@ -1855,7 +1860,7 @@ bool resolveZCTEntry( string& cmdVerb, string& cmdParm )
 	vector<string>cmdtabls ;
 	set<string>processed   ;
 
-	err.clear() ;
+	errblock err1 ;
 
 	zctverb  = "" ;
 	zcttrunc = "" ;
@@ -1903,17 +1908,17 @@ bool resolveZCTEntry( string& cmdVerb, string& cmdParm )
 	{
 		for ( j = 0 ; j < cmdtabls.size() ; ++j )
 		{
-			err.clear() ;
-			p_tableMGR->cmdsearch( err, funcPOOL, cmdtabls[ j ], cmdVerb, ztlib, ( j > 0 ) ) ;
-			if ( err.error() )
+			err1.clear() ;
+			p_tableMGR->cmdsearch( err1, funcPOOL, cmdtabls[ j ], cmdVerb, ztlib, ( j > 0 ) ) ;
+			if ( err1.error() )
 			{
 				llog( "E", "Error received searching for command "+ cmdVerb << endl ) ;
 				llog( "E", "Table name : "+ cmdtabls[ j ] << endl ) ;
 				llog( "E", "Path list  : "+ ztlib << endl ) ;
-				listErrorBlock( err ) ;
+				listErrorBlock( err1 ) ;
 				continue ;
 			}
-			if ( !err.RC0() || zctact == "" ) { continue ; }
+			if ( !err1.RC0() || zctact == "" ) { continue ; }
 			if ( zctact.front() == '&' )
 			{
 				currAppl->vcopy( substr( zctact, 2 ), zctact, MOVE ) ;
@@ -1922,7 +1927,7 @@ bool resolveZCTEntry( string& cmdVerb, string& cmdParm )
 			found = true ;
 			break ;
 		}
-		if ( err.getRC() > 0 || word( zctact, 1 ) != "ALIAS" ) { break ; }
+		if ( err1.getRC() > 0 || word( zctact, 1 ) != "ALIAS" ) { break ; }
 		cmdVerb = word( zctact, 2 )    ;
 		if ( subword( zctact, 3 ) != "" )
 		{
@@ -2208,6 +2213,10 @@ void startApplication( selobj& selct, bool nScreen )
 		else if ( currAppl->line_output_pending() )
 		{
 			lineOutput() ;
+		}
+		else if ( currAppl->line_input_pending() )
+		{
+			lineInput() ;
 		}
 	}
 
@@ -2677,11 +2686,11 @@ void terminateApplication()
 		{
 			currAppl->set_cursor_home() ;
 		}
-		if ( not currAppl->propagateEnd && pApplication::lineOutDone )
+		if ( not currAppl->propagateEnd && pApplication::lineInOutDone )
 		{
 			lineOutput_end() ;
 			currScrn->refresh_panel_stack() ;
-			pApplication::lineOutDone = false ;
+			pApplication::lineInOutDone = false ;
 			update_panels() ;
 			doupdate() ;
 			linePosn = -1 ;
@@ -2891,6 +2900,10 @@ void ResumeApplicationAndWait()
 	else if ( currAppl->line_output_pending() )
 	{
 		lineOutput() ;
+	}
+	else if ( currAppl->line_input_pending() )
+	{
+		lineInput() ;
 	}
 }
 
@@ -3470,7 +3483,7 @@ void lineOutput()
 
 	currScrn->show_busy() ;
 	attrset( RED | A_BOLD ) ;
-	t = currAppl->lineBuffer ;
+	t = currAppl->outBuffer ;
 
 	do
 	{
@@ -3502,6 +3515,11 @@ void lineOutput()
 
 void lineOutput_end()
 {
+	uint row = 0 ;
+	uint col = 0 ;
+
+	set<uint>rows ;
+
 	attrset( RED | A_BOLD ) ;
 	mvaddstr( linePosn, 0, "***" ) ;
 
@@ -3511,13 +3529,13 @@ void lineOutput_end()
 	currScrn->show_enter() ;
 	wnoutrefresh( stdscr ) ;
 	wnoutrefresh( OIA ) ;
+
+	currScrn->set_cursor( linePosn, 3 ) ;
 	move( linePosn, 3 ) ;
 	doupdate() ;
 
-	while ( true )
-	{
-		if ( isActionKey( getch() ) ) { break ; }
-	}
+	updateScreenText( rows, row, col ) ;
+	attrset( RED | A_BOLD ) ;
 
 	linePosn = 0 ;
 	currScrn->clear() ;
@@ -3529,6 +3547,7 @@ void lineOutput_end()
 		displayNotifies() ;
 		lineOutput_end() ;
 	}
+
 }
 
 
@@ -3538,6 +3557,170 @@ void displayNotifies()
 	{
 		lineOutput() ;
 	}
+}
+
+
+void lineInput()
+{
+	uint row = linePosn ;
+	uint col = 0 ;
+
+	set<uint>rows ;
+
+	if ( linePosn == int( pLScreen::maxrow-1 ) )
+	{
+		lineOutput_end() ;
+		row = 0 ;
+		col = 0 ;
+	}
+	else if ( linePosn == -1 )
+	{
+		currScrn->save_panel_stack() ;
+		currScrn->clear() ;
+		linePosn = 0 ;
+		row = 0 ;
+		col = 0 ;
+	}
+	++linePosn ;
+
+	currScrn->set_cursor( row, col ) ;
+	currScrn->clear_status() ;
+	wnoutrefresh( OIA ) ;
+
+	updateScreenText( rows, row, col ) ;
+
+	currAppl->inBuffer = "" ;
+	for ( auto it = rows.begin() ; it != rows.end() ; ++it )
+	{
+		currAppl->inBuffer += getScreenText( *it ) ;
+	}
+
+	move( linePosn, 0 ) ;
+}
+
+
+void updateScreenText( set<uint>& rows, uint row, uint col )
+{
+	// Update the screen text in raw mode.
+
+	int c ;
+
+	bool actionKey = false ;
+	bool Insert    = false ;
+
+	attrset( GREEN | A_BOLD ) ;
+
+	while ( not actionKey )
+	{
+		currScrn->get_cursor( row, col ) ;
+		move( row, col ) ;
+		currScrn->OIA_update( priScreen, altScreen ) ;
+		wnoutrefresh( OIA ) ;
+		c = getch() ;
+		if ( c < 256 && isprint( c ) )
+		{
+			rows.insert( row ) ;
+			Insert ? insch( c ) : addch( c ) ;
+			currScrn->cursor_right() ;
+			continue ;
+		}
+		switch( c )
+		{
+
+			case KEY_LEFT:
+				currScrn->cursor_left() ;
+				break ;
+
+			case KEY_RIGHT:
+				currScrn->cursor_right() ;
+				break ;
+
+			case KEY_UP:
+				currScrn->cursor_up() ;
+				break ;
+
+			case KEY_DOWN:
+				currScrn->cursor_down() ;
+				break ;
+
+			case KEY_IC:
+				Insert = not Insert ;
+				currScrn->set_Insert( Insert ) ;
+				break ;
+
+			case KEY_DC:
+				mvdelch( row, col ) ;
+				rows.insert( row ) ;
+				break ;
+
+			case KEY_END:
+				col = min( ( pLScreen::maxcol - 1 ), getTextLength( row ) + 1 ) ;
+				currScrn->set_cursor( row, col ) ;
+				break ;
+
+			case 127:
+			case KEY_BACKSPACE:
+				if ( col > 0 )
+				{
+					mvdelch( row, --col ) ;
+					currScrn->set_cursor( row, col ) ;
+					rows.insert( row ) ;
+				}
+				break ;
+
+			case KEY_HOME:
+				row = 0 ;
+				col = 0 ;
+				currScrn->set_cursor( row, col ) ;
+				break ;
+
+			default:
+				actionKey = isActionKey( c ) ;
+				break ;
+		}
+	}
+
+	currScrn->set_Insert( false ) ;
+}
+
+
+string getScreenText( uint row )
+{
+	// Retrieve a row of text on the screen excluding null characters.
+	// Nulls are determined by the fact they have no associated attributes.
+
+	chtype inc1 ;
+	chtype inc2 ;
+
+	string t ;
+	t.reserve( pLScreen::maxcol ) ;
+
+	for ( uint j = 0 ; j < pLScreen::maxcol ; ++j )
+	{
+		inc1 = mvinch( row, j ) ;
+		inc2 = inc1 & A_CHARTEXT ;
+		if ( inc1 != inc2 )
+		{
+			t.push_back( char( inc2 ) ) ;
+		}
+	}
+
+	return t ;
+}
+
+
+uint getTextLength( uint row )
+{
+	// Retrieve the row text length.
+
+	int l = pLScreen::maxcol - 1 ;
+
+	for ( ; l >= 0 ; --l )
+	{
+		if ( char( mvinch( row, l ) & A_CHARTEXT ) != ' ' ) { break ; }
+	}
+
+	return l ;
 }
 
 
@@ -3608,7 +3791,7 @@ string listLogicalScreens()
 		for ( i = 0, it = lslist.begin() ; it != lslist.end() ; ++it, ++i )
 		{
 			wattrset( swwin, cuaAttr[ i == m ? PT : VOI ] | intens ) ;
-			mvwaddstr( swwin, i+4, 2, it->c_str() )         ;
+			mvwaddstr( swwin, i+4, 2, it->c_str() ) ;
 		}
 		update_panels() ;
 		doupdate()  ;
@@ -3627,11 +3810,11 @@ string listLogicalScreens()
 		if ( c == KEY_ENTER || c == 13 ) { break ; }
 		if ( c == KEY_UP )
 		{
-			m == 0 ? m = lslist.size() - 1 : --m ;
+			( m == 0 ) ? m = lslist.size() - 1 : --m ;
 		}
 		else if ( c == KEY_DOWN || c == CTRL( 'i' ) )
 		{
-			m == lslist.size()-1 ? m = 0 : ++m ;
+			( m == lslist.size()-1 ) ? m = 0 : ++m ;
 		}
 		else if ( isActionKey( c ) )
 		{
@@ -3865,7 +4048,7 @@ void autoUpdate()
 	// Resume application every 1s and wait.
 	// Check every 50ms to see if ESC(27) has been pressed - read all characters from the buffer.
 
-	char c ;
+	int c ;
 
 	bool end_auto = false ;
 

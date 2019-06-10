@@ -9,57 +9,225 @@ Application modules must reside in ZLDPATH defined in lspf.h
 C++ lspf service function prototypes:
 -------------------------------------
 
-void   control( string, string )
-void   libdef( string, string = "" )
-void   display( string p_name, string p_msg = "", string p_cursor = "", int p_curpos = 0 )
-void   pquery( string p_name, string a_name, string t = "", string w = "", string d = "", string r = "", string c = "" )
-void   select( string )
-void   select( string pgm, string parm, string newappl, bool newpool, bool passlib )
-void   attr( string, string )
+void   control( const string&, const string&, const string& ="" ) ;
+void   control( const string&, void (pApplication::*)() ) ;
 
-void   vcopy( string, string &, vcMODE=LOCATE )
-void   vdefine( string, string *, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL, string * =NULL )
-void   vdefine( string, int *, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL, int * =NULL )
-void   vdelete( string ) ;
-void   verase( string var, poolType =ASIS )
-void   vget( string var, poolType =ASIS )
-string vlist( poolType pType, int lvl )
-void   vput( string var, poolType =ASIS )
-void   vreplace( string, string )
-void   vreplace( string, int )
+void   libdef( const string&, const string& ="", const string& ="", const string& ="UNCOND" ) ;
+
+void   rdisplay( const string&, bool =true ) ;
+void   pull( const string& ) ;
+void   pull( string* ) ;
+
+void   display( string p_name,
+                const string& p_msg = "",
+                const string& p_cursor = "",
+                int p_curpos = 0,
+                const string& p_buffer = "",
+                const string& p_retbuf = "" ) ;
+
+void   pquery( const string& p_name,
+               const string& a_name,
+               const string& t = "",
+               const string& w = "",
+               const string& d = "",
+               const string& r= "",
+               const string& c = "" ) ;
+
+bool   notify() ;
+
+void   select( const string& ) ;
+
+void   submit( const string& ) ;
+
+void   qlibdef( const string&, const string& ="" , const string& ="" ) ;
+
+void   vcopy( const string&, string&, vcMODE=MOVE ) ;
+void   vcopy( const string&, string* &, vcMODE=LOCATE ) ;
+
+void   vdefine( const string&,
+                string*,
+                string* =NULL,
+                string* =NULL,
+                string* =NULL,
+                string* =NULL,
+                string* =NULL,
+                string* =NULL,
+                string* =NULL,
+                string* =NULL,
+                string* =NULL ) ;
+
+void   vdefine( const string&,
+                int*,
+                int* =NULL,
+                int* =NULL,
+                int* =NULL,
+                int* =NULL,
+                int* =NULL,
+                int* =NULL,
+                int* =NULL,
+                int* =NULL,
+                int* =NULL ) ;
+
+void   vdelete( const string& ) ;
+void   verase( const string& var, poolType =ASIS ) ;
+void   vget( const string& var, poolType =ASIS )   ;
+void   vput( const string& var, poolType =ASIS )   ;
+set<string>& vlist( poolType pType, int lvl ) ;
+set<string>& vilist( vdType =ALL ) ;
+set<string>& vslist( vdType =ALL ) ;
+void   vmask( const string& var, const string& type, const string& mask ) ;
+void   vreplace( const string&, const string& ) ;
+void   vreplace( const string&, int )           ;
 void   vreset() ;
 
-void   tbadd( string tb_name, string tb_namelst="", string tb_order="", int tb_num_of_rows=0 )
-void   tbbottom( string tb_name )
-void   tbclose( string tb_name, string new_name="", string path="" )
-void   tbcreate( string tb_name, string keys, string names, tbSAVE a=NOWRITE, tbREP b=NOREPLACE, string path="", tbDISP c=EXCLUSIVE )
-void   tbdelete( string tb_name )
-void   tbdispl( string tb_name, string p_name="", string p_msg="", string p_cursor="", int p_csrrow=0, int p_csrpos=1, string p_autosel="YES", string p_crp_name="", string p_rowid_nm="" )
-void   tbend( string tb_name )
-void   tberase( string tb_name, string tb_path="" )
-void   tbexist( string tb_name )
-void   tbget( string tb_name, string tb_savenm="", string tb_rowid_vn="", string tb_noread="", string tb_crp_name="" )
-void   tbmod( string tb_name, string tb_namelst="", string tb_order="" )
-void   tbopen( string tb_name, tbSAVE WRITE, string path="", tbDISP c=EXCLUSIVE )
-void   tbput( string tb_name, string tb_namelst="", string tb_order="" )
-void   tbquery( string tb_name, string tb_keyn="", string tb_varn="", string tb_rownn="", string tb_keynn="", string tb_namenn="",string tb_crpn="", string tb_sirn="", string tb_lstn="", string tb_condn="", string tb_dirn="" )
-void   tbsarg( string tb_name, string tb_namelst="", string tb_dir="NEXT", string tb_cond_pairs="" )
-void   tbsave( string tb_name, string new_name="", string path="")
-void   tbscan( string tb_name, string tb_namelst="", string tb_savenm="", string tb_rowid_vn="", string tb_dir="NEXT", string tb_read="", string tb_crp_name="", string tb_condlst="" )
-void   tbskip( string tb_name, int num, string tb_savenm="", string tb_rowid_vn="", string tb_rowid="", string tb_noread="", string tb_crp_name=""  )
-void   tbsort( string tb_name, string tb_fields )
-void   tbtop( string tb_name )
-void   tbvclear( string tb_name )
+void   log( const string& msg ) ;
+void   qtabopen( const string& tb_list ) ;
 
-void   browse( string m_file, string m_panel="" )
-void   edit( string m_file, string m_panel=""   )
-void   view( string m_file, string m_panel=""   )
-void   setmsg( string msg, msgSET sType=UNCOND  )
+void   tbadd( const string& tb_name,
+              string tb_namelst="",
+              const string& tb_order="",
+              int tb_num_of_rows=0 ) ;
+
+void   tbbottom( const string& tb_name,
+                 const string& tb_savenm="",
+                 const string& tb_rowid_vn="",
+                 const string& tb_noread="",
+                 const string& tb_crp_name="" ) ;
+
+void   tbclose( const string& tb_name, const string& new_name="", string path="" ) ;
+
+void   tbcreate( const string& tb_name,
+                 string keys,
+                 string names,
+                 tbWRITE =NOWRITE,
+                 tbREP =NOREPLACE,
+                 string path="",
+                 tbDISP =NON_SHARE ) ;
+
+void   tbdelete( const string& tb_name ) ;
+
+void   tbdispl( const string& tb_name,
+                string p_name="",
+                const string& p_msg="",
+                string p_cursor="",
+                int p_csrrow=0,
+                int p_csrpos=1,
+                string p_autosel="YES",
+                const string& p_crp_name="",
+                const string& p_rowid_nm="",
+                const string& p_msgloc="" ) ;
+
+void   tbend( const string& tb_name ) ;
+
+void   tberase( const string& tb_name, string tb_path="" ) ;
+
+void   tbexist( const string& tb_name ) ;
+
+void   tbget( const string& tb_name,
+              const string& tb_savenm="",
+              const string& tb_rowid_vn="",
+              const string& tb_noread="",
+              const string& tb_crp_name="" ) ;
+
+void   tbmod( const string& tb_name,
+              string tb_namelst="",
+              const string& tb_order="" ) ;
+
+void   tbopen( const string& tb_name,
+               tbWRITE WRITE,
+               string path="",
+               tbDISP c=NON_SHARE ) ;
+
+void   tbput( const string& tb_name,
+              string tb_namelst="",
+              const string& tb_order="" ) ;
+
+void   tbquery( const string& tb_name,
+                const string& tb_keyn="",
+                const string& tb_varn="",
+                const string& tb_rownn="",
+                const string& tb_keynn="",
+                const string& tb_namenn="",
+                const string& tb_crpn="",
+                const string& tb_sirn="",
+                const string& tb_lstn="",
+                const string& tb_condn="",
+                const string& tb_dirn="" ) ;
+
+void   tbsarg( const string& tb_name,
+               const string& tb_namelst="",
+               const string& tb_dir="NEXT",
+               const string& tb_cond_pairs="" ) ;
+
+void   tbsave( const string& tb_name,
+               const string& new_name="",
+               string path="" ) ;
+
+void   tbscan( const string& tb_name,
+               const string& tb_namelst="",
+               const string& tb_savenm="",
+               const string& tb_rowid_vn="",
+               const string& tb_dir="NEXT",
+               const string& tb_read="",
+               const string& tb_crp_name="",
+               const string& tb_condlst="" ) ;
+
+void   tbskip( const string& tb_name,
+               int num=1,
+               const string& tb_savenm="",
+               const string& tb_rowid_vn="",
+               const string& tb_rowid="",
+               const string& tb_noread="",
+               const string& tb_crp_name="" ) ;
+
+void   tbsort( const string& tb_name,
+               string tb_fields ) ;
+
+void   tbtop( const string& tb_name ) ;
+
+void   tbvclear( const string& tb_name ) ;
+
+void   browse( const string& m_file,
+               const string& m_panel="" ) ;
+
+void   edit( const string& m_file,
+             const string& m_panel="",
+             const string& m_macro="",
+             const string& m_profile="",
+             const string& m_lcmds="",
+             const string& m_confirm="",
+             const string& m_preserv="" ) ;
+
+void   view( const string& m_file,
+             const string& m_panel="",
+             const string& m_macro="",
+             const string& m_profile="",
+             const string& m_lcmds="",
+             const string& m_confirm="",
+             const string& m_chgwarn="" ) ;
+
+void   edrec( const string& m_parm ) ;
+
+void   setmsg( const string& msg, msgSET sType=UNCOND  ) ;
+void   getmsg( const string&,
+               const string&,
+               const string& ="",
+               const string& ="",
+               const string& ="",
+               const string& ="",
+               const string& ="" ) ;
+
+void   addpop( const string& ="", int =0, int =0 ) ;
+void   rempop( const string& ="" ) ;
+
+void   enq( const string&, const string&, enqDISP =EXC, enqSCOPE =GLOBAL ) ;
+void   deq( const string&, const string&, enqSCOPE =GLOBAL ) ;
+void   qscan( const string&, const string&, enqDISP =EXC, enqSCOPE =GLOBAL ) ;
 
 Alternatively, the ISPEXEC interface is supported (with the usual restrictions), rather than calling the pApplication method.
 The ISPEXEC interface supports variable substitution.
 
-Functions set return code in variable RC
+Functions set return code in special variable RC
 
 The following services are implemented:
 
@@ -84,6 +252,10 @@ Additional Services
 ===================
 rdisplay() - Issue line output synchronously.  Control returns to the appliction after
              each line issued.
+pull()     - Gets data from the user in line mode.
+             Pull can specify a variable name (the data read goes to the function pool),
+             or it can specify a string pointer to contain the data.
+             ISPEXEC interface only supports the function pool variable.
 notify()   - Issue line output asynchronously.  Output is queued until user interaction.
 enq()      - Issue an enqueue with a major name and minor name (qname and rname)
 deq()      - Release an enqueue

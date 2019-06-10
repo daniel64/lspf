@@ -248,7 +248,6 @@ class PBRO01A : public pApplication
 		a_cursor cursor ;
 
 		void Browse()               ;
-		void parse_parms()          ;
 		void initialise()           ;
 		void read_file()            ;
 		void fill_dynamic_area()    ;

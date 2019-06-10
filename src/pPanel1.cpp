@@ -65,6 +65,8 @@ pPanel::pPanel()
 	home        = ""     ;
 	dTrail      = ""     ;
 	scroll      = "ZSCROLL" ;
+	fieldMap    = NULL   ;
+	fieldAddrs  = NULL   ;
 	fwin        = NULL   ;
 	pwin        = NULL   ;
 	bwin        = NULL   ;
@@ -188,6 +190,16 @@ pPanel::~pPanel()
 		panel_cleanup( idpanel ) ;
 		del_panel( idpanel ) ;
 		delwin( idwin )      ;
+	}
+
+	if ( fieldMap )
+	{
+		delete[] fieldMap ;
+	}
+
+	if ( fieldAddrs )
+	{
+		delete[] fieldAddrs ;
 	}
 }
 

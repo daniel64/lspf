@@ -136,6 +136,8 @@ void PEDIT01::application()
 
 	edit_parms* e_parms = static_cast<edit_parms*>( get_options() ) ;
 
+	if ( !e_parms ) { return ; }
+
 	if ( ( e_parms->edit_confirm  != "YES" &&
 	       e_parms->edit_confirm  != "NO"  &&
 	       e_parms->edit_confirm  != ""    ) ||
@@ -160,6 +162,7 @@ void PEDIT01::application()
 	optConfCancel = ( e_parms->edit_confirm  == "YES" || e_parms->edit_confirm == "" ) ;
 	optPreserve   = ( e_parms->edit_preserve == "PRESERVE" ) ;
 
+	if ( zfile == "" ) { return ; }
 	if ( panel == "" ) { panel = "PEDIT012" ; }
 
 	initialise() ;

@@ -90,7 +90,7 @@ map<int,b_find> PBRO01A::Global_bfind_parms ;
 PBRO01A::PBRO01A()
 {
 	set_appdesc( "Browser for lspf" ) ;
-	set_appver( "1.0.2" ) ;
+	set_appver( "1.0.3" ) ;
 
 	vdefine( "ZCMD ZVERB ZROW1 ZCURFLD", &zcmd, &zverb, &zrow1, &zcurfld ) ;
 	vdefine( "ZAREA ZSHADOW ZDSN", &zarea, &zshadow, &zfile ) ;
@@ -105,33 +105,21 @@ PBRO01A::PBRO01A()
 
 void PBRO01A::application()
 {
-	parse_parms() ;
+	browse_parms* b_parms = static_cast<browse_parms*>( get_options() ) ;
+
+	if ( !b_parms ) { return ; }
+
+	zfile = b_parms->browse_file ;
+	panel = b_parms->browse_panel ;
+
+	if ( zfile == "" ) { return ; }
+
 	initialise()  ;
 
 	Browse() ;
 
 	ZRC  = XRC ;
 	ZRSN = XRSN ;
-}
-
-
-void PBRO01A::parse_parms()
-{
-	errblock err ;
-
-	zfile = parseString( err, PARM, "FILE()" ) ;
-	if ( err.error() || zfile == "" )
-	{
-		llog( "E", "Invalid parameter format passed to PBRO01A" << endl ; )
-		abend() ;
-	}
-
-	panel = parseString( err, PARM, "PANEL()" ) ;
-	if ( err.error() )
-	{
-		llog( "E", "Invalid parameter format passed to PBRO01A" << endl ; )
-		abend() ;
-	}
 }
 
 

@@ -1,0 +1,62 @@
+/*
+  Copyright (c) 2019 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+/* Re-direct say ouput and error messages to the spool or it'll mess up lspf output */
+parse source . . src .
+Call setdest src
+
+/************************************************************************************/
+/* Simple REXX to execute a bash command from the user and show the output on the   */
+/* screen in line mode.                                                             */
+/*                                                                                  */
+/* Uses the ISPEXEC PULL service to read data from the user.                        */
+/* EXIT, QUIT, LEAVE or END terminates the exec.                                    */
+/*                                                                                  */
+/* Command output and errors should be trapped, but if command messes up lspf       */
+/* screen, use REFRESH command to restore ( or Display pulldown -> Refresh Screen ) */
+/************************************************************************************/
+
+address ISPEXEC
+
+tfile = systempfilename( "/tmp/" )
+Call RXQUEUE "Create" , "mystack"
+
+do forever
+   "RDISPLAY READY"
+   "PULL ans"
+   if ans = "" then iterate
+   if wordpos( upper( ans ), "EXIT QUIT LEAVE END" ) > 0 then leave
+   address bash ans " </dev/null 2> "tfile" | rxqueue "
+   zfile = .stream~new( tfile )
+   zfile~open( "read" )
+   do while zfile~lines > 0
+      queue Zfile~linein
+   end
+   zfile~close
+   do i = 1 to queued()
+      parse pull line
+      "RDISPLAY &LINE"
+   end
+   "RDISPLAY"
+end
+
+Call RXQUEUE "Delete", "mystack"
+Call sysfiledelete( tfile )
+
+EXIT

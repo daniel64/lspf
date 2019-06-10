@@ -28,17 +28,17 @@ Loads! some good, and some bad but in no particular order...
     If the tab key is pressed when the cursor is not on the first character of a field defined in this way, it acts
     as FIELDEXC.  This way the tab key can be used to expand file names (or anything else depending on the
     field execute program invoked)
-15) On returing from calling a program via a SELECT, special variables ZRC, ZRSN and ZRESULT are returned
+15) On returning from calling a program via a SELECT, special variables ZRC, ZRSN and ZRESULT are returned
     ZRC and ZRSN are interger values.
     ZRESULT is a string.
 16) Each application runs in its own thread so if an application fails and the exception is trapped, only that
-    thread is terminated, not the whole logical screen.  In a select stack, this is propagated back to the calling
-    program, unless the select is within a CONTROL ERRORS RETURN statement, in which case on return,
+    thread is terminated, not the whole logical screen.  In a nested select stack, this is propagated back to the
+    calling program, unless the select is within a CONTROL ERRORS RETURN statement, in which case on return,
     ZRC     = 20
     ZRSN    = 999
     ZRESULT = "Abended"
     If ZRSN has been set to greater than 900, ZRSN and ZRESULT are percolated back to the calling program.
-17) lspf tables are open per thread, not per logical screen.
+17) lspf tables are open per nested SELECT, not per logical screen.
 18) .ATTR() can be used to change the CUA field attribute colour/hilight/intensity.  ISPF does not allow this.
 19) Pull down menus don't have an input field - select by placing curson on the option and pressing ENTER.
     Variable specified in .ZVARS in the )ABCINIT will automatically be set the the option number selected.

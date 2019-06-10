@@ -31,10 +31,10 @@
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
-#define LSPF_VERSION "1.1.11"
+#define LSPF_VERSION "1.1.12"
 #define LSPF_VERSION_MAJ 1
 #define LSPF_VERSION_REV 1
-#define LSPF_VERSION_MOD 11
+#define LSPF_VERSION_MOD 12
 
 typedef unsigned int uint ;
 
@@ -337,6 +337,7 @@ class errblock
 		string  val3   ;
 		string  udata  ;
 		uint    taskid ;
+		uint    ptid   ;
 		uint    RC     ;
 		uint    maxRC  ;
 		bool    debug  ;
@@ -355,6 +356,7 @@ class errblock
 		val3   = "" ;
 		udata  = "" ;
 		taskid = 0  ;
+		ptid   = 0  ;
 		RC     = 0  ;
 		maxRC  = 0  ;
 		debug  = false ;

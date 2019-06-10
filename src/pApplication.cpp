@@ -38,6 +38,7 @@ pApplication::pApplication()
 	ControlPassLRScroll = false  ;
 	ControlNonDisplEnd  = false  ;
 	lineOutPending      = false  ;
+	lineInPending       = false  ;
 	cmdTableLoaded      = false  ;
 	nested              = false  ;
 	errPanelissued      = false  ;
@@ -67,7 +68,8 @@ pApplication::pApplication()
 	SEL                 = false  ;
 	selPanel            = false  ;
 	setMessage          = false  ;
-	lineBuffer          = ""     ;
+	inBuffer            = ""     ;
+	outBuffer           = ""     ;
 	reffield            = ""     ;
 	PARM                = ""     ;
 	currPanel           = NULL   ;
@@ -132,7 +134,9 @@ void pApplication::init_phase1( selobj& sel, int taskid, void (* Callback)( lspf
 	options  = sel.options ;
 	backgrd  = sel.backgrd ;
 	taskId   = taskid      ;
+	ptid     = ( sel.ptid == 0 ) ? taskId : sel.ptid ;
 	errBlock.taskid = taskid ;
+	errBlock.ptid   = ptid   ;
 	lspfCallback    = Callback ;
 }
 
@@ -213,10 +217,9 @@ void pApplication::run()
 		}
 	}
 
-	for ( auto it = tablesOpen.begin() ; it != tablesOpen.end() ; ++it )
+	if ( errBlock.ptid == taskId )
 	{
-		debug1( "Closing table " << *it << endl ) ;
-		p_tableMGR->destroyTable( errBlock, *it ) ;
+		p_tableMGR->closeTablesforTask( errBlock ) ;
 	}
 
 	if ( cmdTableLoaded )
@@ -793,11 +796,11 @@ void pApplication::display( string p_name,
 			checkRCode( errBlock ) ;
 			return ;
 		}
-		if ( lineOutDone && not ControlNonDispl )
+		if ( lineInOutDone && not ControlNonDispl )
 		{
 			refreshlScreen = true ;
 			wait_event( WAIT_USER ) ;
-			lineOutDone    = false ;
+			lineInOutDone  = false ;
 			refreshlScreen = false ;
 		}
 		wait_event( WAIT_USER ) ;
@@ -2545,7 +2548,7 @@ void pApplication::tbadd( const string& tb_name,
 		return ;
 	}
 
-	if ( !isTableOpen( tb_name, "TBADD" ) ) { return ; }
+	if ( !tableNameOK( tb_name, "TBADD" ) ) { return ; }
 
 	p_tableMGR->tbadd( errBlock, funcPOOL, tb_name, tb_namelst, tb_order, tb_num_of_rows ) ;
 	if ( errBlock.error() )
@@ -2571,7 +2574,7 @@ void pApplication::tbbottom( const string& tb_name,
 	// RC = 12  Table not open
 	// RC = 20  Severe error
 
-	if ( !isTableOpen( tb_name, "TBBOTTOM" ) ) { return ; }
+	if ( !tableNameOK( tb_name, "TBBOTTOM" ) ) { return ; }
 
 	p_tableMGR->tbbottom( errBlock, funcPOOL, tb_name, tb_savenm, tb_rowid_vn, tb_noread, tb_crp_name ) ;
 	if ( errBlock.error() )
@@ -2591,14 +2594,14 @@ void pApplication::tbclose( const string& tb_name, const string& tb_newname, str
 
 	// If tb_paths is not specified, use ZTABL as the output path.  Error if blank.
 
-	// RC = 0   Normal completion.  Remove from tablesOpen.
+	// RC = 0   Normal completion.
 	// RC = 12  Table not open
 	// RC = 16  Path error
 	// RC = 20  Severe error
 
 	const string e1 = "TBCLOSE Error" ;
 
-	if ( !isTableOpen( tb_name, "TBCLOSE" ) ) { return ; }
+	if ( !tableNameOK( tb_name, "TBCLOSE" ) ) { return ; }
 
 	if ( tb_newname != "" && !isvalidName( tb_newname ) )
 	{
@@ -2607,7 +2610,7 @@ void pApplication::tbclose( const string& tb_name, const string& tb_newname, str
 		return ;
 	}
 
-	if ( p_tableMGR->writeableTable( errBlock, tb_name ) )
+	if ( p_tableMGR->writeableTable( errBlock, tb_name, "TBCLOSE" ) )
 	{
 		if ( tb_paths == "" )
 		{
@@ -2634,14 +2637,13 @@ void pApplication::tbclose( const string& tb_name, const string& tb_newname, str
 	}
 	if ( errBlock.RC0() )
 	{
-		p_tableMGR->destroyTable( errBlock, tb_name ) ;
+		p_tableMGR->destroyTable( errBlock, tb_name, "TBCLOSE" ) ;
 		if ( errBlock.error() )
 		{
 			errBlock.setcall( e1 ) ;
 			checkRCode( errBlock ) ;
 			return ;
 		}
-		tablesOpen.erase( tb_name ) ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -2678,7 +2680,7 @@ void pApplication::tbcreate( const string& tb_name,
 
 	if ( !isvalidName( tb_name ) )
 	{
-		errBlock.setcall( e1, "PSYE022J", tb_name, "table" ) ;
+		errBlock.setcall( e1, "PSYE014Q", tb_name ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -2739,10 +2741,6 @@ void pApplication::tbcreate( const string& tb_name,
 	}
 
 	RC = errBlock.getRC() ;
-	if ( RC < 8 )
-	{
-		tablesOpen.insert( tb_name ) ;
-	}
 }
 
 
@@ -2755,7 +2753,7 @@ void pApplication::tbdelete( const string& tb_name )
 	// RC = 12  Table not open
 	// RC = 20  Severe error
 
-	if ( !isTableOpen( tb_name, "TBDELETE" ) ) { return ; }
+	if ( !tableNameOK( tb_name, "TBDELETE" ) ) { return ; }
 
 	p_tableMGR->tbdelete( errBlock, funcPOOL, tb_name ) ;
 	if ( errBlock.error() )
@@ -2869,7 +2867,7 @@ void pApplication::tbdispl( const string& tb_name,
 		}
 	}
 
-	if ( !isTableOpen( tb_name, "TBDISPL" ) ) { return ; }
+	if ( !tableNameOK( tb_name, "TBDISPL" ) ) { return ; }
 
 	if ( p_cursor != "" && !isvalidName( p_cursor ) )
 	{
@@ -3042,11 +3040,11 @@ void pApplication::tbdispl( const string& tb_name,
 				checkRCode( errBlock ) ;
 				return ;
 			}
-			if ( lineOutDone && not ControlNonDispl )
+			if ( lineInOutDone && not ControlNonDispl )
 			{
 				refreshlScreen = true ;
 				wait_event( WAIT_USER ) ;
-				lineOutDone    = false ;
+				lineInOutDone  = false ;
 				refreshlScreen = false ;
 			}
 			wait_event( WAIT_USER ) ;
@@ -3239,20 +3237,19 @@ void pApplication::tbend( const string& tb_name )
 	// Close a table without saving (calls destroyTable routine).
 	// If opened share, use count is reduced and table removed from storage when use count = 0.
 
-	// RC = 0   Normal completion.  Remove from tablesOpen.
+	// RC = 0   Normal completion.
 	// RC = 12  Table not open
 	// RC = 20  Severe error
 
-	if ( !isTableOpen( tb_name, "TBEND" ) ) { return ; }
+	if ( !tableNameOK( tb_name, "TBEND" ) ) { return ; }
 
-	p_tableMGR->destroyTable( errBlock, tb_name ) ;
+	p_tableMGR->destroyTable( errBlock, tb_name, "TBEND" ) ;
 	if ( errBlock.error() )
 	{
 		errBlock.setcall( "TBEND Error" ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
-	tablesOpen.erase( tb_name ) ;
 	RC = 0 ;
 }
 
@@ -3273,7 +3270,7 @@ void pApplication::tberase( const string& tb_name, string tb_paths )
 
 	if ( !isvalidName( tb_name ) )
 	{
-		errBlock.setcall( e1, "PSYE022J", tb_name, "table" ) ;
+		errBlock.setcall( e1, "PSYE014Q", tb_name ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -3314,7 +3311,7 @@ void pApplication::tbexist( const string& tb_name )
 	// RC = 12  Table not open
 	// RC = 20  Severe error
 
-	if ( !isTableOpen( tb_name, "TBEXIST" ) ) { return ; }
+	if ( !tableNameOK( tb_name, "TBEXIST" ) ) { return ; }
 
 	p_tableMGR->tbexist( errBlock, funcPOOL, tb_name ) ;
 	if ( errBlock.error() )
@@ -3334,7 +3331,7 @@ void pApplication::tbget( const string& tb_name,
 			  const string& tb_noread,
 			  const string& tb_crp_name )
 {
-	if ( !isTableOpen( tb_name, "TBGET" ) ) { return ; }
+	if ( !tableNameOK( tb_name, "TBGET" ) ) { return ; }
 
 	p_tableMGR->tbget( errBlock, funcPOOL, tb_name, tb_savenm, tb_rowid_vn, tb_noread, tb_crp_name  ) ;
 	if ( errBlock.error() )
@@ -3369,7 +3366,7 @@ void pApplication::tbmod( const string& tb_name,
 		return ;
 	}
 
-	if ( !isTableOpen( tb_name, "TBMOD" ) ) { return ; }
+	if ( !tableNameOK( tb_name, "TBMOD" ) ) { return ; }
 
 	getNameList( errBlock, tb_namelst ) ;
 	if ( errBlock.error() )
@@ -3407,14 +3404,7 @@ void pApplication::tbopen( const string& tb_name,
 
 	if ( !isvalidName( tb_name ) )
 	{
-		errBlock.setcall( e1, "PSYE022J", tb_name, "table" ) ;
-		checkRCode( errBlock ) ;
-		return ;
-	}
-
-	if ( tablesOpen.count( tb_name ) > 0 )
-	{
-		errBlock.setcall( e1, "PSYE013Z", "TBOPEN", tb_name, 12 ) ;
+		errBlock.setcall( e1, "PSYE014Q", tb_name ) ;
 		checkRCode( errBlock ) ;
 		return ;
 	}
@@ -3436,10 +3426,6 @@ void pApplication::tbopen( const string& tb_name,
 		errBlock.setcall( e1 ) ;
 		checkRCode( errBlock ) ;
 		return ;
-	}
-	if ( errBlock.RC0() )
-	{
-		tablesOpen.insert( tb_name ) ;
 	}
 	RC = errBlock.getRC() ;
 }
@@ -3469,7 +3455,7 @@ void pApplication::tbput( const string& tb_name, string tb_namelst, const string
 		return ;
 	}
 
-	if ( !isTableOpen( tb_name, "TBPUT" ) ) { return ; }
+	if ( !tableNameOK( tb_name, "TBPUT" ) ) { return ; }
 
 	getNameList( errBlock, tb_namelst ) ;
 	if ( errBlock.error() )
@@ -3501,7 +3487,7 @@ void pApplication::tbquery( const string& tb_name,
 			    const string& tb_condn,
 			    const string& tb_dirn )
 {
-	if ( !isTableOpen( tb_name, "TBQUERY" ) ) { return ; }
+	if ( !tableNameOK( tb_name, "TBQUERY" ) ) { return ; }
 
 	p_tableMGR->tbquery( errBlock,
 			     funcPOOL,
@@ -3531,7 +3517,7 @@ void pApplication::tbsarg( const string& tb_name,
 			   const string& tb_dir,
 			   const string& tb_cond_pairs )
 {
-	if ( !isTableOpen( tb_name, "TBSARG" ) ) { return ; }
+	if ( !tableNameOK( tb_name, "TBSARG" ) ) { return ; }
 
 	p_tableMGR->tbsarg( errBlock, funcPOOL, tb_name, tb_namelst, tb_dir, tb_cond_pairs ) ;
 	if ( errBlock.error() )
@@ -3560,7 +3546,7 @@ void pApplication::tbsave( const string& tb_name, const string& tb_newname, stri
 
 	const string e1 = "TBSAVE Error" ;
 
-	if ( !isTableOpen( tb_name, "TBSAVE" ) ) { return ; }
+	if ( !tableNameOK( tb_name, "TBSAVE" ) ) { return ; }
 
 	if ( tb_newname != "" && !isvalidName( tb_newname ) )
 	{
@@ -3569,7 +3555,7 @@ void pApplication::tbsave( const string& tb_name, const string& tb_newname, stri
 		return ;
 	}
 
-	if ( !p_tableMGR->writeableTable( errBlock, tb_name ) )
+	if ( !p_tableMGR->writeableTable( errBlock, tb_name, "TBSAVE" ) )
 	{
 		errBlock.setcall( e1 ) ;
 		if ( !errBlock.error() )
@@ -3616,7 +3602,7 @@ void pApplication::tbscan( const string& tb_name,
 			   const string& tb_crp_name,
 			   const string& tb_condlst )
 {
-	if ( !isTableOpen( tb_name, "TBSCAN" ) ) { return ; }
+	if ( !tableNameOK( tb_name, "TBSCAN" ) ) { return ; }
 
 	p_tableMGR->tbscan( errBlock, funcPOOL, tb_name, tb_namelst, tb_savenm, tb_rowid_vn, tb_dir, tb_read, tb_crp_name, tb_condlst ) ;
 	if ( errBlock.error() )
@@ -3638,7 +3624,7 @@ void pApplication::tbskip( const string& tb_name,
 			   const string& tb_noread,
 			   const string& tb_crp_name )
 {
-	if ( !isTableOpen( tb_name, "TBSKIP" ) ) { return ; }
+	if ( !tableNameOK( tb_name, "TBSKIP" ) ) { return ; }
 
 	p_tableMGR->tbskip( errBlock, funcPOOL, tb_name, num, tb_savenm, tb_rowid_vn, tb_rowid, tb_noread, tb_crp_name ) ;
 	if ( errBlock.error() )
@@ -3653,7 +3639,7 @@ void pApplication::tbskip( const string& tb_name,
 
 void pApplication::tbsort( const string& tb_name, string tb_fields )
 {
-	if ( !isTableOpen( tb_name, "TBSORT" ) ) { return ; }
+	if ( !tableNameOK( tb_name, "TBSORT" ) ) { return ; }
 
 	getNameList( errBlock, tb_fields ) ;
 	if ( errBlock.error() )
@@ -3677,7 +3663,7 @@ void pApplication::tbsort( const string& tb_name, string tb_fields )
 
 void pApplication::tbtop( const string& tb_name )
 {
-	if ( !isTableOpen( tb_name, "TBTOP" ) ) { return ; }
+	if ( !tableNameOK( tb_name, "TBTOP" ) ) { return ; }
 
 	p_tableMGR->tbtop( errBlock, tb_name ) ;
 	if ( errBlock.error() )
@@ -3692,7 +3678,7 @@ void pApplication::tbtop( const string& tb_name )
 
 void pApplication::tbvclear( const string& tb_name )
 {
-	if ( !isTableOpen( tb_name, "TBVCLEAR" ) ) { return ; }
+	if ( !tableNameOK( tb_name, "TBVCLEAR" ) ) { return ; }
 
 	p_tableMGR->tbvclear( errBlock, funcPOOL, tb_name ) ;
 	if ( errBlock.error() )
@@ -3705,7 +3691,7 @@ void pApplication::tbvclear( const string& tb_name )
 }
 
 
-bool pApplication::isTableOpen( const string& tb_name, const string& func )
+bool pApplication::tableNameOK( const string& tb_name, const string& func )
 {
 	RC = 0 ;
 	errBlock.setRC( 0 ) ;
@@ -3717,10 +3703,6 @@ bool pApplication::isTableOpen( const string& tb_name, const string& func )
 	else if ( !isvalidName( tb_name ) )
 	{
 		errBlock.seterrid( "PSYE014Q", tb_name ) ;
-	}
-	else if ( tablesOpen.count( tb_name ) == 0 )
-	{
-		errBlock.seterrid( "PSYE013G", func, tb_name, 12 ) ;
 	}
 	if ( errBlock.error() )
 	{
@@ -4222,6 +4204,7 @@ void pApplication::edit( const string& m_file,
 	selct.suspend = true    ;
 	selct.scrname = "EDIT"  ;
 	selct.options = (void*)&e ;
+	selct.ptid    = ptid    ;
 	actionSelect() ;
 
 	RC = ZRC ;
@@ -4254,6 +4237,7 @@ void pApplication::edit_rec( const edit_parms& e )
 	selct.suspend = true    ;
 	selct.scrname = ( e.edit_viewmode ) ? "VIEW" : "EDIT" ;
 	selct.options = (void*)&e ;
+	selct.ptid    = ptid    ;
 	actionSelect() ;
 
 	RC = ZRC ;
@@ -4270,14 +4254,21 @@ void pApplication::browse( const string& m_file, const string& m_panel )
 {
 	string t ;
 
+	browse_parms b ;
+
+	b.browse_file  = m_file ;
+	b.browse_panel = m_panel ;
+
 	selct.clear() ;
 	selct.pgm     = p_poolMGR->get( errBlock, "ZBRPGM", PROFILE ) ;
-	selct.parm    = "FILE("+ m_file +") PANEL("+ m_panel +")" ;
-	selct.newappl = ""       ;
-	selct.newpool = false    ;
-	selct.passlib = false    ;
-	selct.suspend = true     ;
+	selct.parm    = "" ;
+	selct.newappl = "" ;
+	selct.newpool = false ;
+	selct.passlib = false ;
+	selct.suspend = true  ;
 	selct.scrname = "BROWSE" ;
+	selct.options = (void*)&b ;
+	selct.ptid    = ptid     ;
 	actionSelect() ;
 
 	RC = ZRC ;
@@ -4319,6 +4310,7 @@ void pApplication::view( const string& m_file,
 	selct.suspend = true    ;
 	selct.scrname = "VIEW"  ;
 	selct.options = (void*)&e ;
+	selct.ptid    = ptid    ;
 	actionSelect() ;
 
 	RC = ZRC ;
@@ -4356,6 +4348,7 @@ void pApplication::select( const string& cmd )
 
 	selct.backgrd = backgrd ;
 	selct.sync    = true    ;
+	selct.ptid    = ptid    ;
 	actionSelect() ;
 }
 
@@ -4376,6 +4369,7 @@ void pApplication::select( const selobj& sel )
 	selct = sel ;
 	selct.backgrd = backgrd ;
 	selct.sync    = true    ;
+	selct.ptid    = ptid    ;
 	actionSelect() ;
 }
 
@@ -4721,8 +4715,8 @@ bool pApplication::notify()
 
 	auto it = notifies.begin() ;
 
-	lineBuffer     = *it  ;
-	lineOutDone    = true ;
+	outBuffer      = *it  ;
+	lineInOutDone  = true ;
 	notifies.erase( it )  ;
 	return true ;
 }
@@ -4736,11 +4730,11 @@ void pApplication::rdisplay( const string& msg, bool subVars )
 
 	RC = 0 ;
 
-	lineBuffer = subVars ? sub_vars( msg ) : msg ;
+	outBuffer = subVars ? sub_vars( msg ) : msg ;
 
 	if ( backgrd )
 	{
-		llog( "B", lineBuffer << endl ) ;
+		llog( "B", outBuffer << endl ) ;
 	}
 	else
 	{
@@ -4751,11 +4745,78 @@ void pApplication::rdisplay( const string& msg, bool subVars )
 			RC = 20 ;
 			return ;
 		}
-		lineOutDone    = true  ;
+		lineInOutDone  = true  ;
 		lineOutPending = true  ;
 		refreshlScreen = false ;
 		wait_event( WAIT_OUTPUT ) ;
 		lineOutPending = false ;
+	}
+}
+
+
+void pApplication::pull( const string& var )
+{
+	// Pull data from user in raw mode and put in the function pool variable 'var'.
+
+	const string e1 = "PULL Error" ;
+
+	RC = 0 ;
+
+	if ( !isvalidName( var ) )
+	{
+		errBlock.setcall( e1, "PSYS012U" ) ;
+		checkRCode( errBlock ) ;
+		return ;
+	}
+
+	if ( backgrd )
+	{
+		llog( "E", "Cannot pull data in batch mode" << endl ) ;
+		RC = 20 ;
+	}
+	else
+	{
+		if ( not busyAppl )
+		{
+			llog( "E", "Invalid method state" <<endl ) ;
+			llog( "E", "Application is in a wait state.  Method cannot pull input" <<endl ) ;
+			RC = 20 ;
+			return ;
+		}
+		lineInOutDone = true  ;
+		lineInPending = true  ;
+		wait_event( WAIT_USER ) ;
+		lineInPending = false ;
+		funcPOOL.put1( errBlock, var, inBuffer ) ;
+	}
+}
+
+
+void pApplication::pull( string* str )
+{
+	// Pull data from user in raw mode and put in the passed string pointer.
+
+	RC = 0 ;
+
+	if ( backgrd )
+	{
+		llog( "E", "Cannot pull data in batch mode" << endl ) ;
+		RC = 20 ;
+	}
+	else
+	{
+		if ( not busyAppl )
+		{
+			llog( "E", "Invalid method state" <<endl ) ;
+			llog( "E", "Application is in a wait state.  Method cannot pull input" <<endl ) ;
+			RC = 20 ;
+			return ;
+		}
+		lineInOutDone = true  ;
+		lineInPending = true  ;
+		wait_event( WAIT_USER ) ;
+		lineInPending = false ;
+		*str = inBuffer ;
 	}
 }
 
@@ -4775,9 +4836,9 @@ void pApplication::setmsg( const string& msg, msgSET sType )
 		return  ;
 	}
 
-	zmsg1      = zmsg  ;
-	zmsgid1    = msg   ;
-	setMessage = true  ;
+	zmsg1      = zmsg ;
+	zmsgid1    = msg  ;
+	setMessage = true ;
 }
 
 
@@ -5518,6 +5579,7 @@ void pApplication::info()
 	llog( "-", "*************************************************************************************************************" << endl ) ;
 	llog( "-", "Application Information for "<< zappname << endl ) ;
 	llog( "-", "                   Task ID: "<< d2ds( taskId, 8 ) << endl ) ;
+	llog( "-", "            Parent Task ID: "<< d2ds( ptid, 8 ) << endl ) ;
 	llog( "-", "          Shared Pool Name: "<< d2ds( shrdPool, 8 ) << endl ) ;
 	llog( "-", "         Profile Pool Name: "<< p_poolMGR->get( errBlock, "ZAPPLID", SHARED ) << endl ) ;
 	llog( "-", " " << endl ) ;
@@ -5527,7 +5589,6 @@ void pApplication::info()
 	llog( "-", "Last Panel Displayed. . . : "<< currPanel->panelid << endl ) ;
 	llog( "-", "Last Message Displayed. . : "<< zmsgid << endl ) ;
 	llog( "-", "Number of Panels Loaded . : "<< panelList.size() << endl )  ;
-	llog( "-", "Number of Open Tables . . : "<< tablesOpen.size() << endl ) ;
 	if ( rexxName != "" )
 	{
 		llog( "-", "Application running REXX. : "<< rexxName << endl ) ;

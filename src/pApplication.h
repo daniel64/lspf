@@ -38,7 +38,7 @@ class pApplication
 		static bool ControlNonDispl ;
 		static bool ControlDisplayLock ;
 		static bool ControlSplitEnable ;
-		static bool lineOutDone ;
+		static bool lineInOutDone ;
 
 		int    RC                 ;
 		int    ZRC                ;
@@ -67,7 +67,8 @@ class pApplication
 		bool   setMessage         ;
 		string rexxName           ;
 		string reffield           ;
-		string lineBuffer         ;
+		string outBuffer          ;
+		string inBuffer           ;
 
 		boost::thread* pThread    ;
 		pApplication*  uAppl      ;
@@ -77,7 +78,7 @@ class pApplication
 		pPanel* currPanel   ;
 		pPanel* currtbPanel ;
 
-		int    taskid()         { return taskId ; }
+		uint   taskid()         { return taskId ; }
 		void   init_phase1( selobj&, int, void (* lspfCallback)( lspfCommand& ) ) ;
 		void   init_phase2() ;
 		void   info() ;
@@ -114,6 +115,8 @@ class pApplication
 		void   control( const string&, void (pApplication::*)() ) ;
 		void   libdef( const string&, const string& ="", const string& ="", const string& ="UNCOND" ) ;
 		void   rdisplay( const string&, bool =true ) ;
+		void   pull( const string& ) ;
+		void   pull( string* ) ;
 
 		void   display( string p_name,
 				const string& p_msg = "",
@@ -305,7 +308,7 @@ class pApplication
 			     const string& m_profile="",
 			     const string& m_lcmds="",
 			     const string& m_confirm="",
-			     const string& m_preserv="" ) ;
+			     const string& m_chgwarn="" ) ;
 
 		void   edrec( const string& m_parm ) ;
 
@@ -355,7 +358,6 @@ class pApplication
 		void   enq( const string&, const string&, enqDISP =EXC, enqSCOPE =GLOBAL ) ;
 		void   deq( const string&, const string&, enqSCOPE =GLOBAL ) ;
 		void   qscan( const string&, const string&, enqDISP =EXC, enqSCOPE =GLOBAL ) ;
-		void   check_qrname( const string&, const string&, const string&L ) ;
 
 		void   set_forced_abend()  ;
 		void   set_timeout_abend() ;
@@ -372,6 +374,7 @@ class pApplication
 		bool   do_refresh_lscreen()      { return refreshlScreen  ; }
 		void   refresh_lscreen_done()    { refreshlScreen = false ; }
 		bool   line_output_pending()     { return lineOutPending  ; }
+		bool   line_input_pending()      { return lineInPending   ; }
 
 		bool   is_nested()               { return nested  ; }
 		void*  get_options()             { return options ; }
@@ -409,7 +412,8 @@ class pApplication
 		int  lscreen     ;
 		int  lscreen_num ;
 
-		int  taskId      ;
+		uint  taskId     ;
+		uint  ptid       ;
 
 		bool backgrd ;
 		bool notifyEnded ;
@@ -422,6 +426,7 @@ class pApplication
 		bool abending ;
 		bool abended  ;
 		bool lineOutPending ;
+		bool lineInPending  ;
 		bool cmdTableLoaded ;
 		bool nested     ;
 		void* options   ;
@@ -508,11 +513,14 @@ class pApplication
 
 		void   edit_rec( const edit_parms& ) ;
 
+		void   check_qrname( const string&,
+				     const string&,
+				     const string& ) ;
+
 		errblock errBlock ;
 		errblock serBlock ;
 
 		map<string, slmsg> msgList ;
-		set<string> tablesOpen     ;
 		map<string, pPanel*> panelList ;
 
 		stack<pPanel*> tbpanel_stk ;
@@ -535,7 +543,8 @@ class pApplication
 		void splitZerrlm( string )  ;
 		void xabend( const string&, int = -1 ) ;
 		void cleanup_default()      ;
-		bool isTableOpen( const string& tb_name, const string& func ) ;
+
+		bool tableNameOK( const string& tb_name, const string& func ) ;
 
 		class xTerminate {} ;
 

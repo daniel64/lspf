@@ -265,6 +265,71 @@ void Table::loadFields_save( errblock& err,
 }
 
 
+bool Table::tableClosedforTask( errblock& err )
+{
+	return ( openTasks.count( err.ptid ) == 0 ) ;
+}
+
+
+bool Table::tableOpenedforTask( errblock& err )
+{
+	return ( openTasks.count( err.ptid ) > 0 ) ;
+}
+
+
+void Table::addTasktoTable( errblock& err )
+{
+	auto it = openTasks.find( err.ptid ) ;
+	if ( it == openTasks.end() )
+	{
+		openTasks.insert( make_pair( err.ptid, 1 ) ) ;
+	}
+	else
+	{
+		++it->second ;
+	}
+}
+
+
+void Table::removeTaskUsefromTable( errblock& err )
+{
+	auto it = openTasks.find( err.ptid ) ;
+	if ( it->second == 1 )
+	{
+		openTasks.erase( it ) ;
+	}
+	else
+	{
+		--it->second ;
+	}
+}
+
+
+void Table::removeTaskfromTable( errblock& err )
+{
+	openTasks.erase( err.ptid ) ;
+}
+
+
+bool Table::notInUse()
+{
+	return ( openTasks.size() == 0 ) ;
+}
+
+
+string Table::listTasks()
+{
+	auto it  = openTasks.begin() ;
+	string t = d2ds( it->first ) ;
+
+	for ( ++it ; it != openTasks.end() ; ++it )
+	{
+		t += ", " + d2ds( it->first ) ;
+	}
+	return t ;
+}
+
+
 void Table::tbadd( errblock& err,
 		   fPOOL& funcPOOL,
 		   string tb_namelst,
@@ -1232,7 +1297,7 @@ void Table::tbskip( errblock& err,
 	}
 	else
 	{
-                if ( ( ( CRP + num ) < 1 ) || ( ( CRP + num ) > table.size() ) )
+		if ( ( ( CRP + num ) < 1 ) || ( ( CRP + num ) > table.size() ) )
 		{
 			CRP = 0 ;
 			if ( tb_crp_name != "" )
@@ -1691,13 +1756,15 @@ tableMGR::~tableMGR()
 
 multimap<string, Table*>::iterator tableMGR::createTable( errblock& err,
 							  const string& tb_name,
-							  string keys, string flds,
+							  string keys,
+							  string flds,
 							  tbWRITE tb_WRITE,
 							  tbDISP tb_DISP )
 {
 	// Procedure called for TBCREATE and for TBOPEN when table not loaded.
 	// Lock mtx is held when this procedure is called so no need to hold it.
 	// This procedure does not set the return code.
+	// Add task id of the nested SELECT parent to the list of in-use tasks.
 
 	// Returns: Iterator to the inserted table.
 
@@ -1708,7 +1775,6 @@ multimap<string, Table*>::iterator tableMGR::createTable( errblock& err,
 
 	Table* t = new Table ;
 
-	t->ownerTask = err.taskid ;
 	t->tab_WRITE = tb_WRITE ;
 	t->tab_DISP  = tb_DISP  ;
 	t->changed   = true     ;
@@ -1733,7 +1799,9 @@ multimap<string, Table*>::iterator tableMGR::createTable( errblock& err,
 		t->tab_vall.push_back( word( t->tab_flds, i ) ) ;
 	}
 
-	return tables.insert( pair<string, Table*>( tb_name, t ) ) ;
+	t->addTasktoTable( err ) ;
+
+	return tables.insert( make_pair( tb_name, t ) ) ;
 }
 
 
@@ -1797,7 +1865,7 @@ multimap<string, Table*>::iterator tableMGR::loadTable( errblock& err,
 
 	errblock err1 ;
 
-	err1.taskid = err.taskid ;
+	err1.ptid = err.ptid ;
 
 	err.setRC( 0 ) ;
 
@@ -1813,14 +1881,14 @@ multimap<string, Table*>::iterator tableMGR::loadTable( errblock& err,
 		}
 	}
 
-	it = getTableIterator( err, tb_name ) ;
+	it = getTableIterator2( err, tb_name ) ;
 	if ( it != tables.end() )
 	{
 		if ( it->second->tab_DISP == SHARE && tb_DISP == SHARE )
 		{
 			if ( it->second->tab_WRITE == tb_WRITE )
 			{
-				it->second->incRefCount() ;
+				it->second->addTasktoTable( err ) ;
 			}
 			else
 			{
@@ -2190,7 +2258,7 @@ void tableMGR::saveTable( errblock& err,
 
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	auto it = getTableIterator( err, tb_name ) ;
+	auto it = getTableIterator1( err, tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", tb_func, tb_name, 12 ) ;
@@ -2207,7 +2275,7 @@ void tableMGR::saveTable( errblock& err,
 	}
 
 	tab = qscan( filename ) ;
-	if ( tab && tab->ownerTask != err.taskid )
+	if ( tab && tab->tableClosedforTask( err ) )
 	{
 		err.seterrid( "PSYE013W", tb_func, tb_name, 20 ) ;
 		return ;
@@ -2218,30 +2286,54 @@ void tableMGR::saveTable( errblock& err,
 
 
 void tableMGR::destroyTable( errblock& err,
-			     const string& tb_name )
+			     const string& tb_name,
+			     const string& tb_func )
 {
 	// RC =  0 Normal completion
 	// RC = 12 Table not open
 
-	// If the table is removed from storage, also release any enqueues it has.
+	// If the table is removed from storage, also release any enqueues it has,
+	// otherwise remove task id of the nested SELECT parent from the list of in-use tasks.
 
 	err.setRC( 0 ) ;
 
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	auto it = getTableIterator( err, tb_name ) ;
+	auto it = getTableIterator1( err, tb_name ) ;
 	if ( it == tables.end() )
 	{
-		err.seterrid( "PSYE013G", "DESTROYTABLE", tb_name, 12 ) ;
+		err.seterrid( "PSYE013G", tb_func, tb_name, 12 ) ;
 		return ;
 	}
 
-	it->second->decRefCount() ;
+	it->second->removeTaskUsefromTable( err ) ;
 	if ( it->second->notInUse() )
 	{
 		deq( it->second )  ;
 		delete it->second  ;
 		tables.erase( it ) ;
+	}
+}
+
+
+void tableMGR::closeTablesforTask( errblock& err )
+{
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
+
+	for ( auto it = tables.begin() ; it != tables.end() ; )
+	{
+		if ( it->second->tableOpenedforTask( err ) )
+		{
+			it->second->removeTaskfromTable( err ) ;
+			if ( it->second->notInUse() )
+			{
+				deq( it->second ) ;
+				delete it->second ;
+				it = tables.erase( it ) ;
+				continue ;
+			}
+		}
+		++it ;
 	}
 }
 
@@ -2270,14 +2362,14 @@ void tableMGR::statistics()
 		t += ( it->second->tab_DISP  == SHARE ) ? "SHARED " : "NON-SHARED " ;
 		t += ( it->second->changed ) ? "(Modified)"  : "" ;
 		llog( "-", "                 Status: Opened "+ t <<endl ) ;
-		llog( "-", "            Owning Task: " << it->second->ownerTask <<endl ) ;
-		llog( "-", "              Use Count: " << it->second->refCount <<endl ) ;
+		llog( "-", "              Use Count: " << it->second->openTasks.size() <<endl ) ;
 		if ( it->second->num_keys > 0 )
 		{
 			llog( "-", "                   Keys: " << setw(3) << it->second->tab_keys <<endl ) ;
 		}
 		llog( "-", "                 Fields: " << it->second->tab_flds <<endl ) ;
 		llog( "-", "         Number Of Rows: " << it->second->table.size() <<endl ) ;
+		llog( "-", "        Opened by Tasks: " << it->second->listTasks() <<endl ) ;
 		if ( it->second->tab_ipath != "" )
 		{
 			llog( "-", "             Input Path: " << it->second->tab_ipath <<endl ) ;
@@ -2317,12 +2409,11 @@ void tableMGR::statistics()
 	{
 		llog( "-", "" <<endl ) ;
 		llog( "-", "Table Enqueue Information:" <<endl ) ;
-		llog( "-", "Table      Owner   Enqueue" <<endl ) ;
-		llog( "-", "--------   -----   ------------------------------" <<endl ) ;
+		llog( "-", "Table      Enqueue" <<endl ) ;
+		llog( "-", "--------   -------------------------------------" <<endl ) ;
 		for ( ite = table_enqs.begin() ; ite != table_enqs.end() ; ++ite )
 		{
 			llog( "-", "" << setw(11) << std::left << ite->first->tab_name
-				      << setw(8)  << std::left << ite->first->ownerTask
 						  << std::left << ite->second << endl) ;
 		}
 	}
@@ -2343,10 +2434,10 @@ void tableMGR::fillfVARs( errblock& err,
 {
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	auto it = getTableIterator( err, tb_name ) ;
+	auto it = getTableIterator1( err, tb_name ) ;
 	if ( it == tables.end() )
 	{
-		err.seterrid( "PSYE013G", "FILLFVARS", tb_name, 12 ) ;
+		err.seterrid( "PSYE013G", "TBDISPL", tb_name, 12 ) ;
 		return ;
 	}
 	it->second->fillfVARs( err, funcPOOL, tb_fields, tb_clear, scan, depth, posn, csrrow, idr ) ;
@@ -2394,7 +2485,7 @@ void tableMGR::tbcreate( errblock& err,
 		if ( err.error() ) { return ; }
 	}
 
-	it = getTableIterator( err, tb_name ) ;
+	it = getTableIterator2( err, tb_name ) ;
 	if ( it != tables.end() )
 	{
 		if ( tb_REP != REPLACE || it->second->tab_DISP == SHARE || tb_DISP == SHARE  )
@@ -2455,7 +2546,7 @@ void tableMGR::tbget( errblock& err,
 {
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	auto it = getTableIterator( err, tb_name ) ;
+	auto it = getTableIterator1( err, tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBGET", tb_name, 12 ) ;
@@ -2473,7 +2564,7 @@ void tableMGR::tbmod( errblock& err,
 {
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	auto it = getTableIterator( err, tb_name ) ;
+	auto it = getTableIterator1( err, tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBMOD", tb_name, 12 ) ;
@@ -2491,7 +2582,7 @@ void tableMGR::tbput( errblock& err,
 {
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	auto it = getTableIterator( err, tb_name ) ;
+	auto it = getTableIterator1( err, tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBPUT", tb_name, 12 ) ;
@@ -2510,7 +2601,7 @@ void tableMGR::tbadd( errblock& err,
 {
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	auto it = getTableIterator( err, tb_name ) ;
+	auto it = getTableIterator1( err, tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBADD", tb_name, 12 ) ;
@@ -2530,7 +2621,7 @@ void tableMGR::tbbottom( errblock& err,
 {
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	auto it = getTableIterator( err, tb_name ) ;
+	auto it = getTableIterator1( err, tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBBOTTOM", tb_name, 12 ) ;
@@ -2546,7 +2637,7 @@ void tableMGR::tbdelete( errblock& err,
 {
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	auto it = getTableIterator( err, tb_name ) ;
+	auto it = getTableIterator1( err, tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBDELETE", tb_name, 12 ) ;
@@ -2565,17 +2656,22 @@ void tableMGR::tberase( errblock& err,
 	// RC = 12 Table open
 	// RC = 20 Severe error
 
+	// Delete a table from the output library.  Table must not be opened in WRITE mode.
+
 	string filename ;
 
 	err.setRC( 0 ) ;
 
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	auto it = getTableIterator( err, tb_name ) ;
-	if ( it != tables.end() )
+	auto ret = tables.equal_range( tb_name ) ;
+	for ( auto it = ret.first ; it != ret.second ; ++it )
 	{
-		err.seterrid( "PSYE014N", tb_name, 12 ) ;
-		return ;
+		if ( it->second->tab_WRITE == WRITE )
+		{
+			err.seterrid( "PSYE013W", "TBERASE", tb_name, 12 ) ;
+			return ;
+		}
 	}
 
 	filename = locate( err, tb_name, tb_paths ) ;
@@ -2610,7 +2706,7 @@ void tableMGR::tbexist( errblock& err,
 {
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	auto it = getTableIterator( err, tb_name ) ;
+	auto it = getTableIterator1( err, tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBEXIST", tb_name, 12 ) ;
@@ -2636,7 +2732,7 @@ void tableMGR::tbquery( errblock& err,
 {
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	auto it = getTableIterator( err, tb_name ) ;
+	auto it = getTableIterator1( err, tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBQUERY", tb_name, 12 ) ;
@@ -2666,7 +2762,7 @@ void tableMGR::tbsarg( errblock& err,
 {
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	auto it = getTableIterator( err, tb_name ) ;
+	auto it = getTableIterator1( err, tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBSARG", tb_name, 12 ) ;
@@ -2689,13 +2785,82 @@ void tableMGR::tbscan( errblock& err,
 {
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	auto it = getTableIterator( err, tb_name ) ;
+	auto it = getTableIterator1( err, tb_name ) ;
 	if ( it == tables.end() )
 	{
 		err.seterrid( "PSYE013G", "TBSCAN", tb_name, 12 ) ;
 		return ;
 	}
 	it->second->tbscan( err, funcPOOL, tb_namelst, tb_savenm, tb_rowid_vn, tb_dir, tb_noread, tb_crp_name, tb_cond_pairs ) ;
+}
+
+
+void tableMGR::tbskip( errblock& err,
+		       fPOOL& funcPOOL,
+		       const string& tb_name,
+		       int num,
+		       const string& tb_savenm,
+		       const string& tb_rowid_vn,
+		       const string& tb_rowid,
+		       const string& tb_noread,
+		       const string& tb_crp_name )
+{
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
+
+	auto it = getTableIterator1( err, tb_name ) ;
+	if ( it == tables.end() )
+	{
+		err.seterrid( "PSYE013G", "TBSKIP", tb_name, 12 ) ;
+		return ;
+	}
+	it->second->tbskip( err, funcPOOL, num, tb_savenm, tb_rowid_vn, tb_rowid, tb_noread, tb_crp_name ) ;
+}
+
+
+void tableMGR::tbsort( errblock& err,
+		       const string& tb_name,
+		       const string& tb_fields )
+{
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
+
+	auto it = getTableIterator1( err, tb_name ) ;
+	if ( it == tables.end() )
+	{
+		err.seterrid( "PSYE013G", "TBSORT", tb_name, 12 ) ;
+		return ;
+	}
+	it->second->tbsort( err, tb_fields ) ;
+}
+
+
+void tableMGR::tbtop( errblock& err,
+		      const string& tb_name )
+{
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
+
+	auto it = getTableIterator1( err, tb_name ) ;
+	if ( it == tables.end() )
+	{
+		err.seterrid( "PSYE013G", "TBTOP", tb_name, 12 ) ;
+		return ;
+	}
+	it->second->tbtop( err ) ;
+}
+
+
+void tableMGR::tbvclear( errblock& err,
+			 fPOOL& funcPOOL,
+			 const string& tb_name )
+{
+	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
+
+	auto it = getTableIterator1( err, tb_name ) ;
+	if ( it == tables.end() )
+	{
+		err.seterrid( "PSYE013G", "TBVCLEAR", tb_name, 12 ) ;
+		return ;
+	}
+	it->second->tbvclear( err, funcPOOL ) ;
 }
 
 
@@ -2719,7 +2884,7 @@ void tableMGR::cmdsearch( errblock& err,
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
 	tb_name += "CMDS" ;
-	auto it = getTableIterator( err, tb_name ) ;
+	auto it = getTableIterator1( err, tb_name ) ;
 	if ( it == tables.end() )
 	{
 		if ( not try_load )
@@ -2737,77 +2902,9 @@ void tableMGR::cmdsearch( errblock& err,
 }
 
 
-void tableMGR::tbskip( errblock& err,
-		       fPOOL& funcPOOL,
-		       const string& tb_name,
-		       int num,
-		       const string& tb_savenm,
-		       const string& tb_rowid_vn,
-		       const string& tb_rowid,
-		       const string& tb_noread,
-		       const string& tb_crp_name )
-{
-	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
-
-	auto it = getTableIterator( err, tb_name ) ;
-	if ( it == tables.end() )
-	{
-		err.seterrid( "PSYE013G", "TBSKIP", tb_name, 12 ) ;
-		return ;
-	}
-	it->second->tbskip( err, funcPOOL, num, tb_savenm, tb_rowid_vn, tb_rowid, tb_noread, tb_crp_name ) ;
-}
-
-
-void tableMGR::tbsort( errblock& err,
-		       const string& tb_name,
-		       const string& tb_fields )
-{
-	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
-
-	auto it = getTableIterator( err, tb_name ) ;
-	if ( it == tables.end() )
-	{
-		err.seterrid( "PSYE013G", "TBSORT", tb_name, 12 ) ;
-		return ;
-	}
-	it->second->tbsort( err, tb_fields ) ;
-}
-
-
-void tableMGR::tbtop( errblock& err,
-		      const string& tb_name )
-{
-	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
-
-	auto it = getTableIterator( err, tb_name ) ;
-	if ( it == tables.end() )
-	{
-		err.seterrid( "PSYE013G", "TBTOP", tb_name, 12 ) ;
-		return ;
-	}
-	it->second->tbtop( err ) ;
-}
-
-
-void tableMGR::tbvclear( errblock& err,
-			 fPOOL& funcPOOL,
-			 const string& tb_name )
-{
-	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
-
-	auto it = getTableIterator( err, tb_name ) ;
-	if ( it == tables.end() )
-	{
-		err.seterrid( "PSYE013G", "TBVCLEAR", tb_name, 12 ) ;
-		return ;
-	}
-	it->second->tbvclear( err, funcPOOL ) ;
-}
-
-
 bool tableMGR::writeableTable( errblock& err,
-			       const string& tb_name )
+			       const string& tb_name,
+			       const string& tb_func )
 {
 	// RC =  0 Normal completion
 	// RC = 12 Table not open
@@ -2816,10 +2913,10 @@ bool tableMGR::writeableTable( errblock& err,
 
 	boost::lock_guard<boost::recursive_mutex> lock( mtx ) ;
 
-	auto it = getTableIterator( err, tb_name ) ;
+	auto it = getTableIterator1( err, tb_name ) ;
 	if ( it == tables.end() )
 	{
-		err.seterrid( "PSYE013G", "WRITEABLETABLE", tb_name, 12 ) ;
+		err.seterrid( "PSYE013G", tb_func, tb_name, 12 ) ;
 		return false ;
 	}
 	return ( it->second->tab_WRITE == WRITE ) ;
@@ -2870,19 +2967,41 @@ string tableMGR::locate( errblock& err,
 }
 
 
-multimap<string, Table*>::iterator tableMGR::getTableIterator( errblock& err,
-							       const string& tb_name )
+multimap<string, Table*>::iterator tableMGR::getTableIterator1( errblock& err,
+								const string& tb_name )
 {
 	//  Return the iterator for table tb_name.
 	//  There can be only 1 shared table or any number of non-shared tables for a given table name.
 
-	//  Return table match if it is shared, or owned by the requestor, else tables.end()
+	//  Return table match if it is in-use by the requestor, else tables.end()
 
 	auto ret = tables.equal_range( tb_name ) ;
 
 	for ( auto it = ret.first ; it != ret.second ; ++it )
 	{
-		if ( it->second->tab_DISP == SHARE || it->second->ownerTask == err.taskid )
+		if ( it->second->tableOpenedforTask( err ) )
+		{
+			return it ;
+		}
+	}
+
+	return tables.end() ;
+}
+
+
+multimap<string, Table*>::iterator tableMGR::getTableIterator2( errblock& err,
+								const string& tb_name )
+{
+	//  Return the iterator for table tb_name.
+	//  There can be only 1 shared table or any number of non-shared tables for a given table name.
+
+	//  Return table match if it is shared, or in-use by the requestor, else tables.end()
+
+	auto ret = tables.equal_range( tb_name ) ;
+
+	for ( auto it = ret.first ; it != ret.second ; ++it )
+	{
+		if ( it->second->tab_DISP == SHARE || it->second->tableOpenedforTask( err ) )
 		{
 			return it ;
 		}

@@ -22,7 +22,6 @@ class Table
 	public:
 		Table()
 		{
-			refCount      = 1     ;
 			CRP           = 0     ;
 			maxURID       = 0     ;
 			firstMult     = true  ;
@@ -37,7 +36,6 @@ class Table
 		}
 		~Table() ;
 	private:
-		uint    ownerTask     ;
 		bool    tab_cmds      ;
 		string  tab_name      ;
 		string  tab_keys      ;
@@ -47,7 +45,6 @@ class Table
 		string  tab_opath     ;
 		bool    firstMult     ;
 		bool    changed       ;
-		uint    refCount      ;
 		uint    maxURID       ;
 		uint    num_keys      ;
 		uint    num_flds      ;
@@ -62,11 +59,25 @@ class Table
 		tbWRITE tab_WRITE     ;
 
 		vector<vector<string>*> table ;
-
-		vector<tbsearch> sarg ;
-
+		vector<tbsearch> sarg    ;
 		vector<string> tab_vkeys ;
 		vector<string> tab_vall  ;
+
+		map<uint,uint>openTasks ;
+
+		bool   tableClosedforTask( errblock& err ) ;
+
+		bool   tableOpenedforTask( errblock& err ) ;
+
+		void   addTasktoTable( errblock& err ) ;
+
+		void   removeTaskUsefromTable( errblock& err ) ;
+
+		void   removeTaskfromTable( errblock& err ) ;
+
+		bool   notInUse() ;
+
+		string listTasks() ;
 
 		void   saveTable( errblock& err,
 				  const string& m_name,
@@ -212,10 +223,6 @@ class Table
 		void   tbvclear( errblock& err,
 				 fPOOL& funcPOOL ) ;
 
-		void incRefCount() { ++refCount           ; }
-		void decRefCount() { --refCount           ; }
-		bool notInUse()    { return refCount == 0 ; }
-
 		friend class tableMGR ;
 } ;
 
@@ -239,10 +246,6 @@ class tableMGR
 				  const string& tb_name,
 				  const string& m_newname,
 				  const string& m_path ) ;
-
-		void   qtabopen( errblock& err,
-				 fPOOL& funcPOOL,
-				 const string& tb_list ) ;
 
 		void   tbadd( errblock& err,
 			      fPOOL& funcPOOL,
@@ -280,8 +283,11 @@ class tableMGR
 
 		boost::recursive_mutex mtx ;
 
-		multimap<string, Table*>::iterator getTableIterator( errblock& err,
-								     const string& tb_name ) ;
+		multimap<string, Table*>::iterator getTableIterator1( errblock& err,
+								      const string& tb_name ) ;
+
+		multimap<string, Table*>::iterator getTableIterator2( errblock& err,
+								      const string& tb_name ) ;
 
 		multimap<string, Table*>::iterator createTable( errblock& err,
 								const string& tb_name,
@@ -309,7 +315,14 @@ class tableMGR
 				  int& idx ) ;
 
 		void   destroyTable( errblock& err,
-				     const string& tb_name ) ;
+				     const string& tb_name,
+				     const string& tb_func = "" ) ;
+
+		void   closeTablesforTask( errblock& err ) ;
+
+		void   qtabopen( errblock& err,
+				 fPOOL& funcPOOL,
+				 const string& tb_list ) ;
 
 		void   tbbottom( errblock& err,
 				 fPOOL& funcPOOL,
@@ -401,7 +414,8 @@ class tableMGR
 				 const string& tb_name ) ;
 
 		bool   writeableTable( errblock& err,
-				       const string& tb_name ) ;
+				       const string& tb_name,
+				       const string& tb_func ) ;
 
 		string locate( errblock& err,
 			       const string& tb_name,

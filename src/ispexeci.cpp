@@ -34,6 +34,7 @@ void execiLibdef( pApplication*, const string&, errblock& )   ;
 void execiLog( pApplication*, const string&, errblock& )      ;
 void execiNotify( pApplication*, const string&, errblock& )   ;
 void execiPquery( pApplication*, const string&, errblock& )   ;
+void execiPull( pApplication*, const string&, errblock& )     ;
 void execiQlibdef( pApplication*, const string&, errblock& )  ;
 void execiQScan( pApplication*, const string&, errblock& )    ;
 void execiQtabopen( pApplication*, const string&, errblock& ) ;
@@ -82,6 +83,7 @@ map<string, void(*)(pApplication*,const string&, errblock&)> execiServices = {
 		  { "LOG",      execiLog      },
 		  { "NOTIFY",   execiNotify   },
 		  { "PQUERY",   execiPquery   },
+		  { "PULL",     execiPull     },
 		  { "QLIBDEF",  execiQlibdef  },
 		  { "QSCAN",    execiQScan    },
 		  { "QTABOPEN", execiQtabopen },
@@ -583,6 +585,25 @@ void execiPquery( pApplication* thisAppl, const string& s, errblock& err )
 }
 
 
+void execiPull( pApplication* thisAppl, const string& s, errblock& err )
+{
+	int ws = words( s ) ;
+
+	if ( ws == 1 )
+	{
+		err.seterrid( "PSYE019C", "PULL destination variable" ) ;
+		return ;
+	}
+	else if ( ws > 2 )
+	{
+		err.seterrid( "PSYE032H", subword( s, 3 ) ) ;
+		return ;
+	}
+
+	thisAppl->pull( upper( word( s, 2 ) ) ) ;
+}
+
+
 void execiQlibdef( pApplication* thisAppl, const string& s, errblock& err )
 {
 	string str     ;
@@ -782,7 +803,7 @@ void execiTBClose( pApplication* thisAppl, const string& s, errblock& err )
 	string tb_nname ;
 	string tb_path  ;
 
-	tb_name  = word( s, 2 ) ;
+	tb_name  = upper( word( s, 2 ) ) ;
 	str      = subword( s, 3 ) ;
 
 	tb_path = parseString( err, str, "LIBRARY()" ) ;
@@ -1225,7 +1246,7 @@ void execiTBSave( pApplication* thisAppl, const string& s, errblock& err )
 	string tb_nname ;
 	string tb_path  ;
 
-	tb_name  = word( s, 2 ) ;
+	tb_name  = upper( word( s, 2 ) ) ;
 	str      = subword( s, 3 ) ;
 
 	tb_nname = parseString( err, str, "NAME()" ) ;
@@ -1240,7 +1261,7 @@ void execiTBSave( pApplication* thisAppl, const string& s, errblock& err )
 		return ;
 	}
 
-	thisAppl->tbsave( iupper( tb_name ), iupper( tb_nname ), tb_path ) ;
+	thisAppl->tbsave( tb_name, iupper( tb_nname ), tb_path ) ;
 }
 
 

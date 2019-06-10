@@ -46,10 +46,10 @@ class pLScreen
 	int   get_screenNum()                { return screenNum ; }
 	int   get_priScreen( int ) ;
 
-	void  cursor_left()   { col == 0 ? col = maxcol-1 : --col ; }
-	void  cursor_right()  { col == maxcol-1 ? col = 0 : ++col ; }
-	void  cursor_up()     { row == 0 ? row = maxrow-1 : --row ; }
-	void  cursor_down()   { row == maxrow-1 ? row = 0 : ++row ; }
+	void  cursor_left()  ;
+	void  cursor_right() ;
+	void  cursor_up()    ;
+	void  cursor_down()  ;
 
 	void  application_add( pApplication* pApplication )  { pApplicationStack.push( pApplication ) ; }
 	void  application_remove_current()                   { pApplicationStack.pop() ; } ;

@@ -686,6 +686,7 @@ class selobj
 			parm    = "" ;
 			newappl = "" ;
 			rsn     = 0  ;
+			ptid    = 0  ;
 			newpool = false ;
 			passlib = false ;
 			suspend = false ;
@@ -711,6 +712,7 @@ class selobj
 			nested  = true  ;
 			fstack  = false ;
 		}
+
 		bool parse( errblock&, string ) ;
 		bool selPanel() { return selPanl ; }
 
@@ -718,6 +720,7 @@ class selobj
 		string parm    ;
 		string newappl ;
 		int    rsn     ;
+		uint   ptid    ;
 		bool   newpool ;
 		bool   passlib ;
 		bool   suspend ;
@@ -756,6 +759,18 @@ class edit_parms
 		string edit_chgwarn  ;
 		bool   edit_viewmode ;
 		bool   edit_recovery ;
+} ;
+
+
+class browse_parms
+{
+	public:
+		browse_parms()
+		{
+		}
+
+		string browse_file  ;
+		string browse_panel ;
 } ;
 
 

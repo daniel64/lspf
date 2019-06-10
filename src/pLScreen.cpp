@@ -102,6 +102,42 @@ pLScreen::~pLScreen()
 }
 
 
+void pLScreen::cursor_left()
+{
+	if ( col == 0 )
+	{
+		col = maxcol - 1 ;
+		cursor_up() ;
+	}
+	else
+	{
+		--col ;
+	}
+}
+
+void pLScreen::cursor_right()
+{
+	if ( col == maxcol - 1 )
+	{
+		col = 0 ;
+		cursor_down() ;
+	}
+	else
+	{
+		++col ;
+	}
+}
+
+void pLScreen::cursor_up()
+{
+	( row == 0 ) ? row = maxrow - 1 : --row ;
+}
+
+void pLScreen::cursor_down()
+{
+	( row == maxrow - 1 ) ? row = 0 : ++row ;
+}
+
 void pLScreen::clear()
 {
 	for ( unsigned int i = 0 ; i < maxrow ; ++i )
@@ -213,7 +249,7 @@ void pLScreen::OIA_update( int priScreen, int altScreen )
 	mvwaddstr( OIA, 1, 39, respTime.c_str() ) ;
 	mvwprintw( OIA, 1, 58, "%d-%d   ", screenId, application_stack_size() );
 	mvwaddstr( OIA, 1, maxcol-23, Insert ? "Insert" : "      " ) ;
-	mvwprintw( OIA, 1, maxcol-15, "Row %d Col %d  ", row+1, col+1 ) ;
+	mvwprintw( OIA, 1, maxcol-15, "Row %d Col %d   ", row+1, col+1 ) ;
 
 	if ( priScreen < 8 )
 	{
