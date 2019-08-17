@@ -209,7 +209,7 @@ void Table::storeIntValue( errblock& err,
 			   int len )
 {
 	// Store an integer value in the function pool.  If the entry has not been vdefined as an integer,
-	// convert to a string and pad on the left with zeroes, length 8.
+	// convert to a string and pad on the left with zeroes, length len.
 
 	dataType var_type ;
 
@@ -841,15 +841,15 @@ void Table::tbsarg( errblock& err,
 		return ;
 	}
 
+	nl_namelst = getNameList( err, tb_namelst ) ;
+	if ( err.error() ) { return ; }
+
 	nl_cond_pairs = getNameList( err, tb_cond_pairs ) ;
 	if ( err.error() )
 	{
 		err.seterrid( "PSYE013O", tb_cond_pairs ) ;
 		return ;
 	}
-
-	nl_namelst = getNameList( err, tb_namelst ) ;
-	if ( err.error() ) { return ; }
 
 	sarg.clear() ;
 	for ( i = 1, pt = tab_vall.begin() ; pt != tab_vall.end() ; ++pt, ++i )
@@ -976,7 +976,7 @@ void Table::tbscan( errblock& err,
 	// or the search parameters set by a previous TBSARG call.
 
 	// tb_condlst contains the condidtions to use for variables in tb_namelst (1:1 between the two lists).
-	// Only use variables in tb_namelst not other table variables.
+	// Only use variables in tb_namelst - not other table variables.
 
 	// RC = 0   Okay.  CRP set to row found.
 	// RC = 8   Row not found.  CRP set to top (zero)
@@ -1102,7 +1102,7 @@ void Table::tbscan( errblock& err,
 		else
 		{
 			--CRP ;
-			if ( CRP < 1 ) { break ; }
+			if ( CRP == 0 ) { break ; }
 		}
 		s_match = 0     ;
 		endloop = false ;

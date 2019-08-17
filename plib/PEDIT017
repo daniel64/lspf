@@ -26,57 +26,57 @@ text     7    2       NT     "  Name      Lines  Description"
 
 field    9    2   1   NEF     SKIP(OFF),CAPS(ON),PAD(' ') CLPLC1
 field    9    4   8   NT      PAD(' ') CLPNM1
-field    9    14  4   NT      PAD(' ') CLPLN1
+field    9    14  5   NT      PAD(' ') CLPLN1
 field    9    21  40  NEF     PAD(' ') CLPDS1
 
 field    10   2   1   NEF     SKIP(OFF),CAPS(ON),PAD(' ') CLPLC2
 field    10   4   8   NT      PAD(' ') CLPNM2
-field    10   14  4   NT      PAD(' ') CLPLN2
+field    10   14  5   NT      PAD(' ') CLPLN2
 field    10   21  40  NEF     PAD(' ') CLPDS2
 
 field    11   2   1   NEF     SKIP(OFF),CAPS(ON),PAD(' ') CLPLC3
 field    11   4   8   NT      PAD(' ') CLPNM3
-field    11   14  4   NT      PAD(' ') CLPLN3
+field    11   14  5   NT      PAD(' ') CLPLN3
 field    11   21  40  NEF     PAD(' ') CLPDS3
 
 field    12   2   1   NEF     SKIP(OFF),CAPS(ON),PAD(' ') CLPLC4
 field    12   4   8   NT      PAD(' ') CLPNM4
-field    12   14  4   NT      PAD(' ') CLPLN4
+field    12   14  5   NT      PAD(' ') CLPLN4
 field    12   21  40  NEF     PAD(' ') CLPDS4
 
 field    13   2   1   NEF     SKIP(OFF),CAPS(ON),PAD(' ') CLPLC5
 field    13   4   8   NT      PAD(' ') CLPNM5
-field    13   14  4   NT      PAD(' ') CLPLN5
+field    13   14  5   NT      PAD(' ') CLPLN5
 field    13   21  40  NEF     PAD(' ') CLPDS5
 
 field    14   2   1   NEF     SKIP(OFF),CAPS(ON),PAD(' ') CLPLC6
 field    14   4   8   NT      PAD(' ') CLPNM6
-field    14   14  4   NT      PAD(' ') CLPLN6
+field    14   14  5   NT      PAD(' ') CLPLN6
 field    14   21  40  NEF     PAD(' ') CLPDS6
 
 field    15   2   1   NEF     SKIP(OFF),CAPS(ON),PAD(' ') CLPLC7
 field    15   4   8   NT      PAD(' ') CLPNM7
-field    15   14  4   NT      PAD(' ') CLPLN7
+field    15   14  5   NT      PAD(' ') CLPLN7
 field    15   21  40  NEF     PAD(' ') CLPDS7
 
 field    16   2   1   NEF     SKIP(OFF),CAPS(ON),PAD(' ') CLPLC8
 field    16   4   8   NT      PAD(' ') CLPNM8
-field    16   14  4   NT      PAD(' ') CLPLN8
+field    16   14  5   NT      PAD(' ') CLPLN8
 field    16   21  40  NEF     PAD(' ') CLPDS8
 
 field    17   2   1   NEF     SKIP(OFF),CAPS(ON),PAD(' ') CLPLC9
 field    17   4   8   NT      PAD(' ') CLPNM9
-field    17   14  4   NT      PAD(' ') CLPLN9
+field    17   14  5   NT      PAD(' ') CLPLN9
 field    17   21  40  NEF     PAD(' ') CLPDS9
 
 field    18   2   1   NEF     SKIP(OFF),CAPS(ON),PAD(' ') CLPLC10
 field    18   4   8   NT      PAD(' ') CLPNM10
-field    18   14  4   NT      PAD(' ') CLPLN10
+field    18   14  5   NT      PAD(' ') CLPLN10
 field    18   21  40  NEF     PAD(' ') CLPDS10
 
 field    19   2   1   NEF     SKIP(OFF),CAPS(ON),PAD(' ') CLPLC11
 field    19   4   8   NT      PAD(' ') CLPNM11
-field    19   14  4   NT      PAD(' ') CLPLN11
+field    19   14  5   NT      PAD(' ') CLPLN11
 field    19   21  40  NEF     PAD(' ') CLPDS11
 
 )INIT

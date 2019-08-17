@@ -11,7 +11,7 @@
 
 )INCLUDE STD_PDC
 
-)ABC DESC(List)
+)ABC DESC(List) MNEM(1)
 PDC  DESC("Update On")  UNAVAIL(ZCU0)
 PDC  DESC("Update Off") UNAVAIL(ZCU1)
 
@@ -29,7 +29,7 @@ ELSE
 VPUT LIST PROFILE
 
 
-)ABC DESC(Mode)
+)ABC DESC(Mode) MNEM(1)
 PDC  DESC("Retrieve") UNAVAIL(ZMD0)
 PDC  DESC("Execute")  UNAVAIL(ZMD1)
 PDC  DESC("Delete")   UNAVAIL(ZMD2)
@@ -106,6 +106,13 @@ IF (&MODE EQ CMDRET) &TYPE = 'retrieve'
 ELSE
   IF (&MODE EQ CMDEXE) &TYPE = 'execute'
   ELSE                 &TYPE = 'delete'
+
+VGET ZVERB SHARED
+IF (&ZVERB EQ 'RETURN')
+   &ZCMD = &Z
+   .RESP = 'ENTER'
+
+&ZPM7 = 1
 
 )REINIT
 .CURSOR = ZCMD

@@ -19,9 +19,9 @@ text     8 8  ET "Enter"
 text     8 14 NT "to confirm delete"
 
 text     9 2  NT "Press"
-text     9 8  ET "CANCEL"
+text     9 8  ET "Cancel"
 text     9 15 NT "or"
-text     9 18 ET "END"
+text     9 18 ET "End"
 text     9 22 NT "to cancel delete."
 
 )INIT

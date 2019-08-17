@@ -66,35 +66,71 @@ PSYE031S 'Invalid value ''&ZVAL1''' .TYPE=W
 PSYE031T 'Scrollable area outside panel' .TYPE=W
 'TBMODEL=&ZVAL1 ZSCRMAXD=&ZVAL2'
 
-/*                                           */
-/* dynamic areas                             */
-/*                                           */
-PSYE032A 'Dynamic Area outside panel area' .TYPE=W
-'ROW=&ZVAL1 ZSCRMAXD=&ZVAL2'
+PSYE031U 'MAX sub-parameter invalid' .TYPE=W
+'MAX cannot be used for the row position within an AREA statement'
 
-PSYE032B 'Invalid hex or character value' .TYPE=W
-'Value must be a single character or valid hex value representing a single character'
+PSYE031V 'Missing '')''' .TYPE=W
+'Missing closing bracket on keyword'
+
+/*                                           */
+/* DYNAMIC AREAS                             */
+/*                                           */
+PSYE032A 'DYNAMIC AREA outside panel area' .TYPE=W
+'ROW=&ZVAL1 DEPTH=&ZVAL2 ZSCRMAXD=&ZVAL3'
+
+PSYE032B 'DYNAMIC AREA outside panel area' .TYPE=W
+'COL=&ZVAL1 WIDTH=&ZVAL2 ZSCRMAXW=&ZVAL3'
 
 PSYE032C 'Invalid SCROLL parameter' .TYPE=W
 'Scroll parameter value must be ON or OFF.  Entered value is ''&ZVAL1'''
 
-PSYE032D 'Missing '')''' .TYPE=W
-'Missing closing bracket on keyword'
+PSYE032D 'Spare' .TYPE=W
+'Spare'
 
-PSYE032E 'Missing shadow variable name' .TYPE=W
-'The shadow variable for a dynamic area must be specified'
+PSYE032E 'Missing SHADOW name' .TYPE=W
+'The SHADOW variable for a DYNAMIC AREA must be specified'
 
 PSYE032F '''&ZVAL1'' attribute invalid' .TYPE=W
-'Attribute must be a CUA attribute or INPUT, OUTPUT or TEXT.'
+'Attribute must be a CUA attribute, ''INPUT'', ''OUTPUT'' or ''TEXT''.'
 
-PSYE032G 'Dynamic area variable not defined' .TYPE=W
-'Dynamic area variable ''&ZVAL1'' is not in the function pool'
+PSYE032G 'DYNAMIC AREA variable not defined' .TYPE=W
+'DYNAMIC AREA variable ''&ZVAL1'' is not in the function pool'
 
-PSYE032H 'Extraeneous data' .TYPE=W
+PSYE032H 'Invalid parameter' .TYPE=W
 'Data ''&ZVAL1'' found on statement not recognised as a valid parameter'
 
-PSYE032I 'Shadow variable not defined' .TYPE=W
-'Shadow variable ''&ZVAL1'' is not in the function pool'
+PSYE032I 'SHADOW variable not defined' .TYPE=W
+'SHADOW variable ''&ZVAL1'' is not in the function pool'
+
+PSYE032J 'Invalid hex or character value' .TYPE=W
+'Value must be a single character or valid hex value representing a single character'
+
+PSYE032K 'Missing DYNAMIC AREA name' .TYPE=W
+'The DYNAMIC AREA name must be specified on the DYNAREA statement'
+
+/*                                           */
+/* AREA                                      */
+/*                                           */
+PSYE032L 'Area outside panel area' .TYPE=W
+'ROW=&ZVAL1 DEPTH=&ZVAL2 ZSCRMAXD=&ZVAL3'
+
+PSYE032M 'Area outside panel area' .TYPE=W
+'COL=&ZVAL1 WIDTH=&ZVAL2 ZSCRMAXW=&ZVAL3'
+
+PSYE032N 'Area width invalid' .TYPE=W
+'Area width must be a minimum of 20 characters'
+
+PSYE032O 'Area depth invalid' .TYPE=W
+'Area depth must be a minimum of 2 lines'
+
+PSYE032P 'Missing name' .TYPE=W
+'Area name missing from )AREA statement'
+
+PSYE032Q 'Invalid name' .TYPE=W
+'Area name &ZVAL1 has an invalid format'
+
+PSYE032R 'Missing parameter' .TYPE=W
+'Area statement requires 5 parameters, row, col, width, depth and name'
 
 /*                                           */
 /* IF                                        */
@@ -189,7 +225,7 @@ PSYE034A 'Box outside panel area' .TYPE=W
 
 
 /*                                           */
-/* Attr                                      */
+/* ATTR                                      */
 /*                                           */
 PSYE035A 'Cannot alter a point-and-shoot field' .TYPE=W
 ''
@@ -212,7 +248,7 @@ PSYE035J 'Spare' .TYPE=W
 'Spare'
 
 /*                                           */
-/* Field options                             */
+/* FIELD OPTIONS                             */
 /*                                           */
 PSYE035K 'Invalid CAPS option ''&ZVAL1''' .TYPE=W
 'CAPS must be ON or OFF'
@@ -236,7 +272,7 @@ PSYE035Q 'Invalid number of parameters on the FIELD or TBFIELD statement' .TYPE=
 ''
 
 /*                                           */
-/* Text                                      */
+/* TEXT                                      */
 /*                                           */
 PSYE036A 'Text outside panel area' .TYPE=W
 'row=&ZVAL1 ZSCRMAXD=&ZVAL2'
@@ -245,14 +281,14 @@ PSYE036B 'Text outside panel area' .TYPE=W
 'col=&ZVAL1 ZSCRMAXW=&ZVAL2'
 
 /*                                           */
-/* Point-and-Shoot                           */
+/* POINT-AND-SHOOT                           */
 /*                                           */
 PSYE037A 'Missing keyword' .TYPE=W
 'Point and shoot entry must contain FIELD, VAR and VAL keywords'
 
 
 /*                                           */
-/* Parse string                              */
+/* PARSE STRING                              */
 /*                                           */
 PSYE037F 'Null string' .TYPE=W
 'Null string has been passed to the parser'

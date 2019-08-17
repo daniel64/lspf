@@ -89,11 +89,11 @@ field    17   51   20      NEF NONE ZPF24
 text     19  2     CH  "Instructions"
 
 text     21  2     PIN "Enter"
-text     21  8     PS  "DEFAULTS"
+text     21  8     PS  "Defaults"
 text     21  16    PIN ","
-text     21  18    PS  "SAVE"
+text     21  18    PS  "Save"
 text     21  23    PIN "or"
-text     21  26    PS  "CANCEL"
+text     21  26    PS  "Cancel"
 
 field    23  2     MAX CT NONE ZZMSG1
 field    24  2     MAX CT NONE ZZMSG2
@@ -121,4 +121,8 @@ IF (&ZVERB EQ 'CANCEL' ) &ZCMD = 'CANCEL'
 
 VER (&ZCMD LIST,CANCEL,DEFAULTS,SAVE )
 
+)PNTS
+FIELD( ZPS00001 ) VAR( ZCMD )  VAL(>DEFAULTS)
+FIELD( ZPS00002 ) VAR( ZCMD )  VAL(>SAVE)
+FIELD( ZPS00003 ) VAR( ZCMD )  VAL(>CANCEL)
 )END

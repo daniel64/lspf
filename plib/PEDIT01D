@@ -4,7 +4,7 @@
 VIEW warning on exiting with data changes
 )ENDCOMMENT
 
-)BODY HOME(ZCMD1) CMD(ZCMD1) WINDOW(57,11)
+)BODY HOME(ZCMD1) CMD(ZCMD1) WINDOW(57,12)
 PanelDesc "View Warning"
 
 text     2    2       FP     "Command ===> "
@@ -14,11 +14,14 @@ text     4    14      NT     "You are currently in VIEW mode"
 
 text    6   2   CH "Instructions"
 text    8   2   NT "Press"
-text    8   8   ET "ENTER"
-text    8   14  NT "key to confirm exit from VIEW"
-text    10  2   NT "Enter"
-text    10  8   ET "END"
-text    10  12  NT "to return to VIEW."
+text    8   8   ET "Enter"
+text    8   14  NT "key to confirm exit from VIEW.  No changes"
+text    9   2   NT "will be saved."
+text    11  2   NT "Enter"
+text    11  8   ET "End"
+text    11  12  NT "or"
+text    11  15  ET "Exit"
+text    11  20  NT "to return to VIEW."
 
 )INIT
 

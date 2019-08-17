@@ -28,6 +28,7 @@ class PTUTORA : public pApplication
 	private:
 		void read_file( string ) ;
 		void fill_dynamic_area() ;
+		void parse_parms() ;
 
 		int  firstLine ;
 		int  startCol  ;
@@ -61,7 +62,9 @@ class PTUTORA : public pApplication
 		string sh ;
 		string kh ;
 		string ps ;
+
 		string help     ;
 		string helplst  ;
+
 		char   helptype ;
 };

@@ -636,6 +636,7 @@ void PPSP01A::lspfSettings()
 	string gosretp ;
 	string goscrld ;
 	string gohigh  ;
+	string godeclr ;
 
 	string rodefm  ;
 	string rodel   ;
@@ -648,6 +649,7 @@ void PPSP01A::lspfSettings()
 	string rosretp ;
 	string roscrld ;
 	string rohigh  ;
+	string rodeclr ;
 
 	string zdefm   ;
 	string zdel    ;
@@ -660,6 +662,7 @@ void PPSP01A::lspfSettings()
 	string zsretp  ;
 	string zscrolld;
 	string zhigh   ;
+	string zdeclr  ;
 
 	string goucmd1 ;
 	string goucmd2 ;
@@ -718,7 +721,7 @@ void PPSP01A::lspfSettings()
 	if ( RC > 0 ) { abend() ; }
 	vdefine( "GODEFM ZDEFM", &godefm, &zdefm ) ;
 	if ( RC > 0 ) { abend() ; }
-	vdefine( "GOHIGH ZHIGH", &gohigh, &zhigh ) ;
+	vdefine( "GOHIGH ZHIGH GODECLR ZDECLR", &gohigh, &zhigh, &godeclr, &zdeclr ) ;
 	if ( RC > 0 ) { abend() ; }
 
 	vget( "ZUCMDT1 ZUCMDT2 ZUCMDT3", PROFILE ) ;
@@ -727,7 +730,7 @@ void PPSP01A::lspfSettings()
 	if ( RC > 0 ) { abend() ; }
 	vget( "ZSWAP ZSWAPC ZKLUSE ZNOTIFY ZSCROLLD", PROFILE ) ;
 	if ( RC > 0 ) { abend() ; }
-	vget( "ZDEFM ZDEL ZKLUSE ZLMSGW ZPADC ZSRETP ZHIGH", PROFILE ) ;
+	vget( "ZDEFM ZDEL ZKLUSE ZLMSGW ZPADC ZSRETP ZHIGH ZDECLR", PROFILE ) ;
 	if ( RC > 0 ) { abend() ; }
 
 	gokluse = ( zkluse  == "Y" ) ? "/" : "" ;
@@ -737,6 +740,7 @@ void PPSP01A::lspfSettings()
 	goswap  = ( zswap   == "Y" ) ? "/" : "" ;
 	gosretp = ( zsretp  == "Y" ) ? "/" : "" ;
 	gohigh  = ( zhigh   == "Y" ) ? "/" : "" ;
+	godeclr = ( zdeclr  == "Y" ) ? "/" : "" ;
 	godefm  = ( zdefm   == "Y" ) ? "1" : "2" ;
 
 	godel   = zdel   ;
@@ -778,6 +782,7 @@ void PPSP01A::lspfSettings()
 	rortsize = gortsize ;
 	rorbsize = gorbsize ;
 	rohigh   = gohigh   ;
+	rodeclr  = godeclr  ;
 
 	while ( true )
 	{
@@ -806,6 +811,7 @@ void PPSP01A::lspfSettings()
 			gortsize = "3"  ;
 			gorbsize = "20" ;
 			gohigh   = ""   ;
+			godeclr  = "/"  ;
 		}
 		else if ( zcmd == "RESET" )
 		{
@@ -829,6 +835,7 @@ void PPSP01A::lspfSettings()
 			gortsize = rortsize ;
 			gorbsize = rorbsize ;
 			gohigh   = rohigh   ;
+			godeclr  = rodeclr  ;
 		}
 		zkluse   = ( gokluse == "/" ) ? "Y" : "N" ;
 		znotify  = ( gonotfy == "/" ) ? "Y" : "N" ;
@@ -837,6 +844,7 @@ void PPSP01A::lspfSettings()
 		zswap    = ( goswap  == "/" ) ? "Y" : "N" ;
 		zsretp   = ( gosretp == "/" ) ? "Y" : "N" ;
 		zhigh    = ( gohigh  == "/" ) ? "Y" : "N" ;
+		zdeclr   = ( godeclr == "/" ) ? "Y" : "N" ;
 		zucmdt1  = goucmd1 ;
 		zucmdt2  = goucmd2 ;
 		zucmdt3  = goucmd3 ;
@@ -844,7 +852,7 @@ void PPSP01A::lspfSettings()
 		zscmdt2  = goscmd2 ;
 		zscmdt3  = goscmd3 ;
 		zscrolld = goscrld ;
-		vput( "ZKLUSE  ZNOTIFY ZLMSGW  ZSWAP ZSRETP ZHIGH", PROFILE ) ;
+		vput( "ZKLUSE  ZNOTIFY ZLMSGW  ZSWAP ZSRETP ZHIGH ZDECLR", PROFILE ) ;
 		vput( "ZUCMDT1 ZUCMDT2 ZUCMDT3", PROFILE ) ;
 		vput( "ZSCMDT1 ZSCMDT2 ZSCMDT3 ZSCMDTF ZSCROLLD", PROFILE ) ;
 		if ( godefm != "" )
@@ -904,6 +912,8 @@ void PPSP01A::lspfSettings()
 	vdelete( "GODEFM ZDEFM" ) ;
 	if ( RC > 0 ) { abend() ; }
 	vdelete( "GOHIGH ZHIGH" ) ;
+	if ( RC > 0 ) { abend() ; }
+	vdelete( "GODECLR ZDECLR" ) ;
 	if ( RC > 0 ) { abend() ; }
 }
 
@@ -1109,6 +1119,9 @@ void PPSP01A::colourSettings()
 {
 
 	int i ;
+	int j ;
+
+	const int maxEntries = 34 ;
 
 	string msg    ;
 	string curfld ;
@@ -1130,71 +1143,73 @@ void PPSP01A::colourSettings()
 	VarList[ 3  ] = "ABU"  ;
 	VarList[ 4  ] = "AMT"  ;
 	VarList[ 5  ] = "AWF"  ;
-	VarList[ 6  ] = "CT"   ;
-	VarList[ 7  ] = "CEF"  ;
-	VarList[ 8  ] = "CH"   ;
-	VarList[ 9  ] = "DT"   ;
-	VarList[ 10 ] = "ET"   ;
-	VarList[ 11 ] = "EE"   ;
-	VarList[ 12 ] = "FP"   ;
-	VarList[ 13 ] = "FK"   ;
-	VarList[ 14 ] = "IMT"  ;
-	VarList[ 15 ] = "LEF"  ;
-	VarList[ 16 ] = "LID"  ;
-	VarList[ 17 ] = "LI"   ;
-	VarList[ 18 ] = "NEF"  ;
-	VarList[ 19 ] = "NT"   ;
-	VarList[ 20 ] = "PI"   ;
-	VarList[ 21 ] = "PIN"  ;
-	VarList[ 22 ] = "PT"   ;
-	VarList[ 23 ] = "PS"   ;
-	VarList[ 24 ] = "PAC"  ;
-	VarList[ 25 ] = "PUC"  ;
-	VarList[ 26 ] = "RP"   ;
-	VarList[ 27 ] = "SI"   ;
-	VarList[ 28 ] = "SAC"  ;
-	VarList[ 29 ] = "SUC"  ;
-	VarList[ 30 ] = "VOI"  ;
-	VarList[ 31 ] = "WMT"  ;
-	VarList[ 32 ] = "WT"   ;
-	VarList[ 33 ] = "WASL" ;
+	VarList[ 6  ] = "IWF"  ;
+	VarList[ 7  ] = "CT"   ;
+	VarList[ 8  ] = "CEF"  ;
+	VarList[ 9  ] = "CH"   ;
+	VarList[ 10 ] = "DT"   ;
+	VarList[ 11 ] = "ET"   ;
+	VarList[ 12 ] = "EE"   ;
+	VarList[ 13 ] = "FP"   ;
+	VarList[ 14 ] = "FK"   ;
+	VarList[ 15 ] = "IMT"  ;
+	VarList[ 16 ] = "LEF"  ;
+	VarList[ 17 ] = "LID"  ;
+	VarList[ 18 ] = "LI"   ;
+	VarList[ 19 ] = "NEF"  ;
+	VarList[ 20 ] = "NT"   ;
+	VarList[ 21 ] = "PI"   ;
+	VarList[ 22 ] = "PIN"  ;
+	VarList[ 23 ] = "PT"   ;
+	VarList[ 24 ] = "PS"   ;
+	VarList[ 25 ] = "PAC"  ;
+	VarList[ 26 ] = "PUC"  ;
+	VarList[ 27 ] = "RP"   ;
+	VarList[ 28 ] = "SI"   ;
+	VarList[ 29 ] = "SAC"  ;
+	VarList[ 30 ] = "SUC"  ;
+	VarList[ 31 ] = "VOI"  ;
+	VarList[ 32 ] = "WMT"  ;
+	VarList[ 33 ] = "WT"   ;
+	VarList[ 34 ] = "WASL" ;
 
 	DefList[ 1  ] = KAB    ;
 	DefList[ 2  ] = KABSL  ;
 	DefList[ 3  ] = KABU   ;
 	DefList[ 4  ] = KAMT   ;
 	DefList[ 5  ] = KAWF   ;
-	DefList[ 6  ] = KCT    ;
-	DefList[ 7  ] = KCEF   ;
-	DefList[ 8  ] = KCH    ;
-	DefList[ 9  ] = KDT    ;
-	DefList[ 10 ] = KET    ;
-	DefList[ 11 ] = KEE    ;
-	DefList[ 12 ] = KFP    ;
-	DefList[ 13 ] = KFK    ;
-	DefList[ 14 ] = KIMT   ;
-	DefList[ 15 ] = KLEF   ;
-	DefList[ 16 ] = KLID   ;
-	DefList[ 17 ] = KLI    ;
-	DefList[ 18 ] = KNEF   ;
-	DefList[ 19 ] = KNT    ;
-	DefList[ 20 ] = KPI    ;
-	DefList[ 21 ] = KPIN   ;
-	DefList[ 22 ] = KPT    ;
-	DefList[ 23 ] = KPS    ;
-	DefList[ 24 ] = KPAC   ;
-	DefList[ 25 ] = KPUC   ;
-	DefList[ 26 ] = KRP    ;
-	DefList[ 27 ] = KSI    ;
-	DefList[ 28 ] = KSAC   ;
-	DefList[ 29 ] = KSUC   ;
-	DefList[ 30 ] = KVOI   ;
-	DefList[ 31 ] = KWMT   ;
-	DefList[ 32 ] = KWT    ;
-	DefList[ 33 ] = KWASL  ;
+	DefList[ 6  ] = KIWF   ;
+	DefList[ 7  ] = KCT    ;
+	DefList[ 8  ] = KCEF   ;
+	DefList[ 9  ] = KCH    ;
+	DefList[ 10 ] = KDT    ;
+	DefList[ 11 ] = KET    ;
+	DefList[ 12 ] = KEE    ;
+	DefList[ 13 ] = KFP    ;
+	DefList[ 14 ] = KFK    ;
+	DefList[ 15 ] = KIMT   ;
+	DefList[ 16 ] = KLEF   ;
+	DefList[ 17 ] = KLID   ;
+	DefList[ 18 ] = KLI    ;
+	DefList[ 19 ] = KNEF   ;
+	DefList[ 20 ] = KNT    ;
+	DefList[ 21 ] = KPI    ;
+	DefList[ 22 ] = KPIN   ;
+	DefList[ 23 ] = KPT    ;
+	DefList[ 24 ] = KPS    ;
+	DefList[ 25 ] = KPAC   ;
+	DefList[ 26 ] = KPUC   ;
+	DefList[ 27 ] = KRP    ;
+	DefList[ 28 ] = KSI    ;
+	DefList[ 29 ] = KSAC   ;
+	DefList[ 30 ] = KSUC   ;
+	DefList[ 31 ] = KVOI   ;
+	DefList[ 32 ] = KWMT   ;
+	DefList[ 33 ] = KWT    ;
+	DefList[ 34 ] = KWASL  ;
 
 
-	for ( i = 1 ; i < 34 ; ++i )
+	for ( i = 1 ; i <= maxEntries ; ++i )
 	{
 		if ( not setScreenAttrs( VarList[ i ], i ) )
 		{
@@ -1203,7 +1218,7 @@ void PPSP01A::colourSettings()
 		}
 	}
 
-	for ( i = 1 ; i < 34 ; ++i )
+	for ( i = 1 ; i <= maxEntries ; ++i )
 	{
 		isps_var = "ZC" + VarList[ i ] ;
 		vcopy( isps_var, val, MOVE ) ;
@@ -1217,19 +1232,23 @@ void PPSP01A::colourSettings()
 
 	msg  = "" ;
 	zcmd = "" ;
+	addpop( "", 0, -2 ) ;
 	while ( true )
 	{
 		if ( msg == "" ) { curfld = "ZCMD" ; }
 		control( "CUA", "RELOAD" ) ;
 		display( "PPSP01CL", msg, curfld ) ;
-		if (RC == 8 && zcmd != "CANCEL" ) { break ; }
+		if (RC == 8 && zcmd != "CANCEL" )
+		{
+			break ;
+		}
 		if ( zcmd == "" )
 		{
 			;
 		}
 		else if ( zcmd == "CANCEL" )
 		{
-			for ( i = 1 ; i < 34 ; ++i )
+			for ( i = 1 ; i <= maxEntries ; ++i )
 			{
 				isps_var = "ZC" + VarList[ i ] ;
 				vcopy( isps_var, val, MOVE )   ;
@@ -1240,15 +1259,18 @@ void PPSP01A::colourSettings()
 				}
 				setISPSVar( VarList[ i ], OrigList[ i ] ) ;
 			}
+			control( "CUA", "RELOAD" ) ;
+			control( "NONDISPL", "END" ) ;
+			display() ;
 			break ;
 		}
 		else if ( zcmd == "DEFAULTS" )
 		{
-			for ( i = 1 ; i < 34 ; ++i )
+			for ( i = 1 ; i <= maxEntries ; ++i )
 			{
 				setISPSVar( VarList[ i ], DefList[ i ]  ) ;
 			}
-			for ( i = 1 ; i < 34 ; ++i )
+			for ( i = 1 ; i <= maxEntries ; ++i )
 			{
 				if ( not setScreenAttrs( VarList[ i ], i ) ) { abend() ; }
 			}
@@ -1256,7 +1278,7 @@ void PPSP01A::colourSettings()
 		else if ( zcmd == "SAVE" )
 		{
 			zcmd = "" ;
-			for ( i = 1 ; i < 34 ; ++i )
+			for ( i = 1 ; i <= maxEntries ; ++i )
 			{
 				isps_var = "ZC" + VarList[ i ] ;
 				vcopy( isps_var, val, MOVE ) ;
@@ -1277,11 +1299,11 @@ void PPSP01A::colourSettings()
 		else if ( zcmd == "RESTORE" )
 		{
 			zcmd = "" ;
-			for ( i = 1 ; i < 34 ; ++i )
+			for ( i = 1, j = 0 ; i <= maxEntries ; ++i )
 			{
 				prof_var = "AC" + VarList[ i ] ;
 				vcopy( prof_var, val, MOVE ) ;
-				if ( RC > 0 ) { msg = "PPSP019" ; break ; }
+				if ( RC > 0 ) { j++ ; continue ; }
 				isps_var      = prof_var  ;
 				isps_var[ 0 ] = 'Z'       ;
 				vdefine( isps_var, &val ) ;
@@ -1289,13 +1311,24 @@ void PPSP01A::colourSettings()
 				vdelete( isps_var ) ;
 				if ( not setScreenAttrs( VarList[ i ], i ) ) { abend() ; }
 			}
-			if ( RC == 0 ) { msg = "PPSP011B" ; }
+			if ( j == maxEntries )
+			{
+				msg = "PPSP019" ;
+			}
+			else if ( j == 0 )
+			{
+				msg = "PPSP011B" ;
+			}
+			else
+			{
+				msg = "PPSP011H" ;
+			}
 			continue ;
 		}
 
 		msg  = "" ;
 		zcmd = "" ;
-		for ( i = 1 ; i < 34 ; ++i )
+		for ( i = 1 ; i <= maxEntries ; ++i )
 		{
 			var1 = "COLOUR" + d2ds( i, 2 ) ;
 			var2 = "INTENS" + d2ds( i, 2 ) ;
@@ -1398,6 +1431,7 @@ void PPSP01A::colourSettings()
 			vdelete( isps_var )       ;
 		}
 	}
+	rempop() ;
 }
 
 
@@ -1500,14 +1534,7 @@ void PPSP01A::globalColours()
 	{
 		var = "ZGCL" + tab1[ i ] ;
 		vcopy( var, colour, MOVE ) ;
-		if ( colour == tab1[ i ] )
-		{
-			vreplace( "COLOUR"+ d2ds( i, 2 ), "" ) ;
-		}
-		else
-		{
-			vreplace( "COLOUR"+ d2ds( i, 2 ), tab2[ colour ] ) ;
-		}
+		vreplace( "COLOUR"+ d2ds( i, 2 ), ( colour == tab1[ i ] ) ? "" : tab2[ colour ] ) ;
 	}
 
 	addpop( "", 5, 5 ) ;
@@ -1519,6 +1546,17 @@ void PPSP01A::globalColours()
 		if ( zcmd == "RGBSET" )
 		{
 			setRGBValues() ;
+			continue ;
+		}
+		else if ( zcmd == "DECSET" )
+		{
+			addpop( "", -1, -2 ) ;
+			while ( true )
+			{
+				display( "PPSP01CD" ) ;
+				if ( RC > 0 ) { break ; }
+			}
+			rempop() ;
 			continue ;
 		}
 		for ( i = 1 ; i < 8 ; ++i )

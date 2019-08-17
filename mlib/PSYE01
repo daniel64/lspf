@@ -75,7 +75,7 @@ PSYE013G 'Table not open' .TYPE=W
 '&ZVAL1 issued for table &ZVAL2 that is not open'
 
 PSYE013H 'Table name missing' .TYPE=W
-'Table name must be specified on a &ZVAL1 call'
+'Table name must be specified'
 
 PSYE013I 'Invalid save' .TYPE=W
 'Table &ZVAL1 is a temporary table.  Cannot be saved'
@@ -252,7 +252,7 @@ PSYE017E 'Internal logic error' .TYPE=W
 /*                                           */
 /* ISPEXEC interface messages                */
 /*                                           */
-PSYE019A 'Invalid Service' .TYPE=W
+PSYE019A 'Invalid service' .TYPE=W
 '&ZVAL1 service invalid with this interface'
 
 PSYE019B 'Invalid service' .TYPE=W

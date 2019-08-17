@@ -40,10 +40,10 @@ void addHilight( logger* lg, hilight& h, const string& line, string& shadow )
 	}
 	catch (...)
 	{
-		llog( "E", "An exception has occured hilighting line "<<line<<endl);
+		llog( "E", "An exception has occured hilighting line "<<line<<endl) ;
 		exception_ptr ptr = current_exception() ;
 		llog( "E", "Exception: " << (ptr ? ptr.__cxa_exception_type()->name() : "Unknown" ) << endl ) ;
-		llog( "E", "Hilighting disabled"<<endl);
+		llog( "E", "Hilighting disabled"<<endl) ;
 		h.hl_abend = true ;
 	}
 }

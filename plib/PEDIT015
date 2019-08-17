@@ -33,9 +33,9 @@ text    20 2  NT "Enter"
 text    20 8  ET "="
 text    20 10 NT "in file name to copy to retrieve full path name of current file"
 text    21 2  NT "Enter file name and press"
-text    21 28 ET "ENTER"
+text    21 28 ET "Enter"
 text    21 34 NT "to copy file or "
-text    21 50 ET "END"
+text    21 50 ET "End"
 text    21 54 NT "to cancel copy"
 
 )INIT

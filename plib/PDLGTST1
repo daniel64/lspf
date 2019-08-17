@@ -14,42 +14,40 @@ PanelTitle "Dialogue Services Selection Menu"
 text   4    2        FP   "Option ===>"
 field  4   14   MAX  NEF     CAPS(ON),PAD(USER) ZCMD
 
-text   6   MAX-20        FP  "Date: "
-field  6   MAX-14    8   VOI   NONE  ZDATE
+area  5 1 MAX MAX SAREA1
 
-text   7   MAX-20         FP  "Time: "
-field  7   MAX-14    8    VOI   NONE  ZTIME
+)AREA SAREA1
+text  1  2    SAC  "0"
+text  1  5    PS   "Display Panel"
+text  1  20   NT   "Display Panel"
 
-text  6  2    SAC  "0"
-text  6  5    PS   "Display Panel"
-text  6  20   NT   "Display Panel"
+text  2  2    SAC  "1"
+text  2  5    PS   "Variables"
+text  2  20   NT   "Display system variables"
 
-text  7  2    SAC  "1"
-text  7  5    PS   "Variables"
-text  7  20   NT   "Display system variables"
+text  3 2    SAC  "2"
+text  3 5    PS   "Check Pattern"
+text  3 20   NT   "Check pattern matching algorithm"
 
-text  8 2    SAC  "2"
-text  8 5    PS   "Check Pattern"
-text  8 20   NT   "Check pattern matching algorithm"
+text  4  2    SAC  "3"
+text  4  5    PS   "Check Panel"
+text  4  20   NT   "Check and Preprocess Panel Source"
 
-text  9  2    SAC  "3"
-text  9  5    PS   "Check Panel"
-text  9  20   NT   "Check and Preprocess Panel Source"
+text  5   2    SAC  "4"
+text  5   5    PS   "Variables"
+text  5   20   NT   "Display Dialogue Variables"
 
-text  10  2    SAC  "4"
-text  10  5    PS   "Variables"
-text  10  20   NT   "Display Dialogue Variables"
+text  7  2    SAC  "T"
+text  7  5    PS   "Tutorial"
+text  7  20   NT   "Start Tutorial"
 
-text  12 2    SAC  "T"
-text  12 5    PS   "Tutorial"
-text  12 20   NT   "Start Tutorial"
-
-text  13  2    SAC  "X"
-text  13  5    PS   "Terminate"
-text  13  20   NT   "Terminate Dialogue Services"
+text  8   2    SAC  "X"
+text  8   5    PS   "Terminate"
+text  8   20   NT   "Terminate Dialogue Services"
 
 )INIT
 .CURSOR = ZCMD
+&ZPM8 = 1
 
 )PROC
 IF ( TRUNC( &ZCMD, 1 ) EQ '.' )
@@ -58,10 +56,10 @@ IF ( TRUNC( &ZCMD, 1 ) EQ '.' )
 
 &ZSEL = TRANS( TRUNC( &ZCMD,'.' ) ,
                0,'PGM(PDLGTST) PARM(0)'
-               1,'PANEL(PDLGTST3)'
+               1,'PGM(PDLGTST) PARM(1)'
                2,'PGM(PDLGTST) PARM(2)'
                3,'PGM(PDLGTST) PARM(3)'
-               4,'PANEL(PDLGTST5)'
+               4,'PGM(PDLGTST) PARM(4)'
                T,'PGM(&ZHELPPGM) PARM(T)'
                X,EXIT
               &Z,&Z

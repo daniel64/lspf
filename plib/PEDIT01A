@@ -4,9 +4,25 @@
 EDIT colour settings panel
 )ENDCOMMENT
 
-)ABC DESC(Colour)
+)ABC DESC(Colour) MNEM(1)
 PDC DESC(Overtype Colour)
- ACTION RUN(>EDOCLR)
+ ACTION RUN(>EDCCLR)
+PDC DESC(Find Phrase Colour)
+ ACTION RUN(>EDCCLR)
+PDC DESC(Cursor Phrase Colour)
+ ACTION RUN(>EDCCLR)
+
+)ABCINIT
+.ZVARS  = PDCCSEL
+&ZCCPAN = &Z
+
+)ABCPROC
+IF (&PDCCSEL EQ '1') &ZCCPAN = 'PEDIT01B'
+ELSE
+  IF (&PDCCSEL EQ '2') &ZCCPAN = 'PEDIT01E'
+  ELSE
+    IF (&PDCCSEL EQ '3') &ZCCPAN = 'PEDIT01F'
+
 
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
@@ -49,16 +65,17 @@ text    15    39      SAC    "Highlight cursor phrase"
 
 text    16 2  CH "Instructions"
 text    18 2  NT "Press"
-text    18 8  ET "END"
+text    18 8  ET "End"
 text    18 12 NT "to save changes"
 
 text    19 2  NT "Enter"
-text    19 8  ET "CANCEL"
+text    19 8  ET "Cancel"
 text    19 15 NT "to cancel changes"
 
 )INIT
 &ZCMDA   = &Z
 &ZWINTTL = &Z
+&ZCCPAN  = &Z
 .CURSOR  = ZCMDA
 
 &ZHILANG = TRANS( &ZPROFLG,
@@ -86,15 +103,13 @@ ELSE
       ELSE
          &ZCOLOUR = 3
 
-)REINIT
-
 )PROC
-IF (&ZCMDA EQ 'EDOCLR' ) EXIT
-ELSE
-   IF (&ZCMDA NE &Z)
-      .MSG    = PSYS018
-      .CURSOR = ZCMDA
-      EXIT
+IF (&ZCMDA EQ 'EDCCLR' AND &ZCCPAN NE &Z) EXIT
+
+IF (&ZCMDA NE &Z)
+   .MSG    = PSYS018
+   .CURSOR = ZCMDA
+   EXIT
 
 VER(&ZHILANG,NB,LIST,1,2,3,4,5,6,7)
 VER(&ZCOLOUR,NB,LIST,1,2,3,4,5)

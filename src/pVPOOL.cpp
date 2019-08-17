@@ -743,12 +743,14 @@ string pVPOOL::get( errblock& err,
 
 	// TODO: Format date variables according to ZDATEF
 
-	int    p1 ;
-	string t  ;
+	int p1 ;
 
-	time_t rawtime       ;
-	struct tm* time_info ;
-	char   buf[ 12 ]     ;
+	string t ;
+
+	char buf[ 12 ] ;
+
+	time_t rawtime ;
+	struct tm* time_info = NULL ;
 
 	err.setRC( 0 ) ;
 
@@ -1586,7 +1588,7 @@ void poolMGR::sysput( errblock& err,
 		      const string& value,
 		      poolType pType )
 {
-	// Put variables to the profile ISPF pool or @DEFSHAR shared pool
+	// Put variables to the profile ISPS pool or @DEFSHAR shared pool
 	// These calls are not associated with an application
 
 	boost::lock_guard<boost::mutex> lock( mtx ) ;
@@ -1707,7 +1709,7 @@ string poolMGR::sysget( errblock& err,
 			const string& name,
 			poolType pType )
 {
-	// Get variables from the profile ISPF pool or @DEFSHAR shared pool
+	// Get variables from the profile ISPS pool or @DEFSHAR shared pool
 	// These calls are not associated with an application
 
 	map<string, pVPOOL*>::iterator p_it ;

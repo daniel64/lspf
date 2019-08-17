@@ -115,8 +115,8 @@ PSYE042J 'Duplicate field command entry' .TYPE=W
 PSYE042K 'Invalid attribute' .TYPE=W
 '&ZVAL1 field must have an output CUA attribute byte specified'
 
-PSYE042L 'Overlapping fields detected' .TYPE=W
-'Fields &ZVAL1 and &ZVAL2 overlap'
+PSYE042L 'Invalid value' .TYPE=W
+'MNEM parameter must be a numeric value between 1 and &ZVAL1'
 
 PSYE042M 'Field ''&ZVAL1'' not found' .TYPE=W
 '&ZVAL2 field ''&ZVAL1'' not defined in panel body'
@@ -139,11 +139,33 @@ PSYE042R 'Invalid DYNAMIC AREA SCROLL option' .TYPE=W
 PSYE042S 'Invalid scrollable area' .TYPE=W
 'A panel can only have one scrollable area, either for a dynamic area or a table display'
 
-PSYE042T 'Spare' .TYPE=W
-'Spare'
+PSYE042T 'AREA &ZVAL1 not found' .TYPE=W
+'AREA &ZVAL1 has not been defined in the boby section'
 
-PSYE042U 'Spare' .TYPE=W
-'Spare'
+PSYE042U 'Invalid AREA name' .TYPE=W
+'AREA name invalid format or blank'
 
-PSYE042V 'Spare' .TYPE=W
-'Spare'
+PSYE042V 'Invalid point-and-shoot' .TYPE=W
+'Point and shoot text fields cannot be defined for AREAs greater than 99'
+
+PSYE042W 'Overlap detected' .TYPE=W
+'Fields &ZVAL1 and &ZVAL2 overlap'
+
+PSYE042X 'Overlap detected' .TYPE=W
+'Text at &ZVAL1 overlaps text at position &ZVAL2'
+
+PSYE042Y 'Overlap detected' .TYPE=W
+'Field &ZVAL1 and text at &ZVAL2 overlap'
+
+PSYE042Z ')AREA section not defined' .TYPE=W
+'AREA &ZVAL1 defined in the )BODY section but section not defined or empty'
+
+PSYE043A 'Overlap detected' .TYPE=W
+'Fields &ZVAL1 and &ZVAL2 overlap in AREA &ZVAL3'
+
+PSYE043B 'Overlap detected' .TYPE=W
+'Text at &ZVAL1 overlaps text at position &ZVAL2 in AREA &ZVAL3'
+
+PSYE043C 'Overlap detected' .TYPE=W
+'Field &ZVAL1 and text at &ZVAL2 overlap in AREA &ZVAL3'
+

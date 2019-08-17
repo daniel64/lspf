@@ -52,8 +52,6 @@ class dynArea
 				   const string& da_dataIn,
 				   const string& da_dataOut ) ;
 
-		void setsize( int, int, int, int ) ;
-
 	friend class pPanel ;
 	friend class field  ;
 } ;
@@ -87,12 +85,15 @@ class field
 			field_dynArea      = NULL  ;
 			field_tb           = false ;
 			field_scrollable   = false ;
-			field_scroll_start = 1     ;
+			field_visible      = true  ;
+			field_area         = 0     ;
 			field_shadow_value = ""    ;
 		} ;
 
 		unsigned int field_row          ;
 		unsigned int field_col          ;
+		unsigned int field_area_row     ;
+		unsigned int field_area_col     ;
 		unsigned int field_endcol       ;
 		unsigned int field_length       ;
 		string       field_value        ;
@@ -114,16 +115,24 @@ class field
 		dynArea*     field_dynArea      ;
 		bool         field_tb           ;
 		bool         field_scrollable   ;
-		unsigned int field_scroll_start ;
+		bool         field_visible      ;
+		unsigned int field_area         ;
 		string       field_shadow_value ;
 		set<size_t>  field_usermod      ;
 
-		void field_init( errblock& err, int maxw, int maxd, const string& line ) ;
+		void field_init( errblock& err,
+				 int maxw,
+				 int maxd,
+				 const string& line,
+				 uint = 0,
+				 uint = 0 ) ;
+
 		void field_opts( errblock& err, string& )  ;
 		void field_reset() ;
 		bool cursor_on_field( uint row, uint col ) ;
 
 		void display_field( WINDOW*,
+				    char schar,
 				    map<unsigned char, uint>&,
 				    map<unsigned char, uint>& ) ;
 
@@ -143,11 +152,13 @@ class field
 
 		void edit_field_delete( WINDOW* win,
 					int row,
+					char schar,
 					map<unsigned char, uint>&,
 					map<unsigned char, uint>& ) ;
 
 		int  edit_field_backspace( WINDOW* win,
 					   int row,
+					   char schar,
 					   map<unsigned char, uint>&,
 					   map<unsigned char, uint>& ) ;
 
@@ -157,6 +168,7 @@ class field
 
 		void field_erase_eof( WINDOW* win,
 				      unsigned int col,
+				      char schar,
 				      map<unsigned char, uint>&,
 				      map<unsigned char, uint>& ) ;
 
@@ -180,6 +192,7 @@ class field
 				   uint col ) ;
 
 	friend class pPanel ;
+	friend class Area   ;
 } ;
 
 
@@ -191,26 +204,110 @@ class text
 	private:
 		text()
 		{
-			text_colour = 0  ;
-			text_name   = "" ;
-			text_dvars  = true ;
+			text_colour  = 0  ;
+			text_name    = "" ;
+			text_visible = true ;
+			text_dvars   = true ;
 		}
 
-		uint    text_row    ;
-		uint    text_col    ;
-		uint    text_endcol ;
-		attType text_cua    ;
-		uint    text_colour ;
-		string  text_value  ;
-		string  text_xvalue ;
-		string  text_name   ;
-		bool    text_dvars  ;
+		uint    text_row ;
+		uint    text_col ;
+		uint    text_area_row ;
+		uint    text_area_col ;
+		uint    text_endcol  ;
+		attType text_cua     ;
+		uint    text_colour  ;
+		string  text_value   ;
+		string  text_xvalue  ;
+		string  text_name    ;
+		bool    text_visible ;
+		bool    text_dvars   ;
 
-		void text_init( errblock& err, int maxw, int maxd, int& opt_field, const string& line ) ;
+		void text_init( errblock& err,
+				int maxw,
+				int maxd,
+				uint& opt_field,
+				const string& line,
+				uint = 0,
+				uint = 0 ) ;
 		void text_display( WINDOW* ) ;
 		bool cursor_on_text( uint row, uint col ) ;
 
 	friend class pPanel ;
+	friend class Area   ;
+} ;
+
+
+class Area
+{
+	public:
+		Area() :
+		si1( "" ),
+		si2( "More:     +" ),
+		si3( "More:   -  " ),
+		si4( "More:   - +" )
+		{
+			maxRow = 0 ;
+			maxPos = 0 ;
+			pos    = 0 ;
+		}
+
+
+	public:
+		void Area_init( errblock& err,
+				int maxw,
+				int maxd,
+				uint num,
+				const string& line ) ;
+
+		void add( text* ) ;
+		void add( const string&, field* ) ;
+
+		void get_info( uint&, uint&, uint& ) ;
+		void get_info( uint&, uint&, uint&, uint& ) ;
+
+		uint get_width()   { return Area_width ; }
+		uint get_depth()   { return Area_depth ; }
+		uint get_col()     { return Area_col   ; }
+		uint get_num()     { return Area_num   ; }
+
+		bool not_defined() { return fieldList.empty() && textList.empty() ; }
+		void make_visible( field* ) ;
+
+		bool cursor_on_area( uint, uint ) ;
+
+		void check_overlapping_fields( errblock&, const string& ) ;
+
+		void update_area() ;
+
+		int  scroll_up( uint, uint ) ;
+		int  scroll_down( uint, uint ) ;
+
+		const char* get_scroll_indicator() ;
+
+	private:
+		uint pos ;
+		uint maxRow ;
+		uint maxPos ;
+
+		uint Area_num ;
+		uint Area_row ;
+		uint Area_col ;
+		uint Area_width ;
+		uint Area_depth ;
+
+		const char* si1 ;
+		const char* si2 ;
+		const char* si3 ;
+		const char* si4 ;
+
+		void update_fields() ;
+		void update_text() ;
+
+		map<string, field*> fieldList ;
+		vector<text*> textList ;
+
+	friend class field ;
 } ;
 
 
@@ -275,6 +372,7 @@ class abc
 			abc_maxh   = 0  ;
 			abc_maxw   = 0  ;
 			currChoice = 0  ;
+			abc_mnem1  = 0  ;
 			choiceVar  = "" ;
 			pd_created = false ;
 		} ;
@@ -288,11 +386,12 @@ class abc
 			}
 		} ;
 
-		string       abc_desc ;
-		unsigned int abc_col  ;
-		unsigned int abc_maxh ;
-		unsigned int abc_maxw ;
-
+		string       abc_desc  ;
+		char         abc_mnem2 ;
+		unsigned int abc_mnem1 ;
+		unsigned int abc_col   ;
+		unsigned int abc_maxh  ;
+		unsigned int abc_maxw  ;
 
 		void   add_pdc( const pdc& )         ;
 		void   display_abc_sel( WINDOW* )    ;
@@ -335,6 +434,7 @@ class Box
 
 		void box_init( errblock& err, int maxw, int maxd, const string& line ) ;
 		void display_box( WINDOW*, string ) ;
+		void display_box( WINDOW*, string, uint, uint ) ;
 
 		string box_title ;
 	private:
@@ -343,5 +443,7 @@ class Box
 		uint box_width  ;
 		uint box_depth  ;
 		uint box_colour ;
+
+		void draw_box( WINDOW*, string& ) ;
 } ;
 

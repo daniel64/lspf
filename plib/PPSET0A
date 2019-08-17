@@ -17,63 +17,66 @@ PanelTitle "Primary Settings and Information Panel"
 text     4    2       FP  "Option ===>"
 field    4   14   MAX  NEF     CAPS(ON),PAD(USER)  ZCMD
 
-text     6   MAX-20        FP  "Date: "
-field    6   MAX-14    8   VOI   NONE  ZDATE
+area 5 1      MAX-21  MAX-3   SAREA
 
-text     7   MAX-20         FP  "Time: "
-field    7   MAX-14    8    VOI   NONE  ZTIME
+)AREA SAREA
 
-text     6   2    SAC  "0"
-text     6   5    PS   "General"
-text     6   17   NT   "Display and alter general lspf option settings"
+text     1   2    SAC  "0"
+text     1   5    PS   "General"
+text     1   18   NT   "Display and alter general lspf option settings"
 
-text     7   2    SAC  "1"
-text     7   5    PS   "PF Keys"
-text     7   17   NT   "Display and alter function key settings"
+text     2   2    SAC  "1"
+text     2   5    PS   "PF Keys"
+text     2   18   NT   "Display and alter function key settings"
 
-text     8   2    SAC  "2"
-text     8   5    PS   "CUA Colours"
-text     8   17   NT   "Display and alter screen colours"
+text     3   2    SAC  "2"
+text     3   5    PS   "CUA colours"
+text     3   18   NT   "Display and alter screen colours"
 
-text     9   2    SAC  "3"
-text     9   5    PS   "Colours"
-text     9   17   NT   "Display and alter lspf global colours"
+text     4   2    SAC  "3"
+text     4   5    PS   "Colours"
+text     4   18   NT   "Display and alter lspf global colours"
 
-text     10  2    SAC  "4"
-text     10  5    PS   "Commands"
-text     10  17   NT   "Display command tables"
+text     5   2    SAC  "4"
+text     5   5    PS   "Commands"
+text     5   18   NT   "Display command tables"
 
-text     11  2    SAC  "5"
-text     11  5    PS   "Paths"
-text     11  17   NT   "Display search paths and LIBDEF status"
+text     6   2    SAC  "5"
+text     6   5    PS   "Paths"
+text     6   18   NT   "Display search paths and LIBDEF status"
 
-text     12  2    SAC  "6"
-text     12  5    PS   "Variables"
-text     12  17   NT   "Display and delete shared and profile pool variables"
+text     7   2    SAC  "6"
+text     7   5    PS   "Variables"
+text     7   18   NT   "Display and delete shared and profile pool variables"
 
-text     13  2    SAC  "7"
-text     13  5    PS   "Modules"
-text     13  17   NT   "Display/Reload Application Modules"
+text     8   2    SAC  "7"
+text     8   5    PS   "Modules"
+text     8   18   NT   "Display/Reload Application Modules"
 
-text     14  2    SAC  "8"
-text     14  5    PS   "Programs"
-text     14  17   NT   "Display and alter utility programs"
+text     9   2    SAC  "8"
+text     9   5    PS   "Programs"
+text     9   18   NT   "Display and alter utility programs"
 
-text     15  2    SAC  "9"
-text     15  5    PS   "Ctrl keys"
-text     15  17   NT   "Display and alter keyboard control key functions"
+text     10  2    SAC  "9"
+text     10  5    PS   "Keylists"
+text     10  18   NT   "Display and alter keylist definitions"
 
-text     17  2    SAC  "T"
-text     17  5    PS   "Tutorial"
-text     17  17   NT   "Start Tutorial"
+text     11  2    SAC  "10"
+text     11  5    PS   "Control keys"
+text     11  18   NT   "Display and alter keyboard control key functions"
 
-text     18  2    SAC  "X"
-text     18  5    PS   "Terminate"
-text     18  17   NT   "Terminate Settings"
+text     13  2    SAC  "T"
+text     13  5    PS   "Tutorial"
+text     13  18   NT   "Start Tutorial"
+
+text     14  2    SAC  "X"
+text     14  5    PS   "Terminate"
+text     14  18   NT   "Terminate Settings"
 
 )INIT
 .CURSOR = ZCMD
 &ZPRIM  = YES
+&ZPM1 = 1
 
 )PROC
 IF ( TRUNC( &ZCMD, 1 ) EQ '.' )
@@ -90,7 +93,8 @@ IF ( TRUNC( &ZCMD, 1 ) EQ '.' )
                      6,'PGM(PPSP01A) PARM(VARS)     SCRNAME(VARS)'
                      7,'PGM(PPSP01A) PARM(MODS)     NEWPOOL SCRNAME(MODULES)'
                      8,'PGM(PPSP01A) PARM(UTPGMS)   NEWPOOL SCRNAME(UTILS)'
-                     9,'PGM(PPSP01A) PARM(CTLKEYS)  NEWPOOL SCRNAME(CONTROL)'
+                     9,'PGM(PPSP01A) PARM(KLISTS)   NEWPOOL SCRNAME(KEYLISTS)'
+                    10,'PGM(PPSP01A) PARM(CTLKEYS)  NEWPOOL SCRNAME(CONTROL)'
                      T,'PGM(&ZHELPPGM) PARM(T)'
                      X,EXIT
                     &Z,&Z
@@ -108,7 +112,8 @@ FIELD( ZPS01007 ) VAR(ZCMD)  VAL(6)
 FIELD( ZPS01008 ) VAR(ZCMD)  VAL(7)
 FIELD( ZPS01009 ) VAR(ZCMD)  VAL(8)
 FIELD( ZPS01010 ) VAR(ZCMD)  VAL(9)
-FIELD( ZPS01011 ) VAR(ZCMD)  VAL(T)
-FIELD( ZPS01012 ) VAR(ZCMD)  VAL(X)
+FIELD( ZPS01011 ) VAR(ZCMD)  VAL(10)
+FIELD( ZPS01012 ) VAR(ZCMD)  VAL(T)
+FIELD( ZPS01013 ) VAR(ZCMD)  VAL(X)
 
 )END

@@ -1,0 +1,188 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+24x80 version of the main menu
+)ENDCOMMENT
+
+)ATTR
+
+01 TYPE(CHAR) COLOUR(RED)
+02 TYPE(CHAR) COLOUR(GREEN)
+03 TYPE(CHAR) COLOUR(YELLOW)
+04 TYPE(CHAR) COLOUR(BLUE)
+05 TYPE(CHAR) COLOUR(MAGENTA)
+06 TYPE(CHAR) COLOUR(TURQ)
+07 TYPE(CHAR) COLOUR(WHITE)
+
+08 TYPE(CHAR) HILITE(REVERSE) COLOUR(TURQ)
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)BODY CMD(ZCMD) HOME(ZCMD)
+
+PanelTitle "Primary Menu Panel"
+
+text   4    2    FP  "Option ===>"
+field  4   14   MAX     NEF   CAPS(ON),PAD(USER),JUST(LEFT),NUMERIC(OFF),SKIP(ON) ZCMD
+
+area 5 1      59  18   SAREA1
+
+dynArea  6  60 21  11  ZAREA  ZSHADOW
+
+text   24 2    FP     "Enter"
+text   24 8    PS     "Help"
+text   24 13   FP     "to display basic information, or"
+text   24 46   PS     "X"
+text   24 48   FP     "to exit"
+
+)AREA SAREA1
+text  1  2    SAC  "0"
+text  1  5    PS   "Settings"
+text  1  16   NT   "Display and alter user settings"
+
+text  2  2    SAC  "1"
+text  2  5    PS   "View"
+text  2  16   NT   "View or browse files"
+
+text  3  2    SAC  "2"
+text  3  5    PS   "Edit"
+text  3  16   NT   "Edit files"
+
+text  4  2    SAC  "3"
+text  4  5    PS   "Utilities"
+text  4  16   NT   "File Utilities"
+
+text  5   2    SAC  "4"
+text  5   5    PS   "Testing"
+text  5   16   NT   "Invoke Testing Program"
+
+text  6   2    SAC  "5"
+text  6   5    PS   "Tasks"
+text  6   16   NT   "Display Tasks and System Resource Usage"
+
+text  7   2    SAC  "6"
+text  7   5    PS   "Command"
+text  7   16   NT   "Enter Commands"
+
+text  8   2    SAC  "7"
+text  8   5    PS   "Dialogue"
+text  8   16   NT   "Dialogue Testing"
+
+text  9   2    SAC  "8"
+text  9   5    PS   "Lspf Log"
+text  9   16   NT   "Browse Lspf Log"
+
+text  10  2    SAC  "9"
+text  10  5    PS   "Appl Log"
+text  10  16   NT   "Browse Application Log"
+
+text  11  2    SAC  "10"
+text  11  5    PS   "Functions"
+text  11  16   NT   "Invoke dialogue functions or selection panel"
+
+text  13  2    SAC  "D"
+text  13  5    PS   "MySQL"
+text  13  16   NT   "MySQL Database Actions"
+
+text  14  2    SAC  "U"
+text  14  5    PS   "User Menu"
+text  14  16   NT   "User Actions"
+
+text  15  2    SAC  "S"
+text  15  5    PS   "System"
+text  15  16   NT   "System Utilities"
+
+text  17  2    SAC  "T"
+text  17  5    PS   "Tutorial"
+text  17  16   NT   "Start Tutorial"
+
+text  18  2    SAC  "X"
+text  18  5    PS   "Terminate"
+text  18  16   NT   "Terminate Session"
+
+)INIT
+&ZPRIM = YES
+
+)PROC
+&ZSEL = &Z
+IF ( TRUNC( &ZCMD, 1 ) EQ '.' )
+   .MSG = 'PSYS016'
+   EXIT
+
+IF (&ZCMD EQ 'DATE')
+   &ZCMD   = 'DATE MM/YYYY'
+   .MSG    = 'MAIN011'
+   .CSRPOS = 6
+   .CURSOR = ZCMD
+   REFRESH ZCMD
+   EXIT
+
+&W1  = TRUNC(&ZCMD,' ')
+&ENT = .TRAIL
+&W2S = WORDS(ENT)
+&W2L = LENGTH(ENT)
+
+IF (&W1 = 'DATE')
+   &MM  = TRUNC(&ENT,2)
+   &SEP = .TRAIL
+   &SEP = TRUNC(&SEP,1)
+   &YY  = .TRAIL
+   IF (&W2S NE 1 OR &W2L NE 7 OR &SEP NE '-','/','.')
+      .MSG    = 'MAIN011'
+      .CURSOR = ZCMD
+      EXIT
+   IF (VER(&MM,NUM) AND VER(&YY,NUM))
+   ELSE
+      .MSG    = 'MAIN011'
+      .CURSOR = ZCMD
+      EXIT
+   IF (&MM LT 1 OR &MM GT 12 OR &YY LT 1900 OR &YY GT 9999)
+      .MSG    = 'MAIN011'
+      .CURSOR = ZCMD
+   EXIT
+
+&ZSEL = TRANS( TRUNC( &ZCMD,'.' ) ,
+               0,'PANEL(PPSET0A) NEWPOOL ADDPOP'
+               1,'PGM(PPSP01A) NEWAPPL(ISR) PARM(BROWSEE) SCRNAME(VIEW)'
+               2,'PGM(PPSP01A) NEWAPPL(ISR) PARM(EDITEE) SCRNAME(EDIT)'
+               3,'PANEL(PPSUTIL1) NEWPOOL SCRNAME(UTIL)'
+               4,'PANEL(PPTEST01) NEWAPPL(TEST) SCRNAME(TESTING)'
+               5,'PGM(PPSP01A) NEWAPPL(TASK) PARM(TASKS) SCRNAME(TASKS)'
+               6,'PGM(PCMD0A) NEWAPPL SCRNAME(COMMANDS)'
+               7,'PANEL(PDLGTST1)'
+               8,'PGM(PPSP01A) PARM(SL) NEWAPPL(ISR) SCRNAME(LOG)'
+               9,'PGM(PPSP01A) PARM(AL) NEWAPPL(ISR) SCRNAME(LOG)'
+               10,'CMD(%porexx5) NEWAPPL(NAPL) LANG(REXX) SCRNAME(RUNAPPL)'
+               D,'PGM(PSQLAPL1) NEWAPPL(SQL)'
+               U,'PANEL(PUSER0A) NEWAPPL(USR) SCRNAME(USER)'
+               S,'PGM(PSYST0A) PARM(SL) NEWAPPL(SYSA) SCRNAME(SYSTEM)'
+               T,'PGM(&ZHELPPGM)'
+               X,EXIT
+              &Z,&Z
+               *,'?'
+            )
+
+)PNTS
+FIELD( ZPS01001 ) VAR( ZCMD )  VAL( 0 )
+FIELD( ZPS01002 ) VAR( ZCMD )  VAL( 1 )
+FIELD( ZPS01003 ) VAR( ZCMD )  VAL( 2 )
+FIELD( ZPS01004 ) VAR( ZCMD )  VAL( 3 )
+FIELD( ZPS01005 ) VAR( ZCMD )  VAL( 4 )
+FIELD( ZPS01006 ) VAR( ZCMD )  VAL( 5 )
+FIELD( ZPS01007 ) VAR( ZCMD )  VAL( 6 )
+FIELD( ZPS01008 ) VAR( ZCMD )  VAL( 7 )
+FIELD( ZPS01009 ) VAR( ZCMD )  VAL( 8 )
+FIELD( ZPS01010 ) VAR( ZCMD )  VAL( 9 )
+FIELD( ZPS01011 ) VAR( ZCMD )  VAL( 10)
+FIELD( ZPS01012 ) VAR( ZCMD )  VAL( D )
+FIELD( ZPS01013 ) VAR( ZCMD )  VAL( U )
+FIELD( ZPS01014 ) VAR( ZCMD )  VAL( S )
+FIELD( ZPS01015 ) VAR( ZCMD )  VAL( T )
+FIELD( ZPS01016 ) VAR( ZCMD )  VAL( X )
+FIELD( ZPS00001 ) VAR( ZCMD )  VAL( TUTOR )
+FIELD( ZPS00002 ) VAR( ZCMD )  VAL( END )
+
+)HELP
+
+)END

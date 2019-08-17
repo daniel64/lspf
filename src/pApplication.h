@@ -118,7 +118,7 @@ class pApplication
 		void   pull( const string& ) ;
 		void   pull( string* ) ;
 
-		void   display( string p_name,
+		void   display( string p_name = "",
 				const string& p_msg = "",
 				const string& p_cursor = "",
 				int p_curpos = 0,
@@ -146,7 +146,7 @@ class pApplication
 		void   qlibdef( const string&, const string& ="" , const string& ="" ) ;
 
 		void   vcopy( const string&, string&, vcMODE=MOVE ) ;
-		void   vcopy( const string&, string* &, vcMODE=LOCATE ) ;
+		void   vcopy( const string&, string*&, vcMODE=LOCATE ) ;
 
 		void   vdefine( const string&,
 				string*,
@@ -211,15 +211,15 @@ class pApplication
 		void   tbdelete( const string& tb_name ) ;
 
 		void   tbdispl( const string& tb_name,
-				string p_name="",
-				const string& p_msg="",
-				string p_cursor="",
-				int p_csrrow=0,
-				int p_csrpos=1,
-				string p_autosel="YES",
-				const string& p_crp_name="",
-				const string& p_rowid_nm="",
-				const string& p_msgloc="" ) ;
+				string p_name = "",
+				const string& p_msg = "",
+				string p_cursor = "",
+				int p_csrrow = 0,
+				int p_csrpos = 1,
+				string p_autosel = "YES",
+				const string& p_crp_name = "",
+				const string& p_rowid_nm = "",
+				const string& p_msgloc = "" ) ;
 
 		void   tbend( const string& tb_name ) ;
 
@@ -348,7 +348,9 @@ class pApplication
 		string& get_zparm()              { return zparm ; }
 		void   (pApplication::*pcleanup)() = &pApplication::cleanup_default ;
 		bool   cleanupRunning()          { return !abended ; }
-		void   abend()  ;
+		void   abend() ;
+		void   abend( const string& ) ;
+		void   abend( const string&, const string& ) ;
 		void   uabend() ;
 		void   uabend( const string&, int = -1 ) ;
 		void   uabend( const string&, const string&, int = -1 ) ;
@@ -375,6 +377,8 @@ class pApplication
 		void   refresh_lscreen_done()    { refreshlScreen = false ; }
 		bool   line_output_pending()     { return lineOutPending  ; }
 		bool   line_input_pending()      { return lineInPending   ; }
+
+		void   redraw_panel( errblock& ) ;
 
 		bool   is_nested()               { return nested  ; }
 		void*  get_options()             { return options ; }
@@ -544,7 +548,7 @@ class pApplication
 		void xabend( const string&, int = -1 ) ;
 		void cleanup_default()      ;
 
-		bool tableNameOK( const string& tb_name, const string& func ) ;
+		bool tableNameOK( const string& tb_name, const string& err ) ;
 
 		class xTerminate {} ;
 

@@ -219,3 +219,12 @@ PSYS013I 'User abend has occured' .TYPE=W
 
 PSYS013J 'An abend has occured' .TYPE=W
 'See application log for error details'
+
+PSYS013K 'Top of data' .TYPE=N
+'There is no information above this line'
+
+PSYS013L 'End of data' .TYPE=N
+'There is no information below this line'
+
+PSYS013M 'Invalid selection panel' .TYPE=N
+'&ZVAL1 is not a valid selection panel'

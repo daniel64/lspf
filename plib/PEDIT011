@@ -46,7 +46,7 @@ text     19   6       SAC    "Allow edit of new files"
 
 text    22 2  CH "Instructions"
 text    24 2  NT "Enter file name and press"
-text    24 28 ET "ENTER"
+text    24 28 ET "Enter"
 text    24 34 NT "to edit file"
 
 
@@ -55,9 +55,10 @@ text    24 34 NT "to edit file"
 .NRET = ON
 .NRET = ZFILE
 
+&ZPM3 = 1
 )PROC
 if ( &ZCMD1 NE &Z)
-  .MSG    = PSYS018
+  .MSG    = 'PSYS018'
   .CURSOR = ZCMD1
   EXIT
 
@@ -78,7 +79,7 @@ VPUT EEIMAC SHARED
 &REV = REVERSE(ZFILE)
 &GEN = TRUNC( &REV, 1 )
 IF (&GEN EQ '*','?',']' )
-  &SHOWDIR = YES
+  &SHOWDIR = 'YES'
   EXIT
 ELSE
   &RST = TRUNC( &REV, '/' )
@@ -86,40 +87,44 @@ ELSE
   &GEN = TRUNC( &RST, '*' )
   &GEN = .TRAIL
   IF (&GEN NE &Z )
-     &SHOWDIR = YES
+     &SHOWDIR = 'YES'
      EXIT
   &GEN = TRUNC( &RST, '?' )
   &GEN = .TRAIL
   IF (&GEN NE &Z )
-     &SHOWDIR = YES
+     &SHOWDIR = 'YES'
      EXIT
   &GEN = TRUNC( &RST, '[' )
   &GEN = .TRAIL
   IF (&GEN NE &Z )
-     &SHOWDIR = YES
+     &SHOWDIR = 'YES'
      EXIT
 
 &ISFILE = FILE( ZFILE )
 &ISDIR  = DIR( ZFILE )
 
+IF (TRUNC(&REV, 1) EQ '/' AND &ISDIR EQ .FALSE )
+   .MSG = 'PEDT011S'
+   EXIT
+
 IF ( &EEDIRLST NE '/' )
   IF ( &ISDIR EQ .TRUE )
-     .CURSOR = ZFILE
-     .MSG    = PEDT011T
+     .CURSOR = 'ZFILE'
+     .MSG    = 'PEDT011T'
      EXIT
   IF ( &ISFILE EQ .FALSE AND &EENEWFLS NE '/' )
-     .CURSOR = ZFILE
+     .CURSOR = 'ZFILE'
      &ZSTR1  = &ZFILE
-     .MSG    = PEDT011R
+     .MSG    = 'PEDT011R'
      EXIT
 ELSE
   IF ( &ISFILE EQ .FALSE )
      IF ( &ISDIR NE .FALSE )
-        &SHOWDIR = YES
+        &SHOWDIR = 'YES'
      ELSE
         IF ( &EENEWFLS NE '/' )
-           .CURSOR = ZFILE
-           .MSG    = PEDT011S
+           .CURSOR = 'ZFILE'
+           .MSG    = 'PEDT011S'
            EXIT
 
 )FIELD

@@ -161,3 +161,4 @@ string& getNameList( errblock& err, string& s ) ;
 string extractKWord( errblock& err, string& s, string p ) ;
 
 void qwords( errblock& err, const string& s, vector<string>& ) ;
+void word( const string& s, vector<string>& ) ;

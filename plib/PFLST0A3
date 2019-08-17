@@ -29,13 +29,13 @@ text     10   4       SAC    "Set file delete confirmation off"
 
 text    12 2  CH "Instructions"
 text    14 2  NT "Press"
-text    14 8  ET "ENTER"
+text    14 8  ET "Enter"
 text    14 14 NT "to confirm delete"
 
 text    15 2  NT "Press"
-text    15 8  ET "CANCEL"
+text    15 8  ET "Cancel"
 text    15 15 NT "or"
-text    15 18 ET "END"
+text    15 18 ET "End"
 text    15 22 NT "to cancel delete."
 
 )INIT

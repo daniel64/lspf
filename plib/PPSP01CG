@@ -76,9 +76,18 @@ text     22  8     PS  "Defaults"
 text     22  17    PIN "to restore defaults"
 
 )INIT
-&ZCMD   = &Z
-&ZPS3   = 1
-.CURSOR = ZCMD
+&ZWINTTL = &Z
+&ZCMD    = &Z
+&ZPS3    = 1
+.CURSOR  = ZCMD
+
+&RGBX1 = '>                       <'
+&RGBX2 = '>                       <'
+&RGBX3 = '>                       <'
+&RGBX4 = '>                       <'
+&RGBX5 = '>                       <'
+&RGBX6 = '>                       <'
+&RGBX7 = '>                       <'
 
 .ATTR( RGBX1 ) = 'COLOUR(RED) HILITE(REVERSE)'
 .ATTR( RGBX2 ) = 'COLOUR(GREEN) HILITE(REVERSE)'
@@ -88,8 +97,10 @@ text     22  17    PIN "to restore defaults"
 .ATTR( RGBX6 ) = 'COLOUR(TURQ) HILITE(REVERSE)'
 .ATTR( RGBX7 ) = 'COLOUR(WHITE) HILITE(REVERSE)'
 
+
 )REINIT
 .ATTR(.CURSOR) = 'COLOUR(RED)'
+
 
 )PROC
 &ZCMD = TRANS( &ZCMD DEF,DEFAULTS
@@ -256,6 +267,6 @@ IF (&RGBB7 GT 255)
    EXIT
 
 )PNTS
-FIELD(ZPS01001) VAR(ZCMD) VAL(DEFAULTS)
+FIELD(ZPS00001) VAR(ZCMD) VAL(DEFAULTS)
 
 )END

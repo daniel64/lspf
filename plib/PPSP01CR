@@ -5,14 +5,16 @@
 )INCLUDE STD_PDC
 )INCLUDE HLP_PDC
 
-)ABC DESC(RGB_Colours)
+)ABC DESC(Colours) MNEM(1)
 PDC DESC('Change RGB Colour Settings')
  ACTION RUN(>RGBSET)
+PDC DESC('Change Inactive Window Colour')
+ ACTION RUN(>DECSET)
 
 )BODY WINDOW(78,24)
 
 PanelTitle "Global Colours"
-actionBar 'Display' 'Settings' 'Utilities' 'RGB_Colours' 'Help'
+actionBar 'Display' 'Settings' 'Utilities' 'Colours' 'Help'
 
 text      4   2   FP "Command ===> "
 field    4  15  MAX  NEF CAPS(ON),PAD(USER) ZCMD
@@ -48,9 +50,10 @@ text     22  8     PS  "Defaults"
 text     22  17    PIN "to restore global colours to their original"
 
 )INIT
-&ZCMD   = &Z
-&ZPS3   = 1
-.CURSOR = COLOUR01
+&ZWINTTL = &Z
+&ZCMD    = &Z
+&ZPS3    = 1
+.CURSOR  = COLOUR01
 
 .ATTR(COLOUR01) = 'COLOUR(BLUE)'
 .ATTR(COLOUR02) = 'COLOUR(RED)'
@@ -65,6 +68,7 @@ text     22  17    PIN "to restore global colours to their original"
                      DEFAULT,DEFAULTS
                      DEFAULTS,DEFAULTS
                      RGBSET,RGBSET
+                     DECSET,DECSET
                      &Z,&Z
                      MSG=PSYS018
              )
@@ -78,7 +82,7 @@ IF ( &ZCMD EQ 'DEFAULTS' )
    &COLOUR06 = &Z
    &COLOUR07 = &Z
 ELSE
-   IF ( &ZCMD EQ 'RGBSET' ) EXIT
+   IF ( &ZCMD EQ 'RGBSET','DECSET' ) EXIT
 
 &COLOUR01 = TRANS( TRUNC( &COLOUR01, 1 ) ,
                    B,BLUE
@@ -172,6 +176,6 @@ ELSE
                  )
 
 )PNTS
-FIELD(ZPS01001) VAR(ZCMD) VAL(DEFAULTS)
+FIELD(ZPS00001) VAR(ZCMD) VAL(>DEFAULTS)
 
 )END

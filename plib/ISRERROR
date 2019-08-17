@@ -17,16 +17,37 @@ PanelTitle "Edit Macro Error"
 text  4   2      FP  "Command ===> "
 field 4  15 MAX  NEF  CAPS(ON),PAD(USER) ZCMD
 
-text 7    2 ET EXPAND "*"
+area 6 1 MAX MAX SAREA1
 
-text 8       2 ET "*"
-text 8  MAX ET "*"
+)AREA SAREA1
+text 1    2 ET EXPAND "*"
 
-text 9       2 ET "*"
-text 9  MAX ET "*"
+text 2       2 ET "*"
+text 2  MAX ET "*"
 
-text 10      2 ET "*"
-text 10 MAX ET "*"
+text 3       2 ET "*"
+text 3  MAX ET "*"
+
+text 4       2 ET "*"
+text 4  MAX ET "*"
+
+text 5        2 ET "*"
+text 5   MAX ET "*"
+
+text 6        2 ET "*"
+text 6   MAX ET "*"
+
+text 7        2 ET "*"
+text 7   MAX ET "*"
+
+text 8        2 ET "*"
+text 8   MAX ET "*"
+
+text 9        2 ET "*"
+text 9   MAX ET "*"
+
+text 10       2 ET "*"
+text 10  MAX ET "*"
 
 text 11       2 ET "*"
 text 11  MAX ET "*"
@@ -55,44 +76,26 @@ text 18  MAX ET "*"
 text 19       2 ET "*"
 text 19  MAX ET "*"
 
-text 20       2 ET "*"
-text 20  MAX ET "*"
+text 20      2 ET EXPAND "*"
 
-text 21       2 ET "*"
-text 21  MAX ET "*"
+text  3 4   NT "Command in error. .:"
+field 3 25  MAX-2 ET NONE ZERR1
 
-text 22       2 ET "*"
-text 22  MAX ET "*"
+field 5  4   MAX-2 ET NONE ZERRSM
+field 6  4   MAX-2 ET NONE ZERRLM
 
-text 23       2 ET "*"
-text 23  MAX ET "*"
+text  8  4   NT "Error message id. .:"
+field 8  25  MAX-2 ET NONE ZERRMSG
 
-text 24       2 ET "*"
-text 24  MAX ET "*"
+text  10 4   NT "Last return code. .:"
+field 10 25  MAX-2 ET NONE ZERR2
 
-text 25       2 ET "*"
-text 25  MAX ET "*"
+text  12 4   NT "Macro executing . .:"
+field 12 25  MAX-2 ET NONE ZERR3
 
-text 26      2 ET EXPAND "*"
-
-text  9 4   NT "Command in error. .:"
-field 9 25  MAX-2 ET NONE ZERR1
-
-field 11 4   MAX-2 ET NONE ZERRSM
-field 12 4   MAX-2 ET NONE ZERRLM
-
-text  14 4   NT "Error message id. .:"
-field 14 25  MAX-2 ET NONE ZERRMSG
-
-text  16 4   NT "Last return code. .:"
-field 16 25  MAX-2 ET NONE ZERR2
-
-text  18 4   NT "Macro executing . .:"
-field 18 25  MAX-2 ET NONE ZERR3
-
-text 21 4   NT "Press"
-text 21 10  ET "ENTER"
-text 21 16  NT "to terminate the macro"
+text 15 4   NT "Press"
+text 15 10  ET "Enter"
+text 15 16  NT "to terminate the macro"
 
 )INIT
 .CURSOR = ZCMD

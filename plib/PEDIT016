@@ -14,10 +14,10 @@ text     4    2       NT     "File has been changed"
 
 text    6   2   CH "Instructions"
 text    8   2   NT "Press"
-text    8   8   ET "ENTER"
+text    8   8   ET "Enter"
 text    8   14  NT "key to confirm cancel and discard changes"
 text    10  2   NT "Enter"
-text    10  8   ET "END"
+text    10  8   ET "End"
 text    10  12  NT "to return to &ZVMODE session"
 
 )INIT

@@ -2,7 +2,7 @@
  Common help pull down choices
 )ENDCOMMENT
 
-)ABC DESC(Help)
+)ABC DESC(Help) MNEM(1)
 
-PDC DESC("Main Help") ACTION RUN(HELP)
-PDC DESC("Tutorial")  ACTION RUN(HELP)
+PDC DESC("Main Help") ACTION RUN(TUTOR) PARM('HPSPF01')
+PDC DESC("Tutorial")  ACTION RUN(TUTOR) PARM('HPSPF01')

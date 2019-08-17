@@ -25,7 +25,7 @@ TASKID | TASK | ID n : Show only log records for task n.
                        Task 0 records will also be shown as these could be related.
                        (lspf log only contains task 0)
 
-X A     Exlude all type A log messages
-X ALL   Exlude all log messages
+X A     Exclude all type A log messages
+X ALL   Exclude all log messages
 X ON    Do not display log messages of type I, D and - (Only show unusual messages)
 

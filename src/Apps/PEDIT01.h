@@ -116,6 +116,7 @@ enum L_CMDS
 	LC_SRTC,
 	LC_SRTCC,
 	LC_TABS,
+	LC_TF,
 	LC_TJ,
 	LC_TJJ,
 	LC_TR,
@@ -457,11 +458,11 @@ map<string,pcmd_entry> PrimCMDS =
 
 
 map<string, D_PARMS> DefParms =
-{ { "MACRO",        DF_MACRO    },
-  { "ALIAS",        DF_ALIAS    },
-  { "NOP",          DF_NOP      },
-  { "DISABLED",     DF_DISABLED },
-  { "RESET",        DF_RESET    } } ;
+{ { "MACRO",    DF_MACRO    },
+  { "ALIAS",    DF_ALIAS    },
+  { "NOP",      DF_NOP      },
+  { "DISABLED", DF_DISABLED },
+  { "RESET",    DF_RESET    } } ;
 
 }
 
@@ -908,7 +909,7 @@ class iline
 			il_mark = !il_mark ;
 		}
 
-		bool isValidFile() const
+		bool is_valid_file() const
 		{
 			return is_file() && !il_deleted ;
 		}
@@ -1070,9 +1071,12 @@ class iline
 			return is_file() && !il_deleted ;
 		}
 
-		void set_idata_minsize( int i )
+		void set_idata_minsize( size_t i )
 		{
-			il_idata.top().id_data.resize( i, ' ' ) ;
+			if ( il_idata.top().id_data.size() < i )
+			{
+				il_idata.top().id_data.resize( i, ' ' ) ;
+			}
 		}
 
 		bool set_idata_upper( int Level )
@@ -2181,7 +2185,7 @@ class miblock
 		return ;
 	}
 
-	void parseStatement( const string& s, map<string,stack<defName>>& defNames )
+	void parse( const string& s, map<string,stack<defName>>& defNames )
 	{
 		int  i     ;
 		int  miss  ;
@@ -2580,7 +2584,7 @@ class PEDIT01 : public pApplication
 
 		void isredit( const string& ) ;
 
-		map<string,stack<defName>> defNames ;
+		map<string, stack<defName>> defNames ;
 		cmdblock pcmd ;
 
 	private:
@@ -2626,7 +2630,7 @@ class PEDIT01 : public pApplication
 		void actionPrimCommand2() ;
 		void actionPrimCommand3() ;
 		void actionLineCommands() ;
-		void actionLineCommand( vector<lcmd>::iterator ) ;
+		void actionLineCommand( vector<lcmd>::iterator, bool&, bool& ) ;
 
 		void run_macro( const string&, bool =false, bool =false ) ;
 
@@ -2640,7 +2644,7 @@ class PEDIT01 : public pApplication
 		void action_RFIND()   ;
 		void action_RCHANGE() ;
 		void setLineLabels()  ;
-		string genNextLabel( const string& ) ;
+		string genNextLabel( string ) ;
 		const string& get_truename( const string& ) ;
 
 		bool action_UNDO()    ;
@@ -2656,7 +2660,8 @@ class PEDIT01 : public pApplication
 		int  getDataBlockSize( uint ) ;
 		bool URIDOnScreen( int, int ) ;
 		void moveTopline( int )  ;
-		int  countVisibleLines( vector<iline*>::const_iterator ) ;
+		uint countVisibleLines( vector<iline*>::const_iterator ) ;
+		void moveDownLines( int ) ;
 		int  getLastURID( vector<iline*>::const_iterator, int ) ;
 
 		uint getDataLine( int )  ;
@@ -2692,10 +2697,11 @@ class PEDIT01 : public pApplication
 		string removeTabs( string )  ;
 		bool   getVariables( int, string&, string& ) ;
 
-		void copyFileData( vector<string> &, int, int  ) ;
+		void copyFileData( vector<string>&, int, int ) ;
+		void reflowData( vector<string>&, int, int, int ) ;
 
 		string overlay1( string, string, bool& ) ;
-		string overlay2( string, string )        ;
+		string overlay2( const string&, string ) ;
 		string templat( string, string )         ;
 		bool formLineCmd( const string&, string&, int& ) ;
 
@@ -2723,6 +2729,7 @@ class PEDIT01 : public pApplication
 		void positionCursor()     ;
 		void moveColumn( int =0 ) ;
 		void moveCursorEnter()    ;
+		void moveCursorLine( uint, uint ) ;
 
 		vector<iline*>::iterator getLineItr( int )  ;
 		vector<iline*>::iterator getLineItr( uint ) ;
@@ -2741,6 +2748,7 @@ class PEDIT01 : public pApplication
 		bool getLabelItr( const string&, vector<iline*>::iterator &, uint& ) ;
 		int  getLabelLine( const string& )  ;
 		int  getLabelIndex( const string& ) ;
+		int  getRow( int ) ;
 		bool checkLabel1( const string&, int =0 ) ;
 		bool checkLabel2( const string&, int =0 ) ;
 
@@ -2835,6 +2843,11 @@ class PEDIT01 : public pApplication
 		string zuprof            ;
 		string zedbfile          ;
 		string zeduser           ;
+		string zedoclr           ;
+		string zedfclr           ;
+		string zedfhlt           ;
+		string zedpclr           ;
+		string zedphlt           ;
 		string zvmode            ;
 		bool   zedvmode          ;
 		bool   zedcwarn          ;
@@ -2950,12 +2963,11 @@ class PEDIT01 : public pApplication
 		string div  ;
 
 		string slg  ;
-		string sly  ;
-		string slyh ;
-		string slw  ;
 		string slr  ;
-		string slrh ;
-		string slb  ;
+		string slw  ;
+
+		string slgu ;
+		string slru ;
 
 		string type ;
 		string str  ;
@@ -3018,6 +3030,7 @@ class PEDIT01 : public pApplication
 						 { "S",        LC_S        },
 						 { "SI",       LC_SI       },
 						 { "TABS",     LC_TABS     },
+						 { "TF",       LC_TF       },
 						 { "TJ",       LC_TJ       },
 						 { "TJJ",      LC_TJJ      },
 						 { "TR",       LC_TR       },
@@ -3112,7 +3125,7 @@ class PEDIT01 : public pApplication
 						  { "SUF",      "SUFFIX"    },
 						  { "VERT",     "VERTICAL"  } } ;
 
-		map<string,string> abokLCMDS  = { { "AK",  "A"  },
+		map<string, string> abokLCMDS = { { "AK",  "A"  },
 						  { "BK",  "B"  },
 						  { "OK",  "O"  },
 						  { "OOK", "OO" } } ;
@@ -3145,6 +3158,7 @@ class PEDIT01 : public pApplication
 					 { "AK"   },
 					 { "B"    },
 					 { "BK"   },
+					 { "BNDS" },
 					 { "C"    },
 					 { "CC"   },
 					 { "COLS" },
@@ -3153,6 +3167,7 @@ class PEDIT01 : public pApplication
 					 { "F"    },
 					 { "I"    },
 					 { "L"    },
+					 { "MASK" },
 					 { "M"    },
 					 { "MM"   },
 					 { "MD"   },
@@ -3163,6 +3178,7 @@ class PEDIT01 : public pApplication
 					 { "RR"   },
 					 { "S"    },
 					 { "SI"   },
+					 { "TABS" },
 					 { "TX"   },
 					 { "TXX"  },
 					 { "X"    },
@@ -3233,6 +3249,7 @@ class PEDIT01 : public pApplication
 					 { "LC"   },
 					 { "RR"   },
 					 { "S"    },
+					 { "TF"   },
 					 { "TJ"   },
 					 { "TR"   },
 					 { "T"    },
@@ -3266,7 +3283,7 @@ class PEDIT01 : public pApplication
 					 { "["    },
 					 { "]"    } } ;
 
-		map<string,lmac> lmacs ;
+		map<string, lmac> lmacs ;
 
 		friend class PEDRXM1 ;
 } ;

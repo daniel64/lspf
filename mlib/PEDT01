@@ -44,8 +44,8 @@ PEDT011D 'Put string in quotes' .TYPE=W
 PEDT011E 'Label not allowed' .TYPE=W
 'A label is only allowed on a data line, not a special or excluded line'
 
-PEDT011F 'Label does not exist' .TYPE=W
-'Label does not Exist.  Please enter a valid line label'
+PEDT011F 'Label invalid' .TYPE=W
+'Label does not exist or is invalid.  Please enter a valid line label'
 
 PEDT011G 'Labels are the same' .TYPE=W
 'Start label cannot be the same as the end label.'
@@ -83,7 +83,7 @@ PEDT011Q 'File not saved' .TYPE=W
 PEDT011R 'File does not exist' .TYPE=W
 'File ''&ZSTR1'' does not exist'
 
-PEDT011S 'File/directory does not exist' .TYPE=W
+PEDT011S 'Entry does not exist' .TYPE=W
 '''&ZFILE'' is neither a valid file, nor a valid directory'
 
 PEDT011T 'Entry is a directory' .TYPE=W
@@ -410,4 +410,4 @@ PEDT016O 'RETURN ignored' .TYPE=N
 PEDT016P '' .TYPE=W
 'Data has been changed in VIEW mode.  You cannot save data from VIEW but you can ' +
 'use the CREATE and REPLACE primary commands to create a file from the data ' +
-'as well as the CUT primary to copy data to the clipboard.'
+'as well as the CUT primary command to copy data to the clipboard.'

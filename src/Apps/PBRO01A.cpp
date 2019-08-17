@@ -863,6 +863,12 @@ void PBRO01A::action_HEX( a_parms& parms )
 
 void PBRO01A::action_HILIGHT( a_parms& parms )
 {
+	if ( parms.w2 != "" && parms.w2 != "ON" && parms.w2 != "OFF" && parms.w3 == "" )
+	{
+		parms.w3 = parms.w2 ;
+		parms.w2 = "ON"   ;
+	}
+
 	if ( parms.w3 == "" )
 	{
 		parms.w3 = "AUTO" ;

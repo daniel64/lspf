@@ -19,32 +19,136 @@
 
 class pLScreen
 {
+	private:
+
+	static bool busy ;
+	static unsigned int maxscrn ;
+	static unsigned int maxScreenId ;
+	static boost::posix_time::ptime startTime ;
+	static boost::posix_time::ptime endTime   ;
+	static set<uint> screenNums ;
+	static map<uint,uint> openedByList ;
+
+	unsigned int row ;
+	unsigned int col ;
+	unsigned int screenNum ;
+	unsigned int screenId ;
+
+	bool Insert ;
+
+	stack<pApplication*> pApplicationStack ;
+	stack<PANEL*> panelList ;
+
 	public:
-		 pLScreen( int ) ;
-		~pLScreen() ;
+
+	pLScreen( uint ) ;
+	~pLScreen() ;
+
+	static unsigned int screensTotal ;
+	static unsigned int maxrow ;
+	static unsigned int maxcol ;
 
 	static pLScreen* currScreen ;
 	static WINDOW*   OIA        ;
 	static PANEL*    OIA_panel  ;
 
-	static unsigned int screensTotal ;
-	static unsigned int maxrow ;
-	static unsigned int maxcol ;
-	static unsigned int maxscrn ;
-	static map<int,int> openedByList ;
+	static void OIA_setup()
+	{
+		wattrset( OIA, WHITE ) ;
+		mvwhline( OIA, 0, 0, ACS_HLINE, maxcol ) ;
+		mvwaddch( OIA, 1, 0, ACS_CKBOARD ) ;
+		wattrset( OIA, YELLOW ) ;
+		mvwaddstr( OIA, 1, 2,  "Screen[        ]" ) ;
+		mvwaddstr( OIA, 1, 30, "Elapsed:" ) ;
+		mvwaddstr( OIA, 1, 50, "Screen:" ) ;
+	}
 
-	void  clear() ;
+	static void OIA_startTime()
+	{
+		startTime = boost::posix_time::microsec_clock::universal_time() ;
+	}
 
-	int   get_row()       { return row ; }
-	int   get_col()       { return col ; }
+	static void OIA_endTime()
+	{
+		endTime = boost::posix_time::microsec_clock::universal_time() ;
+	}
 
-	void  get_cursor( uint& a, uint& b ) { a = row ; b = col ; }
-	void  set_cursor( int a, int b )     { row = a ; col = b ; }
+	static void OIA_refresh()
+	{
+		top_panel( OIA_panel ) ;
+		touchwin( OIA ) ;
+	}
+
+	static uint get_priScreen( uint openedBy )
+	{
+		uint i = 0 ;
+
+		if ( openedBy == 0 ) { return 0 ; }
+
+		for ( auto it = openedByList.begin() ; it != openedByList.end() ; ++it, ++i )
+		{
+			if ( it->first == openedBy ) { return i ; }
+		}
+		return 0 ;
+	}
+
+	static void show_enter()
+	{
+		wattrset( OIA, RED ) ;
+		mvwaddstr( OIA, 1, 19, "X-Enter" ) ;
+		wmove( OIA, 1, 0 ) ;
+		wrefresh( OIA )    ;
+	}
+
+	static void show_busy()
+	{
+		if ( not busy )
+		{
+			wattrset( OIA, RED ) ;
+			mvwaddstr( OIA, 1, 19, "X-Busy " ) ;
+			wmove( OIA, 1, 0 ) ;
+			wrefresh( OIA ) ;
+			busy = true ;
+		}
+	}
+
+
+	static void clear_busy()
+	{
+		busy = false ;
+	}
+
+	static void show_wait()
+	{
+		wattrset( OIA, RED ) ;
+		mvwaddstr( OIA, 1, 19, "X-Wait " ) ;
+		wmove( OIA, 1, 0 ) ;
+		wrefresh( OIA )    ;
+	}
+
+	static void show_auto()
+	{
+		wattrset( OIA, RED ) ;
+		mvwaddstr( OIA, 1, 19, "X-Auto " ) ;
+		wmove( OIA, 1, 0 ) ;
+		wrefresh( OIA )    ;
+	}
+
+	static void clear_status()
+	{
+		wstandend( OIA ) ;
+		mvwaddstr( OIA, 1, 19, "       " ) ;
+	}
+
+	uint  get_row()   { return row ; }
+	uint  get_col()   { return col ; }
+
+	void  get_cursor( uint& a, uint& b )  { a = row ; b = col ; }
+	void  set_cursor( uint a, uint b )    { row = a ; col = b ; }
 	void  set_cursor( pApplication* ) ;
 
-	int   get_openedBy()                 { return openedByList[ screenId ] ; }
-	int   get_screenNum()                { return screenNum ; }
-	int   get_priScreen( int ) ;
+	uint  get_openedBy()   { return openedByList[ screenId ] ; }
+	uint  get_screenNum()  { return screenNum ; }
 
 	void  cursor_left()  ;
 	void  cursor_right() ;
@@ -54,46 +158,26 @@ class pLScreen
 	void  application_add( pApplication* pApplication )  { pApplicationStack.push( pApplication ) ; }
 	void  application_remove_current()                   { pApplicationStack.pop() ; } ;
 	pApplication* application_get_current()              { return pApplicationStack.top()   ; }
-	int   application_stack_size()                       { return pApplicationStack.size()  ; }
+	uint  application_stack_size()                       { return pApplicationStack.size()  ; }
 	bool  application_stack_empty()                      { return pApplicationStack.empty() ; }
 
-	void  set_Insert( bool ins )       { Insert = ins ; Insert ? curs_set(2) : curs_set(1)  ; }
+	void  set_Insert( bool ins )
+	{
+		Insert = ins ;
+		Insert ? curs_set( 2 ) : curs_set( 1 ) ;
+	}
 
-	void  OIA_setup()  ;
-	void  OIA_update( int, int ) ;
-	void  OIA_startTime() { startTime = boost::posix_time::microsec_clock::universal_time() ; }
-	void  OIA_endTime()   { endTime   = boost::posix_time::microsec_clock::universal_time() ; }
-	void  OIA_refresh() ;
-
-	void  show_enter()  ;
-	void  show_busy()   ;
-	void  show_wait()   ;
-	void  show_auto()   ;
-	void  show_lock( bool ) ;
-	void  clear_status() ;
+	void  OIA_update( uint, uint, bool = false ) ;
 
 	void  save_panel_stack()    ;
 	void  restore_panel_stack() ;
 	void  refresh_panel_stack() ;
 
-	int   screenId  ;
+	void  set_frame_inactive( uint ) ;
+	void  decolourise_inactive( uint, uint, uint ) ;
 
-private:
-	static unsigned int maxScreenId ;
-	static set<int> screenNums ;
+	unsigned int screenid()     { return screenId ; }
 
-	unsigned int row ;
-	unsigned int col ;
-
-	int  screenNum ;
-
-	bool Insert ;
-
-	boost::posix_time::ptime startTime ;
-	boost::posix_time::ptime endTime   ;
-
-	stack<pApplication*> pApplicationStack ;
-	stack<PANEL*> panelList ;
 } ;
 
 

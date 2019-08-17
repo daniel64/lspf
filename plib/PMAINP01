@@ -1,7 +1,6 @@
 )PANEL VERSION=1 FORMAT=1
 
 )COMMENT
-
 Defaults for HOME() and CMD() on the BODY statement are ZCMD
              WINDOW(w,d)
                If HOME() and CMD() are defined, they must be fields on the panel.
@@ -139,105 +138,111 @@ FIELD :
 PanelTitle "Primary Menu Panel"
 
 text   4    2    FP  "Option ===>"
-field  4   14   MAX   NEF   CAPS(ON),PAD(USER),JUST(LEFT),NUMERIC(OFF),SKIP(ON) ZCMD
+field  4   14   MAX     NEF   CAPS(ON),PAD(USER),JUST(LEFT),NUMERIC(OFF),SKIP(ON) ZCMD
 
-text  6  2    SAC  "0"
-text  6  5    PS   "Settings"
-text  6  16   NT   "Display and alter user settings"
+area 5 1      MAX-69  MAX-3   SAREA1
+area 5 MAX-35 MAX     20      SAREA2
 
-text  7  2    SAC  "1"
-text  7  5    PS   "View"
-text  7  16   NT   "View or browse files"
+dynArea  6  MAX-58   21  11  ZAREA  ZSHADOW
 
-text  8  2    SAC  "2"
-text  8  5    PS   "Edit"
-text  8  16   NT   "Edit files"
+text   MAX-1 2    FP     "Enter"
+text   MAX-1 8    PS     "Help"
+text   MAX-1 13   FP     "to display basic information, or"
+text   MAX-1 46   PS     "X"
+text   MAX-1 48   FP     "to exit"
 
-text  9  2    SAC  "3"
-text  9  5    PS   "Utilities"
-text  9  16   NT   "File Utilities"
+)AREA SAREA1
+text  1  2    SAC  "0"
+text  1  5    PS   "Settings"
+text  1  16   NT   "Display and alter user settings"
 
-text  10  2    SAC  "4"
-text  10  5    PS   "Testing"
-text  10  16   NT   "Invoke Testing Program"
+text  2  2    SAC  "1"
+text  2  5    PS   "View"
+text  2  16   NT   "View or browse files"
 
-text  11  2    SAC  "5"
-text  11  5    PS   "Tasks"
-text  11  16   NT   "Display Tasks and System Resource Usage"
+text  3  2    SAC  "2"
+text  3  5    PS   "Edit"
+text  3  16   NT   "Edit files"
 
-text  12  2    SAC  "6"
-text  12  5    PS   "Command"
-text  12  16   NT   "Enter Commands"
+text  4  2    SAC  "3"
+text  4  5    PS   "Utilities"
+text  4  16   NT   "File Utilities"
 
-text  13  2    SAC  "7"
-text  13  5    PS   "Dialogue"
-text  13  16   NT   "Dialogue Testing"
+text  5   2    SAC  "4"
+text  5   5    PS   "Testing"
+text  5   16   NT   "Invoke Testing Program"
 
-text  14  2    SAC  "8"
-text  14  5    PS   "Lspf Log"
-text  14  16   NT   "Browse Lspf Log"
+text  6   2    SAC  "5"
+text  6   5    PS   "Tasks"
+text  6   16   NT   "Display Tasks and System Resource Usage"
 
-text  15  2    SAC  "9"
-text  15  5    PS   "Appl Log"
-text  15  16   NT   "Browse Application Log"
+text  7   2    SAC  "6"
+text  7   5    PS   "Command"
+text  7   16   NT   "Enter Commands"
 
-text  16  2    SAC  "10"
-text  16  5    PS   "Functions"
-text  16  16   NT   "Invoke dialogue functions or selection panel"
+text  8   2    SAC  "7"
+text  8   5    PS   "Dialogue"
+text  8   16   NT   "Dialogue Testing"
 
-text  18  2    SAC  "D"
-text  18  5    PS   "MySQL"
-text  18  16   NT   "MySQL Database Actions"
+text  9   2    SAC  "8"
+text  9   5    PS   "Lspf Log"
+text  9   16   NT   "Browse Lspf Log"
 
-text  19  2    SAC  "U"
-text  19  5    PS   "User Menu"
-text  19  16   NT   "User Actions"
+text  10  2    SAC  "9"
+text  10  5    PS   "Appl Log"
+text  10  16   NT   "Browse Application Log"
 
-text  20  2    SAC  "S"
-text  20  5    PS   "System"
-text  20  16   NT   "System Utilities"
+text  11  2    SAC  "10"
+text  11  5    PS   "Functions"
+text  11  16   NT   "Invoke dialogue functions or selection panel"
 
-text  22  2    SAC  "T"
-text  22  5    PS   "Tutorial"
-text  22  16   NT   "Start Tutorial"
+text  13  2    SAC  "D"
+text  13  5    PS   "MySQL"
+text  13  16   NT   "MySQL Database Actions"
 
-text  23  2    SAC  "X"
-text  23  5    PS   "Terminate"
-text  23  16   NT   "Terminate Session"
+text  14  2    SAC  "U"
+text  14  5    PS   "User Menu"
+text  14  16   NT   "User Actions"
 
-dynArea  7  MAX-58   21  11  ZAREA  ZSHADOW
+text  15  2    SAC  "S"
+text  15  5    PS   "System"
+text  15  16   NT   "System Utilities"
 
-text  7  MAX-35   FP  "User. . . .:"
-field    7  MAX-22   MAX  VOI     NONE  ZUSER
+text  17  2    SAC  "T"
+text  17  5    PS   "Tutorial"
+text  17  16   NT   "Start Tutorial"
 
-text  8  MAX-35   FP  "Home. . . .:"
-field    8  MAX-22   MAX   VOI     NONE  ZHOME
+text  18  2    SAC  "X"
+text  18  5    PS   "Terminate"
+text  18  16   NT   "Terminate Session"
 
-text  9  MAX-35   FP  "Node Name .:"
-field    9  MAX-22   MAX  VOI     NONE  ZNODNAME
+)AREA SAREA2
+text  1  1   FP  "User. . . .:"
+field 1  14  MAX  VOI     NONE  ZUSER
 
-text  10  MAX-35  FP  "Machine . .:"
-field    10  MAX-22  MAX  VOI     NONE  ZMACHINE
+text  2  1   FP  "Home. . . .:"
+field 2  14  MAX  VOI     NONE  ZHOME
 
-text  11  MAX-35  FP  "Environment:"
-field    11  MAX-22  MAX  VOI     NONE  ZENVIR
+text  3  1   FP  "Node Name .:"
+field 3  14  MAX  VOI     NONE  ZNODNAME
 
-text  12  MAX-35  FP  "System Name:"
-field    12  MAX-22  MAX   VOI     NONE  ZSYSNAME
+text  4  1   FP  "Machine . .:"
+field 4  14  MAX  VOI     NONE  ZMACHINE
 
-text  13  MAX-35  FP  "OS Release :"
-field    13  MAX-22  MAX   VOI    NONE  ZOSREL
+text  5  1   FP  "Environment:"
+field 5  14  MAX  VOI     NONE  ZENVIR
 
-text   26    2    FP     "Enter"
-text   26    8    PS     "HELP"
-text   26    13   FP     "to display basic information, or"
-text   26    46   PS     "X"
-text   26    48   FP     "to exit"
+text  6  1   FP  "System Name:"
+field 6  14  MAX  VOI     NONE  ZSYSNAME
+
+text  7  1   FP  "OS Release :"
+field 7  14  MAX  VOI    NONE  ZOSREL
 
 )INIT
 &ZPRIM = YES
 
 )PROC
+&ZSEL = &Z
 IF ( TRUNC( &ZCMD, 1 ) EQ '.' )
    .MSG = 'PSYS016'
    EXIT
@@ -276,15 +281,15 @@ IF (&W1 = 'DATE')
 
 &ZSEL = TRANS( TRUNC( &ZCMD,'.' ) ,
                0,'PANEL(PPSET0A) NEWPOOL ADDPOP'
-               1,'PGM(PPSP01A) NEWAPPL(ISR) PARM("BROWSEE") SCRNAME(VIEW)'
-               2,'PGM(PPSP01A) NEWAPPL(ISR) PARM("EDITEE") SCRNAME(EDIT)'
+               1,'PGM(PPSP01A) NEWAPPL(ISR) PARM(BROWSEE) SCRNAME(VIEW)'
+               2,'PGM(PPSP01A) NEWAPPL(ISR) PARM(EDITEE) SCRNAME(EDIT)'
                3,'PANEL(PPSUTIL1) NEWPOOL SCRNAME(UTIL)'
                4,'PANEL(PPTEST01) NEWAPPL(TEST) SCRNAME(TESTING)'
                5,'PGM(PPSP01A) NEWAPPL(TASK) PARM(TASKS) SCRNAME(TASKS)'
                6,'PGM(PCMD0A) NEWAPPL SCRNAME(COMMANDS)'
                7,'PANEL(PDLGTST1)'
-               8,'PGM(PPSP01A) PARM(SL) NEWAPPL(TEST) SCRNAME(LOG)'
-               9,'PGM(PPSP01A) PARM(AL) NEWAPPL SCRNAME(LOG)'
+               8,'PGM(PPSP01A) PARM(SL) NEWAPPL(ISR) SCRNAME(LOG)'
+               9,'PGM(PPSP01A) PARM(AL) NEWAPPL(ISR) SCRNAME(LOG)'
                10,'CMD(%porexx5) NEWAPPL(NAPL) LANG(REXX) SCRNAME(RUNAPPL)'
                D,'PGM(PSQLAPL1) NEWAPPL(SQL)'
                U,'PANEL(PUSER0A) NEWAPPL(USR) SCRNAME(USER)'
@@ -312,8 +317,8 @@ FIELD( ZPS01013 ) VAR( ZCMD )  VAL( U )
 FIELD( ZPS01014 ) VAR( ZCMD )  VAL( S )
 FIELD( ZPS01015 ) VAR( ZCMD )  VAL( T )
 FIELD( ZPS01016 ) VAR( ZCMD )  VAL( X )
-FIELD( ZPS01017 ) VAR( ZCMD )  VAL( HELP )
-FIELD( ZPS01018 ) VAR( ZCMD )  VAL( END )
+FIELD( ZPS00001 ) VAR( ZCMD )  VAL( TUTOR )
+FIELD( ZPS00002 ) VAR( ZCMD )  VAL( END )
 
 )HELP
 

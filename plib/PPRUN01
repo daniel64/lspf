@@ -44,13 +44,14 @@ field    18 19  MAX     NEF PAD(USER)  PRIPRM
 
 text    21 2   CH "Instructions"
 text    23 2   NT "Enter the PANEL, CMD or PGM field and press"
-text    23 46  ET "ENTER"
+text    23 46  ET "Enter"
 text    23 52  NT "to invoke function"
 text    25 2   NT "These fields support expansion using command"
 text    25 47  ET "FIELDEXC"
 
 
 )INIT
+&ZPM9 = 1
 
 )PROC
 

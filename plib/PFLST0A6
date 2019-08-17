@@ -13,61 +13,64 @@ PanelTitle "Modify File Attributes"
 text     4   2       FP    "Command ===> "
 field    4  15  MAX  NEF CAPS(ON),PAD(USER) ZCMD
 
-text     6   2       FP    "Entry Name . . :"
-field    6  19  MAX  VOI NONE IENTRY
+area 5 2 MAX MAX-6 SAREA1
 
-text     7    2       FP   "File Type. . . :"
-field    7   19   16  VOI NONE ITYPE
+text    MAX-4 2  CH "Instructions"
 
---text     8   1       FP    "Userid . . . . :"
---field    8  18   12  NEF PAD(USER) IUUID
+text    MAX-3 2  NT "Press"
+text    MAX-3 8  ET "Enter"
+text    MAX-3 14 NT "to confirm changes"
 
---text     9   1       FP    "Password . . . :"
---field    9  18   8  PWD NONE IUPWD
-
-text     9   2       FP    "Permissions"
-field    9  14       3  NEF PAD(USER) IPERMISS
-text     9  18       FP    "(Octal)"
+text    MAX-1 2  NT "Press"
+text    MAX-1 8  ET "Cancel"
+text    MAX-1 15 NT "or"
+text    MAX-1 18 ET "End"
+text    MAX-1 22 NT "to cancel changes"
 
 
-text     11   2        ET    "Mode Fields"
-text     13 2 PIN "Enter / to select option"
+)AREA SAREA1
+text     1   1       FP    "Entry Name . . :"
+field    1  18  MAX  VOI NONE IENTRY
 
-field    14   2   1   CEF PAD(USER) ISETUID
-text     14   4       SAC    "Set UID bit"
+text     2    1       FP   "File Type. . . :"
+field    2   18   16  VOI NONE ITYPE
 
-field    15   2   1   CEF PAD(USER) ISETGID
-text     15   4       SAC    "Set GID bit"
+--text     3   1       FP    "Userid . . . . :"
+--field    3  18   12  NEF PAD(USER) IUUID
 
-field    16   2   1   CEF PAD(USER) ISTICKY
-text     16   4       SAC    "Set sticky bit"
+--text     4   1       FP    "Password . . . :"
+--field    4  18   8  PWD NONE IUPWD
 
-text     18   2       ET    "Owner"
+text     4   1       FP    "Permissions"
+field    4  13       3  NEF PAD(USER) IPERMISS
+text     4  17       FP    "(Octal)"
 
-text     20   2        FP   "UID Number. . . :"
-field    20  20    10  NEF PAD(USER) IOWNERN
 
-text     20  32        FP   "File. . . :"
-field    20  44    10  NEF PAD(USER) IOWNER
+text     6    1        ET    "Mode Fields"
+text     8    1 PIN "Enter / to select option"
 
-text     21   2        FP   "GID Number. . . :"
-field    21  20    10  NEF PAD(USER) IGROUPN
+field    9    1   1   CEF PAD(USER) ISETUID
+text     9    3       SAC    "Set UID bit"
 
-text     21   32       FP  "Group . . :"
-field    21   44   10  NEF PAD(USER) IGROUP
+field    10   1   1   CEF PAD(USER) ISETGID
+text     10   3       SAC    "Set GID bit"
 
-text    24 2  CH "Instructions"
+field    11   1   1   CEF PAD(USER) ISTICKY
+text     11   3       SAC    "Set sticky bit"
 
-text    25 2  NT "Press"
-text    25 8  ET "ENTER"
-text    25 14 NT "to confirm changes"
+text     13   1       ET    "Owner"
 
-text    27 2  NT "Press"
-text    27 8  ET "CANCEL"
-text    27 15 NT "or"
-text    27 18 ET "END"
-text    27 22 NT "to cancel changes"
+text     15   1        FP   "UID Number. . . :"
+field    15  19    10  NEF PAD(USER) IOWNERN
 
+text     15  31        FP   "File. . . :"
+field    15  43    10  NEF PAD(USER) IOWNER
+
+text     16   1        FP   "GID Number. . . :"
+field    16  19    10  NEF PAD(USER) IGROUPN
+
+text     16   31       FP  "Group . . :"
+field    16   43   10  NEF PAD(USER) IGROUP
 
 )PROC
 IF (&ZCMD NE &Z )

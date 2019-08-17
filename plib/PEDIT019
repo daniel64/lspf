@@ -28,17 +28,18 @@ text    10    55      SAC    "2. Keep"
 
 text    12 2  CH "Instructions"
 text    14 2  NT "Press"
-text    14 8  ET "END"
+text    14 8  ET "End"
 text    14 12 NT "to save changes"
 
 text    15 2  NT "Enter"
-text    15 8  ET "CANCEL"
+text    15 8  ET "Cancel"
 text    15 15 NT "to cancel changes"
 
 
 )INIT
-&ZCMD9  = &Z
-.CURSOR = ZCMD9
+&ZWINTTL = &Z
+&ZCMD9   = &Z
+.CURSOR  = ZCMD9
 
 )REINIT
 &ZCMD9  = &Z

@@ -385,6 +385,7 @@ string space( const string& s, unsigned int n, char c )
 {
 	int i ;
 	int w ;
+
 	string t ;
 	string pad( n, c ) ;
 
@@ -1612,6 +1613,9 @@ string parseString( errblock& err, string& s, string p )
 	// s   - entered string (on exit, minus the keyword parameter, p and trimmed)
 	// p   - parameter to find (case insensitive)
 
+	// RC = 0  Normal completion (RSN = 0 Keyword parameter found. RSN = 4 Keyword not found)
+	// RC = 20 Severe error
+
 	int ob ;
 
 	size_t p1 ;
@@ -1621,6 +1625,7 @@ string parseString( errblock& err, string& s, string p )
 	string t  ;
 
 	err.setRC( 0 ) ;
+	err.setRSN( 0 ) ;
 
 	iupper( trim( p ) ) ;
 
@@ -1646,7 +1651,11 @@ string parseString( errblock& err, string& s, string p )
 	else
 	{
 		p1 = us.find( " " + p ) ;
-		if ( p1 == string::npos ) { return "" ; }
+		if ( p1 == string::npos )
+		{
+			err.setRSN( 4 ) ;
+			return "" ;
+		}
 		++p1 ;
 	}
 
@@ -1662,7 +1671,7 @@ string parseString( errblock& err, string& s, string p )
 	}
 	if ( ob > 0 )
 	{
-		err.seterrid( "PSYE032D" ) ;
+		err.seterrid( "PSYE031V" ) ;
 		return "" ;
 	}
 	if ( p2 < s.size()-1 && s.at( p2+1 ) != ' ' )
@@ -1728,7 +1737,7 @@ string& getNameList( errblock& err, string& s )
 	{
 		if ( s.back() != ')' )
 		{
-			err.seterrid( "PSYE032D" ) ;
+			err.seterrid( "PSYE031V" ) ;
 			return s ;
 		}
 		else
@@ -1755,6 +1764,9 @@ string extractKWord( errblock& err, string& s, string p )
 	// s   - entered string (on exit, minus the keyword parameter, p and trimmed)
 	// p   - parameter to find (case insensitive)
 
+	// RC = 0  Normal completion (RSN = 0 Keyword parameter found. RSN = 4 Keyword not found)
+	// RC = 20 Severe error
+
 	size_t p1 ;
 	size_t p2 ;
 
@@ -1766,6 +1778,7 @@ string extractKWord( errblock& err, string& s, string p )
 	string t  ;
 
 	err.setRC( 0 ) ;
+	err.setRSN( 0 ) ;
 
 	iupper( trim( p ) ) ;
 
@@ -1796,7 +1809,11 @@ string extractKWord( errblock& err, string& s, string p )
 	else
 	{
 		p1 = us.find( " " + p ) ;
-		if ( p1 == string::npos ) { return "" ; }
+		if ( p1 == string::npos )
+		{
+			err.setRSN( 4 ) ;
+			return "" ;
+		}
 		++p1 ;
 	}
 
@@ -1899,5 +1916,30 @@ void qwords( errblock& err, const string& s, vector<string>& v )
 			}
 			v.push_back( s.substr( i, j-i ) ) ;
 		}
+	}
+}
+
+
+void word( const string& s, vector<string>& v )
+{
+	// Split a string up into words and place into string vector v.
+	// More efficient that using rexx-like words()/word() for strings > 5 words.
+
+	size_t i = 0 ;
+	size_t j = 0 ;
+
+	v.clear() ;
+
+	while ( true )
+	{
+		i = s.find_first_not_of( ' ', j ) ;
+		if ( i == string::npos ) { return ; }
+		j = s.find( ' ', i ) ;
+		if ( j == string::npos )
+		{
+			v.push_back( s.substr( i ) ) ;
+			return ;
+		}
+		v.push_back( s.substr( i, j-i ) ) ;
 	}
 }

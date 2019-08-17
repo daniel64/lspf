@@ -29,12 +29,11 @@ text    10    13      SAC    "7. White"
 &OCLR = TRANS( TRUNC(&ZEDOCLR, 1) ,
                R,1
                G,2
-               Y,3
                B,4
                M,5
                T,6
                W,7
-               *,Y )
+               *,3 )
 
 )PROC
 IF (&ZCMDB NE &Z)

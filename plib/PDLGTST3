@@ -22,128 +22,129 @@ field     6   MAX-30    8    VOI   NONE  ZTIME
 text      6   MAX-20    FP  "DATE: "
 field     6   MAX-14    8    VOI   NONE  ZDATE
 
-text      7   2     CT     "SHARED POOL VARIABLES: (DEFAULT)"
+AREA 6 1 MAX-37 MAX SAREA1
+
+)AREA SAREA1
+
+text      1   2     CT     "SHARED POOL VARIABLES: (DEFAULT)"
 
 
-text      9   2     FP     "ZDATEL:"
-field     9   11    10     VOI   NONE  ZDATEL
+text      3   2     FP     "ZDATEL:"
+field     3   11    10     VOI   NONE  ZDATEL
 
-text      10  2     FP     "ZJDATE:"
-field     10  11    10     VOI   NONE  ZJDATE
+text      4   2     FP     "ZJDATE:"
+field     4   11    10     VOI   NONE  ZJDATE
 
-text      11   2     FP     "ZJ4DATE:"
-field     11   11    10     VOI   NONE  ZJ4DATE
+text      5    2     FP     "ZJ4DATE:"
+field     5    11    10     VOI   NONE  ZJ4DATE
 
-text      8   23    FP     "ZDATEF:"
-field     8   32    10     VOI   NONE  ZDATEF
+text      2   23    FP     "ZDATEF:"
+field     2   32    10     VOI   NONE  ZDATEF
 
-text      9   23    FP     "ZDATELF:"
-field     9   32    10     VOI   NONE  ZDATELF
+text      3   23    FP     "ZDATELF:"
+field     3   32    10     VOI   NONE  ZDATELF
 
-text      10  23    FP     "ZDAY:"
-field     10  32    10     VOI   NONE  ZDAY
+text      4   23    FP     "ZDAY:"
+field     4   32    10     VOI   NONE  ZDAY
 
-text      11   23    FP     "ZDAYOFWK:"
-field     11   32    10     VOI   NONE  ZDAYOFWK
+text      5    23    FP     "ZDAYOFWK:"
+field     5    32    10     VOI   NONE  ZDAYOFWK
 
-text      8   44    FP     "ZENVIR:"
-field     8   54    30     VOI   NONE  ZENVIR
+text      2   44    FP     "ZENVIR:"
+field     2   54    30     VOI   NONE  ZENVIR
 
-text      9   44    FP     "ZSCRMAXD:"
-field     9   54    30     VOI   NONE  ZSCRMAXD
+text      3   44    FP     "ZSCRMAXD:"
+field     3   54    30     VOI   NONE  ZSCRMAXD
 
-text      10  44    FP     "ZSCRMAXW:"
-field     10  54    30     VOI   NONE  ZSCRMAXW
+text      4   44    FP     "ZSCRMAXW:"
+field     4   54    30     VOI   NONE  ZSCRMAXW
 
-text      11   44    FP     "ZTIMEL:"
-field     11   54    30     VOI   NONE  ZTIMEL
-
-
--- ------------------------------------
-text      13   2     CT     "SHARED POOL VARIABLES: (APPLICATION)"
-text      14   2     FP     "ZAPPLID:"
-field     14   11    8     VOI   NONE  ZAPPLID
-
-text      15   2     FP     "ZCMD:"
-field     15   11    8     VOI   NONE  ZCMDX
-
-text      16   2     FP     "ZPANELID:"
-field     16   11    8     VOI   NONE  ZPANELID
-
-text      14   21     FP     "ZPFKEY:"
-field     14   31    8     VOI   NONE  ZPFKEY
-
-text      15   21     FP     "ZSCREEN:"
-field     15   31    8     VOI   NONE  ZSCREEN
-
-text      16   21     FP     "ZUSER:"
-field     16   31    8     VOI   NONE  ZUSER
+text      5    44    FP     "ZTIMEL:"
+field     5    54    30     VOI   NONE  ZTIMEL
 
 
--- ------------------------------------
+text      7    2     CT     "SHARED POOL VARIABLES: (APPLICATION)"
+text      8    2     FP     "ZAPPLID:"
+field     8    11    8     VOI   NONE  ZAPPLID
 
-text      18   2     CT     "PROFILE POOL VARIABLES: (READ-ONLY EXTENSION)"
+text      9    2     FP     "ZCMD:"
+field     9    11    8     VOI   NONE  ZCMDX
 
--- ------------------------------------
+text      10   2     FP     "ZPANELID:"
+field     10   11    8     VOI   NONE  ZPANELID
 
-text      21   2     CT     "PROFILE POOL VARIABLES: (SYSTEM)"
+text      8    21     FP     "ZPFKEY:"
+field     8    31    8     VOI   NONE  ZPFKEY
 
-text      22   2     FP     "ZSPROF:"
-field     22   12    60     VOI   NONE  ZSPROF
+text      9    21     FP     "ZSCREEN:"
+field     9    31    8     VOI   NONE  ZSCREEN
 
-text      23   2     FP     "ZUPROF:"
-field     23   12    60     VOI   NONE  ZUPROF
+text      10   21     FP     "ZUSER:"
+field     10   31    8     VOI   NONE  ZUSER
 
-text      24   2     FP     "ZSYSPATH:"
-field     24   12    60     VOI   NONE  ZSYSPATH
 
-field     25   12    60     VOI   NONE ZLDPATH
-text      25   2     FP     "ZLDPATH:"
+text      12   2     CT     "PROFILE POOL VARIABLES: (READ-ONLY EXTENSION)"
 
-field     26  12     60     VOI   NONE  ZSLOG
-text      26   2     FP     "ZSLOG:"
 
-field     27   12    60     VOI   NONE  ZALOG
-text      27   2     FP     "ZALOG:"
+text      15   2     CT     "PROFILE POOL VARIABLES: (SYSTEM)"
 
-field     28   12    60     VOI   NONE  ZMLIB
-text      28   2     FP     "ZMLIB:"
+text      16   2     FP     "ZSPROF:"
+field     16   12    60     VOI   NONE  ZSPROF
 
-field     29   12    60     VOI   NONE  ZPLIB
-text      29   2     FP     "ZPLIB:"
+text      17   2     FP     "ZUPROF:"
+field     17   12    60     VOI   NONE  ZUPROF
 
-field     30   12    60     VOI   NONE  ZTLIB
-text      30   2     FP     "ZTLIB:"
+text      18   2     FP     "ZSYSPATH:"
+field     18   12    60     VOI   NONE  ZSYSPATH
 
-field     31   12    8     VOI   NONE  ZEDITPGM
-text      31   2     FP     "ZEDITPGM:"
+field     19   12    60     VOI   NONE ZLDPATH
+text      19   2     FP     "ZLDPATH:"
 
-field     32   12    8     VOI   NONE  ZBRPGM
-text      32   2     FP     "ZBRPGM:"
+field     20  12     60     VOI   NONE  ZSLOG
+text      20   2     FP     "ZSLOG:"
 
-field     33   12    8     VOI   NONE  ZVIEWPGM
-text      33   2     FP     "ZVIEWPGM:"
+field     21   12    60     VOI   NONE  ZALOG
+text      21   2     FP     "ZALOG:"
 
-field     34   12    8     VOI   NONE  ZMAINPGM
-text      34   2     FP     "ZMAINPGM:"
+field     22   12    60     VOI   NONE  ZMLIB
+text      22   2     FP     "ZMLIB:"
 
-field     31   32     8     VOI   NONE  ZPANLPGM
-text      31   22     FP     "ZPANLPGM:"
+field     23   12    60     VOI   NONE  ZPLIB
+text      23   2     FP     "ZPLIB:"
 
-field     32   32     8     VOI   NONE  ZOREXPGM
-text      32   22     FP     "ZOREXPGM:"
+field     24   12    60     VOI   NONE  ZTLIB
+text      24   2     FP     "ZTLIB:"
 
-field     33   32     8     VOI   NONE  ZHELPPGM
-text      33   22     FP     "ZHELPPGM:"
+field     26   12    8     VOI   NONE  ZEDITPGM
+text      26   2     FP     "ZEDITPGM:"
 
-field     34   32     8     VOI   NONE  ZFLSTPGM
-text      34   22     FP     "ZFLSTPGM:"
+field     27   12    8     VOI   NONE  ZBRPGM
+text      27   2     FP     "ZBRPGM:"
+
+field     28   12    8     VOI   NONE  ZVIEWPGM
+text      28   2     FP     "ZVIEWPGM:"
+
+field     29   12    8     VOI   NONE  ZMAINPGM
+text      29   2     FP     "ZMAINPGM:"
+
+field     30   12     8     VOI   NONE  ZPANLPGM
+text      30   2      FP     "ZPANLPGM:"
+
+field     31   12     8     VOI   NONE  ZOREXPGM
+text      31   2      FP     "ZOREXPGM:"
+
+field     32   12     8     VOI   NONE  ZHELPPGM
+text      32   2      FP     "ZHELPPGM:"
+
+field     33   12     8     VOI   NONE  ZFLSTPGM
+text      33   2      FP     "ZFLSTPGM:"
 
 
 
 )INIT
 VGET (ZPFKEY ZPANELID) SHARED
 .CURSOR = ZCMD
+
 )PROC
 if ( &ZCMD NE &Z)
   .MSG    = PSYS011C

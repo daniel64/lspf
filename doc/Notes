@@ -71,3 +71,5 @@ Loads! some good, and some bad but in no particular order...
 25) Panels are automatically in CUA mode (in ISPF, panels that have a )PANEL section).  That is,
     CANCEL and EXIT commands behave as SETVERB entries in the command table, and special variables
     ZCURFLD, ZCURPOS and ZCURINX are set.  Other CUA characteristics are not implemented.
+26) For panels with multiple scrollable areas defined, if the cursor is not on one of the areas when a
+    scroll request is performed, the first )AREA section is scrolled.

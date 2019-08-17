@@ -19,7 +19,7 @@
 
 using namespace boost::filesystem ;
 
-void parser::parseStatement( errblock& err, const string& s )
+void parser::parse( errblock& err, const string& s )
 {
 	bool quoted ;
 	char c1     ;
@@ -115,7 +115,7 @@ void parser::parseStatement( errblock& err, const string& s )
 		t.idx = tokens.size() ;
 		tokens.push_back( t ) ;
 	}
-	tokens.size() > 0 ? current_token = tokens[ 0 ] : current_token = token( TT_EOT ) ;
+	current_token = ( tokens.size() > 0 ) ? tokens[ 0 ] : token( TT_EOT ) ;
 }
 
 
@@ -156,7 +156,7 @@ token& parser::getFirstToken()
 {
 	idx = 0 ;
 
-	tokens.size() > 0 ? current_token = tokens[ 0 ] : current_token = token( TT_EOT ) ;
+	current_token = ( tokens.size() > 0 ) ? tokens[ 0 ] : token( TT_EOT ) ;
 	return current_token ;
 }
 
@@ -165,7 +165,7 @@ token& parser::getNextToken()
 {
 	++idx ;
 
-	tokens.size() > idx ? current_token = tokens[ idx ] : current_token = token( TT_EOT ) ;
+	current_token = ( tokens.size() > idx ) ? tokens[ idx ] : token( TT_EOT ) ;
 	return current_token ;
 }
 
@@ -207,7 +207,7 @@ bool parser::getNextIfCurrent( const string& tok )
 	if ( current_token.value1 == tok )
 	{
 		++idx ;
-		idx < tokens.size() ? current_token = tokens[ idx ] : current_token = token( TT_EOT ) ;
+		current_token = ( idx < tokens.size() ) ? tokens[ idx ] : token( TT_EOT ) ;
 		return true ;
 	}
 	return false ;
@@ -219,7 +219,7 @@ bool parser::getNextIfCurrent( TOKEN_TYPES tok )
 	if ( current_token.type == tok )
 	{
 		++idx ;
-		idx < tokens.size() ? current_token = tokens[ idx ] : current_token = token( TT_EOT ) ;
+		current_token = ( idx < tokens.size() ) ? tokens[ idx ] : token( TT_EOT ) ;
 		return true ;
 	}
 	return false ;
@@ -231,7 +231,7 @@ bool parser::getNextIfCurrent( TOKEN_SUBTYPES tok )
 	if ( current_token.subtype == tok )
 	{
 		++idx ;
-		idx < tokens.size() ? current_token = tokens[ idx ] : current_token = token( TT_EOT ) ;
+		current_token = ( idx < tokens.size() ) ? tokens[ idx ] : token( TT_EOT ) ;
 		return true ;
 	}
 	return false ;
@@ -367,7 +367,7 @@ void parser::getNameList( errblock& err, string& r )
 			}
 			else if ( current_token.type == TT_EOT )
 			{
-				err.seterrid( "PSYE032D", current_token.value1 ) ;
+				err.seterrid( "PSYE031V", current_token.value1 ) ;
 				return ;
 			}
 			else
@@ -425,7 +425,7 @@ void IFSTMNT::parse( errblock& err, parser& v )
 	t = v.getCurrentToken()  ;
 	if ( t.type == TT_EOT )
 	{
-		err.seterrid( "PSYE032D" ) ;
+		err.seterrid( "PSYE031V" ) ;
 		return ;
 	}
 	else if ( t.subtype != TS_CLOSE_BRACKET )
@@ -550,7 +550,7 @@ void IFSTMNT::parse_cond( errblock& err, parser& v )
 			v.getNextToken() ;
 			if ( !v.getNextIfCurrent( TS_CLOSE_BRACKET ) )
 			{
-				err.seterrid( "PSYE032D" ) ;
+				err.seterrid( "PSYE031V" ) ;
 				return ;
 			}
 		}
@@ -653,7 +653,7 @@ void IFSTMNT::parse_cond( errblock& err, parser& v )
 		}
 		else if ( t.type == TT_EOT )
 		{
-			err.seterrid( "PSYE032D" ) ;
+			err.seterrid( "PSYE031V" ) ;
 			return ;
 		}
 		else if ( t.subtype == TS_COMMA )
@@ -810,7 +810,7 @@ void ASSGN::parse( errblock& err, parser& v )
 		}
 		if ( !v.getNextIfCurrent( TS_CLOSE_BRACKET ) )
 		{
-			err.seterrid( "PSYE032D" ) ;
+			err.seterrid( "PSYE031V" ) ;
 			return ;
 		}
 		as_lhs.subtype = t.subtype ;
@@ -854,7 +854,7 @@ void ASSGN::parse( errblock& err, parser& v )
 		v.getNextToken() ;
 		if ( !v.getNextIfCurrent( TS_CLOSE_BRACKET ) )
 		{
-			err.seterrid( "PSYE032D" ) ;
+			err.seterrid( "PSYE031V" ) ;
 			return ;
 		}
 		as_isattc = true ;
@@ -951,7 +951,7 @@ void ASSGN::parse( errblock& err, parser& v )
 			t = v.getNextToken() ;
 			if ( !v.getNextIfCurrent( TS_CLOSE_BRACKET ) )
 			{
-				err.seterrid( "PSYE032D" ) ;
+				err.seterrid( "PSYE031V" ) ;
 				return ;
 			}
 		}
@@ -1095,7 +1095,7 @@ void VERIFY::parse( errblock& err, parser& v, bool check )
 		}
 		else if ( t.type == TT_EOT )
 		{
-			err.seterrid( "PSYE032D" ) ;
+			err.seterrid( "PSYE031V" ) ;
 			return ;
 		}
 		else if ( t.subtype == TS_COMMA )
@@ -1146,7 +1146,7 @@ void VERIFY::parse( errblock& err, parser& v, bool check )
 
 	if ( !v.getNextIfCurrent( TS_CLOSE_BRACKET ) )
 	{
-		err.seterrid( "PSYE032D" ) ;
+		err.seterrid( "PSYE031V" ) ;
 		return ;
 	}
 
@@ -1206,7 +1206,7 @@ void TRUNC::parse( errblock& err, parser& v, bool check )
 	}
 	else
 	{
-		t.value1 == "" ? err.seterrid( "PSYE038A" ) : err.seterrid( "PSYE031Q" ) ;
+		err.seterrid( ( t.value1 == "" ) ? "PSYE038A" : "PSYE031Q" ) ;
 		return ;
 	}
 
@@ -1246,7 +1246,7 @@ void TRUNC::parse( errblock& err, parser& v, bool check )
 	v.getNextToken() ;
 	if ( !v.getNextIfCurrent( TS_CLOSE_BRACKET ) )
 	{
-		err.seterrid( "PSYE032D" ) ;
+		err.seterrid( "PSYE031V" ) ;
 		return ;
 	}
 
@@ -1313,7 +1313,7 @@ void TRANS::parse( errblock& err, parser& v, bool check )
 	}
 	else
 	{
-		t.value1 == "" ? err.seterrid( "PSYE038A" ) : err.seterrid( "PSYE031Q" ) ;
+		err.seterrid( ( t.value1 == "" ) ? "PSYE038A" : "PSYE031Q" ) ;
 		return ;
 	}
 
@@ -1323,7 +1323,7 @@ void TRANS::parse( errblock& err, parser& v, bool check )
 		t = v.getCurrentToken() ;
 		if ( t.type == TT_EOT )
 		{
-			err.seterrid( "PSYE032D" ) ;
+			err.seterrid( "PSYE031V" ) ;
 			return ;
 		}
 		else if ( v.getNextIfCurrent( TS_CLOSE_BRACKET ) )
@@ -1351,7 +1351,7 @@ void TRANS::parse( errblock& err, parser& v, bool check )
 			}
 			if ( !v.getNextIfCurrent( TS_CLOSE_BRACKET ) )
 			{
-				err.seterrid( "PSYE032D" ) ;
+				err.seterrid( "PSYE031V" ) ;
 				return ;
 			}
 			break ;
@@ -1429,6 +1429,7 @@ void pnts::parse( errblock& err, string s )
 	err.setRC( 0 ) ;
 
 	pnts_field = parseString( err, s, "FIELD()" ) ;
+	if ( err.error() ) { return ; }
 	if ( pnts_field == "" )
 	{
 		err.seterrid( "PSYE031C", "FIELD" ) ;
@@ -1441,6 +1442,7 @@ void pnts::parse( errblock& err, string s )
 	}
 
 	pnts_var = parseString( err, s, "VAR()" ) ;
+	if ( err.error() ) { return ; }
 	if ( pnts_var == "" )
 	{
 		err.seterrid( "PSYE031C", "VAR" ) ;
@@ -1453,7 +1455,8 @@ void pnts::parse( errblock& err, string s )
 		return ;
 	}
 
-	pnts_val = parseString( err, s, "VAL()" ) ;
+	pnts_val = extractKWord( err, s, "VAL()" ) ;
+	if ( err.error() ) { return ; }
 	if ( pnts_val == "" )
 	{
 		err.seterrid( "PSYE031C", "VAL" ) ;
@@ -1685,7 +1688,7 @@ bool selobj::parse( errblock& err, string selstr )
 	// + SUSPEND      - Suspend any popup windows
 
 	// Match brackets for PARM and CMD as these may contain brackets.  These can also be enclosed in
-	// double quotes if needed, that are then removed.
+	// single quotes if needed, that are then removed.
 
 	int ob ;
 
@@ -1708,7 +1711,7 @@ bool selobj::parse( errblock& err, string selstr )
 		oquote = false ;
 		for ( p2 = p1+4 ; p2 < selstr.size() ; ++p2 )
 		{
-			if ( selstr.at( p2 ) == '"' ) { oquote = !oquote ; }
+			if ( selstr.at( p2 ) == '\'' ) { oquote = !oquote ; }
 			if ( oquote ) { continue ; }
 			if ( selstr.at( p2 ) == '(' ) { ++ob  ; }
 			if ( selstr.at( p2 ) == ')' )
@@ -1719,7 +1722,7 @@ bool selobj::parse( errblock& err, string selstr )
 		}
 		if ( ob != 0 )
 		{
-			err.seterrid( "PSYE032D" ) ;
+			err.seterrid( "PSYE031V" ) ;
 			return false ;
 		}
 		if ( oquote )
@@ -1729,7 +1732,7 @@ bool selobj::parse( errblock& err, string selstr )
 		}
 		++p2 ;
 		parm   = strip( substr( selstr, (p1 + 5), (p2 - (p1 + 5)) ) ) ;
-		parm   = strip( parm, 'B', '"' ) ;
+		parm   = strip( parm, 'B', '\'' ) ;
 		selstr = delstr( selstr, p1, (p2 - p1 + 1) ) ;
 		str    = upper( selstr ) ;
 	}
@@ -1740,7 +1743,7 @@ bool selobj::parse( errblock& err, string selstr )
 		p2 = pos( ")", selstr, p1 ) ;
 		if ( p2 == 0 )
 		{
-			err.seterrid( "PSYE032D" ) ;
+			err.seterrid( "PSYE031V" ) ;
 			return false ;
 		}
 		pgm    = strip( substr( str, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
@@ -1776,7 +1779,7 @@ bool selobj::parse( errblock& err, string selstr )
 			p2 = pos( ")", selstr, p1 ) ;
 			if ( p2 == 0 )
 			{
-				err.seterrid( "PSYE032D" ) ;
+				err.seterrid( "PSYE031V" ) ;
 				return false ;
 			}
 			parm = strip( substr( str, (p1 + 6), (p2 - (p1 + 6)) ) ) ;
@@ -1794,7 +1797,7 @@ bool selobj::parse( errblock& err, string selstr )
 				p2 = pos( ")", selstr, p1 ) ;
 				if ( p2 == 0 )
 				{
-					err.seterrid( "PSYE032D" ) ;
+					err.seterrid( "PSYE031V" ) ;
 					return false ;
 				}
 				parm  += " " + strip( substr( str, (p1 + 4), (p2 - (p1 + 4)) ) ) ;
@@ -1828,7 +1831,7 @@ bool selobj::parse( errblock& err, string selstr )
 				}
 				if ( ob != 0 )
 				{
-					err.seterrid( "PSYE032D" ) ;
+					err.seterrid( "PSYE031V" ) ;
 					return false ;
 				}
 				if ( oquote )
@@ -1848,7 +1851,7 @@ bool selobj::parse( errblock& err, string selstr )
 					p2 = pos( ")", selstr, p1 ) ;
 					if ( p2 == 0 )
 					{
-						err.seterrid( "PSYE032D" ) ;
+						err.seterrid( "PSYE031V" ) ;
 						return false ;
 					}
 					lang   = strip( substr( str, (p1 + 5), (p2 - (p1 + 5)) ) ) ;
@@ -1878,7 +1881,7 @@ bool selobj::parse( errblock& err, string selstr )
 		p2 = pos( ")", str, p1 ) ;
 		if ( p2 == 0 )
 		{
-			err.seterrid( "PSYE032D" ) ;
+			err.seterrid( "PSYE031V" ) ;
 			return false ;
 		}
 		scrname = strip( substr( str, (p1 + 8), (p2 - (p1 + 8)) ) ) ;
@@ -1901,7 +1904,7 @@ bool selobj::parse( errblock& err, string selstr )
 		p2 = pos( ")", str, p1 ) ;
 		if ( p2 == 0 )
 		{
-			err.seterrid( "PSYE032D" ) ;
+			err.seterrid( "PSYE031V" ) ;
 			return false ;
 		}
 		newappl = strip( substr( str, (p1 + 8), (p2 - (p1 + 8)) ) ) ;
@@ -2013,10 +2016,10 @@ void char_attrs::parse( errblock& err, string& attrs )
 	// 2) COLOUR
 	// 3) INTENS
 	// 4) HILITE
-	// 5) CUATYPE - syntax checked but only used on types DATAIN/DATAOUT
+	// 5) CUADYN - syntax checked but only used on types DATAIN/DATAOUT
 
 	// CUA types cannot have COLOUR, INTENS or HILITE parameters coded
-	// CUATYPE for DATAIN/DATAOUT. Ignored for everything else.
+	// CUADYN for DATAIN/DATAOUT. Ignored for everything else.
 
 	string temp ;
 
@@ -2075,6 +2078,7 @@ void char_attrs::parse( errblock& err, string& attrs )
 			}
 			colour = it->second ;
 		}
+		colourChange = true ;
 	}
 
 	temp = parseString( err, attrs, "INTENS()" ) ;
@@ -2100,14 +2104,18 @@ void char_attrs::parse( errblock& err, string& attrs )
 			}
 			intens = it->second ;
 		}
+		intensChange = true ;
 	}
 
 	temp = parseString( err, attrs, "HILITE()" ) ;
 	if ( err.error() ) { return ; }
-
-	if ( temp != "" )
+	if ( err.RSN0() )
 	{
-		if ( temp.front() == '&' )
+		if ( temp == "" )
+		{
+			hilite = 0 ;
+		}
+		else if ( temp.front() == '&' )
 		{
 			if ( not isvalidName( temp.substr( 1 ) ) )
 			{
@@ -2125,6 +2133,7 @@ void char_attrs::parse( errblock& err, string& attrs )
 			}
 			hilite = it->second ;
 		}
+		hiliteChange = true ;
 	}
 
 	temp = parseString( err, attrs, "CUADYN()" ) ;
@@ -2195,14 +2204,7 @@ void char_attrs::parse( errblock& err, string& attrs )
 
 uint char_attrs::get_colour()
 {
-	if ( cuadyn == NONE )
-	{
-		return colour | intens | hilite ;
-	}
-	else
-	{
-		return lspfc::cuaAttr[ cuadyn ] ;
-	}
+	return ( cuadyn == NONE ) ? ( colour | intens | hilite ) : lspfc::cuaAttr[ cuadyn ] ;
 }
 
 

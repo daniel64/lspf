@@ -25,19 +25,19 @@ field    12  18       MAX     VOI  NONE ZFILE
 text    15 2  CH "Instructions"
 
 text    17 5  NT "Press"
-text    17 11 ET "ENTER"
+text    17 11 ET "Enter"
 text    17 17 NT "to continue editing the file"
 
 text    18 5  NT "Press"
-text    18 11 ET "END"
+text    18 11 ET "End"
 text    18 15 NT "to return to the previous panel"
 
 text    19 5  NT "Press"
-text    19 11 ET "DEFER"
+text    19 11 ET "Defer"
 text    19 17 NT "to defer recovery of the specified file"
 
 text    20 5  NT "Press"
-text    20 11 ET "CANCEL"
+text    20 11 ET "Cancel"
 text    20 18 NT "to cancel recovery of the specified file"
 
 )INIT

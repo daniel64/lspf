@@ -19,7 +19,7 @@ text    7  2  CH "Instructions"
 text    9  2  NT "Press"
 text    9  8  ET "Enter"
 text    9  14 NT "to confirm or"
-text    9  28 ET "END"
+text    9  28 ET "End"
 text    9  32 NT "to cancel operation"
 
 

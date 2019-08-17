@@ -17,71 +17,76 @@ PanelTitle "General lspf Settings"
 text     4   2     FP "Command ===>"
 field    4  15     MAX NEF CAPS(ON),PAD(USER) ZCMD
 
-text     6   2     ET    "Options"
-text     7   4     PIN "Enter / to select option"
+area 5 1 MAX MAX-7   SAREA
 
-text     8   6         SAC "Turn on keylists"
-field    8   4     1   CEF PAD(USER) GOKLUSE
-text     9   6         SAC "Accept notify messages"
-field    9   4     1   CEF PAD(USER) GONOTFY
-text     10  6         SAC "Search site command tables before ISPCMDS"
-field    10  4     1   CEF PAD(USER) GOSTFST
-text     11  6         SAC "Always display long message in a pop-up"
-field    11  4     1   CEF PAD(USER) GOLMSGW
-text     12  6         SAC "Allow swapping screens with the swap character"
-field    12  4     1   CEF PAD(USER) GOSWAP
-text     13  6         SAC "Save retrieve buffer across sessions"
-field    13  4     1   CEF PAD(USER) GOSRETP
+text    MAX-5 2  CH "Instructions"
+text    MAX-3 2  NT "Press"
+text    MAX-3 8  PS "Enter"
+text    MAX-3 14 NT "to make changes, enter"
+text    MAX-3 37 PS "Defaults"
+text    MAX-3 46 NT "to restore defaults"
+text    MAX-1 2  NT "Enter"
+text    MAX-1 8  PS "Reset"
+text    MAX-1 14 NT "for original values"
 
-text     6   60    ET    "Application"
-text     7   62    FP    "Default scroll amount. ."
-field    7   87  4 CEF PAD(USER),CAPS(ON) GOSCRLD
+)AREA SAREA
+
+text     1   2     ET    "Options"
+text     2   4     PIN "Enter / to select option"
+
+text     3   6         SAC "Turn on keylists"
+field    3   4     1   CEF PAD(USER) GOKLUSE
+text     4   6         SAC "Accept notify messages"
+field    4   4     1   CEF PAD(USER) GONOTFY
+text     5   6         SAC "Search site command tables before ISPCMDS"
+field    5   4     1   CEF PAD(USER) GOSTFST
+text     6   6         SAC "Always display long message in a pop-up"
+field    6   4     1   CEF PAD(USER) GOLMSGW
+text     7   6         SAC "Allow swapping screens with the swap character"
+field    7   4     1   CEF PAD(USER) GOSWAP
+text     8   6         SAC "Save retrieve buffer across sessions"
+field    8   4     1   CEF PAD(USER) GOSRETP
+
+text     1   60    ET    "Application"
+text     2   62    FP    "Default scroll amount. ."
+field    2   87  4 CEF PAD(USER),CAPS(ON) GOSCRLD
 
 
-text     15  2     ET    "General"
+text     10  2     ET    "General"
 
-text     16  4     FP    "Command delimiter . . ."
-field    16  28  1 CEF PAD(USER) GODEL
+text     11  4     FP    "Command delimiter . . ."
+field    11  28  1 CEF PAD(USER) GODEL
 
-text     17  4     FP    "Swap character. . . . ."
-field    17  28  1 CEF PAD(USER) GOSWAPC
+text     12  4     FP    "Swap character. . . . ."
+field    12  28  1 CEF PAD(USER) GOSWAPC
 
-text     18  4     FP    "Retrieve command size ."
-field    18  28  2 CEF NUMERIC(ON),PAD(USER) GORTSIZE
+text     13  4     FP    "Retrieve command size ."
+field    13  28  2 CEF NUMERIC(ON),PAD(USER) GORTSIZE
 
-text     19  4     FP    "Retrieve buffer size. ."
-field    19  28  2 CEF NUMERIC(ON),PAD(USER) GORBSIZE
+text     14  4     FP    "Retrieve buffer size. ."
+field    14  28  2 CEF NUMERIC(ON),PAD(USER) GORBSIZE
 
-text     20  4     FP    "User command tables . ."
-field    20  28  4 CEF PAD(USER),CAPS(ON) GOUCMD1
-field    20  33  4 CEF PAD(USER),CAPS(ON) GOUCMD2
-field    20  38  4 CEF PAD(USER),CAPS(ON) GOUCMD3
+text     15  4     FP    "User command tables . ."
+field    15  28  4 CEF PAD(USER),CAPS(ON) GOUCMD1
+field    15  33  4 CEF PAD(USER),CAPS(ON) GOUCMD2
+field    15  38  4 CEF PAD(USER),CAPS(ON) GOUCMD3
 
-text     21  4     FP    "Site command tables . ."
-field    21  28  4 CEF PAD(USER),CAPS(ON) GOSCMD1
-field    21  33  4 CEF PAD(USER),CAPS(ON) GOSCMD2
-field    21  38  4 CEF PAD(USER),CAPS(ON) GOSCMD3
+text     16  4     FP    "Site command tables . ."
+field    16  28  4 CEF PAD(USER),CAPS(ON) GOSCMD1
+field    16  33  4 CEF PAD(USER),CAPS(ON) GOSCMD2
+field    16  38  4 CEF PAD(USER),CAPS(ON) GOSCMD3
 
-text     15  60    ET    "Screen"
-text     16  64    SAC   "Use high intensity for all colours"
-field    16  62    1     CEF PAD(USER) GOHIGH
-text     18  62    FP    "Input field pad character ."
-field    18  90  1 CEF    CAPS(ON) GOPADC
-text     20  62    FP    "Default for message identifier"
-field    21  62  1 CEF    CAPS(ON),PAD(USER),NUMERIC(ON) GODEFM
-text     21  65    SAC    "1. On"
-text     22  65    SAC    "2. Off"
-
-text    24 2  CH "Instructions"
-text    26 2  NT "Press"
-text    26 8  PS "Enter"
-text    26 14 NT "to make changes, enter"
-text    26 37 PS "Defaults"
-text    26 46 NT "to restore defaults"
-text    27 2  NT "Enter"
-text    27 8  PS "Reset"
-text    27 14 NT "for original values"
-
+text     10  60    ET    "Screen"
+text     11  64    SAC   "Use high intensity for all colours"
+field    11  62    1     CEF PAD(USER) GOHIGH
+text     12  64    SAC   "Decolourise inactive windows"
+field    12  62    1     CEF PAD(USER) GODECLR
+text     14  62    FP    "Input field pad character ."
+field    14  90  1 CEF    CAPS(ON) GOPADC
+text     16  62    FP    "Default for message identifier"
+field    17  62  1 CEF    CAPS(ON),PAD(USER),NUMERIC(ON) GODEFM
+text     17  65    SAC    "1. On"
+text     18  65    SAC    "2. Off"
 
 )INIT
 &ZPS0 = 1
@@ -108,6 +113,7 @@ IF ( &ZCMD EQ RESET ) EXIT
 &GOSWAP  = TRANS( &GOSWAP  &Z,&Z *,/ )
 &GOSRETP = TRANS( &GOSRETP &Z,&Z *,/ )
 &GOHIGH  = TRANS( &GOHIGH  &Z,&Z *,/ )
+&GODECLR = TRANS( &GODECLR &Z,&Z *,/ )
 
 VER (&GODEL NB)
 VER (&GOPADC NB)
@@ -140,8 +146,8 @@ VER(&GOSCMD3,NAME,MSG=PSYS012V)
 
 )PNTS
 
-FIELD( ZPS01001 ) VAR(ZCMD) VAL(>)
-FIELD( ZPS01002 ) VAR(ZCMD) VAL(DEFAULTS)
-FIELD( ZPS01003 ) VAR(ZCMD) VAL(RESET)
+FIELD( ZPS00001 ) VAR(ZCMD) VAL(>)
+FIELD( ZPS00002 ) VAR(ZCMD) VAL(DEFAULTS)
+FIELD( ZPS00003 ) VAR(ZCMD) VAL(RESET)
 
 )END

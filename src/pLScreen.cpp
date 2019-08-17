@@ -21,7 +21,7 @@
 #define MOD_NAME SCREEN
 
 
-pLScreen::pLScreen( int openedBy )
+pLScreen::pLScreen( uint openedBy )
 {
 	row = 0 ;
 	col = 0 ;
@@ -35,8 +35,8 @@ pLScreen::pLScreen( int openedBy )
 			endwin() ;
 			cout << "This program cannot run in a screen with fewer than 26 lines and 80 columns." << endl ;
 			cout << "The size of this screen is " << maxrow << " lines by " << maxcol << " columns." << endl ;
-			cout << "Exiting..." << endl ;
-			return;
+			cout << "Aborting..." << endl ;
+			abort() ;
 		}
 		maxrow = maxrow - 2 ;
 		start_color();
@@ -115,6 +115,7 @@ void pLScreen::cursor_left()
 	}
 }
 
+
 void pLScreen::cursor_right()
 {
 	if ( col == maxcol - 1 )
@@ -128,23 +129,16 @@ void pLScreen::cursor_right()
 	}
 }
 
+
 void pLScreen::cursor_up()
 {
 	( row == 0 ) ? row = maxrow - 1 : --row ;
 }
 
+
 void pLScreen::cursor_down()
 {
 	( row == maxrow - 1 ) ? row = 0 : ++row ;
-}
-
-void pLScreen::clear()
-{
-	for ( unsigned int i = 0 ; i < maxrow ; ++i )
-	{
-		move( i, 0 ) ;
-		clrtoeol()   ;
-	}
 }
 
 
@@ -152,9 +146,9 @@ void pLScreen::save_panel_stack()
 {
 	// Save all panels for this logical screen
 	// Panel user data : object panel_data
-	//                   1 int field, screenId
+	//                   1 uint field, screenId
 
-	PANEL* pnl ;
+	PANEL* pnl = panel_below( NULL ) ;
 
 	const void* vptr ;
 	const panel_data* pd ;
@@ -163,16 +157,19 @@ void pLScreen::save_panel_stack()
 	{
 		panelList.pop() ;
 	}
-	pnl = NULL ;
-	while ( true )
+
+	while ( pnl )
 	{
-		pnl = panel_below( pnl ) ;
-		if ( pnl == NULL ) { break ; }
 		vptr = panel_userptr( pnl ) ;
-		if ( vptr == NULL ) { continue ; }
-		pd = static_cast<const panel_data*>(vptr) ;
-		if ( pd->screenId != screenId ) { continue ; }
-		panelList.push( pnl ) ;
+		if ( vptr )
+		{
+			pd = static_cast<const panel_data*>(vptr) ;
+			if ( pd->screenId == screenId )
+			{
+				panelList.push( pnl ) ;
+			}
+		}
+		pnl = panel_below( pnl ) ;
 	}
 }
 
@@ -198,17 +195,93 @@ void pLScreen::refresh_panel_stack()
 }
 
 
-int pLScreen::get_priScreen( int openedBy )
+void pLScreen::set_frame_inactive( uint intens )
 {
-	int i = 0 ;
+	// Set all window frames for this logical screen, except the top, to the inactive colour
+	// until a full screen window is reached.
 
-	if ( openedBy == 0 ) { return 0 ; }
+	bool top_frame = true ;
 
-	for ( auto it = openedByList.begin() ; it != openedByList.end() ; ++it, ++i )
+	const void* vptr ;
+	const panel_data* pd ;
+
+	PANEL* pnl = panel_below( NULL ) ;
+
+	while ( pnl )
 	{
-		if ( it->first == openedBy ) { return i ; }
+		vptr = panel_userptr( pnl ) ;
+		if ( vptr )
+		{
+			pd = static_cast<const panel_data*>(vptr) ;
+			if ( pd->screenId == screenId && pd->ppanel )
+			{
+				if ( pd->is_fscreen() )
+				{
+					break ;
+				}
+				if ( pd->is_frame() )
+				{
+					if ( not top_frame && pd->is_frame_act() )
+					{
+						pd->ppanel->draw_frame( pnl, cuaAttr[ IWF ] ) ;
+						pd->set_frame_inact() ;
+					}
+					top_frame = false ;
+				}
+			}
+		}
+		pnl = panel_below( pnl ) ;
 	}
-	return 0 ;
+}
+
+
+void pLScreen::decolourise_inactive( uint col1, uint col2, uint intens )
+{
+	// Set all windows for this logical screen, except the top, to the inactive colour
+	// until a full screen window is reached.
+
+	bool top_panel = true ;
+	bool top_frame = true ;
+
+	const void* vptr ;
+	const panel_data* pd ;
+
+	PANEL* pnl = panel_below( NULL ) ;
+
+	while ( pnl )
+	{
+		vptr = panel_userptr( pnl ) ;
+		if ( vptr )
+		{
+			pd = static_cast<const panel_data*>(vptr) ;
+			if ( pd->screenId == screenId && pd->ppanel )
+			{
+				if ( not pd->is_frame() )
+				{
+					if ( not top_panel && not pd->is_decolourised() )
+					{
+						pd->ppanel->decolourise( panel_window( pnl ), col1, col2, intens ) ;
+						pd->set_decolourised() ;
+					}
+					top_panel = false ;
+				}
+				if ( pd->is_fscreen() )
+				{
+					break ;
+				}
+				if ( pd->is_frame() )
+				{
+					if ( not top_frame && pd->is_frame_act() )
+					{
+						pd->ppanel->draw_frame( pnl, col2 ) ;
+						pd->set_frame_inact() ;
+					}
+					top_frame = false ;
+				}
+			}
+		}
+		pnl = panel_below( pnl ) ;
+	}
 }
 
 
@@ -220,19 +293,7 @@ void pLScreen::set_cursor( pApplication* appl )
 }
 
 
-void pLScreen::OIA_setup()
-{
-	wattrset( OIA, WHITE ) ;
-	mvwhline( OIA, 0, 0, ACS_HLINE, maxcol ) ;
-	mvwaddch( OIA, 1, 0, ACS_CKBOARD ) ;
-	wattrset( OIA, YELLOW ) ;
-	mvwaddstr( OIA, 1, 2,  "Screen[        ]" ) ;
-	mvwaddstr( OIA, 1, 30, "Elapsed:" ) ;
-	mvwaddstr( OIA, 1, 50, "Screen:" ) ;
-}
-
-
-void pLScreen::OIA_update( int priScreen, int altScreen )
+void pLScreen::OIA_update( uint priScreen, uint altScreen, bool showLock )
 {
 	int pos ;
 
@@ -262,64 +323,10 @@ void pLScreen::OIA_update( int priScreen, int altScreen )
 		wattrset( OIA, YELLOW | A_BOLD | A_UNDERLINE ) ;
 		mvwaddch( OIA, 1, altScreen+9, d2ds( altScreen+1 ).front() ) ;
 	}
-}
 
-
-void pLScreen::OIA_refresh()
-{
-	top_panel( OIA_panel ) ;
-	touchwin( OIA ) ;
-}
-
-
-void pLScreen::show_enter()
-{
-	wattrset( OIA, RED ) ;
-	mvwaddstr( OIA, 1, 19, "X-Enter" ) ;
-	wmove( OIA, 1, 0 ) ;
-	wrefresh( OIA )    ;
-}
-
-
-void pLScreen::show_busy()
-{
-	wattrset( OIA, RED ) ;
-	mvwaddstr( OIA, 1, 19, "X-Busy " ) ;
-	wmove( OIA, 1, 0 ) ;
-	wrefresh( OIA )    ;
-}
-
-
-void pLScreen::show_wait()
-{
-	wattrset( OIA, RED ) ;
-	mvwaddstr( OIA, 1, 19, "X-Wait " ) ;
-	wmove( OIA, 1, 0 ) ;
-	wrefresh( OIA )    ;
-}
-
-
-void pLScreen::show_auto()
-{
-	wattrset( OIA, RED ) ;
-	mvwaddstr( OIA, 1, 19, "X-Auto " ) ;
-	wmove( OIA, 1, 0 ) ;
-	wrefresh( OIA )    ;
-}
-
-
-void pLScreen::show_lock( bool showLock )
-{
 	if ( showLock )
 	{
 		wattrset( OIA,  RED ) ;
 		mvwaddstr( OIA, 1, 26, "|X|" ) ;
 	}
-}
-
-
-void pLScreen::clear_status()
-{
-	wstandend( OIA ) ;
-	mvwaddstr( OIA, 1, 19, "       " ) ;
 }

@@ -16,7 +16,7 @@
 08 TYPE(CHAR) COLOUR(TURQ)
 09 TYPE(CHAR) COLOUR(WHITE)
 
-)ABC DESC(Commands)
+)ABC DESC(Commands) MNEM(1)
 PDC DESC("Clear Output")       ACTION RUN(>-CLEAR)
 PDC DESC("List Running Jobs")  ACTION RUN(>-LIST)
 

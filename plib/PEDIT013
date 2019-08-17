@@ -42,7 +42,7 @@ text    19 2  NT "Enter"
 text    19 8  ET "="
 text    19 10 NT "in file name to retrieve full path name of current file"
 text    21 2  NT "Enter file name and press"
-text    21 28 ET "ENTER"
+text    21 28 ET "Enter"
 text    21 34 NT "to compare files"
 
 

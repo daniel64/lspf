@@ -49,7 +49,7 @@ using namespace std ;
 PDPANLA::PDPANLA()
 {
 	set_appdesc( "Default select panel program for lspf" ) ;
-	set_appver( "1.0.1" ) ;
+	set_appver( "1.0.2" ) ;
 }
 
 
@@ -86,9 +86,10 @@ void PDPANLA::application()
 		passthru = true ;
 	}
 
+	verase( "ZSEL", SHARED ) ;
 	while ( true )
 	{
-		vput( "ZCMD ZSEL", SHARED ) ;
+		vput( "ZCMD", SHARED ) ;
 		display( pan, msg ) ;
 		if ( RC == 8 )
 		{
@@ -98,11 +99,18 @@ void PDPANLA::application()
 			break ;
 		}
 		msg = "" ;
-		vget( "ZCMD ZSEL ZPRIM", SHARED ) ;
+		vget( "ZSEL", SHARED ) ;
+		if ( RC > 0 )
+		{
+			abend( "PSYS013M", pan ) ;
+			return ;
+		}
+		vget( "ZCMD ZPRIM", SHARED ) ;
 		if ( zsel == "?" )
 		{
 			msg  = "PSYS016" ;
 			zsel = "" ;
+			vput( "ZSEL", SHARED ) ;
 			continue  ;
 		}
 		if ( zcmd == "" )

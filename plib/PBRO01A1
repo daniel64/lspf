@@ -44,7 +44,7 @@ text     19   6       SAC    "Show directory list if valid directory entered"
 
 text    22 2  CH "Instructions"
 text    24 2  NT "Enter file name and press"
-text    24 28 ET "ENTER"
+text    24 28 ET "Enter"
 text    24 34 NT "to &ZVMODE1 file"
 
 
@@ -52,12 +52,13 @@ text    24 34 NT "to &ZVMODE1 file"
 .NRET = ON
 .NRET = ZFILE
 
+&ZPM2 = 1
 IF (&BEBROM = '/') &ZVMODE1 = 'browse'
 ELSE               &ZVMODE1 = 'view'
 
 )PROC
 if ( &ZCMD NE &Z)
-  .MSG    = PSYS018
+  .MSG    = 'PSYS018'
   .CURSOR = ZCMD
   EXIT
 
@@ -78,7 +79,7 @@ VPUT (ZFILE,BEPROF,EELMAC) PROFILE
 &REV = REVERSE(ZFILE)
 &GEN = TRUNC( &REV, 1 )
 IF (&GEN EQ '*','?',']' )
-  &SHOWDIR = YES
+  &SHOWDIR = 'YES'
   EXIT
 ELSE
   &RST = TRUNC( &REV, '/' )
@@ -86,36 +87,40 @@ ELSE
   &GEN = TRUNC( &RST, '*' )
   &GEN = .TRAIL
   IF (&GEN NE &Z )
-     &SHOWDIR = YES
+     &SHOWDIR = 'YES'
      EXIT
   &GEN = TRUNC( &RST, '?' )
   &GEN = .TRAIL
   IF (&GEN NE &Z )
-     &SHOWDIR = YES
+     &SHOWDIR = 'YES'
      EXIT
   &GEN = TRUNC( &RST, '[' )
   &GEN = .TRAIL
   IF (&GEN NE &Z )
-     &SHOWDIR = YES
+     &SHOWDIR = 'YES'
      EXIT
 
 &ISFILE = FILE( ZFILE )
 &ISDIR  = DIR( ZFILE )
 
+IF (TRUNC(&REV, 1) EQ '/' AND &ISDIR EQ .FALSE )
+   .MSG = 'PEDT011S'
+   EXIT
+
 IF ( &BEDIRLST NE '/' )
   IF ( &ISDIR EQ .TRUE )
-     .CURSOR = ZFILE
-     .MSG    = PEDT011T
+     .CURSOR = 'ZFILE'
+     .MSG    = 'PEDT011T'
      EXIT
   IF ( &ISFILE EQ .FALSE )
-     .CURSOR = ZFILE
+     .CURSOR = 'ZFILE'
      &ZSTR1  = &ZFILE
-     .MSG    = PEDT011R
+     .MSG    = 'PEDT011R'
      EXIT
 ELSE
   IF ( &ISFILE EQ .FALSE )
      IF ( &ISDIR NE .FALSE )
-        &SHOWDIR = YES
+        &SHOWDIR = 'YES'
 
 )FIELD
 FIELD(ZFILE) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL)')

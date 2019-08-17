@@ -31,10 +31,10 @@
 // #define DEBUG2 1
 #define MOD_NAME lspf
 
-#define LSPF_VERSION "1.1.12"
+#define LSPF_VERSION "1.1.13"
 #define LSPF_VERSION_MAJ 1
 #define LSPF_VERSION_REV 1
-#define LSPF_VERSION_MOD 12
+#define LSPF_VERSION_MOD 13
 
 typedef unsigned int uint ;
 
@@ -125,6 +125,7 @@ using namespace boost::posix_time ;
 #define KFP     "GLN"
 #define KFK     "BLN"
 #define KIMT    "WHN"
+#define KIWF    "BLN"
 #define KLEF    "TLU"
 #define KLID    "GLN"
 #define KLI     "WLN"
@@ -286,6 +287,7 @@ enum attType
 	FK,
 	IMT,
 	INPUT,
+	IWF,
 	LEF,
 	LID,
 	LI,
@@ -339,6 +341,7 @@ class errblock
 		uint    taskid ;
 		uint    ptid   ;
 		uint    RC     ;
+		uint    RSN    ;
 		uint    maxRC  ;
 		bool    debug  ;
 		bool    abend  ;
@@ -358,6 +361,7 @@ class errblock
 		taskid = 0  ;
 		ptid   = 0  ;
 		RC     = 0  ;
+		RSN    = 0  ;
 		maxRC  = 0  ;
 		debug  = false ;
 		abend  = false ;
@@ -376,16 +380,21 @@ class errblock
 		val3   = "" ;
 		udata  = "" ;
 		RC     = 0  ;
+		RSN    = 0  ;
 		maxRC  = 0  ;
 		debug  = false ;
 		panel  = false ;
 		dialog = false ;
 	}
-	void setRC( int i )
+	void setRC( uint i )
 	{
 		RC = i ;
 	}
-	int getRC()
+	void setRSN( uint i )
+	{
+		RSN = i ;
+	}
+	uint getRC()
 	{
 		return RC ;
 	}
@@ -405,7 +414,15 @@ class errblock
 	{
 		return ( RC == 12 ) ;
 	}
-	void setmaxRC( int i )
+	bool RSN0()
+	{
+		return ( RSN == 0 ) ;
+	}
+	bool RSN4()
+	{
+		return ( RSN == 4 ) ;
+	}
+	void setmaxRC( uint i )
 	{
 		maxRC = i ;
 	}
@@ -413,7 +430,7 @@ class errblock
 	{
 		maxRC = max( RC, maxRC ) ;
 	}
-	int getmaxRC()
+	uint getmaxRC()
 	{
 		return maxRC ;
 	}
@@ -441,7 +458,9 @@ class errblock
 	{
 		msg1 = s ;
 	}
-	void setcall( const string& s1, const string& s2, int i=20 )
+	void setcall( const string& s1,
+		      const string& s2,
+		      uint i=20 )
 	{
 		msg1  = s1 ;
 		msgid = s2 ;
@@ -450,7 +469,10 @@ class errblock
 		val3  = "" ;
 		RC    = i  ;
 	}
-	void setcall( const string& s1, const string& s2, const string& s3, int i=20 )
+	void setcall( const string& s1,
+		      const string& s2,
+		      const string& s3,
+		      uint i=20 )
 	{
 		msg1  = s1 ;
 		msgid = s2 ;
@@ -459,7 +481,11 @@ class errblock
 		val3  = "" ;
 		RC    = i  ;
 	}
-	void setcall( const string& s1, const string& s2, const string& s3, const string& s4, int i=20 )
+	void setcall( const string& s1,
+		      const string& s2,
+		      const string& s3,
+		      const string& s4,
+		      uint i=20 )
 	{
 		msg1  = s1 ;
 		msgid = s2 ;
@@ -468,7 +494,12 @@ class errblock
 		val3  = "" ;
 		RC    = i  ;
 	}
-	void setcall( const string& s1, const string& s2, const string& s3, const string& s4, const string& s5, int i=20 )
+	void setcall( const string& s1,
+		      const string& s2,
+		      const string& s3,
+		      const string& s4,
+		      const string& s5,
+		      uint i=20 )
 	{
 		msg1  = s1 ;
 		msgid = s2 ;
@@ -481,51 +512,70 @@ class errblock
 	{
 		RC    = 20 ;
 	}
-	void seterror( const string& s1, int i=20 )
+	void seterror( const string& s1,
+		       uint i=20 )
 	{
 		msgid = "PSYE019D" ;
 		val1  = s1 ;
 		val2  = "" ;
 		RC    = i  ;
+		if ( panel ) { copysrc() ; }
 	}
-	void seterror( const string& s1, const string& s2, int i=20 )
+	void seterror( const string& s1,
+		       const string& s2,
+		       uint i=20 )
 	{
 		msgid = "PSYE019D" ;
 		val1  = s1 ;
 		val2  = s2 ;
 		RC    = i  ;
+		if ( panel ) { copysrc() ; }
 	}
-	void seterrid( const string& s, int i=20 )
+	void seterrid( const string& s,
+		       uint i=20 )
 	{
 		msgid = s  ;
 		val1  = "" ;
 		val2  = "" ;
 		val3  = "" ;
 		RC    = i  ;
+		if ( panel ) { copysrc() ; }
 	}
-	void seterrid( const string& s1, const string& s2, int i=20 )
+	void seterrid( const string& s1,
+		       const string& s2,
+		       uint i=20 )
 	{
 		msgid = s1 ;
 		val1  = s2 ;
 		val2  = "" ;
 		val3  = "" ;
 		RC    = i  ;
+		if ( panel ) { copysrc() ; }
 	}
-	void seterrid( const string& s1, const string& s2, const string& s3, int i=20 )
+	void seterrid( const string& s1,
+		       const string& s2,
+		       const string& s3,
+		       uint i=20 )
 	{
 		msgid = s1 ;
 		val1  = s2 ;
 		val2  = s3 ;
 		val3  = "" ;
 		RC    = i  ;
+		if ( panel ) { copysrc() ; }
 	}
-	void seterrid( const string& s1, const string& s2, const string& s3, const string& s4, int i=20 )
+	void seterrid( const string& s1,
+		       const string& s2,
+		       const string& s3,
+		       const string& s4,
+		       uint i=20 )
 	{
 		msgid = s1 ;
 		val1  = s2 ;
 		val2  = s3 ;
 		val3  = s4 ;
 		RC    = i  ;
+		if ( panel ) { copysrc() ; }
 	}
 	void setsrc( const string& s )
 	{
@@ -537,10 +587,18 @@ class errblock
 		dline = p  ;
 		sline = "" ;
 	}
+	void copysrc()
+	{
+		if ( dline )
+		{
+			sline = *dline ;
+			sline.erase( 0, sline.find_first_not_of( ' ' ) ) ;
+			dline = NULL ;
+		}
+	}
 	string getsrc()
 	{
-		if ( dline ) { return *dline ; }
-		else         { return  sline ; }
+		return ( dline ) ? *dline : sline ;
 	}
 	void setpanelsrc()
 	{
@@ -569,12 +627,15 @@ class errblock
 	{
 		val1 = s1 ;
 	}
-	void setval( const string& s1, const string& s2 )
+	void setval( const string& s1,
+		     const string& s2 )
 	{
 		val1 = s1 ;
 		val2 = s2 ;
 	}
-	void setval( const string& s1, const string& s2, const string& s3 )
+	void setval( const string& s1,
+		     const string& s2,
+		     const string& s3 )
 	{
 		val1 = s1 ;
 		val2 = s2 ;
@@ -596,7 +657,7 @@ class errblock
 	{
 		return sCall ;
 	}
-	void settask( int i )
+	void settask( uint i )
 	{
 		taskid = i ;
 	}

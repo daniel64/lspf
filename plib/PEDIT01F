@@ -1,0 +1,78 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+Set cursor phrase colour/hilight
+)ENDCOMMENT
+
+)BODY HOME(ZCMDB) CMD(ZCMDB) WINDOW(60,11)
+PanelDesc "Set Cursor Phrase Colour"
+
+text     2    2       FP     "Command ===> "
+field    2   15  MAX  NEF     PAD(USER) ZCMDB
+
+text     4    2       FP     "Colour:"
+field    4    10  1   CEF     PAD(USER) PCLR
+text     4    13      SAC    "1. Red"
+text     5    13      SAC    "2. Green"
+text     6    13      SAC    "3. Yellow"
+text     7    13      SAC    "4. Blue"
+text     8    13      SAC    "5. Magenta"
+text     9    13      SAC    "6. Turquoise"
+text    10    13      SAC    "7. White"
+
+text     4    29      FP     "Highlight:"
+field    4    40  1   CEF     PAD(USER) PHLT
+text     4    43      SAC    "1. Normal"
+text     5    43      SAC    "2. Reverse"
+text     6    43      SAC    "3. Underline"
+text     7    43      SAC    "4. Blink"
+)INIT
+
+&ZCMDB   = &Z
+&ZWINTTL = 'Set Cursor Phrase Colour'
+.CURSOR  = PCLR
+
+&PCLR = TRANS( TRUNC(&ZEDPCLR, 1) ,
+               R,1
+               G,2
+               Y,3
+               B,4
+               M,5
+               T,6
+               *,7 )
+
+&PHLT = TRANS( TRUNC(&ZEDPHLT, 1) ,
+               R,2
+               U,3
+               B,4
+               *,1 )
+
+)PROC
+IF (&ZCMDB NE &Z)
+  .MSG    = PSYS011C
+  .CURSOR = ZCMDB
+  EXIT
+
+VER(&PCLR,NB,LIST,1,2,3,4,5,6,7)
+VER(&PHLT,NB,LIST,1,2,3,4)
+
+IF (.MSG NE &Z) EXIT
+
+&ZEDPCLR = TRANS( &PCLR
+               1,'RED'
+               2,'GREEN'
+               3,'YELLOW'
+               4,'BLUE'
+               5,'MAGENTA'
+               6,'TURQ'
+               7,'WHITE' )
+
+&ZEDPHLT = TRANS( &PHLT
+               1,&Z
+               2,'REVERSE'
+               3,'USCORE'
+               4,'BLINK' )
+
+VPUT (ZEDPCLR,ZEDPHLT) PROFILE
+
+)END

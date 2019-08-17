@@ -17,16 +17,37 @@ PanelTitle "Dialogue Error in &ZERRTTL"
 text    4   2      FP  "Command ===>"
 field   4  15 MAX  NEF  CAPS(ON),PAD(USER) ZCMD
 
-text    7     2 ET EXPAND "*"
+area 6 1 MAX MAX SAREA1
 
-text    8       2 ET "*"
-text    8  MAX ET "*"
+)AREA SAREA1
+text    1     2 ET EXPAND "*"
 
-text    9       2 ET "*"
-text    9  MAX ET "*"
+text    2       2 ET "*"
+text    2  MAX ET "*"
 
-text    10      2 ET "*"
-text    10 MAX ET "*"
+text    3       2 ET "*"
+text    3  MAX ET "*"
+
+text    4       2 ET "*"
+text    4  MAX ET "*"
+
+text    5        2 ET "*"
+text    5   MAX ET "*"
+
+text    6        2 ET "*"
+text    6   MAX ET "*"
+
+text    7        2 ET "*"
+text    7   MAX ET "*"
+
+text    8        2 ET "*"
+text    8   MAX ET "*"
+
+text    9        2 ET "*"
+text    9   MAX ET "*"
+
+text    10       2 ET "*"
+text    10  MAX ET "*"
 
 text    11       2 ET "*"
 text    11  MAX ET "*"
@@ -61,44 +82,26 @@ text    20  MAX ET "*"
 text    21       2 ET "*"
 text    21  MAX ET "*"
 
-text    22       2 ET "*"
-text    22  MAX ET "*"
+text    22      2 ET EXPAND "*"
 
-text    23       2 ET "*"
-text    23  MAX ET "*"
+field   3  4  MAX-2 ET NONE ZERRMSG
+field   5  4  MAX-2 ET NONE ZERRSM
+field   6  4  MAX-2 ET NONE ZERRLM1
+field   7  4  MAX-2 ET NONE ZERRLM2
+field   8  4  MAX-2 ET NONE ZERRLM3
+field   9  4  MAX-2 ET NONE ZERRLM4
+field   10 4  MAX-2 ET NONE ZERRLM5
+field   11 4  MAX-2 ET NONE ZERRLM6
+field   12 4  MAX-2 ET NONE ZERRLM7
+field   13 4  MAX-2 ET NONE ZERRLM8
+field   14 4  MAX-2 ET NONE ZERRDS1
+field   15 4  MAX-2 ET NONE ZERRSRC
 
-text    24       2 ET "*"
-text    24  MAX ET "*"
+text    18 4   NT "See application and lspf logs for more messages"
 
-text    25       2 ET "*"
-text    25  MAX ET "*"
-
-text    26       2 ET "*"
-text    26  MAX ET "*"
-
-text    27       2 ET "*"
-text    27  MAX ET "*"
-
-text    28      2 ET EXPAND "*"
-
-field    9 4  MAX-2 ET NONE ZERRMSG
-field   11 4  MAX-2 ET NONE ZERRSM
-field   12 4  MAX-2 ET NONE ZERRLM1
-field   13 4  MAX-2 ET NONE ZERRLM2
-field   14 4  MAX-2 ET NONE ZERRLM3
-field   15 4  MAX-2 ET NONE ZERRLM4
-field   16 4  MAX-2 ET NONE ZERRLM5
-field   17 4  MAX-2 ET NONE ZERRLM6
-field   18 4  MAX-2 ET NONE ZERRLM7
-field   19 4  MAX-2 ET NONE ZERRLM8
-field   20 4  MAX-2 ET NONE ZERRDS1
-field   21 4  MAX-2 ET NONE ZERRSRC
-
-text    24 4   NT "See application and lspf logs for more messages"
-
-text    26 4   NT "Press"
-text    26 10  ET "ENTER"
-text    26 16  NT "to terminate dialogue"
+text    20 4   NT "Press"
+text    20 10  ET "Enter"
+text    20 16  NT "to terminate dialogue"
 
 )INIT
 .CURSOR = ZCMD
@@ -118,5 +121,8 @@ ELSE
    &ZERRTTL = 'REXX application &ZERRRX'
 
 )PROC
-
+IF (&ZCMD NE &Z)
+   .MSG    = 'PSYS012X'
+   .CURSOR = 'ZCMD'
+   &ZVAL1  = &ZCMD
 )END

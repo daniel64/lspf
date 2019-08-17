@@ -199,7 +199,7 @@ class parser
 			idx      = 0     ;
 			optUpper = false ;
 		}
-		void    parseStatement( errblock&, const string& ) ;
+		void    parse( errblock&, const string& ) ;
 		token&  getFirstToken()  ;
 		token&  getNextToken()   ;
 		token   getToken( uint ) ;
@@ -600,18 +600,6 @@ class fieldExc
 } ;
 
 
-class panel_data
-{
-	public:
-		explicit panel_data( int x )
-		{
-			screenId = x ;
-		}
-
-		int screenId ;
-} ;
-
-
 class slmsg
 {
 	public:
@@ -861,6 +849,7 @@ class char_attrs
 		  { "FP",      FP     },
 		  { "IMT",     IMT    },
 		  { "INPUT",   INPUT  },
+		  { "IWF",     IWF    },
 		  { "LEF",     LEF    },
 		  { "LID",     LID    },
 		  { "LI",      LI     },

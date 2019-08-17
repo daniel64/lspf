@@ -122,7 +122,6 @@ void PDLGTST::displaySystemVars()
 		display( "PDLGTST3", msg, "ZCMD" );
 		if ( RC == 8 ) { return ; }
 		msg = "" ;
-		if ( zcmd != "" ) { msg = "DLGT011" ; continue ; }
 	}
 }
 

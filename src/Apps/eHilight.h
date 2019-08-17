@@ -28,6 +28,15 @@
 #define G_RED      0x0E
 #define G_WHITE    0x0F
 
+#define F_PHRASE   0x50
+#define C_PHRASE   0x51
+
+#define U_RED      0x52
+#define U_GREEN    0x53
+#define U_YELLOW   0x54
+#define U_BLUE     0x55
+#define U_WHITE    0x56
+
 using namespace std ;
 
 class hilight
@@ -298,6 +307,7 @@ map<string, keyw> keywList3 = {
   { ")ATTR",           { 5,  E_WHITE } },
   { ")INCLUDE",        { 8,  E_WHITE } },
   { ")BODY",           { 5,  E_WHITE } },
+  { ")AREA",           { 5,  E_WHITE } },
   { ")INIT",           { 5,  E_WHITE } },
   { ")REINIT",         { 7,  E_WHITE } },
   { ")PROC",           { 5,  E_WHITE } },

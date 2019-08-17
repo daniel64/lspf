@@ -85,65 +85,11 @@ void PTUTORA::application()
 
 	bool rebuildZAREA ;
 
-	errblock err      ;
-
 	vdefine( "ZZSTR1 ZSCRNAME", &help, &zscrname ) ;
 
 	zscrname = "Help" ;
 	vput( "ZSCRNAME", SHARED ) ;
 
-	sh       = ZSHELP ;
-	help     = ZSHELP ;
-	helplst  = ZSHELP ;
-	helptype = 'S'    ;
-
-	if ( PARM == "" )
-	{
-		vget( "ZPLIB", PROFILE ) ;
-		vcopy( "ZPLIB", ps, MOVE ) ;
-	}
-
-	ah = parseString( err, PARM, "A()" ) ;
-	if ( ah != "" )
-	{
-		help = ah ;
-		helptype = 'A' ;
-		helplst = help + " " + helplst ;
-	}
-
-	ph = parseString( err, PARM, "P()" ) ;
-	if ( ph != "" )
-	{
-		help = ph ;
-		helptype = 'P' ;
-		helplst = help + " " + helplst ;
-	}
-
-	fh = parseString( err, PARM, "F()" ) ;
-	if ( fh != "" )
-	{
-		help = fh ;
-		helptype = 'F' ;
-		helplst = help + " " + helplst ;
-	}
-
-	fh = parseString( err, PARM, "M()" ) ;
-	if ( mh != "" )
-	{
-		help = mh ;
-		helptype = 'M' ;
-		helplst = help + " " + helplst ;
-	}
-
-	kh = parseString( err, PARM, "K()" ) ;
-	if ( kh != "" )
-	{
-		help = kh ;
-		helptype = 'K' ;
-		helplst = help + " " + helplst ;
-	}
-
-	ps = parseString( err, PARM, "PATHS()" ) ;
 
 	rebuildZAREA = true  ;
 
@@ -157,6 +103,8 @@ void PTUTORA::application()
 
 	pquery( "PTUTORA1", "ZAREA", "", "ZAREAW", "ZAREAD" ) ;
 	if ( RC > 0 )  { abend() ; return ; }
+
+	parse_parms() ;
 
 	maxLines = 6 ;
 	data.push_back( centre( " Top of Help ", zareaw, '*' ) ) ;
@@ -282,11 +230,80 @@ void PTUTORA::application()
 }
 
 
+void PTUTORA::parse_parms()
+{
+	errblock err ;
+
+	sh       = ZSHELP ;
+	help     = ZSHELP ;
+	helplst  = ZSHELP ;
+	helptype = 'S'    ;
+
+	if ( PARM == "" )
+	{
+		vget( "ZPLIB", PROFILE ) ;
+		vcopy( "ZPLIB", ps, MOVE ) ;
+	}
+
+	ah = parseString( err, PARM, "A()" ) ;
+	if ( ah != "" )
+	{
+		help = ah ;
+		helptype = 'A' ;
+		helplst = help + " " + helplst ;
+	}
+
+	ph = parseString( err, PARM, "P()" ) ;
+	if ( ph != "" )
+	{
+		help = ph ;
+		helptype = 'P' ;
+		helplst = help + " " + helplst ;
+	}
+
+	fh = parseString( err, PARM, "F()" ) ;
+	if ( fh != "" )
+	{
+		help = fh ;
+		helptype = 'F' ;
+		helplst = help + " " + helplst ;
+	}
+
+	mh = parseString( err, PARM, "M()" ) ;
+	if ( mh != "" )
+	{
+		help = mh ;
+		helptype = 'M' ;
+		helplst = help + " " + helplst ;
+	}
+
+	kh = parseString( err, PARM, "K()" ) ;
+	if ( kh != "" )
+	{
+		help = kh ;
+		helptype = 'K' ;
+		helplst = help + " " + helplst ;
+	}
+
+	ps = parseString( err, PARM, "PATHS()" ) ;
+	if ( ps == "" )
+	{
+		vget( "ZPLIB", PROFILE ) ;
+		vcopy( "ZPLIB", ps ) ;
+	}
+
+	if ( ah == "" && ph == "" && fh == "" && mh == "" && kh == "" && ps == "" )
+	{
+		helplst = PARM ;
+	}
+}
+
+
 void PTUTORA::read_file( string file )
 {
-	int j  ;
+	int j ;
 
-	size_t pos    ;
+	size_t pos ;
 
 	string inLine ;
 

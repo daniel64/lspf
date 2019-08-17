@@ -31,6 +31,8 @@ pPanel::pPanel()
 	nretriev    = false  ;
 	forEdit     = false  ;
 	forBrowse   = false  ;
+	bypassCur   = false  ;
+	redisplay   = false  ;
 	nretfield   = ""     ;
 	keylistn    = ""     ;
 	keyappl     = ""     ;
@@ -39,8 +41,8 @@ pPanel::pPanel()
 	pos_lmsg    = ""     ;
 	panelTitle  = ""     ;
 	panelDesc   = ""     ;
+	Area1       = ""     ;
 	abIndex     = 0      ;
-	opt_field   = 0      ;
 	da_dataIn   = ""     ;
 	da_dataOut  = ""     ;
 	tb_model    = false  ;
@@ -95,11 +97,16 @@ pPanel::pPanel()
 
 pPanel::~pPanel()
 {
-	// Iterate over the 5 panel widget types, text, field, dynArea, boxes action-bar-choices and delete them.
+	// Iterate over the 5 panel widget types, text, field, Area, dynArea, boxes action-bar-choices and delete.
 	// Delete panel language statements in )INIT, )REINIT, )PROC, )ABCINIT and )ABCPROC sections.
 	// Delete the main window/panel, popup panel and any message windows/panels created (free any userdata first)
 
 	for ( auto it = fieldList.begin() ; it != fieldList.end() ; ++it )
+	{
+		delete it->second ;
+	}
+
+	for ( auto it = AreaList.begin() ; it != AreaList.end() ; ++it )
 	{
 		delete it->second ;
 	}
@@ -192,15 +199,10 @@ pPanel::~pPanel()
 		delwin( idwin )      ;
 	}
 
-	if ( fieldMap )
-	{
-		delete[] fieldMap ;
-	}
+	delete[] fieldMap ;
+	delete[] fieldAddrs ;
 
-	if ( fieldAddrs )
-	{
-		delete[] fieldAddrs ;
-	}
+	update_panels() ;
 }
 
 
@@ -251,6 +253,8 @@ void pPanel::init_control_variables()
 	iMsg    = "" ;
 
 	msgloc  = "" ;
+	end_pressed = false ;
+	bypassCur   = false ;
 }
 
 
@@ -376,13 +380,15 @@ void pPanel::syncDialogueVar( errblock& err,
 }
 
 
-void pPanel::set_popup( bool sp_active, int sp_row, int sp_col )
+void pPanel::set_popup( bool addpop_active, int& addpop_row, int& addpop_col )
 {
-	if ( sp_active )
+	if ( addpop_active )
 	{
 		win_addpop = true ;
-		win_row    = (sp_row + win_depth + 1) < zscrmaxd ? sp_row : (zscrmaxd - win_depth - 1) ;
-		win_col    = (sp_col + win_width + 1) < zscrmaxw ? sp_col : (zscrmaxw - win_width - 1) ;
+		win_row    = (addpop_row + win_depth + 1) < zscrmaxd ? addpop_row : (zscrmaxd - win_depth - 1) ;
+		win_col    = (addpop_col + win_width + 1) < zscrmaxw ? addpop_col : (zscrmaxw - win_width - 1) ;
+		addpop_row = win_row ;
+		addpop_col = win_col ;
 	}
 	else
 	{
@@ -438,11 +444,11 @@ void pPanel::create_panels( popup& p )
 
 	pwin   = newwin( win_depth, win_width, 0, 0 ) ;
 	panel  = new_panel( pwin ) ;
-	set_panel_userptr( panel, new panel_data( zscrnum ) ) ;
+	set_panel_userptr( panel, new panel_data( zscrnum, this ) ) ;
 
 	bwin   = newwin( win_depth+2, win_width+2, 0, 0 ) ;
 	bpanel = new_panel( bwin ) ;
-	set_panel_userptr( bpanel, new panel_data( zscrnum ) ) ;
+	set_panel_userptr( bpanel, new panel_data( zscrnum, true, this ) ) ;
 
 	win = pwin ;
 }
@@ -463,6 +469,54 @@ void pPanel::delete_panels( const popup& p )
 	panel_cleanup( p.pan2 ) ;
 	del_panel( p.pan2 ) ;
 	delwin( w ) ;
+}
+
+
+void pPanel::decolourise( WINDOW* w, uint colour1, uint colour2, uint intens )
+{
+	// Remove the colour from the panel window w, using mvwchgat().
+
+	// Redraw the action bar divider and boxes as ncurses line drawing is an attribute and
+	// removing the attributes results in the line being changed to the mapping character
+	// (eg. 'q' for ACS_HLINE).
+
+	for ( uint i = 0 ; i < wscrmaxd ; ++i )
+	{
+		mvwchgat( w, i, 0, -1, intens | panel_intens, colour1, NULL ) ;
+	}
+
+	if ( ab.size() > 0 )
+	{
+		wattrset( w, colour2 | intens | panel_intens ) ;
+		mvwhline( w, 1, 0, ACS_HLINE, wscrmaxw ) ;
+	}
+
+	for ( auto it = boxes.begin() ; it != boxes.end() ; ++it )
+	{
+		(*it)->display_box( win, sub_vars( (*it)->box_title ), colour2, intens ) ;
+	}
+}
+
+
+void pPanel::redraw_panel( errblock& err )
+{
+	// Redraw the entire panel if it has been decolourised, or just the panel frame
+	// if decolourisation has been set off.
+
+	if ( is_panel_decolourised() )
+	{
+		display_panel( err ) ;
+		if ( bwin )
+		{
+			set_panel_frame_act() ;
+		}
+	}
+	else if ( bwin && is_panel_frame_inact() )
+	{
+		wattrset( bwin, cuaAttr[ AWF ] | panel_intens ) ;
+		draw_frame( err ) ;
+		set_panel_frame_act() ;
+	}
 }
 
 
@@ -490,7 +544,6 @@ void pPanel::display_panel( errblock& err )
 	// if no pwin exists, even if an ADDPOP() has been done (not exactly how real ISPF works).
 	// The RESIZE lspf command can also toggle full screen mode.
 
-	string winttl ;
 	string panttl ;
 
 	err.setRC( 0 ) ;
@@ -508,18 +561,13 @@ void pPanel::display_panel( errblock& err )
 		mvwin( win, win_row, win_col )      ;
 		mvwin( bwin, win_row-1, win_col-1 ) ;
 		wattrset( bwin, cuaAttr[ AWF ] | panel_intens ) ;
-		box( bwin, 0, 0 ) ;
-		winttl = getDialogueVar( err, "ZWINTTL" ) ;
+		draw_frame( err ) ;
 		if ( err.error() ) { return ; }
-		if ( winttl != "" )
-		{
-			winttl = " "+ winttl +" " ;
-			mvwaddstr( bwin, 0, ( win_width - winttl.size() ) / 2, winttl.c_str() ) ;
-		}
 		top_panel( bpanel ) ;
 		top_panel( panel ) ;
 		wscrmaxw = win_width ;
 		wscrmaxd = win_depth ;
+		unset_panel_fscreen() ;
 	}
 	else
 	{
@@ -536,9 +584,11 @@ void pPanel::display_panel( errblock& err )
 		top_panel( panel )  ;
 		wscrmaxw = zscrmaxw ;
 		wscrmaxd = zscrmaxd ;
+		set_panel_fscreen() ;
 	}
 
 	werase( win ) ;
+	unset_panel_decolourised() ;
 
 	panttl = sub_vars( panelTitle ) ;
 	wattrset( win, cuaAttr[ PT ] | panel_intens ) ;
@@ -560,7 +610,9 @@ void pPanel::display_panel( errblock& err )
 
 	display_boxes() ;
 
-	hide_pd()       ;
+	hide_pd() ;
+
+	display_area_si() ;
 
 	display_pd( err )  ;
 	if ( err.error() ) { return ; }
@@ -574,6 +626,38 @@ void pPanel::display_panel( errblock& err )
 	error_msg = ( dMsg != "" && MSG.type != IMT ) ;
 
 	if ( dAlarm == "YES" ) { beep() ; }
+}
+
+
+void pPanel::draw_frame( PANEL* p, uint col )
+{
+	WINDOW* w = panel_window( p ) ;
+
+	string winttl = get_panel_ttl( p ) ;
+
+	wattrset( w, col | panel_intens ) ;
+	box( w, 0, 0 ) ;
+
+	if ( winttl != "" )
+	{
+		mvwaddstr( w, 0, ( win_width - winttl.size() ) / 2, winttl.c_str() ) ;
+	}
+}
+
+
+void pPanel::draw_frame( errblock& err )
+{
+	string winttl = getDialogueVar( err, "ZWINTTL" ) ;
+	if ( err.error() ) { return ; }
+
+	box( bwin, 0, 0 ) ;
+
+	if ( winttl != "" )
+	{
+		winttl = " "+ winttl +" " ;
+		mvwaddstr( bwin, 0, ( win_width - winttl.size() ) / 2, winttl.c_str() ) ;
+		set_panel_ttl( winttl ) ;
+	}
 }
 
 
@@ -597,6 +681,12 @@ void pPanel::refresh()
 	}
 	top_panel( panel ) ;
 	touchwin( win ) ;
+}
+
+
+bool pPanel::do_redisplay()
+{
+	return redisplay ;
 }
 
 
@@ -626,6 +716,7 @@ void pPanel::display_panel_update( errblock& err )
 	dataType var_type ;
 
 	map<string, field*>::iterator it ;
+	map<string, Area*>::iterator ita ;
 
 	err.setRC( 0 ) ;
 
@@ -636,10 +727,61 @@ void pPanel::display_panel_update( errblock& err )
 	reset_attrs_once() ;
 	reset_control_variables() ;
 
+	redisplay = false ;
+	bypassCur = false ;
+
 	end_pressed = ( usr_action == USR_CANCEL ||
 			usr_action == USR_END    ||
 			usr_action == USR_EXIT   ||
 			usr_action == USR_RETURN ) ;
+
+	cmdVerb = p_poolMGR->get( err, "ZVERB", SHARED ) ;
+	if ( err.error() ) { return ; }
+
+	if ( Area1 != "" && ( cmdVerb == "UP" || cmdVerb == "DOWN" ) )
+	{
+		for ( ita = AreaList.begin() ; ita != AreaList.end() ; ++ita )
+		{
+			if ( ita->second->cursor_on_area( p_row, p_col ) )
+			{
+				break ;
+			}
+		}
+		if ( ita == AreaList.end() && not scrollOn ) { ita = AreaList.find( Area1 ) ; }
+		if ( ita != AreaList.end() )
+		{
+			if ( cmdVerb == "UP" )
+			{
+				p = ita->second->scroll_up( p_row, p_col ) ;
+				if ( p == -1 )
+				{
+					set_message_cond( "PSYS013K" ) ;
+				}
+				else
+				{
+					rebuild_after_area_scroll( ita->second ) ;
+					p_row += p ;
+				}
+			}
+			else
+			{
+				p = ita->second->scroll_down( p_row, p_col ) ;
+				if ( p == -1 )
+				{
+					set_message_cond( "PSYS013L" ) ;
+				}
+				else
+				{
+					rebuild_after_area_scroll( ita->second ) ;
+					p_row -= p ;
+				}
+			}
+			p_poolMGR->put( err, "ZVERB", "", SHARED ) ;
+			redisplay = true ;
+			bypassCur = true ;
+			return ;
+		}
+	}
 
 	if ( scrollOn )
 	{
@@ -667,6 +809,7 @@ void pPanel::display_panel_update( errblock& err )
 				case 'P': it->second->field_value = "PAGE" ; break ;
 				default:  set_message_cond( "PSYS011I" ) ;
 					  set_cursor_cond( scroll )      ;
+					  dCsrpos = 1 ;
 			}
 		}
 		p_funcPOOL->put2( err, it->first, it->second->field_value ) ;
@@ -712,6 +855,7 @@ void pPanel::display_panel_update( errblock& err )
 					{
 						set_message_cond( "PSYS011G" ) ;
 						set_cursor_cond( it->first )   ;
+						dCsrpos = 1 ;
 					}
 				}
 				else if ( selectPanel )
@@ -769,9 +913,6 @@ void pPanel::display_panel_update( errblock& err )
 	p_poolMGR->put( err, "ZSCROLLN", "0", SHARED ) ;
 	if ( err.error() ) { return ; }
 
-	cmdVerb = p_poolMGR->get( err, "ZVERB", SHARED ) ;
-	if ( err.error() ) { return ; }
-
 	if ( scrollOn && findword( cmdVerb, "UP DOWN LEFT RIGHT" ) )
 	{
 		cmd    = upper( cmd_getvalue() ) ;
@@ -796,6 +937,7 @@ void pPanel::display_panel_update( errblock& err )
 			{
 				set_message_cond( "PSYS011I" ) ;
 				set_cursor_cond( msgfld )      ;
+				dCsrpos = 1 ;
 			}
 			else
 			{
@@ -902,7 +1044,10 @@ void pPanel::display_panel_init( errblock& err )
 
 	reset_attrs() ;
 
-	process_panel_stmnts( err, 0, initstmnts, PS_INIT ) ;
+	process_panel_stmnts( err,
+			      0,
+			      initstmnts,
+			      PS_INIT ) ;
 }
 
 
@@ -937,7 +1082,10 @@ void pPanel::display_panel_proc( errblock& err, int ln )
 
 	err.setRC( 0 ) ;
 
-	process_panel_stmnts( err, ln, procstmnts, PS_PROC ) ;
+	process_panel_stmnts( err,
+			      ln,
+			      procstmnts,
+			      PS_PROC ) ;
 	if ( err.error() ) { return ; }
 
 	if ( selectPanel )
@@ -2246,7 +2394,10 @@ void pPanel::point_and_shoot( uint row, uint col )
 {
 	// If the cursor is on a point-and-shoot field or text, set the pnts field, if blank, to the pnts value.
 
-	bool found = false ;
+	// Passed row/col is the physical position on the screen.  Adjust by the window offsets to find entry.
+
+	row -= win_row ;
+	col -= win_col ;
 
 	map<string, pnts>::iterator itp = pntsTable.end() ;
 	map<string, field*>::iterator itf ;
@@ -2254,23 +2405,25 @@ void pPanel::point_and_shoot( uint row, uint col )
 
 	if ( field_pas.empty() && text_pas.empty() ) { return ; }
 
-	for ( itf = field_pas.begin() ; !found && itf != field_pas.end() ; ++itf )
+	for ( itf = field_pas.begin() ; itf != field_pas.end() ; ++itf )
 	{
-		if ( itf->second->cursor_on_field( row, col ) )
+		if ( itf->second->field_visible  &&
+		     itf->second->field_active   &&
+		     itf->second->cursor_on_field( row, col ) )
 		{
 			itp = pntsTable.find( itf->first ) ;
-			found = true ;
+			break ;
 		}
 	}
 
-	if ( not found )
+	if ( itf == field_pas.end() )
 	{
-		for ( itt = text_pas.begin() ; !found && itt != text_pas.end() ; ++itt )
+		for ( itt = text_pas.begin() ; itt != text_pas.end() ; ++itt )
 		{
-			if ( (*itt)->cursor_on_text( row, col ) )
+			if ( (*itt)->text_visible && (*itt)->cursor_on_text( row, col ) )
 			{
 				itp = pntsTable.find( (*itt)->text_name ) ;
-				found = true ;
+				break ;
 			}
 		}
 	}
@@ -2386,7 +2539,7 @@ void pPanel::refresh_fields( errblock& err )
 		{
 			refresh_field( err, itf, itf->first ) ;
 			if ( err.error() ) { return ; }
-			itf->second->display_field( win, ddata_map, schar_map ) ;
+			itf->second->display_field( win, inv_schar, ddata_map, schar_map ) ;
 		}
 	}
 
@@ -2403,7 +2556,7 @@ void pPanel::refresh_fields( errblock& err )
 			itf = fieldList.find( itd->first +"."+ d2ds( i ) ) ;
 			itf->second->field_value        = darea->substr( j, k )  ;
 			itf->second->field_shadow_value = shadow->substr( j, k ) ;
-			itf->second->display_field( win, ddata_map, schar_map ) ;
+			itf->second->display_field( win, inv_schar, ddata_map, schar_map ) ;
 		}
 	}
 }
@@ -2533,7 +2686,7 @@ void pPanel::create_tbfield( errblock& err, const string& pline )
 	}
 	a.field_col     = tcol - 1 ;
 	a.field_length  = tlen     ;
-	a.field_endcol  = tcol - 1 + tlen ;
+	a.field_endcol  = tcol + tlen - 2 ;
 	a.field_input   = ( attrUnprot.count( fType ) > 0 ) ;
 	a.field_tb      = true ;
 
@@ -2552,7 +2705,10 @@ void pPanel::create_tbfield( errblock& err, const string& pline )
 }
 
 
-void pPanel::create_pdc( errblock& err, const string& abc_desc, const string& pline )
+void pPanel::create_pdc( errblock& err,
+			 const string& abc_desc,
+			 uint abc_mnem,
+			 const string& pline )
 {
 	// ab is a vector list of action-bar-choices (abc objects)
 	// Each action-bar-choice is a vector list of pull-down-choices (pdc objects)
@@ -2620,7 +2776,12 @@ void pPanel::create_pdc( errblock& err, const string& abc_desc, const string& pl
 	{
 		t_abc = new abc( p_funcPOOL, selectPanel ) ;
 		t_abc->abc_desc = abc_desc ;
-		t_abc->abc_col  = abc_pos  ;
+		if ( abc_mnem > 0 )
+		{
+			t_abc->abc_mnem1 = abc_mnem ;
+			t_abc->abc_mnem2 = toupper( abc_desc[ abc_mnem - 1 ] ) ;
+		}
+		t_abc->abc_col  = abc_pos ;
 		abc_pos        += abc_desc.size() + 2 ;
 		ab.push_back( t_abc ) ;
 		it = ab.begin() + ab.size() - 1 ;
@@ -2632,10 +2793,12 @@ void pPanel::create_pdc( errblock& err, const string& abc_desc, const string& pl
 
 void pPanel::update_field_values( errblock& err )
 {
-	// Update field_values from the dialogue variables (may not exist so treat RC=8 from getDialogueVar as normal completion)
+	// Update field_values from the dialogue variables.
+	// May not exist so treat RC=8 from getDialogueVar as normal completion.
 
-	// Treat dynamic areas differently - they must reside in the function pool.  Use vlocate to get the dynamic area variables
-	// via their addresses to avoid large string copies
+	// Treat dynamic areas differently - they must reside in the function pool.
+	// Use vlocate to get the dynamic area variables via their addresses to avoid
+	// large string copies.
 
 	int j ;
 	int k ;
@@ -2698,7 +2861,7 @@ void pPanel::update_field_values( errblock& err )
 void pPanel::display_text()
 {
 	// Substitute dialogue variables and place result in text_xvalue.  If there are no
-	// dialogue variables present, set text_dvars to false and clear text_value ;
+	// dialogue variables present, set text_dvars to false and clear text_value.
 
 	for ( auto it = textList.begin() ; it != textList.end() ; ++it )
 	{
@@ -2730,7 +2893,7 @@ void pPanel::display_fields( errblock& err, bool reset )
 		{
 			it->second->field_reset() ;
 		}
-		it->second->display_field( win, ddata_map, schar_map ) ;
+		it->second->display_field( win, inv_schar, ddata_map, schar_map ) ;
 	}
 }
 
@@ -2763,7 +2926,7 @@ void pPanel::reset_attrs()
 void pPanel::reset_attrs_once()
 {
 	// Reset attributes for fields that have been marked as a temporary attribute change,
-	// ie. .ATTR() in the )REINIT and )PROC panel sections that are valid for only one redisplay
+	// ie. .ATTR() in the )REINIT and )PROC panel sections that are valid for only one redisplay.
 
 	for ( auto ita = attrList.begin() ; ita != attrList.end() ; )
 	{
@@ -2792,12 +2955,15 @@ void pPanel::cursor_placement( errblock& err )
 	uint   f_pos = 1 ;
 	string f_name ;
 
+	if ( bypassCur ) { return ; }
+
 	int    csrpos = get_csrpos() ;
 	string cursor = get_cursor() ;
 
 	uint oX ;
 	uint oY ;
 
+	map<uint, Area*>::iterator ita ;
 	map<string, field*>::iterator itf ;
 	map<string, dynArea*>::iterator itd ;
 
@@ -2874,7 +3040,16 @@ void pPanel::cursor_placement( errblock& err )
 	}
 	else
 	{
-		if ( f_pos < 1 || f_pos > itf->second->field_length ) { f_pos = 1 ; }
+		if ( f_pos < 1 || f_pos > itf->second->field_length )
+		{
+			f_pos = 1 ;
+		}
+		if ( itf->second->field_area > 0 && not itf->second->field_visible )
+		{
+			ita = AreaNum.find( itf->second->field_area ) ;
+			ita->second->make_visible( itf->second ) ;
+			rebuild_after_area_scroll( ita->second ) ;
+		}
 		p_col = itf->second->field_col + f_pos - 1 ;
 		p_row = itf->second->field_row ;
 	}
@@ -2979,6 +3154,15 @@ const string& pPanel::field_getvalue( const string& f_name )
 }
 
 
+const string& pPanel::field_getrawvalue( const string& f_name )
+{
+	map<string, field*>::iterator it ;
+
+	it = fieldList.find( f_name )   ;
+	return  it->second->field_value ;
+}
+
+
 void pPanel::field_setvalue( const string& f_name, const string& f_value )
 {
 	map<string, field*>::iterator it ;
@@ -2987,7 +3171,7 @@ void pPanel::field_setvalue( const string& f_name, const string& f_value )
 	it->second->field_value   = f_value ;
 	it->second->field_changed = true ;
 	it->second->field_prep_display() ;
-	it->second->display_field( win, ddata_map, schar_map ) ;
+	it->second->display_field( win, inv_schar, ddata_map, schar_map ) ;
 }
 
 
@@ -3016,9 +3200,23 @@ void pPanel::cmd_setvalue( const string& v )
 
 bool pPanel::keep_cmd()
 {
-	// Return true to keep the command line and/or displayed message
+	// Return true to keep the command line and/or displayed message.
+	// Also set error_msg to false so old errors do not stop the command stack from executing.
+
+	// Errors from primary command - always clear
+	// else command line blank - keep
+	//      command line non-blank - clear
 
 	map<string, field*>::iterator it ;
+
+	if ( error_msg )
+	{
+		error_msg = false ;
+		if ( get_cursor() == cmdfield )
+		{
+			return false ;
+		}
+	}
 
 	if ( cmdfield == "" )
 	{
@@ -3034,7 +3232,7 @@ bool pPanel::keep_cmd()
 	}
 
 	it->second->field_set_caps() ;
-	it->second->display_field( win, ddata_map, schar_map ) ;
+	it->second->display_field( win, inv_schar, ddata_map, schar_map ) ;
 
 	return ( it->second->field_value.front() == '&' ) ;
 }
@@ -3063,19 +3261,25 @@ bool pPanel::is_cmd_inactive( const string& cmd )
 	{
 		if ( lrScroll ) { return false ; }
 		if ( tb_model ) { return true  ; }
+		if ( scrollOn ) { return false ; }
+		return true ;
+	}
+	else if ( findword( cmd, "UP DOWN" ) )
+	{
+		if ( not AreaList.empty() || scrollOn ) { return false ; }
+		return true ;
 	}
 	else if ( cmd == "NRETRIEV" && !nretriev ) { return true ; }
 	else if ( cmd == "RFIND"    && ( !forEdit && !forBrowse ) ) { return true ; }
 	else if ( cmd == "RCHANGE"  && !forEdit   ) { return true ; }
 
-	if ( !scrollOn && findword( cmd, "UP DOWN LEFT RIGHT" ) ) { return true ; }
 	return false ;
 }
 
 
 bool pPanel::field_valid( const string& f_name )
 {
-	return fieldList.find( f_name ) != fieldList.end() ;
+	return ( fieldList.find( f_name ) != fieldList.end() ) ;
 }
 
 
@@ -3141,10 +3345,12 @@ bool pPanel::field_nonblank( const string& field, uint p )
 {
 	// Return true if there is a nonblank character at position p in the field value.
 
+	if ( p == 0 ) { return true ; }
+
 	auto it = fieldList.find( field ) ;
 	if ( it->second->field_value.size() > p )
 	{
-		return it->second->field_value.compare( p, 1, " " ) > 0 ;
+		return ( it->second->field_value.compare( p, 1, " " ) > 0 ) ;
 	}
 	return false ;
 }
@@ -3191,21 +3397,21 @@ void pPanel::field_edit( uint row,
 		     (  fld->field_dynArea && !fld->field_dyna_input( col ) ) ) { return ; }
 		if ( Isrt )
 		{
-			if ( !fld->edit_field_insert( win, ch, def_schar, col, ddata_map, schar_map ) )
+			if ( !fld->edit_field_insert( win, ch, inv_schar, col, ddata_map, schar_map ) )
 			{
 				return ;
 			}
 		}
 		else
 		{
-			if ( !fld->edit_field_replace( win, ch, def_schar, col, ddata_map, schar_map ) )
+			if ( !fld->edit_field_replace( win, ch, inv_schar, col, ddata_map, schar_map ) )
 			{
 				return ;
 			}
 		}
 		prot = false ;
 		++p_col ;
-		if ( p_col == fld->field_endcol && fld->field_skip )
+		if ( fld->field_skip && p_col == ( fld->field_endcol + 1 ) )
 		{
 			p_row += win_row ;
 			p_col += win_col ;
@@ -3241,7 +3447,7 @@ void pPanel::field_backspace( uint& row,
 		if ( ( !fld->field_dynArea && !fld->field_input ) ||
 		     (  fld->field_dynArea && !fld->field_dyna_input( tcol ) ) ) { return ; }
 		p    = tcol ;
-		tcol = fld->edit_field_backspace( win, tcol, ddata_map, schar_map ) ;
+		tcol = fld->edit_field_backspace( win, tcol, inv_schar, ddata_map, schar_map ) ;
 		if ( p != tcol )
 		{
 			prot = false ;
@@ -3272,7 +3478,7 @@ void pPanel::field_delete_char( uint row, uint col, bool& prot )
 	{
 		if ( ( !fld->field_dynArea && !fld->field_input ) ||
 		     (  fld->field_dynArea && !fld->field_dyna_input( tcol ) ) ) { return ; }
-		fld->edit_field_delete( win, tcol, ddata_map, schar_map ) ;
+		fld->edit_field_delete( win, tcol, inv_schar, ddata_map, schar_map ) ;
 		prot = false ;
 	}
 }
@@ -3294,7 +3500,7 @@ void pPanel::field_erase_eof( uint row, uint col, bool& prot )
 	{
 		if ( ( !fld->field_dynArea && !fld->field_input ) ||
 		     (  fld->field_dynArea && !fld->field_dyna_input( col ) ) ) { return ; }
-		fld->field_erase_eof( win, col, ddata_map, schar_map ) ;
+		fld->field_erase_eof( win, col, inv_schar, ddata_map, schar_map ) ;
 		prot = false ;
 	}
 }
@@ -3637,6 +3843,17 @@ void pPanel::set_tb_fields_act_inact( errblock& err )
 }
 
 
+void pPanel::rebuild_after_area_scroll( Area* a )
+{
+	// Update the fieldList, textList, fieldMap and fieldAddrs after
+	// an AREA scroll
+
+	a->update_area() ;
+
+	build_fieldMap() ;
+}
+
+
 void pPanel::get_pd_home( uint& row, uint& col )
 {
 	// Return the physical home position of a pull-down
@@ -3724,16 +3941,38 @@ void pPanel::display_current_pd( errblock& err, uint row, uint col )
 }
 
 
-void pPanel::display_next_pd( errblock& err, string& msg )
+void pPanel::display_next_pd( errblock& err, const string& mnemonic, string& msg )
 {
+	uint i ;
+
+	vector<abc*>::iterator it ;
+
 	err.setRC( 0 ) ;
 
 	if ( ab.size() == 0 ) { return ; }
 
 	hide_pd() ;
-	if ( !pdActive || ++abIndex == ab.size() ) { abIndex = 0 ; }
+	if ( !pdActive )
+	{
+		abIndex = 0 ;
+		if ( mnemonic.size() == 1 )
+		{
+			for ( i = 0, it = ab.begin() ; it != ab.end() ; ++it, ++i )
+			{
+				if ( (*it)->abc_mnem2 == mnemonic.front() )
+				{
+					abIndex = i ;
+					break ;
+				}
+			}
+		}
+	}
+	else if ( ++abIndex == ab.size() )
+	{
+		abIndex = 0 ;
+	}
 
-	auto it = ab.begin() + abIndex ;
+	it = ab.begin() + abIndex ;
 
 	clear_msg() ;
 
@@ -3745,6 +3984,7 @@ void pPanel::display_next_pd( errblock& err, string& msg )
 		pdActive = false ;
 		return ;
 	}
+
 	msg = dMsg ;
 	(*it)->display_abc_sel( win ) ;
 	(*it)->display_pd( err, dZvars, win_row, win_col, 2 ) ;
@@ -3768,6 +4008,23 @@ void pPanel::hide_pd()
 
 	(*it)->hide_pd() ;
 	(*it)->display_abc_unsel( win ) ;
+}
+
+
+void pPanel::display_area_si()
+{
+	// Display the area scroll indicator.
+
+	uint row ;
+	uint col ;
+	uint width ;
+
+	for ( auto it = AreaList.begin() ; it != AreaList.end() ; ++it )
+	{
+		it->second->get_info( row, col, width ) ;
+		wattrset( win, cuaAttr[ SI ] | panel_intens ) ;
+		mvwaddstr( win, row, col+width-12, it->second->get_scroll_indicator() ) ;
+	}
 }
 
 
@@ -3871,8 +4128,10 @@ void pPanel::set_panel_msg( const slmsg& t, const string& m )
 void pPanel::clear_msg()
 {
 	MSG.clear() ;
-	dMsg     = "" ;
-	showLMSG = false ;
+
+	dMsg      = "" ;
+	showLMSG  = false ;
+	error_msg = false ;
 
 	if ( smwin )
 	{
@@ -3913,16 +4172,16 @@ void pPanel::display_msg( errblock& err )
 	uint w_col ;
 	uint w_depth ;
 	uint w_width ;
-	uint f_colour1 ;
+	uint f_colour1 = 0 ;
 
-	uint m_row ;
-	uint m_col ;
+	uint m_row = 0 ;
+	uint m_col = 0 ;
 
 	string t ;
 	string msg = get_msg() ;
 
-	bool inWindow1 ;
-	bool inWindow2 ;
+	bool inWindow1 = false ;
+	bool inWindow2 = false ;
 
 	vector<string> v ;
 
@@ -4209,8 +4468,8 @@ void pPanel::display_id( errblock& err )
 	{
 		panel_cleanup( idpanel ) ;
 		del_panel( idpanel ) ;
-		delwin( idwin )      ;
-		idwin = NULL         ;
+		delwin( idwin ) ;
+		idwin = NULL ;
 	}
 
 	if ( p_poolMGR->get( err, zscrnum, "ZSHUSRID" ) == "Y" )
@@ -4256,7 +4515,7 @@ void pPanel::get_panel_info( errblock& err,
 	// RC =  8  Area type not found on panel
 	// RC = 20  Severe error
 
-	// Only AREATYPE DYNAMIC currently supported
+	// Only AREATYPE(DYNAMIC) currently supported
 
 	map<string, dynArea*>::iterator it ;
 
@@ -4339,6 +4598,103 @@ void pPanel::panel_cleanup( PANEL* p )
 	{
 		delete static_cast<const panel_data*>(vptr) ;
 	}
+}
+
+
+void pPanel::set_panel_fscreen()
+{
+	const void* vptr = panel_userptr( panel ) ;
+
+	if ( vptr )
+	{
+		const panel_data* pd = static_cast<const panel_data*>(vptr) ;
+		pd->set_fscreen() ;
+	}
+}
+
+
+void pPanel::unset_panel_fscreen()
+{
+	const void* vptr = panel_userptr( panel ) ;
+
+	if ( vptr )
+	{
+		const panel_data* pd = static_cast<const panel_data*>(vptr) ;
+		pd->unset_fscreen() ;
+	}
+}
+
+
+void pPanel::unset_panel_decolourised()
+{
+	const void* vptr = panel_userptr( panel ) ;
+
+	if ( vptr )
+	{
+		const panel_data* pd = static_cast<const panel_data*>(vptr) ;
+		pd->unset_decolourised() ;
+	}
+}
+
+
+bool pPanel::is_panel_decolourised()
+{
+	const void* vptr = panel_userptr( panel ) ;
+
+	if ( vptr )
+	{
+		const panel_data* pd = static_cast<const panel_data*>(vptr) ;
+		return pd->is_decolourised() ;
+	}
+	return false ;
+}
+
+
+void pPanel::set_panel_frame_act()
+{
+	const void* vptr = panel_userptr( bpanel ) ;
+
+	if ( vptr )
+	{
+		const panel_data* pd = static_cast<const panel_data*>(vptr) ;
+		pd->set_frame_act() ;
+	}
+}
+
+
+bool pPanel::is_panel_frame_inact()
+{
+	const void* vptr = panel_userptr( bpanel ) ;
+
+	if ( vptr )
+	{
+		const panel_data* pd = static_cast<const panel_data*>(vptr) ;
+		return pd->is_frame_inact() ;
+	}
+	return true ;
+}
+
+
+void pPanel::set_panel_ttl( const string& winttl )
+{
+	const void* vptr = panel_userptr( bpanel ) ;
+	if ( vptr )
+	{
+		const panel_data* pd = static_cast<const panel_data*>(vptr) ;
+		pd->set_winttl( winttl ) ;
+	}
+}
+
+
+const string pPanel::get_panel_ttl( PANEL* p )
+{
+	const void* vptr = panel_userptr( p ) ;
+	if ( vptr )
+	{
+		const panel_data* pd = static_cast<const panel_data*>(vptr) ;
+		return pd->get_winttl() ;
+	}
+	return "" ;
 }
 
 

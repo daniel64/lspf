@@ -30,6 +30,8 @@ class PMAIN0A : public pApplication
 
 		int  offset ;
 
+		string msg     ;
+
 		string zarea   ;
 		string zshadow ;
 		string zdatel  ;

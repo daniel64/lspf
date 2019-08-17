@@ -60,12 +60,9 @@ PCMD0A::PCMD0A()
 
 void PCMD0A::application()
 {
-	int RC1 ;
-
 	size_t p ;
 
 	string zcmd  ;
-	string zverb ;
 	string msg   ;
 	string comm1 ;
 	string comm2 ;
@@ -81,7 +78,7 @@ void PCMD0A::application()
 		}
 	}
 
-	vdefine( "ZCMD ZVERB COMM1 COMM2", &zcmd, &zverb, &comm1, &comm2 ) ;
+	vdefine( "ZCMD COMM1 COMM2", &zcmd, &comm1, &comm2 ) ;
 	vget( "COMM1 COMM2", SHARED ) ;
 	if ( RC == 0 && PARM != "" )
 	{
@@ -120,9 +117,7 @@ void PCMD0A::application()
 	while ( true )
 	{
 		display( panel, msg, "ZCMD" ) ;
-		RC1 = RC ;
-		vget( "ZVERB", SHARED ) ;
-		if ( RC1 == 8 && findword( zverb, "END EXIT CANCEL RETURN" ) ) { break ; }
+		if ( RC == 8 ) { break ; }
 		msg = "" ;
 		if ( zcmd != "" )
 		{

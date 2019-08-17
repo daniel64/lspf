@@ -39,6 +39,7 @@ class pPanel
 		void   field_tab_down( uint& row, uint& col ) ;
 		void   field_tab_next( uint& row, uint& col ) ;
 		const string& field_getvalue( const string& field ) ;
+		const string& field_getrawvalue( const string& field ) ;
 		bool   field_valid( const string& field ) ;
 		fieldExc field_getexec( const string& )   ;
 		void   field_setvalue( const string& field, const string& value ) ;
@@ -66,8 +67,9 @@ class pPanel
 		void   remove_pd()  ;
 		bool   jump_field( uint, uint, string& ) ;
 		bool   cursor_on_pulldown( uint, uint ) ;
-		void   display_next_pd( errblock&, string& ) ;
+		void   display_next_pd( errblock&, const string&, string& ) ;
 		void   display_msg( errblock& ) ;
+		void   display_area_si() ;
 		pdc    retrieve_choice( errblock&, string& ) ;
 		void   toggle_fscreen( bool, int, int ) ;
 
@@ -114,6 +116,7 @@ class pPanel
 		string pos_lmsg    ;
 		string da_dataIn   ;
 		string da_dataOut  ;
+		string Area1       ;
 		int    tb_start    ;
 		int    tb_depth    ;
 		int    tb_curidx   ;
@@ -137,8 +140,9 @@ class pPanel
 		bool   lrScroll    ;
 		bool   forEdit     ;
 		bool   forBrowse   ;
+		bool   bypassCur   ;
+		bool   redisplay   ;
 		string nretfield   ;
-		int    opt_field   ;
 		uint   dyn_depth   ;
 		uint   dyn_width   ;
 		uint   zscrnum     ;
@@ -160,7 +164,7 @@ class pPanel
 		uint   win_depth   ;
 		uint   win_row     ;
 		uint   win_col     ;
-		char   def_schar   ;
+		char   inv_schar   ;
 		WINDOW* win        ;
 		WINDOW* fwin       ;
 		WINDOW* pwin       ;
@@ -202,7 +206,11 @@ class pPanel
 		void   readPanel( errblock&, vector<string>&, const string&, const string&, string ) ;
 
 		void   build_jumpList() ;
-		void   build_fieldMap( errblock& ) ;
+		void   build_fieldMap() ;
+		void   build_Areas( errblock& ) ;
+		void   rebuild_after_area_scroll( Area* ) ;
+
+		void   check_overlapping_fields( errblock& ) ;
 
 		void   createPanel_Refresh( errblock&, parser&, panstmnt* ) ;
 		void   createPanel_Vputget( errblock&, parser&, panstmnt* ) ;
@@ -242,11 +250,13 @@ class pPanel
 		string get_msgloc() ;
 		void   set_msgloc( const string& m ) { msgloc = m ; }
 
+		bool   do_redisplay() ;
+
 		void   set_cursor_idr( int i ) { tb_curidr = i ; }
 		void   set_cursor_home() ;
 		void   get_home( uint& row, uint& col ) ;
 
-		void   set_popup( bool, int, int ) ;
+		void   set_popup( bool, int&, int& ) ;
 		void   remove_popup() ;
 		void   move_popup()   ;
 		void   show_popup()   ;
@@ -302,6 +312,23 @@ class pPanel
 		void   reset_attrs() ;
 		void   reset_attrs_once() ;
 
+		void   set_panel_fscreen() ;
+		void   unset_panel_fscreen() ;
+
+		void   unset_panel_decolourised() ;
+		bool   is_panel_decolourised() ;
+
+		void   set_panel_frame_act()  ;
+		bool   is_panel_frame_inact() ;
+
+		void   set_panel_ttl( const string& ) ;
+		const string get_panel_ttl( PANEL* ) ;
+
+		void   redraw_panel( errblock& ) ;
+
+		void   draw_frame( PANEL*, uint ) ;
+		void   draw_frame( errblock& ) ;
+
 		void   syncDialogueVar( errblock&, const string& ) ;
 		string getDialogueVar( errblock&, const string& )   ;
 		void   putDialogueVar( errblock&, const string&, const string& ) ;
@@ -316,12 +343,17 @@ class pPanel
 				       const string& opts ) ;
 
 		void   create_tbfield( errblock&, const string& ) ;
-		void   create_pdc( errblock&, const string&, const string& ) ;
+		void   create_pdc( errblock&,
+				   const string&,
+				   uint,
+				   const string& ) ;
 
 		void   display_boxes() ;
 
 		void   display_tb_mark_posn( errblock& )    ;
 		void   set_tb_fields_act_inact( errblock& ) ;
+
+		void   decolourise( WINDOW*, uint, uint, uint ) ;
 
 		string sub_vars( string s ) ;
 		string sub_vars( string s, bool& ) ;
@@ -338,6 +370,8 @@ class pPanel
 		map<string, field*> fieldList     ;
 		map<string, field*> jumpList      ;
 		map<string, field*> field_pas     ;
+		map<string, Area*> AreaList       ;
+		map<uint, Area*> AreaNum          ;
 		map<string, dynArea*> dynAreaList ;
 		map<string, pnts> pntsTable       ;
 		map<string, string> fieldHList    ;
@@ -435,7 +469,147 @@ class pPanel
 		void   update_keylist_vars( errblock& ) ;
 
 		friend class pApplication ;
+		friend class pLScreen     ;
 } ;
+
+
+class panel_data_ext
+{
+	public:
+		explicit panel_data_ext()
+		{
+			winttl       = ""    ;
+			fscreen      = false ;
+			frame_inact  = false ;
+			decolourised = false ;
+		}
+
+	private:
+		string winttl ;
+
+		bool fscreen ;
+		bool frame_inact  ;
+		bool decolourised ;
+
+		friend class panel_data ;
+} ;
+
+
+class panel_data
+{
+	public:
+		explicit panel_data()
+		{
+			data_ext = new panel_data_ext ;
+		}
+
+		explicit panel_data( uint x )
+		{
+			screenId = x ;
+			ppanel   = NULL ;
+			frame    = false ;
+			data_ext = new panel_data_ext ;
+			data_ext->fscreen = false ;
+		}
+
+		explicit panel_data( uint x, bool b, pPanel* p )
+		{
+			screenId = x ;
+			ppanel   = p ;
+			frame    = true ;
+			data_ext = new panel_data_ext ;
+			data_ext->fscreen = false ;
+		}
+
+		explicit panel_data( uint x, pPanel* p, bool f = false )
+		{
+			screenId = x ;
+			ppanel   = p ;
+			frame    = false ;
+			data_ext = new panel_data_ext ;
+			data_ext->fscreen = f ;
+		}
+
+		~panel_data()
+		{
+			delete data_ext ;
+		}
+
+		void set_fscreen() const
+		{
+			data_ext->fscreen = true ;
+		}
+
+		void unset_fscreen() const
+		{
+			data_ext->fscreen = false ;
+		}
+
+		bool is_fscreen() const
+		{
+			return data_ext->fscreen ;
+		}
+
+		void set_decolourised() const
+		{
+			data_ext->decolourised = true ;
+		}
+
+		void unset_decolourised() const
+		{
+			data_ext->decolourised = false ;
+		}
+
+		bool is_decolourised() const
+		{
+			return data_ext->decolourised ;
+		}
+
+		bool is_frame() const
+		{
+			return frame ;
+		}
+
+		void set_frame_inact() const
+		{
+			data_ext->frame_inact = true ;
+		}
+
+		void set_frame_act() const
+		{
+			data_ext->frame_inact = false ;
+		}
+
+		bool is_frame_act() const
+		{
+			return !data_ext->frame_inact ;
+		}
+
+		bool is_frame_inact() const
+		{
+			return data_ext->frame_inact ;
+		}
+
+		void set_winttl( const string& ttl ) const
+		{
+			data_ext->winttl = ttl ;
+		}
+
+		const string& get_winttl() const
+		{
+			return data_ext->winttl ;
+		}
+
+
+		uint screenId  ;
+
+		bool frame     ;
+
+		pPanel* ppanel ;
+
+		panel_data_ext* data_ext ;
+} ;
+
 
 #undef llog
 #undef debug1

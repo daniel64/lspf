@@ -566,8 +566,8 @@ void PLRFLST1::OpenFileList( const string& curtb )
 		if ( csel == "S" )
 		{
 			control( "REFLIST", "ON" ) ;
-			ZRESULT  = cfile      ;
-			ZRC      = 0          ;
+			ZRESULT  = cfile ;
+			ZRC      = 0     ;
 			vreplace( "ZCURTB", zcurtb ) ;
 			vreplace( "ZRFNPOS", cnum )  ;
 			vput( "ZCURTB ZRFNPOS", SHARED ) ;

@@ -176,7 +176,13 @@ int main()
 
 	ZCTVERB  = "HELP" ;
 	ZCTTRUNC = "0"    ;
-	ZCTACT   = "SELECT PGM(&ZHELPPGM) PARM(&ZPARM) SUSPEND"  ;
+	ZCTACT   = "SELECT PGM(&ZHELPPGM) PARM(&ZPARM) SCRNAME(HELP) SUSPEND"  ;
+	ZCTDESC  = "" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	ZCTVERB  = "TUTOR" ;
+	ZCTTRUNC = "0"    ;
+	ZCTACT   = "SELECT PGM(&ZHELPPGM) PARM('HPSPF01') SCRNAME(TUTOR) SUSPEND"  ;
 	ZCTDESC  = "" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
@@ -523,6 +529,8 @@ void createSYSPROF()
 	p_poolMGR->put( err, "ZSWAPC",   "'",    PROFILE ) ;
 	p_poolMGR->put( err, "ZSCROLLD", "HALF", PROFILE ) ;
 	p_poolMGR->put( err, "ZSRETP",   "Y",    PROFILE ) ;
+	p_poolMGR->put( err, "ZDECLR",   "Y",    PROFILE ) ;
+	p_poolMGR->put( err, "ZDECLRA",  "BH",   PROFILE ) ;
 
 	p_poolMGR->put( err, "ZURGBR", "", PROFILE ) ;
 	p_poolMGR->put( err, "ZURGBG", "", PROFILE ) ;
@@ -624,6 +632,8 @@ void createSYSPROF()
 	setCUAcolours( "EE",   KEE ) ;
 	setCUAcolours( "FP",   KFP ) ;
 	setCUAcolours( "FK",   KFK ) ;
+
+	setCUAcolours( "IWF",  KIWF ) ;
 
 	setCUAcolours( "IMT",  KIMT ) ;
 	setCUAcolours( "LEF",  KLEF ) ;

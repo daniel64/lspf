@@ -51,7 +51,7 @@ using namespace boost::gregorian ;
 PMAIN0A::PMAIN0A()
 {
 	set_appdesc( "Default main program for lspf" ) ;
-	set_appver( "1.0.1" ) ;
+	set_appver( "1.0.2" ) ;
 	set_apphelp( "HPMAIN1" ) ;
 
 	vdefine( "ZCURFLD ZAREA ZSHADOW", &zcurfld, &zarea, &zshadow ) ;
@@ -65,10 +65,10 @@ void PMAIN0A::application()
 	int pmonth ;
 	int pyear  ;
 	int curpos ;
+	int maxw   ;
 
 	string zcmd ;
 	string pan  ;
-	string msg  ;
 	string w1   ;
 	string ws   ;
 	string zsel ;
@@ -78,10 +78,12 @@ void PMAIN0A::application()
 	string curfld   ;
 
 	vdefine( "ZCMD ZSEL ZSCRNAME", &zcmd, &zsel, &zscrname ) ;
+	vdefine( "ZSCRMAXW", &maxw ) ;
 
 	zscrname = "MAIN" ;
 	vput( "ZSCRNAME", SHARED ) ;
 	vget( "ZDATEL ZJDATE", SHARED ) ;
+	vget( "ZSCRMAXW", SHARED ) ;
 
 	offset = 0 ;
 	pmonth = ds2d( substr( zdatel, 4, 2 ) ) ;
@@ -97,13 +99,21 @@ void PMAIN0A::application()
 		control( "NONDISPL", "ENTER" ) ;
 	}
 
-	vcopy( "ZMAINPAN", pan, MOVE ) ;
+	if ( maxw < 123 )
+	{
+		pan = "PMAINP02" ;
+	}
+	else
+	{
+		vcopy( "ZMAINPAN", pan, MOVE ) ;
+	}
 
 	curfld = "ZCMD" ;
 	curpos = 1      ;
+	verase( "ZSEL", SHARED ) ;
 	while ( true )
 	{
-		vput( "ZCMD ZSEL", SHARED ) ;
+		vput( "ZCMD", SHARED ) ;
 		display( pan, msg, curfld, curpos ) ;
 		if ( RC == 8 )
 		{
@@ -111,17 +121,24 @@ void PMAIN0A::application()
 			vput( "ZSEL", SHARED ) ;
 			break ;
 		}
+		vget( "ZSEL", SHARED ) ;
+		if ( RC > 0 )
+		{
+			abend( "PSYS013M", pan ) ;
+			return ;
+		}
 		curpos = 1      ;
 		curfld = "ZCMD" ;
-		vget( "ZCMD ZSEL", SHARED ) ;
+		vget( "ZCMD ZJDATE ZTIME", SHARED ) ;
 		if ( zsel == "?" )
 		{
 			msg  = "PSYS016" ;
 			zsel = "" ;
+			vput( "ZSEL", SHARED ) ;
 			continue  ;
 		}
 
-		vget( "ZJDATE ZTIME", SHARED ) ;
+		vget( "ZCMD ZJDATE ZTIME", SHARED ) ;
 		msg = "" ;
 
 		if ( odat != zjdate )
@@ -199,7 +216,16 @@ void PMAIN0A::create_calendar( int pmonth, int pyear )
 	if ( month > 12 ) { month -= 12 ; ++year ; }
 	if ( month < 1  ) { month += 12 ; --year ; }
 
-	eom_day = gregorian_calendar::end_of_month_day( year, month ) ;
+	try
+	{
+		eom_day = gregorian_calendar::end_of_month_day( year, month ) ;
+	}
+	catch ( std::exception& e )
+	{
+		msg = "MAIN011" ;
+		return ;
+	}
+
 	date endOfMonth( year, month, eom_day ) ;
 	day_iterator ditr( date( year, month, 1 ) ) ;
 

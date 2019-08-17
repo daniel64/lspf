@@ -2017,9 +2017,9 @@ string PFLST0A::expandDir( const string& parms )
 	// Cursor sensitive.  Only characters before the current cursor position (if > 1) in the field (ZFECSRP) will
 	// be taken into account
 
-	// If passed directory matches a listing entry, return the next entry (if not end-of-list)
+	// If directory matches a listing entry, return the next entry (if not end-of-list)
 
-	// If passed directory is an abbreviation of one in the listing, return the current entry
+	// If directory is an abbreviation of one in the listing, return the current entry
 
 	// If first parameter is ALL, all entries are used
 	// If first parameter is DO1, filter on directories
@@ -2027,6 +2027,7 @@ string PFLST0A::expandDir( const string& parms )
 
 	int i        ;
 	size_t pos   ;
+	size_t p1    ;
 
 	bool showl   ;
 
@@ -2045,13 +2046,16 @@ string PFLST0A::expandDir( const string& parms )
 	vec v ;
 	vec::iterator new_end ;
 
-	type = word( parms, 1 )    ;
-	dir  = subword( parms, 2 ) ;
+	type = word( parms, 1 ) ;
 
-	vget( "ZFECSRP", SHARED ) ;
+	vget( "ZFEDATA0 ZFECSRP", SHARED ) ;
+	vcopy( "ZFEDATA0", dir, MOVE ) ;
 	vcopy( "ZFECSRP", cpos, MOVE ) ;
 
-	pos = ds2d( cpos ) ;
+	p1 = dir.find_first_not_of( ' ' ) ;
+	if ( p1 == string::npos ) { p1 = 0 ; }
+	pos = ds2d( cpos ) - p1 ;
+	trim_left( dir ) ;
 
 	if ( type == "FO2" )
 	{
@@ -2102,7 +2106,7 @@ string PFLST0A::expandDir( const string& parms )
 		return showListing() ;
 	}
 
-	if ( pos > 1 && pos < dir.size() )
+	if ( pos > 1 && pos <= dir.size() )
 	{
 		dir.erase( pos-1 ) ;
 	}
@@ -2183,6 +2187,7 @@ string PFLST0A::expandFld1( const string& parms )
 	int n        ;
 
 	size_t pos   ;
+	size_t p1    ;
 
 	string Paths ;
 	string type  ;
@@ -2203,12 +2208,16 @@ string PFLST0A::expandFld1( const string& parms )
 
 	set<string>processed ;
 
-	type = word( parms, 1 )    ;
-	dir  = subword( parms, 2 ) ;
+	type = word( parms, 1 ) ;
 
-	vget( "ZFECSRP", SHARED ) ;
+	vget( "ZFEDATA0 ZFECSRP", SHARED ) ;
+	vcopy( "ZFEDATA0", dir, MOVE ) ;
 	vcopy( "ZFECSRP", cpos, MOVE ) ;
-	pos = ds2d( cpos ) ;
+
+	p1 = dir.find_first_not_of( ' ' ) ;
+	if ( p1 == string::npos ) { p1 = 0 ; }
+	pos = ds2d( cpos ) - p1 ;
+	trim_left( dir ) ;
 
 	if ( pos > 1 && pos < dir.size() )
 	{
