@@ -94,7 +94,7 @@ map<int, edit_find>PEDIT01::Global_efind_parms ;
 PEDIT01::PEDIT01()
 {
 	set_appdesc( "PDF-like editor for lspf" ) ;
-	set_appver( "1.0.11" ) ;
+	set_appver( "1.0.12" ) ;
 	set_apphelp( "HEDIT01" ) ;
 
 	rebuildZAREA  = true  ;
@@ -1429,7 +1429,8 @@ void PEDIT01::fill_dynamic_area()
 	zarea.resize( zasize, ' ' ) ;
 	zshadow.resize( zasize, E_GREEN ) ;
 
-	if ( hideExcl && dl < data.size() )
+	dl = s2data.at( zaread - 1 ).ipos_dl ;
+	if ( hideExcl && dl > 0 && dl < data.size() )
 	{
 		dl = getNextDataLine( dl ) ;
 		if ( dl < data.size() && data.at( dl )->il_excl )
@@ -1440,7 +1441,7 @@ void PEDIT01::fill_dynamic_area()
 			}
 			else
 			{
-				i = ( zaread - s2data.at( j ).ipos_hex - 1 ) * zareaw ;
+				i = ( zaread - s2data.at( zaread - 1 ).ipos_hex - 1 ) * zareaw ;
 			}
 			if ( zshadow[ i ] == slg.front() )
 			{
