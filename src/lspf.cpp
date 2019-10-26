@@ -1162,7 +1162,7 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 	{
 		if ( zcommand != "" )
 		{
-			if ( currAppl->error_msg_issued() )
+			if ( currAppl->currPanel->cmd_nonblank() )
 			{
 				passthru  = false ;
 				zcommand += commandStack ;
@@ -1179,7 +1179,7 @@ void processAction( selobj& selct, uint row, uint col, int c, bool& doSelect, bo
 				}
 			}
 		}
-		else if ( currAppl->error_msg_issued() )
+		else if ( currAppl->currPanel->cmd_nonblank() )
 		{
 			passthru = false ;
 			zcommand = "" ;
@@ -2071,8 +2071,8 @@ void startApplication( selobj& selct, bool nScreen )
 	{
 		if ( !loadDynamicClass( selct.pgm ) )
 		{
-			selct.errors = true ;
-			selct.rsn    = 996  ;
+			selct.errors  = true ;
+			selct.rsn     = 996  ;
 			t = "Errors loading application "+ selct.pgm ;
 			if ( selct.quiet )
 			{
@@ -2388,23 +2388,21 @@ void processBackgroundTasks()
 
 void checkStartApplication( selobj& selct )
 {
-	if ( not selct.errors ) { return ; }
-
-	currAppl->RC      = 20  ;
-	currAppl->ZRC     = 20  ;
-	currAppl->ZRSN    = selct.rsn ;
-	currAppl->ZRESULT = "PSYS013J" ;
-
-	if ( not currAppl->errorsReturn() )
+	if ( selct.errors )
 	{
-		currAppl->abnormalEnd = true ;
-	}
-
-	ResumeApplicationAndWait() ;
-	while ( currAppl->terminateAppl )
-	{
-		terminateApplication() ;
-		if ( pLScreen::screensTotal == 0 ) { return ; }
+		currAppl->RC      = 20  ;
+		currAppl->ZRC     = 20  ;
+		currAppl->ZRSN    = selct.rsn ;
+		currAppl->ZRESULT = "PSYS013J" ;
+		if ( not currAppl->errorsReturn() )
+		{
+			currAppl->abnormalEnd = true ;
+		}
+		ResumeApplicationAndWait() ;
+		while ( currAppl->terminateAppl && pLScreen::screensTotal > 0 )
+		{
+			terminateApplication() ;
+		}
 	}
 }
 
@@ -2858,6 +2856,8 @@ void ResumeApplicationAndWait()
 			move( row, col ) ;
 		}
 	}
+
+	p_poolMGR->put( err, "ZVERB", "", SHARED ) ;
 
 	if ( currAppl->reloadCUATables ) { loadCUATables() ; }
 	if ( currAppl->do_refresh_lscreen() )
@@ -4197,8 +4197,8 @@ int getScreenNameNum( const string& s )
 
 void lspfCallbackHandler( lspfCommand& lc )
 {
-	//  Issue commands from applications using lspfCallback() function
-	//  Replies go into the reply vector
+	// Issue commands from applications using lspfCallback() function
+	// Replies go into the reply vector
 
 	string w1 ;
 	string w2 ;

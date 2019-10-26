@@ -140,8 +140,8 @@ PEDM012S 'Syntax not valid'
 PEDM012T 'Spare'
 'Spare'
 
-PEDM012U 'Spare'
-'Spare'
+PEDM012U 'TFLOW parameter missing'
+'TFLOW requires the column parameter if the right bounds has not been set.'
 
 PEDM012V 'Invalid LINE format' .TYPE=W
 'Format must be ''line-type data'''
@@ -159,7 +159,7 @@ PEDM012Z 'Invalid template format'
 'Invalid number of parameters between ''<'' and ''>'''
 
 PEDM013A 'Missing parameter'
-'&ZVAL1'
+'&ZVAL1 keyword missing lptr parameter'
 
 PEDM013B 'Invalid template parameter'
 'Column parameter must be numeric'

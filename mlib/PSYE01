@@ -21,7 +21,7 @@ PSYE011E 'WINDOW() statement error' .TYPE=W
 'Window width must be at least 2 less than the physical screen width of &ZSCRMAXW'
 
 PSYE011F 'WINDOW() statement error' .TYPE=W
-'Window depth must be at least 2 less than the physical screen width of &ZSCRMAXD'
+'Window depth must be at least 2 less than the physical screen depth of &ZSCRMAXD'
 
 PSYE011G 'No )ABC descrption' .TYPE=W
 'Action bar choice must have a description defined'

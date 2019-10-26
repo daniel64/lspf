@@ -212,6 +212,7 @@ enum M_CMDS
 	EM_SEEK_COUNTS,
 	EM_SHIFT,
 	EM_TABSLINE,
+	EM_TFLOW,
 	EM_RESET,
 	EM_XSTATUS
 } ;
@@ -234,7 +235,7 @@ enum CSR_POS
 	CSR_FNB_DATA,
 	CSR_OFF_DATA,
 	CSR_OFF_LCMD,
-	CSR_LC_OR_DATA
+	CSR_LC_OR_FNB_DATA
 } ;
 
 
@@ -371,6 +372,7 @@ map<string, mcmd_format> EMServ =  //      ~~~~   ~~~~~  ~~~~~   ~~~~~   ~~~~~  
   { "SEEK",           { EM_SEEK,           true,  false, false, -1, -1, -1, -1, -1, -1, -1, -1 } },
   { "SEEK_COUNTS",    { EM_SEEK_COUNTS,    false, true,  false,  1,  2,  0,  0, -1, -1, -1, -1 } },
   { "SHIFT",          { EM_SHIFT,          true,  false, false, -1, -1, -1, -1, -1, -1, -1, -1 } },
+  { "TFLOW",          { EM_TFLOW,          true,  false, false, -1, -1, -1, -1, -1, -1, -1, -1 } },
   { "TABSLINE",       { EM_TABSLINE,       false, true,  true,   1,  1,  0,  0,  0,  0, -1, -1 } },
   { "XSTATUS",        { EM_XSTATUS,        false, true,  true,   1,  1,  1,  1,  1,  1,  1,  1 } } } ;
 
@@ -522,16 +524,36 @@ class lcmd
 class idata
 {
 	private:
-		int    id_level   ;
-		bool   id_deleted ;
-		string id_data    ;
+		int    id_level  ;
+		bool   id_delete ;
+		string id_data   ;
 
 		idata()
 		{
-			id_level   = 0     ;
-			id_deleted = false ;
-			id_data    = ""    ;
+			id_level  = 0     ;
+			id_delete = false ;
+			id_data   = ""    ;
 		}
+
+	friend class iline ;
+} ;
+
+
+class ilabel
+{
+	private:
+		int ix_level ;
+		map<int, string> ix_label ;
+
+		ilabel()
+		{
+			ix_level = 0 ;
+		}
+
+	bool empty()
+	{
+		return ix_label.empty() ;
+	}
 
 	friend class iline ;
 } ;
@@ -692,8 +714,10 @@ class iline
 
 		static int get_Global_Undo_level( int i )
 		{
-			if ( !setUNDO[ i ] ||
-			     Global_Undo[ i ].empty() ) { return 0 ; }
+			if ( !setUNDO[ i ] || Global_Undo[ i ].empty() )
+			{
+				return 0 ;
+			}
 			return Global_Undo[ i ].top() ;
 		}
 
@@ -736,9 +760,10 @@ class iline
 		string  il_Shadow  ;
 		bool    il_vShadow ;
 		bool    il_wShadow ;
-		map    <int, string>il_label ;
-		stack  <idata> il_idata      ;
-		stack  <idata> il_idata_redo ;
+		stack  <ilabel> il_label      ;
+		stack  <ilabel> il_label_redo ;
+		stack  <idata>  il_idata      ;
+		stack  <idata>  il_idata_redo ;
 
 		explicit iline( int taskid )
 		{
@@ -927,27 +952,33 @@ class iline
 
 		bool hasLabel( int lvl=0 ) const
 		{
+			if ( il_deleted || il_label.size() == 0 ) { return false ; }
+
 			for ( int i = lvl ; i >= 0 ; i-- )
 			{
-				if ( il_label.count( i ) > 0 ) { return true ; }
+				if ( il_label.top().ix_label.count( i ) > 0 ) { return true ; }
 			}
 			return false ;
 		}
 
 		bool specialLabel( int lvl=0 )
 		{
-			if ( il_label.count( lvl ) > 0 )
+			if ( il_deleted || il_label.size() == 0 ) { return false ; }
+
+			if ( il_label.top().ix_label.count( lvl ) > 0 )
 			{
-				return ( il_label[ lvl ].compare( 0, 2, ".O" ) == 0 ) ;
+				return ( il_label.top().ix_label[ lvl ].compare( 0, 2, ".O" ) == 0 ) ;
 			}
 			return false ;
 		}
 
 		string getLabel( int lvl=0 )
 		{
-			if ( il_label.count( lvl ) > 0 )
+			if ( il_deleted || il_label.size() == 0 ) { return "" ; }
+
+			if ( il_label.top().ix_label.count( lvl ) > 0 )
 			{
-				return il_label[ lvl ] ;
+				return il_label.top().ix_label[ lvl ] ;
 			}
 			return "" ;
 		}
@@ -957,11 +988,13 @@ class iline
 			label    = "" ;
 			foundLvl = 0  ;
 
+			if ( il_deleted || il_label.size() == 0 ) { return ; }
+
 			for ( int i = lvl ; i >= 0 ; i-- )
 			{
-				if ( il_label.count( i ) > 0 )
+				if ( il_label.top().ix_label.count( i ) > 0 )
 				{
-					label    = il_label[ i ] ;
+					label    = il_label.top().ix_label[ i ] ;
 					foundLvl = i ;
 					break ;
 				}
@@ -969,48 +1002,138 @@ class iline
 			return ;
 		}
 
-		int setLabel( const string& s, int lvl=0 )
+		int setLabel( const string& s, int Level, int lvl=0 )
 		{
 			int rc = 0 ;
 
-			if ( il_label.count( lvl ) > 0 ) { rc = 4 ; }
-			il_label[ lvl ] = s ;
+			ilabel t ;
+
+			if ( il_label.size() > 0 )
+			{
+				if ( il_label.top().ix_label.count( lvl ) > 0 )
+				{
+					if ( il_label.top().ix_label[ lvl ] == s )
+					{
+						return 4 ;
+					}
+					rc = 4 ;
+				}
+				if ( setUNDO[ il_taskid ] )
+				{
+					t = il_label.top() ;
+				}
+			}
+			if ( setUNDO[ il_taskid ] )
+			{
+				t.ix_label[ lvl ] = s ;
+				t.ix_level = Level ;
+				if ( il_label.empty() || il_label.top().ix_level != Level )
+				{
+					il_label.push( t ) ;
+				}
+				else
+				{
+					il_label.top() = t ;
+				}
+				if ( Global_Undo[ il_taskid ].empty() ||
+				     Global_Undo[ il_taskid ].top() != Level )
+				{
+					Global_Undo[ il_taskid ].push( Level ) ;
+				}
+				clear_Global_Redo( il_taskid ) ;
+				remove_redo_label() ;
+			}
+			else if ( il_label.size() > 0 )
+			{
+				il_label.top().ix_label[ lvl ] = s ;
+			}
+			else
+			{
+				t.ix_label[ lvl ] = s ;
+				il_label.push( t ) ;
+			}
 			return rc ;
 		}
 
-		void clearLabel( int lvl=0 )
+		void clearLabel( int Level, int lvl=0 )
 		{
-			if ( il_label.count( lvl ) > 0 )
+			ilabel t ;
+			if ( il_deleted ||
+			     il_label.size() == 0 ||
+			     il_label.top().ix_label.count( lvl ) == 0 )
 			{
-				il_label.erase( lvl ) ;
+				return ;
 			}
+			if ( setUNDO[ il_taskid ] )
+			{
+				t = il_label.top() ;
+				t.ix_label.erase( lvl ) ;
+				t.ix_level = Level ;
+				if ( il_label.empty() || il_label.top().ix_level != Level )
+				{
+					il_label.push( t ) ;
+				}
+				else
+				{
+					il_label.top() = t ;
+				}
+				if ( Global_Undo[ il_taskid ].empty() ||
+				     Global_Undo[ il_taskid ].top() != Level )
+				{
+					Global_Undo[ il_taskid ].push( Level ) ;
+				}
+				clear_Global_Redo( il_taskid ) ;
+				remove_redo_label() ;
+			}
+			else
+			{
+				il_label.top().ix_label.erase( lvl ) ;
+			}
+			if ( il_label.size() == 1 && il_label.top().empty() )
+			{
+				il_label.pop() ;
+			}
+			return ;
 		}
 
-		bool clearLabel( const string& s, int lvl=0 )
+		bool clearLabel( const string& s, int Level, int lvl=0 )
 		{
-			if ( il_label.count( lvl ) > 0 && il_label[ lvl ] == s )
+			if ( il_deleted ||
+			     il_label.size() == 0 ||
+			     il_label.top().ix_label.count( lvl ) == 0 ||
+			     il_label.top().ix_label[ lvl ] != s )
 			{
-				il_label.erase( lvl ) ;
-				return true ;
+				return false ;
 			}
-			return false ;
+			clearLabel( Level, lvl ) ;
+			return true ;
 		}
 
-		void clearSpecialLabel( int lvl=0 )
+		void clearSpecialLabel( int Level, int lvl=0 )
 		{
-			if ( il_label.count( lvl ) > 0 && il_label[ lvl ].compare( 0, 2, ".O" ) == 0 )
+			if ( il_deleted ||
+			     il_label.size() == 0 ||
+			     il_label.top().ix_label.count( lvl ) == 0 ||
+			     il_label.top().ix_label[ lvl ].compare( 0, 2, ".O" ) != 0 )
 			{
-				il_label.erase( lvl ) ;
+				return ;
 			}
+			clearLabel( Level, lvl ) ;
 		}
 
 		bool compareLabel( const string& s, int lvl )
 		{
-			if ( il_label.count( lvl ) > 0 && il_label[ lvl ] == s ) { return true ; }
-			return false ;
+			if ( il_deleted ||
+			     il_label.size() == 0 ||
+			     il_label.top().ix_label.count( lvl ) == 0 ||
+			     il_label.top().ix_label[ lvl ] != s )
+			{
+				return false ;
+			}
+			return true ;
 		}
 
-		bool put_idata( const string& s, int level, bool comp = true )
+		bool put_idata( const string& s, int Level, bool comp = true )
 		{
 			idata d ;
 
@@ -1034,13 +1157,20 @@ class iline
 			}
 			else
 			{
-				d.id_level = level ;
+				d.id_level = Level ;
 				d.id_data  = s     ;
-				il_idata.push( d ) ;
-				if ( Global_Undo[ il_taskid ].empty() ||
-				     Global_Undo[ il_taskid ].top() != level )
+				if ( il_idata.empty() || il_idata.top().id_level != Level )
 				{
-					Global_Undo[ il_taskid ].push( level ) ;
+					il_idata.push( d ) ;
+				}
+				else
+				{
+					il_idata.top() = d ;
+				}
+				if ( Global_Undo[ il_taskid ].empty() ||
+				     Global_Undo[ il_taskid ].top() != Level )
+				{
+					Global_Undo[ il_taskid ].push( Level ) ;
 				}
 				if ( is_file() )
 				{
@@ -1050,7 +1180,8 @@ class iline
 			il_vShadow = false  ;
 			clear_Global_Redo( il_taskid ) ;
 			remove_redo_idata() ;
-			return is_file() && !il_deleted ;
+
+			return ( is_file() && !il_deleted ) ;
 		}
 
 		bool put_idata( const string& s )
@@ -1067,8 +1198,9 @@ class iline
 				if ( s == il_idata.top().id_data ) { return false ; }
 				il_idata.top().id_data = s ;
 			}
-			il_vShadow = false  ;
-			return is_file() && !il_deleted ;
+			il_vShadow = false ;
+
+			return ( is_file() && !il_deleted ) ;
 		}
 
 		void set_idata_minsize( size_t i )
@@ -1097,11 +1229,7 @@ class iline
 		{
 			string t = il_idata.top().id_data ;
 			iupper( t, l-1, (r == 0) ? t.size()-1 : r-1 ) ;
-			if ( t == il_idata.top().id_data )
-			{
-				return false ;
-			}
-			else
+			if ( t != il_idata.top().id_data )
 			{
 				put_idata( t, Level ) ;
 				return is_file() ;
@@ -1113,11 +1241,7 @@ class iline
 		{
 			string t = il_idata.top().id_data ;
 			ilower( t, l-1, (r == 0) ? t.size()-1 : r-1 ) ;
-			if ( t == il_idata.top().id_data )
-			{
-				return false ;
-			}
-			else
+			if ( t != il_idata.top().id_data )
 			{
 				put_idata( t, Level ) ;
 				return is_file() ;
@@ -1142,11 +1266,12 @@ class iline
 
 		void set_deleted( int Level )
 		{
-			if ( il_deleted ) { return ; }
-			clearLabel() ;
-			put_idata( "", Level, false ) ;
-			il_idata.top().id_deleted = true ;
-			il_deleted                = true ;
+			if ( not il_deleted )
+			{
+				put_idata( "", Level, false ) ;
+				il_idata.top().id_delete = true ;
+				il_deleted               = true ;
+			}
 		}
 
 		void convert_to_file( int level )
@@ -1157,16 +1282,18 @@ class iline
 				copyFile( il_taskid ) ;
 			}
 			changed[ il_taskid ] = true ;
-			if ( !setUNDO[ il_taskid ] ) { return ; }
-			il_idata.top().id_level = level ;
-			if ( Global_Undo[ il_taskid ].empty()     ||
-			     Global_Undo[ il_taskid ].top() != level )
+			if ( setUNDO[ il_taskid ] )
 			{
-				Global_Undo[ il_taskid ].push( level ) ;
+				il_idata.top().id_level = level ;
+				if ( Global_Undo[ il_taskid ].empty()     ||
+				     Global_Undo[ il_taskid ].top() != level )
+				{
+					Global_Undo[ il_taskid ].push( level ) ;
+				}
+				set_Global_File_level( il_taskid ) ;
+				clear_Global_Redo( il_taskid ) ;
+				remove_redo_idata() ;
 			}
-			set_Global_File_level( il_taskid ) ;
-			clear_Global_Redo( il_taskid ) ;
-			remove_redo_idata() ;
 		}
 
 		const string& get_idata() const
@@ -1201,33 +1328,57 @@ class iline
 
 		void undo_idata()
 		{
-			if ( !setUNDO[ il_taskid ] ) { return ; }
-			if ( il_idata.top().id_deleted )
+			if ( setUNDO[ il_taskid ] )
 			{
-				il_deleted = false ;
+				if ( il_idata.top().id_delete )
+				{
+					il_deleted = false ;
+				}
+				il_idata_redo.push( il_idata.top() ) ;
+				il_idata.pop()                       ;
+				if ( il_idata.empty() )
+				{
+					il_deleted = true ;
+				}
+				il_excl = false ;
+				Redo_data[ il_taskid ] = true ;
 			}
-			il_idata_redo.push( il_idata.top() ) ;
-			il_idata.pop()                       ;
-			if ( il_idata.empty() )
-			{
-				il_deleted = true ;
-			}
-			il_excl = false ;
-			Redo_data[ il_taskid ] = true ;
 		}
 
 		void redo_idata()
 		{
-			if ( !setUNDO[ il_taskid ] ) { return ; }
-			il_deleted = il_idata_redo.top().id_deleted ;
-			il_idata.push( il_idata_redo.top() ) ;
-			il_idata_redo.pop() ;
-			il_excl = false ;
+			if ( setUNDO[ il_taskid ] )
+			{
+				il_deleted = il_idata_redo.top().id_delete ;
+				il_idata.push( il_idata_redo.top() ) ;
+				il_idata_redo.pop() ;
+				il_excl = false ;
+			}
+		}
+
+		void undo_ilabel()
+		{
+			if ( setUNDO[ il_taskid ] )
+			{
+				il_label_redo.push( il_label.top() ) ;
+				il_label.pop() ;
+				Redo_data[ il_taskid ] = true ;
+			}
+		}
+
+		void redo_ilabel()
+		{
+			if ( setUNDO[ il_taskid ] )
+			{
+				il_label.push( il_label_redo.top() ) ;
+				il_label_redo.pop() ;
+			}
 		}
 
 		void flatten_idata()
 		{
-			idata d = il_idata.top() ;
+			idata d    = il_idata.top() ;
+			d.id_level = 0 ;
 			while ( !il_idata.empty() )
 			{
 				il_idata.pop() ;
@@ -1239,11 +1390,37 @@ class iline
 			il_idata.push( d ) ;
 		}
 
+		void flatten_label()
+		{
+			if ( il_label.size() > 0 )
+			{
+				ilabel l   = il_label.top() ;
+				l.ix_level = 0 ;
+				while ( !il_label.empty() )
+				{
+					il_label.pop() ;
+				}
+				while ( !il_label_redo.empty() )
+				{
+					il_label_redo.pop() ;
+				}
+				il_label.push( l ) ;
+			}
+		}
+
 		void remove_redo_idata()
 		{
 			while ( !il_idata_redo.empty() )
 			{
 				il_idata_redo.pop() ;
+			}
+		}
+
+		void remove_redo_label()
+		{
+			while ( !il_label_redo.empty() )
+			{
+				il_label_redo.pop() ;
 			}
 		}
 
@@ -1259,9 +1436,33 @@ class iline
 			return il_idata_redo.top().id_level ;
 		}
 
+		int get_ilabel_level() const
+		{
+			if ( il_label.empty() ) { return 0 ; }
+			return il_label.top().ix_level ;
+		}
+
+		int get_ilabel_Redo_level() const
+		{
+			if ( il_label_redo.empty() ) { return 0 ; }
+			return il_label_redo.top().ix_level ;
+		}
+
 	friend class PEDIT01 ;
 	friend class PEDRXM1 ;
 } ;
+
+
+map<int, int> iline::maxURID ;
+map<int, bool> iline::setUNDO ;
+map<int, bool> iline::Redo_data ;
+map<int, bool> iline::File_save ;
+map<int, stack<int>>iline::Global_Undo ;
+map<int, stack<int>>iline::Global_Redo ;
+map<int, stack<int>>iline::Global_File_level ;
+map<int, string> iline::src_file ;
+map<int, string> iline::dst_file ;
+map<int, bool> iline::changed ;
 
 
 class ipos
@@ -1553,7 +1754,6 @@ class cmdblock
 		bool   actioned ;
 		bool   macro ;
 		bool   expl  ;
-		bool   lcmd  ;
 		bool   keep  ;
 		bool   deact ;
 
@@ -1581,7 +1781,6 @@ class cmdblock
 		actioned = false ;
 		macro    = false ;
 		expl     = false ;
-		lcmd     = false ;
 		keep     = false ;
 		deact    = false ;
 	}
@@ -1598,7 +1797,6 @@ class cmdblock
 		macro = true  ;
 		expl  = false ;
 		seek  = false ;
-		lcmd  = false ;
 		keep  = false ;
 		alias = false ;
 		deact = false ;
@@ -1631,20 +1829,20 @@ class cmdblock
 			keep  = true ;
 			cchar = "&"  ;
 		}
+		else if ( cmd.front() == ':' )
+		{
+			iupper( cmd.erase( 0, 1 ) ) ;
+			cmd.erase( remove( cmd.begin(), cmd.end(), ' ' ), cmd.end() ) ;
+			if ( cmd == "" ) { return ; }
+			macro = false ;
+			cchar = ":"   ;
+		}
 		if ( cmd.front() == '%' )
 		{
 			cmd.erase( 0, 1 ) ;
 			if ( cmd == "" ) { return ; }
 			expl   = true ;
 			cchar += "%"  ;
-		}
-		else if ( cmd.front() == ':' && cmd.size() < 8 )
-		{
-			iupper( cmd.erase( 0, 1 ) ) ;
-			if ( cmd == "" ) { return ; }
-			lcmd  = true  ;
-			macro = false ;
-			cchar = ":"   ;
 		}
 		else
 		{
@@ -1805,7 +2003,7 @@ class cmdblock
 
 	int isLine_cmd() const
 	{
-		return lcmd ;
+		return ( cchar == ":" ) ;
 	}
 
 	void reset()
@@ -1818,7 +2016,6 @@ class cmdblock
 		seek     = false ;
 		macro    = false ;
 		expl     = false ;
-		lcmd     = false ;
 		keep     = false ;
 	}
 
@@ -2076,6 +2273,14 @@ class miblock
 	{
 		msgid = cmd.msgid ;
 		RC    = cmd.RC  ;
+		RSN   = cmd.RSN ;
+		fatal = ( RC >= 12 ) ;
+	}
+
+	void seterror( cmdblock& cmd, int i )
+	{
+		msgid = cmd.msgid ;
+		RC    = i       ;
 		RSN   = cmd.RSN ;
 		fatal = ( RC >= 12 ) ;
 	}
@@ -2594,13 +2799,13 @@ class PEDIT01 : public pApplication
 
 		miblock miBlock ;
 
-		void Edit()            ;
+		void Edit() ;
 		void addEditRecovery() ;
 		void getEditProfile( const string& )  ;
 		void delEditProfile( const string& )  ;
 		void saveEditProfile( const string& ) ;
 		void createEditProfile( const string&, const string& ) ;
-		void resetEditProfile()     ;
+		void resetEditProfile()   ;
 		void readLineCommandTable() ;
 		void cleanup_custom()     ;
 		void initialise()         ;
@@ -2770,6 +2975,17 @@ class PEDIT01 : public pApplication
 		string createTempName()  ;
 		string determineLang()   ;
 		void   store_zeduser()   ;
+
+		void clearMacroLabels( int mlvl )
+		{
+			int lvl = Level ;
+			for_each( data.begin(), data.end(),
+				[ lvl, mlvl ](iline*& a)
+				{
+					a->clearLabel( lvl, mlvl ) ;
+				} ) ;
+		}
+
 
 		uint topLine             ;
 		uint ptopLine            ;
@@ -3287,3 +3503,4 @@ class PEDIT01 : public pApplication
 
 		friend class PEDRXM1 ;
 } ;
+

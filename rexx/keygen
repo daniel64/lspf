@@ -54,6 +54,7 @@ if RC = 8 then
   end
 else if RC > 0 then
   do
+     "RDISPLAY "
      "RDISPLAY Error opening table &tabName.  RC=&RC.  Aborting..."
      "LIBDEF TABLIB"
      EXIT
@@ -75,6 +76,7 @@ KEY16DEF = ":TS"
 "TBSORT &tabName FIELDS(KEYLISTN,C,A)"
 if RC > 0 then
   do
+     "RDISPLAY "
      "RDISPLAY Error sorting table &tabName. RC=&RC  Aborting..."
      "TBEND &tabName"
      "LIBDEF TABLIB"
@@ -84,14 +86,16 @@ if RC > 0 then
 "TBADD &tabName ORDER"
 if RC = 8 then
   do
+     "RDISPLAY "
      "RDISPLAY Error adding row &keylistn to table &tabName.  Row already exists."
-     "RDISPLAY Use command keylist from any panel to delete."
+     "RDISPLAY Use command 'keylists' from any panel to delete."
      "TBEND &tabName"
      "LIBDEF TABLIB"
      EXIT
   end
 else if RC > 0 then
   do
+     "RDISPLAY "
      "RDISPLAY Error adding row to table &tabName. RC=&RC  Aborting..."
      "TBEND &tabName"
      "LIBDEF TABLIB"
@@ -101,6 +105,7 @@ else if RC > 0 then
 "TBCLOSE &tabName LIBRARY(TABLIB)"
 if RC > 0 then
   do
+     "RDISPLAY "
      "RDISPLAY Error saving table &tabName. RC=&RC  Aborting..."
      "TBEND &tabName"
      "LIBDEF TABLIB"
@@ -170,6 +175,7 @@ KEYLISTN = "ISRDEF"
 "TBSORT &tabName FIELDS(KEYLISTN,C,A)"
 if RC > 0 then
   do
+     "RDISPLAY "
      "RDISPLAY Error sorting table &tabName. RC=&RC  Aborting..."
      "TBEND &tabName"
      "LIBDEF TABLIB"
@@ -179,6 +185,7 @@ if RC > 0 then
 "TBADD &tabName ORDER"
 if RC > 0 then
   do
+     "RDISPLAY "
      "RDISPLAY Error adding row to table &tabName. RC=&RC  Aborting..."
      "TBEND &tabName"
      "LIBDEF TABLIB"

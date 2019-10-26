@@ -2970,10 +2970,10 @@ string tableMGR::locate( errblock& err,
 multimap<string, Table*>::iterator tableMGR::getTableIterator1( errblock& err,
 								const string& tb_name )
 {
-	//  Return the iterator for table tb_name.
-	//  There can be only 1 shared table or any number of non-shared tables for a given table name.
+	// Return the iterator for table tb_name.
+	// There can be only 1 shared table or any number of non-shared tables for a given table name.
 
-	//  Return table match if it is in-use by the requestor, else tables.end()
+	// Return table match if it is in-use by the requestor, else tables.end()
 
 	auto ret = tables.equal_range( tb_name ) ;
 
@@ -2992,10 +2992,10 @@ multimap<string, Table*>::iterator tableMGR::getTableIterator1( errblock& err,
 multimap<string, Table*>::iterator tableMGR::getTableIterator2( errblock& err,
 								const string& tb_name )
 {
-	//  Return the iterator for table tb_name.
-	//  There can be only 1 shared table or any number of non-shared tables for a given table name.
+	// Return the iterator for table tb_name.
+	// There can be only 1 shared table or any number of non-shared tables for a given table name.
 
-	//  Return table match if it is shared, or in-use by the requestor, else tables.end()
+	// Return table match if it is shared, or in-use by the requestor, else tables.end()
 
 	auto ret = tables.equal_range( tb_name ) ;
 

@@ -43,8 +43,8 @@ text     7    15      SAC    "2. Assembler"
 text     8    15      SAC    "3. Panel"
 text     9    15      SAC    "4. C++"
 text    10    15      SAC    "5. REXX"
-text    11    15      SAC    "6. Default"
-text    12    15      SAC    "7. Other"
+text    11    15      SAC    "6. Other"
+text    12    15      SAC    "7. Default"
 
 text     6    36      FP     "Colouring:"
 field    6    47  1   CEF     PAD(USER) ZCOLOUR
@@ -84,8 +84,8 @@ text    19 15 NT "to cancel changes"
                   'PANEL',3
                   'CPP',4
                   'REXX',5
-                  'DEFAULT',6
-                  'OTHER',7
+                  'OTHER',6
+                  'DEFAULT',7
                   *,1
                 )
 
@@ -120,8 +120,8 @@ VER(&ZCOLOUR,NB,LIST,1,2,3,4,5)
                   3,'PANEL'
                   4,'CPP'
                   5,'REXX'
-                  6,'DEFAULT'
-                  7,'OTHER'
+                  6,'OTHER'
+                  7,'DEFAULT'
                 )
 
 IF ( &ZCOLOUR EQ 1 )

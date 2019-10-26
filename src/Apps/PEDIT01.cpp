@@ -63,12 +63,8 @@ using namespace boost::filesystem ;
 #undef  MOD_NAME
 #define MOD_NAME PEDIT01
 
-#define CLINESZ     8
-#define maxURID     iline::maxURID
-#define Global_Undo iline::Global_Undo
-#define Global_Redo iline::Global_Redo
-#define profUndoOn  iline::setUNDO[ taskid() ]
-#define Global_File_level iline::Global_File_level
+#define CLINESZ    8
+#define profUndoOn iline::setUNDO[ taskid() ]
 
 #define DATAIN1    0x01
 #define DATAIN2    0x02
@@ -77,24 +73,13 @@ using namespace boost::filesystem ;
 #define USERMOD    0x10
 #define DATAMOD    0x11
 
-map<int, int> maxURID ;
-map<int, bool> iline::setUNDO   ;
-map<int, bool> iline::Redo_data ;
-map<int, bool> iline::File_save ;
-map<int, stack<int>>Global_Undo ;
-map<int, stack<int>>Global_Redo ;
-map<int, stack<int>>Global_File_level ;
-map<int, string> iline::src_file ;
-map<int, string> iline::dst_file ;
-map<int, bool> iline::changed  ;
-
 map<int, edit_find>PEDIT01::Global_efind_parms ;
 
 
 PEDIT01::PEDIT01()
 {
 	set_appdesc( "PDF-like editor for lspf" ) ;
-	set_appver( "1.0.12" ) ;
+	set_appver( "1.0.13" ) ;
 	set_apphelp( "HEDIT01" ) ;
 
 	rebuildZAREA  = true  ;
@@ -219,7 +204,7 @@ void PEDIT01::initialise()
 	clipBoard = "DEFAULT"  ;
 	clipTable = "EDITCLIP" ;
 
-	maxURID[ taskid() ] = 0 ;
+	iline::maxURID[ taskid() ] = 0 ;
 
 	vcopy( "ZUSER", zuser, MOVE ) ;
 	vcopy( "ZSCREEN", zscreen, MOVE ) ;
@@ -290,7 +275,8 @@ void PEDIT01::Edit()
 	if ( zedalt == "" ) { zedalt = zfile ; }
 
 	curfld = "ZCMD" ;
-	curpos = 1      ;
+	curpos = 1 ;
+	Level  = 0 ;
 
 	hlight.hl_clear() ;
 	miBlock.clear()   ;
@@ -386,6 +372,7 @@ void PEDIT01::Edit()
 		copyActive   = false ;
 		pasteActive  = false ;
 		scrollData   = false ;
+		Level        = iline::get_Global_Undo_level( taskid() ) + 1 ;
 
 		if ( zcurfld == "ZAREA" )
 		{
@@ -482,6 +469,11 @@ void PEDIT01::Edit()
 		if ( not pcmd.isActioned() )
 		{
 			actionPrimCommand2() ;
+			if ( pcmd.error() && pcmd.isLine_cmd() )
+			{
+				pcmd.cond_reset() ;
+				continue ;
+			}
 			if ( pcmd.isActioned() )
 			{
 				if ( pcmd.error() ) { termEdit = false ; continue ; }
@@ -640,6 +632,7 @@ bool PEDIT01::termOK()
 		}
 		else if ( optConfCancel )
 		{
+			termEdit = true ;
 			return ConfirmCancel() ;
 		}
 		return true ;
@@ -654,16 +647,16 @@ bool PEDIT01::termOK()
 
 bool PEDIT01::ConfirmCancel()
 {
-	if ( !zchanged && ( !optConfCancel || !fileChanged || macroRunning ) ) { return true ; }
+	if ( !zchanged && ( !optConfCancel || !fileChanged || macroRunning ) ) { return termEdit ; }
 
 	addpop( "", 2, 4 ) ;
 
 	display( "PEDIT016", "", "ZCMD6" ) ;
-	if ( RC == 8 ) { rempop() ; termEdit = false ; return false ; }
+	if ( RC == 8 ) { termEdit = false ; }
 
 	rempop() ;
 
-	return true ;
+	return termEdit ;
 }
 
 
@@ -767,11 +760,10 @@ void PEDIT01::readFile()
 	topLine    = 0 ;
 	startCol   = 1 ;
 	maxCol     = 1 ;
-	Level      = 0 ;
 	tabsOnRead = false ;
 
 	data.clear() ;
-	maxURID[ taskid() ] = 0 ;
+	iline::maxURID[ taskid() ] = 0 ;
 
 	try
 	{
@@ -1059,7 +1051,7 @@ bool PEDIT01::saveFile()
 		saveLevel = iline::get_Global_File_level( taskid() ) ;
 	}
 	pcmd.set_msg( "PEDT011P", 4 ) ;
-	XRC  = 0 ;
+	XRC = 0 ;
 
 	return true ;
 }
@@ -1692,12 +1684,14 @@ void PEDIT01::getZAREAchanges()
 	//    If cursor is on the field and after this point, use cursor positon to truncate field
 	//    (characters after cursor position are ignored if not changed)
 	//    Else use this changed character position to truncate field (trailing unchanged characters are ignored)
+	//    If cursor not on a labelled field containing spaces, first word is the command, second the multiplier
+	//    (remove non-numeric data from the multiplier).
 
 	// Strip off leading "- - - " for excluded lines
 	// Strip off leading "''''''" for new insert lines
 	// Strip off leading "*" for top/bottom of data lines
-	// Strip off label characters from the line command if label '.' has been overwritten or command has been
-	// entered after the label (label+space+lcc)
+	// Strip off label characters if cursor still on the line command starting from the cursor, or command has
+	// been entered after the label (label+space+lcc)
 
 	int i  ;
 	int l  ;
@@ -1714,8 +1708,10 @@ void PEDIT01::getZAREAchanges()
 
 	iline* dlx ;
 
+	string t1  ;
+	string t2  ;
 	string lcc ;
-	string lab ;
+	string label ;
 
 	const char duserMod(USERMOD) ;
 	const char ddataMod(DATAMOD) ;
@@ -1760,10 +1756,11 @@ void PEDIT01::getZAREAchanges()
 		{
 			lChanged[ i ] = true ;
 			zchanged      = true ;
-			lcc = "" ;
-			if ( dlx->il_lcc == "" && !dlx->hasLabel() )
+			lcc   = "" ;
+			label = ( dlx->il_excl ) ? "" : dlx->getLabel() ;
+			if ( dlx->il_lcc == "" && label == "" )
 			{
-				for ( j = (off + 1) ; j < (off + 6) ; ++j )
+				for ( j = ( off + 1 ) ; j < ( off + 6 ) ; ++j )
 				{
 					if ( zarea[ j ] != ' ' && !isdigit( zarea[ j ] ) )
 					{
@@ -1774,7 +1771,7 @@ void PEDIT01::getZAREAchanges()
 				sp = j - off ;
 				if ( aLCMD && aRow == ( i + 1 ) )
 				{
-					for ( j = (off + 6) ; j > off ; --j )
+					for ( j = ( off + 6 ) ; j > off ; --j )
 					{
 						if ( j < ( aCol + off - 1 ) || ( zarea[ j ] != carea[ j ] ) )
 						{
@@ -1785,7 +1782,7 @@ void PEDIT01::getZAREAchanges()
 				}
 				else
 				{
-					for ( j = (off + 6) ; j > off ; --j )
+					for ( j = ( off + 6 ) ; j > off ; --j )
 					{
 						if ( zarea[ j ] != carea[ j ] ) { break ; }
 					}
@@ -1794,38 +1791,51 @@ void PEDIT01::getZAREAchanges()
 				ep = j - off + 1 ;
 				if ( sp < ep )
 				{
-					lcc = zarea.substr( (sp + off), (ep - sp) ) ;
+					lcc = zarea.substr( ( sp + off ), ( ep - sp ) ) ;
 				}
+			}
+			else if ( aLCMD && aRow == ( i + 1 ) && carea[ off + 1 ] == '.' &&
+								zarea[ off + 1 ] != '.' )
+			{
+				for ( j = ( off + 6 ) ; j > off ; --j )
+				{
+					if ( j < ( aCol + off - 1 ) || ( zarea[ j ] != carea[ j ] ) )
+					{
+						break ;
+					}
+				}
+				lcc = zarea.substr( ( off + 1 ), ( j - off ) ) ;
 			}
 			else
 			{
-				lcc = zarea.substr( (off + 1), 6 ) ;
+				lcc = zarea.substr( ( off + 1 ), 6 ) ;
 			}
-			trim_right( iupper( lcc ) ) ;
-			lab = dlx->getLabel() ;
-			if ( lab != "" && ( lcc.front() != '.' || lcc.find( ' ' ) != string::npos ) )
+			trim( lcc ) ;
+			if ( label != "" && lcc.find( ' ' ) != string::npos )
 			{
-				if ( lcc.front() != ' ' )
+				if ( label == word( lcc, 1 ) )
 				{
-					for ( j = 0 ; j < lab.size() && j < lcc.size() ; ++j )
-					{
-						if ( lcc[ j ] == ' ' )      { break          ; }
-						if ( lab[ j ] == lcc[ j ] ) { lcc[ j ] = ' ' ; }
-					}
+					lcc = subword( lcc, 2 ) ;
 				}
 				else
 				{
-					pos = lcc.find_first_not_of( ' ' ) ;
-					if ( pos != string::npos && lab.size() > pos )
+					t1 = word( lcc, 1 ) ;
+					t2 = subword( lcc, 2 ) ;
+					for ( j = 0 ; j < t2.size() ; ++j )
 					{
-						if ( lcc.compare( pos, string::npos, lab, pos, string::npos ) == 0 )
+						if ( !isdigit( t2[ j ] ) )
 						{
-							lcc = "" ;
+							t2[ j ] = ' ' ;
 						}
+					}
+					trim( t2 ) ;
+					if ( t2 == "" || datatype( t2, 'W' ) )
+					{
+						lcc = t1 + " " + t2 ;
 					}
 				}
 			}
-			trim( lcc ) ;
+			trim( iupper( lcc ) ) ;
 			if ( lcc == "" )
 			{
 				dlx->resetFileStatus() ;
@@ -1834,7 +1844,7 @@ void PEDIT01::getZAREAchanges()
 			{
 				lcc.erase( 0, lcc.find_first_not_of( " -" ) ) ;
 			}
-			else if ( dlx->is_tod() || dlx->is_bod() )
+			else if ( dlx->is_tod_or_bod() )
 			{
 				lcc.erase( 0, lcc.find_first_not_of( " *" ) ) ;
 			}
@@ -1849,7 +1859,7 @@ void PEDIT01::getZAREAchanges()
 			if ( datatype( lcc, 'W' ) ) { lcc = "" ; }
 			if ( lcc == "" && dlx->il_lcc == "" )
 			{
-				dlx->clearLabel() ;
+				dlx->clearLabel( Level ) ;
 			}
 			else
 			{
@@ -1869,7 +1879,6 @@ void PEDIT01::getZAREAchanges()
 			zchanged      = true ;
 		}
 	}
-
 }
 
 
@@ -1880,8 +1889,8 @@ void PEDIT01::updateData()
 	// First, process any changed hex display lines and update the character data with any changes.
 	// If only one of the hex lines is visible, use the low 4-bits from the character data (for HEX VERT).
 
-	// Update shadow variable (0x00 until EOD, then 0xFF) and convert nulls to spaces in ZAREA for
-	// any changes past the old EOD (old EOD is max of ipos_lchar,shadow0xFF).  This is in case NULLS is ON.
+	// Update shadow variable (0x00 until EOD, then 0xFF) and convert nulls to spaces in ZAREA for any
+	// changes past the old EOD (old EOD is max of ipos_lchar,shadow0xFF).  This is in case NULLS is ON.
 
 	// In the shadow variable, 0xFE indicates a character delete, 0xFF indicates nulls->spaces conversion.
 
@@ -1910,7 +1919,6 @@ void PEDIT01::updateData()
 
 	set<int> isrt_set ;
 
-	++Level ;
 	for ( i = 0 ; i < zaread ; ++i )
 	{
 		if ( !dChanged[ i ] || s2data.at( i ).ipos_hex == 0 )
@@ -2172,8 +2180,6 @@ void PEDIT01::processNewInserts()
 	vector<iline*>::iterator it ;
 	vector<iline*>::const_iterator itt ;
 
-	++Level ;
-
 	for ( i = zaread-1 ; i >= 0 ; --i )
 	{
 		if ( s2data.at( i ).ipos_URID == 0 ||
@@ -2314,6 +2320,8 @@ void PEDIT01::actionPrimCommand2()
 	// Action primary command.
 	// These commands are executed before line command processing
 
+	int lvl ;
+
 	uint i  ;
 	uint j  ;
 	uint dl ;
@@ -2350,11 +2358,21 @@ void PEDIT01::actionPrimCommand2()
 
 	if ( pcmd.isLine_cmd() )
 	{
-		if ( aURID == 0 ) { pcmd.set_msg( "PEDT013X" ) ; return ; }
+		pcmd.setActioned() ;
+		if ( aURID == 0 )
+		{
+			pcmd.set_msg( "PEDT013X" ) ;
+			return ;
+		}
 		dl = getLine( aURID, topLine ) ;
-		if ( data.at( dl )->il_lcc != "" ) { pcmd.set_msg( "PEDT013Y" ) ; return ; }
+		if ( data.at( dl )->il_lcc != "" )
+		{
+			pcmd.set_msg( "PEDT013Y" ) ;
+			return ;
+		}
 		data.at( dl )->il_lcc = cmd ;
 		rebuildZAREA = true ;
+		pcmd.reset() ;
 		return ;
 	}
 
@@ -2626,12 +2644,13 @@ void PEDIT01::actionPrimCommand2()
 				if ( w == "ALL" )
 				{
 					removeSpecialLines( its, ite ) ;
+					lvl = Level ;
 					for_each( its, ite,
-						[](iline*& a)
+						[ lvl ](iline*& a)
 						{
 							a->resetFilePrefix() ;
 							a->clearLcc() ;
-							a->clearLabel() ;
+							a->clearLabel( lvl ) ;
 						} ) ;
 					hideExcl = false ;
 				}
@@ -2674,10 +2693,11 @@ void PEDIT01::actionPrimCommand2()
 				}
 				else if ( w == "LAB" )
 				{
+					lvl = Level ;
 					for_each( its, ite,
-						[](iline*& a)
+						[ lvl ](iline*& a)
 						{
-							a->clearLabel() ;
+							a->clearLabel( lvl ) ;
 						} ) ;
 				}
 				else if ( w == "FIND" )
@@ -2867,7 +2887,6 @@ void PEDIT01::actionPrimCommand3()
 	case PC_CHANGE:
 			pcmd.setActioned() ;
 			if ( !setFindChangeExcl( 'C' ) ) { break ; }
-			++Level ;
 			tTop = topLine  ;
 			tCol = startCol ;
 			i    = 0        ;
@@ -3130,10 +3149,10 @@ void PEDIT01::actionPrimCommand3()
 					delNX = true ;
 				}
 			}
-			if ( (j == 0  && !delAll) ||
-				   (j == 0  &&  delAll && ( !delX && !delNX) ) ||
-				   (j >  0  &&  delln1) ||
-				   (!delAll && !delX   && !delNX ) )
+			if ( ( j == 0  && !delAll ) ||
+			     ( j == 0  &&  delAll  && ( !delX && !delNX) ) ||
+			     ( j >  0  &&  delln1 ) ||
+			     ( !delAll && !delX && !delNX ) )
 			{
 				pcmd.set_msg( "PEDT011", 20 ) ;
 				break ;
@@ -3199,30 +3218,19 @@ void PEDIT01::actionPrimCommand3()
 				pcmd.set_msg( "PEDT014U", 20 ) ;
 				break ;
 			}
-			++Level ;
-			for ( i = 0, it = its ; it != ite ; ++it )
+			for ( i = 0, it = its ; it != ite && !(*it)->is_bod() ; ++it )
 			{
-				if ( (*it)->il_deleted || (*it)->is_tod() )  { continue ; }
-				if ( (*it)->is_bod() )  { break ; }
-				if ( delX && (*it)->il_excl )
+				if ( (*it)->il_deleted || (*it)->is_tod() ) { continue ; }
+				if ( ( delX && (*it)->il_excl ) || ( delNX && !(*it)->il_excl ) )
 				{
 					if ( (*it)->is_valid_file() ) { fileChanged = true ; }
 					(*it)->set_deleted( Level ) ;
+					++i ;
 				}
-				else if ( delNX && !(*it)->il_excl )
-				{
-					if ( (*it)->is_valid_file() ) { fileChanged = true ; }
-					(*it)->set_deleted( Level ) ;
-				}
-				else
-				{
-					continue ;
-				}
-				++i ;
 			}
-			( i == 0 ) ? --Level : rebuildZAREA = true ;
-			lines = d2ds( i )  ;
-			( i > 0 ) ? pcmd.set_msg( "PEDT011M", 0 ) : pcmd.set_msg( "PEDT011M", 4 ) ;
+			if ( i > 0 ) { rebuildZAREA = true ; }
+			lines = d2ds( i ) ;
+			pcmd.set_msg( "PEDT011M", ( i > 0 ) ? 0 : 4 ) ;
 			break ;
 
 	case PC_EXCLUDE:
@@ -3232,7 +3240,7 @@ void PEDIT01::actionPrimCommand3()
 				for_each( data.begin(), data.end(),
 					[](iline*& a)
 					{
-						if ( !a->is_bod() && !a->is_tod() && !a->il_deleted )
+						if ( !a->is_tod_or_bod() && !a->il_deleted )
 						{
 							a->il_excl = true ;
 						}
@@ -3399,7 +3407,7 @@ void PEDIT01::actionPrimCommand3()
 			for_each( its, ite,
 				[](iline*& a)
 				{
-					if ( !a->is_bod() && !a->is_tod() && !a->il_deleted )
+					if ( !a->is_tod_or_bod() && !a->il_deleted )
 					{
 						a->il_excl = !a->il_excl ;
 					}
@@ -3977,7 +3985,6 @@ void PEDIT01::actionPrimCommand3()
 					}
 					return false ;
 				} ) ;
-			++Level ;
 			sortOrder = true ;
 			it        = getLineItr( r.c_sidx ) ;
 			for ( i = 0 ; i < tdata.size() ; ++i, ++it )
@@ -4089,13 +4096,14 @@ void PEDIT01::actionLineCommands()
 		return ;
 	}
 
+	if ( lcmds.size() == 0 ) { return ; }
+
 	for_each( data.begin(), data.end(),
 		[](iline*& a)
 		{
 			a->clearLcc() ;
 		} ) ;
 
-	++Level ;
 	for ( auto itc = lcmds.begin() ; itc != lcmds.end() ; ++itc )
 	{
 		actionLineCommand( itc, csrPlaced1, csrPlaced2 ) ;
@@ -4126,6 +4134,8 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc, bool& csrPlaced1, b
 	int j ;
 	int k ;
 
+	int defCol ;
+
 	uint dl ;
 	uint vis ;
 
@@ -4149,6 +4159,7 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc, bool& csrPlaced1, b
 	iline* t_iline ;
 
 	vector<string> tdata ;
+	map<int, string> labels ;
 
 	vector<ipline>::iterator new_end ;
 	vector<iline*>::iterator it  ;
@@ -4460,9 +4471,8 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc, bool& csrPlaced1, b
 		its = getLineItr( itc->lcmd_sURID ) ;
 		ite = getLineItr( itc->lcmd_eURID, its ) ;
 		t_iline = NULL ;
-		for ( ++ite, it = its ; it != ite ; ++it )
+		for ( ++ite, it = its ; it != ite && !(*it)->is_bod() ; ++it )
 		{
-			if ( (*it)->is_bod() )   { break    ; }
 			if ( (*it)->il_deleted ) { continue ; }
 			if ( not (*it)->is_valid_file() )
 			{
@@ -4512,9 +4522,8 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc, bool& csrPlaced1, b
 		its = getLineItr( itc->lcmd_sURID ) ;
 		ite = getLineItr( itc->lcmd_eURID, its ) ;
 		t_iline = NULL ;
-		for ( ++ite, it = its ; it != ite ; ++it )
+		for ( ++ite, it = its ; it != ite && !(*it)->is_bod() ; ++it )
 		{
-			if ( (*it)->is_bod()   ) { break    ; }
 			if ( (*it)->il_deleted ) { continue ; }
 			if ( (*it)->is_valid_file() )
 			{
@@ -4574,7 +4583,7 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc, bool& csrPlaced1, b
 		vip.clear() ;
 		its = getLineItr( itc->lcmd_sURID ) ;
 		ite = getLineItr( itc->lcmd_eURID, its ) ;
-		for ( it = its ; it != data.end() && not (*it)->is_bod() ; ++it )
+		for ( it = its ; it != data.end() && !(*it)->is_bod() ; ++it )
 		{
 			if ( (*it)->il_deleted ) { continue           ; }
 			if ( (*it)->is_file()  ) { fileChanged = true ; }
@@ -4666,10 +4675,11 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc, bool& csrPlaced1, b
 		break ;
 
 	case LC_TF:
-		its = getLineItr( itc->lcmd_sURID ) ;
+		its    = getLineItr( itc->lcmd_sURID ) ;
+		defCol = ( RightBnd == 0 ) ? ( zdataw + startCol - 1 ) : RightBnd ;
 		if ( itc->lcmd_Rpt == -1 )
 		{
-			itc->lcmd_Rpt = ( RightBnd == 0 ) ? zdataw : RightBnd ;
+			itc->lcmd_Rpt = defCol ;
 		}
 		else if ( RightBnd > 0 && itc->lcmd_Rpt > RightBnd )
 		{
@@ -4677,9 +4687,9 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc, bool& csrPlaced1, b
 		}
 		if ( itc->lcmd_Rpt <= LeftBnd )
 		{
-			itc->lcmd_Rpt = ( RightBnd == 0 ) ? zdataw : RightBnd ;
+			itc->lcmd_Rpt = defCol ;
 		}
-		for ( it = its ; it != data.end() && not (*it)->is_bod() ; ++it )
+		for ( it = its ; it != data.end() && !(*it)->is_bod() ; ++it )
 		{
 			if ( (*it)->is_valid_file() )
 			{
@@ -4690,9 +4700,9 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc, bool& csrPlaced1, b
 					{
 						break ;
 					}
-					if ( itc->lcmd_Rpt <= k )
+					if ( itc->lcmd_Rpt <= ( k + 1 ) )
 					{
-						itc->lcmd_Rpt = ( RightBnd == 0 ) ? zdataw : RightBnd ;
+						itc->lcmd_Rpt = defCol ;
 					}
 					l = k ;
 				}
@@ -4716,20 +4726,25 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc, bool& csrPlaced1, b
 		reflowData( tdata, itc->lcmd_Rpt, l-LeftBnd+1, k-LeftBnd+1 ) ;
 		if ( tdata.size() == 0 )
 		{
-			if ( aLCMD && not csrPlaced1 && ( not csrPlaced2 || itc->lcmd_sURID ) )
+			if ( aLCMD && not csrPlaced1 && ( not csrPlaced2 || aURID == itc->lcmd_sURID ) )
 			{
 				placeCursor( (*its)->il_URID, CSR_FC_LCMD ) ;
 				csrPlaced2 = true ;
 			}
 			break ;
 		}
-		for ( ++ite, it = its ; it != ite ; ++it )
+		for ( l = 0, ++ite, it = its ; it != ite ; ++it, ++l )
 		{
+			if ( (*it)->hasLabel() )
+			{
+				labels[ l ] = (*it)->getLabel() ;
+			}
 			(*it)->set_deleted( Level ) ;
 		}
+		l  = 0   ;
 		it = its ;
 		t_iline = NULL ;
-		for ( auto itf = tdata.begin() ; itf != tdata.end() ; ++itf, ++it )
+		for ( auto itf = tdata.begin() ; itf != tdata.end() ; ++itf, ++it, ++l )
 		{
 			p_iline = new iline( taskid() ) ;
 			p_iline->il_type = LN_FILE      ;
@@ -4738,6 +4753,10 @@ void PEDIT01::actionLineCommand( vector<lcmd>::iterator itc, bool& csrPlaced1, b
 			if ( not t_iline )
 			{
 				t_iline = p_iline ;
+			}
+			if ( labels.count( l ) > 0 )
+			{
+				p_iline->setLabel( labels[ l ], Level ) ;
 			}
 		}
 		if ( not csrPlaced1 && ( not csrPlaced2 || aURID == itc->lcmd_sURID ) )
@@ -5719,11 +5738,14 @@ void PEDIT01::setLineLabels()
 			}
 			for ( auto itt = data.begin() ; itt != data.end() ; ++itt )
 			{
-				if ( (*itt)->clearLabel( (*it)->il_lcc ) ) { break ; }
+				if ( it != itt && (*itt)->clearLabel( (*it)->il_lcc, Level ) ) { break ; }
 			}
-			if ( aLCMD ) { placeCursor( (*it)->il_URID, CSR_FNB_DATA ) ; }
-			(*it)->setLabel( (*it)->il_lcc ) ;
-			(*it)->clearLcc()   ;
+			if ( aLCMD )
+			{
+				placeCursor( (*it)->il_URID, CSR_FNB_DATA ) ;
+			}
+			(*it)->setLabel( (*it)->il_lcc, Level ) ;
+			(*it)->clearLcc() ;
 			rebuildZAREA = true ;
 		}
 	}
@@ -5798,6 +5820,8 @@ bool PEDIT01::storeLineCommands()
 	int adist ;
 	int rdist ;
 
+	uint dl ;
+
 	string lcc ;
 
 	bool cmd_inuse    ;
@@ -5834,7 +5858,10 @@ bool PEDIT01::storeLineCommands()
 		rdist = -1 ;
 		if ( !formLineCmd( (*it)->il_lcc, lcc, rept ) )
 		{
-			if ( !pcmd.msgset() ) { pcmd.set_msg( "PEDT011Y" ) ; }
+			if ( !pcmd.msgset() )
+			{
+				pcmd.set_msg( "PEDT011Y" ) ;
+			}
 			break ;
 		}
 		if ( ( (*it)->isSpecial() && splCmds.count( lcc ) == 0 ) ||
@@ -5846,6 +5873,7 @@ bool PEDIT01::storeLineCommands()
 			if ( cmd_inuse && not cmd_complete )
 			{
 				pcmd.set_msg( "PEDT011W", 8 ) ;
+				placeCursor( aURID, CSR_LC_OR_FNB_DATA, 0, aLCMD ) ;
 				return false ;
 			}
 			if ( abokLCMDS.count( lcc ) > 0 )
@@ -5859,7 +5887,11 @@ bool PEDIT01::storeLineCommands()
 			}
 			if ( not abo_inuse )
 			{
-				if ( cmd_inuse && !cmd_complete ) { pcmd.set_msg( "PEDT011Y" ) ; break ; }
+				if ( cmd_inuse && !cmd_complete )
+				{
+					pcmd.set_msg( "PEDT011Y" ) ;
+					break ;
+				}
 				abo.lcmd_ABOW = lcc.front() ;
 				if ( lcc == "A" && (*it)->il_excl )
 				{
@@ -6159,13 +6191,14 @@ bool PEDIT01::storeLineCommands()
 		{
 			pcmd.set_msg( "PEDT011W", 8 ) ;
 		}
+		placeCursor( aURID, CSR_LC_OR_FNB_DATA, 0, aLCMD ) ;
 		return false ;
 	}
 
 	if ( abo_inuse || !tabos.empty() )
 	{
-		placeCursor( aURID, CSR_LC_OR_DATA, 0, aLCMD ) ;
 		pcmd.set_msg( "PEDT014Q", 8 ) ;
+		placeCursor( aURID, CSR_LC_OR_FNB_DATA, 0, aLCMD ) ;
 		return false ;
 	}
 
@@ -6281,7 +6314,7 @@ bool PEDIT01::action_UNDO()
 	{
 		if ( (*it)->get_idata_level() == lvl )
 		{
-			(*it)->undo_idata()    ;
+			(*it)->undo_idata() ;
 			(*it)->setUndoStatus() ;
 			if ( (*it)->is_file() ) { isFile = true ; }
 			if ( tURID == 0 )
@@ -6290,9 +6323,18 @@ bool PEDIT01::action_UNDO()
 			}
 			rebuildZAREA = true ;
 		}
+		if ( (*it)->get_ilabel_level() == lvl )
+		{
+			(*it)->undo_ilabel() ;
+			if ( tURID == 0 )
+			{
+				tURID = (*it)->il_URID ;
+			}
+			rebuildZAREA = true ;
+		}
 	}
 
-	Level = lvl ;
+	Level = iline::get_Global_Undo_level( taskid() ) + 1 ;
 	if ( isFile )
 	{
 		iline::remove_Global_File_level( taskid() ) ;
@@ -6360,8 +6402,18 @@ bool PEDIT01::action_REDO()
 			}
 			rebuildZAREA = true ;
 		}
+		if ( (*it)->get_ilabel_Redo_level() == lvl )
+		{
+			(*it)->redo_ilabel() ;
+			if ( tURID == 0 )
+			{
+				tURID = (*it)->il_URID ;
+			}
+			rebuildZAREA = true ;
+		}
 	}
-	Level = lvl ;
+
+	Level = iline::get_Global_Undo_level( taskid() ) + 1 ;
 	if ( isFile )
 	{
 		iline::set_Global_File_level( taskid() ) ;
@@ -7402,11 +7454,8 @@ void PEDIT01::actionFind()
 
 void PEDIT01::actionChange()
 {
-	//  If updating the same line multiple times with the same Level (eg. change ALL command)
-	//  update idata stack in-place.
-
-	//  If a regex has been used as the find argument, use fcx_rstring instead of fcx_string.
-	//  If the inserted string is longer, remove some spaces at the end of the insert to compensate.
+	// If a regex has been used as the find argument, use fcx_rstring instead of fcx_string.
+	// If the inserted string is longer, remove some spaces at the end of the insert to compensate.
 
 	int l ;
 	int d ;
@@ -7445,11 +7494,7 @@ void PEDIT01::actionChange()
 				temp[ fcx_parms.f_offset + i ] = fcx_parms.f_cstring[ i ] ;
 			}
 		}
-		if ( data.at( l )->get_idata_level() == Level )
-		{
-			data.at( l )->put_idata( temp ) ;
-		}
-		else if ( data.at( l )->put_idata( temp, Level ) )
+		if ( data.at( l )->put_idata( temp, Level ) )
 		{
 			fileChanged = true ;
 		}
@@ -7492,11 +7537,7 @@ void PEDIT01::actionChange()
 
 	if ( d > 0 ) { fcx_parms.f_chnincr = d ; }
 
-	if ( data.at( l )->get_idata_level() == Level )
-	{
-		data.at( l )->put_idata( temp ) ;
-	}
-	else if ( data.at( l )->put_idata( temp, Level ) )
+	if ( data.at( l )->put_idata( temp, Level ) )
 	{
 		fileChanged = true ;
 	}
@@ -7623,18 +7664,18 @@ void PEDIT01::placeCursor( int URID, CSR_POS pt, int offset, bool lcmd )
 {
 	// cursorPlaceUsing: Use URID to place cursor
 
-	// cursorPlaceType CSR_FC_LCMD    First char of the line command area
-	// (CSR_POS)       CSR_FC_DATA    First char of data area
-	//                 CSR_FNB_DATA   First non-blank char of data area (after startCol)
-	//                 CSR_OFF_DATA   Use position in cursorPlaceOff as start of data line
-	//                 CSR_OFF_LCMD   Use position in cursorPlaceOff as start of zdataw
-	//                 CSR_LC_OR_DATA First char of line command or data area depeding on where the cursor is
+	// cursorPlaceType CSR_FC_LCMD        First char of the line command area
+	// (CSR_POS)       CSR_FC_DATA        First char of data area
+	//                 CSR_FNB_DATA       First non-blank char of data area (after startCol)
+	//                 CSR_OFF_DATA       Use position in cursorPlaceOff as start of data line
+	//                 CSR_OFF_LCMD       Use position in cursorPlaceOff as start of zdataw
+	//                 CSR_LC_OR_FNB_DATA First char of line command or data area depeding on where the cursor is
 
 	// cursorPlaceOff  Offset from start of the data line (adjust for line command and startCol later)
 
-	cursorFixed = true ;
 	if ( URID == 0 )
 	{
+		cursorFixed     = true ;
 		cursorPlaceHome = true ;
 		return ;
 	}
@@ -7642,15 +7683,17 @@ void PEDIT01::placeCursor( int URID, CSR_POS pt, int offset, bool lcmd )
 	cursorPlaceUsing = 1     ;
 	cursorPlaceURID  = URID  ;
 	cursorPlaceRow   = 0     ;
-	if ( pt == CSR_LC_OR_DATA )
+	if ( pt == CSR_LC_OR_FNB_DATA )
 	{
-	      cursorPlaceType = ( lcmd ) ? CSR_FC_LCMD : CSR_FC_DATA ;
+	      if ( not lcmd ) { return ; }
+	      cursorPlaceType = CSR_FC_LCMD ;
 	}
 	else
 	{
 		cursorPlaceType = pt ;
 	}
 	cursorPlaceOff = offset ;
+	cursorFixed = true ;
 }
 
 
@@ -7830,17 +7873,17 @@ void PEDIT01::positionCursor()
 
 bool PEDIT01::formLineCmd( const string& cmd, string& lcc, int& rept )
 {
-	// Split line command into the command (string) and repeat value (int), if allowed, and return in lcc and retp
-	// A 'rept' of -1 means it has not been entered.  Assume rept of 0 means it has not been entered.
+	// Split line command into the command (string) and repeat value (int), if allowed, and return in lcc and retp.
 
-	int j ;
+	// A 'rept' of -1 means it has not been entered.
+	// Assume rept of 0 means it has not been entered.
 
 	string t ;
 
-	t.assign( 6, ' ' )   ;
-	lcc.assign( 6, ' ' ) ;
+	t.assign( cmd.size(), ' ' )   ;
+	lcc.assign( cmd.size(), ' ' ) ;
 
-	for ( j = 0 ; j < cmd.size() ; ++j )
+	for ( int j = 0 ; j < cmd.size() ; ++j )
 	{
 		if ( isdigit( cmd[ j ] ) ) { t[ j ]   = cmd[ j ] ; }
 		else                       { lcc[ j ] = cmd[ j ] ; }
@@ -8902,7 +8945,7 @@ void PEDIT01::copyPrefix( iline*& d, ipline& s, bool l )
 	d->il_profln = s.ip_profln ;
 	if ( l && s.ip_label != "" )
 	{
-		d->setLabel( s.ip_label ) ;
+		d->setLabel( s.ip_label, Level ) ;
 	}
 }
 
@@ -9069,6 +9112,7 @@ void PEDIT01::cleanupRedoStacks()
 			[](iline*& a)
 			{
 				a->remove_redo_idata() ;
+				a->remove_redo_label() ;
 			} ) ;
 		iline::reset_Redo_data( taskid() ) ;
 	}
@@ -9077,20 +9121,21 @@ void PEDIT01::cleanupRedoStacks()
 
 void PEDIT01::removeRecoveryData()
 {
-	// Delete all logically deleted lines and remove entries from the data vector
-	// Flatten all remaining data
-	// Clear the global Undo/Redo/File stacks
+	// Delete all logically deleted lines and remove entries from the data vector.
+	// Flatten all remaining data and labels and set idata level to 0.
+	// Clear the global Undo/Redo/File stacks.
 
 	// Make a copy of the data vector using copy_if that contains only records to be deleted as
-	// iterator is invalidated after an erase()
+	// iterator is invalidated after an erase().
 
-	// Reposition topLine as lines before may have been removed or topLine itself, deleted
+	// Reposition topLine as lines before may have been removed or topLine itself, deleted.
 
 	int topURID ;
 
-	vector<iline*>::iterator it      ;
+	vector<iline*>tdata ;
+
+	vector<iline*>::iterator it ;
 	vector<iline*>::iterator new_end ;
-	vector<iline*>tdata              ;
 
 	if ( data.at( topLine )->il_deleted )
 	{
@@ -9120,12 +9165,12 @@ void PEDIT01::removeRecoveryData()
 		[](iline*& a)
 		{
 			a->flatten_idata() ;
+			a->flatten_label() ;
 		} ) ;
 
 	iline::clear_Global_Undo( taskid() ) ;
 	iline::clear_Global_Redo( taskid() ) ;
 	iline::clear_Global_File_level( taskid() ) ;
-	iline::reset_Redo_data( taskid() ) ;
 
 	topLine = getLine( topURID )  ;
 	pcmd.set_msg( "PEDT012H", 4 ) ;
@@ -9137,7 +9182,7 @@ void PEDIT01::cleanupData()
 	// Delete all logically deleted lines for non-file data and remove entries from the data vector
 	// (Make a copy of the data vector using copy_if that contains only records to be deleted as iterator is invalidated after an erase() )
 
-	// Remove the redo idata for each line
+	// Remove the redo idata and redo label for each line
 	// Reset Global_Undo stack (set same as Global_File_level stack) as now there are only file UNDO entries
 	// Clear Global_Redo stack
 	// Only UNDO of file data valid after this has been done
@@ -9146,9 +9191,10 @@ void PEDIT01::cleanupData()
 
 	int topURID ;
 
-	vector<iline*>::iterator it      ;
+	vector<iline*>tdata ;
+
+	vector<iline*>::iterator it ;
 	vector<iline*>::iterator new_end ;
-	vector<iline*>tdata              ;
 
 	if ( data.at( topLine )->il_deleted )
 	{
@@ -9178,6 +9224,7 @@ void PEDIT01::cleanupData()
 		[](iline*& a)
 		{
 			a->remove_redo_idata() ;
+			a->remove_redo_label() ;
 		} ) ;
 
 	iline::reset_Global_Undo( taskid() ) ;
@@ -9194,8 +9241,10 @@ void PEDIT01::removeProfLines()
 	// Reposition topLine as lines before may have been removed or topLine itself, deleted.
 
 	int topURID ;
+
+	vector<iline*>tdata ;
+
 	vector<iline*>::iterator new_end ;
-	vector<iline*>tdata              ;
 
 	while ( data.at( topLine )->is_prof() )
 	{
@@ -9232,9 +9281,9 @@ void PEDIT01::removeSpecialLines( vector<iline*>::iterator its, vector<iline*>::
 
 	int lvl ;
 
-	lvl = ++Level ;
+	lvl = Level ;
 	for_each( its, ite,
-		[ &lvl ](iline*& a)
+		[ lvl ](iline*& a)
 		{
 			if ( a->isSpecial() ) { a->set_deleted( lvl ) ; }
 		} ) ;
@@ -10022,11 +10071,11 @@ void PEDIT01::reflowData( vector<string>& tdata1, int tf_col, int ind1, int ind2
 
 void PEDIT01::compareFiles( const string& s )
 {
-	//  Simple compare routine using output from the diff command.
+	// Simple compare routine using output from the diff command.
 
-	//  Compare edit version of file with entered file name.  Differences displayed in browse or
-	//  with INFO lines ( special labels .Onnnn signify lines added, INFO lines ====== are lines deleted )
-	//  (all INFO lines and special labels are cleared first).
+	// Compare edit version of file with entered file name.  Differences displayed in browse or
+	// with INFO lines ( special labels .Onnnn signify lines added, INFO lines ====== are lines deleted )
+	// (all INFO lines and special labels are cleared first).
 
 	int i   ;
 	int lvl ;
@@ -10177,11 +10226,11 @@ void PEDIT01::compareFiles( const string& s )
 	Changes.clear() ;
 	std::ifstream fin( tname2.c_str() ) ;
 
-	lvl = ++Level ;
+	lvl = Level ;
 	for_each( data.begin(), data.end(),
-		[ &lvl ](iline*& a)
+		[ lvl ](iline*& a)
 		{
-			a->clearSpecialLabel() ;
+			a->clearSpecialLabel( lvl ) ;
 			if ( a->is_info() ) { a->set_deleted( lvl ) ; }
 		} ) ;
 
@@ -10210,7 +10259,7 @@ void PEDIT01::compareFiles( const string& s )
 		}
 		else if ( inLine.front() == '>' )
 		{
-			data.at(( getDataLine( d1+o ) ))->setLabel( label ) ;
+			data.at(( getDataLine( d1+o ) ))->setLabel( label, Level ) ;
 			label = genNextLabel( label ) ;
 			++o ;
 		}
@@ -10231,7 +10280,7 @@ void PEDIT01::compareFiles( const string& s )
 
 void PEDIT01::createFile( uint sidx, uint eidx )
 {
-	//  Create file with contents from sidx to eidx
+	// Create file with contents from sidx to eidx
 
 	int i ;
 	int j ;
@@ -10349,19 +10398,19 @@ string PEDIT01::lshiftCols( int n, const string* p_s )
 
 bool PEDIT01::rshiftData( int n, const string* s, string& t )
 {
-	//  > Right shifting rules:
-	//  1) scanning starts at left column
-	//  2) first blank char is found
-	//  3) the next non-blank char is found
-	//  4) the next double blank char is found
-	//  5) data from 3) to 4) is shifted 1 col to the right
-	//  The above 5 steps are repeated until request is satisfied
+	// > Right shifting rules:
+	// 1) scanning starts at left column
+	// 2) first blank char is found
+	// 3) the next non-blank char is found
+	// 4) the next double blank char is found
+	// 5) data from 3) to 4) is shifted 1 col to the right
+	// The above 5 steps are repeated until request is satisfied
 	//
-	//  Without   1) losing data
-	//            2) shift beyond bound
-	//            3) deleting single blanks
-	//            4) deleting blanks within apostrophes
-	//  else ==ERR>
+	// Without   1) losing data
+	//           2) shift beyond bound
+	//           3) deleting single blanks
+	//           4) deleting blanks within apostrophes
+	// else ==ERR>
 
 	size_t c1 ;
 	size_t p1 ;
@@ -10403,18 +10452,18 @@ bool PEDIT01::rshiftData( int n, const string* s, string& t )
 
 bool PEDIT01::lshiftData( int n, const string* s, string& t )
 {
-	//  < Left shifting rules:
-	//  1) scanning starts at left column
-	//  2) first blank char is found
-	//  3) the next non-blank char is found
-	//  4) the next double blank char is found
-	//  5) data from 3) to 4) is shifted 1 col to the left
-	//  The above 5 steps are repeated until request is satisfied
-	//  Without   1) losing data
-	//            2) shift beyond bound
-	//            3) deleting single blanks
-	//            4) deleting blanks within apostrophes
-	//  else ==ERR>
+	// < Left shifting rules:
+	// 1) scanning starts at left column
+	// 2) first blank char is found
+	// 3) the next non-blank char is found
+	// 4) the next double blank char is found
+	// 5) data from 3) to 4) is shifted 1 col to the left
+	// The above 5 steps are repeated until request is satisfied
+	// Without   1) losing data
+	//           2) shift beyond bound
+	//           3) deleting single blanks
+	//           4) deleting blanks within apostrophes
+	// else ==ERR>
 
 	size_t c1 ;
 	size_t p1 ;
@@ -11103,9 +11152,9 @@ void PEDIT01::readLineCommandTable()
 		if ( datatype( zelcnam, 'U' ) && lineCmds.count( zelcnam ) == 0 )
 		{
 			lineCmds[ zelcnam ] = LC_LMAC ;
-			t.lcname  = zelcnam ;
-			t.lcmac   = zelcmac ;
-			t.lcpgm   = ( zelcpgm == "Y" ) ;
+			t.lcname = zelcnam ;
+			t.lcmac  = zelcmac ;
+			t.lcpgm  = ( zelcpgm == "Y" ) ;
 			lmacs[ zelcnam ] = t ;
 			blkCmds.insert( blkcmd ) ;
 			if ( zelcmlt == "Y" ) { reptOk.insert( zelcnam )  ; }
@@ -11246,7 +11295,7 @@ string PEDIT01::mergeLine( const string& s, vector<iline*>::const_iterator it )
 		{
 			if ( it == data.end() )
 			{
-				miBlock.seterror( "PEDM013A", "LINE keyword missing lptr parameter", 20 ) ;
+				miBlock.seterror( "PEDM013A", "LINE", 20 ) ;
 				return "" ;
 			}
 			r1 = (*it)->get_idata() ;
@@ -11522,6 +11571,7 @@ void PEDIT01::run_macro( const string& macro, bool imacro, bool lcmacro )
 	}
 	control( "ERRORS", "CANCEL" ) ;
 
+	ZRESULT = "" ;
 	if ( miBlock.mfound && !miBlock.processed && !miBlock.imacro && !miBlock.lcmacro && !miBlock.cancel )
 	{
 		updateData() ;
@@ -11604,6 +11654,8 @@ void PEDIT01::isredit( const string& s )
 	{
 		return ;
 	}
+
+	miBlock.setRC( 0 ) ;
 
 	( miBlock.query ) ? querySetting() : actionService() ;
 }
@@ -11980,12 +12032,6 @@ void PEDIT01::actionService()
 
 	rebuildZAREA = true ;
 
-	if ( zedvmode && miBlock.m_cmd == EM_SAVE )
-	{
-		miBlock.setRC( 8 ) ;
-		return ;
-	}
-
 	switch ( miBlock.m_cmd )
 	{
 	case EM_CANCEL:
@@ -12130,15 +12176,15 @@ void PEDIT01::actionService()
 				miBlock.seterror( "PEDT014", 20 ) ;
 				break ;
 			}
-			if ( data.at( p1 )->setLabel( vw1, n ) > 0 )
+			if ( data.at( p1 )->setLabel( vw1, Level, n ) > 0 )
 			{
 				miBlock.setRC( 8 ) ;
 			}
 			tURID = data.at( p1 )->il_URID ;
 			for ( it = data.begin() ; it != data.end() ; ++it )
 			{
-				if ( (*it)->il_URID == tURID )     { continue ; }
-				if ( (*it)->clearLabel( vw1, n ) ) { break    ; }
+				if ( (*it)->il_URID == tURID ) { continue ; }
+				if ( (*it)->clearLabel( vw1, Level, n ) ) { break ; }
 			}
 			break ;
 
@@ -12157,7 +12203,6 @@ void PEDIT01::actionService()
 					break ;
 				}
 			}
-			++Level ;
 			if ( (*it)->put_idata( miBlock.value, Level ) )
 			{
 				fileChanged = true ;
@@ -12200,7 +12245,6 @@ void PEDIT01::actionService()
 					break ;
 				}
 			}
-			++Level ;
 			p_iline = new iline( taskid() ) ;
 			if      ( opt == "DATALINE" ) { p_iline->il_type = LN_FILE ; fileChanged = true ; }
 			else if ( opt == "INFOLINE" ) { p_iline->il_type = LN_INFO ; }
@@ -12232,6 +12276,10 @@ void PEDIT01::actionService()
 			break ;
 
 	case EM_MACRO:
+			if ( miBlock.nestlvl == 1 )
+			{
+				Level = iline::get_Global_Undo_level( taskid() ) + 1 ;
+			}
 			for ( int ws = words( miBlock.keyopts ), i = 1 ; i <= ws ; ++i )
 			{
 				t = word( miBlock.keyopts, i ) ;
@@ -12391,6 +12439,21 @@ void PEDIT01::actionService()
 			}
 			break ;
 
+	case EM_SAVE:
+			if ( zedvmode )
+			{
+				miBlock.setRC( 8 ) ;
+			}
+			else if ( saveFile() )
+			{
+				Level = iline::get_Global_Undo_level( taskid() ) + 1 ;
+			}
+			else
+			{
+				miBlock.seterror( pcmd, 20 ) ;
+			}
+			break ;
+
 	case EM_SCAN:
 			if ( miBlock.keyopts == "ON" || miBlock.keyopts == "" )
 			{
@@ -12425,6 +12488,34 @@ void PEDIT01::actionService()
 			cmd.lcmd_eURID = data.at( p1 )->il_URID ;
 			if ( vw3 == "" ) { cmd.lcmd_Rpt = ( findword( vw1, "[ ]" ) ) ? 1 : 2 ; }
 			else             { cmd.lcmd_Rpt = ds2d( vw3 )                        ; }
+			xlcmds.push_back( cmd ) ;
+			actionLineCommand( xlcmds.begin(), unused, unused ) ;
+			break ;
+
+	case EM_TFLOW:
+			if ( miBlock.get_sttment_words() < 2 )
+			{
+				miBlock.seterror( "PEDM013A", "TFLOW", 20 ) ;
+				break ;
+			}
+			vw1 = word( miBlock.sttment, 2 ) ;
+			vw2 = word( miBlock.sttment, 3 ) ;
+			if ( miBlock.get_sttment_words() > 3 ||
+			   ( vw2 != "" && ( not datatype( vw2, 'W' ) || vw2.size() > 9 ) ) )
+			{
+				miBlock.seterror( "PEDM011P" ) ;
+				break ;
+			}
+			if ( vw2 == "" && RightBnd == 0 )
+			{
+				miBlock.seterror( "PEDM012U", 20 ) ;
+				break ;
+			}
+			p1 = getLabelLine( iupper( vw1 ) ) ;
+			if ( p1 < 1 ) { break ; }
+			cmd.lcmd_cmd   = LC_TF ;
+			cmd.lcmd_sURID = data.at( p1 )->il_URID ;
+			cmd.lcmd_Rpt   = ( vw2 == "" ) ? RightBnd : ds2d( vw2 ) ;
 			xlcmds.push_back( cmd ) ;
 			actionLineCommand( xlcmds.begin(), unused, unused ) ;
 			break ;
@@ -12474,7 +12565,6 @@ void PEDIT01::actionService()
 	case EM_PROFILE:
 	case EM_RECOVERY:
 	case EM_RESET:
-	case EM_SAVE:
 	case EM_SEEK:
 			if ( miBlock.assign )
 			{

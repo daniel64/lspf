@@ -52,7 +52,7 @@
 /* TOUCH  - Make a file (under current directory or specify full path)                                      */
 
 /* Line Commands:                                                                                           */
-/* ADD - Add file the Personal File List                                                                    */
+/* ADD - Add file to the Personal File List                                                                 */
 /* B   - Browse file                                                                                        */
 /* C   - Copy file/directory/symlink                                                                        */
 /* D   - Delete file                                                                                        */

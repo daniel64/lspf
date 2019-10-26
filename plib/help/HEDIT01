@@ -27,7 +27,7 @@ PROFILE USE TYPE - Determine profile name from the file type (eg, REXX, ASM, CPP
 
 PROFILE DELETE abc - Delete edit profile abc
 
-RECOVER ON PATH pathname - Set the path to save a copy of the file on edit entry
+RECOVER ON PATH pathname - Set the path to save a copy of the file on first data change.
                            (default home directory - should be changed to a backup directory eg ~/isr/)
 
 UNDO ALL - Undo all changes on the undo stack

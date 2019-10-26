@@ -57,6 +57,8 @@ bool addHilight( const string& lang )
 
 void addCppHilight( hilight& h, const string& line, string& shadow )
 {
+	// Special characters (yellow) must also be in the delims list.
+
 	uint j  ;
 	uint start ;
 
@@ -64,14 +66,13 @@ void addCppHilight( hilight& h, const string& line, string& shadow )
 	size_t p1 ;
 
 	string w ;
-	const string delims( " (){}=;><+-*[]&,\"'" ) ;
+	const string delims( " (){}=;<>+-*/|:!%#[]&,\\\"'" ) ;
+	const string specials( "+-*/=<>&,|:!;%#[]\\" ) ;
 
-	bool oQuote ;
-	char Quote  ;
+	bool oQuote = false ;
+	char Quote ;
 
 	map<string, keyw>::iterator it ;
-
-	oQuote = false ;
 
 	int  oBrac1   = h.hl_oBrac1   ;
 	int  oBrac2   = h.hl_oBrac2   ;
@@ -81,6 +82,7 @@ void addCppHilight( hilight& h, const string& line, string& shadow )
 	if ( ln == 0 ) { shadow = "" ; return ; }
 
 	shadow = string( ln, E_GREEN ) ;
+
 	start  = 0 ;
 	p1     = 0 ;
 
@@ -152,13 +154,18 @@ void addCppHilight( hilight& h, const string& line, string& shadow )
 			}
 			continue ;
 		}
+		if ( specials.find( line[ j ] ) != string::npos )
+		{
+			shadow[ j ] = E_YELLOW ;
+			continue ;
+		}
 		p1 = line.find_first_of( delims, j ) ;
 		if ( p1 != j || p1 == string::npos )
 		{
 			if ( p1 == string::npos ) { p1 = ln ; }
 			w  = line.substr( j, p1-j ) ;
-			it = keywList1.find( w ) ;
-			if ( it != keywList1.end() )
+			it = kw_cpp.find( w ) ;
+			if ( it != kw_cpp.end() )
 			{
 				shadow.replace( j, it->second.kw_len, it->second.kw_len, it->second.kw_col ) ;
 			}
@@ -183,12 +190,15 @@ void addCppHilight( hilight& h, const string& line, string& shadow )
 			j = p1 - 1 ;
 			continue   ;
 		}
-		if ( line[ j ] == '(' ) { ++oBrac1 ; shadow[ j ] = oBrac1 % 7 + 6 ; continue ; }
-		if ( line[ j ] == ')' )
+		if ( h.hl_Paren )
 		{
-			if ( oBrac1 == 0 ) { shadow[ j ] = G_WHITE ; }
-			else               { shadow[ j ] = oBrac1 % 7 + 6 ; --oBrac1 ; }
-			continue ;
+			if ( line[ j ] == '(' ) { ++oBrac1 ; shadow[ j ] = oBrac1 % 7 + 6 ; continue ; }
+			if ( line[ j ] == ')' )
+			{
+				if ( oBrac1 == 0 ) { shadow[ j ] = G_WHITE ; }
+				else               { shadow[ j ] = oBrac1 % 7 + 6 ; --oBrac1 ; }
+				continue ;
+			}
 		}
 		if ( h.hl_doLogic )
 		{
@@ -213,7 +223,6 @@ void addCppHilight( hilight& h, const string& line, string& shadow )
 				continue ;
 			}
 		}
-		if ( line[ j ] == '=' ) { shadow[ j ] = E_YELLOW ; }
 	}
 	h.hl_oBrac1   = oBrac1 ;
 	h.hl_oBrac2   = oBrac2 ;
@@ -232,8 +241,8 @@ void addASMHilight( hilight& h, const string& line, string& shadow )
 
 	string w ;
 
-	char Quote    = h.hl_Quote    ;
-	bool oQuote   = h.hl_oQuote   ;
+	char Quote  = h.hl_Quote  ;
+	bool oQuote = h.hl_oQuote ;
 
 	ln = line.size() ;
 	if ( ln == 0 ) { shadow = "" ; return ; }
@@ -246,6 +255,7 @@ void addASMHilight( hilight& h, const string& line, string& shadow )
 		shadow = string( ln, E_TURQ ) ;
 		return ;
 	}
+
 	shadow = string( ln, E_GREEN ) ;
 
 	j = 0 ;
@@ -352,6 +362,8 @@ void addASMHilight( hilight& h, const string& line, string& shadow )
 
 void addRxxHilight( hilight& h, const string& line, string& shadow )
 {
+	// Special characters (yellow) must also be in the delims list.
+
 	uint ln    ;
 	uint start ;
 	uint j     ;
@@ -359,23 +371,23 @@ void addRxxHilight( hilight& h, const string& line, string& shadow )
 	size_t p1 ;
 
 	string w ;
-	const string delims( " ()=;><+-*[]\"'" ) ;
 
-	bool oQuote ;
-	char Quote  ;
+	const string delims( " ()=;<>+-*[]\"'/&|:%\\" ) ;
+	const string specials( "=<>+-*[]/&|:%\\" ) ;
+
+	bool oQuote = false ;
+	char Quote ;
 
 	map<string, keyw>::iterator it ;
 
-	oQuote = false ;
-
 	int  oBrac1   = h.hl_oBrac1   ;
-	int  oBrac2   = h.hl_oBrac2   ;
 	bool oComment = h.hl_oComment ;
 
 	ln = line.size() ;
 	if ( ln == 0 ) { shadow = "" ; return ; }
 
 	shadow = string( ln, E_GREEN ) ;
+
 	start  = 0 ;
 	p1     = 0 ;
 
@@ -442,13 +454,18 @@ void addRxxHilight( hilight& h, const string& line, string& shadow )
 			}
 			continue ;
 		}
+		if ( specials.find( line[ j ] ) != string::npos )
+		{
+			shadow[ j ] = E_YELLOW ;
+			continue ;
+		}
 		p1 = line.find_first_of( delims, j ) ;
 		if ( p1 != j || p1 == string::npos )
 		{
 			if ( p1 == string::npos ) { p1 = ln ; }
 			w     = upper( line.substr( j, p1-j ) ) ;
-			it    = keywList2.find( w ) ;
-			if ( it != keywList2.end() )
+			it    = kw_rexx.find( w ) ;
+			if ( it != kw_rexx.end() )
 			{
 				shadow.replace( j, it->second.kw_len, it->second.kw_len, it->second.kw_col ) ;
 			}
@@ -491,47 +508,192 @@ void addRxxHilight( hilight& h, const string& line, string& shadow )
 			j = p1 - 1 ;
 			continue ;
 		}
-		if ( line[ j ] == '(' ) { ++oBrac1 ; shadow[ j ] = oBrac1 % 7 + 6 ; continue ; }
-		if ( line[ j ] == ')' )
+		if ( h.hl_Paren )
 		{
-			if ( oBrac1 == 0 ) { shadow[ j ] = G_WHITE ; }
-			else               { shadow[ j ] = oBrac1 % 7 + 6 ; --oBrac1 ; }
-			continue ;
+			if ( line[ j ] == '(' ) { ++oBrac1 ; shadow[ j ] = oBrac1 % 7 + 6 ; continue ; }
+			if ( line[ j ] == ')' )
+			{
+				if ( oBrac1 == 0 ) { shadow[ j ] = G_WHITE ; }
+				else               { shadow[ j ] = oBrac1 % 7 + 6 ; --oBrac1 ; }
+				continue ;
+			}
 		}
-		if ( line[ j ] == '=' ) { shadow[ j ] = E_YELLOW ; continue ; }
 	}
 	h.hl_oBrac1   = oBrac1 ;
-	h.hl_oBrac2   = oBrac2 ;
 	h.hl_oComment = oComment ;
 }
 
 
 void addOthHilight( hilight& h, const string& line, string& shadow )
 {
-	// Highlight as a pseudo-PL/1 language (TODO)
+	// Highlight as a pseudo-PL/1 language.
+	// Special characters (yellow) must also be in the delims list.
 
-	size_t ln ;
+	uint ln ;
+	uint start ;
+	uint j  ;
+
+	size_t p1 ;
+
+	string w ;
+
+	const string delims( " +-*/=<>()&|:\"'" ) ;
+	const string specials( "+-*/=<>&|:" ) ;
+
+	bool oQuote = false ;
+	char Quote ;
+
+	map<string, keyw>::iterator it ;
+
+	int  oBrac1   = h.hl_oBrac1   ;
+	bool oComment = h.hl_oComment ;
 
 	ln = line.size() ;
 	if ( ln == 0 ) { shadow = "" ; return ; }
+
 	shadow = string( ln, E_GREEN ) ;
+
+	start  = 0 ;
+	p1     = 0 ;
+
+	for ( j = 0 ; j < ln ; ++j )
+	{
+		if ( !oQuote && ln > 1 && j < ln-1 )
+		{
+			if ( line.compare( j, 2, "/*" ) == 0 )
+			{
+				oComment = true ;
+				shadow.replace( j, 2, 2, E_TURQ ) ;
+				++j ;
+				continue ;
+			}
+			if ( oComment && line.compare( j, 2, "*/" ) == 0 )
+			{
+				oComment = false ;
+				shadow.replace( j, 2, 2, E_TURQ ) ;
+				++j ;
+				continue ;
+			}
+		}
+
+		if ( oComment )
+		{
+			shadow[ j ] = E_TURQ ;
+			continue ;
+		}
+
+		if ( !oQuote )
+		{
+			if ( line[ j ] == ' '  ) { continue ; }
+			if ( line[ j ] == '"' || line[ j ] == '\'' )
+			{
+				oQuote = true ;
+				Quote  = line[ j ] ;
+				start  = j ;
+				continue   ;
+			}
+		}
+		else if ( line[ j ] == Quote )
+		{
+			oQuote = false ;
+			shadow.replace( start, j-start+1, j-start+1, E_WHITE ) ;
+			continue ;
+		}
+		if ( oQuote )
+		{
+			if ( j == ln-1 )
+			{
+				shadow.replace( start, j-start+1, j-start+1, G_WHITE ) ;
+			}
+			continue ;
+		}
+		if ( specials.find( line[ j ] ) != string::npos )
+		{
+			shadow[ j ] = E_YELLOW ;
+			continue ;
+		}
+		p1 = line.find_first_of( delims, j ) ;
+		if ( p1 != j || p1 == string::npos )
+		{
+			if ( p1 == string::npos ) { p1 = ln ; }
+			w     = upper( line.substr( j, p1-j ) ) ;
+			it    = kw_other.find( w ) ;
+			if ( it != kw_other.end() )
+			{
+				shadow.replace( j, it->second.kw_len, it->second.kw_len, it->second.kw_col ) ;
+			}
+			if ( h.hl_ifLogic )
+			{
+				if ( w == "IF" )
+				{
+					++h.hl_oIf ;
+				}
+				else if ( w == "ELSE" )
+				{
+					if ( h.hl_oIf == 0 )
+					{
+						shadow.replace( j, 4, 4, G_WHITE ) ;
+					}
+					else if ( h.hl_oIf > 0 )
+					{
+						--h.hl_oIf ;
+					}
+				}
+			}
+			if ( h.hl_doLogic )
+			{
+				if ( w == "DO" )
+				{
+					++h.hl_oDo ;
+				}
+				else if ( w == "END" )
+				{
+					if ( h.hl_oDo == 0 )
+					{
+						shadow.replace( j, 3, 3, G_WHITE ) ;
+					}
+					else
+					{
+						--h.hl_oDo ;
+					}
+				}
+			}
+			j = p1 - 1 ;
+			continue ;
+		}
+		if ( h.hl_Paren )
+		{
+			if ( line[ j ] == '(' ) { ++oBrac1 ; shadow[ j ] = oBrac1 % 7 + 6 ; continue ; }
+			if ( line[ j ] == ')' )
+			{
+				if ( oBrac1 == 0 ) { shadow[ j ] = G_WHITE ; }
+				else               { shadow[ j ] = oBrac1 % 7 + 6 ; --oBrac1 ; }
+				continue ;
+			}
+		}
+	}
+	h.hl_oBrac1   = oBrac1 ;
+	h.hl_oComment = oComment ;
 }
 
 
 void addDefHilight( hilight& h, const string& line, string& shadow )
 {
-	// Highlight in a single colour
+	// Highlight in a single colour, green.
 
 	size_t ln ;
 
 	ln = line.size() ;
 	if ( ln == 0 ) { shadow = "" ; return ; }
+
 	shadow = string( ln, E_GREEN ) ;
 }
 
 
 void addPanHilight( hilight& h, const string& line, string& shadow )
 {
+	// Special characters (yellow) must also be in the delims list.
+
 	uint start ;
 	uint j ;
 
@@ -539,23 +701,23 @@ void addPanHilight( hilight& h, const string& line, string& shadow )
 	size_t p1 ;
 
 	string w ;
-	const string delims( " ,()=><+-*\"'" ) ;
 
-	bool oQuote ;
-	char Quote  ;
+	const string delims( " =,&.()=<>!+-*|\"'" ) ;
+	const string specials( "=,&.<>!*|" ) ;
+
+	bool oQuote = false ;
+	char Quote ;
 
 	map<string, keyw>::iterator it ;
 
-	oQuote = false ;
-
 	int  oBrac1   = h.hl_oBrac1   ;
-	int  oBrac2   = h.hl_oBrac2   ;
 	bool oComment = h.hl_oComment ;
 
 	ln = line.size() ;
 	if ( ln == 0 ) { shadow = "" ; return ; }
 
 	shadow = string( ln, E_GREEN ) ;
+
 	start  = 0 ;
 	p1     = 0 ;
 
@@ -633,8 +795,8 @@ void addPanHilight( hilight& h, const string& line, string& shadow )
 		{
 			w  = word( line, 1 ) ;
 			iupper( w ) ;
-			it = keywList3.find( w ) ;
-			if ( it != keywList3.end() )
+			it = kw_panel.find( w ) ;
+			if ( it != kw_panel.end() )
 			{
 				shadow.replace( 0, it->second.kw_len, it->second.kw_len, it->second.kw_col ) ;
 				j = it->second.kw_len ;
@@ -642,14 +804,18 @@ void addPanHilight( hilight& h, const string& line, string& shadow )
 			if ( w == ")COMMENT" ) { oComment = true ; }
 			continue ;
 		}
-		if ( line[ j ] == '&' ) { shadow[ j ] = E_YELLOW ; continue ; }
+		if ( specials.find( line[ j ] ) != string::npos )
+		{
+			shadow[ j ] = E_YELLOW ;
+			continue ;
+		}
 		p1 = line.find_first_of( delims, j ) ;
 		if ( p1 != j || p1 == string::npos )
 		{
 			if ( p1 == string::npos ) { p1 = ln ; }
 			w     = upper( line.substr( j, p1-j ) ) ;
-			it    = keywList3.find( w ) ;
-			if ( it != keywList3.end() )
+			it    = kw_panel.find( w ) ;
+			if ( it != kw_panel.end() )
 			{
 				shadow.replace( j, it->second.kw_len, it->second.kw_len, it->second.kw_col ) ;
 			}
@@ -674,16 +840,17 @@ void addPanHilight( hilight& h, const string& line, string& shadow )
 			j = p1 - 1 ;
 			continue ;
 		}
-		if ( line[ j ] == '(' ) { ++oBrac1 ; shadow[ j ] = oBrac1 % 7 + 6 ; continue ; }
-		if ( line[ j ] == ')' )
+		if ( h.hl_Paren )
 		{
-			if ( oBrac1 == 0 ) { shadow[ j ] = G_WHITE ; }
-			else               { shadow[ j ] = oBrac1 % 7 + 6 ; --oBrac1 ; }
-			continue ;
+			if ( line[ j ] == '(' ) { ++oBrac1 ; shadow[ j ] = oBrac1 % 7 + 6 ; continue ; }
+			if ( line[ j ] == ')' )
+			{
+				if ( oBrac1 == 0 ) { shadow[ j ] = G_WHITE ; }
+				else               { shadow[ j ] = oBrac1 % 7 + 6 ; --oBrac1 ; }
+				continue ;
+			}
 		}
-		if ( line[ j ] == '=' ) { shadow[ j ] = E_YELLOW ; continue ; }
 	}
 	h.hl_oBrac1   = oBrac1 ;
-	h.hl_oBrac2   = oBrac2 ;
 	h.hl_oComment = oComment ;
 }

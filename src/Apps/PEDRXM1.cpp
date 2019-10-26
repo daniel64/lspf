@@ -100,7 +100,7 @@ void PEDRXM1::application()
 	{
 		tmiBlock = *mibptr ;
 		mibptr->clear() ;
-		mibptr->setMacro( word( editAppl->pcmd.get_cmd(), 1 ) )  ;
+		mibptr->setMacro( word( editAppl->pcmd.get_cmd(), 1 ) ) ;
 		if ( !mibptr->getMacroFileName( mibptr->rxpath2 ) )
 		{
 			mibptr->RC > 8 ? tmiBlock.seterror( "PEDM012Q", 20 ) : tmiBlock.seterror( "PEDT015A", 20 ) ;
@@ -136,11 +136,7 @@ void PEDRXM1::application()
 		mibptr->setExitRC( 28 ) ;
 	}
 
-	for_each( editAppl->data.begin(), editAppl->data.end(),
-		[ nlvl ](iline*& a)
-		{
-			a->clearLabel( nlvl ) ;
-		} ) ;
+	editAppl->clearMacroLabels( nlvl ) ;
 
 	if ( nlvl > 1 )
 	{
@@ -428,7 +424,7 @@ int setAllRexxVariables( pApplication* macAppl )
 }
 
 
-int getRexxVariable( pApplication* macAppl, string n, string & v )
+int getRexxVariable( pApplication* macAppl, string n, string& v )
 {
 	// Get variable value from Rexx variable pool and update the application function pool
 

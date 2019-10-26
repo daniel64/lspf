@@ -78,8 +78,9 @@ class pPanel
 
 		const string& cmd_getvalue() ;
 		void   cmd_setvalue( const string& ) ;
+		bool   cmd_nonblank() ;
 
-		bool    get_tbscan()                   { return tb_scan    ; }
+		bool   get_tbscan()                    { return tb_scan    ; }
 
 		bool   is_cmd_inactive( const string& value ) ;
 

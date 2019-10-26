@@ -692,11 +692,11 @@ bool pPanel::do_redisplay()
 
 void pPanel::display_panel_update( errblock& err )
 {
-	//  For all changed fields, remove the null character, apply attributes (upper case, left/right justified),
-	//  and copy back to function pool.  Reset field for display.
+	// For all changed fields, remove the null character, apply attributes (upper case, left/right justified),
+	// and copy back to function pool.  Reset field for display.
 
-	//  For dynamic areas, also update the shadow variable to indicate character deletes (0xFE) or nulls
-	//  converted to spaced (0xFF)
+	// For dynamic areas, also update the shadow variable to indicate character deletes (0xFE) or nulls
+	// converted to spaces (0xFF)
 
 	int fieldNum    ;
 	int maxAmount   ;
@@ -709,6 +709,8 @@ void pPanel::display_panel_update( errblock& err )
 	string cmd      ;
 	string fieldNam ;
 	string msgfld   ;
+
+	const string scrollAmounts = "M MAX C CSR D DATA H HALF P PAGE" ;
 
 	string* darea   ;
 	string* shadow  ;
@@ -776,7 +778,11 @@ void pPanel::display_panel_update( errblock& err )
 					p_row -= p ;
 				}
 			}
-			p_poolMGR->put( err, "ZVERB", "", SHARED ) ;
+			cmd = cmd_getvalue() ;
+			if ( findword( upper( cmd ), scrollAmounts ) || ( isnumeric( cmd ) && cmd.size() <= 6 ) )
+			{
+				cmd_setvalue( "" ) ;
+			}
 			redisplay = true ;
 			bypassCur = true ;
 			return ;
@@ -917,7 +923,7 @@ void pPanel::display_panel_update( errblock& err )
 	{
 		cmd    = upper( cmd_getvalue() ) ;
 		msgfld = cmdfield ;
-		if ( cmd == "" || ( !findword( cmd, "M MAX C CSR D DATA H HALF P PAGE" ) && !isnumeric( cmd ) ) )
+		if ( cmd == "" || ( !findword( cmd, scrollAmounts ) && !isnumeric( cmd ) ) )
 		{
 			cmd    = fieldList[ scroll ]->field_value ;
 			msgfld = scroll ;
@@ -3146,28 +3152,25 @@ field* pPanel::get_field_address( uint row, uint col )
 
 const string& pPanel::field_getvalue( const string& f_name )
 {
-	map<string, field*>::iterator it ;
+	map<string, field*>::iterator it = fieldList.find( f_name ) ;
 
-	it = fieldList.find( f_name )   ;
-	it->second->field_prep_input()  ;
-	return  it->second->field_value ;
+	it->second->field_prep_input() ;
+	return it->second->field_value ;
 }
 
 
 const string& pPanel::field_getrawvalue( const string& f_name )
 {
-	map<string, field*>::iterator it ;
+	map<string, field*>::iterator it = fieldList.find( f_name ) ;
 
-	it = fieldList.find( f_name )   ;
-	return  it->second->field_value ;
+	return it->second->field_value ;
 }
 
 
 void pPanel::field_setvalue( const string& f_name, const string& f_value )
 {
-	map<string, field*>::iterator it ;
+	map<string, field*>::iterator it = fieldList.find( f_name ) ;
 
-	it = fieldList.find( f_name ) ;
 	it->second->field_value   = f_value ;
 	it->second->field_changed = true ;
 	it->second->field_prep_display() ;
@@ -3195,6 +3198,12 @@ void pPanel::cmd_setvalue( const string& v )
 	{
 		field_setvalue( cmdfield, v ) ;
 	}
+}
+
+
+bool pPanel::cmd_nonblank()
+{
+	return ( strip( cmd_getvalue() ) != "" ) ;
 }
 
 
@@ -3311,7 +3320,7 @@ string pPanel::field_getname( uint row, uint col )
 
 bool pPanel::field_get_row_col( const string& fld, uint& row, uint& col )
 {
-	// If field found on panel (by name), return true and its position, else return false
+	// If field found on panel (by name), return true and its position, else return false.
 	// Return the physical position on the screen, so add the window offsets to field_row/col
 
 	auto it = fieldList.find( fld ) ;
@@ -3330,12 +3339,9 @@ int pPanel::field_get_col( const string& fld )
 	// Return the physical position on the screen, so add the window offset to field_col
 
 	auto it = fieldList.find( fld ) ;
-	if ( it != fieldList.end() )
+	if ( it != fieldList.end() && it->second->field_active )
 	{
-		if ( it->second->field_active )
-		{
-			return it->second->field_col + win_col ;
-		}
+		return it->second->field_col + win_col ;
 	}
 	return 0 ;
 }
@@ -3656,8 +3662,8 @@ string pPanel::get_field_help( uint row, uint col )
 
 void pPanel::tb_set_linesChanged( errblock& err )
 {
-	//  Store changed lines for processing by the application if requested via tbdispl with no panel name
-	//  Format is a list of line-number/URID pairs
+	// Store changed lines for processing by the application if requested via tbdispl with no panel name
+	// Format is a list of line-number/URID pairs
 
 	int idr ;
 	string URID ;
@@ -3684,7 +3690,7 @@ void pPanel::tb_set_linesChanged( errblock& err )
 
 void pPanel::tb_add_autosel_line( errblock& err )
 {
-	//  Add auto-selected line to list of changed lines
+	// Add auto-selected line to list of changed lines
 
 	int idr ;
 
@@ -3712,8 +3718,8 @@ void pPanel::tb_add_autosel_line( errblock& err )
 
 bool pPanel::tb_get_lineChanged( errblock& err, int& ln, string& URID )
 {
-	//  Retrieve the next changed line on the tbdispl.  Return screen line number and URID of the table record
-	//  Don't remove the pair from the list but update ZTDSELS
+	// Retrieve the next changed line on the tbdispl.  Return screen line number and URID of the table record
+	// Don't remove the pair from the list but update ZTDSELS
 
 	map<int, string>::iterator it ;
 
@@ -3742,7 +3748,7 @@ bool pPanel::tb_linesPending()
 
 void pPanel::tb_clear_linesChanged( errblock& err )
 {
-	//  Clear all stored changed lines on a tbdispl with panel name and set ZTDSELS to zero
+	// Clear all stored changed lines on a tbdispl with panel name and set ZTDSELS to zero
 
 	tb_linesChanged.clear() ;
 	p_funcPOOL->put2( err, "ZTDSELS", 0 ) ;
@@ -3751,7 +3757,7 @@ void pPanel::tb_clear_linesChanged( errblock& err )
 
 void pPanel::tb_remove_lineChanged()
 {
-	//  Remove the processed line from the list of changed lines
+	// Remove the processed line from the list of changed lines
 
 	if ( !tb_linesChanged.empty() )
 	{

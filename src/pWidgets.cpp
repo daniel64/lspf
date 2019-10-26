@@ -353,11 +353,12 @@ void Area::Area_init( errblock& err,
 		      uint num,
 		      const string& line )
 {
-	// Format of AREA entry in panels (FORMAT 1 VERSION 1 )
-	// AREA row col width depth
+	// Format of AREA entry in panels (FORMAT 1 VERSION 1)
+	// AREA row col width depth area_name
 
 	// w1      w2         w3   w4    w5     w6
-	// AREA    MAX-10 MAX-20   MAX   MAX-6  ZAREA
+	// AREA    2           2   25    5      SAREA1
+	// AREA    MAX-10 MAX-20   MAX   MAX-6  SAREA2
 
 	int row   ;
 	int col   ;

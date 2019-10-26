@@ -76,7 +76,7 @@ using namespace boost::filesystem ;
 
 RexxObjectPtr RexxEntry lspfServiceHandler( RexxExitContext*, RexxStringObject, RexxStringObject ) ;
 
-int getRexxVariable( pApplication*, string, string & ) ;
+int getRexxVariable( pApplication*, string, string& ) ;
 int setRexxVariable( string, string ) ;
 int getAllRexxVariables( pApplication* ) ;
 int setAllRexxVariables( pApplication* ) ;
@@ -372,7 +372,7 @@ int setAllRexxVariables( pApplication* thisAppl )
 }
 
 
-int getRexxVariable( pApplication* thisAppl, string n, string & v )
+int getRexxVariable( pApplication* thisAppl, string n, string& v )
 {
 	// Get variable value from Rexx variable pool and update the application function pool
 

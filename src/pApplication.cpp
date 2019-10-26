@@ -658,6 +658,7 @@ void pApplication::display( string p_name,
 	if ( currPanel )
 	{
 		currPanel->hide_popup() ;
+		currPanel->clear_msg() ;
 	}
 
 	if ( p_name == "" )
@@ -865,7 +866,6 @@ void pApplication::display( string p_name,
 		set_ZVERB_panel_resp_re_init() ;
 		set_panel_zvars() ;
 	}
-	currPanel->clear_msg() ;
 }
 
 
@@ -2047,15 +2047,15 @@ set<string>& pApplication::vslist( vdType defn )
 
 void pApplication::addpop( const string& a_fld, int a_row, int a_col )
 {
-	//  Create pop-up window and set row/col for the next panel display.
-	//  If addpop() is already active, store old values for next rempop()
+	// Create pop-up window and set row/col for the next panel display.
+	// If addpop() is already active, store old values for next rempop()
 
-	//  Position of addpop is relative to row=1, col=3 or the previous addpop() position for this logical screen.
-	//  Defaults are 0,0 giving row=1, col=3
+	// Position of addpop is relative to row=1, col=3 or the previous addpop() position for this logical screen.
+	// Defaults are 0,0 giving row=1, col=3
 
-	//  RC = 0  Normal completion
-	//  RC = 12 No panel displayed before addpop() service when using field parameter
-	//  RC = 20 Severe error
+	// RC = 0  Normal completion
+	// RC = 12 No panel displayed before addpop() service when using field parameter
+	// RC = 20 Severe error
 
 	const string e1 = "ADDPOP Error" ;
 
@@ -2110,11 +2110,11 @@ void pApplication::addpop( const string& a_fld, int a_row, int a_col )
 
 void pApplication::rempop( const string& r_all )
 {
-	//  Remove pop-up window.  Restore previous addpop() if there is one.
+	// Remove pop-up window.  Restore previous addpop() if there is one.
 
-	//  RC = 0  Normal completion
-	//  RC = 16 No pop-up window exists at this level
-	//  RC = 20 Severe error
+	// RC = 0  Normal completion
+	// RC = 16 No pop-up window exists at this level
+	// RC = 20 Severe error
 
 	const string e1 = "REMPOP Error" ;
 
@@ -2861,6 +2861,7 @@ void pApplication::tbdispl( const string& tb_name,
 	if ( currPanel )
 	{
 		currPanel->hide_popup() ;
+		currPanel->clear_msg() ;
 	}
 
 	prevPanel = currPanel ;
@@ -4384,6 +4385,7 @@ void pApplication::select( const string& cmd )
 	selct.backgrd = backgrd ;
 	selct.sync    = true    ;
 	selct.ptid    = ptid    ;
+
 	actionSelect() ;
 }
 
@@ -4476,6 +4478,8 @@ void pApplication::actionSelect()
 
 	// BUG: selct.pgm will be blank for PANEL/CMD/SHELL in error messages (resolved in lspf.cpp)
 
+	int exitRC ;
+
 	RC  = 0    ;
 	SEL = true ;
 
@@ -4503,6 +4507,34 @@ void pApplication::actionSelect()
 
 	SEL = false ;
 
+	if ( abnormalEnd )
+	{
+		abnormalNoMsg = true ;
+		if ( ZRC == 20 && ZRESULT == "PSYS013J" )
+		{
+			switch ( ZRSN )
+			{
+			case 996:
+				errBlock.setcall( "Error in SELECT command", "PSYS013H", selct.pgm ) ;
+				break ;
+
+			case 997:
+				errBlock.setcall( "Error in SELECT command", "PSYS012X", word( selct.parm, 1 ) ) ;
+				break ;
+
+			case 998:
+				errBlock.setcall( "Error in SELECT command", "PSYS012W", selct.pgm ) ;
+				break ;
+
+			}
+			ZRSN = 0 ;
+			checkRCode( errBlock ) ;
+		}
+		llog( "E", "Percolating abend to calling application.  Taskid: "<< taskId <<endl ) ;
+		abend() ;
+	}
+
+	exitRC = RC ;
 	if ( ZRC == 20 && ZRESULT == "PSYS013J" )
 	{
 		switch ( ZRSN )
@@ -4525,33 +4557,8 @@ void pApplication::actionSelect()
 		}
 	}
 
-	if ( abnormalEnd )
-	{
-		abnormalNoMsg = true ;
-		if ( ZRC == 20 && ZRESULT == "PSYS013J" )
-		{
-			switch ( ZRSN )
-			{
-			case 996:
-				errBlock.setcall( "Error in SELECT command", ZRESULT, selct.pgm ) ;
-				break ;
-
-			case 997:
-				errBlock.setcall( "Error in SELECT command", ZRESULT, word( selct.parm, 1 ) ) ;
-				break ;
-
-			case 998:
-				errBlock.setcall( "Error in SELECT command", ZRESULT, selct.pgm ) ;
-				break ;
-
-			}
-			ZRSN = 0 ;
-			checkRCode( errBlock ) ;
-		}
-		llog( "E", "Percolating abend to calling application.  Taskid: "<< taskId <<endl ) ;
-		abend() ;
-	}
 	selct.clear() ;
+	RC = exitRC ;
 }
 
 
@@ -5707,9 +5714,9 @@ const string& pApplication::get_jobkey()
 
 void pApplication::loadCommandTable()
 {
-	//  Load application command table in the application task so it can be unloaded on task termination.
-	//  This is done during SELECT processing so LIBDEFs must be active with PASSLIB specified,
-	//  if being used to find the table.
+	// Load application command table in the application task so it can be unloaded on task termination.
+	// This is done during SELECT processing so LIBDEFs must be active with PASSLIB specified,
+	// if being used to find the table.
 
 	p_tableMGR->loadTable( errBlock, get_applid() + "CMDS", NOWRITE, get_search_path( s_ZTLIB ), SHARE ) ;
 	if ( errBlock.RC0() )
@@ -5929,7 +5936,6 @@ void pApplication::cleanup_default()
 
 	// Called on: abend()
 	//            abendexc()
-	//            set_forced_abend()
 	//            set_timeout_abend()
 }
 
