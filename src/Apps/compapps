@@ -3,18 +3,18 @@ OPTS1="-O0 -Wall -Wno-switch -Wno-int-in-bool-context -Wunused-variable -Wtautol
 
 OPTS2="-shared -fPIC -std=c++11"
 
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPEDIT01.so  -lboost_regex -o libPEDIT01.so PEDIT01.cpp -Wno-sign-compare
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPEDRXM1.so  -lrexx -lrexxapi -o libPEDRXM1.so PEDRXM1.cpp
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPBRO01A.so  -lmagic -lboost_regex -o libPBRO01A.so PBRO01A.cpp -Wno-sign-compare
+g++ $OPTS1 $OPTS2 -Wl,-soname,libPEDIT01.so  -o libPEDIT01.so PEDIT01.cpp -Wno-sign-compare -lboost_regex
+g++ $OPTS1 $OPTS2 -Wl,-soname,libPEDRXM1.so  -o libPEDRXM1.so PEDRXM1.cpp -lrexx -lrexxapi
+g++ $OPTS1 $OPTS2 -Wl,-soname,libPBRO01A.so  -o libPBRO01A.so PBRO01A.cpp -Wno-sign-compare -lmagic -lboost_regex
 g++ $OPTS1 $OPTS2 -Wl,-soname,libPDLGTST.so  -o libPDLGTST.so PDLGTST.cpp
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPFLST0A.so  -lboost_regex -o libPFLST0A.so PFLST0A.cpp
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPLRFLST1.so -o libPLRFLST1.so PLRFLST1.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libPFLST0A.so  -o libPFLST0A.so PFLST0A.cpp -lboost_regex
+g++ $OPTS1 $OPTS2 -Wl,-soname,libPLRFLST1.so -o libPLRFLST1.so PLRFLST1.cpp -lboost_regex
 g++ $OPTS1 $OPTS2 -Wl,-soname,libPMAIN0A.so  -o libPMAIN0A.so PMAIN0A.cpp
 g++ $OPTS1 $OPTS2 -Wl,-soname,libPPSP01A.so  -o libPPSP01A.so PPSP01A.cpp
 g++ $OPTS1 $OPTS2 -Wl,-soname,libPTEST01.so  -o libPTEST01.so PTEST01.cpp
 g++ $OPTS1 $OPTS2 -Wl,-soname,libPDPANLA.so  -o libPDPANLA.so PDPANLA.cpp
 g++ $OPTS1 $OPTS2 -Wl,-soname,libPTUTORA.so  -o libPTUTORA.so PTUTORA.cpp
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPOREXX1.so -lrexx -lrexxapi -o libPOREXX1.so POREXX1.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libPOREXX1.so  -o libPOREXX1.so POREXX1.cpp -lrexx -lrexxapi
 g++ $OPTS1 $OPTS2 -Wl,-soname,libPCMD0A.so   -o libPCMD0A.so  PCMD0A.cpp
 g++ $OPTS1 $OPTS2 -Wl,-soname,libPCMD0B.so   -o libPCMD0B.so  PCMD0B.cpp
 g++ $OPTS1 $OPTS2 -Wl,-soname,libPSHELL0.so  -o libPSHELL0.so PSHELL0.cpp

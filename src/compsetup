@@ -1,1 +1,1 @@
-g++ -std=c++11 -lboost_filesystem -lboost_system -lpthread -o setup setup.cpp
+g++ -std=c++11 -o setup setup.cpp -lboost_filesystem -lboost_system -lpthread

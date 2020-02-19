@@ -1,8 +1,8 @@
 
 OPTS1="-O0 -Wall -Wno-switch -Wno-int-in-bool-context -Wunused-variable -Wtautological-compare "
 
-OPTS2="-std=c++11 -rdynamic "
+OPTS2="-std=c++11 -rdynamic"
 
 LNK1="-lpanel -ltinfo -lncurses -lboost_thread -lboost_filesystem -lboost_system -lboost_chrono -ldl -lpthread"
 
-g++ $OPTS1 $OPTS2 $LNK1 -o lspf lspf.cpp
+g++ $OPTS1 $OPTS2 -o lspf lspf.cpp $LNK1
