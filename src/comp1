@@ -1,5 +1,5 @@
 
-OPTS1="-O0 -ggdb -Wall -Wno-switch -Wno-int-in-bool-context -Wunused-variable -Wtautological-compare "
+OPTS1="-O0 -Wall -Wno-switch -Wno-int-in-bool-context -Wunused-variable -Wtautological-compare "
 
 OPTS2="-std=c++11 -rdynamic"
 

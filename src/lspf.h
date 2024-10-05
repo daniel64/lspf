@@ -17,8 +17,8 @@
 
 */
 
-// #define NDEBUG
-#define DEBUG1 1
+#define NDEBUG
+// #define DEBUG1 1
 // #define DEBUG2 1
 
 #include <string>
