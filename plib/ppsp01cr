@@ -1,0 +1,189 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)ABC DESC(Colours) MNEM(1)
+PDC DESC('Change RGB Colour Settings')
+ ACTION RUN(>RGBSET)
+PDC DESC('Change Inactive Window Colour')
+ ACTION RUN(>DECSET)
+
+)ABCINIT
+
+)BODY WINDOW(78,22)
+PANELTITLE 'Global Colours'
+ACTIONBAR 'Display' 'Settings' 'Utilities' 'Colours' 'Help'
+
+TEXT      4   2   FP 'Command ===> '
+FIELD    4  15  MAX  NEF CAPS(ON),PAD(USER) ZCMD
+
+AREA   6 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1   2   CH 'lspf default colours'
+
+TEXT     3   2   FP  'Blue . . . .'
+FIELD    3   15  6  NEF CAPS(ON),PAD(USER) COLOUR01
+
+TEXT     4   2   FP  'Red. . . . .'
+FIELD    4   15  6  NEF CAPS(ON),PAD(USER) COLOUR02
+
+TEXT     5   2   FP  'Magenta. . .'
+FIELD    5   15  6  NEF CAPS(ON),PAD(USER) COLOUR03
+
+TEXT     6   2   FP  'Green. . . .'
+FIELD    6   15  6  NEF CAPS(ON),PAD(USER) COLOUR04
+
+TEXT     7   2   FP  'Turquoise. .'
+FIELD    7   15  6  NEF CAPS(ON),PAD(USER) COLOUR05
+
+TEXT     8   2   FP  'Yellow . . .'
+FIELD    8   15  6  NEF CAPS(ON),PAD(USER) COLOUR06
+
+TEXT     9   2   FP  'White. . . .'
+FIELD    9   15  6  NEF CAPS(ON),PAD(USER) COLOUR07
+
+TEXT     12  2    CH 'Instructions'
+
+TEXT     13  5     PIN 'Enter first letter of the colour or blank field for default colour'
+TEXT     14  5     PIN 'Enter'
+TEXT     14  11    PS  'Defaults'
+TEXT     14  20    PIN 'to restore global colours to their original'
+
+)INIT
+&ZWINTTL = &Z
+&ZCMD    = &Z
+&ZPS3    = 1
+.CURSOR  = COLOUR01
+
+.ATTR(COLOUR01) = 'TYPE(INPUT) COLOUR(BLUE)'
+.ATTR(COLOUR02) = 'TYPE(INPUT) COLOUR(RED)'
+.ATTR(COLOUR03) = 'TYPE(INPUT) COLOUR(MAGENTA)'
+.ATTR(COLOUR04) = 'TYPE(INPUT) COLOUR(GREEN)'
+.ATTR(COLOUR05) = 'TYPE(INPUT) COLOUR(TURQ)'
+.ATTR(COLOUR06) = 'TYPE(INPUT) COLOUR(YELLOW)'
+.ATTR(COLOUR07) = 'TYPE(INPUT) COLOUR(WHITE)'
+
+)PROC
+&ZCMD = TRANS( &ZCMD DEF,DEFAULTS
+                     DEFAULT,DEFAULTS
+                     DEFAULTS,DEFAULTS
+                     RGBSET,RGBSET
+                     DECSET,DECSET
+                     &Z,&Z
+                     MSG=PSYS018
+             )
+
+IF ( &ZCMD EQ 'DEFAULTS' )
+   &COLOUR01 = &Z
+   &COLOUR02 = &Z
+   &COLOUR03 = &Z
+   &COLOUR04 = &Z
+   &COLOUR05 = &Z
+   &COLOUR06 = &Z
+   &COLOUR07 = &Z
+ELSE
+   IF ( &ZCMD EQ 'RGBSET','DECSET' ) EXIT
+
+&COLOUR01 = TRANS( TRUNC( &COLOUR01, 1 ) ,
+                   B,BLUE
+                   R,RED
+                   M,MAGENTA
+                   P,MAGENTA
+                   G,GREEN
+                   T,TURQ
+                   Y,YELLOW
+                   W,WHITE
+                   &Z,&Z
+                   MSG=PPSP016
+                 )
+
+&COLOUR02 = TRANS( TRUNC( &COLOUR02, 1 ) ,
+                   B,BLUE
+                   R,RED
+                   M,MAGENTA
+                   P,MAGENTA
+                   G,GREEN
+                   T,TURQ
+                   Y,YELLOW
+                   W,WHITE
+                   &Z,&Z
+                   MSG=PPSP016
+                 )
+
+&COLOUR03 = TRANS( TRUNC( &COLOUR03, 1 ) ,
+                   B,BLUE
+                   R,RED
+                   M,MAGENTA
+                   P,MAGENTA
+                   G,GREEN
+                   T,TURQ
+                   Y,YELLOW
+                   W,WHITE
+                   &Z,&Z
+                   MSG=PPSP016
+                 )
+
+&COLOUR04 = TRANS( TRUNC( &COLOUR04, 1 ) ,
+                   B,BLUE
+                   R,RED
+                   M,MAGENTA
+                   P,MAGENTA
+                   G,GREEN
+                   T,TURQ
+                   Y,YELLOW
+                   W,WHITE
+                   &Z,&Z
+                   MSG=PPSP016
+                 )
+
+&COLOUR05 = TRANS( TRUNC( &COLOUR05, 1 ) ,
+                   B,BLUE
+                   R,RED
+                   M,MAGENTA
+                   P,MAGENTA
+                   G,GREEN
+                   T,TURQ
+                   Y,YELLOW
+                   W,WHITE
+                   &Z,&Z
+                   MSG=PPSP016
+                 )
+
+&COLOUR06 = TRANS( TRUNC( &COLOUR06, 1 ) ,
+                   B,BLUE
+                   R,RED
+                   M,MAGENTA
+                   P,MAGENTA
+                   G,GREEN
+                   T,TURQ
+                   Y,YELLOW
+                   W,WHITE
+                   &Z,&Z
+                   MSG=PPSP016
+                 )
+
+&COLOUR07 = TRANS( TRUNC( &COLOUR07, 1 ) ,
+                   B,BLUE
+                   R,RED
+                   M,MAGENTA
+                   P,MAGENTA
+                   G,GREEN
+                   T,TURQ
+                   Y,YELLOW
+                   W,WHITE
+                   &Z,&Z
+                   MSG=PPSP016
+                 )
+
+)PNTS
+FIELD(ZPS01001) VAR(ZCMD) VAL(DEFAULTS)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

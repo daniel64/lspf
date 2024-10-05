@@ -1,0 +1,43 @@
+)PANEL VERSION=1 FORMAT=1 
+/* *************************************************** */
+/* Converted by panconv EXEC on 3 Oct 2024 at 15:46:41 */
+/* *************************************************** */
+)ATTR DEFAULT(%+_)
+  + TYPE(TEXT  ) COLOR(GREEN)
+  _ TYPE( INPUT) INTENS(LOW ) JUST(LEFT ) HILITE(USCORE)
+  ~ TYPE(TEXT) INTENS(HIGH) CAPS(OFF) JUST(ASIS ) COLOR(TURQ)
+  [ TYPE(OUTPUT) INTENS(HIGH) CAPS(OFF) JUST(LEFT) PAS(ON) COLOR(WHITE)
+/*   } AREA(SCRL) EXTEND(ON) panconv */
+)BODY 
+TEXT 1 2 ATTR(25) 'Tutorial ---------------------------'
+TEXT 1 39 ATTR(7E) 'Saved File List'
+TEXT 1 55 ATTR(25) '--------------------------- Tutorial'
+TEXT 2 2 ATTR(25) 'Selection ===>'
+FIELD 2 17 73 ATTR(5F) ZCMD
+AREA 4 1 90 28 HELP
+)AREA HELP
+TEXT 1 2 ATTR(2B) 'Saved File List application.'
+TEXT 2 2 ATTR(2B) '==========================='
+TEXT 4 2 ATTR(2B) 'Field File name supports file name expansion using either field Directory or'
+TEXT 5 2 ATTR(2B) 'Current, whichever is non-blank, to retrieve the list of files.  This field'
+TEXT 6 2 ATTR(2B) 'also supports NRETRIEV.  Entries begining with a ''/'' will be treated asis and'
+TEXT 7 2 ATTR(2B) 'will not be prefixed with the Directory or Current fields.'
+TEXT 9 2 ATTR(2B) 'Directory field supports directory name expansion and the saved list fields'
+TEXT 10 2 ATTR(2B) 'below Current support name expansion also.'
+TEXT 12 2 ATTR(2B) 'Execute primary command FIELDEXC with the cursor on the required field to'
+TEXT 13 2 ATTR(2B) 'activate this function.  Assign this command to a function key to make this'
+TEXT 14 2 ATTR(2B) 'simpler.  The tab key can also be used for this.'
+TEXT 16 2 ATTR(2B) 'The saved list is cursor sensitive.  To retrieve an entry, place cursor on the'
+TEXT 17 2 ATTR(2B) 'field and press ENTER, or select the line with the C command.'
+TEXT 19 2 ATTR(2B) 'An ''*'' in the File Name field will give a listing of the Directory or Current'
+TEXT 20 1 ATTR(2B) 'fields'
+TEXT 22 2 ATTR(2B) 'Line commands:'
+TEXT 23 2 ATTR(2B) 'B  - Browse file'
+TEXT 24 2 ATTR(2B) 'C  - Make entry the current entry'
+TEXT 25 2 ATTR(2B) 'E  - Edit file'
+TEXT 26 2 ATTR(2B) 'L  - List directory'
+TEXT 27 2 ATTR(2B) 'S  - Select entry (list for directory, browse for file)'
+)INIT
+ .CURSOR = ZCMD
+)PROC
+)END

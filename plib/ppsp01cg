@@ -1,0 +1,318 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+)ENDCOMMENT
+
+)ATTR
+01 TYPE(OUTPUT) PAD(' ') COLOUR(RED)     HILITE(REVERSE)
+02 TYPE(OUTPUT) PAD(' ') COLOUR(GREEN)   HILITE(REVERSE)
+03 TYPE(OUTPUT) PAD(' ') COLOUR(YELLOW)  HILITE(REVERSE)
+04 TYPE(OUTPUT) PAD(' ') COLOUR(BLUE)    HILITE(REVERSE)
+05 TYPE(OUTPUT) PAD(' ') COLOUR(MAGENTA) HILITE(REVERSE)
+06 TYPE(OUTPUT) PAD(' ') COLOUR(TURQ)    HILITE(REVERSE)
+07 TYPE(OUTPUT) PAD(' ') COLOUR(WHITE)   HILITE(REVERSE)
+
+! TYPE(OUTPUT) PAS(ON) CAPS(OFF)
+@ TYPE(PIN)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY WINDOW(78,19)
+PANELTITLE 'RGB Settings'
+
+TEXT     4   2   FP 'Command ===> '
+FIELD    4  15  MAX  NEF CAPS(ON),PAD(USER) ZCMD
+
+AREA   5 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1   2   CH 'RGB values'
+
+TEXT     3   2   FP  'Red. . . . . R:'
+FIELD    3   18  3  NEF CAPS(ON),PAD(USER),NUMERIC(ON) RGBR1
+TEXT     3   22  FP  'G:'
+FIELD    3   25  3  NEF CAPS(ON),PAD(USER),NUMERIC(ON) RGBG1
+TEXT     3   30  FP  'B:'
+FIELD    3   33  3  NEF CAPS(ON),PAD(USER),NUMERIC(ON) RGBB1
+FIELD    3   37  25  ATTR(01) RGBX1
+
+TEXT    4    2   FP  'Green. . . . R:'
+FIELD   4    18  3  NEF CAPS(ON),PAD(USER),NUMERIC(ON) RGBR2
+TEXT    4    22  FP  'G:'
+FIELD   4    25  3  NEF CAPS(ON),PAD(USER),NUMERIC(ON) RGBG2
+TEXT    4    30  FP  'B:'
+FIELD   4    33  3  NEF CAPS(ON),PAD(USER),NUMERIC(ON) RGBB2
+FIELD   4    37  25  ATTR(02) RGBX2
+
+TEXT    5    2   FP  'Yellow . . . R:'
+FIELD   5    18  3  NEF CAPS(ON),PAD(USER),NUMERIC(ON) RGBR3
+TEXT    5    22  FP  'G:'
+FIELD   5    25  3  NEF CAPS(ON),PAD(USER),NUMERIC(ON) RGBG3
+TEXT    5    30  FP  'B:'
+FIELD   5    33  3  NEF CAPS(ON),PAD(USER),NUMERIC(ON) RGBB3
+FIELD   5    37  25  ATTR(03) RGBX3
+
+TEXT    6    2   FP  'Blue . . . . R:'
+FIELD   6    18  3  NEF CAPS(ON),PAD(USER),NUMERIC(ON) RGBR4
+TEXT    6    22  FP  'G:'
+FIELD   6    25  3  NEF CAPS(ON),PAD(USER),NUMERIC(ON) RGBG4
+TEXT    6    30  FP  'B:'
+FIELD   6    33  3  NEF CAPS(ON),PAD(USER),NUMERIC(ON) RGBB4
+FIELD   6    37  25  ATTR(04) RGBX4
+
+TEXT    7    2   FP  'Magenta. . . R:'
+FIELD   7    18  3  NEF CAPS(ON),PAD(USER),NUMERIC(ON) RGBR5
+TEXT    7    22  FP  'G:'
+FIELD   7    25  3  NEF CAPS(ON),PAD(USER),NUMERIC(ON) RGBG5
+TEXT    7    30  FP  'B:'
+FIELD   7    33  3  NEF CAPS(ON),PAD(USER),NUMERIC(ON) RGBB5
+FIELD   7    37  25  ATTR(05) RGBX5
+
+TEXT    8    2   FP  'Turq . . . . R:'
+FIELD   8    18  3  NEF CAPS(ON),PAD(USER),NUMERIC(ON) RGBR6
+TEXT    8    22  FP  'G:'
+FIELD   8    25  3  NEF CAPS(ON),PAD(USER),NUMERIC(ON) RGBG6
+TEXT    8    30  FP  'B:'
+FIELD   8    33  3  NEF CAPS(ON),PAD(USER),NUMERIC(ON) RGBB6
+FIELD   8    37  25  ATTR(06) RGBX6
+
+TEXT    9    2   FP  'White. . . . R:'
+FIELD   9    18  3  NEF CAPS(ON),PAD(USER),NUMERIC(ON) RGBR7
+TEXT    9    22  FP  'G:'
+FIELD   9    25  3  NEF CAPS(ON),PAD(USER),NUMERIC(ON) RGBG7
+TEXT    9    30  FP  'B:'
+FIELD   9    33  3  NEF CAPS(ON),PAD(USER),NUMERIC(ON) RGBB7
+FIELD   9    37  25  ATTR(07) RGBX7
+
+TEXT     11  2  49   ATTR(@) '&TXT1'
+TEXT     12  2  5    ATTR(@) '&TXT2'
+FIELD    12  8  8    ATTR(!) RGBDEFS
+TEXT     12  17 19   ATTR(@) '&TXT3'
+
+)INIT
+&ZWINTTL = &Z
+&ZCMD    = &Z
+&ZPS3    = 1
+.CURSOR  = ZCMD
+
+&RGBX1 = '>                       <'
+&RGBX2 = '>                       <'
+&RGBX3 = '>                       <'
+&RGBX4 = '>                       <'
+&RGBX5 = '>                       <'
+&RGBX6 = '>                       <'
+&RGBX7 = '>                       <'
+
+IF (&ZCHGCOLR EQ NO)
+   .ATTR(RGBR1) = 'TYPE(OUTPUT)'
+   .ATTR(RGBG1) = 'TYPE(OUTPUT)'
+   .ATTR(RGBB1) = 'TYPE(OUTPUT)'
+   .ATTR(RGBR2) = 'TYPE(OUTPUT)'
+   .ATTR(RGBG2) = 'TYPE(OUTPUT)'
+   .ATTR(RGBB2) = 'TYPE(OUTPUT)'
+   .ATTR(RGBR3) = 'TYPE(OUTPUT)'
+   .ATTR(RGBG3) = 'TYPE(OUTPUT)'
+   .ATTR(RGBB3) = 'TYPE(OUTPUT)'
+   .ATTR(RGBR4) = 'TYPE(OUTPUT)'
+   .ATTR(RGBG4) = 'TYPE(OUTPUT)'
+   .ATTR(RGBB4) = 'TYPE(OUTPUT)'
+   .ATTR(RGBR5) = 'TYPE(OUTPUT)'
+   .ATTR(RGBG5) = 'TYPE(OUTPUT)'
+   .ATTR(RGBB5) = 'TYPE(OUTPUT)'
+   .ATTR(RGBR6) = 'TYPE(OUTPUT)'
+   .ATTR(RGBG6) = 'TYPE(OUTPUT)'
+   .ATTR(RGBB6) = 'TYPE(OUTPUT)'
+   .ATTR(RGBR7) = 'TYPE(OUTPUT)'
+   .ATTR(RGBG7) = 'TYPE(OUTPUT)'
+   .ATTR(RGBB7) = 'TYPE(OUTPUT)'
+   .ATTR(RGBDEFS) = 'PAS(OFF)'
+   &TXT1    = 'Terminal does not support changing colour content'
+   &TXT2    = &Z
+   &RGBDEFS = &Z
+   &TXT3    = &Z
+ELSE
+   &TXT1    = 'Enter RGB values for colours (0-255)'
+   &TXT2    = 'Enter'
+   &RGBDEFS = 'Defaults'
+   &TXT3    = 'to restore defaults'
+
+)REINIT
+.ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+)PROC
+IF (&ZCHGCOLR EQ NO)
+   IF (&ZCMD NE &Z )
+      .MSG    = PSYS011C
+      .CURSOR = ZCMD
+      EXIT
+ELSE
+   &ZCMD = TRANS( &ZCMD DEF,DEFAULTS
+                        DEFAULT,DEFAULTS
+                        DEFAULTS,DEFAULTS
+                        &Z,&Z
+                        MSG=PSYS018
+                )
+   IF (&ZCMD EQ 'DEFAULTS') EXIT
+
+IF (&RGBR1 EQ &Z) &RGBR1 = '0'
+IF (&RGBG1 EQ &Z) &RGBG1 = '0'
+IF (&RGBB1 EQ &Z) &RGBB1 = '0'
+
+IF (&RGBR2 EQ &Z) &RGBR2 = '0'
+IF (&RGBG2 EQ &Z) &RGBG2 = '0'
+IF (&RGBB2 EQ &Z) &RGBB2 = '0'
+
+IF (&RGBR3 EQ &Z) &RGBR3 = '0'
+IF (&RGBG3 EQ &Z) &RGBG3 = '0'
+IF (&RGBB3 EQ &Z) &RGBB3 = '0'
+
+IF (&RGBR4 EQ &Z) &RGBR4 = '0'
+IF (&RGBG4 EQ &Z) &RGBG4 = '0'
+IF (&RGBB4 EQ &Z) &RGBB4 = '0'
+
+IF (&RGBR5 EQ &Z) &RGBR5 = '0'
+IF (&RGBG5 EQ &Z) &RGBG5 = '0'
+IF (&RGBB5 EQ &Z) &RGBB5 = '0'
+
+IF (&RGBR6 EQ &Z) &RGBR6 = '0'
+IF (&RGBG6 EQ &Z) &RGBG6 = '0'
+IF (&RGBB6 EQ &Z) &RGBB6 = '0'
+
+IF (&RGBR7 EQ &Z) &RGBR7 = '0'
+IF (&RGBG7 EQ &Z) &RGBG7 = '0'
+IF (&RGBB7 EQ &Z) &RGBB7 = '0'
+
+VER (&RGBR1,NUM)
+IF (&RGBR1 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBR1
+   EXIT
+
+VER (&RGBG1,NUM)
+IF (&RGBG1 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBG1
+   EXIT
+
+VER (&RGBB1,NUM)
+IF (&RGBB1 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBB1
+   EXIT
+
+VER (&RGBR2,NUM)
+IF (&RGBR2 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBR2
+   EXIT
+
+VER (&RGBG2,NUM)
+IF (&RGBG2 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBG2
+   EXIT
+
+VER (&RGBB2,NUM)
+IF (&RGBB2 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBB2
+   EXIT
+
+VER (&RGBR3,NUM)
+IF (&RGBR3 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBR3
+   EXIT
+
+VER (&RGBG3,NUM)
+IF (&RGBG3 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBG3
+   EXIT
+
+VER (&RGBB3,NUM)
+IF (&RGBB3 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBB3
+   EXIT
+
+VER (&RGBR4,NUM)
+IF (&RGBR4 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBR4
+   EXIT
+
+VER (&RGBG4,NUM)
+IF (&RGBG4 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBG4
+   EXIT
+
+VER (&RGBB4,NUM)
+IF (&RGBB4 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBB4
+   EXIT
+
+VER (&RGBR5,NUM)
+IF (&RGBR5 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBR5
+   EXIT
+
+VER (&RGBG5,NUM)
+IF (&RGBG5 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBG5
+   EXIT
+
+VER (&RGBB5,NUM)
+IF (&RGBB5 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBB5
+   EXIT
+
+VER (&RGBR6,NUM)
+IF (&RGBR6 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBR6
+   EXIT
+
+VER (&RGBG6,NUM)
+IF (&RGBG6 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBG6
+   EXIT
+
+VER (&RGBB6,NUM)
+IF (&RGBB6 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBB6
+   EXIT
+
+VER (&RGBR7,NUM)
+IF (&RGBR7 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBR7
+   EXIT
+
+VER (&RGBG7,NUM)
+IF (&RGBG7 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBG7
+   EXIT
+
+VER (&RGBB7,NUM)
+IF (&RGBB7 GT 255)
+   .MSG    = PSYS013D
+   .CURSOR = RGBB7
+   EXIT
+
+)PNTS
+FIELD(RGBDEFS) VAR(ZCMD) VAL(DEFAULTS)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

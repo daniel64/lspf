@@ -1,0 +1,68 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Show PCI devices
+)ENDCOMMENT
+
+)ATTR
+_ TYPE(NEF) PAD(USER) CAPS(ON)
++ TYPE(VOI)
+! TYPE(OUTPUT) COLOUR(YELLOW) CAPS(OFF)
+% TYPE(OUTPUT) COLOUR(WHITE) CAPS(OFF)
+# TYPE(OUTPUT) COLOUR(BLUE) CAPS(OFF)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'PCI Devices'
+
+TEXT     4   2         FP    'Command ===>'
+FIELD    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
+
+TEXT     4  MAX-15   FP   'Scroll ===>'
+FIELD    4  MAX-3  4 NEF  NONE ZSCROLL
+
+TEXT     6  2   FP  'S Slot         PCI ID     Class                           Subclass'
+TEXT     7  6   FP  'Model'
+TEXT     8  8   FP  'Vendor'
+
+TBMODEL  9   MAX
+TBFIELD  2      1    ATTR(_) SEL
+TBFIELD  ++1    12   ATTR(!) SLOT
+TBFIELD  ++1    9    ATTR(%) PCIID
+TBFIELD  ++2    30   ATTR(%) DBCLASS
+TBFIELD  ++2    MAX  ATTR(%) DBSCLASS
+TBMODEL
+TBFIELD  6      MAX  ATTR(#) NAME
+TBMODEL
+TBFIELD  8      MAX  ATTR(#) VENDOR
+TBMODEL
+TBTEXT   2      FP     EXPAND '-'
+
+)INIT
+VGET ZSCROLL PROFILE
+
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+)REINIT
+IF (.MSG EQ &Z)
+   &SEL = &Z
+   REFRESH(SEL)
+
+)PROC
+IF (.RESP = END) EXIT
+
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+   EXIT
+
+VER(&SEL,LIST,P,T)
+
+IF (.MSG = &Z) VPUT ZSCROLL PROFILE
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2023 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

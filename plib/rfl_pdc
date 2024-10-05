@@ -1,0 +1,40 @@
+)COMMENT
+ RefList and RefMode pulldown choices
+)ENDCOMMENT
+
+)ABC DESC(RefList) MNEM(1)
+PDC  DESC('Open Referral Lists') UNAVAIL(ZRF0)
+ ACTION RUN(REFOPENF)
+PDC  DESC('Open Active List (&YCURTB)') UNAVAIL(ZRF1)
+ ACTION RUN(REFACTF)
+PDC  DESC('Open Reference List') UNAVAIL(ZRF2)
+ ACTION RUN(REFLISTF)
+PDC  DESC('Personal List Settings') UNAVAIL(ZRF3)
+ ACTION RUN(ISRROUTE) PARM('SELECT PGM(PLRFLST1) PARM(US1) NEWAPPL(ISP)')
+
+)ABCINIT
+VGET ZCURTB PROFILE
+IF (&ZCURTB EQ &Z)
+   &YCURTB = REFLIST
+ELSE
+   &YCURTB = &ZCURTB
+
+)ABC DESC(RefMode) MNEM(2)
+PDC  DESC('List Execute') UNAVAIL(ZRUN0)
+ ACTION RUN(ISRROUTE) PARM('SELECT PGM(PPSP01A) PARM(SETVAR ZRFMOD BEX)')
+PDC  DESC('List Retrieve') UNAVAIL(ZRUN1)
+ ACTION RUN(ISRROUTE) PARM('SELECT PGM(PPSP01A) PARM(SETVAR ZRFMOD BRT)')
+
+)ABCINIT
+VGET ZRFMOD PROFILE
+IF (&ZRFMOD EQ BEX)
+   &ZRUN0 = 1
+   &ZRUN1 = 0
+ELSE
+   IF (&ZRFMOD EQ BRT)
+      &ZRUN0 = 0
+      &ZRUN1 = 1
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

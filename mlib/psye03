@@ -1,0 +1,547 @@
+/*                                           */
+/* System error message file for lspf        */
+/*                                           */
+
+/*                                           */
+/* Low-level messages in pWidgets.cpp        */
+/* General                                   */
+/*                                           */
+PSYE031A 'Field &ZVAL1 outside panel area' .TYPE=W
+'ROW=&ZVAL2 ZSCRMAXD=&ZVAL3..'
+
+PSYE031B 'Field &ZVAL1 outside panel area' .TYPE=W
+'COL=&ZVAL2 ZSCRMAXW=&ZVAL3..'
+
+PSYE031C 'Keyword &ZVAL1 not found' .TYPE=W
+'&ZVAL1 is a required keyword.'
+
+PSYE031D 'Invalid variable name ''&ZVAL1''' .TYPE=W
+'Variable ''&ZVAL1'' has an invalid format.'
+
+PSYE031E 'Invalid &ZVAL1 name' .TYPE=W
+'&ZVAL1 name ''&ZVAL2'' has an invalid format.'
+
+PSYE031F 'Invalid field name' .TYPE=W
+'Field name ''&ZVAL1'' on &ZVAL2 statement is invalid.'
+
+PSYE031G 'No parameter value coded' .TYPE=W
+'No value found between ''('' and '')''.'
+
+PSYE031H 'Quoted string not allowed' .TYPE=W
+''
+
+PSYE031I 'Invalid msg-id ''&ZVAL1''' .TYPE=W
+''
+
+PSYE031J 'Unexpected '')''' .TYPE=W
+''
+
+PSYE031K 'Incomplete comparison statement' .TYPE=W
+'&ZVAL1..'
+
+PSYE031L 'Invalid field name' .TYPE=W
+'Name ''&ZVAL1'' invalid on &ZVAL2 parameter'
+
+PSYE031M '&ZVAL1 field not found' .TYPE=W
+'Field &ZVAL2 is not on the panel.'
+
+PSYE031N '.ATTRCHAR ''&ZVAL1'' not defined' .TYPE=W
+'Define character in the )ATTR section before using .ATTRCHAR.'
+
+PSYE031O '.ATTR argument invalid' .TYPE=W
+'.ATTR argument must be a field name, .CURSOR or a variable name.'
+
+PSYE031P '.ATTRCHAR argument invalid' .TYPE=W
+'.ATTRCHAR argument must be a single char, 2-digit hex value or a variable name.'
+
+PSYE031Q 'Invalid built-in function variable' .TYPE=W
+'Variable used with the built-in fuction must be a dialogue or control variable.'
+
+PSYE031R 'Built-in function parameter error' .TYPE=W
+'Invalid &ZVAL1 value - &ZVAL2 not a literal or dialogue variable.'
+
+PSYE031S 'Invalid value ''&ZVAL1''' .TYPE=W
+'Value must be numeric, a valid variable name containing a numeric value, MAX or MAX-n.'
+
+PSYE031T 'Scrollable area outside panel' .TYPE=W
+'TBMODEL=&ZVAL1 ZSCRMAXD=&ZVAL2..'
+
+PSYE031U 'MAX sub-parameter invalid' .TYPE=W
+'MAX cannot be used for the row position within an AREA statement.'
+
+PSYE031V 'Missing '')''' .TYPE=W
+'Missing closing bracket on keyword.'
+
+PSYE031W 'Too many parameters' .TYPE=W
+'Incorrect number of parameters for verification type specified.'
+
+PSYE031X 'Field length too long' .TYPE=W
+'Field &ZVAL1 extends beyond the screen.'
+
+PSYE031Y 'MAX sub-parameter invalid' .TYPE=W
+'MAX cannot be used for the depth parameter within an AREA statement.'
+
+PSYE031Z 'Invalid relative position' .TYPE=W
+'Relative positions cannot be used if a preceding field contains dialogue variables.'
+
+
+/*                                           */
+/* DYNAMIC AREAS I                           */
+/*                                           */
+PSYE032A 'DYNAMIC AREA outside panel area' .TYPE=W
+'ROW=&ZVAL1 DEPTH=&ZVAL2 ZSCRMAXD=&ZVAL3..'
+
+PSYE032B 'DYNAMIC AREA outside panel area' .TYPE=W
+'COL=&ZVAL1 WIDTH=&ZVAL2 ZSCRMAXW=&ZVAL3..'
+
+PSYE032C 'Invalid SCROLL parameter' .TYPE=W
+'Scroll parameter value must be ON or OFF.  Entered value is ''&ZVAL1''.'
+
+PSYE032D 'Invalid dynamic area name' .TYPE=W
+'The LVLINE statement must contain a valid dynamic area name.'
+
+PSYE032E 'Missing SHADOW name' .TYPE=W
+'The SHADOW variable for a DYNAMIC AREA must be specified.'
+
+PSYE032F '''&ZVAL1'' attribute invalid' .TYPE=W
+'Attribute must be a CUA attribute or ATTR() parameter referencing ' +
+'an )ATTR section attribute character.'
+
+PSYE032G 'DYNAMIC AREA variable not located' .TYPE=W
+'DYNAMIC AREA variable ''&ZVAL1'' cannot be located in the function pool.'
+
+PSYE032H 'Invalid parameter' .TYPE=W
+'Data ''&ZVAL1'' found on statement not recognised as a valid parameter.'
+
+PSYE032I 'SHADOW variable not located' .TYPE=W
+'SHADOW variable ''&ZVAL1'' cannot be located in the function pool.'
+
+PSYE032J 'Invalid hex or character value' .TYPE=W
+'Value must be a single character or valid hex value representing a single character.'
+
+PSYE032K 'Missing DYNAMIC AREA name' .TYPE=W
+'The DYNAMIC AREA name must be specified on the DYNAREA statement.'
+
+
+/*                                           */
+/* AREA                                      */
+/*                                           */
+PSYE032L 'Area outside panel area' .TYPE=W
+'ROW=&ZVAL1 DEPTH=&ZVAL2 ZSCRMAXD=&ZVAL3..'
+
+PSYE032M 'Area outside panel area' .TYPE=W
+'COL=&ZVAL1 WIDTH=&ZVAL2 ZSCRMAXW=&ZVAL3..'
+
+PSYE032N 'Area width invalid' .TYPE=W
+'Area width must be a minimum of 20 characters.'
+
+PSYE032O 'Area depth invalid' .TYPE=W
+'Area depth must be a minimum of 2 lines.'
+
+PSYE032P 'Missing name' .TYPE=W
+'Area name missing from )AREA statement.'
+
+PSYE032Q 'Invalid name' .TYPE=W
+'Area name &ZVAL1 has an invalid format.'
+
+PSYE032R 'Missing parameter' .TYPE=W
+'Area statement requires 5 parameters, row, col, width, depth and name.'
+
+
+/*                                           */
+/* IF                                        */
+/*                                           */
+PSYE032Z 'Boolean operator expected' .TYPE=W
+'&ZVAL1 is not a valid boolean operator.  Expected AND, &, OR or |.'
+
+PSYE033A 'MSGID not allowed' .TYPE=W
+'MSGID is not allowed when &ZVAL1 is used in an IF statement.'
+
+PSYE033B 'Invalid IF statement' .TYPE=W
+''
+
+PSYE033C 'Invalid number of parameters' .TYPE=W
+'Only one parameter is allowed before the comparison operator.'
+
+PSYE033D 'Missing ''(''' .TYPE=W
+'Missing opening bracket on keyword.'
+
+PSYE033E 'Invalid comparison operator' .TYPE=W
+'&ZVAL1 is not a valid comparison operator for an IF statement.'
+
+PSYE033F 'Missing ending quote' .TYPE=W
+'String starts with a quote but no ending quote found.'
+
+PSYE033G 'Unrecognised control variable' .TYPE=W
+'''&ZVAL1'' is not recognied as a panel control variable.'
+
+PSYE033H 'List not allowed' .TYPE=W
+'A value list is allowed on the right hand side only for EQ and NE comparisons.'
+
+PSYE033I 'Invalid variable ''&ZVAL1''' .TYPE=W
+'Variable has to begin with an ''&&''.'
+
+
+/*                                           */
+/* DYNAMIC AREAS II                          */
+/*                                           */
+PSYE033J 'Invalid OLEN parameter' .TYPE=W
+'OLEN parameter must be a valid dialogue variable or a positive numeric value less than or equal to 65,535'
+
+PSYE033K 'Invalid OLEN value' .TYPE=W
+'OLEN variable value ''&ZVAL1'' invalid.  If specified, it must be a positive numeric value less than or equal to 65,535'
+
+
+/*                                           */
+/* ASSIGN                                    */
+/*                                           */
+PSYE033P 'Too many parameters' .TYPE=W
+'Too many parameters specified before the ''='' sign'
+
+PSYE033Q 'Unknown parameter ''&ZVAL1''' .TYPE=W
+''
+
+PSYE033R 'Too many parameters' .TYPE=W
+'Too many parameters specified after the ''='' sign'
+
+PSYE033S 'Invalid action' .TYPE=W
+'Panel control variable &ZVAL1 cannot be set by the dialogue.'
+
+PSYE033T 'Missing parameter' .TYPE=W
+'Parameter required after the ''='' sign'
+
+PSYE033U 'Unknown function &ZVAL1' .TYPE=W
+'&ZVAL1 is not recognised as a valid panel function.'
+
+PSYE033V 'Missing ''='' in statement' .TYPE=W
+''
+
+PSYE033W 'Missing value after ''=''' .TYPE=W
+'Right hand side of assignment statement missing.'
+
+/*                                           */
+/* VPUT/VGET                                 */
+/*                                           */
+PSYE033Y 'Invalid VPUT or VGET statement' .TYPE=W
+'Missing parameters on statement.'
+
+PSYE033Z 'Invalid pool type ''&ZVAL1''' .TYPE=W
+'Pool type must be SHARED, PROFILE, ASIS or blank.'
+
+
+/*                                           */
+/* Box                                       */
+/*                                           */
+PSYE034A 'Box outside panel area' .TYPE=W
+''
+
+
+/*                                           */
+/* REXX (Panel and File Tailoring)           */
+/*                                           */
+PSYE034I 'No REXX support' .TYPE=W
+'&ZVAL1 REXX support has been disabled.  &ZVAL2'
+
+PSYE034J 'Unexpected value' .TYPE=W
+'Expected comma or close bracket.  Received ''&ZVAL1''.'
+
+PSYE034K 'Missing REXX name' .TYPE=W
+'REXX name is missing from the *REXX statement.'
+
+PSYE034L 'REXX not found' .TYPE=W
+'Unable to find &ZVAL1 REXX routine &ZVAL2..'
+
+PSYE034M 'REXX failure' .TYPE=W
+'Severe error encountered processing panel REXX routine.  See application log for details.'
+
+PSYE034N 'REXX-defined failure' .TYPE=W
+'REXX-defined failure has occured processing panel REXX routine.'
+
+PSYE034O 'Invalid REXX procedure' .TYPE=W
+'Dialogue variable &ZVAL1 has resolved to a blank REXX procedure name.'
+
+PSYE034P 'Invalid data format' .TYPE=W
+'Data for defined integer variable &ZVAL1 contains invalid characters.'
+
+PSYE034Q 'REXX failure' .TYPE=W
+'Severe error encountered processing file tailoring REXX routine.  See application log for details.'
+
+PSYE034R 'REXX-defined failure' .TYPE=W
+'REXX-defined failure has occured processing file tailoring REXX routine.'
+
+PSYE034S 'Invalid REXX procedure' .TYPE=W
+'REXX procedure name entered is not valid.  REXX= must be the last entry on the )REXX statement.'
+
+PSYE034T 'Rexx Interpreter error' .TYPE=W
+'Rexx interpreter has failed to start.'
+
+PSYE034U 'Invalid section for *REXX' .TYPE=W
+'*REXX cannot be coded in this panel section, only )INIT, )REINIT or )PROC.'
+
+/*                                           */
+/* ATTR                                      */
+/*                                           */
+PSYE035A 'Invalid request' .TYPE=W
+'Cannot alter a point-and-shoot field.'
+
+PSYE035B 'Attribute &ZVAL1 is invalid' .TYPE=W
+'&ZVAL1 is not a valid value for keyword &ZVAL2..'
+
+PSYE035C 'Invalid value' .TYPE=W
+'&ZVAL1 parameter must be ON or OFF.'
+
+PSYE035D 'Invalid specification' .TYPE=W
+'COLOUR, INTENS and HILITE cannot be specified or changed for CUA attributes.'
+
+PSYE035E 'Incompatible TYPE override' .TYPE=W
+'&ZVAL1'
+
+PSYE035F 'Duplicate keywords' .TYPE=W
+'&ZVAL1 has already been specified for an attribute or attribute override.'
+
+PSYE035G 'Invalid parameter' .TYPE=W
+'PAS() cannot be used on text fields.'
+
+PSYE035H 'Invalid parameter' .TYPE=W
+'PASSWD() can only be used on fields of type INPUT and NEF.'
+
+PSYE035I 'Invalid parameter' .TYPE=W
+'&ZVAL1 is only valid for input fields.'
+
+PSYE035J 'Invalid parameter' .TYPE=W
+'&ZVAL1 is only valid for input/output fields.'
+
+PSYE035K 'Invalid combination' .TYPE=W
+'&ZVAL1 and &ZVAL2 are mutually exclusive.'
+
+PSYE035L 'Invalid statement' .TYPE=W
+')ATTR section statement must contain at least one keyword.'
+
+PSYE035M 'Invalid JUSTIFY option ''&ZVAL1''' .TYPE=W
+'JUSTIFY must be RIGHT, LEFT or ASIS.'
+
+PSYE035N 'Invalid value ''&ZVAL1''' .TYPE=W
+'PAD or PADC must be a single character, USER or NULLS.'
+
+PSYE035O 'Invalid CAPS value' .TYPE=W
+'CAPS parameter must be ON, IN, OFF or OUT.'
+
+PSYE035P 'Invalid TYPE attibute change' .TYPE=W
+'Cannot change TYPE to or from a text attribute.'
+
+
+/*                                           */
+/* FIELD OPTIONS                             */
+/*                                           */
+PSYE035Q 'Invalid number of parameters' .TYPE=W
+'Invalid number of parameters on the FIELD or TBFIELD statement.'
+
+PSYE035R 'Invalid CUA attribute' .TYPE=W
+'CUA attribute &ZVAL1 is not valid for a field entry.'
+
+PSYE035S 'Missing parameter' .TYPE=W
+'FIELD panel statement must contain a CUA attrubute or a valid ATTR() statement.'
+
+PSYE035T 'Invalid TYPE' .TYPE=W
+'TYPE for a field must be an INPUT, OUTPUT, CUA-input or CUA-output type.'
+
+
+/*                                           */
+/* TEXT                                      */
+/*                                           */
+PSYE036A 'Text outside panel area' .TYPE=W
+'row=&ZVAL1 ZSCRMAXD=&ZVAL2..'
+
+PSYE036B 'Text outside panel area' .TYPE=W
+'col=&ZVAL1 ZSCRMAXW=&ZVAL2..'
+
+PSYE036C 'Missing parameter' .TYPE=W
+'TEXT panel statement must contain a CUA attrubute or a valid CHAR() statement.'
+
+PSYE036D 'Undefined character attribute' .TYPE=W
+'Character attribute ''&ZVAL1'' has not been defined in the )ATTR section or via a DEFAULT() statement.'
+
+PSYE036E 'Invalid ATTR section attribute' .TYPE=W
+'ATTR section attribute &ZVAL1 is not valid for a text entry.'
+
+PSYE036F 'Invalid CUA attribute' .TYPE=W
+'CUA attribute &ZVAL1 is not valid for a text entry.'
+
+PSYE036G 'Invalid parameter' .TYPE=W
+'&ZVAL1 is not valid for text fields.'
+
+
+/*                                           */
+/* POINT-AND-SHOOT                           */
+/*                                           */
+PSYE037A 'Missing keyword' .TYPE=W
+'Point and shoot entry must contain FIELD, VAR and VAL keywords.'
+
+
+/*                                           */
+/* PARSE STRING                              */
+/*                                           */
+PSYE037F 'Null string' .TYPE=W
+'Null string has been passed to the parser.'
+
+PSYE037G 'Mis-placed or missing quote' .TYPE=W
+'Quoted string is not valid.'
+
+PSYE037H 'Format error' .TYPE=W
+'Format of the string to be parsed is invalid.'
+
+PSYE037I 'Invalid keyword parameter' .TYPE=W
+'Missing bracket for &ZVAL1..  Must of of the form PARM().'
+
+PSYE037J 'Invalid characters' .TYPE=W
+'String must be quoted if it contains any of the special characters blank < ( + | ) ; - , > : ='
+
+PSYE037K 'Invalid string' .TYPE=W
+'String must be quoted if it contains spaces.'
+
+
+/*                                           */
+/* SPARE                                     */
+/*                                           */
+PSYE037N 'Spare' .TYPE=W
+'Spare'
+
+/*                                           */
+/* TRUNC                                     */
+/*                                           */
+PSYE038A 'TRUNC variable name is blank' .TYPE=W
+'Variable name must be entered.'
+
+PSYE038B 'Missing TRUNC keyword' .TYPE=W
+''
+
+PSYE038C 'Missing '','' in TRUNC statement' .TYPE=W
+''
+
+PSYE038D 'Field missing in TRUNC statement' .TYPE=W
+''
+
+PSYE038E 'Value missing in TRUNC statement' .TYPE=W
+''
+
+PSYE038F 'Invalid value in TRUNC statement' .TYPE=W
+'&ZVAL1 is invalid.  Must be a single character or numeric.'
+
+PSYE038G 'Invalid TRUNC statement' .TYPE=W
+'.TRAIL not allowed in a TRUNC statement.'
+
+
+/*                                           */
+/* PANEXIT                                   */
+/*                                           */
+PSYE038N 'Unexpected value' .TYPE=W
+'Expected comma.  Received ''&ZVAL1''.'
+
+PSYE038O 'Unexpected value' .TYPE=W
+'Only REXX and LOAD are supported for the PANEXIT statement.  Received ''&ZVAL1''.'
+
+PSYE038P 'Missing procedure/module name' .TYPE=W
+'REXX procedure or LOAD module name must be specified after the REXX/LOAD statement.'
+
+PSYE038Q 'Invalid parameter' .TYPE=W
+'If coded, the last parameter must be MSG=msgid.'
+
+PSYE038R 'Missing close bracket' .TYPE=W
+'Close bracket missing after MSG=msgid parameter.'
+
+PSYE038S 'REXX failure' .TYPE=W
+'Severe error encountered processing PANEXIT REXX routine.  See application log for details.'
+
+PSYE038T 'REXX-defined failure' .TYPE=W
+'REXX-defined failure has occured processing PANEXIT routine.'
+
+PSYE038U 'Invalid section for PANEXIT' .TYPE=W
+'PANEXIT cannot be coded in this panel section, only )INIT, )REINIT or )PROC.'
+
+PSYE038V 'Module not found' .TYPE=W
+'LOAD module ''&ZVAL1'' not found in ISPLLIB search path.'
+
+PSYE038W 'Dynamic loader error' .TYPE=W
+'Error during &ZVAL1 of &ZVAL2..  &ZVAL3'
+
+PSYE038X 'LOAD-defined failure' .TYPE=W
+'Failure has occured processing PANEXIT routine &ZVAL1..'
+
+PSYE038Y 'LOAD failure' .TYPE=W
+'Severe error encountered processing PANEXIT LOAD routine &ZVAL1..  See application log for details.'
+
+/*                                           */
+/* TRANS                                     */
+/*                                           */
+PSYE039A 'TRANS variable name is blank' .TYPE=W
+'Variable name must be entered.'
+
+PSYE039B 'Missing TRANS keyword' .TYPE=W
+''
+
+PSYE039C 'TRANS statement error' .TYPE=W
+'Invalid format in the TRANS statement.'
+
+PSYE039D 'TRANS statement error' .TYPE=W
+'Field missing in TRANS statement.'
+
+PSYE039E 'Value missing in TRANS statement' .TYPE=W
+''
+
+PSYE039F 'Spare' .TYPE=W
+''
+
+PSYE039G 'MSG= parameter invalid' .TYPE=W
+'Message parameter must be the last parameter in the TRANS list.'
+
+PSYE039H 'Missing translate-to entry' .TYPE=W
+''
+
+
+/*                                           */
+/* VEDIT                                     */
+/*                                           */
+PSYE039K 'Invalid parameter' .TYPE=W
+'Invalid parameter found on VEDIT statement.'
+
+
+PSYE039L 'Invalid parameter' .TYPE=W
+'Invalid or missing MSG= parameter found on VEDIT statement.'
+
+
+/*                                           */
+/* SELECT Parser                             */
+/*                                           */
+PSYE039M 'PARM entered with &ZVAL1 option' .TYPE=W
+'PARM is not valid on a SELECT &ZVAL1 statement.'
+
+PSYE039N 'Unsupported language &ZVAL1' .TYPE=W
+''
+
+PSYE039O 'Invalid SCREEN NAME' .TYPE=W
+'SCREEN NAME cannot be LIST, NEXT or PREV.'
+
+PSYE039P 'Invalid SCREEN NAME format' .TYPE=W
+'''&ZVAL1'' has an invalid format.'
+
+PSYE039Q 'PASSLIB entered without NEWAPPL' .TYPE=W
+'NEWAPPL is required with the PASSLIB parameter.'
+
+PSYE039R 'PANEL, CMD or PGM must be entered' .TYPE=W
+''
+
+PSYE039S 'Profile ISPS invalid' .TYPE=W
+'ISPS is the system profile and cannot be used as an application profile.'
+
+
+PSYE039T 'Invalid request' .TYPE=W
+'PANEL request cannot be run in the background.'
+
+
+/*                                           */
+/* Name List Parser                          */
+/*                                           */
+PSYE039U 'Invalid name list' .TYPE=W
+'Name list must be enclosed in brackets if more than one name entered.'
+
+

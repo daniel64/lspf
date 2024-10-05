@@ -1,0 +1,68 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Show udev sysattr/value pairs
+)ENDCOMMENT
+
+)ATTR
+_ TYPE(NEF) PAD(USER) CAPS(ON)
++ TYPE(VOI)
+! TYPE(OUTPUT) COLOUR(YELLOW) CAPS(OFF)
+% TYPE(OUTPUT) COLOUR(WHITE) CAPS(OFF)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'UDEV Sysattr/Value Pairs'
+
+TEXT     4   2         FP    'Command ===>'
+FIELD    4  15  max-17 nef caps(on),pad(user) zcmd
+
+TEXT     4  MAX-15   FP   'Scroll ===>'
+FIELD    4  MAX-3  4 NEF  NONE ZSCROLL
+
+FIELD    6   2  1  CEF PAD(USER) INCLSD
+TEXT     6   5     SAC 'Descend into non-symlink directories'
+
+TEXT     8  2        FP   'syspath . . :'
+FIELD    8  16   MAX-4 VOI  NONE SYSPATH
+FIELD    8   MAX-2 2      LI  NONE SYSPIND
+
+TEXT    10  2   CH  'Sysattr'
+TEXT    10  43  CH  'Value'
+
+TBMODEL  11  MAX
+TBFIELD  2      40     ATTR(!) SYSATTR
+TBFIELD  ++1    MAX    ATTR(%) VALUE
+
+)INIT
+VGET ZSCROLL PROFILE
+
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+&XXX = &SYSPATH
+IF (LENGTH(XXX) LE &PATHL) &FSCROLL = 'NO'
+ELSE                       &FSCROLL = 'YES'
+
+)PROC
+&INCLSD = TRANS(&INCLSD &Z,&Z *,/)
+VPUT INCLSD SHARED
+IF (.RESP = END) EXIT
+
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+   EXIT
+
+IF (.MSG = &Z) VPUT ZSCROLL PROFILE
+
+)FIELD
+FIELD(SYSPATH) LEN(4095) IND(SYSPIND) SCROLL(FSCROLL)
+FIELD(SYSATTR) LEN(1024)
+FIELD(VALUE)   LEN(4096)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2023 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

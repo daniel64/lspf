@@ -1,0 +1,24 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel to display edit line command tables.
+)ENDCOMMENT
+
+)BODY WINDOW(50,12)
+
+TBMODEL  2    MAX
+TBFIELD  2    8  NEF NONE EDTAB
+
+)INIT
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+&ZWINTTL = 'Edit Line Command Tables'
+&ZTDMARK = '- End -'
+
+)PROC
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2024 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

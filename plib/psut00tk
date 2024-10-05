@@ -1,0 +1,93 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Panel to display running tasks
+)ENDCOMMENT
+
+)ATTR
+$ TYPE(OUTPUT) COLOUR(BLUE)  CAPS(OFF)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Task Display'
+
+TEXT     4   2         FP    'Command ===>'
+FIELD    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
+
+TEXT     4  MAX-15  FP 'Scroll ===>'
+FIELD    4  MAX-3   4  NEF  NONE ZSCROLL
+
+TEXT     6 2 CH 'S USER     PID       NI  %CPU  %MEM  Command'
+TEXT     7 2 CH '------------------------------------'
+FIELD    7   39 MAX  ATTR($) CMDSIND
+
+TBMODEL  8   MAX   ROWS(ALL)
+TBFIELD  2     1   NEF CAPS(ON),PAD(USER),JUST(LEFT) SEL
+TBFIELD  ++1   8   VOI NONE USER
+TBFIELD  ++1   8   VOI NONE PID
+TBFIELD  ++1   3   VOI JUST(RIGHT) NICE
+TBFIELD  ++2   5   VOI NONE CPU
+TBFIELD  ++1   5   VOI NONE MEM
+TBFIELD  ++1   MAX VOI NONE CMD
+
+)INIT
+.HELP = LSPTK001
+IF (&ZSCROLL = &Z) VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+&ZCMD = &Z
+
+.ATTR(USER) = 'TYPE(OUTPUT) COLOUR(YELLOW)'
+.ATTR(PID)  = 'TYPE(OUTPUT) COLOUR(WHITE)'
+.ATTR(CPU)  = 'TYPE(OUTPUT) COLOUR(RED)'
+.ATTR(MEM)  = 'TYPE(OUTPUT) COLOUR(WHITE)'
+
+&ZPM6 = 1
+
+)REINIT
+
+IF (.MSG EQ &Z)
+   &SEL = &Z
+   REFRESH(SEL)
+ELSE
+   IF (.CURSOR EQ 'SEL' ) .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+)PROC
+&W1 = TRUNC( &ZCMD, ' ' )
+
+IF (&W1 EQ U,USER) &USERF = .TRAIL
+ELSE
+   IF (&W1 EQ O,ONLY) &ONLYF = .TRAIL
+   ELSE
+      IF (&ZCMD EQ RES,RESET)
+         &USERF = &Z
+         &ONLYF = &Z
+      ELSE
+         IF (&ZCMD NE &Z)
+            &ZEDSMSG = 'Invalid command'
+            &ZEDLMSG = 'Valid commands are U user and O filter to filter display on user or command string'
+            .MSG     = PSYZ001
+            .CURSOR  = ZCMD
+            EXIT
+
+VER (&SEL,LIST,I,J,K,S,T)
+
+IF (&SEL NE &Z AND &PID EQ '0')
+   &ZEDSMSG = 'Invalid PID'
+   &ZEDLMSG = 'Cannot kill or select PID 0'
+   .MSG     = PSYZ001
+   .CURSOR  = SEL
+   EXIT
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+
+)FIELD
+FIELD(CMD) SIND(CMDSIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

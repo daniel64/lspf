@@ -1,0 +1,143 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+
+
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Test Keyed Table and TB Functions'
+
+TEXT      4    2          FP  'Command ===>'
+FIELD     4   15  MAX-17  NEF     CAPS(ON),PAD(USER) ZCMD
+
+TEXT      4   MAX-15       FP  'Scroll ===>'
+FIELD     4   MAX-3    4   NEF     CAPS(ON)  ZSCROLL
+
+TEXT      6   MAX-36         FP  'TIME:'
+FIELD     6   MAX-30    8    VOI   NONE  ZTIME
+
+TEXT      6   MAX-20         FP  'DATE:'
+FIELD     6   MAX-14    8    VOI   NONE  ZDATE
+
+TEXT      6   2          FP  'ZTDTOP:'
+FIELD     6   11    8    VOI   NONE  ZTDTOP
+
+TEXT      6   21         FP  'ZTDSELS:'
+FIELD     6   31    8    VOI   NONE  ZTDSELS
+
+TEXT      6   41         FP  'ZTDDEPTH:'
+FIELD     6   51    8    VOI   NONE  ZTDDEPTH
+
+TEXT      7   21         FP  'ZTDVROWS:'
+FIELD     7   31    8    VOI   NONE  ZTDVROWS
+
+TEXT      7   2          FP  'ZTDROWS:'
+FIELD     7   11    8    VOI   NONE  ZTDROWS
+
+TEXT      8   2          FP  'Keyed Table (1 key).  Max RC from last operation is:'
+FIELD     8   55    8    VOI   NONE  TRC
+
+TEXT      10  2          FP  'Last 5 operations:'
+FIELD     10  21    8    VOI   NONE  TOPR1
+FIELD     11  21    8    VOI   NONE  TOPR2
+FIELD     12  21    8    VOI   NONE  TOPR3
+FIELD     13  21    8    VOI   NONE  TOPR4
+FIELD     14  21    8    VOI   NONE  TOPR5
+
+TEXT      10  31        FP  'RC='
+TEXT      11  31        FP  'RC='
+TEXT      12  31        FP  'RC='
+TEXT      13  31        FP  'RC='
+TEXT      14  31        FP  'RC='
+FIELD     10  34   8    VOI   NONE  TRC1
+FIELD     11  34   8    VOI   NONE  TRC2
+FIELD     12  34   8    VOI   NONE  TRC3
+FIELD     13  34   8    VOI   NONE  TRC4
+FIELD     14  34   8    VOI   NONE  TRC5
+
+TEXT      10  43        FP  'CRP of selected row :'
+TEXT      11  43        FP  'URID of selected row:'
+FIELD     10  66    8    VOI   NONE  CRP
+FIELD     11  66    8    VOI   NONE  ROWID
+
+TEXT    16 2 CH  'Sel  Key1        Field1      Field2      Field3    Field4'
+TEXT    17 2 CH EXPAND '-'
+
+TBMODEL 18 11
+TBFIELD 2   4  NEF CAPS(ON),PAD(USER),JUST(LEFT) SEL
+TBFIELD ++1 10 VOI  NONE              KEY1
+TBFIELD ++2 10 VOI  NONE              FLD1
+TBFIELD ++2 10 VOI  NONE              FLD2
+TBFIELD ++2 8  VOI  NONE              FLD3
+TBFIELD ++2 8  VOI  NONE              FLD4
+
+TEXT    29 2 ET EXPAND '='
+TEXT      30  2        FP  'Key 1 of selected row. :'
+FIELD     30  27    8    VOI   NONE  YKEY1
+TEXT      31  2        FP  'Field 1 of selected row:'
+FIELD     31  27    8    VOI   NONE  YFLD1
+TEXT      32  2        FP  'Field 2 of selected row:'
+FIELD     32  27    8    VOI   NONE  YFLD2
+TEXT      33  2        FP  'Field 3 of selected row:'
+FIELD     33  27    8    VOI   NONE  YFLD3
+TEXT      34  2        FP  'Field 4 of selected row:'
+FIELD     34  27    8    VOI   NONE  YFLD4
+TEXT      35  2        FP  'UROW ID of selected row:'
+FIELD     35  27    8    VOI   NONE  YROWID
+
+TEXT      30  41        FP  'TBQUERY results: Key Fields. . . . . . . . :'
+FIELD     30  86    30   VOI   NONE  TBQ1
+TEXT      31  41        FP  '                 Non-key Fields. . . . . . :'
+FIELD     31  86    30   VOI   NONE  TBQ2
+TEXT      32  41        FP  '                 Number of Rows. . . . . . :'
+FIELD     32  86    10   VOI   NONE  TBQ3
+TEXT      33  41        FP  '                 Number of Keys. . . . . . :'
+FIELD     33  86    10   VOI   NONE  TBQ4
+TEXT      34  41        FP  '                 Number of Fields. . . . . :'
+FIELD     34  86    10   VOI   NONE  TBQ5
+TEXT      35  41        FP  '                 Current Row Position. . . :'
+FIELD     35  86    8    VOI   NONE  TBQ6
+TEXT      36  41        FP  '                 Sort Information Record . :'
+FIELD     36  86    30   VOI   NONE  TBQ7
+TEXT      37  41        FP  '                 TBSARG Arglist. . . . . . :'
+FIELD     37  86    30   VOI   NONE  TBQ8
+TEXT      38  41        FP  '                 TBSARG Cond Pairs . . . . :'
+FIELD     38  86    30   VOI   NONE  TBQ9
+TEXT      39  41        FP  '                 TBSARG Search Direction . :'
+FIELD     39  86    10   VOI   NONE  TBQ10
+
+)INIT
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+.ATTR(FLD1) = 'TYPE(OUTPUT) COLOUR(WHITE)'
+.AUTOSEL = NO
+
+)REINIT
+.AUTOSEL =YES
+
+IF (.MSG EQ &Z)
+   &SEL = &Z
+   REFRESH(SEL)
+ELSE
+   IF (.CURSOR EQ 'SEL' ) .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+)PROC
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS011B
+   .CURSOR = 'ZCMD'
+   EXIT
+
+VER (&SEL,LIST,D,R,RO,G)
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

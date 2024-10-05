@@ -1,0 +1,69 @@
+/*
+  Copyright (c) 2022 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+/************************************************************************************/
+/* Delete all lines in a range that have a special label, ie. of the form .Oxxxx    */
+/* Macro requires a range entering using #, #n or ##-## line commands or parm ALL   */
+/* to delete all lines with a special label.                                        */
+/*                                                                                  */
+/* Entering line command MD then converts INFO lines to data.  This allows you to   */
+/* merge files after doing a COMPARE.                                               */
+/*                                                                                  */
+/* Note:  INFO lines cannot be referenced in an edit macro so this must be done     */
+/* manually.                                                                        */
+/************************************************************************************/
+
+address ISPEXEC
+
+"ISREDIT MACRO (PARM) NOPROCESS"
+
+parm = translate( parm )
+
+"ISREDIT PROCESS RANGE #"
+if RC = 4 & parm \= "ALL" then
+  do
+    zedsmsg = 'No range entered'
+    zedlmsg = 'Run macro with parameter ALL to delete all lines with special labels (.Oxxxx)' ,
+              'or enter #, #n or ##-## line commands to delete lines with special labels between these lines.'
+    "SETMSG MSG(PSYZ001)"
+    EXIT 12
+  end
+
+"ISREDIT (nf) = LINENUM .ZFRANGE"
+"ISREDIT (nl) = LINENUM .ZLRANGE"
+
+j = 0
+do i = nf by 1 while i <= nl
+   "ISREDIT (var) = LABEL "i
+   if RC > 0 then iterate
+   if length( var ) = 6 & substr( var, 1, 2 ) = ".O" then
+     do
+       "ISREDIT DEL "i i" ALL"
+       j  = j + 1
+       nl = nl - 1
+       i  = i - 1
+     end
+end
+
+"ISREDIT (nl) = LINENUM .ZLRANGE"
+
+zedsmsg = j "lines deleted"
+zedlmsg = j "lines with special labels deleted between lines "nf" and "nl"."
+"SETMSG MSG(PSYZ000)"
+EXIT

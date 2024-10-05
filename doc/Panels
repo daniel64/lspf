@@ -1,3 +1,222 @@
-Panels are loaded from ZPLIB.  This can be changed using the libdef() service.
+The following panel sections are supported:
+)PANEL
+)ATTR
+)ABC
+)ABCINIT
+)ABCPROC
+)BODY
+)AREA
+)INIT
+)REINIT
+)PROC
+)HELP
+)PNTS
+)FIELD
+)END
+)COMMENT
+)ENDCOMMENT
+)INCLUDE
 
-They support a subset of the ISPF Panel language
+There is also limited support for native ISPF panels.  REXX support is required for this as the panel is converted to lspf format
+internally using REXX panconv.
+
+)BODY and )END are required sections.  The sections must be coded in the above order, except for )COMMENT/)ENDCOMMENT
+and )INCLUDE that can appear anywhere in the panel definition and )HELP, )PNTS and )FIELD can be coded in any order.
+
+)ABC must be followed by a )ABCINIT section.  )ABCPROC is optional.
+
+)ABC, )ABCINIT and )ABCPROC can be repeated as many times as required.
+
+
+Panels are loaded from ZPLIB.  This can be changed using the libdef() service.
+They are coded similarly to ISPF panels except for the )BODY section, and they support a subset of the ISPF Panel
+language.
+
+It is preferable to stick to ISPF panel coding restrictions in case lspf implements these as some stage in the future.
+
+If lspf has been compiled with REXX support (REXX_SUP in lspf.h), simple native ISPF panels are supported.  This is achieved
+by calling REXX panconv internally to convert the ISPF panel to lspf format.  This is done whenever a panel does not have a )PANEL
+statement or when the FORMAT= keyword is missing from the )PANEL statement.  REXX panconv must be in a library allocated to ZORXPATH.
+There are a number of restictions on the statements supported - see panconv REXX for more details.
+If variable model lines are used in the ISPF panel, the panel is reloaded each time the variable changes, increasing the overhead.
+
+panconv can also be called manually to create a permanent lspf version of the ISPF panel.
+
+
+)ATTR Section.  DEFAULT() supported.
+-------------
+
+
+Pulldown Section.
+-----------------
+)ABC    DESC(abc_name)
+ PDC    DESC(pdc_name)
+  ACTION RUN(command)
+ PDC    DESC(pdc_name) ACTION RUN(command)
+)ABCINIT
+)ABCPROC
+
+
+)BODY Section.
+-------------
+             CMD()
+               First input field on the panel.
+             WINDOW(w,d)
+               w and d can also be a dialogue variables or MAX.
+             WIDTH(w)
+               w can also be a dialogue variables or MAX.
+             SMSG(fld)
+               Define field to place the short message when message not in a window
+             LMSG(fld)
+               Define field to place the long message when message not in a window
+             DEFAULT()
+               Define the TEXT/HIGH, TEXT/LOW, INPUT/HIGH default attribute characters if different from the
+               default of %+_.  Takes precedence over DEFAULT defined on the )ATTR section.
+
+The body section is defined differently to ISPF panels.  It is composed of a list of TEXT, FIELDS, TBMODEL, TBTEXT etc.
+statements.
+
+PANELTITLE Title of the panel that appears on screen.  Also appears in the task list if PANELDESC is not defined.
+
+PANELDESC  Description of the panel.  Appears in the Task List (SWAP LIST) if defined.  At least one
+           of these should be defined for a panel so a description appears in the Task List.
+           Variables are allowed.
+
+TEXT       row column (len) cuaFieldType display_text
+           row column (len) ATTR(char)   display_text - char must be a valid type for text fields in the )ATTR section.
+           Optional len can be numeric, MAX or MAX-n.  If omitted, code the string long enough to accomodate any variables
+           after substitution or truncation may occur.
+
+           display_text can be EXPAND x to create a repeating string up to the maximum width of the panel.
+           Referencing an attribute character in the )ATTR section is the preferred method.
+
+           Default length is the length of the entered string.
+
+FIELD      row column length cuaFieldType opts name
+           row column length ATTR(char) name  - char must be a valid type for input/output fields in the )ATTR section.
+           Referencing an attribute character in the )ATTR section is the preferred method.
+
+AREA       row column width depth area_name
+
+DYNAREA    row column width depth name shadow_name DATAIN(xx) DATAOUT(xx) USERMOD(xx) DATAMOD(xx)
+
+TBMODEL    row depth CLEAR(var1,var2,...) ROWS(ALL|SCAN)
+           Position of the scrollable area.  Clear variables before fetching rows (eg. for extension variables)
+           ROWS(ALL|SCAN)
+           TBMODEL does not support variable model lines.  To achieve this, an ISPF panel must be coded.
+           SFIHDR is only supported for ISPF panels.
+
+TBMODEL    With no parameters, declares the start of another model line.  Up to 8 model lines can be defined.  Only the
+           first TBMODEL statement can have parameters.
+
+TBFIELD    column length cuaFieldType name
+           column length ATTR(char) name
+           (column of '+n'  is n relative to the start of the previous field)
+           (column of '++n' is n relative to the end of the previous field)
+           (column of VAR sets the column position dynamically.  Length can also be specified by a dialogue variable.  Setting the length variable
+           to 0 inactivates the field).  Column positions and lengths are calculated after )INIT processing.
+
+TBTEXT     column cua        display_text
+           column ATTR(char) display_text
+           display_text can be EXPAND x to create a repeating string up to the maximum width of the panel.
+
+BOX        row column width depth colour title
+
+
+Panel statements TEXT, PANELTITLE and PANELDESC can contain dialogue variables.
+
+
+If a variable MODEL statements is required, this can only be done by coding an ISPF panel.
+
+)AREA abcd - define a scrollable area section with name 'abcd'.  Must match an AREA )BODY statement.
+
+
+)INIT
+)REINIT
+)PROC
+)ABCINIT
+)ABCPROC
+
+     VER (&VAR,NB|NONBLANK,MSG=MSGID)
+     VER (&VAR,NB,LIST,VAL1,VAL2,VAL3,MSG=MSGID)
+     VER (&VAR,LISTX,VAL1,VAL2,VAL3,MSG=MSGID)
+     VER (&VAR,NB,PICT,xxxxx,MSG=MSGID)
+     VER (&VAR,NB,NUM,MSG=MSGID)
+     VER (&VAR,NB,HEX,MSG=MSGID)
+     VER (&VAR,NB,OCT,MSG=MSGID)
+     VER (&VAR,RANGE,1,19)
+     VER (&VAR,LEN,EQ,5)
+
+     NB|NONBLANK and MSG= are optional.  For LISTX, NONBLANK is implied.
+
+     .HELP   = ABC123  (panel help member)
+     .MSG    = ABC123  (set the message)
+     .CURSOR = ZCMD    (set cursor position)
+     .RESP   = END or ENTER (set the user response)
+     &A      = .RESP   (get the user response)
+     &CURS   = .CURSOR (get cursor position)
+     &A      = Hello   (case sensitive)
+     &B      = &A
+     &B      = 'Hello World'
+     &C      = UPPER(B)
+     &L      = LENGTH(ZCMD)
+     &L      = LENGTH(.MSG)
+     &WS     = WORDS(ZCMD)
+     &WS     = WORDS(.TRAIL)
+     &RV     = REVERSE(ZCMD)
+
+     &Z      Special variable representing null
+
+     GOTO LABEL
+     LABEL:
+     LABEL: (statement)
+
+     IF...ELSE statements are indentation sensitive
+     IF ( &ZCMD = &A ) can also be a word or quoted (CANCEL,'Bye')
+     IF (&V EQ A,B,C,D) true if var V is any of the list
+     IF (&V NE A,B,C,D) true if var V is none of the list
+     IF (VER(&ZCMD,LIST,CAN)) Verify within an IF statement (no MSG= allowed)
+     IF ( cond AND cond OR cond ) AND has a higher precedence than OR
+     ELSE
+     EXIT  exit panel processing.
+     &ZCMD = TRUNC( &CMD, 3 )
+     &ZCMD = TRUNC( &CMD, '.' )
+     &REST = .TRAIL
+     &ZCMD = TRANS( &ZCMD Y,YES N,NO )
+     &ZCMD = TRANS( &ZCMD Y,YES N,NO *.* )
+     &ZCMD = TRANS( &ZCMD Y,YES N,NO *.? )
+
+     VGET VAR1 PROFILE | SHARED | ASIS
+     VGET (VAR1,VAR2,VAR3) PROFILE | SHARED | ASIS
+
+     VPUT VAR1 PROFILE | SHARED
+     VPUT (VAR1,VAR2,VAR3) PROFILE | SHARED | ASIS
+
+     PANEXIT
+
+     *REXX/*ENDREXX
+
+     .HIST = field, * or a list of fields.
+             Keep a history of values entered into the field.  Command ZHISTORY with the cursor on the field,
+             will display a scrollable list of these values you can select with the cursor position.
+
+)REINIT
+)PROC
+
+     REFRESH(*)                - Refresh all panel fields from their dialogue variables.
+     REFRESH(FLDA,FLDB,FLDC)   - Refresh specified panel fields from their dialogue variables.
+
+
+)FIELD Section.
+---------------
+    FIELD(ABCD) EXEC('SELECT PGM(XYZ) PARM(P1)') PASS(FLD1 FLD2 ... )
+    Invoke program XYZ when primary command FIELDEXC is entered and the cursor is on the field ABCD.
+    The field value will be added to the end of the PARM value on invoking program XYZ and passed fields will
+    be in ZFEDATA1, ZFEDATA2, etc that reside in the SHARED pool.
+    The field value will be replaced with ZRESULT of program XYZ (if ZRC = 0) when the program terminates
+    (Intended use is for file/directory name expansion but a general implementation)
+    ZRC = 8 will sound a beep and not replace the field
+
+    Also used to define a scrollable field:
+    FIELD(ABCD) IND(FLD,'-+') LIND(...) RIND(...) SIND(...) SCALE(FLD) LCOL(...) RCOL(...) LEN(...) SCROLL(...)
+

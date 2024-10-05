@@ -1,0 +1,33 @@
+)PANEL VERSION=1 FORMAT=1 
+/* *************************************************** */
+/* Converted by panconv EXEC on 3 Oct 2024 at 15:46:41 */
+/* *************************************************** */
+/* )PANEL panconv */
+)ATTR
+% TYPE(PT)
++ TYPE(NT)
+{ TYPE(RP)
+! TYPE(ET)
+/* @ AREA(SCRL) EXTEND(ON) panconv */
+)BODY WINDOW(70,15) CMD()
+TEXT 1 21 ATTR(25) 'Introduction to LSPF Edit'
+AREA 2 1 70 8 SAREA1
+)AREA SAREA1
+TEXT 1 2 ATTR(2B) 'Place cursor on one of the following topics and press the help key'
+TEXT 3 2 ATTR(2B) 'o'
+TEXT 3 6 ATTR(7B) 'Edit Entry panel'
+TEXT 4 2 ATTR(2B) 'o'
+TEXT 4 6 ATTR(7B) 'Edit primary command extensions'
+TEXT 5 2 ATTR(2B) 'o'
+TEXT 5 6 ATTR(7B) 'Edit line command extensions'
+TEXT 6 2 ATTR(2B) 'o'
+TEXT 6 6 ATTR(7B) 'Edit macros'
+)INIT
+&ZWINTTL = 'Edit Help'
+
+)HELP
+FIELD(ZRP01001) PANEL(LSPED002)
+FIELD(ZRP01002) PANEL(LSPED003)
+FIELD(ZRP01003) PANEL(LSPED004)
+FIELD(ZRP01004) PANEL(LSPED005)
+)END

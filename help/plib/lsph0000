@@ -1,0 +1,23 @@
+)PANEL VERSION=1 FORMAT=1 
+/* *************************************************** */
+/* Converted by panconv EXEC on 3 Oct 2024 at 15:46:41 */
+/* *************************************************** */
+)ATTR DEFAULT(%+`)
+  + TYPE(TEXT  ) COLOR(GREEN)
+  ` TYPE( INPUT) INTENS(LOW ) JUST(LEFT ) HILITE(USCORE)
+  ~ TYPE(TEXT) INTENS(HIGH) CAPS(OFF) JUST(ASIS ) COLOR(TURQ)
+  [ TYPE(OUTPUT) INTENS(HIGH) CAPS(OFF) JUST(LEFT) PAS(ON) COLOR(WHITE)
+/*   } AREA(SCRL) EXTEND(ON) panconv */
+)BODY 
+TEXT 1 2 ATTR(25) 'Tutorial ----------------------------'
+TEXT 1 40 ATTR(7E) 'lspf Tutorial'
+TEXT 1 54 ATTR(25) '---------------------------- Tutorial'
+TEXT 2 2 ATTR(25) 'Selection ===>'
+FIELD 2 17 73 ATTR(60) ZCMD
+AREA 4 1 90 3 HELP
+)AREA HELP
+TEXT 1 2 ATTR(2B) 'lspf TUTORIAL'
+)INIT
+ .CURSOR = ZCMD
+)PROC
+)END

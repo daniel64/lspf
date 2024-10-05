@@ -1,0 +1,34 @@
+)COMMENT
+  Pull down options for file list application
+)ENDCOMMENT
+
+
+)ABC DESC(Options) MNEM(1)
+PDC  DESC('List settings...') ACTION RUN(>SETTINGS)
+PDC  DESC('Set Personal File List for ADD (&PFLADDL)') ACTION RUN(>ADDPFL)
+PDC  DESC('Colours') ACTION RUN(>COLOURS)
+PDC  DESC('Set show command &PFLTXT1') ACTION RUN(>SHOWCMD)
+PDC  DESC('&pfltxt2 file statistics') ACTION RUN(>STATS)
+PDC  DESC('Path name history') ACTION RUN(>P?)
+PDC  DESC('Turn &PFLTXT4 error logging') ACTION RUN(>LOGERRS)
+
+)ABCINIT
+.ZVARS = OPT1
+IF (&PFLSCMD EQ 'ON')
+   &PFLTXT1 = 'off'
+ELSE
+   &PFLTXT1 = 'on'
+
+IF (&PFLSTTS EQ 'ON')
+   &PFLTXT2 = 'Hide'
+ELSE
+   &PFLTXT2 = 'Show'
+
+IF (&LOGERR EQ 'ON')
+   &PFLTXT4 = 'off'
+ELSE
+   &PFLTXT4 = 'on'
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

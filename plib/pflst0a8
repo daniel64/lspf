@@ -1,0 +1,65 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ File and Directory tree
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'File/Directory Tree'
+
+TEXT     4   2           FP    'Command ===> '
+FIELD    4  15   MAX-17  NEF PAD(USER) ZCMD
+
+TEXT     4  MAX-15  FP 'Scroll ===>'
+FIELD    4  MAX-3   4  NEF  NONE ZSCROLL
+
+TEXT     6   2       FP  'Top level Directory Name . . .'
+FIELD    6  33  MAX-4  VOI NONE ZDIR
+FIELD    6    MAX-2 2  LI  NONE      ZDIRIND
+
+TEXT     8  2 CH  'S Entry name'
+TEXT     9  2 CH  EXPAND  '-'
+
+TBMODEL  10    MAX
+TBFIELD  2     1   NEF  CAPS(ON),PAD(USER),JUST(LEFT) TSEL
+TBFIELD  ++1   MAX VOI  NONE  TENTRY
+
+)INIT
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+.ATTR(TENTRY) = 'TYPE(OUTPUT) COLOUR(YELLOW)'
+
+.HELP = FLTH0001
+
+)REINIT
+
+IF (.MSG EQ &Z)
+   &TSEL = &Z
+   REFRESH(TSEL)
+ELSE
+   IF (.CURSOR EQ 'TSEL' ) .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+)PROC
+IF ( &ZCMD NE &Z )
+   .CURSOR = ZCMD
+   .MSG    = PSYS011C
+   EXIT
+
+IF (&TSEL EQ 'B') &TSEL = 'S'
+
+VER (&TSEL LIST,E,I,L,S)
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+
+)FIELD
+FIELD(ZDIR) LEN(4095) IND(ZDIRIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

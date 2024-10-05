@@ -17,15 +17,10 @@
 
 */
 
-/* Re-direct say ouput and error messages to the spool or it'll mess up lspf output */
-parse source . . src .
-Call setdest src
-/************************************************************************************/
-
 address ISPEXEC
 "QTABOPEN LIST(A)"
-"RDISPLAY Number of open tables is &A0"
+say "Number of open tables is "A0
 
 do i = 1 to A0
-   "RDISPLAY "value( "A" || i )
+   say value( "A" || i )
 end

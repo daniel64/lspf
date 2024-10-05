@@ -1,0 +1,131 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Personal File List List
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+
+)ABC DESC(File) MNEM(1)
+PDC  DESC('New List') ACTION RUN(>NEW)
+PDC  DESC('Open') ACTION RUN(>PLRACT1)
+PDC  DESC('Save As') ACTION RUN(>PLRACT2)
+PDC  DESC('Delete') ACTION RUN(>PLRACT3)
+PDC  DESC('Edit') ACTION RUN(>PLRACT4)
+PDC  DESC('DSLIST') ACTION RUN(>PLRACT5)
+PDC  DESC('DXLIST') ACTION RUN(>PLRACT6)
+PDC  DESC('Exit') ACTION RUN(END)
+
+)ABCINIT
+
+)ABC DESC(Options) MNEM(1)
+PDC  DESC('Personal List Settings')
+ ACTION RUN(ISRROUTE) PARM('SELECT PGM(PLRFLST1) PARM(US1) NEWAPPL(ISP)')
+
+)ABCINIT
+
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Personal File Lists'
+
+ACTIONBAR 'File' 'Options' 'Menu' 'Settings' 'Help'
+
+TEXT    3  2     CH   'Active:'
+FIELD   3  10  8 VOI  NONE LCURTB
+
+TEXT    4  2          FP    'Command ===>'
+FIELD   4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
+
+TEXT    4  MAX-15   FP 'Scroll ===>'
+FIELD   4  MAX-3  4 NEF  NONE ZSCROLL
+
+TEXT    6  2        FP  'Action: O=Open A=Save As D=Delete E=Edit L=DSLIST X=DXLIST'
+
+TEXT    8  2  PS    'S Name            Description'
+TEXT    8  61 PS    'Created      Referenced'
+TEXT    9  2  PS    EXPAND '-'
+
+TBMODEL  10   MAX ROWS(SCAN)
+TBFIELD  2    1     NEF   PAD(USER),CAPS(ON) ASEL
+TBFIELD  ++1  15    VOI   NONE ACURTB
+TBFIELD  ++1  40    VOI   NONE AFLDESCP
+TBFIELD  ++1  12    VOI   NONE AFLCTIME
+TBFIELD  ++1  19    VOI   NONE AFLUTIME
+
+)INIT
+&ZRF0 = 1
+&AAA  = &Z
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+&PLRACT = &Z
+&ZCMD   = &Z
+
+IF (.CURSOR EQ &Z) .CURSOR = 'ZCMD'
+
+.ATTR(ACURTB)   = 'TYPE(OUTPUT) COLOUR(WHITE)'
+.ATTR(AFLDESCP) = 'TYPE(OUTPUT) COLOUR(GREEN)'
+.ATTR(AFLCTIME) = 'TYPE(OUTPUT) COLOUR(BLUE)'
+.ATTR(AFLUTIME) = 'TYPE(OUTPUT) COLOUR(BLUE)'
+
+&ZTDMARK = '- End -'
+
+)REINIT
+IF (.MSG EQ &Z)
+   &ASEL = &Z
+   REFRESH(ASEL)
+ELSE
+   IF (.CURSOR EQ 'ASEL') .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+)PROC
+&CMD1 = TRUNC(&ZCMD,' ')
+IF (&CMD1 EQ 'O')
+   &PLRACT  = 'FILTER'
+   &PLRREST = .TRAIL
+   EXIT
+
+IF (&ZCMD EQ 'RES','RESET')
+   &PLRACT = 'RESET'
+   EXIT
+
+IF (&ZCMD EQ NEW)
+   &PLRACT = 'NEW'
+   &ZCMD   = &Z
+   &ASEL   = &Z
+   EXIT
+ELSE
+   IF (&ZCMD NE PLRACT1,PLRACT2,PLRACT3,PLRACT4,PLRACT5,PLRACT6,&Z)
+      .MSG    = LRFL011A
+      .CURSOR = ZCMD
+      EXIT
+
+VER (&ASEL,LIST,A,D,E,L,O,S,X,/)
+
+&AAA = TRANS(&ZCMD PLRACT1,O PLRACT2,A PLRACT3,D PLRACT4,E PLRACT5,L PLRACT6,X *,&AAA)
+
+IF (&AAA NE &Z)
+   IF (&ZTDSEL NE '00000000')
+      IF (&ASEL EQ '/' )
+         &ASEL = &AAA
+      ELSE
+         IF (&ASEL NE &Z )
+            .MSG    = LRFL011F
+            .CURSOR = ASEL
+         ELSE
+            .MSG = LRFL011G
+   ELSE
+      .MSG = LRFL011G
+   &ZCMD = &Z
+   REFRESH ZCMD
+ELSE
+   IF (&ASEL EQ '/' )
+      .MSG    = LRFL011H
+      .CURSOR = ASEL
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+ELSE            &AAA = &Z
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

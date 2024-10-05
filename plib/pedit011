@@ -1,0 +1,150 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+Edit Entry panel for editor PEDIT01
+)ENDCOMMENT
+
+)ATTR
++ TYPE(NEF) PAD(USER) CAPS(ON)
+
+)INCLUDE std_pdc
+)INCLUDE rfl_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Edit Entry Panel'
+
+TEXT     4    2       FP     'Command ===>'
+FIELD    4   15   MAX ATTR(+) ZCMD
+
+AREA   6 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1    2       FP     'File Name. . .'
+FIELD    1   17   MAX-4 NEF     PAD(USER) ZFILE
+FIELD    1   MAX-2    2 LI      NONE      ZFILEIND
+
+TEXT     4    2       FP     'Initial Macro. . . . .'
+FIELD    4    25  8   CEF     PAD(USER),caps(off) EEIMAC
+TEXT     5    2       FP     'Profile Name . . . . .'
+FIELD    5    25  8   CEF     PAD(USER),caps(on) EEPROF
+
+TEXT     6    2       FP     'Record Length. . . . .'
+FIELD    6    25  5   CEF     PAD(USER),caps(on) EERECL
+
+TEXT     7    2       FP     'Line Command Table . .'
+FIELD    7    25  8   CEF     PAD(USER),caps(on) EELMAC
+TEXT     7    35      FP     '+'
+
+TEXT     3    40      CH     'Options'
+FIELD    4    40  1   CEF     PAD(USER) EECCAN
+TEXT     4    43      SAC    'Confirm Cancel/Move/Replace'
+FIELD    5    40  1   CEF     PAD(USER) EEPRSPS
+TEXT     5    43      SAC    'Preserve trailing spaces on file save'
+
+FIELD    6    40  1   CEF     PAD(USER) EETABSS
+TEXT     6    43      SAC    'Override XTABS setting to prevent tabs being converted to spaces'
+
+FIELD    7    40  1   CEF     PAD(USER) EEDIRLST
+TEXT     7    43      SAC    'Show directory list if valid directory entered'
+
+FIELD    8    40  1   CEF     PAD(USER) EENEWFLS
+TEXT     8    43      SAC    'Allow edit of new files'
+
+
+)INIT
+.HELP   = LSPED001
+.NRET   = ON
+.NRET   = ZFILE
+.HIST   = 'EEIMAC,EEPROF,EELMAC'
+.CURSOR = ZCMD
+
+VGET (EERECL) SHARED
+
+&ZPM3 = 1
+
+)PROC
+if ( &ZCMD NE &Z,PROMPT)
+  .MSG    = 'PSYS018'
+  .CURSOR = ZCMD
+  EXIT
+
+VER (&ZFILE,NB)
+VER (&EEPROF,NAME)
+VER (&EERECL,NUM)
+VER (&EERECL,RANGE,0,32760)
+VER (&EELMAC,NAME)
+&EECCAN   = TRANS( &EECCAN   &Z,&Z *,/ )
+&EEPRSPS  = TRANS( &EEPRSPS  &Z,&Z *,/ )
+&EETABSS  = TRANS( &EETABSS  &Z,&Z *,/ )
+&EEDIRLST = TRANS( &EEDIRLST &Z,&Z *,/ )
+&EENEWFLS = TRANS( &EENEWFLS &Z,&Z *,/ )
+
+&ZEDTABSS = TRANS( &EETABSS /,YES *,NO )
+
+IF (&EERECL EQ '0') &EERECL = &Z
+
+VPUT (EECCAN,EEPRSPS,EETABSS,EEDIRLST,EENEWFLS) PROFILE
+VPUT (ZFILE,EEPROF,EELMAC) PROFILE
+VPUT (EEIMAC,EERECL,ZEDTABSS) SHARED
+
+&SHOWDIR = NO
+
+&REV = REVERSE(ZFILE)
+&GEN = TRUNC( &REV, 1 )
+IF (&GEN EQ '*','?',']' )
+  &SHOWDIR = 'YES'
+  EXIT
+&GEN = TRUNC( &ZFILE, '*' )
+&GEN = .TRAIL
+IF (&GEN NE &Z )
+   &SHOWDIR = 'YES'
+   EXIT
+&GEN = TRUNC( &ZFILE, '?' )
+&GEN = .TRAIL
+IF (&GEN NE &Z )
+   &SHOWDIR = 'YES'
+   EXIT
+&GEN = TRUNC( &ZFILE, '[' )
+&GEN = .TRAIL
+IF (&GEN NE &Z )
+   &SHOWDIR = 'YES'
+   EXIT
+
+&ISFILE = FILE( ZFILE )
+&ISDIR  = DIR( ZFILE )
+
+&REV = REVERSE(ZFILE)
+IF (TRUNC(&REV, 1) EQ '/' AND &ISDIR EQ .FALSE )
+   .MSG = 'PEDT011S'
+   EXIT
+
+IF ( &EEDIRLST NE '/' )
+  IF ( &ISDIR EQ .TRUE )
+     .CURSOR = 'ZFILE'
+     .MSG    = 'PEDT011T'
+     EXIT
+  IF ( &ISFILE EQ .FALSE AND &EENEWFLS NE '/' )
+     .CURSOR = 'ZFILE'
+     &ZMVAL1 = &ZFILE
+     .MSG    = 'PEDT011R'
+     EXIT
+ELSE
+  IF ( &ISFILE EQ .FALSE )
+     IF ( &ISDIR NE .FALSE )
+        &SHOWDIR = 'YES'
+     ELSE
+        IF ( &EENEWFLS NE '/' )
+           .CURSOR = 'ZFILE'
+           .MSG    = 'PEDT011S'
+           EXIT
+
+)FIELD
+FIELD(ZFILE) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL) NESTED')
+FIELD(ZFILE) LEN(4095) IND(ZFILEIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

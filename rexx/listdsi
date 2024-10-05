@@ -1,0 +1,38 @@
+/*
+  Copyright (c) 2023 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+x = listdsi( arg( 1 ) )
+
+say "SYSDSNAME  is " SYSDSNAME
+say "SYSDSORG   is " SYSDSORG
+say "SYSUSED    is " SYSUSED
+say "SYSINODE   is " SYSINODE
+say "SYSCHANGE  is " SYSCHANGE
+say "SYSACCESS  is " SYSACCESS
+say "SYSMODIFY  is " SYSMODIFY
+say "SYSOWNER   is " SYSOWNER
+say "SYSGROUP   is " SYSGROUP
+say "SYSMAJOR   is " SYSMAJOR
+say "SYSMINOR   is " SYSMINOR
+say "SYSLINK    is " SYSLINK
+say "SYSBLKSIZE is " SYSBLKSIZE
+say
+say "SYSREASON  is " SYSREASON
+say "SYSMSGLVL1 is " SYSMSGLVL1
+say "SYSMSGLVL2 is " SYSMSGLVL2

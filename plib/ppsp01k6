@@ -1,0 +1,58 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Keylist Utilit Panel 6
+)ENDCOMMENT
+
+)ATTR
+@ TYPE(LI) PADC(USER)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE '&ZZTABL Keylist &KEYLISTN View'
+
+TEXT     3   2  7     CH   '&ZZTYP'
+TEXT     4   2         FP  'Command ===>'
+FIELD    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
+
+TEXT     4  MAX-15  FP     'Scroll ===>'
+FIELD    4  MAX-3   4 NEF  NONE ZSCROLL
+
+TEXT      6  2      FP    'Keylist Help Panel Name . . :'
+FIELD     6  32   8 VOI  CAPS(ON) KEYHELP
+
+TEXT      8  2      CH    'Key       Definition                                Format Label'
+TEXT      9  2      CH    EXPAND '-'
+
+TBMODEL   10   MAX
+TBFIELD    2   8    ATTR(@) KEYNUM
+TBFIELD  ++2   40   ATTR(@) KEYDEF
+TBFIELD  ++2   5    ATTR(@) KEYATTR
+TBFIELD  ++2   8    ATTR(@) KEYLAB
+
+)INIT
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+&TEMP1  = reverse(TBK1TAB)
+&TEMP1  = TRUNC(&TEMP1, 4)
+IF ( &TEMP1 = 'PYEK' ) &ZZTYP = 'PRIVATE'
+else                   &ZZTYP = 'SHARED'
+
+&TEMP1  = .TRAIL
+&ZZTABL = reverse(TEMP1)
+
+)PROC
+if (&ZCMD NE &Z )
+    .MSG    = PSYS011C
+    .CURSOR = ZCMD
+    EXIT
+
+VPUT ZSCROLL PROFILE
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

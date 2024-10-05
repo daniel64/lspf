@@ -1,0 +1,181 @@
+/*
+  Copyright (c) 2022 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+/* *************************************************************************************************** */
+/* REXX to convert old Edit profiles to the new format.                                                */
+/*                                                                                                     */
+/* Differences:                                                                                        */
+/*   ZEDPTYPE is no longer a key.  This is so we select on record format/lrecl as well as type.        */
+/*   Add fields ZEDPLRCL (set to blanks) and ZEDPRCFM (set to U).                                      */
+/*                                                                                                     */
+/* Note:                                                                                               */
+/* No backup is made of the old profile so a backup of the ZUPROF directory should be made             */
+/* before running this EXEC.                                                                           */
+/* *************************************************************************************************** */
+
+address ISPEXEC
+
+"VGET ZUPROF PROFILE"
+
+say "WARNING:"
+say "o) Make a backup of the ZUPROF directory before proceeding - profiles are updated in place."
+say "   ZUPROF is currently set to" zuprof
+say "o) Close all edit sessions before running."
+say
+say "Any profiles already converted will be ignored."
+say
+say "Enter Y to proceed or any other key to abort."
+
+pull ans
+if ans \= "Y" then EXIT
+
+
+"LMINIT DATAID(DID) DDNAME(ZUPROF) ENQ(SHR)"
+"LMOPEN DATAID(&did) OPTION(INPUT)"
+
+"LMMLIST DATAID(&did) OPTION(LIST) MEMBER(NAME) PATTERN(%*EDIT)"
+do while RC = 0
+   if length( name ) > 8 then iterate
+   if oldFormat( name ) then
+     do
+       say "Old format edit profile found" name
+       say "Convert to new edit profile format, Y to proceed.  Any other key to skip"
+       pull ans
+       if ans = "Y" then
+         do
+           Call convert name
+         end
+     end
+   else
+     do
+       say "Profile" name "is already in the new format.  Ignoring..."
+     end
+   "LMMLIST DATAID(&did) OPTION(LIST) MEMBER(NAME)"
+end
+
+"LMMLIST DATAID(&did) OPTION(FREE)"
+"LMCLOSE DATAID(&did)"
+"LMFREE DATAID(&did)"
+EXIT
+
+
+oldFormat: Procedure
+/* *********************************************** */
+/* Return true if the profile is in the old format */
+/* *********************************************** */
+Arg tabName .
+keys = ""
+
+"LIBDEF TABLIB LIBRARY ID(ZUPROF)"
+
+"TBOPEN &tabName LIBRARY(TABLIB) NOWRITE"
+"TBQUERY &tabName KEYS(KEYS)"
+"TBEND &tabName"
+
+"LIBDEF TABLIB"
+
+RETURN ( keys = "(ZEDPTYPE)" )
+
+
+Convert: Procedure
+/* *********************************************** */
+/* Convert the old profile inplace.                */
+/* *********************************************** */
+Arg tabName .
+
+zzedptype. = ""
+zzedpmask. = ""
+zzedpflag. = ""
+zzedpbndl. = ""
+zzedpbndr. = ""
+zzedptabc. = ""
+zzedptabs. = ""
+zzedptabz. = ""
+zzedprclc. = ""
+zzedphllg. = ""
+zzedpimac. = ""
+zzedpflg2. = ""
+zzedpflg3. = ""
+zzedplrcl. = ""
+zzedprcfm. = ""
+
+names = "ZEDPTYPE ZEDPLRCL ZEDPRCFM ZEDPFLAG ZEDPMASK ZEDPBNDL ZEDPBNDR " ,
+        "ZEDPTABC ZEDPTABS ZEDPTABZ ZEDPRCLC ZEDPHLLG ZEDPIMAC ZEDPFLG2 ZEDPFLG3"
+
+"LIBDEF TABLIB LIBRARY ID(ZUPROF)"
+
+"TBOPEN &tabName NOWRITE LIBRARY(TABLIB)"
+
+"TBSKIP &tabName"
+do i = 1 by 1 while RC = 0
+   "TBGET &tabName"
+   if RC > 0 then leave
+   zzedptype.i = zedptype
+   zzedpflag.i = zedpflag
+   zzedpmask.i = zedpmask
+   zzedpbndl.i = zedpbndl
+   zzedpbndr.i = zedpbndr
+   zzedptabc.i = zedptabc
+   zzedptabs.i = zedptabs
+   zzedptabz.i = zedptabz
+   zzedprclc.i = zedprclc
+   zzedphllg.i = zedphllg
+   zzedpimac.i = zedpimac
+   zzedpflg2.i = zedpflg2
+   zzedpflg3.i = zedpflg3
+   "TBSKIP &tabName"
+end
+
+profs = i - 1
+
+say "Number of profile entries read for" tabName "is" i
+
+"TBEND &tabName"
+
+"TBCREATE &tabName NAMES(&names) WRITE LIBRARY(TABLIB) REPLACE"
+
+do i = 1 to profs
+   zedptype = zzedptype.i
+   zedplrcl = ""
+   zedprcfm = "U"
+   zedpflag = zzedpflag.i
+   zedpmask = zzedpmask.i
+   zedpbndl = zzedpbndl.i
+   zedpbndr = zzedpbndr.i
+   zedptabc = zzedptabc.i
+   zedptabs = zzedptabs.i
+   zedptabz = zzedptabz.i
+   zedprclc = zzedprclc.i
+   zedphllg = zzedphllg.i
+   zedpimac = zzedpimac.i
+   zedpflg2 = zzedpflg2.i
+   zedpflg3 = zzedpflg3.i
+   "TBADD &tabName"
+end
+
+"TBCLOSE &tabName LIBRARY(TABLIB)"
+
+say "Profile "tabName" successfully converted."
+"LIBDEF TABLIB"
+RETURN
+
+
+GetName: Procedure
+n1 = arg( 1 )
+RETURN substr( n1, lastpos( "/", n1 ) + 1 )

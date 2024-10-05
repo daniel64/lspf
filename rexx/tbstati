@@ -1,0 +1,82 @@
+/*
+  Copyright (c) 2021 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+/**********************************************************************************************/
+/*                                                                                            */
+/* EXEC to decode STATUS1, STATUS2 and STATUS3 from a TBSTATS call and return the results     */
+/* in a stem variable.                                                                        */
+/*                                                                                            */
+/**********************************************************************************************/
+
+parse arg status1 status2 status3 .
+
+a. = ""
+
+select
+  when status1 = 1 then
+    do
+      a.1 = "Table exists in the input library chain"
+    end
+  when status1 = 2 then
+    do
+      a.1 = "Table does not exist in the input library chain"
+    end
+  when status1 = 3 then
+    do
+      a.1 = "Input library not allocated"
+    end
+end
+
+
+select
+  when status2 = 1 then
+    do
+      a.2 = "Table is not open in this nested dialogue"
+    end
+  when status2 = 2 then
+    do
+      a.2 = "Table is open NOWRITE in this nested dialogue"
+    end
+  when status2 = 3 then
+    do
+      a.2 = "Table is open WRITE in this nested dialogue"
+    end
+  when status2 = 4 then
+    do
+      a.2 = "Table is open NOWRITE,SHARE in this nested dialogue"
+    end
+  when status2 = 5 then
+    do
+      a.2 = "Table is open WRITE,SHARE in this nested dialogue"
+    end
+end
+
+
+select
+  when status3 = 1 then
+    do
+      a.3 = "Table is available for WRITE mode"
+    end
+  when status3 = 2 then
+    do
+      a.3 = "Table is not available for WRITE mode"
+    end
+end
+
+RETURN a.

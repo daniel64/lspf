@@ -1,0 +1,79 @@
+)PANEL VERSION=1 FORMAT=1 
+/* *************************************************** */
+/* Converted by panconv EXEC on 3 Oct 2024 at 15:46:41 */
+/* *************************************************** */
+)ATTR DEFAULT(%+_)
+  + TYPE(TEXT  ) COLOR(GREEN)
+  _ TYPE( INPUT) INTENS(LOW ) JUST(LEFT ) HILITE(USCORE)
+  @ TYPE(TEXT) INTENS(HIGH) CAPS(OFF) JUST(ASIS ) COLOR(TURQ)
+/*   } AREA(SCRL) EXTEND(ON) panconv */
+)BODY 
+TEXT 1 2 ATTR(25) 'Tutorial ----------------------------'
+TEXT 1 40 ATTR(40) 'Edit Utility'
+TEXT 1 53 ATTR(25) '----------------------------- Tutorial'
+AREA 2 1 90 39 HELP
+)AREA HELP
+TEXT 1 2 ATTR(25) 'EDIT Macro Statements:'
+TEXT 2 2 ATTR(2B) '*--------------------*'
+TEXT 3 2 ATTR(2B) '    "(var) = PATH"'
+TEXT 4 2 ATTR(2B) '    "PATH  = pathname"'
+TEXT 6 2 ATTR(2B) '    "(var1,var2) = XTABS"'
+TEXT 8 2 ATTR(2B) '    "BACKUP = ON|OFF PATH loc"'
+TEXT 9 2 ATTR(2B) '    "BACKUP ON|OFF PATH loc"'
+TEXT 10 2 ATTR(2B) '    "(var1,var2) = BACKUP"'
+TEXT 12 2 ATTR(2B) '    "XTABS =  ON | OFF | nnnn"'
+TEXT 13 2 ATTR(2B) '    "XTABS    ON | OFF | nnnn"'
+TEXT 16 2 ATTR(25) 'EDIT Macros:'
+TEXT 17 2 ATTR(2B) '*----------*'
+TEXT 19 2 ATTR(2B) 'align - align text to a column'
+TEXT 20 2 ATTR(2B) '        Syntax:'
+TEXT 21 2 ATTR(2B) '        align  string'
+TEXT 22 2 ATTR(2B) '               search-parameters'
+TEXT 23 2 ATTR(2B) '               TO'
+TEXT 24 2 ATTR(2B) '               column | MAX | MIN'
+TEXT 26 2 ATTR(2B) 'backups - show backups of the file being edited.'
+TEXT 27 2 ATTR(2B) '          Syntax:'
+TEXT 28 2 ATTR(2B) '          backups'
+TEXT 29 2 ATTR(2B) '          backups ? | HELP'
+TEXT 30 2 ATTR(2B) '          backups STATS NOLIMIT'
+TEXT 32 2 ATTR(2B) '          This macro uses the backups taken by the BACKUP ON PATH profile setting.'
+TEXT 33 2 ATTR(2B) '          If no entries appear, check the path in the profile setting as this may'
+TEXT 34 2 ATTR(2B) '          be different with different profiles.'
+TEXT 36 2 ATTR(2B) '          A limit of 1000 backups is set unless the NOLIMIT option is specified.'
+TEXT 38 2 ATTR(2B) '          Optional STATS parameter retrieves the insert/delete statistics for'
+TEXT 39 2 ATTR(2B) '          each backup.  This may take some time.  Parameter is ignored after'
+TEXT 40 2 ATTR(2B) '          EXEC has been running for 30 seconds.  Without this parameter, these'
+TEXT 41 2 ATTR(2B) '          stats will be blank but will be retrieve for the I, C and F line'
+TEXT 42 2 ATTR(2B) '          commands.'
+TEXT 44 2 ATTR(2B) '          Primary commands:'
+TEXT 45 2 ATTR(2B) '          ?           - Display help.'
+TEXT 46 2 ATTR(2B) '          RES | RESET - Reset the information field.  Deleted entries are'
+TEXT 47 2 ATTR(2B) '                        removed.'
+TEXT 48 2 ATTR(2B) '          STATS       - get insert/deletes for entries that don''t already have'
+TEXT 49 2 ATTR(2B) '                        them (limit 30 seconds).'
+TEXT 50 2 ATTR(2B) '          CLEANUP     - Delete all files older than 90 days except for the first'
+TEXT 51 2 ATTR(2B) '                        backup of the day.'
+TEXT 52 2 ATTR(2B) '          DELETE n    - Delete all files older than n days.'
+TEXT 54 2 ATTR(2B) '          Scrollable list is sorted with newest at the top.'
+TEXT 56 2 ATTR(2B) '          On the scrollable display, actions are:'
+TEXT 57 2 ATTR(2B) '            A - Execute backups macro on the selected backup file.'
+TEXT 58 2 ATTR(2B) '            B - Browse backup file'
+TEXT 59 2 ATTR(2B) '            V - View backup file'
+TEXT 60 2 ATTR(2B) '            C - Compare backup file'
+TEXT 61 2 ATTR(2B) '            F - Browse diff -uE output'
+TEXT 62 2 ATTR(2B) '            I - Retrieve insert/delete stats.'
+TEXT 63 2 ATTR(2B) '            K - Copy to clipboard.'
+TEXT 64 2 ATTR(2B) '            M - Merge with current edit session (macro ends).'
+TEXT 65 2 ATTR(2B) '            S - Same as M.'
+TEXT 66 2 ATTR(2B) '            D - Delete backup file'
+TEXT 68 2 ATTR(2B) 'PEDUMAC1 - Select profile depending on file name rules.  This is a program macro.'
+TEXT 69 2 ATTR(2B) '           Macro can be set as the user session initial macro (ZUSERMAC) in'
+TEXT 70 2 ATTR(2B) '           Edit Settings.  This will run after the site-wide macro but before any'
+TEXT 71 2 ATTR(2B) '           initial macros.'
+TEXT 72 2 ATTR(2B) '           This macro is used together with REXX prules to create rules that'
+TEXT 73 2 ATTR(2B) '           determine the profile.'
+TEXT 75 2 ATTR(2B) '           The rules table is sorted by descending size of the entry so'
+TEXT 76 2 ATTR(2B) '           more qualified entries are checked first.'
+)INIT
+)PROC
+)END

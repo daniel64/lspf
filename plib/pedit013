@@ -1,0 +1,83 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+Panel for editor PEDIT01
+COMPARE files panel
+)ENDCOMMENT
+
+)BODY WINDOW(80,17)
+PANELTITLE 'Edit Compare Options'
+
+TEXT     2    2       FP     'Command ===> '
+FIELD    2  15   MAX  NEF     PAD(USER) ZCMD1
+
+AREA   3 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1    2       CH     'Compare Options'
+TEXT     2    4       PIN    'Enter / to select option'
+FIELD    3    4    1  CEF     PAD(USER) ECPBRDF
+TEXT     3    6       SAC    'Browse output'
+
+FIELD    4    4   1   CEF     PAD(USER) ECPICAS
+TEXT     4    6       SAC    'Case insensitive compare'
+
+FIELD    5    4   1   CEF     PAD(USER) ECPIREF
+TEXT     5    6       SAC    'Ignore reformat differences'
+
+FIELD    6    4   1   CEF     PAD(USER) ECPIBLK
+TEXT     6    6       SAC    'Ignore blank lines'
+
+FIELD    7    4   1   CEF     PAD(USER) ECPITBE
+TEXT     7    6       SAC    'Ignore changes due to tab expansion'
+
+TEXT     1    41      CH     'Display Options'
+TEXT     2    43      SAC    'Lines displayed with EXCLUDE .'
+FIELD    2    74  2  CEF     PAD(USER) ECPNXNO
+TEXT     4    43      SAC    'Label prefix (A - Y) . . . . .'
+FIELD    4    74  1  CEF     PAD(USER),CAPS(ON) ECPLPRE
+
+TEXT    10 2  CH 'Instructions'
+TEXT    11 5  NT 'Press'
+TEXT    11 11 ET 'End'
+TEXT    11 15 NT 'to save changes'
+
+TEXT    12 5  NT 'Enter'
+TEXT    12 11 ET 'Cancel'
+TEXT    12 18 NT 'to cancel changes'
+
+)INIT
+&ZCMD1 = &Z
+IF (&ECPNXNO EQ &Z) &ECPNXNO = 5
+
+)PROC
+if ( &ZCMD1 NE &Z)
+  .MSG    = PSYS018
+  .CURSOR = ZCMD1
+  EXIT
+
+IF (&ECPNXNO EQ &Z) &ECPNXNO = 5
+
+&ECPBRDF = TRANS( &ECPBRDF &Z,&Z *,/ )
+&ECPICAS = TRANS( &ECPICAS &Z,&Z *,/ )
+&ECPIREF = TRANS( &ECPIREF &Z,&Z *,/ )
+&ECPIBLK = TRANS( &ECPIBLK &Z,&Z *,/ )
+&ECPITBE = TRANS( &ECPITBE &Z,&Z *,/ )
+
+VER (&ECPNXNO,RANGE,0,12)
+VER (&ECPLPRE LIST,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y)
+
+VGET ZVERB SHARED
+
+IF (&ZVERB EQ END AND .MSG EQ &Z)
+  VPUT (ECPBRDF,ECPICAS,ECPIREF,ECPIBLK,ECPITBE,ECPNXNO,ECPLPRE) PROFILE
+
+IF (&ZVERB EQ CANCEL)
+  VGET (ECPBRDF,ECPICAS,ECPIREF,ECPIBLK,ECPITBE,ECPNXNO,ECPLPRE) PROFILE
+
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

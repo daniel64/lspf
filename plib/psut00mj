@@ -1,0 +1,43 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ File system information panel
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'File System Information'
+
+TEXT     4   2        FP    'Command ===> '
+FIELD    4  15   MAX  NEF CAPS(ON),PAD(USER) ZCMD
+
+TEXT     6   2        FP    'File system name. . :'
+FIELD    6  24    MAX-4  VOI NONE IFSNAME
+
+AREA   7 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+
+TEXT     1   3       FP    'UUID . . . :'
+FIELD    1  16    MAX VOI NONE IUUID
+
+TEXT     2   3       FP    'Label. . . :'
+FIELD    2  16    MAX VOI NONE ILABEL
+
+)INIT
+.CURSOR = ZCMD
+&ZCMD   = &Z
+
+)PROC
+IF (&ZCMD NE &Z,QUIT)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2023 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

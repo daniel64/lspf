@@ -1,0 +1,14 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Dummy panel displayed with CONTROL NONDISPL END to allow RETURN and
+ jump to work as expected from the file list application.
+)ENDCOMMENT
+
+)BODY CMD()
+)INIT
+)PROC
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

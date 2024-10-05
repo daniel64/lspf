@@ -17,21 +17,23 @@
 
 */
 
-/* Re-direct say ouput and error messages to the spool or it'll mess up lspf output */
-parse source . . src .
-Call setdest src
-/************************************************************************************/
-
 /* REXX Keylist utility  */
 /* Keylist format:       */
 /*    Fields:  KEYLISTN (key), KEYnDEF KEYnLAB KEYnATR (names) n=1 to 24, KEYHELPN */
 
 
-/* Create the default editor keylist table ISRKEYP */
-/* and keylist ISRSAB                              */
+/* Create the ISR keylist table ISRKEYx            */
+/* and default editor keylist ISRSAB.              */
+/* x = S for a SHARED table                        */
+/*     P for a PRIVATE table                       */
+/* SHARED  tables are written to ZTABL             */
+/* PRIVATE tables are written to ZUPROF            */
 
 /* This can also be done online via commands       */
-/* keylists and keylist                            */
+/* keylists (both) and keylist (private)           */
+
+/* It can also be done by coding DTL for the       */
+/* keylist and converting it using lspdtlc.        */
 
 /* Change tabName to the keylist table name        */
 /* Change KEYLISTN to the keylist entry name       */
@@ -40,13 +42,61 @@ Call setdest src
 Call Initialise
 
 address ISPEXEC
-"RDISPLAY Creating default keylists...."
-"RDISPLAY Keylist tables will be placed in ZUPROF (&zuprof)"
-"RDISPLAY "
 
-tabName = "ISRKEYP"
+mypath = ""
 
-"LIBDEF TABLIB PATH ID(&zuprof)"
+do forever
+  say "Enter type of keylist required, S for SHARED or P for PRIVATE"
+  say "Enter EXIT to leave"
+  pull ans
+  if ans = "S" then
+    do
+      tabName = "ISRKEYS"
+      shared  = .true
+      leave
+    end
+  else if ans = "P" then
+    do
+      tabName = "ISRKEYP"
+      shared  = .false
+      leave
+    end
+  else if ans = "EXIT" then
+    do
+      exit
+    end
+  else if ans = "" then
+    do
+      iterate
+    end
+  say ans "is an invalid answer."
+end
+
+say "Creating default keylists...."
+
+if shared then dd = "ZTABL"
+else           dd = "ZUPROF"
+
+"QBASELIB &dd ID(MYPATH)"
+if RC = 4 then
+  do
+    say dd "is not allocated."
+    if shared then
+      do
+        say "Make sure a path is allocated to ZTABL for SHARED keylists."
+      end
+    else
+      do
+        say "Make sure a path is allocated to ZUPROF for PRIVATE keylists."
+      end
+    exit
+  end
+
+"LIBDEF TABLIB PATH ID(&mypath)"
+
+say "Keylist tables will be placed in "dd" ("mypath")"
+say
+
 "TBOPEN &tabName LIBRARY(TABLIB)"
 if RC = 8 then
   do
@@ -54,14 +104,14 @@ if RC = 8 then
   end
 else if RC > 0 then
   do
-     "RDISPLAY "
-     "RDISPLAY Error opening table &tabName.  RC=&RC.  Aborting..."
+     say
+     say "Error opening table "tabName".  RC="RC".  Aborting..."
      "LIBDEF TABLIB"
      EXIT
   end
 else
   do
-     "RDISPLAY Table &tabName already exists.  Using existing table..."
+     say "Table "tabName" already exists.  Using existing table..."
   end
 
 KEYLISTN = "ISRSAB"
@@ -71,13 +121,13 @@ KEY5DEF  = "RFIND"
 KEY6DEF  = "RCHANGE"
 KEY16DEF = ":TS"
 
-"RDISPLAY Creating keylist entry &KEYLISTN (in table &tabName)"
+say "Creating keylist entry "KEYLISTN" (in table "tabName")"
 
 "TBSORT &tabName FIELDS(KEYLISTN,C,A)"
 if RC > 0 then
   do
-     "RDISPLAY "
-     "RDISPLAY Error sorting table &tabName. RC=&RC  Aborting..."
+     say
+     say "Error sorting table "tabName". RC="RC"  Aborting..."
      "TBEND &tabName"
      "LIBDEF TABLIB"
      EXIT
@@ -86,17 +136,17 @@ if RC > 0 then
 "TBADD &tabName ORDER"
 if RC = 8 then
   do
-     "RDISPLAY "
-     "RDISPLAY Error adding row &keylistn to table &tabName.  Row already exists."
-     "RDISPLAY Use command 'keylists' from any panel to delete."
+     say
+     say "Error adding row "keylistn" to table "tabName".  Row already exists."
+     say "Use command 'keylists' from any panel to delete row or delete table."
      "TBEND &tabName"
      "LIBDEF TABLIB"
      EXIT
   end
 else if RC > 0 then
   do
-     "RDISPLAY "
-     "RDISPLAY Error adding row to table &tabName. RC=&RC  Aborting..."
+     say
+     say "Error adding row to table "tabName". RC="RC".  Aborting..."
      "TBEND &tabName"
      "LIBDEF TABLIB"
      EXIT
@@ -105,17 +155,17 @@ else if RC > 0 then
 "TBCLOSE &tabName LIBRARY(TABLIB)"
 if RC > 0 then
   do
-     "RDISPLAY "
-     "RDISPLAY Error saving table &tabName. RC=&RC  Aborting..."
+     say
+     say "Error saving table "tabName". RC="RC".  Aborting..."
      "TBEND &tabName"
      "LIBDEF TABLIB"
      EXIT
   end
 
-"RDISPLAY "
-"RDISPLAY *********************************************************"
-"RDISPLAY Entry &keylistn in Table &tabName created and saved okay"
-"RDISPLAY *********************************************************"
+say
+say "*********************************************************"
+say "Entry "keylistn" in Table "tabName" created and saved okay"
+say "*********************************************************"
 
 "LIBDEF TABLIB"
 EXIT
@@ -123,30 +173,30 @@ EXIT
 
 Initialise:
 key   = "KEYLISTN"
-names = "KEY1DEF  KEY1LAB  KEY1ATR ",
-        "KEY2DEF  KEY2LAB  KEY2ATR ",
-        "KEY3DEF  KEY3LAB  KEY3ATR ",
-        "KEY4DEF  KEY4LAB  KEY4ATR ",
-        "KEY5DEF  KEY5LAB  KEY5ATR ",
-        "KEY6DEF  KEY6LAB  KEY6ATR ",
-        "KEY7DEF  KEY7LAB  KEY7ATR ",
-        "KEY8DEF  KEY8LAB  KEY8ATR ",
-        "KEY9DEF  KEY9LAB  KEY9ATR ",
-        "KEY10DEF KEY10LAB KEY10ATR ",
-        "KEY11DEF KEY11LAB KEY11ATR ",
-        "KEY12DEF KEY12LAB KEY12ATR ",
-        "KEY13DEF KEY13LAB KEY13ATR ",
-        "KEY14DEF KEY14LAB KEY14ATR ",
-        "KEY15DEF KEY15LAB KEY15ATR ",
-        "KEY16DEF KEY16LAB KEY16ATR ",
-        "KEY17DEF KEY17LAB KEY17ATR ",
-        "KEY18DEF KEY18LAB KEY18ATR ",
-        "KEY19DEF KEY19LAB KEY19ATR ",
-        "KEY20DEF KEY20LAB KEY20ATR ",
-        "KEY21DEF KEY21LAB KEY21ATR ",
-        "KEY22DEF KEY22LAB KEY22ATR ",
-        "KEY23DEF KEY23LAB KEY23ATR ",
-        "KEY24DEF KEY24LAB KEY24ATR ",
+names = "KEY1DEF  KEY1ATR  KEY1LAB ",
+        "KEY2DEF  KEY2ATR  KEY2LAB ",
+        "KEY3DEF  KEY3ATR  KEY3LAB ",
+        "KEY4DEF  KEY4ATR  KEY4LAB ",
+        "KEY5DEF  KEY5ATR  KEY5LAB ",
+        "KEY6DEF  KEY6ATR  KEY6LAB ",
+        "KEY7DEF  KEY7ATR  KEY7LAB ",
+        "KEY8DEF  KEY8ATR  KEY8LAB ",
+        "KEY9DEF  KEY9ATR  KEY9LAB ",
+        "KEY10DEF KEY10ATR KEY10LAB ",
+        "KEY11DEF KEY11ATR KEY11LAB ",
+        "KEY12DEF KEY12ATR KEY12LAB ",
+        "KEY13DEF KEY13ATR KEY13LAB ",
+        "KEY14DEF KEY14ATR KEY14LAB ",
+        "KEY15DEF KEY15ATR KEY15LAB ",
+        "KEY16DEF KEY16ATR KEY16LAB ",
+        "KEY17DEF KEY17ATR KEY17LAB ",
+        "KEY18DEF KEY18ATR KEY18LAB ",
+        "KEY19DEF KEY19ATR KEY19LAB ",
+        "KEY20DEF KEY20ATR KEY20LAB ",
+        "KEY21DEF KEY21ATR KEY21LAB ",
+        "KEY22DEF KEY22ATR KEY22LAB ",
+        "KEY23DEF KEY23ATR KEY23LAB ",
+        "KEY24DEF KEY24ATR KEY24LAB ",
         "KEYHELPN"
 
 do i = 1 to words( names )
@@ -157,26 +207,26 @@ RETURN
 
 
 CreateDefault:
-"RDISPLAY Creating keylist table &tabName:"
+say "Creating keylist table "tabName":"
 
 "TBCREATE &tabName KEYS(&key) NAMES(&names) WRITE LIBRARY(TABLIB)"
 if RC \= 0 then
   do
-     "RDISPLAY Create for table &tabName failed.  RC=&RC"
-     "RDISPLAY "
+     say "Create for table "tabName" failed.  RC="RC
+     say
      "LIBDEF TABLIB"
      EXIT
   end
 
-"RDISPLAY Created &tabName okay"
+say "Created "tabName" okay"
 
 KEYLISTN = "ISRDEF"
 
 "TBSORT &tabName FIELDS(KEYLISTN,C,A)"
 if RC > 0 then
   do
-     "RDISPLAY "
-     "RDISPLAY Error sorting table &tabName. RC=&RC  Aborting..."
+     say
+     say "Error sorting table "tabName". RC="RC".  Aborting..."
      "TBEND &tabName"
      "LIBDEF TABLIB"
      EXIT
@@ -185,8 +235,8 @@ if RC > 0 then
 "TBADD &tabName ORDER"
 if RC > 0 then
   do
-     "RDISPLAY "
-     "RDISPLAY Error adding row to table &tabName. RC=&RC  Aborting..."
+     say
+     say "Error adding row to table "tabName". RC="RC".  Aborting..."
      "TBEND &tabName"
      "LIBDEF TABLIB"
      EXIT

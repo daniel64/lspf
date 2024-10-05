@@ -1,0 +1,8 @@
+PTUT011A 'No index panel defined' .TYPE=W
+'The ZHINDEX variable has not been set.'
+
+PTUT011B 'No top panel defined' .TYPE=W
+'The ZHTOP variable has not been set.'
+
+PTUT011C 'Invalid selection' .TYPE=W
+'Enter B, S, U, T or I or a valid selection list option if present.'

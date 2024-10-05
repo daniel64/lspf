@@ -1,0 +1,148 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Diff list actions
+)ENDCOMMENT
+
+)BODY WINDOW(65,17) CMD()
+PANELTITLE 'Diff Actions'
+
+TEXT     3   2     FP 'Entry:'
+FIELD    3   9     MAX-4  VOI NONE ENTRY
+FIELD    3   MAX-2 2      LI  NONE ENTRYIND
+
+AREA 4 1      MAX     MAX     SAREA1
+
+)AREA SAREA1
+TEXT     1   2   FP      'Diff Actions'
+
+FIELD    2   2   2 CEF    CAPS(ON),PAD(USER),NUMERIC(ON),SKIP(OFF) SEL
+TEXT     2   6   SAC     '1.'
+TEXT     2   10  PS      'Browse standard'
+TEXT     3   6   SAC     '2.'
+TEXT     3   10  PS      'Browse context'
+TEXT     4   6   SAC     '3.'
+TEXT     4   10  PS      'Browse Unified'
+TEXT     5   6   SAC     '4.'
+TEXT     5   10  PS      'Browse ed script'
+TEXT     6   6   SAC     '5.'
+TEXT     6   10  PS      'Browse RCS format'
+TEXT     7   6   SAC     '6.'
+TEXT     7   10  PS      'Browse side-by-side'
+TEXT     8   6   SAC     '7.'
+TEXT     8   10  PS      'View standard'
+TEXT     9   6   SAC     '8.'
+TEXT     9   10  PS      'View context'
+TEXT    10   6   SAC     '9.'
+TEXT    10   10  PS      'View Unified'
+TEXT    11   6   SAC     '10.'
+TEXT    11   10  PS      'View ed script'
+TEXT    12   6   SAC     '11.'
+TEXT    12   10  PS      'View RCS format'
+TEXT    13   6   SAC     '12.'
+TEXT    13   10  PS      'View side-by-side'
+
+TEXT     2   35  SAC     '13.'
+TEXT     2   39  PS      'Merge A with B'
+
+TEXT     3   35  SAC     '14.'
+TEXT     3   39  PS      'Merge B with A'
+
+TEXT     4   35  SAC     '15.'
+TEXT     4   39  PS      'Edit A'
+
+TEXT     5   35  SAC     '16.'
+TEXT     5   39  PS      'Edit B'
+
+TEXT     6   35  SAC     '17.'
+TEXT     6   39  PS      'Copy A to B'
+
+TEXT     7   35  SAC     '18.'
+TEXT     7   39  PS      'Copy B to A'
+
+TEXT     8   35  SAC     '19.'
+TEXT     8   39  PS      'Create patch file'
+
+)INIT
+&SEL     = &Z
+&ZWINTTL = &Z
+.CURSOR  = SEL
+&XXX     = &ENTRY
+IF (LENGTH(XXX) LE 53) &FSCROLL = 'NO'
+ELSE                   &FSCROLL = 'YES'
+
+.HELP    = DIFH0001
+
+)PROC
+IF (.RESP EQ END)
+   &SEL = &Z
+   EXIT
+
+VER (&SEL,NB,RANGE,1,19)
+&DFFUTT = TRANS(&SEL
+                1,'--normal'
+                2,'-c'
+                3,'-u'
+                4,'-e'
+                5,'-n'
+                6,'-y'
+                7,'--normal'
+                8,'-c'
+                9,'-u'
+               10,'-e'
+               11,'-n'
+               12,'-y'
+                *,&DFFUTX
+               )
+
+&SEL = TRANS(&SEL
+             1,S1
+             2,S2
+             3,S3
+             4,S4
+             5,S5
+             6,S6
+             7,V1
+             8,V2
+             9,V3
+            10,V4
+            11,V5
+            12,V6
+            13,MA
+            14,MB
+            15,EA
+            16,EB
+            17,CA
+            18,CB
+            19,P
+            )
+
+)PNTS
+FIELD(ZPS01001) VAR(SEL)  VAL(1)
+FIELD(ZPS01002) VAR(SEL)  VAL(2)
+FIELD(ZPS01003) VAR(SEL)  VAL(3)
+FIELD(ZPS01004) VAR(SEL)  VAL(4)
+FIELD(ZPS01005) VAR(SEL)  VAL(5)
+FIELD(ZPS01006) VAR(SEL)  VAL(6)
+FIELD(ZPS01007) VAR(SEL)  VAL(7)
+FIELD(ZPS01008) VAR(SEL)  VAL(8)
+FIELD(ZPS01009) VAR(SEL)  VAL(9)
+FIELD(ZPS01010) VAR(SEL)  VAL(10)
+FIELD(ZPS01011) VAR(SEL)  VAL(11)
+FIELD(ZPS01012) VAR(SEL)  VAL(12)
+FIELD(ZPS01013) VAR(SEL)  VAL(13)
+FIELD(ZPS01014) VAR(SEL)  VAL(14)
+FIELD(ZPS01015) VAR(SEL)  VAL(15)
+FIELD(ZPS01016) VAR(SEL)  VAL(16)
+FIELD(ZPS01017) VAR(SEL)  VAL(17)
+FIELD(ZPS01018) VAR(SEL)  VAL(18)
+FIELD(ZPS01019) VAR(SEL)  VAL(19)
+
+)FIELD
+FIELD(ENTRY) LEN(4095) IND(ENTRYIND) SCROLL(FSCROLL)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

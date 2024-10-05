@@ -1,0 +1,70 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+
+)ENDCOMMENT
+
+)ATTR DEFAULT(%+_)
+! TYPE(SAC)
+* TYPE(PS)
+@ TYPE(NT)
+? TYPE(NEF) CAPS(ON) PAD(USER)
+^ TYPE(FP)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Dialogue Services Selection Menu'
+
+TEXT   4    2        ATTR(^)   'Option ===>'
+FIELD  4   14   MAX  ATTR(?)    ZCMD
+
+AREA  5 1 MAX MAX SAREA1
+
+)AREA SAREA1
+TEXT  1  2    ATTR(!) '0'
+TEXT  1  5    ATTR(*) 'Display Panel'
+TEXT  1  20   ATTR(@) 'Display Panel'
+
+TEXT  2  2    ATTR(!) '1'
+TEXT  2  5    ATTR(*) 'Variables'
+TEXT  2  20   ATTR(@) 'Display system variables'
+
+TEXT  4  2    ATTR(!) 'T'
+TEXT  4  5    ATTR(*) 'Tutorial'
+TEXT  4  20   ATTR(@) 'Start Tutorial'
+
+TEXT  5  2    ATTR(!) 'X'
+TEXT  5  5    ATTR(*) 'Terminate'
+TEXT  5  20   ATTR(@) 'Terminate Dialogue Services'
+
+)INIT
+.CURSOR = ZCMD
+&ZPM8   = 1
+
+)PROC
+IF ( TRUNC( &ZCMD, 1 ) EQ '.' )
+   .MSG = PSYS016
+   EXIT
+
+&ZSEL = TRANS( TRUNC( &ZCMD,'.' ) ,
+               0,'PGM(PDLGTST) PARM(0)'
+               1,'PGM(PDLGTST) PARM(1)'
+               T,'PGM(&ZHELPPGM)'
+               X,EXIT
+              &Z,&Z
+               *,'?'
+             )
+
+)PNTS
+FIELD( ZPS01001 ) VAR(ZCMD)  VAL(0)
+FIELD( ZPS01002 ) VAR(ZCMD)  VAL(1)
+FIELD( ZPS01003 ) VAR(ZCMD)  VAL(T)
+FIELD( ZPS01004 ) VAR(ZCMD)  VAL(X)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

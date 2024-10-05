@@ -1,0 +1,49 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Display Panel'
+
+TEXT      4    2    FP  'Command ===> '
+FIELD     4   15   MAX  NEF     CAPS(ON),PAD(USER) ZCMD
+
+AREA   5 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT      1   MAX-36         FP  'TIME: '
+FIELD     1   MAX-30    8    VOI   NONE  ZTIME
+
+TEXT      1   MAX-20         FP  'DATE: '
+FIELD     1   MAX-14    8    VOI  NONE  ZDATE
+
+TEXT      2   21    FP  'Panel name. . . .'
+FIELD     2   39    8    NEF   CAPS(OFF),JUST(LEFT),PAD(USER) NAME
+FIELD     4   21    1   CEF PAD(USER) INPOPUP
+TEXT      4   24        SAC 'Display panel in a popup'
+
+)INIT
+.HIST   = *
+.CURSOR = NAME
+
+
+)PROC
+IF (&NAME = &Z)
+   .MSG    = PSYS019
+   .CURSOR = NAME
+   EXIT
+
+&INPOPUP = TRANS( &INPOPUP &Z,&Z *,/ )
+
+)FIELD
+ FIELD(NAME)  EXEC('SELECT PGM(PFLST0A) PARM(EXPAND1 PNL)')
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

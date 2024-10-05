@@ -1,0 +1,84 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+
+)ENDCOMMENT
+
+)ATTR
+01 TYPE(DATAIN)  INTENS(HIGH)
+02 TYPE(DATAOUT) INTENS(HIGH)
+
+03 TYPE(CHAR) COLOUR(RED)
+04 TYPE(CHAR) COLOUR(GREEN)
+05 TYPE(CHAR) COLOUR(YELLOW)
+06 TYPE(CHAR) COLOUR(BLUE)
+07 TYPE(CHAR) COLOUR(MAGENTA)
+08 TYPE(CHAR) COLOUR(TURQ)
+09 TYPE(CHAR) COLOUR(WHITE)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Test Dynamic Area (Input, Output & scroll area)'
+
+TEXT      4    2    FP  'Command ===>'
+FIELD     4   15  MAX   NEF     CAPS(ON),PAD(USER) ZCMD
+
+TEXT      6   MAX-36    FP  'TIME:'
+FIELD     6   MAX-30    8    VOI   NONE  ZTIME
+
+TEXT      6   MAX-20    FP  'DATE:'
+FIELD     6   MAX-14    8    VOI   NONE  ZDATE
+
+TEXT      6  2    FP  ' Enter commmands SHOW to dump dynamic vars, GOTO n to set cursor posn in the area'
+TEXT      7  2    FP  ' Defaults DATAIN(01) DATAOUT(02) '
+
+
+BOX      8  8  42  22 RED   'Test Dynamic Area 1'
+DYNAREA  9  9  40  20 ZAREA1 ZSHADOW1 USERMOD(03) DATAMOD(04) SCROLL(OFF)
+
+
+BOX     30  8  42  12 RED   'Test Dynamic Area 2'
+DYNAREA 31  9  40  10 ZAREA2 ZSHADOW2 USERMOD(03) DATAMOD(04) SCROLL(OFF)
+
+
+BOX    8  51 22  max-5 RED 'Dyn Area 3'
+TEXT   9  52   RP  'Test Dynamic Area 3'
+TEXT  10  52   RP  ' --Scrollable Area--'
+
+AREA 11 52    20     MAX-6    SAREA1
+
+TEXT      9   MAX-25    FP  'ZCURFLD :'
+FIELD     9   MAX-15    8    VOI   NONE  ZCURFLD
+TEXT      10  MAX-25    FP  'ZCURPOS :'
+FIELD     10  MAX-15    8    VOI   NONE  ZCURPOS
+
+TEXT     11   MAX-25    FP  'ZAREAW  :'
+FIELD    11   MAX-15    8    VOI   NONE  ZAREAW1
+TEXT     12   MAX-25    FP  'ZAREAD  :'
+FIELD    12   MAX-15    8    VOI   NONE  ZAREAD1
+TEXT     13   MAX-25    FP  'TYPE    :'
+FIELD    13   MAX-15    8    VOI   NONE  ZAREAT1
+
+TEXT     31   MAX-25    FP  'ZAREAW  :'
+FIELD    31   MAX-15    8    VOI   NONE  ZAREAW2
+TEXT     32   MAX-25    FP  'ZAREAD  :'
+FIELD    32   MAX-15    8    VOI   NONE  ZAREAD2
+--TEXT     33   MAX-25    FP  'TYPE    :'
+--FIELD    33   MAX-15    8    VOI   NONE  ZAREAT2
+
+
+)AREA SAREA1
+DYNAREA 1  1  MAX 200 ZAREA3 ZSHADOW3 USERMOD(03) DATAMOD(04) SCROLL(OFF)
+
+)INIT
+
+)PROC
+
+)HELP
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

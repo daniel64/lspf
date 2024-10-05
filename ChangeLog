@@ -1,0 +1,140 @@
+Changelog
+=========
+
+Release 1.2.0
+-------------
+o) Add SWAPBAR
+
+o) Add PFKEY display area.
+
+o) RETP can now be filtered and is scrollable.  CTRL-S displays a keep list of commands (See help for all actions).
+
+o) Handle resizing of the terminal window.
+
+o) Optional decolourise all lspf panels when terminal window loses focus (set in opt 0.0).  Only works if ncurses passes
+   kxIN and kxOUT for the event.
+
+o) Redirect cerr and cout to the application log.
+
+o) Various extra key combinations if the console/emulator supports them:
+   eg. CTRL-RIGHT - move cursor to next word in a field.
+       CTRL-SHIFT-DELETE - delete word cursor is on.
+       ALT-DELETE - delete spaces up to the next non-blank.
+       ALT-UP     - Retrieve command from stack.
+       ALT-DOWN   - Retrieve forward command from stack.
+       See help for full list.
+
+o) Mouse actions with configuration dialogue (opt 0.12)
+
+o) Scrollable fields.
+
+o) Field history support.  New SETVERB command ZHISTORY displays field history for the field the cursor on, if supported in the
+   panel with the new .HIST panel control variable (See opt 0.0 for an example (Default edit line command table) and opt 3.6
+   Compare utility).
+   Command ZHISTORY is not active for fields that are not defined in the .HIST control variable - message PSYS011 will be issued
+   for these.
+   Also add new CONTROL options, CONTROL HISTORY UPDATE/NOUPDATE and lspf General Settings option to activate/deactivate globally.
+
+o) Multi-line table displays.  Up to 8 model lines can be defined for each table row.
+
+o) PANEXIT LOAD support (see panload1.cpp testing program).
+
+o) PANEXIT REXX support.
+
+o) Panel REXX support.
+
+o) Add TBSTATS service.
+
+o) Add QBASELIB service.
+
+o) Add QUERYENQ service.
+
+o) Add DSINFO service.
+
+o) Allow variable names in column and length fields for the TBFIELD statement.  (Not supported for the TBTEXT statement).
+
+o) File tailoring support.
+
+o) Add trace macro TRACE_FUNCTION() for trace_logger class (only active with DEBUG2 defined).
+
+o) Support ATTR() parameter in FIELD statement to refer to )ATTR section instead of inline.
+
+o) Make panel statements .ATTR and .ATTRCHAR more consistent with ISPF (see below).
+
+o) VEDIT panel statement.
+
+o) Allow dynamic areas in a scroll area.
+
+o) Add many missing EDIT macro statements.
+
+o) Add EDIT macros pstore and PEDUMAC1 for profile selection based on file entry patterns (see Edit help).
+
+o) Add EDIT numbering mode, STD and COBOL (can specify both only with fixed length records).
+
+o) Change EDIT RECOVERY to recover to point of failure.
+
+o) Add EDIT BACKUP mode to create backup on first update (old EDIT RECOVERY).
+   Easy access to backups using the 'backups' edit macro.  See backups ? for help.
+
+o) Add EDIT/BROWSE RECLEN parameter.  (Delete any old EDRT's so EDIT RECOVERY picks up RECLEN - see below).
+
+o) EDIT software/hardware/logical tabbing.
+
+o) Edit macros can now be written in C++.  See example PTESTM1.cpp and PEDUMAC1.cpp for Edit profile selection.
+
+o) Add highlighing languages COBOL, JCL, skeleton, bash, rust, toml, diffu, diffc.
+
+o) Edit setting to change language element highlighing colours.
+
+o) Add overflow variables on dynamic areas so data can be inserted/deleted past right margin without scrolling.
+   Editor updated to use this feature.
+
+o) Add a compare utility dialogue (opt 3.6).
+
+o) Add an ISPF to lspf panel conversion utility (opt 3.7).
+
+o) View lspf tables utility (opt 3.10).
+
+o) Display system information such as mounts, disks, tasks, USB, network, systemd etc. (opt 5).
+
+o) Say/pull/trace/interactive debug from REXX now call relevant pApplication method.  EXECs changed to use these.
+
+o) Add similar help system to ISPF's help.
+
+o) Add a simple TSO-like environment to support EXECIO in REXX.  lspf services that use the LIBRARY() parameter, can now
+   use an allocated ddname as well as a lib-type LIBDEF.
+   Use REXX DDLIST to display ddnames and enqueues.
+
+o) Add a number of Library Management services.  EDIT, VIEW and BROWSE can now use these.
+
+o) Implement panel model statement ROWS(SCAN).
+
+o) Add ALTLIB command to alter/display search paths for REXX.
+
+o) Support native ISPF panels.
+
+
+Notes and Actions Required for release 1.2.0
+--------------------------------------------
+
+1) .ATTR and .ATTRCHAR are more consistent with ISPF so it is no longer possible to directly change CUA attributes.  They
+    can still be changed if the TYPE is also changed.
+    eg. ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+2) Panel section order is now checked and enforced.
+
+3) Edit recovery needs to know if the RECLEN parameter was specified.  Two new fields have been added to the Edit Recovery Table,
+   ZEDRECFM and ZEDLRECL.  Old EDRT's should be deleted when any recoveries have completed so the EDRT is recreated with the
+   new fields.  EDRT's can be found in the ZUPROF directory (normally HOME/.lspf), with names of the form profileEDRT.  ISREDRT is
+   the usual one used.
+
+4) Edit has a new format for the profile table to accommodate RECLEN.  Run REXX convprof to convert them, or delete the old Edit profiles.
+
+
+Release 1.1.14
+--------------
+o) Make EDIT labels UNDO/REDO'able.
+
+
+Release 1.1.13
+--------------

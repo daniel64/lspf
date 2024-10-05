@@ -1,0 +1,125 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ List table statistics
+)ENDCOMMENT
+
+)ATTR
++ TYPE(VOI)
+- TYPE(FP)
+
+)INCLUDE std_pdc
+)INCLUDE rfl_pdc
+)INCLUDE hlp_pdc
+
+)BODY WINDOW(73,26)
+PANELTITLE 'Table Statistics for &ZTAB'
+
+TEXT     4    2           FP    'Command ===>'
+FIELD    4   15   MAX     NEF PAD(USER) ZCMD
+
+TEXT     6  2     ATTR(-) 'Location . . . . :'
+FIELD    6  21    MAX-4  ATTR(+) ZLIB
+FIELD    6  MAX-2 2  LI  NONE    ZLIBIND
+
+
+AREA     7  1     MAX MAX     SAREA1
+
+)AREA SAREA1
+TEXT     1  2     ATTR(-) 'Create date. . . :'
+FIELD    1  21    8    ATTR(+) CDATE
+
+TEXT     2  2     ATTR(-) 'Create time. . . :'
+FIELD    2  21    8    ATTR(+) CTIME
+
+TEXT     3  2     ATTR(-) 'Update date. . . :'
+FIELD    3  21    8    ATTR(+) UDATE
+
+TEXT     4  2     ATTR(-) 'Update time. . . :'
+FIELD    4  21    8    ATTR(+) UTIME
+
+TEXT     5  2     ATTR(-) 'User . . . . . . :'
+FIELD    5  21    MAX  ATTR(+) USER
+
+TEXT     6  2     ATTR(-) 'Rows created . . :'
+FIELD    6  21    8    ATTR(+) ROWCREAT
+
+TEXT     7  2     ATTR(-) 'Rows current . . :'
+FIELD    7  21    8    ATTR(+) ROWCURR
+
+TEXT     8  2     ATTR(-) 'Rows updated . . :'
+FIELD    8  21    8    ATTR(+) ROWUPD
+
+TEXT     9  2     ATTR(-) 'Table updated. . :'
+FIELD    9  21    8    ATTR(+) TABLEUPD
+
+TEXT    10  2     ATTR(-) 'Service. . . . . :'
+FIELD   10  21    8    ATTR(+) SERVICE
+
+TEXT    11  2     ATTR(-) 'Return code. . . :'
+FIELD   11  21    2    ATTR(+) RETCODE
+
+TEXT    12   2    ATTR(-) 'Status1. . . . . :'
+FIELD   12   21   1    ATTR(+) STATUS1
+TEXT    12   23 MAX  CH '&TXT1'
+
+TEXT    13   2    ATTR(-) 'Status2. . . . . :'
+FIELD   13   21   1    ATTR(+) STATUS2
+TEXT    13   23 MAX  CH '&TXT2'
+
+TEXT    14   2    ATTR(-) 'Status3. . . . . :'
+FIELD   14   21   1    ATTR(+) STATUS3
+TEXT    14   23 MAX  CH '&TXT3'
+
+TEXT    15   2    ATTR(-) 'Virtsize . . . . :'
+FIELD   15   21   12   ATTR(+) VIRTSIZE
+
+TEXT    16   2    ATTR(-) 'Create date. . . :'
+FIELD   16   21   10   ATTR(+) CDATE4D
+
+TEXT    17   2    ATTR(-) 'Update date. . . :'
+FIELD   17   21   10   ATTR(+) UDATE4D
+
+)INIT
+.CURSOR = ZCMD
+
+IF ( &STATUS1 = '1' )
+   &TXT1 = 'Table exists in the input library chain'
+ELSE
+  IF ( &STATUS1 = '2' )
+     &TXT1 = 'Table does not exist in the input library chain'
+  ELSE
+     &TXT1 = 'Input library not allocated'
+
+IF ( &STATUS2 = '1' )
+   &TXT2 = 'Table is not open in this nested dialogue'
+ELSE
+  IF ( &TATUS2 = '2' )
+     &TXT2 = 'Table is open NOWRITE in this nested dialogue'
+  ELSE
+    IF ( &STATUS2 = '3' )
+       &TXT2 = 'Table is open WRITE in this nested dialogue'
+    ELSE
+      IF ( &STATUS2 = '4' )
+         &TXT2 = 'Table is open NOWRITE,SHARE in this nested dialogue'
+      ELSE
+         &TXT2 = 'Table is open WRITE,SHARE in this nested dialogue'
+
+IF ( &STATUS3 = '1' )
+   &TXT3 = 'Table is available for WRITE mode'
+ELSE
+   &TXT3 = 'Table is not available for WRITE mode'
+
+)PROC
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+
+)FIELD
+FIELD(ZLIB) LEN(4095)  IND(ZLIBIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

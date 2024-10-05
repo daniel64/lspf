@@ -1,0 +1,109 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ File and Directory Selection list panel
+)ENDCOMMENT
+
+)ATTR
+! TYPE(OUTPUT) COLOUR(WHITE) CAPS(OFF)
+$ TYPE(OUTPUT) COLOUR(BLUE)  CAPS(OFF)
+% TYPE(TEXT) COLOUR(BLUE)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY WINDOW(MAX,32)
+PANELTITLE 'Entry Selection List'
+
+TEXT     4   2           FP    'Command ===> '
+FIELD    4  15   MAX-17  NEF PAD(USER) ZCMD
+
+TEXT     4  MAX-15  FP 'Scroll ===>'
+FIELD    4  MAX-3   4  NEF  NONE ZSCROLL
+
+TEXT     6   2       FP  'Path Name . . .'
+FIELD    6  18    MAX-4  NEF PAD(USER) ZPATH
+FIELD    6  MAX-2     2  LI  NONE      ZPATHIND
+
+TEXT     8  MAX-20 MAX    SAC '&FMSG4'
+
+FIELD    8   2   1   CEF     PAD(USER) FLDIRS
+TEXT     8   4       SAC    'Show directory entries only'
+
+FIELD    9   2   1   CEF     PAD(USER) FLHIDDEN
+TEXT     9   4       SAC    'Include hidden entries'
+
+TEXT    11 2   NT 'Enter'
+TEXT    11 8   ET 'S'
+TEXT    11 10  NT 'to navigate directory list and '
+TEXT    11 41  ET '/'
+TEXT    11 43  NT 'to copy entry to the field'
+
+
+TEXT     12  2     CH      'S Entry'
+FIELD    12  10 55 ATTR(!) FMSG2
+TEXT     12  65    CH      'Type'
+
+TEXT     13  2     ATTR(%) '-'
+TEXT     13  65    ATTR(%) EXPAND  '-'
+
+FIELD    13  4 60  ATTR($) ENTSIND
+
+TBMODEL  14    MAX
+TBFIELD  2     1   NEF  SKIP(ON),CAPS(ON),PAD(USER),JUST(LEFT) SEL
+TBFIELD  ++1   60  VOI   NONE ENTRY
+TBFIELD  ++1   8   VOI   NONE TYPE
+
+)INIT
+VGET (ZSCROLL FLDIRS FLHIDDEN) PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+.ATTR(TYPE)    = 'TYPE(OUTPUT) COLOUR(WHITE)'
+.HELP = FLSH0001
+
+.NRET = ON           /* Enable NRETRIEV and REFLIST */
+.NRET = ZPATH        /* Use this field for NRETRIEV and REFLIST */
+.HIST = ZPATH        /* Keep history for this field */
+
+)REINIT
+IF (.MSG EQ &Z)
+   &SEL = &Z
+   REFRESH(SEL)
+ELSE
+   IF (.CURSOR EQ 'SEL' ) .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+)PROC
+VER (&SEL LIST B,S,/)
+
+&FLDIRS   = TRANS(&FLDIRS   &Z,&Z *,/)
+&FLHIDDEN = TRANS(&FLHIDDEN &Z,&Z *,/)
+
+&ISDIR = DIR(ZPATH)
+IF (&ISDIR EQ .FALSE)
+   .MSG = 'PEDT011S'
+   .CURSOR = 'ZPATH'
+   EXIT
+
+IF (&ZTDSELS NE 0)
+  IF (&SEL = 'S' AND &TYPE NE 'Dir')
+     .MSG    = 'FLST012K'
+     .CURSOR = 'SEL'
+     EXIT
+  IF (&SEL = 'B' AND &TYPE NE 'File')
+     .MSG    = 'FLST012M'
+     .CURSOR = 'SEL'
+     EXIT
+
+VPUT (ZPATH FLDIRS FLHIDDEN) PROFILE
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+
+)FIELD
+FIELD(ZPATH) LEN(4095) IND(ZPATHIND)
+FIELD(ENTRY) LEN(4095) SIND(ENTSIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

@@ -1,0 +1,198 @@
+/*
+  Copyright (c) 2020 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+/************************************************************************************/
+/* Simple edit macro to align a string to a column                                  */
+/*                                                                                  */
+/* Syntax:                                                                          */
+/* align  string                                                                    */
+/*        search-parameters                                                         */
+/*        TO                                                                        */
+/*        column | MAX | MIN                                                        */
+/*                                                                                  */
+/* eg ALIGN '=' 30 40 .A .B NX TO 50                                                */
+/* eg ALIGN '=' 30 40 .A .B NX TO MAX                                               */
+/* eg ALIGN '=' 30 40 .A .B NX TO MIN                                               */
+/*                                                                                  */
+/* Data can be shifted right or left to align text.                                 */
+/*                                                                                  */
+/* The MAX parameter calculates the maximum column position in the range.           */
+/* The MIN parameter calculates the minimum column position in the range.           */
+/*                                                                                  */
+/* If bounds are set, data is shifted only between bounds.  This allows alignment   */
+/* on multiple columns.                                                             */
+/*                                                                                  */
+/* If data is shifted left, at least one space is left between the text and         */
+/* the word before.                                                                 */
+/*                                                                                  */
+/* If data is shifted right and bounds are set, data may be deleted at the          */
+/* right hand boundary.                                                             */
+/************************************************************************************/
+
+address "ISREDIT"
+
+"MACRO (parms) PROCESS"
+
+if words( parms ) < 2 then
+  do
+     Call showInfo
+     EXIT
+  end
+
+"SCAN OFF"
+
+"(USTATE) = USER_STATE"
+to_pos = words( parms ) - 1
+to_col = translate( word( parms, to_pos + 1 ) )
+
+if ( word( translate( parms ), to_pos ) ) \= "TO" then
+  do
+    ZEDSMSG = "Missing 'TO' parameter"
+    ZEDLMSG = "'TO' column specification missing"
+    address ISPEXEC "SETMSG MSG(PSYZ001)"
+    EXIT
+  end
+
+"(lbound,rbound)   = BOUNDS"
+"(numstat,numtype) = NUMBER"
+
+find = subword( parms, 1, to_pos - 1 )
+
+if ( to_col = "MAX" ) then
+  do
+     Call get_Max_column
+     if to_col = 0 then EXIT
+     numstat = ""
+  end
+else if ( to_col = "MIN" ) then
+  do
+     Call get_Min_column
+     if to_col = 99999999 then EXIT
+     numstat = ""
+  end
+else if ( \datatype( to_col, "W" ) | to_col < 1 | to_col > 65535 ) then
+  do
+    ZEDSMSG = "Missing or invalid column"
+    ZEDLMSG = "Destination column specification missing or invalid"
+    address ISPEXEC "SETMSG MSG(PSYZ001)"
+    EXIT
+  end
+
+if ( numstat = "ON" ) then
+  do
+    if ( wordpos( "COBOL", numtype ) > 0 ) then to_col = to_col - 6
+    else if ( wordpos( "STD", numtype ) > 0 ) then to_col = to_col - 8
+  end
+
+if ( to_col < 1 ) then to_col = 1
+
+"FIND &find FIRST"
+
+do while ( RC = 0 )
+   "(,col) = CURSOR"
+   if col < to_col then
+     do
+        Call Shift_Right
+     end
+   else if col > to_col then
+     do
+        Call Shift_Left
+     end
+   "RFIND"
+end
+
+"USER_STATE = (USTATE)"
+EXIT
+
+
+Shift_Right:
+"(line) = LINE .ZCSR"
+
+len    = to_col - col
+spaces = copies( " ", len )
+line   = insert( spaces, line, col-1 )
+if ( rbound > 0 & length( line ) > rbound ) then
+  do
+    line = delstr( line, rbound+1, len )
+  end
+
+"LINE .ZCSR = (line)"
+RETURN
+
+
+Shift_Left:
+"(line) = LINE .ZCSR"
+
+do i = col-1 to to_col by -1 while i >= lbound
+   if i > lbound - 1 then
+     do
+       if substr( line, i, 1 ) \= " " then leave
+     end
+   if i > lbound then
+     do
+       if substr( line, i-1, 1 ) \= " " then leave
+     end
+   if ( rbound > 0 & length( line ) > rbound ) then
+     do
+       line = insert( " ", line, rbound, 1 )
+     end
+   line = delstr( line, i, 1 )
+end
+
+"LINE .ZCSR = (line)"
+RETURN
+
+
+get_Max_column:
+"FIND &find FIRST"
+to_col = 0
+do while ( RC = 0 )
+   "(,col) = CURSOR"
+   to_col = max( to_col, col )
+   "RFIND"
+end
+RETURN
+
+
+get_Min_column:
+"FIND &find FIRST"
+to_col = 99999999
+do while ( RC = 0 )
+   "(,col) = CURSOR"
+   to_col = min( to_col, col )
+   "RFIND"
+end
+RETURN
+
+
+showInfo:
+say "Syntax:"
+say "align  string"
+say "       search-parameters"
+say "       TO"
+say "       column | MAX | MIN"
+say
+say "search-parameters can be anything that is valid for the FIND command except"
+say "FIRST, LAST, ALL, NEXT and PREV."
+say
+say "MIN aligns the string to the minimum position the string is found at in the range."
+say "MAX aligns it to the maximum position."
+say
+say "eg ALIGN '=' 20 40 .A .B NX TO MIN"
+RETURN

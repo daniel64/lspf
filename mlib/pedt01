@@ -1,0 +1,566 @@
+/*                                              */
+/* Message file for the PEDIT01 EDITOR          */
+/*                                              */
+
+PEDT011 'Invalid parameter' .TYPE=W
+'Primary command contains an invalid parameter.'
+
+PEDT012 'Invalid line command' .TYPE=W
+'Line command entered is not valid.'
+
+PEDT013 'Line command invalid here' .TYPE=W
+'Line command entered is not valid on this line.'
+
+PEDT014 'Invalid label name' .TYPE=W
+'Label must be between 1 and 5 alphabetic characters, not starting with a ''Z''.'
+
+PEDT015 'Invalid parameter passed' .TYPE=W
+'Invalid parameter passed to PEDIT01.  See application log for details.'
+
+PEDT016 'Label missing or invalid' .TYPE=W
+'Enter both labels to delimit command.  Both labels must already exist.'
+
+PEDT017 'No UNDO''s found' .TYPE=W
+'No changes on the UNDO stack have been found.'
+
+PEDT018 'No REDO''s found' .TYPE=W
+'No changes on the REDO stack have been found.  Data may have been changed since last undo.'
+
+PEDT019 'Too many columns specified' .TYPE=W
+'There appears to be more than two column delimiters specified.  Put string in quotes.'
+
+PEDT011A 'Too many labels specified' .TYPE=W
+'There appears to be more than two row label delimiters specified.  Put string in quotes.'
+
+PEDT011B 'Extraeneous data' .TYPE=W
+'Extraeneous data specified on find or change command.'
+
+PEDT011C 'No previous FIND command' .TYPE=W
+'No previous find command specified.  Cannot use * for the find string.'
+
+PEDT011D 'Put string in quotes' .TYPE=W
+'Put single or double quotes around the find string.'
+
+PEDT011E 'Label not allowed' .TYPE=W
+'A label is only allowed on a data line, not a special or excluded line.'
+
+PEDT011F 'Label invalid' .TYPE=W
+'Label does not exist or is invalid.  Please enter a valid line label.'
+
+PEDT011G 'Labels are the same' .TYPE=W
+'Start label cannot be the same as the end label.'
+
+PEDT011H 'No end quote' .TYPE=W
+'Start quote but no end quote specified.'
+
+PEDT011I 'Invalid quoted string' .TYPE=W
+'Valid types of quoted string are T, C, X, P, R and RC for FIND, and T, C, X and P for CHANGE.'
+
+PEDT011J 'Column out of range' .TYPE=W
+'Entered column value cannot be less that 1 or greater than 65,535.'
+
+PEDT011K 'Invalid hex string' .TYPE=W
+'Enter only an even number of valid hex characters 0-9, A-F with no spaces.'
+
+PEDT011L '&LINES line(s) excluded' .TYPE=N
+'&TYPE &STR excluded &OCC time(s)&ZSTR1..  &LINES line(s) have been excluded.'
+
+PEDT011M 'No lines deleted' .TYPE=W
+'No &TYPE lines have been deleted.'
+
+PEDT011N '&LINES line(s) deleted' .TYPE=N
+'&LINES line(s) have been deleted.'
+
+PEDT011O 'Data changed-SAVE/CANCEL' .TYPE=W
+'File has changed and no SAVE or CANCEL has been entered (AUTOSAVE is set OFF).'
+
+PEDT011P 'File saved' .TYPE=N
+'File has been successfully saved.'
+
+PEDT011Q 'File not saved' .TYPE=W
+'An error has occured saving the file.  Check file permissions for access rights.'
+
+PEDT011R 'File invalid' .TYPE=W
+'File ''&ZMVAL1'' does not exist or is not a regular file.'
+
+PEDT011S 'Entry does not exist' .TYPE=W
+'''&ZFILE'' is neither a valid file, nor a valid directory.'
+
+PEDT011T 'Entry is a directory' .TYPE=W
+'''&ZFILE'' is a directory entry.'
+
+PEDT011U 'UNDO is set OFF' .TYPE=W
+'UNDO option is set to OFF.  UNDO/REDO is no longer available.'
+
+PEDT011V 'Invalid A/B line command' .TYPE=W
+'A/B line command found without matching block command.'
+
+PEDT011W 'Block command incomplete' .TYPE=N
+'Enter matching block command to complete block command pair.'
+
+PEDT011X 'Invalid A/B line command' .TYPE=W
+'A/B line command found within a block command.'
+
+PEDT011Y 'Command conflict' .TYPE=W
+'Line command conflict.'
+
+PEDT011Z 'Incomplete command' .TYPE=W
+'Line command is incomplete.'
+
+PEDT012A 'Number not allowed' .TYPE=W
+'A number is not allowed with this command.  Please blank it out.'
+
+PEDT012B 'Number conflict' .TYPE=W
+'If entered twice, the numbers on a block command must match.'
+
+PEDT012C 'Not all data copied' .TYPE=W
+'More copy lines than overlay lines.  Extra lines will be ignored.'
+
+PEDT012D 'Lines not deleted' .TYPE=W
+'Data lines not deleted as not all data overlayed.'
+
+PEDT012E 'Logic error' .TYPE=W
+'A logic error has occured.  See application log for messages.'
+
+PEDT012F 'Backup failed' .TYPE=W
+'Backup of file to be edited has failed.  Check BACKUP PATH and permissions.'
+
+PEDT012G 'Invalid multiplier' .TYPE=W
+'Command multiplier entered is not a numeric integer.'
+
+PEDT012H 'UNDO data removed' .TYPE=W
+'UNDO data has been deleted.  UNDO/REDO not available before this time. ' +
+'If RECOVERY is ON, this is now SUSPENDED until SETUNDO is set back ON.'
+
+PEDT013A 'Invalid CUT parameter' .TYPE=W
+'Format is CUT .label1 .label2 X|NX DEFAULT|name APPEND|REPLACE MARKED.'
+
+PEDT013B 'Invalid PASTE parameter' .TYPE=W
+'PASTE DEFAULT|name KEEP|DELETE.'
+
+PEDT013C '&ZEDLNES lines cut to &ZEDCNAME' .TYPE=N
+'&ZEDLNES lines cut to clipboard &ZEDCNAME..'
+
+PEDT013D '&ZEDLNES lines pasted' .TYPE=N
+'&ZEDLNES line(s) pasted from clipboard &CLIPNAME..'
+
+PEDT013E 'Error in hilighter' .TYPE=W
+'An exception has occured in the hilighter program.  Hilighting has been disabled.'
+
+PEDT013F 'PASTE pending' .TYPE=W
+'Paste is pending.  Select position to paste lines with the A/B line commands.'
+
+PEDT013G '&TYPE &STR found' .TYPE=N
+'Search for &TYPE &STR&ZVEDAL1 was successful&ZMVAL2..'
+
+PEDT013H 'Panel not found or invalid' .TYPE=W
+'Panel &ZVAL1 not found or is not a valid edit panel.'
+
+PEDT013I '&TYPE &STR found &OCC time(s)' .TYPE=N
+'Search for &TYPE &STR&ZMVAL1 was found &OCC time(s) on &LINES line(s).'
+
+PEDT013J 'Invalid &ZMVAL1 parameter' .TYPE=W
+'Duplicate or inconsistent parameter entered on the &ZMVAL1 command.'
+
+PEDT013K '&TYPE &STR changed &OCC times(s)' .TYPE=N
+'Change was successful.  &TYPE &STR changed &OCC times(s).'
+
+PEDT013L '&TYPE &STR changed' .TYPE=N
+'Change for &TYPE &STR was successful.'
+
+PEDT013M 'Enter a FIND command' .TYPE=W
+'Enter a FIND command before using RFIND.'
+
+PEDT013N 'Enter a CHANGE command' .TYPE=W
+'Enter a CHANGE command before using RCHANGE.'
+
+PEDT013O 'Compare file does not exist' .TYPE=W
+'File ''&ZMVAL1'' does not exist.'
+
+PEDT013P 'Browse substituted' .TYPE=W
+'File cannot be edited. Reason: ''&ZSTR1''.'
+
+PEDT013Q 'Invalid language or parameter' .TYPE=W
+'Hilight language not supported or invalid parameter.  Valid parameters are ' +
+'ON, OFF, LOGIC, NOLOGIC, IFLOGIC, DOLOGIC, RESET, PAREN, FIND, CURSOR and SEARCH.'
+
+PEDT013R 'Label ZLAST invalid' .TYPE=W
+'ZLAST cannot be the only label.'
+
+PEDT013S 'Labels not valid' .TYPE=W
+'Command does not support label delimiter parameters.'
+
+PEDT013T 'Columns not valid' .TYPE=W
+'Command does not support column delimiter parameters.'
+
+PEDT013U 'Missing &STR string' .TYPE=W
+'&STR command does not contain a search string.'
+
+PEDT013V '*Bottom of data reached*' .TYPE=W
+'&TYPE &STR not found.  Press RFIND to continue from the top of data.'
+
+PEDT013W '*Top of data reached*' .TYPE=W
+'&TYPE &STR not found.  Press RFIND to continue from the bottom of data.'
+
+PEDT013X 'Line command error' .TYPE=W
+'Cursor is not placed in the data area.  Line command ignored.'
+
+PEDT013Y 'Line command error' .TYPE=W
+'A command is already on the line command field.'
+
+PEDT014A 'File in use' .TYPE=W
+'File ''&ZMVAL1'' is currently being edited in another session.'
+
+PEDT014B 'Data shifting incomplete' .TYPE=W
+'Data shifting was not completed on lines marked ==ERR>.'
+
+PEDT014C 'Command conflict' .TYPE=W
+'Command is within the range of the previous command.'
+
+PEDT014D 'New profile created' .TYPE=N
+'&ZMVAL1.&ZMVAL2 has now been created.'
+
+PEDT014E 'Already sorted' .TYPE=N
+'Records were already in sort order.'
+
+PEDT014F 'Sort column out of range' .TYPE=W
+'If specified, start or end column cannot be before the left bound (&ZMVAL1).'
+
+PEDT014G 'Sort column out of range' .TYPE=W
+'If specified, start or end column cannot be after the right bound (&ZMVAL1).'
+
+PEDT014H 'Invalid swap command' .TYPE=W
+'W/WW can only be used with the M/MM line commands.'
+
+PEDT014I 'Data not saved by END' .TYPE=W
+'AUTOSAVE OFF NOPROMPT.  Any changes will be automatically cancelled on exit.'
+
+PEDT014J 'Edit profile not found' .TYPE=W
+'Edit profile was not found to delete.'
+
+PEDT014K 'ZDEFAULT profile deleted' .TYPE=N
+'ZDEFAULT edit profile has been deleted.  New profiles will now use system default values.'
+
+PEDT014L 'Line(s) not deleted' .TYPE=W
+'Joint text exceeded RECLEN size.  Line truncated and remaining join line(s) have not been deleted.'
+
+PEDT014M 'Edit profile deleted' .TYPE=N
+'Edit profile has been deleted.'
+
+PEDT014N 'Tabs found in file' .TYPE=W
+'Tabs found in file, but option is not to convert to spaces.'
+
+PEDT014O 'Operation cancelled' .TYPE=N
+'&ZMVAL1'
+
+PEDT014P 'MOVE/COPY is pending' .TYPE=N
+'Enter A, B, O or W line command.'
+
+PEDT014Q 'MOVE/COPY is pending' .TYPE=W
+'Enter M/MM or C/CC line commands.'
+
+PEDT014R 'File exists' .TYPE=W
+'File entered on a CREATE command already exists.  Use REPLACE command.'
+
+PEDT014S 'Open error' .TYPE=W
+'File ''&ZMVAL1'' cannot be opened.  Check file name and permissions.'
+
+PEDT014T 'File &ZMVAL1' .TYPE=N
+'File ''&ZMVAL2'' has been &ZMVAL1 from the selected lines.'
+
+PEDT014U 'Incorrect number of labels' .TYPE=W
+'If specified, two label delimiters must be entered.'
+
+PEDT014V 'Line not located' .TYPE=W
+'LOCATE unsuccessful for requested line.'
+
+PEDT014W 'Tabs converted' .TYPE=N
+'Tabs have been converted to spaces on file read.'
+
+PEDT014X 'Invalid REGEX' .TYPE=W
+'Regular expression entered is not valid.'
+
+PEDT014Y 'No clipboard found' .TYPE=W
+'Use the CUT command to create a clipboard.'
+
+PEDT014Z 'Open failed' .TYPE=W
+'Error is: ''&ZSTR1''.'
+
+PEDT015A 'Invalid command' .TYPE=W
+'Command is not valid, or macro was not found in the OOREXX search path.'
+
+PEDT015B 'Invalid command' .TYPE=W
+'Command entered is not valid (Macro support is not available).'
+
+PEDT015C '''&STR'' macro error' .TYPE=W
+'An error has occured in edit macro ''&STR''.'
+
+PEDT015D 'Too many parameters' .TYPE=W
+'Primary command entered has too many parameters.'
+
+PEDT015E 'Missing parameter' .TYPE=W
+'Primary command entered has too few parameters.'
+
+PEDT015F 'Missing command name' .TYPE=W
+'BUILTIN must be followed by a valid edit command.'
+
+PEDT015G 'Line number out of range' .TYPE=W
+'Entered line number is outside the data range.'
+
+PEDT015H 'Rejected.  Profile locked' .TYPE=W
+'IMACRO change rejected as the profile is locked.'
+
+PEDT015I '&ZMVAL1 pending' .TYPE=W
+'&ZMVAL1 is pending.  Select position to insert lines with the A/B line commands.'
+
+PEDT015J '&ZMVAL1 lines copied' .TYPE=N
+'&ZMVAL1 lines copied from file &ZMVAL2..'
+
+PEDT015K 'File does not exist' .TYPE=W
+'File &ZMVAL1 entered for a &ZMVAL2 command does not exist.'
+
+PEDT015L 'No data added' .TYPE=N
+'No data found to add.'
+
+PEDT015M 'Invalid DEFINE option' .TYPE=W
+'DEFINE command contains an invalid option.  Must be MACRO, ALIAS, NOP, RESET or DISABLED.'
+
+PEDT015N 'Missing DEFINE alias-to name' .TYPE=W
+'Missing alias-to name on ''DEFINE name ALIAS alias-to'' command.'
+
+PEDT015O 'Invalid keyword option' .TYPE=W
+'Too many parameters following the ''DEFINE name keyword'' command.'
+
+PEDT015P 'DEFINE is not allowed' .TYPE=W
+'Command name has been disabled with the DEFINE DISABLED command.'
+
+PEDT015Q 'Define name not found' .TYPE=W
+'No previous DEFINE for this command for a NOP or DISABLED request.'
+
+PEDT015R 'Deactivated command' .TYPE=W
+'''&ZMVAL1'' has been deactivated with the DEFINE NOP or DISABLED command.'
+
+PEDT015S 'Disabled command' .TYPE=W
+'Command name has been disabled with the DEFINE DISABLED command.'
+
+PEDT015T 'Invalid DEFINE request' .TYPE=W
+'RESET attempted for a name not currently DEFINED.'
+
+PEDT015U 'Invalid DEFINE request' .TYPE=W
+'DEFINE ALIAS attempted for a name that is currently NOP''ed or DISABLED.'
+
+PEDT015V '&ZMVAL1 is read-only' .TYPE=W
+'Use clipboard manager, line command ''O'', to unlock clipboard.'
+
+PEDT015W 'Invalid return code from &ZVAL1' .TYPE=W
+''
+
+PEDT015X 'Invalid ''to'' picture string' .T=W
+'Special characters not allowed in a ''to'' picture string.'
+
+PEDT015Y 'Invalid ''to'' picture string' .T=W
+'The ''to'' picture string must be the same length as the ''from'' string.'
+
+PEDT015Z 'Invalid ''from'' picture string' .T=W
+'The ''from'' picture string cannot contain special character ''*'' if ''to'' picture string also specified.'
+
+PEDT016A 'Invalid ''from'' regex' .T=W
+'The ''from'' string cannot be a regex if ''to'' picture string specified.'
+
+PEDT016B 'No lines searched' .T=W
+'No&ZMVAL1 lines where found to search&ZMVAL2&ZMVAL3..'
+
+PEDT016C 'No parameters passed' .T=W
+'Edit has been invoked with no parameters.'
+
+PEDT016D 'Inconsistent parameters' .T=W
+'CHARS, PREFIX, SUFFIX and WORD cannot be used with a regular expression.'
+
+PEDT016E '*Bottom of range reached*' .TYPE=W
+'&TYPE &STR not found from &ZMVAL1 to &ZMVAL2.   Press RFIND to continue.'
+
+PEDT016F '*Top of range reached*' .TYPE=W
+'&TYPE &STR not found from &ZMVAL1 to &ZMVAL2.   Press RFIND to continue.'
+
+PEDT016G 'No &TYPE &STR found' .TYPE=W
+'&TYPE &STR not found on any&ZMVAL1 lines&ZMVAL2&ZMVAL3..'
+
+PEDT016H 'RETURN ignored' .TYPE=N
+'The RETURN command was ignored to allow the Confirm Cancel warning panel to be displayed.'
+
+PEDT016I 'Destination pending' .TYPE=N
+'Macro line command &ZMVAL1, requires a destination of A/B.'
+
+PEDT016J 'Invalid destination' .TYPE=W
+'Multiple destinations cannot be entered with a line command macro.'
+
+PEDT016K 'Changes pending' .TYPE=W
+'Cannot UNDO/REDO when line commands and/or data changes have also been specified.'
+
+PEDT016L 'Invalid columns specified' .TYPE=W
+'String ''&ZMVAL1'' does not fit between the specified columns.'
+
+PEDT016M 'Probable label error' .TYPE=W
+'Find string cannot be determined.  Put string in quotes.'
+
+PEDT016N 'Not valid in view mode' .TYPE=W
+'Save command is not valid in VIEW mode.'
+
+PEDT016O 'RETURN ignored' .TYPE=N
+'The RETURN command was ignored to allow the VIEW warning panel to be displayed.'
+
+PEDT016P '' .TYPE=W
+'Data has been changed in VIEW mode.  You cannot save data from VIEW but you can ' +
+'use the CREATE and REPLACE primary commands to create a file from the data ' +
+'as well as the CUT primary command to copy data to the clipboard.'
+
+PEDT016Q 'Not implemented' .TYPE=W
+''
+
+PEDT016R 'Inconsistent parameters' .T=W
+'&ZMVAL1 and &ZMVAL2 cannot both be specified for the NUMBER command.'
+
+PEDT016S 'Duplicate parameter' .TYPE=W
+'Duplicate parameter entered on the NUMBER command.'
+
+PEDT016T 'Not in number mode' .TYPE=W
+'UNNUM is only valid when in NUMBER mode.'
+
+PEDT016U 'Invalid left bound' .TYPE=W
+'Left bound cannot be entered in the number area.  Reset to default.'
+
+PEDT016V 'Invalid right bound' .TYPE=W
+'Right bound cannot be entered in the number area.  Reset to default.'
+
+PEDT016W 'Some input data ignored' .TYPE=W
+'Data typed into the number fields is ignored when NUMBER mode is on.'
+
+PEDT016X 'All REDO''s performed' .TYPE=N
+'All changes on the REDO stack have been performed.'
+
+PEDT016Y 'All UNDO''s performed' .TYPE=N
+'All changes on the UNDO stack have been performed.'
+
+PEDT016Z 'File is read-only' .TYPE=W
+'File or partition cannot be written to.'
+
+PEDT017A 'Line ending CRLF found' .TYPE=W
+'Data has been converted from line ending CRLF to LF.  The data will be saved '+
+'as LF.'
+
+PEDT017B 'Table &ZEDLCTAB not found' .TYPE=W
+'Line Command Table &ZEDLCTAB has not been found in the ZTLIB search path.'
+
+PEDT017C 'Invalid table &ZEDLCTAB' .TYPE=W
+'Table &ZEDLCTAB is not a valid Edit Line Command table.'
+
+PEDT017D '''&ZMVAL1'' macro error' .TYPE=W
+'''&ZMVAL1'' has encounted an error.'
+
+PEDT017E '''&ZMVAL1'' macro error' .TYPE=W
+'''&ZMVAL1'' has set a return code of &ZMVAL2..'
+
+PEDT017F '''&ZMVAL1'' macro abended' .TYPE=W
+'''&ZMVAL1'' has failed with an abend.'
+
+PEDT017G 'Tabs set on' .TYPE=N
+'Tabs have been set on when no tabs were found in the file.'
+
+PEDT017H 'Tabs set off' .TYPE=N
+'Tabs have been set off when tabs were found in the file.'
+
+PEDT017I 'Tab size changed' .TYPE=N
+'Tab size change will take effect the next time the file is read.'
+
+PEDT017J 'Files are the same' .TYPE=N
+'There are no differences between the files.'
+
+PEDT017K 'Changes are shown' .TYPE=N
+'There have been &ZMVAL1 additions and &ZMVAL2 deletions.'
+
+PEDT017L 'POPEN failed' .TYPE=N
+'Executing ''diff'' has returned a NULL value.  See application log for messages.'
+
+PEDT017M 'diff command failed' .TYPE=W
+'diff command has exited with a return code greater than 1.  See application log for messages.'
+
+PEDT017N 'Referral list not found' .TYPE=W
+'Specified referral list not found.'
+
+PEDT017O 'Entry not found' .TYPE=W
+'No file entry found in the reference list or specified referral list, ' +
+'and not a regular file.'
+
+PEDT017P 'Edit macro not found' .TYPE=W
+'Specified edit macro has not been found.'
+
+PEDT017Q 'Not an edit macro' .TYPE=W
+'Specified program is not a valid edit macro.'
+
+PEDT017R 'RENUM recommended' .TYPE=N
+'RENUM is recommended to avoid excessive automatic renumbering.'
+
+PEDT017S 'PATH does not exist' .TYPE=W
+'PATH specified does not exist or is not a valid directory.'
+
+PEDT017T 'Recovery suspended' .TYPE=W
+'An error has occured during recovery processing.  Turn off recovery to continue. ' +
+'See application logs for errors.'
+
+PEDT017U 'Invalid Edit profile' .TYPE=W
+'Old format Edit profile found for &ZVAL1.  Delete profile from the ZUPROF directory or run ' +
+'REXX EXEC convprof to convert the old format to the new format.  Current value of ZUPROF is &ZVAL2..'
+
+PEDT018A 'Specified record length too small' .TYPE=W
+'The file contains at least 1 record that is larger than the specified record length of &ZVAL1..  ' +
+'Maximum record size found is &ZVAL2..'
+
+PEDT018B 'Error - &TYPE &STR' .TYPE=W
+'&TYPE &STR could not be changed to &STR2..'
+
+PEDT018C 'PASTE data truncated' .TYPE=W
+'&ZEDLNES line(s) pasted from clipboard &CLIPNAME..  PASTE data has been truncated due to the record ' +
+'length of some of the data being larger than the RECLEN specified for the edit session.'
+
+PEDT018D 'Command rejected' .TYPE=W
+'Fixed length records cannot contain indentation tabs.'
+
+PEDT018E 'NUM/RENUM not allowed' .TYPE=W
+'Number mode cannot be turned on when the record length of the data is less than 10.'
+
+PEDT018F 'Invalid LEVEL parameter' .TYPE=W
+'LEVEL command requires a number 0-99.'
+
+PEDT018G 'Not in STATS mode' .TYPE=W
+'STATS mode must be on before using the LEVEL command.'
+
+PEDT018H 'Invalid label or linenum' .TYPE=W
+'Label or linenum is missing or incorrect.'
+
+PEDT018I 'No data to sort' .TYPE=N
+'No data meets the sort criteria.'
+
+PEDT018J 'Invalid sort labels' .TYPE=W
+'Sort label or labels either missing or invalid.'
+
+PEDT018K 'Invalid sort order' .TYPE=W
+'Sort order must be ''A'' for ascending or ''D'' for descending.'
+
+PEDT018L 'Invalid sort field' .TYPE=W
+'Sort field must be numeric and greater than 0.'
+
+PEDT018M 'Invalid sort parameter' .TYPE=W
+'Sort parameter is invalid.'
+
+PEDT018N 'Invalid sort parameter' .TYPE=W
+'When multiple sort fields are specified, parameters must be sort_order start_col end_col or just start_col end_col ' +
+'for all entries.'
+
+PEDT018O 'Overlapping sort fields' .TYPE=W
+'Field starting at &ZMVAL1 overlaps with a previously specified sort field.'
+
+PEDT018P 'Some input data ignored' .TYPE=W
+'Some data ignored as no tab fields present.'
+
+PEDT018Q 'Error deleting file' .TYPE=W
+'File ''&ZMVAL1'' was not deleted.  &ZMVAL2'

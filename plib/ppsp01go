@@ -1,0 +1,226 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Panel for General Option Settings
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE rfs_pdc
+
+)ABC DESC(Function Keys) MNEM(1)
+PDC  DESC('Non-keylist PF key settings') UNAVAIL(ZFK0)
+ ACTION RUN(KEYS)
+PDC  DESC('Keylist settings') UNAVAIL(ZFK1)
+ ACTION RUN(KEYLIST)
+PDC  DESC('Tailor function key display') UNAVAIL(ZFK2)
+ ACTION RUN(PFSHOW TAILOR)
+PDC  DESC('Show all function keys') UNAVAIL(ZFK3)
+ ACTION RUN(FKA) PARM(ON)
+PDC  DESC('Show partial function keys') UNAVAIL(ZFK4)
+ ACTION RUN(FKA) PARM(SHORT)
+PDC  DESC('Remove function key display') UNAVAIL(ZFK5)
+ ACTION RUN(FKA) PARM(OFF)
+PDC  DESC('Enable Keylists') UNAVAIL(ZPS7)
+ ACTION RUN(ISRROUTE) PARM('SELECT PGM(PPSP01A) PARM(SETVAR ZKLUSE Y)')
+PDC  DESC('Disable Keylists') UNAVAIL(ZPS8)
+ ACTION RUN(ISRROUTE) PARM('SELECT PGM(PPSP01A) PARM(SETVAR ZKLUSE N)')
+
+)ABCINIT
+.ZVARS = PD1SEL
+VGET (ZKLUSE,ZFKA) PROFILE
+IF (&ZKLUSE EQ Y)
+   &ZPS7 = 1
+   &ZPS8 = 0
+ELSE
+   &ZPS7 = 0
+   &ZPS8 = 1
+
+IF (&ZFKA EQ LONG)
+   &ZFK3 = 1
+   &ZFK4 = 0
+   &ZFK5 = 0
+ELSE
+  IF (&ZFKA EQ SHORT)
+     &ZFK3 = 0
+     &ZFK4 = 1
+     &ZFK5 = 0
+  ELSE
+    IF (&ZFKA EQ OFF)
+       &ZFK3 = 0
+       &ZFK4 = 0
+       &ZFK5 = 1
+
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'General lspf Settings'
+
+TEXT     4   2     FP 'Command ===>'
+FIELD    4  15     MAX NEF CAPS(ON),PAD(USER) ZCMD
+
+AREA 5 1 MAX MAX   SAREA
+
+)AREA SAREA
+
+TEXT     1   2     CH    'Options'
+TEXT     2   4     PIN 'Enter / to select option'
+
+FIELD    3   4     1   CEF PAD(USER) GOKLUSE
+TEXT     3   7         SAC 'Turn on keylists'
+FIELD    4   4     1   CEF PAD(USER) GONOTFY
+TEXT     4   7         SAC 'Accept notify messages'
+FIELD    5   4     1   CEF PAD(USER) GOSTFST
+TEXT     5   7         SAC 'Search site command tables before ISPCMDS'
+FIELD    6   4     1   CEF PAD(USER) GOLMSGW
+TEXT     6   7         SAC 'Always display long message in a pop-up'
+FIELD    7   4     1   CEF PAD(USER) GOSWAP
+TEXT     7   7         SAC 'Allow swapping screens with the swap character'
+FIELD    8   4     1   CEF PAD(USER) GOSRETP
+TEXT     8   7         SAC 'Save retrieve buffer across sessions'
+FIELD    9   4     1   CEF PAD(USER) GOFHUPD
+TEXT     9   7         SAC 'Update field history'
+
+TEXT     1   55    CH    'Application'
+TEXT     2   57    FP    'Default scroll amount. . . . . . .'
+FIELD    2   92  4 CEF PAD(USER),CAPS(ON) GOSCRLD
+TEXT     3   57    FP    'Default edit line command table. .'
+FIELD    3   92  8 CEF PAD(USER),CAPS(ON) GOEDLCT
+
+
+TEXT     11  2     CH    'General'
+
+TEXT     12  4     FP    'Command delimiter . . .'
+FIELD    12  28  1 CEF PAD(USER) GODEL
+
+TEXT     13  4     FP    'Swap character. . . . .'
+FIELD    13  28  1 CEF PAD(USER) GOSWAPC
+
+TEXT     14  4     FP    'Retrieve command size .'
+FIELD    14  28  2 CEF NUMERIC(ON),PAD(USER) GORTSIZE
+
+TEXT     15  4     FP    'Retrieve buffer size. .'
+FIELD    15  28  2 CEF NUMERIC(ON),PAD(USER) GORBSIZE
+
+TEXT     16  4     FP    'User command tables . .'
+FIELD    16  28  4 CEF PAD(USER),CAPS(ON) GOUCMD1
+FIELD    16  33  4 CEF PAD(USER),CAPS(ON) GOUCMD2
+FIELD    16  38  4 CEF PAD(USER),CAPS(ON) GOUCMD3
+
+TEXT     17  4     FP    'Site command tables . .'
+FIELD    17  28  4 CEF PAD(USER),CAPS(ON) GOSCMD1
+FIELD    17  33  4 CEF PAD(USER),CAPS(ON) GOSCMD2
+FIELD    17  38  4 CEF PAD(USER),CAPS(ON) GOSCMD3
+
+TEXT     11  55    CH    'Screen'
+FIELD    12  57    1     CEF PAD(USER) GOHIGH
+TEXT     12  60    SAC   'Use high intensity for all colours'
+FIELD    13  57    1     CEF PAD(USER) GODECLR
+TEXT     13  60    SAC   'Decolourise inactive windows'
+FIELD    14  57    1     CEF PAD(USER) GODECLA
+TEXT     14  60    SAC   'Decolourise screen when terminal window loses focus'
+FIELD    15  57    1     CEF PAD(USER) GOHABMN
+TEXT     15  60    SAC   'Colour action bar choice mnemonic'
+FIELD    16  57    1     CEF PAD(USER) GOTABPS
+TEXT     16  60    SAC   'Tab to PAS ON output fields'
+FIELD    18  85  1 CEF    CAPS(ON) GOPADC
+
+TEXT     18  57    FP    'Input field pad character .'
+TEXT     20  57    FP    'Default for message identifier'
+FIELD    21  57  1 CEF    CAPS(ON),PAD(USER),NUMERIC(ON),SKIP(OFF) GODEFM
+TEXT     21  60    SAC    '1. On'
+TEXT     22  60    SAC    '2. Off'
+
+TEXT    23    2  CH 'Instructions'
+TEXT    24    5  NT 'Press'
+TEXT    24    11 PS 'Enter'
+TEXT    24    17 NT 'to make changes, enter'
+TEXT    24    40 PS 'Defaults'
+TEXT    24    49 NT 'to restore defaults'
+TEXT    25    5  NT 'Enter'
+TEXT    25    11 PS 'Reset'
+TEXT    25    17 NT 'for original values or'
+TEXT    25    40 PS 'Cancel'
+
+)INIT
+&ZPS0 = 1
+.HIST = GOEDLCT
+.HIST = 'GOUCMD1 GOUCMD2 GOUCMD3'
+.HIST = 'GOSCMD1 GOSCMD2 GOSCMD3'
+
+)PROC
+&ZCMD    = TRANS( &ZCMD CAN,CANCEL,DEF,DEFAULTS RES,RESET *,* )
+&GOSCRLD = TRANS( TRUNC(&GOSCRLD,1) H,HALF P,PAGE, C,CSR, D,DATA *,&GOSCRLD )
+
+IF (&GOSCRLD NE HALF,PAGE,CSR,DATA) VER (&GOSCRLD,NB,NUM,MSG=PSYS011I)
+
+IF (VER(&ZCMD,LIST,CANCEL,DEFAULTS,RESET))
+ELSE
+    .MSG    = PSYS018
+    .CURSOR = ZCMD
+    EXIT
+
+IF ( &ZCMD EQ RESET,CANCEL ) EXIT
+
+&GOKLUSE = TRANS( &GOKLUSE &Z,&Z *,/ )
+&GONOTFY = TRANS( &GONOTFY &Z,&Z *,/ )
+&GOSTFST = TRANS( &GOSTFST &Z,&Z *,/ )
+&GOLMSGW = TRANS( &GOLMSGW &Z,&Z *,/ )
+&GOSWAP  = TRANS( &GOSWAP  &Z,&Z *,/ )
+&GOSRETP = TRANS( &GOSRETP &Z,&Z *,/ )
+&GOFHUPD = TRANS( &GOFHUPD &Z,&Z *,/ )
+&GOHIGH  = TRANS( &GOHIGH  &Z,&Z *,/ )
+&GODECLR = TRANS( &GODECLR &Z,&Z *,/ )
+&GODECLA = TRANS( &GODECLA &Z,&Z *,/ )
+&GOHABMN = TRANS( &GOHABMN &Z,&Z *,/ )
+&GOTABPS = TRANS( &GOTABPS &Z,&Z *,/ )
+
+VER (&GODEL NB)
+VER (&GOPADC NB)
+VER (&GOSWAPC NB)
+VER (&GORTSIZE NB)
+VER (&GORBSIZE NB)
+VER (&GODEFM,NB,LIST,1,2)
+
+IF (VER (&GODEL LIST,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,0,1,2,3,4,5,6,7,8,9,=,.) )
+   .MSG    = PSYS012N
+   .CURSOR = GODEL
+   EXIT
+
+IF (VER (&GOPADC LIST,A,C,D,E,F,G,H,I,J,K,L,M,O,P,Q,R,S,T,U,V,W,X,Y,Z,0,1,2,3,4,5,6,7,8,9,/) )
+   .MSG    = PSYS012O
+   .CURSOR = GOPADC
+   EXIT
+
+IF ( &GOPADC EQ &GODEL )
+   .MSG    = PSYS012O
+   .CURSOR = GOPADC
+   EXIT
+
+VER (&GOUCMD1,NAME,MSG=PSYS012V)
+VER (&GOUCMD2,NAME,MSG=PSYS012V)
+VER (&GOUCMD3,NAME,MSG=PSYS012V)
+VER (&GOSCMD1,NAME,MSG=PSYS012V)
+VER (&GOSCMD2,NAME,MSG=PSYS012V)
+VER (&GOSCMD3,NAME,MSG=PSYS012V)
+
+VER (&GOEDLCT,NAME)
+
+VGET ZVERB SHARED
+IF (&ZVERB EQ END AND .MSG NE &Z)
+   &ZCMD = CANCEL
+   EXIT
+
+IF (&ZVERB EQ CANCEL)
+   &ZCMD = CANCEL
+
+)PNTS
+FIELD( ZPS01001 ) VAR(ZCMD) VAL(' ')
+FIELD( ZPS01002 ) VAR(ZCMD) VAL(DEFAULTS)
+FIELD( ZPS01003 ) VAR(ZCMD) VAL(RESET)
+FIELD( ZPS01004 ) VAR(ZCMD) VAL(CANCEL)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

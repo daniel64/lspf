@@ -1,0 +1,164 @@
+PPSP011 'Invalid command' .TYPE=W
+'Command not recognised for log display.'
+
+PPSP012 'Invalid option' .TYPE=W
+'Enter one exta letter (D, E, I) to show only that line type.'
+
+PPSP013 'Invalid option' .TYPE=W
+'Enter one exta letter (D, E, I) to exclude that line type.'
+
+PPSP014 'Open failed' .TYPE=W
+'Open failed for new command table.  Command table entered may be incorrect.  Change ignored.'
+
+PPSP015 'Invalid command' .TYPE=W
+'Enter CANCEL to discard changes or DEFAULTS to restore defaults.'
+
+PPSP016 'Invalid colour' .TYPE=W
+'Enter R(ED), G(REEN), Y(ELLOW), B(LUE), M(AGENTA) ( or P(INK) ), ' +
+'T(URQ), W(HITE) or blank for the default colour.'
+
+PPSP017 'Invalid intensity' .TYPE=W
+'Enter H, L or blank for the default intensity.'
+
+PPSP018 'Invalid hilight' .TYPE=W
+'Enter N, B, R, U or blank for the default hilight.'
+
+PPSP019 'No saved CUA list' .TYPE=W
+'Use command SAVE to save the CUA colours before trying to use RESTORE.'
+
+PPSP011A 'Colours saved' .TYPE=N
+'CUA colours have been saved to the current profile (&ZAPPLID).'
+
+PPSP011B 'Colours restored' .TYPE=N
+'CUA colours have been restored from the list in the current profile (&ZAPPLID).'
+
+PPSP011C 'No saved action list' .TYPE=W
+'Use command SAVE to save the control key actions to profile &ZAPPLID ' +
+'before trying to use the RESTORE command.'
+
+PPSP011D 'Actions saved' .TYPE=N
+'Control key actions have been saved to the current profile (&ZAPPLID).'
+
+PPSP011E 'Actions restored' .TYPE=N
+'Control key actions have been restored from the list in the current profile (&ZAPPLID).'
+
+PPSP011F 'No keylist table' .TYPE=W
+'Keylist table not found for application &ZAPPLID..'
+
+PPSP011G 'No output found' .TYPE=W
+'There is no spooled output for this job.'
+
+PPSP011H 'Some colours restored' .TYPE=W
+'CUA colours have been restored from the list in the current profile (&ZAPPLID) but some entries '+
+'are missing.  Use the SAVE command to save a new list.'
+
+PPSP011I 'Personal list not found' .TYPE=W
+'Entered Personal List does not exist and is not a valid abbreviation of any existing list.'
+
+PPSP011J 'Error(s) occured' .TYPE=W
+'One or more errors occured listing files and/or directories from the Personal List or path entry.  ' +
+'Check permissions.  Some files may not be shown.'
+
+PPSP011K 'Not a directory' .TYPE=W
+'Entered parameter is not a directory or does not exist.'
+
+PPSP011L 'Permission denied' .TYPE=W
+'Access permission has been denied to the entry.'
+
+PPSP011M 'Missing parameters' .TYPE=W
+'The DXLIST command requires a directory or a Personal File List as the first parameter ' +
+'folowed by an optional name filter parameter.'
+
+PPSP011N 'Process interrupted' .TYPE=W
+'Processing halted after SIGUSR1 received.  Results may be incomplete.'
+
+PPSP011O 'Invalid application id' .TYPE=W
+'Application id must be 4 alphanumeric characters starting with an alphabetic character.'
+
+PPSP011P 'Invalid variable' .TYPE=W
+'Variable names must be 8 alphanumeric characters starting with an alphabetic character.'
+
+PPSP011Q 'Invalid entry' .TYPE=W
+'Action must be SELECT, ALIAS, PASSTHRU, SETVERB, NOP, a variable name or blank.'
+
+PPSP011R 'Invalid TRUNC value' .TYPE=W .W=NORESP
+'TRUNC value must be a numeric value less than or equal to the command length.'
+
+PPSP011S 'Entry updated' .TYPE=N
+''
+
+PPSP011T 'Table in use' .TYPE=W
+'The specified table &ZACTB1.CMDS is alreay open.'
+
+PPSP011U 'Table saved' .TYPE=N
+'Table &ZACTB1.CMDS saved to ZTABL (&FILE).'
+
+PPSP011V 'Table created' .TYPE=N
+'Table &ZACTB1.CMDS created and saved to ZTABL (&FILE).'
+
+PPSP011W 'Spare' .TYPE=W
+'Spare'
+
+PPSP012A 'No tables found' .TYPE=N
+'No tables match the criteria.'
+
+PPSP012B 'No directories found' .TYPE=W
+'No directories are allocated to &ZTUDD..'
+
+PPSP012C 'Not a directory' .TYPE=W
+'&ZTUDIR is not a valid directory.'
+
+PPSP012D 'Table not found' .TYPE=W
+'&ZTUTNAM not found in directory.  Table may have been deleted since table list created.'
+
+PPSP012E 'Error opening table' .TYPE=W
+'RC=20 opening table &ZTUTNAM.  See logs for errors.'
+
+PPSP013A 'Invalid parameter' .TYPE=W
+'Valid parameters for the PFSHOW command are ON, OFF, TAILOR or blank.'
+
+PPSP013B 'Invalid parameter' .TYPE=W
+'FKA parameter must be ON, OFF, SHORT or blank.'
+
+PPSP013C 'Invalid parameter' .TYPE=W
+'KEYLIST parameter must be PRIVATE, SHARED, ON, OFF or blank.'
+
+PPSP013D 'Keylist table already exists' .TYPE=W
+'Specified keylist table already exists in the ZUPROF search path (PRIVATE) ' +
+'or ZTLIB search path (SHARED).'
+
+PPSP013E 'Delete not allowed' .TYPE=W
+'Delete of a SHARED keylist is not allowed.'
+
+PPSP014A 'Invalid function' .TYPE=W
+'Function parameter passed to PPSP01A is invalid.'
+
+PPSP014B 'Missing parameter' .TYPE=W
+'Command contains too few parameters.'
+
+PPSP014C 'Invalid parameter' .TYPE=W
+'Command contains too many parameters.'
+
+PPSP014D 'Keylist already exists' .TYPE=W
+'Specified keylist already exists.'
+
+PPSP014E 'No changes made' .TYPE=N
+'Keylist not saved as no changes have been made.'
+
+PPSP014F 'Keylist saved' .TYPE=N
+'Keylist has been saved.'
+
+PPSP014G 'Changes cancelled' .TYPE=N
+'Keylist has not been saved.'
+
+PPSP014H 'Cannot change keylist' .TYPE=N
+'Keylist is currently being editied in another session and cannot be changed.'
+
+PPSP015A 'Invalid action' .TYPE=W
+'Only SHARED or PROFILE subpool 1 may be updated.'
+
+PPSP016A 'Actions saved' .TYPE=N
+'Mouse actions have been saved to the current profile (&ZAPPLID).'
+
+PPSP016B 'Actions restored' .TYPE=N
+'Mouse actions have been restored from the list in the current profile (&ZAPPLID).'

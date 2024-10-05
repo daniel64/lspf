@@ -17,40 +17,124 @@
 
 */
 
+#undef  TASKID
+#define TASKID() 0
+
+
+enum TB_SERVICES
+{
+	TB_ADD,
+	TB_BOTTOM,
+	TB_CREATE,
+	TB_DELETE,
+	TB_EXISTS,
+	TB_GET,
+	TB_MOD,
+	TB_NONE,
+	TB_OPEN,
+	TB_PUT,
+	TB_QUERY,
+	TB_SARG,
+	TB_SAVE,
+	TB_SCAN,
+	TB_SKIP,
+	TB_SORT,
+	TB_STATS,
+	TB_TOP,
+	TB_VCLEAR
+} ;
+
+
 class Table
 {
 	public:
+		static uint pflgToken ;
+
 		Table()
 		{
 			CRP           = 0     ;
-			maxURID       = 0     ;
+			max_urid      = 0     ;
+			max_rid       = 0     ;
+			lastcc        = 0     ;
+			rowcreat      = 0     ;
+			tableupd      = 0     ;
+			utime         = 0     ;
 			firstMult     = true  ;
 			changed       = false ;
+			updated       = false ;
+			pr_create     = false ;
 			tab_cmds      = false ;
+			tab_klst      = false ;
 			tab_ipath     = ""    ;
 			tab_opath     = ""    ;
+			tab_user      = ""    ;
 			sa_namelst    = ""    ;
 			sa_cond_pairs = ""    ;
 			sa_dir        = "NEXT";
 			sort_ir       = ""    ;
+			tab_service   = TB_NONE ;
 		}
+
+		Table( const string& name,
+		       const string& keys,
+		       const string& flds,
+		       tbWRITE tb_WRITE,
+		       tbDISP  tb_DISP,
+		       uint maxid ) : Table()
+		{
+			tab_name  = name ;
+			id        = maxid ;
+			tab_WRITE = tb_WRITE ;
+			tab_DISP  = tb_DISP ;
+			tab_keys1 = space( keys ) ;
+			num_keys  = words( keys ) ;
+			tab_flds  = space( flds ) ;
+			num_flds  = words( flds ) ;
+			tab_all1  = strip( tab_keys1 + " " + tab_flds ) ;
+			num_all   = num_keys + num_flds ;
+			tab_cmds  = ( tab_all1 == "ZCTVERB ZCTTRUNC ZCTACT ZCTDESC" ) ;
+			tab_klst  = ( num_all  == 74 && strip( keys ) == "KEYLISTN" ) ;
+			changed   = true ;
+			for ( uint i = 1 ; i <= num_keys ; ++i )
+			{
+				string temp = word( tab_keys1, i ) ;
+				tab_all2.push_back( temp ) ;
+				tab_keys2.push_back( temp ) ;
+			}
+			for ( uint i = 1 ; i <= num_flds ; ++i )
+			{
+				tab_all2.push_back( word( tab_flds, i ) ) ;
+			}
+			time( &ctime ) ;
+		}
+
 		~Table() ;
+
 	private:
 		bool    tab_cmds      ;
+		bool    tab_klst      ;
 		string  tab_name      ;
-		string  tab_keys      ;
+		string  tab_keys1     ;
 		string  tab_flds      ;
-		string  tab_all       ;
+		string  tab_all1      ;
 		string  tab_ipath     ;
 		string  tab_opath     ;
+		string  tab_user      ;
 		bool    firstMult     ;
 		bool    changed       ;
-		uint    maxURID       ;
+		bool    updated       ;
+		bool    pr_create     ;
+		uint    id            ;
+		uint    max_urid      ;
+		uint    max_rid       ;
 		uint    num_keys      ;
 		uint    num_flds      ;
 		uint    num_all       ;
 		uint    CRP           ;
 		uint    CRPX          ;
+		uint    lastcc        ;
+		uint    rowcreat      ;
+		uint    tableupd      ;
 		string  sort_ir       ;
 		string  sa_namelst    ;
 		string  sa_cond_pairs ;
@@ -58,170 +142,280 @@ class Table
 		tbDISP  tab_DISP      ;
 		tbWRITE tab_WRITE     ;
 
+		time_t ctime ;
+		time_t utime ;
+
+		TB_SERVICES tab_service ;
+
 		vector<vector<string>*> table ;
-		vector<tbsearch> sarg    ;
-		vector<string> tab_vkeys ;
-		vector<string> tab_vall  ;
+
+		vector<tbsearch> sarg ;
+		vector<string> tab_keys2 ;
+		vector<string> tab_all2 ;
+
+		map<uint,uint> urid2rid ;
+		map<uint,uint> rid2urid ;
 
 		map<uint,uint>openTasks ;
 
-		bool   tableClosedforTask( errblock& err ) ;
+		int    taskid() { return 0 ; }
 
-		bool   tableOpenedforTask( errblock& err ) ;
+		bool   tableClosedforTask( const errblock& ) ;
 
-		void   addTasktoTable( errblock& err ) ;
+		bool   tableOpenedforTask( const errblock& ) ;
 
-		void   removeTaskUsefromTable( errblock& err ) ;
+		void   addTasktoTable( const errblock& ) ;
 
-		void   removeTaskfromTable( errblock& err ) ;
+		void   removeTaskUsefromTable( errblock& ) ;
+
+		void   removeTaskfromTable( errblock& ) ;
 
 		bool   notInUse() ;
 
 		string listTasks() ;
 
-		void   saveTable( errblock& err,
-				  const string& m_name,
-				  const string& m_path ) ;
+		uint   getid() { return id ; }
 
-		void   loadRow( errblock& err,
-				vector<string>* m_flds ) ;
+		void   set_path( const string& ) ;
 
-		void   reserveSpace( int tot_rows ) ;
+		void loadRows( errblock&,
+			       std::ifstream*,
+			       const string&,
+			       const string&,
+			       const string&,
+			       const string&,
+			       uint,
+			       uint,
+			       uint ) ;
 
-		void   resetChanged() { changed = false ; }
+		void   saveTable( errblock&,
+				  const string&,
+				  const string& ) ;
 
-		void   storeIntValue( errblock& err,
-				      fPOOL& funcPOOL,
+		void   loadRow( errblock&,
+				vector<string>* ) ;
+
+		void   reserveSpace( int ) ;
+
+		void   reset_changed() { changed = false ; }
+
+		void   storeIntValue( errblock&,
+				      fPOOL*,
 				      const string&,
 				      int,
-				      int =8 ) ;
+				      int = 8 ) ;
 
-		void   fillfVARs( errblock& err,
-				  fPOOL& funcPOOL,
-				  const set<string>& tb_fields,
-				  const set<string>& tb_clear,
-				  bool scan,
-				  uint depth,
-				  int  posn,
-				  uint csrrow,
-				  int& idx ) ;
+		void   fillfVARs( errblock&,
+				  fPOOL*,
+				  int,
+				  const set<string>&,
+				  const set<string>&,
+				  map<string, pair<string,uint>>&,
+				  bool,
+				  int,
+				  int,
+				  int&,
+				  int&,
+				  int&,
+				  int&,
+				  char = ' ',
+				  char = ' ',
+				  int  = 0,
+				  int  = 0 ) ;
 
-		void   cmdsearch( errblock& err,
-				  fPOOL& funcPOOL,
-				  const string& cmd ) ;
+		bool   matchsarg( int,
+				  vector<string>* ) ;
+
+		int    setscroll( int,
+				  bool,
+				  char,
+				  char,
+				  int,
+				  int,
+				  int,
+				  int ) ;
 
 
-		vector<vector<string>*>::iterator getKeyItr( errblock& err,
-							     fPOOL& funcPOOL ) ;
+		void   cmdsearch( errblock&,
+				  fPOOL*,
+				  const string& ) ;
 
-		void   loadfuncPOOL( errblock& err,
-				     fPOOL& funcPOOL,
-				     const string& savename ) ;
 
-		void   saveExtensionVarNames( errblock& err,
-					      fPOOL& funcPOOL,
-					      const string& savename ) ;
+		vector<vector<string>*>::iterator getKeyItr( errblock&,
+							     fPOOL* ) ;
 
-		void   loadFields( errblock& err,
-				   fPOOL& funcPOOL,
-				   const string& tb_namelst,
-				   vector<string>* flds ) ;
+		void   loadfuncPool( errblock&,
+				     fPOOL*,
+				     const string& ) ;
 
-		void   loadFields_save( errblock& err,
-					fPOOL& funcPOOL,
-					const string& tb_savenm,
-					const string& tb_rowid_vn,
-					const string& tb_noread,
-					const string& tb_crp_name ) ;
+		void   storeExtensionVarNames( errblock&,
+					       fPOOL*,
+					       const string& ) ;
 
-		void   tbadd( errblock& err,
-			      fPOOL& funcPOOL,
-			      string tb_namelst,
-			      string tb_order,
-			      int tb_num_of_rows )  ;
+		void   loadFields( errblock&,
+				   fPOOL*,
+				   const string&,
+				   vector<string>* ) ;
 
-		void   tbbottom( errblock& err,
-				 fPOOL& funcPOOL,
-				 string tb_savenm,
-				 string tb_rowid_vn,
-				 string tb_noread,
-				 string tb_crp_name ) ;
+		void   storeFields( errblock&,
+				    fPOOL*,
+				    const string&,
+				    const string&,
+				    const string&,
+				    const string& ) ;
 
-		void   tbdelete( errblock& err,
-				 fPOOL& funcPOOL ) ;
+		void   tbadd( errblock&,
+			      fPOOL*,
+			      const string&,
+			      const string&,
+			      int )  ;
 
-		void   tbexist( errblock& err,
-				fPOOL& funcPOOL ) ;
+		void   tbbottom( errblock&,
+				 fPOOL*,
+				 const string&,
+				 const string&,
+				 const string&,
+				 const string& ) ;
 
-		void   tbget( errblock& err,
-			      fPOOL& funcPOOL,
-			      string tb_savenm,
-			      string tb_rowid_vn,
-			      string tb_noread,
-			      string tb_crp_name ) ;
+		void   tbdelete( errblock&,
+				 fPOOL* ) ;
 
-		void   tbmod( errblock& err,
-			      fPOOL& funcPOOL,
-			      string tb_namelst,
-			      string tb_order ) ;
+		void   tbexist( errblock&,
+				fPOOL* ) ;
 
-		void   tbput( errblock& err,
-			      fPOOL& funcPOOL,
-			      string tb_namelst,
-			      string tb_order ) ;
+		void   tbget( errblock&,
+			      fPOOL*,
+			      const string&,
+			      const string&,
+			      const string&,
+			      const string& ) ;
 
-		void   tbquery( errblock& err,
-				fPOOL& funcPOOL,
-				string tb_keyn,
-				string tb_varn,
-				string tb_rownn,
-				string tb_keynn,
-				string tb_namenn,
-				string tb_crpn,
-				string tb_sirn,
-				string tb_lstn,
-				string tb_condn,
-				string tb_dirn ) ;
+		void   tbmod( errblock&,
+			      fPOOL*,
+			      const string&,
+			      const string& ) ;
 
-		void   tbsarg( errblock& err,
-			       fPOOL& funcPOOL,
-			       string tb_namelst,
-			       string tb_next_prev,
-			       string tb_cond_pairs ) ;
+		void   tbput( errblock&,
+			      fPOOL*,
+			      const string&,
+			      const string& ) ;
 
-		void   setscan( errblock& err,
-				fPOOL& funcPOOL,
-				vector<tbsearch>& scan,
-				set<string>& names,
-				string& tb_namelst,
-				string& tb_cond_pairs ) ;
+		void   tbquery( errblock&,
+				fPOOL*,
+				const string&,
+				const string&,
+				const string&,
+				const string&,
+				const string&,
+				const string&,
+				const string&,
+				const string&,
+				const string&,
+				const string& ) ;
 
-		void   tbscan( errblock& err,
-			       fPOOL& funcPOOL,
-			       string tb_namelst,
-			       string tb_varname,
-			       string tb_rowid_vn,
-			       string tb_next_prev,
-			       string tb_read,
-			       string tb_crp_name,
-			       string tb_condlst ) ;
+		void   tbquery( bool& ) ;
 
-		void   tbskip( errblock& err,
-			       fPOOL& funcPOOL,
-			       int num,
-			       string tb_savenm,
-			       string tb_rowid_vn,
-			       const string& tb_rowid,
-			       string tb_noread,
-			       string tb_crp_name ) ;
+		void   tbquery( uint& ) ;
 
-		void   tbsort( errblock& err,
-			       string tb_fields ) ;
+		void   tbsarg( errblock&,
+			       fPOOL*,
+			       string,
+			       const string&,
+			       string ) ;
 
-		void   tbtop( errblock& err ) ;
+		void   setscan( errblock&,
+				fPOOL*,
+				vector<tbsearch>&,
+				set<string>&,
+				const string&,
+				const string& ) ;
 
-		void   tbvclear( errblock& err,
-				 fPOOL& funcPOOL ) ;
+		void   tbscan( errblock&,
+			       fPOOL*,
+			       int,
+			       string,
+			       const string&,
+			       const string&,
+			       const string&,
+			       const string&,
+			       const string&,
+			       string ) ;
+
+		void   tbskip( errblock&,
+			       fPOOL*,
+			       int,
+			       const string&,
+			       const string&,
+			       const string&,
+			       const string&,
+			       const string& ) ;
+
+		void   tbskip( errblock&,
+			       fPOOL*,
+			       const string&,
+			       const string&,
+			       const string&,
+			       const string& ) ;
+
+		void   tbsort( errblock&,
+			       string ) ;
+
+		void tbstats( errblock&,
+			      fPOOL*,
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "" ) ;
+
+		void   tbtop( errblock& ) ;
+
+		void   tbvclear( errblock&,
+				 fPOOL* ) ;
+
+		void   add_rid( uint,
+				uint ) ;
+
+		void   del_rid( vector<vector<string>*>::iterator ) ;
+
+		int    get_virtsize() ;
+
+		string create_header() ;
+
+		void  parse_header( const string& ) ;
+
+		bool  has_extvars( uint ) ;
+
+		bool  has_extvars( vector<string>* ) ;
+
+		const string& get_extvar_list( uint ) ;
+
+		const string& get_extvar_list( vector<string>* ) ;
+
+		int   get_extvar_pos( uint,
+				      const string& ) ;
+
+		int   get_extvar_pos( vector<string>*,
+				      const string& ) ;
+
+		void  set_service_cc( TB_SERVICES a,
+				      uint b )
+		{
+			tab_service = a ;
+			lastcc      = b ;
+		}
+
+		string modname() { return "TABLE" ; }
 
 		friend class tableMGR ;
 } ;
@@ -230,243 +424,270 @@ class Table
 class tableMGR
 {
 	public:
-		tableMGR() {} ;
+		tableMGR( int ) ;
+		tableMGR() ;
 		~tableMGR() ;
 
 		static logger* lg ;
 
-		multimap<string, Table*>::iterator loadTable( errblock& err,
-							      const string& tb_name,
-							      tbWRITE=WRITE,
-							      const string& src="",
-							      tbDISP=NON_SHARE ) ;
+		Table* tbopen( errblock&,
+			       const string&,
+			       tbWRITE = WRITE,
+			       const string& = "",
+			       tbDISP = NON_SHARE ) ;
 
-		void   saveTable( errblock& err,
-				  const string& tb_func,
-				  const string& tb_name,
-				  const string& m_newname,
-				  const string& m_path ) ;
+		Table* loadTable( errblock&,
+				  const string&,
+				  const string&,
+				  tbWRITE = WRITE,
+				  tbDISP = NON_SHARE,
+				  bool = false ) ;
 
-		void   tbadd( errblock& err,
-			      fPOOL& funcPOOL,
-			      const string& tb_name,
-			      const string& tb_namelst,
-			      const string& tb_order,
-			      int tb_num_of_rows ) ;
+		void   saveTable( errblock&,
+				  const string&,
+				  const string&,
+				  const string&,
+				  const string& ) ;
 
-		void tbcreate( errblock& err,
-			       const string& tb_name,
-			       string keys,
-			       string flds,
-			       tbREP m_REP,
-			       tbWRITE m_WRITE,
-			       const string& m_path,
-			       tbDISP m_DISP ) ;
+		void   tbadd( errblock&,
+			      fPOOL*,
+			      const string&,
+			      const string&,
+			      const string&,
+			      int ) ;
 
-		void   tbsort( errblock& err,
-			       const string& tb_name,
-			       const string& tb_fields ) ;
+		void tbcreate( errblock&,
+			       const string&,
+			       const string&,
+			       const string&,
+			       tbWRITE = NOWRITE,
+			       tbREP = NOREPLACE,
+			       const string& = "",
+			       tbDISP = NON_SHARE ) ;
 
-		void   statistics() ;
+		void tbsort( errblock&,
+			     const string&,
+			     const string& ) ;
 
-		void   cmdsearch( errblock& err,
-				  fPOOL& funcPOOL,
-				  string tb_name,
-				  const string& cmd,
-				  const string& paths,
-				  bool  try_load ) ;
+		void tbstats( errblock&,
+			      fPOOL*,
+			      const string&,
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "",
+			      const string& = "" ) ;
+
+		void statistics() ;
+
+		void cmdsearch( errblock&,
+				fPOOL*,
+				string,
+				const string&,
+				const string&,
+				bool ) ;
 
 	private:
+		int zswind ;
+
+		uint maxId ;
+
 		multimap<string, Table*> tables ;
 
-		map<Table*, string> table_enqs ;
+		map<Table*, boost::filesystem::path> table_enqs ;
 
 		boost::recursive_mutex mtx ;
 
-		multimap<string, Table*>::iterator getTableIterator1( errblock& err,
-								      const string& tb_name ) ;
+		multimap<string, Table*>::iterator getTableIterator1( errblock&,
+								      const string& ) ;
 
-		multimap<string, Table*>::iterator getTableIterator2( errblock& err,
-								      const string& tb_name ) ;
+		multimap<string, Table*>::iterator getTableIterator2( errblock&,
+								      const string& ) ;
 
-		multimap<string, Table*>::iterator createTable( errblock& err,
-								const string& tb_name,
-								string keys,
-								string flds,
-								tbWRITE m_WRITE,
-								tbDISP m_DISP ) ;
+		Table* getTableAddress1( errblock&,
+					 const string& ) ;
 
-		int    enq( Table* tab,
-			    const string& tb_name ) ;
+		Table* getTableAddress2( errblock&,
+					 const string& ) ;
 
-		int    deq( Table* tab ) ;
+		Table* createTable( errblock&,
+				    const string&,
+				    const string&,
+				    const string&,
+				    tbWRITE,
+				    tbDISP ) ;
 
-		Table* qscan( const string& filename ) ;
+		void   enq( Table*,
+			    const string& ) ;
 
-		void   fillfVARs( errblock& err,
-				  fPOOL& funcPOOL,
-				  const string& tb_name,
-				  const set<string>& tb_fields,
-				  const set<string>& tb_clear,
-				  bool scan,
-				  int  depth,
-				  int  posn,
-				  int  csrrow,
-				  int& idx ) ;
+		void   deq( Table* ) ;
 
-		void   destroyTable( errblock& err,
-				     const string& tb_name,
-				     const string& tb_func = "" ) ;
+		Table* qscan( const string& ) ;
 
-		void   closeTablesforTask( errblock& err ) ;
+		uint   getid( errblock&,
+			      const string& ) ;
 
-		void   qtabopen( errblock& err,
-				 fPOOL& funcPOOL,
-				 const string& tb_list ) ;
+		void   fillfVARs( errblock&,
+				  fPOOL*,
+				  const string&,
+				  const set<string>&,
+				  const set<string>&,
+				  map<string, pair<string,uint>>&,
+				  bool,
+				  int,
+				  int,
+				  int&,
+				  int&,
+				  int&,
+				  int&,
+				  char = ' ',
+				  char = ' ',
+				  int = 0,
+				  int = 0 ) ;
 
-		void   tbbottom( errblock& err,
-				 fPOOL& funcPOOL,
-				 const string& tb_name,
-				 const string& tb_savenm,
-				 const string& tb_rowid_vn,
-				 const string& tb_noread,
-				 const string& tb_crp_name ) ;
+		void   destroyTable( errblock&,
+				     const string&,
+				     const string& = "" ) ;
 
-		void   tbdelete( errblock& err,
-				 fPOOL& funcPOOL,
-				 const string& tb_name ) ;
+		void   closeTablesforTask( errblock& ) ;
 
-		void   tberase( errblock& err,
-				const string& tb_name,
-				const string& tb_path ) ;
+		void   qtabopen( errblock&,
+				 fPOOL*,
+				 const string& ) ;
 
-		void   tbexist( errblock& err,
-				fPOOL& funcPOOL,
-				const string& tb_name ) ;
+		void   tbbottom( errblock&,
+				 fPOOL*,
+				 const string&,
+				 const string&,
+				 const string&,
+				 const string&,
+				 const string& ) ;
 
-		void   tbget( errblock& err,
-			      fPOOL& funcPOOL,
-			      const string& tb_name,
-			      const string& tb_savenm,
-			      const string& tb_rowid_vn,
-			      const string& tb_noread,
-			      const string& tb_crp_name  ) ;
+		void   tbdelete( errblock&,
+				 fPOOL*,
+				 const string& ) ;
 
-		void   tbmod( errblock& err,
-			      fPOOL& funcPOOL,
-			      const string& tb_name,
-			      const string& tb_namelst,
-			      const string& tb_order ) ;
+		void   tberase( errblock&,
+				const string&,
+				const string& ) ;
 
-		void   tbput( errblock& err,
-			      fPOOL& funcPOOL,
-			      const string& tb_name,
-			      const string& tb_namelst,
-			      const string& tb_order ) ;
+		void   tbexist( errblock&,
+				fPOOL*,
+				const string& ) ;
 
-		void   tbquery( errblock& err,
-				fPOOL& funcPOOL,
-				const string& tb_name,
-				const string& tb_keyn,
-				const string& tb_varn,
-				const string& tb_rownn,
-				const string& tb_keynn,
-				const string& tb_namenn,
-				const string& tb_crpn,
-				const string& tb_sirn,
-				const string& tb_lstn,
-				const string& tb_condn,
-				const string& tb_dirn ) ;
+		void   tbget( errblock&,
+			      fPOOL*,
+			      const string&,
+			      const string&,
+			      const string&,
+			      const string&,
+			      const string&  ) ;
 
-		void   tbsarg( errblock& err,
-			       fPOOL& funcPOOL,
-			       const string& tb_name,
-			       const string& tb_namelst,
-			       const string& tb_next_prev,
-			       const string& tb_cond_pairs ) ;
+		void   tbmod( errblock&r,
+			      fPOOL*,
+			      const string&,
+			      const string&,
+			      const string& ) ;
 
-		void   tbskip( errblock& err,
-			       fPOOL& funcPOOL,
-			       const string& tb_name,
-			       int num,
-			       const string& tb_varname,
-			       const string& tb_rowid_vn,
-			       const string& tb_rowid,
-			       const string& tb_noread,
-			       const string& tb_crp_name ) ;
+		void   tbput( errblock&,
+			      fPOOL*,
+			      const string&,
+			      const string&,
+			      const string& ) ;
 
-		void   tbscan( errblock& err,
-			       fPOOL& funcPOOL,
-			       const string& tb_name,
-			       const string& tb_namelst,
-			       const string& tb_savenm,
-			       const string& tb_rowid_vn,
-			       const string& tb_next_prev,
-			       const string& tb_read,
-			       const string& tb_crp_name,
-			       const string& tb_condlst ) ;
+		void   tbquery( errblock&,
+				fPOOL*,
+				const string&,
+				const string& = "",
+				const string& = "",
+				const string& = "",
+				const string& = "",
+				const string& = "",
+				const string& = "",
+				const string& = "",
+				const string& = "",
+				const string& = "",
+				const string& = "" ) ;
 
-		void   tbtop( errblock& err,
-			      const string& tb_name ) ;
+		void   tbquery( errblock&,
+				const string&,
+				bool& ) ;
 
-		void   tbvclear( errblock& err,
-				 fPOOL& funcPOOL,
-				 const string& tb_name ) ;
+		void   tbquery( errblock&,
+				const string&,
+				uint& ) ;
 
-		bool   writeableTable( errblock& err,
-				       const string& tb_name,
-				       const string& tb_func ) ;
+		void   tbsarg( errblock&,
+			       fPOOL*,
+			       const string&,
+			       const string&,
+			       const string&,
+			       const string& ) ;
 
-		string locate( errblock& err,
-			       const string& tb_name,
-			       const string& tb_path ) ;
+		void   tbskip( errblock&,
+			       fPOOL*,
+			       const string&,
+			       int,
+			       const string& = "",
+			       const string& = "",
+			       const string& = "",
+			       const string& = "",
+			       const string& = "" ) ;
+
+		void   tbskip( errblock&,
+			       fPOOL*,
+			       const string&,
+			       const string&,
+			       const string&,
+			       const string&,
+			       const string& ) ;
+
+		void   tbscan( errblock&,
+			       fPOOL*,
+			       const string&,
+			       const string& = "",
+			       const string& = "",
+			       const string& = "",
+			       const string& = "",
+			       const string& = "",
+			       const string& = "",
+			       const string& = "" ) ;
+
+		void   tbtop( errblock&,
+			      const string& ) ;
+
+		void   tbvclear( errblock&,
+				 fPOOL*,
+				 const string& ) ;
+
+		bool   writeableTable( errblock&,
+				       const string&,
+				       const string& ) ;
+
+		string locate( errblock&,
+			       const string&,
+			       const string& ) ;
+
+		bool status3( errblock&,
+			      const string& ) ;
+
+		string modname() { return "TABLEMGR" ; }
+
+		int    taskid() { return 0 ; }
 
 		friend class pApplication ;
+		friend class pFTailor ;
 } ;
-
-#undef llog
-#undef debug1
-#undef debug2
-
-
-#define llog(t, s) \
-{ \
-lg->lock() ; \
-(*lg) << microsec_clock::local_time() << \
-" TABLE     " << \
-" " << d2ds( err.taskid, 5 ) << " " << t << " " << s ; \
-lg->unlock() ; \
-}
-
-#ifdef DEBUG1
-#define debug1( s ) \
-{ \
-lg->lock() ; \
-(*lg) << microsec_clock::local_time() << \
-" TABLE     " << \
-" " << d2ds( err.taskid, 5 ) <<  \
-" D line: "  << __LINE__  << \
-" >>L1 Function: " << __FUNCTION__ << \
-" -  " << s ; \
-lg->unlock() ; \
-}
-#else
-#define debug1( s )
-#endif
-
-
-#ifdef DEBUG2
-#define debug2( s ) \
-{ \
-lg->lock() ; \
-(*lg) << microsec_clock::local_time() << \
-" TABLE     " << \
-" " << d2ds( err.taskid, 5 ) <<  \
-" D line: "  << __LINE__  << \
-" >>L2 Function: " << __FUNCTION__ << \
-" -  " << s ; \
-lg->unlock() ; \
-}
-#else
-#define debug2( s )
-#endif

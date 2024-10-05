@@ -1,5 +1,7 @@
-FROM arch-devel
+FROM archlinux
 LABEL maintainer="rvjansen@xs4all.nl"
+RUN yes | pacman -Syu
+RUN yes | pacman -S svn gcc git make cmake boost ncurses
 WORKDIR /
 RUN svn co https://svn.code.sf.net/p/oorexx/code-0/main/trunk oorexx-code-0
 WORKDIR /oorexx-code-0

@@ -1,0 +1,35 @@
+)PANEL VERSION=1 FORMAT=1 
+/* *************************************************** */
+/* Converted by panconv EXEC on 3 Oct 2024 at 15:46:41 */
+/* *************************************************** */
+/* )PANEL panconv */
+)ATTR
+% TYPE(PT)
++ TYPE(NT)
+! TYPE(ET)
+/* @ AREA(SCRL) EXTEND(ON) panconv */
+{ TYPE(RP)
+)BODY WINDOW(62,24) CMD()
+TEXT 1 23 ATTR(25) 'Task display'
+AREA 2 1 62 12 SAREA1
+)AREA SAREA1
+TEXT 1 2 ATTR(2B) 'Primary commands:'
+TEXT 2 5 ATTR(21) 'USER'
+TEXT 2 10 ATTR(2B) 'Display only selected user tasks.'
+TEXT 3 5 ATTR(21) 'ONLY'
+TEXT 3 10 ATTR(2B) 'Display only selected commands.'
+TEXT 5 2 ATTR(2B) 'Line commands:'
+TEXT 6 5 ATTR(21) 'I'
+TEXT 6 8 ATTR(2B) 'Show the pid status.'
+TEXT 7 5 ATTR(21) 'J'
+TEXT 7 8 ATTR(2B) 'Show journal for the pid.'
+TEXT 8 5 ATTR(21) 'K'
+TEXT 8 8 ATTR(2B) 'Kill the process (SIGKILL).'
+TEXT 9 5 ATTR(21) 'S'
+TEXT 9 8 ATTR(2B) 'Same as I.'
+TEXT 10 5 ATTR(21) 'T'
+TEXT 10 8 ATTR(2B) 'Terminate the process (SIGTERM).'
+)INIT
+&ZWINTTL = &Z
+
+)END

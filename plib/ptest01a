@@ -1,0 +1,376 @@
+--)PANEL VERSION=1 FORMAT=1
+)PANEL VERSION=1 FORMAT=1 KEYLIST(ISRSAB,ISR)
+)COMMENT
+
+*********************************************************************************
+*********************************************************************************
+* Test various panel functions (eg, VER statements, error checking, VEDIT, etc )*
+*********************************************************************************
+*********************************************************************************
+
+.ATTR is a permanent change when in the )INIT section and
+      temporary (on redisplay only) in the )REINIT and )PROC sections
+
+)ENDCOMMENT
+
+)ATTR DEFAULT($^_)
++ TYPE(NEF)
+! TYPE(NEF) PASSWD(ON) PAD(USER)
+* TYPE(RP)
+@ TYPE(OUTPUT) CAPS(OFF)
+~ TYPE(LI)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Test Panel Functions'
+
+TEXT      4    2   FP  'Command ===> '
+FIELD     4   15  MAX   NEF     CAPS(ON),PAD(USER) ZCMD
+
+AREA   5 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT      1   MAX-31    FP  'TIME:'
+FIELD     1   MAX-25    11   VOI   NONE  ZTIMEL
+
+TEXT      1   MAX-13    FP  'DATE:'
+FIELD     1   MAX-7     8    VOI   NONE  ZDATE
+
+TEXT      1   6     FP  'FIELD FLD1: '
+TEXT      1   30    FP  'VER FLD1 NB LIST AAA BBB CCC DDD EEE FFF'
+FIELD     1   18    10    NEF   NONE  FLD1
+
+TEXT      2   6     FP  'FIELD FLD2: '
+TEXT      2   30    FP  'VER FLD2 NB NUM'
+FIELD     2   18    10    ATTR(+) FLD2
+
+TEXT      2   66    FP  'FIELD FLD11:'
+FIELD     2   79    3    NEF   NONE  FLD11
+TEXT      2   84    FP  'TRANS Y,YES N,NO *.*'
+
+TEXT      3   6     FP  'FIELD FLD3: '
+TEXT      3   30    FP  'VER FLD3 LIST AAA BBB CCC DDD EEE'
+FIELD     3   18    10   NEF   NONE  FLD3
+
+TEXT      3   66    FP  'FIELD FLD21:'
+FIELD     3   79    3    NEF   NONE  FLD21
+TEXT      3   84    FP  'TRANS Y,YES N,NO *.?'
+
+
+TEXT      4    6    FP  'PASSWORD  : '
+TEXT      4    30    FP  'Password Field ( PASSWD(ON) )'
+FIELD     4    18    10    ATTR(!)  FLD4
+
+TEXT      4   66    FP  'FIELD FLD31:'
+FIELD     4   79    3    NEF   NONE  FLD31
+TEXT      4   84    FP  'TRANS Y,YES N,NO'
+
+
+TEXT      5   66    FP  'SHOW PFKEY:'
+FIELD     6   66    10   NEF   NONE  FLDPFK1
+FIELD     7   66    10   ATTR(@)     FLDPFK2
+
+
+TEXT      8   71    FP  'SCROLLABLE FIELDS: L/R:'
+FIELD     8   96    5    VOI   NONE  ZLCOL
+FIELD     8  102    5    VOI   NONE  ZRCOL
+FIELD     9   71    30   NEF   NONE  FLDSCR1
+FIELD     9  103    2    ATTR(~)     FLDIND1
+
+FIELD    10   71    30   ATTR(@)     FLDSCL2
+FIELD    11   71    30   ATTR(@)     FLDSCR2
+FIELD    11  103    2    ATTR(~)     FLDIND2
+FIELD    12  103    1    ATTR(~)     FLDLIND2
+FIELD    13  103    1    ATTR(~)     FLDRIND2
+FIELD    15  82     23   ATTR(~)     FLDSIND2
+
+
+TEXT      5    6    FP  'FIELD FLD5: '
+TEXT      5    30    FP  'VER NB HEX'
+FIELD     5    18    10    NEF   NONE  FLD5
+
+TEXT      6    6    FP  'FIELD FLD6: '
+TEXT      6    30    FP  'VER NB OCT'
+FIELD     6    18    10    NEF   NONE  FLD6
+
+TEXT      7    6    FP  'FIELD FLD7: '
+TEXT      7    30    FP  'VER NB PICT CAN9CX/\=B'
+FIELD     7    18   10    NEF   NONE  FLD7
+
+TEXT      8    6    FP  'FIELD FLD8: '
+TEXT      8    30   FP  'IF&Z .ATTR = ''INTENS(HIGH)'' and keep rest'
+FIELD     8    18   10    NEF   NONE  FLD8
+
+TEXT      9    6    FP  'FIELD FLD9: '
+TEXT      9    30    FP  'LENGTH MUST BE 8 or RED+HILIGHT'
+FIELD     9    18   10    NEF   NONE  FLD9
+
+TEXT      10   6    FP  'FIELD FLDG: '
+TEXT      10   30    FP  'RANGE MUST BE 3 to 37'
+FIELD     10   18   10    NEF   NONE  FLDG
+
+FIELD     12   1   10    NEF   NONE  ATRF1
+FIELD     12   12  10    NEF   NONE  ATRF2
+FIELD     12   23  10    NEF   NONE  ATRF3
+
+FIELD     13   1   10    EE    NONE  ATRF4
+FIELD     13   12  10    EE    NONE  ATRF5
+FIELD     13   23  10    EE    NONE  ATRF6
+
+FIELD     14   1   10    EE    NONE  ATRF7
+FIELD     14   12  10    EE    NONE  ATRF8
+TEXT      15   1         RP       'Reference Phrase1'
+TEXT      15   35        ATTR(*)  'Reference Phrase2'
+TEXT      15   64        ATTR(*)  'Reference Phrase3'
+
+TEXT      12   35   FP  'PAD(USER),JUST(L):'
+FIELD     12   54   8    NEF   JUST(LEFT),PAD(USER),CAPS(ON) FLDA
+
+TEXT      13   35   FP  'PAD(USER),JUST(R):'
+FIELD     13   54   8    NEF   JUST(RIGHT),PAD(USER) FLDB
+
+TEXT      14   35   FP  'PAD(USER),JUST(A):'
+FIELD     14   54   8    NEF   JUST(ASIS),PAD(USER) FLDC
+
+
+TEXT      12   64   FP  'PAD(USER),JUST(L):'
+FIELD     12   84   12   VOI   pad(user),JUST(LEFT),CAPS(ON) FLDD
+
+TEXT      13   64   FP  'PAD(USER),JUST(R):'
+FIELD     13   84   12   VOI   pad(user),JUST(RIGHT),CAPS(ON) FLDE
+
+TEXT      14   64   FP  'PAD(USER),JUST(A):'
+FIELD     14   84   12   VOI   pad(user),JUST(ASIS),CAPS(ON) FLDF
+
+TEXT      16   1    FP  'VMASK FVAR1 ITIME   :'
+FIELD     16   23   5    NEF   CAPS(OFF)  FVAR1
+FIELD     16   35   5    LI    NONE       FVAR11
+
+TEXT      17   7    FP  'FVAR2 STDITIME:'
+FIELD     17   23   8    NEF   CAPS(OFF)  FVAR2
+FIELD     17   35   8    LI    NONE       FVAR21
+
+TEXT      18   7    FP  'FVAR3 IDATE   :'
+FIELD     18   23   8    NEF   CAPS(OFF)  FVAR3
+FIELD     18   35   8    LI    NONE       FVAR31
+
+TEXT      19   7    FP  'FVAR4 STDDATE :'
+FIELD     19   23   10   NEF   CAPS(OFF)  FVAR4
+FIELD     19   35   10   LI    NONE       FVAR41
+
+TEXT      20   7    FP  'FVAR5 JDATE   :'
+FIELD     20   23   6    NEF   CAPS(OFF)  FVAR5
+FIELD     20   35   6    LI    NONE       FVAR51
+
+TEXT      21   7    FP  'FVAR6 JDATE   :'
+FIELD     21   23   8    NEF   CAPS(OFF)  FVAR6
+FIELD     21   35   8    LI    NONE       FVAR61
+
+-- REMOVE LATER
+FIELD     21   45   MAX  LI    NONE       FLDSCR1C
+
+TEXT      16   45   FP  'UVAR1:'
+FIELD     16   52   13   NEF   CAPS(ON)  UVAR1
+FIELD     16   67   13   LI    NONE      UVAR11
+
+TEXT      17   45   FP  'UVAR2:'
+FIELD     17   52   13   NEF   CAPS(ON)  UVAR2
+FIELD     17   67   13   LI    NONE      UVAR21
+
+TEXT      23  1     FP  'VER LISTV : '
+FIELD     23  13    10    NEF   NONE  FVLD1
+TEXT      23  24    FP  'Enter values for LISTV'
+FIELD     23  47    MAX   NEF   NONE  FVLD2
+
+TEXT      24  1     FP  'VER LISTVX: '
+FIELD     24  13    10    NEF   NONE  FVLD3
+TEXT      24  24    FP  'Enter values for LISTVX'
+FIELD     24  48    MAX   NEF   NONE  FVLD4
+
+)INIT
+&ALEN = 35
+IF (&ZSCR1 NE ON)
+   &ZSCR1 = ON
+ELSE
+   &ZSCR1 = OFF
+--&ZLCOL = 5
+IF (&FLDSCR1 EQ &Z)
+    &FLDSCR1 = '    This is a very, very long input value that wont fit into a normal field'
+    &FLDSCR1 = '&FLDSCR1    This is a very, very long input value that wont fit into a normal field'
+    &FLDSCR1 = '&FLDSCR1    This is a very, very long input value that wont fit into a normal field'
+    &FLDSCR1 = '&FLDSCR1    This is a very, very long input value that wont fit into a normal field'
+    &FLDSCR1 = '&FLDSCR1    This is a very, very long input value that wont fit into a normal field'
+&FLDSCR1C = &FLDSCR1
+&FLDSCR2 = 'This is a very, very long output value that wont fit into a normal field'
+&FLDSCR2 = &FLDSCR1
+
+VGET (FLD1,FLD2,FLD3,FLD4,FLD5,FLD6,FLD7,FLD8,FLD9) PROFILE
+.ATTR(FLD1) = 'TYPE(INPUT) COLOUR(TURQ) INTENS(HIGH)'
+
+&FLDPFK2 = PFK(&FLDPFK1)
+
+&ATRF1 = NEF
+&ATRF2 = NEF
+&ATRF3 = NEF
+
+&ATRF4 = EE
+&ATRF5 = EE
+&ATRF6 = EE
+
+&ATRF7 = CH
+&ATRF8 = CH
+&ATRF9 = CH
+
+&FVAR11 = &FVAR1
+&FVAR21 = &FVAR2
+&FVAR31 = &FVAR3
+&FVAR41 = &FVAR4
+&FVAR51 = &FVAR5
+&FVAR61 = &FVAR6
+
+&UVAR11 = &UVAR1
+&UVAR21 = &UVAR2
+
+&FLDD = '    left  '
+&FLDE = '    right  '
+&FLDF = '    asis  '
+
+if ( &ABC eq  HELLO )
+else
+  &a = 1
+
+&myscrl ='nolr'
+&zlcol2 = 3
+)REINIT
+IF (.MSG NE &Z AND .CURSOR NE &Z)
+   .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+--REFRESH(UVAR1)
+--REFRESH(*)
+
+)PROC
+VPUT (FLD1,FLD2,FLD3,FLD4,FLD5,FLD6,FLD7,FLD8,FLD9) PROFILE
+IF (&ZCMD NE HELP,A,B,C,&Z)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
+VEDIT (FVAR1)
+VEDIT (FVAR2)
+VEDIT (FVAR3)
+VEDIT (FVAR4)
+VEDIT (FVAR5)
+VEDIT (FVAR6)
+
+VEDIT (UVAR1)
+VEDIT (UVAR2)
+
+VPUT FVAR1 SHARED
+VPUT FVAR2 SHARED
+VPUT FVAR3 SHARED
+VPUT FVAR4 SHARED
+VPUT FVAR5 SHARED
+VPUT FVAR6 SHARED
+
+VPUT UVAR1 SHARED
+VPUT UVAR2 SHARED
+
+&FVAR11 = &FVAR1
+&FVAR21 = &FVAR2
+&FVAR31 = &FVAR3
+&FVAR41 = &FVAR4
+&FVAR51 = &FVAR5
+&FVAR61 = &FVAR6
+
+&UVAR11 = &UVAR1
+&UVAR21 = &UVAR2
+
+
+VPUT FLD1 PROFILE
+VPUT FLD2 PROFILE
+VPUT FLD3 PROFILE
+VPUT FLD5 PROFILE
+VPUT FLD6 PROFILE
+VPUT (FLD7 FLD8 FLD9 FLDG) PROFILE
+
+
+.ATTR(FLD3) = 'TYPE(INPUT) COLOUR(TURQ) INTENS(HIGH)'
+.ATTR(ATRF6) = 'TYPE(INPUT) COLOUR(TURQ) INTENS(HIGH)'
+
+VER (&FLD1 NB LIST AAA BBB CCC DDD EEE FFF ZZZ HELLO)
+IF (.MSG NE &Z)
+    .ATTR(FLD1) = 'TYPE(INPUT) COLOUR(RED)'
+    EXIT
+
+VER ( &FLD2 NB NUM )
+IF (.MSG NE &Z)
+    .ATTR(FLD2) = 'TYPE(INPUT) COLOUR(RED) HILITE(BLINK) INTENS(NON)'
+    EXIT
+
+VER (  &FLD3 LIST AAA BBB CCC DDD EEE   )
+VER (&FLD5      HEX)
+VER( &FLD6   NB OCT    )
+VER(  &FLD7,NB  )
+VER(  &FLD7,PICT,'CAN9CX/\=B',MSG=PSYS011N  )
+
+-- Truncate field to 1 char before using TRANS
+&FLD111=TRUNC (  &FLD11,1)
+&MVAR1 = PSYS011C
+&FLD11 = TRANS ( &FLD111 Y,YES N,NO *,* MSG=&MVAR1  )
+
+&FLD211=TRUNC  (&FLD21,1)
+&FLD21 = TRANS(&FLD211 Y,YES N,NO *,?)
+
+&FLD311 =TRUNC(&FLD31,1)
+&FLD31= TRANS(&FLD311 Y,YES N,NO)
+-- --------------------------------------------
+
+IF (&FLD8 EQ &Z)                      /*  NEF Change to hilight+NEF if error */
+   .MSG    = PSYS019
+   .CURSOR = FLD8
+   .ATTR(.CURSOR) = 'TYPE(INPUT) INTENS(HIGH) COLOUR(RED)'     /*  then back to NEF when okay         */
+   EXIT
+
+VER(&FLD9,LEN,EQ,8)
+
+IF ( LENGTH(FLD9) NE '8')
+   .ATTR(FLD9) = 'TYPE(INPUT) COLOUR(RED) INTENS(HIGH)'
+   .MSG    = PSYS019
+   .CURSOR = FLD9
+   EXIT
+
+VER(&FLDG,RANGE,3,37)
+VER(&FVLD1,LISTV,&FVLD2)
+VER(&FVLD3,LISTVX,&FVLD4)
+
+)HELP
+FIELD(FLD1)   MSG(TESTHP2)
+FIELD(FLD2)  passthru
+--FIELD(ZRP01001)  panel(testhp3)
+FIELD(ZRP01002)  panel(testhp4)
+FIELD(ZRP01003)  panel(HPMAIN1)
+FIELD(ZABC01)    panel(testhp6)
+FIELD(ZABC02)    panel(testhp7)
+FIELD(ZPDC0101)  panel(testhp8)
+FIELD(ZPDC0501)  panel(testhp9)
+
+)FIELD
+--FIELD(FLDSCR1) IND(FLDIND1) LCOL(ZLCOL) RCOL(ZRCOL)
+FIELD(FLDSCR1) IND(FLDIND1)
+  LCOL(ZLCOL) RCOL(ZRCOL)
+  LEN(ALEN)
+--FIELD(FLDSCR1) IND(FLDIND1) LCOL(ZLCOL) RCOL(ZRCOL) SCROLL(ZSCR1)
+--FIELD(FLDSCR2) IND(FLDIND2,'[]') LIND(FLDLIND2,'[') RIND(FLDRIND2,']') SIND(FLDSIND2,'(-)') SCALE(FLDSCL2)
+--FIELD(FLDSCR2) IND(FLDIND2) LIND(FLDLIND2) RIND(FLDRIND2) SIND(FLDSIND2) SCALE(FLDSCL2)
+--FIELD(FLDSCR2) IND(FLDIND2,'LR') LIND(FLDLIND2,'L') RIND(FLDRIND2,'R') SIND(FLDSIND2,'L#R') SCALE(FLDSCL2) LEN(64)
+FIELD(FLDSCR2) IND(FLDIND2)
+  LIND(FLDLIND2) RIND(FLDRIND2) SIND(FLDSIND2)
+  SCALE(FLDSCL2) LCOL(ZLCOL) SCROLL(myscrl)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

@@ -1,0 +1,297 @@
+/*                                     */
+/* System message file for lspf        */
+/*                                     */
+
+PSYS011 '"&ZCTMVAR" is not active' .TYPE=N
+'Command or function key entered is not defined.'
+
+PSYS012 'Function not yet implemented' .TYPE=W
+'Function has not yet been implemented.'
+
+PSYS013 'Invalid screen name' .TYPE=W
+'A screen name must be alpanumeric and more than one letter.'
+
+PSYS014 'Invalid PANELID parameter' .TYPE=W
+'Valid parameters are ON, OFF or blank to toggle setting.'
+
+PSYS015 'Window move pending' .TYPE=W
+''
+
+PSYS016 'Invalid option' .TYPE=W
+'Enter one of the listed options.'
+
+PSYS017  'Enter option' .TYPE=N
+'Enter one of the listed options.'
+
+PSYS018 'Invalid primary command' .TYPE=W
+'See help for valid commands for this panel.'
+
+PSYS019 'Enter required field' .TYPE=W .W=NORESP
+'Enter data at cursor position.'
+
+PSYS011A 'Field must be numeric' .TYPE=W .W=NORESP
+'Enter only numeric data in field at the cursor position.'
+
+PSYS011B 'Enter one of the listed values' .TYPE=W .W=NORESP
+'Valid &ZZSTR1..'
+
+PSYS011C 'Invalid primary command' .TYPE=W
+'There are no valid primary commands for this panel.'
+
+PSYS011D 'Maximum screens reached' .TYPE=W
+'No more logical screens can be created as ZMAXSCRN has been reached.'
+
+PSYS011E 'Open failed' .TYPE=W
+'Open of the requested file failed.  Check permissions.'
+
+PSYS011F 'Invalid octal number' .TYPE=W .W=NORESP
+'Number entered is not a valid octal number.'
+
+PSYS011G 'Non-integer data entered' .TYPE=W .W=NORESP
+'Field variable has been defined as a function pool integer, but non-integer data has been entered.  ' +
+'Change ignored.'
+
+PSYS011H 'Field must be valid hex' .TYPE=W .W=NORESP
+'Enter only hex data in the field at the cursor position.'
+
+PSYS011I 'Invalid scroll amount' .TYPE=W
+'Invalid entry.  Valid scroll values are H(half), P(page), C(cursor), ' +
+'D(data) or a maximum numeric value of 6 digits (4 digits within the scroll field).'
+
+PSYS011J 'Help member not found' .TYPE=W
+'Help member &ZZSTR1 was not found in the ZPLIB search.'
+
+PSYS011K 'Error in command' .TYPE=W
+'Error in PDC, field or table command entry.  See lspf log for details.'
+
+PSYS011L 'SPLIT command disabled' .TYPE=W
+'SPLIT command has been disabled via the application-issued CONTROL SPLIT DISABLE service.'
+
+PSYS011M 'Non-zero return code' .TYPE=W
+'&STR..'
+
+PSYS011N 'Invalid data entered' .TYPE=W .W=NORESP
+'Data entered must be of length &ZZSTR1 in the form ''&ZZSTR2''.'
+
+PSYS011O 'Invalid command parameter' .TYPE=W
+'Command contains an invalid or missing parameter.'
+
+PSYS011P 'Empty file requested' .TYPE=W
+'File ''&ZVAL1'' is empty.'
+
+PSYS011Q 'Cannot open file' .TYPE=W
+'Open failure for file ''&ZVAL1''.'
+
+PSYS011R 'Not a regular file' .TYPE=W
+'File ''&ZVAL1'' is not a regular file.'
+
+PSYS011S 'File does not exist' .TYPE=W
+'File ''&ZVAL1'' does not exist.'
+
+PSYS011T 'Permisison denied' .TYPE=W
+'You do not have read access to file ''&ZVAL1''.'
+
+PSYS011U 'Error occured' .TYPE=W
+'Error ''&ZVAL1'' occured opening file ''&ZVAL2''.'
+
+PSYS011V 'Entry retrieved' .TYPE=N
+'Selected entry has been retrieved.'
+
+PSYS011W '#&ZRFNPOS retrieved from &ZRFNCRTB' .TYPE=N
+'Entry &ZRFNPOS has been retrieved from personal list &ZRFNCRTB..'
+
+PSYS011X 'File retrieve not active' .TYPE=W
+'File retrieve is not active on this panel via reflists or NRETRIEV.  ' +
+'Set .NRET in the panel if this is required.'
+
+PSYS011Y 'No field name' .TYPE=W
+'Place cursor on a field to receive file names from NRETRIEV and reflist processing or set the ' +
+'.NRET system variable in the panel )INIT section to the default field name to receive these file names.'
+
+PSYS011Z 'Invalid .NRET field name' .TYPE=W
+'.NRET has not been set to a valid field name that exists on the panel.  See application log.'
+
+PSYS012A 'Invalid path specified' .TYPE=W
+'Path specified is not valid or access permission denied.'
+
+PSYS012B 'Spare' .TYPE=W
+'Spare'
+
+PSYS012C 'I/O error accessing entry' .TYPE=W
+'&ZVAL1.'
+
+PSYS012D 'Error in SELECT' .TYPE=W
+'Entered SELECT is not valid.  Check log for details.'
+
+PSYS012E 'Entry conflict' .TYPE=W
+'Fields entered in an invalid combination.  Leave field blank.'
+
+PSYS012F 'Invalid USERID parameter' .TYPE=W
+'Valid parameters are ON, OFF or blank to toggle setting.'
+
+PSYS012G 'Command issued' .TYPE=W
+'Command has been issued.  Check log for details.'
+
+PSYS012H 'Module reloaded' .TYPE=W
+'Module has been reloaded successfully.'
+
+PSYS012I 'Errors during module reload' .TYPE=W
+'Check lspf log for errors.'
+
+PSYS012J 'Field does not support FIELDEXC' .TYPE=W
+'An entry in the panel )FIELD section is required to support field-level execution.'
+
+PSYS012K 'Cursor not on a field' .TYPE=W
+'The cursor must be positioned on a field that supports field-level execution.'
+
+PSYS012L '' .TYPE=N .W=N
+'The message id of the last message was &ZMSGID..'
+
+PSYS012M 'Invalid MSGID parameter' .TYPE=W
+'Valid MSGID parameters are ON, OFF or blank.'
+
+PSYS012N 'Invalid command delimiter' .TYPE=W
+'Command delimiter value cannot be a-z, A-Z, 0-9, = and .  ' +
+'It must also be different from the pad character.'
+
+PSYS012O 'Invalid PAD value' .TYPE=W
+'PAD value cannot be a-z, A-Z, 0-9 and / except N for nulls ' +
+'and B for blank.  It must also be different from the command delimiter.'
+
+PSYS012P 'Invalid REGEX entered' .TYPE=W
+'''&ZZSTR'' is not a valid regular expression.'
+
+PSYS012Q 'Invalid value entered' .TYPE=W .W=NORESP
+'Invalid &ZZSTR1..'
+
+PSYS012R 'Invalid .HIDE parameter' .TYPE=W
+'Valid .HIDE parameter is NULLS.'
+
+PSYS012S 'Timeout occured' .TYPE=W
+'Timeout waiting for a command response.'
+
+PSYS012T '' .TYPE=N
+'The selected pull-down choice is unavailable.'
+
+PSYS012U 'Invalid name' .TYPE=W
+'Enter an alphabetic character, ''@'', ''$'' or ''#'', '+
+'followed by up to 7 alphanumeric characters, ''@'', ''$'' or ''#''.'
+
+PSYS012V 'Invalid name' .TYPE=W
+'Enter an alphabetic character, ''@'', ''$'' or ''#'', '+
+'followed by up to 3 alphanumeric characters, ''@'', ''$'' or ''#''.'
+
+PSYS012W 'Invalid program name' .TYPE=W
+'Load of ''&ZVAL1'' failed.  Module not found.'
+
+PSYS012X 'Invalid command' .TYPE=W
+'Command ''&ZVAL1'' not found.'
+
+PSYS012Y 'Command missing' .TYPE=W
+'Enter missing command.'
+
+PSYS012Z 'REXX interpreter error' .TYPE=W
+'&ZVAL1..'
+
+PSYS013A 'Invalid .SHOW parameter' .TYPE=W
+'Valid .SHOW parameter is NULLS.'
+
+PSYS013B 'System call time() failed' .TYPE=W
+'System call time() has returned an invalid value of -1.'
+
+PSYS013C 'System call localtime() failed' .TYPE=W
+'System call localtime() has returned a NULL value.'
+
+PSYS013D 'Invalid value' .TYPE=W
+'The maximum value for this field is 255.'
+
+PSYS013E 'Shell not available' .TYPE=W
+'The SHELL environment variable has not been set.  Set if function is required.'
+
+PSYS013F 'Invalid QNAME' .TYPE=W
+'QNAME must be an alphabetic character follwed by up to 7 alphanumeric characters.'
+
+PSYS013G 'Invalid RNAME' .TYPE=W
+'The ENQ/DEQ service contains a blank RNAME.'
+
+PSYS013H 'Invalid program' .TYPE=W
+'Errors loading program ''&ZVAL1''.  See logs for unresolved symbol errors.'
+
+PSYS013I 'User abend has occured' .TYPE=W
+'See application log for error details.'
+
+PSYS013J 'An abend has occured' .TYPE=W
+'See application log for error details.'
+
+PSYS013K 'Top of data' .TYPE=N
+'There is no information above this line.'
+
+PSYS013L 'End of data' .TYPE=N
+'There is no information below this line.'
+
+PSYS013M 'Invalid selection panel' .TYPE=W
+'&ZVAL1 is not a valid selection panel.'
+
+PSYS013N 'Must be numeric' .TYPE=W
+'Value entered must be numeric between &ZZSTR1 and &ZZSTR2..'
+
+PSYS013O 'Value out of range' .TYPE=W
+'Value entered must be a number between &ZZSTR1 and &ZZSTR2..'
+
+PSYS013P 'Invalid length' .TYPE=W
+'Length must be &ZZSTR1 &ZZSTR2..'
+
+PSYS013Q 'Not numeric' .TYPE=W
+'Data entered must be numeric.'
+
+PSYS013R 'Error creating pull-down' .TYPE=W
+'Maximum number of pull-down choices of screen depth-2 has been exceeded.'
+
+PSYS013S 'Invalid length' .TYPE=W
+'Parameter ''&ZVAL1'' exceeds the allowable length.'
+
+PSYS013T 'Invalid characters' .TYPE=W
+'Parameter ''&ZVAL1'' must contain only numeric characters.'
+
+PSYS014A 'Program interrupted' .TYPE=W
+'SIGTERM received.  Program terminating.'
+
+PSYS014B 'Invalid SWAPBAR parameter' .TYPE=W
+'Valid parameters are ON, OFF or blank to toggle setting.'
+
+PSYS014C 'Invalid PFSHOW parameter' .TYPE=W
+'Valid parameters are ON, OFF or blank to toggle setting.'
+
+PSYS014D 'No window to move' .TYPE=W
+'There is no active pop-up window to move.'
+
+PSYS014E 'RP help not defined' .TYPE=W
+')HELP section entry for reference phrase &ZVAL1 is missing.'
+
+PSYS014F 'Line command error' .TYPE=W
+'The line where the cursor is placed does not contain a line command field.'
+
+PSYS014G 'Line command error' .TYPE=W
+'A command is already in the line command field.'
+
+PSYS014H 'Line command error' .TYPE=W
+'Cursor is on the command line.'
+
+PSYS014I 'Invalid lib-type' .TYPE=W
+'ZUPROF is an invalid lib-type.'
+
+PSYS014J 'Extended help not defined' .TYPE=W
+'No extended help has been defined for this panel.'
+
+PSYS014K 'Extended help not found' .TYPE=W
+'Extended help panel &ZZSTR1 not found.'
+
+PSYS014L 'Keylist help not defined' .TYPE=W
+'No keylist help has been defined for this keylist and system variable ZKEYHELP has not been set.'
+
+PSYS014M 'Keylist help not found' .TYPE=W
+'Keylist help panel &ZZSTR1 not found.'
+
+PSYS014N 'Invalid DEBUG parameter' .TYPE=W
+'Valid parameters are ON, OFF or a number from 1-3 to indicate debugging level.'
+

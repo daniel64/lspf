@@ -1,0 +1,59 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Show systemd timers
+)ENDCOMMENT
+
+)ATTR
+_ TYPE(NEF) PAD(USER) CAPS(ON)
++ TYPE(VOI)
+! TYPE(OUTPUT) COLOUR(YELLOW) CAPS(OFF)
+% TYPE(OUTPUT) COLOUR(WHITE) CAPS(OFF)
+* TYPE(OUTPUT) COLOUR(GREEN) CAPS(OFF)
+$ TYPE(OUTPUT) COLOUR(TURQ) CAPS(OFF)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Timers'
+
+TEXT     4   2         FP    'Command ===>'
+FIELD    4  15  max-17 nef caps(on),pad(user) zcmd
+
+TEXT     4  MAX-15   FP   'Scroll ===>'
+FIELD    4  MAX-3  4 NEF  NONE ZSCROLL
+TEXT     5  MAX-15  SI 'More:   >'
+
+TEXT    6   4   CH  'Timer                               Remaining            Next                         Description'
+
+TBMODEL  7   MAX
+TBFIELD  2      1      ATTR(_) SEL
+TBFIELD  ++1    35     ATTR(*) UNIT
+TBFIELD  ++1    20     ATTR($) LEFT
+TBFIELD  ++1    28     ATTR(%) NEXT
+TBFIELD  ++1    MAX    ATTR(!) DESCR
+
+)INIT
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+.HELP = LSPST001
+
+)PROC
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
+VER(&SEL,LIST,B,D,E,I,J,L,T,U,/)
+
+IF (.MSG = &Z) VPUT ZSCROLL PROFILE
+
+)FIELD
+FIELD(UNIT)  LEN(4095)
+FIELD(DESCR) LEN(1024)
+FIELD(LEFT) LEN(32)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2024 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

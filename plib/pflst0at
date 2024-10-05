@@ -1,0 +1,92 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+Edit Entry panel for file list application
+)ENDCOMMENT
+
+)ATTR
+
+)INCLUDE std_pdc
+)INCLUDE rfl_pdc
+)INCLUDE hlp_pdc
+
+)BODY WINDOW(65,22)
+PANELTITLE '&ZVMODE Entry Panel'
+
+AREA   4 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1    2       FP     'Object Name:'
+FIELD    2    2  MAX-4 VOI NONE ZONAME
+FIELD    2    MAX-2 2  LI  NONE ZONMIND
+TEXT     4    2       FP     'Initial Macro. . . . .'
+FIELD    4    25  8   CEF     PAD(USER),caps(off) EEIMAC
+TEXT     5    2       FP     'Profile Name . . . . .'
+FIELD    5    25  8   CEF     PAD(USER),caps(on) EEPROF
+TEXT     6    2       FP     'Panel Name . . . . . .'
+FIELD    6    25  8   CEF     PAD(USER),caps(on) EEPANL
+TEXT     7    2       FP     'Record Length. . . . .'
+FIELD    7    25  5   CEF     PAD(USER),caps(on) EERECL
+TEXT     8    2       FP     'Line Command Table . .'
+FIELD    8    25  8   CEF     PAD(USER),caps(on) EELMAC
+
+TEXT     10   2       CH     'Options'
+TEXT     11   4       PIN    'Enter / to select option'
+
+FIELD    12   4   1   CEF     PAD(USER) EECCAN
+TEXT     12   6       SAC    'Confirm Cancel/Move/Replace'
+FIELD    13   4   1   CEF     PAD(USER) EEPRSPS
+FIELD    13   6   37  SC      NONE      ZEDTXT1
+
+FIELD    14   4   1   CEF     PAD(USER) EETABSS
+TEXT     14   6       SAC    'Prevent tabs being converted to spaces'
+
+FIELD    15   4   1   CEF     PAD(USER) BECWARN
+FIELD    15   6   25  SC NONE           ZEDTXT2
+
+)INIT
+&ZEDTXT1 = 'Preserve trailing spaces on file save'
+&ZEDTXT2 = 'Warn on first data change'
+
+IF (&ZVMODE EQ VIEW)
+   .ATTR(EEPRSPS) = 'TYPE(SC) UNAVAIL(ON)'
+   .ATTR(ZEDTXT1) = 'UNAVAIL(ON)'
+   .ATTR(EERECL)  = 'TYPE(OUTPUT) INTENS(NON)'
+ELSE
+   .ATTR(BECWARN) = 'TYPE(SC) UNAVAIL(ON)'
+   .ATTR(ZEDTXT2) = 'UNAVAIL(ON)'
+
+IF (.MSG EQ PEDT013H)
+   .CURSOR = EEPANL
+
+VGET (EERECL) SHARED
+
+)PROC
+VER (&EEPROF,NAME)
+VER (&EELMAC,NAME)
+VER (&EEPANL,NAME)
+VER (&EERECL,NUM)
+VER (&EERECL,RANGE,0,32760)
+&EECCAN  = TRANS(&EECCAN  &Z,&Z *,/)
+&EEPRSPS = TRANS(&EEPRSPS &Z,&Z *,/)
+&EETABSS = TRANS(&EETABSS &Z,&Z *,/)
+&BECWARN = TRANS(&BECWARN &Z,&Z *,/)
+
+IF (&EERECL EQ '0') &EERECL = &Z
+
+VPUT (EEPROF,EELMAC,EECCAN,EETABSS,EEPANL) PROFILE
+VPUT (EEIMAC,EERECL) SHARED
+
+IF (&ZVMODE EQ VIEW)
+   VPUT BECWARN PROFILE
+ELSE
+   VPUT EEPRSPS PROFILE
+
+)FIELD
+FIELD(ZONAME) LEN(4095) IND(ZONMIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

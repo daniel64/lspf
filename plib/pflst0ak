@@ -1,0 +1,72 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Confirm REXX command execution panel
+)ENDCOMMENT
+
+)BODY WINDOW(75,17)
+
+PANELTITLE 'Confirm Execution of REXX Command'
+
+TEXT     2   2       FP  'Command ===>'
+FIELD    2  15   MAX NEF CAPS(ON),PAD(USER) ZCMD1
+
+AREA   3 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1 2 PIN  'Verify or change the command:'
+TEXT     3   2     FP      '==> '
+FIELD    3   6     MAX-4  NEF  NONE PFLCMD1
+FIELD    3   MAX-2 2      LI   NONE PFLIND1
+
+TEXT     5 2 PIN  'Enter / to select option'
+
+FIELD    6    2   1   CEF PAD(USER) CONFOFF
+TEXT     6    4       SAC    'Suspend execution confirmation for pending commands'
+FIELD    7    2   1   CEF PAD(USER) CONTERR
+TEXT     7    4       SAC    'Continue processing commands after error'
+
+TEXT    9  2  CH 'Instructions'
+TEXT    10 5  NT 'Press'
+TEXT    10 11 PS 'Enter'
+TEXT    10 17 NT 'to confirm command execution'
+
+TEXT    11 5  NT 'Enter'
+TEXT    11 11 PS 'Cancel'
+TEXT    11 18 NT 'or'
+TEXT    11 21 PS 'End'
+TEXT    11 25 NT 'to skip this command execution'
+
+TEXT    12 5  NT 'Enter'
+TEXT    12 11 PS 'Quit'
+TEXT    12 16 NT 'to cancel all pending commands'
+
+)INIT
+&ZCMD1   = &Z
+&ZWINTTL = &Z
+.CURSOR  = 'ZCMD1'
+
+)PROC
+IF (&ZCMD1 NE &Z,QUIT,CANCEL,END)
+   .MSG    = 'PSYS018'
+   .CURSOR = 'ZCMD1'
+   EXIT
+
+IF (&ZCMD1 EQ QUIT,CANCEL,END) .RESP = END
+
+&CONFOFF = TRANS(&CONFOFF &Z,&Z *,/)
+&CONTERR = TRANS(&CONTERR &Z,&Z *,/)
+
+)FIELD
+FIELD(PFLCMD1) LEN(1024) IND(PFLIND1)
+
+)PNTS
+FIELD(ZPS01001) VAR(ZCMD1)  VAL(' ')
+FIELD(ZPS01002) VAR(ZCMD1)  VAL(CANCEL)
+FIELD(ZPS01003) VAR(ZCMD1)  VAL(END)
+FIELD(ZPS01004) VAR(ZCMD1)  VAL(QUIT)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

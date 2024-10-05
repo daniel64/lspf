@@ -1,0 +1,47 @@
+)PANEL VERSION=1 FORMAT=1 
+/* *************************************************** */
+/* Converted by panconv EXEC on 3 Oct 2024 at 15:46:41 */
+/* *************************************************** */
+)ATTR DEFAULT(%+_)
+  + TYPE(TEXT  ) COLOR(GREEN)
+  _ TYPE( INPUT) INTENS(LOW ) JUST(LEFT ) HILITE(USCORE)
+  @ TYPE(TEXT) INTENS(HIGH) CAPS(OFF) JUST(ASIS ) COLOR(TURQ)
+/*   } AREA(SCRL) EXTEND(ON) panconv */
+  ! TYPE(ET)
+)BODY WINDOW(75,20) CMD() 
+TEXT 1 2 ATTR(25) 'Tutorial ---------------------'
+TEXT 1 33 ATTR(40) 'Edit Utility'
+TEXT 1 46 ATTR(25) '--------------------- Tutorial'
+AREA 2 1 70 19 HELP
+)AREA HELP
+TEXT 1 2 ATTR(25) 'EDIT Entry Panel'
+TEXT 3 2 ATTR(2B) 'The File Name field supports NRETRIEV, referral lists and'
+TEXT 4 2 ATTR(2B) 'file/directory name expansion.  A pattern can also be used in the'
+TEXT 5 2 ATTR(2B) 'file name eg /data/src**/*ed*cpp where * represents any number of'
+TEXT 6 2 ATTR(2B) 'characters, including 0.  In this case a file list will be shown'
+TEXT 7 2 ATTR(2B) 'regardless of the Show directory list setting.  (Infact any valid'
+TEXT 8 2 ATTR(2B) 'regex can be used as long as it contains ''*'', ''?'' or ''['' somewhere in'
+TEXT 9 2 ATTR(2B) 'the name).'
+TEXT 11 2 ATTR(21) 'Initial Macro'
+TEXT 11 16 ATTR(2B) '     - Initial macro to run after the data has been'
+TEXT 12 2 ATTR(2B) '                     read but before it is displayed. (H)'
+TEXT 14 2 ATTR(21) 'Profile Name'
+TEXT 14 15 ATTR(2B) '      - Name of the profile to use for the edit session'
+TEXT 15 2 ATTR(2B) '                     to override the default. (H)'
+TEXT 17 2 ATTR(21) 'Record length'
+TEXT 17 16 ATTR(2B) '     - Record length for RECFM F.'
+TEXT 19 2 ATTR(21) 'Line Command Table'
+TEXT 19 21 ATTR(2B) '- Name of the line command table for user line'
+TEXT 20 2 ATTR(2B) '                     commands.  Table can be created using rexx'
+TEXT 21 2 ATTR(2B) '                     edittab1.  This overrides the default edit line'
+TEXT 22 2 ATTR(2B) '                     command table entry, ZEDLCTAB, that can be set'
+TEXT 23 2 ATTR(2B) '                     in lspf General lspf Settings, option 0.0 This'
+TEXT 24 2 ATTR(2B) '                     field supports the PROMPT command and will give'
+TEXT 25 2 ATTR(2B) '                     a selectable list of valid edit line command'
+TEXT 26 2 ATTR(2B) '                     tables. (H)'
+TEXT 28 2 ATTR(25) '(H)'
+TEXT 28 6 ATTR(2B) 'field keeps history of the entries.  Use primary command ZHISTORY'
+TEXT 29 2 ATTR(2B) 'to view.'
+)INIT
+)PROC
+)END

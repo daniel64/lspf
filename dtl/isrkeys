@@ -1,0 +1,13 @@
+<:doctype dm system>
+
+<:-- ---------------------------------------------- -->
+<:-- keylist ISRSAB for the editor                  -->
+<:-- Use option 3.8 to convert or run EXEC lspdtlc  -->
+<:-- ---------------------------------------------- -->
+
+<keyl applid=isr name=isrsab help=isrsabh>
+  <keyi key=F5  cmd=rfind      fka=yes>Rfind
+  <keyi key=F6  cmd=rchange    fka=yes>Rchange
+  <keyi key=F16 cmd=&colon;ts  fka=yes>ts
+</keyl>
+

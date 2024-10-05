@@ -1,0 +1,30 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Display field history
+)ENDCOMMENT
+
+)ATTR
+! TYPE(OUTPUT) COLOUR(WHITE) CAPS(OFF)
+
+)BODY WINDOW( 70, 12 )
+TBMODEL  2    MAX
+TBFIELD  2    MAX NEF   NONE VALUE1
+
+)INIT
+VGET (ZSCROLL) PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+&ZWINTTL = 'Field History'
+&ZTDMARK = '- End -'
+
+)PROC
+
+)FIELD
+FIELD(VALUE1)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2024 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

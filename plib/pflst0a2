@@ -1,0 +1,103 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ File information panel
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'File Information'
+
+TEXT     4   2        FP    'Command ===> '
+FIELD    4  15   MAX  NEF CAPS(ON),PAD(USER) ZCMD1
+
+AREA   5 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1   2        FP    'Entry Name . . :'
+FIELD    1  19    MAX-4  VOI NONE IENTRY
+FIELD    1  MAX-2 2      LI  NONE IENTRIND
+
+TEXT     3   2    ET    'General Data'
+
+TEXT     4    3       FP   'File Type . . :'
+FIELD    4   19   16  VOI NONE ITYPE
+
+TEXT     5   3       FP    'File Size . . :'
+FIELD    5  19    10  VOI NONE ISIZE
+
+TEXT     6    3       FP  'Links . . . . :'
+FIELD    6   19   10  VOI NONE INLNKS
+
+TEXT     7    3       FP  'Inode . . . . :'
+FIELD    7   19   10  VOI NONE IINODE
+
+TEXT     8    3       FP   'Last Modified :'
+FIELD    8   19   20  VOI NONE IMODDATE
+
+TEXT     9   3       FP    'Last Changed  :'
+FIELD    9  19    20  VOI NONE ISTCDATE
+
+TEXT     10   3       FP   'Last Accessed :'
+FIELD    10  19   20  VOI NONE IACCDATE
+
+TEXT     11    3       FP  'Blocksize . . :'
+FIELD    11   19   10  VOI NONE IBLKSIZE
+
+TEXT     12    3       FP  'Link Target . :'
+FIELD    12   19   MAX VOI NONE IRLNK1
+
+TEXT     14   2       ET    'Owner'
+
+TEXT     15   3       FP   'File. . . . . :'
+FIELD    15  19   22  VOI NONE IOWNER
+
+TEXT     16    3       FP  'Group . . . . :'
+FIELD    16   19   22  VOI NONE IGROUP
+
+TEXT     3   42       ET    'Mode Fields'
+
+TEXT     4   43       FP   'Permissions . :'
+FIELD    4   59   10  VOI NONE IPERMISS
+TEXT     5   43       FP   'Set User ID . :'
+FIELD    5   59   10  VOI NONE ISETUID
+TEXT     6   43       FP   'Set Group ID. :'
+FIELD    6   59   10  VOI NONE ISETGID
+TEXT     7   43       FP   'Sticky Bit. . :'
+FIELD    7   59   10  VOI NONE ISTICKY
+
+TEXT     14   42       ET    'Device'
+TEXT     15   43       FP  'Minor Device. :'
+FIELD    15   59       5  VOI NONE IMIN
+TEXT     16   43       FP  'Major Device. :'
+FIELD    16   59       5  VOI NONE IMAJ
+
+
+)INIT
+.CURSOR = ZCMD1
+&ZCMD1  = &Z
+
+IF (&IRLNK1 NE &Z AND EXISTS(IRLNK2) EQ .FALSE)
+   .ATTR(IRLNK1) = 'TYPE(OUTPUT) COLOUR(RED)'
+
+)PROC
+IF (&ZCMD1 NE &Z,QUIT)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD1
+   EXIT
+
+IF (&ZCMD1 EQ QUIT) .RESP = END
+
+VGET ZVERB SHARED
+IF (&ZVERB NE RETURN) .RESP = END
+
+)FIELD
+FIELD(IENTRY) LEN(4095) IND(IENTRIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

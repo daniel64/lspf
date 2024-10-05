@@ -1,0 +1,54 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Table structure panel.
+text      4   1         FP  'Key Fields . . . . . . . :'
+field     4   28    MAX  VOI   NONE  TBQ1
+text      5   1         FP  'Non-key Fields . . . . . :'
+field     5   28    MAX  VOI   NONE  TBQ2
+)ENDCOMMENT
+
+)BODY WINDOW(100,24)
+PANELTITLE 'Structure of table &ZTUTNAM1'
+
+TEXT     2    2    FP 'Command ===> '
+FIELD    2   15    MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
+
+TEXT     2  MAX-15  FP 'Scroll ===>'
+FIELD    2  MAX-3   4  NEF  NONE ZSCROLL
+
+TEXT      4   2         FP  'Number of Keys . . . . . :'
+FIELD     4   29    MAX  VOI   NONE  TBQ4
+TEXT      5   2         FP  'Number of Fields . . . . :'
+FIELD     5   29    MAX  VOI   NONE  TBQ5
+TEXT      6   2         FP  'Number of Rows . . . . . :'
+FIELD     6   29    MAX  VOI   NONE  TBQ3
+TEXT      7   2         FP  'Current Row Position . . :'
+FIELD     7   29    MAX  VOI   NONE  TBQ6
+TEXT      8   2         FP  'Sort Information Record. :'
+FIELD     8   29    MAX  VOI   NONE  TBQ7
+TEXT      9   2         FP  'TBSARG Arglist . . . . . :'
+FIELD     9   29    MAX  VOI   NONE  TBQ8
+TEXT     10   2         FP  'TBSARG Cond Pairs. . . . :'
+FIELD    10   29    MAX  VOI   NONE  TBQ9
+TEXT     11   2         FP  'TBSARG Search Direction. :'
+FIELD    11   29    MAX  VOI   NONE  TBQ10
+
+TBMODEL  13    MAX
+TBFIELD  2     8       VOI  NONE LTYPE
+TBFIELD  ++1   8       VOI  NONE LNAME1
+TBFIELD  ++1   8       VOI  NONE LNAME2
+TBFIELD  ++1   8       VOI  NONE LNAME3
+TBFIELD  ++1   8       VOI  NONE LNAME4
+
+)INIT
+.CURSOR = ZCMD
+&ZTDMARK = '- End -'
+
+)PROC
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

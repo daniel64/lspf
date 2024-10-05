@@ -1,0 +1,103 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Rename file
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Rename Entry'
+
+TEXT     4   2       FP    'Command ===> '
+FIELD    4  15   MAX NEF CAPS(ON),PAD(USER) ZCMD1
+
+AREA   5 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1   2   FP    'Pathname . . . . . . :'
+FIELD    1   25  MAX-4 VOI  NONE ENTRY
+FIELD    1    MAX-2 2  LI  NONE      ENTRIND
+
+TEXT     2   2   FP    'Type . . . . . . . . :'
+FIELD    2   25  20  VOI  NONE TYPE
+
+TEXT     3   2   FP    'Last Modified Date . :'
+FIELD    3   25  20  VOI  NONE MODDATE
+
+TEXT     5    2  CH 'Enter new name below'
+
+TEXT     7    2   FP    'Newpath Name . . . . .'
+FIELD    7    25  MAX-4  NEF PAD(USER) NEWENTRY
+FIELD    7    MAX-2   2  LI  NONE      NEWENIND
+
+TEXT    10 2  CH 'Instructions'
+TEXT    11 5  NT 'Enter'
+TEXT    11 11 ET '='
+TEXT    11 13 NT 'in Newpath Name field to retrieve full path name'
+
+TEXT    13 5  NT 'Press'
+TEXT    13 11 PS 'Enter'
+TEXT    13 17 NT 'to confirm rename'
+
+TEXT    14 5  NT 'Enter'
+TEXT    14 11 PS 'Cancel'
+TEXT    14 18 NT 'or'
+TEXT    14 21 PS 'End'
+TEXT    14 25 NT 'to skip this rename'
+
+TEXT    15 5  NT 'Enter'
+TEXT    15 11 PS 'Quit'
+TEXT    15 16 NT 'to cancel all pending commands'
+
+)INIT
+.NRET = ON
+.NRET = NEWENTRY
+IF (&NEWENTRY EQ &Z ) &NEWENTRY = &ENTRY
+
+&NEWENTRZ = ' &NEWENTRY'
+.CURSOR = NEWENTRY
+.CSRPOS = length(NEWENTRZ)
+
+)PROC
+IF (&ZCMD1 NE &Z,QUIT,CANCEL,END)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD1
+   EXIT
+
+IF (&ZCMD1 EQ QUIT,CANCEL,END) .RESP = END
+
+IF (TRUNC(&NEWENTRY,1) EQ '=')
+  IF (TRUNC(&ENTRY,1) NE '/') &NEWENTRY = '&ZPATH/&ENTRY'
+  ELSE                        &NEWENTRY = &ENTRY
+  &NEWENTRZ = ' &NEWENTRY'
+  .CURSOR = NEWENTRY
+  .CSRPOS = length(NEWENTRZ)
+  .MSG    = FLST012
+  REFRESH(NEWENTRY)
+  EXIT
+
+IF ( '&ZPATH/&ENTRY' EQ '&ZPATH/&NEWENTRY',&NEWENTRY )
+  .CURSOR = NEWENTRY
+  .MSG    = FLST013
+  EXIT
+
+VER (&NEWENTRY NB)
+
+)FIELD
+FIELD(NEWENTRY) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL) NESTED')
+FIELD(NEWENTRY) LEN(4095) IND(NEWENIND)
+FIELD(ENTRY) LEN(4095) IND(ENTRIND)
+
+)PNTS
+FIELD(ZPS01001) VAR(ZCMD1)  VAL(' ')
+FIELD(ZPS01002) VAR(ZCMD1)  VAL(CANCEL)
+FIELD(ZPS01003) VAR(ZCMD1)  VAL(END)
+FIELD(ZPS01004) VAR(ZCMD1)  VAL(QUIT)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

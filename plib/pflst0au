@@ -1,0 +1,96 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ File system information panel
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'File System Information'
+
+TEXT     4   2        FP    'Command ===> '
+FIELD    4  15   MAX  NEF CAPS(ON),PAD(USER) ZCMD1
+
+TEXT     6   2        FP    'Entry Name . . :'
+FIELD    6  19    MAX-4  VOI NONE IENTRY
+FIELD    6  MAX-2 2      LI  NONE IENTRIND
+
+AREA   7 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1    2       FP   'File system name. . . . . :'
+FIELD    1   30  MAX  VOI NONE IFSNAME
+
+TEXT     2   2       FP    'Mount point . . . . . . . :'
+FIELD    2  30   MAX  VOI NONE IDIR
+
+TEXT     3    2       FP   'File system type. . . . . :'
+FIELD    3   30  MAX  VOI NONE ITYPE
+
+TEXT     5    2       FP   'Mount mode. . . . . . . . :'
+FIELD    5   30   3   VOI NONE IMMODE
+
+TEXT     6    2       FP   'Synchronised writes . . . :'
+FIELD    6   30   3   VOI NONE IMSYNC
+
+TEXT     7    2       FP   'Ignore SETUID . . . . . . :'
+FIELD    7   30   3   VOI NONE IMIGUID
+
+TEXT     9    2       FP   'Block size. . . . . . . . :'
+FIELD    9   30   16  VOI NONE IBSIZE
+
+TEXT    10   2       FP    'Number of Blocks. . . . . :'
+FIELD   10  30    20  VOI NONE IBLOCKS
+
+TEXT    11   2       FP    'Available Blocks. . . . . :'
+FIELD   11  30    20  VOI NONE IBFREE
+
+TEXT    12   2       FP    'Available Blocks (unpriv) :'
+FIELD   12  30    20  VOI NONE IBAVAIL
+
+TEXT    13   2       FP    'Percentage Used . . . . . :'
+FIELD   13  30    20  VOI NONE IPCENTU
+
+TEXT    15   2       FP    'Number of inodes. . . . . :'
+FIELD   15  30    20  VOI NONE IFILES
+
+TEXT    16   2       FP    'Free inodes . . . . . . . :'
+FIELD   16  30    20  VOI NONE IFFREE
+
+TEXT    17   2       FP    'Free inodes (unpriv). . . :'
+FIELD   17  30    20  VOI NONE IFAVAIL
+
+TEXT    19   2       FP    'File system ID. . . . . . :'
+FIELD   19  30    20  VOI NONE IFSID
+
+TEXT    21    2       FP  'Mount options'
+FIELD   22    2  MAX-4  VOI NONE IOPTS
+FIELD   22  MAX-2 2     LI  NONE IOPTSIND
+
+
+)INIT
+.CURSOR = ZCMD1
+&ZCMD1  = &Z
+
+)PROC
+IF (&ZCMD1 NE &Z,QUIT)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD1
+   EXIT
+
+IF (&ZCMD1 EQ QUIT) .RESP = END
+
+VGET ZVERB SHARED
+--IF (&ZVERB NE RETURN) .RESP = END
+
+)FIELD
+FIELD(IENTRY) LEN(4095) IND(IENTRIND)
+FIELD(IOPTS)  LEN(512)  IND(IOPTSIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

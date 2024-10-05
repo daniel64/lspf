@@ -1,0 +1,51 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+Confirm move panel for editor PEDIT01
+)ENDCOMMENT
+
+)BODY WINDOW(58,12)
+PANELDESC 'Confirm Move'
+
+TEXT     2    2       FP     'Command ===> '
+FIELD    2   15  MAX  NEF     PAD(USER) ZCMD1
+
+AREA   3 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1    2       NT     'File to be moved'
+FIELD    2    2  MAX-4 VOI NONE ZSTR1
+FIELD    2    MAX-2 2  LI  NONE ZSTR1IND
+TEXT     3    2       NT     'File will be deleted'
+
+TEXT    5   2   CH 'Instructions'
+TEXT    6   5   NT 'Press'
+TEXT    6   11  ET 'Enter'
+TEXT    6   17  NT 'key to confirm move request'
+TEXT    7   5   NT 'Enter'
+TEXT    7   11  ET 'End'
+TEXT    7   15  NT 'to return to &ZVMODE session'
+
+)INIT
+&ZCMD1   = &Z
+&ZWINTTL = 'Confirm Move'
+
+VGET ZVERB SHARED
+IF (&ZVERB EQ 'RETURN')
+  .RESP = ENTER
+  .MSG  = PEDT016H
+
+)PROC
+if ( &ZCMD1 NE &Z)
+  .MSG    = PSYS018
+  .CURSOR = ZCMD1
+  EXIT
+
+)FIELD
+FIELD(ZSTR1) LEN(4095) IND(ZSTR1IND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2024 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

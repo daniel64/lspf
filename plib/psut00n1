@@ -1,0 +1,75 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Show Network interfaces and addresses
+)ENDCOMMENT
+
+)ATTR
+_ TYPE(NEF) PAD(USER) CAPS(ON)
++ TYPE(VOI)
+! TYPE(OUTPUT) COLOUR(YELLOW) CAPS(OFF)
+% TYPE(OUTPUT) COLOUR(WHITE) CAPS(OFF)
+# TYPE(OUTPUT) COLOUR(BLUE) CAPS(OFF)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Network Interfaces'
+
+TEXT     4   2         FP    'Command ===>'
+FIELD    4  15  max-17 nef caps(on),pad(user) zcmd
+
+TEXT     4  MAX-15   FP   'Scroll ===>'
+FIELD    4  MAX-3  4 NEF  NONE ZSCROLL
+
+TEXT     6  2   FP  'S Network Interface    IP Address      Netmask         Broadcast/Destination Address'
+TEXT     7  2   FP  '                           IP Address V6                  Netmask V6'
+
+TBMODEL  8   MAX
+TBFIELD  2      1      ATTR(_) SEL
+TBFIELD  ++1    20     ATTR(!) NETIF
+TBFIELD  ++1    15     ATTR(%) IPADDR
+TBFIELD  ++1    15     ATTR(%) NETMASK
+TBFIELD  ++1    15     ATTR(%) GADDR
+TBMODEL
+TBFIELD  29     30     ATTR(#) IPADDR6
+TBFIELD  60     MAX    ATTR(#) NETMASK6
+
+)INIT
+VGET ZSCROLL PROFILE
+
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+)REINIT
+IF (.MSG EQ &Z)
+   &SEL = &Z
+   REFRESH(SEL)
+
+)PROC
+IF (.RESP = END) EXIT
+
+&ZCMD = TRANS(&ZCMD NET,NETHOGS
+                    NETH,NETHOGS
+                    NETHO,NETHOGS
+                    NETHOG,NETHOGS
+                    HOGS,NETHOGS
+                    *,* )
+
+IF (&ZCMD NE NETHOGS,&Z)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
+VER(&SEL,LIST,I,P,S,T)
+
+IF (.MSG = &Z) VPUT ZSCROLL PROFILE
+
+)FIELD
+--FIELD(DIR)  LEN(4095)
+--FIELD(OPTS) LEN(512)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2023 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

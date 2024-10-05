@@ -1,0 +1,90 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Personal File List (Edit)
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+
+)ABC DESC(Options) MNEM(1)
+PDC  DESC('Personal List Settings')
+ ACTION RUN(ISRROUTE) PARM('SELECT PGM(PLRFLST1) PARM(US1) NEWAPPL(ISP)')
+
+)ABCINIT
+
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Edit Personal File List'
+
+TEXT     4   2         FP    'Command ===>'
+FIELD    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD1
+
+TEXT     4  MAX-15  FP 'Scroll ===>'
+FIELD    4  MAX-3  4 NEF  NONE ZSCROLL
+
+TEXT     6  2       FP  'Enter'
+TEXT     6  8       PS  'End'
+TEXT     6  12      FP  'to save changes,'
+TEXT     6  29      PS  'Cancel'
+TEXT     6  36      FP  'to exit without saving.'
+
+TEXT     7  2       FP  'I=Insert entry   R=Repeat entry   D=Delete entry'
+
+TEXT     9  2       CH 'Name     Description'
+TEXT     9  52      CH 'Created     Referenced'
+FIELD    10 2       8      VOI  NONE ZCURTB
+FIELD    10 11      40     NEF  NONE FLADESCP
+FIELD    10 52      10     VOI  NONE FLACTIME
+FIELD    10 64      19     VOI  NONE FLAUTIME
+
+TEXT     12  2      CH    'S File Name'
+TEXT     13  2      CH    EXPAND '-'
+
+TBMODEL  14   MAX
+TBFIELD  2    1       NEF   PAD(USER),CAPS(ON) BSEL
+TBFIELD  ++1  MAX     NEF   NONE BFILE
+
+)INIT
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+IF (&ZCURTB EQ 'REFLIST')
+   .ATTR(FLADESCP) = 'TYPE(VOI)'
+
+&ZTDMARK = '- End -'
+&ZCMD1   = &Z
+
+)REINIT
+IF (.MSG EQ &Z)
+   &BSEL = &Z
+   REFRESH(BSEL)
+ELSE
+   IF (.CURSOR EQ BSEL ) .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+)PROC
+VGET ZVERB SHARED
+IF (&ZVERB EQ CANCEL)
+   &ZCMD1 = CANCEL
+   EXIT
+
+IF (&ZCMD1 EQ END)
+   .RESP = END
+
+IF (&ZCMD1 NE &Z,SORT,END)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD1
+   EXIT
+
+VER (&BSEL,LIST,D,I,R)
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+
+)PNTS
+FIELD(ZPS00001) VAR(ZCMD1) VAL(END)
+FIELD(ZPS00002) VAR(ZCMD1) VAL(CANCEL)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

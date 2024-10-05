@@ -1,0 +1,37 @@
+)PANEL VERSION=1 FORMAT=1 
+/* *************************************************** */
+/* Converted by panconv EXEC on 3 Oct 2024 at 15:46:41 */
+/* *************************************************** */
+/* )PANEL panconv */
+)ATTR
+% TYPE(PT)
++ TYPE(NT)
+! TYPE(ET)
+/* @ AREA(SCRL) EXTEND(ON) panconv */
+{ TYPE(RP)
+)BODY WINDOW(62,24) CMD()
+TEXT 1 23 ATTR(25) 'Timer display'
+AREA 2 1 62 11 SAREA1
+)AREA SAREA1
+TEXT 1 2 ATTR(2B) 'Line commands:'
+TEXT 2 5 ATTR(21) 'B'
+TEXT 2 8 ATTR(2B) 'Browse the timer unit.'
+TEXT 3 5 ATTR(21) 'D'
+TEXT 3 8 ATTR(2B) 'Display dependencies.'
+TEXT 4 5 ATTR(21) 'E'
+TEXT 4 8 ATTR(2B) 'Edit the timer unit.'
+TEXT 5 5 ATTR(21) 'I'
+TEXT 5 8 ATTR(2B) 'Timer and trigger information.'
+TEXT 6 5 ATTR(21) 'J'
+TEXT 6 8 ATTR(2B) 'Display journal for the timer.'
+TEXT 7 5 ATTR(21) 'L'
+TEXT 7 8 ATTR(2B) 'Display journal for the timer for this boot.'
+TEXT 8 5 ATTR(21) 'T'
+TEXT 8 8 ATTR(2B) 'Browse the trigger unit.'
+TEXT 9 5 ATTR(21) 'U'
+TEXT 9 8 ATTR(2B) 'Edit the trigger unit.'
+)INIT
+&ZWINTTL = &Z
+.HHELP = lsphh001
+
+)END

@@ -1,0 +1,74 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Entry panel for viewing tables.
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'lspf Table Utility'
+
+TEXT     4    2    FP 'Command ===> '
+FIELD    4   15    MAX NEF CAPS(ON),PAD(USER) ZCMD
+
+AREA   5 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1    2       CH 'Enter one of the parameters below:'
+
+TEXT     2    5       FP 'Table directory. .'
+FIELD    2    24  55  NEF PAD(USER) ZTUDIR
+FIELD    2    80   2  LI  NONE      ZDIRIND
+
+TEXT     3    5       FP 'or Table DD. . . .'
+TEXT     3    35      FP '(Default is ZTLIB)'
+FIELD    3    24   8  NEF CAPS(ON),PAD(USER) ZTUDD
+
+TEXT     5    5       FP 'Table Name . . . .'
+FIELD    5    24   8  NEF PAD(USER),CAPS(ON) ZTUTNAM
+TEXT     5    35      FP '(Blank or pattern for table selection list)'
+
+TEXT     8    5       PIN 'Enter / to select option'
+
+FIELD    9    5   1   NEF PAD(USER) ZTUSHARE
+TEXT     9    8       SAC 'Open table in SHARE mode'
+
+
+)INIT
+.NRET = ON
+.NRET = ZTUDIR
+.HIST = *
+
+VGET (ZTUDIR ZTUDD ZTUTNAM ZTUSHARE) PROFILE
+.CURSOR = ZTUDIR
+
+)PROC
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+
+IF (&ZTUDD EQ &Z AND &ZTUDIR = &Z) &ZTUDD = ZTLIB
+VER (&ZTUDD,NAME)
+
+IF (&ZTUDD NE &Z AND &ZTUDIR NE &Z) &ZTUDD = &Z
+
+IF (&ZTUDIR NE &Z AND DIR(ZTUDIR) EQ .FALSE)
+   .MSG    = PPSP012C
+   .CURSOR = ZTUDIR
+
+&ZTUSHARE = TRANS(&ZTUSHARE &Z,&Z *,/ )
+&ZTUEDIT  = TRANS(&ZTUEDIT  &Z,&Z *,/ )
+
+VPUT (ZTUDIR ZTUDD ZTUTNAM ZTUSHARE) PROFILE
+
+)FIELD
+FIELD(ZTUDIR) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL) NESTED')
+FIELD(ZTUDIR) LEN(4095) IND(ZDIRIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

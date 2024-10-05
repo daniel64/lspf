@@ -1,0 +1,58 @@
+)PANEL VERSION=1 FORMAT=1 
+/* *************************************************** */
+/* Converted by panconv EXEC on 3 Oct 2024 at 15:46:41 */
+/* *************************************************** */
+)ATTR DEFAULT(%+_)
+  + TYPE(TEXT  ) COLOR(GREEN)
+  _ TYPE( INPUT) INTENS(LOW ) JUST(LEFT ) HILITE(USCORE)
+  @ TYPE(TEXT) INTENS(HIGH) CAPS(OFF) JUST(ASIS ) COLOR(TURQ)
+/*   } AREA(SCRL) EXTEND(ON) panconv */
+)BODY 
+TEXT 1 2 ATTR(25) 'Tutorial ----------------------------'
+TEXT 1 40 ATTR(40) 'Edit Utility'
+TEXT 1 53 ATTR(25) '----------------------------- Tutorial'
+AREA 2 1 90 39 HELP
+)AREA HELP
+TEXT 1 2 ATTR(25) 'Extensions to the normal ISPF PDF editor line commands:'
+TEXT 2 2 ATTR(2B) '*-----------------------------------------------------*'
+TEXT 4 2 ATTR(2B) 'MNn      Make note.  Turn current line(s) into note lines, shown by =NOTE='
+TEXT 5 2 ATTR(2B) 'MNN'
+TEXT 7 2 ATTR(2B) 'SI       Show Indentation.  Unexclude lines based on left-most indentation'
+TEXT 9 2 ATTR(2B) 'TJn      Text join.  Join a number of lines together (default 1) separated by'
+TEXT 10 2 ATTR(2B) 'TJJ      a single space.'
+TEXT 11 2 ATTR(2B) '         Text join ignores bounds settings but not the number mode.'
+TEXT 13 2 ATTR(2B) 'TRn      Text trim.  Trim trailing spaces from a line or block of lines'
+TEXT 14 2 ATTR(2B) 'TRR'
+TEXT 16 2 ATTR(2B) 'Tn       Toggle hilighting of a line/block of lines (high white)'
+TEXT 17 2 ATTR(2B) 'TT       Remove with the ''RESET'' or ''RESET T'' commands (aliases MRK, MARK, MARKED)'
+TEXT 18 2 ATTR(2B) '         Used to easily find marked code, but could later be used with some'
+TEXT 19 2 ATTR(2B) '         primary commands (currenty only CUT)'
+TEXT 21 2 ATTR(2B) 'TXn      Toggle exclude status of a line/block of lines'
+TEXT 22 2 ATTR(2B) 'TXX'
+TEXT 24 2 ATTR(2B) 'Wn       Used in conjuction with M/MM to swap lines'
+TEXT 25 2 ATTR(2B) 'WW'
+TEXT 27 2 ATTR(2B) 'XI       Exclude Indentation.  Exclude lines until the indentation is less than'
+TEXT 28 2 ATTR(2B) '         the indentation where the command is entered.'
+TEXT 30 2 ATTR(2B) '[n       Shift characters left to the next nth tab position (no data loss)'
+TEXT 31 2 ATTR(2B) '[[n      For block command, lines are shifted individually, so alignment may'
+TEXT 32 2 ATTR(2B) '         change.'
+TEXT 34 2 ATTR(2B) ']n       Shift characters right to the next nth tab position (data loss only if'
+TEXT 35 1 ATTR(2B) '          right tab position set)'
+TEXT 37 2 ATTR(2B) ']]n      For block command, lines are shifted individually, so alignment may'
+TEXT 38 2 ATTR(2B) '         change.'
+TEXT 41 2 ATTR(25) 'NOTE:'
+TEXT 41 8 ATTR(2B) '   For RECOVERY ON to work, SETUNDO must also be on.  RECOVERY is'
+TEXT 42 2 ATTR(2B) '         suspended if this is not the case.'
+TEXT 45 2 ATTR(25) 'NUMBER MODE:'
+TEXT 46 2 ATTR(2B) '*----------*'
+TEXT 47 2 ATTR(2B) 'NUMBER ON STD will produce line numbers on the left margin for RECFM U and on'
+TEXT 48 2 ATTR(2B) 'the right margin for fixed length records, RECFM F.  For this reason,'
+TEXT 49 2 ATTR(2B) 'NUMBER ON STD COB is only valid for RECFM F.'
+TEXT 52 2 ATTR(2B) 'Unlike the ISPF editor, characters can be inserted/deleted from beyond the right'
+TEXT 53 2 ATTR(2B) 'margin by the use of dynamic area overflow variables.'
+TEXT 54 2 ATTR(2B) 'If number mode STD is on for RECFM F with the numbers beyond the right margin'
+TEXT 55 2 ATTR(2B) 'of the display area, they are removed from the overflow variables so that'
+TEXT 56 2 ATTR(2B) 'inserting and deleting characters is easier.'
+)INIT
+)PROC
+)END

@@ -1,51 +1,91 @@
 To install:
 ===========
 
+lspf can be installed manually where the source is compiled using the supplied scripts and run as a native application, or via docker.
+Manual install should be used unless the applications won't compile on your system (for example, on Mac).
+
 Manually:
 ---------
-1)  Customise lspf.h  Make sure paths ZSPROF, ZUPROF, MLIB etc exist.
+1)  Customise lspf.h  Make sure paths in ZUPROF, MLIB etc exist.  lspf will fail to start without them.
 2)  Compile and run setup.cpp to create the default ISPSPROF profile member, ISPCMDS and USRCMDS command tables.
+    Fix any warnings issued as lspf will fail to start if directories are missing.
 3)  Compile lspf.cpp
-4)  Compile applications
-5)  Copy directories mlib, plib and tlib to the paths defined in MLIB, PLIB and TLIB in lspf.h if different.
+4)  Compile applications.  Move modules to ZLDPATH defined in lspf.h if different (modules are of the form lib*.so).
+5)  Copy directories mlib, plib, slib and tlib to the paths defined in MLIB, PLIB, SLIB and TLIB in lspf.h if different.
     If using keylists, make sure key table file ISRKEYP in the tlib/ directory is in the ZUPROF directory (usually ~/.lspf/)
-    or run rexx keygen to create it.
+    or run lspf rexx keygen to create it.
 
 You can use comp1 to compile lspf.cpp, compsetup to compile setup.cpp and compapps for all applications in directory Apps.
 This has been developed on Arch Linux - link options may vary (eg. if ncurses is built with --with-termlib add -ltinfo )
+
+Note: If panel REXX support is not being enabled (PNL_REXX set to 0 in lspf.h), as there is no REXX installed, comment out LNK1 in comp1
+      that contains -lrexx -lrexxapi and uncomment the LNK1 without these.
+
+
+lspf has been successfully compiled on other distributions:
+Fedora 31
+openSUSE Tumbleweed
+Ubuntu 19.10
+Mint 19
 
 
 Docker:
 -------
 There is a docker build in directory tools/docker kindly provided by Rene Jansen.
 This will download and install both ooRexx and lspf.
+I have no experience with Docker, so if you encounter problems with this, I am unable to help.
 
+
+=====================================================================================================================================
 
 Boost and ncurses required to compile lspf.cpp.
 
 Environmental variables HOME and LOGNAME are required to be setup.  lspf will fail to start without them.
 SHELL is also used, but not a requirement.  .SHELL command will not work if this variable is not set.
 
-OOREXX required for POREXX1.cpp (OOREXX interface module for writing lspf applications in REXX) and PEDRXM1.cpp (edit
+Optional OOREXX for panel REXX support, PANEXIT, POREXX1.cpp (OOREXX interface module for writing lspf applications in REXX) and PEDRXM1.cpp (edit
 macro interface module for writing edit macros in REXX).
 
+Other Application dependencies
+------------------------------
 file required for PBRO01A.cpp as it is linked with -lmagic.
-grep required for PFLST0A.cpp for the SRCHFOR command.
+grep and xargs required for PFLST0A.cpp for the SRCHFOR command.
+which required for PCMD0A.cpp to check a command exists.
+grc optional for PCMD0B.cpp to colour output.
+udev, systemd and nethogs (optional - default without) for PSYSUTL.cpp
 
 Run lspf in a terminal.
 
 Works with:
-linux 5.5.4
-gcc 9.2.1
-ncurses 6.2
-boost 1.72.0
+linux 6.11.1
+gcc 14.2.1
+ncurses 6.5
+boost 1.86.0
+
+optional:
+ooRexx (4.2 or 5.1.0.r12587)
+
+
+REXX
+----
+Only OOREXX is supported and is optional, but you won't be able to the panel *REXX statement or the PANEXIT panel statement without it.
+Native ISPF panel support is also not available without rexx as this is provided by exec panconv.
+
+Set PNL_REXX to 0 in lspf.h if REXX is not installed.
+
+
+EDIT MACROS
+-----------
+These can be written in REXX or C++.  For C++ macros, the class must inherit from PEDMCP1 and implement virtual method start_pgm().
 
 
 On upgrade:
 -----------
-
 Recompile application programs in case header files have changed (use applications that come with that
 version of lspf).
 
 Recompile and rerun setup in case variables have been added to the ISPS profile.  You will get segfaults
 if required variables are missing.
+
+See ChangeLog to see if any actions are required after upgrade.
+

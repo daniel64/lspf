@@ -1,0 +1,62 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Update variable
+)ENDCOMMENT
+
+)BODY WINDOW(70,11)
+PANELTITLE 'Update Variable'
+
+TEXT     2   2       FP  'Command ===> '
+FIELD    2  15   MAX NEF CAPS(ON),PAD(USER) ZCMD1
+
+AREA     3 2      MAX     MAX     SAREA1
+
+)AREA SAREA1
+TEXT     1    1       FP    'Pool . . :'
+FIELD    1   12   MAX VOI   CAPS(ON) TYPE
+TEXT     2    1       FP    'Variable :'
+FIELD    2   12   MAX VOI   CAPS(ON) VAR
+TEXT     3    1       FP    'Value. . .'
+FIELD    3   12   MAX-4 CEF PAD(USER),CAPS(OFF) VALU
+FIELD    3   MAX-2    2 LI  NONE                VALUIND
+
+TEXT     5 1  NT 'Enter'
+TEXT     5 7  PS 'Cancel'
+TEXT     5 14 NT 'to cancel update'
+
+TEXT     6 1  NT 'Press'
+TEXT     6 7  PS 'End'
+TEXT     6 11 NT 'to update list'
+
+)INIT
+&ZCMD1   = &Z
+&ZWINTTL = &Z
+.CURSOR  = VALU
+
+IF (&VPOOL EQ P) &TYPE = PROFILE
+ELSE             &TYPE = SHARED
+
+)PROC
+IF (&ZCMD1 NE &Z,CANCEL,END)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD1
+   EXIT
+
+IF (&ZCMD1 EQ CANCEL,END)
+   .RESP = END
+ELSE
+   VGET ZVERB SHARED
+   &ZCMD1 = &ZVERB
+
+)PNTS
+FIELD(ZPS01001) VAR(ZCMD1)  VAL(CANCEL)
+FIELD(ZPS01002) VAR(ZCMD1)  VAL(END)
+
+)FIELD
+FIELD(VALU) LEN(32767) IND(VALUIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

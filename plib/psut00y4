@@ -1,0 +1,121 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Show systemd units
+)ENDCOMMENT
+
+)ATTR
+_ TYPE(NEF) PAD(USER) CAPS(ON)
++ TYPE(VOI)
+! TYPE(OUTPUT) COLOUR(YELLOW) CAPS(OFF)
+% TYPE(OUTPUT) COLOUR(WHITE) CAPS(OFF)
+* TYPE(OUTPUT) COLOUR(GREEN) CAPS(OFF)
+{ TYPE(OUTPUT) COLOUR(TURQ) CAPS(OFF)
+@ TYPE(TEXT) COLOUR(GREEN) CAPS(OFF)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Systemd Units'
+
+TEXT     4   2         FP    'Command ===>'
+FIELD    4  15  max-17 nef caps(on),pad(user) zcmd
+
+TEXT     4  MAX-15   FP   'Scroll ===>'
+FIELD    4  MAX-3  4 NEF  NONE ZSCROLL
+TEXT     5  MAX-15  SI 'More: <'
+
+TEXT    6   4   CH  'St  Load     Active   Sub      Description'
+TEXT    7   4   CH  '    state    state    state'
+
+FIELD   8   8   8   NEF  PAD(USER) FILTER1
+FIELD   8   17  8   NEF  PAD(USER) FILTER2
+FIELD   8   26  8   NEF  PAD(USER) FILTER3
+FIELD   8   35  MAX NEF  PAD(USER) FILTER4
+
+TBMODEL  9   MAX
+TBFIELD  2      1      ATTR(_) SEL
+TBFIELD  ++1    3      ATTR(*) STATEX
+TBFIELD  ++1    8      ATTR(!) LSTATE
+TBFIELD  ++1    8      ATTR(!) ASTATE
+TBFIELD  ++1    8      ATTR(!) SSTATE
+TBFIELD  ++1    MAX    ATTR(*) DESCR
+TBMODEL
+TBFIELD  8      MAX    ATTR(%) UNIT
+TBMODEL
+TBFIELD  8      MAX    ATTR({) STATE
+TBMODEL
+TBFIELD  10     MAX    ATTR(%) PATH1
+TBMODEL
+TBFIELD  10     MAX    ATTR(%) PATH2
+TBMODEL
+TBTEXT   2 ATTR(@) EXPAND '-'
+
+)INIT
+.HELP = LSPSD001
+VGET ZSCROLL PROFILE
+
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+)PROC
+&A = TRUNC(&ZCMD, ' ')
+IF (&A EQ O)
+   &FILTER5 = .TRAIL
+   &ZCMD    = &Z
+
+&ZCMD = UPPER(ZCMD)
+&A    = TRANS(&ZCMD SERVICE,'.service'
+                    SOCKET,'.socket'
+                    DEVICE,'.device'
+                    MOUNT,'.mount'
+                    AUTOMOUNT,'.automount'
+                    SWAP,'.swap'
+                    TARGET,'.target'
+                    PATH,'.path'
+                    TIMER,'.timer'
+                    SNAPSHOT,'.snapshot'
+                    SLICE,'.slice'
+                    SCOPE,'.scope' )
+
+IF (&A NE &Z)
+   &FILTER5 = &A
+   &ZCMD    = &Z
+
+IF (&ZCMD EQ SAVE)
+   VPUT (FILTER1,FILTER2,FILTER3,FILTER4) PROFILE
+   VPUT (FILTER5,FILTER6,FILTER7) PROFILE
+   &ZCMD = &Z
+
+&ZCMD = TRANS(&ZCMD REF,REFRESH RES,RESET *,* )
+
+IF (&ZCMD EQ RESET)
+   &FILTER1 = &Z
+   &FILTER2 = &Z
+   &FILTER3 = &Z
+   &FILTER4 = &Z
+   &FILTER5 = &Z
+   &FILTER6 = &Z
+   &FILTER7 = &Z
+   VPUT (FILTER1,FILTER2,FILTER3,FILTER4) PROFILE
+   VPUT (FILTER5,FILTER6,FILTER7) PROFILE
+
+IF (&ZCMD NE &Z,RESET,REFRESH,SESSIONS,TIMERS,X,/)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
+VER(&SEL,LIST,A,B,D,E,I,J,L,M,P,R,S,X,/)
+
+IF (.MSG = &Z) VPUT ZSCROLL PROFILE
+
+)FIELD
+FIELD(UNIT) LEN(4095)
+FIELD(DESCR) LEN(4095)
+FIELD(PATH1) LEN(4095)
+FIELD(PATH2) LEN(4095)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2024 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

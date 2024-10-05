@@ -1,0 +1,334 @@
+/*
+  Copyright (c) 2022 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+/**************************************************************************************/
+/* Command to store file name / profile.                                              */
+/* Used together with edit macro PEDUMAC1 to select profile name based on file name.  */
+/*                                                                                    */
+/* Patterns can also be used:                                                         */
+/*   prules *rexx* REXX                                                               */
+/*   prules *asm* ASM                                                                 */
+/*   prules *cpp  CPP                                                                 */
+/*   prules [^[:blank:]]*\.cpp  CPP REXEG ICASE                                       */
+/*                                                                                    */
+/*   Parameter REGEX indicates that the entered pattern is a REGEX and no             */
+/*   conversion should take place.  Without REGEX parameter, the pattern will         */
+/*   be converted to a REGEX.                                                         */
+/*                                                                                    */
+/*   Parameter ICASE indicates that the match is case insensitive.                    */
+/*   The default is case sensitive.                                                   */
+/*                                                                                    */
+/*   prules -LIST       lists current contents of the table (default)                 */
+/*   prules -DELETE x   deletes entry x by name (blank for prompt)                    */
+/*   prules -DELNO  n   deletes entry n by number (blank for prompt)                  */
+/*   prules -HELP       display help                                                  */
+/**************************************************************************************/
+
+
+address ISPEXEC
+
+parse arg arg1 arg2 arg3
+
+tabName = "EDTYPES"
+
+arg1u = translate( arg1 )
+arg2  = translate( arg2 )
+arg3  = translate( arg3 )
+
+regex = .false
+asis  = .true
+
+p = wordpos( "REGEX", arg3 )
+if p > 0 then
+  do
+    regex = .true
+    arg3  = delword( arg3, p, 1 )
+  end
+
+p = wordpos( "ICASE", arg3 )
+if p > 0 then
+  do
+    asis = .false
+    arg3 = delword( arg3, p, 1 )
+  end
+
+if arg3 \= ""then
+  do
+    say "Invalid parameter" arg3 "entered."
+    exit
+  end
+
+if arg1 = "" then arg1u = "-LIST"
+
+if substr( arg1u, 1, 1 ) = "-" then
+  do
+    Call command arg1u, arg2
+    EXIT
+  end
+
+"LIBDEF TABLIB LIBRARY ID(ZUPROF)"
+
+"TBOPEN &tabName LIBRARY(TABLIB) WRITE"
+if RC = 8 then
+  do
+    "TBCREATE &tabName KEYS(ZEDUFILE) NAMES(ZEDUREGX ZEDULEN ZEDUCASE ZEDUTYPE) WRITE LIBRARY(TABLIB)"
+  end
+
+"TBVCLEAR &tabName"
+
+ZEDUFILE = arg1
+if ZEDUFILE = "" then
+  do
+    say "File pattern needs to be entered."
+    "TBEND &tabName"
+    "LIBDEF TABLIB"
+    exit
+  end
+
+ZEDUTYPE = translate( arg2 )
+if ZEDUTYPE = "" then
+  do
+    say "Profile needs to be entered."
+    "TBEND &tabName"
+    "LIBDEF TABLIB"
+    exit
+  end
+
+if \regex then
+  do
+    ZEDUREGX = getREGEX( ZEDUFILE )
+  end
+else
+  do
+    ZEDUREGX = ZEDUFILE
+  end
+ZEDULEN  = length( ZEDUFILE )
+
+if asis then
+  do
+    ZEDUCASE = "A"
+  end
+else
+  do
+    ZEDUCASE = "I"
+  end
+
+"TBMOD &tabName"
+"TBSORT &tabName FIELDS(ZEDULEN,N,D)"
+
+"TBCLOSE &tabName LIBRARY(TABLIB)"
+
+say "Added pattern '"zedufile"' for profile" zedutype
+
+"LIBDEF TABLIB"
+EXIT
+
+
+getREGEX: procedure
+/* ******************************************** */
+/* Convert the entry to a REGEX if not already. */
+/* special chars are .[{()\*+?|^$               */
+/* ******************************************** */
+x = arg( 1 )
+y = ""
+
+do i = 1 to length( x ) by 1
+   c = substr( x, i, 1 )
+   select
+     when c = "*" then y = (y)"[^[:blank:]]*"
+     when c = "?" then y = (y)"[^[:blank:]]"
+     when c = "." then y = (y)"\"c
+     when c = "[" then y = (y)"\"c
+     when c = "{" then y = (y)"\"c
+     when c = "(" then y = (y)"\"c
+     when c = ")" then y = (y)"\"c
+     when c = "\" then y = (y)"\"c
+     when c = "+" then y = (y)"\"c
+     when c = "|" then y = (y)"\"c
+     when c = "^" then y = (y)"\"c
+     when c = "$" then y = (y)"\"c
+     otherwise         y = (y)c
+  end
+end
+RETURN y
+
+
+Command: procedure expose tabName
+/* ************************************* */
+/* Process commands                      */
+/* -LIST                                 */
+/* -DELETE                               */
+/* -DELNO                                */
+/* -HELP                                 */
+/* ************************************* */
+cmd = translate( arg( 1 ) )
+prm = arg( 2 )
+
+if abbrev( "-LIST", cmd, 2) then cmd = "-LIST"
+else if abbrev( "-DELETE", cmd, 5 ) then cmd = "-DELETE"
+else if abbrev( "-DELNO", cmd, 5 ) then cmd = "-DELNO"
+else if abbrev( "-HELP", cmd, 2 ) then cmd = "-HELP"
+
+select
+  when cmd = "-LIST" then
+    do
+      ZZ.I = "ICASE"
+      ZZ.A = "ASIS "
+      "LIBDEF TABLIB LIBRARY ID(ZUPROF)"
+      "TBOPEN &tabName LIBRARY(TABLIB) NOWRITE"
+      if RC > 0 then RETURN
+      ot1. = ""
+      ot2. = ""
+      ot3. = ""
+      ot4. = ""
+      sz1  = 0
+      sz2  = 8
+      sz3  = 0
+      do i = 1 by 1
+        "TBSKIP &tabName"
+        if RC > 0 then leave
+        ot1.i = zedufile
+        ot2.i = zedutype
+        ot3.i = zeducase
+        ot4.i = zeduregx
+        sz1   = max( sz1, length( zedufile ) )
+        sz2   = max( sz2, length( zedutype ) )
+        sz3   = max( sz3, length( zeduregx ) )
+        ot1.0 = i
+      end
+      "TBEND &tabName"
+      "LIBDEF TABLIB"
+      say "     CASE     " left( "RULE", sz1 ) "   " left( "PROFILE", sz2 ) "   REGEX"
+      say "     ----     " copies( "-", sz1 ) "   " copies( "-", sz2 ) "  " copies( "-", sz3 )
+      do i = 1 to ot1.0
+        say left( (i)")", 4 ) zz.[ot3.i] "   " left( ot1.i, sz1 ) "   " left( ot2.i, sz2 ) "  " ot4.i
+      end
+    end
+
+  when cmd = "-DELETE" then
+    do
+      if prm = "" then
+        do
+          Call command "-LIST"
+          do until prm \= ""
+            say "Enter pattern to delete:"
+            parse pull prm
+          end
+       end
+      "LIBDEF TABLIB LIBRARY ID(ZUPROF)"
+      "TBOPEN &tabName LIBRARY(TABLIB) WRITE"
+      if RC > 0 then RETURN
+      zedufile = prm
+      "TBDELETE &tabName"
+      if RC = 0 then
+        do
+          say "Entry" zedufile "deleted"
+        end
+      else
+        do
+          say "Entry" zedufile "not found"
+        end
+      "TBCLOSE &tabName LIBRARY(TABLIB)"
+      "LIBDEF TABLIB"
+    end
+
+  when cmd = "-DELNO" then
+    do
+      if prm = "" then
+        do
+          Call command "-LIST"
+          do until prm \= ""
+            say "Enter entry number to delete:"
+            pull prm
+          end
+        end
+      if \datatype( prm, "W" ) then
+        do
+          say "Entry number not valid - must be numeric."
+          RETURN
+        end
+      "LIBDEF TABLIB LIBRARY ID(ZUPROF)"
+      "TBOPEN &tabName LIBRARY(TABLIB) WRITE"
+      if RC > 0 then RETURN
+      zedufile = prm
+      "TBSKIP &tabName NUMBER("prm")"
+      if RC > 0 then
+        do
+          say "Entry number not valid - out of range."
+          "TBEND &tabName"
+          "LIBDEF TABLIB"
+          RETURN
+        end
+      "TBDELETE &tabName"
+      if RC = 0 then
+        do
+          say "Entry" prm "deleted.  Pattern=" || zedufile "  Profile=" || zedutype
+        end
+      else
+        do
+          say "Entry" prm "not deleted.  RC=" RC
+        end
+      "TBCLOSE &tabName LIBRARY(TABLIB)"
+      "LIBDEF TABLIB"
+    end
+
+  when cmd = "-HELP" then
+    do
+      say "prules command"
+      say "=============="
+      say
+      say "prules is used to add/remove entries from the EDTYPES table used by"
+      say "edit macro PEDUMAC1 to set the profile on entry to edit."
+      say
+      say "Syntax:"
+      say "prules pattern profile REGEX ICASE"
+      say "  Pattern can be a regex.  Wildcards * and ? can also be used."
+      say "  The match is case sensitive unless the ICASE parameter is entered."
+      say "  REGEX indicates the pattern is a REGEX and no conversion is to take place."
+      say "  Otherwise wildcards * and ? are converted and REGEX characters are escaped."
+      say
+      say "prules -LIST"
+      say "  Lists the current entries in the table."
+      say
+      say "prules -DELETE x"
+      say "  Deletes pattern x from the table (leave x blank for prompt)."
+      say
+      say "prules -DELNO n"
+      say "  Deletes pattern at position n from the table (leave n blank for prompt)."
+      say
+      say "Commands can be abbreviated to the minimum to make then unique."
+      say
+      say "It is recommended to use editor command PROFILE USE TYPE so that the override"
+      say "is temporary and any non-matching occurences will use the determined file type as a profile."
+      say
+      say "Examples:"
+      say "prules */rexx/* REXX"
+      say "  If the entry name matches */rexx/*, then REXX will be used as the profile."
+      say
+      say "prules *.err TEXT ICASE"
+      say "  If the file suffix is .err in any case, then TEXT will be used as the profile."
+    end
+
+  otherwise
+    do
+      say "Unknown command" cmd
+    end
+end
+
+RETURN

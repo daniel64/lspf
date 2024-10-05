@@ -1,0 +1,85 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Personal File List for dslist filter
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Personal File Lists'
+
+TEXT     4   2         FP    'Command ===>'
+FIELD    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
+
+TEXT     4  MAX-15  FP 'Scroll ===>'
+FIELD    4  MAX-3  4 NEF  NONE ZSCROLL
+
+TEXT     6  2          FP  'Select personal file list for'
+TEXT     6  32         FP  '&PLRTEXTA'
+
+TEXT     8   2  PS    'S Name            Description'
+TEXT     8   61 PS    'Created      Referenced'
+TEXT     9   2  PS    EXPAND '-'
+
+TBMODEL  10   MAX ROWS(SCAN)
+TBFIELD  2    1       NEF   PAD('.'),CAPS(ON) ASEL
+TBFIELD  ++1  15      VOI   NONE ACURTB
+TBFIELD  ++1  40      VOI   NONE AFLDESCP
+TBFIELD  ++1  12      VOI   NONE AFLCTIME
+TBFIELD  ++1  19      VOI   NONE AFLUTIME
+
+)INIT
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+IF (.CURSOR EQ &Z) .CURSOR = 'ZCMD'
+
+.ATTR(ACURTB)   = 'TYPE(OUTPUT) COLOUR(WHITE)'
+.ATTR(AFLDESCP) = 'TYPE(OUTPUT) COLOUR(GREEN)'
+.ATTR(AFLCTIME) = 'TYPE(OUTPUT) COLOUR(BLUE)'
+.ATTR(AFLUTIME) = 'TYPE(OUTPUT) COLOUR(BLUE)'
+
+IF (&PLRSTRTA = 'DSL')
+   &PLRTEXTA = 'DSLIST'
+ELSE
+   &PLRTEXTA = 'DXLIST'
+
+&ZTDMARK = '- End -'
+&ZCMD    = &Z
+
+)REINIT
+IF (.MSG EQ &Z)
+   &ASEL = &Z
+   REFRESH(ASEL)
+ELSE
+   IF (.CURSOR EQ 'ASEL' ) .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+)PROC
+&CMD1 = TRUNC(&ZCMD,' ')
+IF (&CMD1 EQ 'O')
+   &PLRACT  = 'FILTER'
+   &PLRREST = .TRAIL
+   EXIT
+
+IF (&ZCMD EQ 'RES','RESET')
+   &PLRACT = 'RESET'
+   EXIT
+
+IF (&ZCMD NE &Z )
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+   EXIT
+
+IF (&PLRSTRTA = 'DSL')
+   &ASEL = TRANS( &ASEL &Z,&Z *,'L' )
+ELSE
+   &ASEL = TRANS( &ASEL &Z,&Z *,'X' )
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

@@ -1,0 +1,24 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel to display journal prompt entries
+)ENDCOMMENT
+
+)BODY WINDOW(60,12)
+
+TBMODEL  2    MAX
+TBFIELD  2    MAX  NEF PAD(NULLS) ENTRY
+
+)INIT
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+&ZWINTTL = 'Journal prompt'
+&ZTDMARK = '- End -'
+
+)PROC
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2024 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

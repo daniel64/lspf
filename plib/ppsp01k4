@@ -1,0 +1,46 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Keylist Utility Panel 4
+)ENDCOMMENT
+
+)BODY WINDOW(60,10)
+PANELTITLE 'Create Keylist Entry'
+
+TEXT     2   2         FP  'Command ===> '
+FIELD    2  15  MAX    NEF CAPS(ON),PAD(USER) ZCMD
+
+AREA   3 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1   2   FP    'New Keylist Name . . . . .'
+FIELD    1  29   8     NEF CAPS(ON),PAD(USER) NEWKEY
+
+TEXT    3 2  CH 'Instructions'
+TEXT    4 5  NT 'Press'
+TEXT    4 11 ET 'Enter'
+TEXT    4 17 NT 'to confirm'
+
+TEXT    5 5  NT 'Enter'
+TEXT    5 11 ET 'Cancel'
+TEXT    5 18 NT 'or'
+TEXT    5 21 ET 'End'
+TEXT    5 25 NT 'to cancel'
+
+)INIT
+.CURSOR = NEWKEY
+&NEWKEY = &Z
+&ZWINTTL= &Z
+
+)PROC
+IF (&ZCMD NE &Z )
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
+VER (&NEWKEY,NB,NAME)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

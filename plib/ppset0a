@@ -1,0 +1,135 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+
+This is the selection panel for the SETTINGS MENU
+Dialogue variables for selection panels reside in the shared/profile pools
+
+)ENDCOMMENT
+
+)ATTR
++ TYPE(SAC)
+- TYPE(PS)
+$ TYPE(NT)
+_ TYPE(FP)
+* TYPE(TEXT) COLOUR(RED)
+! TYPE(NEF) CAPS(ON) PAD(USER)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Primary Settings and Information Panel'
+
+TEXT     4    2   ATTR(_)    'Option ===>'
+FIELD    4   14   MAX  NEF   CAPS(ON),PAD(USER)  ZCMD
+
+AREA 5 1      MAX-21  MAX-3   SAREA
+
+)AREA SAREA
+TEXT     1   2    ATTR(+) '0'
+TEXT     1   5    ATTR(-) 'General'
+TEXT     1   18   ATTR($) 'Display and alter general lspf option settings'
+
+TEXT     2   2    ATTR(+) '1'
+TEXT     2   5    ATTR(-) 'PF Keys'
+TEXT     2   18   ATTR($) 'Display and alter function key settings'
+
+TEXT     3   2    ATTR(+) '2'
+TEXT     3   5    ATTR(-) 'CUA colours'
+TEXT     3   18   ATTR($) 'Display and alter screen colours'
+
+TEXT     4   2    ATTR(+) '3'
+TEXT     4   5    ATTR(-) 'Colours'
+TEXT     4   18   ATTR($) 'Display and alter lspf global colours'
+
+TEXT     5   2    ATTR(+) '4'
+TEXT     5   5    ATTR(-) 'Commands'
+TEXT     5   18   ATTR($) 'Display command tables'
+
+TEXT     6   2    ATTR(+) '5'
+TEXT     6   5    ATTR(-) 'Paths'
+TEXT     6   18   ATTR($) 'Display search paths and LIBDEF status'
+
+TEXT     7   2    ATTR(+) '6'
+TEXT     7   5    ATTR(-) 'Variables'
+TEXT     7   18   ATTR($) 'Display and delete shared and profile pool variables'
+
+TEXT     8   2    ATTR(+) '7'
+TEXT     8   5    ATTR(-) 'Modules'
+TEXT     8   18   ATTR($) 'Display/Reload Application Modules'
+
+TEXT     9   2    ATTR(+) '8'
+TEXT     9   5    ATTR(-) 'Programs'
+TEXT     9   18   ATTR($) 'Display and alter utility programs'
+
+TEXT     10  2    ATTR(+) '9'
+TEXT     10  5    ATTR(-) 'Keylists'
+TEXT     10  18   ATTR($) 'Display and alter keylist definitions'
+
+TEXT     11  2    ATTR(+) '10'
+TEXT     11  5    ATTR(-) 'Control keys'
+TEXT     11  18   ATTR($) 'Display and alter keyboard control key functions'
+
+TEXT     12  2    ATTR(+) '11'
+TEXT     12  5    ATTR(-) 'Mouse'
+TEXT     12  18   ATTR($) 'Display and alter mouse button actions'
+
+TEXT     15  2    ATTR(+) 'T'
+TEXT     15  5    ATTR(-) 'Tutorial'
+TEXT     15  18   ATTR($) 'Start Tutorial'
+
+TEXT     16  2    ATTR(+) 'X'
+TEXT     16  5    ATTR(-) 'Terminate'
+TEXT     16  18   ATTR($) 'Terminate Settings'
+
+)INIT
+.CURSOR = ZCMD
+&ZPRIM  = YES
+&ZPM1   = 1
+
+)PROC
+IF ( TRUNC( &ZCMD, 1 ) EQ '.' )
+   .MSG = PSYS016
+   EXIT
+
+&ZSEL = TRANS( TRUNC( &ZCMD,'.' ) ,
+                     0,'PGM(PPSP01A) PARM(GOPTS)    NEWPOOL SCRNAME(SETTINGS)'
+                     1,'PGM(PPSP01A) PARM(KEYS)     NEWPOOL SCRNAME(PFKEYS)'
+                     2,'PGM(PPSP01A) PARM(CUAATTR)  NEWPOOL SCRNAME(CUA)'
+                     3,'PGM(PPSP01A) PARM(GCL)      NEWPOOL SCRNAME(CUA)'
+                     4,'PGM(PPSP01A) PARM(CMDS)     NEWPOOL SCRNAME(COMMANDS)'
+                     5,'PGM(PPSP01A) PARM(PATHS)    NEWPOOL SCRNAME(PATHS)'
+                     6,'PGM(PPSP01A) PARM(VARS)     SCRNAME(VARS)'
+                     7,'PGM(PPSP01A) PARM(MODS)     NEWPOOL SCRNAME(MODULES)'
+                     8,'PGM(PPSP01A) PARM(UTPGMS)   NEWPOOL SCRNAME(UTILS)'
+                     9,'PGM(PPSP01A) PARM(KLISTS)   NEWPOOL SCRNAME(KEYLISTS)'
+                    10,'PGM(PPSP01A) PARM(CTLKEYS)  NEWPOOL SCRNAME(CONTROL)'
+                    11,'PGM(PPSP01A) PARM(MOUSE)    NEWPOOL SCRNAME(MOUSE)'
+                     T,'PGM(&ZHELPPGM)'
+                     X,EXIT
+                    &Z,&Z
+                     *,'?'
+             )
+
+)PNTS
+FIELD( ZPS01001 ) VAR(ZCMD)  VAL(0)
+FIELD( ZPS01002 ) VAR(ZCMD)  VAL(1)
+FIELD( ZPS01003 ) VAR(ZCMD)  VAL(2)
+FIELD( ZPS01004 ) VAR(ZCMD)  VAL(3)
+FIELD( ZPS01005 ) VAR(ZCMD)  VAL(4)
+FIELD( ZPS01006 ) VAR(ZCMD)  VAL(5)
+FIELD( ZPS01007 ) VAR(ZCMD)  VAL(6)
+FIELD( ZPS01008 ) VAR(ZCMD)  VAL(7)
+FIELD( ZPS01009 ) VAR(ZCMD)  VAL(8)
+FIELD( ZPS01010 ) VAR(ZCMD)  VAL(9)
+FIELD( ZPS01011 ) VAR(ZCMD)  VAL(10)
+FIELD( ZPS01012 ) VAR(ZCMD)  VAL(11)
+FIELD( ZPS01013 ) VAR(ZCMD)  VAL(T)
+FIELD( ZPS01014 ) VAR(ZCMD)  VAL(X)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

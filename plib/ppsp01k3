@@ -1,0 +1,73 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Keylist Utilit Panel 3
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE '&ZZTABL Keylist &KEYLISTN Change'
+
+TEXT     3   2  7     CH   '&ZZTYP'
+
+TEXT     4   2         FP  'Command ===>'
+FIELD    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
+
+TEXT     4  MAX-15  FP     'Scroll ===>'
+FIELD    4  MAX-3   4 NEF  NONE ZSCROLL
+
+TEXT      6  2      FP    'Keylist Help Panel Name . . .'
+FIELD     6  32   8 NEF  CAPS(ON),PAD(USER) KEYHELP
+
+TEXT      8  2      CH    'Key       Definition                                Format Label'
+TEXT      9  2      CH    EXPAND '-'
+
+TBMODEL   10   MAX
+TBFIELD    2   8    VOI   NONE                KEYNUM
+TBFIELD  ++2   40   LEF   JUST(LEFT)          KEYDEF
+TBFIELD  ++2   5    LEF   CAPS(ON),JUST(LEFT) KEYATTR
+TBFIELD  ++2   8    LEF   JUST(LEFT)          KEYLAB
+
+)INIT
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+.ATTR(KEYNUM) = 'TYPE(OUTPUT) COLOUR(GREEN)'
+
+&TEMP1  = reverse(TBK1TAB)
+&TEMP1  = TRUNC(&TEMP1, 4)
+IF ( &TEMP1 = 'PYEK' ) &ZZTYP = 'PRIVATE'
+else                   &ZZTYP = 'SHARED'
+
+&TEMP1  = .TRAIL
+&ZZTABL = reverse(TEMP1)
+
+)PROC
+VGET ZVERB SHARED
+IF (&ZVERB EQ 'CANCEL')
+   &ZCMD = 'CANCEL'
+   EXIT
+
+IF (&ZCMD NE &Z,CANCEL )
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
+IF (&ZTDSELS NE 0)
+   &A = TRUNC(&KEYATTR,1)
+   &KEYATTR = TRANS(&A, N,NO
+                        S,SHORT
+                        L,LONG
+                        *,&KEYATTR)
+   REFRESH(KEYATTR)
+   VER(&KEYATTR,LIST,SHORT,LONG,NO)
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+ELSE            .RESP = ENTER
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

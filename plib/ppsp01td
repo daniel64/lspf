@@ -1,0 +1,52 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel to display simple TODO list
+)ENDCOMMENT
+
+)BODY WINDOW(82,15) SMSG(TDMSG)
+PANELTITLE 'TODO List'
+TEXT      1  2   FP 'Command ===> '
+FIELD     1 15  MAX  NEF CAPS(ON),PAD(USER) ZCMD
+
+FIELD     2  2  24      VOI NONE TDMSG
+
+AREA   3 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+FIELD     1  2  80      NEF NONE TODO1
+FIELD     2  2  80      NEF NONE TODO2
+FIELD     3  2  80      NEF NONE TODO3
+FIELD     4  2  80      NEF NONE TODO4
+FIELD     5  2  80      NEF NONE TODO5
+FIELD     6  2  80      NEF NONE TODO6
+FIELD     7  2  80      NEF NONE TODO7
+FIELD     8  2  80      NEF NONE TODO8
+FIELD     9  2  80      NEF NONE TODO9
+FIELD    10  2  80      NEF NONE TODO10
+FIELD    11  2  80      NEF NONE TODO11
+FIELD    12  2  80      NEF NONE TODO12
+FIELD    13  2  80      NEF NONE TODO13
+
+)INIT
+&ZCMD = &Z
+&ZWINTTL     = 'TODO List (&ZAPPLID)'
+.ATTR(TDMSG) = 'TYPE(OUTPUT) COLOUR(YELLOW) INTENS(HIGH)'
+
+)PROC
+&ZCMD = TRANS (&ZCMD RES,RESET RESET,RESET &Z,&Z MSG=PSYS018 )
+
+IF (&ZCMD = RESET )
+    vget ( TODO1 TODO2  TODO3  TODO4  TODO5 TODO6 TODO7 TODO8 ) PROFILE
+    vget ( TODO9 TODO10 TODO11 TODO12 TODO13 ) PROFILE
+
+VGET ZVERB SHARED
+
+IF (.MSG = &Z AND .RESP = END AND &ZVERB NE 'CANCEL' )
+    VPUT ( TODO1 TODO2  TODO3  TODO4  TODO5 TODO6 TODO7 TODO8 ) PROFILE
+    VPUT ( TODO9 TODO10 TODO11 TODO12 TODO13 ) PROFILE
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

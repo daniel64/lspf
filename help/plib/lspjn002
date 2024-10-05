@@ -1,0 +1,33 @@
+)PANEL VERSION=1 FORMAT=1 
+/* *************************************************** */
+/* Converted by panconv EXEC on 3 Oct 2024 at 15:46:41 */
+/* *************************************************** */
+/* )PANEL panconv */
+)ATTR
+% TYPE(PT)
++ TYPE(NT)
+! TYPE(ET)
+/* @ AREA(SCRL) EXTEND(ON) panconv */
+{ TYPE(RP)
+)BODY WINDOW(62,24) CMD()
+TEXT 1 22 ATTR(25) 'Set journal filter'
+AREA 2 1 62 13 SAREA1
+)AREA SAREA1
+TEXT 1 2 ATTR(2B) 'Primary commands:'
+TEXT 2 5 ATTR(21) 'PROMPT'
+TEXT 2 13 ATTR(2B) 'Display a prompt of valid values for the field'
+TEXT 3 13 ATTR(2B) 'the cursor is on.'
+TEXT 4 13 ATTR(2B) 'If the cursor is on the Field entry, text up to'
+TEXT 5 13 ATTR(2B) 'the cursor position will be used to filter the'
+TEXT 6 13 ATTR(2B) 'list.  If the cursor is on the first character or'
+TEXT 7 13 ATTR(2B) 'beyond the last character, all entries will be'
+TEXT 8 13 ATTR(2B) 'shown.'
+TEXT 9 5 ATTR(21) 'CANCEL'
+TEXT 9 13 ATTR(2B) 'Cancel any changes made to the filters'
+TEXT 10 5 ATTR(21) 'END'
+TEXT 10 13 ATTR(2B) 'Save the filters and exits.'
+)INIT
+&ZWINTTL = &Z
+.HHELP = lsphh001
+
+)END

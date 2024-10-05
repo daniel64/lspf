@@ -1,0 +1,47 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+Rename Clipboard
+)ENDCOMMENT
+
+)BODY WINDOW(65,10) CMD()
+PANELTITLE 'Rename Clipboard'
+
+AREA   2 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1  2         FP  'Original Name. . . .'
+FIELD    1  23   8    VOI  CAPS(ON),PAD(' ') OLDNAME
+TEXT     2  2         FP  'New Name . . . . . .'
+FIELD    2  23   8    NEF  CAPS(ON),PAD(USER) NEWNAME
+
+TEXT     3  2         FP  'Description. . . . .'
+FIELD    3  23   40   NEF  CAPS(OFF),PAD(USER) NEWDESC
+
+TEXT    5  2  CH 'Instructions'
+TEXT    6  5  NT 'Press'
+TEXT    6  11 ET 'Enter'
+TEXT    6  17 NT 'to confirm or'
+TEXT    6  31 ET 'End'
+TEXT    6  35 NT 'to cancel operation'
+
+
+)INIT
+.CURSOR  = NEWNAME
+&ZWINTTL = &Z
+
+)PROC
+IF ( &NEWNAME EQ &OLDNAME )
+   &ZEDSMSG = 'Invalid Entry'
+   &ZEDLMSG = 'New name cannot be the same as an existing name'
+   .MSG     = PSYZ001
+   .CURSOR  = NEWNAME
+   EXIT
+
+VER (&NEWNAME NB)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

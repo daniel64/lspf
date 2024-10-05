@@ -1,0 +1,32 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Table-in-use panel.
+)ENDCOMMENT
+
+)BODY WINDOW(60,8)
+PANELTITLE 'lspf Table Utility'
+
+TEXT     2    2    FP 'Command ===> '
+FIELD    2   15    MAX NEF CAPS(ON),PAD(USER) ZCMD
+
+AREA   3 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1    2    NT 'Table &ZTUTNAM1 in use.'
+TEXT     3    2    NT 'Press'
+TEXT     3    8    ET 'Enter'
+TEXT     3    14   NT 'or'
+TEXT     3    17   ET 'End'
+TEXT     3    21   NT 'to continue.'
+
+)INIT
+.CURSOR = ZCMD
+
+)PROC
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

@@ -17,13 +17,13 @@
 
 */
 
-/* Re-direct say ouput and error messages to the spool or it'll mess up lspf output */
-parse source . . src .
-Call setdest src
-/************************************************************************************/
-
-/* Run edit macro emac against all files in directory dir  */
-/* Run in applid BTCH so it does not interfer with online  */
+/* ******************************************************* */
+/*                                                         */
+/* Run edit macro emac against files in directory dir.     */
+/* A pattern can be used to select only certain files.     */
+/* Run in applid BTCH so it does not interfer with online. */
+/*                                                         */
+/* ******************************************************* */
 
 address ISPEXEC
 
@@ -34,28 +34,38 @@ if zapplid \= "BTCH" then
     EXIT
   end
 
-dir = "/home/daniel/.lspf/plib/"
-Call sysfiletree dir, "file", "FO"
+dir  = "/home/daniel/.lspf/plib/"
+emac = "emact"
+
+ddname = "$"random( 0, 9999999 )
+address TSO "ALLOC FILE("ddname") PATH("dir")"
+"LMINIT DATAID(DID) DDNAME(&ddname) ENQ(SHR)"
+"LMOPEN DATAID(&did) OPTION(INPUT)"
 
 "CONTROL ERRORS RETURN"
 
-do i = 1 to file.0
-   f = word( file.i, 1)
-   "RDISPLAY Editing file &f"
-   "EDIT FILE(&f) MACRO(emac) PROFILE(BATCH)"
+"LMMLIST DATAID(&did) OPTION(LIST) MEMBER(MEM)"
+do while RC = 0
+   file = (dir)mem
+   say "Editing file "mem
+   "EDIT FILE(&file) MACRO(&emac) PROFILE(BATCH)"
    if RC = 14 then
      do
-       "RDISPLAY Error.  File in use.  RC=&RC"
+       say "Error.  File in use.  RC="RC
      end
    else if RC = 20 then
      do
-       "RDISPLAY A severe error has occured.  RC=&RC"
+       say "A severe error has occured.  RC="RC
      end
    else
      do
-       "RDISPLAY RC=&RC"
+--     say "RC="RC
      end
-  "RDISPLAY "
+   "LMMLIST DATAID(&did) OPTION(LIST) MEMBER(MEM)"
 end
+
+"LMMLIST DATAID(&did) OPTION(FREE)"
+"LMFREE DATAID(&did)"
+address TSO "FREE FI("ddname")"
 
 EXIT

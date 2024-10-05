@@ -1,0 +1,48 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+VIEW warning on exiting with data changes
+)ENDCOMMENT
+
+)BODY WINDOW(60,12)
+PANELDESC 'View Warning'
+
+TEXT     2    2       FP     'Command ===> '
+FIELD    2   15  MAX  NEF     PAD(USER) ZCMD1
+
+AREA   3 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1    14      NT     'You are currently in VIEW mode'
+
+TEXT    3   2   CH 'Instructions'
+TEXT    4   5   NT 'Press'
+TEXT    4   11  ET 'Enter'
+TEXT    4   17  NT 'key to confirm exit from VIEW.  No changes'
+TEXT    5   5   NT 'will be saved.'
+TEXT    7   5   NT 'Enter'
+TEXT    7   11  ET 'End'
+TEXT    7   15  NT 'or'
+TEXT    7   18  ET 'Exit'
+TEXT    7   23  NT 'to return to VIEW.'
+
+)INIT
+&ZCMD1   = &Z
+&ZWINTTL = 'View Warning'
+
+VGET ZVERB SHARED
+IF (&ZVERB EQ 'RETURN')
+  .RESP = ENTER
+  .MSG  = PEDT016O
+
+)PROC
+if ( &ZCMD1 NE &Z)
+  .MSG    = PSYS018
+  .CURSOR = ZCMD1
+  EXIT
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

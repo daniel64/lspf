@@ -1,0 +1,85 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+Set cursor phrase colour/hilight
+)ENDCOMMENT
+
+)BODY  WINDOW(60,12)
+PANELDESC 'Set Cursor Phrase Colour'
+
+TEXT     2    2       FP     'Command ===> '
+FIELD    2   15  MAX  NEF     PAD(USER) ZCMD2
+
+AREA   3 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1    2       FP     'Colour:'
+FIELD    1    10  1   CEF     PAD(USER) PCLR
+TEXT     1    13      SAC    '1. Red'
+TEXT     2    13      SAC    '2. Green'
+TEXT     3    13      SAC    '3. Yellow'
+TEXT     4    13      SAC    '4. Blue'
+TEXT     5    13      SAC    '5. Magenta'
+TEXT     6    13      SAC    '6. Turquoise'
+TEXT     7    13      SAC    '7. White'
+
+TEXT     1    29      FP     'Highlight:'
+FIELD    1    40  1   CEF     PAD(USER) PHLT
+TEXT     1    43      SAC    '1. Normal'
+TEXT     2    43      SAC    '2. Reverse'
+TEXT     3    43      SAC    '3. Underline'
+TEXT     4    43      SAC    '4. Blink'
+
+)INIT
+&ZCMD2   = &Z
+&ZWINTTL = 'Set Cursor Phrase Colour'
+.CURSOR  = PCLR
+
+&PCLR = TRANS( TRUNC(&ZEDPCLR, 1) ,
+               R,1
+               G,2
+               Y,3
+               B,4
+               M,5
+               T,6
+               *,7 )
+
+&PHLT = TRANS( TRUNC(&ZEDPHLT, 1) ,
+               R,2
+               U,3
+               B,4
+               *,1 )
+
+)PROC
+IF (&ZCMD2 NE &Z)
+  .MSG    = PSYS011C
+  .CURSOR = ZCMD2
+  EXIT
+
+VER (&PCLR,NB,RANGE,1,7)
+VER (&PHLT,NB,RANGE,1,4)
+
+IF (.MSG NE &Z) EXIT
+
+&ZEDPCLR = TRANS( &PCLR
+               1,'RED'
+               2,'GREEN'
+               3,'YELLOW'
+               4,'BLUE'
+               5,'MAGENTA'
+               6,'TURQ'
+               7,'WHITE' )
+
+&ZEDPHLT = TRANS( &PHLT
+               1,&Z
+               2,'REVERSE'
+               3,'USCORE'
+               4,'BLINK' )
+
+VPUT (ZEDPCLR,ZEDPHLT) PROFILE
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

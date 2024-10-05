@@ -1,0 +1,34 @@
+LRFL011A 'Invalid command' .TYPE=W
+'Enter NEW to create a new list.'
+
+LRFL011B 'Invalid command' .TYPE=W
+'Enter MORE to open the list of Personal Lists or NEW to create ' +
+'a new list.'
+
+LRFL011C 'Name already exists' .TYPE=W
+'New name cannot be the same as an existing Personal List name.'
+
+LRFL011D 'Invalid entry' .TYPE=W
+'Entered name must be at least 3 characters long.'
+
+LRFL011E 'Personal list saved' .TYPE=N
+'Personal List &ZCURTB has been saved.'
+
+LRFL011F 'Invalid value' .TYPE=W
+'Select one or more entries with a ''/'' before selecting a file action.'
+
+LRFL011G 'No entry selected' .TYPE=W
+'Select one or more entries with a ''/'' before selecting a file action.'
+
+LRFL011H 'No action selected' .TYPE=W
+'Select a file action with the ''/'' line command.'
+
+LRFL011I 'Invalid or missing list name' .TYPE=W
+'Personal list name is missing or invalid.'
+
+LRFL011J 'List &ZCURTB updated' .TYPE=N
+'The most recent file in the reference list has been added to personal list &ZCURTB'
+
+LRFL011K 'List &ZCURTB created' .TYPE=N
+'The most recent file in the reference list has been added to personal list &ZCURTB'
+

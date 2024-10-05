@@ -1,0 +1,94 @@
+)PANEL VERSION=1 FORMAT=1 KEYLIST(ISRNAB,ISR)
+)COMMENT
+
+*********************************************************************************
+*********************************************************************************
+* Test PANEXIT LOAD                                                             *
+* Test PANEXIT LOAD                                                             *
+*********************************************************************************
+*********************************************************************************
+
+
+)ENDCOMMENT
+
+)ATTR DEFAULT($^_)
++ TYPE(NEF) CAPS(ON)
+! TYPE(NEF) PASSWD(ON) PAD(USER)
+* TYPE(RP)
+@ TYPE(OUTPUT) CAPS(OFF)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Test Panel PANEXIT LOAD Functions'
+
+TEXT      4    2   FP  'Command ===> '
+FIELD     4   15  MAX   NEF     CAPS(ON),PAD(USER) ZCMD
+
+AREA   5 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT      1   MAX-31    FP  'TIME:'
+FIELD     1   MAX-25    11   VOI   NONE  ZTIMEL
+
+TEXT      1   MAX-13    FP  'DATE:'
+FIELD     1   MAX-7     8    VOI   NONE  ZDATE
+
+TEXT      1   6     FP  'FIELD RXFLD0: '
+FIELD     1   20    32    NEF   NONE  RXFLD0
+
+TEXT      2   6     FP  'FIELD RXFLD1: '
+FIELD     2   20    32    NEF   NONE  RXFLD1
+
+TEXT      3   6     FP  'FIELD RXFLD2: '
+FIELD     3   20    8     ATTR(+) RXFLD2
+TEXT      3   30    FP  'Enter ''LIST'' to invoke PANEXIT panload1'
+
+TEXT      4   6     FP  'FIELD RXFLD3: '
+FIELD     4   20    8     ATTR(+) RXFLD3
+
+TEXT      5   6     FP  'FIELD RXFLD4: '
+FIELD     5   20    20    ATTR(+) RXFLD4
+
+
+)INIT
+
+VGET (RXFLD0,RXFLD1,RXFLD2,RXFLD3,RXFLD5) PROFILE
+
+IF (&RXFLD0 EQ &Z)
+   &RXFLD0 = 'ABCDEFGHIJKL......MNOPQRSTUVWXYZ'
+
+IF (&RXFLD1 EQ &Z)
+   &RXFLD1 = 'ABCDEFGHIJKL......MNOPQRSTUVWXYZ'
+
+&xxx = 'hello world'
+IF (&RXFLD2 EQ LIST ) PANEXIT((RXFLD0,RXFLD1,RXFLD2,RXFLD3,RXFLD4,ZSCRMAXW),LOAD,panload1,&xxx)
+
+)REINIT
+IF (.MSG NE &Z AND .CURSOR NE &Z)
+   .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+IF (&RXFLD2 EQ LIST ) PANEXIT((RXFLD0,RXFLD1,RXFLD2,RXFLD3,RXFLD4,ZSCRMAXW),LOAD,panload1)
+
+REFRESH(*)
+
+)PROC
+IF (.RESP EQ END) EXIT
+
+IF (&ZCMD NE &Z)
+    .CURSOR  = ZCMD
+    .MSG     = PSYS011C
+    EXIT
+
+&allflds = 'RXFLD0,RXFLD1 RXFLD2 RXFLD3 RXFLD4'
+&ldload  = panload1
+IF (&RXFLD2 EQ LIST ) PANEXIT((&allflds,ZSCRMAXW),LOAD,&ldload)
+
+VPUT (RXFLD0,RXFLD1,RXFLD2,RXFLD3,RXFLD5) PROFILE
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2024 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

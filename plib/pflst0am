@@ -1,0 +1,69 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Set Personal File List for ADD command
+)ENDCOMMENT
+
+)BODY WINDOW(60,11)
+PANELTITLE 'Set Personel File List'
+
+TEXT     2   2       FP  'Command ===> '
+FIELD    2  15   MAX NEF CAPS(ON),PAD(USER) ZCMD1
+
+AREA   3 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     2    2       FP     'Personal File List for ADD command. . . '
+FIELD    2   42   8   CEF PAD(USER),CAPS(ON) PFLADDL
+
+TEXT     5 2  NT 'Enter'
+TEXT     5 8  PS 'Cancel'
+TEXT     5 15 NT 'to cancel update'
+
+TEXT     6 2  NT 'Press'
+TEXT     6 8  PS 'End'
+TEXT     6 12 NT 'to update list'
+
+)INIT
+&ZCMD1   = &Z
+&ZWINTTL = &Z
+
+IF (&PFLADDL EQ &Z)
+   VGET PFLADDL PROFILE
+   IF (&PFLADDL EQ &Z)
+      &PFLADDL = 'FAV1'
+
+)PROC
+IF (&ZCMD1 NE &Z,CANCEL,END)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD1
+   EXIT
+
+IF (&ZCMD1 EQ CANCEL)
+   VGET PFLADDL PROFILE
+   .RESP = END
+   EXIT
+
+IF (&PFLADDL EQ &Z)
+   VGET PFLADDL PROFILE
+   IF (&PFLADDL EQ &Z)
+      &PFLADDL = 'FAV1'
+ELSE
+   VER (&PFLADDL,LEN,GT,2,MSG=LRFL011D)
+   VER (&PFLADDL,NAME)
+
+VGET ZVERB SHARED
+IF (&ZVERB EQ END OR &ZCMD1 EQ END)
+   IF (.MSG EQ &Z) VPUT PFLADDL PROFILE
+   ELSE            VGET PFLADDL PROFILE
+ELSE
+   IF (&ZVERB EQ CANCEL) VGET PFLADDL PROFILE
+
+)PNTS
+FIELD(ZPS01001) VAR(ZCMD1)  VAL(CANCEL)
+FIELD(ZPS01002) VAR(ZCMD1)  VAL(END)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

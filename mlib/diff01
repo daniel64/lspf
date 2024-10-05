@@ -1,0 +1,67 @@
+/*                                                           */
+/* Message file for PDIFF0A file/dir compare program.        */
+/*                                                           */
+
+DIFF011A 'Invalid entry' .TYPE=W
+'Entry must be a file or directory.'
+
+DIFF011B 'Invalid combination' .TYPE=W
+'Entry A and entry B must be of the same type.'
+
+DIFF011C 'Invalid action' .TYPE=W
+'Either entry A or entry B does not exist or entry is not a regular file.'
+
+DIFF011D 'Command ''/'' not allowed' .TYPE=W
+'Command ''/'' is only allowed when both Entry A and Entry B are regular files.'
+
+DIFF011E 'File edited' .TYPE=N
+'File has been edited.'
+
+DIFF011F 'Copy cancelled' .TYPE=N
+'Copy of file has been cancelled.'
+
+DIFF011G 'Errors occured' .TYPE=W
+'Error is ''&ZSTR1''.'
+
+DIFF011H 'Entries switched' .TYPE=N
+''
+
+DIFF011I 'Command failed' .TYPE=W
+'POPEN returned a null value.  Command string may be too large.  See application log for errors.'
+
+DIFF011J 'Directories are the same' .TYPE=W
+'Entered directories cannot be the same.'
+
+DIFF011K 'File copied' .TYPE=N
+'File and its attributes have been successfully copied.'
+
+DIFF011L 'diff command failed' .TYPE=W
+'Check Exclude pattern or Ignore regexp fields for errors.  See application log for diff command.'
+
+DIFF011M 'diff command failed' .TYPE=W
+'Check Extra processing options field for errors.  See application log for diff command and return code.'
+
+DIFF011N 'Files are identical' .TYPE=N
+''
+
+DIFF011O 'No changes found' .TYPE=N
+'Directories are either identical, or no files match the criteria.'
+
+DIFF011P 'Cancelled' .TYPE=N
+'Operation cancelled.'
+
+DIFF011Q 'Patch file created' .TYPE=N
+'Patch has been placed in &FFILE..'
+
+DIFF011R 'Error creating/copying file' .TYPE=W
+'&DIFFERR..'
+
+DIFF011S 'Error opening file' .TYPE=W
+'Opening file &STR1 gave error &DIFFERR..'
+
+DIFF011T 'Abend in editor' .TYPE=W
+'An ebend in the editor has occured.'
+
+DIFF011U 'Entry retrieved' .TYPE=N
+'ENTRYB name retrieved from ENTRYA.'
+

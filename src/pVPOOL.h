@@ -22,19 +22,81 @@ class fVAR
 	public:
 		fVAR()
 		{
+			fVAR_int        = 0 ;
 			fVAR_string_ptr = &fVAR_string ;
-			fVAR_int_ptr    = &fVAR_int    ;
+			fVAR_int_ptr    = &fVAR_int ;
+			fVAR_vtype      = VED_NONE ;
+			nullstr         = "" ;
+			fVAR_zconv      = 0 ;
 		}
+
+		fVAR( string* addr,
+		      int zconv ) : fVAR()
+		{
+			fVAR_string_ptr = addr ;
+			fVAR_type       = STRING ;
+			fVAR_defined    = true ;
+			fVAR_zconv      = zconv ;
+		}
+
+		fVAR( int* addr,
+		      int zconv ) : fVAR()
+		{
+			fVAR_int_ptr = addr ;
+			fVAR_type    = INTEGER ;
+			fVAR_defined = true ;
+			fVAR_zconv   = zconv ;
+		}
+
+		fVAR( const string& s,
+		      int zconv ) : fVAR()
+		{
+			fVAR_string  = s ;
+			fVAR_type    = STRING ;
+			fVAR_defined = false ;
+			fVAR_zconv   = zconv ;
+		}
+
+		fVAR( int i,
+		      int zconv ) : fVAR()
+		{
+			fVAR_int     = i ;
+			fVAR_type    = INTEGER ;
+			fVAR_defined = false ;
+			fVAR_zconv   = zconv ;
+		}
+
+		string& sget( const string& ) ;
+
+		int iget( errblock&,
+			  const string& ) ;
+
+		void put( errblock&,
+			  const string&,
+			  const string& ) ;
+
+		void put( int,
+			  int = 0 ) ;
+
+		bool integer() const ;
+
+		bool hasmask() const ;
+
+		bool hasmask( string& m,
+			      VEDIT_TYPE& t ) const ;
 
 	private:
 		string*  fVAR_string_ptr ;
-		int*     fVAR_int_ptr    ;
-		string   fVAR_string     ;
-		string   fVAR_mask       ;
-		int      fVAR_int        ;
-		dataType fVAR_type       ;
-		bool     fVAR_defined    ;
-		bool     fVAR_valid      ;
+		int*     fVAR_int_ptr ;
+		string   fVAR_string ;
+		int      fVAR_int  ;
+		string   fVAR_mask ;
+		dataType fVAR_type ;
+		bool     fVAR_defined ;
+		VEDIT_TYPE fVAR_vtype ;
+		int      fVAR_zconv ;
+
+		string nullstr ;
 
 	friend class fPOOL ;
 } ;
@@ -51,86 +113,164 @@ class fPOOL
 
 		~fPOOL() ;
 
-		void define( errblock& err,
-			     const string& name ,
-			     string* addr,
-			     bool check=true ) ;
+		void define( errblock&,
+			     const string&,
+			     string*,
+			     bool check = true ) ;
 
-		void define( errblock& err,
-			     const string& name,
+		void define( errblock&,
+			     const char*,
+			     string* ) ;
+
+		void define( errblock&,
+			     const string&,
 			     int* addr,
-			     bool check=true ) ;
+			     bool check = true ) ;
+
+		void define( errblock&,
+			     const char*,
+			     int* addr ) ;
+
 	private:
-		map<string, stack<fVAR*>> POOL ;
+		map<string, stack<fVAR*>> pool_1 ;
+		map<string, string*> pool_2 ;
 
 		string nullstr ;
 		set<string> varList ;
 
-		bool ifexists( errblock& err,
-			       const string& name ) ;
+		bool ifexists( errblock&,
+			       const string& ) ;
 
-		dataType getType( errblock& err,
-				  const string& name,
-				  bool check=true ) ;
+		fVAR* getfVAR( errblock&,
+			       const string& ) ;
 
-		string* vlocate( errblock& err,
-				 const string& name,
-				 bool check=true ) ;
+		string* vlocate( errblock&,
+				 const string& ) ;
 
-		void put1( errblock& err,
-			   const string& name,
-			   const string& value ) ;
+		void put1( errblock&,
+			   const string&,
+			   const string&,
+			   bool check = true ) ;
 
-		void put1( errblock& err,
-			   const string& name,
+		void put1( errblock&,
+			   const string&,
+			   const char* ) ;
+
+		void put1( errblock&,
+			   const string&,
+			   int,
+			   bool check = true ) ;
+
+		void put1( errblock&,
+			   const char*,
+			   int ) ;
+
+		void put2( errblock&,
+			   const string&,
+			   const string& ) ;
+
+		void put2( errblock&,
+			   const string&,
 			   int value ) ;
 
-		void put2( errblock& err,
-			   const string& name,
-			   const string& value ) ;
+		void put3( const string&,
+			   const string& ) ;
 
-		void put2( errblock& err,
-			   const string& name,
-			   int value ) ;
+		const string& get1( errblock&,
+				    int,
+				    const string&,
+				    bool check = true ) ;
 
-		void put3( errblock& err,
-			   const string& name,
-			   const string& value ) ;
+		const string& get1( errblock&,
+				    int,
+				    const char* ) ;
 
-		void put3( errblock& err,
-			   const string& name,
-			   int value ) ;
+		int  get1( errblock&,
+			   int,
+			   dataType,
+			   const string&,
+			   bool check = true ) ;
 
-		const string& get( errblock& err,
-				   int maxRC,
-				   const string& name,
-				   bool check=true ) ;
+		int  get1( errblock&,
+			   int,
+			   dataType,
+			   const char* ) ;
 
-		int  get( errblock& err,
-			  int maxRC,
-			  dataType dataType,
-			  const string& name,
-			  bool check=true ) ;
+		const string& get2( errblock&,
+				    int,
+				    const string& ) ;
 
-		void setmask( errblock& err,
-			      const string& name,
-			      const string& mask ) ;
+		int get2( errblock&,
+			  int,
+			  dataType,
+			  const string& ) ;
 
-		void dlete( errblock& err,
-			    const string& name ) ;
+		const string& get3( errblock&,
+				    const string& ) ;
 
-		void reset( errblock& err ) ;
+		void setmask( errblock&,
+			      const string&,
+			      const string&,
+			      VEDIT_TYPE ) ;
 
-		set<string>& vilist( int& RC,
-				     vdType defn ) ;
+		void getmask( errblock&,
+			      const string&,
+			      string&,
+			      VEDIT_TYPE& ) ;
 
-		set<string>& vslist( int&RC,
-				     vdType defn ) ;
+		bool hasmask( const string& ) ;
+
+		bool hasmask( const string&,
+			      string&,
+			      VEDIT_TYPE& ) ;
+
+		void del( errblock&,
+			  const string& ) ;
+
+		void reset( errblock& ) ;
+
+		set<string>& vlist( int&,
+				    dataType,
+				    vdType ) ;
+
+		string modname() { return "FPOOL" ; }
+
+		map<string, int> zint2str = { { "ZTDTOP",   6 },
+					      { "ZTDDEPTH", 6 },
+					      { "ZTDROWS",  6 },
+					      { "ZTDVROWS", 6 },
+					      { "ZTDSELS",  4 },
+					      { "ZCURPOS",  4 },
+					      { "ZSBTASK",  8 },
+					      { "ZCURINX",  8 } } ;
+
+#ifdef HAS_REXX_SUPPORT
+	friend int REXXENTRY rxterExit_panel1( RexxExitContext*,
+					       int,
+					       int,
+					       PEXIT ) ;
+
+	friend int REXXENTRY rxiniExit_panel1( RexxExitContext*,
+					       int,
+					       int,
+					       PEXIT ) ;
+	friend int REXXENTRY rxterExit_ft( RexxExitContext*,
+					   int,
+					   int,
+					   PEXIT ) ;
+
+	friend int REXXENTRY rxiniExit_ft( RexxExitContext*,
+					   int,
+					   int,
+					   PEXIT ) ;
+#endif
 
 	friend class pApplication ;
 	friend class tableMGR ;
+	friend class lss      ;
 	friend class Table    ;
 	friend class pPanel   ;
+	friend class pFTailor ;
 	friend class abc      ;
 } ;
 
@@ -141,7 +281,6 @@ enum pVType
 	pV_ZTIME,
 	pV_ZTIMEL,
 	pV_ZDATE,
-	pV_ZDATEL,
 	pV_ZDAY,
 	pV_ZDAYOFWK,
 	pV_ZDATESTD,
@@ -149,13 +288,33 @@ enum pVType
 	pV_ZJDATE,
 	pV_ZJ4DATE,
 	pV_ZYEAR,
-	pV_ZTASKID,
-	pV_ZSTDYEAR
+	pV_ZSTDYEAR,
+	pV_ZDEBUG,
+	pV_ZTASKID
 } ;
 
 
 class pVAR
 {
+		pVAR()
+		{
+			pVAR_value  = "" ;
+			pVAR_system = true ;
+			pVAR_type   = pV_VALUE ;
+		}
+
+		pVAR( const pVAR& v )
+		{
+			pVAR_value  = v.pVAR_value ;
+			pVAR_system = v.pVAR_system ;
+			pVAR_type   = v.pVAR_type ;
+		}
+
+		pVAR( pVType t ) : pVAR()
+		{
+			pVAR_type = t ;
+		}
+
 	private:
 		string pVAR_value  ;
 		bool   pVAR_system ;
@@ -168,11 +327,14 @@ class pVAR
 class pVPOOL
 {
 	public:
+		static uint pfkgToken ;
+
 		pVPOOL()
 		{
 			refCount = 0     ;
 			readOnly = false ;
 			changed  = false ;
+			profile  = false ;
 			sysProf  = false ;
 			path     = ""    ;
 		}
@@ -184,46 +346,52 @@ class pVPOOL
 
 		int    refCount ;
 		bool   readOnly ;
-		bool   changed  ;
-		bool   sysProf  ;
-		string path     ;
+		bool   changed ;
+		bool   profile ;
+		bool   sysProf ;
+		string path ;
 
-		void   put( errblock& err,
-			    const string& name,
-			    const string& value,
-			    vTYPE =USER ) ;
+		int    taskid() { return 0 ; }
 
-		void   put( errblock& err,
-			    map<string, pVAR*>::iterator v_it,
-			    const string& value,
-			    vTYPE =USER ) ;
+		void   put( errblock&,
+			    const string&,
+			    const string&,
+			    vTYPE = USER ) ;
 
-		string get( errblock& err,
-			    map<string, pVAR*>::iterator v_it ) ;
+		void   put( errblock&,
+			    map<string, pVAR*>::iterator,
+			    const string&,
+			    vTYPE = USER ) ;
 
-		string* vlocate( errblock& err,
-				 map<string, pVAR*>::iterator v_it ) ;
+		string get( errblock&,
+			    map<string, pVAR*>::iterator ) ;
 
-		void   load( errblock& err,
-			     const string& applid,
-			     const string& path ) ;
+		string* vlocate( errblock&,
+				 map<string, pVAR*>::iterator ) ;
 
-		void   save( errblock& err,
-			     const string& applid ) ;
+		void   load( errblock&,
+			     const string&,
+			     const string& ) ;
 
-		void   erase( errblock& err,
-			      map<string, pVAR*>::iterator v_it ) ;
+		void   save( errblock&,
+			     const string& ) ;
 
-		bool   isSystem( map<string, pVAR*>::iterator v_it ) ;
+		void   erase( errblock&,
+			      map<string, pVAR*>::iterator ) ;
+
+		bool   isSystem( map<string, pVAR*>::iterator ) ;
 
 		void   setReadOnly()  { readOnly = true     ; }
 		void   incRefCount()  { ++refCount          ; }
 		void   decRefCount()  { --refCount          ; }
+		void   setProfile()   { profile = true      ; }
 		void   sysProfile()   { sysProf = true      ; }
 		bool   issysProfile() { return sysProf      ; }
 		bool   inUse()        { return refCount > 0 ; }
 		void   resetChanged() { changed = false     ; }
 		void   createGenEntries() ;
+
+		string modname() { return "VPOOL" ; }
 
 	friend class poolMGR ;
 } ;
@@ -237,49 +405,52 @@ class poolMGR
 
 		static logger* lg ;
 
-		void   connect( int taskid, const string&, int ) ;
-		void   disconnect( int taskid ) ;
-		void   setProfilePath( errblock& err,
+		void   connect( int,
+				const string&,
+				int ) ;
+		void   disconnect( int ) ;
+		void   setProfilePath( errblock&,
 				       const string& ) ;
 
 		void   setPools( errblock& ) ;
 
-		void   createProfilePool( errblock& err,
-					  const string& appl ) ;
+		void   createProfilePool( errblock&,
+					  const string&,
+					  bool = false ) ;
 
 		int    createSharedPool() ;
 
-		void   destroySystemPool( errblock& err ) ;
+		void   destroySystemPool( errblock& ) ;
 
-		void   destroyPool( int ls ) ;
+		void   destroyPool( int ) ;
 
-		void   sysput( errblock& err,
-			       const string& name,
-			       const string& value,
+		void   sysput( errblock&,
+			       const string&,
+			       const string&,
 			       poolType ) ;
 
-		void   put( errblock& err,
-			    const string& name,
-			    const string& value,
+		void   put( errblock&,
+			    const string&,
+			    const string&,
 			    poolType = ASIS,
-			    vTYPE =USER ) ;
+			    vTYPE = USER ) ;
 
-		void   put( errblock& err,
+		void   put( errblock&,
 			    int ls,
-			    const string& name,
-			    const string& value ) ;
+			    const string&,
+			    const string& ) ;
 
-		string sysget( errblock& err,
-			       const string& name,
+		string sysget( errblock&,
+			       const string&,
 			       poolType ) ;
 
-		string get( errblock& err,
-			    const string& name,
-			    poolType=ASIS ) ;
+		string get( errblock&,
+			    const string&,
+			    poolType = ASIS ) ;
 
-		string get( errblock& err,
+		string get( errblock&,
 			    int ls,
-			    const string& name ) ;
+			    const string& ) ;
 
 		void   setPOOLsReadOnly() ;
 		void   snap() ;
@@ -300,86 +471,44 @@ class poolMGR
 
 		boost::mutex mtx ;
 
+		int    taskid() { return 0 ; }
+
 		void lock()    { mtx.lock()   ; }
 		void unlock()  { mtx.unlock() ; }
 
-		set<string>& vlist( errblock& err,
-				    int& RC,
-				    poolType pType,
-				    int lvl ) ;
+		set<string>& vlist( errblock&,
+				    int&,
+				    poolType,
+				    int ) ;
 
-		map<int, pVPOOL*>::iterator createPool( int ls ) ;
+		map<int, pVPOOL*>::iterator createPool( int ) ;
 
-		string* vlocate( errblock& err,
-				 const string& name,
-				 poolType=ASIS ) ;
+		string* vlocate( errblock&,
+				 const string&,
+				 poolType = ASIS ) ;
 
-		void   locateSubPool( errblock& err,
-				      map<string, pVPOOL*>::iterator& pp_it,
-				      map<string, pVPOOL*>::iterator& p_it,
-				      map<string, pVAR*>::iterator& v_it,
-				      const string& pool,
-				      const string& name ) ;
+		void   locateSubPool( errblock&,
+				      map<string, pVPOOL*>::iterator&,
+				      map<string, pVPOOL*>::iterator&,
+				      map<string, pVAR*>::iterator&,
+				      const string&,
+				      const string& ) ;
 
-		void   locateSubPool( errblock& err,
-				      map<string, pVPOOL*>::iterator& sp_it,
-				      map<string, pVPOOL*>::iterator& p_it,
-				      map<string, pVAR*>::iterator& v_it,
-				      int pool,
-				      const string& name ) ;
+		void   locateSubPool( errblock&,
+				      map<string, pVPOOL*>::iterator&,
+				      map<string, pVPOOL*>::iterator&,
+				      map<string, pVAR*>::iterator&,
+				      int,
+				      const string& ) ;
 
-		void   erase( errblock& err,
-			      const string& name,
-			      poolType=ASIS ) ;
+		void   erase( errblock&,
+			      const string&,
+			      poolType = ASIS ) ;
+
+		string modname() { return "POOLMGR" ; }
 
 	friend class pApplication ;
-	friend class pPanel       ;
-	friend class abc          ;
+	friend class pPanel ;
+	friend class pFTailor ;
+	friend class abc ;
 } ;
-
-#undef llog
-#undef debug1
-#undef debug2
-
-
-#define llog(t, s) \
-{ \
-lg->lock() ; \
-(*lg) << microsec_clock::local_time() << \
-" POOL      " << \
-" " << d2ds( err.taskid, 5 ) << " " << t << " " << s ; \
-lg->unlock() ; \
-}
-
-#ifdef DEBUG1
-#define debug1( s ) \
-{ \
-lg->lock() ; \
-(*lg) << microsec_clock::local_time() << \
-" POOL      " << \
-" " << d2ds( err.taskid, 5 ) << \
-" D line: "  << __LINE__  << \
-" >>L1 Function: " << __FUNCTION__ << \
-" -  " << s ; \
-lg->unlock() ; \
-}
-#else
-#define debug1( s )
-#endif
-
-
-#ifdef DEBUG2
-#define debug2( s ) \
-{ \
-lg->lock() ; \
-(*lg) << microsec_clock::local_time() << \
-" POOL      " << \
-" " << d2ds( err.taskid, 5 ) << \
-" D line: "  << __LINE__  << \
-" >>L2 Function: " << __FUNCTION__ << \
-" -  " << s ; \
-lg->unlock() ; \
-}
-#else
-#define debug2( s )
-#endif

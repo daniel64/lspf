@@ -1,0 +1,91 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel to display file backups made by the Editor
+ and perform actions (browse, view, compare, delete, diffs, etc)
+)ENDCOMMENT
+
+)BODY WINDOW(70,24) SMSG(LDMSG)
+PANELTITLE 'Backup File Display Utility'
+
+TEXT     2   2         FP    'Command ===>'
+FIELD    2  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
+FIELD    3   2  24     VOI NONE LDMSG
+
+TEXT     2  MAX-15  FP 'Scroll ===>'
+FIELD    2  MAX-3   4 NEF  NONE ZSCROLL
+
+TEXT     4  5 CH  'Age   Date      Time         Ins   Del   Message'
+
+TBMODEL  5    MAX
+TBFIELD  2    1    NEF CAPS(ON),PAD(USER) SEL
+TBFIELD  ++2  4    LI  NONE AGE
+TBFIELD  ++2  8    LI  NONE DATE
+TBFIELD  ++2  11   LI  NONE TIME
+TBFIELD  ++2  5    LI  NONE ADDS
+TBFIELD  ++1  5    LI  NONE DELS
+TBFIELD  ++1  MAX  LI  NONE INFO
+
+)INIT
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+&ZCMD    = &Z
+&ZWINTTL = 'Edit Backup Utility'
+&ZTDMARK = '- End -'
+
+)REINIT
+.ATTR(LDMSG) = 'TYPE(OUTPUT) COLOUR(YELLOW)'
+
+)PROC
+&ZCMD = TRUNC(&ZCMD,' ')
+&PARM = .TRAIL
+IF (&ZCMD NE &Z AND &ZCMD NE DELETE AND &PARM NE &Z)
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+   EXIT
+
+IF (&ZCMD EQ DELETE AND &PARM EQ &Z )
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+   EXIT
+
+IF (&ZCMD NE &Z,RES,RESET,STATS,CLEANUP,DELETE,?)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
+IF (&ZCMD EQ RES,RESET)
+   &ZCMD = RESET
+   EXIT
+
+IF (&ZCMD EQ DELETE)
+   IF (VER(&PARM,NUM))
+   ELSE
+      .MSG    = PSYS018
+      .CURSOR = ZCMD
+      EXIT
+
+IF (&ZCMD EQ STATS,?)
+   EXIT
+
+IF (&SEL NE &Z AND &DEL EQ 'Y')
+   &ZEDSMSG = 'File has been deleted'
+   &ZEDLMSG = &Z
+   .MSG     = PSYZ001
+   .CURSOR  = SEL
+
+IF (&PARMS EQ 'ENDSESS' AND &SEL EQ 'S','M')
+   &ZEDSMSG = 'Cannot merge when using ''A'' lcmd'
+   &ZEDLMSG = '''A'' line command will end the Edit session.  Merge not possible.'
+   .MSG     = PSYZ001
+   .CURSOR  = SEL
+
+VER(&SEL,LIST,A,B,C,D,F,I,K,M,V,S)
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2022 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

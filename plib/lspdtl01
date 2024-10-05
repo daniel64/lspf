@@ -1,0 +1,103 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+DTL conversion utility
+Entry screen
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'DTL Conversion Utility'
+
+TEXT     4    2       FP     'Command ===>'
+FIELD    4   15   MAX NEF     PAD(USER),CAPS(ON) ZCMD
+
+AREA     5    1   MAX MAX     SAREA1
+
+)AREA SAREA1
+TEXT     1    2       FP     'DTL source file. . . . . . '
+FIELD    1   29  MAX-4 NEF     PAD(USER) ZDTLKEY1
+FIELD    1   MAX-2   2 LI      NONE      ZKEY1IND
+
+TEXT     2    2       FP     'Table output directory . .'
+FIELD    2   29   MAX-4 NEF     PAD(USER) ZDTLTABL
+FIELD    2   MAX-2    2 LI      NONE      ZTABLIND
+
+TEXT     4    2       FP     'Keylist application id . .'
+FIELD    4   29   4   NEF     PAD(USER),CAPS(ON) ZKEYAPPL
+
+TEXT     6    2       CH     'Options'
+TEXT     7    4       PIN    'Enter / to select option'
+
+FIELD    8    4   1   CEF     PAD(USER) ZTABREPL
+TEXT     8    7       SAC    'Replace keylist/command members'
+
+)INIT
+.NRET   = ON
+.NRET   = ZDTLKEY1
+.HIST   = ZDTLKEY1
+.HIST   = ZDTLTABL
+.HIST   = ZKEYAPPL
+.CURSOR = ZCMD
+
+VGET (ZDTLKEY1,ZDTLTABL,ZTABREPL) PROFILE
+
+)PROC
+IF (&ZCMD NE &Z)
+   .MSG    = 'PSYS018'
+   .CURSOR = ZCMD
+   EXIT
+
+IF (TRUNC(&ZDTLTABL,1) EQ '=')
+  &ZDTLTABL = &ZDTLKEY1
+  &AAA     = '&ZDTLTABL '
+  .CURSOR  = ZDTLTABL
+  .CSRPOS  = LENGTH(AAA)
+  &zedsmsg = 'Entry retrieved'
+  &zedlmsg = ''
+  .MSG     = PSYZ000
+  REFRESH(ZDTLTABL)
+  EXIT
+
+&ZTABREPL = TRANS(&ZTABREPL &Z,&Z *,/)
+
+VER (&ZDTLKEY1,NB)
+&ISFILE1 = FILE(ZDTLKEY1)
+
+VER (&ZDTLTABL,NB)
+&ISDIR2 = DIR(ZDTLTABL)
+
+IF (&ISFILE1 EQ .FALSE)
+   &zedsmsg = 'Not a file'
+   &zedlmsg = 'Entry must be a valid file including the directory.'
+   .MSG    = PSYZ001
+   .CURSOR = ZDTLKEY1
+   EXIT
+
+IF (&ISDIR2 EQ .FALSE)
+   &zedsmsg = 'Not a directory'
+   &zedlmsg = 'Entry must be a valid directory.'
+   .MSG    = PSYZ001
+   .CURSOR = ZDTLTABL
+   EXIT
+
+VER (&ZKEYAPPL,NAME,MSG=PSYS012V)
+
+IF (.MSG EQ &Z)
+   VPUT (ZDTLKEY1,ZDTLTABL,ZTABREPL) PROFILE
+
+)FIELD
+FIELD(ZDTLKEY1) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL) NESTED')
+FIELD(ZDTLTABL) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND DO1) NESTED')
+
+FIELD(ZDTLKEY1) LEN(4095) IND(ZKEY1IND)
+FIELD(ZDTLTABL) LEN(4095) IND(ZTABLIND)
+
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

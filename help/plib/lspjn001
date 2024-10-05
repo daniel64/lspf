@@ -1,0 +1,37 @@
+)PANEL VERSION=1 FORMAT=1 
+/* *************************************************** */
+/* Converted by panconv EXEC on 3 Oct 2024 at 15:46:41 */
+/* *************************************************** */
+/* )PANEL panconv */
+)ATTR
+% TYPE(PT)
++ TYPE(NT)
+! TYPE(ET)
+/* @ AREA(SCRL) EXTEND(ON) panconv */
+{ TYPE(RP)
+)BODY WINDOW(62,24) CMD()
+TEXT 1 22 ATTR(25) 'Journal utility'
+AREA 2 1 62 14 SAREA1
+)AREA SAREA1
+TEXT 1 2 ATTR(2B) 'Primary commands:'
+TEXT 2 5 ATTR(21) 'FILTER'
+TEXT 2 13 ATTR(2B) 'Display the filter panel.'
+TEXT 4 2 ATTR(2B) 'Line commands:'
+TEXT 5 5 ATTR(21) 'B'
+TEXT 5 8 ATTR(2B) 'Browse a journal.'
+TEXT 6 5 ATTR(21) 'S'
+TEXT 6 8 ATTR(2B) 'Same as B.'
+TEXT 7 5 ATTR(21) 'F'
+TEXT 7 8 ATTR(2B) 'Browse a journal applying filters set with the'
+TEXT 8 2 ATTR(2B) '      FILTER command.'
+TEXT 10 2 ATTR(2B) 'Place cursor on one of the following topics and press'
+TEXT 11 2 ATTR(2B) 'the help key'
+TEXT 12 2 ATTR(2B) 'o'
+TEXT 12 6 ATTR(7B) 'Filter panel'
+)INIT
+&ZWINTTL = &Z
+.HHELP = lsphh001
+
+)HELP
+FIELD(ZRP01001) PANEL(LSPJN002)
+)END

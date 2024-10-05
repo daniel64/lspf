@@ -1,0 +1,68 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Show USB devices
+)ENDCOMMENT
+
+)ATTR
+_ TYPE(NEF) PAD(USER) CAPS(ON)
++ TYPE(VOI)
+! TYPE(OUTPUT) COLOUR(YELLOW) CAPS(OFF)
+% TYPE(OUTPUT) COLOUR(WHITE) CAPS(OFF)
+# TYPE(OUTPUT) COLOUR(BLUE) CAPS(OFF)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'USB Devices'
+
+TEXT     4   2         FP    'Command ===>'
+FIELD    4  15  max-17 nef caps(on),pad(user) zcmd
+
+TEXT     4  MAX-15   FP   'Scroll ===>'
+FIELD    4  MAX-3  4 NEF  NONE ZSCROLL
+
+TEXT     6  2   FP  'S Product'
+TEXT     6  35  FP  'Manufacturer                   VID  PID'
+TEXT     7  10  FP  'Serial Number'
+
+TBMODEL  8   MAX
+TBFIELD  2      1      ATTR(_) SEL
+TBFIELD  ++1    30     ATTR(!) PROD
+TBFIELD  ++1    30     ATTR(#) MANUF
+TBFIELD  ++1    4      ATTR(%) VID
+TBFIELD  ++1    4      ATTR(%) PID
+TBMODEL
+TBFIELD  10     30     ATTR(%) SERIAL
+
+)INIT
+VGET ZSCROLL PROFILE
+
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+)REINIT
+IF (.MSG EQ &Z)
+   &SEL = &Z
+   REFRESH(SEL)
+
+)PROC
+IF (.RESP = END) EXIT
+
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+   EXIT
+
+VER(&SEL,LIST,P,T)
+
+IF (.MSG = &Z) VPUT ZSCROLL PROFILE
+
+)FIELD
+--FIELD(DIR)  LEN(4095)
+--FIELD(OPTS) LEN(512)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2023 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

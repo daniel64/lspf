@@ -1,0 +1,51 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ List tables in a directory
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE rfl_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'lspf Table List'
+
+TEXT     4    2             FP    'Command ===>'
+FIELD    4   15     MAX-17  NEF PAD(USER) ZCMD
+
+TEXT     4  MAX-15  FP 'Scroll ===>'
+FIELD    4  MAX-3   4 NEF  NONE ZSCROLL
+
+TEXT     6  2 MAX NT 'List of tables in directory &ZTUDIR'
+
+TEXT     8  4     CH 'Name'
+TEXT     9  4     CH '--------'
+
+TBMODEL  10    MAX
+TBFIELD   2      1   NEF  CAPS(ON),PAD(USER),JUST(LEFT) SEL
+TBFIELD ++1      8   VOI  NONE  ZTUTNAM1
+
+)INIT
+IF (&ZSCROLL = &Z) VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+.ATTR(ZTUTNAM1) = 'TYPE(OUTPUT) COLOUR(WHITE)'
+
+)REINIT
+IF (.MSG EQ &Z)
+   &SEL = &Z
+   REFRESH(SEL)
+
+)PROC
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+
+VER (&SEL,LIST,B,I,S)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

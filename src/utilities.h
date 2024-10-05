@@ -20,145 +20,374 @@
 //////////////////////////////// Utility Functions ///////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 
-// REXX-like string handling functions
 
-bool   abbrev( const string& s1, const string& s2 )        ;
-bool   abbrev( const string& s1, const string& s2, unsigned int n ) ;
+// REXX-like string handling functions.
 
-string centre( const string& s, unsigned int n, char c = ' ' ) ;
-string center( const string& s, unsigned int n, char c = ' ' ) ;
+namespace lspf {
 
-string copies( const string& s, unsigned int n ) ;
+bool abbrev( const string&,
+	     const string& ) ;
+bool abbrev( const string&,
+	     const string&,
+	     unsigned int ) ;
 
-bool   datatype( const string& s, char type ) ;
+string centre( const string&,
+	       unsigned int,
+	       char = ' ' ) ;
+string center( const string&,
+	       unsigned int,
+	       char = ' ' ) ;
 
-string delstr( string s, unsigned int n )  ;
-string delstr( string s, unsigned int n, unsigned int l ) ;
+string copies( const string&,
+	       unsigned int ) ;
 
-string delword( string s, unsigned int w ) ;
-string delword( string s, unsigned int w, unsigned int n ) ;
+string copies( const char,
+	       unsigned int ) ;
 
-string insert( const string& s1, string s2, unsigned int n = 0, char c = ' ' )    ;
-string insert( string s1, string s2, unsigned int, unsigned int l, char c = ' ' ) ;
+bool datatype( const string&,
+	       char type ) ;
 
-int    lastpos( const string& s1, const string& s2 )                 ;
-int    lastpos( const string& s1, const string& s2, unsigned int p ) ;
+string delstr( string,
+	       unsigned int )  ;
+string delstr( string,
+	       unsigned int,
+	       unsigned int ) ;
 
-string left( string s, unsigned int l, char c = ' ' ) ;
+string delword( string,
+		unsigned int ) ;
+string delword( string,
+		unsigned int,
+		unsigned int ) ;
 
-int    pos( const string& s1, const string& s2, unsigned int p = 1 ) ;
+string insert( const string&,
+	       string,
+	       unsigned int = 0,
+	       char = ' ' ) ;
+string insert( string,
+	       string,
+	       unsigned int,
+	       unsigned int,
+	       char = ' ' ) ;
 
-string reverse( string s ) ;
+string justify( const string&,
+		size_t,
+		char = ' ' ) ;
 
-string right( string s, unsigned int l, char c = ' ' ) ;
+int lastpos( const string&,
+	     const string& ) ;
+int lastpos( const string&,
+	     const string&,
+	     unsigned int ) ;
 
-string space( const string& s, unsigned int n = 1, char c = ' ' ) ;
+string left( string,
+	     unsigned int,
+	     char = ' ' ) ;
 
-string strip( string s, char opt = 'B', char c = ' ' ) ;
+int pos( const string&,
+	 const string&,
+	 unsigned int = 1 ) ;
 
-string substr( const string& s, unsigned int n  )        ;
-string substr( const string& s, unsigned int n, unsigned int l, char pad = ' '  ) ;
+string reverse( string ) ;
 
-string subword( const string& s, unsigned int w )                 ;
-string subword( const string& s, unsigned int w, unsigned int n ) ;
+string right( string,
+	      unsigned int,
+	      char = ' ' ) ;
 
-string word( const string& s, unsigned int w )   ;
+string space( const string&,
+	      unsigned int = 1,
+	      char = ' ' ) ;
 
-int wordindex( const string& s, unsigned int w )  ;
+string strip( string,
+	      char = 'B',
+	      char = ' ' ) ;
 
-int wordlength( const string& s, unsigned int n ) ;
+string substr( const string&,
+	       unsigned int ) ;
+string substr( const string&,
+	       unsigned int,
+	       unsigned int,
+	       char = ' '  ) ;
 
-int wordpos( const string& s1, const string& s2 )  ;
+string subword( const string&,
+		unsigned int ) ;
+string subword( const string&,
+		unsigned int,
+		unsigned int ) ;
 
-int words( const string& s ) ;
+string translate( const string& ) ;
 
-// These convert to/from a displayable binary/hex/decimal or character string
-// bs - displayable binary string eg "01000010"
-// cs - raw character string
-// ds - displayable decimal string eg "66"
-// xs - displayable hex string eg "42"
-// d  - integer
+string translate( string,
+		  string,
+		  const string& = "",
+		  char = ' ' ) ;
 
+string translate( string,
+		  const char,
+		  const char ) ;
+
+string word( const string&,
+	     unsigned int ) ;
+
+int wordindex( const string&,
+	       unsigned int ) ;
+
+int wordlength( const string&,
+		unsigned int ) ;
+
+int wordpos( const string&,
+	     const string& )  ;
+
+unsigned int words( const string& ) ;
+
+// These convert to/from a displayable binary/hex/decimal or character string.
+// bs - displayable binary string eg "01000010".
+// cs - raw character string.
+// ds - displayable decimal string eg "66".
+// xs - displayable hex string eg "42".
+// d  - integer.
+//
 // Not all exist yet !
 // b2x
 // c2d c2x
 // d2c d2x
 // x2b x2c x2d
 
-string bs2xs( string s ) ;            // eg "01000010" -> "42"     ( REXX B2X("11000011")    ->   "C3" )
+string bs2xs( string ) ;                      // eg "01000010" -> "42"     ( REXX B2X("11000011")    ->   "C3" )
 
-string cs2bs( const string& s ) ;     // eg "B" -> "01000010"
-int    cs2d( const string& s )  ;     // eg "B" -> int66           ( REXX C2D("a")        ->       97 )
-string cs2xs( const string& s ) ;     // eg "A" -> "41"            ( REXX C2X("0123"X)    ->    "0123" )
-string cs2xs( char c   ) ;            // eg "B" -> "42"            ( same )
-string i2bs( uint i ) ;               // eg 1   -> 00000000000000000000000000000001
-string i2xs( uint i ) ;               // eg 1   -> 00000001
+string cs2bs( const string& ) ;               // eg "B" -> "01000010"
+int cs2d( const string& ) ;                   // eg "B" -> int66           ( REXX C2D("a")        ->       97 )
+string cs2xs( const string& ) ;               // eg "A" -> "41"            ( REXX C2X("0123"X)    ->    "0123" )
+string cs2xs1( const string&,                 // eg "A" -> "4"
+	       uint = 0,
+	       size_t = string::npos ) ;
+string cs2xs2( const string&,                 // eg "A" -> "1"
+	       uint = 0,
+	       size_t = string::npos ) ;
+string c2xs( char ) ;                         // eg "B" -> "42"            ( same )
+string i2bs( uint ) ;                         // eg 1   -> 00000000000000000000000000000001
+string i2xs( uint ) ;                         // eg 1   -> 00000001
 
-string d2cs( int i ) ;                // eg int66 -> "B"           ( REXX D2C(65)      ->   "A" )
-string d2ds( int i ) ;                // eg int66 -> "66"          ( not required for REXX but is for C++)
-string d2ds( int i, int j ) ;         // eg int66 -> "66"          ( not required for REXX but is for C++)
-string d2xs( int i ) ;                // eg int66 -> "42"          ( REXX D2X(129)       ->    "81" )
+string d2cs( int ) ;                          // eg int66 -> "B"           ( REXX D2C(65)      ->   "A" )
+string d2ds( int,                             // eg int66 -> "66"          ( not required for REXX but is for C++)
+	     int = 0,
+	     char = '0' ) ;
+string ui2ds( uint,                           // eg int66 -> "66"          ( not required for REXX but is for C++)
+	      int = 0 ) ;
+string d2xs( int ) ;                          // eg int66 -> "42"          ( REXX D2X(129)       ->    "81" )
 
-int    ds2d( const string& s )  ;     // eg "66"  -> int66         ( not required for REXX but is for C++)
+int ds2d( const string& ) ;                   // eg "66"  -> int66         ( not required for REXX but is for C++)
+size_t  ds2size_t( const string& ) ;          // eg "66"  -> int66         ( not required for REXX but is for C++)
+ssize_t ds2ssize_t( const string& ) ;         // eg "66"  -> int66         ( not required for REXX but is for C++)
 
-string xs2bs( const string& s ) ;     // eg "42" -> "01000010"     ( REXX X2B("C3")        ->  "11000011" )
-string xs2cs( const string& s ) ;     // eg "42" -> "B"            ( REXX X2C("4865 6c6c 6f") ->  "Hello"  )
-int    xs2d( const string& s )  ;     // eg "A0" -> int160         ( REXX X2D("0E")        ->    14 )
+string xs2bs( const string& ) ;               // eg "42" -> "01000010"     ( REXX X2B("C3")        ->  "11000011" )
+string xs2cs( const string& ) ;               // eg "42" -> "B"            ( REXX X2C("4865 6c6c 6f") ->  "Hello"  )
+int xs2d( const string& ) ;                   // eg "A0" -> int160         ( REXX X2D("0E")        ->    14 )
 
+string addr2str( void *) ;
 
-string& trim_left( string& s )  ;
-string& trim_right( string& s ) ;
-string& trim( string& s )       ;
+string strip_left( string ) ;
+string strip_right( string ) ;
 
-string dquote( errblock& err, char c, string s ) ;
+string& trim_left( string& ) ;
+string& trim_right( string& ) ;
+string& trim( string& ) ;
 
-bool   findword( const string& s1, const string& s2 )  ;
-int    countc( const string& s, char c )       ;
+string dquote( errblock&,
+	       char,
+	       string ) ;
 
-string& iupper( string& s ) ;
-string& iupper( string& s, unsigned int, unsigned int ) ;
-char&   iupper( char& c   ) ;
-string& ilower( string& s ) ;
-string& ilower( string& s, unsigned int, unsigned int ) ;
-char&   ilower( char& c ) ;
-string  upper( string s ) ;
-string  lower( string s ) ;
+bool findword( const string&,
+	       const string& ) ;
 
-string& idelstr( string& s, unsigned int n )  ;
-string& idelstr( string& s, unsigned int n, unsigned int l ) ;
+bool findword( const char,
+	       const string& ) ;
 
-string& idelword( string& s, unsigned int w ) ;
-string& idelword( string& s, unsigned int w, unsigned int n ) ;
+uint countc( const string&,
+	     char ) ;
 
-string& istrip( string& s, char opt = 'B', char c = ' ' ) ;
+string& iupper( string& ) ;
+string& iupper( string&,
+		unsigned int,
+		unsigned int ) ;
+char& iupper( char& ) ;
 
-bool   isnumeric( const string& s ) ;
-string d2size( int )          ;
-string hex2print( const string& t )  ;
+string& iupper1( string& ) ;
 
-string addCommas( string t )  ;
-string addCommas( string t, int prec ) ;
+string& ilower( string& ) ;
+string& ilower( string&,
+		unsigned int,
+		unsigned int ) ;
+char& ilower( char& ) ;
 
-bool   isvalidName( const string& s )  ;
-bool   isvalidName4( const string& s ) ;
-bool   ishex( const string& s ) ;
-bool   ishex( char c )           ;
-bool   isoctal( const string& s ) ;
-bool   isoctal( char c )        ;
-bool   ispict( const string&, const string& ) ;
+string upper( string ) ;
+string lower( string ) ;
 
-int    getpaths( const string& p ) ;
-string getpath( const string& s, int p ) ;
-string mergepaths( const string& p1, const string& p2 ) ;
-string mergepaths( const string& p1, const char* c1 )   ;
-string mergepaths( const string& p1, const char* c1, const char* c2 ) ;
-string mergepaths( const string& p1, const string& p2, const string& p3 ) ;
+string upper1( string ) ;
 
-string  parseString( errblock& err, string& s, string p ) ;
-bool    parseString1( string& s, string p ) ;
-string& getNameList( errblock& err, string& s ) ;
+bool ualpha( const string&,
+	     size_t ) ;
+bool lalpha( const string&,
+	     size_t ) ;
 
-string extractKWord( errblock& err, string& s, string p ) ;
+string& idelstr( string&,
+		 unsigned int ) ;
+string& idelstr( string&,
+		 unsigned int,
+		 unsigned int ) ;
 
-void qwords( errblock& err, const string& s, vector<string>& ) ;
-void word( const string& s, vector<string>& ) ;
+string& idelword( string&,
+		  unsigned int ) ;
+string& idelword( string&,
+		  unsigned int,
+		  unsigned int ) ;
+
+string& istrip( string&,
+		char = 'B',
+		char = ' ' ) ;
+
+bool isnumeric( const string& ) ;
+string d2size( uint64_t,
+	       int = 2 ) ;
+string hex2print( const string& ) ;
+
+string addCommas( int ) ;
+string addCommas( string ) ;
+string addCommas( string,
+		  int ) ;
+
+bool isvalidName( const string& ) ;
+bool isvalidName4( const string& ) ;
+
+bool isalpha( const string& ) ;
+bool isalphab( const string& ) ;
+bool isalphanum( const string& ) ;
+bool isalphabnum( const string& ) ;
+
+bool isbit( const string& ) ;
+
+bool ishex( const string& ) ;
+bool ishex( char ) ;
+
+bool isoctal( const string& ) ;
+bool isoctal( char ) ;
+
+bool ispict( const string&,
+	     const string& ) ;
+
+void ispictcn( errblock&,
+	       const string&,
+	       const char,
+	       string&,
+	       const string& ) ;
+
+void isenum( errblock&,
+	     const string& ) ;
+
+int getpaths( const string& ) ;
+
+string getpath( const string&,
+		int ) ;
+
+string mergepaths( const string&,
+		   const string& ) ;
+string mergepaths( const string&,
+		   const char* ) ;
+string mergepaths( const string&,
+		   const char*,
+		   const char* ) ;
+string mergepaths( const string&,
+		   const string&,
+		   const string& ) ;
+
+string parseString1( errblock&,
+		    string&,
+		    string ) ;
+bool parseString2( string&,
+		   string ) ;
+string parseString3( errblock&,
+		    string& ) ;
+
+string& getNameList( errblock&,
+		     string& ) ;
+
+string getKeywords1( errblock&,
+		     string& ) ;
+
+string getKeywords2( errblock&,
+		     string ) ;
+
+string extractKWord( errblock&,
+		     string&,
+		     string ) ;
+
+void qwords( errblock&,
+	     const string&,
+	     vector<string>& ) ;
+
+string qstring( errblock&,
+		const string& ) ;
+
+string qstring1( errblock&,
+		 const string& ) ;
+
+void word( const string&,
+	   vector<string>& ) ;
+
+bool check_date( const string&,
+		 const string&,
+		 const string& ) ;
+
+bool check_date( const string&,
+		 const string& ) ;
+
+string& add_vmask( string&,
+		   const string&,
+		   const string&,
+		   VEDIT_TYPE ) ;
+
+void remove_vmask( errblock&,
+		   const string&,
+		   const string&,
+		   string&,
+		   const string&,
+		   VEDIT_TYPE ) ;
+
+bool namesNotValid( string&,
+		    const string&,
+		    const string& = "",
+		    const string& = "",
+		    const string& = "",
+		    const string& = "" ) ;
+
+bool allNumeric( const string& ) ;
+
+bool ibrackets( const string&,
+		char ) ;
+
+bool suffix( const string&,
+	     const string& ) ;
+
+bool prefix( const string&,
+	     const string& ) ;
+
+void rem_comments( string& ) ;
+
+size_t findnq( const string&,
+	       char,
+	       size_t = 0 ) ;
+
+size_t findnq( const string&,
+	       const string&,
+	       size_t = 0 ) ;
+
+string conv_regex( const string&,
+		   char,
+		   char ) ;
+
+string conv_regex_any( const string&,
+		       char,
+		       char ) ;
+
+string delta_time( uint32_t ) ;
+
+} ;

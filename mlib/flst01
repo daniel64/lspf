@@ -1,0 +1,209 @@
+FLST011 'Error opening file' .TYPE=W
+'Error occured checking file type.  Check permissions.'
+
+FLST012 'Entry retrieved' .TYPE=N
+'New entry name retrieved from entry name.'
+
+FLST013 'Same file' .TYPE=W
+'New entry name and entry name are the same file.'
+
+FLST014 'Permission denied' .TYPE=W
+'Access permission denied to the entry.'
+
+FLST015 'List failed' .TYPE=W
+'List of the requested directory failed.  Check permissions.'
+
+FLST016 'Invalid parameter' .TYPE=W
+'Parameter not valid or missing for the ''&ZVAL1'' command.'
+
+FLST017 'Modify cancelled' .TYPE=N
+'Modify of permission attibutes of file has been cancelled.'
+
+FLST018 'Modify failed' .TYPE=W
+'Modify of the permission attributes has failed.  chmod RC>0.'
+
+FLST019 'Invalid UID number' .TYPE=W
+'UID number is not valid as it does not resolve to a userid.'
+
+FLST011A 'Modify successful' .TYPE=N
+'Change of file attributes has been successful.'
+
+FLST011B 'Error getting USER' .TYPE=W
+'getpwnam has not returned user data.  Check user exists.'
+
+FLST011C 'Error changing GROUP' .TYPE=W
+'getgrnam has not returned group data.  Check group exists.'
+
+FLST011L 'Invalid GID number' .TYPE=W
+'GID number is not valid as it does not resolve to a group.'
+
+FLST011M 'Invalid line command' .TYPE=W
+'Line command is invalid for this type of entry.'
+
+FLST011N 'Delete successful' .TYPE=N
+'Delete of pathname has been successful.  &RSN..'
+
+FLST011O 'Delete failed' .TYPE=W
+'Delete of file has failed with &RSN..  See log for error messages.'
+
+FLST011P 'Delete cancelled' .TYPE=N
+'Delete of file has been cancelled.'
+
+FLST011Q 'Rename successful' .TYPE=N
+'Rename of file has been successful.'
+
+FLST011R 'Rename failed' .TYPE=W
+'Rename of file has failed with &RSN..'
+
+FLST011S 'Rename cancelled' .TYPE=N
+'Rename of file has been cancelled.'
+
+FLST011T 'lstat error' .TYPE=W
+'lstat returned an error for file &FILE..'
+
+FLST011U 'Copy successful' .TYPE=N
+'Copy of file has been successful.'
+
+FLST011V 'Copy failed' .TYPE=W
+'Copy of file has failed with &RSN..'
+
+FLST011W 'Copy cancelled' .TYPE=N
+'Copy of file has been cancelled.'
+
+FLST011X 'File exists' .TYPE=W
+'To-file exists and replace of like-named files has not been specified.'
+
+FLST011Y 'Exists but is invalid' .TYPE=W
+'Destination of a copy exists but is not a regular file or directory.'
+
+FLST011Z 'Cannot rename cross device' .TYPE=W
+'Cannot rename cross device.  Use C to copy the file instead.'
+
+FLST012A 'Invalid type' .TYPE=W
+'Can only copy regular files, directories or symlinks.'
+
+FLST012B 'Directory created' .TYPE=N
+'Directory created successfully.'
+
+FLST012C 'Create failed' .TYPE=W
+'Create of directory failed with &RSN.. See log for error messages.'
+
+FLST012D 'File exists' .TYPE=W
+'Cannot create file as it already exists.'
+
+FLST012E 'File created' .TYPE=N
+'File created successfully.'
+
+FLST012F 'Create failed' .TYPE=W
+'Create of file has failed.  See log for error messages.'
+
+FLST012G 'Recursive copy ended with errors' .TYPE=W
+'Errors occured during a resursive copy of subdirectories.  Some files may be missed.  Check log.'
+
+FLST012H 'Error creating tree' .TYPE=W
+'Tree create failed with message &RSN..'
+
+FLST012I 'Error changing UID' .TYPE=W
+'chown has returned a non-zero return code.'
+
+FLST012J 'Error changing GID' .TYPE=W
+'chown has returned a non-zero return code.'
+
+FLST012K 'Not a directory' .TYPE=W
+'Select a valid directory to expand.'
+
+FLST012L 'Entry does not exist' .TYPE=W
+'Entry ''&ENTRY'' not found.'
+
+FLST012M 'Entry is not valid' .TYPE=W
+'Entry must be a valid file type for this action.'
+
+FLST012N 'File edited' .TYPE=N
+'File has been edited.'
+
+FLST012O 'File viewed' .TYPE=N
+'File has been viewed.'
+
+FLST012P 'File browsed' .TYPE=N
+'File has been browsed.'
+
+FLST012Q 'File exists' .TYPE=W
+'Cannot rename file as destination already exists.'
+
+FLST012R 'Not a directory' .TYPE=W
+'Entered path ''&ZVAL1'' is not a directory.'
+
+FLST012S 'Printed' .TYPE=N
+'List has been printed to ''&ZVAL1''.'
+
+FLST012T 'No list file' .TYPE=W
+'Maximum number of list files already exist - 99.'
+
+FLST012U 'Execution cancelled' .TYPE=N
+'Execution of command has been cancelled.'
+
+FLST012V 'Execution terminated' .TYPE=N
+'Execution of pending commands has been terminated.'
+
+FLST012W 'Invalid parameter' .TYPE=W
+'ADD block command contains an invalid Personal File List name.  Enter a valid name or ' +
+'leave blank for the default (&PFLADDL).'
+
+FLST012X 'Error(s) occured' .TYPE=W
+'One or more errors occured listing files and/or directories.  ' +
+'Check permissions (turn on error logging to see more details in the application log).  ' +
+'Some files may not be shown.'
+
+FLST012Y 'Invalid search/import' .TYPE=W
+'Only ''import'', ''locate'' and ''find'' are supported.'
+
+FLST012Z 'Non-zero return code' .TYPE=W
+'Function returned a non-zero return code.  No files returned, an invalid parameter may ' +
+'have been entered, or results may be incomplete.  &ZVAL1'
+
+FLST013A 'Function not available' .TYPE=W
+'Function cannot be used when file list does not contain a path name or path name is generic.'
+
+FLST013B 'Entry retrieved' .TYPE=N
+'Entry name retrieved from the history buffer.'
+
+FLST013C 'Cursor not on entry' .TYPE=W
+'Place cursor on the required entry to retrieve, or PF03 to leave.'
+
+FLST013D 'Invalid name' .TYPE=W
+'Hotbar command name cannot contain spaces.'
+
+FLST013E 'Process interrupted' .TYPE=W
+'Processing halted after SIGUSR1 received.  Results may be incomplete.'
+
+FLST013F 'Recursive copy files skipped' .TYPE=N
+'Some files were not copied as they already existed and replace was not specified or ' +
+'an attempt was made to copy a directory into itself.  See log for details.'
+
+FLST013G 'Directory does not exist' .TYPE=W
+'Directory must exist before copy can be used.'
+
+FLST013H 'Cannot be the same' .TYPE=W
+'Source and destination directories are the same.'
+
+FLST013I 'Command failed' .TYPE=W
+'POPEN returned a null value.  Command string may be too large.  See application log for errors.'
+
+FLST013J 'Spare' .TYPE=W
+'Spare.'
+
+FLST013K 'Called program has abended' .TYPE=W
+'See logs for details.'
+
+FLST013L 'No CHARS &STR found' .TYPE=W
+'CHARS &STR not found on any line.'
+
+FLST013M 'Error accessing file' .TYPE=W
+'&RSN'
+
+FLST013N 'Command failed' .TYPE=W
+'Command failed with an unexpected return code.'
+
+FLST013O 'statvfs gave rc = -1' .TYPE=W
+'&FLSTERR'
+

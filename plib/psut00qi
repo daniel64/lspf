@@ -1,0 +1,80 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Disk stats from /proc/diskstats
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Disk Statistics'
+
+TEXT     4   2        FP    'Command ===> '
+FIELD    4  15   MAX  NEF CAPS(ON),PAD(USER) ZCMD
+
+TEXT     6   2        FP    'File system name. . :'
+FIELD    6  24    MAX-4  VOI NONE DSTATS3
+
+AREA   7 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+
+TEXT     1   3        FP    'Major number . . . . . . . :'
+TEXT     2   3        FP    'Minor number . . . . . . . :'
+TEXT     3   3        FP    'Reads completed. . . . . . :'
+TEXT     4   3        FP    'Reads merged . . . . . . . :'
+TEXT     5   3        FP    'Sectors read . . . . . . . :'
+TEXT     6   3        FP    'Time spent reading (ms). . :'
+TEXT     7   3        FP    'Writes completed . . . . . :'
+TEXT     8   3        FP    'Writes merged. . . . . . . :'
+TEXT     9   3        FP    'Sectors written. . . . . . :'
+TEXT    10   3        FP    'Time spent writing (ms). . :'
+TEXT    11   3        FP    'I/Os in progress . . . . . :'
+TEXT    12   3        FP    'Time doing I/Os (ms) . . . :'
+TEXT    13   3        FP    'I/Os weighted time (ms). . :'
+TEXT    14   3        FP    'Discards . . . . . . . . . :'
+TEXT    15   3        FP    'Discards merged. . . . . . :'
+TEXT    16   3        FP    'Sectors discarded. . . . . :'
+TEXT    17   3        FP    'Time spent discarding. . . :'
+TEXT    18   3        FP    'Flush requests completed . :'
+TEXT    19   3        FP    'Time spent flushing. . . . :'
+
+FIELD    1  32    MAX  VOI NONE DSTATS1
+FIELD    2  32    MAX  VOI NONE DSTATS2
+FIELD    3  32    MAX  VOI NONE DSTATS4
+FIELD    4  32    MAX  VOI NONE DSTATS5
+FIELD    5  32    MAX  VOI NONE DSTATS6
+FIELD    6  32    MAX  VOI NONE DSTATS7
+FIELD    7  32    MAX  VOI NONE DSTATS8
+FIELD    8  32    MAX  VOI NONE DSTATS9
+FIELD    9  32    MAX  VOI NONE DSTATS10
+FIELD    10 32    MAX  VOI NONE DSTATS11
+FIELD    11 32    MAX  VOI NONE DSTATS12
+FIELD    12 32    MAX  VOI NONE DSTATS13
+FIELD    13 32    MAX  VOI NONE DSTATS14
+FIELD    14 32    MAX  VOI NONE DSTATS15
+FIELD    15 32    MAX  VOI NONE DSTATS16
+FIELD    16 32    MAX  VOI NONE DSTATS17
+FIELD    17 32    MAX  VOI NONE DSTATS18
+FIELD    18 32    MAX  VOI NONE DSTATS19
+FIELD    19 32    MAX  VOI NONE DSTATS20
+
+
+)INIT
+.CURSOR = ZCMD
+&ZCMD   = &Z
+
+)PROC
+IF (&ZCMD NE &Z,QUIT)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
+)FIELD
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2023 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

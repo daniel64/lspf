@@ -1,0 +1,55 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Show journal boot entries
+)ENDCOMMENT
+
+)ATTR
+_ TYPE(NEF) PAD(USER) CAPS(ON)
++ TYPE(VOI)
+! TYPE(OUTPUT) COLOUR(YELLOW) CAPS(OFF)
+% TYPE(OUTPUT) COLOUR(WHITE) CAPS(OFF)
+* TYPE(OUTPUT) COLOUR(GREEN) CAPS(OFF) JUST(RIGHT)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Journal boot entries'
+
+TEXT     4   2         FP    'Command ===>'
+FIELD    4  15  max-17 nef caps(on),pad(user) zcmd
+
+TEXT     4  MAX-15   FP   'Scroll ===>'
+FIELD    4  MAX-3  4 NEF  NONE ZSCROLL
+
+TEXT    6   3   CH  'Index  Boot id                           First entry                   Last entry'
+
+TBMODEL  7   MAX
+TBFIELD  2     1     ATTR(_) SEL
+TBFIELD  ++1   4     ATTR(*) INDEX
+TBFIELD  ++2   32    ATTR(!) BOOTID
+TBFIELD  ++2   28    ATTR(%) EFIRST
+TBFIELD  ++2   28    ATTR(%) ELAST
+
+)INIT
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+.HELP = LSPJN001
+
+)PROC
+&ZCMD = TRANS(&ZCMD FI,FILTER FIL,FILTER FILT,FILTER FILTE,FILTER *,*)
+IF (&ZCMD NE &Z,FILTER)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
+VER(&SEL,LIST,F,S,B)
+
+IF (.MSG = &Z) VPUT ZSCROLL PROFILE
+
+)FIELD
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2024 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

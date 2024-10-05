@@ -1,0 +1,114 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ File and Directory compare
+)ENDCOMMENT
+
+)ATTR
++ TYPE(OUTPUT) COLOUR(WHITE) CAPS(OFF)
+- TYPE(OUTPUT) COLOUR(BLUE)  CAPS(OFF)
+% TYPE(OUTPUT) COLOUR(GREEN) CAPS(OFF)
+
+_ TYPE(NEF) PAD(USER) CAPS(ON)
+@ TYPE(VOI)
+
+)INCLUDE std_pdc
+)INCLUDE rfl_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Compare'
+
+TEXT     4    2             FP    'Command ===>'
+FIELD    4   15     MAX-17  ATTR(_) ZCMD
+
+TEXT     4  MAX-15  FP 'Scroll ===>'
+FIELD    4  MAX-3   4 NEF  NONE ZSCROLL
+
+TEXT     5  MAX-15    SI 'More:   >'
+
+TEXT     6    2       FP     'Entry Name A. . :'
+FIELD    6   20   MAX-4 VOI  PAD(USER) ENTRYA
+FIELD    6   MAX-2    2 LI   NONE      FLDAIND
+
+TEXT     7    2       FP     'Entry Name B. . :'
+FIELD    7   20   MAX-4 VOI  PAD(USER) ENTRYB
+FIELD    7   MAX-2    2 LI   NONE      FLDBIND
+
+TEXT     9    2  PS    'Sel Entry'
+TEXT     9   47  MAX PS    '&LIT1'
+TEXT    10    2  PS    EXPAND '-'
+
+TBMODEL  11    MAX
+TBFIELD  2     3      NEF  CAPS(ON),PAD(USER),JUST(LEFT) SEL
+TBFIELD  ++1   F1LEN  ATTR(+)  ENTRY
+TBFIELD  F2COL F2LEN  ATTR(-)  INA
+TBFIELD  F3COL F3LEN  ATTR(-)  INB
+TBFIELD  F4COL F4LEN  ATTR(%)  MOD
+
+)INIT
+IF (&ZSCROLL = &Z) VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+.HELP   = DIFH0001
+
+)REINIT
+IF (.MSG EQ &Z)
+   &SEL = &Z
+   REFRESH(SEL)
+ELSE
+   IF (.CURSOR EQ 'SEL') .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+   IF (&SEL NE &Z) REFRESH SEL
+REFRESH(ZCMD)
+
+)PROC
+&ZCMD = TRANS(&ZCMD
+              REF,REFRESH
+              P,PATCH
+              *,*
+              )
+
+IF (&ZCMD NE 'A:MOD','B:MOD','REFRESH','PATCH',&Z)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
+&ZCMD = TRANS(&ZCMD
+              'A:MOD','MDATEAO'
+              'B:MOD','MDATEBO'
+              *,*
+              )
+
+IF (&SEL EQ '=')
+   IF (&OSEL NE &Z) &SEL  = &OSEL
+ELSE
+   IF (&SEL NE &Z)  &OSEL = &SEL
+
+VER (&SEL,LIST,EA,EB,C,CA,CB,M,MA,MB,P,V,V1,V2,V3,V4,V5,V6,S,S1,S2,S3,S4,S5,S6,/)
+
+&DFFUTT = TRANS(&SEL
+                S1,'--normal'
+                S2,'-c'
+                S3,'-u'
+                S4,'-e'
+                S5,'-n'
+                S6,'-y'
+                V1,'--normal'
+                V2,'-c'
+                V3,'-u'
+                V4,'-e'
+                V5,'-n'
+                V6,'-y'
+                *,&DFFUTX
+                )
+
+)FIELD
+FIELD(ENTRYA) LEN(4095) IND(FLDAIND)
+FIELD(ENTRYB) LEN(4095) IND(FLDBIND)
+FIELD(ENTRY)  LEN(4095)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

@@ -1,0 +1,232 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Panel for setting mouse actions
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE rfs_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Set Mouse Actions'
+
+TEXT     4   2     FP 'Command ===>'
+FIELD    4  15     MAX NEF CAPS(ON),PAD(USER) ZCMD
+
+TEXT     6   2     PIN 'Actions:  1=Disable  2=Move Cursor  3=Enter  4=Move Cursor + Enter  5=Execute command  6=Execute line/field command'
+
+AREA 7 1 MAX MAX   SAREA
+
+)AREA SAREA
+
+TEXT     1   2     PIN 'Mouse interval (ms). . . . . . :'
+FIELD    1   35    3    CEF PAD(USER) MMOUSEIN
+
+TEXT     2   2     PIN 'Scroll Wheel scroll amount . . :'
+FIELD    2   35    4    CEF PAD(USER),CAPS(ON) MMOUSESA
+
+TEXT     4   2     PIN 'Event'
+TEXT     4   22    PIN 'Act Command'
+
+TEXT     5   3          SAC 'Left Mouse button'
+
+TEXT     6   5          SAC 'single click'
+FIELD    6   22      1  CEF PAD(USER) M1MOUSA1
+FIELD    6   26  MAX-4  CEF PAD(USER) M1MOUSC1
+FIELD    6   MAX-2   2  LI  NONE      M1M1CIND
+
+TEXT     7   5          SAC 'double click'
+FIELD    7   22      1  CEF PAD(USER) M1MOUSA2
+FIELD    7   26  MAX-4  CEF PAD(USER) M1MOUSC2
+FIELD    7   MAX-2   2  LI  NONE      M1M2CIND
+
+TEXT     8   5          SAC 'triple click'
+FIELD    8   22      1  CEF PAD(USER) M1MOUSA3
+FIELD    8   26  MAX-4  CEF PAD(USER) M1MOUSC3
+FIELD    8   MAX-2   2  LI  NONE      M1M3CIND
+
+TEXT     10  3         SAC 'Middle Mouse button'
+TEXT     11  5          SAC 'single click'
+FIELD    11  22      1  CEF PAD(USER) M2MOUSA1
+FIELD    11  26  MAX-4  CEF PAD(USER) M2MOUSC1
+FIELD    11  MAX-2   2  LI  NONE      M2M1CIND
+
+TEXT     12  5          SAC 'double click'
+FIELD    12  22      1  CEF PAD(USER) M2MOUSA2
+FIELD    12  26  MAX-4  CEF PAD(USER) M2MOUSC2
+FIELD    12  MAX-2   2  LI  NONE      M2M2CIND
+
+TEXT     13  5          SAC 'triple click'
+FIELD    13  22      1  CEF PAD(USER) M2MOUSA3
+FIELD    13  26  MAX-4  CEF PAD(USER) M2MOUSC3
+FIELD    13  MAX-2   2  LI  NONE      M2M3CIND
+
+
+TEXT     15  3         SAC 'Right Mouse button'
+TEXT     16  5          SAC 'single click'
+FIELD    16  22      1  CEF PAD(USER) M3MOUSA1
+FIELD    16  26  MAX-4  CEF PAD(USER) M3MOUSC1
+FIELD    16  MAX-2   2  LI  NONE      M3M1CIND
+
+TEXT     17  5          SAC 'double click'
+FIELD    17  22      1  CEF PAD(USER) M3MOUSA2
+FIELD    17  26  MAX-4  CEF PAD(USER) M3MOUSC2
+FIELD    17  MAX-2   2  LI  NONE      M3M2CIND
+
+TEXT     18  5          SAC 'triple click'
+FIELD    18  22      1  CEF PAD(USER) M3MOUSA3
+FIELD    18  26  MAX-4  CEF PAD(USER) M3MOUSC3
+FIELD    18  MAX-2   2  LI  NONE      M3M3CIND
+
+
+TEXT    21    2  CH 'Instructions'
+TEXT    22    5  NT 'Press'
+TEXT    22    11 PS 'Enter'
+TEXT    22    17 NT 'to make changes, enter'
+TEXT    22    40 PS 'Defaults'
+TEXT    22    49 NT 'to restore defaults'
+TEXT    23    5  NT 'Enter'
+TEXT    23    11 PS 'Reset'
+TEXT    23    17 NT 'for original values or'
+TEXT    23    40 PS 'Cancel'
+
+TEXT    25  5   PIN 'Use'
+TEXT    25  9   PS  'Save'
+TEXT    25  14  PIN 'and'
+TEXT    25  18  PS  'Restore'
+TEXT    25  26  PIN 'to save/restore a copy of these parameters to the current profile (&ZAPPLID)'
+
+)INIT
+.HELP = MUSH0001
+.HIST = *
+&ZCMD = &Z
+IF (&MMOUSEIN EQ &Z) &MMOUSEIN = 166
+IF (&MMOUSESA EQ &Z) &MMOUSESA = '1'
+
+&TXT1 = 'Disabled'
+&TXT2 = 'Move cursor'
+&TXT3 = 'Enter'
+&TXT4 = 'Move cursor + Enter'
+
+&M1MOUSC1 = TRANS(&M1MOUSA1 1,&TXT1 2,&TXT2 3,&TXT3 4,&TXT4 *,&M1MOUSC1 )
+&M1MOUSC2 = TRANS(&M1MOUSA2 1,&TXT1 2,&TXT2 3,&TXT3 4,&TXT4 *,&M1MOUSC2 )
+&M1MOUSC3 = TRANS(&M1MOUSA3 1,&TXT1 2,&TXT2 3,&TXT3 4,&TXT4 *,&M1MOUSC3 )
+
+&M2MOUSC1 = TRANS(&M2MOUSA1 1,&TXT1 2,&TXT2 3,&TXT3 4,&TXT4 *,&M2MOUSC1 )
+&M2MOUSC2 = TRANS(&M2MOUSA2 1,&TXT1 2,&TXT2 3,&TXT3 4,&TXT4 *,&M2MOUSC2 )
+&M2MOUSC3 = TRANS(&M2MOUSA3 1,&TXT1 2,&TXT2 3,&TXT3 4,&TXT4 *,&M2MOUSC3 )
+
+&M3MOUSC1 = TRANS(&M3MOUSA1 1,&TXT1 2,&TXT2 3,&TXT3 4,&TXT4 *,&M3MOUSC1 )
+&M3MOUSC2 = TRANS(&M3MOUSA2 1,&TXT1 2,&TXT2 3,&TXT3 4,&TXT4 *,&M3MOUSC2 )
+&M3MOUSC3 = TRANS(&M3MOUSA3 1,&TXT1 2,&TXT2 3,&TXT3 4,&TXT4 *,&M3MOUSC3 )
+
+)PROC
+&ZCMD = TRANS( &ZCMD DEF,DEFAULTS RES,RESET REST,RESTORE *,* )
+
+IF (VER (&ZCMD,LIST,DEFAULTS,RESET,SAVE,RESTORE,CANCEL))
+ELSE
+    .MSG    = PSYS018
+    .CURSOR = ZCMD
+    EXIT
+
+IF (&ZCMD EQ CANCEL)
+   .RESP = END
+   EXIT
+
+VGET ZVERB SHARED
+IF (&ZVERB EQ END AND .MSG NE &Z)
+   &ZCMD = CANCEL
+   EXIT
+
+IF (&ZVERB EQ CANCEL)
+   &ZCMD = CANCEL
+
+IF (&ZCMD EQ RESET) EXIT
+
+VER (&MMOUSEIN,RANGE,0,166)
+
+IF (VER (&MMOUSESA,NUM))
+ELSE &MMOUSESA = TRANS( TRUNC(&MMOUSESA,1) H,HALF P,PAGE, C,CSR, D,DATA MSG=PSYS011I )
+
+VER (&M1MOUSA1,NB,RANGE,1,6)
+VER (&M1MOUSA2,NB,RANGE,1,6)
+VER (&M1MOUSA3,NB,RANGE,1,6)
+
+IF (&M1MOUSA1 EQ 5,6)
+   VER (&M1MOUSC1,NB)
+ELSE
+   &M1MOUSC1 = &Z
+
+IF (&M1MOUSA2 EQ 5,6)
+   VER (&M1MOUSC2,NB)
+ELSE
+   &M1MOUSC2 = &Z
+
+IF (&M1MOUSA3 EQ 5,6)
+   VER (&M1MOUSC3,NB)
+ELSE
+   &M1MOUSC3 = &Z
+
+VER (&M2MOUSA1,NB,RANGE,1,6)
+VER (&M2MOUSA2,NB,RANGE,1,6)
+VER (&M2MOUSA3,NB,RANGE,1,6)
+
+IF (&M2MOUSA1 EQ 5,6)
+   VER (&M2MOUSC1,NB)
+ELSE
+   &M2MOUSC1 = &Z
+
+IF (&M2MOUSA2 EQ 5,6)
+   VER (&M2MOUSC2,NB)
+ELSE
+   &M2MOUSC2 = &Z
+
+IF (&M2MOUSA3 EQ 5,6)
+   VER (&M2MOUSC3,NB)
+ELSE
+   &M2MOUSC3 = &Z
+
+VER (&M3MOUSA1,NB,RANGE,1,6)
+VER (&M3MOUSA2,NB,RANGE,1,6)
+VER (&M3MOUSA3,NB,RANGE,1,6)
+
+IF (&M3MOUSA1 EQ 5,6)
+   VER (&M3MOUSC1,NB)
+ELSE
+   &M3MOUSC1 = &Z
+
+IF (&M3MOUSA2 EQ 5,6)
+   VER (&M3MOUSC2,NB)
+ELSE
+   &M3MOUSC2 = &Z
+
+IF (&M3MOUSA3 EQ 5,6)
+   VER (&M3MOUSC3,NB)
+ELSE
+   &M3MOUSC3 = &Z
+
+)PNTS
+FIELD( ZPS01001 ) VAR(ZCMD) VAL(' ')
+FIELD( ZPS01002 ) VAR(ZCMD) VAL(DEFAULTS)
+FIELD( ZPS01003 ) VAR(ZCMD) VAL(RESET)
+FIELD( ZPS01004 ) VAR(ZCMD) VAL(CANCEL)
+FIELD( ZPS01005 ) VAR(ZCMD) VAL(SAVE)
+FIELD( ZPS01006 ) VAR(ZCMD) VAL(RESTORE)
+
+)FIELD
+FIELD(M1MOUSC1) LEN(512) IND(M1M1CIND)
+FIELD(M1MOUSC2) LEN(512) IND(M1M2CIND)
+FIELD(M1MOUSC3) LEN(512) IND(M1M3CIND)
+FIELD(M2MOUSC1) LEN(512) IND(M2M1CIND)
+FIELD(M2MOUSC2) LEN(512) IND(M2M2CIND)
+FIELD(M2MOUSC3) LEN(512) IND(M2M3CIND)
+FIELD(M3MOUSC1) LEN(512) IND(M3M1CIND)
+FIELD(M3MOUSC2) LEN(512) IND(M3M2CIND)
+FIELD(M3MOUSC3) LEN(512) IND(M3M3CIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

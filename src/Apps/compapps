@@ -3,18 +3,25 @@ OPTS1="-O0 -Wall -Wno-switch -Wno-int-in-bool-context -Wunused-variable -Wtautol
 
 OPTS2="-shared -fPIC -std=c++11"
 
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPEDIT01.so  -o libPEDIT01.so PEDIT01.cpp -Wno-sign-compare -lboost_regex
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPEDRXM1.so  -o libPEDRXM1.so PEDRXM1.cpp -lrexx -lrexxapi
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPBRO01A.so  -o libPBRO01A.so PBRO01A.cpp -Wno-sign-compare -lmagic -lboost_regex
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPDLGTST.so  -o libPDLGTST.so PDLGTST.cpp
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPFLST0A.so  -o libPFLST0A.so PFLST0A.cpp -lboost_regex
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPLRFLST1.so -o libPLRFLST1.so PLRFLST1.cpp -lboost_regex
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPMAIN0A.so  -o libPMAIN0A.so PMAIN0A.cpp
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPPSP01A.so  -o libPPSP01A.so PPSP01A.cpp
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPTEST01.so  -o libPTEST01.so PTEST01.cpp
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPDPANLA.so  -o libPDPANLA.so PDPANLA.cpp
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPTUTORA.so  -o libPTUTORA.so PTUTORA.cpp
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPOREXX1.so  -o libPOREXX1.so POREXX1.cpp -lrexx -lrexxapi
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPCMD0A.so   -o libPCMD0A.so  PCMD0A.cpp
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPCMD0B.so   -o libPCMD0B.so  PCMD0B.cpp
-g++ $OPTS1 $OPTS2 -Wl,-soname,libPSHELL0.so  -o libPSHELL0.so PSHELL0.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libpbro01a.so  -o libpbro01a.so -Wno-sign-compare -lmagic pbro01a.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libpcmd0a.so   -o libpcmd0a.so  pcmd0a.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libpcmd0b.so   -o libpcmd0b.so  pcmd0b.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libpdiff0a.so  -o libpdiff0a.so pdiff0a.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libpdlgtst.so  -o libpdlgtst.so pdlgtst.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libpdpanla.so  -o libpdpanla.so pdpanla.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libpedit01.so  -o libpedit01.so -Wno-sign-compare pedit01.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libpedrxm1.so  -o libpedrxm1.so pedrxm1.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libpflst0a.so  -o libpflst0a.so pflst0a.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libplrflst1.so -o libplrflst1.so plrflst1.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libplfhist1.so -o libplfhist1.so plfhist1.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libpmain0a.so  -o libpmain0a.so pmain0a.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libporexx1.so  -o libporexx1.so  porexx1.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libppsp01a.so  -o libppsp01a.so  ppsp01a.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libpedumac1.so -o libpedumac1.so pedumac1.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libpshell0.so  -o libpshell0.so pshell0.cpp
+#g++ $OPTS1 $OPTS2 -Wl,-soname,libpsysutl.so  -o libpsysutl.so -ludev -lnethogs -lsystemd psysutl.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libpsysutl.so  -o libpsysutl.so -ludev -lsystemd psysutl.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libptest01.so  -o libptest01.so ptest01.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libptestm1.so  -o libptestm1.so ptestm1.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libptutora.so  -o libptutora.so ptutora.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,panload1.so    -o panload1.so panload1.cpp

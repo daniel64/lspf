@@ -1,0 +1,103 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ File system information panel
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'File System Information'
+
+TEXT     4   2        FP    'Command ===> '
+FIELD    4  15   MAX  NEF CAPS(ON),PAD(USER) ZCMD
+
+TEXT     6   2        FP    'File system name. . :'
+FIELD    6  24    MAX-4  VOI NONE IFSNAME
+
+TEXT     7   2        FP    'Mount point . . . . :'
+FIELD    7  24    MAX-4  VOI NONE IENTRY
+FIELD    7  MAX-2 2      LI  NONE IENTRIND
+
+TEXT     8    2       FP   'File system type. . :'
+FIELD    8   24  MAX  VOI NONE ITYPE
+
+TEXT     9    2       FP   'Mount options . . . :'
+FIELD    9   24  MAX-4  VOI NONE IOPTS
+FIELD    9   MAX-2 2     LI  NONE IOPTSIND
+
+AREA   10 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1   2    ET    'STATVFS Data'
+
+TEXT     2    3       FP   'Mount mode . . . . . . . . :'
+FIELD    2   32   3   VOI NONE IMMODE
+
+TEXT     3    3       FP   'Synchronised writes. . . . :'
+FIELD    3   32   3   VOI NONE IMSYNC
+
+TEXT     4    3       FP   'Ignore SETUID. . . . . . . :'
+FIELD    4   32   3   VOI NONE IMIGUID
+
+TEXT     5    3       FP   'Block size . . . . . . . . :'
+FIELD    5   32   16  VOI NONE IBSIZE
+
+TEXT     6   3       FP    'Number of Blocks . . . . . :'
+FIELD    6  32    20  VOI NONE IBLOCKS
+
+TEXT     7   3       FP    'Available Blocks . . . . . :'
+FIELD    7  32    20  VOI NONE IBFREE
+
+TEXT     8   3       FP    'Available Blocks (unpriv). :'
+FIELD    8  32    20  VOI NONE IBAVAIL
+
+TEXT     9   3       FP    'Percentage Used. . . . . . :'
+FIELD    9  32    20  VOI NONE IPCENTU
+
+TEXT    10   3       FP    'Number of inodes . . . . . :'
+FIELD   10  32    20  VOI NONE IFILES
+
+TEXT    11   3       FP    'Free inodes. . . . . . . . :'
+FIELD   11  32    20  VOI NONE IFFREE
+
+TEXT    12   3       FP    'Free inodes (unpriv) . . . :'
+FIELD   12  32    20  VOI NONE IFAVAIL
+
+TEXT    13   3       FP    'File system ID . . . . . . :'
+FIELD   13  32    20  VOI NONE IFSID
+
+TEXT    15   3       FP    'UUID . . . :'
+FIELD   15  16    MAX VOI NONE IUUID
+
+TEXT    16   3       FP    'Label. . . :'
+FIELD   16  16    MAX VOI NONE ILABEL
+
+TEXT     1    52       ET    'Device'
+TEXT     2    52       FP  'Minor Device . :'
+FIELD    2    68       5  VOI NONE IMIN
+TEXT     3    52       FP  'Major Device . :'
+FIELD    3    68       5  VOI NONE IMAJ
+
+
+)INIT
+.CURSOR = ZCMD
+&ZCMD   = &Z
+
+)PROC
+IF (&ZCMD NE &Z,QUIT)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
+)FIELD
+FIELD(IENTRY) LEN(4095) IND(IENTRIND)
+FIELD(IOPTS)  LEN(512)  IND(IOPTSIND)
+
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2023 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

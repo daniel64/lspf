@@ -25,6 +25,15 @@ void   display( string p_name,
                 const string& p_buffer = "",
                 const string& p_retbuf = "" ) ;
 
+void   ftclose( const string&,
+                string = "",
+                string = "" ) ;
+
+void   ftincl( const string&,
+               string = "" ) ;
+
+void   ftopen( string = "" ) ;
+
 void   pquery( const string& p_name,
                const string& a_name,
                const string& t = "",
@@ -196,7 +205,8 @@ void   edit( const string& m_file,
              const string& m_profile="",
              const string& m_lcmds="",
              const string& m_confirm="",
-             const string& m_preserv="" ) ;
+             const string& m_preserv="",
+             const string& m_parm="" ) ;
 
 void   view( const string& m_file,
              const string& m_panel="",
@@ -204,11 +214,13 @@ void   view( const string& m_file,
              const string& m_profile="",
              const string& m_lcmds="",
              const string& m_confirm="",
-             const string& m_chgwarn="" ) ;
+             const string& m_chgwarn="",
+             const string& m_parm="" ) ;
 
 void   edrec( const string& m_parm ) ;
 
 void   setmsg( const string& msg, msgSET sType=UNCOND  ) ;
+
 void   getmsg( const string&,
                const string&,
                const string& ="",
@@ -218,6 +230,7 @@ void   getmsg( const string&,
                const string& ="" ) ;
 
 void   addpop( const string& ="", int =0, int =0 ) ;
+
 void   rempop( const string& ="" ) ;
 
 void   enq( const string&, const string&, enqDISP =EXC, enqSCOPE =GLOBAL ) ;
@@ -252,6 +265,7 @@ Additional Services
 ===================
 rdisplay() - Issue line output synchronously.  Control returns to the appliction after
              each line issued.
+say()      - Like rdisplay but does not set the return code.
 pull()     - Gets data from the user in line mode.
              Pull can specify a variable name (the data read goes to the function pool),
              or it can specify a string pointer to contain the data.

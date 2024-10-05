@@ -1,0 +1,54 @@
+)PANEL VERSION=1 FORMAT=1 
+/* *************************************************** */
+/* Converted by panconv EXEC on 3 Oct 2024 at 15:46:41 */
+/* *************************************************** */
+)ATTR DEFAULT(%+_)
+  + TYPE(TEXT  ) COLOR(GREEN)
+  _ TYPE( INPUT) INTENS(LOW ) JUST(LEFT ) HILITE(USCORE)
+  @ TYPE(TEXT) INTENS(HIGH) CAPS(OFF) JUST(ASIS ) COLOR(TURQ)
+/*   } AREA(SCRL) EXTEND(ON) panconv */
+)BODY 
+TEXT 1 2 ATTR(25) 'Tutorial ----------------------------'
+TEXT 1 40 ATTR(40) 'Edit Utility'
+TEXT 1 53 ATTR(25) '----------------------------- Tutorial'
+AREA 2 1 90 39 HELP
+)AREA HELP
+TEXT 1 2 ATTR(25) 'Extensions to the normal ISPF PDF editor primary commands:'
+TEXT 2 2 ATTR(2B) '*--------------------------------------------------------*'
+TEXT 4 2 ATTR(2B) 'PROFILE USE TYPE - Determine profile name from the file type (eg, REXX, ASM,'
+TEXT 5 2 ATTR(2B) '                   CPP) (PROFILE name switches this off and reverts to an'
+TEXT 6 2 ATTR(2B) '                   explicit profile name). Explicit profile names are in red'
+TEXT 7 2 ATTR(2B) '                   (as is the explicit hilight language)'
+TEXT 9 2 ATTR(2B) '                   As an alternative to PROFILE USE TYPE, edit macro PEDUMAC1'
+TEXT 10 2 ATTR(2B) '                   and REXX prules can be used to define file matching patterns'
+TEXT 11 2 ATTR(2B) '                   to select the correct profile.  See Edit macros for details.'
+TEXT 13 2 ATTR(2B) 'BACKUP ON PATH pathname - Set the path to save a copy of the file on first data'
+TEXT 14 2 ATTR(2B) '                          change.  (default home directory - should be changed'
+TEXT 15 2 ATTR(2B) '                          to a backup directory eg ~/isr/).  Same path is used'
+TEXT 16 2 ATTR(2B) '                          for the RECOVERY ON command.'
+TEXT 17 2 ATTR(2B) '                          A backup is not taken if editing a file in /tmp or'
+TEXT 18 2 ATTR(2B) '                          when viewing a file.'
+TEXT 19 2 ATTR(2B) '                          Use edit macro ''backups'' to list backups for the file'
+TEXT 20 2 ATTR(2B) '                          being edited.'
+TEXT 22 2 ATTR(2B) 'UNDO ALL - Undo all changes on the undo stack'
+TEXT 23 2 ATTR(2B) 'REDO     - Redo the last undo'
+TEXT 25 2 ATTR(2B) 'REDO ALL - Redo all changes on the redo stack. If UNDO/REDO line is not on the'
+TEXT 26 2 ATTR(2B) '           screen, the top line is repositioned to show the UNDO/REDO line'
+TEXT 27 2 ATTR(2B) '           (this may be a delete action so no line will be visible in this'
+TEXT 28 2 ATTR(2B) '           case)'
+TEXT 30 2 ATTR(2B) '           UNDO ALL will go back to the last save for ''SETUNDO ON'' or back to'
+TEXT 31 2 ATTR(2B) '           the start of the edit session for ''SETUNDO KEEP'''
+TEXT 33 2 ATTR(2B) 'L UNDO/REDO - Locate an UNDO or REDO line'
+TEXT 34 2 ATTR(2B) 'L MOD       - Locate the most recently updated text position.'
+TEXT 35 2 ATTR(2B) '              Honours the target line setting in Edit Settings.'
+TEXT 36 2 ATTR(2B) 'L T         - Locate marked text (alises MRK, MARK, MARKED)'
+TEXT 37 2 ATTR(2B) 'L *         - Jump back to the previous LOCATE line'
+TEXT 39 2 ATTR(2B) 'CUT MARKED  - Copy marked text to the clipboard'
+TEXT 41 2 ATTR(2B) 'RESET T     - Reset marked text (alises MRK, MARK, MARKED)'
+TEXT 43 2 ATTR(2B) 'XTABS ON    - Convert tabs to spaces on file read, and spaces to tabs on file save'
+TEXT 44 2 ATTR(2B) '      OFF   - Don''t convert tabs'
+TEXT 46 2 ATTR(2B) 'XTABS nnn   - Set tab size.  This does not come into effect until the edit'
+TEXT 47 2 ATTR(2B) '              session is restarted.'
+)INIT
+)PROC
+)END

@@ -1,0 +1,104 @@
+PBRO011 'Invalid command' .TYPE=W
+'Unknown primary command has been entered.'
+
+PBRO012 'Invalid command parameter' .TYPE=W
+'Primary command contains an invalid parameter.'
+
+PBRO013 'Too many parameters' .TYPE=W
+'Too many parameters entered for &CMD command.'
+
+PBRO014 'Invalid columns specified' .TYPE=W
+'String ''&STR'' does not fit between the specified columns.'
+
+PBRO015 'Error accessing directory' .TYPE=W
+'Directory cannot be accessed.  Check permissions.'
+
+PBRO016 '*Bottom of data reached*' .TYPE=W
+'Press RFIND to continue from the top of data.'
+
+PBRO017 '*Top of data reached*' .TYPE=W
+'Press RFIND to continue from the bottom of data.'
+
+PBRO018 'Unknown parameter on FIND' .TYPE=W
+'Find command contains an unknown parameter ''&STR''.'
+
+PBRO019 'Too many columns specified' .TYPE=W
+'There appears to be more than two column delimiters specified.'
+
+PBRO011A 'Enter a FIND command' .TYPE=W
+'RFIND cannot be used if no previous FIND command has been entered.'
+
+PBRO011B 'Extraeneous data' .TYPE=W
+'Extaeneous data specified on find or change command.'
+
+PBRO011C 'No previous find command' .TYPE=W
+'No previous FIND command specified.  Cannot use * for the find string.'
+
+PBRO011D 'No FIND string' .TYPE=W
+'No FIND string found in the command.  Put string in quotes.'
+
+PBRO011E 'No &TYPE &STR found' .TYPE=W
+'&TYPE &STR specified not found.'
+
+PBRO011F '&TYPE &STR found' .TYPE=N
+'Search for &TYPE &STR was successful.'
+
+PBRO011G '&TYPE &STR found &OCC time(s)' .TYPE=N
+'Search for &TYPE &STR was successful.  Found &OCC time(s) on &LINES line(s).'
+
+PBRO011H 'No end quote' .TYPE=W
+'Start quote but no end quote specified.'
+
+PBRO011I 'Invalid quoted string' .TYPE=W
+'Valid types of quoted string are T, C, X and P.'
+
+PBRO011J 'Column out of fange' .TYPE=W
+'Entered column value cannot be less that 1 or greater than 65,535.'
+
+PBRO011K 'Invalid hex string' .TYPE=W
+'Enter only an even number of valid hex characters 0-9, A-F with no spaces.'
+
+PBRO011L 'File type ''&STR''' .TYPE=N
+'Hilighting filetype is ''&STR''.'
+
+PBRO011M 'Invalid hilight language' .TYPE=W
+'Hilighting language not supported.'
+
+PBRO011N 'Invalid regex' .TYPE=W
+'Regular expression entered is not valid.'
+
+PBRO011O 'Spare' .TYPE=W
+'Spare'
+
+PBRO011P 'Invalid label' .TYPE=W
+'''.&ZVAL1'' is not a valid label.  Must be alphnumeric, maximum 8 characters ' +
+'including the period.'
+
+PBRO011Q 'Missing parameter' .TYPE=W
+'Command is missing at least one parameter.'
+
+PBRO011R 'Label ''.&ZVAL1'' located' .TYPE=N
+'Label ''.&ZVAL1'' located on line &ZVAL2..'
+
+PBRO011S 'Label not defined' .TYPE=W
+'Label specified does not exist.'
+
+PBRO011T 'Label ''.&ZVAL1'' assigned' .TYPE=N
+'Label ''.&ZVAL1'' assigned to line &ZVAL2..'
+
+PBRO011U 'Label ''.&ZVAL1'' reassigned' .TYPE=N
+'Label ''.&ZVAL1'' reassigned to line &ZVAL2..'
+
+PBRO011V 'Put string in quotes' .TYPE=W
+'Put single or double quotes around the find string.'
+
+PBRO011W 'Referral list not found' .TYPE=W
+'Specified referral list not found.'
+
+PBRO011X 'Entry not found' .TYPE=W
+'No file entry found in the reference list or specified referral list, ' +
+'and not a regular file.'
+
+PBRO011Y 'Parameter missing' .TYPE=W
+'BROWSE requires a file or directory to be passed.'
+

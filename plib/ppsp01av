@@ -1,0 +1,63 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel to display/delete/update pool variables
+)ENDCOMMENT
+
+)ATTR
+% TYPE(OUTPUT) CAPS(OFF) COLOUR(WHITE)
+! TYPE(OUTPUT) CAPS(OFF) COLOUR(YELLOW)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Shared and Profile Variables (&ZAPPLID)'
+
+TEXT     4   2         FP    'Command ===>'
+FIELD    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
+
+TEXT     4  MAX-15  FP 'Scroll ===>'
+FIELD    4  MAX-3   4  NEF  NONE ZSCROLL
+
+TEXT     6  2       FP 'Current scrollable width is:'
+FIELD    6  31      6  VOI  NONE VALLEN
+TEXT     7  7 CH 'Variable  P S Value'
+
+FIELD    8 21     MAX  LI  NONE VALSC
+
+TBMODEL    9  MAX
+TBFIELD    2  4   NEF  PAD(USER),CAPS(ON),JUST(LEFT) SEL
+TBFIELD  ++1  8   VOI  NONE VAR
+TBFIELD  ++2  1   ATTR(%)   VPOOL
+TBFIELD  ++1  1   ATTR(%)   VPLVL
+TBFIELD  ++1  MAX ATTR(!)   VAL
+
+)INIT
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+)REINIT
+IF (.MSG EQ &Z)
+   &SEL = &Z
+   REFRESH(SEL)
+ELSE
+   IF (.CURSOR EQ 'SEL' ) .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+)PROC
+IF (TRUNC(&ZCMD,' ') NE O,RES,&Z)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
+VER (&SEL,LIST,D,U)
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+
+)FIELD
+FIELD(VAL) LEN(VALLEN) SCALE(VALSC)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

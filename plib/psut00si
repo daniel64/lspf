@@ -1,0 +1,67 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Basic System information
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'System Information'
+
+TEXT     4   2        FP    'Command ===> '
+FIELD    4  15   MAX  NEF CAPS(ON),PAD(USER) ZCMD
+
+AREA   5 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1   2        ET    'General'
+TEXT     2   3        FP    'System uptime. . . . . . . :'
+FIELD    2  32        MAX VOI NONE IUPTIME
+TEXT     3   3        FP    'Load average . . . . . . . :'
+FIELD    3  32        5   VOI NONE IAVLOAD1
+FIELD    3  39        5   VOI NONE IAVLOAD2
+FIELD    3  46        5   VOI NONE IAVLOAD3
+TEXT     4   3        FP    'Running processes. . . . . :'
+FIELD    4  32        10  VOI NONE INPROCS
+TEXT     5   3        FP    'Node name. . . . . . . . . :'
+FIELD    5  32        10  VOI NONE ZNODNAME
+TEXT     6   3        FP    'Total SWAP (Gb). . . . . . :'
+FIELD    6  32        10  VOI NONE ITSWAP
+TEXT     7   3        FP    'Free SWAP (Gb) . . . . . . :'
+FIELD    7  32        10  VOI NONE IFSWAP
+
+TEXT     9   2        ET    'Software'
+TEXT    10   3        FP    'Kernel version . . . . . . :'
+FIELD   10  32        MAX VOI NONE ILVERS
+
+TEXT     12  2        ET    'Hardware'
+TEXT     13  3        FP    'Processor. . . . . . . . . :'
+FIELD    13 32        MAX VOI NONE IMODEL
+TEXT     14  3        FP    'Vendor . . . . . . . . . . :'
+FIELD    14 32        MAX VOI NONE IVENDOR
+TEXT     15  3        FP    'Total RAM memory (Gb). . . :'
+FIELD    15 32        10  VOI NONE ITRAM
+TEXT     16  3        FP    'Free RAM memory (Gb) . . . :'
+FIELD    16 32        10  VOI NONE IFRAM
+
+
+)INIT
+.CURSOR = ZCMD
+&ZCMD   = &Z
+
+)PROC
+IF (&ZCMD NE &Z,QUIT)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
+)FIELD
+--FIELD(IENTRY) LEN(4095) IND(IENTRIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2023 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

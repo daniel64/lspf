@@ -1,0 +1,173 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ File and Directory list panel
+
+ Panel changes required for reflist and NRETRIEV functions:
+   .NRET = ON  in the )INIT section
+   Reflist also needs to know which field to save
+   NRETRIEV needs to know which field to update
+     .NRET = field_name holds the field name for both of
+     these functions.  Set in the )INIT section
+
+ Check panel PFLST0A9 if this panel is updated
+
+)ENDCOMMENT
+
+)ATTR
++ TYPE(TEXT) COLOUR(TURQ)
+- TYPE(TEXT) COLOUR(WHITE)
+* TYPE(TEXT) COLOUR(BLUE)
+% TYPE(TEXT) COLOUR(GREEN)
+
+! TYPE(OUTPUT) COLOUR(WHITE) CAPS(OFF)
+$ TYPE(OUTPUT) COLOUR(BLUE)  CAPS(OFF)
+
+W TYPE(CHAR) COLOUR(WHITE)
+Y TYPE(CHAR) COLOUR(&PFLAC6)
+
+)INCLUDE std_pdc
+)INCLUDE pfl_pdc
+)INCLUDE rfl_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'File/Directory List'
+PANELDESC  'List &ZPATH'
+
+TEXT     4   2           FP    'Command ===> '
+FIELD    4  15   MAX-17  NEF PAD(USER) ZCMD
+
+TEXT     4  MAX-15  FP 'Scroll ===>'
+FIELD    4  MAX-3   4  NEF  NONE ZSCROLL
+
+TEXT     5  MAX-15  SI 'More: < >'
+
+TEXT     6   2         FP  'Path Name . . .'
+FIELD    6  18    MAX-4  NEF PAD(USER) ZPATH
+FIELD    6  MAX-2     2  LI  NONE      ZPATHIND
+
+DYNAREA  7  2 MAX-55 1 ZHOTBARD ZHOTBARS
+
+TEXT     7  MAX-53     FP  'Options:'
+TEXT     7  MAX-44 24  RP  '&FMSG4'
+TEXT     7  MAX-20 MAX SAC '&FMSG1'
+TEXT     8  MAX-20 MAX SAC '&FMSG2'
+
+FIELD    8   2   1   CEF     PAD(USER) AFFULL
+TEXT     8   5       SAC    'Show full entry name'
+
+FIELD    9   2   1   CEF     PAD(USER) AFHIDDEN
+TEXT     9   5       SAC    'Include hidden entries'
+
+TEXT     11  2      ATTR(+) 'Command'
+TEXT     11  11     ATTR(+) 'Entry name'
+
+TEXT     11  MAX-40 ATTR(-) 'Message'
+
+TEXT     11  MAX-19 ATTR(%) 'Modified'
+
+FIELD    11  22 MAX-41 ATTR(!) FMSG3
+
+TEXT     12  2          CH        '--------'
+FIELD    12  11 MAX-42  ATTR($) ENTSIND
+FIELD    12  MAX-40 20  ATTR($) MSGSIND
+TEXT     12  MAX-19     CH EXPAND '-'
+
+TBMODEL  13    MAX
+TBFIELD  2        8     NEF  CAPS(OFF),PAD(USER),JUST(LEFT) SEL
+TBFIELD  ++1    MAX-42  VOI  NONE       ENTRY
+TBFIELD  MAX-40  20     VOI  NONE       MESSAGE
+TBFIELD  MAX-19  19     VOI  NONE       MODDATE
+
+)INIT
+IF (&ZSCROLL = &Z) VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+VGET (PFLAC1 PFLAC2 PFLAC3 PFLAC4 PFLAC5 PFLAC6) PROFILE
+VGET (PFLAI1 PFLAI2 PFLAI3 PFLAI4 PFLAI5) PROFILE
+VGET (PFLAH1 PFLAH2 PFLAH3 PFLAH4 PFLAH5) PROFILE
+
+IF (&PFLAC1 EQ &Z) &PFLAC1 = 'TURQ'
+IF (&PFLAC2 EQ &Z) &PFLAC2 = 'WHITE'
+IF (&PFLAC3 EQ &Z) &PFLAC3 = 'BLUE'
+IF (&PFLAC4 EQ &Z) &PFLAC4 = 'GREEN'
+IF (&PFLAC5 EQ &Z) &PFLAC5 = 'BLUE'
+IF (&PFLAC6 EQ &Z) &PFLAC6 = 'YELLOW'
+
+IF (&PFLAI1 EQ &Z) &PFLAI1 = 'HIGH'
+IF (&PFLAI2 EQ &Z) &PFLAI2 = 'HIGH'
+IF (&PFLAI3 EQ &Z) &PFLAI3 = 'HIGH'
+IF (&PFLAI4 EQ &Z) &PFLAI4 = 'HIGH'
+IF (&PFLAI5 EQ &Z) &PFLAI5 = 'HIGH'
+
+.ATTRCHAR(+)   = 'COLOUR(&PFLAC1) INTENS(&PFLAI1) HILITE(&PFLAH1)'
+.ATTR(SEL)     = 'TYPE(INPUT)  COLOUR(&PFLAC1) INTENS(&PFLAI1) HILITE(&PFLAH1)'
+.ATTR(ENTRY)   = 'TYPE(OUTPUT) COLOUR(&PFLAC1) INTENS(&PFLAI1) HILITE(&PFLAH1)'
+
+.ATTRCHAR(-)   = 'COLOUR(&PFLAC2) INTENS(&PFLAI2) HILITE(&PFLAH2)'
+.ATTR(MESSAGE) = 'TYPE(OUTPUT) COLOUR(&PFLAC2) INTENS(&PFLAI2) HILITE(&PFLAH2)'
+
+.ATTRCHAR(%)   = 'COLOUR(&PFLAC4) INTENS(&PFLAI4) HILITE(&PFLAH4)'
+.ATTR(MODDATE) = 'TYPE(OUTPUT) COLOUR(&PFLAC4) INTENS(&PFLAI4) HILITE(&PFLAH4)'
+
+.ATTRCHAR($)   = 'COLOUR(&PFLAC5) INTENS(&PFLAI5) HILITE(&PFLAH5)'
+
+.NRET = ON
+.NRET = ZPATH
+
+.HELP = FLTH0001
+
+)REINIT
+IF (.MSG EQ &Z)
+   &SEL = &Z
+   REFRESH(SEL)
+   IF (&MESSAGE NE &Z) REFRESH(MESSAGE)
+ELSE
+   IF (.CURSOR EQ 'SEL') .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+   REFRESH(MESSAGE)
+   IF (&SEL NE &Z) REFRESH SEL
+REFRESH(ZCMD)
+
+)PROC
+IF ( &ZCMD EQ &Z AND &FMSG3 NE &Z AND .CURSOR EQ 'FMSG3')
+   &ZCMD = 'RESET'
+   EXIT
+
+IF (&SEL EQ '%')
+  &SEL = &Z
+ELSE
+  IF (&SEL EQ '=')
+     IF (&OSEL NE &Z) &SEL  = &OSEL
+  ELSE
+     IF (&SEL NE &Z)  &OSEL = &SEL
+
+IF (&SEL EQ '?')
+   VER (&SEL LIST,ADD,B,C,CC,D,E,EX,FS,I,L,LX,M,NANO,R,S,SUB,T,TT,V,VI,X,/,/X)
+
+IF (UPPER(SEL) EQ ADD,B,C,CC,D,E,EX,FS,I,L,LX,M,NANO,R,S,SUB,T,TT,V,VI,X,/,/X)
+   &SEL = UPPER(SEL)
+
+IF (&SEL EQ 'S' )
+   VGET PFLSDEF PROFILE
+   &TT1 = TRANS(&PFLSDEF, '1','E' '2','V' '3','B', *,'E' )
+   &SEL = TRANS(&TYPE, 'Dir','L' 'File',&TT1 *,'S' )
+
+&AFHIDDEN = TRANS( &AFHIDDEN &Z,&Z *,/ )
+&AFFULL   = TRANS( &AFFULL &Z,&Z *,/ )
+
+VPUT (AFHIDDEN AFFULL ZPATH) PROFILE
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+
+)FIELD
+FIELD(ZPATH) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND DO1) NESTED')
+FIELD(ZPATH)   LEN(4095) IND(ZPATHIND)
+FIELD(ENTRY)   LEN(4095) SIND(ENTSIND)
+FIELD(MESSAGE) SIND(MSGSIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

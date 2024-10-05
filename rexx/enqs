@@ -1,0 +1,163 @@
+/*
+  Copyright (c) 2023 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+
+Call initialise
+
+Call act_libdefs
+
+Call buildTable
+
+zcmd = ""
+do forever
+   "TBDISPL &tabname PANEL(ENQLIST1)"
+   if RC > 4 then leave
+   Call removeTable
+   Call buildTable
+end
+
+Call deact_libdefs
+Call removeTable
+EXIT
+
+
+initialise: procedure expose tabname majnam minnam
+"VGET (MAJNAM MINNAM) PROFILE"
+tabname = "DDL"random( 0, 99999 )
+RETURN
+
+
+buildTable: procedure expose tabname qname rname majnam minnam
+majnamv = majnam"*"
+minnamv = minnam"*"
+"QUERYENQ TABLE(&tabname) QNAME(MAJNAMV) RNAME(MINNAMV)"
+"TBTOP &tabname"
+RETURN
+
+
+removeTable: procedure expose tabname
+"TBEND &tabname"
+RETURN
+
+
+act_libdefs: procedure Expose ddname
+/* Add the LIBDEFs for panel and message libraries.              */
+/* Source is at the end of the REXX                              */
+ddname = "$"random( 0, 9999999 )
+address tso "ALLOC NEW DEL F("ddname") DIR(1)"
+address ISPEXEC
+"LMINIT DATAID(DATAID) DDNAME("ddname") ENQ(EXCLU)"
+"LMOPEN DATAID(&dataid) OPTION(OUTPUT)"
+a  = 1
+ml = sourceline()
+
+do i = ml to 1 by -1
+   line = sourceline( i )
+   if translate( word( line, 1 ) ) = ">START" then leave
+end
+
+do forever
+  do i = i to ml while word( line, 1 ) \= ">MEMBER"
+     line = sourceline( i )
+  end
+  if i >= ml then leave
+  mem = word( line, 2 )
+  do i = i to ml while wordpos( word( sourceline( i ), 1, ), ">MEMBER >END" ) = 0
+    line = sourceline( i )
+    "LMPUT DATAID(&dataid) MODE(INVAR) DATALOC(LINE) DATALEN(120)"
+  end
+  "LMMADD DATAID(&dataid) MEMBER(&MEM)"
+end
+
+"LMFREE DATAID(&dataid)"
+"LIBDEF ISPPLIB LIBRARY ID(&ddname) STACK"
+"LIBDEF ISPMLIB LIBRARY ID(&ddname) STACK"
+RETURN
+
+
+deact_libdefs: procedure expose ddname
+/* Remove the LIBDEFs for panel and message libraries            */
+address ISPEXEC "LIBDEF ISPPLIB"
+address ISPEXEC "LIBDEF ISPMLIB"
+address tso "FREE F("ddname")"
+RETURN
+
+
+/*
+>START
+>MEMBER ENQLIST1
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel to display ENQs
+)ENDCOMMENT
+
+)ATTR
+% TYPE(OUTPUT) CAPS(OFF) COLOUR(WHITE)
+$ TYPE(OUTPUT) CAPS(OFF) COLOUR(GREEN)
+! TYPE(OUTPUT) CAPS(ON)  COLOUR(RED)
+
+)INCLUDE STD_PDC
+)INCLUDE HLP_PDC
+
+)BODY
+PANELTITLE "ENQ Status"
+
+TEXT     4   2         FP    "Command ===>"
+FIELD    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
+
+TEXT     4  MAX-15  FP "Scroll ===>"
+FIELD    4  MAX-3   4  NEF  NONE ZSCROLL
+
+TEXT     7  2       FP "Major name. . . ."
+FIELD    7  22  8   NEF CAPS(ON),PAD(USER) MAJNAM
+
+TEXT     8  2       FP "Minor name. . . ."
+FIELD    8  22  MAX NEF CAPS(OFF),PAD(USER) MINNAM
+
+TEXT    11  2 CH "Task      Major     Minor                                         Disposition"
+
+TBMODEL   12  MAX
+TBFIELD    2  8   ATTR(%)   ZENJOB
+TBFIELD  ++2  8   ATTR(%)   ZENQNAME
+TBFIELD  ++2  44  ATTR(%)   ZENRNAME
+TBFIELD  ++2  10  ATTR(!)   ZENDISP
+
+)INIT
+&SEP = '>'
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+)REINIT
+)PROC
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+
+VPUT (MAJNAM,MINNAM) PROFILE
+
+)FIELD
+FIELD(ZENRNAME) LEN(4046)
+
+)END
+>MEMBER NQLS00
+
+>END
+*/

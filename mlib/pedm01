@@ -1,0 +1,199 @@
+/*                                                           */
+/* Message file for the PEDIT01 EDITOR macro error messages  */
+/*                                                           */
+
+PEDM011A 'Service not currently supported'
+''
+
+PEDM011B 'MACRO command is invalid'
+'Only one MACRO statement is allowed in a macro.'
+
+PEDM011C 'Missing closing bracket'
+'Closing bracket expected but not found.'
+
+PEDM011D 'Invalid variable name'
+'Variable name ''&ZMVAL1'' is not valid.'
+
+PEDM011E 'Invalid MACRO statement'
+'The MACRO statement must precede any other edit macro statement.'
+
+PEDM011F 'Invalid variable format'
+'The ending '')'' was not found.'
+
+PEDM011G 'No variable name coded'
+'No variable name found between ''('' and '')''.'
+
+PEDM011H 'Too many variable names'
+'Invalid number of variables for this statement.'
+
+PEDM011I 'Invalid variable list format'
+'Variable list must be of the form ''(varname,varname)''.'
+
+PEDM011J 'Invalid number of variables'
+''
+
+PEDM011K 'Command name missing'
+'BUILTIN must be followed by a valid edit command name.'
+
+PEDM011L 'Invalid macro assignment syntax'
+'Missing ''='' after variable names.'
+
+PEDM011M 'Invalid keyphrase syntax'
+'Assignment syntax is ''ISREDIT &ZMVAL1 lptr = value''.'
+
+PEDM011N 'Invalid command'
+'Command keyword is not recognised or missing.'
+
+PEDM011O 'Invalid command'
+'&ZMVAL1..'
+
+PEDM011P 'Parameter not recognised'
+'Check for misspelled, missing or extraneous parameters.'
+
+PEDM011Q '&ZMVAL1 label invalid'
+'Label &ZMVAL1 is not currently assigned to a line.'
+
+PEDM011R 'Invalid label'
+'Label is missing or not of the correct format.'
+
+PEDM011S 'Invalid line number'
+'Line number is outside the data range.'
+
+PEDM011T 'Invalid function use'
+'&ZMVAL1 can only be used to query a setting, not change it.'
+
+PEDM011U 'First line not found'
+'First line specified, &ZMVAL1, is greater than the file size.'
+
+PEDM011V 'Invalid value'
+'Value of the USER_STATE variable is not valid.'
+
+PEDM011W 'Invalid line pointer'
+'The line pointer specified does not exist.'
+
+PEDM011X 'Too few keyphrase words'
+'Macro statement has too few words after the keyphrase.'
+
+PEDM011Y 'Too many keyphrase words'
+'Macro statement has too many words after the keyphrase.'
+
+PEDM011Z 'Too few value options'
+'Macro statement has too few option words.'
+
+PEDM012A 'Too many value options'
+'Macro statement has too many option words.'
+
+PEDM012B 'Invalid number of variables'
+'Too few variables specified on the command.'
+
+PEDM012C 'Invalid number of variables'
+'Too many variables specified on the command.'
+
+PEDM012D 'Primary command not actioned'
+'Logic error.  Primary command ''&ZMVAL1'' of MACRO ''&ZMVAL2'' has not set the actioned flag.'
+
+PEDM012E 'Level out of range'
+'The optional level parameter must in the range 0 to 255.'
+
+PEDM012F 'Invalid line pointer'
+'Line pointer must be numeric or a valid line label.'
+
+PEDM012G 'Missing parameter'
+'Macro command is missing a required parameter.'
+
+PEDM012H 'Nesting exceeded' .TYPE=W
+'Macros can only be nested to a level of 255.  Check for loops.'
+
+PEDM012I '''&ZMVAL1'' not a valid edit macro' .TYPE=W
+'No valid ISREDIT MACRO statement was found in MACRO ''&ZMVAL1''.'
+
+PEDM012J 'No parameters specified'
+'COMPARE has been specified with no parameters.'
+
+PEDM012K 'Invalid process request'
+'End user input previously processed.  Specify NOPROCESS on macro command.'
+
+PEDM012L '&ZSTR1 returned invalid number' .T=W
+'&ZSTR1 has set an invalid return that is not a whole number.'
+
+PEDM012M 'Primary command not actioned'
+'Logic error.  IMACRO primary command ''&ZMVAL1'' has not set the actioned flag.'
+
+PEDM012N 'Mis-matched brackets'
+'Check brackets around variables name(s).'
+
+PEDM012O 'Invalid BUILTIN command' .TYPE=W
+'BUILTIN must be followed by a valid built-in editor command.'
+
+PEDM012P 'No macro name specified'
+'Macro name is blank.  Please specify a valid macro.'
+
+PEDM012Q 'Invalid rexx file' .TYPE=W
+'Invalid file found in path ZORXPATH.'
+
+PEDM012R 'Syntax not valid'
+'Assignment statement syntax not valid.  Use macro command syntax.'
+
+PEDM012S 'Syntax not valid'
+'Command syntax not valid.  Use assignment statement syntax.'
+
+PEDM012T 'HILITE dialogue not available'
+'HILITE dialogue cannot be shown when running from a macro.'
+
+PEDM012U 'TFLOW parameter missing'
+'TFLOW requires the column parameter if the right bounds has not been set.'
+
+PEDM012V 'Invalid LINE format' .TYPE=W
+'Format must be ''line-type data''.'
+
+PEDM012W 'Invalid quoted string' .TYPE=W
+'String must start and end with a single or double quote.'
+
+PEDM012X 'Inconsistent parameters'
+'Cannot specify &ZMVAL1 and &ZMVAL2 on the &ZMVAL3 command.'
+
+PEDM012Y 'Invalid template format'
+'Missing or misplaced ''>'' to indicate the end of the template.'
+
+PEDM012Z 'Invalid template format'
+'Invalid number of parameters between ''<'' and ''>''.'
+
+PEDM013A 'Missing parameter'
+'&ZMVAL1 keyword missing lptr parameter.'
+
+PEDM013B 'Invalid template parameter'
+'Column parameter must be numeric and larger than zero.  Found ''&ZMVAL1''.'
+
+PEDM013C 'Invalid specification'
+'The specified cursor position is outside the data.'
+
+PEDM013D 'Statements after CANCEL or END'
+'Macro has ended the edit session but further statements were found in the macro.'
+
+PEDM013E 'Initial macro error'
+'Macro command entered is not allowed from an initial macro.'
+
+PEDM013F 'Unrecognised parameter'
+'PROCESS parameter is not DEST or RANGE.'
+
+PEDM013G 'Range name is missing'
+'PROCESS RANGE requires one line command to be specified.'
+
+PEDM013H 'Command on invalid line'
+'Command must be entered on a valid data line.'
+
+PEDM013I 'Command conflict'
+'Command ''&ZMVAL1'' conflicts with a previously entered command.'
+
+PEDM013J 'Command name invalid'
+'Command name cannot be greater than 6 characters.'
+
+PEDM013K 'Block command incomplete' .TYPE=N
+'Enter matching ''&ZMVAL1'' command to complete block command pair.'
+
+PEDM014A 'Data not saved' .TYPE=N
+'Save is not valid in view mode.  Data has not been saved.'
+
+PEDM014B 'File does not exist' .TYPE=W
+'File ''&ZMVAL1'' does not exist.'
+

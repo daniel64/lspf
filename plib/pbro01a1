@@ -1,0 +1,142 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+Browse/View Entry panel
+)ENDCOMMENT
+
+)ATTR
++ TYPE(NEF) PAD(USER) CAPS(ON)
+
+)INCLUDE std_pdc
+)INCLUDE rfl_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'View Entry Panel'
+
+TEXT     4    2       FP     'Command ===>'
+FIELD    4   15   MAX ATTR(+) ZCMD
+
+AREA   6 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1    2       FP     'File Name. . .'
+FIELD    1   17 MAX-4 NEF    PAD(USER) ZFILE
+FIELD    1   MAX-2  2 LI     NONE      ZFILEIND
+
+TEXT     4    2       FP     'Initial Macro. . . . .'
+FIELD    4    25  8   CEF     PAD(USER),caps(off) BEIMAC
+TEXT     5    2       FP     'Profile Name . . . . .'
+FIELD    5    25  8   CEF     PAD(USER),caps(on) BEPROF
+
+TEXT     6    2       FP     'Record Length. . . . .'
+FIELD    6    25  5   CEF     PAD(USER),caps(on) BERECL
+
+TEXT     7    2       FP     'Line Command Table . .'
+FIELD    7    25  8   CEF     PAD(USER),caps(on) EELMAC
+TEXT     7    35      FP     '+'
+
+TEXT     3    40      CH     'Options'
+FIELD    4    40  1   CEF     PAD(USER) EECCAN
+TEXT     4    43      SAC    'Confirm Cancel/Move/Replace'
+FIELD    5    40  1   CEF     PAD(USER) BEBROM
+TEXT     5    43      SAC    'Browse Mode'
+FIELD    6    40  1   CEF     PAD(USER) BECWARN
+TEXT     6    43      SAC    'Warn on first data change'
+FIELD    7    40  1   CEF     PAD(USER) BETABSS
+TEXT     7    43      SAC    'Override XTABS setting to prevent tabs being converted to spaces'
+
+FIELD    8    40  1   CEF     PAD(USER) BEDIRLST
+TEXT     8    43      SAC    'Show directory list if valid directory entered'
+
+
+)INIT
+.NRET   = ON
+.NRET   = ZFILE
+.HIST   = 'BEIMAC,BEPROF,EELMAC'
+.CURSOR = ZCMD
+
+&ZPM2 = 1
+IF (&BEBROM = '/') &ZVMODE1 = 'browse'
+ELSE               &ZVMODE1 = 'view'
+
+)PROC
+if (&ZCMD NE &Z,PROMPT)
+  .MSG    = 'PSYS018'
+  .CURSOR = ZCMD
+  EXIT
+
+VER (&ZFILE,NB)
+VER (&BEPROF,NAME)
+VER (&BERECL,NUM)
+VER (&BERECL,RANGE,0,32760)
+VER (&EELMAC,NAME)
+
+&BEBROM   = TRANS( &BEBROM   &Z,&Z *,/ )
+&EECCAN   = TRANS( &EECCAN   &Z,&Z *,/ )
+&BECWARN  = TRANS( &BECWARN  &Z,&Z *,/ )
+&BETABSS  = TRANS( &BETABSS  &Z,&Z *,/ )
+&BEDIRLST = TRANS( &BEDIRLST &Z,&Z *,/ )
+
+&ZEDTABSS = TRANS( &BETABSS /,YES *,NO )
+
+VPUT (BEIMAC,BERECL,ZEDTABSS) SHARED
+VPUT (BEBROM,EECCAN,BECWARN,BETABSS,BEDIRLST) PROFILE
+VPUT (ZFILE,BEPROF,EELMAC) PROFILE
+
+&SHOWDIR = NO
+
+&REV = REVERSE(ZFILE)
+&GEN = TRUNC( &REV, 1 )
+IF (&GEN EQ '*','?',']' )
+  &SHOWDIR = 'YES'
+  EXIT
+&GEN = TRUNC( &ZFILE, '*' )
+&GEN = .TRAIL
+IF (&GEN NE &Z )
+   &SHOWDIR = 'YES'
+   EXIT
+&GEN = TRUNC( &ZFILE, '?' )
+&GEN = .TRAIL
+IF (&GEN NE &Z )
+   &SHOWDIR = 'YES'
+   EXIT
+&GEN = TRUNC( &ZFILE, '[' )
+&GEN = .TRAIL
+IF (&GEN NE &Z )
+   &SHOWDIR = 'YES'
+   EXIT
+
+&ISFILE = FILE( ZFILE )
+&ISDIR  = DIR( ZFILE )
+
+&REV = REVERSE(ZFILE)
+IF (TRUNC(&REV, 1) EQ '/' AND &ISDIR EQ .FALSE )
+   .MSG = 'PEDT011S'
+   .CURSOR = 'ZFILE'
+   EXIT
+
+IF ( &BEDIRLST NE '/' )
+  IF ( &ISDIR EQ .TRUE )
+     .CURSOR = 'ZFILE'
+     .MSG    = 'PEDT011T'
+     EXIT
+  IF ( &ISFILE EQ .FALSE )
+     .CURSOR = 'ZFILE'
+     &ZMVAL1 = &ZFILE
+     .MSG    = 'PEDT011R'
+     EXIT
+ELSE
+  IF ( &ISFILE EQ .FALSE )
+     IF ( &ISDIR NE .FALSE )
+        &SHOWDIR = 'YES'
+
+)FIELD
+FIELD(ZFILE) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL) NESTED')
+FIELD(ZFILE) LEN(4095) IND(ZFILEIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

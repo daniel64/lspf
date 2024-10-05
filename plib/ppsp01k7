@@ -1,0 +1,48 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Confirm delete panel
+)ENDCOMMENT
+
+)BODY WINDOW(60,10)
+PANELTITLE 'Confirm Delete of &ZZENTRY'
+
+TEXT     2   2       FP  'Command ===> '
+FIELD    2  15   MAX NEF CAPS(ON),PAD(USER) ZCMD
+
+AREA   3 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1   2  PIN  'Enter / to confirm delete'
+FIELD    1   28   1   CEF PAD(USER) ENTRYDEL
+
+TEXT     3 2  CH 'Instructions'
+TEXT     4 5  NT 'Press'
+TEXT     4 11 ET 'Enter'
+TEXT     4 17 NT 'to confirm delete'
+
+TEXT     5 5  NT 'Enter'
+TEXT     5 11 ET 'Cancel'
+TEXT     5 18 NT 'or'
+TEXT     5 21 ET 'End'
+TEXT     5 25 NT 'to cancel delete.'
+
+)INIT
+.CURSOR   = ENTRYDEL
+&ENTRYDEL = &Z
+&ZWINTTL  = &Z
+&ZCMD     = &Z
+
+)PROC
+IF (&ZCMD NE &Z)
+    .MSG    = PSYS018
+    .CURSOR = ZCMD
+    EXIT
+
+VER (&ENTRYDEL NB,LIST,/)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

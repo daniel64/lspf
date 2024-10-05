@@ -1,0 +1,94 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Command tables display
+)ENDCOMMENT
+
+)ATTR
++ TYPE(VOI)
+! TYPE(OUTPUT) COLOUR(YELLOW) CAPS(OFF) PAS(ON)
+% TYPE(OUTPUT) COLOUR(WHITE)  CAPS(OFF)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Command Tables'
+
+TEXT     4   2         FP    'Command ===>'
+FIELD    4  15  max-17 nef caps(on),pad(user) zcmd
+
+TEXT     4  MAX-15  FP 'Scroll ===>'
+FIELD    4  MAX-3  4 NEF  NONE ZSCROLL1
+
+TEXT     5  MAX-15  SI 'More:   >'
+
+TEXT     7  2      FP    'Profile. . . . :'
+FIELD    7  19    8 VOI  NONE ZAPPLID
+
+TEXT     7  MAX-41     FP  'Application Command Table :'
+FIELD    7  MAX-13  8  VOI  NONE   APPLCMD
+
+TEXT     8  MAX-41     FP  'User Command Tables . . . :'
+FIELD    8  MAX-13  4  VOI  NONE   ZUCMDT1
+FIELD    8  MAX-8   4  VOI  NONE   ZUCMDT2
+FIELD    8  MAX-3   4  VOI  NONE   ZUCMDT3
+
+TEXT     9  MAX-41     FP  'Site Command Tables . . . :'
+FIELD    9  MAX-13  4  VOI  NONE   ZSCMDT1
+FIELD    9  MAX-8   4  VOI  NONE   ZSCMDT2
+FIELD    9  MAX-3   4  VOI  NONE   ZSCMDT3
+
+TEXT    10  MAX-41     FP  'System Command Table. . . :'
+FIELD   10  MAX-13  4  VOI  NONE   AAASCT
+
+TEXT     8  2    FP    'Command Table. .'
+FIELD    8  19   4      NEF CAPS(ON),PAD(USER) CMDTAB
+
+FIELD    9  2   50 VOI  NONE APPLCMDL
+
+TEXT     11  2      CH    'Command  T Action'
+TEXT     11  MAX-44 CH    'Description'
+
+FIELD    12  13     MAX-46 VOI  NONE ZACTSC
+FIELD    12  MAX-44 MAX    VOI  NONE ZDESCSC
+
+TBMODEL  13  MAX
+TBFIELD  2      8      ATTR(!) ZCTVERB
+TBFIELD  ++1    1      ATTR(%) ZCTTRUNC
+TBFIELD  +2     MAX-46 ATTR(+) ZCTACT
+TBFIELD  MAX-44 MAX    ATTR(%) ZCTDESC
+
+)INIT
+VGET ZSCROLL1 PROFILE
+IF (&ZSCROLL1 = &Z) &ZSCROLL1 = &ZSCROLLD
+
+&AAASCT = 'ISP'
+
+&ZPS4 = 1
+
+)PROC
+IF (.RESP = END) EXIT
+
+IF (&ZCMD EQ ADD )
+   .MSG    = PSYS012
+   .CURSOR = ZCMD
+   EXIT
+ELSE
+   IF (&ZCMD NE &Z)
+      .MSG    = PSYS011C
+      .CURSOR = ZCMD
+      EXIT
+
+VER (&CMDTAB,NB)
+
+IF (.MSG = &Z ) VPUT ZSCROLL1 PROFILE
+
+)FIELD
+FIELD(ZCTACT)  LEN(512) SCALE(ZACTSC)
+FIELD(ZCTDESC) LEN(512) SCALE(ZDESCSC)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

@@ -1,0 +1,70 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel for application and lspf log viewer
+)ENDCOMMENT
+
+)ATTR
+01 TYPE(DATAIN)  INTENS(HIGH)
+02 TYPE(DATAOUT) INTENS(HIGH)
+
+03 TYPE(CHAR) COLOUR(RED)
+04 TYPE(CHAR) COLOUR(GREEN)
+05 TYPE(CHAR) COLOUR(YELLOW)
+06 TYPE(CHAR) COLOUR(BLUE)
+07 TYPE(CHAR) COLOUR(MAGENTA)
+08 TYPE(CHAR) COLOUR(TURQ)
+09 TYPE(CHAR) COLOUR(WHITE)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE   '&LTYPE Log Viewer'
+
+TEXT      4    2   FP    'Command ===>'
+FIELD     4   15   MAX-17  NEF  PAD(USER) ZCMD
+
+TEXT      4  MAX-15   FP  'Scroll ===>'
+FIELD     4  MAX-3     4   NEF  NONE  ZSCROLL
+
+TEXT      3   MAX-34  FP  'Col'
+FIELD     3   MAX-30   5 VOI  NONE ZCOL1
+
+TEXT      3   MAX-24  FP  'Line'
+FIELD     3   MAX-19   8   VOI   NONE  ZROW1
+
+TEXT      3   MAX-10  FP  'of'
+FIELD     3   MAX-7    8   VOI   NONE  ZROW2
+
+TEXT      6   2    FP  'Log file location:'
+FIELD     6   21    MAX-4 VOI NONE  LOGLOC
+FIELD     6   MAX-2 2     LI  NONE  LOGIND
+
+DYNAREA   7   2  MAX MAX ZAREA ZSHADOW SCROLL(ON)
+
+)INIT
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+&ZUS0 = 0
+&ZUS1 = 0
+IF (&LTYPE   = 'lspf')
+   &ZUS1     = 1
+   &ZSCRNAME = LOG
+ELSE
+   &ZUS0     = 1
+   &ZSCRNAME = APPLOG
+
+VPUT ZSCRNAME SHARED
+
+)PROC
+&ZLVLINE = LVLINE(ZAREA)
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+
+)FIELD
+FIELD(LOGLOC) LEN(4095) IND(LOGIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

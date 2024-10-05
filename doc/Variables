@@ -22,6 +22,9 @@ ZORXPATH
 ZTDMARK
 
 Variables put into the SHARED pool by lspf:
+Z
+ZCOLOR
+ZCOLORS
 ZAPPLID
 ZSCREEN
 ZVERB
@@ -63,7 +66,6 @@ Variables put into the application PROFILE pool by the application:
 ZSCROLL (pPanel)
 
 ISPS system profile (updated by the setup program).  UP mode.
-ZSPROF
 ZUPROF
 ZSYSPATH
 ZLDPATH1

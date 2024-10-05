@@ -24,7 +24,6 @@ namespace lspfc
 
 map<attType, unsigned int> cuaAttr ;
 
-
 map<string, int> colourName =
 { { "RED",     RED     },
   { "GREEN",   GREEN   },
@@ -34,16 +33,6 @@ map<string, int> colourName =
   { "PINK",    MAGENTA },
   { "TURQ",    TURQ    },
   { "WHITE",   WHITE   } } ;
-
-
-map<int, string> colourName1 =
-{ { 1, "RED"     },
-  { 2, "GREEN"   },
-  { 3, "YELLOW"  },
-  { 4, "BLUE"    },
-  { 5, "MAGENTA" },
-  { 6, "TURQ"    },
-  { 7, "WHITE"   } } ;
 
 
 map<int, string> colourValue =
@@ -79,18 +68,19 @@ map<string, attType> cuaAttrName =
   { "NT",   NT   },
   { "PI",   PI   },
   { "PIN",  PIN  },
-  { "PT",   PT   },
   { "PS",   PS   },
+  { "PT",   PT   },
   { "PAC",  PAC  },
   { "PUC",  PUC  },
   { "RP",   RP   },
   { "SI",   SI   },
+  { "SC",   SC   },
   { "SAC",  SAC  },
   { "SUC",  SUC  },
   { "VOI",  VOI  },
   { "WMT",  WMT  },
-  { "WT",   WT   },
-  { "WASL", WASL } } ;
+  { "WASL", WASL },
+  { "WT",   WT   } } ;
 
 
 map<string, attType> noncuaAttrName =
@@ -102,6 +92,6 @@ map<string, attType> noncuaAttrName =
   { "TEXT",    TEXT    } } ;
 
 
-set<attType> attrUnprot = { INPUT, LEF, CEF, NEF, DATAIN } ;
+set<attType> attrUnprot = { INPUT, EE, LEF, CEF, NEF, DATAIN } ;
 
 }

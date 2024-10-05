@@ -1,0 +1,205 @@
+)PANEL VERSION=1 FORMAT=1 KEYLIST(ISRNAB,ISR)
+)COMMENT
+
+*********************************************************************************
+*********************************************************************************
+* Test PANEXIT and *REXX statements                                             *
+* Test PANEXIT and *REXX statements                                             *
+*********************************************************************************
+*********************************************************************************
+
+
+)ENDCOMMENT
+
+)ATTR DEFAULT($^_)
++ TYPE(NEF)
+! TYPE(NEF) PASSWD(ON) PAD(USER)
+* TYPE(RP)
+@ TYPE(OUTPUT) CAPS(OFF)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Test Panel *REXX/*ENDREXX and PANEXIT Functions'
+
+TEXT      4    2   FP  'Command ===> '
+FIELD     4   15  MAX   NEF     CAPS(ON),PAD(USER) ZCMD
+
+AREA   5 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT      1   MAX-31    FP  'TIME:'
+FIELD     1   MAX-25    11   VOI   NONE  ZTIMEL
+
+TEXT      1   MAX-13    FP  'DATE:'
+FIELD     1   MAX-7     8    VOI   NONE  ZDATE
+
+TEXT      1   6     FP  'FIELD RXFLD1: '
+FIELD     1   20    26    NEF   NONE  RXFLD1
+
+TEXT      2   6     FP  'FIELD RXFLD2: '
+FIELD     2   20    8     ATTR(+) RXFLD2
+TEXT      2   30    FP  'Enter ''LIST'' to invoke PANEXIT panext1'
+
+TEXT      3   6     FP  'FIELD RXFLD3: '
+FIELD     3   20    8     ATTR(+) RXFLD3
+
+TEXT      4   6     FP  'FIELD RXFLD4: '
+FIELD     4   20    8     ATTR(+) RXFLD4
+
+TEXT      5   6     FP  'DATE. . . . : '
+FIELD     5   20    12    ATTR(+) DATE
+TEXT      5   33    FP  'Valid REXX types:'
+FIELD     5   51    25    ATTR(@) VTYPES
+TEXT      6   6     FP  'ABS . . . . : '
+FIELD     6   20    12    ATTR(@) ABSDATE
+
+TEXT      7   6     FP  'FIELD RXFLD5: '
+FIELD     7   20    8     ATTR(@) RXFLD5
+
+TEXT      8   6     FP  'FIELD RXFLD6: '
+FIELD     8   20    30    ATTR(@) RXFLD6
+
+)INIT
+&AKEY = PFK(2)
+*rexx(akey)
+  say 'pfk 2 =' akey
+*endrexx
+
+&AKEY = PFK('Help')
+*rexx(akey)
+  say 'pfk help =' akey
+*endrexx
+
+&b = help
+&AKEY = PFK(&b)
+*rexx(akey)
+  say 'pfk help =' akey
+*endrexx
+
+&nn = 2
+if ( pfk(&nn) EQ 'SPLIT NEW' )
+   *REXX(*,NN)
+     SAY nn
+     SAY HELP FOUND FOR F1
+   *endrexx
+
+VGET (RXFLD1,RXFLD2,RXFLD3,RXFLD4,RXFLD5) PROFILE
+
+--IF (&RXFLD2 EQ LIST ) PANEXIT((RXFLD1,RXFLD2,RXFLD3,RXFLD4,ZSCRMAXW),REXX,panext1)
+&allflds = 'RXFLD1 RXFLD2'
+&rexproc = panext2
+--PANEXIT ((&ALLFLDS,ZSCRMAXW),REXX,&rexproc,MSG=PSYS011)
+--PANEXIT ((&ALLFLDS,ZSCRMAXW),REXX,&rexproc)
+&VAR1 = 'Hello world'
+&VAR2 = 'Bye world'
+
+--PANEXIT ((VAR1,VAR2,ZCMD,RXFLD1),REXX,xxx,MSG=PSYS011)
+
+*rexx (*)
+-- say 'from rexx statement'
+  if rxfld5 = '' then rxfld5 = 'ab' || '0000'x || 'cd'
+  drop rxfld3
+*endrexx
+
+
+)REINIT
+IF (.MSG NE &Z AND .CURSOR NE &Z)
+   .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+IF (&RXFLD2 EQ LIST ) PANEXIT((RXFLD1,RXFLD2,RXFLD3,RXFLD4,ZSCRMAXW),REXX,panext1,&VAR1)
+
+)PROC
+IF (.RESP EQ END) EXIT
+
+IF (&ZCMD NE &Z)
+    .CURSOR  = ZCMD
+    .MSG     = PSYS011C
+    EXIT
+
+*rexx(*,(prexx1))
+
+VGET ZDEBUG SHARED
+*rexx(*,ZDEBUG)
+ if zdebug = 0 then
+   do
+     rxfld6 = 'Not running in DEBUG mode'
+   end
+ else
+   do
+     rxfld6 = 'Running in DEBUG mode'
+   end
+*endrexx
+
+*rexx(*,ZDEBUG)
+  if zdebug = 1 then TRACE 'I'
+  else if zdebug > 1 then TRACE '?I'
+  rxfld1 = translate( rxfld1 )
+  rxfld2 = translate( rxfld2 )
+*endrexx
+
+*rexx(*)
+  alpha1 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  alpha2 = 'BCDEFGHIJKLMNOPQRSTUVWXYZA'
+  if rxfld1 = '' then rxfld1 = alpha1
+  else
+    do i = 1 to length( rxfld1 )
+      x = translate( substr( rxfld1, i, 1 ), alpha2, alpha1 )
+      rxfld1 = overlay( x, rxfld1, i )
+    end
+*endrexx
+
+*rexx(*,zedsmsg,zedlmsg)
+   Call ExecInit
+
+   do i = 1 to words(f2List)
+      Type = word(f2List,i)
+      Call FindValidTypes
+   end
+
+   If vtypes = '' then
+     do
+        zedsmsg = 'Invalid Date'
+        zedlmsg = 'Date entered is not in a valid REXX date format.'
+        ZRXMSG  = 'PSYZ001'
+        ZRXRC   = 8
+        exit
+     end
+
+   EXIT 0
+
+
+   ExecInit:
+   f1List  = 'N B D E M O S U W'
+   f2List  = 'B C E J N O S U'
+   vtypes  = ''
+   absdate = ''
+   if date = '' then date = date()
+   RETURN
+
+   FindValidTypes:
+   Signal on syntax
+   absdate = date('B',date,Type)
+   vtypes  = vtypes Type
+   syntax:
+   RETURN
+
+*endrexx
+
+IF (&zedlmsg ne &z)
+  .CURSOR = DATE
+
+&allflds = 'RXFLD1 RXFLD2 RXFLD3 RXFLD4'
+&rexproc = panext1
+&var1    = 'hello world'
+--IF (&RXFLD2 EQ LIST ) PANEXIT((RXFLD1,RXFLD2,RXFLD3,RXFLD4,ZSCRMAXW),REXX,panext1)
+IF (&RXFLD2 EQ LIST ) PANEXIT((&allflds,ZSCRMAXW),REXX,&rexproc,&VAR1)
+
+VPUT (RXFLD1,RXFLD2,RXFLD3,RXFLD4,RXFLD5) PROFILE
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

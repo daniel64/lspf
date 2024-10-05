@@ -1,0 +1,75 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+Create patch file
+)ENDCOMMENT
+
+)ATTR
++ TYPE(NEF) PAD(USER) CAPS(ON)
+
+)INCLUDE std_pdc
+)INCLUDE rfl_pdc
+)INCLUDE hlp_pdc
+
+)BODY WINDOW(78,16)
+PANELTITLE 'Create patch file'
+
+TEXT     4    2       FP     'Command ===>'
+FIELD    4   15   MAX ATTR(+) ZCMD
+
+AREA   5 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1    2       FP     'Entry:'
+FIELD    1    9   MAX-4 VOI PAD(' ') ENTRY
+FIELD    1    MAX-2 2   LI  NONE     ENTRIND
+TEXT     3    2       FP     'File Name. . .'
+FIELD    3   17   MAX-4 NEF     PAD(USER) PFILE
+FIELD    3    MAX-2 2   LI  NONE     PFILIND
+
+FIELD    5   2   1 CEF    CAPS(ON),PAD(USER),NUMERIC(ON),SKIP(OFF) RAFILE
+TEXT     5   4     SAC    '1. Replace file'
+TEXT     6   4     SAC    '2. Append to existing file'
+
+TEXT    8  2  CH 'Instructions'
+TEXT    9  5  NT 'Enter file name and press'
+TEXT    9  31 ET 'Enter'
+TEXT    9  37 NT 'to create patch file'
+
+
+)INIT
+.NRET    = ON
+.NRET    = PFILE
+.CURSOR  = PFILE
+
+VGET (PFILE,RAFILE) PROFILE
+IF (&RAFILE = &Z) &RAFILE = 1
+
+IF (&PFILE EQ &Z)
+   &PFILE = diff.patch
+
+)PROC
+IF ( &ZCMD NE &Z)
+  .MSG    = PSYS018
+  .CURSOR = ZCMD
+  EXIT
+
+IF (&PFILE EQ &Z)
+   &PFILE = diff.patch
+
+VER (&PFILE,NB)
+VER (&RAFILE,NB,LIST,1,2)
+
+IF (&PFILE NE &Z) VPUT PFILE PROFILE
+IF (.MSG EQ &Z)   VPUT RAFILE PROFILE
+
+)FIELD
+FIELD(PFILE) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL) NESTED')
+FIELD(ENTRY) LEN(4095) IND(ENTRIND)
+FIELD(PFILE) LEN(4095) IND(PFILIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

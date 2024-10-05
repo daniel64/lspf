@@ -1,0 +1,77 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Show mounts
+)ENDCOMMENT
+
+)ATTR
+_ TYPE(NEF) PAD(USER) CAPS(ON)
++ TYPE(VOI)
+! TYPE(OUTPUT) COLOUR(YELLOW) CAPS(OFF)
+% TYPE(OUTPUT) COLOUR(WHITE) CAPS(OFF)
+# TYPE(OUTPUT) COLOUR(BLUE) CAPS(OFF)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Mount Table'
+
+TEXT     4   2         FP    'Command ===>'
+FIELD    4  15  max-17 nef caps(on),pad(user) zcmd
+
+TEXT     4  MAX-15   FP   'Scroll ===>'
+FIELD    4  MAX-3  4 NEF  NONE ZSCROLL
+
+FIELD    6   2  1  CEF PAD(USER) OBLKDEV
+TEXT     6   5     SAC 'Only show block devices'
+
+TEXT     8  2   FP  'S Name            Mount point'
+TEXT     9  10  FP  'Type        Mount options'
+
+TBMODEL  10  MAX
+TBFIELD  2      1      ATTR(_) SEL
+TBFIELD  ++1    15     ATTR(!) FSNAME
+TBFIELD  ++1    MAX    ATTR(%) DIR
+TBMODEL
+TBFIELD  10     10     ATTR(+) TYPE
+TBFIELD  ++2    MAX    ATTR(#) OPTS
+
+)INIT
+VGET ZSCROLL PROFILE
+
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+)REINIT
+IF (.MSG EQ &Z)
+   &SEL = &Z
+   REFRESH(SEL)
+
+)PROC
+&OBLKDEV = TRANS(&OBLKDEV &Z,&Z *,/)
+VPUT (OBLKDEV) PROFILE
+
+IF (.RESP = END) EXIT
+
+&ZCMD = TRANS( &ZCMD RES,RESET *,* )
+
+&AA = TRUNC(&ZCMD, ' ')
+
+IF (&AA NE NAME,MOUNT,TYPE,OPTS,RESET,&Z)
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+   EXIT
+
+VER(&SEL,LIST,I,L,Q,U)
+
+IF (.MSG = &Z) VPUT ZSCROLL PROFILE
+
+)FIELD
+FIELD(FSNAME) LEN(4095)
+FIELD(DIR)    LEN(4095)
+FIELD(OPTS)   LEN(512)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2023 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

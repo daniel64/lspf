@@ -1,0 +1,63 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel to display path search order
+)ENDCOMMENT
+
+)ATTR
+% TYPE(OUTPUT) COLOUR(YELLOW) CAPS(OFF)
+! TYPE(OUTPUT) COLOUR(YELLOW) INTENS(HIGH) CAPS(OFF)
++ TYPE(INPUT) CAPS(ON) PAD(USER) JUST(LEFT)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Path Searches'
+
+TEXT     4   2         FP    'Command ===>'
+FIELD    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
+
+TEXT     4  MAX-15  FP 'Scroll ===>'
+FIELD    4  MAX-3   4 NEF  NONE ZSCROLL
+
+TEXT     6  4 CH  'Name     Path                                              Message         Description'
+TEXT     7  2 CH  EXPAND '-'
+
+TBMODEL  8    MAX
+TBFIELD  2    1    ATTR(+)   SEL
+TBFIELD  4    8    VOI  NONE PVAR1
+TBFIELD  13   50   ATTR(%)   PATH
+TBFIELD  63   15   ATTR(!)   MESSAGE
+TBFIELD  79   MAX  VOI  NONE DESC
+
+)INIT
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+)REINIT
+IF (.MSG EQ &Z)
+   &SEL = &Z
+   REFRESH(SEL)
+ELSE
+   IF (.CURSOR EQ 'SEL' ) .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+)PROC
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+   EXIT
+
+&SEL = TRANS(&SEL B,S L,S *,*)
+
+VER (&SEL LIST,S)
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+
+)FIELD
+FIELD(PATH)  LEN(4095)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

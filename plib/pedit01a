@@ -1,0 +1,204 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+EDIT colour settings panel
+)ENDCOMMENT
+
+)ABC DESC(Languages) MNEM(1)
+PDC DESC(All)       ACTION RUN(>LANG ALL)
+PDC DESC(Assembler) ACTION RUN(>LANG ASM)
+PDC DESC(Panel)     ACTION RUN(>LANG PANEL)
+PDC DESC(Skeleton)  ACTION RUN(>LANG SKEL)
+PDC DESC(C++)       ACTION RUN(>LANG CPP)
+PDC DESC(REXX)      ACTION RUN(>LANG REXX)
+PDC DESC(COBOL)     ACTION RUN(>LANG COBOL)
+PDC DESC(JCL)       ACTION RUN(>LANG JCL)
+PDC DESC(Bash)      ACTION RUN(>LANG BASH)
+PDC DESC(Rust)      ACTION RUN(>LANG RUST)
+PDC DESC(TOML)      ACTION RUN(>LANG TOML)
+PDC DESC(Other)     ACTION RUN(>LANG OTHER)
+PDC DESC(Default)   ACTION RUN(>LANG DEFAULT)
+
+)ABC DESC(Colour) MNEM(1)
+PDC DESC(Overtype Colour)
+ ACTION RUN(>EDCCLR)
+PDC DESC(Find Phrase Colour)
+ ACTION RUN(>EDCCLR)
+PDC DESC(Cursor Phrase Colour)
+ ACTION RUN(>EDCCLR)
+
+)ABCINIT
+.ZVARS  = PDCCSEL
+&ZCCPAN = &Z
+
+)ABCPROC
+IF (&PDCCSEL EQ '1') &ZCCPAN = 'PEDIT01B'
+ELSE
+  IF (&PDCCSEL EQ '2') &ZCCPAN = 'PEDIT01E'
+  ELSE
+    IF (&PDCCSEL EQ '3') &ZCCPAN = 'PEDIT01F'
+
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY WINDOW(80,23)
+PANELTITLE 'Edit Colour Settings'
+
+ACTIONBAR 'Display' 'Settings' 'Utilities' 'Languages' 'Colour' 'Help'
+
+TEXT     4    2       FP     'Command ===>'
+FIELD    4   15   MAX NEF     PAD(USER),CAPS(ON) ZCMD1
+
+AREA   5 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1    2       FP     'Language:'
+FIELD    1    12  2   CEF     PAD(USER) ZHLLANG
+TEXT     1    15      SAC    '1.  Automatic'
+TEXT     2    15      SAC    '2.  Assembler'
+TEXT     3    15      SAC    '3.  Panel'
+TEXT     4    15      SAC    '4.  Skeleton'
+TEXT     5    15      SAC    '5.  C++'
+TEXT     6    15      SAC    '6.  REXX'
+TEXT     7    15      SAC    '7.  COBOL'
+TEXT     8    15      SAC    '8.  JCL'
+TEXT     9    15      SAC    '9.  Bash'
+TEXT    10    15      SAC    '10. Rust'
+TEXT    11    15      SAC    '11. TOML'
+TEXT    12    15      SAC    '12. Other'
+TEXT    13    15      SAC    '13. Default'
+
+TEXT     1    36      FP     'Colouring:'
+FIELD    1    47  1   CEF     PAD(USER) ZCOLOUR
+TEXT     1    50      SAC    '1. Do not colour program'
+TEXT     2    50      SAC    '2. Colour program'
+TEXT     3    50      SAC    '3. Both IF and DO logic'
+TEXT     4    50      SAC    '4. DO logic'
+TEXT     5    50      SAC    '5. IF logic'
+
+TEXT     7    36      PIN    'Enter / to select option'
+FIELD    8    36  1   CEF     PAD(USER) ZPARMTC
+TEXT     8    39      SAC    'Parentheses matching'
+FIELD    9    36  1   CEF     PAD(USER) ZHLFIND
+TEXT     9    39      SAC    'Highlight FIND strings'
+FIELD   10    36  1   CEF     PAD(USER) ZHLCURS
+TEXT    10    39      SAC    'Highlight cursor phrase'
+
+
+TEXT    14 2  CH 'Instructions'
+TEXT    15 5  NT 'Press'
+TEXT    15 11 ET 'End'
+TEXT    15 15 NT 'to save changes'
+
+TEXT    16 5  NT 'Enter'
+TEXT    16 11 ET 'Cancel'
+TEXT    16 18 NT 'to cancel changes'
+
+)INIT
+&ZCMD1   = &Z
+&ZWINTTL = &Z
+&ZCCPAN  = &Z
+.CURSOR  = ZCMD1
+
+&ZHLLANG = TRANS( &ZPROFLG,
+                  'AUTO',1
+                  'ASM',2
+                  'PANEL',3
+                  'SKEL',4
+                  'CPP',5
+                  'REXX',6
+                  'COBOL',7
+                  'JCL',8
+                  'BASH',9
+                  'RUST',10
+                  'TOML',11
+                  'OTHER',12
+                  'DEFAULT',13
+                  *,1
+                )
+
+IF (&ZPROFHI EQ 'NO')
+   &ZCOLOUR = 1
+ELSE
+   IF (&ZPROFIF EQ 'NO')
+      IF (&ZPROFDO EQ 'YES')
+         &ZCOLOUR = 4
+      ELSE
+         &ZCOLOUR = 2
+   ELSE
+      IF (&ZPROFDO EQ 'NO')
+         &ZCOLOUR = 5
+      ELSE
+         &ZCOLOUR = 3
+
+)PROC
+IF (&ZCMD1 EQ 'EDCCLR' AND &ZCCPAN NE &Z) EXIT
+
+&AAA = TRUNC(&ZCMD1,' ')
+IF (&AAA EQ 'LANG' )
+   IF (.TRAIL NE ALL,ASM,PANEL,SKEL,CPP,REXX,COBOL,JCL,BASH,OTHER,RUST,TOML,DEFAULT)
+      .MSG    = PSYS018
+      .CURSOR = ZCMD1
+   EXIT
+
+IF (&ZCMD1 NE &Z)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD1
+   EXIT
+
+VER (&ZHLLANG,NB,RANGE,1,11)
+VER (&ZCOLOUR,NB,RANGE,1,5)
+
+&ZPROFLG = TRANS( &ZHLLANG,
+                  1,'AUTO'
+                  2,'ASM'
+                  3,'PANEL'
+                  4,'SKEL'
+                  5,'CPP'
+                  6,'REXX'
+                  7,'COBOL'
+                  8,'JCL'
+                  9,'BASH'
+                 10,'RUST'
+                 11,'TOML'
+                 12,'OTHER'
+                 13,'DEFAULT'
+                )
+
+IF ( &ZCOLOUR EQ 1 )
+   &ZPROFHI = 'NO'
+ELSE
+   IF ( &ZCOLOUR EQ 2 )
+      &ZPROFHI = 'YES'
+      &ZPROFIF = 'NO'
+      &ZPROFDO = 'NO'
+   ELSE
+      IF ( &ZCOLOUR EQ 3 )
+         &ZPROFHI = 'YES'
+         &ZPROFIF = 'YES'
+         &ZPROFDO = 'YES'
+      ELSE
+         IF ( &ZCOLOUR EQ 4 )
+            &ZPROFHI = 'YES'
+            &ZPROFIF = 'NO'
+            &ZPROFDO = 'YES'
+         ELSE
+            IF ( &ZCOLOUR EQ 5 )
+               &ZPROFHI = 'YES'
+               &ZPROFIF = 'YES'
+               &ZPROFDO = 'NO'
+
+&ZPARMTC = TRANS( &ZPARMTC  &Z,&Z *,/ )
+&ZHLFIND = TRANS( &ZHLFIND  &Z,&Z *,/ )
+&ZHLCURS = TRANS( &ZHLCURS  &Z,&Z *,/ )
+
+IF (.RESP = END AND .MSG NE &Z )
+   &ZVERB = 'CANCEL'
+   VPUT ZVERB SHARED
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

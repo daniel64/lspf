@@ -1,0 +1,50 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Save Personal File List As... panel
+)ENDCOMMENT
+
+)BODY WINDOW(70,10)
+PANELTITLE 'Save Personal File List As'
+
+TEXT     2   2         FP    'Command ===>'
+FIELD    2  15  MAX    NEF CAPS(ON),PAD(USER) ZCMD1
+
+AREA 3 1      MAX     MAX     SAREA1
+
+)AREA SAREA1
+TEXT     1  2         FP  'New Name. . . .'
+FIELD    1  18   8    NEF  CAPS(ON),PAD(USER) NEWNAME
+
+TEXT     2  2         FP  'Description . .'
+FIELD    2  18   40   NEF  CAPS(OFF),PAD(USER) NEWDESC
+
+TEXT    4  2  CH 'Instructions'
+TEXT    5  5  NT 'Press'
+TEXT    5  11 ET 'Enter'
+TEXT    5  17 NT 'to confirm or'
+TEXT    5  31 ET 'End'
+TEXT    5  35 NT 'to cancel operation'
+
+)INIT
+&ZCMD1   = &Z
+&ZWINTTL = &Z
+.CURSOR  = NEWNAME
+
+)PROC
+IF (&ZCMD1 NE &Z )
+   .MSG    = PSYS018
+   .CURSOR = ZCMD1
+   EXIT
+
+VER (&NEWNAME NB,NAME)
+VER (&NEWDESC NB)
+
+IF (VER(&NEWNAME,LEN,LE,2))
+   .MSG    = LRFL011D
+   .CURSOR = NEWNAME
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

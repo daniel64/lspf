@@ -1,0 +1,68 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+Panel for editor PEDIT01
+COMPARE files panel
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE rfl_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Compare File'
+
+TEXT     4    2       FP     'Command ===> '
+FIELD    4  15   MAX  NEF     PAD(USER) ZCMD1
+
+AREA   5 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1    2       FP     'Compare File Name. . .'
+FIELD    1   25      MAX-4   NEF  PAD(USER) CFILE
+FIELD    1   MAX-2   2       LI   NONE      CFILEIND
+
+TEXT     4 2  CH 'Instructions'
+TEXT     5 5  NT 'Enter'
+TEXT     5 11 ET '='
+TEXT     5 13 NT 'in file name field to retrieve full path name of current file.'
+TEXT     6 5  NT 'Press'
+TEXT     6 11 ET 'Enter'
+TEXT     6 17 NT 'key to compare files.'
+
+
+)INIT
+.NRET = ON
+.NRET = CFILE
+
+.CURSOR = CFILE
+&ZCMD1  = &Z
+
+)PROC
+if ( &ZCMD1 NE &Z)
+  .MSG    = PSYS018
+  .CURSOR = ZCMD1
+  EXIT
+
+IF (TRUNC(&CFILE,1) EQ '=' )
+   &CFILE  = '&ZFILE '
+   .CURSOR = CFILE
+   .CSRPOS = length(CFILE)
+   .MSG    = PSYS011V
+   REFRESH(CFILE)
+   EXIT
+
+VER (&CFILE NB)
+
+IF (.MSG EQ &Z)
+  VPUT (CFILE) PROFILE
+
+)FIELD
+FIELD(CFILE) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL) NESTED')
+FIELD(CFILE) LEN(4095) IND(CFILEIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2024 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

@@ -1,0 +1,677 @@
+/*
+  Copyright (c) 2022 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+/**************************************************************************************/
+/*                                                                                    */
+/* Edit macro to list backups for the file being edited.                              */
+/*                                                                                    */
+/* Only the first 1000 backups are displayed unless NOLIMIT specified.                */
+/* The newest entries are at the top of the list.                                     */
+/*                                                                                    */
+/* Parmameters:                                                                       */
+/* ?     - Displays help and exits macro                                              */
+/* HELP  - Same as ?                                                                  */
+/* STATS - This retrieves insert/delete stats but may take a long time                */
+/*         for large/many files in the backup list.                                   */
+/*         This parameter is ignored when the REXX is running for longer than         */
+/*         30 seconds.                                                                */
+/*         Use I on the scrollable list to retrieve individual entries.               */
+/*         If the file has been changed, the compare is with a copy of the            */
+/*         edit session.                                                              */
+/*                                                                                    */
+/* NOLIMIT - Do not limit the list to 1000 entries.                                   */
+/*                                                                                    */
+/* An abbreviation of STATISTICS and NOLIMIT with a minimum of 2 characters is        */
+/* also acceptable.                                                                   */
+/*                                                                                    */
+/* Primary Commands:                                                                  */
+/* ?           - Displays help                                                        */
+/* RES | RESET - Reset the information field.  Remove deleted entries.                */
+/* STATS       - get insert/deletes for entries that don't already have them.         */
+/*               (limit 30 seconds).                                                  */
+/* CLEANUP     - Delete all files older than 90 days except for the first             */
+/*               backup of the day.                                                   */
+/* DELETE n    - Delete all files older than n days.                                  */
+/*                                                                                    */
+/* Line Commands:                                                                     */
+/* A - Execute backups macro on the selected backup file.                             */
+/*     Useful for checking differences between backup files.                          */
+/* B - Browse backup file.                                                            */
+/* V - View backup file.                                                              */
+/* C - Compare edit file with backup file (stays in macro).                           */
+/*     If the file has been changed, the compare is with a copy of the edit session.  */
+/*     Insert/delete stats are also retrieved.                                        */
+/* F - Show a diff -uE of the two files (default if no line command entered).         */
+/*     If the file has been changed, the compare is with a copy of the edit session.  */
+/*     Insert/delete stats are also retrieved.                                        */
+/* K - Copy to clipboard.                                                             */
+/* I - Get insert/delete stats.                                                       */
+/*     If the file has been changed, the compare is with a copy of the edit session.  */
+/* M - Merge with current edit session (exits macro).                                 */
+/*     Source data not repositioned.                                                  */
+/*     Macro dellabs can then be used to restore older version.                       */
+/* S - Same as M.                                                                     */
+/* D - Delete backup file.                                                            */
+/*                                                                                    */
+/* If macro is used on a backup file, then file name used will be without             */
+/* the time stamp to allow backup files to be compared with each other.               */
+/* The backup file in the scrollable list will display *Active* in the info area.     */
+/* The 'A' line command can be used for this.                                         */
+/*                                                                                    */
+/**************************************************************************************/
+
+address ISPEXEC
+
+"ISREDIT MACRO (PARMS) NOPROCESS"
+
+parms = translate( parms )
+
+if parms = "?" | parms = "HELP" then
+  do
+    Call Help
+    EXIT
+  end
+
+endsess = ( parms = "ENDSESS" )
+
+"ISREDIT (bpath) = PATH"
+"ISREDIT (file)  = DATASET"
+
+stats = .false
+nolim = .false
+
+do i = 1 to words( parms )
+   w = word( parms, i )
+   if w = "STATS" | abbrev( "STATISTICS", w, 2 ) then
+     do
+       stats = .true
+     end
+   else if abbrev( "NOLIMIT", w, 2 ) then
+     do
+       nolim = .true
+     end
+   else if w = "ENDSESS" then
+     do
+       NOP
+     end
+   else
+     do
+       ZEDSMSG = "Invalid parmameter"
+       ZEDLMSG = "Enter STATS to include insert/delete statistics and NOLIMIT to display all backups.  This may impact performance."
+      "ISPEXEC SETMSG MSG(PSYZ001)"
+       EXIT
+     end
+end
+
+ofile = ""
+cfile = file
+
+if ( bpath = substr( file, 1, lastpos( "/", file ) ) ) & ( length( file ) - length( bpath ) > 21 ) then
+  do
+    ofile = file
+    file  = substr( file, 1, length( file ) - 21 )
+  end
+
+mfile   = bpath || substr( file, lastpos( "/", file ) + 1 )
+abs     = date( "B" )
+lmfile  = length( mfile )
+tabName = "MTEMP"random()
+
+call SysFileTree mfile"*", "files", "FO"
+
+call SysStemSort "files.", "D"
+
+"ISPEXEC TBCREATE &tabName NAMES(SEL FILE ADDS DELS DATE TIME AGE AGE1 INFO DEL) NOWRITE"
+
+"ISREDIT (CHG) = DATA_CHANGED"
+
+tot = 0
+do i = 1 to files.0
+  if length( files.i ) - lmfile = 21 then
+    do
+      if abbrev( files.i, mfile ) then
+        do
+         "ISPEXEC TBVCLEAR &tabName"
+          ts = reverse( substr( reverse( files.i ), 1, 20 ) )
+          parse var ts date "-" time .
+          file = files.i
+          date = julian2greg( date )
+          age  = abs - date( "B", date, "E" )
+          age1 = right( age, 8, "0" )
+          if stats then
+            do
+              Call getChanges cfile, file
+              if time( "E" ) > 30 then stats = .false
+            end
+          if file = ofile then
+            do
+              info = "*Active*"
+            end
+         tot = tot + 1
+         if \nolim & tot > 1000 then
+           do
+             ZEDSMSG = "Limit exceeded"
+             ZEDLMSG = "More than 1000 backups have been found.  Re-run macro with the NOLIMIT option to see all backups."
+             "ISPEXEC SETMSG MSG(PSYZ000)"
+             leave i
+           end
+         "ISPEXEC TBADD &tabName"
+        end
+    end
+end
+
+
+"ISPEXEC TBSORT &tabName FIELDS(AGE,N,A,TIME,C,D)"
+"ISPEXEC TBTOP &tabName"
+
+"ISPEXEC ADDPOP"
+
+ztdtop  = 1
+ztdsels = 0
+msg     = ""
+csr     = "ZCMD"
+crpx    = 0
+csrrow  = 0
+autosel = "NO"
+cur2sel = .false
+
+do forever
+   if ztdsels > 0 & msg = "" then
+     do
+       ztdsels = ztdsels - 1
+     end
+   if ztdsels = 0 then
+     do
+       "ISPEXEC TBTOP &tabName"
+       "ISPEXEC TBSKIP &tabName NUMBER(&ztdtop)"
+        panel = "PANEL(PEDITM01)"
+     end
+  if msg \= "" & csr = "" then
+    do
+      csr     = "SEL"
+      csrrow  = crpx
+      cur2sel = .false
+    end
+  else if cur2sel then
+    do
+      csr     = "SEL"
+      csrrow  = crpx
+      cur2sel = .false
+      autosel = "NO"
+    end
+  else
+    do
+      csr = "ZCMD"
+    end
+  "ISPEXEC TBDISPL &tabName &panel &msg CURSOR(&csr) CSRROW(&csrrow) AUTOSEL(&autosel) POSITION(CRP)"
+   if RC > 4 then leave
+   panel   = ""
+   msg     = ""
+   csrrow  = 0
+   crpx    = crp
+   autosel = "YES"
+   if zcmd = "CLEANUP" then
+     do
+       say "WARNING:"
+       say "CLEANUP will delete all backups older than 90 days except for the first of the day"
+       say
+       say "Reply Y to continue or any other key to abort"
+       pull ans
+       if ans \= "Y" then
+         do
+           zcmd = ""
+           iterate
+         end
+       "ISPEXEC TBTOP  &tabName"
+       "ISPEXEC TBSKIP &tabName"
+       do while RC = 0
+         if AGE > 90 then
+           do
+            age1 = AGE
+            "ISPEXEC TBSKIP &tabName"
+            if RC > 0 then leave
+            age2 = AGE
+            "ISPEXEC TBSKIP &tabName NUMBER(-1)"
+            if age1 = age2 then
+              do
+                say "Deleting file (age" age")" file
+                Call sysfiledelete( file )
+                "ISPEXEC TBDELETE &tabName"
+              end
+           end
+         "ISPEXEC TBSKIP &tabName"
+       end
+     end
+   if zcmd = "DELETE" then
+     do
+       say "WARNING:"
+       say "ALL backups older than "parm" days will be deleted"
+       say
+       say "Reply Y to continue or any other key to abort"
+       pull ans
+       if ans \= "Y" then
+         do
+           zcmd = ""
+           iterate
+         end
+       "ISPEXEC TBVCLEAR &tabName"
+       Age1 = right( parm, 8, "0" )
+       "ISPEXEC TBSARG &tabName NAMECOND(AGE1,GT)"
+       "ISPEXEC TBTOP  &tabName"
+       "ISPEXEC TBSCAN &tabName"
+       do while RC = 0
+          say "Deleting file (age" age")" file
+          Call sysfiledelete( file )
+          "ISPEXEC TBDELETE &tabName"
+          "ISPEXEC TBSCAN &tabName"
+       end
+     end
+   else if zcmd = "RESET" then
+     do
+      "ISPEXEC TBTOP  &tabName"
+      "ISPEXEC TBSKIP &tabName"
+       do while RC = 0
+         if del = "Y" then
+           do
+            "ISPEXEC TBDELETE &tabName"
+            "ISPEXEC TBSKIP &tabName"
+            iterate
+           end
+         if file = ofile then info = "*Active*"
+         else                 info = ""
+         sel = ""
+        "ISPEXEC TBPUT &tabName"
+        "ISPEXEC TBSKIP &tabName"
+       end
+       iterate
+     end
+   else if zcmd = "STATS" then
+     do
+      "ISPEXEC TBTOP  &tabName"
+      "ISPEXEC TBSKIP &tabName"
+       do while RC = 0
+         if adds \= "" then
+           do
+            "ISPEXEC TBSKIP &tabName"
+            iterate
+           end
+         if time( "E" ) > 30 then
+           do
+             xx = time( "R" )
+             leave
+           end
+         Call getChanges cfile, file
+        "ISPEXEC TBPUT &tabName"
+        "ISPEXEC TBSKIP &tabName"
+       end
+       iterate
+     end
+   else if zcmd = "?" then
+     do
+       Call Help
+       iterate
+     end
+   if ztdsels = 0 & zcurinx > 0 then
+     do
+      "TBTOP &tabName"
+      "TBSKIP &tabName NUMBER(&zcurinx) POSITION(CRPX)"
+      if info \= "Deleted" then
+        do
+          sel = "F"
+        end
+     end
+   else if sel = "" then iterate
+   cur2sel = .true
+   if sel = "A" then
+     do
+       parms = "ENDSESS"
+       "ISPEXEC VIEW FILE(FILE) MACRO(backups) PARM(PARMS)"
+       info  = "backups emac"
+       parms = ""
+     end
+   else if sel = "B" then
+     do
+       "BROWSE FILE(FILE)"
+       info = "Browsed"
+     end
+   else if sel = "C" then
+     do
+       if chg = "YES" then
+         do
+           tfile = tempFile()
+           ZEDALT = cfile "(Copy)"
+          "ISPEXEC VPUT ZEDALT SHARED"
+          "ISREDIT CREATE &tfile .ZFIRST .ZLAST"
+          "ISPEXEC VIEW FILE(TFILE) MACRO(compmac) PARM(FILE)"
+          "ISPEXEC VERASE ZEDALT SHARED"
+           Call sysfiledelete( tfile )
+         end
+       else
+         do
+          "ISPEXEC VIEW FILE(CFILE) MACRO(compmac) PARM(FILE)"
+         end
+      "ISPEXEC VGET (ADDS,DELS) SHARED"
+       info = "Compared"
+     end
+   else if sel = "F" then
+     do
+       adds = 0
+       dels = 0
+       info = "no diffs"
+       if chg = "YES" then
+         do
+           tfile1 = tempFile()
+           tfile2 = tempFile()
+           "ISREDIT CREATE &tfile1 .ZFIRST .ZLAST"
+           if diff( tfile1, file, tfile2 ) then
+             do
+               ZBRALT = "diff with" file
+              "ISPEXEC VPUT ZBRALT SHARED"
+              "ISPEXEC BROWSE FILE(TFILE2)"
+              "ISPEXEC VERASE ZBRALT SHARED"
+               info = "diffs shown"
+               Call getStats tfile2
+             end
+           Call sysfiledelete( tfile1 )
+           Call sysfiledelete( tfile2 )
+         end
+       else
+         do
+           tfile1 = tempFile()
+           if diff( cfile, file, tfile1 ) then
+             do
+               ZBRALT = "diff with" file
+              "ISPEXEC VPUT ZBRALT SHARED"
+              "ISPEXEC BROWSE FILE(TFILE1)"
+              "ISPEXEC VERASE ZBRALT SHARED"
+               info = "diffs shown"
+               Call getStats tfile1
+             end
+           Call sysfiledelete( tfile1 )
+         end
+     end
+   else if sel = "I" then
+     do
+       adds = 0
+       dels = 0
+       if chg = "YES" then
+         do
+           tfile1 = tempFile()
+           tfile2 = tempFile()
+          "ISREDIT CREATE &tfile1 .ZFIRST .ZLAST"
+           if diff( tfile1, file, tfile2, "QUIET" ) then
+             do
+               Call getStats tfile2
+             end
+           Call sysfiledelete( tfile1 )
+           Call sysfiledelete( tfile2 )
+         end
+       else
+         do
+           tfile1 = tempFile()
+           if diff( cfile, file, tfile1, "QUIET" ) then
+             do
+               Call getStats tfile1
+             end
+           Call sysfiledelete( tfile1 )
+         end
+       info = "Information"
+     end
+   else if sel = "M" | sel = "S" then
+     do
+      "ISREDIT MACRO_MSG = ON"
+      "ISREDIT (USTAT) = USER_STATE"
+      "ISREDIT COMPARE &file"
+       ZEDSMSG = ZEDISMSG
+       ZEDLMSG = ZEDILMSG
+      "ISPEXEC SETMSG MSG(PSYZ000)"
+      "ISREDIT USER_STATE = (USTAT)"
+       leave
+     end
+   else if sel = "D" then
+     do
+       dfile = substr( file, lastpos( "/", file ) + 1 )
+       "ISPEXEC DISPLAY PANEL(PEDITM02)"
+       if RC = 0 & ENTRYDEL = "/" then
+         do
+           rc  = sysFileDelete( file )
+           del = "Y"
+           if rc = 0 then info = "Deleted"
+           else           info = "Delete failed RC="rc
+         end
+     end
+   else if sel = "V" then
+     do
+       "VIEW FILE(FILE)"
+       info = "Viewed"
+     end
+   else if sel = "K" then
+     do
+       "ISPEXEC VIEW FILE(FILE) MACRO(cutmac)"
+       info = "Copied to clipboard"
+     end
+   sel = ""
+  "ISPEXEC TBPUT &tabName"
+end
+
+"ISPEXEC REMPOP"
+
+"ISPEXEC TBEND &tabName"
+
+if endsess then
+  do
+    "ISREDIT BUILTIN CANCEL"
+  end
+EXIT
+
+
+Julian2Greg: Procedure
+arg jdate .
+
+year = substr( jdate, 3, 2 )
+day  = substr( jdate, 6 )
+
+if ( year // 400 = 0 | ( year // 100 \= 0 & year // 4 = 0 ) ) then
+  do
+    leap = 1
+  end
+else
+  do
+    leap = 0
+  end
+
+days.   = 0
+days.1  = 31
+days.2  = 59  + leap
+days.3  = 90  + leap
+days.4  = 120 + leap
+days.5  = 151 + leap
+days.6  = 181 + leap
+days.7  = 212 + leap
+days.8  = 243 + leap
+days.9  = 273 + leap
+days.10 = 304 + leap
+days.11 = 334 + leap
+days.12 = 365 + leap
+
+do month = 1 to 12
+   if day > days.[ month - 1 ] & day <= days.month then leave
+end
+
+day = day - days.[ month - 1 ]
+
+RETURN  right( day, 2, "0" ) || "/" || right( month, 2, "0" ) || "/" || year
+
+
+getChanges: Procedure expose adds dels chg
+cfile = arg( 1 )
+file  = arg( 2 )
+
+adds = 0
+dels = 0
+
+if chg = "YES" then
+  do
+    tfile1 = tempFile()
+    tfile2 = tempFile()
+   "ISREDIT CREATE &tfile1 .ZFIRST .ZLAST"
+    if diff( tfile1, file, tfile2, "QUIET" ) then
+      do
+        Call getStats tfile2
+      end
+    Call sysfiledelete( tfile1 )
+    Call sysfiledelete( tfile2 )
+  end
+else
+  do
+    tfile1 = tempFile()
+    if diff( cfile, file, tfile1, "QUIET" ) then
+      do
+        Call getStats tfile1
+      end
+    Call sysfiledelete( tfile1 )
+  end
+RETURN
+
+
+diff: Procedure
+nfile = arg( 1 )
+ofile = arg( 2 )
+tfile = arg( 3 )
+quiet = arg( 4 )
+
+if rxqueue( "Exists", "OPUT" ) then
+  do
+    x = rxqueue( "Delete", "OPUT" )
+  end
+
+x = rxqueue( "Create", "OPUT" )
+x = rxqueue( "Set", "OPUT" )
+o = value( "RXQUEUE", "OPUT", "ENVIRONMENT" )
+
+address bash "diff -uE "'"'ofile'" "'nfile'"' "2> /dev/null | rxqueue OPUT"
+
+if queued() = 0 then
+  do
+    if quiet \= "QUIET" then
+      do
+        ZEDSMSG = "No differences found"
+        ZEDLMSG = "No differeneces have been found between the files."
+        "ISPEXEC SETMSG MSG(PSYZ000)"
+      end
+    x = rxqueue( "Delete", "OPUT" )
+    x = value( "RXQUEUE", o, "ENVIRONMENT" )
+    RETURN .false
+  end
+
+ddname = "$"random( 0, 9999999 )
+
+address TSO "ALLOC F("ddname") PATH("tfile")"
+address TSO "EXECIO * DISKW "ddname" (FINIS"
+address TSO "FREE F("ddname")"
+
+x = rxqueue( "Delete", "OPUT" )
+x = value( "RXQUEUE", o, "ENVIRONMENT" )
+
+RETURN .true
+
+
+getStats: Procedure expose adds dels
+file = arg( 1 )
+
+adds = -1
+dels = -1
+
+address TSO "ALLOC F("ddname") PATH("file")"
+
+do forever
+    address TSO "EXECIO 1 DISKR "ddname" (STEM LINE."
+    if RC > 0 then leave
+    c = substr( line.1, 1, 1 )
+    if c = "-" then dels = dels + 1
+    else if c = "+" then adds = adds + 1
+end
+
+address TSO "EXECIO 0 DISKR "ddname" (FINIS"
+address TSO "FREE F("ddname")"
+
+RETURN
+
+
+tempFile:  Procedure
+RETURN systempFilename( "/tmp/backups-emacro-????-????" )
+
+
+Help:  Procedure
+say " Edit macro to list backups for the file being edited.                               "
+say "                                                                                     "
+say " Parmameters:                                                                        "
+say " -----------                                                                         "
+say " ?     - Displays help and exits macro                                               "
+say " HELP  - Same as ?                                                                   "
+say " STATS - This retrieves insert/delete stats but may take a long time                 "
+say "         for large/many files in the backup list.                                    "
+say "         This parameter is ignored when the REXX is running for longer than          "
+say "         30 seconds.                                                                 "
+say "         Use I on the scrollable list to retrieve individual entries.                "
+say "         If the file has been changed, the compare is with a copy of the             "
+say "         edit session.                                                               "
+say "                                                                                     "
+say " NOLIMIT - Do not limit the list to 1000 entries.                                    "
+say "                                                                                     "
+say " An abbreviation of STATISTICS and NOLIMIT with a minimum of 2 characters is         "
+say " also acceptable.                                                                    "
+say "                                                                                     "
+say " Primary Commands:                                                                   "
+say " ----------------                                                                    "
+say " ?           - Displays help.                                                        "
+say " RES | RESET - Reset the information field.  Remove deleted entries.                 "
+say " STATS       - get insert/deletes for entries that don't already have them.          "
+say "               (limit 30 seconds).                                                   "
+say " CLEANUP     - Delete all files older than 90 days except for the first              "
+say "               backup of the day.                                                    "
+say " DELETE n    - Delete all files older than n days.                                   "
+say "                                                                                     "
+say " Line Commands:                                                                      "
+say " -------------                                                                       "
+say " A - Execute backups macro on the selected backup file.                              "
+say "     Special processing applies to backup files.  The time stamp is removed          "
+say "     to allow backup files to be compared with each other.                           "
+say "     Selected entry will show as *Active*.                                           "
+say " B - Browse backup file.                                                             "
+say " V - View backup file.                                                               "
+say " C - Compare edit file with backup file (stays in macro).                            "
+say "     If the file has been changed, the compare is with a copy of the edit session.   "
+say "     Insert/delete stats are also retrieved.                                         "
+say "     Use primary command COMP X to show only changes.                                "
+say " F - Show a diff -uE of the two files                                                "
+say "     This is the default if no line command entered and cursor on a line.            "
+say "     If the file has been changed, the compare is with a copy of the edit session.   "
+say "     Insert/delete stats are also retrieved.                                         "
+say " K - Copy to clipboard.                                                              "
+say " I - Get insert/delete stats.                                                        "
+say "     If the file has been changed, the compare is with a copy of the edit session.   "
+say " M - Merge with current edit session (exits macro).                                  "
+say "     Source data not repositioned.                                                   "
+say "     Use primary command COMP X to show only changes.                                "
+say "     Macro dellabs can then be used to restore older version.                        "
+say " S - Same as M.                                                                      "
+say " D - Delete backup file.                                                             "
+say "                                                                                     "
+RETURN

@@ -1,0 +1,120 @@
+/*
+  Copyright (c) 2021 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+/**********************************************************************************************/
+/*                                                                                            */
+/* Panel checking script                                                                      */
+/* ---------------------                                                                      */
+/* Get a list of panels from ZPLIB and display them all in sequence                           */
+/* to see if there are any errors.                                                            */
+/* Source names containing _PDC are ignored.                                                  */
+/*                                                                                            */
+/* EXEC runs with CONTROL ERRORS RETURN.                                                      */
+/* ZERRSM and ZERRLM are displayed if an error occurs.                                        */
+/*                                                                                            */
+/* Panel is displayed after a CONTROL NONDISPL END command                                    */
+/* so not all panel logic will necessarily be executed.                                       */
+/*                                                                                            */
+/* Panel may be shown regardless if, for example, panel                                       */
+/* logic sets .RESP and ignores END or RETURN commands (eg PPSP01C6)                          */
+/*                                                                                            */
+/* Panels containing VEDIT will usually show a false error                                    */
+/* due to no VMASK being done on the variable (eg PTEST01A)                                   */
+/*                                                                                            */
+/* Panels containing variables in a TBFIELD statement usually show a false error              */
+/* due to the variables having incorrect values (eg PDIFF0A2)                                 */
+/*                                                                                            */
+/**********************************************************************************************/
+
+
+plib1  = ""
+plib2  = ""
+file.  = ""
+file.0 = 0
+proc.  = .false
+proc.["/home/daniel/.lspf/help/plib/"] = .true
+
+address ISPEXEC
+"QLIBDEF ZPLIB ID(PLIB1)"
+if RC = 0 then plib1 = plib1 || ":"
+
+"QBASELIB ZPLIB ID(PLIB2)"
+plib = plib1 || plib2
+
+do forever
+   parse var plib path ":" plib
+   if path = "" then leave
+   if substr( reverse( path ), 1, 1 ) \= "/" then
+     do
+       path = path || "/"
+     end
+   if proc.path = .true then iterate
+   proc.path    = .true
+   Call sysfiletree path, "temp", "FO"
+   j = file.0 + 1
+   do i = 1 to temp.0
+       file.j = temp.i
+       j      = j + 1
+   end
+   file.0 = file.0 + temp.0
+end
+
+errorList = ""
+ignorList = ""
+"CONTROL ERRORS RETURN"
+do i = 1 to file.0
+   file = translate( file.i, " ", "/" )
+   file = word( file, words( file ) )
+   if pos( "_PDC", file ) > 0 then
+     do
+        ignorList = ignorList file
+        iterate
+     end
+   "CONTROL NONDISPL END"
+   "DISPLAY PANEL(&FILE)"
+   if rc > 8 then
+     do
+        say "Error displaying panel "file
+        say "      ZERRSM: "zerrsm
+        say "      ZERRLM: "zerrlm
+        errorList = errorList file
+     end
+end
+
+say
+say "Error summary"
+say "-------------"
+do i = 1 to words( errorList )
+    say word( errorList, i )
+end
+
+say
+say "Ignored source files"
+say "--------------------"
+do i = 1 to words( ignorList )
+    say word( ignorList, i )
+end
+
+say
+say "Total source files read . . . "file.0
+say "Total panels displayed. . . . "file.0 - words( ignorList )
+say "Total errors. . . . . . . . . "words( errorList )
+say "Total ignored source files. . "words( ignorList )
+
+EXIT

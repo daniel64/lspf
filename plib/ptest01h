@@ -1,0 +1,67 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+
+)ENDCOMMENT
+
+)ATTR
+01 TYPE(DATAIN)  INTENS(HIGH)
+02 TYPE(DATAOUT) INTENS(HIGH)
+
+03 TYPE(CHAR) COLOUR(RED)
+04 TYPE(CHAR) COLOUR(GREEN)
+05 TYPE(CHAR) COLOUR(YELLOW)
+06 TYPE(CHAR) COLOUR(BLUE)
+07 TYPE(CHAR) COLOUR(MAGENTA)
+08 TYPE(CHAR) COLOUR(TURQ)
+09 TYPE(CHAR) COLOUR(WHITE)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Test Dynamic Area with overflow variables (Input)'
+
+TEXT      4    2    FP  'Command ===>'
+FIELD     4   15  MAX   NEF  CAPS(ON),PAD(USER) ZCMD
+
+TEXT      6   MAX-36    FP  'TIME:'
+FIELD     6   MAX-30    8    VOI   NONE  ZTIME
+
+TEXT      6   MAX-20    FP  'DATE:'
+FIELD     6   MAX-14    8    VOI   NONE  ZDATE
+
+TEXT      6  2    FP  ' Enter commmand SHOW to dump dynamic vars'
+TEXT      7  2    FP  ' Defaults DATAIN(01) DATAOUT(02) Overflow size '
+FIELD     7  49         5    NEF   NUMERIC(ON)  OLENV
+TEXT      7  55   FP  '(Max value 65,535)'
+
+BOX      8  3  72  12 RED   'Test Dynamic Area'
+
+DYNAREA   9 4  70  10 ZAREA ZSHADOW USERMOD(03) DATAMOD(04)
+                      SCROLL(OFF) OPREF(ZOVR) OLEN(OLENV)
+
+TEXT     20  14        IMT '----+----1----+----2----+----3----+----4----+----5----+----6----+'
+TEXT     21  3         FP  'ZOVRV000:>>'
+FIELD    21  14        MAX   VOI   JUST(ASIS)  ZOVRV000
+
+TEXT     22  3         FP  'ZOVRS000:>>'
+FIELD    22  14        MAX   VOI   JUST(ASIS)  ZOVRS000
+
+TEXT     23  3         FP  'ZOVRU000:>>'
+FIELD    23  14        MAX   VOI   NONE  ZOVRU000
+
+)INIT
+IF (&OLENV = &Z)
+  &OLENV = 20
+
+)PROC
+IF (&OLENV GT 65535)
+  &OLENV = 20
+
+)HELP
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

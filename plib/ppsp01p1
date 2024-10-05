@@ -1,0 +1,77 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Tailor PFKey area
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY WINDOW(72,18)
+PANELTITLE 'Tailor Function Key Area Display'
+
+TEXT     4   2         FP    'Command ===> '
+FIELD    4  15  MAX NEF CAPS(ON),PAD(USER) ZCMD
+
+AREA 6 1      MAX     MAX     SAREA1
+
+)AREA SAREA1
+TEXT     1    2       FP     'Primary range. . . '
+FIELD    1    21  1   CEF     PAD(USER) ZTKPRI
+TEXT     1    24      SAC    '1. Lower - 1 to 12'
+TEXT     2    24      SAC    '2. Upper - 13 to 24'
+
+TEXT     4    2       FP     'Display set. . . . '
+FIELD    4    21  1   CEF     PAD(USER) ZTKSET
+TEXT     4    24      SAC    '1. Primary - &ztkl1 to &ztkl2'
+TEXT     5    24      SAC    '2. Alternate - &ztku1 to &ztku2'
+TEXT     6    24      SAC    '3. All - display all keys'
+
+TEXT     9  2  CH 'Instructions'
+TEXT    10  5  NT 'Press'
+TEXT    10 11  ET 'Enter'
+TEXT    10 17  NT 'to save.  Enter'
+TEXT    10 33  ET 'End'
+TEXT    10 37  NT 'to save changes and exit.'
+
+)INIT
+&ZFK2   = 1
+.CURSOR = ZCMD
+
+VGET (ZPFSET ZPRIKEYS) PROFILE
+
+&ZTKSET = TRANS(&ZPFSET PRI,1 ALT,2 ALL,3 *,1)
+&ZTKPRI = TRANS(&ZPRIKEYS LOW,1 UPP,2 *,1)
+
+IF (&ZTKPRI EQ 1)
+  &ZTKL1 = 1
+  &ZTKL2 = 12
+  &ZTKU1 = 13
+  &ZTKU2 = 24
+ELSE
+  &ZTKL1 = 13
+  &ZTKL2 = 24
+  &ZTKU1 = 1
+  &ZTKU2 = 12
+
+)PROC
+IF (&ZCMD NE &Z )
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
+VER(&ZTKPRI,NB,LIST,1,2)
+VER(&ZTKSET,NB,LIST,1,2,3)
+
+IF (.MSG NE &Z)
+  .RESP = ENTER
+ELSE
+   &ZPFSET   = TRANS(&ZTKSET 1,PRI 2,ALT 3,ALL)
+   &ZPRIKEYS = TRANS(&ZTKPRI 1,LOW 2,UPP)
+   VPUT(ZPFSET ZPRIKEYS) PROFILE
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

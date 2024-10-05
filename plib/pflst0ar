@@ -1,0 +1,76 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Confirm shell command execution panel
+)ENDCOMMENT
+
+)BODY WINDOW(75,20)
+
+PANELTITLE 'Confirm Execution of Shell Command'
+
+TEXT     2   2       FP  'Command ===>'
+FIELD    2  15   MAX NEF CAPS(ON),PAD(USER) ZCMD1
+
+AREA   3 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1 2 WT   'You are about to execute the command as a shell command.'
+TEXT     2 2 WT   'Any terminal i/o performed by the command may interfere with lspf.'
+TEXT     3 2 WT   'If it hangs, cancel the command from another session.'
+
+TEXT     5 2 PIN  'Verify or change the command:'
+TEXT     6   2   FP      '==> '
+FIELD    6   6     MAX-4  NEF  NONE PFLCMD1
+FIELD    6   MAX-2 2      LI   NONE PFLIND1
+
+TEXT     8 2 PIN  'Enter / to select option'
+
+FIELD    9    2   1   CEF PAD(USER) CONFOFF
+TEXT     9    4       SAC    'Suspend execution confirmation for pending commands'
+FIELD    10   2   1   CEF PAD(USER) TIMEOUT
+TEXT     10   4       SAC    'Timeout after 10 seconds'
+
+TEXT    12 2  CH 'Instructions'
+TEXT    13 5  NT 'Press'
+TEXT    13 11 PS 'Enter'
+TEXT    13 17 NT 'to confirm command execution'
+
+TEXT    14 5  NT 'Enter'
+TEXT    14 11 PS 'Cancel'
+TEXT    14 18 NT 'or'
+TEXT    14 21 PS 'End'
+TEXT    14 25 NT 'to skip this command execution'
+
+TEXT    15 5  NT 'Enter'
+TEXT    15 11 PS 'Quit'
+TEXT    15 16 NT 'to cancel all pending commands'
+
+)INIT
+&ZCMD1   = &Z
+&ZWINTTL = &Z
+.CURSOR  = 'ZCMD1'
+
+)PROC
+IF (&ZCMD1 NE &Z,QUIT,CANCEL,END)
+   .MSG    = 'PSYS018'
+   .CURSOR = 'ZCMD1'
+   EXIT
+
+IF (&ZCMD1 EQ QUIT,CANCEL,END) .RESP = END
+
+&CONFOFF = TRANS(&CONFOFF &Z,&Z *,/)
+&TIMEOUT = TRANS(&TIMEOUT &Z,&Z *,/)
+
+)FIELD
+FIELD(PFLCMD1) LEN(1024) IND(PFLIND1)
+
+)PNTS
+FIELD(ZPS01001) VAR(ZCMD1)  VAL(' ')
+FIELD(ZPS01002) VAR(ZCMD1)  VAL(CANCEL)
+FIELD(ZPS01003) VAR(ZCMD1)  VAL(END)
+FIELD(ZPS01004) VAR(ZCMD1)  VAL(QUIT)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

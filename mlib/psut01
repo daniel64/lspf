@@ -1,0 +1,99 @@
+/*                                          */
+/* General error messages.                  */
+/*                                          */
+PSUT011A 'Invalid function' .TYPE=W
+'Function parameter passed to PSYSUTL is invalid.'
+
+PSUT011B 'Missing parameter' .TYPE=W
+'Command contains too few parameters for specified function.'
+
+PSUT011C 'Invalid parameter' .TYPE=W
+'Command contains too many parameters for specified function.'
+
+PSUT011D 'udev_dev() failed' .TYPE=W
+'udev_new() returned a null address.  Check udev is installed and running.'
+
+PSUT011E 'Command failed' .TYPE=W
+'POPEN returned a null value.  Command string may be too large.  See application log for errors.'
+
+PSUT011F 'Command failed' .TYPE=W
+'Execution of command gave a non-zero return code.  RC=&VAL1..'
+
+
+/*                                          */
+/* Error messages for Mount Table functions */
+/*                                          */
+PSUT012A 'statvfs gave rc = -1' .TYPE=W
+'&VAL1'
+
+PSUT012B 'Unmount failed' .TYPE=W
+'&VAL1'
+
+
+/*                                           */
+/* Error messages for Disk Display functions */
+
+PSUT013A 'Not mounted' .TYPE=W
+'Cannot perform action as device is not mounted.'
+
+PSUT013B 'Already mounted' .TYPE=W
+'Cannot perform action as device is already mounted.'
+
+PSUT013C 'Create failed' .TYPE=W
+'Create of directory failed with &VAL1.'
+
+PSUT013D 'Accessing directory failed' .TYPE=W
+'Failure occured accessing directory.  &VAL1'
+
+PSUT013E 'Directory does not exist' .TYPE=W
+'Enter an existing directory or leave blank to create a temporary mount point.'
+
+PSUT013F 'Mount failed' .TYPE=W
+'Mount of file system failed with &VAL1.'
+
+PSUT013G 'Unmount failed' .TYPE=W
+'&VAL1'
+
+
+/*                                           */
+/* Error messages for System Info display    */
+
+PSUT014A 'sysinfo gave rc = -1' .TYPE=W
+'&VAL1'
+
+/*                                           */
+/* Error messages for Network usage display  */
+
+PSUT015A 'Nethogs is already running' .TYPE=W
+'Nethogs is running in another session.'
+
+PSUT015B 'Nethogs failed' .TYPE=W
+'Nethogs has failed to start.  &VAL1.. See application log for error messages.'
+
+PSUT015C 'Cannot create pipe' .TYPE=W
+'ERROR:  &VAL1'
+
+PSUT015D 'Kill failed' .TYPE=W
+'ERROR:  &VAL1'
+
+PSUT015E 'Nethogs not available' .TYPE=W
+'PSYSUTL has been compiled without nethogs support.'
+
+/*                                           */
+/* Error messages for systemd units display  */
+
+PSUT016A 'Cannot connect to bus' .TYPE=W
+'Connection to systemd bus failed.  RC=&VAL1..'
+
+PSUT016B 'sd_bus call gave invalid return' .TYPE=W
+'Call number &VAL2 &VAL1, gave return code &VAL3: &ERRSTR..'
+
+PSUT016C 'Unit file not found' .TYPE=W
+'Unit file &VAL1 does not exist.'
+
+PSUT016D 'Unit file not accessible' .TYPE=W
+'Unit file &VAL1 is not accessible.  Check permissions.'
+
+PSUT016E 'Error getting time' .TYPE=W
+'CLOCK_MONOTONIC gave a non-zero return code.'
+

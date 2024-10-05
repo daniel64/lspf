@@ -1,0 +1,158 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+Panel front end for panconv REXX procedure.
+Entry screen
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'ISPF to lspf Panel Conversion Utility'
+
+TEXT     4    2       FP     'Command ===>'
+FIELD    4   15   MAX NEF     PAD(USER),CAPS(ON) ZCMD
+
+AREA     5    1   MAX MAX     SAREA1
+
+)AREA SAREA1
+TEXT     1   2          FP     'ISPF source file. . . . .'
+FIELD    1   28   MAX-4 NEF     PAD(USER) ISPPAN1
+FIELD    1   MAX-2    2 LI      NONE      ISPPAN2
+
+TEXT     2    2         FP     'lspf output directory . .'
+FIELD    2   28   MAX-4 NEF     PAD(USER) LSPPAN1
+FIELD    2   MAX-2    2 LI      NONE      LSPPAN2
+
+TEXT     4    2         FP     'Current screen width. . .'
+FIELD    4   28       4 NEF     PAD(USER) LSPSCRW
+
+TEXT     5    2         FP     'Current screen depth. . .'
+FIELD    5   28       4 NEF     PAD(USER) LSPSCRD
+
+TEXT     7    2       CH     'Options'
+TEXT     8    4       PIN    'Enter / to select option'
+
+FIELD    9    4   1   CEF     PAD(USER) ZFILREPL
+TEXT     9    7       SAC    'Replace lspf panel'
+
+FIELD   10    4   1   CEF     PAD(USER) ZCONTERR
+TEXT    10    7       SAC    'Ignore panel conversion errors and continue'
+
+
+TEXT    13    2  CH 'Instructions'
+TEXT    14    5  NT 'Enter full ISPF source file name.  An ''*'' can be used for the file name to process all files.'
+TEXT    15    5  NT 'Screen width and depth can be overridden.  Blank for defaults.'
+TEXT    17    5  NT 'Press'
+TEXT    17    11 PS 'Enter'
+TEXT    17    17 NT 'to start the process.'
+
+)INIT
+.NRET   = ON
+.NRET   = ISPPAN1
+.CURSOR = ZCMD
+.HIST   = ISPPAN1
+.HIST   = LSPPAN1
+
+VGET (ISPPAN1,LSPPAN1,ZCONTERR) PROFILE
+VGET (ZSCRMAXW,ZSCRMAXD) SHARED
+
+IF (&LSPSCRW EQ &Z)
+   &LSPSCRW = &ZSCRMAXW
+
+IF (&LSPSCRD EQ &Z)
+   &LSPSCRD = &ZSCRMAXD
+
+)PROC
+IF (&ZCMD NE &Z)
+   .MSG    = 'PSYS018'
+   .CURSOR = ZCMD
+   EXIT
+
+&REDISPL = 'NO'
+
+IF (&LSPSCRW EQ &Z)
+  VGET (ZSCRMAXW) SHARED
+  &LSPSCRW = &ZSCRMAXW
+  &zedsmsg = 'Screen width default set'
+  &zedlmsg = ''
+  .MSG     = PSYZ000
+  &REDISPL = 'YES'
+  REFRESH(LSPSCRW)
+
+IF (&LSPSCRD EQ &Z)
+  VGET (ZSCRMAXD) SHARED
+  &LSPSCRD = &ZSCRMAXD
+  IF ( &REDISPL = 'YES' )
+    &zedsmsg = 'Screen width and depth defaults set'
+  ELSE
+    &zedsmsg = 'Screen depth default set'
+  &zedlmsg = ''
+  &REDISPL = 'YES'
+  REFRESH(LSPSCRD)
+
+IF (&REDISPL EQ 'YES')
+  .MSG = PSYZ000
+  EXIT
+
+VER(&LSPSCRW,NUM)
+VER(&LSPSCRD,NUM)
+
+IF (&LSPSCRW LT 80)
+  &zedsmsg = 'Screen width too small'
+  &zedlmsg = 'Screen width must be at least 80.'
+  .CURSOR = LSPSCRW
+  .MSG    = PSYZ001
+  EXIT
+
+IF (&LSPSCRD LT 24)
+  &zedsmsg = 'Screen depth too small'
+  &zedlmsg = 'Screen width must be at least 24.'
+  .CURSOR = LSPSCRD
+  .MSG    = PSYZ001
+  EXIT
+
+
+IF (TRUNC(&LSPPAN1,1) EQ '=')
+  &LSPPAN1 = &ISPPAN1
+  &AAA     = '&LSPPAN1 '
+  .CURSOR  = LSPPAN1
+  .CSRPOS  = LENGTH(AAA)
+  &zedsmsg = 'Entry retrieved'
+  &zedlmsg = ''
+  .MSG     = PSYZ000
+  REFRESH(LSPPAN1)
+  EXIT
+
+&ZFILREPL = TRANS(&ZFILREPL &Z,&Z *,/)
+&ZCONTERR = TRANS(&ZCONTERR &Z,&Z *,/)
+
+VER (&ISPPAN1,NB)
+&ISFILE1 = FILE(ISPPAN1)
+
+VER (&LSPPAN1,NB)
+&ISDIR2 = DIR(LSPPAN1)
+
+IF (&ISDIR2 EQ .FALSE)
+   &zedsmsg = 'Not a directory'
+   &zedlmsg = 'Entry must be a valid directory.'
+   .MSG    = PSYZ001
+   .CURSOR = LSPPAN1
+   EXIT
+
+IF (.MSG EQ &Z)
+   VPUT (ISPPAN1,LSPPAN1,ZCONTERR) PROFILE
+
+)FIELD
+FIELD(ISPPAN1) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL) NESTED')
+FIELD(LSPPAN1) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND DO1) NESTED')
+
+FIELD(ISPPAN1) LEN(4095) IND(ISPPAN2)
+FIELD(LSPPAN1) LEN(4095) IND(LSPPAN2)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

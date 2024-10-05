@@ -1,0 +1,47 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Display Dialogue Variables'
+
+TEXT      4    2    FP  'Command ===> '
+FIELD     4   15   MAX  NEF     CAPS(ON),PAD(USER) ZCMD
+
+AREA   5 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT      1   MAX-36    FP  'TIME: '
+FIELD     1   MAX-30    8    VOI   NONE  ZTIME
+
+TEXT      1   MAX-20    FP  'DATE: '
+FIELD     1   MAX-14    8    VOI   NONE  ZDATE
+
+TEXT      3    2    FP  'VAR NAME. . .'
+FIELD     3   16   90   NEF     CAPS(ON),PAD(USER) FLD1
+
+TEXT      5   2     CT     'FUNCTION POOL VARIABLES:'
+
+TEXT      6    2     FP     'ZCURFLD:'
+FIELD     6    11    10     VOI   NONE  ZCURFLD
+
+TEXT      7    2     FP     'ZCURPOS:'
+FIELD     7    11    10     VOI   NONE  ZCURPOS
+
+)INIT
+VGET FLD1
+.CURSOR = ZCMD
+)PROC
+if ( &ZCMD NE &Z)
+  .MSG    = PSYS011C
+  .CURSOR = ZCMD
+  EXIT
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

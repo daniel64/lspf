@@ -1,0 +1,58 @@
+)PANEL VERSION=1 FORMAT=1 
+/* *************************************************** */
+/* Converted by panconv EXEC on 3 Oct 2024 at 15:46:41 */
+/* *************************************************** */
+)ATTR DEFAULT(%+_)
+  + TYPE(TEXT  ) COLOR(GREEN)
+  _ TYPE( INPUT) INTENS(LOW ) JUST(LEFT ) HILITE(USCORE)
+  ~ TYPE(TEXT) INTENS(HIGH) CAPS(OFF) JUST(ASIS ) COLOR(TURQ)
+  [ TYPE(OUTPUT) INTENS(HIGH) CAPS(OFF) JUST(LEFT) PAS(ON) COLOR(WHITE)
+/*   } AREA(SCRL) EXTEND(ON) panconv */
+)BODY 
+TEXT 1 2 ATTR(25) 'Tutorial ----------------------------'
+TEXT 1 40 ATTR(7E) 'Mouse Utility'
+TEXT 1 54 ATTR(25) '---------------------------- Tutorial'
+TEXT 2 2 ATTR(25) 'Selection ===>'
+FIELD 2 17 73 ATTR(5F) ZCMD
+AREA 4 1 90 37 HELP
+)AREA HELP
+TEXT 1 2 ATTR(2B) '==========================='
+TEXT 2 2 ATTR(2B) 'Set Mouse Actions Dialogue.'
+TEXT 3 2 ATTR(2B) '==========================='
+TEXT 6 2 ATTR(2B) 'This dialogue can be used to set the actions when the left, middle or right mouse'
+TEXT 7 2 ATTR(2B) 'buttons are single, double or tripple clicked.'
+TEXT 9 2 ATTR(2B) 'The scroll amount and mouse interval can also be set.'
+TEXT 12 2 ATTR(2B) 'The six actions available are:'
+TEXT 13 2 ATTR(2B) '1)  Disable     - the mouse event has no effect.'
+TEXT 14 2 ATTR(2B) '2)  Move Cursor - the cursor is moved to the mouse pointer position.'
+TEXT 15 2 ATTR(2B) '3)  Enter       - simulates the Enter key being pressed.'
+TEXT 16 2 ATTR(2B) '4)  Move Cursor'
+TEXT 16 19 ATTR(2B) ' Enter  - the cursor is moved to the mouse pointer position and'
+TEXT 17 2 ATTR(2B) '                           Enter is simulated.'
+TEXT 18 2 ATTR(2B) '5)  Execute Command      - runs the command as a primary command.'
+TEXT 19 2 ATTR(2B) '6)  Execute line Command - moves the cursor to the mouse pointer position and'
+TEXT 20 2 ATTR(2B) '                           executes the command.  This could be something like the'
+TEXT 21 2 ATTR(2B) '                           editor :TS command.'
+TEXT 23 2 ATTR(2B) 'Mouse interval can be a value from 0 to 166.'
+TEXT 24 2 ATTR(2B) 'Scroll amount can be PAGE, DATA, HALF, CSR or a numeric value up to 9999.'
+TEXT 25 2 ATTR(2B) 'If CSR is being used for the scroll amount, the cursor is first positioned at the'
+TEXT 26 2 ATTR(2B) 'mouse pointer.'
+TEXT 28 2 ATTR(2B) 'Default values:'
+TEXT 29 2 ATTR(2B) '  Left mouse button single click - move cursor to mouse pointer position.'
+TEXT 30 2 ATTR(2B) '  Left mouse button double click - move cursor to mouse pointer position and Enter.'
+TEXT 32 2 ATTR(2B) '  Middle mouse button single click - SWAP NEXT.'
+TEXT 33 2 ATTR(2B) '  Middle mouse button double click - SPLIT NEW.'
+TEXT 35 2 ATTR(2B) '  Right mouse button single click - END.'
+TEXT 36 2 ATTR(2B) '  Right mouse button double click - RETURN.'
+TEXT 38 2 ATTR(2B) '  Mouse interval 166ms.'
+TEXT 39 2 ATTR(2B) '  Scroll amount 1 line.'
+TEXT 41 2 ATTR(2B) 'There are some mouse actions that are not customisable.  Left press/release'
+TEXT 42 2 ATTR(2B) 'moves a popup window to another position on the screen.  The top-left of the'
+TEXT 43 2 ATTR(2B) 'window is positioned at the mouse pointer position (if room, else as far as the'
+TEXT 44 2 ATTR(2B) 'window will go).'
+TEXT 47 2 ATTR(2B) 'If lspf is being used in a linux terminal with gpm, ncurses may need to be'
+TEXT 48 2 ATTR(2B) 'compiled with configure option --with-gpm (as is the case with Arch Linux).'
+)INIT
+ .CURSOR = ZCMD
+)PROC
+)END

@@ -1,0 +1,74 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+EDIT/VIEW recovery panel for editor PEDIT01
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE rfl_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE '&ZVMODE Recovery Panel'
+
+TEXT     4    2       FP     'Command ===> '
+FIELD    4   15   MAX NEF     PAD(USER),CAPS(ON) ZCMD
+
+AREA   5 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1   10       FP     '**********************************************'
+TEXT     2   10  MAX  FP     '&ZRTITLE'
+TEXT     3   10       FP     '**********************************************'
+TEXT     5    2       FP     'The following file was being edited or viewed when a failure occured'
+TEXT     7    2       FP     'File Name . . :'
+FIELD    7   18       MAX-4   VOI  NONE ZFILE
+FIELD    7   MAX-2 2          LI   NONE ZFILIND
+
+TEXT    9  2  CH 'Instructions'
+
+TEXT    10 5  NT 'Press'
+TEXT    10 11 ET 'Enter'
+TEXT    10 17 NT 'to continue editing the file'
+
+TEXT    11 5  NT 'Press'
+TEXT    11 11 ET 'End'
+TEXT    11 15 NT 'to return to the previous panel'
+
+TEXT    12 5  NT 'Press'
+TEXT    12 11 ET 'Defer'
+TEXT    12 17 NT 'to defer recovery of the specified file'
+
+TEXT    13 5  NT 'Enter'
+TEXT    13 11 ET 'Cancel'
+TEXT    13 18 NT 'to cancel recovery of the specified file'
+
+)INIT
+IF (&ZVMODE EQ 'EDIT')
+  &ZRTITLE = '*          EDIT AUTOMATIC RECOVERY           *'
+ELSE
+  IF (&ZVMODE EQ 'VIEW')
+    &ZRTITLE = '*          VIEW AUTOMATIC RECOVERY           *'
+  ELSE
+    &ZRTITLE = '*            AUTOMATIC RECOVERY              *'
+
+&ZCMD = &Z
+
+)PROC
+VGET ZVERB SHARED
+IF (&ZVERB EQ 'CANCEL' ) &ZCMD = 'CANCEL'
+
+&ZCMD = TRANS(&ZCMD DEF,DEFER *,*)
+if (&ZCMD NE DEFER,CANCEL,&Z)
+  .MSG    = PSYS018
+  .CURSOR = ZCMD
+  EXIT
+
+)FIELD
+FIELD(ZFILE) LEN(4095) IND(ZFILIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

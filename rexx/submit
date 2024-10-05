@@ -26,4 +26,4 @@
 address ISPEXEC
 
 "SUBMIT CMD(" arg( 1 ) ") LANG(SHELL)"
-"RDISPLAY JOB" right( zsbtask, 5, "0" ) "SUBMITTED"
+say "JOB" right( zsbtask, 5, "0" ) "SUBMITTED"

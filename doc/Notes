@@ -5,18 +5,19 @@ Loads! some good, and some bad but in no particular order...
 
 1)  No ISPLINK interface.  Use ISPEXEC or the pApplication methods that have the same parameters as ISPLINK.
     Both set special variable RC to the return code of the service.
-2)  Panel body is defined differently with a simple list of FIELD, TEXT, TBMODEL, TBFIELD etc, statements
+2)  Panel body is defined differently with a simple list of FIELD, TEXT, TBMODEL, TBFIELD etc, statements.  ISPF panels
+    are supported with REXX installed.
 3)  Applications can be run in the background/asynchronously using the submit method.
     Function pool variable ZSBTASK contains the submitted background taskid.
-4)  No ALTLIB function, but then this is really TSO not ISPF.
-    Maybe LIBDEF can be extended to provide something similar.
+4)  ....
 5)  Keylists are kept in their own table, not in the PROFILE file as added table rows.  File name format is
-    applid+"KEYP" for private keys in ZUPROF.
-6)  No shared keylist keys.
-7)  Keylists override current PFKEYs only if there is a definition, otherwise the normal PFKEY will be in effect.
-    Real ISPF overrides all keys when a keylist is in use (which makes then almost useless)
+    applid+"KEYP" for private keys in ZUPROF and applid+"KEYS" for shared keys in ZTLIB.
+6)  Keylists override current PFKEYs only if there is a definition, otherwise the normal PFKEY will be in effect.
+    Real ISPF overrides all keys when a keylist is in use (which makes then almost useless).
+    This is why there are two commands to edit pfkey definitions, KEYS (traditional keys) and KEYL (active keys, traditional or keylist).
+7)  There is no default ISPKYLST keylist if none specified on the )PANEL statement.
 8)  No split line in split-screen mode.  Each logical screen gets the full screen.
-9)  No PA1 function but if an application appears to be looping, press ESC to see options.
+9)  No PA1 function but if an application appears to be looping, press ESC to see program interrupt options.
 10) If the application does an ADDPOP, it is ignored on a DISPLAY if there is no WINDOW() statement on the panel.
     Real ISPF honours it and usually gives something a bit strange!
 11) Panels can have an INCLUDE directive to pull in common source.  Useful for pull-down definitions.
@@ -32,44 +33,81 @@ Loads! some good, and some bad but in no particular order...
     ZRC and ZRSN are interger values.
     ZRESULT is a string.
 16) Each application runs in its own thread so if an application fails and the exception is trapped, only that
-    thread is terminated, not the whole logical screen.  In a nested select stack, this is propagated back to the
-    calling program, unless the select is within a CONTROL ERRORS RETURN statement, in which case on return,
+    thread is terminated, not the whole logical screen.  In a nested dialogue, this termination is propagated back
+    to the calling program, unless the select is within a CONTROL ERRORS RETURN statement, in which case on return,
     ZRC     = 20
     ZRSN    = 999
     ZRESULT = "Abended"
     If ZRSN has been set to greater than 900, ZRSN and ZRESULT are percolated back to the calling program.
-17) lspf tables are open per nested SELECT, not per logical screen.
-18) .ATTR() can be used to change the CUA field attribute colour/hilight/intensity.  ISPF does not allow this.
-19) Pull down menus don't have an input field - select by placing curson on the option and pressing ENTER.
+17) lspf tables are open per nested dialogue, not per logical screen.
+    When the parent task terminates, all tables opened in the nested dialogue are closed.
+18) Pull down menus don't have an input field - select by placing curson on the option and pressing ENTER.
     Variable specified in .ZVARS in the )ABCINIT will automatically be set the the option number selected.
-20) Search library names are different:
+19) Search library names are different:
     ISPF      lspf    Description
     ----------------------------------------
     ISPMLIB   ZMLIB   Message library
     ISPPLIB   ZPLIB   Panel library
+    ISPSLIB   ZSLIB   File tailoring library
+    ISPLLIB   ZLLIB   Program load library
     ISPTLIB   ZTLIB   Table input library
     ISPTABL   ZTABL   Table output library
+    ISPTABL   ZFILE   File tailoring output library
 
     ISPMUSR   ZMUSR   User message library
     ISPPUSR   ZPUSR   User panel library
+    ISPSUSR   ZSUSR   User file tailoring library
+    ISPLUSR   ZLUSR   Program load library
     ISPTUSR   ZTUSR   User table input library
     ISPTABU   ZTABU   User table output library
-
-    The other names are not implemented.
-21) If LIBRARY specified on TBSAVE or TBCLOSE, or for the ZTABL default, a search is made of the
+    ISPFILU   ZFILU   File tailoring user output library
+    The standard library ISPF name is also an alias for the lspf name, eg ISPMLIB can be used as well as ZMLIB in a LIBDEF statement.
+20) If LIBRARY specified on TBSAVE or TBCLOSE, or for the ZTABL default, a search is made of the
     concatination and the table added to where it is found.  If not found, the first directory is used.
     Real ISPF just adds the table to the first dataset in the concatination.
-22) The LIBRARY statement on various services, accepts a path, concatination of paths, or a
+21) The LIBRARY statement on various services, accepts a path, concatination of paths, a file allocation, or a
     LIBDEF lib-type (generic or non-generic).
-23) Panels can have an ACTIONBAR statement in the BODY section to order or display only certain pull down
+22) Panels can have an ACTIONBAR statement in the BODY section to order or display only certain pull down
     menus.  A pull down menu not in the ACTIONBAR statement will be deleted.  If there is no ACTIONBAR statement,
     the default is to use all pull down menus in the order they were defined in the panel.
-24) Entering a jump command from fields other than the command line, is cursor sensitive.
+23) Entering a jump command from fields other than the command line, is cursor sensitive.
     The cursor must be left on the field, and only characters up to, but not including, the cursor (or first space)
     are used in the jump command - a space is not required after the command.
-    Literals (last 3 characters) used to determine a jump-capable field are "...", ". .", " .:", ". :" and "==>"
-25) Panels are automatically in CUA mode (in ISPF, panels that have a )PANEL section).  That is,
+    Literals (last 3 characters) used to determine a jump-capable field are "...", ". ." and "==>"
+24) Panels are automatically in CUA mode (in ISPF, panels that have a )PANEL section).  That is,
     CANCEL and EXIT commands behave as SETVERB entries in the command table, and special variables
     ZCURFLD, ZCURPOS and ZCURINX are set.  Other CUA characteristics are not implemented.
-26) For panels with multiple scrollable areas defined, if the cursor is not on one of the areas when a
+25) For panels with multiple scrollable areas defined, if the cursor is not on one of the areas when a
     scroll request is performed, the first )AREA section is scrolled.
+26) Short message size limited to 34 bytes instead of 24 bytes.
+27) ACTIONS accepts a pd choice number as well as a mnemonic.
+    eg.  ACTIONS M 3 will display the Menu pulldown with the Edit choice hilighted.
+28) Message and panel file names can be upper or lower case.  A search is first done in upper case, then lower.
+    Panel and message names in dialogue services must still be in upper case as must message id's within a
+    message file.
+29) The :(colon) primary command prefix only works in the Editor.  Unlike real ISPF that treats it as a line
+    command, it has no special meaning in lspf.  This allows edit line commands to be entered that
+    are greater than 6 characters.
+    When : is assigned to a pfkey, it works similarly to ISPF where the pfkey command is interpreted as a line command
+    and the contents (not including the colon) are placed in the first input field at the cursor location.
+30) There is no option to place the command line at the bottom of the screen - does anyone actually do this?
+    If anyone wants this option, they can provide me the fix.
+31) Only CUA types CEF, CH, CT, DT, EE, ET, FP, LEF, LI, LID, NEF, NT, PIN, PS, PT, RP, SAC, SC, SI, SUC, VOI, WASL and WT
+    are valid in an ATTR TYPE statement or FIELD/TEXT statement.
+    Valid non-CUA types are CHAR, DATAIN, DATAOUT, INPUT, OUTPUT and TEXT.
+    AB and ABSL are not supported as they are not created using attributes.
+32) Only a subset of file tailoring control statements have been implemented.  Builtin functions are not implemented.
+33) For panel REXX, many of the ISPF restrictions when dealing with dialogue variables don't apply - the lenght of a variable's value can
+    be changed, for example.  Variables are set between lspf and REXX using the REXX initialisation and termination exits so there is
+    no equivalent of the ISPPRXVP module.  No code is added to the REXX procedure and so there is no problem using the REXX EXIT statement.
+    This is also true of REXX compiled with rexxc.
+34) PANEXIT statement only REXX and LOAD are supported.  There is no need for module ISPREXPV as the REXX variables are set by the REXX
+    initialisaiton/termination exits (ie. PANELNAME, PANELSECTION, MSGID, EXDATA, VARNAMES.n, VARVALS.n and VARLENS.n).
+35) With scrollable fields, you can insert and delete characters even when the visible field is full.  Characters will automatically
+    move off the end of the field or be retrieved from the right-hand unseen portion of the field.  This also applies to deleting whole words
+    (CTRL-SHIFT-DEL).
+36) Dynamic areas can be defined with an overflow variable prefix.  These variables are used to hold data to the right of the dynamic area
+    margin allowing data to the inserted/deleted even when there is data up to the right hand margin.  The editor uses this feature.
+37) New panel control variable .HIST can be used to keep a list of values that have been entered into a field.  ZHISTORY primary command
+    can be used to display and select these entries.
+

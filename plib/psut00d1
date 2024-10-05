@@ -1,0 +1,59 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Show disks
+)ENDCOMMENT
+
+)ATTR
+_ TYPE(NEF) PAD(USER) CAPS(ON)
++ TYPE(VOI)
+! TYPE(OUTPUT) COLOUR(YELLOW) CAPS(OFF)
+% TYPE(OUTPUT) COLOUR(WHITE) CAPS(OFF)
+# TYPE(OUTPUT) COLOUR(BLUE) CAPS(OFF)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Disks'
+
+TEXT     4   2         FP    'Command ===>'
+FIELD    4  15  max-17 nef caps(on),pad(user) zcmd
+
+TEXT     4  MAX-15   FP   'Scroll ===>'
+FIELD    4  MAX-3  4 NEF  NONE ZSCROLL
+
+TEXT     6  2   FP  'S Disk            Model                        Capacity'
+
+TBMODEL  7   MAX
+TBFIELD  2      1      ATTR(_) SEL
+TBFIELD  ++1    15     ATTR(!) DISK
+TBFIELD  ++1    28     ATTR(#) MODEL
+TBFIELD  ++1    10     ATTR(%) SIZE
+
+)INIT
+VGET ZSCROLL PROFILE
+
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+)REINIT
+IF (.MSG EQ &Z)
+   &SEL = &Z
+   REFRESH(SEL)
+
+)PROC
+IF (.RESP = END) EXIT
+
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+   EXIT
+
+VER(&SEL,LIST,P,Q,S,T)
+
+IF (.MSG = &Z) VPUT ZSCROLL PROFILE
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2023 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

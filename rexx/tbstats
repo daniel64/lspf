@@ -1,0 +1,103 @@
+/*
+  Copyright (c) 2021 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+/**********************************************************************************************/
+/* Simple EXEC to display TBSTATS information for an lspf table.                              */
+/*                                                                                            */
+/* If a full file name is supplied, the path name wil be passed in the LIBRARY() parameter.   */
+/* With no LIBRARY() parameter, the table is fetched from ZTLIB if not already open.          */
+/*                                                                                            */
+/* Some data may be missing depending on the table file format version.                       */
+/* Pre-version 4 only current rows, service, retcode, status1/2/3 and virtsize are shown.     */
+/* Pre-version 4 upgraded to version 4 or higher, will have create information missing.       */
+/**********************************************************************************************/
+
+parse arg tab .
+
+address ISPEXEC
+
+if tab = "" then
+  do
+    say "No table supplied"
+    exit
+  end
+
+p   = lastpos( "/", tab )
+lib = ""
+
+if p > 0 then
+  do
+    lib = "LIBRARY(" substr( tab, 1, p ) ")"
+    tab = substr( tab, p+1 )
+  end
+else
+  do
+    tab = translate( tab )
+  end
+
+
+if length( tab ) > 8 then
+  do
+    say "Invalid table name "tab
+    say "Length greater than 8."
+    exit
+  end
+
+do i = 1 to length( tab )
+  c = substr( tab, i, 1 )
+  if \datatype( c, "U" ) & \datatype( c, "W" ) then
+    do
+      say "Invalid table name "tab
+      say "Invalid characters.  Only upper case and numeric characters are allowed."
+      exit
+    end
+end
+
+"TBSTATS &tab CDATE(CDATE) CTIME(CTIME) UDATE(UDATE) UTIME(UTIME) USER(USER) ROWCURR(ROWCURR)",
+             "ROWCREAT(ROWCREAT) ROWUPD(ROWUPD) TABLEUPD(TABLEUPD) SERVICE(SERVICE) RETCODE(RETCODE)",
+             "STATUS1(STATUS1) STATUS2(STATUS2) STATUS3(STATUS3) VIRTSIZE(VIRTSIZE) "lib" CDATE4D(CDATE4D)  UDATE4D(UDATE4D)"
+
+desc. = tbstati( status1 status2 status3 )
+
+say "TBSTATS for table "tab
+say "--------------------------"
+
+say "cdate    : "cdate
+say "ctime    : "ctime
+say "udate    : "udate
+say "utime    : "utime
+
+say "user     : "user
+say "rowcreat : "rowcreat
+say "rowcurr  : "rowcurr
+say "rowupd   : "rowupd
+say "tableupd : "tableupd
+
+say "service  : "service
+say "retcode  : "retcode
+
+say "status1  : "status1  desc.1
+say "status2  : "status2  desc.2
+say "status3  : "status3  desc.3
+
+say "virtsize : "virtsize
+say "cdate4d  : "cdate4d
+say "udate4d  : "udate4d
+
+EXIT

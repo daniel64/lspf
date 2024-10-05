@@ -1,0 +1,323 @@
+/*                                           */
+/* System error message file for lspf        */
+/*                                           */
+
+/*                                           */
+/* Application messages                      */
+/*                                           */
+PSYE021A 'Invalid panel name' .TYPE=W
+'Panel name ''&ZVAL1'' is not of the correct format.'
+
+PSYE021B 'Panel not found' .TYPE=W
+'Panel ''&ZVAL1'' has not been found.'
+
+PSYE021C 'No panel specified' .TYPE=W
+"Neither a panel nor previous panel have been specified"
+
+PSYE021D 'Message window error' .TYPE=W
+'MSGLOC field ''&ZVAL1'' not defined on the panel.'
+
+PSYE021E 'Invalid panel' .TYPE=W
+'Table display panel must have a TBMODEL statement.'
+
+PSYE021F 'Invalid table id' .TYPE=W
+'Table &ZVAL1 has been re-created since last TBDISPL without a panel name.'
+
+PSYE021G 'Invalid variable' .TYPE=W
+'Variable &ZVAL1 has not been found.'
+
+PSYE022A 'LOCATE invalid' .TYPE=W
+'Pointer parameter required, string passed.'
+
+PSYE022B 'MOVE invalid' .TYPE=W
+'String parameter required, pointer passed.'
+
+PSYE022C 'LOCATE option invalid' .TYPE=W
+'LOCATE cannot be used for integer values.'
+
+PSYE022D 'Too many variables' .TYPE=W
+'VEFINE statement has a maximum of 10 variables.'
+
+PSYE022E 'Address is NULL on VDEFINE' .TYPE=W
+'Address cannot be NULL.'
+
+PSYE022F 'Invalid ID()' .TYPE=W
+'LIBDEF PATH/LIBRARY ID() does not contain any paths.'
+
+PSYE022G 'Invalid user search type ''&ZVAL1''' .TYPE=W
+'Valid types are PATH or LIBRARY.'
+
+PSYE022H '''&ZVAL1'' not found' .TYPE=W
+'LIBDEF lib-type ''&ZVAL1'' does not exist.'
+
+PSYE022I 'Invalid processing option ''&ZVAL1''' .TYPE=W
+'Valid processing options are COND, UNCOND, STACK and STKADD.'
+
+PSYE022J 'Invalid &ZVAL2 name ''&ZVAL1''' .TYPE=W
+'&ZVAL2 name has an invalid format.'
+
+PSYE022K 'Too many sub-parameters' .TYPE=W
+'Only one of COND, UNCOND, STACK or STKADD allowed (default STACK).'
+
+PSYE022L 'No prior DISPLAY PANEL' .TYPE=W
+'ADDPOP specifying a field value must be preceeded by a DISPLAY PANEL.'
+
+PSYE022M 'Field not found' .TYPE=W
+'Field &ZVAL1 not found on panel &ZVAL2..'
+
+PSYE022N 'Field not found' .TYPE=W
+'Cursor field ''&ZVAL1'' not found or invalid.'
+
+PSYE022O 'Invalid &ZVAL1 variable name' .TYPE=W
+'Variable name ''&ZVAL2'' is not of the correct format.'
+
+PSYE022P 'Invalid parameter ''&ZVAL1''' .TYPE=W
+'Must be one of: &ZVAL2..'
+
+PSYE022Q 'Invalid mask size' .TYPE=W
+'Size of mask must be between 1 and 20 characters.'
+
+PSYE022R 'Invalid mask type &ZVAL1' .TYPE=W
+'Must be FORMAT or USER.'
+
+PSYE022S 'Mask invalid' .TYPE=W
+'Mask ''&ZVAL1'' contains invalid character.'
+
+PSYE022T 'No pop-up window exists' .TYPE=W
+'REMPOP performed when no pop-up window exists at this level.'
+
+PSYE022U 'Invalid parameter on REMPOP' .TYPE=W
+'''&ZVAL1'' must be ALL or blank.'
+
+PSYE022V 'Invalid parameter on CONTROL' .TYPE=W
+'''&ZVAL1'' must be PASSTHRU.'
+
+PSYE022W 'No prior CONTROL DISPLAY SAVE' .TYPE=W
+'CONTROL DISPLAY RESTORE attempted before SAVE.'
+
+PSYE022X 'Invalid CONTROL &ZVAL1 parameter' .TYPE=W
+'&ZVAL2 is not a valid CONTROL &ZVAL1 parameter.'
+
+PSYE022Y 'Invalid CONTROL parameter' .TYPE=W
+'&ZVAL1 is not a valid CONTROL parameter.'
+
+PSYE023A 'Invalid ORDER parameter' .TYPE=W
+'&ZVAL2 is invalid on &ZVAL1.'
+
+PSYE023B 'Invalid number-of-rows parameter' .TYPE=W
+'&ZVAL2 is invalid for &ZVAL1.'
+
+PSYE023C 'Invalid &ZVAL1 name ''&ZVAL2''' .TYPE=W
+''
+
+PSYE023D 'Change field attributes invalid' .TYPE=W
+'No panel has yet been displayed to change field attributes.'
+
+PSYE023E 'Open failed' .TYPE=W
+'Open of &ZVAL1 keylist table failed.'
+
+PSYE023F 'Keylist &ZVAL1 not found' .TYPE=W
+'Keylist &ZVAL1 not found in keylist table &ZVAL2..'
+
+PSYE023G 'Message ''&ZVAL1'' not found' .TYPE=W
+''
+
+PSYE023H 'Error loading keylist' .TYPE=W
+'Error loading keylist.  See lspf log for details.'
+
+PSYE023I 'Invalid CURSOR field name' .TYPE=W
+'CURSOR field name ''&ZVAL1'' is not of a valid format.'
+
+PSYE023J 'Invalid AUTOSEL parameter ''&ZVAL1''' .TYPE=W
+'Must be YES, NO or blank.'
+
+PSYE023K 'Invalid parameters' .TYPE=W
+'Invalid combination of parameters on LIBDEF statement.'
+
+PSYE023L 'Directory invalid' .TYPE=W
+'Entry ''&ZVAL1'' is invalid, is not a directory or does not exist.'
+
+PSYE023M 'Invalid EDREC option' .TYPE=W
+'EDREC option ''&ZVAL1'' is invalid.'
+
+PSYE023N 'EDREC service error' .TYPE=W
+'EDREC &ZVAL1 issued but recovery is not pending.'
+
+PSYE023O 'EDREC service error' .TYPE=W
+'EDREC &ZVAL1 not allowed because recovery is pending.'
+
+PSYE023P 'Revovery failed' .TYPE=W
+'Cannot access backup file &ZVAL1..'
+
+PSYE023Q 'Invalid variable' .TYPE=W
+'Command stack variable name ''&ZVAL1'' is not of a valid format.'
+
+PSYE023R 'Invalid variable' .TYPE=W
+'Command stack return variable name ''&ZVAL1'' is not of a valid format.'
+
+PSYE023S 'MACRO parameter missing' .TYPE=W
+'The PARM parameter has been specified but no MACRO parameter found.'
+
+PSYE023T 'VCOPY failed' .TYPE=W
+'Variable &ZVAL1 has not been set or is invalid.'
+
+/*                                           */
+/* File tailoring messages                   */
+/*                                           */
+PSYE025A 'Invalid parameter' .TYPE=W
+'Parameter must be TEMP or blank.'
+
+PSYE025B 'Invalid parameter' .TYPE=W
+'Parameter must be NOFT or blank.'
+
+PSYE025C 'No output destination' .TYPE=W
+'No output destination specified and ISPFILE is null.'
+
+PSYE025D 'File in use' .TYPE=W
+'Output destination file is currently in use.  ENQ failure.'
+
+PSYE025E 'Invalid parameter' .TYPE=W
+'Parameter must be NOREPL or blank.'
+
+PSYE025F 'Missing parameter' .TYPE=W
+'NAME must also be entered if a library has been entered.'
+
+PSYE025G 'Invalid output' .TYPE=W
+'Output destination is neither a library nor a sequential file.'
+
+PSYE025H 'I/O Error' .TYPE=W
+'An error has occured opening the file &ZVAL1..'
+
+PSYE025I 'Spare' .TYPE=W
+'Spare.'
+
+PSYE025J 'Missing parameter' .TYPE=W
+'NAME is a mandatory parameter for FTERASE.'
+
+PSYE025K 'I/O Error' .TYPE=W
+'An I/O error has occured opening the skeleton file, &ZVAL1..'
+
+PSYE025L 'I/O Error' .TYPE=W
+'An I/O error has occured reading the skeleton file, &ZVAL1..'
+
+PSYE025M 'Error in )ENDREXX statement' .TYPE=W
+')ENDREXX statement found without matching )REXX statement, &ZVAL1..'
+
+PSYE025N 'Missing )ENDREXX statement' .TYPE=W
+')REXX statement found without matching )ENDREXX statement, &ZVAL1..'
+
+PSYE025O 'Not a single directory' .TYPE=W
+'Only a single directory entry is valid for this allocation or LIBDEF lib-type.'
+
+PSYE025P 'Not deleted' .TYPE=W
+'File delete failed.  REASON: &ZVAL1..'
+
+PSYE025Q 'Invalid specification' .TYPE=W
+'The NAME parameter cannot be specified when the output is a sequential file.'
+
+PSYE025R 'Invalid specification' .TYPE=W
+'Cannot specify STKADD with the LIBRARY keyword.'
+
+
+PSYE026A 'Invalid statement' .TYPE=W
+'&ZVAL1 is an invalid file tailoring control statement, &ZVAL2'
+
+PSYE026B 'Missing table name' .TYPE=W
+')DOT control statement requires a table name, &ZVAL1..'
+
+PSYE026C 'Invalid table name' .TYPE=W
+'Table name &ZVAL1 is of an invalid format, &ZVAL2..'
+
+PSYE026D 'Missing parameter' .TYPE=W
+'&ZVAL1 parameter missing, &ZVAL2..'
+
+PSYE026E 'Invalid parameter' .TYPE=W
+'&ZVAL1 is an invalid parameter for &ZVAL2, &ZVAL3'
+
+PSYE026F ')DOT level exceeded' .TYPE=W
+'Only 4 levels of nested )DOT statements are allowed, &ZVAL1'
+
+PSYE026G ')SEL level exceeded' .TYPE=W
+'Only 32 levels of nested )SEL statements are allowed, &ZVAL1'
+
+PSYE026H ')DO level exceeded' .TYPE=W
+'Only 255 levels of nested )DO statements are allowed, &ZVAL1'
+
+PSYE026I 'Function not implemented' .TYPE=W
+'Function has not yet been implemented, &ZVAL1'
+
+PSYE026J 'Recursion error' .TYPE=W
+'Table &ZVAL1 is currently being processed in an outer )DOT statement, &ZVAL2'
+
+PSYE026K 'Table not opened' .TYPE=W
+'Table &ZVAL1 cannot be opened and OPT has not been specified, &ZVAL2'
+
+PSYE026L 'Recursion error' .TYPE=W
+'Skeleton &ZVAL1 is currently being processed, &ZVAL2'
+
+PSYE026M 'Missing skeleton' .TYPE=W
+'Imbedded skeleton &ZVAL1 has not been found and OPT has not been specified, &ZVAL2'
+
+PSYE026N 'Missing &ZVAL1' .TYPE=W
+'&ZVAL2 found without a corresponding &ZVAL1 statement, &ZVAL3'
+
+PSYE026O 'Invalid boolean operator' .TYPE=W
+'Boolean operator must be &&&(AND) or |(OR), &ZVAL1'
+
+PSYE026P 'Invalid comparison operator' .TYPE=W
+'&ZVAL1 is not a valid comparison operator for the )SEL statement, &ZVAL2'
+
+PSYE026Q 'Invalid parameter' .TYPE=W
+'&ZVAL1 is an invalid )DEFAULT parameter.  Exactly 7 characters must be entered, &ZVAL2..'
+
+PSYE026R 'Invalid parameter' .TYPE=W
+'Tab position &ZVAL1 is invalid.  Enter a numeric value with optional A suffix, &ZVAL2..'
+
+PSYE026S 'Invalid tab position' .TYPE=W
+'Tab position must be less that, or equal to, 255, &ZVAL2..'
+
+PSYE026T 'Invalid parameter' .TYPE=W
+'Data ''&ZVAL1'' found on statement not recognised as a valid parameter, &ZVAL2..'
+
+PSYE026U 'Invalid variable name ''&ZVAL1''' .TYPE=W
+'Variable ''&ZVAL1'' has an invalid format, &ZVAL2..'
+
+PSYE026V 'Substitution error' .TYPE=W
+'Invalid conditional substitution string, &ZVAL1..'
+
+PSYE026W 'Invalid SCAN parameter' .TYPE=W
+'SCAN() has been specified without any search arguments, &ZVAL2..'
+
+PSYE026X 'Duplicate parameter' .TYPE=W
+'&ZVAL1 has been specified more than once, &ZVAL2..'
+
+PSYE026Y 'Table closed' .TYPE=W
+'SCAN specified without cond-pairs but table &ZVAL1 is closed, &ZVAL2..'
+
+PSYE026Z 'No TBSARG set' .TYPE=W
+'SCAN specified without cond-pairs but no TBSARG active for table &ZVAL1, &ZVAL2..'
+
+PSYE027A 'TBSARG failed' .TYPE=W
+'TBSARG gave RC=8.  Check variable values are set for SCAN for table &ZVAL1, &ZVAL2..'
+
+PSYE027B 'Missing parameter' .TYPE=W
+'Expected ''&ZVAL1'' after &ZVAL2, &ZVAL3..'
+
+PSYE027C 'Invalid comparison operator' .TYPE=W
+'''&ZVAL1'' is not a valid comparison operator for a &ZVAL2 statement, &ZVAL3..'
+
+PSYE027D 'Invalid value' .TYPE=W
+'Variable &ZVAL1 does not contain a numeric value (found ''&ZVAL2''), &ZVAL3..'
+
+PSYE027E 'Missing parameter' .TYPE=W
+'Missing mandatory parameters on &ZVAL1 statement, &ZVAL2..'
+
+/*                                           */
+/* Lexer/Interpreter messages                */
+/*                                           */
+PSYE028A 'Invalid token' .TYPE=W
+'Token ''&ZVAL1'' is not valid.'
+
+PSYE028B 'Invalid token type' .TYPE=W
+'Token type found is not valid.'
+

@@ -1,0 +1,33 @@
+<:-- ---------------------------------------------- -->
+<:-- Example application command table              -->
+<:-- Use option 3.8 to convert or run EXEC lspdtlc  -->
+<:-- ---------------------------------------------- -->
+
+<:doctype dm system>
+<cmdtbl applid=usra>
+
+  <cmd name=DMESG   altdescr="Show system log">DME<T>SG
+     <cmdact action="ALIAS SHELL dmesg">
+
+  <cmd name=TIME    altdescr="Show time">
+     <cmdact action="ALIAS EXEC time">
+
+  <cmd name=BOINC   altdescr="Run BOINC manager for distributed computing">BOI<T>NC
+     <cmdact action="SELECT PGM(PBOINC1) SCRNAME(BOINC)">
+
+  <cmd name=JOURNAL altdescr="Show journal">JOU<T>RNAL
+     <cmdact action="SELECT PGM(PCMD0A) PARM(journalctl &amp;ZPARM) NEWPOOL SCRNAME(JOURNAL)">
+
+  <cmd name=MAN     altdescr="Show man page">
+     <cmdact action="SELECT PGM(PCMD0A) PARM(man &amp;ZPARM) NEWPOOL SCRNAME(MAN)">
+
+  <cmd name=OUTLIST altdescr="Show journal">OUTL<T>IST
+     <cmdact action="SELECT PGM(PPSP01A) PARM(OUTLIST) NEWAPPL(ISR) PASSLIB SCRNAME(OUTLIST)">
+
+  <cmd name=SHELL   altdescr="Run shell">SH<T>ELL
+     <cmdact action="SELECT PGM(PCMD0A) PARM(&amp;ZPARM) NEWAPPL SCRNAME(SHELL) SUSPEND">
+
+  <cmd name=TSO     altdescr="Run command">
+     <cmdact action="SELECT CMD(&amp;ZPARM) SUSPEND">
+
+</cmdtbl>

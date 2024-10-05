@@ -1,0 +1,53 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+
+**************************************************************************
+**************************************************************************
+* Test popups                                                            *
+**************************************************************************
+**************************************************************************
+
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY WINDOW(&ZWIDTH,&ZDEPTH)
+PANELTITLE 'Test Popup Panels - POPUP 1'
+
+TEXT      4    2   FP  'Command ===> '
+FIELD     4   15  MAX   NEF     CAPS(ON),PAD(USER) ZCMD1
+
+AREA   5 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT      1   40    FP  'TIME: '
+FIELD     1   46   8    VOI   NONE  ZTIME
+
+TEXT      2   40    FP  'DATE: '
+FIELD     2   46    8    VOI   NONE  ZDATE
+
+TEXT      3   2     FP  'PATH . . . .'
+FIELD     3   15    MAX   NEF   CAPS(OFF),PAD(USER) ZPATH
+
+TEXT      4   2     FP  'NEXT FIELD .'
+FIELD     4   15    MAX   NEF   CAPS(OFF),PAD(USER) TFLD1
+
+)INIT
+&ZWINTTL = 'Test Panel For Popup Windows'
+)REINIT
+
+)PROC
+IF (&ZCMD1 NE &Z)
+   .CURSOR = ZCMD1
+   .MSG    = PSYS011C
+   EXIT
+
+)FIELD
+FIELD(ZPATH) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND DO1) NESTED')
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

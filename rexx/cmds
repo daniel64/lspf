@@ -17,11 +17,8 @@
 
 */
 
-/* Re-direct say ouput and error messages to the spool or it'll mess up lspf output */
-parse source . . src .
-Call setdest src
-
 /************************************************************************************/
+/*                                                                                  */
 /* Simple REXX to execute a bash command from the user and show the output on the   */
 /* screen in line mode.                                                             */
 /*                                                                                  */
@@ -30,33 +27,44 @@ Call setdest src
 /*                                                                                  */
 /* Command output and errors should be trapped, but if command messes up lspf       */
 /* screen, use REFRESH command to restore ( or Display pulldown -> Refresh Screen ) */
+/*                                                                                  */
 /************************************************************************************/
 
-address ISPEXEC
+tfile = systempfilename( "/tmp/rexx-cmds-????-????")
 
-tfile = systempfilename( "/tmp/" )
-Call RXQUEUE "Create" , "mystack"
+if rxqueue( "Exists", "cmds" ) then
+  do
+    x = rxqueue( "Delete", "cmds" )
+  end
+
+x = rxqueue( "Create", "cmds" )
+x = rxqueue( "Set", "cmds" )
+
+o = value( "RXQUEUE", "CMDS", "ENVIRONMENT" )
+
+ddname = "$"random( 0, 9999999 )
+
+address TSO "ALLOC FILE("ddname") PATH("tfile")"
 
 do forever
-   "RDISPLAY READY"
-   "PULL ans"
+   say "READY"
+   parse pull ans
    if ans = "" then iterate
    if wordpos( upper( ans ), "EXIT QUIT LEAVE END" ) > 0 then leave
-   address bash ans " </dev/null 2> "tfile" | rxqueue "
-   zfile = .stream~new( tfile )
-   zfile~open( "read" )
-   do while zfile~lines > 0
-      queue Zfile~linein
-   end
-   zfile~close
+   address bash ans " </dev/null 2> "tfile" | rxqueue" cmds
+   address TSO "EXECIO * DISKR "ddname" (FIFO FINIS"
    do i = 1 to queued()
       parse pull line
-      "RDISPLAY &LINE"
+      say line
    end
-   "RDISPLAY"
+   say
 end
 
-Call RXQUEUE "Delete", "mystack"
+address TSO "FREE FILE("ddname")"
+
+x = rxqueue( "Delete", "cmds" )
+x = value( "RXQUEUE", o, "ENVIRONMENT" )
+
 Call sysfiledelete( tfile )
 
 EXIT

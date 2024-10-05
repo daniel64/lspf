@@ -1,0 +1,78 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Entry panel for viewing and changing application command tables.
+)ENDCOMMENT
+
+)BODY WINDOW(MAX,12)
+PANELTITLE 'Command Entry'
+
+TEXT     2   2    FP 'Command ===> '
+FIELD    2  15    MAX NEF CAPS(ON),PAD(USER) ZCMD
+
+AREA   3 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1   2       FP 'Verb . . . . .'
+FIELD    1   17   8  NEF CAPS(ON),PAD(USER) ZATVERB
+TEXT     2   2       FP 'Trunc. . . . .'
+FIELD    2   17   1  NEF NUMERIC(ON),PAD(USER) ZATTRUNC
+TEXT     3   2       FP 'Action . . . .'
+FIELD    3   17  MAX-4 NEF PAD(USER) ZATACT
+FIELD    3   MAX-2 2   LI  NONE      ZACTIND
+TEXT     4   2       FP 'Description. .'
+FIELD    4   17  MAX-4 NEF PAD(USER) ZATDESC
+FIELD    4   MAX-2 2   LI  NONE      ZDESCIND
+
+TEXT    6  2  NT 'Enter'
+TEXT    6  8  PS 'End'
+TEXT    6  12 NT 'to update commands or'
+TEXT    6  34 PS 'Cancel'
+TEXT    6  41 NT 'to cancel update'
+
+)INIT
+&ZWINTTL = 'Command Table Utility'
+&ZCMD    = &Z
+
+IF (.CURSOR EQ &Z ) .CURSOR = ZCMD
+IF (.MSG NE &Z AND .CURSOR NE ZCMD) .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+)REINIT
+IF (.MSG NE &Z AND .CURSOR NE ZCMD) .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+)PROC
+IF (&ZCMD NE &Z,CANCEL,END)
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+
+IF (&ZCMD EQ ,CANCEL,END)
+   .RESP = END
+
+VER (&ZATVERB,NB)
+VER (&ZATVERB,NAME)
+
+IF (&ZATTRUNC EQ &Z) &ZATTRUNC = 0
+
+VGET ZVERB SHARED
+IF (&ZVERB EQ CANCEL)
+   &ZCMD = CANCEL
+ELSE
+   IF (.RESP EQ END AND &ZATVERB EQ &Z AND &ZATTRUNC EQ &Z AND &ZATACT EQ &Z)
+        &ZCMD = CANCEL
+   ELSE
+      IF (.MSG NE &Z AND &ZVERB NE CANCEL)
+         .RESP = ENTER
+
+)PNTS
+FIELD(ZPS01001) VAR(ZCMD) VAL(END)
+FIELD(ZPS01002) VAR(ZCMD) VAL(CANCEL)
+
+)FIELD
+FIELD(ZATACT)  LEN(240) IND(ZACTIND)
+FIELD(ZATDESC) LEN(80)  IND(ZDESCIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

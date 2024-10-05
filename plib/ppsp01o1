@@ -1,0 +1,61 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Held output display
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Spool Output'
+
+TEXT     4   2         FP    'Command ===>'
+FIELD    4  15  max-17 nef caps(on),pad(user) zcmd
+
+TEXT     4  MAX-15  FP 'Scroll ===>'
+FIELD    4  MAX-3  4 NEF  NONE ZSCROLL
+
+TEXT     6  2      CH    'S Job             Type      Task   Date      Time         Status     Lines'
+TEXT     7  2      CH    EXPAND '-'
+
+TBMODEL  8  MAX
+TBFIELD  2      1   NEF   PAD(USER),CAPS(ON) JSEL
+TBFIELD  ++1   15   VOI   NONE JNAME
+TBFIELD  ++1    8   VOI   NONE JTYPE
+TBFIELD  ++2    5   VOI   NONE JNUM
+TBFIELD  ++2    8   VOI   NONE JDATE
+TBFIELD  ++2   11   VOI   NONE JTIME
+TBFIELD  ++2    9   VOI   NONE JSTATUS
+TBFIELD  ++2    8   VOI   NONE JLINES
+
+)INIT
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+&ZUS6 = 1
+
+.ATTR(JNAME) = 'TYPE(OUTPUT) COLOUR(WHITE)'
+.ATTR(JTYPE) = 'TYPE(OUTPUT) COLOUR(GREEN)'
+
+)REINIT
+IF (.MSG EQ &Z)
+   &JSEL = &Z
+   REFRESH(JSEL)
+ELSE
+   IF (.CURSOR EQ 'JSEL' ) .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+)PROC
+IF (&ZCMD NE &Z)
+  .MSG    = PSYS011C
+  .CURSOR = ZCMD
+  EXIT
+
+IF (&JSTATUS EQ 'OUTPUT') VER (&JSEL,LIST,S,P)
+ELSE                      VER (&JSEL,LIST,S)
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

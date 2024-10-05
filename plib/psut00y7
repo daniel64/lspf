@@ -1,0 +1,60 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Execute command
+)ENDCOMMENT
+
+)BODY WINDOW(75,13)
+
+PANELTITLE 'Execute systemctl command'
+
+TEXT     2   2       FP  'Command ===>'
+FIELD    2  15   MAX NEF CAPS(ON),PAD(USER) ZCMD1
+
+AREA   3 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1 2 PIN  'Enter systemctl command parameters:'
+TEXT     2   2   FP      '==> '
+FIELD    2   6     MAX-3  NEF  NONE PARMS
+FIELD    2   MAX-2 2      LI   NONE PARMSIND
+
+TEXT     5 2  CH 'Instructions'
+TEXT     6 5  NT 'Press'
+TEXT     6 11 PS 'Enter'
+TEXT     6 17 NT 'to confirm command execution'
+
+TEXT     7 5  NT 'Enter'
+TEXT     7 11 PS 'Cancel'
+TEXT     7 18 NT 'or'
+TEXT     7 21 PS 'End'
+TEXT     7 25 NT 'to cancel command execution'
+
+)INIT
+.HELP    = LSPSD001
+&ZCMD1   = &Z
+&ZWINTTL = &Z
+.HIST    = PARMS
+.CURSOR  = PARMS
+
+)PROC
+IF (&ZCMD1 NE &Z,QUIT,CANCEL,END)
+   .MSG    = 'PSYS018'
+   .CURSOR = 'ZCMD1'
+   EXIT
+
+VER(&PARMS,NB)
+IF (&ZCMD1 EQ CANCEL,END) .RESP = END
+
+)FIELD
+FIELD(PARMS) LEN(256) IND(PARMSIND)
+
+)PNTS
+FIELD(ZPS01001) VAR(ZCMD1)  VAL(' ')
+FIELD(ZPS01002) VAR(ZCMD1)  VAL(CANCEL)
+FIELD(ZPS01003) VAR(ZCMD1)  VAL(END)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2024 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

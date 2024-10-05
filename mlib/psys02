@@ -1,0 +1,28 @@
+/*                                     */
+/* System message file for lspf        */
+/*                                     */
+
+PSYS021A '  End of field' .TYPE=N
+''
+
+PSYS021B 'Start of field' .TYPE=N
+''
+
+PSYS021C '' .TYPE=N
+'Keys help not defined for this panel.'
+
+PSYS021D '' .TYPE=N
+'Extended help not defined for this panel.'
+
+PSYS021E '' .TYPE=N
+'Keys help is already being displayed.'
+
+PSYS021F '' .TYPE=N
+'Extended help is already being displayed.'
+
+PSYS021G '' .TYPE=N
+'Help is already being displayed.'
+
+PSYS022A 'No prompt information' .TYPE=N
+''
+

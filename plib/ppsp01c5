@@ -1,0 +1,45 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Entry panel for viewing and changing application command tables.
+)ENDCOMMENT
+
+)BODY WINDOW(MAX,10)
+PANELTITLE 'Command Entry View'
+
+TEXT     2   2    FP 'Command ===> '
+FIELD    2  15    MAX NEF CAPS(ON),PAD(USER) ZCMD
+
+AREA   3 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1   2       FP 'Verb. . . . :'
+FIELD    1   16   8  VOI CAPS(ON),PAD(USER) ZCTVERB
+TEXT     2   2       FP 'Trunc . . . :'
+FIELD    2   16   1  VOI CAPS(ON),PAD(USER) ZCTTRUNC
+TEXT     3   2       FP 'Action. . . :'
+FIELD    3   16  MAX-4 VOI PAD(USER) ZCTACT
+FIELD    3   MAX-2 2   LI  NONE      ZACTIND
+TEXT     4   2       FP 'Description :'
+FIELD    4   16  MAX-4 VOI PAD(USER) ZCTDESC
+FIELD    4   MAX-2 2   LI  NONE      ZDESCIND
+
+)INIT
+&ZWINTTL = 'Command Table Utility'
+
+.CURSOR = ZCMD
+
+)PROC
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+
+)FIELD
+FIELD(ZCTACT)  LEN(240) IND(ZACTIND)
+FIELD(ZCTDESC) LEN(80)  IND(ZDESCIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

@@ -1,0 +1,14 @@
+)COMMENT
+ Common help pull down choices
+)ENDCOMMENT
+
+)ABC DESC(Help) MNEM(1)
+
+PDC DESC('Edit') ACTION RUN(TUTOR) PARM('ISR20000')
+PDC DESC('Tutorial') ACTION RUN(TUTOR) PARM('LSPH0001')
+
+)ABCINIT
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

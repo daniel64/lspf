@@ -26,20 +26,20 @@ address ISPEXEC
 
 if RC = 12 then
   do
-    "RDISPLAY Message &msg Not Found"
+    say "Message" msg "Not Found"
     exit
   end
 else if RC > 0 then
   do
-    "RDISPLAY Error in message &msg or message file"
+    say "Error in message "msg" or message file"
     exit
   end
 
-"RDISPLAY SMSG. . .: &A"
-"RDISPLAY LMSG. . .: &B"
-"RDISPLAY TYPE. . .: &C"
-"RDISPLAY ALRM. . .: &D"
-"RDISPLAY HELP. . .: &E"
-"RDISPLAY WINDOW. .: &F"
+say "SMSG. . .:" A
+say "LMSG. . .:" B
+say "TYPE. . .:" C
+say "ALRM. . .:" D
+say "HELP. . .:" E
+say "WINDOW. .:" F
 
 exit

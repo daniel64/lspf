@@ -65,18 +65,18 @@ RETURN
 
 ListDates:
 address ISPEXEC
-"RDISPLAY Date "date" has the following valid date types:"
-"RDISPLAY" strip(List)
-"RDISPLAY"
+say "Date "date" has the following valid date types:"
+say strip(List)
+say
 do i = 1 to words(List)
    Type2 = word(List,i)
    Call DisplayOffset
    do j = 1 to words(f1List)
       Type1 = word(f1List,j)
       if Type1 = Type2 then iterate
-      "RDISPLAY" lit.Type1 date(Type1,date,Type2)
+      say lit.Type1 date(Type1,date,Type2)
    end
-   "RDISPLAY"
+   say
 end
 RETURN
 
@@ -92,6 +92,6 @@ select
   otherwise             lit = Offset "days time"
 end
 parse var lit.Type2 Type "." .
-"RDISPLAY For date type '"Type2"' ("strip(Type)") ("lit")"
-"RDISPLAY"
+say "For date type '"Type2"' ("strip(Type)") ("lit")"
+say
 RETURN

@@ -1,0 +1,75 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel to display/refresh loaded modules
+)ENDCOMMENT
+
+)ATTR
+$ TYPE(OUTPUT) COLOUR(BLUE)  CAPS(OFF)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Display/Reload Application Modules (Dynamically Loaded Classes)'
+
+TEXT     4   2          FP    'Command ===>'
+FIELD    4  15  MAX-17  NEF CAPS(ON),PAD(USER) ZCMD
+
+TEXT     4  MAX-15   FP   'Scroll ===>'
+FIELD    4  MAX-3  4 NEF  NONE ZSCROLL
+
+TEXT     6 2 CH 'S Application Status           Module               Loaded From Path'
+
+TEXT     7 2 CH '---------------------------------------------------'
+FIELD    7 54 MAX  ATTR($) MODPSIND
+
+TBMODEL  8   MAX ROWS(SCAN)
+TBFIELD  2    1    NEF CAPS(ON),PAD(USER) SEL
+TBFIELD  ++1  8    VOI NONE APPL
+TBFIELD  ++4  16   VOI NONE STATUS
+TBFIELD  ++1  20   VOI NONE MOD
+TBFIELD  ++1  MAX  VOI NONE MODPATH
+
+)INIT
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+.ATTR(STATUS)  = 'TYPE(OUTPUT) COLOUR(WHITE)'
+.ATTR(MOD)     = 'TYPE(OUTPUT) COLOUR(YELLOW)'
+.ATTR(MODPATH) = 'TYPE(OUTPUT) COLOUR(GREEN)'
+
+)REINIT
+IF (.MSG EQ &Z)
+   &SEL = &Z
+   REFRESH(SEL)
+ELSE
+   IF (.CURSOR EQ 'SEL' ) .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+)PROC
+&CMD1 = TRUNC(&ZCMD,' ')
+IF (&CMD1 EQ 'O')
+   &MODACT  = 'FILTER'
+   &MODREST = .TRAIL
+   EXIT
+
+IF (&ZCMD EQ 'RES','RESET')
+   &MODACT = 'RESET'
+   EXIT
+
+IF (&CMD1 NE SORT,&Z)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
+VER (&SEL LIST,R)
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+
+)FIELD
+FIELD(MODPATH) LEN(4095) SIND(MODPSIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

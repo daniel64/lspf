@@ -1,5 +1,5 @@
 /* Compile with ::                                                                         */
-/* g++ -rdynamic -std=c++11 -lboost_filesystem -lboost_system -lpthread -o setup setup.cpp */
+/* g++ -rdynamic -std=c++11 -o setup -lboost_filesystem -lboost_system -lpthread setup.cpp */
 
 /*
   Copyright (c) 2015 Daniel John Erdos
@@ -20,15 +20,23 @@
 
 */
 
+/********************************************************************************/
+/*                                                                              */
 /* Amend and run to create initial ISPCMDS and USRCMDS command tables           */
 /* and ISPSPROF default profile.  Values taken from lspf.h                      */
 /*                                                                              */
 /* *NOTE* Any changes to ISPSPROF done online, will be lost                     */
 /*                                                                              */
 /* USRCMDS is the default user command table 1 (ZUCMDT1)                        */
-/* This can be changed in option 0.0, General lspf Settings                     */
+/* This can be changed in option 0.0, General lspf Settings.                    */
 /*                                                                              */
-/* Create function pool, pool manager and table manager                         */
+/* Create function pool, pool manager and table manager instances.              */
+/*                                                                              */
+/* *NOTE*                                                                       */
+/* Resolve any warnings issued.  lspf may not start if important files or       */
+/* directories are missing.                                                     */
+/*                                                                              */
+/********************************************************************************/
 
 #include <iostream>
 #include <iomanip>
@@ -38,7 +46,6 @@
 #include <fstream>
 #include <time.h>
 #include <vector>
-#include <dlfcn.h>
 #include <sys/utsname.h>
 
 #include <locale>
@@ -70,16 +77,26 @@ using namespace boost::filesystem ;
 poolMGR*  p_poolMGR  = new poolMGR  ;
 tableMGR* p_tableMGR = new tableMGR ;
 
-fPOOL funcPOOL ;
+fPOOL* funcPOOL = new fPOOL ;
 
 logger* lg = new logger ;
 
-logger* tableMGR::lg = NULL ;
-logger* poolMGR::lg  = NULL ;
+logger* tableMGR::lg = nullptr ;
+logger* poolMGR::lg  = nullptr ;
+
+uint   pVPOOL::pfkgToken = 0 ;
+uint   Table::pflgToken  = 1 ;
+
+string getEnvironmentVariable( const char* ) ;
 
 void   createSYSPROF() ;
-void   setCUAcolours( const string&, const string& ) ;
-string subHomePath( string, bool =false ) ;
+
+void   setCUAcolours( const string&,
+		      const string& ) ;
+
+string subHomePath( string,
+		    bool = false ) ;
+
 string getHOME() ;
 
 int main()
@@ -90,6 +107,7 @@ int main()
 	poolMGR::lg  = lg ;
 
 	string homePath ;
+	string logname ;
 
 	lg->open( subHomePath( ALOG ) ) ;
 
@@ -99,350 +117,477 @@ int main()
 	if ( !exists( homePath ) || !is_directory( homePath ) )
 	{
 		cout << endl ;
-		cout << "ERROR: ZUPROF path " << homePath << " does not exist." << endl ;
+		cout << "ERROR: ZUPROF path " << homePath << " does not exist or is not a directory." << endl ;
 		cout << "       Please create before re-running setup." << endl ;
 		return 0 ;
 	}
 
-	string ZCTVERB, ZCTACT, ZCTDESC, ZCTTRUNC ;
+	if ( MXTAB_SZ > 16777215 )
+	{
+		cout << endl ;
+		cout << "ERROR: MXTAB_SZ has been exceeded.  Maximum value is 16,777,215 and coded value is " << MXTAB_SZ << endl ;
+		cout << "       Please change in lspf.h before re-running setup." << endl ;
+		return 0 ;
+	}
 
-	funcPOOL.define( err, "ZCTVERB",  &ZCTVERB  ) ;
-	funcPOOL.define( err, "ZCTTRUNC", &ZCTTRUNC ) ;
-	funcPOOL.define( err, "ZCTACT",   &ZCTACT   ) ;
-	funcPOOL.define( err, "ZCTDESC",  &ZCTDESC  ) ;
+	logname = getEnvironmentVariable( "LOGNAME" ) ;
+	if ( logname == "" )
+	{
+		cout << endl ;
+		cout << "ERROR: LOGNAME variable is required and must be set" << endl ;
+		return 0 ;
+	}
 
-	p_tableMGR->tbcreate( err, "ISPCMDS", "ZCTVERB" , "ZCTTRUNC ZCTACT ZCTDESC", NOREPLACE, WRITE, "", SHARE ) ;
-	p_tableMGR->tbcreate( err, "USRCMDS", "ZCTVERB" , "ZCTTRUNC ZCTACT ZCTDESC", NOREPLACE, WRITE, "", SHARE ) ;
+	err.user = logname ;
 
-	ZCTVERB  = "SCRNAME" ;
-	ZCTTRUNC = "0"    ;
-	ZCTACT   = "SCRNAME" ;
-	ZCTDESC  = "Set screen name for session" ;
+	string zctverb ;
+	string zctact ;
+	string zctdesc ;
+	string zcttrunc ;
+
+	funcPOOL->define( err, "ZCTVERB",  &zctverb  ) ;
+	funcPOOL->define( err, "ZCTTRUNC", &zcttrunc ) ;
+	funcPOOL->define( err, "ZCTACT",   &zctact   ) ;
+	funcPOOL->define( err, "ZCTDESC",  &zctdesc  ) ;
+
+	p_tableMGR->tbcreate( err,
+			      "ISPCMDS",
+			      "",
+			      "ZCTVERB ZCTTRUNC ZCTACT ZCTDESC",
+			      WRITE,
+			      NOREPLACE,
+			      "",
+			      SHARE ) ;
+
+	p_tableMGR->tbcreate( err,
+			      "USRCMDS",
+			      "",
+			      "ZCTVERB ZCTTRUNC ZCTACT ZCTDESC",
+			      WRITE,
+			      NOREPLACE,
+			      "",
+			      SHARE ) ;
+
+	zctverb  = "SCRNAME" ;
+	zcttrunc = "0"    ;
+	zctact   = "SCRNAME" ;
+	zctdesc  = "Set screen name for session" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "ACTIONS" ;
-	ZCTTRUNC = "0"    ;
-	ZCTACT   = "ACTIONS" ;
-	ZCTDESC  = "Switch to first or next action bar choice" ;
+	zctverb  = "BACKWARD" ;
+	zcttrunc = "0"    ;
+	zctact   = "ALIAS UP" ;
+	zctdesc  = "Up" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "SWAP" ;
-	ZCTTRUNC = "0"    ;
-	ZCTACT   = "SWAP" ;
-	ZCTDESC  = "Swap logical screens" ;
+	zctverb  = "FORWARD" ;
+	zcttrunc = "0"    ;
+	zctact   = "ALIAS DOWN" ;
+	zctdesc  = "Down" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "SPLIT" ;
-	ZCTTRUNC = "0"     ;
-	ZCTACT   = "SPLIT" ;
-	ZCTDESC  = "Split screen" ;
+	zctverb  = "ACTIONS" ;
+	zcttrunc = "0"    ;
+	zctact   = "ACTIONS" ;
+	zctdesc  = "Switch to first or next action bar choice" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "RETRIEVE" ;
-	ZCTTRUNC = "0"        ;
-	ZCTACT   = "RETRIEVE" ;
-	ZCTDESC  = "Retrieve command" ;
+	zctverb  = "CURSOR" ;
+	zcttrunc = "0"    ;
+	zctact   = "CURSOR" ;
+	zctdesc  = "Move the cursor to the first input field" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "RETF" ;
-	ZCTTRUNC = "0"    ;
-	ZCTACT   = "RETF" ;
-	ZCTDESC  = "Forward retrieve command" ;
+	zctverb  = "SWAP" ;
+	zcttrunc = "0"    ;
+	zctact   = "SWAP" ;
+	zctdesc  = "Swap logical screens" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "RETURN"  ;
-	ZCTTRUNC = "0"       ;
-	ZCTACT   = "SETVERB" ;
-	ZCTDESC  = "" ;
+	zctverb  = "SPLIT" ;
+	zcttrunc = "0"     ;
+	zctact   = "SPLIT" ;
+	zctdesc  = "Split screen" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "RFIND" ;
-	ZCTTRUNC = "0"     ;
-	ZCTACT   = "SETVERB" ;
-	ZCTDESC  = "" ;
+	zctverb  = "RETRIEVE" ;
+	zcttrunc = "0"        ;
+	zctact   = "RETRIEVE" ;
+	zctdesc  = "Retrieve command" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "RCHANGE" ;
-	ZCTTRUNC = "0"       ;
-	ZCTACT   = "SETVERB" ;
-	ZCTDESC  = "" ;
+	zctverb  = "CRETRIEV" ;
+	zcttrunc = "0"        ;
+	zctact   = "CRETRIEV" ;
+	zctdesc  = "Conditional retrieve command" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "END"    ;
-	ZCTTRUNC = "0"      ;
-	ZCTACT   = "SETVERB" ;
-	ZCTDESC  = "" ;
+	zctverb  = "RETF" ;
+	zcttrunc = "0"    ;
+	zctact   = "RETF" ;
+	zctdesc  = "Forward retrieve command" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "HELP" ;
-	ZCTTRUNC = "0"    ;
-	ZCTACT   = "SELECT PGM(&ZHELPPGM) PARM(&ZPARM) SCRNAME(HELP) SUSPEND"  ;
-	ZCTDESC  = "" ;
+	zctverb  = "RETURN"  ;
+	zcttrunc = "0"       ;
+	zctact   = "SETVERB" ;
+	zctdesc  = "" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "TUTOR" ;
-	ZCTTRUNC = "0"    ;
-	ZCTACT   = "SELECT PGM(&ZHELPPGM) PARM('HPSPF01') SCRNAME(TUTOR) SUSPEND"  ;
-	ZCTDESC  = "" ;
+	zctverb  = "RFIND" ;
+	zcttrunc = "0"     ;
+	zctact   = "SETVERB" ;
+	zctdesc  = "" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "UP"    ;
-	ZCTTRUNC = "0"     ;
-	ZCTACT   = "SETVERB" ;
-	ZCTDESC  = "" ;
+	zctverb  = "RCHANGE" ;
+	zcttrunc = "0"       ;
+	zctact   = "SETVERB" ;
+	zctdesc  = "" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "DOWN"  ;
-	ZCTTRUNC = "0"     ;
-	ZCTACT   = "SETVERB" ;
-	ZCTDESC  = "" ;
+	zctverb  = "END"    ;
+	zcttrunc = "0"      ;
+	zctact   = "SETVERB" ;
+	zctdesc  = "" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "LEFT"  ;
-	ZCTTRUNC = "0"     ;
-	ZCTACT   = "SETVERB" ;
-	ZCTDESC  = "" ;
+	zctverb  = "HELP" ;
+	zcttrunc = "0"    ;
+	zctact   = "SELECT PGM(&ZHELPPGM) PARM(&ZPARM) NOFUNC SCRNAME(HELP)"  ;
+	zctdesc  = "Display help" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "TOP"   ;
-	ZCTTRUNC = "0"     ;
-	ZCTACT   = "ALIAS UP MAX" ;
-	ZCTDESC  = "" ;
+	zctverb  = "EXHELP" ;
+	zcttrunc = "0"    ;
+	zctact   = "SELECT PGM(&ZHELPPGM) PARM(&ZPARM) NOFUNC SCRNAME(HELP)"  ;
+	zctdesc  = "Display extended help" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "BOTTOM" ;
-	ZCTTRUNC = "3"      ;
-	ZCTACT   = "ALIAS DOWN MAX" ;
-	ZCTDESC  = "" ;
+	zctverb  = "KEYSHELP" ;
+	zcttrunc = "0"    ;
+	zctact   = "SELECT PGM(&ZHELPPGM) PARM(&ZPARM) NOFUNC SCRNAME(HELP)"  ;
+	zctdesc  = "Dispay keylist help" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "RIGHT" ;
-	ZCTTRUNC = "0"     ;
-	ZCTACT   = "SETVERB" ;
-	ZCTDESC  = "" ;
+	zctverb  = "TUTOR" ;
+	zcttrunc = "0"    ;
+	zctact   = "SELECT PGM(&ZHELPPGM) PARM(&ZPARM) SCRNAME(TUTOR)"  ;
+	zctdesc  = "" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "LEFT"  ;
-	ZCTTRUNC = "0"     ;
-	ZCTACT   = "SETVERB" ;
-	ZCTDESC  = "" ;
+	zctverb  = "UP"    ;
+	zcttrunc = "0"     ;
+	zctact   = "SETVERB" ;
+	zctdesc  = "" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "ALOG" ;
-	ZCTTRUNC = "3"  ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(AL) SCRNAME(LOG) SUSPEND" ;
-	ZCTDESC  = "Browse application log" ;
+	zctverb  = "DOWN"  ;
+	zcttrunc = "0"     ;
+	zctact   = "SETVERB" ;
+	zctdesc  = "" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "LOG" ;
-	ZCTTRUNC = "3"   ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(SL) SCRNAME(LOG) SUSPEND" ;
-	ZCTDESC  = "Browse lspf log" ;
+	zctverb  = "LEFT"  ;
+	zcttrunc = "0"     ;
+	zctact   = "SETVERB" ;
+	zctdesc  = "" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "KEYLIST"  ;
-	ZCTTRUNC = "0"        ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(KLIST) SCRNAME(KEYLIST) SUSPEND" ;
-	ZCTDESC  = "Keylist utility"  ;
+	zctverb  = "TOP"   ;
+	zcttrunc = "0"     ;
+	zctact   = "ALIAS UP MAX" ;
+	zctdesc  = "" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "KEYLISTS" ;
-	ZCTTRUNC = "0"        ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(KLISTS) SCRNAME(KEYLIST) SUSPEND" ;
-	ZCTDESC  = "Keylist utility"  ;
+	zctverb  = "BOTTOM" ;
+	zcttrunc = "3"      ;
+	zctact   = "ALIAS DOWN MAX" ;
+	zctdesc  = "" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "DSLIST" ;
-	ZCTTRUNC = "0"      ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(DSL &ZPARM) NEWAPPL(ISR) SCRNAME(DSLIST) SUSPEND" ;
-	ZCTDESC  = "File list utility"  ;
+	zctverb  = "RIGHT" ;
+	zcttrunc = "0"     ;
+	zctact   = "SETVERB" ;
+	zctdesc  = "" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "KEYS" ;
-	ZCTTRUNC = "0"    ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(KEYS) NEWPOOL SCRNAME(KEYS) SUSPEND" ;
-	ZCTDESC  = "PFkey utility" ;
+	zctverb  = "ALOG" ;
+	zcttrunc = "3"  ;
+	zctact   = "SELECT PGM(PPSP01A) PARM(AL) SCRNAME(LOG) SUSPEND" ;
+	zctdesc  = "Browse application log" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "CTRL" ;
-	ZCTTRUNC = "0"    ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(CTLKEYS) NEWPOOL SCRNAME(CTLKEYS) SUSPEND" ;
-	ZCTDESC  = "Control key utility" ;
+	zctverb  = "LOG" ;
+	zcttrunc = "3"   ;
+	zctact   = "SELECT PGM(PPSP01A) PARM(SL) SCRNAME(LOG) SUSPEND" ;
+	zctdesc  = "Browse lspf log" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "NOP" ;
-	ZCTTRUNC = "0"    ;
-	ZCTACT   = "NOP" ;
-	ZCTDESC  = "No process" ;
+	zctverb  = "KEYLIST"  ;
+	zcttrunc = "0"        ;
+	zctact   = "SELECT PGM(PPSP01A) PARM(KLIST &ZPARM) SCRNAME(KEYLIST) SUSPEND" ;
+	zctdesc  = "Keylist utility"  ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "ISPLIBD" ;
-	ZCTTRUNC = "0"        ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(LIBDEFS) NEWPOOL SCRNAME(LIBDUTL) SUSPEND" ;
-	ZCTDESC  = "Display LIBDEF status" ;
+	zctverb  = "KEYLISTS" ;
+	zcttrunc = "0"        ;
+	zctact   = "SELECT PGM(PPSP01A) PARM(KLISTS) SCRNAME(KEYLIST) SUSPEND" ;
+	zctdesc  = "Keylist utility"  ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "RECENT" ;
-	ZCTTRUNC = "0"      ;
-	ZCTACT   = "ALIAS DSLIST REFLIST" ;
-	ZCTDESC  = "Recent file list utility"  ;
+	zctverb  = "DSLIST" ;
+	zcttrunc = "0"      ;
+	zctact   = "SELECT PGM(PPSP01A) PARM(DSL &ZPARM) NEWAPPL(ISR) SCRNAME(DSLIST) SUSPEND" ;
+	zctdesc  = "File list utility"  ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "RUN" ;
-	ZCTTRUNC = "2"    ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(RUN &ZPARM) NEWPOOL SUSPEND" ;
-	ZCTDESC  = "Run an application by name" ;
+	zctverb  = "DXLIST" ;
+	zcttrunc = "0"      ;
+	zctact   = "SELECT PGM(PPSP01A) PARM(DSX &ZPARM) NEWAPPL(ISR) SCRNAME(DXLIST) SUSPEND" ;
+	zctdesc  = "File list utility"  ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "RETP" ;
-	ZCTTRUNC = "0"    ;
-	ZCTACT   = "RETP" ;
-	ZCTDESC  = "List retrieve buffer" ;
+	zctverb  = "KEYS" ;
+	zcttrunc = "0"    ;
+	zctact   = "SELECT PGM(PPSP01A) PARM(KEYS) SCRNAME(KEYS) SUSPEND" ;
+	zctdesc  = "PFkey utility" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "SETTINGS"  ;
-	ZCTTRUNC = "3"         ;
-	ZCTACT   = "SELECT PANEL(PPSET0A) SCRNAME(SETTINGS) SUSPEND" ;
-	ZCTDESC  = "Settings selection menu"  ;
+	zctverb  = "ZKEYS" ;
+	zcttrunc = "0"    ;
+	zctact   = "ALIAS KEYS" ;
+	zctdesc  = "PFkey utility" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	zctverb  = "KEYL" ;
+	zcttrunc = "0"    ;
+	zctact   = "SELECT PGM(PPSP01A) PARM(KEYL) SCRNAME(KEYLIST) SUSPEND" ;
+	zctdesc  = "Keylist change utility" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	zctverb  = "CTRL" ;
+	zcttrunc = "0"    ;
+	zctact   = "SELECT PGM(PPSP01A) PARM(CTLKEYS) SCRNAME(CTLKEYS) SUSPEND" ;
+	zctdesc  = "Control key utility" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	zctverb  = "NOP" ;
+	zcttrunc = "0"    ;
+	zctact   = "NOP" ;
+	zctdesc  = "No operation" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	zctverb  = "ISPLIBD" ;
+	zcttrunc = "0"        ;
+	zctact   = "SELECT PGM(PPSP01A) PARM(LIBDEFS &ZPARM) SCRNAME(LIBDUTL) SUSPEND" ;
+	zctdesc  = "Display LIBDEF status" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	zctverb  = "RECENT" ;
+	zcttrunc = "0"      ;
+	zctact   = "ALIAS DSLIST REFLIST" ;
+	zctdesc  = "Recent file list utility"  ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	zctverb  = "PFSHOW" ;
+	zcttrunc = "0"      ;
+	zctact   = "SELECT PGM(PPSP01A) PARM(PFK &ZPARM) SCRNAME(PFSHOW) SUSPEND" ;
+	zctdesc  = "Mange function key display area"  ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	zctverb  = "RUN" ;
+	zcttrunc = "2"    ;
+	zctact   = "SELECT PGM(PPSP01A) PARM(RUN &ZPARM) NEWPOOL SUSPEND" ;
+	zctdesc  = "Run an application by name" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	zctverb  = "RETK" ;
+	zcttrunc = "0"    ;
+	zctact   = "RETK" ;
+	zctdesc  = "List keep buffer" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	zctverb  = "RETP" ;
+	zcttrunc = "0"    ;
+	zctact   = "RETP" ;
+	zctdesc  = "List retrieve buffer" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	zctverb  = "SETTINGS"  ;
+	zcttrunc = "0"         ;
+	zctact   = "SELECT PANEL(PPSET0A) SCRNAME(SETTINGS) SUSPEND" ;
+	zctdesc  = "Settings selection menu"  ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 )  ;
 
-	ZCTVERB  = "START"    ;
-	ZCTTRUNC = "0"        ;
-	ZCTACT   = "SELECT PGM(ISPSTRT) PARM(&ZPARM)" ;
-	ZCTDESC  = "Start a program in a new logical screen" ;
+	zctverb  = "START"    ;
+	zcttrunc = "0"        ;
+	zctact   = "SELECT PGM(ISPSTRT) PARM(&ZPARM)" ;
+	zctdesc  = "Start a program in a new logical screen" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "REFACTF" ;
-	ZCTTRUNC = "5"       ;
-	ZCTACT   = "SELECT PGM(&ZRFLPGM) PARM(PL1 &ZPARM) SCRNAME(REFACT) SUSPEND" ;
-	ZCTDESC  = "Open active referral list" ;
+	zctverb  = "REFACTF" ;
+	zcttrunc = "5"       ;
+	zctact   = "SELECT PGM(&ZRFLPGM) PARM(PL1 &ZPARM) SCRNAME(REFACT) SUSPEND" ;
+	zctdesc  = "Open active referral list" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "REFADDF" ;
-	ZCTTRUNC = "5"       ;
-	ZCTACT   = "SELECT PGM(&ZRFLPGM) PARM(PLA &ZPARM) SUSPEND" ;
-	ZCTDESC  = "Add file to reference list" ;
+	zctverb  = "REFADDF" ;
+	zcttrunc = "5"       ;
+	zctact   = "SELECT PGM(&ZRFLPGM) PARM(PLA &ZPARM) SUSPEND" ;
+	zctdesc  = "Add file to reference list" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "REFLISTF" ;
-	ZCTTRUNC = "4"        ;
-	ZCTACT   = "SELECT PGM(&ZRFLPGM) PARM(PL1 REFLIST &ZPARM) SCRNAME(REFLIST) SUSPEND" ;
-	ZCTDESC  = "Open reference list" ;
+	zctverb  = "REFLISTF" ;
+	zcttrunc = "4"        ;
+	zctact   = "SELECT PGM(&ZRFLPGM) PARM(PL1 REFLIST &ZPARM) SCRNAME(REFLIST) SUSPEND" ;
+	zctdesc  = "Open reference list" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "REFOPENF" ;
-	ZCTTRUNC = "4"        ;
-	ZCTACT   = "SELECT PGM(&ZRFLPGM) PARM(PL2) SCRNAME(REFOPEN) SUSPEND"  ;
-	ZCTDESC  = "Open file referral lists" ;
+	zctverb  = "REFOPENF" ;
+	zcttrunc = "4"        ;
+	zctact   = "SELECT PGM(&ZRFLPGM) PARM(PL2) SCRNAME(REFOPEN) SUSPEND"  ;
+	zctdesc  = "Open file referral lists" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "NRETRIEV" ;
-	ZCTTRUNC = "0"        ;
-	ZCTACT   = "SETVERB"  ;
-	ZCTDESC  = "Retrieve next entry from active referral list" ;
+	zctverb  = "NRETRIEV" ;
+	zcttrunc = "0"        ;
+	zctact   = "SETVERB"  ;
+	zctdesc  = "Retrieve next entry from active referral list" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "CANCEL" ;
-	ZCTTRUNC = "3"      ;
-	ZCTACT   = "CANCEL" ;
-	ZCTDESC  = "Cancel" ;
+	zctverb  = "CANCEL" ;
+	zcttrunc = "3"      ;
+	zctact   = "CANCEL" ;
+	zctdesc  = "Cancel" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "EXIT" ;
-	ZCTTRUNC = "0"    ;
-	ZCTACT   = "EXIT" ;
-	ZCTDESC  = "Exit" ;
+	zctverb  = "EXIT" ;
+	zcttrunc = "0"    ;
+	zctact   = "EXIT" ;
+	zctdesc  = "Exit" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "USERID" ;
-	ZCTTRUNC = "0"      ;
-	ZCTACT   = "USERID" ;
-	ZCTDESC  = "Userid" ;
+	zctverb  = "USERID" ;
+	zcttrunc = "0"      ;
+	zctact   = "USERID" ;
+	zctdesc  = "Userid" ;
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "CMDE" ;
-	ZCTTRUNC = "0" ;
-	ZCTACT   = "SELECT PGM(PCMD0A) PARM(PANEL(PCMD0E)) SUSPEND" ;
-	ZCTDESC  = "Shell" ;
+	zctverb  = "CMDE" ;
+	zcttrunc = "0" ;
+	zctact   = "SELECT PGM(PCMD0A) PARM(PANEL(PCMD0E)) SUSPEND" ;
+	zctdesc  = "Shell" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	zctverb  = "WINDOW" ;
+	zcttrunc = "0" ;
+	zctact   = "WINDOW" ;
+	zctdesc  = "Move window to cursor position" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	zctverb  = "FKA" ;
+	zcttrunc = "0" ;
+	zctact   = "SELECT PGM(PPSP01A) PARM(FKA &ZPARM) SUSPEND" ;
+	zctdesc  = "Control pfkey display area" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	zctverb  = "ZCLRSFLD" ;
+	zcttrunc = "0" ;
+	zctact   = "SETVERB" ;
+	zctdesc  = "Clear scrollable field" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	zctverb  = "ZEXPAND" ;
+	zcttrunc = "0" ;
+	zctact   = "SETVERB" ;
+	zctdesc  = "Expand scrollable field" ;
+	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
+
+	zctverb  = "ZHISTORY" ;
+	zcttrunc = "0" ;
+	zctact   = "SETVERB" ;
+	zctdesc  = "List field history" ;
+
 	p_tableMGR->tbadd( err, funcPOOL, "ISPCMDS", "", "", 0 ) ;
 
 	// ========================= USRCMDS ======================================
-	ZCTVERB  = "ED" ;
-	ZCTTRUNC = "0" ;
-	ZCTACT   = "SELECT PGM(PPSP01A) NEWAPPL(ISR) PARM(EDITEE &ZPARM) SCRNAME(EDIT) SUSPEND" ;
-	ZCTDESC  = "Invoke EDIT Entry panel" ;
+	zctverb  = "ED" ;
+	zcttrunc = "0" ;
+	zctact   = "SELECT PGM(PPSP01A) NEWAPPL(ISR) PARM(EDITEE &ZPARM) SCRNAME(EDIT) SUSPEND" ;
+	zctdesc  = "Invoke EDIT Entry panel" ;
 	p_tableMGR->tbadd( err, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "BR" ;
-	ZCTTRUNC = "0" ;
-	ZCTACT   = "SELECT PGM(PPSP01A) NEWAPPL(ISR) PARM(BROWSEE &ZPARM) SCRNAME(VIEW) SUSPEND" ;
-	ZCTDESC  = "Invoke browse" ;
+	zctverb  = "BR" ;
+	zcttrunc = "0" ;
+	zctact   = "SELECT PGM(PPSP01A) NEWAPPL(ISR) PARM(BROWSEE &ZPARM) SCRNAME(VIEW) SUSPEND" ;
+	zctdesc  = "Invoke browse" ;
 	p_tableMGR->tbadd( err, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "DIR" ;
-	ZCTTRUNC = "0" ;
-	ZCTACT   = "SELECT PGM(&ZFLSTPGM) NEWAPPL(ISP) PARM(&ZPARM) SCRNAME(FILES) SUSPEND" ;
-	ZCTDESC  = "Show files/directories" ;
+	zctverb  = "DDLIST" ;
+	zcttrunc = "0" ;
+	zctact   = "SELECT CMD(%ddlist) NEWAPPL(ISR) SCRNAME(DDLIST) SUSPEND" ;
+	zctdesc  = "Show allocations" ;
 	p_tableMGR->tbadd( err, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "LS" ;
-	ZCTTRUNC = "0" ;
-	ZCTACT   = "ALIAS DIR" ;
-	ZCTDESC  = "Show files/directories" ;
+	zctverb  = "DIR" ;
+	zcttrunc = "0" ;
+	zctact   = "SELECT PGM(&ZFLSTPGM) NEWAPPL(ISR) PARM(&ZPARM) SCRNAME(FILES) SUSPEND" ;
+	zctdesc  = "Show files/directories" ;
 	p_tableMGR->tbadd( err, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "CMDS" ;
-	ZCTTRUNC = "0"    ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(CMDS) SCRNAME(COMMANDS) SUSPEND"  ;
-	ZCTDESC  = "Display command tables" ;
+	zctverb  = "CMDS" ;
+	zcttrunc = "0"    ;
+	zctact   = "SELECT PGM(PPSP01A) PARM(CMDS) SCRNAME(COMMANDS) SUSPEND"  ;
+	zctdesc  = "Display command tables" ;
 	p_tableMGR->tbadd( err, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "TASKS" ;
-	ZCTTRUNC = "0"     ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(TASKS) SCRNAME(TASKS) SUSPEND"  ;
-	ZCTDESC  = "Show task list" ;
+	zctverb  = "TASKS" ;
+	zcttrunc = "0"     ;
+	zctact   = "SELECT PGM(PSYSUTL) PARM(TASKS) SCRNAME(TASKS) SUSPEND"  ;
+	zctdesc  = "Show task list" ;
 	p_tableMGR->tbadd( err, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "FLIST" ;
-	ZCTTRUNC = "2"     ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(SAVELST) NEWAPPL SCRNAME(SAVED) SUSPEND"  ;
-	ZCTDESC  = "Show saved file list" ;
+	zctverb  = "FLIST" ;
+	zcttrunc = "2"     ;
+	zctact   = "SELECT PGM(PPSP01A) PARM(SAVELST) NEWAPPL SCRNAME(SAVED) SUSPEND"  ;
+	zctdesc  = "Show saved file list" ;
 	p_tableMGR->tbadd( err, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "MODS" ;
-	ZCTTRUNC = "0"     ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(MODS) SCRNAME(MODULES) SUSPEND"  ;
-	ZCTDESC  = "Show loaded dynamic classes" ;
+	zctverb  = "MODS" ;
+	zcttrunc = "0"     ;
+	zctact   = "SELECT PGM(PPSP01A) PARM(MODS) SCRNAME(MODULES) SUSPEND"  ;
+	zctdesc  = "Show loaded dynamic classes" ;
 	p_tableMGR->tbadd( err, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "PATHS" ;
-	ZCTTRUNC = "3"     ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(PATHS) SCRNAME(PATHS) SUSPEND"  ;
-	ZCTDESC  = "Show search paths for panels, messages and tables" ;
+	zctverb  = "PATHS" ;
+	zcttrunc = "0"     ;
+	zctact   = "SELECT PGM(PPSP01A) PARM(PATHS) SCRNAME(PATHS) SUSPEND"  ;
+	zctdesc  = "Show search paths for panels, messages and tables" ;
 	p_tableMGR->tbadd( err, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "EXEC" ;
-	ZCTTRUNC = "3"     ;
-	ZCTACT   = "SELECT CMD(&ZPARM) LANG(REXX) NEWPOOL SUSPEND"    ;
-	ZCTDESC  = "Run OOREXX EXEC" ;
+	zctverb  = "EXEC" ;
+	zcttrunc = "3"     ;
+	zctact   = "SELECT CMD(&ZPARM) LANG(REXX) NEWPOOL SUSPEND" ;
+	zctdesc  = "Run OOREXX EXEC" ;
 	p_tableMGR->tbadd( err, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "TODO" ;
-	ZCTTRUNC = "0"   ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(TODO) NEWAPPL(ISP) SCRNAME(TODO) SUSPEND" ;
-	ZCTDESC  = "Browse todo list" ;
+	zctverb  = "TODO" ;
+	zcttrunc = "0"   ;
+	zctact   = "SELECT PGM(PPSP01A) PARM(TODO) NEWAPPL(ISR) SCRNAME(TODO) SUSPEND" ;
+	zctdesc  = "Browse todo list" ;
 	p_tableMGR->tbadd( err, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "VARS" ;
-	ZCTTRUNC = "3"    ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(VARS &ZPARM) SCRNAME(VARS) SUSPEND"  ;
-	ZCTDESC  = "Display shared and profile variables" ;
+	zctverb  = "VARS" ;
+	zcttrunc = "3"    ;
+	zctact   = "SELECT PGM(PPSP01A) PARM(VARS &ZPARM) SCRNAME(VARS) SUSPEND"  ;
+	zctdesc  = "Display shared and profile variables" ;
 	p_tableMGR->tbadd( err, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
-	ZCTVERB  = "CUA" ;
-	ZCTTRUNC = "0"   ;
-	ZCTACT   = "SELECT PGM(PPSP01A) PARM(COLOURS) SCRNAME(CUA) SUSPEND"  ;
-	ZCTDESC  = "Display/change CUA colours" ;
+	zctverb  = "CUAATTR" ;
+	zcttrunc = "3"   ;
+	zctact   = "SELECT PGM(PPSP01A) PARM(CUAATTR) SCRNAME(CUA) SUSPEND"  ;
+	zctdesc  = "Display/change CUA colours" ;
 	p_tableMGR->tbadd( err, funcPOOL, "USRCMDS", "", "", 0 ) ;
 
 	p_tableMGR->tbsort( err, "ISPCMDS", "ZCTVERB,C,A" ) ;
@@ -486,6 +631,7 @@ int main()
 	delete p_poolMGR  ;
 	delete p_tableMGR ;
 	delete lg         ;
+	delete funcPOOL   ;
 
 	return 0 ;
 }
@@ -496,14 +642,13 @@ void createSYSPROF()
 	string p ;
 	string zuprof ;
 
-	errblock err ;
-	err.settask( 1 ) ;
+	errblock err( 1 ) ;
 
 	zuprof = getHOME() + ZUPROF ;
 	p_poolMGR->setProfilePath( err, zuprof ) ;
 
 	p_poolMGR->createSharedPool() ;
-	p_poolMGR->createProfilePool( err, "ISPS" ) ;
+	p_poolMGR->createProfilePool( err, "ISPS", true ) ;
 	p_poolMGR->connect( 1, "ISPS", 1 ) ;
 
 	p_poolMGR->put( err, "ZUPROF", zuprof, PROFILE ) ;
@@ -517,20 +662,41 @@ void createSYSPROF()
 
 	p_poolMGR->put( err, "ZDEFM",    "N",    PROFILE ) ;
 	p_poolMGR->put( err, "ZDEL",     ";",    PROFILE ) ;
+	p_poolMGR->put( err, "ZFKA",     "LONG", PROFILE ) ;
 	p_poolMGR->put( err, "ZKLUSE",   "N",    PROFILE ) ;
 	p_poolMGR->put( err, "ZKLPRIV",  "Y",    PROFILE ) ;
 	p_poolMGR->put( err, "ZNOTIFY",  "Y",    PROFILE ) ;
 	p_poolMGR->put( err, "ZHIGH",    "Y",    PROFILE ) ;
 	p_poolMGR->put( err, "ZLMSGW",   "N",    PROFILE ) ;
 	p_poolMGR->put( err, "ZPADC",    "_",    PROFILE ) ;
+	p_poolMGR->put( err, "ZPFSET",   "PRI",  PROFILE ) ;
+	p_poolMGR->put( err, "ZPFSHOW",  "ON",   PROFILE ) ;
+	p_poolMGR->put( err, "ZPRIKEYS", "LOW",  PROFILE ) ;
 	p_poolMGR->put( err, "ZRTSIZE",  "3",    PROFILE ) ;
 	p_poolMGR->put( err, "ZRBSIZE",  "20",   PROFILE ) ;
 	p_poolMGR->put( err, "ZSWAP",    "Y",    PROFILE ) ;
 	p_poolMGR->put( err, "ZSWAPC",   "'",    PROFILE ) ;
+	p_poolMGR->put( err, "ZSWPBR",   "Y",    PROFILE ) ;
 	p_poolMGR->put( err, "ZSCROLLD", "HALF", PROFILE ) ;
 	p_poolMGR->put( err, "ZSRETP",   "Y",    PROFILE ) ;
+	p_poolMGR->put( err, "ZTABPAS",  "N",    PROFILE ) ;
 	p_poolMGR->put( err, "ZDECLR",   "Y",    PROFILE ) ;
+	p_poolMGR->put( err, "ZDECLA",   "N",    PROFILE ) ;
 	p_poolMGR->put( err, "ZDECLRA",  "BH",   PROFILE ) ;
+	p_poolMGR->put( err, "ZHIABMN",  "N",    PROFILE ) ;
+
+	p_poolMGR->put( err, "ZMOUSEIN",  "166", PROFILE ) ;
+	p_poolMGR->put( err, "ZMOUSESA",  "1",   PROFILE ) ;
+
+	p_poolMGR->put( err, "ZMOUSE11",  "2",    PROFILE ) ;
+	p_poolMGR->put( err, "ZMOUSE12",  "4",    PROFILE ) ;
+	p_poolMGR->put( err, "ZMOUSE13",  "6ZHISTORY",  PROFILE ) ;
+	p_poolMGR->put( err, "ZMOUSE21",  "5SWAP NEXT", PROFILE ) ;
+	p_poolMGR->put( err, "ZMOUSE22",  "5SPLIT NEW", PROFILE ) ;
+	p_poolMGR->put( err, "ZMOUSE23",  "6:TS", PROFILE ) ;
+	p_poolMGR->put( err, "ZMOUSE31",  "5END", PROFILE ) ;
+	p_poolMGR->put( err, "ZMOUSE32",  "5RETURN", PROFILE ) ;
+	p_poolMGR->put( err, "ZMOUSE33",  "1",    PROFILE ) ;
 
 	p_poolMGR->put( err, "ZURGBR", "", PROFILE ) ;
 	p_poolMGR->put( err, "ZURGBG", "", PROFILE ) ;
@@ -552,13 +718,19 @@ void createSYSPROF()
 
 	p_poolMGR->put( err, "ZMLIB", subHomePath( MLIB, check ), PROFILE ) ;
 	p_poolMGR->put( err, "ZPLIB", subHomePath( PLIB, check ), PROFILE ) ;
+	p_poolMGR->put( err, "ZSLIB", subHomePath( SLIB, check ), PROFILE ) ;
+	p_poolMGR->put( err, "ZLLIB", subHomePath( LLIB, check ), PROFILE ) ;
 	p_poolMGR->put( err, "ZTLIB", subHomePath( TLIB, check ), PROFILE ) ;
 	p_poolMGR->put( err, "ZTABL", subHomePath( TABL, check ), PROFILE ) ;
+	p_poolMGR->put( err, "ZFILE", subHomePath( TABU, check ), PROFILE ) ;
 
 	p_poolMGR->put( err, "ZMUSR", subHomePath( MUSR, check ), PROFILE ) ;
 	p_poolMGR->put( err, "ZPUSR", subHomePath( PUSR, check ), PROFILE ) ;
+	p_poolMGR->put( err, "ZSUSR", subHomePath( SUSR, check ), PROFILE ) ;
+	p_poolMGR->put( err, "ZLUSR", subHomePath( LUSR, check ), PROFILE ) ;
 	p_poolMGR->put( err, "ZTUSR", subHomePath( TUSR, check ), PROFILE ) ;
 	p_poolMGR->put( err, "ZTABU", subHomePath( TABU, check ), PROFILE ) ;
+	p_poolMGR->put( err, "ZFILU", subHomePath( TABU, check ), PROFILE ) ;
 
 	p_poolMGR->put( err, "ZMAINPGM", ZMAINPGM, PROFILE ) ;
 	p_poolMGR->put( err, "ZMAINPAN", ZMAINPAN, PROFILE ) ;
@@ -570,9 +742,11 @@ void createSYSPROF()
 	p_poolMGR->put( err, "ZHELPPGM", ZHELPPGM, PROFILE ) ;
 	p_poolMGR->put( err, "ZOREXPGM", ZOREXPGM, PROFILE ) ;
 	p_poolMGR->put( err, "ZSHELPGM", ZSHELPGM, PROFILE ) ;
-	p_poolMGR->put( err, "ZSHELP",   ZSHELP,   PROFILE ) ;
+	p_poolMGR->put( err, "ZFHSTPGM", ZFHSTPGM, PROFILE ) ;
 	p_poolMGR->put( err, "ZSPOOL",   subHomePath( ZSPOOL, check ), PROFILE ) ;
+	p_poolMGR->put( err, "ZFLDHIST", subHomePath( FLDHIST, check ), PROFILE ) ;
 	p_poolMGR->put( err, "ZMAXSCRN", d2ds(ZMAXSCRN), PROFILE ) ;
+	p_poolMGR->put( err, "ZEDLCTAB", EDLCTAB, PROFILE ) ;
 
 	p_poolMGR->put( err, "ZRFLPGM", ZRFLPGM, PROFILE ) ;
 	p_poolMGR->put( err, "ZRFLTBL", ZRFLTBL, PROFILE ) ;
@@ -580,6 +754,8 @@ void createSYSPROF()
 	p_poolMGR->put( err, "ZRFFEX", "YES", PROFILE ) ;
 	p_poolMGR->put( err, "ZRFNEX", "YES", PROFILE ) ;
 	p_poolMGR->put( err, "ZRFMOD", "BRT", PROFILE ) ;
+
+	p_poolMGR->put( err, "ZFHURL", "Y", PROFILE ) ;
 
 	p_poolMGR->put( err, "ZGCLB", "B", PROFILE ) ;
 	p_poolMGR->put( err, "ZGCLR", "R", PROFILE ) ;
@@ -658,6 +834,7 @@ void createSYSPROF()
 	setCUAcolours( "SUC",  KSUC ) ;
 
 	setCUAcolours( "VOI",  KVOI  ) ;
+
 	setCUAcolours( "WMT",  KWMT  ) ;
 	setCUAcolours( "WT",   KWT   ) ;
 	setCUAcolours( "WASL", KWASL ) ;
@@ -680,12 +857,12 @@ void createSYSPROF()
 	cout << endl ;
 }
 
-void setCUAcolours( const string& var, const string& val )
+void setCUAcolours( const string& var,
+		    const string& val )
 {
 	string var1 ;
 
-	errblock err ;
-	err.settask( 1 ) ;
+	errblock err( 1 ) ;
 
 	var1 = "ZC" + var ;
 
@@ -719,10 +896,12 @@ void setCUAcolours( const string& var, const string& val )
 }
 
 
-string subHomePath( string var, bool do_check )
+string subHomePath( string var,
+		    bool do_check )
 {
-	int    i ;
-	int    j ;
+	int i ;
+	int j ;
+
 	size_t p ;
 
 	string pathname ;
@@ -741,10 +920,10 @@ string subHomePath( string var, bool do_check )
 		for ( j = getpaths( var ), i = 1 ; i <= j ; ++i )
 		{
 			pathname = getpath( var, i ) ;
-			if ( !exists( pathname ) )
+			if ( !exists( pathname ) || !is_directory( pathname ) )
 			{
 				cout << endl ;
-				cout << "WARNING: Path " << pathname << " does not exist" << endl ;
+				cout << "WARNING: Path " << pathname << " does not exist or is not a directory.  lspf may not start." << endl ;
 			}
 		}
 	}
@@ -757,7 +936,7 @@ string getHOME()
 {
 	char* t = getenv( "HOME" ) ;
 
-	if ( t == NULL )
+	if ( !t )
 	{
 		cout << "Environment variable HOME is not set.  This is a required variable"<< endl ;
 		abort() ;
@@ -770,4 +949,12 @@ string getHOME()
 		abort() ;
 	}
 	return home ;
+}
+
+
+string getEnvironmentVariable( const char* var )
+{
+	char* t = getenv( var ) ;
+
+	return  t ?: "" ;
 }

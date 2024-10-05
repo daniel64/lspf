@@ -1,0 +1,134 @@
+/*
+  Copyright (c) 2021 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+/********************************************************************************************/
+/* Simple REXX EDIT macro to edit, view, browse or list the entry the cursor is placed on.  */
+/* If it is a #include statement, search current directory, then /usr/include for a match.  */
+/*                                                                                          */
+/* A parm of EDIT/VIEW (abbreviated to 1 char) goes into Edit/View on the file instead      */
+/* of browse.                                                                               */
+/********************************************************************************************/
+
+address ISPEXEC
+"ISREDIT MACRO (parms) PROCESS"
+
+parms = translate( parms )
+
+"ISREDIT (USTATE)  = USER_STATE"
+"ISREDIT (LINE)    = LINE .ZCSR"
+"ISREDIT (ROW,COL) = CURSOR"
+"ISREDIT (FILE)    = DATASET"
+
+invalid = ",'<>():;+!&?=|" || '"'
+
+dir = getDirectory( file )
+t   = left( line, col )
+t   = translate( t, " ", invalid )
+p   = lastpos( " ", t )
+w   = 3
+
+If p = 0 then
+  do
+    t = line
+  end
+else
+  do
+    if word( line, 1 ) = "#include" | ( word( line, 1 ) = "#" & word( line, 2 ) = "include" ) then
+      do
+        if word( line, 1 ) = "#include" then w = 2
+        t = word( line, w )
+        if substr( t, 1, 1 ) = '"' then
+          do
+            parse var t '"' t '"' .
+          end
+        else if substr( t, 1, 1 ) = "<" then
+          do
+            parse var t "<" t ">" .
+          end
+        entry = (dir)t
+        if \sysisfile( entry ) then
+          do
+            entry = searchDirectories( t )
+          end
+      end
+    else
+      do
+        t     = substr( line, p+1 )
+        entry = word( translate( t, " ", invalid ), 1 )
+      end
+  end
+
+
+if sysisfiledirectory( entry ) then
+  do
+    "LMDINIT LISTID(LID) LEVEL(&entry)"
+    "LMDDISP LISTID(&lid)"
+    "LMDFREE LISTID(&lid)"
+  end
+else if sysisfile( entry ) then
+  do
+    if abbrev( "EDIT", parms, 1 ) then
+      do
+        "EDIT FILE(ENTRY)"
+      end
+    else if abbrev( "VIEW", parms, 1 ) then
+      do
+        "VIEW FILE(ENTRY)"
+      end
+    else
+      do
+        "BROWSE FILE(ENTRY)"
+      end
+  end
+else
+  do
+    say "'"entry"' is not a file or directory"
+  end
+
+"ISREDIT USER_STATE = (USTATE)"
+
+EXIT
+
+
+getDirectory: procedure
+return substr( arg(1), 1, lastpos( "/", arg(1) ) )
+
+
+getFile: procedure
+return substr( arg(1), lastpos( "/", arg(1) )+1 )
+
+
+searchDirectories: procedure
+/* ******************************** */
+/* Search /usr/include for the file */
+/* ******************************** */
+rc = SysFileTree( "/usr/include/*"getFile( arg(1) ), "files", "FOS" )
+if rc > 0 then
+  do
+    return ""
+  end
+
+r1 = reverse( arg( 1 ) ) || "/"
+l1 = length( r1 )
+do i = 1 to files.0
+  r2 = reverse( files.i )
+  if substr( r2, 1, l1 ) = r1 then return files.i
+end
+
+return ""

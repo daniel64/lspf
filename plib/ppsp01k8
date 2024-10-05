@@ -1,0 +1,78 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Keylist Utility
+)ENDCOMMENT
+
+)ABC DESC(View) MNEM(1)
+PDC  DESC('Show current panel keylist')
+PDC  DESC('Show current dialogue keylist')
+PDC  DESC('Specify keylist application id')
+
+)ABCINIT
+.ZVARS = KLST1SEL
+&KLST1SEL = 0
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Keylists For &ZZTABL'
+
+TEXT      4   2         FP    'Command ===>'
+FIELD     4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
+
+TEXT      4  MAX-15  FP 'Scroll ===>'
+FIELD     4  MAX-3  4 NEF  NONE ZSCROLL
+
+TEXT      6  2   FP  'Actions: N=New  E=Edit  V=View  D=Delete'
+TEXT      8  2   CH  'S  Keylist   Type'
+TEXT      9  2   CH  EXPAND '-'
+
+TBMODEL   10   MAX
+TBFIELD    2   1    NEF   caps(on),PAD(USER) TBK1SEL
+TBFIELD  ++2   8    VOI   NONE TBK1LST
+TBFIELD  ++2   8    VOI   NONE TBK1TYP
+TBFIELD  ++2   20   VOI   NONE TBK1MSG
+
+)INIT
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+&TEMP1  = REVERSE(TBK1TAB)
+&TEMP1  = TRUNC(&TEMP1, 4)
+&TEMP1  = .TRAIL
+&ZZTABL = REVERSE(TEMP1)
+
+.ATTR(TBK1TYP) = 'TYPE(OUTPUT) COLOUR(WHITE)'
+
+)REINIT
+IF (.MSG EQ &Z)
+   &TBK1SEL = &Z
+   REFRESH(TBK1SEL)
+ELSE
+   IF (.CURSOR EQ 'TBK1SEL' ) .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+)PROC
+if (&ZCMD NE &Z )
+    .MSG    = PSYS011C
+    .CURSOR = ZCMD
+    EXIT
+
+IF (&TBK1SEL EQ S ) &TBK1SEL = V
+
+VER (&TBK1SEL,LIST,D,E,N,V)
+
+IF (&TBK1SEL EQ D AND &TBK1TYP EQ SHARED)
+   .MSG    = PPSP013E
+   .CURSOR = TBK1SEL
+   EXIT
+
+&ZZENTRY = &TBK1LST
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

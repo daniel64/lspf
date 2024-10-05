@@ -1,0 +1,45 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+Confirm cancel panel for editor PEDIT01
+)ENDCOMMENT
+
+)BODY WINDOW(58,10)
+PANELDESC '&ZVMODE Cancel'
+
+TEXT     2    2       FP     'Command ===> '
+FIELD    2   15  MAX  NEF     PAD(USER) ZCMD1
+
+AREA   3 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1    2       NT     'File has been changed'
+
+TEXT    3   2   CH 'Instructions'
+TEXT    4   5   NT 'Press'
+TEXT    4   11  ET 'Enter'
+TEXT    4   17  NT 'key to confirm cancel and discard changes'
+TEXT    5   5   NT 'Enter'
+TEXT    5   11  ET 'End'
+TEXT    5   15  NT 'to return to &ZVMODE session'
+
+)INIT
+&ZCMD1   = &Z
+&ZWINTTL = 'Confirm Cancel'
+
+VGET ZVERB SHARED
+IF (&ZVERB EQ 'RETURN')
+  .RESP = ENTER
+  .MSG  = PEDT016H
+
+)PROC
+if ( &ZCMD1 NE &Z)
+  .MSG    = PSYS018
+  .CURSOR = ZCMD1
+  EXIT
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

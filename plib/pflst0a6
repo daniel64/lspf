@@ -1,0 +1,115 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Modify attributes
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Modify File Attributes'
+
+TEXT     4   2       FP    'Command ===> '
+FIELD    4  15  MAX  NEF CAPS(ON),PAD(USER) ZCMD1
+
+AREA 5 2 MAX MAX-6 SAREA1
+
+)AREA SAREA1
+TEXT     1   1       FP    'Entry Name . .'
+FIELD    1  16  MAX-4  VOI NONE IENTRY
+FIELD    1    MAX-2 2  LI  NONE      IENTRIND
+
+TEXT     2    1       FP   'File Type. . .'
+FIELD    2   16   16  VOI NONE ITYPE
+
+--TEXT     3   1       FP    'Userid . . . .'
+--FIELD    3  16   12  NEF PAD(USER) IUUID
+
+--TEXT     4   1       FP    'Password . . .'
+--FIELD    4  16   8  NEF PASWD(ON) IUPWD
+
+TEXT     4   1       FP    'Permissions'
+FIELD    4  13       3  NEF PAD(USER) IPERMISS
+TEXT     4  17       FP    '(Octal)'
+
+
+TEXT     6    1        CH    'Mode Fields'
+TEXT     7    1 PIN 'Enter / to select option'
+
+FIELD    8    1   1   CEF PAD(USER) ISETUID
+TEXT     8    3       SAC    'Set UID bit'
+
+FIELD    9    1   1   CEF PAD(USER) ISETGID
+TEXT     9    3       SAC    'Set GID bit'
+
+FIELD    10   1   1   CEF PAD(USER) ISTICKY
+TEXT     10   3       SAC    'Set sticky bit'
+
+TEXT     12   1       CH    'Owner'
+
+TEXT     13   1        FP   'UID Number. . .'
+FIELD    13  17    10  NEF PAD(USER) IOWNERN
+
+TEXT     13  31        FP   'File. . .'
+FIELD    13  41    10  NEF PAD(USER) IOWNER
+
+TEXT     14   1        FP   'GID Number. . .'
+FIELD    14  17    10  NEF PAD(USER) IGROUPN
+
+TEXT     14   31       FP  'Group . .'
+FIELD    14   41   10  NEF PAD(USER) IGROUP
+
+TEXT     16   1  CH 'Instructions'
+
+TEXT    17 4  NT 'Press'
+TEXT    17 10 PS 'Enter'
+TEXT    17 16 NT 'to confirm changes'
+
+TEXT    18 4  NT 'Enter'
+TEXT    18 10 PS 'Cancel'
+TEXT    18 17 NT 'or'
+TEXT    18 20 PS 'End'
+TEXT    18 24 NT 'to skip these changes'
+
+TEXT    19 4  NT 'Enter'
+TEXT    19 10 PS 'Quit'
+TEXT    19 15 NT 'to cancel all pending commands'
+
+)INIT
+&ZCMD = &Z
+
+)PROC
+IF (&ZCMD1 NE &Z,QUIT,CANCEL,END)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD1
+   EXIT
+
+IF (&ZCMD1 EQ QUIT,CANCEL,END) .RESP = END
+
+
+VER (&IPERMISS NB,OCT)
+
+&ISETUID = TRANS( &ISETUID &Z,&Z *,/ )
+&ISETGID = TRANS( &ISETGID &Z,&Z *,/ )
+&ISTICKY = TRANS( &ISTICKY &Z,&Z *,/ )
+
+VER (&IOWNER  NB)
+VER (&IGROUP  NB)
+VER (&IOWNERN NB NUM)
+VER (&IGROUPN NB NUM)
+
+)PNTS
+FIELD(ZPS01001) VAR(ZCMD1) VAL(' ')
+FIELD(ZPS01002) VAR(ZCMD1) VAL(CANCEL)
+FIELD(ZPS01003) VAR(ZCMD1) VAL(END)
+FIELD(ZPS01004) VAR(ZCMD1) VAL(QUIT)
+
+)FIELD
+FIELD(IENTRY) LEN(4095) IND(IENTRIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

@@ -1,0 +1,77 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Show partitions
+)ENDCOMMENT
+
+)ATTR
+_ TYPE(NEF) PAD(USER) CAPS(ON)
++ TYPE(VOI)
+! TYPE(OUTPUT) COLOUR(YELLOW) CAPS(OFF)
+% TYPE(OUTPUT) COLOUR(WHITE) CAPS(OFF)
+# TYPE(OUTPUT) COLOUR(BLUE) CAPS(OFF)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Partitions'
+
+TEXT     4   2         FP    'Command ===>'
+FIELD    4  15  max-17 nef caps(on),pad(user) zcmd
+
+TEXT     4  MAX-15   FP   'Scroll ===>'
+FIELD    4  MAX-3  4 NEF  NONE ZSCROLL
+
+TEXT     5  MAX-15  SI 'More:   >'
+
+TEXT     6  2   FP  'S Partition       Mount point                    Space      Used  Label'
+
+TBMODEL  7   MAX
+TBFIELD  2      1      ATTR(_) SEL
+TBFIELD  ++1    15     ATTR(!) PART
+TBFIELD  ++1    30     ATTR(%) MOUNT
+TBFIELD  ++1    10     ATTR(%) SIZE
+TBFIELD  ++1    5      ATTR(%) PCENT
+TBFIELD  ++1    20     ATTR(#) LABEL
+
+)INIT
+VGET ZSCROLL PROFILE
+
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+)REINIT
+IF (.MSG EQ &Z)
+   &SEL = &Z
+   REFRESH(SEL)
+
+)PROC
+IF (.RESP = END) EXIT
+
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+   EXIT
+
+VER(&SEL,LIST,I,L,M,P,Q,T,U)
+
+IF (&SEL EQ L,U AND &MOUNT EQ &Z,'[SWAP]')
+   .MSG    = PSUT013A
+   .CURSOR = SEL
+   EXIT
+
+IF (&SEL EQ M AND &MOUNT NE &Z)
+   .MSG    = PSUT013B
+   .CURSOR = SEL
+   EXIT
+
+IF (.MSG = &Z) VPUT ZSCROLL PROFILE
+
+)FIELD
+FIELD(PART)  LEN(4095)
+FIELD(MOUNT) LEN(4095)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2023 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

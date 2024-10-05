@@ -1,0 +1,65 @@
+/*
+  Copyright (c) 2022 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+/***************************************************************************************/
+/* Simple initial edit macro to compare file differences.                              */
+/* Store the inserts/deletes in the SHARED pool to update the backup list by the       */
+/* calling macro.                                                                      */
+/*                                                                                     */
+/* If the first word of the parmameter is STATS, exit after storing inserts/delete.    */
+/***************************************************************************************/
+
+address ISPEXEC
+
+"ISREDIT MACRO (NFILE) NOPROCESS"
+
+stay = .true
+if word( nfile, 1 ) = "STATS" then
+  do
+    nfile = subword( nfile, 2 )
+    stay  = .false
+  end
+
+"ISREDIT MACRO_MSG = ON"
+"ISREDIT COMPARE &NFILE"
+
+ZEDSMSG = ZEDISMSG
+ZEDLMSG = ZEDILMSG
+
+if ZEDMSGNO = "PEDT017K" then
+  do
+    parse var ZEDILMSG . . . ADDS . . DELS .
+  end
+else
+  do
+    ADDS = 0
+    DELS = 0
+  end
+"VPUT (ADDS,DELS) SHARED"
+
+if stay then
+  do
+    "SETMSG MSG(PSYZ000)"
+  end
+else
+  do
+    "ISREDIT BUILTIN CANCEL"
+  end
+
+EXIT

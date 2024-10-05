@@ -1,0 +1,80 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Command table utility
+)ENDCOMMENT
+
+)ATTR
++ TYPE(NEF) CAPS(ON) PAD(USER) JUST(LEFT)
+@ TYPE(NEF) CAPS(ON) PADC(USER) JUST(LEFT)
+! TYPE(OUTPUT) PADC(USER) COLOUR(WHITE) CAPS(OFF)
+
+)INCLUDE std_pdc
+)INCLUDE rfl_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Update &ZACTB1.CMDS'
+
+TEXT     4    2             FP    'Command ===>'
+FIELD    4   15     MAX-17  NEF PAD(USER) ZCMD
+
+TEXT     4  MAX-15  FP 'Scroll ===>'
+FIELD    4  MAX-3   4 NEF  NONE ZSCROLL
+
+TEXT     5  MAX-15  SI 'More:   >'
+TEXT     6  2     NT 'Insert (I), delete (D), repeat (R) and edit (E) command entries.'
+
+TEXT     7  2     NT 'Enter'
+TEXT     7  8     PS 'End'
+TEXT     7  12    NT 'to save changes or'
+TEXT     7  31    PS 'Cancel'
+TEXT     7  38    NT 'to end without saving.'
+
+TEXT     9  6     CH 'Verb'
+TEXT     9  16    CH 'T'
+TEXT     9  19    CH 'Action'
+
+TBMODEL  10    MAX
+TBFIELD  2     3   ATTR(+)                     SEL
+TBFIELD  ++1   8   ATTR(@)                     ZCTVERB
+TBFIELD  ++2   1   NEF  NUMERIC(ON),PADC(USER) ZCTTRUNC
+TBFIELD  ++2   MAX ATTR(!)                     ZCTACT
+
+)INIT
+IF (&ZSCROLL = &Z) VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+&ZCMD = &Z
+
+.CURSOR = ZCMD
+
+)REINIT
+IF (.MSG NE &Z AND .CURSOR NE ZCMD) .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+)PROC
+IF (&ZCMD NE &Z,CANCEL,END)
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+
+IF (&ZCMD EQ CANCEL,END)
+   .RESP = END
+
+VER (&SEL,LIST,D,E,I,R)
+IF (&SEL NE D) VER (&ZCTVERB,NAME)
+
+VGET ZVERB SHARED
+IF (&ZVERB EQ CANCEL)
+   &ZCMD = CANCEL
+ELSE
+   IF (.MSG NE &Z) .RESP = ENTER
+
+)PNTS
+FIELD(ZPS00001) VAR(ZCMD) VAL(END)
+FIELD(ZPS00002) VAR(ZCMD) VAL(CANCEL)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

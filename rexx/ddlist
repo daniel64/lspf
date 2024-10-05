@@ -1,0 +1,370 @@
+/*
+  Copyright (c) 2023 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+/************************************************************************************/
+/* Show ddnames/files and enqueues.                                                 */
+/*                                                                                  */
+/* This is also an example of how to have embedded panels and messages in a REXX.   */
+/* Panels and messages are defined at the bottom of the REXX and extracted to       */
+/* temporary files that are then LIBDEF'ed to.                                      */
+/* See procedures act_libdef and deact_libdef.                                      */
+/*                                                                                  */
+/* O command to filter by ddname                                                    */
+/* M command to search for a file within the displayed directories.                 */
+/*   Note that the M command is case sensitive.                                     */
+/*                                                                                  */
+/************************************************************************************/
+
+address ISPEXEC
+
+Call initialise
+
+Call act_libdefs
+
+msg     = ""
+zcmd    = ""
+only    = ""
+patn    = ""
+cursor  = ""
+ztdsels = 0
+ztdtop  = 0
+
+do forever
+   if ztdsels > 0 & msg = "" then
+     do
+       ztdsels = ztdsels - 1
+     end
+   if ztdsels = 0 then
+     do
+       Call buildTable only, patn
+       "TBTOP  &tabName"
+       "TBSKIP &tabName NUMBER(&ztdtop)"
+        panel = "PANEL(DDLIST1)"
+     end
+   "TBDISPL &tabname &panel &msg &cursor &row AUTOSEL(YES) POSITION(CRP)"
+   if RC > 4 then leave
+   if ztdsels = 0 & zcmd = "ENQ" then
+     do
+       "SELECT CMD(ENQS) NEWAPPL(&ZAPPLID)"
+       zcmd = ""
+     end
+   if zcmd = "RES" | zcmd = "RESET" then
+     do
+       only = ""
+       patn = ""
+       zcmd = ""
+       iterate
+     end
+   panel  = ""
+   cursor = ""
+   msg    = ""
+   row    = ""
+   if sel = "" then iterate
+   if sel = "B" | sel = "S" then
+     do
+       if dsorg = "FILE" | num > 0 then
+         do
+           if num = 0 then
+             do
+                "BROWSE FILE(FILE)"
+             end
+           else if num = 1 then
+             do
+               file = (file)"/"member
+               "BROWSE FILE(FILE)"
+             end
+           else
+             do
+              "SELECT PGM(PFLST0A) PARM(&FILE &pattern)"
+             end
+         end
+       else
+         do
+           "SELECT PGM(PFLST0A) PARM(&FILE)"
+         end
+     end
+   else if sel = "E" then
+     do
+       if dsorg = "FILE" | num > 0 then
+         do
+           if num = 0 then
+             do
+                "EDIT FILE(FILE)"
+             end
+           else if num = 1 then
+             do
+               file = (file)"/"member
+               "EDIT FILE(FILE)"
+             end
+           else
+             do
+              "SELECT PGM(PFLST0A) PARM(&FILE &pattern)"
+             end
+         end
+       else
+         do
+           "SELECT PGM(PFLST0A) PARM(&FILE)"
+         end
+     end
+   else if sel = "F" then
+     do
+       if ddn = "" then
+         do
+           msg    = "MSG(DDLS002)"
+           cursor = "CURSOR(SEL)"
+           row    = "CSRROW("CRP")"
+           iterate
+         end
+       address TSO "FREE FILE("DDN")"
+     end
+   else if sel = "L" then
+     do
+       if dsorg = "FILE" then
+         do
+           "BROWSE FILE(FILE)"
+         end
+       else if dsorg = "DIR" then
+         do
+           "LMDINIT LISTID(LID) LEVEL(&file)"
+           "LMDDISP LISTID(&lid)"
+           "LMDFREE LISTID(&lid)"
+         end
+     end
+   sel = ""
+end
+
+Call deact_libdefs
+Call removeTable
+EXIT
+
+
+initialise: procedure expose tabname zapplid
+tabname = "DDL"random( 0, 99999 )
+"VGET zapplid SHARED"
+RETURN
+
+
+buildTable: procedure expose tabname
+only = arg( 1 )
+patn = arg( 2 )
+
+"TBCREATE &tabname NAMES(DISP DDN FILE DSORG MEMBER PATTERN NUM) NOWRITE REPLACE"
+
+y = outtrap( line. )
+address tso "LISTA"
+y = outtrap( "OFF" )
+
+do i = 1 by 2 to line.0
+  ddn = word( line.[ i + 1 ], 1 )
+  if ( only \= "" & pos( only, ddn ) = 0 ) then iterate
+  l.   = splitConcat( line.[ i ] )
+  disp = word( line.[ i + 1 ], 2 )
+  do j = 1 to l.0
+     member  = ""
+     num     = 0
+     pattern = ""
+     file    = l.j
+     dsorg   = "???"
+     if file = "DUMMY" then
+       do
+         dsorg = "CHAR"
+       end
+     else if sysisfile( file ) then
+       do
+         dsorg = "FILE"
+       end
+     else if sysisfiledirectory( file ) then
+       do
+         dsorg = "DIR"
+       end
+     if patn \= "" & dsorg \= "DIR" then
+       do
+         iterate
+       end
+     if patn \= "" then
+       do
+         "LMINIT DATAID(DID) DATASET(&file)"
+         if RC > 0 then iterate
+         "LMOPEN DATAID(&DID) OPTION(INPUT)"
+         "LMMLIST DATAID(&DID) OPTION(LIST) MEMBER(MEMBER) PATTERN(&patn)"
+         if RC > 0 then
+           do
+             "LMCLOSE DATAID(&DID)"
+             "LMFREE DATAID(&DID)"
+             iterate
+           end
+         num = 1
+         "LMMLIST DATAID(&DID) OPTION(LIST) MEMBER(MEMBER)"
+         if RC = 0 then
+           do
+             num     = 2
+             pattern = patn
+           end
+         "LMMLIST DATAID(&DID) OPTION(FREE)"
+         "LMCLOSE DATAID(&DID)"
+         "LMFREE DATAID(&DID)"
+       end
+     "TBADD &tabname"
+     ddn  = ""
+  end
+end
+
+"TBTOP &tabname"
+RETURN
+
+
+removeTable: procedure expose tabname
+"TBEND &tabname"
+RETURN
+
+
+splitConcat: procedure
+file  = arg( 1 )
+list. = ""
+i     = 0
+do forever
+   parse var file f ":" file
+   if f = "" then leave
+   i = i + 1
+   list.i = strip( f )
+   list.0 = i
+end
+RETURN list.
+
+
+act_libdefs: procedure Expose ddname
+/* Add the LIBDEFs for panel and message libraries.              */
+/* Source is at the end of the REXX                              */
+ddname = "$"random( 0, 9999999 )
+address TSO "ALLOC NEW DEL F("ddname") DIR(1)"
+"LMINIT DATAID(DATAID) DDNAME("ddname") ENQ(EXCLU)"
+"LMOPEN DATAID(&dataid) OPTION(OUTPUT)"
+a  = 1
+ml = sourceline()
+
+do i = ml to 1 by -1
+   line = sourceline( i )
+   if translate( word( line, 1 ) ) = ">START" then leave
+end
+
+do forever
+  do i = i to ml while word( line, 1 ) \= ">MEMBER"
+     line = sourceline( i )
+  end
+  if i >= ml then leave
+  mem = word( line, 2 )
+  do i = i to ml while wordpos( word( sourceline( i ), 1, ), ">MEMBER >END" ) = 0
+    line = sourceline( i )
+    "LMPUT DATAID(&dataid) MODE(INVAR) DATALOC(LINE) DATALEN(80)"
+  end
+  "LMMADD DATAID(&dataid) MEMBER(&MEM)"
+end
+
+"LMFREE DATAID(&dataid)"
+"LIBDEF ISPPLIB LIBRARY ID(&ddname) STACK"
+"LIBDEF ISPMLIB LIBRARY ID(&ddname) STACK"
+RETURN
+
+
+deact_libdefs: procedure expose ddname
+/* Remove the LIBDEFs for panel and message libraries            */
+"LIBDEF ISPPLIB"
+"LIBDEF ISPMLIB"
+RETURN
+
+
+/*
+>START
+>MEMBER DDLIST1
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel to display DDNAMEs
+)ENDCOMMENT
+
+)ATTR
+% TYPE(OUTPUT) CAPS(OFF) COLOUR(WHITE)
+$ TYPE(OUTPUT) CAPS(OFF) COLOUR(GREEN)
+! TYPE(INPUT)  CAPS(ON)  COLOUR(RED) PAD(USER)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE "Current File Allocations"
+
+TEXT     4   2         FP    "Command ===>"
+FIELD    4  15  MAX-17 NEF CAPS(Off),PAD(USER) ZCMD
+
+TEXT     4  MAX-15  FP "Scroll ===>"
+FIELD    4  MAX-3   4  NEF  NONE ZSCROLL
+
+TEXT     7  2 CH "Disposition Org     Act DDname    File name"
+TEXT     7 60 ET "Actions: B E F L S"
+
+TBMODEL    8  MAX
+TBFIELD    2  10  ATTR(%)   DISP
+TBFIELD  ++2  4   ATTR(%)   DSORG
+TBFIELD  ++2  1   ATTR(%)   SEP
+TBFIELD  ++2  1   ATTR(!)   SEL
+TBFIELD  ++2  8   VOI  NONE DDN
+TBFIELD  ++2  MAX ATTR($)   FILE
+
+)INIT
+&SEP = '>'
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+)REINIT
+IF (.MSG EQ &Z)
+   &SEL = &Z
+   REFRESH(SEL)
+ELSE
+   IF (.CURSOR EQ 'SEL' ) .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+)PROC
+&ZCMD = TRUNC(&ZCMD, ' ')
+&ZCMD = UPPER(ZCMD)
+IF (&ZCMD NE &Z,'ENQ','RES','RESET','O','M')
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
+IF (&ZCMD EQ 'O')
+  &ONLY = UPPER(.TRAIL)
+  &ZCMD = &Z
+ELSE
+  IF (&ZCMD EQ 'M')
+    &PATN = .TRAIL
+    &ZCMD = &Z
+
+VER (&SEL,LIST,B,E,F,L,S)
+
+IF (.MSG = &Z) VPUT ZSCROLL PROFILE
+
+)FIELD
+FIELD(FILE) LEN(4046)
+
+)END
+>MEMBER DDLS00
+DDLS001 'Invalid type' .T=W
+'Entry is not a regular file - cannot browse or edit.'
+DDLS002 'Free invalid' .T=W
+'Enter command next to a DD name.'
+>END
+*/

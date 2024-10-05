@@ -17,11 +17,6 @@
 
 */
 
-/* Re-direct say ouput and error messages to the spool or it'll mess up lspf output */
-parse source . . src .
-Call setdest src
-/************************************************************************************/
-
 /* Create lspf Command Table                               */
 /* -------------------------                               */
 /*                                                         */
@@ -29,12 +24,15 @@ Call setdest src
 /* (must be of the form xxxxCMDS where xxxx is 1-4         */
 /* characters in length)                                   */
 /* Add command entries in addrow() routine                 */
+/*                                                         */
+/* Opt 3.9 can also be used to create a command table.     */
+
+/* It can also be done by coding DTL for the               */
+/* command table and converting it using lspdtlc.          */
 
 /* NOTES:                                                  */
 /* Run this exec in lspf on any command line:              */
 /* Command ===> EXEC cmdtab1                               */
-/* or                                                      */
-/* Command ===> @cmdtab1                                   */
 /* or option 6, Command, from the main menu                */
 /* ===> cmdtab1                                            */
 
@@ -71,27 +69,27 @@ parse var tabName head "CMDS" tail .
 
 if wordpos( head, "ISP USR" ) > 0 then
   do
-    "RDISPLAY ERROR.  Invalid name.  Prefix cannot be ISP or USR"
+    say "ERROR.  Invalid name.  Prefix cannot be ISP or USR"
     RETURN
   end
 
 if \validName( tabName ) | pos( "CMDS", tabName ) = 0 | head = "" | tail \= "" then
   do
-    "RDISPLAY ERROR.  Invalid name.  Should be of the form xxxxCMDS"
-    "RDISPLAY         where xxxx is 1-4 alphanumeric chars in length with the first alphabetic"
-    "RDISPLAY         Entered value is &tabName"
+    say "ERROR.  Invalid name.  Should be of the form xxxxCMDS"
+    say "        where xxxx is 1-4 alphanumeric chars in length with the first alphabetic"
+    say "        Entered value is "tabName
     RETURN
   end
 
-"TBCREATE &tabName KEYS(ZCTVERB) NAMES(ZCTTRUNC ZCTACT ZCTDESC) REPLACE"
+"TBCREATE &tabName NAMES(ZCTVERB ZCTTRUNC ZCTACT ZCTDESC) REPLACE"
 if RC = 4 then
   do
-    "RDISPLAY Table &tabName already exists.  Current table will be replaced"
-    "RDISPLAY "
+    say "Table "tabName" already exists.  Current table will be replaced"
+    say
   end
 else if RC > 7 then
   do
-    "RDISPLAY TBCREATE failed.  RC=&RC"
+    say "TBCREATE failed.  RC="RC
     RETURN
   end
 
@@ -137,14 +135,14 @@ y = addrow( "SUBMIT", ,
 "TBSAVE &tabName"
 if RC > 0 then
   do
-    "RDISPLAY TBSAVE failed.  RC=&RC"
+    say "TBSAVE failed.  RC="RC
     "TBEND &tabName"
     RETURN
   end
 
 "TBEND &tabName"
-"RDISPLAY "
-"RDISPLAY &tabName created successfully"
+say
+say tabName "created successfully"
 RETURN
 
 
@@ -156,36 +154,35 @@ ZCTDESC  = arg(4)
 
 if \validName( ZCTVERB ) then
   do
-    "RDISPLAY ZCTVERB parameter incorrect.  Must be 1-8 characters.  Entered &ZCTVERB"
-    "RDISPLAY Ignoring entry &ZCTVERB"
-    "RDISPLAY "
+    say "ZCTVERB parameter incorrect.  Must be 1-8 characters.  Entered "ZCTVERB
+    say "Ignoring entry "ZCTVERB
+    say
     RETURN 12
   end
 
 if length( ZCTTRUNC ) > 1 | ZCTTRUNC = "" | \datatype( ZCTTRUNC, "W" ) then
   do
-    "RDISPLAY ZCTTRUNC parameter incorrect.  Must be one numeric character.  Entered &ZCTTRUNC"
-    "RDISPLAY Ignoring entry &ZCTVERB"
-    "RDISPLAY "
+    say "ZCTTRUNC parameter incorrect.  Must be one numeric character.  Entered "ZCTTRUNC
+    say "Ignoring entry "ZCTVERB
     RETURN 12
   end
 
 if \checkAction( ZCTACT ) then
   do
-    "RDISPLAY Ignoring entry &ZCTVERB"
-    "RDISPLAY "
+    say "Ignoring entry "ZCTVERB
+    say
     RETURN 12
   end
 
-"RDISPLAY Adding entry &ZCTVERB"
+say "Adding entry "ZCTVERB
 "TBADD &tabName"
 if RC = 8 then
   do
-    "RDISPLAY TBADD failed.  Duplicate entry &ZCTVERB not added"
+    say "TBADD failed.  Duplicate entry "ZCTVERB" not added"
   end
 else if RC > 0 then
   do
-    "RDISPLAY TBADD failed.  RC=&RC"
+    say "TBADD failed.  RC="RC
   end
 RETURN 0
 
@@ -215,7 +212,7 @@ if act \= "" then
       do
         if \validName( substr( act, 2 ) ) then
           do
-            "RDISPLAY Invalid variable name ''&ACT''"
+            say "Invalid variable name '"ACT"'"
             RETURN 0
           end
       end
@@ -228,8 +225,8 @@ if act \= "" then
            act \= "SETVERB"   & ,
            act \= "NOP" then
           do
-            "RDISPLAY Invalid action.  Must be SELECT, ALIAS, PASSTHRU, SETVERB or NOP"
-            "RDISPLAY Entered value is &ACT"
+            say "Invalid action.  Must be SELECT, ALIAS, PASSTHRU, SETVERB or NOP"
+            say "Entered value is "ACT
             RETURN 0
           end
       end

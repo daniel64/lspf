@@ -1,0 +1,34 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+Confirm processing panel
+)ENDCOMMENT
+
+)BODY WINDOW(60,7)
+PANELTITLE 'Continue Processing'
+
+AREA   2 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1 2  NT 'Press'
+TEXT     1 8  ET 'Enter'
+TEXT     1 14 NT 'to confirm processing'
+
+TEXT     2 2  NT 'Enter'
+TEXT     2 8  ET 'End'
+TEXT     2 12 NT 'to cancel processing'
+
+)INIT
+&ZWINTTL  = &Z
+
+)PROC
+IF (&ZCMD NE &Z)
+    .MSG    = PSYS018
+    .CURSOR = ZCMD
+    EXIT
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

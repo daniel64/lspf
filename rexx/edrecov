@@ -17,11 +17,6 @@
 
 */
 
-/* Re-direct say ouput and error messages to the spool or it'll mess up lspf output */
-parse source . . src .
-Call setdest src
-/************************************************************************************/
-
 /*****************************************************************************/
 /* REXX exec to perform edit recovery prior to edit                          */
 /*                                                                           */

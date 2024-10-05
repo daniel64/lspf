@@ -1,0 +1,91 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel for viewing and changing various utility programs
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Utility Program Definitions'
+
+TEXT     4   2    FP 'Command ===> '
+FIELD    4  15    MAX NEF CAPS(ON),PAD(USER) ZCMD
+
+AREA   5 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1   2       FP 'ZMAINPGM. . .'
+FIELD    1   16   8  NEF CAPS(ON),PAD(USER) ZMAINPGM
+TEXT     1   26      FP 'Initial program to run'
+
+TEXT     2   2       FP 'ZMAINPAN. . .'
+FIELD    2   16   8  NEF CAPS(ON),PAD(USER) ZMAINPAN
+TEXT     2   26      FP 'Initial panel to display'
+
+TEXT     3   2       FP 'ZPANLPGM. . .'
+FIELD    3   16   8  NEF CAPS(ON),PAD(USER) ZPANLPGM
+TEXT     3   26      FP 'Program to run on SELECT PANEL command'
+
+TEXT     4   2       FP 'ZEDITPGM. . .'
+FIELD    4   16   8  NEF CAPS(ON),PAD(USER) ZEDITPGM
+TEXT     4   26      FP 'Editor program'
+
+TEXT     5   2       FP 'ZBRPGM. . . .'
+FIELD    5   16   8  NEF CAPS(ON),PAD(USER) ZBRPGM
+TEXT     5   26      FP 'Browse program'
+
+TEXT     6   2       FP 'ZVIEWPGM. . .'
+FIELD    6   16   8  NEF CAPS(ON),PAD(USER) ZVIEWPGM
+TEXT     6   26      FP 'View program'
+
+TEXT     7   2       FP 'ZFLSTPGM. . .'
+FIELD    7   16   8  NEF CAPS(ON),PAD(USER) ZFLSTPGM
+TEXT     7   26      FP 'File list program'
+
+TEXT     8   2       FP 'ZHELPPGM. . .'
+FIELD    8   16   8  NEF CAPS(ON),PAD(USER) ZHELPPGM
+TEXT     8   26      FP 'Program to run on selecting HELP'
+
+TEXT     9   2       FP 'ZOREXPGM. . .'
+FIELD    9   16   8  NEF CAPS(ON),PAD(USER) ZOREXPGM
+TEXT     9   26      FP 'REXX interpreter stub and default SELECT CMD() language parameter'
+
+TEXT     10  2       FP 'ZSHELPGM. . .'
+FIELD    10  16   8  NEF CAPS(ON),PAD(USER) ZSHELPGM
+TEXT     10  26      FP 'Program used to run shell scripts ie. SELECT CMD() LANG(SHELL)'
+
+TEXT     11  2       FP 'ZFHSTPGM. . .'
+FIELD    11  16   8  NEF CAPS(ON),PAD(USER) ZFHSTPGM
+TEXT     11  26      FP 'Field history program'
+
+TEXT     13  2     CH  'Instructions'
+
+TEXT     14  5     PIN 'Enter'
+TEXT     14  11    PS  'Defaults'
+TEXT     14  19    PIN ','
+TEXT     14  21    PS  'Save'
+TEXT     14  26    PIN 'or'
+TEXT     14  29    PS  'Cancel'
+
+TEXT     15  5     CH '(Defaults are those defined in the lspf.h #define values for these variable names)'
+
+TEXT     17  2     CT  'Warning'
+TEXT     18  5     CT  'Incorrect values can render lspf unusable.  Rerun setup program to recreate ISPSPROF in this case'
+
+)INIT
+.HIST = *
+
+)PROC
+VGET ZVERB SHARED
+IF (&ZVERB EQ 'CANCEL' ) &ZCMD = 'CANCEL'
+
+&ZCMD = TRANS( &ZCMD DEF,DEFAULTS *,* )
+
+VER (&ZCMD LIST,CANCEL,DEFAULTS,SAVE)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

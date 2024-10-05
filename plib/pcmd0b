@@ -1,0 +1,83 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel for issuing commands
+)ENDCOMMENT
+
+)ATTR
+01 TYPE(DATAIN)  INTENS(HIGH)
+02 TYPE(DATAOUT) INTENS(HIGH)
+
+03 TYPE(CHAR) COLOUR(RED)
+04 TYPE(CHAR) COLOUR(GREEN)
+05 TYPE(CHAR) COLOUR(YELLOW)
+06 TYPE(CHAR) COLOUR(BLUE)
+07 TYPE(CHAR) COLOUR(MAGENTA)
+08 TYPE(CHAR) COLOUR(TURQ)
+09 TYPE(CHAR) COLOUR(WHITE)
+
+0A TYPE(CHAR) COLOUR(RED)     INTENS(HIGH)
+0B TYPE(CHAR) COLOUR(GREEN)   INTENS(HIGH)
+0C TYPE(CHAR) COLOUR(YELLOW)  INTENS(HIGH)
+0D TYPE(CHAR) COLOUR(BLUE)    INTENS(HIGH)
+0E TYPE(CHAR) COLOUR(MAGENTA) INTENS(HIGH)
+0F TYPE(CHAR) COLOUR(TURQ)    INTENS(HIGH)
+10 TYPE(CHAR) COLOUR(WHITE)   INTENS(HIGH)
+
+11 TYPE(CHAR) COLOUR(RED)     HILITE(REVERSE)
+12 TYPE(CHAR) COLOUR(GREEN)   HILITE(REVERSE)
+13 TYPE(CHAR) COLOUR(YELLOW)  HILITE(REVERSE)
+14 TYPE(CHAR) COLOUR(BLUE)    HILITE(REVERSE)
+15 TYPE(CHAR) COLOUR(MAGENTA) HILITE(REVERSE)
+16 TYPE(CHAR) COLOUR(TURQ)    HILITE(REVERSE)
+17 TYPE(CHAR) COLOUR(WHITE)   HILITE(REVERSE)
+
+)ABC DESC(Commands) MNEM(1)
+PDC DESC('Clear Output')       ACTION RUN(>-CLEAR)
+PDC DESC('List status')        ACTION RUN(>-INFO)
+PDC DESC('List Running Jobs')  ACTION RUN(>-LIST)
+PDC DESC('&ANSITXT ANSI colour codes')  ACTION RUN(>-ANSI)
+PDC DESC('Quick help')         ACTION RUN(>-HELP)
+
+)ABCINIT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Execute Command'
+
+DYNAREA   5 1 MAX MAX-4 ZAREA ZSHADOW SCROLL(ON)
+
+TEXT   MAX-2  1          FP  '===>'
+FIELD  MAX-2  6   MAX-17 NEF CAPS(OFF),PAD(USER) ZCMD
+
+TEXT   MAX-2  MAX-15     FP  'Scroll ===>'
+FIELD  MAX-2  MAX-3   4  NEF  NONE  ZSCROLL
+
+)INIT
+.CURSOR = ZCMD
+&ZUS5   = 1
+
+)PROC
+&GRCPGM = '/usr/bin/grc'
+&GRCSTR = '&GRCPGM -es --colour=on'
+&GRCCHR = '@'
+&ZCMD1  = &ZCMD
+
+IF (&ZCMD NE &Z)
+   IF (exists(GRCPGM))
+      &A = TRUNC(&ZCMD,1)
+      IF (&A EQ &GRCCHR)
+         &B     = .TRAIL
+         &ZCMD  = '&GRCSTR &B'
+         &ZCMD1 = &B
+      ELSE
+         &A = TRUNC(&ZCMD,' ')
+         IF (&A EQ 'df','du','env','ls','mount','ping','ps')
+            &ZCMD = '&GRCSTR &ZCMD'
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

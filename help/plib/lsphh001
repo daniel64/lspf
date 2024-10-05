@@ -1,0 +1,16 @@
+)PANEL VERSION=1 FORMAT=1 
+/* *************************************************** */
+/* Converted by panconv EXEC on 3 Oct 2024 at 15:46:41 */
+/* *************************************************** */
+/* )PANEL panconv */
+)ATTR DEFAULT(%+_)
+! TYPE(PT)
+/* } AREA(SCRL) EXTEND(ON) panconv */
+)BODY WINDOW(70,12) CMD()
+TEXT 1 29 ATTR(21) 'Help for Help'
+AREA 2 1 45 4 HHELP
+)AREA HHELP
+TEXT 3 2 ATTR(2B) 'Help for help is not available.'
+)INIT
+.HHELP = lsphh001
+)END

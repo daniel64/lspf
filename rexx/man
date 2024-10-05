@@ -1,0 +1,40 @@
+/*
+  Copyright (c) 2020 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+parse source . . src .
+Call setdest src
+/************************************************************************************/
+
+/* ********************************************************************* */
+/* Display the man page from a passed file name.                         */
+/* Everything from the last "/" to the next "." is used as the man page. */
+/* For use in opt 3.4                                                    */
+/* ********************************************************************* */
+
+parse arg page .
+
+p1 = lastpos( "/", page ) + 1
+
+page = substr( page, p1 )
+
+parse var page page "." .
+
+address ISPEXEC "SELECT PGM(PCMD0A) PARM(man "page") NEWPOOL SCRNAME(MAN)"
+
+EXIT

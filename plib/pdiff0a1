@@ -1,0 +1,191 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+Compare files/directories
+Entry screen
+)ENDCOMMENT
+
+)ATTR
++ TYPE(NEF) PAD(USER) CAPS(ON)
+% TYPE(NEF) PAD(USER)
+_ TYPE(CEF) PAD(USER)
+! TYPE(SAC)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Compare'
+
+TEXT     4    2       FP     'Command ===>'
+FIELD    4   15   MAX ATTR(+) ZCMD
+
+TEXT     6    2       FP     'Entry Name A. . .'
+FIELD    6   20   MAX-4 ATTR(%) ENTRYA
+FIELD    6   MAX-2    2 LI   NONE      FLDAIND
+
+TEXT     7    2       FP     'Entry Name B. . .'
+FIELD    7   20   MAX-4 ATTR(%) ENTRYB
+FIELD    7   MAX-2    2 LI   NONE      FLDBIND
+
+AREA     8    1   MAX MAX     SAREA1
+
+)AREA SAREA1
+TEXT     1    2       CH     'Options'
+TEXT     2    4       PIN    'Enter / to select option'
+
+FIELD    3    4   1   ATTR(_) SHOWI
+TEXT     3    7       ATTR(!) 'Show identical files'
+
+FIELD    4    4   1   ATTR(_) SHOWA
+TEXT     4    7       ATTR(!) 'Show files only in A'
+
+FIELD    5    4   1   ATTR(_) SHOWB
+TEXT     5    7       ATTR(!) 'Show files only in B'
+
+FIELD    6    4   1   ATTR(_) RECUR1
+TEXT     6    7       ATTR(!) 'Recursively compare directories'
+
+FIELD    8    4   1   ATTR(_) CMPINS
+TEXT     8    7       ATTR(!) 'Case insensitive compare'
+
+FIELD    9    4   1   ATTR(_) CMPIGD
+TEXT     9    7       ATTR(!) 'Ignore changes to whitespace'
+
+FIELD    10   4   1   ATTR(_) CMPIGB
+TEXT     10   7       ATTR(!) 'Ignore blank lines'
+
+FIELD    11   4   1   ATTR(_) CMPITS
+TEXT     11   7       ATTR(!) 'Ignore trailing spaces'
+
+FIELD    12   4   1   ATTR(_) CMPIGT
+TEXT     12   7       ATTR(!) 'Ignore changes due to tab expansion'
+
+TEXT     14   2       FP     'Exclude pattern . . . . . . .'
+FIELD    14   32  MAX-4 ATTR(%) EXCLPATT
+FIELD    14  MAX-2    2 LI   NONE      EXCLIND
+
+TEXT     15   2       FP     'Ignore regexp . . . . . . . .'
+FIELD    15   32  MAX-4 ATTR(%) IGNREGEX
+FIELD    15  MAX-2    2 LI   NONE      IGNRIND
+
+TEXT     16   2       FP     'Extra processing options. . .'
+FIELD    16   32  MAX-4 ATTR(%) PROCOPTS
+FIELD    16  MAX-2    2 LI   NONE      PROCIND
+
+TEXT     2    40      FP      'Output format:'
+FIELD    2    55  1   ATTR(_) DFFUTN
+TEXT     2    58      ATTR(!) '1. Standard'
+TEXT     3    58      ATTR(!) '2. Context'
+TEXT     4    58      ATTR(!) '3. Unified'
+TEXT     5    58      ATTR(!) '4. Output an ed script'
+TEXT     6    58      ATTR(!) '5. RCS format'
+TEXT     7    58      ATTR(!) '6. Side-by-side'
+
+TEXT     9    40      FP      'Number of context lines. . .'
+FIELD    9    69  3   ATTR(_) DFCNTX
+
+TEXT     18   2    CH  'Instructions'
+TEXT     19   5    NT  'Enter file or directory names and press'
+TEXT     19   45   ET  'Enter'
+TEXT     19   51   NT  'to compare'
+
+)INIT
+.HELP   = DIFH0001
+.NRET   = ON
+.HIST   = 'ENTRYA,ENTRYB,EXCLPATT,IGNREGEX,PROCOPTS'
+.CURSOR = ZCMD
+
+VGET (ENTRYA,ENTRYB,EXCLPATT,IGNREGEX,PROCOPTS) PROFILE
+VGET (DFFUTN,DFCNTX,SHOWI,SHOWA,SHOWB,RECUR1) PROFILE
+VGET (CMPINS,CMPIGD,CMPIGB,CMPITS,CMPIGT) PROFILE
+
+)PROC
+IF (&ZCMD EQ SWI,SWIT,SWITC,SWITCH)
+   &TEMP   = &ENTRYA
+   &ENTRYA = &ENTRYB
+   &ENTRYB = &TEMP
+   &ZCMD   = &Z
+   REFRESH(ENTRYA,ENTRYB,ZCMD)
+   .MSG    = DIFF011H
+   .CURSOR = ZCMD
+   EXIT
+
+IF (TRUNC(&ENTRYB,1) EQ '=')
+  &ENTRYB = &ENTRYA
+  &AAA    = '&ENTRYB '
+  .CURSOR = ENTRYB
+  .CSRPOS = LENGTH(AAA)
+  .MSG    = DIFF011U
+  REFRESH(ENTRYB)
+  EXIT
+
+IF (&ZCMD NE &Z,'/')
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+   EXIT
+
+VER (&DFFUTN,NB,RANGE,1,6)
+VER (&DFCNTX,NUM)
+
+&SHOWI  = TRANS(&SHOWI  &Z,&Z *,/)
+&SHOWA  = TRANS(&SHOWA  &Z,&Z *,/)
+&SHOWB  = TRANS(&SHOWB  &Z,&Z *,/)
+&RECUR1 = TRANS(&RECUR1 &Z,&Z *,/)
+&CMPINS = TRANS(&CMPINS &Z,&Z *,/)
+&CMPIGD = TRANS(&CMPIGD &Z,&Z *,/)
+&CMPIGB = TRANS(&CMPIGB &Z,&Z *,/)
+&CMPITS = TRANS(&CMPITS &Z,&Z *,/)
+&CMPIGT = TRANS(&CMPIGT &Z,&Z *,/)
+&DFFUTT = TRANS(&DFFUTN 1,'--normal' 2,'-c', 3,'-u' 4,'-e', 5,'-n' 6,'-y' )
+
+&DFFUTX = &DFFUTT
+
+VER (&ENTRYA,NB)
+&ISFILE1 = FILE(ENTRYA)
+&ISDIR1  = DIR(ENTRYA)
+
+VER (&ENTRYB,NB)
+&ISFILE2 = FILE(ENTRYB)
+&ISDIR2  = DIR(ENTRYB)
+
+IF ( &ISFILE1 EQ .FALSE AND &ISDIR1 EQ .FALSE )
+   .MSG    = DIFF011A
+   .CURSOR = ENTRYA
+   EXIT
+
+IF ( &ISFILE2 EQ .FALSE AND &ISDIR2 EQ .FALSE )
+   .MSG    = DIFF011A
+   .CURSOR = ENTRYB
+   EXIT
+
+IF ( &ISFILE1 EQ .TRUE AND &ISDIR2 EQ .TRUE OR &ISFILE2 EQ .TRUE AND &ISDIR1 EQ .TRUE )
+   .MSG    = DIFF011B
+   .CURSOR = ENTRYA
+   EXIT
+
+IF ( &ISDIR1 EQ .TRUE AND &ISDIR2 EQ .TRUE AND &ZCMD EQ '/' )
+   .MSG    = DIFF011D
+   .CURSOR = ZCMD
+   EXIT
+
+IF (.MSG EQ &Z)
+   VPUT (ENTRYA,ENTRYB,EXCLPATT,IGNREGEX,PROCOPTS) PROFILE
+   VPUT (DFFUTN,DFCNTX,SHOWI,SHOWA,SHOWB,RECUR1) PROFILE
+   VPUT (CMPINS,CMPIGD,CMPIGB,CMPITS,CMPIGT) PROFILE
+
+)FIELD
+FIELD(ENTRYA) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL) NESTED')
+FIELD(ENTRYB) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL) NESTED')
+
+FIELD(ENTRYA)   LEN(4095) IND(FLDAIND)
+FIELD(ENTRYB)   LEN(4095) IND(FLDBIND)
+FIELD(EXCLPATT) LEN(512)  IND(EXCLIND)
+FIELD(IGNREGEX) LEN(512)  IND(IGNRIND)
+FIELD(PROCOPTS) LEN(512)  IND(PROCIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

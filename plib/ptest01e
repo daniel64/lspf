@@ -1,0 +1,48 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+
+**************************************************************************
+**************************************************************************
+* Test popups                                                            *
+**************************************************************************
+**************************************************************************
+
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Test Popup Panels'
+
+TEXT      4    2   FP  'Command ===> '
+FIELD     4   15  MAX   NEF     CAPS(ON),PAD(USER) ZCMD
+
+AREA   5 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT      1   MAX-36    FP  'TIME: '
+FIELD     1   MAX-30    8    VOI   NONE  ZTIME
+
+TEXT      1   MAX-20    FP  'DATE: '
+FIELD     1   MAX-14    8    VOI   NONE  ZDATE
+
+TEXT      3   6     FP  'FIELD FLD1. .'
+FIELD     3   20    11   NEF   PAD(USER) FLD1
+
+TEXT      4   6     FP  'FIELD FLD2. .'
+FIELD     4   20    11   NEF   PAD(USER) FLD2
+
+TEXT      6   6     FP  'Press ENTER to create popup'
+
+)INIT
+
+)REINIT
+
+)PROC
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

@@ -1,0 +1,430 @@
+/*
+  Copyright (c) 2015 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+/* Display contents of table file
+   Table format
+   0085 - 2 bytes for file type
+   0n   - table format V1/V2/V3/V4
+   xx   - header length
+   vvv  - header
+   xx   - Number of header fields (just SIR so should be 1)
+   xx   - field length }
+   vvv  - field value  }
+   xx   - number of rows in the table
+   x    - number of keys in the table
+   x    - number of fields in the table
+   xx   - value length        } x number of cols   ........................}
+   vvv  - table column value  }                                            }
+   nnnn - V4 prefix field at start of each row                             }
+   nnnn - V2 field at end of each row for the number of extension variables}
+   xx   - V2 field (if present) extension variable list len                } x num of rows
+   vvv  - V2 field extension list                                          }
+   xx   - V2 field ext value length        }                               }
+   vvv  - V2 field ext table column value  } x ext vars present            }
+   0xFF - V2 End-of-record marker                  ........................}
+   0xFF - V2 End-of-file marker
+*/
+
+
+/* Display contents of the profile file
+   Profile format
+   0084 - 2 bytes for file type
+   01   - profile format V1
+   xx   - header length
+   vvv  - header
+   xx   - name length    ....}
+   vvv  - variable name      } Repeated until EOD
+   xxxx - value length       }
+   vvv  - variable value ....}
+*/
+
+if rxqueue( "Exists", "fmt" ) then
+  do
+    x = rxqueue( "Delete", "fmt" )
+  end
+
+x = rxqueue( "Create", "fmt" )
+x = rxqueue( "Set", "fmt" )
+
+queue "File name. . . . :" arg(1)
+queue
+
+Zfile = .stream~new(arg(1))
+Zfile~open("read")
+
+data = ""
+
+do while Zfile~chars > 0
+   data = data || Zfile~charin
+   if length( data ) == 2 then
+     do
+       if data \= '0084'x & data \= '0085'x then
+         do
+           Call Error
+           exit 0
+         end
+       leave
+     end
+end
+
+do while Zfile~chars > 0
+   data = data || Zfile~charin
+end
+
+Zfile~close
+
+if length( data ) < 3 then
+  do
+    Call Error
+    exit 0
+  end
+
+if getCValue( 1,2 ) = '0084'x then
+  do
+    queue "Variable profile file found"
+    Call ListVariables
+  end
+else
+  do
+    queue "lspf table file found"
+    call ListTable
+  end
+
+o = value( "RXQUEUE", "FMT", "ENVIRONMENT" )
+
+ddname = "$"random( 0, 9999999 )
+
+address TSO "ALLOC F("ddname") NEW DELETE"
+address TSO "EXECIO * DISKW "ddname" (FINIS"
+
+address ISPEXEC
+zbralt = "Table/variable:" arg( 1 )
+"VPUT ZBRALT SHARED"
+"CONTROL ERRORS RETURN"
+"LMINIT DATAID(AAA) DDNAME(&ddname)"
+"BROWSE DATAID(&AAA)"
+if RC > 0 then
+  do
+    say "No data to browse"
+  end
+"LMFREE DATAID(&AAA)"
+address TSO "FREE F("ddname")"
+"VERASE ZBRALT SHARED"
+
+x = rxqueue( "Delete", "fmt" )
+x = value( "RXQUEUE", o, "ENVIRONMENT" )
+EXIT 0
+
+
+ListVariables:
+
+ver = getNvalue1( 3 )
+if ver \= 01 then
+  do
+    queue "Profile version not supported.  Found" ver
+    Call Error
+    exit 0
+  end
+
+queue "Found version" ver "profile file"
+queue
+
+hdrlen = getNvalue1( 4 )
+queue "Header length is" hdrlen
+queue "Header is "getCValue( 5, hdrlen )
+queue
+
+offset = hdrlen + 5
+datal  = length(data)
+errs   = 0
+tot    = 0
+
+do forever
+    l      = getNvalue1( offset )
+    if l > 8 then
+      do
+        errs = errs + 1
+        queue
+        queue "*ERROR*  Variable length greater than 8"
+        queue
+      end
+    offset = offset + 1
+    var    = getCValue(offset,l)
+    offset = offset + l
+    l      = getNvalue2( offset )
+    offset = offset + 2
+    val    = getCValue(offset,l)
+    queue "Variable:" left(var,8) " Value:" val
+    offset = offset + l
+    tot = tot + 1
+    if offset >= datal then leave
+end
+
+queue
+queue "Total number of variables found is" tot
+queue "Total number of errors found is" errs
+queue
+RETURN
+
+
+ListTable:
+ver = getNvalue1( 3 )
+
+if ver > 4 then
+  do
+    queue "Table version not supported.  Found" ver
+    Call Error
+    exit 0
+  end
+
+queue "Found version" ver "table file"
+queue
+
+hdrlen = getNvalue1( 4 )
+queue "Header length is" hdrlen
+queue "Header is (hex) "c2x( getCvalue( 5, hdrlen ) )
+queue
+
+offset  = hdrlen + 5
+tifflds = getNvalue1( offset )
+queue "Number of table information fields is" tifflds
+
+do tifflds
+   offset = offset + 1
+   l      = getNvalue1( offset )
+   offset = offset + 1
+   fld    = getCvalue( offset, l )
+   offset = offset + l
+   queue "Table information field . . . . .:" fld
+end
+queue
+
+if ver > 2 then
+  do
+    rows = getNvalue3( offset )
+    queue "Number of rows in the table. . . :" rows
+    offset = offset + 3
+  end
+else
+  do
+    rows = getNvalue2( offset )
+    queue "Number of rows in the table. . . :" rows
+    offset = offset + 2
+  end
+
+keys   = getNvalue1( offset )
+queue "Number of keys in the table. . . :" keys
+
+offset = offset + 1
+flds   = getNvalue1( offset )
+queue "Number of fields in the table. . :" flds
+queue
+offset = offset + 1
+
+datal  = length(data)
+errs   = 0
+name.  = ""
+n      = 1
+
+do keys
+   klen = getNvalue1( offset )
+   if klen > 8 then
+     do
+       errs = errs + 1
+       queue
+       queue "*ERROR*  Variable length greater than 8"
+       queue
+     end
+   offset = offset + 1
+   key    = getCvalue( offset, klen )
+   name.n = key
+   max.n  = klen
+   n = n + 1
+   offset = offset + klen
+   queue "Key    field. . . . . . .:" key
+end
+
+do flds
+   flen = getNvalue1( offset )
+    if flen > 8 then
+      do
+        errs = errs + 1
+        queue
+        queue "*ERROR*  Variable length greater than 8"
+        queue
+      end
+   offset = offset + 1
+   fld    = getCvalue( offset, flen )
+   name.n = fld
+   max.n  = flen
+   n = n + 1
+   offset = offset + flen
+   queue "NonKey field. . . . . . .:" fld
+end
+name.0 = n-1
+queue
+
+tot   = 0
+val.  = ""
+evr.  = 0
+evl.  = ""
+row   = 1
+col   = 1
+cols  = keys+flds
+n     = 1
+pref. = ""
+
+do forever
+    if offset >= datal-1 then leave
+    if ver > 3 & col = 1 then
+      do
+        l      = getNvalue1( offset )
+        offset = offset + 1
+        v      = getCvalue( offset, l )
+        offset = offset + l
+        pref = c2x(v)
+        queue "Prefix: (hex) " pref
+        pref.row = pref
+      end
+    else if ver < 4 then
+      do
+        pref.row = "-       "
+      end
+    if cols > 0 then
+      do
+        l      = getNvalue2( offset )
+        offset = offset + 2
+        v      = getCvalue( offset, l )
+        offset = offset + l
+        queue right(row, 4) right(col, 3) left(name.n,8) " :" v
+        tot = tot + 1
+      end
+    n = n + 1
+    if n > name.0 then n = 1
+    val.row.col = v
+    if length(v) > max.col then max.col = length(v)
+    col = col + 1
+    if col > cols then
+      do
+        if ver > 1 then
+          do
+            l = getNvalue2( offset )
+            if l > 0 then
+              do
+                queue
+                queue "       * Number of extension variables on row:" l-1
+                offset = offset + 2
+                l = getNvalue2( offset )
+                offset = offset + 2
+                v = getCvalue( offset, l )
+                queue "       * Extension variable names:" v
+                evr.row.0 = words( v )
+                do i = 1 to evr.row.0
+                   evr.row.i = word( v, i )
+                end
+                do i = 1 to evr.row.0
+                   offset = offset + l
+                   l = getNvalue2( offset )
+                   offset = offset + 2
+                   v = getCvalue( offset, l )
+                   queue right(row, 4) "X"||right(i, 2) left(evr.row.i,8) " :" v
+                   evl.row.i = v
+                end
+                offset = offset + l
+              end
+            else
+              do
+                offset = offset + 2
+              end
+            if getCvalue( offset, 1 ) \= 'FF'x then errs = errs + 1
+            offset = offset + 1
+          end
+        col = 1
+        row = row + 1
+        queue
+      end
+end
+
+if ver > 1 then
+  do
+    if getCvalue( datal, 1 ) \= 'FF'x then errs = errs + 1
+  end
+
+queue
+queue "Total values found in table excluding extension variables is" Tot
+if ( tot \= cols * rows ) then
+  do
+    queue "Error.  Found "tot" values.  Expected "cols * rows
+    errs = errs + 1
+    queue
+  end
+queue "Total number of errors found is" errs
+queue
+queue "In table format:"
+
+
+l = "      PREFIX  "
+width = 0
+do j = 1 to cols
+   l = l left( name.j, max.j )
+   width = width + max.j + 1
+end
+queue l
+queue copies("=",width+18)
+
+l = ""
+do i = 1 to rows
+   l = pref.i
+   do j = 1 to cols
+      l = l left( val.i.j, max.j )
+   end
+   do j = 1 to evr.rows.0
+      l = l "ex var" j":" evr.i.j"="evl.i.j
+   end
+   queue right( i, 5 ) l
+   l = ""
+end
+queue
+queue "PREFIX:"
+queue "  01 CREATE"
+queue "  02 INSERT"
+queue "  04 UPDATE"
+RETURN
+
+
+getNValue1:
+RETURN c2d( substr( data,arg(1),1 ) )
+
+
+getNValue2:
+RETURN c2d( substr( data,arg(1),2 ) )
+
+
+getNValue3:
+RETURN c2d( substr( data,arg(1),3 ) )
+
+
+getCValue:
+RETURN substr( data,arg(1),arg(2) )
+
+
+Error:
+say "File does not contain a variable profile or an lspf table"
+Zfile~close
+RETURN

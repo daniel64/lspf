@@ -3,11 +3,11 @@ Open source Linux version of IBM's z/OS ISPF Dialogue Manager written in C++
 
 Application programs wishing to use DM Services, can be written in C++ or rexx (open object rexx).  Calls are made via a pApplication method or the ISPEXEC interface.
 
-Most services are supported (missing services are mostly file tailoring, and LM*) as are dynamic input/output areas, tables and a large subset of the ISPF panel language.  See doc directory for more details.
+Most services are supported, including many Library Management services, as are dynamic input/output areas, scrollable fields, tables, table displays (including multi-line models), file tailoring and a large subset of the ISPF panel language (including optional support for the *REXX/*ENDREXX and PANEXIT panel statements).  If REXX support has been enabled, simple ISPF panels can also be displayed.  See doc directory for more details.
 
-This as been written as an exercise whilst learning C++ and OOP and I've put it on GitHub in case anyone wants to use/contribute to it.  There is a lack of applications, but there is a browser, an editor similar to the mainframe PDF editor that also supports macros (including line command macros) written in OOREXX and syntax hilighting and a file list application.
+This as been written as an exercise whilst learning C++ and OOP and I've put it on GitHub in case anyone wants to use/contribute to it.  There is a lack of applications, but there is a browser, an editor similar to the mainframe PDF editor that also supports macros (including line command macros) written in OOREXX or C++ and syntax hilighting.  There is also a file list application.
 
-Other features include split screen, application stacking, keylists, reflists, command tables, field expansion, command retrieve, cursor-sensitive help, keylist help etc.
+Other features include split screen, application stacking, keylists, reflists, command tables, field expansion, field history, command retrieve, cursor-sensitive help, keylist help, swapbar, show pfkeys etc.
 
 Screenshots:
 

@@ -1,0 +1,153 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+Panel for displaying variables from various pools.  Used in Dialogue Test option
+
+
+)ENDCOMMENT
+
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Display System Variables from Pools'
+
+TEXT      4    2    FP  'Command ===> '
+FIELD     4   15   MAX   NEF   CAPS(ON),PAD(USER) ZCMD
+
+TEXT      6   MAX-36    FP  'TIME: '
+FIELD     6   MAX-30    8    VOI   NONE  ZTIME
+
+TEXT      6   MAX-20    FP  'DATE: '
+FIELD     6   MAX-14    8    VOI   NONE  ZDATE
+
+AREA 6 1 MAX-37 MAX SAREA1
+
+)AREA SAREA1
+
+TEXT      1   2     CT     'SHARED POOL VARIABLES: (DEFAULT)'
+
+
+TEXT      2   2     FP     'ZDATESTD:'
+FIELD     2   12    10     VOI   NONE  ZDATESTD
+
+TEXT      3   2     FP     'ZJDATE:  '
+FIELD     3   12    10     VOI   NONE  ZJDATE
+
+TEXT      4    2     FP     'ZJ4DATE:'
+FIELD     4    12    10     VOI   NONE  ZJ4DATE
+
+TEXT      2   23    FP     'ZDATEF:'
+FIELD     2   32    10     VOI   NONE  ZDATEF
+
+TEXT      3   23    FP     'ZDATEFD:'
+FIELD     3   32    10     VOI   NONE  ZDATEFD
+
+TEXT      4   23    FP     'ZDAY:'
+FIELD     4   32    10     VOI   NONE  ZDAY
+
+TEXT      5    23    FP     'ZDAYOFWK:'
+FIELD     5    32    10     VOI   NONE  ZDAYOFWK
+
+TEXT      2   44    FP     'ZENVIR:'
+FIELD     2   54    30     VOI   NONE  ZENVIR
+
+TEXT      3   44    FP     'ZSCRMAXD:'
+FIELD     3   54    30     VOI   NONE  ZSCRMAXD
+
+TEXT      4   44    FP     'ZSCRMAXW:'
+FIELD     4   54    30     VOI   NONE  ZSCRMAXW
+
+TEXT      5    44    FP     'ZTIMEL:'
+FIELD     5    54    30     VOI   NONE  ZTIMEL
+
+
+TEXT      7    2     CT     'SHARED POOL VARIABLES: (APPLICATION)'
+TEXT      8    2     FP     'ZAPPLID:'
+FIELD     8    11    8     VOI   NONE  ZAPPLID
+
+TEXT      9    2     FP     'ZCMD:'
+FIELD     9    11    8     VOI   NONE  ZCMDX
+
+TEXT      10   2     FP     'ZPANELID:'
+FIELD     10   11    8     VOI   NONE  ZPANELID
+
+TEXT      8    21     FP     'ZPFKEY:'
+FIELD     8    31    8     VOI   NONE  ZPFKEY
+
+TEXT      9    21     FP     'ZSCREEN:'
+FIELD     9    31    8     VOI   NONE  ZSCREEN
+
+TEXT      10   21     FP     'ZUSER:'
+FIELD     10   31    8     VOI   NONE  ZUSER
+
+
+TEXT      12   2     CT     'PROFILE POOL VARIABLES: (READ-ONLY EXTENSION)'
+
+
+TEXT      15   2     CT     'PROFILE POOL VARIABLES: (SYSTEM)'
+
+TEXT      16   2     FP     'ZUPROF:'
+FIELD     16   12    60     VOI   NONE  ZUPROF
+
+TEXT      17   2     FP     'ZSYSPATH:'
+FIELD     17   12    60     VOI   NONE  ZSYSPATH
+
+FIELD     18   12    60     VOI   NONE ZLDPATH
+TEXT      18   2     FP     'ZLDPATH:'
+
+FIELD     19  12     60     VOI   NONE  ZSLOG
+TEXT      19   2     FP     'ZSLOG:'
+
+FIELD     20   12    60     VOI   NONE  ZALOG
+TEXT      20   2     FP     'ZALOG:'
+
+FIELD     21   12    60     VOI   NONE  ZMLIB
+TEXT      21   2     FP     'ZMLIB:'
+
+FIELD     22   12    60     VOI   NONE  ZPLIB
+TEXT      22   2     FP     'ZPLIB:'
+
+FIELD     23   12    60     VOI   NONE  ZTLIB
+TEXT      23   2     FP     'ZTLIB:'
+
+FIELD     25   12    8     VOI   NONE  ZEDITPGM
+TEXT      25   2     FP     'ZEDITPGM:'
+
+FIELD     26   12    8     VOI   NONE  ZBRPGM
+TEXT      26   2     FP     'ZBRPGM:'
+
+FIELD     27   12    8     VOI   NONE  ZVIEWPGM
+TEXT      27   2     FP     'ZVIEWPGM:'
+
+FIELD     28   12    8     VOI   NONE  ZMAINPGM
+TEXT      28   2     FP     'ZMAINPGM:'
+
+FIELD     29   12     8     VOI   NONE  ZPANLPGM
+TEXT      29   2      FP     'ZPANLPGM:'
+
+FIELD     30   12     8     VOI   NONE  ZOREXPGM
+TEXT      30   2      FP     'ZOREXPGM:'
+
+FIELD     31   12     8     VOI   NONE  ZHELPPGM
+TEXT      31   2      FP     'ZHELPPGM:'
+
+FIELD     32   12     8     VOI   NONE  ZFLSTPGM
+TEXT      32   2      FP     'ZFLSTPGM:'
+
+
+
+)INIT
+VGET (ZPFKEY ZPANELID) SHARED
+.CURSOR = ZCMD
+
+)PROC
+if ( &ZCMD NE &Z)
+  .MSG    = PSYS011C
+  .CURSOR = ZCMD
+  EXIT
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

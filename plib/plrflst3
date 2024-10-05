@@ -1,0 +1,111 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Personal File List (Active)
+)ENDCOMMENT
+
+)ABC DESC(File) MNEM(1)
+PDC  DESC('New List')
+ ACTION RUN(>NEW)
+PDC  DESC('Open List of Lists')
+ ACTION RUN(>MORE)
+PDC  DESC('Save')
+ ACTION RUN(>SAVE)
+PDC  DESC('Save As')
+ ACTION RUN(>SAVEAS)
+PDC  DESC('Delete')
+ ACTION RUN(>DELETE)
+PDC  DESC('Edit')
+ ACTION RUN(>EDIT)
+PDC  DESC('DSLIST')
+ ACTION RUN(>DSLIST)
+PDC  DESC('DXLIST')
+ ACTION RUN(>DXLIST)
+PDC  DESC('Cancel')
+ ACTION RUN(CANCEL)
+PDC  DESC('Exit')
+ ACTION RUN(END)
+
+)ABCINIT
+
+)ABC DESC(Options) MNEM(1)
+PDC  DESC('Personal List Settings') UNAVAIL(ZRF3)
+ ACTION RUN(ISRROUTE) PARM('SELECT PGM(PLRFLST1) PARM(US1) NEWAPPL(ISP)')
+
+)ABCINIT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+ACTIONBAR 'File' 'Options' 'Menu' 'Settings' 'Help'
+PANELTITLE 'Personal File List'
+
+TEXT     4   2         FP    'Command ===>'
+FIELD    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD1
+
+TEXT     4  MAX-15  FP 'Scroll ===>'
+FIELD    4  MAX-3  4 NEF  NONE ZSCROLL
+
+TEXT     6  2      FP 'Action: S=Save A=Save As E=Edit D=Delete L=DSLIST N=New O=Open Lists X=DXLIST'
+
+TEXT     8  2      CH 'Action  Name     Description                              Created     Referenced'
+FIELD    9  2       1      NEF  PAD(USER),CAPS(ON),SKIP(OFF) FLISTACT
+FIELD    9  10      8      VOI  NONE ZCURTB
+FIELD    9  19      40     NEF  NONE FLADESCP
+FIELD    9  60      10     VOI  NONE FLACTIME
+FIELD    9  72      19     VOI  NONE FLAUTIME
+
+
+TEXT     11  2      CH    'S File Name'
+TEXT     12  2      CH    EXPAND '-'
+
+TBMODEL  13   MAX
+TBFIELD  2    1       NEF   PAD('.'),CAPS(ON) CSEL
+TBFIELD  ++1  MAX     NEF   NONE CFILE
+
+)INIT
+&ZRF1 = 1
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+&FLISTACT = &Z
+&ZTDMARK  = '- End -'
+
+IF (&ZCURTB EQ 'REFLIST')
+   .ATTR(FLADESCP) = 'TYPE(VOI)'
+
+)REINIT
+
+IF (.MSG EQ &Z)
+   &CSEL = &Z
+   REFRESH(CSEL)
+ELSE
+   IF (.CURSOR EQ 'CSEL' ) .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+)PROC
+VER (&FLISTACT,LIST,'S','A','E','D','L','N','O','X')
+
+IF (&ZCMD1 EQ NEW,MORE,SAVE,SAVEAS,DELETE,EDIT,DSLIST,DXLIST)
+   &FLISTACT = TRANS(&ZCMD1 NEW,N MORE,O SAVE,S SAVEAS,A DELETE,D EDIT,E DSLIST,L DXLIST,X)
+   &ZCMD1    = &Z
+
+IF (&ZCMD1 NE &Z)
+   .MSG    = LRFL011B
+   .CURSOR = ZCMD1
+   EXIT
+
+&CSEL = TRANS( &CSEL &Z,&Z *,'S' )
+
+IF (&CSEL = 'S' )
+   &FLISTACT = &Z
+
+VGET ZVERB SHARED
+IF (&ZVERB EQ 'CANCEL')
+   &ZCMD1 = 'CANCEL'
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

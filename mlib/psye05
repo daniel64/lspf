@@ -1,0 +1,182 @@
+/*                                           */
+/* Panel messages                            */
+/*                                           */
+
+/*                                           */
+/* VER Definition error messages             */
+/*                                           */
+PSYE051A 'Parameter already specified' .TYPE=W
+'Parameter &ZVAL1 already specified for VER statement &ZVAL2..'
+
+PSYE051B 'Invalid VERIFY type &ZVAL1' .TYPE=W
+'Must be ALPHA, ALPHAB, BIN, HEX, INCLUDE, LEN, LIST, LISTX, LISTV, LISTVX, ' +
+'NAME, NUM, OCT, PICT, RANGE, STDDATE or STDTIME.'
+
+PSYE051C 'Verfiy value missing' .TYPE=W
+'No verify value entered for LIST or PICT.'
+
+PSYE051D 'Invalid RANGE parameters' .TYPE=W
+'RANGE must be followed by 2 numeric or dialogue variable parameters.'
+
+PSYE051E 'Invalid comparison operator' .TYPE=W
+'''&ZVAL1'' is not a valid comparison operator for a VERIFY LEN statement.'
+
+PSYE051F 'Invalid value' .TYPE=W
+'Value for the VERIFY length must be numeric or a dialogue variable.'
+
+PSYE051G 'Invalid variable specified' .TYPE=W
+'LISTV and LISTVX require a valid dialogue variable name as the third parameter starting with an ''&''.'
+
+PSYE051H 'Invalid INCLUDE statement' .TYPE=W
+'INCLUDE must be followed by an optional IMBLK statement and up to two of ALPHA, ALPHAB and NUM statements.'
+
+PSYE051I 'Only two parameters allowed' .TYPE=W
+'Only two of ALPHA, ALPHAB and NUM may be specified on the VER INCLUDE statement.'
+
+PSYE051J 'Invalid IMBLK parameter' .TYPE=W
+'If IMBLK is specified, it must be the first parameter after the INCLUDE parameter.'
+
+PSYE051K 'Invalid parameter' .TYPE=W
+'&ZVAL1 is not a valid parameter.'
+
+
+/*                                           */
+/* VER Runtime error messages                */
+/*                                           */
+PSYE052A 'Invalid data detected' .TYPE=W
+'Variable &ZVAL1 does not contain numeric data for the &ZVAL2 statement.'
+
+PSYE052B 'Invalid STDDATE format' .TYPE=W
+'Data is not in STDDATE format.'
+
+PSYE052C 'Invalid STDTIME format' .TYPE=W
+'Data is not in STDTIME format.'
+
+PSYE052D 'Invalid ALPHA format' .TYPE=W
+'Data must contain only upper case, lower case characters or #, $ or @.'
+
+PSYE052E 'Invalid ALPHAB format' .TYPE=W
+'Data must contain only upper and lower case characters.'
+
+PSYE052F 'Invalid BIT format' .TYPE=W
+'Data must contain only zeroes and ones.'
+
+PSYE052G 'Invalid ALPHA NUM format' .TYPE=W
+'Data must contain only upper case, lower case characters, #, $, @ or numeric characters.  &ZVAL1'
+
+PSYE052H 'Invalid ALPHAB NUM format' .TYPE=W
+'Data must contain only upper case, lower case or numeric characters.  &ZVAL1'
+
+PSYE052I 'Invalid ALPHA format' .TYPE=W
+'Data must contain only upper case, lower case characters or #, $ or @.  &ZVAL1'
+
+PSYE052J 'Invalid ALPHAB format' .TYPE=W
+'Data must contain only upper and lower case characters.  &ZVAL1'
+
+PSYE052K 'Invalid NUM format' .TYPE=W
+'Data must contain only numeric characters.  &ZVAL1'
+
+PSYE052L 'Invalid string' .TYPE=W
+'String must be &ZVAL1 characters of the form ''&ZVAL2''.'
+
+PSYE052M 'Invalid string' .TYPE=W
+'Character &ZVAL1 must be ''&ZVAL2''.'
+
+PSYE052N 'Invalid string' .TYPE=W
+'Character &ZVAL1 must be alphabetic (A-Z, a-z, #, $, @).'
+
+PSYE052O 'Invalid string' .TYPE=W
+'Character &ZVAL1 must be numeric (0-9).'
+
+PSYE052P 'Invalid string' .TYPE=W
+'Character &ZVAL1 must be hexadecimal (0-9, A-F, a-f).'
+
+PSYE052Q 'Invalid picture character' .TYPE=W
+'Character must be one of the picture string characters (C, A, N, 9, X or c, a, n, x).'
+
+PSYE052R 'Invalid mask character' .TYPE=W
+'Mask character must be a single character and not one of the picture string characters (C, A, N, 9, X or c, a, n, x).'
+
+PSYE052S 'Field mask invalid' .TYPE=W
+'Field mask must contain at least one mask character.'
+
+PSYE052T 'Invalid IPv4 address' .TYPE=W
+'Entered IPv4 address format is invalid.'
+
+PSYE052U 'Invalid IPv6 address' .TYPE=W
+'Entered IPv6 address format is invalid.'
+
+PSYE053A 'Invalid sign position' .TYPE=W
+'''+'' can only appear at the start of the field.'
+
+PSYE053B 'Invalid sign position' .TYPE=W
+'''-'' can only appear at the start or end of the field.'
+
+PSYE053C 'Invalid decimal position' .TYPE=W
+'''.'' can only appear a maximum of once in a field.'
+
+PSYE053D 'Invalid delimiter' .TYPE=W
+'Delimiter '','' cannot appear after the decimal position.'
+
+PSYE053E 'Invalid sign position' .TYPE=W
+'Sign cannot appear at this position.'
+
+PSYE053F 'Numeric digit expected' .TYPE=W
+'A numeric digit expected at this position.'
+
+PSYE053G 'Numeric digit expected' .TYPE=W
+'No numeric digits found or none found after decimal position.'
+
+PSYE053H 'Missing closing bracket' .TYPE=W
+'Closing bracket missing at end of value.'
+
+PSYE053I 'Invalid delimiter' .TYPE=W
+'Delimiter '','' missing or at incorrect position.'
+
+
+/*                                           */
+/* LM error messages                         */
+/*                                           */
+PSYE054A 'Invalid DATAID' .TYPE=W
+'DATAID is missing or incorrect.'
+
+PSYE054B 'Invalid variable name' .TYPE=W
+'Variable name is missing or incorrect for parameter &ZVAL1..'
+
+PSYE054C 'Missing parameter' .TYPE=W
+'Either DATASET or DDNAME must be entered on an LMINIT call.'
+
+PSYE054D 'Invalid parameter' .TYPE=W
+'Only one of DATASET or DDNAME must be entered on an LMINIT call.'
+
+PSYE054E 'Invalid parameter' .TYPE=W
+'Only MODE INVAR is currently supported on an LMGET call.'
+
+PSYE054F 'Missing parameter' .TYPE=W
+'Parameter &ZVAL1 must be entered on an &ZVAL2 call.'
+
+PSYE054G 'Invalid parameter' .TYPE=W
+'If entered, parameter OPTION must be either INPUT or OUTPUT an LMOPEN call.'
+
+PSYE054H 'Error accessing &ZVAL1' .TYPE=W
+'Dialogue variable &ZVAL1 does not exist.'
+
+PSYE054I 'DATAID undefined' .TYPE=W
+'DATAID specified has not been defined.'
+
+PSYE054J 'Invalid &ZVAL1 parameter' .TYPE=W
+'Specify either &ZVAL2'
+
+PSYE054K 'Missing level parameter' .TYPE=W
+'Level must be specified and must be an existing directory entry.'
+
+
+/*                                           */
+/* General error messages                    */
+/*                                           */
+PSYE055A 'Open error' .TYPE=W
+'File &ZVAL1 cannot be opened.'
+
+PSYE055B 'Invalid DDNAME' .TYPE=W
+'DDNAME &ZVAL1 is not of the correct format.'
+

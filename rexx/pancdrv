@@ -1,0 +1,115 @@
+/*
+  Copyright (c) 2021 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+/* ******************************************************** */
+/* Simple driver for panconv to provide a dialogue frontend */
+/* when converting ISPF panels to lspf panels.              */
+/* ******************************************************** */
+
+address ISPEXEC
+
+generic = .false
+
+do forever
+   "DISPLAY PANEL(PPANDRV1)"
+   if RC > 0 then leave
+   "ADDPOP ROW(5) COLUMN(5)"
+   "DISPLAY PANEL(PPANDRV2)"
+   if RC > 0 then do ; "REMPOP" ; iterate ; end
+   "REMPOP"
+   if substr( isppan1, length( isppan1 ) - 1, 2 ) = "/*" then
+     do
+       idir = substr( isppan1, 1, lastpos( "/", isppan1 ) )
+       if \sysisfiledirectory( idir ) then
+         do
+           zedsmsg = 'Not a directory'
+           zedlmsg = 'Entry must be a valid file or ''*'' including the directory.'
+           "SETMSG MSG(PSYZ001)"
+           iterate
+         end
+       call SysFileTree isppan1, "infiles", "FO"
+       generic = .true
+     end
+   else
+     do
+       if \sysisfile( isppan1 ) then
+         do
+           zedsmsg = 'Not a file'
+           zedlmsg = 'Entry must be a valid file including the directory.'
+           "SETMSG MSG(PSYZ001)"
+           iterate
+         end
+     end
+   oname = GetName( lsppan1, isppan1 )
+   if zfilrepl = "" & sysisfile( oname ) then
+     do
+       zedsmsg = "File exists"
+       zedlmsg = "Select 'replace lspf panel' to continue."
+       "SETMSG MSG(PSYZ001)"
+       iterate
+     end
+   skip = 0
+   errs = 0
+   done = 0
+   if \generic then
+     do
+       Call panconv "PANCDRV", isppan1, oname, lspscrw, lspscrd
+       zedsmsg = "panconv ended."
+       zedlmsg = ""
+       done = 1
+     end
+   else
+     do
+       do i = 1 to infiles.0
+         oname = GetName( lsppan1, infiles.i )
+         done  = done + 1
+         if zfilrepl = "" & sysisfile( oname ) then
+           do
+             skip = skip + 1
+             iterate
+           end
+         Call panconv "PANCDRV", infiles.i, oname, lspscrw, lspscrd
+         if result \= "RESULT" then
+           do
+             errs = errs + 1
+             say "Error from conversion of panel "infiles.i
+             if zconterr = "" then
+               do
+                 say "Stopping due to errors - option is not to continue."
+                 leave i
+               end
+           end
+       end
+       zedsmsg = "panconv ended." skip "file(s) skipped"
+       zedlmsg = done "file(s) processed." skip "file(s) have not been replaced as they already exist." errs "error(s) encountered."
+     end
+   "SETMSG MSG(PSYZ001)"
+end
+EXIT
+
+
+GetName: Procedure
+n1 = arg( 1 )
+n2 = arg( 2 )
+
+if substr( n1, length( n1 ), 1 ) \= "/" then
+  do
+    n1 = n1 || "/"
+  end
+RETURN n1 || substr( n2, lastpos( "/", n2 ) + 1 )

@@ -1,0 +1,44 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Keylist Utility change keylist application id
+)ENDCOMMENT
+
+)BODY WINDOW(50,9) CMD()
+PANELTITLE 'Keylist Application ID'
+
+AREA   2 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1   2   FP    'Keylist application ID . .'
+FIELD    1   29  4     NEF CAPS(ON),PAD(USER) KEYAPPL
+
+TEXT    3 2  CH 'Instructions'
+TEXT    4 5  NT 'Press'
+TEXT    4 11 ET 'Enter'
+TEXT    4 17 NT 'to confirm'
+
+TEXT    5 5  NT 'Enter'
+TEXT    5 11 ET 'Cancel'
+TEXT    5 18 NT 'or'
+TEXT    5 21 ET 'End'
+TEXT    5 25 NT 'to cancel keylist change'
+
+)INIT
+.CURSOR  = KEYAPPL
+&KEYAPPL = &Z
+&ZWINTTL = &Z
+&ZCMD    = &Z
+
+)PROC
+IF (&ZCMD NE &Z )
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
+VER (&KEYAPPL,NB,NAME,MSG=PSYS012V)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

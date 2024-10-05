@@ -1,0 +1,89 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Show Network details - processes, upload/down load rates.  Uses libnethogs.
+)ENDCOMMENT
+
+)ATTR
+_ TYPE(NEF) PAD(USER) CAPS(ON)
++ TYPE(VOI)
+! TYPE(OUTPUT) COLOUR(YELLOW) CAPS(OFF)
+% TYPE(OUTPUT) COLOUR(WHITE) CAPS(OFF)
+# TYPE(OUTPUT) COLOUR(BLUE) CAPS(OFF)
+* TYPE(OUTPUT) COLOUR(TURQ) CAPS(OFF)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Network Traffic'
+
+TEXT     4   2         FP    'Command ===>'
+FIELD    4  15  max-17 nef caps(on),pad(user) zcmd
+
+TEXT     4  MAX-15   FP   'Scroll ===>'
+FIELD    4  MAX-3  4 NEF  NONE ZSCROLL
+
+TEXT     6  2   FP   'Total sent . . . :'
+TEXT     7  2   FP   'Total received . :'
+FIELD    6  21  16   VOI  NONE SENDT
+FIELD    7  21  16   VOI  NONE RECVT
+
+TEXT     6  38  FP   'Outbound. . . :'
+TEXT     7  38  FP   'Inbound . . . :'
+FIELD    6  54  16   VOI  NONE SENDRT
+FIELD    7  54  16   VOI  NONE RECVRT
+
+TEXT     9  2   FP  'S PID      User       Sent       Received   Outbound       Inbound         Device'
+TEXT    10  6   FP  'Program Name'
+
+TBMODEL  11  MAX
+TBFIELD  2      1      ATTR(_) SEL
+TBFIELD  ++1    8      ATTR(!) PID
+TBFIELD  ++1    10     ATTR(*) USER
+TBFIELD  ++1    10     ATTR(%) SENT
+TBFIELD  ++1    10     ATTR(%) RECV
+TBFIELD  ++1    14     ATTR(%) SENDR
+TBFIELD  ++1    14     ATTR(%) RECVR
+TBFIELD  ++2    10     ATTR(*) DEVICE
+TBMODEL
+TBFIELD  6     20     ATTR(#) NAME
+TBFIELD  ++2   MAX    ATTR(#) PROGRAM
+
+)INIT
+VGET ZSCROLL PROFILE
+
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+)REINIT
+IF (.MSG EQ &Z)
+   &SEL = &Z
+   REFRESH(SEL)
+
+)PROC
+IF (.RESP = END) EXIT
+
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+   EXIT
+
+VER(&SEL,LIST,K,S,T)
+
+IF (&SEL NE &Z AND &ZTDSELS GT 0 AND &PID EQ '0')
+   &ZEDSMSG = 'Invalid PID'
+   &ZEDLMSG = 'Cannot kill or select PID 0'
+   .MSG     = PSYZ001
+   .CURSOR  = SEL
+   EXIT
+
+IF (.MSG = &Z) VPUT ZSCROLL PROFILE
+
+)FIELD
+FIELD(NAME)     LEN(4095)
+FIELD(PROGRAM)  LEN(4095)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2023 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

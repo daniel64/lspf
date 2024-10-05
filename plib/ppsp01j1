@@ -1,0 +1,122 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Panel for PFKEY settings
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'PFKEY Settings for &ZAPPLID'
+
+TEXT     4   2    FP 'Command ===> '
+FIELD    4  15    MAX NEF CAPS(ON),PAD(USER) ZCMD
+
+AREA 5 2      MAX     MAX-3   SAREA1
+
+)AREA SAREA1
+TEXT     1    1    FP 'PF1 . . .'
+FIELD    1   11    MAX     NEF NONE ZPF01
+
+TEXT     2    1   FP 'PF2 . . .'
+FIELD    2   11   MAX     NEF NONE ZPF02
+
+TEXT     3    1   FP 'PF3 . . .'
+FIELD    3   11   MAX     NEF NONE ZPF03
+
+TEXT     4    1   FP 'PF4 . . .'
+FIELD    4   11   MAX     NEF NONE ZPF04
+
+TEXT     5    1   FP 'PF5 . . .'
+FIELD    5   11   MAX     NEF NONE ZPF05
+
+TEXT     6    1   FP 'PF6 . . .'
+FIELD    6   11   MAX     NEF NONE ZPF06
+
+TEXT     7    1   FP 'PF7 . . .'
+FIELD    7   11   MAX     NEF NONE ZPF07
+
+TEXT     8    1   FP 'PF8 . . .'
+FIELD    8   11   MAX     NEF NONE ZPF08
+
+TEXT     9    1   FP 'PF9 . . .'
+FIELD    9   11   MAX     NEF NONE ZPF09
+
+TEXT     10   1   FP 'PF10. . .'
+FIELD    10  11   MAX     NEF NONE ZPF10
+
+TEXT     11   1   FP 'PF11. . .'
+FIELD    11  11   MAX     NEF NONE ZPF11
+
+TEXT     12   1   FP 'PF12. . .'
+FIELD    12  11   MAX     NEF NONE ZPF12
+
+
+TEXT     14   1   FP 'PF1  label . .'
+FIELD    14  16   8       NEF NONE ZPFL01
+TEXT     15   1   FP 'PF4  label . .'
+FIELD    15  16   8       NEF NONE ZPFL04
+TEXT     16   1   FP 'PF7  label . .'
+FIELD    16  16   8       NEF NONE ZPFL07
+TEXT     17   1   FP 'PF10 label . .'
+FIELD    17  16   8       NEF NONE ZPFL10
+
+TEXT     14  28   FP 'PF2  label . .'
+FIELD    14  43   8       NEF NONE ZPFL02
+TEXT     15  28   FP 'PF5  label . .'
+FIELD    15  43   8       NEF NONE ZPFL05
+TEXT     16  28   FP 'PF8  label . .'
+FIELD    16  43   8       NEF NONE ZPFL08
+TEXT     17  28   FP 'PF11 label . .'
+FIELD    17  43   8       NEF NONE ZPFL11
+
+TEXT     14  55   FP 'PF3  label . .'
+FIELD    14  70   8       NEF NONE ZPFL03
+TEXT     15  55   FP 'PF6  label . .'
+FIELD    15  70   8       NEF NONE ZPFL06
+TEXT     16  55   FP 'PF9  label . .'
+FIELD    16  70   8       NEF NONE ZPFL09
+TEXT     17  55   FP 'PF12 label . .'
+FIELD    17  70   8       NEF NONE ZPFL12
+
+TEXT     19  1     PIN 'Enter'
+TEXT     19  7     PS  'Defaults'
+TEXT     19  16    PIN 'or'
+TEXT     19  19    PS  'Cancel'
+
+TEXT     21  1 MAX CT '&ZZMSG1'
+
+)INIT
+&ZFK0   = 1
+&ZCMD   = &Z
+.CURSOR = ZCMD
+VGET (ZKLUSE) PROFILE
+
+IF ( &ZKLNAME NE &Z OR &GKLNAME EQ 'ACTIVE' )
+   &ZZMSG1 = 'Keylists are active for this panel.  Some function keys may be overwridden'
+   &GKLNAME = 'ACTIVE'
+ELSE
+   &ZZMSG1 = &Z
+
+)PROC
+IF ( &ZCMD = RES,RESET) &ZCMD = DEFAULTS
+
+IF ( &ZCMD = CANCEL) .RESP = END
+
+VGET ZVERB SHARED
+IF (&ZVERB EQ CANCEL) &ZCMD = CANCEL
+
+&ZCMD = TRANS( &ZCMD DEF,DEFAULTS *,* )
+
+VER (&ZCMD LIST,CANCEL,DEFAULTS )
+
+)PNTS
+FIELD( ZPS01001 ) VAR( ZCMD )  VAL(DEFAULTS)
+FIELD( ZPS01002 ) VAR( ZCMD )  VAL(CANCEL)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

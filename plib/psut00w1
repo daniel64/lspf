@@ -1,0 +1,77 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Show system cpu usage and swap rates
+)ENDCOMMENT
+
+)ATTR
+_ TYPE(NEF) PAD(USER) CAPS(ON)
++ TYPE(VOI)
+! TYPE(OUTPUT) COLOUR(YELLOW) CAPS(OFF) JUST(RIGHT)
+@ TYPE(OUTPUT) COLOUR(RED) CAPS(OFF) JUST(RIGHT)
+% TYPE(OUTPUT) COLOUR(WHITE) CAPS(OFF) JUST(RIGHT)
+# TYPE(OUTPUT) COLOUR(BLUE) CAPS(OFF)
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'CPU and Paging Usage'
+
+TEXT     4   2         FP    'Command ===>'
+FIELD    4  15  max-17 nef caps(on),pad(user) zcmd
+
+TEXT     4  MAX-15   FP   'Scroll ===>'
+FIELD    4  MAX-3  4 NEF  NONE ZSCROLL
+
+TEXT     6  2   FP 'Total CPU time (s). . . :'
+TEXT     7  2   FP 'Total Idle time (s) . . :'
+FIELD    6  28 12 VOI  JUST(LEFT) CPU
+FIELD    7  28 12 VOI  JUST(LEFT) IDLE
+
+TEXT     8  2   FP 'Page in rate (K/s). . . :'
+TEXT     9  2   FP 'Page out rate (K/s) . . :'
+FIELD    8  28 12 VOI  JUST(LEFT) PGIN
+FIELD    9  28 12 VOI  JUST(LEFT) PGOUT
+
+TEXT    10  2   FP 'Swap in rate (/s) . . . :'
+TEXT    11  2   FP 'Swap out rate (/s). . . :'
+FIELD   10  28 12 VOI  JUST(LEFT) PSWPIN
+FIELD   11  28 12 VOI  JUST(LEFT) PSWPOUT
+
+TEXT     13 2   FP  'CPU     %cpu  %user  %nice   %sys   %iow   %irq  %sirq %steal %guest %gnice  %idle'
+TBMODEL  14  MAX
+TBFIELD  2      5      ATTR(#) TCPUNUM
+TBFIELD  ++2    5      ATTR(%) TCPU
+TBFIELD  ++2    5      ATTR(!) TUSER
+TBFIELD  ++2    5      ATTR(!) TNICE
+TBFIELD  ++2    5      ATTR(!) TSYSTEM
+TBFIELD  ++2    5      ATTR(%) TIOWAIT
+TBFIELD  ++2    5      ATTR(%) TIRQ
+TBFIELD  ++2    5      ATTR(%) TSOFTIRQ
+TBFIELD  ++2    5      ATTR(%) TSTEAL
+TBFIELD  ++2    5      ATTR(%) TGUEST
+TBFIELD  ++2    5      ATTR(%) TGNICE
+TBFIELD  ++2    5      ATTR(@) TIDLE
+
+)INIT
+VGET ZSCROLL PROFILE
+
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+)REINIT
+
+)PROC
+IF (.RESP = END) EXIT
+
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+   EXIT
+
+IF (.MSG = &Z) VPUT ZSCROLL PROFILE
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2023 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

@@ -17,11 +17,6 @@
 
 */
 
-/* Re-direct say ouput and error messages to the spool or it'll mess up lspf output */
-parse source . . src .
-Call setdest src
-/************************************************************************************/
-
 /************************************************************************************/
 /* Example edit macro to change literal to text in the panels directory             */
 /* Run from REXX runemac                                                            */
@@ -41,14 +36,14 @@ if rec = "ON" then
   do
     if lock = "LOCK" then "PROFILE UNLOCK"
     "RECOVERY OFF"
-    if var2 = "LOCK" then "PROFILE LOCK"
+    if lock = "LOCK" then "PROFILE LOCK"
   end
 
 
 "FIND ')BODY' 1 FIRST"
 if RC \= 0 then
   do
-    address ISPEXEC "RDISPLAY )BODY statement not found.  Exiting..."
+    say ")BODY statement not found.  Exiting..."
     "BUILTIN CANCEL"
     EXIT
   end
@@ -59,7 +54,7 @@ if RC \= 0 then
 "FIND ')' 1 NEXT"
 if RC \= 0 then
   do
-    address ISPEXEC "RDISPLAY Next section after )BODY statement not found.  Exiting..."
+    say "Next section after )BODY statement not found.  Exiting..."
     "BUILTIN CANCEL"
     EXIT
   end
@@ -75,12 +70,19 @@ if dcha = "YES" then
   do
      "(MFILE) = DATASET"
      "(CHG,ERR)  = CHANGE_COUNTS"
-     address ISPEXEC "RDISPLAY &CHG changes made with &ERR errors.  Saving file &MFILE"
+     say CHG "changes made with "ERR" errors.  Saving file "MFILE
      "BUILTIN SAVE"
   end
 else
   do
-     address ISPEXEC "RDISPLAY No changes made."
+     say "No changes made."
+  end
+
+if rec = "ON" then
+  do
+    if lock = "LOCK" then "PROFILE UNLOCK"
+    "RECOVERY ON"
+    if lock = "LOCK" then "PROFILE LOCK"
   end
 
 "BUILTIN END"

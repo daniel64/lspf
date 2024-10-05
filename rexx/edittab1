@@ -17,11 +17,6 @@
 
 */
 
-/* Re-direct say ouput and error messages to the spool or it'll mess up lspf output */
-parse source . . src .
-Call setdest src
-/************************************************************************************/
-
 /* Create Edit Line Command Table for IBM REXX POSLINE    */
 
 /* The posline example rexx adds Editor line commands:    */
@@ -37,8 +32,6 @@ Call setdest src
 
 /* Run this exec in lspf on any command line:             */
 /* Command ===> EXEC edittab1                             */
-/* or                                                     */
-/* Command ===> @edittab1                                 */
 /* or option 6, Command, from the main menu               */
 /* ===> edittab1                                          */
 
@@ -50,43 +43,48 @@ Call setdest src
 /* make sure ZTABL is assigned a path in lspf.h           */
 /* that is also in the input library path ZTLIB           */
 /* so the Editor can find it (usually ~/.lspf/tlib)       */
+/* Commands ddlist or paths can be used to display these. */
 
 address ISPEXEC
 
 "TBCREATE EDITTAB1 KEYS(ZELCNAM) NAMES(ZELCMAC ZELCPGM ZELCBLK ZELCMLT ZELCDST) REPLACE"
 if RC = 4 then
   do
-    "RDISPLAY Table EDITTAB1 aleady exists.  Current table will be replaced"
-    "RDISPLAY "
+    say "Table EDITTAB1 aleady exists.  Current table will be replaced."
+    say
   end
 else if RC > 7 then
   do
-    "RDISPLAY TBCREATE failed.  RC=&RC"
+    say "TBCREATE failed.  RC="RC
     RETURN
   end
 
 /* parm 1 - Line command name (max 6 characters)                  */
 /* parm 2 - rexx/pgm to run                                       */
-/* parm 3 - program macro (not supported, defaults to REXX)       */
+/* parm 3 - program macro.                                        */
 /* parm 4 - can be entered as a block command                     */
 /* parm 5 - multiplier can be entered                             */
 /* parm 6 - destination can be entered                            */
 
 y = addrow( "CE",  "posline", "N", "Y", "Y", "N" )
 y = addrow( "RV",  "posline", "N", "Y", "Y", "N" )
-y = addrow( "LEF", "posline", "N", "Y", "Y", "N" )
+y = addrow( "LEF", "posline", "N", "Y", "Y", "Y" )
 y = addrow( "RIT", "posline", "N", "Y", "Y", "N" )
 
 "TBSAVE EDITTAB1"
 if RC > 0 then
   do
-    "RDISPLAY TBSAVE failed.  RC=&RC"
+    say "TBSAVE failed.  RC="RC
     "TBEND EDITTAB1"
     RETURN
   end
 
 "TBEND EDITTAB1"
-"RDISPLAY EDITTAB1 created successfully"
+say "EDITTAB1 created successfully."
+say
+say "Table can be added to the default edit line command table,"
+say "option 0.0 under General lspf Settings or in lspf.h, to specify a"
+say "global line command table to be used when one is otherwise not specifed."
 RETURN
 
 
@@ -100,6 +98,6 @@ ZELCDST = arg(6)
 "TBADD EDITTAB1"
 if RC > 0 then
   do
-    "RDISPLAY TBADD failed.  RC=&RC"
+    say "TBADD failed.  RC="RC
   end
 return 0

@@ -1,0 +1,76 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Set filters
+)ENDCOMMENT
+
+)BODY WINDOW(78,12)
+
+PANELTITLE 'Set journal filter'
+
+TEXT     2   2       FP  'Command ===>'
+FIELD    2  15   MAX NEF CAPS(ON),PAD(USER) ZCMD
+
+AREA   3 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1   2   FP      'Field. . .'
+FIELD    1   13    MAX    NEF  CAPS(ON) JFIELD1
+TEXT     2   2   FP      'Value. . .'
+FIELD    2   13    MAX    NEF  CAPS(OFF) JVALUE1
+
+TEXT     4 2  CH 'Instructions'
+TEXT     5 5  NT 'Enter'
+TEXT     5 11 PS 'PROMPT'
+TEXT     5 18 NT 'for a list of valid values at cursor position'
+
+TEXT     6 5  NT 'Press'
+TEXT     6 11 PS 'End'
+TEXT     6 15 NT 'to set filters'
+
+TEXT     7 5  NT 'Press'
+TEXT     7 11 PS 'Cancel'
+TEXT     7 18 NT 'to cancel change'
+
+)INIT
+.HELP    = LSPJN002
+&ZCMD    = &Z
+&ZWINTTL = &Z
+.HIST    = *
+
+)PROC
+VGET ZVERB SHARED
+IF (&ZVERB EQ CANCEL OR &ZCMD EQ CANCEL)
+   .RESP = END
+   EXIT
+
+IF (&ZCMD EQ END)
+   .RESP = END
+   &ZCMD = &Z
+
+IF (&ZCMD NE &Z,CLEAR,PROMPT,END)
+   .MSG    = 'PSYS018'
+   .CURSOR = 'ZCMD'
+   EXIT
+
+IF (&ZCMD EQ CLEAR)
+   &JFIELD1 = &Z
+   &JVALUE1 = &Z
+   VPUT (JFIELD1,JVALUE1) PROFILE
+
+IF (.RESP EQ END OR &ZCMD EQ END)
+   VPUT (JFIELD1,JVALUE1) PROFILE
+
+)FIELD
+FIELD(JFIELD1) LEN(64)
+FIELD(JVALUE1) LEN(256)
+
+)PNTS
+FIELD(ZPS01001) VAR(ZCMD)  VAL(PROMPT)
+FIELD(ZPS01002) VAR(ZCMD)  VAL(END)
+FIELD(ZPS01003) VAR(ZCMD)  VAL(CANCEL)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2024 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

@@ -1,0 +1,7 @@
+/*                                     */
+/* Variable error messages             */
+/*                                     */
+
+PSYV011A 'Numeric conversion error' .TYPE=N
+'Data for integer variable &ZVAL1 contained invalid characters.'
+

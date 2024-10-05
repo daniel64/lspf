@@ -1,0 +1,114 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+
+This is the selection panel for various system utilities.
+
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'System Utilities Primary Selection Panel'
+
+TEXT     4   2         FP  'Option ===>'
+FIELD    4   14   MAX  NEF  CAPS(ON),PAD(USER)  ZCMD
+
+AREA     5   1    MAX MAX SAREA1
+
+)AREA SAREA1
+TEXT     1  2    SAC  '1'
+TEXT     1  5    PS   'System'
+TEXT     1  17   NT   'Display basic system information'
+
+TEXT     2  2    SAC  '2'
+TEXT     2  5    PS   'Usage'
+TEXT     2  17   NT   'Display system usage information'
+
+TEXT  3   2    SAC  '3'
+TEXT  3   5    PS   'Tasks'
+TEXT  3   17   NT   'Display Tasks'
+
+TEXT     4  2    SAC  '4'
+TEXT     4  5    PS   'Mounts'
+TEXT     4  17   NT   'Display file system mounts'
+
+TEXT     5  2    SAC  '5'
+TEXT     5  5    PS   'Disks'
+TEXT     5  17   NT   'Display disk information'
+
+TEXT     6  2    SAC  '6'
+TEXT     6  5    PS   'USB'
+TEXT     6  17   NT   'Display USB information'
+
+TEXT     7  2    SAC  '7'
+TEXT     7  5    PS   'Network'
+TEXT     7  17   NT   'Display Network information'
+
+TEXT     8  2    SAC  '8'
+TEXT     8  5    PS   'PCI'
+TEXT     8  17   NT   'Display PCI devices'
+
+TEXT     9  2    SAC  '9'
+TEXT     9  5    PS   'Systemd'
+TEXT     9  17   NT   'Display and manage systemd units'
+
+TEXT    10  2    SAC  '10'
+TEXT    10  5    PS   'Journal'
+TEXT    10  17   NT   'Display journal entries'
+
+TEXT    12   2    SAC  'T'
+TEXT    12   5    PS   'Tutorial'
+TEXT    12   17   NT   'Start Tutorial'
+
+TEXT    13   2    SAC  'X'
+TEXT    13   5    PS   'Terminate'
+TEXT    13   17   NT   'Terminate'
+
+)INIT
+&ZPRIM  = YES
+.CURSOR = ZCMD
+&ZPM4 = 1
+
+)PROC
+IF ( TRUNC( &ZCMD, 1 ) EQ '.' )
+   .MSG = PSYS016
+   EXIT
+
+&ZSEL = TRANS( TRUNC( &ZCMD,'.' ) ,
+                     1,'PGM(PSYSUTL) PARM(SYSINFO) SCRNAME(SYSINFO)'
+                     2,'PGM(PSYSUTL) PARM(SYSUSE) SCRNAME(SYSUSE)'
+                     3,'PGM(PSYSUTL) PARM(TASKS) SCRNAME(TASKS)'
+                     4,'PGM(PSYSUTL) PARM(MOUNTS) SCRNAME(MOUNTS)'
+                     5,'PGM(PSYSUTL) PARM(DISKS) SCRNAME(DISKS)'
+                     6,'PGM(PSYSUTL) PARM(USB) SCRNAME(USB)'
+                     7,'PGM(PSYSUTL) PARM(NET) SCRNAME(NETWORK)'
+                     8,'PGM(PSYSUTL) PARM(PCI) SCRNAME(PCI)'
+                     9,'PGM(PSYSUTL) PARM(SYSTEMD) SCRNAME(SYSTEMD)'
+                    10,'PGM(PSYSUTL) PARM(JOURNAL) SCRNAME(SYSTEMD)'
+                     T,'PGM(&ZHELPPGM)'
+                     X,EXIT
+                    &Z,&Z
+                     *,'?'
+             )
+
+)PNTS
+FIELD( ZPS01001 ) VAR(ZCMD) VAL(1)
+FIELD( ZPS01002 ) VAR(ZCMD) VAL(2)
+FIELD( ZPS01003 ) VAR(ZCMD) VAL(3)
+FIELD( ZPS01004 ) VAR(ZCMD) VAL(4)
+FIELD( ZPS01005 ) VAR(ZCMD) VAL(5)
+FIELD( ZPS01006 ) VAR(ZCMD) VAL(6)
+FIELD( ZPS01007 ) VAR(ZCMD) VAL(7)
+FIELD( ZPS01008 ) VAR(ZCMD) VAL(8)
+FIELD( ZPS01009 ) VAR(ZCMD) VAL(9)
+FIELD( ZPS01010 ) VAR(ZCMD) VAL(10)
+FIELD( ZPS01011 ) VAR(ZCMD) VAL(T)
+FIELD( ZPS01012 ) VAR(ZCMD) VAL(X)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

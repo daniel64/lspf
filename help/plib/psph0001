@@ -1,0 +1,46 @@
+)PANEL VERSION=1 FORMAT=1 
+/* *************************************************** */
+/* Converted by panconv EXEC on 3 Oct 2024 at 15:46:41 */
+/* *************************************************** */
+)ATTR DEFAULT(%+_)
+  + TYPE(TEXT  ) COLOR(GREEN)
+  _ TYPE( INPUT) INTENS(LOW ) JUST(LEFT ) HILITE(USCORE)
+  ~ TYPE(TEXT) INTENS(HIGH) CAPS(OFF) JUST(ASIS ) COLOR(TURQ)
+  [ TYPE(OUTPUT) INTENS(HIGH) CAPS(OFF) JUST(LEFT) PAS(ON) COLOR(WHITE)
+/*   } AREA(SCRL) EXTEND(ON) panconv */
+)BODY 
+TEXT 1 2 ATTR(25) 'Tutorial -----------------------------'
+TEXT 1 41 ATTR(7E) 'Log Utility'
+TEXT 1 53 ATTR(25) '----------------------------- Tutorial'
+TEXT 2 2 ATTR(25) 'Selection ===>'
+FIELD 2 17 73 ATTR(5F) ZCMD
+AREA 4 1 90 36 HELP
+)AREA HELP
+TEXT 1 2 ATTR(2B) 'Help member for SYSTEM and Application Log viewer'
+TEXT 3 2 ATTR(2B) 'Primary commands:'
+TEXT 5 2 ATTR(2B) 'EX      Same as X command'
+TEXT 7 2 ATTR(2B) 'F ABC   Un-exclude all lines containing ABC (Case sensitive).'
+TEXT 8 2 ATTR(2B) '        Use EX or X to exclude lines.'
+TEXT 10 2 ATTR(2B) 'O A     Where A is any letter.  Display only type A log messages'
+TEXT 12 2 ATTR(2B) 'REFESH  Refresh display by re-reading the log file.'
+TEXT 13 2 ATTR(2B) 'RESET   Reset display (Also RES is accepted)'
+TEXT 15 2 ATTR(2B) 'SHOW DATE  Show date in the log record'
+TEXT 16 2 ATTR(2B) 'SHOW TIME  Show time in the log record'
+TEXT 17 2 ATTR(2B) 'SHOW MOD   Show mod  in the log record'
+TEXT 18 2 ATTR(2B) 'SHOW ALL   Show all the above in the log record'
+TEXT 20 2 ATTR(2B) 'HIDE DATE  Hide date in the log record'
+TEXT 21 2 ATTR(2B) 'HIDE TIME  Hide time in the log record'
+TEXT 22 2 ATTR(2B) 'HIDE MOD   Hide mod  in the log record'
+TEXT 23 2 ATTR(2B) 'HIDE ALL   Hide all the above in the log record'
+TEXT 25 2 ATTR(2B) 'TASKID | TASK | ID n : Show only log records for task n.'
+TEXT 26 2 ATTR(2B) '                       Task 0 records will also be shown as these could be'
+TEXT 27 2 ATTR(2B) '                       related.  (lspf log only contains task 0)'
+TEXT 29 2 ATTR(2B) 'X A     Exclude all type A log messages'
+TEXT 30 2 ATTR(2B) 'X ALL   Exclude all log messages'
+TEXT 31 2 ATTR(2B) 'X ON    Do not display log messages of type I, D and - (Only show unusual'
+TEXT 32 2 ATTR(2B) '        messages)'
+TEXT 34 2 ATTR(2B) 'COLS    Display a column line at the top of the log.'
+)INIT
+ .CURSOR = ZCMD
+)PROC
+)END

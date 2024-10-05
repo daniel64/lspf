@@ -1,0 +1,101 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Display network interface data
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Network Interface Information'
+
+TEXT     4   2        FP    'Command ===> '
+FIELD    4  15   MAX  NEF CAPS(ON),PAD(USER) ZCMD
+
+TEXT     6   2        FP    'Interface name. . . :'
+FIELD    6  24    MAX-4  VOI NONE NETIF
+
+TEXT     7   2        FP    'Type. . . . . . . . :'
+FIELD    7  24    MAX-4  VOI NONE NETTYPE
+
+TEXT     8   2        FP    'Status. . . . . . . :'
+FIELD    8  24    MAX-4  VOI NONE NETSTAT
+
+AREA   9 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+
+TEXT     1   2     ET    'IP V4'
+TEXT     2   3     FP    'IP address . . . . . . :'
+TEXT     3   3     FP    'Netmask. . . . . . . . :'
+TEXT     4   3     FP    '&TXT                    '
+FIELD    2  28    MAX  VOI NONE IPADDR
+FIELD    3  28    MAX  VOI NONE NETMASK
+FIELD    4  28    MAX  VOI NONE GADDR
+
+TEXT     6   2     ET    'IP V6'
+TEXT     7   3     FP    'IP address . . . . . . :'
+TEXT     8   3     FP    'Netmask. . . . . . . . :'
+TEXT     9   3     FP    '&TXT                    '
+FIELD    7  28    MAX  VOI NONE IPADDR6
+FIELD    8  28    MAX  VOI NONE NETMASK6
+FIELD    9  28    MAX  VOI NONE GADDR6
+
+TEXT    11   2     ET    'Hardware'
+TEXT    12   3     FP    'Class. . . . . . . . . :'
+TEXT    13   3     FP    'Subclass . . . . . . . :'
+TEXT    14   3     FP    'Vendor . . . . . . . . :'
+TEXT    15   3     FP    'Model. . . . . . . . . :'
+TEXT    16   3     FP    'MAC address  . . . . . :'
+FIELD   12  28    MAX  VOI NONE ICLASS
+FIELD   13  28    MAX  VOI NONE ISCLASS
+FIELD   14  28    MAX  VOI NONE IVENDOR
+FIELD   15  28    MAX  VOI NONE IMODEL
+FIELD   16  28    MAX  VOI NONE MACADDR
+
+
+TEXT    18   2     ET    'Software'
+TEXT    19   3     FP    'Driver . . . . . . . . :'
+FIELD   19  28    MAX  VOI NONE IDRIVER
+
+TEXT    21   2     ET    'Statistics'
+TEXT    22   3     FP    'TX packets . . . . . . :'
+TEXT    22   45    FP    'RX packets . . . . . . :'
+TEXT    23   3     FP    'TX bytes . . . . . . . :'
+TEXT    23   45    FP    'RX bytes . . . . . . . :'
+TEXT    24   3     FP    'TX errors. . . . . . . :'
+TEXT    24   45    FP    'RX errors. . . . . . . :'
+TEXT    25   3     FP    'TX dropped . . . . . . :'
+TEXT    25   45    FP    'RX dropped . . . . . . :'
+FIELD   22  28    16   VOI NONE ITXP
+FIELD   22  70    16   VOI NONE IRXP
+FIELD   23  28    16   VOI NONE ITXB
+FIELD   23  70    16   VOI NONE IRXB
+FIELD   24  28    16   VOI NONE ITXE
+FIELD   24  70    16   VOI NONE IRXE
+FIELD   25  28    16   VOI NONE ITXD
+FIELD   25  70    16   VOI NONE IRXD
+
+)INIT
+.CURSOR = ZCMD
+&ZCMD   = &Z
+IF (&GADDR EQ &BCADDR)
+   &TXT = 'Broadcast address. . . :'
+   &GADDR6 = &Z
+ELSE
+   &TXT = 'Destination address. . :'
+
+)PROC
+IF (&ZCMD NE &Z,QUIT)
+   .MSG    = PSYS018
+   .CURSOR = ZCMD
+   EXIT
+
+)FIELD
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2023 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

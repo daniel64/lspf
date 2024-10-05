@@ -1,0 +1,36 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Panel for CMDE command
+ Command line supports command name expansion using the TAB key
+   Names are expanded from ZORXPATH,
+                           REXX_PATH and
+                           PATH
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Execute Command'
+
+TEXT   4  2        CH  'Enter REXX or system command below'
+
+TEXT   6  2          FP  '===>'
+FIELD  6  7   MAX-4  NEF CAPS(OFF),PAD(USER) ZCMD
+FIELD  6  MAX-2 2    LI  NONE      ZCMDIND
+
+)INIT
+.CURSOR = ZCMD
+
+)PROC
+
+)FIELD
+FIELD(ZCMD) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND1 CMD) NESTED')
+FIELD(ZCMD) LEN(512) IND(ZCMDIND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

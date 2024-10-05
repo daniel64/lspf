@@ -1,0 +1,60 @@
+File Tailoring
+--------------
+
+Only a subset of the file tailoring statements have currently been implemented.
+
+)BLANK n
+
+)DEFAULT xxxxxxx
+
+)CM comment line
+
+)DOT table SCAN | SCAN(args) OPT
+)ENDDOT
+
+)DO n
+)ENDDO
+
+)DO VAR = n TO m BY x FOR y WHILE | UNTIL expr
+)ENDDO
+
+)DO FOREVER
+)ENDDO
+
+)ITERATE
+
+)IM
+
+)LEAVE
+)LEAVE DOT
+
+)NOP
+
+)REXX
+)ENDREXX
+
+)SEL A op B && C op D | E op F ....
+)ENDSEL
+
+)SET A = expr
+
+)TB
+)TB  nA n
+)TBA n  n
+
+Conditional substitution has been implemented.
+
+
+Notes:
+------
+1) Built-in functions are not implemented.
+
+2) )IF, )ELSE and )SETF are not been implemented.
+
+3) Continuation via the ? character, is not implemented.
+
+4) Conditional processing of the )DEFAULT statement is not supported for the
+   control or variable characters (first two characters).  If the )DEFAULT statement is performed
+   conditionally and either of these is changed, results will probably be incorrect.
+
+

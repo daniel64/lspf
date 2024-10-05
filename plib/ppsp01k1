@@ -1,0 +1,64 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Keylist Utility Panel 1
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Keylist Utility'
+
+TEXT     4   2         FP    'Command ===>'
+FIELD    4  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
+
+TEXT     4  MAX-15  FP 'Scroll ===>'
+FIELD    4  MAX-3  4 NEF  NONE ZSCROLL
+
+TEXT     6  2          FP  'Actions: S=Select  N=New  D=Delete'
+
+TEXT      8  2      CH    'S  Keylist Type                     Table     Location'
+TEXT      9  2      CH    EXPAND '-'
+
+TBMODEL  10   MAX
+TBFIELD   2   1    NEF   caps(on),PAD(USER) TBK1SEL
+TBFIELD ++2   4    VOI   NONE TBK1KEY
+TBFIELD ++4   7    VOI   NONE TBK1TYP
+TBFIELD ++2   14   VOI   NONE TBK1MSG
+TBFIELD ++2   8    VOI   NONE TBK1TAB
+TBFIELD ++2   MAX  VOI   NONE TBK1DIR
+
+)INIT
+&ZFK1 = 1
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+.ATTR(TBK1TYP) = 'TYPE(OUTPUT) COLOUR(WHITE)'
+
+)REINIT
+IF (.MSG EQ &Z)
+   &TBK1SEL = &Z
+   REFRESH(TBK1SEL)
+ELSE
+   IF (.CURSOR EQ 'TBK1SEL' ) .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+)PROC
+if (&ZCMD NE &Z )
+    .MSG    = PSYS011C
+    .CURSOR = ZCMD
+    EXIT
+
+VER (&TBK1SEL,LIST,D,N,S)
+
+&ZZENTRY = &TBK1TAB
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+
+)FIELD
+FIELD(TBK1DIR) LEN(4095)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

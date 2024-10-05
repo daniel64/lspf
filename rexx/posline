@@ -35,7 +35,7 @@ Do a = start to stop         /* Loop through the range of lines     */
     When(parm = "RV")  Then line=reverse(line)          /* Reverse  */
     When(parm = "LEF") Then line=strip(line,"L")    /* Left justify */
     When(parm = "RIT") Then line=right(strip(line,"T"),dw) /* Right */
-			     /*                            Justify  */
+                             /*                            Justify  */
     Otherwise  Nop           /* Otherwise, no op (should not occur) */
   End                        /*                                     */
   "LINE "a" = (LINE)"        /* Set new line value                  */

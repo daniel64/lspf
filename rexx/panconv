@@ -1,0 +1,940 @@
+/*
+  Copyright (c) 2021 Daniel John Erdos
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+*/
+
+/* *************************************************************************************************** */
+/* REXX to convert ISPF panels to lspf panels.                                                         */
+/*                                                                                                     */
+/* This REXX is run by the panel code to support native ISPF panels, but can also be called manually   */
+/* to avoid the overhead of conversion at runtime.  Manual conversion should not be done if the panel  */
+/* contains the EXPAND statement and/or EXTEND attributes.  Manual conversion will not work for        */
+/* panels containing variable model statements.                                                        */
+/*                                                                                                     */
+/* Anything complicated will probably not work.  If it isn't supported in lspf, it won't work:         */
+/* examples DSNAME in VER statements                                                                   */
+/*          Multiple panel language statements on a single line                                        */
+/*          PANEXIT PGM statement                                                                      */
+/*          *REXX in )ABCINIT and )ABCPROC sections                                                    */
+/*          Multi-line action bars                                                                     */
+/*          Conditional .ZVARS statements.                                                             */
+/*                                                                                                     */
+/* Some common unsupported parameters are removed.                                                     */
+/* examples:                                                                                           */
+/* )ATTR - FORMAT(), GE(), CKBOX(), RADIO(), OUTLINE(), CSRGRP()                                       */
+/* )ABC  - PDC statement MNEM(), ACC(), PDSEP()                                                        */
+/*                                                                                                     */
+/* Also                                                                                                */
+/* )BODY - WIDTH() for non-numeric values.                                                             */
+/*                                                                                                     */
+/* Attribute TYPE(GRPBOX) is not allowed.                                                              */
+/*                                                                                                     */
+/* Dynamic areas and scroll areas are supported.                                                       */
+/*                                                                                                     */
+/* When called internally, the parameters are:                                                         */
+/* 1) INTERNAL                                                                                         */
+/* 2) ISPF input source                                                                                */
+/* 3) lspf output source                                                                               */
+/* 4) zscrmaxw                                                                                         */
+/* 5) zscrmaxd                                                                                         */
+/* 6) debug (YES|NO)                                                                                   */
+/*                                                                                                     */
+/* When called from the driver (opt 3.7), the parameters are:                                          */
+/* 1) PANCDRV                                                                                          */
+/* 2) ISPF input source                                                                                */
+/* 3) lspf output source                                                                               */
+/* 4) screen width override                                                                            */
+/* 5) screen depth override                                                                            */
+/*                                                                                                     */
+/* If run manually, it must be run from lspf.                                                          */
+/* When run internally, REXX does not have access to lspf services or the function pool.               */
+/*                                                                                                     */
+/* When called from the command line, the parameter is:                                                */
+/* 1) ISPF input source                                                                                */
+/*   Any EXTEND attributes and BODY EXPAND statements will use the current value of ZSCRMAXW and       */
+/*   ZSCRMAXD.                                                                                         */
+/*   Output goes to /home/<<user>>/.lspf/plib/                                                         */
+/*                                                                                                     */
+/* When invoked with the TEST option, output is viewed instead of written to a file.                   */
+/* 1) TEST 'ISPF input source'                                                                         */
+/* panconvt can be used for this.                                                                      */
+/*                                                                                                     */
+/* When run at panel load time, this adds about 10ms - 15ms to the load/conversion of an average       */
+/* panel (AMD Ryzen 5).                                                                                */
+/*                                                                                                     */
+/* *************************************************************************************************** */
+
+Call Initialise arg( 1 ), arg( 2 ), arg( 3 ), arg( 4 ), arg( 5 ), arg( 6 )
+
+Call ReadSource
+
+if rxqueue( "Exists", "panconv" ) then
+  do
+    x = rxqueue( "Delete", "panconv" )
+  end
+
+x = rxqueue( "Create", "panconv" )
+x = rxqueue( "Set", "panconv" )
+
+xbody  = 0
+hpanel = ""
+
+do i = 1 to src.0
+   w = upper( word( src.i, 1 ) )
+   if w = ")PANEL" then
+     do
+       hpanel = subword( src.i, 2 )
+       src.i  = "/*" src.i "panconv */"
+     end
+   else if w = ")BODY" then
+     do
+       fbody = .true
+       xbody = i
+     end
+   else if w = ")AREA" then
+     do
+       parse caseless var src.i . name . "DEPTH" . "(" mdepth ")" .
+       if mdepth \= "" then
+         do
+           src.i = ")AREA" name
+           sarea.name = mdepth
+           iterate
+         end
+       j = 0
+       do i = i + 1 to src.0
+         if substr( src.i, 1, 1 ) = ")" then leave
+         j = j + 1
+       end
+       sarea.name = j
+       i = i - 1
+     end
+   else if w = ")INIT" then
+     do
+       do i = i + 1 to src.0
+         parse caseless var src.i . ".ZVARS" . "=" xzvars "/*" .
+         if xzvars \= "" then
+           do
+             l = strip( xzvars )
+             if substr( reverse( l ), 1, 1 ) = "+" then
+               do x = i + 1 to src.0
+                 parse var src.x src.x "/*" .
+                 l = substr( l, 1, length( l ) - 1 ) strip( src.x )
+                 src.x = "/*" src.x "panconv */"
+                 if substr( reverse( l ), 1, 1 ) \= "+" then leave
+               end
+             l = strip( l )
+             if substr( l, 1, 1 ) = "'" then l = strip( strip( l, "B", "'" ) )
+             if substr( l, 1, 1 ) = "(" then parse var l . "(" l ")" .
+             zvars = upper( translate( l, " ", "," ) )
+             src.i = "/*" src.i "panconv */"
+             leave i
+           end
+       end
+       leave i
+     end
+end
+
+Call WriteHeader
+
+if \fbody then
+  do
+    Call InsertAttrBody
+  end
+else
+  do
+    parse caseless var src.xbody . "WINDOW" . "(" s ")" .
+    if s \= "" then
+      do
+        s        = translate( s, " ", "," )
+        zscrmaxw = word( s, 1 )
+        zscrmaxd = word( s, 2 )
+      end
+    parse caseless var src.xbody head  "WIDTH" . "(" s ")" tail
+    if s \= "" then
+      do
+        if datatype( s, "W" ) then
+          do
+            zscrmaxw = s
+          end
+        else
+          do
+            src.xbody = (head)tail
+          end
+      end
+  end
+
+
+do i = 1 to src.0
+   if substr( src.i, 1, 1 ) \= ")" then
+     do
+       Call WriteOutput src.i
+       iterate
+     end
+   w = upper( word( src.i, 1 ) )
+   if w = ")ATTR" then
+     do
+       parse var src.i src.i "/*" .
+       parse caseless var src.i head "FORMAT" . "(" . ")" tail
+       src.i = (head)tail
+       Call WriteOutput src.i
+       parse caseless var src.i . "DEFAULT" . "(" xdefs ")" .
+       if xdefs \= "" then defs = xdefs
+       j = 1
+       do i = i + 1 to src.0
+         parse var src.i src.i "/*" .
+         if strip( src.i ) = "" then iterate i
+         if substr( src.i, 1, 1 ) = ")" then leave
+         parse caseless var src.i head "GE" . "(" mid ")" tail
+         if mid \= "" then src.i = (head)tail
+         parse caseless var src.i head "CKBOX" . "(" mid ")" tail
+         if mid \= "" then src.i = (head)tail
+         parse caseless var src.i head "RADIO" . "(" mid ")" tail
+         if mid \= "" then src.i = (head)tail
+         parse caseless var src.i head "CSRGRP" . "(" mid ")" tail
+         if mid \= "" then src.i = (head)tail
+         parse caseless var src.i head "FORMAT" . "(" mid ")" tail
+         if mid \= "" then src.i = (head)tail
+         parse caseless var src.i head "OUTLINE" . "(" mid ")" tail
+         if mid \= "" then src.i = (head)tail
+         attr = word( src.i, 1 )
+         if length( attr ) = 2 then attr = x2c( attr )
+         t = upper( src.i )
+         parse var t "TYPE" . "(" type ")" .
+         if type = "INPUT" | type = "OUTPUT" | wordpos( type, icua ) > 0 | substr( type, 1, 1 ) = "&" then
+           do
+             attr.attr  = .true
+             atype.attr = "FIELD"
+           end
+         else if type = "TEXT" | wordpos( type, tcua ) > 0 then
+           do
+             attr.attr  = .true
+             atype.attr = "TEXT"
+             if wordpos( type, xcua ) > 0 then
+               do
+                 src.i = "/*" src.i "panconv */"
+                 atype.attr = "XCUA"
+               end
+           end
+         else if type = "" then
+           do
+             parse var t "AREA" . "(" type ")" .
+             if type = "DYNAMIC" | type = "SCRL" then
+               do
+                 attr.attr  = .true
+                 atype.attr = type
+                 if type = "DYNAMIC" then
+                   do
+                     parse caseless var src.i . "USERMOD" . "(" umod ")" 1 . "DATAMOD" . "(" dmod ")" 1 . "SCROLL" . "(" scrl ")" 1 . "EXTEND" . "(" dext ")" .
+                     if umod \= "" then darea.attr = darea.attr "USERMOD(" umod ")"
+                     if dmod \= "" then darea.attr = darea.attr "DATAMOD(" dmod ")"
+                     if scrl \= "" then darea.attr = darea.attr "SCROLL(" scrl ")"
+                     if upper( dext ) = "ON" then dext.attr = .true
+                   end
+                 else
+                   do
+                     parse caseless var src.i . "EXTEND" . "(" dext ")" .
+                     if upper( dext ) = "ON" then dext.attr = .true
+                   end
+                 src.i = "/*" src.i "panconv */"
+               end
+             else
+               do
+       --        If unknown then probably just an attribute line split over multiple lines
+       --        which panel parsing now supports!
+       --        err.1 = "Unknown AREA() attribute "type "src>>" i src.i
+       --        Call WriteError
+               end
+           end
+         else if type = "DATAIN" | type = "DATAOUT" | type = "CHAR" then
+           do
+             nop
+           end
+         else
+           do
+             err.1 = "Unknown TYPE() attribute "type "src>>" i src.i
+             Call WriteError
+           end
+         Call WriteOutput src.i
+       end
+       i = i - 1
+     end
+   else if w = ")ABC" then
+     do
+       Call WriteOutput src.i
+       do i = i + 1 to src.0
+         if substr( src.i, 1, 1 ) = ")" then leave
+         parse var src.i src.i "/*" .
+         if strip( src.i ) = "" then iterate i
+         if wordpos( "PDC", upper( src.i ) ) > 0 then
+           do
+             parse caseless var src.i head "MNEM" . "(" mid ")" tail
+             if mid \= "" then src.i = (head)tail
+             parse caseless var src.i head "ACC" . "(" mid ")" tail
+             if mid \= "" then src.i = (head)tail
+             parse caseless var src.i head "PDSEP" . "(" mid ")" tail
+             if mid \= "" then src.i = (head)tail
+           end
+         Call WriteOutput src.i
+       end
+       i = i - 1
+     end
+   else if w = ")BODY" then
+     do
+       parse caseless var src.i . "DEFAULT" . "(" xdefs ")" .
+       if xdefs \= "" then defs = xdefs
+       Call CreateDefAttrs defs
+       parse caseless var src.i head "EXPAND" . "(" exp ")" tail
+       Call WriteOutput head || tail
+       body. = ""
+       j     = 1
+       do i = i + 1 to src.0
+         if substr( src.i, 1, 1 ) = ")" then leave
+         body.j = src.i
+         body.0 = j
+         j      = j + 1
+       end
+       if ( exp \= "" ) then
+         do
+           Call ExpandWidth exp
+         end
+       x1. = ConvertBodyArea( body., zscrmaxw )
+       do x = 1 to x1.0
+          Call WriteOutput x1.x
+       end
+       bodysize = body.0
+       i = i - 1
+     end
+   else if w = ")AREA" then
+     do
+       Call WriteOutput src.i
+       name  = word( src.i, 2 )
+       body. = ""
+       j     = 1
+       do i = i + 1 to src.0
+         if substr( src.i, 1, 1 ) = ")" then leave
+         body.j = src.i
+         body.0 = j
+         j      = j + 1
+       end
+       if ( exp \= "" ) then
+         do
+           Call ExpandWidth exp
+         end
+       x1. = ConvertBodyArea( body., warea.name )
+       do x = 1 to x1.0
+         Call WriteOutput x1.x
+       end
+       i = i - 1
+     end
+   else if w = ")MODEL" then
+     do
+       p = wordpos( "SFIHDR", upper( src.i ) )
+       if p > 0 then
+         do
+           sfihdr = .true
+           src.i  = delword( src.i, p, 1 )
+           mod1   = "TBMODEL "bodysize+2" MAX" subword( src.i, 2 )
+         end
+       else
+         do
+           sfihdr = .false
+           Call WriteOutput "TBMODEL "bodysize+1" MAX" subword( src.i, 2 )
+           mod1 = "TBMODEL"
+         end
+       i      = i + 1
+       body.0 = 1
+       body.1 = src.i
+       model. = ConvertBodyArea( body., zscrmaxw )
+       if sfihdr then
+         do x = 1 to model.0
+           Call WriteOutput word( model.x, 1 ) bodysize+1 subword( model.x, 3 )
+         end
+       else
+         do x = 1 to model.0
+           if word( model.x, 1 ) = "TEXT" then
+             do
+               Call WriteOutput "TBTEXT" subword( model.x, 3, 4 )
+             end
+           else
+             do
+               Call WriteOutput "TBFIELD" subword( model.x, 3, 4 )
+             end
+         end
+       do i = i + 1 to src.0
+         if substr( src.i, 1, 1 ) = ")" then leave
+         Call WriteOutput mod1
+         mod1   = "TBMODEL"
+         model. = ""
+         body.  = ""
+         body.0 = 1
+         body.1 = src.i
+         model. = ConvertBodyArea( body., zscrmaxw )
+         do x = 1 to model.0
+           if word( model.x, 1 ) = "TEXT" then
+             do
+               Call WriteOutput "TBTEXT" subword( model.x, 3, 4 )
+             end
+           else
+             do
+               Call WriteOutput "TBFIELD" subword( model.x, 3, 4 )
+             end
+         end
+       end
+       i = i - 1
+     end
+   else
+     do
+       Call WriteOutput src.i
+     end
+ end
+
+Call WriteSource
+
+x = rxqueue( "Delete", "panconv" )
+
+EXIT
+
+
+Initialise:
+if arg( 1 ) = "INTERNAL" then
+  do
+    internal = .true
+    iname    = arg( 2 )
+    oname    = arg( 3 )
+    zscrmaxw = arg( 4 )
+    zscrmaxd = arg( 5 )
+    debug    = ( arg( 6 ) = "YES" )
+  end
+else if arg( 1 ) = "PANCDRV" then
+  do
+    internal = .false
+    iname    = arg( 2 )
+    oname    = arg( 3 )
+    zscrmaxw = arg( 4 )
+    zscrmaxd = arg( 5 )
+    if zscrmaxw = "" then
+      do
+        address ISPEXEC "VGET (ZSCRMAXW) SHARED"
+      end
+    if zscrmaxd = "" then
+      do
+        address ISPEXEC "VGET (ZSCRMAXD) SHARED"
+      end
+    address ISPEXEC "VGET (ZUSER ZDEBUG) SHARED"
+    debug = ( zdebug > 0 )
+  end
+else if word( arg( 1 ), 1 ) = "TEST" then
+  do
+    internal = .false
+    iname    = subword( arg( 1 ), 2 )
+    oname    = systempfilename( "/tmp/panconv-????-????" )
+    address ISPEXEC "VGET (ZSCRMAXW ZSCRMAXD ZDEBUG) SHARED"
+    debug = ( zdebug > 0 )
+  end
+else
+  do
+    internal = .false
+    iname    = arg( 1 )
+    address ISPEXEC "VGET (ZSCRMAXW ZSCRMAXD ZUSER ZDEBUG) SHARED"
+    oname = "/home/"zuser"/.lspf/plib/" || substr( iname, lastpos( "/", iname ) + 1 )
+    debug = ( zdebug > 0 )
+  end
+
+err.   = ""
+model. = ""
+src.   = ""
+body.  = ""
+area.  = ""
+attr.  = .false
+atype. = ""
+area.  = ""
+sarea. = 0
+warea. = ""
+darea. = ""
+dext.  = .false
+fbody  = .false
+zvars  = ""
+defs   = "%+_"
+icua   = "INPUT CEF EE LEF NEF VOI LID LI SC"
+tcua   = "AB ABSL TEXT CH CT DT ET FP NT PIN PS PT RP SAC SI SUC WASL WT"
+xcua   = "AB ABSL"
+RETURN
+
+
+ReadSource:
+Zfile = .stream~new( iname )
+res   = Zfile~open("read")
+if res \= "READY:" then
+  do
+    err.1 = "Error.  Input file cannot be opened."
+    Call WriteError
+  end
+i = 0
+do while Zfile~lines > 0
+  i     = i + 1
+  src.i = Zfile~linein
+end
+src.0 = i
+Zfile~close
+RETURN
+
+
+WriteSource:
+fileo = .stream~new( oname )
+res   = fileo~open( "write replace" )
+if res \= "READY:" then
+  do
+    err.1 = "Error.  Output file cannot be opened."
+    Call WriteError
+  end
+
+do i = 1 to queued()
+  parse pull line
+  fileo~lineout( line )
+end
+
+fileo~close
+
+if substr( oname, 1, 13 ) = "/tmp/panconv-" then
+  do
+    address ISPEXEC "VIEW FILE(ONAME)"
+    Call sysfiledelete( oname )
+  end
+RETURN
+
+
+WriteHeader: Procedure expose internal debug oname hpanel
+Call WriteOutput ")PANEL VERSION=1 FORMAT=1" hpanel
+
+if \internal then
+  do
+    l  = "/* Converted by panconv EXEC on "date() "at" time() "*/"
+    ln = length( l ) - 6
+    Call WriteOutput "/*" copies( "*", ln ) "*/"
+    Call WriteOutput l
+    Call WriteOutput "/*" copies( "*", ln ) "*/"
+  end
+RETURN
+
+
+WriteOutput: Procedure
+parse arg l
+queue l
+RETURN
+
+
+WriteError: Procedure expose internal debug oname err.
+if \internal then
+  do i = 1 to 9
+    if err.i = "" then leave
+    say err.i
+  end
+
+if debug then
+  do
+    Call WriteSource
+  end
+else
+  do
+    x = rxqueue( "Delete", "panconv" )
+  end
+
+EXIT err.1
+
+
+CreateDefAttrs: Procedure expose debug oname atype. attr.
+parse arg attr1 +1 attr2 +1 attr3 +1 .
+
+if \attr.attr1 then atype.attr1 = "TEXT"
+if \attr.attr2 then atype.attr2 = "TEXT"
+if \attr.attr3 then atype.attr3 = "FIELD"
+
+attr.attr1 = .true
+attr.attr2 = .true
+attr.attr3 = .true
+RETURN
+
+
+ExpandWidth: Procedure expose debug oname body. zscrmaxw zscrmaxd
+/* Expand any lines that contain the EXPAND(ab) characters.  */
+
+exp  = arg( 1 )
+exp1 = substr( exp, 1, 1 )
+exp2 = substr( exp, 2, 1 )
+
+do i = 1 to body.0
+  p1 = pos( exp1, body.i )
+  if p1 > 0 then
+    do
+      p2 = pos( exp2, body.i, p1+1 )
+      if p2 > 0 then
+        do
+          body.i = ExpandWidthLine( body.i, exp1, exp2, p1, p2 )
+        end
+    end
+end
+RETURN
+
+
+ExpandWidthLine: Procedure expose debug oname zscrmaxw zscrmaxd
+/* Expand the line that contains the EXPAND(ab) characters.  */
+/* These can appear any number of times on a line.           */
+
+l    = arg( 1 )
+exp1 = arg( 2 )
+exp2 = arg( 3 )
+p1   = arg( 4 )
+p2   = arg( 5 )
+
+l = strip( l, "T", " " )
+
+llen = length( l )
+
+n    = 1
+llen = llen - ( p2 - p1 + 1 )
+p1   = p2 + 1
+
+do forever
+  p1 = pos( exp1, l, p1 )
+  if p1 = 0 then leave
+  p2 = pos( exp2, l, p1+1 )
+  if p2 = 0 then leave
+  n    = n + 1
+  llen = llen - ( p2 - p1 + 1 )
+  p1   = p2 + 1
+end
+
+extra = ( zscrmaxw - llen ) % n
+
+do i = 1 to n
+   parse var l head (exp1) m (exp2) tail
+   if i < n then
+     do
+       l = head || copies( m, extra ) || tail
+     end
+   else
+     do
+       len = zscrmaxw - llen - ( n - 1 ) * extra
+       l   = head || copies( m, len ) || tail
+     end
+end
+RETURN l
+
+
+ConvertBodyArea: Procedure expose debug oname internal zscrmaxd err. zvars attr. atype. dext. darea. warea. sarea. defs
+/* Generate the lspf )BODY and )AREA panel statements                      */
+/*                                                                         */
+/* FIELD   ROW COL LEN ATTR()  FIELD_NAME                                  */
+/* TEXT    ROW COL     ATTR()  "literal"                                   */
+/* DYNAREA ROW COL WIDTH DEPTH A-name S-name USERMOD() DATAMOD() SCROLL()  */
+/* AREA    ROW COL WIDTH DEPTH A-name                                      */
+/*                                                                         */
+/* Width depends on the section being processed:                           */
+/* )BODY - ZSCRMAXW or as defined on the WINDOW(x,y) parameter             */
+/* )AREA - As defined by the attribute boundary.                           */
+/*                                                                         */
+
+t.    = arg( 1 )
+width = arg( 2 )
+
+o.   = ""
+o.0  = 0
+l    = 0
+attr = substr( defs, 1, 1 )
+scol = 1
+
+do row = 1 while row <= t.0
+   f   = ""
+   len = length( t.row )
+   if len > width then
+     do
+       t.row = strip( t.row, "T", " " )
+       len   = length( t.row )
+     end
+   if len < width then
+     do
+       t.row = left( t.row, width )
+       len   = width
+     end
+   do col = 1 to len
+      char = substr( t.row, col, 1 )
+      if attr.char | col = len then
+        do
+          if \attr.char then
+            do
+              f = (f)char
+            end
+          flen = length( f )
+          if strip( f ) \= "" then
+            do
+              if atype.attr = "TEXT" then
+                do
+                  l   = l + 1
+                  o.l = "TEXT" row scol "ATTR("c2x(attr)")"
+                  if pos( "&", f ) = 0 then f = strip( f, "T", " " )
+                  p = pos( "'", f )
+                  do while p > 0
+                    f = insert( "'", f, p )
+                    p = pos( "'", f, p + 2 )
+                  end
+                  o.l = o.l "'" || f || "'"
+                end
+              else if atype.attr = "FIELD" then
+                do
+                  l   = l + 1
+                  var = upper( word( strip( f ), 1 ) )
+                  if var = "Z" then
+                    do
+                      parse var zvars var zvars
+                    end
+                  o.l = "FIELD" row scol flen "ATTR("c2x(attr)") "var
+                end
+              else if atype.attr = "XCUA" then
+                do
+                  leave col
+                end
+              else if atype.attr = "DYNAMIC" then
+                do
+                  vars = upper( word( substr( t.row, scol-1 ), 1 ) )
+                  parse var vars (attr) vars (attr) .
+                  parse var vars zdata "," zshadow .
+                  if zdata \= "" then
+                    do
+                      rowt = row
+                      if dext.attr then
+                        do
+                          xx   = t.0
+                          yx.  = ExtendDynamicArea( row, scol-1, zdata )
+                          rowt = row + ( t.0 - xx )
+                        end
+                      else
+                        do
+                          yx. = GetAreaSize( row, scol-1, zdata )
+                        end
+                      l = l + 1
+                      if zshadow = "" then zshadow = "ZSHADOW"
+                      o.l = "DYNAREA" row scol-1 yx.1 yx.2 zdata zshadow darea.attr
+                      row = rowt
+                    end
+                end
+              else if atype.attr = "SCRL" then
+                do
+                  var = upper( word( substr( t.row, scol ), 1 ) )
+                  if var \= "" then
+                    do
+                      rowt = row
+                      if dext.attr then
+                        do
+                          yx. = ExtendDynamicArea( row, scol-1, var )
+                        end
+                      else
+                        do
+                          yx. = GetAreaSize( row, scol-1, var )
+                        end
+                      l   = l + 1
+                      o.l = "AREA" row scol-1 yx.1 yx.2 var
+                      warea.var = yx.1
+                      row = rowt
+                    end
+                end
+              else
+                do
+                  err.1 = "Error.  Unknown attribute type '"atype.attr"' for attribute "attr" ( x'"c2x( attr )"' )"
+                  Call WriteError
+                end
+            end
+          if attr.char then
+            do
+              attr = char
+            end
+          scol = col + 1
+          f    = ""
+        end
+      else
+       do
+         f = (f)char
+       end
+   end
+   scol = 1
+end
+o.0 = l
+
+RETURN o.
+
+
+ExtendDynamicArea: Procedure expose debug oname zscrmaxd attr attr. atype. t. sarea.
+/* Extend down the dynamic area or scroll area by repeating the last      */
+/* line containing the attributes bounding the area.                      */
+/*                                                                        */
+/* Don't extend if the last line has other non-text fields present.       */
+/*                                                                        */
+/* If a scroll area, extend by the minimum of area size and screen depth. */
+/*                                                                        */
+/* Return the area size.                                                  */
+
+row  = arg( 1 )
+col  = arg( 2 )
+nam1 = arg( 3 )
+
+oldrow = row
+
+if row < t.0 then
+  do row = row to t.0
+     if substr( t.row, col, 1 ) \= attr then
+       do
+         row = row - 1
+         leave
+       end
+     nam2 = substr( word( substr( t.row, col ), 1 ), 2 )
+     if nam2 \= "" then
+       do
+         parse var nam2 nam2 (attr) .
+         parse var nam2 nam2 "," .
+         nam2 = upper( nam2 )
+         if nam1 \= nam2 then
+           do
+             row = row - 1
+             leave
+           end
+       end
+  end
+
+if row > t.0 then row = t.0
+
+if sarea.nam1 > 0 then
+  do
+    size = row - oldrow
+    if ( sarea.nam1 - size ) < 1 then
+      do
+        RETURN GetAreaSize( arg( 1 ), arg( 2 ), arg( 3 ) )
+      end
+  end
+
+parse var t.row head (attr) mid ( attr ) tail
+
+if hasFields( head ) then
+  do
+    RETURN GetAreaSize( arg( 1 ), arg( 2 ), arg( 3 ) )
+  end
+
+if hasFields( tail ) then
+  do
+    RETURN GetAreaSize( arg( 1 ), arg( 2 ), arg( 3 ) )
+  end
+
+l = copies( " ", length( head ) ) || attr || copies( " ", length( mid ) ) || attr
+
+rpt = zscrmaxd - t.0
+if sarea.nam1 > 0 then
+  do
+    rpt = min( rpt, ( sarea.nam1 - size ) )
+  end
+
+Call InsertLine l, row, rpt
+
+RETURN GetAreaSize( arg( 1 ), arg( 2 ), arg( 3 ) )
+
+
+InsertLine: Procedure expose debug oname t.
+/* Insert line ln, after pos, repeated rpt times */
+
+ln  = arg( 1 )
+pos = arg( 2 )
+rpt = arg( 3 )
+
+j = t.0
+do forever
+  t.[ j + rpt ] = t.j
+  j = j - 1
+  if ( j <= pos ) then leave
+end
+
+do rpt
+  pos   = pos + 1
+  t.pos = ln
+end
+
+t.0 = t.0 + rpt
+RETURN
+
+
+GetAreaSize: Procedure expose debug oname attr t.
+/* Return length and depth of the area starting at row/col. */
+/* row/col point to the top left attribute byte             */
+/*                                                          */
+/* Area ends when there are no more attribute bytes or      */
+/* there is a different variable name after the attribute.  */
+/*                                                          */
+/* yx.1 = length                                            */
+/* yx.2 = depth                                             */
+
+row  = arg( 1 )
+col  = arg( 2 )
+nam1 = arg( 3 )
+
+yx.1 = pos( attr, t.row, col+1 ) - col + 1
+
+do i = row to t.0
+   if substr( t.i, col, 1 ) \= attr then leave
+   nam2 = substr( word( substr( t.i, col ), 1 ), 2 )
+   if nam2 \= "" then
+     do
+       parse var nam2 nam2 (attr) .
+       parse upper var nam2 nam2 "," .
+       if nam1 \= nam2 then leave
+     end
+end
+
+yx.2 = i - row
+
+RETURN yx.
+
+
+InsertAttrBody: Procedure expose debug src.
+/* Insert 2 lines at the start of the source                     */
+/* for the )ATTR and )BODY statements if the ISPF panel does not */
+/* already contain these.                                        */
+
+j = src.0
+do forever
+  src.[ j + 2 ] = src.j
+  j = j - 1
+  if ( j <= 1 ) then leave
+end
+
+src.0 = src.0 + 2
+
+src.1 = ")ATTR DEFAULT(%+_)"
+src.2 = ")BODY"
+RETURN
+
+
+hasFields: Procedure expose debug attr. atype.
+/* Return true if string contains input/ouput fields,  */
+/* dynamic or scroll areas.                            */
+
+l = arg( 1 )
+
+do i = 1 to length( l )
+  char = substr( l, i, 1 )
+  if attr.char then
+    do
+      if atype.char = "FIELD" | atype.char = "DYNAMIC" | atype.char = "SCRL" then RETURN .true
+    end
+end
+
+RETURN .false

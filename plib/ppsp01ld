@@ -1,0 +1,50 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Panel to display current libdef status for this logical screen
+)ENDCOMMENT
+
+)BODY WINDOW(70,22) SMSG(LDMSG)
+PANELTITLE 'LIBDEF Display Utility'
+
+TEXT     2   2         FP    'Command ===>'
+FIELD    2  15  MAX-17 NEF CAPS(ON),PAD(USER) ZCMD
+FIELD    3   2  24     VOI NONE LDMSG
+
+TEXT     2  MAX-15  FP 'Scroll ===>'
+FIELD    2  MAX-3   4 NEF  NONE ZSCROLL
+
+TEXT     4  4 CH  'Library  Type     USR Identifier'
+
+TBMODEL  5    MAX
+TBFIELD  2    1    LI  NONE LDSTK
+TBFIELD  ++1  8    LI  NONE LDLIB
+TBFIELD  ++1  8    LI  NONE LDTYP
+TBFIELD  ++2  1    LI  NONE LDUSR
+TBFIELD  ++2  MAX  LI  NONE LDID
+
+)INIT
+VGET ZSCROLL PROFILE
+IF (&ZSCROLL = &Z) &ZSCROLL = &ZSCROLLD
+
+&ZWINTTL = 'LIBDEF Utility'
+&ZTDMARK = ' - End -'
+
+)REINIT
+.ATTR(LDMSG) = 'TYPE(OUTPUT) COLOUR(YELLOW)'
+
+)PROC
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS011C
+-- .CURSOR = ZCMD
+   EXIT
+
+IF (.MSG = &Z ) VPUT ZSCROLL PROFILE
+
+)FIELD
+FIELD(LDID) LEN(4095)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

@@ -1,0 +1,184 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+
+*********************************************************************************
+* Panel to convert dates (uses REXX)                                            *
+*********************************************************************************
+
+)ENDCOMMENT
+
+)ATTR DEFAULT($^_)
++ TYPE(NEF)
+! TYPE(NEF) PASSWD(ON) PAD(USER)
+* TYPE(RP)
+@ TYPE(OUTPUT) CAPS(OFF)
+
+)COMMENT
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+)ENDCOMMENT
+
+)BODY WINDOW(65,21) CMD()
+PANELTITLE 'Convert/Display Dates'
+
+AREA   2 2      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT      2   35        FP  'Time:'
+FIELD     2   41        11   VOI   NONE  ZTIMEL
+
+TEXT      3   35        FP  'Date:'
+FIELD     3   41        8    VOI   NONE  ZDATE
+
+TEXT      1   1     FP  'DATE. . . . : '
+FIELD     1   15    18    ATTR(+) DATE
+TEXT      1   35    FP  'Valid REXX types:'
+FIELD     1   53    10    ATTR(@) VTYPES
+TEXT      2   1     FP  'Occured . . : '
+FIELD     2   15    18    ATTR(@) OCCURED
+
+TEXT      4   1     FP  'Base. . . . . . . . .'
+FIELD     4   23    12   ATTR(@) DATEB
+TEXT      5   1     FP  'Days this year. . . .'
+FIELD     5   23    12   ATTR(@) DATED
+TEXT      6   1     FP  'European, dd/mm/yy. .'
+FIELD     6   23    12   ATTR(@) DATEE
+TEXT      7   1     FP  'Full. . . . . . . . .'
+FIELD     7   23    20   ATTR(@) DATEF
+TEXT      8   1     FP  'ISO, yyy-mm-dd. . . .'
+FIELD     8   23    20   ATTR(@) DATEI
+TEXT      9   1     FP  'Language. . . . . . .'
+FIELD     9   23    20   ATTR(@) DATEL
+TEXT     10   1     FP  'Julian, yyddd . . . .'
+FIELD    10   23    12   ATTR(@) DATEJ
+TEXT     11   1     FP  'Month literal . . . .'
+FIELD    11   23    12   ATTR(@) DATEM
+TEXT     12   1     FP  'Normal, dd mon yyyy .'
+FIELD    12   23    12   ATTR(@) DATEN
+TEXT     13   1     FP  'Ordered, yy/mm/dd . .'
+FIELD    13   23    12   ATTR(@) DATEO
+TEXT     14   1     FP  'Standard, yyyymmdd. .'
+FIELD    14   23    12   ATTR(@) DATES
+TEXT     15   1     FP  'Ticks . . . . . . . .'
+FIELD    15   23    15   ATTR(@) DATET
+TEXT     16   1     FP  'USA, mm/dd/yy . . . .'
+FIELD    16   23    12   ATTR(@) DATEU
+TEXT     17   1     FP  'Weekday . . . . . . .'
+FIELD    17   23    12   ATTR(@) DATEW
+
+
+)INIT
+VGET (ZDATE,ZTIMEL) SHARED
+IF (&DATE EQ &Z)
+   .RESP = ENTER
+*rexx(DATE)
+   if date = "" then date = date()
+*endrexx
+
+)REINIT
+IF (.MSG NE &Z AND .CURSOR NE &Z)
+   .ATTR(.CURSOR) = 'TYPE(INPUT) COLOUR(RED)'
+
+)PROC
+IF (.RESP EQ END) EXIT
+
+*rexx(*,zedsmsg,zedlmsg)
+  Call ExecInit
+
+  do ii = 1 to words( f2List )
+     Type = word( f2List, ii )
+     Call FindValidTypes
+  end
+
+   If vtypes = "" then
+     do
+        zedsmsg = 'Invalid Date'
+        zedlmsg = 'Date entered is not in a valid REXX date format.'
+        ZRXMSG  = 'PSYZ001'
+        ZRXRC   = 8
+        exit
+     end
+
+  Call ListDates
+
+  EXIT 0
+
+
+  ExecInit:
+  if date = "" then date = date()
+  f1List  = "B D E F I L M N O S T U W"
+  f2List  = "B E F I N O S T U"
+  Abs.    = ""
+  vtypes  = ""
+  aDate   = date( "B" )
+  zedsmsg = ""
+  zedlmsg = ""
+  RETURN
+
+
+  FindValidTypes:
+  Signal on syntax
+  Abs.Type = date( "B", date, Type )
+  vtypes = vtypes Type
+  syntax:
+  RETURN
+
+
+  ListDates:
+  numeric digits 31
+  yy  = ""
+  ddd = ""
+  do ii = 1 to words( vtypes )
+     Type2 = word( vtypes, ii )
+     Call DisplayOffset
+     do jj = 1 to words( f1List )
+        Type1 = word( f1List, jj )
+        Signal on syntax
+        interpret "date" || Type1 " = date(" || type1",'"date"',"type2 || ")"
+        if ( type1 = "D" ) then ddd = right( dated, 3, "0" )
+        if ( type1 = "I" ) then yy  = substr( datei, 3, 2 )
+        syntax:
+     end
+  end
+  datej = yy || ddd
+  RETURN
+
+
+  DisplayOffset:
+  Offset = Abs.Type2 - aDate
+  select
+    when Offset = 0  then lit = "Today"
+    when Offset = -1 then lit = "Yesterday"
+    when Offset = 1  then lit = "Tomorrow"
+    when Offset < -1 then lit = abs( Offset ) "days ago"
+    otherwise             lit = Offset "days time"
+  end
+  occured = lit
+  RETURN
+*endrexx
+
+IF (&zedlmsg ne &z)
+  .CURSOR  = DATE
+  &VTYPES  = &Z
+  &OCCURED = &Z
+  &DATEB   = &Z
+  &DATED   = &Z
+  &DATEE   = &Z
+  &DATEF   = &Z
+  &DATEI   = &Z
+  &DATEL   = &Z
+  &DATEJ   = &Z
+  &DATEM   = &Z
+  &DATEN   = &Z
+  &DATEO   = &Z
+  &DATES   = &Z
+  &DATET   = &Z
+  &DATEU   = &Z
+  &DATEW   = &Z
+  REFRESH(*)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

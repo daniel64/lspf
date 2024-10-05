@@ -1,0 +1,86 @@
+)PANEL VERSION=1 FORMAT=1 
+/* *************************************************** */
+/* Converted by panconv EXEC on 3 Oct 2024 at 15:46:41 */
+/* *************************************************** */
+)ATTR DEFAULT(%+_)
+  + TYPE(TEXT  ) COLOR(GREEN)
+  _ TYPE( INPUT) INTENS(LOW ) JUST(LEFT ) HILITE(USCORE)
+  ~ TYPE(TEXT) INTENS(HIGH) CAPS(OFF) JUST(ASIS ) COLOR(TURQ)
+  [ TYPE(OUTPUT) INTENS(HIGH) CAPS(OFF) JUST(LEFT) PAS(ON) COLOR(WHITE)
+/*   } AREA(SCRL) EXTEND(ON) panconv */
+)BODY 
+TEXT 1 2 ATTR(25) 'Tutorial ---------------------------'
+TEXT 1 39 ATTR(7E) 'Compare Utility'
+TEXT 1 55 ATTR(25) '--------------------------- Tutorial'
+TEXT 2 2 ATTR(25) 'Selection ===>'
+FIELD 2 17 73 ATTR(5F) ZCMD
+AREA 5 1 90 36 HELP
+)AREA HELP
+TEXT 2 2 ATTR(25) 'Primary and line commands for file list application PDIFF0A'
+TEXT 5 2 ATTR(2B) 'The file compare program can be invoked from option 3.6.'
+TEXT 7 2 ATTR(25) 'Compare entry panel:'
+TEXT 8 2 ATTR(2B) '--------------------'
+TEXT 10 2 ATTR(25) 'Entry Panel Primary commands:'
+TEXT 11 2 ATTR(2B) '-----------------------------'
+TEXT 12 2 ATTR(2B) 'SWITCH - switches Entry A and Entry B.'
+TEXT 13 2 ATTR(2B) '/ - display a list of possible commands when Entry A and Entry B are both files.'
+TEXT 15 2 ATTR(2B) 'If first character of Entry B is ''='', Entry B is primed with the value from'
+TEXT 16 2 ATTR(2B) 'Entry A.'
+TEXT 18 2 ATTR(2B) 'General options:'
+TEXT 19 2 ATTR(2B) 'Case insensitive compare.  This corresponds to the -i diff option.'
+TEXT 21 2 ATTR(2B) 'Whitespace options:'
+TEXT 22 2 ATTR(2B) 'Ignore changes to whitespace. This corresponds to the -b diff option.'
+TEXT 23 2 ATTR(2B) 'Ignore blank lines. This corresponds to the -B diff option.'
+TEXT 24 2 ATTR(2B) 'Ignore trailing spaces. This corresponds to the -Z diff option.'
+TEXT 25 2 ATTR(2B) 'Ignore changes due to tab expansion. This corresponds to the -E diff option.'
+TEXT 28 2 ATTR(2B) 'A pattern to exclude files can be passed to ''diff'' via the ''Exclude pattern'' field.'
+TEXT 29 2 ATTR(2B) 'This corresponds to the -x diff option.'
+TEXT 32 2 ATTR(2B) 'A pattern to ignore changes where all lines match a regexp can be passed via the'
+TEXT 33 2 ATTR(2B) '''Ignore regexp'' field.'
+TEXT 34 2 ATTR(2B) 'This corresponds to the -I diff option.'
+TEXT 37 2 ATTR(2B) 'Other processing options can be passed to ''diff'' via the ''Extra processing options'''
+TEXT 38 2 ATTR(2B) 'field.  These are used only on selecting an entry in the scrollable list.'
+TEXT 41 2 ATTR(2B) 'Take care not to add options that conflict with the internally generated options.'
+TEXT 42 2 ATTR(2B) 'If there is an error, the diff command is written to the application log.'
+TEXT 45 2 ATTR(2B) 'The number of context lines can also be entered, default is 3.  This is'
+TEXT 46 2 ATTR(2B) 'applicable for Context and Unified output formats.'
+TEXT 49 2 ATTR(25) 'Compare scrollable file list:'
+TEXT 50 2 ATTR(2B) '-----------------------------'
+TEXT 52 2 ATTR(25) 'Primary commands:'
+TEXT 53 2 ATTR(2B) '-----------------'
+TEXT 54 2 ATTR(2B) 'A:MOD to sort the list in descending order of modified date for entry A.'
+TEXT 55 2 ATTR(2B) 'B:MOD to sort the list in descending order of modified date for entry B.'
+TEXT 57 2 ATTR(2B) 'REF to refresh the scrollable list.'
+TEXT 58 2 ATTR(2B) 'PATCH to create patch file using command ''diff -Naur'' (can be abbreviated to P).'
+TEXT 59 2 ATTR(2B) ' The same exclude pattern is used as for diff.'
+TEXT 62 2 ATTR(2B) 'Scroll right to see the last modified dates and sizes (if screen size is large'
+TEXT 63 2 ATTR(2B) 'enough).  Right again gives just the entry names (for long file names).'
+TEXT 65 2 ATTR(25) 'Line commands:'
+TEXT 66 2 ATTR(2B) '--------------'
+TEXT 68 2 ATTR(2B) '/  - display a list of possible line commands.'
+TEXT 69 2 ATTR(2B) '=  - repeats the previous line command.'
+TEXT 71 2 ATTR(2B) 'EA - edit file A'
+TEXT 72 2 ATTR(2B) 'EB - edit file B'
+TEXT 74 2 ATTR(2B) 'C  - copy file B to file A'
+TEXT 75 2 ATTR(2B) 'CA - copy file A to file B'
+TEXT 76 2 ATTR(2B) 'CB - same as C'
+TEXT 77 2 ATTR(2B) '     Copy also copies file attributes mode, ownership, timestamps and extended'
+TEXT 78 2 ATTR(2B) '     attributes.'
+TEXT 80 2 ATTR(2B) 'S  - browse a compare listing using the defaults on the Compare Entry screen.'
+TEXT 81 2 ATTR(2B) 'S1 - browse a standard compare listing.'
+TEXT 82 2 ATTR(2B) 'S2 - browse a context compare listing.'
+TEXT 83 2 ATTR(2B) 'S3 - browse a unified compare listing.'
+TEXT 84 2 ATTR(2B) 'S4 - output an ed script.'
+TEXT 85 2 ATTR(2B) 'S5 - browse an RCS compare listing.'
+TEXT 86 2 ATTR(2B) 'S6 - browse a side-by-side compare listing.'
+TEXT 88 2 ATTR(2B) 'V,V1-6 are the same except view is used instead of browse.'
+TEXT 90 2 ATTR(2B) 'M  - edit file A after a compare has been done with file B'
+TEXT 91 2 ATTR(2B) 'MA - Same as M'
+TEXT 92 2 ATTR(2B) 'MB - edit file B after a compare has been done with file A'
+TEXT 94 2 ATTR(2B) 'P  - Create patch file using command ''diff -u''.'
+TEXT 96 2 ATTR(2B) 'Commands not specifying A or B (C, M, S etc.) treat A as the old file and B'
+TEXT 97 2 ATTR(2B) 'as the new.'
+)INIT
+ .CURSOR = ZCMD
+)PROC
+)END

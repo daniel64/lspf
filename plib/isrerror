@@ -1,0 +1,109 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+
+   Edit macro error panel
+   ZERRMSG, ZERRSM, ZERRLM and ZERR1 - ZERR3 are shown on the panel.  Set in function pool to display.
+
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY DEFAULT(%+_)
+PANELTITLE 'Edit Macro Error'
+
+TEXT  4   2      FP  'Command ===> '
+FIELD 4  15 MAX  NEF  CAPS(ON),PAD(USER) ZCMD
+
+AREA 6 1 MAX MAX SAREA1
+
+)AREA SAREA1
+TEXT 1    2 ET EXPAND '*'
+
+TEXT 2       2 ET '*'
+TEXT 2  MAX ET '*'
+
+TEXT 3       2 ET '*'
+TEXT 3  MAX ET '*'
+
+TEXT 4       2 ET '*'
+TEXT 4  MAX ET '*'
+
+TEXT 5        2 ET '*'
+TEXT 5   MAX ET '*'
+
+TEXT 6        2 ET '*'
+TEXT 6   MAX ET '*'
+
+TEXT 7        2 ET '*'
+TEXT 7   MAX ET '*'
+
+TEXT 8        2 ET '*'
+TEXT 8   MAX ET '*'
+
+TEXT 9        2 ET '*'
+TEXT 9   MAX ET '*'
+
+TEXT 10       2 ET '*'
+TEXT 10  MAX ET '*'
+
+TEXT 11       2 ET '*'
+TEXT 11  MAX ET '*'
+
+TEXT 12       2 ET '*'
+TEXT 12  MAX ET '*'
+
+TEXT 13       2 ET '*'
+TEXT 13  MAX ET '*'
+
+TEXT 14       2 ET '*'
+TEXT 14  MAX ET '*'
+
+TEXT 15       2 ET '*'
+TEXT 15  MAX ET '*'
+
+TEXT 16       2 ET '*'
+TEXT 16  MAX ET '*'
+
+TEXT 17       2 ET '*'
+TEXT 17  MAX ET '*'
+
+TEXT 18       2 ET '*'
+TEXT 18  MAX ET '*'
+
+TEXT 19       2 ET '*'
+TEXT 19  MAX ET '*'
+
+TEXT 20      2 ET EXPAND '*'
+
+TEXT  3 4   NT 'Command in error . :'
+FIELD 3 25  MAX-2 VOI NONE ZERR1
+
+FIELD 5  4   MAX-2 VOI NONE ZERRSM
+FIELD 6  4   MAX-2 VOI NONE ZERRLM
+
+TEXT  8  4   NT 'Error message id . :'
+FIELD 8  25  MAX-2 VOI NONE ZERRMSG
+
+TEXT  10 4   NT 'Last return code . :'
+FIELD 10 25  MAX-2 VOI NONE ZERR2
+
+TEXT  12 4   NT 'Macro executing. . :'
+FIELD 12 25  MAX-2 VOI NONE ZERR3
+
+TEXT 15 4   NT 'Press'
+TEXT 15 10  ET 'Enter'
+TEXT 15 16  NT 'to terminate the macro'
+
+)INIT
+.CURSOR = ZCMD
+&ZCMD   = &Z
+
+)PROC
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

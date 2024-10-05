@@ -1,0 +1,201 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ A simple saved file list dialogue.  File/directory name expansion supported via program PFLST0A.
+ NRETRIEV also supported.
+
+ Retrieve list is cursor sensitive.
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE rfl_pdc
+)INCLUDE hlp_pdc
+
+)BODY
+PANELTITLE 'Saved File List (&ZAPPLID)'
+
+TEXT      4   2   FP 'Command ===> '
+FIELD     4  15  MAX NEF CAPS(ON),PAD(USER) ZCMD
+
+AREA   5 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT      1   2   FP 'File name. . .'
+FIELD     1  17     MAX-4  NEF PAD(USER) ZFILE
+FIELD     1  MAX-2  2      LI      NONE   ZFILEIND
+
+TEXT      2   2    FP 'Directory. . .'
+FIELD     2  17    MAX-4  NEF PAD(USER) ZDIR
+FIELD     2  MAX-2 2      LI  NONE      ZDIRIND
+
+TEXT      3   2   FP 'Current. . . .'
+FIELD     3  17   MAX  VOI NONE ZCURR
+
+FIELD     5   2   1     NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL1
+FIELD     5   4   MAX-4 NEF CAPS(OFF),PAD(USER) ZFILE1
+FIELD     5   MAX-2     2   LI  NONE      ZFIL1IND
+
+FIELD     6   2  1     NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL2
+FIELD     6   4  MAX-4 NEF CAPS(OFF),PAD(USER) ZFILE2
+FIELD     6   MAX-2    2   LI  NONE      ZFIL2IND
+
+FIELD     7   2  1     NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL3
+FIELD     7   4  MAX-4 NEF CAPS(OFF),PAD(USER) ZFILE3
+FIELD     7   MAX-2    2   LI  NONE      ZFIL3IND
+
+FIELD     8   2  1     NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL4
+FIELD     8   4  MAX-4 NEF CAPS(OFF),PAD(USER) ZFILE4
+FIELD     8   MAX-2    2   LI  NONE      ZFIL4IND
+
+FIELD     9   2  1     NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL5
+FIELD     9   4  MAX-4 NEF CAPS(OFF),PAD(USER) ZFILE5
+FIELD     9   MAX-2    2   LI  NONE      ZFIL5IND
+
+FIELD     10  2  1     NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL6
+FIELD     10  4  MAX-4 NEF CAPS(OFF),PAD(USER) ZFILE6
+FIELD     10  MAX-2    2   LI  NONE      ZFIL6IND
+
+FIELD     11  2  1     NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL7
+FIELD     11  4  MAX-4 NEF CAPS(OFF),PAD(USER) ZFILE7
+FIELD     11  MAX-2    2   LI  NONE      ZFIL7IND
+
+FIELD     12  2  1     NEF CAPS(ON),PAD(USER),SKIP(OFF) SEL8
+FIELD     12  4  MAX-4 NEF CAPS(OFF),PAD(USER) ZFILE8
+FIELD     12  MAX-2    2   LI  NONE      ZFIL8IND
+
+)INIT
+&ZUS3 = 1
+.NRET = ON
+.NRET = ZFILE
+
+&ZFILE = &Z
+VGET (ZCURR) PROFILE
+VGET (ZFILE1 ZFILE2 ZFILE3 ZFILE4 ZFILE5 ZFILE6 ZFILE7 ZFILE8) PROFILE
+.HELP   = FLSH0001
+.CURSOR = ZFILE
+
+)REINIT
+.CURSOR = ZFILE
+REFRESH(*)
+
+)PROC
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+   EXIT
+
+VER (&SEL1,LIST,S,B,C,E)
+VER (&SEL2,LIST,S,B,C,E)
+VER (&SEL3,LIST,S,B,C,E)
+VER (&SEL4,LIST,S,B,C,E)
+VER (&SEL5,LIST,S,B,C,E)
+VER (&SEL6,LIST,S,B,C,E)
+VER (&SEL7,LIST,S,B,C,E)
+VER (&SEL8,LIST,S,B,C,E)
+
+IF (&SEL1 EQ C)
+    &SEL1   = &Z
+    .CURSOR = ZFILE1
+ELSE
+   IF (&SEL2 EQ C)
+      &SEL2   = &Z
+      .CURSOR = ZFILE2
+   ELSE
+      IF (&SEL3 EQ C)
+         &SEL3   = &Z
+         .CURSOR = ZFILE3
+      ELSE
+         IF (&SEL4 EQ C)
+            &SEL4   = &Z
+            .CURSOR = ZFILE4
+         ELSE
+            IF (&SEL5 EQ C)
+               &SEL5   = &Z
+               .CURSOR = ZFILE5
+            ELSE
+               IF (&SEL6 EQ C)
+                  &SEL6   = &Z
+                  .CURSOR = ZFILE6
+               ELSE
+                  IF (&SEL7 EQ C)
+                     &SEL7   = &Z
+                     .CURSOR = ZFILE7
+                  ELSE
+                     IF (&SEL8 EQ C)
+                        &SEL8   = &Z
+                        .CURSOR = ZFILE8
+
+IF (.CURSOR EQ ZFILE1)
+   &ZCURR = &ZFILE1
+   .MSG   = PSYS011V
+ELSE
+   IF (.CURSOR EQ ZFILE2)
+      &ZCURR = &ZFILE2
+      .MSG   = PSYS011V
+   ELSE
+      IF (.CURSOR EQ ZFILE3)
+         &ZCURR = &ZFILE3
+         .MSG   = PSYS011V
+      ELSE
+         IF (.CURSOR EQ ZFILE4)
+            &ZCURR = &ZFILE4
+            .MSG   = PSYS011V
+         ELSE
+            IF (.CURSOR EQ ZFILE5)
+               &ZCURR = &ZFILE5
+               .MSG   = PSYS011V
+            ELSE
+               IF (.CURSOR EQ ZFILE6)
+                  &ZCURR = &ZFILE6
+                  .MSG   = PSYS011V
+               ELSE
+                  IF (.CURSOR EQ ZFILE7)
+                     &ZCURR = &ZFILE7
+                     .MSG   = PSYS011V
+                  ELSE
+                     IF (.CURSOR EQ ZFILE8)
+                        &ZCURR = &ZFILE8
+                        .MSG   = PSYS011V
+
+
+if (.MSG=PSYS011V)
+   VPUT (ZCURR) PROFILE
+   .CURSOR = ZFILE
+   EXIT
+
+VPUT (ZCURR) PROFILE
+VPUT (ZFILE1 ZFILE2 ZFILE3 ZFILE4 ZFILE5 ZFILE6 ZFILE7 ZFILE8) PROFILE
+
+)FIELD
+ -- Expanding ZFILE requires directory fields ZDIR and ZCURR passing to the application.
+ -- Note that these are the field values, not the dialogue variable values which
+ -- are not updated as panel processing does not occur on field-level execution.
+ -- PASS stores field values in ZFEDATA1, ZFEDATA2, ZFEDATA3, ..etc.. in the SHARED pool
+
+ FIELD(ZFILE)  EXEC('SELECT PGM(PFLST0A) PARM(EXPAND FO2) NESTED') PASS(ZDIR,ZCURR)
+ FIELD(ZDIR)   EXEC('SELECT PGM(PFLST0A) PARM(EXPAND DO1) NESTED')
+ FIELD(ZFILE1) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL) NESTED')
+ FIELD(ZFILE2) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL) NESTED')
+ FIELD(ZFILE3) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL) NESTED')
+ FIELD(ZFILE4) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL) NESTED')
+ FIELD(ZFILE5) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL) NESTED')
+ FIELD(ZFILE6) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL) NESTED')
+ FIELD(ZFILE7) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL) NESTED')
+ FIELD(ZFILE8) EXEC('SELECT PGM(PFLST0A) PARM(EXPAND ALL) NESTED')
+
+ FIELD(ZFILE)  LEN(4095) IND(ZFILEIND)
+ FIELD(ZDIR)   LEN(4095) IND(ZDIRIND)
+ FIELD(ZFILE1) LEN(4095) IND(ZFIL1IND)
+ FIELD(ZFILE2) LEN(4095) IND(ZFIL2IND)
+ FIELD(ZFILE3) LEN(4095) IND(ZFIL3IND)
+ FIELD(ZFILE4) LEN(4095) IND(ZFIL4IND)
+ FIELD(ZFILE5) LEN(4095) IND(ZFIL5IND)
+ FIELD(ZFILE6) LEN(4095) IND(ZFIL6IND)
+ FIELD(ZFILE7) LEN(4095) IND(ZFIL7IND)
+ FIELD(ZFILE8) LEN(4095) IND(ZFIL8IND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

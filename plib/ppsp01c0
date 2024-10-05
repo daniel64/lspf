@@ -1,0 +1,91 @@
+)PANEL VERSION=1 FORMAT=1
+
+)COMMENT
+ Entry panel for viewing and changing application command tables.
+)ENDCOMMENT
+
+)BODY WINDOW(73,17)
+PANELTITLE 'Command Table Utility'
+
+TEXT     2   2    FP 'Command ===> '
+FIELD    2  15    MAX NEF CAPS(ON),PAD(USER) ZCMD
+
+AREA 3 1      MAX     MAX     SAREA1
+
+)AREA SAREA1
+TEXT     1   2       CH 'Specifications'
+TEXT     1   42      CH 'Command table search order'
+
+TEXT     2   2       FP 'Application id. . .'
+FIELD    2   22   4  NEF CAPS(ON),PAD(USER) ZACTB1
+TEXT     2   42      FP 'Application table. . :'
+FIELD    2   65   4  VOI NONE ZUCMDA
+
+TEXT     3   42      FP 'User table 1 . . . . :'
+FIELD    3   65   4  VOI NONE ZUCMDT1
+
+TEXT     4   42      FP 'User table 2 . . . . :'
+FIELD    4   65   4  VOI NONE ZUCMDT2
+
+TEXT     5   42      FP 'User table 3 . . . . :'
+FIELD    5   65   4  VOI NONE ZUCMDT3
+
+TEXT     6   42  22  FP  '&ZCTB1TXT'
+FIELD    6   65   4  VOI NONE ZCTB1
+
+TEXT     7   42  22  FP  '&ZCTB2TXT'
+FIELD    7   65   4  VOI NONE ZCTB2
+
+TEXT     8   42  22  FP  '&ZCTB3TXT'
+FIELD    8   65   4  VOI NONE ZCTB3
+
+TEXT     9   42  22  FP  '&ZCTB4TXT'
+FIELD    9   65   4  VOI NONE ZCTB4
+
+TEXT    11   2       NT  'The name of the command table is formed by prefixing the application id'
+TEXT    12   2       NT  'to the string'
+TEXT    12   16      ET  'CMDS'
+TEXT    12   20      NT  '.'
+
+)INIT
+&ZWINTTL= 'Commands'
+&ZUCMDA = &ZAPPLID
+.HIST   = *
+
+IF (&ZACTB1 = &Z) &ZACTB1 = &ZAPPLID
+
+.CURSOR = ZACTB1
+
+IF (&ZSCMDTF EQ Y)
+   &zctb1    = &zscmdt1
+   &zctb1txt = 'Site table 1 . . . . :'
+   &zctb2    = &zscmdt2
+   &zctb2txt = 'Site table 2 . . . . :'
+   &zctb3    = &zscmdt3
+   &zctb3txt = 'Site table 3 . . . . :'
+   &zctb4    = 'ISP'
+   &zctb4txt = 'System table . . . . :'
+ELSE
+   &zctb1    = 'ISP'
+   &zctb1txt = 'System table . . . . :'
+   &zctb2    = &zscmdt1
+   &zctb2txt = 'Site table 1 . . . . :'
+   &zctb3    = &zscmdt2
+   &zctb3txt = 'Site table 2 . . . . :'
+   &zctb4    = &zscmdt3
+   &zctb4txt = 'Site table 3 . . . . :'
+
+)PROC
+IF (&ZCMD NE &Z)
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD
+
+IF (&ZACTB1 = &Z) &ZACTB1 = &ZAPPLID
+
+VER (&ZACTB1,NAME,MSG=PPSP011O)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

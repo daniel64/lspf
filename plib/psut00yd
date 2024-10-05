@@ -1,0 +1,56 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ systemd list session actions
+)ENDCOMMENT
+
+)BODY WINDOW(35,18) CMD()
+PANELTITLE 'Session Actions'
+
+TEXT     3   2            FP 'Session:'
+FIELD    3   11    MAX-4  VOI NONE SESS
+
+AREA 4 1      MAX     MAX     SAREA1
+
+)AREA SAREA1
+TEXT     1   2   FP      'Session Action'
+
+FIELD    2   2   2 CEF    CAPS(ON),PAD(USER),NUMERIC(ON),SKIP(OFF) SEL
+TEXT     2   5   SAC     '1.'
+TEXT     2   9   PS      'User status'
+TEXT     3   5   SAC     '2.'
+TEXT     3   9   PS      'Activate session'
+TEXT     4   5   SAC     '3.'
+TEXT     4   9   PS      'Lock session'
+TEXT     5   5   SAC     '4.'
+TEXT     5   9   PS      'Unlock session'
+TEXT     6   5   SAC     '5.'
+TEXT     6   9   PS      'Terminate session'
+
+)INIT
+.HELP    = LSPLS001
+&SEL     = &Z
+&ZWINTTL = &Z
+.CURSOR  = SEL
+
+)PROC
+VER (&SEL,NB,RANGE,1,5)
+&SEL = TRANS(&SEL
+             1,I
+             2,A
+             3,L
+             4,U
+             5,T
+            )
+
+)PNTS
+FIELD(ZPS01001) VAR(SEL)  VAL(1)
+FIELD(ZPS01002) VAR(SEL)  VAL(2)
+FIELD(ZPS01003) VAR(SEL)  VAL(3)
+FIELD(ZPS01004) VAR(SEL)  VAL(4)
+FIELD(ZPS01005) VAR(SEL)  VAL(5)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2024 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */

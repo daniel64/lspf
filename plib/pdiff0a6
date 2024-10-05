@@ -1,0 +1,88 @@
+)PANEL VERSION=1 FORMAT=1
+)COMMENT
+ Copy file
+)ENDCOMMENT
+
+)INCLUDE std_pdc
+)INCLUDE hlp_pdc
+
+)BODY WINDOW(MAX,19)
+PANELTITLE 'Copy Entry &CDIR'
+
+TEXT     4   2        FP    'Command ===> '
+FIELD    4  15   MAX  NEF CAPS(ON),PAD(USER) ZCMD1
+
+AREA   5 1      MAX  MAX   SAREA1
+
+)AREA SAREA1
+TEXT     1   2   FP   'Copy file from. :'
+FIELD    1   20  MAX-4  VOI  NONE ENTRY1
+FIELD    1    MAX-2 2   LI  NONE      ENTR1IND
+
+TEXT     2   2   FP   'To. . . . . . . :'
+FIELD    2   20  MAX-4  VOI  NONE ENTRY2
+FIELD    2    MAX-2 2   LI   NONE ENTR2IND
+
+TEXT     4   2   FP    'From file modified date . :'
+FIELD    4   30  20  VOI  NONE MODDATE1
+
+TEXT     4   51  FP    'size . :'
+FIELD    4   60  15  VOI  NONE FSIZE1
+
+TEXT     5   2   FP    'To   file modified date . :'
+FIELD    5   30  20  VOI  NONE MODDATE2
+
+TEXT     5   51  FP    'size . :'
+FIELD    5   60  15  VOI  NONE FSIZE2
+
+TEXT     7   2  PIN  'Enter / to confirm copy'
+FIELD    7   27   1   CEF PAD(USER) CONCOPY
+
+TEXT     9   2  MAX  WT '&WMSG'
+
+TEXT    11 2  CH 'Instructions'
+
+TEXT    12 5  NT 'Press'
+TEXT    12 11 PS 'Enter'
+TEXT    12 17 NT 'to confirm copy'
+
+TEXT    13 5  NT 'Enter'
+TEXT    13 11 PS 'Cancel'
+TEXT    13 18 NT 'or'
+TEXT    13 21 PS 'End'
+TEXT    13 25 NT 'to cancel copy'
+
+)INIT
+.CURSOR = CONCOPY
+.HELP   = DIFH0001
+&ZCMD1  = &Z
+
+IF (&WMSG EQ &Z) &CONCOPY = '/'
+ELSE             &CONCOPY = &Z
+
+)PROC
+IF (&ZCMD1 EQ END,CANCEL)
+  .RESP = END
+  EXIT
+
+IF (&ZCMD1 NE &Z)
+   .MSG    = PSYS011C
+   .CURSOR = ZCMD1
+   EXIT
+
+VER (&CONCOPY NB,LIST,/)
+
+)PNTS
+FIELD(ZPS01001) VAR(ZCMD1) VAL(' ')
+FIELD(ZPS01002) VAR(ZCMD1) VAL(CANCEL)
+FIELD(ZPS01003) VAR(ZCMD1) VAL(END)
+
+)FIELD
+FIELD(ENTRY1) LEN(4095) IND(ENTR1IND)
+FIELD(ENTRY2) LEN(4095) IND(ENTR2IND)
+
+)END
+/* -------------------------------------------------------- */
+/* lspf - ISPF for Linux                                    */
+/* Copyright (C) 2021 GPL V3 - Daniel John Erdos            */
+/* -------------------------------------------------------- */
