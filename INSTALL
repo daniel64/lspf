@@ -43,16 +43,16 @@ Boost and ncurses required to compile lspf.cpp.
 Environmental variables HOME and LOGNAME are required to be setup.  lspf will fail to start without them.
 SHELL is also used, but not a requirement.  .SHELL command will not work if this variable is not set.
 
-Optional OOREXX for panel REXX support, PANEXIT, POREXX1.cpp (OOREXX interface module for writing lspf applications in REXX) and PEDRXM1.cpp (edit
+Optional OOREXX for panel REXX support, PANEXIT, porexx1.cpp (OOREXX interface module for writing lspf applications in REXX) and pedrxm1.cpp (edit
 macro interface module for writing edit macros in REXX).
 
 Other Application dependencies
 ------------------------------
-file required for PBRO01A.cpp as it is linked with -lmagic.
-grep and xargs required for PFLST0A.cpp for the SRCHFOR command.
-which required for PCMD0A.cpp to check a command exists.
-grc optional for PCMD0B.cpp to colour output.
-udev, systemd and nethogs (optional - default without) for PSYSUTL.cpp
+file required for pbrO01a.cpp as it is linked with -lmagic.
+grep and xargs required for pflst0a.cpp for the SRCHFOR command.
+which required for pcmd0a.cpp to check a command exists.
+grc optional for pcmd0b.cpp to colour output.
+udev, systemd and nethogs (optional - default without) for psysutl.cpp
 
 Run lspf in a terminal.
 
@@ -76,7 +76,7 @@ Set PNL_REXX to 0 in lspf.h if REXX is not installed.
 
 EDIT MACROS
 -----------
-These can be written in REXX or C++.  For C++ macros, the class must inherit from PEDMCP1 and implement virtual method start_pgm().
+These can be written in REXX or C++.  For C++ macros, the class must inherit from pedmcp1 and implement virtual method start_pgm().
 
 
 On upgrade:

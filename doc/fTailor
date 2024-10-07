@@ -49,7 +49,7 @@ Notes:
 ------
 1) Built-in functions are not implemented.
 
-2) )IF, )ELSE and )SETF are not been implemented.
+2) )IF, )ELSE and )SETF are not implemented.
 
 3) Continuation via the ? character, is not implemented.
 
