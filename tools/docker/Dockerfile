@@ -31,6 +31,9 @@ ENV HOME=/root
 ENV LOGNAME=root
 ENV SHELL=/usr/sbin/bash
 ENV PATH=/lspf/src:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+
+RUN    /lspf/src/setup
 
 # Default command  when the container launches
 CMD bash
