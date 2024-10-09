@@ -4,9 +4,9 @@ OPTS1="-O0 -Wall -Wno-switch -Wno-int-in-bool-context -Wunused-variable -Wtautol
 OPTS2="-std=c++11 -rdynamic"
 
 #  Without panel/ft REXX support
-#LNK1="-lpanel -ltinfo -lncurses -lboost_thread -lboost_filesystem -lboost_system -lboost_chrono -ldl -lpthread"
+#LNK1="-lpanel -ltinfo -lncurses -lboost_regex -lboost_thread -lboost_filesystem -lboost_system -lboost_chrono -ldl -lpthread"
 
 #  With panel/ft REXX support
-LNK1="-lpanel -ltinfo -lncurses -lboost_thread -lboost_filesystem -lboost_system -lboost_chrono -ldl -lpthread -lrexx -lrexxapi"
+LNK1="-lpanel -ltinfo -lncurses -lboost_regex -lboost_thread -lboost_filesystem -lboost_system -lboost_chrono -ldl -lpthread -lrexx -lrexxapi"
 
-g++ $OPTS1 $OPTS2 -o lspf $LNK1 lspf.cpp
+g++ $OPTS1 $OPTS2 -o lspf lspf.cpp $LNK1

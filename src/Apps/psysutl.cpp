@@ -623,7 +623,7 @@ void psysutl::showSystemUsage_stats( vector<string>& v )
 
 	v.clear() ;
 
-	ifstream if_procstats( _PATH_PROC_STAT ) ;
+	std::ifstream if_procstats( _PATH_PROC_STAT ) ;
 
 	while ( getline( if_procstats, line ) )
 	{
@@ -644,7 +644,7 @@ void psysutl::showSystemUsage_vmstats( vector<string>& v )
 
 	v.clear() ;
 
-	ifstream if_pvmstats( _PATH_PROC_VMSTAT ) ;
+	std::ifstream if_pvmstats( _PATH_PROC_VMSTAT ) ;
 
 	while ( getline( if_pvmstats, line ) )
 	{
@@ -1563,7 +1563,7 @@ void psysutl::showDisks_mount( const string& partition )
 void psysutl::showDisks_unmount( const string& partition )
 {
 	//
-	// Unount a file system using udisksctl.
+	// Unmount a file system using udisksctl.
 	//
 
 	int rc ;
@@ -1640,7 +1640,7 @@ void psysutl::showDEV_diskstats( const string& dev )
 
 	while ( RC == 0 )
 	{
-		ifstream if_diskstats( _PATH_PROC_DISKSTATS ) ;
+		std::ifstream if_diskstats( _PATH_PROC_DISKSTATS ) ;
 		while ( getline( if_diskstats, line ) )
 		{
 			if ( word( line, 3 ) == dev1 )
@@ -2912,7 +2912,7 @@ void psysutl::showNetwork_stats( const string& netif,
 	string line ;
 	string key = netif + ":" ;
 
-	ifstream if_devnet( _PATH_PROC_NETDEV ) ;
+	std::ifstream if_devnet( _PATH_PROC_NETDEV ) ;
 
 	getline( if_devnet, line ) ;
 	getline( if_devnet, line ) ;
@@ -5366,7 +5366,7 @@ void psysutl::get_swaps( set<string>& swaps )
 
 	string line ;
 
-	ifstream if_swaps( _PATH_PROC_SWAPS ) ;
+	std::ifstream if_swaps( _PATH_PROC_SWAPS ) ;
 
 	getline( if_swaps, line ) ;
 
@@ -5390,7 +5390,7 @@ string psysutl::get_processor( string& vendor )
 	string model ;
 	string line ;
 
-	ifstream if_cpuinfo( _PATH_PROC_CPUINFO ) ;
+	std::ifstream if_cpuinfo( _PATH_PROC_CPUINFO ) ;
 
 	while ( getline( if_cpuinfo, line ) )
 	{

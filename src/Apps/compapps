@@ -3,7 +3,7 @@ OPTS1="-O0 -Wall -Wno-switch -Wno-int-in-bool-context -Wunused-variable -Wtautol
 
 OPTS2="-shared -fPIC -std=c++11"
 
-g++ $OPTS1 $OPTS2 -Wl,-soname,libpbro01a.so  -o libpbro01a.so -Wno-sign-compare -lmagic pbro01a.cpp
+g++ $OPTS1 $OPTS2 -Wl,-soname,libpbro01a.so  -o libpbro01a.so -Wno-sign-compare pbro01a.cpp -lmagic
 g++ $OPTS1 $OPTS2 -Wl,-soname,libpcmd0a.so   -o libpcmd0a.so  pcmd0a.cpp
 g++ $OPTS1 $OPTS2 -Wl,-soname,libpcmd0b.so   -o libpcmd0b.so  pcmd0b.cpp
 g++ $OPTS1 $OPTS2 -Wl,-soname,libpdiff0a.so  -o libpdiff0a.so pdiff0a.cpp
@@ -19,8 +19,8 @@ g++ $OPTS1 $OPTS2 -Wl,-soname,libporexx1.so  -o libporexx1.so  porexx1.cpp
 g++ $OPTS1 $OPTS2 -Wl,-soname,libppsp01a.so  -o libppsp01a.so  ppsp01a.cpp
 g++ $OPTS1 $OPTS2 -Wl,-soname,libpedumac1.so -o libpedumac1.so pedumac1.cpp
 g++ $OPTS1 $OPTS2 -Wl,-soname,libpshell0.so  -o libpshell0.so pshell0.cpp
-#g++ $OPTS1 $OPTS2 -Wl,-soname,libpsysutl.so  -o libpsysutl.so -ludev -lnethogs -lsystemd psysutl.cpp
-g++ $OPTS1 $OPTS2 -Wl,-soname,libpsysutl.so  -o libpsysutl.so -ludev -lsystemd psysutl.cpp
+#g++ $OPTS1 $OPTS2 -Wl,-soname,libpsysutl.so  -o libpsysutl.so psysutl.cpp -ludev -lnethogs -lsystemd
+g++ $OPTS1 $OPTS2 -Wl,-soname,libpsysutl.so  -o libpsysutl.so psysutl.cpp -ludev -lsystemd
 g++ $OPTS1 $OPTS2 -Wl,-soname,libptest01.so  -o libptest01.so ptest01.cpp
 g++ $OPTS1 $OPTS2 -Wl,-soname,libptestm1.so  -o libptestm1.so ptestm1.cpp
 g++ $OPTS1 $OPTS2 -Wl,-soname,libptutora.so  -o libptutora.so ptutora.cpp
