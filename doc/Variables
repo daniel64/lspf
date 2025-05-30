@@ -9,7 +9,7 @@ Function pools are automatically created with entries for:
 	int    ZTDVROWS
 	string ZERR1
 	string ZERR2
-	stirng ZAPPNAME
+	string ZAPPNAME
 
 
 Variables pre-set when the application starts:

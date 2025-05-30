@@ -263,7 +263,7 @@ Not well tested. Any number of keys supported.
 
 Additional Services
 ===================
-rdisplay() - Issue line output synchronously.  Control returns to the appliction after
+rdisplay() - Issue line output synchronously.  Control returns to the application after
              each line issued.
 say()      - Like rdisplay but does not set the return code.
 pull()     - Gets data from the user in line mode.

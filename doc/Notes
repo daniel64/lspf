@@ -30,7 +30,7 @@ Loads! some good, and some bad but in no particular order...
     as FIELDEXC.  This way the tab key can be used to expand file names (or anything else depending on the
     field execute program invoked)
 15) On returning from calling a program via a SELECT, special variables ZRC, ZRSN and ZRESULT are returned
-    ZRC and ZRSN are interger values.
+    ZRC and ZRSN are integer values.
     ZRESULT is a string.
 16) Each application runs in its own thread so if an application fails and the exception is trapped, only that
     thread is terminated, not the whole logical screen.  In a nested dialogue, this termination is propagated back
@@ -63,9 +63,9 @@ Loads! some good, and some bad but in no particular order...
     ISPFILU   ZFILU   File tailoring user output library
     The standard library ISPF name is also an alias for the lspf name, eg ISPMLIB can be used as well as ZMLIB in a LIBDEF statement.
 20) If LIBRARY specified on TBSAVE or TBCLOSE, or for the ZTABL default, a search is made of the
-    concatination and the table added to where it is found.  If not found, the first directory is used.
-    Real ISPF just adds the table to the first dataset in the concatination.
-21) The LIBRARY statement on various services, accepts a path, concatination of paths, a file allocation, or a
+    concatenation and the table added to where it is found.  If not found, the first directory is used.
+    Real ISPF just adds the table to the first dataset in the concatenation.
+21) The LIBRARY statement on various services, accepts a path, concatenation of paths, a file allocation, or a
     LIBDEF lib-type (generic or non-generic).
 22) Panels can have an ACTIONBAR statement in the BODY section to order or display only certain pull down
     menus.  A pull down menu not in the ACTIONBAR statement will be deleted.  If there is no ACTIONBAR statement,
@@ -81,7 +81,7 @@ Loads! some good, and some bad but in no particular order...
     scroll request is performed, the first )AREA section is scrolled.
 26) Short message size limited to 34 bytes instead of 24 bytes.
 27) ACTIONS accepts a pd choice number as well as a mnemonic.
-    eg.  ACTIONS M 3 will display the Menu pulldown with the Edit choice hilighted.
+    eg.  ACTIONS M 3 will display the Menu pulldown with the Edit choice highlighted.
 28) Message and panel file names can be upper or lower case.  A search is first done in upper case, then lower.
     Panel and message names in dialogue services must still be in upper case as must message id's within a
     message file.
@@ -97,12 +97,12 @@ Loads! some good, and some bad but in no particular order...
     Valid non-CUA types are CHAR, DATAIN, DATAOUT, INPUT, OUTPUT and TEXT.
     AB and ABSL are not supported as they are not created using attributes.
 32) Only a subset of file tailoring control statements have been implemented.  Builtin functions are not implemented.
-33) For panel REXX, many of the ISPF restrictions when dealing with dialogue variables don't apply - the lenght of a variable's value can
+33) For panel REXX, many of the ISPF restrictions when dealing with dialogue variables don't apply - the length of a variable's value can
     be changed, for example.  Variables are set between lspf and REXX using the REXX initialisation and termination exits so there is
     no equivalent of the ISPPRXVP module.  No code is added to the REXX procedure and so there is no problem using the REXX EXIT statement.
     This is also true of REXX compiled with rexxc.
 34) PANEXIT statement only REXX and LOAD are supported.  There is no need for module ISPREXPV as the REXX variables are set by the REXX
-    initialisaiton/termination exits (ie. PANELNAME, PANELSECTION, MSGID, EXDATA, VARNAMES.n, VARVALS.n and VARLENS.n).
+    initialisation/termination exits (ie. PANELNAME, PANELSECTION, MSGID, EXDATA, VARNAMES.n, VARVALS.n and VARLENS.n).
 35) With scrollable fields, you can insert and delete characters even when the visible field is full.  Characters will automatically
     move off the end of the field or be retrieved from the right-hand unseen portion of the field.  This also applies to deleting whole words
     (CTRL-SHIFT-DEL).
