@@ -37,7 +37,7 @@ It is preferable to stick to ISPF panel coding restrictions in case lspf impleme
 If lspf has been compiled with REXX support (REXX_SUP in lspf.h), simple native ISPF panels are supported.  This is achieved
 by calling REXX panconv internally to convert the ISPF panel to lspf format.  This is done whenever a panel does not have a )PANEL
 statement or when the FORMAT= keyword is missing from the )PANEL statement.  REXX panconv must be in a library allocated to ZORXPATH.
-There are a number of restictions on the statements supported - see panconv REXX for more details.
+There are a number of restrictions on the statements supported - see panconv REXX for more details.
 If variable model lines are used in the ISPF panel, the panel is reloaded each time the variable changes, increasing the overhead.
 
 panconv can also be called manually to create a permanent lspf version of the ISPF panel.
@@ -84,7 +84,7 @@ PANELDESC  Description of the panel.  Appears in the Task List (SWAP LIST) if de
 
 TEXT       row column (len) cuaFieldType display_text
            row column (len) ATTR(char)   display_text - char must be a valid type for text fields in the )ATTR section.
-           Optional len can be numeric, MAX or MAX-n.  If omitted, code the string long enough to accomodate any variables
+           Optional len can be numeric, MAX or MAX-n.  If omitted, code the string long enough to accommodate any variables
            after substitution or truncation may occur.
 
            display_text can be EXPAND x to create a repeating string up to the maximum width of the panel.
